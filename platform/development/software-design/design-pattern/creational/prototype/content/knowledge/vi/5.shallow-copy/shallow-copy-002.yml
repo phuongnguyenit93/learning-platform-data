@@ -1,0 +1,3 @@
+menuLevel1: Shallow copy
+menuLevel2: Field immutable có thể chia sẻ và field mutable gây aliasing
+status: ""

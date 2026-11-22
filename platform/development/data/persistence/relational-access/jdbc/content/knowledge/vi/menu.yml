@@ -1,0 +1,455 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - JDBC là gì và giải quyết vấn đề truy cập dữ liệu nào
+  - Vai trò của JDBC giữa mã Java và cơ sở dữ liệu quan hệ
+  - Phân biệt JDBC, SQL, driver và hệ quản trị cơ sở dữ liệu
+  - Phân biệt JDBC thuần, Spring JDBC, MyBatis và ORM
+  - Luồng xử lý từ mở kết nối đến đọc kết quả và giải phóng tài nguyên
+  - Các kiến thức SQL và giao dịch cần có trước khi học JDBC
+  - Mối liên hệ giữa bảng, hàng, cột và đối tượng Java
+  - Phân biệt truy vấn, cập nhật và thao tác quản trị dữ liệu
+  - Ranh giới trách nhiệm của ứng dụng, driver và cơ sở dữ liệu
+  - Các thuật ngữ cốt lõi và trình tự học JDBC
+- level1: Kiến trúc JDBC
+  level2:
+  - Vai trò của các gói java.sql và javax.sql
+  - Mối quan hệ giữa Connection, Statement và ResultSet
+  - Vai trò của Driver và DriverManager
+  - Vai trò của DataSource và cơ chế cấp phát kết nối
+  - Phân biệt kết nối vật lý và kết nối logic
+  - Phân biệt DataSource thông thường, kết nối có pool và kết nối XA
+  - Phạm vi chuẩn JDBC và các phần mở rộng riêng của driver
+  - Kiểm tra năng lực hỗ trợ trước khi sử dụng tính năng tùy chọn
+  - Sử dụng Wrapper, isWrapperFor và unwrap khi thật sự cần
+  - Đặt ranh giới giữa lớp truy cập dữ liệu và logic nghiệp vụ
+- level1: Driver và cấu hình
+  level2:
+  - Lựa chọn driver phù hợp với hệ quản trị và môi trường Java
+  - Khai báo dependency driver và quản lý xung đột phiên bản
+  - Cơ chế phát hiện driver và vai trò của Class.forName trong mã cũ
+  - Cấu trúc JDBC URL và thuộc tính kết nối
+  - Truyền thông tin kết nối qua cấu hình và Properties
+  - Phân biệt lỗi không tìm thấy driver và lỗi không kết nối được máy chủ
+  - Cấu hình xác thực, mã hóa đường truyền và kiểm tra chứng chỉ
+  - Cấu hình catalog, schema và thông số phiên làm việc
+  - Kiểm tra phiên bản driver và khả năng tương thích máy chủ
+  - Quản lý driver trong môi trường có nhiều bộ nạp lớp
+- level1: Quản lý kết nối
+  level2:
+  - Mở kết nối bằng DriverManager
+  - Cấp phát kết nối thông qua DataSource
+  - Lựa chọn chủ sở hữu và phạm vi sống của Connection
+  - Kiểm tra isClosed và isValid theo đúng mục đích
+  - Đọc và thay đổi autoCommit
+  - Thiết lập readOnly, catalog và schema
+  - Thiết lập mức cô lập và kiểm tra giá trị đang có hiệu lực
+  - Quản lý trạng thái phiên khi tái sử dụng kết nối
+  - Phân biệt close, abort và mất kết nối ngoài ý muốn
+  - Phạm vi an toàn khi chia sẻ Connection giữa nhiều luồng
+  - Quản lý thông tin phiên và ngữ cảnh truy cập theo yêu cầu
+- level1: Vòng đời tài nguyên
+  level2:
+  - Chuỗi phụ thuộc giữa kết nối, câu lệnh và tập kết quả
+  - Đóng tài nguyên bằng try-with-resources
+  - Lựa chọn phạm vi tài nguyên theo một thao tác nghiệp vụ
+  - Phân biệt tài nguyên do phương thức tạo và tài nguyên được truyền vào
+  - Quản lý ResultSet khi Statement được thực thi lại hoặc đóng
+  - Đóng luồng dữ liệu và giải phóng tài nguyên LOB
+  - Xử lý ngoại lệ phát sinh trong lúc đóng tài nguyên
+  - Đọc ngoại lệ bị giữ lại qua getSuppressed
+  - Hành vi đóng kết nối khi giao dịch chưa kết thúc
+  - Phát hiện rò rỉ kết nối, câu lệnh và tập kết quả
+  - Thiết kế API không trả tài nguyên đã hết hiệu lực
+- level1: Thực thi SQL
+  level2:
+  - Vai trò và trường hợp sử dụng Statement
+  - Phân biệt executeQuery, executeUpdate và execute
+  - Đọc số dòng bị ảnh hưởng và phân biệt với số dòng kết quả
+  - Xử lý kết quả hỗn hợp gồm ResultSet và số dòng cập nhật
+  - Duyệt nhiều kết quả bằng getMoreResults
+  - Sử dụng executeLargeUpdate khi cần số đếm lớn
+  - Thực thi DDL và kiểm tra ảnh hưởng đến giao dịch theo hệ quản trị
+  - Giới hạn số dòng và kích thước trường cần đọc
+  - Cấu hình fetchSize và phân biệt với giới hạn kết quả
+  - Đánh giá tính khả chuyển của cú pháp và JDBC escape syntax
+  - Tách cấu trúc SQL khỏi giá trị dữ liệu do người dùng cung cấp
+- level1: Truy vấn tham số
+  level2:
+  - Vai trò của PreparedStatement và câu SQL có tham số
+  - Đánh số tham số và gán giá trị đúng vị trí
+  - Phân biệt tham số giá trị và cấu trúc câu SQL
+  - Lựa chọn phương thức setXxx và setObject
+  - Gán SQL NULL với kiểu dữ liệu phù hợp
+  - Xử lý chuyển đổi kiểu ngầm giữa Java, driver và cơ sở dữ liệu
+  - Tái sử dụng PreparedStatement và quản lý giá trị tham số cũ
+  - Xây dựng điều kiện tùy chọn mà không ghép trực tiếp giá trị
+  - Xử lý danh sách IN rỗng và danh sách tham số có độ dài thay đổi
+  - Xử lý ký tự đại diện trong điều kiện LIKE
+  - Phân biệt chuẩn bị câu lệnh phía driver và phía máy chủ
+  - Đánh giá giới hạn của PreparedStatement đối với bảo mật và hiệu năng
+- level1: Đọc ResultSet
+  level2:
+  - Mô hình con trỏ và vị trí trước bản ghi đầu tiên
+  - Duyệt bản ghi bằng next và xử lý tập kết quả rỗng
+  - Đọc cột theo chỉ số và theo nhãn
+  - Đặt bí danh để tránh cột trùng tên khi nối bảng
+  - Lựa chọn getXxx và getObject theo kiểu cần nhận
+  - Phân biệt giá trị SQL NULL và giá trị mặc định của kiểu nguyên thủy
+  - Sử dụng wasNull ngay sau phép đọc có liên quan
+  - Xử lý cột thiếu, sai nhãn và chuyển đổi kiểu không hợp lệ
+  - Phân biệt thứ tự do SQL xác định và thứ tự xuất hiện tình cờ
+  - Kiểm tra trường hợp mong đợi không quá một bản ghi
+  - Quản lý thời gian tồn tại của dữ liệu đọc theo luồng
+- level1: Kiểu dữ liệu và NULL
+  level2:
+  - Mối quan hệ giữa kiểu Java, kiểu SQL và kiểu riêng của hệ quản trị
+  - Vai trò của Types, JDBCType và SQLType
+  - Lựa chọn kiểu Java nguyên thủy và kiểu bao
+  - Phân biệt NULL, chuỗi rỗng, giá trị 0 và giá trị mặc định
+  - Phân biệt truyền NULL và bỏ qua cột để dùng mặc định của bảng
+  - Xử lý giá trị boolean và các biểu diễn do driver hỗ trợ
+  - Gán và đọc dữ liệu nhị phân
+  - Gán kiểu tường minh khi driver không suy luận được
+  - Sử dụng getObject với lớp đích và kiểm tra hỗ trợ
+  - Kiểm tra mất thông tin khi chuyển kiểu
+  - Thiết kế quy ước null thống nhất ở biên truy cập dữ liệu
+- level1: Số và văn bản
+  level2:
+  - Lựa chọn kiểu số nguyên theo miền giá trị
+  - Xử lý tràn số và chuyển đổi giữa các kiểu số
+  - Bảo toàn độ chính xác với BigDecimal
+  - Quản lý precision, scale và quy tắc làm tròn
+  - Phân biệt số thập phân chính xác và số dấu phẩy động
+  - Đọc ghi chuỗi Unicode và kiểu văn bản quốc gia
+  - Phân biệt độ dài ký tự và kích thước byte của cột
+  - Xử lý khoảng trắng, giá trị bị cắt và cảnh báo chuyển đổi
+  - Đánh giá ảnh hưởng của collation tới so sánh và sắp xếp
+  - Bảo toàn định danh dạng chuỗi có số 0 đầu
+- level1: Ngày giờ và múi giờ
+  level2:
+  - Phân biệt ngày lịch, giờ trong ngày và thời điểm trên trục thời gian
+  - Ánh xạ DATE, TIME và TIMESTAMP theo ngữ nghĩa dữ liệu
+  - Sử dụng LocalDate, LocalTime và LocalDateTime với JDBC
+  - Sử dụng OffsetTime và OffsetDateTime khi driver hỗ trợ
+  - Phân biệt Instant và các kiểu thời gian không mang múi giờ
+  - Làm việc với java.sql.Date, Time và Timestamp trong mã cũ
+  - Ảnh hưởng của múi giờ JVM, phiên kết nối và máy chủ
+  - Xử lý chuyển đổi qua Calendar khi cần tương thích API cũ
+  - Kiểm tra độ chính xác phần giây và mất dữ liệu khi làm tròn
+  - Kiểm thử thời điểm chuyển giờ mùa hè và ranh giới ngày
+  - Thiết kế quy ước lưu và truy vấn thời gian nhất quán
+- level1: Ánh xạ bản ghi
+  level2:
+  - Tách logic đọc ResultSet khỏi logic thực thi SQL
+  - Ánh xạ một hàng thành đối tượng bất biến hoặc record
+  - Ánh xạ hàng kết quả vào đối tượng miền nghiệp vụ
+  - Xử lý cột nullable và thuộc tính tùy chọn
+  - Ánh xạ kết quả nối bảng có đối tượng con không tồn tại
+  - Gom nhiều hàng thành quan hệ một-nhiều
+  - Tránh tạo trùng đối tượng khi kết quả JOIN nhân số hàng
+  - Đọc dữ liệu tổng hợp không trùng mô hình bảng gốc
+  - Phát hiện sai khác giữa mô hình Java và lược đồ truy vấn
+  - Thiết kế lỗi ánh xạ có đủ thông tin mà không lộ dữ liệu nhạy cảm
+  - Đánh giá ánh xạ thủ công và ánh xạ dựa trên siêu dữ liệu
+- level1: CRUD và khóa sinh
+  level2:
+  - Thiết kế thao tác tạo, đọc, cập nhật và xóa bằng JDBC
+  - Kiểm tra số dòng bị ảnh hưởng để xác nhận điều kiện nghiệp vụ
+  - Phân biệt cập nhật toàn bộ và cập nhật một phần
+  - Sử dụng RETURN_GENERATED_KEYS khi tạo bản ghi
+  - Đọc khóa sinh bằng getGeneratedKeys
+  - Yêu cầu cột khóa cụ thể và kiểm tra hỗ trợ của driver
+  - Xử lý khóa ghép và khóa do ứng dụng tạo
+  - Lưu bản ghi cha-con với khóa được sinh trong cùng giao dịch
+  - Phân biệt câu lệnh trả khóa và cú pháp RETURNING riêng của hệ quản trị
+  - Thiết kế cập nhật có điều kiện theo phiên bản bản ghi
+  - Phân biệt xóa vật lý, xóa logic và ảnh hưởng đến truy vấn
+- level1: Giao dịch cơ bản
+  level2:
+  - Ranh giới giao dịch và vai trò của cùng một Connection
+  - Phân biệt autoCommit và giao dịch do ứng dụng điều khiển
+  - Bắt đầu phạm vi nghiệp vụ bằng cách thiết lập autoCommit phù hợp
+  - Xác nhận dữ liệu bằng commit
+  - Hoàn tác dữ liệu bằng rollback
+  - Thiết kế khối xử lý lỗi vẫn bảo toàn ngoại lệ ban đầu
+  - Xử lý lỗi rollback sau lỗi nghiệp vụ hoặc lỗi SQL
+  - Khôi phục trạng thái kết nối trước khi trả quyền sử dụng
+  - Phối hợp nhiều câu lệnh như một đơn vị nghiệp vụ
+  - Xử lý giao dịch chỉ đọc và giới hạn của gợi ý readOnly
+  - Phân biệt commit thành công, commit thất bại và kết quả chưa xác định
+  - Giữ giao dịch ngắn để giảm thời gian chiếm kết nối và khóa
+- level1: Giao dịch nâng cao
+  level2:
+  - Tạo savepoint có tên và không có tên
+  - Hoàn tác về savepoint và xác định phần thay đổi còn hiệu lực
+  - Giải phóng savepoint và kiểm tra hỗ trợ
+  - Phân biệt savepoint và giao dịch lồng thực sự
+  - Thiết kế quyền sở hữu giao dịch khi nhiều DAO được gọi chung
+  - Truyền Connection trong một ngữ cảnh giao dịch tường minh
+  - Xử lý trạng thái giao dịch sau khi một câu SQL thất bại
+  - Đánh giá ảnh hưởng của DDL và thao tác đặc thù tới ranh giới giao dịch
+  - Phân biệt giao dịch một kết nối và thay đổi trên nhiều nguồn dữ liệu
+  - Vai trò của XADataSource, XAConnection và bộ điều phối giao dịch
+  - Xử lý tác động ngoài cơ sở dữ liệu bằng thiết kế nhất quán phù hợp
+- level1: Cô lập và khóa
+  level2:
+  - Những hiện tượng đọc bẩn, đọc không lặp lại và bản ghi ma
+  - Đọc và thiết lập mức cô lập qua Connection
+  - Kiểm tra mức cô lập được driver và hệ quản trị hỗ trợ
+  - Phân biệt tên mức cô lập và hành vi thực tế của hệ quản trị
+  - Nhận diện cập nhật bị mất khi đọc sửa ghi
+  - Kiểm soát đồng thời lạc quan bằng cột phiên bản
+  - Khóa bi quan qua câu SQL phù hợp với hệ quản trị
+  - Phân biệt khóa của cơ sở dữ liệu và khóa đồng bộ trong JVM
+  - Nhận diện bế tắc (deadlock) và lỗi tuần tự hóa giao dịch
+  - Thiết kế thứ tự cập nhật để giảm xung đột khóa
+  - Thử lại toàn bộ giao dịch khi đáp ứng điều kiện an toàn
+  - Kiểm chứng tính cô lập bằng nhiều kết nối độc lập
+- level1: Lỗi và cảnh báo
+  level2:
+  - Đọc message, SQLState và mã lỗi riêng của nhà cung cấp
+  - Duyệt chuỗi SQLException bằng getNextException
+  - Phân biệt nguyên nhân gốc và lỗi phát sinh khi dọn tài nguyên
+  - Phân loại lỗi kết nối, cú pháp, ràng buộc và chuyển đổi dữ liệu
+  - Phân biệt lỗi tạm thời, lỗi không tạm thời và lỗi cần phục hồi kết nối
+  - Xử lý SQLTimeoutException và SQLFeatureNotSupportedException
+  - Xử lý BatchUpdateException cùng số đếm từng lệnh
+  - Đọc SQLWarning trên Connection, Statement và ResultSet
+  - Giữ ngữ cảnh SQL và loại tham số mà không ghi bí mật
+  - Chuyển ngoại lệ JDBC thành lỗi của lớp truy cập dữ liệu
+  - Thiết kế chính sách thử lại theo trạng thái giao dịch và tính lũy đẳng
+- level1: Xử lý theo lô
+  level2:
+  - Khi nào nên gom nhiều thao tác thành một lô
+  - Gom câu SQL bằng Statement.addBatch
+  - Gom bộ tham số bằng PreparedStatement.addBatch
+  - Thực thi lô và quản lý clearBatch
+  - Đọc update counts và các giá trị trạng thái đặc biệt
+  - Xử lý lô có lệnh thất bại và phần đã được thực thi
+  - Phối hợp batch với commit và rollback
+  - Lựa chọn kích thước lô theo bộ nhớ và giới hạn driver
+  - Tái sử dụng bộ tham số mà không làm sai dữ liệu từng bản ghi
+  - Phối hợp batch với khóa sinh và kiểm tra tính khả chuyển
+  - Sử dụng số đếm lớn với các API batch tương ứng
+  - Phân biệt batch JDBC và cơ chế nạp hàng loạt riêng của hệ quản trị
+- level1: Thủ tục lưu trữ
+  level2:
+  - Vai trò của CallableStatement
+  - Cú pháp JDBC để gọi procedure và function
+  - Gán tham số IN và đăng ký tham số OUT
+  - Xử lý tham số INOUT và giá trị trả về
+  - Lựa chọn kiểu SQL khi đăng ký tham số đầu ra
+  - Đọc nhiều ResultSet và số dòng cập nhật từ thủ tục
+  - Làm việc với con trỏ trả về khi driver hỗ trợ
+  - Phân biệt tham số theo vị trí và tham số theo tên
+  - Phối hợp thủ tục với giao dịch do ứng dụng quản lý
+  - Kiểm tra ảnh hưởng của logic và giao dịch bên trong thủ tục
+  - Đánh giá tính khả chuyển và chi phí bảo trì khi dùng thủ tục
+- level1: Siêu dữ liệu
+  level2:
+  - Khám phá khả năng hệ quản trị bằng DatabaseMetaData
+  - Đọc catalog, schema, bảng và cột theo phạm vi cần thiết
+  - Tra cứu khóa chính, khóa ngoại và chỉ mục
+  - Đọc thông tin kiểu dữ liệu và giới hạn được công bố
+  - Kiểm tra hỗ trợ giao dịch, batch và khóa sinh
+  - Kiểm tra hỗ trợ loại ResultSet, khả năng cập nhật và holdability
+  - Đọc nhãn cột và kiểu cột qua ResultSetMetaData
+  - Phân biệt tên cột gốc, bí danh và vị trí cột kết quả
+  - Sử dụng ParameterMetaData cùng giới hạn hỗ trợ của driver
+  - Xử lý mẫu tìm kiếm và ký tự thoát khi tra cứu siêu dữ liệu
+  - Tránh biến siêu dữ liệu thành giả định tuyệt đối về hành vi thực thi
+- level1: Dữ liệu lớn
+  level2:
+  - Phân biệt byte array, luồng nhị phân và BLOB
+  - Phân biệt String, luồng ký tự, CLOB và NCLOB
+  - Gán dữ liệu lớn bằng luồng đầu vào
+  - Đọc dữ liệu lớn mà không nạp toàn bộ vào bộ nhớ
+  - Xử lý độ dài được khai báo và độ dài chưa biết trước
+  - Quản lý vòng đời locator LOB và kết nối liên quan
+  - Sử dụng free để giải phóng tài nguyên LOB khi phù hợp
+  - Xử lý lỗi giữa chừng trong lúc truyền dữ liệu
+  - Kiểm tra giới hạn kích thước và chuyển đổi bảng mã
+  - Phối hợp dữ liệu lớn với giao dịch và thời gian giữ kết nối
+  - Đánh giá lưu dữ liệu trong cơ sở dữ liệu hoặc lưu ngoài và giữ tham chiếu
+- level1: Kiểu SQL nâng cao
+  level2:
+  - Làm việc với SQL Array và mảng giá trị Java
+  - Đọc ghi SQLXML và quản lý tài nguyên liên quan
+  - Làm việc với Struct và kiểu dữ liệu có cấu trúc
+  - Vai trò của SQLData, SQLInput và SQLOutput
+  - Ánh xạ kiểu tùy chỉnh qua type map của Connection
+  - Hiểu vai trò của Ref và RowId khi hệ quản trị hỗ trợ
+  - Xử lý UUID, JSON và các kiểu riêng qua cơ chế của driver
+  - Phân biệt kiểu chuẩn JDBC và lớp đối tượng do driver trả về
+  - Kiểm tra hỗ trợ trước khi dùng cấu trúc lồng hoặc kiểu đặc thù
+  - Thiết kế lớp chuyển đổi để cô lập phụ thuộc nhà cung cấp
+- level1: ResultSet nâng cao
+  level2:
+  - Phân biệt con trỏ chỉ tiến và con trỏ có thể cuộn
+  - Yêu cầu type và concurrency khi tạo Statement
+  - Di chuyển tới bản ghi đầu, cuối, trước và vị trí cụ thể
+  - Phân biệt kết quả nhạy và không nhạy với thay đổi dữ liệu
+  - Đánh giá chi phí bộ nhớ và tính khả chuyển của con trỏ cuộn
+  - Cập nhật hàng qua ResultSet có khả năng cập nhật
+  - Thêm, xóa và làm mới hàng qua API ResultSet
+  - Kiểm tra điều kiện để tập kết quả được phép cập nhật
+  - Phân biệt cập nhật ResultSet và câu SQL cập nhật tường minh
+  - Quản lý tập kết quả khi commit qua holdability
+  - Xác minh cấu hình yêu cầu và cấu hình thực tế được cấp
+- level1: RowSet ngoại tuyến
+  level2:
+  - Phân biệt ResultSet đang kết nối và dữ liệu có thể tách kết nối
+  - Vai trò của RowSet và RowSetProvider
+  - Sử dụng JdbcRowSet cho mô hình vẫn giữ kết nối
+  - Sử dụng CachedRowSet cho dữ liệu làm việc ngoại tuyến
+  - Xử lý thay đổi và xung đột khi đồng bộ lại dữ liệu
+  - Vai trò của FilteredRowSet và JoinRowSet
+  - Vai trò của WebRowSet trong biểu diễn XML
+  - Đánh giá chi phí bộ nhớ và giới hạn của dữ liệu tách kết nối
+  - Lựa chọn RowSet hoặc ánh xạ sang đối tượng ứng dụng
+- level1: Pool kết nối
+  level2:
+  - Vì sao tạo mới kết nối cho từng thao tác gây chi phí
+  - Luồng mượn, sử dụng, đóng logic và tái sử dụng kết nối
+  - Phân biệt pool JDBC và DataSource do ứng dụng cung cấp
+  - Lựa chọn kích thước pool theo khả năng cơ sở dữ liệu
+  - Phân biệt thời gian chờ mượn và thời gian tạo kết nối
+  - Kiểm tra sức khỏe và loại bỏ kết nối hỏng
+  - Quản lý thời gian sống, thời gian nhàn rỗi và hoạt động giữ kết nối
+  - Khôi phục trạng thái giao dịch và phiên trước khi tái sử dụng
+  - Phát hiện rò rỉ và kết nối bị giữ quá lâu
+  - Quản lý PreparedStatement cache và giới hạn tài nguyên
+  - Phối hợp luồng ảo Java 21 với giới hạn kết nối thực tế
+  - Dừng pool có kiểm soát khi ứng dụng kết thúc
+- level1: Timeout và hủy
+  level2:
+  - Phân biệt timeout kết nối, mượn pool, truy vấn và mạng
+  - Cấu hình thời gian chờ đăng nhập phù hợp với DataSource
+  - Thiết lập query timeout trên Statement
+  - Thiết lập network timeout trên Connection
+  - Hủy câu lệnh bằng Statement.cancel và kiểm tra hỗ trợ
+  - Phân biệt ngắt luồng Java và hủy thao tác JDBC
+  - Xác định trạng thái kết nối và giao dịch sau timeout
+  - Xử lý kết nối bị treo hoặc không còn khả năng sử dụng
+  - Truyền giới hạn thời gian từ yêu cầu tới từng thao tác dữ liệu
+  - Thử lại sau timeout khi chưa biết kết quả ghi
+  - Kiểm thử hành vi timeout trên driver và môi trường thực tế
+- level1: Truy vấn quy mô lớn
+  level2:
+  - Phân biệt phân trang, giới hạn kết quả và chia khối truyền dữ liệu
+  - Phân trang theo offset và theo khóa
+  - Thiết kế ORDER BY ổn định với khóa phân trang duy nhất
+  - Đọc theo luồng và kiểm tra điều kiện do driver yêu cầu
+  - Lựa chọn fetchSize theo đặc điểm dữ liệu và mạng
+  - Giữ kết nối và giao dịch trong suốt thời gian tiêu thụ kết quả
+  - Xử lý người tiêu thụ chậm và áp lực ngược
+  - Tránh nạp toàn bộ ResultSet vào danh sách lớn
+  - Xử lý dữ liệu thay đổi trong lúc đọc nhiều trang
+  - Hủy quá trình đọc và đóng tài nguyên khi bên gọi dừng sớm
+  - Đối soát dữ liệu khi trích xuất nhiều phần
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian mượn kết nối, thực thi và ánh xạ kết quả
+  - Phân biệt nút thắt SQL, mạng, driver và mã Java
+  - Giảm số lượt trao đổi bằng truy vấn và batch phù hợp
+  - Chọn cột cần thiết thay vì lấy dữ liệu không dùng
+  - Tránh mô hình truy vấn N+1 trong DAO
+  - Đánh giá chỉ mục và kế hoạch thực thi từ phía cơ sở dữ liệu
+  - Phân biệt tái sử dụng câu lệnh và lưu kế hoạch thực thi
+  - Đánh giá tương tác giữa kiểu tham số và kế hoạch truy vấn
+  - Đo chi phí ánh xạ, chuyển kiểu và cấp phát đối tượng
+  - Giới hạn thời gian giữ giao dịch và kết nối
+  - Đo bằng dữ liệu đại diện thay vì chỉ dùng cơ sở dữ liệu giả lập
+- level1: Bảo mật truy cập
+  level2:
+  - Ngăn SQL injection bằng tham số hóa giá trị
+  - Kiểm soát tên bảng, tên cột và hướng sắp xếp bằng danh sách cho phép
+  - Thiết kế quyền cơ sở dữ liệu theo nhu cầu tối thiểu
+  - Quản lý mật khẩu và thông tin xác thực ngoài mã nguồn
+  - Bảo vệ đường truyền và xác minh máy chủ cơ sở dữ liệu
+  - Ngăn lộ dữ liệu nhạy cảm trong SQL log và tham số
+  - Phân tách schema hoặc nguồn dữ liệu theo phạm vi người dùng
+  - Bảo đảm điều kiện phân quyền luôn có trong truy vấn
+  - Giới hạn thời gian, số dòng và tài nguyên cho truy vấn
+  - Đánh giá rủi ro khi cho phép SQL động và thủ tục quyền cao
+  - Kiểm soát JDBC URL và thuộc tính kết nối từ nguồn không tin cậy
+- level1: Kiểm thử JDBC
+  level2:
+  - Phân biệt kiểm thử logic ánh xạ và kiểm thử tích hợp driver
+  - Thiết lập cơ sở dữ liệu thử nghiệm có lược đồ xác định
+  - Quản lý dữ liệu mẫu và cô lập giữa các bài kiểm thử
+  - Kiểm thử CRUD, khóa sinh và số dòng bị ảnh hưởng
+  - Kiểm thử NULL, Unicode, số thập phân và thời gian
+  - Kiểm thử commit, rollback và savepoint
+  - Kiểm thử cô lập và xung đột bằng nhiều Connection
+  - Kiểm thử batch thất bại và cập nhật một phần
+  - Kiểm thử timeout, hủy và mất kết nối
+  - Kiểm thử rò rỉ tài nguyên khi thao tác thất bại
+  - Sử dụng cơ sở dữ liệu thật trong container cho kiểm thử tích hợp
+  - Đánh giá khác biệt giữa cơ sở dữ liệu nhúng và hệ quản trị mục tiêu
+  - Kiểm thử tương thích khi thay driver hoặc phiên bản cơ sở dữ liệu
+- level1: DAO và Repository
+  level2:
+  - Phân biệt DAO, Repository và lớp dịch vụ nghiệp vụ
+  - Thiết kế hợp đồng trả một đối tượng, nhiều đối tượng và không có dữ liệu
+  - Tách SQL, gán tham số và ánh xạ kết quả
+  - Thiết kế quyền sở hữu Connection và ranh giới giao dịch
+  - Phối hợp nhiều DAO trong cùng thao tác nghiệp vụ
+  - Biểu diễn lỗi không tìm thấy, trùng khóa và xung đột cập nhật
+  - Tránh trả ResultSet hoặc luồng dữ liệu đã mất kết nối
+  - Thiết kế truy vấn động có cấu trúc và tham số rõ ràng
+  - Cô lập phần SQL đặc thù của hệ quản trị
+  - Giữ quy tắc nghiệp vụ ngoài mã quản lý tài nguyên JDBC
+  - Thiết kế bộ kiểm thử hợp đồng cho các triển khai truy cập dữ liệu
+- level1: Tích hợp Spring
+  level2:
+  - Vai trò của Spring JDBC trên nền API JDBC
+  - Dùng DataSource được cấu hình trong ứng dụng Spring
+  - Thực thi và ánh xạ bằng JdbcTemplate
+  - Truy vấn tham số có tên với NamedParameterJdbcTemplate
+  - Phân biệt quản lý kết nối thủ công và kết nối gắn với giao dịch Spring
+  - Vai trò của DataSourceUtils khi cần truy cập JDBC mức thấp
+  - Phối hợp DAO JDBC với giao dịch do Spring quản lý
+  - Chuyển SQLException thành hệ thống ngoại lệ truy cập dữ liệu
+  - Tránh tự commit hoặc đóng sai kết nối do framework sở hữu
+  - Đánh giá khi JDBC thuần hoặc lớp hỗ trợ Spring phù hợp hơn
+- level1: Giám sát vận hành
+  level2:
+  - Theo dõi kết nối đang dùng, kết nối nhàn rỗi và hàng chờ pool
+  - Theo dõi độ trễ truy vấn và phân bố thời gian thực thi
+  - Gắn mã tương quan giữa yêu cầu, giao dịch và thao tác SQL
+  - Ghi SQL và tham số theo chính sách bảo vệ dữ liệu
+  - Phát hiện truy vấn chậm và giao dịch giữ khóa lâu
+  - Theo dõi timeout, bế tắc và lỗi kết nối
+  - Phân biệt lỗi pool cạn và cơ sở dữ liệu không sẵn sàng
+  - Thu thập cảnh báo và mã lỗi phục vụ điều tra
+  - Chẩn đoán rò rỉ tài nguyên mà không làm tăng tải quá mức
+  - Xác minh khả năng phục hồi sau khi cơ sở dữ liệu khởi động lại
+- level1: Đa hệ quản trị
+  level2:
+  - Phân biệt tính khả chuyển API JDBC và tính khả chuyển SQL
+  - Kiểm tra quy tắc định danh, chữ hoa chữ thường và schema
+  - Đối chiếu kiểu boolean, số, văn bản và thời gian
+  - Đối chiếu khóa sinh, sequence và cú pháp trả dữ liệu
+  - Đối chiếu phân trang, upsert và khóa bi quan
+  - Đối chiếu hành vi NULL, chuỗi rỗng và so sánh chuỗi
+  - Kiểm tra mức cô lập và hành vi DDL trong giao dịch
+  - Kiểm tra khác biệt fetchSize, batch và nhiều kết quả
+  - Lập ma trận năng lực theo driver và hệ quản trị
+  - Chạy kiểm thử hợp đồng trước khi đổi nền cơ sở dữ liệu
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng DAO khách hàng bằng JDBC thuần
+  - Thực hiện CRUD với truy vấn tham số và khóa sinh
+  - Ánh xạ đơn hàng cùng danh sách chi tiết từ kết quả JOIN
+  - Chuyển tiền giữa hai tài khoản trong cùng giao dịch
+  - Tái hiện cập nhật bị mất và áp dụng kiểm soát phiên bản
+  - Nhập dữ liệu theo batch với chính sách rollback rõ ràng
+  - Đọc danh sách lớn theo từng phần mà không rò rỉ kết nối
+  - Lưu và đọc tài liệu lớn bằng luồng dữ liệu
+  - Gọi thủ tục có tham số IN, OUT và nhiều kết quả
+  - Mô phỏng timeout và kết quả commit chưa xác định
+  - Cấu hình pool và chẩn đoán tình huống cạn kết nối
+  - Đưa DAO vào ứng dụng Spring với ranh giới giao dịch đúng
+  - Nghiệm thu bằng kiểm thử tính đúng, bảo mật và hiệu năng

@@ -1,0 +1,52 @@
+roadmap:
+- id: tu-duy-cau-hinh-ben-ngoai
+  title: Tư duy cấu hình bên ngoài
+  purpose: Hiểu cách một ứng dụng dùng cấu hình khác nhau giữa các môi trường mà vẫn giữ cùng mã nguồn.
+  objectives:
+  - Phân biệt mã ứng dụng, khóa cấu hình, giá trị và nguồn thuộc tính (PropertySource).
+  - Giải thích vai trò của Environment và giá trị cấu hình có hiệu lực.
+- id: tep-va-du-lieu-cau-hinh
+  title: Tệp và dữ liệu cấu hình
+  purpose: Tổ chức dữ liệu cấu hình và xác định ứng dụng nạp chúng từ đâu.
+  objectives:
+  - Viết application.properties hoặc application.yaml; dùng cấu trúc lồng nhau và placeholder có giá trị mặc định.
+  - Phân biệt vị trí mặc định, spring.config.location, spring.config.additional-location và spring.config.import.
+- id: nguon-va-thu-tu-uu-tien
+  title: Nguồn và thứ tự ưu tiên
+  purpose: Giải thích được giá trị cuối cùng khi cùng một khóa xuất hiện ở nhiều nơi.
+  objectives:
+  - Đối chiếu tệp cấu hình, biến môi trường, thuộc tính JVM và tham số dòng lệnh qua một thí nghiệm ghi đè.
+  - Chuyển tên khóa sang biến môi trường đúng quy tắc; kiểm tra thời điểm nạp khi dùng @PropertySource.
+- id: profile-va-moi-truong
+  title: Profile và môi trường
+  purpose: Chọn tập cấu hình phù hợp với môi trường chạy một cách có kiểm soát.
+  objectives:
+  - Kích hoạt profile và dùng application-{profile} hoặc spring.config.activate.on-profile.
+  - Phân biệt active, default, include và nhóm profile; xác định nơi được phép khai báo chúng.
+- id: lien-ket-du-lieu-co-kieu
+  title: Liên kết dữ liệu có kiểu
+  purpose: Đưa cấu hình vào mã Java theo cấu trúc rõ ràng và kiểu dữ liệu phù hợp.
+  objectives:
+  - So sánh Environment, @Value và @ConfigurationProperties; đăng ký lớp hoặc record cấu hình.
+  - Kiểm tra liên kết tên linh hoạt (relaxed binding), đối tượng lồng nhau, List và Map.
+  - Đối chiếu quy tắc ghi đè tập hợp và chuyển đổi kiểu như Duration, DataSize.
+- id: hop-dong-cau-hinh-hop-le
+  title: Hợp đồng cấu hình hợp lệ
+  purpose: Phát hiện đầu vào không hợp lệ sớm và giúp người dùng hiểu các khóa được hỗ trợ.
+  objectives:
+  - Dùng @Validated và Jakarta Bean Validation, kể cả cấu hình lồng nhau, để từ chối giá trị không hợp lệ.
+  - Tạo metadata bằng spring-boot-configuration-processor; phân biệt gợi ý IDE với kiểm tra giá trị khi chạy.
+- id: trien-khai-va-bi-mat
+  title: Triển khai và bí mật
+  purpose: Cấp cấu hình theo môi trường và bảo vệ các giá trị nhạy cảm.
+  objectives:
+  - Nạp tệp ngoài JAR hoặc cấu hình gắn vào container bằng configtree:; phân biệt nguồn bắt buộc với optional:.
+  - Cấp mật khẩu và token qua nguồn được quản lý riêng; giữ bí mật khỏi mã nguồn, nhật ký và đầu ra chẩn đoán.
+- id: kiem-thu-va-chan-doan
+  title: Kiểm thử và chẩn đoán
+  purpose: Chứng minh ứng dụng nhận đúng cấu hình và tìm được nguồn gây sai lệch.
+  objectives:
+  - Kiểm thử giá trị ghi đè, profile, liên kết kiểu và lỗi kiểm tra hợp lệ bằng @SpringBootTest cùng nguồn thuộc tính cho
+    kiểm thử.
+  - Truy vết qua Environment và các endpoint env/configprops khi được bảo vệ phù hợp.
+  - Phân biệt thay đổi nguồn cấu hình với cơ chế tải lại khi ứng dụng đang chạy; kiểm chứng thay vì giả định.

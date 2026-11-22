@@ -1,0 +1,279 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data KeyValue là gì và giải quyết vấn đề nào
+  - Vị trí của KeyValue trong hệ sinh thái Spring Data
+  - Mối liên hệ giữa khóa, giá trị, keyspace, entity và repository
+  - Luồng xử lý từ Repository qua Template đến Adapter
+  - Phân biệt Spring Data KeyValue, Java Map và cơ sở dữ liệu khóa–giá trị
+  - Phân biệt lưu trữ đối tượng với bộ nhớ đệm Spring Cache
+  - Trường hợp phù hợp và giới hạn của giải pháp lưu trong bộ nhớ
+  - Kiến thức tiên quyết và trình tự học từ cơ bản đến mở rộng
+- level1: Nền tảng khóa–giá trị
+  level2:
+  - Cấu trúc cặp khóa–giá trị và cách tra cứu bằng khóa
+  - Không gian khóa và phạm vi duy nhất của định danh
+  - Tra cứu trực tiếp theo khóa và tìm kiếm theo thuộc tính
+  - Mô hình đối tượng lưu trữ và ranh giới đối tượng gốc
+  - Biểu diễn quan hệ bằng định danh hoặc dữ liệu lồng nhau
+  - Đặc điểm lưu trữ trong tiến trình và mất dữ liệu khi khởi động lại
+  - Tính bền vững, tính nhất quán và tính sẵn sàng trong lựa chọn kho lưu trữ
+  - Giới hạn của mô hình khi cần phép nối, ràng buộc và truy vấn phức tạp
+- level1: Khởi tạo dự án
+  level2:
+  - Lựa chọn Java, Spring Framework và Spring Data tương thích
+  - Khai báo spring-data-keyvalue bằng Maven hoặc Gradle
+  - Quản lý phiên bản bằng Spring Boot BOM hoặc Spring Data BOM
+  - Phân biệt thư viện spring-data-keyvalue với starter của kho dữ liệu cụ thể
+  - Tổ chức mã nguồn cấu hình, mô hình, repository và dịch vụ
+  - Khởi tạo ứng dụng Spring với một entity và một Map repository
+  - Chạy ví dụ lưu, đọc, cập nhật và xóa đầu tiên
+- level1: Cấu hình lưu trữ
+  level2:
+  - Kích hoạt Map repository bằng @EnableMapRepositories
+  - Giới hạn quét repository bằng basePackages và basePackageClasses
+  - Khai báo bean KeyValueAdapter và KeyValueOperations
+  - Kết nối KeyValueTemplate với MapKeyValueAdapter
+  - Vai trò tên bean mapKeyValueTemplate và keyValueTemplateRef
+  - Lựa chọn mapType và quan hệ với adapter được cấu hình tường minh
+  - Cấu hình nhiều Template và tách phạm vi repository
+  - Quản lý cấu hình theo môi trường và profile của Spring
+  - Vòng đời ApplicationContext, Template và adapter
+- level1: Mô hình đối tượng
+  level2:
+  - Thiết kế POJO cho dữ liệu khóa–giá trị
+  - Nhận diện thuộc tính định danh bằng org.springframework.data.annotation.Id
+  - Vai trò của kiểu thuộc tính, getter và setter khi truy vấn
+  - Thuộc tính lồng nhau, collection và giới hạn truy cập đường dẫn
+  - Đối tượng có thể thay đổi và ảnh hưởng của việc chia sẻ tham chiếu
+  - Phân biệt metadata ánh xạ với chuyển đổi hoặc tuần tự hóa dữ liệu
+  - Kế thừa kiểu dữ liệu và cách tổ chức đối tượng trong cùng keyspace
+  - Thiết kế ranh giới dữ liệu và kiểm tra hợp lệ ở tầng dịch vụ
+- level1: Định danh
+  level2:
+  - Chọn kiểu ID và giữ nhất quán giữa entity với repository
+  - Phân biệt khóa nghiệp vụ và khóa kỹ thuật
+  - Gán ID trước khi lưu và quy tắc nhận diện đối tượng mới
+  - Sinh ID tự động và các kiểu ID được hỗ trợ theo phiên bản
+  - Tùy chỉnh chiến lược sinh khóa bằng IdentifierGenerator
+  - Truyền ID tường minh khi thao tác với KeyValueTemplate
+  - Đối chiếu ID truyền vào với ID trên đối tượng
+  - Khóa trùng, ID null và khác biệt giữa kiểu nguyên thủy với kiểu bao
+  - Giữ ID ổn định và xử lý yêu cầu thay đổi khóa
+- level1: Keyspace
+  level2:
+  - Keyspace là gì và cách phân vùng đối tượng
+  - Keyspace mặc định suy ra từ tên lớp
+  - Đặt tên keyspace tường minh bằng @KeySpace
+  - Phạm vi trùng ID giữa cùng và khác keyspace
+  - Kế thừa @KeySpace và lọc kết quả theo kiểu đối tượng
+  - Giới hạn an toàn khi nhiều kiểu dữ liệu dùng chung keyspace
+  - Tạo annotation kết hợp với @KeySpace, @Persistent và @AliasFor
+  - Phân giải keyspace bằng KeySpaceResolver
+  - Ảnh hưởng của đổi tên lớp hoặc keyspace đến dữ liệu hiện có
+- level1: Lưu trữ Map
+  level2:
+  - Cấu trúc Map theo keyspace bên trong MapKeyValueAdapter
+  - ConcurrentHashMap làm cấu trúc lưu trữ mặc định
+  - Lựa chọn Map khác và yêu cầu khởi tạo của adapter
+  - Khởi tạo adapter bằng cấu trúc Map có dữ liệu ban đầu
+  - Phân biệt Map bao ngoài và Map chứa dữ liệu từng keyspace
+  - Lưu tham chiếu đối tượng và hệ quả khi thay đổi đối tượng đã đọc
+  - Thứ tự duyệt Map và tính ổn định của kết quả
+  - Phạm vi tác động của xóa một khóa, xóa keyspace và clear toàn adapter
+  - Giải phóng dữ liệu và tài nguyên khi gọi destroy
+- level1: Thao tác Template
+  level2:
+  - Vai trò hợp đồng KeyValueOperations và lớp KeyValueTemplate
+  - Chèn đối tượng bằng insert với ID tự xác định hoặc truyền tường minh
+  - Phân biệt hành vi insert khi khóa mới và khóa đã tồn tại
+  - Đọc đối tượng bằng findById và xử lý Optional rỗng
+  - Đọc toàn bộ đối tượng theo kiểu bằng findAll
+  - Cập nhật đối tượng bằng update và xử lý khóa chưa tồn tại
+  - Phân biệt thay thế toàn bộ đối tượng với cập nhật từng thuộc tính
+  - Xóa theo đối tượng hoặc theo ID và kiểu dữ liệu
+  - Xóa toàn bộ dữ liệu theo kiểu và phạm vi keyspace liên quan
+  - Đếm dữ liệu theo kiểu bằng count
+  - Thao tác mức thấp bằng execute và KeyValueCallback
+  - Truy cập MappingContext và adapter khi cần mở rộng có kiểm soát
+- level1: Repository cơ bản
+  level2:
+  - Định nghĩa repository với kiểu entity và kiểu ID
+  - Lựa chọn CrudRepository hoặc KeyValueRepository theo nhu cầu
+  - Vai trò của các giao diện CRUD và phân trang theo phiên bản
+  - Lưu bằng save và cách SimpleKeyValueRepository chọn insert hoặc update
+  - Đọc bằng findById, findAll và findAllById
+  - Kiểm tra tồn tại bằng existsById và đếm bằng count
+  - Xóa bằng deleteById, delete và deleteAll
+  - Thao tác nhiều đối tượng bằng saveAll và các phương thức xóa tập hợp
+  - Xử lý giá trị trả về, đối tượng không tồn tại và thứ tự kết quả
+  - Phân biệt thao tác tập hợp với bảo đảm nguyên tử của toàn bộ thao tác
+- level1: Truy vấn Template
+  level2:
+  - Cấu trúc KeyValueQuery và vai trò kiểu dữ liệu tiêu chí
+  - Kết nối KeyValueQuery với QueryEngine tương ứng
+  - Tạo điều kiện bằng Predicate với bộ máy truy vấn hỗ trợ
+  - Tạo điều kiện bằng SpEL với SpelQueryEngine
+  - Kết hợp điều kiện so sánh, logic và kiểm tra giá trị null
+  - Truy cập thuộc tính lồng nhau và xử lý đường dẫn không hợp lệ
+  - Thực thi truy vấn bằng find, count và exists
+  - Giới hạn kết quả bằng offset, rows, skip và limit
+  - Quản lý EvaluationContext khi cần truy vấn SpEL có tham số
+  - Giới hạn độ tin cậy của biểu thức và tránh ghép dữ liệu đầu vào trực tiếp
+- level1: Truy vấn Repository
+  level2:
+  - Nguyên tắc suy diễn truy vấn từ tên phương thức
+  - Phân tách phần chủ đề, điều kiện và đường dẫn thuộc tính
+  - Truy vấn bằng điều kiện bằng, phủ định, And và Or
+  - 'Điều kiện chuỗi, so sánh và tập hợp: phạm vi hỗ trợ của QueryCreator'
+  - Giá trị null, thuộc tính lồng nhau và điều kiện không được hỗ trợ
+  - Truyền tham số và lựa chọn kiểu kết quả đơn hoặc tập hợp
+  - Xử lý truy vấn mong đợi một kết quả nhưng trả về nhiều đối tượng
+  - Sắp xếp tĩnh bằng OrderBy và sắp xếp động bằng Sort
+  - Giới hạn, phân trang và các kiểu trả về được hỗ trợ theo phiên bản
+  - Vai trò PredicateQueryCreator và khác biệt với SpelQueryCreator
+  - Phối hợp QueryCreator với QueryEngine để tránh sai kiểu tiêu chí
+  - Đọc lỗi khởi tạo repository khi tên phương thức không hợp lệ
+- level1: Sắp xếp và phân trang
+  level2:
+  - Xây dựng Sort theo một hoặc nhiều thuộc tính
+  - Lựa chọn chiều tăng, giảm và khóa phụ để ổn định thứ tự
+  - Áp dụng Sort vào Template, KeyValueQuery và repository
+  - Truy cập thuộc tính khi so sánh và xử lý giá trị null
+  - Vai trò SortAccessor và bộ so sánh thuộc tính
+  - Đọc một khoảng dữ liệu bằng findInRange
+  - Tạo PageRequest và đọc Page qua repository
+  - Phân biệt tổng số phần tử, kích thước trang và số trang
+  - Ảnh hưởng của dữ liệu thay đổi trong lúc lọc, đếm và phân trang
+- level1: Kiến trúc nội bộ
+  level2:
+  - Chuỗi gọi từ repository proxy đến SimpleKeyValueRepository và Template
+  - Vai trò KeyValueRepositoryFactoryBean và KeyValueRepositoryFactory
+  - EntityInformation và việc nhận diện đối tượng mới
+  - KeyValueMappingContext, PersistentEntity và PersistentProperty
+  - Phân giải ID, kiểu dữ liệu và keyspace từ metadata
+  - KeyValuePartTreeQuery và quá trình tạo truy vấn từ PartTree
+  - CachingKeyValuePartTreeQuery và phạm vi lưu kết quả phân tích truy vấn
+  - Vai trò AbstractKeyValueAdapter và hợp đồng KeyValueAdapter
+  - QueryEngine, CriteriaAccessor và SortAccessor trong thực thi truy vấn
+- level1: Sự kiện vòng đời
+  level2:
+  - KeyValueEvent và cơ chế phát sự kiện qua Spring
+  - Sự kiện trước và sau khi chèn hoặc cập nhật đối tượng
+  - Sự kiện trước và sau khi đọc hoặc xóa theo khóa
+  - Sự kiện trước và sau khi xóa keyspace
+  - Đăng ký ApplicationListener hoặc @EventListener
+  - Đọc khóa, keyspace, kiểu dữ liệu và dữ liệu kèm sự kiện
+  - Lựa chọn sự kiện được phát bằng setEventTypesToPublish
+  - Thứ tự thực thi, lỗi trong listener và ảnh hưởng đến thao tác dữ liệu
+  - Phân biệt sự kiện thao tác dữ liệu với cơ chế auditing cần cấu hình riêng
+- level1: Ngoại lệ
+  level2:
+  - Phân biệt lỗi cấu hình, lỗi ánh xạ, lỗi truy vấn và lỗi kho lưu trữ
+  - Hệ thống ngoại lệ org.springframework.dao và vai trò chuyển đổi ngoại lệ
+  - KeyValuePersistenceExceptionTranslator và UncategorizedKeyValueException
+  - Xử lý chèn trùng khóa và cập nhật đối tượng không tồn tại
+  - Xử lý ID null, sai kiểu ID và entity thiếu định danh
+  - Phân biệt kết quả rỗng hợp lệ với thao tác thất bại
+  - Kiểm tra hợp lệ, thông báo lỗi và ranh giới xử lý ở tầng dịch vụ
+  - Thiết kế thao tác lặp lại an toàn và điều kiện thử lại sau lỗi
+- level1: Truy cập đồng thời
+  level2:
+  - An toàn luồng của Map và an toàn luồng của đối tượng được lưu
+  - Phạm vi nguyên tử của một thao tác và chuỗi đọc–sửa–ghi
+  - Mất cập nhật khi nhiều luồng cùng sửa một đối tượng
+  - Điều kiện tranh chấp khi kiểm tra tồn tại rồi chèn dữ liệu
+  - Nhất quán khi duyệt Map, thực thi truy vấn và phân trang
+  - Lựa chọn khóa đồng bộ hoặc thao tác nguyên tử ở tầng thích hợp
+  - Giới hạn của @Transactional với adapter Map không có giao dịch
+  - Khóa lạc quan và kiểm tra phiên bản khi tự bổ sung cơ chế hỗ trợ
+  - Phạm vi bảo đảm trong một JVM và giới hạn khi chạy nhiều tiến trình
+- level1: Mở rộng Repository
+  level2:
+  - Lựa chọn phương thức suy diễn, Template hoặc mã repository tùy chỉnh
+  - Tổ chức repository fragment và lớp triển khai
+  - Kết hợp nhiều điều kiện động bằng KeyValueOperations
+  - Tái sử dụng hành vi chung bằng giao diện cơ sở và @NoRepositoryBean
+  - Tùy chỉnh repositoryBaseClass và repositoryFactoryBeanClass
+  - Cấu hình phạm vi quét và quy ước tìm lớp triển khai tùy chỉnh
+  - 'QuerydslKeyValueRepository: điều kiện tích hợp và khả năng hỗ trợ theo phiên bản'
+  - Giữ ranh giới giữa nghiệp vụ, repository và chi tiết adapter
+- level1: Adapter tùy chỉnh
+  level2:
+  - Khi nào cần triển khai KeyValueAdapter riêng
+  - Lựa chọn triển khai trực tiếp hoặc kế thừa AbstractKeyValueAdapter
+  - Thực hiện put, get, contains và delete theo khóa cùng keyspace
+  - Thực hiện count, getAllOf và deleteAllOf theo keyspace
+  - Duyệt entries bằng CloseableIterator và đóng tài nguyên
+  - Phân biệt clear toàn kho với xóa một keyspace
+  - Tích hợp QueryEngine có tiêu chí và kiểu sắp xếp tương thích
+  - Quy định chuyển đổi đối tượng và tuần tự hóa cho kho lưu trữ đích
+  - Chuyển đổi ngoại lệ, giải phóng tài nguyên và công bố giới hạn đồng thời
+  - Xây dựng bộ kiểm tra hợp đồng cho adapter mới
+- level1: Hiệu năng và bộ nhớ
+  level2:
+  - Chi phí tra cứu theo ID so với quét dữ liệu theo thuộc tính
+  - Chi phí lọc, đếm, sắp xếp và phân trang trên Map
+  - Ảnh hưởng số lượng entity, keyspace và kích thước đối tượng
+  - Đo độ trễ và thông lượng với dữ liệu cùng tải truy cập thực tế
+  - Giảm truy vấn lặp, giới hạn kết quả và tránh đọc toàn bộ không cần thiết
+  - Chi phí SpEL và điều kiện sử dụng biên dịch biểu thức
+  - Thiết kế chỉ mục bổ sung khi adapter có nhu cầu truy vấn lớn
+  - Quản lý kích thước dữ liệu, vòng đời đối tượng và áp lực GC
+  - Tiêu chí chuyển sang kho lưu trữ chuyên dụng khi vượt giới hạn
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị tầng dịch vụ và giới hạn của repository giả lập
+  - Kiểm thử tích hợp với Spring Context và MapKeyValueAdapter thật
+  - Tạo dữ liệu mẫu và cô lập adapter giữa các phép thử
+  - Kiểm tra CRUD, khóa trùng và ID được sinh hoặc gán trước
+  - Kiểm tra cách ly keyspace và entity có kế thừa
+  - Kiểm tra toán tử truy vấn, null và thuộc tính lồng nhau
+  - Kiểm tra thứ tự ổn định, phân trang và tổng số phần tử
+  - Kiểm tra sự kiện vòng đời và ngoại lệ của listener
+  - Kiểm tra thay đổi đối tượng qua tham chiếu được chia sẻ
+  - Tái hiện mất cập nhật và điều kiện tranh chấp bằng nhiều luồng
+  - Kiểm tra destroy, khởi tạo lại và hành vi mất dữ liệu
+- level1: Tích hợp ứng dụng
+  level2:
+  - Đưa repository vào tầng dịch vụ bằng constructor injection
+  - Thiết kế DTO và kiểm tra hợp lệ trước khi truy cập dữ liệu
+  - Xây dựng luồng nghiệp vụ qua Template hoặc repository
+  - Nạp dữ liệu ban đầu và tránh nạp lặp ngoài ý muốn
+  - Tách cấu hình lưu trữ thử nghiệm khỏi cấu hình môi trường thực
+  - Kết hợp nhiều mô-đun Spring Data và tách phạm vi repository
+  - Phân biệt dùng KeyValue làm kho chính với dùng Spring Cache
+  - Ranh giới tái sử dụng hạ tầng KeyValue trong Spring Data Redis
+- level1: Vận hành
+  level2:
+  - Đánh giá nguy cơ mất dữ liệu khi dừng, lỗi hoặc khởi động lại JVM
+  - Giới hạn dữ liệu, theo dõi bộ nhớ và tránh giữ đối tượng vô hạn
+  - 'TTL và loại bỏ dữ liệu: trách nhiệm bổ sung ngoài adapter Map mặc định'
+  - Theo dõi số lượng phần tử, độ trễ và lỗi ở tầng ứng dụng
+  - Kiểm soát quyền truy cập và xác thực tại ranh giới ứng dụng
+  - Không đưa dữ liệu nhạy cảm hoặc biểu thức không tin cậy vào log và truy vấn
+  - Cách ly dữ liệu theo nhóm sử dụng và giới hạn bảo mật của keyspace
+  - Đánh giá yêu cầu bền vững, chia sẻ dữ liệu và mở rộng nhiều tiến trình
+- level1: Chẩn đoán và nâng cấp
+  level2:
+  - Không tạo được repository do phạm vi quét hoặc cấu hình kích hoạt
+  - Thiếu hoặc trùng bean KeyValueOperations và sai keyValueTemplateRef
+  - Lỗi định danh, khóa trùng và không tìm thấy dữ liệu vừa lưu
+  - Lệch keyspace do annotation, kế thừa hoặc đổi tên lớp
+  - Lỗi đường dẫn thuộc tính, toán tử và kiểu tham số truy vấn
+  - Không khớp QueryCreator, QueryEngine hoặc SortAccessor
+  - Kết quả thay đổi do thứ tự Map hoặc tham chiếu đối tượng dùng chung
+  - Phân tích phụ thuộc để tìm xung đột phiên bản Spring Data
+  - Đối chiếu thay đổi API và mặc định truy vấn giữa các dòng phiên bản
+  - Kiểm thử hồi quy khi nâng cấp hoặc thay adapter lưu trữ
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng kho danh mục sản phẩm trong bộ nhớ bằng Map repository
+  - Cài đặt cùng một luồng CRUD bằng Repository và KeyValueTemplate
+  - Tách dữ liệu theo keyspace và kiểm chứng phạm vi định danh
+  - Xây dựng bộ lọc động kết hợp sắp xếp cùng phân trang
+  - Ghi nhận thay đổi dữ liệu qua KeyValueEvent
+  - Tái hiện lỗi chia sẻ tham chiếu và thiết kế biện pháp kiểm soát
+  - Mô phỏng mất cập nhật khi nhiều luồng cùng sửa dữ liệu
+  - Triển khai adapter tối thiểu và kiểm tra hợp đồng lưu trữ
+  - Đánh giá giới hạn giải pháp và lập phương án chuyển sang kho bền vững

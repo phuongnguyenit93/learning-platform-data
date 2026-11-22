@@ -1,0 +1,3469 @@
+menu:
+- slug: rest-docs-overview
+  title: Tổng quan
+  childs:
+  - slug: rest-docs-overview-001
+    title: Spring REST Docs là gì và giải quyết vấn đề tài liệu REST nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-overview-002
+    title: Mục tiêu tài liệu chính xác, dễ đọc và có thể kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-overview-003
+    title: Mối liên hệ giữa tài liệu viết tay và snippet sinh tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-overview-004
+    title: Vì sao kiểm thử tạo tài liệu giúp phát hiện tài liệu lỗi thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-overview-005
+    title: Phân biệt tài liệu API với tài liệu chi tiết triển khai nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-overview-006
+    title: Spring REST Docs và giới hạn của tài liệu sinh hoàn toàn từ mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-overview-007
+    title: Mối liên hệ với Spring MVC, WebFlux, REST Assured và Asciidoctor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-overview-008
+    title: Kiến thức HTTP, REST, JSON, kiểm thử và build cần chuẩn bị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-documentation-model
+  title: Mô hình tài liệu
+  childs:
+  - slug: rest-docs-documentation-model-001
+    title: Tài nguyên REST, request và response trong một operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-002
+    title: Operation là đơn vị kết hợp lời gọi, snippet và phần mô tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-003
+    title: Test là nguồn tạo bằng chứng cho request và response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-004
+    title: Snippet là mảnh tài liệu có thể nhúng vào tài liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-005
+    title: Tài liệu viết tay giải thích ý nghĩa nghiệp vụ của tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-006
+    title: Phân biệt dữ liệu thực tế của response và mô tả hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-007
+    title: Định danh operation và tổ chức thư mục snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-008
+    title: Luồng từ test đến snippet, Asciidoctor hoặc Markdown
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-model-009
+    title: Thiết kế tài liệu để thay đổi implementation ít ảnh hưởng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-project-setup
+  title: Thiết lập dự án
+  childs:
+  - slug: rest-docs-project-setup-001
+    title: Yêu cầu Java, Spring Framework và phiên bản Spring REST Docs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-002
+    title: Chọn module spring-restdocs-mockmvc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-003
+    title: Chọn module spring-restdocs-webtestclient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-004
+    title: Chọn module spring-restdocs-restassured
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-005
+    title: Dependency test và phạm vi chỉ dùng khi kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-006
+    title: Cấu hình plugin Asciidoctor cho Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-007
+    title: Cấu hình asciidoctor-maven-plugin cho Maven
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-008
+    title: Định nghĩa thư mục generated-snippets
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-009
+    title: Đảm bảo tác vụ tạo tài liệu phụ thuộc tác vụ test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-project-setup-010
+    title: Quản lý phiên bản thư viện và khả năng tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-junit-lifecycle
+  title: JUnit và lifecycle
+  childs:
+  - slug: rest-docs-junit-lifecycle-001
+    title: RestDocumentationExtension trong JUnit 5
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-002
+    title: SpringExtension và kết hợp với kiểm thử Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-003
+    title: '@RegisterExtension và thư mục output tùy chỉnh'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-004
+    title: JUnitRestDocumentation trong JUnit 4
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-005
+    title: ManualRestDocumentation khi không dùng JUnit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-006
+    title: beforeTest và afterTest cho lifecycle thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-007
+    title: JUnit 5 được khuyến nghị và các framework khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-008
+    title: Phạm vi context, test fixture và isolation giữa các operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-junit-lifecycle-009
+    title: Đặt tên test và operation để dễ truy tìm snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-mock-mvc
+  title: MockMvc
+  childs:
+  - slug: rest-docs-mock-mvc-001
+    title: Cấu hình MockMvc với documentationConfiguration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-002
+    title: Khởi tạo MockMvc từ WebApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-003
+    title: MockMvc standalone setup và giới hạn ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-004
+    title: Thực hiện request bằng MockMvc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-005
+    title: Xác nhận status, header và body trước khi document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-006
+    title: document(operation) để sinh snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-007
+    title: RestDocumentationResultHandler và tái sử dụng handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-008
+    title: Document nhiều operation trong một test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-009
+    title: Đặt tên thư mục operation ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-010
+    title: Tiền xử lý request và response của MockMvc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-mock-mvc-011
+    title: Xử lý lỗi khi snippet thiếu hoặc request không đạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-web-test-client
+  title: WebTestClient
+  childs:
+  - slug: rest-docs-web-test-client-001
+    title: Cấu hình WebTestClient với documentationConfiguration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-002
+    title: Bind WebTestClient vào ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-003
+    title: Bind trực tiếp vào controller hoặc router
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-004
+    title: Exchange request và xác nhận response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-005
+    title: consumeWith(document(...)) để sinh snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-006
+    title: Reactive response và thời điểm tạo snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-007
+    title: Chuỗi expectStatus, expectHeader và expectBody
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-008
+    title: Tiền xử lý URI, header và body trong WebTestClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-009
+    title: Document endpoint WebFlux và endpoint MVC tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-web-test-client-010
+    title: Đọc lỗi khi filter tài liệu chưa được gắn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-rest-assured
+  title: REST Assured
+  childs:
+  - slug: rest-docs-rest-assured-001
+    title: Thêm dependency spring-restdocs-restassured
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-002
+    title: Cấu hình RequestSpecification với documentationConfiguration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-003
+    title: RestAssured filter(document(...))
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-004
+    title: Đặt request, assertion và document trong đúng thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-005
+    title: Document request và response của endpoint thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-006
+    title: Thiết lập host, port và scheme cho tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-007
+    title: REST Assured 5 và yêu cầu tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-008
+    title: Tiền xử lý request response trong filter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-009
+    title: Phân biệt kiểm thử tích hợp và kiểm thử qua MockMvc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-rest-assured-010
+    title: Xử lý lỗi snippet khi assertion thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-spring-boot
+  title: Spring Boot
+  childs:
+  - slug: rest-docs-spring-boot-001
+    title: '@AutoConfigureRestDocs và tự cấu hình trong test'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-002
+    title: Tích hợp Spring Boot Test với Spring REST Docs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-003
+    title: Cấu hình MockMvc hoặc WebTestClient do Boot cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-004
+    title: Thư mục snippet mặc định theo Gradle và Maven
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-005
+    title: Cấu hình output directory trong test slice
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-006
+    title: Khởi động ứng dụng đầy đủ khi cần kiểm tra routing thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-007
+    title: Test slice và đánh đổi giữa tốc độ với bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-008
+    title: Cấu hình profile, port và base URI theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-009
+    title: Đặt thuộc tính tài liệu trong build thay vì mã nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-spring-boot-010
+    title: Kiểm tra khác biệt giữa phiên bản Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-http-operation
+  title: HTTP operation
+  childs:
+  - slug: rest-docs-http-operation-001
+    title: Snippet http-request và thông tin phương thức HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-002
+    title: Snippet http-response và status code trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-003
+    title: Snippet curl-request để tái hiện request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-004
+    title: Snippet httpie-request và lựa chọn công cụ dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-005
+    title: URI, query string và header trong request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-006
+    title: Status, header và body trong response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-007
+    title: Content-Type và Accept trong tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-008
+    title: Định dạng request response khi có body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-009
+    title: Xác nhận thông tin tài liệu không che mất chi tiết cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-http-operation-010
+    title: Đọc snippet thô trước khi đưa vào tài liệu cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-request-payload
+  title: Request payload
+  childs:
+  - slug: rest-docs-request-payload-001
+    title: Document request payload bằng requestFields
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-002
+    title: Mô tả trường JSON bắt buộc và tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-003
+    title: fieldWithPath và đường dẫn trường lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-004
+    title: Trường mảng, phần tử mảng và chỉ số động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-005
+    title: Trường object tùy chọn và absent()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-006
+    title: Trường có thể null và nullability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-007
+    title: ignore và trường không cần mô tả trong operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-008
+    title: requestFieldWithPath và mô tả ngắn gọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-009
+    title: Thiếu mô tả trường làm test tài liệu thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-payload-010
+    title: Đối chiếu payload thực tế với field descriptors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-response-payload
+  title: Response payload
+  childs:
+  - slug: rest-docs-response-payload-001
+    title: Document response payload bằng responseFields
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-002
+    title: Mô tả trường JSON trong response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-003
+    title: Trường lồng nhau, mảng và phần tử lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-004
+    title: Phân biệt trường bắt buộc, tùy chọn và có thể null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-005
+    title: Liên kết response field với ý nghĩa nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-006
+    title: Xử lý response rỗng hoặc không có body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-007
+    title: ignore trường response có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-008
+    title: Xác nhận mọi trường xuất hiện trong payload đã được xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-009
+    title: Thiết kế mô tả không phụ thuộc thứ tự trường JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-response-payload-010
+    title: Kiểm tra thay đổi schema làm test tài liệu thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-subsection
+  title: Subsection
+  childs:
+  - slug: rest-docs-subsection-001
+    title: Document một phần request payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-002
+    title: Document một phần response payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-003
+    title: subsectionWithPath cho object con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-004
+    title: subsectionWithPath cho danh sách hoặc cấu trúc lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-005
+    title: Trường hợp phần còn lại được mô tả ở tài liệu khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-006
+    title: Phân biệt subsection với field documentation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-007
+    title: Chỉ rõ ý nghĩa của fragment được tách riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-008
+    title: Đặt tên subsection snippet theo operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-009
+    title: Tránh mô tả thiếu khi subsection thay đổi cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-subsection-010
+    title: Tái sử dụng subsection trong nhiều operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-query-parameters
+  title: Query parameters
+  childs:
+  - slug: rest-docs-query-parameters-001
+    title: Document query parameters bằng queryParameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-002
+    title: parameterWithName và mô tả tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-003
+    title: Tham số bắt buộc, tùy chọn và absent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-004
+    title: Tham số nhiều giá trị và cách biểu diễn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-005
+    title: Giá trị mặc định và điều kiện áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-006
+    title: Tham số phân trang, sắp xếp và lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-007
+    title: Encoding giá trị query và ký tự đặc biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-008
+    title: Xác nhận query parameter xuất hiện đúng trong request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-009
+    title: Phân biệt query parameter với path parameter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-query-parameters-010
+    title: Liên kết tham số với quy tắc validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-form-parameters
+  title: Form parameters
+  childs:
+  - slug: rest-docs-form-parameters-001
+    title: Document form parameters bằng formParameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-002
+    title: Content type application/x-www-form-urlencoded
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-003
+    title: Form field bắt buộc và tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-004
+    title: Biểu diễn giá trị nhiều phần trong form
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-005
+    title: Phân biệt form parameter với request body JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-006
+    title: Document lỗi validation của form
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-007
+    title: Đặt tên snippet và phần mô tả form
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-008
+    title: Xác nhận request thực sự gửi form parameter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-form-parameters-009
+    title: Không dùng form documentation cho multipart part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-path-parameters
+  title: Path parameters
+  childs:
+  - slug: rest-docs-path-parameters-001
+    title: Document path parameters bằng pathParameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-002
+    title: parameterWithName cho biến trong URI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-003
+    title: Path parameter bắt buộc theo bản chất định tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-004
+    title: Phân biệt path parameter với query parameter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-005
+    title: Giá trị số, UUID và chuỗi trong path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-006
+    title: Encoding path segment và ký tự đặc biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-007
+    title: URI template và path parameter lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-008
+    title: Xác nhận tên parameter khớp route thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-path-parameters-009
+    title: Document lỗi khi resource id không tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-request-parts
+  title: Request parts
+  childs:
+  - slug: rest-docs-request-parts-001
+    title: Document multipart request bằng requestParts
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-002
+    title: partWithName và mô tả request part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-003
+    title: Part bắt buộc, tùy chọn và absent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-004
+    title: Headers của request part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-005
+    title: Content type của từng part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-006
+    title: File upload và metadata đi kèm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-007
+    title: Phân biệt request part với form parameter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-008
+    title: Xác nhận multipart request bằng MockMvc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-009
+    title: Document lỗi kích thước hoặc loại file
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-request-parts-010
+    title: Tổ chức snippet multipart dễ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-part-payload
+  title: Part payload
+  childs:
+  - slug: rest-docs-part-payload-001
+    title: Document body của một request part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-002
+    title: RequestPartFields cho các trường trong part JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-003
+    title: partBody và dữ liệu thô của part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-004
+    title: partFields và mô tả cấu trúc part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-005
+    title: Subsection bên trong request part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-006
+    title: File part và phần dữ liệu nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-007
+    title: Phân biệt body của request với body của part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-008
+    title: Đối chiếu Content-Disposition và tên part
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-009
+    title: Xác nhận phần payload biến đổi theo operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-part-payload-010
+    title: Xử lý nhiều request part cùng loại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-headers
+  title: Headers
+  childs:
+  - slug: rest-docs-headers-001
+    title: Document request headers bằng requestHeaders
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-002
+    title: Document response headers bằng responseHeaders
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-003
+    title: headerWithName và mô tả header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-004
+    title: Header bắt buộc, tùy chọn và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-005
+    title: Authorization, correlation id và header nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-006
+    title: Content-Type, Location, ETag và Cache-Control
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-007
+    title: Header lặp hoặc có nhiều giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-008
+    title: Header không nên đưa nguyên giá trị nhạy cảm vào tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-009
+    title: Xác nhận header được gửi và trả về đúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-headers-010
+    title: Tiền xử lý để che hoặc thay header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-cookies
+  title: Cookies
+  childs:
+  - slug: rest-docs-cookies-001
+    title: Document request cookies bằng requestCookies
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-002
+    title: Document response cookies bằng responseCookies
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-003
+    title: cookieWithName và mô tả cookie
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-004
+    title: Cookie bắt buộc, tùy chọn và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-005
+    title: HttpOnly, Secure, SameSite và ý nghĩa tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-006
+    title: Che giá trị session hoặc token trong snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-007
+    title: Cookie nhiều giá trị và encoding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-008
+    title: Phân biệt cookie với Authorization header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-cookies-009
+    title: Kiểm tra cookie trong MockMvc hoặc REST Assured
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-hypermedia
+  title: Hypermedia
+  childs:
+  - slug: rest-docs-hypermedia-001
+    title: Document liên kết HATEOAS trong response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-002
+    title: links và linkWithRel để mô tả quan hệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-003
+    title: Link relation, href và thuộc tính của liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-004
+    title: Liên kết bắt buộc, tùy chọn và ignored
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-005
+    title: Content type HAL, Atom và dạng hypermedia khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-006
+    title: Document embedded resources và liên kết lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-007
+    title: Link descriptors cho collection và resource đơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-008
+    title: Phân biệt link contract với field contract
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-009
+    title: Kiểm tra liên kết thực tế bằng snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-hypermedia-010
+    title: Document hành động tiếp theo qua hypermedia
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-constraints
+  title: Constraints
+  childs:
+  - slug: rest-docs-constraints-001
+    title: Vì sao mô tả constraint làm tài liệu hữu ích hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-002
+    title: ConstraintResolver và cách tìm ràng buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-003
+    title: ValidationConstraints tìm constraint từ Bean Validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-004
+    title: ConstraintDescriptionResolver và mô tả constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-005
+    title: '@NotNull, @NotBlank, @Size, @Pattern và @Email'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-006
+    title: Constraint trên request field và path/query parameter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-007
+    title: Constraint trên nested object và collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-008
+    title: Mô tả tùy chỉnh cho constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-009
+    title: Dùng constraint descriptions trong generated snippets
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-constraints-010
+    title: Đồng bộ validation runtime và tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-default-snippets
+  title: Snippets mặc định
+  childs:
+  - slug: rest-docs-default-snippets-001
+    title: Danh sách snippet mặc định của Spring REST Docs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-002
+    title: http-request, http-response và curl-request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-003
+    title: httpie-request và các snippet request tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-004
+    title: request-body và response-body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-005
+    title: request-fields và response-fields
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-006
+    title: path-parameters, query-parameters và form-parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-007
+    title: request-parts, request-part-name và request-part-body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-008
+    title: request-part-fields và response-headers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-009
+    title: request-cookies và response-cookies
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-010
+    title: links và các snippet hypermedia
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-default-snippets-011
+    title: liên kết snippet theo operation directory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-output-directory
+  title: Thư mục output
+  childs:
+  - slug: rest-docs-output-directory-001
+    title: Thư mục generated-snippets mặc định của Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-002
+    title: Thư mục target/generated-snippets của Maven
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-003
+    title: Output directory tùy chỉnh cho extension hoặc rule
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-004
+    title: Parameterized output directories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-005
+    title: Định danh test class và test method trong đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-006
+    title: Tránh ghi đè snippet giữa các test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-007
+    title: Xóa output cũ trước khi xác nhận tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-008
+    title: Đưa snippet vào artifact hoặc tài liệu phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-009
+    title: Kiểm tra encoding và quyền ghi thư mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-output-directory-010
+    title: Quản lý output không thuộc source code
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-preprocessors
+  title: Preprocessors
+  childs:
+  - slug: rest-docs-preprocessors-001
+    title: Preprocessor là gì và xử lý ở thời điểm nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-002
+    title: RequestPreprocessor và ResponsePreprocessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-003
+    title: Preprocess request trước khi sinh snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-004
+    title: Preprocess response trước khi sinh snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-005
+    title: Pretty printing cho request và response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-006
+    title: Masking links để loại bỏ host hoặc token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-007
+    title: Modifying headers và che dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-008
+    title: Replacing patterns trong URI hoặc body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-009
+    title: Modifying URIs và documented URI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-010
+    title: Kết hợp nhiều preprocessor theo thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-011
+    title: Viết preprocessor tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-preprocessors-012
+    title: Kiểm tra preprocessor không làm sai bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-uri-configuration
+  title: URI configuration
+  childs:
+  - slug: rest-docs-uri-configuration-001
+    title: Documented URI và URI dùng trong tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-002
+    title: Đặt scheme, host và port cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-003
+    title: Tránh đưa localhost vào tài liệu công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-004
+    title: MockMvc URI customization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-005
+    title: REST Assured URI customization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-006
+    title: WebTestClient URI customization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-007
+    title: Base path, context path và servlet path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-008
+    title: Xử lý proxy, gateway và forwarded headers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-009
+    title: Masking host hoặc thay thế pattern URI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-uri-configuration-010
+    title: Xác nhận URI sinh ra phù hợp môi trường triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-snippet-customization
+  title: Snippet customization
+  childs:
+  - slug: rest-docs-snippet-customization-001
+    title: Customizing generated snippets
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-002
+    title: Snippet template format và engine mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-003
+    title: Định dạng tên trường và tiêu đề bảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-004
+    title: Thêm extra information vào snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-005
+    title: Tùy chỉnh template cho request và response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-006
+    title: Tùy chỉnh template cho fields và parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-007
+    title: Tạo snippet mới từ operation context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-008
+    title: Đặt template trong src/test/resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-009
+    title: Giữ template tương thích khi nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-010
+    title: Kiểm thử template với payload thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-snippet-customization-011
+    title: Phân biệt custom snippet với tài liệu viết tay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-asciidoctor
+  title: Asciidoctor
+  childs:
+  - slug: rest-docs-asciidoctor-001
+    title: Vì sao Asciidoctor là định dạng mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-002
+    title: Định nghĩa thuộc tính snippets trong tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-003
+    title: Include snippet bằng đường dẫn tương đối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-004
+    title: operation block macro của Spring REST Docs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-005
+    title: Nhúng một operation gồm nhiều snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-006
+    title: Nhúng từng snippet riêng lẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-007
+    title: Đặt tiêu đề, anchor và liên kết tới operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-008
+    title: spring-restdocs-asciidoctor extension
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-009
+    title: Tùy chỉnh bảng trong Asciidoctor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-010
+    title: Định dạng cột và tránh lỗi bảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-asciidoctor-011
+    title: Kiểm tra output HTML hoặc PDF
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-markdown
+  title: Markdown
+  childs:
+  - slug: rest-docs-markdown-001
+    title: Cấu hình Spring REST Docs để dùng Markdown
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-002
+    title: Giới hạn của Markdown so với Asciidoctor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-003
+    title: Include snippet trong tài liệu Markdown
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-004
+    title: Đường dẫn tương đối tới generated snippets
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-005
+    title: Nhúng request, response và field table
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-006
+    title: Tổ chức nhiều operation trong một file Markdown
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-007
+    title: Xử lý bảng Markdown và nội dung JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-008
+    title: Đảm bảo output Markdown dễ đọc trên nền tảng đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-markdown-009
+    title: Phân biệt khả năng định dạng của Asciidoctor và Markdown
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-packaging
+  title: Packaging
+  childs:
+  - slug: rest-docs-packaging-001
+    title: Chạy tạo tài liệu trước khi đóng gói
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-002
+    title: Copy generated documentation vào static resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-003
+    title: bootJar phụ thuộc asciidoctor trong Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-004
+    title: prepare-package và process-asciidoc trong Maven
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-005
+    title: Đưa tài liệu vào JAR của Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-006
+    title: Phục vụ tài liệu tĩnh từ ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-007
+    title: Đặt đường dẫn tài liệu và cache headers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-008
+    title: Phân biệt artifact tài liệu với artifact ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-009
+    title: Kiểm tra JAR chứa đủ HTML, Markdown và asset
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-packaging-010
+    title: Đóng gói tài liệu theo môi trường phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-reuse
+  title: Tái sử dụng
+  childs:
+  - slug: rest-docs-reuse-001
+    title: Tái sử dụng request field descriptors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-002
+    title: Tái sử dụng response field descriptors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-003
+    title: Tái sử dụng parameter descriptors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-004
+    title: Tái sử dụng header và cookie descriptors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-005
+    title: Tái sử dụng link descriptors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-006
+    title: Tái sử dụng preprocessor chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-007
+    title: Chia sẻ snippet configuration giữa các test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-008
+    title: Đặt factory cho bộ descriptor thường dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-009
+    title: Tránh tái sử dụng descriptor làm sai ngữ nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-reuse-010
+    title: Giữ mô tả chung và mô tả riêng tách biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-documentation-tests
+  title: Kiểm thử tài liệu
+  childs:
+  - slug: rest-docs-documentation-tests-001
+    title: Test tài liệu phải kiểm tra cả hành vi endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-002
+    title: Assertion status, header và body trước document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-003
+    title: Thiếu field descriptor làm test thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-004
+    title: Phát hiện field thừa trong request hoặc response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-005
+    title: Kiểm tra operation name và thư mục snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-006
+    title: Kiểm tra lỗi validation và response error
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-007
+    title: Test endpoint thành công, thất bại và biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-008
+    title: Test bảo mật không để token lọt vào snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-009
+    title: Test hypermedia link và quan hệ tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-010
+    title: Test tài liệu reactive và bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-documentation-tests-011
+    title: Đảm bảo test chạy ổn định giữa các môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-error-documentation
+  title: Tài liệu lỗi
+  childs:
+  - slug: rest-docs-error-documentation-001
+    title: Document cấu trúc lỗi và mã lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-002
+    title: Response fields cho error payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-003
+    title: Status code và header trong response lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-004
+    title: Validation errors theo field và theo object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-005
+    title: Correlation id để truy tìm lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-006
+    title: Ẩn stack trace và dữ liệu nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-007
+    title: Phân biệt lỗi kỹ thuật và lỗi nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-008
+    title: Document lỗi xác thực, phân quyền và không tìm thấy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-009
+    title: Đồng bộ error contract với exception handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-error-documentation-010
+    title: Kiểm thử tài liệu cho nhiều loại lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-security
+  title: Bảo mật
+  childs:
+  - slug: rest-docs-security-001
+    title: Che Authorization, cookie session và token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-002
+    title: Masking links có tham số nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-003
+    title: Replacing patterns trong body hoặc header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-004
+    title: Không ghi secret vào generated snippets
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-005
+    title: Kiểm soát thư mục output và artifact tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-006
+    title: Phân biệt dữ liệu test giả với dữ liệu thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-007
+    title: Review tài liệu trước khi công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-008
+    title: Ẩn định danh người dùng và thông tin môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-security-009
+    title: Xử lý log test và báo cáo thất bại an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-ci-publishing
+  title: CI và phát hành
+  childs:
+  - slug: rest-docs-ci-publishing-001
+    title: Chạy test tạo snippet trong CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-002
+    title: Chạy Asciidoctor sau khi test hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-003
+    title: Kiểm tra tài liệu trong pull request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-004
+    title: Đưa tài liệu generated vào artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-005
+    title: Đồng bộ commit mã và tài liệu được tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-006
+    title: Không phát hành tài liệu nếu test tài liệu thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-007
+    title: Cache dependency nhưng không dùng snippet cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-008
+    title: Kiểm tra đường dẫn và encoding trên runner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-009
+    title: Đăng tải tài liệu HTML hoặc Markdown
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-010
+    title: Versioning tài liệu theo phiên bản API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-ci-publishing-011
+    title: Phân biệt tài liệu preview và tài liệu production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: rest-docs-troubleshooting-001
+    title: Không sinh snippet do test không chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-002
+    title: Không tìm thấy output directory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-003
+    title: Snippet rỗng hoặc thiếu trường mô tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-004
+    title: Operation name sai và ghi đè thư mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-005
+    title: URI chứa localhost hoặc port không mong muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-006
+    title: Header hoặc cookie nhạy cảm bị lộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-007
+    title: Asciidoctor không tìm thấy snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-008
+    title: Plugin build không chạy đúng thứ tự dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-009
+    title: Markdown include sai đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-010
+    title: Khác biệt hành vi giữa MockMvc và WebTestClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-011
+    title: Lỗi encoding hoặc ký tự Unicode trong tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-troubleshooting-012
+    title: Không tương thích phiên bản Spring Framework hoặc REST Assured
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-upgrade
+  title: Nâng cấp
+  childs:
+  - slug: rest-docs-upgrade-001
+    title: Đọc yêu cầu phiên bản Spring REST Docs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-002
+    title: Đối chiếu Spring Boot và Spring Framework tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-003
+    title: Chuyển giữa MockMvc, WebTestClient và REST Assured
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-004
+    title: Thay đổi API cấu hình hoặc package
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-005
+    title: Kiểm tra template và snippet sau khi nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-006
+    title: Kiểm tra output directory và plugin Asciidoctor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-007
+    title: Đối chiếu URI, header và payload sau nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-008
+    title: Giữ tài liệu cũ có thể tái tạo trong giai đoạn chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-009
+    title: Xử lý thay đổi định dạng snippet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-upgrade-010
+    title: Chạy bộ test hồi quy trước khi phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-docs-capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: rest-docs-capstone-practice-001
+    title: Thiết lập dự án Spring MVC tạo tài liệu bằng MockMvc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-002
+    title: Document CRUD resource với request và response fields
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-003
+    title: Document tìm kiếm với query parameters và phân trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-004
+    title: Document resource có path parameters và header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-005
+    title: Document upload multipart bằng request parts
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-006
+    title: Document HATEOAS links và embedded resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-007
+    title: Document validation constraints từ Bean Validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-008
+    title: Che token và host bằng preprocessors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-009
+    title: Build tài liệu Asciidoctor rồi đóng gói vào JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-010
+    title: Viết tài liệu Markdown với nhiều operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-011
+    title: Tích hợp kiểm tra tài liệu vào CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-docs-capstone-practice-012
+    title: Đánh giá giải pháp bằng độ chính xác, khả năng đọc và tính tái tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

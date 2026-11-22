@@ -1,0 +1,2842 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Azure Translator Document Translation là gì và giải quyết bài toán nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Các thuật ngữ nền tảng: tài liệu nguồn, bản dịch, tác vụ và ngôn ngữ đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vai trò của ứng dụng Java, Translator và kho lưu trữ trong hệ thống dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt dịch văn bản, dịch tài liệu, OCR và nhận dạng cấu trúc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Dịch máy giữ định dạng đến đâu và vì sao vẫn cần kiểm định kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Những tình huống phù hợp: dịch tài liệu nội bộ, hướng dẫn và hồ sơ đa ngôn ngữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Điều kiện đầu vào và giới hạn của tài liệu được mã hóa hoặc hạn chế truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức cần có về Java, HTTP, tệp nhị phân và Azure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Trình tự học từ dịch một tệp đến hệ thống dịch theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-flow
+  title: Luồng xử lý
+  childs:
+  - slug: processing-flow-001
+    title: 'Luồng dịch một tệp: gửi nội dung và nhận trực tiếp tệp kết quả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-002
+    title: 'Luồng dịch theo lô: tải lên Storage, gửi tác vụ, theo dõi và tải bản dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-003
+    title: Tiêu chí chọn dịch một tệp hoặc dịch theo lô theo dung lượng và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-004
+    title: Phân biệt tác vụ bất đồng bộ trên Azure với lời gọi bất đồng bộ trong SDK Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-005
+    title: Vòng đời tài liệu nguồn, bản dịch và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-006
+    title: Ranh giới trách nhiệm giữa ứng dụng và dịch vụ Azure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-007
+    title: 'Dòng dữ liệu và hai lớp quyền: gọi Translator và truy cập Blob Storage'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-flow-008
+    title: Định danh yêu cầu nghiệp vụ, tác vụ Azure và từng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: azure-setup
+  title: Thiết lập Azure
+  childs:
+  - slug: azure-setup-001
+    title: Chuẩn bị subscription, resource group và quyền tạo tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-002
+    title: Chọn loại tài nguyên Translator phù hợp với khả năng cần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-003
+    title: Chọn khu vực triển khai và kiểm tra khả năng cung cấp dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-004
+    title: Chọn gói dịch vụ có hỗ trợ Document Translation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-005
+    title: Tạo Translator resource và xác minh triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-006
+    title: Lấy custom domain endpoint và phân biệt với endpoint dịch văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-007
+    title: Xác định API version và các thành phần của URL yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-008
+    title: Tạo Storage account và các container cho luồng dịch theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-009
+    title: Thiết lập môi trường thử nghiệm tách biệt và dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-setup-010
+    title: Kiểm tra kết nối ban đầu bằng curl trước khi tích hợp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-sdk
+  title: SDK Java
+  childs:
+  - slug: java-sdk-001
+    title: Thêm azure-ai-translation-document vào dự án Java 21
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-002
+    title: Quản lý phiên bản thư viện Azure bằng BOM và kiểm tra tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-003
+    title: Thêm azure-identity và azure-storage-blob theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-004
+    title: Đọc endpoint, thông tin xác thực và cấu hình từ biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-005
+    title: Tạo DocumentTranslationClient và SingleDocumentTranslationClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-006
+    title: Tạo DocumentTranslationAsyncClient và SingleDocumentTranslationAsyncClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-007
+    title: Chọn client phù hợp với chế độ dịch và mô hình thực thi của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-008
+    title: Cấu hình HTTP client, proxy, kết nối và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-009
+    title: Tái sử dụng client và quản lý tài nguyên khi đọc ghi tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-010
+    title: Sử dụng Java HttpClient khi SDK chưa hỗ trợ khả năng REST cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-011
+    title: Đọc tài liệu API và đối chiếu model Java với schema REST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: translator-authentication
+  title: Xác thực Translator
+  childs:
+  - slug: translator-authentication-001
+    title: Xác thực bằng API key và AzureKeyCredential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-002
+    title: Cấu hình header khóa và khu vực khi gọi REST API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-003
+    title: Phân biệt khóa tài nguyên, access token và SAS token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-004
+    title: Xác thực bằng TokenCredential theo hỗ trợ của SDK và API version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-005
+    title: Cấu hình DefaultAzureCredential cho môi trường phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-006
+    title: Sử dụng danh tính ứng dụng hoặc managed identity khi triển khai Azure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-007
+    title: Phân biệt danh tính của ứng dụng với danh tính của Translator resource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-008
+    title: Kiểm tra vai trò RBAC cần thiết cho luồng xác thực đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-009
+    title: Luân phiên khóa và quản lý bí mật bằng Azure Key Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-authentication-010
+    title: Chẩn đoán lỗi thông tin xác thực, tenant và quyền gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: blob-storage
+  title: Blob Storage
+  childs:
+  - slug: blob-storage-001
+    title: Khái niệm storage account, container, blob và tiền tố đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-002
+    title: Tổ chức container nguồn, đích và glossary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-003
+    title: Tải tài liệu nguồn lên bằng Azure Storage SDK for Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-004
+    title: Chọn URL container hoặc URL một blob theo phạm vi dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-005
+    title: Đặt tên blob có Unicode, khoảng trắng và ký tự cần mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-006
+    title: Tổ chức đầu ra riêng theo tác vụ và ngôn ngữ để tránh trùng tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-007
+    title: Đọc metadata và kiểm tra tệp tải lên trước khi gửi dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-008
+    title: Tải bản dịch bằng luồng dữ liệu và lưu tệp an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-009
+    title: Quản lý thời hạn lưu trữ và dọn tệp nguồn, đích, tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blob-storage-010
+    title: Giới hạn của Azurite khi thử nghiệm luồng Translator truy cập Storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-permissions
+  title: Quyền Storage
+  childs:
+  - slug: storage-permissions-001
+    title: 'Hai cơ chế cấp quyền Storage: SAS và managed identity của Translator'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-002
+    title: Cấu trúc SAS URL, phạm vi tài nguyên và thời hạn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-003
+    title: Cấp quyền SAS phù hợp cho nguồn, đích và glossary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-004
+    title: Tạo SAS cho container hoặc blob bằng công cụ Azure và SDK Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-005
+    title: Lựa chọn user delegation SAS khi phù hợp với cấu hình hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-006
+    title: Xử lý lệch đồng hồ và SAS hết hạn trong lúc tác vụ còn chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-007
+    title: Bật system-assigned managed identity trên Translator resource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-008
+    title: Gán vai trò dữ liệu Blob tại phạm vi cần thiết và kiểm tra hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-009
+    title: Đối chiếu điều kiện khu vực và giới hạn managed identity hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-010
+    title: Gửi URL không kèm SAS khi đã chọn cơ chế managed identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-permissions-011
+    title: Phân biệt lỗi quyền Storage với lỗi mạng và lỗi xác thực Translator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-languages
+  title: Tệp và ngôn ngữ
+  childs:
+  - slug: files-languages-001
+    title: Tra cứu định dạng tài liệu được hỗ trợ bằng API discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-002
+    title: Đối chiếu phần mở rộng, MIME type và nội dung thực tế của tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-003
+    title: Khác biệt về định dạng giữa dịch một tệp và dịch theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-004
+    title: Kiểm tra dung lượng, số tệp và số ngôn ngữ trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-005
+    title: Tra cứu ngôn ngữ và mã ngôn ngữ theo tính năng đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-006
+    title: Chỉ định ngôn ngữ nguồn hoặc để dịch vụ tự phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-007
+    title: Xử lý tài liệu chứa nhiều ngôn ngữ và câu trộn ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-008
+    title: Chuẩn bị tài liệu tiếng Việt có dấu và kiểm tra Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-009
+    title: Xử lý tài liệu hỏng, tệp rỗng và tài liệu bị bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-010
+    title: Đối chiếu định dạng đầu ra khi dịch tệp Office đời cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-languages-011
+    title: Kiểm tra tính năng theo API version thay vì chỉ dựa vào phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: single-file-translation
+  title: Dịch một tệp
+  childs:
+  - slug: single-file-translation-001
+    title: Cấu trúc endpoint document:translate và các tham số truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-002
+    title: Tạo yêu cầu multipart/form-data chứa document
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-003
+    title: Thiết lập targetLanguage, sourceLanguage và MIME type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-004
+    title: Dịch tệp bằng SingleDocumentTranslationClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-005
+    title: Dịch tệp bằng SingleDocumentTranslationAsyncClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-006
+    title: Gọi REST API dịch một tệp bằng Java HttpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-007
+    title: Đính kèm glossary trực tiếp vào multipart request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-008
+    title: Đọc phản hồi nhị phân và lưu đúng định dạng bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-009
+    title: Phân biệt phản hồi tệp thành công với phản hồi lỗi JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-010
+    title: Quản lý thời gian chờ và đóng luồng khi truyền tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-file-translation-011
+    title: Kiểm tra tính toàn vẹn của tệp kết quả trước khi trả cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batch-translation
+  title: Dịch theo lô
+  childs:
+  - slug: batch-translation-001
+    title: Cấu trúc endpoint batches và request JSON inputs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-002
+    title: Khai báo sourceUrl, targets và ngôn ngữ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-003
+    title: Chọn storageType File hoặc Folder theo đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-004
+    title: Lọc tập tài liệu bằng prefix và suffix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-005
+    title: Dịch một nguồn sang nhiều ngôn ngữ với các đích riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-006
+    title: Gửi nhiều bộ nguồn và đích trong một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-007
+    title: Tạo yêu cầu dịch theo lô bằng model của SDK Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-008
+    title: Khởi chạy bằng beginTranslation và đọc kết quả ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-009
+    title: Gửi tác vụ bằng REST và lấy operation-location từ phản hồi 202
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-010
+    title: Lưu jobId trước khi thực hiện các bước theo dõi tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-011
+    title: Kiểm tra xung đột tên tệp đầu ra trước khi tạo tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-translation-012
+    title: Chụp danh sách đầu vào để đối soát kết quả từng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: job-monitoring-cancellation
+  title: Theo dõi và hủy
+  childs:
+  - slug: job-monitoring-cancellation-001
+    title: Trạng thái tác vụ từ NotStarted, Running đến trạng thái kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-002
+    title: Phân biệt trạng thái toàn tác vụ với trạng thái từng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-003
+    title: Theo dõi bằng SyncPoller hoặc PollerFlux của SDK Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-004
+    title: Chủ động lấy trạng thái bằng REST API theo jobId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-005
+    title: Lấy danh sách tài liệu và chi tiết một documentId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-006
+    title: Đọc số tài liệu thành công, thất bại và thông tin lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-007
+    title: Phân trang, lọc và sắp xếp khi truy vấn nhiều tác vụ hoặc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-008
+    title: Lập lịch polling có giới hạn và dừng khi đã đạt trạng thái kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-009
+    title: Khôi phục việc theo dõi sau khi ứng dụng khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-010
+    title: Hủy tác vụ đang chờ hoặc đang chạy và theo dõi kết quả hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-011
+    title: Xử lý cuộc đua giữa yêu cầu hủy và tài liệu vừa dịch xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-monitoring-cancellation-012
+    title: Thu hồi kết quả đã hoàn tất và đối soát chi phí khi hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: glossary
+  title: Glossary
+  childs:
+  - slug: glossary-001
+    title: Glossary là gì và khi nào cần kiểm soát thuật ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-002
+    title: Phân biệt glossary với bộ nhớ dịch và mô hình dịch tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-003
+    title: Tra cứu định dạng glossary được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-004
+    title: Soạn tệp TSV, CSV hoặc XLIFF theo cấu trúc yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-005
+    title: Chuẩn hóa cặp ngôn ngữ nguồn và đích cho thuật ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-006
+    title: Kiểm tra encoding, ký tự phân cách và thuật ngữ trùng hoặc xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-007
+    title: Quy tắc khớp chữ hoa chữ thường và ngữ cảnh cả câu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-008
+    title: Giữ nguyên tên sản phẩm bằng cặp thuật ngữ nguồn và đích giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-009
+    title: Tải glossary lên Storage và cấp quyền truy cập cho dịch theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-010
+    title: Truyền glossary trong SDK và REST theo từng chế độ dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-011
+    title: Quản lý phiên bản glossary để tái hiện bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: glossary-012
+    title: Kiểm chứng thuật ngữ và chẩn đoán trường hợp glossary không được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-models
+  title: Tùy biến mô hình
+  childs:
+  - slug: custom-models-001
+    title: Phân biệt mô hình NMT mặc định, Custom Translator và LLM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-002
+    title: Điều kiện để sử dụng mô hình Custom Translator trong dịch tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-003
+    title: Truyền category ID và kiểm tra cặp ngôn ngữ của mô hình tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-004
+    title: Quyết định allowFallback khi mô hình tùy chỉnh không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-005
+    title: Phạm vi hỗ trợ LLM và trạng thái Public Preview theo API version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-006
+    title: Chuẩn bị Foundry resource và model deployment cho luồng LLM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-007
+    title: Chọn deploymentName và kiểm tra khả năng hỗ trợ của REST hoặc SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-008
+    title: Đối chiếu chất lượng, thời gian xử lý và cách tính phí giữa các mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-009
+    title: Kiểm tra tương thích giữa mô hình, glossary và tính năng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-models-010
+    title: Thiết kế thử nghiệm so sánh mô hình trên cùng tập tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdf-ocr
+  title: PDF và OCR
+  childs:
+  - slug: pdf-ocr-001
+    title: Phân biệt PDF có lớp văn bản với PDF quét và PDF hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-002
+    title: Vai trò của OCR trong quá trình dịch PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-003
+    title: Chuẩn bị PDF quét có độ phân giải và chiều xoay phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-004
+    title: Đánh giá thứ tự đọc, bố cục nhiều cột và bảng trong PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-005
+    title: Kiểm tra font, dấu tiếng Việt và phần văn bản bị cắt sau dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-006
+    title: Dịch PDF theo lô và thu hồi tệp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-007
+    title: Khả năng tích hợp Document Intelligence theo phiên bản và điều kiện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-008
+    title: Xử lý PDF có mật khẩu, hạn chế sao chép hoặc cấu trúc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-009
+    title: Đối chiếu nội dung giữa PDF nguồn, văn bản OCR và bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-ocr-010
+    title: Xây dựng bộ tiêu chí nghiệm thu PDF theo nội dung và bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: office-images
+  title: Office và ảnh
+  childs:
+  - slug: office-images-001
+    title: Dịch Word và kiểm tra tiêu đề, bảng, đầu trang, cuối trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-002
+    title: Dịch PowerPoint và kiểm tra bố cục, hộp chữ, độ dài văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-003
+    title: Dịch Excel và đối chiếu ô chữ, công thức, số và định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-004
+    title: Kiểm tra hyperlink, chú thích và nội dung nhúng theo hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-005
+    title: Dịch định dạng Office đời cũ và xử lý thay đổi phần mở rộng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-006
+    title: Đối chiếu khả năng dịch các định dạng OpenDocument
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-007
+    title: Phân biệt văn bản trong tài liệu với chữ nằm trong ảnh nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-008
+    title: Bật translateTextWithinImage cho DOCX và PPTX khi API hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-009
+    title: Dịch ảnh độc lập và kiểm tra định dạng, dung lượng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-010
+    title: Kiểm tra chữ sau dịch, nền ảnh và sai lệch vị trí hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: office-images-011
+    title: Kiểm định kết quả bằng ứng dụng đọc tài liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-files
+  title: Tệp có cấu trúc
+  childs:
+  - slug: structured-files-001
+    title: Dịch TXT và kiểm tra encoding, xuống dòng, ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-002
+    title: Dịch HTML và kiểm tra thẻ, thuộc tính, liên kết và nội dung hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-003
+    title: Dịch Markdown theo khả năng hỗ trợ của từng chế độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-004
+    title: Kiểm tra code fence, inline code, URL và anchor trong Markdown sau dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-005
+    title: Dịch CSV hoặc TSV và đối chiếu dấu phân cách, số cột, số hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-006
+    title: Dịch XLIFF và kiểm tra đơn vị dịch, thẻ nội tuyến, placeholder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-007
+    title: Dịch MHTML hoặc MSG và kiểm tra giới hạn định dạng tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-008
+    title: Xác minh trường dữ liệu, biểu thức và mã nguồn cần giữ nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-009
+    title: Thiết kế bước chuyển đổi cho định dạng ngoài danh sách hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-files-010
+    title: Đối soát cấu trúc tự động trước và sau khi dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: translation-quality
+  title: Chất lượng bản dịch
+  childs:
+  - slug: translation-quality-001
+    title: Xác định tiêu chí đúng nghĩa, đủ nội dung và nhất quán thuật ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-002
+    title: Đánh giá thuật ngữ kỹ thuật theo ngữ cảnh của tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-003
+    title: Kiểm tra tên riêng, số liệu, đơn vị, ngày giờ và phủ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-004
+    title: Phát hiện đoạn bị bỏ sót, còn nguyên ngôn ngữ nguồn hoặc lặp nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-005
+    title: Kiểm tra placeholder, biến mẫu và chuỗi được yêu cầu giữ nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-006
+    title: Đối chiếu độ dài bản dịch với không gian hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-007
+    title: Kiểm tra ngôn ngữ phải sang trái và bố cục hai chiều khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-008
+    title: Xây dựng tập tham chiếu và đánh giá thủ công theo tiêu chí thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-009
+    title: Sử dụng BLEU hoặc chrF đúng phạm vi và hiểu giới hạn chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-010
+    title: Phân loại lỗi nội dung, OCR, định dạng và cấu hình dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-011
+    title: Thiết kế quy trình duyệt và hiệu đính trước khi phát hành bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Tách cấu hình, client Azure và dịch vụ nghiệp vụ dịch tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Khai báo ConfigurationProperties và kiểm tra cấu hình lúc khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Đăng ký client Azure dưới dạng bean tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Tiếp nhận MultipartFile và kiểm tra dữ liệu trước khi gọi dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Thiết kế API dịch một tệp và trả kết quả tải xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Thiết lập Content-Type, Content-Disposition và tên tệp Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Thiết kế API tạo tác vụ dịch theo lô trả mã tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Thiết kế API xem trạng thái, hủy và tải bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Ánh xạ DTO nghiệp vụ với model SDK hoặc request REST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Chuyển lỗi Azure thành phản hồi nhất quán cho phía gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Quản lý tệp tạm và giới hạn tài nguyên của yêu cầu tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-012
+    title: Chọn Spring MVC hoặc WebFlux phù hợp với client và luồng truyền tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: job-management
+  title: Quản lý tác vụ
+  childs:
+  - slug: job-management-001
+    title: Thiết kế bản ghi lưu yêu cầu dịch, chủ sở hữu và jobId Azure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-002
+    title: Lưu danh sách tài liệu, ngôn ngữ, glossary và cấu hình mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-003
+    title: Ánh xạ trạng thái nghiệp vụ với trạng thái dịch vụ Azure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-004
+    title: Chống gửi trùng bằng mã yêu cầu và ràng buộc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-005
+    title: Xử lý tình huống Azure đã nhận tác vụ nhưng ứng dụng chưa lưu jobId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-006
+    title: Dùng checksum cùng cấu hình dịch để nhận diện yêu cầu tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-007
+    title: Tách tiến trình tiếp nhận khỏi tiến trình theo dõi khi cần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-008
+    title: Điều phối worker và khóa cập nhật để tránh theo dõi hoặc xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-009
+    title: Khôi phục tác vụ dang dở sau sự cố ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-010
+    title: Quản lý kết quả thành công một phần và yêu cầu dịch lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-management-011
+    title: Tách quyền sở hữu tác vụ và đầu ra giữa nhiều người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Đọc mã lỗi HTTP, mã lỗi dịch vụ và thông tin innerError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Xử lý yêu cầu sai, định dạng không hỗ trợ và tham số ngôn ngữ không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: Chẩn đoán 401 hoặc 403 ở Translator và Blob Storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Xử lý đường dẫn nguồn, tác vụ hoặc tài liệu không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Chẩn đoán tệp đích trùng tên và xung đột kết quả cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Xử lý lỗi 429 và tôn trọng Retry-After khi được trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Chọn retry có backoff và jitter cho lỗi tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Phân biệt timeout kết nối, timeout đọc và thời gian xử lý tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Tránh retry mù yêu cầu tạo tác vụ sau khi mất phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Dịch lại có chọn lọc các tài liệu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-011
+    title: Sử dụng circuit breaker và giới hạn số tác vụ đang xử lý khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-012
+    title: Xây dựng hướng dẫn xử lý sự cố dựa trên bằng chứng và mã yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-limits
+  title: Hiệu năng và giới hạn
+  childs:
+  - slug: performance-limits-001
+    title: Đọc giới hạn hiện hành theo chế độ dịch và gói dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-002
+    title: Phân biệt dung lượng tệp, dung lượng lô và lượng ký tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-003
+    title: Chia lô theo số tệp, tổng dung lượng và ngôn ngữ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-004
+    title: Chọn mức song song theo quota và năng lực ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-005
+    title: Tối ưu chu kỳ polling theo thời gian xử lý thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-006
+    title: Truyền tệp bằng stream và giới hạn bộ nhớ khi tải lên hoặc tải xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-007
+    title: Cấu hình connection pool và thời gian chờ theo đặc điểm tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-008
+    title: Đo riêng thời gian tải lên, dịch, theo dõi và tải xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-009
+    title: Đặt ngưỡng tệp tạm, dung lượng đĩa và số yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-010
+    title: Đánh giá tải với tệp lớn, nhiều tài liệu nhỏ và nhiều ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: costs
+  title: Chi phí
+  childs:
+  - slug: costs-001
+    title: Phân biệt cách tính phí ký tự, ảnh và token theo chế độ hoặc mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-002
+    title: Ước lượng khối lượng dịch theo tập tài liệu và số ngôn ngữ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-003
+    title: Đối chiếu chi phí Translator với Storage, truyền dữ liệu và tài nguyên phụ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-004
+    title: Hiểu phần kết quả đã xử lý khi tác vụ bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-005
+    title: Đánh giá ảnh hưởng của dịch lại và gửi trùng đến chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-006
+    title: Lựa chọn gói dịch vụ theo tài liệu giá và nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-007
+    title: Thiết lập ngân sách, cảnh báo và giới hạn sử dụng trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-008
+    title: Đối soát chi phí theo người dùng, tác vụ và ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-009
+    title: Dọn dữ liệu theo thời hạn để kiểm soát chi phí lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-network
+  title: Bảo mật và mạng
+  childs:
+  - slug: security-network-001
+    title: Phân loại tài liệu và xác định dữ liệu được phép gửi đến dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-002
+    title: Chọn vị trí xử lý dữ liệu và kiểm tra cam kết lưu trú theo tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-003
+    title: Giới hạn quyền của ứng dụng, Translator và từng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-004
+    title: Bảo vệ API key, access token, SAS URL và đường dẫn đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-005
+    title: Ẩn nội dung nhạy cảm và chuỗi truy vấn SAS khỏi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-006
+    title: Giới hạn kích thước tải lên và kiểm tra tên tệp, đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-007
+    title: Kiểm soát URL Storage để ngăn yêu cầu tới đích ngoài phạm vi cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-008
+    title: Kiểm tra quyền tải bản dịch và thời hạn của liên kết chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-009
+    title: Cấu hình firewall Storage và kiểm tra truy cập từ Translator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-010
+    title: Đánh giá Private Endpoint, DNS và ngoại lệ mạng theo khả năng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-011
+    title: Thiết lập mã hóa, chính sách lưu giữ và quy trình xóa tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-network-012
+    title: Đánh giá quyền truy cập và vị trí xử lý riêng cho luồng LLM Preview
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring
+  title: Giám sát
+  childs:
+  - slug: monitoring-001
+    title: Thiết kế log có cấu trúc với mã yêu cầu ứng dụng, jobId và documentId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-002
+    title: Liên kết log tải lên, gửi dịch, polling và tải xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-003
+    title: Đo số tác vụ, tỷ lệ thành công và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-004
+    title: Theo dõi lỗi theo định dạng, ngôn ngữ, mô hình và mã lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-005
+    title: Theo dõi số lần retry, throttling và độ dài hàng chờ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-006
+    title: Quan sát tiêu thụ bộ nhớ, dung lượng tạm và kết nối HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-007
+    title: Tích hợp Micrometer hoặc OpenTelemetry theo môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-008
+    title: Khai thác Azure Monitor và chẩn đoán tài nguyên theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-009
+    title: Đặt cảnh báo cho tác vụ treo, lỗi quyền và chi phí tăng bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-010
+    title: Xây dựng bảng theo dõi tiến độ và hướng dẫn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Thiết kế bộ tài liệu mẫu theo định dạng, ngôn ngữ và dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Unit test kiểm tra đầu vào và ánh xạ request mà không gọi Azure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử multipart và phản hồi nhị phân bằng HTTP stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử polling qua các chuỗi trạng thái thành công, lỗi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Mô phỏng 429, lỗi 5xx, timeout và mất phản hồi khi tạo tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử chống gửi trùng và khôi phục sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử tích hợp Blob Storage với dữ liệu dùng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử Translator trên tài nguyên Azure thử nghiệm có giới hạn chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Phân biệt phạm vi kiểm thử Azurite và kiểm thử dịch vụ Azure thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Đối chiếu cấu trúc tệp và thuật ngữ bằng tập tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử phân quyền giữa người dùng và che bí mật trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Thiết kế kiểm thử hồi quy theo tiêu chí thay vì khớp nguyên văn mọi bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Tách cấu hình phát triển, kiểm thử và môi trường vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Đóng gói ứng dụng Java và chuẩn bị thư mục tạm có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Cấp danh tính và bí mật cho ứng dụng khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Cấu hình kết nối tới Translator và Storage từ môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Chạy tiến trình theo dõi bền vững cho tác vụ kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Giới hạn tải và điều chỉnh tài nguyên khi triển khai nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Thực hiện graceful shutdown mà vẫn giữ khả năng khôi phục tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Kiểm tra readiness của ứng dụng mà không gửi dịch phát sinh chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Thiết lập quy trình dọn dữ liệu và đối soát tác vụ định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-010
+    title: Chuẩn bị kiểm tra sau triển khai và phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: translator-containers
+  title: Container Translator
+  childs:
+  - slug: translator-containers-001
+    title: Phạm vi Translator container so với dịch vụ Document Translation trên cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-containers-002
+    title: Điều kiện đăng ký, giấy phép và yêu cầu tài nguyên của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-containers-003
+    title: Chuẩn bị Docker image và các mô hình ngôn ngữ cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-containers-004
+    title: Cấu hình billing endpoint, thông tin xác thực và dữ liệu gắn vào container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-containers-005
+    title: Gọi API dịch tài liệu của container từ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-containers-006
+    title: Đối chiếu định dạng, tính năng và endpoint được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-containers-007
+    title: Phân biệt chạy container tại chỗ với chế độ disconnected được cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translator-containers-008
+    title: Kiểm tra vận hành, cập nhật image và giới hạn của phương án container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-upgrades
+  title: Phiên bản và nâng cấp
+  childs:
+  - slug: versions-upgrades-001
+    title: Phân biệt phiên bản REST API, phiên bản SDK và trạng thái GA hoặc Preview
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-002
+    title: Đối chiếu API cũ với họ endpoint document của API 2026-03-01
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-003
+    title: Lập bảng tính năng theo phiên bản, khu vực và mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-004
+    title: Xác định khoảng trống SDK trước khi dùng khả năng REST mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-005
+    title: Nâng cấp dependency và kiểm tra thay đổi model, phương thức, ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-006
+    title: Kiểm thử hợp đồng request, response và trạng thái sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-007
+    title: Đánh giá hồi quy bản dịch, bố cục và glossary trên cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-008
+    title: Triển khai từng phần và giữ cấu hình để quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-upgrades-009
+    title: Cập nhật tài liệu tích hợp khi giới hạn hoặc khả năng dịch vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Dịch một tệp DOCX Việt–Anh bằng SDK Java và kiểm tra bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Dịch tệp bằng REST multipart và trả kết quả qua Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Dịch một tập tài liệu sang nhiều ngôn ngữ bằng Blob Storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Áp dụng glossary để chuẩn hóa thuật ngữ trong tài liệu kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Dịch Markdown và kiểm tra mã nguồn, liên kết, anchor sau dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Dịch PDF quét và đối chiếu kết quả OCR với bố cục bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Dịch chữ trong ảnh Office khi phiên bản API hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Chuyển luồng SAS sang managed identity và kiểm chứng quyền Storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Khôi phục việc theo dõi sau khi ứng dụng dừng giữa tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Mô phỏng thất bại một phần, hủy và dịch lại có chọn lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: So sánh mô hình mặc định với mô hình tùy chỉnh hoặc LLM đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-012
+    title: Hoàn thiện hệ thống dịch với tiêu chí chất lượng, chi phí và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

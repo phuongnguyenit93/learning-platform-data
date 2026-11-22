@@ -1,0 +1,376 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Error Prone là gì và bài toán phát hiện lỗi ngay khi biên dịch Java
+  - Phân biệt lỗi compiler, chẩn đoán của checker và lỗi khi chạy
+  - Checker, bug pattern, severity và suggested fix là gì
+  - So sánh phạm vi Error Prone với PMD, SpotBugs và Checkstyle
+  - Vai trò của thông tin kiểu và ngữ nghĩa trong phát hiện lỗi
+  - Tích hợp kiểm tra vào lần biên dịch thường ngày
+  - Giới hạn của phân tích tĩnh và ý nghĩa của kết quả không có cảnh báo
+  - Phân biệt Error Prone core, checker mở rộng, NullAway và Refaster
+  - Kiến thức nền và thứ tự học từ sử dụng đến viết checker
+- level1: Cơ chế javac
+  level2:
+  - Vị trí Error Prone trong các giai đoạn xử lý của javac
+  - Từ mã nguồn đến cây cú pháp và thông tin kiểu đã phân giải
+  - Tree, symbol, type và quan hệ với mã nguồn gốc
+  - Cơ chế nạp bằng -Xplugin:ErrorProne
+  - Phân biệt compiler plugin với annotation processor
+  - Vì sao dependency Error Prone vẫn được đặt trên processor path
+  - Checker nhận dữ liệu từ javac và phát sinh chẩn đoán như thế nào
+  - Quan hệ giữa classpath ứng dụng, processor path và môi trường chạy compiler
+  - Giới hạn khi mã không biên dịch được hoặc bị tạo, biến đổi bởi công cụ khác
+  - Ảnh hưởng của API nội bộ javac đến tương thích JDK
+- level1: Thiết lập
+  level2:
+  - Kiểm tra JDK tối thiểu và phiên bản Error Prone tương thích
+  - Phân biệt JDK chạy công cụ với --release của mã đầu ra
+  - Chọn phiên bản core, build plugin và checker mở rộng
+  - Khai báo error_prone_core và error_prone_annotations đúng mục đích
+  - Chuẩn bị dự án Java nhỏ có ví dụ bị checker phát hiện
+  - Chạy lần biên dịch đầu tiên với Error Prone
+  - Nhận diện tên checker, vị trí nguồn và đề xuất sửa trong thông báo
+  - Sửa ví dụ, biên dịch lại và xác nhận kiểm tra thực sự hoạt động
+  - Cố định phiên bản và ghi lại lệnh chạy có thể tái lập
+- level1: Dòng lệnh
+  level2:
+  - Chạy javac với plugin Error Prone và dependency cần thiết
+  - Cấu hình processor path và classpath ứng dụng
+  - Phân biệt tham số javac, tham số JVM của compiler và tham số -Xep
+  - Compile policy, điểm dừng khi có lỗi và yêu cầu của phiên bản đang dùng
+  - Truyền tùy chọn checker cùng đối số -Xplugin:ErrorProne
+  - Thiết lập --add-exports, --add-opens theo hướng dẫn tương thích
+  - Dùng --release, source encoding và classpath phù hợp với dự án
+  - Tệp đối số @file và cấu hình dùng chung khi phiên bản hỗ trợ
+  - Trích dẫn đối số, khoảng trắng và xuống dòng trên Windows, Linux, macOS
+  - Phân biệt kết quả biên dịch thất bại do lỗi Java, checker hay hạ tầng
+- level1: Tích hợp Maven
+  level2:
+  - Cấu hình maven-compiler-plugin thay vì một tác vụ phân tích bytecode riêng
+  - Khai báo Error Prone trong annotationProcessorPaths
+  - Truyền -Xplugin:ErrorProne và cờ -Xep qua compilerArgs
+  - Cấu hình showWarnings và quan hệ với chẩn đoán mức WARN
+  - Biên dịch trong tiến trình Maven và chế độ fork
+  - Đặt cờ mở module vào đúng JVM với .mvn/jvm.config hoặc đối số -J
+  - Kết hợp Maven toolchains với phiên bản Java nguồn và --release
+  - Khai báo đầy đủ các annotation processor khác khi processor path được chỉ định
+  - Kiểm soát phạm vi compile, testCompile và mã sinh
+  - Quản lý cấu hình chung bằng parent POM và pluginManagement
+  - Đọc effective POM và xác minh compiler thực sự được gọi
+  - Kiểm tra cấu hình đối số nhiều dòng và argument file trên Windows
+- level1: Tích hợp Gradle
+  level2:
+  - Áp dụng plugin net.ltgt.errorprone và kiểm tra tương thích Gradle
+  - Khai báo error_prone_core trong configuration errorprone
+  - Quan hệ giữa errorprone và annotationProcessor của từng source set
+  - Cấu hình options.errorprone trên JavaCompile
+  - compileJava, compileTestJava và source set bổ sung
+  - Bật, tắt hoặc đặt mức từng checker bằng DSL
+  - Truyền checker options và đối số bổ sung
+  - Cấu hình mã test, excludedPaths và warnings trong mã sinh
+  - Kết hợp Java toolchain với sourceCompatibility, targetCompatibility và release
+  - Thêm checker ngoài vào đúng configuration và đúng source set
+  - Phân biệt JavaCompile được gắn với source set và task JavaCompile tự tạo
+  - Đối chiếu Groovy DSL, Kotlin DSL và cấu hình compiler hiệu lực
+- level1: Bazel và IDE
+  level2:
+  - Kiểm tra tích hợp Error Prone trong Java toolchain của Bazel
+  - Cấu hình Java target và kiểm chứng checker thực sự được bật
+  - Đưa checker tùy chỉnh vào java_plugin và dependency tương ứng
+  - Chia sẻ cấu hình checker giữa công cụ build và môi trường phát triển
+  - Phân biệt phân tích riêng của IDE với biên dịch qua build đã bật Error Prone
+  - Ủy quyền build cho Maven hoặc Gradle khi cần kết quả nhất quán
+  - Đối chiếu JDK, flags và processor path khi IDE khác CI
+  - Tích hợp Ant hoặc javac trực tiếp trong dự án hiện có
+  - Giới hạn với Android, Kotlin và tác vụ không biên dịch Java bằng javac
+- level1: Cấu hình checker
+  level2:
+  - Đọc danh mục checker và trạng thái bật mặc định theo phiên bản
+  - Phân biệt nhóm ERROR, WARNING và checker bị tắt mặc định
+  - Cú pháp -Xep:CheckName với OFF, WARN và ERROR
+  - Canonical name, alias và xử lý tên checker không tồn tại
+  - Thứ tự tùy chọn và giá trị cuối cùng được áp dụng
+  - -XepDisableAllChecks rồi bật tường minh các checker cần thiết
+  - Chuyển mức toàn cục bằng AllErrorsAsWarnings và các cờ tương ứng
+  - Đánh giá từng checker trước khi bật hàng loạt checker thử nghiệm
+  - Truyền cấu hình riêng qua -XepOpt:Namespace:Option=Value
+  - Phân biệt severity của checker với cơ chế javac -Werror
+  - Lưu cấu hình theo phạm vi dự án và kiểm tra khác biệt giữa các môi trường
+- level1: Đọc chẩn đoán
+  level2:
+  - 'Cấu trúc thông báo: tệp, dòng, severity, tên checker và mô tả'
+  - Tra tài liệu checker bằng đường dẫn đi kèm chẩn đoán
+  - Phân biệt lỗi được xác định, cảnh báo và đề xuất cải thiện
+  - Đọc vị trí chính và ngữ cảnh kiểu, overload hoặc generic liên quan
+  - Phân biệt nhận diện lỗi và khả năng tự động tạo bản sửa
+  - Kiểm chứng cảnh báo bằng đầu vào cụ thể và hợp đồng API
+  - Phân loại cảnh báo thật, cảnh báo sai và trường hợp thiếu bằng chứng
+  - Tạo ví dụ tối thiểu trước khi thay cấu hình hoặc báo lỗi checker
+  - Sửa nguyên nhân, thêm kiểm thử và biên dịch lại toàn phạm vi liên quan
+  - Ưu tiên xử lý theo ảnh hưởng thực tế thay vì chỉ dựa vào số cảnh báo
+- level1: So sánh và kiểu
+  level2:
+  - ReferenceEquality và việc dùng == với đối tượng có ngữ nghĩa giá trị
+  - BoxedPrimitiveEquality và bẫy so sánh đối tượng bọc số
+  - EqualsHashCode và tính nhất quán giữa equals với hashCode
+  - EqualsNull, EqualsNaN và so sánh không biểu đạt đúng ý định
+  - So sánh các kiểu không thể tương thích và lời gọi equals đáng ngờ
+  - CompareToZero và giả định sai về giá trị trả về của compareTo
+  - Ép kiểu, instanceof và kiểu đích không nhất quán
+  - Hợp đồng Comparable, comparator và dữ liệu trong tập hợp có thứ tự
+  - Nhận diện kiểu thực bằng ngữ nghĩa thay vì chỉ nhìn tên trong mã
+  - Viết kiểm thử cho bản sửa làm thay đổi hành vi so sánh
+- level1: Collections và mảng
+  level2:
+  - CollectionIncompatibleType và đối số không phù hợp với collection
+  - ArrayEquals, ArrayHashCode và ngữ nghĩa nội dung mảng
+  - ArrayToString và biểu diễn mảng không đúng mong đợi
+  - ArraysAsListPrimitiveArray và sự khác biệt giữa mảng nguyên thủy, mảng đối tượng
+  - Collection.toArray và kiểu mảng đầu ra
+  - Lời gọi List.remove mơ hồ giữa chỉ số và giá trị
+  - DuplicateMapKeys và khóa trùng trong API tạo Map
+  - ModifyingCollectionWithItself và thao tác collection với chính nó
+  - DoubleBraceInitialization và trạng thái, lớp ẩn danh phát sinh
+  - Generic, wildcard và kiểm tra đối số dựa trên thông tin kiểu
+- level1: Số học và điều kiện
+  level2:
+  - ConstantOverflow và tràn số trong biểu thức hằng
+  - BadShiftAmount và phạm vi dịch bit
+  - ComparisonOutOfRange và điều kiện không thể thỏa mãn
+  - Chuyển đổi int, long, float, double và nguy cơ mất độ chính xác
+  - Phép chia, ép kiểu và thứ tự tính của biểu thức trung gian
+  - ConditionalExpressionNumericPromotion và kiểu của toán tử ba ngôi
+  - Phép toán bit đáng ngờ và nhầm với điều kiện boolean
+  - ShortCircuitBoolean và khác biệt & với &&, | với ||
+  - LoopConditionChecker và biến điều kiện không được thay đổi
+  - Tự gán, nhánh trùng và phép tính không có tác dụng
+- level1: Chuỗi và ngày giờ
+  level2:
+  - Checker định dạng printf và đối số không khớp format string
+  - DefaultCharset, StringCharset và lựa chọn charset tường minh
+  - StringCaseLocaleUsage và xử lý hoa, thường theo Locale
+  - String.split và hành vi biểu thức chính quy, phần tử rỗng
+  - MisusedWeekYear và nhầm năm theo tuần với năm lịch
+  - MisusedDayOfYear và nhầm ngày trong năm với ngày trong tháng
+  - Duration, Period, Instant và loại đơn vị được API chấp nhận
+  - TimeUnitMismatch và giá trị mang đơn vị không đúng
+  - Nhận diện lỗi API thời gian Java hiện đại và thư viện được checker hỗ trợ
+  - Kiểm thử Unicode, mốc cuối năm, múi giờ và giá trị biên sau khi sửa
+- level1: Giá trị trả về
+  level2:
+  - CheckReturnValue và các tên thay thế theo phiên bản
+  - Lỗi bỏ qua kết quả của phương thức trên đối tượng bất biến
+  - '@CheckReturnValue ở cấp method, class và package'
+  - '@CanIgnoreReturnValue và phương thức có tác dụng phụ chính'
+  - FutureReturnValueIgnored và ngoại lệ trong tác vụ bất đồng bộ bị bỏ qua
+  - Giá trị trả về của stream, builder và API xử lý dữ liệu
+  - Ngữ cảnh kiểm thử ngoại lệ hoặc thiết lập mock được checker nhận diện
+  - Khi việc bỏ qua kết quả là có chủ đích và cách thể hiện rõ ý định
+  - Phân biệt hợp đồng bắt buộc dùng kết quả với quy tắc cho mọi phương thức non-void
+- level1: Ngoại lệ và tài nguyên
+  level2:
+  - DeadException và đối tượng ngoại lệ được tạo nhưng không throw
+  - Finally và việc làm mất kết quả hoặc ngoại lệ trước đó
+  - Giữ nguyên nguyên nhân khi chuyển đổi, ném lại ngoại lệ
+  - InterruptedException bị nuốt và hợp đồng xử lý ngắt
+  - StreamResourceLeak và stream giữ tài nguyên cần đóng
+  - MustBeClosedChecker cùng hợp đồng @MustBeClosed
+  - Quyền sở hữu tài nguyên giữa nơi tạo và nơi sử dụng
+  - Try-with-resources và kiểm chứng mọi đường thực thi quan trọng
+  - Catch, logging và khác biệt giữa cảnh báo kỹ thuật với lựa chọn xử lý nghiệp vụ
+- level1: Stream và Optional
+  level2:
+  - Tính lười của stream và tác dụng của thao tác kết thúc
+  - Sử dụng lại stream hoặc biến stream thành Iterable chỉ dùng được một lần
+  - OptionalMapToOptional và lựa chọn map hoặc flatMap
+  - OptionalNotPresent và truy cập Optional đã được xác định rỗng
+  - UnnecessaryOptionalGet và sử dụng tham số của lambda
+  - Giá trị null trong Optional hoặc API bất đồng bộ theo hợp đồng cụ thể
+  - Biểu thức lambda, method reference và overload có thể thay đổi ý nghĩa
+  - Bỏ qua kết quả của chuỗi lời gọi và nhận diện thao tác không có tác dụng
+  - Kiểm thử độ tương đương về số lần đánh giá, ngoại lệ và tác dụng phụ
+- level1: Đồng thời và bất biến
+  level2:
+  - GuardedBy và yêu cầu giữ khóa khi truy cập trường, phương thức
+  - Biểu thức khóa, khóa đối tượng và java.util.concurrent.Lock
+  - Giới hạn của phân tích khóa trong lambda, alias và lời gọi phương thức
+  - Khóa trên đối tượng bọc số, String hoặc trường có thể đổi tham chiếu
+  - DeadThread và luồng được tạo nhưng không khởi chạy
+  - Thread pool, Future và hợp đồng hoàn tất, hủy tác vụ
+  - '@Immutable và kiểm tra tính bất biến sâu theo mô hình của checker'
+  - Generic container, containerOf và @ImmutableTypeParameter
+  - Phân biệt final, collection chỉ đọc và dữ liệu thực sự bất biến
+  - Giới hạn của kiểm tra tĩnh đối với race condition và deadlock
+  - Kiểm chứng bản sửa với Java Memory Model và ca kiểm thử phù hợp
+- level1: Hợp đồng API
+  level2:
+  - Vai trò của artifact error_prone_annotations đối với mã thư viện và bên gọi
+  - '@CompileTimeConstant và dữ liệu cần xác định tại thời điểm biên dịch'
+  - '@FormatMethod, @FormatString và API định dạng tự viết'
+  - '@DoNotCall và lời gọi API bị cấm theo hợp đồng'
+  - '@DoNotMock và loại đối tượng không nên giả lập'
+  - '@ForOverride và điểm mở rộng được thiết kế cho lớp con'
+  - '@RestrictedApi và phạm vi sử dụng API được kiểm soát'
+  - Phạm vi áp dụng và kế thừa của annotation theo từng checker
+  - Phân biệt annotation Error Prone với annotation cùng tên của thư viện khác
+  - Phân biệt hợp đồng được compiler kiểm tra với kiểm tra bắt buộc khi chạy
+- level1: NullAway
+  level2:
+  - NullAway là checker mở rộng và khác với các kiểm tra null tích hợp
+  - Chọn phiên bản NullAway tương thích với Error Prone và JDK
+  - Thêm checker vào processor path hoặc configuration của build plugin
+  - Bật kiểm tra cho phạm vi package hoặc chế độ annotation được hỗ trợ
+  - '@Nullable, khởi tạo trường và hợp đồng tham số, giá trị trả về'
+  - JSpecify và cấu hình nullness theo chế độ, phiên bản đang dùng
+  - Dependency chưa có annotation, mô hình thư viện và mã sinh
+  - Áp dụng từng phạm vi, xử lý ngoại lệ có bằng chứng và kiểm tra trên CI
+  - Giới hạn bảo đảm null-safety và ranh giới với Checker Framework
+- level1: Mã test và framework
+  level2:
+  - JUnit4TestNotRun và phương thức kiểm thử không được thực thi
+  - Assertion có đối số đảo thứ tự hoặc kiểm tra sai loại bằng nhau
+  - MockitoUsage và lời gọi verify, stubbing chưa hoàn chỉnh
+  - ExpectedException, assertThrows và giới hạn phạm vi ngoại lệ được kiểm tra
+  - DoNotMock và lựa chọn đối tượng thay thế phù hợp
+  - Checker cho Guava, JUnit, Mockito, Guice hoặc Dagger khi dự án sử dụng
+  - Tránh bật checker chuyên framework lên mã không có ngữ cảnh tương ứng
+  - Phân biệt cấu hình compilingTestOnlyCode và tắt toàn bộ checker cho test
+  - Giữ kiểm thử có ý nghĩa sau khi áp dụng bản sửa được đề xuất
+- level1: Phạm vi kiểm tra
+  level2:
+  - Xác định nguồn chính, nguồn test, nguồn sinh và dependency ngoài
+  - '@SuppressWarnings("CheckName") và phạm vi khai báo gần nhất phù hợp'
+  - Chọn đúng canonical name hoặc alias được checker hỗ trợ
+  - Phân biệt suppression một vị trí, tắt một checker và tắt plugin cho một task
+  - Giải thích vì sao cảnh báo an toàn để bỏ qua
+  - -XepExcludedPaths và đối sánh biểu thức chính quy theo đường dẫn
+  - Khác biệt dấu phân cách đường dẫn giữa các môi trường
+  - DisableWarningsInGeneratedCode chỉ tác động đến mức cảnh báo phù hợp
+  - Vai trò của @Generated và vị trí annotation trên mã sinh
+  - Rà soát suppression quá rộng hoặc không còn cần thiết
+  - Kiểm chứng mã bị loại và mã vẫn được kiểm tra bằng ví dụ đối chứng
+- level1: Bản sửa tự động
+  level2:
+  - Suggested fix là gì và vì sao không phải checker nào cũng có
+  - Phân biệt đọc đề xuất, tạo patch và sửa trực tiếp tại chỗ
+  - Chọn checker được phép sửa bằng -XepPatchChecks
+  - Chọn gốc đường dẫn với -XepPatchLocation
+  - Đọc unified diff trong error-prone.patch
+  - Chế độ IN_PLACE và phạm vi tệp thực sự có thể thay đổi
+  - Xử lý nhiều bản sửa xung đột hoặc chồng vùng nguồn
+  - Rà soát import, biểu thức, ngoại lệ và tác dụng phụ sau thay đổi
+  - Biên dịch lại, chạy kiểm thử và kiểm tra diff sau mỗi đợt sửa
+  - Đánh giá giới hạn và tương thích của chế độ patch theo phiên bản
+- level1: Refaster
+  level2:
+  - Refaster là gì và khác với checker phát sinh chẩn đoán
+  - Biểu diễn chuyển đổi mã bằng @BeforeTemplate và @AfterTemplate
+  - Kiểu tham số, giá trị trả về và quá trình đối sánh template
+  - Nhiều mẫu trước tương ứng với một mẫu sau
+  - Annotation bổ sung như @AlsoNegation khi phù hợp
+  - Biên dịch template thành tệp .refaster theo công cụ của phiên bản
+  - Áp dụng template qua cơ chế patching của Error Prone
+  - Giữ nguyên kiểu, số lần đánh giá, tác dụng phụ và ngữ nghĩa
+  - Kiểm thử mẫu khớp, mẫu không khớp và kiểm tra diff trước khi áp dụng rộng
+- level1: InlineMe
+  level2:
+  - '@InlineMe và lộ trình thay thế API đã deprecated'
+  - Khai báo replacement, imports và staticImports
+  - Yêu cầu lưu tên tham số bằng -parameters
+  - 'Phạm vi API phù hợp: constructor, static method và method không thể bị ghi đè'
+  - Vai trò của InlineMeSuggester, InlineMeValidator và InlineMeInliner
+  - Tạo và rà soát bản sửa ở phía mã gọi API
+  - Ràng buộc quyền truy cập, overload và tương thích nguồn
+  - Kiểm chứng thư viện và bên sử dụng sau khi chuyển đổi
+  - Phân biệt thay thế API bằng InlineMe với biến đổi mẫu tổng quát bằng Refaster
+- level1: Checker tùy chỉnh
+  level2:
+  - Khi nào nên viết checker mới thay vì cấu hình checker có sẵn
+  - Thiết kế mẫu lỗi, phản ví dụ và tiêu chí để chặn ở mức ERROR
+  - Tạo project với error_prone_check_api và dependency tương thích
+  - Kế thừa BugChecker và khai báo @BugPattern
+  - Chọn TreeMatcher phù hợp như MethodInvocationTreeMatcher
+  - Dùng VisitorState để đọc ngữ cảnh và thông tin nguồn
+  - Dùng ASTHelpers, symbol, type và matcher ngữ nghĩa
+  - Trả Description.NO_MATCH hoặc chẩn đoán có vị trí hữu ích
+  - Tạo SuggestedFix với thay thế nguồn và điều chỉnh import
+  - Đọc cấu hình checker bằng ErrorProneFlags
+  - Đăng ký ServiceLoader bằng @AutoService(BugChecker.class)
+  - Đóng gói JAR và nạp checker từ annotation processor path
+  - Kiểm soát trạng thái checker, chi phí phân tích và phụ thuộc javac
+- level1: Kiểm thử checker
+  level2:
+  - Dùng error_prone_test_helpers phù hợp phiên bản checker
+  - CompilationTestHelper cho ví dụ có và không có chẩn đoán
+  - Chỉ định vị trí và thông báo mong đợi trong mã test
+  - BugCheckerRefactoringTestHelper cho đầu vào, đầu ra sau bản sửa
+  - Kiểm tra generic, overload, lớp lồng và tên kiểu trùng nhau
+  - Kiểm tra import, static import và biểu thức nhiều dòng
+  - Kiểm tra tác dụng phụ, ngoại lệ và số lần đánh giá biểu thức
+  - Kiểm tra -XepOpt, severity và suppression
+  - Thêm ca hồi quy cho cảnh báo sai hoặc trường hợp bị bỏ sót
+  - Kiểm tra tương thích JDK, classpath và nạp plugin trong một lần biên dịch thực
+- level1: CI và chất lượng
+  level2:
+  - Đưa Error Prone vào tác vụ biên dịch chuẩn của pipeline
+  - Chọn checker chặn build và checker cảnh báo theo rủi ro
+  - Áp dụng từng giai đoạn cho dự án đã có nhiều vi phạm
+  - Phân biệt chính sách bật checker với baseline hoặc công cụ quản lý nợ riêng
+  - Giữ phiên bản core, plugin và checker tùy chỉnh nhất quán
+  - Xác minh phân tích đúng nguồn mã và commit cần kiểm tra
+  - Lưu log chẩn đoán và dùng bộ chuyển đổi báo cáo phù hợp nếu cần
+  - Xác định đầu ra chẩn đoán của core và khả năng báo cáo của công cụ tích hợp
+  - Kiểm tra cổng chất lượng thật sự chặn bằng vi phạm có kiểm soát
+  - Tách đợt tạo bản sửa khỏi lần biên dịch chỉ kiểm tra thông thường
+  - Giữ thông báo CI đủ rõ để người phát triển chạy lại tại máy cá nhân
+- level1: Dự án nhiều module
+  level2:
+  - Quản lý cấu hình chung bằng parent POM hoặc convention plugin
+  - Chọn checker và mức phù hợp cho từng module, source set
+  - Đặt checker tùy chỉnh thành artifact độc lập dùng chung
+  - Phối hợp dependency giữa module, processor path và annotation trên API
+  - Mã do Lombok hoặc annotation processor khác sinh, biến đổi
+  - Thứ tự xử lý và tương thích giữa compiler plugin với công cụ sinh mã
+  - Kiểm tra đường dẫn mã sinh và phạm vi exclusion
+  - Tác vụ biên dịch bổ sung, mã test tích hợp và module không dùng javac
+  - Giữ cấu hình checker không rò rỉ vào dependency runtime ngoài ý định
+  - Xác minh từng module được kiểm tra và tránh kết luận từ task bị bỏ qua
+- level1: Nâng cấp và hiệu năng
+  level2:
+  - Đọc release notes và đối chiếu hỗ trợ JDK, javac trước nâng cấp
+  - Phân biệt nâng core, Gradle plugin và checker ngoài
+  - Checker mới, thay đổi mặc định và tên checker bị đổi hoặc hợp nhất
+  - Rà soát flags, suppression và API javac mà checker tùy chỉnh sử dụng
+  - Kiểm tra lại test helpers, SuggestedFix và template chuyển đổi
+  - Đo phần chi phí Error Prone thêm vào lần biên dịch
+  - Phân biệt incremental compilation của build với phạm vi kiểm tra của checker
+  - Vô hiệu hóa kết quả cũ khi phiên bản hoặc cấu hình checker thay đổi
+  - Phân bổ heap, số compiler chạy song song và phạm vi mã sinh
+  - Đối chiếu kết quả trước, sau nâng cấp bằng cùng bộ nguồn và kiểm thử
+- level1: Khắc phục sự cố
+  level2:
+  - Plugin not found do Error Prone không có trên processor path
+  - IllegalAccessError hoặc InaccessibleObjectException do cấu hình module JVM
+  - NoSuchMethodError và lỗi javac nội bộ do phiên bản không tương thích
+  - UnsupportedClassVersionError và xác định JVM thực sự chạy compiler
+  - Tên checker không hợp lệ hoặc checker ngoài chưa được ServiceLoader nạp
+  - Không có chẩn đoán do task up-to-date, exclusion hoặc plugin chưa bật
+  - Annotation processor khác ngừng chạy sau khi cấu hình processor path
+  - Khác biệt giữa Maven fork, toolchain, Gradle daemon và IDE
+  - Lỗi đối số, xuống dòng, dấu cách và đường dẫn trên Windows
+  - Checker crash, cảnh báo sai và cách tạo ví dụ tái hiện tối thiểu
+  - Patch không xuất hiện vì checker không có fix hoặc nguồn không khớp
+- level1: Thực hành tổng hợp
+  level2:
+  - Khởi tạo dự án Java với Error Prone trên một công cụ build
+  - Chứng minh checker được nạp bằng ví dụ lỗi dễ tái hiện
+  - Sửa lỗi so sánh, collection và giá trị trả về bị bỏ qua
+  - Sửa lỗi ngoại lệ, tài nguyên, ngày giờ và đơn vị thời gian
+  - Thêm annotation hợp đồng API và kiểm chứng ở phía mã gọi
+  - Cấu hình severity, phạm vi mã test và suppression hẹp
+  - Bật NullAway cho một phạm vi nhỏ và xử lý các chẩn đoán đại diện
+  - Tạo patch có chọn lọc và kiểm chứng sau khi áp dụng
+  - Viết checker tùy chỉnh cùng test chẩn đoán, test bản sửa
+  - Thử một template Refaster hoặc lộ trình InlineMe có kiểm thử
+  - Tích hợp CI và thực hiện một lần nâng cấp có đối chiếu hồi quy

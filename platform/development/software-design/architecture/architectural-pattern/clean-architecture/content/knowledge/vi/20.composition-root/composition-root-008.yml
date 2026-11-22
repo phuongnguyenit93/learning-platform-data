@@ -1,0 +1,3 @@
+menuLevel1: Composition Root
+menuLevel2: Tránh service locator, global state và việc tạo dependency rải rác trong lõi
+status: ""

@@ -1,0 +1,1552 @@
+menu:
+- slug: builder-fundamentals
+  title: Tổng quan
+  childs:
+  - slug: builder-fundamentals-001
+    title: Builder là gì và mục đích tách quá trình xây dựng khỏi biểu diễn sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-fundamentals-002
+    title: Vị trí của Builder trong nhóm mẫu thiết kế khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-fundamentals-003
+    title: Khởi tạo từng bước khác gì với chỉnh sửa đối tượng sau khi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-fundamentals-004
+    title: Phân biệt Builder kiểu GoF, fluent builder và fluent interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-fundamentals-005
+    title: Lợi ích về khả năng đọc, kiểm soát tùy chọn và bảo vệ trạng thái hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-fundamentals-006
+    title: Giới hạn, chi phí bổ sung và điều kiện áp dụng Builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: construction-challenges
+  title: Bài toán khởi tạo
+  childs:
+  - slug: construction-challenges-001
+    title: Nhận diện constructor có quá nhiều tham số và khó hiểu tại nơi gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-challenges-002
+    title: Vấn đề của telescoping constructor và nhiều tổ hợp overload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-challenges-003
+    title: Nhầm thứ tự các tham số cùng kiểu và giá trị boolean thiếu ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-challenges-004
+    title: Hạn chế của JavaBeans với setter và trạng thái khởi tạo dở dang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-challenges-005
+    title: Đối tượng có nhiều tùy chọn, giá trị mặc định và ràng buộc chéo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-challenges-006
+    title: Một quy trình xây dựng tạo ra nhiều biểu diễn sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-challenges-007
+    title: Tiêu chí chọn Builder từ độ phức tạp thực tế của miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gof-structure
+  title: Cấu trúc GoF
+  childs:
+  - slug: gof-structure-001
+    title: Vai trò và trách nhiệm của Builder, ConcreteBuilder, Director và Product
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-structure-002
+    title: Thiết kế hợp đồng cho các bước xây dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-structure-003
+    title: ConcreteBuilder lưu trạng thái trung gian và tạo biểu diễn cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-structure-004
+    title: Director điều phối thứ tự và tổ hợp các bước xây dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-structure-005
+    title: Client lựa chọn builder và yêu cầu quy trình phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-structure-006
+    title: Phân biệt giao diện xây dựng với giao diện sử dụng sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-structure-007
+    title: Cách lấy kết quả khi các ConcreteBuilder tạo sản phẩm cùng kiểu hoặc khác kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-structure-008
+    title: Sơ đồ lớp và luồng tương tác giữa các thành phần GoF
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gof-construction-process
+  title: Quy trình GoF
+  childs:
+  - slug: gof-construction-process-001
+    title: Xác định các bước chung từ những biểu diễn cần xây dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-construction-process-002
+    title: Tách bước bắt buộc, bước tùy chọn và bước có thể lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-construction-process-003
+    title: Quy định điều kiện trước và sau mỗi bước xây dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-construction-process-004
+    title: Tổ chức nhiều công thức xây dựng trong Director
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-construction-process-005
+    title: Cho phép client điều phối trực tiếp khi không cần Director
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-construction-process-006
+    title: Xác định thời điểm hoàn tất và quyền truy cập sản phẩm trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-construction-process-007
+    title: Xử lý bước thất bại, tài nguyên đang giữ và trạng thái cần hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gof-report-example
+  title: Thực hành GoF
+  childs:
+  - slug: gof-report-example-001
+    title: Phân tích bài toán tạo báo cáo với phần tiêu đề, nội dung và tổng kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-report-example-002
+    title: Định nghĩa hợp đồng ReportBuilder theo các bước tạo báo cáo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-report-example-003
+    title: Cài đặt HtmlReportBuilder và mô hình kết quả HTML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-report-example-004
+    title: Cài đặt PlainTextReportBuilder và mô hình kết quả văn bản thuần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-report-example-005
+    title: Cài đặt ReportDirector với công thức báo cáo ngắn và báo cáo đầy đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-report-example-006
+    title: Client thay builder để tạo biểu diễn khác từ cùng dữ liệu đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-report-example-007
+    title: Lấy kết quả đúng kiểu và xác định chính sách khởi tạo lần xây dựng tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-report-example-008
+    title: Kiểm tra đầu ra và đánh giá phần phụ thuộc đã được tách khỏi Director
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fluent-builder
+  title: Fluent builder
+  childs:
+  - slug: fluent-builder-001
+    title: Cấu trúc Product và static nested Builder theo phong cách Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fluent-builder-002
+    title: Tạo điểm vào builder và đặt constructor sản phẩm ở phạm vi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fluent-builder-003
+    title: Thiết kế phương thức cấu hình trả về chính builder để nối chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fluent-builder-004
+    title: Dùng constructor của builder hoặc phương thức đầu vào cho tham số bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fluent-builder-005
+    title: Cài đặt build để kiểm tra trạng thái và tạo một sản phẩm hoàn chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fluent-builder-006
+    title: Thực hành OrderRequest với mã khách hàng, địa chỉ và tùy chọn giao hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fluent-builder-007
+    title: Đọc luồng gọi từ builder đến build và đối chiếu với cấu trúc GoF
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fluent-builder-008
+    title: Giải thích vì sao method chaining chưa đủ để một API trở thành Builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fields-and-options
+  title: Dữ liệu và tùy chọn
+  childs:
+  - slug: fields-and-options-001
+    title: Phân loại thuộc tính bắt buộc, tùy chọn và thuộc tính được suy ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fields-and-options-002
+    title: Chọn nơi khai báo giá trị mặc định và thời điểm tính giá trị mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fields-and-options-003
+    title: Phân biệt chưa thiết lập, thiết lập null và chủ động xóa một giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fields-and-options-004
+    title: Xử lý kiểu nguyên thủy khi cần phân biệt giá trị mặc định với dữ liệu được nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fields-and-options-005
+    title: Quy định ý nghĩa của nhiều lần gọi cấu hình trên cùng một thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fields-and-options-006
+    title: Thiết kế tùy chọn loại trừ nhau và tùy chọn phụ thuộc lẫn nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fields-and-options-007
+    title: Xây dựng thuộc tính dẫn xuất sau khi đã có đầy đủ đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fields-and-options-008
+    title: Sử dụng enum và kiểu giá trị để hạn chế tổ hợp tùy chọn vô nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-validation
+  title: Kiểm tra trạng thái
+  childs:
+  - slug: state-validation-001
+    title: Xác định invariant của sản phẩm trước khi thiết kế builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-002
+    title: Kiểm tra lỗi cục bộ ngay tại bước nhận dữ liệu khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-003
+    title: Kiểm tra thiếu trường bắt buộc và ràng buộc chéo khi gọi build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-004
+    title: Chuẩn hóa dữ liệu đầu vào trước khi kiểm tra và tạo sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-005
+    title: Giữ quy tắc hợp lệ tại constructor hoặc lớp miền để tránh bỏ qua builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-006
+    title: Thiết kế thông báo lỗi có tên trường và ngữ cảnh nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-007
+    title: Chọn fail fast, thu thập nhiều lỗi hoặc trả về kết quả có cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-008
+    title: Phân biệt kiểm tra hình dạng dữ liệu với kiểm tra cần truy cập dịch vụ ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-validation-009
+    title: Bảo đảm build thất bại không làm lộ sản phẩm sai và xác định khả năng thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: immutability
+  title: Tính bất biến
+  childs:
+  - slug: immutability-001
+    title: Tạo sản phẩm bất biến từ một builder có trạng thái thay đổi được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutability-002
+    title: Kết hợp trường final, constructor được kiểm soát và việc không cung cấp setter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutability-003
+    title: Sao chép phòng vệ với mảng, collection và đối tượng đầu vào có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutability-004
+    title: Phân biệt bản sao dữ liệu với lớp bọc collection chỉ cho phép đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutability-005
+    title: Ngăn builder sửa ngược sản phẩm đã tạo qua tham chiếu dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutability-006
+    title: Sao chép phòng vệ ở getter khi sản phẩm còn chứa thành phần thay đổi được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutability-007
+    title: Thiết kế toBuilder và copy builder để tạo biến thể từ sản phẩm hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutability-008
+    title: Tránh để tham chiếu this hoặc sản phẩm chưa hoàn tất thoát khỏi quá trình tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: nested-object-construction
+  title: Đối tượng phức hợp
+  childs:
+  - slug: nested-object-construction-001
+    title: Tổ chức builder cho aggregate và các đối tượng giá trị lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nested-object-construction-002
+    title: Chọn nhận sản phẩm con đã hoàn chỉnh hay nhận cấu hình builder con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nested-object-construction-003
+    title: Thiết kế addItem, addAll và replaceItems với ngữ nghĩa rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nested-object-construction-004
+    title: Kiểm soát thứ tự, phần tử trùng lặp và phần tử null trong tập hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nested-object-construction-005
+    title: Xác thực ràng buộc giữa sản phẩm cha và các thành phần con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nested-object-construction-006
+    title: Xử lý cấu trúc có tham chiếu vòng mà không làm lộ trạng thái chưa hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nested-object-construction-007
+    title: Đánh giá độ sâu của chuỗi builder và tránh DSL lồng nhau khó đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: builder-lifecycle
+  title: Vòng đời builder
+  childs:
+  - slug: builder-lifecycle-001
+    title: Chọn builder dùng một lần hay có thể tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-lifecycle-002
+    title: Định nghĩa hành vi khi gọi build nhiều lần trên cùng builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-lifecycle-003
+    title: Quy định build có giữ nguyên, tiêu thụ hay đặt lại trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-lifecycle-004
+    title: Tránh dữ liệu sót lại khi reset hoặc tái sử dụng builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-lifecycle-005
+    title: Phân biệt builder giữ kết quả đang xây dựng với builder chỉ giữ tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-lifecycle-006
+    title: Nhận diện builder thường không an toàn khi chia sẻ giữa các luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-lifecycle-007
+    title: Dùng builder riêng cho từng tác vụ và công bố sản phẩm an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-lifecycle-008
+    title: Quản lý builder, Director và tài nguyên theo phạm vi sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: step-builder
+  title: Step builder
+  childs:
+  - slug: step-builder-001
+    title: Mô hình hóa thứ tự bước bằng các interface đại diện trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-builder-002
+    title: Chỉ mở phương thức build sau khi đã đi qua các bước bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-builder-003
+    title: Cài đặt staged builder cho yêu cầu có thông tin bắt buộc theo thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-builder-004
+    title: Thiết kế bước tùy chọn và bước lặp trong API có trạng thái kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-builder-005
+    title: Giới hạn kiểm tra lúc biên dịch đối với điều kiện phụ thuộc giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-builder-006
+    title: So sánh số lượng kiểu và độ dễ đọc với fluent builder thông thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-builder-007
+    title: Lựa chọn step builder khi lợi ích ngăn sai thao tác đủ lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-and-generics
+  title: Kế thừa và generic
+  childs:
+  - slug: inheritance-and-generics-001
+    title: Vấn đề mất kiểu builder con khi nối các phương thức kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-generics-002
+    title: Dùng self type và generic đệ quy để giữ kiểu trả về của builder con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-generics-003
+    title: Thiết kế builder cho lớp cơ sở trừu tượng và sản phẩm cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-generics-004
+    title: Ghi đè build với kiểu trả về hiệp biến khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-generics-005
+    title: Kết hợp kiểm tra invariant của lớp cha và lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-generics-006
+    title: Ưu tiên composition khi phân cấp builder khiến hợp đồng khó hiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-generics-007
+    title: Đánh giá độ phức tạp generic và kiểm soát ép kiểu không an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: constructor-comparison
+  title: So sánh constructor
+  childs:
+  - slug: constructor-comparison-001
+    title: Chọn constructor trực tiếp cho đối tượng nhỏ với ít tham số rõ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: constructor-comparison-002
+    title: So sánh Builder với telescoping constructor về khả năng đọc và bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: constructor-comparison-003
+    title: So sánh Builder với JavaBeans về trạng thái trung gian và tính bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: constructor-comparison-004
+    title: Dùng parameter object hoặc kiểu giá trị để gom nhóm tham số liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: constructor-comparison-005
+    title: So sánh khả năng biểu diễn trường bắt buộc và giá trị mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: constructor-comparison-006
+    title: Đánh giá ảnh hưởng khi bổ sung thuộc tính hoặc thay đổi yêu cầu khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: constructor-comparison-007
+    title: Lập tiêu chí lựa chọn theo invariant, số tổ hợp tùy chọn và độ phức tạp API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: factory-comparison
+  title: So sánh factory
+  childs:
+  - slug: factory-comparison-001
+    title: Phân biệt static factory method với mẫu thiết kế Factory Method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-comparison-002
+    title: Chọn static factory có tên để thể hiện ý nghĩa của một cách khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-comparison-003
+    title: So sánh Builder với Factory Method về tạo từng bước và lựa chọn lớp sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-comparison-004
+    title: So sánh Builder với Abstract Factory về xây dựng sản phẩm và tạo họ sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-comparison-005
+    title: Kết hợp factory chọn builder hoặc tạo builder đã có cấu hình ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-comparison-006
+    title: Phân biệt build tạo đối tượng mới với factory có thể trả đối tượng dùng lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-comparison-007
+    title: Phân tích cùng một yêu cầu bằng constructor, factory và Builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-combinations
+  title: Kết hợp mẫu
+  childs:
+  - slug: pattern-combinations-001
+    title: Kết hợp Builder với Composite để tạo cấu trúc cây từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-combinations-002
+    title: Dùng Prototype hoặc bản mẫu làm đầu vào cho copy builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-combinations-003
+    title: Phân biệt vai trò Director với việc chọn thuật toán bằng Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-combinations-004
+    title: Kết hợp dependency injection để cung cấp phụ thuộc cho đối tượng được xây dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-combinations-005
+    title: Phân biệt GoF Builder, fluent interface và DSL theo mục đích thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-combinations-006
+    title: Đánh giá việc kết hợp mẫu qua mức giảm phụ thuộc và chi phí hiểu mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-and-libraries
+  title: Java và thư viện
+  childs:
+  - slug: java-and-libraries-001
+    title: Tổ chức package, quyền truy cập và lớp Builder lồng tĩnh trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-libraries-002
+    title: Kết hợp record với builder khi nhiều tùy chọn làm lời gọi canonical constructor khó đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-libraries-003
+    title: Giữ kiểm tra invariant tại canonical constructor hoặc compact constructor của record
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-libraries-004
+    title: Dùng Lombok Builder và hiểu mã được sinh thay cho chỉ nhìn annotation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-libraries-005
+    title: Kiểm tra giá trị mặc định, collection và toBuilder khi dùng Lombok
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-libraries-006
+    title: Đánh giá builder kế thừa do thư viện sinh và giới hạn của công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-libraries-007
+    title: Tích hợp Jackson với builder và kiểm tra đường giải tuần tự hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-libraries-008
+    title: Dùng Bean Validation khi phù hợp và bảo đảm kiểm tra được gọi trước khi trả sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: builder-api-design
+  title: Thiết kế API
+  childs:
+  - slug: builder-api-design-001
+    title: Đặt tên builder, các bước cấu hình và build theo ngôn ngữ miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-api-design-002
+    title: Giữ phương thức nối chuỗi nhất quán về kiểu trả về và tác động trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-api-design-003
+    title: Cân nhắc overload, varargs và các lời gọi có null dễ gây nhập nhằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-api-design-004
+    title: Tài liệu hóa mặc định, null, ràng buộc, tái sử dụng và tính an toàn luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-api-design-005
+    title: Tách cấu hình đối tượng khỏi hành động có tác dụng phụ như gửi hoặc lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-api-design-006
+    title: Phát triển API khi thêm tùy chọn và giữ tương thích cho mã gọi hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-api-design-007
+    title: Viết ví dụ gọi tối thiểu, đầy đủ và thất bại để kiểm tra độ dễ dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: builder-testing
+  title: Kiểm thử
+  childs:
+  - slug: builder-testing-001
+    title: Kiểm thử đường đi tối thiểu với đầy đủ dữ liệu bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-002
+    title: Kiểm thử cấu hình đầy đủ và mọi giá trị mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-003
+    title: Kiểm thử dữ liệu biên, trường thiếu, null và ràng buộc chéo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-004
+    title: Kiểm thử thứ tự gọi có ảnh hưởng và các bước cấu hình được lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-005
+    title: Kiểm thử build thất bại, sửa dữ liệu và thử xây dựng lại theo hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-006
+    title: Kiểm thử tính độc lập giữa sản phẩm và dữ liệu đầu vào có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-007
+    title: Kiểm thử build nhiều lần, reset, copy builder và toBuilder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-008
+    title: Kiểm thử các công thức Director với từng ConcreteBuilder và kết quả quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-testing-009
+    title: Dùng kiểm thử tham số hóa hoặc theo thuộc tính cho tổ hợp tùy chọn và invariant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: construction-performance
+  title: Hiệu năng
+  childs:
+  - slug: construction-performance-001
+    title: Nhận diện chi phí cấp phát builder, sản phẩm và bản sao phòng vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-performance-002
+    title: Đánh giá chi phí validation và tập hợp lớn trong quá trình xây dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-performance-003
+    title: So sánh công bằng constructor, factory và Builder với cùng yêu cầu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-performance-004
+    title: Dùng JMH khi cần đo chi phí tạo đối tượng trong đoạn mã quan trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-performance-005
+    title: Tránh kết luận từ phép đo thiếu warmup hoặc bị loại bỏ tính toán không dùng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: construction-performance-006
+    title: Cân nhắc tái sử dụng và pooling trước nguy cơ sót trạng thái hoặc tranh chấp luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: misuse-and-pitfalls
+  title: Lạm dụng và lỗi
+  childs:
+  - slug: misuse-and-pitfalls-001
+    title: Nhận diện Builder dư thừa cho đối tượng có ít tham số và cách tạo đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-002
+    title: Nhầm chuỗi setter hoặc mọi fluent API với mẫu Builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-003
+    title: Để sản phẩm chưa hợp lệ thoát ra trước khi build hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-004
+    title: Cho phép đường khởi tạo khác bỏ qua invariant của sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-005
+    title: Chia sẻ builder giữa nhiều yêu cầu hoặc nhiều luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-006
+    title: Giữ chung collection khiến dữ liệu sản phẩm thay đổi sau build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-007
+    title: Đưa I/O, nghiệp vụ điều phối hoặc tác dụng phụ bất ngờ vào build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-008
+    title: Tạo quá nhiều Director, interface bước và generic không đem lại lợi ích rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: misuse-and-pitfalls-009
+    title: Sao chép quy tắc validation nhiều nơi khiến hành vi khởi tạo không nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercises-001
+    title: Refactor một constructor nhiều tham số sang fluent builder theo từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-002
+    title: Giữ tương thích với cách khởi tạo cũ trong giai đoạn chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-003
+    title: Hoàn thiện OrderRequest với tùy chọn giao hàng và các invariant nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-004
+    title: Mở rộng ví dụ báo cáo GoF bằng biểu diễn mới và đánh giá thay đổi cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-005
+    title: Thiết kế step builder cho quy trình có thứ tự bắt buộc và giải thích đánh đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-006
+    title: So sánh ba phương án constructor, factory và Builder bằng cùng bộ tình huống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-007
+    title: Rà soát mã theo tính bất biến, ngữ nghĩa build, validation và vòng đời builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-008
+    title: Nhận diện một Builder bị lạm dụng và đơn giản hóa thiết kế có căn cứ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

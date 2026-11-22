@@ -1,0 +1,57 @@
+roadmap:
+- id: khai-niem-muc-tieu-chat-luong
+  title: Khái niệm & mục tiêu chất lượng
+  purpose: Hiểu chất lượng quy trình phát triển phần mềm và phân biệt hoạt động bảo đảm chất lượng với kiểm tra sản phẩm.
+  objectives:
+  - Phân biệt process quality, product quality, QA và QC
+  - Viết hai mục tiêu chất lượng gắn với nhu cầu người dùng
+  - Giải thích chu trình PDCA trong quản lý chất lượng
+- id: ban-do-quy-trinh-trach-nhiem
+  title: Bản đồ quy trình & trách nhiệm
+  purpose: Nhận diện các bước, điểm bàn giao và người chịu trách nhiệm trong vòng đời phát triển phần mềm.
+  objectives:
+  - Vẽ flow từ yêu cầu đến phát hành và vận hành
+  - Xác định owner, input/output và entry/exit criteria
+  - Đánh dấu điểm chờ, bottleneck và rủi ro bàn giao
+- id: yeu-cau-rui-ro-tieu-chi
+  title: Yêu cầu, rủi ro & tiêu chí
+  purpose: Chuyển mong đợi chất lượng thành tiêu chí chấp nhận và hoạt động kiểm soát có thể kiểm chứng.
+  objectives:
+  - Chọn thuộc tính sản phẩm phù hợp ISO/IEC 25010
+  - Lập danh sách rủi ro theo xác suất và tác động
+  - Viết acceptance criteria và điều kiện release
+- id: ke-hoach-sqa-review
+  title: Kế hoạch SQA & Review
+  purpose: Tổ chức hoạt động đảm bảo chất lượng từ sớm thay vì chỉ kiểm thử ở cuối chu kỳ.
+  objectives:
+  - Lập kế hoạch SQA gồm phạm vi, vai trò và bằng chứng
+  - Thiết lập review yêu cầu, thiết kế và code
+  - Định nghĩa cách ghi và xử lý sai lệch quy trình
+- id: kiem-thu-quan-ly-loi
+  title: Kiểm thử & quản lý lỗi
+  purpose: Chuẩn hóa việc lập kế hoạch, thực thi kiểm thử và xử lý defect theo mức rủi ro.
+  objectives:
+  - Phân biệt test plan, test case và kết quả thực tế
+  - Theo dõi defect theo severity, owner và trạng thái
+  - Liên kết requirement → test → evidence
+- id: quality-gates-trong-ci-cd
+  title: Quality Gates trong CI/CD
+  purpose: Đưa các kiểm soát quan trọng vào luồng tích hợp và phát hành để phát hiện sai lệch sớm.
+  objectives:
+  - Cấu hình build, unit test và static analysis tự động
+  - Đặt ngưỡng gate phù hợp từng dự án, không áp dụng máy móc
+  - Mô tả cách xử lý build fail và ngoại lệ có phê duyệt
+- id: do-luong-danh-gia
+  title: Đo lường & đánh giá
+  purpose: Sử dụng dữ liệu để xem quy trình có ổn định, hiệu quả và tạo ra sản phẩm đúng kỳ vọng hay không.
+  objectives:
+  - Theo dõi escaped defects, rework và lead time
+  - Đọc 5 DORA metrics về throughput và instability
+  - Thực hiện self-assessment và review bằng chứng
+- id: capa-cai-tien-lien-tuc
+  title: CAPA & cải tiến liên tục
+  purpose: Khắc phục nguyên nhân gốc thay vì chỉ xử lý triệu chứng và kiểm tra hiệu quả cải tiến theo thời gian.
+  objectives:
+  - Làm root cause analysis cho defect hoặc sự cố
+  - Lập corrective/preventive actions với owner, deadline
+  - Đo kết quả trước/sau qua PDCA hoặc retrospective

@@ -1,0 +1,318 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phản mẫu thiết kế (anti-pattern) là gì
+  - Vì sao một cách giải quyết quen thuộc có thể tạo hậu quả xấu
+  - Phân biệt phản mẫu, lỗi lập trình, dấu hiệu mã có vấn đề và nợ kỹ thuật
+  - Quan hệ giữa phản mẫu, mẫu thiết kế và nguyên lý thiết kế
+  - Bối cảnh, động lực, hậu quả và hướng cải tiến của một phản mẫu
+  - Phản mẫu ở cấp hàm, lớp, mô-đun và kiến trúc
+  - Vì sao không thể kết luận thiết kế xấu chỉ từ tên kỹ thuật
+  - Lộ trình học từ triệu chứng đến bằng chứng và cải tiến
+- level1: Chẩn đoán thiết kế
+  level2:
+  - Nhận diện khó khăn khi đọc, kiểm thử và thay đổi phần mềm
+  - Tìm nguyên nhân gốc thay vì chỉ xử lý triệu chứng
+  - Đọc lịch sử thay đổi và những phần thường phải sửa cùng nhau
+  - Quan sát đồ thị phụ thuộc, vòng phụ thuộc và điểm tập trung thay đổi
+  - Đánh giá kết dính, liên kết và khả năng che giấu thông tin
+  - Dùng độ phức tạp, kích thước và độ trùng lặp làm tín hiệu
+  - Giới hạn của công cụ phân tích tĩnh và ngưỡng đo tự động
+  - Phân biệt thiết kế có chủ ý với cấu trúc hình thành do tích lũy
+  - Ghi nhận bằng chứng cùng tình huống phản chứng trước khi đề xuất sửa
+- level1: Phân chia trách nhiệm
+  level2:
+  - Lớp ôm quá nhiều trách nhiệm (God Object hoặc Blob)
+  - Dịch vụ tổng hợp mọi nghiệp vụ và khó xác định ranh giới
+  - Hàm làm quá nhiều việc và trộn nhiều mức trừu tượng
+  - Một lớp phải đổi vì nhiều nguyên nhân (Divergent Change)
+  - Một thay đổi nhỏ lan qua nhiều nơi (Shotgun Surgery)
+  - Hành vi phụ thuộc quá nhiều dữ liệu của lớp khác (Feature Envy)
+  - Lớp chỉ chuyển tiếp và thành phần trung gian không có vai trò rõ ràng
+  - Đối tượng tồn tại ngắn chỉ để điều phối vụn vặt (Poltergeists)
+  - Tách trách nhiệm theo lý do thay đổi và quy tắc nghiệp vụ
+- level1: Phụ thuộc và liên kết
+  level2:
+  - Vòng phụ thuộc giữa lớp, package hoặc mô-đun
+  - Hai lớp biết quá sâu chi tiết nội bộ của nhau
+  - Chuỗi truy cập xuyên nhiều đối tượng (Message Chains)
+  - Phụ thuộc vào cấu trúc dữ liệu thay vì hợp đồng hành vi
+  - Phụ thuộc ẩn qua biến toàn cục, cấu hình và môi trường
+  - Lan truyền kiểu dữ liệu của thư viện ra toàn bộ hệ thống
+  - Gọi ngược tầng và phụ thuộc sai hướng
+  - Dùng interface nhưng vẫn buộc chặt vào một triển khai
+  - Giảm liên kết bằng ranh giới cùng hợp đồng ổn định
+- level1: Trừu tượng hóa
+  level2:
+  - Trừu tượng hóa quá sớm khi chưa có biến thể thực tế
+  - Khái quát hóa cho nhu cầu chưa xuất hiện (Speculative Generality)
+  - Trừu tượng sai làm nhiều trường hợp phải dùng ngoại lệ
+  - Chi tiết triển khai rò rỉ qua lớp trừu tượng
+  - Gộp các đoạn mã giống hình thức nhưng khác lý do thay đổi
+  - Hệ thống cấu hình tổng quát hơn nhu cầu sản phẩm
+  - Cờ và nhánh điều kiện tăng dần bên trong một lớp trừu tượng
+  - Quá nhiều lớp bọc che khuất luồng nghiệp vụ
+  - Chọn thời điểm tách hoặc hợp nhất trừu tượng bằng bằng chứng
+- level1: Kế thừa và đa hình
+  level2:
+  - Dùng kế thừa chỉ để tái sử dụng vài dòng mã
+  - Quan hệ kế thừa không phản ánh khả năng thay thế
+  - Lớp con phải vô hiệu hóa hành vi của lớp cha (Refused Bequest)
+  - Lớp cha thay đổi làm lớp con hỏng ngoài dự kiến
+  - Hệ phân cấp sâu và khó xác định hành vi hiệu lực
+  - Interface lớn buộc triển khai nhiều phương thức không phù hợp
+  - Phân nhánh theo kiểu thay cho hành vi đa hình thích hợp
+  - Các hệ phân cấp phát triển song song và buộc sửa đồng thời
+  - Đánh giá chuyển từ kế thừa sang kết hợp hoặc ủy quyền
+- level1: Mô hình miền
+  level2:
+  - Mô hình chỉ có dữ liệu còn nghiệp vụ nằm rải rác
+  - Khi mô hình miền thiếu hành vi trở thành vấn đề (Anemic Domain Model)
+  - Phân biệt Transaction Script phù hợp với mô hình thiếu trách nhiệm
+  - Dùng kiểu nguyên thủy thay cho khái niệm nghiệp vụ (Primitive Obsession)
+  - Nhóm dữ liệu luôn đi cùng nhau nhưng không có kiểu biểu diễn
+  - Trộn DTO, entity lưu trữ và đối tượng miền thành một vai trò
+  - Nhét quy tắc nghiệp vụ vào controller, mapper hoặc câu truy vấn
+  - Mô hình dùng chung cho những ngữ cảnh có ý nghĩa khác nhau
+  - Quy tắc bất biến được kiểm tra ở nhiều nơi và dễ bỏ sót
+  - Khôi phục ranh giới mô hình từ ngôn ngữ cùng quy tắc nghiệp vụ
+- level1: Trạng thái và bất biến
+  level2:
+  - Trạng thái toàn cục gây phụ thuộc ẩn và khó cô lập kiểm thử
+  - Singleton chứa dữ liệu thay đổi theo người dùng hoặc yêu cầu
+  - Đối tượng được dùng trước khi hoàn tất khởi tạo
+  - Phương thức phải gọi theo thứ tự ngầm định
+  - Getter làm lộ collection hoặc đối tượng có thể thay đổi
+  - Setter cho phép đưa đối tượng vào trạng thái không hợp lệ
+  - Sao chép trạng thái ở nhiều nơi rồi đồng bộ bằng quy ước
+  - Biến tạm và cờ trạng thái khiến vòng đời đối tượng khó hiểu
+  - Trộn dữ liệu của nhiều yêu cầu trong thành phần dùng chung
+  - Giảm trạng thái chia sẻ và biểu diễn chuyển trạng thái tường minh
+- level1: Luồng xử lý
+  level2:
+  - Mã đan chéo khó lần theo luồng điều khiển (Spaghetti Code)
+  - Sao chép mã làm quy tắc nghiệp vụ phát triển lệch nhau
+  - Hàm dài với nhiều nhánh và điều kiện lồng sâu
+  - Tham số cờ lựa chọn những hành vi không cùng trách nhiệm
+  - Magic number, chuỗi đặc biệt và quy ước ngầm
+  - Dùng reflection hoặc mã sinh động khi luồng tĩnh đã đủ rõ
+  - Lập trình dựa vào hiện tượng quan sát mà chưa hiểu điều kiện đúng
+  - Ẩn tác dụng phụ trong hàm có vẻ chỉ đọc dữ liệu
+  - Phân biệt tối giản mã với làm rõ ý định và hành vi
+- level1: Hợp đồng API
+  level2:
+  - API quá nhiều lời gọi nhỏ khiến bên dùng phải tự điều phối
+  - API tổng quát nhận nhiều kiểu dữ liệu và cờ điều khiển
+  - Trả null, sentinel hoặc mã lỗi với ý nghĩa không nhất quán
+  - Hợp đồng không nêu điều kiện trước, kết quả và tác dụng phụ
+  - Để bên dùng phụ thuộc vào thứ tự trường hoặc chi tiết nội bộ
+  - Thay đổi hành vi ngầm dù chữ ký phương thức không đổi
+  - Làm lộ entity lưu trữ qua hợp đồng công khai
+  - Tham số dài và nhóm tham số dễ truyền nhầm
+  - Đặt tên tương tự cho hành vi khác nhau hoặc ngược lại
+  - Thiết kế hợp đồng theo nhu cầu bên dùng và tính tương thích
+- level1: Lỗi và tài nguyên
+  level2:
+  - Nuốt ngoại lệ khiến hệ thống tiếp tục với trạng thái sai
+  - Bắt ngoại lệ quá rộng và làm mất nguyên nhân
+  - Ghi log rồi ném tiếp ở mọi tầng gây nhiễu
+  - Dùng ngoại lệ cho luồng xử lý bình thường thiếu lý do
+  - Chuyển lỗi thành giá trị mặc định làm che giấu thất bại
+  - Mỗi tầng tự thử lại nhưng không có giới hạn chung
+  - Quản lý kết nối, tệp và khóa không theo vòng đời rõ ràng
+  - Đường xử lý lỗi bỏ quên giải phóng tài nguyên
+  - Trộn lỗi nghiệp vụ, lỗi đầu vào và lỗi hạ tầng
+  - Xác định quyền sở hữu tài nguyên cùng trách nhiệm xử lý lỗi
+- level1: Thiết kế đồng thời
+  level2:
+  - Chia sẻ trạng thái thay đổi mà không có mô hình đồng bộ
+  - Dùng một khóa toàn cục cho những công việc độc lập
+  - Giữ khóa trong khi gọi I/O hoặc dịch vụ bên ngoài
+  - Khóa lồng nhau với thứ tự không nhất quán
+  - Tạo luồng hoặc tác vụ không có giới hạn
+  - Hàng đợi vô hạn che giấu quá tải
+  - Chặn luồng trong mô hình xử lý không phù hợp
+  - Giả định thao tác kiểm tra rồi cập nhật luôn nguyên tử
+  - Không thiết kế cơ chế hủy và thời hạn cho công việc
+  - Chọn mô hình sở hữu dữ liệu và giới hạn đồng thời rõ ràng
+- level1: Truy cập dữ liệu
+  level2:
+  - Truy vấn N+1 hình thành từ cách duyệt đối tượng
+  - Gọi cơ sở dữ liệu lặp lại bên trong vòng lặp nghiệp vụ
+  - Tải toàn bộ dữ liệu khi chỉ cần một phần
+  - Giữ giao dịch quá lâu hoặc bao quanh lời gọi mạng
+  - Mỗi tầng tự ghi dữ liệu mà không có ranh giới giao dịch
+  - Nhét nghiệp vụ không liên quan vào một repository tổng quát
+  - Lược đồ dạng thuộc tính tổng quát làm mất ràng buộc cần thiết
+  - Lưu danh sách hoặc quan hệ trong chuỗi để tránh mô hình hóa
+  - Dùng cơ sở dữ liệu làm điểm tích hợp khiến nhiều mô-đun phụ thuộc nội bộ
+  - Thiết kế thao tác dữ liệu theo bất biến và nhu cầu truy cập
+- level1: Kiến trúc và tầng
+  level2:
+  - Kiến trúc chắp vá không có ranh giới rõ ràng (Big Ball of Mud)
+  - Tách tầng theo tên nhưng trách nhiệm vẫn trộn lẫn
+  - Luồng đi qua nhiều tầng chỉ chuyển tiếp (Architecture Sinkhole)
+  - Quá nhiều tầng khiến một thay đổi phải đi qua nhiều bản sao dữ liệu
+  - Nghiệp vụ phụ thuộc trực tiếp giao diện hoặc công nghệ lưu trữ
+  - Mô-đun phân chia hình thức nhưng dùng chung chi tiết triển khai
+  - Mỗi tính năng tự tạo cấu trúc riêng không có quy ước chung
+  - Các hệ thống biệt lập khó tích hợp (Stovepipe Systems)
+  - Chọn ranh giới theo khả năng thay đổi độc lập và yêu cầu chất lượng
+- level1: Ranh giới dịch vụ
+  level2:
+  - Chia dịch vụ theo bảng dữ liệu hoặc lớp kỹ thuật
+  - Đơn khối phân tán (Distributed Monolith) và triển khai phụ thuộc nhau
+  - Dịch vụ quá nhỏ làm chi phí phối hợp lấn át giá trị
+  - Một dịch vụ trung tâm ôm quá nhiều trách nhiệm
+  - Nhiều dịch vụ dùng chung lược đồ và tự sửa dữ liệu của nhau
+  - Thư viện dùng chung buộc các dịch vụ phát hành đồng thời
+  - Ranh giới dịch vụ không khớp quyền sở hữu nghiệp vụ
+  - Tách mạng trước khi tách liên kết trong mã và dữ liệu
+  - Đánh giá gộp hoặc tách dịch vụ bằng chi phí thay đổi thực tế
+- level1: Giao tiếp phân tán
+  level2:
+  - Chuỗi gọi đồng bộ dài làm tăng độ trễ và lan truyền lỗi
+  - API hội thoại nhiều bước làm tăng số lượt trao đổi
+  - Không đặt timeout và chờ tài nguyên vô hạn
+  - Retry chồng tầng tạo bão yêu cầu
+  - Thử lại thao tác có tác dụng phụ mà thiếu cơ chế chống lặp
+  - Quy trình nghiệp vụ phụ thuộc vào mọi dịch vụ cùng sẵn sàng
+  - Cấu hình fallback trả dữ liệu sai nghĩa
+  - Giả định mạng nội bộ luôn nhanh và tin cậy
+  - Giới hạn phụ thuộc bằng thời hạn, cô lập và hợp đồng lỗi
+- level1: Sự kiện và thông điệp
+  level2:
+  - Đặt tên sự kiện nhưng thực chất ra lệnh cho một bên nhận cụ thể
+  - Dùng sự kiện cho mọi tương tác mà không cân nhắc độ phức tạp
+  - Luồng sự kiện khó truy vết và không rõ chủ sở hữu
+  - Sự kiện làm lộ toàn bộ entity hoặc cấu trúc bảng nội bộ
+  - Giả định bản tin chỉ được giao đúng một lần
+  - Xử lý không phù hợp khi bản tin trùng hoặc đến sai thứ tự
+  - Mỗi bên tự hiểu phiên bản và ý nghĩa sự kiện theo cách khác
+  - Không thiết kế xử lý bản tin lỗi và khả năng phát lại
+  - Áp dụng Event Sourcing khi chưa có yêu cầu phù hợp
+  - Thiết kế hợp đồng sự kiện theo sự thật nghiệp vụ và nhu cầu tiến hóa
+- level1: Nhất quán dữ liệu
+  level2:
+  - Ghi hai hệ thống độc lập rồi giả định luôn cùng thành công
+  - Mở giao dịch cục bộ để bao quanh quy trình phân tán
+  - Yêu cầu nhất quán tức thời cho mọi dữ liệu mà không xét nhu cầu
+  - Bỏ qua trạng thái trung gian khi dùng nhất quán cuối cùng
+  - Quy trình bù trừ thiếu ý nghĩa nghiệp vụ hoặc không thể thực hiện
+  - Đồng bộ hai chiều mà không xác định nguồn dữ liệu chuẩn
+  - Xử lý lặp làm thay đổi kết quả nghiệp vụ
+  - Dùng khóa phân tán thay cho phân tích bất biến và quyền sở hữu
+  - Đánh giá ranh giới giao dịch, outbox và idempotency theo từng tình huống
+- level1: Hiệu năng và cache
+  level2:
+  - Tối ưu sớm khi chưa đo nút thắt
+  - Đánh đổi cấu trúc rõ ràng để tối ưu giả định chưa được kiểm chứng
+  - Thêm cache cho mọi dữ liệu mà không có chiến lược vô hiệu hóa
+  - Cache trở thành nguồn dữ liệu thứ hai với quy tắc khác nhau
+  - Lưu dữ liệu không giới hạn và không kiểm soát vòng đời
+  - Tạo nhiều bản sao dữ liệu để tránh thiết kế luồng truy cập
+  - Batch quá lớn hoặc tải dồn làm tăng bộ nhớ và độ trễ
+  - Mở rộng hạ tầng để che giấu thuật toán hoặc truy vấn không phù hợp
+  - Kiểm chứng tối ưu bằng số đo cùng tính đúng đắn nghiệp vụ
+- level1: Framework và công nghệ
+  level2:
+  - Để framework quyết định toàn bộ mô hình nghiệp vụ
+  - Service Locator che giấu phụ thuộc của đối tượng
+  - Khởi tạo mọi phụ thuộc bên trong lớp khiến khó thay thế
+  - Đối tượng nhận quá nhiều thành phần phụ thuộc như dấu hiệu trách nhiệm dàn trải
+  - Cấu hình, annotation và convention che khuất hành vi quan trọng
+  - Tin rằng công cụ tự động có thể thay thế mọi quyết định thiết kế
+  - Đưa kiểu dữ liệu đặc thù nhà cung cấp qua mọi ranh giới
+  - Khi khóa chặt vào nhà cung cấp cản trở thay đổi cần thiết
+  - Tạo lớp bọc cho mọi thư viện dù không có ranh giới cần bảo vệ
+  - Cô lập công nghệ ở nơi có biến động hoặc nhu cầu thay thế thực tế
+- level1: Lạm dụng mẫu thiết kế
+  level2:
+  - Dùng giải pháp quen thuộc cho mọi vấn đề (Golden Hammer)
+  - Áp dụng mẫu vì tên gọi thay vì vấn đề cần giải quyết
+  - Thêm Factory hoặc Abstract Factory khi cách tạo đối tượng còn đơn giản
+  - Dùng Singleton như biến toàn cục trá hình
+  - Đưa Strategy vào mọi điều kiện dù hành vi chưa có biến thể
+  - Xếp chồng Adapter, Decorator và Proxy khiến khó lần theo hành vi
+  - Lạm dụng Observer làm luồng điều khiển trở nên ngầm định
+  - Áp dụng CQRS hoặc kiến trúc nhiều thành phần thiếu nhu cầu thực tế
+  - Đánh giá chi phí của mẫu và khả năng quay lại thiết kế đơn giản
+- level1: Khả năng kiểm thử
+  level2:
+  - Thiết kế buộc kiểm thử phải khởi động toàn bộ hệ thống
+  - Kiểm thử phụ thuộc trạng thái toàn cục hoặc thứ tự chạy
+  - Mock quá nhiều khiến bài kiểm thử phản chiếu chi tiết triển khai
+  - Kiểm tra phương thức nội bộ thay vì hợp đồng quan sát được
+  - Thiết kế đặc biệt chỉ để thỏa một công cụ mock
+  - Mã phụ thuộc trực tiếp đồng hồ, ngẫu nhiên và môi trường
+  - Fixture lớn che khuất dữ liệu liên quan đến tình huống
+  - Chỉ có kiểm thử qua giao diện mà thiếu bằng chứng ở ranh giới quan trọng
+  - Sửa kiểm thử liên tục nhưng không phát hiện hồi quy nghiệp vụ
+  - Dùng độ khó kiểm thử làm bằng chứng để xem lại ranh giới thiết kế
+- level1: Ranh giới tin cậy
+  level2:
+  - Tin dữ liệu nội bộ chỉ vì đã đi qua một lớp kiểm tra
+  - Phân quyền rải rác khiến các đường truy cập áp dụng khác nhau
+  - Để dữ liệu đầu vào tự quyết định trường nhạy cảm được cập nhật
+  - Mô hình dữ liệu công khai làm lộ thông tin không cần thiết
+  - Giấu cơ chế bảo vệ trong tiện ích mà hợp đồng không thể hiện
+  - Mặc định cho phép khi thiếu cấu hình hoặc gặp lỗi kiểm tra
+  - Trộn trách nhiệm nghiệp vụ với chi tiết xác thực ở nhiều tầng
+  - Đặt quy tắc bảo vệ tại ranh giới rõ ràng và kiểm chứng mọi đường truy cập
+- level1: Hệ thống cũ
+  level2:
+  - Mã tích tụ không rõ mục đích nhưng không ai dám xóa (Lava Flow)
+  - Thành phần không còn hữu ích vẫn được giữ lại (Boat Anchor)
+  - Đường thực thi đã chết nhưng tiếp tục ảnh hưởng quyết định thiết kế
+  - Lớp tương thích tạm thời trở thành phụ thuộc lâu dài
+  - Đường cũ và đường mới cùng ghi dữ liệu theo quy tắc khác nhau
+  - Thay thế toàn bộ hệ thống trong một lần thiếu bước kiểm chứng
+  - Bản vá cục bộ lặp lại mà không xử lý nguyên nhân
+  - Phụ thuộc lỗi thời tạo ngõ cụt cho khả năng phát triển
+  - Khôi phục hiểu biết bằng lịch sử, kiểm thử đặc tả và ranh giới chuyển đổi
+- level1: Quyết định thiết kế
+  level2:
+  - Thiết kế theo xu hướng thay vì yêu cầu sản phẩm
+  - Lựa chọn công nghệ để làm đẹp hồ sơ cá nhân
+  - Phân tích kéo dài khiến không có quyết định có thể kiểm chứng
+  - Thỏa hiệp nhiều ý kiến thành thiết kế thiếu mục tiêu nhất quán
+  - Tự xây lại giải pháp phổ biến mà không đánh giá chi phí sở hữu
+  - Sao chép kiến trúc của hệ thống có quy mô và bối cảnh khác
+  - Chấp nhận giải pháp tạm nhưng không ghi điều kiện xem xét lại
+  - Đánh giá quyết định bằng giả định, phương án thay thế và hệ quả
+- level1: Cải tiến từng bước
+  level2:
+  - Ưu tiên phản mẫu theo tác động và tần suất thay đổi
+  - Xác định hành vi cần giữ và hợp đồng không được phá vỡ
+  - Bổ sung kiểm thử đặc tả trước khi sửa cấu trúc chưa hiểu rõ
+  - Tạo điểm tách để cô lập phụ thuộc
+  - Trích xuất hàm, lớp hoặc mô-đun theo trách nhiệm
+  - Di chuyển hành vi về gần dữ liệu và quy tắc liên quan
+  - Thay thế trạng thái ngầm bằng tham số hoặc chuyển trạng thái rõ ràng
+  - Chuyển đổi từng phần với cơ chế chuyển tiếp có thời hạn
+  - Kiểm tra tính tương thích của dữ liệu và giao diện
+  - Đo lại mức liên kết, độ khó thay đổi và chi phí sau cải tiến
+  - Nhận diện khi một đợt refactor đang tạo phản mẫu mới
+- level1: Đánh giá và phòng ngừa
+  level2:
+  - Review thiết kế từ kịch bản sử dụng và kịch bản thay đổi
+  - Checklist câu hỏi theo trách nhiệm, phụ thuộc, trạng thái và hợp đồng
+  - Dùng sơ đồ cấu trúc cùng sơ đồ tương tác để kiểm tra giả định
+  - Ghi quyết định kiến trúc và hệ quả bằng ADR
+  - Kiểm tra ranh giới mô-đun bằng kiểm thử kiến trúc
+  - Dùng phân tích tĩnh để hỗ trợ đánh giá có ngữ cảnh
+  - Phát hiện điểm nóng từ lịch sử sửa lỗi và thay đổi cùng nhau
+  - Đặt điều kiện chấp nhận nợ kỹ thuật và thời điểm trả nợ
+  - Tránh biến nguyên lý, chỉ số hoặc checklist thành quy tắc máy móc
+- level1: Thực hành tình huống
+  level2:
+  - Phân tích God Object trong dịch vụ xử lý đơn hàng
+  - Tách mô hình miền khỏi controller và lớp lưu trữ
+  - Xử lý Singleton chứa trạng thái theo người dùng
+  - Cải tiến hệ kế thừa vi phạm hợp đồng thay thế
+  - Giảm Shotgun Surgery trong một thay đổi chính sách giá
+  - Chẩn đoán truy vấn N+1 cùng giao dịch kéo dài
+  - Đánh giá đơn khối phân tán và phương án điều chỉnh ranh giới
+  - Thiết kế lại xử lý sự kiện trùng và ghi dữ liệu hai nơi
+  - Loại bỏ lớp trừu tượng thừa mà giữ hành vi bên ngoài
+  - Lập báo cáo trước và sau cải tiến dựa trên bằng chứng

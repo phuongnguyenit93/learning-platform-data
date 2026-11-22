@@ -1,0 +1,254 @@
+menu:
+- level1: Tổng quan Argos
+  level2:
+  - Argos Translate là gì và giải quyết nhu cầu dịch ngoại tuyến nào
+  - Vai trò của Argos trong quy trình dịch tài liệu
+  - 'Các khái niệm: bộ máy dịch, mô hình, cặp ngôn ngữ và đoạn văn bản'
+  - Mối liên hệ giữa thư viện Python, CLI và giao diện đồ họa
+  - Mối liên hệ giữa Argos Translate và LibreTranslate
+  - Luồng dữ liệu từ ứng dụng Java đến bộ máy Argos
+  - Khả năng, giới hạn và điều kiện để dịch hoàn toàn ngoại tuyến
+  - Lộ trình học và sản phẩm dịch tài liệu cần xây dựng
+- level1: Nền tảng dịch máy
+  level2:
+  - Nguyên lý dịch máy nơ-ron và vai trò của dữ liệu huấn luyện
+  - Vai trò của OpenNMT, CTranslate2 và mô hình đã chuyển đổi
+  - Tách từ thành token bằng SentencePiece
+  - Phân tách câu và vai trò của Stanza hoặc spaCy
+  - Quan hệ giữa câu, đoạn văn và ngữ cảnh bản dịch
+  - Phân biệt số ký tự, số từ và số token
+  - Ảnh hưởng của lĩnh vực, thuật ngữ và dữ liệu đầu vào
+  - Ranh giới giữa dịch tự động, hiệu đính và bảo toàn định dạng
+- level1: Môi trường chạy
+  level2:
+  - Kiểm tra tương thích phiên bản Python, hệ điều hành và kiến trúc máy
+  - Tạo môi trường ảo và cài đặt argostranslate bằng pip
+  - Cố định phiên bản thư viện và các phụ thuộc để tái lập môi trường
+  - Kiểm tra CTranslate2, SentencePiece và bộ tách câu
+  - Chuẩn bị Python và đường dẫn thực thi cho ứng dụng Java
+  - Cài đặt và kiểm tra trên Windows, Linux và macOS
+  - Kiểm tra CPU và điều kiện sử dụng GPU
+  - Dịch thử một câu và xác minh môi trường hoạt động
+- level1: Kho mô hình
+  level2:
+  - Phân biệt danh mục mô hình trực tuyến và mô hình đã cài
+  - Cấu trúc gói .argosmodel và thông tin mô tả
+  - Mã ngôn ngữ nguồn, đích và tính có hướng của mô hình
+  - Cập nhật chỉ mục bằng update_package_index()
+  - Tra cứu gói bằng get_available_packages() và lọc cặp ngôn ngữ
+  - Kiểm tra phiên bản, phụ thuộc và yêu cầu tương thích của gói
+  - Kiểm tra thực tế khả năng hỗ trợ tiếng Việt và từng chiều dịch
+  - Lựa chọn mô hình theo miền nội dung và tài nguyên máy
+  - Ranh giới giữa sử dụng mô hình có sẵn và huấn luyện mô hình riêng
+- level1: Vòng đời mô hình
+  level2:
+  - Tải gói bằng AvailablePackage.download()
+  - Cài mô hình từ tệp bằng install_from_path()
+  - Liệt kê mô hình đã cài và kiểm tra thư mục lưu trữ
+  - Chuẩn bị mô hình và tài nguyên tách câu cho máy không có mạng
+  - Tách bước tải, cài mô hình khỏi bước phục vụ yêu cầu dịch
+  - Quản lý phiên bản mô hình, nâng cấp và quay lui
+  - Gỡ mô hình và đánh giá ảnh hưởng đến các tuyến dịch
+  - Kiểm tra nguồn gói, tính toàn vẹn và phục hồi sau cài đặt lỗi
+- level1: Công cụ dòng lệnh
+  level2:
+  - Vai trò của argospm và argos-translate
+  - Quản lý chỉ mục và tìm mô hình với argospm update, search
+  - Cài, liệt kê và gỡ mô hình với argospm install, list, remove
+  - Chọn ngôn ngữ nguồn và đích khi gọi argos-translate
+  - Dịch văn bản qua tham số và luồng nhập chuẩn
+  - Xử lý UTF-8, dấu tiếng Việt và ký tự đặc biệt trong CLI
+  - Phân biệt kết quả, thông báo lỗi và mã thoát của tiến trình
+  - Tự động hóa dịch thử và kiểm tra mô hình bằng CLI
+- level1: API Python
+  level2:
+  - Phân chia trách nhiệm của argostranslate.package và argostranslate.translate
+  - Dịch cơ bản bằng translate(text, from_code, to_code)
+  - Tra cứu ngôn ngữ đã cài bằng get_installed_languages()
+  - Lấy đối tượng dịch bằng Language.get_translation()
+  - Sử dụng đối tượng Translation cho nhiều đoạn văn bản
+  - Khởi tạo và tái sử dụng bộ máy dịch trong tiến trình sống lâu
+  - Xử lý đầu vào rỗng, cùng ngôn ngữ và cặp ngôn ngữ không khả dụng
+  - Thiết kế hàm bao dịch văn bản với đầu vào và kết quả rõ ràng
+  - Phân biệt API lõi Argos với chức năng do lớp tích hợp bổ sung
+- level1: Ngôn ngữ và tuyến dịch
+  level2:
+  - Kiểm tra ngôn ngữ đã cài và chiều dịch thực sự khả dụng
+  - Dịch trực tiếp và dịch qua ngôn ngữ trung gian
+  - Cơ chế tự nối các cặp mô hình để tạo tuyến dịch
+  - Ảnh hưởng của dịch trung gian đến độ trễ và chất lượng
+  - Đối chiếu kết quả trực tiếp và kết quả qua ngôn ngữ trung gian
+  - Xác định ngôn ngữ nguồn rõ ràng và bổ sung bộ nhận diện khi cần
+  - Xử lý tài liệu đa ngôn ngữ ở cấp đoạn
+  - Quy định cách xử lý khi không có tuyến dịch phù hợp
+- level1: Xử lý văn bản
+  level2:
+  - Đọc và ghi văn bản UTF-8 có dấu tiếng Việt
+  - Chuẩn hóa Unicode, ký tự điều khiển và dấu xuống dòng
+  - Giữ ranh giới đoạn văn và chủ đích xuống dòng của tài liệu
+  - Chia văn bản dài theo câu và giới hạn phù hợp với mô hình
+  - Xử lý câu quá dài, chữ viết tắt, dấu câu và danh sách
+  - Bảo vệ URL, địa chỉ email, mã định danh và tên riêng
+  - Đánh dấu phần không dịch và kiểm tra khôi phục ký hiệu thay thế
+  - Ghép kết quả theo đúng thứ tự mà không mất hoặc lặp đoạn
+  - Xử lý khoảng trắng, số liệu, đơn vị đo và ký tự đặc biệt
+- level1: Luồng dịch tài liệu
+  level2:
+  - Phân tách bước đọc tệp, trích xuất, dịch và dựng lại tài liệu
+  - Mô hình hóa khối văn bản và định danh ổn định cho từng đoạn
+  - Xác định phần cần dịch và phần phải giữ nguyên
+  - Giữ liên hệ giữa đoạn nguồn, bản dịch và vị trí trong tài liệu
+  - Lưu kết quả trung gian để tiếp tục công việc bị gián đoạn
+  - Xử lý một đoạn lỗi mà vẫn theo dõi được trạng thái toàn tài liệu
+  - Phát hiện tài liệu thay đổi trước khi tái sử dụng kết quả cũ
+  - Ghi tệp đầu ra an toàn và tránh ghi đè tài liệu nguồn
+  - Xây dựng báo cáo phần đã dịch, bỏ qua, lỗi và cần hiệu đính
+- level1: Dịch Markdown
+  level2:
+  - Phân tích Markdown thành cây cú pháp trước khi dịch
+  - Dịch tiêu đề, đoạn văn, danh sách và trích dẫn
+  - Dịch nội dung bảng và bảo toàn cú pháp phân cách
+  - Giữ nguyên khối mã, mã nội tuyến và tên API
+  - Dịch nhãn liên kết và văn bản thay thế của ảnh, giữ nguyên đích URL
+  - Bảo toàn liên kết tham chiếu, chú thích và cú pháp mở rộng
+  - Chọn trường được dịch trong phần siêu dữ liệu đầu tệp
+  - Giữ ID mục và kiểm tra liên kết nội bộ khi tiêu đề thay đổi
+  - Xử lý HTML nhúng và nội dung đánh dấu không dịch
+  - Dựng lại Markdown và so sánh cấu trúc trước, sau khi dịch
+  - Tổ chức tài liệu VI/EN và cập nhật bản dịch theo thay đổi nguồn
+- level1: Dịch HTML
+  level2:
+  - Vai trò của thư viện translate-html trong hệ sinh thái Argos
+  - Cài translatehtml và gọi dịch trên tài liệu HTML
+  - Lựa chọn nút văn bản và giữ nguyên cây DOM
+  - Xử lý nội dung nội tuyến để hạn chế mất ngữ cảnh
+  - Quy định phần script, style, code, pre và phần không dịch
+  - Lựa chọn thuộc tính cần dịch như alt, title và placeholder
+  - Bảo toàn URL, thuộc tính kỹ thuật và ký tự HTML
+  - Kiểm tra HTML hợp lệ và làm sạch nội dung trước khi hiển thị
+- level1: Định dạng tài liệu
+  level2:
+  - Vai trò và phạm vi của thư viện argos-translate-files
+  - Kiểm tra định dạng được hỗ trợ theo phiên bản đã chọn
+  - Dịch tệp TXT và bảo toàn mã hóa, dòng, đoạn
+  - Xử lý DOCX và kiểm tra đoạn văn, bảng, định dạng ký tự
+  - Xử lý ODT, ODP, PPTX và EPUB theo khả năng của thư viện
+  - Đánh giá giới hạn bảo toàn bố cục và kiểm tra tệp sau dịch
+  - Thiết kế bộ trích xuất riêng cho JSON, YAML và tệp tài nguyên
+  - Giữ nguyên khóa, biến nội suy và quy tắc thông điệp trong tài nguyên
+  - Xử lý PDF hoặc ảnh qua bước trích xuất, OCR và dựng lại bên ngoài Argos
+- level1: Kết nối Java
+  level2:
+  - Lựa chọn gọi tiến trình Python hoặc dịch vụ HTTP nội bộ
+  - Thiết kế TranslationClient và đối tượng yêu cầu, kết quả độc lập
+  - Gọi Python bằng ProcessBuilder với danh sách tham số
+  - Truyền văn bản qua stdin và trả kết quả JSON qua stdout
+  - Đọc stdout, stderr đồng thời để tránh nghẽn tiến trình
+  - Thiết lập UTF-8 và xử lý đường dẫn có khoảng trắng
+  - Áp dụng thời gian chờ, hủy và thu hồi tiến trình con
+  - Thiết kế dịch vụ Python dùng Argos và tái sử dụng mô hình
+  - Gọi dịch vụ nội bộ bằng Java HttpClient
+  - Ánh xạ lỗi Python hoặc HTTP sang lỗi nghiệp vụ trong Java
+  - Phân biệt dịch vụ tự xây với LibreTranslate và phần tích hợp thuộc phạm vi module
+- level1: Tích hợp Spring Boot
+  level2:
+  - Tách lớp cấu hình, bộ kết nối Argos và dịch vụ dịch tài liệu
+  - Ràng buộc cấu hình đường dẫn Python, thư mục mô hình và địa chỉ dịch vụ
+  - Lựa chọn bộ kết nối qua cấu hình theo môi trường
+  - Quản lý khởi tạo, làm nóng và đóng tài nguyên theo vòng đời ứng dụng
+  - Kiểm tra đầu vào và giới hạn kích thước văn bản hoặc tài liệu
+  - Thực thi tác vụ dịch dài bên ngoài luồng xử lý yêu cầu
+  - Trả trạng thái, kết quả và lỗi nhất quán cho bên gọi
+  - Tạo kiểm tra sức khỏe tiến trình và khả năng dịch của mô hình
+  - Tách API minh họa tùy chọn khỏi chức năng dịch cốt lõi
+- level1: Độ tin cậy
+  level2:
+  - Phân loại lỗi đầu vào, thiếu mô hình, tiến trình và hạ tầng
+  - Thiết lập thời gian chờ theo đoạn và toàn tài liệu
+  - Chỉ thử lại lỗi tạm thời với giới hạn và thời gian chờ tăng dần
+  - Giới hạn tác vụ đồng thời và tạo sức ép ngược khi quá tải
+  - Ngắt gọi dịch vụ đang lỗi bằng circuit breaker khi phù hợp
+  - Giữ thứ tự kết quả khi các đoạn hoàn tất khác nhau
+  - Thiết kế yêu cầu lặp lại không tạo kết quả hoặc tệp trùng
+  - Hủy tác vụ, dọn tài nguyên và tiếp tục từ kết quả trung gian
+  - Quy định trả lỗi, kết quả một phần hoặc chuyển sang xử lý thủ công
+- level1: Hiệu năng
+  level2:
+  - Phân biệt thời gian khởi động, tải mô hình và thời gian dịch
+  - Đo độ trễ, thông lượng, bộ nhớ và dung lượng mô hình
+  - Tái sử dụng tiến trình và làm nóng các cặp ngôn ngữ cần thiết
+  - Chọn số tiến trình, luồng và mức song song theo tài nguyên thực tế
+  - Đánh giá CPU, GPU và ARGOS_DEVICE_TYPE
+  - Điều chỉnh kích thước đoạn và cân bằng ngữ cảnh với thông lượng
+  - Thiết kế bộ nhớ đệm theo văn bản, ngôn ngữ, phiên bản mô hình và quy tắc xử lý
+  - Giới hạn dung lượng bộ nhớ đệm và tránh dùng kết quả sai phiên bản
+  - So sánh hiệu năng dịch trực tiếp và dịch qua ngôn ngữ trung gian
+- level1: Chất lượng bản dịch
+  level2:
+  - Xác định tiêu chí đúng nghĩa, đầy đủ, tự nhiên và nhất quán
+  - Xây dựng bộ mẫu đối chiếu theo ngôn ngữ và lĩnh vực tài liệu
+  - Phát hiện bỏ sót, lặp đoạn, sai ngôn ngữ và văn bản không được dịch
+  - Đánh giá thuật ngữ, tên riêng, chữ viết tắt và cách xưng hô
+  - Phát hiện thay đổi nguy hiểm ở số liệu, phủ định và điều kiện
+  - Xây dựng bảng thuật ngữ ở lớp xử lý ngoài và đánh giá giới hạn
+  - So sánh các mô hình bằng cùng bộ dữ liệu và quy trình
+  - Sử dụng BLEU hoặc chrF cùng đánh giá thủ công
+  - Tổ chức hiệu đính và ghi nhận trường hợp cần con người quyết định
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị cho phân đoạn, đánh dấu bảo vệ và ghép kết quả
+  - Giả lập TranslationClient để kiểm thử Java độc lập với Python
+  - Kiểm thử tích hợp Python, Argos và một mô hình cố định
+  - Kiểm thử hợp đồng JSON giữa ứng dụng Java và tiến trình hoặc dịch vụ
+  - Kiểm thử tiếng Việt, emoji, Unicode và văn bản đa ngôn ngữ
+  - Kiểm thử bảo toàn mã nguồn, URL, biến nội suy và cấu trúc tài liệu
+  - Kiểm thử thiếu mô hình, tiến trình lỗi, quá hạn và hủy tác vụ
+  - Kiểm thử hồi quy bản dịch khi nâng phiên bản thư viện hoặc mô hình
+  - Kiểm thử tải và chạy không có mạng sau khi chuẩn bị đủ tài nguyên
+  - Kiểm thử khả năng mở và hiển thị tài liệu đầu ra
+- level1: Triển khai
+  level2:
+  - Đóng gói dịch vụ Python và ứng dụng Java với phiên bản cố định
+  - Chuẩn bị mô hình, tài nguyên tách câu và phụ thuộc trong giai đoạn dựng
+  - Cấu hình ARGOS_PACKAGE_INDEX và kho mô hình nội bộ khi cần
+  - Cấu hình ARGOS_PACKAGES_DIR và quyền truy cập thư mục
+  - Đóng gói container, lưu mô hình ngoài ảnh và quản lý dung lượng
+  - Triển khai ở máy có mạng và môi trường cách ly mạng
+  - Thiết lập giới hạn CPU, RAM, GPU và số tác vụ
+  - Ghi nhật ký và số đo vận hành mà không lộ văn bản tài liệu
+  - Nâng cấp từng đợt, kiểm tra khả năng dịch và quay lui phiên bản
+  - Sao lưu cấu hình, danh mục mô hình và kết quả tác vụ cần giữ
+- level1: An toàn dữ liệu
+  level2:
+  - Xác minh dữ liệu và tài nguyên nào còn có thể phát sinh truy cập mạng
+  - Bảo vệ văn bản nhạy cảm trong nhật ký, tệp tạm và bộ nhớ đệm
+  - Giới hạn truy cập dịch vụ HTTP nội bộ và xác thực bên gọi
+  - Ngăn chèn lệnh khi Java gọi tiến trình Python
+  - Kiểm tra loại tệp, kích thước, đường dẫn và tài liệu nén
+  - Chỉ cài mô hình từ nguồn tin cậy và kiểm soát chuỗi cung ứng
+  - Thiết lập quyền tối thiểu và thời hạn lưu, xóa dữ liệu
+  - Kiểm tra giấy phép thư viện, mô hình và quyền sử dụng tài liệu
+- level1: Chẩn đoán lỗi
+  level2:
+  - Không tìm thấy Python, module argostranslate hoặc lệnh CLI
+  - Lỗi cài phụ thuộc, thư viện native hoặc không khớp kiến trúc
+  - Cập nhật chỉ mục hoặc tải mô hình thất bại
+  - Đã cài mô hình nhưng tiến trình không nhìn thấy thư mục
+  - Không tìm thấy ngôn ngữ, sai chiều dịch hoặc thiếu tuyến trung gian
+  - Thiếu tài nguyên tách câu khi chạy không có mạng
+  - Lỗi mã hóa, mất dấu tiếng Việt hoặc sai ký tự xuống dòng
+  - Tiến trình bị treo do luồng nhập xuất hoặc thời gian chờ
+  - Khởi động chậm, hết bộ nhớ hoặc GPU không khả dụng
+  - Bản dịch sai thuật ngữ, thiếu ngữ cảnh hoặc không đúng ngôn ngữ
+  - Hỏng cấu trúc Markdown, HTML hoặc bố cục tài liệu sau dịch
+  - Thu thập thông tin phiên bản và tái hiện lỗi bằng ví dụ tối thiểu
+- level1: Thực hành
+  level2:
+  - Thiết lập một cặp ngôn ngữ và dịch ngoại tuyến bằng Python, CLI
+  - Xây dựng bộ kết nối Java gọi Python với giao thức JSON
+  - Xây dựng dịch vụ Argos nội bộ và gọi từ Spring Boot
+  - Dịch Markdown kỹ thuật và kiểm tra giữ nguyên mã nguồn, liên kết
+  - Dịch HTML hoặc DOCX và đánh giá cấu trúc đầu ra
+  - Dịch hàng loạt với bộ nhớ đệm, giới hạn song song và tiếp tục tác vụ
+  - Đối chiếu dịch trực tiếp, dịch trung gian và hiệu đính thủ công
+  - Đóng gói bộ dịch tài liệu chạy được trong môi trường không có mạng

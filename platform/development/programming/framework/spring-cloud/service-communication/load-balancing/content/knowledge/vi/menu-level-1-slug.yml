@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng HTTP
+  slug: http-foundations
+  index: 1
+- title: Thiết lập dự án
+  slug: project-setup
+  index: 2
+- title: Danh sách bản sao
+  slug: service-instances
+  index: 3
+- title: Kiến trúc LoadBalancer
+  slug: loadbalancer-architecture
+  index: 4
+- title: Cấu hình theo dịch vụ
+  slug: per-service-configuration
+  index: 5
+- title: Chuỗi cung cấp bản sao
+  slug: instance-supplier-chain
+  index: 6
+- title: Thuật toán chọn đích
+  slug: selection-algorithms
+  index: 7
+- title: Vùng và định tuyến
+  slug: zones-routing
+  index: 8
+- title: Bộ nhớ đệm bản sao
+  slug: instance-caching
+  index: 9
+- title: Sức khỏe bản sao
+  slug: instance-health
+  index: 10
+- title: RestTemplate
+  slug: resttemplate
+  index: 11
+- title: RestClient
+  slug: restclient
+  index: 12
+- title: WebClient
+  slug: webclient
+  index: 13
+- title: OpenFeign
+  slug: openfeign
+  index: 14
+- title: HTTP Interface
+  slug: http-interfaces
+  index: 15
+- title: Thời gian chờ
+  slug: timeouts
+  index: 16
+- title: Gửi lại yêu cầu
+  slug: retries
+  index: 17
+- title: Cô lập và khôi phục
+  slug: isolation-recovery
+  index: 18
+- title: Kết nối và hiệu năng
+  slug: connections-performance
+  index: 19
+- title: Hợp đồng và lỗi
+  slug: contracts-errors
+  index: 20
+- title: Bảo mật giao tiếp
+  slug: communication-security
+  index: 21
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 22
+- title: Tùy biến LoadBalancer
+  slug: custom-loadbalancer
+  index: 23
+- title: Kiểm thử tự động
+  slug: automated-testing
+  index: 24
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 25
+- title: Triển khai
+  slug: deployment
+  index: 26
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 27
+- title: Tương thích và nâng cấp
+  slug: compatibility-upgrades
+  index: 28
+- title: Lựa chọn thiết kế
+  slug: design-choices
+  index: 29

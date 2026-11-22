@@ -1,0 +1,7 @@
+# Programming Paradigm Metaprogramming
+
+**Metaprogramming (siêu lập trình)** là cách viết chương trình có khả năng quan sát, phân tích, sinh hoặc biến đổi mã chương trình khác. Thay vì chỉ thao tác dữ liệu nghiệp vụ, metaprogramming còn làm việc với cấu trúc mã, kiểu dữ liệu và metadata. Các kỹ thuật này xuất hiện ở nhiều ngôn ngữ dưới dạng macro, Reflection, AST transformation và code generation; trong Java, những ví dụ gần gũi gồm Reflection API, annotation processing, dynamic proxy và công cụ xử lý class file.
+
+Lộ trình gồm tám mốc: tư duy meta-level, mô hình mã dưới dạng AST, Reflection tại runtime, annotations và metadata, annotation processing trong trình biên dịch, sinh mã cùng quy trình build, dynamic proxy/bytecode, cuối cùng là an toàn và kiểm thử mã sinh. Trọng tâm là chọn đúng giai đoạn thực thi cho từng nhu cầu, giữ mã được tạo ra dễ truy vết và tránh làm giảm tính rõ ràng của chương trình chỉ để loại bỏ một ít mã lặp.
+
+Module phù hợp với lập trình viên đã nắm Java hướng đối tượng, class/interface, annotation cơ bản và quy trình biên dịch. Sau khi hoàn thành, bạn có thể giải thích sự khác biệt giữa phân tích mã lúc biên dịch và lúc chạy, viết công cụ đọc metadata, tạo thử một annotation processor hoặc dynamic proxy, và thiết kế kiểm thử để xác nhận mã sinh hoặc mã biến đổi vận hành đúng và an toàn.

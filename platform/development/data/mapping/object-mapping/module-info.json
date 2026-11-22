@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "OBJECT_TO_OBJECT_MAPPING"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Rèn kỹ năng ánh xạ dữ liệu giữa domain model, entity và DTO trong ứng dụng Java, từ mapping thủ công đến MapStruct và ModelMapper. Người học xử lý đối tượng lồng nhau, collection, null, cập nhật từng phần, hợp đồng API, bảo vệ trường dữ liệu và kiểm thử chuyển đổi."
+  }
+}

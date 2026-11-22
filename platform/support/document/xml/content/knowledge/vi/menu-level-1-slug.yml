@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan XML
+  slug: xml-overview
+  index: 0
+- title: Cú pháp XML
+  slug: xml-syntax
+  index: 1
+- title: Mã hóa ký tự
+  slug: character-encoding
+  index: 2
+- title: Namespace
+  slug: namespaces
+  index: 3
+- title: Thiết kế tài liệu
+  slug: document-design
+  index: 4
+- title: DTD và thực thể
+  slug: dtd-entities
+  index: 5
+- title: XSD cơ bản
+  slug: xsd-basics
+  index: 6
+- title: XSD nâng cao
+  slug: xsd-advanced
+  index: 7
+- title: Java XML và JAXP
+  slug: java-xml-jaxp
+  index: 8
+- title: DOM cơ bản
+  slug: dom-basics
+  index: 9
+- title: Chỉnh sửa DOM
+  slug: dom-editing
+  index: 10
+- title: SAX
+  slug: support-document-xml-sax
+  index: 11
+- title: StAX đọc
+  slug: stax-reading
+  index: 12
+- title: StAX ghi
+  slug: stax-writing
+  index: 13
+- title: XPath cơ bản
+  slug: xpath-basics
+  index: 14
+- title: XPath trong Java
+  slug: xpath-java
+  index: 15
+- title: XSLT cơ bản
+  slug: xslt-basics
+  index: 16
+- title: XSLT trong Java
+  slug: xslt-java
+  index: 17
+- title: Xác thực trong Java
+  slug: xml-validation-java
+  index: 18
+- title: JAXB cơ bản
+  slug: jaxb-basics
+  index: 19
+- title: JAXB nâng cao
+  slug: jaxb-advanced
+  index: 20
+- title: Sinh mã từ XSD
+  slug: xsd-code-generation
+  index: 21
+- title: Jackson XML
+  slug: jackson-xml
+  index: 22
+- title: Đọc ghi tài nguyên
+  slug: resource-io
+  index: 23
+- title: Chuyển đổi dữ liệu
+  slug: data-transformation
+  index: 24
+- title: Bảo mật XML
+  slug: xml-security
+  index: 25
+- title: Catalog và phân giải
+  slug: xml-catalog-resolution
+  index: 26
+- title: Chữ ký XML
+  slug: xml-signatures
+  index: 27
+- title: Hiệu năng XML
+  slug: xml-performance
+  index: 28
+- title: Kiểm thử XML
+  slug: xml-testing
+  index: 29
+- title: XML với Spring Boot
+  slug: xml-spring-boot
+  index: 30
+- title: Thiết kế xử lý XML
+  slug: xml-processing-design
+  index: 31
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 32
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 33

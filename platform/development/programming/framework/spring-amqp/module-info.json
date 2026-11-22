@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SPRING_AMQP"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Học tích hợp RabbitMQ với Spring AMQP bằng RabbitTemplate, @RabbitListener, exchange, queue và binding. Thực hành định tuyến message, xác nhận giao nhận, retry, dead-letter, giao dịch và quan sát hệ thống để xây xử lý bất đồng bộ đáng tin cậy."
+  }
+}

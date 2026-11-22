@@ -1,0 +1,57 @@
+roadmap:
+- id: khai-niem-gioi-han-coverage
+  title: Khái niệm & giới hạn coverage
+  purpose: Hiểu độ bao phủ là thước đo phần mã được thực thi khi chạy kiểm thử, không phải bằng chứng mã đúng.
+  objectives:
+  - Giải thích code coverage đo điều gì và không đo điều gì.
+  - Phân biệt mã đã chạy với hành vi đã được kiểm chứng.
+  - Nêu tình huống coverage cao nhưng test thiếu assertion.
+- id: cac-chi-so-coverage
+  title: Các chỉ số coverage
+  purpose: Đọc đúng số liệu để xác định những nhánh và khối logic chưa được kiểm thử.
+  objectives:
+  - Phân biệt instruction, line, branch và method coverage.
+  - Giải thích partial coverage của if/switch.
+  - Nhận diện giới hạn đo nhánh và code sinh bởi compiler.
+- id: instrumentation-thu-thap
+  title: Instrumentation & thu thập
+  purpose: Hiểu cơ chế đưa probe vào bytecode và điều kiện để dữ liệu coverage được ghi nhận.
+  objectives:
+  - Mô tả Java agent instrument class khi load.
+  - Phân biệt on-the-fly với offline instrumentation.
+  - Giải thích vai trò execution data và debug info khi tạo báo cáo.
+- id: chay-test-voi-jacoco
+  title: Chạy test với JaCoCo
+  purpose: Thiết lập công cụ đo coverage cho test suite Java đang có.
+  objectives:
+  - Tích hợp JaCoCo Maven plugin hoặc Gradle jacoco plugin.
+  - Chạy unit test JUnit và tạo execution data.
+  - Kiểm tra cấu hình fork/JVM agent khi báo cáo không có dữ liệu.
+- id: bao-cao-phan-tich
+  title: Báo cáo & phân tích
+  purpose: Biến kết quả chạy kiểm thử thành vị trí cụ thể cần bổ sung test.
+  objectives:
+  - Tạo và đọc báo cáo HTML, XML hoặc CSV.
+  - Xác định class, method, line và branch còn thiếu.
+  - Chọn các luồng lỗi và điều kiện rẽ nhánh cần thêm test.
+- id: pham-vi-tong-hop-coverage
+  title: Phạm vi & tổng hợp coverage
+  purpose: Đảm bảo phép đo phản ánh đúng module, test suite và mã ứng dụng cần đánh giá.
+  objectives:
+  - Phân biệt coverage từ unit test và integration test.
+  - Tổng hợp execution data hoặc report cho nhiều module khi phù hợp.
+  - Giải thích và rà soát quy tắc exclude generated code.
+- id: quality-gate-trong-ci
+  title: Quality gate trong CI
+  purpose: Đưa kiểm tra coverage vào pipeline để nhóm phát hiện suy giảm chất lượng sớm.
+  objectives:
+  - Cấu hình JaCoCo check hoặc Gradle coverage verification.
+  - Đặt ngưỡng line/branch hợp lý cho phạm vi cần theo dõi.
+  - Xuất report cho CI và xác định nguyên nhân build fail.
+- id: cai-thien-chat-luong-test
+  title: Cải thiện chất lượng test
+  purpose: Sử dụng coverage như tín hiệu tìm thiếu sót thay vì chạy theo tỷ lệ phần trăm.
+  objectives:
+  - Bổ sung assertion, boundary case và negative case có ý nghĩa.
+  - Kết hợp review, mutation testing hoặc kiểm thử hành vi.
+  - Theo dõi thay đổi coverage cùng chất lượng lỗi được phát hiện.

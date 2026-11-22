@@ -1,0 +1,49 @@
+roadmap:
+- id: muc-dich-memento
+  title: Mục đích Memento
+  purpose: Nhận diện nhu cầu hoàn tác và khôi phục trạng thái mà không làm lộ chi tiết bên trong đối tượng.
+  objectives:
+  - '- Phân biệt lưu snapshot với thay đổi hành vi đối tượng.'
+  - '- Nêu trường hợp dùng Memento cho undo và checkpoint.'
+- id: ba-vai-tro-chinh
+  title: Ba vai trò chính
+  purpose: Hiểu cách Originator, Memento và Caretaker cộng tác để tách trạng thái khỏi lịch sử.
+  objectives:
+  - '- Vẽ luồng Originator → Memento → Caretaker.'
+  - '- Phân biệt trách nhiệm tạo, giữ và khôi phục snapshot.'
+- id: snapshot-dong-goi
+  title: Snapshot & Đóng gói
+  purpose: Thiết kế bản chụp trạng thái không bị sửa từ bên ngoài để bảo vệ encapsulation.
+  objectives:
+  - '- Chọn dữ liệu cần lưu, tránh giữ tham chiếu mutable không an toàn.'
+  - '- Thiết kế Memento immutable hoặc lớp lồng private.'
+- id: luu-va-khoi-phuc-java
+  title: Lưu và Khôi phục Java
+  purpose: Triển khai cơ chế tạo snapshot và phục hồi đối tượng bằng Java thuần.
+  objectives:
+  - '- Viết save()/restore() trên Originator.'
+  - '- Khôi phục đúng toàn bộ state có liên quan mà không lộ field nội bộ.'
+- id: caretaker-history
+  title: Caretaker & History
+  purpose: Lưu các phiên bản trạng thái ở một thành phần điều phối riêng.
+  objectives:
+  - '- Quản lý lịch sử snapshot bằng stack/list.'
+  - '- Giới hạn quyền Caretaker chỉ giữ và chuyển Memento.'
+- id: undo-redo
+  title: Undo & Redo
+  purpose: Phối hợp các snapshot để hỗ trợ hoàn tác và thực hiện lại thao tác.
+  objectives:
+  - '- Triển khai undo/redo bằng lịch sử trạng thái và vị trí hiện tại.'
+  - '- Xóa nhánh redo khi tạo thay đổi mới sau undo.'
+- id: copy-chi-phi
+  title: Copy & Chi phí
+  purpose: Lựa chọn phạm vi sao chép phù hợp với kích thước và tính biến đổi của trạng thái.
+  objectives:
+  - '- Phân biệt shallow copy, deep copy và immutable state.'
+  - '- Đánh giá chi phí bộ nhớ, số snapshot và vòng đời dữ liệu.'
+- id: kiem-thu-so-sanh
+  title: Kiểm thử & So sánh
+  purpose: Xác minh tính đúng đắn của snapshot và lựa chọn pattern phù hợp cho yêu cầu.
+  objectives:
+  - '- Test restore, nhiều cấp undo/redo và state mutable.'
+  - '- Phân biệt Memento với Command và Prototype.'

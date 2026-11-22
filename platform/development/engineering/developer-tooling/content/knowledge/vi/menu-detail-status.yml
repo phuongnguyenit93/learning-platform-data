@@ -1,0 +1,3331 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Developer Tooling là gì và những vấn đề công cụ giúp giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Chu trình phát triển: đọc mã, sửa mã, chạy, kiểm tra và chẩn đoán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt trình soạn thảo, IDE, JDK, công cụ build và công cụ vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Mối quan hệ giữa công cụ dòng lệnh, giao diện đồ họa và tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Đầu vào, đầu ra, cấu hình và phạm vi tác động của một công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Chọn công cụ theo công việc, hệ điều hành và khả năng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt khả năng của công cụ với kiến thức nền tảng cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học công cụ qua một ứng dụng Java xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-environment
+  title: Môi trường Java
+  childs:
+  - slug: java-environment-001
+    title: Kiểm kê hệ điều hành, kiến trúc CPU và các công cụ đã cài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-002
+    title: Phân biệt JDK, môi trường chạy Java và JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-003
+    title: Cài JDK và xác minh bằng java -version, javac -version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-004
+    title: Cấu hình JAVA_HOME, PATH và kiểm tra executable thực sự được gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-005
+    title: Quản lý nhiều phiên bản JDK và chuyển phiên bản theo dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-006
+    title: Đồng bộ JDK của terminal, IDE, công cụ build và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-007
+    title: Quản lý công cụ qua trình quản lý gói và tệp khai báo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-008
+    title: Cấu hình proxy, chứng chỉ và quyền truy cập kho thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-009
+    title: Kiểm soát encoding, locale, múi giờ và thư mục tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-environment-010
+    title: Tạo bước kiểm tra môi trường có thể chạy lại trên máy mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-line
+  title: Dòng lệnh
+  childs:
+  - slug: command-line-001
+    title: Phân biệt terminal, shell và tiến trình được khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-002
+    title: Điều hướng thư mục và làm việc với đường dẫn tuyệt đối, tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-003
+    title: Truyền đối số và đặt dấu nháy trong Bash hoặc PowerShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-004
+    title: Biến shell, biến môi trường và phạm vi kế thừa của tiến trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-005
+    title: Chuyển hướng stdin, stdout, stderr và ghi kết quả ra tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-006
+    title: Pipeline văn bản của shell và pipeline đối tượng của PowerShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-007
+    title: Mã thoát và cách kết hợp lệnh theo kết quả thành công, thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-008
+    title: Tìm lệnh và đọc trợ giúp bằng help, man hoặc Get-Help
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-009
+    title: Lịch sử lệnh, hoàn thành tự động và tìm lại thao tác thường dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-010
+    title: Chạy script, cấu hình thư mục làm việc và nhận biết quyền thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-data
+  title: Tệp và dữ liệu
+  childs:
+  - slug: files-and-data-001
+    title: Tìm tệp theo tên, đường dẫn và phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-002
+    title: Tìm nội dung bằng ripgrep và giới hạn phạm vi tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-003
+    title: Tìm kiếm theo biểu thức chính quy và kiểm tra kết quả khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-004
+    title: Đọc tệp lớn, trích dòng và theo dõi phần nội dung mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-005
+    title: So sánh tệp, thư mục và nhận diện thay đổi ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-006
+    title: Đọc, lọc và chuyển đổi JSON bằng jq
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-007
+    title: Đọc YAML, XML, CSV bằng công cụ phù hợp với cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-008
+    title: Nhận biết encoding, BOM, ký tự xuống dòng và ký tự ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-009
+    title: Tính checksum, kiểm tra tệp tải xuống và nội dung gói nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-data-010
+    title: Thay thế hàng loạt có xem trước và kiểm tra diff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workspace
+  title: Workspace
+  childs:
+  - slug: workspace-001
+    title: Phân biệt repository, workspace, project và module trong công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-002
+    title: Mở đúng thư mục gốc và nhận diện cấu trúc dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-003
+    title: Tách mã nguồn, cấu hình, dữ liệu cục bộ và sản phẩm được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-004
+    title: Thiết lập encoding, thụt lề và xuống dòng bằng EditorConfig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-005
+    title: Quản lý tệp bỏ qua bằng .gitignore và cơ chế loại trừ của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-006
+    title: Phân biệt cấu hình dùng chung với cấu hình riêng của máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-007
+    title: Tổ chức biến môi trường và tệp cấu hình mẫu không chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-008
+    title: Lưu cấu hình tác vụ, chạy ứng dụng và gỡ lỗi có thể chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspace-009
+    title: Thiết kế quy trình mở dự án và chạy lần đầu từ bản clone sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-ide
+  title: IDE Java
+  childs:
+  - slug: java-ide-001
+    title: Vai trò của mô hình dự án, bộ chỉ mục và language server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-002
+    title: Thiết lập Java project trong IntelliJ IDEA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-003
+    title: Thiết lập Java project trong Eclipse IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-004
+    title: Thiết lập Java trong VS Code với các extension cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-005
+    title: Import dự án Maven hoặc Gradle và đồng bộ mô hình build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-006
+    title: Cấu hình Project SDK, mức ngôn ngữ và thư mục nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-007
+    title: Quản lý plugin, extension và kiểm tra tính tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-008
+    title: Phân biệt tính năng tích hợp sẵn với tính năng cần plugin hoặc giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-009
+    title: Điều chỉnh keymap, cửa sổ công cụ và khả năng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-010
+    title: Hiểu workspace trust và giới hạn thực thi khi mở dự án lạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ide-011
+    title: Xuất, chia sẻ và khôi phục cấu hình IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-reading
+  title: Đọc mã
+  childs:
+  - slug: code-reading-001
+    title: Tìm nhanh tệp, lớp, phương thức và ký hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-002
+    title: Đi đến khai báo, triển khai và quay lại vị trí trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-003
+    title: Tìm nơi sử dụng và phân biệt tìm kiếm văn bản với tìm theo ký hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-004
+    title: Khám phá quan hệ kế thừa và các lớp triển khai interface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-005
+    title: Theo dõi lời gọi bằng call hierarchy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-006
+    title: Đọc cấu trúc tệp, sơ đồ module và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-007
+    title: Tra cứu Javadoc, mã nguồn thư viện và tài liệu API trong IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-008
+    title: Đọc mã dịch ngược và nhận biết giới hạn so với mã nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-reading-009
+    title: Dùng bookmark, danh sách việc cần làm và vùng mã để điều hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: editing
+  title: Soạn thảo
+  childs:
+  - slug: editing-001
+    title: Hoàn thành mã, gợi ý tham số và hỗ trợ import
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-002
+    title: Tạo lớp, constructor, accessor và phương thức được ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-003
+    title: Snippet, live template và mẫu tệp theo dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-004
+    title: Sửa nhiều vị trí, chọn theo cột và thao tác với nhiều con trỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-005
+    title: Định dạng mã, sắp xếp import và áp dụng quy ước thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-006
+    title: Đọc cảnh báo và lựa chọn quick fix có kiểm tra tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-007
+    title: Phân biệt mã được sinh với mã do lập trình viên quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-008
+    title: Soạn thảo Java, XML, YAML, JSON và tệp cấu hình liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-009
+    title: Xem diff trước khi lưu hoặc chấp nhận thay đổi hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring
+  title: Refactor
+  childs:
+  - slug: refactoring-001
+    title: Phân biệt refactor theo cấu trúc mã với thay thế văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-002
+    title: Đổi tên lớp, phương thức, biến và cập nhật tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-003
+    title: Di chuyển lớp, package và tài nguyên có liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-004
+    title: Tách biến, hằng số, phương thức và lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-005
+    title: Thay đổi chữ ký phương thức và kiểm tra các nơi gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-006
+    title: Inline mã, loại bỏ mã không dùng và giảm trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-007
+    title: Xem trước thay đổi và xử lý tham chiếu trong cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-008
+    title: Kiểm tra giới hạn với reflection, chuỗi tên lớp và mã sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-009
+    title: Xác minh refactor bằng diff, biên dịch và kiểm thử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: run-applications
+  title: Chạy ứng dụng
+  childs:
+  - slug: run-applications-001
+    title: Tạo cấu hình chạy cho lớp có main và ứng dụng web Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-002
+    title: Thiết lập module, classpath và thư mục làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-003
+    title: Phân biệt đối số chương trình, tùy chọn JVM và system property
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-004
+    title: Truyền biến môi trường và lựa chọn cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-005
+    title: Chạy bằng IDE, lệnh Java và công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-006
+    title: Chạy nhiều dịch vụ với cổng và cấu hình riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-007
+    title: Quản lý dừng, khởi động lại và các tiến trình còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-008
+    title: Lưu cấu hình chạy để chia sẻ mà không đưa bí mật vào Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-applications-009
+    title: Đối chiếu hành vi chạy trong IDE với chạy sản phẩm đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debugging
+  title: Gỡ lỗi
+  childs:
+  - slug: debugging-001
+    title: 'Mô hình debugger: breakpoint, stack frame, biến và luồng thực thi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-002
+    title: Đặt breakpoint theo dòng và theo ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-003
+    title: Sử dụng breakpoint có điều kiện, số lần gặp và logpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-004
+    title: Phân biệt step over, step into, step out và run to cursor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-005
+    title: Quan sát biến, biểu thức theo dõi và đối tượng trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-006
+    title: Đánh giá biểu thức và nhận biết tác dụng phụ khi gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-007
+    title: Đọc call stack và chọn đúng stack frame
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-008
+    title: Quan sát nhiều thread, khóa và điểm chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-009
+    title: Gỡ lỗi kiểm thử và ứng dụng được khởi chạy bằng công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-010
+    title: Kết nối gỡ lỗi từ xa bằng JDWP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-011
+    title: Ánh xạ mã nguồn, phiên bản bytecode và breakpoint không có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-012
+    title: HotSwap và giới hạn thay đổi mã khi tiến trình đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-013
+    title: Giới hạn truy cập cổng debug và tác động của việc tạm dừng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdk-basics
+  title: JDK cơ bản
+  childs:
+  - slug: jdk-basics-001
+    title: Chạy lớp, JAR và tệp mã nguồn bằng lệnh java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-basics-002
+    title: Biên dịch bằng javac với classpath, encoding và mức release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-basics-003
+    title: Tạo, liệt kê và giải nén JAR bằng công cụ jar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-basics-004
+    title: Thử nghiệm biểu thức và đoạn mã bằng JShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-basics-005
+    title: Nạp thư viện, script và quản lý phiên làm việc trong JShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-basics-006
+    title: Sinh tài liệu API bằng javadoc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-basics-007
+    title: Phục vụ tệp tĩnh cục bộ bằng jwebserver và nhận biết giới hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-basics-008
+    title: Đọc trợ giúp và xác minh tùy chọn theo đúng phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-analysis
+  title: Phân tích Java
+  childs:
+  - slug: java-analysis-001
+    title: Đọc chữ ký lớp và bytecode bằng javap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-002
+    title: Quan sát constant pool, số dòng và thông tin debug bằng javap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-003
+    title: Phân tích phụ thuộc giữa package, JAR và module bằng jdeps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-004
+    title: Tìm sử dụng API bị đánh dấu lỗi thời bằng jdeprscan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-005
+    title: Kiểm tra module descriptor và nội dung tệp JMOD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-006
+    title: Tạo runtime tùy chỉnh bằng jlink
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-007
+    title: Tạo gói ứng dụng độc lập bằng jpackage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-008
+    title: Phân biệt JAR, runtime image và gói cài đặt của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-analysis-009
+    title: Kiểm tra kết quả phân tích với reflection và dependency chỉ xuất hiện lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-git
+  title: Git cục bộ
+  childs:
+  - slug: local-git-001
+    title: Mô hình working tree, staging area, commit và repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-002
+    title: Khởi tạo hoặc clone repository và cấu hình danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-003
+    title: Kiểm tra thay đổi bằng status, diff và diff --staged
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-004
+    title: Chọn phần thay đổi để stage và tạo commit có phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-005
+    title: Đọc lịch sử bằng log, show và blame
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-006
+    title: Tạo, chuyển và so sánh nhánh làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-007
+    title: Tạm cất thay đổi bằng stash và xử lý xung đột khi khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-008
+    title: Phân biệt restore, reset và revert theo phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-009
+    title: Tìm lại tham chiếu bằng reflog và nhận biết giới hạn phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-010
+    title: Quản lý nhiều thư mục làm việc bằng git worktree
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-git-011
+    title: Tìm commit gây lỗi bằng git bisect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collaborative-git
+  title: Git cộng tác
+  childs:
+  - slug: collaborative-git-001
+    title: Cấu hình remote và phân biệt fetch, pull, push
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-002
+    title: Nhánh theo dõi và quan hệ giữa nhánh cục bộ với nhánh từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-003
+    title: Merge, rebase và cách lựa chọn theo quy ước nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-004
+    title: Nhận diện, giải quyết và kiểm tra xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-005
+    title: Cherry-pick thay đổi có chọn lọc giữa các nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-006
+    title: Tạo pull request và sử dụng công cụ xem diff, bình luận mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-007
+    title: Quản lý tag và liên kết phiên bản sản phẩm với commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-008
+    title: Credential helper, SSH key và xác thực HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-009
+    title: Chuẩn hóa xuống dòng và thuộc tính tệp bằng .gitattributes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-010
+    title: Sử dụng Git LFS và submodule khi dự án thực sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaborative-git-011
+    title: Phân biệt cập nhật lịch sử cá nhân với viết lại lịch sử dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-and-libraries
+  title: Build và thư viện
+  childs:
+  - slug: build-and-libraries-001
+    title: Vai trò của công cụ build trong chu trình sử dụng công cụ phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-002
+    title: Chạy tác vụ Maven, Gradle hoặc Ant từ terminal và IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-003
+    title: Sử dụng Maven Wrapper hoặc Gradle Wrapper theo dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-004
+    title: Phân biệt build trong IDE với build do công cụ dự án điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-005
+    title: Xem dependency tree và giải thích thư viện được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-006
+    title: Tìm JAR trùng lặp, xung đột phiên bản và dependency không mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-007
+    title: Đính kèm source JAR, Javadoc và tra cứu thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-008
+    title: Cấu hình repository, proxy, chế độ ngoại tuyến và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-009
+    title: Nhận diện mã nguồn được sinh và vòng đời annotation processing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-010
+    title: Đọc build log, báo cáo lỗi và đối chiếu JDK thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-and-libraries-011
+    title: Kiểm tra sản phẩm JAR hoặc WAR và manifest bằng công cụ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-tools
+  title: Công cụ kiểm thử
+  childs:
+  - slug: testing-tools-001
+    title: Khám phá và chạy kiểm thử Java trong IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-002
+    title: Chạy một phương thức, một lớp hoặc nhóm kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-003
+    title: Chọn tag, tham số và cấu hình kiểm thử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-004
+    title: Gỡ lỗi ca kiểm thử và chạy lại ca thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-005
+    title: Đọc cây kết quả, assertion diff và dấu vết ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-006
+    title: Đối chiếu kết quả kiểm thử giữa IDE và dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-007
+    title: Xem độ bao phủ mã và hiểu giới hạn của chỉ số coverage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-008
+    title: Chuẩn bị dữ liệu, biến môi trường và dịch vụ phụ trợ cho kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-009
+    title: Đọc và xuất báo cáo kiểm thử để dùng trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-tools-010
+    title: Phân biệt công cụ chạy kiểm thử, đo hiệu năng và phân tích chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-quality
+  title: Chất lượng mã
+  childs:
+  - slug: code-quality-001
+    title: Phân biệt formatter, linter, inspection và công cụ phân tích tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-002
+    title: Thiết lập quy ước định dạng thống nhất giữa IDE và build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-003
+    title: Sử dụng Checkstyle để kiểm tra quy ước mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-004
+    title: Sử dụng PMD và SpotBugs để tìm vấn đề trong mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-005
+    title: Đọc cảnh báo, xác minh kết quả và xử lý cảnh báo không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-006
+    title: Quản lý cấu hình loại trừ và suppression có lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-007
+    title: Tích hợp kiểm tra vào tác vụ cục bộ và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-008
+    title: Xem báo cáo chất lượng bằng nền tảng tổng hợp khi dự án có sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-009
+    title: Đặt mức chặn thay đổi và quản lý cảnh báo tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-and-api
+  title: HTTP và API
+  childs:
+  - slug: http-and-api-001
+    title: 'Chọn công cụ gọi API: curl, HTTP client trong IDE hoặc ứng dụng chuyên dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-002
+    title: Tạo request với method, URL, query parameter và header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-003
+    title: Gửi JSON, form, multipart và tải tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-004
+    title: Quan sát status, response header, nội dung và thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-005
+    title: Quản lý biến môi trường và tập request có thể chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-006
+    title: Sử dụng cookie, session và các cơ chế xác thực theo API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-007
+    title: Thực hiện luồng OAuth hoặc cung cấp token bằng công cụ client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-008
+    title: Import, export và đồng bộ tập request theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-009
+    title: Đọc đặc tả OpenAPI và tạo request từ hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-010
+    title: Kiểm tra redirect, timeout, proxy và lỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-011
+    title: Quan sát WebSocket hoặc Server-Sent Events bằng công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-012
+    title: Chia sẻ ví dụ request đã loại bỏ token và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database
+  title: Cơ sở dữ liệu
+  childs:
+  - slug: database-001
+    title: Chọn SQL client dòng lệnh, công cụ cơ sở dữ liệu trong IDE hoặc ứng dụng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-002
+    title: Cấu hình driver JDBC, URL kết nối và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-003
+    title: Phân biệt kết nối phát triển, kiểm thử và môi trường dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-004
+    title: Khám phá schema, bảng, khóa và metadata bằng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-005
+    title: Viết truy vấn với hoàn thành mã, tham số và lịch sử thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-006
+    title: Kiểm soát transaction, auto-commit và thao tác cập nhật dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-007
+    title: Đọc execution plan qua giao diện hoặc lệnh EXPLAIN phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-008
+    title: Xuất, nhập và làm sạch dữ liệu mẫu có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-009
+    title: Kiểm tra trạng thái migration và phiên bản schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-010
+    title: Sử dụng client cho Redis hoặc hệ thống hàng đợi khi ứng dụng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-011
+    title: Giới hạn quyền, số dòng kết quả và dữ liệu hiển thị trong công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browser-dev-tools
+  title: DevTools trình duyệt
+  childs:
+  - slug: browser-dev-tools-001
+    title: Mở DevTools và lựa chọn panel theo vấn đề cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-002
+    title: Đọc Console và phân biệt lỗi giao diện với lỗi máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-003
+    title: Quan sát HTTP request, response và chuỗi redirect trong Network
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-004
+    title: Tìm request khởi phát từ đâu và sao chép request thành lệnh curl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-005
+    title: Kiểm tra cache, throttling và tình huống mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-006
+    title: Quan sát cookie, localStorage, sessionStorage và trạng thái ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-007
+    title: Phân tích lỗi CORS từ bằng chứng trong trình duyệt và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-008
+    title: Kiểm tra DOM, CSS và trạng thái giao diện để tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-009
+    title: Đặt breakpoint JavaScript khi theo dõi luồng gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-dev-tools-010
+    title: Xuất HAR và loại bỏ dữ liệu nhạy cảm trước khi chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-and-tls
+  title: Mạng và TLS
+  childs:
+  - slug: networking-and-tls-001
+    title: Kiểm tra DNS bằng nslookup hoặc dig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-002
+    title: Kiểm tra khả năng kết nối và giới hạn của ping, traceroute
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-003
+    title: Tìm cổng đang lắng nghe và tiến trình sở hữu cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-004
+    title: Kiểm tra HTTP bằng curl với chế độ hiển thị chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-005
+    title: Phân biệt lỗi DNS, TCP, TLS và lỗi phản hồi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-006
+    title: Quan sát chứng chỉ và chuỗi tin cậy bằng OpenSSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-007
+    title: Quản lý keystore, truststore và chứng chỉ Java bằng keytool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-008
+    title: Kiểm tra proxy, chứng chỉ nội bộ và khác biệt giữa JVM với hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-009
+    title: Sử dụng công cụ bắt gói khi cần kiểm tra lưu lượng được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-tls-010
+    title: Thu thập bằng chứng mạng và che thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-processes
+  title: Tiến trình hệ thống
+  childs:
+  - slug: system-processes-001
+    title: Nhận diện PID, tiến trình cha và dòng lệnh khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-002
+    title: Quan sát CPU, RAM và đĩa bằng công cụ hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-003
+    title: Tìm tiến trình Java bằng jps, jcmd hoặc danh sách tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-004
+    title: Phân biệt dừng có kiểm soát với kết thúc cưỡng bức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-005
+    title: Phát hiện cổng bị chiếm, tệp bị khóa và tiến trình còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-006
+    title: Kiểm tra biến môi trường và thư mục làm việc của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-007
+    title: Phân biệt bộ nhớ tiến trình, Java heap và giới hạn container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-008
+    title: Quan sát tài nguyên bằng Task Manager, Resource Monitor hoặc công cụ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-processes-009
+    title: Thu thập thông tin máy và tiến trình phục vụ tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging
+  title: Nhật ký
+  childs:
+  - slug: logging-001
+    title: Thu thập stdout, stderr và tệp log của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-002
+    title: Theo dõi log liên tục và xử lý tệp được xoay vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-003
+    title: Lọc theo mức độ, thời gian, tên logger và mã yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-004
+    title: Tìm và đọc stack trace nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-005
+    title: Đọc log có cấu trúc JSON bằng công cụ xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-006
+    title: Đối chiếu thời gian giữa nhiều tiến trình và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-007
+    title: Truy vết một yêu cầu qua log và trace id khi hệ thống hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-008
+    title: Xem log của container và tác vụ CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-009
+    title: Tạo gói bằng chứng lỗi gọn, có ngữ cảnh và không chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-diagnostics
+  title: Chẩn đoán JVM
+  childs:
+  - slug: jvm-diagnostics-001
+    title: Phân biệt theo dõi chỉ số, lấy mẫu, thread dump và heap dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-002
+    title: Khám phá lệnh chẩn đoán có sẵn bằng jcmd help
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-003
+    title: Đọc phiên bản, dòng lệnh và system property của JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-004
+    title: Quan sát heap, class histogram và bộ nhớ native khi đã bật theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-005
+    title: Lấy và đọc thread dump bằng công cụ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-006
+    title: Nhận diện thread bị chặn, deadlock và chuỗi chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-007
+    title: Thu thập heap dump và chuẩn bị dung lượng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-008
+    title: Quan sát thống kê JVM bằng jstat và công cụ tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-009
+    title: Theo dõi ứng dụng qua JMX bằng JConsole hoặc công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-010
+    title: Nhận biết giới hạn quan sát virtual thread theo công cụ và phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-011
+    title: Đọc tệp lỗi JVM hs_err và chuẩn bị dữ liệu phân tích sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-diagnostics-012
+    title: Kiểm soát quyền attach và tác động của lệnh chẩn đoán lên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-analysis
+  title: Phân tích hiệu năng
+  childs:
+  - slug: performance-analysis-001
+    title: Chọn công cụ theo câu hỏi về CPU, cấp phát bộ nhớ, khóa hoặc I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-002
+    title: Tạo bản ghi Java Flight Recorder khi khởi động hoặc qua jcmd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-003
+    title: Kiểm soát thời lượng, dung lượng và cấu hình sự kiện JFR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-004
+    title: Đọc tệp JFR bằng lệnh jfr và JDK Mission Control
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-005
+    title: Sử dụng VisualVM để quan sát và khảo sát ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-006
+    title: Phân tích heap dump bằng Eclipse Memory Analyzer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-007
+    title: Đọc dominator tree, retained size và đường giữ tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-008
+    title: Lấy mẫu CPU hoặc cấp phát bằng async-profiler khi nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-009
+    title: Đọc flame graph và phân biệt thời gian CPU với thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-010
+    title: Đánh giá chi phí đo và kiểm tra lại kết luận bằng bằng chứng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-011
+    title: Lưu điều kiện chạy và so sánh các lần đo có cùng bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container
+  title: Container
+  childs:
+  - slug: container-001
+    title: Phân biệt image, container, volume và network trong môi trường phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-002
+    title: Cài công cụ container và kiểm tra engine đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-003
+    title: Khởi chạy cơ sở dữ liệu hoặc dịch vụ phụ trợ bằng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-004
+    title: Ánh xạ cổng và phân biệt localhost của máy với mạng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-005
+    title: Mount mã nguồn, cấu hình và dữ liệu phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-006
+    title: Tổ chức nhiều dịch vụ bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-007
+    title: Quản lý biến môi trường, healthcheck và điều kiện sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-008
+    title: Sử dụng logs, exec, inspect và stats để khảo sát container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-009
+    title: Build image ứng dụng Java và kiểm tra phiên bản runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-010
+    title: Quản lý cache image, volume và thao tác dọn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-011
+    title: Đối chiếu quyền tệp, đường dẫn và tài nguyên giữa máy với container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remote-work
+  title: Làm việc từ xa
+  childs:
+  - slug: remote-work-001
+    title: Phân biệt IDE cục bộ, môi trường WSL và máy phát triển từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-work-002
+    title: Kết nối SSH và quản lý khóa truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-work-003
+    title: Chuyển tiếp cổng để truy cập dịch vụ phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-work-004
+    title: Chỉnh sửa và gỡ lỗi dự án trên máy từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-work-005
+    title: Sử dụng Dev Container để mô tả môi trường phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-work-006
+    title: Quản lý mã nguồn giữa hệ thống tệp Windows và Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-work-007
+    title: Đồng bộ công cụ, extension và cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-work-008
+    title: Kiểm soát thông tin xác thực, kết nối lại và tiến trình chạy nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation
+  title: Tự động hóa
+  childs:
+  - slug: automation-001
+    title: Chuyển thao tác lặp lại thành script có đầu vào và đầu ra rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-002
+    title: Thiết kế script Bash hoặc PowerShell có mã thoát đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-003
+    title: Quản lý quoting, đường dẫn và thư mục làm việc trong script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-004
+    title: Tạo task dùng chung giữa terminal và IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-005
+    title: Chuẩn bị, khởi động và dọn môi trường phát triển bằng một lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-006
+    title: Sử dụng Git hook hoặc pre-commit cho kiểm tra cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-007
+    title: Thiết kế thao tác có thể chạy lại và kiểm tra điều kiện trước khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-008
+    title: Tách cấu hình khỏi script và giảm phụ thuộc vào máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-009
+    title: Quản lý timeout, nhật ký và kết quả của công cụ được gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-integration-and-delivery
+  title: CI/CD
+  childs:
+  - slug: continuous-integration-and-delivery-001
+    title: Ánh xạ thao tác phát triển cục bộ thành các bước pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-002
+    title: Đọc cấu hình công việc trong GitHub Actions hoặc Jenkins
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-003
+    title: Chuẩn bị JDK, công cụ và phiên bản dependency trên runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-004
+    title: Truyền tham số, biến môi trường và bí mật vào công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-005
+    title: Đọc log, mã thoát và xác định bước thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-006
+    title: Thu thập báo cáo kiểm thử, coverage và sản phẩm dưới dạng artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-007
+    title: Thiết kế cache dependency có khóa và phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-008
+    title: Chạy ma trận môi trường để phát hiện khác biệt nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-009
+    title: Tái hiện lỗi CI trên máy phát triển và so sánh điều kiện chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-tools
+  title: Công cụ bảo mật
+  childs:
+  - slug: security-tools-001
+    title: Phân biệt quét bí mật, quét dependency và phân tích mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-002
+    title: Phát hiện thông tin xác thực trong thay đổi và lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-003
+    title: Quét thư viện có lỗ hổng và xác minh dependency bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-004
+    title: Đọc mức độ nghiêm trọng, phạm vi tác động và kết quả không chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-005
+    title: Tạo và đọc danh mục thành phần phần mềm SBOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-006
+    title: Kiểm tra nguồn gốc plugin, extension và công cụ tải về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-007
+    title: Kiểm tra chữ ký JAR và chứng chỉ bằng jarsigner, keytool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-008
+    title: Giới hạn quyền truy cập repository, terminal và dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-tools-009
+    title: Xử lý kết quả quét trong quy trình phát triển và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-documentation
+  title: Tài liệu kỹ thuật
+  childs:
+  - slug: technical-documentation-001
+    title: Soạn và xem trước Markdown trong trình soạn thảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-002
+    title: Viết code block, bảng, liên kết và nội dung có thể tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-003
+    title: Tạo sơ đồ kỹ thuật bằng Mermaid hoặc công cụ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-004
+    title: Liên kết tài liệu với mã nguồn, lệnh chạy và ví dụ thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-005
+    title: Tra cứu Javadoc theo đúng phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-006
+    title: Viết hướng dẫn chuẩn bị môi trường và xử lý lỗi thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-007
+    title: Tạo tệp mẫu, snippet và tập lệnh minh họa có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-008
+    title: Kiểm tra liên kết, định dạng và ví dụ lệnh trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-documentation-009
+    title: Lưu quyết định lựa chọn công cụ cùng điều kiện và lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ai-assistant
+  title: Trợ lý AI
+  childs:
+  - slug: ai-assistant-001
+    title: Phân biệt hoàn thành mã, hội thoại hỗ trợ và tác nhân thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-002
+    title: Giao nhiệm vụ bằng bối cảnh, mục tiêu và tiêu chí kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-003
+    title: Cung cấp phạm vi tệp và tài liệu cần thiết cho công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-004
+    title: Kiểm soát quyền đọc, sửa tệp, chạy lệnh và truy cập dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-005
+    title: Nhận diện hướng dẫn không đáng tin trong tệp hoặc nội dung được truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-006
+    title: Kiểm tra mã, lệnh và dependency do trợ lý đề xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-007
+    title: Đánh giá thay đổi bằng diff, biên dịch và kiểm thử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-008
+    title: Bảo vệ bí mật, dữ liệu cá nhân và nội dung có giới hạn chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-009
+    title: Nhận biết thông tin bịa đặt, bối cảnh lỗi thời và giới hạn suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-assistant-010
+    title: Phối hợp trợ lý với debugger, tài liệu chính thức và đánh giá của lập trình viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Khắc phục lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Phân loại lỗi công cụ, cấu hình, dependency và mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chẩn đoán khác biệt JDK giữa terminal, IDE và công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Xử lý import dự án lỗi, thiếu thư viện và mã không được nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Phân biệt vấn đề chỉ mục IDE với lỗi biên dịch thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Kiểm tra cache trước khi xóa hoặc xây dựng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Chẩn đoán lỗi quyền truy cập, đường dẫn, encoding và khóa tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Xử lý lỗi proxy, chứng chỉ, DNS và tải dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Tái hiện sự cố bằng project tối thiểu và bản clone sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Thu thập phiên bản, cấu hình, log và bước tái hiện để báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Xác minh cách khắc phục và ghi lại nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-standardization
+  title: Chuẩn hóa nhóm
+  childs:
+  - slug: team-standardization-001
+    title: Thống nhất bộ công cụ tối thiểu và các lựa chọn có thể thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-standardization-002
+    title: Khai báo phiên bản JDK, wrapper và cấu hình định dạng trong dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-standardization-003
+    title: Chia sẻ cấu hình IDE, tập request và task mà không chứa dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-standardization-004
+    title: Xây hướng dẫn thiết lập môi trường cho thành viên mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-standardization-005
+    title: Đồng bộ kiểm tra chất lượng giữa máy cá nhân và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-standardization-006
+    title: Đánh giá và cập nhật plugin theo nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-standardization-007
+    title: Thử nâng cấp công cụ trên nhánh riêng và xác minh khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-standardization-008
+    title: Lập hướng dẫn bảo trì, khôi phục và xử lý môi trường bị hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Thiết lập môi trường Java và chạy dự án từ bản clone sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Nhập cùng một dự án vào IDE và chạy bằng dòng lệnh để đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Tìm một luồng xử lý bằng tìm ký hiệu, nơi sử dụng và call hierarchy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Refactor một chức năng rồi xác minh bằng diff và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Gỡ lỗi một ngoại lệ và ghi lại chuỗi nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Khảo sát JAR bằng jar, javap và jdeps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Tìm commit gây lỗi bằng Git bisect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Tạo bộ request API có cấu hình môi trường dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Khởi chạy cơ sở dữ liệu bằng Compose và kiểm tra bằng SQL client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Chẩn đoán cổng bị chiếm, lỗi kết nối và lỗi chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Thu thập thread dump, heap dump hoặc JFR theo tình huống được giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Phân tích một vấn đề CPU hoặc bộ nhớ bằng bằng chứng từ profiler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-013
+    title: Tự động hóa kiểm tra cục bộ và chạy lại cùng lệnh trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-014
+    title: Đánh giá thay đổi do trợ lý AI tạo và chứng minh kết quả kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-015
+    title: Viết hướng dẫn công cụ đủ để người khác tái hiện quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

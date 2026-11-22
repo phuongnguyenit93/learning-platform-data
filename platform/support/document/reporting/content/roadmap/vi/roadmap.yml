@@ -1,0 +1,55 @@
+roadmap:
+- id: nhu-cau-bao-cao
+  title: Nhu cầu báo cáo
+  purpose: Xác định người đọc, câu hỏi cần trả lời và nhịp xuất báo cáo phù hợp.
+  objectives:
+  - Viết mục tiêu, đối tượng và chu kỳ của một báo cáo mẫu.
+  - Chọn các phần thông tin thiết yếu cần trình bày.
+- id: nguon-chat-luong-du-lieu
+  title: Nguồn & chất lượng dữ liệu
+  purpose: Bảo đảm dữ liệu đầu vào có nguồn gốc, cấu trúc và chất lượng nhất quán.
+  objectives:
+  - Đọc dữ liệu báo cáo từ SQL, CSV hoặc API.
+  - Kiểm tra dữ liệu thiếu, trùng và thời điểm cập nhật.
+- id: kpi-tong-hop
+  title: KPI & Tổng hợp
+  purpose: Biến dữ liệu thô thành số liệu có định nghĩa rõ và có thể đối chiếu.
+  objectives:
+  - Định nghĩa công thức, bộ lọc và kỳ so sánh cho KPI.
+  - Tạo bảng tổng hợp và kiểm chứng kết quả với dữ liệu nguồn.
+- id: mau-tai-lieu-bao-cao
+  title: Mẫu tài liệu báo cáo
+  purpose: Tách bố cục báo cáo khỏi dữ liệu để tái sử dụng và dễ chỉnh sửa.
+  objectives:
+  - Thiết kế template có tiêu đề, ngày, phần nội dung và kết luận.
+  - Điền dữ liệu động vào placeholder hoặc trường trong mẫu.
+- id: bang-bieu-do
+  title: Bảng & Biểu đồ
+  purpose: Trình bày xu hướng và số liệu rõ ràng cho người đọc báo cáo.
+  objectives:
+  - Chọn bảng hoặc biểu đồ phù hợp với loại thông tin.
+  - Ghi đơn vị, nhãn và chú giải để tránh hiểu sai số liệu.
+- id: tao-xuat-bao-cao
+  title: Tạo & Xuất báo cáo
+  purpose: Sinh tài liệu tự động và chọn định dạng đầu ra cho từng nhu cầu.
+  objectives:
+  - Xuất thử báo cáo thành PDF và DOCX hoặc XLSX.
+  - Kiểm tra bố cục, font và số liệu sau khi xuất tệp.
+- id: lich-chay-tu-dong-hoa
+  title: Lịch chạy & Tự động hóa
+  purpose: Tạo quy trình sinh báo cáo ổn định mà không cần thao tác thủ công.
+  objectives:
+  - Thiết lập trigger theo lịch hoặc sự kiện cập nhật dữ liệu.
+  - Đặt tên tệp, lưu phiên bản và xử lý lỗi khi tạo báo cáo.
+- id: phan-quyen-phan-phoi
+  title: Phân quyền & Phân phối
+  purpose: Đảm bảo chỉ người được phép mới xem dữ liệu báo cáo phù hợp.
+  objectives:
+  - Áp dụng quyền truy cập tối thiểu cho dữ liệu và tệp đầu ra.
+  - Kiểm tra người nhận, kênh chia sẻ và thời hạn liên kết.
+- id: qa-giam-sat
+  title: QA & Giám sát
+  purpose: Phát hiện sai số, hỏng định dạng hoặc lỗi vận hành trước khi phát hành.
+  objectives:
+  - Đối chiếu KPI và kiểm tra báo cáo trên dữ liệu mẫu.
+  - Theo dõi lịch chạy, lỗi xuất tệp và thời gian sinh báo cáo.

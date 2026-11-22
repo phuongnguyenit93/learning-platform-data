@@ -1,0 +1,7 @@
+# Software Design Design Pattern Structural Decorator
+
+**Decorator** là một mẫu thiết kế cấu trúc giúp bổ sung hành vi cho từng đối tượng bằng cách đặt chúng bên trong các đối tượng bọc (*wrapper*) có cùng hợp đồng sử dụng. Thay vì tạo nhiều lớp con cho từng tổ hợp tính năng, ta dùng **composition** và ủy quyền để thêm hoặc phối hợp trách nhiệm tại thời điểm chạy. Mục tiêu là mở rộng hành vi mà không phải sửa mã của lớp lõi hoặc làm phình hệ thống kế thừa.
+
+Module dành cho người đã biết lập trình hướng đối tượng với Java, interface và cơ chế kế thừa. Bạn sẽ bắt đầu từ vấn đề mà Decorator giải quyết, nhận diện các vai trò `Component`, `ConcreteComponent`, `Decorator` và `ConcreteDecorator`, rồi tự xây lớp bọc chuyển tiếp lời gọi và bổ sung chức năng trước hoặc sau thao tác gốc. Lộ trình cũng xem xét cách xếp chồng nhiều decorator, ảnh hưởng của thứ tự bọc và ví dụ thực tế trong thư viện Java I/O như `FilterInputStream`.
+
+Sau bảy mốc học, bạn có thể thiết kế và kiểm thử một chuỗi decorator, phân biệt mẫu này với Adapter hoặc Proxy và đánh giá khi nào nên dùng. Decorator mang lại khả năng kết hợp hành vi linh hoạt nhưng cũng có đánh đổi: nhiều lớp bọc làm luồng gọi khó theo dõi, kết quả có thể phụ thuộc thứ tự và việc quản lý các đối tượng wrapper cần rõ ràng.

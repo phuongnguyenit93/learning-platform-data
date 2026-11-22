@@ -1,0 +1,3166 @@
+menu:
+- slug: performance-overview
+  title: Bức tranh hiệu năng
+  childs:
+  - slug: performance-overview-001
+    title: Kiểm thử hiệu năng là gì và các câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-002
+    title: 'Mô hình tư duy: nhu cầu, tải, tài nguyên, xử lý và kết quả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-003
+    title: Hiệu năng nhìn từ người dùng và từ hệ thống cung cấp dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-004
+    title: Thời gian phản hồi, thông lượng và mức sử dụng tài nguyên liên hệ thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-005
+    title: Quan hệ giữa tính đúng chức năng và kết quả đo hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-006
+    title: Phân biệt kiểm thử hiệu năng, đo chuẩn và quan sát vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-007
+    title: 'Các cấp phạm vi: hàm, thành phần, dịch vụ và hành trình đầu cuối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-008
+    title: Giới hạn của một con số nhanh nhất hoặc một lần chạy thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-overview-009
+    title: Lộ trình từ mục tiêu hiệu năng đến bằng chứng và cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-and-goals
+  title: Yêu cầu và mục tiêu
+  childs:
+  - slug: requirements-and-goals-001
+    title: Thu thập nhu cầu hiệu năng từ hành vi sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-002
+    title: SLI, SLO và SLA trong ngữ cảnh đánh giá dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-003
+    title: Định nghĩa thao tác hoặc giao dịch nghiệp vụ cần đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-004
+    title: Xác định điểm bắt đầu, điểm kết thúc và phía quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-005
+    title: Yêu cầu độ trễ gắn với percentile, tải và cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-006
+    title: Yêu cầu thông lượng đi kèm điều kiện về lỗi và tính đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-007
+    title: Giới hạn tài nguyên và năng lực phục vụ cần chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-008
+    title: Ngưỡng chấp nhận tuyệt đối so với ngưỡng hồi quy tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-009
+    title: Thống nhất tiêu chí đạt, thất bại và lượt chạy không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-goals-010
+    title: Phân biệt số đo hiện tại với mục tiêu nghiệp vụ được chấp thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-metrics
+  title: Chỉ số đo lường
+  childs:
+  - slug: performance-metrics-001
+    title: Thời gian phản hồi đầu cuối và thời gian xử lý phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-002
+    title: Thời gian chờ hàng đợi và thời gian thực hiện công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-003
+    title: Thời gian kết nối, bắt tay, nhận byte đầu và nhận đủ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-004
+    title: Request, iteration và giao dịch nghiệp vụ là các đơn vị khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-005
+    title: Tải đưa vào, tải hệ thống chấp nhận và số công việc hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-006
+    title: Thông lượng tổng so với thông lượng kết quả thành công có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-007
+    title: Người dùng đồng thời, yêu cầu đang xử lý và số kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-008
+    title: Tỷ lệ lỗi, timeout, hủy yêu cầu và yêu cầu bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-009
+    title: CPU, bộ nhớ, mạng, I/O và các giới hạn đang áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-010
+    title: Độ dài hàng đợi, thời gian chờ pool và mức bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-011
+    title: Đơn vị đo, nhãn và phạm vi tổng hợp của mỗi chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-metrics-012
+    title: Phân biệt chỉ số phía máy phát tải với chỉ số phía hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distribution-and-statistics
+  title: Phân bố và thống kê
+  childs:
+  - slug: distribution-and-statistics-001
+    title: Trung bình, trung vị và phân bố lệch của thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-002
+    title: p90, p95, p99 và ý nghĩa của phần đuôi độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-003
+    title: Biểu đồ phân bố, histogram và biểu đồ theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-004
+    title: Số mẫu và độ ổn định của percentile cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-005
+    title: 'Ngoại lệ trong dữ liệu: giữ bằng chứng và tìm nguyên nhân'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-006
+    title: Khoảng thời gian lấy mẫu và tác động của việc làm mượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-007
+    title: Gộp mẫu hoặc histogram thay vì lấy trung bình các percentile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-008
+    title: Tách nhóm yêu cầu khác hành vi để tránh số tổng che khuất vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-009
+    title: Lặp lại thí nghiệm, độ biến thiên và khoảng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-010
+    title: Ý nghĩa thống kê so với mức thay đổi có ý nghĩa thực tiễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-011
+    title: Timeout hoặc mẫu thiếu làm giới hạn kết luận về độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-statistics-012
+    title: Phân tích thời gian phản hồi cùng tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-and-concurrency
+  title: Hàng đợi và đồng thời
+  childs:
+  - slug: queues-and-concurrency-001
+    title: Vì sao tải tăng có thể làm thời gian chờ tăng nhanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-002
+    title: Năng lực xử lý, mức sử dụng và trạng thái bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-003
+    title: Luật Little và điều kiện áp dụng quan hệ L = λ × W
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-004
+    title: Người dùng có thời gian suy nghĩ và yêu cầu đang thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-005
+    title: Giới hạn song song tại thread pool, connection pool hoặc dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-006
+    title: Hàng đợi hữu hạn, hàng đợi không giới hạn và hành vi khi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-007
+    title: Tăng concurrency nhưng thông lượng không tăng tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-008
+    title: Backpressure và kiểm soát lượng công việc được tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-concurrency-009
+    title: Phân biệt chờ I/O, chờ khóa và thực sự sử dụng CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-types
+  title: Các dạng kiểm thử
+  childs:
+  - slug: test-types-001
+    title: 'Smoke hiệu năng: kiểm tra kịch bản và phép đo ở tải nhỏ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-002
+    title: Load test tại tải thông thường hoặc tải mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-003
+    title: Stress test khi vượt vùng hoạt động dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-004
+    title: Spike test với tải tăng hoặc giảm đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-005
+    title: Soak hoặc endurance test trong thời gian kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-006
+    title: Breakpoint test để tìm giới hạn hoạt động theo tiêu chí xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-007
+    title: Volume test với quy mô hoặc phân bố dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-008
+    title: Scalability test khi thay đổi số hoặc kích thước tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-009
+    title: Kiểm chứng khôi phục hiệu năng sau khi tải giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-010
+    title: Đo chuẩn một thành phần so với thử tải một hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-types-011
+    title: Thống nhất cách dùng tên loại kiểm thử và mục đích trong từng dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: usage-model
+  title: Mô hình sử dụng
+  childs:
+  - slug: usage-model-001
+    title: Chọn hành trình nghiệp vụ quan trọng và điểm quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-002
+    title: Tỷ trọng đọc, ghi, tìm kiếm và các thao tác nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-003
+    title: Tần suất đến, thời gian phiên và số bước trong một hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-004
+    title: Thời gian suy nghĩ (think time), pacing và sự khác nhau giữa các khoảng nghỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-005
+    title: Phân bố tải theo thời gian thay vì chỉ dùng một giá trị trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-006
+    title: Tải nền, tác vụ định kỳ và các sự kiện cao điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-007
+    title: Payload, kích thước kết quả và tỷ lệ dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-008
+    title: Phân bố khóa nóng, khách hàng lớn và truy cập không đồng đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-009
+    title: Retry từ client và tải bổ sung phát sinh khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-010
+    title: Dùng dữ liệu vận hành đã tổng hợp để kiểm tra tính đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-model-011
+    title: Giả định của mô hình tải và phạm vi chưa được mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: open-closed-load-models
+  title: Mô hình tải mở và đóng
+  childs:
+  - slug: open-closed-load-models-001
+    title: 'Mô hình đóng: điều khiển số người dùng đang hoạt động'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-002
+    title: 'Mô hình mở: điều khiển tốc độ bắt đầu công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-003
+    title: Chọn mô hình theo cách nhu cầu đến hệ thống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-004
+    title: Tốc độ đến không đồng nghĩa với số yêu cầu mỗi giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-005
+    title: Khi hệ thống chậm làm mô hình đóng tự giảm lượng công việc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-006
+    title: Coordinated omission và nguy cơ che khuất thời gian chờ của mô hình cần mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-007
+    title: Tải yêu cầu so với tải thực tế mà công cụ tạo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-008
+    title: Dropped iterations hoặc lần khởi tạo bị bỏ lỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-009
+    title: Số người dùng ảo đủ để giữ lịch tải mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-closed-load-models-010
+    title: Giới hạn của việc sửa histogram khi mô hình tải ban đầu không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-test-data
+  title: Dữ liệu thử tải
+  childs:
+  - slug: load-test-data-001
+    title: Quy mô dữ liệu ban đầu và dữ liệu tăng lên trong lượt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-002
+    title: Phân bố dữ liệu ảnh hưởng truy vấn, cache và đường xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-003
+    title: Tài khoản, quyền và phiên đăng nhập đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-004
+    title: Chuẩn bị dữ liệu riêng khi nhiều người dùng ảo cùng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-005
+    title: Tránh khóa giả tạo do mọi luồng cùng dùng một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-006
+    title: Tái sử dụng dữ liệu và tác động đến tỷ lệ cache hit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-007
+    title: Dữ liệu lớn, rỗng, hiếm gặp và các trường hợp tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-008
+    title: Ẩn danh hoặc tạo dữ liệu tổng hợp phù hợp mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-009
+    title: Khôi phục dữ liệu giữa các lượt so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-test-data-010
+    title: Lưu phiên bản bộ dữ liệu và quy tắc sinh để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: experiment-environment
+  title: Môi trường thí nghiệm
+  childs:
+  - slug: experiment-environment-001
+    title: Sơ đồ hệ thống và các thành phần thuộc phạm vi đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-002
+    title: Độ tương đồng với môi trường đích và giới hạn khi suy rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-003
+    title: Cố định artifact, cấu hình và phiên bản phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-004
+    title: CPU, RAM, ổ đĩa, mạng và phần cứng ảo hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-005
+    title: Container limits, CPU throttling và tài nguyên có thể sử dụng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-006
+    title: Ảnh hưởng của máy dùng chung hoặc tác vụ ngoài thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-007
+    title: Độ trễ mạng, vị trí máy phát tải và đường đi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-008
+    title: Cấu hình dịch vụ ngoài, mock hoặc stub trong mô hình đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-009
+    title: Thời gian đồng bộ và nhận diện các giai đoạn chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-environment-010
+    title: Điều kiện khôi phục môi trường và giới hạn dừng thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-generator
+  title: Máy phát tải
+  childs:
+  - slug: load-generator-001
+    title: Máy phát tải cũng có giới hạn CPU, bộ nhớ và mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-002
+    title: Phân biệt nút thắt máy phát với nút thắt hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-003
+    title: Theo dõi lịch tạo tải, số công việc bắt đầu và số hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-004
+    title: Kết nối, socket, cổng tạm và file descriptor của máy phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-005
+    title: Chi phí tạo dữ liệu, mã hóa hoặc kiểm tra phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-006
+    title: Hạn chế ghi log và giao diện quan sát nặng khi tạo tải lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-007
+    title: Chia tải qua nhiều máy và giữ cấu hình đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-008
+    title: Đồng bộ thời điểm, nhãn lượt chạy và tổng hợp kết quả phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-generator-009
+    title: Kiểm chứng máy phát đủ năng lực trước khi kết luận hệ thống đã đạt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Metrics, log, trace và hồ sơ thực thi bổ sung cho nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Đánh dấu giai đoạn tăng tải, ổn định và giảm tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Liên kết request hoặc giao dịch với trace khi cần chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: 'Đo từng tầng: gateway, ứng dụng, cơ sở dữ liệu và dịch vụ ngoài'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Counter, gauge và histogram theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Thiết kế nhãn có kiểm soát số lượng tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Tần suất thu thập và khả năng bỏ sót biến động ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Sampling và giới hạn của dữ liệu trace thu được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Chi phí đo lường có thể tác động kết quả thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-010
+    title: Lưu dữ liệu thô, dashboard và cấu hình quan sát cùng báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenario-correctness
+  title: Kịch bản và tính đúng
+  childs:
+  - slug: scenario-correctness-001
+    title: Chuyển hành trình nghiệp vụ thành kịch bản tạo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-002
+    title: Tham số hóa địa chỉ, dữ liệu và mức tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-003
+    title: 'Correlation: lấy token hoặc định danh từ phản hồi trước'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-004
+    title: Cookie, session và trạng thái riêng của người dùng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-005
+    title: Kiểm tra mã trạng thái cùng nội dung có ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-006
+    title: Phát hiện phản hồi nhanh nhưng sai, rỗng hoặc bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-007
+    title: Phân biệt lỗi kỹ thuật, từ chối dự kiến và thất bại nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-008
+    title: Thiết lập timeout, retry và chính sách khi một bước lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-009
+    title: Phân biệt số đo của từng request với cả giao dịch nhiều bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-correctness-010
+    title: Xác minh dữ liệu sau chạy đối với các kịch bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmeter
+  title: JMeter
+  childs:
+  - slug: jmeter-001
+    title: Test Plan, Thread Group và mô hình thực thi kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-002
+    title: HTTP Request, cấu hình mặc định và quản lý kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-003
+    title: CSV Data Set Config và dữ liệu riêng cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-004
+    title: Cookie Manager, biến và trích xuất dữ liệu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-005
+    title: Timer và cách biểu diễn khoảng nghỉ hoặc điều tiết tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-006
+    title: Assertion để giữ điều kiện đúng trong lượt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-007
+    title: Transaction Controller và phạm vi đo giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-008
+    title: Dùng GUI để soạn, kiểm tra kịch bản và CLI để tạo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-009
+    title: JTL, báo cáo HTML và lựa chọn dữ liệu cần lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-010
+    title: Hạn chế listener nặng khi tạo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmeter-011
+    title: Giới hạn của HTTP sampler đối với thực thi JavaScript và hiển thị trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gatling
+  title: Gatling
+  childs:
+  - slug: gatling-001
+    title: Simulation, scenario, protocol và cấu trúc Java DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-002
+    title: Session và dữ liệu của từng người dùng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-003
+    title: Feeder để cấp dữ liệu và tránh trùng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-004
+    title: Checks và lưu giá trị từ phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-005
+    title: injectOpen và injectClosed theo mô hình tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-006
+    title: Pause, pacing và tỷ trọng các nhánh hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-007
+    title: Nhóm request và đo thời gian của một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-008
+    title: Assertions cho tỷ lệ lỗi và phân bố thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-009
+    title: Báo cáo, tham số hóa và chạy qua công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gatling-010
+    title: Kiểm chứng lịch tạo tải thực tế trước khi đọc kết quả tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: k6
+  title: k6
+  childs:
+  - slug: k6-001
+    title: Cấu trúc script, bước chuẩn bị và phần thực thi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-002
+    title: Virtual user, iteration và scenario
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-003
+    title: Executors theo số người dùng hoặc tốc độ đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-004
+    title: Checks cho tính đúng và thresholds cho tiêu chí đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-005
+    title: Check thất bại không tự biến lượt chạy thành thất bại nếu thiếu tiêu chí phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-006
+    title: Tham số hóa dữ liệu, môi trường và lịch tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-007
+    title: Custom metrics, tag và giới hạn số lượng nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-008
+    title: Nhận diện dropped iterations và giới hạn người dùng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-009
+    title: Tách thời gian chờ kết nối khỏi thời gian request theo định nghĩa công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: k6-010
+    title: Đầu ra, mã thoát và tích hợp kết quả vào CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-process
+  title: Quy trình thực thi
+  childs:
+  - slug: execution-process-001
+    title: Kiểm tra artifact, cấu hình, dữ liệu và công cụ trước chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-002
+    title: Smoke kịch bản để xác nhận chức năng và cơ chế đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-003
+    title: Lượt chạy chuẩn để hiểu hành vi ở tải thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-004
+    title: Tăng tải có kiểm soát và giữ giai đoạn quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-005
+    title: Warm-up, giai đoạn đo và xử lý giai đoạn chưa ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-006
+    title: Dừng tạo tải, chờ hoàn tất và quan sát khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-007
+    title: Điều kiện dừng khi vượt giới hạn đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-008
+    title: Nhật ký thay đổi hoặc sự kiện bất thường trong lượt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-009
+    title: Đánh giá lượt chạy hợp lệ trước khi đưa vào so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-process-010
+    title: Khôi phục trạng thái và chuẩn bị lượt lặp độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: target-load-and-limits
+  title: Tải mục tiêu và giới hạn
+  childs:
+  - slug: target-load-and-limits-001
+    title: Chứng minh yêu cầu dưới tải hoạt động được cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-load-and-limits-002
+    title: Tăng tải theo bậc để tìm vùng bắt đầu suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-load-and-limits-003
+    title: Điểm gãy của quan hệ tải, thông lượng và thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-load-and-limits-004
+    title: Phân biệt thông lượng bão hòa với số yêu cầu tiếp tục đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-load-and-limits-005
+    title: Giới hạn tốc độ (rate limiting), từ chối tải và ý nghĩa đối với mục tiêu kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-load-and-limits-006
+    title: Timeout hoặc lỗi nhanh có thể làm số thời gian phản hồi đẹp hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-load-and-limits-007
+    title: Kiểm tra tính đúng dữ liệu tại tải cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-load-and-limits-008
+    title: Xác định giới hạn theo tiêu chí chất lượng thay vì chờ tiến trình sập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spike-and-recovery
+  title: Tải đột biến và khôi phục
+  childs:
+  - slug: spike-and-recovery-001
+    title: Thiết kế biên độ, tốc độ tăng và thời gian giữ spike
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spike-and-recovery-002
+    title: Đột biến người dùng, tốc độ đến hoặc kích thước payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spike-and-recovery-003
+    title: Khởi tạo kết nối, cache hoặc tài nguyên đồng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spike-and-recovery-004
+    title: Hàng đợi và lượng công việc tồn sau khi đỉnh tải qua đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spike-and-recovery-005
+    title: Autoscaling phản ứng chậm so với nhu cầu tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spike-and-recovery-006
+    title: Retry và nguy cơ khuếch đại tải khi hệ thống suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spike-and-recovery-007
+    title: Thời gian trở về vùng hiệu năng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spike-and-recovery-008
+    title: Phân biệt sống sót qua spike với hoàn tất đúng công việc đã nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: soak-and-large-data
+  title: Chạy dài và dữ liệu lớn
+  childs:
+  - slug: soak-and-large-data-001
+    title: Soak test và mục tiêu phát hiện suy giảm theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-002
+    title: Chọn thời lượng theo chu kỳ rủi ro thay vì một con số cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-003
+    title: Rò rỉ bộ nhớ, kết nối, luồng hoặc file descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-004
+    title: Dữ liệu, log và hàng đợi tăng trong lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-005
+    title: Ảnh hưởng của tác vụ định kỳ hoặc chu kỳ thu gom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-006
+    title: Phiên, token, kết nối và dữ liệu hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-007
+    title: Volume test với quy mô lưu trữ hoặc tập kết quả lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-008
+    title: So sánh đầu, giữa và cuối lượt chạy dưới tải tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soak-and-large-data-009
+    title: Khả năng dọn tài nguyên và khôi phục sau khi dừng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scalability
+  title: Khả năng mở rộng
+  childs:
+  - slug: scalability-001
+    title: Scale up và scale out tạo những loại thay đổi nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-002
+    title: Đường cong năng lực khi tăng CPU, bộ nhớ hoặc số instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-003
+    title: Hiệu quả mở rộng và phần chi phí phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-004
+    title: Nút thắt dùng chung giới hạn lợi ích thêm instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-005
+    title: Load balancing, phân bố phiên và độ lệch tải giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-006
+    title: 'Autoscaling: tín hiệu kích hoạt, độ trễ và hành vi ổn định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-007
+    title: Năng lực đỉnh so với năng lực duy trì trong giới hạn chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-008
+    title: Dự phòng tài nguyên và khoảng an toàn theo mức biến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-009
+    title: Chi phí tài nguyên cho một đơn vị công việc thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-010
+    title: Giới hạn của ngoại suy từ môi trường hoặc mức tải nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-performance
+  title: Hiệu năng JVM
+  childs:
+  - slug: jvm-performance-001
+    title: Khởi động JVM, nạp lớp và biên dịch JIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-002
+    title: Warm-up và chuyển đổi hành vi khi mã được tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-003
+    title: Heap, bộ nhớ native và giới hạn bộ nhớ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-004
+    title: Tốc độ cấp phát đối tượng và áp lực thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-005
+    title: GC pause, thời gian GC tổng và ảnh hưởng đến thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-006
+    title: Tập đối tượng còn sống sau GC và dấu hiệu cần điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-007
+    title: Thread, lock, contention và context switching
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-008
+    title: Pool luồng, pool kết nối và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-009
+    title: 'Virtual thread: đánh giá theo JDK, loại tác vụ và giới hạn tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-010
+    title: Tham số JVM và tính so sánh giữa các lượt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-011
+    title: Tách bằng chứng đo được khỏi giả định về một tùy chọn tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jfr-execution-analysis
+  title: JFR và phân tích thực thi
+  childs:
+  - slug: jfr-execution-analysis-001
+    title: Chọn cách phân tích thực thi theo câu hỏi về CPU, bộ nhớ, khóa hoặc I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-002
+    title: JDK Flight Recorder và các nhóm sự kiện liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-003
+    title: JDK Mission Control để xem và đối chiếu bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-004
+    title: Lấy mẫu phương thức (method sampling), cây lời gọi và giới hạn của lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-005
+    title: Phân biệt thời gian dùng CPU với thời gian bị chặn hoặc chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-006
+    title: Hồ sơ cấp phát (allocation profile) và nguồn tạo nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-007
+    title: Đối chiếu sự kiện GC, khóa hoặc I/O với thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-008
+    title: Thread dump trong giai đoạn có dấu hiệu nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-009
+    title: Chi phí của cấu hình ghi và việc thu thập heap statistics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-execution-analysis-010
+    title: Xác minh lại bằng phép đo độc lập sau khi có giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-performance
+  title: Cơ sở dữ liệu
+  childs:
+  - slug: database-performance-001
+    title: Thời gian từ ứng dụng chờ pool đến khi đọc xong kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-002
+    title: Truy vấn chậm và kế hoạch thực thi theo dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-003
+    title: Chỉ mục, độ chọn lọc và phân bố dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-004
+    title: N+1 query và số lần gọi tăng theo kích thước đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-005
+    title: Lock, transaction dài và cạnh tranh trên bản ghi nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-006
+    title: Connection pool và giới hạn máy chủ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-007
+    title: Batch, phân trang và khối lượng dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-008
+    title: Warm cache của cơ sở dữ liệu so với lần đọc ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-009
+    title: Timeout, retry và tải bổ sung khi truy vấn thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-performance-010
+    title: Phân biệt tối ưu truy vấn đơn với hành vi khi nhiều yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Cache
+  childs:
+  - slug: caching-001
+    title: Cache lạnh, cache ấm và điều kiện cần tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Tỷ lệ hit, miss và khối lượng dữ liệu theo mô hình truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: TTL, eviction và thời điểm nhiều khóa cùng hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Cache stampede và tải dồn xuống thành phần phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Khóa nóng, phân bố không đều và giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Chi phí cập nhật hoặc vô hiệu hóa cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Tính đúng và độ mới của dữ liệu trong bài thử tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Giới hạn của kết quả khi mọi người dùng chỉ đọc một tập khóa nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-and-external-services
+  title: Mạng và dịch vụ ngoài
+  childs:
+  - slug: network-and-external-services-001
+    title: DNS, thiết lập kết nối, TLS và tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-external-services-002
+    title: Độ trễ, băng thông và kích thước payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-external-services-003
+    title: Nén dữ liệu và đánh đổi CPU với lượng truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-external-services-004
+    title: Proxy, gateway và giới hạn trên đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-external-services-005
+    title: Timeout từng chặng và ngân sách thời gian đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-external-services-006
+    title: Retry, circuit breaker và tác động đến lượng công việc thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-external-services-007
+    title: Giới hạn của stub khi cần dự báo năng lực dịch vụ tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-external-services-008
+    title: Phân biệt nút thắt mạng, phụ thuộc ngoài và phần xử lý ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-processing
+  title: Xử lý bất đồng bộ
+  childs:
+  - slug: async-processing-001
+    title: Thời điểm chấp nhận yêu cầu và thời điểm công việc thực sự hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-002
+    title: Đo độ trễ đầu cuối qua hàng đợi hoặc chuỗi sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-003
+    title: Tốc độ producer, tốc độ consumer và mức tăng backlog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-004
+    title: Độ trễ hàng đợi, số công việc đang xử lý và tuổi công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-005
+    title: Batch, số consumer, partition và giới hạn song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-006
+    title: Retry, xử lý trùng và ảnh hưởng đến thông lượng có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-007
+    title: Backpressure, giới hạn tiếp nhận và thời gian tiêu hết backlog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-008
+    title: Tính đúng của kết quả khi tăng tốc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-009
+    title: Không dùng phản hồi nhận việc nhanh thay cho thời gian hoàn thành nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-facing-performance
+  title: Hiệu năng phía người dùng
+  childs:
+  - slug: user-facing-performance-001
+    title: Phân biệt đo HTTP ở mức giao thức với trải nghiệm trong trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-facing-performance-002
+    title: Tải tài nguyên, thực thi JavaScript và hiển thị nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-facing-performance-003
+    title: Độ phản hồi tương tác và sự ổn định bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-facing-performance-004
+    title: Cache trình duyệt, kết nối mới và người dùng quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-facing-performance-005
+    title: Thiết bị, CPU và điều kiện mạng của người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-facing-performance-006
+    title: Đo trong phòng thí nghiệm so với dữ liệu người dùng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-facing-performance-007
+    title: Phân biệt hồi quy giao diện với suy giảm API phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-facing-performance-008
+    title: Giới hạn khi suy trải nghiệm đầu cuối từ thời gian một request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: benchmarks-and-comparison
+  title: Lượt chuẩn và so sánh
+  childs:
+  - slug: benchmarks-and-comparison-001
+    title: Bộ kết quả chuẩn (baseline) và đầy đủ điều kiện thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-002
+    title: Cùng artifact hoặc thay đổi có chủ đích khi đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-003
+    title: Giữ mô hình tải, dữ liệu, môi trường và cách đo nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-004
+    title: Thứ tự chạy A/B và ảnh hưởng của thời gian hoặc trạng thái cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-005
+    title: Lặp nhiều lượt độc lập để đánh giá độ biến thiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-006
+    title: So sánh đường cong theo tải thay vì chỉ một điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-007
+    title: Đối chiếu phân bố độ trễ, lỗi và tài nguyên cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-008
+    title: Ngưỡng hồi quy tương đối và mức thay đổi tối thiểu có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-009
+    title: Không chọn lượt đẹp nhất làm kết luận đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benchmarks-and-comparison-010
+    title: Quản lý phiên bản bộ kết quả chuẩn và nguyên nhân chấp thuận thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: component-benchmarking
+  title: Đo chuẩn thành phần
+  childs:
+  - slug: component-benchmarking-001
+    title: Khi nào cần microbenchmark thay cho bài thử tải toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-benchmarking-002
+    title: JMH và cấu trúc phép đo cho mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-benchmarking-003
+    title: Warm-up, measurement và fork để kiểm soát ảnh hưởng JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-benchmarking-004
+    title: Dead code elimination và kết quả không được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-benchmarking-005
+    title: Constant folding và đầu vào thiếu tính đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-benchmarking-006
+    title: Trạng thái dữ liệu, concurrency và phạm vi benchmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-benchmarking-007
+    title: Chi phí phép đo, độ biến thiên và ý nghĩa của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-benchmarking-008
+    title: Xác minh lợi ích ở cấp hệ thống sau khi cải thiện một thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bottleneck-analysis
+  title: Phân tích nút thắt
+  childs:
+  - slug: bottleneck-analysis-001
+    title: Từ triệu chứng người dùng đến giả thuyết ở từng tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-002
+    title: Liên kết điểm đổi của thông lượng, độ trễ, lỗi và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-003
+    title: CPU cao, CPU thấp và các dạng chờ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-004
+    title: Queue hoặc pool bão hòa trong khi tài nguyên tổng còn dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-005
+    title: Độ trễ đuôi và một nhóm yêu cầu gây ảnh hưởng không đồng đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-006
+    title: Rò rỉ tài nguyên so với cache tăng đến mức ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-007
+    title: Phân biệt tương quan theo thời gian với quan hệ nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-008
+    title: Thay một biến và lặp lại để kiểm tra giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-009
+    title: Nút thắt có thể dịch chuyển sau khi một tầng được cải thiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-010
+    title: Ghi nhận bằng chứng chưa đủ để kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: improvement-verification
+  title: Kiểm chứng cải tiến
+  childs:
+  - slug: improvement-verification-001
+    title: Ưu tiên thay đổi theo mục tiêu và nút thắt đã có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-002
+    title: Tối ưu thuật toán, dữ liệu, I/O hoặc mức song song theo giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-003
+    title: Giữ tính đúng chức năng khi thay cách xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-004
+    title: Đánh đổi độ trễ, thông lượng, bộ nhớ và mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-005
+    title: Kiểm tra cả tải thông thường, tải cao và trường hợp bất lợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-006
+    title: Phát hiện cải thiện trung bình nhưng làm xấu phần đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-007
+    title: Đo lại dưới cùng điều kiện và kiểm tra độ biến thiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-008
+    title: Rà soát tác động đến thành phần hoặc nhóm người dùng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-verification-009
+    title: Lưu thay đổi, dữ liệu đối chiếu và kết luận có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-integration
+  title: Tích hợp CI
+  childs:
+  - slug: ci-integration-001
+    title: Chọn bài phản hồi nhanh và bài chuyên sâu theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-002
+    title: Tách kiểm chứng kịch bản khỏi kiểm chứng năng lực môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-003
+    title: Cấu hình lịch tải và ngưỡng có quản lý phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-004
+    title: Môi trường CI có thể dùng chung và giới hạn so sánh hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-005
+    title: Giới hạn số lượt chạy đồng thời và tài nguyên của máy phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-006
+    title: Chuyển tiêu chí lỗi, độ trễ và tính đúng thành mã thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-007
+    title: Lưu artifact, dữ liệu, cấu hình và kết quả để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-008
+    title: Phân biệt thất bại sản phẩm với lượt chạy không đủ điều kiện đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-009
+    title: Theo dõi xu hướng và thay đổi bộ kết quả chuẩn có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reporting-and-decisions
+  title: Báo cáo và quyết định
+  childs:
+  - slug: reporting-and-decisions-001
+    title: Tóm tắt câu hỏi, phạm vi, mô hình tải và điều kiện thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-002
+    title: Trình bày tải đặt vào, tải thực đạt và công việc hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-003
+    title: Đường cong thông lượng, độ trễ, lỗi và mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-004
+    title: Nêu rõ percentile, số mẫu và khoảng thời gian được tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-005
+    title: Đánh dấu giai đoạn khởi động, bất thường và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-006
+    title: Đối chiếu kết quả với tiêu chí đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-007
+    title: Phân biệt phát hiện, giả thuyết nguyên nhân và đề xuất cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-008
+    title: Giới hạn suy rộng và rủi ro chưa được bài thử bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-decisions-009
+    title: Kết luận năng lực theo điều kiện thay vì công bố một con số tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Chuyển một yêu cầu API thành mục tiêu độ trễ, tải và tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây mô hình tải có hành trình, tỷ trọng và dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: So sánh mô hình mở với mô hình đóng khi hệ thống chậm dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tạo bài JMeter hoặc Gatling có kiểm tra tính đúng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tạo bài k6 với checks, thresholds và theo dõi dropped iterations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Tìm điểm bão hòa bằng lịch tải tăng theo bậc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Đo thời gian hoàn tất nghiệp vụ trong hệ thống có hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Đối chiếu cache lạnh, cache ấm và phân bố khóa nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Thu JFR để kiểm tra giả thuyết về cấp phát hoặc chờ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: So sánh hai phiên bản bằng nhiều lượt và phân bố kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Kiểm chứng cải tiến mà vẫn giữ tính đúng và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Viết báo cáo năng lực cùng phạm vi chưa có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

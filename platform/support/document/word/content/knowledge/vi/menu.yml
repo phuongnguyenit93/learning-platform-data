@@ -1,0 +1,277 @@
+menu:
+- level1: Tổng quan Word
+  level2:
+  - Tài liệu Word là gì và vai trò trong ứng dụng nghiệp vụ
+  - Phân biệt nội dung, cấu trúc, định dạng và bố cục hiển thị
+  - 'Các khái niệm nền tảng: tài liệu (document), đoạn văn (paragraph), vùng chữ (run), bảng, style và section'
+  - 'Những bài toán thường gặp: đọc, tạo mới, điền mẫu, chỉnh sửa và chuyển đổi'
+  - Phân biệt DOC, DOCX, DOCM và các định dạng mẫu Word
+  - So sánh Word với PDF, HTML và Markdown theo mục đích sử dụng
+  - Ranh giới giữa thư viện chỉnh sửa tài liệu với công cụ dàn trang
+  - Lộ trình học và kiến thức Java, XML, luồng dữ liệu cần chuẩn bị
+- level1: Cấu trúc DOCX
+  level2:
+  - DOCX dưới dạng gói Open XML gồm các phần và quan hệ liên kết
+  - Vai trò của content types, package relationships và document relationships
+  - Cấu trúc word/document.xml và phần nội dung chính
+  - 'WordprocessingML: document, body, paragraph, run và text'
+  - Các phần styles, numbering, settings và theme
+  - Header, footer, chú thích và vùng nội dung nằm ngoài body chính
+  - Thư mục media, quan hệ ảnh và định danh tài nguyên
+  - Phân biệt thứ tự XML với thứ tự hiển thị và vị trí trên trang
+  - Khảo sát gói DOCX để chẩn đoán tài liệu mà không làm hỏng cấu trúc
+- level1: Thư viện Java
+  level2:
+  - Vai trò Apache POI XWPF khi xử lý DOCX
+  - Vai trò HWPF khi đọc và chỉnh sửa tài liệu DOC cũ
+  - docx4j, mô hình JAXB và các nhu cầu thao tác Open XML
+  - Chọn thư viện theo định dạng, tính năng, khả năng bảo toàn và yêu cầu xuất bản
+  - Quản lý dependency, khả năng tương thích JDK và xung đột thư viện
+  - Mô hình XWPFDocument, XWPFParagraph, XWPFRun và XWPFTable
+  - Khi cần truy cập XMLBeans hoặc XML cấp thấp ngoài API mức cao
+  - Ranh giới hỗ trợ biểu đồ, công thức, SmartArt và đối tượng nhúng
+- level1: Đọc tài liệu
+  level2:
+  - Mở tài liệu từ đường dẫn, InputStream hoặc dữ liệu tải lên
+  - Nhận diện định dạng và phân biệt tệp hỏng, mã hóa hoặc không được hỗ trợ
+  - Trích xuất văn bản nhanh bằng XWPFWordExtractor
+  - Duyệt paragraph và table theo đúng thứ tự trong body
+  - Đọc run, kiểu chữ, dấu tab, ngắt dòng và ký tự đặc biệt
+  - Đọc bảng, ô bảng và các thành phần lồng nhau
+  - Đọc header, footer, hyperlink và vùng nội dung bổ sung
+  - Đọc tài liệu DOC bằng mô hình Range của HWPF
+  - Giới hạn của việc lấy văn bản thuần so với bảo toàn cấu trúc và ý nghĩa
+- level1: Tạo và lưu tài liệu
+  level2:
+  - Tạo XWPFDocument mới và xây dựng tài liệu tối thiểu hợp lệ
+  - Tạo đoạn văn, run và bảng theo thứ tự mong muốn
+  - Ghi tài liệu ra tệp, OutputStream hoặc bộ đệm trong bộ nhớ
+  - Quản lý tài nguyên bằng try-with-resources và quyền sở hữu stream
+  - Mở tài liệu có sẵn làm điểm bắt đầu thay vì dựng lại toàn bộ
+  - Ghi ra tệp mới an toàn và tránh làm hỏng bản gốc khi có lỗi
+  - Thiết kế dữ liệu đầu vào và bộ dựng tài liệu tách khỏi nghiệp vụ
+  - Mở lại tài liệu vừa ghi để kiểm tra cấu trúc và nội dung
+- level1: Đoạn và ký tự
+  level2:
+  - Phân biệt paragraph với run và cách văn bản bị chia thành nhiều run
+  - Chèn, thay và xóa nội dung mà vẫn giữ thuộc tính cần thiết
+  - Font, cỡ chữ, màu, in đậm, in nghiêng và gạch chân
+  - Chỉ số trên, chỉ số dưới, highlight và ký tự đặc biệt
+  - Căn lề, thụt đầu dòng và vị trí dòng đầu
+  - Khoảng cách trước sau đoạn và quy tắc giãn dòng
+  - Tab stop, ngắt dòng và khác biệt với tạo paragraph mới
+  - Khoảng trắng có ý nghĩa và nội dung bị mất khi chuẩn hóa không đúng
+  - Tiếng Việt, Unicode, font thay thế và văn bản nhiều ngôn ngữ
+  - Giữ các đoạn cùng nhau và kiểm soát dòng lẻ ở đầu cuối trang
+- level1: Kiểu định dạng
+  level2:
+  - Phân biệt định dạng trực tiếp với định dạng qua style
+  - Style đoạn, style ký tự, style bảng và quan hệ kế thừa
+  - Thiết kế bộ style nhất quán cho nội dung và tiêu đề
+  - Heading, cấp outline và cấu trúc tài liệu có ý nghĩa
+  - Thuộc tính mặc định, theme và thứ tự áp dụng định dạng
+  - Áp dụng style bằng định danh và xử lý style chưa tồn tại
+  - Sao chép hoặc hòa giải style khi đưa nội dung từ tài liệu khác
+  - Chuẩn hóa định dạng mà vẫn bảo toàn những khác biệt có chủ đích
+- level1: Trang và phân đoạn
+  level2:
+  - Phân biệt trang hiển thị với section trong cấu trúc tài liệu
+  - Khổ giấy, hướng giấy, lề và vùng có thể đặt nội dung
+  - Đơn vị đo trong Word và chuyển đổi khi lập trình
+  - Ngắt trang, ngắt section và các kiểu bắt đầu section
+  - Phối hợp trang dọc và trang ngang trong cùng tài liệu
+  - Bố cục nhiều cột và khoảng cách giữa các cột
+  - Vị trí sectPr và phạm vi ảnh hưởng của thuộc tính section
+  - Kiểm soát tiêu đề, bảng và hình ảnh khi qua trang
+  - Ảnh hưởng của font, công cụ hiển thị và máy in đến phân trang
+- level1: Đầu và chân trang
+  level2:
+  - Tạo, đọc và sửa header hoặc footer của tài liệu
+  - Header và footer mặc định, trang đầu, trang chẵn và trang lẻ
+  - Quan hệ giữa header, footer với từng section
+  - Kế thừa và tách nội dung đầu chân trang giữa các section
+  - Chèn logo, tên tài liệu và thông tin phiên bản
+  - Đánh số trang, tổng số trang và khởi động lại số trang theo section
+  - Căn chỉnh nội dung bằng tab hoặc bảng thay vì khoảng trắng thủ công
+  - Kiểm tra khoảng cách với lề và tránh chồng lên nội dung chính
+- level1: Bảng biểu
+  level2:
+  - Mô hình bảng, hàng, ô và nội dung bên trong ô
+  - Tạo bảng theo dữ liệu và xác định số hàng, cột
+  - Độ rộng bảng, lưới cột và khác biệt giữa bố cục cố định với tự điều chỉnh
+  - Đường viền, nền, style và khoảng đệm trong ô
+  - Căn ngang, căn dọc và định dạng paragraph bên trong ô
+  - Gộp ô ngang, gộp ô dọc và quản lý lưới sau khi gộp
+  - Lặp hàng tiêu đề và kiểm soát hàng bị chia qua trang
+  - Chiều cao hàng, nội dung dài và bảng tràn khỏi vùng in
+  - Bảng lồng nhau, ảnh trong ô và nội dung nhiều đoạn
+  - Thêm, xóa, sao chép hàng mà không làm lệch cấu trúc hoặc mất định dạng
+- level1: Danh sách và đánh số
+  level2:
+  - Phân biệt danh sách có cấu trúc với ký tự đầu dòng nhập thủ công
+  - Vai trò numbering, abstractNum, numId và cấp danh sách
+  - Tạo danh sách đầu dòng và danh sách số đơn giản
+  - Danh sách nhiều cấp, thụt lề và vị trí số thứ tự
+  - Tiếp tục hoặc bắt đầu lại số thứ tự
+  - Kết hợp đánh số chương với hệ thống heading
+  - Sao chép danh sách giữa tài liệu và ánh xạ lại định danh
+  - Xử lý số thứ tự sai khi chèn, xóa hoặc ghép nội dung
+- level1: Hình ảnh và đối tượng
+  level2:
+  - Nhúng hình ảnh và quản lý quan hệ tới tài nguyên media
+  - Định dạng ảnh, kích thước hiển thị và chuyển đổi sang đơn vị EMU
+  - Giữ tỷ lệ ảnh, độ phân giải và chất lượng khi in
+  - Ảnh cùng dòng với văn bản và ảnh có vị trí nổi
+  - Căn chỉnh ảnh trong đoạn, bảng, header hoặc footer
+  - Chú thích hình, văn bản thay thế và khả năng tiếp cận
+  - Thay ảnh trong mẫu và quản lý định danh drawing
+  - 'Đối tượng nhúng, biểu đồ và công thức: nhận diện, bảo toàn và kiểm tra hỗ trợ'
+  - Giảm dung lượng ảnh và tránh tạo tài nguyên media trùng lặp
+- level1: Liên kết và chú thích
+  level2:
+  - Tạo hyperlink ra ngoài và liên kết đến vị trí trong tài liệu
+  - 'Bookmark: tên, định danh và cặp mốc bắt đầu kết thúc'
+  - Duy trì liên kết khi thay thế hoặc di chuyển nội dung
+  - Chèn chú thích chân trang và chú thích cuối tài liệu
+  - Quan hệ giữa tham chiếu trong nội dung với phần chứa chú thích
+  - Đánh số chú thích và định dạng theo yêu cầu tài liệu
+  - Nhận diện URL không an toàn và liên kết đến tài nguyên bên ngoài
+  - Kiểm tra liên kết, bookmark và chú thích sau khi sao chép tài liệu
+- level1: Trường và mục lục
+  level2:
+  - 'Field trong Word: mã lệnh, kết quả hiển thị và thời điểm cập nhật'
+  - Trường đơn giản, trường phức hợp và ranh giới các run liên quan
+  - Chèn trường số trang, tổng số trang và thuộc tính tài liệu
+  - Mục lục dựa trên heading và cấp outline
+  - Tham chiếu chéo, đánh số hình bảng và các trường liên quan
+  - Phân biệt chèn mã trường với tính lại kết quả hoặc số trang
+  - Yêu cầu cập nhật trường khi mở và giới hạn tùy công cụ đọc
+  - Kiểm tra mục lục, tham chiếu và kết quả trường trong bản xuất cuối
+- level1: Mẫu tài liệu
+  level2:
+  - Chọn tạo tài liệu bằng mã hoặc điền dữ liệu vào mẫu thiết kế sẵn
+  - 'Hợp đồng dữ liệu mẫu: tên biến, kiểu dữ liệu và giá trị bắt buộc'
+  - Thiết kế placeholder rõ ràng trong đoạn, bảng, header và footer
+  - Vì sao một placeholder có thể bị tách qua nhiều run
+  - Thay placeholder qua nhiều run mà vẫn giữ phần văn bản xung quanh
+  - Bảo toàn định dạng khi điền nội dung dài hoặc nhiều dòng
+  - Lặp hàng bảng, lặp khối nội dung và xử lý danh sách rỗng
+  - Khối điều kiện và quy tắc bỏ nội dung không có dữ liệu
+  - Điền ảnh, liên kết và giá trị ngày giờ, số tiền theo ngôn ngữ
+  - Quản lý phiên bản mẫu và phát hiện biến chưa được thay trước khi xuất
+- level1: Biểu mẫu có cấu trúc
+  level2:
+  - Phân biệt placeholder văn bản, MERGEFIELD và content control
+  - 'Structured Document Tag: thuộc tính, nội dung và vai trò định danh'
+  - Nhận diện content control theo tag hoặc alias
+  - Điền văn bản đơn giản và vùng nội dung có định dạng
+  - Liên kết dữ liệu XML với content control trong quy trình phù hợp
+  - Vùng lặp, điều kiện và mức hỗ trợ của công cụ xử lý
+  - 'Mail merge: hợp nhất dữ liệu cho một hoặc nhiều tài liệu'
+  - Lựa chọn cơ chế mẫu theo khả năng bảo toàn cấu trúc và cách quản lý
+- level1: Chỉnh sửa và ghép
+  level2:
+  - Tìm kiếm nội dung theo paragraph, run, bảng hoặc dấu mốc
+  - Chèn và xóa phần tử tại đúng vị trí trong body
+  - Giữ định dạng, dấu ngắt và quan hệ khi thay một vùng nội dung
+  - Sao chép paragraph, bảng và tài nguyên liên quan
+  - Ghép tài liệu với xung đột style, numbering và quan hệ media
+  - Ánh xạ lại định danh bookmark, drawing và chú thích
+  - Bảo toàn section, header và footer khi kết hợp nhiều nguồn
+  - Nhận diện thành phần chưa hỗ trợ và tránh làm mất nội dung khi lưu lại
+  - Kiểm chứng tài liệu sau một vòng mở, chỉnh sửa và ghi lại
+- level1: Trích xuất dữ liệu
+  level2:
+  - Chọn lấy văn bản thuần hoặc xây dựng mô hình tài liệu có cấu trúc
+  - Trích xuất tiêu đề, cấp heading và phân chia nội dung theo chương
+  - Đọc bảng thành dữ liệu có cấu trúc và xử lý ô gộp
+  - Trích xuất hình ảnh cùng thông tin vị trí và mô tả liên quan
+  - Thu thập hyperlink, chú thích và metadata theo nhu cầu
+  - Xử lý nội dung trong textbox, trường và vùng ngoài body
+  - Chuẩn hóa khoảng trắng, Unicode và dấu ngắt có kiểm soát
+  - Xác định giới hạn suy luận ngữ nghĩa từ tài liệu chỉ có định dạng trực quan
+- level1: Tương thích và chuyển đổi
+  level2:
+  - Kiểm tra tài liệu trên Microsoft Word, LibreOffice và công cụ đọc khác
+  - 'DOC và DOCX: lựa chọn đọc trực tiếp hoặc chuyển định dạng trước'
+  - Tương thích OOXML và các phần mở rộng riêng của phần mềm tạo tài liệu
+  - Chuyển DOCX sang PDF bằng công cụ có khả năng dàn trang
+  - Ảnh hưởng của font, bảng, ảnh nổi và field đến độ trung thực bản PDF
+  - Chuyển Word sang HTML hoặc Markdown và quản lý phần thông tin bị mất
+  - Nhập HTML hoặc nội dung có định dạng vào DOCX
+  - Vận hành công cụ chuyển đổi không giao diện với timeout và tài nguyên riêng
+  - Kiểm tra đầu ra và tránh coi chuyển đổi thành công là bảo toàn đầy đủ bố cục
+- level1: Thuộc tính và duyệt sửa
+  level2:
+  - Thuộc tính tiêu đề, tác giả, chủ đề và thông tin tài liệu
+  - Thuộc tính tùy chỉnh và dữ liệu phục vụ truy vết nghiệp vụ
+  - 'Comment: nội dung, tác giả và vùng văn bản được gắn chú thích'
+  - 'Track Changes: nhận diện phần thêm, xóa và thay đổi thuộc tính'
+  - Lựa chọn cách đọc hoặc xuất tài liệu còn thay đổi chưa được chấp nhận
+  - Bảo toàn hoặc xử lý comment và thay đổi theo yêu cầu rõ ràng
+  - 'Bảo vệ chỉnh sửa, mã hóa tệp và chữ ký số: phân biệt mục đích'
+  - Loại bỏ metadata và nội dung ẩn không nên phát hành
+- level1: Bảo mật tài liệu
+  level2:
+  - Kiểm tra tệp tải lên theo định dạng thực và giới hạn kích thước
+  - Gói ZIP bất thường, tỷ lệ giải nén và giới hạn tài nguyên
+  - Thiết lập xử lý XML an toàn khi thao tác trực tiếp
+  - Liên kết ngoài, ảnh liên kết và ngăn truy cập tài nguyên ngoài ý muốn
+  - Macro, OLE và tệp nhúng từ nguồn không tin cậy
+  - Phân quyền truy cập mẫu, dữ liệu nguồn và tài liệu đã sinh
+  - Quản lý mật khẩu, dữ liệu nhạy cảm và lịch sử thao tác
+  - Tên tệp, đường dẫn, thư mục tạm và dọn tài nguyên sau xử lý
+  - Loại bỏ dữ liệu nhạy cảm và xác minh nội dung đã xóa không còn trong gói tài liệu
+- level1: Tích hợp ứng dụng
+  level2:
+  - Thiết kế dịch vụ Word với lớp dữ liệu, kết xuất và lưu trữ riêng
+  - Định nghĩa yêu cầu sinh tài liệu và kiểm tra dữ liệu đầu vào
+  - Upload mẫu hoặc tài liệu nguồn qua API Spring Boot
+  - Trả tệp DOCX với Content-Type, Content-Disposition và tên tệp phù hợp
+  - Chọn xử lý đồng bộ hoặc tác vụ nền theo chi phí và thời gian
+  - Lưu tài liệu, quản lý phiên bản và kiểm soát quyền tải xuống
+  - Truy vết mẫu, dữ liệu đầu vào và phiên bản bộ sinh tài liệu
+  - Phân loại lỗi dữ liệu, lỗi cấu trúc, lỗi chuyển đổi và lỗi hạ tầng
+- level1: Hiệu năng và tài nguyên
+  level2:
+  - Ước lượng chi phí theo dung lượng, số phần tử và số tài nguyên media
+  - Quản lý heap khi mở tài liệu lớn hoặc xử lý nhiều tài liệu đồng thời
+  - Tái sử dụng dữ liệu mẫu an toàn và tách đối tượng tài liệu giữa các tác vụ
+  - Tối ưu tìm placeholder và hạn chế duyệt lại toàn bộ cây nội dung
+  - Quản lý stream, tệp tạm và dữ liệu ảnh trong quá trình sinh tài liệu
+  - Giới hạn luồng xử lý, hàng đợi và thời gian cho từng công việc
+  - Xử lý theo lô và cô lập tài liệu lỗi khỏi phần còn lại
+  - Đo thời gian đọc, biến đổi, ghi và chuyển đổi trước khi tối ưu
+- level1: Kiểm thử tài liệu
+  level2:
+  - Ma trận kiểm thử theo loại tài liệu, dữ liệu và thành phần sử dụng
+  - Kiểm thử nội dung, thứ tự body và các giá trị đã điền
+  - Kiểm thử style, numbering, section và quan hệ tài nguyên
+  - Kiểm tra placeholder còn sót và dữ liệu bắt buộc chưa được điền
+  - Kiểm thử tiếng Việt, nội dung dài, bảng nhiều trang và ảnh kích thước lớn
+  - Kiểm tra gói DOCX, XML và khả năng mở lại bằng thư viện
+  - Kết xuất tài liệu để kiểm tra cắt chữ, chồng lấn và ngắt trang
+  - So sánh bố cục với mẫu chuẩn và khoanh vùng khác biệt có ý nghĩa
+  - Kiểm thử trên các công cụ đọc và công cụ chuyển đổi được hỗ trợ
+  - Tích hợp kiểm thử hồi quy với tài liệu mẫu vào CI
+- level1: Xử lý sự cố
+  level2:
+  - 'Word báo lỗi và yêu cầu sửa tài liệu: kiểm tra cấu trúc gói và XML'
+  - Placeholder không được thay vì bị chia run hoặc nằm ngoài body
+  - Font tiếng Việt sai, thiếu ký tự hoặc bố cục thay đổi giữa các máy
+  - Bảng tràn lề, ô gộp sai hoặc hàng tiêu đề không lặp
+  - Header, footer và số trang sai sau khi thêm section
+  - Ảnh mất, liên kết hỏng hoặc xung đột định danh khi ghép tài liệu
+  - Numbering sai hoặc định dạng đổi khi sao chép nội dung
+  - Mục lục, tham chiếu và field hiển thị kết quả cũ
+  - Lỗi bộ nhớ, thiếu tài nguyên hoặc treo công cụ chuyển đổi
+- level1: Dự án thực hành
+  level2:
+  - Phân tích yêu cầu tạo báo giá hoặc hợp đồng từ dữ liệu nghiệp vụ
+  - Thiết kế mẫu với heading, bảng chi tiết, logo và số trang
+  - Xây dựng mô hình dữ liệu và kiểm tra hợp đồng placeholder
+  - Điền nội dung nhiều ngôn ngữ, hàng bảng lặp và khối tùy chọn
+  - Tích hợp API sinh tài liệu, lưu trữ và phân quyền tải xuống
+  - Bổ sung chuyển đổi PDF và kiểm tra font, bố cục sau chuyển đổi
+  - Kiểm thử nội dung dài, dữ liệu rỗng, tài liệu lỗi và tải đồng thời
+  - Nghiệm thu DOCX, bản xuất và khả năng truy vết toàn bộ quy trình

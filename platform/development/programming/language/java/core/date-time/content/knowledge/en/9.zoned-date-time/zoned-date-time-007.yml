@@ -1,0 +1,3 @@
+menuLevel1: ZonedDateTime
+menuLevel2: Kiểm tra tổ hợp ngày giờ, độ lệch và múi giờ bằng ofStrict()
+status: TRANSLATE

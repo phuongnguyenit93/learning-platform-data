@@ -1,0 +1,3 @@
+menuLevel1: Biểu diễn toString
+menuLevel2: Không dùng toString() để quyết định equals() hoặc hashCode()
+status: WRITTEN

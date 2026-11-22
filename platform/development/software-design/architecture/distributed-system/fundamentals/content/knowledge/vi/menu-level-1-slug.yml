@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Ranh giới hệ thống
+  slug: system-boundaries
+  index: 1
+- title: Mô hình hệ thống
+  slug: system-models
+  index: 2
+- title: Giao tiếp mạng
+  slug: network-communication
+  index: 3
+- title: Thời gian và thứ tự
+  slug: time-ordering
+  index: 4
+- title: Lỗi từng phần
+  slug: partial-failures
+  index: 5
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 6
+- title: CAP và đánh đổi
+  slug: cap-tradeoffs
+  index: 7
+- title: Sao chép dữ liệu
+  slug: data-replication
+  index: 8
+- title: Phân mảnh dữ liệu
+  slug: data-partitioning
+  index: 9
+- title: Đồng thuận
+  slug: consensus
+  index: 10
+- title: Khóa và phối hợp
+  slug: locking-coordination
+  index: 11
+- title: Giao dịch phân tán
+  slug: distributed-transactions
+  index: 12
+- title: Thông điệp và sự kiện
+  slug: messaging-events
+  index: 13
+- title: Xử lý lặp an toàn
+  slug: idempotent-processing
+  index: 14
+- title: Khả năng phục hồi
+  slug: resilience
+  index: 15
+- title: Điều tiết tải
+  slug: load-shedding
+  index: 16
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 17
+- title: Tìm và định tuyến
+  slug: discovery-routing
+  index: 18
+- title: Tính sẵn sàng
+  slug: availability
+  index: 19
+- title: Khôi phục dữ liệu
+  slug: data-recovery
+  index: 20
+- title: Bảo mật hệ thống
+  slug: system-security
+  index: 21
+- title: Quan sát và chẩn đoán
+  slug: observability-diagnostics
+  index: 22
+- title: Hiệu năng và dung lượng
+  slug: performance-capacity
+  index: 23
+- title: Triển khai và phiên bản
+  slug: deployment-versioning
+  index: 24
+- title: Kiểm thử phân tán
+  slug: distributed-testing
+  index: 25
+- title: Java và Spring
+  slug: java-spring
+  index: 26
+- title: Tình huống thiết kế
+  slug: design-scenarios
+  index: 27
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 28
+- title: Thực hành
+  slug: hands-on-practice
+  index: 29

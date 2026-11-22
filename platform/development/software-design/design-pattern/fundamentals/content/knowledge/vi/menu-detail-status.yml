@@ -1,0 +1,2176 @@
+menu:
+- slug: design-pattern-essentials
+  title: Bản chất design pattern
+  childs:
+  - slug: design-pattern-essentials-001
+    title: 'Design pattern là gì: vấn đề lặp lại, bối cảnh và giải pháp thiết kế'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-essentials-002
+    title: 'Bốn thành phần cốt lõi: tên mẫu, vấn đề, giải pháp và hệ quả'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-essentials-003
+    title: Phân biệt design pattern với thuật toán, idiom, thư viện và framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-essentials-004
+    title: Phân biệt mẫu thiết kế hướng đối tượng với mẫu kiến trúc và mẫu tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-essentials-005
+    title: Lợi ích của ngôn ngữ thiết kế chung khi đọc mã và trao đổi trong nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-essentials-006
+    title: Điều kiện áp dụng, lực tác động và giới hạn của một mẫu thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-essentials-007
+    title: Chi phí của lớp trung gian, mức gián tiếp và việc áp dụng mẫu quá sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-oriented-foundations
+  title: Nền tảng hướng đối tượng
+  childs:
+  - slug: object-oriented-foundations-001
+    title: Đối tượng, trạng thái, hành vi và bất biến trong mô hình miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-oriented-foundations-002
+    title: Đóng gói dữ liệu và bảo vệ quy tắc nghiệp vụ qua hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-oriented-foundations-003
+    title: Trừu tượng hóa, hợp đồng và đa hình trong thiết kế cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-oriented-foundations-004
+    title: Vai trò của interface, abstract class và concrete class
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-oriented-foundations-005
+    title: Kế thừa, composition và delegation trong tái sử dụng hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-oriented-foundations-006
+    title: Phân biệt quan hệ is-a, has-a và uses-a bằng tình huống Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-oriented-foundations-007
+    title: Cohesion, coupling và hướng phụ thuộc giữa các thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-oriented-foundations-008
+    title: Danh tính, tính bằng nhau, mutability và quyền sở hữu đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identifying-design-problems
+  title: Nhận diện vấn đề thiết kế
+  childs:
+  - slug: identifying-design-problems-001
+    title: Bắt đầu từ ca sử dụng, ràng buộc và thay đổi có khả năng xảy ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identifying-design-problems-002
+    title: Xác định phần ổn định và phần biến thiên trong yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identifying-design-problems-003
+    title: Phân bổ trách nhiệm và mô tả cộng tác giữa các đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identifying-design-problems-004
+    title: Nhận diện phụ thuộc trực tiếp vào lớp cụ thể và cách khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identifying-design-problems-005
+    title: Nhận diện điều kiện phân nhánh theo loại, trạng thái và thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identifying-design-problems-006
+    title: Nhận diện kế thừa phình to, lặp mã và lớp gánh quá nhiều trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identifying-design-problems-007
+    title: Phân biệt triệu chứng trong mã với nguyên nhân trong mô hình thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identifying-design-problems-008
+    title: Viết phát biểu vấn đề và tiêu chí thành công trước khi chọn mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-principles
+  title: Nguyên tắc thiết kế
+  childs:
+  - slug: design-principles-001
+    title: 'Program to an interface: phụ thuộc vào hợp đồng phù hợp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-principles-002
+    title: Ưu tiên composition khi cần thay đổi hành vi độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-principles-003
+    title: 'Encapsulate what varies: cô lập điểm thay đổi có bằng chứng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-principles-004
+    title: 'SRP và OCP: trách nhiệm thay đổi và cơ chế mở rộng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-principles-005
+    title: 'LSP và ISP: khả năng thay thế và hợp đồng tối thiểu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-principles-006
+    title: 'DIP và dependency injection: đảo chiều phụ thuộc và truyền cộng tác viên'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-principles-007
+    title: Law of Demeter và Tell, Don't Ask trong cộng tác đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-principles-008
+    title: Cân bằng DRY, KISS và YAGNI để tránh trừu tượng hóa quá mức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gof-pattern-overview
+  title: Bản đồ GoF
+  childs:
+  - slug: gof-pattern-overview-001
+    title: 'Ba nhóm GoF: Creational, Structural và Behavioral'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-pattern-overview-002
+    title: 'Nhóm Creational: năm cách quản lý việc tạo đối tượng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-pattern-overview-003
+    title: 'Nhóm Structural: bảy cách tổ chức và kết nối đối tượng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-pattern-overview-004
+    title: 'Nhóm Behavioral: mười một cách phân phối hành vi và trách nhiệm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-pattern-overview-005
+    title: Phân biệt class pattern và object pattern theo cơ chế cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-pattern-overview-006
+    title: Đọc một mẫu theo intent, applicability, participants và collaborations
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gof-pattern-overview-007
+    title: Liên kết cấu trúc, luồng gọi và consequences với vấn đề cần giải quyết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: structural-uml
+  title: UML cấu trúc
+  childs:
+  - slug: structural-uml-001
+    title: 'Đọc class diagram: tên lớp, thuộc tính, phương thức và phạm vi truy cập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structural-uml-002
+    title: Biểu diễn interface, abstract class và phương thức trừu tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structural-uml-003
+    title: Phân biệt generalization và realization trong hệ kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structural-uml-004
+    title: Phân biệt dependency và association qua cách đối tượng sử dụng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structural-uml-005
+    title: Đọc aggregation và composition theo quyền sở hữu và vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structural-uml-006
+    title: Đọc multiplicity, role name và navigability trong quan hệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structural-uml-007
+    title: Dùng object diagram để kiểm tra cấu trúc đối tượng lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structural-uml-008
+    title: Ánh xạ vai trò trong UML sang lớp Java và phát hiện sơ đồ thiếu hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: behavioral-uml
+  title: UML hành vi
+  childs:
+  - slug: behavioral-uml-001
+    title: 'Đọc sequence diagram: lifeline, lời gọi và thứ tự cộng tác'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-uml-002
+    title: Theo dõi khởi tạo, delegation, callback và giá trị trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-uml-003
+    title: Biểu diễn nhánh lựa chọn, vòng lặp và điều kiện bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-uml-004
+    title: Dùng state diagram để mô tả trạng thái và chuyển trạng thái hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-uml-005
+    title: Đọc activity diagram cho quy trình và điểm quyết định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-uml-006
+    title: Kết nối sequence diagram với class diagram và ca sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-uml-007
+    title: Kiểm tra sơ đồ với đường đi thành công, lỗi và trường hợp biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Hiện thực bằng Java
+  childs:
+  - slug: java-implementation-001
+    title: Chuyển vai trò thiết kế thành package, interface và lớp triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Dùng constructor để truyền dependency và bảo vệ trạng thái hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Chọn interface, abstract class, default method hoặc composition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Dùng generics để biểu diễn hợp đồng và hạn chế ép kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Dùng functional interface, lambda và method reference cho hành vi đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Quản lý collection, aliasing, defensive copy và tính bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Thiết kế exception, vòng đời tài nguyên và trách nhiệm đóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-008
+    title: Phân biệt mô hình cộng tác với bảo đảm thread safety trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: factory-method-and-abstract-factory
+  title: Factory Method và Abstract Factory
+  childs:
+  - slug: factory-method-and-abstract-factory-001
+    title: 'Factory Method: cô lập bước tạo sản phẩm trong luồng xử lý của Creator'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-002
+    title: 'Factory Method: vai trò Creator, ConcreteCreator, Product và ConcreteProduct'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-003
+    title: 'Factory Method: đọc UML và hiện thực đa hình bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-004
+    title: 'Factory Method: kiểm tra mở rộng sản phẩm và chi phí phân cấp Creator'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-005
+    title: Phân biệt Factory Method, simple factory và static factory method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-006
+    title: 'Abstract Factory: tạo họ sản phẩm tương thích cho một bối cảnh'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-007
+    title: 'Abstract Factory: vai trò nhà máy và các nhóm sản phẩm trừu tượng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-008
+    title: 'Abstract Factory: đọc UML và hiện thực họ sản phẩm bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-009
+    title: 'Abstract Factory: thêm họ sản phẩm so với thêm loại sản phẩm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factory-method-and-abstract-factory-010
+    title: So sánh hai mẫu qua bài toán đổi giao diện hoặc bộ kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: builder-and-prototype
+  title: Builder và Prototype
+  childs:
+  - slug: builder-and-prototype-001
+    title: 'Builder: tách quy trình dựng đối tượng khỏi biểu diễn kết quả'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-002
+    title: 'Builder: vai trò Builder, ConcreteBuilder, Product và Director tùy chọn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-003
+    title: 'Builder: đọc UML và xây dựng đối tượng nhiều bước bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-004
+    title: 'Builder: kiểm tra dữ liệu bắt buộc, bất biến và thời điểm tạo kết quả'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-005
+    title: Phân biệt GoF Builder, fluent API và builder cho tham số tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-006
+    title: 'Prototype: tạo đối tượng từ mẫu cấu hình sẵn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-007
+    title: 'Prototype: đọc UML và hiện thực sao chép bằng copy constructor hoặc factory'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-008
+    title: 'Prototype: shallow copy, deep copy, đồ thị tham chiếu và giới hạn của clone'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: builder-and-prototype-009
+    title: So sánh Builder, Prototype và factory theo nguồn dữ liệu khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: singleton
+  title: Singleton
+  childs:
+  - slug: singleton-001
+    title: Ý định của Singleton và phạm vi một instance cần xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: singleton-002
+    title: Vai trò, UML và cách kiểm soát quyền khởi tạo trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: singleton-003
+    title: So sánh eager initialization, holder idiom và enum singleton
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: singleton-004
+    title: Lazy initialization, đồng bộ hóa và yêu cầu safe publication
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: singleton-005
+    title: Tác động của class loader, serialization và reflection theo cách triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: singleton-006
+    title: Global state, dependency ẩn và khó khăn khi kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: singleton-007
+    title: So sánh Singleton với vòng đời đối tượng do dependency injection quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: adapter-and-facade
+  title: Adapter và Facade
+  childs:
+  - slug: adapter-and-facade-001
+    title: 'Adapter: chuyển đổi hợp đồng không tương thích thành giao diện client cần'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-and-facade-002
+    title: 'Adapter: vai trò Target, Adapter, Adaptee và luồng delegation trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-and-facade-003
+    title: 'Adapter: hiện thực object adapter và chuyển đổi dữ liệu hoặc lỗi bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-and-facade-004
+    title: 'Adapter: giới hạn của class adapter và tác động của kế thừa trong Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-and-facade-005
+    title: 'Facade: cung cấp lối vào đơn giản cho một subsystem'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-and-facade-006
+    title: 'Facade: đọc UML và điều phối các thành phần qua API Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-and-facade-007
+    title: 'Facade: giữ ranh giới subsystem và tránh gom toàn bộ nghiệp vụ vào một lớp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-and-facade-008
+    title: So sánh Adapter và Facade theo mục tiêu tương thích và đơn giản hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bridge-and-decorator
+  title: Bridge và Decorator
+  childs:
+  - slug: bridge-and-decorator-001
+    title: 'Bridge: tách hai chiều biến thiên độc lập khỏi phân cấp kế thừa'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-002
+    title: 'Bridge: vai trò Abstraction, RefinedAbstraction và Implementor trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-003
+    title: 'Bridge: kết hợp biến thể nghiệp vụ và nền tảng triển khai bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-004
+    title: 'Bridge: chi phí của lớp trừu tượng và điều kiện thực sự cần hai chiều mở rộng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-005
+    title: 'Decorator: bổ sung trách nhiệm bằng chuỗi đối tượng bọc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-006
+    title: 'Decorator: vai trò Component, ConcreteComponent và Decorator trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-007
+    title: 'Decorator: hiện thực lớp bọc Java và bảo toàn hợp đồng của component'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-008
+    title: 'Decorator: thứ tự bọc, danh tính đối tượng và luồng ngoại lệ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-and-decorator-009
+    title: So sánh Bridge, Decorator và kế thừa qua điểm thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: composite-and-flyweight
+  title: Composite và Flyweight
+  childs:
+  - slug: composite-and-flyweight-001
+    title: 'Composite: thao tác thống nhất trên phần tử đơn và cấu trúc cây'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-002
+    title: 'Composite: vai trò Component, Leaf và Composite trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-003
+    title: 'Composite: duyệt cây và tổng hợp kết quả bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-004
+    title: 'Composite: cân bằng giao diện thống nhất với thao tác chỉ có ở nút chứa'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-005
+    title: 'Composite: quyền sở hữu nút, chu trình và thay đổi cấu trúc khi duyệt'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-006
+    title: 'Flyweight: chia sẻ dữ liệu nội tại giữa nhiều đối tượng logic'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-007
+    title: 'Flyweight: đọc UML và tách intrinsic state khỏi extrinsic state'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-008
+    title: 'Flyweight: hiện thực factory, khóa tra cứu và đối tượng bất biến bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-and-flyweight-009
+    title: 'Flyweight: đo lợi ích bộ nhớ và chi phí tra cứu, vòng đời, đồng bộ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: proxy
+  title: Proxy
+  childs:
+  - slug: proxy-001
+    title: Ý định kiểm soát truy cập qua một đối tượng đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxy-002
+    title: Vai trò Subject, RealSubject và Proxy trong UML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxy-003
+    title: Hiện thực proxy thủ công bằng Java và giữ hợp đồng của Subject
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxy-004
+    title: Virtual proxy, protection proxy và remote proxy qua tình huống cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxy-005
+    title: Dynamic proxy với interface trong Java và vai trò của InvocationHandler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxy-006
+    title: Lazy loading, lỗi từ xa, danh tính và chi phí lời gọi gián tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxy-007
+    title: Phân biệt Proxy, Decorator và Adapter theo mục đích đối tượng bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: strategy-and-state
+  title: Strategy và State
+  childs:
+  - slug: strategy-and-state-001
+    title: 'Strategy: thay thế thuật toán qua một hợp đồng hành vi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-002
+    title: 'Strategy: vai trò Context và các chiến lược trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-003
+    title: 'Strategy: hiện thực lớp hoặc lambda cho chính sách tính phí bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-004
+    title: 'Strategy: chọn thuật toán và quản lý dữ liệu đầu vào, dependency'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-005
+    title: 'State: phân phối hành vi theo trạng thái hiện tại của đối tượng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-006
+    title: 'State: vai trò Context, State và ConcreteState trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-007
+    title: 'State: hiện thực chuyển trạng thái và bảo vệ bất biến bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-008
+    title: 'State: xác định nơi sở hữu chuyển trạng thái và xử lý chuyển không hợp lệ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-and-state-009
+    title: So sánh Strategy, State, enum và nhánh điều kiện theo độ phức tạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: template-method
+  title: Template Method
+  childs:
+  - slug: template-method-001
+    title: Ý định cố định khung thuật toán và cho phép thay đổi từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: template-method-002
+    title: Vai trò AbstractClass, ConcreteClass và luồng gọi trong UML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: template-method-003
+    title: Hiện thực template method, primitive operation và hook bằng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: template-method-004
+    title: Quy định bước bắt buộc, bước tùy chọn và thứ tự thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: template-method-005
+    title: Bảo vệ bất biến và hạn chế override bằng phạm vi truy cập hoặc final
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: template-method-006
+    title: Chi phí kế thừa và rủi ro phụ thuộc chi tiết lớp cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: template-method-007
+    title: So sánh Template Method với Strategy và callback trong cùng quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observer-and-mediator
+  title: Observer và Mediator
+  childs:
+  - slug: observer-and-mediator-001
+    title: 'Observer: thông báo thay đổi từ Subject đến nhiều Observer'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-002
+    title: 'Observer: đọc UML đăng ký, hủy đăng ký và phát thông báo'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-003
+    title: 'Observer: hiện thực listener bằng Java với dữ liệu sự kiện rõ ràng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-004
+    title: 'Observer: push, pull, thứ tự thông báo và thay đổi danh sách khi callback'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-005
+    title: 'Observer: vòng đời đăng ký, memory leak, lỗi listener và tái nhập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-006
+    title: 'Mediator: gom quy tắc phối hợp giữa các colleague'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-007
+    title: 'Mediator: đọc UML và hiện thực luồng điều phối bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-008
+    title: 'Mediator: giảm liên kết chéo và kiểm soát nguy cơ lớp điều phối phình to'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-and-mediator-009
+    title: So sánh Observer, Mediator và publish-subscribe theo quan hệ và cách truyền tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: command-and-chain-of-responsibility
+  title: Command và Chain of Responsibility
+  childs:
+  - slug: command-and-chain-of-responsibility-001
+    title: 'Command: biến yêu cầu thành đối tượng mang hành vi và dữ liệu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-002
+    title: 'Command: vai trò Invoker, Command, Receiver và Client trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-003
+    title: 'Command: hiện thực gọi lệnh, hàng đợi đơn giản và macro bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-004
+    title: 'Command: thiết kế undo với trạng thái cần lưu và thao tác không thể đảo ngược'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-005
+    title: 'Command: đánh giá vòng đời lệnh, lỗi thực thi và chi phí lưu lịch sử'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-006
+    title: 'Chain of Responsibility: chuyển yêu cầu qua chuỗi handler'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-007
+    title: 'Chain of Responsibility: đọc UML và lắp ráp chuỗi xử lý bằng Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-008
+    title: 'Chain of Responsibility: thứ tự, điều kiện dừng và yêu cầu không được xử lý'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-chain-of-responsibility-009
+    title: So sánh Command, Chain of Responsibility và pipeline theo luồng trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: iterator-and-visitor
+  title: Iterator và Visitor
+  childs:
+  - slug: iterator-and-visitor-001
+    title: 'Iterator: tách cách duyệt khỏi cấu trúc lưu trữ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-002
+    title: 'Iterator: vai trò Aggregate, Iterator và các lớp cụ thể trong UML'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-003
+    title: 'Iterator: hiện thực Iterable và Iterator cho collection riêng trong Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-004
+    title: 'Iterator: trạng thái duyệt, phần tử cuối và thay đổi collection khi duyệt'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-005
+    title: Phân biệt Iterator, vòng lặp for-each và Stream trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-006
+    title: 'Visitor: thêm phép toán trên cấu trúc đối tượng có loại phần tử ổn định'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-007
+    title: 'Visitor: đọc UML accept, visit và mô phỏng double dispatch trong Java'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-008
+    title: 'Visitor: chi phí khi thêm phép toán so với thêm loại phần tử'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iterator-and-visitor-009
+    title: Kết hợp Composite, Iterator và Visitor khi duyệt cây và thực hiện thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: memento
+  title: Memento
+  childs:
+  - slug: memento-001
+    title: Ý định lưu và khôi phục trạng thái mà giữ ranh giới đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memento-002
+    title: Vai trò Originator, Memento và Caretaker trong UML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memento-003
+    title: Hiện thực snapshot bất biến và khôi phục đối tượng bằng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memento-004
+    title: Xác định phạm vi snapshot, deep copy và tính nhất quán của trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memento-005
+    title: Quản lý lịch sử, giới hạn bộ nhớ và trạng thái đã lỗi thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memento-006
+    title: So sánh Memento, Command undo và lưu trữ bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interpreter
+  title: Interpreter
+  childs:
+  - slug: interpreter-001
+    title: Ý định biểu diễn ngữ pháp nhỏ bằng cấu trúc các biểu thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interpreter-002
+    title: Vai trò AbstractExpression, TerminalExpression, NonterminalExpression và Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interpreter-003
+    title: Đọc UML và xây dựng cây biểu thức cho một ngôn ngữ quy tắc nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interpreter-004
+    title: Hiện thực diễn giải bằng Java với context và hợp đồng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interpreter-005
+    title: Phân biệt xây cây cú pháp, phân tích cú pháp và diễn giải biểu thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interpreter-006
+    title: Giới hạn về độ lớn ngữ pháp, hiệu năng và lựa chọn thư viện parser
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: comparing-patterns
+  title: So sánh các mẫu
+  childs:
+  - slug: comparing-patterns-001
+    title: So sánh nhóm khởi tạo theo thời điểm tạo, cấu hình và khả năng mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-002
+    title: 'Factory Method và Template Method: quan hệ giữa bước tạo và khung thuật toán'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-003
+    title: 'Adapter, Decorator và Proxy: cấu trúc bọc giống nhau, mục đích khác nhau'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-004
+    title: 'Facade và Mediator: ranh giới subsystem và quy tắc phối hợp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-005
+    title: 'Bridge và Strategy: hai chiều biến thiên và thuật toán có thể thay thế'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-006
+    title: 'Strategy và State: cách chọn hành vi và nơi quyết định chuyển đổi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-007
+    title: 'Template Method và Strategy: kế thừa so với composition'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-008
+    title: 'Observer và Chain of Responsibility: phát thông báo và chuyển quyền xử lý'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-patterns-009
+    title: 'Visitor và đa hình thông thường: nơi đặt phép toán và hướng mở rộng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: combining-patterns
+  title: Phối hợp các mẫu
+  childs:
+  - slug: combining-patterns-001
+    title: Kết hợp Abstract Factory, Factory Method và Prototype trong khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-patterns-002
+    title: Dùng Builder để lắp ráp cấu trúc Composite
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-patterns-003
+    title: Kết hợp Composite và Decorator khi tổ chức thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-patterns-004
+    title: Kết hợp Command và Memento cho lịch sử thao tác và undo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-patterns-005
+    title: Kết hợp State và Observer để phản ứng với thay đổi trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-patterns-006
+    title: Dùng Facade làm điểm vào cho subsystem có nhiều mẫu cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-patterns-007
+    title: Theo dõi trách nhiệm và dependency khi nhiều mẫu cùng xuất hiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: choosing-design-solutions
+  title: Lựa chọn giải pháp
+  childs:
+  - slug: choosing-design-solutions-001
+    title: Chuyển yêu cầu thành tiêu chí lựa chọn và kịch bản thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-002
+    title: Xác định trục biến thiên về khởi tạo, cấu trúc hoặc hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-003
+    title: Xây dựng phương án đơn giản bằng hàm, điều kiện hoặc composition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-004
+    title: So sánh các mẫu ứng viên theo hợp đồng và mức phù hợp với bối cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-005
+    title: Ước lượng số lớp, mức gián tiếp và gánh nặng đọc hiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-006
+    title: Đánh giá khả năng kiểm thử, mở rộng và ảnh hưởng khi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-007
+    title: Đánh giá hiệu năng, bộ nhớ, vòng đời và nhu cầu đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-008
+    title: Chọn thời điểm áp dụng theo bằng chứng thay đổi và chi phí chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: choosing-design-solutions-009
+    title: Ghi quyết định thiết kế với phương án thay thế và lý do loại bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-designs
+  title: Kiểm thử thiết kế
+  childs:
+  - slug: testing-designs-001
+    title: Viết kiểm thử từ hành vi quan sát được và hợp đồng cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-designs-002
+    title: Kiểm thử khả năng thay thế giữa các implementation của cùng interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-designs-003
+    title: Dùng fake, stub hoặc mock tại ranh giới dependency phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-designs-004
+    title: Kiểm thử thứ tự decorator, handler, callback và bước trong template
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-designs-005
+    title: Kiểm thử chuyển trạng thái, undo và snapshot với trường hợp biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-designs-006
+    title: Kiểm thử khởi tạo, tính bất biến và sao chép dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-designs-007
+    title: Kiểm tra vòng đời listener, tài nguyên và trạng thái dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-designs-008
+    title: Dùng kịch bản thêm biến thể để đánh giá mức ảnh hưởng của thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refactoring-with-patterns
+  title: Refactor với pattern
+  childs:
+  - slug: refactoring-with-patterns-001
+    title: Thiết lập hành vi hiện tại và kiểm thử bảo vệ trước khi thay đổi cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-patterns-002
+    title: Tách trách nhiệm, đặt tên vai trò và làm rõ dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-patterns-003
+    title: Chuyển nhánh thuật toán thành Strategy khi có nhu cầu thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-patterns-004
+    title: Chuyển logic theo trạng thái thành State khi quy tắc chuyển đã rõ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-patterns-005
+    title: Tách việc tạo đối tượng bằng factory hoặc Builder đúng mức cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-patterns-006
+    title: Thay phân cấp kế thừa phình to bằng composition, Bridge hoặc Decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-patterns-007
+    title: Chuyển phụ thuộc hệ thống ngoài qua Adapter và ranh giới Facade
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-patterns-008
+    title: Refactor từng bước, kiểm tra hồi quy và loại bỏ trừu tượng không còn giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Đọc yêu cầu và xác định điểm thay đổi của hệ thống đặt hàng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-002
+    title: Vẽ class diagram và sequence diagram cho phương án ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-003
+    title: Thực hành khởi tạo kênh thông báo bằng các mẫu Creational phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-004
+    title: Thực hành tích hợp cổng thanh toán qua Adapter và API Facade
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-005
+    title: Thực hành chính sách tính phí bằng Strategy và tùy chọn bổ sung bằng Decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-006
+    title: Thực hành vòng đời đơn hàng bằng State và thông báo bằng Observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-007
+    title: Thực hành trình soạn thảo nhỏ với Command, Memento và Composite
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-008
+    title: Hiện thực phương án Java, viết kiểm thử và thử yêu cầu mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-009
+    title: So sánh trước và sau bằng số điểm sửa, số lớp và chi phí đọc hiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: assessment-and-limitations
+  title: Đánh giá và giới hạn
+  childs:
+  - slug: assessment-and-limitations-001
+    title: Nhận diện mẫu qua vấn đề và cộng tác thay vì chỉ qua tên lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: assessment-and-limitations-002
+    title: Phân tích tình huống một cấu trúc có thể phục vụ nhiều ý định thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: assessment-and-limitations-003
+    title: Nhận diện pattern mania, abstraction thừa và lớp chỉ chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: assessment-and-limitations-004
+    title: Đánh giá khi lambda, collection hoặc thư viện chuẩn đã đáp ứng yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: assessment-and-limitations-005
+    title: Phân biệt mẫu GoF với bảo đảm đồng thời, transaction và tính nhất quán dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: assessment-and-limitations-006
+    title: Rà soát UML, hợp đồng Java, kiểm thử và hệ quả của lựa chọn thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: assessment-and-limitations-007
+    title: Tự đánh giá bằng tình huống chọn mẫu, bác bỏ mẫu và bảo vệ phương án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

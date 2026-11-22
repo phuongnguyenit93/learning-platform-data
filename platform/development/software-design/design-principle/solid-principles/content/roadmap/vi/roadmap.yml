@@ -1,0 +1,58 @@
+roadmap:
+- id: solid-muc-tieu-thiet-ke
+  title: SOLID & mục tiêu thiết kế
+  purpose: Hiểu vai trò của năm nguyên lý SOLID trong việc giảm phụ thuộc và tăng khả năng thay đổi, kiểm thử của mã hướng
+    đối tượng.
+  objectives:
+  - Kể tên và diễn giải năm nguyên lý SOLID
+  - Nhận diện mã khó mở rộng hoặc bảo trì
+  - Phân biệt nguyên lý thiết kế với design pattern
+- id: srp-trach-nhiem-don-nhat
+  title: SRP — Trách nhiệm đơn nhất
+  purpose: Thiết kế lớp hoặc module có một lý do thay đổi rõ ràng, tránh gom các trách nhiệm không liên quan.
+  objectives:
+  - Xác định actor và lý do thay đổi của lớp
+  - Tách logic nghiệp vụ khỏi lưu trữ hoặc hiển thị
+  - Kiểm chứng các phần sau khi tách bằng unit test
+- id: ocp-mo-rong-han-che-sua-doi
+  title: OCP — Mở rộng, hạn chế sửa đổi
+  purpose: Tạo điểm mở rộng ổn định để thêm hành vi mới mà ít sửa mã đã được kiểm chứng.
+  objectives:
+  - Phát hiện chuỗi if hoặc switch theo loại đối tượng
+  - Dùng interface và polymorphism để thêm biến thể
+  - Thử bổ sung hành vi mới không sửa logic lõi
+- id: lsp-thay-the-dung-hop-dong
+  title: LSP — Thay thế đúng hợp đồng
+  purpose: Bảo đảm subtype có thể thay thế base type mà không phá kỳ vọng hành vi của client.
+  objectives:
+  - Giải thích precondition, postcondition và invariant
+  - Nhận diện subtype ném lỗi khi thực hiện hợp đồng
+  - Viết test chung cho nhiều implementation
+- id: isp-interface-chuyen-biet
+  title: ISP — Interface chuyên biệt
+  purpose: Giữ hợp đồng nhỏ và phù hợp từng client, tránh ép lớp phụ thuộc vào thao tác không sử dụng.
+  objectives:
+  - Nhận diện interface phình to với phương thức thừa
+  - Tách interface theo nhu cầu các client
+  - Kiểm thử các lớp không còn method giả hoặc lỗi
+- id: dip-dao-nguoc-phu-thuoc
+  title: DIP — Đảo ngược phụ thuộc
+  purpose: Giảm coupling bằng cách để phần nghiệp vụ và chi tiết kỹ thuật cùng phụ thuộc vào abstraction phù hợp.
+  objectives:
+  - Vẽ chiều phụ thuộc giữa module cao và thấp
+  - Tạo interface nằm gần nhu cầu nghiệp vụ
+  - Phân biệt Dependency Inversion với Dependency Injection
+- id: refactor-ket-hop-solid
+  title: Refactor kết hợp SOLID
+  purpose: Áp dụng đồng thời các nguyên lý vào mã có vấn đề thay vì sửa theo khẩu hiệu từng chữ cái.
+  objectives:
+  - Phân tích một ví dụ Java vi phạm nhiều nguyên lý
+  - Refactor theo bước nhỏ có test bảo vệ
+  - Đánh giá giảm coupling và tăng cohesion
+- id: kiem-thu-danh-doi
+  title: Kiểm thử & đánh đổi
+  purpose: Đánh giá hiệu quả thực tế của SOLID và tránh tạo abstraction hoặc lớp phụ trợ khi chưa cần.
+  objectives:
+  - Viết test chứng minh khả năng thay thế và mở rộng
+  - So sánh mã trước và sau refactor
+  - Nhận diện over-engineering và chọn mức trừu tượng hợp lý

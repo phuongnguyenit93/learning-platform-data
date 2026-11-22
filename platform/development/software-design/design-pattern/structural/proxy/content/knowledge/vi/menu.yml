@@ -1,0 +1,277 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Mẫu Proxy là gì và thuộc nhóm mẫu cấu trúc ra sao
+  - Vấn đề kiểm soát truy cập tới một đối tượng
+  - Proxy như đối tượng đại diện trước đối tượng thật
+  - Các thuật ngữ Subject, RealSubject, Proxy và Client
+  - Lợi ích về khởi tạo, quyền truy cập và vị trí đối tượng
+  - Chi phí trung gian và giới hạn của tính minh bạch
+  - Phân biệt mẫu Proxy trong mã với proxy mạng
+  - Lộ trình học từ lớp đại diện thủ công tới proxy được tạo tự động
+- level1: Cấu trúc và tương tác
+  level2:
+  - Hợp đồng chung giữa Proxy và đối tượng thật
+  - Trách nhiệm của bên sử dụng và nơi lựa chọn đối tượng đại diện
+  - Quan hệ tham chiếu giữa Proxy với đối tượng thật
+  - Sơ đồ lớp cùng sơ đồ trình tự một lời gọi
+  - Các bước trước, trong và sau khi chuyển tiếp
+  - Khi Proxy tự xử lý thay vì gọi đối tượng thật
+  - Khởi tạo đối tượng thật ngay hoặc trì hoãn
+  - Vị trí lắp ráp và cách cấp Proxy cho bên sử dụng
+- level1: Hợp đồng hành vi
+  level2:
+  - Giữ ý nghĩa tham số, giá trị trả về và tác dụng phụ
+  - Điều kiện trước, điều kiện sau và bất biến
+  - Khả năng thay thế qua cùng một kiểu giao tiếp
+  - Những khác biệt về thời gian thực thi cần được công khai
+  - Ngữ nghĩa lỗi khi thêm kiểm soát hoặc truy cập từ xa
+  - Cam kết về an toàn luồng và khả năng gọi lặp
+  - Ranh giới giữa kiểm soát truy cập và thay đổi nghiệp vụ
+  - Xác định phần minh bạch và phần phải đưa vào hợp đồng
+- level1: Proxy thủ công
+  level2:
+  - Định nghĩa interface cho dịch vụ cần đại diện
+  - Xây dựng đối tượng thật với trách nhiệm nghiệp vụ
+  - Xây dựng Proxy giữ tham chiếu tới đối tượng thật
+  - Chuyển tiếp đầy đủ phương thức, tham số và kết quả
+  - Bổ sung kiểm tra hoặc xử lý quanh lời gọi
+  - Cấp thành phần phụ thuộc qua constructor hoặc Factory
+  - Đối chiếu lời gọi trực tiếp với lời gọi qua Proxy
+  - Chi phí mã chuyển tiếp khi hợp đồng mở rộng
+  - Khi một lớp Proxy viết tay là lựa chọn đủ đơn giản
+- level1: Proxy ảo
+  level2:
+  - Trì hoãn tạo đối tượng có chi phí lớn (Virtual Proxy)
+  - Phân biệt tạo Proxy với tạo đối tượng thật
+  - Xác định thao tác nào cần kích hoạt khởi tạo
+  - Quản lý trạng thái chưa tạo, đang tạo, sẵn sàng và lỗi
+  - Xử lý thất bại khi tải hoặc khởi tạo
+  - Gộp các yêu cầu khởi tạo đồng thời
+  - Chọn thời điểm giải phóng và điều kiện khởi tạo lại
+  - Ví dụ tải tài liệu hoặc ảnh khi thực sự được sử dụng
+  - Đánh giá lợi ích khi phần lớn đối tượng không được truy cập
+- level1: Proxy bảo vệ
+  level2:
+  - Kiểm soát quyền trước khi truy cập đối tượng (Protection Proxy)
+  - Phân biệt xác thực danh tính với kiểm tra quyền thao tác
+  - Lấy ngữ cảnh người dùng và phạm vi tài nguyên
+  - Áp dụng chính sách theo phương thức và dữ liệu đầu vào
+  - Ngăn bên sử dụng đi vòng tới đối tượng thật
+  - Quy định hành vi khi thiếu ngữ cảnh hoặc bị từ chối
+  - Bảo toàn ngữ cảnh khi xử lý bất đồng bộ
+  - Ghi nhận truy cập và hạn chế lộ dữ liệu nhạy cảm
+  - Giới hạn của Proxy như một phần trong thiết kế phân quyền
+- level1: Proxy từ xa
+  level2:
+  - Đại diện đối tượng nằm ở tiến trình hoặc máy khác (Remote Proxy)
+  - Phân biệt ngữ nghĩa lời gọi cục bộ và lời gọi mạng
+  - Chuyển tham số, kết quả và lỗi qua ranh giới tiến trình
+  - Tuần tự hóa dữ liệu và quản lý phiên bản hợp đồng
+  - Timeout, mất kết nối và tình huống không rõ kết quả xử lý
+  - Retry cùng yêu cầu về tính lũy đẳng
+  - Độ trễ, số lượt trao đổi và nguy cơ API quá nhiều lời gọi nhỏ
+  - Quản lý kết nối và vòng đời tài nguyên truyền thông
+  - Minh họa stub trong Java RMI và client RPC
+  - Không che giấu những bảo đảm mà hệ thống phân tán không đáp ứng
+- level1: Proxy bộ nhớ đệm
+  level2:
+  - Lưu kết quả để giảm truy cập đối tượng thật (Caching Proxy)
+  - Chọn phương thức có thể lưu kết quả an toàn
+  - Thiết kế khóa theo tham số và ngữ cảnh người dùng
+  - TTL, vô hiệu hóa và độ mới dữ liệu
+  - Phân biệt kết quả rỗng với chưa có dữ liệu đệm
+  - Xử lý nhiều lời gọi cùng yêu cầu một kết quả
+  - Giới hạn dung lượng và vòng đời dữ liệu được giữ
+  - Quy định có lưu lỗi hay không
+  - Đo tỷ lệ sử dụng dữ liệu đệm và thay đổi ngữ nghĩa quan sát được
+- level1: Tham chiếu thông minh
+  level2:
+  - Vai trò của Smart Reference trong quản lý truy cập
+  - Theo dõi việc sử dụng và trạng thái tài nguyên
+  - Kiểm tra điều kiện sẵn sàng trước khi gọi đối tượng thật
+  - Quản lý mượn và trả tài nguyên qua đối tượng đại diện
+  - Thực hiện công việc phụ trợ gắn với mỗi lần truy cập
+  - Quan hệ với quản lý vòng đời và quyền sở hữu
+  - Phân biệt đếm sử dụng nghiệp vụ với quản lý bộ nhớ của JVM
+  - Giới hạn khi bên sử dụng giữ hoặc làm lộ tham chiếu thật
+- level1: Chặn lời gọi
+  level2:
+  - Bổ sung hành vi dùng chung quanh phương thức
+  - Phân biệt xử lý trước gọi, sau thành công và sau thất bại
+  - Đo thời gian của toàn lời gọi hay riêng phần xử lý thật
+  - Ghi log với định danh tương quan và dữ liệu được phép
+  - Kiểm soát giao dịch hoặc giới hạn truy cập tại ranh giới phù hợp
+  - Dọn dẹp tài nguyên bằng đường xử lý luôn được thực hiện
+  - Phân biệt Proxy với cơ chế interceptor tổng quát
+  - Giữ trách nhiệm nghiệp vụ trong đối tượng phù hợp
+- level1: Vòng đời và đồng thời
+  level2:
+  - Bên tạo Proxy và bên sở hữu đối tượng thật
+  - Thành phần dùng riêng so với thành phần được chia sẻ
+  - Công bố an toàn đối tượng được khởi tạo lười
+  - Tránh tạo trùng đối tượng khi nhiều luồng cùng truy cập
+  - Rủi ro giữ khóa trong khi gọi tác vụ chậm
+  - Trạng thái theo lời gọi và trạng thái dùng chung
+  - Đóng tài nguyên đúng một lần khi có nhiều lớp đại diện
+  - Xử lý lời gọi còn đang chạy lúc ngừng sử dụng
+  - Ngăn rò rỉ tham chiếu và giữ tài nguyên quá lâu
+- level1: Danh tính và lớp bọc
+  level2:
+  - Phân biệt danh tính Proxy với danh tính đối tượng thật
+  - Thiết kế equals và hashCode nhất quán
+  - toString có thể kích hoạt tải hoặc gọi từ xa
+  - Kiểm tra kiểu bằng instanceof và giới hạn khi ép kiểu cụ thể
+  - Lời gọi nội bộ của đối tượng thật có đi qua Proxy hay không
+  - Giá trị trả về chứa this và nguy cơ làm lộ đối tượng thật
+  - Làm lộ collection hoặc thành phần con vượt qua kiểm soát
+  - Tuần tự hóa Proxy và các trạng thái cần tái tạo
+  - Tính minh bạch trong gỡ lỗi, phản chiếu và nhật ký
+- level1: JDK Dynamic Proxy
+  level2:
+  - Tạo Proxy động từ tập interface tại thời điểm chạy
+  - Vai trò của java.lang.reflect.Proxy và InvocationHandler
+  - Chuẩn bị class loader và các interface cần đại diện
+  - Tạo đối tượng bằng Proxy.newProxyInstance
+  - Luồng từ phương thức interface tới InvocationHandler.invoke
+  - Chuyển tiếp tới đối tượng thật bằng Method.invoke
+  - Nhận diện đối tượng Proxy và truy cập bộ xử lý lời gọi
+  - Ràng buộc về khả năng truy cập và interface được phép
+  - Giới hạn khi bên sử dụng chỉ có kiểu lớp cụ thể
+  - So sánh mã Proxy động với lớp đại diện viết tay
+- level1: Thiết kế InvocationHandler
+  level2:
+  - Đọc metadata Method và chọn hành vi theo phương thức
+  - Xử lý args khi phương thức không có tham số
+  - Đối số varargs và mảng tham số qua phản chiếu
+  - Giá trị trả về cho void, kiểu nguyên thủy và giá trị null
+  - Xử lý equals, hashCode và toString trong bộ xử lý
+  - Ngoại lệ nghiệp vụ, InvocationTargetException và việc mở lớp bọc
+  - Checked exception cùng UndeclaredThrowableException
+  - Gọi phương thức mặc định bằng InvocationHandler.invokeDefault
+  - Phương thức trùng chữ ký trên nhiều interface
+  - Tránh tạo vòng lặp khi bộ xử lý gọi lại chính Proxy
+  - Chọn chính sách chặn theo hợp đồng thay vì tên phương thức mơ hồ
+- level1: Proxy dựa trên lớp
+  level2:
+  - Đại diện lớp cụ thể bằng lớp con được tạo tự động
+  - Vai trò của sinh bytecode trong CGLIB hoặc Byte Buddy
+  - Ảnh hưởng của final, private và static tới khả năng chặn
+  - Ràng buộc về constructor và quá trình tạo đối tượng
+  - Khả năng truy cập phương thức theo package và mô-đun
+  - Phân biệt đối tượng Proxy với đối tượng mục tiêu
+  - Lời gọi tự thân và khác biệt giữa các cơ chế chặn
+  - So sánh proxy theo interface với proxy theo lớp
+  - Chi phí phụ thuộc thư viện và quản lý class loader
+- level1: Proxy trong Spring
+  level2:
+  - Vai trò của Proxy trong Spring AOP
+  - Đối tượng mục tiêu, advice, pointcut và interceptor
+  - Nhận diện loại Proxy thực tế thay vì dựa vào giả định mặc định
+  - Phương thức được gọi qua bean tham chiếu so với gọi trực tiếp
+  - Tự gọi trong cùng đối tượng và giới hạn của AOP dựa trên Proxy
+  - Ảnh hưởng của kiểu bean công khai tới khả năng sử dụng
+  - Liên hệ với giao dịch, cache và xử lý bất đồng bộ
+  - Thứ tự advice khi có nhiều hành vi bao quanh
+  - Minh họa tạo Proxy bằng Spring ProxyFactory
+  - Phân biệt AOP qua Proxy với weaving
+- level1: Proxy trong ORM
+  level2:
+  - Đối tượng đại diện phục vụ tải lười trong ORM
+  - Thời điểm truy cập làm phát sinh truy vấn
+  - Định danh entity và dữ liệu chưa được khởi tạo
+  - Vòng đời persistence context cùng khả năng tải dữ liệu
+  - equals, hashCode và kiểm tra kiểu đối với entity đại diện
+  - Ghi log hoặc tuần tự hóa vô tình kích hoạt tải
+  - Truy vấn N+1 phát sinh từ cách truy cập dữ liệu
+  - Phân biệt ORM proxy với cơ chế tăng cường bytecode
+  - Thiết kế biên dữ liệu để tránh làm lộ trạng thái tải lười
+- level1: Chuỗi Proxy
+  level2:
+  - Kết hợp nhiều lớp đại diện quanh một đối tượng
+  - Thứ tự kiểm tra quyền, đọc cache và gọi đối tượng thật
+  - Thứ tự retry, giao dịch và ghi nhận kết quả
+  - Phân biệt số lần gọi nghiệp vụ với số lần thử thực hiện
+  - Ngăn cùng một chính sách bị áp dụng lặp ngoài dự kiến
+  - Chia sẻ ngữ cảnh giữa các lớp chặn
+  - Quan sát luồng đi qua nhiều lớp đại diện
+  - Xác định trách nhiệm tạo, đóng và thay thế cả chuỗi
+  - Chọn chuỗi interceptor khi phù hợp hơn nhiều lớp bọc
+- level1: Lỗi và bất đồng bộ
+  level2:
+  - Giữ nguyên nguyên nhân lỗi khi chuyển tiếp lời gọi
+  - Phân biệt lỗi của Proxy với lỗi của đối tượng thật
+  - Ngăn log trùng và tránh nuốt ngoại lệ
+  - Quy định fallback theo ý nghĩa hợp đồng
+  - Đo thời gian hoàn thành thay vì chỉ thời gian trả về tác vụ
+  - Lỗi phát sinh sau khi phương thức đã trả Future hoặc CompletionStage
+  - Truyền ngữ cảnh, hủy tác vụ và xử lý timeout
+  - Giải phóng tài nguyên sau khi tác vụ bất đồng bộ kết thúc
+  - Kiểm soát retry khi kết quả thực thi chưa được xác định
+- level1: So sánh các mẫu
+  level2:
+  - Proxy và Decorator giống cấu trúc nhưng khác mục đích
+  - Proxy và Adapter trong việc giữ hoặc chuyển đổi hợp đồng
+  - Proxy và Facade theo phạm vi đối tượng được đại diện
+  - Proxy và Bridge theo chiều biến đổi thiết kế
+  - Proxy và Strategy theo vị trí lựa chọn hành vi
+  - Proxy với Factory trong tạo và cấp đối tượng
+  - Proxy với middleware hoặc Chain of Responsibility
+  - Phân biệt lớp bọc nói chung với một triển khai mẫu Proxy
+  - Phân loại mẫu bằng ý định cùng luồng tương tác thực tế
+- level1: Kiểm thử Proxy
+  level2:
+  - Kiểm thử hợp đồng chung cho Proxy và đối tượng thật
+  - Xác nhận đúng tham số, kết quả và số lần chuyển tiếp
+  - Kiểm thử nhánh được xử lý tại Proxy mà không gọi tiếp
+  - Kiểm thử khởi tạo lười và thất bại khi tạo đối tượng
+  - Kiểm thử quyền truy cập cùng các đường đi vòng
+  - Kiểm thử cache theo khóa, thời hạn và ngữ cảnh
+  - Kiểm thử nhiều luồng cùng truy cập
+  - Kiểm thử ngoại lệ phản chiếu và phương thức mặc định
+  - Kiểm thử thứ tự chuỗi Proxy cùng tác vụ bất đồng bộ
+  - Tách kiểm thử bộ xử lý khỏi kiểm thử tích hợp framework
+- level1: Hiệu năng và chẩn đoán
+  level2:
+  - Phân tách chi phí tạo Proxy với chi phí mỗi lời gọi
+  - So sánh lời gọi trực tiếp, Proxy thủ công và Proxy động bằng đo đạc
+  - Đo độ trễ có khởi tạo lười và độ trễ ổn định
+  - Ảnh hưởng của phản chiếu, cấp phát và metadata được lưu lại
+  - Thiết kế benchmark có warm-up và kết quả được sử dụng
+  - Phân tích stack trace qua lớp sinh tự động
+  - Phát hiện Proxy lồng quá sâu hoặc lặp xử lý
+  - Theo dõi tham chiếu, tài nguyên và class loader bị giữ lâu
+- level1: Bẫy thiết kế
+  level2:
+  - Tạo Proxy dù chưa có yêu cầu kiểm soát truy cập
+  - Làm lớp đại diện ôm nghiệp vụ không liên quan
+  - Quảng bá tính minh bạch vượt quá bảo đảm thực tế
+  - Để đối tượng thật thoát ra ngoài ranh giới kiểm soát
+  - Khởi tạo lười nhưng thiếu cơ chế đồng bộ
+  - Lưu cache dùng chung cho dữ liệu khác quyền truy cập
+  - Retry thao tác có tác dụng phụ mà không có quy ước chống lặp
+  - Ép kiểu sang lớp thật làm phá vỡ khả năng thay thế
+  - Tạo quy tắc theo tên phương thức thiếu hợp đồng rõ ràng
+- level1: Lựa chọn và chuyển đổi
+  level2:
+  - Xác định nhu cầu đại diện thay vì chỉ nhu cầu tái sử dụng mã
+  - Chọn Proxy thủ công, theo interface hoặc theo lớp
+  - Xác định các phương thức và ngữ nghĩa cần bảo toàn
+  - Tạo kiểm thử đặc tả trước khi thêm lớp đại diện
+  - Chuyển nơi sử dụng sang nhận đối tượng qua hợp đồng phù hợp
+  - Tách mã lắp ráp và chính sách chặn khỏi nghiệp vụ
+  - Đánh giá yêu cầu tương thích kiểu, lỗi và vòng đời
+  - Triển khai từng bước và quan sát tác động thực tế
+  - Loại bỏ lớp Proxy khi chi phí lớn hơn giá trị kiểm soát
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng Proxy ghi nhận truy cập cho dịch vụ tài liệu
+  - Trì hoãn tải ảnh và kiểm thử nhiều luồng truy cập lần đầu
+  - Kiểm tra quyền đọc tài liệu theo người dùng và tài nguyên
+  - Thiết kế cache không làm lẫn dữ liệu giữa người dùng
+  - Tạo JDK Dynamic Proxy và xử lý ngoại lệ đúng hợp đồng
+  - Kiểm chứng equals, hashCode, toString và phương thức mặc định
+  - Quan sát tự gọi trong một bean Spring được đại diện
+  - Phân tích truy vấn phát sinh khi truy cập entity tải lười
+  - Kết hợp kiểm tra quyền, cache và đo thời gian theo thứ tự có chủ đích
+  - So sánh các phương án Proxy bằng kiểm thử và số đo

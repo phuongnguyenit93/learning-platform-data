@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "4"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Note : Hãy chỉ lấy các kiến thức vẫn còn áp dụng đến hiện giờ, không lấy các kiến thức lỗi thời hoặc đã legacy hiện nay"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "JAVA_VERSION_JAVA7"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Ôn các cải tiến từ Java 7 vẫn được dùng trên JDK hiện đại như try-with-resources, multi-catch, diamond operator, NIO.2, Fork/Join và các tiện ích đồng thời. Người học thực hành quản lý tài nguyên, tệp, I/O và đọc mã cũ, đồng thời tránh API hoặc cách vận hành đã lỗi thời."
+  }
+}

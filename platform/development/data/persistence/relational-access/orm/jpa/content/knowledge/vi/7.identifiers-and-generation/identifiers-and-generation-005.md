@@ -1,0 +1,1058 @@
+# Sinh khóa bằng IDENTITY và ảnh hưởng tới thời điểm chèn dữ liệu
+
+> **Chủ đề:** Data Persistence Relational Access ORM JPA  
+> **Chương:** Khóa và chiến lược sinh
+
+Với JPA, một entity thường được tạo bằng `new`, đăng ký lưu bằng `EntityManager.persist()` rồi được ghi vào bảng khi provider đồng bộ persistence context với cơ sở dữ liệu. Tuy nhiên, khi khóa chính được sinh bởi **`GenerationType.IDENTITY`**, cơ sở dữ liệu phải thực hiện `INSERT` để tạo ra khóa. Điều này ảnh hưởng trực tiếp đến **thời điểm phát SQL**, **thời điểm entity nhận ID**, **thứ tự ghi dữ liệu**, **xử lý ngoại lệ** và **khả năng gom nhiều lệnh INSERT thành batch**.
+
+Điểm quan trọng cần hiểu ngay: **`persist()`, `flush()` và `commit()` là ba thao tác khác nhau.** Với IDENTITY, provider thường phải chèn hàng sớm hơn so với một số chiến lược sinh khóa khác để biết giá trị khóa, nhưng `INSERT` sớm **không có nghĩa dữ liệu đã được commit**. Thời điểm chính xác còn phụ thuộc provider, phiên bản, kiểu transaction và hoàn cảnh gọi API.
+
+## 1. Mục tiêu bài học
+
+Sau bài học, bạn có thể:
+
+- Giải thích IDENTITY là chiến lược **cơ sở dữ liệu cấp khóa chính khi chèn hàng**.
+- Viết mapping `@Id`, `@GeneratedValue(strategy = GenerationType.IDENTITY)` và nhận diện DDL tương ứng trên một số RDBMS.
+- Vẽ được dòng thời gian `new → persist → INSERT/nhận ID → flush → commit`.
+- Nêu được vì sao một provider như Hibernate thường cần chạy `INSERT` ngay khi `persist()` trong transaction hoạt động.
+- Phân biệt **entity đã có ID**, **database đã xử lý INSERT** và **transaction đã commit**.
+- Giải thích tác động của IDENTITY với JDBC batching, insert ordering và quan hệ cha–con.
+- Quan sát SQL trên một bài thực hành JPA để so sánh IDENTITY với SEQUENCE.
+- Xử lý lỗi và rollback đúng khi constraint database bị vi phạm trong lúc chèn.
+- Biết khi nào IDENTITY phù hợp, khi nào nên cân nhắc SEQUENCE, ID cấp từ ứng dụng hoặc chiến lược khác.
+
+## 2. Ba khái niệm thường bị trộn lẫn
+
+Trước khi tìm hiểu chiến lược sinh khóa, cần thống nhất ý nghĩa của ba mốc trong vòng đời ghi dữ liệu.
+
+| Thao tác | Ý nghĩa chính | Có chắc là SQL `INSERT` đã được gửi? | Có nghĩa dữ liệu đã commit? |
+|---|---|---|---|
+| `em.persist(entity)` | Đưa một entity mới vào persistence context, đăng ký cho nó trở thành persistent | **Không có cam kết chung** rằng mọi strategy đều INSERT ngay; với IDENTITY nhiều provider phải INSERT sớm | Không |
+| `em.flush()` | Đồng bộ các thay đổi đang chờ của persistence context với database | Những insert đang chờ và cần đồng bộ được thực hiện theo quy tắc flush; insert IDENTITY có thể đã xảy ra trước đó | Không |
+| `tx.commit()` | Kết thúc và xác nhận transaction thành công | Các thay đổi cần ghi được flush trước/trong commit theo cơ chế provider | Có, nếu commit thành công |
+
+Một `EntityManager` có thể quản lý object mà không phát SQL cho mỗi lời gọi setter. Provider theo dõi managed entity và quyết định lúc nào cần đồng bộ. Nhưng với IDENTITY, provider có thêm yêu cầu **phải lấy một ID do database sinh**, nên quá trình thực thi có thể khác.
+
+### 2.1. Minh họa ngắn gọn
+
+```text
+new Order()       -> object Java mới; id thường là null
+em.persist(order) -> đưa vào persistence context
+                    với IDENTITY, INSERT có thể chạy ở đây
+em.flush()        -> đồng bộ các thay đổi còn chờ;
+                    không đồng nghĩa với COMMIT
+tx.commit()       -> kết thúc transaction và xác nhận dữ liệu
+```
+
+Trong một chương trình Hibernate ORM thông dụng với transaction đã bắt đầu, `persist()` entity có IDENTITY **thường dẫn tới `INSERT` ngay** để lấy ID. Đây là hành vi rất quan trọng để hiểu SQL và hiệu năng, nhưng không nên diễn đạt thành quy tắc vô điều kiện rằng **mọi implementation JPA, mọi phiên bản và mọi hoàn cảnh đều phải chèn ngay tại chính dòng `persist()`**.
+
+## 3. IDENTITY là gì?
+
+`GenerationType.IDENTITY` biểu thị rằng khóa chính của entity được sinh bởi **cơ chế identity của bảng trong database**.
+
+Mapping tối giản:
+
+```java
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "purchase_orders")
+public class PurchaseOrder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    protected PurchaseOrder() {
+        // Constructor không tham số cho JPA.
+    }
+
+    public Long getId() {
+        return id;
+    }
+}
+```
+
+**Ý nghĩa của từng annotation:**
+
+- `@Entity`: khai báo loại đối tượng có thể được quản lý và ánh xạ bằng JPA.
+- `@Id`: xác định thuộc tính khóa chính của entity.
+- `@GeneratedValue(strategy = GenerationType.IDENTITY)`: yêu cầu provider sử dụng cơ chế database tạo khóa khi insert.
+- `Long` thay vì `long`: biểu diễn rõ trạng thái **chưa có ID** bằng `null` trước khi entity được lưu.
+
+Cách database cấp ID khác nhau theo hệ quản trị:
+
+| Database | Cú pháp/cơ chế thường gặp | Ghi chú |
+|---|---|---|
+| PostgreSQL | `GENERATED BY DEFAULT AS IDENTITY` hoặc `GENERATED ALWAYS AS IDENTITY` | Các database PostgreSQL cũ từng hay dùng `SERIAL`; không đồng nghĩa chính xác với cú pháp identity chuẩn |
+| MySQL / MariaDB | `AUTO_INCREMENT` | Database sinh giá trị khi ghi hàng |
+| SQL Server | `IDENTITY(seed, increment)` | Khóa được tạo theo đặc tính identity của cột |
+| H2 | `GENERATED BY DEFAULT AS IDENTITY` | Tiện minh họa trong môi trường học tập |
+| Oracle | `GENERATED ... AS IDENTITY` ở các phiên bản có hỗ trợ | Oracle cũng hỗ trợ sequence, thường là lựa chọn phù hợp cho nhiều hệ thống |
+
+Các cột trên đều nhằm tạo khóa khi chèn, nhưng **cú pháp DDL, cách lấy generated key, hành vi rollback và khả năng tối ưu** phụ thuộc database và JDBC driver.
+
+Ví dụ DDL H2/PostgreSQL minh họa:
+
+```sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    description VARCHAR(200) NOT NULL
+);
+```
+
+Đối với MySQL, cách khai báo tương ứng có thể là:
+
+```sql
+CREATE TABLE purchase_orders (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    description VARCHAR(200) NOT NULL
+);
+```
+
+Trong dự án có migration, hãy để migration tạo cột identity đúng dialect. Annotation `@GeneratedValue` **không thay thế** quy trình quản lý schema và kiểm tra database thực tế.
+
+## 4. Vì sao IDENTITY ảnh hưởng đến thời điểm INSERT?
+
+Bản chất của IDENTITY là **database chưa biết ID cho tới khi nhận một lệnh INSERT hợp lệ**. Provider không thể chỉ gọi một câu lấy giá trị sequence độc lập rồi gán ID trước insert theo cùng cách như chiến lược SEQUENCE.
+
+Giả sử:
+
+```java
+PurchaseOrder order = new PurchaseOrder("First order");
+System.out.println(order.getId());  // thường null
+
+em.persist(order);
+
+System.out.println(order.getId());  // trong trường hợp phổ biến:
+                                    // ID đã được cấp sau INSERT
+```
+
+Để `getId()` có thể trả khóa do database tạo, provider cần thực hiện chu trình tương tự:
+
+```text
+Ứng dụng                   JPA provider               Database
+    |                           |                         |
+    |  persist(order)           |                         |
+    |-------------------------->|                         |
+    |                           |  INSERT purchase_orders |
+    |                           |------------------------>|
+    |                           |                         | sinh id=101
+    |                           |<------------------------|
+    |                           |    generated key=101    |
+    |<--------------------------|                         |
+    |  order.id = 101           |                         |
+    |                           |                         |
+    |  ... các thao tác khác ... |                         |
+    |  commit()                 |                         |
+    |-------------------------->|   COMMIT transaction    |
+    |                           |------------------------>|
+```
+
+Kỹ thuật lấy key có thể dùng JDBC `getGeneratedKeys()`, `INSERT ... RETURNING` hoặc cách tương đương do provider/dialect lựa chọn. Không nên giả định chính xác một cú pháp SQL hoặc một JDBC API trong mọi môi trường.
+
+### 4.1. INSERT sớm không đồng nghĩa COMMIT sớm
+
+Giả sử transaction chứa:
+
+```java
+tx.begin();
+
+PurchaseOrder order = new PurchaseOrder("Draft");
+em.persist(order);              // Có thể INSERT ngay để lấy ID.
+
+Long generatedId = order.getId();
+
+tx.rollback();                  // Hủy transaction.
+```
+
+Sau rollback, object Java vẫn có thể giữ `generatedId` trong bộ nhớ. Nhưng **hàng được chèn trong transaction đã rollback không trở thành dữ liệu đã commit**.
+
+Đây là sự khác biệt giữa:
+
+1. **ID đã được gán cho object**.
+2. **SQL INSERT đã được database xử lý trong transaction**.
+3. **Dữ liệu đã được commit và được các transaction khác nhìn thấy theo isolation của database**.
+
+Ba mốc này **không đồng nhất**. Với IDENTITY, mốc 1 và 2 thường đến sớm hơn mốc 3.
+
+### 4.2. Vì sao sequence có thể khác?
+
+Với `GenerationType.SEQUENCE`, provider có thể xin ID từ database trước khi chèn hàng:
+
+```text
+em.persist(order)
+    |
+    +--> SELECT NEXT VALUE FROM order_sequence  (lấy id=101)
+    |
+    +--> order.id = 101
+    |
+    +--> để INSERT pending trong persistence context
+             |
+             v
+          flush/commit -> INSERT ... id=101
+```
+
+Cơ chế và số lần cấp phát sequence phụ thuộc provider, `allocationSize` và bộ tối ưu generator. Tuy nhiên, điểm cốt lõi là **khóa có thể có trước khi INSERT**, nhờ vậy provider có thể hoãn/gom câu lệnh INSERT dễ dàng hơn so với IDENTITY.
+
+## 5. Dòng thời gian chính xác cần quan sát
+
+Xét ứng dụng Java SE dùng `RESOURCE_LOCAL` và Hibernate làm provider, có một transaction hoạt động.
+
+```text
+T0: new PurchaseOrder("Demo")
+    - object Java đã tồn tại
+    - id thường null
+    - chưa được persistence context quản lý
+
+T1: tx.begin()
+    - transaction bắt đầu
+    - chưa có thao tác ghi bắt buộc nào xảy ra
+
+T2: em.persist(order)
+    - order chuyển thành managed
+    - với IDENTITY + Hibernate trong trường hợp phổ biến:
+      provider INSERT sớm để nhận khóa từ database
+    - ID có thể đã gán tại đây
+
+T3: em.flush()
+    - provider đồng bộ các thay đổi còn pending
+    - không nhất thiết phát thêm INSERT cho chính order
+      nếu INSERT đã chạy ở T2
+
+T4: tx.commit()
+    - đồng bộ phần còn thiếu và commit transaction
+    - nếu thành công, dữ liệu được xác nhận
+
+T5: em.close()
+    - persistence context kết thúc; object trở thành detached
+    - không hủy dữ liệu đã commit
+```
+
+**Vì sao dùng từ “trường hợp phổ biến”?** Một số provider/phiên bản có cơ chế *delayed identity insert*, đặc biệt khi gọi `persist()` **ngoài transaction**, sử dụng flush mode khác hoặc không cần ID ngay. Khi đó INSERT/ID có thể xuất hiện muộn hơn. Hành vi cụ thể cần được kiểm chứng trên đúng provider, phiên bản và transaction mode đang chạy.
+
+Không nên xây logic nghiệp vụ dựa trên giả định “`persist()` luôn chạy SQL ngay” hoặc “`persist()` không bao giờ chạy SQL trước `flush()`”. Thiết kế tốt thường không phụ thuộc chính xác vào khoảnh khắc provider quyết định đồng bộ, trừ khi đang tối ưu và đã có số liệu đo.
+
+## 6. Ví dụ đầy đủ: entity dùng IDENTITY
+
+Ta dùng entity `PurchaseOrder` có một mô tả đơn giản để quan sát generated ID.
+
+```java
+package demo.jpa;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import java.util.Objects;
+
+@Entity
+@Table(name = "purchase_orders")
+public class PurchaseOrder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "description", nullable = false, length = 200)
+    private String description;
+
+    protected PurchaseOrder() {
+        // JPA cần constructor không tham số.
+    }
+
+    public PurchaseOrder(String description) {
+        this.description = Objects.requireNonNull(description);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void rename(String newDescription) {
+        this.description = Objects.requireNonNull(newDescription);
+    }
+}
+```
+
+**Điểm cần nhớ:**
+
+- `@GeneratedValue(strategy = IDENTITY)` đặt tại trường định danh.
+- `id` không cần setter công khai; ứng dụng không tự chọn ID cho entity mới.
+- `description` là field nghiệp vụ; thay đổi trên managed entity có thể được dirty checking xử lý.
+- Không có yêu cầu phải viết `INSERT` thủ công trong mã Java; SQL do provider sinh ra.
+
+### 6.1. Khai báo persistence unit
+
+Ví dụ file `src/main/resources/META-INF/persistence.xml` dành cho một ứng dụng học với Hibernate và H2:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="
+               https://jakarta.ee/xml/ns/persistence
+               https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <persistence-unit name="identityDemoPU"
+                      transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <class>demo.jpa.PurchaseOrder</class>
+
+        <properties>
+            <property name="jakarta.persistence.jdbc.driver"
+                      value="org.h2.Driver"/>
+            <property name="jakarta.persistence.jdbc.url"
+                      value="jdbc:h2:mem:identity_demo;DB_CLOSE_DELAY=-1"/>
+            <property name="jakarta.persistence.jdbc.user" value="sa"/>
+            <property name="jakarta.persistence.jdbc.password" value=""/>
+
+            <!-- Học tập: database tạm, tự tạo và xóa schema. -->
+            <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+</persistence>
+```
+
+Để chạy chương trình, cần các dependency tương thích: Jakarta Persistence API, Hibernate ORM provider và H2 JDBC driver. Cú pháp provider properties có thể khác giữa các implementation; `hibernate.*` là cấu hình riêng của Hibernate.
+
+`hibernate.hbm2ddl.auto=create-drop` **chỉ phù hợp cho database dùng để học/thử nghiệm** vì có thể làm mất dữ liệu. Môi trường thật cần schema migration có quản lý và không nên bật tự xóa bảng.
+
+### 6.2. Main minh họa thời điểm nhận khóa
+
+```java
+package demo.jpa;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Persistence;
+
+public class IdentityDemo {
+
+    public static void main(String[] args) {
+        EntityManagerFactory emf =
+                Persistence.createEntityManagerFactory("identityDemoPU");
+
+        try {
+            runExample(emf);
+        } finally {
+            emf.close();
+        }
+    }
+
+    private static void runExample(EntityManagerFactory emf) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            EntityTransaction tx = em.getTransaction();
+            tx.begin();
+
+            try {
+                PurchaseOrder order = new PurchaseOrder("Sample order");
+
+                System.out.println("A - before persist: id="
+                        + order.getId());
+
+                em.persist(order);
+
+                System.out.println("B - after persist: id="
+                        + order.getId());
+
+                em.flush();
+
+                System.out.println("C - after flush: id="
+                        + order.getId());
+
+                tx.commit();
+
+                System.out.println("D - after commit: id="
+                        + order.getId());
+            } catch (RuntimeException failure) {
+                if (tx.isActive()) {
+                    try {
+                        tx.rollback();
+                    } catch (RuntimeException rollbackError) {
+                        failure.addSuppressed(rollbackError);
+                    }
+                }
+                throw failure;
+            }
+        } finally {
+            em.close();
+        }
+    }
+}
+```
+
+Hãy quan sát đồng thời **dòng log A/B/C/D** và **log Hibernate SQL**. Với Hibernate và transaction resource-local hoạt động, bạn thường thấy `INSERT` được phát sau `em.persist(order)`, trước log B, vì Hibernate cần lấy giá trị IDENTITY.
+
+Không biến kết quả một lần chạy thành “luật JPA”. Để khẳng định một SQL được phát tại dòng nào trong dự án cụ thể, phải biết provider, phiên bản, cấu hình, transaction, và kiểm tra log SQL hoặc tracing.
+
+### 6.3. Điều gì thay đổi khi gọi flush?
+
+Giả sử provider đã chèn entity IDENTITY lúc `persist()`. Khi gọi:
+
+```java
+em.flush();
+```
+
+provider có thể không cần phát **một INSERT thứ hai** cho cùng entity, vì hàng đã được chèn. Flush vẫn có ý nghĩa với các thay đổi khác đang chờ, như `UPDATE` của managed entity hoặc các thao tác lưu/xóa khác.
+
+Nếu muốn kiểm tra lỗi constraint sớm hoặc đồng bộ thay đổi trước khi chạy một query/phép tính, `flush()` có thể hữu ích. Nhưng với IDENTITY, **lỗi INSERT có thể đã xuất hiện trước thời điểm flush**.
+
+## 7. So sánh IDENTITY, SEQUENCE, TABLE và AUTO
+
+Các chiến lược phát sinh khóa thường dùng trong JPA khác nhau về nguồn cấp ID và khả năng tối ưu.
+
+| Chiến lược | Nguồn tạo khóa | Khi nào có thể biết ID? | Hệ quả quan trọng |
+|---|---|---|---|
+| `IDENTITY` | Database sinh trong lúc INSERT | Thường phải INSERT trước khi lấy ID | Có thể làm INSERT sớm và hạn chế batch insert |
+| `SEQUENCE` | Sequence của database | Có thể lấy trước INSERT | Thuận lợi hơn để trì hoãn/gom INSERT; có thể cấp phát theo nhóm |
+| `TABLE` | Bảng phụ quản lý bộ đếm | Có thể xin ID trước INSERT | Thêm thao tác truy cập/khóa bảng sinh ID; thường ít hấp dẫn về hiệu năng |
+| `AUTO` | Provider quyết định theo database và cấu hình | Tùy lựa chọn thực tế | Không suy ra là IDENTITY nếu chưa xem provider/dialect |
+
+Ví dụ sequence:
+
+```java
+@Id
+@GeneratedValue(
+    strategy = GenerationType.SEQUENCE,
+    generator = "order_sequence_generator"
+)
+@SequenceGenerator(
+    name = "order_sequence_generator",
+    sequenceName = "purchase_order_seq",
+    allocationSize = 50
+)
+private Long id;
+```
+
+`allocationSize = 50` mô tả phạm vi cấp phát ID theo cấu hình JPA; số SQL thực tế, cách provider dùng sequence và yêu cầu đồng bộ với schema phụ thuộc implementation. Khi quản lý schema bằng migration, cần tạo sequence tương ứng và bảo đảm cấu hình generator tương thích với database/provider.
+
+**Không nên chuyển hàng loạt từ IDENTITY sang SEQUENCE mà không thay schema/migration.** IDENTITY và SEQUENCE là hai cơ chế khác nhau. Trên database không hỗ trợ sequence theo nhu cầu, cần cân nhắc chiến lược phù hợp khác.
+
+### 7.1. Mẫu SQL giả lập để hiểu khác biệt
+
+*Các đoạn sau chỉ minh họa ý tưởng, không phải lời khẳng định chính xác SQL của mọi dialect.*
+
+**IDENTITY:**
+
+```sql
+INSERT INTO purchase_orders (description) VALUES ('Order A');
+-- Database cấp id=101; provider lấy generated key.
+```
+
+**SEQUENCE:**
+
+```sql
+SELECT NEXT VALUE FOR purchase_order_seq;
+-- Provider có id=101 trước khi chèn.
+
+INSERT INTO purchase_orders (id, description)
+VALUES (101, 'Order A');
+```
+
+Ở PostgreSQL, cú pháp lấy sequence thường là `nextval('purchase_order_seq')`, còn nhiều database khác dùng cú pháp khác. Provider tự lựa chọn dialect phù hợp.
+
+### 7.2. IDENTITY có phải luôn “kém hơn” SEQUENCE?
+
+Không. IDENTITY đơn giản, dễ cấu hình trên nhiều database và phù hợp với nhiều ứng dụng CRUD có lưu từng object hoặc lượng insert không lớn. SEQUENCE thường có lợi thế trong các tác vụ ghi hàng loạt khi database hỗ trợ, nhưng cần thêm cấu hình sequence và hiểu allocation strategy.
+
+Điều cần quyết định là **khối lượng ghi, database đang dùng, yêu cầu hiệu năng và mức độ đơn giản vận hành**. Không nên chọn generator chỉ theo tên annotation.
+
+## 8. Tác động quan trọng: JDBC batching
+
+Một lợi ích của ORM là có thể gom nhiều câu `INSERT` tương tự thành các batch JDBC, giảm số lần đi lại giữa ứng dụng và database. Tuy nhiên, để batch hiệu quả, provider thường cần chuẩn bị nhiều thao tác insert mà chưa phải lấy generated key của từng hàng ngay lập tức.
+
+Với **IDENTITY**, mỗi hàng thường phải được chèn để nhận ID trước khi xử lý tiếp. Hibernate ORM trong nhiều cấu hình **không hỗ trợ JDBC insert batching cho các entity dùng identity generator**, vì phải truy xuất khóa sinh ra ở mỗi lần insert.
+
+Ví dụ:
+
+```java
+tx.begin();
+
+for (int i = 0; i < 100; i++) {
+    em.persist(new PurchaseOrder("Order " + i));
+}
+
+tx.commit();
+```
+
+Với Hibernate + IDENTITY, vòng lặp này có thể tạo nhiều lượt `INSERT` riêng lẻ. Không thể chỉ tăng `hibernate.jdbc.batch_size` rồi mặc nhiên mong 100 hàng thành các batch insert như khi dùng SEQUENCE.
+
+### 8.1. So sánh dòng thời gian
+
+```text
+IDENTITY (trường hợp Hibernate phổ biến):
+
+persist(order1) -> INSERT order1 -> lấy ID 1
+persist(order2) -> INSERT order2 -> lấy ID 2
+persist(order3) -> INSERT order3 -> lấy ID 3
+...
+commit()
+
+SEQUENCE + batching (khi hỗ trợ/cấu hình phù hợp):
+
+persist(order1) -> lấy/cấp trước ID 1, giữ INSERT pending
+persist(order2) -> lấy/cấp trước ID 2, giữ INSERT pending
+persist(order3) -> lấy/cấp trước ID 3, giữ INSERT pending
+...
+flush/commit()  -> gom các INSERT thành các JDBC batch khả thi
+```
+
+Batched JDBC statements và **một câu SQL multi-row INSERT** là hai cơ chế khác nhau. Không nên nhìn log một cách đơn giản rồi kết luận số round-trip thực tế nếu chưa xem metrics JDBC/database.
+
+### 8.2. `batch_size`, `flush()`, `clear()` tác động ra sao?
+
+Các cấu hình Hibernate thường gặp:
+
+```properties
+hibernate.jdbc.batch_size=50
+hibernate.order_inserts=true
+```
+
+Những cấu hình này có thể giúp batch đối với các insert **đủ điều kiện**, nhưng không làm biến IDENTITY thành generator có ID được cấp trước INSERT. Nếu đang tạo rất nhiều entity dùng identity, thiếu khả năng batch cho chính các entity đó vẫn là vấn đề phải tính đến.
+
+Trong quy trình bulk import:
+
+```java
+for (int i = 0; i < records.size(); i++) {
+    em.persist(toEntity(records.get(i)));
+
+    if ((i + 1) % 50 == 0) {
+        em.flush();
+        em.clear();
+    }
+}
+```
+
+`flush()/clear()` có thể giúp kiểm soát bộ nhớ của persistence context, nhưng **không tự phục hồi JDBC insert batching đã bị IDENTITY hạn chế**. `clear()` detach các entity đang managed, vì thế phải xác định sau đó còn cần sửa/đọc association của chúng hay không. Mẫu trên giả định transaction đang hoạt động ở bên ngoài; không phải code đầy đủ xử lý rollback.
+
+### 8.3. Khi nào cần quan tâm?
+
+| Mức sử dụng | Đánh giá thực tế |
+|---|---|
+| Một vài INSERT cho mỗi request | IDENTITY thường đủ đơn giản; chỉ tối ưu khi có dữ liệu đo |
+| Hàng chục INSERT trong một transaction | Quan sát số SQL và round-trip để xác định ảnh hưởng |
+| Hàng nghìn hoặc hàng triệu hàng import | Cân nhắc generator thuận lợi cho batch, JDBC batch trực tiếp hoặc bulk loading phù hợp |
+| Hệ thống ghi đồng thời rất cao | Đo latency, contention, transaction time và thông lượng database |
+| Entity graph nhiều cha–con, cascade | INSERT sớm có thể tác động thứ tự và khả năng gom câu lệnh |
+
+Tối ưu hóa nên dựa trên benchmark với **database và JDBC driver thực tế**. H2 in-memory tiện kiểm tra hành vi cơ bản, nhưng không đại diện đầy đủ cho PostgreSQL, MySQL, Oracle hoặc SQL Server trong môi trường triển khai.
+
+## 9. Thứ tự INSERT trong quan hệ cha–con
+
+Xét một đơn hàng có nhiều dòng chi tiết:
+
+```text
+PurchaseOrder (cha)
+    id = database generated IDENTITY
+    |
+    +-- OrderLine 1
+    |      order_id -> purchase_orders.id
+    |
+    +-- OrderLine 2
+           order_id -> purchase_orders.id
+```
+
+Để chèn `order_lines` với khóa ngoại `order_id`, provider cần biết ID của bản ghi `PurchaseOrder`. Khi ID được sinh bởi database, provider thường phải chèn đơn hàng cha trước rồi mới có ID để tạo dòng con.
+
+Ví dụ mapping:
+
+```java
+@Entity
+@Table(name = "purchase_orders")
+public class PurchaseOrder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String description;
+
+    @OneToMany(
+        mappedBy = "order",
+        cascade = CascadeType.PERSIST,
+        orphanRemoval = true
+    )
+    private List<OrderLine> lines = new ArrayList<>();
+
+    protected PurchaseOrder() {}
+
+    public PurchaseOrder(String description) {
+        this.description = description;
+    }
+
+    public void addLine(String sku, int quantity) {
+        OrderLine line = new OrderLine(this, sku, quantity);
+        lines.add(line);
+    }
+}
+```
+
+Và entity con:
+
+```java
+@Entity
+@Table(name = "order_lines")
+public class OrderLine {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private PurchaseOrder order;
+
+    @Column(nullable = false)
+    private String sku;
+
+    @Column(nullable = false)
+    private int quantity;
+
+    protected OrderLine() {}
+
+    public OrderLine(PurchaseOrder order,
+                     String sku,
+                     int quantity) {
+        this.order = Objects.requireNonNull(order);
+        this.sku = Objects.requireNonNull(sku);
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(
+                "Quantity must be positive");
+        }
+        this.quantity = quantity;
+    }
+}
+```
+
+Các import cần thiết cho ví dụ trên gồm `jakarta.persistence.*`, `java.util.List`, `java.util.ArrayList` và `java.util.Objects`; tách hai class vào hai file Java với tên tương ứng.
+
+Sử dụng:
+
+```java
+tx.begin();
+
+PurchaseOrder order = new PurchaseOrder("Order with lines");
+order.addLine("PEN-001", 2);
+order.addLine("PAPER-001", 5);
+
+em.persist(order); // CascadeType.PERSIST đăng ký lưu các dòng con.
+
+tx.commit();
+```
+
+Provider phải bảo toàn tính đúng đắn của quan hệ FK và lệnh insert. Thứ tự phát SQL cụ thể còn phụ thuộc generator của child, cascade, flush, sorting/ordering của provider và ràng buộc database.
+
+### 9.1. Owning side và IDENTITY là hai vấn đề khác nhau
+
+`@OneToMany(mappedBy = "order")` xác định phía ngược (*inverse side*). `@ManyToOne` trên `OrderLine.order` là phía sở hữu khóa ngoại `order_id`. IDENTITY chỉ quyết định **cách sinh PK của từng entity**; nó không tự thiết lập quan hệ hay thay thế việc đồng bộ hai phía.
+
+Phương thức `addLine` gán `this` cho `OrderLine.order`, qua đó thiết lập khóa ngoại đúng phía owning side. Nếu chỉ thêm một object vào collection mà không đặt tham chiếu owning side, quan hệ có thể không được ghi như mong đợi.
+
+### 9.2. Có thể “truyền ID của cha” trước INSERT không?
+
+Với identity sinh tại database, application chưa có khóa cha trước khi database cấp. Provider phải xử lý trình tự phù hợp. Nếu domain/bulk import cần xác định khóa cha từ trước để tạo nhiều bản ghi con mà chưa insert cha, có thể cân nhắc:
+
+- `SEQUENCE` để xin ID trước INSERT nếu database hỗ trợ.
+- Khóa ID do ứng dụng cấp sẵn, nếu phù hợp với kiến trúc.
+- Thiết kế giao dịch nhiều bước/bulk import bằng SQL phù hợp.
+
+Không nên tự gán một ID giả vào field có `@GeneratedValue(strategy=IDENTITY)` để “né” cơ chế database.
+
+## 10. Khi SQL chạy sớm, lỗi cũng có thể xuất hiện sớm
+
+Constraint trong database được kiểm tra khi SQL được thực thi (hoặc ở thời điểm transaction/constraint phù hợp nếu database hỗ trợ deferred constraint).
+
+Giả sử bảng có:
+
+```sql
+CREATE TABLE users (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE
+);
+```
+
+Nếu entity `User` dùng IDENTITY và ứng dụng persist hai user trùng `username`, provider có thể gửi INSERT sớm để lấy ID; do đó lỗi unique constraint có thể xảy ra **ngay khi gọi `persist()`** (hoặc tại `flush()`/`commit()` trong trường hợp khác).
+
+```java
+EntityTransaction tx = em.getTransaction();
+tx.begin();
+
+try {
+    em.persist(new User("same_name"));
+    em.persist(new User("same_name"));
+
+    tx.commit();
+} catch (RuntimeException ex) {
+    if (tx.isActive()) {
+        tx.rollback();
+    }
+    throw ex;
+}
+```
+
+**Đừng viết code với giả định “mọi lỗi database chỉ xuất hiện ở `commit()`”.** Với IDENTITY, thao tác persist có thể phát SQL ngay. Trong các tình huống khác, flush, query-triggered flush hoặc commit mới khiến lỗi lộ ra.
+
+Nếu transaction đã bị provider/database đánh dấu rollback-only sau ngoại lệ persistence, không cố tiếp tục dùng cùng transaction để ghi những entity khác. Hãy rollback, xác định nguyên nhân và bắt đầu unit of work mới.
+
+### 10.1. Vì sao câu lệnh thành công vẫn có thể bị rollback?
+
+```text
+BEGIN
+INSERT user ... -> database sinh id=17
+INSERT order ... -> lỗi UNIQUE hoặc FK
+ROLLBACK
+```
+
+Cả chuỗi có thể rollback, dù user đã nhận ID 17 trong object Java. Dữ liệu chưa commit không phải kết quả bền vững của unit of work.
+
+Nếu ứng dụng cần ghi log về việc insert thất bại, nên phân biệt mã ID tạm được cấp trong transaction với ID của bản ghi thực sự tồn tại sau commit.
+
+## 11. IDENTITY, rollback và “lỗ hổng” trong dãy ID
+
+Một hiểu lầm thường gặp là IDENTITY phải tạo ra dãy `1, 2, 3, 4, ...` **không có số bị bỏ qua**. Thực tế, nhiều database sử dụng cơ chế cấp số không được rollback theo cùng cách với dữ liệu hàng.
+
+Ví dụ:
+
+```text
+Transaction A:
+    INSERT -> nhận ID 100
+    ROLLBACK
+
+Transaction B:
+    INSERT -> nhận ID 101
+    COMMIT
+```
+
+Bảng có thể chỉ còn hàng ID 101; số 100 không nhất thiết được sử dụng lại. Các lý do khác gây gap gồm insert lỗi, transaction cạnh tranh, cache/cấp số của database và các hành động quản trị.
+
+**ID không phải số thứ tự nghiệp vụ liên tục.** Không được dùng IDENTITY để yêu cầu:
+
+- Số hóa đơn liên tiếp không đứt quãng theo quy định pháp lý.
+- Thứ tự commit của các transaction.
+- Tổng số bản ghi đã từng chèn.
+- Dự đoán ID tiếp theo bằng `MAX(id) + 1`.
+- Cam kết rằng ID lớn hơn luôn tương đương bản ghi được commit muộn hơn.
+
+Nếu cần số chứng từ có quy tắc riêng, hãy thiết kế cơ chế đánh số nghiệp vụ/transaction phù hợp, tách khỏi PK kỹ thuật.
+
+### 11.1. Có ID không có nghĩa bản ghi đã tồn tại vĩnh viễn
+
+Sau `rollback`, object Java có thể còn `id` được sinh trước đó nhưng bản ghi tương ứng đã bị hủy. Đừng lấy object sau rollback rồi coi nó là một entity đã lưu thành công. Với unit of work mới, nên tạo instance mới hoặc tải dữ liệu theo quy trình phục hồi hợp lệ; không tùy tiện `persist` lại entity cũ có ID và trạng thái không rõ.
+
+## 12. Khi nào ID xuất hiện: những trường hợp cần phân biệt
+
+### 12.1. `persist()` trong transaction resource-local đang hoạt động
+
+Đây là trường hợp minh họa chính của bài:
+
+```java
+tx.begin();
+em.persist(order);
+Long id = order.getId();
+tx.commit();
+```
+
+Với Hibernate + IDENTITY, thường SQL INSERT đã chạy và ID được cấp tại hoặc gần `persist()`. Đây là hành vi phổ biến, **không phải lời cam kết độc lập với provider**.
+
+### 12.2. `persist()` ngoài transaction
+
+JPA có một số thao tác trên persistence context không bắt buộc transaction tại thời điểm được gọi, nhưng **khi nào được phép/được thực thi SQL ghi** phụ thuộc môi trường và transaction mode. Một số phiên bản Hibernate có thể trì hoãn identity insert, đặc biệt khi không có transaction đang active hoặc khi đang xử lý temporary identifier.
+
+Không nên dựa vào `em.persist()` ngoài transaction để thực hiện ghi thành công. Với ứng dụng cần lưu dữ liệu, hãy khai báo transaction rõ ràng và xử lý commit/rollback đúng.
+
+### 12.3. `flush()` có thể do query kích hoạt
+
+Với flush mode mặc định `AUTO`, provider có thể flush những thay đổi cần thiết trước khi thực hiện truy vấn, để bảo đảm query thấy dữ liệu nhất quán theo quy tắc flush. Với IDENTITY, insert của entity cụ thể có thể đã chạy trước truy vấn.
+
+Ví dụ:
+
+```java
+tx.begin();
+
+em.persist(new PurchaseOrder("New order"));
+
+long count = em.createQuery(
+        "select count(o) from PurchaseOrder o", Long.class)
+    .getSingleResult();
+
+tx.commit();
+```
+
+Không nên suy luận số lần `INSERT` chỉ từ việc có query giữa persist và commit. Hãy bật log SQL và quan sát.
+
+### 12.4. `save()` của Spring Data JPA
+
+Spring Data JPA `repository.save(entity)` là API repository. Với entity mới, implementation thường dùng `EntityManager.persist()`; với entity được nhận diện là không mới, có thể dùng `merge()`. Quyết định mới/cũ tùy cơ chế nhận diện state, generated ID và cấu hình entity.
+
+`save()` không tạo ra một quy tắc mới rằng “INSERT luôn chờ tới commit” hoặc “INSERT luôn chạy ngay”. Khi chiến lược IDENTITY được dùng phía dưới, nhu cầu lấy ID từ database vẫn có thể làm INSERT sớm.
+
+`saveAndFlush()` yêu cầu flush, nhưng với IDENTITY không có nghĩa đó là thời điểm **đầu tiên** INSERT chạy. `flush` cũng không phải commit nếu transaction còn active.
+
+## 13. IDENTITY và bulk insert: bài toán thực tế
+
+Giả sử API nhận một request tạo 5.000 bản ghi trong một transaction. Với IDENTITY + Hibernate, việc từng entity cần database cấp khóa có thể hạn chế batching và tăng số lượt giao tiếp.
+
+### 13.1. Những hướng xử lý
+
+| Hướng | Khi phù hợp | Điều cần cân nhắc |
+|---|---|---|
+| Giữ IDENTITY | Khối lượng vừa phải, ưu tiên đơn giản | Chấp nhận chi phí per-row insert |
+| Chuyển sang SEQUENCE | Database hỗ trợ, batch insert là đường nóng | Cần migration, sequence generator và benchmark |
+| Dùng ID do ứng dụng cấp | Phân tán/tạo graph offline, cần biết ID trước khi ghi | Chiến lược định danh, độ dài khóa và index |
+| Dùng JDBC batch trực tiếp | Import lớn, không cần đầy đủ lifecycle/cascade của JPA | Mapping thủ công, transaction và generated-key handling |
+| Bulk loader của database | Khối lượng rất lớn, pipeline ETL chuyên dụng | Ràng buộc, idempotency, kiểm soát lỗi từng lô |
+| Chia transaction thành các chunk | Giới hạn thời gian/khối lượng mỗi transaction | Không còn atomicity trên toàn bộ dữ liệu lớn |
+
+Không mặc định IDENTITY là nguyên nhân duy nhất của insert chậm. Các yếu tố khác gồm index, trigger, FK constraint, network latency, connection pool, logging, transaction isolation, kích thước bản ghi và hiệu năng database.
+
+### 13.2. Hibernate statistics và log
+
+Để quan sát thực tế, có thể bật công cụ logging/statistics phù hợp với phiên bản Hibernate đang dùng. Ví dụ cấu hình:
+
+```properties
+hibernate.show_sql=true
+hibernate.format_sql=true
+hibernate.generate_statistics=true
+hibernate.jdbc.batch_size=50
+```
+
+`hibernate.show_sql` cho thấy SQL, nhưng không phải lúc nào cũng đủ để suy ra mọi batch/round-trip. Nên kết hợp thống kê Hibernate, JDBC proxy/trace hoặc metrics của database, đặc biệt khi đánh giá hiệu năng production.
+
+Bảng cần ghi trong thí nghiệm:
+
+| Thử nghiệm | Generator | Số entity | Số INSERT quan sát | Batch JDBC thực tế | Thời gian |
+|---|---|---:|---:|---:|---:|
+| A | IDENTITY | 10 | Ghi từ log | Ghi từ metrics | Đo |
+| B | SEQUENCE | 10 | Ghi từ log | Ghi từ metrics | Đo |
+| C | IDENTITY | 1.000 | Ghi từ log | Ghi từ metrics | Đo |
+| D | SEQUENCE | 1.000 | Ghi từ log | Ghi từ metrics | Đo |
+
+Mục đích là **đo hành vi của stack thật**, không điền trước kết quả giả định và coi là benchmark.
+
+## 14. Ví dụ vấn đề khi dùng Set và equals/hashCode dựa trên generated ID
+
+Với IDENTITY, entity mới thường chuyển từ `id = null` sang ID được cấp sau persist/insert. Nếu `hashCode()` phụ thuộc `id`, thêm entity vào `HashSet` trước khi ID sinh có thể làm lookup sai.
+
+Ví dụ dễ gặp:
+
+```java
+Set<PurchaseOrder> orders = new HashSet<>();
+
+PurchaseOrder order = new PurchaseOrder("Set demo");
+orders.add(order);     // hash theo id=null
+
+em.persist(order);    // IDENTITY có thể làm id chuyển thành 102
+
+boolean found = orders.contains(order); // Có thể false nếu hash đổi.
+```
+
+Đây là vấn đề **hợp đồng Java `equals()/hashCode()`** khi khóa thay đổi, không phải lỗi transaction của JPA. Nếu cần equality theo database ID, một mẫu thường dùng cho entity độc lập là:
+
+```java
+@Override
+public boolean equals(Object other) {
+    if (this == other) return true;
+    if (!(other instanceof PurchaseOrder)) return false;
+
+    PurchaseOrder that = (PurchaseOrder) other;
+    return getId() != null && getId().equals(that.getId());
+}
+
+@Override
+public int hashCode() {
+    return PurchaseOrder.class.hashCode();
+}
+```
+
+Ở đây `hashCode()` không phụ thuộc ID nên không đổi trong giai đoạn object nằm trong Set. Việc so sánh entity qua Hibernate proxy hoặc hierarchy có thể cần chính sách class equality rõ ràng hơn; không sao chép máy móc implementation này cho mọi inheritance model.
+
+Nếu use case không yêu cầu equality theo database identity qua persistence context, giữ `Object.equals()/hashCode()` mặc định cũng là một lựa chọn hợp lý. Vấn đề cần nhớ cho IDENTITY là **ID có thể xuất hiện ngay giữa vòng đời Java object**.
+
+## 15. Những nhầm lẫn thường gặp
+
+| Nhầm lẫn | Cách hiểu đúng |
+|---|---|
+| “JPA chỉ thực hiện INSERT khi commit.” | Không đúng chung. Với IDENTITY, provider thường INSERT sớm để lấy key. |
+| “Gọi persist là đã commit.” | Persist đăng ký entity; transaction chỉ commit khi commit thành công. |
+| “Có ID là chắc chắn hàng tồn tại trong DB lâu dài.” | Transaction vẫn có thể rollback sau khi ID đã được gán. |
+| “flush là commit.” | Flush đồng bộ SQL; commit xác nhận transaction. |
+| “IDENTITY luôn gán ID chính xác tại dòng persist trong mọi môi trường.” | Thời điểm cụ thể phụ thuộc provider, transaction và cấu hình. |
+| “Tăng jdbc.batch_size sẽ batch được mọi INSERT IDENTITY.” | Với Hibernate, identity generator thường cản trở insert batching cho chính các entity đó. |
+| “Sequence cũng cần INSERT mới biết khóa.” | Sequence có thể cấp ID trước INSERT. |
+| “AUTO có nghĩa IDENTITY.” | AUTO cho provider lựa chọn strategy, tùy database/provider. |
+| “Rollback sẽ trả lại số ID vừa cấp.” | Nhiều database không tái sử dụng số identity; có gap là bình thường. |
+| “ID tăng dần phản ánh thứ tự commit.” | Các transaction có thể commit khác thứ tự cấp ID. |
+| “Gọi saveAndFlush là chắc chắn lần đầu SQL chạy.” | Với IDENTITY, INSERT có thể đã chạy trước flush. |
+| “Số SQL trong show_sql bằng số network round-trip.” | Batch, driver và cơ chế thực thi có thể khiến hai số khác nhau. |
+| “Chèn cha và con cần tự gán ID cho cha.” | Provider xử lý khóa sinh và FK theo mapping đúng; không sửa generated ID bằng tay. |
+| “Tất cả exception ghi DB đều chỉ xảy ra lúc commit.” | Với IDENTITY, constraint error có thể xảy ra ngay khi insert sớm. |
+
+## 16. Bài thực hành: so sánh thời điểm SQL
+
+Bài tập này tập trung vào **quan sát**, không chỉ dự đoán dựa trên annotation.
+
+### Phần A — IDENTITY trong một transaction
+
+Dùng ví dụ `IdentityDemo` ở phần 6.
+
+1. Khởi tạo `EntityManagerFactory` một lần.
+2. Tạo `EntityManager` mới, mở resource-local transaction.
+3. Tạo `PurchaseOrder` chưa có ID và ghi log.
+4. Gọi `persist()` rồi ghi log ID ngay sau đó.
+5. Gọi `flush()`, ghi log và quan sát có thêm `INSERT` cho cùng entity không.
+6. Commit và đọc lại entity bằng một `EntityManager` mới.
+7. Đóng mỗi EM trong `finally` và đóng EMF khi kết thúc chương trình.
+
+Ghi đáp án:
+
+- ID xuất hiện trước hay sau `persist()`?
+- `INSERT` được log ở thời điểm nào?
+- `flush()` có phát INSERT lần thứ hai cho entity đó không?
+- `commit()` có phát SQL khác liên quan entity đó không?
+- Có khác biệt giữa “ID được tạo” và “dữ liệu đã commit” không?
+
+### Phần B — Rollback sau INSERT
+
+Trong một transaction khác:
+
+```java
+tx.begin();
+
+PurchaseOrder rollbackOrder =
+        new PurchaseOrder("Will roll back");
+
+em.persist(rollbackOrder);
+em.flush();
+
+Long idBeforeRollback = rollbackOrder.getId();
+
+tx.rollback();
+```
+
+Mở một EM/transaction khác để tìm bằng `idBeforeRollback`, quan sát kết quả. Tránh dùng `em.find` trong **cùng persistence context đang giữ entity** sau rollback để kết luận về dữ liệu bền vững; hãy kiểm tra từ context mới.
+
+Giải thích vì sao ID vẫn có thể có giá trị trong object Java dù bản ghi không được commit.
+
+### Phần C — SEQUENCE
+
+Trên database có hỗ trợ sequence, tạo một entity tương đương nhưng dùng `GenerationType.SEQUENCE` và sequence đã được khai báo trong schema. Lặp lại thao tác:
+
+```java
+tx.begin();
+
+SequenceOrder order = new SequenceOrder("Sequence demo");
+em.persist(order);
+
+// Quan sát ID và SQL trước flush.
+em.flush();
+
+// Quan sát thời điểm INSERT.
+tx.commit();
+```
+
+`SequenceOrder` chỉ là tên một entity minh họa cần tự tạo trong bài thực hành. So sánh hai cách sinh key:
+
+- ID có thể có trước INSERT không?
+- Query cấp ID có xuất hiện không?
+- Các insert có thể được giữ pending đến flush không?
+- Khi thêm 100 hàng, provider có thể batch khác với IDENTITY như thế nào?
+
+### Phần D — Batch insert
+
+Thử lần lượt 10, 100 và 1.000 entity trong các transaction riêng. Đo bằng metrics thực tế và giữ các điều kiện tương đồng: cùng database, schema, số lượng field, index, driver, connection pool và cấu hình transaction.
+
+Không kết luận chỉ từ một phép đo đơn lẻ. Với benchmark nghiêm túc cần warm-up, lặp nhiều lần và tránh lấy thời gian tạo EMF/schema làm thời gian của thao tác insert.
+
+### Phần E — Quan hệ FK
+
+Tạo `PurchaseOrder` và `OrderLine` theo phần 9. Quan sát thứ tự SQL khi cascade persist. Giải thích tại sao database cần có ID của parent trước khi child có thể ghi FK.
+
+Nếu thay parent generator sang SEQUENCE, so sánh cách provider chuẩn bị key và phát lệnh insert. Đừng kết luận thứ tự chính xác sẽ luôn như nhau với mọi provider hoặc với toàn bộ entity graph phức tạp.
+
+## 17. Cách lựa chọn strategy khi thiết kế hệ thống
+
+Hãy trả lời một chuỗi câu hỏi trước khi chọn ID generator:
+
+1. **Database nào được dùng?** Database có identity, sequence hay cả hai? DDL/migration đã tạo đúng đối tượng sinh khóa chưa?
+2. **Thao tác ghi có tính chất gì?** Chủ yếu chèn một entity qua CRUD, hay thường tạo hàng nghìn entity?
+3. **Có cần ID trước khi INSERT không?** Ví dụ cần dựng graph/batch/bản ghi liên quan và xử lý offline.
+4. **Provider/JDBC driver nào đang chạy?** Khả năng lấy generated key và batching thực tế có phù hợp không?
+5. **Yêu cầu tính nhất quán là gì?** ID chỉ là khóa kỹ thuật hay còn bị dùng nhầm làm số chứng từ, thứ tự nghiệp vụ?
+6. **Đã có số liệu hiệu năng chưa?** Dùng SQL log và metrics để xác định nút thắt trước khi đổi strategy.
+7. **Chi phí migration thế nào?** Thay generator có thể ảnh hưởng schema, sequence, dữ liệu và cách seed ID trong môi trường khác nhau.
+
+Hướng lựa chọn phổ biến:
+
+- **IDENTITY**: tốt khi cơ sở dữ liệu hỗ trợ thuận tiện, CRUD vừa phải, ưu tiên setup đơn giản và không phụ thuộc batch insert lớn.
+- **SEQUENCE**: đáng cân nhắc khi database hỗ trợ và muốn chủ động cấp ID trước INSERT, tối ưu throughput cho nhiều entity.
+- **ID bất biến do ứng dụng cấp**: hữu ích khi cần tạo object graph hoặc identifier trước khi tương tác database, hoặc hệ thống phân tán có quy tắc identity riêng.
+- **AUTO**: thích hợp khi chấp nhận để provider chọn, nhưng phải kiểm tra strategy thực tế, migration và portability của hệ thống.
+
+**Không có một strategy tốt nhất cho tất cả ứng dụng.** Quan trọng là hiểu chính xác **ai sinh ID**, **khi nào provider cần lấy ID** và **cách quyết định đó tác động đến SQL/transaction**.
+
+## 18. Câu hỏi ôn tập
+
+1. Tại sao `GenerationType.IDENTITY` thường dẫn đến INSERT sớm hơn `GenerationType.SEQUENCE`?
+2. `em.persist(entity)` có bảo đảm database đã commit hàng dữ liệu không?
+3. Tại sao sau `persist()` và `flush()`, object có ID nhưng rollback vẫn có thể hủy hàng?
+4. Hibernate thường gặp khó khăn gì khi batch INSERT các entity dùng identity generator?
+5. Vì sao `hibernate.jdbc.batch_size=50` không bảo đảm batch insert cho mọi entity?
+6. Khi insert parent với IDENTITY và child có FK đến parent, provider cần biết điều gì trước khi ghi child?
+7. Constraint violation có thể xuất hiện ngay tại `persist()` trong tình huống nào?
+8. Vì sao bảng có ID `1, 3, 5` chưa chắc bị mất dữ liệu?
+9. Nếu dùng `JpaRepository.saveAndFlush()`, có thể chắc chắn INSERT IDENTITY chỉ chạy lúc flush không?
+10. Trong một thử nghiệm cụ thể, thông tin nào cần ghi lại để xác định thời điểm INSERT thật sự?
+
+Nếu trả lời được những câu hỏi này bằng dòng thời gian và log SQL của chương trình, bạn đã nắm được tác động thực tế của IDENTITY.
+
+## 19. Ghi nhớ trọng tâm
+
+```text
+IDENTITY:
+    Database tạo primary key trong INSERT.
+
+JPA persist:
+    Đưa entity mới vào persistence context.
+    Với IDENTITY, provider thường phải INSERT sớm để lấy khóa.
+
+JPA flush:
+    Đồng bộ những thay đổi đang chờ.
+    Không đồng nghĩa với COMMIT.
+
+Transaction commit:
+    Xác nhận kết quả ghi nếu thành công.
+
+Transaction rollback:
+    Hủy thay đổi chưa commit.
+    ID đã được cấp có thể không được tái sử dụng.
+
+Hibernate insert batching:
+    IDENTITY thường hạn chế khả năng batch INSERT
+    vì mỗi hàng cần nhận generated key.
+
+SEQUENCE:
+    Có thể cấp ID trước khi INSERT.
+    Thuận lợi hơn cho trì hoãn/gom INSERT khi được hỗ trợ.
+```
+
+**Nguyên tắc cần nhớ:** IDENTITY là chiến lược **sinh khóa ở phía database vào lúc chèn bản ghi**. Vì provider thường cần khóa đó để quản lý entity, IDENTITY có thể làm câu SQL `INSERT` chạy ngay ở bước `persist()`, trước `flush()` và `commit()`. Đây là khác biệt về **thời điểm thực thi SQL và khả năng tối ưu**, không phải thay đổi ý nghĩa ACID của transaction: **INSERT đã chạy vẫn có thể rollback**.
+

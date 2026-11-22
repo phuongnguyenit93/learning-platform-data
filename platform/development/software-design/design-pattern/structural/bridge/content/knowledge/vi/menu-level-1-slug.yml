@@ -1,0 +1,67 @@
+menu:
+  - title: "Tổng quan Bridge"
+    slug: bridge-overview
+    index: 0
+  - title: "Hai chiều biến thể"
+    slug: independent-variation-dimensions
+    index: 1
+  - title: "Cấu trúc Bridge"
+    slug: bridge-structure
+    index: 2
+  - title: "Luồng cộng tác"
+    slug: collaboration-flow
+    index: 3
+  - title: "Hợp đồng triển khai"
+    slug: implementor-contract
+    index: 4
+  - title: "Phía abstraction"
+    slug: abstraction-design
+    index: 5
+  - title: "Phía implementation"
+    slug: implementation-design
+    index: 6
+  - title: "Triển khai Java"
+    slug: java-implementation
+    index: 7
+  - title: "Ví dụ hình vẽ"
+    slug: shapes-and-renderers
+    index: 8
+  - title: "Ví dụ điều khiển"
+    slug: remotes-and-devices
+    index: 9
+  - title: "Khởi tạo và thay thế"
+    slug: implementation-wiring-and-replacement
+    index: 10
+  - title: "Mở rộng và tương thích"
+    slug: extension-and-compatibility
+    index: 11
+  - title: "Refactor kế thừa"
+    slug: inheritance-refactoring
+    index: 12
+  - title: "Refactor mã Java"
+    slug: java-code-refactoring
+    index: 13
+  - title: "Bridge và Adapter"
+    slug: bridge-vs-adapter
+    index: 14
+  - title: "Bridge và Strategy"
+    slug: bridge-vs-strategy
+    index: 15
+  - title: "Kết hợp mẫu khác"
+    slug: combining-design-patterns
+    index: 16
+  - title: "Kiểm thử Bridge"
+    slug: bridge-testing
+    index: 17
+  - title: "Vận hành an toàn"
+    slug: lifecycle-and-runtime-safety
+    index: 18
+  - title: "Hiệu năng và đánh đổi"
+    slug: performance-and-trade-offs
+    index: 19
+  - title: "Lỗi thiết kế thường gặp"
+    slug: common-design-mistakes
+    index: 20
+  - title: "Thực hành tổng hợp"
+    slug: integrated-exercises
+    index: 21

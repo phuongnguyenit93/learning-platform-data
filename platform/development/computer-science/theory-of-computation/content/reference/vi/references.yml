@@ -1,0 +1,13 @@
+references:
+  - title: "MIT OpenCourseWare — Theory of Computation (18.404J)"
+    url: "https://ocw.mit.edu/courses/18-404j-theory-of-computation-fall-2020/"
+    description: "Bài giảng, video và bài tập về ngôn ngữ chính quy, CFG/PDA, khả quyết và độ phức tạp."
+  - title: "MIT OpenCourseWare — Automata, Computability, and Complexity (6.045J)"
+    url: "https://ocw.mit.edu/courses/6-045j-automata-computability-and-complexity-spring-2011/"
+    description: "Ghi chú bài giảng và bài tập về DFA/NFA, biểu thức chính quy, máy Turing và P/NP."
+  - title: "OpenDSA — PDAs and Context Free Languages"
+    url: "https://opendsa.cs.vt.edu/OpenDSA/Books/PIFLAS22/html/PDACFL.html"
+    description: "Lý giải quan hệ giữa ôtômát ngăn xếp và ngôn ngữ phi ngữ cảnh."
+  - title: "Foundations of Computation — Critchlow & Eck"
+    url: "https://davidjeck.github.io/FoundationsOfComputation/index.html"
+    description: "Sách mở về biểu thức chính quy, ôtômát hữu hạn, ngữ pháp và máy Turing."

@@ -1,0 +1,5 @@
+# Spring Cloud — Service Broker
+
+**Spring Cloud Open Service Broker** là framework giúp xây dựng một ứng dụng Spring Boot cung cấp tài nguyên dịch vụ theo **Open Service Broker API (OSB API)**. Cloud platform gọi broker để lấy danh mục dịch vụ và service plans, yêu cầu tạo hoặc xóa service instance, đồng thời tạo hoặc hủy service binding cho ứng dụng. Broker giữ vai trò **điều khiển vòng đời dịch vụ**, không phải message broker và không nằm trên đường truyền dữ liệu thông thường giữa ứng dụng với dịch vụ.
+
+Module dành cho người đã biết Java, Spring Boot, REST API và khái niệm cloud platform. Bạn sẽ hiểu mô hình OSB API, khởi tạo Spring broker, định nghĩa catalog, triển khai `ServiceInstanceService` và `ServiceInstanceBindingService`, rồi xử lý cập nhật, deprovision, cấp và thu hồi credentials. Phần tiếp theo tập trung vào thao tác bất đồng bộ với `getLastOperation`, tính nhất quán của trạng thái, bảo mật endpoint và kiểm thử hợp đồng với platform. Kết thúc lộ trình, bạn có thể xây một broker mẫu cung cấp dịch vụ được quản lý, xử lý lỗi và theo dõi vòng đời tài nguyên rõ ràng.

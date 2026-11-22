@@ -1,0 +1,3 @@
+menuLevel1: Boot Loader
+menuLevel2: Phân biệt archive lồng với JAR gộp bằng Maven Shade hoặc Gradle Shadow
+status: WRITTEN

@@ -1,0 +1,121 @@
+menu:
+- title: Nền tảng
+  slug: foundation
+  index: 0
+- title: Kiến trúc Hibernate
+  slug: hibernate-architecture
+  index: 1
+- title: Khởi tạo và cấu hình
+  slug: bootstrap-and-configuration
+  index: 2
+- title: Session và tài nguyên
+  slug: session-and-resources
+  index: 3
+- title: Ánh xạ thực thể
+  slug: entity-mapping
+  index: 4
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 5
+- title: Định danh
+  slug: identifiers
+  index: 6
+- title: Giá trị và tập hợp
+  slug: values-and-collections
+  index: 7
+- title: Quan hệ đơn trị
+  slug: single-valued-associations
+  index: 8
+- title: Quan hệ đa trị
+  slug: multi-valued-associations
+  index: 9
+- title: Kế thừa
+  slug: inheritance
+  index: 10
+- title: Ánh xạ nâng cao
+  slug: advanced-mapping
+  index: 11
+- title: Danh tính đối tượng
+  slug: object-identity
+  index: 12
+- title: Vòng đời thực thể
+  slug: entity-lifecycle
+  index: 13
+- title: Persistence Context
+  slug: persistence-context
+  index: 14
+- title: Dirty Checking và Flush
+  slug: dirty-checking-and-flush
+  index: 15
+- title: Giao dịch
+  slug: transactions
+  index: 16
+- title: Khóa và đồng thời
+  slug: locking-and-concurrency
+  index: 17
+- title: Cascade và xóa
+  slug: cascades-and-deletes
+  index: 18
+- title: Tải dữ liệu
+  slug: fetching
+  index: 19
+- title: Proxy và tăng cường
+  slug: proxies-and-enhancement
+  index: 20
+- title: HQL
+  slug: hql
+  index: 21
+- title: HQL nâng cao
+  slug: advanced-hql
+  index: 22
+- title: Criteria và truy vấn động
+  slug: criteria-and-dynamic-queries
+  index: 23
+- title: SQL gốc
+  slug: native-sql
+  index: 24
+- title: Kết quả và phân trang
+  slug: results-and-pagination
+  index: 25
+- title: Ghi hàng loạt
+  slug: batch-writes
+  index: 26
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 27
+- title: Lược đồ và chuyển đổi
+  slug: schema-migration
+  index: 28
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 29
+- title: Sự kiện và mở rộng
+  slug: events-and-extensions
+  index: 30
+- title: Lịch sử với Envers
+  slug: envers-history
+  index: 31
+- title: Bộ lọc và xóa mềm
+  slug: filters-and-soft-delete
+  index: 32
+- title: Nhiều tổ chức
+  slug: multi-tenancy
+  index: 33
+- title: Quan sát và chẩn đoán
+  slug: observability-and-diagnostics
+  index: 34
+- title: Hiệu năng
+  slug: performance
+  index: 35
+- title: Kiểm thử
+  slug: testing
+  index: 36
+- title: Nâng cấp và tương thích
+  slug: upgrade-and-compatibility
+  index: 37
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 38
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 39

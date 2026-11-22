@@ -1,0 +1,3 @@
+menuLevel1: '@Cacheable'
+menuLevel2: Trả kết quả từ cache và bỏ qua thân phương thức
+status: WRITTEN

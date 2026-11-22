@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phân loại bảo trì
+  slug: maintenance-classification
+  index: 1
+- title: Quy luật tiến hóa
+  slug: evolution-laws
+  index: 2
+- title: Khả năng bảo trì
+  slug: maintainability
+  index: 3
+- title: Tổ chức bảo trì
+  slug: maintenance-organization
+  index: 4
+- title: Kế hoạch bảo trì
+  slug: maintenance-planning
+  index: 5
+- title: Chuyển giao bảo trì
+  slug: maintenance-handover
+  index: 6
+- title: Quy trình thay đổi
+  slug: change-process
+  index: 7
+- title: Hiểu hệ thống
+  slug: system-understanding
+  index: 8
+- title: Phân tích tác động
+  slug: impact-analysis
+  index: 9
+- title: Chẩn đoán và sửa lỗi
+  slug: diagnosis-and-repair
+  index: 10
+- title: Cải tiến chức năng
+  slug: functional-enhancement
+  index: 11
+- title: Kiểm thử hồi quy
+  slug: regression-testing
+  index: 12
+- title: Tái cấu trúc mã
+  slug: code-refactoring
+  index: 13
+- title: Nợ kỹ thuật
+  slug: technical-debt
+  index: 14
+- title: Tái kỹ nghệ
+  slug: reengineering
+  index: 15
+- title: Hiện đại hóa
+  slug: modernization
+  index: 16
+- title: Chuyển đổi nền tảng
+  slug: platform-migration
+  index: 17
+- title: Tiến hóa dữ liệu
+  slug: data-evolution
+  index: 18
+- title: Tương thích giao tiếp
+  slug: communication-compatibility
+  index: 19
+- title: Bảo trì phụ thuộc
+  slug: dependency-maintenance
+  index: 20
+- title: Bảo trì bảo mật
+  slug: security-maintenance
+  index: 21
+- title: Cấu hình và phiên bản
+  slug: configuration-and-versioning
+  index: 22
+- title: Phát hành thay đổi
+  slug: change-release
+  index: 23
+- title: Phản hồi vận hành
+  slug: operational-feedback
+  index: 24
+- title: Tài liệu và tri thức
+  slug: documentation-and-knowledge
+  index: 25
+- title: Công cụ hỗ trợ
+  slug: tools-and-support
+  index: 26
+- title: Ước lượng và đo lường
+  slug: estimation-and-metrics
+  index: 27
+- title: Ngừng sử dụng
+  slug: decommissioning
+  index: 28
+- title: Bối cảnh đặc thù
+  slug: special-contexts
+  index: 29
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 30

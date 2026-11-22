@@ -1,0 +1,332 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Quy chuẩn viết mã (coding standards) là gì
+  - Vì sao nhóm phát triển cần các quy tắc có thể chia sẻ và kiểm chứng
+  - Quan hệ giữa quy chuẩn, chất lượng mã và chi phí bảo trì
+  - Phân biệt quy chuẩn bắt buộc với hướng dẫn và sở thích cá nhân
+  - Phân biệt định dạng, quy ước viết mã và nguyên tắc thiết kế
+  - Vai trò của ví dụ, lập luận và bằng chứng khi xây dựng một quy tắc
+  - Giới hạn của việc tuân thủ quy chuẩn trong bảo đảm chương trình đúng
+  - Trách nhiệm của người viết mã, người rà soát và người quản lý quy chuẩn
+  - Lộ trình từ lựa chọn quy tắc đến áp dụng trong dự án
+- level1: Cấu trúc quy chuẩn
+  level2:
+  - Xác định mục tiêu, đối tượng sử dụng và vấn đề cần giải quyết
+  - Đặt mã định danh và tên ngắn gọn cho từng quy tắc
+  - Diễn đạt mức bắt buộc, khuyến nghị và trường hợp được phép
+  - Mô tả phạm vi áp dụng cùng các điều kiện kích hoạt quy tắc
+  - Ghi rõ lý do và loại rủi ro mà quy tắc muốn giảm
+  - Ví dụ tuân thủ, ví dụ vi phạm và những trường hợp dễ hiểu nhầm
+  - Quy định cách kiểm tra bằng công cụ hoặc bằng rà soát
+  - Ghi ngoại lệ, người chịu trách nhiệm và tiêu chí chấp nhận
+  - Quản lý phiên bản và lịch sử thay đổi của văn bản quy chuẩn
+- level1: Phạm vi và ưu tiên
+  level2:
+  - Quy chuẩn chung của tổ chức với quy tắc riêng của dự án
+  - Quy tắc theo ngôn ngữ, mô-đun và loại tệp
+  - Phạm vi mã sản phẩm, mã kiểm thử, mã sinh và thư viện bên ngoài
+  - Tương thích với phiên bản ngôn ngữ và môi trường thực thi của dự án
+  - Xác định nguồn quy tắc chuẩn và thứ tự ưu tiên khi xung đột
+  - Phân biệt lỗi bắt buộc sửa với khuyến nghị cần xem xét theo ngữ cảnh
+  - Tránh quy tắc trùng lặp, mâu thuẫn hoặc không có cách kiểm chứng
+  - Lựa chọn tập quy tắc vừa đủ cho mục tiêu và mức rủi ro
+- level1: Đặt tên
+  level2:
+  - Tên thể hiện ý nghĩa miền bài toán và trách nhiệm của thành phần
+  - Quy ước tên gói, thư mục và mô-đun
+  - Tên kiểu, lớp, interface, enum và kiểu dữ liệu giá trị
+  - Tên phương thức và sự phân biệt giữa truy vấn với thay đổi trạng thái
+  - Tên biến, tham số, trường dữ liệu và hằng
+  - Tên Boolean thể hiện rõ điều kiện đúng hoặc sai
+  - Từ viết tắt, chữ hoa, chữ thường và thuật ngữ dùng chung
+  - Tên kèm đơn vị đo, mốc thời gian hoặc phạm vi dữ liệu
+  - Tránh tên gây hiểu nhầm, phủ định kép và các cặp tên khó phân biệt
+  - Quy ước tên kiểm thử, tài nguyên và dữ liệu mẫu
+- level1: Tổ chức mã nguồn
+  level2:
+  - Ánh xạ cấu trúc gói và thư mục với trách nhiệm của mã
+  - Trách nhiệm của một tệp và cách tổ chức các kiểu khai báo
+  - Bố cục khai báo gói, import và phần nội dung chính
+  - Nhóm thành viên theo quy ước có thể tìm kiếm và duy trì
+  - Tổ chức mã sản phẩm, mã kiểm thử và tài nguyên
+  - Ranh giới giữa mã dùng chung với mã thuộc một mô-đun
+  - Vị trí cấu hình, hằng miền bài toán và dữ liệu dùng cho kiểm thử
+  - Quy tắc dành cho tệp sinh tự động và tệp do con người quản lý
+- level1: Trình bày mã
+  level2:
+  - Khoảng trắng, thụt lề và cách dùng tab hoặc dấu cách
+  - Vị trí dấu ngoặc và bố cục khối lệnh
+  - Ngắt dòng chữ ký dài, biểu thức và chuỗi lời gọi
+  - Phân nhóm import và xử lý các import không dùng
+  - Dòng trống giữa các phần có trách nhiệm liên quan
+  - Mã hóa tệp, kết dòng và dòng kết thúc cuối tệp
+  - Giữ nguyên nội dung nhạy cảm trong chuỗi và dữ liệu nhúng
+  - Giao các quyết định cơ học cho một cấu hình formatter thống nhất
+- level1: Chú thích và tài liệu
+  level2:
+  - Chú thích giải thích lý do, giả thiết và các quyết định khó suy ra từ mã
+  - Tài liệu hợp đồng cho các thành phần công khai
+  - Mô tả tham số, kết quả, ngoại lệ và tác dụng phụ
+  - Ghi đơn vị đo, giới hạn giá trị và điều kiện sử dụng
+  - Ví dụ minh họa có thể đối chiếu hoặc kiểm chứng
+  - Quy ước TODO và FIXME có ngữ cảnh cùng nơi theo dõi
+  - Tránh chú thích lặp lại mã, sai thực tế hoặc bị bỏ quên
+  - Quy định đầu tệp và thông tin nguồn gốc theo yêu cầu dự án
+  - Cập nhật tài liệu khi hành vi hoặc hợp đồng thay đổi
+- level1: Hàm và phương thức
+  level2:
+  - Một phương thức với mục đích và trách nhiệm rõ ràng
+  - Chọn tên, danh sách tham số và kiểu kết quả theo hợp đồng
+  - Phân biệt tham số đầu vào với dữ liệu bị thay đổi qua lời gọi
+  - Tránh các tham số Boolean hoặc giá trị vị trí khó hiểu tại nơi gọi
+  - Điều kiện bảo vệ và cách xử lý đầu vào không hợp lệ
+  - Tác dụng phụ cần được thể hiện và giới hạn rõ ràng
+  - Quy tắc về độ lớn và độ phức tạp dựa trên khả năng hiểu mã
+  - Nạp chồng phương thức và các trường hợp làm nơi gọi mơ hồ
+  - Tách phần xử lý nghiệp vụ khỏi điều phối và truy cập bên ngoài
+- level1: Kiểu và giao diện
+  level2:
+  - Chọn kiểu dữ liệu thể hiện đúng ý nghĩa thay vì dùng giá trị thô khắp nơi
+  - Giới hạn quyền truy cập của kiểu và thành viên
+  - Dùng interface tại các ranh giới cần thay thế hoặc kiểm thử
+  - Kế thừa và hợp thành trong phạm vi quy tắc thiết kế
+  - Khởi tạo đối tượng với trạng thái hợp lệ
+  - Hợp đồng của equals, hashCode và các phép so sánh trong Java
+  - Enum, kiểu dữ liệu giá trị và record theo nhu cầu mô hình
+  - Tránh làm lộ chi tiết triển khai qua giao diện công khai
+  - Tài liệu hóa trách nhiệm và các ràng buộc khi mở rộng kiểu
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Tiền điều kiện, hậu điều kiện và bất biến của dữ liệu
+  - Chọn nơi kiểm tra đầu vào và trách nhiệm của từng ranh giới
+  - Quy ước null, giá trị vắng mặt và giá trị mặc định
+  - Phân biệt tập rỗng, chuỗi rỗng, dữ liệu không biết và dữ liệu không tồn tại
+  - Sử dụng Optional theo hợp đồng thay vì thay thế mọi vị trí có thể null
+  - Kiểm tra độ dài, phạm vi và các tổ hợp trường dữ liệu
+  - Chuẩn hóa dữ liệu và thứ tự giữa chuẩn hóa với kiểm tra
+  - Thể hiện quyền sở hữu và khả năng thay đổi dữ liệu được truyền vào
+  - Giữ thông tin ngữ cảnh khi chuyển đổi giữa các kiểu dữ liệu
+- level1: Trạng thái và bất biến
+  level2:
+  - Phân biệt trạng thái cục bộ, trạng thái đối tượng và trạng thái dùng chung
+  - Giới hạn khả năng thay đổi khi không có nhu cầu cập nhật
+  - Phân biệt tham chiếu không đổi với đối tượng bất biến
+  - Sao chép phòng vệ khi nhận hoặc trả dữ liệu có thể thay đổi
+  - Tránh để trạng thái nội bộ thoát qua collection hoặc tham chiếu
+  - Quy tắc với biến tĩnh có thể thay đổi và trạng thái toàn cục
+  - Biểu diễn chuyển trạng thái hợp lệ qua các thao tác có tên rõ ràng
+  - Lựa chọn khả năng thay đổi theo trách nhiệm và vòng đời của dữ liệu
+- level1: Điều khiển và biểu thức
+  level2:
+  - Viết điều kiện thể hiện trực tiếp ý nghĩa cần kiểm tra
+  - Tránh phủ định lồng nhau và biểu thức Boolean khó theo dõi
+  - Thống nhất cách dùng điều kiện bảo vệ và các nhánh trả về sớm
+  - Giới hạn mức lồng nhau bằng cách phân chia trách nhiệm
+  - Giữ thứ tự đánh giá và tác dụng phụ dễ nhận biết
+  - Quy tắc về vòng lặp, điều kiện dừng và biến điều khiển
+  - Phân biệt sử dụng biểu thức ngắn gọn với rút gọn làm mất ý nghĩa
+  - Xử lý các nhánh mặc định và trạng thái chưa được dự kiến
+- level1: Giá trị và chuyển đổi
+  level2:
+  - Tránh số và chuỗi mang ý nghĩa ẩn trong logic nghiệp vụ
+  - Chọn kiểu số theo miền giá trị và yêu cầu độ chính xác
+  - Đơn vị đo, co giãn và quy tắc làm tròn
+  - Phép chuyển kiểu thu hẹp, tràn số và mất thông tin
+  - So sánh số thực và cách xác định dung sai theo bài toán
+  - So sánh chuỗi, phân biệt hoa thường và quy tắc Unicode
+  - Mã hóa, giải mã và lựa chọn charset tường minh
+  - Chuỗi định dạng, nội dung nhúng và giá trị cần bảo toàn chính xác
+  - Kiểm tra dữ liệu biên khi chuyển đổi giữa miền bài toán với dữ liệu bên ngoài
+- level1: Thời gian và ngữ cảnh
+  level2:
+  - Phân biệt thời điểm, ngày địa phương, giờ địa phương và khoảng thời gian
+  - Múi giờ và các giả thiết cần thể hiện tại ranh giới dữ liệu
+  - Nguồn thời gian có thể kiểm soát để hỗ trợ kiểm thử
+  - Quy tắc parse, format và lưu trữ giá trị thời gian
+  - Locale trong sắp xếp, so sánh và trình bày dữ liệu
+  - Tránh phụ thuộc ngầm vào cấu hình mặc định của máy chạy
+  - Ghi rõ đơn vị timeout, thời hạn và các giá trị thời gian cấu hình
+- level1: Collection và generic
+  level2:
+  - Chọn collection theo yêu cầu thứ tự, trùng lặp và truy cập
+  - Hợp đồng về phần tử null và collection không có dữ liệu
+  - Trả collection có thể thay đổi, bản sao hoặc góc nhìn theo hợp đồng
+  - Không dựa vào thứ tự duyệt khi cấu trúc dữ liệu không bảo đảm
+  - Tránh cập nhật cấu trúc trong lúc duyệt ngoài cơ chế được hỗ trợ
+  - Generic, kiểu thô và các phép ép kiểu cần được giải thích
+  - Giữ pipeline Stream dễ đọc và kiểm soát tác dụng phụ
+  - Tài liệu hóa chi phí đáng kể của thao tác trên dữ liệu lớn
+- level1: Lỗi và ngoại lệ
+  level2:
+  - Phân biệt đầu vào không hợp lệ, lỗi nghiệp vụ và lỗi hệ thống
+  - Chọn cơ chế báo lỗi phù hợp với hợp đồng của thành phần
+  - Bắt ngoại lệ tại nơi có đủ ngữ cảnh để xử lý
+  - Giữ nguyên nguyên nhân khi chuyển đổi hoặc bọc ngoại lệ
+  - Tránh nuốt lỗi, bắt quá rộng hoặc dùng lỗi như đường đi bình thường
+  - Thông báo lỗi có ngữ cảnh và giới hạn dữ liệu được tiết lộ
+  - Tránh ghi log cùng một lỗi nhiều lần qua các tầng
+  - Quy tắc với ngoại lệ trong callback và tác vụ bất đồng bộ
+  - Giữ trạng thái và tài nguyên nhất quán khi thao tác thất bại
+- level1: Quản lý tài nguyên
+  level2:
+  - Xác định thành phần sở hữu và chịu trách nhiệm đóng tài nguyên
+  - Đóng tài nguyên trên đường đi thành công, lỗi và hủy
+  - Ưu tiên cơ chế quản lý phạm vi như try-with-resources khi phù hợp
+  - Không trả tài nguyên đã đóng hoặc chuyển quyền sở hữu một cách ngầm định
+  - Giới hạn thời gian chờ, dung lượng bộ đệm và số tài nguyên đang mở
+  - Phân biệt tài nguyên dùng riêng với tài nguyên được mượn từ pool
+  - Kiểm tra rò rỉ và các lỗi dọn dẹp mà không làm mất lỗi gốc
+- level1: Đồng thời và bất đồng bộ
+  level2:
+  - Công bố hợp đồng an toàn luồng của kiểu và phương thức
+  - Giới hạn trạng thái dùng chung và xác định cơ chế bảo vệ
+  - Thể hiện rõ thao tác nguyên tử và các bất biến qua nhiều bước
+  - Quy tắc lấy khóa, thứ tự khóa và công việc không nên làm khi giữ khóa
+  - Chọn bộ thực thi theo trách nhiệm thay vì tạo luồng không kiểm soát
+  - Timeout, yêu cầu hủy và vòng đời tác vụ bất đồng bộ
+  - Bảo toàn thông tin lỗi và ngữ cảnh khi chuyển giữa các tác vụ
+  - Xử lý tín hiệu ngắt theo hợp đồng của lớp thực thi
+  - Kiểm thử những hành vi đồng thời có rủi ro theo bằng chứng thực thi
+- level1: Ranh giới hệ thống
+  level2:
+  - Kiểm tra dữ liệu tại điểm đi vào một ranh giới tin cậy
+  - Tách mô hình miền bài toán khỏi định dạng truyền hoặc lưu trữ
+  - Quy định hợp đồng khi gọi hệ thống bên ngoài
+  - Giới hạn thời gian, kích thước dữ liệu và số lần thử lại
+  - Thể hiện ranh giới giao dịch và điều kiện hoàn tác
+  - Thiết kế thao tác có thể gọi lại khi yêu cầu có khả năng bị gửi lặp
+  - Không để chi tiết giao tiếp bên ngoài lan sang mọi lớp xử lý
+- level1: Log và khả năng quan sát
+  level2:
+  - Chọn mức log theo ý nghĩa sự kiện và nhu cầu xử lý
+  - Thông điệp có ngữ cảnh cùng mã định danh truy vết
+  - Quy ước log có cấu trúc và các trường dữ liệu chung
+  - Giới hạn việc ghi dữ liệu nhạy cảm và khối dữ liệu quá lớn
+  - Tránh log lặp, log trong vòng lặp lớn và định dạng tốn kém không cần thiết
+  - Phân biệt thông báo cho người dùng với thông tin chẩn đoán nội bộ
+  - Thống nhất tên chỉ số, đơn vị và phạm vi đo
+  - Giữ khả năng điều tra lỗi mà không làm log trở thành nguồn tác dụng phụ
+- level1: Bảo mật và dữ liệu
+  level2:
+  - Thể hiện các ranh giới tin cậy trong quy tắc viết mã
+  - Kiểm tra dữ liệu theo miền được phép và ngữ cảnh sử dụng
+  - Tránh ghép dữ liệu chưa tin cậy vào lệnh hoặc truy vấn
+  - Quản lý bí mật bằng cơ chế cấu hình phù hợp thay vì ghi trong mã
+  - Phân biệt xác thực danh tính với kiểm tra quyền thực hiện thao tác
+  - Kiểm soát dữ liệu được trả về qua API, lỗi và log
+  - Quy tắc đọc tệp, xử lý đường dẫn và nhận dữ liệu tải lên
+  - Đánh giá thư viện, cơ chế mã hóa và API nhạy cảm theo yêu cầu bảo mật
+  - Ghi rõ những quy tắc cần rà soát chuyên sâu ngoài khả năng của linter
+- level1: Quy chuẩn kiểm thử
+  level2:
+  - Tổ chức và đặt tên kiểm thử theo hành vi cần bảo đảm
+  - Một kiểm thử với điều kiện thiết lập, hành động và kết quả rõ ràng
+  - Assertion kiểm tra điều có ý nghĩa đối với hợp đồng
+  - Tránh phụ thuộc thứ tự chạy và trạng thái dùng chung giữa các kiểm thử
+  - Kiểm soát thời gian, ngẫu nhiên, môi trường và dữ liệu đầu vào
+  - Dữ liệu kiểm thử nhỏ, có chủ đích và không chứa thông tin thật nhạy cảm
+  - Chọn mock, fake hoặc hệ thống thật theo ranh giới cần kiểm chứng
+  - Kiểm thử dữ liệu biên, đường đi thất bại và dọn dẹp tài nguyên
+  - Không thay mục tiêu kiểm chứng bằng việc chỉ tăng chỉ số coverage
+  - Quy tắc xử lý kiểm thử không ổn định, bị bỏ qua hoặc chạy quá lâu
+- level1: Kiến trúc và phụ thuộc
+  level2:
+  - Thể hiện trách nhiệm và quyền sở hữu của từng mô-đun
+  - Quy định hướng phụ thuộc giữa các lớp hoặc tầng
+  - Ngăn vòng phụ thuộc và truy cập xuyên ranh giới không được cho phép
+  - Đặt logic nghiệp vụ, điều phối và chi tiết hạ tầng đúng nơi
+  - Tránh tái sử dụng bằng cách tạo thành phần dùng chung không có trách nhiệm rõ
+  - Giới hạn API nội bộ mà các mô-đun khác được phép sử dụng
+  - Dùng nguyên tắc thiết kế làm căn cứ đánh giá thay vì áp dụng khẩu hiệu
+  - Biến các ràng buộc kiến trúc quan trọng thành kiểm tra có thể lặp lại
+- level1: Build và thư viện
+  level2:
+  - Khai báo phụ thuộc tại nơi sở hữu nhu cầu sử dụng
+  - Quản lý phiên bản và tránh phụ thuộc ngầm vào môi trường máy cá nhân
+  - Quy định việc thêm thư viện mới cùng tiêu chí đánh giá
+  - Phân biệt phụ thuộc sản phẩm, kiểm thử và công cụ build
+  - Giới hạn mã sinh tự động và bảo toàn tệp do con người quản lý
+  - Thống nhất cách build, kiểm thử và kiểm tra quy chuẩn
+  - Quản lý cấu hình theo môi trường mà không đưa bí mật vào kho mã
+  - Rà soát cảnh báo, API lỗi thời và các thay đổi của công cụ
+- level1: Tương thích và thay đổi
+  level2:
+  - Nhận diện bề mặt hợp đồng mà thành phần khác đang sử dụng
+  - Phân biệt thay đổi tương thích với thay đổi làm nơi gọi bị hỏng
+  - Quy tắc đổi tên, xóa hoặc thay kiểu trong giao diện công khai
+  - Quản lý trường dữ liệu và giá trị mặc định trong định dạng trao đổi
+  - Thông báo API sắp ngừng dùng và hỗ trợ giai đoạn chuyển đổi
+  - Giữ hành vi quan trọng khi tái cấu trúc để tuân thủ quy chuẩn
+  - Tài liệu hóa quyết định làm thay đổi hợp đồng và cách kiểm chứng
+- level1: Rà soát mã
+  level2:
+  - Rà soát theo hợp đồng, rủi ro và trách nhiệm của đoạn mã
+  - Tách vi phạm quy tắc khỏi đề xuất cải tiến tùy ngữ cảnh
+  - Dẫn mã quy tắc và bằng chứng cụ thể khi góp ý
+  - Ưu tiên lỗi có tác động trước các vấn đề trình bày
+  - Không lặp lại bằng tay những kiểm tra cơ học đã được tự động hóa
+  - Chia thay đổi thành phần đủ nhỏ để hiểu và kiểm chứng
+  - Giải quyết bất đồng bằng ngữ cảnh, ví dụ và quyết định được ghi lại
+  - Xác nhận ngoại lệ và bằng chứng kiểm thử trước khi chấp nhận thay đổi
+- level1: Kiểm tra tự động
+  level2:
+  - Ánh xạ từng quy tắc với công cụ có khả năng kiểm tra phù hợp
+  - Phân biệt quy tắc cú pháp, quy tắc có ngữ nghĩa và quy tắc cần con người
+  - Phối hợp formatter, linter, phân tích tĩnh và kiểm thử kiến trúc
+  - Cấu hình chung được quản lý cùng mã nguồn
+  - Mức nghiêm trọng và tiêu chí xác định một kiểm tra thất bại
+  - Phân biệt tự sửa an toàn với thay đổi cần đọc lại hành vi
+  - Giảm trùng lặp và xung đột giữa các bộ quy tắc
+  - Đánh giá cảnh báo sai và giới hạn phát hiện của công cụ
+- level1: Áp dụng trong CI
+  level2:
+  - Chạy cùng bộ kiểm tra trên máy phát triển và môi trường CI
+  - Xác định các kiểm tra bắt buộc trước khi hợp nhất
+  - Báo rõ quy tắc, vị trí vi phạm và cách tái hiện
+  - Phân biệt lỗi công cụ với vi phạm của mã nguồn
+  - Chọn phạm vi mã mới, mã thay đổi và toàn kho theo lộ trình áp dụng
+  - Giữ cấu hình kiểm tra nhất quán giữa các mô-đun
+  - Không dùng một lần kiểm tra thành công thay cho toàn bộ bằng chứng chất lượng
+- level1: Ngoại lệ và miễn trừ
+  level2:
+  - Xác định trường hợp cần xin ngoại lệ và lý do có thể kiểm chứng
+  - Giới hạn ngoại lệ ở phạm vi nhỏ nhất cần thiết
+  - Ghi người chịu trách nhiệm cùng quyết định chấp nhận
+  - Dùng suppression có giải thích thay vì tắt toàn bộ nhóm quy tắc
+  - Phân biệt cảnh báo sai với vi phạm được chấp nhận tạm thời
+  - Đặt điều kiện hoặc thời điểm xem xét lại ngoại lệ
+  - Theo dõi việc mở rộng ngoại lệ để tránh làm mất hiệu lực quy chuẩn
+- level1: Áp dụng cho mã cũ
+  level2:
+  - Khảo sát hiện trạng trước khi bật các kiểm tra bắt buộc
+  - Phân nhóm vi phạm theo rủi ro, độ phổ biến và chi phí sửa
+  - Thiết lập baseline để phân biệt tồn đọng với vi phạm mới
+  - Chọn phạm vi chuyển đổi theo mô-đun hoặc theo loại quy tắc
+  - Tách thay đổi cơ học khỏi thay đổi hành vi
+  - Bổ sung kiểm chứng tại những nơi việc sửa có thể làm đổi hợp đồng
+  - Giảm nhiễu diff và xung đột với các nhánh đang phát triển
+  - Ghi nhận ngoại lệ cùng công việc xử lý tồn đọng
+  - Đặt tiêu chí kết thúc chuyển đổi và cách xác nhận không tái phát
+- level1: Quản trị quy chuẩn
+  level2:
+  - Xác định nơi sở hữu, rà soát và công bố quy chuẩn
+  - Đề xuất quy tắc mới từ lỗi thực tế và nhu cầu bảo trì
+  - Thử quy tắc trên mã đại diện trước khi áp dụng rộng
+  - Đánh giá lợi ích với chi phí tuân thủ và lượng cảnh báo tạo ra
+  - Hướng dẫn thành viên mới bằng ví dụ cùng công cụ dùng chung
+  - Thông báo thay đổi quy tắc và thời gian chuyển tiếp
+  - Rà soát để loại quy tắc lỗi thời, trùng lặp hoặc không có tác dụng
+  - Theo dõi chất lượng thay đổi bằng nhiều bằng chứng thay vì một điểm số
+- level1: Thực hành tổng hợp
+  level2:
+  - Soạn một quy tắc có mục tiêu, phạm vi, ví dụ và cách kiểm tra
+  - Rà soát đoạn mã có tên gây hiểu nhầm và hợp đồng dữ liệu thiếu rõ ràng
+  - Chuẩn hóa cấu trúc mã mà vẫn giữ nguyên hành vi được kiểm chứng
+  - Sửa xử lý ngoại lệ để giữ nguyên nhân và trách nhiệm ghi log
+  - Làm rõ quyền sở hữu tài nguyên và xử lý đường đi thất bại
+  - Thiết kế bộ kiểm tra cho một ranh giới phụ thuộc giữa các mô-đun
+  - Kết hợp kiểm tra tự động với checklist rà soát theo rủi ro
+  - Lập baseline cùng kế hoạch áp dụng quy tắc cho một mô-đun cũ
+  - Đánh giá và ghi nhận một ngoại lệ có phạm vi rõ ràng
+  - 'Hồ sơ hoàn chỉnh: quy chuẩn, cấu hình, ví dụ và bằng chứng tuân thủ'

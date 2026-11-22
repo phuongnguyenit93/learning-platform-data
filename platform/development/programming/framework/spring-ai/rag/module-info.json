@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SPRING_AI_RAG"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Xây dựng ứng dụng Retrieval-Augmented Generation bằng Spring AI, kết hợp nạp và chia nhỏ tài liệu, embedding, vector store, truy xuất và bổ sung ngữ cảnh cho mô hình ngôn ngữ. Nội dung chú trọng đánh giá chất lượng câu trả lời, dẫn nguồn, bảo vệ dữ liệu, quan sát pipeline và tối ưu chi phí."
+  }
+}

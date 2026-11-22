@@ -1,0 +1,1525 @@
+menu:
+- slug: intent-and-use-cases
+  title: Tổng quan
+  childs:
+  - slug: intent-and-use-cases-001
+    title: Bài toán một subject thay đổi và nhiều observer cần nhận thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intent-and-use-cases-002
+    title: Ý định của Observer và quan hệ phụ thuộc một-nhiều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intent-and-use-cases-003
+    title: Các thuật ngữ subject, publisher, observer, subscriber và listener
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intent-and-use-cases-004
+    title: Lợi ích của việc tách nơi phát sinh thay đổi khỏi nơi phản ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intent-and-use-cases-005
+    title: Dấu hiệu nên áp dụng Observer trong thiết kế ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intent-and-use-cases-006
+    title: Giới hạn của Observer và trường hợp nên chọn cách gọi trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intent-and-use-cases-007
+    title: Ví dụ xuyên suốt về thông báo thay đổi giá sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-structure
+  title: Cấu trúc mẫu
+  childs:
+  - slug: pattern-structure-001
+    title: Vai trò Subject và hợp đồng đăng ký, hủy đăng ký, thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-002
+    title: Vai trò Observer và hợp đồng nhận sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-003
+    title: Trách nhiệm của ConcreteSubject và ConcreteObserver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-004
+    title: Quan hệ giữa trạng thái nghiệp vụ và danh sách observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-005
+    title: Luồng tương tác từ đăng ký đến thay đổi trạng thái và callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-006
+    title: Sơ đồ lớp và sơ đồ tuần tự cho một lần phát thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-007
+    title: Thiết kế theo interface và nguyên tắc đảo ngược phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: notification-contracts
+  title: Hợp đồng thông báo
+  childs:
+  - slug: notification-contracts-001
+    title: Xác định thay đổi nào tạo sự kiện và thời điểm được phép phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-contracts-002
+    title: Phân biệt thông báo đồng bộ và thông báo bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-contracts-003
+    title: Quy định thứ tự gọi observer và phạm vi bảo đảm thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-contracts-004
+    title: Quy định đăng ký trùng và cách xác định cùng một observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-contracts-005
+    title: Ngữ nghĩa hủy đăng ký đối với callback đã bắt đầu hoặc đang chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-contracts-006
+    title: Chính sách khi callback thất bại và khi không có observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-contracts-007
+    title: Giới hạn bảo đảm giao nhận, xử lý trùng và sự kiện có thể bị mất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-design
+  title: Thiết kế sự kiện
+  childs:
+  - slug: event-design-001
+    title: Mô hình push, pull và kết hợp hai cách truyền dữ liệu thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-002
+    title: Thiết kế đối tượng sự kiện bất biến và sử dụng record khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-003
+    title: Lựa chọn giá trị cũ, giá trị mới, nguồn phát và thời điểm thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-004
+    title: Định danh sự kiện, phiên bản trạng thái và thông tin liên kết luồng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-005
+    title: Dùng kiểu tổng quát để bảo đảm an toàn kiểu cho listener
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-006
+    title: Sao chép dữ liệu cần thiết để tránh lộ trạng thái mutable của subject
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-007
+    title: Phân loại sự kiện và lọc đăng ký theo loại hoặc điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-008
+    title: Tiến hóa cấu trúc dữ liệu sự kiện và duy trì tương thích hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Cài đặt Java
+  childs:
+  - slug: java-implementation-001
+    title: Khai báo interface Observer và Subject cho ví dụ thay đổi giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Cài đặt ConcreteSubject lưu trạng thái và danh sách observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Đăng ký, hủy đăng ký và phát sự kiện trong phiên bản đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Cập nhật trạng thái thành công trước khi tạo và gửi sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Cài đặt nhiều observer độc lập cho hiển thị, thống kê và cảnh báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Dùng functional interface, lambda và method reference cho callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Tách logic nghiệp vụ, quản lý đăng ký và cơ chế phân phối thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-008
+    title: Chạy ví dụ hoàn chỉnh và giải thích thứ tự kết quả nhận được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: subscription-management
+  title: Quản lý đăng ký
+  childs:
+  - slug: subscription-management-001
+    title: Lựa chọn List, Set hoặc cấu trúc có khóa cho tập observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscription-management-002
+    title: So sánh nhận diện theo tham chiếu với equals và hashCode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscription-management-003
+    title: Thiết kế đối tượng Subscription đại diện cho từng lần đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscription-management-004
+    title: Hủy đăng ký nhiều lần an toàn và xử lý observer chưa được đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscription-management-005
+    title: Đóng Subscription bằng AutoCloseable và try-with-resources
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscription-management-006
+    title: Đăng ký có điều kiện, đăng ký một lần và nhiều đăng ký cùng listener
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscription-management-007
+    title: Xác định hành vi khi đăng ký hoặc hủy đăng ký trong lúc thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observer-lifecycle
+  title: Vòng đời observer
+  childs:
+  - slug: observer-lifecycle-001
+    title: Xác định bên sở hữu subject, observer và đối tượng Subscription
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-lifecycle-002
+    title: Gắn thời điểm đăng ký và hủy đăng ký với vòng đời thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-lifecycle-003
+    title: Nguyên nhân rò rỉ bộ nhớ do subject giữ tham chiếu mạnh đến observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-lifecycle-004
+    title: Giải phóng đăng ký khi đóng màn hình, dịch vụ hoặc tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-lifecycle-005
+    title: Đánh đổi khi dùng weak reference và cách dọn tham chiếu đã hết hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-lifecycle-006
+    title: Khởi tạo, dừng và đóng subject với hợp đồng vòng đời rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observer-lifecycle-007
+    title: Xử lý tác vụ thông báo còn chờ và đăng ký mới khi hệ thống đang đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: notification-flow
+  title: Trình tự thông báo
+  childs:
+  - slug: notification-flow-001
+    title: Duyệt danh sách trực tiếp và duyệt ảnh chụp danh sách observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-flow-002
+    title: Tự hủy đăng ký hoặc thêm listener mới từ bên trong callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-flow-003
+    title: Phân biệt thứ tự đăng ký với thứ tự ưu tiên nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-flow-004
+    title: Nhận diện reentrancy khi callback tiếp tục thay đổi subject
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-flow-005
+    title: Ngăn vòng lặp thông báo giữa nhiều subject và observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-flow-006
+    title: Chọn phát lồng nhau, xếp hàng hoặc gộp các thay đổi liên tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-flow-007
+    title: Xác định observer đăng ký muộn có nhận trạng thái hiện tại hay không
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-consistency
+  title: Nhất quán trạng thái
+  childs:
+  - slug: state-consistency-001
+    title: Phân biệt ảnh chụp dữ liệu sự kiện với trạng thái hiện tại của subject
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-consistency-002
+    title: Giữ bất biến nghiệp vụ khi một thao tác cập nhật nhiều thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-consistency-003
+    title: Phát thông báo sau khi hoàn tất cập nhật thay vì lộ trạng thái trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-consistency-004
+    title: Sử dụng số phiên bản để nhận diện thông báo cũ hoặc sai thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-consistency-005
+    title: Xử lý cập nhật không làm đổi giá trị và quyết định có phát sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-consistency-006
+    title: Gộp nhiều thay đổi thành sự kiện theo lô và đánh đổi độ chi tiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-consistency-007
+    title: Phân biệt thông báo trong bộ nhớ với bảo đảm nhất quán giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Lựa chọn dừng ngay hoặc tiếp tục thông báo khi một observer ném ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-002
+    title: Cô lập lỗi callback để bảo vệ việc thông báo cho các observer khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-003
+    title: Tổng hợp và báo cáo lỗi mà không che mất nguyên nhân ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-004
+    title: Đặt timeout cho xử lý bất đồng bộ và hiểu giới hạn hủy tác vụ Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-005
+    title: Retry có giới hạn và yêu cầu xử lý idempotent khi có thể nhận lại sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-006
+    title: Xử lý InterruptedException và bảo toàn tín hiệu ngắt phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-007
+    title: Quy định xử lý dữ liệu không hợp lệ và callback thất bại liên tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: thread-safety
+  title: An toàn luồng
+  childs:
+  - slug: thread-safety-001
+    title: Nhận diện race condition khi đăng ký, hủy đăng ký và phát sự kiện đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-002
+    title: Bảo vệ trạng thái subject và danh sách observer theo cùng hợp đồng đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-003
+    title: So sánh synchronized, khóa tường minh và cơ chế sao chép khi ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-004
+    title: Dùng CopyOnWriteArrayList khi số lần đọc lớn và số lần đăng ký nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-005
+    title: Tạo ảnh chụp danh sách dưới khóa rồi gọi callback bên ngoài khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-006
+    title: Bảo đảm hiển thị bộ nhớ và công bố an toàn dữ liệu sự kiện bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-007
+    title: Làm rõ observer có thể nhận callback đồng thời hay cần tuần tự hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-008
+    title: Tránh deadlock do callback lấy khóa khác hoặc gọi ngược vào subject
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-009
+    title: Xử lý hủy đăng ký đồng thời với một thông báo đang thực hiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: asynchronous-notifications
+  title: Thông báo bất đồng bộ
+  childs:
+  - slug: asynchronous-notifications-001
+    title: Tách luồng cập nhật subject khỏi luồng thực thi callback bằng Executor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-notifications-002
+    title: Quản lý ExecutorService theo quyền sở hữu và vòng đời ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-notifications-003
+    title: So sánh một hàng đợi chung với hàng đợi riêng cho từng observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-notifications-004
+    title: Duy trì thứ tự theo subject hoặc observer khi dùng nhiều worker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-notifications-005
+    title: Truyền ngữ cảnh cần thiết qua sự kiện thay vì phụ thuộc ThreadLocal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-notifications-006
+    title: Theo dõi hoàn tất và thu thập lỗi từ tác vụ thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-notifications-007
+    title: Đóng bộ thực thi, chờ tác vụ hoặc hủy tác vụ theo chính sách đã chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-notifications-008
+    title: Đánh đổi giữa độ trễ, mức song song và khả năng xử lý observer chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: load-control
+  title: Kiểm soát tải
+  childs:
+  - slug: load-control-001
+    title: Tác động của observer chậm lên subject và các listener khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-control-002
+    title: Giới hạn dung lượng hàng đợi để kiểm soát bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-control-003
+    title: Chọn chặn, từ chối, bỏ cũ hoặc bỏ mới khi hàng đợi đầy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-control-004
+    title: Áp dụng gộp sự kiện khi chỉ cần giữ giá trị mới nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-control-005
+    title: Phân biệt debounce, throttle và lấy mẫu thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-control-006
+    title: Giới thiệu backpressure khi tốc độ phát vượt tốc độ tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-control-007
+    title: Công khai chính sách quá tải và tác động đến bảo đảm giao nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-event-apis
+  title: API Java liên quan
+  childs:
+  - slug: java-event-apis-001
+    title: Mô hình listener với EventObject và EventListener trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-event-apis-002
+    title: Theo dõi thay đổi thuộc tính bằng PropertyChangeSupport
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-event-apis-003
+    title: So sánh đăng ký listener toàn cục và theo tên thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-event-apis-004
+    title: Lý do không chọn Observable và Observer đã deprecated cho thiết kế mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-event-apis-005
+    title: Liên hệ Observer với Flow.Publisher, Subscriber và Subscription
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-event-apis-006
+    title: Phân biệt nhu cầu sự kiện đơn giản với giao thức Reactive Streams
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-event-apis-007
+    title: Đánh giá SubmissionPublisher theo yêu cầu bộ đệm, lỗi và vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: functional-testing
+  title: Kiểm thử chức năng
+  childs:
+  - slug: functional-testing-001
+    title: Kiểm thử subject không có observer và subject có nhiều observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-testing-002
+    title: Xác minh dữ liệu sự kiện, nguồn phát, giá trị cũ và giá trị mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-testing-003
+    title: Kiểm thử đăng ký trùng theo chính sách đã công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-testing-004
+    title: Kiểm thử hủy đăng ký, đóng Subscription và hủy nhiều lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-testing-005
+    title: Xác minh thứ tự callback khi hợp đồng có bảo đảm thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-testing-006
+    title: Kiểm thử observer ném ngoại lệ và chính sách cô lập lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-testing-007
+    title: Kiểm thử tự hủy, thêm observer và cập nhật lồng trong callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-testing-008
+    title: Dùng observer giả, bộ ghi nhận sự kiện và assertion có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-testing
+  title: Kiểm thử đồng thời
+  childs:
+  - slug: concurrency-testing-001
+    title: Tạo kịch bản đăng ký và phát sự kiện đồng thời bằng latch hoặc barrier
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-testing-002
+    title: Kiểm thử ranh giới hủy đăng ký khi callback đang chạy hoặc đang chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-testing-003
+    title: Kiểm tra thứ tự và tính toàn vẹn dữ liệu giữa nhiều luồng phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-testing-004
+    title: Dùng executor kiểm soát được để kiểm thử bất đồng bộ có tính xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-testing-005
+    title: Chờ điều kiện với timeout thay vì dựa vào Thread.sleep
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-testing-006
+    title: Kiểm thử observer chậm, hàng đợi đầy và chính sách quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-testing-007
+    title: Kiểm thử shutdown, ngắt tác vụ và giải phóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-testing-008
+    title: Kiểm tra rò rỉ đăng ký và tránh assertion phụ thuộc thời điểm GC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-analysis
+  title: Hiệu năng
+  childs:
+  - slug: performance-analysis-001
+    title: Ước lượng chi phí phát sự kiện theo số observer và thời gian callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-analysis-002
+    title: Đánh giá chi phí sao chép danh sách và thay đổi đăng ký thường xuyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-analysis-003
+    title: Đo thông lượng, độ trễ thông báo và mức sử dụng bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-analysis-004
+    title: Xây dựng phép đo Java phù hợp và tránh kết luận từ vòng lặp đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-analysis-005
+    title: Phân tích cấp phát đối tượng sự kiện, giữ tham chiếu và áp lực GC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-analysis-006
+    title: So sánh cơ chế đồng bộ và bất đồng bộ bằng tải đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-analysis-007
+    title: Chọn tối ưu dựa trên nút thắt và yêu cầu giao nhận thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operational-observability
+  title: Quan sát vận hành
+  childs:
+  - slug: operational-observability-001
+    title: Theo dõi số observer đang đăng ký và số lần đăng ký, hủy đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-002
+    title: Đo số sự kiện phát, số callback thành công và số callback thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-003
+    title: Giám sát độ trễ callback, độ dài hàng đợi và số sự kiện bị bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-004
+    title: Gắn mã sự kiện và ngữ cảnh liên kết để truy vết luồng thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-005
+    title: Ghi log lỗi có kiểm soát và hạn chế lộ dữ liệu nhạy cảm trong payload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-006
+    title: Chẩn đoán thiếu thông báo, thông báo trùng và listener không được giải phóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Cập nhật nhiều thành phần giao diện và tuân thủ luồng giao diện tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-002
+    title: Phát thông báo thay đổi cấu hình cho các thành phần trong cùng tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-003
+    title: Dùng sự kiện miền để tách phản ứng nghiệp vụ khỏi thao tác cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-004
+    title: Liên kết phát sự kiện với kết quả commit hoặc rollback của giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-005
+    title: Tích hợp cơ chế quản lý dependency và hook đóng ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-006
+    title: Xác định ranh giới khi cần chuyển từ observer trong bộ nhớ sang message broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-007
+    title: Đánh giá mức phụ thuộc và khả năng truy vết khi số listener tăng lên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-comparisons
+  title: So sánh mẫu
+  childs:
+  - slug: pattern-comparisons-001
+    title: Observer và publish-subscribe khác nhau về trung gian và mức liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-002
+    title: Observer và Event Bus trong phạm vi phân phối và truy vết sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-003
+    title: Observer và Mediator trong điều phối tương tác nhiều thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-004
+    title: Observer và Strategy trong số đối tượng tham gia và cách chọn hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-005
+    title: Observer và Chain of Responsibility trong cách truyền và xử lý yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-006
+    title: Observer và callback đơn lẻ khi mở rộng thành nhiều bên nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-007
+    title: Observer và luồng phản ứng trong quản lý nhu cầu, lỗi và tín hiệu kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: notification-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: notification-pitfalls-001
+    title: Thông báo trước khi cập nhật xong trạng thái nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-pitfalls-002
+    title: Sửa danh sách observer trong khi duyệt và hiểu sai vai trò của snapshot
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-pitfalls-003
+    title: Gọi callback khi đang giữ khóa của subject
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-pitfalls-004
+    title: Chia sẻ payload mutable khiến observer ảnh hưởng lẫn nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-pitfalls-005
+    title: Quên hủy đăng ký hoặc tạo nhiều đăng ký ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-pitfalls-006
+    title: Nuốt ngoại lệ khiến mất dấu lỗi và dừng thông báo ngoài dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-pitfalls-007
+    title: Dùng hàng đợi không giới hạn hoặc tạo luồng mới cho mỗi sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-pitfalls-008
+    title: Giả định observer trong bộ nhớ bảo đảm lưu bền hoặc giao nhận đúng một lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: capstone-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-project-001
+    title: Xây dựng subject theo dõi giá với nhiều listener có trách nhiệm độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-002
+    title: Bổ sung sự kiện bất biến, lọc đăng ký và Subscription có thể đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-003
+    title: Hoàn thiện chính sách lỗi, thứ tự gọi và thay đổi đăng ký trong callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-004
+    title: Nâng cấp thiết kế để an toàn khi có nhiều luồng cùng cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-005
+    title: Thêm phân phối bất đồng bộ với hàng đợi giới hạn và shutdown rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-006
+    title: Viết bộ kiểm thử cho vòng đời đăng ký, dữ liệu và các luồng thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-007
+    title: Đo tác động của listener chậm và giải thích lựa chọn kiểm soát tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-008
+    title: Rà soát hợp đồng, tài nguyên và tiêu chí chọn Observer cho bài toán thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

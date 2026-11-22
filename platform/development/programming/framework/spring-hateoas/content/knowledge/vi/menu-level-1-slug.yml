@@ -1,0 +1,136 @@
+menu:
+- title: Tổng quan HATEOAS
+  slug: overview-hateoas
+  index: 0
+- title: REST và hypermedia
+  slug: rest-and-hypermedia
+  index: 1
+- title: Spring HATEOAS
+  slug: spring-hateoas
+  index: 2
+- title: Kiến trúc tài nguyên
+  slug: resource-architecture
+  index: 3
+- title: RepresentationModel
+  slug: representation-model
+  index: 4
+- title: EntityModel
+  slug: entity-model
+  index: 5
+- title: CollectionModel
+  slug: collection-model
+  index: 6
+- title: PagedModel
+  slug: paged-model
+  index: 7
+- title: Link
+  slug: link
+  index: 8
+- title: LinkRelation
+  slug: linkrelation
+  index: 9
+- title: URI và UriTemplate
+  slug: uri-and-uri-template
+  index: 10
+- title: Self link
+  slug: self-link
+  index: 11
+- title: Link builder
+  slug: link-builder
+  index: 12
+- title: Controller links
+  slug: controller-links
+  index: 13
+- title: WebFlux links
+  slug: webflux-links
+  index: 14
+- title: EntityLinks
+  slug: entity-links
+  index: 15
+- title: Representation assembler
+  slug: representation-assembler
+  index: 16
+- title: Assembler support
+  slug: assembler-support
+  index: 17
+- title: Model processor
+  slug: model-processor
+  index: 18
+- title: Embedded resources
+  slug: embedded-resources
+  index: 19
+- title: Associations
+  slug: associations
+  index: 20
+- title: Affordances
+  slug: affordances
+  index: 21
+- title: HAL
+  slug: hal
+  index: 22
+- title: HAL-FORMS
+  slug: hal-forms
+  index: 23
+- title: Media types
+  slug: media-types
+  index: 24
+- title: Jackson serialization
+  slug: jackson-serialization
+  index: 25
+- title: Pagination
+  slug: pagination
+  index: 26
+- title: Sorting và filtering
+  slug: sorting-and-filtering
+  index: 27
+- title: Search links
+  slug: search-links
+  index: 28
+- title: IANA relation
+  slug: iana-relation
+  index: 29
+- title: Custom relation
+  slug: custom-relation
+  index: 30
+- title: Spring MVC integration
+  slug: spring-mvc-integration
+  index: 31
+- title: Spring Data REST
+  slug: spring-data-rest
+  index: 32
+- title: Web API design
+  slug: web-api-design
+  index: 33
+- title: Client traversal
+  slug: client-traversal
+  index: 34
+- title: Testing links
+  slug: testing-links
+  index: 35
+- title: Security links
+  slug: security-links
+  index: 36
+- title: Versioning
+  slug: versioning
+  index: 37
+- title: Caching
+  slug: caching
+  index: 38
+- title: Error representation
+  slug: error-representation
+  index: 39
+- title: Hiệu năng HATEOAS
+  slug: hateoas-performance
+  index: 40
+- title: Tài liệu HATEOAS
+  slug: hateoas-documentation
+  index: 41
+- title: Anti-pattern HATEOAS
+  slug: hateoas-antipatterns
+  index: 42
+- title: Dự án thực hành
+  slug: hands-on-project
+  index: 43
+- title: Tổng kết HATEOAS
+  slug: hateoas-summary
+  index: 44

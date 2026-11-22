@@ -1,0 +1,3 @@
+menuLevel1: Cấu hình và phụ thuộc
+menuLevel2: Tách việc đọc cấu hình và tạo dependency ra khỏi constructor của Singleton
+status: ""

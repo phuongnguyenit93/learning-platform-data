@@ -1,0 +1,530 @@
+menu:
+- level1: Tổng quan DSL
+  level2:
+  - DSL là gì và giải quyết bài toán nào
+  - Vì sao cần ngôn ngữ chuyên miền
+  - Đặc trưng của DSL
+  - DSL khác ngôn ngữ đa dụng
+  - DSL khai báo và DSL mệnh lệnh
+  - DSL nội bộ và DSL bên ngoài
+  - Ví dụ DSL trong thực tế
+  - Lợi ích và giới hạn
+  - Vòng đời của một DSL
+  - Thuật ngữ cốt lõi
+- level1: Phạm vi miền
+  level2:
+  - Xác định miền nghiệp vụ
+  - Xác định bên liên quan
+  - Bài toán và mục tiêu
+  - Ranh giới của DSL
+  - Khái niệm trung tâm
+  - Quy tắc nghiệp vụ
+  - Thuật ngữ miền
+  - Biến thể và điểm mở rộng
+  - Điều DSL không bao phủ
+- level1: Khám phá miền
+  level2:
+  - Phỏng vấn chuyên gia miền
+  - Thu thập ví dụ thực tế
+  - Kịch bản sử dụng
+  - Luồng công việc
+  - Ma trận quyết định miền
+  - Sự kiện và trạng thái
+  - Phân tích ngôn ngữ tự nhiên
+  - Kiểm chứng với chuyên gia
+  - Duy trì bảng thuật ngữ
+- level1: Mô hình miền
+  level2:
+  - Thực thể và đối tượng giá trị
+  - Quan hệ giữa các khái niệm
+  - Ranh giới aggregate
+  - Bất biến của miền
+  - Chuyển đổi trạng thái
+  - Hành động và sự kiện
+  - Thuộc tính và siêu dữ liệu
+  - Liên kết mô hình với yêu cầu
+  - Mô hình hóa ví dụ
+- level1: Kiến trúc DSL
+  level2:
+  - Các lớp của một DSL
+  - Tiền xử lý và frontend
+  - Luồng qua mô hình trung gian
+  - Backend và target
+  - Runtime của DSL
+  - Công cụ phát triển
+  - Lưu trữ và phân phối
+  - Điểm mở rộng
+  - Lựa chọn kiến trúc
+- level1: Nội bộ và bên ngoài
+  level2:
+  - DSL nội bộ là gì
+  - DSL bên ngoài là gì
+  - DSL nhúng trong ngôn ngữ chủ
+  - DSL độc lập
+  - DSL lai
+  - So sánh khả năng biểu đạt
+  - So sánh an toàn kiểu
+  - So sánh chi phí công cụ
+  - Khi nào nên chọn cách nào
+  - Lộ trình chuyển đổi
+- level1: Ngôn ngữ nội bộ
+  level2:
+  - API thông thạo (fluent API)
+  - Mẫu Builder
+  - Lambda và closure
+  - Static import và tên ngắn
+  - Tận dụng hệ kiểu của Java
+  - Đọc gần ngôn ngữ miền
+  - Giới hạn của ngữ pháp
+  - Thiết kế API ổn định
+  - Kiểm thử DSL nội bộ
+- level1: Cú pháp tổng thể
+  level2:
+  - Cú pháp cụ thể và trừu tượng
+  - Từ vựng và ngữ pháp
+  - Ký hiệu hướng người dùng
+  - Cú pháp dễ đọc
+  - Tính nhất quán
+  - Tùy chọn và giá trị mặc định
+  - Dấu phân cách và khối
+  - Khoảng trắng và chú thích
+  - Tránh mơ hồ cú pháp
+- level1: Từ vựng
+  level2:
+  - Token và lexeme
+  - Từ khóa
+  - Tên định danh
+  - Giá trị literal
+  - Toán tử
+  - Khoảng trắng
+  - Chú thích
+  - Ký tự thoát
+  - Unicode và mã hóa
+  - Vị trí nguồn
+- level1: Ngữ pháp
+  level2:
+  - Luật sản sinh
+  - Ký pháp EBNF
+  - Đệ quy và lặp
+  - Ưu tiên toán tử
+  - Tính kết hợp
+  - Lookahead
+  - Đệ quy trái
+  - Mơ hồ ngữ pháp
+  - Ngữ pháp mô-đun
+  - Đơn giản hóa luật
+- level1: Cây cú pháp
+  level2:
+  - CST và parse tree
+  - AST và mục đích sử dụng
+  - Nút và quan hệ cây
+  - Thông tin vị trí nguồn
+  - Giữ hoặc bỏ trivia
+  - Chuẩn hóa cây
+  - AST bất biến
+  - Visitor và listener
+  - Biến đổi cây
+  - Truy vết về mã nguồn
+- level1: Mô hình trừu tượng
+  level2:
+  - Metamodel là gì
+  - Lớp và thuộc tính
+  - Tham chiếu và containment
+  - Số lượng phần tử
+  - Kế thừa mô hình
+  - Giá trị mặc định thuộc tính
+  - Ràng buộc mô hình
+  - Tuần tự hóa mô hình
+  - Tiến hóa schema
+  - Đồng bộ cú pháp và mô hình
+- level1: Ngữ nghĩa
+  level2:
+  - Ngữ nghĩa tĩnh
+  - Ngữ nghĩa động
+  - Ngữ nghĩa chỉ định
+  - Ngữ nghĩa vận hành
+  - Ý nghĩa của cấu trúc
+  - Tác dụng phụ
+  - Tính xác định
+  - Lỗi trong quá trình thực thi
+  - Tài liệu hóa ngữ nghĩa
+- level1: Hệ kiểu
+  level2:
+  - Kiểu nguyên thủy và kiểu miền
+  - Suy luận kiểu
+  - Tương thích và chuyển kiểu
+  - Kiểu con và đa hình
+  - Tham số hóa và generic
+  - Giá trị null
+  - Đơn vị đo
+  - Lỗi kiểu
+  - Kiểm tra kiểu tĩnh
+  - Kiểm tra kiểu động
+- level1: Phân giải tên
+  level2:
+  - Phạm vi tên
+  - Bảng ký hiệu
+  - Namespace và import
+  - Tên đầy đủ
+  - Che khuất tên
+  - Tham chiếu trước khai báo
+  - Liên kết tham chiếu
+  - Tham chiếu vòng
+  - Phân giải nhiều tệp
+  - Chẩn đoán tên không hợp lệ
+- level1: Phân tích từ vựng
+  level2:
+  - Quy trình lexer
+  - Nhận diện token
+  - Chế độ lexer
+  - Kênh token
+  - Quy tắc khớp dài nhất
+  - Ký tự không hợp lệ
+  - Theo dõi dòng và cột
+  - Lexer tăng dần
+  - Kiểm thử quy tắc lexer
+- level1: Phân tích cú pháp
+  level2:
+  - Parser là gì
+  - Parser LL và LR
+  - Parser PEG
+  - Recursive descent
+  - Parser combinator
+  - Phân tích ưu tiên
+  - Xử lý lookahead
+  - Khôi phục sau lỗi
+  - Hiệu năng parser
+  - Kiểm thử luật parser
+- level1: Chẩn đoán lỗi
+  level2:
+  - Lỗi từ vựng
+  - Lỗi cú pháp
+  - Lỗi ngữ nghĩa
+  - Vị trí lỗi
+  - Token được mong đợi
+  - Thông báo dễ hiểu
+  - Gợi ý sửa lỗi
+  - Khôi phục để báo nhiều lỗi
+  - Mã lỗi và mức độ
+  - Bản địa hóa thông báo
+- level1: Kiểm tra ngữ nghĩa
+  level2:
+  - Các pha kiểm tra
+  - Thuộc tính bắt buộc
+  - Ràng buộc kiểu
+  - Ràng buộc tham chiếu
+  - Bất biến liên nút
+  - Kiểm tra nhiều tệp
+  - Cảnh báo và lỗi
+  - Quy tắc có thể mở rộng
+  - Sửa nhanh
+  - Kiểm chứng mô hình
+- level1: Biên dịch và thông dịch
+  level2:
+  - Thông dịch DSL
+  - Biên dịch DSL
+  - Pipeline xử lý
+  - Mã trung gian
+  - Tối ưu hóa
+  - Sinh target
+  - Runtime độc lập
+  - Biên dịch tăng dần
+  - Bộ nhớ đệm kết quả
+  - Đánh đổi giữa hai cách
+- level1: Sinh mã
+  level2:
+  - Mẫu sinh mã
+  - Ánh xạ mô hình sang mã
+  - Quy tắc đặt tên
+  - Quản lý import
+  - Định dạng mã sinh
+  - Chú thích nguồn
+  - Source map
+  - Sinh mã lặp lại an toàn
+  - Ranh giới mã sinh và mã tay
+  - Kiểm tra mã đầu ra
+- level1: Biến đổi ngôn ngữ
+  level2:
+  - Transpilation
+  - Desugaring
+  - Chuẩn hóa mô hình
+  - Biến đổi mô hình
+  - Chuyển đổi phiên bản
+  - Mô hình trung gian cho chuyển đổi
+  - Bảo toàn ngữ nghĩa
+  - Round-trip
+  - Truy vết biến đổi
+  - Tương thích ngược
+- level1: Thực thi DSL
+  level2:
+  - Engine thực thi
+  - Bối cảnh đánh giá
+  - Biến và phạm vi chạy
+  - Hàm và phép toán
+  - Quản lý trạng thái
+  - Giao dịch
+  - Lập lịch
+  - Đồng thời
+  - Quan sát và ghi log
+  - Cô lập môi trường chạy
+- level1: Lưu trữ và trao đổi
+  level2:
+  - Định dạng văn bản
+  - Tuần tự hóa
+  - Giải tuần tự hóa
+  - Schema dữ liệu
+  - Dạng biểu diễn chuẩn
+  - So sánh và diff
+  - Hợp nhất và merge
+  - Nhập và xuất
+  - Tương thích dữ liệu
+  - Kiểm tra toàn vẹn
+- level1: Trình soạn thảo
+  level2:
+  - Tô màu cú pháp
+  - Thu gọn mã
+  - Cây phác thảo
+  - Gợi ý hoàn thành
+  - Hiển thị hover
+  - Đi tới định nghĩa
+  - Tìm tham chiếu
+  - Đổi tên an toàn
+  - Định dạng tự động
+  - Tái cấu trúc
+- level1: Language Server
+  level2:
+  - Vai trò của LSP
+  - Khởi tạo phiên
+  - Đồng bộ tài liệu
+  - Chẩn đoán thời gian thực
+  - Hoàn thành mã
+  - Symbol và workspace
+  - Điều hướng tham chiếu
+  - Hủy tác vụ
+  - Cập nhật tăng dần
+  - Đo lường và telemetry
+- level1: Công cụ hỗ trợ
+  level2:
+  - Giao diện dòng lệnh
+  - Trình định dạng
+  - Trình kiểm tra
+  - REPL
+  - Trình gỡ lỗi
+  - Trình trực quan hóa
+  - Trình tạo dự án
+  - Tài liệu tự sinh
+  - Plugin
+  - Tích hợp CI
+- level1: Framework và workbench
+  level2:
+  - ANTLR
+  - Xtext
+  - JetBrains MPS
+  - Framework parser combinator
+  - Workbench tùy biến
+  - Tiêu chí lựa chọn công cụ
+  - Tích hợp generated artifact
+  - Khả năng mở rộng framework
+  - Quản lý phiên bản công cụ
+  - Chi phí khóa nhà cung cấp
+- level1: DSL cấu hình
+  level2:
+  - Khai báo cấu hình
+  - Giá trị mặc định môi trường
+  - Ghi đè cấu hình
+  - Profile môi trường
+  - Biến môi trường
+  - Quản lý bí mật
+  - Schema và validation
+  - Triển khai cấu hình
+  - Phát hiện cấu hình lệch
+  - Khả năng truy vết
+- level1: DSL truy vấn
+  level2:
+  - Mục tiêu của DSL truy vấn
+  - Chọn và chiếu dữ liệu
+  - Lọc dữ liệu
+  - Kết hợp nguồn dữ liệu
+  - Nhóm và tổng hợp
+  - Sắp xếp và phân trang
+  - Kiểu kết quả
+  - Tối ưu hóa truy vấn
+  - Kiểm soát quyền truy cập
+  - An toàn trước injection
+- level1: DSL luật và quyết định
+  level2:
+  - Luật điều kiện và hành động
+  - Độ ưu tiên luật
+  - Xung đột giữa các luật
+  - Bảng quyết định
+  - Cây quyết định
+  - Giải thích kết quả
+  - Mô phỏng kịch bản
+  - Phiên bản luật
+  - Kiểm toán quyết định
+  - Kiểm thử tập luật
+- level1: DSL quy trình
+  level2:
+  - Trạng thái và chuyển tiếp
+  - Điều kiện chuyển trạng thái
+  - Sự kiện quy trình
+  - Tác vụ tự động
+  - Tác vụ con người
+  - Retry và bù trừ
+  - Timeout
+  - Nhánh song song
+  - Theo dõi tiến trình
+  - Trực quan hóa quy trình
+- level1: DSL xây dựng và triển khai
+  level2:
+  - Khai báo tác vụ build
+  - Đồ thị phụ thuộc
+  - Đóng gói sản phẩm
+  - Môi trường triển khai
+  - Pipeline phát hành
+  - Artifact
+  - Tính tái lập
+  - Bộ nhớ đệm build
+  - Kiểm soát quyền thực thi
+  - Quan sát pipeline
+- level1: DSL API và dữ liệu
+  level2:
+  - Mô tả schema
+  - Mô tả endpoint
+  - Payload và kiểu dữ liệu
+  - Ràng buộc đầu vào
+  - Ánh xạ mô hình
+  - Sinh mã client và server
+  - Tương thích hợp đồng
+  - Ví dụ yêu cầu và phản hồi
+  - Tài liệu API
+  - Kiểm thử hợp đồng
+- level1: Tích hợp ứng dụng
+  level2:
+  - Nhúng DSL vào ứng dụng
+  - API của host
+  - Vòng đời engine
+  - Gọi dịch vụ bên ngoài
+  - Plugin và extension
+  - Sự kiện tích hợp
+  - Giao dịch xuyên ranh giới
+  - Xử lý lỗi tích hợp
+  - Cấu hình host
+  - Kiểm thử tích hợp host
+- level1: Bảo mật DSL
+  level2:
+  - Mô hình đe dọa
+  - Đầu vào không tin cậy
+  - Sandbox
+  - Phân quyền thao tác
+  - Bảo vệ bí mật
+  - Phòng chống injection runtime
+  - Giới hạn tài nguyên
+  - Kiểm toán hoạt động
+  - Chuỗi cung ứng công cụ
+  - Phản ứng sự cố
+- level1: Hiệu năng DSL
+  level2:
+  - Tốc độ phân tích
+  - Mức sử dụng bộ nhớ
+  - Mô hình lớn
+  - Phân tích tăng dần
+  - Bộ nhớ đệm AST
+  - Tối ưu mã sinh
+  - Hiệu năng runtime
+  - Đo đạc và profiling
+  - Giới hạn quy mô
+  - Đánh đổi hiệu năng
+- level1: Kiểm thử DSL
+  level2:
+  - Kiểm thử lexer
+  - Kiểm thử parser
+  - Kiểm thử AST
+  - Kiểm thử ngữ nghĩa
+  - Golden test
+  - Property-based test
+  - Mutation test
+  - Kiểm thử tích hợp
+  - Kiểm thử mã sinh
+  - Kiểm thử tương thích
+- level1: Tài liệu và học tập
+  level2:
+  - Hướng dẫn nhập môn
+  - Tài liệu tham chiếu
+  - Ví dụ theo kịch bản
+  - Tài liệu ngữ pháp
+  - Tài liệu ngữ nghĩa
+  - Tài liệu lỗi
+  - Tài liệu API công cụ
+  - Hướng dẫn di trú
+  - Changelog
+  - Lộ trình onboarding
+- level1: Phiên bản và di trú
+  level2:
+  - Chiến lược phiên bản
+  - Tương thích cú pháp
+  - Tương thích ngữ nghĩa
+  - Đánh dấu ngừng dùng
+  - Cảnh báo di trú
+  - Tự động nâng cấp
+  - Feature flag
+  - Di trú schema
+  - Phát hành và rollback
+  - Kiểm thử phiên bản
+- level1: Quản trị vòng đời
+  level2:
+  - Sở hữu ngôn ngữ
+  - Kho mã và cấu trúc dự án
+  - Quy trình đóng góp
+  - Đánh giá thay đổi
+  - Lịch phát hành
+  - Hệ sinh thái mở rộng
+  - Chỉ số sử dụng
+  - Hỗ trợ người dùng
+  - Kế hoạch ngừng dùng
+  - Lưu trữ DSL
+- level1: Mẫu thiết kế DSL
+  level2:
+  - Ngôn ngữ nhỏ và tập trung
+  - Thiết kế phân tầng
+  - Thiết kế hợp thành
+  - Khai báo theo quy ước
+  - Tách mô tả và thực thi
+  - Lõi ổn định và plugin
+  - Mở rộng có kiểm soát
+  - Tái sử dụng mô hình
+  - Thiết kế hướng ví dụ
+  - Nhận diện anti-pattern
+- level1: Đánh đổi thiết kế
+  level2:
+  - Tính dễ đọc
+  - Khả năng biểu đạt
+  - An toàn
+  - Tính linh hoạt
+  - Chi phí phát triển
+  - Đường cong học tập
+  - Chất lượng tooling
+  - Mức độ phụ thuộc công cụ
+  - Khả năng liên thông
+  - Khung ra quyết định
+- level1: Dự án thực hành
+  level2:
+  - Chọn một miền nhỏ
+  - Viết bảng thuật ngữ
+  - Xác định ví dụ chuẩn
+  - Thiết kế cú pháp
+  - Viết grammar
+  - Xây parser và AST
+  - Thêm kiểm tra ngữ nghĩa
+  - Xây interpreter hoặc codegen
+  - Tạo công cụ soạn thảo
+  - Viết bộ kiểm thử
+  - Đóng gói và tài liệu hóa
+- level1: Tổng kết DSL
+  level2:
+  - Bản đồ khái niệm
+  - Quy trình thiết kế hoàn chỉnh
+  - Danh sách kiểm tra chất lượng
+  - Rà soát quyết định
+  - Bài tập củng cố
+  - Bước phát triển tiếp theo

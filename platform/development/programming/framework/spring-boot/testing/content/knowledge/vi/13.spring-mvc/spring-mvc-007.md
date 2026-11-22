@@ -1,0 +1,982 @@
+# @ControllerAdvice, exception handler và ProblemDetail trong Spring MVC
+
+## 1. Mục tiêu: biến exception thành hợp đồng HTTP rõ ràng
+
+Một REST API không chỉ có đường thành công. Nếu khách hàng yêu cầu sản phẩm không tồn tại, gửi JSON sai định dạng, vi phạm ràng buộc dữ liệu hoặc đặt số lượng lớn hơn tồn kho, server cần phản hồi với **HTTP status đúng** và một **body lỗi ổn định, an toàn, dễ xử lý**. Thay vì đặt try/catch trong mọi controller, Spring MVC cung cấp **@ExceptionHandler**, **@ControllerAdvice / @RestControllerAdvice** và **ProblemDetail**.
+
+Sau bài này, bạn sẽ có thể:
+
+- Hiểu luồng xử lý exception từ **DispatcherServlet → HandlerExceptionResolver** tới HTTP response.
+- Phân biệt handler **cục bộ trong controller** và **handler dùng chung trong @ControllerAdvice**; khi nào dùng **@RestControllerAdvice**.
+- Ánh xạ exception nghiệp vụ sang HTTP **400, 404, 409, 500** theo một chính sách đã xác định.
+- Dùng **org.springframework.http.ProblemDetail** của Spring Framework 6 để trả response theo **RFC 9457** với các trường type, title, status, detail, instance.
+- Tùy biến response bằng **ProblemDetail.setProperty(...)** và hiểu tác động đến JSON.
+- Xử lý validation của **@Valid @RequestBody**, phân biệt **MethodArgumentNotValidException** với lỗi JSON không đọc được hoặc chuyển kiểu path/query.
+- Hiểu **ResponseEntityExceptionHandler**, cấu hình **spring.mvc.problemdetails.enabled** của Spring Boot 3.3 và thứ tự của nhiều advice.
+- Viết **MockMvc integration tests** để kiểm tra toàn bộ status, Content-Type, JSON lỗi và kết quả bình thường.
+
+Bài thực hành dùng **Java 17, Spring Boot 3.3.5, Spring MVC, JUnit Jupiter, Gradle**. Đây là kiến thức cho **Spring MVC (servlet stack)**. Spring WebFlux có các thành phần tương ứng nhưng cần áp dụng đúng API của reactive stack; không sao chép nguyên luồng servlet sang WebFlux.
+
+## 2. Ba thành phần cốt lõi
+
+### 2.1. @ExceptionHandler: quy tắc bắt exception tại web layer
+
+**@ExceptionHandler** đặt trên một phương thức trong controller hoặc advice. Spring tìm phương thức phù hợp khi code xử lý request phát sinh exception:
+
+~~~java
+@ExceptionHandler(ProductNotFoundException.class)
+ProblemDetail handleNotFound(ProductNotFoundException ex) {
+    ProblemDetail body = ProblemDetail.forStatusAndDetail(
+            HttpStatus.NOT_FOUND, "Product does not exist");
+    body.setTitle("Product not found");
+    return body;
+}
+~~~
+
+Đây là **snippet minh họa bên trong một class controller/advice**, chưa phải tệp Java độc lập. Nó chuyển một loại exception cụ thể thành ProblemDetail có status 404. Return type **ProblemDetail** được Spring MVC hỗ trợ, và trường status của ProblemDetail được dùng làm HTTP status cho response của exception handler.
+
+### 2.2. @ControllerAdvice: xử lý dùng chung cho nhiều controller
+
+**@ControllerAdvice** là Spring component được đăng ký trong ApplicationContext, có thể chứa:
+
+- @ExceptionHandler: xử lý lỗi dùng chung.
+- @InitBinder: tùy biến data binding.
+- @ModelAttribute: chia sẻ model attributes cho các controller phù hợp.
+
+Nếu chỉ cần trả body JSON cho REST API, **@RestControllerAdvice** là dạng kết hợp **@ControllerAdvice + @ResponseBody**. Nghĩa là giá trị trả về từ các handler được ghi vào HTTP response thông qua message converters, không bị diễn giải như tên view template.
+
+~~~java
+@RestControllerAdvice
+class ApiErrorAdvice {
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    ProblemDetail handle(ProductNotFoundException ex) {
+        return ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+    }
+}
+~~~
+
+Đoạn này là ví dụ cấu trúc; có thể thêm type/title/detail và import thích hợp như dự án hoàn chỉnh ở phần 5. **@ControllerAdvice không tự xử lý tất cả exception**: phải có handler phù hợp, kế thừa cơ chế của Spring, hoặc có resolver/fallback khác.
+
+### 2.3. ProblemDetail: biểu diễn lỗi theo RFC 9457
+
+**ProblemDetail** là model chuẩn của Spring để biểu diễn “Problem Details for HTTP APIs”. RFC 9457 kế thừa và thay thế RFC 7807 trước đây. Năm trường thường được sử dụng:
+
+| Trường | Kiểu JSON | Ý nghĩa | Ví dụ |
+|---|---|---|---|
+| **type** | URI string | Nhận diện **loại lỗi**, nên ổn định giữa các request | "https://example.org/problems/product-not-found" |
+| **title** | string | Tiêu đề ngắn mô tả loại lỗi | "Product not found" |
+| **status** | number | Mã HTTP status của lần xảy ra lỗi | 404 |
+| **detail** | string | Chi tiết dễ hiểu cho **lần xảy ra cụ thể** | "Product 99 does not exist" |
+| **instance** | URI string | Nhận diện occurrence của lỗi, có thể là path request | "/api/products/99" |
+
+Ví dụ response được định nghĩa tường minh:
+
+~~~json
+{
+  "type": "https://example.org/problems/product-not-found",
+  "title": "Product not found",
+  "status": 404,
+  "detail": "Product 99 does not exist",
+  "instance": "/api/products/99",
+  "errorCode": "PRODUCT_NOT_FOUND"
+}
+~~~
+
+Đây là **ví dụ JSON có chủ đích**, không phải khẳng định mọi cấu hình Spring Boot trả đúng sáu trường ấy. Trường errorCode là extension riêng của API, không thuộc năm trường chuẩn. Giá trị **type** có thể dùng URI do tổ chức bạn quản lý; example.org ở đây chỉ để minh họa, không phải endpoint thật phục vụ tài liệu.
+
+**Đừng đánh đồng HTTP status line với trường JSON status.** Trong response lý tưởng, cả hai nhất quán; client nên dùng HTTP status để nhận biết phân loại thành công/thất bại, còn type/errorCode để xử lý nghiệp vụ chi tiết.
+
+## 3. Exception đi qua Spring MVC theo đường nào?
+
+Sơ đồ khái quát trong ứng dụng servlet:
+
+~~~text
+HTTP request
+     |
+     v
+Servlet filters / Spring Security (nếu có)
+     |
+     v
+DispatcherServlet
+     |
+     v
+HandlerMapping -> Controller -> Service
+                           |
+                           | throws Exception
+                           v
+                HandlerExceptionResolver chain
+                           |
+                           +-- ExceptionHandlerExceptionResolver
+                           |      local @ExceptionHandler
+                           |      @ControllerAdvice/@RestControllerAdvice
+                           |
+                           +-- ResponseStatusExceptionResolver
+                           |      @ResponseStatus / ResponseStatusException
+                           |
+                           +-- DefaultHandlerExceptionResolver
+                                  framework MVC exceptions
+                           |
+                           v
+                  HTTP status / headers / body
+                           |
+                           +-- Nếu chưa được xử lý: có thể đến
+                               servlet container / Spring Boot /error
+~~~
+
+Đây là **mô hình đọc hiểu**, không phải cam kết mọi ứng dụng luôn có đúng một danh sách resolver/thứ tự bất biến. Các cấu hình custom có thể thay đổi resolver chain.
+
+**Handler cục bộ hay advice?** Phương thức @ExceptionHandler trong controller thường được xét **trước** global @ControllerAdvice cho exception xuất phát từ controller ấy. Điều này hữu ích khi một controller có contract lỗi đặc thù; còn advice dùng chung xử lý loại lỗi áp dụng nhiều controller.
+
+**Nhiều advice:** Annotation **@Order** hoặc giao diện Ordered có thể xác định mức ưu tiên. Trong trường hợp có nhiều advice đều bắt được cùng một exception, hãy khai báo chính sách thứ tự rõ ràng. Một advice bắt Exception.class quá rộng và có ưu tiên cao có thể nuốt lỗi mà advice chuyên biệt dự kiến xử lý.
+
+**Phạm vi:** @ControllerAdvice chủ yếu hoạt động trong quá trình Spring MVC xử lý request. Lỗi phát sinh ở servlet filter **trước khi đến DispatcherServlet**, trong background scheduler, thread tự tạo hoặc ở thành phần ngoài MVC có thể cần cơ chế xử lý riêng. Các lỗi authentication/authorization của Spring Security thường được chuyển qua entry point hoặc access denied handler trong security filter chain.
+
+## 4. @ControllerAdvice, @RestControllerAdvice, @ResponseStatus và ResponseEntityExceptionHandler
+
+| Công cụ | Mục đích | Khi dùng |
+|---|---|---|
+| **@ExceptionHandler** | Chọn phương thức xử lý một hoặc nhiều exception | Exception nghiệp vụ hoặc lỗi MVC cụ thể |
+| **@ControllerAdvice** | Áp dụng handler/binder/model chung, không tự động thêm @ResponseBody | MVC app có HTML views hoặc REST tùy từng method |
+| **@RestControllerAdvice** | ControllerAdvice với semantics ghi response body | REST API trả JSON/ProblemDetail |
+| **@ResponseStatus** | Gán HTTP status cố định cho method hoặc exception class | Trường hợp đơn giản chỉ cần status |
+| **ResponseStatusException** | Ném exception mang HTTP status từ web layer | Đường xử lý ngắn, không cần domain exception riêng |
+| **ResponseEntity<ProblemDetail>** | Kiểm soát status, headers và body tường minh | Khi handler cần custom headers, Retry-After, Location... |
+| **ResponseEntityExceptionHandler** | Base class Spring xử lý nhiều lỗi Spring MVC và cung cấp hook tùy biến | Muốn chuẩn hóa built-in framework exceptions hoặc điều chỉnh các lỗi validation/binding |
+| **ProblemDetail** | Body theo RFC 9457, có standard/extension properties | Contract lỗi có cấu trúc cho HTTP clients |
+
+Với nhiều API, cách rõ ràng là **domain/service ném exception có ý nghĩa**, còn web layer qua @RestControllerAdvice quyết định HTTP 404/409/400. Service thuần Java không nhất thiết phải phụ thuộc vào HttpStatus hay ResponseStatusException; sự phân tách giúp test logic và HTTP contract độc lập.
+
+**Đừng gắn @ResponseStatus(HttpStatus.NOT_FOUND) lên tất cả domain exception theo phản xạ.** Nó đơn giản nhưng kéo domain vào kiến thức HTTP, không tự bảo đảm ProblemDetail có type/errorCode mong muốn. Với code web rất nhỏ, ResponseStatusException có thể thích hợp; với API nhiều endpoint, advice thường dễ quản lý contract hơn.
+
+## 5. Ví dụ hoàn chỉnh: Spring Boot 3.3.5 trả ProblemDetail nhất quán
+
+Ứng dụng mẫu cung cấp:
+
+- **GET /api/products/1** → 200, product.
+- **GET /api/products/99** → 404, ProblemDetail type=product-not-found.
+- **POST /api/products/availability-checks** với productId=1, quantity=2 → 200, kết quả kiểm tra.
+- POST cùng path với productId=2, quantity=1 → 409, ProblemDetail type=insufficient-stock.
+- POST với quantity=0 hoặc thiếu productId → 400, ProblemDetail type=invalid-request cùng mảng violations.
+- GET với path variable không thể parse thành long, hoặc POST với JSON sai cú pháp → 400, handler của Spring Boot dành cho lỗi framework có thể trả ProblemDetail khi bật cấu hình tương ứng.
+
+**Mô hình dữ liệu:** Sản phẩm 1 có tồn kho 5; sản phẩm 2 có tồn kho 0. Endpoint kiểm tra tồn kho **không tạo reservation, không trừ hàng, không ghi database** nên test không cần cleanup. Cách này giúp bài tập tập trung vào exception handling thay vì concurrency và persistence.
+
+### 5.1. Tệp và dependencies
+
+~~~text
+settings.gradle
+build.gradle
+src/main/resources/application.properties
+src/main/java/demo/errors/ErrorsApplication.java
+src/main/java/demo/errors/Product.java
+src/main/java/demo/errors/AvailabilityRequest.java
+src/main/java/demo/errors/AvailabilityResult.java
+src/main/java/demo/errors/ProductNotFoundException.java
+src/main/java/demo/errors/InsufficientStockException.java
+src/main/java/demo/errors/CatalogService.java
+src/main/java/demo/errors/ProductController.java
+src/main/java/demo/errors/ApiErrorAdvice.java
+src/test/java/demo/errors/ProductApiErrorTest.java
+~~~
+
+**settings.gradle**
+
+~~~groovy
+rootProject.name = 'mvc-problem-detail-demo'
+~~~
+
+**build.gradle**
+
+~~~groovy
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'demo'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+    }
+}
+~~~
+
+**Vì sao cần spring-boot-starter-validation?** Spring Boot 3.x không mặc định bao gồm Jakarta Bean Validation khi chỉ dùng starter-web. Trong ví dụ, **@NotNull** và **@Min** trên request DTO cần Bean Validation provider được starter-validation đưa vào. Không có dependency này, bạn không nên giả định @Valid tự thực thi các constraint như thiết kế.
+
+**src/main/resources/application.properties**
+
+~~~properties
+spring.mvc.problemdetails.enabled=true
+~~~
+
+Trong Spring Boot 3.3, property trên bật hỗ trợ ProblemDetail cho các exception HTTP/MVC dựng sẵn mà Boot auto-configure. Ví dụ **không phụ thuộc property này để tạo body cho exception nghiệp vụ do ApiErrorAdvice xử lý**: chính handler ấy tự trả ProblemDetail. Property chủ yếu giúp phần lỗi framework như JSON sai hoặc chuyển kiểu có định dạng problem details nhất quán hơn.
+
+Ở Spring Boot 3.3, cơ chế Boot tự thêm một ResponseEntityExceptionHandler cho framework exceptions khi bật property. Advice tùy biến trong ví dụ dùng **@Order(Ordered.HIGHEST_PRECEDENCE)** để handler validation riêng được chọn trước handler framework của Boot. Nếu dự án đã có một advice với thứ tự khác hoặc cùng loại exception, cần kiểm tra precedence và tránh duplicate mappings.
+
+### 5.2. Ứng dụng và domain DTO
+
+**src/main/java/demo/errors/ErrorsApplication.java**
+
+~~~java
+package demo.errors;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ErrorsApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ErrorsApplication.class, args);
+    }
+}
+~~~
+
+**src/main/java/demo/errors/Product.java**
+
+~~~java
+package demo.errors;
+
+public record Product(long id, String name, int available) {
+}
+~~~
+
+**src/main/java/demo/errors/AvailabilityRequest.java**
+
+~~~java
+package demo.errors;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+public record AvailabilityRequest(
+        @NotNull Long productId,
+        @Min(1) int quantity) {
+}
+~~~
+
+**src/main/java/demo/errors/AvailabilityResult.java**
+
+~~~java
+package demo.errors;
+
+public record AvailabilityResult(
+        long productId,
+        int requestedQuantity,
+        boolean available) {
+}
+~~~
+
+**Java 17 record** giúp DTO ngắn gọn và bất biến theo các thành phần hiện có. Dùng Long (wrapper) cho productId để phân biệt **giá trị null** với một số có thật; dùng int cho quantity, và @Min(1) từ chối 0 hoặc số âm. Các annotation Jakarta validation sẽ được chạy khi controller dùng @Valid trên request body.
+
+### 5.3. Hai exception nghiệp vụ không phụ thuộc HTTP
+
+**src/main/java/demo/errors/ProductNotFoundException.java**
+
+~~~java
+package demo.errors;
+
+public final class ProductNotFoundException extends RuntimeException {
+
+    private final long productId;
+
+    public ProductNotFoundException(long productId) {
+        super("Product " + productId + " was not found");
+        this.productId = productId;
+    }
+
+    public long productId() {
+        return productId;
+    }
+}
+~~~
+
+**src/main/java/demo/errors/InsufficientStockException.java**
+
+~~~java
+package demo.errors;
+
+public final class InsufficientStockException extends RuntimeException {
+
+    private final long productId;
+
+    public InsufficientStockException(long productId) {
+        super("Insufficient stock for product " + productId);
+        this.productId = productId;
+    }
+
+    public long productId() {
+        return productId;
+    }
+}
+~~~
+
+Exception có tên và field cụ thể giúp web layer chọn status và thông điệp công khai. Code domain không cần gọi HttpStatus.NOT_FOUND hoặc HttpStatus.CONFLICT. Trong hệ thống thật, nội dung detail được công khai phải qua **chính sách bảo mật**: không đưa SQL, stack trace, token, password hoặc thông tin khách hàng vào response.
+
+### 5.4. Service chạy với dữ liệu cố định
+
+**src/main/java/demo/errors/CatalogService.java**
+
+~~~java
+package demo.errors;
+
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class CatalogService {
+
+    private final Map<Long, Product> products = Map.of(
+            1L, new Product(1L, "Keyboard", 5),
+            2L, new Product(2L, "Mouse", 0)
+    );
+
+    public Product getProduct(long productId) {
+        Product product = products.get(productId);
+        if (product == null) {
+            throw new ProductNotFoundException(productId);
+        }
+        return product;
+    }
+
+    public AvailabilityResult checkAvailability(
+            AvailabilityRequest request) {
+        Product product = getProduct(request.productId());
+        if (request.quantity() > product.available()) {
+            throw new InsufficientStockException(product.id());
+        }
+
+        return new AvailabilityResult(
+                product.id(), request.quantity(), true);
+    }
+}
+~~~
+
+**Lưu ý phạm vi:** Controller sẽ validate request trước khi gọi service. Nếu một caller Java **bỏ qua controller** và truyền AvailabilityRequest có productId=null, unboxing có thể gây NullPointerException. Trong production, nên xác định contract service rõ ràng và bảo vệ ranh giới tương ứng (validate tại service khi service được nhiều client sử dụng). Mẫu này dùng dữ liệu web đã được validate để tập trung vào **Spring MVC error response**.
+
+Map.of tạo map bất biến; không có database hoặc singleton mutable counter. Điều này giữ test độc lập và tránh sai lệch do thứ tự chạy.
+
+### 5.5. Controller: xử lý luồng thành công, để exception đi lên
+
+**src/main/java/demo/errors/ProductController.java**
+
+~~~java
+package demo.errors;
+
+import jakarta.validation.Valid;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    private final CatalogService catalog;
+
+    public ProductController(CatalogService catalog) {
+        this.catalog = catalog;
+    }
+
+    @GetMapping("/{id}")
+    public Product getById(@PathVariable long id) {
+        return catalog.getProduct(id);
+    }
+
+    @PostMapping("/availability-checks")
+    public ResponseEntity<AvailabilityResult> check(
+            @Valid @RequestBody AvailabilityRequest request) {
+        AvailabilityResult result = catalog.checkAvailability(request);
+        return ResponseEntity.ok(result);
+    }
+}
+~~~
+
+Controller **không có try/catch** quanh mỗi lời gọi. Khi CatalogService ném ProductNotFoundException hoặc InsufficientStockException, Spring MVC chuyển sang exception resolution. Khi @Valid thất bại đối với @RequestBody, Spring MVC thường ném **MethodArgumentNotValidException** trước khi gọi method check(...). Đó là ba nguồn lỗi khác nhau; advice sẽ ánh xạ về contract nhất quán.
+
+**Thứ tự xử lý:** Ở GET /api/products/not-a-number, chuyển "not-a-number" sang long thất bại khi resolve @PathVariable, nên code getById không chạy. Đó là lỗi framework binding khác với ProductNotFoundException khi ID parse được nhưng không có dữ liệu.
+
+### 5.6. @RestControllerAdvice trả ProblemDetail có type và errorCode ổn định
+
+**src/main/java/demo/errors/ApiErrorAdvice.java**
+
+~~~java
+package demo.errors;
+
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class ApiErrorAdvice {
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ProblemDetail missing(
+            ProductNotFoundException ex, HttpServletRequest request) {
+
+        return problem(
+                HttpStatus.NOT_FOUND,
+                "Product not found",
+                "Product " + ex.productId() + " does not exist",
+                "product-not-found",
+                "PRODUCT_NOT_FOUND",
+                request);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ProblemDetail unavailable(
+            InsufficientStockException ex, HttpServletRequest request) {
+
+        return problem(
+                HttpStatus.CONFLICT,
+                "Insufficient stock",
+                "Cannot fulfill request for product " + ex.productId(),
+                "insufficient-stock",
+                "INSUFFICIENT_STOCK",
+                request);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail validation(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
+
+        ProblemDetail body = problem(
+                HttpStatus.BAD_REQUEST,
+                "Invalid request",
+                "Request body violates validation constraints",
+                "invalid-request",
+                "INVALID_REQUEST",
+                request);
+
+        List<Map<String, String>> violations =
+                ex.getBindingResult().getFieldErrors().stream()
+                    .map(field -> Map.of(
+                            "field", field.getField(),
+                            "message", Objects.toString(
+                                    field.getDefaultMessage(),
+                                    "Invalid value")))
+                    .toList();
+
+        body.setProperty("violations", violations);
+        return body;
+    }
+
+    private static ProblemDetail problem(
+            HttpStatus status,
+            String title,
+            String detail,
+            String typeSlug,
+            String errorCode,
+            HttpServletRequest request) {
+
+        ProblemDetail body =
+                ProblemDetail.forStatusAndDetail(status, detail);
+
+        body.setTitle(title);
+        body.setType(URI.create(
+                "https://example.org/problems/" + typeSlug));
+        body.setInstance(URI.create(request.getRequestURI()));
+        body.setProperty("errorCode", errorCode);
+
+        return body;
+    }
+}
+~~~
+
+**Điểm kỹ thuật cần hiểu:**
+
+1. **@RestControllerAdvice** được Spring Boot component scan vì nó nằm cùng package demo.errors dưới ErrorsApplication.
+2. Ba phương thức @ExceptionHandler nhận đúng exception type; handler riêng cho MethodArgumentNotValidException chỉ xử lý validation từ @Valid @RequestBody, không tự bắt mọi kiểu request lỗi.
+3. @Order(Ordered.HIGHEST_PRECEDENCE) ưu tiên advice này so với advice framework được Boot cấu hình khi bật problem details. Không tạo một @ExceptionHandler(Exception.class) vô điều kiện để che các lỗi cụ thể.
+4. **ProblemDetail.forStatusAndDetail(status, detail)** tạo body với status phù hợp. Khi @ExceptionHandler trả ProblemDetail, Spring MVC sử dụng status của nó để đặt HTTP response status.
+5. **setType(...)** khai báo URI nhận diện loại lỗi; **setInstance(...)** dùng request path hiện tại. Hai trường này có vai trò khác nhau.
+6. **setProperty("errorCode", ...)** tạo extension field. Khi Spring MVC dùng Jackson mixin của ProblemDetail, các properties mở rộng được serialize thành **top-level JSON properties**, như errorCode và violations.
+7. **Objects.toString(message, "Invalid value")** xử lý trường hợp default validation message null. Mảng violations chỉ đưa field và thông báo công khai, không tự gửi rejectedValue có thể chứa dữ liệu nhạy cảm.
+8. Các mã **PRODUCT_NOT_FOUND / INSUFFICIENT_STOCK / INVALID_REQUEST** là contract của ví dụ, không phải enum được Spring tự định nghĩa.
+
+**Về @Order:** Nếu dự án có nhiều advice, cần một quy tắc ưu tiên rõ ràng. Một global advice ở mức ưu tiên cao bắt Exception chung có thể cướp cơ hội của handler chuyên biệt ở advice ưu tiên thấp. Đừng đánh dấu mọi advice đều là HIGHEST_PRECEDENCE; khi các advice xung đột sẽ khó dự đoán và bảo trì.
+
+## 6. Test đầy đủ bằng @SpringBootTest và MockMvc
+
+Ở ví dụ này ta muốn kiểm tra **cả CatalogService thật và ApiErrorAdvice**, nên dùng @SpringBootTest + @AutoConfigureMockMvc: tải application context thực, nhưng **mvc.perform** vẫn dùng mock servlet request, **không khởi động embedded server trên cổng TCP thật**. Điều đó đủ để kiểm tra HTTP status/JSON contract của Spring MVC trong phạm vi ứng dụng mẫu.
+
+**src/test/java/demo/errors/ProductApiErrorTest.java**
+
+~~~java
+package demo.errors;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+class ProductApiErrorTest {
+
+    @Autowired
+    MockMvc mvc;
+
+    @Test
+    void knownProductReturns200() throws Exception {
+        mvc.perform(get("/api/products/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Keyboard"))
+                .andExpect(jsonPath("$.available").value(5));
+    }
+
+    @Test
+    void missingProductReturns404Problem() throws Exception {
+        mvc.perform(get("/api/products/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.type").value(
+                        "https://example.org/problems/product-not-found"))
+                .andExpect(jsonPath("$.title").value("Product not found"))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value(
+                        "Product 99 does not exist"))
+                .andExpect(jsonPath("$.instance").value("/api/products/99"))
+                .andExpect(jsonPath("$.errorCode")
+                        .value("PRODUCT_NOT_FOUND"));
+    }
+
+    @Test
+    void validAvailabilityRequestReturns200() throws Exception {
+        mvc.perform(post("/api/products/availability-checks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"productId":1,"quantity":2}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productId").value(1))
+                .andExpect(jsonPath("$.requestedQuantity").value(2))
+                .andExpect(jsonPath("$.available").value(true));
+    }
+
+    @Test
+    void noStockReturns409Problem() throws Exception {
+        mvc.perform(post("/api/products/availability-checks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"productId":2,"quantity":1}
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.title").value("Insufficient stock"))
+                .andExpect(jsonPath("$.errorCode")
+                        .value("INSUFFICIENT_STOCK"));
+    }
+
+    @Test
+    void invalidQuantityReturns400WithViolations() throws Exception {
+        mvc.perform(post("/api/products/availability-checks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"productId":1,"quantity":0}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errorCode")
+                        .value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.violations[0].field")
+                        .value("quantity"));
+    }
+
+    @Test
+    void missingProductIdReturns400WithViolations() throws Exception {
+        mvc.perform(post("/api/products/availability-checks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"quantity":1}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errorCode")
+                        .value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.violations[0].field")
+                        .value("productId"));
+    }
+
+    @Test
+    void malformedJsonReturnsFramework400() throws Exception {
+        mvc.perform(post("/api/products/availability-checks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"productId\":"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void invalidPathVariableReturnsFramework400() throws Exception {
+        mvc.perform(get("/api/products/not-a-number"))
+                .andExpect(status().isBadRequest());
+    }
+}
+~~~
+
+**Tổng số test ở file:** 8 phương thức @Test. Hai test cuối **chỉ assert status 400** để tránh ràng buộc vào một error body cụ thể không phải chủ đề của hai ca ấy. Khi spring.mvc.problemdetails.enabled=true, framework có thể tạo ProblemDetail cho các lỗi đọc JSON/chuyển kiểu; nội dung detail/title phụ thuộc cấu hình, message source và Spring version. Các handler tùy biến trong ApiErrorAdvice mới là nơi **quy định rõ** errorCode và type theo contract ứng dụng.
+
+**Tại sao dùng @SpringBootTest thay vì @WebMvcTest ở đây?** Vì CatalogService có một Map sản phẩm thật và không cần phụ thuộc bên ngoài. @SpringBootTest xác minh đầy đủ controller → service → exception advice. Nếu bạn chỉ muốn test web layer độc lập với dữ liệu/service, @WebMvcTest cùng @MockBean cho dependency là lựa chọn nhanh hơn.
+
+**Không phải mọi HTTP 400 đều từ cùng exception:** quantity=0 đi qua Jackson → DTO → @Valid rồi ném MethodArgumentNotValidException; path "not-a-number" lỗi chuyển kiểu; JSON bị cắt giữa chừng dẫn đến HttpMessageNotReadableException. Cùng HTTP status nhưng **nguyên nhân và handler** khác.
+
+### 6.1. Chạy test
+
+Trong thư mục có build.gradle, nếu dự án đã có Gradle Wrapper:
+
+~~~bash
+./gradlew test
+~~~
+
+Trên Windows PowerShell:
+
+~~~powershell
+.\gradlew.bat test
+~~~
+
+Khi tự tạo dự án bằng cách chép các tệp trên, **Gradle Wrapper scripts/files không được liệt kê**, nên ./gradlew chỉ hoạt động nếu bạn đã tạo Wrapper. Nếu chưa có, chạy **gradle test** bằng Gradle tương thích Spring Boot 3.3.x hoặc tạo Wrapper trước.
+
+Có thể chạy lớp test riêng:
+
+~~~bash
+./gradlew test --tests demo.errors.ProductApiErrorTest
+~~~
+
+Báo cáo HTML Gradle thường tại **build/reports/tests/test/index.html**. Với đúng các file mẫu và không thêm test khác, bạn sẽ thấy **8 ca JUnit Jupiter**. Không cần database hay external service; kết quả không phụ thuộc thứ tự thực thi. Nếu có Spring Security khác trong classpath hoặc ControllerAdvice riêng trong dự án thật, điều chỉnh fixtures/expected theo contract và thứ tự handler thực tế.
+
+### 6.2. Diễn giải một lỗi 404 trong response
+
+Ví dụ GET /api/products/99 được định nghĩa trả body:
+
+~~~json
+{
+  "type": "https://example.org/problems/product-not-found",
+  "title": "Product not found",
+  "status": 404,
+  "detail": "Product 99 does not exist",
+  "instance": "/api/products/99",
+  "errorCode": "PRODUCT_NOT_FOUND"
+}
+~~~
+
+HTTP response status là **404**; Content-Type tương thích **application/problem+json**. Type ổn định cho cả nhóm “không tìm thấy sản phẩm”; instance tùy request; detail có thể chứa ID để hỗ trợ chẩn đoán nhưng không chứa stack trace hoặc dữ liệu bí mật. Lỗi 409/400 dùng type và errorCode khác, giúp client xử lý khác nhau dù tất cả đều là thất bại.
+
+**Lưu ý về RFC:** Năm tên chuẩn được hỗ trợ, nhưng không phải mọi response đều bắt buộc phải có giá trị do lập trình viên tự đặt cho từng trường. Spring có default cho type/title/instance trong những trường hợp; nếu muốn API contract cố định, hãy đặt tường minh và kiểm tra bằng integration test như trên.
+
+## 7. @WebMvcTest + @MockBean khi muốn test riêng advice/controller
+
+Nếu chỉ cần kiểm tra Spring MVC exception mapping mà không muốn nạp full context, có thể dùng test slice:
+
+~~~java
+// Snippet minh họa trong Spring Boot 3.3, không phải file thuộc
+// bộ ví dụ ở mục 5: cần imports và class test đầy đủ.
+@WebMvcTest(ProductController.class)
+class ProductControllerWebSliceTest {
+
+    @Autowired
+    MockMvc mvc;
+
+    @MockBean
+    CatalogService catalog;
+
+    @Test
+    void missingProductIsMappedTo404() throws Exception {
+        when(catalog.getProduct(99L))
+                .thenThrow(new ProductNotFoundException(99L));
+
+        mvc.perform(get("/api/products/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode")
+                        .value("PRODUCT_NOT_FOUND"));
+    }
+}
+~~~
+
+**@WebMvcTest** tìm các thành phần web phù hợp, bao gồm @ControllerAdvice trong phạm vi slice, và @MockBean thay CatalogService để controller vẫn có dependency. Nếu advice nằm ngoài component scan/slice của ứng dụng cụ thể, có thể phải **@Import(ApiErrorAdvice.class)** một cách tường minh. Trong Spring Boot 3.3, @MockBean là annotation ở package **org.springframework.boot.test.mock.mockito**; ở các bản Spring Boot mới hơn, xem cơ chế **@MockitoBean** tương ứng trước khi sao chép.
+
+**Phân biệt coverage:** Web slice không kiểm tra logic thực của CatalogService. Nó kiểm tra việc controller và advice chuyển exception giả lập thành HTTP response như thế nào. Unit test service nên kiểm tra khi nào ProductNotFoundException/InsufficientStockException được ném.
+
+## 8. ResponseEntityExceptionHandler và lỗi framework
+
+Ngoài exception nghiệp vụ, Spring MVC có nhiều exception phát sinh **trước khi controller chạy**:
+
+| Nhóm lỗi | Exception thường thấy | HTTP điển hình |
+|---|---|---|
+| @Valid @RequestBody không đạt constraint | MethodArgumentNotValidException | 400 |
+| JSON malformed/không convert được | HttpMessageNotReadableException | 400 |
+| Thiếu @RequestParam bắt buộc | MissingServletRequestParameterException | 400 |
+| @PathVariable/@RequestParam chuyển kiểu thất bại | MethodArgumentTypeMismatchException hoặc nhóm TypeMismatchException | 400 |
+| HTTP method không được hỗ trợ | HttpRequestMethodNotSupportedException | 405 (có thể kèm Allow header) |
+| Content-Type không được hỗ trợ | HttpMediaTypeNotSupportedException | 415 |
+| Accept không khớp dạng trả về | HttpMediaTypeNotAcceptableException | 406 |
+| Không có handler hoặc resource | NoHandlerFoundException / NoResourceFoundException, tùy MVC/resource mapping | 404 |
+
+Trong Spring Framework 6.1, **ResponseEntityExceptionHandler** là base class có @ExceptionHandler xử lý nhiều exception chuẩn của MVC, và có các phương thức protected để tùy biến.
+
+Ví dụ **một chiến lược thay thế**, không đặt class này vào project đồng thời với ApiErrorAdvice nếu chưa quy định rõ thứ tự và handler ownership:
+
+~~~java
+// Snippet rút gọn cần imports đầy đủ trong một dự án riêng:
+@RestControllerAdvice
+public class FrameworkErrorAdvice
+        extends ResponseEntityExceptionHandler {
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        ProblemDetail body = ex.getBody();
+        body.setTitle("Request validation failed");
+        body.setProperty("errorCode", "INVALID_REQUEST");
+
+        return handleExceptionInternal(
+                ex, body, headers, status, request);
+    }
+}
+~~~
+
+Ở cách kế thừa, bạn **override hook** của base class, không thêm một @ExceptionHandler(MethodArgumentNotValidException.class) lên override method. Base class đã có phương thức @ExceptionHandler phù hợp, và khai báo trùng có thể gây ambiguous handler mapping.
+
+**Không kết hợp hai chiến lược một cách vô thức:**
+
+- Chiến lược A: Bật spring.mvc.problemdetails.enabled=true để Boot xử lý framework exceptions, viết @RestControllerAdvice chuyên biệt cho domain và một số case cần custom.
+- Chiến lược B: Tự kế thừa ResponseEntityExceptionHandler để tùy biến phần lớn MVC exceptions, khai báo rõ các handler của mình và cách tương tác với auto-configuration.
+
+Chọn một chính sách nhất quán, viết test xác minh **đúng handler được dùng**, tránh hai advice đều tuyên bố sở hữu một loại lỗi mà không có thứ tự ưu tiên rõ ràng.
+
+## 9. spring.mvc.problemdetails.enabled và phạm vi của nó
+
+Trong Spring Boot 3.3.x:
+
+~~~properties
+spring.mvc.problemdetails.enabled=true
+~~~
+
+Cấu hình này bật cơ chế hỗ trợ ProblemDetail cho **các exception HTTP/MVC dựng sẵn** thông qua auto-configuration. Nó không làm mọi RuntimeException trong business layer tự biến thành ProblemDetail có type tùy chỉnh. Các exception nghiệp vụ như ProductNotFoundException vẫn nên được ánh xạ rõ tại advice hoặc qua một cơ chế ErrorResponse/ResponseStatusException có chủ đích.
+
+Không nên kết luận **tắt property nghĩa là không thể trả ProblemDetail**. Một @ExceptionHandler do bạn viết có thể trả ProblemDetail trực tiếp mà không cần property trên. Ngược lại, bật property không tự bảo đảm response từ Spring Security filters, custom servlet filters hoặc tất cả lỗi xử lý ngoài MVC đều có cùng body.
+
+**Đối với Spring Boot /error:** Boot cung cấp error handling fallback, trong đó có BasicErrorController và error attributes. Những lỗi chưa được exception handler xử lý có thể đi qua servlet error dispatch và /error thay vì response tùy biến từ @RestControllerAdvice. Đường đi cụ thể phụ thuộc lỗi, servlet container, framework version và cấu hình. Đừng mô tả @ControllerAdvice là một catch-all bao phủ cả ứng dụng.
+
+**Status không đồng nghĩa body:** Có thể một exception được framework xử lý thành 404/405 với body khác contract custom của bạn. Nếu API yêu cầu mọi lỗi có errorCode, hãy thiết kế và test đầy đủ các exception category quan trọng, bao gồm authentication/security và lỗi ngoài MVC nếu thuộc phạm vi công bố.
+
+## 10. Chọn HTTP status đúng cho nghiệp vụ
+
+| Status | Ý nghĩa | Ví dụ hợp lý |
+|---|---|---|
+| **400 Bad Request** | Request không hợp lệ về cấu trúc/giá trị | quantity=0, thiếu productId, JSON malformed |
+| **401 Unauthorized** | Thiếu/chưa hợp lệ authentication | Không có access token hợp lệ |
+| **403 Forbidden** | Đã xác thực nhưng không được phép | User không có quyền thao tác |
+| **404 Not Found** | Không tìm thấy resource hoặc muốn tránh tiết lộ tồn tại theo security policy | Product 99 không có |
+| **405 Method Not Allowed** | Resource có nhưng HTTP method không hỗ trợ | PUT vào endpoint chỉ có GET |
+| **409 Conflict** | Request mâu thuẫn trạng thái tài nguyên | Yêu cầu số lượng vượt tồn kho trong mô hình minh họa |
+| **422 Unprocessable Content** | Body hợp cú pháp nhưng không thể xử lý theo quy tắc nghiệp vụ | Có thể dùng nếu API định nghĩa contract như vậy |
+| **500 Internal Server Error** | Lỗi server ngoài dự kiến | NullPointerException/bug chưa xử lý |
+
+Không có một bảng ánh xạ duy nhất áp dụng cho mọi lĩnh vực. Ví dụ “không đủ hàng” có thể dùng **409** hoặc **422** tùy contract; bài này chọn 409 và test đúng kỳ vọng đó. **Đừng trả 200 với trường success=false** cho một lỗi mà API đã quy định status 4xx; client, monitoring và HTTP caching có thể hiểu sai.
+
+Từ web layer, domain exception nên được ánh xạ nhất quán. Nếu nhiều endpoint dùng chung "not found" với ngữ nghĩa khác nhau, dùng exception type, mã lỗi và type URI rõ thay vì một catch-all IllegalArgumentException chung cho mọi case.
+
+## 11. Thiết kế ProblemDetail cho client và tính tương thích lâu dài
+
+### 11.1. Type URI nên bền vững
+
+Type nhận diện **loại lỗi**; các client có thể dùng nó để phân biệt lỗi một cách có cấu trúc. Nếu chọn URI thực (ví dụ website tài liệu API của tổ chức), nên cung cấp tài liệu giải thích ngữ nghĩa, status, extension fields và remediation. Đừng thay type tùy theo exception message hoặc dữ liệu request.
+
+**Instance** lại nhận diện **lần xảy ra lỗi**. Có thể đặt bằng request path như bài mẫu hoặc một URI tương ứng occurrence. Khi path chứa thông tin nhạy cảm, đừng đưa dữ liệu bí mật vào instance; cân nhắc cơ chế trace ID không làm lộ bí mật.
+
+### 11.2. errorCode và violations là extension fields
+
+**ProblemDetail.setProperty("errorCode", "...")** và **setProperty("violations", ...)** thêm dữ liệu ứng dụng. Jackson mixin trong Spring hỗ trợ xuất chúng thành top-level JSON. Client nên phụ thuộc vào các field **đã được API đặc tả**, không suy đoán tên field tuỳ từng exception.
+
+Ví dụ lỗi validation:
+
+~~~json
+{
+  "type": "https://example.org/problems/invalid-request",
+  "title": "Invalid request",
+  "status": 400,
+  "detail": "Request body violates validation constraints",
+  "instance": "/api/products/availability-checks",
+  "errorCode": "INVALID_REQUEST",
+  "violations": [
+    {
+      "field": "quantity",
+      "message": "must be greater than or equal to 1"
+    }
+  ]
+}
+~~~
+
+**Không lấy message literal bên trên làm assertion cố định** nếu nó được tạo từ Bean Validation provider/locale; thông điệp có thể thay đổi theo cấu hình bản địa hóa. Trong bài test, chỉ assert tên field. Nếu client cần mã lỗi ổn định trên từng field, hãy định nghĩa error code cho constraint đó thay vì phụ thuộc message tiếng Anh.
+
+### 11.3. Không làm lộ thông tin nội bộ
+
+Trong response gửi ra Internet, tránh:
+- Stack trace, tên class nội bộ, đường dẫn filesystem, SQL statement hay JDBC connection string.
+- Password, session token, API key, cookie bí mật, full request body chứa dữ liệu cá nhân.
+- Thông điệp từ exception tầng thấp **ex.getMessage()** khi chưa được chuẩn hóa cho client.
+- Debug details của database/external service.
+
+Dùng thông điệp public ngắn, và log nguyên nhân chi tiết **phía server** với correlation ID. Khi handler nhận unexpected exception, thường trả một ProblemDetail 500 đã được làm sạch; không đưa stack trace vào body. Tuy nhiên, một global @ExceptionHandler(Exception.class) phải được thiết kế/ưu tiên cẩn thận để không che các trường hợp framework 400/404/405 hoặc security.
+
+### 11.4. Quan sát, logging và tracing
+
+Exception được @ExceptionHandler xử lý có thể không còn được nhìn như unhandled error bởi một số cơ chế metrics/observability. Nếu hệ thống cần metrics/traces chính xác, xem cách ghi nhận handled exception trong Spring/Micrometer Observations. Đừng log một exception nhiều lần ở controller, service, advice và servlet filter gây nhiễu. Ưu tiên một điểm log đủ context theo chính sách của dự án, với traceId an toàn.
+
+### 11.5. Quốc tế hóa (i18n)
+
+Spring hỗ trợ MessageSource và các message codes cho ErrorResponse/ResponseEntityExceptionHandler. Nếu API cần nhiều ngôn ngữ, xác định quy tắc dựa trên Accept-Language hoặc locale của người dùng. **Type/errorCode nên ổn định**; title/detail có thể được dịch. Không dùng chuỗi title/detail đã dịch như identifier trong client logic.
+
+## 12. Handler priority, cause matching và tình huống nhiều advice
+
+**Ưu tiên giữa local và global:** Nếu controller có một @ExceptionHandler phù hợp, thông thường local handler được chọn trước global advice. Ví dụ một controller có thể cố ý trả HTML error view riêng, trong khi phần lớn REST controllers dùng một global ProblemDetail advice. Nếu phạm vi hẹp như vậy cần được duy trì, viết test riêng cho controller đó.
+
+**Cause matching:** @ExceptionHandler có thể chọn theo exception trực tiếp hoặc nguyên nhân lồng trong cause chain. Trong một advice, match với root exception thường được ưu tiên so với match trên cause theo độ sâu. Giữa các advice, thứ tự được áp dụng có thể khiến một cause match trong advice ưu tiên cao được chọn trước một root match ở advice ưu tiên thấp. Vì thế đừng dùng catch-all handler ưu tiên cao nếu bạn muốn chuyên biệt hóa theo nghiệp vụ.
+
+**Giới hạn phạm vi advice:** @ControllerAdvice có thể chọn các controller theo package, marker annotation hoặc type. Ví dụ về cú pháp:
+
+~~~java
+@RestControllerAdvice(basePackageClasses = ProductController.class)
+class CatalogOnlyErrorAdvice {
+    // Các @ExceptionHandler trong advice này tập trung vào
+    // controller thuộc package của ProductController.
+}
+~~~
+
+Snippet minh họa, không phải class thuộc project chạy được ở trên. Có thể dùng basePackages, assignableTypes hoặc annotations để chọn vùng tác dụng; kiểm tra chính xác hiệu ứng trên các controller thực tế và tránh cấu hình rộng hơn dự kiến.
+
+**Chú ý ambiguous mapping:** Hai @ExceptionHandler trong **cùng controller/advice** cùng ánh xạ một exception không phân biệt rõ có thể khiến ứng dụng thất bại khi khởi động hoặc khi dựng exception resolver. Trong hai advice riêng, ưu tiên @Order có thể giải quyết lựa chọn, nhưng cấu trúc vẫn nên rõ người sở hữu mỗi lỗi.
+
+## 13. Những tình huống khó: lỗi xuất hiện ngoài controller
+
+| Nơi lỗi xảy ra | @RestControllerAdvice có luôn xử lý không? | Cơ chế thường cần xem |
+|---|---|---|
+| Trong @RequestMapping handler hoặc MVC argument resolver | Thường có thể, nếu match handler | @ExceptionHandler / HandlerExceptionResolver |
+| @Valid @RequestBody | Có thể qua MethodArgumentNotValidException | Advice hoặc ResponseEntityExceptionHandler |
+| Servlet filter trước DispatcherServlet | **Không bảo đảm** | Servlet container error handling, filter/security-specific handler |
+| Spring Security Authentication/AccessDenied | Không mặc định dùng cùng MVC advice | AuthenticationEntryPoint, AccessDeniedHandler |
+| Spring @Scheduled | Không | Task error handling và logging |
+| @Async hoặc CompletableFuture ngoài request | Không tự động | Future/completion handler, executor error handling |
+| Server đã ghi/commit response body | Không chắc thay status/body được nữa | Logging, async/error dispatch, kiến trúc streaming |
+| WebSocket/message consumer | Không mặc định | Exception handling của messaging stack |
+| WebFlux reactive controller | Cơ chế khác servlet MVC | Reactive exception handling / WebExceptionHandler |
+
+Điều này quan trọng với mục tiêu “toàn hệ thống luôn trả cùng kiểu JSON lỗi”. Một advice ở MVC chưa bao phủ tất cả boundary. Với Spring Security, nếu API cần RFC 9457 cho 401/403, phải cấu hình cả entry point/access denied handling để trả ProblemDetail hoặc contract tương đương, rồi test bằng request thực tế.
+
+## 14. Các lỗi phổ biến khi học và triển khai
+
+| Lỗi | Hậu quả | Cách sửa |
+|---|---|---|
+| Mọi controller có try/catch giống nhau | Lặp logic, body lỗi không thống nhất | Dùng exception type + @RestControllerAdvice |
+| Dùng @ControllerAdvice nhưng tưởng method tự trả JSON | Có thể bị diễn giải view nếu không có @ResponseBody | Dùng @RestControllerAdvice cho REST |
+| Tạo ProblemDetail nhưng để status sai HTTP | Client/monitoring hiểu sai | Dùng forStatusAndDetail + assertion status |
+| Nhầm type với instance | Client khó nhận diện loại lỗi | Type là category, instance là occurrence |
+| Cho rằng bật spring.mvc.problemdetails.enabled xử lý mọi RuntimeException | Domain errors vẫn thiếu mapping | Viết @ExceptionHandler cho exception nghiệp vụ |
+| Cùng lúc để nhiều advice tranh cùng exception | Thứ tự khó đoán, lỗi không như contract | Phân trách nhiệm và @Order rõ ràng |
+| @ExceptionHandler(Exception.class) bắt quá rộng | Che 400/404/405, trả 500 sai | Handler cụ thể trước, catch-all rất thận trọng |
+| Trả ex.getMessage() nguyên từ DB/stack | Lộ thông tin nội bộ | Sanitize public detail; log riêng |
+| Bỏ starter-validation nhưng mong @Valid kiểm tra @Min | Constraint có thể không chạy | Thêm spring-boot-starter-validation |
+| Dùng @NotNull trên int primitive | Không bao giờ null | Dùng wrapper hoặc constraint phù hợp |
+| Cố định message validation tiếng Anh trong test | Flaky khi locale/provider thay đổi | Assert field và errorCode ổn định |
+| So raw JSON theo thứ tự field | Test giòn, không cần thiết | Dùng JSONPath/JsonNode |
+| Không phân biệt malformed JSON và validation | Bỏ sót lỗi binding | Test case riêng cho từng tầng |
+| Dùng @ResponseStatus cho domain exception nhưng mong tự có errorCode | Không tự sinh field tùy chỉnh | Dùng advice/ProblemDetail |
+| Không kiểm thử HTTP status thật | Đúng Java exception nhưng sai contract API | MockMvc hoặc real HTTP client tests |
+| Cho rằng @RestControllerAdvice xử lý filter/security errors | 401/403 vẫn khác format | Cấu hình cơ chế security riêng |
+
+## 15. Checklist áp dụng vào dự án Spring MVC thật
+
+1. **Phân loại lỗi theo nguyên nhân:** request binding/validation; resource không tìm thấy; conflict nghiệp vụ; failure của dependency; unexpected server error.
+2. **Viết bảng mapping exception → HTTP status → type URI → errorCode**, với người chịu trách nhiệm và hợp đồng body rõ ràng.
+3. **Giữ domain layer không phụ thuộc HTTP** khi có thể; ném exception có nghĩa thay vì dùng IllegalArgumentException chung cho mọi lỗi.
+4. **Chọn chiến lược Spring MVC:** @RestControllerAdvice cho domain; cân nhắc dùng ResponseEntityExceptionHandler hoặc Boot problem-details auto-config cho lỗi framework.
+5. **Đặt type/title/detail/instance có chủ đích**, thêm extension fields qua setProperty và quy định những field nào là API contract.
+6. **Không đưa dữ liệu nhạy cảm ra ngoài**; log/trace phía server theo chính sách và tránh trùng log.
+7. **Kiểm tra @Order và các handler đã có:** không để một advice catch-all nuốt lỗi cụ thể.
+8. **Kiểm thử các đường quan trọng:** 200 thành công, 400 validation và JSON malformed, 404 resource, 409 conflict, 405 method, 401/403 nếu bật security.
+9. **Dùng MockMvc cho đa số MVC contract tests;** khi cần socket/server/headers/filter container thật, chọn @SpringBootTest(webEnvironment=RANDOM_PORT) với HTTP client phù hợp.
+10. **Xem báo cáo CI:** không chỉ assert body, mà kiểm tra status, Content-Type, type/errorCode và instance khi contract quy định.
+11. **Kiểm tra client compatibility:** thay đổi status/errorCode/type/JSON extensions có thể phá client. Cần versioning hoặc migration plan khi đổi contract.
+
+## 16. Bài tập tự luyện
+
+**Bài 1.** Thêm exception ProductDiscontinuedException. Product đã ngừng bán thì bạn chọn HTTP 409 hay 410 Gone? Giải thích dựa trên contract thật, rồi thêm @ExceptionHandler, type và errorCode.
+
+**Bài 2.** Khi POST thiếu trường quantity, record dùng int primitive có thể nhận 0. @Min(1) giúp phát hiện thế nào? Nếu muốn phân biệt “không gửi” với “gửi 0”, cần thay type DTO và constraint ra sao?  
+*Gợi ý:* Dùng Integer với @NotNull và @Min(1), rồi test hai trường hợp.
+
+**Bài 3.** Cho một @ControllerAdvice có @ExceptionHandler(Exception.class) ưu tiên cao, và một advice khác bắt ProductNotFoundException ưu tiên thấp. Vì sao cần kiểm tra @Order để lỗi 404 không bị biến thành 500?
+
+**Bài 4.** Một HTTP 401 từ Spring Security filter không có JSON giống các lỗi 404 của MVC. Có thể chỉ sửa ApiErrorAdvice để bảo đảm nó được gọi không?  
+*Gợi ý:* Không tự động; xem AuthenticationEntryPoint/AccessDeniedHandler và kiểm thử request security thực.
+
+**Bài 5.** Thêm test cho malformed JSON, thiếu @RequestParam và HTTP method không hỗ trợ. Xác định loại exception/framework handler tương ứng và chỉ assert các field đã được công bố ổn định.
+
+**Gợi ý tổng kết:** API chuyên nghiệp cần cả **quy tắc nghiệp vụ đúng** lẫn **hợp đồng lỗi HTTP rõ ràng**. @ControllerAdvice giúp quản lý handler tập trung, @ExceptionHandler chọn đúng exception, còn ProblemDetail cho cấu trúc chuẩn. Kiểm tra integration bằng MockMvc và bổ sung test server thật khi có yêu cầu để tránh chỉ đúng trên lý thuyết Java.
+
+## 17. Tài liệu tham khảo
+
+- [Spring Boot 3.3 — Servlet Web Applications: Error Handling](https://docs.spring.io/spring-boot/3.3/reference/web/servlet.html) — /error và spring.mvc.problemdetails.enabled.
+- [Spring Framework — @ControllerAdvice và @RestControllerAdvice](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-advice.html) — phạm vi global advice, thứ tự và handler cục bộ.
+- [Spring Framework — @ExceptionHandler](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-exceptionhandler.html) — cách chọn handler và return values.
+- [Spring Framework — ProblemDetail, ErrorResponse, ResponseEntityExceptionHandler](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html) — RFC 9457 và extension fields.
+- [Spring Framework 6.1 — ResponseEntityExceptionHandler Javadoc](https://docs.spring.io/spring-framework/docs/6.1.8/javadoc-api/org/springframework/web/servlet/mvc/method/annotation/ResponseEntityExceptionHandler.html) — các hook tùy biến MVC errors.
+- [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457.html) — ý nghĩa trường type/title/status/detail/instance.
+
+**Ghi nhớ:** Với Spring MVC, **@RestControllerAdvice + @ExceptionHandler** là cách gọn để ánh xạ exception có nghĩa sang **ProblemDetail** theo RFC 9457. Spring Boot có thể xử lý nhiều framework exceptions khi bật property phù hợp, nhưng domain errors và lỗi ở security/filters vẫn cần chính sách riêng. Test phải xác minh đồng thời **HTTP status, media type và JSON contract**; đừng chỉ kiểm tra rằng Java đã ném exception.

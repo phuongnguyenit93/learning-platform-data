@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Thiết kế môi trường
+  slug: environment-design
+  index: 1
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 2
+- title: Nền tảng container
+  slug: container-platforms
+  index: 3
+- title: Bắt đầu Testcontainers
+  slug: testcontainers-getting-started
+  index: 4
+- title: Cấu hình container
+  slug: container-configuration
+  index: 5
+- title: Sẵn sàng và vòng đời
+  slug: readiness-lifecycle
+  index: 6
+- title: Mạng và kết nối
+  slug: networking-connectivity
+  index: 7
+- title: Tệp và lưu trữ
+  slug: files-storage
+  index: 8
+- title: Cơ sở dữ liệu nhúng
+  slug: embedded-databases
+  index: 9
+- title: Cơ sở dữ liệu container
+  slug: container-databases
+  index: 10
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 11
+- title: NoSQL và bộ nhớ đệm
+  slug: nosql-caches
+  index: 12
+- title: Hàng đợi và sự kiện
+  slug: queues-events
+  index: 13
+- title: Dịch vụ giả lập
+  slug: service-mocks
+  index: 14
+- title: Docker Compose
+  slug: docker-compose
+  index: 15
+- title: JUnit 5 và Gradle
+  slug: junit5-gradle
+  index: 16
+- title: Spring Boot
+  slug: spring-boot
+  index: 17
+- title: Tính xác định
+  slug: determinism
+  index: 18
+- title: Cô lập song song
+  slug: parallel-isolation
+  index: 19
+- title: Mô phỏng sự cố
+  slug: failure-simulation
+  index: 20
+- title: Tối ưu tài nguyên
+  slug: resource-optimization
+  index: 21
+- title: Môi trường CI
+  slug: ci-environments
+  index: 22
+- title: Bảo mật môi trường
+  slug: environment-security
+  index: 23
+- title: Quan sát và chẩn đoán
+  slug: observability-diagnostics
+  index: 24
+- title: Chuẩn hóa môi trường
+  slug: environment-standardization
+  index: 25
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 26

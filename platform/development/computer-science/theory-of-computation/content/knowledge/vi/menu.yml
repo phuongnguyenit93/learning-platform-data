@@ -1,0 +1,376 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Lý thuyết tính toán là gì và ba câu hỏi: biểu diễn, giải được, giải hiệu quả'
+  - Bài toán, thuật toán, chương trình và mô hình tính toán
+  - Ngôn ngữ hình thức như cách mô tả một bài toán quyết định
+  - Phân biệt bài toán quyết định, tìm kiếm, tối ưu và đếm
+  - 'Ba trụ cột: ôtômát, khả năng tính toán và độ phức tạp'
+  - Vai trò của trạng thái, bộ nhớ và tài nguyên tính toán
+  - 'Bản đồ thuật ngữ: nhận dạng, quyết định, suy dẫn và quy dẫn'
+  - Giới hạn lý thuyết và giới hạn thực tế của máy tính
+  - Mối liên hệ với trình biên dịch, kiểm chứng và thiết kế thuật toán
+  - Lộ trình học và kiến thức toán cần chuẩn bị
+- level1: Công cụ lập luận
+  level2:
+  - Tập hợp, quan hệ, hàm và phép hợp thành trong mô hình tính toán
+  - Quan hệ tương đương, lớp tương đương và phân hoạch
+  - Mệnh đề, lượng từ và cách phủ định một phát biểu
+  - Chứng minh trực tiếp, phản chứng và phản đảo
+  - Quy nạp theo số tự nhiên, độ dài xâu và cấu trúc
+  - Bất biến và chứng minh tính đúng của quá trình tính toán
+  - Đồ thị, đường đi và tính đạt tới giữa các cấu hình
+  - Tập đếm được, liệt kê và lập luận đường chéo
+  - Phân biệt ví dụ, phản ví dụ và chứng minh tổng quát
+  - Cách đọc định nghĩa, định lý và điều kiện áp dụng
+- level1: Xâu và ngôn ngữ
+  level2:
+  - Bảng chữ cái, ký hiệu, xâu rỗng và độ dài xâu
+  - Tiền tố, hậu tố, xâu con, xâu đảo và lũy thừa của xâu
+  - Nối xâu và các quy luật đại số cơ bản
+  - Tập mọi xâu Σ*, tập Σ+ và thứ tự liệt kê xâu
+  - Ngôn ngữ hữu hạn, vô hạn, rỗng và chứa xâu rỗng
+  - Hợp, giao, hiệu và phần bù theo bảng chữ cái
+  - Nối ngôn ngữ, bao đóng Kleene và bao đóng dương
+  - Đảo ngôn ngữ, đồng cấu và đồng cấu ngược
+  - Mã hóa dữ liệu thành xâu và tính hợp lệ của biểu diễn
+  - Mô tả ngôn ngữ bằng điều kiện, văn phạm và bộ nhận dạng
+- level1: Văn phạm hình thức
+  level2:
+  - 'Thành phần văn phạm: ký hiệu kết thúc, biến, luật sinh và ký hiệu bắt đầu'
+  - Bước suy dẫn, suy dẫn nhiều bước và ngôn ngữ sinh bởi văn phạm
+  - Phân biệt ngôn ngữ được sinh với các dạng câu trung gian
+  - Thiết kế luật sinh từ cấu trúc đệ quy của ngôn ngữ
+  - Phân cấp Chomsky và điều kiện luật sinh của từng loại
+  - Văn phạm chính quy và mối liên hệ với bộ nhớ hữu hạn
+  - Văn phạm phi ngữ cảnh và cấu trúc lồng nhau
+  - Văn phạm cảm ngữ cảnh và ôtômát bị chặn tuyến tính
+  - Văn phạm không hạn chế và máy Turing
+  - Các bao hàm nghiêm ngặt và vị trí của ngôn ngữ quyết định được
+  - Xâu rỗng và các quy ước cần nêu khi dùng phân cấp Chomsky
+- level1: Ôtômát hữu hạn
+  level2:
+  - Trực giác về trạng thái và lượng thông tin cần nhớ
+  - 'Định nghĩa DFA: tập trạng thái, bảng chữ cái và hàm chuyển'
+  - Trạng thái đầu, trạng thái chấp nhận và trạng thái bẫy
+  - Biểu diễn DFA bằng đồ thị và bảng chuyển
+  - Hàm chuyển mở rộng và điều kiện chấp nhận toàn bộ xâu
+  - Dựng DFA cho tiền tố, hậu tố và mẫu con
+  - Dựng DFA cho đếm theo modulo và điều kiện chẵn lẻ
+  - Dựng ôtômát tích để kết hợp nhiều điều kiện
+  - Hoàn thiện hàm chuyển trước khi lấy phần bù
+  - Chứng minh DFA nhận đúng ngôn ngữ bằng bất biến
+  - Trạng thái không đạt tới và những lỗi thiết kế thường gặp
+- level1: Bất định hữu hạn
+  level2:
+  - Bất định như khả năng tồn tại một đường chạy chấp nhận
+  - Định nghĩa NFA và hàm chuyển nhận giá trị là tập trạng thái
+  - Nhánh chạy chết, nhiều nhánh chạy và điều kiện chấp nhận
+  - Chuyển ε và cách tính bao đóng ε
+  - Mô phỏng NFA theo tập trạng thái hiện tại
+  - Chuyển NFA sang DFA bằng phương pháp tập con
+  - Chuyển ε-NFA sang DFA và xử lý trạng thái rỗng
+  - Chứng minh DFA và NFA có cùng khả năng biểu diễn
+  - Sự bùng nổ số trạng thái khi xác định hóa
+  - Thiết kế NFA bằng ghép nối các mô hình nhỏ
+  - Phân biệt bất định hình thức với ngẫu nhiên và thực thi song song
+- level1: Biểu thức chính quy
+  level2:
+  - Cú pháp biểu thức chính quy và ý nghĩa của ∅, ε, ký hiệu
+  - Thứ tự ưu tiên của hợp, nối và sao Kleene
+  - Diễn giải biểu thức chính quy thành ngôn ngữ
+  - Các đồng nhất thức và cách biến đổi biểu thức
+  - Dựng ε-NFA từ biểu thức bằng phương pháp Thompson
+  - Chuyển ôtômát sang biểu thức bằng loại bỏ trạng thái
+  - Ôtômát suy rộng và cách cập nhật nhãn khi loại trạng thái
+  - Bổ đề Arden và phương trình ngôn ngữ
+  - Định lý Kleene nối DFA, NFA và biểu thức chính quy
+  - Biểu thức chính quy hình thức và cú pháp mở rộng trong thư viện
+  - Vì sao tham chiếu ngược (backreference) vượt khỏi khả năng biểu diễn chính quy
+- level1: Ngôn ngữ chính quy
+  level2:
+  - Tính đóng của ngôn ngữ chính quy dưới hợp, giao và phần bù
+  - Tính đóng của ngôn ngữ chính quy dưới hiệu, đảo, nối và sao Kleene
+  - Tính đóng của ngôn ngữ chính quy dưới đồng cấu và đồng cấu ngược
+  - Quyết định tính thuộc bằng mô phỏng ôtômát
+  - Kiểm tra ngôn ngữ chính quy rỗng bằng tính đạt tới
+  - Kiểm tra ngôn ngữ chính quy hữu hạn và vô hạn bằng chu trình hữu ích
+  - Kiểm tra tương đương, bao hàm và tính phổ quát của ngôn ngữ chính quy
+  - Tìm xâu phân biệt hai ôtômát
+  - Bổ đề bơm cho ngôn ngữ chính quy và thứ tự lượng từ
+  - Chọn xâu và xét mọi cách phân rã trong chứng minh không chính quy
+  - Dùng tính đóng để chứng minh một ngôn ngữ không chính quy
+  - Vì sao thỏa điều kiện bơm không đủ để kết luận chính quy
+- level1: DFA tối thiểu
+  level2:
+  - Trạng thái phân biệt được và ngôn ngữ hậu tố của trạng thái
+  - Quan hệ Myhill–Nerode trên các tiền tố
+  - Định lý Myhill–Nerode và số lớp tương đương
+  - Chứng minh cận dưới số trạng thái cần thiết
+  - Loại trạng thái không đạt tới trước khi tối thiểu hóa
+  - Thuật toán đánh dấu cặp trạng thái
+  - Thuật toán tinh chỉnh phân hoạch và ý tưởng Hopcroft
+  - Dựng DFA thương từ các lớp trạng thái tương đương
+  - Tính duy nhất của DFA tối thiểu đến phép đổi tên trạng thái
+  - Dùng vô hạn tiền tố phân biệt để chứng minh không chính quy
+  - Đối chiếu bổ đề bơm với phương pháp Myhill–Nerode
+- level1: Mô hình hữu hạn ứng dụng
+  level2:
+  - Mô hình hóa giao thức và vòng đời đối tượng bằng trạng thái
+  - Máy Mealy, máy Moore và đầu ra theo chuyển hoặc trạng thái
+  - Chuyển đổi Mealy–Moore và quy ước thời điểm phát đầu ra
+  - 'Phân tích từ vựng: nhận dạng đơn vị từ vựng (token) và nguyên tắc khớp dài nhất'
+  - Giải quyết ưu tiên giữa các mẫu đơn vị từ vựng
+  - Đối chiếu mô phỏng tập trạng thái với quay lui khi khớp mẫu
+  - Vì sao bộ nhớ hữu hạn không đếm được cấu trúc lồng tùy ý
+  - Tính đạt tới, trạng thái lỗi và kiểm chứng mô hình hữu hạn
+  - Tích trạng thái và hiện tượng bùng nổ không gian trạng thái
+  - Lựa chọn DFA, NFA hoặc biểu thức cho một yêu cầu cụ thể
+- level1: Văn phạm phi ngữ cảnh
+  level2:
+  - Định nghĩa CFG và vai trò của một biến ở vế trái
+  - Thiết kế CFG cho cân bằng, lồng nhau và đối xứng
+  - Suy dẫn trái nhất, phải nhất và cây phân tích cú pháp
+  - Mối liên hệ giữa cây phân tích và xâu được sinh
+  - Văn phạm mơ hồ và hai cây phân tích khác nhau
+  - Độ ưu tiên, tính kết hợp và cách loại mơ hồ trong biểu thức
+  - Ngôn ngữ mơ hồ cố hữu và giới hạn của đổi văn phạm
+  - Đệ quy trái và ý nghĩa đối với một số phương pháp phân tích
+  - Biến sinh được, biến đạt tới và ký hiệu vô ích
+  - Luật ε, biến sinh được xâu rỗng (nullable) và bảo toàn xâu rỗng
+  - Luật đơn vị và quy trình đơn giản hóa văn phạm
+- level1: Dạng chuẩn và phân tích
+  level2:
+  - Dạng chuẩn Chomsky và ngoại lệ dành cho xâu rỗng
+  - Các bước chuyển CFG sang dạng chuẩn Chomsky
+  - Dạng chuẩn Greibach và ý nghĩa của ký hiệu kết thúc đầu tiên
+  - Thuật toán CYK và bảng quy hoạch động
+  - Chứng minh CYK đúng và phân tích chi phí theo độ dài xâu
+  - Khôi phục cây phân tích từ bảng CYK
+  - Ý tưởng phân tích Earley cho CFG tổng quát
+  - FIRST, FOLLOW và điều kiện lựa chọn luật trong LL(1)
+  - Đệ quy trái, tách tiền tố chung và giới hạn của phép biến đổi
+  - Trực giác phân tích LR và xung đột dịch–giảm, giảm–giảm
+  - Phân biệt tính phi ngữ cảnh với khả năng dùng một bộ phân tích cụ thể
+- level1: Ôtômát ngăn xếp
+  level2:
+  - Vì sao ngăn xếp phù hợp với cấu trúc lồng nhau
+  - 'Định nghĩa PDA: trạng thái, đầu vào, ngăn xếp và phép chuyển'
+  - Cấu hình tức thời và cách mô tả một đường chạy
+  - Chuyển ε, ký hiệu đáy và các thao tác đẩy–lấy
+  - Chấp nhận bằng trạng thái kết thúc hoặc ngăn xếp rỗng
+  - Tương đương hai cách chấp nhận đối với PDA bất định
+  - Dựng PDA cho ngoặc cân bằng và ngôn ngữ dạng aⁿbⁿ
+  - Dựng PDA cho xâu đối xứng (palindrome) và vai trò của lựa chọn điểm giữa
+  - Chuyển CFG sang PDA bằng mô phỏng suy dẫn
+  - Ý tưởng chuyển PDA sang CFG
+  - DPDA, NPDA và tính bất định làm tăng sức biểu diễn
+  - Vì sao quy ước chấp nhận cần được xem lại khi xét DPDA
+- level1: Ngôn ngữ phi ngữ cảnh
+  level2:
+  - Tính đóng của CFL dưới hợp, nối, sao Kleene và đảo
+  - Tính đóng của CFL dưới đồng cấu và đồng cấu ngược
+  - Giao với ngôn ngữ chính quy bằng tích PDA–DFA
+  - CFL không đóng dưới giao và phần bù trong trường hợp tổng quát
+  - Bổ đề bơm cho CFL và năm phần của xâu
+  - Cách chọn xâu và xét vị trí hai đoạn được bơm
+  - Chứng minh ngôn ngữ dạng aⁿbⁿcⁿ không phi ngữ cảnh
+  - Bổ đề Ogden và cách đánh dấu vị trí
+  - Kiểm tra tính rỗng, tính hữu hạn và tính thuộc của CFL
+  - Tính tương đương, bao hàm và phổ quát của CFG không quyết định được
+  - Bài toán kiểm tra mơ hồ của CFG không quyết định được
+  - Ngôn ngữ phi ngữ cảnh xác định và ranh giới so với CFL
+- level1: Máy Turing
+  level2:
+  - Từ bộ nhớ hữu hạn và ngăn xếp đến băng đọc–ghi
+  - Định nghĩa máy Turing và ý nghĩa của từng thành phần
+  - Đầu đọc, ô trắng, chuyển trạng thái và hướng di chuyển
+  - Cấu hình, một bước tính toán và lịch sử tính toán
+  - Chấp nhận, từ chối và chạy mãi
+  - Thiết kế máy bằng mô tả mức cao và mô tả chuyển chi tiết
+  - Kỹ thuật đánh dấu, quét, sao chép và so khớp trên băng
+  - Máy Turing cho ngôn ngữ dạng aⁿbⁿcⁿ
+  - Mô tả môđun con và ghép các giai đoạn tính toán
+  - Chứng minh máy dừng và chứng minh máy nhận đúng ngôn ngữ
+  - Phân biệt ngôn ngữ được nhận dạng với hàm được tính
+- level1: Các mô hình tính toán
+  level2:
+  - Máy Turing nhiều băng và mô phỏng bằng một băng
+  - Băng vô hạn hai chiều, nhiều rãnh và các biến thể tương đương
+  - Máy Turing bất định và duyệt cây tính toán công bằng
+  - Máy liệt kê và quan hệ với ngôn ngữ nhận dạng được
+  - Máy Turing phổ dụng và chương trình được mã hóa như dữ liệu
+  - Luận đề Church–Turing và sự khác biệt với một định lý
+  - Hàm đệ quy nguyên thủy, phép cực tiểu và hàm tính được từng phần
+  - Phép tính lambda, thay thế và giảm β ở mức nhập môn
+  - Mô hình thanh ghi, chương trình và khả năng mô phỏng
+  - Khả năng tính toán tương đương nhưng chi phí mô phỏng khác nhau
+  - Máy chặn tuyến tính và ngôn ngữ cảm ngữ cảnh
+- level1: Khả năng quyết định
+  level2:
+  - Ngôn ngữ quyết định được và máy luôn dừng
+  - Ngôn ngữ nhận dạng được và máy có thể không dừng ngoài ngôn ngữ
+  - Đồng nhận dạng được và vai trò của phần bù
+  - 'Định lý: quyết định được khi cả ngôn ngữ và phần bù đều nhận dạng được'
+  - Kỹ thuật chạy xen kẽ nhiều phép mô phỏng
+  - Tính đóng của lớp quyết định được
+  - Tính đóng và giới hạn tính đóng của lớp nhận dạng được
+  - Mã hóa ⟨M⟩, ⟨M,w⟩ và xử lý chuỗi mã không hợp lệ
+  - Quyết định tính thuộc, rỗng và tương đương cho DFA
+  - Quyết định tính thuộc và rỗng cho CFG
+  - Bài toán trên mô tả chương trình khác bài toán chạy một đầu vào cụ thể
+- level1: Bất khả quyết
+  level2:
+  - Đếm chương trình và lý do tồn tại ngôn ngữ không nhận dạng được
+  - Bài toán chấp nhận A_TM và chứng minh nhận dạng được
+  - Lập luận tự tham chiếu để chứng minh A_TM không quyết định được
+  - Bài toán dừng HALT_TM và sự khác biệt với bài toán chấp nhận
+  - Ngôn ngữ chéo và kỹ thuật đường chéo
+  - Vì sao phần bù của A_TM không nhận dạng được
+  - Bài toán rỗng E_TM và bài toán tương đương EQ_TM
+  - Bài toán máy dừng trên mọi đầu vào
+  - Bài toán tương ứng Post và ý tưởng mã hóa lịch sử tính toán
+  - Các bất khả quyết của CFG qua quy dẫn từ bài toán tương ứng Post
+  - Phân biệt không quyết định được với chưa biết thuật toán
+  - Giới hạn của kiểm thử và phân tích chương trình tự động
+- level1: Quy dẫn tính được
+  level2:
+  - Quy dẫn là biến đổi bài toán đã biết thành bài toán cần phân loại
+  - Quy dẫn ánh xạ bằng hàm toàn phần tính được
+  - Chiều quy dẫn đúng trong chứng minh bất khả quyết
+  - Chứng minh tương đương hai chiều của điều kiện thuộc ngôn ngữ
+  - Dựng máy mới từ cặp máy–đầu vào cho trước
+  - Dùng quy dẫn để truyền tính quyết định được và nhận dạng được
+  - Chứng minh không nhận dạng được thông qua phần bù
+  - Quy dẫn Turing và máy có bộ giải giả định (oracle)
+  - So sánh quy dẫn ánh xạ với quy dẫn Turing
+  - Lỗi dùng bộ giải chưa tồn tại bên trong hàm biến đổi
+  - Lỗi nhầm tính đúng của phép mã hóa với tính dừng của phép mã hóa
+- level1: Định lý và giới hạn
+  level2:
+  - Thuộc tính ngữ nghĩa của ngôn ngữ máy nhận dạng
+  - Định lý Rice và điều kiện thuộc tính không tầm thường
+  - Áp dụng Rice cho tính rỗng, hữu hạn và chính quy của ngôn ngữ
+  - Vì sao Rice không áp dụng trực tiếp cho thuộc tính cú pháp hoặc thời gian chạy
+  - Giới hạn của Rice khi phân loại khả năng nhận dạng
+  - Định lý đệ quy và điểm bất động của phép biến đổi chương trình
+  - Tự tham chiếu, chương trình tự mô tả và ý nghĩa lý thuyết
+  - Hàm Busy Beaver và tốc độ tăng không tính được
+  - Bài toán tương đối theo oracle và bước nhảy Turing
+  - Phân cấp số học qua lượng từ trên các quan hệ quyết định được
+  - Mối liên hệ và khác biệt giữa bất khả quyết tính toán và bất toàn logic
+  - Những điều kết quả bất khả quyết không khẳng định về một trường hợp cụ thể
+- level1: Đo độ phức tạp
+  level2:
+  - Từ khả năng giải đến tài nguyên cần để giải
+  - Kích thước đầu vào và chi phí mã hóa dữ liệu
+  - Mã nhị phân, mã một ngôi và thuật toán giả đa thức
+  - Hàm thời gian, hàm không gian và trường hợp xấu nhất
+  - Ký hiệu O, Ω, Θ và các mức tăng trưởng thông dụng
+  - Chi phí trên máy Turing và giả định mô hình RAM
+  - TIME, NTIME, SPACE và NSPACE
+  - Chi phí xác định hóa và mô phỏng giữa các mô hình
+  - Phân biệt độ phức tạp của thuật toán với độ phức tạp của bài toán
+  - Cận trên, cận dưới và vai trò của phép quy dẫn
+  - Tham số số học, độ dài bit và độ lớn giá trị
+  - Điều kiện hàm dựng được khi dùng các định lý phân cấp
+- level1: P, NP và chứng chỉ
+  level2:
+  - Lớp P và ý nghĩa của thời gian đa thức
+  - Lớp NP qua máy Turing bất định
+  - Định nghĩa NP bằng bộ kiểm chứng và chứng chỉ đa thức
+  - Chứng minh hai cách định nghĩa NP tương đương
+  - Bộ kiểm chứng phải chạy đa thức theo kích thước đầu vào gốc
+  - 'SAT, CNF và 3-SAT: biến, literal, mệnh đề và phép gán'
+  - Ví dụ chứng chỉ cho SAT, đường Hamilton và tô màu
+  - Vì sao tìm lời giải và kiểm tra lời giải là hai yêu cầu khác nhau
+  - P nằm trong NP và câu hỏi P có bằng NP hay không
+  - Lớp coNP và chứng chỉ cho câu trả lời không
+  - Quan hệ chưa biết giữa NP, coNP và P
+  - Bài toán tìm kiếm tự quy dẫn từ bộ giải quyết định
+  - Phân biệt bất định lý thuyết với đoán ngẫu nhiên
+- level1: NP đầy đủ
+  level2:
+  - Quy dẫn nhiều–một trong thời gian đa thức
+  - NP-khó, NP-đầy đủ và điều kiện thuộc NP
+  - Chiều quy dẫn để chứng minh một bài toán NP-khó
+  - Bảo toàn câu trả lời và chặn kích thước đầu ra đa thức
+  - Tính bắc cầu của quy dẫn và cách xây chuỗi chứng minh
+  - Định lý Cook–Levin và ý tưởng mã hóa bảng tính toán
+  - Từ SAT sang 3-SAT bằng biến phụ
+  - Từ 3-SAT sang CLIQUE bằng lựa chọn literal tương thích
+  - Quy dẫn giữa CLIQUE, tập độc lập và phủ đỉnh
+  - 'Bài toán đường Hamilton và người du lịch: quyết định so với tối ưu'
+  - SUBSET SUM, KNAPSACK và NP-đầy đủ yếu hoặc mạnh
+  - 3-PARTITION và vai trò của mã hóa trong tính NP-đầy đủ mạnh
+  - Lỗi suy ra NP-đầy đủ chỉ từ việc chưa biết thuật toán nhanh
+  - Vì sao NP-khó không đồng nghĩa với NP-đầy đủ hay bất khả quyết
+- level1: Độ phức tạp không gian
+  level2:
+  - Lớp L, NL, PSPACE và NPSPACE
+  - Băng đầu vào chỉ đọc, băng làm việc và cách đo không gian
+  - Tái sử dụng bộ nhớ và quan hệ giữa thời gian với không gian
+  - Cấu hình bị chặn không gian và đồ thị cấu hình
+  - Bài toán tính đạt tới có hướng và tính NL-đầy đủ
+  - Quy dẫn không gian logarit và lý do chọn giới hạn này
+  - Định lý Savitch và mô phỏng bất định bằng không gian xác định
+  - Định lý Immerman–Szelepcsényi và NL bằng coNL
+  - PSPACE bằng NPSPACE và các hệ quả
+  - Công thức Boolean có lượng từ TQBF và PSPACE-đầy đủ
+  - Trò chơi luân phiên và cách đánh giá bằng không gian đa thức
+  - Quan hệ đã biết giữa P, NP và PSPACE
+- level1: Phân cấp độ phức tạp
+  level2:
+  - EXPTIME, NEXPTIME và EXPSPACE
+  - Định lý phân cấp thời gian và những quan hệ tách lớp đã biết
+  - Định lý phân cấp không gian và vai trò của điều kiện kỹ thuật
+  - Vì sao P khác EXPTIME không giải quyết câu hỏi P so với NP
+  - Phân cấp đa thức qua lượng từ tồn tại và phổ quát
+  - Các mức Σ_k^P, Π_k^P và ý nghĩa PH sụp đổ
+  - Tính luân phiên và quan hệ với PSPACE
+  - Định lý Ladner và khả năng tồn tại bài toán NP-trung gian nếu P khác NP
+  - Thế giới có oracle và giới hạn của chứng minh tương đối hóa
+  - 'Rào cản chứng minh: chứng minh tự nhiên và đại số hóa ở mức định hướng'
+  - Cách đọc sơ đồ bao hàm mà không biến quan hệ chưa biết thành định lý
+- level1: Tính toán ngẫu nhiên
+  level2:
+  - Máy Turing xác suất và xác suất trên các nhánh tính toán
+  - Thuật toán Monte Carlo, Las Vegas và các loại bảo đảm
+  - RP, coRP và sai số một phía
+  - BPP và sai số hai phía bị chặn
+  - ZPP và thời gian kỳ vọng đa thức
+  - Khuếch đại xác suất đúng bằng lặp độc lập
+  - Lấy đa số, lấy hợp và chọn cách khuếch đại phù hợp
+  - Bất định không đồng nghĩa với xác suất thành công cao
+  - Kiểm tra đồng nhất đa thức như một ví dụ ngẫu nhiên hóa
+  - Quan hệ đã biết và chưa biết giữa P, BPP và NP
+  - Khử ngẫu nhiên và vai trò của bộ sinh giả ngẫu nhiên
+- level1: Chủ đề nâng cao
+  level2:
+  - Mạch Boolean, kích thước mạch và độ sâu mạch
+  - Họ mạch đều, không đều và lớp P/poly
+  - 'Bài toán đếm, hàm #P và ví dụ đếm phép gán thỏa mãn'
+  - Phân biệt kiểm tra tồn tại nghiệm với đếm số nghiệm
+  - Bài toán tối ưu, tỷ lệ xấp xỉ và bảo đảm của thuật toán
+  - Ý tưởng định lý PCP và giới hạn xấp xỉ
+  - 'Độ phức tạp tham số: tham số k, FPT và XP'
+  - Thuật toán mũ theo tham số so với mũ theo kích thước đầu vào
+  - Tính toán lượng tử, qubit và lớp BQP ở mức định hướng
+  - Vì sao máy tính lượng tử không làm bài toán dừng trở nên quyết định được
+  - Phân biệt kết quả được chứng minh, giả thuyết và hướng nghiên cứu mở
+- level1: Thực hành và tổng hợp
+  level2:
+  - Chọn mô hình yếu nhất đủ biểu diễn một ngôn ngữ
+  - Chuyển một yêu cầu văn bản thành xâu, ngôn ngữ và bài toán quyết định
+  - Thiết kế DFA, chuyển NFA và đối chiếu trên cùng tập xâu
+  - Tối thiểu hóa DFA và tìm phản ví dụ cho hai mô hình khác nhau
+  - Thiết kế CFG và PDA cho cùng một ngôn ngữ lồng nhau
+  - Thực hiện bảng CYK và khôi phục cây phân tích
+  - Chứng minh không chính quy hoặc không phi ngữ cảnh bằng phương pháp phù hợp
+  - Thiết kế máy Turing và kiểm tra lập luận dừng
+  - Xây một chứng minh bất khả quyết bằng quy dẫn hoàn chỉnh
+  - Xây một chứng minh NP-đầy đủ có cả điều kiện thuộc NP
+  - Phân loại bài toán theo khả năng quyết định, thời gian và không gian
+  - Phát hiện lỗi lượng từ, sai chiều quy dẫn và kết luận vượt định lý
+  - Đối chiếu bản đồ mô hình, lớp ngôn ngữ và lớp độ phức tạp
+  - Bài tập tổng hợp từ đặc tả bài toán đến mô hình và lập luận giới hạn

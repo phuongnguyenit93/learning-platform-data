@@ -1,0 +1,97 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overview
+  index: 0
+- title: Cấu trúc quy chuẩn
+  slug: conventions-structure
+  index: 1
+- title: Phạm vi và ưu tiên
+  slug: scope-and-priority
+  index: 2
+- title: Đặt tên
+  slug: naming
+  index: 3
+- title: Tổ chức mã nguồn
+  slug: source-organization
+  index: 4
+- title: Trình bày mã
+  slug: code-formatting
+  index: 5
+- title: Chú thích và tài liệu
+  slug: comments-and-documentation
+  index: 6
+- title: Hàm và phương thức
+  slug: functions-and-methods
+  index: 7
+- title: Kiểu và giao diện
+  slug: types-and-interfaces
+  index: 8
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 9
+- title: Trạng thái và bất biến
+  slug: state-and-immutability
+  index: 10
+- title: Điều khiển và biểu thức
+  slug: control-and-expressions
+  index: 11
+- title: Giá trị và chuyển đổi
+  slug: values-and-conversions
+  index: 12
+- title: Thời gian và ngữ cảnh
+  slug: time-and-context
+  index: 13
+- title: Collection và generic
+  slug: collections-and-generics
+  index: 14
+- title: Lỗi và ngoại lệ
+  slug: errors-and-exceptions
+  index: 15
+- title: Quản lý tài nguyên
+  slug: resource-management
+  index: 16
+- title: Đồng thời và bất đồng bộ
+  slug: concurrency-and-async
+  index: 17
+- title: Ranh giới hệ thống
+  slug: system-boundaries
+  index: 18
+- title: Log và khả năng quan sát
+  slug: logging-and-observability
+  index: 19
+- title: Bảo mật và dữ liệu
+  slug: security-and-data
+  index: 20
+- title: Quy chuẩn kiểm thử
+  slug: testing-conventions
+  index: 21
+- title: Kiến trúc và phụ thuộc
+  slug: architecture-and-dependencies
+  index: 22
+- title: Build và thư viện
+  slug: build-and-libraries
+  index: 23
+- title: Tương thích và thay đổi
+  slug: compatibility-and-change
+  index: 24
+- title: Rà soát mã
+  slug: code-review
+  index: 25
+- title: Kiểm tra tự động
+  slug: automated-checks
+  index: 26
+- title: Áp dụng trong CI
+  slug: ci-adoption
+  index: 27
+- title: Ngoại lệ và miễn trừ
+  slug: exceptions-and-exemptions
+  index: 28
+- title: Áp dụng cho mã cũ
+  slug: legacy-code
+  index: 29
+- title: Quản trị quy chuẩn
+  slug: standards-governance
+  index: 30
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 31

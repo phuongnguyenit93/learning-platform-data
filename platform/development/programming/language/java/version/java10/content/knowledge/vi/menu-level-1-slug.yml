@@ -1,0 +1,103 @@
+menu:
+- title: Định hướng Java 10
+  slug: java10-overview
+  index: 0
+- title: Nền tảng var
+  slug: var-fundamentals
+  index: 1
+- title: Vị trí dùng var
+  slug: var-usage-locations
+  index: 2
+- title: var và biểu thức
+  slug: var-expressions
+  index: 3
+- title: var và generics
+  slug: var-generics
+  index: 4
+- title: Kiểu suy luận nâng cao
+  slug: advanced-type-inference
+  index: 5
+- title: Sử dụng var rõ ràng
+  slug: readable-var-usage
+  index: 6
+- title: Collection chỉ đọc
+  slug: immutable-collections
+  index: 7
+- title: List.copyOf
+  slug: list-copyof
+  index: 8
+- title: Set.copyOf
+  slug: set-copyof
+  index: 9
+- title: Map.copyOf
+  slug: map-copyof
+  index: 10
+- title: Collector danh sách và tập
+  slug: list-set-collectors
+  index: 11
+- title: Collector bản đồ
+  slug: map-collectors
+  index: 12
+- title: Thiết kế dữ liệu chỉ đọc
+  slug: immutable-data-design
+  index: 13
+- title: Optional.orElseThrow
+  slug: optional-orelsethrow
+  index: 14
+- title: Reader.transferTo
+  slug: reader-transferto
+  index: 15
+- title: Charset trong I/O
+  slug: io-charsets
+  index: 16
+- title: Mã hóa dữ liệu biểu mẫu
+  slug: form-data-encoding
+  index: 17
+- title: Thông tin FileStore
+  slug: filestore-information
+  index: 18
+- title: Mở rộng Locale
+  slug: locale-extensions
+  index: 19
+- title: Locale trong ứng dụng
+  slug: application-localization
+  index: 20
+- title: Mô hình phiên bản
+  slug: version-model
+  index: 21
+- title: Runtime.Version
+  slug: runtime-version
+  index: 22
+- title: Nền tảng AppCDS
+  slug: appcds-foundations
+  index: 23
+- title: Vận hành AppCDS
+  slug: appcds-operations
+  index: 24
+- title: G1 Full GC song song
+  slug: parallel-g1-full-gc
+  index: 25
+- title: Handshake theo luồng
+  slug: thread-local-handshakes
+  index: 26
+- title: CPU trong container
+  slug: container-cpu
+  index: 27
+- title: Bộ nhớ trong container
+  slug: container-memory
+  index: 28
+- title: Heap trên thiết bị bộ nhớ
+  slug: heap-memory-devices
+  index: 29
+- title: Chứng thư gốc
+  slug: root-certificates
+  index: 30
+- title: Biên dịch và kiểm chứng
+  slug: compilation-verification
+  index: 31
+- title: Javadoc
+  slug: javadoc
+  index: 32
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 33

@@ -1,0 +1,2404 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Phát triển dẫn dắt bởi kiểm thử chấp nhận (ATDD) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao cần thống nhất hành vi mong đợi trước khi xây dựng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vai trò của hội thoại, ví dụ và kiểm thử trong ATDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Quan hệ giữa mục tiêu nghiệp vụ, quy tắc, tiêu chí chấp nhận và kết quả quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Kiểm thử chấp nhận như một cách diễn đạt yêu cầu từ góc nhìn người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt mục tiêu xây đúng chức năng với kiểm tra mã đã viết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lợi ích kỳ vọng và điều kiện để ATDD tạo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Giới hạn của ví dụ hữu hạn và vai trò của các kỹ thuật kiểm thử khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức tiên quyết và lộ trình thực hành ATDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: related-approaches
+  title: Các cách tiếp cận liên quan
+  childs:
+  - slug: related-approaches-001
+    title: So sánh ATDD với phát triển dẫn dắt bởi kiểm thử đơn vị (TDD)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-approaches-002
+    title: Quan hệ và phần giao nhau giữa ATDD với phát triển hướng hành vi (BDD)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-approaches-003
+    title: Quan hệ giữa ATDD với đặc tả bằng ví dụ (Specification by Example)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-approaches-004
+    title: Phân biệt kiểm thử chấp nhận với kiểm thử đơn vị, tích hợp và hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-approaches-005
+    title: Phân biệt viết kiểm thử trước với tự động hóa kiểm thử sau khi hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-approaches-006
+    title: Quan hệ giữa ATDD với kiểm thử chấp nhận của người dùng (UAT)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-approaches-007
+    title: Phân biệt thực hành ATDD với khuôn khổ làm việc hoặc công cụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-approaches-008
+    title: Vì sao ATDD không yêu cầu mọi phép kiểm tra đều đi qua giao diện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: atdd-cycle
+  title: Chu trình ATDD
+  childs:
+  - slug: atdd-cycle-001
+    title: Thảo luận nhu cầu và hành vi trước khi bắt đầu triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-002
+    title: Làm rõ quy tắc bằng ví dụ đại diện và câu hỏi còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-003
+    title: Chuyển các ví dụ đã thống nhất thành đặc tả có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-004
+    title: Quyết định phép kiểm tra nào cần tự động hóa và khi nào thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-005
+    title: Phát triển chức năng theo tiêu chí và kiểm thử đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-006
+    title: Chạy kiểm thử, nhận phản hồi và điều chỉnh giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-007
+    title: Trình diễn kết quả để xác nhận sự hiểu đúng với bên nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-008
+    title: Cập nhật đặc tả và duy trì kiểm thử khi hành vi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-cycle-009
+    title: Áp dụng chu trình theo từng phần chức năng thay vì đặc tả toàn bộ dự án từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: roles-and-coordination
+  title: Vai trò và phối hợp
+  childs:
+  - slug: roles-and-coordination-001
+    title: Ba góc nhìn nghiệp vụ, phát triển và kiểm thử trong hội thoại Three Amigos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-002
+    title: Trách nhiệm của đại diện nghiệp vụ và chuyên gia miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-003
+    title: Trách nhiệm của lập trình viên trong tính khả thi và khả năng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-004
+    title: Trách nhiệm của người kiểm thử trong khai phá rủi ro và trường hợp thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-005
+    title: Vai trò của người phân tích yêu cầu và người quyết định sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-006
+    title: Phân biệt ba góc nhìn với yêu cầu luôn có đúng ba người tham dự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-007
+    title: Chuẩn bị, điều phối và giới hạn thời gian buổi làm rõ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-008
+    title: Giải quyết cách hiểu khác nhau bằng ví dụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-009
+    title: Ghi nhận người có thẩm quyền trả lời và quyết định cho câu hỏi chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-coordination-010
+    title: Phối hợp từ xa và duy trì ngôn ngữ chung giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-discovery
+  title: Khám phá yêu cầu
+  childs:
+  - slug: requirements-discovery-001
+    title: Bắt đầu từ vấn đề, người sử dụng và kết quả nghiệp vụ cần đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-002
+    title: Xác định phạm vi chức năng và hành vi ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-003
+    title: Khai thác quy tắc nghiệp vụ từ mô tả hoặc câu chuyện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-004
+    title: Dùng Example Mapping để tổ chức quy tắc, ví dụ và câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-005
+    title: Phân biệt quy tắc đã thống nhất với giả định chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-006
+    title: Phát hiện yêu cầu thiếu hoặc mâu thuẫn trong lúc thảo luận ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-007
+    title: Tách phần chức năng quá lớn dựa trên quy tắc và giá trị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-008
+    title: Xem xét thuật ngữ, dữ liệu và trạng thái đang được các bên hiểu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-009
+    title: Kết thúc buổi khám phá với phạm vi, ví dụ và vấn đề còn mở rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-discovery-010
+    title: Xác định khi nào cần nghiên cứu thêm thay vì cố viết kiểm thử ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: acceptance-criteria
+  title: Tiêu chí chấp nhận
+  childs:
+  - slug: acceptance-criteria-001
+    title: Tiêu chí chấp nhận là gì và quan hệ với yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-002
+    title: Phân biệt tiêu chí chấp nhận của một chức năng với Definition of Done của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-003
+    title: Viết tiêu chí theo hành vi quan sát được thay vì chi tiết cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-004
+    title: Phân biệt quy tắc tổng quát với ví dụ minh họa và ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-005
+    title: Xác định điều kiện đầu vào, hành động và kết quả cần đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-006
+    title: Làm rõ tiêu chí cho luồng thành công, từ chối và trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-007
+    title: Biến từ mơ hồ như nhanh, hợp lệ hoặc dễ dùng thành điều kiện có thể đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-008
+    title: Xác định kết quả mong đợi khi nhiều quy tắc cùng áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-009
+    title: Ghi rõ ngoại lệ, mức ưu tiên và giới hạn phạm vi chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-criteria-010
+    title: Rà soát tính nhất quán và khả năng kiểm chứng trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: example-selection
+  title: Lựa chọn ví dụ
+  childs:
+  - slug: example-selection-001
+    title: Chọn ví dụ thể hiện rõ quy tắc và có ý nghĩa với người nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-002
+    title: Lấy ví dụ cho luồng thông thường, ngoại lệ và từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-003
+    title: Chọn giá trị ngay dưới, tại và trên ngưỡng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-004
+    title: Dùng phân lớp tương đương để tránh nhiều ví dụ có cùng ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-005
+    title: Chọn ví dụ làm lộ ra xung đột hoặc khoảng trống giữa các quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-006
+    title: Phân biệt tập ví dụ để trao đổi với tập dữ liệu kiểm thử mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-007
+    title: Sử dụng dữ liệu nhỏ, dễ đọc và đủ để chứng minh hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-008
+    title: Xác định kết quả mong đợi từ quy tắc đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-009
+    title: Tránh suy ra kết quả mong đợi bằng chính thuật toán đang được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-selection-010
+    title: Giới hạn của ví dụ đại diện và cách bổ sung kiểm thử dựa trên rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tables-and-rules
+  title: Bảng và quy tắc
+  childs:
+  - slug: tables-and-rules-001
+    title: Biểu diễn nhiều tổ hợp điều kiện bằng bảng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-rules-002
+    title: Xác định cột điều kiện, cột hành động và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-rules-003
+    title: Làm rõ thứ tự ưu tiên khi các quy tắc chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-rules-004
+    title: Phát hiện tổ hợp bị bỏ sót hoặc không thể xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-rules-005
+    title: Biểu diễn công thức tính, mức phí hoặc chiết khấu bằng bảng ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-rules-006
+    title: Chọn bảng trạng thái khi hành vi phụ thuộc lịch sử xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-rules-007
+    title: Phân biệt một bảng đặc tả nghiệp vụ với danh sách dữ liệu không có quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-rules-008
+    title: Rút gọn bảng nhưng vẫn giữ các khác biệt nghiệp vụ cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenario-design
+  title: Thiết kế kịch bản
+  childs:
+  - slug: scenario-design-001
+    title: Một kịch bản chấp nhận nên thể hiện một hành vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-002
+    title: Cấu trúc bối cảnh, sự kiện và kết quả theo Given–When–Then
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-003
+    title: Đặt tên kịch bản theo quy tắc hoặc kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-004
+    title: Giữ kịch bản khai báo hành vi thay vì liệt kê thao tác bấm nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-005
+    title: Phân biệt điều kiện thiết lập với hành động đang được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-006
+    title: Xác nhận đầu ra và tác động quan sát được có ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-007
+    title: Mô tả hành vi không được phép xảy ra trong trường hợp bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-008
+    title: Thiết kế kịch bản độc lập, có thể chạy riêng và lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-009
+    title: Tách hành trình dài thành các kịch bản tập trung nhưng vẫn giữ ngữ cảnh cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-010
+    title: Chọn mô tả tự nhiên hoặc bảng khi Given–When–Then không phải cách rõ nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gherkin
+  title: Gherkin
+  childs:
+  - slug: gherkin-001
+    title: Vai trò của Gherkin khi nhóm chọn đặc tả bằng văn bản có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-002
+    title: Tổ chức Feature, Rule và Scenario theo chức năng và quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-003
+    title: Ý nghĩa của Given, When, Then, And và But
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-004
+    title: Tái sử dụng bối cảnh bằng Background mà không che giấu điều kiện quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-005
+    title: Tham số hóa kịch bản bằng Scenario Outline và Examples
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-006
+    title: Biểu diễn dữ liệu có cấu trúc bằng Data Tables
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-007
+    title: Biểu diễn nội dung dài hoặc nhiều dòng bằng Doc Strings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-008
+    title: Phân loại kịch bản bằng Tags với mục đích rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-009
+    title: Lựa chọn ngôn ngữ và thuật ngữ phù hợp với người cùng rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-010
+    title: Phân biệt cú pháp đúng với đặc tả có giá trị và hội thoại ATDD thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specification-review
+  title: Rà soát đặc tả
+  childs:
+  - slug: specification-review-001
+    title: Kiểm tra ví dụ có minh họa đúng quy tắc và mục tiêu nghiệp vụ hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-review-002
+    title: Rà soát thuật ngữ và cách hiểu giữa nghiệp vụ, phát triển và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-review-003
+    title: Phát hiện kết quả mong đợi thiếu, mơ hồ hoặc mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-review-004
+    title: Rà soát sự độc lập của kịch bản và các giả định về trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-review-005
+    title: Loại chi tiết giao diện, cơ sở dữ liệu hoặc thuật toán không thuộc hợp đồng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-review-006
+    title: Quyết định câu hỏi nào phải được trả lời trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-review-007
+    title: Ghi nhận sự thống nhất mà không biến ATDD thành thủ tục phê duyệt nặng nề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-review-008
+    title: Bổ sung phản hồi khi phát hiện tình huống mới trong quá trình phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-first-development
+  title: Phát triển từ kiểm thử
+  childs:
+  - slug: test-first-development-001
+    title: Chuyển ví dụ đã thống nhất thành phép kiểm tra thủ công hoặc tự động phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-002
+    title: Tạo kiểm thử cho một phần hành vi nhỏ trước khi triển khai phần đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-003
+    title: Chạy và xác minh lý do thất bại trước khi bổ sung chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-004
+    title: Phân biệt chưa có hành vi với lỗi cú pháp hoặc hạ tầng của bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-005
+    title: Xây dựng phần chức năng đủ để thỏa mãn hợp đồng đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-006
+    title: Kết hợp vòng phản hồi chấp nhận với kiểm thử đơn vị theo TDD khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-007
+    title: Cải thiện thiết kế trong khi giữ hành vi chấp nhận ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-008
+    title: Chạy lại các kịch bản liên quan và kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-009
+    title: Xử lý phát hiện mới bằng trao đổi nghiệp vụ thay vì tự sửa kỳ vọng cho khớp mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-first-development-010
+    title: Trình diễn kết quả, thu phản hồi và chốt phạm vi đã hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation-architecture
+  title: Kiến trúc tự động hóa
+  childs:
+  - slug: automation-architecture-001
+    title: Tách lớp đặc tả nghiệp vụ, lớp điều khiển kiểm thử và giao diện hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-002
+    title: Chọn kiểm tra qua miền nghiệp vụ, API hoặc giao diện người dùng theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-003
+    title: Phân biệt ý nghĩa chấp nhận của phép kiểm tra với cấp độ thực thi kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-004
+    title: Thiết kế mã kết nối hoặc fixture để đặc tả không phụ thuộc chi tiết cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-005
+    title: Ánh xạ bước Gherkin sang Step Definition khi chọn tự động hóa theo kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-006
+    title: Tổ chức bước thiết lập, thực hiện hành vi, xác nhận và dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-007
+    title: Tái sử dụng thao tác nghiệp vụ mà không tạo chuỗi bước tổng quát khó hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-008
+    title: Phân biệt lớp hỗ trợ kiểm thử với việc sao chép logic nghiệp vụ vào mã kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-009
+    title: Thiết kế điểm truy cập chức năng giúp kiểm tra ổn định và phù hợp kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-010
+    title: Giữ số lượng kiểm thử qua giao diện phù hợp với rủi ro cần bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-011
+    title: Đảm bảo phép xác nhận thực sự kiểm tra kết quả và làm bài kiểm thử thất bại khi sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-architecture-012
+    title: Tách báo cáo dễ đọc cho nghiệp vụ khỏi dấu vết kỹ thuật phục vụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: Chọn hình thức đặc tả theo khả năng đọc và tham gia của người nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: So sánh công cụ dựa trên bảng, văn bản kịch bản và mã kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: Vai trò của Cucumber, FitNesse và Robot Framework trong các cách tổ chức ATDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Đánh giá khả năng kết nối miền nghiệp vụ, API và giao diện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Đánh giá khả năng quản lý dữ liệu, chạy chọn lọc và tích hợp CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Đánh giá báo cáo, truy vết và xuất bản đặc tả có kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Xem xét kỹ năng nhóm, chi phí duy trì và khả năng mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Thử nghiệm công cụ trên một quy tắc nghiệp vụ trước khi áp dụng rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-009
+    title: Phân biệt đổi công cụ với cải thiện chất lượng cộng tác và đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-environments
+  title: Dữ liệu và môi trường
+  childs:
+  - slug: data-and-environments-001
+    title: Tạo dữ liệu thể hiện đúng quy tắc đang được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-002
+    title: Thiết lập trạng thái ban đầu rõ ràng và tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-003
+    title: Sử dụng bộ tạo dữ liệu kiểm thử và fixture dễ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-004
+    title: Quản lý định danh, số tiền, làm tròn, ngày giờ và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-005
+    title: Cô lập dữ liệu để kịch bản không phụ thuộc thứ tự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-006
+    title: Khôi phục hoặc dọn dữ liệu sau hoàn tất và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-007
+    title: Quản lý môi trường có phiên bản và cấu hình lặp lại được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-008
+    title: Phân biệt dữ liệu giả lập với dữ liệu ẩn danh hóa từ tình huống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-009
+    title: Tránh đưa thông tin nhạy cảm hoặc thông tin đăng nhập vào kịch bản và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-010
+    title: Chạy song song khi dữ liệu và tài nguyên dùng chung đã được cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-environments-011
+    title: Đánh giá mức đại diện của môi trường kiểm thử đối với hành vi cần chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependencies-and-integration
+  title: Phụ thuộc và tích hợp
+  childs:
+  - slug: dependencies-and-integration-001
+    title: Xác định hệ thống và giao diện nào nằm trong phạm vi phép kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-002
+    title: Chọn khi nào dùng hệ thống thật, môi trường thử nghiệm hoặc đối tượng thay thế kiểm thử (test double)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-003
+    title: Phân biệt stub, fake và mock theo vai trò trong kiểm thử chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-004
+    title: Giữ mô phỏng ở ranh giới phụ thuộc và kiểm chứng kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-005
+    title: Nguy cơ kiểm thử chỉ chứng minh giả định của mô phỏng thay vì hành vi tích hợp thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-006
+    title: Bổ sung kiểm thử hợp đồng và tích hợp cho giao diện phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-007
+    title: Thiết kế kịch bản khi dịch vụ ngoài lỗi, quá hạn hoặc phản hồi không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-008
+    title: Kiểm tra tác động phụ như lưu dữ liệu, gửi thông báo hoặc phát sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-integration-009
+    title: Quản lý phiên bản phụ thuộc và thay đổi hợp đồng giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-and-time
+  title: Bất đồng bộ và thời gian
+  childs:
+  - slug: async-and-time-001
+    title: Mô tả điều kiện hoàn tất của nghiệp vụ xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-time-002
+    title: Phân biệt tiếp nhận yêu cầu với hoàn thành kết quả cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-time-003
+    title: Kiểm chứng trạng thái nhất quán sau một khoảng thời gian cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-time-004
+    title: Chờ theo điều kiện có giới hạn thay vì dùng thời gian ngủ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-time-005
+    title: Kiểm soát đồng hồ khi nghiệp vụ phụ thuộc hạn dùng hoặc lịch xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-time-006
+    title: Kiểm tra xử lý trùng lặp và tính lũy đẳng từ góc nhìn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-time-007
+    title: Kiểm tra sự kiện đến muộn, khác thứ tự hoặc được thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-time-008
+    title: Xác định ngưỡng thời gian và bằng chứng quan sát để tránh kết quả thất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-attributes
+  title: Thuộc tính chất lượng
+  childs:
+  - slug: quality-attributes-001
+    title: Làm rõ yêu cầu chất lượng như một phần của tiêu chí chấp nhận khi có liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-002
+    title: Biểu diễn giới hạn thời gian phản hồi với tải và điều kiện đo cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-003
+    title: Biểu diễn quy tắc xác thực và phân quyền bằng các tình huống có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-004
+    title: Kiểm tra bảo vệ dữ liệu và giới hạn tiết lộ thông tin qua hành vi quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-005
+    title: Xác định điều kiện chấp nhận về khả năng tiếp cận và sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-006
+    title: Mô tả hành vi khi lỗi và khôi phục bằng ví dụ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-007
+    title: Phân biệt kiểm tra chấp nhận đại diện với đánh giá chuyên sâu về hiệu năng hoặc bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-008
+    title: Kết hợp kết quả tự động với đánh giá thủ công hoặc chuyên gia khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-009
+    title: Nhận diện thuộc tính không thể được chứng minh đầy đủ bằng một kịch bản đơn lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: ci-cd-integration-001
+    title: Đưa đặc tả và mã tự động hóa vào quản lý phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-002
+    title: Chọn các nhóm kiểm thử cho phản hồi nhanh và kiểm tra trước phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-003
+    title: Chạy kiểm thử chấp nhận trong quy trình tích hợp liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-004
+    title: Phân loại và chọn kịch bản theo mục tiêu thay vì bỏ qua tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-005
+    title: Chuẩn bị môi trường và dữ liệu từ quy trình tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-006
+    title: Quản lý cấu hình và thông tin bí mật ngoài đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-007
+    title: Thu thập kết quả, bằng chứng và dấu vết của mỗi lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-008
+    title: Liên kết kết quả kiểm thử với đúng phiên bản chức năng và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-009
+    title: Chọn điểm chặn chuyển giao dựa trên rủi ro và độ tin cậy của kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-010
+    title: Phối hợp kiểm thử tự động, trình diễn và quyết định phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-diagnosis
+  title: Chẩn đoán thất bại
+  childs:
+  - slug: failure-diagnosis-001
+    title: Phân loại thất bại do chức năng, đặc tả, mã kiểm thử, dữ liệu hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-002
+    title: Đọc chênh lệch giữa kết quả mong đợi với kết quả thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-003
+    title: Tạo thông báo thất bại theo quy tắc nghiệp vụ đang bị vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-004
+    title: Phân biệt thay đổi hành vi có chủ đích với lỗi hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-005
+    title: Thu thập log, trạng thái và bằng chứng đủ để tái hiện tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-006
+    title: Điều tra kiểm thử thất thường bằng dữ liệu, thời gian và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-007
+    title: Giới hạn việc chạy lại để tránh che giấu lỗi không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-008
+    title: Quản lý cách ly tạm thời kiểm thử lỗi với người phụ trách và thời hạn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-diagnosis-009
+    title: Kiểm tra trường hợp báo đạt sai do thiếu xác nhận hoặc bỏ qua kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: living-specification
+  title: Đặc tả sống
+  childs:
+  - slug: living-specification-001
+    title: Đặc tả sống (living documentation) là gì và liên hệ với kiểm thử chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-002
+    title: Tổ chức đặc tả theo năng lực và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-003
+    title: Duy trì thuật ngữ chung giữa mô tả, ví dụ và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-004
+    title: Liên kết yêu cầu, tiêu chí, kịch bản và kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-005
+    title: Phân biệt mô tả hành vi hiện hành với kế hoạch chức năng chưa triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-006
+    title: Xuất bản báo cáo dễ đọc cho người nghiệp vụ và nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-007
+    title: Hiển thị rõ phiên bản, thời điểm chạy và môi trường của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-008
+    title: Giới hạn của báo cáo xanh khi các ví dụ hoặc phép xác nhận chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-specification-009
+    title: Sử dụng đặc tả để chuyển giao tri thức và hỗ trợ người mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-and-maintenance
+  title: Thay đổi và bảo trì
+  childs:
+  - slug: change-and-maintenance-001
+    title: Cập nhật quy tắc và ví dụ trước khi thay đổi hành vi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-002
+    title: Phân tích tác động của thay đổi lên các kịch bản đang có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-003
+    title: Phân biệt thay đổi nghiệp vụ với tái cấu trúc kỹ thuật giữ nguyên hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-004
+    title: Tái cấu trúc đặc tả, Step Definition và fixture để giảm trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-005
+    title: Giữ tên và ngôn ngữ kịch bản ổn định khi giao diện kỹ thuật thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-006
+    title: Loại bỏ hoặc lưu lịch sử kịch bản khi quy tắc hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-007
+    title: Quản lý hiệu lực theo thời gian và nhiều phiên bản quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-008
+    title: Duy trì bộ hồi quy có giá trị thay vì chỉ tăng số lượng ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-maintenance-009
+    title: Rà soát chi phí bảo trì và xử lý nợ kỹ thuật của bộ tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-organization
+  title: Tổ chức công việc
+  childs:
+  - slug: work-organization-001
+    title: Đưa hội thoại ATDD vào quá trình làm rõ và chia nhỏ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-002
+    title: Lập kế hoạch cho cả công việc nghiệp vụ, triển khai và tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-003
+    title: Dùng tiêu chí rõ ràng làm cơ sở thỏa thuận khi chức năng sẵn sàng được phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-004
+    title: Kết hợp kiểm thử đạt, phản hồi nghiệp vụ và Definition of Done khi đánh giá hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-005
+    title: Phối hợp Three Amigos với trình diễn và đánh giá sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-006
+    title: Thống nhất quy tắc dùng chung giữa nhiều nhóm hoặc nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-007
+    title: Phân định quyền quyết định khi có yêu cầu mâu thuẫn từ nhiều bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-008
+    title: Giữ quyền sở hữu chung thay vì chuyển đặc tả thành việc riêng của người kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-organization-009
+    title: Áp dụng cho thay đổi hệ thống cũ khi thông tin nghiệp vụ chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: atdd-adoption
+  title: Áp dụng ATDD
+  childs:
+  - slug: atdd-adoption-001
+    title: Đánh giá vấn đề hiện tại về hiểu sai yêu cầu, làm lại và phản hồi muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-002
+    title: Chọn phần chức năng thử nghiệm có giá trị và phạm vi vừa sức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-003
+    title: Bắt đầu bằng hội thoại và ví dụ trước khi đầu tư bộ công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-004
+    title: Hướng dẫn nhóm viết tiêu chí, ví dụ và phép xác nhận dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-005
+    title: Thiết lập cách tổ chức đặc tả và người chịu trách nhiệm bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-006
+    title: Bổ sung tự động hóa từng bước theo tần suất chạy và chi phí thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-007
+    title: Lấy ý kiến người nghiệp vụ về mức hữu ích và khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-008
+    title: Mở rộng dựa trên kết quả thực tế và điều chỉnh cách cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atdd-adoption-009
+    title: Nhận diện khi cần thêm kiểm thử khám phá hoặc nghiên cứu thay vì thêm kịch bản chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Viết kiểm thử sau khi hoàn tất rồi gọi đó là ATDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Để một người viết toàn bộ tiêu chí mà thiếu trao đổi nhiều góc nhìn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Nhầm tiêu chí chấp nhận với danh sách thao tác giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Chỉ viết luồng thành công và bỏ qua quy tắc từ chối hoặc trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Dùng Gherkin như bản ghi thao tác thay vì đặc tả hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Đồng nhất ATDD với Cucumber hoặc tự động hóa toàn bộ qua trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Dùng quá nhiều ví dụ trùng ý nghĩa nhưng thiếu khác biệt nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Sao chép thuật toán sản phẩm vào phép tính kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Sửa kỳ vọng để kiểm thử đạt mà chưa xác nhận thay đổi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Cho rằng toàn bộ kiểm thử chấp nhận đạt đồng nghĩa với không còn lỗi hoặc tự động được phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-011
+    title: Đặc tả mọi chi tiết từ đầu khiến phản hồi và phát triển bị trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-012
+    title: Duy trì bộ kiểm thử chậm, thất thường hoặc không được người nghiệp vụ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: effectiveness-assessment
+  title: Đánh giá hiệu quả
+  childs:
+  - slug: effectiveness-assessment-001
+    title: Đo mức giảm hiểu sai và làm lại do yêu cầu không rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-002
+    title: Đo thời gian từ đặt câu hỏi đến thống nhất hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-003
+    title: Theo dõi tốc độ phản hồi và độ tin cậy của kiểm thử tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-004
+    title: Đánh giá mức bao phủ quy tắc thay vì chỉ đếm kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-005
+    title: Theo dõi lỗi nghiệp vụ lọt ra sử dụng và các ví dụ còn thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-006
+    title: Đánh giá mức tham gia và khả năng đọc đặc tả của các bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-007
+    title: So sánh công sức tạo, chạy và bảo trì với giá trị phản hồi nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-008
+    title: Phân biệt hiệu quả ATDD với ảnh hưởng của công cụ hoặc thay đổi tổ chức khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-009
+    title: Dùng kết quả đánh giá để điều chỉnh phạm vi đặc tả và tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Thảo luận Three Amigos cho chức năng tính phí hoặc chiết khấu đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Chuyển mô tả yêu cầu mơ hồ thành quy tắc, ví dụ và câu hỏi bằng Example Mapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Lập bảng quyết định cho nhiều điều kiện ưu đãi có thể chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thiết kế ví dụ ngay dưới, tại và trên ngưỡng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Viết kịch bản chấp nhận cho quyền truy cập và thao tác bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Chọn cách biểu diễn cùng một quy tắc bằng bảng hoặc Given–When–Then
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tự động hóa một kịch bản qua miền nghiệp vụ hoặc API và giải thích ranh giới kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Thực hành phát triển chức năng từ kiểm thử chưa đạt đến đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Thiết kế dữ liệu và điều kiện chờ cho một nghiệp vụ xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Phân tích và sửa bộ kiểm thử phụ thuộc thứ tự hoặc thất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Thay đổi quy tắc nghiệp vụ và cập nhật đặc tả cùng bộ hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Xuất bản đặc tả sống và bảo vệ quyết định chấp nhận dựa trên bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

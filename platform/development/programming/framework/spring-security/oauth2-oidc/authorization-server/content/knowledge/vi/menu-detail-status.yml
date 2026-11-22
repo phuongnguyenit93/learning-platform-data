@@ -1,0 +1,3721 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Vai trò của Authorization Server trong hệ sinh thái Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt Authorization Server, Resource Server, OAuth2 Client và OpenID Provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa OAuth 2.0, OAuth 2.1 và OpenID Connect 1.0
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phạm vi tính năng của Spring Authorization Server và phần ứng dụng phải tự xây dựng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Đánh giá lựa chọn tự xây Authorization Server hay sử dụng Identity Provider có sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Các kịch bản đăng nhập tập trung, ủy quyền API và giao tiếp giữa dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ranh giới tin cậy giữa người dùng, client, trình duyệt và máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Yêu cầu kiến thức về Servlet Security, HTTP, TLS và mật mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Bản đồ luồng xử lý và các thành phần cần triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-fundamentals
+  title: Giao thức và thuật ngữ
+  childs:
+  - slug: protocol-fundamentals-001
+    title: Resource Owner, Client, Authorization Server và Resource Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-002
+    title: Authorization Grant, Authorization Request và Token Request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-003
+    title: Authorization Code, Access Token, Refresh Token và ID Token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-004
+    title: Scope, Claim, Audience, Resource và Subject
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-005
+    title: Public Client, Confidential Client và mô hình triển khai ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-006
+    title: Redirect URI, Issuer Identifier và Discovery Document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-007
+    title: State, Nonce và PKCE trong các luồng có trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-008
+    title: Front Channel, Back Channel và điểm truyền dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-009
+    title: Vòng đời authorization và mối liên hệ giữa token, consent, session
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-fundamentals-010
+    title: Các luồng cũ, tính năng không hỗ trợ và ranh giới tương thích giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-setup
+  title: Khởi tạo dự án
+  childs:
+  - slug: project-setup-001
+    title: Chọn bộ phiên bản tương thích của Java, Spring Boot và Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-002
+    title: Khai báo dependency Authorization Server bằng Maven hoặc Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-003
+    title: Tổ chức cấu trúc ứng dụng và các profile môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-004
+    title: Cấu hình tối thiểu để khởi chạy Authorization Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-005
+    title: Tạo tài khoản phát triển và client mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-006
+    title: Chuẩn bị khóa ký, issuer và cấu hình endpoint cho môi trường local
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-007
+    title: Chạy một vòng Authorization Code và xác minh token đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-008
+    title: Phân biệt cấu hình tự động của Spring Boot với các bean khai báo tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-009
+    title: Quản lý cấu hình nhạy cảm bằng biến môi trường và secret store
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-architecture
+  title: Kiến trúc xử lý
+  childs:
+  - slug: processing-architecture-001
+    title: SecurityFilterChain dành cho giao thức và dành cho đăng nhập ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-002
+    title: Thứ tự filter chain, securityMatcher và requestMatcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-003
+    title: OAuth2AuthorizationServerConfigurer và các điểm cấu hình giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-004
+    title: Pipeline Filter, AuthenticationConverter và AuthenticationProvider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-005
+    title: AuthenticationManager và các loại AuthenticationToken trong Authorization Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-006
+    title: Xử lý phản hồi thành công, thất bại và OAuth2Error
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-007
+    title: SecurityContext, principal và thông tin authorization trong mỗi request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-008
+    title: Vai trò của AuthorizationServerContext và issuer hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-009
+    title: Quan hệ giữa repository, authorization service, consent service và token generator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-010
+    title: Điểm mở rộng chuẩn và giới hạn của việc can thiệp filter nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-configuration
+  title: Cấu hình máy chủ
+  childs:
+  - slug: server-configuration-001
+    title: AuthorizationServerSettings và cấu hình issuer tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-002
+    title: Tùy chỉnh đường dẫn các endpoint OAuth2
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-003
+    title: Bật OpenID Connect và cấu hình các endpoint OIDC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-004
+    title: Cấu hình theo Java DSL và thuộc tính Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-005
+    title: Đăng ký các bean hạ tầng bắt buộc và tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-006
+    title: Cấu hình JwtDecoder phục vụ các chức năng OIDC cần xác minh JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-007
+    title: Xác định base URL khi có context path, reverse proxy và TLS termination
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-008
+    title: Cấu hình login entry point và xử lý request chưa xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-configuration-009
+    title: Kiểm tra cấu hình khởi động và phát hiện bean hoặc endpoint bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-models
+  title: Mô hình dữ liệu
+  childs:
+  - slug: core-models-001
+    title: RegisteredClient và quan hệ giữa id nội bộ với client_id
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-002
+    title: ClientSettings và các chính sách áp dụng cho client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-003
+    title: TokenSettings và chính sách phát hành, thời hạn của token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-004
+    title: OAuth2Authorization và tập hợp token gắn với một authorization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-005
+    title: OAuth2Authorization.Token, metadata và trạng thái hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-006
+    title: OAuth2AuthorizationConsent và các quyền người dùng đã chấp thuận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-007
+    title: RegisteredClientRepository và các thao tác tra cứu client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-008
+    title: OAuth2AuthorizationService và truy xuất authorization theo token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-models-009
+    title: OAuth2AuthorizationConsentService và vòng đời consent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-management
+  title: Quản lý client
+  childs:
+  - slug: client-management-001
+    title: Khai báo client bằng builder và repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-002
+    title: Thiết lập grant type, authentication method và scope cho từng client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-003
+    title: Đăng ký redirect URI và post-logout redirect URI bằng danh sách cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-004
+    title: Cấu hình yêu cầu PKCE và yêu cầu consent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-005
+    title: Cấu hình thời hạn authorization code, access token và refresh token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-006
+    title: Chọn access token dạng JWT hoặc reference theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-007
+    title: Quản lý ngày hết hạn client secret và chính sách xoay secret
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-008
+    title: Tách cấu hình client theo môi trường và chủ sở hữu ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-009
+    title: Thiết kế quy trình cấp mới, cập nhật, vô hiệu hóa và thu hồi client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-management-010
+    title: Bảo vệ API quản trị client và ghi nhận thay đổi cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-authentication
+  title: Xác thực client
+  childs:
+  - slug: client-authentication-001
+    title: Client Authentication Endpoint Filter và quá trình nhận diện client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-002
+    title: client_secret_basic và client_secret_post
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-003
+    title: Mã hóa client secret bằng PasswordEncoder và lựa chọn thuật toán phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-004
+    title: client_secret_jwt và xác minh client assertion
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-005
+    title: private_key_jwt và phân phối khóa công khai của client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-006
+    title: Xác minh issuer, subject, audience, thời hạn và chống phát lại assertion
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-007
+    title: Client public với authentication method none và yêu cầu PKCE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-008
+    title: tls_client_auth và self_signed_tls_client_auth
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-009
+    title: Tùy chỉnh converter, provider và validator cho xác thực client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-authentication-010
+    title: Xử lý invalid_client và hạn chế rò rỉ thông tin định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-authentication
+  title: Đăng nhập người dùng
+  childs:
+  - slug: user-authentication-001
+    title: Tích hợp form login vào Authorization Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-002
+    title: Kết nối UserDetailsService, AuthenticationProvider và nguồn tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-003
+    title: Khôi phục authorization request sau khi đăng nhập thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-004
+    title: Xây dựng trang đăng nhập và xử lý lỗi xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-005
+    title: Chính sách session, cookie và chống session fixation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-006
+    title: Tích hợp MFA và điều kiện hoàn thành xác thực trước khi cấp code
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-007
+    title: Xử lý tài khoản bị khóa, hết hạn hoặc bị vô hiệu hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-008
+    title: Phân biệt phiên đăng nhập SSO với vòng đời access token và refresh token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-009
+    title: Kiểm soát trải nghiệm đăng nhập lại và bảo vệ dữ liệu trên trang đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization-endpoint
+  title: Authorization Endpoint
+  childs:
+  - slug: authorization-endpoint-001
+    title: Tham số response_type, client_id, redirect_uri, scope và state
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-002
+    title: Kiểm tra client đã đăng ký và grant được phép sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-003
+    title: Đối chiếu redirect_uri chính xác và chặn open redirect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-004
+    title: Kiểm tra scope yêu cầu so với cấu hình client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-005
+    title: Tiếp nhận code_challenge và code_challenge_method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-006
+    title: Xử lý người dùng chưa đăng nhập và chuyển hướng đến login
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-007
+    title: Chuyển tiếp sang consent và xử lý lựa chọn của người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-008
+    title: Phát hành authorization code và trả phản hồi về client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-009
+    title: Tùy chỉnh OAuth2AuthorizationEndpointConfigurer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-010
+    title: Tùy chỉnh validation bằng OAuth2AuthorizationCodeRequestAuthenticationValidator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-endpoint-011
+    title: Trả lỗi đúng ngữ cảnh và tránh redirect về URI không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization-consent
+  title: Consent
+  childs:
+  - slug: authorization-consent-001
+    title: Cấu hình requireAuthorizationConsent cho từng client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-consent-002
+    title: Mô hình quyền đã cấp trong OAuth2AuthorizationConsent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-consent-003
+    title: Tạo giao diện consent hiển thị client và các scope được yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-consent-004
+    title: Phân biệt scope mới với scope đã được chấp thuận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-consent-005
+    title: Xử lý chấp thuận, từ chối và lựa chọn phạm vi quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-consent-006
+    title: Lưu consent và tra cứu consent trong các lần ủy quyền tiếp theo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-consent-007
+    title: Thu hồi consent và xác định tác động đến các authorization hiện có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-consent-008
+    title: Bảo vệ form consent, tham số điều hướng và nội dung hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization-code-pkce
+  title: Authorization Code và PKCE
+  childs:
+  - slug: authorization-code-pkce-001
+    title: Toàn bộ chuỗi authorize, login, consent, callback và token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-002
+    title: Trao đổi authorization code lấy token tại Token Endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-003
+    title: Ràng buộc code với client và redirect_uri
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-004
+    title: Thời hạn code và nguyên tắc chỉ sử dụng một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-005
+    title: Tạo code_verifier và code_challenge theo phương thức S256
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-006
+    title: Xác minh PKCE tại bước đổi code và xử lý verifier không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-007
+    title: Áp dụng PKCE cho ứng dụng public và confidential
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-008
+    title: Client public, khả năng cấp refresh token và giới hạn theo cấu hình, phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-009
+    title: Bảo vệ state, callback và dữ liệu code trong trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-code-pkce-010
+    title: Phát hiện code interception, code injection và authorization code replay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-credentials
+  title: Client Credentials
+  childs:
+  - slug: client-credentials-001
+    title: Kịch bản cấp quyền cho dịch vụ không có người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-credentials-002
+    title: Đăng ký confidential client cho grant client_credentials
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-credentials-003
+    title: Xác thực client và gửi yêu cầu cấp access token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-credentials-004
+    title: Giới hạn scope, audience và quyền của từng service account
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-credentials-005
+    title: Phân biệt subject là client với subject là người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-credentials-006
+    title: Thiết lập TTL, cache token phía client và chính sách xoay credential
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-credentials-007
+    title: Giới hạn phát hành ID Token và Refresh Token trong luồng này
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refresh-tokens
+  title: Refresh Token
+  childs:
+  - slug: refresh-tokens-001
+    title: Điều kiện phát hành refresh token theo grant và loại client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-002
+    title: Cấu hình refreshTokenTimeToLive và reuseRefreshTokens
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-003
+    title: Đổi refresh token để cấp access token mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-004
+    title: Kiểm tra liên kết refresh token với client và authorization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-005
+    title: Yêu cầu scope khi refresh và nguyên tắc không mở rộng quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-006
+    title: Refresh token rotation và hiệu lực của token đã được thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-007
+    title: Thiết kế phát hiện tái sử dụng và thu hồi token family khi cần mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-008
+    title: Xử lý đồng thời nhiều yêu cầu refresh và bảo đảm tính nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-tokens-009
+    title: Thu hồi refresh token khi tài khoản, client hoặc chính sách thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: device-authorization
+  title: Device Authorization
+  childs:
+  - slug: device-authorization-001
+    title: Kịch bản thiết bị hạn chế nhập liệu và luồng xác thực trên thiết bị thứ hai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-002
+    title: Bật Device Authorization Endpoint và Device Verification Endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-003
+    title: Phát hành device_code, user_code, verification_uri và thời hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-004
+    title: Trang nhập user_code và xác nhận thiết bị cho người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-005
+    title: Đăng nhập, consent và phê duyệt hoặc từ chối yêu cầu thiết bị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-006
+    title: Polling Token Endpoint bằng device_code
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-007
+    title: Xử lý authorization_pending, slow_down, access_denied và expired_token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-008
+    title: Giới hạn số lần thử user_code, tốc độ polling và chống phishing
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: device-authorization-009
+    title: Tùy chỉnh converter, provider và response handler cho Device Flow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-exchange
+  title: Token Exchange
+  childs:
+  - slug: token-exchange-001
+    title: Mục đích của OAuth 2.0 Token Exchange và ranh giới tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-002
+    title: Đăng ký grant token-exchange cho client được ủy quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-003
+    title: Tham số subject_token, subject_token_type và requested_token_type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-004
+    title: Đánh giá khả năng hỗ trợ actor_token, resource và audience theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-005
+    title: Xác minh subject token, trạng thái token và chính sách đổi token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-006
+    title: Giới hạn scope, audience và TTL của token được cấp sau trao đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-007
+    title: Phân biệt delegation, impersonation và chính sách cho từng trường hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-008
+    title: Tùy chỉnh provider và token customizer cho yêu cầu Token Exchange
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-exchange-009
+    title: Ngăn mở rộng đặc quyền, lạm dụng token trung gian và vòng lặp trao đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-endpoint
+  title: Token Endpoint
+  childs:
+  - slug: token-endpoint-001
+    title: Định dạng yêu cầu và phản hồi OAuth2 Token Endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-endpoint-002
+    title: Điều phối provider theo grant_type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-endpoint-003
+    title: OAuth2TokenEndpointConfigurer và các điểm mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-endpoint-004
+    title: Tùy chỉnh accessTokenRequestConverter và AuthenticationProvider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-endpoint-005
+    title: Tùy chỉnh phản hồi thành công mà vẫn giữ cấu trúc giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-endpoint-006
+    title: Chuẩn hóa invalid_request, invalid_grant, invalid_scope và unsupported_grant_type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-endpoint-007
+    title: Xử lý cache-control, dữ liệu nhạy cảm và truyền token qua HTTPS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-endpoint-008
+    title: Bảo vệ Token Endpoint bằng giới hạn tốc độ, timeout và chống lạm dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pushed-authorization-requests
+  title: PAR
+  childs:
+  - slug: pushed-authorization-requests-001
+    title: Mục đích của Pushed Authorization Requests
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pushed-authorization-requests-002
+    title: Cấu hình Pushed Authorization Request Endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pushed-authorization-requests-003
+    title: Xác thực client và kiểm tra các tham số authorization được đẩy lên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pushed-authorization-requests-004
+    title: Cấp request_uri và xử lý thời hạn yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pushed-authorization-requests-005
+    title: Sử dụng request_uri tại Authorization Endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pushed-authorization-requests-006
+    title: Áp dụng chính sách bắt buộc PAR cho từng client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pushed-authorization-requests-007
+    title: Tùy chỉnh validation, provider và phản hồi lỗi của PAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-generation-claims
+  title: Token và claims
+  childs:
+  - slug: token-generation-claims-001
+    title: OAuth2TokenGenerator và DelegatingOAuth2TokenGenerator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-002
+    title: JwtGenerator, OAuth2AccessTokenGenerator và OAuth2RefreshTokenGenerator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-003
+    title: OAuth2TokenContext, JwtEncodingContext và OAuth2TokenClaimsContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-004
+    title: OAuth2TokenCustomizer cho JWT và reference access token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-005
+    title: Thiết lập iss, sub, aud, iat, exp, nbf, jti và scope
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-006
+    title: Đưa roles, authorities hoặc thông tin nghiệp vụ vào claims có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-007
+    title: Tùy chỉnh claims theo client, grant type, principal và tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-008
+    title: Áp dụng profile JWT access token phù hợp với Resource Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-009
+    title: Kiểm soát kích thước token, thông tin cá nhân và dữ liệu có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-claims-010
+    title: Phân biệt các claims của access token với claims của ID Token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signing-keys
+  title: JWK và quản lý khóa
+  childs:
+  - slug: signing-keys-001
+    title: JWK, JWK Set, JWKSource và khóa phục vụ ký token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-002
+    title: Lựa chọn RSA, EC và thuật toán ký tương thích với client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-003
+    title: JwtEncoder và tích hợp bộ tạo JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-004
+    title: JWK Set Endpoint và các trường khóa công khai được phép công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-005
+    title: kid và quá trình Resource Server lựa chọn khóa xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-006
+    title: Lưu khóa ổn định qua restart và chia sẻ khóa giữa các instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-007
+    title: Xoay khóa với giai đoạn chồng lấp cho token chưa hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-008
+    title: Kiểm soát cache JWKS và xử lý client chưa cập nhật khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-009
+    title: Tích hợp keystore, KMS hoặc HSM theo yêu cầu triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-keys-010
+    title: Thu hồi khóa bị lộ, khôi phục khẩn cấp và kiểm toán truy cập khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proof-of-possession
+  title: DPoP
+  childs:
+  - slug: proof-of-possession-001
+    title: Bearer token và DPoP-bound access token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-of-possession-002
+    title: Cấu trúc DPoP proof, khóa của client và public JWK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-of-possession-003
+    title: Xác minh htm, htu, iat, jti và chữ ký của DPoP proof
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-of-possession-004
+    title: Ràng buộc access token với khóa bằng cnf.jkt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-of-possession-005
+    title: Cấu hình hỗ trợ DPoP tại Token Endpoint theo phiên bản sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-of-possession-006
+    title: Nonce, replay cache và giới hạn thời gian chấp nhận proof
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-of-possession-007
+    title: Tác động của DPoP đến refresh token và vòng đời khóa client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-of-possession-008
+    title: Phối hợp với Resource Server để xác minh proof và token binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mutual-tls
+  title: mTLS
+  childs:
+  - slug: mutual-tls-001
+    title: Xác thực client bằng chứng thư X.509
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-002
+    title: Cấu hình tls_client_auth và self_signed_tls_client_auth
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-003
+    title: Ràng buộc access token với chứng thư client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-004
+    title: Claim cnf.x5t#S256 và kiểm tra certificate binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-005
+    title: Thiết lập truststore, chuỗi chứng thư và chính sách chấp nhận chứng thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-006
+    title: Truyền danh tính chứng thư qua reverse proxy theo mô hình tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-007
+    title: Gia hạn, thu hồi chứng thư và kiểm thử lỗi xác thực mTLS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-introspection
+  title: Introspection
+  childs:
+  - slug: token-introspection-001
+    title: Mục đích của OAuth2 Token Introspection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-introspection-002
+    title: Xác thực và phân quyền client được phép introspect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-introspection-003
+    title: Ý nghĩa của active và các thông tin trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-introspection-004
+    title: Tra cứu token hết hạn, bị thu hồi hoặc không tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-introspection-005
+    title: OAuth2TokenIntrospectionEndpointConfigurer và điểm tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-introspection-006
+    title: Lọc claims và hạn chế tiết lộ dữ liệu token cho client gọi introspection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-introspection-007
+    title: Tích hợp Resource Server sử dụng opaque token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-introspection-008
+    title: Đánh đổi giữa cache kết quả introspection và độ trễ thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-revocation
+  title: Revocation
+  childs:
+  - slug: token-revocation-001
+    title: Mục đích của OAuth2 Token Revocation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-002
+    title: Tham số token, token_type_hint và xác thực client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-003
+    title: Kiểm tra quyền sở hữu token trước khi thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-004
+    title: Thu hồi access token, refresh token và authorization liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-005
+    title: OAuth2TokenRevocationEndpointConfigurer và điểm tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-006
+    title: Phản hồi khi token không tồn tại và tính lặp lại an toàn của thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-007
+    title: Giới hạn thu hồi tức thời đối với JWT được Resource Server xác minh cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-008
+    title: Kết hợp TTL, introspection hoặc cơ chế bổ sung để thực thi thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata-discovery
+  title: Metadata và Discovery
+  childs:
+  - slug: metadata-discovery-001
+    title: OAuth2 Authorization Server Metadata theo RFC 8414
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-discovery-002
+    title: OpenID Provider Configuration và OpenID Connect Discovery
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-discovery-003
+    title: Đường dẫn well-known và quan hệ với issuer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-discovery-004
+    title: Các trường endpoints, grant_types_supported và response_types_supported
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-discovery-005
+    title: Công bố authentication methods, signing algorithms và khả năng PKCE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-discovery-006
+    title: Tùy chỉnh metadata của Authorization Server và OpenID Provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-discovery-007
+    title: Kiểm tra metadata nhất quán với endpoint đã bật và tính năng thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-discovery-008
+    title: Discovery sau reverse proxy, custom domain và môi trường đa issuer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oidc-core
+  title: OIDC Core và ID Token
+  childs:
+  - slug: oidc-core-001
+    title: Bật OIDC và xử lý scope openid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-002
+    title: OIDC Authorization Code Flow và bộ token được phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-003
+    title: ID Token và các claims iss, sub, aud, exp, iat, auth_time
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-004
+    title: Nonce và bảo vệ liên kết giữa yêu cầu đăng nhập với ID Token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-005
+    title: Ý nghĩa của azp, acr, amr và các claims xác thực mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-006
+    title: Xử lý prompt, max_age, login_hint và các tham số theo mức hỗ trợ thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-007
+    title: Phân phối claims theo scope profile, email, address và phone
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-008
+    title: Định danh subject ổn định và thiết kế pairwise subject khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-009
+    title: Tùy chỉnh ID Token bằng OAuth2TokenCustomizer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-010
+    title: Chính sách thuật toán ký ID Token theo cấu hình client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-core-011
+    title: Phân biệt khả năng OIDC có sẵn với extension phải tự triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oidc-user-info
+  title: OIDC UserInfo
+  childs:
+  - slug: oidc-user-info-001
+    title: UserInfo Endpoint và yêu cầu access token hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-user-info-002
+    title: Cấu hình Resource Server và JwtDecoder phục vụ UserInfo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-user-info-003
+    title: Lấy thông tin người dùng và kiểm tra subject của phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-user-info-004
+    title: Ánh xạ claims theo scope được cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-user-info-005
+    title: OidcUserInfoEndpointConfigurer và userInfoMapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-user-info-006
+    title: Kết nối nguồn hồ sơ người dùng và kiểm soát dữ liệu cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-user-info-007
+    title: Tính nhất quán giữa UserInfo, ID Token và định danh tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-user-info-008
+    title: Xử lý lỗi token, scope và người dùng không còn khả dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oidc-logout
+  title: OIDC Logout
+  childs:
+  - slug: oidc-logout-001
+    title: RP-Initiated Logout và OIDC Logout Endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-002
+    title: id_token_hint, client_id, post_logout_redirect_uri và state
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-003
+    title: Kiểm tra post-logout redirect URI theo đăng ký client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-004
+    title: Xác nhận logout và xử lý yêu cầu không đủ thông tin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-005
+    title: OidcLogoutEndpointConfigurer và các điểm tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-006
+    title: Kết thúc phiên Authorization Server và dọn SecurityContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-007
+    title: SessionRegistry và theo dõi phiên phục vụ logout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-008
+    title: Phân biệt logout phiên SSO, thu hồi token và đăng xuất từng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-logout-009
+    title: Đánh giá nhu cầu Front-Channel hoặc Back-Channel Logout và phần cần mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-client-registration
+  title: Đăng ký client động
+  childs:
+  - slug: dynamic-client-registration-001
+    title: OAuth 2.0 Dynamic Client Registration và OIDC Client Registration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-002
+    title: Bật endpoint đăng ký động theo phạm vi và phiên bản sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-003
+    title: Bảo vệ đăng ký bằng initial access token và quyền đăng ký client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-004
+    title: Kiểm tra redirect_uris, grant_types, response_types và authentication method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-005
+    title: Kiểm tra jwks, jwks_uri và thuật toán do client khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-006
+    title: Cấp client_id, client_secret và metadata đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-007
+    title: Registration access token và endpoint cấu hình client OIDC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-008
+    title: Tùy chỉnh metadata converter, provider và chính sách đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-009
+    title: Giới hạn đăng ký, phê duyệt client và phòng chống SSRF từ URL metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-client-registration-010
+    title: Quản lý vòng đời client đã đăng ký động và bảo vệ bí mật đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-persistence
+  title: Lưu trữ JDBC
+  childs:
+  - slug: jdbc-persistence-001
+    title: Chuyển từ các thành phần in-memory sang lưu trữ bền vững
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-002
+    title: JdbcRegisteredClientRepository và schema client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-003
+    title: JdbcOAuth2AuthorizationService và schema authorization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-004
+    title: JdbcOAuth2AuthorizationConsentService và schema consent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-005
+    title: Khởi tạo schema và quản lý migration bằng Flyway hoặc Liquibase
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-006
+    title: Tuần tự hóa principal, attributes và metadata của token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-007
+    title: Cấu hình Jackson module cần thiết và kiểm soát deserialization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-008
+    title: Transaction, connection pool và xử lý lỗi cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-009
+    title: Index, truy vấn theo token và tác động của kích thước dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-persistence-010
+    title: Dọn authorization hết hạn, backup và khôi phục dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-persistence
+  title: Lưu trữ tùy chỉnh
+  childs:
+  - slug: custom-persistence-001
+    title: Thiết kế RegisteredClientRepository cho nguồn dữ liệu riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-persistence-002
+    title: Triển khai OAuth2AuthorizationService và tra cứu theo từng loại token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-persistence-003
+    title: Triển khai OAuth2AuthorizationConsentService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-persistence-004
+    title: Lựa chọn JPA, Redis hoặc kho dữ liệu khác theo yêu cầu nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-persistence-005
+    title: TTL, serialization và cập nhật metadata token trong kho tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-persistence-006
+    title: Kiểm soát truy cập đồng thời khi đổi code hoặc refresh token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-persistence-007
+    title: Cache client, authorization và cơ chế vô hiệu hóa cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-persistence-008
+    title: Mã hóa dữ liệu nhạy cảm và kiểm thử tính tương thích giữa các instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-extensions
+  title: Mở rộng giao thức
+  childs:
+  - slug: protocol-extensions-001
+    title: Đánh giá nhu cầu custom grant và tác động đến chuẩn giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-002
+    title: Khai báo AuthorizationGrantType và đăng ký grant cho client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-003
+    title: Tạo AuthenticationToken và AuthenticationConverter cho grant mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-004
+    title: Tạo AuthenticationProvider và kiểm tra điều kiện cấp quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-005
+    title: Tạo, lưu token bằng OAuth2TokenGenerator và OAuth2AuthorizationService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-006
+    title: Chuẩn hóa OAuth2Error cho lỗi validation và lỗi cấp token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-007
+    title: Đăng ký extension vào Token Endpoint và cập nhật metadata phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-008
+    title: Tùy chỉnh endpoint bằng các extension point công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-009
+    title: Kiểm thử bảo mật và tương thích của grant hoặc endpoint mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-federation
+  title: Liên kết danh tính
+  childs:
+  - slug: identity-federation-001
+    title: Authorization Server đồng thời đóng vai trò OAuth2 Client với IdP bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-002
+    title: Tích hợp đăng nhập OIDC hoặc OAuth2 từ nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-003
+    title: Ánh xạ external principal sang tài khoản và subject nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-004
+    title: Liên kết tài khoản có xác minh và ngăn account takeover
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-005
+    title: Cấp claims nội bộ từ danh tính bên ngoài theo chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-006
+    title: Truyền mức độ xác thực và yêu cầu MFA theo ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-007
+    title: Phân biệt token của IdP đầu nguồn với token do máy chủ nội bộ phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-008
+    title: Xử lý session và logout khi có nhiều miền xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-federation-009
+    title: Giới hạn trách nhiệm giữa identity federation và phát hành token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multitenancy
+  title: Đa tenant
+  childs:
+  - slug: multitenancy-001
+    title: Chọn mô hình một issuer hoặc nhiều issuer cho các tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-002
+    title: Cấu hình và phân giải issuer theo khả năng hỗ trợ đa tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-003
+    title: Phân giải tenant bằng cơ chế đáng tin cậy và kiểm tra host, path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-004
+    title: Tách RegisteredClientRepository theo tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-005
+    title: Tách authorization service và consent service theo tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-006
+    title: Cô lập khóa ký, JWKS và chính sách token giữa các tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-007
+    title: Tùy biến giao diện, consent và claims theo tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-008
+    title: Quản lý vòng đời tenant và cấu hình domain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multitenancy-009
+    title: Kiểm thử ngăn truy cập chéo tenant, nhầm issuer và nhầm khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Tích hợp ứng dụng Spring OAuth2 Client qua issuer discovery
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Tích hợp Resource Server xác minh JWT bằng issuer và JWKS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Tích hợp Resource Server qua introspection cho reference token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Thiết kế client SPA với PKCE và cân nhắc mô hình BFF
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Đăng ký ứng dụng native với redirect URI và PKCE phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Tích hợp service-to-service bằng Client Credentials
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Cấp audience và scope cho nhiều API hoặc gateway
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Thực hiện SSO giữa nhiều client dùng chung Authorization Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Kiểm tra hợp đồng claims, thuật toán và chính sách clock skew
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Ranh giới lưu token, session và trách nhiệm bảo vệ của từng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-security
+  title: Bảo vệ máy chủ
+  childs:
+  - slug: server-security-001
+    title: Mô hình đe dọa và áp dụng OAuth 2.0 Security Best Current Practice
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-002
+    title: Bắt buộc HTTPS và cấu hình cookie Secure, HttpOnly, SameSite
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-003
+    title: CSRF theo từng endpoint và bảo vệ các thao tác có người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-004
+    title: CORS theo origin cụ thể và giới hạn trên các endpoint giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-005
+    title: Ngăn open redirect, authorization response injection và mix-up attack
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-006
+    title: Chống brute force, credential stuffing và enumeration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-007
+    title: Chống phát lại code, client assertion, device code và DPoP proof
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-008
+    title: Bảo vệ secret, private key, token và thông tin cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-009
+    title: Giới hạn scope, audience và đặc quyền quản trị theo least privilege
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-010
+    title: Kiểm soát SSRF từ jwks_uri, metadata và URL do client cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-011
+    title: Thiết lập security headers và bảo vệ giao diện login, consent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-security-012
+    title: Chính sách khi tài khoản bị khóa, credential bị lộ hoặc phiên bị xâm phạm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-scaling
+  title: Triển khai và mở rộng
+  childs:
+  - slug: deployment-scaling-001
+    title: Đóng gói ứng dụng và cấu hình môi trường production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-002
+    title: Reverse proxy, load balancer và xác định public issuer ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-003
+    title: Tin cậy Forwarded headers từ proxy được phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-004
+    title: HTTPS termination, mTLS và cấu hình chứng thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-005
+    title: Chia sẻ dữ liệu client, authorization và consent giữa các instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-006
+    title: Quản lý session phân tán và tính nhất quán trải nghiệm SSO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-007
+    title: Phân phối khóa ký ổn định và đồng bộ thời gian hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-008
+    title: Xử lý cạnh tranh khi redeem code, rotate refresh token và thu hồi token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-009
+    title: Scaling, connection pool, cache và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-010
+    title: Health check, readiness, graceful shutdown và rolling deployment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-011
+    title: Kế hoạch backup, disaster recovery và ứng phó sự cố khóa ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-auditing
+  title: Quan sát và kiểm toán
+  childs:
+  - slug: observability-auditing-001
+    title: Ghi log sự kiện đăng nhập, consent, phát hành và thu hồi token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-002
+    title: Ẩn token, secret, authorization code và dữ liệu cá nhân trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-003
+    title: Correlation ID và truy vết xuyên Authorization Server, client, API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-004
+    title: Metrics theo endpoint, grant type, client và kết quả xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-005
+    title: Theo dõi độ trễ, lỗi xác thực và tỷ lệ refresh token thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-006
+    title: Theo dõi tải cơ sở dữ liệu, pool kết nối và kho khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-007
+    title: Audit thay đổi cấu hình client, tenant và chính sách token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-008
+    title: Phát hiện bất thường và thiết lập cảnh báo lạm dụng endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-009
+    title: Chính sách lưu trữ, phân quyền truy cập và bảo toàn audit trail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-testing
+  title: Kiểm thử chức năng
+  childs:
+  - slug: functional-testing-001
+    title: Chuẩn bị test profile, client fixture và khóa ký dành cho kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-002
+    title: Kiểm thử filter chain, endpoint matcher và cấu hình issuer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-003
+    title: Kiểm thử Authorization Code, PKCE, login và consent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-004
+    title: Kiểm thử Client Credentials, Refresh Token và token rotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-005
+    title: Kiểm thử Device Authorization và các trạng thái polling
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-006
+    title: Kiểm thử Token Exchange và giới hạn scope, audience
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-007
+    title: Kiểm thử JWT claims, reference token, introspection và revocation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-008
+    title: Kiểm thử OIDC Discovery, ID Token, UserInfo và Logout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-009
+    title: Kiểm thử client registration động, PAR và client authentication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-010
+    title: Kiểm thử tích hợp bằng MockMvc, client thật và Testcontainers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-testing-011
+    title: Kiểm thử lưu trữ bền vững, restart và phối hợp nhiều instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-testing
+  title: Kiểm thử bảo mật
+  childs:
+  - slug: security-testing-001
+    title: Negative test với redirect URI, scope, issuer và audience không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-002
+    title: Kiểm thử PKCE thiếu, sai verifier, downgrade và code replay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-003
+    title: Kiểm thử hết hạn code, token, client secret và chứng thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-004
+    title: Kiểm thử client assertion sai chữ ký, sai audience và bị phát lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-005
+    title: Kiểm thử DPoP, mTLS và các trường hợp token binding không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-006
+    title: Kiểm thử CSRF, CORS, session fixation và logout redirect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-007
+    title: Kiểm thử cô lập tenant và quyền đăng ký, quản trị client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-008
+    title: Kiểm thử xoay khóa, JWKS cache và token ký bằng khóa đã loại bỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-009
+    title: Kiểm thử tải, rate limit và hành vi khi kho dữ liệu gián đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-010
+    title: Đánh giá conformance OAuth/OIDC và hồi quy sau thay đổi bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: 'invalid_client: secret, authentication method, assertion và chứng thư'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'invalid_grant: code hết hạn, dùng lại, sai PKCE hoặc refresh token'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: invalid_scope, unauthorized_client và unsupported_grant_type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: redirect_uri mismatch và lỗi post_logout_redirect_uri
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Vòng lặp login, mất authorization request và sai thứ tự filter chain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Lỗi issuer, forwarded headers và discovery sau reverse proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Lỗi chữ ký JWT, thiếu kid, sai thuật toán hoặc JWKS không đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Lỗi claims, audience và quyền truy cập tại Resource Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Lỗi OIDC UserInfo, thiếu JwtDecoder và subject không nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi JDBC schema, serialization và khôi phục authorization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Lỗi Device Flow, PAR, Token Exchange và token binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Quy trình tái hiện lỗi bằng log đã che dữ liệu và request tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrade-migration
+  title: Nâng cấp và chuyển đổi
+  childs:
+  - slug: upgrade-migration-001
+    title: Xác định phiên bản nền và ma trận tương thích dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-002
+    title: Chuyển từ Spring Security OAuth cũ sang Authorization Server hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-003
+    title: Phân biệt lịch sử Spring Authorization Server độc lập với tích hợp trong Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-004
+    title: Cập nhật Java DSL, API bị deprecated và điểm mở rộng công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-005
+    title: Chuyển schema, dữ liệu client, consent và authorization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-006
+    title: Bảo toàn issuer, subject, khóa và hợp đồng claims khi nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-007
+    title: Duy trì token đang hoạt động trong giai đoạn chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-008
+    title: Kiểm thử hồi quy luồng OAuth/OIDC và khả năng tương tác client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-migration-009
+    title: Triển khai theo giai đoạn, theo dõi sự cố và lập phương án rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-labs
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practical-labs-001
+    title: Xây dựng Authorization Server tối thiểu với một OAuth2 Client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-002
+    title: Bổ sung JDBC, custom login và consent page
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-003
+    title: Cấp JWT với roles, audience và chính sách scope cho API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-004
+    title: Xây dựng client public dùng PKCE và client dịch vụ dùng Client Credentials
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-005
+    title: Hoàn thiện OIDC SSO, ID Token, UserInfo và Logout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-006
+    title: Triển khai Device Flow, PAR và Token Exchange theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-007
+    title: Thực hành private_key_jwt, mTLS, DPoP và xoay khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-008
+    title: Mở rộng custom grant hoặc lưu trữ tùy chỉnh có kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-009
+    title: Triển khai đa instance sau proxy với issuer và session ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-010
+    title: Hoàn thiện tài liệu kiến trúc, cấu hình, vận hành và xử lý sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

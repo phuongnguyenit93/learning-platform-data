@@ -1,0 +1,57 @@
+roadmap:
+- id: vault-va-spring-vault
+  title: Vault và Spring Vault
+  purpose: Hiểu vai trò của Vault trong quản lý bí mật và cách Spring Vault cung cấp API truy cập Vault từ ứng dụng Java.
+  objectives:
+  - Phân biệt secret tĩnh, secret động và token truy cập.
+  - Nhận diện vai trò Vault Server, secret engine và Spring Vault client.
+  - Xác định trường hợp nên dùng Spring Vault trực tiếp.
+- id: ket-noi-va-vaulttemplate
+  title: Kết nối và VaultTemplate
+  purpose: Thiết lập client an toàn và thực hiện các thao tác cơ bản với Vault qua Spring.
+  objectives:
+  - Cấu hình VaultEndpoint, TLS và VaultTemplate.
+  - Thực hiện đọc, ghi, xóa secret qua VaultOperations.
+  - Xử lý lỗi kết nối và quyền truy cập.
+- id: xac-thuc-voi-vault
+  title: Xác thực với Vault
+  purpose: Lựa chọn cơ chế đăng nhập phù hợp và quản lý danh tính của ứng dụng khi gọi Vault.
+  objectives:
+  - Phân biệt token, AppRole và Kubernetes authentication.
+  - Cấu hình ClientAuthentication và SessionManager.
+  - Giải thích giới hạn TTL và tránh nhúng thông tin đăng nhập.
+- id: kv-secrets-va-versioning
+  title: KV Secrets và Versioning
+  purpose: Sử dụng KV secret engine để lưu thông tin cấu hình nhạy cảm và quản lý thay đổi có phiên bản.
+  objectives:
+  - Đọc, ghi và cập nhật secret trong KV.
+  - Phân biệt API đường dẫn KV v1 và KV v2.
+  - Đọc metadata và phiên bản của secret KV v2.
+- id: secret-va-spring-configuration
+  title: Secret và Spring Configuration
+  purpose: Đưa bí mật vào cấu hình ứng dụng Spring mà vẫn kiểm soát nguồn và thời điểm nạp dữ liệu.
+  objectives:
+  - Sử dụng @VaultPropertySource trong cấu hình Spring.
+  - Phân biệt PropertySource với gọi VaultTemplate trực tiếp.
+  - Nhận diện phạm vi khác biệt với Spring Cloud Vault.
+- id: dynamic-secrets-va-leases
+  title: Dynamic Secrets và Leases
+  purpose: Hiểu secret được cấp phát có thời hạn, thao tác làm mới và thu hồi quyền truy cập.
+  objectives:
+  - Truy cập secret engine cấp phát credential động.
+  - Giải thích lease ID, TTL, renew và revoke.
+  - Thiết kế xử lý credential hết hạn hoặc bị thu hồi.
+- id: transit-cryptography
+  title: Transit Cryptography
+  purpose: Ứng dụng dịch vụ mã hóa của Vault để bảo vệ dữ liệu mà không quản lý khóa mã hóa trong ứng dụng.
+  objectives:
+  - Gọi Transit encrypt và decrypt bằng Spring Vault.
+  - Phân biệt ciphertext với secret lưu bằng KV.
+  - Tìm hiểu rotation và rewrap khóa Transit.
+- id: policies-testing-va-van-hanh
+  title: Policies, Testing và Vận hành
+  purpose: Giữ truy cập Vault theo quyền tối thiểu và xác minh hành vi ứng dụng khi Vault gặp lỗi.
+  objectives:
+  - Thiết kế ACL policy giới hạn secret path cần thiết.
+  - Kiểm thử truy cập thành công, bị từ chối và secret hết hạn.
+  - Giám sát lỗi Vault/TLS và tránh ghi token hoặc secret vào log.

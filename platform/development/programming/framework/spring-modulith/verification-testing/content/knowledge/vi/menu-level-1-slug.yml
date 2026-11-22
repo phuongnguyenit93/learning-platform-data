@@ -1,0 +1,115 @@
+menu:
+- title: Nhập môn
+  slug: verification-overview
+  index: 0
+- title: Mô hình module
+  slug: module-model
+  index: 1
+- title: Thiết kế module
+  slug: module-design
+  index: 2
+- title: ApplicationModules
+  slug: application-modules
+  index: 3
+- title: ApplicationModules.verify
+  slug: application-modules-verify
+  index: 4
+- title: Dependency rules
+  slug: dependency-rules
+  index: 5
+- title: Named interfaces
+  slug: named-interfaces
+  index: 6
+- title: Verification trong build
+  slug: build-verification
+  index: 7
+- title: ApplicationModuleTest
+  slug: application-module-test
+  index: 8
+- title: Bootstrap context
+  slug: bootstrap-context
+  index: 9
+- title: Test types
+  slug: test-types
+  index: 10
+- title: Scenario
+  slug: test-scenarios
+  index: 11
+- title: Event publication
+  slug: event-publication
+  index: 12
+- title: Event assertions
+  slug: event-assertions
+  index: 13
+- title: State change
+  slug: state-changes
+  index: 14
+- title: Module boundaries
+  slug: module-boundaries
+  index: 15
+- title: Test configuration
+  slug: test-configuration
+  index: 16
+- title: Database testing
+  slug: database-testing
+  index: 17
+- title: Web module testing
+  slug: web-module-testing
+  index: 18
+- title: Messaging testing
+  slug: messaging-testing
+  index: 19
+- title: Externalization
+  slug: event-externalization
+  index: 20
+- title: Observability tests
+  slug: observability-testing
+  index: 21
+- title: Test data
+  slug: test-data
+  index: 22
+- title: JUnit integration
+  slug: junit-integration
+  index: 23
+- title: Architectural contracts
+  slug: architectural-contracts
+  index: 24
+- title: Async verification
+  slug: asynchronous-verification
+  index: 25
+- title: Testcontainers
+  slug: testcontainers
+  index: 26
+- title: Mock và spy
+  slug: mocks-spies
+  index: 27
+- title: Test failure
+  slug: test-failures
+  index: 28
+- title: Test isolation
+  slug: test-isolation
+  index: 29
+- title: Coverage theo module
+  slug: module-test-coverage
+  index: 30
+- title: CI và quality gate
+  slug: ci-quality-gates
+  index: 31
+- title: Refactoring an existing app
+  slug: legacy-app-refactoring
+  index: 32
+- title: Performance tests
+  slug: performance-testing
+  index: 33
+- title: Security testing
+  slug: security-testing
+  index: 34
+- title: Lỗi thường gặp
+  slug: common-mistakes
+  index: 35
+- title: Chọn chiến lược
+  slug: testing-strategy
+  index: 36
+- title: Dự án thực hành
+  slug: practice-project
+  index: 37

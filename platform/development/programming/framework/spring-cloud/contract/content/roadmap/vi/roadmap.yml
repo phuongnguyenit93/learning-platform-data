@@ -1,0 +1,57 @@
+roadmap:
+- id: contract-testing-cdc
+  title: Contract Testing & CDC
+  purpose: Hiểu hợp đồng giao tiếp giữa dịch vụ cung cấp và dịch vụ sử dụng để phát hiện thay đổi không tương thích sớm.
+  objectives:
+  - Phân biệt producer, consumer và contract
+  - Mô tả vòng phản hồi consumer-driven contract
+  - Giải thích contract test khác end-to-end test
+- id: thiet-lap-verifier
+  title: Thiết lập Verifier
+  purpose: Cấu hình Spring Cloud Contract Verifier trong dự án Java để sinh kiểm thử từ hợp đồng.
+  objectives:
+  - Thêm BOM, starter và Maven hoặc Gradle plugin
+  - Chỉ định thư mục chứa contract trong test resources
+  - Chạy bước sinh test của build
+- id: http-contract-dsl
+  title: HTTP Contract DSL
+  purpose: Mô tả hành vi HTTP tối thiểu mà cả client và server cùng kỳ vọng.
+  objectives:
+  - Viết contract bằng Groovy DSL hoặc YAML
+  - Khai báo method, path, headers và request body
+  - Định nghĩa status, headers và response body
+- id: matchers-du-lieu-dong
+  title: Matchers & Dữ liệu động
+  purpose: Giúp contract đủ chặt để phát hiện lỗi nhưng không phụ thuộc các giá trị thay đổi hợp lệ.
+  objectives:
+  - Dùng regex hoặc body matchers cho ID và dữ liệu động
+  - Phân biệt giá trị ở phía consumer và producer
+  - Thử một request hợp lệ và một request không khớp
+- id: producer-verification
+  title: Producer Verification
+  purpose: Dùng test được sinh tự động để xác minh implementation đáp ứng hợp đồng đã công bố.
+  objectives:
+  - Tạo base test class cho generated tests
+  - Chạy verifier và sửa một trường hợp thất bại
+  - Kiểm tra response thực đúng với contract
+- id: stub-artifacts
+  title: Stub Artifacts
+  purpose: Đóng gói và phiên bản hóa stub để consumer dùng độc lập với dịch vụ thật.
+  objectives:
+  - Sinh WireMock mappings và stubs JAR
+  - Gắn version theo bản phát hành của producer
+  - Publish artifact lên repository kiểm thử
+- id: consumer-stub-runner
+  title: Consumer Stub Runner
+  purpose: Kiểm thử client dựa trên stub tương thích mà không phải khởi động toàn bộ hệ thống.
+  objectives:
+  - Thêm Stub Runner vào integration test
+  - Cấu hình stub ID và LOCAL hoặc REMOTE mode
+  - Gọi stub rồi kiểm tra response của client
+- id: messaging-ci
+  title: Messaging & CI
+  purpose: Mở rộng contract sang thông điệp và đưa kiểm tra tương thích vào quy trình giao phần mềm.
+  objectives:
+  - Mô tả input hoặc output message trong contract
+  - Thử trigger và xác minh message stub
+  - Chạy producer verification và consumer tests trong CI

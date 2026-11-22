@@ -1,0 +1,3 @@
+menuLevel1: Template Method
+menuLevel2: Bảo vệ bất biến và hạn chế override bằng phạm vi truy cập hoặc final
+status: ""

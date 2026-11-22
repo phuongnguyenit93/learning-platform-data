@@ -1,0 +1,58 @@
+roadmap:
+- id: lop-va-doi-tuong
+  title: Lớp và đối tượng
+  purpose: Hiểu lớp mô tả một kiểu dữ liệu và đối tượng là từng thể hiện cụ thể của lớp.
+  objectives:
+  - Phân biệt lớp và đối tượng
+  - Nhận diện trạng thái và hành vi
+  - Mô tả một đối tượng đơn giản
+- id: truong-va-phuong-thuc
+  title: Trường và phương thức
+  purpose: Biểu diễn dữ liệu và thao tác của đối tượng bằng các thành phần của lớp.
+  objectives:
+  - Khai báo trường và phương thức
+  - Phân biệt tham số và giá trị trả về
+  - Gọi phương thức trên đối tượng
+- id: khoi-tao-doi-tuong
+  title: Khởi tạo đối tượng
+  purpose: Tạo đối tượng ở trạng thái hợp lệ bằng new, hàm khởi tạo và this.
+  objectives:
+  - Tạo đối tượng bằng new
+  - Viết và nạp chồng hàm khởi tạo
+  - Dùng this và this() đúng chỗ
+- id: tham-chieu-va-null
+  title: Tham chiếu và null
+  purpose: Hiểu biến tham chiếu để dự đoán tác động khi nhiều biến cùng trỏ tới một đối tượng.
+  objectives:
+  - Phân biệt đối tượng và biến tham chiếu
+  - Theo dõi phép gán và tham chiếu dùng chung
+  - Giải thích truyền tham trị trong Java
+  - Nhận biết và xử lý null
+- id: dong-goi-va-truy-cap
+  title: Đóng gói và truy cập
+  purpose: Giữ trạng thái hợp lệ bằng cách kiểm soát quyền truy cập và cung cấp thao tác phù hợp.
+  objectives:
+  - Phân biệt các mức truy cập
+  - Ẩn trường bằng private
+  - Kiểm tra dữ liệu khi cập nhật trạng thái
+- id: thanh-vien-static-va-final
+  title: Thành viên static và final
+  purpose: Phân biệt dữ liệu thuộc từng đối tượng với dữ liệu dùng chung và các giới hạn thay đổi.
+  objectives:
+  - Phân biệt thành viên static và thành viên đối tượng
+  - Sử dụng hằng static final
+  - Phân biệt tham chiếu final và đối tượng bất biến
+- id: khoi-tao-va-vong-doi
+  title: Khởi tạo và vòng đời
+  purpose: Theo dõi thời điểm gán giá trị ban đầu và khả năng được thu gom của đối tượng.
+  objectives:
+  - Nhận biết giá trị mặc định của trường
+  - Theo dõi thứ tự khởi tạo static và đối tượng
+  - Giải thích đối tượng không còn được tham chiếu và GC
+- id: thiet-ke-lop-don-gian
+  title: Thiết kế lớp đơn giản
+  purpose: Kết hợp các kiến thức để xây dựng lớp có trách nhiệm rõ ràng và trạng thái hợp lệ.
+  objectives:
+  - Chọn trường và phương thức theo trách nhiệm
+  - Tổ chức quan hệ chứa đối tượng
+  - Viết và kiểm tra một lớp hoàn chỉnh

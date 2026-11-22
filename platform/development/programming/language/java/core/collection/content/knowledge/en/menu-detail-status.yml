@@ -1,0 +1,2446 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Collection là gì và bài toán quản lý nhóm đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt Collection, Collections và Java Collections Framework
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ Iterable, Collection, List, Set, Queue và Deque
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vì sao Map thuộc framework nhưng không kế thừa Collection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'So sánh mảng với collection: kích thước, kiểu và thao tác'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt thứ tự chèn, thứ tự duyệt, chỉ số và thứ tự sắp xếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Các tiêu chí chọn cấu trúc: trùng lặp, null, truy cập và đồng thời'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và trình tự học các nhóm collection
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collection-contracts
+  title: Hợp đồng chung
+  childs:
+  - slug: collection-contracts-001
+    title: Khai báo theo giao diện và lựa chọn lớp cài đặt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-contracts-002
+    title: size, isEmpty, contains và ý nghĩa giá trị trả về
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-contracts-003
+    title: add, remove, clear và quy tắc thao tác tùy chọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-contracts-004
+    title: addAll, containsAll, removeAll và retainAll
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-contracts-005
+    title: removeIf và xử lý điều kiện xóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-contracts-006
+    title: Chính sách phần tử null và giới hạn kiểu của từng cài đặt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-contracts-007
+    title: Phân biệt thay đổi cấu trúc, thay giá trị và sửa đối tượng phần tử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-contracts-008
+    title: Hợp đồng API so với chi tiết cài đặt có thể đổi giữa các JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: element-types
+  title: Kiểu phần tử
+  childs:
+  - slug: element-types-001
+    title: Generic trong Collection<E> và Map<K,V>
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: element-types-002
+    title: Autoboxing, unboxing và chi phí của kiểu bao
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: element-types-003
+    title: 'Tính bất biến của generic: List<Integer> và List<Number>'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: element-types-004
+    title: Wildcard giới hạn trên khi đọc dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: element-types-005
+    title: Wildcard giới hạn dưới khi ghi dữ liệu và quy tắc PECS
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: element-types-006
+    title: Raw type, ép kiểu và ô nhiễm kiểu trong collection
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: element-types-007
+    title: Thiết kế phương thức nhận collection linh hoạt nhưng an toàn kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equality-hashing
+  title: Bằng nhau và băm
+  childs:
+  - slug: equality-hashing-001
+    title: Vai trò của equals và hashCode trong tìm kiếm và loại trùng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-hashing-002
+    title: Hợp đồng equals–hashCode và cách viết kiểu khóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-hashing-003
+    title: Phân biệt giá trị bằng nhau với cùng tham chiếu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-hashing-004
+    title: Ngữ nghĩa equals của List, Set và Map
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-hashing-005
+    title: Phân biệt băm trùng với hai khóa bằng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-hashing-006
+    title: Rủi ro sửa trường tham gia equals hoặc hashCode sau khi thêm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-hashing-007
+    title: Record và đối tượng bất biến khi làm khóa hoặc phần tử Set
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-hashing-008
+    title: Ảnh hưởng của phần tử khả biến đến equals và hashCode của collection
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparison-sorting
+  title: So sánh và sắp xếp
+  childs:
+  - slug: comparison-sorting-001
+    title: Comparable và thứ tự tự nhiên
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-sorting-002
+    title: Comparator và hợp đồng dấu, tính bắc cầu, tính nhất quán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-sorting-003
+    title: comparing, comparingInt và các bộ so sánh theo khóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-sorting-004
+    title: thenComparing và sắp xếp nhiều tiêu chí
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-sorting-005
+    title: reversed, reverseOrder, nullsFirst và nullsLast
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-sorting-006
+    title: Tránh tràn số khi viết phép so sánh bằng phép trừ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-sorting-007
+    title: Tính ổn định của sắp xếp List và cách xử lý phần tử đồng hạng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-sorting-008
+    title: Dùng cùng quy tắc so sánh cho sort, binarySearch, TreeSet và TreeMap
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: iteration
+  title: Duyệt phần tử
+  childs:
+  - slug: iteration-001
+    title: Vòng lặp theo chỉ số, enhanced for và Iterable
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-002
+    title: 'Iterator: hasNext, next và forEachRemaining'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-003
+    title: Iterator.remove và điều kiện gọi hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-004
+    title: 'ListIterator: duyệt hai chiều, chỉ số và con trỏ'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-005
+    title: ListIterator.add, set và remove
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-006
+    title: forEach, lambda và giới hạn thay đổi nguồn khi duyệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-007
+    title: Cơ chế fail-fast và giới hạn bảo đảm của ConcurrentModificationException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-008
+    title: Phân biệt iterator fail-fast, ảnh chụp và nhất quán yếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: list
+  title: List
+  childs:
+  - slug: list-001
+    title: Đặc trưng theo vị trí, phần tử trùng và thứ tự duyệt
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-002
+    title: get, set, add theo chỉ số và dịch chuyển phần tử
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-003
+    title: Phân biệt remove(int) với remove(Object)
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-004
+    title: indexOf, lastIndexOf và tìm phần tử không tồn tại
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-005
+    title: Chèn nhiều phần tử bằng addAll có vị trí
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-006
+    title: replaceAll và sort trên danh sách
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-007
+    title: subList với khoảng đầu bao gồm, cuối không bao gồm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-008
+    title: equals và hashCode phụ thuộc thứ tự của List
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-009
+    title: Chọn List khi cần truy cập chỉ số hoặc giữ phần tử trùng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arraylist
+  title: ArrayList
+  childs:
+  - slug: arraylist-001
+    title: Cấu trúc mảng động và phân biệt size với capacity
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arraylist-002
+    title: Khởi tạo, tăng dung lượng và chi phí thêm cuối khấu hao
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arraylist-003
+    title: Độ phức tạp truy cập, tìm kiếm, chèn và xóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arraylist-004
+    title: ensureCapacity và trimToSize
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arraylist-005
+    title: Chi phí dịch chuyển khi thêm hoặc xóa ở đầu và giữa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arraylist-006
+    title: Duyệt liên tiếp, tính cục bộ bộ nhớ và RandomAccess
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arraylist-007
+    title: Bản sao bằng constructor và giới hạn sao chép nông
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arraylist-008
+    title: Khi nào ArrayList là lựa chọn phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linkedlist
+  title: LinkedList
+  childs:
+  - slug: linkedlist-001
+    title: Danh sách liên kết đôi và chi phí của nút
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedlist-002
+    title: Vai trò đồng thời của List và Deque
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedlist-003
+    title: Chi phí tìm nút theo chỉ số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedlist-004
+    title: Chèn và xóa tại vị trí đã có ListIterator
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedlist-005
+    title: Vì sao chèn giữa không luôn nhanh hơn ArrayList
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedlist-006
+    title: Thao tác hai đầu và chính sách null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedlist-007
+    title: So sánh LinkedList với ArrayList và ArrayDeque
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: set
+  title: Set
+  childs:
+  - slug: set-001
+    title: Ý nghĩa không trùng lặp và hợp đồng của Set
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-002
+    title: Kết quả add khi phần tử đã tồn tại
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-003
+    title: Kiểm tra thuộc và xóa phần tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-004
+    title: Hợp, giao, hiệu và tập con bằng các thao tác collection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-005
+    title: Loại trùng nhưng bảo toàn thứ tự mong muốn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-006
+    title: equals và hashCode không phụ thuộc thứ tự của Set
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-007
+    title: Chọn HashSet, LinkedHashSet, TreeSet hoặc EnumSet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash-based-set
+  title: Set dùng băm
+  childs:
+  - slug: hash-based-set-001
+    title: HashSet và quan hệ với bảng băm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-based-set-002
+    title: Thêm, tìm, xóa và điều kiện đạt hiệu năng mong đợi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-based-set-003
+    title: Capacity, load factor và chi phí duyệt HashSet
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-based-set-004
+    title: Chính sách null và việc không bảo đảm thứ tự duyệt
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-based-set-005
+    title: LinkedHashSet và thứ tự chèn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-based-set-006
+    title: Thêm lại phần tử có sẵn và thứ tự của LinkedHashSet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-based-set-007
+    title: Khóa khả biến, hợp đồng equals–hashCode và lỗi mất dấu phần tử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-based-set-008
+    title: So sánh HashSet với LinkedHashSet theo thời gian và bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sorted-set
+  title: Set sắp xếp
+  childs:
+  - slug: sorted-set-001
+    title: SortedSet và thứ tự tự nhiên hoặc Comparator
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-002
+    title: TreeSet và cấu trúc cây tìm kiếm cân bằng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-003
+    title: Tiêu chí trùng phần tử khi phép so sánh trả về 0
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-004
+    title: Nhất quán giữa Comparator và equals
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-005
+    title: first, last, headSet, tailSet và subSet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-006
+    title: 'NavigableSet: lower, floor, ceiling và higher'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-007
+    title: pollFirst, pollLast, descendingSet và descendingIterator
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-008
+    title: Biên đóng–mở, chính sách null và các view phạm vi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queue-deque
+  title: Queue và Deque
+  childs:
+  - slug: queue-deque-001
+    title: Queue, FIFO và những hàng đợi không theo FIFO
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-002
+    title: Các cặp add–offer, remove–poll và element–peek
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-003
+    title: Giá trị đặc biệt so với ngoại lệ khi rỗng hoặc đầy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-004
+    title: Deque và thao tác thêm, xem, xóa ở hai đầu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-005
+    title: Dùng Deque làm hàng đợi FIFO hoặc ngăn xếp LIFO
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-006
+    title: 'ArrayDeque: mảng vòng, tăng dung lượng và thao tác hai đầu'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-007
+    title: Vì sao ArrayDeque không nhận null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-008
+    title: Xóa lần xuất hiện đầu hoặc cuối và duyệt ngược
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queue-deque-009
+    title: So sánh ArrayDeque, LinkedList và Stack
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: priorityqueue
+  title: PriorityQueue
+  childs:
+  - slug: priorityqueue-001
+    title: Hàng đợi ưu tiên và quan hệ với cấu trúc heap
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorityqueue-002
+    title: Thứ tự tự nhiên và Comparator tùy chỉnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorityqueue-003
+    title: offer, peek, poll và độ phức tạp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorityqueue-004
+    title: remove(Object), contains và chi phí tìm phần tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorityqueue-005
+    title: Vì sao iterator không duyệt theo thứ tự ưu tiên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorityqueue-006
+    title: Phần tử đồng hạng, tính ổn định và khóa phụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorityqueue-007
+    title: Rủi ro sửa độ ưu tiên của đối tượng đang nằm trong queue
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorityqueue-008
+    title: Bài toán top-K và lựa chọn heap nhỏ hoặc heap lớn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: map
+  title: Map
+  childs:
+  - slug: map-001
+    title: Khóa duy nhất, giá trị có thể trùng và ý nghĩa ánh xạ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-002
+    title: put, putAll, get, remove và giá trị cũ trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-003
+    title: containsKey, containsValue và phân biệt vắng khóa với giá trị null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-004
+    title: getOrDefault và trường hợp khóa ánh xạ tới null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-005
+    title: keySet, values, entrySet và Map.Entry
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-006
+    title: Duyệt bằng entrySet, forEach hoặc các view
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-007
+    title: putIfAbsent, replace và remove có điều kiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-008
+    title: computeIfAbsent, computeIfPresent, compute và kết quả null
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-009
+    title: merge, replaceAll và các mẫu cập nhật dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-010
+    title: equals, hashCode và hợp đồng khóa của Map
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hashmap
+  title: HashMap
+  childs:
+  - slug: hashmap-001
+    title: Bảng băm, bucket và quy trình tìm khóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-002
+    title: Phối hợp hashCode và equals khi put, get, remove
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-003
+    title: Capacity, load factor, ngưỡng mở rộng và rehash
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-004
+    title: Hiệu năng mong đợi, trường hợp xấu và chất lượng hàm băm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-005
+    title: Va chạm, cây hóa bucket và giới hạn của chi tiết cài đặt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-006
+    title: Chính sách một khóa null và nhiều giá trị null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-007
+    title: Vì sao thứ tự duyệt quan sát được không phải hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-008
+    title: Ước lượng kích thước ban đầu và chi phí duyệt theo capacity
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashmap-009
+    title: Lỗi khóa khả biến và rủi ro cập nhật đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linkedhashmap
+  title: LinkedHashMap
+  childs:
+  - slug: linkedhashmap-001
+    title: Kết hợp bảng băm với thứ tự duyệt có xác định
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedhashmap-002
+    title: Thứ tự chèn và hành vi thay giá trị của khóa đã có
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedhashmap-003
+    title: Chế độ access-order và các thao tác làm đổi thứ tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedhashmap-004
+    title: Chi phí duyệt, lưu trữ và lựa chọn so với HashMap
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedhashmap-005
+    title: removeEldestEntry và mô hình bộ nhớ đệm LRU đơn giản
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedhashmap-006
+    title: Giới hạn an toàn đa luồng của bộ nhớ đệm tự viết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedhashmap-007
+    title: Tương tác giữa access-order, iterator và thay đổi cấu trúc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linkedhashmap-008
+    title: Thao tác đầu–cuối và view đảo thứ tự từ Java 21
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: treemap
+  title: TreeMap
+  childs:
+  - slug: treemap-001
+    title: SortedMap, NavigableMap và thứ tự khóa
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: treemap-002
+    title: Cây tìm kiếm cân bằng và chi phí thao tác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: treemap-003
+    title: Comparator, compareTo và khóa được xem là trùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: treemap-004
+    title: firstKey, lastKey, firstEntry và lastEntry
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: treemap-005
+    title: lowerEntry, floorEntry, ceilingEntry và higherEntry
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: treemap-006
+    title: headMap, tailMap, subMap và lựa chọn biên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: treemap-007
+    title: descendingMap, navigableKeySet và view đảo thứ tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: treemap-008
+    title: Chính sách null, tính khả biến của khóa và tính nhất quán phép so sánh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-collections
+  title: Cấu trúc chuyên biệt
+  childs:
+  - slug: specialized-collections-001
+    title: 'EnumSet: tập hợp enum và biểu diễn gọn'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-collections-002
+    title: 'EnumMap: ánh xạ với khóa enum'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-collections-003
+    title: 'WeakHashMap: khóa yếu và tác động của thu gom rác'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-collections-004
+    title: 'IdentityHashMap: so sánh khóa theo tham chiếu'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-collections-005
+    title: BitSet và khác biệt với Set<Integer>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-collections-006
+    title: 'Vector và Stack: hợp đồng cũ và lựa chọn thay thế'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-collections-007
+    title: Hashtable, Dictionary và Properties trong mã đời cũ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-collections-008
+    title: Enumeration và chuyển đổi sang Iterator hoặc List
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sequenced-collections
+  title: Thứ tự từ Java 21
+  childs:
+  - slug: sequenced-collections-001
+    title: Động lực của SequencedCollection, SequencedSet và SequencedMap
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-002
+    title: Quan hệ với List, Deque, SortedSet và SortedMap
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-003
+    title: getFirst, getLast, removeFirst và removeLast
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-004
+    title: addFirst, addLast và thao tác tùy chọn trên tập đã sắp xếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-005
+    title: 'reversed: view đảo thứ tự thay vì bản sao'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-006
+    title: SequencedSet và việc chuyển vị trí phần tử đã có
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-007
+    title: 'SequencedMap: firstEntry, lastEntry, pollFirstEntry và pollLastEntry'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-008
+    title: putFirst, putLast và các sequenced view của Map
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: views-copies
+  title: View và sao chép
+  childs:
+  - slug: views-copies-001
+    title: Phân biệt collection sở hữu dữ liệu với view dùng chung nguồn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-copies-002
+    title: subList và thay đổi cấu trúc qua view hoặc nguồn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-copies-003
+    title: keySet, values, entrySet và các thao tác ghi xuyên về Map
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-copies-004
+    title: View phạm vi của TreeSet, TreeMap và view đảo thứ tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-copies-005
+    title: Sao chép bằng constructor, addAll và putAll
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-copies-006
+    title: Sao chép nông, sao chép sâu và đối tượng phần tử dùng chung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-copies-007
+    title: Map.Entry còn gắn nguồn so với entry độc lập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-copies-008
+    title: clone, serialization và giới hạn của từng cách sao chép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unmodifiable-collections
+  title: Collection chỉ đọc
+  childs:
+  - slug: unmodifiable-collections-001
+    title: Phân biệt không sửa được, kích thước cố định và bất biến sâu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmodifiable-collections-002
+    title: Collections.unmodifiableList, unmodifiableSet và unmodifiableMap
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmodifiable-collections-003
+    title: Vì sao unmodifiable view vẫn thấy thay đổi từ nguồn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmodifiable-collections-004
+    title: List.of, Set.of, Map.of và Map.ofEntries
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmodifiable-collections-005
+    title: List.copyOf, Set.copyOf và Map.copyOf
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmodifiable-collections-006
+    title: Quy tắc null, phần tử trùng và khóa trùng của các factory
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmodifiable-collections-007
+    title: emptyList, singleton, nCopies và các trường hợp dùng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmodifiable-collections-008
+    title: Bảo vệ dữ liệu khi nhận tham số hoặc trả về collection từ API
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections-utilities
+  title: Tiện ích Collections
+  childs:
+  - slug: collections-utilities-001
+    title: sort, reverse và shuffle
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-002
+    title: binarySearch và điều kiện danh sách đã được sắp xếp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-003
+    title: min, max, frequency và disjoint
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-004
+    title: swap, rotate và replaceAll
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-005
+    title: 'fill và nCopies: thay phần tử so với tạo danh sách'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-006
+    title: 'copy: kích thước đích và khác biệt với tạo bản sao mới'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-007
+    title: addAll và chuyển các đối số thành phần tử collection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-008
+    title: checkedCollection, checkedList, checkedSet và checkedMap
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-utilities-009
+    title: asLifoQueue, newSetFromMap và điều kiện của cấu trúc nền
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: array-conversion
+  title: Mảng và chuyển đổi
+  childs:
+  - slug: array-conversion-001
+    title: Arrays.asList và danh sách kích thước cố định dùng chung mảng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-conversion-002
+    title: Những thay đổi được phép qua set và những thao tác bị từ chối
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-conversion-003
+    title: Bẫy Arrays.asList với mảng kiểu nguyên thủy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-conversion-004
+    title: toArray(), toArray(T[]) và toArray(IntFunction)
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-conversion-005
+    title: Kiểu thực của mảng, ArrayStoreException và phần tử null kết thúc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-conversion-006
+    title: Chuyển List sang Set và hệ quả với trùng lặp hoặc thứ tự
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-conversion-007
+    title: Chuyển Map sang danh sách entry, khóa hoặc giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-conversion-008
+    title: Chọn loại collection đích để bảo toàn hợp đồng cần thiết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streams-spliterators
+  title: Stream và Spliterator
+  childs:
+  - slug: streams-spliterators-001
+    title: Collection lưu dữ liệu còn Stream mô tả quá trình xử lý
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-spliterators-002
+    title: stream, parallelStream và giới hạn không can thiệp nguồn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-spliterators-003
+    title: 'Spliterator: tryAdvance, forEachRemaining và trySplit'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-spliterators-004
+    title: estimateSize, getExactSizeIfKnown và các đặc tính nguồn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-spliterators-005
+    title: ORDERED, SORTED, DISTINCT, SIZED, IMMUTABLE và CONCURRENT
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-spliterators-006
+    title: Collectors.toList, toSet và toCollection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-spliterators-007
+    title: 'Collectors.toMap: khóa trùng, hàm gộp và loại Map đích'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-spliterators-008
+    title: Stream.toList, collect và giới hạn bảo đảm về khả năng sửa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-safety
+  title: An toàn đa luồng
+  childs:
+  - slug: thread-safety-001
+    title: Tranh chấp khi nhiều luồng đọc và ghi collection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-safety-002
+    title: Phân biệt an toàn từng thao tác với an toàn cả chuỗi thao tác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-safety-003
+    title: Collections.synchronizedList, synchronizedSet và synchronizedMap
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-safety-004
+    title: Khóa đúng đối tượng khi duyệt các wrapper đồng bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-safety-005
+    title: Collection đồng thời, wrapper có khóa và bản sao bất biến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-safety-006
+    title: Iterator nhất quán yếu và iterator dùng ảnh chụp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-safety-007
+    title: Vì sao fail-fast không phải cơ chế đồng bộ hoặc kiểm tra đúng đắn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-safety-008
+    title: Tính nhìn thấy dữ liệu và giới hạn của việc công bố collection chỉ đọc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-maps-sets
+  title: Map và Set đồng thời
+  childs:
+  - slug: concurrent-maps-sets-001
+    title: ConcurrentMap và các thao tác cập nhật có điều kiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-maps-sets-002
+    title: 'ConcurrentHashMap: truy cập đồng thời và chính sách không nhận null'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-maps-sets-003
+    title: putIfAbsent, compute, merge và tính nguyên tử theo khóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-maps-sets-004
+    title: 'Giới hạn của hàm tính toán: cập nhật đệ quy và tác vụ kéo dài'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-maps-sets-005
+    title: size, duyệt và thao tác hàng loạt khi đang có cập nhật
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-maps-sets-006
+    title: ConcurrentHashMap.newKeySet và view tập khóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-maps-sets-007
+    title: ConcurrentSkipListMap, ConcurrentSkipListSet và truy vấn có thứ tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-maps-sets-008
+    title: CopyOnWriteArrayList, CopyOnWriteArraySet và chi phí khi ghi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-queues
+  title: Queue đồng thời
+  childs:
+  - slug: concurrent-queues-001
+    title: ConcurrentLinkedQueue và ConcurrentLinkedDeque
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-002
+    title: 'BlockingQueue: put, take và thao tác có thời hạn chờ'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-003
+    title: Hàng đợi có giới hạn và điều tiết tốc độ bên sản xuất
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-004
+    title: ArrayBlockingQueue so với LinkedBlockingQueue
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-005
+    title: PriorityBlockingQueue và giới hạn dung lượng thực tế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-006
+    title: DelayQueue và hợp đồng Delayed
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-007
+    title: SynchronousQueue và TransferQueue
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-008
+    title: BlockingDeque, ngắt luồng và quy ước kết thúc luồng xử lý
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-collections
+  title: Cài đặt tùy chỉnh
+  childs:
+  - slug: custom-collections-001
+    title: Khi nào cần tự cài đặt collection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collections-002
+    title: AbstractCollection, AbstractList, AbstractSequentialList và AbstractSet
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collections-003
+    title: AbstractQueue và AbstractMap
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collections-004
+    title: Các phương thức tối thiểu và hợp đồng thao tác tùy chọn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collections-005
+    title: Viết Iterator, hỗ trợ remove và xử lý trạng thái con trỏ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collections-006
+    title: modCount và việc phát hiện thay đổi cấu trúc khi phù hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collections-007
+    title: Giữ nhất quán equals, hashCode, view và các phương thức mặc định
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collections-008
+    title: Kiểm thử theo hợp đồng thay vì phụ thuộc lớp cài đặt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: So sánh độ phức tạp truy cập, tìm kiếm, thêm, xóa và duyệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Chi phí khấu hao, trường hợp trung bình và trường hợp xấu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Dung lượng dự phòng, nút liên kết và bộ nhớ cho từng phần tử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Boxing, cấp phát đối tượng, thu gom rác và tính cục bộ bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Ảnh hưởng của hàm băm và Comparator
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tránh duyệt LinkedList bằng get theo chỉ số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Giảm vòng lặp lồng bằng Set hoặc chỉ mục Map
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đo bằng JMH với dữ liệu, làm nóng và phép so sánh phù hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-pitfalls
+  title: Kiểm thử và lỗi
+  childs:
+  - slug: testing-pitfalls-001
+    title: Kiểm thử collection rỗng, một phần tử, phần tử trùng và null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-002
+    title: Kiểm thử hợp đồng equals–hashCode và Comparator
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-003
+    title: Kiểm thử thứ tự chèn, thứ tự sắp xếp và thứ tự ưu tiên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-004
+    title: ConcurrentModificationException và thay đổi nguồn qua nhiều đường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-005
+    title: UnsupportedOperationException trên factory, wrapper và view
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-006
+    title: IndexOutOfBoundsException, NoSuchElementException và IllegalStateException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-007
+    title: ClassCastException, NullPointerException và kiểu dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-008
+    title: Lỗi khóa khả biến, comparator không nhất quán và phần tử mất dấu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pitfalls-009
+    title: Kiểm thử tính nguyên tử, ảnh chụp và nhất quán yếu khi chạy đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practical-exercises-001
+    title: Quản lý danh sách có chèn, cập nhật, tìm kiếm và xóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-002
+    title: Loại trùng dữ liệu nhưng giữ thứ tự xuất hiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-003
+    title: Đếm tần suất và nhóm dữ liệu bằng Map
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-004
+    title: Xây dựng chỉ mục nhiều giá trị với Map<K,List<V>>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-005
+    title: Tìm khoảng, phần tử gần nhất và phân trang bằng cấu trúc có thứ tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-006
+    title: Giải bài toán top-K và hàng đợi tác vụ theo ưu tiên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-007
+    title: So sánh LRU đơn giản với yêu cầu của bộ nhớ đệm thực tế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-008
+    title: Xây dựng bài toán sản xuất–tiêu thụ bằng BlockingQueue
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-009
+    title: Lập bảng quyết định chọn collection và tự đánh giá qua tình huống
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

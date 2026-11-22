@@ -1,0 +1,3 @@
+menuLevel1: Stream.toList
+menuLevel2: So sánh toList với Collectors.toList về hợp đồng mutability
+status: ""

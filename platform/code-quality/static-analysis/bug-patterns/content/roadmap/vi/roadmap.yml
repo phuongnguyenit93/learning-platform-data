@@ -1,0 +1,57 @@
+roadmap:
+- id: nhan-dien-bug-pattern
+  title: Nhận diện Bug Pattern
+  purpose: Hiểu cách phân tích tĩnh mô tả những dấu hiệu lỗi có khả năng xảy ra trong mã nguồn.
+  objectives:
+  - Phân biệt bug pattern với lỗi đã xác nhận
+  - Nhận diện ID, mức độ và vị trí cảnh báo
+  - Nhóm cảnh báo theo nguyên nhân
+- id: null-kieu-du-lieu
+  title: Null & kiểu dữ liệu
+  purpose: Phát hiện các thao tác có thể gây lỗi null hoặc chuyển đổi kiểu không an toàn.
+  objectives:
+  - Xác định nguy cơ NullPointerException
+  - Phân tích ép kiểu và unboxing
+  - Đề xuất kiểm tra null đúng ngữ cảnh
+- id: so-sanh-collections
+  title: So sánh & Collections
+  purpose: Nhận biết lỗi về ngữ nghĩa so sánh và sử dụng các cấu trúc dữ liệu tập hợp.
+  objectives:
+  - Kiểm tra hợp đồng equals/hashCode
+  - Phân biệt so sánh tham chiếu và nội dung
+  - Phát hiện thao tác collection dễ sai
+- id: luong-dieu-khien-api
+  title: Luồng điều khiển & API
+  purpose: Phân tích cách dùng API và luồng thực thi để tìm lỗi logic bị bỏ sót.
+  objectives:
+  - Nhận diện kết quả trả về bị bỏ qua
+  - Phát hiện nhánh hoặc vòng lặp đáng ngờ
+  - Đối chiếu lời gọi với hợp đồng API
+- id: exception-tai-nguyen
+  title: Exception & tài nguyên
+  purpose: Nhận diện những cách xử lý ngoại lệ và tài nguyên làm mất thông tin hoặc gây rò rỉ.
+  objectives:
+  - Phát hiện catch rỗng và mất nguyên nhân lỗi
+  - Nhận diện tài nguyên chưa được đóng
+  - Sửa bằng try-with-resources khi phù hợp
+- id: dong-thoi-trang-thai
+  title: Đồng thời & trạng thái
+  purpose: Nhận biết các mẫu mã có nguy cơ tranh chấp dữ liệu hay đồng bộ sai.
+  objectives:
+  - Xác định truy cập trạng thái chia sẻ
+  - Nhận diện khóa và đồng bộ không an toàn
+  - Giải thích nguy cơ race condition
+- id: bao-mat-du-lieu-dau-vao
+  title: Bảo mật & dữ liệu đầu vào
+  purpose: Liên hệ các cảnh báo bảo mật với đường đi của dữ liệu không đáng tin cậy.
+  objectives:
+  - Nhận diện đầu vào có thể gây injection
+  - Xác định kiểm tra và làm sạch phù hợp
+  - Đối chiếu nhóm điểm yếu theo CWE
+- id: triage-kiem-chung-sua-loi
+  title: Triage & kiểm chứng sửa lỗi
+  purpose: Biết đánh giá cảnh báo theo ngữ cảnh và chứng minh bản sửa không gây lỗi mới.
+  objectives:
+  - Ưu tiên cảnh báo theo tác động và khả năng xảy ra
+  - Phân biệt lỗi thật với false positive
+  - Thêm kiểm thử hồi quy và quét lại

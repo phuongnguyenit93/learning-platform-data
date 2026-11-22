@@ -1,0 +1,3382 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Báo cáo là gì và giải quyết nhu cầu nào trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt báo cáo, biểu mẫu, tài liệu và bảng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Báo cáo chi tiết, tổng hợp, đối soát và chứng từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Báo cáo phân trang và báo cáo phục vụ phân tích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Mối liên hệ giữa dữ liệu, mẫu, bộ máy báo cáo và tài liệu đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vòng đời yêu cầu, lấy dữ liệu, kết xuất, xuất tệp và phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vai trò của người thiết kế mẫu, lập trình viên và người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Yêu cầu đầu vào, độ chính xác, khả năng đọc và khả năng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức Java, SQL, JDBC và xử lý tài nguyên cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình từ báo cáo đơn giản đến dịch vụ báo cáo hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: Tiêu chí chọn bộ máy báo cáo theo dữ liệu và định dạng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: JasperReports Library và vai trò trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: Phân biệt JasperReports Library, Jaspersoft Studio và JasperReports Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Tổng quan Eclipse BIRT và mô hình thiết kế báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Vai trò của DynamicReports khi xây dựng báo cáo bằng mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: So sánh thiết kế trực quan, mẫu khai báo và thiết kế bằng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Khi nào dùng thư viện PDF, Excel hoặc Word trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Chi phí tích hợp, giấy phép, bảo trì và phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-009
+    title: Chọn công cụ theo chứng từ cố định, báo cáo tổng hợp và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Thiết lập môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Xác định phiên bản JDK, bộ máy báo cáo và trình thiết kế tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Khai báo và khóa phiên bản thư viện trong Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Phân biệt thư viện lõi và các mô-đun mở rộng cần bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Cài đặt Jaspersoft Studio và cấu hình môi trường thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Tổ chức thư mục mẫu, dữ liệu mẫu, hình ảnh và phông chữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Cấu hình bộ biên dịch biểu thức và đường dẫn lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Thiết lập nguồn dữ liệu thử nghiệm và thông tin kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Đọc tài nguyên từ classpath thay vì phụ thuộc đường dẫn máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-009
+    title: Chạy thử trong môi trường máy chủ không có giao diện đồ họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-010
+    title: Kiểm tra đồng bộ phiên bản giữa thiết kế, biên dịch và chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-report
+  title: Báo cáo đầu tiên
+  childs:
+  - slug: first-report-001
+    title: Xác định nội dung và đầu ra của một báo cáo danh sách đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-report-002
+    title: Tạo mẫu JRXML tối thiểu với tiêu đề và vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-report-003
+    title: Khai báo trường và kết nối bộ dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-report-004
+    title: Biên dịch JRXML thành JasperReport
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-report-005
+    title: Điền dữ liệu để tạo JasperPrint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-report-006
+    title: Xuất PDF đầu tiên và kiểm tra nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-report-007
+    title: Thay dữ liệu mẫu bằng danh sách đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-report-008
+    title: Chạy lại báo cáo với dữ liệu rỗng, một dòng và nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-architecture
+  title: Kiến trúc xử lý
+  childs:
+  - slug: processing-architecture-001
+    title: Phân biệt JasperDesign, JasperReport và JasperPrint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-002
+    title: Quan hệ giữa JRXML, tệp .jasper và tệp .jrprint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-003
+    title: Trách nhiệm của các giai đoạn biên dịch, điền dữ liệu và xuất tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-004
+    title: Vai trò của JasperCompileManager, JasperFillManager và JasperExportManager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-005
+    title: Luồng xử lý với Connection và với JRDataSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-006
+    title: Quyền sở hữu và thời điểm đóng kết nối, luồng và tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-007
+    title: Thời điểm xử lý tham số, trường, biến và biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-008
+    title: Tách truy xuất dữ liệu, tính toán nghiệp vụ và trình bày báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-009
+    title: Tái sử dụng mẫu đã biên dịch và cô lập trạng thái mỗi lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-architecture-010
+    title: Phân biệt bộ máy nhúng trong ứng dụng và máy chủ báo cáo độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jrxml-structure
+  title: Cấu trúc JRXML
+  childs:
+  - slug: jrxml-structure-001
+    title: Cấu trúc tổng thể và các thành phần của mẫu JRXML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-002
+    title: Thuộc tính tên báo cáo, kích thước trang, lề và số cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-003
+    title: Các vùng title, pageHeader, columnHeader và detail
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-004
+    title: Các vùng columnFooter, pageFooter, lastPageFooter và summary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-005
+    title: Vai trò của background và noData
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-006
+    title: Phân biệt phần tử tĩnh, phần tử động và thành phần lặp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-007
+    title: Tọa độ, kích thước, thứ tự vẽ và vùng chứa phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-008
+    title: Khai báo parameter, field, variable, group và subDataset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-009
+    title: Thuộc tính cấu hình ở mức báo cáo và phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-010
+    title: Kiểm tra lỗi cấu trúc mẫu trước khi biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jrxml-structure-011
+    title: Đọc và chỉnh sửa JRXML đồng bộ với trình thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-sources
+  title: Nguồn dữ liệu
+  childs:
+  - slug: data-sources-001
+    title: Hợp đồng JRDataSource với next() và getFieldValue()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-002
+    title: Sử dụng JRBeanCollectionDataSource cho danh sách JavaBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-003
+    title: Ánh xạ thuộc tính JavaBean, thuộc tính lồng nhau và kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-004
+    title: Sử dụng nguồn dữ liệu từ Map và mảng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-005
+    title: Sử dụng JREmptyDataSource cho báo cáo dựa trên tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-006
+    title: Kết nối JDBC và nguồn dữ liệu từ ResultSet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-007
+    title: Đọc dữ liệu CSV với kiểu cột và dấu phân cách phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-008
+    title: Đọc dữ liệu XML bằng biểu thức XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-009
+    title: Đọc dữ liệu JSON và lựa chọn truy vấn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-010
+    title: Đọc dữ liệu bảng tính và chuẩn hóa trước khi lập báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-011
+    title: Xây dựng JRDataSource tùy chỉnh cho nguồn dữ liệu đặc thù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-012
+    title: Đặc tính tiến con trỏ, đọc lại và tái sử dụng nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-013
+    title: Chuyển đổi DTO, xử lý giá trị thiếu và kiểm tra hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-queries
+  title: Truy vấn JDBC
+  childs:
+  - slug: jdbc-queries-001
+    title: Đặt truy vấn trong mẫu hay chuẩn bị dữ liệu ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-002
+    title: Ánh xạ tên cột, bí danh và kiểu SQL sang trường báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-003
+    title: Truyền tham số truy vấn bằng $P{}
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-004
+    title: Thay thế đoạn truy vấn bằng $P!{} và giới hạn đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-005
+    title: Sử dụng $X{} cho điều kiện tập giá trị và xử lý null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-006
+    title: Thiết kế bộ lọc ngày, trạng thái, chi nhánh và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-007
+    title: Sắp xếp ổn định trước khi nhóm hoặc phân trang dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-008
+    title: Tổng hợp trong SQL hay tính toán trong bộ máy báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-009
+    title: Quản lý giao dịch và tính nhất quán của ảnh chụp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-010
+    title: Tránh truy vấn lặp và bài toán N+1 trong báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-queries-011
+    title: Kiểm soát thời gian truy vấn, số dòng và kế hoạch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: report-parameters
+  title: Tham số báo cáo
+  childs:
+  - slug: report-parameters-001
+    title: Phân biệt tham số nghiệp vụ, tham số hiển thị và tham số hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-002
+    title: Khai báo tên, kiểu và giá trị mặc định của tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-003
+    title: Truyền Map tham số từ Java vào báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-004
+    title: Phân biệt tham số bắt buộc, tùy chọn, null và chuỗi rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-005
+    title: Truyền khoảng thời gian, danh sách và điều kiện lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-006
+    title: Chuẩn hóa múi giờ, ngày bắt đầu và ngày kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-007
+    title: Truyền tham số đến bộ dữ liệu phụ và báo cáo con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-008
+    title: Các tham số REPORT_LOCALE, REPORT_TIME_ZONE và REPORT_RESOURCE_BUNDLE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-009
+    title: Kiểm tra đầu vào trước khi điền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-parameters-010
+    title: Hiển thị tiêu chí lọc và thông tin lần chạy trong báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fields-expressions
+  title: Trường và biểu thức
+  childs:
+  - slug: fields-expressions-001
+    title: Tham chiếu tham số, trường, biến và tài nguyên bằng $P{}, $F{}, $V{}, $R{}
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-002
+    title: Khai báo kiểu trường và đối chiếu với giá trị thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-003
+    title: Biểu thức Java và yêu cầu tương thích bộ biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-004
+    title: Chuỗi, điều kiện và định dạng nội dung động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-005
+    title: Xử lý null, giá trị mặc định và tránh lỗi ép kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-006
+    title: Tính toán tiền tệ bằng BigDecimal và quy tắc làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-007
+    title: Biểu thức ngày giờ và ranh giới múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-008
+    title: Phân biệt kiểu giá trị với cách trình bày giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-009
+    title: Điều kiện in bằng printWhenExpression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-010
+    title: Thời điểm đánh giá biểu thức và tác động đến kết quả hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-011
+    title: Tách hàm hỗ trợ dùng chung khỏi biểu thức quá phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-expressions-012
+    title: Giới hạn logic nghiệp vụ trong mẫu để dễ kiểm thử và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: variables-statistics
+  title: Biến và thống kê
+  childs:
+  - slug: variables-statistics-001
+    title: Vai trò của biến báo cáo và thứ tự cập nhật theo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-002
+    title: Khai báo biểu thức, kiểu và giá trị khởi tạo của biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-003
+    title: Các phép Count, Sum, Average, Lowest và Highest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-004
+    title: Đếm giá trị khác nhau và xử lý giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-005
+    title: Phân biệt resetType và incrementType
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-006
+    title: Tổng theo toàn báo cáo, trang, cột và nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-007
+    title: Tổng lũy kế và tỷ lệ trên tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-008
+    title: Sự khác nhau giữa số dòng, số bản ghi và số đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-009
+    title: Thời điểm đánh giá tổng cuối nhóm và tổng cuối báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-010
+    title: Truyền giá trị tổng hợp từ báo cáo con về báo cáo cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-statistics-011
+    title: Kiểm tra tổng tiền, số lượng và sai lệch làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-groups
+  title: Nhóm dữ liệu
+  childs:
+  - slug: data-groups-001
+    title: Xác định khóa nhóm và yêu cầu sắp xếp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-002
+    title: Khai báo groupExpression và nhận diện thay đổi nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-003
+    title: Thiết kế groupHeader và groupFooter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-004
+    title: Nhóm nhiều cấp theo thứ tự phân cấp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-005
+    title: Tổng phụ và số lượng bản ghi theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-006
+    title: Lặp tiêu đề nhóm khi sang trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-007
+    title: Giữ tiêu đề cùng dữ liệu và hạn chế nhóm bị tách trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-008
+    title: Ngắt trang hoặc đặt lại số trang theo nhóm khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-009
+    title: Phân biệt nhóm dữ liệu với crosstab và sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-groups-010
+    title: Kiểm tra nhóm rỗng, một bản ghi và nhóm dài nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: layout-pagination
+  title: Bố cục và phân trang
+  childs:
+  - slug: layout-pagination-001
+    title: Chọn khổ giấy, hướng trang, lề và vùng in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-002
+    title: Tính chiều rộng hữu dụng và căn chỉnh lưới phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-003
+    title: Chiều cao band và điều kiện tách nội dung qua trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-004
+    title: Co giãn trường văn bản và giữ vị trí phần tử liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-005
+    title: Xử lý văn bản dài, xuống dòng và phần tử bị chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-006
+    title: Giữ cụm nội dung cùng trang và điều khiển ngắt trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-007
+    title: Điều kiện hiển thị tiêu đề, chân trang và trang cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-008
+    title: Số trang hiện tại, tổng số trang và thời điểm đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-009
+    title: Thiết kế báo cáo nhiều cột và hướng điền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-010
+    title: Xử lý báo cáo không có dữ liệu và thông báo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-011
+    title: Tắt phân trang cho các đầu ra cần dữ liệu liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-pagination-012
+    title: Chẩn đoán trang trắng, dòng trống và nội dung tràn lề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: formatting-styles
+  title: Định dạng và kiểu
+  childs:
+  - slug: formatting-styles-001
+    title: Phân biệt nội dung dữ liệu và định dạng trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-002
+    title: Tạo kiểu dùng chung và quan hệ kế thừa kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-003
+    title: Định dạng số, tiền tệ, phần trăm và ngày giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-004
+    title: Căn lề, khoảng đệm, đường viền và nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-005
+    title: Tô màu dòng xen kẽ để dễ đọc bảng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-006
+    title: Áp dụng kiểu có điều kiện theo giá trị và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-007
+    title: Quản lý mẫu kiểu dùng chung bằng tệp .jrtx
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-008
+    title: Hiển thị văn bản có định dạng và giới hạn hỗ trợ markup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-009
+    title: Thiết kế quy chuẩn thương hiệu cho tiêu đề, bảng và phần chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-styles-010
+    title: Giữ kết quả trình bày nhất quán giữa các định dạng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fonts-localization
+  title: Phông chữ và ngôn ngữ
+  childs:
+  - slug: fonts-localization-001
+    title: Unicode và hiển thị tiếng Việt trong toàn bộ luồng báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-002
+    title: Phân biệt phông chữ hệ điều hành và font extension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-003
+    title: Đóng gói phông chữ cùng ứng dụng để chạy trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-004
+    title: Nhúng phông chữ khi xuất PDF và kiểm tra ký tự bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-005
+    title: Giấy phép phông chữ và phạm vi được phép phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-006
+    title: Tách nhãn và thông báo bằng ResourceBundle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-007
+    title: Chọn Locale cho số, tiền tệ và ngày giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-008
+    title: Phân biệt Locale với TimeZone trong cùng một báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-009
+    title: Kiểm tra chuỗi dài sau dịch, chữ viết đặc biệt và hướng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-localization-010
+    title: Đối chiếu kết quả trên Windows, Linux và môi trường container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tables-lists
+  title: Bảng và danh sách
+  childs:
+  - slug: tables-lists-001
+    title: Chọn detail band, table component hay list component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-002
+    title: Tạo subDataset và liên kết bằng datasetRun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-003
+    title: Truyền tham số, Connection hoặc nguồn dữ liệu vào thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-004
+    title: Thiết kế tiêu đề, chi tiết và chân bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-005
+    title: Cột nhiều cấp, độ rộng cột và căn chỉnh ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-006
+    title: Lặp tiêu đề bảng khi bảng kéo dài nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-007
+    title: Hiển thị danh sách lặp theo chiều dọc hoặc chiều ngang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-008
+    title: Tổng hợp theo bộ dữ liệu phụ và truyền giá trị ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-009
+    title: Xử lý bảng rỗng, ô dài và dòng có chiều cao thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-010
+    title: Kiểm tra cách bảng được chuyển thành ô khi xuất Excel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: subreports
+  title: Báo cáo con
+  childs:
+  - slug: subreports-001
+    title: Khi nào cần subreport và khi nào nên dùng table hoặc list
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-002
+    title: Quan hệ giữa báo cáo cha và báo cáo con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-003
+    title: Biên dịch, đóng gói và tìm tài nguyên mẫu con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-004
+    title: Truyền tham số nghiệp vụ và tham số hệ thống vào mẫu con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-005
+    title: Chia sẻ Connection hoặc cấp nguồn dữ liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-006
+    title: Báo cáo con cho quan hệ một-nhiều và nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-007
+    title: Đọc lại dữ liệu khi nhiều thành phần dùng cùng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-008
+    title: Nhận giá trị trả về và tổng hợp từ báo cáo con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-009
+    title: Định vị, co giãn và phân trang khi lồng báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subreports-010
+    title: Tránh N+1, mẫu con bị thiếu và vòng lặp phụ thuộc tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crosstabs
+  title: Bảng chéo
+  childs:
+  - slug: crosstabs-001
+    title: Bảng chéo (crosstab) và các bài toán tổng hợp hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-002
+    title: Hàng, cột, nhóm và giá trị đo trong crosstab
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-003
+    title: Cấp dữ liệu qua bộ dữ liệu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-004
+    title: Tổng hợp số lượng, doanh thu và giá trị trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-005
+    title: Tổng hàng, tổng cột và tổng toàn bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-006
+    title: Nhóm nhiều cấp và thứ tự sắp xếp nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-007
+    title: Phân biệt không có dữ liệu, null và giá trị bằng không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-008
+    title: Bảng chéo rộng, lặp tiêu đề và phân trang ngang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crosstabs-009
+    title: Đối chiếu kết quả crosstab với truy vấn tổng hợp độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: charts
+  title: Biểu đồ
+  childs:
+  - slug: charts-001
+    title: Chọn biểu đồ theo mục tiêu so sánh, xu hướng và cơ cấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-002
+    title: Phân biệt chuỗi dữ liệu, danh mục và giá trị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-003
+    title: Chuẩn bị dữ liệu biểu đồ từ bộ dữ liệu chính hoặc phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-004
+    title: Biểu đồ cột, đường, tròn và giới hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-005
+    title: Định dạng trục, đơn vị, chú giải và nhãn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-006
+    title: Đồng bộ màu sắc và chủ đề với báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-007
+    title: Tùy chỉnh biểu đồ qua cơ chế mở rộng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-008
+    title: Xử lý chuỗi quá nhiều, dữ liệu thiếu và nhãn dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-009
+    title: Kiểm tra độ phân giải và kết quả biểu đồ ở từng định dạng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: images-links
+  title: Hình ảnh và liên kết
+  childs:
+  - slug: images-links-001
+    title: Đưa logo và hình ảnh vào mẫu từ nguồn tài nguyên tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-002
+    title: Đọc hình từ classpath, byte[] và luồng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-003
+    title: Tỷ lệ ảnh, chất lượng hiển thị và chi phí bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-004
+    title: Chính sách khi hình ảnh không tồn tại hoặc không đọc được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-005
+    title: Hiển thị mã vạch và mã QR bằng thành phần phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-006
+    title: Chọn dữ liệu mã hóa, kích thước và kiểm tra khả năng quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-007
+    title: Đường kẻ, khung, hình nền và dấu nhận diện tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-008
+    title: Tạo hyperlink nội bộ và liên kết ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-009
+    title: Anchor, bookmark và điều hướng trong báo cáo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-links-010
+    title: Kiểm soát URL hình ảnh, liên kết và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdf-export
+  title: Xuất PDF
+  childs:
+  - slug: pdf-export-001
+    title: Luồng xuất PDF từ JasperPrint và lựa chọn API phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-002
+    title: Cấu hình JRPdfExporter và đầu vào, đầu ra của exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-003
+    title: Chọn cấu hình báo cáo và cấu hình xuất PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-004
+    title: Giữ kích thước trang, phân trang và bố cục in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-005
+    title: Nhúng phông chữ và kiểm tra tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-006
+    title: Thông tin tài liệu, bookmark và liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-007
+    title: Mật khẩu, mã hóa và quyền thao tác trên PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-008
+    title: PDF/A, mục đích lưu trữ và điều kiện kiểm tra tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-009
+    title: PDF có gắn thẻ và yêu cầu hỗ trợ khả năng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-010
+    title: Xuất nhiều JasperPrint vào cùng một PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-011
+    title: Phân biệt xuất PDF với ký số và xử lý PDF sau xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-export-012
+    title: Kiểm tra tính toàn vẹn, số trang và khả năng mở tệp PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spreadsheet-export
+  title: Xuất bảng tính
+  childs:
+  - slug: spreadsheet-export-001
+    title: Khác biệt giữa bố cục in và cấu trúc bảng tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-002
+    title: Chọn XLS hoặc XLSX theo yêu cầu và giới hạn định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-003
+    title: Cấu hình JRXlsxExporter và các lớp cấu hình liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-004
+    title: Đảm bảo số, ngày giờ và chuỗi có kiểu ô đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-005
+    title: Kiểm soát ô gộp, khoảng trắng và cột phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-006
+    title: Đặt tên sheet và tách dữ liệu qua nhiều sheet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-007
+    title: Xuất công thức và phân biệt công thức với giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-008
+    title: Thiết lập vùng in, hướng giấy và hàng tiêu đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-009
+    title: Giữ định dạng số và độ rộng cột phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-010
+    title: Xuất bảng tính theo metadata thay vì bám sát bố cục in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-011
+    title: Đánh giá giới hạn dòng, kích thước tệp và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spreadsheet-export-012
+    title: Kiểm tra tổng số dòng, kiểu ô và kết quả mở bằng ứng dụng bảng tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-text-export
+  title: Xuất web và văn bản
+  childs:
+  - slug: web-text-export-001
+    title: Xuất HTML và quản lý tài nguyên ảnh đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-002
+    title: Đường dẫn tài nguyên, phông chữ và cách nhúng HTML vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-003
+    title: Đánh giá khác biệt hiển thị giữa trình duyệt và bản in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-004
+    title: Xuất CSV theo cột dữ liệu và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-005
+    title: Mã hóa, dấu phân cách, dấu ngoặc kép và xuống dòng trong CSV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-006
+    title: Phân biệt dữ liệu CSV với công thức khi mở bằng bảng tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-007
+    title: Xuất văn bản thuần với giới hạn bố cục ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-008
+    title: Xuất DOCX, RTF, ODT và đánh giá khả năng chỉnh sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-009
+    title: Xuất PPTX và đánh giá cách ánh xạ nội dung sang slide
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-010
+    title: Xuất JSON theo metadata và phân biệt với tuần tự hóa dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-text-export-011
+    title: Chọn cấu hình riêng cho từng định dạng thay vì giả định kết quả giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: printing-accessibility
+  title: In và khả năng truy cập
+  childs:
+  - slug: printing-accessibility-001
+    title: Xem trước báo cáo và phân biệt xem trước với kết quả xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: printing-accessibility-002
+    title: In báo cáo bằng Java Print Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: printing-accessibility-003
+    title: Chọn máy in, khổ giấy và phạm vi trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: printing-accessibility-004
+    title: Khác biệt giữa máy trạm có giao diện và máy chủ headless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: printing-accessibility-005
+    title: Kiểm tra tỷ lệ in, lề thực tế và chất lượng phông chữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: printing-accessibility-006
+    title: Thiết kế thứ tự đọc, tiêu đề và chú thích dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: printing-accessibility-007
+    title: Màu sắc, độ tương phản và cách biểu đạt không chỉ dựa vào màu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: printing-accessibility-008
+    title: Kiểm tra khả năng đọc nội dung bằng công cụ hỗ trợ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: programmatic-design
+  title: Thiết kế bằng mã
+  childs:
+  - slug: programmatic-design-001
+    title: Khi nào cần tạo cấu trúc báo cáo bằng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-002
+    title: Tạo JasperDesign và các phần tử qua API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-003
+    title: Xây dựng cột động từ danh sách trường được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-004
+    title: Tạo tham số, trường, biến và nhóm bằng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-005
+    title: Kết hợp khung mẫu cố định với vùng nội dung động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-006
+    title: Vai trò và giới hạn của DynamicReports so với API JasperReports
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-007
+    title: Hàm tùy chỉnh và phần mở rộng cho biểu thức dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-008
+    title: Scriptlet, thời điểm gọi và chi phí bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-design-009
+    title: Quản lý độ phức tạp và kiểm thử báo cáo tạo động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Tách bộ lấy dữ liệu, bộ kết xuất và bộ xuất định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Thiết kế dịch vụ báo cáo với yêu cầu và kết quả có kiểu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Đóng gói JRXML, mẫu con, ảnh và phông chữ trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Nạp tài nguyên từ executable JAR thay vì giả định tài nguyên là File
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Quyết định biên dịch mẫu khi dựng bản phát hành hay khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Quản lý DataSource và ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Tạo đầu ra bằng luồng hoặc tệp tạm theo kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Cung cấp điểm tải báo cáo khi ứng dụng có nhu cầu HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Content-Type, Content-Disposition và tên tệp tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Phân biệt phản hồi tải tệp thành công và phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Truyền ngữ cảnh người dùng, ngôn ngữ và quyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-012
+    title: Kiểm thử dịch vụ báo cáo độc lập với tầng web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: report-jobs
+  title: Tác vụ báo cáo
+  childs:
+  - slug: report-jobs-001
+    title: Chọn xử lý đồng bộ hay tác vụ nền theo thời gian và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-002
+    title: Mô hình yêu cầu, mã tác vụ, trạng thái và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-003
+    title: Quản lý hàng đợi và giới hạn số báo cáo chạy đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-004
+    title: Thiết lập thời hạn xử lý, hủy tác vụ và dọn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-005
+    title: Chạy lại an toàn và tránh tạo kết quả trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-006
+    title: Lập lịch báo cáo theo múi giờ và thời điểm chốt dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-007
+    title: Lưu kết quả trong kho tệp hoặc object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-008
+    title: Cấp liên kết tải có thời hạn và kiểm tra quyền mỗi lần tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-009
+    title: Chính sách lưu giữ, hết hạn và xóa kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-jobs-010
+    title: Tích hợp kênh thông báo khi tác vụ hoàn tất theo nhu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: template-governance
+  title: Quản trị mẫu
+  childs:
+  - slug: template-governance-001
+    title: Định danh mẫu và quản lý phiên bản báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-002
+    title: Tách mẫu, tài nguyên, cấu hình và dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-003
+    title: Tái sử dụng style, mẫu con và tài nguyên thương hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-004
+    title: Hợp đồng giữa phiên bản mẫu và cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-005
+    title: Phân phối mẫu theo ứng dụng, kho tài nguyên hoặc dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-006
+    title: Cache mẫu đã biên dịch và quy tắc vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-007
+    title: Cô lập mẫu theo khách hàng hoặc đơn vị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-008
+    title: Phê duyệt thay đổi mẫu, truy vết và khôi phục phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-governance-009
+    title: Phân biệt quản trị mẫu trong ứng dụng với triển khai JasperReports Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân quyền yêu cầu báo cáo, phạm vi dữ liệu và tải kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Cô lập dữ liệu giữa người dùng và khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Nguy cơ khi cho phép người dùng cung cấp mẫu có biểu thức thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Chính sách chỉ nhận mẫu tin cậy và quy trình phê duyệt mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Ngăn SQL injection trong tham số và đoạn truy vấn động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Kiểm soát URL tài nguyên để hạn chế truy cập mạng ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Ngăn đọc tệp ngoài phạm vi và kiểm tra đường dẫn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Kiểm soát phân tích XML và cấu hình an toàn theo phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Giới hạn dòng dữ liệu, số trang, kích thước ảnh và thời gian chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Che dữ liệu nhạy cảm trong báo cáo, nhật ký và tệp tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Ngăn công thức nguy hiểm trong CSV và dữ liệu bảng tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-012
+    title: Quản lý bí mật kết nối, quyền kho tệp và cập nhật phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo riêng thời gian lấy dữ liệu, biên dịch, điền dữ liệu và xuất tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Phân tích chi phí CPU, bộ nhớ và truy cập đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tối ưu truy vấn và giảm dữ liệu trước khi kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Tái sử dụng mẫu biên dịch và tránh cache trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Chọn nguồn dữ liệu theo nhu cầu đọc tuần tự và đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Kiểm soát ảnh lớn, biểu đồ và số lượng báo cáo con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Virtualizer và cơ chế giảm dữ liệu trang giữ trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Lựa chọn thư mục tạm và dọn tài nguyên virtualizer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Phân biệt xuất ra OutputStream với xử lý toàn luồng không giữ trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Giới hạn đồng thời, hàng đợi và áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đo tải với dữ liệu thực tế và xác định ngưỡng báo cáo an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Chiến lược tách báo cáo lớn và lựa chọn xuất dữ liệu thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Lập ma trận dữ liệu, định dạng xuất và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử bộ chuẩn bị dữ liệu và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm tra biên dịch tất cả mẫu và phát hiện thiếu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Bộ dữ liệu rỗng, null, trùng, âm và giá trị cực lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm tra tổng tiền, tổng nhóm và tiêu chí lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra tiếng Việt, ngôn ngữ và ranh giới múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Đọc lại PDF để đối chiếu nội dung và số trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Đọc lại XLSX để kiểm tra kiểu ô, số dòng và công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: So sánh ảnh trang với bản chuẩn và xử lý sai khác có chủ ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm soát metadata biến động khi so sánh tệp đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử tải, hủy tác vụ và khả năng giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử quyền truy cập và cách ly dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-diagnostics
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: error-diagnostics-001
+    title: Phân biệt lỗi biên dịch mẫu, lấy dữ liệu, điền dữ liệu và xuất tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-002
+    title: Đọc JRException, nguyên nhân gốc và vị trí mẫu gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-003
+    title: Không tìm thấy trường, thuộc tính JavaBean hoặc tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-004
+    title: Lỗi kiểu dữ liệu, null và biểu thức không biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-005
+    title: Không tìm thấy mẫu con, ảnh hoặc phông chữ trong JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-006
+    title: Báo cáo trống, mất dòng, sai tổng và điều kiện lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-007
+    title: Trang trắng, nội dung chồng lấn và tiêu đề không lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-008
+    title: PDF mất dấu và khác biệt phông chữ giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-009
+    title: Excel sai kiểu ô, dư cột và ô gộp ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-010
+    title: Truy vấn chậm, cạn kết nối, thiếu bộ nhớ và đầy đĩa tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-011
+    title: Tạo dữ liệu tái hiện tối thiểu và khoanh vùng thay đổi gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-operations-001
+    title: Biên dịch và kiểm tra mẫu trong quy trình CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-002
+    title: Đóng gói tài nguyên cùng phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-003
+    title: Thiết lập container, phông chữ và môi trường headless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-004
+    title: Cấu hình dung lượng, quyền và vòng đời thư mục tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-005
+    title: Kiểm tra khởi động và xác nhận khả năng tạo báo cáo mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-006
+    title: Ghi nhật ký theo mã yêu cầu, mẫu và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-007
+    title: Đo thời gian, tỷ lệ lỗi, độ dài hàng đợi và dung lượng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-008
+    title: Cảnh báo khi vượt thời gian, bộ nhớ hoặc giới hạn lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-009
+    title: Theo dõi tác vụ dở dang khi ứng dụng khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-010
+    title: Triển khai mẫu mới, kiểm tra đầu ra và khôi phục khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-extensibility
+  title: Nâng cấp và mở rộng
+  childs:
+  - slug: upgrades-extensibility-001
+    title: Lập danh mục phiên bản thư viện, trình thiết kế và mẫu hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-002
+    title: Đọc thay đổi phá vỡ tương thích trước khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-003
+    title: Phân biệt chuyển đổi nguồn JRXML và biên dịch lại tệp .jasper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-004
+    title: Kiểm tra thay đổi định dạng mẫu giữa các phiên bản lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-005
+    title: Rà soát các mô-đun mở rộng, exporter và phụ thuộc bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-006
+    title: Kiểm tra mã tùy chỉnh, scriptlet và hàm hỗ trợ sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-007
+    title: Đối chiếu đầu ra bằng bộ dữ liệu và bản chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-008
+    title: Thử nghiệm phiên bản mới, phát hành từng phần và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-extensibility-009
+    title: Thiết kế lớp thích nghi khi cần hỗ trợ nhiều bộ máy báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Báo cáo danh sách có bộ lọc và thông báo không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Hóa đơn có chi tiết, thuế, làm tròn và tổng thanh toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Báo cáo doanh thu nhiều cấp với tổng phụ và biểu đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Báo cáo đối soát có chênh lệch và dấu hiệu cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Bảng chéo theo kỳ và đơn vị với tổng hàng, tổng cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Hồ sơ nhiều phần có báo cáo con, bookmark và mục lục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Một bộ dữ liệu xuất PDF để in và XLSX để phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Báo cáo song ngữ với phông chữ đóng gói trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Tác vụ báo cáo lớn có giới hạn tài nguyên và tải tệp có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Bộ kiểm thử hồi quy và bảng kiểm nghiệm thu báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

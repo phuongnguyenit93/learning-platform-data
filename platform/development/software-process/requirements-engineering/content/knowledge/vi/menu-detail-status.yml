@@ -1,0 +1,2743 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kỹ nghệ yêu cầu là gì và vấn đề mà nó giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao hiểu sai nhu cầu có thể làm sai toàn bộ sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa nhu cầu, yêu cầu, thiết kế, triển khai và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt kỹ nghệ yêu cầu với quản lý yêu cầu và phân tích nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Các hoạt động khai thác, phân tích, đặc tả, xác nhận và quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Các sản phẩm công việc chính và cách chúng liên kết với nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vai trò của kỹ nghệ yêu cầu trong toàn bộ vòng đời phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và lộ trình học từ vấn đề đến yêu cầu được nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-concepts
+  title: Khái niệm yêu cầu
+  childs:
+  - slug: requirements-concepts-001
+    title: Phân biệt mong muốn, nhu cầu, yêu cầu và đề xuất giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-002
+    title: Yêu cầu nghiệp vụ, yêu cầu của bên liên quan và yêu cầu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-003
+    title: Phân biệt yêu cầu hệ thống với yêu cầu phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-004
+    title: Yêu cầu chức năng, yêu cầu chất lượng và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-005
+    title: Yêu cầu miền nghiệp vụ và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-006
+    title: Phân biệt yêu cầu sản phẩm với yêu cầu đối với dự án và quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-007
+    title: Yêu cầu tường minh, nhu cầu ngầm hiểu và giả định chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-008
+    title: Yêu cầu dẫn xuất và cách giải thích căn cứ hình thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-concepts-009
+    title: Phân biệt tính năng, ca sử dụng, câu chuyện người dùng và nhiệm vụ phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-process
+  title: Quy trình yêu cầu
+  childs:
+  - slug: requirements-process-001
+    title: Vòng đời yêu cầu từ phát hiện đến thay thế hoặc ngừng áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-process-002
+    title: Quan hệ lặp và phản hồi giữa các hoạt động kỹ nghệ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-process-003
+    title: Đầu vào, đầu ra và điều kiện chuyển tiếp của từng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-process-004
+    title: Phân công trách nhiệm giữa chuyên viên yêu cầu, khách hàng và nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-process-005
+    title: Phối hợp với kiến trúc, trải nghiệm người dùng, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-process-006
+    title: Thực hiện yêu cầu trong quy trình theo kế hoạch và quy trình linh hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-process-007
+    title: Điều chỉnh độ chi tiết và mức độ hình thức theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-process-008
+    title: Xử lý điểm chưa thống nhất mà không giả định yêu cầu đã được chốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-context
+  title: Phạm vi và bối cảnh
+  childs:
+  - slug: scope-context-001
+    title: Xác định vấn đề, cơ hội và kết quả nghiệp vụ mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-002
+    title: Phân biệt mục tiêu kinh doanh với danh sách tính năng đề xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-003
+    title: Xác định đối tượng hệ thống và ranh giới phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-004
+    title: Bối cảnh vận hành, môi trường sử dụng và các hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-005
+    title: Phân biệt phạm vi hệ thống với phạm vi bối cảnh cần khảo sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-006
+    title: Sơ đồ bối cảnh và các tương tác vượt qua ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-007
+    title: Nội dung thuộc phạm vi, ngoài phạm vi và các trường hợp bị loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-008
+    title: Giả định, phụ thuộc và ràng buộc chi phối phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-context-009
+    title: Thống nhất tầm nhìn sản phẩm và tiêu chí thành công ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stakeholders
+  title: Bên liên quan
+  childs:
+  - slug: stakeholders-001
+    title: Nhận diện bên liên quan trong phát triển, sử dụng, vận hành và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-002
+    title: Phân biệt khách hàng, người tài trợ, người mua và người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-003
+    title: Phân nhóm người dùng và xác định nhu cầu khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-004
+    title: Phân tích mức ảnh hưởng, mối quan tâm và quyền quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-005
+    title: Nhận diện người đại diện và nguy cơ thiếu tiếng nói người dùng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-006
+    title: Thu thập tri thức từ chuyên gia miền và chủ sở hữu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-007
+    title: Xác định người cung cấp, rà soát và phê duyệt từng loại yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-008
+    title: Lập kế hoạch giao tiếp và tham gia của các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stakeholders-009
+    title: Xử lý thay đổi bên liên quan và lưu giữ quyết định đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: planning
+  title: Lập kế hoạch
+  childs:
+  - slug: planning-001
+    title: Xác định mục tiêu, phạm vi và sản phẩm công việc cho hoạt động yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-002
+    title: Kiểm kê nguồn thông tin từ con người, tài liệu và hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-003
+    title: Lựa chọn kỹ thuật khai thác theo nguồn, thời gian và mức bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-004
+    title: Lập lịch buổi làm việc và chuẩn bị người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-005
+    title: Lựa chọn hình thức đặc tả, mô hình và kho quản lý yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-006
+    title: Thống nhất thuật ngữ, mẫu biểu và quy tắc định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-007
+    title: Xác định tiêu chí chất lượng, cơ chế rà soát và thẩm quyền quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-008
+    title: Dự báo rủi ro tiếp cận nguồn và quản lý câu hỏi còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-elicitation
+  title: Khai thác yêu cầu
+  childs:
+  - slug: requirements-elicitation-001
+    title: Phân biệt khai thác yêu cầu với sao chép điều khách hàng đề nghị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-002
+    title: Chuẩn bị và thực hiện phỏng vấn có cấu trúc hoặc bán cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-003
+    title: Đặt câu hỏi mở, câu hỏi làm rõ và câu hỏi kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-004
+    title: Quan sát công việc, theo chân người dùng và nhận diện thao tác ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-005
+    title: Tổ chức hội thảo để cùng khám phá và làm rõ nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-006
+    title: Động não và kỹ thuật sáng tạo khi nhu cầu chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-007
+    title: Khảo sát bằng bảng hỏi và nhận diện giới hạn của mẫu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-008
+    title: Phân tích tài liệu, biểu mẫu, dữ liệu và hệ thống hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-009
+    title: Khai thác từ kịch bản, hành trình người dùng và tình huống ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-010
+    title: Sử dụng bản mẫu để khơi gợi và kiểm chứng hiểu biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-011
+    title: Ghi nhận phát hiện, nguồn gốc, căn cứ và điểm chưa chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-elicitation-012
+    title: Nhận diện thiên kiến, câu hỏi dẫn dắt và dấu hiệu bỏ sót nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-analysis
+  title: Phân tích yêu cầu
+  childs:
+  - slug: requirements-analysis-001
+    title: Tổ chức phát hiện thô thành nhóm nhu cầu và yêu cầu có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-002
+    title: Làm rõ thuật ngữ và xây dựng bảng thuật ngữ miền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-003
+    title: Phân rã yêu cầu theo mức trừu tượng mà vẫn giữ mục tiêu ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-004
+    title: Phân tích phụ thuộc, chồng lặp và mâu thuẫn giữa các yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-005
+    title: Phát hiện yêu cầu thiếu, yêu cầu thừa và yêu cầu không có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-006
+    title: Phân tích điều kiện biên, trường hợp rỗng và tình huống thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-007
+    title: Phân biệt quy tắc nghiệp vụ với hành vi xử lý của phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-008
+    title: Đánh giá tác động của giả định và mức độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-009
+    title: Phân bổ yêu cầu cho phần mềm, con người và thành phần bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-010
+    title: Duy trì lý do và bằng chứng cho các quyết định phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-conflicts
+  title: Xung đột yêu cầu
+  childs:
+  - slug: requirements-conflicts-001
+    title: Nhận diện xung đột dữ kiện, lợi ích, giá trị và cách diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-conflicts-002
+    title: Phân biệt mâu thuẫn giữa yêu cầu với bất đồng về giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-conflicts-003
+    title: Xác định các bên có liên quan và nguyên nhân gốc của xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-conflicts-004
+    title: Chuẩn bị phương án thương lượng và tiêu chí đánh giá chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-conflicts-005
+    title: Phân tích đánh đổi giữa chức năng, chất lượng, chi phí và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-conflicts-006
+    title: Điều phối thảo luận để tìm phương án được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-conflicts-007
+    title: Chuyển cấp quyết định khi nhóm không có đủ thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-conflicts-008
+    title: Ghi nhận thỏa thuận, điều kiện áp dụng và bất đồng còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: goal-model
+  title: Mô hình mục tiêu
+  childs:
+  - slug: goal-model-001
+    title: Mô hình hóa mục tiêu và liên kết với giá trị của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goal-model-002
+    title: Phân rã mục tiêu thành mục tiêu con và yêu cầu hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goal-model-003
+    title: Phân biệt mục tiêu bắt buộc với mục tiêu chất lượng cần đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goal-model-004
+    title: Quan hệ đóng góp, xung đột và phụ thuộc giữa các mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goal-model-005
+    title: Nhận diện trở ngại, giả định và rủi ro làm mục tiêu không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goal-model-006
+    title: Liên kết mục tiêu với thước đo kết quả và bên chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goal-model-007
+    title: Rà soát mô hình mục tiêu để tránh tối ưu tính năng thiếu giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-modeling
+  title: Mô hình nghiệp vụ
+  childs:
+  - slug: business-modeling-001
+    title: Phân biệt mô tả nghiệp vụ hiện tại với nghiệp vụ mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-002
+    title: Mô hình hóa quy trình, hoạt động, vai trò và điểm bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-003
+    title: Sơ đồ hoạt động và ký pháp BPMN ở mức phục vụ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-004
+    title: Mô hình luồng dữ liệu và các nguồn hoặc đích bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-005
+    title: Phát hiện điểm nghẽn, thao tác lặp và ngoại lệ trong quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-006
+    title: Biểu diễn điều kiện quyết định bằng bảng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-007
+    title: Biểu diễn quy tắc nghiệp vụ và phạm vi hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-008
+    title: Liên kết bước nghiệp vụ với yêu cầu phần mềm hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-modeling-009
+    title: Giữ nhất quán giữa mô hình quy trình với mô tả bằng văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-model
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-model-001
+    title: Nhận diện thực thể, khái niệm và quan hệ trong miền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-002
+    title: Phân biệt mô hình dữ liệu khái niệm với thiết kế cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-003
+    title: Mô hình thực thể và quan hệ hoặc sơ đồ lớp ở mức phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-004
+    title: Thuộc tính, định danh và số lượng liên kết giữa các thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-005
+    title: Từ điển dữ liệu và định nghĩa ý nghĩa của từng trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-006
+    title: Ràng buộc toàn vẹn, tính duy nhất và quy tắc kiểm tra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-007
+    title: Vòng đời dữ liệu và quyền sở hữu thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-008
+    title: Đối chiếu mô hình dữ liệu với ca sử dụng và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-model
+  title: Mô hình hành vi
+  childs:
+  - slug: behavior-model-001
+    title: Xác định góc nhìn hành vi cần làm rõ trước khi chọn mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-002
+    title: Mô hình trạng thái, sự kiện kích hoạt và điều kiện chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-003
+    title: Phân biệt trạng thái nghiệp vụ với trạng thái kỹ thuật nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-004
+    title: Luồng bình thường, luồng thay thế và luồng ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-005
+    title: Thứ tự tương tác và thông điệp qua sơ đồ tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-006
+    title: Hành vi khi xử lý đồng thời, hết thời gian chờ hoặc bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-007
+    title: Bất biến, điều kiện trước và điều kiện sau của hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-008
+    title: Phát hiện trạng thái thiếu, chuyển trạng thái sai và kịch bản chưa bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-model-009
+    title: Kết hợp các mô hình mà không biến đặc tả yêu cầu thành thiết kế chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: use-cases
+  title: Ca sử dụng
+  childs:
+  - slug: use-cases-001
+    title: Ca sử dụng là gì và khi nào nên dùng để đặc tả yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-002
+    title: Tác nhân chính, tác nhân hỗ trợ và mục tiêu của người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-003
+    title: Phạm vi, mức độ và tên gọi của một ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-004
+    title: Tiền điều kiện, sự kiện bắt đầu và bảo đảm sau khi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-005
+    title: Viết luồng thành công chính bằng hành vi quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-006
+    title: Mô tả luồng thay thế, ngoại lệ và xử lý thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-007
+    title: Sơ đồ ca sử dụng và quan hệ include, extend, khái quát hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-008
+    title: Liên kết yêu cầu chất lượng và quy tắc nghiệp vụ vào ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-009
+    title: Phân biệt ca sử dụng với kịch bản, câu chuyện người dùng và màn hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-010
+    title: Rà soát ca sử dụng bằng ví dụ thực tế và trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-stories
+  title: Câu chuyện người dùng
+  childs:
+  - slug: user-stories-001
+    title: Câu chuyện người dùng là gì và vai trò trong trao đổi về yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-002
+    title: Ba thành phần thẻ ghi, trao đổi và xác nhận theo mô hình 3C
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-003
+    title: Viết câu chuyện theo vai trò, nhu cầu và giá trị mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-004
+    title: Phân biệt epic, tính năng, câu chuyện và nhiệm vụ kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-005
+    title: Đánh giá câu chuyện bằng các đặc tính INVEST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-006
+    title: Chia nhỏ theo lát cắt giá trị có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-007
+    title: Bản đồ câu chuyện và cách nhận diện hành trình bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-008
+    title: Viết tiêu chí chấp nhận bằng kết quả quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-009
+    title: Ví dụ Given–When–Then để làm rõ điều kiện và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-010
+    title: Phân biệt tiêu chí chấp nhận với Definition of Done
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-stories-011
+    title: Nhận diện giới hạn của mẫu câu và yêu cầu không phù hợp dạng câu chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-requirements
+  title: Yêu cầu chất lượng
+  childs:
+  - slug: quality-requirements-001
+    title: Vai trò của yêu cầu chất lượng và giới hạn của nhãn phi chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-002
+    title: Dùng mô hình chất lượng ISO/IEC 25010 làm khung gợi mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-003
+    title: Viết kịch bản chất lượng có bối cảnh, kích thích và kết quả đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-004
+    title: Đặc tả thời gian đáp ứng, thông lượng và tải sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-005
+    title: Đặc tả tính sẵn sàng, độ tin cậy và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-006
+    title: Đặc tả khả năng sử dụng và khả năng tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-007
+    title: Đặc tả yêu cầu bảo mật và bảo vệ dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-008
+    title: Đặc tả khả năng tương tác và tính tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-009
+    title: Đặc tả khả năng bảo trì, triển khai và thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-010
+    title: Xác định điều kiện đo, đơn vị, ngưỡng và phương pháp kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-011
+    title: Phân tích xung đột và ưu tiên giữa các thuộc tính chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-012
+    title: Phân biệt yêu cầu chất lượng của toàn hệ thống với của từng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-communication
+  title: Dữ liệu và giao tiếp
+  childs:
+  - slug: data-communication-001
+    title: Đặc tả dữ liệu đầu vào, đầu ra và quy tắc kiểm tra hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-002
+    title: Yêu cầu về chất lượng, nguồn gốc và tính nhất quán dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-003
+    title: Yêu cầu lưu giữ, lưu trữ lâu dài, xóa và khôi phục dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-004
+    title: Yêu cầu báo cáo, tra cứu và đối soát thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-005
+    title: Đặc tả giao tiếp với người dùng bằng hành vi thay vì chỉ bằng ảnh màn hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-006
+    title: Đặc tả trao đổi với hệ thống ngoài và trách nhiệm của mỗi phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-007
+    title: Yêu cầu về định dạng dữ liệu, đơn vị đo, múi giờ và bản địa hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-008
+    title: Yêu cầu về lỗi, thử lại, trùng lặp và thứ tự thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-009
+    title: Xác định khả năng tương thích và điều kiện thay đổi hợp đồng giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-communication-010
+    title: Liên kết yêu cầu giao tiếp với kịch bản tích hợp và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constraints-transformation
+  title: Ràng buộc và chuyển đổi
+  childs:
+  - slug: constraints-transformation-001
+    title: Nhận diện ràng buộc kinh doanh, kỹ thuật và môi trường vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraints-transformation-002
+    title: Phân biệt ràng buộc có căn cứ với sở thích triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraints-transformation-003
+    title: Chuyển nguồn tiêu chuẩn hoặc chính sách thành yêu cầu có thể truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraints-transformation-004
+    title: Yêu cầu tương thích với hệ thống và nền tảng hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraints-transformation-005
+    title: Yêu cầu chuyển đổi dữ liệu và xác minh dữ liệu sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraints-transformation-006
+    title: Yêu cầu đào tạo, hỗ trợ và thay đổi cách làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraints-transformation-007
+    title: Yêu cầu chạy song song, chuyển giao và ngừng hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraints-transformation-008
+    title: Phân biệt yêu cầu chuyển tiếp có thời hạn với yêu cầu vận hành lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-writing
+  title: Viết yêu cầu
+  childs:
+  - slug: requirements-writing-001
+    title: Viết phát biểu yêu cầu có chủ thể, hành vi và điều kiện rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-002
+    title: Giữ mỗi phát biểu tập trung vào một nghĩa vụ có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-003
+    title: Diễn đạt mức bắt buộc, mức mong muốn và quyền lựa chọn nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-004
+    title: Thay từ mơ hồ bằng dữ kiện hoặc tiêu chí đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-005
+    title: Làm rõ lượng từ, tham chiếu, điều kiện phủ định và từ nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-006
+    title: Tách yêu cầu khỏi lý do, ví dụ và giải thích bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-007
+    title: Mẫu câu theo sự kiện, trạng thái và điều kiện bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-008
+    title: Xử lý giá trị chưa xác định và giả định cần xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-009
+    title: Giữ trung lập với giải pháp trừ khi ràng buộc thiết kế đã có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-writing-010
+    title: Biên tập yêu cầu tiếng Việt và thuật ngữ song ngữ nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-specification
+  title: Hồ sơ đặc tả
+  childs:
+  - slug: requirements-specification-001
+    title: Chọn văn bản, bảng biểu, mô hình hoặc tổ hợp theo người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-002
+    title: Mục đích và cấu trúc đặc tả yêu cầu phần mềm SRS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-003
+    title: Phân biệt tài liệu nhu cầu nghiệp vụ, yêu cầu bên liên quan và SRS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-004
+    title: Tổ chức phạm vi, bối cảnh, giả định và phụ thuộc trong đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-005
+    title: Tổ chức yêu cầu chức năng, chất lượng, dữ liệu và giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-006
+    title: Thuộc tính yêu cầu gồm mã định danh, nguồn, căn cứ và mức ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-007
+    title: Liên kết văn bản, mô hình, bảng thuật ngữ và ví dụ minh họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-008
+    title: Phân biệt nội dung bắt buộc với nội dung tham khảo trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-009
+    title: Vận dụng ISO/IEC/IEEE 29148 theo phạm vi và phiên bản áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-specification-010
+    title: Quản lý các góc nhìn tài liệu mà vẫn giữ một nguồn yêu cầu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-verification
+  title: Kiểm tra yêu cầu
+  childs:
+  - slug: requirements-verification-001
+    title: Phân biệt kiểm tra chất lượng đặc tả với xác nhận đúng nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-002
+    title: Kiểm tra tính rõ ràng, đơn nghĩa và đầy đủ của từng phát biểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-003
+    title: Kiểm tra tính nhất quán và đầy đủ của cả tập yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-004
+    title: Kiểm tra tính cần thiết, khả thi và khả năng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-005
+    title: Rà soát theo danh mục kiểm tra và theo góc nhìn vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-006
+    title: Tổ chức đọc duyệt (walkthrough), rà soát chéo (peer review) và thẩm tra (inspection)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-007
+    title: Kiểm tra nhất quán giữa văn bản, bảng quyết định và mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-008
+    title: Ghi nhận lỗi yêu cầu theo mức ảnh hưởng và nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-verification-009
+    title: Sửa lỗi, rà soát lại và theo dõi kết quả khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-validation
+  title: Xác nhận yêu cầu
+  childs:
+  - slug: requirements-validation-001
+    title: Xác nhận yêu cầu với nhu cầu, mục tiêu và bối cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-002
+    title: Lựa chọn người tham gia xác nhận đại diện cho bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-003
+    title: Đi xuyên kịch bản để phát hiện hiểu sai và nhu cầu bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-004
+    title: Xác nhận bằng bản mẫu có độ trung thực phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-005
+    title: Xác nhận bằng mô phỏng, ví dụ dữ liệu và quy trình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-006
+    title: Suy ra kiểm thử chấp nhận để phát hiện yêu cầu chưa đủ rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-007
+    title: Đánh giá yêu cầu chất lượng trong điều kiện sử dụng đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-008
+    title: Phân biệt đồng thuận, phê duyệt và bằng chứng đã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-validation-009
+    title: Xử lý phản hồi, điều kiện chấp thuận và điểm chưa thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prioritization-feasibility
+  title: Ưu tiên và khả thi
+  childs:
+  - slug: prioritization-feasibility-001
+    title: Xác định tiêu chí ưu tiên theo giá trị, rủi ro và tính cấp thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-002
+    title: Phân biệt độ ưu tiên, độ nghiêm trọng và thứ tự triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-003
+    title: Phân loại bằng MoSCoW và kiểm soát việc mọi yêu cầu đều thành bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-004
+    title: So sánh cặp và chấm điểm có trọng số theo tiêu chí đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-005
+    title: Phân tích mức đáp ứng nhu cầu bằng mô hình Kano
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-006
+    title: Xem xét phụ thuộc khi lựa chọn tập yêu cầu tối thiểu có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-007
+    title: Đánh giá khả thi kỹ thuật, vận hành và khả năng cung cấp nguồn lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-008
+    title: Khảo sát kỹ thuật hoặc thử nghiệm ý tưởng để giảm bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-009
+    title: Thương lượng phạm vi dựa trên giới hạn và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-feasibility-010
+    title: Rà soát lại ưu tiên khi giả định hoặc mục tiêu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-management
+  title: Quản lý yêu cầu
+  childs:
+  - slug: requirements-management-001
+    title: Mô hình thông tin yêu cầu và các loại quan hệ cần quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-002
+    title: Mã định danh ổn định và quy tắc tổ chức phân cấp yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-003
+    title: Quản lý thuộc tính, người sở hữu và nguồn phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-004
+    title: Trạng thái yêu cầu và điều kiện chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-005
+    title: Quản lý phiên bản của từng yêu cầu và cả tập yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-006
+    title: Đường cơ sở yêu cầu và nội dung của một bản được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-007
+    title: Phân biệt bản làm việc, bản phát hành và bản lưu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-008
+    title: Quản lý yêu cầu dùng chung, biến thể và cấu hình sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-management-009
+    title: Phân quyền cập nhật, phê duyệt và tra cứu yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traceability
+  title: Truy vết
+  childs:
+  - slug: traceability-001
+    title: Truy vết hai chiều từ mục tiêu và nguồn đến yêu cầu chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-002
+    title: Liên kết yêu cầu với mô hình, quyết định thiết kế và mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-003
+    title: Liên kết yêu cầu với tiêu chí chấp nhận và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-004
+    title: Ma trận truy vết yêu cầu và cách đọc mức bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-005
+    title: Phân biệt liên kết nguồn gốc, phân rã, phụ thuộc và đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-006
+    title: Phát hiện yêu cầu mồ côi và chức năng không có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-007
+    title: Đánh giá tính đúng của liên kết thay vì chỉ đếm liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-008
+    title: Dùng truy vết để phân tích tác động khi yêu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-009
+    title: Duy trì truy vết khi tách, gộp, thay thế hoặc xóa yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-management
+  title: Quản lý thay đổi
+  childs:
+  - slug: change-management-001
+    title: Phân biệt làm rõ, sửa lỗi yêu cầu và thay đổi phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-002
+    title: Tiếp nhận đề nghị thay đổi cùng lý do và nguồn phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-003
+    title: Phân tích tác động lên yêu cầu liên quan, thiết kế và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-004
+    title: Đánh giá tác động tới chi phí thực hiện, tiến độ và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-005
+    title: Xác định người có thẩm quyền chấp nhận hoặc từ chối thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-006
+    title: Cập nhật phiên bản, đường cơ sở và lịch sử quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-007
+    title: Truyền đạt thay đổi tới các bên chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-008
+    title: Xử lý thay đổi khẩn cấp và yêu cầu bị rút lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-009
+    title: Ngăn mở rộng phạm vi không kiểm soát mà vẫn tiếp nhận học hỏi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agile-requirements
+  title: Yêu cầu linh hoạt
+  childs:
+  - slug: agile-requirements-001
+    title: Phân biệt linh hoạt trong yêu cầu với bỏ qua đặc tả và kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-002
+    title: Khám phá liên tục và bổ sung chi tiết đúng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-003
+    title: Liên kết mục tiêu sản phẩm với Product Backlog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-004
+    title: Làm rõ yêu cầu qua trao đổi giữa nghiệp vụ, phát triển và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-005
+    title: Tinh chỉnh yêu cầu (refinement) và phân rã trước khi thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-006
+    title: Dùng thỏa thuận về mức sẵn sàng mà không biến thành rào cản cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-007
+    title: Duy trì yêu cầu chất lượng xuyên suốt các lần phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-008
+    title: Phản hồi từ sản phẩm đã dùng và điều chỉnh nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-requirements-009
+    title: Giữ tài liệu sản phẩm nhất quán với yêu cầu thay đổi qua nhiều vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: handoff-acceptance
+  title: Bàn giao và nghiệm thu
+  childs:
+  - slug: handoff-acceptance-001
+    title: Phối hợp với nhóm phát triển để xác nhận hiểu đúng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-002
+    title: Chuyển yêu cầu thành tiêu chí kiểm chứng mà không áp đặt thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-003
+    title: Phân biệt tiêu chí chấp nhận, ca kiểm thử và thủ tục nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-004
+    title: Liên kết yêu cầu với kế hoạch UAT và dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-005
+    title: Phân biệt kiểm chứng sản phẩm đúng đặc tả với xác nhận sản phẩm đáp ứng nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-006
+    title: Thu thập bằng chứng đáp ứng cho yêu cầu chức năng và chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-007
+    title: Xử lý sai lệch, ngoại lệ được chấp thuận và yêu cầu chưa đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-008
+    title: Phân biệt lỗi triển khai với yêu cầu sai hoặc thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handoff-acceptance-009
+    title: Cập nhật yêu cầu và tài liệu sau nghiệm thu hoặc phản hồi vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: supporting-tools
+  title: Công cụ hỗ trợ
+  childs:
+  - slug: supporting-tools-001
+    title: Xác định nhu cầu công cụ từ mô hình thông tin và cách cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-002
+    title: Phân biệt kho tài liệu, công cụ quản lý yêu cầu và bảng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-003
+    title: Quản lý yêu cầu trong Markdown, Git hoặc công cụ chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-004
+    title: Kiểm tra tự động định dạng, thuộc tính bắt buộc và liên kết hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-005
+    title: Tìm kiếm, lọc và tạo các góc nhìn theo vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-006
+    title: Trao đổi yêu cầu giữa công cụ và duy trì định danh khi nhập xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-007
+    title: Ứng dụng trí tuệ nhân tạo (AI) để gợi ý câu hỏi, phát hiện mơ hồ và hỗ trợ biên tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-008
+    title: Kiểm chứng gợi ý của AI và bảo vệ dữ liệu nguồn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-tools-009
+    title: Giữ lịch sử chỉnh sửa và tránh nhiều bản yêu cầu mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement-improvement
+  title: Đo lường và cải tiến
+  childs:
+  - slug: measurement-improvement-001
+    title: Chọn thước đo theo vấn đề cần ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-002
+    title: Đo lỗi yêu cầu và thời điểm phát hiện trong vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-003
+    title: Theo dõi mức biến động yêu cầu và lý do thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-004
+    title: Đánh giá độ bao phủ nguồn, truy vết và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-005
+    title: Theo dõi thời gian làm rõ và lượng câu hỏi còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-006
+    title: Tránh coi số lượng yêu cầu hoặc độ dài tài liệu là chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-007
+    title: Phân tích nguyên nhân yêu cầu bị bỏ sót, hiểu sai hoặc viết lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-008
+    title: Cải tiến kỹ thuật khai thác và mẫu đặc tả từ phản hồi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: special-contexts
+  title: Bối cảnh đặc thù
+  childs:
+  - slug: special-contexts-001
+    title: Khai thác yêu cầu khi thay thế hoặc hiện đại hóa hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-002
+    title: Phân biệt hành vi đang có với hành vi thực sự cần giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-003
+    title: Phân tích khoảng cách khi mua hoặc cấu hình phần mềm có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-004
+    title: Quản lý yêu cầu giữa nhiều nhà cung cấp và nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-005
+    title: Yêu cầu của sản phẩm dùng chung cho nhiều khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-006
+    title: Yêu cầu trong miền có rủi ro an toàn hoặc cần bằng chứng kiểm chứng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-007
+    title: Khai thác và xác nhận yêu cầu của hệ thống sử dụng mô hình AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-008
+    title: Yêu cầu cho dữ liệu đầu vào, chất lượng đầu ra và giám sát của hệ thống AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-009
+    title: Điều chỉnh cách cộng tác khi bên liên quan phân tán hoặc khó tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Từ mô tả vấn đề đến phạm vi một hệ thống quản lý đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Lập danh sách bên liên quan, nguồn yêu cầu và kế hoạch khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Chuyển ghi chép phỏng vấn thành nhu cầu có nguồn và căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Xây dựng mô hình nghiệp vụ, dữ liệu và kịch bản đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Đặc tả cùng một chức năng bằng ca sử dụng và câu chuyện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Chuyển yêu cầu hiệu năng hoặc bảo mật mơ hồ thành tiêu chí đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Biên soạn hồ sơ SRS cùng bảng thuật ngữ và thuộc tính yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Tổ chức rà soát và xác nhận bằng bản mẫu cùng ví dụ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Lập ma trận truy vết và xử lý một đề nghị thay đổi chính sách đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Chuẩn bị bằng chứng nghiệm thu và đánh giá chất lượng hồ sơ cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

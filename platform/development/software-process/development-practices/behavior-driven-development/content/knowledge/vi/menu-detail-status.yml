@@ -1,0 +1,2251 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Phát triển hướng hành vi (BDD) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Nguồn gốc BDD và mục tiêu xây dựng hiểu biết chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa BDD, TDD, ATDD và Specification by Example
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của hội thoại, ví dụ và đặc tả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Ba hoạt động khám phá, diễn đạt và tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mối liên hệ giữa giá trị nghiệp vụ, hành vi và phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi áp dụng và các hiểu lầm thường gặp về BDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức tiên quyết và trình tự học BDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-mindset
+  title: Tư duy hành vi
+  childs:
+  - slug: behavior-mindset-001
+    title: Hành vi quan sát được và trách nhiệm của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-mindset-002
+    title: Phân biệt kết quả nghiệp vụ với chi tiết hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-mindset-003
+    title: Bối cảnh, sự kiện và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-mindset-004
+    title: Quy tắc nghiệp vụ và các ví dụ minh họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-mindset-005
+    title: Ngôn ngữ chung và ý nghĩa thuật ngữ trong từng miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-mindset-006
+    title: Ranh giới hệ thống và góc nhìn người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-mindset-007
+    title: Ví dụ cụ thể như công cụ phát hiện khác biệt trong hiểu biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-mindset-008
+    title: Điều kiện chấp nhận và bằng chứng xác nhận hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collaboration
+  title: Cộng tác
+  childs:
+  - slug: collaboration-001
+    title: Ba góc nhìn nghiệp vụ, phát triển và kiểm thử (Three Amigos)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-002
+    title: Vai trò của chủ sản phẩm và chuyên gia miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-003
+    title: Trách nhiệm của lập trình viên và người kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-004
+    title: Mời các góc nhìn vận hành, bảo mật và trải nghiệm khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-005
+    title: Tạo môi trường trao đổi giả định và đặt câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-006
+    title: Thống nhất thuật ngữ, quy tắc và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-007
+    title: Điều phối thảo luận khi có bất đồng hoặc thiếu thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-008
+    title: Phân công theo dõi câu hỏi và xác nhận quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discovery
+  title: Khám phá
+  childs:
+  - slug: discovery-001
+    title: Discovery và mục tiêu trước khi bắt đầu hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-002
+    title: Chuẩn bị câu chuyện người dùng và bối cảnh nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-003
+    title: Xác định ai cần thay đổi và giá trị mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-004
+    title: Tổ chức buổi khám phá với phạm vi và thời lượng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-005
+    title: Dùng ví dụ để kiểm tra cách hiểu của từng bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-006
+    title: Phát hiện quy tắc ẩn, ngoại lệ và giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-007
+    title: Tách yêu cầu lớn thành các phần có thể giao độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-008
+    title: Ghi nhận câu hỏi chưa giải đáp và điều kiện sẵn sàng phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: example-mapping
+  title: Example Mapping
+  childs:
+  - slug: example-mapping-001
+    title: Vai trò của Example Mapping trong buổi khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-002
+    title: Phân loại câu chuyện, quy tắc, ví dụ và câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-003
+    title: Tổ chức thẻ và quan hệ giữa các nhóm thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-004
+    title: Liên kết từng ví dụ với quy tắc được minh họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-005
+    title: Tìm quy tắc thiếu ví dụ và ví dụ chưa rõ ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-006
+    title: Phát hiện phạm vi quá rộng qua cấu trúc bản đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-007
+    title: Xử lý ngoại lệ, mâu thuẫn và câu hỏi còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-008
+    title: Chuyển kết quả thảo luận thành phạm vi và việc cần làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-mapping-009
+    title: Thống nhất phần cần đặc tả, phần cần khảo sát thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: example-design
+  title: Thiết kế ví dụ
+  childs:
+  - slug: example-design-001
+    title: Lựa chọn ví dụ đại diện cho từng quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-002
+    title: Luồng thành công và các nhánh kết quả khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-003
+    title: Giá trị biên, lớp tương đương và trường hợp không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-004
+    title: Ví dụ cho chuyển trạng thái và vòng đời nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-005
+    title: Ví dụ cho vai trò, quyền hạn và điều kiện truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-006
+    title: Phân biệt quy tắc khác nhau với thay đổi dữ liệu cùng quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-007
+    title: Chọn dữ liệu có ý nghĩa và loại bỏ chi tiết gây nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-008
+    title: Xử lý thời gian, tiền tệ và quy tắc làm tròn trong ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-009
+    title: Đánh giá mức bao phủ theo rủi ro và giá trị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: example-design-010
+    title: Giới hạn số ví dụ để đặc tả dễ hiểu và duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specification
+  title: Đặc tả
+  childs:
+  - slug: specification-001
+    title: Formulation và mục tiêu diễn đạt hiểu biết đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-002
+    title: Chuyển ví dụ thành đặc tả rõ ràng, có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-003
+    title: Đặt tên theo hành vi và ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-004
+    title: Viết bối cảnh đủ dùng và nêu tác nhân khi có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-005
+    title: Diễn đạt một sự kiện chính và các kết quả liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-006
+    title: Chọn mức chi tiết phù hợp với người đọc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-007
+    title: Phân biệt đặc tả hành vi với hướng dẫn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-008
+    title: Rà soát đặc tả cùng các bên trước khi tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-009
+    title: Lựa chọn văn xuôi, bảng ví dụ hoặc Gherkin theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gherkin
+  title: Gherkin
+  childs:
+  - slug: gherkin-001
+    title: Tệp .feature và cấu trúc Feature
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-002
+    title: Rule để nhóm kịch bản theo quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-003
+    title: Scenario, Example và tên kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-004
+    title: Given mô tả bối cảnh ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-005
+    title: When mô tả sự kiện hoặc hành động chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-006
+    title: Then mô tả kết quả có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-007
+    title: And, But và cách nối bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-008
+    title: Background và bối cảnh chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-009
+    title: Scenario Outline và bảng Examples
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-010
+    title: Data Table và Doc String
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-011
+    title: Tags, chú thích và mô tả tự do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gherkin-012
+    title: Ngôn ngữ Gherkin và đặc tả tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenario-data
+  title: Dữ liệu kịch bản
+  childs:
+  - slug: scenario-data-001
+    title: Phân biệt Data Table với bảng Examples
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-002
+    title: Tham số hóa ví dụ mà vẫn giữ rõ quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-003
+    title: Chọn dữ liệu cố định, có ý nghĩa và dễ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-004
+    title: Biểu diễn đối tượng, danh sách và dữ liệu nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-005
+    title: Ánh xạ Data Table và Doc String sang kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-006
+    title: Xử lý ô trống, giá trị thiếu và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-007
+    title: Quản lý ngày giờ, múi giờ và số thập phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-008
+    title: Thiết kế dữ liệu độc lập cho mỗi lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-data-009
+    title: Tránh dữ liệu nhạy cảm và phụ thuộc dữ liệu sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specification-organization
+  title: Tổ chức đặc tả
+  childs:
+  - slug: specification-organization-001
+    title: Phân nhóm theo khả năng nghiệp vụ và quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-organization-002
+    title: Phân chia Feature theo phạm vi dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-organization-003
+    title: Quy ước tên tệp, tên kịch bản và thuật ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-organization-004
+    title: Tổ chức Tags theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-organization-005
+    title: Phân biệt cấu trúc tài liệu với cách chọn tập chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-organization-006
+    title: Quản lý đặc tả dùng chung và ranh giới giữa các miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-organization-007
+    title: Liên kết đặc tả với yêu cầu và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-organization-008
+    title: Tổ chức rà soát thay đổi đặc tả trong kho mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bdd-loop
+  title: Vòng lặp BDD
+  childs:
+  - slug: bdd-loop-001
+    title: Khám phá, diễn đạt và tự động hóa trong từng thay đổi nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-002
+    title: Bắt đầu từ ví dụ đã được thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-003
+    title: Tạo kiểm thử chấp nhận thất bại vì hành vi còn thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-004
+    title: Phát triển từ ngoài vào trong theo hợp đồng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-005
+    title: Kết hợp vòng lặp BDD với kiểm thử đơn vị và TDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-006
+    title: Hiện thực lượng mã cần thiết để đáp ứng ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-007
+    title: Tái cấu trúc đặc tả, mã kiểm thử và mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-008
+    title: Quay lại khám phá khi xuất hiện câu hỏi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bdd-loop-009
+    title: Xác nhận kết quả và đưa phản hồi vào vòng phát triển tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation
+  title: Tự động hóa
+  childs:
+  - slug: automation-001
+    title: Vai trò của tự động hóa trong phản hồi và tài liệu thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-002
+    title: Chọn ví dụ có giá trị để tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-003
+    title: Lựa chọn mức kiểm tra miền, dịch vụ, API hoặc giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-004
+    title: Cân bằng tốc độ, độ tin cậy và phạm vi bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-005
+    title: Kiến trúc đặc tả, mã liên kết và lớp điều khiển hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-006
+    title: Tách ngôn ngữ nghiệp vụ khỏi chi tiết công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-007
+    title: Thiết kế phép kiểm tra kết quả theo hợp đồng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-008
+    title: Kết hợp kiểm tra tự động với khảo sát và đánh giá thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-009
+    title: Lựa chọn công cụ theo môi trường và năng lực nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cucumber-jvm
+  title: Cucumber-JVM
+  childs:
+  - slug: cucumber-jvm-001
+    title: Vai trò của Gherkin, Cucumber và mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-002
+    title: Thiết lập dự án Java với Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-003
+    title: Quản lý phiên bản dependency Cucumber đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-004
+    title: Tổ chức feature, glue code và tài nguyên kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-005
+    title: Chạy Cucumber bằng JUnit Platform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-006
+    title: Cấu hình bộ kiểm thử, đường dẫn feature và package glue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-007
+    title: Chọn kịch bản bằng Tags và cấu hình thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-008
+    title: Chạy từ IDE, dòng lệnh và công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cucumber-jvm-009
+    title: Phát hiện lỗi cấu hình và xác nhận kịch bản được tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: step-definitions
+  title: Step Definitions
+  childs:
+  - slug: step-definitions-001
+    title: Ánh xạ văn bản bước sang phương thức Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-002
+    title: Cucumber Expressions và biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-003
+    title: Tham số dựng sẵn như int, float và string
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-004
+    title: Định nghĩa kiểu tham số theo khái niệm miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-005
+    title: Chuyển đổi Data Table và Doc String bằng bộ chuyển đổi riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-006
+    title: Xử lý bước chưa định nghĩa và bước khớp nhiều biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-007
+    title: Cách Cucumber khớp nội dung bước độc lập với từ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-008
+    title: Tổ chức bước theo miền và giữ thân phương thức ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-009
+    title: Tái sử dụng mã hỗ trợ mà vẫn giữ ý nghĩa từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: step-definitions-010
+    title: Viết kiểm tra kết quả và thông báo thất bại rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-and-hooks
+  title: Trạng thái và Hooks
+  childs:
+  - slug: state-and-hooks-001
+    title: Vòng đời kịch bản và đối tượng glue code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-002
+    title: Chia sẻ dữ liệu giữa các bước trong cùng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-003
+    title: Cách ly trạng thái giữa các kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-004
+    title: Đưa phụ thuộc vào lớp bước bằng dependency injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-005
+    title: Before, After, BeforeStep và AfterStep
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-006
+    title: Hooks theo Tags và thứ tự thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-007
+    title: Phân biệt thiết lập kỹ thuật với bối cảnh nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-008
+    title: Thu thập bằng chứng khi thất bại và dọn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-009
+    title: Tránh biến static, phụ thuộc thứ tự và trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-hooks-010
+    title: Quản lý tài nguyên an toàn khi kịch bản chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-spring
+  title: Java và Spring
+  childs:
+  - slug: java-and-spring-001
+    title: Thiết kế lớp hỗ trợ và đối tượng ngữ cảnh kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-002
+    title: Áp dụng AssertJ hoặc thư viện kiểm tra kết quả phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-003
+    title: Kết nối Cucumber với Spring bằng cucumber-spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-004
+    title: Cấu hình ngữ cảnh kiểm thử và CucumberContextConfiguration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-005
+    title: Quản lý bean theo kịch bản bằng ScenarioScope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-006
+    title: Lựa chọn kiểm thử trong tiến trình hoặc qua máy chủ chạy thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-007
+    title: Sử dụng hồ sơ cấu hình và thay thế phụ thuộc trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-008
+    title: Quản lý dữ liệu, giao dịch và ranh giới giữa các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-009
+    title: Đánh giá chi phí khởi tạo và tái sử dụng Spring TestContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: apis-and-domain
+  title: API và miền
+  childs:
+  - slug: apis-and-domain-001
+    title: Tự động hóa hành vi trực tiếp qua lớp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-domain-002
+    title: Kiểm tra dịch vụ qua HTTP với hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-domain-003
+    title: Chuẩn bị danh tính, quyền hạn và dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-domain-004
+    title: Diễn đạt yêu cầu nghiệp vụ độc lập với định dạng truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-domain-005
+    title: Kiểm tra kết quả thành công, từ chối và lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-domain-006
+    title: Quan sát trạng thái hoặc sự kiện qua giao diện phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-domain-007
+    title: Thiết kế lớp điều khiển API để tái sử dụng giữa các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-domain-008
+    title: Giới hạn kiểm tra chi tiết kỹ thuật trong đặc tả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-interfaces
+  title: Giao diện
+  childs:
+  - slug: user-interfaces-001
+    title: Khi nào hành vi cần được kiểm tra qua giao diện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-002
+    title: Lựa chọn hành trình quan trọng để kiểm tra xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-003
+    title: Page Object và cách tiếp cận Screenplay ở mức kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-004
+    title: Tách locator và thao tác trình duyệt khỏi bước nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-005
+    title: Quản lý trình duyệt, phiên đăng nhập và dữ liệu từng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-006
+    title: Chờ trạng thái giao diện có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-007
+    title: Giảm phụ thuộc vào bố cục, nội dung động và trình tự thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-008
+    title: Thu thập ảnh, log và bằng chứng phục vụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-behavior
+  title: Bất đồng bộ
+  childs:
+  - slug: asynchronous-behavior-001
+    title: Đặc tả kết quả cuối cùng và giới hạn thời gian nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-behavior-002
+    title: Kiểm tra hành vi dựa trên sự kiện hoặc hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-behavior-003
+    title: Phân biệt tiếp nhận yêu cầu với hoàn tất xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-behavior-004
+    title: Chờ điều kiện với thời hạn và nhịp kiểm tra rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-behavior-005
+    title: Kiểm soát đồng hồ và lịch chạy trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-behavior-006
+    title: Tương quan sự kiện với đúng kịch bản và yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-behavior-007
+    title: Kiểm tra xử lý trùng lặp, thử lại và tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-behavior-008
+    title: Chẩn đoán thất bại do trễ xử lý hoặc mất sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-dependencies
+  title: Phụ thuộc ngoài
+  childs:
+  - slug: external-dependencies-001
+    title: Xác định ranh giới cần chạy thật hoặc mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-002
+    title: Phân biệt stub, fake, mock và dịch vụ thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-003
+    title: Mô phỏng phản hồi để kiểm tra lỗi và tình huống hiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-004
+    title: Kiểm tra hợp đồng để giảm sai lệch giữa mô phỏng và hệ thống thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-005
+    title: Chuẩn bị cơ sở dữ liệu hoặc hạ tầng bằng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-006
+    title: Quản lý tài khoản thử nghiệm, hạn mức và dịch vụ có tính phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-007
+    title: Tách kịch bản nội bộ ổn định khỏi kiểm tra phụ thuộc ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-008
+    title: Kiểm soát tác dụng phụ và dọn dữ liệu sau thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specification-quality
+  title: Chất lượng đặc tả
+  childs:
+  - slug: specification-quality-001
+    title: Tiêu chí dễ hiểu, chính xác và có giá trị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-002
+    title: Một kịch bản diễn đạt một ví dụ có trọng tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-003
+    title: Nhận diện kịch bản dài, mơ hồ và chứa quá nhiều kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-004
+    title: Loại bỏ chi tiết hiện thực không giúp giải thích quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-005
+    title: Phát hiện ví dụ trùng lặp và ví dụ khác tên nhưng cùng ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-006
+    title: Kiểm tra mâu thuẫn giữa kịch bản và quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-007
+    title: Đánh giá khả năng đọc của người nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-008
+    title: Rà soát phần mô tả, thuật ngữ và dữ liệu minh họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-quality-009
+    title: Sử dụng phản hồi thực thi để cải thiện chất lượng đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Nhận diện và phân loại kiểm thử chập chờn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Kiểm soát thời gian, dữ liệu ngẫu nhiên và yếu tố môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Thiết kế kịch bản độc lập với thứ tự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Cách ly dữ liệu, tài khoản và tài nguyên khi chạy đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Loại bỏ thời gian chờ cố định và phụ thuộc dịch vụ không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Giữ phép kiểm tra đủ mạnh để phát hiện sai hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Giới hạn thử lại và lưu bằng chứng của lần thất bại đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Theo dõi kịch bản không ổn định và xử lý nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Quản lý vòng đời bộ kiểm thử khi số kịch bản tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Phân biệt lỗi cú pháp, ánh xạ bước và lỗi hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-002
+    title: Phân biệt bước chưa định nghĩa, chưa hoàn thiện, thất bại và bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-003
+    title: Phân tích lỗi từ đặc tả qua mã liên kết đến hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-004
+    title: Đọc thông báo kiểm tra kết quả và dấu vết ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-005
+    title: Chạy riêng kịch bản hoặc ví dụ gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-006
+    title: Đối chiếu dữ liệu chuẩn bị, phản hồi và trạng thái thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-007
+    title: Gắn log, ảnh hoặc dữ liệu chẩn đoán vào báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-008
+    title: Che thông tin nhạy cảm trong bằng chứng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-009
+    title: Xác định thay đổi cần sửa ở yêu cầu, đặc tả, kiểm thử hay mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd
+  title: CI/CD
+  childs:
+  - slug: cicd-001
+    title: Tổ chức tập kiểm tra phản hồi nhanh và tập kiểm tra mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-002
+    title: Lựa chọn kịch bản theo Tags, phạm vi thay đổi và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-003
+    title: Quản lý cấu hình môi trường và bí mật trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-004
+    title: Thực thi song song hoặc chia tập chạy với dữ liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-005
+    title: Thiết lập cổng chất lượng và xử lý bước chưa được hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-006
+    title: Xuất báo cáo HTML, JUnit hoặc định dạng máy đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-007
+    title: Lưu bằng chứng cùng phiên bản mã và cấu hình thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-008
+    title: Theo dõi thời gian phản hồi và xử lý bộ kiểm thử chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-009
+    title: Kiểm soát việc công bố báo cáo và quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: living-documentation
+  title: Tài liệu sống
+  childs:
+  - slug: living-documentation-001
+    title: Đặc tả thực thi như tài liệu sống về hành vi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-documentation-002
+    title: Phân biệt nội dung đặc tả với kết quả một lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-documentation-003
+    title: Tổ chức khả năng, quy tắc và ví dụ theo nhu cầu tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-documentation-004
+    title: Liên kết yêu cầu, đặc tả, mã và bằng chứng xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-documentation-005
+    title: Cập nhật đặc tả khi quy tắc nghiệp vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-documentation-006
+    title: Tái cấu trúc, thay thế và loại bỏ kịch bản lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-documentation-007
+    title: Quản lý phiên bản và khác biệt hành vi giữa các bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: living-documentation-008
+    title: Rà soát mức độ đáng tin cậy của tài liệu và kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adoption-organization
+  title: Tổ chức áp dụng
+  childs:
+  - slug: adoption-organization-001
+    title: Chọn bài toán thí điểm và mục tiêu cải thiện cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-002
+    title: Đưa khám phá và rà soát ví dụ vào quy trình làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-003
+    title: Thống nhất trách nhiệm sở hữu đặc tả và tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-004
+    title: Tích hợp BDD với refinement, phát triển và nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-005
+    title: Áp dụng trong nhóm phân tán hoặc làm việc không đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-006
+    title: Đánh giá thời gian làm rõ yêu cầu, phản hồi và sửa sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-007
+    title: Nhận diện tình trạng chỉ đổi tên kiểm thử hoặc chỉ giao việc cho QA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-008
+    title: Kiểm soát chi phí duy trì và mức độ phụ thuộc công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-009
+    title: Cải tiến thực hành dựa trên phản hồi của các bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xác định mục tiêu và phạm vi chức năng đặt hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Tổ chức khám phá từ ba góc nhìn nghiệp vụ, phát triển và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Lập Example Mapping cho quy tắc giảm giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Chọn ví dụ thông thường, giá trị biên và trường hợp từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Diễn đạt quy tắc và ví dụ thành đặc tả Gherkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Tạo dự án Cucumber-JVM và chạy đặc tả chưa được hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Viết Step Definitions và lớp điều khiển nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Phát triển hành vi với vòng lặp kiểm thử và tái cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Bổ sung xử lý bất đồng bộ và phụ thuộc được mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Cách ly dữ liệu, chạy song song và tích hợp CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Thay đổi quy tắc, cập nhật tài liệu sống và đánh giá kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

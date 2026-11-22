@@ -1,0 +1,50 @@
+roadmap:
+- id: tu-duy-native-image
+  title: Tư duy Native Image
+  purpose: Hiểu cách chạy ứng dụng dưới dạng tệp thực thi gốc và khi nào lựa chọn này có ích.
+  objectives:
+  - Phân biệt chạy JAR trên JVM với tệp thực thi gốc theo hệ điều hành và kiến trúc CPU.
+  - Giải thích lợi ích khởi động, bộ nhớ và đánh đổi về thời gian biên dịch, tính động.
+- id: spring-aot-va-gioi-han
+  title: Spring AOT và giới hạn
+  purpose: Nắm phần chuẩn bị của Spring trước khi GraalVM biên dịch ứng dụng.
+  objectives:
+  - Phân biệt xử lý trước thời điểm chạy (Spring AOT) với biên dịch Native Image.
+  - Giải thích giả định thế giới đóng (closed-world) và giới hạn thay đổi tập bean qua profile hoặc điều kiện cấu hình.
+- id: chuan-bi-cong-cu
+  title: Chuẩn bị công cụ
+  purpose: Chọn môi trường và thư viện phù hợp để quá trình biên dịch có thể lặp lại.
+  objectives:
+  - Kiểm tra tương thích giữa Spring Boot, Gradle, GraalVM cho JDK 21 và Native Build Tools.
+  - Chuẩn bị trình biên dịch hệ thống cho bản dựng trực tiếp hoặc Docker cho Buildpacks; rà soát hỗ trợ native của thư viện.
+- id: bien-dich-va-chay
+  title: Biên dịch và chạy
+  purpose: Tạo và chạy được bản native đầu tiên qua hai cách đóng gói phổ biến.
+  objectives:
+  - Dùng nativeCompile để tạo tệp thực thi và chạy kiểm tra chức năng cơ bản.
+  - Dùng bootBuildImage với hỗ trợ native để tạo container; phân biệt tệp thực thi với container chứa nó.
+- id: khai-bao-truy-cap-dong
+  title: Khai báo truy cập động
+  purpose: Bổ sung thông tin cho các phần chương trình mà phân tích tĩnh chưa nhận diện đủ.
+  objectives:
+  - Đăng ký reflection, tài nguyên và proxy cần thiết bằng RuntimeHintsRegistrar hoặc metadata phù hợp.
+  - Dùng Tracing Agent để thu thập metadata, rà soát kết quả và nhận diện giới hạn do đường chạy chưa được thực thi.
+- id: kiem-thu-da-che-do
+  title: Kiểm thử đa chế độ
+  purpose: Phát hiện khác biệt giữa chạy thông thường, chạy sau AOT và chạy mã native.
+  objectives:
+  - Đối chiếu kiểm thử JVM, JVM có AOT và nativeTest; kiểm tra các runtime hint quan trọng.
+  - Kiểm thử tích hợp trên chính tệp thực thi hoặc container native, bao gồm dữ liệu và thư viện truy cập động.
+- id: chan-doan-loi-native
+  title: Chẩn đoán lỗi native
+  purpose: Khoanh vùng nguyên nhân ở bước AOT, biên dịch hay lúc ứng dụng chạy.
+  objectives:
+  - Đọc nhật ký và báo cáo dựng để phân biệt thiếu metadata, tài nguyên máy dựng và lỗi liên kết.
+  - Phân biệt khởi tạo lớp khi dựng với khi chạy; sửa lỗi có căn cứ và kiểm thử lại.
+- id: do-dac-va-trien-khai
+  title: Đo đạc và triển khai
+  purpose: Đánh giá hiệu quả thực tế trước khi đưa bản native vào môi trường đích.
+  objectives:
+  - So sánh thời gian khởi động, bộ nhớ RSS và thông lượng với JVM trên cùng tải, có xét giai đoạn làm nóng.
+  - Ghi nhận chi phí dựng và kích thước bản phân phối để lựa chọn cách triển khai.
+  - Kiểm tra hệ điều hành, kiến trúc CPU, thư viện hệ thống và cấu hình khi chạy trong quy trình CI/CD.

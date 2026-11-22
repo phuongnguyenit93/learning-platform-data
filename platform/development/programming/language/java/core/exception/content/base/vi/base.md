@@ -1,0 +1,7 @@
+# Xử lý ngoại lệ trong Java (Exception Handling)
+
+Ngoại lệ (`exception`) là cơ chế Java dùng để báo một tình huống bất thường khiến thao tác không thể hoàn thành như dự kiến. Thay vì xem mọi lỗi là trường hợp phải bắt ngay, người học cần hiểu ngoại lệ phát sinh ở đâu, lan truyền qua lời gọi phương thức như thế nào và nơi nào có đủ ngữ cảnh để phục hồi hoặc thông báo thất bại một cách rõ ràng.
+
+Tài liệu này dành cho người đã biết cú pháp, phương thức và lớp cơ bản trong Java Core. Lộ trình đi qua tám mốc: tư duy ngoại lệ; phân loại `Throwable`, checked và unchecked exception; bắt và xử lý; ném và khai báo; dọn dẹp tài nguyên; ngoại lệ tùy chỉnh; chẩn đoán và chính sách xử lý; cuối cùng là thực hành kiểm chứng. Các mốc giúp bạn nối quyết định thiết kế luồng lỗi với các công cụ như `try-catch`, `throw`, `throws`, `finally` và `try-with-resources`.
+
+Sau khi hoàn thành, bạn có thể lựa chọn bắt hay chuyển tiếp ngoại lệ phù hợp, giữ nguyên nguyên nhân khi bọc lỗi, tạo kiểu ngoại lệ có ý nghĩa và dùng `AutoCloseable` để quản lý tài nguyên. Bạn cũng sẽ biết đọc stack trace, tránh nuốt ngoại lệ, bảo toàn trạng thái ngắt khi cần và viết kiểm thử cho cả luồng thành công lẫn các tình huống thất bại.

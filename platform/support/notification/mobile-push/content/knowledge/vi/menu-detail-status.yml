@@ -1,0 +1,2074 @@
+menu:
+- slug: mobile-push-model
+  title: Mô hình Mobile Push
+  childs:
+  - slug: mobile-push-model-001
+    title: Thông báo đẩy trên di động là gì và những bài toán phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mobile-push-model-002
+    title: Phân biệt push từ xa, thông báo cục bộ và thông báo trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mobile-push-model-003
+    title: Máy chủ, nhà cung cấp, hệ điều hành và ứng dụng phối hợp như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mobile-push-model-004
+    title: Hành trình từ sự kiện nghiệp vụ đến thao tác mở thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mobile-push-model-005
+    title: Phân biệt chấp nhận gửi, đến thiết bị, hiển thị, mở và đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mobile-push-model-006
+    title: Giới hạn bảo đảm giao nhận khi mạng, pin hoặc quyền hệ thống thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mobile-push-model-007
+    title: So sánh Mobile Push với Web Push, SMS và kết nối thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mobile-push-model-008
+    title: Kiến thức nền và lộ trình tích hợp từ một thiết bị đến hệ thống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-architecture
+  title: Kiến trúc phân phối
+  childs:
+  - slug: delivery-architecture-001
+    title: Vai trò của FCM trên Android và quan hệ giữa FCM với APNs trên iOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-architecture-002
+    title: Chọn gửi qua FCM hoặc tích hợp trực tiếp APNs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-architecture-003
+    title: Tách sự kiện nghiệp vụ, nội dung thông báo và tác vụ phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-architecture-004
+    title: Lưu thông báo trong hộp thư ứng dụng và dùng push để báo có cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-architecture-005
+    title: Thiết kế lớp chuyển tiếp (adapter) cho từng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-architecture-006
+    title: Phân biệt dữ liệu chung với tùy chọn riêng Android và iOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-architecture-007
+    title: Hỗ trợ thiết bị không có Google Play services và nhà cung cấp bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-architecture-008
+    title: Xác định trách nhiệm giữa nhóm máy chủ, ứng dụng di động và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-environments
+  title: Dự án và môi trường
+  childs:
+  - slug: project-environments-001
+    title: Chuẩn bị ứng dụng Android, ứng dụng iOS và dự án Firebase tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-environments-002
+    title: Package name, Bundle ID, App ID và các định danh cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-environments-003
+    title: Đăng ký ứng dụng với Firebase và quản lý tệp cấu hình phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-environments-004
+    title: Bật khả năng Push Notifications và cấu hình ký ứng dụng Apple
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-environments-005
+    title: Cấu hình thông tin xác thực APNs khi chuyển tiếp qua FCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-environments-006
+    title: Phân biệt môi trường phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-environments-007
+    title: Tách dự án, thông tin xác thực và dữ liệu đăng ký giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-environments-008
+    title: Lập bảng tương thích phiên bản SDK, hệ điều hành và tính năng push
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: permissions-and-preferences
+  title: Quyền và tùy chọn
+  childs:
+  - slug: permissions-and-preferences-001
+    title: Phân biệt quyền hiển thị thông báo với đăng ký nhận thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-002
+    title: Quyền POST_NOTIFICATIONS và ảnh hưởng của phiên bản SDK đích trên Android
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-003
+    title: Xin quyền bằng UNUserNotificationCenter trên iOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-004
+    title: Quyền tạm thời (provisional authorization) và trạng thái cấp quyền trên iOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-005
+    title: Chọn thời điểm xin quyền và giải thích giá trị thông báo cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-006
+    title: Xử lý từ chối quyền, thay đổi cài đặt và thu hồi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-007
+    title: Tùy chọn nhận theo nhóm thông báo và theo tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-008
+    title: Khung giờ yên lặng, múi giờ và giới hạn tần suất làm phiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-preferences-009
+    title: Đồng bộ tùy chọn giữa thiết bị và máy chủ khi người dùng đổi cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-and-registration
+  title: Định danh và đăng ký
+  childs:
+  - slug: identity-and-registration-001
+    title: Phân biệt Firebase Installation ID, FCM registration token và APNs device token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-002
+    title: Phân biệt định danh bản cài đặt với tài khoản và mã thiết bị phần cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-003
+    title: Lấy và cập nhật đăng ký FCM theo phiên bản SDK máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-004
+    title: Nhận APNs device token và liên kết với đăng ký FCM trên iOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-005
+    title: Thiết kế dữ liệu đăng ký theo ứng dụng, nền tảng, môi trường và loại định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-006
+    title: Đăng ký hoặc cập nhật từ ứng dụng qua API có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-007
+    title: Liên kết một tài khoản với nhiều bản cài đặt và nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-008
+    title: Gỡ liên kết tài khoản khi đăng xuất hoặc đổi người dùng trên thiết bị chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-009
+    title: Theo dõi thời điểm hoạt động và dọn đăng ký không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-registration-010
+    title: Cập nhật đăng ký an toàn khi phản hồi lỗi cũ đến sau một lần làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-contracts
+  title: Hợp đồng nội dung
+  childs:
+  - slug: content-contracts-001
+    title: Thiết kế mã thông báo, loại sự kiện và phiên bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-002
+    title: Tiêu đề, nội dung, dữ liệu tùy chỉnh và ý nghĩa từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-003
+    title: Phân biệt notification, data và thông điệp kết hợp trong FCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-004
+    title: Kiểu giá trị, khóa dành riêng và mã hóa dữ liệu tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-005
+    title: Giới hạn kích thước tính theo byte và ảnh hưởng của Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-006
+    title: Dùng định danh tài nguyên để ứng dụng lấy dữ liệu mới sau khi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-007
+    title: Thiết kế nội dung thay thế khi ứng dụng cũ chưa hiểu phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-008
+    title: Bản địa hóa bằng mẫu phía máy chủ hoặc khóa tài nguyên trên thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-contracts-009
+    title: Giảm dữ liệu riêng tư trong nội dung và phần xem trước trên màn hình khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fcm-http-v1
+  title: FCM HTTP v1
+  childs:
+  - slug: fcm-http-v1-001
+    title: Cấu trúc messages:send và quan hệ với Firebase project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-002
+    title: Xác thực bằng OAuth 2.0 và Application Default Credentials
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-003
+    title: Quyền của danh tính máy chủ và phạm vi tài nguyên được gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-004
+    title: Chọn đích là FID, registration token, topic hoặc condition theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-005
+    title: Khối nội dung chung và cấu hình riêng cho từng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-006
+    title: AndroidConfig và cấu hình gửi Android theo phiên bản giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-007
+    title: ApnsConfig, aps và header APNs khi gửi iOS qua FCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-008
+    title: Chế độ kiểm tra hợp lệ và giới hạn của kết quả validate-only
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fcm-http-v1-009
+    title: Đọc message ID, phản hồi lỗi và nhận diện giao diện FCM cũ cần chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: firebase-admin-java
+  title: Firebase Admin Java
+  childs:
+  - slug: firebase-admin-java-001
+    title: Chọn phiên bản Firebase Admin SDK tương thích với Java và tính năng cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-002
+    title: Khởi tạo FirebaseApp và FirebaseMessaging trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-003
+    title: Nạp thông tin xác thực từ môi trường và quản lý vòng đời ứng dụng Firebase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-004
+    title: Tạo Message, Notification và dữ liệu tùy chỉnh bằng builder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-005
+    title: Gửi đến FID hoặc registration token theo khả năng của SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-006
+    title: Cấu hình AndroidConfig, ApnsConfig và Aps cho từng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-007
+    title: Gửi bất đồng bộ và xử lý kết quả mà không chặn luồng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-008
+    title: Sử dụng sendEach và sendEachForMulticast theo giới hạn từng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-009
+    title: Đối chiếu BatchResponse, SendResponse với đúng đích trong lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firebase-admin-java-010
+    title: Quản lý nhiều dự án Firebase và giải phóng tài nguyên khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: direct-apns
+  title: APNs trực tiếp
+  childs:
+  - slug: direct-apns-001
+    title: Kiến trúc nhà cung cấp APNs và kết nối HTTP/2 qua TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-002
+    title: Chọn endpoint sandbox hoặc production đúng với đăng ký thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-003
+    title: Xác thực bằng khóa .p8, Key ID và Team ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-004
+    title: Tạo JWT, gia hạn thông tin xác thực và kiểm soát sai lệch đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-005
+    title: Lựa chọn xác thực bằng chứng chỉ khi cấu hình yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-006
+    title: Tạo JSON với aps và dữ liệu riêng của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-007
+    title: apns-topic, Bundle ID và phạm vi sử dụng của từng loại push
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-008
+    title: Chọn apns-push-type, apns-priority, apns-expiration và apns-collapse-id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-009
+    title: Gửi từ Java bằng kết nối HTTP/2 có tái sử dụng và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-apns-010
+    title: Đọc apns-id, mã trạng thái, reason và phản hồi đăng ký không còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: android-receiving
+  title: Nhận trên Android
+  childs:
+  - slug: android-receiving-001
+    title: Tích hợp SDK FCM, manifest và dịch vụ nhận thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-002
+    title: 'Vòng đời ứng dụng: đang mở, chạy nền, bị kết thúc và bị buộc dừng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-003
+    title: Định tuyến notification và data với AndroidConfig truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-004
+    title: FirebaseMessagingService, onMessageReceived và thời gian xử lý giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-005
+    title: Đăng ký, làm mới định danh và cập nhật lại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-006
+    title: NotificationChannel, mức quan trọng và lựa chọn của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-007
+    title: Phân biệt mức ưu tiên gửi FCM với mức quan trọng của kênh hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-008
+    title: Doze, giới hạn chạy nền và ảnh hưởng đến dữ liệu không khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-009
+    title: Chuyển công việc dài sang WorkManager và tránh giữ callback nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: android-receiving-010
+    title: onDeletedMessages và khôi phục trạng thái khi thông điệp chờ bị loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ios-receiving
+  title: Nhận trên iOS
+  childs:
+  - slug: ios-receiving-001
+    title: Đăng ký remote notification và xử lý kết quả cấp APNs token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-002
+    title: Tích hợp Firebase Messaging và ánh xạ APNs token khi dùng FCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-003
+    title: Xử lý khi ứng dụng đang mở bằng UNUserNotificationCenterDelegate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-004
+    title: Phân biệt hiển thị cảnh báo với đánh thức ứng dụng để đồng bộ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-005
+    title: content-available, background mode và giới hạn của thông báo im lặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-006
+    title: Ứng dụng bị buộc đóng, tiết kiệm pin và những điều kiện ảnh hưởng giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-007
+    title: mutable-content và Notification Service Extension để chỉnh nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-008
+    title: Badge, âm thanh, thread-id và nhóm thông báo trên iOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ios-receiving-009
+    title: Phân biệt push thông thường với VoIP, Live Activities và quyền chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-targets
+  title: Đích gửi
+  childs:
+  - slug: delivery-targets-001
+    title: Gửi cho một bản cài đặt, một tài khoản hoặc toàn bộ thiết bị hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-targets-002
+    title: Chọn thiết bị gần đây và xử lý người dùng có nhiều phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-targets-003
+    title: Topic FCM và mô hình đăng ký theo nhóm quan tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-targets-004
+    title: Quản lý đăng ký, hủy đăng ký và khôi phục topic sau khi đổi định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-targets-005
+    title: Condition trên topic và giới hạn phạm vi biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-targets-006
+    title: Phân đoạn đối tượng theo điều kiện nghiệp vụ tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-targets-007
+    title: Kiểm tra quyền và dữ liệu nhạy cảm khi sử dụng nhóm hoặc topic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-targets-008
+    title: Chốt danh sách người nhận và kiểm tra lại điều kiện tại thời điểm gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-policies
+  title: Chính sách giao nhận
+  childs:
+  - slug: delivery-policies-001
+    title: Thời hạn sống (TTL) của FCM và thời điểm hết hạn của APNs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-002
+    title: Chọn thời hạn theo giá trị nghiệp vụ và tình huống thiết bị ngoại tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-003
+    title: Gộp thông điệp chờ bằng collapse key hoặc apns-collapse-id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-004
+    title: Phân biệt gộp thông điệp, thay thông báo hiển thị và chống xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-005
+    title: Chọn mức ưu tiên theo phiên bản giao diện và loại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-006
+    title: Thiết bị ngoại tuyến, giới hạn lưu chờ và khả năng bị loại thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-007
+    title: Thứ tự đến không cố định và xử lý thông báo đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-008
+    title: Chính sách đọc một thiết bị và đồng bộ trạng thái trên các thiết bị khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-009
+    title: Giới hạn cam kết giao nhận của thông báo im lặng và thông báo hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-policies-010
+    title: Kết hợp truy vấn trạng thái để bù khoảng trống khi push không tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-interactions
+  title: Tương tác thông báo
+  childs:
+  - slug: notification-interactions-001
+    title: Mở đúng màn hình bằng deep link và định danh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-002
+    title: Android App Links, iOS Universal Links và hợp đồng đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-003
+    title: Xử lý thao tác mở khi ứng dụng đang chạy hoặc khởi động mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-004
+    title: Kiểm tra đăng nhập và quyền truy cập trước khi hiển thị dữ liệu đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-005
+    title: Nút hành động, category và kết quả tương tác gửi về máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-006
+    title: Ảnh, biểu tượng, âm thanh và nội dung hiển thị đa phương tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-007
+    title: Nhóm thông báo, thay thế, hủy và quản lý số đếm chưa đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-008
+    title: Ngăn mở lặp hoặc thực hiện lại nghiệp vụ khi người dùng tương tác nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-spring
+  title: Java và Spring
+  childs:
+  - slug: java-and-spring-001
+    title: Tách dịch vụ nghiệp vụ, chính sách gửi và adapter nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-002
+    title: Thiết kế DTO thông báo độc lập với lớp của Firebase hoặc APNs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-003
+    title: Ánh xạ nội dung chung sang cấu hình riêng Android và iOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-004
+    title: Xây dựng API quản lý đăng ký và tùy chọn nhận có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-005
+    title: Xác định đích gửi từ tài khoản thay vì tin dữ liệu người nhận do máy khách chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-006
+    title: Quản lý cấu hình, bí mật và danh tính máy chủ theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-007
+    title: Phân loại kết quả gửi thành trạng thái có ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-008
+    title: Quản lý Executor, kết nối HTTP và tác vụ bất đồng bộ dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-009
+    title: Thiết kế điểm mở rộng cho nhà cung cấp mới và kiểm thử adapter độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-and-scheduling
+  title: Hàng đợi và lịch gửi
+  childs:
+  - slug: queues-and-scheduling-001
+    title: Phát yêu cầu thông báo sau khi giao dịch nghiệp vụ hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-002
+    title: Outbox và tách việc lưu sự kiện khỏi lời gọi nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-003
+    title: Lưu tác vụ, người nhận, thời hạn và trạng thái xử lý bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-004
+    title: Chia tác vụ thành lô và phân phối cho tiến trình xử lý (worker)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-005
+    title: Lập lịch theo múi giờ và đánh giá lại khung giờ yên lặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-006
+    title: Hủy hoặc cập nhật tác vụ khi thông tin nghiệp vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-007
+    title: Khôi phục sau khi worker dừng và tránh nhiều worker cùng xử lý một tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-008
+    title: Kiểm tra lại đăng ký, tùy chọn nhận và thời hạn ngay trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-scheduling-009
+    title: Giữ trạng thái từng đích khi một tác vụ gửi thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Phân biệt lỗi xác thực, cấu hình, dữ liệu và giới hạn nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Phân loại lỗi tạm thời với lỗi không nên thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: Xử lý UNREGISTERED và phản hồi APNs về đăng ký hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Phân biệt INVALID_ARGUMENT do dữ liệu sai với đăng ký không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Lỗi sai dự án, package name, Bundle ID hoặc môi trường APNs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Xử lý quota, HTTP 429, lỗi 5xx và hướng dẫn Retry-After
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Thử lại với khoảng chờ tăng dần, độ lệch ngẫu nhiên và số lần giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Timeout sau khi nhà cung cấp đã tiếp nhận và nguy cơ gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Dừng thử lại khi hết hạn, cách ly lỗi và phát lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deduplication-and-sync
+  title: Chống trùng và đồng bộ
+  childs:
+  - slug: deduplication-and-sync-001
+    title: Định danh nghiệp vụ ổn định cho một thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-sync-002
+    title: Tính lũy đẳng của thao tác tạo tác vụ và xử lý tại worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-sync-003
+    title: Loại bỏ thông báo trùng trên ứng dụng theo notification ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-sync-004
+    title: Phiên bản tài nguyên và xử lý cập nhật đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-sync-005
+    title: Đồng bộ hộp thư và trạng thái chưa đọc từ nguồn dữ liệu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-sync-006
+    title: Xác nhận đã nhận, đã mở hoặc đã đọc bằng sự kiện do ứng dụng báo lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-sync-007
+    title: Giới hạn của bằng chứng do thiết bị báo và thời điểm xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-sync-008
+    title: Đối soát dữ liệu sau cài đặt lại, đổi thiết bị hoặc mất kết nối dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Bảo vệ tài khoản dịch vụ, khóa APNs và thông tin xác thực nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Dùng danh tính máy chủ với quyền tối thiểu và luân chuyển bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Xác thực quyền sở hữu đăng ký trước khi liên kết với tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Cách ly đăng ký, tác vụ và dữ liệu giữa các khách hàng thuê dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Ngăn lạm dụng API gửi và truy cập trái phép danh sách người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Giảm dữ liệu nhạy cảm qua nhà cung cấp và màn hình khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Phân biệt mã hóa đường truyền với mã hóa nội dung đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Kiểm tra deep link, URL ảnh và dữ liệu tùy chỉnh trước khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Ẩn định danh đăng ký trong nhật ký và kiểm soát thời hạn lưu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: limits-and-performance
+  title: Giới hạn và hiệu năng
+  childs:
+  - slug: limits-and-performance-001
+    title: Phân biệt quota dự án, giới hạn thiết bị, topic và kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-performance-002
+    title: Chia lô theo giới hạn API hoặc SDK và kích thước thực tế của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-performance-003
+    title: Điều tiết tốc độ theo nhà cung cấp và từng nhóm người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-performance-004
+    title: Giới hạn công việc đồng thời, hàng đợi và bộ nhớ dùng cho gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-performance-005
+    title: Tái sử dụng kết nối và tránh khởi tạo SDK cho từng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-performance-006
+    title: Phân tán lịch gửi để tránh dồn lưu lượng vào cùng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-performance-007
+    title: Cô lập nhà cung cấp lỗi và giảm tải khi có làn sóng thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-performance-008
+    title: Lập kế hoạch năng lực theo số đích, độ trễ và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement-and-observability
+  title: Đo lường và quan sát
+  childs:
+  - slug: measurement-and-observability-001
+    title: Xây dựng mô hình trạng thái từ tạo tác vụ đến mở hoặc đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-002
+    title: Đo số yêu cầu, tỷ lệ nhà cung cấp chấp nhận và tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-003
+    title: Đo thời gian chờ hàng đợi, độ trễ gửi và thời gian hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-004
+    title: Theo dõi đăng ký hoạt động, đăng ký lỗi và tỷ lệ thay đổi định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-005
+    title: Liên kết notification ID, mã tác vụ và message ID của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-006
+    title: Đọc số liệu phân phối FCM, dữ liệu xuất và giới hạn độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-007
+    title: Sử dụng công cụ trạng thái APNs theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-008
+    title: Phân biệt số đo máy chủ với bằng chứng hiển thị hoặc thao tác trên thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-and-observability-009
+    title: Cảnh báo lỗi cấu hình, quota, hàng đợi tăng và suy giảm khả năng giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử mẫu nội dung, bản địa hóa và ánh xạ cấu hình nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử kích thước UTF-8, khóa dành riêng và giá trị dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử adapter bằng phản hồi giả lập của FCM hoặc APNs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Sử dụng validate-only hoặc dry-run và hiểu phần chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử trên thiết bị thật với ứng dụng, môi trường và đăng ký phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Ma trận trạng thái ứng dụng, buộc dừng, mất mạng và từ chối quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử làm mới đăng ký, đổi tài khoản và nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử deep link, hành động, badge, âm thanh và nội dung đa phương tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử timeout, lỗi từng đích, retry, trùng lặp và tác vụ hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tải, khôi phục worker và cô lập dữ liệu giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Nhà cung cấp chấp nhận nhưng thiết bị không nhận hoặc không hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Sai dự án Firebase, định danh ứng dụng hoặc thông tin xác thực APNs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Nhầm FID, FCM registration token và APNs device token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Thông báo Android không hiện do quyền, kênh hoặc cách xử lý nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Thông báo iOS không hiện do quyền, môi trường hoặc cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Dữ liệu nền đến chậm do thời hạn, ưu tiên và chính sách hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Nhận trùng do tự hiển thị đồng thời với cơ chế hiển thị của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Thông báo mở sai màn hình hoặc còn dữ liệu của tài khoản trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Quy trình truy vết từ sự kiện nghiệp vụ đến nhật ký thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-evolution
+  title: Tiến hóa và vận hành
+  childs:
+  - slug: operations-and-evolution-001
+    title: Chuyển từ registration token sang đăng ký theo FID có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-evolution-002
+    title: AndroidConfigV2 ở giai đoạn preview và kiểm tra hỗ trợ của từng SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-evolution-003
+    title: Phân biệt RemoteNotification với BackgroundSync trong AndroidConfigV2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-evolution-004
+    title: Hàm nhận sự kiện mới, nội dung dự phòng và tương thích ứng dụng Android cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-evolution-005
+    title: Đánh giá tác động khi nhà cung cấp đổi API, quota hoặc chính sách giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-evolution-006
+    title: Theo dõi thời hạn khóa, chứng chỉ, chuỗi tin cậy và phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-evolution-007
+    title: Triển khai thay đổi máy chủ và ứng dụng theo từng nhóm thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-evolution-008
+    title: Chuẩn bị hướng dẫn xử lý sự cố và quay lui cấu hình gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Gửi thông báo cá nhân từ Java đến thiết bị Android kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Gửi thông báo iOS qua FCM và đối chiếu cấu hình APNs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Tích hợp APNs trực tiếp và so sánh kết quả với đường gửi qua FCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Thông báo trạng thái đơn hàng với deep link và dữ liệu lấy từ máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Tùy chọn nhận, khung giờ yên lặng và tài khoản có nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Outbox, hàng đợi và gửi lại an toàn khi kết quả không rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Hộp thư ứng dụng với chống trùng và đồng bộ trạng thái đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Đánh giá toàn luồng qua ma trận thiết bị, bảo mật và số đo vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

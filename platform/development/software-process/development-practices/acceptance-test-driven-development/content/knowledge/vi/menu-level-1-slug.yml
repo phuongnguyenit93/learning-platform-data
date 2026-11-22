@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Các cách tiếp cận liên quan
+  slug: related-approaches
+  index: 1
+- title: Chu trình ATDD
+  slug: atdd-cycle
+  index: 2
+- title: Vai trò và phối hợp
+  slug: roles-and-coordination
+  index: 3
+- title: Khám phá yêu cầu
+  slug: requirements-discovery
+  index: 4
+- title: Tiêu chí chấp nhận
+  slug: acceptance-criteria
+  index: 5
+- title: Lựa chọn ví dụ
+  slug: example-selection
+  index: 6
+- title: Bảng và quy tắc
+  slug: tables-and-rules
+  index: 7
+- title: Thiết kế kịch bản
+  slug: scenario-design
+  index: 8
+- title: Gherkin
+  slug: gherkin
+  index: 9
+- title: Rà soát đặc tả
+  slug: specification-review
+  index: 10
+- title: Phát triển từ kiểm thử
+  slug: test-first-development
+  index: 11
+- title: Kiến trúc tự động hóa
+  slug: automation-architecture
+  index: 12
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 13
+- title: Dữ liệu và môi trường
+  slug: data-and-environments
+  index: 14
+- title: Phụ thuộc và tích hợp
+  slug: dependencies-and-integration
+  index: 15
+- title: Bất đồng bộ và thời gian
+  slug: async-and-time
+  index: 16
+- title: Thuộc tính chất lượng
+  slug: quality-attributes
+  index: 17
+- title: Tích hợp CI/CD
+  slug: ci-cd-integration
+  index: 18
+- title: Chẩn đoán thất bại
+  slug: failure-diagnosis
+  index: 19
+- title: Đặc tả sống
+  slug: living-specification
+  index: 20
+- title: Thay đổi và bảo trì
+  slug: change-and-maintenance
+  index: 21
+- title: Tổ chức công việc
+  slug: work-organization
+  index: 22
+- title: Áp dụng ATDD
+  slug: atdd-adoption
+  index: 23
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 24
+- title: Đánh giá hiệu quả
+  slug: effectiveness-assessment
+  index: 25
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 26

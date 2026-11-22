@@ -1,0 +1,2251 @@
+menu:
+- slug: chain-overview
+  title: Tổng quan
+  childs:
+  - slug: chain-overview-001
+    title: Bài toán phân phối yêu cầu khi thành phần gửi không biết ai sẽ xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-overview-002
+    title: Ý tưởng chuyển yêu cầu qua một chuỗi handler có trách nhiệm riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-overview-003
+    title: Mục tiêu tách thành phần gửi khỏi logic và thứ tự xử lý cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-overview-004
+    title: Các tình huống phù hợp với Chain of Responsibility
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-overview-005
+    title: Lợi ích về khả năng mở rộng, tái sử dụng và thay đổi cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-overview-006
+    title: Đánh đổi về khả năng truy vết, độ trễ và yêu cầu không được xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-overview-007
+    title: Các trường hợp nên dùng lời gọi trực tiếp hoặc giải pháp đơn giản hơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-overview-008
+    title: Ví dụ xuyên suốt từ tiếp nhận yêu cầu đến xử lý và trả kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: roles-and-structure
+  title: Vai trò và cấu trúc
+  childs:
+  - slug: roles-and-structure-001
+    title: Client tạo yêu cầu và gọi điểm vào của chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-structure-002
+    title: Handler định nghĩa giao diện tiếp nhận và xử lý yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-structure-003
+    title: Concrete Handler triển khai một trách nhiệm nghiệp vụ cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-structure-004
+    title: Successor biểu diễn handler tiếp theo và quan hệ chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-structure-005
+    title: Chain quản lý thứ tự thực thi và chính sách kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-structure-006
+    title: Request, Response và Context mang dữ liệu qua các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-structure-007
+    title: Sơ đồ lớp và sơ đồ tuần tự của một yêu cầu đi qua chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-structure-008
+    title: Phân biệt trách nhiệm cấu hình chuỗi với trách nhiệm xử lý yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: processing-semantics
+  title: Ngữ nghĩa xử lý
+  childs:
+  - slug: processing-semantics-001
+    title: Quyết định xử lý, chuyển tiếp hoặc dừng tại mỗi handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-semantics-002
+    title: Biến thể tìm handler phù hợp đầu tiên và kết thúc sau khi xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-semantics-003
+    title: Biến thể nhiều handler cùng tham gia xử lý một yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-semantics-004
+    title: Xử lý cục bộ rồi tiếp tục chuyển yêu cầu cho bước sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-semantics-005
+    title: Từ chối yêu cầu và kết thúc sớm kèm lý do rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-semantics-006
+    title: Phân biệt bỏ qua một handler với kết thúc toàn bộ chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-semantics-007
+    title: Chính sách khi đi hết chuỗi mà không có handler nhận xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-semantics-008
+    title: Thứ tự xử lý trước chuyển tiếp và sau khi bước tiếp theo hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: handler-contracts
+  title: Hợp đồng handler
+  childs:
+  - slug: handler-contracts-001
+    title: Thiết kế giao diện Handler với kiểu đầu vào và đầu ra rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handler-contracts-002
+    title: Lựa chọn handler giữ tham chiếu next hoặc nhận continuation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handler-contracts-003
+    title: Phân tách điều kiện có thể xử lý với hành động xử lý khi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handler-contracts-004
+    title: Quy định quyền chuyển tiếp và số lần được gọi bước tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handler-contracts-005
+    title: Thiết kế generic để bảo toàn kiểu dữ liệu xuyên suốt chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handler-contracts-006
+    title: Quy ước null, tính bất biến và trách nhiệm sửa dữ liệu yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handler-contracts-007
+    title: Công bố lỗi, tác dụng phụ và yêu cầu an toàn luồng của handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handler-contracts-008
+    title: Giữ hợp đồng nhỏ để bổ sung handler mà không sửa client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Triển khai Java
+  childs:
+  - slug: java-implementation-001
+    title: Mô hình hóa yêu cầu và kết quả cho ví dụ Java tối giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Xây dựng interface Handler và lớp cơ sở chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Triển khai các handler cụ thể với một trách nhiệm mỗi lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Nối chuỗi thủ công và gọi xử lý từ client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Cài đặt điểm kết thúc mặc định cho yêu cầu không được xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Triển khai chuỗi bằng danh sách và bộ điều phối dùng vòng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Biểu diễn handler đơn giản bằng functional interface và lambda
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-008
+    title: Đối chiếu kết quả chạy khi thay đổi thứ tự hoặc bỏ một handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: processing-results
+  title: Kết quả xử lý
+  childs:
+  - slug: processing-results-001
+    title: So sánh hợp đồng trả về void, boolean, Optional và kiểu kết quả riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-results-002
+    title: Mô hình hóa trạng thái tiếp tục, đã xử lý, từ chối và thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-results-003
+    title: Tách kết quả nghiệp vụ khỏi tín hiệu điều khiển chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-results-004
+    title: Mang giá trị trả về, mã lý do và metadata trong kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-results-005
+    title: Phân biệt yêu cầu chưa được xử lý với kết quả rỗng hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-results-006
+    title: Tổng hợp kết quả khi nhiều handler cùng đóng góp dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-results-007
+    title: Biến đổi kết quả khi luồng thực thi quay về handler trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-results-008
+    title: Chuẩn hóa ánh xạ kết quả sang phản hồi của thành phần gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: request-context
+  title: Ngữ cảnh yêu cầu
+  childs:
+  - slug: request-context-001
+    title: Tách dữ liệu nghiệp vụ khỏi metadata điều khiển và quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-002
+    title: Truyền correlation ID, thông tin người gọi và thời hạn xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-003
+    title: Lựa chọn context bất biến hoặc context có thể cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-004
+    title: Thiết kế khóa và kiểu dữ liệu để tránh context thành túi dữ liệu tùy ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-005
+    title: Công bố dữ liệu mỗi handler đọc, tạo mới hoặc thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-006
+    title: Kiểm soát phụ thuộc ngầm giữa handler tạo dữ liệu và handler sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-007
+    title: Cô lập context giữa các yêu cầu và hạn chế lưu dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-008
+    title: Truyền context tường minh qua ranh giới thread và tác vụ bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-assembly
+  title: Lắp ghép chuỗi
+  childs:
+  - slug: chain-assembly-001
+    title: Chọn cấu trúc danh sách handler hoặc các nút liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-002
+    title: Dùng builder để khai báo thứ tự và tạo chuỗi hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-003
+    title: Tách factory lắp ghép khỏi các lớp handler nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-004
+    title: Kiểm tra chuỗi rỗng, handler null và điểm kết thúc bị thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-005
+    title: Phát hiện liên kết vòng và đăng ký handler trùng ngoài chủ ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-006
+    title: Biểu diễn ràng buộc thứ tự giữa các handler phụ thuộc nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-007
+    title: Tái sử dụng các đoạn chuỗi và chọn chuỗi theo loại yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-008
+    title: Kiểm tra cấu hình trước khi công bố chuỗi cho client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dynamic-configuration
+  title: Cấu hình động
+  childs:
+  - slug: dynamic-configuration-001
+    title: Đăng ký handler qua registry và ánh xạ tên cấu hình sang triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-configuration-002
+    title: Bật, tắt và sắp xếp handler bằng cấu hình hoặc feature flag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-configuration-003
+    title: Chọn chuỗi theo tenant, chức năng hoặc thuộc tính yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-configuration-004
+    title: Xác thực cấu hình mới và từ chối thứ tự vi phạm phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-configuration-005
+    title: Tạo snapshot bất biến để một yêu cầu dùng một phiên bản chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-configuration-006
+    title: Thay thế tham chiếu chuỗi một cách nguyên tử khi nạp lại cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-configuration-007
+    title: Gắn phiên bản cấu hình để truy vết và quay về chuỗi trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-configuration-008
+    title: Xử lý cấu hình lỗi và giữ phiên bản đang hoạt động hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-lifecycle
+  title: Vòng đời chuỗi
+  childs:
+  - slug: chain-lifecycle-001
+    title: Phân biệt handler dùng chung, handler theo yêu cầu và tài nguyên đi kèm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-lifecycle-002
+    title: Khởi tạo dependency và kiểm tra khả năng phục vụ trước khi nhận yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-lifecycle-003
+    title: Xác định thành phần sở hữu executor, kết nối và tài nguyên đóng được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-lifecycle-004
+    title: Dọn dẹp tài nguyên trong cả luồng thành công, thất bại và hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-lifecycle-005
+    title: Ngừng nhận yêu cầu mới và chờ yêu cầu đang chạy khi shutdown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-lifecycle-006
+    title: Giải phóng phiên bản chuỗi cũ sau khi các yêu cầu sử dụng hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-lifecycle-007
+    title: Tránh rò rỉ tài nguyên khi lắp ghép hoặc khởi tạo chuỗi thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-lifecycle-008
+    title: Kiểm tra đóng tài nguyên đúng một lần và không đóng dependency dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: input-validation
+  title: Kiểm tra đầu vào
+  childs:
+  - slug: input-validation-001
+    title: Xây dựng chuỗi validation theo cú pháp, ngữ nghĩa và quy tắc nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-002
+    title: Chọn dừng ở lỗi đầu tiên hoặc thu thập nhiều lỗi độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-003
+    title: Phân biệt làm sạch dữ liệu, chuẩn hóa và kiểm tra tính hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-004
+    title: Sắp xếp kiểm tra rẻ trước kiểm tra cần truy cập dịch vụ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-005
+    title: Biểu diễn lỗi theo trường dữ liệu và thông báo cho thành phần gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-006
+    title: Chỉ chuyển sang xử lý nghiệp vụ khi các điều kiện bắt buộc đã đạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-007
+    title: Kiểm soát tác dụng phụ trong handler kiểm tra đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-008
+    title: Mở rộng bộ quy tắc mà vẫn giữ thứ tự và hợp đồng kết quả ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-handling-and-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: error-handling-and-recovery-001
+    title: Phân biệt từ chối nghiệp vụ, lỗi cấu hình và lỗi hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-002
+    title: Chọn trả về kết quả lỗi hoặc ném exception theo hợp đồng chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-003
+    title: Xác định nơi bắt lỗi tại handler, bộ điều phối hoặc biên hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-004
+    title: Dừng chuỗi và bảo toàn nguyên nhân khi handler thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-005
+    title: Chỉ tiếp tục sau lỗi khi chính sách và trạng thái dữ liệu cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-006
+    title: Thiết kế fallback khi handler phụ thuộc dịch vụ không khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-007
+    title: Đặt retry đúng phạm vi để tránh chạy lại các bước đã có tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-008
+    title: Giữ nguyên lỗi gốc khi xử lý lỗi hoặc dọn dẹp tài nguyên cũng thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-side-effects
+  title: Giao dịch và tác dụng phụ
+  childs:
+  - slug: transactions-and-side-effects-001
+    title: Phân loại handler thuần tính toán và handler thay đổi trạng thái bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-002
+    title: Xác định ranh giới transaction của một handler hoặc toàn bộ chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-003
+    title: Quy định commit và rollback khi chuỗi dừng sớm hoặc gặp lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-004
+    title: Áp dụng idempotency cho yêu cầu lặp lại và cơ chế retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-005
+    title: Trì hoãn tác dụng phụ cho đến khi các kiểm tra bắt buộc hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-006
+    title: Thiết kế hành động bù khi không thể rollback toàn bộ thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-007
+    title: Kiểm soát phát sự kiện sau commit và xử lý gửi lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-008
+    title: Làm rõ giới hạn transaction qua thread, tác vụ async và dịch vụ từ xa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency
+  title: Đồng thời
+  childs:
+  - slug: concurrency-001
+    title: Phân biệt chuỗi chạy đồng thời nhiều yêu cầu với xử lý song song các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-002
+    title: Ưu tiên handler stateless và chuỗi bất biến để chia sẻ giữa các thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-003
+    title: Cô lập trạng thái theo yêu cầu thay vì lưu trên field của handler dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-004
+    title: Đồng bộ hóa cache, bộ đếm và tài nguyên dùng chung khi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-005
+    title: Công bố cấu hình chuỗi an toàn theo mô hình bộ nhớ Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-006
+    title: Giữ tính nhất quán khi thay chuỗi trong lúc yêu cầu đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-007
+    title: Tránh lock kéo dài, deadlock và tranh chấp trên đoạn xử lý chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-008
+    title: Kiểm tra race condition và rò rỉ dữ liệu giữa các yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: asynchronous-chains
+  title: Chuỗi bất đồng bộ
+  childs:
+  - slug: asynchronous-chains-001
+    title: Thiết kế AsyncHandler trả về CompletionStage của kết quả xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-chains-002
+    title: Ghép các bước phụ thuộc bằng thenCompose và biến đổi bằng thenApply
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-chains-003
+    title: Giữ đúng thứ tự xử lý, chuyển tiếp và dừng sớm trong chuỗi async
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-chains-004
+    title: Chọn executor cho tác vụ tính toán và tác vụ I/O có blocking
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-chains-005
+    title: Tránh join hoặc get làm nghẽn thread trong luồng xử lý bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-chains-006
+    title: Truyền context và khôi phục ngữ cảnh quan sát qua các callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-chains-007
+    title: Truyền lỗi và đặt ranh giới phục hồi trong CompletionStage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-chains-008
+    title: Chạy song song các nhánh độc lập và hợp nhất trước bước phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: timeouts-and-cancellation
+  title: Timeout và hủy
+  childs:
+  - slug: timeouts-and-cancellation-001
+    title: Phân biệt timeout của một handler với thời hạn của toàn bộ yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-and-cancellation-002
+    title: Truyền deadline và tính ngân sách thời gian còn lại cho bước kế tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-and-cancellation-003
+    title: Dừng chuyển tiếp khi yêu cầu hết hạn hoặc có tín hiệu hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-and-cancellation-004
+    title: Thiết kế hủy hợp tác và xử lý interruption đúng hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-and-cancellation-005
+    title: Phân biệt future hoàn tất do timeout với việc tác vụ bên dưới thực sự dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-and-cancellation-006
+    title: Truyền tín hiệu hủy đến tác vụ và lời gọi I/O có hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-and-cancellation-007
+    title: Xử lý cuộc đua giữa hoàn tất, thất bại và hủy mà không trả kết quả hai lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-and-cancellation-008
+    title: Dọn dẹp tài nguyên và kiểm thử tác vụ còn chạy sau timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reactive-chains
+  title: Chuỗi reactive
+  childs:
+  - slug: reactive-chains-001
+    title: Ánh xạ hợp đồng handler sang publisher của kết quả xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-chains-002
+    title: Trì hoãn thực thi đến khi subscribe và phân biệt dữ liệu rỗng với bỏ qua
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-chains-003
+    title: Ghép handler theo thứ tự và biểu diễn kết thúc sớm trong luồng reactive
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-chains-004
+    title: Truyền context theo subscription thay vì phụ thuộc ThreadLocal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-chains-005
+    title: Tách thao tác blocking khỏi luồng xử lý cần duy trì non-blocking
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-chains-006
+    title: Áp dụng backpressure khi đầu vào là một luồng nhiều yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-chains-007
+    title: Xử lý timeout, hủy và retry mà không vô tình lặp tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-chains-008
+    title: Chọn reactive, CompletableFuture hoặc chuỗi đồng bộ theo nhu cầu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: web-middleware
+  title: Middleware web
+  childs:
+  - slug: web-middleware-001
+    title: Ánh xạ request, response và next vào cấu trúc Chain of Responsibility
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-middleware-002
+    title: Thực thi logic trước và sau lời gọi middleware tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-middleware-003
+    title: Tổ chức correlation ID, kiểm tra đầu vào và xử lý endpoint trong chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-middleware-004
+    title: Kết thúc sớm bằng phản hồi khi yêu cầu không được chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-middleware-005
+    title: Đặt middleware xử lý exception để bao phủ đúng phạm vi lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-middleware-006
+    title: Quản lý trạng thái response đã ghi hoặc đã commit trước khi xử lý tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-middleware-007
+    title: Bảo vệ request body dạng stream khỏi việc đọc lặp ngoài chủ ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-middleware-008
+    title: Xác định thứ tự middleware và kiểm tra ảnh hưởng lên phản hồi cuối cùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-filters
+  title: Servlet Filter
+  childs:
+  - slug: servlet-filters-001
+    title: Vai trò của Filter, FilterChain, ServletRequest và ServletResponse
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-002
+    title: Gọi doFilter để chuyển tiếp và trả về để kết thúc xử lý tại filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-003
+    title: Bọc logic trước và sau chain.doFilter bằng cơ chế dọn dẹp phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-004
+    title: Dùng request wrapper hoặc response wrapper khi cần biến đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-005
+    title: Cấu hình mapping, dispatcher type và thứ tự filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-006
+    title: Phân biệt dispatch REQUEST, FORWARD, INCLUDE, ERROR và ASYNC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-007
+    title: Xử lý async dispatch và phân biệt lúc doFilter trả về với lúc yêu cầu hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-008
+    title: Tránh ghi response hai lần, gọi chain hai lần và để trạng thái request trong field
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Đăng ký handler bằng dependency injection và lắp ghép tại configuration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-integration-002
+    title: Quản lý thứ tự bean và kiểm tra thứ tự thực tế của chuỗi được tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-integration-003
+    title: Tổ chức Servlet Filter và OncePerRequestFilter theo loại dispatch cần hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-integration-004
+    title: Phân biệt Servlet Filter với Spring MVC HandlerInterceptor theo vị trí thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-integration-005
+    title: Phân biệt chọn SecurityFilterChain phù hợp với chạy các filter trong chuỗi đó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-integration-006
+    title: Thiết kế WebFilter và chuyển tiếp bằng WebFilterChain trong WebFlux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-integration-007
+    title: Kiểm soát phạm vi bean, transaction và context trong handler dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-integration-008
+    title: Kiểm thử tích hợp thứ tự, kết thúc sớm và xử lý lỗi của chuỗi Spring
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-security
+  title: Bảo mật
+  childs:
+  - slug: chain-security-001
+    title: Đặt xác thực và phân quyền trước handler truy cập tài nguyên được bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-security-002
+    title: Thiết kế mặc định từ chối khi không có handler bảo mật đưa ra quyết định hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-security-003
+    title: Phân biệt handler không áp dụng với quyết định cho phép truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-security-004
+    title: Ngăn cấu hình động bỏ qua hoặc đảo thứ tự các kiểm tra bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-security-005
+    title: Chỉ tin danh tính và metadata đã được xác minh tại ranh giới hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-security-006
+    title: Kiểm soát dữ liệu nhạy cảm trong context, exception và log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-security-007
+    title: Đặt giới hạn kích thước, tốc độ và chi phí xử lý yêu cầu phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-security-008
+    title: Kiểm tra đường đi lỗi, timeout và fallback không làm mất điều kiện bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: chain-observability-001
+    title: Ghi nhận handler đã chạy, đã bỏ qua và nơi chuỗi kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-observability-002
+    title: Liên kết log bằng request ID và phiên bản cấu hình chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-observability-003
+    title: Đo thời gian từng handler và thời gian toàn bộ yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-observability-004
+    title: Đếm kết quả thành công, từ chối, không được xử lý, lỗi và timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-observability-005
+    title: Tạo trace và span thể hiện thứ tự cùng quan hệ giữa các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-observability-006
+    title: Tách thời gian xử lý nội bộ khỏi thời gian chờ bước tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-observability-007
+    title: Hạn chế cardinality của nhãn metrics và chi phí log trên đường xử lý chính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-observability-008
+    title: Chẩn đoán handler chậm, điểm dừng bất thường và lỗi phụ thuộc thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-testing
+  title: Kiểm thử
+  childs:
+  - slug: chain-testing-001
+    title: Unit test riêng điều kiện áp dụng và logic xử lý của từng handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-002
+    title: Kiểm thử hợp đồng cho hành vi chuyển tiếp, dừng và số lần gọi next
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-003
+    title: Dùng fake hoặc spy để kiểm tra thứ tự và kết quả đầu cuối của chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-004
+    title: Bao phủ chuỗi rỗng, không handler phù hợp, cấu hình lỗi và liên kết vòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-005
+    title: Kiểm tra exception, fallback, retry và bảo toàn tác dụng phụ hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-006
+    title: Kiểm thử async, timeout và hủy bằng cơ chế điều khiển thời gian phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-007
+    title: Kiểm tra nhiều yêu cầu đồng thời và thay cấu hình khi đang xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-008
+    title: Kiểm thử tích hợp web cho phản hồi sớm, dispatch và response đã commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-performance
+  title: Hiệu năng
+  childs:
+  - slug: chain-performance-001
+    title: Phân tích chi phí tuyến tính theo số handler thực sự được đi qua
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-performance-002
+    title: Đặt kiểm tra rẻ và có khả năng loại bỏ cao ở vị trí hợp lệ về ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-performance-003
+    title: So sánh chuỗi liên kết đệ quy với bộ điều phối dùng vòng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-performance-004
+    title: Giảm cấp phát context, sao chép dữ liệu và tạo callback không cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-performance-005
+    title: Giới hạn hàng đợi, concurrency và số tác vụ đang chờ để tránh quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-performance-006
+    title: Phân biệt tăng throughput nhiều yêu cầu với giảm latency của một yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-performance-007
+    title: Đo CPU bằng JMH và đo tải tích hợp khi chuỗi có I/O hoặc framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-performance-008
+    title: Theo dõi phân vị độ trễ, lỗi và mức sử dụng tài nguyên trước khi tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-comparisons
+  title: So sánh mẫu
+  childs:
+  - slug: pattern-comparisons-001
+    title: Chain of Responsibility và Strategy trong cách chọn thuật toán xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-002
+    title: Chain of Responsibility và Decorator trong bọc hành vi và điều khiển chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-003
+    title: Chain of Responsibility và pipeline trong kết thúc sớm và xử lý qua nhiều bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-004
+    title: Chain of Responsibility và Command trong biểu diễn hành động và phân phối yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-005
+    title: Chain of Responsibility và Observer trong truyền sự kiện cho nhiều bên nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-006
+    title: Chain of Responsibility và State trong quyết định hành vi theo trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-007
+    title: Chain of Responsibility và rule engine trong quản lý nhiều điều kiện nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-008
+    title: Chuỗi tuyến tính và workflow có nhánh, lưu trạng thái hoặc kéo dài nhiều bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-antipatterns
+  title: Anti-pattern
+  childs:
+  - slug: chain-antipatterns-001
+    title: Biến chuỗi thành tập hợp handler làm quá nhiều trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-antipatterns-002
+    title: Dựa vào thứ tự ngầm và dữ liệu context không có hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-antipatterns-003
+    title: Nuốt exception rồi chuyển tiếp khiến yêu cầu có trạng thái không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-antipatterns-004
+    title: Quên gọi next, gọi next nhiều lần hoặc tạo vòng lặp chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-antipatterns-005
+    title: Dùng null hoặc boolean mơ hồ cho nhiều loại kết quả khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-antipatterns-006
+    title: Chia sẻ trạng thái request trong singleton và sửa chuỗi khi đang duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-antipatterns-007
+    title: Retry toàn bộ chuỗi khiến thanh toán, ghi dữ liệu hoặc phát sự kiện bị lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-antipatterns-008
+    title: Lạm dụng chuỗi cho luồng đơn giản hoặc dùng nó thay mọi cơ chế phân nhánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refactoring-to-chains
+  title: Tái cấu trúc
+  childs:
+  - slug: refactoring-to-chains-001
+    title: Nhận diện if-else hoặc switch chứa nhiều trách nhiệm xử lý độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-chains-002
+    title: Chốt hành vi hiện tại bằng các tình huống đại diện và kiểm thử hồi quy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-chains-003
+    title: Tách điều kiện áp dụng và logic xử lý thành các handler nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-chains-004
+    title: Giữ nguyên độ ưu tiên của điều kiện và chính sách không có kết quả phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-chains-005
+    title: Đưa thứ tự lắp ghép ra khỏi client và logic nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-chains-006
+    title: Thay phụ thuộc context ngầm bằng dữ liệu đầu vào và kết quả rõ kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-chains-007
+    title: Chuyển từng phần sang chuỗi và so sánh hành vi trước khi mở rộng áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-chains-008
+    title: Đánh giá lại độ phức tạp, khả năng thay đổi và chi phí vận hành sau chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-chain-exercises
+  title: Thực hành Java
+  childs:
+  - slug: java-chain-exercises-001
+    title: Xây chuỗi hỗ trợ khách hàng với nhiều cấp tiếp nhận và chuyển cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-chain-exercises-002
+    title: Xây chuỗi validation đơn hàng có chế độ dừng sớm và thu thập lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-chain-exercises-003
+    title: Xây chuỗi xét duyệt theo hạn mức và trả rõ lý do không được xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-chain-exercises-004
+    title: Viết builder kiểm tra cấu hình, thứ tự phụ thuộc và liên kết vòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-chain-exercises-005
+    title: Nạp chuỗi động bằng snapshot bất biến trong khi nhiều yêu cầu đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-chain-exercises-006
+    title: Chuyển một chuỗi gọi dịch vụ sang CompletionStage với executor phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-chain-exercises-007
+    title: Bổ sung deadline, hủy hợp tác và retry có kiểm soát tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-chain-exercises-008
+    title: Hoàn thiện kiểm thử và đo đạc để giải thích lựa chọn thiết kế của từng bài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: web-chain-exercises
+  title: Thực hành web
+  childs:
+  - slug: web-chain-exercises-001
+    title: Thiết kế chuỗi tiếp nhận API từ correlation ID đến phản hồi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-chain-exercises-002
+    title: Cài đặt filter kết thúc sớm khi đầu vào hoặc quyền truy cập không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-chain-exercises-003
+    title: Cài đặt middleware đo thời gian với dọn dẹp khi có exception
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-chain-exercises-004
+    title: Bọc request và response để kiểm soát việc đọc body và ghi phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-chain-exercises-005
+    title: Tích hợp chuỗi handler nghiệp vụ với cấu hình dependency injection của Spring
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-chain-exercises-006
+    title: Thử async dispatch hoặc WebFlux và quan sát truyền context cùng tín hiệu hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-chain-exercises-007
+    title: Kiểm thử thứ tự filter, đường đi lỗi, timeout và request đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-chain-exercises-008
+    title: Mô phỏng đổi cấu hình và dùng log, metrics, trace để tìm handler gây sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-operations
+  title: Vận hành chuỗi
+  childs:
+  - slug: chain-operations-001
+    title: Công bố sơ đồ thứ tự handler và hợp đồng xử lý cho từng loại yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-operations-002
+    title: Kiểm soát thay đổi cấu hình bằng phiên bản và kiểm tra trước khi áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-operations-003
+    title: Triển khai handler mới theo nhóm lưu lượng và theo dõi kết quả thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-operations-004
+    title: Giữ tương thích khi nhiều phiên bản handler hoặc chuỗi cùng phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-operations-005
+    title: Đặt ngưỡng cảnh báo cho lỗi, timeout, quá tải và yêu cầu không được xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-operations-006
+    title: Khoanh vùng sự cố theo handler, dependency và phiên bản cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-operations-007
+    title: Quay về cấu hình trước và xác minh các yêu cầu đang chạy được xử lý nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-operations-008
+    title: Rà soát định kỳ handler không còn dùng, phụ thuộc thứ tự và chi phí vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

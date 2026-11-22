@@ -1,0 +1,3 @@
+menuLevel1: StampedLock
+menuLevel2: tryOptimisticRead, sao chép dữ liệu và validate
+status: WRITTEN

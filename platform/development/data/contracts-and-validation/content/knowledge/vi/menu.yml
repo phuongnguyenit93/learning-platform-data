@@ -1,0 +1,326 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Hợp đồng dữ liệu (data contract) là gì và vì sao cần thỏa thuận giữa bên cung cấp và bên sử dụng
+  - Kiểm tra tính hợp lệ (validation) và các câu hỏi dữ liệu phải trả lời trước khi được sử dụng
+  - Phân biệt hợp đồng dữ liệu, lược đồ (schema), mô hình dữ liệu và tài liệu API
+  - Phân biệt kiểm tra cấu trúc, cú pháp, ý nghĩa và quy tắc nghiệp vụ
+  - Phân biệt kiểm tra hợp lệ, chuẩn hóa, chuyển đổi kiểu và làm sạch dữ liệu
+  - Ranh giới tin cậy và vòng đời dữ liệu từ đầu vào đến đầu ra
+  - Vai trò của bên cung cấp, bên sử dụng và người chịu trách nhiệm hợp đồng
+  - 'Lộ trình học và ví dụ xuyên suốt: hợp đồng tạo đơn hàng'
+- level1: Thiết kế hợp đồng
+  level2:
+  - Xác định mục đích dữ liệu, phạm vi sử dụng và những giả định phải công bố
+  - Mô tả tên trường, ý nghĩa, kiểu dữ liệu, ràng buộc và ví dụ hợp lệ
+  - Quy định trường bắt buộc, trường tùy chọn và điều kiện xuất hiện
+  - Phân biệt trường vắng mặt, null, chuỗi rỗng, khoảng trắng và giá trị mặc định
+  - Quy định trường chưa biết, thuộc tính mở rộng và mức độ nghiêm ngặt khi tiếp nhận
+  - Thiết kế danh sách giá trị, mã định danh và giá trị dự phòng khi chưa nhận diện
+  - Phân biệt mô hình truyền dữ liệu, mô hình miền và mô hình lưu trữ
+  - Đặc tả cam kết về độ mới, khả năng sẵn sàng và thay đổi ý nghĩa dữ liệu
+  - Ví dụ hợp lệ, ví dụ bị từ chối và tiêu chí chấp nhận của một hợp đồng
+  - Chọn nguồn định nghĩa chuẩn và tránh lệch giữa tài liệu, lược đồ và mã kiểm tra
+- level1: Kiểu và cấu trúc
+  level2:
+  - Kiểu nguyên thủy, đối tượng, danh sách, tập hợp và ánh xạ trong hợp đồng
+  - Số nguyên, số thập phân, độ chính xác, thang số và giới hạn biểu diễn
+  - Tiền tệ, phần trăm, đơn vị đo và quy tắc biểu diễn thống nhất
+  - Chuỗi văn bản, Unicode, độ dài và cách đếm ký tự
+  - Ngày, giờ, múi giờ, thời điểm và khoảng thời gian
+  - Định dạng mã định danh, URI, email và số điện thoại theo ngữ cảnh
+  - Thứ tự, tính duy nhất, kích thước và phần tử null của tập hợp
+  - Đối tượng lồng nhau, tham chiếu, chu trình và giới hạn độ sâu
+  - Biểu diễn nhiều biến thể dữ liệu bằng trường phân loại và tập trường tương ứng
+- level1: Quy tắc ngữ nghĩa
+  level2:
+  - Ràng buộc một trường và ràng buộc liên hệ nhiều trường
+  - Khoảng giá trị, biên đóng, biên mở và trường hợp không xác định
+  - Quan hệ ngày bắt đầu, ngày kết thúc và thời điểm có hiệu lực
+  - Quy tắc ít nhất một, đúng một hoặc cùng xuất hiện giữa các trường
+  - Ràng buộc phụ thuộc loại dữ liệu, quốc gia hoặc ngữ cảnh sử dụng
+  - Tính đầy đủ, duy nhất và nhất quán bên trong một bản ghi
+  - Tính nhất quán giữa tổng tiền, dòng hàng, thuế và đơn vị tiền tệ
+  - Phân biệt quy tắc nội tại với điều kiện phụ thuộc trạng thái hệ thống
+  - Xác định thời điểm đánh giá và nguồn dữ liệu tham chiếu của mỗi quy tắc
+- level1: Chuẩn hóa dữ liệu
+  level2:
+  - 'Thiết kế chuỗi tiếp nhận: giải mã, chuyển đổi kiểu, chuẩn hóa và kiểm tra'
+  - Cắt khoảng trắng, chuẩn hóa chữ hoa thường và những ý nghĩa có thể bị thay đổi
+  - Chuẩn hóa Unicode và so sánh văn bản theo yêu cầu miền nghiệp vụ
+  - Chuyển đổi số và ngày giờ theo định dạng, ngôn ngữ và múi giờ đã thỏa thuận
+  - Quy tắc gán mặc định và cách giữ dấu vết giá trị thực sự được gửi
+  - Giữ dữ liệu gốc và dữ liệu đã chuẩn hóa để truy vết lỗi
+  - Tính lặp lại ổn định của phép chuẩn hóa và nguy cơ chuẩn hóa nhiều lần
+  - Phân biệt từ chối dữ liệu sai với tự sửa dữ liệu khi chưa có thỏa thuận
+- level1: JSON Schema
+  level2:
+  - Vai trò của JSON Schema, phiên bản đặc tả và khả năng hỗ trợ của công cụ
+  - Khai báo type, properties và required cho cấu trúc JSON
+  - Mô tả null và phân biệt thuộc tính bị thiếu với thuộc tính có giá trị null
+  - Giới hạn số, chuỗi, độ dài và mẫu ký tự
+  - 'Mô tả mảng: phần tử, kích thước, tính duy nhất và điều kiện chứa phần tử'
+  - Kiểm soát thuộc tính ngoài dự kiến bằng additionalProperties và unevaluatedProperties
+  - Kết hợp lược đồ bằng allOf, anyOf, oneOf và not
+  - Ràng buộc có điều kiện bằng if, then, else và quan hệ phụ thuộc thuộc tính
+  - Tái sử dụng định nghĩa bằng $defs, $ref và quản lý định danh lược đồ
+  - Phân biệt chú thích default, examples với hành vi kiểm tra hoặc tự điền dữ liệu
+  - Ý nghĩa của format và yêu cầu xác nhận chế độ kiểm tra của từng công cụ
+  - Đọc đường dẫn vi phạm, thu thập lỗi và kiểm thử lược đồ bằng dữ liệu mẫu
+- level1: Hợp đồng HTTP
+  level2:
+  - 'Phạm vi hợp đồng HTTP: phương thức, đường dẫn, tham số, tiêu đề và nội dung'
+  - Mô tả request, response, mã trạng thái và kiểu nội dung bằng OpenAPI
+  - Ràng buộc tham số đường dẫn, truy vấn, tiêu đề và phần thân yêu cầu
+  - Quy ước phân trang, sắp xếp, lọc và giới hạn dữ liệu đầu vào
+  - Phân biệt tạo mới, thay thế toàn bộ và cập nhật một phần
+  - Biểu diễn không đổi, gán null và xóa giá trị trong hợp đồng cập nhật
+  - Lựa chọn JSON Merge Patch, JSON Patch hoặc mô hình cập nhật riêng
+  - Thiết kế hợp đồng phản hồi thành công và phản hồi lỗi thống nhất
+  - Kiểm tra dữ liệu đầu ra để phát hiện vi phạm cam kết với bên sử dụng
+  - Phạm vi suy ra lược đồ từ mã và giới hạn của tài liệu được sinh tự động
+- level1: Hợp đồng thông điệp
+  level2:
+  - Phân biệt sự kiện, lệnh và bản ghi dữ liệu trong giao tiếp bất đồng bộ
+  - 'Thiết kế vỏ thông điệp: định danh, loại, phiên bản, thời gian và nguồn phát'
+  - Tách dữ liệu nghiệp vụ khỏi siêu dữ liệu phục vụ truyền nhận và truy vết
+  - Vai trò của Avro, Protocol Buffers và JSON Schema trong quản lý hợp đồng
+  - Mô hình lược đồ bên ghi, bên đọc và cơ chế phân giải khi sử dụng Avro
+  - Số hiệu trường, sự hiện diện và trường chưa biết trong Protocol Buffers
+  - Đăng ký, tra cứu và kiểm soát tương thích bằng kho lược đồ (schema registry)
+  - Kiểm tra tại bên phát, bên nhận và xử lý thông điệp không hợp lệ
+  - Hợp đồng về thứ tự, trùng lặp, thời điểm sự kiện và khả năng phát lại
+  - Hàng đợi lỗi, vùng cách ly và điều kiện đưa thông điệp trở lại luồng xử lý
+- level1: Phiên bản hợp đồng
+  level2:
+  - Tương thích ngược, tương thích xuôi và tương thích đầy đủ theo vai trò bên ghi và bên đọc
+  - Phân biệt tương thích cấu trúc, tương thích ý nghĩa và tương thích hành vi
+  - Phân tích thêm, xóa, đổi tên và đổi kiểu trường
+  - Ảnh hưởng của thay đổi bắt buộc, null, giá trị mặc định và giới hạn hợp lệ
+  - Mở rộng tập giá trị và nguy cơ bên sử dụng xử lý không đầy đủ
+  - Quản lý phiên bản tài liệu, lược đồ, API và thông điệp
+  - Chính sách ngừng hỗ trợ, thời gian chuyển đổi và thông báo thay đổi
+  - Triển khai mở rộng rồi thu hẹp để nhiều phiên bản cùng hoạt động
+  - Đọc dữ liệu cũ, chuyển đổi dữ liệu lịch sử và phát lại sự kiện
+  - Ma trận tương thích giữa các phiên bản và điều kiện chặn phát hành
+- level1: Kiến trúc kiểm tra
+  level2:
+  - Phân bố kiểm tra tại giao diện, ranh giới ứng dụng, miền nghiệp vụ và cơ sở dữ liệu
+  - Phân biệt lỗi chuyển đổi kiểu, lỗi kiểm tra, lỗi nghiệp vụ và lỗi hạ tầng
+  - Kiểm tra khai báo bằng annotation và kiểm tra chủ động bằng mã
+  - Tái sử dụng quy tắc mà không ép mọi lớp dùng chung một mô hình dữ liệu
+  - Kiểm tra đồng bộ, kiểm tra phụ thuộc nguồn ngoài và kết quả chưa xác định
+  - Dừng ở lỗi đầu tiên hay thu thập nhiều lỗi theo mục đích sử dụng
+  - Thiết kế kết quả kiểm tra, mã quy tắc, mức độ và đường dẫn trường
+  - Ranh giới giữa kiểm tra dữ liệu, xác thực danh tính và phân quyền
+- level1: Jakarta Validation
+  level2:
+  - Jakarta Validation, Bean Validation và vai trò của bộ triển khai Hibernate Validator
+  - Phân biệt API đặc tả, bộ triển khai và phần mở rộng riêng
+  - Không gian tên jakarta.validation và lưu ý với mã cũ dùng javax.validation
+  - Khởi tạo ValidatorFactory, lấy Validator và quản lý vòng đời tài nguyên
+  - Kiểm tra toàn đối tượng bằng validate và đọc tập ConstraintViolation
+  - Kiểm tra thuộc tính hoặc giá trị bằng validateProperty và validateValue
+  - Truy vấn siêu dữ liệu ràng buộc bằng BeanDescriptor và PropertyDescriptor
+  - Ràng buộc tại trường, thuộc tính truy cập và nguy cơ kiểm tra trùng lặp
+  - DTO, Java record và vị trí annotation cần xác minh theo cơ chế sử dụng
+- level1: Ràng buộc chuẩn
+  level2:
+  - '@Null, @NotNull, @NotEmpty và @NotBlank: khác nhau về đối tượng và ý nghĩa'
+  - '@Size cho chuỗi, tập hợp, ánh xạ và mảng'
+  - '@Min, @Max, @DecimalMin và @DecimalMax cho giới hạn số'
+  - '@Positive, @PositiveOrZero, @Negative và @NegativeOrZero'
+  - '@Digits cho độ dài phần nguyên và phần thập phân'
+  - '@Pattern, @Email và giới hạn kiểm tra ý nghĩa thực tế'
+  - '@Past, @PastOrPresent, @Future và @FutureOrPresent'
+  - '@AssertTrue và @AssertFalse cho điều kiện logic'
+  - Cách các ràng buộc xử lý null và khi nào phải kết hợp @NotNull
+  - Kiểu dữ liệu được hỗ trợ và lỗi khi đặt ràng buộc lên kiểu không phù hợp
+  - Kiểu nguyên thủy, kiểu bao và tác động của giá trị mặc định đến kiểm tra
+- level1: Dữ liệu lồng nhau
+  level2:
+  - Kiểm tra lan truyền (cascaded validation) bằng @Valid
+  - Phân biệt @Valid và @NotNull trên đối tượng con
+  - Ràng buộc phần tử List, Set và phân biệt kiểm tra kiểu mảng
+  - Ràng buộc khóa và giá trị của Map
+  - Kiểm tra cấu trúc chứa nhiều tầng và xác định vị trí vi phạm
+  - Optional, sự hiện diện dữ liệu và giới hạn của từng bộ trích xuất giá trị
+  - Vai trò của ValueExtractor và trích xuất giá trị từ kiểu bao tùy chỉnh
+  - Quy tắc bỏ bao giá trị (unwrapping) và cách tránh đặt nhầm ràng buộc
+  - Đồ thị đối tượng có tham chiếu lặp và kiểm soát chi phí kiểm tra
+- level1: Ràng buộc tùy chỉnh
+  level2:
+  - Khi nào cần ràng buộc riêng thay vì ghép các ràng buộc chuẩn
+  - Thiết kế annotation với @Constraint, message, groups và payload
+  - Triển khai ConstraintValidator, khởi tạo cấu hình và kiểm tra isValid
+  - Chính sách null và trách nhiệm của từng ràng buộc
+  - Ràng buộc cấp lớp cho quan hệ giữa nhiều trường
+  - Gắn lỗi cấp lớp vào trường phù hợp bằng ConstraintValidatorContext
+  - Tạo nhiều vi phạm và quản lý thông báo mặc định
+  - Kết hợp ràng buộc và sử dụng @ReportAsSingleViolation
+  - Ghi đè thuộc tính của ràng buộc thành phần bằng @OverridesAttribute
+  - Thiết kế validator không giữ trạng thái yêu cầu và dùng an toàn khi tái sử dụng
+  - Giới hạn gọi dịch vụ ngoài hoặc truy vấn cơ sở dữ liệu bên trong validator
+- level1: Nhóm kiểm tra
+  level2:
+  - Nhóm Default và cách chọn nhóm khi gọi Validator
+  - Thiết kế nhóm theo tình huống tạo mới, cập nhật và xử lý từng giai đoạn
+  - Kế thừa nhóm và ảnh hưởng đến tập ràng buộc được thực thi
+  - Thứ tự kiểm tra bằng @GroupSequence và điều kiện dừng giữa các nhóm
+  - Định nghĩa lại nhóm mặc định của lớp và các ràng buộc liên quan
+  - Chuyển đổi nhóm cho đối tượng con bằng @ConvertGroup
+  - Phân biệt nhóm kiểm tra với thứ tự thực thi từng ràng buộc
+  - Phần mở rộng chọn nhóm động và giới hạn tính di động
+  - Dấu hiệu lạm dụng nhóm và lúc nên tách DTO theo mục đích sử dụng
+- level1: Kiểm tra phương thức
+  level2:
+  - Tiền điều kiện, hậu điều kiện và hợp đồng của phương thức
+  - Ràng buộc tham số, giá trị trả về và đối tượng trả về lồng nhau
+  - Kiểm tra tham số và kết quả khởi tạo đối tượng
+  - Ràng buộc liên tham số và quy tắc nhất quán của nhiều đối số
+  - Kiểm tra chủ động bằng ExecutableValidator
+  - Kế thừa phương thức và quy tắc không tăng tiền điều kiện của kiểu con
+  - Kế thừa ràng buộc kết quả trả về và các cấu hình không hợp lệ
+  - Phân biệt annotation khai báo với cơ chế thực sự kích hoạt kiểm tra
+- level1: Tích hợp Spring
+  level2:
+  - Tích hợp Jakarta Validation vào ứng dụng Spring và lựa chọn bộ triển khai
+  - Kích hoạt kiểm tra request DTO bằng @Valid
+  - Chọn nhóm bằng @Validated và phạm vi áp dụng
+  - Kiểm tra model attribute, query parameter và request body trong Spring MVC
+  - Phân biệt lỗi binding, lỗi đọc JSON và lỗi ràng buộc dữ liệu
+  - Kiểm tra phương thức tại lớp dịch vụ thông qua cơ chế proxy
+  - Lời gọi nội bộ cùng đối tượng và giới hạn của kiểm tra dựa trên proxy
+  - Xử lý kết quả bằng BindingResult hoặc cơ chế ánh xạ ngoại lệ tập trung
+  - Sự khác nhau giữa kiểm tra đối tượng và kiểm tra phương thức của bộ điều khiển
+  - Cấu hình MessageSource, locale và đồng hồ kiểm tra theo nhu cầu ứng dụng
+  - Lưu ý với luồng phản ứng và tránh tác vụ kiểm tra chặn luồng xử lý
+  - Giới hạn việc tích hợp Spring và giữ quy tắc miền có thể kiểm thử độc lập
+- level1: Thông báo và lỗi
+  level2:
+  - Phân biệt mã lỗi ổn định, thông báo cho người dùng và chi tiết kỹ thuật
+  - 'Đọc ConstraintViolation: đường dẫn, mẫu thông báo, giá trị và siêu dữ liệu'
+  - Đường dẫn lỗi cho trường lồng nhau, phần tử mảng và khóa ánh xạ
+  - Nội suy thông báo, ValidationMessages và hỗ trợ nhiều ngôn ngữ
+  - Thiết kế phản hồi lỗi bằng Problem Details hoặc định dạng hợp đồng riêng
+  - Lựa chọn mã trạng thái cho lỗi cú pháp, lỗi ràng buộc và xung đột nghiệp vụ
+  - Tổ chức nhiều lỗi, loại bỏ trùng lặp và sắp xếp ổn định
+  - Gắn mã truy vết và ngữ cảnh yêu cầu vào báo cáo lỗi
+  - Ẩn dữ liệu nhạy cảm trong giá trị bị từ chối và thông báo trả ra
+  - Giữ tương thích khi đổi nội dung thông báo hoặc cấu trúc lỗi
+- level1: Quy tắc nghiệp vụ
+  level2:
+  - Đặt bất biến (invariant) trong đối tượng giá trị và thực thể
+  - Khởi tạo đối tượng hợp lệ qua constructor hoặc factory
+  - Phân biệt tính hợp lệ của dữ liệu với tính hợp lệ của một thao tác
+  - Kiểm tra trạng thái hiện tại và chuyển trạng thái được phép
+  - Quy tắc phụ thuộc tài khoản, quyền sở hữu và điều kiện nghiệp vụ
+  - Đóng gói quy tắc có thể tái sử dụng bằng chính sách hoặc đối tượng điều kiện
+  - Trả nhiều lỗi nghiệp vụ hay thất bại ngay theo từng quy trình
+  - Phối hợp kiểm tra DTO và miền mà không để lọt bất biến
+  - Xử lý thất bại khi nguồn tham chiếu không sẵn sàng hoặc đã lỗi thời
+- level1: Nhất quán và lưu trữ
+  level2:
+  - Ràng buộc NOT NULL, CHECK, UNIQUE và khóa ngoại như lớp bảo vệ dữ liệu
+  - Phân biệt kiểm tra trước khi ghi với đảm bảo tính đúng tại thời điểm ghi
+  - Tranh chấp giữa kiểm tra và sử dụng dữ liệu khi có truy cập đồng thời
+  - Bảo vệ tính duy nhất bằng ràng buộc cơ sở dữ liệu và xử lý vi phạm
+  - Phạm vi giao dịch, khóa và kiểm soát phiên bản theo bất biến cần bảo vệ
+  - Vai trò của Jakarta Validation trong vòng đời lưu trữ qua JPA
+  - Ánh xạ vi phạm lưu trữ thành lỗi ứng dụng phù hợp
+  - Tính nhất quán cuối cùng và quy tắc kiểm tra giữa nhiều dịch vụ
+  - Thay đổi ràng buộc khi dữ liệu cũ chưa đáp ứng hợp đồng mới
+- level1: Nhập liệu và xử lý lô
+  level2:
+  - 'Hợp đồng tệp CSV, Excel và JSON Lines: cấu trúc, cột và phiên bản'
+  - Mã hóa, dấu phân cách, tiêu đề và quy tắc biểu diễn ô trống
+  - Kiểm tra theo tệp, theo hàng, theo trường và giữa nhiều hàng
+  - Tham chiếu dữ liệu danh mục và phát hiện bản ghi trùng trong lô
+  - Chọn từ chối toàn bộ hay chấp nhận một phần với quy tắc rõ ràng
+  - Báo lỗi kèm số dòng, tên cột và dữ liệu đã che thông tin nhạy cảm
+  - Xử lý theo luồng, chia lô và kiểm soát bộ nhớ
+  - Vùng dữ liệu chờ kiểm tra, vùng cách ly và điều kiện nhập chính thức
+  - Chạy lại, tiếp tục sau lỗi và tránh tạo dữ liệu trùng
+  - Đối soát số bản ghi nhận, chấp nhận, từ chối và được ghi thành công
+- level1: Bảo mật đầu vào
+  level2:
+  - Giới hạn kích thước yêu cầu, số phần tử, độ sâu và độ dài trường
+  - Giới hạn thời gian và nguy cơ từ biểu thức chính quy có chi phí lớn
+  - Danh sách giá trị cho phép và nguyên tắc từ chối có chủ đích
+  - Thuộc tính ngoài dự kiến, gán hàng loạt và nguy cơ thay đổi trường nhạy cảm
+  - URL, đường dẫn tệp và yêu cầu kiểm tra theo mục đích sử dụng
+  - Phân biệt kiểm tra đầu vào với truy vấn tham số hóa và mã hóa đầu ra
+  - Dữ liệu nhị phân, nội dung tệp và giới hạn tin cậy kiểu MIME
+  - Ngăn rò rỉ thông tin nội bộ qua lỗi kiểm tra và log
+  - Giới hạn số lỗi trả về để tránh lạm dụng tài nguyên
+- level1: Thời gian và ngữ cảnh
+  level2:
+  - Kiểm tra phụ thuộc thời gian và sử dụng ClockProvider
+  - Múi giờ, ranh giới ngày và khoảng thời gian chuyển giờ theo mùa
+  - Độ mới dữ liệu, thời gian sự kiện và thời gian hệ thống nhận dữ liệu
+  - Kiểm tra theo quốc gia, ngôn ngữ và quy ước địa phương
+  - Quy tắc theo khách hàng tổ chức và quản lý cấu hình có phiên bản
+  - Xác định nguồn cấu hình, thời điểm áp dụng và khả năng tái hiện kết quả
+  - Phân biệt dữ liệu sai với không đủ thông tin để kết luận
+  - Giữ tính xác định khi kiểm thử và xử lý lại dữ liệu lịch sử
+- level1: Hiệu năng
+  level2:
+  - Đo chi phí kiểm tra theo kích thước dữ liệu, số ràng buộc và độ sâu
+  - Tái sử dụng ValidatorFactory và Validator theo hợp đồng an toàn luồng
+  - Chọn kiểm tra tuần tự theo nhóm để tránh công việc không cần thiết
+  - Dừng ở lỗi đầu tiên qua phần mở rộng của bộ triển khai và đánh đổi
+  - Tránh truy vấn lặp cho từng bản ghi và gom kiểm tra dữ liệu tham chiếu
+  - Bộ nhớ đệm dữ liệu tham chiếu, thời hạn hiệu lực và rủi ro dữ liệu cũ
+  - Biên dịch và tái sử dụng lược đồ trong giới hạn của thư viện
+  - Kiểm tra dữ liệu lớn theo luồng và giới hạn số lỗi được giữ
+  - Đo tải, độ trễ và hành vi khi nhiều yêu cầu kiểm tra đồng thời
+- level1: Kiểm thử ràng buộc
+  level2:
+  - Thiết kế ma trận trường hợp hợp lệ, không hợp lệ và chưa xác định
+  - Kiểm thử null, thiếu trường, rỗng, khoảng trắng và giá trị mặc định
+  - Kiểm thử tại biên số, độ dài, thời gian và độ chính xác thập phân
+  - Kiểm thử Unicode, ngôn ngữ, múi giờ và dữ liệu được chuẩn hóa
+  - Kiểm thử ràng buộc tùy chỉnh và vị trí chính xác của vi phạm
+  - Kiểm thử dữ liệu lồng nhau, nhóm, chuyển đổi nhóm và thứ tự nhóm
+  - Kiểm thử ràng buộc phương thức và việc kích hoạt qua proxy thực tế
+  - Kiểm thử tích hợp binding, ánh xạ ngoại lệ và định dạng phản hồi lỗi
+  - Sinh dữ liệu theo thuộc tính và dữ liệu ngẫu nhiên có kiểm soát
+  - Kiểm thử tranh chấp, dữ liệu tham chiếu thay đổi và nguồn ngoài bị lỗi
+  - Thiết kế dữ liệu kiểm thử độc lập, có thể tái hiện và không chứa thông tin riêng tư
+- level1: Kiểm thử hợp đồng
+  level2:
+  - Phân biệt kiểm thử lược đồ, kiểm thử tích hợp và kiểm thử hợp đồng
+  - Kiểm tra yêu cầu, phản hồi và thông điệp bằng lược đồ chuẩn
+  - Kiểm thử hợp đồng do bên sử dụng định nghĩa và xác minh tại bên cung cấp
+  - Vai trò của Pact hoặc Spring Cloud Contract trong luồng xác minh
+  - Xác định phạm vi hợp đồng và tránh sao chép toàn bộ hành vi triển khai
+  - Kiểm thử nhiều phiên bản bên cung cấp và bên sử dụng
+  - So sánh lược đồ để phát hiện thay đổi có thể phá vỡ tương thích
+  - Kiểm tra khác biệt ý nghĩa mà công cụ so sánh cấu trúc không phát hiện
+  - Quản lý dữ liệu mẫu, bản chụp chuẩn và điều kiện cập nhật có kiểm soát
+  - Đặt cổng kiểm tra hợp đồng trong CI/CD và chặn bản phát hành vi phạm
+- level1: Vận hành hợp đồng
+  level2:
+  - Quản lý người chịu trách nhiệm, kho hợp đồng và quy trình phê duyệt
+  - Đánh giá tác động khi thay đổi trường hoặc quy tắc kiểm tra
+  - Phát hiện độ lệch giữa dữ liệu thực tế, mã xử lý và hợp đồng công bố
+  - Theo dõi tỷ lệ bị từ chối, mã lỗi phổ biến và phiên bản hợp đồng
+  - Thiết kế nhãn đo lường có số lượng giá trị hữu hạn và log có kiểm soát
+  - Chạy kiểm tra quan sát trước khi bật chế độ từ chối
+  - Phát hành từng phần, theo dõi ảnh hưởng và quay về phiên bản trước
+  - Quản lý ngoại lệ tạm thời, thời hạn miễn trừ và nợ hợp đồng
+  - Xử lý sự cố vi phạm, thông báo bên sử dụng và phát lại dữ liệu an toàn
+  - Rà soát định kỳ quy tắc đã lỗi thời và chứng cứ hợp đồng còn được đáp ứng
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế hợp đồng đơn hàng từ yêu cầu nghiệp vụ và dữ liệu ví dụ
+  - Xây dựng DTO đầu vào với ràng buộc chuẩn và đối tượng lồng nhau
+  - Tạo ràng buộc liên trường cho khoảng giao hàng và tổng tiền
+  - Phân tách hợp đồng tạo đơn, cập nhật đơn và kiểm tra chuyển trạng thái
+  - Tích hợp Spring, bản địa hóa thông báo và chuẩn hóa phản hồi lỗi
+  - Bảo vệ mã đơn duy nhất dưới truy cập đồng thời bằng ràng buộc lưu trữ
+  - Thiết kế sự kiện đơn hàng và nâng cấp hợp đồng qua hai phiên bản
+  - Nhập danh sách đơn theo lô với báo cáo lỗi và khả năng chạy lại
+  - Xây dựng bộ kiểm thử ràng buộc, hợp đồng và cổng CI
+  - Theo dõi dữ liệu vi phạm và lập kế hoạch chuyển đổi hợp đồng
+  - Danh sách kiểm tra để đánh giá một hợp đồng dữ liệu trước khi đưa vào sử dụng

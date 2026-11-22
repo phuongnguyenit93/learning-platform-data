@@ -1,0 +1,100 @@
+menu:
+- title: Nền tảng
+  slug: serialization-overview
+  index: 0
+- title: Chuỗi xử lý
+  slug: serialization-pipeline
+  index: 1
+- title: Bit và byte
+  slug: bits-and-bytes
+  index: 2
+- title: Văn bản và Unicode
+  slug: text-and-unicode
+  index: 3
+- title: Kiểu và giá trị
+  slug: types-and-values
+  index: 4
+- title: Đồ thị đối tượng
+  slug: object-graphs
+  index: 5
+- title: Luồng vào ra Java
+  slug: java-io-streams
+  index: 6
+- title: Đóng khung dữ liệu
+  slug: data-framing
+  index: 7
+- title: JSON
+  slug: json
+  index: 8
+- title: XML
+  slug: xml
+  index: 9
+- title: CSV
+  slug: csv
+  index: 10
+- title: YAML và cấu hình
+  slug: yaml-and-configuration
+  index: 11
+- title: Định dạng nhị phân
+  slug: binary-formats
+  index: 12
+- title: Lược đồ dữ liệu
+  slug: data-schemas
+  index: 13
+- title: Tương thích phiên bản
+  slug: version-compatibility
+  index: 14
+- title: Mô hình trao đổi
+  slug: exchange-models
+  index: 15
+- title: Chiến lược ánh xạ
+  slug: mapping-strategies
+  index: 16
+- title: Java Serialization
+  slug: java-serialization
+  index: 17
+- title: Định danh lớp
+  slug: class-identifiers
+  index: 18
+- title: Tùy biến tuần tự hóa
+  slug: serialization-customization
+  index: 19
+- title: Kế thừa và kiểu đặc biệt
+  slug: inheritance-and-special-types
+  index: 20
+- title: Externalizable
+  slug: externalizable
+  index: 21
+- title: Bảo mật giải tuần tự hóa
+  slug: deserialization-security
+  index: 22
+- title: Tính xác định
+  slug: determinism
+  index: 23
+- title: Nén và toàn vẹn
+  slug: compression-and-integrity
+  index: 24
+- title: Dữ liệu lớn và luồng
+  slug: large-data-and-streaming
+  index: 25
+- title: Lỗi và phục hồi
+  slug: errors-and-recovery
+  index: 26
+- title: Kiểm thử
+  slug: testing
+  index: 27
+- title: Hiệu năng
+  slug: performance
+  index: 28
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 29
+- title: Lựa chọn giải pháp
+  slug: solution-selection
+  index: 30
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 31
+- title: Thực hành tổng hợp
+  slug: integrated-serialization-practice
+  index: 32

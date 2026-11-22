@@ -1,0 +1,97 @@
+menu:
+- title: Bức tranh Spring Boot
+  slug: spring-boot-overview
+  index: 0
+- title: Kiến thức chuẩn bị
+  slug: prerequisites
+  index: 1
+- title: Dự án đầu tiên
+  slug: first-project
+  index: 2
+- title: Tổ chức mã nguồn
+  slug: source-organization
+  index: 3
+- title: Dependency và starter
+  slug: dependencies-and-starters
+  index: 4
+- title: '@SpringBootApplication'
+  slug: spring-boot-application
+  index: 5
+- title: IoC container
+  slug: ioc-container
+  index: 6
+- title: Đăng ký bean
+  slug: bean-registration
+  index: 7
+- title: Tiêm phụ thuộc
+  slug: dependency-injection
+  index: 8
+- title: Chọn bean
+  slug: bean-selection
+  index: 9
+- title: Phạm vi bean
+  slug: bean-scopes
+  index: 10
+- title: Vòng đời bean
+  slug: bean-lifecycle
+  index: 11
+- title: Java configuration
+  slug: java-configuration
+  index: 12
+- title: Cấu hình theo điều kiện
+  slug: conditional-configuration
+  index: 13
+- title: Auto-configuration
+  slug: auto-configuration
+  index: 14
+- title: Tùy biến Spring Boot
+  slug: boot-customization
+  index: 15
+- title: SpringApplication
+  slug: spring-application
+  index: 16
+- title: Sự kiện và runner
+  slug: events-and-runners
+  index: 17
+- title: Trạng thái và dừng
+  slug: state-and-shutdown
+  index: 18
+- title: Cấu hình ứng dụng
+  slug: application-configuration
+  index: 19
+- title: Profile
+  slug: profiles
+  index: 20
+- title: Tài nguyên và dữ liệu
+  slug: resources-and-data
+  index: 21
+- title: AOP và proxy
+  slug: aop-and-proxies
+  index: 22
+- title: Logging
+  slug: logging
+  index: 23
+- title: Công cụ phát triển
+  slug: developer-tools
+  index: 24
+- title: Chạy và đóng gói
+  slug: run-and-package
+  index: 25
+- title: Quan sát ứng dụng
+  slug: application-observability
+  index: 26
+- title: Kiểm thử nền tảng
+  slug: platform-testing
+  index: 27
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 28
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 29
+- title: Phiên bản và mở rộng
+  slug: versioning-and-extension
+  index: 30
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 31

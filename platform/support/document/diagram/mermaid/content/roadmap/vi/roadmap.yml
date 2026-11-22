@@ -1,0 +1,57 @@
+roadmap:
+- id: mermaid-cu-phap
+  title: Mermaid & Cú pháp
+  purpose: Hiểu cách tạo sơ đồ bằng văn bản và xem trước kết quả mà không cần vẽ thủ công.
+  objectives:
+  - Mở Mermaid Live Editor và chạy ví dụ
+  - Phân biệt khai báo loại sơ đồ và nội dung
+  - Sửa lỗi cú pháp từ thông báo parser
+- id: flowchart
+  title: Flowchart
+  purpose: Mô tả quy trình và nhánh quyết định dưới dạng các nút có kết nối.
+  objectives:
+  - Viết flowchart TD hoặc LR
+  - Tạo node, cạnh có nhãn và nhánh điều kiện
+  - Nhóm các bước bằng subgraph
+- id: sequence-diagram
+  title: Sequence Diagram
+  purpose: Diễn tả thứ tự tương tác giữa các thành phần trong một kịch bản.
+  objectives:
+  - Khai báo actor và participant
+  - Vẽ lời gọi, phản hồi và ghi chú
+  - Thêm alt hoặc loop cho luồng điều kiện
+- id: class-er-diagram
+  title: Class & ER Diagram
+  purpose: Biểu diễn cấu trúc lớp và mối quan hệ dữ liệu bằng hai kiểu sơ đồ phù hợp.
+  objectives:
+  - Vẽ classDiagram có thuộc tính và phương thức
+  - Thể hiện kế thừa, kết hợp và phụ thuộc
+  - Vẽ erDiagram với quan hệ và cardinality
+- id: state-diagram
+  title: State Diagram
+  purpose: Mô tả vòng đời của một đối tượng qua trạng thái và điều kiện chuyển.
+  objectives:
+  - Tạo stateDiagram-v2 với trạng thái đầu/cuối
+  - Đặt nhãn cho các transition
+  - Kiểm tra đường đi và trạng thái không tới được
+- id: style-bo-cuc
+  title: Style & Bố cục
+  purpose: Điều chỉnh hướng, nhãn và chủ đề để sơ đồ rõ ràng, nhất quán.
+  objectives:
+  - Đặt hướng vẽ phù hợp nội dung
+  - Cấu hình theme bằng YAML frontmatter
+  - Kiểm tra nhãn dài và khả năng đọc
+- id: nhung-xuat-so-do
+  title: Nhúng & Xuất sơ đồ
+  purpose: Đưa Mermaid vào tài liệu kỹ thuật và tạo ảnh khi nơi xem không hỗ trợ render.
+  objectives:
+  - Nhúng code fence mermaid trong Markdown
+  - Dùng mermaid-cli xuất SVG hoặc PNG
+  - So sánh hình render với nguồn Mermaid
+- id: qa-tu-dong-hoa
+  title: QA & Tự động hóa
+  purpose: Giữ sơ đồ là tài liệu có thể kiểm chứng và cập nhật cùng thay đổi hệ thống.
+  objectives:
+  - Đưa mã sơ đồ vào version control
+  - Thử render tự động để phát hiện lỗi syntax
+  - Rà soát tính đúng, bảo mật và khả năng truy cập

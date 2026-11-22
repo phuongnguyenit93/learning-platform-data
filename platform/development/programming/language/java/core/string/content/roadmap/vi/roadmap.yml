@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-ve-chuoi
+  title: Tư duy về chuỗi
+  purpose: Hiểu String biểu diễn văn bản và vì sao đối tượng chuỗi không thay đổi sau khi tạo.
+  objectives:
+  - Phân biệt String, char và mảng ký tự
+  - Giải thích tính bất biến của String
+  - Phân biệt null, chuỗi rỗng và chuỗi trắng
+- id: khoi-tao-va-so-sanh
+  title: Khởi tạo và so sánh
+  purpose: Tạo và so sánh chuỗi đúng theo nội dung thay vì dựa vào tham chiếu.
+  objectives:
+  - Sử dụng literal, constructor và text block
+  - Phân biệt ==, equals và compareTo
+  - Giải thích string pool và intern
+- id: truy-cap-va-tim-kiem
+  title: Truy cập và tìm kiếm
+  purpose: Đọc, cắt và tìm nội dung chuỗi với chỉ số hợp lệ.
+  objectives:
+  - Sử dụng length, charAt và substring
+  - Tìm bằng indexOf, contains và startsWith
+  - Kiểm soát chỉ số và trường hợp không tìm thấy
+- id: bien-doi-va-ghep-chuoi
+  title: Biến đổi và ghép chuỗi
+  purpose: Kết hợp các thao tác văn bản thông dụng mà vẫn hiểu đối tượng kết quả.
+  objectives:
+  - Dùng strip, replace và chuyển hoa thường
+  - Tách và ghép bằng split, join hoặc lines
+  - Chọn Locale phù hợp khi chuyển hoa thường
+- id: unicode-va-bang-ma
+  title: Unicode và bảng mã
+  purpose: Xử lý đúng văn bản tiếng Việt và ký tự ngoài phạm vi một char.
+  objectives:
+  - Phân biệt đơn vị UTF-16 với điểm mã Unicode
+  - Duyệt chuỗi bằng codePoints khi cần
+  - Chuyển giữa byte và String với Charset rõ ràng
+- id: mau-va-dinh-dang
+  title: Mẫu và định dạng
+  purpose: Dùng công cụ phù hợp để kiểm tra mẫu và trình bày dữ liệu trong chuỗi.
+  objectives:
+  - Phân biệt tìm chuỗi nguyên văn với biểu thức chính quy
+  - Dùng Pattern và Matcher cho mẫu lặp lại
+  - Định dạng bằng formatted hoặc String.format
+- id: xay-dung-chuoi-hieu-qua
+  title: Xây dựng chuỗi hiệu quả
+  purpose: Chọn cách ghép chuỗi theo số lần thay đổi và yêu cầu sử dụng đồng thời.
+  objectives:
+  - Dùng StringBuilder cho thao tác lặp
+  - Phân biệt StringBuilder với StringBuffer
+  - Nhận diện chi phí tạo chuỗi trung gian
+- id: thuc-hanh-xu-ly-van-ban
+  title: Thực hành xử lý văn bản
+  purpose: Kết hợp các kỹ năng chuỗi vào một luồng xử lý đầu vào có kiểm thử.
+  objectives:
+  - Chuẩn hóa và kiểm tra dữ liệu văn bản
+  - Kiểm thử null, khoảng trắng, tiếng Việt và emoji
+  - Giải thích lựa chọn API và giới hạn xử lý

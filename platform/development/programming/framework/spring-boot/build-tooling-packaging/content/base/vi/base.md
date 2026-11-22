@@ -1,0 +1,7 @@
+# Spring Boot - Công cụ build và đóng gói
+
+Build là quá trình biến mã nguồn, tài nguyên và thư viện phụ thuộc thành sản phẩm có thể kiểm thử và phân phối. Với Spring Boot, Maven hoặc Gradle điều phối các bước này, còn Spring Boot plugin bổ sung khả năng tạo gói thực thi và container image. Hiểu ranh giới giữa công cụ build, plugin, dependency và môi trường JVM giúp bạn biết chính xác thứ gì đã được tạo ra và cần những điều kiện nào để chạy được.
+
+Module dành cho người đã biết Java và cách tạo một ứng dụng Spring Boot cơ bản. Nội dung gồm thiết lập công cụ, quản lý dependency, vòng đời build và kiểm thử, JAR thực thi, WAR cho ứng dụng Servlet, container image chạy trên JVM và kiểm chứng gói phát hành. Bạn sẽ học cách đọc cấu hình Maven hoặc Gradle, chọn đúng tác vụ và quan sát cấu trúc sản phẩm thay vì chỉ dựa vào việc ứng dụng chạy được trong IDE. Khi thực hành, cần đối chiếu phiên bản Spring Boot plugin, công cụ build, JDK dùng để build và Java tại môi trường chạy.
+
+Lộ trình bắt đầu từ mô hình mã nguồn đến gói chạy, tiếp đến thiết lập công cụ và quản lý dependency. Sau khi hiểu các bước build cùng kiểm thử, bạn thực hành đóng gói JAR, chọn WAR khi phù hợp, tạo container image và kiểm chứng gói trong quy trình tích hợp liên tục (CI). Tư duy xuyên suốt là xác định đầu vào nào được sử dụng, bước nào thực sự đã chạy và bằng chứng nào cho thấy chính gói được phân phối có thể khởi động đúng.

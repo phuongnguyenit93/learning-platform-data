@@ -1,0 +1,3 @@
+menuLevel1: Fork/Join
+menuLevel2: 'ForkJoinPool asyncMode: chế độ FIFO cho tác vụ kiểu sự kiện không join'
+status: WRITTEN

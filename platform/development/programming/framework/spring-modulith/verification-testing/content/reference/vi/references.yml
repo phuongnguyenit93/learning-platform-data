@@ -1,0 +1,13 @@
+references:
+  - title: "Spring Modulith — Fundamentals"
+    url: "https://docs.spring.io/spring-modulith/reference/fundamentals.html"
+    description: "Mô hình application modules, vùng API/internal, named interfaces và giới hạn phụ thuộc."
+  - title: "Spring Modulith — Verifying Application Module Structure"
+    url: "https://docs.spring.io/spring-modulith/reference/verification.html"
+    description: "Kiểm tra chu trình, truy cập nội bộ, phụ thuộc được phép và xử lý vi phạm qua verify/detectViolations."
+  - title: "Spring Modulith — Integration Testing Application Modules"
+    url: "https://docs.spring.io/spring-modulith/reference/testing.html"
+    description: "@ApplicationModuleTest, bootstrap modes, test doubles, tích hợp kiểm thử và Scenario API."
+  - title: "Spring Modulith — Working with Application Events"
+    url: "https://docs.spring.io/spring-modulith/reference/events.html"
+    description: "Tương tác module qua sự kiện và kiểm thử phát hành sự kiện khi xác minh hành vi."

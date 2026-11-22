@@ -1,0 +1,2962 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: PMD là gì và bài toán kiểm soát chất lượng mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt luật, vi phạm và tập luật (ruleset)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: PMD phân tích mã nguồn khác gì compiler và công cụ phân tích bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của PMD trong chu trình phát triển và rà soát mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt khả năng phân tích luật của PMD và phát hiện trùng lặp của CPD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: So sánh phạm vi PMD với Checkstyle, SpotBugs và Error Prone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Quan hệ giữa quy tắc kỹ thuật, quy ước nhóm và rủi ro nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Giới hạn phát hiện và ý nghĩa của kết quả không có vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức nền và lộ trình sử dụng PMD từ cơ bản đến mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-mechanism
+  title: Cơ chế phân tích
+  childs:
+  - slug: analysis-mechanism-001
+    title: Từ mã nguồn đến token, cú pháp và cây cú pháp trừu tượng (AST)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-002
+    title: Phân biệt AST với văn bản nguồn và bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-003
+    title: Ký hiệu, phạm vi khai báo và phân giải tên trong mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-004
+    title: Phân giải kiểu, nạp thông tin dependency và lựa chọn phương thức gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-005
+    title: Vai trò của auxiliary classpath trong độ chính xác của luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-006
+    title: Cách luật duyệt hoặc chọn các nút AST để kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-007
+    title: Thông tin vị trí nguồn và cách sinh một vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-008
+    title: Giới hạn khi gặp reflection, dependency injection và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-009
+    title: Phân biệt luật cú pháp, luật cần kiểu và phép đo cấu trúc mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-010
+    title: Chu trình đọc cấu hình, phân tích, áp dụng luật và dựng báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: initialization
+  title: Khởi tạo
+  childs:
+  - slug: initialization-001
+    title: Kiểm tra phiên bản Java chạy PMD và phiên bản mã Java cần phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-002
+    title: Phân biệt PMD core, mô-đun ngôn ngữ và plugin của công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-003
+    title: Tải bản phân phối và kiểm tra phiên bản theo tài liệu chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-004
+    title: Thiết lập PMD trên Windows, Linux và macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-005
+    title: Cấu trúc bản phân phối và giao diện lệnh pmd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-006
+    title: Tạo dự án mẫu có mã vi phạm và mã hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-007
+    title: Chạy pmd check với ruleset đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-008
+    title: Đọc báo cáo, sửa vi phạm và phân tích lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-009
+    title: Khi nào cần đầu ra biên dịch hoặc dependency để hỗ trợ phân giải kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-010
+    title: Cố định phiên bản công cụ và lưu cấu hình cùng repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-scope
+  title: Phạm vi mã nguồn
+  childs:
+  - slug: source-scope-001
+    title: Chọn tệp, thư mục và danh sách nguồn đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-002
+    title: Nhận diện ngôn ngữ từ phần mở rộng và cấu hình ngôn ngữ tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-003
+    title: Phân biệt khả năng hỗ trợ ngôn ngữ của PMD và của CPD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-004
+    title: Chọn phiên bản ngôn ngữ Java bằng --use-version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-005
+    title: Xử lý record, sealed class, pattern matching và cú pháp preview theo hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-006
+    title: Khai báo encoding đầu vào và xử lý mã nguồn tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-007
+    title: Phân tách mã chính, mã test, mã sinh và thư viện bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-008
+    title: Áp dụng include-pattern, exclude-pattern và bộ lọc nguồn của build plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-009
+    title: Cung cấp thư viện ứng dụng và Java runtime phù hợp trên auxiliary classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-scope-010
+    title: Kiểm chứng danh sách tệp thực sự được quét trước khi đánh giá kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rulesets
+  title: Ruleset
+  childs:
+  - slug: rulesets-001
+    title: Cấu trúc XML ruleset, namespace, tên và mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-002
+    title: Tham chiếu từng luật bằng category/java/...xml/RuleName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-003
+    title: Tám nhóm luật Java và mục đích của từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-004
+    title: Phân biệt category, ruleset có sẵn và ruleset riêng của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-005
+    title: Tham khảo quickstart rồi lựa chọn luật phù hợp với mã đang có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-006
+    title: Tham chiếu cả nhóm luật và loại trừ luật bằng exclude
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-007
+    title: Tổ chức ruleset dùng chung và ruleset chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-008
+    title: Đường dẫn ruleset trên hệ thống tệp và classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-009
+    title: Tác động của luật mới khi tham chiếu toàn bộ một category
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-010
+    title: Xác minh luật được nạp đúng và phát hiện tham chiếu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rulesets-011
+    title: Tài liệu hóa lý do bật, bỏ hoặc thay đổi từng luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-configuration
+  title: Cấu hình luật
+  childs:
+  - slug: rule-configuration-001
+    title: 'Đọc tài liệu luật: mục tiêu, ví dụ, priority và properties'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-002
+    title: Phân biệt luật phát hiện lỗi với luật thể hiện lựa chọn phong cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-003
+    title: Thang priority từ 1 đến 5 và ý nghĩa ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-004
+    title: Ghi đè priority cho luật trong ruleset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-005
+    title: Ngưỡng minimum-priority và các luật thực sự được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-006
+    title: Cấu hình properties kiểu số, boolean, chuỗi, danh sách và biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-007
+    title: Tùy chỉnh ngưỡng độ phức tạp, số tham số và kích thước cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-008
+    title: Tùy chỉnh tên định danh, phạm vi áp dụng và ngoại lệ có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-009
+    title: Phân biệt priority của luật, độ tin cậy và ảnh hưởng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-configuration-010
+    title: Kiểm thử thay đổi cấu hình bằng ví dụ phải báo và không được báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-line
+  title: Dòng lệnh
+  childs:
+  - slug: command-line-001
+    title: Cấu trúc lệnh pmd check và cách đọc --help theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-002
+    title: Chỉ định nguồn, ruleset, định dạng và tệp báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-003
+    title: Cấu hình --aux-classpath và khác biệt dấu phân cách giữa các hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-004
+    title: Dùng --use-version, --force-language và encoding đúng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-005
+    title: Chọn --minimum-priority và kiểm tra phạm vi luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-006
+    title: Phân biệt --property của renderer với property khai báo cho luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-007
+    title: Cấu hình --threads và thông số JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-008
+    title: Bật --cache, tắt cache và chạy phân tích đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-009
+    title: Theo dõi tiến độ, debug log và benchmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-010
+    title: Phân biệt exit code do vi phạm, lỗi cấu hình và lỗi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-011
+    title: Điều khiển --fail-on-violation, --fail-on-error và lưu báo cáo khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-integration
+  title: Tích hợp Maven
+  childs:
+  - slug: maven-integration-001
+    title: Khai báo org.apache.maven.plugins:maven-pmd-plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-002
+    title: Phân biệt phiên bản Maven PMD Plugin với PMD dùng bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-003
+    title: Goal pmd:pmd tạo báo cáo và pmd:check kiểm tra vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-004
+    title: Goal pmd:cpd và pmd:cpd-check dành cho mã trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-005
+    title: Gắn kiểm tra vào lifecycle và xác minh phase thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-006
+    title: Phân biệt cấu hình trong build với reporting của Maven Site
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-007
+    title: Khai báo rulesets, source encoding và mức Java nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-008
+    title: Phân tích mã chính, mã test và dùng ruleset khác nhau khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-009
+    title: Cấu hình ngưỡng kiểm tra, failOnViolation và số vi phạm được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-010
+    title: Loại trừ vi phạm được chấp thuận bằng cơ chế của plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-011
+    title: Quản lý cấu hình chung, kế thừa và pluginManagement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-012
+    title: Đối chiếu effective POM và báo cáo PMD, CPD được tạo thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-integration
+  title: Tích hợp Gradle
+  childs:
+  - slug: gradle-integration-001
+    title: Áp dụng plugin pmd có sẵn của Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-002
+    title: Task pmdMain, pmdTest và quan hệ với check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-003
+    title: Cấu hình PmdExtension và ghi đè từng Pmd task
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-004
+    title: Chọn toolVersion tương thích với Gradle và mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-005
+    title: Dùng ruleSets, ruleSetFiles và kiểm soát ruleset mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-006
+    title: Thiết lập rulesMinimumPriority, consoleOutput và ignoreFailures
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-007
+    title: Phân biệt configuration pmd với pmdAux phục vụ phân giải kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-008
+    title: Cấu hình source set và dependency trên classpath phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-009
+    title: Xuất XML, HTML và cấu hình báo cáo theo phiên bản Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-010
+    title: Phân biệt JVM chạy Gradle, JVM chạy PMD và phiên bản ngôn ngữ nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-011
+    title: Tích hợp CPD bằng tác vụ riêng hoặc plugin phù hợp, không suy ra từ pmdMain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-012
+    title: Đối chiếu Groovy DSL, Kotlin DSL và cấu hình hiệu lực của task
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ide-integration
+  title: Tích hợp IDE
+  childs:
+  - slug: ide-integration-001
+    title: Lựa chọn tích hợp IDE và kiểm tra phiên bản PMD được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-integration-002
+    title: Nạp ruleset dự án thay vì dùng cấu hình riêng mặc định của IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-integration-003
+    title: Chạy PMD trên tệp, package hoặc toàn project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-integration-004
+    title: Đọc thông báo và điều hướng đến vị trí vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-integration-005
+    title: Kiểm tra classpath và phiên bản ngôn ngữ khi kết quả khác CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-integration-006
+    title: Đồng bộ ngưỡng, properties và suppression giữa IDE với CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-integration-007
+    title: Dùng IDE để phản hồi sớm và build để kiểm tra nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-integration-008
+    title: Tích hợp Ant hoặc Java API khi dự án cần cách chạy ngoài Maven, Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: potential-bugs
+  title: Lỗi tiềm ẩn
+  childs:
+  - slug: potential-bugs-001
+    title: Nhóm Error Prone và cách xác minh hành vi có thể sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-002
+    title: EmptyCatchBlock và nguy cơ bỏ qua ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-003
+    title: BrokenNullCheck, MisplacedNullCheck và thứ tự kiểm tra null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-004
+    title: UseEqualsToCompareStrings và so sánh chuỗi bằng tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-005
+    title: OverrideBothEqualsAndHashcode và hợp đồng bằng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-006
+    title: CollectionTypeMismatch và kiểu đối tượng không phù hợp trong collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-007
+    title: CloseResource và các đường thực thi không đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-008
+    title: ImplicitSwitchFallThrough và nhánh switch rơi xuống ngoài ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-009
+    title: UnusedReturnValue và giá trị trả về bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-010
+    title: ReturnFromFinallyBlock và việc che mất kết quả hoặc ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-011
+    title: ConstructorCallsOverridableMethod và trạng thái khởi tạo chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: potential-bugs-012
+    title: Liên hệ mỗi luật với ví dụ tái hiện và ca kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: best-practices
+  title: Thực hành tốt
+  childs:
+  - slug: best-practices-001
+    title: Nhóm Best Practices và lựa chọn phù hợp với quy ước dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-002
+    title: UnusedLocalVariable, UnusedPrivateField và UnusedPrivateMethod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-003
+    title: UnusedFormalParameter, UnusedAssignment và giá trị không được dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-004
+    title: UseTryWithResources và quyền sở hữu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-005
+    title: PreserveStackTrace khi chuyển đổi hoặc ném lại ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-006
+    title: MissingOverride và khai báo rõ hợp đồng kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-007
+    title: LooseCoupling và phụ thuộc vào interface thay vì kiểu triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-008
+    title: ArrayIsStoredDirectly, MethodReturnsInternalArray và sao chép phòng vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-009
+    title: RelianceOnDefaultCharset, UseStandardCharsets và hành vi theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-010
+    title: GuardLogStatement, SystemPrintln và sử dụng logging có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-011
+    title: Các luật về assertion, vòng đời và độ rõ ràng của mã kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: best-practices-012
+    title: Nhận diện trường hợp framework truy cập thành phần qua reflection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: style-and-documentation
+  title: Phong cách và tài liệu
+  childs:
+  - slug: style-and-documentation-001
+    title: Phân biệt nhóm Code Style, Documentation và việc định dạng tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-002
+    title: Quy ước tên lớp, phương thức, biến, tham số và type parameter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-003
+    title: LinguisticNaming và tên không phản ánh ý nghĩa sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-004
+    title: Thứ tự modifier, khai báo biến và import không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-005
+    title: Khối điều khiển, dấu ngoặc và biểu thức dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-006
+    title: Lambda, method reference và giới hạn của chuyển đổi chỉ vì ngắn hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-007
+    title: Quy tắc final, số điểm return và các lựa chọn phụ thuộc phong cách nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-008
+    title: Phân biệt Javadoc không hợp lệ, thiếu mô tả và tài liệu không hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-009
+    title: DanglingJavadoc và tài liệu không gắn đúng khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-010
+    title: Mô tả constructor hoặc method body rỗng khi cần làm rõ ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-011
+    title: Chọn phạm vi luật tài liệu cho public API và mã nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: style-and-documentation-012
+    title: Tránh trùng trách nhiệm giữa PMD, Checkstyle và công cụ formatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-and-complexity
+  title: Thiết kế và độ phức tạp
+  childs:
+  - slug: design-and-complexity-001
+    title: Nhóm Design và cách đọc phép đo trong ngữ cảnh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-002
+    title: CyclomaticComplexity và số nhánh quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-003
+    title: CognitiveComplexity và mức khó theo dõi luồng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-004
+    title: NPathComplexity và số đường đi qua phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-005
+    title: Độ lồng, kích thước phương thức và mức tập trung trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-006
+    title: ExcessiveParameterList và thiết kế đầu vào phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-007
+    title: CouplingBetweenObjects, ExcessiveImports và phụ thuộc giữa kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-008
+    title: GodClass, DataClass và giới hạn khi áp dụng lên DTO hoặc entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-009
+    title: LawOfDemeter và chuỗi truy cập đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-010
+    title: Thiết kế utility class, phạm vi public và thành phần chỉ dùng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-011
+    title: Refactor để giảm phức tạp nhưng vẫn giữ nguyên hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-complexity-012
+    title: Hiệu chỉnh ngưỡng theo loại mã và kiểm chứng bằng rà soát thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency
+  title: Đồng thời
+  childs:
+  - slug: concurrency-001
+    title: Nhóm Multithreading và giới hạn phân tích tĩnh với lỗi nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-002
+    title: DontCallThreadRun và khác biệt giữa gọi run với start
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-003
+    title: DoubleCheckedLocking và các điều kiện hợp lệ theo Java Memory Model
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-004
+    title: NonThreadSafeSingleton và khởi tạo trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-005
+    title: UnsynchronizedStaticFormatter và đối tượng không an toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-006
+    title: UseNotifyAllInsteadOfNotify và giả định về điều kiện chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-007
+    title: Ngữ cảnh của các luật hạn chế volatile, synchronized hoặc quản lý luồng trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-008
+    title: Đối chiếu quy tắc với virtual thread, phiên bản JDK và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-009
+    title: Kiểm chứng cảnh báo bằng mô hình đồng thời và bằng chứng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-performance
+  title: Hiệu năng mã nguồn
+  childs:
+  - slug: source-performance-001
+    title: Nhóm Performance và sự khác biệt giữa mẫu mã với nút thắt đã đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-performance-002
+    title: Tạo đối tượng, boxing và chuyển đổi chuỗi không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-performance-003
+    title: Nối chuỗi trong vòng lặp và lựa chọn cấu trúc phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-performance-004
+    title: Sao chép mảng, duyệt collection và sử dụng API sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-performance-005
+    title: Tạo Calendar hoặc đối tượng nặng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-performance-006
+    title: Kích thước collection, StringBuilder và ngưỡng cấu hình liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-performance-007
+    title: Đối chiếu khuyến nghị cũ với compiler, JVM và Java API hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-performance-008
+    title: Dùng profiler hoặc benchmark để xác nhận tác động khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phạm vi thực tế của nhóm Security trong bộ luật Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: HardCodedCryptoKey và khóa mật mã được ghi cố định trong mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: InsecureCryptoIv và vector khởi tạo không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Tra mô tả luật, API được nhận diện và giới hạn suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Phân biệt luật bảo mật của Java với luật của các ngôn ngữ khác trong PMD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Vì sao bật category Security không thay thế kiểm tra bảo mật toàn diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Phối hợp PMD với phân tích luồng dữ liệu, kiểm tra dependency và rà soát cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Kiểm chứng việc sửa vi phạm trong ngữ cảnh ứng dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-processing
+  title: Đọc và xử lý kết quả
+  childs:
+  - slug: result-processing-001
+    title: Đọc tên luật, ruleset, priority, thông báo và phạm vi dòng vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-002
+    title: Phân biệt vi phạm, lỗi parse, lỗi xử lý và lỗi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-003
+    title: Tra tài liệu luật và các property đang được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-004
+    title: Lần theo dữ liệu, hợp đồng API và ý định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-005
+    title: Phân loại vi phạm thật, cảnh báo sai và trường hợp chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-006
+    title: Tái hiện tối thiểu trước khi quy kết lỗi cho luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-007
+    title: Chọn sửa nguyên nhân, chỉnh property hoặc ngoại lệ có giải thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-008
+    title: Kiểm thử hồi quy và phân tích lại sau khi sửa mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-009
+    title: Kiểm tra vi phạm mới phát sinh và bảo toàn hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-processing-010
+    title: Ưu tiên theo rủi ro và ngữ cảnh thay vì chỉ đếm số cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: suppressing-warnings
+  title: Ẩn cảnh báo
+  childs:
+  - slug: suppressing-warnings-001
+    title: Khi nào suppression có cơ sở và khi nào nên sửa mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-002
+    title: Dùng @SuppressWarnings("PMD.RuleName") với phạm vi nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-003
+    title: Rủi ro khi dùng @SuppressWarnings("PMD") cho cả lớp hoặc phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-004
+    title: NOPMD, vị trí dòng được báo và phần lý do đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-005
+    title: Tùy chỉnh --suppress-marker khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-006
+    title: Ẩn theo thông báo bằng violationSuppressRegex
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-007
+    title: Ẩn theo ngữ cảnh AST bằng violationSuppressXPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-008
+    title: Context node và rủi ro XPath ẩn quá nhiều vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-009
+    title: Phân biệt suppression, loại trừ tệp và bỏ luật khỏi ruleset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-010
+    title: Kiểm tra suppressed violations trong định dạng báo cáo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-011
+    title: Phát hiện suppression không còn cần thiết khi phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-012
+    title: Ghi nhận lý do, bằng chứng và trách nhiệm xem xét lại ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cpd
+  title: CPD
+  childs:
+  - slug: cpd-001
+    title: CPD là gì và phân biệt trùng token với giống ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-002
+    title: Chạy pmd cpd và chọn ngôn ngữ nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-003
+    title: Ngưỡng --minimum-tokens khác gì số dòng mã trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-004
+    title: Chọn phạm vi so sánh trong một module hoặc giữa nhiều module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-005
+    title: Bỏ qua tên định danh, literal hoặc annotation và đánh đổi độ nhạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-006
+    title: Đọc nhóm đoạn trùng, vị trí tệp, số dòng và số token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-007
+    title: Loại trừ tệp, mã sinh và bản sao được giữ có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-008
+    title: CPD-OFF, CPD-ON và khác biệt với suppression của PMD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-009
+    title: Xuất báo cáo và kiểm tra CPD qua Maven hoặc tác vụ Gradle riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-010
+    title: Refactor bằng trích phương thức, thành phần dùng chung hoặc tham số hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-011
+    title: Tránh gom mã chỉ giống bề ngoài nhưng có lý do thay đổi khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpd-012
+    title: Kiểm thử hành vi sau khi giảm trùng lặp và kiểm tra lại CPD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xpath-rules
+  title: Luật XPath
+  childs:
+  - slug: xpath-rules-001
+    title: Khi nào viết luật XPath thay vì bật hoặc cấu hình luật có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-002
+    title: Dùng Rule Designer để xem AST và thử biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-003
+    title: Thiết lập JavaFX cho Designer theo yêu cầu phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-004
+    title: Nút, thuộc tính, trục và context trong mô hình XPath của AST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-005
+    title: XPath 3.1 trong PMD 7 và khác biệt với ví dụ PMD cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-006
+    title: Viết điều kiện chọn cấu trúc mã cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-007
+    title: Dùng hàm mở rộng PMD cho kiểu, phương thức và thông tin ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-008
+    title: Phân biệt so sánh tên kiểu dưới dạng chuỗi và kiểm tra kiểu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-009
+    title: Khai báo XPathRule, message, priority và property trong ruleset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-010
+    title: Chọn đúng nút để báo vị trí vi phạm hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-011
+    title: Hiệu năng biểu thức và tránh quét AST rộng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-rules-012
+    title: Kiểm chứng biểu thức với mã vi phạm và các phản ví dụ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-rules
+  title: Luật Java
+  childs:
+  - slug: java-rules-001
+    title: Khi nào luật Java phù hợp hơn luật XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-002
+    title: Chuẩn bị dependency pmd-core, pmd-java và project luật riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-003
+    title: Kế thừa AbstractJavaRule và sử dụng mô hình visitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-004
+    title: Chọn loại nút cần kiểm tra và điều khiển phạm vi duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-005
+    title: Dùng API symbol, type và method để phân tích ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-006
+    title: Khai báo properties bằng PropertyFactory phù hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-007
+    title: Đọc cấu hình rule và kiểm tra giá trị property
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-008
+    title: Báo vi phạm qua RuleContext và gắn vị trí nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-009
+    title: Chọn mục tiêu thực thi bằng RuleTargetSelector theo API của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-010
+    title: Quản lý trạng thái luật khi phân tích nhiều tệp và nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-011
+    title: Đóng gói JAR, ruleset và nạp vào execution classpath của PMD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-rules-012
+    title: Phân biệt classpath của luật tùy chỉnh với auxiliary classpath của mã được quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-testing
+  title: Kiểm thử luật
+  childs:
+  - slug: rule-testing-001
+    title: Thiết kế ví dụ phải báo và ví dụ không được báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-002
+    title: Dùng bộ hỗ trợ kiểm thử PMD với JUnit theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-003
+    title: Tổ chức ca kiểm thử XML và đoạn mã nguồn mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-004
+    title: Kiểm tra số vi phạm, vị trí nguồn và thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-005
+    title: Kiểm tra các tổ hợp property và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-006
+    title: Kiểm tra overload, generic, kế thừa và dependency ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-007
+    title: Kiểm tra phiên bản Java, cú pháp mới và cấu trúc AST liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-008
+    title: Thêm hồi quy cho cảnh báo sai và trường hợp bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-009
+    title: Kiểm tra suppression và các ngoại lệ mà luật hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-010
+    title: Chạy kiểm thử luật trên CI và đo chi phí với đầu vào lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reports-and-policies
+  title: Báo cáo và chính sách
+  childs:
+  - slug: reports-and-policies-001
+    title: Lựa chọn text, XML, HTML, CSV hoặc SARIF theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-002
+    title: Nhận diện thông tin bị thiếu giữa các định dạng báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-003
+    title: Cấu hình renderer properties và đường dẫn đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-004
+    title: Phân biệt priority của luật với điều kiện làm kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-005
+    title: Đặt ngưỡng vi phạm cho mã mới và kế hoạch xử lý tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-006
+    title: Phân biệt exclusion file của plugin, baseline và bộ so sánh báo cáo riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-007
+    title: Giữ đầu vào, ruleset và phiên bản nhất quán khi so sánh kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-008
+    title: Xử lý thay đổi định danh, dòng nguồn và thông báo sau refactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-009
+    title: Theo dõi vi phạm được giải quyết, phát sinh và được chấp thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-010
+    title: Lưu commit, cấu hình và phiên bản để truy nguyên báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-policies-011
+    title: Xác minh báo cáo tồn tại kể cả khi kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-integration
+  title: Tích hợp CI
+  childs:
+  - slug: ci-integration-001
+    title: Đặt PMD và CPD vào pipeline với mục đích kiểm tra riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-002
+    title: Dùng lệnh kiểm tra giống nhau trên máy phát triển và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-003
+    title: Cố định phiên bản công cụ, ruleset và luật tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-004
+    title: Phân biệt vi phạm chất lượng với lỗi hạ tầng phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-005
+    title: Thực thi với đúng nguồn mã của commit hoặc pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-006
+    title: Lưu báo cáo và hiển thị vi phạm có vị trí nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-007
+    title: Đưa SARIF lên nền tảng hỗ trợ khi có cấu hình và quyền phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-008
+    title: Tách phạm vi kiểm tra nhanh và phân tích đầy đủ theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-009
+    title: Kiểm soát chạy trên tệp thay đổi để không bỏ sót tác động của dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-010
+    title: Chứng minh cổng chất lượng chặn bằng vi phạm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-integration-011
+    title: Quản lý cache CI và tránh dùng kết quả cũ như bằng chứng cho commit mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-projects
+  title: Dự án nhiều module
+  childs:
+  - slug: multi-module-projects-001
+    title: Chọn phạm vi luật và source set cho từng module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-002
+    title: Chia sẻ ruleset và cấu hình qua artifact hoặc convention plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-003
+    title: Bổ sung dependency giữa module để phân giải kiểu đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-004
+    title: Phân biệt phân tích từng module và tổng hợp báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-005
+    title: Tổ chức cấu hình Maven nhiều module và báo cáo tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-006
+    title: Tổ chức tác vụ Gradle nhiều project và kết quả độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-007
+    title: Áp dụng quy tắc phù hợp cho mã test, DTO, entity và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-008
+    title: Đối chiếu PMD source với mã do annotation processor tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-009
+    title: Xác định phạm vi CPD giữa module để phát hiện trùng lặp có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-010
+    title: Ngăn quét trùng nguồn, lẫn báo cáo hoặc ghi đè đầu ra giữa các tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-optimization
+  title: Tối ưu phân tích
+  childs:
+  - slug: analysis-optimization-001
+    title: Bật incremental analysis và chọn vị trí cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-002
+    title: Phân biệt tái sử dụng kết quả của tệp không đổi với baseline bỏ qua vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-003
+    title: Hiểu báo cáo khi dùng cache vẫn phản ánh toàn phạm vi đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-004
+    title: Kiểm tra vô hiệu hóa cache khi phiên bản, luật hoặc dependency thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-005
+    title: Đo thời gian phân tích với benchmark và debug log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-006
+    title: Điều chỉnh --threads, heap và số tác vụ song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-007
+    title: Tìm luật hoặc biểu thức XPath gây tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-008
+    title: Tối ưu auxiliary classpath và phạm vi nguồn mà vẫn giữ độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-009
+    title: Tách cache theo module, cấu hình và môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-optimization-010
+    title: Chạy đối chứng không cache khi điều tra kết quả bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades
+  title: Nâng cấp
+  childs:
+  - slug: upgrades-001
+    title: Kiểm tra hỗ trợ JDK, ngôn ngữ nguồn và plugin trước nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-002
+    title: Di chuyển từ PMD 6 sang PMD 7 theo hướng dẫn chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-003
+    title: Thay tham số CLI và tham chiếu ruleset đã lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-004
+    title: Theo dõi luật đổi tên, chuyển category, bị bỏ hoặc thay đổi mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-005
+    title: Rà soát AST, thuộc tính và XPath khi nâng cấp phiên bản chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-006
+    title: Chuyển luật Java sang API và cơ chế báo vi phạm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-007
+    title: Kiểm tra phiên bản XPath và loại bỏ cấu hình không còn hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-008
+    title: Chạy lại kiểm thử luật, suppression và báo cáo so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-009
+    title: Đánh giá vi phạm mới do mở rộng luật khác với thay đổi mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-010
+    title: Cập nhật baseline hoặc ngoại lệ sau rà soát và lưu lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-011
+    title: Tài liệu hóa phiên bản đã xác minh cùng lệnh chạy tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Khắc phục sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Lỗi parse do sai phiên bản ngôn ngữ hoặc cú pháp chưa được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Thiếu kiểu và phương thức do auxiliary classpath chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: JVM chạy PMD không tương thích với core, module ngôn ngữ hoặc luật tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Ruleset không tải được, rule ref không tồn tại hoặc XML không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Property không nhận, sai kiểu hoặc khác biệt giữa phiên bản luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Không có vi phạm do nguồn rỗng, luật bị lọc hoặc suppression quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Vi phạm sai khi mã phụ thuộc reflection, framework hoặc mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Kết quả khác nhau giữa IDE, CLI, Maven và Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Không điều hướng đúng nguồn do đường dẫn báo cáo hoặc workspace khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: OutOfMemoryError, phân tích chậm và tác vụ cạnh tranh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Thu thập log, cấu hình hiệu lực và ví dụ tái hiện trước khi báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Khởi tạo dự án Java mẫu và ruleset có các luật đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Chạy PMD bằng CLI và một công cụ build trên cùng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Xử lý vi phạm ngoại lệ, tài nguyên, mã không dùng và hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Hiệu chỉnh luật thiết kế bằng ví dụ phương thức quá phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Thêm suppression hẹp và kiểm chứng các vi phạm khác vẫn xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Chạy CPD, đánh giá trùng lặp và refactor có kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Viết luật XPath theo quy ước riêng của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Viết luật Java cần thông tin kiểu và thêm bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Tích hợp CI, lưu báo cáo và kiểm chứng điều kiện chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: So sánh chạy có cache, không cache và sau thay đổi ruleset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Thực hiện một lần nâng cấp công cụ với báo cáo hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,3 @@
+menuLevel1: Enum
+menuLevel2: Định danh ổn định khi trao đổi dữ liệu thay cho phụ thuộc ordinal()
+status: WRITTEN

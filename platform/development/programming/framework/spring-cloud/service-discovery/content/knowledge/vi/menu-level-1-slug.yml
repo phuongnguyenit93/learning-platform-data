@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc khám phá
+  slug: discovery-architecture
+  index: 1
+- title: Chuẩn bị môi trường
+  slug: environment-setup
+  index: 2
+- title: DiscoveryClient
+  slug: discoveryclient
+  index: 3
+- title: ServiceRegistry
+  slug: serviceregistry
+  index: 4
+- title: Định danh và metadata
+  slug: service-identities-metadata
+  index: 5
+- title: Eureka Server
+  slug: eureka-server
+  index: 6
+- title: Eureka Client
+  slug: eureka-client
+  index: 7
+- title: Cơ chế Eureka
+  slug: eureka-mechanisms
+  index: 8
+- title: Cụm Eureka
+  slug: eureka-clustering
+  index: 9
+- title: Consul Discovery
+  slug: consul-discovery
+  index: 10
+- title: Sức khỏe với Consul
+  slug: consul-health-checks
+  index: 11
+- title: Zookeeper Discovery
+  slug: zookeeper-discovery
+  index: 12
+- title: Khám phá tĩnh
+  slug: static-discovery
+  index: 13
+- title: Tích hợp gọi dịch vụ
+  slug: service-call-integration
+  index: 14
+- title: Khám phá trên Kubernetes
+  slug: kubernetes-discovery
+  index: 15
+- title: Mạng và triển khai
+  slug: network-deployment
+  index: 16
+- title: Vòng đời dịch vụ
+  slug: service-lifecycle
+  index: 17
+- title: Nhất quán và phục hồi
+  slug: consistency-recovery
+  index: 18
+- title: Bảo mật
+  slug: security
+  index: 19
+- title: Quan sát hệ thống
+  slug: observability
+  index: 20
+- title: Hiệu năng
+  slug: performance
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 23
+- title: Mở rộng và chuyển đổi
+  slug: scaling-migration
+  index: 24
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 25

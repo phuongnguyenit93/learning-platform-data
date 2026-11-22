@@ -1,0 +1,325 @@
+menu:
+- level1: Định hướng
+  level2:
+  - RAG là gì và giải quyết hạn chế nào của mô hình ngôn ngữ
+  - Phân biệt kiến thức trong trọng số với dữ liệu được truy xuất
+  - 'Các khái niệm: tài liệu, đoạn văn, embedding, retriever và ngữ cảnh'
+  - Luồng tổng thể từ câu hỏi đến câu trả lời có căn cứ
+  - So sánh RAG với prompt dài, fine-tuning, bộ nhớ hội thoại và tool calling
+  - Khi nào RAG phù hợp và khi nào truy vấn dữ liệu có cấu trúc hiệu quả hơn
+  - 'Giới hạn của RAG: có tài liệu liên quan chưa bảo đảm câu trả lời đúng'
+  - Kiến thức nền và trình tự học từ ví dụ tối thiểu đến vận hành
+- level1: Kiến trúc RAG
+  level2:
+  - Nhánh chuẩn bị dữ liệu và nhánh xử lý câu hỏi
+  - Tách thu thập, biến đổi, lập chỉ mục và truy xuất
+  - Từ câu hỏi qua truy xuất, bổ sung ngữ cảnh đến sinh câu trả lời
+  - Vai trò của ChatClient, ChatModel, EmbeddingModel và VectorStore
+  - Advisor chain và vị trí chèn các bước RAG
+  - Phân biệt RAG cơ bản, RAG nâng cao và RAG mô đun
+  - Ranh giới giữa mã nghiệp vụ, pipeline RAG và hạ tầng nhà cung cấp
+  - Phân loại lỗi do dữ liệu, truy xuất, ngữ cảnh hoặc bước sinh
+- level1: Chuẩn bị môi trường
+  level2:
+  - Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
+  - Quản lý phiên bản bằng Spring AI BOM trong Maven hoặc Gradle
+  - Chọn chat model, embedding model và kho vector phù hợp thí nghiệm
+  - Phụ thuộc cho QuestionAnswerAdvisor và RetrievalAugmentationAdvisor
+  - Cấu hình thông tin xác thực, endpoint và profile bên ngoài mã nguồn
+  - Chuẩn bị bộ tài liệu nhỏ cùng câu hỏi có đáp án kiểm chứng
+  - Chạy kho vector và dịch vụ mô hình cục bộ hoặc từ xa
+  - Kiểm tra kết nối từng thành phần trước khi ghép pipeline
+- level1: Mô hình Document
+  level2:
+  - Document và vai trò của nội dung, ID, metadata cùng điểm truy xuất
+  - Phân biệt tài liệu gốc với các đoạn được đưa vào chỉ mục
+  - Thiết kế sourceId, chunkId và liên kết ngược về tài liệu gốc
+  - Metadata cho tiêu đề, URL, số trang và vị trí mục
+  - Metadata cho phiên bản, ngôn ngữ, thời điểm hiệu lực và trạng thái
+  - Metadata cho tenant, nhóm quyền và phạm vi được truy xuất
+  - Giữ kiểu dữ liệu metadata phù hợp với bộ lọc của backend
+  - Nội dung đưa vào embedding khác nội dung đưa vào prompt
+  - Chuẩn hóa định dạng Document giữa reader, transformer và retriever
+- level1: Thu thập tài liệu
+  level2:
+  - DocumentReader, DocumentTransformer và DocumentWriter trong ETL
+  - Đọc văn bản và quản lý charset, Unicode cùng dấu tiếng Việt
+  - Đọc Markdown và bảo toàn tiêu đề, đoạn mã cùng cấu trúc mục
+  - Đọc PDF theo trang và xử lý header, footer hoặc thứ tự văn bản
+  - Đọc HTML bằng selector để loại menu và nội dung không liên quan
+  - Tích hợp Tika hoặc reader chuyên biệt theo loại tài liệu
+  - Khi cần OCR cho tài liệu quét và cách kiểm tra kết quả trích xuất
+  - Xử lý bảng, đoạn mã và hình ảnh chứa thông tin cần thiết
+  - Giới hạn kích thước, nguồn truy cập và tài liệu không đọc được
+- level1: Chia nhỏ tài liệu
+  level2:
+  - Vì sao cần chia đoạn cho embedding và cửa sổ ngữ cảnh
+  - Token khác ký tự và ảnh hưởng của ngôn ngữ tài liệu
+  - Cấu hình TokenTextSplitter và kiểm tra kết quả chia đoạn
+  - Chọn kích thước đoạn theo cấu trúc nội dung và nhu cầu truy xuất
+  - Giữ ranh giới câu, đoạn, tiêu đề, bảng và khối mã
+  - Thiết kế đoạn chồng lấn và đánh đổi trùng lặp ngữ cảnh
+  - Giữ metadata nguồn khi tách một tài liệu thành nhiều đoạn
+  - Bổ sung tiêu đề hoặc đường dẫn mục để đoạn có đủ ý nghĩa
+  - Xử lý đoạn quá ngắn, quá dài hoặc chỉ chứa nội dung lặp
+  - Đánh giá chia đoạn bằng câu hỏi kiểm chứng thay vì chỉ đếm token
+- level1: Embedding cho RAG
+  level2:
+  - Vai trò của embedding tài liệu và embedding câu hỏi
+  - Dùng mô hình và cấu hình embedding nhất quán giữa lập chỉ mục và truy vấn
+  - Số chiều giống nhau chưa đủ để bảo đảm cùng không gian biểu diễn
+  - Chọn mô hình theo ngôn ngữ và loại nội dung cần tìm
+  - Giới hạn độ dài đầu vào, batch và điều tiết tốc độ tạo embedding
+  - Tác động của chuẩn hóa văn bản và metadata được đưa vào embedding
+  - Thay mô hình embedding và kế hoạch tái lập chỉ mục
+- level1: Lập chỉ mục
+  level2:
+  - Nối reader, transformer và VectorStore thành pipeline ETL
+  - Ghi theo batch và kiểm tra số tài liệu đã được lưu
+  - Tạo ID ổn định để nạp lại không sinh bản trùng
+  - Ngữ nghĩa thêm, cập nhật và upsert theo backend được chọn
+  - Phát hiện tài liệu mới, sửa đổi hoặc bị xóa
+  - Xóa đoạn cũ trước hoặc trong quá trình thay phiên bản tài liệu
+  - Ghi nhận hash nội dung, phiên bản splitter và embedding
+  - Khôi phục sau lỗi giữa batch và khả năng chạy tiếp
+  - Tách quyền ghi chỉ mục khỏi quyền truy xuất khi phục vụ câu hỏi
+- level1: Truy xuất vector
+  level2:
+  - VectorStore.similaritySearch và SearchRequest
+  - topK và giới hạn số đoạn được trả về
+  - similarityThreshold và cách hiệu chỉnh theo dữ liệu thực
+  - Độ tương đồng khác xác suất câu trả lời đúng
+  - Khoảng cách, độ tương đồng và khác biệt điểm số giữa backend
+  - Lọc metadata bằng biểu thức chuỗi hoặc Filter.Expression
+  - Kết hợp bộ lọc ngôn ngữ, phiên bản và phạm vi tài liệu
+  - Truy xuất có điều kiện trước khi chọn topK và hỗ trợ của từng backend
+  - Phân biệt không có kết quả với lỗi kết nối kho vector
+  - Kiểm tra trực tiếp đoạn truy xuất trước khi gọi mô hình sinh
+- level1: QuestionAnswerAdvisor
+  level2:
+  - Thiết lập RAG cơ bản từ VectorStore đã có dữ liệu
+  - Xây QuestionAnswerAdvisor và gắn vào ChatClient
+  - Cấu hình SearchRequest cho topK, ngưỡng và bộ lọc
+  - Bộ lọc động theo yêu cầu qua tham số advisor
+  - Điểm chèn tài liệu truy xuất vào nội dung câu hỏi
+  - Tùy chỉnh PromptTemplate của advisor đúng placeholder theo phiên bản
+  - Phân biệt template của advisor với TemplateRenderer của ChatClient
+  - Lấy tài liệu đã truy xuất từ ngữ cảnh hoặc metadata phản hồi theo API
+  - Giới hạn của pipeline cơ bản và thời điểm chuyển sang RAG mô đun
+- level1: RAG mô đun
+  level2:
+  - Vai trò của RetrievalAugmentationAdvisor và phụ thuộc spring-ai-rag
+  - Mô hình Query gồm nội dung, lịch sử và context
+  - Luồng pre-retrieval, retrieval, post-retrieval và generation
+  - Cấu hình VectorStoreDocumentRetriever cho pipeline tối thiểu
+  - Kết hợp nhiều QueryTransformer theo thứ tự
+  - Chèn QueryExpander, DocumentJoiner và DocumentPostProcessor
+  - Vai trò của QueryAugmenter trong chuẩn bị prompt cuối
+  - Truyền cấu hình theo yêu cầu mà không chia sẻ trạng thái người dùng
+  - Kiểm chứng từng mô đun độc lập trước khi chạy toàn luồng
+- level1: Biến đổi truy vấn
+  level2:
+  - Giữ nguyên mục đích câu hỏi khi chuẩn hóa đầu vào
+  - RewriteQueryTransformer cho câu hỏi dài, mơ hồ hoặc nhiều nhiễu
+  - CompressionQueryTransformer tạo câu hỏi độc lập từ lịch sử hội thoại
+  - TranslationQueryTransformer cho ngôn ngữ khác mô hình embedding
+  - Chọn thứ tự viết lại, nén hội thoại và dịch câu hỏi
+  - Tùy chỉnh prompt của transformer và kiểm soát đầu ra
+  - Dùng ChatClient riêng cho biến đổi để tránh gọi RAG đệ quy
+  - Giới hạn độ dài, số lần gọi và độ trễ biến đổi
+  - So sánh truy xuất từ câu hỏi gốc với câu hỏi đã biến đổi
+- level1: Mở rộng truy vấn
+  level2:
+  - QueryExpander và mục đích tìm thêm cách diễn đạt
+  - MultiQueryExpander và số lượng truy vấn được sinh
+  - Giữ hoặc loại truy vấn gốc theo mục tiêu thử nghiệm
+  - Phân tách câu hỏi nhiều ý thành truy vấn thành phần
+  - Giữ phạm vi quyền và metadata trên mọi truy vấn mở rộng
+  - Giới hạn thực thi song song và số lượt truy xuất
+  - Loại truy vấn trùng hoặc làm sai lệch ý định
+  - Đánh đổi tăng độ bao phủ với chi phí và nhiễu kết quả
+- level1: Nguồn truy xuất
+  level2:
+  - Hợp đồng DocumentRetriever và thiết kế retriever tùy chỉnh
+  - VectorStoreDocumentRetriever với ngưỡng, topK và filter
+  - Bộ lọc của retriever so với bộ lọc truyền theo từng yêu cầu
+  - Truy xuất từ công cụ tìm kiếm từ khóa hoặc chỉ mục toàn văn
+  - Truy xuất lai theo khả năng backend và adapter tùy chỉnh
+  - Kết hợp nhiều kho hoặc nhiều tập tài liệu độc lập
+  - Ánh xạ kết quả nguồn ngoài thành Document có nguồn gốc rõ ràng
+  - Giới hạn thời gian, số kết quả và lỗi từng nguồn
+- level1: Ghép kết quả
+  level2:
+  - Vai trò của DocumentJoiner sau nhiều truy vấn hoặc nhiều nguồn
+  - ConcatenationDocumentJoiner và hành vi giữ kết quả trùng đầu tiên
+  - Định nghĩa tài liệu trùng theo ID hoặc nội dung
+  - Điểm số giữ nguyên và vấn đề so sánh khác thang đo
+  - Hợp nhất theo thứ hạng với chiến lược tùy chỉnh
+  - Giới hạn số đoạn mỗi nguồn để tránh một nguồn lấn át
+  - Bảo toàn nguồn gốc và quyền truy cập sau khi ghép
+- level1: Xếp hạng và tinh lọc
+  level2:
+  - DocumentPostProcessor và vị trí hậu xử lý truy xuất
+  - Phân biệt tìm ứng viên với xếp hạng lại theo câu hỏi
+  - Tích hợp mô hình reranker qua post-processor phù hợp
+  - Loại đoạn không liên quan và đoạn nội dung lặp
+  - Nén nội dung có điều kiện mà giữ nguyên dữ kiện cần thiết
+  - Cân bằng mức liên quan với sự đa dạng thông tin
+  - Lấy đoạn cha hoặc đoạn lân cận để khôi phục ngữ nghĩa
+  - Thứ tự tài liệu và hiện tượng bỏ sót thông tin ở giữa ngữ cảnh
+  - Đánh giá lợi ích xếp hạng lại so với chi phí và độ trễ
+- level1: Bổ sung ngữ cảnh
+  level2:
+  - ContextualQueryAugmenter và cách kết hợp câu hỏi với tài liệu
+  - PromptTemplate cho câu hỏi và các đoạn bằng chứng
+  - Phân tách chỉ dẫn hệ thống khỏi nội dung tài liệu không đáng tin
+  - Định dạng ranh giới tài liệu, mã nguồn và metadata nguồn
+  - Ngân sách token cho chỉ dẫn, lịch sử, tài liệu và đầu ra
+  - Chọn, cắt hoặc nén tài liệu khi vượt ngân sách
+  - allowEmptyContext và chính sách khi không có bằng chứng
+  - Tùy chỉnh emptyContextPromptTemplate cho phản hồi thiếu dữ liệu
+  - Xử lý tài liệu mâu thuẫn, cũ hoặc khác phiên bản
+  - Kiểm tra prompt cuối mà không ghi lộ nội dung nhạy cảm
+- level1: Sinh câu trả lời
+  level2:
+  - Chỉ dẫn trả lời dựa trên bằng chứng và nêu giới hạn dữ liệu
+  - Chọn mô hình sinh độc lập với mô hình embedding và viết lại truy vấn
+  - Điều chỉnh tùy chọn mô hình theo khả năng nhà cung cấp
+  - Trả lời có cấu trúc và kiểm tra schema kết quả
+  - Phân biệt call() với stream() trong luồng RAG
+  - Thời gian truy xuất trước token đầu tiên trong phản hồi streaming
+  - Hủy yêu cầu và giới hạn thời gian cho từng công đoạn
+  - Từ chối kết luận khi bằng chứng không đủ hoặc không nhất quán
+  - Kiểm tra đầu ra sau sinh mà vẫn giữ nguyên ý nghĩa bằng chứng
+- level1: Dẫn nguồn
+  level2:
+  - Liên kết câu trả lời với Document thực sự đã truy xuất
+  - Thiết kế mã trích dẫn ổn định trong từng phản hồi
+  - Ánh xạ mã nguồn về tiêu đề, URL, trang hoặc mục
+  - Kiểm tra nguồn được dẫn có tồn tại trong tập bằng chứng
+  - Phân biệt dẫn nguồn đúng với khẳng định được nguồn hỗ trợ
+  - Xử lý nguồn trùng, tài liệu nhiều trang và phiên bản khác nhau
+  - Không cho mô hình tự tạo URL hoặc metadata nguồn không có trong dữ liệu
+  - Thiết kế phản hồi gồm nội dung, nguồn và trạng thái thiếu bằng chứng
+- level1: RAG hội thoại
+  level2:
+  - Câu hỏi tiếp nối và nhu cầu giải quyết đại từ hoặc ý bị lược bỏ
+  - Phân biệt lịch sử hội thoại với kho tri thức dùng để truy xuất
+  - Đưa lịch sử cần thiết vào Query cho bước nén hội thoại
+  - Phối hợp thứ tự memory advisor với RAG advisor
+  - Giới hạn lịch sử và tránh truy xuất bằng toàn bộ cuộc hội thoại
+  - Giữ conversationId và phạm vi tenant độc lập
+  - Thay đổi chủ đề và xử lý ngữ cảnh cũ không còn phù hợp
+  - Kiểm thử nhiều lượt hỏi cùng nguồn và chuyển nguồn
+- level1: Mẫu RAG nâng cao
+  level2:
+  - Truy xuất nhiều tầng theo tiêu đề, mục rồi đoạn
+  - Chiến lược parent-child và khôi phục đoạn bằng chứng chi tiết
+  - HyDE như một bước tạo truy vấn trung gian tùy chỉnh
+  - Định tuyến câu hỏi tới nguồn dữ liệu phù hợp
+  - Truy xuất lặp khi bằng chứng ban đầu chưa đủ
+  - Graph RAG và giới hạn của retriever vector thuần túy
+  - Agentic RAG qua công cụ truy xuất với giới hạn số vòng rõ ràng
+  - Phân biệt mô đun Spring AI có sẵn với chiến lược cần tự triển khai
+- level1: Đánh giá truy xuất
+  level2:
+  - Xây tập câu hỏi có đoạn bằng chứng và nguồn kỳ vọng
+  - Phân biệt độ bao phủ tài liệu với chất lượng câu trả lời
+  - Precision@K, Recall@K và ý nghĩa trên tập đã gán nhãn
+  - Đánh giá thứ hạng bằng MRR hoặc nDCG khi dữ liệu phù hợp
+  - So sánh splitter, embedding, topK và ngưỡng trên cùng tập câu hỏi
+  - Phân nhóm kết quả theo ngôn ngữ, loại câu hỏi và độ mới tài liệu
+  - Đo ảnh hưởng của rewrite, multi-query, hybrid search và reranker
+  - Giữ tập kiểm chứng riêng và tránh điều chỉnh chỉ để khớp bộ mẫu
+- level1: Đánh giá câu trả lời
+  level2:
+  - Phân biệt liên quan, đầy đủ, đúng dữ kiện và có căn cứ
+  - Evaluator, EvaluationRequest và EvaluationResponse
+  - RelevancyEvaluator trong kiểm chứng luồng RAG
+  - FactCheckingEvaluator và phạm vi đối chiếu với bằng chứng được cấp
+  - Đánh giá dẫn nguồn, phản hồi thiếu dữ liệu và tài liệu mâu thuẫn
+  - Giới hạn của LLM làm giám khảo và nhu cầu kiểm tra bởi con người
+  - Đặt tiêu chí đạt cùng phiên bản prompt đánh giá rõ ràng
+  - Cân bằng chất lượng, độ trễ và chi phí khi so sánh cấu hình
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử reader với tài liệu có cấu trúc và lỗi mã hóa
+  - Kiểm thử splitter bảo toàn nội dung, metadata và liên kết nguồn
+  - Kiểm thử nạp lại, cập nhật và xóa tài liệu không để đoạn cũ
+  - Kiểm thử retriever giả lập với tập Document xác định
+  - Kiểm thử filter bắt buộc và cô lập dữ liệu nhiều tenant
+  - Kiểm thử chuỗi transformer, expander, joiner và post-processor
+  - Kiểm thử prompt, ngân sách token và trường hợp ngữ cảnh rỗng
+  - Kiểm thử nguồn dẫn và đầu ra có cấu trúc
+  - Kiểm thử tích hợp với kho vector thật bằng Testcontainers khi phù hợp
+  - Tách kiểm thử xác định khỏi đánh giá mô hình và theo dõi hồi quy
+- level1: Bảo mật dữ liệu
+  level2:
+  - Phân quyền tài liệu ngay ở bước thu thập và truy xuất
+  - Lấy tenant và quyền từ danh tính đã xác minh phía máy chủ
+  - Kết hợp bộ lọc bắt buộc với bộ lọc động để tránh ghi đè phạm vi quyền
+  - Ngăn prompt injection gián tiếp từ nội dung tài liệu
+  - Không cho chỉ dẫn trong tài liệu kích hoạt công cụ hoặc thay đổi quyền
+  - Lọc dữ liệu cá nhân và bí mật trước khi gửi tới nhà cung cấp mô hình
+  - Bảo vệ nguồn tải tài liệu trước SSRF và tệp độc hại
+  - Cô lập cache, lịch sử và bộ nhớ hội thoại theo phạm vi truy cập
+  - Xóa tài liệu, thu hồi quyền và vô hiệu dữ liệu còn trong cache
+  - Kiểm thử truy xuất trái quyền và rò rỉ qua câu trả lời hoặc log
+- level1: Hiệu năng và chi phí
+  level2:
+  - Phân rã độ trễ thành embedding, truy xuất, rerank và sinh
+  - Tính số lượt gọi mô hình do rewrite và multi-query
+  - Điều chỉnh topK, kích thước đoạn và token ngữ cảnh
+  - Batch embedding, giới hạn song song và xử lý giới hạn tốc độ
+  - Cache embedding, kết quả truy xuất và câu trả lời đúng phạm vi
+  - Khóa cache gắn với quyền, nguồn dữ liệu và phiên bản pipeline
+  - Giới hạn thời gian toàn luồng cùng retry cho lỗi tạm thời
+  - Đánh đổi mô hình cục bộ với dịch vụ từ xa
+  - Đo tải và chi phí trên bộ câu hỏi đại diện
+- level1: Quan sát pipeline
+  level2:
+  - Theo dõi ChatClient, advisor, EmbeddingModel, ChatModel và VectorStore
+  - Liên kết trace giữa câu hỏi, bước truy xuất và phản hồi cuối
+  - Ghi nhận số đoạn ứng viên, đoạn được chọn và trường hợp rỗng
+  - Theo dõi điểm truy xuất và tỷ lệ dẫn nguồn hợp lệ theo tập kiểm chứng
+  - Ghi nhận phiên bản mô hình, chỉ mục, prompt và pipeline
+  - Đo token, độ trễ từng công đoạn và lỗi nhà cung cấp
+  - Che câu hỏi, tài liệu và phản hồi nhạy cảm trong log hoặc trace
+  - Cảnh báo suy giảm truy xuất, lỗi nạp dữ liệu và tăng chi phí
+- level1: Vận hành
+  level2:
+  - Tách tiến trình nạp dữ liệu khỏi đường phục vụ câu hỏi
+  - Quản lý lịch cập nhật và mức độ mới của kho tài liệu
+  - Phát hành chỉ mục mới rồi chuyển lưu lượng có kiểm chứng
+  - Thay embedding, splitter hoặc metadata schema theo phiên bản
+  - Theo dõi tài liệu lỗi, hàng đợi xử lý lại và khả năng chạy tiếp
+  - Sao lưu nguồn tài liệu, metadata và cấu hình tái lập chỉ mục
+  - Phương án khi kho vector, reranker hoặc mô hình sinh mất kết nối
+  - Quay lại phiên bản pipeline và đối chiếu chất lượng sau triển khai
+  - Tài liệu hóa quyền truy cập, vòng đời dữ liệu và quy trình xử lý sự cố
+- level1: Chẩn đoán sự cố
+  level2:
+  - Tài liệu đã nạp nhưng truy xuất không thấy đoạn cần thiết
+  - Sai mô hình embedding, số chiều hoặc cấu hình chỉ mục
+  - Chia đoạn làm mất quan hệ giữa tiêu đề và nội dung
+  - Ngưỡng quá cao, topK quá nhỏ hoặc bộ lọc sai kiểu dữ liệu
+  - Rewrite hoặc dịch câu hỏi làm lệch ý định ban đầu
+  - Multi-query trả nhiều đoạn trùng và tăng nhiễu ngữ cảnh
+  - Prompt thiếu placeholder hoặc template của advisor không được áp dụng
+  - Vượt cửa sổ ngữ cảnh hoặc mất bằng chứng khi cắt token
+  - Câu trả lời bịa dữ kiện hoặc dẫn nguồn không hỗ trợ kết luận
+  - Dữ liệu cũ còn tồn tại sau cập nhật, xóa hoặc thu hồi quyền
+  - Vòng gọi đệ quy, sai thứ tự advisor hoặc trộn lịch sử hội thoại
+  - Độ trễ cao, lỗi giới hạn tốc độ và chi phí tăng bất thường
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng RAG tối thiểu cho một bộ tài liệu Markdown có nguồn rõ ràng
+  - Nạp PDF nhiều trang và trả câu trả lời dẫn đúng trang
+  - So sánh QuestionAnswerAdvisor với RetrievalAugmentationAdvisor
+  - Thử các chiến lược chia đoạn trên cùng tập câu hỏi kiểm chứng
+  - Kết hợp rewrite, multi-query và reranker rồi đo tác động
+  - Xử lý câu hỏi tiếp nối bằng lịch sử hội thoại có giới hạn
+  - Cô lập hai tenant và kiểm thử quyền truy xuất bắt buộc
+  - Kiểm thử ngữ cảnh rỗng, tài liệu mâu thuẫn và prompt injection
+  - Cập nhật hoặc xóa tài liệu rồi xác minh chỉ mục cùng cache
+  - Phát hành thử pipeline với báo cáo chất lượng, độ trễ và chi phí

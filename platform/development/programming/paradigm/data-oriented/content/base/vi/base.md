@@ -1,0 +1,7 @@
+# Programming Paradigm Data Oriented
+
+Data-Oriented Programming (DOP) là cách tổ chức chương trình lấy mô hình dữ liệu làm trọng tâm: biểu diễn dữ liệu minh bạch, ưu tiên giá trị bất biến, mô tả các trường hợp hợp lệ bằng kiểu dữ liệu và tách phần lớn thao tác nghiệp vụ khỏi đối tượng chứa dữ liệu. Trong Java, records, sealed classes/interfaces và pattern matching bổ trợ lẫn nhau để hiện thực hóa cách tiếp cận này. DOP không đồng nhất với tối ưu bố trí dữ liệu trong bộ nhớ của Data-Oriented Design.
+
+Module dành cho người đã biết Java OOP, interface, class và kiến thức xử lý dữ liệu căn bản. Lộ trình bắt đầu bằng tư duy DOP, tạo records và sealed types, thiết kế để hạn chế trạng thái không hợp lệ và validation tại ranh giới dữ liệu. Tiếp theo, người học tách operations ra khỏi data model, xử lý các biến thể bằng record patterns và switch, rồi thực hành biến đổi, kiểm thử và refactoring. Với Java, record đã ổn định từ phiên bản 16, sealed types từ 17, còn record patterns và pattern matching for switch đã ổn định từ Java 21; ví dụ kết hợp đầy đủ nên dùng JDK 21 trở lên.
+
+Sau khi hoàn thành, bạn có thể mô hình hóa một tập dữ liệu nghiệp vụ thành các record và kiểu sealed, viết operation xử lý đầy đủ các trường hợp, kiểm tra invariant bằng unit tests và lý giải trade-off giữa DOP với OOP hoặc phong cách hàm. Records chỉ bảo đảm tính bất biến nông, do đó những thành phần mutable như collection vẫn cần xử lý phù hợp.

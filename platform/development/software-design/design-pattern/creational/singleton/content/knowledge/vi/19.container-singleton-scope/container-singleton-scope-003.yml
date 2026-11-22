@@ -1,0 +1,3 @@
+menuLevel1: Singleton trong container
+menuLevel2: Nhiều bean definition cùng kiểu hoặc nhiều application context có thể có các instance khác nhau
+status: ""

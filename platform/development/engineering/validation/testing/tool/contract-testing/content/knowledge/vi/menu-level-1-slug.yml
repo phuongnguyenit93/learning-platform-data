@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Chiến lược hợp đồng
+  slug: contract-strategy
+  index: 1
+- title: Thiết kế hợp đồng
+  slug: contract-design
+  index: 2
+- title: Hợp đồng HTTP
+  slug: http-contracts
+  index: 3
+- title: Công cụ và môi trường
+  slug: tools-and-environments
+  index: 4
+- title: Pact consumer
+  slug: pact-consumer
+  index: 5
+- title: Quy tắc khớp Pact
+  slug: pact-matching-rules
+  index: 6
+- title: Pact provider
+  slug: pact-provider
+  index: 7
+- title: Trạng thái provider
+  slug: provider-states
+  index: 8
+- title: Pact với Spring
+  slug: pact-with-spring
+  index: 9
+- title: Pact thông điệp
+  slug: pact-messaging
+  index: 10
+- title: Pact Broker
+  slug: pact-broker
+  index: 11
+- title: Phiên bản và nhánh
+  slug: versions-and-branches
+  index: 12
+- title: Chọn hợp đồng
+  slug: contract-selection
+  index: 13
+- title: Triển khai tương thích
+  slug: compatible-deployment
+  index: 14
+- title: Spring Cloud Contract
+  slug: spring-cloud-contract
+  index: 15
+- title: DSL hợp đồng HTTP
+  slug: http-contract-dsl
+  index: 16
+- title: Sinh kiểm thử provider
+  slug: provider-test-generation
+  index: 17
+- title: Stub Runner
+  slug: stub-runner
+  index: 18
+- title: Thông điệp với Spring
+  slug: spring-messaging
+  index: 19
+- title: Đặc tả và lược đồ
+  slug: specs-and-schemas
+  index: 20
+- title: Tiến hóa hợp đồng
+  slug: contract-evolution
+  index: 21
+- title: Dữ liệu và cô lập
+  slug: test-data-and-isolation
+  index: 22
+- title: CI/CD
+  slug: cicd
+  index: 23
+- title: Tích hợp nhiều dự án
+  slug: multi-project-integration
+  index: 24
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 25
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 26
+- title: Vận hành và quản trị
+  slug: operations-and-governance
+  index: 27

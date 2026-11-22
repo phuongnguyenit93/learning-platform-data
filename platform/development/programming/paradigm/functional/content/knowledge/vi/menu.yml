@@ -1,0 +1,420 @@
+menu:
+- level1: Mô hình tư duy
+  level2:
+  - Lập trình hàm là gì và tổ chức chương trình quanh ý tưởng nào?
+  - Vấn đề của trạng thái thay đổi và phụ thuộc khó quan sát
+  - Nhìn chương trình như quá trình biến đổi dữ liệu qua các hàm
+  - 'Bản đồ thuật ngữ: hàm thuần, bất biến, hàm bậc cao và hợp thành'
+  - So sánh cách giải một bài toán bằng mệnh lệnh và bằng hàm
+  - Quan hệ giữa lập trình hàm, khai báo và hướng đối tượng
+  - Phân biệt phong cách lập trình hàm với việc chỉ sử dụng lambda
+  - Ngôn ngữ hàm thuần túy và ngôn ngữ hỗ trợ nhiều phong cách
+  - Lộ trình học từ phép biến đổi đơn giản đến thiết kế ứng dụng
+- level1: Hàm và biểu thức
+  level2:
+  - Miền xác định, miền giá trị và ý nghĩa của chữ ký hàm
+  - Phân biệt hàm toán học, hàm trong chương trình và phương thức
+  - Biểu thức tạo giá trị và câu lệnh điều khiển thực thi
+  - Đầu vào tường minh, giá trị trả về và phụ thuộc từ bên ngoài
+  - Hàm toàn phần (total function) và hàm bộ phận (partial function)
+  - Thiết kế miền đầu vào để biểu diễn điều kiện hợp lệ
+  - Hàm đồng nhất (identity), hàm hằng và vai trò khi hợp thành
+  - Hàm không tham số, hàm nhiều tham số và cách biểu diễn đầu vào
+  - Hàm ẩn danh, hàm có tên và lựa chọn theo khả năng đọc
+  - Phạm vi từ vựng (lexical scope) và cách tra cứu biến
+  - Giá trị hàm, danh tính đối tượng và ý nghĩa của so sánh hàm
+- level1: Tính thuần khiết
+  level2:
+  - 'Hàm thuần (pure function): kết quả phụ thuộc đầu vào và không gây tác dụng phụ'
+  - Tính xác định và vì sao kết quả ổn định chưa đủ để một hàm thuần
+  - Tính trong suốt tham chiếu (referential transparency) và phép thay thế biểu thức
+  - Tác dụng phụ khi thay đổi dữ liệu, ghi I/O hoặc ném ngoại lệ
+  - Phụ thuộc ẩn từ đồng hồ, số ngẫu nhiên, cấu hình và biến toàn cục
+  - Đưa phụ thuộc ẩn thành tham số để kiểm soát hành vi
+  - Phân biệt thay đổi cục bộ có kiểm soát và thay đổi quan sát được
+  - Tác dụng phụ khi đọc dữ liệu thay đổi và tính không ổn định của môi trường
+  - Ranh giới giữa tính thuần khiết về mô hình và hành vi thực thi
+  - Lợi ích đối với suy luận, tái sử dụng và kiểm thử
+  - Nhận diện tác dụng phụ bị che giấu trong getter, callback và pipeline
+- level1: Dữ liệu bất biến
+  level2:
+  - Bất biến (immutability) là gì và khác biến chỉ được gán một lần ra sao?
+  - Bất biến nông, bất biến sâu và đồ thị đối tượng
+  - Bí danh tham chiếu (aliasing) và thay đổi qua một đường truy cập khác
+  - Thiết kế đối tượng giá trị và quy tắc bằng nhau theo giá trị
+  - Sao chép phòng vệ khi nhận hoặc trả về dữ liệu có thể thay đổi
+  - Tập hợp chỉ đọc, tập hợp không cho sửa và dữ liệu thực sự bất biến
+  - Tạo phiên bản dữ liệu mới thay vì sửa dữ liệu cũ
+  - Cấu trúc dữ liệu bền vững (persistent data structure) và chia sẻ cấu trúc
+  - Chi phí sao chép, chia sẻ cấu trúc và tuổi thọ phiên bản cũ
+  - Cập nhật dữ liệu lồng nhau và giới hạn của sao chép thủ công
+  - Ống kính dữ liệu (lens) và quy tắc truy xuất–cập nhật
+  - Lựa chọn bất biến toàn phần hoặc thay đổi cục bộ có đóng gói
+- level1: Hàm bậc cao
+  level2:
+  - Hàm là giá trị hạng nhất (first-class function) nghĩa là gì?
+  - Hàm bậc cao (higher-order function) nhận hoặc trả về hàm
+  - Truyền hành vi qua tham số thay cho nhánh điều kiện cố định
+  - Trả về hàm để chuyên biệt hóa một hành vi
+  - 'Closure: hàm cùng môi trường được nắm giữ'
+  - Nắm giữ giá trị, nắm giữ tham chiếu và tác động của dữ liệu khả biến
+  - Hàm tạo hàm và cấu hình hành vi theo từng ngữ cảnh
+  - Hàm bậc cao trong lọc, sắp xếp, kiểm tra và xử lý lỗi
+  - Phân biệt callback với bất đồng bộ và với tính thuần khiết
+  - Tránh che giấu phụ thuộc hoặc làm tuổi thọ dữ liệu kéo dài trong closure
+- level1: Hợp thành hàm
+  level2:
+  - Hợp thành hàm (composition) và điều kiện khớp kiểu đầu vào–đầu ra
+  - Hướng hợp thành và cách đọc một chuỗi phép biến đổi
+  - Pipeline dữ liệu và tách các bước theo trách nhiệm
+  - Tính kết hợp và vai trò của hàm đồng nhất
+  - Hàm nhiều tham số và các trở ngại khi hợp thành trực tiếp
+  - 'Currying: biểu diễn hàm nhiều đầu vào bằng chuỗi hàm một đầu vào'
+  - Áp dụng một phần (partial application) và khác biệt với currying
+  - Đổi thứ tự tham số để thuận tiện chuyên biệt hóa và tái sử dụng
+  - Kết hợp các điều kiện bằng and, or và not
+  - Kết hợp phép chiếu, phép so sánh và quy tắc sắp xếp
+  - Hợp thành có thể thất bại và nhu cầu nối kết quả trong một ngữ cảnh
+  - Cân bằng giữa chia hàm nhỏ, tên gọi rõ ràng và độ dài pipeline
+- level1: Kiểu và mô hình dữ liệu
+  level2:
+  - Kiểu dữ liệu như tập giá trị và hợp đồng của phép biến đổi
+  - Kiểu tích (product type) để kết hợp nhiều thành phần dữ liệu
+  - Kiểu tổng (sum type) để biểu diễn các lựa chọn loại trừ nhau
+  - Mô hình hóa trạng thái nghiệp vụ bằng kiểu thay cho nhiều cờ boolean
+  - Làm trạng thái không hợp lệ khó biểu diễn bằng thiết kế kiểu
+  - Phân biệt kiểu nguyên thủy, đối tượng giá trị và định danh nghiệp vụ
+  - Kiểu đệ quy để biểu diễn danh sách, cây và biểu thức
+  - So khớp mẫu (pattern matching) và xử lý đủ các trường hợp
+  - Kiểu tham số (parametric polymorphism) và hàm tổng quát
+  - Kiểu hàm, quan hệ biến thiên và giới hạn của tính tổng quát
+  - Type class như cách mô tả hành vi theo kiểu và các lựa chọn biểu diễn
+  - Mô hình dữ liệu tường minh thay cho null, mã lỗi và giá trị đặc biệt
+- level1: Đệ quy
+  level2:
+  - Đệ quy là gì và mối liên hệ với định nghĩa dữ liệu
+  - Trường hợp cơ sở, bước đệ quy và điều kiện kết thúc
+  - Đệ quy trên số, danh sách, cây và kiểu tổng
+  - Suy luận đúng đắn bằng bất biến và quy nạp
+  - Đệ quy đuôi (tail recursion) và điều kiện tối ưu hóa lời gọi đuôi
+  - Giới hạn ngăn xếp trong Java và nguy cơ StackOverflowError
+  - Chuyển đệ quy thành vòng lặp với trạng thái tường minh
+  - Trampoline để điều khiển các bước tính toán không tăng ngăn xếp
+  - Chia để trị, cây lời gọi và chi phí lặp lại phép tính
+  - Memoization để tái sử dụng kết quả và điều kiện áp dụng
+  - Khi nào dùng đệ quy, phép gấp hoặc vòng lặp để dễ hiểu hơn
+- level1: Biến đổi tập hợp
+  level2:
+  - Ánh xạ (map) để biến đổi từng phần tử và giữ cấu trúc
+  - Lọc (filter) theo điều kiện mà không sửa nguồn
+  - Làm phẳng (flatten) và flatMap trên dữ liệu lồng nhau
+  - Phân biệt một–một, một–nhiều và nhiều–một trong phép biến đổi
+  - Kết hợp hai dãy theo vị trí bằng zip và chính sách khi lệch độ dài
+  - Chọn, bỏ và cắt dãy theo số lượng hoặc điều kiện
+  - Tìm phần tử và kiểm tra tồn tại, tất cả hoặc không có
+  - Khử trùng, sắp xếp và ảnh hưởng của quy tắc bằng nhau
+  - Nhóm, phân hoạch và lập chỉ mục theo khóa
+  - Tích Descartes và mở rộng nhiều tổ hợp dữ liệu
+  - Giữ thứ tự, thay đổi thứ tự và ảnh hưởng đến ý nghĩa kết quả
+  - Kết hợp nhiều phép biến đổi thành một luồng xử lý có thể đọc được
+- level1: Gấp và tích lũy
+  level2:
+  - Phép gấp (fold) để rút cấu trúc dữ liệu về một kết quả
+  - Gấp trái, gấp phải và hướng kết hợp phần tử
+  - Giá trị khởi đầu và vai trò của kết quả khi tập rỗng
+  - Phân biệt fold, reduce và tích lũy có thay đổi bộ chứa
+  - Thiết kế trạng thái tích lũy bằng dữ liệu có ý nghĩa
+  - Scan để giữ các kết quả tích lũy trung gian
+  - Biểu diễn đếm, tổng, tìm cực trị và gom nhóm bằng phép gấp
+  - Tính kết hợp và điều kiện chia nhỏ công việc để tổng hợp
+  - Phép gấp trên cây và các kiểu dữ liệu đệ quy
+  - Tác dụng phụ trong hàm tích lũy và nguy cơ chia sẻ trạng thái
+  - Lựa chọn phép gấp chuyên biệt thay vì một bộ tích lũy quá nhiều trách nhiệm
+- level1: Đánh giá và tính lười
+  level2:
+  - Đánh giá sớm (eager evaluation) và đánh giá lười (lazy evaluation)
+  - Trì hoãn phép tính bằng hàm không tham số hoặc cấu trúc dữ liệu
+  - Call-by-value, call-by-name và call-by-need
+  - Khi nào một phép tính thực sự được kích hoạt?
+  - Đánh giá ngắn mạch và tránh tính phần kết quả không cần thiết
+  - Dãy vô hạn và điều kiện tiêu thụ hữu hạn
+  - Tính lại nhiều lần, ghi nhớ kết quả và sự khác nhau về ngữ nghĩa
+  - Tác dụng phụ bị trì hoãn và cách thay đổi thứ tự quan sát
+  - Giữ tham chiếu trong chuỗi lười và nguy cơ tăng bộ nhớ
+  - Giải phóng tài nguyên khi phép tính trì hoãn kết thúc hoặc bị hủy
+  - Lựa chọn đánh giá sớm hay lười theo chi phí và yêu cầu rõ ràng
+- level1: Nền tảng hình thức
+  level2:
+  - Lambda calculus và vai trò mô hình hóa phép tính bằng hàm
+  - Biến, biểu thức lambda và phép áp dụng
+  - Biến tự do, biến bị ràng buộc và phạm vi tên
+  - Đổi tên biến bằng alpha-conversion
+  - Thay thế biểu thức bằng beta-reduction
+  - Eta-conversion và các điều kiện áp dụng
+  - Thứ tự rút gọn, kết thúc và biểu thức không kết thúc
+  - Mã hóa giá trị và lựa chọn bằng hàm ở mức khái niệm
+  - Điểm bất động và cách biểu diễn đệ quy
+  - Liên hệ lambda calculus với lambda có kiểu trong ngôn ngữ thực tế
+- level1: Đại số và quy luật
+  level2:
+  - Vì sao cần quy luật khi thiết kế các phép biến đổi tổng quát?
+  - Tính đóng, kết hợp, giao hoán và lũy đẳng của phép toán
+  - 'Semigroup: phép kết hợp có tính kết hợp'
+  - 'Monoid: bổ sung phần tử đơn vị để xử lý cả trường hợp rỗng'
+  - Ví dụ từ số, chuỗi, danh sách và phép kết hợp điều kiện
+  - Phép toán không giao hoán và sự cần thiết giữ thứ tự
+  - Phép toán số thực và giới hạn khi dựa vào tính kết hợp
+  - Hàm đồng cấu (homomorphism) và bảo toàn cấu trúc khi biến đổi
+  - Quy luật như cơ sở tái cấu trúc và xử lý song song
+  - Phân biệt cấu trúc đại số, giao diện API và cách cài đặt cụ thể
+- level1: Functor
+  level2:
+  - Bài toán biến đổi giá trị nằm trong một ngữ cảnh
+  - Functor và phép map bảo toàn ngữ cảnh
+  - Quy luật đồng nhất và quy luật hợp thành
+  - Ánh xạ trên danh sách, giá trị tùy chọn và kết quả có thể lỗi
+  - Phân biệt map với vòng lặp gây tác dụng phụ
+  - Functor lồng nhau và biến đổi qua nhiều lớp ngữ cảnh
+  - Phân biệt một API có tên map với một Functor tuân thủ quy luật
+  - Nhận diện lợi ích thực tế của Functor mà không lạm dụng thuật ngữ
+- level1: Applicative
+  level2:
+  - Kết hợp nhiều phép tính độc lập có cùng ngữ cảnh
+  - Đưa giá trị thuần vào ngữ cảnh bằng pure
+  - Áp dụng hàm trong ngữ cảnh và vai trò của ap
+  - Nâng hàm nhiều tham số bằng map2 hoặc các phép tương đương
+  - Nhận diện các quy luật của Applicative
+  - Tích lũy nhiều lỗi kiểm tra thay vì dừng ở lỗi đầu tiên
+  - Traverse và sequence để chuyển đổi giữa cấu trúc với ngữ cảnh
+  - Độc lập về dữ liệu và lý do Applicative không tự bảo đảm chạy song song
+  - Quan hệ giữa Applicative, Functor và việc kết hợp ngữ cảnh
+- level1: Monad
+  level2:
+  - Bài toán phép tính sau phụ thuộc kết quả của phép tính trước
+  - Monad và phép nối kết flatMap hoặc bind
+  - Đưa giá trị vào ngữ cảnh và tránh tạo lớp bọc thừa
+  - Quy luật đơn vị trái, đơn vị phải và tính kết hợp
+  - Phân biệt map, flatMap và flatten theo kiểu dữ liệu
+  - Nối các bước có thể thiếu giá trị hoặc thất bại
+  - Nối lựa chọn nhiều kết quả bằng danh sách
+  - Ngữ cảnh Reader cho cấu hình và phụ thuộc chỉ đọc
+  - Ngữ cảnh State để chuyển trạng thái tường minh
+  - Ngữ cảnh Writer để tích lũy dữ liệu kèm kết quả
+  - Kết hợp nhiều ngữ cảnh và nhận diện độ phức tạp phát sinh
+  - Phân biệt Monad với bất đồng bộ, tác dụng phụ và một kiểu lớp cụ thể
+- level1: Lỗi và giá trị thiếu
+  level2:
+  - Biểu diễn sự vắng mặt bằng kiểu tùy chọn thay cho null
+  - Phân biệt không có kết quả, đầu vào không hợp lệ và lỗi thực thi
+  - Mô hình Result hoặc Either để trả về thành công hay thất bại
+  - Thiết kế kiểu lỗi có cấu trúc và giữ thông tin nghiệp vụ
+  - Biến đổi kết quả thành công mà không làm mất lỗi
+  - Dừng ở lỗi đầu tiên hoặc tích lũy mọi lỗi độc lập
+  - Phục hồi lỗi, cung cấp mặc định và lựa chọn nhánh thay thế
+  - Nâng hàm có thể ném ngoại lệ thành hàm trả về kết quả
+  - Đặt ranh giới chuyển đổi giữa kiểu lỗi và ngoại lệ
+  - Thu thập kết quả khi xử lý nhiều phần tử có thể thất bại
+  - Tránh nuốt lỗi hoặc biến mọi thất bại thành giá trị thiếu
+- level1: Trạng thái và tác dụng phụ
+  level2:
+  - Biểu diễn chuyển trạng thái bằng hàm nhận trạng thái cũ và trả trạng thái mới
+  - Tách kết quả nghiệp vụ khỏi trạng thái cập nhật
+  - Truyền cấu hình và dịch vụ phụ thuộc qua đầu vào tường minh
+  - Thay thế đồng hồ và nguồn ngẫu nhiên bằng phụ thuộc có thể kiểm soát
+  - Mô tả thao tác I/O như dữ liệu trước khi thực thi
+  - Kiểu IO và sự khác nhau giữa dựng mô tả với chạy tác vụ
+  - Thứ tự tác dụng phụ khi hợp thành các bước
+  - Quản lý tài nguyên với các giai đoạn cấp phát, sử dụng và giải phóng
+  - Xử lý ngoại lệ và hủy tác vụ trong vòng đời tài nguyên
+  - Thay đổi cục bộ có đóng gói bên trong một giao diện thuần
+  - Phân biệt kiểm soát tác dụng phụ với loại bỏ mọi thay đổi trong hệ thống
+  - Giới hạn của việc mô hình hóa tác dụng phụ bằng kiểu trong Java
+- level1: Thiết kế bằng hàm
+  level2:
+  - 'Lõi hàm, lớp ngoài mệnh lệnh: tách quyết định khỏi thực thi'
+  - Thiết kế ca sử dụng như chuỗi dữ liệu vào, quyết định và kết quả
+  - Trả về danh sách hành động cần thực hiện thay vì thực hiện ngay
+  - Giữ quy tắc nghiệp vụ độc lập cơ sở dữ liệu, mạng và giao diện
+  - Tách giải mã, kiểm tra hợp lệ, biến đổi và mã hóa dữ liệu
+  - Hợp thành nhiều bước với kiểu trung gian có ý nghĩa
+  - Chọn ranh giới hàm theo khái niệm nghiệp vụ thay vì số dòng
+  - Thiết kế API hàm với tên, kiểu và thứ tự tham số rõ ràng
+  - Quản lý phụ thuộc bằng hàm, đối tượng hoặc môi trường chỉ đọc
+  - Cập nhật dữ liệu lồng nhau mà vẫn giữ mô hình dễ hiểu
+  - Cân bằng tính tổng quát với khả năng đọc và nhu cầu hiện tại
+- level1: Lambda trong Java
+  level2:
+  - Cú pháp lambda và các dạng thân biểu thức hoặc khối lệnh
+  - 'Target typing: kiểu đích quyết định ý nghĩa của một lambda'
+  - Suy luận kiểu tham số, kiểu trả về và dùng var trong lambda
+  - Quy tắc nắm giữ biến cục bộ final hoặc effectively final
+  - Đối tượng được nắm giữ vẫn có thể thay đổi dù tham chiếu không được gán lại
+  - Ý nghĩa của this, phạm vi tên và khác biệt với lớp ẩn danh
+  - Tham chiếu phương thức tĩnh, phương thức đối tượng và hàm khởi tạo
+  - Tham chiếu phương thức đã gắn đối tượng và chưa gắn đối tượng
+  - Phân giải nạp chồng, ép kiểu và trường hợp lambda gây mơ hồ
+  - Ngoại lệ được kiểm tra và ràng buộc từ chữ ký giao diện hàm
+  - Danh tính, tuần tự hóa và các giả định không nên đặt lên đối tượng lambda
+  - Chọn lambda, tham chiếu phương thức hoặc phương thức có tên theo khả năng đọc
+- level1: Giao diện hàm Java
+  level2:
+  - Giao diện hàm và ý nghĩa của một phương thức trừu tượng duy nhất
+  - '@FunctionalInterface và vai trò kiểm tra hợp đồng'
+  - Function, BiFunction và biến đổi giá trị đầu vào–đầu ra
+  - Predicate, BiPredicate và biểu diễn điều kiện
+  - Supplier để cung cấp giá trị hoặc trì hoãn phép tính
+  - Consumer, BiConsumer và tác dụng phụ không trả về giá trị
+  - UnaryOperator và BinaryOperator cho phép toán trên cùng kiểu
+  - Các biến thể kiểu nguyên thủy và giảm chi phí boxing
+  - compose, andThen và thứ tự hợp thành
+  - and, or, negate và đánh giá ngắn mạch trên điều kiện
+  - Comparator và hợp thành tiêu chí sắp xếp
+  - Thiết kế giao diện hàm nghiệp vụ khi kiểu có sẵn chưa diễn đạt rõ ý nghĩa
+  - Bộ chuyển đổi cho ngoại lệ và chính sách bảo toàn nguyên nhân lỗi
+- level1: Mô hình dữ liệu Java
+  level2:
+  - Record để mô hình hóa dữ liệu và giới hạn bất biến nông
+  - Kiểm tra điều kiện hợp lệ trong hàm khởi tạo của đối tượng giá trị
+  - Sao chép phòng vệ với mảng, danh sách và thuộc tính lồng nhau
+  - Sealed class hoặc sealed interface để biểu diễn lựa chọn hữu hạn
+  - Pattern matching và switch khi xử lý các biến thể dữ liệu
+  - Biểu diễn cặp, nhiều thành phần và kết quả trung gian bằng kiểu có tên
+  - Xây dựng kiểu tùy chọn hoặc kết quả lỗi bằng record và sealed interface
+  - Generic, wildcard và quy tắc PECS khi nhận hoặc trả về hàm
+  - Giới hạn biểu diễn higher-kinded type và type class trong Java
+  - equals, hashCode và hợp đồng giá trị khi làm khóa tập hợp
+  - Tập hợp bất biến, tập hợp không cho sửa và nguồn dữ liệu còn thay đổi
+  - Chuyển đổi giữa mô hình bất biến và đối tượng thư viện có thể thay đổi
+- level1: Stream API
+  level2:
+  - Stream là pipeline xử lý dữ liệu và khác Collection ở điểm nào?
+  - Nguồn dữ liệu, phép toán trung gian và phép toán kết thúc
+  - Tính lười và thời điểm bắt đầu duyệt phần tử
+  - map, filter và tách hành vi biến đổi khỏi dữ liệu nguồn
+  - flatMap và mapMulti khi một phần tử tạo nhiều kết quả
+  - limit, skip, takeWhile và dropWhile trong xử lý dãy
+  - sorted, distinct và chi phí của phép toán có trạng thái
+  - findFirst, findAny, match và khả năng kết thúc sớm
+  - reduce và các yêu cầu đối với phép kết hợp, phần tử đơn vị
+  - collect và khác biệt với việc sửa một bộ tích lũy dùng chung
+  - Encounter order, forEach và forEachOrdered
+  - Không can thiệp vào nguồn và tránh hàm hành vi có trạng thái
+  - Giới hạn dùng lại Stream và quản lý nguồn tài nguyên cần đóng
+  - Stream kiểu nguyên thủy, boxing và chuyển đổi giữa các dạng
+  - Phạm vi phù hợp của Stream và trường hợp vòng lặp rõ ràng hơn
+- level1: Collector
+  level2:
+  - Collector mô tả cách tích lũy và hoàn tất kết quả
+  - Supplier, accumulator, combiner và finisher
+  - Các đặc tính IDENTITY_FINISH, UNORDERED và CONCURRENT
+  - Thu thập vào danh sách, tập hợp hoặc bộ chứa do người dùng chọn
+  - 'toMap: xử lý khóa trùng và lựa chọn cấu trúc lưu trữ'
+  - groupingBy và bộ thu thập phía sau (downstream collector)
+  - partitioningBy để tách dữ liệu theo điều kiện
+  - mapping, flatMapping, filtering và collectingAndThen
+  - counting, summing, averaging và thống kê tổng hợp
+  - teeing để tính hai kết quả trong cùng một quá trình thu thập
+  - Xây dựng Collector tùy chỉnh và chứng minh phép gộp đúng
+  - Tính tương đương giữa thu thập tuần tự và song song
+  - Khả năng thay đổi, thứ tự và hợp đồng của kết quả thu thập
+- level1: Optional
+  level2:
+  - Optional biểu diễn kết quả có thể vắng mặt và giới hạn sử dụng
+  - of, ofNullable, empty và chọn cách tạo theo hợp đồng
+  - map, flatMap và filter trên giá trị tùy chọn
+  - orElse, orElseGet và khác biệt về thời điểm đánh giá
+  - or, orElseThrow và thiết kế nhánh thay thế hoặc thất bại
+  - ifPresent, ifPresentOrElse và ranh giới tác dụng phụ
+  - Kết hợp Optional với Stream mà không dùng get thiếu kiểm soát
+  - Xử lý nhiều giá trị tùy chọn có quan hệ hoặc độc lập
+  - Hành vi với null và giới hạn khi đối chiếu các quy luật hàm
+  - Giá trị tùy chọn, thuộc tính đối tượng và ranh giới API hoặc lưu trữ
+  - Tránh Optional lồng nhau và phân biệt dữ liệu thiếu với lỗi nghiệp vụ
+- level1: Tích hợp hướng đối tượng
+  level2:
+  - Đối tượng để đóng gói ranh giới và hàm để biểu diễn phép biến đổi
+  - Phương thức thuần trong một mô hình hướng đối tượng
+  - Strategy bằng đối tượng và bằng hàm có tham số
+  - Factory, Template Method và các lựa chọn thay thế bằng hàm bậc cao
+  - Dependency injection bằng constructor, giao diện hoặc tham số hàm
+  - Thiết kế đối tượng giá trị thay cho thực thể có trạng thái không cần thiết
+  - Tách lớp dịch vụ nhiều tác dụng phụ thành lõi tính toán và bộ phối hợp
+  - Áp dụng kỹ thuật hàm trong ứng dụng Spring mà vẫn rõ vòng đời thành phần
+  - Bao bọc thư viện khả biến bằng ranh giới dữ liệu bất biến
+  - Tái cấu trúc từng phần và bảo toàn hành vi ứng dụng đang có
+- level1: Đồng thời và song song
+  level2:
+  - Vì sao hàm thuần và dữ liệu bất biến giúp giảm chia sẻ trạng thái?
+  - Phân biệt an toàn luồng, tính xác định và khả năng chạy song song
+  - Phép kết hợp có tính kết hợp và điều kiện phân chia dữ liệu
+  - Thứ tự dữ liệu và các đánh đổi khi xử lý song song
+  - Parallel Stream, phân chia công việc và vai trò của Spliterator
+  - Phép toán chặn, nhóm luồng dùng chung và giới hạn của parallelStream
+  - Tác dụng phụ, bộ tích lũy chung và lỗi đua tranh trong pipeline
+  - 'CompletableFuture: thenApply, thenCompose và kết hợp kết quả độc lập'
+  - Lan truyền lỗi, thời hạn chờ và hủy công việc bất đồng bộ
+  - Phân biệt lập trình hàm, bất đồng bộ, hướng sự kiện và reactive
+  - Chứng minh tính tương đương giữa kết quả tuần tự và song song
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử hàm thuần bằng đầu vào và đầu ra có ý nghĩa
+  - Phân hoạch miền dữ liệu, giá trị biên và các trường hợp rỗng
+  - Kiểm thử dựa trên thuộc tính (property-based testing)
+  - Sinh dữ liệu hợp lệ và thu nhỏ trường hợp gây lỗi
+  - Kiểm tra quy luật đồng nhất, hợp thành và tính kết hợp
+  - Kiểm tra tính bất biến và phát hiện thay đổi dữ liệu nguồn
+  - Kiểm tra quy luật Functor, Applicative hoặc Monad cho kiểu tự xây dựng
+  - Kiểm thử quan hệ giữa nhiều lần chạy khi khó xác định kết quả cụ thể
+  - Điều khiển thời gian, số ngẫu nhiên và I/O ở ranh giới tác dụng phụ
+  - Kiểm thử hợp đồng cho bộ chuyển đổi và lớp tích hợp
+  - Kiểm thử phép gộp trên nhiều cách chia dữ liệu
+  - Giữ kiểm thử tập trung hành vi thay vì sao chép chi tiết cài đặt
+- level1: Hiệu năng và tài nguyên
+  level2:
+  - Đánh đổi giữa dữ liệu bất biến, sao chép và thay đổi cục bộ
+  - Chia sẻ cấu trúc và chi phí giữ nhiều phiên bản dữ liệu
+  - Lambda, boxing, đối tượng tạm và áp lực cấp phát bộ nhớ
+  - Chi phí chuỗi Stream so với vòng lặp theo dữ liệu thực tế
+  - Độ sâu đệ quy, ngăn xếp và cách chọn thuật toán phù hợp
+  - 'Memoization: thiết kế khóa, giới hạn bộ nhớ và loại bỏ kết quả cũ'
+  - Memoization trong môi trường đa luồng và dữ liệu đầu vào có thể thay đổi
+  - Tính lười gây giữ tham chiếu và tính toán bị lặp lại
+  - Tổng hợp nhiều phép biến đổi để giảm cấu trúc trung gian
+  - Đánh giá tải song song dựa trên kích thước dữ liệu và chi phí từng phần tử
+  - Đo bằng JMH, làm nóng JVM và tránh kết quả benchmark sai lệch
+  - Cân bằng tối ưu hóa với hợp đồng dữ liệu và khả năng suy luận
+- level1: Gỡ lỗi và khả năng đọc
+  level2:
+  - Đặt tên cho các phép biến đổi theo ngữ nghĩa nghiệp vụ
+  - Quan sát giá trị trung gian mà không làm thay đổi ý nghĩa pipeline
+  - Đọc stack trace của lambda và truy tìm phép biến đổi gây lỗi
+  - Giới hạn của peek và tác dụng phụ dùng để chẩn đoán
+  - Tách pipeline dài thành các hàm có kiểu đầu vào–đầu ra rõ ràng
+  - Nhận diện trừu tượng hóa quá mức, lớp bọc lồng nhau và tên gọi mơ hồ
+  - Giữ thông tin lỗi, ngữ cảnh dữ liệu và vị trí thất bại
+  - Đánh giá khả năng bảo trì khi nhóm có mức quen thuộc khác nhau với lập trình hàm
+- level1: Thực hành
+  level2:
+  - Chuyển vòng lặp lọc và ánh xạ dữ liệu thành các hàm thuần
+  - Thiết kế hóa đơn bằng đối tượng giá trị bất biến và quy tắc tính tiền
+  - Hợp thành điều kiện kiểm tra và tiêu chí sắp xếp
+  - Mô hình hóa quy trình đơn hàng bằng kiểu tổng và chuyển trạng thái
+  - Tích lũy nhiều lỗi kiểm tra biểu mẫu bằng Applicative
+  - Xử lý chuỗi phép tính phụ thuộc bằng Result và flatMap
+  - Duyệt cây biểu thức bằng đệ quy, pattern matching và phép gấp
+  - Đọc dữ liệu ngoài hệ thống qua lớp tích hợp và giữ lõi biến đổi thuần
+  - Xây dựng Collector tùy chỉnh và kiểm tra các cách chia dữ liệu
+  - Tái cấu trúc dịch vụ có tác dụng phụ theo lõi hàm, lớp ngoài mệnh lệnh
+  - So sánh Stream tuần tự, song song và vòng lặp bằng phép đo
+  - Kiểm thử quy luật và sinh dữ liệu cho một kiểu hoặc phép biến đổi tự xây dựng
+- level1: Đánh giá thiết kế
+  level2:
+  - Từ yêu cầu nghiệp vụ đến kiểu dữ liệu và chữ ký hàm
+  - Vẽ luồng biến đổi cùng ranh giới trạng thái và tác dụng phụ
+  - Đánh giá tính toàn phần, thuần khiết và khả năng hợp thành
+  - Kiểm tra các quy luật cần đúng trước khi tái cấu trúc hoặc chạy song song
+  - Nhận diện lambda gây tác dụng phụ, chuỗi map giả và lạm dụng Optional
+  - Khi nào chọn hàm bậc cao, đối tượng chiến lược hoặc vòng lặp?
+  - Khi nào cần một kiểu ngữ cảnh hoặc thư viện hàm bên ngoài?
+  - Chuyển đổi dần mã mệnh lệnh và bảo toàn hành vi có thể quan sát
+  - Tự đánh giá bằng mô hình rõ ràng, kiểm thử và số liệu thực thi

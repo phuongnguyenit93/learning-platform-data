@@ -1,0 +1,2320 @@
+menu:
+- slug: high-cohesion-overview
+  title: Tổng quan High Cohesion
+  childs:
+  - slug: high-cohesion-overview-001
+    title: Tính gắn kết cao (High Cohesion) là gì trong thiết kế phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-002
+    title: Vì sao các phần trong một đơn vị mã cần cùng phục vụ mục đích rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-003
+    title: Nhận diện dữ liệu, hành vi, trách nhiệm và ranh giới trong một thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-004
+    title: Mối liên hệ giữa cohesion, khả năng đọc hiểu và chi phí thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-005
+    title: Phân biệt gắn kết nội bộ với mức phụ thuộc giữa các đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-006
+    title: Các cấp xem xét cohesion từ hàm, lớp đến gói, mô-đun và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-007
+    title: Phân biệt cohesion cao với ít dòng mã, ít phương thức hoặc nhiều lớp nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-008
+    title: So sánh một ví dụ trước và sau khi tổ chức lại trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-cohesion-overview-009
+    title: Lộ trình học từ nhận diện quan hệ nội bộ đến kiểm chứng thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responsibilities-and-boundaries
+  title: Trách nhiệm và ranh giới
+  childs:
+  - slug: responsibilities-and-boundaries-001
+    title: Xác định trách nhiệm qua giá trị và kết quả mà một đơn vị cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-002
+    title: Phân biệt trách nhiệm với một thao tác kỹ thuật riêng lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-003
+    title: Mô tả mục đích của hàm, lớp hoặc mô-đun bằng ngôn ngữ rõ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-004
+    title: Nhận diện các phần cùng phục vụ một quy tắc hoặc quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-005
+    title: Phân tích người sử dụng, chủ sở hữu và lý do thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-006
+    title: Xác định dữ liệu, hành vi và bất biến cần được quản lý cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-007
+    title: Đánh giá mức trừu tượng phù hợp của một ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-008
+    title: Nhận diện trách nhiệm bị thiếu, bị trùng hoặc phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-and-boundaries-009
+    title: Phân biệt ranh giới có ý nghĩa với việc gom mã theo tên gọi chung chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cohesion-and-coupling
+  title: Cohesion và Coupling
+  childs:
+  - slug: cohesion-and-coupling-001
+    title: Phân biệt tính gắn kết nội bộ (cohesion) với mức phụ thuộc (coupling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-002
+    title: Quan sát cohesion và coupling như hai khía cạnh cần đánh giá riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-003
+    title: Phân tích thiết kế có gắn kết tốt nhưng vẫn phụ thuộc quá nhiều bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-004
+    title: Nhận diện thiết kế ít phụ thuộc nhưng chứa các trách nhiệm rời rạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-005
+    title: Liên hệ đóng gói và che giấu thông tin với cả hai mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-006
+    title: Đánh giá việc tách lớp làm tăng số quan hệ cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-007
+    title: Lựa chọn ranh giới giúp tập trung quy tắc và giảm phụ thuộc vào chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-008
+    title: Phân biệt kết nối cần thiết với ràng buộc gây thay đổi dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-and-coupling-009
+    title: Đánh giá lợi ích toàn thiết kế thay vì tối ưu riêng một chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cohesion-types
+  title: Các dạng Cohesion
+  childs:
+  - slug: cohesion-types-001
+    title: Mục đích và phạm vi sử dụng các cách phân loại cohesion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-002
+    title: Gắn kết ngẫu nhiên (Coincidental Cohesion) giữa các phần không có mục đích chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-003
+    title: Gắn kết theo loại thao tác (Logical Cohesion) và vai trò của tham số lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-004
+    title: Gắn kết theo thời điểm (Temporal Cohesion) trong khởi tạo và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-005
+    title: Gắn kết theo trình tự thủ tục (Procedural Cohesion)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-006
+    title: Gắn kết qua dữ liệu chung (Communicational Cohesion)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-007
+    title: Gắn kết theo chuỗi đầu ra và đầu vào (Sequential Cohesion)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-008
+    title: Gắn kết theo một chức năng xác định (Functional Cohesion)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-009
+    title: Gắn kết quanh cấu trúc dữ liệu và các thao tác liên quan (Informational Cohesion)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-010
+    title: Phân biệt chia sẻ dữ liệu với thực sự cùng bảo vệ một ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-types-011
+    title: Giới hạn của phân loại cổ điển khi đánh giá thiết kế hướng đối tượng và hệ thống hiện đại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signs-and-evidence
+  title: Dấu hiệu và bằng chứng
+  childs:
+  - slug: signs-and-evidence-001
+    title: Đọc luồng sử dụng để xác định các phần có liên quan thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-002
+    title: Lập bản đồ phương thức, trường dữ liệu và các lời gọi nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-003
+    title: Tìm nhóm hành vi cùng sử dụng dữ liệu hoặc bảo vệ một bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-004
+    title: Đối chiếu tên gọi với mục đích mà mã đang thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-005
+    title: Quan sát những phần thường phải thay đổi cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-006
+    title: Phân biệt đồng thay đổi do nghiệp vụ với đồng thay đổi do sao chép mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-007
+    title: Nhận diện nhiều nhóm phương thức ít liên quan trong cùng một lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-008
+    title: Kiểm tra các phụ thuộc chỉ phục vụ một nhóm trách nhiệm nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-009
+    title: Kết hợp mã nguồn, kiểm thử và lịch sử thay đổi trước khi kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signs-and-evidence-010
+    title: Ghi nhận giả thuyết thiết kế cùng bằng chứng còn thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: function-cohesion
+  title: Cohesion ở hàm
+  childs:
+  - slug: function-cohesion-001
+    title: Xác định một kết quả có ý nghĩa mà hàm chịu trách nhiệm tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-002
+    title: Giữ các bước xử lý ở mức trừu tượng nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-003
+    title: Nhận diện hàm vừa tính toán, lưu dữ liệu và điều khiển giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-004
+    title: Phân biệt một quy trình nhiều bước với nhiều trách nhiệm không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-005
+    title: Tách hàm theo ý định và luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-006
+    title: Giảm biến tạm và phạm vi trạng thái phải ghi nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-007
+    title: Xử lý tham số cờ chọn giữa các hành vi khác bản chất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-008
+    title: Đánh giá tác dụng phụ và thứ tự thực thi trong mục đích chung của hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-009
+    title: Tránh chia hàm cơ học khiến ý nghĩa bị phân tán qua nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-cohesion-010
+    title: Kiểm chứng khả năng đọc hiểu và thay đổi sau khi tổ chức lại hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-cohesion
+  title: Cohesion ở lớp
+  childs:
+  - slug: class-cohesion-001
+    title: Mô tả khái niệm hoặc trách nhiệm trung tâm của lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-002
+    title: Đối chiếu trường dữ liệu với hành vi mà lớp cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-003
+    title: Giữ quy tắc bảo vệ trạng thái hợp lệ gần dữ liệu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-004
+    title: Nhận diện nhóm trường và phương thức tạo thành trách nhiệm riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-005
+    title: Phân tích hàm khởi tạo có quá nhiều phụ thuộc không dùng cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-006
+    title: Đánh giá lớp chứa đồng thời nhiều mức trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-007
+    title: Tách lớp theo trách nhiệm và vòng đời trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-008
+    title: Phân biệt lớp nhỏ có mục đích rõ với lớp quá vụn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-009
+    title: Nhận diện lớp lớn nhưng gắn kết và lớp nhỏ nhưng thiếu mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-cohesion-010
+    title: Kiểm chứng hợp đồng và quan hệ cộng tác sau khi thay ranh giới lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-behavior
+  title: Dữ liệu và hành vi
+  childs:
+  - slug: data-and-behavior-001
+    title: Xác định nơi sở hữu dữ liệu và quyền thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-002
+    title: Đưa hành vi về nơi có đủ thông tin và trách nhiệm để quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-003
+    title: Phân biệt truy cập dữ liệu cần thiết với can thiệp chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-004
+    title: Nhận diện cụm dữ liệu cần biểu diễn bằng khái niệm riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-005
+    title: Đóng gói giá trị cùng quy tắc hợp lệ trong đối tượng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-006
+    title: Phân biệt hành vi nghiệp vụ với chuyển đổi dữ liệu tại biên hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-007
+    title: Đánh giá dữ liệu bất biến và hàm thuần trong thiết kế gắn kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-008
+    title: Giữ DTO và cấu trúc truyền dữ liệu phù hợp vai trò của chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-009
+    title: Tránh chuyển mọi xử lý về một lớp chỉ vì lớp đó nắm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-behavior-010
+    title: Kiểm chứng bất biến và quyền sở hữu sau khi di chuyển hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interface-cohesion
+  title: Cohesion của giao diện
+  childs:
+  - slug: interface-cohesion-001
+    title: Xác định nhu cầu của nhóm bên sử dụng một giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-002
+    title: Nhận diện các thao tác cùng phục vụ một vai trò có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-003
+    title: Phát hiện giao diện rộng khiến bên sử dụng phụ thuộc vào thao tác không cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-004
+    title: Phân biệt giao diện gắn kết với giao diện chỉ có một phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-005
+    title: Tách giao diện theo vai trò khi các nhu cầu sử dụng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-006
+    title: Đối chiếu tên, tham số và kết quả với hợp đồng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-007
+    title: Đánh giá giao diện chuyển tiếp và nguy cơ tạo quá nhiều tầng trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-008
+    title: Giữ ổn định hợp đồng công khai khi thay đổi cách tổ chức bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-cohesion-009
+    title: Kiểm chứng các bên sử dụng sau khi điều chỉnh ranh giới giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: package-cohesion
+  title: Cohesion ở gói
+  childs:
+  - slug: package-cohesion-001
+    title: Xác định gói (package) đang biểu diễn năng lực hay chi tiết kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-002
+    title: So sánh nhóm mã theo tầng với nhóm mã theo chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-003
+    title: Đánh giá mục đích chung của các lớp trong cùng một gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-004
+    title: Giữ chi tiết cài đặt gần hợp đồng và thành phần sử dụng chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-005
+    title: Nhận diện gói tiện ích tập hợp nhiều trách nhiệm không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-006
+    title: Kiểm tra phụ thuộc vòng và lớp bị dùng xuyên nhiều ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-007
+    title: Thiết lập phần công khai và phần nội bộ của gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-008
+    title: Đặt tên gói theo ý nghĩa thay vì chỉ theo loại lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-cohesion-009
+    title: Kiểm chứng khả năng tìm mã và phạm vi thay đổi theo một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-cohesion
+  title: Cohesion ở mô-đun
+  childs:
+  - slug: module-cohesion-001
+    title: Xác định mục đích, hợp đồng và chủ sở hữu của mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-002
+    title: Nhóm thành phần có quy tắc và hướng thay đổi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-003
+    title: Đánh giá các phần cần tái sử dụng cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-004
+    title: Phân tích chu kỳ phát hành và yêu cầu tương thích của các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-005
+    title: Nhận diện mô-đun dùng chung chứa quá nhiều mối quan tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-006
+    title: Tách phần cốt lõi khỏi chi tiết tích hợp khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-007
+    title: Giữ dữ liệu và quyết định nội bộ sau một hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-008
+    title: Phân biệt ranh giới mô-đun với cách chia thư mục hoặc dự án build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-009
+    title: Đánh giá tác động khi chia một mô-đun thành nhiều đơn vị phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-cohesion-010
+    title: Kiểm chứng khả năng thay đổi độc lập mà vẫn đáp ứng các luồng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-cohesion
+  title: Cohesion ở dịch vụ
+  childs:
+  - slug: service-cohesion-001
+    title: Xác định năng lực nghiệp vụ mà một dịch vụ cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-002
+    title: Đánh giá quyền sở hữu dữ liệu và quy tắc của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-003
+    title: Phân biệt ranh giới triển khai với ranh giới trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-004
+    title: Nhận diện dịch vụ phải gọi qua lại nhiều lần để hoàn thành một quyết định nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-005
+    title: Phân tích thay đổi buộc nhiều dịch vụ phải phát hành cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-006
+    title: Đánh giá tính nhất quán dữ liệu và giao dịch khi đề xuất tách dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-007
+    title: Cân nhắc giữ mô-đun trong cùng tiến trình thay vì phân tán sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-008
+    title: Giới hạn việc dùng chung mô hình nội bộ giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-cohesion-009
+    title: Kiểm chứng ranh giới theo hành vi nghiệp vụ và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-modeling
+  title: Mô hình miền nghiệp vụ
+  childs:
+  - slug: domain-modeling-001
+    title: Dùng thuật ngữ nghiệp vụ để tìm trách nhiệm và khái niệm trung tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-002
+    title: Nhận diện các quy tắc cần được thực thi và thay đổi cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-003
+    title: Đánh giá thực thể, đối tượng giá trị và dịch vụ miền theo vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-004
+    title: Nhóm dữ liệu cần bảo vệ nhất quán trong một ranh giới phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-005
+    title: Liên hệ ranh giới ngữ cảnh (bounded context) với ý nghĩa của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-006
+    title: Phân biệt cùng tên dữ liệu với cùng khái niệm trong hai ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-007
+    title: Ngăn chi tiết lưu trữ hoặc giao tiếp làm loãng quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-008
+    title: Đánh giá trường hợp mô hình đơn giản chưa cần nhiều lớp miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modeling-009
+    title: Kiểm chứng ranh giới bằng tình huống nghiệp vụ và thay đổi dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: layering-and-orchestration
+  title: Phân tầng và điều phối
+  childs:
+  - slug: layering-and-orchestration-001
+    title: Phân biệt quy tắc nghiệp vụ, điều phối ứng dụng và chi tiết hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-002
+    title: Nhận diện lớp điều phối bị cuốn vào xử lý dữ liệu quá chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-003
+    title: Giữ một luồng sử dụng nhiều bước có mục đích và hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-004
+    title: Tách việc quyết định cần làm gì khỏi cơ chế thực hiện khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-005
+    title: Đánh giá vai trò của Controller, Service và Repository theo trách nhiệm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-006
+    title: Tránh dùng tên tầng làm lý do gom mọi xử lý vào một lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-007
+    title: Phân tích ánh xạ dữ liệu và kiểm tra đầu vào tại ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-008
+    title: Đánh giá trường hợp cần tách thêm hoặc gộp bớt tầng trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layering-and-orchestration-009
+    title: Kiểm chứng luồng xử lý tổng thể sau khi phân chia trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: principle-relations
+  title: Liên hệ các nguyên tắc
+  childs:
+  - slug: principle-relations-001
+    title: Phân biệt High Cohesion với nguyên tắc một trách nhiệm (Single Responsibility Principle)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-002
+    title: Đối chiếu lý do thay đổi với quan hệ giữa các thành phần nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-003
+    title: Liên hệ phân tách giao diện với nhu cầu của bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-004
+    title: Liên hệ đảo ngược phụ thuộc với việc giữ chi tiết ngoài trách nhiệm cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-005
+    title: Vai trò của đóng gói và che giấu thông tin trong duy trì ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-006
+    title: Liên hệ nguyên tắc chuyên gia thông tin (Information Expert) với nơi đặt hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-007
+    title: Đánh giá cân bằng High Cohesion và Low Coupling khi phân công trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-008
+    title: Áp dụng DRY mà không trộn các quy tắc có hướng thay đổi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-009
+    title: Sử dụng KISS và YAGNI để hạn chế ranh giới và trừu tượng chưa cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-organization
+  title: Các cách tổ chức mã
+  childs:
+  - slug: code-organization-001
+    title: Đánh giá cohesion trong thiết kế hướng đối tượng theo trạng thái và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-002
+    title: Đánh giá cohesion trong thiết kế theo hướng hàm qua phép biến đổi và kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-003
+    title: Tổ chức các hàm thuần quanh một mục đích hoặc khái niệm chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-004
+    title: Phân biệt hàm tiện ích có chủ đề rõ với tập hợp thao tác ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-005
+    title: Đánh giá phép xử lý dữ liệu nhiều bước như một luồng có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-006
+    title: Phân biệt tổ chức theo chức năng với chia mã theo từ khóa kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-007
+    title: Giữ khả năng tổ hợp mà không làm mất ngữ nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-008
+    title: Tránh áp dụng tiêu chí của một cách tổ chức mã máy móc cho cách khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: low-cohesion-symptoms
+  title: Dấu hiệu cohesion thấp
+  childs:
+  - slug: low-cohesion-symptoms-001
+    title: Nhận diện lớp nhiều trách nhiệm và lớp trung tâm xử lý quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-002
+    title: Phát hiện một lớp thay đổi vì nhiều nguyên nhân độc lập (Divergent Change)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-003
+    title: Nhận diện quy tắc bị phân tán khiến một thay đổi phải sửa nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-004
+    title: Phát hiện hành vi quan tâm dữ liệu của lớp khác quá mức (Feature Envy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-005
+    title: Nhận diện danh sách tham số dài và nhóm dữ liệu lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-006
+    title: Phát hiện tham số chế độ điều khiển các trách nhiệm khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-007
+    title: Nhận diện trạng thái chỉ có ý nghĩa với một phần nhỏ hành vi của lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-008
+    title: Đánh giá tên gọi chung chung như Manager, Helper và Utils trong bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-009
+    title: Phát hiện kiểm thử phải dựng nhiều phụ thuộc không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-cohesion-symptoms-010
+    title: Phân biệt dấu hiệu đáng nghi với kết luận cần tách mã ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responsibility-separation
+  title: Tách trách nhiệm
+  childs:
+  - slug: responsibility-separation-001
+    title: Tách hàm theo ý định thay vì chỉ theo số dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-002
+    title: Tách lớp từ nhóm dữ liệu và hành vi cùng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-003
+    title: Tách giao diện khi các bên sử dụng cần vai trò khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-004
+    title: Tách đối tượng tham số cho nhóm giá trị có ý nghĩa chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-005
+    title: Cô lập tác dụng phụ khỏi phần tính toán khi giúp làm rõ trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-006
+    title: Tách cơ chế tích hợp ra khỏi quyết định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-007
+    title: Chọn phần cần tách trước theo mức chắc chắn và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-008
+    title: Giữ hợp đồng hiện có trong quá trình di chuyển bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-009
+    title: Kiểm chứng lớp hoặc mô-đun mới có trách nhiệm độc lập đủ rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-010
+    title: Tránh tạo nhiều đơn vị phải phối hợp chặt hơn cấu trúc ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: merging-and-moving
+  title: Gộp và di chuyển
+  childs:
+  - slug: merging-and-moving-001
+    title: Chuyển phương thức tới nơi có trách nhiệm và thông tin phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-002
+    title: Chuyển trường dữ liệu cùng hành vi cần bảo vệ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-003
+    title: Gom quy tắc bị phân tán về một nơi sở hữu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-004
+    title: Gộp lớp ít giá trị khi ranh giới hiện tại không còn ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-005
+    title: Đưa mã gần nơi sử dụng khi mức chia sẻ thực tế thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-006
+    title: Phân biệt gộp cùng trách nhiệm với gộp do cú pháp giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-007
+    title: Đánh giá đóng gói và hướng phụ thuộc sau khi di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-008
+    title: Kiểm chứng vòng đời dữ liệu và thứ tự thực thi của các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-and-moving-009
+    title: Giữ khả năng thay đổi độc lập cho các quy tắc chỉ tình cờ giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring-process
+  title: Quy trình tái cấu trúc
+  childs:
+  - slug: refactoring-process-001
+    title: Xác định vấn đề gắn kết và mục tiêu thiết kế bằng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-002
+    title: Khoanh vùng hợp đồng, bất biến và hành vi phải bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-003
+    title: Đọc luồng sử dụng trước khi quyết định ranh giới mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-004
+    title: Thiết lập kiểm thử bảo vệ và dữ liệu kiểm chứng ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-005
+    title: Lập thứ tự tách, gộp và di chuyển theo các bước nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-006
+    title: Điều chỉnh dữ liệu, hành vi và bên gọi mà không đổi ngữ nghĩa ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-007
+    title: Rà soát thay đổi cấu trúc riêng với thay đổi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-008
+    title: Kiểm chứng tác động tới API, lưu trữ, cấu hình và vòng đời đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-009
+    title: Đánh giá lại giả thuyết khi thay đổi làm tăng phối hợp hoặc khó đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-010
+    title: Ghi nhận lý do chọn ranh giới và điều kiện dừng tái cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-and-limits
+  title: Đo lường và giới hạn
+  childs:
+  - slug: metrics-and-limits-001
+    title: Mục đích của chỉ số cohesion trong hỗ trợ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-002
+    title: Mô hình hóa quan hệ phương thức và trường dữ liệu để quan sát cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-003
+    title: Nhận diện các họ chỉ số thiếu gắn kết (LCOM) và sự khác nhau giữa định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-004
+    title: Tìm hiểu chỉ số gắn kết trực tiếp và gián tiếp như TCC, LCC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-005
+    title: Đánh giá ảnh hưởng của phương thức tĩnh, hàm khởi tạo và phương thức truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-006
+    title: Nhận diện dữ liệu dùng chung như logger có thể tạo cảm giác liên quan giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-007
+    title: Phân biệt liên kết cấu trúc đo được với liên hệ ngữ nghĩa của trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-008
+    title: Kết hợp lịch sử đồng thay đổi với cách sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-009
+    title: Giới hạn khi áp dụng chỉ số của lớp cho gói, mô-đun hoặc dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-010
+    title: Tránh đặt ngưỡng chung để tự động kết luận mọi thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-and-limits-011
+    title: Dùng chỉ số trước và sau cùng bằng chứng đọc hiểu, kiểm thử và thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-testing
+  title: Kiểm thử thiết kế
+  childs:
+  - slug: design-testing-001
+    title: Dùng kiểm thử để kiểm chứng hành vi sau khi điều chỉnh ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-002
+    title: Quan sát mức chuẩn bị dữ liệu và phụ thuộc cần cho một trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-003
+    title: Viết ca kiểm thử theo quy tắc và bất biến mà đơn vị sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-004
+    title: Kiểm chứng tương tác qua hợp đồng giữa các đơn vị sau khi tách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-005
+    title: Tránh gắn kiểm thử vào chi tiết cài đặt chỉ để đạt cấu trúc mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-006
+    title: Kiểm tra lỗi, tác dụng phụ và thời điểm cập nhật trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-007
+    title: Dùng một yêu cầu thay đổi cụ thể để đánh giá phạm vi mã phải sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-008
+    title: Kết hợp kiểm thử đơn vị, tích hợp và kiểm tra ranh giới phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-009
+    title: Phân biệt kiểm thử dễ viết với bằng chứng đầy đủ về chất lượng thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tradeoffs-and-limits
+  title: Đánh đổi và giới hạn
+  childs:
+  - slug: tradeoffs-and-limits-001
+    title: Cân bằng tập trung trách nhiệm với kích thước và độ phức tạp của đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-002
+    title: Đánh giá cohesion cục bộ và nhu cầu phối hợp của toàn luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-003
+    title: Phân biệt dùng chung dữ liệu với cần chung ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-004
+    title: Cân nhắc hiệu năng, cấp phát và đường gọi khi tách thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-005
+    title: Giữ tương thích với framework, API công khai và mô hình lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-006
+    title: Đánh giá thiết kế mã sinh hoặc mã tích hợp có ràng buộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-007
+    title: Tránh tạo phụ thuộc vòng sau khi cố đưa mọi hành vi gần dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-008
+    title: Nhận diện ranh giới bị chia quá vụn khiến khó tìm và hiểu mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-009
+    title: Chấp nhận cấu trúc hiện tại khi chi phí thay đổi chưa tương xứng lợi ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-010
+    title: Đặt mức cải thiện phù hợp nhu cầu thực tế thay vì tìm thiết kế tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evolution-and-maintenance
+  title: Tiến hóa và bảo trì
+  childs:
+  - slug: evolution-and-maintenance-001
+    title: Theo dõi sự thay đổi trách nhiệm khi yêu cầu nghiệp vụ phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-002
+    title: Phát hiện ranh giới từng phù hợp nhưng nay chứa nhiều hướng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-003
+    title: Đánh giá thành phần dùng chung khi số bên sử dụng tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-004
+    title: Quản lý quyền sở hữu và quyết định thiết kế tại ranh giới mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-005
+    title: Giữ tên gọi và tài liệu thống nhất với trách nhiệm hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-006
+    title: Chọn cơ hội cải thiện khi đang thực hiện thay đổi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-007
+    title: Ghi nhận nợ thiết kế bằng tác động và trường hợp cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-008
+    title: Kiểm tra lại lợi ích sau nhiều lần thay đổi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-and-maintenance-009
+    title: Ngăn cải thiện cohesion trở thành chuỗi chia lớp hoặc chia dịch vụ không có mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-design-reviews
+  title: Rà soát trong nhóm
+  childs:
+  - slug: team-design-reviews-001
+    title: Mô tả mục đích và ranh giới trách nhiệm trước khi đọc chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-002
+    title: Đặt câu hỏi các thành phần có thực sự cần ở cùng nhau hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-003
+    title: Đặt câu hỏi một quy tắc hiện đang bị phân tán ở những nơi nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-004
+    title: Phân biệt góp ý về trách nhiệm với sở thích đặt tệp hoặc đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-005
+    title: Trình bày bằng chứng từ luồng sử dụng, trạng thái và lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-006
+    title: So sánh phương án giữ nguyên, tách, gộp và di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-007
+    title: Thống nhất đánh đổi với các bên sở hữu hợp đồng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-008
+    title: Xác định điều cần sửa ngay và điều cần theo dõi sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-design-reviews-009
+    title: Lưu lý do quyết định để tránh lặp lại tranh luận khi bối cảnh chưa đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenario-and-practice
+  title: Tình huống và thực hành
+  childs:
+  - slug: scenario-and-practice-001
+    title: Phân tích một lớp đơn hàng chứa quy tắc giá, lưu trữ và gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-002
+    title: Tách hàm xử lý nhiều bước mà vẫn giữ rõ mục đích chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-003
+    title: Thiết kế đối tượng giá trị bảo vệ quy tắc của một nhóm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-004
+    title: Phân chia giao diện quản trị và tra cứu theo nhu cầu bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-005
+    title: Đánh giá lớp tiện ích trước khi quyết định chia hoặc giữ nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-006
+    title: Gom một quy tắc nghiệp vụ đang bị sửa lặp ở nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-007
+    title: So sánh cách nhóm theo tầng với nhóm theo chức năng cho cùng một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-008
+    title: Đánh giá một mô-đun có thể giữ chung dù chứa nhiều lớp khác vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-009
+    title: Phân tích đề xuất tách dịch vụ gây tăng giao tiếp và phụ thuộc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-010
+    title: Đối chiếu LCOM hoặc chỉ số liên quan với cách đọc trách nhiệm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-011
+    title: Thực hiện thay đổi yêu cầu trước và sau tái cấu trúc để so sánh phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-012
+    title: Lập hồ sơ thiết kế gồm dấu hiệu, ranh giới đề xuất, đánh đổi và bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

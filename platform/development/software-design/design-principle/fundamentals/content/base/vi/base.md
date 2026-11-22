@@ -1,0 +1,7 @@
+# Software Design Design Principle Fundamentals
+
+Các **nguyên tắc thiết kế phần mềm** giúp người phát triển đưa ra quyết định về trách nhiệm, ranh giới và quan hệ phụ thuộc giữa các thành phần. Mục tiêu không phải làm mã nguồn trông phức tạp hơn hay tuân thủ một bộ quy tắc máy móc, mà là giúp hệ thống dễ đọc, dễ kiểm thử và thay đổi với ít tác động ngoài ý muốn. Một thiết kế tốt cân bằng tính rõ ràng, khả năng mở rộng thực tế và chi phí triển khai.
+
+Module dành cho người đã quen với Java, lập trình hướng đối tượng, class, interface và các thao tác kiểm thử cơ bản. Bạn sẽ bắt đầu từ những tiêu chí đánh giá thiết kế, sau đó học trừu tượng và đóng gói, Single Responsibility cùng Separation of Concerns, high cohesion và loose coupling. Các mốc tiếp theo giới thiệu SOLID ở mức khái quát, cách hướng phụ thuộc vào abstraction, lựa chọn composition so với inheritance, rồi vận dụng DRY, KISS và YAGNI để tránh trùng lặp hoặc thiết kế quá sớm.
+
+Sau tám mốc học, bạn có thể giải thích một quyết định phân chia trách nhiệm, chỉ ra dấu hiệu phụ thuộc không phù hợp và đề xuất cải tiến nhỏ có kiểm thử bảo vệ hành vi. Những nguyên tắc này là công cụ cân nhắc đánh đổi theo bối cảnh: không phải mọi đoạn lặp đều cần trừu tượng hóa, và không phải chỗ nào cũng cần thêm interface hoặc module.

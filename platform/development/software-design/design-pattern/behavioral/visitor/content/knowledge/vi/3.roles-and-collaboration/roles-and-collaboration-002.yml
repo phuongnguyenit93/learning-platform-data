@@ -1,0 +1,3 @@
+menuLevel1: Cấu trúc Visitor
+menuLevel2: ConcreteElement triển khai accept và chuyển chính nó đến overload visit tương ứng
+status: ""

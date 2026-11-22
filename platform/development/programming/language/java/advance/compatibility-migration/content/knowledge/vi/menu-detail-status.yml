@@ -1,0 +1,2632 @@
+menu:
+- slug: compatibility-migration-overview
+  title: Tổng quan chuyển đổi
+  childs:
+  - slug: compatibility-migration-overview-001
+    title: Tương thích và chuyển đổi phiên bản trong hệ sinh thái Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-migration-overview-002
+    title: Vì sao nâng cấp JDK có thể ảnh hưởng ứng dụng đang hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-migration-overview-003
+    title: Quan hệ giữa mã nguồn, bytecode, thư viện, JVM và môi trường triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-migration-overview-004
+    title: Phân biệt nâng cấp runtime, biên dịch lại và hiện đại hóa mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-migration-overview-005
+    title: 'Đối tượng sử dụng module: ứng dụng, thư viện và nền tảng dùng chung'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-migration-overview-006
+    title: 'Phạm vi chuyển đổi: JDK, công cụ build, dependency và framework'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-migration-overview-007
+    title: Từ kiểm kê hiện trạng đến kiểm chứng và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-migration-overview-008
+    title: Kiến thức đầu vào và trình tự học
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-categories
+  title: Các loại tương thích
+  childs:
+  - slug: compatibility-categories-001
+    title: 'Tương thích mã nguồn: biên dịch lại mã cũ với phiên bản mới'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-002
+    title: 'Tương thích nhị phân: chạy thành phần đã biên dịch mà không biên dịch lại'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-003
+    title: 'Tương thích hành vi: giữ hợp đồng và kết quả quan sát được'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-004
+    title: 'Tương thích dữ liệu: tệp, đối tượng tuần tự hóa và thông điệp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-005
+    title: 'Tương thích môi trường: hệ điều hành, kiến trúc và thư viện native'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-006
+    title: Tương thích ngược và tương thích xuôi theo góc nhìn bên cung cấp và bên sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-007
+    title: Vì sao biên dịch thành công chưa chứng minh ứng dụng chạy đúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-008
+    title: Vì sao tương thích nhị phân chưa bảo đảm tương thích mã nguồn hoặc hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-categories-009
+    title: Xác định ranh giới hợp đồng được hỗ trợ và chi tiết triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-inventory
+  title: Khảo sát hệ thống
+  childs:
+  - slug: system-inventory-001
+    title: Kiểm kê JDK thực tế của máy phát triển, CI và môi trường chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-002
+    title: Xác định phiên bản Java tối thiểu mà ứng dụng và thư viện cam kết hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-003
+    title: Kiểm kê module, dịch vụ và các thành phần phụ thuộc chéo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-004
+    title: Thu thập cây dependency, plugin build và công cụ sinh mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-005
+    title: Kiểm kê JVM option, system property và biến môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-006
+    title: Tìm API nội bộ, reflection, agent và mã native
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-007
+    title: Liệt kê giao thức, dữ liệu lưu trữ và hệ thống bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-008
+    title: Ghi nhận chỉ số chức năng, độ trễ và tài nguyên làm mốc so sánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-009
+    title: Phân loại vấn đề bắt buộc sửa, biện pháp tạm thời và cải tiến tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-inventory-010
+    title: Lập ma trận rủi ro và tiêu chí chấp nhận chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdk-version-roadmap
+  title: Phiên bản và lộ trình
+  childs:
+  - slug: jdk-version-roadmap-001
+    title: Đọc phiên bản feature, interim, update và patch của JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-002
+    title: Phân biệt phiên bản Java SE với bản phân phối và chính sách hỗ trợ JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-003
+    title: Chọn phiên bản đích theo yêu cầu ứng dụng và hệ sinh thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-004
+    title: Đọc release notes, migration guide và JEP liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-005
+    title: 'Nâng cấp JDK 8 lên 11: module, cấu trúc runtime và thành phần bị tách'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-006
+    title: 'Nâng cấp JDK 11 lên 17: đóng gói nội bộ và công cụ đã thay đổi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-007
+    title: 'Nâng cấp JDK 17 lên 21: hành vi mặc định và khả năng tương thích thư viện'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-008
+    title: 'Nâng cấp JDK 21 lên 25: rà soát thay đổi tích lũy của các bản trung gian'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-009
+    title: Đánh giá JDK mới hơn theo tài liệu của đúng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-010
+    title: 'Nâng cấp trực tiếp hoặc qua các mốc trung gian: tiêu chí lựa chọn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-version-roadmap-011
+    title: Tách thay đổi bản vá bảo mật khỏi thay đổi major khi cần truy tìm nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-analysis-tools
+  title: Công cụ phân tích
+  childs:
+  - slug: migration-analysis-tools-001
+    title: Dùng java, javac và javap để xác minh runtime và class file
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-002
+    title: Phân tích phụ thuộc lớp, package và module bằng jdeps
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-003
+    title: Tìm API nội bộ bằng jdeps --jdk-internals
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-004
+    title: Quét API deprecated và forRemoval bằng jdeprscan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-005
+    title: Phân biệt API đã deprecated, dự kiến xóa và đã bị xóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-006
+    title: Phân tích cảnh báo compiler với -Xlint và chính sách xử lý cảnh báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-007
+    title: Đối chiếu dependency thực tế bằng công cụ của Maven hoặc Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-008
+    title: So sánh API công khai giữa hai bản phát hành bằng japicmp hoặc Revapi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-009
+    title: Dùng OpenRewrite hoặc công cụ IDE cho thay đổi có thể tự động hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-analysis-tools-010
+    title: Giới hạn của phân tích tĩnh với reflection, cấu hình và lớp nạp động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-version-compilation
+  title: Biên dịch đa phiên bản
+  childs:
+  - slug: cross-version-compilation-001
+    title: Phân biệt JDK chạy công cụ build, JDK biên dịch và JDK chạy ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-002
+    title: Ngôn ngữ nguồn, phiên bản class file và tập API nền tảng đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-003
+    title: '-source và -target: phạm vi kiểm soát và rủi ro dùng API mới'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-004
+    title: '--release: đồng bộ luật ngôn ngữ, bytecode và API của phiên bản đích'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-005
+    title: Giới hạn phiên bản đích mà từng javac hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-006
+    title: Vì sao bytecode nhắm JDK cũ vẫn có thể gọi nhầm API mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-007
+    title: Biên dịch và chạy kiểm thử bằng toolchain được chỉ định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-008
+    title: Preview feature và yêu cầu khớp phiên bản khi biên dịch, chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-009
+    title: Thư viện phụ thuộc có bytecode cao hơn mức hỗ trợ đã công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-010
+    title: Kiểm tra mã sinh và bộ xử lý annotation theo phiên bản Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-version-compilation-011
+    title: Kiểm chứng artifact trên JDK tối thiểu được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-compatibility
+  title: Tương thích mã nguồn
+  childs:
+  - slug: source-compatibility-001
+    title: Tên định danh, từ khóa và tên kiểu mới có thể xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-002
+    title: Import theo ký tự đại diện và tên lớp trùng với API mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-003
+    title: Overload mới gây thay đổi lựa chọn phương thức hoặc lời gọi mơ hồ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-004
+    title: Thay đổi kiểu tham số, giá trị trả về và quy tắc chuyển đổi kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-005
+    title: Generics, suy luận kiểu và các trường hợp chỉ lỗi khi biên dịch lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-006
+    title: Lambda và method reference khi hợp đồng hàm thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-007
+    title: Checked exception và thay đổi yêu cầu xử lý ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-008
+    title: Phương thức mới trong interface và xung đột với lớp đang triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-009
+    title: Enum, sealed type và tính đầy đủ của switch khi API mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-compatibility-010
+    title: Mã được sinh tự động và giả định về cú pháp hoặc cấu trúc AST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binary-compatibility
+  title: Tương thích nhị phân
+  childs:
+  - slug: binary-compatibility-001
+    title: Tên nhị phân, symbolic reference và quá trình liên kết lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-002
+    title: Method descriptor và khác biệt với chữ ký ở mức mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-003
+    title: Xóa, đổi tên hoặc di chuyển lớp và package
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-004
+    title: Thay đổi tham số, kiểu trả về và constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-005
+    title: Đổi static thành instance hoặc thay đổi class thành interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-006
+    title: Thu hẹp quyền truy cập và ảnh hưởng đến mã đã biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-007
+    title: Thay đổi superclass, interface và quan hệ kế thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-008
+    title: Thêm abstract method hoặc default method và thời điểm phát sinh lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-009
+    title: Type erasure, bridge method và thay đổi API dùng generics
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-010
+    title: Hằng số compile-time và giá trị đã được nhúng vào mã bên sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-011
+    title: Thêm final, sealed hoặc thay đổi khả năng kế thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-012
+    title: Phân biệt lỗi nạp lớp, xác minh bytecode và liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-compatibility-013
+    title: Thử nghiệm bên sử dụng cũ với thư viện mới mà không biên dịch lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-evolution
+  title: Tiến hóa API
+  childs:
+  - slug: api-evolution-001
+    title: Xác định API công khai, SPI và phần triển khai không cam kết ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-002
+    title: Thêm API thay thế trước khi ngừng hỗ trợ API cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-003
+    title: Thiết kế adapter và lớp trung gian giữ hợp đồng cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-004
+    title: Dùng @Deprecated, since và forRemoval để truyền đạt lộ trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-005
+    title: Quản lý thay đổi null, ngoại lệ, thứ tự kết quả và tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-006
+    title: Giữ ổn định equals, hashCode, comparator và định dạng biểu diễn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-007
+    title: Thay đổi enum, annotation và metadata được công cụ bên ngoài đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-008
+    title: Giữ tương thích cho bên triển khai SPI và plugin của bên thứ ba
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-009
+    title: Phân biệt số phiên bản phát hành với bằng chứng tương thích thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-010
+    title: Công bố mức Java tối thiểu và thời điểm ngừng hỗ trợ phiên bản cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jpms-class-loading
+  title: JPMS và nạp lớp
+  childs:
+  - slug: jpms-class-loading-001
+    title: Class path, module path và các dạng module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-002
+    title: Unnamed module, automatic module và named module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-003
+    title: requires, exports và opens trong hợp đồng truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-004
+    title: Tên module ổn định và Automatic-Module-Name
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-005
+    title: Split package, package trùng và lỗi phân giải module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-006
+    title: --add-modules, --add-reads và phạm vi sử dụng tạm thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-007
+    title: ServiceLoader và khai báo uses hoặc provides
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-008
+    title: ClassLoader sau JDK 8 và giả định ép kiểu sang URLClassLoader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-009
+    title: Nạp tài nguyên theo class loader và khả năng nhìn thấy giữa module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-010
+    title: Nâng cấp JDK mà chưa chuyển toàn bộ ứng dụng sang JPMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-class-loading-011
+    title: Chuyển dần dependency từ class path sang module path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reflection-and-internal-access
+  title: Reflection và API nội bộ
+  childs:
+  - slug: reflection-and-internal-access-001
+    title: Phân biệt API được hỗ trợ với package sun.*, com.sun.* và jdk.internal.*
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-002
+    title: Strong encapsulation và nguyên nhân phát sinh InaccessibleObjectException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-003
+    title: '--add-exports và --add-opens: phân biệt truy cập thường với reflection sâu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-004
+    title: Giới hạn của --illegal-access trên các thế hệ JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-005
+    title: setAccessible, MethodHandles và quyền truy cập theo module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-006
+    title: Thay API nội bộ bằng API chuẩn hoặc thư viện được duy trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-007
+    title: 'sun.misc.Unsafe: kiểm kê cách dùng và lựa chọn API thay thế'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-008
+    title: Reflection trong ORM, serializer, proxy và thư viện kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-009
+    title: Chuỗi tên lớp trong cấu hình mà jdeps không phát hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-and-internal-access-010
+    title: Theo dõi và loại bỏ dần cờ mở quyền sau khi nâng cấp dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: removed-platform-features
+  title: API và công cụ cũ
+  childs:
+  - slug: removed-platform-features-001
+    title: 'Java EE và CORBA không còn đi kèm JDK: xác định dependency thay thế'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-002
+    title: JAXB, JAX-WS, Activation và công cụ sinh mã được cung cấp bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-003
+    title: Nashorn và lựa chọn runtime JavaScript thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-004
+    title: Pack200 và chuyển sang cơ chế phân phối artifact khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-005
+    title: RMI Activation và ảnh hưởng đến hệ thống dùng cơ chế kích hoạt cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-006
+    title: Applet, Java Web Start và phương án phân phối ứng dụng desktop
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-007
+    title: JavaFX và các thành phần desktop được phân phối riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-008
+    title: javah, công cụ giám sát cũ và cách thay bằng công cụ còn hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-009
+    title: API điều khiển luồng cũ và cách chuyển sang dừng tác vụ có phối hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-010
+    title: Finalization và quản lý tài nguyên bằng cơ chế đóng tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: removed-platform-features-011
+    title: Xác minh danh mục bị xóa theo từng JDK thay vì suy ra từ cảnh báo cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: default-behavior-changes
+  title: Hành vi mặc định
+  childs:
+  - slug: default-behavior-changes-001
+    title: Bộ mã ký tự mặc định và chuyển dữ liệu sang UTF-8 có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-002
+    title: Locale, dữ liệu CLDR và định dạng số hoặc tiền tệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-003
+    title: Múi giờ, dữ liệu tzdb và kết quả xử lý ngày giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-004
+    title: Unicode, phân loại ký tự và biểu thức chính quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-005
+    title: Thứ tự lặp và các hành vi không được API cam kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-006
+    title: Kiểm tra đối số, loại ngoại lệ và thông báo lỗi có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-007
+    title: Tính toán dấu phẩy động và giả định về kết quả số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-008
+    title: Thay đổi triển khai I/O, mạng và cách xử lý tình huống biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-009
+    title: Hành vi ProcessBuilder và cách truyền tham số trên từng hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-changes-010
+    title: Phân biệt lỗi ứng dụng cũ với thay đổi có chủ đích của nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-and-access-migration
+  title: Bảo mật và quyền truy cập
+  childs:
+  - slug: security-and-access-migration-001
+    title: Thuật toán và kích thước khóa không còn được chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-002
+    title: TLS, cipher suite và khả năng kết nối với hệ thống cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-003
+    title: Truststore, chứng chỉ gốc và chuỗi chứng chỉ máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-004
+    title: Security provider, PKCS#11 và khác biệt giữa các bản phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-005
+    title: Định dạng keystore và kiểm chứng khả năng đọc dữ liệu cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-006
+    title: 'Security Manager: trạng thái hỗ trợ theo phiên bản và hướng thay thế'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-007
+    title: Thay đổi chính sách JNDI, RMI và nạp mã từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-008
+    title: Serialization filter và dữ liệu đầu vào từ ứng dụng phiên bản khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-009
+    title: Phân biệt sửa tương thích với việc khôi phục cấu hình bảo mật đã lỗi thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-access-migration-010
+    title: Kiểm thử xác thực, phân quyền và kết nối bảo mật sau chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-protocol-compatibility
+  title: Dữ liệu và giao thức
+  childs:
+  - slug: data-and-protocol-compatibility-001
+    title: Java serialization và vai trò của serialVersionUID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-002
+    title: Thay đổi lớp Serializable và khả năng đọc đối tượng đã lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-003
+    title: Record, enum và các quy tắc riêng của định dạng tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-004
+    title: JSON, XML và ảnh hưởng của việc nâng cấp serializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-005
+    title: Tên trường, kiểu dữ liệu, giá trị mặc định và thuộc tính chưa biết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-006
+    title: Định dạng ngày giờ, số thập phân và bộ mã trong trao đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-007
+    title: Cache, phiên đăng nhập và thông điệp tồn tại qua lần triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-008
+    title: Giao thức giữa dịch vụ cũ và mới trong thời gian chạy song song
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-009
+    title: Thay đổi JDBC driver và cách ánh xạ kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-010
+    title: Phối hợp thay đổi schema theo cách mở rộng trước, thu hẹp sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-protocol-compatibility-011
+    title: Điều kiện quay lui khi dữ liệu đã được phiên bản mới ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-management
+  title: Quản lý dependency
+  childs:
+  - slug: dependency-management-001
+    title: Tương thích JDK của dependency trực tiếp và bắc cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-002
+    title: Xác định dependency cần nâng cấp trước khi đổi JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-003
+    title: Đọc release notes và breaking change của thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-004
+    title: Quản lý phiên bản đồng bộ bằng BOM hoặc platform
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-005
+    title: Giải quyết xung đột phiên bản và lớp trùng trên class path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-006
+    title: Kiểm tra dependency bị bỏ duy trì và lựa chọn thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-007
+    title: Shading, relocation và ảnh hưởng tới reflection hoặc service metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-008
+    title: Ràng buộc phiên bản, dependency lock và khả năng tái lập build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-009
+    title: Phân biệt bộ API với thư viện triển khai tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-management-010
+    title: Tránh nâng cấp đồng loạt không có bằng chứng kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-gradle-migration
+  title: Maven và Gradle
+  childs:
+  - slug: maven-gradle-migration-001
+    title: Ma trận tương thích giữa phiên bản công cụ build và JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-002
+    title: Maven Wrapper, Gradle Wrapper và phiên bản được cố định trong dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-003
+    title: Maven Toolchains và lựa chọn JDK cho từng nhóm plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-004
+    title: maven-compiler-plugin và cấu hình release
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-005
+    title: Gradle Java Toolchains và cấu hình options.release
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-006
+    title: Phân biệt JVM chạy Gradle daemon với toolchain biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-007
+    title: Cấu hình JVM chạy unit test, integration test và tác vụ JavaExec
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-008
+    title: Nâng cấp plugin build, plugin nội bộ và script không còn tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-009
+    title: Dự án nhiều module và đồng bộ mức bytecode giữa các artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-gradle-migration-010
+    title: Loại bỏ khác biệt cấu hình giữa IDE, dòng lệnh và CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-generation-and-testing-tools
+  title: Sinh mã và công cụ test
+  childs:
+  - slug: code-generation-and-testing-tools-001
+    title: Annotation processor và thay đổi cơ chế kích hoạt theo JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-and-testing-tools-002
+    title: Lombok, MapStruct và khả năng tương thích với javac
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-and-testing-tools-003
+    title: Mã sinh từ OpenAPI, JAXB hoặc Protocol Buffers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-and-testing-tools-004
+    title: JUnit, Surefire, Failsafe và test engine theo phiên bản Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-and-testing-tools-005
+    title: Mockito, mock bằng bytecode và yêu cầu agent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-and-testing-tools-006
+    title: JaCoCo, công cụ phân tích tĩnh và phiên bản class file được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-and-testing-tools-007
+    title: Plugin IDE, trình phân tích cú pháp và mức ngôn ngữ của dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-and-testing-tools-008
+    title: Kiểm tra lại nguồn và class được sinh khi thay phiên bản công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-ee-jakarta-migration
+  title: Java EE và Jakarta
+  childs:
+  - slug: java-ee-jakarta-migration-001
+    title: Phân biệt Java SE, Java EE và Jakarta EE trong bài toán chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-002
+    title: Phạm vi đổi namespace javax sang jakarta
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-003
+    title: Các package javax của Java SE không thuộc phạm vi đổi tên hàng loạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-004
+    title: Đồng bộ Servlet, JPA, Validation và các API Jakarta liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-005
+    title: Thay đổi dependency API, implementation và scope đóng gói
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-006
+    title: Sửa import, annotation, XML descriptor và tên lớp trong cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-007
+    title: Tương thích giữa thư viện javax cũ với container dùng jakarta
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-008
+    title: Kiểm tra mã sinh, service provider và tài nguyên trong JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-009
+    title: Công cụ chuyển namespace và giới hạn của việc biến đổi tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ee-jakarta-migration-010
+    title: Lập kế hoạch chuyển đổi theo nhóm thành phần phụ thuộc nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: framework-platform-compatibility
+  title: Framework và nền tảng
+  childs:
+  - slug: framework-platform-compatibility-001
+    title: Đọc yêu cầu Java và ma trận hỗ trợ của framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-002
+    title: Tách nâng cấp JDK khỏi nâng cấp major framework khi có thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-003
+    title: 'Spring Boot 2 sang 3: Java baseline và thay đổi hệ sinh thái Jakarta'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-004
+    title: Thay đổi cấu hình, thuộc tính và cơ chế tự cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-005
+    title: Nâng cấp Spring Security và kiểm thử lại hợp đồng bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-006
+    title: Hibernate, JPA và thay đổi truy vấn hoặc ánh xạ dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-007
+    title: Web server, Servlet container và khả năng tương thích khi triển khai WAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-008
+    title: Nền tảng ứng dụng, plugin và dependency do máy chủ cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-platform-compatibility-009
+    title: Đối chiếu migration guide cho các dòng framework tiếp theo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agent-and-native-compatibility
+  title: Agent và mã native
+  childs:
+  - slug: agent-and-native-compatibility-001
+    title: ASM, Byte Buddy và bộ đọc bytecode cần hỗ trợ class file mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-002
+    title: Java agent lúc khởi động và agent gắn vào tiến trình đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-003
+    title: Cảnh báo hoặc giới hạn nạp agent động theo phiên bản JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-004
+    title: JVMTI, profiler, APM và công cụ theo dõi sau nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-005
+    title: JNI, JNA và khả năng tương thích thư viện native
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-006
+    title: Kiến trúc x86-64, AArch64 và ABI của hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-007
+    title: Foreign Function & Memory API và ràng buộc khi chuyển từ giải pháp cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-008
+    title: Quyền native access và cấu hình theo yêu cầu của từng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-and-native-compatibility-009
+    title: Chẩn đoán lỗi native và phân biệt với lỗi liên kết lớp Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-performance-migration
+  title: JVM và hiệu năng
+  childs:
+  - slug: jvm-performance-migration-001
+    title: Cờ JVM đã deprecated, bị bỏ qua hoặc bị loại bỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-002
+    title: Thay đổi Garbage Collector mặc định và các GC không còn hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-003
+    title: Chuyển GC log cũ sang Unified Logging
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-004
+    title: Heap, metaspace và hành vi quản lý bộ nhớ sau nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-005
+    title: Nhận diện CPU, bộ nhớ và giới hạn cgroups trong container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-006
+    title: JIT, thời gian làm nóng và biến động hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-007
+    title: Kiểm chứng tác vụ đồng thời khi đổi JVM hoặc thư viện concurrency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-008
+    title: Thread pool, virtual thread và giới hạn của việc đổi mô hình thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-009
+    title: JFR, JMX và tương thích với công cụ giám sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-performance-migration-010
+    title: Đo độ trễ, thông lượng và mức dùng tài nguyên trên tải tương đương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-packaging
+  title: Đóng gói và môi trường
+  childs:
+  - slug: runtime-packaging-001
+    title: Cấu trúc JDK sau phiên bản 8 và sự thay đổi của rt.jar hoặc tools.jar
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-002
+    title: JRE đóng gói sẵn và runtime tùy biến bằng jlink
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-003
+    title: JAR thường, executable JAR và cấu hình launcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-004
+    title: 'Multi-release JAR: cấu trúc META-INF/versions và lựa chọn lớp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-005
+    title: Giới hạn API công khai và kiểm thử từng nhánh của multi-release JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-006
+    title: Manifest, chữ ký JAR và service metadata sau khi đóng gói lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-007
+    title: jpackage và cách phân phối ứng dụng desktop
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-008
+    title: Container base image, thư viện hệ thống và kiến trúc đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-009
+    title: Đường dẫn, quyền tệp, font và các giả định về hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-packaging-010
+    title: Tham số khởi động trong script, systemd hoặc cấu hình Kubernetes
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-strategy
+  title: Chiến lược chuyển đổi
+  childs:
+  - slug: migration-strategy-001
+    title: Chạy artifact hiện tại trên JDK đích trước khi quyết định biên dịch lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-002
+    title: Nâng cấp công cụ và dependency theo thứ tự phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-003
+    title: Chọn bước chuyển nhỏ có thể kiểm chứng và quay lui
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-004
+    title: Duy trì khả năng build song song trên JDK cũ và mới trong giai đoạn chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-005
+    title: Dùng adapter hoặc nhánh triển khai riêng khi cần hỗ trợ nhiều JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-006
+    title: Tự động hóa thay đổi cơ học và kiểm tra diff của mã sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-007
+    title: Ghi rõ phạm vi, chủ sở hữu và thời hạn của biện pháp tạm thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-008
+    title: Tách sửa tương thích khỏi việc áp dụng cú pháp hoặc API mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-strategy-009
+    title: Xác định điều kiện hoàn tất và loại bỏ cấu hình chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: regression-testing
+  title: Kiểm thử hồi quy
+  childs:
+  - slug: regression-testing-001
+    title: Lập ma trận JDK, nhà cung cấp, hệ điều hành và kiến trúc cần hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-002
+    title: Chạy cùng bộ kiểm thử trên môi trường cũ và mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-003
+    title: Kiểm thử mã nguồn bằng cách biên dịch lại bên sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-004
+    title: Kiểm thử nhị phân bằng artifact bên sử dụng đã biên dịch trước đó
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-005
+    title: Kiểm thử hợp đồng API, SPI và plugin của bên thứ ba
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-006
+    title: Kiểm thử dữ liệu đã lưu từ phiên bản trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-007
+    title: Kiểm thử locale, charset, múi giờ và dữ liệu quốc tế hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-008
+    title: Kiểm thử TLS, chứng chỉ và tích hợp dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-009
+    title: Kiểm thử nhiều phiên bản dịch vụ cùng hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-010
+    title: So sánh kết quả và phát hiện khác biệt được cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-011
+    title: Đặt ngưỡng chấp nhận chức năng, hiệu năng và vận hành trong CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: migration-troubleshooting-001
+    title: UnsupportedClassVersionError và mức bytecode của từng dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-002
+    title: ClassNotFoundException và NoClassDefFoundError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-003
+    title: NoSuchMethodError, NoSuchFieldError và dependency không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-004
+    title: AbstractMethodError và IncompatibleClassChangeError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-005
+    title: IllegalAccessError, IllegalAccessException và InaccessibleObjectException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-006
+    title: VerifyError, lỗi nạp lớp và lỗi biến đổi bytecode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-007
+    title: Module không được tìm thấy, package trùng và lỗi phân giải JPMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-008
+    title: Unrecognized VM option và tùy chọn GC đã bị xóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-009
+    title: Lỗi bắt tay TLS, thuật toán bị vô hiệu hóa và truststore không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-010
+    title: Khác biệt chỉ xảy ra trong CI hoặc container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-troubleshooting-011
+    title: Thu nhỏ trường hợp lỗi và xác định thay đổi đầu tiên gây hồi quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-and-operations
+  title: Phát hành và vận hành
+  childs:
+  - slug: release-and-operations-001
+    title: Lưu artifact, cấu hình và kết quả kiểm thử của từng bước chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-002
+    title: Phát hành thử với một phần lưu lượng trước khi triển khai rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-003
+    title: Chạy song song phiên bản cũ và mới với hợp đồng dữ liệu chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-004
+    title: Theo dõi lỗi, độ trễ, bộ nhớ và hành vi GC sau phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-005
+    title: Xác định điều kiện dừng triển khai và kích hoạt quay lui
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-006
+    title: Quay lui JDK hoặc ứng dụng khi dữ liệu và dependency đã thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-007
+    title: Kiểm tra lại bản vá bảo mật trên phiên bản JDK đã chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-008
+    title: Cập nhật tài liệu hỗ trợ, môi trường phát triển và hướng dẫn vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-009
+    title: Dọn dependency, cờ mở quyền và mã trung gian sau giai đoạn chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-practice-exercises
+  title: Bài thực hành
+  childs:
+  - slug: migration-practice-exercises-001
+    title: Tạo ma trận tương thích và báo cáo hiện trạng cho một dự án Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-002
+    title: Tái hiện trường hợp -source và -target vẫn gọi nhầm API mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-003
+    title: Biên dịch lại với --release và kiểm chứng trên JDK tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-004
+    title: Tạo thư viện mới làm hỏng artifact bên sử dụng cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-005
+    title: So sánh API trước và sau thay đổi bằng công cụ tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-006
+    title: Tìm và thay thế một API nội bộ bằng jdeps
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-007
+    title: Tái hiện lỗi reflection và loại bỏ nhu cầu dùng --add-opens
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-008
+    title: Tạo multi-release JAR và kiểm thử trên các JDK được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-009
+    title: Chuyển dự án dùng JAXB khỏi dependency ngầm vào JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-010
+    title: Chuyển một thành phần javax sang jakarta đúng phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-011
+    title: Phát hiện hồi quy charset, locale hoặc dữ liệu tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-practice-exercises-012
+    title: Thực hiện nâng cấp JDK theo giai đoạn với kiểm thử và phương án quay lui
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

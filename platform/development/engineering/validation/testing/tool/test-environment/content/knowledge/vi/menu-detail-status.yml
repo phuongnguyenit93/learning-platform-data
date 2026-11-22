@@ -1,0 +1,2386 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Môi trường kiểm thử là gì và vì sao kết quả phụ thuộc vào môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Các thành phần: ứng dụng, dịch vụ phụ thuộc, cấu hình, dữ liệu và tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa môi trường phát triển, kiểm thử, staging và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt môi trường kiểm thử với framework kiểm thử, mock và stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phạm vi môi trường cho kiểm thử đơn vị, tích hợp và đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Cô lập, khả năng tái tạo và mức độ tương đồng với production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Nhận diện lỗi ứng dụng, lỗi dữ liệu và lỗi hạ tầng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Luồng chuẩn bị, xác minh sẵn sàng, chạy kiểm thử và thu hồi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức Java, JDBC, mạng và Docker cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-design
+  title: Thiết kế môi trường
+  childs:
+  - slug: environment-design-001
+    title: Lập danh sách dịch vụ phụ thuộc và hợp đồng kết nối của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-002
+    title: Xác định phiên bản, cấu hình và dữ liệu tối thiểu cho từng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-003
+    title: Chọn môi trường nhúng, container cục bộ hay dịch vụ từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-004
+    title: Chọn tài nguyên riêng cho từng ca, lớp kiểm thử hoặc bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-005
+    title: Phân biệt môi trường dùng chung và môi trường tạm thời dùng xong bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-006
+    title: Thiết kế trình tự khởi tạo theo quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-007
+    title: Xác định chủ thể tạo, quản lý và dọn dẹp từng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-008
+    title: Đặt tiêu chí chấp nhận cho độ cô lập, thời gian chuẩn bị và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-009
+    title: Xây dựng hợp đồng cấu hình để cùng một bộ kiểm thử chạy ở nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: 'Bản đồ công cụ: H2, Testcontainers, Docker Compose và dịch vụ CI'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: So sánh cơ sở dữ liệu nhúng với cơ sở dữ liệu thật chạy trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: So sánh khai báo container bằng Java với mô tả dịch vụ bằng Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Khi nào dùng bộ giả lập dịch vụ và khi nào cần dịch vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Phân biệt dịch vụ dùng cho kiểm thử với bộ giả lập hành vi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Đánh giá dịch vụ CI có sẵn, môi trường từ xa và môi trường Kubernetes tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Kiểm tra điều kiện vận hành, giấy phép và tài nguyên trước khi chọn công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Chọn phiên bản thư viện, container image và Java tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-platforms
+  title: Nền tảng container
+  childs:
+  - slug: container-platforms-001
+    title: Container image, container, registry và Docker daemon
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-002
+    title: Quan hệ giữa tiến trình Java, Docker client và máy chạy container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-003
+    title: Kiểm tra Docker hoạt động và quyền truy cập daemon
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-004
+    title: Phân biệt cổng trong container và cổng được công bố ra máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-005
+    title: Phân biệt mạng container, volume, bind mount và hệ thống tệp tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-006
+    title: Tag, digest và tính ổn định của container image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-007
+    title: Khác biệt Linux, Windows, WSL2 và macOS khi chạy container kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-008
+    title: Kiến trúc amd64, arm64 và rủi ro khi phải giả lập kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-platforms-009
+    title: Điều kiện hỗ trợ và giới hạn khi dùng Docker runtime thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testcontainers-getting-started
+  title: Bắt đầu Testcontainers
+  childs:
+  - slug: testcontainers-getting-started-001
+    title: Vai trò của Testcontainers trong việc cấp phát dịch vụ cho Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-002
+    title: Quản lý phiên bản bằng BOM và khai báo dependency trong phạm vi test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-003
+    title: Phân biệt thư viện lõi, tích hợp JUnit và module dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-004
+    title: Tạo container đầu tiên bằng GenericContainer và DockerImageName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-005
+    title: Khởi động container và lấy thông tin kết nối sau khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-006
+    title: Kết nối bằng thư viện Java và kiểm tra dịch vụ ở mức tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-007
+    title: Quản lý start, stop và đóng tài nguyên bằng try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-008
+    title: Đọc kết quả kiểm thử và xác nhận tài nguyên đã được thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testcontainers-getting-started-009
+    title: Cấu hình Testcontainers theo máy cá nhân và môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-configuration
+  title: Cấu hình container
+  childs:
+  - slug: container-configuration-001
+    title: Khai báo biến môi trường, lệnh khởi động và tham số dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-002
+    title: Công bố cổng bằng withExposedPorts mà không cố định cổng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-003
+    title: Chọn module có sẵn hay GenericContainer cho một dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-004
+    title: Sử dụng image thay thế và kiểm tra tương thích với module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-005
+    title: Xây dựng image riêng từ Dockerfile và quản lý ngữ cảnh build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-006
+    title: Sao chép cấu hình ban đầu vào container trước khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-007
+    title: Thực thi lệnh bằng execInContainer và kiểm tra mã thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-008
+    title: Tách cấu hình tái sử dụng khỏi dữ liệu riêng của từng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-configuration-009
+    title: Giới hạn tài nguyên và điều chỉnh thông số container có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: readiness-lifecycle
+  title: Sẵn sàng và vòng đời
+  childs:
+  - slug: readiness-lifecycle-001
+    title: Phân biệt container đã chạy với dịch vụ đã sẵn sàng nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-002
+    title: Phân biệt startup check strategy với wait strategy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-003
+    title: Chờ cổng lắng nghe và giới hạn của kiểm tra TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-004
+    title: Chờ HTTP theo trạng thái, nội dung phản hồi và TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-005
+    title: Chờ log, Docker healthcheck hoặc lệnh kiểm tra dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-006
+    title: Kết hợp điều kiện chờ cho dịch vụ có nhiều giai đoạn khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-007
+    title: Đặt thời hạn khởi động phù hợp và phân tích nguyên nhân hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-008
+    title: Chạy tác vụ khởi tạo một lần bằng one-shot container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-009
+    title: Điều phối dịch vụ phụ thuộc bằng dependsOn và điều kiện sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-010
+    title: Chọn vòng đời theo ca, lớp và toàn bộ tiến trình kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-011
+    title: Vai trò của Ryuk và dọn dẹp khi kiểm thử thất bại hoặc bị ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-lifecycle-012
+    title: Xử lý khởi tạo dở dang và thu hồi tài nguyên theo thứ tự ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-connectivity
+  title: Mạng và kết nối
+  childs:
+  - slug: networking-connectivity-001
+    title: Sử dụng getHost và getMappedPort để tạo địa chỉ kết nối động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-002
+    title: Phân biệt địa chỉ dành cho Java trên máy chủ và ứng dụng trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-003
+    title: Tạo mạng riêng bằng Network và đặt network alias
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-004
+    title: Kết nối nhiều container bằng tên dịch vụ và cổng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-005
+    title: Cho container truy cập dịch vụ trên máy chủ bằng exposeHostPorts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-006
+    title: Vì sao localhost thay đổi ý nghĩa giữa máy chủ và container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-007
+    title: Xử lý Docker daemon từ xa và địa chỉ truy cập trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-008
+    title: Chẩn đoán DNS, connection refused và sai ánh xạ cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-009
+    title: Cấu hình proxy, đường ra mạng và phụ thuộc vào Internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connectivity-010
+    title: Dọn mạng sau kiểm thử và tránh trùng tên giữa các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-storage
+  title: Tệp và lưu trữ
+  childs:
+  - slug: files-storage-001
+    title: Sao chép tệp từ classpath hoặc máy chủ bằng MountableFile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-storage-002
+    title: Chọn sao chép tệp, bind mount, volume hay tmpfs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-storage-003
+    title: Giới hạn của bind mount khi Docker daemon chạy trên máy khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-storage-004
+    title: Phân quyền tệp, user của container và chế độ chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-storage-005
+    title: Khác biệt đường dẫn, ký tự xuống dòng và quyền thực thi giữa hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-storage-006
+    title: Khởi tạo thư mục làm việc và dữ liệu tệp cho từng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-storage-007
+    title: Thu hồi tệp đầu ra và bằng chứng chẩn đoán trước khi xóa container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-storage-008
+    title: Quản lý vòng đời volume để dữ liệu cũ không lọt sang lần chạy mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embedded-databases
+  title: Cơ sở dữ liệu nhúng
+  childs:
+  - slug: embedded-databases-001
+    title: Mô hình cơ sở dữ liệu trong bộ nhớ, trong tệp và chạy dạng server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-002
+    title: Khởi tạo H2 bằng JDBC và phân biệt cơ sở dữ liệu có tên với không tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-003
+    title: Vòng đời kết nối H2 và tác động của DB_CLOSE_DELAY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-004
+    title: Quản lý schema, script khởi tạo và trạng thái sau mỗi lần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-005
+    title: Chế độ tương thích H2 và giới hạn khi mô phỏng hệ quản trị khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-006
+    title: Khác biệt kiểu dữ liệu, SQL dialect, định danh và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-007
+    title: Khác biệt transaction, khóa và ràng buộc cần kiểm tra trên hệ quản trị thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-008
+    title: Vai trò của HSQLDB và Derby trong môi trường Java nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-009
+    title: Nhận diện kiểm thử đạt trên H2 nhưng sai trên cơ sở dữ liệu production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-databases-010
+    title: Tiêu chí chuyển từ cơ sở dữ liệu nhúng sang container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-databases
+  title: Cơ sở dữ liệu container
+  childs:
+  - slug: container-databases-001
+    title: Khởi tạo PostgreSQLContainer và cấp phát database, user, password
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-002
+    title: Khởi tạo MySQL hoặc MariaDB theo hệ quản trị đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-003
+    title: Chọn phiên bản image và tham số hệ quản trị tương ứng production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-004
+    title: Lấy JDBC URL, thông tin xác thực và tạo DataSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-005
+    title: 'Khởi tạo cơ sở dữ liệu qua JDBC URL dạng jdbc:tc:'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-006
+    title: Sử dụng TC_INITSCRIPT và TC_INITFUNCTION đúng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-007
+    title: Vòng đời container JDBC khi đóng kết nối và ý nghĩa của TC_DAEMON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-008
+    title: Cấp phát nhiều database hoặc schema cho các kịch bản độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-009
+    title: Cấu hình múi giờ, encoding và collation của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-databases-010
+    title: Chuẩn bị môi trường JDBC và R2DBC theo cơ chế kết nối của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Phân biệt schema migration, dữ liệu nền và dữ liệu riêng của ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Chạy Flyway hoặc Liquibase trên cơ sở dữ liệu mới cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: Xác định thứ tự migration, nạp dữ liệu và khởi động ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: Thiết kế dữ liệu mẫu tối thiểu có kết quả xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Lựa chọn rollback, truncate, xóa theo khóa hay tạo lại database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Giới hạn của rollback khi ứng dụng dùng luồng khác hoặc gọi qua HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Dọn dữ liệu có khóa ngoại, sequence và bộ đếm tự tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Cô lập dữ liệu giữa kiểm thử đồng bộ và tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-009
+    title: Ẩn danh hóa dữ liệu và tránh sử dụng bản sao dữ liệu thật không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-010
+    title: Kiểm tra khả năng chạy lại dữ liệu khởi tạo mà không nhân bản trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nosql-caches
+  title: NoSQL và bộ nhớ đệm
+  childs:
+  - slug: nosql-caches-001
+    title: Chuẩn bị MongoDB bằng container và lấy chuỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-caches-002
+    title: Vai trò của replica set khi chuẩn bị môi trường transaction MongoDB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-caches-003
+    title: Cô lập database, collection, index và dữ liệu MongoDB giữa các ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-caches-004
+    title: Khởi tạo Redis bằng container và cấu hình Java client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-caches-005
+    title: Cô lập key bằng tiền tố riêng và quản lý TTL trong môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-caches-006
+    title: Xử lý xác thực, cấu hình và dọn dữ liệu Redis
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-caches-007
+    title: Chuẩn bị Elasticsearch hoặc OpenSearch và chờ khả năng phục vụ truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-caches-008
+    title: Lựa chọn phiên bản, tài nguyên và phạm vi tính năng cho dịch vụ NoSQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-events
+  title: Hàng đợi và sự kiện
+  childs:
+  - slug: queues-events-001
+    title: Chuẩn bị Kafka bằng module Testcontainers phù hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-002
+    title: Lấy bootstrap servers và phân biệt listener nội bộ với listener bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-003
+    title: Tạo topic và cô lập consumer group theo lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-004
+    title: Khởi tạo RabbitMQ và lấy thông tin kết nối AMQP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-005
+    title: Chuẩn bị exchange, queue và binding trước khi chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-006
+    title: Cô lập topic, queue, subscription và thông điệp tồn dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-007
+    title: Xác nhận broker và consumer sẵn sàng trước khi phát dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-008
+    title: Dọn dữ liệu sau khi tác vụ tiêu thụ bất đồng bộ kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-events-009
+    title: Giới hạn của broker một nút khi so với cụm production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-mocks
+  title: Dịch vụ giả lập
+  childs:
+  - slug: service-mocks-001
+    title: Phân biệt dịch vụ thật, dịch vụ tương thích giao thức và bộ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-002
+    title: Chuẩn bị LocalStack cho phạm vi dịch vụ AWS cần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-003
+    title: Cấu hình endpoint, region và thông tin xác thực dành riêng cho bộ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-004
+    title: Tạo bucket hoặc queue và cô lập tài nguyên theo từng lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-005
+    title: Chuẩn bị MinIO cho giao tiếp S3 và xác định giới hạn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-006
+    title: Chuẩn bị Keycloak với realm, client và tài khoản kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-007
+    title: Dùng máy chủ thư thử nghiệm như Mailpit để tiếp nhận email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-008
+    title: Chạy dịch vụ HTTP giả lập trong môi trường mà không mở rộng sang thiết kế stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-009
+    title: Xác định tính năng cần xác minh bổ sung bằng dịch vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-mocks-010
+    title: Quản lý phiên bản, quyền truy cập và điều kiện sử dụng bộ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: docker-compose
+  title: Docker Compose
+  childs:
+  - slug: docker-compose-001
+    title: Khi nào một môi trường nhiều dịch vụ nên được mô tả bằng Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-002
+    title: Tách cấu hình Compose kiểm thử khỏi cấu hình phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-003
+    title: Khai báo service, network, volume và biến môi trường cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-004
+    title: Chọn ComposeContainer theo phiên bản Testcontainers và Compose được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-005
+    title: Phân biệt ComposeContainer với DockerComposeContainer trong dự án cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-006
+    title: Công bố dịch vụ và lấy địa chỉ bằng getServiceHost, getServicePort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-007
+    title: Cấu hình điều kiện sẵn sàng và thời hạn cho từng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-008
+    title: Phân biệt Compose cục bộ với Compose chạy trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-009
+    title: Quản lý đường dẫn build, tệp cấu hình và thông tin đăng nhập registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-compose-010
+    title: Cô lập tên dự án, dọn volume và thu hồi toàn bộ môi trường Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: junit5-gradle
+  title: JUnit 5 và Gradle
+  childs:
+  - slug: junit5-gradle-001
+    title: Tích hợp @Testcontainers và @Container với vòng đời JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-002
+    title: Phân biệt container trường static với container trường instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-003
+    title: Chuẩn bị dữ liệu trong @BeforeEach sau khi hạ tầng sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-004
+    title: Tránh trộn cơ chế quản lý vòng đời thủ công và JUnit extension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-005
+    title: Thiết kế cấu hình container dùng chung bằng lớp hỗ trợ hoặc extension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-006
+    title: Tách bộ kiểm thử cần hạ tầng bằng tag và Gradle task
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-007
+    title: Quản lý test source set, dependency và tài nguyên cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-008
+    title: Truyền cấu hình môi trường vào tiến trình kiểm thử của Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-009
+    title: Chọn thất bại rõ ràng hay bỏ qua có chủ đích khi thiếu container runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit5-gradle-010
+    title: Giới hạn hỗ trợ chạy song song của Testcontainers JUnit extension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Tách application-test và @ActiveProfiles khỏi cấu hình production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Đăng ký địa chỉ container bằng @DynamicPropertySource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Sử dụng @ServiceConnection với spring-boot-testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Chọn kết nối dịch vụ tự động hay thuộc tính động theo loại dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: Quản lý container bằng @TestConfiguration và @Bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Phân biệt vòng đời container do Spring quản lý với JUnit quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Chuẩn bị @DataJpaTest và kiểm soát việc thay thế DataSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Chuẩn bị @SpringBootTest với cổng HTTP ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Ảnh hưởng của ApplicationContext cache tới địa chỉ và vòng đời container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-010
+    title: Dùng @DirtiesContext có chủ đích và nhận diện container bị dừng quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-011
+    title: Chuẩn bị kết nối JDBC, Redis hoặc broker cho cùng một ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-012
+    title: Phân biệt hỗ trợ Docker Compose của Spring Boot với ComposeContainer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: determinism
+  title: Tính xác định
+  childs:
+  - slug: determinism-001
+    title: Kiểm soát múi giờ, locale, charset và cấu hình JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-002
+    title: Cấp Clock cho ứng dụng để kiểm soát thời điểm trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-003
+    title: Phân biệt thời gian của ứng dụng với đồng hồ trong dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-004
+    title: Cố định giá trị khởi tạo (seed) khi sinh dữ liệu ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-005
+    title: Cấp thư mục riêng bằng @TempDir và dọn tệp sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-006
+    title: Sử dụng cổng động và tránh tài nguyên có tên cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-007
+    title: Phục hồi system property và trạng thái toàn cục sau từng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-008
+    title: Chờ điều kiện với thời hạn thay vì dùng sleep cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-009
+    title: Ngăn phụ thuộc vào thứ tự chạy và trạng thái còn lại từ lần trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parallel-isolation
+  title: Cô lập song song
+  childs:
+  - slug: parallel-isolation-001
+    title: Phân biệt chạy song song theo ca, lớp, Gradle fork và CI job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-002
+    title: Chọn mức cô lập container phù hợp với mức song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-003
+    title: Tách database, schema, key, topic và thư mục bằng định danh lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-004
+    title: Tránh xung đột cổng, tên container và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-005
+    title: Quản lý kết nối và dữ liệu khi nhiều kiểm thử dùng cùng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-006
+    title: Đồng bộ khởi tạo một lần và tránh đóng container khi ca khác còn dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-007
+    title: Phân biệt khởi động nhiều container đồng thời với chạy kiểm thử song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-008
+    title: Giới hạn số tác vụ theo CPU, RAM và khả năng chịu tải của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-009
+    title: Xác minh tính độc lập bằng chạy riêng, đổi thứ tự và lặp lại bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-simulation
+  title: Mô phỏng sự cố
+  childs:
+  - slug: failure-simulation-001
+    title: Phạm vi mô phỏng lỗi hạ tầng và quan hệ với kiểm thử khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-002
+    title: Đặt Toxiproxy giữa ứng dụng và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-003
+    title: Gây trễ mạng, giới hạn băng thông và ngắt kết nối có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-004
+    title: Phân biệt thời hạn kết nối, thời hạn đọc và thời hạn chờ môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-005
+    title: Dừng hoặc khởi động lại dịch vụ sau giai đoạn sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-006
+    title: Phục hồi proxy, kết nối và trạng thái sau mỗi kịch bản lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-007
+    title: Ghi lại tham số gây lỗi để tái tạo đúng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-008
+    title: Giới hạn của mô phỏng cục bộ so với sự cố hệ phân tán thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-optimization
+  title: Tối ưu tài nguyên
+  childs:
+  - slug: resource-optimization-001
+    title: Đo riêng thời gian tải image, khởi động, nạp dữ liệu và chạy kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-002
+    title: Cân bằng khởi động lại dịch vụ với chi phí dọn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-003
+    title: Dùng chung container trong một lần chạy và trách nhiệm làm sạch trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-004
+    title: Phân biệt singleton container với tái sử dụng container giữa nhiều lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-005
+    title: Tính thử nghiệm của reusable containers và điều kiện bật có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-006
+    title: Giới hạn dọn dẹp, mạng và tính phù hợp với CI của reusable containers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-007
+    title: Tải trước image, sử dụng registry mirror và kiểm soát cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-008
+    title: Khởi động song song các dịch vụ độc lập trong giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-optimization-009
+    title: Phát hiện thiếu RAM, hết dung lượng đĩa và rò rỉ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-environments
+  title: Môi trường CI
+  childs:
+  - slug: ci-environments-001
+    title: Xác minh container runtime và quyền truy cập trước khi chạy kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-002
+    title: So sánh service container của CI với container do Testcontainers cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-003
+    title: Chạy kiểm thử trên máy thực thi CI trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-004
+    title: 'Chạy kiểm thử trong container: dùng Docker socket hoặc Docker-in-Docker'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-005
+    title: Khác biệt đường dẫn mount và địa chỉ mạng giữa các mô hình CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-006
+    title: Cấu hình máy thực thi GitHub Actions hoặc GitLab CI cho môi trường container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-007
+    title: Quản lý tải image, registry riêng và giới hạn truy cập registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-008
+    title: Tách namespace tài nguyên giữa job song song và lần chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-009
+    title: Thu thập log, cấu hình đã che thông tin bí mật và báo cáo khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-010
+    title: Thu hồi tài nguyên khi job bị hủy hoặc vượt thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-environments-011
+    title: Quản lý ma trận phiên bản dịch vụ và tái tạo lỗi CI trên máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-security
+  title: Bảo mật môi trường
+  childs:
+  - slug: environment-security-001
+    title: Tách tài khoản, thông tin xác thực và endpoint kiểm thử khỏi production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-002
+    title: Chặn cấu hình nhầm tới dịch vụ hoặc dữ liệu production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-003
+    title: Cấp quyền tối thiểu cho tài khoản dịch vụ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-004
+    title: Truyền thông tin bí mật qua cấu hình và che khỏi log, báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-005
+    title: Giới hạn cổng công bố và tránh để dịch vụ kiểm thử truy cập công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-006
+    title: Nhận diện quyền của Docker socket và rủi ro container đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-007
+    title: Chuẩn bị chứng chỉ TLS kiểm thử và cấu hình truststore riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-008
+    title: Không vô hiệu hóa xác minh TLS để che lỗi cấu hình môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-security-009
+    title: Kiểm soát nguồn image, phiên bản và dữ liệu nhạy cảm trong volume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-diagnostics
+  title: Quan sát và chẩn đoán
+  childs:
+  - slug: observability-diagnostics-001
+    title: Thu log container bằng log consumer và gắn định danh lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-002
+    title: Phân tích log theo giai đoạn tải image, khởi động và kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-003
+    title: Chẩn đoán không tìm thấy Docker runtime hoặc thiếu quyền daemon
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-004
+    title: Chẩn đoán lỗi tải image, registry authentication và sai kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-005
+    title: Chẩn đoán wait strategy hết hạn dù container đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-006
+    title: Chẩn đoán sai host, port, DNS và cấu hình TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-007
+    title: Chẩn đoán lỗi migration, dữ liệu nền và trạng thái còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-008
+    title: Chẩn đoán container dừng sớm do vòng đời JUnit hoặc Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-009
+    title: Chẩn đoán lỗi chập chờn do bất đồng bộ, thứ tự chạy và tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-010
+    title: Thu thập bằng chứng trước cleanup mà không để môi trường tồn tại vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-011
+    title: Tái hiện thất bại với cùng image, cấu hình, dữ liệu và seed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-standardization
+  title: Chuẩn hóa môi trường
+  childs:
+  - slug: environment-standardization-001
+    title: Đóng gói cấu hình môi trường thành thành phần hỗ trợ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-standardization-002
+    title: Tách cấu hình dịch vụ dùng chung khỏi dữ liệu nghiệp vụ của từng ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-standardization-003
+    title: Tài liệu hóa yêu cầu runtime, bước khởi tạo và cách dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-standardization-004
+    title: Quản lý phiên bản image và rà soát khi nâng thư viện Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-standardization-005
+    title: Kiểm tra sai khác cấu hình giữa máy cá nhân, CI và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-standardization-006
+    title: Loại bỏ cổng cố định, sleep cố định và phụ thuộc môi trường ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-standardization-007
+    title: Tránh trộn môi trường phát triển lâu dài với môi trường kiểm thử độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-standardization-008
+    title: Đánh giá khả năng tái tạo trên máy sạch và khi không có cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Dựng môi trường Java và PostgreSQL với dữ liệu sạch cho từng ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Đối chiếu kết quả chạy H2 và PostgreSQL trên cùng nhóm kịch bản SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Dựng Spring Boot với PostgreSQL và Redis bằng cấu hình kết nối động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Dựng môi trường Kafka hoặc RabbitMQ với tài nguyên thông điệp độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Dựng ứng dụng nhiều dịch vụ bằng Docker Compose và kiểm tra sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Chuẩn bị bộ giả lập lưu trữ đối tượng và xác minh endpoint kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Mô phỏng lỗi mạng qua Toxiproxy và phục hồi môi trường sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Chạy hai bộ kiểm thử đồng thời và chứng minh dữ liệu không giao thoa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Đưa môi trường lên CI và tái hiện một thất bại từ bằng chứng đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Đánh giá môi trường bằng độ cô lập, khả năng tái tạo và khả năng dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

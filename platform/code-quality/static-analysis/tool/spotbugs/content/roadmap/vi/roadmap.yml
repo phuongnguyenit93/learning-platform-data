@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-spotbugs
+  title: Tổng quan SpotBugs
+  purpose: Hiểu SpotBugs tìm lỗi tiềm ẩn trong bytecode Java.
+  objectives:
+  - Nêu vai trò và giới hạn của phân tích tĩnh.
+  - Giải thích khái niệm bug pattern.
+- id: thiet-lap-chay
+  title: Thiết lập & chạy
+  purpose: Thực hiện lần phân tích đầu tiên trên ứng dụng Java đã biên dịch.
+  objectives:
+  - Chuẩn bị môi trường và mã .class/JAR.
+  - Chạy SpotBugs và xác nhận báo cáo.
+- id: doc-ket-qua
+  title: Đọc kết quả
+  purpose: Biết diễn giải cảnh báo trước khi quyết định sửa.
+  objectives:
+  - Xác định loại lỗi, vị trí và mức ưu tiên.
+  - Đối chiếu cảnh báo với mã nguồn.
+- id: mau-loi-thuong-gap
+  title: Mẫu lỗi thường gặp
+  purpose: Nhận diện các nhóm lỗi SpotBugs thường phát hiện.
+  objectives:
+  - Phân tích lỗi null, tài nguyên và logic.
+  - Đề xuất bản sửa cho một cảnh báo điển hình.
+- id: cau-hinh-bo-loc
+  title: Cấu hình & bộ lọc
+  purpose: Điều chỉnh phạm vi phân tích và kiểm soát cảnh báo nhiễu.
+  objectives:
+  - Thiết lập mức cảnh báo và phạm vi quét.
+  - Sử dụng bộ lọc và suppression có lý do.
+- id: tich-hop-gradle-maven
+  title: Tích hợp Gradle/Maven
+  purpose: Chạy SpotBugs nhất quán trong quá trình build.
+  objectives:
+  - Cấu hình plugin cho công cụ build.
+  - Tạo báo cáo và chạy task/goal phân tích.
+- id: sua-kiem-chung
+  title: Sửa & kiểm chứng
+  purpose: Xử lý cảnh báo có trọng tâm và tránh bỏ sót lỗi thật.
+  objectives:
+  - Ưu tiên cảnh báo theo tác động.
+  - Sửa hoặc giải trình, rồi chạy lại kiểm tra.
+- id: tu-dong-hoa-ci
+  title: Tự động hóa CI
+  purpose: Phát hiện cảnh báo mới khi mã nguồn thay đổi.
+  objectives:
+  - Thêm SpotBugs vào pipeline CI.
+  - Theo dõi báo cáo và đặt tiêu chí kiểm tra.

@@ -1,0 +1,3 @@
+menuLevel1: Deadlock
+menuLevel2: Tự deadlock do tái nhập hoặc gọi ngược vào thành phần đang giữ khóa
+status: ''

@@ -1,0 +1,49 @@
+roadmap:
+- id: vai-tro-cua-adapter
+  title: Vai trò của Adapter
+  purpose: Hiểu adapter kết nối MessageChannel với hệ thống hoặc giao thức bên ngoài.
+  objectives:
+  - Giải thích vị trí của adapter trong IntegrationFlow.
+  - Phân biệt adapter với message handler nội bộ.
+- id: inbound-outbound
+  title: Inbound & Outbound
+  purpose: Chọn đúng chiều truyền dữ liệu và kiểu giao tiếp cho một kết nối.
+  objectives:
+  - Phân biệt inbound và outbound channel adapter.
+  - Nêu khi nào cần gateway để nhận phản hồi.
+- id: polling-message-driven
+  title: Polling & Message-driven
+  purpose: Chọn cơ chế nhận dữ liệu phù hợp khả năng của nguồn bên ngoài.
+  objectives:
+  - Thiết lập poller với chu kỳ và số message mỗi lượt.
+  - Phân biệt polling với nhận sự kiện chủ động.
+- id: file-sftp
+  title: File & SFTP
+  purpose: Đưa dữ liệu file cục bộ hoặc từ máy chủ SFTP vào luồng xử lý.
+  objectives:
+  - Cấu hình đọc/ghi file và thư mục đích.
+  - Dùng bộ lọc để tránh đọc lại file ngoài ý muốn.
+- id: http-adapter
+  title: HTTP Adapter
+  purpose: Kết nối luồng thông điệp với yêu cầu hoặc phản hồi HTTP.
+  objectives:
+  - Nhận biết HTTP inbound và outbound components.
+  - Cấu hình ánh xạ payload và HTTP headers.
+- id: jdbc-adapter
+  title: JDBC Adapter
+  purpose: Tích hợp database thông qua việc đọc và gửi dữ liệu theo truy vấn.
+  objectives:
+  - Cấu hình inbound polling bằng câu truy vấn SQL.
+  - Giải thích outbound update và xử lý bản ghi lặp.
+- id: jms-adapter
+  title: JMS Adapter
+  purpose: Kết nối hệ thống nhắn tin JMS qua luồng message một chiều.
+  objectives:
+  - Phân biệt polling inbound và message-driven inbound.
+  - Thiết lập outbound gửi message và chuyển đổi headers.
+- id: loi-kiem-thu-adapter
+  title: Lỗi & kiểm thử Adapter
+  purpose: Kiểm chứng việc trao đổi dữ liệu ổn định khi hệ thống ngoài gặp sự cố.
+  objectives:
+  - Theo dõi lỗi kết nối, retry và trùng lặp dữ liệu.
+  - Kiểm thử một luồng inbound-to-outbound hoàn chỉnh.

@@ -1,0 +1,435 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Báo cáo là gì và giải quyết nhu cầu nào trong ứng dụng Java
+  - Phân biệt báo cáo, biểu mẫu, tài liệu và bảng điều khiển
+  - Báo cáo chi tiết, tổng hợp, đối soát và chứng từ
+  - Báo cáo phân trang và báo cáo phục vụ phân tích dữ liệu
+  - Mối liên hệ giữa dữ liệu, mẫu, bộ máy báo cáo và tài liệu đầu ra
+  - Vòng đời yêu cầu, lấy dữ liệu, kết xuất, xuất tệp và phân phối
+  - Vai trò của người thiết kế mẫu, lập trình viên và người sử dụng
+  - Yêu cầu đầu vào, độ chính xác, khả năng đọc và khả năng tái lập
+  - Kiến thức Java, SQL, JDBC và xử lý tài nguyên cần chuẩn bị
+  - Lộ trình từ báo cáo đơn giản đến dịch vụ báo cáo hoàn chỉnh
+- level1: Lựa chọn công cụ
+  level2:
+  - Tiêu chí chọn bộ máy báo cáo theo dữ liệu và định dạng đầu ra
+  - JasperReports Library và vai trò trong ứng dụng Java
+  - Phân biệt JasperReports Library, Jaspersoft Studio và JasperReports Server
+  - Tổng quan Eclipse BIRT và mô hình thiết kế báo cáo
+  - Vai trò của DynamicReports khi xây dựng báo cáo bằng mã Java
+  - So sánh thiết kế trực quan, mẫu khai báo và thiết kế bằng mã
+  - Khi nào dùng thư viện PDF, Excel hoặc Word trực tiếp
+  - Chi phí tích hợp, giấy phép, bảo trì và phụ thuộc bên ngoài
+  - Chọn công cụ theo chứng từ cố định, báo cáo tổng hợp và xuất dữ liệu
+- level1: Thiết lập môi trường
+  level2:
+  - Xác định phiên bản JDK, bộ máy báo cáo và trình thiết kế tương thích
+  - Khai báo và khóa phiên bản thư viện trong Gradle hoặc Maven
+  - Phân biệt thư viện lõi và các mô-đun mở rộng cần bổ sung
+  - Cài đặt Jaspersoft Studio và cấu hình môi trường thiết kế
+  - Tổ chức thư mục mẫu, dữ liệu mẫu, hình ảnh và phông chữ
+  - Cấu hình bộ biên dịch biểu thức và đường dẫn lớp
+  - Thiết lập nguồn dữ liệu thử nghiệm và thông tin kết nối
+  - Đọc tài nguyên từ classpath thay vì phụ thuộc đường dẫn máy
+  - Chạy thử trong môi trường máy chủ không có giao diện đồ họa
+  - Kiểm tra đồng bộ phiên bản giữa thiết kế, biên dịch và chạy
+- level1: Báo cáo đầu tiên
+  level2:
+  - Xác định nội dung và đầu ra của một báo cáo danh sách đơn giản
+  - Tạo mẫu JRXML tối thiểu với tiêu đề và vùng dữ liệu
+  - Khai báo trường và kết nối bộ dữ liệu mẫu
+  - Biên dịch JRXML thành JasperReport
+  - Điền dữ liệu để tạo JasperPrint
+  - Xuất PDF đầu tiên và kiểm tra nội dung
+  - Thay dữ liệu mẫu bằng danh sách đối tượng Java
+  - Chạy lại báo cáo với dữ liệu rỗng, một dòng và nhiều trang
+- level1: Kiến trúc xử lý
+  level2:
+  - Phân biệt JasperDesign, JasperReport và JasperPrint
+  - Quan hệ giữa JRXML, tệp .jasper và tệp .jrprint
+  - Trách nhiệm của các giai đoạn biên dịch, điền dữ liệu và xuất tệp
+  - Vai trò của JasperCompileManager, JasperFillManager và JasperExportManager
+  - Luồng xử lý với Connection và với JRDataSource
+  - Quyền sở hữu và thời điểm đóng kết nối, luồng và tệp
+  - Thời điểm xử lý tham số, trường, biến và biểu thức
+  - Tách truy xuất dữ liệu, tính toán nghiệp vụ và trình bày báo cáo
+  - Tái sử dụng mẫu đã biên dịch và cô lập trạng thái mỗi lần chạy
+  - Phân biệt bộ máy nhúng trong ứng dụng và máy chủ báo cáo độc lập
+- level1: Cấu trúc JRXML
+  level2:
+  - Cấu trúc tổng thể và các thành phần của mẫu JRXML
+  - Thuộc tính tên báo cáo, kích thước trang, lề và số cột
+  - Các vùng title, pageHeader, columnHeader và detail
+  - Các vùng columnFooter, pageFooter, lastPageFooter và summary
+  - Vai trò của background và noData
+  - Phân biệt phần tử tĩnh, phần tử động và thành phần lặp dữ liệu
+  - Tọa độ, kích thước, thứ tự vẽ và vùng chứa phần tử
+  - Khai báo parameter, field, variable, group và subDataset
+  - Thuộc tính cấu hình ở mức báo cáo và phần tử
+  - Kiểm tra lỗi cấu trúc mẫu trước khi biên dịch
+  - Đọc và chỉnh sửa JRXML đồng bộ với trình thiết kế
+- level1: Nguồn dữ liệu
+  level2:
+  - Hợp đồng JRDataSource với next() và getFieldValue()
+  - Sử dụng JRBeanCollectionDataSource cho danh sách JavaBean
+  - Ánh xạ thuộc tính JavaBean, thuộc tính lồng nhau và kiểu dữ liệu
+  - Sử dụng nguồn dữ liệu từ Map và mảng đối tượng
+  - Sử dụng JREmptyDataSource cho báo cáo dựa trên tham số
+  - Kết nối JDBC và nguồn dữ liệu từ ResultSet
+  - Đọc dữ liệu CSV với kiểu cột và dấu phân cách phù hợp
+  - Đọc dữ liệu XML bằng biểu thức XPath
+  - Đọc dữ liệu JSON và lựa chọn truy vấn phù hợp
+  - Đọc dữ liệu bảng tính và chuẩn hóa trước khi lập báo cáo
+  - Xây dựng JRDataSource tùy chỉnh cho nguồn dữ liệu đặc thù
+  - Đặc tính tiến con trỏ, đọc lại và tái sử dụng nguồn dữ liệu
+  - Chuyển đổi DTO, xử lý giá trị thiếu và kiểm tra hợp đồng dữ liệu
+- level1: Truy vấn JDBC
+  level2:
+  - Đặt truy vấn trong mẫu hay chuẩn bị dữ liệu ở tầng ứng dụng
+  - Ánh xạ tên cột, bí danh và kiểu SQL sang trường báo cáo
+  - Truyền tham số truy vấn bằng $P{}
+  - Thay thế đoạn truy vấn bằng $P!{} và giới hạn đầu vào
+  - Sử dụng $X{} cho điều kiện tập giá trị và xử lý null
+  - Thiết kế bộ lọc ngày, trạng thái, chi nhánh và quyền truy cập
+  - Sắp xếp ổn định trước khi nhóm hoặc phân trang dữ liệu
+  - Tổng hợp trong SQL hay tính toán trong bộ máy báo cáo
+  - Quản lý giao dịch và tính nhất quán của ảnh chụp dữ liệu
+  - Tránh truy vấn lặp và bài toán N+1 trong báo cáo
+  - Kiểm soát thời gian truy vấn, số dòng và kế hoạch thực thi
+- level1: Tham số báo cáo
+  level2:
+  - Phân biệt tham số nghiệp vụ, tham số hiển thị và tham số hệ thống
+  - Khai báo tên, kiểu và giá trị mặc định của tham số
+  - Truyền Map tham số từ Java vào báo cáo
+  - Phân biệt tham số bắt buộc, tùy chọn, null và chuỗi rỗng
+  - Truyền khoảng thời gian, danh sách và điều kiện lọc
+  - Chuẩn hóa múi giờ, ngày bắt đầu và ngày kết thúc
+  - Truyền tham số đến bộ dữ liệu phụ và báo cáo con
+  - Các tham số REPORT_LOCALE, REPORT_TIME_ZONE và REPORT_RESOURCE_BUNDLE
+  - Kiểm tra đầu vào trước khi điền dữ liệu
+  - Hiển thị tiêu chí lọc và thông tin lần chạy trong báo cáo
+- level1: Trường và biểu thức
+  level2:
+  - Tham chiếu tham số, trường, biến và tài nguyên bằng $P{}, $F{}, $V{}, $R{}
+  - Khai báo kiểu trường và đối chiếu với giá trị thực tế
+  - Biểu thức Java và yêu cầu tương thích bộ biên dịch
+  - Chuỗi, điều kiện và định dạng nội dung động
+  - Xử lý null, giá trị mặc định và tránh lỗi ép kiểu
+  - Tính toán tiền tệ bằng BigDecimal và quy tắc làm tròn
+  - Biểu thức ngày giờ và ranh giới múi giờ
+  - Phân biệt kiểu giá trị với cách trình bày giá trị
+  - Điều kiện in bằng printWhenExpression
+  - Thời điểm đánh giá biểu thức và tác động đến kết quả hiển thị
+  - Tách hàm hỗ trợ dùng chung khỏi biểu thức quá phức tạp
+  - Giới hạn logic nghiệp vụ trong mẫu để dễ kiểm thử và bảo trì
+- level1: Biến và thống kê
+  level2:
+  - Vai trò của biến báo cáo và thứ tự cập nhật theo dữ liệu
+  - Khai báo biểu thức, kiểu và giá trị khởi tạo của biến
+  - Các phép Count, Sum, Average, Lowest và Highest
+  - Đếm giá trị khác nhau và xử lý giá trị null
+  - Phân biệt resetType và incrementType
+  - Tổng theo toàn báo cáo, trang, cột và nhóm
+  - Tổng lũy kế và tỷ lệ trên tổng
+  - Sự khác nhau giữa số dòng, số bản ghi và số đối tượng nghiệp vụ
+  - Thời điểm đánh giá tổng cuối nhóm và tổng cuối báo cáo
+  - Truyền giá trị tổng hợp từ báo cáo con về báo cáo cha
+  - Kiểm tra tổng tiền, số lượng và sai lệch làm tròn
+- level1: Nhóm dữ liệu
+  level2:
+  - Xác định khóa nhóm và yêu cầu sắp xếp dữ liệu
+  - Khai báo groupExpression và nhận diện thay đổi nhóm
+  - Thiết kế groupHeader và groupFooter
+  - Nhóm nhiều cấp theo thứ tự phân cấp nghiệp vụ
+  - Tổng phụ và số lượng bản ghi theo nhóm
+  - Lặp tiêu đề nhóm khi sang trang
+  - Giữ tiêu đề cùng dữ liệu và hạn chế nhóm bị tách trang
+  - Ngắt trang hoặc đặt lại số trang theo nhóm khi phù hợp
+  - Phân biệt nhóm dữ liệu với crosstab và sắp xếp
+  - Kiểm tra nhóm rỗng, một bản ghi và nhóm dài nhiều trang
+- level1: Bố cục và phân trang
+  level2:
+  - Chọn khổ giấy, hướng trang, lề và vùng in
+  - Tính chiều rộng hữu dụng và căn chỉnh lưới phần tử
+  - Chiều cao band và điều kiện tách nội dung qua trang
+  - Co giãn trường văn bản và giữ vị trí phần tử liên quan
+  - Xử lý văn bản dài, xuống dòng và phần tử bị chồng lấn
+  - Giữ cụm nội dung cùng trang và điều khiển ngắt trang
+  - Điều kiện hiển thị tiêu đề, chân trang và trang cuối
+  - Số trang hiện tại, tổng số trang và thời điểm đánh giá
+  - Thiết kế báo cáo nhiều cột và hướng điền dữ liệu
+  - Xử lý báo cáo không có dữ liệu và thông báo phù hợp
+  - Tắt phân trang cho các đầu ra cần dữ liệu liên tục
+  - Chẩn đoán trang trắng, dòng trống và nội dung tràn lề
+- level1: Định dạng và kiểu
+  level2:
+  - Phân biệt nội dung dữ liệu và định dạng trình bày
+  - Tạo kiểu dùng chung và quan hệ kế thừa kiểu
+  - Định dạng số, tiền tệ, phần trăm và ngày giờ
+  - Căn lề, khoảng đệm, đường viền và nền
+  - Tô màu dòng xen kẽ để dễ đọc bảng dữ liệu
+  - Áp dụng kiểu có điều kiện theo giá trị và trạng thái
+  - Quản lý mẫu kiểu dùng chung bằng tệp .jrtx
+  - Hiển thị văn bản có định dạng và giới hạn hỗ trợ markup
+  - Thiết kế quy chuẩn thương hiệu cho tiêu đề, bảng và phần chú thích
+  - Giữ kết quả trình bày nhất quán giữa các định dạng xuất
+- level1: Phông chữ và ngôn ngữ
+  level2:
+  - Unicode và hiển thị tiếng Việt trong toàn bộ luồng báo cáo
+  - Phân biệt phông chữ hệ điều hành và font extension
+  - Đóng gói phông chữ cùng ứng dụng để chạy trên máy chủ
+  - Nhúng phông chữ khi xuất PDF và kiểm tra ký tự bị thiếu
+  - Giấy phép phông chữ và phạm vi được phép phân phối
+  - Tách nhãn và thông báo bằng ResourceBundle
+  - Chọn Locale cho số, tiền tệ và ngày giờ
+  - Phân biệt Locale với TimeZone trong cùng một báo cáo
+  - Kiểm tra chuỗi dài sau dịch, chữ viết đặc biệt và hướng đọc
+  - Đối chiếu kết quả trên Windows, Linux và môi trường container
+- level1: Bảng và danh sách
+  level2:
+  - Chọn detail band, table component hay list component
+  - Tạo subDataset và liên kết bằng datasetRun
+  - Truyền tham số, Connection hoặc nguồn dữ liệu vào thành phần
+  - Thiết kế tiêu đề, chi tiết và chân bảng
+  - Cột nhiều cấp, độ rộng cột và căn chỉnh ô
+  - Lặp tiêu đề bảng khi bảng kéo dài nhiều trang
+  - Hiển thị danh sách lặp theo chiều dọc hoặc chiều ngang
+  - Tổng hợp theo bộ dữ liệu phụ và truyền giá trị ra ngoài
+  - Xử lý bảng rỗng, ô dài và dòng có chiều cao thay đổi
+  - Kiểm tra cách bảng được chuyển thành ô khi xuất Excel
+- level1: Báo cáo con
+  level2:
+  - Khi nào cần subreport và khi nào nên dùng table hoặc list
+  - Quan hệ giữa báo cáo cha và báo cáo con
+  - Biên dịch, đóng gói và tìm tài nguyên mẫu con
+  - Truyền tham số nghiệp vụ và tham số hệ thống vào mẫu con
+  - Chia sẻ Connection hoặc cấp nguồn dữ liệu độc lập
+  - Báo cáo con cho quan hệ một-nhiều và nhiều tầng
+  - Đọc lại dữ liệu khi nhiều thành phần dùng cùng nguồn
+  - Nhận giá trị trả về và tổng hợp từ báo cáo con
+  - Định vị, co giãn và phân trang khi lồng báo cáo
+  - Tránh N+1, mẫu con bị thiếu và vòng lặp phụ thuộc tài nguyên
+- level1: Bảng chéo
+  level2:
+  - Bảng chéo (crosstab) và các bài toán tổng hợp hai chiều
+  - Hàng, cột, nhóm và giá trị đo trong crosstab
+  - Cấp dữ liệu qua bộ dữ liệu riêng
+  - Tổng hợp số lượng, doanh thu và giá trị trung bình
+  - Tổng hàng, tổng cột và tổng toàn bảng
+  - Nhóm nhiều cấp và thứ tự sắp xếp nhãn
+  - Phân biệt không có dữ liệu, null và giá trị bằng không
+  - Bảng chéo rộng, lặp tiêu đề và phân trang ngang
+  - Đối chiếu kết quả crosstab với truy vấn tổng hợp độc lập
+- level1: Biểu đồ
+  level2:
+  - Chọn biểu đồ theo mục tiêu so sánh, xu hướng và cơ cấu
+  - Phân biệt chuỗi dữ liệu, danh mục và giá trị đo
+  - Chuẩn bị dữ liệu biểu đồ từ bộ dữ liệu chính hoặc phụ
+  - Biểu đồ cột, đường, tròn và giới hạn sử dụng
+  - Định dạng trục, đơn vị, chú giải và nhãn dữ liệu
+  - Đồng bộ màu sắc và chủ đề với báo cáo
+  - Tùy chỉnh biểu đồ qua cơ chế mở rộng được hỗ trợ
+  - Xử lý chuỗi quá nhiều, dữ liệu thiếu và nhãn dài
+  - Kiểm tra độ phân giải và kết quả biểu đồ ở từng định dạng xuất
+- level1: Hình ảnh và liên kết
+  level2:
+  - Đưa logo và hình ảnh vào mẫu từ nguồn tài nguyên tin cậy
+  - Đọc hình từ classpath, byte[] và luồng đầu vào
+  - Tỷ lệ ảnh, chất lượng hiển thị và chi phí bộ nhớ
+  - Chính sách khi hình ảnh không tồn tại hoặc không đọc được
+  - Hiển thị mã vạch và mã QR bằng thành phần phù hợp
+  - Chọn dữ liệu mã hóa, kích thước và kiểm tra khả năng quét
+  - Đường kẻ, khung, hình nền và dấu nhận diện tài liệu
+  - Tạo hyperlink nội bộ và liên kết ngoài
+  - Anchor, bookmark và điều hướng trong báo cáo dài
+  - Kiểm soát URL hình ảnh, liên kết và dữ liệu nhạy cảm
+- level1: Xuất PDF
+  level2:
+  - Luồng xuất PDF từ JasperPrint và lựa chọn API phù hợp
+  - Cấu hình JRPdfExporter và đầu vào, đầu ra của exporter
+  - Chọn cấu hình báo cáo và cấu hình xuất PDF
+  - Giữ kích thước trang, phân trang và bố cục in
+  - Nhúng phông chữ và kiểm tra tiếng Việt
+  - Thông tin tài liệu, bookmark và liên kết
+  - Mật khẩu, mã hóa và quyền thao tác trên PDF
+  - PDF/A, mục đích lưu trữ và điều kiện kiểm tra tuân thủ
+  - PDF có gắn thẻ và yêu cầu hỗ trợ khả năng truy cập
+  - Xuất nhiều JasperPrint vào cùng một PDF
+  - Phân biệt xuất PDF với ký số và xử lý PDF sau xuất
+  - Kiểm tra tính toàn vẹn, số trang và khả năng mở tệp PDF
+- level1: Xuất bảng tính
+  level2:
+  - Khác biệt giữa bố cục in và cấu trúc bảng tính
+  - Chọn XLS hoặc XLSX theo yêu cầu và giới hạn định dạng
+  - Cấu hình JRXlsxExporter và các lớp cấu hình liên quan
+  - Đảm bảo số, ngày giờ và chuỗi có kiểu ô đúng
+  - Kiểm soát ô gộp, khoảng trắng và cột phát sinh
+  - Đặt tên sheet và tách dữ liệu qua nhiều sheet
+  - Xuất công thức và phân biệt công thức với giá trị
+  - Thiết lập vùng in, hướng giấy và hàng tiêu đề
+  - Giữ định dạng số và độ rộng cột phù hợp
+  - Xuất bảng tính theo metadata thay vì bám sát bố cục in
+  - Đánh giá giới hạn dòng, kích thước tệp và bộ nhớ
+  - Kiểm tra tổng số dòng, kiểu ô và kết quả mở bằng ứng dụng bảng tính
+- level1: Xuất web và văn bản
+  level2:
+  - Xuất HTML và quản lý tài nguyên ảnh đi kèm
+  - Đường dẫn tài nguyên, phông chữ và cách nhúng HTML vào ứng dụng
+  - Đánh giá khác biệt hiển thị giữa trình duyệt và bản in
+  - Xuất CSV theo cột dữ liệu và metadata
+  - Mã hóa, dấu phân cách, dấu ngoặc kép và xuống dòng trong CSV
+  - Phân biệt dữ liệu CSV với công thức khi mở bằng bảng tính
+  - Xuất văn bản thuần với giới hạn bố cục ký tự
+  - Xuất DOCX, RTF, ODT và đánh giá khả năng chỉnh sửa
+  - Xuất PPTX và đánh giá cách ánh xạ nội dung sang slide
+  - Xuất JSON theo metadata và phân biệt với tuần tự hóa dữ liệu nghiệp vụ
+  - Chọn cấu hình riêng cho từng định dạng thay vì giả định kết quả giống nhau
+- level1: In và khả năng truy cập
+  level2:
+  - Xem trước báo cáo và phân biệt xem trước với kết quả xuất
+  - In báo cáo bằng Java Print Service
+  - Chọn máy in, khổ giấy và phạm vi trang
+  - Khác biệt giữa máy trạm có giao diện và máy chủ headless
+  - Kiểm tra tỷ lệ in, lề thực tế và chất lượng phông chữ
+  - Thiết kế thứ tự đọc, tiêu đề và chú thích dễ hiểu
+  - Màu sắc, độ tương phản và cách biểu đạt không chỉ dựa vào màu
+  - Kiểm tra khả năng đọc nội dung bằng công cụ hỗ trợ phù hợp
+- level1: Thiết kế bằng mã
+  level2:
+  - Khi nào cần tạo cấu trúc báo cáo bằng Java
+  - Tạo JasperDesign và các phần tử qua API
+  - Xây dựng cột động từ danh sách trường được phép
+  - Tạo tham số, trường, biến và nhóm bằng mã
+  - Kết hợp khung mẫu cố định với vùng nội dung động
+  - Vai trò và giới hạn của DynamicReports so với API JasperReports
+  - Hàm tùy chỉnh và phần mở rộng cho biểu thức dùng chung
+  - Scriptlet, thời điểm gọi và chi phí bảo trì
+  - Quản lý độ phức tạp và kiểm thử báo cáo tạo động
+- level1: Tích hợp Spring Boot
+  level2:
+  - Tách bộ lấy dữ liệu, bộ kết xuất và bộ xuất định dạng
+  - Thiết kế dịch vụ báo cáo với yêu cầu và kết quả có kiểu rõ ràng
+  - Đóng gói JRXML, mẫu con, ảnh và phông chữ trong ứng dụng
+  - Nạp tài nguyên từ executable JAR thay vì giả định tài nguyên là File
+  - Quyết định biên dịch mẫu khi dựng bản phát hành hay khi chạy
+  - Quản lý DataSource và ranh giới giao dịch
+  - Tạo đầu ra bằng luồng hoặc tệp tạm theo kích thước
+  - Cung cấp điểm tải báo cáo khi ứng dụng có nhu cầu HTTP
+  - Content-Type, Content-Disposition và tên tệp tiếng Việt
+  - Phân biệt phản hồi tải tệp thành công và phản hồi lỗi
+  - Truyền ngữ cảnh người dùng, ngôn ngữ và quyền dữ liệu
+  - Kiểm thử dịch vụ báo cáo độc lập với tầng web
+- level1: Tác vụ báo cáo
+  level2:
+  - Chọn xử lý đồng bộ hay tác vụ nền theo thời gian và tài nguyên
+  - Mô hình yêu cầu, mã tác vụ, trạng thái và kết quả
+  - Quản lý hàng đợi và giới hạn số báo cáo chạy đồng thời
+  - Thiết lập thời hạn xử lý, hủy tác vụ và dọn tài nguyên
+  - Chạy lại an toàn và tránh tạo kết quả trùng
+  - Lập lịch báo cáo theo múi giờ và thời điểm chốt dữ liệu
+  - Lưu kết quả trong kho tệp hoặc object storage
+  - Cấp liên kết tải có thời hạn và kiểm tra quyền mỗi lần tải
+  - Chính sách lưu giữ, hết hạn và xóa kết quả
+  - Tích hợp kênh thông báo khi tác vụ hoàn tất theo nhu cầu ứng dụng
+- level1: Quản trị mẫu
+  level2:
+  - Định danh mẫu và quản lý phiên bản báo cáo
+  - Tách mẫu, tài nguyên, cấu hình và dữ liệu đầu vào
+  - Tái sử dụng style, mẫu con và tài nguyên thương hiệu
+  - Hợp đồng giữa phiên bản mẫu và cấu trúc dữ liệu
+  - Phân phối mẫu theo ứng dụng, kho tài nguyên hoặc dịch vụ
+  - Cache mẫu đã biên dịch và quy tắc vô hiệu hóa
+  - Cô lập mẫu theo khách hàng hoặc đơn vị sử dụng
+  - Phê duyệt thay đổi mẫu, truy vết và khôi phục phiên bản
+  - Phân biệt quản trị mẫu trong ứng dụng với triển khai JasperReports Server
+- level1: Bảo mật
+  level2:
+  - Phân quyền yêu cầu báo cáo, phạm vi dữ liệu và tải kết quả
+  - Cô lập dữ liệu giữa người dùng và khách hàng
+  - Nguy cơ khi cho phép người dùng cung cấp mẫu có biểu thức thực thi
+  - Chính sách chỉ nhận mẫu tin cậy và quy trình phê duyệt mẫu
+  - Ngăn SQL injection trong tham số và đoạn truy vấn động
+  - Kiểm soát URL tài nguyên để hạn chế truy cập mạng ngoài ý muốn
+  - Ngăn đọc tệp ngoài phạm vi và kiểm tra đường dẫn tài nguyên
+  - Kiểm soát phân tích XML và cấu hình an toàn theo phiên bản thư viện
+  - Giới hạn dòng dữ liệu, số trang, kích thước ảnh và thời gian chạy
+  - Che dữ liệu nhạy cảm trong báo cáo, nhật ký và tệp tạm
+  - Ngăn công thức nguy hiểm trong CSV và dữ liệu bảng tính
+  - Quản lý bí mật kết nối, quyền kho tệp và cập nhật phụ thuộc
+- level1: Hiệu năng
+  level2:
+  - Đo riêng thời gian lấy dữ liệu, biên dịch, điền dữ liệu và xuất tệp
+  - Phân tích chi phí CPU, bộ nhớ và truy cập đĩa
+  - Tối ưu truy vấn và giảm dữ liệu trước khi kết xuất
+  - Tái sử dụng mẫu biên dịch và tránh cache trạng thái dùng chung
+  - Chọn nguồn dữ liệu theo nhu cầu đọc tuần tự và đọc lại
+  - Kiểm soát ảnh lớn, biểu đồ và số lượng báo cáo con
+  - Virtualizer và cơ chế giảm dữ liệu trang giữ trong bộ nhớ
+  - Lựa chọn thư mục tạm và dọn tài nguyên virtualizer
+  - Phân biệt xuất ra OutputStream với xử lý toàn luồng không giữ trang
+  - Giới hạn đồng thời, hàng đợi và áp lực ngược
+  - Đo tải với dữ liệu thực tế và xác định ngưỡng báo cáo an toàn
+  - Chiến lược tách báo cáo lớn và lựa chọn xuất dữ liệu thay thế
+- level1: Kiểm thử
+  level2:
+  - Lập ma trận dữ liệu, định dạng xuất và môi trường chạy
+  - Kiểm thử bộ chuẩn bị dữ liệu và quy tắc nghiệp vụ
+  - Kiểm tra biên dịch tất cả mẫu và phát hiện thiếu tài nguyên
+  - Bộ dữ liệu rỗng, null, trùng, âm và giá trị cực lớn
+  - Kiểm tra tổng tiền, tổng nhóm và tiêu chí lọc
+  - Kiểm tra tiếng Việt, ngôn ngữ và ranh giới múi giờ
+  - Đọc lại PDF để đối chiếu nội dung và số trang
+  - Đọc lại XLSX để kiểm tra kiểu ô, số dòng và công thức
+  - So sánh ảnh trang với bản chuẩn và xử lý sai khác có chủ ý
+  - Kiểm soát metadata biến động khi so sánh tệp đầu ra
+  - Kiểm thử tải, hủy tác vụ và khả năng giải phóng tài nguyên
+  - Kiểm thử quyền truy cập và cách ly dữ liệu
+- level1: Chẩn đoán lỗi
+  level2:
+  - Phân biệt lỗi biên dịch mẫu, lấy dữ liệu, điền dữ liệu và xuất tệp
+  - Đọc JRException, nguyên nhân gốc và vị trí mẫu gây lỗi
+  - Không tìm thấy trường, thuộc tính JavaBean hoặc tham số
+  - Lỗi kiểu dữ liệu, null và biểu thức không biên dịch
+  - Không tìm thấy mẫu con, ảnh hoặc phông chữ trong JAR
+  - Báo cáo trống, mất dòng, sai tổng và điều kiện lọc
+  - Trang trắng, nội dung chồng lấn và tiêu đề không lặp
+  - PDF mất dấu và khác biệt phông chữ giữa các môi trường
+  - Excel sai kiểu ô, dư cột và ô gộp ngoài ý muốn
+  - Truy vấn chậm, cạn kết nối, thiếu bộ nhớ và đầy đĩa tạm
+  - Tạo dữ liệu tái hiện tối thiểu và khoanh vùng thay đổi gây lỗi
+- level1: Triển khai và vận hành
+  level2:
+  - Biên dịch và kiểm tra mẫu trong quy trình CI
+  - Đóng gói tài nguyên cùng phiên bản ứng dụng
+  - Thiết lập container, phông chữ và môi trường headless
+  - Cấu hình dung lượng, quyền và vòng đời thư mục tạm
+  - Kiểm tra khởi động và xác nhận khả năng tạo báo cáo mẫu
+  - Ghi nhật ký theo mã yêu cầu, mẫu và phiên bản
+  - Đo thời gian, tỷ lệ lỗi, độ dài hàng đợi và dung lượng kết quả
+  - Cảnh báo khi vượt thời gian, bộ nhớ hoặc giới hạn lưu trữ
+  - Theo dõi tác vụ dở dang khi ứng dụng khởi động lại
+  - Triển khai mẫu mới, kiểm tra đầu ra và khôi phục khi có lỗi
+- level1: Nâng cấp và mở rộng
+  level2:
+  - Lập danh mục phiên bản thư viện, trình thiết kế và mẫu hiện có
+  - Đọc thay đổi phá vỡ tương thích trước khi nâng cấp
+  - Phân biệt chuyển đổi nguồn JRXML và biên dịch lại tệp .jasper
+  - Kiểm tra thay đổi định dạng mẫu giữa các phiên bản lớn
+  - Rà soát các mô-đun mở rộng, exporter và phụ thuộc bắc cầu
+  - Kiểm tra mã tùy chỉnh, scriptlet và hàm hỗ trợ sau nâng cấp
+  - Đối chiếu đầu ra bằng bộ dữ liệu và bản chuẩn
+  - Thử nghiệm phiên bản mới, phát hành từng phần và khôi phục
+  - Thiết kế lớp thích nghi khi cần hỗ trợ nhiều bộ máy báo cáo
+- level1: Thực hành tổng hợp
+  level2:
+  - Báo cáo danh sách có bộ lọc và thông báo không có dữ liệu
+  - Hóa đơn có chi tiết, thuế, làm tròn và tổng thanh toán
+  - Báo cáo doanh thu nhiều cấp với tổng phụ và biểu đồ
+  - Báo cáo đối soát có chênh lệch và dấu hiệu cần kiểm tra
+  - Bảng chéo theo kỳ và đơn vị với tổng hàng, tổng cột
+  - Hồ sơ nhiều phần có báo cáo con, bookmark và mục lục
+  - Một bộ dữ liệu xuất PDF để in và XLSX để phân tích
+  - Báo cáo song ngữ với phông chữ đóng gói trong container
+  - Tác vụ báo cáo lớn có giới hạn tài nguyên và tải tệp có kiểm soát
+  - Bộ kiểm thử hồi quy và bảng kiểm nghiệm thu báo cáo

@@ -1,0 +1,3 @@
+menuLevel1: Spring Boot
+menuLevel2: Thử giai đoạn khởi tạo bằng spring.context.exit=onRefresh
+status: TRANSLATE

@@ -1,0 +1,310 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Công cụ build là gì và vấn đề của quy trình build thủ công
+  - 'Từ mã nguồn đến sản phẩm bàn giao: các thành phần và mối liên hệ'
+  - Phân biệt biên dịch, kiểm thử, đóng gói, phát hành và triển khai
+  - Vai trò của công cụ build so với trình biên dịch, IDE và hệ thống CI
+  - 'Tự động hóa build và quản lý phụ thuộc: hai trách nhiệm cốt lõi'
+  - 'Tác vụ, vòng đời, plugin, phụ thuộc và artifact: bản đồ thuật ngữ'
+  - Quy ước thay cho cấu hình và vai trò của cấu trúc dự án
+  - Thế nào là một build đúng, có thể lặp lại và dễ chẩn đoán
+  - Lộ trình học và ranh giới giữa kiến thức nền tảng với từng công cụ
+- level1: Quy trình Java
+  level2:
+  - JDK, javac, java và jar trong chuỗi build Java
+  - Từ tệp .java đến bytecode .class và quá trình chạy trên JVM
+  - Tự biên dịch và chạy chương trình Java bằng dòng lệnh
+  - Biên dịch nhiều tệp có package và phụ thuộc giữa các lớp
+  - Thêm thư viện JAR vào quy trình biên dịch và thực thi thủ công
+  - Sao chép tài nguyên và đóng gói một thư viện JAR đơn giản
+  - 'Chạy kiểm thử trong chuỗi build: đầu vào và kết quả'
+  - Các hạn chế khi duy trì quy trình thủ công bằng lệnh hoặc script
+  - Chuyển quy trình thủ công thành các bước build có quan hệ rõ ràng
+- level1: Cấu trúc dự án
+  level2:
+  - Thư mục gốc dự án, gốc kho mã và thư mục làm việc hiện tại
+  - Phân tách mã nguồn chính, mã kiểm thử và tài nguyên
+  - Vai trò của tệp mô tả build, tệp cấu hình và build wrapper
+  - Thư mục chứa mã được sinh tự động và thời điểm tạo mã
+  - 'Thư mục đầu ra: lớp đã biên dịch, báo cáo và artifact'
+  - Những tệp cần quản lý bằng Git và những đầu ra cần bỏ qua
+  - Quy ước bố trí thư mục và trường hợp cần cấu hình khác mặc định
+  - Nhận diện ranh giới một dự án build và một mô-đun
+- level1: Môi trường build
+  level2:
+  - Tiến trình build chạy ở đâu và sử dụng môi trường nào
+  - JAVA_HOME, PATH và cách xác định JDK thực tế được sử dụng
+  - Phân biệt JDK chạy công cụ build, JDK biên dịch và JDK chạy ứng dụng
+  - Java toolchain và mục tiêu chuẩn hóa bộ công cụ biên dịch
+  - 'Build wrapper: cố định phiên bản công cụ và khởi động dự án'
+  - Thư mục cấu hình người dùng, thư mục cache và cấu hình cấp dự án
+  - 'Khác biệt hệ điều hành: đường dẫn, dấu phân cách và quyền thực thi'
+  - Mã hóa UTF-8, locale, múi giờ và tác động đến kết quả build
+  - Proxy, chứng chỉ TLS và quyền truy cập tài nguyên mạng
+  - Làm việc qua terminal, IDE và môi trường CI với cấu hình nhất quán
+- level1: Đầu vào và đầu ra
+  level2:
+  - Nhận diện mã nguồn, tài nguyên và cấu hình làm đầu vào build
+  - Thư viện phụ thuộc, plugin và toolchain cũng là đầu vào
+  - Đầu vào tường minh và đầu vào ẩn từ môi trường máy
+  - Đầu ra trung gian, artifact cuối cùng và báo cáo kiểm chứng
+  - Quan hệ giữa đầu vào, đầu ra và việc quyết định chạy lại một bước
+  - Thư mục làm việc, tệp tạm và tác dụng phụ của tác vụ
+  - 'Quyền sở hữu đầu ra: tránh nhiều tác vụ cùng ghi một tệp'
+  - Hợp đồng đầu vào và đầu ra của một bước build tùy chỉnh
+- level1: Tác vụ và đồ thị
+  level2:
+  - Tác vụ build là gì và cách xác định một đơn vị công việc
+  - Đồ thị phụ thuộc có hướng không chu trình (DAG) trong build
+  - Phân biệt phụ thuộc tác vụ với phụ thuộc thư viện
+  - Tác vụ cần thực hiện trước và ràng buộc thứ tự thực hiện
+  - Tác vụ tổng hợp và các tác vụ thực sự tạo đầu ra
+  - Từ mục tiêu dòng lệnh đến tập tác vụ cần chạy
+  - Đọc kế hoạch thực thi và giải thích vì sao tác vụ được chọn
+  - Phụ thuộc ngầm qua tệp đầu ra và rủi ro thiếu khai báo
+  - Phát hiện chu trình phụ thuộc và phá vỡ liên kết không cần thiết
+  - Mã thoát, trạng thái thất bại và việc dừng chuỗi thực thi
+- level1: Vòng đời build
+  level2:
+  - Vòng đời build và quan hệ với các tác vụ cụ thể
+  - 'Các giai đoạn khái niệm: chuẩn bị, biên dịch, kiểm thử và đóng gói'
+  - Kiểm chứng chất lượng trước khi coi artifact là hợp lệ
+  - 'Xóa đầu ra cũ: mục đích và giới hạn của thao tác clean'
+  - Build toàn bộ, build một phần và chọn đúng mục tiêu cần chạy
+  - Chạy ứng dụng trong phát triển và build sản phẩm bàn giao
+  - Gắn tác vụ tùy chỉnh vào đúng giai đoạn
+  - Khi nào bỏ qua một bước làm thay đổi ý nghĩa của build thành công
+  - Đối chiếu khái niệm vòng đời giữa Maven, Gradle và Ant
+- level1: Cấu hình build
+  level2:
+  - Cấu hình khai báo và cấu hình theo mệnh lệnh
+  - Mô hình dự án, thuộc tính và các giá trị mặc định
+  - Cấu hình được nạp khi nào và công việc thực thi diễn ra khi nào
+  - 'Nguồn cấu hình: tệp dự án, dòng lệnh, môi trường và cấu hình người dùng'
+  - Thứ tự ưu tiên cấu hình và cách truy tìm giá trị có hiệu lực
+  - Tham số hóa cấu hình theo môi trường mà không nhân bản quy trình
+  - Đường dẫn tương đối, đường dẫn tuyệt đối và khả năng di chuyển dự án
+  - Tách bí mật khỏi cấu hình được lưu trong kho mã
+  - Tránh tác dụng phụ và công việc nặng trong giai đoạn cấu hình
+- level1: Plugin và mở rộng
+  level2:
+  - Plugin build là gì và vì sao cần tách khỏi mã ứng dụng
+  - Plugin cung cấp tác vụ, quy ước và cấu hình như thế nào
+  - Phân biệt phụ thuộc plugin với phụ thuộc của ứng dụng
+  - Quản lý phiên bản plugin và khả năng tương thích với công cụ build
+  - Chọn cấu hình plugin sẵn có hay viết tác vụ tùy chỉnh
+  - Tạo bước tự động hóa nhỏ với đầu vào, đầu ra và lỗi rõ ràng
+  - Tái sử dụng quy ước build giữa nhiều dự án
+  - Ranh giới giữa logic build, script tiện ích và nghiệp vụ ứng dụng
+- level1: Định danh và phiên bản
+  level2:
+  - 'Artifact là gì: thư viện, ứng dụng và các tệp đi kèm'
+  - 'Tọa độ Maven: groupId, artifactId và version'
+  - Kiểu artifact, phần mở rộng và classifier
+  - Phiên bản phát hành ổn định và phiên bản đang phát triển
+  - Ý nghĩa của SNAPSHOT trong hệ sinh thái kho Maven
+  - Phiên bản cố định, khoảng phiên bản và bộ chọn phiên bản động
+  - Đọc quy ước phiên bản ngữ nghĩa và giới hạn của cam kết tương thích
+  - Phân biệt phiên bản dự án, công cụ build, plugin và thư viện
+  - Định danh artifact theo phiên bản và truy vết về mã nguồn
+- level1: Khai báo phụ thuộc
+  level2:
+  - Phụ thuộc trực tiếp và phụ thuộc bắc cầu
+  - Phụ thuộc bên ngoài, phụ thuộc giữa mô-đun và tệp JAR cục bộ
+  - Vì sao nên khai báo trực tiếp thư viện mà mã nguồn sử dụng
+  - Phạm vi hoặc cấu hình phụ thuộc theo nhu cầu sử dụng
+  - Phụ thuộc để biên dịch, để chạy và chỉ để kiểm thử
+  - Thư viện do môi trường chạy cung cấp và phụ thuộc không đóng gói kèm
+  - Phụ thuộc tùy chọn và ảnh hưởng đến dự án sử dụng thư viện
+  - 'Loại trừ phụ thuộc bắc cầu: lý do và rủi ro'
+  - Ràng buộc phiên bản, BOM và nền tảng quản lý phiên bản
+  - Tập trung khai báo phiên bản và hạn chế cấu hình trùng lặp
+- level1: Phân giải phụ thuộc
+  level2:
+  - Từ khai báo phụ thuộc đến đồ thị thư viện thực tế
+  - Đọc cây phụ thuộc và truy tìm đường dẫn dẫn đến một thư viện
+  - Một thư viện xuất hiện qua nhiều đường phụ thuộc
+  - Xung đột phiên bản và vai trò của chính sách lựa chọn
+  - Khác biệt nguyên tắc giải quyết xung đột giữa Maven và Gradle
+  - 'Ràng buộc, ép phiên bản và loại trừ: chọn đúng biện pháp'
+  - Đồng bộ các thư viện cần đi cùng một bộ phiên bản
+  - Kiểm soát thay đổi đồ thị bằng cơ chế khóa phụ thuộc
+  - Phân biệt đồ thị được khai báo với các tệp thực tế được nạp
+  - Đánh giá ảnh hưởng của việc nâng cấp hoặc hạ phiên bản thư viện
+- level1: Kho lưu trữ
+  level2:
+  - Kho artifact và vai trò trong việc chia sẻ sản phẩm build
+  - Phân biệt kho mã nguồn với kho lưu trữ artifact
+  - Kho cục bộ, kho từ xa và bộ nhớ đệm của công cụ build
+  - Metadata POM và vai trò trong phân giải phụ thuộc bắc cầu
+  - Kho công cộng, kho nội bộ và máy chủ quản lý kho
+  - Thứ tự kho, phạm vi nội dung kho và nguồn tải artifact
+  - Tách kho dùng cho plugin khỏi kho dùng cho thư viện
+  - Xác thực kho riêng và quản lý thông tin truy cập
+  - 'Build ngoại tuyến: điều kiện có đủ đầu vào trong bộ nhớ đệm'
+  - Artifact không tìm thấy, tải lỗi và metadata cũ trong bộ nhớ đệm
+- level1: Classpath và JPMS
+  level2:
+  - Classpath là gì và cách JVM tìm lớp từ thư mục hoặc JAR
+  - Phân biệt classpath biên dịch, kiểm thử và thực thi
+  - Vì sao biên dịch thành công nhưng chạy vẫn thiếu thư viện
+  - Lớp trùng tên và ảnh hưởng của thứ tự classpath
+  - Thư viện có mặt nhưng không có đúng phương thức hoặc trường cần dùng
+  - Tài nguyên trên classpath và khác biệt với tệp ngoài hệ thống
+  - Module path và vai trò của module-info.java trong JPMS
+  - 'Mô-đun build và mô-đun JPMS: hai ranh giới cần phân biệt'
+  - Phụ thuộc có thể đọc và package được xuất trong mô hình JPMS
+  - Nhận diện lỗi classpath trước khi thay đổi cấu hình một cách mò mẫm
+- level1: Biên dịch và tài nguyên
+  level2:
+  - Cấu hình tập mã nguồn và tài nguyên cần xử lý
+  - Phiên bản ngôn ngữ, bytecode đích và mức tương thích Java
+  - Vai trò của javac --release khi biên dịch cho phiên bản Java đích
+  - Encoding và các lựa chọn biên dịch ảnh hưởng đến kết quả
+  - Cảnh báo biên dịch và chính sách coi cảnh báo là lỗi
+  - Annotation processing và mã nguồn được sinh trong build
+  - Tách đường dẫn annotation processor khỏi thư viện ứng dụng
+  - Sao chép, lọc và thay thế giá trị trong tệp tài nguyên
+  - Tránh đóng gói nhầm bí mật và cấu hình riêng của máy
+  - Kiểm tra đầu ra biên dịch và phát hiện tệp cũ còn sót
+- level1: Kiểm thử và chất lượng
+  level2:
+  - Vai trò của kiểm thử tự động trong hợp đồng build
+  - Phân biệt biên dịch mã kiểm thử với thực thi kiểm thử
+  - Tổ chức unit test và integration test trong chuỗi build
+  - Cơ chế phát hiện, chọn lọc và báo cáo kết quả kiểm thử
+  - 'Không có kiểm thử được chạy: phát hiện cấu hình sai'
+  - Kiểm thử không ổn định và ảnh hưởng đến độ tin cậy của build
+  - Báo cáo độ bao phủ và giới hạn của một con số phần trăm
+  - Kiểm tra định dạng, phân tích tĩnh và các cổng chất lượng
+  - 'Bỏ qua kiểm thử hoặc bỏ qua lỗi: tác động và phạm vi sử dụng'
+  - Lưu báo cáo để kiểm chứng và chẩn đoán sau khi build
+- level1: Đóng gói
+  level2:
+  - Đầu ra biên dịch và artifact phân phối khác nhau như thế nào
+  - 'Cấu trúc JAR: lớp, tài nguyên và thư mục META-INF'
+  - Manifest và khai báo điểm khởi chạy Main-Class
+  - JAR thư viện, JAR chạy được và các điều kiện thực thi
+  - Thin JAR và cách cung cấp thư viện bên ngoài
+  - Fat JAR hoặc uber JAR và nguyên tắc gộp thư viện
+  - Xung đột tài nguyên, tệp dịch vụ và lớp trùng khi gộp JAR
+  - WAR và phạm vi sử dụng trong môi trường Servlet
+  - Tệp nguồn, tài liệu API và các artifact bổ trợ
+  - Kiểm tra nội dung artifact và chạy thử sản phẩm đã đóng gói
+  - Phân biệt đóng gói Java, tạo container image và triển khai
+- level1: Dự án nhiều mô-đun
+  level2:
+  - Khi nào cần chia một dự án thành nhiều mô-đun build
+  - Dự án gốc, mô-đun con và đồ thị phụ thuộc nội bộ
+  - Phân biệt tổng hợp mô-đun với kế thừa cấu hình
+  - Tách thư viện dùng chung khỏi ứng dụng sử dụng nó
+  - Thứ tự build theo phụ thuộc và phát hiện vòng phụ thuộc
+  - Build một mô-đun cùng các đầu vào nội bộ cần thiết
+  - Chia sẻ phiên bản, cấu hình và quy ước một cách có kiểm soát
+  - Đầu ra giữa các mô-đun và tránh phụ thuộc vào đường dẫn thủ công
+  - Thay đổi một mô-đun ảnh hưởng đến phạm vi kiểm chứng nào
+  - Phân biệt monorepo, dự án nhiều mô-đun và build kết hợp
+- level1: Tính tái lập
+  level2:
+  - Build lặp lại được và artifact tái lập từng byte
+  - Những đầu vào cần cố định để giải thích một kết quả build
+  - Cố định công cụ build, JDK, plugin và phiên bản thư viện
+  - Đồ thị phụ thuộc thay đổi dù mã nguồn không thay đổi
+  - Timestamp, thứ tự tệp và đường dẫn máy ảnh hưởng đến artifact
+  - Locale, múi giờ, encoding và dữ liệu ngẫu nhiên trong build
+  - Build cô lập (hermetic build) và kiểm soát đầu vào bên ngoài
+  - Build từ bản checkout sạch trên một máy khác
+  - So sánh checksum và truy tìm nguyên nhân artifact khác nhau
+  - Cân bằng tính tái lập với khả năng cập nhật phụ thuộc
+- level1: Build tăng dần
+  level2:
+  - Build toàn bộ và build tăng dần (incremental build)
+  - Kiểm tra đầu vào và đầu ra để bỏ qua tác vụ không cần chạy
+  - Đầu vào ẩn gây kết quả sai dù tác vụ được coi là đã cập nhật
+  - Bộ nhớ đệm phụ thuộc và bộ nhớ đệm đầu ra build
+  - Khóa cache và điều kiện tái sử dụng kết quả an toàn
+  - Bộ nhớ đệm cục bộ và bộ nhớ đệm dùng chung từ xa
+  - Phân biệt cache cấu hình với cache đầu ra tác vụ
+  - Tính khả chuyển của cache giữa thư mục, máy và hệ điều hành
+  - Cache mất hiệu lực, cache lỗi và trường hợp cần làm mới
+  - Kiểm chứng tính đúng trước khi tối ưu tỷ lệ dùng cache
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian build và xác định nút thắt trước khi tối ưu
+  - Phân biệt thời gian cấu hình, tải phụ thuộc và thực thi tác vụ
+  - Build lạnh, build ấm và điều kiện so sánh công bằng
+  - Tiến trình chạy lâu dài, chi phí khởi động và tái sử dụng JVM
+  - Thực thi song song dựa trên đồ thị phụ thuộc
+  - CPU, RAM, I/O và giới hạn tài nguyên của máy build
+  - Tránh tác vụ không cần thiết và đầu vào quá rộng
+  - Phân phối công việc kiểm thử và kiểm soát cạnh tranh tài nguyên
+  - Đánh giá cải tiến hiệu năng cùng độ ổn định và tính đúng
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc mã thoát, thông báo lỗi gốc và chuỗi nguyên nhân
+  - Xác định lỗi thuộc môi trường, cấu hình hay thực thi tác vụ
+  - Lỗi tải plugin, thư viện và truy cập kho lưu trữ
+  - Lỗi biên dịch do phiên bản Java hoặc đường dẫn phụ thuộc
+  - ClassNotFoundException và NoClassDefFoundError trong ngữ cảnh build
+  - NoSuchMethodError và dấu hiệu lệch phiên bản thư viện lúc chạy
+  - UnsupportedClassVersionError và chênh lệch phiên bản Java
+  - Build chạy được trong IDE nhưng lỗi ở terminal hoặc CI
+  - Tái hiện lỗi với phạm vi tối thiểu và lưu bằng chứng chẩn đoán
+  - Làm mới cache hoặc clean có kiểm soát sau khi xác định giả thuyết
+- level1: Build trong CI
+  level2:
+  - Vai trò của CI trong việc kiểm chứng một thay đổi mã nguồn
+  - Chuỗi checkout, chuẩn bị môi trường, build và thu thập kết quả
+  - Sử dụng wrapper và toolchain nhất quán giữa máy cá nhân với CI
+  - Build trên máy chạy CI sạch và xử lý đầu vào bị thiếu
+  - Thiết kế khóa cache theo công cụ, môi trường và tập phụ thuộc
+  - Phân biệt cache tăng tốc với artifact đầu ra cần bàn giao
+  - Quản lý biến môi trường, bí mật và quyền truy cập kho
+  - Lưu báo cáo kiểm thử, log và checksum để truy vết
+  - Build một lần và chuyển đúng artifact qua các môi trường
+  - Ma trận phiên bản Java, điều kiện thất bại và phạm vi kiểm chứng
+- level1: Phát hành
+  level2:
+  - Phân biệt tạo artifact, đưa vào kho cục bộ và xuất bản từ xa
+  - Metadata phát hành và thông tin cần cho dự án sử dụng thư viện
+  - Công bố phụ thuộc bắc cầu chính xác cho thư viện được phát hành
+  - Artifact nguồn, tài liệu, checksum và chữ ký đi kèm
+  - Chính sách phiên bản phát hành và tránh thay thế artifact đã công bố
+  - Kiểm chứng trước phát hành bằng một dự án tiêu thụ độc lập
+  - Liên hệ phiên bản artifact với commit, tag và kết quả CI
+  - Tách quyền đọc phụ thuộc khỏi quyền xuất bản
+  - Phân biệt phát hành thư viện với triển khai ứng dụng
+- level1: An toàn build
+  level2:
+  - Rủi ro từ thư viện, plugin và script được thực thi khi build
+  - Xác định nguồn tin cậy của công cụ, wrapper và artifact
+  - 'Checksum và chữ ký: kiểm tra toàn vẹn và xác minh nguồn'
+  - Tránh tải nhầm artifact cùng tên từ kho không mong muốn
+  - Kiểm soát quyền truy cập kho và bảo vệ thông tin xác thực
+  - Danh mục thành phần phần mềm (SBOM) và truy vết phụ thuộc
+  - Quét lỗ hổng và giấy phép trong phạm vi quy trình build
+  - Chứng thực nguồn gốc build và liên kết artifact với đầu vào
+  - Giới hạn quyền của tiến trình build và thay đổi đến từ mã không tin cậy
+- level1: Lựa chọn công cụ
+  level2:
+  - 'Các tiêu chí lựa chọn: hệ sinh thái, quy ước và mức tùy biến'
+  - 'Maven: mô hình dự án, POM và vòng đời theo quy ước'
+  - 'Gradle: mô hình tác vụ, plugin và DSL cấu hình'
+  - 'Ant: target và tổ chức quy trình build tường minh'
+  - So sánh mô hình phụ thuộc và cách mở rộng ở mức khái niệm
+  - Chi phí học, bảo trì, hiệu năng và khả năng hỗ trợ của nhóm
+  - Đánh giá tính tương đương khi chuyển đổi công cụ build
+  - Giữ nguyên hợp đồng đầu ra và kiểm chứng sau chuyển đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập bản đồ quy trình build thủ công của một ứng dụng Java nhỏ
+  - Thiết kế các bước build với đầu vào, đầu ra và quan hệ phụ thuộc
+  - Bổ sung thư viện bên ngoài và giải thích đồ thị phụ thuộc
+  - Tách mô-đun thư viện và mô-đun ứng dụng để kiểm chứng ranh giới
+  - Thêm kiểm thử và cổng chất lượng với điều kiện thất bại rõ ràng
+  - Đóng gói và chạy artifact độc lập với IDE
+  - Tái hiện lỗi thiếu thư viện, lệch phiên bản và sai JDK
+  - So sánh build sạch, build tăng dần và build dùng cache
+  - Thiết kế một chuỗi CI có lưu báo cáo và artifact truy vết được
+  - Tự đánh giá khả năng đọc và giải thích một dự án build chưa quen

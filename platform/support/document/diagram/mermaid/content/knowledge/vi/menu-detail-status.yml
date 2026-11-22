@@ -1,0 +1,2983 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Mermaid là gì và vai trò của sơ đồ trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vấn đề sơ đồ lỗi thời và cách quản lý sơ đồ bằng văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa mã Mermaid, Markdown, bộ kết xuất và SVG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Các nhóm sơ đồ và cách chọn theo câu hỏi cần giải thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Mermaid, PlantUML, Graphviz và công cụ kéo thả: tiêu chí lựa chọn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phạm vi mô tả, giới hạn mô hình hóa và mức độ chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lộ trình từ sơ đồ đầu tiên đến tài liệu có thể tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Dùng Mermaid Live Editor để viết và xem trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Chuẩn bị trình soạn thảo Markdown và tiện ích xem Mermaid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Phân biệt thư viện Mermaid, Mermaid CLI và nền tảng nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Cài đặt cục bộ và kiểm tra phiên bản công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Ghim phiên bản Mermaid và các phụ thuộc kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Tạo tệp .mmd đầu tiên và tổ chức thư mục sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Kiểm tra khả năng hỗ trợ sơ đồ trên môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: markdown-integration
+  title: Markdown
+  childs:
+  - slug: markdown-integration-001
+    title: Nhúng sơ đồ bằng khối mã có nhãn mermaid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-integration-002
+    title: Đặt sơ đồ cạnh đoạn giải thích và ví dụ liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-integration-003
+    title: Phân biệt khối mã Markdown với nội dung cú pháp Mermaid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-integration-004
+    title: Đặt tiêu đề, chú thích và liên kết đến sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-integration-005
+    title: Nhúng tệp SVG hoặc PNG khi nền tảng không kết xuất Mermaid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-integration-006
+    title: Quản lý đường dẫn tương đối và tài nguyên trong kho tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-integration-007
+    title: Hiển thị đồng thời mã nguồn, sơ đồ và mô tả thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-integration-008
+    title: Đối chiếu kết quả xem trước với tài liệu đã xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: syntax
+  title: Cú pháp
+  childs:
+  - slug: syntax-001
+    title: Khai báo loại sơ đồ và cấu trúc định nghĩa tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-002
+    title: Phân biệt mã định danh với nhãn hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-003
+    title: Quy tắc xuống dòng, dấu phân cách và thụt lề theo loại sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-004
+    title: Viết chú thích bằng %% và tránh xung đột cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-005
+    title: Viết nhãn tiếng Việt, Unicode và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-006
+    title: Dùng dấu nháy và mã ký tự để xử lý nhãn phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-007
+    title: Xuống dòng và định dạng Markdown trong nhãn khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-008
+    title: Nhận diện từ khóa dành riêng và lỗi phân tích cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-009
+    title: Phân biệt cú pháp dùng chung với cú pháp riêng của từng loại sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flowcharts
+  title: Lưu đồ
+  childs:
+  - slug: flowcharts-001
+    title: Khai báo flowchart và lựa chọn hướng TB, TD, BT, LR, RL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-002
+    title: Tạo nút, mã định danh và nhãn hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-003
+    title: Biểu diễn thao tác, quyết định, dữ liệu và điểm bắt đầu hoặc kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-004
+    title: Dùng đường nối có hướng, không hướng, nét đứt và nét đậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-005
+    title: Gắn nhãn điều kiện và mô tả lên đường nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-006
+    title: Biểu diễn rẽ nhánh, hội tụ và vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-007
+    title: Tạo nhóm subgraph và liên kết giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-008
+    title: Điều khiển hướng nhóm và hiểu giới hạn bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-009
+    title: Tùy chỉnh nút bằng style, classDef và class
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-010
+    title: Tùy chỉnh đường nối và giữ định danh cạnh dễ bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-011
+    title: Dùng hình dạng mở rộng, biểu tượng và ảnh theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-012
+    title: Liên kết và tương tác trên nút theo chính sách bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flowcharts-013
+    title: Thực hành mô tả quy trình xử lý tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sequence-diagrams
+  title: Trình tự
+  childs:
+  - slug: sequence-diagrams-001
+    title: Khai báo sequenceDiagram, participant và actor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-002
+    title: Đặt bí danh và sắp xếp thứ tự các bên tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-003
+    title: Phân biệt thông điệp gọi, phản hồi và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-004
+    title: Biểu diễn lời gọi nội bộ và thời gian xử lý bằng activation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-005
+    title: Tự động đánh số thông điệp bằng autonumber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-006
+    title: Đặt ghi chú và nhóm các bên tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-007
+    title: Biểu diễn nhánh lựa chọn bằng alt, else và opt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-008
+    title: Biểu diễn vòng lặp bằng loop và công việc song song bằng par
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-009
+    title: Mô tả vùng quan trọng, lựa chọn và ngắt luồng khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-010
+    title: Tạo và hủy bên tham gia theo vòng đời tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-011
+    title: Đánh dấu khu vực bằng rect và làm rõ đường xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-012
+    title: Tránh suy diễn thời lượng hoặc tính đồng bộ từ vị trí hình vẽ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequence-diagrams-013
+    title: Thực hành luồng tạo, kết xuất và tải xuống tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-diagrams
+  title: Sơ đồ lớp
+  childs:
+  - slug: class-diagrams-001
+    title: Khai báo classDiagram, lớp và tên hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-002
+    title: Mô tả thuộc tính, phương thức và kiểu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-003
+    title: Biểu diễn phạm vi truy cập và thành viên tĩnh hoặc trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-004
+    title: Biểu diễn interface, lớp trừu tượng và chú giải kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-005
+    title: Mô tả kế thừa, hiện thực hóa và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-006
+    title: Phân biệt liên kết, kết tập và hợp thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-007
+    title: Gắn vai trò, nhãn và bội số cho quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-008
+    title: Biểu diễn kiểu tổng quát và giới hạn cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-009
+    title: Nhóm lớp bằng namespace và thêm ghi chú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-diagrams-010
+    title: Thực hành thiết kế các thành phần tạo tài liệu Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-diagrams
+  title: Trạng thái
+  childs:
+  - slug: state-diagrams-001
+    title: Khai báo stateDiagram-v2 và đặt tên trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-002
+    title: Biểu diễn trạng thái đầu, cuối và các chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-003
+    title: Gắn sự kiện, điều kiện và mô tả cho chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-004
+    title: Mô tả trạng thái tổng hợp và trạng thái lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-005
+    title: Biểu diễn lựa chọn, rẽ nhánh và hợp nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-006
+    title: Mô tả vùng hoạt động đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-007
+    title: Thêm ghi chú, hướng hiển thị và định dạng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-008
+    title: Phân biệt mô hình trạng thái với lưu đồ quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-diagrams-009
+    title: Thực hành vòng đời yêu cầu tạo tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: entity-relationship-diagrams
+  title: Thực thể
+  childs:
+  - slug: entity-relationship-diagrams-001
+    title: Khai báo erDiagram và mô hình thực thể dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-002
+    title: Biểu diễn thuộc tính, kiểu dữ liệu và chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-003
+    title: Đánh dấu khóa chính, khóa ngoại và khóa duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-004
+    title: Đọc bội số và tính tùy chọn trong ký pháp chân quạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-005
+    title: Phân biệt quan hệ định danh và không định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-006
+    title: Đặt tên quan hệ theo ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-007
+    title: Biểu diễn quan hệ nhiều nhiều bằng thực thể liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-008
+    title: Phân biệt mô hình khái niệm với lược đồ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-relationship-diagrams-009
+    title: Thực hành mô hình mẫu tài liệu, phiên bản và kết quả xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: use-case-diagrams
+  title: Ca sử dụng
+  childs:
+  - slug: use-case-diagrams-001
+    title: Vai trò của Use Case và điều kiện hỗ trợ cú pháp beta
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-case-diagrams-002
+    title: Khai báo tác nhân, ca sử dụng và ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-case-diagrams-003
+    title: Biểu diễn liên kết giữa tác nhân và ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-case-diagrams-004
+    title: Mô tả include, extend và quan hệ khái quát hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-case-diagrams-005
+    title: Tổ chức bố cục, nhãn và ghi chú của sơ đồ ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-case-diagrams-006
+    title: Thực hành phạm vi chức năng hệ thống quản lý tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responsibility-flows
+  title: Luồng trách nhiệm
+  childs:
+  - slug: responsibility-flows-001
+    title: Phân biệt luồng công việc với làn trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-flows-002
+    title: Mô phỏng các bên chịu trách nhiệm bằng subgraph của flowchart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-flows-003
+    title: Giới thiệu Swimlanes beta và kiểm tra phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-flows-004
+    title: Khai báo làn, hoạt động và chuyển giao giữa các làn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-flows-005
+    title: Mô tả quyết định và kết quả trong quy trình liên phòng ban
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-flows-006
+    title: Thực hành quy trình soạn thảo, duyệt và phát hành tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirement-diagrams
+  title: Yêu cầu
+  childs:
+  - slug: requirement-diagrams-001
+    title: Khai báo requirementDiagram và định danh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirement-diagrams-002
+    title: Mô tả nội dung, mức rủi ro và phương pháp kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirement-diagrams-003
+    title: Phân biệt các loại yêu cầu được Mermaid hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirement-diagrams-004
+    title: Khai báo thành phần đáp ứng hoặc kiểm chứng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirement-diagrams-005
+    title: Biểu diễn quan hệ contains, derives, satisfies và verifies
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirement-diagrams-006
+    title: Truy vết yêu cầu với thiết kế và minh chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirement-diagrams-007
+    title: Thực hành yêu cầu chất lượng của chức năng xuất tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: c4-architecture
+  title: Kiến trúc C4
+  childs:
+  - slug: c4-architecture-001
+    title: Mục đích C4 và lựa chọn mức ngữ cảnh, container hoặc thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c4-architecture-002
+    title: Khai báo con người, hệ thống và hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c4-architecture-003
+    title: Mô tả container cùng công nghệ và trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c4-architecture-004
+    title: Mô tả thành phần và ranh giới kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c4-architecture-005
+    title: Biểu diễn quan hệ, hướng trao đổi và giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c4-architecture-006
+    title: Giới thiệu sơ đồ động và triển khai trong phạm vi cú pháp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c4-architecture-007
+    title: Chú thích, bố cục và giới hạn hỗ trợ của C4 trong Mermaid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c4-architecture-008
+    title: Thực hành mô tả kiến trúc hệ thống xử lý tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-architecture
+  title: Kiến trúc dịch vụ
+  childs:
+  - slug: service-architecture-001
+    title: Mục đích Architecture beta và kiểm tra khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-architecture-002
+    title: Khai báo group, service và mã định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-architecture-003
+    title: Biểu diễn kết nối và hướng nối giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-architecture-004
+    title: Dùng junction để tổ chức tuyến kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-architecture-005
+    title: Sử dụng biểu tượng có sẵn và gói biểu tượng được đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-architecture-006
+    title: Thực hành mô tả bộ kết xuất, nơi lưu trữ và dịch vụ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: block-diagrams
+  title: Sơ đồ khối
+  childs:
+  - slug: block-diagrams-001
+    title: Khai báo block diagram và tổ chức cột bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-diagrams-002
+    title: Tạo khối, nhãn và hình dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-diagrams-003
+    title: Điều khiển độ rộng khối và khoảng trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-diagrams-004
+    title: Tạo khối tổng hợp và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-diagrams-005
+    title: Nối các khối và áp dụng định dạng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-diagrams-006
+    title: Thực hành mô tả các giai đoạn chuyển đổi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-journeys
+  title: Hành trình
+  childs:
+  - slug: user-journeys-001
+    title: Khai báo journey và xác định hành trình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-journeys-002
+    title: Chia giai đoạn bằng section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-journeys-003
+    title: Mô tả hoạt động, người tham gia và mức đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-journeys-004
+    title: Phân biệt trải nghiệm người dùng với trình tự gọi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-journeys-005
+    title: Thực hành hành trình soạn, xem trước và chia sẻ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gantt-charts
+  title: Gantt
+  childs:
+  - slug: gantt-charts-001
+    title: Khai báo gantt, tiêu đề và định dạng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gantt-charts-002
+    title: Chia nhóm công việc bằng section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gantt-charts-003
+    title: Mô tả thời điểm bắt đầu, thời lượng và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gantt-charts-004
+    title: Liên kết công việc bằng mã định danh và phụ thuộc after
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gantt-charts-005
+    title: Đánh dấu active, done, crit và milestone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gantt-charts-006
+    title: Cấu hình ngày loại trừ, cuối tuần và trục thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gantt-charts-007
+    title: Kiểm tra ngày tháng, phụ thuộc và độ dễ đọc khi xuất ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gantt-charts-008
+    title: Thực hành kế hoạch chuẩn hóa một bộ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timelines
+  title: Dòng thời gian
+  childs:
+  - slug: timelines-001
+    title: Khai báo timeline và tiêu đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timelines-002
+    title: Tổ chức các mốc, sự kiện và section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timelines-003
+    title: Biểu diễn nhiều sự kiện tại cùng một mốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timelines-004
+    title: Phân biệt timeline với gantt và lịch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timelines-005
+    title: Thực hành lịch sử thay đổi định dạng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gitgraph
+  title: GitGraph
+  childs:
+  - slug: gitgraph-001
+    title: Khai báo gitGraph và mô hình lịch sử commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitgraph-002
+    title: Tạo commit với mã, nhãn và kiểu hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitgraph-003
+    title: Tạo nhánh và chuyển nhánh bằng branch, checkout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitgraph-004
+    title: Mô tả merge và cherry-pick
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitgraph-005
+    title: Điều chỉnh hướng, thứ tự nhánh và hình thức hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitgraph-006
+    title: Phân biệt sơ đồ minh họa với lịch sử Git thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitgraph-007
+    title: Thực hành quy trình nhánh để duyệt và phát hành tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mindmaps-and-trees
+  title: Tư duy và cây
+  childs:
+  - slug: mindmaps-and-trees-001
+    title: Khai báo mindmap và xác định chủ đề trung tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mindmaps-and-trees-002
+    title: Tạo phân cấp mindmap bằng thụt lề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mindmaps-and-trees-003
+    title: Định dạng nút, biểu tượng và giới hạn hỗ trợ của mindmap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mindmaps-and-trees-004
+    title: Thực hành sơ đồ tư duy cho cấu trúc bộ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mindmaps-and-trees-005
+    title: Giới thiệu TreeView beta và điều kiện phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mindmaps-and-trees-006
+    title: Khai báo cấu trúc cây cùng nhãn của các phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mindmaps-and-trees-007
+    title: Biểu diễn thư mục, tệp và dấu hiệu phân biệt nút theo cú pháp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mindmaps-and-trees-008
+    title: Lựa chọn mindmap, TreeView hoặc lưu đồ cho thông tin phân cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kanban-charts
+  title: Kanban
+  childs:
+  - slug: kanban-charts-001
+    title: Khai báo kanban và các cột trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-charts-002
+    title: Tạo thẻ công việc với mã định danh và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-charts-003
+    title: Gắn thông tin người phụ trách, mức ưu tiên và liên kết khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-charts-004
+    title: Cấu hình hình thức hiển thị bảng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-charts-005
+    title: Thực hành theo dõi tiến độ biên soạn tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-charts
+  title: Biểu đồ dữ liệu
+  childs:
+  - slug: data-charts-001
+    title: Chọn biểu đồ theo loại dữ liệu và thông điệp cần truyền đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-002
+    title: Khai báo pie, nhãn và giá trị của từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-003
+    title: Định dạng biểu đồ tròn và tránh diễn giải sai tỷ lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-004
+    title: Khai báo quadrantChart, trục và các góc phần tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-005
+    title: Đặt điểm dữ liệu và diễn giải vị trí trên biểu đồ phần tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-006
+    title: Khai báo XY Chart với trục và miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-007
+    title: Biểu diễn cột, đường và nhiều chuỗi dữ liệu XY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-008
+    title: Kiểm tra nhãn, đơn vị và thang đo của biểu đồ XY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-009
+    title: Giới thiệu Radar beta và kiểm tra khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-010
+    title: Mô tả trục và các chuỗi dữ liệu trên biểu đồ radar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-011
+    title: Thực hành so sánh chất lượng và khối lượng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-charts-012
+    title: Kiểm tra dữ liệu đầu vào trước khi tạo biểu đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flow-and-hierarchy
+  title: Luồng và phân cấp
+  childs:
+  - slug: flow-and-hierarchy-001
+    title: Mục đích Sankey và cách diễn giải độ rộng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-and-hierarchy-002
+    title: Khai báo sankey-beta với nguồn, đích và giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-and-hierarchy-003
+    title: Chuẩn bị dữ liệu dạng CSV và xử lý nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-and-hierarchy-004
+    title: Cấu hình hiển thị Sankey và kiểm tra tổng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-and-hierarchy-005
+    title: Mục đích Treemap và cách diễn giải diện tích phân cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-and-hierarchy-006
+    title: Khai báo nhóm, phần tử và giá trị cho Treemap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-and-hierarchy-007
+    title: Định dạng nhãn và tránh so sánh sai giữa các cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-and-hierarchy-008
+    title: Thực hành mô tả phân bổ và chuyển đổi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-diagrams
+  title: Sơ đồ chuyên biệt
+  childs:
+  - slug: specialized-diagrams-001
+    title: Khai báo packet diagram và phạm vi các trường bit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-002
+    title: Mô tả cấu trúc gói tin, độ dài trường và nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-003
+    title: Kiểm tra thứ tự bit và độ chính xác của tài liệu giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-004
+    title: Giới thiệu Venn beta và điều kiện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-005
+    title: Mô tả tập hợp, phần giao và nhãn trong Venn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-006
+    title: Phân biệt quan hệ tập hợp với quan hệ quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-007
+    title: Mục đích Ishikawa trong phân tích nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-008
+    title: Tổ chức vấn đề, nhóm nguyên nhân và nguyên nhân con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-diagrams-009
+    title: Thực hành phân tích nguyên nhân lỗi xuất tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-modeling
+  title: Mô hình sự kiện
+  childs:
+  - slug: event-modeling-001
+    title: Mục đích Event Modeling và điều kiện phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-modeling-002
+    title: Nhận diện giao diện, bộ xử lý, lệnh, sự kiện và mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-modeling-003
+    title: Tổ chức time frame và dòng thông tin theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-modeling-004
+    title: Gắn dữ liệu minh họa và khối dữ liệu dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-modeling-005
+    title: Điều khiển quan hệ suy ra và điểm đặt lại luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-modeling-006
+    title: Thực hành mô tả các sự kiện trong vòng đời tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strategy-analysis
+  title: Phân tích chiến lược
+  childs:
+  - slug: strategy-analysis-001
+    title: Mục đích Wardley Map beta và điều kiện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-analysis-002
+    title: Mô tả nhu cầu người dùng, thành phần và chuỗi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-analysis-003
+    title: Đặt thành phần theo mức độ hiện diện và mức tiến hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-analysis-004
+    title: Mục đích Cynefin beta và phân biệt các miền ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-analysis-005
+    title: Tổ chức vấn đề và nhãn trên sơ đồ Cynefin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-analysis-006
+    title: Thực hành lựa chọn sơ đồ phân tích cho hoạt động tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zenuml
+  title: ZenUML
+  childs:
+  - slug: zenuml-001
+    title: Vai trò ZenUML và khác biệt với sequenceDiagram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zenuml-002
+    title: Kiểm tra yêu cầu đăng ký hoặc tích hợp bộ kết xuất ZenUML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zenuml-003
+    title: Mô tả bên tham gia, lời gọi và giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zenuml-004
+    title: Biểu diễn điều kiện, vòng lặp và xử lý ngoại lệ theo cú pháp ZenUML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zenuml-005
+    title: Thực hành chuyển một luồng tương tác sang ZenUML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: styling
+  title: Định dạng
+  childs:
+  - slug: styling-001
+    title: Lựa chọn chủ đề và bảng màu phù hợp tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styling-002
+    title: Tùy chỉnh themeVariables trên chủ đề hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styling-003
+    title: Thiết kế màu theo ý nghĩa và duy trì tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styling-004
+    title: Điều chỉnh phông chữ, cỡ chữ, nền và đường viền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styling-005
+    title: Phân biệt định dạng nút, cạnh và nhóm theo loại sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styling-006
+    title: Dùng biểu tượng và tài nguyên ảnh với phương án dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styling-007
+    title: Viết công thức toán học khi bộ kết xuất hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styling-008
+    title: Giữ sơ đồ dễ đọc trong giao diện sáng, tối và bản in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration
+  title: Cấu hình
+  childs:
+  - slug: configuration-001
+    title: Phân biệt cấu hình toàn cục với cấu hình từng sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-002
+    title: Thiết lập cấu hình ban đầu bằng mermaid.initialize
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-003
+    title: Khai báo title và config bằng YAML frontmatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-004
+    title: Kiểm tra thụt lề, tên thuộc tính và giá trị cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-005
+    title: Hiểu thứ tự áp dụng cấu hình và các thiết lập được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-006
+    title: Cấu hình riêng cho flowchart, sequence và các loại sơ đồ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-007
+    title: Nhận diện chỉ thị init cũ và lộ trình chuyển sang frontmatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-008
+    title: Quản lý cấu hình dùng chung cho cả bộ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-009
+    title: Đối chiếu cấu hình với phiên bản và nền tảng xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: layout
+  title: Bố cục
+  childs:
+  - slug: layout-001
+    title: Lựa chọn hướng đọc theo kích thước trang và luồng thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-002
+    title: So sánh bố cục Dagre và ELK trong phạm vi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-003
+    title: Phân biệt layout, look và theme
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-004
+    title: Giảm đường nối giao nhau, nhãn đè nhau và nút quá dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-005
+    title: Điều chỉnh khoảng cách, nhóm và điểm kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-006
+    title: Tách sơ đồ lớn thành tổng quan và các sơ đồ chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layout-007
+    title: Kiểm tra bố cục sau khi đổi phiên bản, phông chữ hoặc bộ kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-integration
+  title: Tích hợp web
+  childs:
+  - slug: web-integration-001
+    title: Nạp Mermaid qua gói npm hoặc ESM từ CDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-002
+    title: Tổ chức phần tử chứa mã nguồn và thời điểm khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-003
+    title: Kết xuất các khối sơ đồ bằng mermaid.run
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-004
+    title: Kiểm tra cú pháp trước khi kết xuất bằng mermaid.parse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-005
+    title: Kết xuất thành SVG bằng mermaid.render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-006
+    title: Đảm bảo mã SVG duy nhất và gắn tương tác được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-007
+    title: Xử lý lỗi phân tích cú pháp và lỗi kết xuất bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-008
+    title: Cập nhật sơ đồ khi nội dung Markdown thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-009
+    title: Tích hợp với ứng dụng một trang và vòng đời thành phần giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-integration-010
+    title: Xử lý môi trường dựng sẵn, phía máy chủ và trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cli-usage
+  title: Dòng lệnh
+  childs:
+  - slug: cli-usage-001
+    title: Cài đặt và ghim phiên bản @mermaid-js/mermaid-cli
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-002
+    title: Chuyển tệp .mmd thành SVG bằng mmdc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-003
+    title: Xuất PNG và PDF với lựa chọn đầu ra phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-004
+    title: Thiết lập chủ đề, nền, kích thước và chất lượng ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-005
+    title: Truyền tệp cấu hình Mermaid và CSS được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-006
+    title: Cấu hình trình duyệt không giao diện và phông chữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-007
+    title: Đọc mã nguồn từ đầu vào chuẩn và xử lý nhiều tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-008
+    title: Chuyển các khối Mermaid trong Markdown thành tài nguyên ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-009
+    title: Chạy công cụ bằng Docker và quản lý thư mục gắn kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-usage-010
+    title: Đọc mã thoát, nhật ký và xử lý thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-integration
+  title: Tích hợp Java
+  childs:
+  - slug: java-integration-001
+    title: Xác định ranh giới giữa ứng dụng Java và bộ kết xuất JavaScript
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-002
+    title: Sinh mã Mermaid từ mô hình dữ liệu Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-003
+    title: Thoát ký tự và kiểm soát nhãn được sinh từ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-004
+    title: Gọi Mermaid CLI bằng ProcessBuilder với đối số tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-005
+    title: Quản lý UTF-8, đầu vào, đầu ra, nhật ký và mã thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-006
+    title: Giới hạn thời gian, quản lý tiến trình và dọn tệp tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-007
+    title: Tổ chức tác vụ Gradle để dựng sơ đồ trong quy trình tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-008
+    title: Thiết kế giao diện kết xuất có thể thay thế và kiểm thử độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: publishing
+  title: Xuất bản
+  childs:
+  - slug: publishing-001
+    title: Lựa chọn mã Mermaid nhúng hoặc ảnh được dựng sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-002
+    title: Tích hợp sơ đồ vào README và tài liệu trên nền tảng lưu trữ Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-003
+    title: Kiểm tra hỗ trợ Mermaid của công cụ tạo website tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-004
+    title: Chuẩn bị tài nguyên SVG, PNG và mô tả thay thế cho từng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-005
+    title: Đưa sơ đồ vào tài liệu Word, PDF và trình chiếu qua ảnh xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-006
+    title: Quản lý tên tệp, liên kết và thư mục đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-007
+    title: Tự động dựng sơ đồ trong CI và dừng khi kết xuất lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-008
+    title: Lưu dấu phiên bản công cụ và tái tạo đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-009
+    title: Phân phối tài liệu với đầy đủ tài nguyên và liên kết hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Xác định nguồn mã sơ đồ tin cậy và không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Cấu hình securityLevel theo ngữ cảnh nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Kiểm soát nhãn HTML, liên kết, tương tác và nội dung SVG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Kiểm soát tải tài nguyên ngoài, chính sách CSP và mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Giới hạn kích thước mã nguồn và tài nguyên kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Cô lập tiến trình kết xuất và giới hạn quyền truy cập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Ngăn dữ liệu đầu vào trở thành lệnh hệ điều hành khi gọi CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accessibility
+  title: Khả năng tiếp cận
+  childs:
+  - slug: accessibility-001
+    title: Đặt tiêu đề tiếp cận bằng accTitle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-002
+    title: Viết mô tả sơ đồ bằng accDescr và kiểm tra hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-003
+    title: Cung cấp nội dung văn bản tương đương cho thông tin quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-004
+    title: Giữ độ tương phản và tránh dùng màu làm dấu hiệu duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-005
+    title: Kiểm tra phông chữ tiếng Việt, cỡ chữ và độ đọc khi phóng to
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-006
+    title: Kiểm tra sơ đồ trong trình đọc màn hình và bản tài liệu đã xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Xây dựng bộ ví dụ tối thiểu cho các loại sơ đồ được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm tra cú pháp và kết xuất tự động trước khi xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Đối chiếu nội dung sơ đồ với mô hình và tài liệu nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra liên kết, ảnh, biểu tượng và tài nguyên đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm tra nhãn bị cắt, bố cục chồng lấn và phông chữ thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: So sánh hình ảnh khi nâng cấp Mermaid hoặc Chromium
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm tra trên nền tảng đích và với cấu hình bảo mật thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Xác định tiêu chí chấp nhận cho tài liệu chứa sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Đọc vị trí lỗi và rút gọn sơ đồ để tìm nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Sửa lỗi từ khóa, dấu nháy và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: Sửa lỗi thụt lề trong mindmap, cây và YAML frontmatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Xử lý loại sơ đồ hoặc cú pháp chưa được phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Phân biệt cấu hình bị bỏ qua với lỗi cú pháp sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Khắc phục nhãn mất dấu, phông chữ sai và kích thước sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Xử lý khác biệt giữa Live Editor, Markdown và bản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Xử lý lỗi tải mô-đun, biểu tượng hoặc tài nguyên do CSP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Khắc phục lỗi Chromium, quyền truy cập và kết xuất quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Chuẩn bị ví dụ tái hiện lỗi cùng thông tin môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-maintenance
+  title: Hiệu năng và bảo trì
+  childs:
+  - slug: performance-and-maintenance-001
+    title: Đo thời gian kết xuất, bộ nhớ và kích thước đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-maintenance-002
+    title: Giảm độ phức tạp bằng chia nhỏ sơ đồ và rút gọn nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-maintenance-003
+    title: Chỉ kết xuất khi cần và tránh dựng lại nội dung không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-maintenance-004
+    title: Lưu đệm theo mã nguồn, cấu hình và phiên bản công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-maintenance-005
+    title: Giới hạn kết xuất đồng thời và tái sử dụng tài nguyên có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-maintenance-006
+    title: Quy ước tên định danh, tệp nguồn và chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-maintenance-007
+    title: Rà soát thay đổi sơ đồ qua bản so sánh Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-maintenance-008
+    title: Quản lý nâng cấp, cú pháp beta và loại bỏ cấu hình lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Viết README có lưu đồ và hướng dẫn bằng văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Mô tả một yêu cầu xử lý tài liệu bằng sơ đồ trình tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Thiết kế sơ đồ lớp cho các thành phần kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Mô hình hóa vòng đời tài liệu bằng sơ đồ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Thiết kế ERD cho mẫu, phiên bản và tài nguyên tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Xây dựng bộ sơ đồ kiến trúc với ranh giới nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Sinh sơ đồ từ dữ liệu Java và xuất SVG bằng CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Dựng tài liệu tự động bằng Gradle và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Hoàn thiện bộ tài liệu có phương án hiển thị dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Tự đánh giá tính chính xác, độ dễ đọc và khả năng tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

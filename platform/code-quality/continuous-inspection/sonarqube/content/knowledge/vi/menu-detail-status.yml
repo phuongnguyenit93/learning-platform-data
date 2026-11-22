@@ -1,0 +1,3385 @@
+menu:
+- slug: mental-model
+  title: Mô hình tư duy
+  childs:
+  - slug: mental-model-001
+    title: SonarQube giải quyết vấn đề gì trong kiểm tra chất lượng mã liên tục?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-002
+    title: Từ cảnh báo cục bộ đến kết quả phân tích được theo dõi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-003
+    title: 'Các thành phần chính: mã nguồn, scanner, analyzer, máy chủ và người rà soát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-004
+    title: Luồng phản hồi từ thay đổi mã đến sửa lỗi và phân tích lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-005
+    title: Độ tin cậy, bảo mật và khả năng bảo trì trong mô hình chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-006
+    title: Phân biệt phân tích tĩnh, kiểm thử tự động và rà soát mã thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-007
+    title: Phân biệt quy tắc, vấn đề phát hiện, chỉ số và điều kiện chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-008
+    title: Clean as You Code và cách kiểm soát chất lượng phần mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-009
+    title: Giới hạn của công cụ và ý nghĩa thực tế của kết quả đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mental-model-010
+    title: Bản đồ thuật ngữ và lộ trình từ lần quét đầu tiên đến CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-and-versions
+  title: Sản phẩm và phiên bản
+  childs:
+  - slug: product-and-versions-001
+    title: Phân biệt SonarQube Server, Community Build và SonarQube Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-002
+    title: Vai trò của SonarQube for IDE trong hệ sinh thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-003
+    title: Xác định đúng sản phẩm, phiên bản và tài liệu tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-004
+    title: Bản phát hành thông thường, bản hỗ trợ dài hạn và chính sách nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-005
+    title: Phạm vi ngôn ngữ, bộ phân tích và khả năng tùy theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-006
+    title: Kiểm tra điều kiện sử dụng phân tích nhánh, pull request và báo cáo nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-007
+    title: Phân biệt tính năng sẵn có, tính năng theo edition và tiện ích bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-008
+    title: Đối chiếu khả năng phân tích mã, bí mật và phụ thuộc theo sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-009
+    title: Kiểm tra tương thích giữa máy chủ, scanner, JDK và công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-versions-010
+    title: Lập cấu hình thực hành có phiên bản cố định và có thể tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-architecture
+  title: Kiến trúc phân tích
+  childs:
+  - slug: analysis-architecture-001
+    title: Scanner chạy ở đâu và đọc những dữ liệu nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-002
+    title: Analyzer phân tích mã và tạo phát hiện như thế nào ở mức khái niệm?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-003
+    title: Biên dịch, chạy kiểm thử, sinh báo cáo và quét mã là các công việc khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-004
+    title: Gửi báo cáo phân tích và xử lý bất đồng bộ ở phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-005
+    title: Vai trò của Compute Engine, cơ sở dữ liệu và chỉ mục tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-006
+    title: Phân biệt scanner thành công với máy chủ xử lý báo cáo thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-007
+    title: Thời điểm tính chỉ số, cập nhật vấn đề và đánh giá Quality Gate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-008
+    title: Quan hệ giữa một lần phân tích, nhánh và ảnh chụp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-009
+    title: Dữ liệu SCM và thông tin ngữ cảnh phục vụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-architecture-010
+    title: Ranh giới tin cậy giữa máy phát triển, CI và máy chủ SonarQube
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Chọn môi trường cục bộ, container hoặc máy chủ dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-002
+    title: Đọc yêu cầu hệ điều hành, tài nguyên và JDK theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-003
+    title: Chạy môi trường thử nghiệm bằng Docker và cố định phiên bản image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-004
+    title: Cổng truy cập, hostname và kết nối từ máy quét đến máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-005
+    title: Cơ sở dữ liệu thử nghiệm và cơ sở dữ liệu phù hợp môi trường lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-006
+    title: Lưu bền dữ liệu, cấu hình và các thư mục cần quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-007
+    title: Đăng nhập lần đầu, thiết lập tài khoản quản trị và cấu hình cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-008
+    title: Biến môi trường, tệp cấu hình và cách cung cấp bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-009
+    title: Kiểm tra trạng thái khởi động, nhật ký và kết nối cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-010
+    title: Tách môi trường học tập khỏi môi trường phục vụ nhiều dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-011
+    title: Khởi động lại môi trường và xác minh dữ liệu vẫn được bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-project
+  title: Dự án đầu tiên
+  childs:
+  - slug: first-project-001
+    title: Tạo dự án thủ công hoặc nhập từ nền tảng quản lý mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-002
+    title: Project key, tên hiển thị và định danh ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-003
+    title: Chọn quyền truy cập và phạm vi hiển thị dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-004
+    title: Chọn scanner phù hợp với hệ thống build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-005
+    title: Cấp token đúng phạm vi để thực hiện phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-006
+    title: Chuẩn bị một dự án Java nhỏ có mã nguồn và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-007
+    title: Thực hiện lần phân tích đầu tiên và đọc nhật ký scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-008
+    title: Theo dõi tác vụ nền đến khi kết quả sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-009
+    title: Đọc Overview, Issues, Measures, Code và lịch sử phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-010
+    title: Sửa một vấn đề mẫu rồi xác minh bằng lần phân tích tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-project-011
+    title: Ghi nhận môi trường và đầu vào để người khác tái hiện được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-scope
+  title: Phạm vi phân tích
+  childs:
+  - slug: analysis-scope-001
+    title: Thư mục gốc dự án và cách diễn giải đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-002
+    title: Phân biệt mã sản phẩm, mã kiểm thử và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-003
+    title: Giá trị suy ra từ công cụ build và cấu hình ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-004
+    title: sonar.sources, sonar.tests và giới hạn cách khai báo phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-005
+    title: Bao gồm hoặc loại trừ tệp bằng mẫu đường dẫn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-006
+    title: Phân biệt loại trừ khỏi phân tích, coverage và phát hiện trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-007
+    title: Mã sinh tự động, thư viện bên thứ ba và các tệp không thuộc quyền sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-008
+    title: Thư mục build, tệp bị SCM bỏ qua và nội dung cần kiểm tra lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-009
+    title: Mã nhiều ngôn ngữ và phạm vi của từng bộ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-010
+    title: Tránh một tệp bị phân loại đồng thời là nguồn và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-011
+    title: Thứ tự ưu tiên giữa thiết lập máy chủ, dự án, build và tham số chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-012
+    title: Kiểm chứng danh sách tệp được quét bằng nhật ký và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-bytecode
+  title: Java và bytecode
+  childs:
+  - slug: java-and-bytecode-001
+    title: Vì sao phân tích Java cần thông tin ngữ nghĩa và mã đã biên dịch?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-002
+    title: Mã nguồn, tệp class và thư viện phụ thuộc trong quá trình phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-003
+    title: Chuẩn bị bytecode đúng với phiên bản mã đang quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-004
+    title: sonar.java.binaries, thư viện và các tình huống cần cấu hình tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-005
+    title: Phân biệt JDK biên dịch ứng dụng với JRE chạy scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-006
+    title: Tương thích cú pháp Java, mức source và năng lực analyzer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-007
+    title: JRE tự cung cấp của scanner và các yêu cầu cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-008
+    title: Annotation processor, mã sinh và ảnh hưởng đến thông tin phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-009
+    title: Quét mã có Lombok hoặc framework cần hiểu mô hình biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-010
+    title: Đọc cảnh báo thiếu lớp, thiếu thư viện hoặc thiếu thông tin kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-bytecode-011
+    title: Giới hạn phân tích khi chỉ quét mã nguồn mà không chuẩn bị đầy đủ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-integration
+  title: Tích hợp Gradle
+  childs:
+  - slug: gradle-integration-001
+    title: Vai trò plugin org.sonarqube trong một dự án Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-002
+    title: Chọn phiên bản plugin phù hợp máy chủ, Gradle và môi trường Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-003
+    title: Khai báo plugin và cấu hình khối sonar trong Groovy hoặc Kotlin DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-004
+    title: Project key, địa chỉ máy chủ và thông tin dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-005
+    title: Cung cấp SONAR_TOKEN qua môi trường hoặc kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-006
+    title: Quan hệ giữa compile, test, báo cáo coverage và tác vụ sonar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-007
+    title: Thứ tự tác vụ khác phụ thuộc tác vụ và cách bảo đảm đầu vào đã được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-008
+    title: Đọc thuộc tính được suy ra từ mô hình Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-009
+    title: Đường dẫn tương đối, thư mục làm việc và môi trường CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-010
+    title: Cấu hình dùng chung và giá trị riêng cho từng subproject
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-011
+    title: Bộ nhớ scanner, cache và các tham số chạy theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-012
+    title: Đọc kết quả Gradle cùng tác vụ nền trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-013
+    title: Kiểm tra bản dựng thất bại, scanner thất bại và gate thất bại riêng biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-and-scanner-cli
+  title: Maven và Scanner CLI
+  childs:
+  - slug: maven-and-scanner-cli-001
+    title: Khi nào chọn scanner tích hợp build và khi nào dùng Scanner CLI?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-scanner-cli-002
+    title: SonarScanner for Maven và dữ liệu suy ra từ mô hình dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-scanner-cli-003
+    title: Thứ tự chuẩn bị package, kiểm thử và báo cáo trước phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-scanner-cli-004
+    title: Scanner CLI và tệp sonar-project.properties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-scanner-cli-005
+    title: Cấu hình tường minh mã nguồn, bytecode và thư viện khi không dùng scanner theo build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-scanner-cli-006
+    title: Phân biệt cấu hình của Maven, Gradle và CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-scanner-cli-007
+    title: Tham số dòng lệnh, biến môi trường và nguy cơ lộ token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-scanner-cli-008
+    title: Giữ hợp đồng phân tích nhất quán khi đổi công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-projects
+  title: Dự án nhiều mô-đun
+  childs:
+  - slug: multi-module-projects-001
+    title: Chọn ranh giới project SonarQube theo sản phẩm hoặc kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-002
+    title: Một lần phân tích toàn dự án và nhiều dự án phân tích độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-003
+    title: Quan hệ giữa root project, subproject và phạm vi mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-004
+    title: Cấu hình dùng chung và ngoại lệ cho từng mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-005
+    title: Loại bỏ mô-đun không thuộc phạm vi bằng cơ chế scanner hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-006
+    title: Bytecode và phụ thuộc giữa các mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-007
+    title: Kiểm thử ở mô-đun riêng và ánh xạ coverage về mô-đun chứa mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-008
+    title: Đường dẫn báo cáo tổng hợp và phạm vi nguồn tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-009
+    title: Kho mã đơn (monorepo), định danh dự án và giới hạn tích hợp theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-010
+    title: Tránh quét trùng, thiếu tệp hoặc gắn kết quả vào sai dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-011
+    title: Đánh giá thay đổi cấu trúc mô-đun mà vẫn giữ lịch sử có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-coverage
+  title: Kiểm thử và coverage
+  childs:
+  - slug: testing-and-coverage-001
+    title: SonarQube tiếp nhận báo cáo thay vì tự chạy kiểm thử hoặc đo coverage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-002
+    title: Phân biệt kết quả chạy kiểm thử với độ bao phủ mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-003
+    title: Dùng JaCoCo tạo báo cáo XML cho dự án Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-004
+    title: Cấu hình sonar.coverage.jacoco.xmlReportPaths và kiểm tra tệp đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-005
+    title: Bảo đảm báo cáo được sinh trước khi scanner đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-006
+    title: Độ bao phủ dòng, nhánh điều kiện và ý nghĩa kết quả tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-007
+    title: Coverage trên mã mới và trên toàn bộ mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-008
+    title: Tập kiểm thử đơn vị, tích hợp và chiến lược tổng hợp báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-009
+    title: Loại trừ coverage có lý do và ảnh hưởng tới mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-010
+    title: Phân biệt chưa nhập được báo cáo với báo cáo hợp lệ có coverage thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-011
+    title: Chẩn đoán đường dẫn sai, báo cáo rỗng, mã không khớp hoặc thiếu class
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-coverage-012
+    title: Giới hạn của phần trăm coverage đối với chất lượng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-metrics
+  title: Chỉ số chất lượng
+  childs:
+  - slug: quality-metrics-001
+    title: Đọc Measures theo toàn bộ mã và phần mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-002
+    title: Dòng mã, tệp, hàm và các đơn vị đếm cần hiểu đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-003
+    title: Độ phức tạp chu trình và độ phức tạp nhận thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-004
+    title: Trùng lặp theo dòng hoặc khối và giới hạn suy luận từ chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-005
+    title: Chỉ số độ tin cậy, bảo mật và khả năng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-006
+    title: Xếp hạng chất lượng và cách tra định nghĩa theo chế độ đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-007
+    title: Ước lượng công sửa chữa và nợ kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-008
+    title: Tỷ lệ đã rà soát Security Hotspot và ý nghĩa bảo đảm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-009
+    title: Biến động chỉ số do thay mã, thay phạm vi hoặc thay analyzer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-010
+    title: So sánh dự án khi có cùng chính sách và điều kiện đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-011
+    title: Tránh đồng nhất điểm số cao với thiết kế tốt hoặc không còn lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rules-and-modes
+  title: Quy tắc và chế độ
+  childs:
+  - slug: rules-and-modes-001
+    title: Rule key, mô tả vấn đề, ví dụ và hướng dẫn khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-002
+    title: Đọc điều kiện phát hiện và phạm vi áp dụng của một quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-003
+    title: Standard Experience và cách phân loại Bug, Vulnerability, Code Smell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-004
+    title: MQR Mode và tác động lên Security, Reliability, Maintainability
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-005
+    title: Mức độ nghiêm trọng theo chế độ và tác động lên xếp hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-006
+    title: Một phát hiện có thể ảnh hưởng nhiều khía cạnh chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-007
+    title: Thuộc tính mã sạch và cách dùng làm thông tin hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-008
+    title: Quy tắc đang hoạt động, quy tắc mới và quy tắc không còn được khuyến nghị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-009
+    title: Tham số quy tắc và điều chỉnh theo bối cảnh dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-010
+    title: Tra tài liệu phù hợp thay vì suy diễn từ nhãn mức độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-modes-011
+    title: Giới hạn phát hiện, cảnh báo nhầm và lỗi bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-profile
+  title: Quality Profile
+  childs:
+  - slug: quality-profile-001
+    title: Quality Profile xác định tập quy tắc cho một ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-002
+    title: Phân biệt profile tích hợp sẵn, profile mặc định và profile tự tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-003
+    title: Profile Sonar way và vai trò điểm xuất phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-004
+    title: Gắn profile với dự án hoặc sử dụng profile mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-005
+    title: Sao chép profile và kế thừa profile có tác động khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-006
+    title: Bật, tắt và điều chỉnh tham số quy tắc có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-007
+    title: Phân quyền quản lý profile và trách nhiệm thay đổi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-008
+    title: So sánh profile để xác định khác biệt quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-009
+    title: Theo dõi thay đổi từ analyzer hoặc profile tích hợp sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-010
+    title: Xuất, khôi phục và quản lý cấu hình theo khả năng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-profile-011
+    title: Rà soát tác động lên các dự án trước khi áp dụng diện rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gate
+  title: Quality Gate
+  childs:
+  - slug: quality-gate-001
+    title: Quality Gate đánh giá các điều kiện trên kết quả phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-002
+    title: Phân biệt Quality Gate với Quality Profile và mức độ một vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-003
+    title: Chỉ số, toán tử so sánh và ngưỡng của một điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-004
+    title: Điều kiện trên mã mới và trên toàn bộ mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-005
+    title: Gate tích hợp sẵn, gate tùy chỉnh và gate mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-006
+    title: Gắn gate phù hợp với từng loại dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-007
+    title: Đọc lý do Passed, Failed hoặc trạng thái chưa có kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-008
+    title: Điều kiện coverage, trùng lặp, vấn đề mới và rà soát hotspot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-009
+    title: Các ngoại lệ khi lượng mã mới nhỏ và cách kiểm tra thiết lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-010
+    title: Giới hạn điều kiện hoặc quy tắc ưu tiên tùy edition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-011
+    title: Đánh giá tác động của thay gate lên quy trình phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gate-012
+    title: Gate đạt là một tín hiệu trong quyết định chất lượng tổng thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: new-code
+  title: New Code
+  childs:
+  - slug: new-code-001
+    title: New Code khác Overall Code và mã cũ như thế nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-002
+    title: Định nghĩa mốc so sánh để xác định phần mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-003
+    title: Previous version và cách quản lý phiên bản dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-004
+    title: Number of days và tác động của cửa sổ thời gian trượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-005
+    title: Reference branch và yêu cầu dữ liệu SCM phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-006
+    title: Specific analysis và phạm vi cấu hình theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-007
+    title: Thiết lập ở cấp toàn hệ thống, dự án hoặc nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-008
+    title: Ưu tiên cấu hình và tác động khi thay mốc chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-009
+    title: New Code của pull request so với nhánh đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-010
+    title: Lần phân tích đầu tiên và cách kiểm chứng mốc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-011
+    title: Ngày thay đổi, lịch sử Git và các trường hợp mã bị nhận diện khác dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-code-012
+    title: Tránh đổi baseline để che vấn đề mà không cải thiện mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: issue-lifecycle
+  title: Vòng đời vấn đề
+  childs:
+  - slug: issue-lifecycle-001
+    title: Đọc một vấn đề theo quy tắc, vị trí và ngữ cảnh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-002
+    title: Vị trí chính, vị trí bổ sung và luồng dữ liệu dẫn đến phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-003
+    title: Phân loại ưu tiên dựa trên tác động và khả năng xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-004
+    title: Trạng thái Open, Accepted, False positive và Fixed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-005
+    title: Sửa mã rồi phân tích lại để xác minh vấn đề đã được khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-006
+    title: Phân biệt chấp nhận một vấn đề có thật với xác định cảnh báo nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-007
+    title: Phân công, bình luận và ghi lại lý do quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-008
+    title: Tìm kiếm, lọc và xử lý nhiều vấn đề có cùng nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-009
+    title: Nhận diện vấn đề giữa các lần phân tích khi tệp hoặc dòng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-010
+    title: Sandbox cho vấn đề phát sinh từ cập nhật công cụ khi phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-011
+    title: Ảnh hưởng của trạng thái vấn đề lên chỉ số và Quality Gate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-lifecycle-012
+    title: Giữ bằng chứng rà soát thay vì chỉ làm giảm số lượng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-hotspots
+  title: Security Hotspot
+  childs:
+  - slug: security-hotspots-001
+    title: Security Hotspot yêu cầu rà soát khác vấn đề bảo mật đã được phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-002
+    title: Đọc ngữ cảnh sử dụng trước khi quyết định có cần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-003
+    title: Nguồn dữ liệu, điểm sử dụng nhạy cảm và đường truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-004
+    title: Ưu tiên rà soát theo rủi ro và mức độ tiếp xúc thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-005
+    title: Thực hiện quy trình đánh giá với bằng chứng từ mã và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-006
+    title: Trạng thái cần rà soát, chờ xử lý, đã sửa hoặc an toàn theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-007
+    title: Phân quyền rà soát và ghi lại lập luận của người đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-008
+    title: Phân tích lại sau khi thay đổi biện pháp bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-009
+    title: Ảnh hưởng của tỷ lệ rà soát lên điều kiện chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hotspots-010
+    title: Giới hạn của kết luận an toàn và nhu cầu kiểm chứng bảo mật bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: developer-workflow
+  title: Quy trình của lập trình viên
+  childs:
+  - slug: developer-workflow-001
+    title: Đưa việc đọc và sửa cảnh báo vào công việc phát triển hằng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-002
+    title: Cài SonarQube for IDE và chọn đúng sản phẩm được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-003
+    title: Phân biệt phân tích độc lập trong IDE với Connected Mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-004
+    title: Kết nối dự án IDE với dự án trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-005
+    title: Đồng bộ chính sách và hiểu giới hạn khác biệt kết quả IDE–máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-006
+    title: Mở vấn đề trong IDE và kiểm tra đúng phiên bản mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-007
+    title: Chạy kiểm thử sau khi sửa để bảo toàn hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-008
+    title: Nhận phản hồi trước commit và xác minh lại bằng CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-009
+    title: Tránh sửa máy móc theo gợi ý hoặc đổi thiết kế chỉ vì một chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-workflow-010
+    title: Ghi nhận quyết định khi cảnh báo cần trao đổi giữa nhiều người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scm-branches-and-pull-requests
+  title: SCM, nhánh và pull request
+  childs:
+  - slug: scm-branches-and-pull-requests-001
+    title: Kiểm tra khả năng phân tích nhánh và pull request theo sản phẩm, edition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-002
+    title: Main branch và cách ánh xạ với nhánh chính trong kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-003
+    title: Phân biệt phân tích nhánh với phân tích pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-004
+    title: Thông tin commit, nhánh nguồn và nhánh đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-005
+    title: Lịch sử Git, shallow clone và dữ liệu blame
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-006
+    title: Chuẩn bị nhánh đích hoặc nhánh tham chiếu trên máy chạy CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-007
+    title: Tự nhận diện thông tin CI và trường hợp phải truyền tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-008
+    title: Phạm vi vấn đề và điều kiện Quality Gate của pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-009
+    title: Hiển thị kết quả phân tích trong giao diện pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-010
+    title: Quyền truy cập kho mã và cấu hình liên kết nền tảng DevOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-011
+    title: Theo dõi trạng thái vấn đề sau khi merge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scm-branches-and-pull-requests-012
+    title: Xử lý nhánh tạm, đổi tên nhánh và dữ liệu phân tích không còn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: ci-cd-integration-001
+    title: Thiết kế pipeline checkout, build, test, report, scan và đánh giá gate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-002
+    title: Chuẩn bị JDK, công cụ build và phiên bản scanner trên CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-003
+    title: Cung cấp token bằng kho bí mật thay vì tệp mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-004
+    title: Kết nối mạng, DNS và chứng chỉ giữa runner với máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-005
+    title: 'GitHub Actions: xác định sự kiện chạy và quyền tối thiểu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-006
+    title: 'Jenkins: cấu hình môi trường scanner và liên kết kết quả phân tích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-007
+    title: Đối chiếu cách tích hợp GitLab CI hoặc Azure Pipelines khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-008
+    title: Phân biệt bí mật ở môi trường tin cậy với pull request từ fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-009
+    title: Lưu và dùng đúng báo cáo kiểm thử hoặc coverage giữa các job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-010
+    title: Bộ nhớ đệm phụ thuộc và kiểm tra dữ liệu phân tích còn mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-011
+    title: Tránh phân tích trùng hoặc ghi kết quả từ các commit không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-012
+    title: Lưu liên kết, định danh lần phân tích và thông tin phục vụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-quality-gate
+  title: Quality Gate trong pipeline
+  childs:
+  - slug: pipeline-quality-gate-001
+    title: Vì sao scanner trả thành công nhưng pipeline chưa biết kết quả gate?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-002
+    title: Chờ xử lý báo cáo bằng sonar.qualitygate.wait khi scanner hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-003
+    title: Thời hạn chờ và phân biệt gate không đạt với chưa nhận được kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-004
+    title: Liên kết tác vụ nền với đúng lần phân tích vừa gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-005
+    title: Đọc report-task.txt và các định danh phục vụ truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-006
+    title: Chờ theo webhook hoặc cơ chế tích hợp CI phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-007
+    title: Chính sách dừng pipeline, ngăn merge hoặc chặn phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-008
+    title: Cấu hình kiểm tra bắt buộc trên nền tảng quản lý mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-009
+    title: Xử lý lỗi hạ tầng riêng với quyết định chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-010
+    title: Kiểm thử một thay đổi chủ động làm gate thất bại rồi khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-quality-gate-011
+    title: Không dùng trạng thái cũ của dự án để quyết định cho commit mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-tools
+  title: Công cụ bên ngoài
+  childs:
+  - slug: external-tools-001
+    title: Phân biệt analyzer của SonarQube với kết quả nhập từ công cụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-002
+    title: Vai trò bổ sung của Checkstyle, PMD và SpotBugs trong dự án Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-003
+    title: Sinh báo cáo bên ngoài trước khi scanner nhập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-004
+    title: Kiểm tra định dạng, phiên bản và đường dẫn báo cáo được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-005
+    title: Định dạng vấn đề tổng quát và báo cáo SARIF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-006
+    title: Ánh xạ quy tắc, mức tác động, tệp và vị trí mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-007
+    title: Quy tắc bên ngoài được quản lý ở đâu thay vì trong Quality Profile?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-008
+    title: Ảnh hưởng của kết quả nhập lên chỉ số và gate theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-009
+    title: Trạng thái trong SonarQube không tự đồng bộ về công cụ nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-tools-010
+    title: Giảm phát hiện trùng và giữ rõ chủ sở hữu của từng chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: false-positives-and-exceptions
+  title: Ngoại lệ và cảnh báo nhầm
+  childs:
+  - slug: false-positives-and-exceptions-001
+    title: Thu thập bằng chứng trước khi kết luận một cảnh báo là nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-002
+    title: Đánh giá ngoại lệ theo dự án, quy tắc, tệp hoặc vị trí cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-003
+    title: Phân biệt sửa mã, đổi profile, đổi phạm vi và đổi trạng thái vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-004
+    title: '@SuppressWarnings và phạm vi hỗ trợ của bộ phân tích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-005
+    title: NOSONAR và rủi ro che cả cảnh báo phát sinh về sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-006
+    title: Điều kiện bỏ qua vấn đề và mẫu đường dẫn cần kiểm tra kỹ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-007
+    title: Loại trừ mã sinh hoặc mã không quản lý mà vẫn giữ minh bạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-008
+    title: Ghi lý do, người chịu trách nhiệm và thời điểm rà soát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-009
+    title: Phân tích tỷ lệ ngoại lệ để phát hiện chính sách chưa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: false-positives-and-exceptions-010
+    title: Kiểm tra gate đạt nhờ cải thiện mã hay do thay đổi cách đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: permissions-and-secrets
+  title: Phân quyền và bí mật
+  childs:
+  - slug: permissions-and-secrets-001
+    title: Quyền toàn hệ thống, quyền dự án và nguyên tắc tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-002
+    title: Nhóm người dùng, mẫu phân quyền và dự án công khai hoặc riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-003
+    title: Tách quyền xem mã, thực hiện phân tích và quản trị chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-004
+    title: Phân biệt token người dùng với các loại token phân tích được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-005
+    title: Phạm vi dự án, thời hạn, thu hồi và luân chuyển token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-006
+    title: Tài khoản dịch vụ và quyền dùng cho tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-007
+    title: Cơ chế đăng nhập tập trung theo sản phẩm hoặc edition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-008
+    title: Bảo vệ kết nối HTTPS và cấu hình chứng chỉ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-009
+    title: Kiểm soát bí mật trong log, tham số dòng lệnh và cấu hình build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-010
+    title: Quyền truy cập mã nguồn, báo cáo và dữ liệu phân tích nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-secrets-011
+    title: Rà soát quyền khi người dùng hoặc dự án thay đổi chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-api-and-webhooks
+  title: Web API và webhook
+  childs:
+  - slug: web-api-and-webhooks-001
+    title: Tra Web API ngay trên phiên bản máy chủ đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-002
+    title: Xác thực và phân quyền cho từng thao tác API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-003
+    title: Đọc dự án, chỉ số, vấn đề và trạng thái phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-004
+    title: Phân trang, lọc dữ liệu và tránh bỏ sót kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-005
+    title: Phân biệt metric key theo chế độ hoặc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-006
+    title: Tự động hóa cấu hình có kiểm tra trước và đọc lại sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-007
+    title: Endpoint bị thay thế và lộ trình Web API V2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-008
+    title: Webhook khi xử lý phân tích hoàn tất và dữ liệu cần đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-009
+    title: Xác minh chữ ký HMAC của payload webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-010
+    title: Xử lý gửi lại, trùng sự kiện và tính lũy đẳng ở bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-and-webhooks-011
+    title: Theo dõi lỗi giao nhận mà không suy diễn trạng thái gate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-operations
+  title: Vận hành máy chủ
+  childs:
+  - slug: server-operations-001
+    title: Trách nhiệm của quản trị hệ thống và quản trị từng dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-002
+    title: Theo dõi trạng thái web, Compute Engine, tìm kiếm và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-003
+    title: Nhật ký từng thành phần và cách liên kết với một tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-004
+    title: Hàng đợi báo cáo, thời gian xử lý và phát hiện tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-005
+    title: Theo dõi CPU, bộ nhớ, dung lượng đĩa và kết nối cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-006
+    title: Reverse proxy, URL công khai và cấu hình HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-007
+    title: Lưu giữ lịch sử, dọn dữ liệu và tác động tới khả năng tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-008
+    title: Quản lý extension hoặc plugin tương thích với phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-009
+    title: Theo dõi giấy phép và giới hạn sử dụng khi edition yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-010
+    title: Tách thay đổi cấu hình vận hành khỏi thay đổi chính sách chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-operations-011
+    title: Thiết lập cảnh báo sự cố và quy trình khôi phục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-upgrade
+  title: Sao lưu và nâng cấp
+  childs:
+  - slug: backup-and-upgrade-001
+    title: Xác định dữ liệu gốc cần sao lưu và thành phần có thể dựng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-002
+    title: Sao lưu cơ sở dữ liệu bằng cơ chế được nhà cung cấp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-003
+    title: Quản lý bản sao cấu hình, plugin và các bí mật cần khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-004
+    title: Thử khôi phục vào môi trường riêng và kiểm tra tính đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-005
+    title: Chỉ mục tìm kiếm và quy trình dựng lại theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-006
+    title: Đọc lộ trình cập nhật thay vì bỏ qua phiên bản trung gian bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-007
+    title: Kiểm tra tương thích JDK, cơ sở dữ liệu, scanner và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-008
+    title: Sao lưu, cửa sổ bảo trì và điều kiện quay về trước nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-009
+    title: Thay đổi schema dữ liệu và giới hạn hạ phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-010
+    title: Rà soát quy tắc, profile, chỉ số và gate sau cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrade-011
+    title: Kiểm chứng bằng dự án mẫu trước khi tiếp tục phân tích diện rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-performance
+  title: Hiệu năng phân tích
+  childs:
+  - slug: analysis-performance-001
+    title: Tách thời gian build, kiểm thử, scanner và xử lý phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-002
+    title: Đo quy mô mã, số dự án và tần suất phân tích thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-003
+    title: Bộ nhớ của scanner khác bộ nhớ ứng dụng SonarQube
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-004
+    title: Cache phân tích và cơ chế tăng dần theo ngôn ngữ, phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-005
+    title: Tải lại dữ liệu, mạng và chi phí nhập báo cáo lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-006
+    title: Phân bổ tài nguyên CI theo kích thước từng dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-007
+    title: Tối ưu phạm vi đúng hợp đồng thay vì loại bỏ mã chỉ để quét nhanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-008
+    title: Điều phối nhiều lần phân tích và theo dõi nghẽn Compute Engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-009
+    title: Mở rộng triển khai theo khả năng edition và tài liệu kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-010
+    title: Đánh giá tối ưu bằng thời gian phản hồi và độ đầy đủ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không kết nối được máy chủ: địa chỉ, mạng, proxy và chứng chỉ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Token không hợp lệ, hết hạn hoặc không đủ quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Không tìm thấy dự án hoặc project key không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Scanner không chạy do JDK, Gradle hoặc plugin không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Thiếu bytecode, thư viện hoặc thông tin kiểu của mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Không có tệp được quét hoặc một tệp bị lập chỉ mục hai lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Không nhập được coverage hoặc coverage không khớp kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Kết quả mã mới sai do mốc so sánh hoặc lịch sử SCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Phân tích nhánh hoặc pull request không được hỗ trợ trong môi trường đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Tác vụ nền chờ lâu, thất bại hoặc hết bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Gate không đạt, chưa được tính hoặc pipeline không nhận được kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Kết quả IDE, máy cục bộ và CI khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Báo cáo ngoài không hiển thị hoặc ánh xạ sai vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Phát hiện tăng đột ngột sau đổi profile, chế độ hoặc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Tạo bộ thông tin tái hiện đủ dùng mà không làm lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-adoption
+  title: Áp dụng trong nhóm
+  childs:
+  - slug: team-adoption-001
+    title: Thống nhất mục tiêu chất lượng và phạm vi trách nhiệm của SonarQube
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-002
+    title: Triển khai thử trên một dự án đại diện trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-003
+    title: Thiết lập mốc ban đầu cho dự án có nhiều nợ kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-004
+    title: Ưu tiên giữ mã mới tốt trong khi lập kế hoạch cải thiện mã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-005
+    title: Quy trình thảo luận, phê duyệt và rà soát ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-006
+    title: Chọn gate theo rủi ro và đặc điểm dự án có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-007
+    title: Quản lý thay đổi profile hoặc gate như một thay đổi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-008
+    title: Phân công xử lý cảnh báo giữa người phát triển, bảo mật và quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-009
+    title: Theo dõi thời gian phản hồi, vấn đề tái xuất hiện và hiệu quả khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-010
+    title: Tránh dùng điểm số hoặc số cảnh báo để xếp hạng cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-adoption-011
+    title: Báo cáo tổng hợp qua application hoặc portfolio khi edition hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Dựng môi trường SonarQube có phiên bản cố định và dự án Java mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Tích hợp Gradle rồi theo dõi một lần phân tích đến kết quả cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Sinh coverage JaCoCo và kiểm chứng các trường hợp nhập báo cáo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Tạo profile cho dự án mẫu và quan sát tác động khi đổi quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Thiết kế gate có điều kiện rõ ràng rồi thử thay đổi đạt và không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Thiết lập New Code và đối chiếu với các dòng đã sửa trong Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Rà soát một cảnh báo nhầm và một Security Hotspot có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Phân tích dự án nhiều mô-đun có báo cáo kiểm thử tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Tích hợp CI và chứng minh gate thất bại thực sự chặn bước tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Thử phân tích pull request trên môi trường có tính năng tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Nhập báo cáo bên ngoài và kiểm tra chủ sở hữu quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Đọc kết quả bằng API hoặc xác minh webhook trên hệ thống thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-013
+    title: Thực hiện sao lưu–khôi phục và phân tích lại một dự án mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-assessment
+  title: Đánh giá cấu hình
+  childs:
+  - slug: configuration-assessment-001
+    title: Xác minh đúng sản phẩm, phiên bản và các tính năng được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-002
+    title: Kiểm tra phạm vi nguồn, kiểm thử, bytecode và báo cáo đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-003
+    title: Đối chiếu profile, gate và định nghĩa mã mới đang có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-004
+    title: Kiểm tra commit được quét khớp với commit được quyết định merge hoặc phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-005
+    title: Đánh giá quyền, token và khả năng lộ dữ liệu qua pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-006
+    title: Phân biệt cải thiện mã với thay đổi làm đẹp kết quả đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-007
+    title: Kiểm tra khả năng xử lý lỗi hạ tầng và theo dõi tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-008
+    title: Đánh giá vận hành, khôi phục và chi phí duy trì chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-assessment-009
+    title: Tự đánh giá bằng lần chạy tái hiện được và bằng chứng trước–sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

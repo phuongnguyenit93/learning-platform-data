@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-phan-quyen
+  title: Tư duy phân quyền
+  purpose: Xác định ai được làm gì trên tài nguyên nào và vì sao cần kiểm soát truy cập.
+  objectives:
+  - Phân biệt xác thực danh tính với phân quyền truy cập.
+  - Lập bảng chủ thể, hành động, tài nguyên và điều kiện cho phép.
+  - Áp dụng nguyên tắc đặc quyền tối thiểu và từ chối mặc định.
+- id: quyen-vai-tro-va-chinh-sach
+  title: Quyền, vai trò và chính sách
+  purpose: Biểu diễn quyền nhất quán để chuyển yêu cầu nghiệp vụ thành quy tắc.
+  objectives:
+  - Liên hệ Authentication với GrantedAuthority.
+  - Phân biệt hasRole, hasAuthority và tiền tố ROLE_.
+  - So sánh phân quyền theo vai trò, theo thuộc tính và kế thừa vai trò.
+- id: phan-quyen-yeu-cau-web
+  title: Phân quyền yêu cầu web
+  purpose: Bảo vệ các điểm truy cập HTTP bằng quy tắc rõ thứ tự và phạm vi.
+  objectives:
+  - Cấu hình authorizeHttpRequests theo đường dẫn và phương thức HTTP.
+  - Phân biệt chọn SecurityFilterChain với chọn quy tắc trong chuỗi.
+  - Kiểm tra quy tắc dự phòng và phản hồi khi chưa xác thực hoặc thiếu quyền.
+- id: phan-quyen-phuong-thuc
+  title: Phân quyền phương thức
+  purpose: Đặt kiểm soát truy cập tại tầng dịch vụ để bảo vệ các lối gọi nghiệp vụ.
+  objectives:
+  - Bật @EnableMethodSecurity và dùng @PreAuthorize, @PostAuthorize.
+  - Áp dụng biểu thức SpEL cho tham số, kết quả và lọc tập dữ liệu.
+  - Nhận diện giới hạn proxy AOP khi gọi nội bộ trong cùng đối tượng.
+- id: phan-quyen-doi-tuong
+  title: Phân quyền đối tượng
+  purpose: Kiểm tra quyền trên từng bản ghi thay vì chỉ dựa vào vai trò chung.
+  objectives:
+  - Kiểm tra chủ sở hữu và phạm vi tổ chức của đối tượng được truy cập.
+  - Sử dụng hasPermission với PermissionEvaluator khi cần kiểm tra quyền đối tượng.
+  - Xác định khi nào cần danh sách kiểm soát truy cập (ACL).
+- id: mo-rong-quyet-dinh-truy-cap
+  title: Mở rộng quyết định truy cập
+  purpose: Đóng gói và tái sử dụng chính sách khi quy tắc có nhiều điều kiện nghiệp vụ.
+  objectives:
+  - Giải thích đầu vào và kết quả của AuthorizationManager.
+  - Kết hợp các điều kiện quyền và thuộc tính tài nguyên.
+  - Tách chính sách thành thành phần có thể kiểm thử độc lập.
+- id: phan-quyen-reactive
+  title: Phân quyền Reactive
+  purpose: Áp dụng cùng mục tiêu kiểm soát truy cập trong luồng xử lý không chặn.
+  objectives:
+  - Cấu hình authorizeExchange cho yêu cầu WebFlux.
+  - Nhận diện ReactiveAuthorizationManager và ngữ cảnh bảo mật trong Reactor.
+  - Áp dụng bảo vệ phương thức Reactive mà không chặn luồng xử lý.
+- id: kiem-thu-va-ra-soat-quyen
+  title: Kiểm thử và rà soát quyền
+  purpose: Chứng minh chính sách cho phép đúng người và chặn được các đường truy cập sai.
+  objectives:
+  - Kiểm thử yêu cầu và phương thức với người dùng, vai trò và quyền giả lập.
+  - Bao phủ trường hợp thiếu quyền, khác chủ sở hữu và khác tổ chức.
+  - Rà soát thứ tự quy tắc, đường dẫn bỏ sót và nguyên nhân từ chối.

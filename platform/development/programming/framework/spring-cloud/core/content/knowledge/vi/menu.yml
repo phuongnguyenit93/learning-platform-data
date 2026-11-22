@@ -1,0 +1,353 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Cloud Core là gì trong phạm vi Spring Cloud Commons và Context
+  - Phân biệt Spring Framework Core, Spring Boot và Spring Cloud
+  - Những bài toán nền tảng của ứng dụng phân tán
+  - Vai trò Spring Cloud Context đối với ApplicationContext
+  - Vai trò Spring Cloud Commons đối với các thành phần dùng chung
+  - Mối quan hệ giữa cấu hình, khám phá dịch vụ và gọi dịch vụ
+  - Trừu tượng dùng chung và phần triển khai theo nhà cung cấp
+  - Trường hợp cần Spring Cloud và chi phí bổ sung
+  - Kiến thức tiên quyết và trình tự học của module
+- level1: Nền tảng phân tán
+  level2:
+  - Dịch vụ, instance và ranh giới triển khai độc lập
+  - Địa chỉ động và nhu cầu tìm instance theo tên dịch vụ
+  - Cấu hình bên ngoài và khác biệt giữa các môi trường
+  - Lỗi một phần, độ trễ mạng và tài nguyên phụ thuộc
+  - Phân biệt discovery, load balancing, retry và circuit breaker
+  - Trạng thái cục bộ và giới hạn đồng bộ giữa nhiều instance
+  - Phân biệt vòng đời tiến trình với vòng đời đăng ký dịch vụ
+  - Nguyên tắc quan sát và kiểm chứng hành vi phân tán
+- level1: Phiên bản và phụ thuộc
+  level2:
+  - Release train, phiên bản từng dự án và service release
+  - Chọn Spring Cloud tương thích với Java và Spring Boot
+  - Quản lý phụ thuộc bằng spring-cloud-dependencies BOM
+  - Nhập BOM trong Maven và Gradle
+  - Phân biệt starter, thư viện lõi và implementation
+  - Nhận diện spring-cloud-commons, spring-cloud-context và spring-cloud-starter
+  - Kiểm tra phiên bản thực tế bằng dependency tree
+  - Compatibility Verifier và thông báo không tương thích
+  - Điều kiện ghi đè phiên bản và giới hạn tắt compatibility verifier
+  - Đọc tài liệu và trạng thái hỗ trợ đúng nhánh phiên bản
+- level1: Khởi tạo
+  level2:
+  - Tạo ứng dụng Spring Boot tối thiểu có Spring Cloud
+  - Chọn ứng dụng Servlet, Reactive hoặc không có web server
+  - Đặt spring.application.name và cổng chạy
+  - Khai báo cấu hình cơ sở trong application.yml
+  - Bổ sung Actuator và chỉ mở endpoint cần dùng
+  - Chạy ứng dụng bằng Maven, Gradle và executable JAR
+  - Khởi chạy nhiều instance với profile và cổng khác nhau
+  - Kiểm tra bean, nguồn cấu hình và điều kiện tự động cấu hình
+- level1: Kiến trúc nền tảng
+  level2:
+  - Đường đi từ SpringApplication đến các thành phần Spring Cloud
+  - Vai trò ApplicationContext, BeanFactory và Environment
+  - Khởi tạo bean, binding thuộc tính và xử lý vòng đời
+  - Điều kiện kích hoạt theo classpath, bean và property
+  - Cách cấu hình do ứng dụng khai báo thay thế mặc định
+  - Phân biệt SPI, auto-configuration và thành phần triển khai
+  - Ranh giới giữa cơ chế trong tiến trình và hạ tầng bên ngoài
+  - Tác động của thứ tự khởi tạo đến cấu hình và logging
+- level1: Nạp cấu hình
+  level2:
+  - Tệp application.properties và application.yml
+  - Vị trí cấu hình trong JAR và bên ngoài JAR
+  - Thứ tự ưu tiên giữa tệp, biến môi trường, system property và tham số dòng lệnh
+  - Profile, tệp theo profile và nhóm profile
+  - spring.config.name, location và additional-location
+  - Nhập cấu hình bằng spring.config.import
+  - Nguồn bắt buộc, nguồn optional và hành vi khi không tồn tại
+  - Config tree cho cấu hình được gắn từ hệ thống triển khai
+  - Phân biệt Config Data với cơ chế bootstrap cũ
+  - Vai trò Config Client khi kết nối nguồn cấu hình từ xa
+  - Thực nghiệm một thuộc tính xuất hiện trong nhiều nguồn
+- level1: Environment
+  level2:
+  - Environment, ConfigurableEnvironment và PropertySource
+  - Đọc thuộc tính với getProperty, kiểu dữ liệu và giá trị mặc định
+  - MutablePropertySources và thứ tự tra cứu
+  - MapPropertySource, PropertiesPropertySource và CompositePropertySource
+  - Placeholder, giá trị tham chiếu và lỗi không phân giải được
+  - Relaxed binding và quy tắc tên biến môi trường
+  - Phân biệt giá trị không có, null và chuỗi rỗng
+  - Truy tìm nguồn tạo ra giá trị cấu hình hiệu lực
+  - Phân biệt thay đổi Environment với thay đổi bean đã khởi tạo
+- level1: Bootstrap
+  level2:
+  - Bootstrap context và điều kiện cần sử dụng
+  - Bật bootstrap bằng starter hoặc thuộc tính phù hợp phiên bản
+  - Vai trò bootstrap.yml so với application.yml
+  - Nguồn bootstrap có độ ưu tiên cao và tệp bootstrap có độ ưu tiên thấp
+  - spring.cloud.bootstrap.name, location và additional-location
+  - Nạp cấu hình theo profile trong giai đoạn bootstrap
+  - Vị trí PropertySourceLocator trong trình tự khởi động
+  - allowOverride, overrideNone và overrideSystemProperties trong config-first bootstrap
+  - Phạm vi áp dụng của quy tắc ghi đè từ nguồn cấu hình từ xa
+  - Nhận diện việc đồng thời bật bootstrap và Config Data gây nạp lặp
+- level1: Phân cấp context
+  level2:
+  - Context cha, context con và phạm vi nhìn thấy bean
+  - Xây dựng parent, child và sibling bằng SpringApplicationBuilder
+  - Kế thừa PropertySource và profile trong hệ phân cấp
+  - Chia sẻ Environment và các trường hợp không chia sẻ
+  - Thuộc tính cùng tên và PropertySource cùng tên giữa các context
+  - Định danh ứng dụng, context ID và nguồn cấu hình riêng
+  - Vòng đời đóng context và quản lý tài nguyên phụ thuộc
+  - Tránh component scan đưa cấu hình bootstrap vào context chính
+- level1: Nguồn cấu hình tùy biến
+  level2:
+  - Khi nào cần PropertySourceLocator hoặc Config Data extension
+  - Triển khai PropertySourceLocator cho nguồn cấu hình riêng
+  - Đăng ký BootstrapConfiguration qua META-INF/spring.factories
+  - Thứ tự BootstrapConfiguration và ApplicationContextInitializer
+  - Sử dụng Environment đầu vào để chọn ứng dụng và profile
+  - Gộp nhiều nguồn bằng CompositePropertySource
+  - Đặt tên nguồn ổn định và kiểm soát độ ưu tiên
+  - Timeout, lỗi đọc nguồn và lựa chọn dừng sớm hoặc dùng mặc định
+  - Thiết kế thao tác nạp có thể lặp lại an toàn khi refresh
+  - Phân biệt extension bootstrap với EnvironmentPostProcessor của Spring Boot
+- level1: Cấu hình kiểu dữ liệu
+  level2:
+  - Chọn @Value, Environment hoặc @ConfigurationProperties
+  - Khai báo nhóm thuộc tính và đăng ký bean cấu hình
+  - Binding đối tượng lồng nhau, danh sách và map
+  - Chuyển đổi Duration, DataSize và kiểu dữ liệu riêng
+  - Validation cấu hình và phát hiện giá trị không hợp lệ
+  - Constructor binding, Java record và giới hạn làm mới
+  - Giá trị mặc định và xử lý khi thuộc tính bị loại bỏ
+  - Configuration metadata và hỗ trợ gợi ý trong IDE
+  - Tách cấu hình hạ tầng khỏi tham số nghiệp vụ
+- level1: Refresh Scope
+  level2:
+  - Bài toán bean giữ cấu hình đã đọc tại thời điểm khởi tạo
+  - Cơ chế lazy proxy và bộ nhớ đệm target của @RefreshScope
+  - Gắn @RefreshScope vào bean và quan hệ với singleton
+  - Khởi tạo target khi có lời gọi đầu tiên
+  - Vô hiệu hóa target và tạo lại khi được gọi tiếp
+  - RefreshScope.refresh theo tên và refreshAll
+  - Vòng đời hủy target và giải phóng tài nguyên
+  - '@RefreshScope trên @Configuration và phạm vi các @Bean bên trong'
+  - Bean phụ thuộc giữ tham chiếu cũ và giới hạn của proxy
+  - extra-refreshable, never-refreshable và trường hợp HikariDataSource
+  - Giới hạn làm mới đối với tài nguyên có trạng thái và xử lý đồng thời
+- level1: Làm mới cấu hình
+  level2:
+  - Phân biệt cập nhật nguồn cấu hình, Environment và bean
+  - EnvironmentChangeEvent và tập khóa thay đổi
+  - Rebind @ConfigurationProperties và cập nhật logging.level
+  - Vai trò ContextRefresher trong quy trình refresh
+  - Phân biệt rebind tại chỗ với tạo lại bean trong Refresh Scope
+  - Hành vi thêm, đổi và xóa thuộc tính theo phiên bản
+  - Giới hạn cập nhật điều kiện @ConditionalOnProperty lúc chạy
+  - Refresh cục bộ và giới hạn lan truyền sang instance khác
+  - Quan hệ với Spring Cloud Bus trong phát tán yêu cầu refresh
+  - Xử lý refresh lặp lại, lỗi giữa chừng và cấu hình không hợp lệ
+  - Bảo toàn góc nhìn nhất quán khi thay nhiều thuộc tính liên quan
+  - Kiểm chứng giá trị thực tế trước và sau refresh
+- level1: Vòng đời ứng dụng
+  level2:
+  - Phân biệt refresh context, restart tiến trình và restart ApplicationContext
+  - Các sự kiện khởi động và vị trí listener tùy biến
+  - Endpoint refresh và điều kiện hoạt động
+  - Endpoint env với thao tác POST và rebind thuộc tính
+  - Endpoint restart và trạng thái bật tắt theo mặc định
+  - Endpoint pause, resume và hành vi theo phiên bản triển khai
+  - Quản lý Lifecycle, SmartLifecycle và tài nguyên cần đóng
+  - Ảnh hưởng của restart hoặc pause đến yêu cầu đang xử lý
+  - Phân biệt trạng thái ứng dụng với trạng thái đăng ký dịch vụ
+- level1: Mã hóa cấu hình
+  level2:
+  - Giá trị dạng {cipher} và quá trình giải mã trước khi tạo bean
+  - Vai trò TextEncryptor và thư viện mã hóa cần thiết
+  - Cấu hình khóa đối xứng và khóa bất đối xứng
+  - Keystore, alias và mật khẩu bảo vệ khóa
+  - Giải mã cục bộ và giải mã tại nguồn cấu hình từ xa
+  - Nhận diện lỗi sai khóa, thiếu khóa và thuật toán không phù hợp
+  - Vị trí lưu khóa và tránh đặt khóa cùng bản mã
+  - Xoay vòng khóa và khả năng đọc cấu hình đã mã hóa
+  - Phân biệt mã hóa cấu hình với TLS và hệ thống quản lý bí mật
+- level1: Định danh và mạng
+  level2:
+  - Phân biệt application name, service ID, instance ID và context ID
+  - Host, IP, port, URI và thuộc tính secure của một instance
+  - Vai trò InetUtils và HostInfo
+  - Chọn địa chỉ mạng khi máy có nhiều network interface
+  - Loại interface bằng ignoredInterfaces
+  - Ưu tiên dải địa chỉ bằng preferredNetworks
+  - Giới hạn địa chỉ nội bộ với useOnlySiteLocalInterfaces
+  - Timeout phân giải hostname và địa chỉ dự phòng
+  - Địa chỉ bind, địa chỉ quảng bá và khác biệt khi chạy container
+  - Kiểm tra IP và hostname được chọn bằng thực nghiệm
+- level1: DiscoveryClient
+  level2:
+  - Hợp đồng DiscoveryClient và ReactiveDiscoveryClient
+  - Vai trò ServiceInstance và DefaultServiceInstance
+  - Liệt kê dịch vụ và lấy danh sách instance
+  - Metadata instance và giới hạn diễn giải theo implementation
+  - SimpleDiscoveryClient khi dùng danh sách instance từ cấu hình
+  - Khai báo spring.cloud.discovery.client.simple.instances
+  - Thứ tự nhiều DiscoveryClient và cơ chế tổng hợp
+  - Bật tắt discovery, blocking client và reactive client
+  - Vai trò hiện tại của @EnableDiscoveryClient
+  - Giới hạn dữ liệu discovery và quan hệ với hệ đăng ký thực
+- level1: ServiceRegistry
+  level2:
+  - Phân biệt tra cứu dịch vụ với đăng ký dịch vụ
+  - Hợp đồng ServiceRegistry và Registration
+  - Đăng ký, hủy đăng ký và thay đổi trạng thái instance
+  - Auto-registration và vòng đời ứng dụng
+  - Bật tắt đăng ký tự động bằng thuộc tính hoặc annotation
+  - InstancePreRegisteredEvent và InstanceRegisteredEvent
+  - Endpoint serviceregistry và yêu cầu có Registration bean
+  - Trạng thái đăng ký và giá trị hỗ trợ theo implementation
+  - Đăng ký đúng instance và xử lý việc gọi lặp
+  - Giới hạn hợp đồng chung so với Eureka, Consul và Zookeeper
+- level1: Gọi dịch vụ
+  level2:
+  - Tên dịch vụ logic và địa chỉ mạng vật lý
+  - Vai trò LoadBalancerClient trong hợp đồng gọi dịch vụ
+  - Chọn instance, tái dựng URI và thực thi yêu cầu
+  - Ý nghĩa @LoadBalanced và phụ thuộc implementation cần có
+  - Tạo RestTemplate dùng load balancer
+  - Tạo RestClient.Builder dùng load balancer theo phiên bản
+  - Tạo WebClient.Builder với bộ lọc load balancer
+  - Phân biệt lời gọi blocking và reactive
+  - Dùng đồng thời HTTP client thông thường và client theo tên dịch vụ
+  - Giữ cấu hình và quan sát của builder do Spring Boot cung cấp
+  - Ranh giới của Commons với chính sách retry, circuit breaker và load balancing chuyên sâu
+- level1: Khả năng hệ thống
+  level2:
+  - Endpoint features và thông tin khả năng đang hoạt động
+  - Phân biệt abstract feature và named feature
+  - Khai báo HasFeatures và NamedFeature
+  - Đọc tên, phiên bản và nhà cung cấp của implementation
+  - Điều kiện bật tắt khả năng theo classpath và cấu hình
+  - Đối chiếu bean thực tế với thông tin được công bố
+  - Vai trò HTTP client factory dùng chung và tình trạng hỗ trợ theo phiên bản
+- level1: Giá trị ngẫu nhiên
+  level2:
+  - CachedRandomPropertySource và nhu cầu giữ giá trị trong bộ nhớ đệm
+  - Cú pháp cachedrandom.<key>.<type>
+  - Phân biệt cachedrandom với random của Spring Boot
+  - Kiểu giá trị và phạm vi giá trị được hỗ trợ
+  - Phạm vi ổn định qua restart context và giới hạn khi restart tiến trình
+  - Giới hạn sử dụng cho instance ID, khóa bảo mật và định danh bền vững
+- level1: Tùy biến tự động cấu hình
+  level2:
+  - Đọc điều kiện tạo bean trước khi thay thế mặc định
+  - '@ConditionalOnClass, @ConditionalOnBean và @ConditionalOnMissingBean'
+  - '@ConditionalOnProperty và tác động của matchIfMissing'
+  - Đăng ký auto-configuration qua AutoConfiguration.imports
+  - Phân biệt AutoConfiguration.imports với BootstrapConfiguration trong spring.factories
+  - Thứ tự định nghĩa cấu hình và thứ tự khởi tạo bean
+  - Thiết kế bean tùy biến để cấu hình mặc định tự nhường
+  - Giới hạn component scan của thư viện dùng chung
+  - Đóng gói starter nội bộ với thuộc tính có namespace rõ ràng
+  - Đọc ConditionEvaluationReport để kiểm chứng cấu hình
+  - Tránh đưa phụ thuộc hạ tầng không cần thiết vào starter nền tảng
+- level1: Kiểm thử
+  level2:
+  - Phân tầng kiểm thử thuộc tính, context và tích hợp
+  - Kiểm thử auto-configuration bằng ApplicationContextRunner
+  - Mô phỏng classpath thiếu hoặc có implementation
+  - Kiểm thử cấu hình mặc định và bean tùy biến thay thế
+  - Kiểm thử thứ tự PropertySource và profile
+  - Cấp thuộc tính kiểm thử bằng TestPropertySource và DynamicPropertySource
+  - Kiểm thử PropertySourceLocator với nguồn dữ liệu kiểm soát được
+  - Kiểm thử rebind và Refresh Scope trước, sau thay đổi
+  - Kiểm thử lỗi refresh và giải phóng target cũ
+  - Kiểm thử nhiều instance với SimpleDiscoveryClient
+  - Kiểm thử sự kiện đăng ký và vòng đời ServiceRegistry
+  - Cô lập context, property source và trạng thái tĩnh giữa các ca kiểm thử
+  - Kiểm thử endpoint quản trị có xác thực và phân quyền
+- level1: Quan sát
+  level2:
+  - Kiểm tra cấu hình hiệu lực qua env và configprops
+  - Chẩn đoán auto-configuration bằng conditions và log khởi động
+  - Quan sát thành phần trong context bằng beans
+  - DiscoveryClientHealthIndicator và DiscoveryCompositeHealthContributor
+  - Giảm chi phí health check bằng probe thay vì liệt kê dịch vụ
+  - Phân biệt kết nối registry khỏe với instance xử lý được yêu cầu
+  - Quan sát tính năng qua features và trạng thái qua serviceregistry
+  - Ghi nhận nguồn, thời điểm và kết quả thay đổi cấu hình
+  - Theo dõi lỗi khởi động, lỗi refresh và thời gian lấy cấu hình
+  - Truy vết lời gọi qua client được cấu hình từ Spring Boot
+- level1: Bảo mật
+  level2:
+  - Giới hạn endpoint quản trị được bật và được công bố
+  - Xác thực và phân quyền cho env, refresh, restart và serviceregistry
+  - Tách management port, địa chỉ lắng nghe và đường mạng quản trị
+  - CSRF đối với endpoint thay đổi trạng thái và lựa chọn cấu hình phù hợp
+  - Che giá trị nhạy cảm trong env, configprops và log
+  - Giới hạn thuộc tính được sửa động theo khả năng phiên bản
+  - Kiểm soát nguồn cấu hình được tin cậy
+  - Bảo vệ thông tin xác thực khi gọi nguồn cấu hình hoặc registry
+  - Ghi nhận lịch sử thao tác quản trị mà không lộ bí mật
+  - Kiểm thử quyền tối thiểu đối với thao tác quản trị
+- level1: Vận hành
+  level2:
+  - Đóng gói cấu hình theo môi trường và phân tách bí mật
+  - Trình tự sẵn sàng của nguồn cấu hình, registry và ứng dụng
+  - Đánh đổi giữa dừng sớm và dùng cấu hình dự phòng
+  - Chọn refresh hoặc rolling restart theo loại thay đổi
+  - Quản lý phiên bản cấu hình và khả năng quay lại
+  - Triển khai thay đổi cấu hình trên nhiều instance theo từng đợt
+  - Liveness, readiness và trạng thái đăng ký dịch vụ
+  - Dừng ứng dụng an toàn và hủy đăng ký trước khi kết thúc
+  - Giới hạn tải do discovery, health check và làm mới cấu hình
+  - Kiểm chứng hành vi khi mất mạng, registry hoặc nguồn cấu hình
+- level1: AOT và checkpoint
+  level2:
+  - Khác biệt giữa JVM thông thường, Spring AOT và native image
+  - Giới hạn Context Refresh trong AOT và native image
+  - Cấu hình spring.cloud.refresh.enabled theo chế độ chạy
+  - Kiểm tra khả năng hỗ trợ của từng implementation discovery và HTTP client
+  - Checkpoint, restore và vai trò RefreshScopeLifecycle khi được hỗ trợ
+  - Điều khiển refresh.on-restart.enabled và kiểm chứng khôi phục
+  - Quản lý socket, thread và tài nguyên bên ngoài sau restore
+- level1: Nâng cấp
+  level2:
+  - Lập bảng Java, Spring Boot, release train và phiên bản Commons
+  - Đối chiếu tài liệu, cấu hình và mặc định của phiên bản đích
+  - Chuyển bootstrap cũ sang Config Data khi phù hợp
+  - Phân biệt cơ chế đăng ký trong spring.factories và AutoConfiguration.imports
+  - Kiểm tra thay đổi trong DiscoveryClient và HTTP client integration
+  - Loại bỏ giả định cũ về annotation bắt buộc và client tự tạo
+  - Kiểm tra thay đổi rebind, xóa thuộc tính và giới hạn Refresh Scope
+  - Kiểm thử hồi quy thứ tự nguồn cấu hình và endpoint quản trị
+  - Triển khai thử và chuẩn bị quay lại phiên bản trước
+- level1: Chẩn đoán sự cố
+  level2:
+  - Ứng dụng không khởi động do Boot và Cloud không tương thích
+  - Không tìm thấy bean dù đã thêm starter
+  - Bootstrap.yml không được đọc hoặc đọc sai profile
+  - Cùng thuộc tính có giá trị khác với tệp cấu hình dự kiến
+  - Nguồn cấu hình từ xa ghi đè giá trị cục bộ ngoài dự kiến
+  - PropertySourceLocator chạy sai thời điểm hoặc bị gọi lặp
+  - Refresh trả thành công nhưng bean vẫn giữ giá trị cũ
+  - Bean mới không xuất hiện sau khi đổi ConditionalOnProperty
+  - Refresh làm mất tài nguyên hoặc gây lỗi xử lý đồng thời
+  - Không giải mã được giá trị cipher
+  - DiscoveryClient không có instance hoặc chọn sai implementation
+  - Đăng ký sai IP, hostname, port hoặc scheme
+  - HTTP client phân giải tên dịch vụ như DNS thông thường
+  - Endpoint quản trị trả 404, 401 hoặc 403
+  - Context khởi tạo nhiều lần hoặc bootstrap bean bị component scan nhầm
+- level1: Thực hành tổng hợp
+  level2:
+  - Ứng dụng nền tảng có Commons, Context và Actuator tối thiểu
+  - Đối chiếu cùng thuộc tính từ tệp, biến môi trường và dòng lệnh
+  - Xây dựng PropertySourceLocator cho nguồn cấu hình riêng
+  - Thực nghiệm context cha, con và sibling
+  - So sánh @Value, ConfigurationProperties rebind và Refresh Scope
+  - Đổi cấu hình trên hai instance và kiểm chứng phạm vi refresh
+  - Giải mã cấu hình cục bộ với khóa bên ngoài ứng dụng
+  - Tra cứu instance bằng SimpleDiscoveryClient
+  - Gọi dịch vụ theo tên bằng HTTP client có @LoadBalanced
+  - Thử nghiệm ServiceRegistry với implementation giả lập
+  - Đóng gói starter nền tảng và kiểm thử auto-configuration
+  - Chẩn đoán sự cố từ bằng chứng env, conditions, health và log

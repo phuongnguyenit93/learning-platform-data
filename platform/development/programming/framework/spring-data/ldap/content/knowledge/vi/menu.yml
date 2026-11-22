@@ -1,0 +1,444 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data LDAP là gì và giải quyết bài toán nào
+  - LDAP là gì và vì sao ứng dụng cần truy cập dịch vụ thư mục
+  - Phân biệt giao thức LDAP, máy chủ thư mục và cơ sở dữ liệu quan hệ
+  - Phân biệt JNDI, Spring LDAP, Spring Data LDAP và Spring Security LDAP
+  - 'Bản đồ các thành phần: ContextSource, LdapTemplate, ODM và Repository'
+  - Các tình huống tra cứu danh bạ, quản lý tài khoản và tra cứu nhóm
+  - Khi nào nên dùng LDAP và khi nào nên chọn hệ lưu trữ khác
+  - Lộ trình học và các kiến thức cần chuẩn bị
+- level1: Mô hình thư mục
+  level2:
+  - Entry và attribute trong một bản ghi LDAP
+  - Cây thông tin thư mục DIT và quan hệ cha–con
+  - Naming context, suffix và gốc của một miền thư mục
+  - Vai trò của dc, ou, cn, uid và cách tránh hiểu chúng như từ khóa cố định
+  - Phân biệt cấu trúc cây với quan hệ nghiệp vụ giữa các entry
+  - Root DSE và thông tin khả năng của máy chủ
+  - Định danh entry bằng DN và phân biệt với tên đăng nhập
+  - LDIF và cách biểu diễn dữ liệu thư mục
+  - Phân biệt đọc dữ liệu thư mục với xác thực người dùng
+- level1: DN và định danh
+  level2:
+  - DN, RDN và thứ tự các thành phần định danh
+  - DN tuyệt đối và DN tương đối với base được cấu hình
+  - Phân biệt DN, đường dẫn tệp, URL và biểu thức tìm kiếm
+  - Biểu diễn định danh bằng javax.naming.Name và LdapName
+  - Tạo DN an toàn bằng LdapNameBuilder
+  - Thao tác thành phần RDN thay vì nối chuỗi thủ công
+  - Ký tự đặc biệt, Unicode và quy tắc escape của DN
+  - RDN nhiều giá trị và ảnh hưởng đến phân tích định danh
+  - So sánh DN theo ngữ nghĩa thay vì chuẩn hóa chuỗi tùy ý
+  - Phân biệt DN có thể thay đổi với định danh ổn định như entryUUID hoặc objectGUID
+  - Thiết kế quy tắc đặt DN để hạn chế đổi tên và di chuyển
+- level1: Schema
+  level2:
+  - Vai trò của schema trong dữ liệu thư mục
+  - Object class cấu trúc, phụ trợ và trừu tượng
+  - Quan hệ kế thừa giữa các object class
+  - Thuộc tính bắt buộc MUST và tùy chọn MAY
+  - Kiểu dữ liệu, cú pháp thuộc tính và matching rule
+  - Thuộc tính một giá trị và nhiều giá trị
+  - Phân biệt thuộc tính thường với thuộc tính vận hành
+  - Thuộc tính chuỗi, nhị phân, thời gian và giá trị định danh
+  - Đối chiếu schema của máy chủ trước khi thiết kế lớp Java
+  - Quản lý thay đổi schema và tương thích dữ liệu cũ
+- level1: Thao tác LDAP
+  level2:
+  - Bind và Unbind ở mức giao thức để quản lý phiên xác thực
+  - Search, Compare và đọc thông tin entry
+  - Add, Modify, Delete và Modify DN
+  - Tính nguyên tử của một yêu cầu và giới hạn chuỗi nhiều yêu cầu
+  - Mã kết quả LDAP và thông tin lỗi trả về
+  - Controls và extended operations
+  - Giới hạn thời gian, số lượng kết quả và quyền truy cập
+  - Phân biệt bind của giao thức với bind tạo entry trong API JNDI/Spring LDAP
+- level1: Kiến trúc Spring
+  level2:
+  - Vai trò của JNDI trong kết nối LDAP từ Java
+  - DirContext, LdapContext và các đối tượng thuộc tính
+  - ContextSource và LdapContextSource
+  - Phân biệt context chỉ đọc với context đọc–ghi
+  - LdapOperations và LdapTemplate
+  - ObjectDirectoryMapper và cơ chế ánh xạ ODM
+  - Cách Repository sử dụng hạ tầng Spring LDAP
+  - Chuyển NamingException sang hệ ngoại lệ của Spring LDAP
+  - Ranh giới trách nhiệm giữa lớp cấu hình, Repository và dịch vụ
+- level1: Khởi tạo
+  level2:
+  - Chọn phiên bản Spring Boot, Spring Data LDAP và Spring LDAP tương thích
+  - Khai báo dependency bằng Gradle hoặc Maven
+  - Khởi tạo máy chủ LDAP phát triển bằng container
+  - Chuẩn bị base DN, tài khoản dịch vụ và dữ liệu LDIF
+  - Cấu hình spring.ldap trong application.yml
+  - Cơ chế tự cấu hình ContextSource, LdapTemplate và Repository
+  - Cấu hình thủ công khi cần nhiều nguồn thư mục hoặc tùy chọn riêng
+  - Kiểm tra kết nối bằng một truy vấn tra cứu đơn giản
+  - Tổ chức cấu hình theo môi trường và quản lý dữ liệu mẫu
+- level1: Kết nối
+  level2:
+  - Cấu hình URL, base DN và tài khoản kết nối
+  - Phân biệt LDAP URL với base của phép tìm kiếm
+  - Cấu hình nhiều URL và kiểm tra hành vi chuyển máy chủ
+  - Thiết lập thời gian chờ kết nối và thời gian chờ đọc
+  - Truyền thuộc tính môi trường cho JNDI
+  - Anonymous bind, simple bind và điều kiện máy chủ cho phép
+  - Lấy context với danh tính chỉ định bằng ContextSource
+  - Quản lý vòng đời DirContext và NamingEnumeration
+  - Kiểm tra khả năng chia sẻ Template và giới hạn chia sẻ context giữa các luồng
+  - Phân biệt không kết nối được với không đủ quyền đọc dữ liệu
+- level1: TLS và xác thực
+  level2:
+  - Phân biệt LDAP không mã hóa, LDAPS và StartTLS
+  - Cấu hình truststore và kiểm tra chuỗi chứng chỉ
+  - Xác minh hostname và xử lý chứng chỉ theo môi trường
+  - Thương lượng StartTLS qua chiến lược xác thực của Spring LDAP
+  - Simple bind trên kênh bảo mật
+  - SASL và xác thực bằng chứng chỉ khi hạ tầng hỗ trợ
+  - Tìm DN người dùng rồi bind để kiểm tra thông tin đăng nhập
+  - Phân biệt sai mật khẩu, tài khoản bị khóa và tài khoản hết hạn
+  - Thay đổi mật khẩu và các yêu cầu riêng của từng máy chủ
+  - Tương tác giữa TLS, pool và vòng đời kết nối
+- level1: LdapTemplate
+  level2:
+  - Sử dụng LdapTemplate cho các thao tác đọc và ghi
+  - Lookup một entry theo DN
+  - Search theo base và bộ lọc
+  - Chọn AttributesMapper, ContextMapper hoặc callback xử lý kết quả
+  - Sử dụng DirContextAdapter để truy cập thuộc tính
+  - Thực thi thao tác cấp thấp qua ContextExecutor
+  - Truy cập thông tin base bằng BaseLdapPathAware khi cần
+  - Đối chiếu phương thức trả một kết quả với phương thức trả nhiều kết quả
+  - Lựa chọn Template hay Repository theo mức kiểm soát cần thiết
+- level1: Tìm kiếm
+  level2:
+  - Ba phạm vi tìm kiếm OBJECT, ONELEVEL và SUBTREE
+  - Chọn search base phù hợp với ranh giới dữ liệu
+  - Cấu hình SearchControls
+  - Chỉ lấy các thuộc tính cần thiết
+  - Đọc thuộc tính vận hành và kiểm tra quyền máy chủ
+  - Giới hạn số kết quả và thời gian thực thi
+  - Phân biệt không tìm thấy entry với search base không tồn tại
+  - Xử lý một kết quả, nhiều kết quả và kết quả ngoài dự kiến
+  - Duyệt kết quả bằng callback và kiểm soát bộ nhớ
+  - Ảnh hưởng của alias và chính sách dereference
+  - Kiểm tra quyền truy cập khi kết quả bị thiếu mà không có lỗi
+- level1: Bộ lọc
+  level2:
+  - Cấu trúc bộ lọc LDAP và biểu thức so khớp thuộc tính
+  - Điều kiện bằng, khác, hiện diện và không hiện diện
+  - Điều kiện chuỗi con, tiền tố và hậu tố
+  - Kết hợp điều kiện AND, OR và NOT
+  - So sánh thứ tự và điều kiện phụ thuộc matching rule
+  - Phân biệt thuộc tính vắng mặt với giá trị rỗng
+  - Tìm kiếm trên thuộc tính nhiều giá trị
+  - Xây dựng bộ lọc bằng LdapQueryBuilder
+  - Dùng các lớp Filter khi cần tổ hợp điều kiện
+  - Escape giá trị bộ lọc và phân biệt với escape DN
+  - Xử lý bộ lọc tùy chọn mà không vô tình mở rộng phạm vi tìm kiếm
+  - Extensible matching và kiểm tra khả năng hỗ trợ của máy chủ
+- level1: Ánh xạ kết quả
+  level2:
+  - Ánh xạ Attributes sang DTO bằng AttributesMapper
+  - Ánh xạ context bằng ContextMapper và AbstractContextMapper
+  - Đọc thuộc tính một giá trị hoặc nhiều giá trị
+  - Xử lý thuộc tính vắng mặt, giá trị rỗng và giá trị không đúng kiểu
+  - Đọc dữ liệu nhị phân mà không chuyển chuỗi tùy ý
+  - Chuyển đổi thời gian và kiểu dữ liệu theo schema
+  - Giữ DN của entry trong kết quả ánh xạ
+  - Tách mô hình dữ liệu thư mục khỏi mô hình API
+  - Kiểm soát việc làm lộ mật khẩu và thuộc tính nhạy cảm
+- level1: Ánh xạ thực thể
+  level2:
+  - ODM là gì và khác ORM ở những điểm nào
+  - Chọn đúng annotation ODM trong org.springframework.ldap.odm.annotations
+  - Định nghĩa thực thể bằng @Entry và các objectClasses
+  - Cấu hình base của thực thể trong cây thư mục
+  - Dùng @Id với kiểu javax.naming.Name
+  - Ánh xạ thuộc tính bằng @Attribute
+  - Ánh xạ thành phần DN bằng @DnAttribute
+  - Phân biệt tên thuộc tính LDAP với tên thành phần DN
+  - Bỏ qua trường không lưu trữ bằng @Transient
+  - Ánh xạ thuộc tính nhiều giá trị và kiểu nhị phân
+  - Cấu hình chuyển đổi kiểu theo khả năng ODM của phiên bản sử dụng
+  - Yêu cầu khởi tạo đối tượng và giới hạn với mô hình bất biến
+  - Kiểm chứng trường nào được đọc, được ghi hoặc bị bỏ qua
+- level1: LDAP Repository
+  level2:
+  - Bật và cấu hình @EnableLdapRepositories
+  - Khai báo LdapRepository cho lớp thực thể ODM
+  - Định danh bằng Name và hợp đồng của phương thức CRUD
+  - Cơ chế quét và tạo triển khai Repository
+  - Ngữ nghĩa save khi tạo mới hoặc cập nhật entry
+  - Đọc theo DN bằng findById và kiểm tra tồn tại
+  - Xóa entry theo định danh hoặc thực thể
+  - Thao tác nhiều entry và số yêu cầu LDAP phát sinh
+  - Đưa LdapQuery vào findOne và findAll
+  - Giới hạn phân trang, sắp xếp và các chức năng không được suy ra từ JPA
+  - Mở rộng Repository bằng triển khai tùy chỉnh dùng LdapTemplate
+- level1: Truy vấn Repository
+  level2:
+  - Suy diễn truy vấn từ tên phương thức
+  - Liên hệ tên thuộc tính Java với thuộc tính LDAP được ánh xạ
+  - Kết hợp điều kiện bằng And, Or và phủ định
+  - Các từ khóa hiện diện, so khớp chuỗi và so sánh được hỗ trợ
+  - Phân biệt wildcard được chủ ý dùng với dữ liệu đầu vào thông thường
+  - Vai trò của objectClasses trong phạm vi truy vấn thực thể
+  - Khai báo bộ lọc bằng @Query
+  - Liên kết tham số theo vị trí và khả năng tham số có tên theo phiên bản
+  - Cơ chế mã hóa tham số và giới hạn của biểu thức động
+  - Chọn kiểu kết quả đơn hoặc tập hợp và xử lý sai số lượng
+  - Kiểm tra tính hợp lệ của phương thức truy vấn khi khởi động
+- level1: Querydsl
+  level2:
+  - Mục đích của truy vấn có kiểm tra kiểu bằng Querydsl
+  - Sinh lớp truy vấn từ metadata ODM bằng LdapAnnotationProcessor
+  - Tổ chức annotation processing trong bản dựng
+  - Xây dựng điều kiện bằng QueryDslLdapQuery
+  - Tích hợp khả năng thực thi predicate vào Repository
+  - Giới hạn biểu thức và đối chiếu hỗ trợ theo phiên bản thư viện
+- level1: Ghi dữ liệu
+  level2:
+  - Tạo entry bằng bind của LdapTemplate
+  - Thiết lập đầy đủ objectClasses và thuộc tính bắt buộc
+  - Cập nhật thuộc tính bằng modifyAttributes
+  - Phân biệt ADD_ATTRIBUTE, REPLACE_ATTRIBUTE và REMOVE_ATTRIBUTE
+  - Thêm hoặc xóa một giá trị trong thuộc tính nhiều giá trị
+  - Dùng DirContextAdapter để xác định thay đổi thuộc tính
+  - Phân biệt cập nhật chọn lọc với rebind toàn entry
+  - Xóa entry bằng unbind
+  - Xóa entry có con và thiết kế thứ tự thao tác
+  - Dùng các thao tác ODM create, update và delete
+  - Kiểm tra ngữ nghĩa ghi lặp lại và trạng thái khi yêu cầu thất bại
+- level1: Đổi tên và di chuyển
+  level2:
+  - Đổi RDN và di chuyển entry bằng rename
+  - Quan hệ giữa DN mới với thuộc tính đặt tên
+  - Điều kiện máy chủ cho phép di chuyển trong hoặc ngoài một nhánh
+  - Ảnh hưởng của đổi DN đến định danh thực thể
+  - Thay đổi trường @DnAttribute và hành vi cập nhật ODM
+  - Tham chiếu DN trong nhóm hoặc entry khác sau khi đổi tên
+  - Giới hạn của cơ chế tự cập nhật tham chiếu theo máy chủ
+  - Thiết kế quy trình di chuyển có kiểm tra và phương án phục hồi
+- level1: Người dùng và nhóm
+  level2:
+  - Mô hình người dùng với person, organizationalPerson và inetOrgPerson
+  - Mô hình nhóm với groupOfNames và groupOfUniqueNames
+  - Phân biệt thành viên dạng DN với thành viên dạng tên đăng nhập
+  - Nhóm POSIX và thuộc tính memberUid
+  - Tra cứu nhóm trực tiếp của người dùng
+  - Nhóm lồng nhau và kiểm soát vòng lặp khi duyệt
+  - Phân biệt member được ghi với memberOf do máy chủ cung cấp
+  - Đồng bộ thêm, xóa thành viên mà không làm mất thay đổi đồng thời
+  - Thiết kế mô hình vai trò ứng dụng từ thông tin nhóm
+  - Tránh giả định mọi máy chủ đều có cùng schema nhóm
+- level1: Phân trang và controls
+  level2:
+  - Vì sao giới hạn kết quả khác với phân trang
+  - Paged Results Control và điều kiện máy chủ hỗ trợ
+  - Quản lý cookie giữa các lần đọc trang
+  - Dùng DirContextProcessor để gửi và nhận LDAP controls
+  - Giữ context phù hợp khi duyệt nhiều trang
+  - Chọn kích thước trang theo giới hạn máy chủ và ứng dụng
+  - Giới hạn nhảy đến trang tùy ý và ước lượng tổng số kết quả
+  - Sắp xếp phía máy chủ qua control khi được hỗ trợ
+  - Phân biệt sắp xếp tại ứng dụng với sắp xếp toàn bộ kết quả
+  - Đóng tài nguyên và xử lý dừng sớm giữa quá trình phân trang
+  - Không đồng nhất phân trang LDAP với Pageable của Repository
+- level1: Giao dịch bù trừ
+  level2:
+  - Giao dịch bù trừ phía client trong Spring LDAP là gì
+  - Phân biệt giao dịch bù trừ với giao dịch ACID ở cơ sở dữ liệu quan hệ
+  - Cấu hình ContextSourceTransactionManager
+  - Đặt @Transactional ở ranh giới dịch vụ
+  - Giữ cùng context trong phạm vi giao dịch
+  - Vai trò của bản ghi trạng thái và các thao tác khôi phục
+  - Đổi tên tạm thời và TempEntryRenamingStrategy
+  - Giới hạn rollback khi mất kết nối hoặc thao tác bù thất bại
+  - Chi phí, quyền bổ sung và tác động nhìn thấy từ bên ngoài
+  - Phối hợp LDAP với JDBC và đối chiếu khả năng tích hợp theo phiên bản
+  - Kiểm chứng cấu hình pool, xác thực và giao dịch cùng hoạt động
+- level1: Đồng thời và nhất quán
+  level2:
+  - Thay đổi nhiều entry và ranh giới nguyên tử
+  - Nguy cơ mất cập nhật khi thay thế toàn bộ thuộc tính
+  - Cập nhật tăng giảm thành viên bằng thay đổi chọn lọc
+  - Kiểm tra điều kiện trước khi ghi và giới hạn race condition
+  - Assertion Control hoặc cơ chế máy chủ khi cần ghi có điều kiện
+  - Không giả định có @Version và khóa lạc quan như JPA
+  - Độ trễ replication và đọc lại sau khi ghi
+  - Thiết kế thao tác lũy đẳng và đối soát trạng thái thực tế
+  - Phối hợp nhiều hệ thống bằng quy trình bù trừ hoặc tác vụ đối soát
+- level1: Pool kết nối
+  level2:
+  - Chi phí tạo LDAP context và mục đích của pool
+  - Phân biệt native JNDI pooling với pooling của Spring LDAP
+  - Chọn triển khai pool tương thích phiên bản thư viện
+  - Tách context chỉ đọc và context đọc–ghi
+  - Cấu hình số lượng tối đa, số nhàn rỗi và thời gian chờ
+  - Kiểm tra kết nối khi lấy, trả hoặc trong lúc nhàn rỗi
+  - Thu hồi kết nối hỏng và phản ứng với CommunicationException
+  - Giới hạn khi pool dùng chung nhưng danh tính xác thực thay đổi
+  - Phối hợp pool với StartTLS và giao dịch bù trừ
+  - Nhận diện cạn pool, rò rỉ context và yêu cầu giữ kết nối lâu
+- level1: Referrals và topology
+  level2:
+  - Referral và continuation reference trong kết quả tìm kiếm
+  - Lựa chọn ignore, follow hoặc throw cho referral
+  - PartialResultException và nguy cơ bỏ qua dữ liệu chưa đầy đủ
+  - Kiểm soát danh tính và thông tin xác thực khi theo referral
+  - Ảnh hưởng của TLS, truststore và hostname trên máy chủ được giới thiệu
+  - Chuyển máy chủ khi mất kết nối và giới hạn failover
+  - Replication, nhiều naming context và giới hạn tìm kiếm xuyên miền
+  - Không tự động mở rộng quyền hoặc phạm vi dữ liệu khi theo referral
+- level1: Khác biệt máy chủ
+  level2:
+  - 'OpenLDAP: schema, ACL và dữ liệu LDIF cho môi trường học'
+  - 'Active Directory: domain, organizational unit và naming context'
+  - Phân biệt LDAP port với Global Catalog trong Active Directory
+  - Định danh bằng entryUUID hoặc objectGUID
+  - Thuộc tính nhị phân và cách ánh xạ objectGUID theo yêu cầu ứng dụng
+  - memberOf, nhóm lồng nhau và giới hạn của suy luận quyền
+  - Giới hạn kích thước kết quả và đọc thuộc tính nhóm nhiều giá trị
+  - Thay đổi mật khẩu, trạng thái tài khoản và chính sách riêng máy chủ
+  - LDAP controls và matching rule đặc thù
+  - Xây dựng lớp thích nghi thay vì buộc mọi máy chủ có cùng hành vi
+- level1: Spring Security
+  level2:
+  - Phân biệt tầng truy cập dữ liệu với tầng xác thực và phân quyền
+  - Cấu hình luồng xác thực LDAP trong ứng dụng Spring Security
+  - Bind trực tiếp theo mẫu DN và tìm DN rồi bind
+  - Vai trò tài khoản dịch vụ trong tìm kiếm người dùng
+  - Tra cứu nhóm và ánh xạ sang GrantedAuthority
+  - Chuẩn hóa tên vai trò theo chính sách ứng dụng
+  - Phân biệt xác thực bind với so sánh thuộc tính mật khẩu
+  - Xử lý tài khoản khóa, vô hiệu hóa hoặc hết hạn theo máy chủ
+  - Giới hạn việc dùng danh tính người dùng để đọc–ghi dữ liệu thư mục
+  - Tách chi tiết lỗi nội bộ khỏi phản hồi đăng nhập công khai
+- level1: Tích hợp ứng dụng
+  level2:
+  - Thiết kế dịch vụ danh bạ và ranh giới Repository
+  - Tách DTO đầu vào khỏi thực thể LDAP
+  - Kiểm tra dữ liệu trước khi xây dựng DN hoặc bộ lọc
+  - Thiết kế API đọc, tạo, cập nhật và xóa entry
+  - Ánh xạ lỗi LDAP sang kết quả nghiệp vụ
+  - LDAP client đồng bộ và cách xử lý khi tích hợp với WebFlux
+  - Giới hạn mức đồng thời để bảo vệ pool và máy chủ
+  - Cache kết quả tra cứu và thời hạn phản ánh thay đổi thư mục
+  - Quản lý nhiều ContextSource, Template và nhóm Repository
+  - Cô lập base DN và quyền truy cập cho từng khách thuê
+- level1: Đồng bộ dữ liệu
+  level2:
+  - Xác định hệ thống nguồn và chiều đồng bộ
+  - Ánh xạ định danh ổn định giữa LDAP và cơ sở dữ liệu ứng dụng
+  - Nhập hoặc xuất dữ liệu LDIF theo phạm vi được phép
+  - Đồng bộ toàn bộ và chia dữ liệu thành các nhóm xử lý
+  - Đồng bộ tăng dần theo khả năng máy chủ
+  - Giới hạn khi suy luận thay đổi từ modifyTimestamp
+  - Phân biệt xóa, vô hiệu hóa, đổi tên và di chuyển entry
+  - Xử lý lỗi từng entry, thử lại và tiếp tục từ điểm kiểm tra
+  - Đối soát dữ liệu và xử lý xung đột giữa nhiều nguồn ghi
+- level1: Xử lý lỗi
+  level2:
+  - Hệ ngoại lệ của Spring LDAP và nguyên nhân JNDI bên dưới
+  - Phân biệt CommunicationException với AuthenticationException
+  - NameNotFoundException và search base không tồn tại
+  - Entry đã tồn tại, thiếu thuộc tính và vi phạm schema
+  - Không đủ quyền và máy chủ từ chối thực hiện thao tác
+  - SizeLimitExceededException và TimeLimitExceededException
+  - ReferralException, PartialResultException và kết quả chưa đầy đủ
+  - Timeout sau khi gửi thao tác ghi và trạng thái không chắc chắn
+  - Retry theo loại lỗi và tính lũy đẳng của thao tác
+  - Giữ thông tin chẩn đoán nhưng che DN hoặc thuộc tính nhạy cảm
+- level1: Kiểm thử
+  level2:
+  - Phân biệt kiểm thử đơn vị với kiểm thử tích hợp LDAP
+  - Mock tại ranh giới dịch vụ thay vì mô phỏng toàn bộ JNDI
+  - Chuẩn bị máy chủ LDAP nhúng hoặc container kiểm thử
+  - Nạp schema và dữ liệu LDIF xác định trước
+  - Cấu hình kết nối động cho Spring Boot test
+  - Kiểm thử DN có ký tự đặc biệt và Unicode
+  - Kiểm thử bộ lọc để ngăn LDAP injection
+  - Kiểm thử ODM, Repository và thuộc tính nhiều giá trị
+  - Kiểm thử cập nhật, đổi DN, xóa và phục hồi khi lỗi
+  - Kiểm thử phân trang, giới hạn máy chủ và referral
+  - Kiểm thử xác thực, phân quyền và TLS
+  - Kiểm thử giao dịch bù trừ và cập nhật đồng thời
+  - Đối chiếu hành vi trên máy chủ giống production
+  - Cô lập cây dữ liệu và dọn tài nguyên kiểm thử
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ, thông lượng và số yêu cầu LDAP thực tế
+  - Thu hẹp search base, scope và thuộc tính trả về
+  - Chọn bộ lọc phù hợp với chỉ mục của máy chủ
+  - Đánh giá chi phí wildcard và tìm kiếm toàn cây
+  - Phân trang để kiểm soát bộ nhớ và tải máy chủ
+  - Tránh truy vấn lặp khi ánh xạ người dùng và nhóm
+  - Điều chỉnh pool, thời gian chờ và mức đồng thời
+  - Xử lý nhóm lớn và thuộc tính nhiều giá trị
+  - Cache tra cứu với đánh đổi về độ mới và phân quyền
+  - Đo tải với schema, ACL và khối lượng dữ liệu thực tế
+- level1: Quan sát
+  level2:
+  - Đo thời gian kết nối, xác thực và tìm kiếm
+  - Theo dõi lỗi theo loại thao tác và mã kết quả
+  - Quan sát pool và thời gian chờ context
+  - Liên kết dấu vết yêu cầu với thao tác LDAP
+  - Phân biệt health check kết nối với quyền đọc dữ liệu cần thiết
+  - Kiểm tra readiness mà không tạo quá nhiều bind hoặc truy vấn
+  - Theo dõi lỗi TLS, referral và chuyển máy chủ
+  - Giới hạn log thuộc tính, bộ lọc và thông tin xác thực
+  - Thiết kế cảnh báo theo tác động đến đăng nhập và truy cập dữ liệu
+- level1: Bảo mật dữ liệu
+  level2:
+  - Ngăn LDAP injection trong bộ lọc và DN
+  - Giới hạn khôi phục đối tượng JNDI từ dữ liệu thư mục không đáng tin cậy
+  - Kiểm soát tên thuộc tính, base và scope do người dùng cung cấp
+  - Phân quyền tài khoản dịch vụ theo nguyên tắc tối thiểu
+  - Tách quyền đọc danh bạ với quyền quản trị tài khoản
+  - Bảo vệ mật khẩu và chứng chỉ bằng kho bí mật
+  - Giới hạn thuộc tính nhạy cảm được đọc hoặc trả về API
+  - Kiểm soát referral để tránh gửi thông tin xác thực ngoài phạm vi
+  - Giới hạn truy vấn rộng, dữ liệu trả về và tần suất yêu cầu
+  - Ghi nhật ký thay đổi nghiệp vụ mà không lộ thông tin riêng tư
+  - Cô lập dữ liệu và quyền thao tác theo nhánh thư mục
+- level1: Triển khai
+  level2:
+  - Tách cấu hình phát triển, kiểm thử và production
+  - Đóng gói chứng chỉ và cập nhật truststore có kiểm soát
+  - Luân chuyển mật khẩu tài khoản dịch vụ và kiểm tra pool
+  - Thiết lập timeout, pool và giới hạn đồng thời theo hạ tầng
+  - Phối hợp ứng dụng với replication và failover của thư mục
+  - Thay đổi schema hoặc cấu trúc DN khi nhiều phiên bản ứng dụng cùng chạy
+  - Nâng cấp Spring Data LDAP, Spring LDAP và JDK
+  - Chuẩn bị phương án khi thư mục chậm hoặc không sẵn sàng
+  - Kiểm chứng phục hồi, đối soát dữ liệu và quy trình xử lý sự cố
+- level1: Thực hành
+  level2:
+  - Xây dựng chức năng tìm kiếm danh bạ từ schema đến API
+  - Quản lý người dùng bằng ODM và LDAP Repository
+  - Tạo nhóm và cập nhật thành viên bằng thay đổi chọn lọc
+  - Thiết kế bộ lọc động có escape và giới hạn phạm vi
+  - Đọc danh bạ lớn bằng phân trang LDAP
+  - Tích hợp xác thực và ánh xạ quyền từ nhóm
+  - Đổi DN người dùng và xử lý các tham chiếu liên quan
+  - Đồng bộ dữ liệu vào ứng dụng bằng định danh ổn định
+  - Viết kiểm thử tích hợp và mô phỏng lỗi kết nối
+  - Đo hiệu năng tìm kiếm và đánh giá cấu hình pool
+- level1: Chẩn đoán
+  level2:
+  - Không tạo được ContextSource, LdapTemplate hoặc Repository
+  - Kết nối thành công nhưng tìm kiếm không thấy dữ liệu
+  - DN bị lặp base, sai RDN hoặc escape không đúng
+  - ODM ánh xạ thiếu thuộc tính hoặc không đọc được dữ liệu nhị phân
+  - save tạo entry mới hoặc cập nhật khác dự kiến
+  - Cập nhật thất bại do objectClass, schema hoặc ACL
+  - Đổi DN làm mất liên kết nhóm hoặc tham chiếu
+  - Kết quả bị cắt do giới hạn, referral hoặc phân trang sai cookie
+  - Xác thực thất bại sau đổi mật khẩu hoặc thay chứng chỉ
+  - Giao dịch bù trừ không phục hồi đầy đủ khi gặp sự cố
+  - Cạn pool, context không được đóng hoặc thời gian chờ tăng
+  - Kiểm thử chạy đúng nhưng khác hành vi Active Directory hoặc OpenLDAP thật
+  - Danh sách kiểm tra DN, bộ lọc, schema, quyền và cấu hình kết nối

@@ -1,0 +1,57 @@
+roadmap:
+- id: buc-tranh-tich-hop-he-thong
+  title: Bức tranh tích hợp hệ thống
+  purpose: Hiểu ứng dụng kết nối với hệ thống ngoài để làm gì và trách nhiệm nằm ở đâu.
+  objectives:
+  - Phân biệt gọi đồng bộ, trao đổi thông điệp và truy cập kho dữ liệu.
+  - Xác định hợp đồng dữ liệu, bên sở hữu dữ liệu và ranh giới lỗi.
+  - Phân biệt hỗ trợ tích hợp của Spring Boot với framework Spring Integration.
+- id: cau-hinh-ket-noi-va-client
+  title: Cấu hình kết nối và client
+  purpose: Dùng cơ chế của Spring Boot để khởi tạo kết nối có thể kiểm soát theo môi trường.
+  objectives:
+  - Chọn dependency phù hợp và nhận diện bean được tự cấu hình.
+  - Cấu hình địa chỉ, thông tin xác thực và tài nguyên kết nối qua thuộc tính bên ngoài.
+  - Tùy chỉnh client hoặc template mà vẫn giữ các cấu hình cần thiết của Boot.
+- id: goi-dich-vu-http
+  title: Gọi dịch vụ HTTP
+  purpose: Trao đổi dữ liệu với API ngoài bằng mô hình xử lý phù hợp.
+  objectives:
+  - Chọn RestClient cho lời gọi blocking hoặc WebClient cho luồng reactive.
+  - Sử dụng builder do Boot cấu hình để tạo client và ánh xạ dữ liệu.
+  - Xử lý mã trạng thái lỗi, lỗi kết nối và timeout theo hợp đồng API.
+- id: ket-noi-du-lieu-va-cache
+  title: Kết nối dữ liệu và cache
+  purpose: Tích hợp kho dữ liệu và bộ nhớ đệm với trách nhiệm rõ ràng.
+  objectives:
+  - Kết nối SQL qua DataSource và JDBC/JPA hoặc chọn client NoSQL phù hợp.
+  - Xác định phạm vi giao dịch cục bộ; không mặc định bao phủ lời gọi hệ thống ngoài.
+  - Chọn CacheManager, khóa cache và chính sách hết hạn hoặc làm mất hiệu lực.
+- id: trao-doi-thong-diep
+  title: Trao đổi thông điệp
+  purpose: Tách bên gửi và bên nhận khi công việc không cần hoàn tất trong cùng lời gọi.
+  objectives:
+  - Thiết lập gửi và nhận bằng RabbitMQ hoặc Kafka qua hỗ trợ của Boot.
+  - Xác định định dạng thông điệp, điểm đến và thời điểm xác nhận xử lý.
+  - Giải thích khả năng nhận lại thông điệp và giới hạn bảo đảm thứ tự.
+- id: to-chuc-luong-tich-hop
+  title: Tổ chức luồng tích hợp
+  purpose: Ghép các bước chuyển đổi, định tuyến và kết nối mà không trộn vào logic nghiệp vụ.
+  objectives:
+  - Mô tả Message, Channel, Endpoint, Adapter và Gateway trong Spring Integration.
+  - Dựng luồng nhận → chuyển đổi → định tuyến → gửi bằng IntegrationFlow.
+  - Xác định nơi xử lý lỗi và phân biệt channel trong ứng dụng với broker bên ngoài.
+- id: xu-ly-loi-va-tinh-nhat-quan
+  title: Xử lý lỗi và tính nhất quán
+  purpose: Kiểm soát lỗi từng phần và tác động của việc thực hiện lại thao tác.
+  objectives:
+  - Phân loại lỗi có thể thử lại; đặt timeout và giới hạn số lần thử lại có khoảng chờ.
+  - Thiết kế xử lý lặp an toàn (idempotency) cho thao tác có tác dụng phụ.
+  - Chọn cách lưu, chuyển xử lý hoặc đối soát công việc lỗi; không coi timeout là bằng chứng thao tác chưa chạy.
+- id: kiem-chung-va-theo-doi
+  title: Kiểm chứng và theo dõi
+  purpose: Chứng minh các kết nối hoạt động và tìm được nguyên nhân khi tích hợp gặp lỗi.
+  objectives:
+  - Phân biệt kiểm thử hợp đồng bằng dịch vụ giả lập với kiểm thử hạ tầng thật.
+  - Dùng Testcontainers và @ServiceConnection khi được hỗ trợ để kiểm thử kết nối.
+  - Kiểm thử timeout, dữ liệu sai và thông điệp lặp; theo dõi bằng log, metric và trace.

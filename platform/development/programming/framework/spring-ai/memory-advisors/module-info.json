@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SPRING_AI_MEMORY_ADVISORS"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Học quản lý ngữ cảnh hội thoại trong Spring AI bằng ChatMemory, ChatMemoryRepository và các Advisor gắn với ChatClient. Thực hành lưu và truy xuất thông điệp, giới hạn cửa sổ ngữ cảnh, kết hợp bộ nhớ ngữ nghĩa với Vector Store, đồng thời kiểm soát quyền riêng tư, chi phí và tính nhất quán."
+  }
+}

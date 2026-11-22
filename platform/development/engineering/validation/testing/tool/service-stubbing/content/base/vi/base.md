@@ -1,0 +1,7 @@
+# Engineering Validation Testing Tool Service Stubbing
+
+**Service Stubbing** là kỹ thuật thay thế tạm thời một dịch vụ phụ thuộc bằng đầu cuối giả lập có phản hồi được định nghĩa trước. Nhờ đó, ứng dụng có thể được kiểm thử ngay cả khi API bên ngoài chưa sẵn sàng, không ổn định hoặc khó tạo dữ liệu lỗi. Stub giúp kiểm soát request, response, độ trễ và các tình huống thất bại; tuy nhiên, nó không chứng minh được hệ thống thật vẫn tuân thủ cùng hợp đồng API, vì vậy cần kết hợp với kiểm thử tích hợp hoặc contract testing thích hợp.
+
+Lộ trình gồm **8 mốc**: phân biệt stub và các loại test double; thiết lập WireMock với Java/JUnit; khớp request; định nghĩa response fixtures; mô phỏng lỗi và độ trễ; quản lý stateful scenarios; xác minh request đã nhận; cuối cùng là tích hợp CI và bảo trì dữ liệu stub. Người học thực hành với một HTTP client gọi dịch vụ giả lập, lần lượt thử phản hồi thành công, lỗi, chậm và luồng nhiều bước mà không phụ thuộc môi trường bên ngoài.
+
+Học phần phù hợp với Java/backend developer và QA engineer đã biết HTTP, JSON, JUnit và kiểm thử ứng dụng cơ bản. Sau khi hoàn thành, bạn có thể xây bộ test có tính tái lập cho client tích hợp, phát hiện request sai, kiểm tra xử lý lỗi và retry, cô lập trạng thái giữa các test và nhận diện khi nào phải xác minh thêm với dịch vụ thật.

@@ -1,0 +1,64 @@
+roadmap:
+- id: pham-vi-rui-ro
+  title: Phạm vi & rủi ro
+  purpose: Xác định mục tiêu, phạm vi được phép kiểm thử và mức độ rủi ro cần ưu tiên.
+  objectives:
+  - Phân biệt security testing với functional testing
+  - Chọn tài sản, luồng nghiệp vụ và tiêu chí bảo vệ
+  - Xác định phạm vi, môi trường và giới hạn kiểm thử
+- id: be-mat-tan-cong
+  title: Bề mặt tấn công
+  purpose: Nhận diện điểm vào và mối đe dọa để thiết kế các ca kiểm thử có trọng tâm.
+  objectives:
+  - Lập danh sách endpoint, vai trò và luồng dữ liệu
+  - Xác định trust boundaries và điểm nhạy cảm
+  - Ưu tiên test theo threat model và mức độ ảnh hưởng
+- id: xac-thuc-phien
+  title: Xác thực & phiên
+  purpose: Đánh giá việc chứng minh danh tính và duy trì phiên đăng nhập an toàn.
+  objectives:
+  - Kiểm tra đăng nhập, đăng xuất và khôi phục tài khoản
+  - Xác minh cơ chế bảo vệ phiên, cookie và token
+  - Thử các tình huống hết hạn hoặc thu hồi quyền truy cập
+- id: phan-quyen-cach-ly
+  title: Phân quyền & cách ly
+  purpose: Kiểm tra người dùng chỉ truy cập đúng tài nguyên và thao tác được cấp phép.
+  objectives:
+  - Thử phân quyền theo vai trò và quyền sở hữu đối tượng
+  - Kiểm tra truy cập trực tiếp tài nguyên bị hạn chế
+  - Xác minh tenant/user isolation và từ chối an toàn
+- id: dau-vao-dau-ra
+  title: Đầu vào & đầu ra
+  purpose: Phát hiện lỗi xác thực, diễn giải dữ liệu và hiển thị kết quả không an toàn.
+  objectives:
+  - Thử dữ liệu bất thường ở đầu vào và upload
+  - Kiểm tra nguy cơ injection và XSS theo ngữ cảnh
+  - Xác minh xử lý lỗi và dữ liệu phản hồi không lộ bí mật
+- id: api-logic-nghiep-vu
+  title: API & logic nghiệp vụ
+  purpose: Đánh giá các hành vi của API và quy trình nghiệp vụ trước truy cập trái phép hoặc lạm dụng.
+  objectives:
+  - Kiểm tra bảo vệ API và giới hạn tài nguyên
+  - Thử vượt qua thứ tự bước hoặc giới hạn nghiệp vụ
+  - Xác nhận chính sách CORS/CSRF khi có liên quan
+- id: du-lieu-mat-ma
+  title: Dữ liệu & mật mã
+  purpose: Bảo đảm dữ liệu nhạy cảm được bảo vệ khi lưu trữ, truyền và ghi log.
+  objectives:
+  - Kiểm tra TLS và cách quản lý khóa, secret
+  - Đánh giá lộ lọt dữ liệu trong phản hồi và nhật ký
+  - Xác minh kiểm soát truy cập dữ liệu nhạy cảm
+- id: cau-hinh-phu-thuoc
+  title: Cấu hình & phụ thuộc
+  purpose: Tìm lỗi thiết lập môi trường và rủi ro từ các thành phần phần mềm.
+  objectives:
+  - Kiểm tra cấu hình mặc định và quyền dịch vụ
+  - Rà soát package, dependency và thành phần lỗi thời
+  - Đối chiếu cảnh báo SCA với phạm vi ảnh hưởng thực
+- id: cong-cu-hoi-quy
+  title: Công cụ & hồi quy
+  purpose: Kết hợp kiểm tra thủ công, tự động và xác minh khắc phục để duy trì mức độ an toàn.
+  objectives:
+  - Phân biệt SAST, DAST, SCA và kiểm tra thủ công
+  - Ghi bằng chứng, mức độ tác động và cách tái hiện
+  - Xác nhận bản vá và bổ sung regression test trong CI

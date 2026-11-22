@@ -1,0 +1,64 @@
+roadmap:
+- id: vai-tro-oauth2-oidc-client
+  title: Vai trò OAuth2/OIDC Client
+  purpose: Hiểu trách nhiệm của ứng dụng khách trong OAuth 2.0 và OIDC để chọn đúng tính năng Spring Security.
+  objectives:
+  - Phân biệt Client, Resource Server và Authorization Server
+  - Phân biệt ủy quyền OAuth 2.0 với xác thực OIDC
+  - Nhận diện OAuth2 Login và OAuth2 Client trong Spring Security
+- id: dang-ky-client-provider
+  title: Đăng ký Client & Provider
+  purpose: Khai báo thông tin client và nhà cung cấp danh tính để ứng dụng kết nối an toàn.
+  objectives:
+  - Cấu hình registrationId, client-id, secret và scope
+  - Sử dụng issuer-uri/discovery và redirect-uri
+  - Phân biệt client công khai và client bí mật
+- id: authorization-code-pkce
+  title: Authorization Code & PKCE
+  purpose: Nắm luồng chuyển hướng người dùng, nhận authorization code và bảo vệ quá trình đổi token.
+  objectives:
+  - Mô tả authorize, callback và token exchange
+  - Hiểu state, redirect URI và vai trò của PKCE
+  - Kiểm tra cấu hình authorization request trong Spring
+- id: oauth2-login-oidc-user
+  title: OAuth2 Login & OIDC User
+  purpose: Tích hợp đăng nhập qua Identity Provider và đọc thông tin danh tính theo chuẩn OIDC.
+  objectives:
+  - Cấu hình oauth2Login() cho ứng dụng Servlet
+  - Phân biệt ID Token, Access Token và UserInfo
+  - Ánh xạ OidcUser/claims sang principal và authorities
+- id: authorized-client
+  title: Authorized Client
+  purpose: Hiểu cách Spring Security lưu và truy xuất quyền truy cập của một client đã được ủy quyền.
+  objectives:
+  - Sử dụng ClientRegistrationRepository và OAuth2AuthorizedClient
+  - Phân biệt AuthorizedClientRepository với AuthorizedClientService
+  - Giải thích vai trò OAuth2AuthorizedClientManager
+- id: token-grant-lifecycle
+  title: Token & Grant Lifecycle
+  purpose: Quản lý token theo loại grant và xử lý nhu cầu cấp mới khi hết hạn.
+  objectives:
+  - Phân biệt authorization_code và client_credentials
+  - Hiểu refresh token và re-authorization
+  - Xử lý token hết hạn hoặc lỗi cấp quyền
+- id: goi-protected-api
+  title: Gọi Protected API
+  purpose: Dùng token thích hợp khi ứng dụng khách gọi tài nguyên được bảo vệ.
+  objectives:
+  - Gắn authorized client vào RestClient hoặc WebClient
+  - Phân biệt gọi API theo người dùng và service-to-service
+  - Tránh lộ token và tránh dùng nhầm client/registration
+- id: phien-oidc-logout
+  title: Phiên & OIDC Logout
+  purpose: Quản lý trạng thái đăng nhập, scope và đăng xuất nhất quán với nhà cung cấp danh tính.
+  objectives:
+  - Phân biệt session cục bộ và phiên tại OIDC Provider
+  - Nhận diện local logout và RP-initiated logout
+  - Xem xét kiểm soát scope, redirect và CSRF
+- id: kiem-thu-tich-hop
+  title: Kiểm thử & Tích hợp
+  purpose: Kiểm chứng luồng đăng nhập và ủy quyền trong các ứng dụng Servlet hoặc Reactive.
+  objectives:
+  - Thử success/failure callback và sai cấu hình provider
+  - Kiểm tra token refresh, client credentials và API calls
+  - Phân biệt SecurityFilterChain và SecurityWebFilterChain

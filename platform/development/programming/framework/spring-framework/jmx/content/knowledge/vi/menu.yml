@@ -1,0 +1,391 @@
+menu:
+- level1: Mô hình tư duy
+  level2:
+  - JMX giải quyết bài toán quản trị, giám sát và điều khiển ứng dụng Java như thế nào?
+  - Spring Framework bổ sung những khả năng gì trên nền JMX?
+  - 'Bốn năng lực chính: đăng ký MBean, kiểm soát giao diện, truy cập từ xa và tạo proxy'
+  - Luồng từ bean Spring đến MBeanServer và công cụ quản trị
+  - Phân biệt MBean, bean Spring, endpoint và chỉ số ứng dụng
+  - Quản trị trạng thái với đọc thuộc tính, ghi thuộc tính và gọi operation
+  - Đưa khả năng quản trị ra ngoài ứng dụng mà không làm mã miền phụ thuộc JMX
+  - Khi nào JMX phù hợp hơn HTTP endpoint hoặc hệ thống metrics?
+  - Ranh giới giữa quan sát, chẩn đoán và điều khiển thay đổi trạng thái
+  - Lộ trình học từ JMX nền tảng đến cấu hình Spring và truy cập từ xa
+- level1: JMX nền tảng
+  level2:
+  - Java Management Extensions gồm những thành phần nào?
+  - MBeanServer như một registry và điểm thực thi quản trị
+  - ObjectName, domain, key property và định danh MBean
+  - Attribute, operation, constructor và notification trong MBeanInfo
+  - Standard MBean và quy ước tên giao diện quản lý
+  - MXBean và cách ánh xạ kiểu dữ liệu mở rộng
+  - DynamicMBean và mô tả giao diện được tạo lúc chạy
+  - Model MBean và metadata cho khả năng quản trị nâng cao
+  - Open MBean và các kiểu dữ liệu mở rộng chuẩn
+  - Phân biệt management interface với lớp cài đặt
+  - Giới hạn kiểu dữ liệu khi giao tiếp qua JMX
+- level1: MBeanServer
+  level2:
+  - Đăng ký và hủy đăng ký MBean trong MBeanServer
+  - Tra cứu MBean bằng ObjectName
+  - Đọc và ghi attribute qua MBeanServer
+  - Gọi operation với chữ ký và tham số
+  - Lấy MBeanInfo để biết giao diện đang được phơi bày
+  - Phân biệt lỗi tên, lỗi kiểu và lỗi thực thi operation
+  - MBeanServer nền tảng và MBeanServer do ứng dụng tạo
+  - Đăng ký MBean ở JVM local và khả năng truy cập của tiến trình khác
+  - Quản lý vòng đời MBeanServer trong ứng dụng
+  - Kiểm tra registry bằng JConsole hoặc công cụ JMX tương đương
+- level1: ObjectName
+  level2:
+  - Cấu trúc domain:key=value của ObjectName
+  - Tên thuộc tính, giá trị thuộc tính và ký tự cần escape
+  - ObjectName cụ thể và mẫu ObjectName có wildcard
+  - Tránh xung đột tên giữa nhiều bean hoặc nhiều ứng dụng
+  - Chọn domain theo sản phẩm, mô-đun và môi trường
+  - Định danh ổn định qua các lần khởi động
+  - ObjectName trong truy vấn, listener và proxy
+  - Đọc tên hiển thị khác với tên dùng để định tuyến
+  - Kiểm tra ObjectName bằng API thay vì ghép chuỗi tùy tiện
+  - Chiến lược đặt tên khi triển khai nhiều instance
+- level1: MBean giao diện
+  level2:
+  - Quy ước tên Interface và MBean cho Standard MBean
+  - Thuộc tính chỉ đọc, chỉ ghi và đọc–ghi
+  - Operation có tham số, kiểu trả về và overload
+  - Kiểm soát điều gì được public nhưng không được phơi bày
+  - MXBean và quy tắc chuyển đổi kiểu dữ liệu
+  - Thiết kế management interface nhỏ và ổn định
+  - Tách interface quản trị khỏi interface nghiệp vụ
+  - Ảnh hưởng của proxy hoặc decorator tới việc nhận diện MBean
+  - Kiểm thử giao diện quản trị như một hợp đồng công khai
+  - Khi nào interface-based MBean phù hợp hơn annotation
+- level1: Notification
+  level2:
+  - Notification là gì và khác với đọc metric định kỳ ra sao?
+  - NotificationBroadcaster và NotificationEmitter
+  - Notification type, source, sequence number và timestamp
+  - AttributeChangeNotification cho thay đổi thuộc tính
+  - NotificationListener, NotificationFilter và handback
+  - Đăng ký listener và hủy đăng ký listener
+  - Lọc notification ở phía phát hay phía nhận
+  - Thứ tự, mất notification và giới hạn bảo đảm chuyển giao
+  - Phát sự kiện quản trị từ MBean an toàn
+  - Kiểm thử notification bằng listener quan sát được
+- level1: Công cụ JMX
+  level2:
+  - JConsole kết nối tới MBeanServer local và remote
+  - Java Mission Control và cách quan sát thông tin quản trị
+  - jcmd, JVM flags và quan hệ với JMX
+  - Đọc cây domain, thuộc tính và operation trong công cụ
+  - Gọi operation có tác dụng phụ từ công cụ quản trị
+  - Kiểm tra notification trong công cụ JMX
+  - Phân biệt dữ liệu JMX với logs, traces và metrics
+  - Quyền truy cập của công cụ đối với JMX connector
+  - Chẩn đoán lỗi không thấy MBean trong giao diện
+  - Thực hành quan sát một ứng dụng Java nhỏ
+- level1: Exporting trong Spring
+  level2:
+  - MBeanExporter là trung tâm xuất bean Spring sang MBeanServer
+  - Xuất bean đã là MBean và bean thường qua assembler
+  - Cấu hình map beans giữa ObjectName và bean
+  - Đăng ký exporter như một bean trong ApplicationContext
+  - Spring bean không cần phụ thuộc trực tiếp vào API JMX
+  - Phân biệt exporter với MBeanServerFactoryBean
+  - Chọn server JMX đã có hoặc tạo server riêng
+  - Vòng đời export và unexport khi context khởi động, dừng
+  - Exporter listener theo dõi đăng ký và hủy đăng ký
+  - Đọc lỗi exporter trong giai đoạn khởi động
+- level1: AnnotationMBeanExporter
+  level2:
+  - AnnotationMBeanExporter và lý do dùng annotation-based export
+  - '@EnableMBeanExport để bật cấu hình Java'
+  - Thuộc tính server và defaultDomain của exporter
+  - Liên hệ với phần tử context:mbean-export trong XML
+  - Autodetection và cách exporter chọn bean cần phơi bày
+  - Kiểm tra bean được scan có đúng phạm vi không
+  - Phân biệt cấu hình exporter tường minh và tự động
+  - Thứ tự khởi tạo exporter với các bean phụ thuộc
+  - Tùy biến exporter khi có nhiều ApplicationContext
+  - Giới hạn khi dùng annotation nhưng proxy che khuất target class
+- level1: ManagedResource
+  level2:
+  - '@ManagedResource đánh dấu bean được quản lý qua JMX'
+  - ObjectName, description và class-level metadata
+  - Autodetect bean có @ManagedResource
+  - Thuộc tính currencyTimeLimit và persistence metadata ở đâu còn phù hợp
+  - Phạm vi annotation trên class proxy và target class
+  - Bean prototype, singleton và tính phù hợp để quản trị
+  - Không phơi bày nhầm service nội bộ qua annotation
+  - Tài liệu hóa mục đích của resource quản trị
+  - Kiểm thử scan annotation trong ApplicationContext
+  - Khi nên chọn interface thay cho @ManagedResource
+- level1: ManagedAttribute
+  level2:
+  - '@ManagedAttribute và cách phơi bày property'
+  - Getter tạo attribute chỉ đọc
+  - Getter và setter tạo attribute đọc–ghi
+  - Description, default descriptor và metadata
+  - Kiểu property được JMX hỗ trợ
+  - Đặt tên attribute ổn định khi refactor phương thức
+  - Không dùng attribute để lộ dữ liệu nhạy cảm
+  - Kiểm tra getter có gây truy vấn hoặc tác dụng phụ không
+  - Phân biệt attribute quản trị với field nội bộ
+  - Thiết kế API đọc trạng thái có chi phí chấp nhận được
+- level1: ManagedOperation
+  level2:
+  - '@ManagedOperation và cách phơi bày phương thức'
+  - Description và metadata cho operation
+  - Tham số operation và @ManagedOperationParameter
+  - Kiểu tham số, kiểu trả về và tương thích JMX
+  - Operation có tác dụng phụ và yêu cầu xác nhận
+  - Tránh overload gây khó chọn chữ ký từ công cụ
+  - Ném exception từ operation và cách người gọi nhìn thấy
+  - Phân biệt operation điều khiển với endpoint nghiệp vụ
+  - Kiểm thử gọi operation qua MBeanServer
+  - Thiết kế operation an toàn khi gọi nhiều lần
+- level1: Management interface
+  level2:
+  - Management interface mặc định và mức độ phơi bày public
+  - SimpleReflectiveMBeanInfoAssembler
+  - MetadataMBeanInfoAssembler và nguồn metadata annotation
+  - InterfaceBasedMBeanInfoAssembler
+  - MethodNameBasedMBeanInfoAssembler
+  - Đăng ký assembler trong MBeanExporter
+  - Chọn một nguồn metadata duy nhất để tránh khó đoán
+  - Kiểm tra MBeanInfo thực tế sau khi export
+  - Ẩn phương thức không thuộc giao diện quản trị
+  - So sánh assembler với @ManagedAttribute và @ManagedOperation
+- level1: Naming strategy
+  level2:
+  - ObjectNamingStrategy và vai trò trong MBeanExporter
+  - KeyNamingStrategy dùng key của map bean
+  - IdentityNamingStrategy và định danh theo identity
+  - MetadataNamingStrategy lấy tên từ metadata nguồn
+  - '@ManagedResource đặt ObjectName cho bean'
+  - defaultDomain và namespace của ứng dụng
+  - Đảm bảo tên nhất quán giữa local và remote
+  - Xử lý nhiều instance cùng một loại bean
+  - Kiểm thử tên bằng ObjectName và MBeanServer
+  - Không để tên lớp Java làm hợp đồng quản trị duy nhất
+- level1: Autodetection
+  level2:
+  - Autodetect MBean đã triển khai giao diện JMX
+  - Autodetect resource dựa trên assembler
+  - AutodetectCapableMBeanInfoAssembler và cơ chế vote
+  - Phân biệt bean được phát hiện với bean được khai báo trong map
+  - Autodetection trên bean proxied
+  - Proxy interface che annotation và vì sao có thể bị bỏ qua
+  - Target-class proxy khi cần giữ metadata JMX
+  - Giới hạn phạm vi autodetection trong context lớn
+  - Chẩn đoán MBean biến mất sau khi bật AOP hoặc transaction
+  - Chọn autodetection hay đăng ký tường minh theo rủi ro
+- level1: Registration policy
+  level2:
+  - Lỗi trùng ObjectName khi đăng ký mặc định
+  - RegistrationPolicy.FAIL_ON_EXISTING
+  - RegistrationPolicy.IGNORE_EXISTING
+  - RegistrationPolicy.REPLACE_EXISTING
+  - Đánh đổi khi thay thế MBean đang được sử dụng
+  - Ảnh hưởng của thứ tự khởi tạo nhiều context
+  - Tránh hai ứng dụng cùng chiếm một ObjectName
+  - Kiểm thử khởi động lại và redeploy
+  - Giám sát log khi đăng ký thất bại
+  - Chọn chính sách theo môi trường và mức an toàn
+- level1: MBeanServer tùy biến
+  level2:
+  - Chọn MBeanServer bằng thuộc tính server
+  - MBeanServerFactoryBean và exposePlatformMBeanServer
+  - PlatformMBeanServer của JVM
+  - Đăng ký bean vào server đã tồn tại
+  - Chia sẻ server giữa nhiều context Spring
+  - Domain riêng và tránh trộn MBean không cùng ứng dụng
+  - Quản lý vòng đời server trong container
+  - Kiểm tra server đang được exporter dùng thực tế
+  - Ảnh hưởng của classloader và nhiều ứng dụng trong một JVM
+- level1: Proxy MBean local
+  level2:
+  - MBeanProxyFactoryBean dùng để tạo proxy typed
+  - ProxyInterface và hợp đồng Java phía người gọi
+  - ObjectName của MBean mục tiêu
+  - MBeanServerConnection local và lời gọi qua proxy
+  - Đọc attribute như lời gọi phương thức Java
+  - Gọi operation và xử lý lỗi từ MBeanServer
+  - Proxy động và giới hạn của kiểu trả về
+  - Phân biệt proxy local với gọi trực tiếp bean Spring
+  - Kiểm thử proxy bằng MBeanServer giả hoặc thật
+  - Chọn proxy khi muốn tách client khỏi implementation
+- level1: Remote connector
+  level2:
+  - JSR-160 và mô hình kết nối JMX từ xa
+  - MBeanServerConnectionFactoryBean trong Spring
+  - Service URL và cấu hình connector client
+  - RMI connector và các thành phần liên quan
+  - Xác thực, TLS và quyền truy cập connector
+  - MBeanProxyFactoryBean với server connection từ xa
+  - Độ trễ, timeout và lỗi mạng khi gọi operation
+  - Khác biệt giữa local ObjectName và server từ xa
+  - Kiểm tra phiên bản, firewall và port cần mở
+  - Không coi remote JMX là kênh không cần bảo vệ
+- level1: Spring configuration
+  level2:
+  - Cấu hình JMX bằng Java Config
+  - Cấu hình JMX bằng XML namespace context
+  - '@EnableMBeanExport trong nhiều profile'
+  - Đặt defaultDomain theo môi trường triển khai
+  - Kết hợp exporter với bean configuration hiện có
+  - Giải quyết bean name, ObjectName và tên hiển thị
+  - Không tạo exporter trùng trong cùng ApplicationContext
+  - Kiểm tra cấu hình hiệu lực từ ApplicationContext
+  - Giữ cấu hình quản trị tách khỏi nghiệp vụ
+  - Migration từ XML exporter sang Java Config
+- level1: Spring Boot integration
+  level2:
+  - Spring Boot Actuator và quan hệ với JMX
+  - management.endpoints.jmx.exposure.include
+  - Phân biệt endpoint Actuator với MBean tự định nghĩa
+  - Định danh endpoint JMX và domain mặc định
+  - Chọn endpoint được phép expose theo môi trường
+  - JMX trong ứng dụng chạy embedded server
+  - Kiểm tra MBean Actuator bằng JConsole
+  - Tránh expose endpoint nhạy cảm cho môi trường production
+  - Kết hợp MBean tự định nghĩa với endpoint framework
+  - Phân biệt JMX exposure với HTTP exposure
+- level1: JMX và AOP
+  level2:
+  - Ảnh hưởng của proxy Spring tới việc nhận diện annotation JMX
+  - Interface-based proxy che target class
+  - Target-class proxy và cờ proxy-target-class
+  - Thứ tự tạo proxy, exporter và metadata assembler
+  - Transaction proxy trên bean có @ManagedResource
+  - Security proxy và quyền gọi operation
+  - Đọc MBeanInfo sau khi bean đã qua nhiều interceptor
+  - Tránh export proxy thay vì target khi hợp đồng cần ổn định
+  - Kiểm thử JMX cùng AOP, transaction và async
+  - Chẩn đoán bean bị bỏ qua sau khi bật auto-proxy
+- level1: Notification trong Spring
+  level2:
+  - notificationListenerMappings của MBeanExporter
+  - Đăng ký một listener cho một MBean cụ thể
+  - Đăng ký listener cho nhiều MBean
+  - Wildcard listener cho các MBean exporter quản lý
+  - notificationListeners và NotificationListenerBean
+  - Mapped ObjectNames, NotificationFilter và handback
+  - Phát notification từ MBean được export
+  - AttributeChangeNotification và thay đổi attribute
+  - Đồng bộ, bất đồng bộ và thread khi xử lý listener
+  - Tháo listener khi context dừng
+  - Kiểm thử notification và chống xử lý trùng
+- level1: Security và vận hành
+  level2:
+  - Rủi ro của JMX remote không xác thực
+  - Phân quyền đọc attribute và gọi operation
+  - Bảo vệ connector bằng xác thực và TLS
+  - Giảm surface area bằng cách chỉ export MBean cần thiết
+  - Không phơi bày bí mật, token hoặc dữ liệu cá nhân
+  - Operation có thể thay đổi cấu hình, cache hoặc luồng xử lý
+  - Audit lời gọi quản trị và người thực hiện
+  - Đặt tên để phân biệt production, staging và local
+  - Giám sát lỗi connector và đăng nhập thất bại
+  - Quy trình tắt hoặc thu hồi remote JMX
+- level1: Hiệu năng và ổn định
+  level2:
+  - Chi phí đọc attribute và gọi operation qua JMX
+  - Attribute có tính toán nặng hoặc truy cập I/O
+  - Notification dồn dập và áp lực lên listener
+  - Giới hạn tần suất phát notification
+  - Không chạy công việc dài trực tiếp trên thread quản trị
+  - Snapshot trạng thái thay cho đọc nhiều attribute rời rạc
+  - Ảnh hưởng của remote latency đến thao tác quản trị
+  - Đảm bảo operation quản trị có timeout và phản hồi rõ
+  - Xử lý lỗi listener để không làm hỏng nguồn phát
+  - Đo chi phí JMX trong môi trường gần production
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử bean có metadata JMX trong context
+  - Kiểm tra ObjectName đã đăng ký
+  - Đọc MBeanInfo và xác nhận attribute mong đợi
+  - Gọi attribute read-only, read–write và operation
+  - Kiểm thử duplicate registration theo từng policy
+  - Kiểm thử exporter start và stop
+  - Kiểm thử notification listener và filter
+  - Kiểm thử proxy local qua MBeanServerConnection
+  - Kiểm thử connector remote trong môi trường cô lập
+  - Kiểm thử proxy hoặc AOP không làm mất metadata
+  - Kiểm thử quyền truy cập và lỗi xác thực
+- level1: Chẩn đoán sự cố
+  level2:
+  - Bean không xuất hiện trong MBeanServer
+  - ObjectName khác với tên dự kiến
+  - Trùng tên khi khởi động hoặc redeploy
+  - Annotation không được nhận diện do proxy interface
+  - Attribute hoặc operation không xuất hiện trong MBeanInfo
+  - Không gọi được operation do sai chữ ký hoặc kiểu tham số
+  - Notification không đến listener
+  - JConsole không kết nối được tới remote server
+  - Connector kết nối được nhưng proxy gọi thất bại
+  - Phân biệt lỗi Spring context với lỗi JMX runtime
+  - Đọc log exporter, MBeanServer và connector để khoanh vùng
+- level1: Thiết kế management API
+  level2:
+  - Chọn thông tin quản trị có ích cho vận hành
+  - Đặt tên attribute và operation theo ý nghĩa ổn định
+  - Giữ management interface tương thích khi nâng phiên bản
+  - Thiết kế operation an toàn khi gọi lặp lại
+  - Trả về kiểu dữ liệu nhỏ, rõ và dễ quan sát
+  - Tách lệnh chẩn đoán khỏi lệnh thay đổi trạng thái
+  - Đặt mô tả và ví dụ sử dụng cho người vận hành
+  - Không biến JMX thành API nghiệp vụ thay thế
+  - Quản lý quyền theo mức tác động của từng operation
+  - Rà soát management surface trước khi phát hành
+- level1: Tiến hóa và tương thích
+  level2:
+  - Thêm attribute mới mà không phá client hiện có
+  - Đổi ObjectName và tác động tới dashboard hoặc script
+  - Đổi kiểu attribute và tương thích với proxy
+  - Xóa operation đang được gọi từ công cụ quản trị
+  - Phiên bản hóa management interface
+  - Migration từ interface MBean sang annotation metadata
+  - Thay đổi domain khi tách mô-đun
+  - Đồng bộ cấu hình giữa Spring Framework và Spring Boot
+  - Kiểm tra thay đổi JDK hoặc framework ảnh hưởng JMX
+  - Giữ tài liệu và kiểm thử hợp đồng sau nâng cấp
+- level1: Quan sát và tự động hóa
+  level2:
+  - Đọc MBean bằng script hoặc Web API trung gian
+  - Kết hợp JMX với metrics registry
+  - Đồng bộ giá trị JMX vào hệ thống giám sát
+  - Đẩy notification thành sự kiện vận hành
+  - Job định kỳ gọi operation và kiểm tra điều kiện
+  - Idempotency khi tự động hóa thao tác quản trị
+  - Giới hạn quyền của tài khoản tự động hóa
+  - Đối chiếu dữ liệu JMX với logs và traces
+  - Xử lý server không phản hồi hoặc dữ liệu cũ
+  - Thiết kế cảnh báo dựa trên ngưỡng và xu hướng
+- level1: Thực hành
+  level2:
+  - Export một bean Spring bằng MBeanExporter
+  - Phơi bày resource bằng @ManagedResource
+  - Tạo attribute đọc–ghi bằng @ManagedAttribute
+  - Phơi bày operation có tham số bằng @ManagedOperation
+  - Đặt ObjectName bằng naming strategy
+  - Kiểm tra registration policy với hai bean trùng tên
+  - Phát và nhận AttributeChangeNotification
+  - Tạo proxy local để đọc và gọi MBean
+  - Kết nối remote qua JSR-160 trong môi trường thử nghiệm
+  - Kết hợp JMX với Spring Boot Actuator
+  - Thử lỗi proxy AOP và khắc phục bằng target-class proxy
+  - Viết kiểm thử xác nhận management interface
+  - Thiết lập checklist bảo mật cho remote JMX
+- level1: Đánh giá thiết kế
+  level2:
+  - Xác định mục tiêu quản trị trước khi tạo MBean
+  - Chọn Standard MBean, MXBean, annotation hay assembler
+  - Kiểm tra ObjectName, quyền, vòng đời và registration policy
+  - Đánh giá attribute, operation và notification theo tác động
+  - Xác minh exporter thực sự dùng đúng MBeanServer
+  - Kiểm tra hành vi local, remote, proxy và lỗi mạng
+  - Rà soát ảnh hưởng của AOP, transaction và proxy
+  - Đánh giá khả năng kiểm thử, quan sát và tự động hóa
+  - Kiểm tra tương thích khi thay đổi management interface
+  - Tự đánh giá bằng bằng chứng từ MBeanInfo, tool và test

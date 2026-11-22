@@ -1,0 +1,49 @@
+roadmap:
+- id: mcp-kien-truc
+  title: MCP & Kiến trúc
+  purpose: Hiểu vai trò của Model Context Protocol khi kết nối ứng dụng AI với công cụ và nguồn ngữ cảnh.
+  objectives:
+  - '- Phân biệt MCP host, client, server và khả năng được công bố.'
+  - '- Giải thích Tools, Resources và Prompts trong một luồng MCP.'
+- id: spring-ai-mcp-starters
+  title: Spring AI MCP Starters
+  purpose: Chọn đúng dependency và vai trò client/server cho ứng dụng Spring Boot.
+  objectives:
+  - '- Thiết lập MCP client hoặc MCP server bằng Spring Boot starter.'
+  - '- Phân biệt WebMVC, WebFlux và xử lý đồng bộ/bất đồng bộ.'
+- id: transport-lifecycle
+  title: Transport & Lifecycle
+  purpose: Thiết lập kết nối MCP theo môi trường thực thi và quản lý vòng đời ứng dụng.
+  objectives:
+  - '- Phân biệt STDIO với Streamable HTTP, nhận biết SSE cũ.'
+  - '- Cấu hình kết nối, timeout và xử lý khởi tạo/đóng client.'
+- id: mcp-server-tools
+  title: MCP Server Tools
+  purpose: Công bố thao tác nghiệp vụ có schema để AI client gọi qua MCP.
+  objectives:
+  - '- Tạo @McpTool với tên, mô tả và tham số có kiểu.'
+  - '- Kiểm tra tool discovery, gọi tool và thông báo lỗi.'
+- id: resources-prompts
+  title: Resources & Prompts
+  purpose: Cung cấp dữ liệu và mẫu lời nhắc có cấu trúc mà client có thể truy xuất.
+  objectives:
+  - '- Tạo @McpResource với URI và dữ liệu trả về phù hợp.'
+  - '- Tạo @McpPrompt, phân biệt nội dung đọc với thao tác thay đổi.'
+- id: mcp-client-toolcallback
+  title: MCP Client & ToolCallback
+  purpose: Tích hợp công cụ MCP từ server vào luồng tương tác mô hình của Spring AI.
+  objectives:
+  - '- Cấu hình nhiều kết nối MCP client và lọc tool cần sử dụng.'
+  - '- Dùng ToolCallbackProvider với ChatClient và quan sát tool calls.'
+- id: security-access-boundary
+  title: Security & Access Boundary
+  purpose: Giới hạn quyền thực thi và bảo vệ tài nguyên khi MCP tiếp xúc mạng hoặc nhiều người dùng.
+  objectives:
+  - '- Bảo vệ HTTP endpoint bằng xác thực, phân quyền và least privilege.'
+  - '- Không dùng MCP session dùng chung làm ranh giới user/tenant.'
+- id: testing-metrics-compatibility
+  title: Testing, Metrics & Compatibility
+  purpose: Kiểm tra tính đúng đắn, khả năng vận hành và tương thích giữa client/server.
+  objectives:
+  - '- Test tool/resource/prompt, timeout, lỗi và quyền truy cập bị từ chối.'
+  - '- Theo dõi latency, logs và kiểm tra phiên bản Spring AI/MCP.'

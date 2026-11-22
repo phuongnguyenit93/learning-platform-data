@@ -1,0 +1,5 @@
+# Support Document — Translate với Azure Translator
+
+Azure Translator là dịch vụ dịch máy thuộc hệ sinh thái Microsoft Azure, hỗ trợ dịch văn bản qua REST API và dịch tài liệu mà vẫn cố gắng bảo toàn cấu trúc, định dạng gốc. Với tài liệu, dịch đồng bộ phù hợp cho một tệp cần kết quả trực tiếp; dịch bất đồng bộ theo lô phù hợp với nhiều tệp hoặc tệp lớn và sử dụng Azure Blob Storage để lưu đầu vào, đầu ra. Việc lựa chọn phương án cần xét ngôn ngữ hỗ trợ, độ lớn dữ liệu, chi phí và yêu cầu bảo mật.
+
+Module dành cho người đã biết HTTP/REST, JSON và khái niệm tài nguyên trên Azure. Bạn sẽ tạo Translator resource, cấu hình endpoint, xác thực, thử phát hiện ngôn ngữ và dịch văn bản; sau đó dịch một tệp đồng bộ, xây dựng batch job qua Blob Storage, áp dụng glossary và kiểm tra định dạng. Phần cuối tập trung vào bảo vệ thông tin truy cập, hạn mức, xử lý lỗi, tích hợp vào quy trình tài liệu và đánh giá bản dịch bằng dữ liệu thực tế. Kết thúc lộ trình, bạn có thể thiết kế một luồng dịch tài liệu sử dụng Azure Translator với các bước kiểm chứng rõ ràng.

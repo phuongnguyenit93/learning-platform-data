@@ -1,0 +1,22 @@
+roadmap:
+- id: bieu-thuc-switch
+  title: Biểu thức switch
+  purpose: Trả về giá trị theo từng trường hợp bằng cú pháp rõ ràng, tránh rơi nhầm sang nhánh tiếp theo.
+  objectives:
+  - Viết case -> và gom nhiều nhãn case.
+  - Dùng yield cho nhánh có khối lệnh.
+  - Bảo đảm xử lý đủ trường hợp và phân biệt với switch câu lệnh.
+- id: chan-doan-loi-null
+  title: Chẩn đoán lỗi null
+  purpose: Tìm nguyên nhân null nhanh hơn nhờ thông báo NullPointerException chi tiết của JVM.
+  objectives:
+  - Xác định biểu thức gây lỗi từ thông báo và dấu vết ngăn xếp.
+  - Phân biệt thông báo do JVM tạo với ngoại lệ tự tạo.
+  - Sửa nơi phát sinh null và kiểm chứng lại tình huống lỗi.
+- id: doc-su-kien-jfr-lien-tuc
+  title: Đọc sự kiện JFR liên tục
+  purpose: Quan sát hoạt động của ứng dụng khi đang chạy bằng JFR Event Streaming.
+  objectives:
+  - Mở RecordingStream và chọn sự kiện CPU hoặc thu gom rác.
+  - Đăng ký onEvent, bắt đầu đọc và đóng luồng đúng lúc.
+  - Giữ xử lý sự kiện gọn để hạn chế ảnh hưởng ứng dụng.

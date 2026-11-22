@@ -1,0 +1,13 @@
+references:
+  - title: "Jakarta Persistence 3.2 Specification"
+    url: "https://jakarta.ee/specifications/persistence/3.2/jakarta-persistence-spec-3.2.html"
+    description: "Đặc tả chính thức về Entity, quan hệ, EntityManager, truy vấn, giao dịch và khóa."
+  - title: "Jakarta Persistence - Official Releases"
+    url: "https://jakarta.ee/specifications/persistence/"
+    description: "Danh mục phiên bản, đặc tả và tài liệu API chính thức của Jakarta Persistence."
+  - title: "Hibernate ORM Documentation"
+    url: "https://hibernate.org/orm/documentation/"
+    description: "Tài liệu của một JPA provider phổ biến, hữu ích khi theo dõi SQL, fetching và hiệu năng."
+  - title: "Spring Data JPA Reference"
+    url: "https://docs.spring.io/spring-data/jpa/reference/jpa.html"
+    description: "Tài liệu mở rộng về repository và tích hợp JPA trong ứng dụng Spring."

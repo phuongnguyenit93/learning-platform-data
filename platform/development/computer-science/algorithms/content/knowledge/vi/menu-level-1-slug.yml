@@ -1,0 +1,127 @@
+menu:
+- title: Bản đồ thuật toán
+  slug: algorithms-map
+  index: 0
+- title: Mô hình và đặc tả
+  slug: models-and-specifications
+  index: 1
+- title: Tính đúng và chi phí
+  slug: correctness-and-cost
+  index: 2
+- title: Cấu trúc hỗ trợ
+  slug: supporting-structures
+  index: 3
+- title: Xử lý dãy
+  slug: sequence-processing
+  index: 4
+- title: Tìm kiếm
+  slug: searching
+  index: 5
+- title: Sắp xếp so sánh
+  slug: comparison-sorting
+  index: 6
+- title: Sắp xếp phân phối
+  slug: distribution-sorting
+  index: 7
+- title: Chọn và thứ tự
+  slug: selection-and-order
+  index: 8
+- title: Chia để trị
+  slug: divide-and-conquer
+  index: 9
+- title: Biến đổi và tiền xử lý
+  slug: transformations-and-preprocessing
+  index: 10
+- title: Tham lam
+  slug: greedy-algorithms
+  index: 11
+- title: Quy hoạch động
+  slug: dynamic-programming
+  index: 12
+- title: Quy hoạch động dãy
+  slug: sequence-dynamic-programming
+  index: 13
+- title: Quy hoạch động tài nguyên
+  slug: resource-dynamic-programming
+  index: 14
+- title: Quy hoạch động cấu trúc
+  slug: structural-dynamic-programming
+  index: 15
+- title: Tối ưu quy hoạch động
+  slug: dynamic-programming-optimization
+  index: 16
+- title: Quay lui
+  slug: backtracking
+  index: 17
+- title: Nhánh và cận
+  slug: branch-and-bound
+  index: 18
+- title: Duyệt đồ thị
+  slug: graph-traversal
+  index: 19
+- title: Cấu trúc đồ thị
+  slug: graph-structures
+  index: 20
+- title: Đường đi ngắn nhất
+  slug: shortest-paths
+  index: 21
+- title: Cây khung
+  slug: spanning-trees
+  index: 22
+- title: Thuật toán trên cây
+  slug: tree-algorithms
+  index: 23
+- title: Luồng mạng
+  slug: network-flows
+  index: 24
+- title: Ghép cặp và phân công
+  slug: matching-and-assignment
+  index: 25
+- title: Tìm kiếm trạng thái
+  slug: state-space-search
+  index: 26
+- title: Tìm kiếm chuỗi
+  slug: string-searching
+  index: 27
+- title: Xử lý chuỗi nâng cao
+  slug: advanced-string-processing
+  index: 28
+- title: Thuật toán số học
+  slug: arithmetic-algorithms
+  index: 29
+- title: Đa thức và biến đổi
+  slug: polynomials-and-transforms
+  index: 30
+- title: Hình học tính toán
+  slug: computational-geometry
+  index: 31
+- title: Thuật toán số
+  slug: number-algorithms
+  index: 32
+- title: Ngẫu nhiên hóa
+  slug: randomization
+  index: 33
+- title: Độ khó bài toán
+  slug: problem-hardness
+  index: 34
+- title: Xấp xỉ và kinh nghiệm
+  slug: approximation-and-heuristics
+  index: 35
+- title: Trực tuyến và luồng
+  slug: online-and-streaming
+  index: 36
+- title: Truy vấn và ngoại tuyến
+  slug: queries-and-offline
+  index: 37
+- title: Ngoài bộ nhớ
+  slug: external-memory
+  index: 38
+- title: Thuật toán song song
+  slug: parallel-algorithms
+  index: 39
+- title: Cài đặt và kiểm thử
+  slug: implementation-and-testing
+  index: 40
+- title: Thực hành tổng hợp
+  slug: practice
+  index: 41

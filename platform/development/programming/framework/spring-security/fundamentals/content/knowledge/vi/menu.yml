@@ -1,0 +1,364 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Security là gì và giải quyết những vấn đề nào
+  - 'Xác thực, phân quyền và bảo vệ trước tấn công: ba nhóm chức năng chính'
+  - Vì sao ứng dụng cần thư viện bảo mật thay vì tự kiểm tra ở từng Controller
+  - Mối quan hệ giữa Spring Security, Spring Framework và Spring Boot
+  - Từ yêu cầu HTTP đến danh tính, quyết định truy cập và phản hồi
+  - 'Các thuật ngữ đầu tiên: principal, credentials, Authentication và authority'
+  - Phạm vi bảo vệ ứng dụng và những trách nhiệm vẫn thuộc về lập trình viên
+  - Hai mô hình thực thi Servlet và reactive trong cùng hệ sinh thái
+  - Kiến thức đầu vào và trình tự học từ cấu hình nhỏ đến luồng xử lý hoàn chỉnh
+- level1: Tư duy bảo mật
+  level2:
+  - Tài sản, chủ thể, tài nguyên và thao tác trong một ứng dụng
+  - Mô hình đe dọa và cách nhận diện bề mặt tấn công
+  - Ranh giới tin cậy giữa trình duyệt, ứng dụng, cơ sở dữ liệu và dịch vụ ngoài
+  - Nguyên tắc quyền tối thiểu và từ chối khi chưa có quy tắc cho phép
+  - Kiểm tra quyền ở máy chủ trên từng yêu cầu và thao tác nhạy cảm
+  - Phòng vệ nhiều lớp và giới hạn của một biện pháp bảo vệ đơn lẻ
+  - Xác thực thành công không đồng nghĩa với được phép truy cập mọi dữ liệu
+  - Phân biệt tính bí mật, tính toàn vẹn và tính sẵn sàng
+  - Xử lý an toàn khi cấu hình thiếu, dịch vụ ngoài lỗi hoặc dữ liệu không hợp lệ
+- level1: Nền tảng HTTP
+  level2:
+  - Request, response, HTTP method và mã trạng thái liên quan tới bảo mật
+  - Header Authorization và các cách truyền thông tin xác thực
+  - Cookie, phiên làm việc và cách trình duyệt tự gửi dữ liệu
+  - Phân biệt origin, site, hostname và đường dẫn
+  - HTTPS, chứng thư TLS và giới hạn của bảo vệ trên đường truyền
+  - Chuyển hướng, URL quay lại sau đăng nhập và rủi ro chuyển hướng không an toàn
+  - Cache trình duyệt, proxy và dữ liệu phản hồi nhạy cảm
+  - REST API không tự quyết định ứng dụng phải dùng phiên hay token
+  - Sự khác nhau khi gọi API từ trình duyệt, curl và một dịch vụ khác
+  - Reverse proxy và ranh giới tin cậy của Forwarded, X-Forwarded-*
+- level1: Bản đồ thành phần
+  level2:
+  - SecurityContext chứa Authentication và danh tính hiện tại như thế nào
+  - Principal, credentials và GrantedAuthority trong Authentication
+  - UserDetails và UserDetailsService trong xác thực bằng tài khoản
+  - PasswordEncoder trong quá trình lưu và kiểm tra mật khẩu
+  - AuthenticationManager và AuthenticationProvider trong luồng xác thực Servlet
+  - AuthorizationManager trong quá trình quyết định quyền truy cập
+  - SecurityFilterChain và SecurityWebFilterChain tại biên của ứng dụng web
+  - Thành phần xử lý thành công, thất bại và yêu cầu đăng nhập
+  - Những hợp đồng chung và các API riêng cho mô hình reactive
+- level1: Khởi tạo
+  level2:
+  - Chọn bộ phiên bản tương thích giữa Java, Spring Boot và Spring Security
+  - Vai trò của các thư viện core, web, config, crypto và test
+  - Thêm spring-boot-starter-security vào ứng dụng web đầu tiên
+  - Tài khoản mặc định, mật khẩu sinh tự động và giới hạn sử dụng khi phát triển
+  - Quan sát trang đăng nhập, HTTP Basic và phản hồi khi chưa đăng nhập
+  - Tạo endpoint công khai và endpoint cần xác thực
+  - Khai báo tài khoản mẫu và PasswordEncoder cho môi trường học tập
+  - Thay cấu hình mặc định bằng bean SecurityFilterChain
+  - Vai trò của cấu hình tự động và các điều kiện để cấu hình riêng có hiệu lực
+  - Thử nghiệm bằng trình duyệt, curl và bộ kiểm thử trước khi mở rộng cấu hình
+- level1: Cấu hình hiện đại
+  level2:
+  - Cấu hình bảo mật bằng Spring bean và Lambda DSL
+  - HttpSecurity và bước build SecurityFilterChain trong ứng dụng Servlet
+  - ServerHttpSecurity và SecurityWebFilterChain trong ứng dụng WebFlux
+  - Phân biệt cấu hình xác thực, phân quyền và cơ chế bảo vệ
+  - Phân biệt điều kiện chọn chuỗi với điều kiện chọn quy tắc truy cập
+  - Nhiều chuỗi bảo mật, thứ tự ưu tiên và chuỗi dự phòng
+  - permitAll khác với bỏ qua toàn bộ chuỗi bảo mật
+  - Vai trò của @EnableWebSecurity, @EnableWebFluxSecurity và cấu hình tự động
+  - Đặt cấu hình theo môi trường mà không mở quyền ngoài ý muốn
+  - Nhận diện API cũ trong ví dụ và tra cứu cú pháp đúng phiên bản đang dùng
+- level1: Danh tính
+  level2:
+  - Phân biệt tài khoản nghiệp vụ với principal dùng trong bảo mật
+  - Authentication biểu diễn yêu cầu xác thực và kết quả đã xác thực
+  - Ý nghĩa của getPrincipal, getCredentials, getAuthorities và isAuthenticated
+  - UsernamePasswordAuthenticationToken trước và sau xác thực
+  - GrantedAuthority và SimpleGrantedAuthority
+  - 'Vai trò, quyền thao tác và phạm vi token: phân biệt role, permission, scope'
+  - AnonymousAuthenticationToken và trạng thái người dùng chưa đăng nhập
+  - Trạng thái khóa, vô hiệu hóa và hết hạn của tài khoản
+  - Thiết kế principal gọn, không lưu mật khẩu hoặc dữ liệu nhạy cảm không cần thiết
+- level1: Luồng xác thực
+  level2:
+  - Các giai đoạn tiếp nhận thông tin, kiểm tra và thiết lập danh tính
+  - AuthenticationManager nhận và trả về Authentication
+  - ProviderManager chọn AuthenticationProvider phù hợp
+  - AuthenticationProvider.supports và khả năng có nhiều cách xác thực
+  - DaoAuthenticationProvider kết nối UserDetailsService với PasswordEncoder
+  - AuthenticationException và phân biệt thông tin sai với lỗi hệ thống
+  - Xử lý sau xác thực thành công và trách nhiệm lưu ngữ cảnh
+  - Xử lý xác thực thất bại mà không tiết lộ sự tồn tại của tài khoản
+  - Xóa credentials sau xác thực và giới hạn vòng đời thông tin nhạy cảm
+  - Phân biệt xác thực người dùng, xác thực dịch vụ và xác thực nhiều yếu tố
+- level1: Nguồn người dùng
+  level2:
+  - UserDetailsService tải dữ liệu người dùng và không tự kiểm tra mật khẩu
+  - UserDetails với username, password, authorities và trạng thái tài khoản
+  - InMemoryUserDetailsManager cho học tập và kiểm thử
+  - UserDetailsManager bổ sung các thao tác quản lý tài khoản
+  - Kho người dùng JDBC và kho nghiệp vụ qua UserDetailsService tùy chỉnh
+  - Ánh xạ vai trò, quyền và trạng thái từ cơ sở dữ liệu
+  - ReactiveUserDetailsService và MapReactiveUserDetailsService trong WebFlux
+  - Đăng ký, khôi phục và quản trị tài khoản thuộc vòng đời nghiệp vụ của ứng dụng
+  - Thay đổi quyền hoặc khóa tài khoản khi người dùng đã có phiên đăng nhập
+- level1: Mật khẩu
+  level2:
+  - Phân biệt băm mật khẩu với mã hóa có thể giải mã
+  - PasswordEncoder.encode và matches
+  - Salt, chi phí tính toán và khả năng chống dò mật khẩu
+  - BCrypt, PBKDF2, SCrypt và Argon2 ở mức lựa chọn thuật toán
+  - DelegatingPasswordEncoder và tiền tố thuật toán trong giá trị đã băm
+  - Không so sánh hai kết quả encode để xác minh cùng một mật khẩu
+  - Nâng cấp giá trị băm và xử lý dữ liệu mật khẩu từ hệ thống cũ
+  - NoOpPasswordEncoder và mật khẩu mẫu không phải cấu hình triển khai
+  - Không ghi mật khẩu vào log, response hoặc dữ liệu kiểm thử được công khai
+  - Đổi mật khẩu, đặt lại mật khẩu và những phiên cần thu hồi
+- level1: Ngữ cảnh bảo mật
+  level2:
+  - SecurityContext và vòng đời danh tính trong một yêu cầu
+  - SecurityContextHolder trong mô hình xử lý Servlet
+  - ThreadLocal và yêu cầu dọn ngữ cảnh để tránh rò rỉ danh tính
+  - SecurityContextRepository với việc tải và lưu ngữ cảnh Servlet
+  - Quan hệ giữa ngữ cảnh của yêu cầu hiện tại với dữ liệu lưu trong HttpSession
+  - Tạo Authentication trong bộ nhớ không tự bảo đảm lưu đăng nhập cho yêu cầu sau
+  - ReactiveSecurityContextHolder và Reactor Context
+  - Vì sao không dùng ThreadLocal để suy luận danh tính xuyên chuỗi reactive
+  - Truyền ngữ cảnh khi chuyển luồng, chạy @Async hoặc thực thi tác vụ nền
+  - Đọc danh tính qua API phù hợp thay vì phụ thuộc vào chi tiết lưu trữ
+- level1: Kiến trúc Servlet
+  level2:
+  - Servlet Filter, FilterChain và DispatcherServlet trong luồng yêu cầu
+  - DelegatingFilterProxy nối Servlet Container với Spring bean
+  - FilterChainProxy chọn SecurityFilterChain
+  - 'Thứ tự các nhóm bộ lọc: ngữ cảnh, xác thực, bảo vệ và phân quyền'
+  - Chọn chuỗi đầu tiên khớp yêu cầu và hậu quả khi không chuỗi nào khớp
+  - Quan hệ giữa bộ lọc bảo mật với MVC HandlerInterceptor
+  - ExceptionTranslationFilter và việc chuyển lỗi bảo mật thành phản hồi
+  - Vị trí mở rộng bộ lọc và nguy cơ đăng ký cùng bộ lọc hai lần
+  - Đọc dấu vết một yêu cầu từ bộ lọc đầu tiên tới Controller
+- level1: Kiến trúc reactive
+  level2:
+  - WebFlux, Mono, Flux và mô hình thực thi không chặn luồng
+  - WebFilter, WebFilterChainProxy và SecurityWebFilterChain
+  - ServerWebExchange trong luồng xử lý yêu cầu
+  - ReactiveAuthenticationManager và các hợp đồng trả về Mono
+  - ReactiveAuthorizationManager và quyết định quyền truy cập bất đồng bộ
+  - Reactor Context thay đổi cách truyền danh tính giữa các bước xử lý
+  - Phân biệt Publisher rỗng, kết quả từ chối và tín hiệu lỗi
+  - Không gọi block hoặc subscribe thủ công trong luồng bảo mật
+  - Lựa chọn Servlet hay reactive theo toàn bộ kiến trúc ứng dụng
+- level1: Phân quyền
+  level2:
+  - Phân quyền trả lời ai được thực hiện thao tác nào trên tài nguyên nào
+  - Phân biệt danh tính đã xác thực với tập quyền được cấp
+  - hasRole, hasAuthority và tiền tố ROLE_
+  - authenticated, anonymous, rememberMe và fullyAuthenticated
+  - 'RBAC: phân quyền theo vai trò'
+  - 'ABAC: phân quyền theo thuộc tính người dùng, tài nguyên và ngữ cảnh'
+  - Quyền sở hữu tài nguyên và ngăn truy cập dữ liệu của người khác
+  - AuthorizationManager và mô hình quyết định truy cập
+  - Phân quyền tại HTTP, phương thức và dữ liệu bổ sung cho nhau
+  - Thay đổi chính sách và kiểm tra tính nhất quán giữa các lớp
+- level1: Bảo vệ endpoint
+  level2:
+  - authorizeHttpRequests và authorizeExchange trong hai mô hình web
+  - Cho phép endpoint công khai bằng permitAll
+  - Yêu cầu đăng nhập và yêu cầu quyền cụ thể cho từng nhóm endpoint
+  - Khớp đường dẫn kết hợp HTTP method
+  - Thứ tự quy tắc và nguyên tắc dùng quy tắc khớp đầu tiên
+  - anyRequest, anyExchange và chính sách cho đường dẫn còn lại
+  - Điều kiện chọn chuỗi không thay thế các quy tắc bên trong chuỗi
+  - Tài nguyên tĩnh, trang lỗi và endpoint đăng nhập cũng cần được xét tới
+  - Ma trận truy cập theo endpoint, danh tính, vai trò và thao tác
+  - Kiểm tra đường dẫn ngoài dự kiến để phát hiện khoảng trống bảo vệ
+- level1: Bảo vệ phương thức
+  level2:
+  - Vì sao tầng dịch vụ vẫn cần kiểm tra quyền ngoài quy tắc HTTP
+  - '@EnableMethodSecurity và điều kiện để annotation có hiệu lực'
+  - '@PreAuthorize kiểm tra quyền trước khi thực thi'
+  - '@PostAuthorize kiểm tra quyền dựa trên giá trị trả về'
+  - '@Secured, @RolesAllowed và lựa chọn theo cấu hình hỗ trợ'
+  - SpEL với authentication, principal, tham số và bean chính sách
+  - '@PreFilter, @PostFilter và giới hạn của việc lọc sau truy vấn'
+  - Spring AOP proxy và nguy cơ bỏ qua kiểm tra khi tự gọi phương thức
+  - '@EnableReactiveMethodSecurity và yêu cầu riêng của phương thức reactive'
+  - Không dùng kiểm tra sau thực thi để thay thế quyền cho thao tác đã ghi dữ liệu
+- level1: Phiên và cookie
+  level2:
+  - Phiên làm việc là gì và vì sao HTTP không tự giữ trạng thái đăng nhập
+  - Session ID, cookie phiên và dữ liệu được lưu phía máy chủ
+  - Phân biệt ngữ cảnh theo yêu cầu với phiên tồn tại qua nhiều yêu cầu
+  - Stateful và stateless là lựa chọn về nơi giữ trạng thái xác thực
+  - SessionCreationPolicy trong Servlet và cách quản lý WebSession của WebFlux
+  - Cookie Secure, HttpOnly và SameSite
+  - Session fixation và lý do đổi định danh phiên sau đăng nhập
+  - Thời gian sống, hết phiên và thao tác đăng xuất
+  - Nhiều phiên, nhiều thiết bị và yêu cầu thu hồi truy cập
+  - Kho phiên chia sẻ khi ứng dụng chạy nhiều nút
+- level1: Đăng nhập và đăng xuất
+  level2:
+  - Đăng nhập bằng biểu mẫu và luồng chuyển hướng của trình duyệt
+  - HTTP Basic và cơ chế gửi username, password qua Authorization header
+  - Phân biệt HTTPS với cách mã hóa dữ liệu trong HTTP Basic
+  - Đăng nhập JSON là cách tiếp nhận thông tin, không tự xác định mô hình phiên hay token
+  - Lưu yêu cầu trước đăng nhập và chọn địa chỉ quay lại an toàn
+  - Phản hồi đăng nhập thất bại và giới hạn tiết lộ thông tin tài khoản
+  - Remember-me khác với kéo dài phiên đăng nhập
+  - Đăng xuất cần xử lý ngữ cảnh, phiên và cookie liên quan
+  - Đăng xuất cục bộ không tự thu hồi mọi token hoặc phiên tại hệ thống danh tính ngoài
+  - Xác thực lại trước thao tác nhạy cảm và khái niệm xác thực nhiều yếu tố
+- level1: Token và giao thức
+  level2:
+  - Token là gì và phân biệt Bearer token với thông tin mật khẩu
+  - Access token, refresh token và vòng đời sử dụng
+  - JWT là định dạng token, không phải toàn bộ giao thức đăng nhập
+  - Cấu trúc JWT, chữ ký và việc nội dung không mặc nhiên được mã hóa
+  - Kiểm tra nguồn cấp, đối tượng sử dụng, thời hạn và chữ ký token
+  - Opaque token và kiểm tra hiệu lực qua introspection
+  - 'OAuth2: resource owner, client, authorization server và resource server'
+  - OpenID Connect bổ sung danh tính và ID token trên nền OAuth2
+  - Phân biệt OAuth2 Login, OAuth2 Client và Resource Server trong Spring Security
+  - Thu hồi token, đánh cắp token và ảnh hưởng của cách lưu, cách gửi token
+  - API key và giới hạn khi dùng một khóa để đại diện cho ứng dụng hoặc người dùng
+- level1: CSRF
+  level2:
+  - CSRF là gì và vì sao trình duyệt có thể gửi yêu cầu ngoài ý muốn
+  - Điều kiện tấn công khi trình duyệt tự gửi cookie hoặc thông tin xác thực
+  - CSRF token và cách máy chủ kiểm tra yêu cầu thay đổi dữ liệu
+  - Biểu mẫu đăng nhập, đăng xuất và thao tác nghiệp vụ cần được xét tới
+  - Gửi CSRF token trong biểu mẫu hoặc header
+  - Token CSRF khác với cookie phiên và access token
+  - REST API hoặc cấu hình stateless không tự loại bỏ mọi nguy cơ CSRF
+  - Khi nào cân nhắc ngoại lệ và vì sao không tắt CSRF theo thói quen
+  - SameSite hỗ trợ bảo vệ nhưng không thay thế mọi kiểm tra CSRF
+  - Thử nghiệm yêu cầu có token đúng, token sai và thiếu token
+- level1: CORS
+  level2:
+  - Same-origin policy và mục đích của CORS
+  - Origin gồm giao thức, hostname và cổng
+  - Phân biệt yêu cầu trực tiếp với preflight OPTIONS
+  - Allowed origins, methods, headers và exposed headers
+  - Credentials, cookie và giới hạn của origin ký tự đại diện
+  - Thứ tự xử lý CORS và yêu cầu xác thực
+  - CORS không cấp quyền nghiệp vụ và không ngăn mọi client ngoài trình duyệt
+  - Phân biệt CORS với CSRF để chọn biện pháp bảo vệ phù hợp
+  - Kiểm thử bằng trình duyệt thay vì chỉ dựa vào kết quả gọi curl
+- level1: Bảo vệ trình duyệt
+  level2:
+  - Security headers và phạm vi giảm thiểu rủi ro
+  - Cache-Control cho nội dung chứa dữ liệu nhạy cảm
+  - HSTS và yêu cầu triển khai HTTPS đúng cách
+  - X-Content-Type-Options và kiểm soát kiểu nội dung
+  - X-Frame-Options, CSP frame-ancestors và chống clickjacking
+  - Content-Security-Policy và giới hạn đối với tấn công XSS
+  - XSS vẫn cần mã hóa đầu ra và xử lý dữ liệu theo ngữ cảnh
+  - Cookie bảo mật và giới hạn của HttpOnly, Secure, SameSite
+  - Chuẩn hóa đường dẫn, firewall yêu cầu và giới hạn dữ liệu đầu vào
+  - Tùy chỉnh cơ chế mặc định dựa trên nhu cầu và kiểm thử cụ thể
+- level1: Lỗi bảo mật
+  level2:
+  - Phân biệt chưa xác thực, xác thực sai và không đủ quyền
+  - 401 Unauthorized, 403 Forbidden và chuyển hướng tới trang đăng nhập
+  - AuthenticationException và AccessDeniedException
+  - AuthenticationEntryPoint yêu cầu client cung cấp thông tin xác thực
+  - AccessDeniedHandler xử lý quyết định từ chối quyền truy cập
+  - Thành phần xử lý lỗi tương ứng trong ứng dụng reactive
+  - Lỗi phát sinh trong bộ lọc không tự đi qua @ControllerAdvice
+  - Phản hồi JSON cho API và trang lỗi cho ứng dụng trình duyệt
+  - Thông báo nhất quán, mã tương quan và bảo vệ chi tiết nội bộ
+  - Phân biệt lỗi người dùng với sự cố kho tài khoản hoặc dịch vụ danh tính
+- level1: Điểm mở rộng
+  level2:
+  - Chọn cấu hình có sẵn trước khi viết thành phần bảo mật riêng
+  - Tùy chỉnh nguồn người dùng qua UserDetailsService
+  - Tùy chỉnh kiểm tra thông tin bằng AuthenticationProvider
+  - Chuyển đổi thông tin đầu vào thành Authentication
+  - Xây chính sách quyền riêng bằng AuthorizationManager
+  - Ánh xạ quyền từ cơ sở dữ liệu hoặc claims của hệ thống ngoài
+  - Tùy chỉnh phản hồi thành công, thất bại và đăng xuất
+  - Thêm bộ lọc khi cần và kiểm soát đúng vị trí, phạm vi áp dụng
+  - Tôn trọng hợp đồng reactive và tránh đưa mã chặn luồng vào chuỗi
+  - Giữ logic xác thực, phân quyền và nghiệp vụ ở các thành phần phù hợp
+- level1: Bảo vệ dữ liệu
+  level2:
+  - Phân quyền theo chủ sở hữu để ngăn truy cập trực tiếp đối tượng không được phép
+  - Giới hạn truy vấn theo người dùng hoặc tổ chức hiện tại
+  - Không lấy user ID do client gửi làm bằng chứng về danh tính
+  - Kiểm tra quyền cho đọc, sửa, xóa và xuất dữ liệu như các thao tác riêng
+  - DTO và giới hạn trường dữ liệu được nhận hoặc trả về
+  - Kiểm tra dữ liệu đầu vào và truy vấn tham số hóa vẫn là trách nhiệm ứng dụng
+  - Không đưa credentials, cookie hoặc token vào URL và thông báo lỗi
+  - Nhật ký kiểm toán phải cân bằng khả năng truy vết với bảo vệ dữ liệu cá nhân
+- level1: Kiểm thử
+  level2:
+  - Xây ma trận kiểm thử theo tài nguyên, thao tác và nhóm người dùng
+  - Thêm spring-security-test và nạp đúng cấu hình bảo mật
+  - '@WithMockUser, @WithAnonymousUser và danh tính dùng trong kiểm thử'
+  - Giả lập principal không đồng nghĩa với kiểm thử quá trình xác thực thực
+  - MockMvc và tích hợp chuỗi bộ lọc trong ứng dụng Servlet
+  - WebTestClient và tích hợp Spring Security trong ứng dụng reactive
+  - Kiểm thử đăng nhập đúng, thông tin sai và tài khoản không được sử dụng
+  - Kiểm thử cho phép, từ chối và quyền sở hữu tài nguyên
+  - Kiểm thử CSRF, CORS và các header bảo mật
+  - Kiểm thử đăng xuất, hết phiên và truy cập lại bằng thông tin cũ
+  - Kiểm thử endpoint không nằm trong những đường dẫn dự kiến
+  - Phân biệt kiểm thử đơn vị, tích hợp và hành vi thực tế trên trình duyệt
+- level1: Quan sát và gỡ lỗi
+  level2:
+  - Đọc log khởi động để hiểu cấu hình và chuỗi bộ lọc được tạo
+  - Xác định chuỗi bảo mật và quy tắc đã áp dụng cho yêu cầu
+  - Bật DEBUG hoặc TRACE có kiểm soát trong môi trường phù hợp
+  - Điều tra 401, 403 và chuyển hướng lặp bằng dấu vết yêu cầu
+  - Kiểm tra quyền ROLE_, authority và scope khi quyết định không như dự kiến
+  - Điều tra mất đăng nhập do cookie, phiên hoặc ngữ cảnh không được lưu
+  - Phân biệt lỗi CORS của trình duyệt với lỗi xác thực phía máy chủ
+  - Kiểm tra mất ngữ cảnh khi chuyển luồng hoặc dùng reactive sai cách
+  - Sự kiện xác thực, phân quyền và nhật ký kiểm toán
+  - Che thông tin mật và liên kết log bằng mã tương quan
+- level1: Thiết kế ứng dụng
+  level2:
+  - Chọn mô hình xác thực theo loại client và yêu cầu của sản phẩm
+  - Ứng dụng web dùng phiên, API dùng token và mô hình kết hợp
+  - Phân biệt người dùng tương tác với tài khoản dịch vụ
+  - Tự quản lý tài khoản hay tích hợp nhà cung cấp danh tính
+  - Tách quy tắc endpoint, chính sách nghiệp vụ và quyền đối với dữ liệu
+  - Không coi việc ẩn nút trên giao diện là biện pháp phân quyền
+  - Lập bảng endpoint công khai, endpoint được bảo vệ và thao tác nhạy cảm
+  - Tài liệu hóa những cơ chế được tắt cùng lý do và kiểm thử bù đắp
+  - Rà soát cấu hình khi thêm endpoint, vai trò hoặc phương thức đăng nhập
+- level1: Triển khai
+  level2:
+  - Quản lý mật khẩu, client secret và khóa bằng cấu hình bí mật bên ngoài mã nguồn
+  - Loại bỏ tài khoản, mật khẩu và cấu hình minh họa trước khi triển khai
+  - HTTPS, reverse proxy và URL công khai của ứng dụng
+  - Cấu hình cookie theo tên miền, đường dẫn và chính sách trình duyệt
+  - Bảo vệ Actuator, tài liệu API và các endpoint chẩn đoán
+  - Giới hạn thử đăng nhập và phối hợp chống dò tài khoản với hạ tầng
+  - Thời gian sống phiên, token và quy trình thu hồi truy cập
+  - Hiệu năng băm mật khẩu và độ trễ của các dịch vụ xác thực ngoài
+  - Cập nhật dependency và theo dõi bản vá đúng phiên bản
+  - Xử lý sự cố bảo mật mà không ghi lộ dữ liệu hoặc mở quyền tạm thời
+- level1: Phiên bản và học tiếp
+  level2:
+  - Tra cứu reference, API Javadoc và ví dụ đúng phiên bản đang sử dụng
+  - Quản lý phiên bản qua Spring Boot BOM và kiểm soát ghi đè dependency
+  - Nhận diện javax.servlet, jakarta.servlet và các ví dụ thuộc thế hệ cũ
+  - WebSecurityConfigurerAdapter, API matcher cũ và Lambda DSL hiện đại
+  - Đọc hướng dẫn di chuyển và kiểm thử thay đổi hành vi mặc định
+  - Học sâu xác thực, mật khẩu và tích hợp nguồn tài khoản
+  - Học sâu phân quyền, Servlet hoặc reactive theo kiến trúc ứng dụng
+  - Học tiếp OAuth2, OpenID Connect và liên kết danh tính khi có nhu cầu
+  - Phân biệt tính năng ổn định, tính năng phụ thuộc phiên bản và phần cần tự xây dựng
+- level1: Thực hành tổng hợp
+  level2:
+  - Từ ứng dụng chưa bảo vệ đến endpoint công khai và endpoint cần đăng nhập
+  - Tạo hai nhóm quyền và kiểm chứng ma trận truy cập
+  - Xây đăng nhập biểu mẫu, phiên và đăng xuất an toàn
+  - Bảo vệ API bằng HTTP Basic và giải thích chính sách CSRF đã chọn
+  - Thay kho tài khoản mẫu bằng nguồn dữ liệu riêng
+  - Bảo vệ phương thức dịch vụ và tài nguyên theo chủ sở hữu
+  - Quan sát, tái hiện và phân biệt lỗi 401, 403, CSRF và CORS
+  - Viết kiểm thử chứng minh endpoint mới không bị bỏ sót
+  - Đánh giá một cấu hình mẫu để phát hiện cấp quyền quá rộng hoặc tắt bảo vệ
+  - Lập bản đồ từ yêu cầu sản phẩm đến cơ chế bảo mật, kiểm thử và vận hành

@@ -1,0 +1,474 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Xử lý dữ liệu (data processing) là gì và tạo ra giá trị nào
+  - Luồng dữ liệu từ đầu vào qua phép biến đổi tới kết quả
+  - 'Các thuật ngữ: bản ghi, tập dữ liệu, sự kiện, công đoạn và luồng xử lý'
+  - Phân biệt thu thập, xử lý, lưu trữ và trình bày dữ liệu
+  - Phân biệt xử lý trong bộ nhớ với xử lý qua hệ thống lưu trữ
+  - Dữ liệu hữu hạn và dữ liệu đến liên tục
+  - Xử lý theo lô, vi lô và luồng sự kiện
+  - Phân biệt Java Stream với hệ thống xử lý luồng sự kiện
+  - Quan hệ giữa tính đúng đắn, độ trễ, thông lượng và tài nguyên
+  - Lộ trình học từ phép toán đơn giản tới luồng xử lý có khả năng phục hồi
+- level1: Hợp đồng xử lý
+  level2:
+  - Xác định câu hỏi nghiệp vụ và ý nghĩa kết quả cần tạo
+  - Định nghĩa đầu vào, đầu ra và các điều kiện phải bảo toàn
+  - Chọn đơn vị xử lý theo bản ghi, nhóm, lô hoặc cửa sổ
+  - Xác định dữ liệu nguồn chuẩn và phạm vi trách nhiệm
+  - Quy định cách xử lý dữ liệu thiếu, sai hoặc trùng
+  - Xác định yêu cầu về thứ tự và độ mới dữ liệu
+  - Chọn kết quả chính xác hoặc xấp xỉ theo nhu cầu
+  - Quy định độ trễ, thời hạn hoàn thành và mức tài nguyên
+  - Xác định khả năng chạy lại và điều kiện kết quả tương đương
+  - Tài liệu hóa giả định về dữ liệu và trường hợp ngoài hợp đồng
+- level1: Mô hình dữ liệu
+  level2:
+  - Bản ghi, thuộc tính, kiểu dữ liệu và lược đồ
+  - Định danh bản ghi, khóa nghiệp vụ và khóa nhóm
+  - Dữ liệu dạng bảng, cấu trúc lồng nhau và đồ thị
+  - Phân biệt sự kiện thay đổi với trạng thái hiện tại
+  - Phân biệt null, thiếu trường, chuỗi rỗng và giá trị mặc định
+  - Đơn vị đo, ngôn ngữ và ngữ cảnh diễn giải giá trị
+  - Thời điểm phát sinh dữ liệu và thời điểm nhận dữ liệu
+  - Phân bố dữ liệu, số lượng giá trị khác nhau và độ lệch khóa
+  - Đối tượng bất biến và quyền sở hữu dữ liệu giữa các công đoạn
+  - Tương thích lược đồ khi nguồn hoặc bộ xử lý đổi phiên bản
+- level1: Thiết kế luồng
+  level2:
+  - Mô hình nguồn, công đoạn xử lý và nơi nhận kết quả
+  - Luồng tuyến tính, phân nhánh, hợp nhất và đồ thị phụ thuộc
+  - Tách phép biến đổi thuần túy khỏi thao tác có tác dụng phụ
+  - Phân biệt cấu hình luồng với dữ liệu và trạng thái lúc chạy
+  - Xác định đầu vào và đầu ra của từng công đoạn
+  - ETL và ELT theo vị trí thực hiện phép biến đổi
+  - Đẩy lọc, lựa chọn cột hoặc tổng hợp tới nơi xử lý phù hợp
+  - Giữ hợp đồng dữ liệu rõ ràng giữa các công đoạn
+  - Thiết kế điểm kiểm tra và ranh giới công bố kết quả
+  - Chọn xử lý đồng bộ hoặc bất đồng bộ theo yêu cầu
+  - Lập bản đồ phụ thuộc để chạy lại đúng phần bị ảnh hưởng
+- level1: Đọc dữ liệu
+  level2:
+  - Đọc từ collection, tệp, truy vấn hoặc nguồn sự kiện
+  - Phân biệt nạp toàn bộ với đọc theo dòng hoặc theo lô
+  - Tách bước giải mã dữ liệu khỏi bước tính toán
+  - Giới hạn bộ nhớ khi đầu vào lớn hơn dung lượng khả dụng
+  - Đánh dấu vị trí đọc và khả năng tiếp tục
+  - Chọn ảnh chụp dữ liệu nhất quán khi nguồn đang thay đổi
+  - Xử lý nguồn kết thúc, nguồn gián đoạn và nguồn không có dữ liệu
+  - Quản lý tài nguyên trong toàn bộ thời gian đọc
+  - Kiểm soát tốc độ đọc theo khả năng xử lý phía sau
+- level1: Chuẩn hóa dữ liệu
+  level2:
+  - Chuẩn hóa khoảng trắng và cách biểu diễn chuỗi
+  - Chuẩn hóa Unicode và quy tắc so sánh ký tự
+  - Đổi kiểu với quy tắc định dạng tường minh
+  - Chuẩn hóa ngày giờ và múi giờ
+  - Quy đổi đơn vị đo trước khi tính toán
+  - Chuẩn hóa mã danh mục theo bảng đối chiếu
+  - Phân biệt sửa dữ liệu với suy đoán giá trị bị thiếu
+  - Giữ bản gốc và dấu vết của thay đổi khi cần đối soát
+  - Cách ly bản ghi không hợp lệ để xử lý riêng
+  - Thiết kế bước chuẩn hóa có thể thực hiện lặp mà không làm sai dữ liệu
+- level1: Biến đổi dữ liệu
+  level2:
+  - Ánh xạ một bản ghi thành một bản ghi
+  - Tách một bản ghi thành nhiều phần tử
+  - Làm phẳng collection hoặc cấu trúc lồng nhau
+  - Gộp các trường để tạo thuộc tính dẫn xuất
+  - Tách hoặc ghép chuỗi theo quy tắc có kiểm chứng
+  - Chọn, đổi tên và loại bỏ thuộc tính theo hợp đồng
+  - Dựng cấu trúc dữ liệu mới từ đầu vào phẳng
+  - Áp dụng hàm chuyển đổi dùng chung cho nhiều công đoạn
+  - Kết hợp nhiều phép biến đổi và giữ rõ thứ tự thực hiện
+  - Phân biệt phép biến đổi mất thông tin với phép có thể đảo ngược
+  - Kiểm soát ngoại lệ và lỗi chuyển đổi theo từng bản ghi
+- level1: Lọc và định tuyến
+  level2:
+  - Xây dựng điều kiện chọn bản ghi theo nghiệp vụ
+  - Kết hợp điều kiện AND, OR và NOT đúng ý nghĩa
+  - Quy định hành vi khi điều kiện gặp null hoặc dữ liệu thiếu
+  - Đẩy phép lọc sớm khi không làm thay đổi kết quả
+  - Chia dữ liệu thành các nhóm xử lý theo điều kiện
+  - Định tuyến bản ghi hợp lệ, bị loại và cần kiểm tra
+  - Phân biệt loại bỏ bản ghi với ghi nhận lỗi
+  - Lấy mẫu có thể lặp lại bằng hạt giống xác định
+  - Đo số lượng và lý do dữ liệu bị loại ở mỗi nhánh
+- level1: Sắp xếp và lựa chọn
+  level2:
+  - Xác định khóa và thứ tự sắp xếp
+  - Sắp xếp theo nhiều trường với quy tắc phá hòa
+  - Xử lý null và quy tắc so sánh chuỗi
+  - Phân biệt thứ tự nguồn với thứ tự kết quả
+  - Sắp xếp ổn định và nhu cầu bảo toàn thứ tự tương đối
+  - Tìm phần tử nhỏ nhất hoặc lớn nhất
+  - Chọn top K mà không sắp xếp toàn bộ khi phù hợp
+  - Xếp hạng và xử lý các giá trị bằng nhau
+  - Chọn bản ghi đầu, cuối hoặc mới nhất theo định nghĩa rõ ràng
+  - Sắp xếp dữ liệu vượt bộ nhớ bằng phân đoạn và trộn
+- level1: Khử trùng lặp
+  level2:
+  - Định nghĩa hai bản ghi trùng theo dữ liệu hoặc theo nghiệp vụ
+  - Chọn khóa khử trùng lặp và phạm vi duy nhất
+  - Giữ bản ghi đầu tiên, cuối cùng hoặc có phiên bản cao nhất
+  - Phân biệt trùng nội dung với cùng một sự kiện được gửi lại
+  - Sử dụng Set hoặc Map để theo dõi khóa đã gặp
+  - Khử trùng lặp theo khoảng thời gian và giới hạn trạng thái
+  - Xử lý xung đột khi cùng khóa nhưng dữ liệu khác nhau
+  - Bảo toàn thứ tự khi loại bỏ bản ghi trùng
+  - Đánh đổi bộ nhớ với phạm vi phát hiện trùng
+  - Ghi nhận bản ghi bị loại để phục vụ kiểm tra
+- level1: Nhóm và tổng hợp
+  level2:
+  - Nhóm dữ liệu theo một khóa hoặc khóa ghép
+  - Đếm, tính tổng, cực trị và thống kê theo nhóm
+  - Tính trung bình từ tổng và số lượng
+  - Trung bình có trọng số và mẫu số hợp lệ
+  - Phân biệt số lượng bản ghi với số giá trị khác nhau
+  - Tổng hợp nhiều cấp và nhóm lồng nhau
+  - Chia dữ liệu thành các tập theo điều kiện
+  - Tổng hợp từng phần và hợp nhất kết quả
+  - Vai trò của tính kết hợp và phần tử đơn vị
+  - Tổng hợp trên tập rỗng và giá trị thiếu
+  - Kiểm soát độ lớn của nhóm và số lượng khóa
+  - Tính phân vị hoặc thống kê xấp xỉ với sai số được công bố
+- level1: Ghép và làm giàu
+  level2:
+  - Phân biệt nối tập bản ghi với ghép theo khóa
+  - Ghép trong, ghép trái, ghép đầy đủ và ý nghĩa bản ghi không khớp
+  - Ghép theo khóa đơn hoặc khóa ghép
+  - Quan hệ một–một, một–nhiều và nhiều–nhiều khi ghép
+  - Nguy cơ nhân số lượng bản ghi sau phép ghép
+  - Chọn thuật toán ghép lồng, ghép băm hoặc ghép trộn
+  - Làm giàu bằng bảng tham chiếu đã được chuẩn bị
+  - Giới hạn tra cứu dịch vụ ngoài theo từng bản ghi
+  - Xác định phiên bản dữ liệu tham chiếu dùng cho một lần xử lý
+  - Xử lý dữ liệu đến thiếu phía đối ứng hoặc đến sai thứ tự
+  - Ghép theo điều kiện thời gian và phạm vi tương quan
+- level1: Số và thời gian
+  level2:
+  - Chọn kiểu số theo miền giá trị và độ chính xác
+  - Ngăn tràn số trong tổng hợp và chuyển kiểu
+  - Phân biệt số thập phân chính xác với dấu phẩy động
+  - Quy tắc làm tròn và thời điểm áp dụng
+  - Xử lý chia cho không, NaN và giá trị vô hạn
+  - Đơn vị tiền tệ và đơn vị đo trong phép tổng hợp
+  - Xác định thời điểm tuyệt đối, thời gian địa phương và múi giờ
+  - Tính khoảng thời gian với ranh giới ngày và thay đổi giờ địa phương
+  - Quy tắc bao gồm hoặc loại trừ điểm biên của khoảng
+  - Giữ quy tắc tính toán ổn định để đối soát kết quả
+- level1: Trạng thái xử lý
+  level2:
+  - Phân biệt công đoạn không trạng thái với công đoạn có trạng thái
+  - Trạng thái theo khóa, theo công đoạn và theo toàn bộ công việc
+  - Tích lũy kết quả qua nhiều bản ghi
+  - Bộ đệm, bảng băm và hàng đợi trong xử lý dữ liệu
+  - Phân biệt trạng thái nghiệp vụ với vị trí tiến độ
+  - Quản lý vòng đời và thời hạn của trạng thái
+  - Giới hạn bộ nhớ khi số khóa hoặc dữ liệu chờ tăng
+  - Lưu ảnh chụp trạng thái để phục vụ khôi phục
+  - Tương thích trạng thái khi thay đổi cấu trúc hoặc thuật toán
+  - Ngăn dùng chung trạng thái có thể thay đổi giữa các lần xử lý
+- level1: Xử lý tăng dần
+  level2:
+  - So sánh tính lại toàn bộ với cập nhật từ phần dữ liệu thay đổi
+  - Xác định mốc tiến độ theo phiên bản, vị trí hoặc thời gian
+  - Giới hạn của việc chỉ dùng thời gian cập nhật để phát hiện thay đổi
+  - Đọc thay đổi qua nhật ký hoặc cơ chế CDC
+  - Diễn giải sự kiện thêm, sửa và xóa
+  - Cập nhật kết quả dẫn xuất khi dữ liệu nguồn bị điều chỉnh
+  - Xử lý dữ liệu thay đổi đến trễ hoặc sai thứ tự
+  - Thiết kế bổ sung dữ liệu lịch sử và chạy bù (backfill)
+  - Phối hợp xử lý trực tiếp với chạy bù mà không ghi đè sai
+  - Đối soát kết quả tăng dần với kết quả tính lại
+  - Ghi nhận phiên bản thuật toán để xác định dữ liệu cần tái xử lý
+- level1: Thuật toán và tài nguyên
+  level2:
+  - Phân tích độ phức tạp theo số bản ghi và số khóa
+  - Chọn cấu trúc dữ liệu theo phép tra cứu hoặc cập nhật
+  - Phân biệt xử lý một lượt với cần đọc lại dữ liệu
+  - Xử lý tăng dần để tránh giữ toàn bộ đầu vào
+  - Tràn dữ liệu tạm ra đĩa khi vượt bộ nhớ (spill)
+  - Chia dữ liệu thành lô và chọn kích thước phù hợp
+  - Giảm sao chép, cấp phát đối tượng và biểu diễn trung gian
+  - Giới hạn số lượng nhóm, bộ đệm và dữ liệu chờ ghép
+  - Đánh đổi phép tính chính xác với cấu trúc xấp xỉ
+  - Quản lý tài nguyên và dọn dữ liệu tạm khi dừng hoặc lỗi
+  - Lựa chọn thuật toán theo phân bố dữ liệu thực tế
+- level1: Xử lý theo lô
+  level2:
+  - Định nghĩa công việc, lần chạy và tập dữ liệu đầu vào
+  - Chốt phạm vi dữ liệu trước khi bắt đầu xử lý
+  - Chia công việc thành bước và nhóm bản ghi
+  - Đọc, biến đổi và ghi theo khối
+  - Chọn kích thước khối và ranh giới giao dịch
+  - Lưu tiến độ sau khi kết quả tương ứng được xác nhận
+  - Khởi động lại từ điểm đã hoàn thành
+  - Phân biệt chạy lại cùng lần xử lý với tạo lần chạy mới
+  - Chạy song song các phần dữ liệu độc lập
+  - Tổng hợp kết quả và xác định trạng thái hoàn thành toàn công việc
+  - Quản lý lịch chạy, công việc chồng lấn và dữ liệu đến muộn
+  - Đối chiếu số lượng đầu vào, thành công, bị loại và thất bại
+- level1: Luồng sự kiện
+  level2:
+  - Đặc điểm của dữ liệu đến liên tục không có điểm kết thúc cố định
+  - Luồng đẩy và luồng kéo dưới góc độ nhận dữ liệu
+  - Định danh sự kiện, khóa phân vùng và vị trí đọc
+  - Phân biệt thứ tự toàn cục với thứ tự theo khóa
+  - Xử lý từng sự kiện và xử lý theo vi lô
+  - Phép biến đổi không trạng thái trên luồng
+  - Tổng hợp có trạng thái theo khóa
+  - Xử lý sự kiện lặp, đến trễ hoặc sai thứ tự
+  - Dữ liệu tham chiếu thay đổi trong lúc luồng đang chạy
+  - Giới hạn trạng thái của phép ghép và phát hiện mẫu liên tiếp
+  - Dừng có kiểm soát và tiếp tục từ vị trí đã xác nhận
+- level1: Thời gian và cửa sổ
+  level2:
+  - Thời gian sự kiện (event time) và thời gian xử lý (processing time)
+  - Chọn dấu thời gian phù hợp với ý nghĩa nghiệp vụ
+  - Cửa sổ cố định không chồng lấn (tumbling window)
+  - Cửa sổ trượt có chồng lấn (sliding window)
+  - Cửa sổ phiên theo khoảng ngừng hoạt động (session window)
+  - Cửa sổ theo số lượng bản ghi và giới hạn áp dụng
+  - Mốc tiến triển thời gian sự kiện (watermark)
+  - Cân bằng chờ dữ liệu đến trễ với độ trễ công bố kết quả
+  - Ảnh hưởng của phân vùng không phát sinh dữ liệu
+  - Kết quả tạm thời, kết quả cập nhật và thời điểm chốt
+  - Quy tắc giữ hoặc loại dữ liệu vượt độ trễ cho phép
+  - Đặt giới hạn lưu trạng thái sau khi cửa sổ kết thúc
+  - Kiểm thử biên cửa sổ, sai thứ tự và dữ liệu đến rất muộn
+- level1: Đồng thời và song song
+  level2:
+  - Phân biệt đồng thời, song song và bất đồng bộ
+  - Chia công việc theo bản ghi, lô hoặc khóa
+  - Giữ các bước phụ thuộc chạy đúng thứ tự
+  - Quyền sở hữu dữ liệu và trạng thái giữa các tác vụ
+  - Tránh cuộc đua khi cập nhật bộ tích lũy dùng chung
+  - Dùng kết quả cục bộ rồi hợp nhất thay vì tranh chấp liên tục
+  - Bảo toàn thứ tự đầu ra khi tác vụ hoàn thành khác thứ tự
+  - Tính kết hợp và khả năng phân chia của phép tính
+  - Chọn số tác vụ theo CPU, I/O và tài nguyên đích
+  - Phân phối công việc không đều và tác vụ kéo dài bất thường
+  - Hủy tác vụ và thu hồi tài nguyên khi một nhánh lỗi
+  - Kiểm chứng tính đúng đắn trước khi tăng mức song song
+- level1: Điều tiết tải
+  level2:
+  - Chênh lệch tốc độ giữa nguồn, bộ xử lý và nơi ghi kết quả
+  - Hàng đợi có giới hạn và chính sách khi đầy
+  - Điều tiết ngược theo nhu cầu (backpressure)
+  - Phân biệt backpressure với giới hạn tốc độ
+  - Giới hạn số tác vụ đang thực thi đồng thời
+  - Chọn kích thước bộ đệm theo bộ nhớ và độ trễ
+  - Đánh đổi giữa chờ, loại bỏ, gộp hoặc lưu tạm dữ liệu
+  - Đặt thời gian chờ và hạn mức cho từng công đoạn
+  - Bảo vệ dịch vụ phụ thuộc trước tải đột biến
+  - Tránh thử lại hàng loạt làm khuếch đại tắc nghẽn
+  - Quan sát độ dài hàng đợi và thời gian chờ thực tế
+- level1: Xử lý phân tán
+  level2:
+  - Khi nào cần vượt phạm vi một tiến trình
+  - Phân biệt phân vùng dữ liệu với tăng số luồng xử lý
+  - Chia dữ liệu theo khóa, khoảng hoặc cách phân phối khác
+  - Đưa phép xử lý tới gần dữ liệu khi phù hợp
+  - Chuyển dữ liệu giữa các nút (shuffle) và chi phí mạng
+  - Tổng hợp cục bộ trước khi hợp nhất toàn cục
+  - Ghép dữ liệu bằng phân vùng hoặc phát bảng nhỏ tới các nút
+  - Khóa nóng, phân bố lệch và mất cân bằng tải
+  - Quan hệ giữa mức song song và số phân vùng
+  - Xử lý tác vụ chậm, tác vụ bị chạy lại và nút ngừng hoạt động
+  - Tính xác định của phép xử lý khi chạy trên nhiều nút
+  - Định cỡ trạng thái và chi phí khôi phục khi thay đổi quy mô
+- level1: Bảo đảm kết quả
+  level2:
+  - Phân biệt tiếp nhận dữ liệu với đã xử lý và đã công bố
+  - Bảo đảm nhiều nhất một lần (at-most-once)
+  - Bảo đảm ít nhất một lần (at-least-once)
+  - Phạm vi của bảo đảm chính xác một lần (exactly-once)
+  - Phân biệt số lần thực thi với số lần kết quả có hiệu lực
+  - Vai trò của vị trí đọc, điểm kiểm tra (checkpoint) và trạng thái xử lý
+  - Phối hợp xác nhận đầu vào với ghi đầu ra
+  - Thiết kế nơi ghi lũy đẳng hoặc có cơ chế giao dịch phù hợp
+  - Vì sao checkpoint riêng lẻ chưa bảo đảm mọi tác dụng phụ đúng một lần
+  - Giữ nguồn đầu vào và phiên bản quy tắc để tái hiện kết quả
+  - Đối soát số lượng, giá trị tổng hợp và các bất biến cuối luồng
+- level1: Lỗi và khôi phục
+  level2:
+  - Phân loại lỗi dữ liệu, lỗi chương trình và lỗi hạ tầng
+  - Quyết định dừng, bỏ qua hoặc cách ly theo hợp đồng
+  - Phân biệt lỗi tạm thời với lỗi không thể sửa bằng thử lại
+  - Thử lại có giới hạn, giãn cách và độ ngẫu nhiên
+  - Tách bản ghi lỗi lặp lại khỏi luồng xử lý chính
+  - Ghi nhận nguyên nhân, vị trí dữ liệu và phiên bản quy tắc
+  - Khôi phục từ điểm kiểm tra đã xác nhận
+  - Xử lý trạng thái dở dang giữa nhiều công đoạn
+  - Phân biệt tiếp tục công việc với chạy lại toàn bộ
+  - Chạy lại dữ liệu lỗi sau khi đã sửa nguyên nhân
+  - Dọn tài nguyên và dữ liệu tạm sau khi hủy hoặc lỗi
+  - Kiểm tra kết quả và tiến độ trước khi cho phép xử lý tiếp
+- level1: Công bố đầu ra
+  level2:
+  - Xác định khi nào kết quả được phép nhìn thấy
+  - Phân biệt bổ sung, thay thế và cập nhật theo khóa
+  - Chọn ranh giới công bố theo bản ghi, khối hoặc toàn công việc
+  - Ghi tạm và công bố sau khi kiểm tra hoàn tất
+  - Phối hợp ghi kết quả với tiến độ xử lý
+  - Dùng định danh lần chạy hoặc phiên bản kết quả để đối soát
+  - Xử lý kết quả cũ khi chạy lại hoặc thay đổi thuật toán
+  - Ngăn hai lần chạy ghi đè lẫn nhau ngoài ý muốn
+  - Điều phối nhiều nơi nhận kết quả và xác định lỗi một phần
+  - Cách ly thao tác gửi thông báo hoặc gọi dịch vụ ngoài
+  - Phân biệt dữ liệu kết quả với nhật ký và chỉ số theo dõi
+  - Thiết kế khả năng quay lại phiên bản kết quả đã được xác nhận
+- level1: Collections trong Java
+  level2:
+  - Chọn List, Set và Map theo phép toán dữ liệu
+  - Duyệt bằng vòng lặp, Iterator và Iterable
+  - Giới hạn thay đổi collection trong khi đang duyệt
+  - Thiết kế khóa nhóm với equals và hashCode
+  - Dùng Map để nhóm, đếm và tra cứu dữ liệu đối ứng
+  - Quy tắc xử lý khóa trùng khi hợp nhất dữ liệu
+  - So sánh sao chép collection với dùng view hoặc tham chiếu chung
+  - Chọn collection bất biến tại ranh giới công đoạn
+  - Dùng cấu trúc ưu tiên để chọn top K
+  - Kiểm soát boxing, cấp phát và kích thước ban đầu
+  - Đóng tài nguyên của nguồn dữ liệu được bọc bằng bộ duyệt
+- level1: Java Stream
+  level2:
+  - Nguồn, phép toán trung gian và phép kết thúc
+  - Thực thi lười và quy tắc sử dụng Stream một lần
+  - Lọc bằng filter và biến đổi bằng map
+  - Làm phẳng bằng flatMap hoặc mapMulti
+  - Phân biệt phép toán có trạng thái với không trạng thái
+  - Sắp xếp, loại trùng và giới hạn kết quả
+  - Dừng sớm với match, findFirst hoặc findAny
+  - Sử dụng takeWhile và dropWhile theo thứ tự nguồn
+  - Tổng hợp bằng reduce và các điều kiện kết hợp
+  - Dùng IntStream, LongStream và DoubleStream
+  - Phân biệt thứ tự nguồn, forEach và forEachOrdered
+  - Tránh sửa nguồn hoặc dựa vào tác dụng phụ của peek
+  - Hợp đồng kết quả của Stream.toList và Collectors.toList
+  - Đóng Stream có nguồn I/O bằng try-with-resources
+- level1: Collector
+  level2:
+  - Vai trò của collect trong gom kết quả
+  - Chọn toList, toSet hoặc toCollection
+  - Dùng toMap với quy tắc hợp nhất khóa trùng
+  - Nhóm bằng groupingBy và collector phía sau
+  - Phân nhóm bằng partitioningBy
+  - Kết hợp mapping, filtering và flatMapping
+  - Đếm, tính tổng, trung bình và thống kê
+  - Nối chuỗi bằng joining với định dạng rõ ràng
+  - Hoàn thiện kết quả bằng collectingAndThen
+  - Kết hợp hai phép tổng hợp bằng teeing
+  - Thiết kế Collector với supplier, accumulator, combiner và finisher
+  - Kiểm tra tính kết hợp, trạng thái dùng chung và Collector.Characteristics
+- level1: Java bất đồng bộ
+  level2:
+  - Tách xử lý thiên về CPU với thao tác chờ I/O
+  - Quản lý ExecutorService và vòng đời nhóm luồng
+  - Chia công việc thành Callable và nhận kết quả qua Future
+  - Ghép công đoạn phụ thuộc bằng CompletableFuture
+  - Chọn thenApply, thenCompose hoặc thenCombine theo quan hệ dữ liệu
+  - Tập hợp kết quả và xử lý lỗi khi nhiều tác vụ cùng chạy
+  - Truyền Executor tường minh cho công việc cần giới hạn tài nguyên
+  - Giới hạn thời gian, hủy và kiểm tra tác vụ còn đang chạy
+  - Vai trò luồng ảo Java 21 trong công việc chờ I/O
+  - Giữ giới hạn truy cập cơ sở dữ liệu hoặc dịch vụ ngoài
+  - Java Flow và mô hình yêu cầu dữ liệu theo nhu cầu
+  - Tránh chia sẻ ngữ cảnh yêu cầu qua các tác vụ không được quản lý
+- level1: Công cụ xử lý
+  level2:
+  - Chọn vòng lặp hoặc Stream cho dữ liệu vừa bộ nhớ
+  - Phân biệt parallelStream với một công cụ xử lý phân tán
+  - Vai trò Spring Batch với công việc theo lô có tiến độ
+  - Mô hình ItemReader, ItemProcessor và ItemWriter
+  - Phân biệt xử lý phản ứng với xử lý song song
+  - Vai trò Reactor hoặc RxJava trong luồng bất đồng bộ
+  - Vai trò Apache Kafka và công cụ xử lý sự kiện đi kèm
+  - So sánh phạm vi Apache Flink và Apache Spark ở mức kiến trúc
+  - Chọn SQL hoặc công cụ xử lý dữ liệu theo vị trí tính toán
+  - Kiểm tra khả năng phục hồi, quản lý trạng thái và nơi ghi của công cụ
+  - Đối chiếu phiên bản JDK, framework và môi trường trước khi triển khai
+- level1: Chất lượng và truy vết
+  level2:
+  - Kiểm tra hợp đồng dữ liệu tại các ranh giới công đoạn
+  - Theo dõi dữ liệu đầu vào tạo nên từng kết quả (data lineage)
+  - Ghi nhận phiên bản nguồn, lược đồ, cấu hình và quy tắc xử lý
+  - Đếm dữ liệu đọc, loại bỏ, cách ly và công bố
+  - Bảo toàn đơn vị đo và ý nghĩa thuộc tính khi chuyển đổi
+  - Phát hiện bất thường từ phân bố dữ liệu và giá trị tổng hợp
+  - Phân biệt cảnh báo chất lượng với điều kiện bắt buộc dừng
+  - Đối soát dữ liệu sau phép ghép, tổng hợp và khử trùng lặp
+  - Thiết kế khả năng giải thích vì sao một bản ghi có kết quả cụ thể
+  - Giới hạn lưu dấu vết để tránh lộ dữ liệu hoặc tăng chi phí quá mức
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử độc lập từng phép biến đổi thuần túy
+  - Kiểm thử tập rỗng, null, giá trị biên và bản ghi sai
+  - Kiểm thử trùng khóa, sai thứ tự và xung đột phiên bản
+  - Kiểm thử tổng hợp với dữ liệu nhỏ có kết quả tính tay
+  - Kiểm thử bất biến bằng dữ liệu sinh theo thuộc tính
+  - Đối chiếu kết quả tuần tự với kết quả song song
+  - Kiểm thử phép chia nhỏ rồi hợp nhất vẫn giữ kết quả
+  - Điều khiển đồng hồ để kiểm thử cửa sổ và dữ liệu đến trễ
+  - Kiểm thử lỗi giữa ghi kết quả và xác nhận tiến độ
+  - Kiểm thử chạy lại không làm tăng sai số lượng hoặc tác dụng phụ
+  - Kiểm thử khôi phục checkpoint và tương thích trạng thái
+  - Kiểm thử toàn luồng bằng nguồn và nơi ghi được cô lập
+  - So sánh kết quả tính lại toàn bộ với xử lý tăng dần
+  - Kiểm thử tải với kích thước và phân bố dữ liệu đại diện
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ toàn luồng và thời gian từng công đoạn
+  - Phân biệt thông lượng xử lý với tốc độ công bố đầu ra
+  - Khoanh vùng nút thắt CPU, bộ nhớ, I/O và mạng
+  - Đo độ lớn hàng đợi và thời gian chờ
+  - Giảm số lượt dữ liệu trung gian và sao chép không cần thiết
+  - Tối ưu phép ghép, tổng hợp và sắp xếp theo phân bố thực tế
+  - Chọn kích thước lô và mức song song qua phép đo
+  - Theo dõi cấp phát đối tượng và hoạt động thu gom rác
+  - Dùng JMH khi đo phép tính nhỏ trong JVM
+  - Đánh giá chi phí làm nóng, tuần tự hóa và truyền dữ liệu
+  - Kiểm tra độ trễ đuôi và tài nguyên dự phòng khi tải tăng
+  - Tránh tối ưu một công đoạn làm quá tải công đoạn tiếp theo
+- level1: Bảo mật
+  level2:
+  - Phân loại dữ liệu nhạy cảm trước khi xử lý
+  - Chỉ đưa các thuộc tính cần thiết qua từng công đoạn
+  - Tách dữ liệu theo quyền truy cập và đơn vị thuê
+  - Kiểm soát đầu vào lớn, độ sâu cấu trúc và chi phí tính toán
+  - Bảo vệ tệp tạm, checkpoint và dữ liệu đã cách ly
+  - Quản lý bí mật của nguồn và nơi ghi ngoài mã chương trình
+  - Mã hóa đường truyền và dữ liệu được lưu khi cần
+  - Che thông tin nhạy cảm trong log và báo cáo lỗi
+  - Quản lý thời hạn lưu dữ liệu trung gian cùng kết quả
+  - Kiểm soát quyền chạy lại, sửa quy tắc và công bố kết quả
+- level1: Quan sát và vận hành
+  level2:
+  - Định danh công việc, lần chạy, phân vùng và công đoạn
+  - Theo dõi trạng thái chạy, hoàn thành, thất bại và đã hủy
+  - Đo độ trễ dữ liệu từ thời điểm phát sinh tới kết quả
+  - Theo dõi watermark, dữ liệu tồn và trạng thái chưa hoàn tất
+  - Gắn log, chỉ số và trace với cùng ngữ cảnh xử lý
+  - Cảnh báo khi dữ liệu dừng đến hoặc tồn đọng tăng
+  - Phân biệt dừng có kiểm soát với kết thúc cưỡng bức
+  - Triển khai phiên bản mới có xét lược đồ và trạng thái cũ
+  - Điều chỉnh quy mô mà không làm mất tiến độ hoặc trùng kết quả
+  - Quản lý lịch chạy, công việc phụ thuộc và lần chạy chồng lấn
+  - Lập hướng dẫn chạy bù, đối soát và xử lý bản ghi lỗi
+  - Đánh giá chi phí tài nguyên theo khối lượng dữ liệu thực tế
+- level1: Thực hành tổng hợp
+  level2:
+  - Chuẩn hóa danh sách giao dịch với quy tắc dữ liệu thiếu rõ ràng
+  - Lọc, nhóm và tổng hợp kết quả bằng vòng lặp rồi bằng Stream
+  - Khử trùng lặp theo khóa nghiệp vụ và phiên bản
+  - Ghép giao dịch với danh mục tham chiếu có bản ghi không khớp
+  - Tính top K và báo cáo tổng hợp trên dữ liệu lớn
+  - Xây luồng theo lô có điểm tiếp tục và nơi cách ly bản ghi lỗi
+  - Thiết kế công bố kết quả không bị lặp khi chạy lại
+  - Xử lý sự kiện sai thứ tự trong cửa sổ thời gian
+  - Đối chiếu xử lý tăng dần với kết quả tính lại toàn bộ
+  - Giới hạn tải khi làm giàu dữ liệu qua dịch vụ ngoài
+  - Mô phỏng lỗi rồi kiểm chứng khôi phục không mất hoặc nhân đôi kết quả
+  - Hoàn thiện hợp đồng, kiểm thử, phép đo và hướng dẫn vận hành

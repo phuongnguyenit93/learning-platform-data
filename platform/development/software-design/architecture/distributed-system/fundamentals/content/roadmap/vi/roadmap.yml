@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-he-thong-phan-tan
+  title: Tư duy hệ thống phân tán
+  purpose: Hiểu vì sao chia dịch vụ và dữ liệu qua nhiều nút làm tăng khả năng mở rộng nhưng tạo ra các đánh đổi mới.
+  objectives:
+  - Phân biệt hệ thống đơn máy và hệ thống phân tán
+  - Giải thích latency, concurrency và partial failure
+  - Nhận diện đánh đổi giữa hiệu năng, độ tin cậy và độ phức tạp
+- id: giao-tiep-loi-mang
+  title: Giao tiếp & lỗi mạng
+  purpose: Thiết kế lời gọi giữa các nút khi mạng có thể chậm, mất gói hoặc phản hồi không rõ kết quả.
+  objectives:
+  - Phân biệt RPC đồng bộ với giao tiếp bất đồng bộ
+  - Thiết lập timeout và deadline cho remote call
+  - Nhận diện lỗi mạng, retry và duplicate request
+- id: resilience-idempotency
+  title: Resilience & Idempotency
+  purpose: Ngăn sự cố ở một thành phần lan rộng và tránh tác dụng phụ khi yêu cầu bị gửi lại.
+  objectives:
+  - Áp dụng retry với backoff và jitter có giới hạn
+  - Giải thích circuit breaker và chống cascading failure
+  - Thiết kế idempotency key cho thao tác có tác dụng phụ
+- id: replication-consistency
+  title: Replication & Consistency
+  purpose: Hiểu cách dữ liệu được sao chép và vì sao các node có thể nhìn thấy trạng thái khác nhau.
+  objectives:
+  - Phân biệt primary-replica và multi-replica
+  - So sánh strong consistency và eventual consistency
+  - Giải thích đánh đổi CAP khi xảy ra network partition
+- id: partitioning-scale
+  title: Partitioning & Scale
+  purpose: Phân bố dữ liệu và lưu lượng trên nhiều nút nhưng hạn chế hotspot và truy vấn liên phân vùng.
+  objectives:
+  - Phân biệt scale up, scale out và sharding
+  - Chọn partition key theo truy vấn và phân bố tải
+  - Nhận diện hotspot, rebalancing và cross-shard query
+- id: messaging-event-delivery
+  title: Messaging & Event Delivery
+  purpose: Tách các thành phần bằng hàng đợi hoặc sự kiện và xử lý độ trễ hay trùng lặp một cách an toàn.
+  objectives:
+  - So sánh request-reply với queue/event-driven
+  - Giải thích at-most-once và at-least-once delivery
+  - Xử lý deduplication, retry và dead-letter queue
+- id: thoi-gian-dong-thuan
+  title: Thời gian & Đồng thuận
+  purpose: Nhận biết khó khăn của thứ tự sự kiện giữa các nút và vai trò của cơ chế điều phối.
+  objectives:
+  - Giải thích clock skew và logical ordering
+  - Phân biệt leader election với consensus
+  - Mô tả quorum và mục đích của Raft ở mức cơ bản
+- id: quan-sat-kiem-thu-loi
+  title: Quan sát & Kiểm thử lỗi
+  purpose: Xác minh hệ thống hoạt động khi tải cao hoặc một phần hạ tầng bị lỗi thay vì chỉ kiểm thử đường đi thành công.
+  objectives:
+  - Theo dõi metrics, logs, traces qua các dịch vụ
+  - Thử timeout, partition và node failure có kiểm soát
+  - Đánh giá graceful degradation và mục tiêu SLO

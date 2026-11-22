@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-observability
+  title: Tổng quan Observability
+  purpose: Hiểu ba tín hiệu chính để quan sát hành vi ứng dụng khi vận hành.
+  objectives:
+  - Phân biệt logs, metrics và traces.
+  - Chọn tín hiệu phù hợp với từng sự cố.
+  - Nhận diện độ trễ, lưu lượng và tỷ lệ lỗi.
+- id: actuator-health
+  title: Actuator & Health
+  purpose: Khám phá các endpoint quản trị và theo dõi tình trạng ứng dụng.
+  objectives:
+  - Bật Spring Boot Actuator.
+  - Kiểm tra health, liveness và readiness.
+  - Giới hạn quyền truy cập endpoint nhạy cảm.
+- id: metrics-voi-micrometer
+  title: Metrics với Micrometer
+  purpose: Đo hiệu năng và tài nguyên thông qua hệ thống metric của Spring Boot.
+  objectives:
+  - Đọc metrics JVM, HTTP và ứng dụng.
+  - Phân biệt Counter, Gauge và Timer.
+  - Xem các metric qua Actuator.
+- id: custom-observations
+  title: Custom Observations
+  purpose: Ghi nhận hoạt động nghiệp vụ bằng Micrometer Observation.
+  objectives:
+  - Tạo observation với ObservationRegistry.
+  - Đặt tên và tag có ý nghĩa.
+  - Tránh tag có cardinality quá cao.
+- id: logs-correlation
+  title: Logs & Correlation
+  purpose: Dùng nhật ký có ngữ cảnh để lần theo yêu cầu và lỗi.
+  objectives:
+  - Cấu hình mức log thích hợp.
+  - Ghi log đủ bối cảnh, tránh dữ liệu nhạy cảm.
+  - Liên kết log bằng traceId và spanId.
+- id: distributed-tracing
+  title: Distributed Tracing
+  purpose: Theo dấu một yêu cầu qua nhiều bước hoặc dịch vụ.
+  objectives:
+  - Đọc trace, span và thời lượng.
+  - Cấu hình Micrometer Tracing và sampling.
+  - Kiểm tra truyền trace context giữa dịch vụ.
+- id: export-dashboard
+  title: Export & Dashboard
+  purpose: Đưa tín hiệu tới hệ thống quan sát tập trung để theo dõi trực quan.
+  objectives:
+  - Xuất metrics qua Prometheus hoặc OTLP.
+  - Xuất traces tới tracing backend.
+  - Tạo dashboard cho latency, traffic và errors.
+- id: canh-bao-chan-doan
+  title: Cảnh báo & Chẩn đoán
+  purpose: Biến dữ liệu quan sát thành cảnh báo và hành động khắc phục.
+  objectives:
+  - Đặt ngưỡng cảnh báo theo SLO cơ bản.
+  - Từ cảnh báo đối chiếu metrics, logs, traces.
+  - Mô tả quy trình xử lý một sự cố mẫu.

@@ -1,0 +1,7 @@
+# Spring Boot - Externalized Configuration
+
+Cấu hình bên ngoài (externalized configuration) cho phép thay đổi các giá trị phục vụ môi trường chạy mà vẫn dùng cùng mã ứng dụng Spring Boot. Một địa chỉ dịch vụ, giới hạn kết nối hoặc thời gian chờ có thể đến từ tệp, biến môi trường hay tham số khởi động. Module này dành cho người đã biết Java và Spring Boot cơ bản, muốn tổ chức cấu hình dễ hiểu, kiểm tra được và phù hợp khi chuyển từ máy phát triển sang môi trường triển khai.
+
+Tư duy nền tảng là theo dõi đường đi từ nguồn thuộc tính (PropertySource), qua Environment, đến giá trị mà mã Java thực sự sử dụng. Khi nhiều nguồn cùng khai báo một khóa, cần giải thích được thứ tự ưu tiên; khi dữ liệu được liên kết vào đối tượng, cần kiểm tra kiểu và tính hợp lệ. Profile chọn tập cấu hình thích hợp, còn metadata hỗ trợ mô tả khóa và gợi ý trong IDE. Các vai trò này liên quan với nhau nhưng cần được phân biệt để chẩn đoán đúng nguyên nhân khi cấu hình không như mong đợi.
+
+Lộ trình bắt đầu từ mô hình cấu hình, cách tổ chức tệp và quy tắc ghi đè, rồi đến profile, @ConfigurationProperties và kiểm tra hợp lệ. Sau đó, người học thực hành cấp cấu hình khi triển khai, bảo vệ bí mật và kiểm thử kết quả nhận được trong ứng dụng. Phạm vi tập trung cơ chế của Spring Boot 3.3; việc quản lý cấu hình tập trung hoặc tải lại khi đang chạy cần được đánh giá như cơ chế bổ sung. Kết quả cần đạt là biết nguồn nào quyết định giá trị, giá trị ấy được chuyển thành dữ liệu gì và cách chứng minh ứng dụng đang dùng đúng cấu hình.

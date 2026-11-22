@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Luồng xử lý
+  slug: processing-flow
+  index: 1
+- title: Thiết lập Azure
+  slug: azure-setup
+  index: 2
+- title: SDK Java
+  slug: java-sdk
+  index: 3
+- title: Xác thực Translator
+  slug: translator-authentication
+  index: 4
+- title: Blob Storage
+  slug: blob-storage
+  index: 5
+- title: Quyền Storage
+  slug: storage-permissions
+  index: 6
+- title: Tệp và ngôn ngữ
+  slug: files-languages
+  index: 7
+- title: Dịch một tệp
+  slug: single-file-translation
+  index: 8
+- title: Dịch theo lô
+  slug: batch-translation
+  index: 9
+- title: Theo dõi và hủy
+  slug: job-monitoring-cancellation
+  index: 10
+- title: Glossary
+  slug: glossary
+  index: 11
+- title: Tùy biến mô hình
+  slug: custom-models
+  index: 12
+- title: PDF và OCR
+  slug: pdf-ocr
+  index: 13
+- title: Office và ảnh
+  slug: office-images
+  index: 14
+- title: Tệp có cấu trúc
+  slug: structured-files
+  index: 15
+- title: Chất lượng bản dịch
+  slug: translation-quality
+  index: 16
+- title: Tích hợp Spring Boot
+  slug: spring-boot-integration
+  index: 17
+- title: Quản lý tác vụ
+  slug: job-management
+  index: 18
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 19
+- title: Hiệu năng và giới hạn
+  slug: performance-limits
+  index: 20
+- title: Chi phí
+  slug: costs
+  index: 21
+- title: Bảo mật và mạng
+  slug: security-network
+  index: 22
+- title: Giám sát
+  slug: monitoring
+  index: 23
+- title: Kiểm thử
+  slug: testing
+  index: 24
+- title: Triển khai
+  slug: deployment
+  index: 25
+- title: Container Translator
+  slug: translator-containers
+  index: 26
+- title: Phiên bản và nâng cấp
+  slug: versions-upgrades
+  index: 27
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 28

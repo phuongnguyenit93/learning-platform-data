@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan
+  slug: validation-overview
+  index: 0
+- title: Luồng xử lý
+  slug: validation-flow
+  index: 1
+- title: Thiết lập
+  slug: validation-setup
+  index: 2
+- title: Đối tượng đầu vào
+  slug: input-objects
+  index: 3
+- title: Spring Validator
+  slug: spring-validator
+  index: 4
+- title: Errors
+  slug: errors
+  index: 5
+- title: DataBinder
+  slug: data-binder
+  index: 6
+- title: BeanWrapper
+  slug: bean-wrapper
+  index: 7
+- title: Đường dẫn thuộc tính
+  slug: property-paths
+  index: 8
+- title: Gắn qua constructor
+  slug: constructor-binding
+  index: 9
+- title: Quy tắc binding
+  slug: binding-rules
+  index: 10
+- title: PropertyEditor
+  slug: property-editor
+  index: 11
+- title: Converter
+  slug: converter
+  index: 12
+- title: ConversionService
+  slug: conversion-service
+  index: 13
+- title: Chuyển đổi nâng cao
+  slug: advanced-conversion
+  index: 14
+- title: Formatter
+  slug: formatter
+  index: 15
+- title: Định dạng số
+  slug: number-formatting
+  index: 16
+- title: Định dạng thời gian
+  slug: date-time-formatting
+  index: 17
+- title: Bean Validation
+  slug: bean-validation
+  index: 18
+- title: Ràng buộc chuẩn
+  slug: standard-constraints
+  index: 19
+- title: Kiểm tra lồng nhau
+  slug: nested-validation
+  index: 20
+- title: Nhóm kiểm tra
+  slug: validation-groups
+  index: 21
+- title: Ràng buộc tùy chỉnh
+  slug: custom-constraints
+  index: 22
+- title: Hạ tầng kiểm tra
+  slug: validation-infrastructure
+  index: 23
+- title: Kiểm tra phương thức
+  slug: method-validation
+  index: 24
+- title: Binding trong MVC
+  slug: mvc-binding
+  index: 25
+- title: Validation trong MVC
+  slug: mvc-validation
+  index: 26
+- title: WebFlux
+  slug: web-flux-validation
+  index: 27
+- title: Cấu hình binder
+  slug: binder-configuration
+  index: 28
+- title: Thông báo đa ngữ
+  slug: internationalized-messages
+  index: 29
+- title: Phản hồi lỗi
+  slug: error-responses
+  index: 30
+- title: An toàn dữ liệu
+  slug: data-safety
+  index: 31
+- title: Kiểm thử
+  slug: validation-testing
+  index: 32
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 33
+- title: Thực hành
+  slug: validation-practice
+  index: 34

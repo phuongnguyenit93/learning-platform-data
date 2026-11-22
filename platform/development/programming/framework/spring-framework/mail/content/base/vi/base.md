@@ -1,0 +1,7 @@
+# Spring Framework Mail
+
+**Spring Framework Mail** cung cấp các abstraction để ứng dụng Java tạo và gửi email mà không phải trực tiếp quản lý toàn bộ chi tiết của thư viện truyền tải. `MailSender` và `SimpleMailMessage` phù hợp với thư văn bản thông thường; `JavaMailSender` kết hợp Jakarta Mail và `MimeMessageHelper` hỗ trợ email HTML, nội dung Unicode, tệp đính kèm và tài nguyên inline. Việc gửi thư thường sử dụng SMTP; cần phân biệt máy chủ SMTP đã chấp nhận thông điệp với việc thư thực sự tới hộp thư người nhận.
+
+Module dành cho người đã biết Java, Dependency Injection của Spring và HTTP/network căn bản. Bạn sẽ bắt đầu từ cấu trúc email và giao thức SMTP, tìm hiểu Spring Mail API, thiết lập Jakarta Mail, cấu hình host, cổng, credentials và timeout. Tiếp theo là gửi thư plain text, xây email MIME/HTML có attachment, dùng template để quản lý nội dung và cá nhân hóa an toàn. Các mốc cuối tập trung vào xác thực SMTP, TLS/STARTTLS, bảo vệ bí mật, kiểm thử sender và xử lý lỗi khi máy chủ thư không sẵn sàng. Với Spring Boot, `spring-boot-starter-mail` và cấu hình `spring.mail.*` có thể giúp tự động khởi tạo `JavaMailSender`.
+
+Sau tám mốc, bạn có thể tạo thành phần gửi email dễ kiểm thử, lựa chọn định dạng phù hợp, cấu hình kết nối an toàn và theo dõi các trường hợp gửi thất bại. Nên **giới hạn thời gian chờ**, không đưa credential vào mã nguồn hoặc log, và cân nhắc hàng đợi khi việc gửi thư không được phép làm chậm giao dịch chính. Retry không kiểm soát có thể gây gửi thư trùng lặp; SMTP trả thành công cũng không bảo đảm email sẽ vào inbox.

@@ -1,0 +1,187 @@
+menu:
+- level1: Tổng quan kiến trúc phân tầng
+  level2:
+  - Kiến trúc phân tầng là gì, giải quyết vấn đề nào và khác gì cách chia thư mục?
+  - Vấn đề khi trộn giao diện, quy tắc nghiệp vụ và truy cập dữ liệu
+  - 'Từ vựng nền tảng: tầng, thành phần, hợp đồng, phụ thuộc và luồng gọi'
+  - Luồng tổng thể từ tương tác người dùng đến nghiệp vụ và lưu trữ
+  - Phân biệt tầng logic, module mã nguồn và tier triển khai vật lý
+  - 'Các mô hình ba tầng, bốn tầng và nhiều tầng: không có số tầng bắt buộc'
+  - Lợi ích về khả năng hiểu, kiểm thử, thay đổi và tái sử dụng
+  - Chi phí lớp trung gian, ánh xạ dữ liệu và phối hợp thay đổi; điều kiện áp dụng
+  - 'Bài toán xuyên suốt: hệ thống quản lý đơn hàng'
+- level1: Ranh giới và quy tắc phân tầng
+  level2:
+  - Xác định trách nhiệm và tiêu chí đặt chức năng vào đúng tầng
+  - Tổ chức mức trừu tượng, hợp đồng công khai và chi tiết nội bộ
+  - 'Phân tầng đóng: chỉ sử dụng tầng liền kề theo quy tắc đã chọn'
+  - 'Phân tầng mở: bỏ qua tầng có chủ đích mà không phá vỡ ranh giới'
+  - Phân biệt hướng gọi khi chạy với hướng phụ thuộc trong mã nguồn
+  - Kiểm soát phụ thuộc trực tiếp, phụ thuộc bắc cầu và chu trình giữa các tầng
+  - Giới hạn API và ngăn tầng trên truy cập chi tiết triển khai của tầng dưới
+  - Tổ chức package theo tầng hoặc theo tính năng có phân tầng bên trong
+  - Thiết lập quy tắc phụ thuộc giữa các module và tự động phát hiện vi phạm
+  - Mô tả ranh giới, ngoại lệ kiến trúc bằng sơ đồ và bản ghi quyết định ADR
+- level1: Tầng trình bày
+  level2:
+  - Vai trò của controller, view và bộ tiếp nhận HTTP, GUI hoặc CLI
+  - Chuyển dữ liệu giao thức thành yêu cầu đầu vào của ca sử dụng
+  - Kiểm tra cú pháp, định dạng và trường bắt buộc tại biên tiếp nhận
+  - Gọi ca sử dụng và ánh xạ kết quả sang phản hồi hoặc mô hình hiển thị
+  - Chuyển lỗi ứng dụng thành hợp đồng phản hồi mà không lộ chi tiết hạ tầng
+  - Xác thực ở biên và phân biệt với kiểm tra quyền theo nghiệp vụ
+  - Giữ controller gọn, không chứa quy tắc nghiệp vụ
+  - Thay đổi kênh giao tiếp mà vẫn tái sử dụng cùng ca sử dụng
+- level1: Tầng ứng dụng
+  level2:
+  - Thiết kế application service theo ca sử dụng và mục tiêu người dùng
+  - Điều phối tải dữ liệu, gọi hành vi nghiệp vụ và lưu kết quả
+  - Phân biệt điều phối quy trình với quyết định thuộc quy tắc nghiệp vụ
+  - Xác định tầng được gọi repository và hệ thống ngoài theo hợp đồng đã chọn
+  - Quản lý ngữ cảnh người dùng, quyền thao tác và tham số ca sử dụng
+  - Chọn ranh giới giao dịch, chống xử lý lặp và hợp đồng kết quả
+  - Tách luồng đọc và luồng ghi khi có nhu cầu thực tế
+  - Tái sử dụng ca sử dụng từ HTTP, tác vụ nền, CLI hoặc xử lý theo lô
+  - Lần theo luồng tạo đơn hàng từ tầng trình bày đến lưu trữ
+  - Nhận diện service quá lớn và ca sử dụng bị chia nhỏ thiếu ý nghĩa
+- level1: Tầng nghiệp vụ
+  level2:
+  - Biểu diễn khái niệm, trạng thái và hành vi bằng ngôn ngữ nghiệp vụ
+  - Nhận diện thực thể, đối tượng giá trị và quy tắc bất biến cần bảo vệ
+  - Đặt hành vi cùng dữ liệu liên quan để duy trì trạng thái hợp lệ
+  - Lựa chọn mô hình miền phong phú hoặc transaction script khi phù hợp
+  - Phân biệt dịch vụ miền, dịch vụ ứng dụng và dịch vụ hạ tầng
+  - Xử lý chuyển trạng thái và các quyết định nghiệp vụ quan trọng
+  - Tách kiểm tra quy tắc nghiệp vụ khỏi kiểm tra cú pháp đầu vào
+  - Biểu diễn lỗi và kết quả nghiệp vụ có ý nghĩa rõ ràng
+  - Cung cấp dữ liệu ngoài cho quy tắc miền qua điểm phụ thuộc phù hợp
+  - Giữ nghiệp vụ độc lập với HTTP, ORM và cấu trúc bảng; không ép áp dụng DDD
+- level1: Tầng truy cập dữ liệu
+  level2:
+  - Trách nhiệm truy xuất, lưu trữ và chuyển đổi dữ liệu của tầng dữ liệu
+  - Phân biệt repository, DAO và công cụ ORM theo hợp đồng và mức trừu tượng
+  - Thiết kế giao diện lưu trữ theo nhu cầu ca sử dụng
+  - Đóng gói truy vấn, thao tác lưu và chi tiết công nghệ lưu trữ
+  - Phân biệt mô hình nghiệp vụ với entity và mô hình ánh xạ lưu trữ
+  - Tìm kiếm theo định danh, điều kiện lọc, phân trang và sắp xếp
+  - Chọn projection và tránh tải dữ liệu ngầm không cần thiết
+  - Quản lý vòng đời kết nối, phiên làm việc và tài nguyên truy cập dữ liệu
+  - Chuyển lỗi lưu trữ thành lỗi có ý nghĩa với tầng gọi
+  - Quản lý thay đổi lược đồ và ngăn truy cập trực tiếp dữ liệu ngoài ranh giới
+- level1: Dữ liệu và hợp đồng giữa các tầng
+  level2:
+  - Phân biệt request, response, DTO, đối tượng nghiệp vụ và entity ORM
+  - Quyết định khi nào cần kiểu dữ liệu riêng cho từng tầng và khi nào dùng chung
+  - Xác định nơi sở hữu hợp đồng để tránh phụ thuộc ngược
+  - Đặt mapper tại biên phù hợp và kiểm soát chi phí ánh xạ
+  - Ngăn trả entity ORM và trạng thái lazy loading trực tiếp ra giao diện
+  - Thiết kế hợp đồng tìm kiếm, phân trang và trường dữ liệu tùy chọn
+  - Kiểm soát quyền thay đổi đối tượng và tránh rò rỉ trạng thái có thể sửa
+  - Tiến hóa hợp đồng và duy trì tương thích mà không lan truyền thay đổi
+- level1: Tổ chức phụ thuộc và lắp ráp ứng dụng
+  level2:
+  - Phân biệt phụ thuộc mã nguồn, lời gọi khi chạy và hướng truyền dữ liệu
+  - Phụ thuộc trực tiếp từ trên xuống trong kiến trúc phân tầng truyền thống
+  - Nhận diện giới hạn khi nghiệp vụ phụ thuộc trực tiếp vào công nghệ lưu trữ
+  - Áp dụng nguyên lý đảo ngược phụ thuộc để bảo vệ nghiệp vụ khi cần thiết
+  - Đặt interface và implementation theo bên sở hữu nhu cầu và hợp đồng
+  - Phân biệt dependency injection với dependency inversion
+  - Lắp ráp thành phần tại composition root và quản lý vòng đời
+  - Kiểm soát phụ thuộc trực tiếp, bắc cầu và chu trình giữa các module
+  - Giới hạn mã dùng chung, thư viện quá rộng và giao diện không cần thiết
+  - Tổ chức package, module biên dịch và tự động kiểm tra phụ thuộc bị cấm
+- level1: Giao dịch và tính nhất quán
+  level2:
+  - Chọn ranh giới giao dịch theo ca sử dụng và yêu cầu nhất quán
+  - Phối hợp nhiều repository trong một giao dịch
+  - Hiểu Unit of Work, thời điểm ghi, commit và rollback
+  - Truyền ngữ cảnh giao dịch qua lời gọi nội bộ và ca sử dụng lồng nhau
+  - Kiểm soát ghi cạnh tranh bằng optimistic locking và pessimistic locking
+  - Đánh giá mức cô lập trong quy trình đọc, kiểm tra rồi cập nhật
+  - Thiết kế thao tác lũy đẳng khi yêu cầu được gửi lại
+  - Phối hợp commit dữ liệu với phát thông điệp bằng transactional outbox
+  - Tránh giao dịch kéo dài và lời gọi mạng bên trong giao dịch
+  - Phối hợp quy trình nhiều bước hoặc nhiều kho dữ liệu khi không có một giao dịch chung
+- level1: Các mối quan tâm xuyên tầng
+  level2:
+  - Phân chia xác thực, phân quyền truy cập và quyền quyết định nghiệp vụ
+  - Truyền định danh người dùng, ngữ cảnh và mã tương quan qua các tầng
+  - Phân chia kiểm tra đầu vào, kiểm tra nghiệp vụ và ràng buộc lưu trữ
+  - Phân loại dữ liệu không hợp lệ, xung đột, từ chối nghiệp vụ và lỗi hạ tầng
+  - Ánh xạ lỗi nhất quán giữa các tầng mà không che giấu nguyên nhân
+  - Xác định lỗi được thử lại, giới hạn thời gian và tránh gây tác động lặp
+  - Đặt log, metric và distributed trace phục vụ chẩn đoán
+  - Đặt cache, xác định nguồn dữ liệu chuẩn và xử lý mất hiệu lực
+  - Tách cấu hình, bí mật, đồng hồ và dịch vụ ngoài khỏi logic nghiệp vụ
+  - Sử dụng middleware, filter, interceptor và decorator đúng trách nhiệm
+  - Tránh che giấu quy tắc nghiệp vụ trong cơ chế tự động xuyên tầng
+- level1: Hiệu năng và triển khai
+  level2:
+  - Đo thời gian theo chặng để xác định chi phí thực của ranh giới tầng
+  - Đo chi phí ánh xạ, sao chép và nhiều lớp chuyển tiếp
+  - Nhận diện N+1, lazy loading và tải dữ liệu dư thừa
+  - Tối ưu truy vấn và mô hình đọc mà vẫn giữ quy tắc của luồng ghi
+  - Tối ưu thao tác theo lô và thời gian giữ giao dịch
+  - Phân biệt tầng logic với tier vật lý khi triển khai
+  - Triển khai nhiều tầng logic trong một tiến trình hoặc monolith
+  - Đánh giá độ trễ mạng, lỗi từng phần và bảo mật khi tách nhiều tier
+  - Mở rộng theo tải thực tế, trạng thái dùng chung và tài nguyên hạ tầng
+  - Đánh giá đường tắt giữa các tầng bằng số đo và ngoại lệ kiến trúc rõ ràng
+- level1: Chiến lược kiểm thử
+  level2:
+  - Lập chiến lược kiểm thử theo ranh giới và rủi ro của từng tầng
+  - Kiểm thử quy tắc, hành vi và bất biến nghiệp vụ độc lập với hạ tầng
+  - Kiểm thử application service về điều phối, kết quả và tác động
+  - Kiểm thử tầng trình bày về đầu vào, hợp đồng phản hồi và ánh xạ lỗi
+  - Kiểm thử repository với cơ sở dữ liệu và cơ chế lưu trữ thực tế
+  - Lựa chọn mock, stub, fake hoặc hạ tầng thật theo điều cần chứng minh
+  - Kiểm thử commit, rollback, ghi cạnh tranh và tính nhất quán
+  - Kiểm thử tích hợp xuyên tầng cho các ca sử dụng quan trọng
+  - Tự động kiểm tra phụ thuộc bị cấm, chu trình và rò rỉ kiểu dữ liệu
+  - Tránh kiểm thử chỉ xác nhận chuỗi gọi nội bộ mà bỏ sót hành vi nghiệp vụ
+- level1: Sai lầm và đánh giá thiết kế
+  level2:
+  - Nhận diện nghiệp vụ rải rác trong controller, truy vấn và tiện ích dùng chung
+  - Tránh service khổng lồ và tầng trung gian chỉ chuyển tiếp lời gọi
+  - Phân biệt mô hình miền thiếu hành vi với mô hình đơn giản có chủ đích
+  - Phát hiện phụ thuộc vòng, truy cập tắt ngoài quy định và rò rỉ mô hình lưu trữ
+  - Rà soát trách nhiệm, hợp đồng và quyền sở hữu của từng tầng
+  - Tránh phụ thuộc vào phiên ORM và hành vi tải dữ liệu ngầm
+  - Nhận diện thay đổi nhỏ nhưng lan qua quá nhiều tầng
+  - Cân bằng tính đơn giản, khả năng kiểm thử, hiệu năng và mở rộng
+  - Đánh giá thiết kế bằng kịch bản thay đổi và đồ thị phụ thuộc thực tế
+- level1: Cải tiến hệ thống hiện có
+  level2:
+  - Khảo sát đồ thị phụ thuộc, luồng xử lý và ranh giới đang trộn lẫn
+  - Dùng kiểm thử đặc trưng để bảo vệ hành vi trước khi tái cấu trúc
+  - Tách nghiệp vụ khỏi controller lớn bằng ca sử dụng có hợp đồng rõ ràng
+  - Chia service ôm quá nhiều trách nhiệm theo hành vi nghiệp vụ
+  - Đưa truy cập dữ liệu sau hợp đồng và ngăn rò rỉ entity ORM
+  - Tháo phụ thuộc vòng bằng điều chỉnh trách nhiệm và quyền sở hữu
+  - Tái cấu trúc từng phần, ghi rõ ngoại lệ kiến trúc và đường chuyển tiếp
+  - Kiểm chứng chức năng, giao dịch và khả năng triển khai sau mỗi thay đổi
+  - Đánh giá kết quả bằng chi phí thay đổi, kết dính và khả năng kiểm thử
+- level1: Lựa chọn và tiến hóa kiến trúc
+  level2:
+  - Phân biệt layered architecture với MVC trong tầng trình bày
+  - So sánh phân tầng kỹ thuật với mô hình hóa nghiệp vụ theo DDD
+  - So sánh layered với hexagonal theo ranh giới và khả năng cô lập hạ tầng
+  - So sánh layered với onion và clean architecture theo hướng phụ thuộc
+  - Đánh giá tổ chức theo tính năng hoặc vertical slice và khả năng kết hợp phân tầng
+  - Kết hợp phân tầng với ranh giới tính năng trong modular monolith
+  - Phân biệt phân tầng nội bộ dịch vụ với phân chia microservices
+  - Chọn layer và tier theo yêu cầu hệ thống thay vì theo số thư mục
+  - Ghi quyết định ADR, cân nhắc phương án thay thế và điều kiện cần xem lại
+- level1: Thực hành hệ thống đơn hàng
+  level2:
+  - Xác định yêu cầu, ca sử dụng và thuộc tính chất lượng của hệ thống đơn hàng
+  - Vẽ sơ đồ tầng, hợp đồng và quy tắc phụ thuộc
+  - Triển khai luồng tạo đơn hàng từ API qua nghiệp vụ đến lưu trữ
+  - Bổ sung quy tắc chuyển trạng thái và xử lý lỗi nghiệp vụ
+  - Thiết kế tra cứu đơn hàng với lọc, phân trang và DTO riêng
+  - Phối hợp nhiều repository, commit, rollback và xử lý ghi cạnh tranh
+  - Thiết kế chống gửi yêu cầu lặp và thông báo sau giao dịch
+  - Bổ sung tác vụ nền dùng lại ca sử dụng đang có
+  - Thay công nghệ lưu trữ và đo phần mã phải thay theo hợp đồng
+  - Kiểm thử luồng tích hợp, hợp đồng và tự động phát hiện phụ thuộc sai
+  - Theo dõi hiệu năng và đánh giá ranh giới bằng một thay đổi nghiệp vụ mới

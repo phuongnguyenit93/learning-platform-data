@@ -1,0 +1,64 @@
+roadmap:
+- id: spel-truong-hop-su-dung
+  title: SpEL & Trường hợp sử dụng
+  purpose: Hiểu vai trò biểu thức động trong cấu hình và ứng dụng Spring.
+  objectives:
+  - Giải thích SpEL và các thành phần expression, context, root object.
+  - Phân biệt SpEL với Java code và property placeholder.
+  - Chỉ ra nơi SpEL xuất hiện trong Spring configuration.
+- id: parser-evaluationcontext
+  title: Parser & EvaluationContext
+  purpose: Đánh giá biểu thức một cách tường minh qua Java API.
+  objectives:
+  - Tạo SpelExpressionParser và parseExpression().
+  - Dùng getValue(context, Type.class) với root object.
+  - Phân biệt StandardEvaluationContext và SimpleEvaluationContext.
+- id: literal-toan-tu-kieu
+  title: Literal, Toán tử & Kiểu
+  purpose: Đọc và viết biểu thức đơn giản đúng cú pháp SpEL.
+  objectives:
+  - Thực hành literal chuỗi, số và boolean.
+  - Viết toán tử số học, so sánh và logic.
+  - Dùng T(Type) và instanceof trong phạm vi cho phép.
+- id: properties-methods
+  title: Properties & Methods
+  purpose: Truy cập thuộc tính và gọi phương thức trên object được cấp vào context.
+  objectives:
+  - Đọc property và phần tử list/map theo cú pháp SpEL.
+  - Thử gọi method và kiểm tra kiểu kết quả.
+  - Giải thích rủi ro khi context phơi bày phương thức nhạy cảm.
+- id: variables-functions-beans
+  title: Variables, Functions & Beans
+  purpose: Tùy biến dữ liệu đầu vào và sử dụng chức năng được cung cấp trong context.
+  objectives:
+  - 'Đăng ký và đọc biến bằng #variableName.'
+  - 'Nhận diện #root, #this và hàm được đăng ký.'
+  - Phân biệt bean reference @name với Java type reference.
+- id: collection-selection-projection
+  title: Collection Selection & Projection
+  purpose: Lọc và biến đổi tập hợp bằng biểu thức ngắn gọn.
+  objectives:
+  - Sử dụng .?[...] để chọn phần tử theo điều kiện.
+  - Dùng .![...] để tạo danh sách giá trị mới.
+  - So sánh selection, projection và cách xử lý Map.
+- id: null-safety-dieu-kien
+  title: Null Safety & Điều kiện
+  purpose: Viết biểu thức chịu được dữ liệu thiếu và có giá trị thay thế hợp lý.
+  objectives:
+  - Thử safe navigation ?. trên thuộc tính có thể null.
+  - 'Dùng toán tử Elvis ?: và ternary ? : đúng ngữ cảnh.'
+  - Kiểm tra toàn chuỗi property access khi có null.
+- id: value-expression-templates
+  title: '@Value & Expression Templates'
+  purpose: Kết nối biểu thức với bean configuration và chuỗi template.
+  objectives:
+  - 'Phân biệt #{...} SpEL với ${...} property placeholder.'
+  - Viết @Value biểu thức đơn giản trong Spring bean.
+  - Dùng TemplateParserContext cho biểu thức xen văn bản.
+- id: an-toan-chuyen-kieu-test
+  title: An toàn, Chuyển kiểu & Test
+  purpose: Kiểm soát quyền truy cập của biểu thức và bảo đảm đánh giá chính xác.
+  objectives:
+  - Quan sát conversion service và kết quả getValue có kiểu.
+  - Không đánh giá biểu thức do người dùng tùy ý cung cấp.
+  - Viết test cho biểu thức hợp lệ, null, sai kiểu và lỗi đánh giá.

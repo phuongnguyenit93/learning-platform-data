@@ -1,0 +1,57 @@
+roadmap:
+- id: oauth2-oidc-va-resource-server
+  title: OAuth2, OIDC và Resource Server
+  purpose: Nắm vai trò của API được bảo vệ trong hệ thống OAuth2/OIDC và loại token mà API cần xử lý.
+  objectives:
+  - Phân biệt Authorization Server, Client và Resource Server.
+  - Phân biệt access token với OIDC ID token.
+  - Mô tả luồng gọi API bằng Bearer access token.
+- id: cau-hinh-spring-security
+  title: Cấu hình Spring Security
+  purpose: Thiết lập Resource Server bảo vệ endpoint và xử lý Bearer token trong ứng dụng Spring.
+  objectives:
+  - Thêm dependency cần thiết cho Resource Server.
+  - Cấu hình SecurityFilterChain và oauth2ResourceServer.
+  - Kiểm tra endpoint công khai và endpoint yêu cầu xác thực.
+- id: xac-thuc-jwt-va-jwks
+  title: Xác thực JWT và JWKS
+  purpose: Kiểm tra chữ ký và các claim quan trọng trước khi tin cậy access token dạng JWT.
+  objectives:
+  - Cấu hình issuer-uri hoặc jwk-set-uri phù hợp.
+  - Xác minh chữ ký, exp, nbf, iss và aud khi cần.
+  - Giải thích việc tải và xoay vòng khóa JWKS.
+- id: opaque-token-va-introspection
+  title: Opaque Token và Introspection
+  purpose: Biết cách xác thực access token thông qua Authorization Server khi dùng token không tự kiểm chứng được.
+  objectives:
+  - Cấu hình introspection-uri và thông tin xác thực an toàn.
+  - Kiểm tra phản hồi active và các thuộc tính token.
+  - So sánh introspection với xác minh JWT cục bộ.
+- id: scopes-claims-va-phan-quyen
+  title: Scopes, Claims và Phân quyền
+  purpose: Chuyển quyền được cấp trong token thành quy tắc truy cập API rõ ràng.
+  objectives:
+  - Ánh xạ scope thành authority SCOPE_ tương ứng.
+  - Bảo vệ endpoint theo quyền và HTTP method.
+  - Sử dụng @PreAuthorize khi cần kiểm soát ở tầng service.
+- id: oidc-discovery-va-multi-issuer
+  title: OIDC Discovery và Multi-Issuer
+  purpose: Xử lý metadata của nhà cung cấp danh tính và kiểm soát các issuer được phép tin cậy.
+  objectives:
+  - Tìm hiểu discovery metadata và JWKS endpoint.
+  - Chỉ chấp nhận issuer trong danh sách tin cậy.
+  - Phân biệt trường hợp một issuer và nhiều tenant.
+- id: loi-xac-thuc-va-bao-mat
+  title: Lỗi xác thực và Bảo mật
+  purpose: Giúp API từ chối token không hợp lệ đúng chuẩn và giảm rủi ro lộ thông tin xác thực.
+  objectives:
+  - Phân biệt HTTP 401 và 403 trong kiểm soát truy cập.
+  - Kiểm tra token sai chữ ký, hết hạn hoặc thiếu scope.
+  - Dùng TLS và tránh ghi Bearer token vào URL hoặc log.
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và Vận hành
+  purpose: Xác minh cấu hình bảo vệ API và giám sát các tình huống thay đổi khóa, cấu hình hay quyền.
+  objectives:
+  - Viết test JWT hoặc opaque token bằng Spring Security Test.
+  - Kiểm tra cả luồng được phép và bị từ chối.
+  - Theo dõi lỗi xác thực, phân quyền và sự cố JWKS/introspection.

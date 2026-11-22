@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SPRING_DATA_RELATIONAL_R2DBC"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Làm quen truy cập cơ sở dữ liệu quan hệ theo mô hình reactive với Spring Data R2DBC, từ kết nối, entity mapping, repository đến R2dbcEntityTemplate và truy vấn SQL. Thực hành giao dịch không chặn luồng, xử lý lỗi, kết hợp WebFlux, quản lý kết nối, kiểm thử và quan sát luồng dữ liệu."
+  }
+}

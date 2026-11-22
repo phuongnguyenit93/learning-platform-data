@@ -1,0 +1,57 @@
+roadmap:
+- id: ldap-mo-hinh-thu-muc
+  title: LDAP & mô hình thư mục
+  purpose: Hiểu cấu trúc dữ liệu của LDAP và vai trò của Spring LDAP trong ứng dụng Java.
+  objectives:
+  - Giải thích entry, attribute, objectClass và cây thư mục.
+  - Phân biệt DN, RDN, base DN và phạm vi tìm kiếm.
+  - Nêu vai trò của Spring LDAP so với JNDI trực tiếp.
+- id: cau-hinh-ket-noi
+  title: Cấu hình kết nối
+  purpose: Thiết lập kết nối LDAP rõ ràng, an toàn và có khả năng thay đổi theo môi trường.
+  objectives:
+  - Cấu hình LdapContextSource với URL, base DN và thông tin xác thực.
+  - Khởi tạo LdapClient hoặc LdapTemplate từ ContextSource.
+  - Phân biệt LDAP, LDAPS và StartTLS khi thiết kế kết nối.
+- id: tra-cuu-bo-loc
+  title: Tra cứu & bộ lọc
+  purpose: Tìm kiếm entry đúng phạm vi và chuyển kết quả thành dữ liệu ứng dụng mà không ghép filter thiếu an toàn.
+  objectives:
+  - Dùng LdapClient/LdapTemplate để tìm kiếm và tra cứu entry.
+  - Xây LdapQuery với base, scope, attributes và filter.
+  - Dùng bộ dựng filter để escape giá trị đầu vào.
+- id: thao-tac-entry
+  title: Thao tác entry
+  purpose: Thực hiện thêm, sửa, đổi tên và xóa bản ghi trong LDAP theo đúng DN và schema.
+  objectives:
+  - Dùng bind, modify và unbind cho các thao tác cơ bản.
+  - Tạo DN bằng LdapNameBuilder thay vì nối chuỗi tùy ý.
+  - Phân biệt thay đổi thuộc tính với di chuyển hoặc đổi tên entry.
+- id: anh-xa-repository
+  title: Ánh xạ & Repository
+  purpose: Giảm mã ánh xạ thủ công bằng các API phù hợp với cấu trúc LDAP.
+  objectives:
+  - Ánh xạ attribute qua mapper và DirContextAdapter.
+  - Giải thích ODM với @Entry, @Id và các thuộc tính ánh xạ.
+  - Dùng LdapTemplate và LdapRepository khi cần ODM.
+- id: xac-thuc-bao-mat
+  title: Xác thực & bảo mật
+  purpose: Bảo vệ thông tin đăng nhập và phân biệt truy cập thư mục với cơ chế phân quyền ứng dụng.
+  objectives:
+  - Dùng API authenticate của Spring LDAP và kiểm tra kết quả.
+  - Giữ bí mật credential, áp dụng TLS và nguyên tắc quyền tối thiểu.
+  - Phân biệt xác thực LDAP với quản lý authorization bằng Spring Security.
+- id: pooling-tinh-nhat-quan
+  title: Pooling & tính nhất quán
+  purpose: Nhận diện giới hạn của LDAP và tối ưu cách sử dụng kết nối khi có tải.
+  objectives:
+  - Giải thích connection pooling và validation của DirContext.
+  - Thiết lập giới hạn truy vấn, thời gian chờ và xử lý lỗi kết nối.
+  - Phân biệt transaction bù phía client với transaction thực sự trên server.
+- id: kiem-thu-tich-hop
+  title: Kiểm thử & tích hợp
+  purpose: Kiểm chứng hành vi tìm kiếm, cập nhật và xác thực trước khi kết nối môi trường thật.
+  objectives:
+  - Dùng embedded LDAP và dữ liệu LDIF cho integration test.
+  - Kiểm tra kết quả tìm kiếm, DN và thao tác CRUD.
+  - Thử trường hợp credentials sai, thiếu quyền và lỗi kết nối.

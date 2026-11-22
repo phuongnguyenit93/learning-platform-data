@@ -1,0 +1,3 @@
+menuLevel1: JDBC 4.5
+menuLevel2: try-with-resources cùng thứ tự đóng Connection, Statement và ResultSet
+status: ''

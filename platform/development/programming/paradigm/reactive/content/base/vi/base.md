@@ -1,0 +1,7 @@
+# Programming Paradigm Reactive
+
+**Reactive Programming** là phong cách lập trình xây dựng xử lý quanh các luồng dữ liệu và tín hiệu thay đổi theo thời gian. Thay vì chủ động chờ từng phép tính hoàn tất, chương trình mô tả cách dữ liệu được phát, biến đổi, kết hợp và tiêu thụ. Trong hệ sinh thái Java, Reactive Streams quy định hợp đồng Publisher–Subscriber và cơ chế *backpressure*; Project Reactor cung cấp `Mono`, `Flux` và các toán tử để xây dựng pipeline. Reactive không tự động đồng nghĩa với xử lý song song, cũng không loại bỏ mọi tác vụ blocking.
+
+Lộ trình gồm **8 mốc**: tư duy reactive; hợp đồng Reactive Streams; `Mono`, `Flux` và operators; điều tiết demand; schedulers và blocking; nguồn hot/cold; xử lý lỗi cùng vòng đời; cuối cùng là kiểm thử và tích hợp Spring WebFlux. Người học thực hành trên Java bằng cách tạo publisher, biến đổi dữ liệu, mô phỏng consumer chậm, kiểm tra tín hiệu lỗi và thử một endpoint reactive đơn giản.
+
+Học phần phù hợp với Java developer đã biết lambda, collection, HTTP và khái niệm bất đồng bộ cơ bản. Sau khi hoàn thành, bạn có thể thiết kế và kiểm thử pipeline Reactive Streams, phân biệt subscribe với thời điểm thực thi, tránh lỗi chặn event loop, xử lý backpressure và quyết định khi nào reactive có lợi hơn mô hình đồng bộ hoặc imperative.

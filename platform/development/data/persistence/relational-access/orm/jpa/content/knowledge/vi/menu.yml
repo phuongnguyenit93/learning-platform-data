@@ -1,0 +1,510 @@
+menu:
+- level1: Nền tảng ORM
+  level2:
+  - Ánh xạ đối tượng quan hệ (ORM) là gì và giải quyết vấn đề nào
+  - Khác biệt giữa mô hình đối tượng và mô hình dữ liệu quan hệ
+  - Phân biệt entity, đối tượng giá trị, DTO và bản ghi trong bảng
+  - JPA là đặc tả và vai trò của Jakarta Persistence
+  - Phân biệt JPA, Hibernate, JDBC và Spring Data JPA
+  - Luồng xử lý từ thay đổi đối tượng đến câu SQL và giao dịch
+  - Những kiến thức Java, SQL và giao dịch cần có
+  - Đánh giá lợi ích, chi phí và giới hạn của ORM
+  - Khi nào nên dùng JPA, JDBC hoặc phối hợp nhiều cách truy cập
+  - Các thuật ngữ cốt lõi và trình tự học JPA
+- level1: Kiến trúc JPA
+  level2:
+  - Vai trò của Persistence, EntityManagerFactory và EntityManager
+  - Vai trò của provider trong triển khai đặc tả
+  - Mối liên hệ giữa persistence unit, nguồn dữ liệu và mô hình entity
+  - Ngữ cảnh lưu trữ (persistence context) và đơn vị công việc
+  - Phân biệt quản lý entity và quản lý kết nối JDBC
+  - Phân biệt cơ chế do ứng dụng quản lý và do môi trường quản lý
+  - Giao dịch cục bộ và giao dịch JTA trong kiến trúc JPA
+  - Phạm vi chuẩn JPA và tính năng mở rộng của provider
+  - Kiểm tra phiên bản đặc tả cùng mức hỗ trợ thực tế
+  - Ranh giới trách nhiệm giữa JPA và cơ sở dữ liệu
+- level1: Persistence Unit
+  level2:
+  - Thiết kế một persistence unit cho một mô hình dữ liệu
+  - Cấu trúc và vai trò của persistence.xml
+  - Khai báo lớp entity, tệp ánh xạ và nguồn dữ liệu
+  - Khởi tạo EntityManagerFactory trong Java SE
+  - Tạo và đóng EntityManager do ứng dụng quản lý
+  - Tiêm EntityManager bằng PersistenceContext trong môi trường quản lý
+  - Phân biệt ngữ cảnh theo giao dịch và ngữ cảnh mở rộng
+  - Lựa chọn kiểu giao dịch RESOURCE_LOCAL hoặc JTA
+  - Phân biệt thuộc tính cấu hình chuẩn và thuộc tính riêng của provider
+  - Quản lý nhiều persistence unit trong cùng ứng dụng
+  - Quản lý vòng đời và giới hạn chia sẻ EntityManager giữa các luồng
+- level1: Entity và định danh
+  level2:
+  - Điều kiện để một lớp trở thành entity
+  - Vai trò của Entity, Table và tên entity
+  - Constructor không tham số và khả năng khởi tạo entity
+  - Phân biệt truy cập qua trường và qua thuộc tính
+  - Thiết lập Access nhất quán trong mô hình ánh xạ
+  - Phân biệt định danh Java, định danh entity và khóa chính
+  - Thiết kế equals và hashCode theo vòng đời định danh
+  - Tránh đưa quan hệ tải chậm vào equals, hashCode và toString
+  - Xử lý entity trong Set khi khóa được sinh sau thời điểm tạo
+  - Ràng buộc lớp entity và khả năng dùng đối tượng bất biến theo phiên bản
+  - Phân biệt ánh xạ entity và ánh xạ DTO dạng record
+- level1: Ánh xạ thuộc tính
+  level2:
+  - Ánh xạ thuộc tính cơ bản bằng Basic và Column
+  - Khai báo tên cột, tính nullable và các thuộc tính ánh xạ
+  - Phân biệt insertable, updatable và ràng buộc dữ liệu thực tế
+  - Phân biệt trường không lưu với Transient và từ khóa transient
+  - Ánh xạ số nguyên, số thập phân và precision, scale
+  - Ánh xạ chuỗi, Unicode và giới hạn độ dài
+  - Ánh xạ enum theo tên hoặc theo thứ tự
+  - Ánh xạ dữ liệu nhị phân và nội dung lớn bằng Lob
+  - Ánh xạ ngày giờ theo ngữ nghĩa của kiểu Java và SQL
+  - Làm việc với kiểu thời gian cũ và Temporal khi cần
+  - Đánh giá các kiểu đặc thù vượt phạm vi ánh xạ chuẩn
+  - Ánh xạ một entity vào nhiều bảng bằng SecondaryTable
+- level1: Kiểu giá trị
+  level2:
+  - Thiết kế đối tượng giá trị có ý nghĩa nghiệp vụ
+  - Nhúng đối tượng giá trị bằng Embeddable và Embedded
+  - Nhúng nhiều lần cùng kiểu và dùng AttributeOverride
+  - Ghi đè ánh xạ quan hệ trong đối tượng nhúng
+  - Phân biệt đối tượng nhúng và entity có định danh riêng
+  - Ánh xạ cấu trúc nhúng lồng nhau
+  - Biểu diễn null trong cấu trúc có nhiều thuộc tính
+  - Chuyển đổi giá trị bằng AttributeConverter
+  - Áp dụng converter tường minh và tự động
+  - Đánh giá tương thích khi quy tắc chuyển đổi thay đổi
+  - Giới hạn converter với định danh, phiên bản và kiểu ánh xạ đặc biệt
+- level1: Khóa và chiến lược sinh
+  level2:
+  - Lựa chọn khóa nghiệp vụ và khóa thay thế
+  - Ánh xạ khóa chính đơn bằng Id
+  - Dùng khóa do ứng dụng cấp trước khi persist
+  - Vai trò của GeneratedValue và chiến lược AUTO
+  - Sinh khóa bằng IDENTITY và ảnh hưởng tới thời điểm chèn dữ liệu
+  - Sinh khóa bằng SEQUENCE và cấu hình SequenceGenerator
+  - Sinh khóa bằng TABLE và cấu hình TableGenerator
+  - Sinh khóa UUID theo phiên bản đặc tả được sử dụng
+  - Kiểm tra hỗ trợ chiến lược sinh theo hệ quản trị và provider
+  - Phân biệt khóa đã cấp và dữ liệu đã được commit
+  - Xử lý khoảng trống số thứ tự và kỳ vọng nghiệp vụ về mã định danh
+- level1: Khóa ghép
+  level2:
+  - Khi nào cần khóa chính gồm nhiều thành phần
+  - Ánh xạ khóa ghép bằng EmbeddedId
+  - Ánh xạ khóa ghép bằng IdClass
+  - Thiết kế equals và hashCode cho lớp khóa
+  - Yêu cầu tương ứng giữa lớp khóa và thuộc tính entity
+  - Ánh xạ khóa ngoại nhiều cột bằng JoinColumns
+  - Định danh dẫn xuất từ entity liên quan
+  - Sử dụng MapsId cho khóa chia sẻ hoặc khóa có thành phần liên kết
+  - Truy vấn theo thành phần của khóa ghép
+  - Đánh giá chi phí bảo trì khi khóa nghiệp vụ có thể thay đổi
+- level1: Quan hệ thực thể
+  level2:
+  - Chuyển quan hệ nghiệp vụ thành liên kết giữa các entity
+  - Phân biệt quan hệ đơn hướng và hai hướng
+  - Phía sở hữu quan hệ và vai trò của mappedBy
+  - Mối liên hệ giữa khóa ngoại, JoinColumn và bảng liên kết
+  - Phân biệt tính bắt buộc của quan hệ và ràng buộc NOT NULL
+  - Đồng bộ hai phía quan hệ bằng phương thức nghiệp vụ
+  - Phân biệt thay đổi liên kết và thay đổi vòng đời entity
+  - Thiết kế ranh giới đối tượng nghiệp vụ thay vì nối mọi bảng thành đồ thị
+  - Phân biệt tải dữ liệu quan hệ và lan truyền thao tác
+  - Kiểm chứng mô hình quan hệ qua SQL và dữ liệu thực tế
+- level1: Quan hệ một-một
+  level2:
+  - Ánh xạ quan hệ một-một với khóa ngoại duy nhất
+  - Lựa chọn phía sở hữu cho quan hệ hai hướng
+  - Ánh xạ một-một với khóa chính chia sẻ
+  - Sử dụng MapsId trong mô hình cha và phần mở rộng
+  - Xử lý quan hệ tùy chọn và entity liên quan chưa tồn tại
+  - Đánh giá việc tải quan hệ một-một theo chuẩn và provider
+  - Cập nhật hoặc thay thế đối tượng liên quan đúng phía sở hữu
+  - Lựa chọn một-một, đối tượng nhúng hoặc gộp cùng entity
+- level1: Quan hệ một-nhiều
+  level2:
+  - Ánh xạ ManyToOne phía giữ khóa ngoại
+  - Ánh xạ OneToMany hai hướng bằng mappedBy
+  - Ánh xạ OneToMany đơn hướng qua cột khóa ngoại hoặc bảng liên kết
+  - Thêm và bỏ phần tử mà vẫn đồng bộ hai phía
+  - Di chuyển đối tượng con từ cha này sang cha khác
+  - Phân biệt bỏ liên kết, đặt khóa ngoại null và xóa bản ghi con
+  - Quản lý tập con lớn mà không tải toàn bộ vào bộ nhớ
+  - Đánh giá thứ tự cập nhật và ràng buộc khóa ngoại
+  - Ngăn lặp vô hạn khi biểu diễn đồ thị hai hướng
+  - Kiểm thử thao tác lưu, chuyển và xóa đối tượng liên quan
+- level1: Quan hệ nhiều-nhiều
+  level2:
+  - Ánh xạ ManyToMany qua JoinTable
+  - Lựa chọn phía sở hữu và đồng bộ tập liên kết
+  - Thiết kế khóa và ràng buộc duy nhất cho bảng liên kết
+  - Thêm và xóa liên kết mà không xóa entity đầu kia
+  - Đánh giá rủi ro lan truyền REMOVE trong quan hệ nhiều-nhiều
+  - Khi nào cần chuyển bảng liên kết thành entity riêng
+  - Ánh xạ quan hệ có thuộc tính như số lượng, trạng thái và thời điểm
+  - Đánh giá chi phí tải và cập nhật tập liên kết lớn
+- level1: Tập hợp và Map
+  level2:
+  - Phân biệt tập hợp entity và tập hợp giá trị
+  - Ánh xạ giá trị cơ bản bằng ElementCollection
+  - Ánh xạ tập đối tượng nhúng bằng CollectionTable
+  - Lựa chọn List, Set, Collection và Map theo ngữ nghĩa dữ liệu
+  - Phân biệt sắp xếp bằng OrderBy và lưu vị trí bằng OrderColumn
+  - Xử lý phần tử trùng và ảnh hưởng của equals, hashCode
+  - Ánh xạ khóa Map từ thuộc tính của đối tượng liên quan
+  - Ánh xạ cột khóa Map và khóa Map là entity
+  - Ghi đè thuộc tính của khóa và giá trị nhúng trong Map
+  - Theo dõi thay đổi tập hợp và chi phí SQL khi cập nhật
+  - Giữ quyền quản lý tập hợp khi entity đang được theo dõi
+- level1: Kế thừa
+  level2:
+  - Phân biệt kế thừa Java và kế thừa trong mô hình lưu trữ
+  - Tái sử dụng ánh xạ bằng MappedSuperclass
+  - Ánh xạ hệ phân cấp bằng SINGLE_TABLE
+  - Ánh xạ hệ phân cấp bằng JOINED
+  - Ánh xạ hệ phân cấp bằng TABLE_PER_CLASS
+  - Vai trò của cột phân biệt và giá trị phân biệt
+  - Truy vấn đa hình và phạm vi entity được trả về
+  - Giới hạn định danh và ánh xạ trong hệ phân cấp
+  - Đánh giá ràng buộc cột, số phép nối và chi phí truy vấn
+  - Lựa chọn kế thừa hoặc kết hợp đối tượng theo yêu cầu nghiệp vụ
+- level1: Persistence Context
+  level2:
+  - Định danh duy nhất của entity trong cùng ngữ cảnh lưu trữ
+  - Mối liên hệ giữa EntityManager và tập entity được quản lý
+  - Phân biệt trạng thái trong bộ nhớ và trạng thái trong cơ sở dữ liệu
+  - Tìm entity bằng find và hành vi khi entity đã được quản lý
+  - Lấy tham chiếu bằng getReference và thời điểm cần truy cập dữ liệu
+  - Kiểm tra entity được quản lý bằng contains
+  - Tách một entity bằng detach và tách toàn bộ bằng clear
+  - Đọc lại dữ liệu bằng refresh và ảnh hưởng đến thay đổi chưa đồng bộ
+  - Phân biệt phạm vi persistence context và phạm vi giao dịch
+  - Xử lý ngữ cảnh sống lâu và dữ liệu có thể đã cũ
+  - Kiểm tra trạng thái tải bằng PersistenceUnitUtil và PersistenceUtil
+- level1: Vòng đời entity
+  level2:
+  - Phân biệt entity mới, được quản lý, đã tách và chờ xóa
+  - Lưu entity mới bằng persist
+  - Theo dõi thay đổi entity đang được quản lý
+  - Đánh dấu entity để xóa bằng remove
+  - Chuyển trạng thái từ detached bằng merge
+  - Phân biệt đối tượng nguồn và đối tượng trả về từ merge
+  - Xử lý quan hệ tới entity mới chưa được lưu
+  - Phân biệt cập nhật entity đang quản lý và hợp nhất đồ thị đã tách
+  - Xử lý entity đã xóa hoặc entity không còn tồn tại trong cơ sở dữ liệu
+  - Tác động của commit, rollback và đóng ngữ cảnh tới vòng đời entity
+  - Thiết kế phương thức nghiệp vụ dựa trên trạng thái entity thực tế
+- level1: Đồng bộ và flush
+  level2:
+  - Cơ chế phát hiện thay đổi và đồng bộ entity xuống cơ sở dữ liệu
+  - Phân biệt persist, flush và commit
+  - Khi nào provider có thể thực thi SQL trước commit
+  - Vai trò của FlushModeType.AUTO và COMMIT
+  - Ảnh hưởng của truy vấn đến thời điểm đồng bộ
+  - Thực hiện flush tường minh để xác định lỗi sớm
+  - Phân biệt thứ tự gọi phương thức và thứ tự SQL thực tế
+  - Ảnh hưởng của chiến lược sinh khóa tới thao tác ghi
+  - Xử lý lỗi ràng buộc khi flush
+  - Phối hợp flush và clear khi xử lý nhiều entity
+  - Xác minh dữ liệu sau khi đồng bộ mà không chỉ đọc từ ngữ cảnh cũ
+- level1: Giao dịch
+  level2:
+  - Ranh giới giao dịch và tính đúng của thao tác nghiệp vụ
+  - Điều khiển giao dịch cục bộ bằng EntityTransaction
+  - Phối hợp begin, commit và rollback có xử lý lỗi
+  - Kiểm tra trạng thái giao dịch và cờ rollback-only
+  - Phân biệt giao dịch đang hoạt động và persistence context đang tồn tại
+  - Gia nhập giao dịch JTA bằng joinTransaction khi phù hợp
+  - Ngữ cảnh đồng bộ và không đồng bộ với giao dịch JTA
+  - Quyền sở hữu giao dịch trong ứng dụng và trong môi trường quản lý
+  - Xử lý entity trong bộ nhớ sau khi rollback
+  - Tránh gọi hệ thống ngoài trong lúc giữ giao dịch cơ sở dữ liệu
+  - Phân biệt bảo đảm JPA và mức cô lập do cơ sở dữ liệu cung cấp
+  - Thiết kế một giao dịch cho toàn bộ thay đổi nghiệp vụ liên quan
+- level1: Cascade và orphanRemoval
+  level2:
+  - Vai trò của cascade trong lan truyền thao tác vòng đời
+  - Áp dụng PERSIST cho đồ thị có entity mới
+  - Áp dụng MERGE khi hợp nhất đồ thị đã tách
+  - Áp dụng REMOVE theo ranh giới sở hữu dữ liệu
+  - Vai trò của REFRESH và DETACH khi lan truyền
+  - Đánh giá phạm vi và rủi ro của CascadeType.ALL
+  - Phân biệt cascade JPA và ON DELETE CASCADE của cơ sở dữ liệu
+  - Vai trò của orphanRemoval trong quan hệ phù hợp
+  - Phân biệt bỏ đối tượng con khỏi quan hệ và gọi remove
+  - Phối hợp orphanRemoval với phía sở hữu và ràng buộc khóa ngoại
+  - Kiểm thử đồ thị dùng chung để tránh xóa dữ liệu ngoài ý muốn
+- level1: JPQL cơ bản
+  level2:
+  - JPQL truy vấn theo entity và thuộc tính thay vì tên bảng và cột
+  - Tạo Query và TypedQuery qua EntityManager
+  - Chọn entity, thuộc tính và nhiều biểu thức kết quả
+  - Gán tham số theo tên và theo vị trí
+  - Lọc dữ liệu với toán tử so sánh, logic và điều kiện NULL
+  - Sử dụng LIKE, BETWEEN và IN theo ngữ nghĩa JPQL
+  - Sắp xếp kết quả và xử lý giá trị bằng nhau
+  - Thực hiện phép nối tường minh và truy cập đường dẫn quan hệ
+  - Phân biệt INNER JOIN và LEFT JOIN trong truy vấn đối tượng
+  - Đọc danh sách, một kết quả và xử lý không có hoặc có nhiều kết quả
+  - Khai báo truy vấn có tên để quản lý và tái sử dụng
+  - Áp dụng query hint và kiểm tra khả năng hỗ trợ
+  - Đọc kết quả qua getResultStream và quản lý tài nguyên liên quan
+- level1: JPQL nâng cao
+  level2:
+  - Tổng hợp dữ liệu bằng COUNT, SUM, AVG, MIN và MAX
+  - Nhóm và lọc nhóm bằng GROUP BY và HAVING
+  - Xử lý DISTINCT khi truy vấn entity và giá trị
+  - Viết truy vấn con trong phạm vi chuẩn JPQL
+  - Liên kết truy vấn con với dữ liệu của truy vấn ngoài
+  - Kiểm tra quan hệ bằng EXISTS, MEMBER OF và IS EMPTY
+  - Sử dụng SIZE, INDEX và các biểu thức cho tập hợp
+  - Biểu diễn điều kiện bằng CASE, COALESCE và NULLIF
+  - Lựa chọn hàm chuỗi, số và ngày giờ theo phiên bản đặc tả
+  - Truy vấn đa hình bằng TYPE và TREAT
+  - Gọi hàm cơ sở dữ liệu qua FUNCTION và đánh giá tính khả chuyển
+  - Ánh xạ trực tiếp kết quả bằng biểu thức khởi tạo DTO
+- level1: Criteria API
+  level2:
+  - Khi nào nên xây dựng truy vấn động bằng Criteria API
+  - Vai trò của CriteriaBuilder, CriteriaQuery và Root
+  - Truy cập thuộc tính bằng Path và mô hình siêu dữ liệu có kiểu
+  - Kết hợp Predicate theo điều kiện tìm kiếm tùy chọn
+  - Dùng ParameterExpression để tách cấu trúc và giá trị
+  - Thiết kế Join và Fetch trong cây truy vấn
+  - Chọn entity, DTO, giá trị tổng hợp và Tuple
+  - Nhóm, lọc nhóm và sắp xếp kết quả
+  - Tạo truy vấn con và truy vấn con tương quan
+  - Sử dụng biểu thức điều kiện và hàm trong Criteria
+  - Quản lý mô hình siêu dữ liệu tĩnh cùng quá trình biên dịch
+  - Kiểm chứng SQL được sinh từ truy vấn Criteria
+- level1: Native SQL
+  level2:
+  - Khi nào cần truy vấn SQL trực tiếp qua JPA
+  - Tạo và thực thi native query với tham số
+  - Đọc kết quả dạng giá trị và mảng Object[]
+  - Ánh xạ native query về entity với đủ thông tin cần thiết
+  - Ánh xạ nhiều phần kết quả bằng SqlResultSetMapping
+  - Sử dụng EntityResult, FieldResult và ColumnResult
+  - Ánh xạ DTO bằng ConstructorResult
+  - Phân biệt ánh xạ entity được quản lý và dữ liệu kết quả độc lập
+  - Quản lý named native query và SQL đặc thù của hệ quản trị
+  - Kiểm tra tương tác giữa native query, flush và dữ liệu trong ngữ cảnh
+  - Đánh giá tính khả chuyển và tránh phụ thuộc provider ngoài ý muốn
+- level1: Thủ tục lưu trữ
+  level2:
+  - Vai trò của StoredProcedureQuery trong JPA
+  - Khai báo và tạo truy vấn thủ tục
+  - Đăng ký tham số IN, OUT và INOUT
+  - Gán tham số và đọc giá trị đầu ra
+  - Xử lý nhiều tập kết quả và số dòng cập nhật
+  - Làm việc với REF_CURSOR khi hệ quản trị và provider hỗ trợ
+  - Ánh xạ kết quả thủ tục sang entity hoặc dữ liệu độc lập
+  - Phối hợp thủ tục với giao dịch đang có
+  - Đồng bộ lại ngữ cảnh khi thủ tục thay đổi dữ liệu đã được quản lý
+  - Đánh giá giới hạn tính khả chuyển của lời gọi thủ tục
+- level1: Truy vấn thay đổi
+  level2:
+  - Cập nhật hàng loạt bằng JPQL UPDATE
+  - Xóa hàng loạt bằng JPQL DELETE
+  - Đọc số bản ghi bị ảnh hưởng từ executeUpdate
+  - Tạo truy vấn thay đổi bằng CriteriaUpdate và CriteriaDelete
+  - Phân biệt thay đổi hàng loạt và thay đổi từng entity được quản lý
+  - Xử lý entity trong ngữ cảnh bị cũ sau thao tác hàng loạt
+  - Đánh giá ảnh hưởng tới callback, cascade và kiểm tra phiên bản
+  - Thiết kế điều kiện phiên bản khi cập nhật hàng loạt cần kiểm soát xung đột
+  - Phối hợp flush và clear quanh truy vấn thay đổi
+  - Kiểm tra phạm vi dữ liệu trước thao tác cập nhật hoặc xóa lớn
+- level1: Kế hoạch tải
+  level2:
+  - Phân biệt tải ngay và tải chậm ở mức ánh xạ
+  - Giá trị fetch mặc định của từng loại quan hệ theo đặc tả
+  - Phân biệt yêu cầu EAGER và gợi ý LAZY trong phạm vi chuẩn
+  - Tác động của thời điểm truy cập thuộc tính đến việc tải dữ liệu
+  - Vấn đề truy cập dữ liệu chưa tải sau khi ngữ cảnh kết thúc
+  - Nhận diện N+1 từ hành vi truy cập đồ thị đối tượng
+  - Tải quan hệ có chủ đích bằng JOIN FETCH
+  - Tạo entity graph và subgraph theo trường hợp sử dụng
+  - Phân biệt fetch graph và load graph
+  - Phân biệt kế hoạch tải và số câu SQL thực tế được thực thi
+  - Tránh tải nhiều tập hợp gây nhân số hàng kết quả
+  - Thiết kế ranh giới tải dữ liệu trước khi chuyển sang DTO
+- level1: DTO và phân trang
+  level2:
+  - Lựa chọn entity hoặc DTO theo mục đích đọc dữ liệu
+  - Thiết kế DTO không mang theo quyền quản lý của persistence context
+  - Đọc kết quả nhiều cột bằng Tuple và kiểu dữ liệu rõ ràng
+  - Phân trang bằng setFirstResult và setMaxResults
+  - Thiết kế thứ tự ổn định với khóa phụ duy nhất
+  - Tách truy vấn đếm và truy vấn lấy nội dung trang
+  - Đánh giá phân trang khi truy vấn có JOIN và DISTINCT
+  - Tránh giả định phân trang đúng khi fetch join tập hợp
+  - Thiết kế phân trang theo khóa bằng điều kiện JPQL hoặc Criteria
+  - Tránh trả đồ thị entity trực tiếp qua lớp giao tiếp ứng dụng
+- level1: Khóa lạc quan
+  level2:
+  - Vấn đề ghi đè thay đổi khi nhiều giao dịch cùng cập nhật
+  - Ánh xạ thuộc tính phiên bản bằng Version
+  - Kiểu phiên bản được phép theo phiên bản đặc tả
+  - Kiểm tra phiên bản khi cập nhật và xóa entity
+  - Sử dụng OPTIMISTIC và OPTIMISTIC_FORCE_INCREMENT
+  - Đánh giá xung đột khi hợp nhất entity đã tách
+  - Xác định thời điểm lỗi khóa lạc quan có thể xuất hiện
+  - Xử lý OptimisticLockException và trạng thái giao dịch
+  - Thử lại bằng giao dịch và ngữ cảnh mới khi phù hợp
+  - Truyền phiên bản qua biên ứng dụng để phát hiện dữ liệu cũ
+  - Kiểm thử hai giao dịch cập nhật cùng một entity
+- level1: Khóa bi quan
+  level2:
+  - Khi nào cần khóa bản ghi ở cơ sở dữ liệu
+  - Lấy khóa qua find, lock và truy vấn có lock mode
+  - Phân biệt PESSIMISTIC_READ, WRITE và FORCE_INCREMENT
+  - Phạm vi giao dịch cần có để giữ khóa
+  - Đánh giá phạm vi khóa của entity và các quan hệ liên quan
+  - Cấu hình gợi ý thời gian chờ khóa và kiểm tra hỗ trợ
+  - Phân biệt LockTimeoutException và PessimisticLockException
+  - Giảm bế tắc bằng thứ tự truy cập nhất quán
+  - Kết hợp khóa bi quan với kiểm tra điều kiện nghiệp vụ
+  - Kiểm chứng hành vi khóa trên hệ quản trị mục tiêu
+- level1: Bộ nhớ đệm
+  level2:
+  - Phạm vi lưu giữ entity trong persistence context
+  - Phân biệt bộ nhớ đệm cấp một và bộ nhớ đệm chia sẻ
+  - Đánh giá hỗ trợ cache chia sẻ theo provider
+  - Cấu hình SharedCacheMode và Cacheable
+  - Chọn chế độ cache bằng CacheRetrieveMode và CacheStoreMode
+  - Xóa dữ liệu cache qua API Cache của EntityManagerFactory
+  - Xử lý dữ liệu cũ khi nguồn khác cập nhật trực tiếp cơ sở dữ liệu
+  - Phân biệt cache entity và cache kết quả truy vấn
+  - Đánh giá tương tác giữa cache, giao dịch và mức cô lập
+  - Kiểm chứng cache bằng kết quả và số truy vấn thực tế
+- level1: Sự kiện vòng đời
+  level2:
+  - Vai trò của callback và entity listener
+  - Theo dõi các thời điểm trước và sau persist, update và remove
+  - Xử lý sự kiện sau khi entity được tải
+  - Đăng ký listener riêng và listener dùng chung
+  - Quy tắc kế thừa, loại trừ và thứ tự callback
+  - Giới hạn thao tác an toàn bên trong callback theo đặc tả
+  - Phân biệt callback sau thao tác và sự kiện sau commit thành công
+  - Quản lý trường thời gian và dấu vết thay đổi theo cách có thể kiểm thử
+  - Tránh phụ thuộc nghiệp vụ khó quan sát vào callback
+- level1: Kiểm tra dữ liệu
+  level2:
+  - Phân biệt kiểm tra đối tượng, quy tắc nghiệp vụ và ràng buộc cơ sở dữ liệu
+  - Tích hợp Bean Validation với vòng đời JPA
+  - Thiết kế nhóm kiểm tra trước persist, update và remove
+  - Phân biệt Column nullable và ràng buộc kiểm tra giá trị
+  - Kiểm tra quan hệ và cấu trúc đối tượng trước khi lưu
+  - Xử lý lỗi validation và trạng thái giao dịch
+  - Phân biệt kiểm tra duy nhất trước ghi và ràng buộc UNIQUE thực tế
+  - Bảo đảm tính đúng khi dữ liệu được cập nhật ngoài JPA
+  - Kiểm thử validation cùng thời điểm flush thực tế
+- level1: Siêu dữ liệu và lược đồ
+  level2:
+  - Khám phá mô hình ánh xạ bằng Metamodel
+  - Phân biệt entity, mapped superclass và embeddable trong siêu dữ liệu
+  - Tra cứu thuộc tính cơ bản, thuộc tính đơn và tập hợp
+  - Lựa chọn annotation hoặc tệp orm.xml
+  - Ghi đè ánh xạ bằng XML và quản lý nguồn cấu hình
+  - Tác động của tên bảng, cột, catalog và schema
+  - Khai báo unique constraint và index trong mô hình ánh xạ
+  - Vai trò của sinh lược đồ theo chuẩn Jakarta Persistence
+  - Phân biệt sinh lược đồ phục vụ thử nghiệm và di trú lược đồ có kiểm soát
+  - Đối chiếu mô hình entity với lược đồ thực tế
+- level1: Lỗi và phục hồi
+  level2:
+  - Phân loại lỗi truy vấn, ánh xạ, ràng buộc và giao dịch
+  - Xử lý NoResultException và NonUniqueResultException theo hợp đồng truy vấn
+  - Xử lý EntityNotFoundException khi tham chiếu không còn hợp lệ
+  - Xử lý EntityExistsException và định danh bị trùng
+  - Nhận diện lỗi cần giao dịch đang hoạt động
+  - Kiểm tra trạng thái rollback-only sau ngoại lệ
+  - Đọc nguyên nhân gốc từ provider và driver mà vẫn giữ ranh giới JPA
+  - Không tiếp tục dùng ngữ cảnh lỗi khi chưa xác định trạng thái an toàn
+  - Xử lý kết quả commit chưa xác định khi kết nối bị gián đoạn
+  - Thiết kế thử lại theo tính lũy đẳng và trạng thái nghiệp vụ
+- level1: Hiệu năng
+  level2:
+  - Đo số truy vấn, thời gian truy vấn và số entity được tải
+  - Phân biệt nút thắt SQL, kế hoạch tải và chi phí quản lý entity
+  - Giảm N+1 bằng kế hoạch đọc theo trường hợp sử dụng
+  - Tránh nhân dữ liệu khi tải nhiều quan hệ tập hợp
+  - Lựa chọn projection và truy vấn tổng hợp cho nhu cầu báo cáo
+  - Đánh giá kích thước persistence context và chi phí theo dõi thay đổi
+  - Xử lý nhiều entity theo khối với flush và clear
+  - Phân biệt gom thao tác ghi của provider và bảo đảm của chuẩn JPA
+  - Đánh giá ảnh hưởng chiến lược sinh khóa đến hiệu năng ghi
+  - Kết hợp chỉ mục cơ sở dữ liệu với điều kiện JPQL thực tế
+  - Phân biệt tối ưu khả chuyển và tối ưu phụ thuộc provider
+  - Đo trên dữ liệu và hệ quản trị đại diện cho môi trường triển khai
+  - Phân biệt API luồng kết quả và cách provider thực sự tải dữ liệu
+- level1: Bảo mật dữ liệu
+  level2:
+  - Tham số hóa JPQL và native SQL để tránh ghép giá trị không tin cậy
+  - Kiểm soát trường lọc và trường sắp xếp động bằng danh sách cho phép
+  - Giữ điều kiện phân quyền và phạm vi sở hữu trong mọi truy vấn
+  - Phân biệt bảo vệ biên ứng dụng và ràng buộc dữ liệu thực tế
+  - Tránh cập nhật ngoài ý muốn khi hợp nhất entity từ dữ liệu đầu vào
+  - Dùng DTO cho dữ liệu nhận vào và dữ liệu trả ra
+  - Bảo vệ thông tin xác thực và cấu hình nguồn dữ liệu
+  - Giảm lộ dữ liệu trong nhật ký SQL, ngoại lệ và biểu diễn entity
+  - Giới hạn thời gian và phạm vi truy vấn do người dùng điều khiển
+  - Đánh giá phân tách dữ liệu khi nhiều khách hàng dùng chung mô hình
+- level1: Kiểm thử JPA
+  level2:
+  - Phân biệt kiểm thử quy tắc miền và kiểm thử ánh xạ JPA
+  - Thiết lập persistence unit và lược đồ thử nghiệm có kiểm soát
+  - Kiểm thử persist, find, merge, remove và vòng đời entity
+  - Dùng flush và clear để tránh chỉ kiểm tra dữ liệu trong bộ nhớ
+  - Kiểm thử phía sở hữu, cascade và orphanRemoval
+  - Kiểm thử khóa ghép, kế thừa và đối tượng giá trị
+  - Kiểm thử JPQL, Criteria, DTO và native SQL
+  - Kiểm thử commit, rollback và trạng thái entity sau lỗi
+  - Kiểm thử đồng thời bằng nhiều EntityManager độc lập
+  - Kiểm thử N+1 và số câu SQL của kế hoạch tải
+  - Kiểm thử ràng buộc, NULL, số thập phân và thời gian
+  - Dùng hệ quản trị thật trong container khi cần hành vi tương đương
+  - Đánh giá khác biệt cơ sở dữ liệu nhúng và môi trường mục tiêu
+  - Kiểm thử tương thích khi đổi provider hoặc phiên bản đặc tả
+- level1: Thiết kế Repository
+  level2:
+  - Phân biệt repository nghiệp vụ và lớp bọc từng bảng
+  - Thiết kế phương thức truy vấn theo nhu cầu sử dụng
+  - Lựa chọn trả entity, DTO và kết quả tổng hợp
+  - Giữ ranh giới giao dịch tại nơi điều phối nghiệp vụ phù hợp
+  - Thiết kế phương thức cập nhật dựa trên entity đang được quản lý
+  - Tránh mở rộng đồ thị quan hệ chỉ để thuận tiện truy vấn
+  - Tách truy vấn phức tạp khỏi thao tác thay đổi miền
+  - Cô lập phần phụ thuộc provider và SQL đặc thù
+  - Thiết kế hợp đồng xử lý không tồn tại và xung đột phiên bản
+  - Giữ logic nghiệp vụ độc lập với vòng đời tài nguyên kỹ thuật
+- level1: Vận hành và di trú
+  level2:
+  - Quản lý cấu hình persistence unit giữa các môi trường
+  - Đồng bộ thay đổi entity và thay đổi lược đồ theo kế hoạch
+  - Di trú dữ liệu cùng thay đổi kiểu và quan hệ
+  - Kiểm tra tương thích khi ứng dụng nhiều phiên bản cùng chạy
+  - Giám sát pool, thời gian giao dịch và truy vấn chậm
+  - Theo dõi lỗi khóa, timeout và lỗi đồng bộ dữ liệu
+  - Quản lý cache khi triển khai hoặc thay đổi dữ liệu ngoài ứng dụng
+  - Kiểm thử khả năng phục hồi khi cơ sở dữ liệu ngắt kết nối
+  - Lập kế hoạch nâng phiên bản provider và Jakarta Persistence
+  - Xác minh SQL, lược đồ và dữ liệu sau thay đổi hạ tầng
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế mô hình khách hàng, đơn hàng, chi tiết và sản phẩm
+  - Ánh xạ khóa sinh, kiểu giá trị và quan hệ có ràng buộc
+  - Thực hiện nghiệp vụ tạo đơn hàng trong một giao dịch
+  - Cập nhật entity đang được quản lý và quan sát thời điểm SQL phát sinh
+  - Tái hiện khác biệt giữa persist và merge với entity đã tách
+  - Quản lý đối tượng con bằng cascade và orphanRemoval đúng phạm vi
+  - Xây dựng tìm kiếm động bằng JPQL và Criteria
+  - Trả DTO có phân trang mà không tải thừa đồ thị entity
+  - Phát hiện và xử lý N+1 bằng fetch join hoặc entity graph
+  - Tái hiện xung đột và xử lý bằng khóa lạc quan
+  - Xử lý tranh chấp tài nguyên bằng khóa bi quan có kiểm thử
+  - Cập nhật hàng loạt rồi đồng bộ lại persistence context
+  - Đối chiếu hành vi khi dùng JPA thuần và tích hợp Spring
+  - Nghiệm thu bằng bằng chứng SQL, giao dịch và kiểm thử tính đúng

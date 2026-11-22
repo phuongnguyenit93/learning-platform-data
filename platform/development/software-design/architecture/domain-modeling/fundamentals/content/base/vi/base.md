@@ -1,0 +1,7 @@
+# Software Design Architecture Domain Modeling Fundamentals
+
+Domain Modeling là quá trình biến hiểu biết về nghiệp vụ thành một mô hình rõ ràng gồm các khái niệm, mối quan hệ, hành vi và quy tắc. Mục tiêu không chỉ là vẽ sơ đồ lớp hay thiết kế bảng cơ sở dữ liệu mà còn là giúp mã nguồn phản ánh cách nghiệp vụ thực sự vận hành. Một domain model tốt sử dụng thuật ngữ thống nhất với người hiểu nghiệp vụ, đặt trách nhiệm đúng chỗ và thể hiện được các trạng thái hợp lệ của hệ thống.
+
+Module dành cho người đã biết Java hướng đối tượng, encapsulation, collection và các khái niệm thiết kế cơ bản. Lộ trình bắt đầu từ phân tích use case, xây dựng ngôn ngữ miền và xác định phạm vi mô hình; tiếp theo là phân biệt Entity với Value Object, mô tả quan hệ bằng sơ đồ và thiết kế hành vi cùng invariant. Các mốc cuối giới thiệu ranh giới Aggregate, vai trò Domain Service và cách triển khai/kiểm thử một mô hình nhỏ trong Java. Đây là phần nền tảng; các kỹ thuật Domain-Driven Design chuyên sâu được học riêng.
+
+Sau khi hoàn thành, bạn có thể trao đổi về nghiệp vụ bằng ngôn ngữ chung, nhận diện đối tượng và giá trị, xây dựng sơ đồ domain model cơ bản, viết lớp Java mang hành vi nghiệp vụ và kiểm tra các quy tắc quan trọng bằng unit test. Khi mô hình chưa phù hợp với use case, cần sửa lại khái niệm và ranh giới thay vì cố buộc nghiệp vụ vào cấu trúc bảng hay DTO có sẵn.

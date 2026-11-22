@@ -1,0 +1,85 @@
+menu:
+  - title: "Tư duy định dạng"
+    slug: formatting-principles
+    index: 0
+  - title: "Khoảng trắng"
+    slug: whitespace
+    index: 1
+  - title: "Thụt lề"
+    slug: indentation
+    index: 2
+  - title: "Dấu ngoặc"
+    slug: braces-and-parentheses
+    index: 3
+  - title: "Ngắt dòng"
+    slug: line-wrapping
+    index: 4
+  - title: "Bố cục tệp Java"
+    slug: java-file-layout
+    index: 5
+  - title: "Khai báo kiểu"
+    slug: type-declarations
+    index: 6
+  - title: "Thành viên lớp"
+    slug: class-members
+    index: 7
+  - title: "Câu lệnh"
+    slug: statement-layout
+    index: 8
+  - title: "Biểu thức"
+    slug: expression-layout
+    index: 9
+  - title: "Chú thích"
+    slug: comments-and-javadoc
+    index: 10
+  - title: "Chuỗi và dữ liệu"
+    slug: strings-and-embedded-data
+    index: 11
+  - title: "Chuẩn tệp văn bản"
+    slug: text-file-conventions
+    index: 12
+  - title: "Chính sách định dạng"
+    slug: formatting-policy
+    index: 13
+  - title: "EditorConfig"
+    slug: editorconfig
+    index: 14
+  - title: "Bộ định dạng Java"
+    slug: java-formatters
+    index: 15
+  - title: "IntelliJ IDEA"
+    slug: intellij-formatting
+    index: 16
+  - title: "Eclipse"
+    slug: eclipse-formatting
+    index: 17
+  - title: "VS Code"
+    slug: vs-code-formatting
+    index: 18
+  - title: "Maven"
+    slug: maven-formatting
+    index: 19
+  - title: "Gradle"
+    slug: gradle-formatting
+    index: 20
+  - title: "Tệp hỗ trợ"
+    slug: supporting-files
+    index: 21
+  - title: "Git và review"
+    slug: git-and-code-review
+    index: 22
+  - title: "Kiểm tra CI"
+    slug: ci-format-checks
+    index: 23
+  - title: "Kiểm chứng kết quả"
+    slug: formatting-verification
+    index: 24
+  - title: "Chuyển đổi mã hiện hữu"
+    slug: legacy-code-formatting
+    index: 25
+  - title: "Chẩn đoán lỗi"
+    slug: formatting-troubleshooting
+    index: 26
+  - title: "Thực hành tổng hợp"
+    slug: integrated-practice
+    index: 27

@@ -1,0 +1,49 @@
+roadmap:
+- id: khai-niem-phan-tich-tinh
+  title: Khái niệm phân tích tĩnh
+  purpose: Hiểu mục đích kiểm tra mã mà không cần chạy ứng dụng.
+  objectives:
+  - Định nghĩa static analysis và lợi ích của nó.
+  - Phân biệt với kiểm thử động và code review.
+- id: dau-vao-ky-thuat
+  title: Đầu vào & kỹ thuật
+  purpose: Nắm cách công cụ phân tích mã nguồn hoặc bytecode để phát hiện vấn đề.
+  objectives:
+  - Phân biệt kiểm tra văn bản, AST và bytecode.
+  - Giải thích sơ bộ phân tích luồng điều khiển và dữ liệu.
+- id: quy-tac-kiem-tra
+  title: Quy tắc kiểm tra
+  purpose: Biết các nhóm vấn đề được phát hiện và cách quy tắc hoạt động.
+  objectives:
+  - Phân loại lỗi tiềm ẩn, bảo mật và maintainability.
+  - Giải thích vai trò của rule và cấu hình phạm vi.
+- id: gioi-han-do-tin-cay
+  title: Giới hạn & độ tin cậy
+  purpose: Hiểu vì sao một cảnh báo cần được kiểm chứng trước khi kết luận.
+  objectives:
+  - Nhận diện false positive và false negative.
+  - Phân biệt mức nghiêm trọng với độ tin cậy.
+- id: doc-bao-cao
+  title: Đọc báo cáo
+  purpose: Biết khai thác vị trí, loại cảnh báo và mức ưu tiên từ kết quả phân tích.
+  objectives:
+  - Xác định file, dòng mã, rule và mô tả.
+  - Ưu tiên cảnh báo theo tác động và ngữ cảnh.
+- id: xu-ly-xac-minh
+  title: Xử lý & xác minh
+  purpose: Chuyển cảnh báo có giá trị thành sửa đổi được kiểm chứng.
+  objectives:
+  - Phân tích nguyên nhân trước khi sửa.
+  - Chạy lại phân tích và kiểm thử liên quan.
+- id: baseline-ngoai-le
+  title: Baseline & ngoại lệ
+  purpose: Quản lý cảnh báo tồn đọng mà vẫn phát hiện vấn đề mới.
+  objectives:
+  - Phân biệt lỗi mới với nợ kỹ thuật hiện có.
+  - Giải thích khi nào cần suppression có lý do.
+- id: tich-hop-cai-tien
+  title: Tích hợp & cải tiến
+  purpose: Duy trì phân tích tĩnh như một phản hồi thường xuyên của nhóm.
+  objectives:
+  - Đề xuất điểm chạy tại IDE, build và CI.
+  - Theo dõi cảnh báo mới và điều chỉnh rule phù hợp.

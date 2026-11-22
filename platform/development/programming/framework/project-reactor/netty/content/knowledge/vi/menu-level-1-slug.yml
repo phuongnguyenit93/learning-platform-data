@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng mạng
+  slug: network-foundations
+  index: 1
+- title: Thiết lập
+  slug: setup
+  index: 2
+- title: Mô hình thực thi
+  slug: execution-model
+  index: 3
+- title: Vòng đời kết nối
+  slug: connection-lifecycle
+  index: 4
+- title: Bộ đệm dữ liệu
+  slug: data-buffers
+  index: 5
+- title: Điều tiết dữ liệu
+  slug: backpressure
+  index: 6
+- title: TCP Server
+  slug: tcp-server
+  index: 7
+- title: TCP Client
+  slug: tcp-client
+  index: 8
+- title: Định khung TCP
+  slug: tcp-framing
+  index: 9
+- title: UDP
+  slug: udp
+  index: 10
+- title: HTTP Server
+  slug: http-server
+  index: 11
+- title: Ngữ nghĩa HTTP
+  slug: http-semantics
+  index: 12
+- title: HTTP Client
+  slug: http-client
+  index: 13
+- title: Truyền nội dung
+  slug: content-streaming
+  index: 14
+- title: Pool kết nối
+  slug: connection-pooling
+  index: 15
+- title: Thời hạn chờ
+  slug: timeouts
+  index: 16
+- title: DNS và proxy
+  slug: dns-proxies
+  index: 17
+- title: TLS
+  slug: tls
+  index: 18
+- title: HTTP/2 và HTTP/3
+  slug: http2-http3
+  index: 19
+- title: WebSocket
+  slug: websocket
+  index: 20
+- title: Tùy biến Netty
+  slug: netty-customization
+  index: 21
+- title: Quản lý tài nguyên
+  slug: resource-management
+  index: 22
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 23
+- title: Hiệu năng
+  slug: performance
+  index: 24
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 25
+- title: Bảo mật
+  slug: security
+  index: 26
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 27
+- title: Kiểm thử
+  slug: testing
+  index: 28
+- title: Thực hành
+  slug: hands-on-lab
+  index: 29

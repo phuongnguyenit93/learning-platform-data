@@ -1,0 +1,423 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiến trúc vi dịch vụ (Microservices) là gì
+  - Bài toán thay đổi và triển khai trong hệ thống có nhiều năng lực nghiệp vụ
+  - 'Các khái niệm nền tảng: dịch vụ, thể hiện chạy, hợp đồng và ranh giới'
+  - Đặc trưng tự chủ, triển khai độc lập và sở hữu theo năng lực nghiệp vụ
+  - Luồng minh họa đặt hàng, thanh toán và giao hàng
+  - Phân biệt vi dịch vụ với việc chỉ chia nhỏ ứng dụng hoặc tạo nhiều API
+  - Những năng lực cần có trước khi vận hành hệ thống phân tán
+  - Lộ trình học và mối liên hệ giữa các chủ đề
+- level1: Lựa chọn kiến trúc
+  level2:
+  - So sánh khối đơn thể, khối đơn thể mô-đun và vi dịch vụ
+  - Động lực về tốc độ thay đổi, quy mô nhóm và khả năng mở rộng
+  - Đánh giá nhu cầu triển khai độc lập của từng năng lực
+  - Chi phí mạng, dữ liệu, kiểm thử và vận hành phát sinh
+  - Điều kiện nên tiếp tục giữ kiến trúc đơn thể
+  - Đo mức độ sẵn sàng của tổ chức và nền tảng kỹ thuật
+  - Xác định mục tiêu có thể đo trước khi chuyển sang vi dịch vụ
+  - Lập quyết định kiến trúc theo bối cảnh thay vì theo xu hướng
+- level1: Nền tảng phân tán
+  level2:
+  - Độ trễ, mất gói và giới hạn độ tin cậy của mạng
+  - Lỗi cục bộ và trạng thái thất bại không đồng thời
+  - Phân biệt một dịch vụ logic với nhiều thể hiện đang chạy
+  - Ý nghĩa và giới hạn của timeout, retry và tín hiệu hủy
+  - Đồng hồ, thứ tự sự kiện và quan hệ nhân quả
+  - Các mức nhất quán dữ liệu và nhất quán cuối cùng
+  - CAP trong tình huống phân hoạch mạng và giới hạn cách diễn giải
+  - Đánh đổi giữa độ trễ và nhất quán khi hệ thống hoạt động bình thường
+  - Ngân sách độ trễ và độ sẵn sàng của chuỗi phụ thuộc
+- level1: Phân rã nghiệp vụ
+  level2:
+  - Phân rã theo năng lực nghiệp vụ thay vì theo lớp kỹ thuật
+  - Khảo sát quy trình, tác nhân và ngôn ngữ của miền
+  - Miền con và ranh giới ngữ cảnh (bounded context)
+  - Event Storming như công cụ khám phá hành vi và sự kiện
+  - Ánh xạ ngữ cảnh và quan hệ giữa các nhóm sở hữu
+  - Nhận diện aggregate và những bất biến cần bảo vệ cục bộ
+  - Phân tích thay đổi đồng thời để tìm phần gắn kết chặt
+  - Phân tích luồng dữ liệu và giao dịch để đánh giá điểm cắt
+  - Phân biệt bounded context với đơn vị triển khai dịch vụ
+  - Thiết kế ranh giới ban đầu và kế hoạch kiểm chứng bằng thực tế
+- level1: Ranh giới dịch vụ
+  level2:
+  - Tiêu chí về gắn kết bên trong và liên kết bên ngoài
+  - Độ hạt dịch vụ và lý do không đo bằng số dòng mã
+  - Quyền sở hữu hành vi, dữ liệu và hợp đồng
+  - Phân biệt tự chủ về nghiệp vụ với độc lập về hạ tầng
+  - Nhận diện phụ thuộc triển khai và phát hành đồng bộ
+  - Đánh giá giao tiếp quá nhiều giữa những dịch vụ liên quan
+  - Tách dịch vụ khi có bằng chứng về nhu cầu thay đổi độc lập
+  - Gộp lại dịch vụ khi ranh giới làm tăng chi phí không cần thiết
+  - Ghi nhận và quản lý sự tiến hóa ranh giới theo thời gian
+- level1: Thiết kế dịch vụ
+  level2:
+  - Phân chia giao thức, ca sử dụng, miền và tích hợp bên ngoài
+  - Áp dụng kiến trúc phân lớp hoặc Ports and Adapters trong từng dịch vụ
+  - Thiết kế API theo hành vi và trách nhiệm nghiệp vụ
+  - Quản lý trạng thái nghiệp vụ và trạng thái phiên làm việc
+  - Thiết kế dịch vụ không giữ trạng thái phiên cục bộ khi cần nhân bản
+  - Giới hạn phụ thuộc thư viện và mô hình miền dùng chung
+  - Những ràng buộc phải được kiểm tra ngay trong dịch vụ sở hữu
+  - Tài liệu hóa đầu vào, đầu ra và những bảo đảm của dịch vụ
+- level1: Mô hình giao tiếp
+  level2:
+  - Phân biệt tương tác yêu cầu–phản hồi, lệnh và sự kiện
+  - Giao tiếp đồng bộ, bất đồng bộ và các phương án kết hợp
+  - Chọn giao thức theo độ trễ, tính nhất quán và mức liên kết
+  - Điều phối tập trung và phối hợp qua sự kiện
+  - Luồng người dùng tương tác trực tiếp và công việc nền
+  - Quyền sở hữu thời hạn xử lý và kết quả cuối cùng
+  - Phân tích đồ thị gọi và nguy cơ phụ thuộc vòng
+  - Tránh suy ra rằng mọi tương tác đều cần broker hoặc REST
+- level1: Giao tiếp đồng bộ
+  level2:
+  - Thiết kế tài nguyên và ngữ nghĩa HTTP trong REST API
+  - RPC và gRPC trong giao tiếp giữa các dịch vụ
+  - Mã trạng thái, lỗi có cấu trúc và thông tin phục vụ chẩn đoán
+  - Truyền thời hạn xử lý xuyên chuỗi lời gọi
+  - Timeout kết nối, timeout phản hồi và giới hạn hủy phía nhận
+  - Quản lý kết nối, connection pool và tái sử dụng client
+  - Giới hạn kích thước, phân trang và truyền dữ liệu theo luồng
+  - Tránh chuỗi gọi dài và gọi nối tiếp không cần thiết
+  - Tổng hợp yêu cầu và thực hiện song song có giới hạn
+  - Xử lý kết quả chưa xác định sau lỗi mạng
+- level1: Giao tiếp bất đồng bộ
+  level2:
+  - Vai trò của hàng đợi, chủ đề và nhật ký sự kiện
+  - Phân biệt broker, producer, consumer và nhóm consumer
+  - Ngữ nghĩa phân phối at-most-once và at-least-once
+  - Phạm vi và giới hạn của bảo đảm xử lý exactly-once
+  - Phân vùng, khóa thông điệp và phạm vi bảo đảm thứ tự
+  - Xác nhận, gửi lại và quản lý vị trí đọc
+  - Thông điệp lỗi, hàng đợi lỗi và chính sách xử lý lại
+  - Giới hạn tốc độ và áp lực ngược khi bên nhận chậm
+  - Thời gian lưu, phát lại và tác dụng phụ khi tái xử lý
+  - Chọn thông điệp nghiệp vụ thay vì sao chép toàn bộ dữ liệu nội bộ
+- level1: Hợp đồng và phiên bản
+  level2:
+  - Hợp đồng API và thông điệp như ranh giới phối hợp giữa các nhóm
+  - Thiết kế contract-first và code-first theo nhu cầu thực tế
+  - OpenAPI, Protocol Buffers và lược đồ sự kiện
+  - Tương thích ngược, tương thích xuôi và thay đổi phá vỡ hợp đồng
+  - Tiến hóa trường dữ liệu, enum và ngữ nghĩa thao tác
+  - Quản lý phiên bản API và vòng đời ngừng hỗ trợ
+  - Kiểm soát lược đồ thông điệp và vai trò của schema registry
+  - Triển khai khi nhiều phiên bản bên gửi và bên nhận cùng tồn tại
+  - Kiểm tra hợp đồng tự động trong quy trình phát hành
+- level1: Khám phá và định tuyến
+  level2:
+  - Định danh dịch vụ logic và xác định địa chỉ thể hiện chạy
+  - Khám phá dịch vụ phía client và phía máy chủ
+  - DNS, danh mục dịch vụ và cập nhật điểm cuối
+  - Cân bằng tải và phân phối yêu cầu đến thể hiện khỏe mạnh
+  - Kiểm tra sức khỏe và tránh định tuyến đến thể hiện chưa sẵn sàng
+  - Định tuyến theo phiên bản, khu vực hoặc nhóm người dùng
+  - 'Service mesh: khả năng cung cấp, chi phí và điều kiện áp dụng'
+  - Phân biệt lưu lượng từ bên ngoài với lưu lượng nội bộ
+- level1: Cổng API
+  level2:
+  - API Gateway và vai trò tại đường biên hệ thống
+  - Tập trung xác thực, định tuyến và giới hạn lưu lượng
+  - Backend for Frontend cho các nhóm trải nghiệm khác nhau
+  - Tổng hợp dữ liệu và giới hạn xử lý nghiệp vụ tại gateway
+  - Định dạng lỗi và bảo vệ hợp đồng công khai
+  - Quản lý timeout và suy giảm tính năng ở lớp biên
+  - Tránh gateway thành điểm nghẽn hoặc điểm lỗi đơn
+  - Phân biệt API Gateway với ingress, load balancer và service mesh
+- level1: Quyền sở hữu dữ liệu
+  level2:
+  - Dữ liệu thuộc về dịch vụ sở hữu năng lực nghiệp vụ
+  - Database per service và phân biệt cô lập logic với máy chủ vật lý riêng
+  - Cấm truy cập trực tiếp bảng của dịch vụ khác bằng ràng buộc thiết kế
+  - Lựa chọn loại lưu trữ theo nhu cầu và chi phí vận hành
+  - Ranh giới giao dịch cục bộ và quy tắc bất biến
+  - Định danh và tham chiếu đối tượng xuyên dịch vụ
+  - Sao chép dữ liệu có chủ đích và trách nhiệm cập nhật
+  - Thay đổi lược đồ mà không buộc dịch vụ khác cùng phát hành
+  - Quản lý dữ liệu dùng chung và dữ liệu tham chiếu
+  - Những bước giảm dần cơ sở dữ liệu dùng chung trong hệ thống cũ
+- level1: Truy vấn liên dịch vụ
+  level2:
+  - Nhận diện nhu cầu đọc dữ liệu từ nhiều dịch vụ
+  - API Composition và tổng hợp kết quả khi đang xử lý yêu cầu
+  - Mô hình đọc riêng và bản chiếu dữ liệu từ sự kiện
+  - CQRS khi nhu cầu đọc và ghi có cấu trúc khác nhau
+  - Độ trễ cập nhật, dữ liệu cũ và cách thể hiện cho người dùng
+  - Phân trang, sắp xếp và lọc trên dữ liệu nhiều nguồn
+  - Xử lý nguồn dữ liệu không khả dụng và kết quả thiếu một phần
+  - Tách truy vấn phân tích khỏi luồng giao dịch trực tuyến
+- level1: Giao dịch phân tán
+  level2:
+  - Vì sao giao dịch ACID cục bộ không bao phủ nhiều dịch vụ
+  - Giao thức hai pha (2PC), điều kiện áp dụng và đánh đổi
+  - Saga như chuỗi giao dịch cục bộ và hành động bù trừ
+  - Saga điều phối và saga phối hợp qua sự kiện
+  - Thiết kế hành động bù trừ theo ý nghĩa nghiệp vụ
+  - Trạng thái trung gian và những bất biến không thể giữ tức thời
+  - Đặt chỗ tài nguyên, hết hạn và xác nhận cuối cùng
+  - Phục hồi saga sau lỗi và quản lý tiến trình kéo dài
+  - Đối soát, sửa sai và xử lý thủ công khi tự động phục hồi thất bại
+  - So sánh các phương án theo mức nhất quán và trải nghiệm người dùng
+- level1: Truyền sự kiện tin cậy
+  level2:
+  - Bài toán ghi cơ sở dữ liệu và gửi thông điệp không nguyên tử
+  - Transactional Outbox và ranh giới giao dịch với dữ liệu nghiệp vụ
+  - Chuyển tiếp outbox bằng truy vấn định kỳ hoặc CDC
+  - Xử lý gửi trùng và duy trì thứ tự cần thiết
+  - Inbox hoặc sổ ghi nhận thông điệp ở phía tiếp nhận
+  - Thời điểm xác nhận thông điệp so với thời điểm commit
+  - Giám sát độ trễ, bản ghi kẹt và lỗi chuyển tiếp
+  - Dọn dữ liệu outbox, inbox và bảo toàn khả năng xử lý lại
+  - Đối soát dữ liệu khi nguồn sự kiện và bản chiếu sai lệch
+- level1: Đồng thời và lặp an toàn
+  level2:
+  - Phân biệt idempotency, chống trùng và bảo đảm chỉ xử lý một lần
+  - Khóa lặp an toàn cho thao tác có tác dụng phụ
+  - Lưu kết quả và xử lý nhiều yêu cầu trùng đến đồng thời
+  - Thời hạn lưu khóa và hành vi khi dùng lại khóa với nội dung khác
+  - Khóa lạc quan, phiên bản bản ghi và cập nhật có điều kiện
+  - Cạnh tranh tài nguyên trong đặt hàng, tồn kho và thanh toán
+  - Thứ tự theo khóa nghiệp vụ và giới hạn bảo đảm toàn cục
+  - Khóa phân tán, thời hạn thuê và vai trò của fencing token
+  - Xử lý kết quả không xác định và đối soát trước khi thực hiện lại
+- level1: Khả năng chịu lỗi
+  level2:
+  - Lỗi lan truyền và giới hạn phạm vi ảnh hưởng
+  - Thiết kế ngân sách timeout theo đường đi của yêu cầu
+  - Thử lại có giới hạn, exponential backoff và jitter
+  - Ngăn bão retry và khuếch đại tải qua nhiều tầng
+  - Circuit breaker và điều kiện kiểm tra phục hồi
+  - Bulkhead và tách tài nguyên giữa các phụ thuộc
+  - Giới hạn lưu lượng, tải nhận vào và loại bỏ tải có chủ đích
+  - Phương án dự phòng và suy giảm tính năng có thể chấp nhận
+  - Áp lực ngược và kiểm soát hàng đợi khi hệ thống quá tải
+  - Kiểm thử khả năng phục hồi bằng giả lập sự cố có mục tiêu
+- level1: Bảo mật
+  level2:
+  - Mô hình đe dọa và ranh giới tin cậy trong hệ thống nhiều dịch vụ
+  - Xác thực người dùng và phân biệt OAuth 2.0 với OpenID Connect
+  - Token truy cập, phiên đăng nhập và vòng đời thông tin xác thực
+  - Xác thực giữa dịch vụ bằng danh tính dịch vụ (workload identity) hoặc mTLS
+  - Phân quyền tại dịch vụ sở hữu dữ liệu và hành vi
+  - Truyền danh tính người dùng và ngăn lạm dụng quyền trung gian
+  - Kiểm tra dữ liệu đầu vào và bảo vệ giao tiếp qua API
+  - Bảo vệ broker, hàng đợi và quyền xuất bản hoặc nhận thông điệp
+  - Mã hóa khi truyền, khi lưu và quản lý khóa
+  - Quản lý lỗ hổng, phụ thuộc và nguồn gốc gói triển khai
+  - Nhật ký kiểm toán và phản ứng khi thông tin xác thực bị lộ
+- level1: Cấu hình và bí mật
+  level2:
+  - Tách cấu hình ứng dụng khỏi mã nguồn và gói phát hành
+  - Quản lý cấu hình theo môi trường và phiên bản
+  - Phân phối cấu hình tập trung và giới hạn phụ thuộc khi khởi động
+  - Giá trị mặc định, xác thực và phát hiện cấu hình sai
+  - Quản lý bí mật và cấp quyền đọc theo dịch vụ
+  - Luân chuyển bí mật, chứng chỉ và thông tin kết nối
+  - Cờ tính năng và thay đổi hành vi độc lập với triển khai
+  - Cập nhật cấu hình động và khả năng quay về phiên bản trước
+- level1: Quan sát hệ thống
+  level2:
+  - Phân biệt nhật ký, chỉ số và dấu vết phân tán
+  - Nhật ký có cấu trúc và định danh yêu cầu nhất quán
+  - Truyền ngữ cảnh dấu vết qua HTTP, RPC và thông điệp
+  - Phân tích trace, span và đường đi quan trọng của yêu cầu
+  - Chỉ số lưu lượng, lỗi, độ trễ và mức bão hòa
+  - Chỉ số nghiệp vụ và đo kết quả của quy trình liên dịch vụ
+  - Kiểm soát cardinality, lấy mẫu và chi phí lưu trữ
+  - Theo dõi độ trễ hàng đợi, bản chiếu và tiến trình saga
+  - Tránh đưa dữ liệu nhạy cảm vào log, trace hoặc baggage
+  - Liên kết phiên bản triển khai với sự cố và thay đổi hành vi
+- level1: Chiến lược kiểm thử
+  level2:
+  - Phân chia kiểm thử đơn vị, thành phần, tích hợp và đầu cuối
+  - Kiểm thử dịch vụ độc lập với các phụ thuộc được kiểm soát
+  - Kiểm thử hợp đồng do bên sử dụng định hướng
+  - Kiểm thử schema và khả năng tương thích thông điệp
+  - Kiểm thử tích hợp với cơ sở dữ liệu và broker thực
+  - Kiểm thử luồng liên dịch vụ mà không phụ thuộc môi trường dùng chung
+  - Kiểm thử timeout, retry, thông điệp trùng và sai thứ tự
+  - Kiểm thử tải, cạnh tranh dữ liệu và sức chịu đựng
+  - Quản lý dữ liệu kiểm thử và môi trường tạm thời
+  - Giới hạn kiểm thử đầu cuối và giảm lỗi không ổn định
+- level1: Tích hợp và phát hành
+  level2:
+  - Pipeline độc lập cho từng dịch vụ và điều kiện phát hành tự chủ
+  - Lựa chọn monorepo hoặc polyrepo theo mô hình phối hợp
+  - Xây dựng gói bất biến và ghi nhận nguồn gốc bản dựng
+  - Kiểm tra chất lượng, hợp đồng, bảo mật và kiến trúc trong CI
+  - Quản lý phiên bản thư viện dùng chung và tránh cập nhật bắt buộc đồng loạt
+  - Kiểm tra ma trận tương thích giữa các phiên bản dịch vụ
+  - Thay đổi cơ sở dữ liệu theo mô hình mở rộng rồi thu hẹp
+  - Tách thời điểm triển khai khỏi thời điểm bật tính năng
+  - Tự động hóa phát hành và tiêu chí cho phép tiếp tục
+  - Quay lui mã nguồn, cấu hình và xử lý thay đổi dữ liệu khó đảo ngược
+- level1: Triển khai dịch vụ
+  level2:
+  - Lựa chọn máy ảo, container, nền tảng quản lý hoặc serverless
+  - Nhiều thể hiện, nhiều vùng sẵn sàng và phân bố tải
+  - Rolling update, blue-green và canary deployment
+  - Readiness, liveness và thời gian khởi động
+  - Dừng nhận yêu cầu và hoàn tất công việc trước khi tắt
+  - Triển khai khi hợp đồng cũ và mới cùng tồn tại
+  - Quản lý job, tác vụ định kỳ và tránh chạy trùng
+  - Quản lý môi trường thử nghiệm, staging và production
+  - Phân biệt triển khai độc lập với vận hành hoàn toàn không có phụ thuộc
+- level1: Container và điều phối
+  level2:
+  - Đóng gói dịch vụ và quản lý image
+  - Yêu cầu tài nguyên, giới hạn CPU và bộ nhớ
+  - Pod, workload, Service và định tuyến trong Kubernetes
+  - Cấp cấu hình, bí mật và tài khoản dịch vụ
+  - Health probe và tương tác với vòng đời ứng dụng
+  - Tự động nhân bản theo tải và các tín hiệu phù hợp
+  - Lưu trữ bền vững và trách nhiệm vận hành thành phần có trạng thái
+  - Network policy, phân quyền và cô lập khối lượng công việc
+  - Đánh giá khi nền tảng đơn giản hơn Kubernetes đã đáp ứng đủ
+- level1: Khả năng mở rộng
+  level2:
+  - Phân biệt mở rộng theo chiều dọc và chiều ngang
+  - Nhân bản dịch vụ theo nhu cầu tải riêng
+  - Đo thông lượng, độ trễ và mức sử dụng tài nguyên
+  - Xác định giới hạn từ cơ sở dữ liệu và các dịch vụ phụ thuộc
+  - Mở rộng consumer theo phân vùng và đặc điểm công việc
+  - Xử lý điểm nóng và phân bố không đều theo khóa nghiệp vụ
+  - Tự động mở rộng có độ trễ và chuẩn bị trước cho tải tăng
+  - Cô lập tải theo khách hàng hoặc nhóm nghiệp vụ
+  - Giới hạn song song để không làm quá tải hệ thống phía sau
+- level1: Hiệu năng và bộ nhớ đệm
+  level2:
+  - Xác định ngân sách độ trễ cho hành trình người dùng
+  - Độ trễ đuôi và ảnh hưởng của lời gọi fan-out
+  - Giảm số lần trao đổi mạng và tránh API quá vụn
+  - Nén, tuần tự hóa và lựa chọn kích thước thông điệp
+  - Bộ nhớ đệm tại client, gateway, dịch vụ và tầng dữ liệu
+  - Thời hạn lưu, vô hiệu hóa và mức chấp nhận dữ liệu cũ
+  - Cache stampede, khóa làm mới và ngăn nhiều yêu cầu tải lại đồng thời
+  - Đánh đổi giữa bộ nhớ đệm cục bộ và dùng chung
+  - Đo hiệu năng toàn luồng trước khi tối ưu từng thành phần
+- level1: Vận hành và SLO
+  level2:
+  - SLI, SLO và mối liên hệ với trải nghiệm người dùng
+  - Ngân sách lỗi và quyết định tốc độ thay đổi
+  - Thiết kế cảnh báo theo tác động thay vì chỉ theo tài nguyên
+  - Runbook, trực vận hành và phân công người chịu trách nhiệm
+  - Chẩn đoán sự cố theo đồ thị phụ thuộc
+  - Giới hạn phạm vi ảnh hưởng bằng phân vùng hoặc mô hình cell
+  - Quản lý năng lực và dự báo nhu cầu tài nguyên
+  - Thay đổi vận hành có kiểm soát và diễn tập sự cố
+  - Đánh giá sự cố và theo dõi hành động cải thiện
+  - Đo thời gian phát hiện, khôi phục và hiệu quả vận hành
+- level1: Khôi phục thảm họa
+  level2:
+  - Phân biệt tính sẵn sàng cao với khả năng khôi phục thảm họa
+  - Xác định mục tiêu thời gian khôi phục và mức mất dữ liệu chấp nhận
+  - Sao lưu, phục hồi và kiểm chứng tính sử dụng được của bản sao
+  - Phục hồi cơ sở dữ liệu, broker và cấu hình dịch vụ
+  - Khôi phục tính nhất quán giữa nhiều nguồn dữ liệu
+  - Chuyển vùng, failover và nguy cơ nhiều bên cùng nhận quyền ghi
+  - Phát lại sự kiện để dựng lại dữ liệu dẫn xuất
+  - Diễn tập khôi phục và đo kết quả so với mục tiêu
+- level1: Quản trị dữ liệu
+  level2:
+  - Lập bản đồ dữ liệu và dịch vụ chịu trách nhiệm
+  - Phân loại dữ liệu nhạy cảm và giới hạn sao chép
+  - Thời gian lưu, xóa dữ liệu và xử lý các bản sao dẫn xuất
+  - Nhật ký kiểm toán và truy vết nguồn gốc thay đổi
+  - Tách luồng phân tích và nền tảng dữ liệu khỏi cơ sở dữ liệu giao dịch
+  - Kiến trúc đa khách thuê và lựa chọn mức cô lập dữ liệu
+  - Di chuyển dữ liệu giữa dịch vụ khi ranh giới nghiệp vụ thay đổi
+  - Đối soát chất lượng dữ liệu và trách nhiệm sửa sai
+- level1: Tổ chức nhóm
+  level2:
+  - Nhóm sở hữu dịch vụ xuyên suốt phát triển và vận hành
+  - Liên hệ giữa cấu trúc giao tiếp của tổ chức và kiến trúc
+  - Định hướng theo dòng giá trị và năng lực nghiệp vụ
+  - Phân biệt tự chủ nhóm với bỏ qua hợp đồng chung
+  - Giảm phụ thuộc bàn giao và lịch phát hành đồng bộ
+  - Quyền sở hữu khi một nhóm quản lý nhiều dịch vụ
+  - Phối hợp thay đổi hợp đồng giữa các nhóm
+  - Đo tải nhận thức và tránh phân rã vượt năng lực tổ chức
+- level1: Nền tảng và quản trị
+  level2:
+  - Vai trò của nhóm nền tảng trong hỗ trợ phát triển tự phục vụ
+  - Mẫu dịch vụ và những cấu hình mặc định cần thiết
+  - Danh mục dịch vụ, người sở hữu và thông tin vận hành
+  - Chuẩn chung cho danh tính, quan sát và hợp đồng
+  - Chính sách tự động hóa thay cho xét duyệt thủ công mọi thay đổi
+  - Thư viện dùng chung và nguy cơ ghép chặt phiên bản
+  - Phân biệt năng lực nền tảng với logic nghiệp vụ dùng chung
+  - Ghi nhận quyết định kiến trúc và quản lý ngoại lệ
+  - Đánh giá độ trưởng thành qua kết quả thay vì số lượng dịch vụ
+- level1: Chi phí và đánh đổi
+  level2:
+  - Chi phí hạ tầng tối thiểu khi có nhiều dịch vụ
+  - Chi phí mạng, broker, lưu trữ và dữ liệu sao chép
+  - Chi phí quan sát, môi trường và đường ống phát hành
+  - Chi phí phối hợp nhóm và xử lý sự cố
+  - Phân bổ chi phí theo dịch vụ và hành trình nghiệp vụ
+  - Cân bằng đa dạng công nghệ với khả năng bảo trì
+  - Đánh giá lợi ích độc lập triển khai so với tổng chi phí sở hữu
+- level1: Chuyển đổi kiến trúc
+  level2:
+  - Khảo sát kiến trúc, cơ sở dữ liệu và luồng thay đổi hiện tại
+  - Chuẩn hóa mô-đun trước khi tách tiến trình khi phù hợp
+  - Chọn dịch vụ đầu tiên theo giá trị, rủi ro và khả năng tách
+  - Strangler Fig và chuyển dần lưu lượng sang phần mới
+  - Lớp chống xâm nhập để bảo vệ mô hình mới khỏi hệ thống cũ
+  - Tách quyền sở hữu dữ liệu và giảm truy cập cơ sở dữ liệu dùng chung
+  - Di chuyển dữ liệu, đối chiếu kết quả và kiểm soát giai đoạn song song
+  - Thay giao tiếp nội bộ bằng hợp đồng và cơ chế phục hồi
+  - Tiêu chí chuyển hẳn, quay lui và ngừng thành phần cũ
+  - Đánh giá khi nào nên hợp nhất lại dịch vụ
+- level1: Java và Spring
+  level2:
+  - Thiết kế ví dụ đặt hàng, tồn kho và thanh toán theo ranh giới rõ ràng
+  - Tạo các ứng dụng Spring Boot có quy trình xây dựng độc lập
+  - Xây dựng REST API và HTTP client có timeout tường minh
+  - Quản lý dữ liệu và giao dịch cục bộ trong từng dịch vụ
+  - Tích hợp broker cho thông điệp nghiệp vụ
+  - Hiện thực Outbox và consumer xử lý lặp an toàn
+  - Truyền ngữ cảnh quan sát và đo chỉ số theo dịch vụ
+  - Kiểm thử tích hợp bằng JUnit và Testcontainers
+  - Chạy môi trường học tập nhiều dịch vụ bằng Docker Compose
+  - Đóng gói và chứng minh một dịch vụ có thể phát hành độc lập
+- level1: Quan hệ kiến trúc
+  level2:
+  - 'Microservices và SOA: so sánh mục tiêu và cơ chế tích hợp'
+  - Microservices và kiến trúc hướng sự kiện
+  - Microservices với DDD trong thiết kế ranh giới nghiệp vụ
+  - CQRS và Event Sourcing như lựa chọn bổ sung theo nhu cầu
+  - Hexagonal, Clean hoặc Onion bên trong từng dịch vụ
+  - Khối đơn thể mô-đun và vi dịch vụ trong kiến trúc kết hợp
+  - Serverless trong triển khai một số năng lực của hệ thống
+  - Phân biệt quyết định kiến trúc với lựa chọn framework và nền tảng
+- level1: Sai lầm thiết kế
+  level2:
+  - Khối đơn thể phân tán và phát hành đồng bộ nhiều dịch vụ
+  - Chia dịch vụ theo bảng dữ liệu hoặc từng lớp kỹ thuật
+  - Dùng chung mô hình miền và thư viện nghiệp vụ quá rộng
+  - Chuỗi gọi đồng bộ dài làm giảm độ sẵn sàng
+  - Dùng chung cơ sở dữ liệu và bỏ qua quyền sở hữu
+  - Cho rằng chuyển sang bất đồng bộ sẽ tự giải quyết tính nhất quán
+  - Cho rằng broker bảo đảm mọi tác dụng phụ chỉ xảy ra một lần
+  - Thử lại không giới hạn và nhân đôi thao tác nghiệp vụ
+  - Chọn nền tảng phức tạp khi chưa có năng lực vận hành
+  - Tối ưu số lượng dịch vụ thay vì khả năng thay đổi và giá trị sản phẩm
+- level1: Bài tập và tình huống
+  level2:
+  - Phân rã một hệ thống thương mại điện tử và bảo vệ lựa chọn ranh giới
+  - So sánh phương án đơn thể mô-đun với vi dịch vụ cho cùng một yêu cầu
+  - Thiết kế luồng đặt hàng, giữ tồn kho và thanh toán bằng Saga
+  - Ngăn gửi trùng thông báo bằng Outbox và consumer lặp an toàn
+  - Mô phỏng timeout sau khi cổng thanh toán đã nhận giao dịch
+  - Xử lý sự kiện tồn kho đến trễ, trùng hoặc sai thứ tự
+  - Thay đổi hợp đồng khi bên sử dụng chưa thể nâng cấp đồng thời
+  - Thiết kế bản chiếu phục vụ màn hình tổng hợp nhiều dịch vụ
+  - Diễn tập quá tải, lỗi phụ thuộc và phục hồi có kiểm soát
+  - Lập kế hoạch tách một năng lực khỏi hệ thống cũ
+  - Xây dựng SLO, dashboard và quy trình xử lý sự cố cho hành trình người dùng
+  - Danh sách kiểm tra ranh giới, dữ liệu, phát hành và khả năng vận hành

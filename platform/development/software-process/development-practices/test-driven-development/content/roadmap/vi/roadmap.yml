@@ -1,0 +1,55 @@
+roadmap:
+- id: tu-duy-test-first
+  title: Tư duy Test-First
+  purpose: Bắt đầu từ hành vi cần đạt thay vì viết mã triển khai rồi mới bổ sung kiểm thử.
+  objectives:
+  - Viết danh sách tình huống và kết quả mong đợi cho một chức năng nhỏ.
+  - Chọn hành vi đầu tiên đủ nhỏ để kiểm tra.
+- id: red-green-refactor
+  title: Red–Green–Refactor
+  purpose: Lặp chu trình kiểm thử thất bại, triển khai tối thiểu rồi cải thiện thiết kế.
+  objectives:
+  - Chạy test mới và xác nhận thất bại đúng nguyên nhân (Red).
+  - Viết mã tối thiểu để test xanh, sau đó refactor với bộ test vẫn xanh.
+- id: junit-assertions
+  title: JUnit & Assertions
+  purpose: Thành thạo công cụ Java để diễn tả kỳ vọng và nhận phản hồi tự động.
+  objectives:
+  - Viết @Test bằng JUnit Jupiter và dùng assertEquals/assertThrows.
+  - Chạy một test riêng lẻ và toàn bộ bộ test trong IDE hoặc Maven.
+- id: test-nho-doc-lap
+  title: Test Nhỏ & Độc lập
+  purpose: Tạo kiểm thử dễ đọc, có thể chạy lặp lại ở mọi thứ tự.
+  objectives:
+  - Tổ chức dữ liệu theo Arrange–Act–Assert.
+  - Viết mỗi test cho một hành vi và tránh chia sẻ trạng thái giữa các test.
+- id: bien-truong-hop-loi
+  title: Biên & Trường hợp lỗi
+  purpose: Tăng khả năng phát hiện sai sót bằng trường hợp bất thường có chủ đích.
+  objectives:
+  - Thiết kế test cho biên, đầu vào rỗng và ngoại lệ.
+  - Dùng @ParameterizedTest để thử nhiều bộ dữ liệu cùng quy tắc.
+- id: thiet-ke-de-kiem-thu
+  title: Thiết kế Dễ Kiểm thử
+  purpose: Để các test định hướng API rõ ràng và giảm phụ thuộc không cần thiết.
+  objectives:
+  - Thiết kế hàm/class có đầu vào, đầu ra và trách nhiệm dễ quan sát.
+  - Tách phụ thuộc I/O bằng interface hoặc dependency injection.
+- id: test-doubles-mockito
+  title: Test Doubles & Mockito
+  purpose: Cô lập logic khi phụ thuộc ngoài không phù hợp với unit test nhanh.
+  objectives:
+  - Phân biệt stub, fake và mock theo mục đích.
+  - Dùng Mockito để stub/verify tương tác mà không mock mọi thứ.
+- id: refactor-ma-co-san
+  title: Refactor & Mã có sẵn
+  purpose: Dùng kiểm thử làm lưới an toàn khi cải thiện mã hoặc xử lý mã cũ.
+  objectives:
+  - Đổi tên/tách hàm mà vẫn giữ nguyên hành vi theo test.
+  - Thêm characterization test trước khi sửa logic legacy khó hiểu.
+- id: ci-phan-hoi
+  title: CI & Phản hồi
+  purpose: Duy trì nhịp TDD nhanh, kiểm thử ổn định và phản hồi sớm khi tích hợp.
+  objectives:
+  - Cho bộ unit test chạy trên CI và chặn thay đổi làm test thất bại.
+  - Đọc coverage làm tín hiệu bổ trợ, không xem tỷ lệ cao là đủ.

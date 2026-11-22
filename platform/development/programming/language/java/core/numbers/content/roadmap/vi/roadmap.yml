@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-ve-so
+  title: Tư duy về số
+  purpose: Hiểu cách biểu diễn số trong Java để chọn kiểu phù hợp với dữ liệu và độ chính xác.
+  objectives:
+  - Phân biệt số nguyên với số dấu phẩy động
+  - Nhận diện giới hạn biểu diễn và sai số
+  - Chọn kiểu theo miền giá trị và yêu cầu tính toán
+- id: so-nguyen
+  title: Số nguyên
+  purpose: Thực hiện tính toán số nguyên và nhận diện hành vi tại giới hạn kiểu.
+  objectives:
+  - Sử dụng byte, short, int và long
+  - Giải thích phép chia nguyên, phần dư và tràn số
+  - Dùng phép toán bit và phương thức kiểm tra tràn
+- id: chuyen-doi-kieu-so
+  title: Chuyển đổi kiểu số
+  purpose: Dự đoán kiểu và giá trị khi các kiểu số tham gia cùng một biểu thức.
+  objectives:
+  - Áp dụng quy tắc nâng kiểu trong biểu thức
+  - Phân biệt mở rộng và thu hẹp kiểu
+  - Nhận diện mất dữ liệu khi ép kiểu
+- id: so-dau-phay-dong
+  title: Số dấu phẩy động
+  purpose: Hiểu giới hạn của float và double để tránh kết quả gây bất ngờ.
+  objectives:
+  - Giải thích sai số biểu diễn nhị phân
+  - Nhận diện NaN, vô cực và số không có dấu
+  - Chọn cách so sánh phù hợp với yêu cầu sai số
+- id: lop-bao-va-chuyen-chuoi
+  title: Lớp bao và chuyển chuỗi
+  purpose: Kết nối kiểu số nguyên thủy với đối tượng và dữ liệu văn bản.
+  objectives:
+  - Sử dụng Number và các lớp bao số
+  - Phân biệt boxing, unboxing, equals và ==
+  - Phân tích chuỗi theo cơ số và xử lý đầu vào sai
+- id: so-lon-va-thap-phan
+  title: Số lớn và thập phân
+  purpose: Tính toán khi kiểu nguyên thủy không đáp ứng miền giá trị hoặc độ chính xác.
+  objectives:
+  - Dùng BigInteger cho số nguyên lớn
+  - Tạo BigDecimal từ chuỗi và chọn RoundingMode
+  - Phân biệt scale, precision, equals và compareTo
+- id: ham-toan-va-so-ngau-nhien
+  title: Hàm toán và số ngẫu nhiên
+  purpose: Sử dụng thư viện chuẩn cho phép tính thông dụng và chọn nguồn ngẫu nhiên phù hợp.
+  objectives:
+  - Dùng Math cho làm tròn, lũy thừa và giới hạn
+  - Phân biệt Random, ThreadLocalRandom và SecureRandom
+  - Tạo số trong khoảng và kiểm soát seed khi kiểm thử
+- id: thuc-hanh-tinh-toan
+  title: Thực hành tính toán
+  purpose: Kiểm chứng lựa chọn kiểu số bằng bài toán có ranh giới và yêu cầu chính xác rõ ràng.
+  objectives:
+  - Xây dựng phép tính tiền bằng BigDecimal
+  - Kiểm thử tràn số, chia cho không và sai số
+  - Giải thích lựa chọn kiểu và quy tắc làm tròn

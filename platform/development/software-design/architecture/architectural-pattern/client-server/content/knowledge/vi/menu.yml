@@ -1,0 +1,314 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiến trúc máy khách–máy chủ (Client–Server) là gì
+  - Vì sao cần chia bên sử dụng dịch vụ và bên cung cấp dịch vụ
+  - Máy khách, máy chủ, yêu cầu, phản hồi và hợp đồng giao tiếp
+  - Bức tranh tổng thể từ thao tác người dùng đến dữ liệu trả về
+  - Vai trò máy khách và máy chủ được xác định theo từng tương tác
+  - Lợi ích tập trung tài nguyên, chia sẻ dữ liệu và quản lý nghiệp vụ
+  - Chi phí phụ thuộc mạng, vận hành máy chủ và xử lý lỗi phân tán
+  - Kiến thức nền và thứ tự học từ mô hình tối thiểu đến hệ thống thực tế
+- level1: Cấu trúc kiến trúc
+  level2:
+  - Máy khách, máy chủ, kênh giao tiếp và tài nguyên được chia sẻ
+  - Phân biệt vai trò logic với máy vật lý, tiến trình và vùng triển khai
+  - Một máy chủ phục vụ nhiều máy khách và một máy khách gọi nhiều máy chủ
+  - Một dịch vụ vừa nhận yêu cầu vừa gọi dịch vụ phía sau
+  - Ranh giới tiến trình, ranh giới mạng và ranh giới tin cậy
+  - Điểm vào dịch vụ, địa chỉ, cổng và cơ chế định tuyến yêu cầu
+  - Sơ đồ thành phần, sơ đồ triển khai và sơ đồ tuần tự cho cùng hệ thống
+  - Những bất biến cần giữ khi thay đổi cách triển khai Client–Server
+- level1: Phân chia trách nhiệm
+  level2:
+  - Trách nhiệm trình bày và tương tác của phía máy khách
+  - Trách nhiệm nghiệp vụ và kiểm soát truy cập của phía máy chủ
+  - Quyền sở hữu dữ liệu và nguồn dữ liệu có thẩm quyền
+  - Kiểm tra đầu vào tại máy khách và xác minh bắt buộc tại máy chủ
+  - Phân chia tính toán theo độ trễ, tài nguyên và mức độ tin cậy
+  - Ngăn máy khách quyết định giá, quyền hạn và điều kiện nghiệp vụ quan trọng
+  - Giữ chi tiết lưu trữ và cấu trúc nội bộ sau hợp đồng giao tiếp
+  - Phân biệt ranh giới Client–Server với cách tổ chức mã frontend/backend
+- level1: Các biến thể
+  level2:
+  - Kiến trúc hai tầng (two-tier) và máy khách truy cập máy chủ dữ liệu
+  - Kiến trúc ba tầng với tầng trình bày, ứng dụng và dữ liệu
+  - Kiến trúc nhiều tầng (n-tier) và chi phí giao tiếp bổ sung
+  - Phân biệt tầng logic (layer) với tầng triển khai (tier)
+  - Máy khách mỏng, máy khách dày và cách phân bổ nghiệp vụ
+  - Ứng dụng web, di động, desktop và máy khách dịch vụ
+  - So sánh kết xuất phía máy chủ, phía máy khách và cách kết hợp
+  - Đối chiếu Client–Server với ngang hàng (peer-to-peer) và mô hình lai
+  - Client–Server trong ứng dụng nguyên khối, microservices và triển khai serverless
+- level1: Thành phần trung gian
+  level2:
+  - Proxy phía máy khách và reverse proxy phía máy chủ
+  - Cân bằng tải và cách chọn máy chủ nhận yêu cầu
+  - API gateway và phạm vi trách nhiệm tại điểm vào dịch vụ
+  - Backend for Frontend cho các nhóm máy khách có nhu cầu khác nhau
+  - CDN và vai trò phân phối nội dung gần người sử dụng
+  - Khám phá dịch vụ và cập nhật địa chỉ các máy chủ
+  - Kết thúc TLS tại trung gian và bảo vệ chặng kết nối tiếp theo
+  - Độ tin cậy của địa chỉ, giao thức và header do proxy chuyển tiếp
+- level1: Nền tảng mạng
+  level2:
+  - Địa chỉ IP, tên miền, cổng và socket trong kết nối máy khách–máy chủ
+  - Phân giải DNS và ảnh hưởng của bộ nhớ đệm địa chỉ
+  - Phân biệt kết nối truyền tải với một lần trao đổi ở mức ứng dụng
+  - TCP dạng luồng byte và yêu cầu đóng khung thông điệp
+  - UDP, QUIC và lựa chọn truyền tải theo nhu cầu giao tiếp
+  - Thiết lập TLS, xác minh chứng chỉ và nhận diện máy chủ
+  - Độ trễ, băng thông, mất gói và thứ tự nhận dữ liệu
+  - NAT, firewall và giới hạn máy chủ chủ động kết nối vào máy khách
+  - Kết nối kéo dài, tái sử dụng kết nối và giới hạn tài nguyên mạng
+- level1: Vòng đời yêu cầu
+  level2:
+  - Chuẩn bị yêu cầu từ thao tác người dùng hoặc tác vụ nền
+  - Phân giải địa chỉ, thiết lập kết nối và thương lượng bảo mật
+  - Tuần tự hóa dữ liệu, gửi yêu cầu và tiếp nhận tại điểm vào
+  - Định tuyến, xác thực và kiểm tra dữ liệu trước xử lý nghiệp vụ
+  - Truy cập dữ liệu và gọi các dịch vụ phụ thuộc
+  - Tạo phản hồi, truyền kết quả và giải mã tại máy khách
+  - Cập nhật giao diện khi nhiều phản hồi đến không theo thứ tự gửi
+  - Phân biệt kết thúc phản hồi với hoàn tất công việc chạy nền
+  - Hủy yêu cầu, đóng kết nối và giải phóng tài nguyên ở hai phía
+- level1: Kiểu giao tiếp
+  level2:
+  - Mô hình yêu cầu–phản hồi và phạm vi phù hợp
+  - Phân biệt đồng bộ/bất đồng bộ với chặn/không chặn
+  - HTTP, REST và các quyết định thuộc giao thức hay phong cách thiết kế
+  - Gọi thủ tục từ xa (RPC) và giới hạn của việc che giấu lời gọi qua mạng
+  - gRPC và các kiểu trao đổi một lần hoặc theo luồng
+  - Polling, long polling, Server-Sent Events và WebSocket
+  - Gửi công việc chạy nền và truy vấn trạng thái thực hiện
+  - Giao tiếp qua hàng đợi và ranh giới với kiến trúc hướng sự kiện
+  - So sánh độ trễ, tính tương thích và chi phí duy trì kết nối
+  - Lựa chọn kiểu giao tiếp theo từng tương tác thay vì dùng một kiểu cho mọi việc
+- level1: Hợp đồng giao tiếp
+  level2:
+  - Thiết kế yêu cầu và phản hồi độc lập với mô hình lưu trữ
+  - Định danh tài nguyên, thao tác và đối tượng truyền dữ liệu
+  - Lựa chọn JSON, XML hoặc định dạng nhị phân
+  - Quy ước kiểu dữ liệu, mã hóa ký tự và giới hạn kích thước
+  - Biểu diễn thời gian, múi giờ, số thập phân và giá trị tiền tệ
+  - Ngữ nghĩa của trường thiếu, giá trị null và giá trị mặc định
+  - Thiết kế lỗi có mã ổn định và thông tin đủ để bên gọi xử lý
+  - Phân trang, lọc và sắp xếp với thứ tự kết quả xác định
+  - Thiết kế hợp đồng có thể mở rộng và tương thích ngược
+  - Mô tả hợp đồng bằng OpenAPI hoặc Protocol Buffers khi phù hợp
+- level1: HTTP và API
+  level2:
+  - URI, phương thức, header và nội dung trong thông điệp HTTP
+  - Ngữ nghĩa an toàn và tính lũy đẳng của phương thức HTTP
+  - Lựa chọn mã trạng thái cho thành công, từ chối và lỗi hệ thống
+  - Biểu diễn tài nguyên, Content-Type và thương lượng nội dung
+  - Chuyển hướng và tác động đến phương thức, thông tin xác thực
+  - Yêu cầu có điều kiện với ETag, If-None-Match và If-Match
+  - Gửi biểu mẫu, tải tệp và truyền dữ liệu dung lượng lớn
+  - Kết nối HTTP/1.1, ghép kênh HTTP/2 và truyền tải HTTP/3
+  - Giới hạn tốc độ, Retry-After và cách máy khách phản hồi
+- level1: Phía máy khách
+  level2:
+  - Tách giao diện, trạng thái cục bộ và lớp truy cập dịch vụ
+  - Quản lý trạng thái đang tải, thành công, rỗng và thất bại
+  - Tránh chặn giao diện khi gọi mạng hoặc giải mã dữ liệu lớn
+  - Quản lý yêu cầu đồng thời, gộp yêu cầu trùng và hủy yêu cầu cũ
+  - Xử lý phản hồi đến muộn để không ghi đè dữ liệu mới
+  - Cập nhật giao diện lạc quan và hoàn tác khi máy chủ từ chối
+  - Lưu dữ liệu cục bộ và nhận diện dữ liệu có thể đã cũ
+  - Phân biệt mất mạng, dịch vụ lỗi và thao tác nghiệp vụ bị từ chối
+  - Khôi phục sau tải lại trang, khởi động lại ứng dụng hoặc đổi kết nối
+  - Thiết kế SDK hoặc lớp gọi API với cấu hình tập trung và hành vi minh bạch
+- level1: Phía máy chủ
+  level2:
+  - Tách xử lý giao thức, điều phối nghiệp vụ và truy cập dữ liệu
+  - Định tuyến yêu cầu và tổ chức chuỗi middleware hoặc filter
+  - Kiểm tra cấu trúc đầu vào trước khi thực thi nghiệp vụ
+  - Quản lý phạm vi tài nguyên và ngữ cảnh của một yêu cầu
+  - Mô hình luồng theo kết nối, theo yêu cầu và vòng lặp sự kiện
+  - Lập trình không chặn, tác vụ chặn và giới hạn của event loop
+  - Luồng ảo (virtual thread) và việc kiểm soát tài nguyên dùng chung
+  - Giới hạn kết nối, số tác vụ đồng thời và độ dài hàng đợi
+  - Tách công việc dài khỏi thời gian sống của yêu cầu
+  - Xử lý ngoại lệ tập trung và kết thúc phục vụ có kiểm soát
+- level1: Trạng thái và phiên
+  level2:
+  - Phân biệt trạng thái giao thức, kết nối, phiên và dữ liệu nghiệp vụ
+  - HTTP không lưu trạng thái và các cơ chế tạo phiên ứng dụng
+  - Cookie, định danh phiên và dữ liệu lưu ở phía máy chủ
+  - Phiên lưu trong bộ nhớ tiến trình và giới hạn khi có nhiều bản sao
+  - Kho phiên dùng chung và chi phí truy cập, đồng bộ, khôi phục
+  - Bám phiên (session affinity) và đánh đổi với khả năng chuyển máy chủ
+  - Hết hạn, gia hạn và kết thúc phiên trên nhiều thiết bị
+  - Trạng thái tạm, trạng thái bền vững và hành vi khi tiến trình khởi động lại
+  - Truyền ngữ cảnh giữa yêu cầu mà không phụ thuộc một kết nối cố định
+- level1: Dữ liệu và đồng thời
+  level2:
+  - Ranh giới giao dịch tại máy chủ và thời gian sống của yêu cầu
+  - Bảo vệ quy tắc nghiệp vụ khi nhiều máy khách cập nhật cùng dữ liệu
+  - Kiểm soát đồng thời lạc quan bằng phiên bản và điều kiện cập nhật
+  - Khóa bi quan, điểm nóng dữ liệu và chi phí chờ
+  - Ngăn mất cập nhật khi máy khách gửi dữ liệu đã đọc từ trước
+  - Ràng buộc cơ sở dữ liệu và kiểm tra nghiệp vụ có thẩm quyền
+  - Phân biệt giao dịch cơ sở dữ liệu với một quy trình qua nhiều yêu cầu
+  - Thiết kế thao tác theo lô và ngữ nghĩa thành công một phần
+  - Đọc sau ghi, bản sao dữ liệu và độ mới mà máy khách quan sát được
+  - Đối soát thao tác khi máy khách không biết cập nhật đã thành công hay chưa
+- level1: Bộ nhớ đệm
+  level2:
+  - Phân biệt bộ nhớ đệm ở máy khách, trung gian và máy chủ
+  - Chọn dữ liệu được phép lưu đệm theo tính riêng tư và độ mới
+  - Cache-Control, ETag và xác thực lại dữ liệu
+  - Thiết kế khóa bộ nhớ đệm theo người dùng, tham số và biểu diễn
+  - Hết hạn, chủ động vô hiệu hóa và cập nhật dữ liệu sau ghi
+  - Phân biệt no-cache, no-store và phạm vi private/public
+  - Ngăn lẫn dữ liệu giữa người dùng hoặc khách hàng dùng chung hạ tầng
+  - Xử lý truy cập đồng loạt khi dữ liệu hết hạn hoặc chưa có trong đệm
+  - Đo tỷ lệ trúng đệm và đánh đổi giữa độ trễ với tính nhất quán
+- level1: Lỗi phân tán
+  level2:
+  - Vì sao lời gọi qua mạng khác lời gọi hàm trong cùng tiến trình
+  - Lỗi DNS, kết nối, chứng chỉ, giao thức và nghiệp vụ
+  - Lỗi tạm thời, lỗi kéo dài và lỗi chỉ ảnh hưởng một phần hệ thống
+  - Mất phản hồi dù máy chủ đã thực hiện thành công
+  - Phân biệt hết thời gian chờ với việc công việc thực sự bị hủy
+  - Lan truyền lỗi khi máy chủ phụ thuộc dịch vụ khác
+  - Ảnh hưởng của mạng chập chờn, kết nối nửa mở và máy khách biến mất
+  - Thiết kế trạng thái chưa xác định và cơ chế xác minh kết quả
+- level1: Khả năng phục hồi
+  level2:
+  - Đặt thời gian chờ cho kết nối, đọc dữ liệu và toàn bộ thao tác
+  - Phân bổ ngân sách thời gian khi có nhiều lời gọi phụ thuộc
+  - Chọn lỗi được thử lại và giới hạn số lần thử
+  - Giãn cách tăng dần và độ lệch ngẫu nhiên để tránh dồn tải
+  - Thiết kế tính lũy đẳng và khóa chống lặp cho thao tác có tác dụng phụ
+  - Lưu kết quả chống lặp và xử lý hai yêu cầu trùng đến đồng thời
+  - Ngắt mạch (circuit breaker) và điều kiện phục hồi thử
+  - Cô lập tài nguyên, giới hạn đồng thời và từ chối tải vượt khả năng
+  - Giảm chức năng có kiểm soát và điều kiện được dùng dữ liệu dự phòng
+  - Kết nối lại, tiếp tục công việc và tránh nhân số lần thử qua nhiều tầng
+- level1: Định danh và quyền
+  level2:
+  - Phân biệt xác thực danh tính với kiểm tra quyền truy cập
+  - Đăng nhập bằng phiên và xác thực yêu cầu bằng token
+  - Phân biệt OAuth 2.0, OpenID Connect và nhu cầu của từng loại máy khách
+  - Vai trò, thuộc tính và quyền trên từng tài nguyên
+  - Xác thực giữa các dịch vụ và danh tính của tiến trình
+  - Thời hạn token, làm mới và thu hồi quyền truy cập
+  - 'JWT: chữ ký, xác minh bên phát hành và giới hạn bảo mật'
+  - Cô lập dữ liệu nhiều khách hàng (multi-tenancy) tại máy chủ
+  - Ngăn truy cập tài nguyên chỉ bằng cách thay đổi định danh trong yêu cầu
+- level1: Bảo mật giao tiếp
+  level2:
+  - Xác định tài sản, ranh giới tin cậy và các đường tấn công
+  - Mã hóa đường truyền và quản lý chứng chỉ, khóa bí mật
+  - Chính sách cùng nguồn, CORS và giới hạn bảo vệ của trình duyệt
+  - CSRF, cookie và thuộc tính Secure, HttpOnly, SameSite
+  - XSS, lưu trữ thông tin xác thực và dữ liệu do máy chủ trả về
+  - Ngăn injection, dữ liệu đầu vào bất thường và giải mã thiếu an toàn
+  - Bảo vệ máy chủ khỏi SSRF khi xử lý địa chỉ do máy khách cung cấp
+  - Kiểm soát kích thước, tốc độ và thời gian xử lý yêu cầu
+  - Ẩn thông tin nhạy cảm trong lỗi, log và nội dung lưu đệm
+  - Quản lý bí mật tại máy chủ và giới hạn giữ bí mật trong ứng dụng máy khách
+- level1: Hiệu năng
+  level2:
+  - Phân rã độ trễ từ DNS, kết nối và truyền tải đến xử lý nghiệp vụ
+  - Đo thông lượng, độ trễ trung vị và các phân vị chậm
+  - Giảm số lượt qua mạng bằng gộp thao tác và thiết kế API phù hợp
+  - Giảm kích thước phản hồi bằng chọn trường, phân trang và nén
+  - Tái sử dụng kết nối, quản lý pool và tránh cạn kết nối
+  - Xử lý song song có giới hạn và tránh gọi phụ thuộc nối tiếp không cần thiết
+  - Truyền dữ liệu theo luồng thay cho giữ toàn bộ trong bộ nhớ
+  - Ngăn máy khách chậm giữ tài nguyên máy chủ quá lâu
+  - Đo chi phí tuần tự hóa, CPU, bộ nhớ và truy cập cơ sở dữ liệu
+  - Tối ưu theo điểm nghẽn đo được thay vì chỉ tăng số máy chủ
+- level1: Mở rộng hệ thống
+  level2:
+  - So sánh mở rộng theo chiều dọc và chiều ngang
+  - Thiết kế máy chủ ít trạng thái để phân phối yêu cầu qua nhiều bản sao
+  - Thuật toán cân bằng tải và đánh giá sức khỏe máy chủ
+  - Phân biệt điểm nghẽn ứng dụng, cơ sở dữ liệu và dịch vụ phụ thuộc
+  - Giới hạn kết nối dài khi mở rộng WebSocket hoặc truyền dữ liệu theo luồng
+  - Tự động mở rộng theo tải và tính đến thời gian khởi động
+  - Tính sẵn sàng cao và loại bỏ điểm lỗi đơn
+  - Phân bố theo vùng địa lý và đánh đổi độ trễ với nhất quán dữ liệu
+  - Ước lượng công suất, dự phòng tải tăng đột biến và chi phí vận hành
+- level1: Thời gian thực và ngoại tuyến
+  level2:
+  - Chọn polling, SSE hoặc WebSocket theo hướng và tần suất cập nhật
+  - Máy chủ đẩy dữ liệu trong quan hệ Client–Server
+  - Heartbeat, phát hiện ngắt kết nối và giới hạn khi mạng không ổn định
+  - Đăng ký nhận dữ liệu và xác minh quyền cho từng kênh
+  - Đánh số thông điệp, tiếp tục nhận và xử lý dữ liệu bị bỏ lỡ
+  - Áp lực ngược và chính sách xử lý máy khách tiêu thụ chậm
+  - Lưu thao tác ngoại tuyến và gửi lại khi kết nối phục hồi
+  - Phát hiện xung đột giữa dữ liệu cục bộ và dữ liệu máy chủ
+  - Phân biệt chấp nhận thao tác cục bộ với hoàn tất đồng bộ có thẩm quyền
+- level1: Triển khai và tiến hóa
+  level2:
+  - Tách cấu hình địa chỉ, cổng và thông tin môi trường khỏi mã ứng dụng
+  - Triển khai máy chủ sau reverse proxy và cấu hình đường dẫn đúng
+  - Giữ tương thích với máy khách cũ chưa thể cập nhật ngay
+  - Thêm trường, đổi kiểu và ngừng hỗ trợ phiên bản API
+  - Kiểm soát thời gian cùng tồn tại của nhiều phiên bản máy chủ
+  - Triển khai cuốn chiếu, canary và chuyển đổi môi trường có kiểm soát
+  - Thay đổi lược đồ dữ liệu theo cách tương thích với mã cũ/mới
+  - Rút máy chủ khỏi cân bằng tải và xử lý yêu cầu đang chạy
+  - Kế hoạch quay lui, khôi phục và kiểm chứng sau triển khai
+- level1: Quan sát và vận hành
+  level2:
+  - Theo dõi một yêu cầu qua máy khách, proxy, máy chủ và dịch vụ phụ thuộc
+  - Request ID, correlation ID và ngữ cảnh truy vết phân tán
+  - Thu thập nhật ký có cấu trúc và liên kết với số liệu đo, thông tin truy vết
+  - Đo lỗi phía máy khách bên cạnh lỗi quan sát tại máy chủ
+  - Giám sát độ trễ, lưu lượng, lỗi và mức bão hòa tài nguyên
+  - Phân biệt kiểm tra sống, sẵn sàng phục vụ và kiểm tra trải nghiệm thực
+  - Đặt mục tiêu chất lượng dịch vụ và cảnh báo theo ảnh hưởng người dùng
+  - Chẩn đoán yêu cầu chậm, cạn pool và lỗi chỉ xuất hiện qua proxy
+  - Quy trình ứng phó sự cố và đối soát thao tác có kết quả chưa xác định
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị cho logic máy khách và nghiệp vụ máy chủ
+  - Kiểm thử hợp đồng yêu cầu, phản hồi và tương thích phiên bản
+  - Kiểm thử tích hợp giao thức, cơ sở dữ liệu và phụ thuộc
+  - Mô phỏng dịch vụ bằng stub và giới hạn của kết quả mô phỏng
+  - Kiểm thử từ đầu đến cuối với các trạng thái giao diện
+  - Kiểm thử nhiều máy khách cập nhật đồng thời cùng dữ liệu
+  - Kiểm thử timeout, mất phản hồi, gửi lặp và kết nối lại
+  - Kiểm thử xác thực, phân quyền, CORS và cô lập dữ liệu
+  - Kiểm thử tải, duy trì tải lâu và hành vi khi quá tải
+  - Tạo môi trường có thể tái lập và chờ điều kiện bất đồng bộ có thời hạn
+- level1: Java và Spring
+  level2:
+  - Mô hình máy chủ socket tối thiểu với Socket và ServerSocket
+  - Đóng khung thông điệp và xử lý đọc không đủ dữ liệu trên TCP
+  - Tạo máy khách HTTP với Java HttpClient
+  - Gửi yêu cầu bất đồng bộ với CompletableFuture và quản lý lỗi
+  - Xây REST API bằng Spring Boot với Controller, Service và DTO
+  - Kiểm tra dữ liệu và chuẩn hóa lỗi trả về tại máy chủ
+  - Triển khai kiểm soát phiên hoặc token bằng Spring Security
+  - Quản lý giao dịch và xung đột cập nhật với Spring Data
+  - Cấu hình timeout, kết nối và giới hạn tài nguyên tại hai phía
+  - Kiểm thử tích hợp máy khách–máy chủ bằng JUnit và Testcontainers khi phù hợp
+- level1: Thực hành tổng hợp
+  level2:
+  - Lần theo một yêu cầu trình duyệt đến ứng dụng web và cơ sở dữ liệu
+  - So sánh ứng dụng hai tầng với ba tầng trên cùng nhu cầu quản lý dữ liệu
+  - Xây ứng dụng nhiều máy khách cùng cập nhật tài nguyên có phiên bản
+  - Thực nghiệm gửi lặp thao tác đặt hàng khi phản hồi bị mất
+  - Thực nghiệm phiên đăng nhập khi chuyển yêu cầu giữa hai bản sao máy chủ
+  - Xây luồng cập nhật thời gian thực với kết nối bị gián đoạn
+  - Thực nghiệm máy khách ngoại tuyến và xung đột khi đồng bộ lại
+  - Đặt reverse proxy, bộ nhớ đệm và cân bằng tải trước ứng dụng
+  - Đo điểm nghẽn rồi so sánh hiệu quả tối ưu với tăng tài nguyên
+- level1: Đánh giá thiết kế
+  level2:
+  - Chọn Client–Server theo nhu cầu chia sẻ dữ liệu và kiểm soát tập trung
+  - So sánh phương án trực tiếp, qua tầng ứng dụng và qua trung gian
+  - Nhận diện giao thức quá nhiều lượt gọi hoặc phản hồi mang dữ liệu thừa
+  - Nhận diện nghiệp vụ và bí mật quan trọng bị đặt ở máy khách
+  - Nhận diện lời gọi mạng không timeout và thử lại thiếu giới hạn
+  - Nhận diện phiên cục bộ, bộ nhớ đệm sai phạm vi và điểm lỗi đơn
+  - Đánh giá khả năng tương thích khi máy khách và máy chủ phát hành độc lập
+  - Ghi quyết định kiến trúc cùng yêu cầu độ trễ, độ tin cậy và chi phí
+  - Danh sách kiểm tra hợp đồng, lỗi, bảo mật, mở rộng và khả năng vận hành

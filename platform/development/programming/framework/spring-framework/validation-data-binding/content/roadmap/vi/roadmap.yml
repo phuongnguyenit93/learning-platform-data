@@ -1,0 +1,61 @@
+roadmap:
+- id: mo-hinh-dau-vao
+  title: Mô hình đầu vào
+  purpose: Hiểu cách dữ liệu bên ngoài được gán vào mô hình, chuyển kiểu và kiểm tra.
+  objectives:
+  - Phân biệt gán dữ liệu, chuyển kiểu, định dạng và kiểm tra
+  - Mô tả thứ tự xử lý cùng các nhóm lỗi
+  - Chọn mô hình đầu vào phù hợp
+- id: gan-du-lieu
+  title: Gán dữ liệu
+  purpose: Điều khiển việc tạo và cập nhật đối tượng từ dữ liệu đầu vào.
+  objectives:
+  - Dùng DataBinder và nhận biết vai trò BeanWrapper
+  - Phân biệt gán qua constructor với thuộc tính
+  - Xử lý đối tượng lồng nhau và collection
+  - Giới hạn trường được phép gán
+- id: chuyen-doi-kieu
+  title: Chuyển đổi kiểu
+  purpose: Dùng cơ chế chuyển kiểu dùng chung thay cho xử lý chuỗi riêng lẻ.
+  objectives:
+  - Cấu hình ConversionService
+  - Viết Converter và nhận biết ConverterFactory, GenericConverter
+  - Phân biệt ConversionService với PropertyEditor
+- id: dinh-dang-du-lieu
+  title: Định dạng dữ liệu
+  purpose: Chuyển giữa giá trị và văn bản theo định dạng và quy ước địa phương.
+  objectives:
+  - Viết Formatter với parse và print
+  - Cấu hình FormattingConversionService
+  - Dùng @DateTimeFormat và @NumberFormat
+- id: validator-cua-spring
+  title: Validator của Spring
+  purpose: Viết quy tắc kiểm tra độc lập với lớp web và thu thập lỗi có cấu trúc.
+  objectives:
+  - Triển khai supports và validate
+  - Ghi lỗi trường hoặc toàn đối tượng qua Errors
+  - Tích hợp Validator với DataBinder
+- id: jakarta-validation
+  title: Jakarta Validation
+  purpose: Khai báo ràng buộc trên mô hình và kết nối bộ kiểm tra chuẩn với Spring.
+  objectives:
+  - Cấu hình LocalValidatorFactoryBean và ràng buộc cơ bản
+  - Kiểm tra đối tượng lồng nhau bằng @Valid
+  - Chọn nhóm và tạo ràng buộc tùy chỉnh
+  - Phân biệt jakarta.validation.Validator với Spring Validator
+- id: tich-hop-ung-dung
+  title: Tích hợp ứng dụng
+  purpose: Áp dụng gán dữ liệu và kiểm tra tại điểm nhận đầu vào hoặc lời gọi phương thức.
+  objectives:
+  - Dùng @Valid và @Validated đúng ngữ cảnh
+  - Cấu hình WebDataBinder qua @InitBinder
+  - Phân biệt gán @ModelAttribute với đọc @RequestBody
+  - Phân biệt kiểm tra controller với kiểm tra dịch vụ qua proxy
+- id: loi-va-kiem-thu
+  title: Lỗi và kiểm thử
+  purpose: Diễn giải lỗi cho người dùng và chứng minh luồng xử lý đúng trên các trường hợp biên.
+  objectives:
+  - Đọc BindingResult và phân biệt lỗi gán với lỗi ràng buộc
+  - Liên kết mã lỗi, MessageCodesResolver và MessageSource
+  - Kiểm thử chuyển kiểu, định dạng và trường bị chặn
+  - Kiểm thử đối tượng lồng nhau, nhóm kiểm tra và phương thức

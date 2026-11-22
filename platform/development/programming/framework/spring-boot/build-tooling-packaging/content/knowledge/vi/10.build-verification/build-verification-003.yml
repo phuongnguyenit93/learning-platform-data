@@ -1,0 +1,3 @@
+menuLevel1: Kiểm tra bản dựng
+menuLevel2: Tách kiểm thử tích hợp bằng Maven Failsafe hoặc Gradle test suite
+status: WRITTEN

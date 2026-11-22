@@ -1,0 +1,82 @@
+menu:
+- title: Nền tảng chất lượng
+  slug: quality-foundation
+  index: 0
+- title: Mô hình chất lượng
+  slug: quality-model
+  index: 1
+- title: Nguyên tắc
+  slug: principles
+  index: 2
+- title: Hệ thống chất lượng
+  slug: quality-system
+  index: 3
+- title: Tổ chức chất lượng
+  slug: quality-organization
+  index: 4
+- title: Kế hoạch chất lượng
+  slug: quality-plan
+  index: 5
+- title: Rủi ro chất lượng
+  slug: quality-risks
+  index: 6
+- title: Yêu cầu chất lượng
+  slug: quality-requirements
+  index: 7
+- title: Đảm bảo quy trình
+  slug: process-assurance
+  index: 8
+- title: Rà soát kỹ thuật
+  slug: technical-review
+  index: 9
+- title: Kiểm chứng sản phẩm
+  slug: product-verification
+  index: 10
+- title: Quản lý kiểm thử
+  slug: test-management
+  index: 11
+- title: Chất lượng kỹ thuật
+  slug: technical-quality
+  index: 12
+- title: Tự động hóa
+  slug: automation
+  index: 13
+- title: Quản lý lỗi
+  slug: defect-management
+  index: 14
+- title: Đo lường
+  slug: measurement
+  index: 15
+- title: Phân tích dữ liệu
+  slug: data-analysis
+  index: 16
+- title: Chi phí chất lượng
+  slug: cost-of-quality
+  index: 17
+- title: Bằng chứng chất lượng
+  slug: quality-evidence
+  index: 18
+- title: Đánh giá tuân thủ
+  slug: compliance-assessment
+  index: 19
+- title: Nghiệm thu và phát hành
+  slug: acceptance-and-release
+  index: 20
+- title: Chất lượng vận hành
+  slug: operational-quality
+  index: 21
+- title: Nhà cung cấp
+  slug: suppliers
+  index: 22
+- title: Cải tiến chất lượng
+  slug: quality-improvement
+  index: 23
+- title: Điều chỉnh bối cảnh
+  slug: context-tailoring
+  index: 24
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 25
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 26

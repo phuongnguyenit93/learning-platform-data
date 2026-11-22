@@ -1,0 +1,494 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Maven là gì và những vấn đề trong quy trình build Java mà Maven giải quyết
+  - 'Mô hình tư duy: POM, vòng đời, plugin, phụ thuộc và kho artifact'
+  - Quy ước thay cho cấu hình trong thiết kế dự án Maven
+  - Vai trò của Maven so với JDK, IDE, Git và hệ thống CI
+  - Phân biệt mã nguồn, đầu ra biên dịch và artifact bàn giao
+  - Quan hệ giữa biên dịch, kiểm thử, đóng gói và xuất bản
+  - Điểm khác biệt cốt lõi khi tiếp cận Maven, Ant và Gradle
+  - Phân biệt phiên bản Maven, phiên bản POM và phiên bản plugin
+  - Lộ trình học từ một dự án đơn giản đến hệ thống nhiều mô-đun
+- level1: Cài đặt và Wrapper
+  level2:
+  - Chuẩn bị JDK và kiểm tra điều kiện tương thích với phiên bản Maven
+  - Cài Maven và cấu hình JAVA_HOME, PATH trên Windows, Linux và macOS
+  - Đọc mvn --version để xác định Maven, Java và môi trường thực tế
+  - Maven Home, thư mục người dùng và các vị trí cấu hình
+  - 'Maven Wrapper: mục đích và quan hệ với bản Maven cài trên máy'
+  - Tạo Wrapper bằng wrapper:wrapper và quản lý các tệp được sinh
+  - Chạy mvnw hoặc mvnw.cmd nhất quán giữa các môi trường
+  - Cố định bản phân phối bằng maven-wrapper.properties
+  - Các dạng Wrapper và yêu cầu tải xuống khi khởi động
+  - Xác minh nguồn tải, checksum và quyền thực thi của Wrapper
+  - Xử lý lỗi mạng, proxy hoặc JDK khi Wrapper khởi động
+- level1: Dự án đầu tiên
+  level2:
+  - Tạo dự án Java tối thiểu bằng pom.xml
+  - Sinh dự án từ archetype và hiểu vai trò của bộ khung
+  - Chọn tọa độ, package và phiên bản cho dự án mới
+  - Viết mã nguồn và kiểm thử theo cấu trúc Maven
+  - Chạy compile, test, package và quan sát đầu ra
+  - Kiểm tra nội dung target và chạy artifact đã đóng gói
+  - Đọc log một lượt build thành công và lỗi đầu tiên
+  - Đưa dự án lên Git cùng cấu hình và Wrapper cần thiết
+- level1: Cấu trúc dự án
+  level2:
+  - pom.xml và thư mục gốc của một dự án Maven
+  - src/main/java và tổ chức package mã nguồn chính
+  - src/main/resources và tài nguyên của ứng dụng
+  - src/test/java, src/test/resources và sự tách biệt mã kiểm thử
+  - target/classes, target/test-classes và các đầu ra trung gian
+  - generated-sources, generated-test-sources và mã được sinh
+  - Thư mục .mvn và các tệp cấu hình gắn với dự án
+  - Thư mục báo cáo và các artifact được đính kèm
+  - Thay đổi cấu trúc mặc định khi tích hợp mã nguồn có sẵn
+  - Quản lý tệp nguồn và bỏ qua đầu ra build trong Git
+- level1: POM và tọa độ
+  level2:
+  - Project Object Model và cấu trúc XML cơ bản của pom.xml
+  - project, namespace, schema và modelVersion
+  - groupId, artifactId, version và định danh đầy đủ của artifact
+  - packaging và quan hệ với loại đầu ra, vòng đời mặc định
+  - Phân biệt JAR, WAR và POM ở cấp mô hình dự án
+  - type, classifier và phần mở rộng của artifact
+  - name, description, url và metadata mô tả dự án
+  - licenses, developers, scm và thông tin phục vụ xuất bản
+  - Đọc một POM tối thiểu và xác định phần có thể kế thừa
+  - Kiểm tra tính hợp lệ của POM và phát hiện khai báo trùng
+- level1: Dòng lệnh
+  level2:
+  - Cú pháp mvn với phase, plugin goal và các tùy chọn
+  - Chạy Maven từ đúng thư mục và chỉ định POM bằng -f
+  - Truyền thuộc tính bằng -D và xử lý dấu nháy theo shell
+  - Gọi plugin bằng tiền tố hoặc tọa độ đầy đủ có phiên bản
+  - Chọn settings riêng bằng -s và thư mục kho cục bộ riêng
+  - Chế độ batch, giảm log tải xuống và lưu log vào tệp
+  - Chế độ ngoại tuyến -o và yêu cầu có đủ phụ thuộc, plugin
+  - Làm mới kiểm tra phụ thuộc bằng -U và giới hạn của tùy chọn này
+  - Dùng -e, -X để đọc lỗi chi tiết và bảo vệ dữ liệu trong log
+  - Đọc mã thoát thay vì chỉ dựa vào dòng BUILD SUCCESS
+- level1: Vòng đời
+  level2:
+  - 'Lifecycle, phase và goal: phân biệt ba khái niệm'
+  - Ba vòng đời clean, default và site
+  - Chuỗi validate, initialize và chuẩn bị đầu vào
+  - generate-sources, process-sources và các bước xử lý mã nguồn
+  - process-resources, compile và process-classes
+  - Các phase chuẩn bị, biên dịch và thực thi kiểm thử
+  - prepare-package, package và artifact được tạo
+  - pre-integration-test, integration-test và post-integration-test
+  - verify và các bước kiểm chứng trước khi xuất bản
+  - install, deploy và sự khác nhau giữa kho cục bộ với kho từ xa
+  - Thực thi tuần tự các phase khi gọi một phase phía sau
+  - Binding mặc định theo packaging và điều kiện một phase có công việc
+  - Phân biệt mvn clean verify với việc gọi riêng một plugin goal
+  - Rủi ro gọi integration-test mà không đi tiếp đến các phase dọn dẹp
+- level1: Kế thừa POM
+  level2:
+  - Super POM và nguồn của các giá trị mặc định
+  - parent POM và những thành phần dự án con có thể kế thừa
+  - Kế thừa groupId, version và giữ artifactId riêng
+  - relativePath và quá trình tìm parent từ hệ thống tệp hoặc kho
+  - Phân biệt kế thừa cấu hình với tổng hợp mô-đun
+  - Quy tắc ghi đè và hợp nhất cấu hình giữa cha với con
+  - inherited và kiểm soát việc truyền cấu hình plugin
+  - Parent dùng chung cho tổ chức và chi phí thay đổi đến các dự án con
+  - Rủi ro tạo vòng tham chiếu giữa parent, BOM và mô-đun
+  - Đọc effective POM để xác minh cấu hình sau kế thừa
+- level1: Thuộc tính và mô hình
+  level2:
+  - Khai báo properties và tái sử dụng giá trị bằng biểu thức ${...}
+  - Các thuộc tính project, settings và biến môi trường env
+  - project.basedir, build.directory và đường dẫn đầu ra
+  - Thuộc tính dòng lệnh và khả năng ghi đè cấu hình
+  - Quá trình nội suy thuộc tính và hình thành mô hình có hiệu lực
+  - Dùng help:evaluate để kiểm tra một giá trị thực tế
+  - Dùng help:effective-pom để truy tìm nguồn cấu hình
+  - Phân biệt thuộc tính được khai báo với tham số plugin thực sự hỗ trợ
+  - Tránh tham chiếu vòng và phụ thuộc vào thông tin riêng của máy
+  - Phạm vi cấu hình theo dự án trong .mvn/maven.config và .mvn/jvm.config
+  - Phân biệt MAVEN_OPTS, tùy chọn Maven và tùy chọn JVM kiểm thử
+- level1: Settings
+  level2:
+  - Vai trò của settings.xml và ranh giới với pom.xml
+  - Settings cấp cài đặt, cấp người dùng và cấu hình được hợp nhất
+  - localRepository và cách thay đổi vị trí kho cục bộ
+  - servers và liên kết thông tin xác thực qua id
+  - mirrors, mirrorOf và điều hướng truy cập kho
+  - proxies, nonProxyHosts và truy cập mạng doanh nghiệp
+  - profiles và activeProfiles trong settings
+  - Giới hạn nội dung profile khi khai báo trong settings
+  - Dùng help:effective-settings và tránh làm lộ bí mật
+  - Cấp thông tin xác thực từ môi trường CI thay vì lưu trong Git
+  - Đối chiếu cấu hình máy cá nhân với cấu hình máy build
+- level1: Profile
+  level2:
+  - Profile là gì và khi nào cần biến thể cấu hình build
+  - Profile trong POM, settings và phạm vi tác động
+  - Kích hoạt tường minh bằng -P và kiểm tra profile đang hoạt động
+  - Kích hoạt theo JDK, hệ điều hành, thuộc tính hoặc tệp
+  - activeByDefault và ảnh hưởng của các profile khác trong cùng POM
+  - Nhiều profile cùng hoạt động và xung đột giá trị cấu hình
+  - Ảnh hưởng của profile khi kế thừa mô hình dự án
+  - Dùng help:active-profiles và effective POM để chẩn đoán
+  - Thiết kế profile cho kiểm chứng hoặc công cụ tùy chọn
+  - Phân biệt cấu hình lúc build với cấu hình ứng dụng lúc chạy
+  - Tránh artifact khác nhau khó truy vết do profile phụ thuộc máy
+- level1: Khai báo phụ thuộc
+  level2:
+  - dependencies và cấu trúc một khai báo dependency
+  - Phụ thuộc trực tiếp, bắc cầu và đồ thị Maven xây dựng
+  - Đọc POM của thư viện để hiểu các phụ thuộc đi kèm
+  - Phụ thuộc thư viện ngoài và phụ thuộc giữa các mô-đun
+  - Khai báo trực tiếp thư viện mà mã nguồn đang sử dụng
+  - optional và ảnh hưởng đến dự án tiêu thụ thư viện
+  - exclusions và phạm vi loại trừ theo từng đường phụ thuộc
+  - Phụ thuộc có classifier và artifact kiểm thử được đính kèm
+  - 'Thư viện JAR cục bộ: giới hạn của systemPath và cách quản lý qua kho'
+  - Kiểm tra phụ thuộc thừa hoặc thiếu bằng dependency:analyze
+  - Dùng dependency:list, dependency:tree và dependency:build-classpath
+- level1: Scope và classpath
+  level2:
+  - Scope điều khiển classpath và tính bắc cầu như thế nào
+  - compile và thư viện dùng trong biên dịch, thực thi thông thường
+  - provided và trách nhiệm cung cấp thư viện của môi trường chạy
+  - runtime và thư viện chỉ cần khi chạy
+  - test và sự tách biệt phụ thuộc dành cho kiểm thử
+  - system, đường dẫn máy cục bộ và hạn chế khả chuyển
+  - import trong dependencyManagement và ý nghĩa đối với BOM
+  - Đọc bảng lan truyền scope qua phụ thuộc bắc cầu
+  - Phân biệt classpath chính, classpath kiểm thử và classpath plugin
+  - Vì sao có thư viện khi biên dịch nhưng thiếu lúc chạy
+  - Tài nguyên trên classpath và lớp trùng tên giữa các JAR
+- level1: Phân giải phiên bản
+  level2:
+  - Dependency mediation và lựa chọn phiên bản trong đồ thị
+  - Quy tắc đường dẫn gần nhất và thứ tự khai báo khi cùng độ sâu
+  - Đọc nhánh bị loại do xung đột trong dependency:tree
+  - Phân biệt xung đột phiên bản với xung đột lớp hoặc tài nguyên
+  - Ảnh hưởng của dependencyManagement đến phiên bản bắc cầu
+  - Thay đổi phiên bản bằng khai báo trực tiếp hoặc quản lý tập trung
+  - Version range và rủi ro đồ thị thay đổi theo thời gian
+  - Quy tắc so sánh phiên bản Maven và giới hạn của giả định SemVer
+  - Chẩn đoán NoSuchMethodError hoặc NoClassDefFoundError do lệch phụ thuộc
+  - Xác minh lại kiểm thử và classpath sau khi giải quyết xung đột
+- level1: BOM và quản lý chung
+  level2:
+  - Phân biệt dependencies với dependencyManagement
+  - Quản lý phiên bản, scope và loại trừ cho các mô-đun con
+  - Vì sao khai báo quản lý không tự thêm thư viện vào dự án
+  - BOM là gì và cách nhập bằng type=pom, scope=import
+  - Phân biệt dùng một POM làm parent với nhập nó như BOM
+  - Thứ tự ưu tiên khi nhiều BOM quản lý cùng một thư viện
+  - Ghi đè phiên bản có chủ đích và kiểm tra effective POM
+  - Thiết kế BOM nội bộ cho các thư viện cần đồng bộ phiên bản
+  - Giới hạn của dependencyManagement đối với phụ thuộc của plugin
+  - Tránh khai báo lặp và kiểm soát thay đổi phiên bản tập trung
+- level1: Kho và metadata
+  level2:
+  - Kho cục bộ, kho từ xa và vai trò của Maven Central
+  - Cấu trúc đường dẫn kho theo groupId, artifactId và version
+  - Tệp POM, artifact, checksum và maven-metadata.xml
+  - 'repositories và pluginRepositories: hai mục đích khác nhau'
+  - Chính sách releases, snapshots và updatePolicy
+  - SNAPSHOT, metadata và artifact có timestamp
+  - checksumPolicy và xử lý lỗi toàn vẹn khi tải xuống
+  - Repository manager, proxy cache và mirror trong tổ chức
+  - Thứ tự truy cập kho và chẩn đoán artifact không tìm thấy
+  - Tệp .lastUpdated và kết quả tải thất bại được lưu cục bộ
+  - Chuẩn bị dependency:go-offline và kiểm chứng build ngoại tuyến
+  - Làm mới có mục tiêu thay vì xóa toàn bộ kho .m2
+- level1: Plugin và goal
+  level2:
+  - Build plugin, reporting plugin và phần việc chúng đảm nhiệm
+  - Mojo, goal và plugin descriptor trong mô hình thực thi Maven
+  - Khai báo plugin bằng groupId, artifactId và version
+  - Plugin prefix và cách Maven tìm plugin tương ứng
+  - Plugin goal được gọi trực tiếp và goal được gắn vào vòng đời
+  - Cố định phiên bản plugin để kiểm soát thay đổi build
+  - Dùng help:describe để đọc goal, tham số và yêu cầu thực thi
+  - Phụ thuộc của plugin và vùng nạp lớp tách khỏi ứng dụng
+  - Goal chạy từng mô-đun và goal tổng hợp toàn dự án
+  - Đọc cảnh báo plugin validation và kiểm tra tương thích Maven
+- level1: Cấu hình plugin
+  level2:
+  - 'build/plugins và build/pluginManagement: vai trò và cách áp dụng'
+  - configuration và ánh xạ phần tử XML sang tham số plugin
+  - executions, execution id, phase và danh sách goals
+  - Cấu hình chung của plugin so với cấu hình riêng một execution
+  - Binding mặc định, execution bổ sung và nguy cơ chạy trùng
+  - Hợp nhất cấu hình execution khi kế thừa parent
+  - Điều khiển hợp nhất cấu hình bằng combine.self và combine.children
+  - Truyền giá trị qua user property khi plugin hỗ trợ
+  - Phân biệt tham số bắt buộc, giá trị mặc định và tham số chỉ đọc
+  - Cấu hình dependencies riêng cho plugin khi có nhu cầu
+  - Xác minh cấu hình hiệu lực trước khi chạy goal
+  - Lựa chọn phase phù hợp cho một bước tự động hóa mới
+- level1: Biên dịch và JDK
+  level2:
+  - Maven Compiler Plugin và các goal compile, testCompile
+  - Cấu hình phiên bản Java bằng maven.compiler.release
+  - Phân biệt source, target và release khi nhắm đến Java đích
+  - JDK chạy Maven so với JDK dùng để biên dịch
+  - Maven Toolchains Plugin và tệp toolchains.xml
+  - Chọn bộ công cụ cho biên dịch, kiểm thử và công cụ liên quan
+  - Encoding, tham số javac và chính sách cảnh báo biên dịch
+  - Annotation processor và cấu hình đường dẫn xử lý annotation
+  - Mã sinh tự động, thứ tự biên dịch và thư mục nguồn bổ sung
+  - Biên dịch dự án JPMS với module-info.java
+  - Module path, classpath và mô-đun Maven so với mô-đun JPMS
+  - Chẩn đoán invalid target release và bytecode không tương thích
+- level1: Tài nguyên và sinh mã
+  level2:
+  - Maven Resources Plugin và các bước resources, testResources
+  - includes, excludes và lựa chọn tài nguyên cần sao chép
+  - Resource filtering và thay thế giá trị bằng thuộc tính
+  - Delimiters, escaping và xung đột với cú pháp cấu hình ứng dụng
+  - Tránh lọc nhầm tệp nhị phân hoặc đóng gói bí mật
+  - Tách tài nguyên theo mục đích sử dụng và kiểm chứng đầu ra
+  - Gắn công cụ sinh mã vào generate-sources hoặc generate-test-sources
+  - Đăng ký nguồn bổ sung bằng plugin phù hợp
+  - 'Build Helper, Exec hoặc Antrun: ranh giới sử dụng cho công việc đặc thù'
+  - Kiểm soát thư mục làm việc, môi trường và mã thoát của công cụ ngoài
+- level1: Kiểm thử đơn vị
+  level2:
+  - Maven Surefire Plugin và quan hệ với phase test
+  - JUnit Platform, test engine và các phụ thuộc kiểm thử cần thiết
+  - Quy tắc phát hiện tên lớp kiểm thử và nguy cơ không chạy bài nào
+  - Chọn lớp hoặc phương thức bằng -Dtest
+  - includes, excludes, tag hoặc nhóm kiểm thử theo framework
+  - Truyền system properties, biến môi trường và tham số JVM kiểm thử
+  - Fork JVM, tái sử dụng tiến trình và cô lập trạng thái kiểm thử
+  - Thực thi song song và kiểm soát tài nguyên dùng chung
+  - Báo cáo XML, tệp log và vị trí surefire-reports
+  - Kiểm thử lỗi, kiểm thử không ổn định và chính sách thất bại
+  - Phân biệt skipTests với maven.test.skip
+  - Kiểm tra phiên bản Surefire/Failsafe trước khi dựa vào tùy chọn bỏ qua
+- level1: Kiểm thử tích hợp
+  level2:
+  - Maven Failsafe Plugin và ranh giới với Surefire
+  - Quy tắc đặt tên kiểm thử tích hợp và cấu hình nhận diện
+  - Goal integration-test, goal verify và cách báo lỗi kiểm thử
+  - Gắn các goal Failsafe vào đúng phase trong POM
+  - Khởi tạo tài nguyên ở pre-integration-test và dọn ở post-integration-test
+  - Vì sao nên kết thúc chuỗi kiểm chứng bằng verify
+  - Truyền cấu hình môi trường cho kiểm thử tích hợp
+  - Chọn kiểm thử bằng -Dit.test và dùng skipITs đúng phạm vi
+  - Đọc failsafe-reports và đối chiếu kết quả với unit test
+  - Kiểm soát cổng, cơ sở dữ liệu và tài nguyên ngoài khi chạy trên CI
+- level1: JAR và manifest
+  level2:
+  - Maven JAR Plugin và artifact chính của packaging=jar
+  - Cấu trúc JAR và kiểm tra các lớp, tài nguyên được đóng gói
+  - Maven Archiver và cấu hình manifest
+  - Main-Class, Class-Path và điều kiện chạy java -jar
+  - finalName và sự khác nhau với tọa độ artifact
+  - Đóng gói thư viện so với đóng gói ứng dụng chạy độc lập
+  - Đính kèm test JAR hoặc artifact khác bằng classifier
+  - Đính kèm mã nguồn bằng Maven Source Plugin
+  - Đính kèm tài liệu API bằng Maven Javadoc Plugin
+  - Kiểm chứng artifact trong môi trường không phụ thuộc IDE
+- level1: Shade và Assembly
+  level2:
+  - Thin JAR và cách phân phối các thư viện bên ngoài
+  - Uber JAR và trường hợp cần gộp phụ thuộc vào một artifact
+  - Maven Shade Plugin và cấu hình phạm vi artifact được gộp
+  - Relocation và kiểm soát xung đột package
+  - Resource transformer và hợp nhất tệp dịch vụ META-INF/services
+  - Xử lý manifest, tài nguyên trùng và chữ ký từ JAR nguồn
+  - Dependency-reduced POM và ảnh hưởng đến dự án tiêu thụ
+  - Maven Assembly Plugin và mô tả gói ZIP, TAR hoặc bộ phân phối
+  - Phân biệt artifact chính với artifact đính kèm có classifier
+  - Kiểm tra hành vi ứng dụng và metadata sau khi gộp hoặc đóng bộ
+- level1: WAR và Spring Boot
+  level2:
+  - Maven WAR Plugin và cấu trúc ứng dụng web đóng gói
+  - Phụ thuộc provided khi môi trường Servlet cung cấp thư viện
+  - Tài nguyên web, cấu hình WAR và kiểm tra sản phẩm bàn giao
+  - Spring Boot Maven Plugin và mục đích của repackage
+  - Phân biệt JAR thường với JAR có cấu trúc thực thi của Spring Boot
+  - Spring Boot parent so với nhập BOM quản lý phụ thuộc
+  - Cấu hình plugin khi không kế thừa Spring Boot parent
+  - Ranh giới giữa package, chạy ứng dụng và tạo container image
+- level1: Reactor nhiều mô-đun
+  level2:
+  - Aggregator POM, packaging=pom và khai báo modules
+  - Tổ chức parent và aggregator cùng chỗ hoặc tách riêng
+  - Reactor thu thập, sắp xếp và build các mô-đun
+  - Phụ thuộc nội bộ và những quan hệ ảnh hưởng thứ tự reactor
+  - Vì sao dependencyManagement không tự tạo cạnh phụ thuộc thực thi
+  - Build mô-đun bằng -pl và phân biệt đường dẫn với :artifactId
+  - Dùng -am để build cả các mô-đun đầu vào
+  - Dùng -amd để chọn những mô-đun phụ thuộc vào mô-đun đã chọn
+  - Tiếp tục từ một mô-đun bằng -rf và những đầu vào phải còn sẵn
+  - Chính sách -ff, -fae, -fn và tác động đến mã thoát
+  - Giới hạn build đệ quy bằng -N
+  - Phát hiện vòng phụ thuộc và tách ranh giới mô-đun
+  - Phân biệt build trong reactor với tiêu thụ artifact đã install
+  - Tổng hợp báo cáo kiểm thử và chất lượng qua nhiều mô-đun
+- level1: Quản lý phiên bản
+  level2:
+  - Phiên bản release và SNAPSHOT trong phát triển nhiều mô-đun
+  - Tập trung phiên bản dự án và thư viện bằng properties
+  - Maven Versions Plugin và kiểm tra bản cập nhật có sẵn
+  - Cập nhật phiên bản dự án, parent hoặc dependency có kiểm soát
+  - Rà soát tệp POM sau khi công cụ thay đổi phiên bản
+  - CI-friendly versions với revision, sha1 và changelist
+  - Phiên bản nội suy và yêu cầu của POM đem xuất bản
+  - Vai trò của Flatten Maven Plugin khi cần POM cho bên tiêu thụ
+  - Đồng bộ phiên bản giữa các mô-đun mà không phá hợp đồng phụ thuộc
+- level1: Cổng chất lượng
+  level2:
+  - Maven Enforcer Plugin và xác định điều kiện build được chấp nhận
+  - Kiểm tra phiên bản Maven, Java và các yêu cầu môi trường
+  - Dependency convergence, phiên bản bị cấm và phụ thuộc trùng
+  - Tích hợp kiểm tra định dạng và quy tắc mã nguồn bằng plugin
+  - Tích hợp phân tích tĩnh và phân biệt báo cáo với bước chặn build
+  - 'JaCoCo: thu thập dữ liệu độ bao phủ và tạo báo cáo'
+  - Đặt ngưỡng kiểm chứng và hiểu giới hạn của phần trăm bao phủ
+  - Gắn các cổng chất lượng vào vòng đời trước install hoặc deploy
+  - Chia sẻ chính sách qua parent và quản lý ngoại lệ tường minh
+  - Phân biệt kiểm tra build với việc thiết kế nội dung kiểm thử
+- level1: Tài liệu và Site
+  level2:
+  - Build plugin và reporting plugin trong quá trình tạo tài liệu
+  - Maven Site Plugin và vòng đời site
+  - Cấu hình tên, điều hướng và nội dung trang dự án
+  - Tạo báo cáo thông tin dự án, phụ thuộc và kết quả kiểm thử
+  - Javadoc và liên kết tài liệu cho thư viện phụ thuộc
+  - Tổng hợp tài liệu cho dự án nhiều mô-đun
+  - Phân biệt tạo site với xuất bản site qua site-deploy
+  - Cố định phiên bản plugin tài liệu và kiểm tra lỗi tạo báo cáo
+- level1: Install và Deploy
+  level2:
+  - 'install: đưa artifact và POM vào kho cục bộ'
+  - 'deploy: xuất bản artifact cho các dự án, máy hoặc nhóm khác'
+  - distributionManagement và địa chỉ kho nhận bản phát hành
+  - repository, snapshotRepository và chính sách chia tách
+  - Liên kết id kho với server trong settings.xml
+  - Đính kèm và xuất bản đầy đủ source, Javadoc và các classifier
+  - install-file hoặc deploy-file cho thư viện chưa có quy trình chuẩn
+  - Metadata POM và phụ thuộc bắc cầu của thư viện xuất bản
+  - Trì hoãn install hoặc deploy đến cuối reactor khi phù hợp
+  - Kiểm chứng artifact bằng một dự án tiêu thụ độc lập
+  - Phân biệt Maven deploy với triển khai ứng dụng lên máy chủ
+- level1: Quy trình phát hành
+  level2:
+  - Chuẩn bị phiên bản, kiểm thử và kiểm tra kho mã trước phát hành
+  - Liên hệ artifact với commit, tag và kết quả build
+  - 'Maven Release Plugin: vai trò của release:prepare và release:perform'
+  - Cấu hình SCM và quyền truy cập cần cho quy trình release
+  - Staging, kiểm chứng và công bố artifact theo cơ chế của kho đích
+  - Chữ ký artifact và cấu hình plugin ký phù hợp
+  - Giữ bí mật khóa ký và thông tin xác thực ngoài kho mã
+  - Chính sách không thay thế artifact release đã công bố
+  - Xử lý release thất bại hoặc phát hành lại với phiên bản mới
+  - Xác minh POM, checksum và các tệp đi kèm sau xuất bản
+- level1: Build tái lập
+  level2:
+  - Phân biệt build thành công lặp lại với artifact giống từng byte
+  - Cố định Wrapper, JDK, phiên bản plugin và tập phụ thuộc
+  - Rủi ro từ SNAPSHOT, khoảng phiên bản và nguồn tải thay đổi
+  - project.build.outputTimestamp và metadata thời gian trong archive
+  - Thứ tự tệp, encoding, locale và đường dẫn ảnh hưởng đến đầu ra
+  - Kiểm tra khả năng tái lập của các plugin tham gia build
+  - Dùng Maven Artifact Plugin để kiểm tra và so sánh artifact
+  - Build lại từ bản checkout sạch và môi trường độc lập
+  - Truy vết đầu vào đến artifact bằng checksum và thông tin phiên bản
+  - Giới hạn của việc chỉ so sánh hai lần build trên cùng một máy
+- level1: An toàn phụ thuộc
+  level2:
+  - Rủi ro từ mã thực thi trong plugin, extension và script build
+  - Kiểm soát nguồn artifact, mirror và kho nội bộ tin cậy
+  - Phòng tránh tải nhầm thư viện cùng tên từ kho không mong muốn
+  - Kiểm tra checksum và ý nghĩa khác nhau của toàn vẹn với xác thực
+  - Kiểm soát lỗ hổng thư viện và chính sách nâng cấp
+  - Tạo danh mục thành phần phần mềm SBOM từ đồ thị phụ thuộc
+  - Rà soát giấy phép và phạm vi phân phối thư viện kèm ứng dụng
+  - Giới hạn quyền đọc, xuất bản và ký artifact
+  - Tránh lộ token hoặc mật khẩu qua POM, log và báo cáo
+  - Build mã từ nguồn chưa tin cậy trong môi trường có quyền hạn phù hợp
+- level1: IDE và CI
+  level2:
+  - Import dự án Maven vào IDE từ POM thay vì tự ghép classpath
+  - Đồng bộ JDK, Maven, settings và profile giữa IDE với terminal
+  - Phân biệt build riêng của IDE với build thực sự bằng Maven
+  - Chuỗi CI từ checkout đến verify và thu thập kết quả
+  - Dùng Wrapper, chế độ batch và cấu hình không phụ thuộc máy
+  - Cấp settings.xml và bí mật cho CI theo phạm vi công việc
+  - Lưu cache kho cục bộ với khóa phù hợp và kiểm soát dữ liệu cũ
+  - Phân biệt cache tải thư viện với artifact cần bàn giao
+  - Lưu báo cáo Surefire, Failsafe, chất lượng và log chẩn đoán
+  - Build một lần và đưa đúng artifact qua các bước phát hành
+  - Kiểm chứng trên nhiều phiên bản JDK bằng cấu hình tường minh
+  - Quyền của pipeline pull request so với pipeline xuất bản
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian từng mô-đun và từng bước trước khi tối ưu
+  - Phân biệt chi phí khởi động, phân giải phụ thuộc và chạy plugin
+  - So sánh build lạnh với build đã có kho phụ thuộc cục bộ
+  - Build song song bằng -T và quan hệ với đồ thị reactor
+  - Kiểm tra khả năng an toàn khi chạy plugin song song
+  - Fork kiểm thử, bộ nhớ JVM và giới hạn tài nguyên CI
+  - Chọn đúng mô-đun cần build và hiểu phạm vi kiểm chứng bị giảm
+  - Tránh gọi clean không cần thiết và kiểm tra đầu ra cũ
+  - Phân biệt khả năng build tăng dần của từng plugin với cache đầu ra
+  - Extension cache build và điều kiện khai báo đầu vào đúng
+  - Maven Daemon và đánh giá hiệu quả trong môi trường cụ thể
+- level1: Chẩn đoán lỗi
+  level2:
+  - Từ goal thất bại đến execution, mô-đun và nguyên nhân gốc
+  - Malformed POM, modelVersion và lỗi mô hình không hợp lệ
+  - Non-resolvable parent POM và sai relativePath
+  - Could not resolve dependencies hoặc plugin không tải được
+  - Lỗi xác thực, proxy, TLS và mirror chặn truy cập kho
+  - Artifact bị ghi nhận not found và cách kiểm tra .lastUpdated
+  - Lỗi biên dịch do thiếu thư viện hoặc cấu hình JDK
+  - Build thành công nhưng không có kiểm thử nào được chạy
+  - Ứng dụng đóng gói thiếu lớp, thiếu tài nguyên hoặc sai manifest
+  - Xung đột classloader plugin so với classpath ứng dụng
+  - Build chạy được trong reactor nhưng thất bại khi build riêng mô-đun
+  - Khác biệt giữa máy cá nhân, IDE và CI do settings hoặc profile
+  - Tái hiện lỗi với POM tối thiểu và lưu bằng chứng trước khi sửa
+  - Kiểm tra giả thuyết trước khi xóa cache hoặc bỏ qua bước thất bại
+- level1: Mở rộng Maven
+  level2:
+  - Khi nào cần plugin riêng thay vì cấu hình plugin có sẵn
+  - Cấu trúc dự án plugin và packaging=maven-plugin
+  - Tạo Mojo, khai báo goal và nhận tham số cấu hình
+  - Truy cập MavenProject, MavenSession và mô hình dự án
+  - Khai báo yêu cầu phân giải phụ thuộc của goal
+  - Thiết kế goal có đầu vào, đầu ra và thông báo lỗi rõ ràng
+  - Thread safety và lưu ý khi goal chạy trong reactor song song
+  - Kiểm thử plugin bằng dự án mẫu và kiểm chứng gọi qua Maven
+  - Phân biệt build extension, core extension và plugin thông thường
+  - Đăng ký extension qua cấu hình phù hợp và quản lý phiên bản
+  - Chi phí bảo trì, tương thích và phạm vi tin cậy của phần mở rộng
+- level1: Nâng cấp Maven
+  level2:
+  - Lập danh mục phiên bản Maven, JDK, plugin và extension đang dùng
+  - Đọc cảnh báo tương thích và release notes trước khi nâng cấp
+  - Nâng plugin, chạy kiểm chứng và so sánh artifact trước sau
+  - Phân biệt chuyển runtime Maven với chuyển mô hình POM
+  - Tiếp cận Maven 4 theo các bước chuẩn bị, chạy thử và chuyển đổi
+  - POM model 4.0.0, model 4.1.0 và giới hạn tương thích
+  - Build POM và consumer POM trong Maven 4
+  - Rà soát thay đổi về profile, reactor và hành vi install/deploy
+  - Dùng công cụ hỗ trợ nâng cấp và kiểm tra từng thay đổi được tạo
+  - Chuẩn bị khả năng quay lại phiên bản trước khi áp dụng rộng
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo thư viện Java với POM, Wrapper và kiểm thử tự động
+  - Thêm phụ thuộc bắc cầu rồi giải thích classpath thực tế
+  - Tạo xung đột phiên bản và xử lý bằng quản lý phụ thuộc
+  - Thiết kế parent, BOM và ứng dụng nhiều mô-đun
+  - Gắn unit test, integration test và cổng chất lượng vào verify
+  - Đóng gói ứng dụng chạy độc lập và kiểm tra ngoài IDE
+  - Xuất bản thư viện vào kho thử nghiệm và dùng từ dự án khác
+  - Thiết kế chuỗi CI có cache, báo cáo và artifact truy vết được
+  - Chẩn đoán lỗi do settings, profile, JDK hoặc metadata kho
+  - So sánh checksum từ hai môi trường build độc lập
+  - Nâng cấp Maven hoặc plugin và kiểm chứng tương thích
+  - Tự đọc một dự án Maven chưa quen bằng POM và các lệnh trợ giúp

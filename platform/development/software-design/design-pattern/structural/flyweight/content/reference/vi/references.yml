@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring.Guru — Flyweight"
+    url: "https://refactoring.guru/design-patterns/flyweight"
+    description: "Vấn đề, giải pháp, cấu trúc và intrinsic/extrinsic state của Flyweight."
+  - title: "Refactoring.Guru — Flyweight in Java"
+    url: "https://refactoring.guru/design-patterns/flyweight/java/example"
+    description: "Ví dụ Java tách TreeType dùng chung và trạng thái riêng của Tree."
+  - title: "Java Design Patterns — Flyweight"
+    url: "https://java-design-patterns.com/patterns/flyweight/"
+    description: "Giải thích và mã Java minh họa chia sẻ đối tượng để giảm memory footprint."
+  - title: "SourceMaking — Flyweight Design Pattern"
+    url: "https://sourcemaking.com/design_patterns/flyweight"
+    description: "Checklist triển khai, factory cache và các đánh đổi của Flyweight."

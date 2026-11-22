@@ -1,0 +1,2761 @@
+menu:
+- slug: overview
+  title: Bức tranh tổng thể
+  childs:
+  - slug: overview-001
+    title: Thông báo qua Microsoft Teams là gì và phục vụ nhu cầu nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Ví dụ xuyên suốt: cảnh báo vận hành, phê duyệt và cập nhật công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Từ sự kiện trong ứng dụng đến thông tin hiển thị cho người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Các thành phần: nguồn sự kiện, dịch vụ gửi, cơ chế Teams và đích nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt tin nhắn trong cuộc trò chuyện, bài đăng kênh và Activity feed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Thông báo một chiều và thông báo có tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt gửi thành công, hiển thị thành công và người dùng đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Workflows, Microsoft Graph và bot: vị trí của từng cơ chế'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Vai trò của dịch vụ Java trong toàn bộ luồng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Phạm vi mô-đun và trình tự học từ gửi cơ bản đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: teams-model
+  title: Mô hình Teams
+  childs:
+  - slug: teams-model-001
+    title: Tổ chức Microsoft 365 (tenant), người dùng và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-002
+    title: Nhóm (team), kênh (channel) và quan hệ với thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-003
+    title: 'Kênh tiêu chuẩn, riêng tư và dùng chung: phạm vi người nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-004
+    title: Trò chuyện cá nhân, trò chuyện nhóm và khác biệt với kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-005
+    title: Bài đăng gốc, luồng trao đổi và phản hồi trong kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-006
+    title: Activity feed và nơi người dùng theo dõi hoạt động của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-007
+    title: 'Team ID, channel ID, chat ID và user ID: định danh đúng đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-008
+    title: Microsoft Entra object ID, tên đăng nhập và địa chỉ email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-009
+    title: Ứng dụng Teams, app manifest và phạm vi cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-010
+    title: Người dùng nội bộ, khách và ngữ cảnh liên tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-model-011
+    title: Danh tính hiển thị của người gửi, Workflows bot và bot ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-options
+  title: Lựa chọn cơ chế
+  childs:
+  - slug: integration-options-001
+    title: Webhook qua Workflows cho luồng nhận HTTP rồi đăng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-002
+    title: Microsoft Graph để thao tác theo API và quyền được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-003
+    title: Bot chủ động cho thông báo từ ứng dụng đã được cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-004
+    title: Activity feed cho hoạt động dẫn người dùng đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-005
+    title: So sánh theo đích nhận, danh tính gửi và nhu cầu tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-006
+    title: So sánh theo quyền truy cập, cài đặt ứng dụng và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-007
+    title: Phân biệt webhook nhận sự kiện với webhook theo dõi thay đổi Microsoft Graph
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-008
+    title: Đánh giá yêu cầu cập nhật, phản hồi và lưu định danh tin nhắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-009
+    title: Đánh giá giới hạn tenant, loại kênh, giấy phép và môi trường cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-010
+    title: 'Office 365 Connectors đã ngừng hoạt động: vai trò còn lại trong di trú'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-options-011
+    title: Lập bảng quyết định theo từng tình huống thông báo thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Chuẩn bị môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Kiểm tra tài khoản Teams, tenant và quyền quản trị liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Tạo không gian thử nghiệm với người nhận và dữ liệu tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Kiểm tra Workflows app và chính sách cho phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Kiểm tra Power Automate environment, kết nối và quyền sở hữu luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Xác định yêu cầu giấy phép theo trigger và action thực sự sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Chuẩn bị ứng dụng Entra ID khi lựa chọn Microsoft Graph
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Chuẩn bị gói ứng dụng Teams khi cần bot hoặc Activity feed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Kiểm tra chính sách cài ứng dụng tùy chỉnh và phê duyệt của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-009
+    title: Cấu hình JDK, công cụ HTTP và bộ cấu hình dành cho dịch vụ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-010
+    title: Tách cấu hình phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-webhooks
+  title: Webhook qua Workflows
+  childs:
+  - slug: workflow-webhooks-001
+    title: 'Luồng nhận webhook: HTTP trigger → xử lý dữ liệu → action đăng Teams'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-002
+    title: Chọn mẫu đăng vào chat hoặc kênh phù hợp với mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-003
+    title: Tạo luồng với trigger When a Teams webhook request is received
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-004
+    title: Chọn đích nhận và kết nối dùng cho action đăng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-005
+    title: Lưu luồng và lấy URL callback của trigger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-006
+    title: Gửi HTTP POST với kiểu nội dung JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-007
+    title: Phong bì message, attachments và Adaptive Card trong dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-008
+    title: Đọc dữ liệu trigger và ánh xạ vào các bước phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-009
+    title: Đăng văn bản, đăng thẻ và lựa chọn danh tính được action hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-010
+    title: Phân biệt trigger tiếp nhận yêu cầu với action đăng Teams đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-011
+    title: Xem lần chạy, đầu vào, đầu ra và lỗi ở từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-webhooks-012
+    title: Kiểm chứng khả năng gửi vào loại kênh cụ thể trong tenant thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webhook-authentication
+  title: Xác thực webhook
+  childs:
+  - slug: webhook-authentication-001
+    title: 'Các chế độ gọi trigger: Anyone, người trong tenant và người được chỉ định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-002
+    title: Chọn chế độ xác thực theo nguồn gọi và phạm vi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-003
+    title: URL webhook có thông tin truy cập và cách quản lý như bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-004
+    title: Chế độ Anyone và quy tắc không gửi kèm token xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-005
+    title: Chế độ giới hạn người gọi và yêu cầu token hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-006
+    title: Đối chiếu audience, tenant và danh tính gọi theo tài liệu trigger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-007
+    title: Phân biệt token gọi webhook với token gọi Microsoft Graph
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-008
+    title: Kiểm tra trường hợp thiếu token, token sai đối tượng và người gọi không được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-009
+    title: Đánh giá danh tính ứng dụng hoặc danh tính người dùng theo khả năng trigger hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-authentication-010
+    title: Đặt cổng kiểm soát phía trước khi cần bổ sung kiểm tra và hạn chế tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-management
+  title: Quản lý Workflows
+  childs:
+  - slug: workflow-management-001
+    title: Chủ sở hữu luồng và sự phụ thuộc vào tài khoản người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-002
+    title: Đồng chủ sở hữu và kế hoạch bàn giao luồng cho vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-003
+    title: Phân biệt quyền sở hữu luồng với kết nối dùng để đăng Teams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-004
+    title: Tài khoản rời tổ chức, kết nối hết hiệu lực và luồng bị ngừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-005
+    title: Điều kiện, nhánh xử lý và phạm vi bắt lỗi trong luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-006
+    title: Cấu hình chạy đồng thời và bảo toàn thứ tự khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-007
+    title: Chính sách thử lại của action và ảnh hưởng đến số lần đăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-008
+    title: Quản lý biến môi trường, tham chiếu kết nối và quy trình chuyển môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-009
+    title: Giới hạn thời gian chạy, số lần gọi và hồ sơ hiệu năng Power Automate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-010
+    title: Thay đổi đích nhận và kiểm chứng lại kết nối sau cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-management-011
+    title: Quản lý phiên bản, khôi phục cấu hình và tránh phụ thuộc một người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-design
+  title: Thiết kế nội dung
+  childs:
+  - slug: message-design-001
+    title: 'Cấu trúc thông báo: điều gì xảy ra, ảnh hưởng và hành động tiếp theo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-002
+    title: Tiêu đề ngắn, mức độ quan trọng và phần tóm tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-003
+    title: Đưa thông tin đủ xử lý vào Teams và dẫn đến chi tiết ở hệ thống nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-004
+    title: Mã sự kiện, mã đối tượng và thông tin truy nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-005
+    title: Thời điểm xảy ra, múi giờ và thời hạn cần phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-006
+    title: Phân biệt cảnh báo tức thời, nhắc việc và bản tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-007
+    title: Định nghĩa mẫu nội dung theo từng loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-008
+    title: Tham số hóa dữ liệu và tránh ghép chuỗi JSON trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-009
+    title: Bản địa hóa tiếng Việt, tiếng Anh và dữ liệu Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-010
+    title: Giới hạn kích thước theo từng API hoặc action gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-design-011
+    title: Thông báo có dữ liệu nhạy cảm và quy tắc rút gọn thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adaptive-cards
+  title: Adaptive Cards
+  childs:
+  - slug: adaptive-cards-001
+    title: Adaptive Card là gì và khác văn bản thông thường thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-002
+    title: Lược đồ JSON, phiên bản thẻ và khả năng của nơi hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-003
+    title: TextBlock, FactSet, Container và các thành phần bố cục cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-004
+    title: ColumnSet, hình ảnh và tổ chức thông tin theo mức độ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-005
+    title: Action.OpenUrl và liên kết đến công việc cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-006
+    title: Trường nhập dữ liệu và các hành động cần có bộ xử lý phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-007
+    title: Phân biệt Action.Submit, Action.Execute và phạm vi hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-008
+    title: Phong bì thẻ khi gửi qua Workflows, Graph hoặc bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-009
+    title: Dữ liệu động, mẫu thẻ và quy tắc thay thế tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-010
+    title: Fallback và cách xử lý thành phần không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-011
+    title: Khả năng tiếp cận, tương phản và cách hiển thị trên thiết bị di động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-cards-012
+    title: Kiểm tra lược đồ bằng công cụ thiết kế và kiểm tra lại trong Teams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: card-interactions
+  title: Tương tác với thẻ
+  childs:
+  - slug: card-interactions-001
+    title: Chọn mở liên kết, nhập dữ liệu hoặc xác nhận ngay trong Teams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-002
+    title: Đăng thẻ rồi chờ phản hồi bằng action Workflows phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-003
+    title: 'Webhook nhận dữ liệu và bộ xử lý phản hồi: hai vai trò riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-004
+    title: Tương tác qua bot và xử lý sự kiện hành động từ thẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-005
+    title: Xác minh người thực hiện và quyền xử lý công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-006
+    title: Kiểm tra dữ liệu đầu vào và trạng thái nghiệp vụ trước khi chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-007
+    title: Ngăn xử lý lặp khi một hành động được gửi nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-008
+    title: Thẻ hết hạn, công việc đã đóng và phản hồi đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-009
+    title: Cập nhật trạng thái thẻ khi cơ chế và quyền cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-010
+    title: Phân biệt thẻ hiển thị thành công với luồng phê duyệt nghiệp vụ hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: card-interactions-011
+    title: MessageCard cũ và giới hạn tương tác khi chuyển sang Workflows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: formatting-links
+  title: Định dạng và liên kết
+  childs:
+  - slug: formatting-links-001
+    title: Văn bản thuần, Markdown và HTML theo từng bề mặt gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-002
+    title: Thoát ký tự, xuống dòng và bảo toàn nội dung do người dùng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-003
+    title: Liên kết thường và liên kết sâu (deep link) đến nội dung Teams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-004
+    title: Liên kết về ứng dụng nghiệp vụ và kiểm tra quyền khi mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-005
+    title: Hình ảnh qua URL và khả năng truy cập từ phía người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-006
+    title: Đề cập người dùng bằng mention có định danh hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-007
+    title: Chuỗi @tên trong văn bản và đối tượng mention thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-008
+    title: Giới hạn mention theo cơ chế, danh tính gửi và loại người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-009
+    title: Kiểm tra cách hiển thị ở Teams web, desktop và mobile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatting-links-010
+    title: Tránh gắn dữ liệu nhạy cảm hoặc token truy cập vào URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identities-permissions
+  title: Danh tính và quyền
+  childs:
+  - slug: identities-permissions-001
+    title: Ứng dụng Entra ID, service principal và tenant sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-002
+    title: Phân biệt client ID, object ID, tenant ID và app ID trong Teams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-003
+    title: Quyền ủy quyền (delegated) và quyền ứng dụng (application)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-004
+    title: 'Resource-specific consent (RSC): cấp quyền theo tài nguyên cụ thể'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-005
+    title: Quyền trong Entra ID và quyền khai báo qua Teams app manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-006
+    title: Đăng nhập người dùng và lấy token theo quyền được ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-007
+    title: Client credentials và phạm vi API thực sự cho phép gọi app-only
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-008
+    title: Chấp thuận của người dùng, quản trị viên và chủ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-009
+    title: Phân biệt quyền gửi tin nhắn với quyền gửi Activity feed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-010
+    title: Teamwork.Migrate.All dành cho di trú và giới hạn với thông báo vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-011
+    title: Chọn quyền tối thiểu và kiểm tra quyền theo endpoint hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-012
+    title: Chứng chỉ, bí mật ứng dụng và danh tính được quản lý khi môi trường hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-messages
+  title: Tin nhắn qua Graph
+  childs:
+  - slug: graph-messages-001
+    title: Tài nguyên chatMessage và cấu trúc cơ bản của một tin nhắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-002
+    title: Chọn endpoint gửi vào kênh hoặc vào cuộc trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-003
+    title: Gửi phản hồi vào luồng kênh bằng định danh bài đăng gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-004
+    title: Kiểm tra quyền delegated, quyền ứng dụng và RSC theo endpoint sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-005
+    title: Quyền gửi không đồng nghĩa quyền tạo chat, thêm thành viên hoặc cài ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-006
+    title: Nội dung text, HTML được hỗ trợ và giới hạn định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-007
+    title: Attachments và cách gắn Adaptive Card theo hợp đồng Graph
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-008
+    title: Mentions và dữ liệu định danh tương ứng trong nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-009
+    title: Đọc phản hồi, lưu message ID và liên kết tới tin nhắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-010
+    title: Phân biệt danh tính người gửi thực tế với dữ liệu hiển thị trong nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-011
+    title: Tra cứu khả năng cập nhật hoặc xóa theo loại tin nhắn và quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-messages-012
+    title: Phân biệt luồng gửi thông thường với API nhập dữ liệu di trú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: activity-feed
+  title: Activity feed
+  childs:
+  - slug: activity-feed-001
+    title: Activity feed notification là gì và khác tin nhắn chat thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-002
+    title: Điều kiện cài đặt Teams app cho phạm vi người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-003
+    title: Liên kết ứng dụng Teams với Entra ID qua app manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-004
+    title: activityType, mẫu nội dung và tham số thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-005
+    title: Loại systemDefault và trường hợp không cần mẫu hoạt động tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-006
+    title: topic, previewText và liên kết dẫn tới nội dung cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-007
+    title: Chọn API gửi theo ngữ cảnh người dùng, team hoặc chat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-008
+    title: Quyền TeamsActivity.Send và quyền RSC theo người dùng, team hoặc chat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-009
+    title: Hiển thị danh tính tác nhân theo ngữ cảnh delegated hoặc app-only
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-010
+    title: Ngữ cảnh người nhận, deep link và quyền truy cập nội dung đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-011
+    title: Kiểm tra phản hồi API và khả năng hiển thị trong Activity feed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: activity-feed-012
+    title: Lựa chọn Activity feed khi người dùng cần mở ứng dụng để xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proactive-bots
+  title: Bot chủ động
+  childs:
+  - slug: proactive-bots-001
+    title: Thông báo chủ động (proactive message) và khác biệt với trả lời người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-002
+    title: Ứng dụng chứa bot phải có quyền truy cập và được cài ở phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-003
+    title: Phạm vi cá nhân, group chat và team trong app manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-004
+    title: Đăng ký danh tính bot, endpoint tiếp nhận và kết nối Teams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-005
+    title: Nhận sự kiện cài đặt, gỡ cài đặt và thay đổi ngữ cảnh trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-006
+    title: Lưu ngữ cảnh hội thoại và định danh phục vụ lần gửi chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-007
+    title: Khởi tạo hoặc tiếp tục hội thoại theo API của SDK đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-008
+    title: Gửi văn bản, Adaptive Card và phản hồi vào luồng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-009
+    title: Xử lý người dùng chặn bot, gỡ ứng dụng hoặc đích nhận không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-010
+    title: 'Teams SDK và Microsoft 365 Agents SDK: chọn theo phạm vi hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-011
+    title: Bot Framework SDK cũ và kế hoạch chuyển sang công cụ còn được duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-012
+    title: Tách dịch vụ Java với bộ xử lý bot dùng ngôn ngữ được SDK hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proactive-bots-013
+    title: 'Định danh bot, Graph token và webhook URL: các cơ chế truy cập riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-integration
+  title: Tích hợp với Java
+  childs:
+  - slug: java-integration-001
+    title: Thiết kế giao diện TeamsNotificationSender và các bộ gửi tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-002
+    title: Đối tượng thông báo, mẫu nội dung và dữ liệu cấu hình đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-003
+    title: Gọi Workflows webhook bằng thư viện HTTP Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-004
+    title: Tạo JSON bằng thư viện tuần tự hóa và bảo toàn Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-005
+    title: Thiết lập thời gian chờ, kết nối, kiểu nội dung và xử lý phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-006
+    title: Tích hợp lấy token qua thư viện danh tính Microsoft phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-007
+    title: Gọi Microsoft Graph bằng HTTP hoặc Graph Java SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-008
+    title: Lưu token trong bộ nhớ đệm và quản lý làm mới theo cơ chế xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-009
+    title: Đọc phản hồi lỗi, request ID và dữ liệu chẩn đoán có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-010
+    title: Tách lỗi cấu hình, xác thực, giới hạn tải và lỗi tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-011
+    title: Phát sự kiện nghiệp vụ và gửi thông báo ngoài luồng xử lý chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-012
+    title: Kiểm thử bộ gửi bằng máy chủ HTTP giả lập và dữ liệu cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-013
+    title: Ranh giới dịch vụ Java, Workflows và bộ xử lý bot độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-architecture
+  title: Kiến trúc thông báo
+  childs:
+  - slug: notification-architecture-001
+    title: Tách sự kiện nghiệp vụ khỏi mẫu thông báo và cơ chế gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-002
+    title: Từ sự kiện đến quyết định gửi, chọn đích, dựng nội dung và chuyển giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-003
+    title: Định danh thông báo và mã liên kết xuyên suốt các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-004
+    title: 'Gửi trực tiếp và gửi qua hàng đợi: chọn theo yêu cầu độ trễ, độ tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-005
+    title: Lưu yêu cầu gửi bền vững khi không thể mất thông báo quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-006
+    title: Outbox và ranh giới giữa xác nhận giao dịch với phát thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-007
+    title: Khử trùng lặp theo sự kiện, đích nhận và loại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-008
+    title: Gộp nhiều cập nhật thành một bản tổng hợp dễ theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-009
+    title: Ngăn thông báo hàng loạt khi một sự cố phát sinh quá nhiều sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-010
+    title: Giữ dữ liệu chẩn đoán chi tiết trong hệ thống log và chỉ gửi nội dung cần người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-architecture-011
+    title: Phân biệt thông báo hỗ trợ xử lý với nguồn chuẩn của trạng thái nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recipient-routing
+  title: Định tuyến người nhận
+  childs:
+  - slug: recipient-routing-001
+    title: Ánh xạ loại sự kiện với team, kênh, chat hoặc người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-002
+    title: Quản lý định danh thay vì phụ thuộc tên hiển thị có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-003
+    title: Định tuyến theo môi trường, dự án, đơn vị sử dụng và mức độ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-004
+    title: Tra cứu thành viên và quyền truy cập khi tình huống yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-005
+    title: Người nhận là khách và các trường hợp giao tiếp liên tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-006
+    title: Kiểm chứng kênh tiêu chuẩn, riêng tư và dùng chung theo cơ chế cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-007
+    title: Đổi tên, lưu trữ hoặc xóa kênh và xử lý cấu hình lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-008
+    title: Tùy chọn nhận thông báo, giờ yên lặng và múi giờ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-009
+    title: Nhắc việc, gửi lại theo lịch và tránh nhắc khi công việc đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-010
+    title: Chọn đích dự phòng hoặc chuyển cấp theo chính sách nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-011
+    title: Ngăn gửi nhầm tenant, môi trường và nhóm người không có quyền xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rate-limits-retries
+  title: Giới hạn và thử lại
+  childs:
+  - slug: rate-limits-retries-001
+    title: Phân biệt hạn mức Graph, Workflows trigger, Teams action và bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-002
+    title: Kiểm tra giới hạn kích thước sau khi dựng đầy đủ nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-003
+    title: Tần suất theo đích nhận, theo ứng dụng và theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-004
+    title: Phản hồi 429 và cách đọc Retry-After khi được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-005
+    title: Lỗi máy chủ tạm thời, lỗi kết nối và điều kiện có thể thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-006
+    title: Tăng thời gian chờ, thêm độ lệch ngẫu nhiên và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-007
+    title: Ngân sách thời gian và thời hạn còn giá trị của thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-008
+    title: Timeout sau khi phía nhận đã tiếp nhận và nguy cơ đăng trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-009
+    title: Phối hợp thử lại giữa Java và Workflows để tránh nhân số lần gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-010
+    title: Hàng đợi lỗi, bản ghi thất bại và phát lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-retries-011
+    title: Giảm tải, gộp thông báo và phục hồi sau khi dịch vụ hoạt động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-lifecycle
+  title: Vòng đời thông báo
+  childs:
+  - slug: notification-lifecycle-001
+    title: 'Các mốc: tạo yêu cầu, tiếp nhận, xử lý, đăng và hoàn tất nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-002
+    title: Lưu notification ID, run ID, message ID hoặc activity context theo từng cơ chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-003
+    title: Kết quả HTTP thành công và bằng chứng tin nhắn đã xuất hiện trong Teams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-004
+    title: Giới hạn suy luận về việc người dùng đã xem hoặc đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-005
+    title: Cập nhật trạng thái sự cố bằng tin mới, phản hồi luồng hoặc sửa tin khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-006
+    title: Đóng công việc và vô hiệu hóa hành động đã hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-007
+    title: Phát lại thông báo và phân biệt với cập nhật thông báo đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-008
+    title: Đồng bộ phản hồi của người dùng về hệ thống nghiệp vụ nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-009
+    title: Lưu lịch sử gửi và bằng chứng xử lý phục vụ đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-010
+    title: Xóa, lưu giữ và xử lý thông tin theo chính sách của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-governance
+  title: Bảo mật và quản trị
+  childs:
+  - slug: security-governance-001
+    title: Phân loại dữ liệu trước khi quyết định đưa vào thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-002
+    title: Quyền tối thiểu cho ứng dụng, tài khoản kết nối và chủ sở hữu luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-003
+    title: Bảo vệ webhook URL, client secret, chứng chỉ và token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-004
+    title: Che bí mật trong log, thông báo lỗi và lịch sử chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-005
+    title: Xác minh nguồn gọi và kiểm tra dữ liệu nhận từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-006
+    title: Kiểm soát liên kết, hình ảnh và nội dung có thể chứa dữ liệu không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-007
+    title: Phân biệt quyền xem thông báo với quyền thao tác trên hệ thống nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-008
+    title: Chính sách ngăn thất thoát dữ liệu (DLP) và giới hạn kết nối Power Platform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-009
+    title: Cài đặt ứng dụng, cấp quyền và quy trình phê duyệt của tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-010
+    title: Cách ly dữ liệu và cấu hình giữa các tổ chức sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-011
+    title: Luân chuyển thông tin truy cập và thu hồi khi có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-012
+    title: Lưu vết kiểm toán và tuân thủ chính sách lưu giữ của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-diagnostics
+  title: Quan sát và chẩn đoán
+  childs:
+  - slug: observability-diagnostics-001
+    title: Log có cấu trúc theo notification ID, cơ chế gửi và đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-002
+    title: Đo số thông báo tạo, tiếp nhận, gửi thành công và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-003
+    title: Đo độ trễ, số lần thử lại và thông báo nằm trong hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-004
+    title: Kết nối request ID phía Java với lịch sử chạy Workflows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-005
+    title: 'Chẩn đoán 400: dữ liệu JSON, lược đồ thẻ và trường không được hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-006
+    title: 'Chẩn đoán 401 và 403: token, quyền, người gọi và điều kiện cài ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-007
+    title: Chẩn đoán đích không tồn tại, ID sai và cấu hình khác tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-008
+    title: Chẩn đoán 429, lỗi dịch vụ phụ thuộc và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-009
+    title: 'Workflows chạy nhưng không thấy tin nhắn: kiểm tra từng action và đích nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-010
+    title: Bot không gửi được sau khi người dùng gỡ ứng dụng hoặc chặn bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-011
+    title: 'Activity feed không xuất hiện: kiểm tra manifest, cài đặt và dữ liệu thông báo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-012
+    title: Phân biệt lỗi hệ thống gửi với thiết lập hiển thị thông báo của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị cho mẫu nội dung, định tuyến và quy tắc chống trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm tra JSON, Unicode, dữ liệu thiếu và kích thước nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử hợp đồng đầu vào của Workflows webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Giả lập HTTP thành công, lỗi xác thực, giới hạn tải và timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử tích hợp trên team, channel và chat thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử từng chế độ xác thực của trigger đã lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử quyền delegated, application và RSC theo các API thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử Adaptive Card trên web, desktop và thiết bị di động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử hành động lặp, người không có quyền và thẻ hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử mất kết nối sau tiếp nhận và đánh giá nguy cơ gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử thay đổi chủ sở hữu luồng, kết nối và cài đặt ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Đối soát yêu cầu gửi với kết quả hiển thị và trạng thái nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-operations-001
+    title: Đóng gói dịch vụ Java và cung cấp cấu hình qua môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-002
+    title: Quản lý tenant, định danh đích và thông tin truy cập theo từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-003
+    title: Triển khai Workflows và kiểm tra lại kết nối sau chuyển môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-004
+    title: Phát hành hoặc phân phối gói ứng dụng Teams theo chính sách tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-005
+    title: Kiểm tra phạm vi cài đặt và quyền trước khi bật gửi sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-006
+    title: Kiểm tra HTTPS endpoint và khả năng truy cập khi triển khai bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-007
+    title: Giám sát sức khỏe kết nối, token và luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-008
+    title: Giới hạn lượng gửi khi phát hành và mở rộng dần theo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-009
+    title: Quy trình dừng gửi, đổi đích và khôi phục sau cấu hình lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-010
+    title: Bàn giao chủ sở hữu, người thay thế và hướng dẫn xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-011
+    title: Rà soát tài liệu Microsoft, phiên bản SDK và thay đổi hỗ trợ định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-migration
+  title: Di trú hệ thống cũ
+  childs:
+  - slug: legacy-migration-001
+    title: Nhận diện Office 365 Connectors và Incoming Webhook dựa trên connector cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-002
+    title: Đối chiếu đợt ngừng hoạt động tháng 5/2026 và phạm vi hệ thống bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-003
+    title: Phân biệt connector cũ đã ngừng hoạt động với Teams connector của Power Automate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-004
+    title: Kiểm kê URL, đích nhận, mẫu nội dung và chủ sở hữu hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-005
+    title: Lựa chọn Workflows, Graph, Activity feed hoặc bot cho từng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-006
+    title: Chuyển URL và hợp đồng xác thực sang Workflows webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-007
+    title: MessageCard được hỗ trợ để chuyển tiếp nội dung và giới hạn của nút tương tác cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-008
+    title: Thiết kế lại tương tác bằng Adaptive Card và luồng xử lý phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-009
+    title: Danh tính Workflows bot và giới hạn tùy chỉnh tên hoặc biểu tượng khi gửi webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-010
+    title: Kiểm chứng riêng khả năng gửi vào standard, private và shared channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-011
+    title: Nhận diện Bot Framework SDK, TeamsFx và công cụ cũ trong dự án hiện hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-012
+    title: Lập kế hoạch kiểm thử, chuyển đổi cấu hình và loại bỏ tham chiếu đã hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-migration-013
+    title: Bàn giao chủ sở hữu mới và xác minh thông báo hoạt động sau di trú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Phân tích yêu cầu thông báo trạng thái đơn hàng và cảnh báo sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Lập bảng lựa chọn cơ chế, quyền truy cập và đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Dựng Workflows webhook rồi gửi thông báo thử từ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Tạo Adaptive Card gồm tóm tắt, dữ kiện và liên kết về ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Thực nghiệm chế độ xác thực và các trường hợp gọi không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Gửi tin nhắn bằng Graph trong đúng ngữ cảnh quyền được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Dựng Activity feed notification với manifest và phạm vi cài đặt phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Thực nghiệm bot chủ động bằng SDK được hỗ trợ và kết nối với dịch vụ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Thiết kế thẻ xác nhận công việc và ghi nhận phản hồi hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Thêm hàng đợi, thử lại và chống đăng trùng cho thông báo quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Mô phỏng webhook lỗi, quyền bị thu hồi và kết nối Workflows hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Đối soát lịch sử gửi, kết quả Teams và trạng thái công việc nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Diễn tập di trú một cấu hình connector cũ sang cơ chế hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-014
+    title: Hoàn thiện hồ sơ cấu hình, kiểm thử, quan sát và bàn giao vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

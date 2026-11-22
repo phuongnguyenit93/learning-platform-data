@@ -1,0 +1,57 @@
+roadmap:
+- id: circuit-breaker-loi-day-chuyen
+  title: Circuit Breaker & lỗi dây chuyền
+  purpose: Hiểu vì sao gọi dịch vụ lỗi hoặc phản hồi chậm có thể làm cạn tài nguyên và gây lỗi lan truyền trong microservices.
+  objectives:
+  - Mô tả failure cascade khi dependency gặp sự cố
+  - Giải thích mục tiêu fail fast và bảo vệ dịch vụ gọi
+  - Phân biệt Circuit Breaker với retry thông thường
+- id: closed-open-half-open
+  title: CLOSED, OPEN & HALF_OPEN
+  purpose: Nắm vòng đời trạng thái và điều kiện cho phép hoặc từ chối request của một circuit breaker.
+  objectives:
+  - Minh họa luồng CLOSED → OPEN → HALF_OPEN
+  - Giải thích cách thử gọi giới hạn khi HALF_OPEN
+  - Dự đoán hành vi khi backend hồi phục hoặc còn lỗi
+- id: thresholds-sliding-window
+  title: Thresholds & Sliding Window
+  purpose: Hiểu cách các phép đo lỗi và độ chậm kích hoạt chuyển trạng thái, tránh chọn ngưỡng theo cảm tính.
+  objectives:
+  - Phân biệt count-based và time-based window
+  - Cấu hình failureRateThreshold và minimumNumberOfCalls
+  - Nhận diện slow-call rate và waitDurationInOpenState
+- id: spring-cloud-circuitbreaker-api
+  title: Spring Cloud CircuitBreaker API
+  purpose: Sử dụng abstraction của Spring Cloud để bọc lời gọi dịch vụ mà không gắn mã nghiệp vụ trực tiếp vào một implementation.
+  objectives:
+  - Thêm starter phù hợp ứng dụng blocking hoặc reactive
+  - Tạo breaker qua CircuitBreakerFactory
+  - Gọi run() để bảo vệ một lời gọi từ service
+- id: resilience4j-configuration
+  title: Resilience4j Configuration
+  purpose: Thiết lập chính sách breaker theo dependency, hiểu sự khác nhau giữa cấu hình mặc định và cấu hình cho từng instance.
+  objectives:
+  - Dùng Resilience4JCircuitBreakerFactory hoặc Customizer
+  - Khai báo resilience4j.circuitbreaker.instances trong YAML
+  - Kiểm tra độ ưu tiên của properties và Java config
+- id: fallback-reactive-calls
+  title: Fallback & Reactive Calls
+  purpose: Xây dựng hành vi suy giảm có chủ đích khi dependency lỗi mà không che giấu lỗi nghiệp vụ hoặc dữ liệu sai.
+  objectives:
+  - Cung cấp fallback an toàn cho CircuitBreaker.run()
+  - Thử ReactiveCircuitBreakerFactory với Mono/Flux
+  - Phân biệt fallback dữ liệu mặc định với trả lỗi rõ ràng
+- id: timelimiter-retry-bulkhead
+  title: TimeLimiter, Retry & Bulkhead
+  purpose: Phối hợp các cơ chế bảo vệ liên quan mà không vô tình làm tăng tải hệ thống gặp sự cố.
+  objectives:
+  - Thiết lập TimeLimiter cho lời gọi chậm
+  - Giới hạn retry và tránh retry storm
+  - Phân biệt Bulkhead giới hạn đồng thời với Circuit Breaker
+- id: metrics-fault-testing
+  title: Metrics & Fault Testing
+  purpose: Kiểm tra breaker trong tình huống thực tế và theo dõi hiệu quả thay vì chỉ xác nhận cấu hình chạy được.
+  objectives:
+  - Bật Actuator và Resilience4j Micrometer metrics
+  - Giả lập timeout, lỗi 5xx và quá trình phục hồi
+  - Quan sát state transition, rejected calls và fallback

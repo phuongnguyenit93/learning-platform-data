@@ -1,0 +1,76 @@
+menu:
+- title: Mô hình Mobile Push
+  slug: mobile-push-model
+  index: 0
+- title: Kiến trúc phân phối
+  slug: delivery-architecture
+  index: 1
+- title: Dự án và môi trường
+  slug: project-environments
+  index: 2
+- title: Quyền và tùy chọn
+  slug: permissions-and-preferences
+  index: 3
+- title: Định danh và đăng ký
+  slug: identity-and-registration
+  index: 4
+- title: Hợp đồng nội dung
+  slug: content-contracts
+  index: 5
+- title: FCM HTTP v1
+  slug: fcm-http-v1
+  index: 6
+- title: Firebase Admin Java
+  slug: firebase-admin-java
+  index: 7
+- title: APNs trực tiếp
+  slug: direct-apns
+  index: 8
+- title: Nhận trên Android
+  slug: android-receiving
+  index: 9
+- title: Nhận trên iOS
+  slug: ios-receiving
+  index: 10
+- title: Đích gửi
+  slug: delivery-targets
+  index: 11
+- title: Chính sách giao nhận
+  slug: delivery-policies
+  index: 12
+- title: Tương tác thông báo
+  slug: notification-interactions
+  index: 13
+- title: Java và Spring
+  slug: java-and-spring
+  index: 14
+- title: Hàng đợi và lịch gửi
+  slug: queues-and-scheduling
+  index: 15
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 16
+- title: Chống trùng và đồng bộ
+  slug: deduplication-and-sync
+  index: 17
+- title: Bảo mật
+  slug: security
+  index: 18
+- title: Giới hạn và hiệu năng
+  slug: limits-and-performance
+  index: 19
+- title: Đo lường và quan sát
+  slug: measurement-and-observability
+  index: 20
+- title: Kiểm thử
+  slug: testing
+  index: 21
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 22
+- title: Tiến hóa và vận hành
+  slug: operations-and-evolution
+  index: 23
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 24

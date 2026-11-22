@@ -1,0 +1,49 @@
+roadmap:
+- id: cqrs-pham-vi-ap-dung
+  title: CQRS & Phạm Vi Áp Dụng
+  purpose: Hiểu lý do tách đường ghi và đường đọc, đồng thời xác định khi nào CQRS đáng với chi phí vận hành.
+  objectives:
+  - '- Phân biệt CQRS với CRUD và Command–Query Separation.'
+  - '- Chọn bounded context phù hợp; nêu ít nhất hai đánh đổi.'
+- id: command-write-model
+  title: Command & Write Model
+  purpose: Thiết kế phía thay đổi trạng thái dựa trên ý định nghiệp vụ và quy tắc nhất quán.
+  objectives:
+  - '- Định nghĩa command, handler và validation cho một nghiệp vụ.'
+  - '- Thực thi invariant, transaction và kiểm soát cập nhật đồng thời.'
+- id: query-read-model
+  title: Query & Read Model
+  purpose: Tối ưu phía truy vấn theo nhu cầu hiển thị mà không mang theo logic thay đổi dữ liệu.
+  objectives:
+  - '- Thiết kế query handler, DTO và projection chỉ đọc.'
+  - '- Tạo read model phục vụ màn hình với dữ liệu cần thiết.'
+- id: tach-model-data-store
+  title: Tách Model & Data Store
+  purpose: Chọn mức độ tách biệt vừa đủ, từ hai model dùng chung database tới hai kho lưu trữ.
+  objectives:
+  - '- Vẽ sơ đồ write/read với cùng một cơ sở dữ liệu.'
+  - '- So sánh mô hình dùng chung DB và DB riêng theo độ phức tạp.'
+- id: dong-bo-events-outbox
+  title: Đồng Bộ Events & Outbox
+  purpose: Giữ read model cập nhật đáng tin cậy khi phần ghi và đọc sử dụng kho dữ liệu riêng.
+  objectives:
+  - '- Phát domain/integration event sau thay đổi trạng thái.'
+  - '- Mô tả transactional outbox, consumer idempotent và retry.'
+- id: eventual-consistency-ux
+  title: Eventual Consistency & UX
+  purpose: Thiết kế trải nghiệm khi projection chưa kịp phản ánh thay đổi vừa được xác nhận.
+  objectives:
+  - '- Giải thích projection lag, stale read và read-your-writes.'
+  - '- Chọn trạng thái pending, polling hoặc cơ chế cập nhật phù hợp.'
+- id: trien-khai-java-spring
+  title: Triển Khai Java/Spring
+  purpose: Áp dụng CQRS có kiểm soát trong ứng dụng Java thay vì mặc định tách microservice.
+  objectives:
+  - '- Tạo command/query handler và endpoint tương ứng bằng Spring.'
+  - '- Kiểm tra authorization ở cả read side và write side.'
+- id: kiem-thu-van-hanh
+  title: Kiểm Thử & Vận Hành
+  purpose: Đánh giá độ đúng, khả năng phục hồi và giá trị thực tế của giải pháp CQRS.
+  objectives:
+  - '- Test command invariants, query DTO và lỗi đồng bộ/replay.'
+  - '- Theo dõi projection lag, duplicate event; phân biệt CQRS với Event Sourcing.'

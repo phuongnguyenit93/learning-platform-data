@@ -1,0 +1,57 @@
+roadmap:
+- id: bai-toan-cong-dung
+  title: Bài toán & Công dụng
+  purpose: Hiểu lý do đóng gói yêu cầu thành đối tượng thay vì gọi hàm trực tiếp.
+  objectives:
+  - Nêu ví dụ nút thao tác hoặc hàng đợi công việc.
+  - Giải thích sự tách biệt bên yêu cầu và bên thực thi.
+  - Xác định khi nào Command hữu ích.
+- id: vai-tro-trong-command
+  title: Vai trò trong Command
+  purpose: Nắm các thành phần và luồng phối hợp của mẫu hành vi Command.
+  objectives:
+  - Phân biệt Command, ConcreteCommand, Receiver, Invoker và Client.
+  - Vẽ luồng Client cấu hình rồi Invoker gọi Command.
+  - Xác định ai chứa logic nghiệp vụ thực tế.
+- id: interface-execute
+  title: Interface & execute()
+  purpose: Tạo giao diện lệnh thống nhất cho nhiều thao tác khác nhau.
+  objectives:
+  - Định nghĩa interface Command với execute().
+  - Viết hai ConcreteCommand gọi Receiver phù hợp.
+  - Thay lệnh qua interface mà không sửa Invoker.
+- id: invoker-lien-ket
+  title: Invoker & Liên kết
+  purpose: Tách nơi kích hoạt thao tác khỏi đối tượng biết cách thực hiện.
+  objectives:
+  - Gắn Command vào nút bấm hoặc menu giả lập.
+  - Để Invoker chỉ gọi execute().
+  - Thay Receiver hoặc Command qua cấu hình Client.
+- id: tham-so-macro-command
+  title: Tham số & Macro Command
+  purpose: Đóng gói dữ liệu cần thiết và kết hợp nhiều thao tác thành chuỗi.
+  objectives:
+  - Lưu tham số và tham chiếu Receiver trong Command.
+  - Tạo MacroCommand chạy các lệnh con theo thứ tự.
+  - Kiểm tra xử lý lỗi giữa chừng của chuỗi lệnh.
+- id: queue-lich-su-lenh
+  title: Queue & Lịch sử lệnh
+  purpose: Tận dụng Command để trì hoãn, ghi nhận và phát lại thao tác khi phù hợp.
+  objectives:
+  - Đưa Command vào queue để thực thi sau.
+  - Lưu metadata hoặc log cho từng lần thực thi.
+  - Nhận biết rủi ro phát lại trùng và yêu cầu idempotency.
+- id: undo-redo-trang-thai
+  title: Undo/Redo & Trạng thái
+  purpose: Thiết kế thao tác có thể hoàn tác trong phạm vi dữ liệu cho phép.
+  objectives:
+  - Lưu thông tin trước thay đổi hoặc lệnh nghịch đảo.
+  - Xây dựng history và undo cho thao tác mẫu.
+  - Kiểm thử redo sau undo và khi tạo lệnh mới.
+- id: command-trong-java-test
+  title: Command trong Java & Test
+  purpose: Nhận diện ứng dụng trong Java và đánh giá lợi ích so với callback đơn giản.
+  objectives:
+  - Liên hệ Runnable, Swing Action và UndoManager.
+  - Viết unit test cho execute, lỗi và undo.
+  - Phân tích đánh đổi tăng số lớp và độ phức tạp.

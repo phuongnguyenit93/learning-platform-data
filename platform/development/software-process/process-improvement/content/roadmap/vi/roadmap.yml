@@ -1,0 +1,49 @@
+roadmap:
+- id: muc-tieu-pham-vi-cai-tien
+  title: Mục Tiêu & Phạm Vi Cải Tiến
+  purpose: Xác định vấn đề và kết quả mong muốn trước khi thay đổi quy trình phát triển phần mềm.
+  objectives:
+  - '- Chọn một luồng công việc và mô tả khó khăn đang gặp.'
+  - '- Đặt mục tiêu cải tiến đo được kèm phạm vi và người phụ trách.'
+- id: baseline-flow-metrics
+  title: Baseline & Flow Metrics
+  purpose: Thiết lập số liệu hiện trạng để biết thay đổi có thật sự hiệu quả hay không.
+  objectives:
+  - '- Đo lead time, cycle time, WIP và throughput cho một workflow.'
+  - '- Chọn DORA delivery metrics phù hợp mà không xếp hạng cá nhân.'
+- id: value-stream-mapping
+  title: Value Stream Mapping
+  purpose: Nhìn rõ toàn bộ đường đi của công việc và các bước chờ không tạo giá trị.
+  objectives:
+  - '- Vẽ luồng từ yêu cầu hoặc commit tới triển khai và phản hồi.'
+  - '- Ghi thời gian xử lý, chờ đợi, bàn giao và vòng lặp làm lại.'
+- id: bottleneck-root-cause
+  title: Bottleneck & Root Cause
+  purpose: Phân biệt triệu chứng với nguyên nhân gốc để tránh cải tiến sai chỗ.
+  objectives:
+  - '- Chọn điểm nghẽn có tác động lớn nhất từ dữ liệu và phản hồi nhóm.'
+  - '- Thực hiện 5 Whys hoặc fishbone và kiểm chứng giả thuyết.'
+- id: uu-tien-improvement-backlog
+  title: Ưu Tiên Improvement Backlog
+  purpose: Biến cơ hội cải tiến thành các thay đổi nhỏ có chủ sở hữu và tiêu chí thành công.
+  objectives:
+  - '- Xếp hạng giải pháp theo tác động, chi phí và rủi ro.'
+  - '- Tạo action item có owner, hạn hoàn thành và chỉ số theo dõi.'
+- id: thu-nghiem-pdca
+  title: Thử Nghiệm PDCA
+  purpose: Kiểm chứng cải tiến bằng vòng lặp nhỏ thay vì áp dụng thay đổi hàng loạt thiếu dữ liệu.
+  objectives:
+  - '- Thực hiện Plan–Do–Check–Act cho một vấn đề cụ thể.'
+  - '- So sánh trước/sau, ghi nhận hệ quả phụ và quyết định mở rộng.'
+- id: chuan-hoa-tu-dong-hoa
+  title: Chuẩn Hóa & Tự Động Hóa
+  purpose: Giữ kết quả đã chứng minh hiệu quả bằng thực hành nhất quán và kiểm soát chất lượng.
+  objectives:
+  - '- Cập nhật Definition of Done, checklist hoặc policy phù hợp.'
+  - '- Tự động hóa bước lặp lại và kiểm tra ảnh hưởng tới chất lượng.'
+- id: feedback-cai-tien-lien-tuc
+  title: Feedback & Cải Tiến Liên Tục
+  purpose: Duy trì học hỏi qua retrospective, dữ liệu vận hành và rà soát định kỳ.
+  objectives:
+  - '- Tổ chức retrospective hoặc blameless postmortem có hành động theo sau.'
+  - '- Theo dõi tiến độ, đo lại baseline và chọn vòng cải tiến tiếp theo.'

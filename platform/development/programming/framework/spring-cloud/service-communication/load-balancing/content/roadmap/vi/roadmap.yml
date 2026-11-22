@@ -1,0 +1,49 @@
+roadmap:
+- id: client-side-load-balancing
+  title: Client-side Load Balancing
+  purpose: Hiểu vì sao client cần chọn một instance khi một dịch vụ có nhiều bản sao.
+  objectives:
+  - Phân biệt client-side với server-side load balancing.
+  - Mô tả luồng service name → chọn instance → gửi HTTP.
+- id: serviceinstance-discovery
+  title: ServiceInstance & Discovery
+  purpose: Lấy danh sách endpoint theo tên dịch vụ thay vì hard-code địa chỉ.
+  objectives:
+  - Giải thích DiscoveryClient và ServiceInstanceListSupplier.
+  - Thiết lập hai instance qua SimpleDiscoveryClient.
+- id: cau-hinh-spring-cloud-lb
+  title: Cấu hình Spring Cloud LB
+  purpose: Kích hoạt thư viện và hiểu các thành phần Spring Cloud LoadBalancer.
+  objectives:
+  - Thêm spring-cloud-starter-loadbalancer đúng BOM.
+  - Dùng @LoadBalancerClient cấu hình theo service ID.
+- id: chien-luoc-chon-instance
+  title: Chiến lược Chọn Instance
+  purpose: Lựa chọn thuật toán phân phối phù hợp và kiểm tra tác động của nó.
+  objectives:
+  - Phân biệt RoundRobinLoadBalancer và RandomLoadBalancer.
+  - Thay đổi thuật toán và kiểm tra chuỗi instance được chọn.
+- id: http-client-openfeign
+  title: HTTP Client & OpenFeign
+  purpose: Gọi dịch vụ qua service ID bằng client được tích hợp load balancing.
+  objectives:
+  - Tạo @LoadBalanced RestClient.Builder hoặc WebClient.Builder.
+  - Gọi FeignClient theo name và phân biệt với URL cố định.
+- id: cache-health-affinity
+  title: Cache, Health & Affinity
+  purpose: Giới hạn danh sách instance và tránh chọn máy đích không phù hợp.
+  objectives:
+  - Giải thích cache TTL, health check và trường hợp discovery đủ thông tin.
+  - Nhận biết zone preference, hint và sticky preference.
+- id: retry-xu-ly-loi
+  title: Retry & Xử lý Lỗi
+  purpose: Điều chỉnh retry để tăng khả năng phục hồi mà không nhân đôi tác vụ nguy hiểm.
+  objectives:
+  - Đặt retry/backoff cho lỗi tạm thời và giới hạn số lần thử.
+  - Giải thích vì sao POST không idempotent cần đặc biệt thận trọng.
+- id: thuc-hanh-giam-sat
+  title: Thực hành & Giám sát
+  purpose: Xác minh request được chia tải và quan sát lỗi trong một ứng dụng demo.
+  objectives:
+  - Chạy nhiều instance rồi test phân phối và tình huống một instance lỗi.
+  - Theo dõi loadbalancer.requests qua Micrometer/Actuator.

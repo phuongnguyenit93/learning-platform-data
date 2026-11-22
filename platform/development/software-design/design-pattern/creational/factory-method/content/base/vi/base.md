@@ -1,0 +1,5 @@
+# Software Design — Creational Factory Method
+
+Factory Method là mẫu thiết kế khởi tạo đối tượng, định nghĩa một phương thức tạo sản phẩm trong lớp Creator và cho phép các lớp con quyết định loại sản phẩm cụ thể. Thay vì để mã nghiệp vụ phụ thuộc trực tiếp vào constructor của từng lớp, client và Creator làm việc qua các kiểu trừu tượng. Cách tiếp cận này hữu ích khi ứng dụng có nhiều biến thể sản phẩm, cần mở rộng theo ngữ cảnh hoặc muốn tách logic tạo đối tượng khỏi logic sử dụng.
+
+Module dành cho người đã nắm Java, interface, abstract class, inheritance và polymorphism. Bạn sẽ bắt đầu từ vấn đề phụ thuộc vào lớp cụ thể, thiết kế Product cùng các ConcreteProduct, xây dựng Creator/ConcreteCreator, rồi kết nối client và cài đặt ví dụ Java. Phần cuối kiểm tra khả năng mở rộng bằng unit test và so sánh Factory Method với simple factory, static factory method và Abstract Factory. Kết thúc lộ trình, bạn có thể nhận diện trường hợp nên áp dụng Factory Method và cân nhắc sự đánh đổi giữa tính linh hoạt với số lượng lớp tăng thêm.

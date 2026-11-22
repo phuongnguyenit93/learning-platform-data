@@ -1,0 +1,383 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Tính mô-đun (modularity) là gì và giải quyết vấn đề nào trong thiết kế phần mềm
+  - Mô-đun như một đơn vị trách nhiệm có giao diện và phần triển khai
+  - Mối liên hệ giữa tính mô-đun với khả năng hiểu, thay đổi và kiểm thử
+  - Phân biệt chia nhỏ mã nguồn với thiết kế mô-đun có ý nghĩa
+  - Phân biệt mô-đun, lớp, package, thư viện, thành phần và dịch vụ
+  - 'Ba yếu tố nền tảng: tính gắn kết, mức phụ thuộc và che giấu thông tin'
+  - Chi phí phối hợp và chi phí tích hợp do việc phân chia mô-đun
+  - Phân biệt độc lập về thiết kế, build, triển khai và vận hành
+  - Tính mô-đun trong lập trình hướng thủ tục, hướng đối tượng và hàm
+  - Thuật ngữ và thứ tự học để thiết kế mô-đun từ yêu cầu đến kiểm chứng
+- level1: Cấp độ mô-đun
+  level2:
+  - Mô-đun logic trong mô hình thiết kế
+  - Mô-đun vật lý trong cấu trúc mã nguồn
+  - Ranh giới package và giới hạn kiểm soát truy cập
+  - Ranh giới thư viện và đơn vị đóng gói
+  - Ranh giới dự án build và đồ thị phụ thuộc
+  - Ranh giới tiến trình và đơn vị triển khai
+  - Phân biệt monorepo, nhiều repository và kiến trúc mô-đun
+  - Một mô-đun nghiệp vụ được biểu diễn qua nhiều lớp và package
+  - Đối chiếu ranh giới dự kiến với ranh giới được công cụ thực sự cưỡng chế
+- level1: Tiêu chí phân rã
+  level2:
+  - Bắt đầu từ năng lực nghiệp vụ và mục tiêu thay đổi
+  - Phân rã theo quyết định thiết kế cần được che giấu
+  - Phân tích những phần thường thay đổi cùng nhau
+  - Xác định những phần cần thay đổi hoặc phát hành độc lập
+  - Phân rã theo trách nhiệm thay vì theo số lượng tệp
+  - Đánh giá phân rã theo miền nghiệp vụ, luồng xử lý và lớp kỹ thuật
+  - Phân biệt ranh giới ổn định với ranh giới còn nhiều bất định
+  - Cân bằng độ lớn mô-đun với chi phí giao tiếp qua ranh giới
+  - Xác định yếu tố bảo mật, dữ liệu và vận hành ảnh hưởng đến phân rã
+  - Thử ranh giới bằng các kịch bản thay đổi cụ thể
+  - Ghi nhận giả định và lựa chọn chưa thể quyết định ngay
+- level1: Che giấu thông tin
+  level2:
+  - Che giấu thông tin (information hiding) và quan hệ với đóng gói
+  - Phân biệt ẩn dữ liệu với ẩn quyết định thiết kế
+  - Nhận diện chi tiết có khả năng thay đổi cao
+  - Giới hạn phạm vi ảnh hưởng khi thay đổi thuật toán hoặc cấu trúc dữ liệu
+  - Giữ bất biến của mô-đun bằng quyền kiểm soát trạng thái
+  - Tránh để kiểu dữ liệu nội bộ xuất hiện trong giao diện công khai
+  - Ngăn mã bên ngoài truy cập trực tiếp cấu trúc lưu trữ
+  - Phân biệt đóng gói bằng quy ước với đóng gói được ngôn ngữ bảo vệ
+  - Nhận diện việc rò rỉ triển khai qua lỗi, cấu hình và hành vi
+  - Đánh giá khả năng che giấu nhiều chi tiết sau một giao diện đơn giản
+- level1: Tính gắn kết
+  level2:
+  - Tính gắn kết (cohesion) và lý do các phần thuộc cùng một mô-đun
+  - Gắn kết theo chức năng và theo dữ liệu được quản lý
+  - Gắn kết theo chuỗi xử lý và giao tiếp dữ liệu
+  - Nhận diện gắn kết theo thời điểm, lựa chọn logic hoặc ngẫu nhiên
+  - Liên hệ một lý do thay đổi với nguyên tắc trách nhiệm đơn nhất
+  - Phân biệt gắn kết về nghiệp vụ với việc đặt các tệp gần nhau
+  - Nhận diện mô-đun chứa nhiều trách nhiệm không liên quan
+  - Đánh giá lớp tiện ích và package dùng chung theo tính gắn kết
+  - Nhận diện mô-đun bị chia quá nhỏ khiến một thay đổi lan khắp nơi
+  - Sử dụng lịch sử thay đổi để kiểm chứng tính gắn kết
+  - Giới hạn của chỉ số gắn kết khi thiếu ngữ cảnh thiết kế
+- level1: Mức phụ thuộc
+  level2:
+  - Mức phụ thuộc (coupling) và tác động đến thay đổi độc lập
+  - Phân biệt phụ thuộc tĩnh, phụ thuộc lúc chạy và phụ thuộc dữ liệu
+  - Phụ thuộc trực tiếp, gián tiếp và bắc cầu
+  - Phụ thuộc vào dữ liệu toàn cục và trạng thái dùng chung
+  - Phụ thuộc vào cờ điều khiển và trình tự gọi
+  - Phụ thuộc vào cấu trúc dữ liệu lớn vượt nhu cầu sử dụng
+  - Phụ thuộc về thời gian, thứ tự khởi tạo và vòng đời
+  - Phụ thuộc ngữ nghĩa dù không có import hoặc lời gọi trực tiếp
+  - Phụ thuộc do dùng chung cơ sở dữ liệu và cấu hình
+  - Phân biệt phụ thuộc thiết yếu với phụ thuộc phát sinh do cách triển khai
+  - Đánh giá tác động dây chuyền và phạm vi kiểm thử khi thay đổi
+  - Giảm phụ thuộc có hại mà vẫn giữ thiết kế dễ hiểu
+- level1: Ranh giới mô-đun
+  level2:
+  - Xác định trách nhiệm, khả năng cung cấp và phần nằm ngoài phạm vi
+  - Xác định chủ sở hữu trạng thái và các bất biến nghiệp vụ
+  - Liệt kê điểm vào hợp lệ và các đường truy cập bị cấm
+  - Tách giao diện công khai khỏi phần triển khai nội bộ
+  - Đặt tên mô-đun theo khái niệm nhất quán trong miền
+  - Phân biệt ranh giới mô-đun với bounded context và aggregate
+  - Phân bổ quy tắc nghiệp vụ khi một quy trình đi qua nhiều mô-đun
+  - Xác định mô-đun sở hữu một khái niệm dùng ở nhiều nơi
+  - Kiểm tra ranh giới bằng ví dụ sử dụng và tình huống ngoại lệ
+  - Nhận diện ranh giới bị xuyên thủng bởi truy vấn hoặc truy cập trực tiếp
+  - Lập tài liệu mô tả trách nhiệm và quan hệ với mô-đun khác
+- level1: Hợp đồng và API
+  level2:
+  - Hợp đồng mô-đun gồm cú pháp, ngữ nghĩa và hành vi quan sát được
+  - Thiết kế giao diện theo nhu cầu bên sử dụng
+  - Giữ bề mặt API nhỏ và đủ diễn đạt nghiệp vụ
+  - Xác định tiền điều kiện, hậu điều kiện và bất biến
+  - Phân biệt truy vấn với thao tác thay đổi trạng thái
+  - Thiết kế tham số, giá trị trả về và kiểu dữ liệu qua ranh giới
+  - Quy định quyền sở hữu và khả năng sửa đổi đối tượng được truyền
+  - Thiết kế lỗi nghiệp vụ và lỗi kỹ thuật có thể xử lý
+  - Thể hiện giới hạn thời gian, tài nguyên và tính an toàn luồng khi cần
+  - Tránh chuỗi lời gọi bắt người sử dụng biết cấu trúc bên trong
+  - Đánh giá API quá chi tiết, quá chung chung hoặc khó dùng đúng
+  - Kiểm chứng hợp đồng bằng ví dụ và kiểm thử từ phía bên sử dụng
+  - Tách giao diện cho các nhóm sử dụng có nhu cầu khác nhau
+- level1: Đồ thị phụ thuộc
+  level2:
+  - Biểu diễn mô-đun và quan hệ phụ thuộc thành đồ thị có hướng
+  - Phân biệt chiều gọi lúc chạy với chiều phụ thuộc mã nguồn
+  - Nhận diện phụ thuộc vòng trực tiếp và qua nhiều mô-đun
+  - Áp dụng nguyên tắc phụ thuộc không có chu trình
+  - Đảo ngược phụ thuộc bằng hợp đồng đặt ở phía phù hợp
+  - Phân biệt dependency inversion với dependency injection
+  - Áp dụng port và adapter để cô lập công nghệ bên ngoài
+  - Tách phần phối hợp để xử lý quan hệ phụ thuộc hai chiều
+  - Đánh giá hướng phụ thuộc theo mức ổn định và tính trừu tượng
+  - Kiểm soát phụ thuộc bắc cầu và phần triển khai bị lộ
+  - Phân biệt phụ thuộc tùy chọn với phụ thuộc bắt buộc
+  - Đặt quy tắc kiến trúc cho các cạnh được phép và bị cấm
+- level1: Dữ liệu và giao dịch
+  level2:
+  - Xác định mô-đun sở hữu dữ liệu và quyền cập nhật
+  - Phân biệt mô hình miền nội bộ với dữ liệu trao đổi
+  - Tránh chia sẻ thực thể lưu trữ như hợp đồng chung của hệ thống
+  - Trao đổi định danh và dữ liệu cần thiết thay vì tham chiếu cấu trúc nội bộ
+  - Giữ bất biến trong phạm vi một giao dịch của mô-đun
+  - Đánh giá giao dịch trải qua nhiều mô-đun trong cùng tiến trình
+  - Phân biệt tính nhất quán tức thời và tính nhất quán cuối cùng
+  - Thiết kế bản sao dữ liệu đọc và quy tắc cập nhật
+  - Kiểm soát truy vấn chéo dữ liệu và báo cáo liên mô-đun
+  - Quản lý thay đổi schema mà không buộc mọi bên thay đổi cùng lúc
+  - Xử lý cache, dữ liệu lỗi thời và quyền sở hữu vòng đời dữ liệu
+  - Đánh giá đánh đổi giữa tự chủ dữ liệu và chi phí phối hợp
+- level1: Tương tác mô-đun
+  level2:
+  - Lựa chọn gọi trực tiếp, truyền thông điệp và phát sự kiện
+  - Phân biệt lệnh, truy vấn và sự kiện nghiệp vụ
+  - Thiết kế phối hợp tập trung và phối hợp qua sự kiện
+  - Đánh giá mức phụ thuộc mà sự kiện vẫn có thể tạo ra
+  - Xác định thứ tự xử lý và trách nhiệm khi một bước thất bại
+  - Thiết kế xử lý lặp an toàn cho thông điệp và yêu cầu được gửi lại
+  - Quản lý timeout, hủy xử lý và lỗi lan qua ranh giới
+  - Tránh mô hình giao tiếp quá nhiều lần cho một thao tác nghiệp vụ
+  - Chuyển đổi dữ liệu giữa các mô hình mà không làm rò rỉ nội bộ
+  - Theo dõi một quy trình đi qua nhiều mô-đun
+  - Chọn cách giao tiếp theo nhu cầu nhất quán và độ phức tạp thực tế
+- level1: Tổ chức mã nguồn
+  level2:
+  - Tổ chức theo lớp kỹ thuật và tác động đến một thay đổi nghiệp vụ
+  - Tổ chức theo tính năng và năng lực nghiệp vụ
+  - Kết hợp phân chia tính năng với các lớp bên trong mô-đun
+  - Phân biệt cấu trúc thư mục với quyền truy cập được kiểm soát
+  - Đặt giao diện, kiểu công khai và mã nội bộ ở vị trí rõ ràng
+  - Quản lý mô-đun nền tảng, mô-đun nghiệp vụ và lớp ghép nối
+  - Phân biệt dùng lại có chủ đích với gom mã giống nhau vào shared
+  - Áp dụng nguyên tắc cùng thay đổi và cùng tái sử dụng khi đóng gói
+  - Giữ mã kiểm thử phản ánh ranh giới mô-đun
+  - Đặt quy ước tên và cấu trúc đủ đơn giản để nhóm duy trì
+- level1: Kiến trúc mô-đun
+  level2:
+  - Thiết kế modular monolith với ranh giới được bảo vệ
+  - Kết hợp kiến trúc phân lớp với mô-đun theo nghiệp vụ
+  - Áp dụng kiến trúc lục giác để cô lập bên trong và bên ngoài
+  - Liên hệ Clean Architecture với hướng phụ thuộc mô-đun
+  - Phân biệt tính mô-đun với lựa chọn monolith hay microservices
+  - Đánh giá mô-đun đủ tự chủ trước khi cân nhắc tách dịch vụ
+  - Chi phí mạng, triển khai và nhất quán dữ liệu khi tách tiến trình
+  - Tổ chức lớp ghép nối và điểm khởi tạo ứng dụng
+  - Đánh giá ranh giới trong ứng dụng dòng lệnh, web và xử lý nền
+  - Chọn cấu trúc theo nhu cầu thay đổi thay vì theo mẫu kiến trúc phổ biến
+- level1: Mô-đun trong Java
+  level2:
+  - Sử dụng package để biểu diễn nhóm trách nhiệm
+  - Kiểm soát truy cập bằng public, protected, package-private và private
+  - Giới hạn của package con đối với đóng gói và quyền truy cập
+  - Thiết kế facade công khai với các lớp triển khai nội bộ
+  - Dùng interface để biểu diễn hợp đồng có nhu cầu thay thế
+  - Tách DTO công khai khỏi entity và đối tượng miền nội bộ
+  - Sử dụng đối tượng bất biến để hạn chế phụ thuộc qua trạng thái
+  - Kiểm soát exception xuất hiện trong hợp đồng giữa các package
+  - Nhận diện reflection và truy cập gián tiếp có thể vượt quy ước thiết kế
+  - Minh họa một thay đổi nội bộ không làm đổi mã bên sử dụng
+- level1: Mô-đun JPMS
+  level2:
+  - Vai trò của Java Platform Module System và module-info.java
+  - Phân biệt named module, unnamed module và automatic module
+  - Khai báo quan hệ phụ thuộc bằng requires
+  - Kiểm soát bề mặt công khai của package bằng exports
+  - Phân biệt exports với opens khi sử dụng reflection
+  - Đánh giá sự lan truyền khả năng đọc mô-đun qua requires transitive
+  - Sử dụng uses và provides với cơ chế khám phá dịch vụ
+  - Phân biệt module path với classpath
+  - Nhận diện split package và xung đột khi chuyển đổi cấu trúc
+  - Đánh giá mức bảo vệ của JPMS và giới hạn đối với cô lập bảo mật
+  - Lập kế hoạch áp dụng JPMS khi thư viện và framework có yêu cầu riêng
+- level1: Build và đóng gói
+  level2:
+  - Ánh xạ mô-đun thiết kế sang dự án build và artifact
+  - Tổ chức Gradle multi-project hoặc Maven multi-module theo ranh giới
+  - Phân biệt phụ thuộc API công khai với phụ thuộc triển khai
+  - Kiểm soát kiểu từ thư viện bên ngoài bị lộ qua API
+  - Quản lý phiên bản và sự hội tụ của phụ thuộc dùng chung
+  - Tổ chức mã kiểm thử tích hợp qua nhiều mô-đun
+  - Kiểm chứng mô-đun build được với đúng phụ thuộc đã khai báo
+  - Đánh giá thay đổi ranh giới đối với thời gian build và cache
+  - Tách mã cấu hình build dùng chung khỏi phụ thuộc runtime
+  - Giữ ranh giới thiết kế khi đóng gói vào một ứng dụng triển khai
+- level1: Mô-đun với Spring
+  level2:
+  - Tổ chức package nghiệp vụ trong ứng dụng Spring Boot
+  - Chọn điểm cấu hình và phạm vi component scanning
+  - Công khai dịch vụ ứng dụng thay vì để bean nội bộ bị dùng tùy ý
+  - Nhận diện phụ thuộc vòng giữa bean và vấn đề thiết kế phía sau
+  - Đặt cấu hình dependency injection ở lớp ghép nối phù hợp
+  - Giao tiếp qua sự kiện ứng dụng và kiểm soát hợp đồng sự kiện
+  - Xác định ranh giới giao dịch khi gọi qua các mô-đun
+  - Tránh đưa entity và repository nội bộ vào hợp đồng mô-đun khác
+  - Kiểm thử một mô-đun với tập cấu hình và bean cần thiết
+  - Kiểm chứng thay thế adapter mà không đổi logic nghiệp vụ
+  - Đánh giá công cụ hỗ trợ modular monolith theo ranh giới đã thiết kế
+- level1: Mở rộng và plugin
+  level2:
+  - Xác định phần ổn định và điểm cần cho phép mở rộng
+  - Thiết kế hợp đồng plugin theo năng lực cần cung cấp
+  - Phân biệt mở rộng bằng cấu hình, composition và plugin
+  - Khám phá và đăng ký phần mở rộng một cách rõ ràng
+  - Quản lý vòng đời khởi tạo, sử dụng và giải phóng tài nguyên
+  - Xác định thứ tự, độ ưu tiên và xung đột giữa các phần mở rộng
+  - Kiểm soát phụ thuộc ngược từ lõi vào plugin cụ thể
+  - Xử lý lỗi plugin và giới hạn ảnh hưởng đến hệ thống
+  - Đánh giá nhu cầu cô lập classloader hoặc tiến trình
+  - Tránh tạo cơ chế plugin khi chưa có nhu cầu biến đổi rõ ràng
+- level1: Phiên bản và tương thích
+  level2:
+  - Phân biệt thay đổi API, thay đổi triển khai và thay đổi hành vi
+  - Đánh giá tương thích mã nguồn, tương thích nhị phân và tương thích ngữ nghĩa
+  - Thiết kế thay đổi bổ sung mà bên sử dụng cũ vẫn hoạt động
+  - Đánh giá thay đổi tham số, kiểu trả về và hệ thống lỗi
+  - Quản lý giá trị mặc định, null và trường dữ liệu mới
+  - Phiên bản hóa thông điệp và hợp đồng dữ liệu
+  - Thông báo ngừng hỗ trợ và chuẩn bị lộ trình chuyển đổi
+  - Tổ chức phát hành cùng nhau hoặc độc lập theo mức tự chủ thực tế
+  - Kiểm chứng tương thích bằng kiểm thử hợp đồng và bên sử dụng đại diện
+  - Đánh giá phiên bản hóa ngữ nghĩa trong bối cảnh hợp đồng thực tế
+- level1: Mối quan tâm chung
+  level2:
+  - Phân bổ xác thực, phân quyền và chính sách truy cập qua ranh giới
+  - Giữ quy tắc nghiệp vụ gần mô-đun sở hữu quyết định
+  - Thiết kế ghi log và định danh tương quan nhất quán
+  - Tổ chức metrics, tracing và quan sát theo mô-đun
+  - Quản lý cấu hình cùng giá trị mặc định và kiểm tra hợp lệ
+  - Chuẩn hóa lỗi ở biên ứng dụng mà vẫn giữ ngữ nghĩa nội bộ
+  - Kiểm soát giao dịch, cache và retry trong lớp phù hợp
+  - Quản lý tài nguyên, luồng xử lý và cơ chế hủy công việc
+  - Tránh thư viện nền tảng trở thành nơi tập hợp mọi trách nhiệm
+  - Đánh giá chi phí phụ thuộc của các tiện ích và framework dùng chung
+- level1: Kiểm thử mô-đun
+  level2:
+  - Xác định đơn vị kiểm thử theo trách nhiệm và hợp đồng mô-đun
+  - Kiểm thử hành vi qua API công khai
+  - Kiểm thử nội bộ khi cần mà không làm mở rộng API sản phẩm
+  - Phân biệt kiểm thử đơn vị, mô-đun, tích hợp và toàn hệ thống
+  - Thay thế phụ thuộc bằng fake, stub hoặc adapter kiểm thử
+  - Nhận diện việc lạm dụng mock che giấu phụ thuộc thiết kế
+  - Kiểm thử hợp đồng ở cả phía cung cấp và phía sử dụng
+  - Kiểm thử bất biến, lỗi và trường hợp dữ liệu biên
+  - Kiểm thử trạng thái dùng chung và các tác động ngoài mô-đun
+  - Kiểm thử mô-đun với cấu hình tối thiểu và dữ liệu độc lập
+  - Chọn tập kiểm thử cần chạy khi một mô-đun thay đổi
+  - Kiểm chứng khả năng thay triển khai mà vẫn giữ hành vi đã cam kết
+- level1: Kiểm soát kiến trúc
+  level2:
+  - Chuyển quy tắc ranh giới thành kiểm tra tự động
+  - Kiểm tra import và quan hệ phụ thuộc giữa các package
+  - Phát hiện chu trình trên đồ thị mô-đun
+  - Kiểm tra chỉ truy cập API công khai và tránh lớp nội bộ
+  - Kiểm tra chiều phụ thuộc giữa nghiệp vụ, ứng dụng và hạ tầng
+  - Sử dụng ArchUnit cho quy tắc kiến trúc trong Java
+  - Phối hợp kiểm tra build với kiểm tra kiến trúc ngữ nghĩa
+  - Lập mốc ban đầu (baseline) cho vi phạm đang tồn tại
+  - Quản lý ngoại lệ có lý do, chủ sở hữu và thời hạn rà soát
+  - Đưa kiểm tra ranh giới vào quy trình review và CI
+  - Phát hiện kiến trúc bị xói mòn qua các thay đổi nhỏ
+- level1: Hiệu năng và vận hành
+  level2:
+  - Đánh giá chi phí lời gọi, chuyển đổi dữ liệu và phân bổ đối tượng
+  - Giảm giao tiếp quá vụn mà vẫn giữ ranh giới có ý nghĩa
+  - Phân tích tải, bộ nhớ và tài nguyên do từng mô-đun sử dụng
+  - Đánh giá lợi ích cache và mức phụ thuộc trạng thái phát sinh
+  - Xác định tính an toàn luồng và quyền sở hữu tài nguyên
+  - Quản lý thứ tự khởi tạo, dừng và giải phóng tài nguyên
+  - Phân biệt cô lập thiết kế với cô lập lỗi lúc chạy
+  - Đánh giá phạm vi ảnh hưởng khi mô-đun dùng cạn tài nguyên
+  - Quan sát hoạt động mô-đun trong một tiến trình dùng chung
+  - Chọn tối ưu dựa trên đo đạc và kịch bản sử dụng thực tế
+- level1: Đo lường thiết kế
+  level2:
+  - Đánh giá khả năng phân rã, kết hợp và hiểu từng phần
+  - Đánh giá phạm vi lan truyền thay đổi và ảnh hưởng của lỗi
+  - Đo số phụ thuộc đi vào và đi ra theo mục đích phân tích
+  - Nhận diện điểm tập trung phụ thuộc và mô-đun khó thay đổi
+  - Đánh giá tính gắn kết bằng mã nguồn và lịch sử cùng thay đổi
+  - Đo bề mặt API công khai so với năng lực mô-đun cung cấp
+  - Phân tích phạm vi tệp, mô-đun và nhóm phải phối hợp cho một thay đổi
+  - Đối chiếu chỉ số tĩnh với thời gian build, kiểm thử và sửa lỗi
+  - Tránh dùng số lượng mô-đun hoặc kích thước tệp làm mục tiêu độc lập
+  - Ghi rõ giới hạn của chỉ số và kiểm chứng bằng kịch bản thực tế
+- level1: Tái cấu trúc
+  level2:
+  - Khảo sát cấu trúc hiện tại và lập đồ thị phụ thuộc
+  - Nhận diện cụm trách nhiệm và những phần thường thay đổi cùng nhau
+  - Bổ sung kiểm thử đặc trưng trước khi thay đổi ranh giới
+  - Tạo API trung gian để gom các đường truy cập đang phân tán
+  - Đưa chi tiết triển khai về phạm vi nội bộ từng bước
+  - Tách trách nhiệm khỏi lớp hoặc package có quá nhiều vai trò
+  - Phá chu trình bằng trích xuất hợp đồng hoặc chuyển điểm phối hợp
+  - Giảm trạng thái toàn cục và truy cập dữ liệu chéo mô-đun
+  - Tách phần dùng chung dựa trên trách nhiệm đã được kiểm chứng
+  - Chuyển đổi dần với các điểm kiểm tra hành vi và phụ thuộc
+  - Đánh giá gộp lại những mô-đun bị phân mảnh quá mức
+  - Kiểm chứng lợi ích bằng thay đổi thực tế sau tái cấu trúc
+- level1: Lỗi thiết kế thường gặp
+  level2:
+  - Mô-đun khổng lồ tập trung quá nhiều trách nhiệm
+  - Mô-đun quá nhỏ làm tăng số lượng bước phối hợp
+  - Package dùng chung trở thành nơi chứa mọi mã khó phân loại
+  - Giao diện quá rộng buộc bên sử dụng phụ thuộc phần không cần
+  - Chia lớp theo kỹ thuật nhưng mọi thay đổi nghiệp vụ vẫn lan khắp nơi
+  - Chia sẻ entity và cơ sở dữ liệu làm mất quyền sở hữu
+  - Phụ thuộc vòng bị che bằng sự kiện hoặc service locator
+  - Lớp facade chỉ chuyển tiếp lời gọi mà không bảo vệ ranh giới
+  - Tạo abstraction và plugin trước khi hiểu nhu cầu biến đổi
+  - Dùng dependency injection nhưng vẫn phụ thuộc chặt về ngữ nghĩa
+  - Tách dịch vụ khi ranh giới mô-đun và hợp đồng còn không ổn định
+  - Tuân thủ chỉ số hoặc mẫu thiết kế nhưng làm mã khó hiểu hơn
+- level1: Đội ngũ và tài liệu
+  level2:
+  - Xác định chủ sở hữu mô-đun và trách nhiệm duy trì hợp đồng
+  - Thiết kế quyền review theo ranh giới và phạm vi tác động
+  - Ghi quyết định phân rã cùng phương án thay thế đã đánh giá
+  - Mô tả API, bất biến và phụ thuộc để hỗ trợ người mới
+  - Phối hợp thay đổi hợp đồng giữa nhiều nhóm
+  - Đánh giá quan hệ giữa cấu trúc đội ngũ và cấu trúc hệ thống
+  - Cân bằng quyền tự chủ với quy ước và nền tảng dùng chung
+  - Rà soát ranh giới khi miền nghiệp vụ hoặc tổ chức thay đổi
+- level1: Bài thực hành
+  level2:
+  - Phân tích một ứng dụng nhỏ có mã nghiệp vụ và dữ liệu bị trộn lẫn
+  - Xác định năng lực nghiệp vụ và đề xuất ranh giới mô-đun
+  - Thiết kế hợp đồng và ví dụ sử dụng trước khi chia thư mục
+  - Chuyển ứng dụng sang package theo tính năng
+  - Đóng phần triển khai nội bộ và chỉ giữ API cần thiết
+  - Loại bỏ một phụ thuộc vòng bằng thay đổi điểm phối hợp
+  - Tách phụ thuộc cơ sở dữ liệu hoặc dịch vụ ngoài qua adapter
+  - Viết kiểm thử mô-đun và kiểm thử hợp đồng
+  - Thêm kiểm tra kiến trúc ngăn truy cập nội bộ
+  - Ánh xạ ranh giới sang dự án build khi có lợi ích rõ ràng
+  - Thử thay đổi một quy tắc nghiệp vụ và đo phạm vi ảnh hưởng
+  - So sánh thiết kế trước và sau bằng bằng chứng thay đổi và kiểm thử
+  - Viết tài liệu ranh giới, đánh đổi và những điểm còn cần cải thiện
+- level1: Tình huống thiết kế
+  level2:
+  - Thiết kế mô-đun danh mục, đơn hàng và thanh toán trong ứng dụng bán hàng
+  - Phân bổ quy tắc giảm giá khi có nhiều luồng sử dụng
+  - Thiết kế quyền sở hữu dữ liệu giữa đơn hàng và tồn kho
+  - Xử lý báo cáo cần dữ liệu từ nhiều mô-đun
+  - Thay nhà cung cấp thanh toán mà giữ ổn định hợp đồng nghiệp vụ
+  - Thêm phương thức vận chuyển qua điểm mở rộng phù hợp
+  - Xử lý hai mô-đun cùng cần một khái niệm dữ liệu
+  - Đánh giá tách một năng lực khỏi modular monolith
+  - Tái cấu trúc package shared khi nhiều nhóm cùng phụ thuộc
+  - Điều chỉnh ranh giới khi một thay đổi liên tục chạm nhiều mô-đun
+  - Xử lý yêu cầu tối ưu hiệu năng có nguy cơ xuyên thủng đóng gói
+- level1: Quy trình thiết kế
+  level2:
+  - Làm rõ mục tiêu, phạm vi và kịch bản thay đổi quan trọng
+  - Nhận diện trách nhiệm, dữ liệu và quyết định cần che giấu
+  - Đề xuất các phương án phân rã với giả định rõ ràng
+  - Thiết kế API và đồ thị phụ thuộc cho từng phương án
+  - Kiểm tra hợp đồng bằng ví dụ sử dụng và trường hợp lỗi
+  - Đánh giá đánh đổi về thay đổi, kiểm thử, build và vận hành
+  - Triển khai cấu trúc tối thiểu cùng cơ chế bảo vệ ranh giới
+  - Thử nghiệm kịch bản thay đổi trước khi mở rộng cấu trúc
+  - Rà soát thiết kế theo bằng chứng và tiến hóa khi có nhu cầu mới

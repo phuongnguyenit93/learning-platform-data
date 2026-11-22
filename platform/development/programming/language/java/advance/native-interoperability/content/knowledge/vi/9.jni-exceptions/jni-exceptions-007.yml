@@ -1,0 +1,3 @@
+menuLevel1: Ngoại lệ JNI
+menuLevel2: Ngăn ngoại lệ C++ thoát qua ranh giới JNI và chuyển thành lỗi Java
+status: WRITTEN

@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cấp độ mô-đun
+  slug: module-levels
+  index: 1
+- title: Tiêu chí phân rã
+  slug: decomposition-criteria
+  index: 2
+- title: Che giấu thông tin
+  slug: information-hiding
+  index: 3
+- title: Tính gắn kết
+  slug: cohesion
+  index: 4
+- title: Mức phụ thuộc
+  slug: coupling-levels
+  index: 5
+- title: Ranh giới mô-đun
+  slug: module-boundaries
+  index: 6
+- title: Hợp đồng và API
+  slug: contracts-apis
+  index: 7
+- title: Đồ thị phụ thuộc
+  slug: dependency-graph
+  index: 8
+- title: Dữ liệu và giao dịch
+  slug: data-transactions
+  index: 9
+- title: Tương tác mô-đun
+  slug: module-interactions
+  index: 10
+- title: Tổ chức mã nguồn
+  slug: code-organization
+  index: 11
+- title: Kiến trúc mô-đun
+  slug: modular-architecture
+  index: 12
+- title: Mô-đun trong Java
+  slug: modules-in-java
+  index: 13
+- title: Mô-đun JPMS
+  slug: jpms-modules
+  index: 14
+- title: Build và đóng gói
+  slug: build-packaging
+  index: 15
+- title: Mô-đun với Spring
+  slug: spring-modules
+  index: 16
+- title: Mở rộng và plugin
+  slug: extensibility-plugins
+  index: 17
+- title: Phiên bản và tương thích
+  slug: versioning-compatibility
+  index: 18
+- title: Mối quan tâm chung
+  slug: cross-cutting-concerns
+  index: 19
+- title: Kiểm thử mô-đun
+  slug: module-testing
+  index: 20
+- title: Kiểm soát kiến trúc
+  slug: architecture-enforcement
+  index: 21
+- title: Hiệu năng và vận hành
+  slug: performance-operations
+  index: 22
+- title: Đo lường thiết kế
+  slug: design-metrics
+  index: 23
+- title: Tái cấu trúc
+  slug: refactoring
+  index: 24
+- title: Lỗi thiết kế thường gặp
+  slug: common-design-mistakes
+  index: 25
+- title: Đội ngũ và tài liệu
+  slug: teams-documentation
+  index: 26
+- title: Bài thực hành
+  slug: hands-on-labs
+  index: 27
+- title: Tình huống thiết kế
+  slug: design-scenarios
+  index: 28
+- title: Quy trình thiết kế
+  slug: design-process
+  index: 29

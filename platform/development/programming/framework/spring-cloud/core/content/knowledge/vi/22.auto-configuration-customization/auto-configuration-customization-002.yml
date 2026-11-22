@@ -1,0 +1,3 @@
+menuLevel1: Tùy biến tự động cấu hình
+menuLevel2: '@ConditionalOnClass, @ConditionalOnBean và @ConditionalOnMissingBean'
+status: WRITTEN

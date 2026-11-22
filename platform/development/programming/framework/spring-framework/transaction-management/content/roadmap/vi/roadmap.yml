@@ -1,0 +1,62 @@
+roadmap:
+- id: nen-tang-giao-dich
+  title: Nền tảng giao dịch
+  purpose: Hiểu giao dịch bảo vệ tính đúng đắn của một thao tác nghiệp vụ và xác định phạm vi cần hoàn tất cùng nhau.
+  objectives:
+  - Giải thích các đặc tính ACID
+  - Phân biệt commit, rollback và auto-commit
+  - Xác định ranh giới giao dịch theo nghiệp vụ
+- id: ha-tang-giao-dich
+  title: Hạ tầng giao dịch
+  purpose: Gắn cơ chế quản lý của Spring với đúng tài nguyên và kiểu thực thi của ứng dụng.
+  objectives:
+  - Nhận diện TransactionDefinition và TransactionStatus
+  - Phân biệt PlatformTransactionManager với ReactiveTransactionManager
+  - Chọn bộ quản lý giao dịch phù hợp với JDBC, JPA hoặc R2DBC
+  - Phân biệt giao dịch cục bộ với phối hợp nhiều tài nguyên qua JTA
+- id: giao-dich-khai-bao
+  title: Giao dịch khai báo
+  purpose: Đặt ranh giới giao dịch bằng cấu hình và annotation, đồng thời hiểu khi nào cơ chế này thật sự được áp dụng.
+  objectives:
+  - Bật @EnableTransactionManagement và khai báo TransactionManager
+  - Áp dụng @Transactional ở lớp hoặc phương thức
+  - Giải thích proxy và giới hạn khi phương thức trong cùng bean tự gọi nhau
+  - Chọn bộ quản lý giao dịch tường minh khi có nhiều ứng viên
+- id: quy-tac-rollback
+  title: Quy tắc rollback
+  purpose: Quyết định kết quả giao dịch khi có lỗi và tránh hiểu nhầm rằng mọi ngoại lệ đều dẫn tới rollback.
+  objectives:
+  - Phân biệt tác động của ngoại lệ checked và unchecked theo quy tắc rollback
+  - Cấu hình rollbackFor và noRollbackFor
+  - Theo dõi ngoại lệ bị bắt lại và trạng thái rollback-only
+- id: lan-truyen-giao-dich
+  title: Lan truyền giao dịch
+  purpose: Chọn cách một lời gọi tham gia, tạo mới hoặc lồng giao dịch khi đã có phạm vi giao dịch bên ngoài.
+  objectives:
+  - Phân biệt phạm vi giao dịch logic với giao dịch vật lý
+  - Chọn REQUIRED, REQUIRES_NEW hoặc NESTED theo nhu cầu
+  - Giải thích rollback-only và UnexpectedRollbackException
+  - Đánh giá hỗ trợ điểm lưu (savepoint) và yêu cầu tài nguyên khi lồng hoặc tạo giao dịch mới
+- id: co-lap-va-thuoc-tinh
+  title: Cô lập và thuộc tính
+  purpose: Điều chỉnh mức cô lập và thuộc tính thực thi theo yêu cầu nhất quán, thời gian và khả năng của tài nguyên.
+  objectives:
+  - Liên hệ mức cô lập với đọc bẩn, đọc không lặp lại và đọc bóng (phantom read)
+  - Cấu hình isolation, timeout và readOnly phù hợp
+  - Kiểm chứng tác dụng thực tế theo bộ quản lý giao dịch và cơ sở dữ liệu
+- id: giao-dich-lap-trinh
+  title: Giao dịch lập trình
+  purpose: Điều khiển ranh giới giao dịch bằng mã và chọn cơ chế tương ứng cho xử lý thông thường hoặc reactive.
+  objectives:
+  - Bao phạm vi xử lý bằng TransactionTemplate
+  - Dùng TransactionalOperator trong chuỗi reactive
+  - Phân biệt ngữ cảnh gắn với luồng và Reactor Context
+  - Xác định tác động của hoàn tất, lỗi và hủy lên giao dịch reactive
+- id: tich-hop-va-kiem-chung
+  title: Tích hợp và kiểm chứng
+  purpose: Kiểm chứng giao dịch trong tình huống tích hợp và xác định những tác động nằm ngoài khả năng rollback của tài nguyên.
+  objectives:
+  - Nhận diện giới hạn rollback đối với lời gọi HTTP, tệp và tác vụ bất đồng bộ
+  - Phối hợp xử lý sau commit bằng @TransactionalEventListener
+  - Kiểm chứng commit và rollback trên tài nguyên thực
+  - Phân biệt rollback tự động của kiểm thử với hành vi ứng dụng

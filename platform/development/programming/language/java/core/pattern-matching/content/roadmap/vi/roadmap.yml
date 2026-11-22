@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-pattern-matching
+  title: Tổng quan Pattern Matching
+  purpose: Hiểu cách Java kiểm tra cấu trúc hoặc kiểu dữ liệu và gán giá trị vào biến phù hợp.
+  objectives:
+  - Mô tả pattern, giá trị đầu vào và pattern variable.
+  - Nhận ra lợi ích so với kiểm tra kiểu rồi ép kiểu.
+- id: type-pattern-voi-instanceof
+  title: Type Pattern với instanceof
+  purpose: Sử dụng cú pháp type pattern để kiểm tra và lấy đối tượng an toàn.
+  objectives:
+  - Viết biểu thức `obj instanceof String s`.
+  - Thay đoạn ép kiểu thủ công bằng pattern variable.
+- id: pham-vi-bien-pattern
+  title: Phạm vi biến Pattern
+  purpose: Hiểu khi nào biến từ một pattern được phép sử dụng.
+  objectives:
+  - Giải thích phạm vi dựa trên luồng điều khiển.
+  - Phân biệt tình huống `&&` hợp lệ và `||` không hợp lệ.
+- id: pattern-matching-trong-switch
+  title: Pattern Matching trong switch
+  purpose: Rẽ nhánh theo kiểu đối tượng bằng switch expression hoặc statement.
+  objectives:
+  - Viết các nhánh `case Type name ->`.
+  - So sánh pattern switch với chuỗi `if/else instanceof`.
+- id: guard-null-trong-switch
+  title: Guard & null trong switch
+  purpose: Xử lý điều kiện bổ sung và giá trị null một cách tường minh.
+  objectives:
+  - Sử dụng mệnh đề `when` cho nhánh có điều kiện.
+  - Giải thích `case null`, `default` và thứ tự nhánh.
+- id: dominance-exhaustiveness
+  title: Dominance & Exhaustiveness
+  purpose: Tránh các nhánh bị che khuất và bảo đảm xử lý đủ trường hợp.
+  objectives:
+  - Nhận diện lỗi nhánh bị pattern tổng quát che trước.
+  - Kiểm tra tính đầy đủ của switch với sealed types.
+- id: record-patterns
+  title: Record Patterns
+  purpose: Trích xuất trực tiếp thành phần record, kể cả khi có cấu trúc lồng nhau.
+  objectives:
+  - Viết record pattern dùng `var` để lấy thành phần.
+  - Kết hợp record patterns với `instanceof` và `switch`.
+- id: thuc-hanh-refactor
+  title: Thực hành Refactor
+  purpose: Vận dụng pattern matching để làm rõ mã phân nhánh mà vẫn giữ hành vi.
+  objectives:
+  - Rút gọn một đoạn Java nhiều phép ép kiểu.
+  - Biên dịch và kiểm thử trường hợp null, kiểu con và nhánh mặc định.

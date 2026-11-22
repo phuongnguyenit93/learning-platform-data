@@ -1,0 +1,57 @@
+roadmap:
+- id: nen-tang-spring-data-commons
+  title: Nền tảng Spring Data Commons
+  purpose: Hiểu các abstraction dùng chung cho nhiều loại cơ sở dữ liệu và ranh giới của Commons.
+  objectives:
+  - Giải thích vai trò Spring Data Commons trong hệ sinh thái.
+  - Phân biệt abstraction chung với module JPA, MongoDB, Redis.
+  - Xác định domain type và identifier cho repository.
+- id: repository-crud
+  title: Repository & CRUD
+  purpose: Sử dụng các interface repository nền tảng để định nghĩa thao tác dữ liệu rõ ràng.
+  objectives:
+  - Phân biệt Repository, CrudRepository và ListCrudRepository.
+  - Khai báo interface cho entity và kiểu ID.
+  - Thực hành save, findById, existsById và delete.
+- id: query-methods
+  title: Query Methods
+  purpose: Thiết kế phương thức truy vấn dựa trên tên và hiểu cách Spring Data xử lý chúng.
+  objectives:
+  - Viết findBy, countBy và existsBy theo thuộc tính.
+  - Sử dụng And, Or và OrderBy khi thích hợp.
+  - Nhận biết giới hạn phụ thuộc khả năng từng data store.
+- id: paging-sorting
+  title: Paging & Sorting
+  purpose: Kiểm soát số lượng và thứ tự kết quả bằng các kiểu dữ liệu dùng chung.
+  objectives:
+  - Tạo Pageable bằng PageRequest và Sort.
+  - Phân biệt Page, Slice và List khi trả kết quả.
+  - Giải thích tác động của count query khi dùng Page.
+- id: projections-dto
+  title: Projections & DTO
+  purpose: Trả về góc nhìn dữ liệu phù hợp mà không buộc API tiêu thụ toàn bộ domain object.
+  objectives:
+  - Định nghĩa interface-based projection.
+  - Dùng class hoặc record DTO projection.
+  - So sánh projection cố định và dynamic projection.
+- id: query-by-example
+  title: Query by Example
+  purpose: Tạo bộ lọc động theo dữ liệu mẫu mà không cần xây dựng tên method dài.
+  objectives:
+  - Tạo probe cùng Example và ExampleMatcher.
+  - Điều chỉnh matching và thuộc tính bị bỏ qua.
+  - Nêu giới hạn QBE và sự phụ thuộc data store.
+- id: auditing-lifecycle
+  title: Auditing & lifecycle
+  purpose: Theo dõi ai, khi nào tạo hoặc sửa dữ liệu và hiểu các hook vòng đời dùng chung.
+  objectives:
+  - Gắn @CreatedDate và @LastModifiedDate.
+  - Giải thích vai trò AuditorAware khi theo dõi người dùng.
+  - Nhận biết EntityCallback và hỗ trợ theo data store.
+- id: repository-tuy-bien
+  title: Repository tùy biến
+  purpose: Mở rộng repository bằng fragment và kiểm tra khả năng hoạt động trên store cụ thể.
+  objectives:
+  - Định nghĩa interface cùng implementation cho custom fragment.
+  - Ghép fragment vào repository đúng quy ước.
+  - Viết test cho CRUD, truy vấn và custom behavior.

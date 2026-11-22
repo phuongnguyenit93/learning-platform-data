@@ -1,0 +1,3 @@
+menuLevel1: Phạm vi class loader
+menuLevel2: Hai class loader định nghĩa cùng lớp có thể tạo hai Singleton độc lập
+status: ""

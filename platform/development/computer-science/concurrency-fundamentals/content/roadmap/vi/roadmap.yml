@@ -1,0 +1,57 @@
+roadmap:
+- id: dong-thoi-song-song
+  title: Đồng thời & song song
+  purpose: Nắm lý do hệ thống thực thi nhiều công việc và phân biệt đồng thời với song song.
+  objectives:
+  - Phân biệt concurrency và parallelism
+  - Giải thích interleaving khi thực thi
+  - Nêu tác động đến độ trễ và thông lượng
+- id: tien-trinh-luong
+  title: Tiến trình & luồng
+  purpose: Hiểu đơn vị thực thi và cách hệ điều hành luân phiên phân phối tài nguyên.
+  objectives:
+  - So sánh process với thread
+  - Mô tả lịch trình thực thi của các luồng
+  - Nhận diện bộ nhớ chung và riêng
+- id: race-condition
+  title: Race condition
+  purpose: Nhận biết lỗi phụ thuộc thứ tự thực thi khi nhiều luồng cùng truy cập trạng thái.
+  objectives:
+  - Phân tích interleaving trên biến dùng chung
+  - Chỉ ra critical section và data race
+  - Minh họa lost update trong bộ đếm
+- id: khoa-dong-bo
+  title: Khóa & đồng bộ
+  purpose: Bảo vệ vùng dữ liệu chia sẻ và phối hợp thời điểm các luồng được tiếp tục.
+  objectives:
+  - Dùng mutex để bảo vệ critical section
+  - Phân biệt mutex, semaphore và condition
+  - Giải bài toán đồng bộ đơn giản
+- id: atomic-memory-model
+  title: Atomic & memory model
+  purpose: Hiểu vì sao tính nguyên tử và khả năng nhìn thấy dữ liệu quyết định tính đúng đắn.
+  objectives:
+  - Phân biệt thao tác atomic với thao tác ghép
+  - Giải thích visibility và happens-before
+  - Nhận diện trường hợp cần đồng bộ bộ nhớ
+- id: deadlock-liveness
+  title: Deadlock & liveness
+  purpose: Đánh giá rủi ro các luồng chờ nhau hoặc không tiến triển dù chương trình còn chạy.
+  objectives:
+  - Nhận diện deadlock, livelock và starvation
+  - Phân tích vòng chờ tài nguyên
+  - Dùng thứ tự cấp khóa để tránh deadlock
+- id: giao-tiep-dieu-phoi
+  title: Giao tiếp & điều phối
+  purpose: Tổ chức công việc bằng truyền thông điệp và cơ chế giao nhận tác vụ.
+  objectives:
+  - Mô tả producer-consumer bằng hàng đợi
+  - Phân biệt shared memory và message passing
+  - Phối hợp tác vụ bằng future hoặc tín hiệu
+- id: an-toan-luong-kiem-thu
+  title: An toàn luồng & kiểm thử
+  purpose: Thiết kế trạng thái dễ kiểm soát và phát hiện lỗi đồng thời khó tái hiện.
+  objectives:
+  - Áp dụng immutability và thread confinement
+  - Kiểm tra bất biến của cấu trúc threadsafe
+  - Viết kiểm thử nhiều luồng cho tình huống cạnh tranh

@@ -1,0 +1,57 @@
+roadmap:
+- id: graph-ket-noi
+  title: Graph & kết nối
+  purpose: Hiểu mô hình dữ liệu đồ thị và thiết lập ứng dụng Spring Boot kết nối Neo4j.
+  objectives:
+  - Phân biệt node, relationship, label và property.
+  - Cấu hình starter Data Neo4j, URI và xác thực.
+  - Xác nhận ứng dụng kết nối được với Neo4j.
+- id: anh-xa-node
+  title: Ánh xạ Node
+  purpose: Biểu diễn node và thuộc tính Neo4j bằng đối tượng Java có định danh phù hợp.
+  objectives:
+  - Khai báo @Node, @Id và @GeneratedValue.
+  - Dùng @Property khi tên trường và property khác nhau.
+  - Giải thích lựa chọn business ID hoặc ID sinh.
+- id: anh-xa-relationship
+  title: Ánh xạ Relationship
+  purpose: Mô hình hóa liên kết giữa các node và thuộc tính của quan hệ.
+  objectives:
+  - Dùng @Relationship để chỉ rõ type và direction.
+  - Khai báo @RelationshipProperties khi quan hệ có dữ liệu.
+  - Sử dụng @TargetNode và kiểm tra ánh xạ quan hệ.
+- id: repository-crud
+  title: Repository & CRUD
+  purpose: Thực hiện thao tác lưu, đọc, cập nhật và xóa thông qua repository của Spring Data Neo4j.
+  objectives:
+  - Tạo interface repository cho node entity.
+  - Thực hiện save, findById và deleteById.
+  - Khai báo derived query method theo thuộc tính.
+- id: cypher-query
+  title: Cypher & @Query
+  purpose: Viết truy vấn đồ thị có tham số cho các trường hợp vượt khả năng query suy diễn.
+  objectives:
+  - Dùng MATCH và RETURN để truy xuất node/quan hệ.
+  - Khai báo @Query với tham số an toàn.
+  - Đối chiếu kết quả truy vấn với entity mapping.
+- id: projection-phan-trang
+  title: Projection & phân trang
+  purpose: Giới hạn dữ liệu trả về và điều hướng kết quả phù hợp nhu cầu đọc.
+  objectives:
+  - Định nghĩa interface hoặc DTO projection.
+  - Chỉ lấy trường và quan hệ cần dùng.
+  - Áp dụng Pageable/Sort khi truy vấn hỗ trợ.
+- id: client-giao-dich
+  title: Client & giao dịch
+  purpose: Sử dụng công cụ truy cập linh hoạt và xác định ranh giới giao dịch khi xử lý dữ liệu.
+  objectives:
+  - Phân biệt Neo4jClient, Neo4jTemplate và repository.
+  - Sử dụng @Transactional tại tầng service.
+  - Kiểm tra commit và rollback cho thao tác cập nhật.
+- id: kiem-thu-neo4j
+  title: Kiểm thử Neo4j
+  purpose: Xác minh lưu trữ và truy vấn đồ thị bằng kiểm thử tích hợp có dữ liệu rõ ràng.
+  objectives:
+  - Tạo test với @DataNeo4jTest.
+  - Khởi tạo đồ thị thử nghiệm bằng Neo4j/Testcontainers.
+  - Kiểm chứng node, quan hệ và kết quả truy vấn.

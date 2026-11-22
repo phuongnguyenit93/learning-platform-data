@@ -1,0 +1,3 @@
+menuLevel1: ItemProcessor
+menuLevel2: Không để processor thực hiện side effect khó retry
+status: WRITTEN

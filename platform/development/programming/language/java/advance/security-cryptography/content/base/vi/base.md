@@ -1,0 +1,7 @@
+# Bảo mật và mật mã trong Java (Security & Cryptography)
+
+Bảo mật ứng dụng bắt đầu từ việc xác định dữ liệu cần bảo vệ, mối đe dọa và mục tiêu như tính bí mật, toàn vẹn, xác thực hoặc phân quyền. Mật mã cung cấp những công cụ để đáp ứng một số mục tiêu đó, nhưng mã hóa, băm, chữ ký số và kiểm soát quyền truy cập giải quyết các vấn đề khác nhau. Trong Java, Java Cryptography Architecture (JCA) cung cấp các API chuẩn cùng cơ chế provider để sử dụng thuật toán theo khả năng của môi trường chạy.
+
+Tài liệu này dành cho người đã có nền tảng Java Core và muốn hiểu cách sử dụng API mật mã trong ứng dụng. Lộ trình đi từ mục tiêu bảo mật, kiến trúc JCA và cách sinh, quản lý khóa, đến băm, MAC và bảo vệ mật khẩu; tiếp theo là mã hóa có xác thực (AEAD), mật mã khóa công khai, chứng chỉ X.509 và KeyStore, kết nối TLS và tích hợp an toàn. Trọng tâm là lựa chọn cơ chế phù hợp với yêu cầu, hiểu vai trò của `SecureRandom`, khóa, salt, nonce, IV, provider và nguồn tin cậy thay vì chỉ gọi API cho ra kết quả.
+
+Sau khi học, bạn có thể phân biệt `MessageDigest`, `Mac`, `Cipher` và `Signature`; giải thích vì sao mật khẩu cần hàm dẫn xuất khóa với salt và chi phí phù hợp; kiểm thử dữ liệu bị sửa hoặc khóa sai trong chu trình AEAD. Bạn cũng có thể đọc cấu trúc chứng chỉ và kho khóa, phân biệt xác minh chứng chỉ với kiểm tra tên máy chủ trong TLS, đồng thời xây dựng kiểm thử lỗi và quy trình quản lý bí mật, cấu hình, thuật toán theo vòng đời hệ thống.

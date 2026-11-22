@@ -1,0 +1,3 @@
+menuLevel1: '@KafkaListener'
+menuLevel2: Bật @EnableKafka và đăng ký listener
+status: WRITTEN

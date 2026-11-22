@@ -1,0 +1,1570 @@
+menu:
+- slug: prototype-overview
+  title: Tổng quan Prototype
+  childs:
+  - slug: prototype-overview-001
+    title: Ý định của Prototype và cách tạo đối tượng từ một nguyên mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-overview-002
+    title: Bài toán client phụ thuộc trực tiếp vào lớp khởi tạo cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-overview-003
+    title: Phân biệt nguyên mẫu, bản sao và đối tượng được cấu hình sau sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-overview-004
+    title: Khi khởi tạo tốn công hoặc cần lựa chọn cấu hình tại runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-overview-005
+    title: Lợi ích, chi phí và giới hạn của việc tạo đối tượng bằng sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-overview-006
+    title: Điều kiện phù hợp và dấu hiệu không nên dùng Prototype
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-overview-007
+    title: 'Phạm vi học: hợp đồng copy, shallow/deep copy, Registry và tham chiếu mutable'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: prototype-structure
+  title: Cấu trúc mẫu
+  childs:
+  - slug: prototype-structure-001
+    title: Vai trò của Prototype, ConcretePrototype và Client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-structure-002
+    title: Thiết kế sơ đồ lớp và quan hệ giữa các vai trò
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-structure-003
+    title: Luồng chọn nguyên mẫu, gọi copy và tùy biến bản sao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-structure-004
+    title: Tách giao diện sao chép khỏi cách khởi tạo lớp cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-structure-005
+    title: Phân biệt sao chép trạng thái với tái sử dụng cùng một instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-structure-006
+    title: Phân biệt nguyên mẫu đang dùng trực tiếp và nguyên mẫu được lưu trong Registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: copy-contract
+  title: Hợp đồng copy
+  childs:
+  - slug: copy-contract-001
+    title: Định nghĩa trạng thái được sao chép và trạng thái được tạo lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-002
+    title: Cam kết về instance mới, kiểu runtime và mức tương đương trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-003
+    title: Quy định mức độc lập giữa nguồn và bản sao sau khi sửa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-004
+    title: 'Chính sách cho từng field: sao chép giá trị, chia sẻ, deep copy hoặc bỏ qua'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-005
+    title: Phân biệt giá trị bằng nhau, định danh đối tượng và định danh nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-006
+    title: Cam kết giữ nguyên đối tượng nguồn và các bất biến miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-007
+    title: Quy định dữ liệu null, giá trị mặc định và trường hợp không thể sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-008
+    title: Đặt tên copy, shallowCopy hoặc deepCopy để thể hiện đúng ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-009
+    title: Ghi rõ tiền điều kiện, hậu điều kiện và lỗi trong tài liệu API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Prototype trong Java
+  childs:
+  - slug: java-implementation-001
+    title: Xây dựng giao diện Prototype<T> với phương thức copy có kiểu trả về rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Cài đặt nguyên mẫu Shape, Circle và Rectangle với trạng thái mutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Tạo bản sao qua giao diện mà client không gọi constructor của lớp cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Sao chép danh sách nguyên mẫu khác kiểu và bảo toàn hành vi đa hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Tùy biến bản sao mà vẫn giữ nguyên trạng thái của nguyên mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Tổ chức package, phạm vi truy cập và điểm khởi tạo nguyên mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Theo dõi trạng thái và quan hệ tham chiếu trước và sau mỗi lần copy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: shallow-copy
+  title: Shallow copy
+  childs:
+  - slug: shallow-copy-001
+    title: Cơ chế sao chép field primitive và giá trị tham chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shallow-copy-002
+    title: Field immutable có thể chia sẻ và field mutable gây aliasing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shallow-copy-003
+    title: Phân biệt tạo container mới với sao chép các phần tử bên trong
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shallow-copy-004
+    title: Quan sát thay đổi lan truyền khi bản sao dùng chung đối tượng lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shallow-copy-005
+    title: Vì sao final trên một field tham chiếu không làm đối tượng được trỏ tới bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shallow-copy-006
+    title: Khi shallow copy là chủ đích hợp lệ và cách công bố hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shallow-copy-007
+    title: Thiết kế ví dụ và kiểm chứng phạm vi độc lập của shallow copy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deep-copy
+  title: Deep copy
+  childs:
+  - slug: deep-copy-001
+    title: Xác định ranh giới deep copy theo quyền sở hữu dữ liệu của miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deep-copy-002
+    title: Sao chép thủ công các field mutable và đối tượng lồng nhiều tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deep-copy-003
+    title: Chia sẻ an toàn thành phần immutable trong một bản deep copy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deep-copy-004
+    title: Phối hợp copy giữa các lớp thành phần thay vì truy cập xuyên cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deep-copy-005
+    title: Xử lý null, thành phần tùy chọn và cấu trúc rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deep-copy-006
+    title: Phân biệt deep copy toàn đồ thị với sao chép chọn lọc theo chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deep-copy-007
+    title: Kiểm soát độ sâu đệ quy, thời gian và bộ nhớ của thao tác sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deep-copy-008
+    title: Kiểm chứng sửa dữ liệu từ hai phía không vượt qua ranh giới độc lập đã cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-graph-copying
+  title: Đồ thị tham chiếu
+  childs:
+  - slug: object-graph-copying-001
+    title: Phân biệt cây đối tượng, đồ thị dùng chung nút và đồ thị có chu trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-copying-002
+    title: Bảo toàn quan hệ dùng chung bên trong bản sao khi hợp đồng yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-copying-003
+    title: Dùng bảng ánh xạ nguồn sang bản sao để tránh nhân đôi cùng một nút
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-copying-004
+    title: Dùng IdentityHashMap khi theo dõi định danh thay vì equals và hashCode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-copying-005
+    title: Đăng ký bản sao tạm trước khi duyệt cạnh để xử lý self-reference và chu trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-copying-006
+    title: Giữ đúng kiểu runtime khi sao chép các nút đa hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-copying-007
+    title: Tách nút thuộc quyền sở hữu khỏi nút được phép chia sẻ với hệ thống bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-copying-008
+    title: Kiểm thử đồ thị có chu trình, nút dùng chung và đường dẫn tham chiếu lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-and-polymorphism
+  title: Kế thừa và đa hình
+  childs:
+  - slug: inheritance-and-polymorphism-001
+    title: Thiết kế hợp đồng copy xuyên suốt cây kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-polymorphism-002
+    title: Dùng kiểu trả về hiệp biến để giữ API thuận tiện cho lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-polymorphism-003
+    title: Sao chép đầy đủ trạng thái của lớp cha và lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-polymorphism-004
+    title: Tránh tạo nhầm kiểu lớp cha làm mất dữ liệu hoặc hành vi của lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-polymorphism-005
+    title: Phân công trách nhiệm cho lớp abstract và lớp concrete
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-polymorphism-006
+    title: Cân nhắc final, composition và giới hạn mở rộng để bảo toàn hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-and-polymorphism-007
+    title: Kiểm thử copy qua biến kiểu cha với nhiều lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: copy-constructors-and-factories
+  title: Constructor và factory
+  childs:
+  - slug: copy-constructors-and-factories-001
+    title: Dùng copy constructor làm chi tiết cài đặt cho phương thức copy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-constructors-and-factories-002
+    title: Dùng static copy factory để đặt tên và kiểm soát chính sách sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-constructors-and-factories-003
+    title: Giới hạn của copy constructor và static factory khi client chỉ biết kiểu cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-constructors-and-factories-004
+    title: Khởi tạo field final và kiểm tra tính hợp lệ thông qua constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-constructors-and-factories-005
+    title: Phân biệt cơ chế cài đặt sao chép với vai trò của mẫu Prototype
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-constructors-and-factories-006
+    title: Giảm lặp logic giữa constructor thông thường, copy constructor và factory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-constructors-and-factories-007
+    title: Chọn API sao chép phù hợp với khả năng mở rộng và bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloneable-and-clone
+  title: Cloneable và clone()
+  childs:
+  - slug: cloneable-and-clone-001
+    title: Vai trò marker của Cloneable và hợp đồng Object.clone() trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloneable-and-clone-002
+    title: Quyền truy cập của clone và ý nghĩa của CloneNotSupportedException
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloneable-and-clone-003
+    title: Hành vi shallow copy của Object.clone và trách nhiệm xử lý field mutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloneable-and-clone-004
+    title: Luồng super.clone trong cây kế thừa và việc constructor không được gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloneable-and-clone-005
+    title: Ảnh hưởng của field final, trạng thái cần kiểm tra và bất biến của lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloneable-and-clone-006
+    title: Mở quyền truy cập, dùng kiểu trả về hiệp biến và xử lý exception
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloneable-and-clone-007
+    title: So sánh clone với một API copy tường minh qua cùng ví dụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloneable-and-clone-008
+    title: Giới hạn của Cloneable và tiêu chí chọn phương án triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collection-copying
+  title: Sao chép tập hợp
+  childs:
+  - slug: collection-copying-001
+    title: Sao chép mảng primitive và mảng chứa đối tượng mutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-copying-002
+    title: Sao chép List, Set và Map ở mức container và mức phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-copying-003
+    title: Xác định chính sách copy cho cả key và value trong Map
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-copying-004
+    title: Bảo toàn thứ tự, comparator và đặc tính cần thiết của collection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-copying-005
+    title: Xử lý collection lồng nhau và phần tử dùng chung giữa nhiều collection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-copying-006
+    title: Phân biệt unmodifiable view, container độc lập và dữ liệu immutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-copying-007
+    title: Nhận diện giới hạn của copyOf, constructor collection và array clone
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-copying-008
+    title: Kiểm soát equals và hashCode khi key hoặc phần tử Set có trạng thái mutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: preserving-invariants
+  title: Bảo toàn tính hợp lệ
+  childs:
+  - slug: preserving-invariants-001
+    title: Quy định sao chép hay cấp mới ID, mã nghiệp vụ và thời điểm tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: preserving-invariants-002
+    title: Sao chép value object và entity theo ý nghĩa của miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: preserving-invariants-003
+    title: Tái lập quan hệ hai chiều và tham chiếu tới đối tượng cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: preserving-invariants-004
+    title: Kiểm tra ràng buộc liên field trước khi công bố bản sao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: preserving-invariants-005
+    title: Quyết định giữ, xóa hoặc tính lại cache và giá trị dẫn xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: preserving-invariants-006
+    title: Xử lý trạng thái vòng đời như nháp, đã lưu hoặc đã kích hoạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: preserving-invariants-007
+    title: Tránh sao chép nhầm thông tin kiểm toán, quyền truy cập và dữ liệu riêng của instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: prototype-registry
+  title: Prototype Registry
+  childs:
+  - slug: prototype-registry-001
+    title: Mục đích và cấu trúc Registry ánh xạ khóa tới nguyên mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-002
+    title: Thiết kế API register, lookup, createCopy và unregister
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-003
+    title: Chọn khóa chuỗi, enum hoặc kiểu miền thay cho phụ thuộc lớp cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-004
+    title: Trả về bản sao khi yêu cầu tạo đối tượng từ Registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-005
+    title: Quy định Registry lưu bản gốc, bản sao lúc đăng ký hay cấu hình immutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-006
+    title: Ngăn bên đăng ký và bên sử dụng vô tình sửa nguyên mẫu đã lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-007
+    title: Xử lý khóa không tồn tại, khóa trùng và thao tác thay thế nguyên mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-008
+    title: Dùng generics hoặc Registry theo nhóm để giữ an toàn kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-registry-009
+    title: Kiểm thử nhiều lần lấy cùng một khóa tạo các instance độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: prototype-lifecycle
+  title: Vòng đời nguyên mẫu
+  childs:
+  - slug: prototype-lifecycle-001
+    title: Khởi tạo và đăng ký các nguyên mẫu tại điểm lắp ghép ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-lifecycle-002
+    title: Xác thực nguyên mẫu trước khi cho phép client sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-lifecycle-003
+    title: Tách cấu hình mẫu khỏi dữ liệu riêng của từng lần tạo đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-lifecycle-004
+    title: Quản lý phiên bản và thay thế nguyên mẫu khi cấu hình thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-lifecycle-005
+    title: Xác định phạm vi Registry theo ứng dụng, phiên làm việc hoặc tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-lifecycle-006
+    title: Chính sách xóa nguyên mẫu và xử lý các bản sao đã tạo trước đó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-lifecycle-007
+    title: Tránh biến Registry thành biến toàn cục gây phụ thuộc ẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrent-copying
+  title: Sao chép đồng thời
+  childs:
+  - slug: concurrent-copying-001
+    title: Rủi ro bản sao chứa trạng thái không nhất quán khi nguồn đang bị sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-copying-002
+    title: Chọn immutable prototype, khóa đồng bộ hoặc snapshot theo phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-copying-003
+    title: Xác định phạm vi khóa để lấy được trạng thái nhất quán của toàn cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-copying-004
+    title: Phân biệt Registry an toàn luồng với đối tượng nguyên mẫu an toàn luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-copying-005
+    title: Phối hợp đăng ký, tra cứu và thay thế nguyên mẫu một cách nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-copying-006
+    title: Công bố bản sao sau khi khởi tạo hoàn chỉnh và bảo đảm khả năng nhìn thấy trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-copying-007
+    title: Kiểm thử cạnh tranh khi copy, cập nhật nguyên mẫu và thay thế mục Registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resources-and-error-handling
+  title: Tài nguyên và lỗi
+  childs:
+  - slug: resources-and-error-handling-001
+    title: Xác định chính sách cho stream, socket, connection, lock và tài nguyên ngoài bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-error-handling-002
+    title: Quyết định chia sẻ dịch vụ, tạo tài nguyên mới hoặc từ chối sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-error-handling-003
+    title: Xử lý callback, listener và tham chiếu tới đối tượng nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-error-handling-004
+    title: Giữ nguồn nguyên vẹn và không công bố bản sao chưa hoàn chỉnh khi có lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-error-handling-005
+    title: Giải phóng tài nguyên đã cấp phát nếu thao tác sao chép thất bại giữa chừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-error-handling-006
+    title: Đánh giá serialization, JSON mapping và reflection theo hợp đồng, bảo mật và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-error-handling-007
+    title: Tránh sao chép mù trạng thái persistence, proxy hoặc đối tượng gắn với framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: related-design-patterns
+  title: Phối hợp mẫu thiết kế
+  childs:
+  - slug: related-design-patterns-001
+    title: So sánh Prototype với Factory Method theo cách quyết định đối tượng được tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-002
+    title: Phối hợp Abstract Factory và Registry để tạo họ đối tượng từ nguyên mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-003
+    title: So sánh Prototype với Builder khi cần xây dựng cấu hình nhiều bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-004
+    title: Phân biệt sao chép trạng thái với chia sẻ trạng thái trong Flyweight
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-005
+    title: Phân biệt bản sao Prototype với snapshot phục hồi của Memento
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-006
+    title: Đánh giá copy-on-write và persistent data structure như phương án quản lý dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-007
+    title: Chọn composition, immutable object hoặc khởi tạo trực tiếp khi giải pháp đơn giản hơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: copy-contract-testing
+  title: Kiểm thử hợp đồng
+  childs:
+  - slug: copy-contract-testing-001
+    title: Xây dựng bộ kiểm thử hợp đồng dùng chung cho các ConcretePrototype
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-002
+    title: Kiểm tra instance khác nhau, kiểu runtime đúng và trạng thái ban đầu tương đương
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-003
+    title: Kiểm tra thay đổi hai chiều trên từng field mutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-004
+    title: Kiểm tra thành phần phải độc lập và thành phần được chủ đích chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-005
+    title: Kiểm tra null, collection rỗng, nhiều tầng và cấu trúc có chu trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-006
+    title: Kiểm tra bảo toàn alias nội bộ và định danh nghiệp vụ theo chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-007
+    title: Kiểm tra constructor, lớp con mới và field mới không phá hợp đồng copy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-008
+    title: Kiểm thử Registry với khóa lỗi, thay thế nguyên mẫu và rò rỉ tham chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copy-contract-testing-009
+    title: Kiểm thử lỗi giữa chừng và trạng thái nguồn sau khi copy thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-evaluation
+  title: Đánh giá hiệu năng
+  childs:
+  - slug: performance-evaluation-001
+    title: So sánh copy với khởi tạo mới trên cùng hành vi và dữ liệu đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-evaluation-002
+    title: Đo shallow copy, deep copy và khởi tạo lại với nhiều kích thước đồ thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-evaluation-003
+    title: Đánh giá số lần cấp phát, mức dùng bộ nhớ và áp lực garbage collection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-evaluation-004
+    title: Phân biệt chi phí tạo nguyên mẫu với chi phí tạo từng bản sao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-evaluation-005
+    title: Thiết kế benchmark Java có warmup, chống loại bỏ mã và dùng công cụ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-evaluation-006
+    title: Đo ảnh hưởng của cạnh tranh khóa và tần suất cập nhật Registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-evaluation-007
+    title: Dựa vào kết quả đo để chọn ranh giới copy và mức tối ưu cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: prototype-use-cases
+  title: Tình huống ứng dụng
+  childs:
+  - slug: prototype-use-cases-001
+    title: Nhân bản hình vẽ có tọa độ, kiểu dáng và nhóm hình lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-use-cases-002
+    title: Tạo nhân vật hoặc vật phẩm từ nguyên mẫu với thuộc tính có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-use-cases-003
+    title: Nhân bản cấu hình tác vụ rồi tùy biến tham số cho từng lần chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-use-cases-004
+    title: Tạo tài liệu từ mẫu với danh sách phần nội dung cần độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-use-cases-005
+    title: Tạo test fixture phức tạp mà các ca kiểm thử không dùng chung trạng thái mutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-use-cases-006
+    title: Phân tích trường hợp entity có ID, quan hệ và trạng thái persistence
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-use-cases-007
+    title: Xác định chính sách sao chép và vai trò Registry cho từng tình huống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: copying-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: copying-pitfalls-001
+    title: Gán tham chiếu rồi gọi đó là sao chép đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-002
+    title: Tạo container mới nhưng vẫn chia sẻ phần tử mutable ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-003
+    title: Deep copy đệ quy vô hạn hoặc phá quan hệ dùng chung trong đồ thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-004
+    title: Trả thẳng nguyên mẫu từ Registry khiến trạng thái mẫu bị sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-005
+    title: Quên sao chép field mới hoặc trạng thái bổ sung của lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-006
+    title: Sao chép nguyên ID, cache hoặc tài nguyên mà không có chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-007
+    title: Lạm dụng clone, reflection hoặc serialization để né hợp đồng copy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-008
+    title: Mặc định copy nhanh hơn constructor mà không đo đạc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: copying-pitfalls-009
+    title: Tạo quá nhiều tùy chọn copy khiến API khó hiểu và khó kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: prototype-exercises
+  title: Bài thực hành
+  childs:
+  - slug: prototype-exercises-001
+    title: Cài đặt Shape Prototype và client sao chép qua giao diện chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-002
+    title: Tái hiện lỗi shallow copy với đối tượng lồng nhau rồi sửa theo hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-003
+    title: Deep copy đồ thị có chu trình và nút dùng chung bằng bảng ánh xạ định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-004
+    title: Xây dựng Prototype Registry có chính sách sở hữu và xử lý khóa rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-005
+    title: Mở rộng lớp con và kiểm tra bản sao giữ đầy đủ trạng thái đa hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-006
+    title: Thử nghiệm nhiều luồng copy trong lúc nguyên mẫu được cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-007
+    title: Viết bộ kiểm thử hợp đồng và đo chi phí sao chép trên dữ liệu đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-008
+    title: Refactor mã khởi tạo phụ thuộc lớp cụ thể sang Prototype và so sánh độ phức tạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prototype-exercises-009
+    title: Rà soát API, quyền sở hữu tham chiếu và tiêu chí chấp nhận trước khi áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

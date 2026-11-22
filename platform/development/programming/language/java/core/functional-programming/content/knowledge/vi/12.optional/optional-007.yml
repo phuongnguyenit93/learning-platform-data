@@ -1,0 +1,3 @@
+menuLevel1: Optional
+menuLevel2: ifPresent() và ifPresentOrElse()
+status: WRITTEN

@@ -1,0 +1,423 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - KakaoTalk trong bài toán tích hợp thông báo của ứng dụng
+  - Phân biệt thông báo giao dịch, quảng cáo và chia sẻ giữa người dùng
+  - 'Các thành phần: ứng dụng, người dùng, kênh, mẫu và nhà cung cấp'
+  - Kakao Developers và Kakao Business phục vụ những nhu cầu nào
+  - Talk Message, Talk Share, Alimtalk và Brand Message
+  - Phạm vi của Channel, Kakao Sync và chatbot trong hệ sinh thái
+  - Luồng từ sự kiện nghiệp vụ đến thông điệp trên KakaoTalk
+  - Phân biệt tiếp nhận yêu cầu, gửi thành công và dữ liệu người đọc
+  - Giới hạn theo sản phẩm, tài khoản, quyền và thị trường
+  - Lộ trình thực hành từ môi trường thử đến tích hợp doanh nghiệp
+- level1: Chọn sản phẩm
+  level2:
+  - Chọn kênh theo người gửi, người nhận và mục đích
+  - Talk Message cho tương tác giữa người dùng cùng dịch vụ
+  - Người dùng chủ động chọn bạn bè và thực hiện thao tác gửi
+  - Talk Share để người dùng chia sẻ qua giao diện KakaoTalk
+  - Alimtalk cho thông báo thông tin theo điều kiện sử dụng
+  - Brand Message cho nội dung quảng cáo với đối tượng hợp lệ
+  - Channel Message và công cụ quản trị chiến dịch
+  - FriendTalk trong hệ thống cũ và kiểm tra lộ trình chuyển đổi
+  - Phân biệt user access token với thông tin xác thực gửi doanh nghiệp
+  - Lập bảng khả năng, chi phí và điều kiện trước khi chọn API
+  - Xác định chức năng cần SDK, REST API hoặc nhà cung cấp chính thức
+- level1: Tài khoản và kênh
+  level2:
+  - Chuẩn bị Kakao Account và tài khoản Kakao Developers
+  - Tạo ứng dụng, thông tin dịch vụ và phân quyền thành viên
+  - Tách ứng dụng phát triển, kiểm thử và vận hành
+  - Chuẩn bị Kakao Business và quyền quản trị liên quan
+  - Tạo KakaoTalk Channel và thông tin nhận diện doanh nghiệp
+  - Xác minh doanh nghiệp hoặc kênh theo yêu cầu sản phẩm
+  - Liên kết ứng dụng với Channel khi tính năng yêu cầu
+  - Chọn nhà cung cấp từ danh sách đối tác chính thức
+  - Kiểm tra hợp đồng dịch vụ, khả năng gửi và môi trường thử
+  - Quản lý quyền sở hữu khi đổi nhân sự hoặc bàn giao hệ thống
+- level1: Ứng dụng và quyền
+  level2:
+  - REST API key, JavaScript key, native key và admin key
+  - Phân biệt app key, client secret và user access token
+  - Bật Kakao Login cho ứng dụng
+  - Đăng ký redirect URI và domain theo cấu hình hiện hành
+  - Product Link, liên kết web và đường dẫn mở ứng dụng
+  - 'Thiết lập các mục yêu cầu đồng ý: talk_message và friends'
+  - Phân biệt quyền của ứng dụng với sự đồng ý của người dùng
+  - Đăng ký tính năng bổ sung và quy trình xét duyệt
+  - Giới hạn thành viên nhóm trước khi có quyền hoặc trong ứng dụng thử nghiệm
+  - Kiểm tra hạn mức theo trạng thái xét duyệt
+  - Lưu bằng chứng cấu hình và rà soát quyền tối thiểu
+- level1: Kakao Login
+  level2:
+  - Vai trò của Kakao Login trong các API dùng danh tính người dùng
+  - Authorization Code flow và các bước chuyển hướng
+  - client_id, redirect_uri, scope và state
+  - Đổi authorization code lấy token ở backend
+  - Client secret theo cấu hình và luồng được Kakao hỗ trợ
+  - Xử lý người dùng từ chối đăng nhập hoặc từ chối quyền
+  - Yêu cầu đồng ý bổ sung khi tính năng cần scope mới
+  - Liên kết Kakao user với tài khoản nội bộ
+  - Xác minh phiên đăng nhập và ngăn giả mạo callback
+  - Kiểm thử OAuth bằng tài khoản và redirect URI đã đăng ký
+  - Ranh giới giữa đăng nhập, quyền nhắn tin và đồng ý nhận quảng cáo
+- level1: Vòng đời token
+  level2:
+  - Access token, refresh token và thời hạn sử dụng
+  - Kiểm tra thông tin token và trạng thái scope
+  - Lưu token mã hóa và gắn đúng ứng dụng, người dùng
+  - Làm mới access token theo API Kakao Login
+  - Cập nhật refresh token khi phản hồi có token mới
+  - Điều phối refresh đồng thời và tránh ghi đè token mới
+  - Phân biệt token hết hạn, bị thu hồi và không đúng ứng dụng
+  - Logout, unlink và tác động đến khả năng dùng API
+  - Ngừng tác vụ khi người dùng rút quyền hoặc hủy liên kết
+  - Tách thông tin xác thực doanh nghiệp khỏi kho token người dùng
+  - Xoay secret và kiểm tra ảnh hưởng tới phiên đang hoạt động
+- level1: Định danh người nhận
+  level2:
+  - App user ID, friend uuid, Channel ID và số điện thoại
+  - Những định danh không thể thay thế trực tiếp cho nhau
+  - Điều kiện người dùng cùng dịch vụ trong Talk Message
+  - Friends List API và dữ liệu bạn bè được phép cung cấp
+  - Phân trang danh sách bạn bè và độ trễ cập nhật dữ liệu
+  - Friends picker và giao diện lựa chọn người nhận
+  - Scope, liên kết ứng dụng và cài đặt hiển thị hồ sơ
+  - Xử lý người nhận không xuất hiện hoặc không còn hợp lệ
+  - Giới hạn người nhận trên một yêu cầu theo tài liệu API
+  - Định dạng số điện thoại theo hợp đồng nhà cung cấp doanh nghiệp
+  - Lưu ánh xạ định danh có kiểm soát và bảo vệ dữ liệu cá nhân
+- level1: Mẫu Talk Message
+  level2:
+  - Default template và custom template
+  - Feed, List, Location, Commerce và Text template
+  - Calendar template và điều kiện quyền dữ liệu lịch
+  - Cấu trúc template_object và trường bắt buộc theo loại
+  - Text, content, image, link và button trong từng mẫu
+  - Giới hạn độ dài, số nút và hình ảnh theo mẫu hiện hành
+  - Web domain, mobile web link và liên kết ứng dụng
+  - Tạo mẫu trong Message Template Tool
+  - Template ID, mục đích sử dụng và ứng dụng sở hữu
+  - template_args và thay biến theo từng yêu cầu
+  - Scrap message và nội dung lấy từ trang web
+  - Kiểm tra dữ liệu trước gửi và xem trước thông điệp thực tế
+  - Phân biệt mẫu Developers với mẫu duyệt của Alimtalk
+- level1: Gửi cho bản thân
+  level2:
+  - My Chatroom và phạm vi người nhận của Send to me
+  - Điều kiện Kakao Login và scope talk_message
+  - Chọn API default, custom hoặc scrap
+  - Authorization Bearer và form-urlencoded trong yêu cầu REST
+  - Mã hóa JSON của template_object, template_args đúng tầng
+  - Đọc HTTP status, kết quả và lỗi từ Kakao
+  - Kiểm tra thông điệp, hình ảnh và liên kết trên thiết bị
+  - Giới hạn sử dụng và ranh giới với thông báo doanh nghiệp
+  - Xây dựng ca thử có kiểm soát bằng tài khoản của người thực hiện
+- level1: Gửi cho bạn bè
+  level2:
+  - Kiểm tra quyền ứng dụng và sự đồng ý của các bên liên quan
+  - Lấy uuid từ nguồn bạn bè hoặc picker được hỗ trợ
+  - Thiết kế luồng người dùng chọn người nhận và xác nhận gửi
+  - Chọn default, custom hoặc scrap cho tin nhắn bạn bè
+  - receiver_uuids và giới hạn danh sách mỗi yêu cầu
+  - Đọc kết quả theo người nhận và xử lý thành công từng phần
+  - Phân biệt không phải bạn bè, thiếu sự đồng ý và người nhận từ chối
+  - Hạn mức theo ứng dụng, người gửi, người nhận và cặp tương tác
+  - Xử lý dữ liệu bạn bè cũ hoặc hồ sơ đã đổi quyền hiển thị
+  - Kiểm thử với thành viên nhóm và xác nhận quyền trước khi mở rộng
+  - Ranh giới sử dụng Talk Message đối với gửi tự động từ dịch vụ
+- level1: Kakao Talk Share
+  level2:
+  - Cơ chế chia sẻ do người dùng khởi tạo trên web hoặc ứng dụng
+  - Phân biệt Share SDK với Talk Message REST API
+  - Luồng chọn phòng chat hoặc người nhận trong KakaoTalk
+  - Default, custom và scrap trong phạm vi SDK hỗ trợ
+  - Khởi tạo SDK, app key và domain đúng môi trường
+  - Liên kết mở web, mở app và hành vi khi chưa cài ứng dụng
+  - Share webhook và phạm vi ý nghĩa của sự kiện được cung cấp
+  - Phân biệt kết quả chia sẻ với dữ liệu đọc hoặc chuyển đổi
+  - Chọn Share cho nội dung lan truyền theo thao tác người dùng
+- level1: Channel và liên kết
+  level2:
+  - Vai trò của KakaoTalk Channel trong quan hệ với khách hàng
+  - Thêm Channel và kiểm tra quan hệ giữa người dùng với Channel
+  - Điều kiện liên kết app, kênh và quyền truy cập dữ liệu quan hệ
+  - Channel webhook khi tính năng hỗ trợ thay đổi quan hệ
+  - Phân biệt kết bạn Channel, Kakao Login và đồng ý nhận quảng cáo
+  - Kakao Sync và liên kết hành trình đăng ký dịch vụ
+  - Đồng bộ thay đổi quan hệ với hồ sơ người dùng nội bộ
+  - Giới hạn Channel API và ranh giới với API gửi Biz Message
+  - Không suy diễn quyền gửi từ việc có ID hoặc quan hệ với Channel
+- level1: Alimtalk
+  level2:
+  - Alimtalk (알림톡) và thông báo thông tin trong giao dịch
+  - Các trường hợp như xác nhận đơn hàng, thanh toán và giao nhận
+  - Điều kiện người nhận và Channel theo hướng dẫn sản phẩm
+  - Vai trò nhà cung cấp chính thức trong đăng ký và gọi API
+  - Đăng ký bên gửi và định danh kênh theo nhà cung cấp
+  - Nội dung thông tin, nội dung quảng cáo và quy trình kiểm tra
+  - Mẫu được duyệt riêng và mẫu công khai dùng chung đủ điều kiện
+  - Biến cá nhân hóa, nút hành động và liên kết tới giao dịch
+  - Loại thông điệp, hình ảnh và tính năng theo khả năng hiện hành
+  - Kiểm tra nội dung thực gửi so với mẫu và mục đích được phép
+  - Kết quả phát, chi phí và đối soát theo hợp đồng nhà cung cấp
+  - Ranh giới giữa duyệt mẫu, điều kiện gửi và sự đồng ý của khách hàng
+- level1: Mẫu Alimtalk
+  level2:
+  - Vòng đời đăng ký, xét duyệt, chấp thuận và ngừng dùng mẫu
+  - Template code, sender key và cách nhà cung cấp đặt tên trường
+  - Thiết kế nội dung cố định và biến thay thế
+  - Trường bắt buộc, định dạng biến và kiểm tra dữ liệu thiếu
+  - Giới hạn độ dài sau khi thay biến
+  - Nút web, mở app hoặc hành động theo loại mẫu hỗ trợ
+  - Phân loại mẫu và dữ liệu cần cung cấp khi xét duyệt
+  - Điều kiện dùng mẫu công khai thay cho đăng ký mẫu riêng
+  - Xử lý mẫu bị từ chối và lưu nguyên nhân để sửa
+  - Quản lý phiên bản mẫu gắn với sự kiện nghiệp vụ
+  - Đồng bộ mẫu giữa cấu hình nội bộ và nhà cung cấp
+  - Xem trước tiếng Hàn, tiếng Việt, ký tự đặc biệt và liên kết
+- level1: Brand Message
+  level2:
+  - Brand Message (브랜드 메시지) trong gửi nội dung quảng cáo
+  - Đối tượng nhận và điều kiện đồng ý theo sản phẩm hiện hành
+  - Phân biệt kênh bạn bè với nhóm khách hàng đủ điều kiện
+  - Đăng ký kênh, bên gửi và quyền với nhà cung cấp chính thức
+  - Các loại text, image, commerce, carousel theo hỗ trợ thực tế
+  - Cá nhân hóa và kiểm soát dữ liệu của từng nhóm người nhận
+  - Nhãn quảng cáo, cơ chế từ chối và chính sách nội dung
+  - Khung giờ gửi theo múi giờ và quy định hiện hành
+  - Chiến dịch, gửi lặp và giới hạn tần suất theo khách hàng
+  - Thống kê phát, đọc, nhấp theo dữ liệu sản phẩm cung cấp
+  - Chuyển cấu hình FriendTalk cũ sau khi xác minh lộ trình hỗ trợ
+- level1: Tích hợp nhà cung cấp
+  level2:
+  - Đọc hợp đồng API của nhà cung cấp đã được lựa chọn
+  - Base URL, phiên bản API và môi trường gửi thử
+  - API key, secret hoặc cơ chế xác thực do nhà cung cấp quy định
+  - Ánh xạ sender key, template code và mã người nhận
+  - DTO riêng theo hợp đồng nhà cung cấp và mô hình nội bộ
+  - Kiểm tra payload trước khi tạo yêu cầu gửi
+  - Đọc HTTP status, kết quả nghiệp vụ và kết quả từng người
+  - Request ID, message ID và dữ liệu đối soát
+  - Gửi đơn, gửi nhiều hoặc gửi theo lô nếu được hỗ trợ
+  - Đặt lịch, hủy lịch và giới hạn theo khả năng nhà cung cấp
+  - Tra cứu trạng thái hoặc nhận callback khi được hỗ trợ
+  - Kiểm tra cơ chế chuyển SMS và cấu hình chi phí nếu có
+  - Tách khác biệt nhà cung cấp để thay thế mà không đổi nghiệp vụ
+- level1: Java và Spring Boot
+  level2:
+  - Chọn Java, Spring Boot và HTTP client tương thích
+  - ConfigurationProperties cho Kakao Developers và nhà cung cấp doanh nghiệp
+  - Tách cấu hình công khai, token người dùng và secret hệ thống
+  - RestClient hoặc WebClient cho lời gọi REST
+  - Form-urlencoded với JSON lồng cho Talk Message
+  - JSON request và authentication theo nhà cung cấp doanh nghiệp
+  - Jackson DTO cho template, phản hồi và lỗi từng người
+  - Connect timeout, response timeout và connection pool
+  - OAuth2 client hoặc luồng Kakao Login do backend quản lý
+  - Service gửi với đầu vào được kiểm tra và thông tin đối soát
+  - Exception mapping và kết quả nội bộ không phụ thuộc nhà cung cấp
+  - Mock HTTP server và kiểm thử tích hợp cấu hình
+  - Giải phóng tài nguyên và dừng ứng dụng có kiểm soát
+- level1: Thiết kế dịch vụ
+  level2:
+  - Notification command và nguồn sự kiện nghiệp vụ
+  - Tách thông báo doanh nghiệp khỏi thao tác nhắn tin của người dùng
+  - Chọn sản phẩm theo mục đích và quyền gửi hợp lệ
+  - Bộ chuyển đổi nhà cung cấp, bộ chọn mẫu và bộ xác định người nhận
+  - Mô hình nội bộ cho nội dung, mẫu, người nhận và metadata
+  - Chọn mẫu theo loại sự kiện, phiên bản và ngôn ngữ
+  - Kiểm tra quyền, chính sách nội dung trước khi đưa vào luồng gửi
+  - API tiếp nhận trả mã theo dõi thay vì khẳng định đã chuyển phát
+  - Đồng bộ giao dịch dữ liệu với bản ghi yêu cầu thông báo
+  - Lưu nội dung theo chính sách dữ liệu và nhu cầu đối soát
+  - Phân tách tenant, kênh và thông tin xác thực giữa các khách hàng
+  - Giới hạn trách nhiệm của module khi tích hợp nhiều kênh
+- level1: Vòng đời thông báo
+  level2:
+  - Trạng thái nội bộ từ tạo yêu cầu đến hoàn tất
+  - Phân biệt validation fail, lỗi gửi và kết quả chưa xác định
+  - Lưu attempt theo từng lần gọi thay vì ghi đè lịch sử
+  - Gắn mã nghiệp vụ với request ID, message ID của nhà cung cấp
+  - Kết quả theo từng người nhận khi một lô gửi thành công một phần
+  - Chuyển trạng thái theo đúng dữ liệu mà sản phẩm cung cấp
+  - Không suy diễn đã đọc từ kết quả gửi thành công
+  - Hết hạn thông báo và bỏ yêu cầu không còn giá trị
+  - Hủy trước khi gửi và xử lý trường hợp không còn hủy được
+  - Đối soát yêu cầu chưa có kết quả cuối
+  - Lịch sử thay đổi phục vụ kiểm toán và hỗ trợ khách hàng
+- level1: Hàng đợi và chống trùng
+  level2:
+  - Transactional Outbox cho sự kiện từ giao dịch nghiệp vụ
+  - Chọn hàng đợi, worker và mức song song theo tải
+  - Khóa chống trùng theo sự kiện, người nhận, kênh và mục đích
+  - Tính nguyên tử khi tạo yêu cầu và ghi nhận lần gửi
+  - Lease, lock và tránh hai worker xử lý cùng yêu cầu
+  - Trạng thái gửi không xác định khi timeout sau khi nhà cung cấp tiếp nhận
+  - Tra cứu kết quả trước khi gửi lại nếu nhà cung cấp hỗ trợ
+  - Khóa lũy đẳng phía nhà cung cấp chỉ dùng khi hợp đồng hỗ trợ
+  - Giữ thứ tự thông báo theo giao dịch khi nghiệp vụ yêu cầu
+  - Dead-letter queue và quy trình xử lý lại có kiểm soát
+  - Giới hạn thời gian sống, kích thước hàng chờ và backlog
+  - Ngăn gửi lại thông báo cũ sau khi triển khai hoặc phục hồi
+  - Kiểm chứng phạm vi chống trùng và giới hạn xử lý đúng một lần
+- level1: Kết quả và callback
+  level2:
+  - Phân biệt phản hồi Talk Message với callback Biz Message
+  - Share webhook, Channel webhook và sự kiện của từng sản phẩm
+  - Đọc schema callback theo đúng nhà cung cấp, phiên bản
+  - Xác thực nguồn callback bằng cơ chế được công bố
+  - Gắn callback với message ID và người nhận nội bộ
+  - Nhận lặp, đến sai thứ tự hoặc thiếu callback
+  - Lưu sự kiện trước khi xác nhận tiếp nhận callback
+  - Chuẩn hóa trạng thái mà không bỏ mất mã gốc của nhà cung cấp
+  - Xử lý sự kiện đến sau khi yêu cầu nội bộ đã hết hạn
+  - Polling đối soát cho trạng thái chưa rõ nếu API cho phép
+  - Quyền truy cập endpoint kết quả và dữ liệu đối soát
+  - Phân biệt thống kê tổng hợp với trạng thái của từng thông điệp
+- level1: Hạn mức và thử lại
+  level2:
+  - Hạn mức Kakao Developers và hạn mức nhà cung cấp là hai lớp riêng
+  - Hạn mức theo app, người gửi, người nhận và cặp tương tác
+  - Giới hạn trước, sau xét duyệt và cách cập nhật cấu hình
+  - Phân loại lỗi tạm thời, lỗi quyền và lỗi nội dung
+  - Đọc HTTP status cùng code, msg hoặc mã kết quả của nhà cung cấp
+  - Backoff, jitter, giới hạn lần thử và thời hạn thông báo
+  - Làm mới token khi phù hợp và tránh refresh lặp
+  - Điều tiết gửi theo kênh, tenant và ngân sách
+  - Xử lý thành công một phần mà không gửi lại người đã thành công
+  - Circuit breaker khi nhà cung cấp gián đoạn
+  - Chuyển dự phòng sang SMS hoặc Email theo quyền và chính sách đã chọn
+  - Ngăn retry storm khi backlog dồn sau sự cố
+- level1: Nội dung và ngôn ngữ
+  level2:
+  - Thiết kế nội dung ngắn, rõ và nhận diện đúng bên gửi
+  - Biến người nhận, mã giao dịch và dữ liệu cần che
+  - Tiếng Hàn, tiếng Việt, Unicode và emoji
+  - Đếm độ dài theo quy tắc của sản phẩm, không giả định theo byte
+  - Thời gian, tiền tệ, đơn vị và múi giờ trong nội dung
+  - Kiểm tra giá trị biến sau khi thay vào mẫu
+  - Liên kết an toàn tới đúng giao dịch và đúng tenant
+  - URL encoding, query parameter và đường dẫn mở ứng dụng
+  - Hình ảnh truy cập công khai, thời hạn URL và bộ nhớ đệm
+  - Khả năng tiếp cận nội dung trên các thiết bị
+  - Lưu phiên bản nội dung để tái hiện thông điệp đã gửi
+- level1: Bảo mật
+  level2:
+  - Phân loại token, app key, secret và dữ liệu người nhận
+  - Giữ client secret, admin key và thông tin xác thực nhà cung cấp ở backend
+  - Mã hóa token lưu trữ và kiểm soát truy cập kho secret
+  - Quyền tối thiểu cho app, Channel và tài khoản nhà cung cấp
+  - CSRF, state và kiểm tra redirect trong Kakao Login
+  - Phân quyền API gửi để ngăn giả mạo người gửi hoặc tenant
+  - Giới hạn số người nhận và chống lạm dụng gửi hàng loạt
+  - Che token, số điện thoại, uuid và nội dung nhạy cảm trong log
+  - TLS, kiểm tra chứng chỉ và hạn chế đích gọi ra ngoài
+  - SSRF khi xử lý ảnh, URL hoặc nội dung do người dùng cung cấp
+  - Bảo vệ callback theo cơ chế nhà cung cấp và hạn chế replay
+  - Xoay secret, thu hồi token và ứng phó lộ thông tin xác thực
+  - Quản lý bản sao dữ liệu trong queue, dead-letter và backup
+  - Xác minh thay đổi cấu hình có thể mở rộng quyền gửi
+- level1: Chính sách người nhận
+  level2:
+  - Tách sự đồng ý đăng nhập, quyền dữ liệu và sự đồng ý quảng cáo
+  - Lưu nguồn, thời điểm và phạm vi đồng ý của khách hàng
+  - Kiểm tra điều kiện gửi theo sản phẩm tại thời điểm xử lý
+  - Từ chối nhận, chặn kênh, hủy liên kết và thay đổi quyền
+  - Đồng bộ danh sách không gửi giữa hệ thống và nhà cung cấp
+  - Phân biệt thông tin giao dịch với nội dung quảng cáo
+  - Khung giờ, tần suất và múi giờ theo chính sách hiện hành
+  - Đánh giá mục đích sử dụng khi thay mẫu hoặc thêm nội dung
+  - Giảm dữ liệu thu thập và xác định thời hạn lưu
+  - Xử lý yêu cầu xóa dữ liệu theo chính sách áp dụng
+  - Đối chiếu hướng dẫn Kakao và yêu cầu thị trường trước khi vận hành
+- level1: Kiểm thử
+  level2:
+  - Unit test cho chọn mẫu, thay biến và chọn sản phẩm
+  - Kiểm tra form encoding, JSON và Unicode
+  - Contract test với schema và phản hồi mẫu của từng API
+  - Mock server cho Talk Message và nhà cung cấp doanh nghiệp
+  - Kiểm thử token hết hạn, thiếu scope và người dùng rút quyền
+  - Kiểm thử bạn bè không đủ điều kiện hoặc uuid không hợp lệ
+  - Kiểm thử template sai app, sai code hoặc biến thiếu
+  - Kiểm thử lỗi từng người trong lô thành công một phần
+  - Kiểm thử timeout, hạn mức, retry và refresh đồng thời
+  - Kiểm thử worker chạy lặp và khóa chống gửi trùng
+  - Kiểm thử callback giả, lặp và đến sai thứ tự
+  - Môi trường thử với danh sách tài khoản, số nhận đã được phép
+  - Phân biệt test tự động không gửi thật với thử nghiệm chuyển phát
+  - Đánh giá tải bằng mock để tránh tiêu hao hạn mức, chi phí
+  - Đối chiếu thông điệp thực tế và dữ liệu đối soát sau ca thử
+- level1: Quan sát và chi phí
+  level2:
+  - Metric theo sản phẩm, nhà cung cấp, kênh và loại thông báo
+  - Tỷ lệ tiếp nhận, gửi thành công và kết quả chưa rõ
+  - Độ trễ hàng đợi, gọi API và nhận kết quả
+  - Theo dõi hạn mức, lỗi token, lỗi mẫu và tỷ lệ thử lại
+  - Correlation ID xuyên suốt nghiệp vụ, worker và callback
+  - Dashboard backlog, dead-letter và thông báo hết hạn
+  - Cảnh báo mẫu bị ngừng, thông tin xác thực lỗi hoặc hạn mức sắp cạn
+  - Tách chi phí Kakao, nhà cung cấp và kênh chuyển dự phòng
+  - Đối soát số lượng tính phí với trạng thái theo hợp đồng
+  - Ngân sách theo tenant, chiến dịch và môi trường
+  - Thống kê đọc, nhấp chỉ khi sản phẩm cung cấp dữ liệu tương ứng
+  - Kiểm soát số lượng nhãn metric và dữ liệu cá nhân
+- level1: Triển khai và vận hành
+  level2:
+  - Cấu hình riêng cho phát triển, kiểm thử và vận hành thực tế
+  - Chốt app, Channel, sender và template đúng môi trường
+  - Quản lý secret và token khi mở rộng nhiều instance
+  - Callback HTTPS, domain và đường kết nối được phép
+  - Kiểm tra egress, proxy, DNS và timeout
+  - Đặt lịch theo múi giờ nhà cung cấp và thời điểm nghiệp vụ
+  - Kiểm tra khả năng khôi phục queue, outbox và trạng thái gửi
+  - Graceful shutdown và worker đang gọi API
+  - Giới hạn lưu lượng khi mở rộng hoặc khởi động lại
+  - Runbook cho hết hạn mức, token lỗi và nhà cung cấp gián đoạn
+  - Quy trình xử lý dead-letter, đối soát và phê duyệt gửi lại
+  - Kiểm tra sau triển khai bằng dữ liệu thử đã được phép
+- level1: Chẩn đoán sự cố
+  level2:
+  - Sai app key, access token hết hạn hoặc token không đúng app
+  - Thiếu talk_message, friends hoặc quyền xét duyệt của ứng dụng
+  - Redirect URI không khớp hoặc lỗi đổi authorization code
+  - Danh sách bạn bè rỗng do liên kết, sự đồng ý hoặc hiển thị hồ sơ
+  - uuid không hợp lệ, quan hệ bạn bè thay đổi hoặc dữ liệu cache
+  - Template ID sai ứng dụng, sai mục đích hoặc chưa lưu
+  - template_args không thay biến do sai tên hoặc encoding
+  - Ảnh không hiển thị, domain chưa đăng ký hoặc URL không truy cập được
+  - Chạm hạn mức ứng dụng, người gửi, người nhận hoặc cặp tương tác
+  - Sender hoặc Channel chưa đủ điều kiện ở nhà cung cấp
+  - Mẫu Alimtalk bị từ chối, ngừng dùng hoặc nội dung không khớp
+  - Brand Message không đủ điều kiện người nhận hoặc thời gian gửi
+  - Callback thiếu, sai định danh hoặc trạng thái đến sai thứ tự
+  - Lặp thông báo sau timeout, retry hoặc xử lý lại hàng đợi
+  - Thu thập mã lỗi gốc, request ID và dữ liệu đã che để đối soát
+- level1: Thay đổi và chuyển đổi
+  level2:
+  - Theo dõi thông báo thay đổi Kakao Developers và Kakao Business
+  - Kiểm tra API, scope và trường phản hồi bị ngừng hỗ trợ
+  - Đối chiếu FriendTalk cũ với sản phẩm được hỗ trợ hiện tại
+  - Thay phiên bản mẫu mà không làm sai dữ liệu biến
+  - Đổi nhà cung cấp với ánh xạ thông tin xác thực, sender và template
+  - Giữ lịch sử message ID để đối soát kết quả từ nhà cung cấp cũ
+  - Canary, feature flag và giới hạn số người nhận khi chuyển đổi
+  - Ngăn gửi trùng khi chạy song song hai hệ thống
+  - Rollback cấu hình và xử lý thông báo đang chờ
+  - Rà soát lại điều kiện gửi, chi phí và khả năng báo cáo sau đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập bảng chọn sản phẩm cho các tình huống thông báo cụ thể
+  - Tạo app thử và cấu hình Kakao Login, talk_message
+  - Gửi mẫu Text tới My Chatroom bằng thao tác được cho phép
+  - Tạo custom template và kiểm tra link, biến, Unicode
+  - Người dùng chọn bạn bè đủ điều kiện và gửi trong hạn mức thử
+  - So sánh Talk Share với Talk Message trên cùng nội dung
+  - Chuẩn bị Alimtalk và kiểm tra bộ mẫu hợp lệ qua nhà cung cấp
+  - Tạo adapter Java cho một nhà cung cấp từ tài liệu thực tế
+  - Tiếp nhận sự kiện đơn hàng bằng outbox và worker
+  - Mô phỏng timeout, lặp yêu cầu và callback đến sai thứ tự
+  - Tạo chính sách retry, hết hạn và chuyển kênh dự phòng
+  - Đối soát kết quả, chi phí và hoàn thiện dashboard
+  - Diễn tập thu hồi quyền, xoay thông tin xác thực và khôi phục sau sự cố

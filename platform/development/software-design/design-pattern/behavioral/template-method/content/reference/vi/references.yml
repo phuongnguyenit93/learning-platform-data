@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring.Guru — Template Method"
+    url: "https://refactoring.guru/design-patterns/template-method"
+    description: "Giải thích mục đích, cấu trúc, primitive operations, hooks, cách cài đặt và so sánh với Strategy."
+  - title: "Refactoring.Guru — Template Method in Java"
+    url: "https://refactoring.guru/design-patterns/template-method/java/example"
+    description: "Ví dụ mã Java cho lớp cơ sở, các bước thuật toán và lớp con tùy biến hành vi."
+  - title: "Dev.java — Abstract Methods and Classes"
+    url: "https://dev.java/learn/inheritance/abstract-classes/"
+    description: "Tài liệu Java về abstract class, abstract methods và chia sẻ bước chung qua kế thừa."
+  - title: "Dev.java — Overriding and Hiding Methods"
+    url: "https://dev.java/learn/inheritance/overriding/"
+    description: "Tài liệu về @Override, method overriding và ràng buộc chữ ký/phạm vi truy cập trong lớp con."

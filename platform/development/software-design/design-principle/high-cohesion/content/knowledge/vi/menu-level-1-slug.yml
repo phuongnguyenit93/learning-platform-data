@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan High Cohesion
+  slug: high-cohesion-overview
+  index: 0
+- title: Trách nhiệm và ranh giới
+  slug: responsibilities-and-boundaries
+  index: 1
+- title: Cohesion và Coupling
+  slug: cohesion-and-coupling
+  index: 2
+- title: Các dạng Cohesion
+  slug: cohesion-types
+  index: 3
+- title: Dấu hiệu và bằng chứng
+  slug: signs-and-evidence
+  index: 4
+- title: Cohesion ở hàm
+  slug: function-cohesion
+  index: 5
+- title: Cohesion ở lớp
+  slug: class-cohesion
+  index: 6
+- title: Dữ liệu và hành vi
+  slug: data-and-behavior
+  index: 7
+- title: Cohesion của giao diện
+  slug: interface-cohesion
+  index: 8
+- title: Cohesion ở gói
+  slug: package-cohesion
+  index: 9
+- title: Cohesion ở mô-đun
+  slug: module-cohesion
+  index: 10
+- title: Cohesion ở dịch vụ
+  slug: service-cohesion
+  index: 11
+- title: Mô hình miền nghiệp vụ
+  slug: domain-modeling
+  index: 12
+- title: Phân tầng và điều phối
+  slug: layering-and-orchestration
+  index: 13
+- title: Liên hệ các nguyên tắc
+  slug: principle-relations
+  index: 14
+- title: Các cách tổ chức mã
+  slug: code-organization
+  index: 15
+- title: Dấu hiệu cohesion thấp
+  slug: low-cohesion-symptoms
+  index: 16
+- title: Tách trách nhiệm
+  slug: responsibility-separation
+  index: 17
+- title: Gộp và di chuyển
+  slug: merging-and-moving
+  index: 18
+- title: Quy trình tái cấu trúc
+  slug: refactoring-process
+  index: 19
+- title: Đo lường và giới hạn
+  slug: metrics-and-limits
+  index: 20
+- title: Kiểm thử thiết kế
+  slug: design-testing
+  index: 21
+- title: Đánh đổi và giới hạn
+  slug: tradeoffs-and-limits
+  index: 22
+- title: Tiến hóa và bảo trì
+  slug: evolution-and-maintenance
+  index: 23
+- title: Rà soát trong nhóm
+  slug: team-design-reviews
+  index: 24
+- title: Tình huống và thực hành
+  slug: scenario-and-practice
+  index: 25

@@ -1,0 +1,2095 @@
+menu:
+- slug: word-overview
+  title: Tổng quan Word
+  childs:
+  - slug: word-overview-001
+    title: Tài liệu Word là gì và vai trò trong ứng dụng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: word-overview-002
+    title: Phân biệt nội dung, cấu trúc, định dạng và bố cục hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: word-overview-003
+    title: 'Các khái niệm nền tảng: tài liệu (document), đoạn văn (paragraph), vùng chữ (run), bảng, style và section'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: word-overview-004
+    title: 'Những bài toán thường gặp: đọc, tạo mới, điền mẫu, chỉnh sửa và chuyển đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: word-overview-005
+    title: Phân biệt DOC, DOCX, DOCM và các định dạng mẫu Word
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: word-overview-006
+    title: So sánh Word với PDF, HTML và Markdown theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: word-overview-007
+    title: Ranh giới giữa thư viện chỉnh sửa tài liệu với công cụ dàn trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: word-overview-008
+    title: Lộ trình học và kiến thức Java, XML, luồng dữ liệu cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: docx-structure
+  title: Cấu trúc DOCX
+  childs:
+  - slug: docx-structure-001
+    title: DOCX dưới dạng gói Open XML gồm các phần và quan hệ liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-002
+    title: Vai trò của content types, package relationships và document relationships
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-003
+    title: Cấu trúc word/document.xml và phần nội dung chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-004
+    title: 'WordprocessingML: document, body, paragraph, run và text'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-005
+    title: Các phần styles, numbering, settings và theme
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-006
+    title: Header, footer, chú thích và vùng nội dung nằm ngoài body chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-007
+    title: Thư mục media, quan hệ ảnh và định danh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-008
+    title: Phân biệt thứ tự XML với thứ tự hiển thị và vị trí trên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docx-structure-009
+    title: Khảo sát gói DOCX để chẩn đoán tài liệu mà không làm hỏng cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-libraries
+  title: Thư viện Java
+  childs:
+  - slug: java-libraries-001
+    title: Vai trò Apache POI XWPF khi xử lý DOCX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-libraries-002
+    title: Vai trò HWPF khi đọc và chỉnh sửa tài liệu DOC cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-libraries-003
+    title: docx4j, mô hình JAXB và các nhu cầu thao tác Open XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-libraries-004
+    title: Chọn thư viện theo định dạng, tính năng, khả năng bảo toàn và yêu cầu xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-libraries-005
+    title: Quản lý dependency, khả năng tương thích JDK và xung đột thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-libraries-006
+    title: Mô hình XWPFDocument, XWPFParagraph, XWPFRun và XWPFTable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-libraries-007
+    title: Khi cần truy cập XMLBeans hoặc XML cấp thấp ngoài API mức cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-libraries-008
+    title: Ranh giới hỗ trợ biểu đồ, công thức, SmartArt và đối tượng nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-reading
+  title: Đọc tài liệu
+  childs:
+  - slug: document-reading-001
+    title: Mở tài liệu từ đường dẫn, InputStream hoặc dữ liệu tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-002
+    title: Nhận diện định dạng và phân biệt tệp hỏng, mã hóa hoặc không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-003
+    title: Trích xuất văn bản nhanh bằng XWPFWordExtractor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-004
+    title: Duyệt paragraph và table theo đúng thứ tự trong body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-005
+    title: Đọc run, kiểu chữ, dấu tab, ngắt dòng và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-006
+    title: Đọc bảng, ô bảng và các thành phần lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-007
+    title: Đọc header, footer, hyperlink và vùng nội dung bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-008
+    title: Đọc tài liệu DOC bằng mô hình Range của HWPF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-reading-009
+    title: Giới hạn của việc lấy văn bản thuần so với bảo toàn cấu trúc và ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-creation-and-saving
+  title: Tạo và lưu tài liệu
+  childs:
+  - slug: document-creation-and-saving-001
+    title: Tạo XWPFDocument mới và xây dựng tài liệu tối thiểu hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-creation-and-saving-002
+    title: Tạo đoạn văn, run và bảng theo thứ tự mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-creation-and-saving-003
+    title: Ghi tài liệu ra tệp, OutputStream hoặc bộ đệm trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-creation-and-saving-004
+    title: Quản lý tài nguyên bằng try-with-resources và quyền sở hữu stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-creation-and-saving-005
+    title: Mở tài liệu có sẵn làm điểm bắt đầu thay vì dựng lại toàn bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-creation-and-saving-006
+    title: Ghi ra tệp mới an toàn và tránh làm hỏng bản gốc khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-creation-and-saving-007
+    title: Thiết kế dữ liệu đầu vào và bộ dựng tài liệu tách khỏi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-creation-and-saving-008
+    title: Mở lại tài liệu vừa ghi để kiểm tra cấu trúc và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paragraphs-and-runs
+  title: Đoạn và ký tự
+  childs:
+  - slug: paragraphs-and-runs-001
+    title: Phân biệt paragraph với run và cách văn bản bị chia thành nhiều run
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-002
+    title: Chèn, thay và xóa nội dung mà vẫn giữ thuộc tính cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-003
+    title: Font, cỡ chữ, màu, in đậm, in nghiêng và gạch chân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-004
+    title: Chỉ số trên, chỉ số dưới, highlight và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-005
+    title: Căn lề, thụt đầu dòng và vị trí dòng đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-006
+    title: Khoảng cách trước sau đoạn và quy tắc giãn dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-007
+    title: Tab stop, ngắt dòng và khác biệt với tạo paragraph mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-008
+    title: Khoảng trắng có ý nghĩa và nội dung bị mất khi chuẩn hóa không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-009
+    title: Tiếng Việt, Unicode, font thay thế và văn bản nhiều ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paragraphs-and-runs-010
+    title: Giữ các đoạn cùng nhau và kiểm soát dòng lẻ ở đầu cuối trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: styles-and-formatting
+  title: Kiểu định dạng
+  childs:
+  - slug: styles-and-formatting-001
+    title: Phân biệt định dạng trực tiếp với định dạng qua style
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styles-and-formatting-002
+    title: Style đoạn, style ký tự, style bảng và quan hệ kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styles-and-formatting-003
+    title: Thiết kế bộ style nhất quán cho nội dung và tiêu đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styles-and-formatting-004
+    title: Heading, cấp outline và cấu trúc tài liệu có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styles-and-formatting-005
+    title: Thuộc tính mặc định, theme và thứ tự áp dụng định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styles-and-formatting-006
+    title: Áp dụng style bằng định danh và xử lý style chưa tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styles-and-formatting-007
+    title: Sao chép hoặc hòa giải style khi đưa nội dung từ tài liệu khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: styles-and-formatting-008
+    title: Chuẩn hóa định dạng mà vẫn bảo toàn những khác biệt có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pages-and-sections
+  title: Trang và phân đoạn
+  childs:
+  - slug: pages-and-sections-001
+    title: Phân biệt trang hiển thị với section trong cấu trúc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-002
+    title: Khổ giấy, hướng giấy, lề và vùng có thể đặt nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-003
+    title: Đơn vị đo trong Word và chuyển đổi khi lập trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-004
+    title: Ngắt trang, ngắt section và các kiểu bắt đầu section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-005
+    title: Phối hợp trang dọc và trang ngang trong cùng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-006
+    title: Bố cục nhiều cột và khoảng cách giữa các cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-007
+    title: Vị trí sectPr và phạm vi ảnh hưởng của thuộc tính section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-008
+    title: Kiểm soát tiêu đề, bảng và hình ảnh khi qua trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-sections-009
+    title: Ảnh hưởng của font, công cụ hiển thị và máy in đến phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: headers-and-footers
+  title: Đầu và chân trang
+  childs:
+  - slug: headers-and-footers-001
+    title: Tạo, đọc và sửa header hoặc footer của tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-footers-002
+    title: Header và footer mặc định, trang đầu, trang chẵn và trang lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-footers-003
+    title: Quan hệ giữa header, footer với từng section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-footers-004
+    title: Kế thừa và tách nội dung đầu chân trang giữa các section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-footers-005
+    title: Chèn logo, tên tài liệu và thông tin phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-footers-006
+    title: Đánh số trang, tổng số trang và khởi động lại số trang theo section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-footers-007
+    title: Căn chỉnh nội dung bằng tab hoặc bảng thay vì khoảng trắng thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-footers-008
+    title: Kiểm tra khoảng cách với lề và tránh chồng lên nội dung chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tables
+  title: Bảng biểu
+  childs:
+  - slug: tables-001
+    title: Mô hình bảng, hàng, ô và nội dung bên trong ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-002
+    title: Tạo bảng theo dữ liệu và xác định số hàng, cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-003
+    title: Độ rộng bảng, lưới cột và khác biệt giữa bố cục cố định với tự điều chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-004
+    title: Đường viền, nền, style và khoảng đệm trong ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-005
+    title: Căn ngang, căn dọc và định dạng paragraph bên trong ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-006
+    title: Gộp ô ngang, gộp ô dọc và quản lý lưới sau khi gộp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-007
+    title: Lặp hàng tiêu đề và kiểm soát hàng bị chia qua trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-008
+    title: Chiều cao hàng, nội dung dài và bảng tràn khỏi vùng in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-009
+    title: Bảng lồng nhau, ảnh trong ô và nội dung nhiều đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-010
+    title: Thêm, xóa, sao chép hàng mà không làm lệch cấu trúc hoặc mất định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lists-and-numbering
+  title: Danh sách và đánh số
+  childs:
+  - slug: lists-and-numbering-001
+    title: Phân biệt danh sách có cấu trúc với ký tự đầu dòng nhập thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-and-numbering-002
+    title: Vai trò numbering, abstractNum, numId và cấp danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-and-numbering-003
+    title: Tạo danh sách đầu dòng và danh sách số đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-and-numbering-004
+    title: Danh sách nhiều cấp, thụt lề và vị trí số thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-and-numbering-005
+    title: Tiếp tục hoặc bắt đầu lại số thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-and-numbering-006
+    title: Kết hợp đánh số chương với hệ thống heading
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-and-numbering-007
+    title: Sao chép danh sách giữa tài liệu và ánh xạ lại định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-and-numbering-008
+    title: Xử lý số thứ tự sai khi chèn, xóa hoặc ghép nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: images-and-objects
+  title: Hình ảnh và đối tượng
+  childs:
+  - slug: images-and-objects-001
+    title: Nhúng hình ảnh và quản lý quan hệ tới tài nguyên media
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-002
+    title: Định dạng ảnh, kích thước hiển thị và chuyển đổi sang đơn vị EMU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-003
+    title: Giữ tỷ lệ ảnh, độ phân giải và chất lượng khi in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-004
+    title: Ảnh cùng dòng với văn bản và ảnh có vị trí nổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-005
+    title: Căn chỉnh ảnh trong đoạn, bảng, header hoặc footer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-006
+    title: Chú thích hình, văn bản thay thế và khả năng tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-007
+    title: Thay ảnh trong mẫu và quản lý định danh drawing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-008
+    title: 'Đối tượng nhúng, biểu đồ và công thức: nhận diện, bảo toàn và kiểm tra hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-and-objects-009
+    title: Giảm dung lượng ảnh và tránh tạo tài nguyên media trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: links-and-notes
+  title: Liên kết và chú thích
+  childs:
+  - slug: links-and-notes-001
+    title: Tạo hyperlink ra ngoài và liên kết đến vị trí trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-and-notes-002
+    title: 'Bookmark: tên, định danh và cặp mốc bắt đầu kết thúc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-and-notes-003
+    title: Duy trì liên kết khi thay thế hoặc di chuyển nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-and-notes-004
+    title: Chèn chú thích chân trang và chú thích cuối tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-and-notes-005
+    title: Quan hệ giữa tham chiếu trong nội dung với phần chứa chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-and-notes-006
+    title: Đánh số chú thích và định dạng theo yêu cầu tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-and-notes-007
+    title: Nhận diện URL không an toàn và liên kết đến tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-and-notes-008
+    title: Kiểm tra liên kết, bookmark và chú thích sau khi sao chép tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fields-and-toc
+  title: Trường và mục lục
+  childs:
+  - slug: fields-and-toc-001
+    title: 'Field trong Word: mã lệnh, kết quả hiển thị và thời điểm cập nhật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-and-toc-002
+    title: Trường đơn giản, trường phức hợp và ranh giới các run liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-and-toc-003
+    title: Chèn trường số trang, tổng số trang và thuộc tính tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-and-toc-004
+    title: Mục lục dựa trên heading và cấp outline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-and-toc-005
+    title: Tham chiếu chéo, đánh số hình bảng và các trường liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-and-toc-006
+    title: Phân biệt chèn mã trường với tính lại kết quả hoặc số trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-and-toc-007
+    title: Yêu cầu cập nhật trường khi mở và giới hạn tùy công cụ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-and-toc-008
+    title: Kiểm tra mục lục, tham chiếu và kết quả trường trong bản xuất cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-templates
+  title: Mẫu tài liệu
+  childs:
+  - slug: document-templates-001
+    title: Chọn tạo tài liệu bằng mã hoặc điền dữ liệu vào mẫu thiết kế sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-002
+    title: 'Hợp đồng dữ liệu mẫu: tên biến, kiểu dữ liệu và giá trị bắt buộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-003
+    title: Thiết kế placeholder rõ ràng trong đoạn, bảng, header và footer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-004
+    title: Vì sao một placeholder có thể bị tách qua nhiều run
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-005
+    title: Thay placeholder qua nhiều run mà vẫn giữ phần văn bản xung quanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-006
+    title: Bảo toàn định dạng khi điền nội dung dài hoặc nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-007
+    title: Lặp hàng bảng, lặp khối nội dung và xử lý danh sách rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-008
+    title: Khối điều kiện và quy tắc bỏ nội dung không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-009
+    title: Điền ảnh, liên kết và giá trị ngày giờ, số tiền theo ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-010
+    title: Quản lý phiên bản mẫu và phát hiện biến chưa được thay trước khi xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-forms
+  title: Biểu mẫu có cấu trúc
+  childs:
+  - slug: structured-forms-001
+    title: Phân biệt placeholder văn bản, MERGEFIELD và content control
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-forms-002
+    title: 'Structured Document Tag: thuộc tính, nội dung và vai trò định danh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-forms-003
+    title: Nhận diện content control theo tag hoặc alias
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-forms-004
+    title: Điền văn bản đơn giản và vùng nội dung có định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-forms-005
+    title: Liên kết dữ liệu XML với content control trong quy trình phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-forms-006
+    title: Vùng lặp, điều kiện và mức hỗ trợ của công cụ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-forms-007
+    title: 'Mail merge: hợp nhất dữ liệu cho một hoặc nhiều tài liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-forms-008
+    title: Lựa chọn cơ chế mẫu theo khả năng bảo toàn cấu trúc và cách quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-editing-and-merging
+  title: Chỉnh sửa và ghép
+  childs:
+  - slug: document-editing-and-merging-001
+    title: Tìm kiếm nội dung theo paragraph, run, bảng hoặc dấu mốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-002
+    title: Chèn và xóa phần tử tại đúng vị trí trong body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-003
+    title: Giữ định dạng, dấu ngắt và quan hệ khi thay một vùng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-004
+    title: Sao chép paragraph, bảng và tài nguyên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-005
+    title: Ghép tài liệu với xung đột style, numbering và quan hệ media
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-006
+    title: Ánh xạ lại định danh bookmark, drawing và chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-007
+    title: Bảo toàn section, header và footer khi kết hợp nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-008
+    title: Nhận diện thành phần chưa hỗ trợ và tránh làm mất nội dung khi lưu lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-editing-and-merging-009
+    title: Kiểm chứng tài liệu sau một vòng mở, chỉnh sửa và ghi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-extraction
+  title: Trích xuất dữ liệu
+  childs:
+  - slug: data-extraction-001
+    title: Chọn lấy văn bản thuần hoặc xây dựng mô hình tài liệu có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-002
+    title: Trích xuất tiêu đề, cấp heading và phân chia nội dung theo chương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-003
+    title: Đọc bảng thành dữ liệu có cấu trúc và xử lý ô gộp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-004
+    title: Trích xuất hình ảnh cùng thông tin vị trí và mô tả liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-005
+    title: Thu thập hyperlink, chú thích và metadata theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-006
+    title: Xử lý nội dung trong textbox, trường và vùng ngoài body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-007
+    title: Chuẩn hóa khoảng trắng, Unicode và dấu ngắt có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-008
+    title: Xác định giới hạn suy luận ngữ nghĩa từ tài liệu chỉ có định dạng trực quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-and-conversion
+  title: Tương thích và chuyển đổi
+  childs:
+  - slug: compatibility-and-conversion-001
+    title: Kiểm tra tài liệu trên Microsoft Word, LibreOffice và công cụ đọc khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-002
+    title: 'DOC và DOCX: lựa chọn đọc trực tiếp hoặc chuyển định dạng trước'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-003
+    title: Tương thích OOXML và các phần mở rộng riêng của phần mềm tạo tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-004
+    title: Chuyển DOCX sang PDF bằng công cụ có khả năng dàn trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-005
+    title: Ảnh hưởng của font, bảng, ảnh nổi và field đến độ trung thực bản PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-006
+    title: Chuyển Word sang HTML hoặc Markdown và quản lý phần thông tin bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-007
+    title: Nhập HTML hoặc nội dung có định dạng vào DOCX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-008
+    title: Vận hành công cụ chuyển đổi không giao diện với timeout và tài nguyên riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-conversion-009
+    title: Kiểm tra đầu ra và tránh coi chuyển đổi thành công là bảo toàn đầy đủ bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: properties-and-track-changes
+  title: Thuộc tính và duyệt sửa
+  childs:
+  - slug: properties-and-track-changes-001
+    title: Thuộc tính tiêu đề, tác giả, chủ đề và thông tin tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-track-changes-002
+    title: Thuộc tính tùy chỉnh và dữ liệu phục vụ truy vết nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-track-changes-003
+    title: 'Comment: nội dung, tác giả và vùng văn bản được gắn chú thích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-track-changes-004
+    title: 'Track Changes: nhận diện phần thêm, xóa và thay đổi thuộc tính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-track-changes-005
+    title: Lựa chọn cách đọc hoặc xuất tài liệu còn thay đổi chưa được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-track-changes-006
+    title: Bảo toàn hoặc xử lý comment và thay đổi theo yêu cầu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-track-changes-007
+    title: 'Bảo vệ chỉnh sửa, mã hóa tệp và chữ ký số: phân biệt mục đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-track-changes-008
+    title: Loại bỏ metadata và nội dung ẩn không nên phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-security
+  title: Bảo mật tài liệu
+  childs:
+  - slug: document-security-001
+    title: Kiểm tra tệp tải lên theo định dạng thực và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-002
+    title: Gói ZIP bất thường, tỷ lệ giải nén và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-003
+    title: Thiết lập xử lý XML an toàn khi thao tác trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-004
+    title: Liên kết ngoài, ảnh liên kết và ngăn truy cập tài nguyên ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-005
+    title: Macro, OLE và tệp nhúng từ nguồn không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-006
+    title: Phân quyền truy cập mẫu, dữ liệu nguồn và tài liệu đã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-007
+    title: Quản lý mật khẩu, dữ liệu nhạy cảm và lịch sử thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-008
+    title: Tên tệp, đường dẫn, thư mục tạm và dọn tài nguyên sau xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-security-009
+    title: Loại bỏ dữ liệu nhạy cảm và xác minh nội dung đã xóa không còn trong gói tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Thiết kế dịch vụ Word với lớp dữ liệu, kết xuất và lưu trữ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Định nghĩa yêu cầu sinh tài liệu và kiểm tra dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Upload mẫu hoặc tài liệu nguồn qua API Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Trả tệp DOCX với Content-Type, Content-Disposition và tên tệp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Chọn xử lý đồng bộ hoặc tác vụ nền theo chi phí và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Lưu tài liệu, quản lý phiên bản và kiểm soát quyền tải xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Truy vết mẫu, dữ liệu đầu vào và phiên bản bộ sinh tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Phân loại lỗi dữ liệu, lỗi cấu trúc, lỗi chuyển đổi và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-resources
+  title: Hiệu năng và tài nguyên
+  childs:
+  - slug: performance-and-resources-001
+    title: Ước lượng chi phí theo dung lượng, số phần tử và số tài nguyên media
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-002
+    title: Quản lý heap khi mở tài liệu lớn hoặc xử lý nhiều tài liệu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-003
+    title: Tái sử dụng dữ liệu mẫu an toàn và tách đối tượng tài liệu giữa các tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-004
+    title: Tối ưu tìm placeholder và hạn chế duyệt lại toàn bộ cây nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-005
+    title: Quản lý stream, tệp tạm và dữ liệu ảnh trong quá trình sinh tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-006
+    title: Giới hạn luồng xử lý, hàng đợi và thời gian cho từng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-007
+    title: Xử lý theo lô và cô lập tài liệu lỗi khỏi phần còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-008
+    title: Đo thời gian đọc, biến đổi, ghi và chuyển đổi trước khi tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-testing
+  title: Kiểm thử tài liệu
+  childs:
+  - slug: document-testing-001
+    title: Ma trận kiểm thử theo loại tài liệu, dữ liệu và thành phần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-002
+    title: Kiểm thử nội dung, thứ tự body và các giá trị đã điền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-003
+    title: Kiểm thử style, numbering, section và quan hệ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-004
+    title: Kiểm tra placeholder còn sót và dữ liệu bắt buộc chưa được điền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-005
+    title: Kiểm thử tiếng Việt, nội dung dài, bảng nhiều trang và ảnh kích thước lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-006
+    title: Kiểm tra gói DOCX, XML và khả năng mở lại bằng thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-007
+    title: Kết xuất tài liệu để kiểm tra cắt chữ, chồng lấn và ngắt trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-008
+    title: So sánh bố cục với mẫu chuẩn và khoanh vùng khác biệt có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-009
+    title: Kiểm thử trên các công cụ đọc và công cụ chuyển đổi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-testing-010
+    title: Tích hợp kiểm thử hồi quy với tài liệu mẫu vào CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Word báo lỗi và yêu cầu sửa tài liệu: kiểm tra cấu trúc gói và XML'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Placeholder không được thay vì bị chia run hoặc nằm ngoài body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Font tiếng Việt sai, thiếu ký tự hoặc bố cục thay đổi giữa các máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Bảng tràn lề, ô gộp sai hoặc hàng tiêu đề không lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Header, footer và số trang sai sau khi thêm section
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Ảnh mất, liên kết hỏng hoặc xung đột định danh khi ghép tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Numbering sai hoặc định dạng đổi khi sao chép nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Mục lục, tham chiếu và field hiển thị kết quả cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Lỗi bộ nhớ, thiếu tài nguyên hoặc treo công cụ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Dự án thực hành
+  childs:
+  - slug: hands-on-project-001
+    title: Phân tích yêu cầu tạo báo giá hoặc hợp đồng từ dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Thiết kế mẫu với heading, bảng chi tiết, logo và số trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Xây dựng mô hình dữ liệu và kiểm tra hợp đồng placeholder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Điền nội dung nhiều ngôn ngữ, hàng bảng lặp và khối tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Tích hợp API sinh tài liệu, lưu trữ và phân quyền tải xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Bổ sung chuyển đổi PDF và kiểm tra font, bố cục sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Kiểm thử nội dung dài, dữ liệu rỗng, tài liệu lỗi và tải đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Nghiệm thu DOCX, bản xuất và khả năng truy vết toàn bộ quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,417 @@
+menu:
+- level1: Tổng quan Code Smell
+  level2:
+  - Dấu hiệu mã có vấn đề (code smell) là gì và vì sao cần nhận diện
+  - Phân biệt code smell với lỗi chức năng, lỗi bảo mật và lỗi định dạng
+  - Mối liên hệ giữa code smell, vấn đề thiết kế và chi phí thay đổi
+  - Phân biệt triệu chứng quan sát được với nguyên nhân thiết kế phía sau
+  - Vì sao có dấu hiệu đáng nghi chưa đủ để kết luận phải sửa mã
+  - Mối liên hệ giữa code smell, nợ kỹ thuật và chất lượng nội tại
+  - Tái cấu trúc (refactoring) là gì và yêu cầu bảo toàn hành vi
+  - Phân biệt tái cấu trúc, sửa lỗi, tối ưu và thay đổi yêu cầu
+  - Bản đồ các nhóm dấu hiệu và lộ trình học từ nhận diện đến kiểm chứng
+  - Đọc một ví dụ trước và sau thay đổi theo trách nhiệm, phụ thuộc và hành vi
+- level1: Tư duy chẩn đoán
+  level2:
+  - Đọc mã từ luồng sử dụng và yêu cầu thay đổi thực tế
+  - Xác định phạm vi hành vi, trạng thái và các bên gọi liên quan
+  - Đặt giả thuyết về dấu hiệu thay vì sửa theo cảm giác
+  - Thu thập bằng chứng từ mã, kiểm thử và lịch sử thay đổi
+  - Phân biệt độ phức tạp của bài toán với độ phức tạp do cách tổ chức mã
+  - Nhận diện nhiều dấu hiệu có thể cùng xuất hiện tại một điểm
+  - Phân biệt sửa triệu chứng cục bộ với điều chỉnh ranh giới trách nhiệm
+  - Đánh giá bối cảnh mã sinh, mã tương thích và mã có ràng buộc hiệu năng
+  - Chọn thay đổi nhỏ đủ kiểm chứng thay vì viết lại toàn bộ
+  - Ghi nhận điều chưa biết và điều kiện cần xác minh trước khi sửa
+- level1: Nền tảng thiết kế
+  level2:
+  - Trách nhiệm của hàm, lớp và mô-đun trong một thiết kế
+  - Tính gắn kết (cohesion) và cách nhận diện trách nhiệm bị trộn
+  - Mức phụ thuộc (coupling) và tác động tới phạm vi thay đổi
+  - Đóng gói dữ liệu cùng quy tắc bảo vệ trạng thái hợp lệ
+  - Thiết kế theo hợp đồng và kỳ vọng của bên gọi
+  - Phân biệt tái sử dụng mã với chia sẻ cùng một quy tắc nghiệp vụ
+  - Liên hệ dấu hiệu với nguyên tắc SOLID theo vấn đề cụ thể
+  - Cân bằng DRY, KISS và YAGNI khi lựa chọn cách tổ chức mã
+  - Đánh giá một trừu tượng qua mục đích, phạm vi và chi phí sử dụng
+- level1: Tên gọi và ý định
+  level2:
+  - Nhận diện tên khó hiểu (Mysterious Name) ở biến, hàm, lớp và mô-đun
+  - Phân biệt tên quá ngắn với tên không thể hiện ý nghĩa trong bối cảnh
+  - Đặt tên theo ý định nghiệp vụ thay vì chỉ mô tả thao tác kỹ thuật
+  - Nhận diện tên hàm che giấu tác dụng phụ hoặc kết quả thực tế
+  - Thống nhất thuật ngữ khi cùng khái niệm xuất hiện ở nhiều nơi
+  - Thay tên gọi khi tên cũ không còn phù hợp trách nhiệm hiện tại
+  - Đánh giá trường hợp phải đọc chú thích mới hiểu được tên
+  - Đổi tên an toàn khi có hợp đồng công khai, cấu hình hoặc cơ chế phản chiếu
+- level1: Hàm quá dài
+  level2:
+  - Nhận diện hàm quá dài (Long Function / Long Method) theo trách nhiệm
+  - Phát hiện nhiều mức trừu tượng và nhiều bước nghiệp vụ trong một hàm
+  - Phân tích nhánh lồng nhau, biến tạm và luồng dữ liệu khó theo dõi
+  - Phân biệt hàm dài có cấu trúc rõ với hàm ngắn nhưng khó hiểu
+  - Tách hàm theo ý định và đặt tên làm rõ từng bước xử lý
+  - Sử dụng mệnh đề chặn sớm để giảm độ lồng khi phù hợp
+  - Xử lý dữ liệu trung gian và phạm vi biến khi tách hàm
+  - Kiểm chứng thứ tự thực thi, tác dụng phụ và xử lý ngoại lệ sau tách
+  - Nhận diện chia hàm cơ học làm luồng xử lý bị phân mảnh
+  - Lựa chọn điểm dừng khi hàm đã dễ đọc và dễ thay đổi
+- level1: Lớp quá lớn
+  level2:
+  - Nhận diện lớp quá lớn (Large Class) qua trách nhiệm và lý do thay đổi
+  - Phân tích nhóm trường và phương thức thường được sử dụng cùng nhau
+  - Nhận diện lớp trung tâm xử lý quá nhiều nghiệp vụ hoặc chi tiết kỹ thuật
+  - Tách lớp theo trách nhiệm có tính gắn kết
+  - Chuyển dữ liệu và hành vi liên quan cùng nhau khi tách lớp
+  - Thiết kế quan hệ cộng tác giữa lớp cũ và lớp mới
+  - Giữ hợp đồng hiện có trong quá trình phân chia trách nhiệm
+  - Kiểm chứng vòng đời, bất biến và quyền sở hữu trạng thái sau thay đổi
+  - Tránh tạo nhiều lớp nhỏ chỉ để giảm số dòng
+- level1: Danh sách tham số dài
+  level2:
+  - Nhận diện danh sách tham số dài (Long Parameter List) và khó sử dụng
+  - Phát hiện tham số cùng loại dễ bị truyền nhầm vị trí
+  - Nhận diện tham số cờ làm một hàm đảm nhiệm nhiều hành vi
+  - Phân biệt dữ liệu đầu vào cần thiết với trạng thái có thể suy ra
+  - Tạo đối tượng tham số khi các giá trị có cùng ý nghĩa
+  - Truyền đối tượng phù hợp mà không làm lộ quá nhiều dữ liệu
+  - Tách thao tác hoặc điều chỉnh trách nhiệm để giảm tham số
+  - Tránh gom tham số thành cấu trúc thiếu ý nghĩa chỉ để rút ngắn chữ ký
+  - Di chuyển bên gọi từng bước và kiểm thử tương thích chữ ký
+- level1: Ám ảnh kiểu nguyên thủy
+  level2:
+  - Nhận diện ám ảnh kiểu nguyên thủy (Primitive Obsession)
+  - Phân biệt dữ liệu đơn giản phù hợp với khái niệm nghiệp vụ cần kiểu riêng
+  - Nhận diện chuỗi biểu diễn tiền, mã định danh, địa chỉ và trạng thái
+  - Phát hiện số và chuỗi mang ý nghĩa ngầm (magic numbers / magic strings)
+  - Nhận diện mã kiểu và quy tắc kiểm tra giá trị rải rác
+  - Đóng gói giá trị cùng quy tắc hợp lệ trong kiểu có ý nghĩa
+  - Lựa chọn đối tượng giá trị, enum hoặc kiểu khác theo nhu cầu
+  - Xử lý đơn vị đo, tiền tệ và múi giờ khi dữ liệu có ngữ nghĩa riêng
+  - Giữ tương thích tại biên API, lưu trữ và chuyển đổi dữ liệu
+  - Tránh tạo kiểu bao khi không có ngữ nghĩa hoặc quy tắc cần bảo vệ
+- level1: Cụm dữ liệu
+  level2:
+  - Nhận diện cụm dữ liệu (Data Clumps) thường xuất hiện cùng nhau
+  - Theo dõi bộ giá trị lặp lại ở trường, tham số và bên gọi
+  - Phân biệt dữ liệu đi cùng do ngẫu nhiên với một khái niệm còn thiếu
+  - Xác định bất biến và vòng đời chung của nhóm dữ liệu
+  - Tách đối tượng dữ liệu hoặc đối tượng giá trị theo ý nghĩa
+  - Đưa hành vi liên quan về nơi sở hữu nhóm dữ liệu
+  - Phân biệt Data Clumps với Primitive Obsession và Long Parameter List
+  - Kiểm chứng trường hợp chỉ cần một phần dữ liệu sau khi gom nhóm
+- level1: Mã trùng lặp
+  level2:
+  - Nhận diện mã trùng lặp (Duplicated Code) theo cú pháp và ý nghĩa
+  - Phân biệt cùng một quy tắc bị sao chép với hai quy tắc tình cờ giống nhau
+  - Phát hiện biến thể gần giống và điều kiện bị sao chép ở nhiều nơi
+  - Đánh giá rủi ro sửa một nơi nhưng bỏ sót nơi khác
+  - Tách hàm hoặc thành phần dùng chung khi trách nhiệm thực sự thống nhất
+  - Tham số hóa phần khác biệt mà vẫn giữ luồng sử dụng rõ ràng
+  - Lựa chọn thành phần kết hợp hoặc kế thừa khi chia sẻ hành vi
+  - Giữ trùng lặp có chủ đích khi hai phần có hướng thay đổi độc lập
+  - Nhận diện trừu tượng sai hình thành do áp dụng DRY quá sớm
+  - Kiểm thử các biến thể trước và sau khi hợp nhất mã
+- level1: Bình luận che vấn đề
+  level2:
+  - Nhận diện bình luận phải giải thích mã khó hiểu (Comments)
+  - Phân biệt bình luận về lý do với bình luận lặp lại thao tác của mã
+  - Phát hiện bình luận lỗi thời hoặc mâu thuẫn hành vi thực tế
+  - Dùng tên rõ ràng và tách hàm để thay phần giải thích không cần thiết
+  - Chuyển mô tả quy tắc thành cấu trúc dữ liệu hoặc kiểm thử khi phù hợp
+  - Giữ tài liệu về ràng buộc bên ngoài và quyết định khó suy ra từ mã
+  - Xử lý mã bị vô hiệu hóa bằng bình luận cùng lịch sử phiên bản
+  - Đánh giá bình luận sau tái cấu trúc thay vì xóa theo quy tắc máy móc
+- level1: Cấu trúc ít giá trị
+  level2:
+  - Nhận diện lớp hoặc thành phần quá ít giá trị (Lazy Class / Lazy Element)
+  - Phân biệt thành phần nhỏ có trách nhiệm rõ với lớp tồn tại không cần thiết
+  - Phát hiện lớp chỉ còn vai trò cũ sau nhiều lần tái cấu trúc
+  - Gộp lớp hoặc đưa hàm về nơi phù hợp khi ranh giới không còn hữu ích
+  - Đánh giá chi phí điều hướng qua quá nhiều tệp và đối tượng
+  - Giữ lớp nhỏ khi cần bảo vệ hợp đồng, vòng đời hoặc ngữ nghĩa
+  - Phân biệt Lazy Element với Middle Man và Speculative Generality
+  - Kiểm chứng điểm mở rộng và bên gọi trước khi loại bỏ một lớp
+- level1: Mã chết và dư thừa
+  level2:
+  - Nhận diện mã không còn sử dụng (Dead Code)
+  - Phát hiện biến, tham số, phương thức và nhánh điều kiện không còn cần
+  - Phân biệt không được gọi trực tiếp với không được dùng thực tế
+  - Kiểm tra cơ chế phản chiếu, cấu hình và nạp động trước khi xóa mã
+  - Đối chiếu cờ tính năng, đường chạy cũ và yêu cầu tương thích
+  - Loại bỏ mã theo từng phần với bằng chứng kiểm thử và lịch sử phiên bản
+  - Xóa tham số hoặc nhánh thừa mà không đổi hợp đồng ngoài phạm vi
+  - Ngăn mã chết tiếp tục được sao chép và duy trì như chức năng đang dùng
+- level1: Tổng quát hóa sớm
+  level2:
+  - Nhận diện tổng quát hóa theo dự đoán (Speculative Generality)
+  - Phát hiện điểm mở rộng không có bên sử dụng hoặc nhu cầu hiện tại
+  - Nhận diện tầng trừu tượng, tham số và cơ chế cấu hình quá mức
+  - Đánh giá chi phí đọc hiểu và bảo trì của khả năng chưa cần
+  - Đơn giản hóa theo trường hợp sử dụng đã được xác nhận
+  - Giữ phần mở rộng khi có ràng buộc và bằng chứng nhu cầu cụ thể
+  - Phân biệt thiết kế linh hoạt với dự đoán mọi thay đổi tương lai
+  - Kiểm chứng khả năng mở rộng lại sau khi loại bỏ phần tổng quát thừa
+- level1: Lớp chỉ chứa dữ liệu
+  level2:
+  - Nhận diện lớp dữ liệu (Data Class) thiếu hành vi gắn với trách nhiệm
+  - Phát hiện logic nghiệp vụ bị đặt rải rác ở các lớp bên ngoài
+  - Đưa quy tắc và hành vi về nơi sở hữu dữ liệu khi phù hợp
+  - Đóng gói trạng thái để bảo vệ dữ liệu hợp lệ
+  - Phân biệt đối tượng miền với DTO và cấu trúc truyền dữ liệu
+  - Đánh giá mô hình dữ liệu bất biến và cách tổ chức theo hướng hàm
+  - Tránh thêm phương thức nghiệp vụ vào mọi kiểu dữ liệu một cách máy móc
+  - Kiểm chứng tác động tới ánh xạ, tuần tự hóa và lưu trữ sau thay đổi
+- level1: Dữ liệu khả biến
+  level2:
+  - Nhận diện trạng thái khả biến khó kiểm soát (Mutable Data)
+  - Theo dõi nhiều vị trí có thể sửa cùng một giá trị
+  - Phát hiện thay đổi trạng thái ngoài dự kiến qua tham chiếu dùng chung
+  - Thu hẹp phạm vi và xác định chủ sở hữu của trạng thái
+  - Phân biệt dữ liệu gốc với giá trị dẫn xuất có thể tính lại
+  - Tách truy vấn dữ liệu khỏi thao tác làm thay đổi trạng thái
+  - Sử dụng dữ liệu bất biến và bản sao phòng vệ khi phù hợp
+  - Kiểm chứng bất biến, thời điểm cập nhật và quan hệ giữa các trường
+  - Đánh giá rủi ro đồng thời khi nhiều luồng cùng truy cập trạng thái
+  - Cân nhắc chi phí sao chép và yêu cầu hiệu năng trước khi đổi mô hình dữ liệu
+- level1: Dữ liệu toàn cục
+  level2:
+  - Nhận diện dữ liệu toàn cục (Global Data) và phụ thuộc ngầm
+  - Phân biệt hằng số bất biến với trạng thái toàn cục có thể thay đổi
+  - Phát hiện singleton hoặc vùng dùng chung gây ảnh hưởng giữa các bên gọi
+  - Đánh giá sự phụ thuộc vào thứ tự khởi tạo và thứ tự chạy kiểm thử
+  - Đóng gói quyền truy cập trước khi thu hẹp phạm vi trạng thái
+  - Truyền phụ thuộc tường minh theo nhu cầu sử dụng
+  - Tách trạng thái theo yêu cầu, phiên làm việc hoặc vòng đời phù hợp
+  - Kiểm chứng cô lập dữ liệu và hành vi của các bên gọi sau thay đổi
+  - Tránh chuyển dữ liệu toàn cục thành một đối tượng trung tâm vẫn dùng chung mọi nơi
+- level1: Trường tạm thời
+  level2:
+  - Nhận diện trường chỉ có ý nghĩa trong một số giai đoạn (Temporary Field)
+  - Phát hiện đối tượng có nhiều trạng thái trung gian khó hiểu
+  - Phân biệt dữ liệu tùy chọn hợp lệ với trạng thái chỉ phục vụ một thao tác
+  - Thay trường tạm bằng biến cục bộ khi phạm vi cho phép
+  - Tách đối tượng xử lý khi nhiều trường cùng tồn tại cho một công việc
+  - Biểu diễn trạng thái và vòng đời rõ ràng để giảm kiểm tra giá trị rỗng
+  - Kiểm chứng khởi tạo, tái sử dụng và thực thi đồng thời của đối tượng
+  - Tránh đưa mọi biến trung gian vào trường của lớp để thuận tiện truyền dữ liệu
+- level1: Điều kiện lặp lại
+  level2:
+  - Nhận diện điều kiện lựa chọn bị lặp (Repeated Switches / Switch Statements)
+  - Phát hiện cùng một mã kiểu được phân nhánh ở nhiều nơi
+  - Phân biệt bảng quyết định tập trung với quy tắc bị phân tán
+  - Nhận diện chuỗi if-else hoặc switch trộn nhiều trách nhiệm
+  - Lựa chọn đa hình khi hành vi thay đổi theo một khái niệm có ý nghĩa
+  - Sử dụng bảng ánh xạ hoặc đối tượng chiến lược khi phù hợp
+  - Giữ cấu trúc điều kiện khi các trường hợp ít, rõ và ổn định
+  - Xử lý cờ điều khiển hành vi và tổ hợp điều kiện khó kiểm thử
+  - Kiểm chứng trường hợp mặc định, dữ liệu không hợp lệ và thứ tự đánh giá
+  - Tránh tạo hệ thống phân cấp chỉ để loại bỏ từ khóa switch
+- level1: Vòng lặp khó hiểu
+  level2:
+  - Nhận diện vòng lặp (Loops) che khuất ý định của phép xử lý
+  - Phân tích vòng lặp làm đồng thời lọc, biến đổi, tích lũy và cập nhật trạng thái
+  - Tách các bước xử lý khi cần hiểu riêng từng mục đích
+  - Lựa chọn phép xử lý tập hợp hoặc chuỗi biến đổi khi giúp diễn đạt rõ hơn
+  - Giữ vòng lặp tường minh khi điều khiển luồng hoặc hiệu năng cần thiết
+  - Kiểm chứng thứ tự, dừng sớm, tác dụng phụ và xử lý dữ liệu rỗng
+  - Đánh giá chi phí cấp phát và thay đổi cách duyệt dữ liệu
+  - Tránh thay mọi vòng lặp bằng Stream hoặc biểu thức khó đọc
+- level1: Hành vi đặt sai chỗ
+  level2:
+  - Nhận diện hàm quan tâm dữ liệu của lớp khác quá mức (Feature Envy)
+  - Đối chiếu dữ liệu được đọc với lớp đang sở hữu hành vi
+  - Phân biệt phối hợp nghiệp vụ với truy cập sâu vào chi tiết của đối tượng khác
+  - Chuyển hàm hoặc một phần hành vi về nơi có dữ liệu phù hợp
+  - Cân nhắc chuyển dữ liệu thay vì chỉ di chuyển phương thức
+  - Giữ đóng gói và hạn chế phụ thuộc mới trong quá trình chuyển
+  - Phân biệt Feature Envy với dịch vụ điều phối hoặc chiến lược dùng nhiều đối tượng
+  - Kiểm chứng hợp đồng và trách nhiệm của các lớp sau khi di chuyển hành vi
+- level1: Phụ thuộc chi tiết nội bộ
+  level2:
+  - Nhận diện phụ thuộc vào chi tiết nội bộ của nhau (Inappropriate Intimacy)
+  - Phát hiện truy cập trực tiếp trường, cấu trúc con và quy tắc nội bộ
+  - Nhận diện lớp đôi thường phải sửa đồng thời vì hiểu quá nhiều về nhau
+  - Thu hẹp giao diện và chuyển trách nhiệm về chủ sở hữu
+  - Tách hành vi chung khi nhiều lớp thật sự chia sẻ cùng một trách nhiệm
+  - Đánh giá kết hợp đối tượng thay cho quan hệ kế thừa gây lộ chi tiết
+  - Phân biệt quan hệ cộng tác cần thiết với phụ thuộc vào cách cài đặt
+  - Kiểm chứng giảm mức phụ thuộc mà không chỉ thêm lớp chuyển tiếp
+- level1: Chuỗi lời gọi
+  level2:
+  - Nhận diện chuỗi truy cập đối tượng sâu (Message Chains)
+  - Phân tích bên gọi phụ thuộc vào cấu trúc bên trong qua nhiều bước truy cập
+  - Phân biệt chuỗi thao tác của API linh hoạt với chuỗi làm lộ quan hệ nội bộ
+  - Ẩn việc điều hướng bằng hành vi có ý nghĩa tại đối tượng phù hợp
+  - Chuyển một phần xử lý về nơi sở hữu thông tin cần thiết
+  - Liên hệ nguyên tắc biết ít về cộng tác viên với thiết kế giao diện
+  - Đánh giá khi thêm phương thức chuyển tiếp tạo ra Middle Man
+  - Kiểm chứng lỗi giá trị rỗng và thay đổi cấu trúc đối tượng sau tái cấu trúc
+- level1: Trung gian dư thừa
+  level2:
+  - Nhận diện lớp chỉ chuyển tiếp lời gọi (Middle Man)
+  - Đánh giá giá trị thực của lớp trung gian đối với bên sử dụng
+  - Loại bỏ chuyển tiếp không cần thiết khi chỉ làm tăng chi phí điều hướng
+  - Cân nhắc để bên gọi tiếp cận thành phần phù hợp mà không lộ chi tiết quá mức
+  - Giữ lớp trung gian khi cần ổn định giao diện hoặc áp dụng chính sách chung
+  - Phân biệt Middle Man với Facade, Adapter, Proxy và Decorator
+  - Nhận diện sự đánh đổi giữa ẩn quan hệ cộng tác và quá nhiều chuyển tiếp
+  - Kiểm chứng ranh giới phụ thuộc sau khi bỏ một tầng trung gian
+- level1: Giao diện thiếu thống nhất
+  level2:
+  - Nhận diện lớp làm việc tương tự nhưng giao diện khác nhau (Alternative Classes with Different Interfaces)
+  - Phân biệt cùng trách nhiệm với chỉ tình cờ có thao tác giống nhau
+  - Đối chiếu tên gọi, tham số, kết quả và hợp đồng hành vi
+  - Thống nhất thuật ngữ và chữ ký khi ý nghĩa sử dụng tương thích
+  - Tách giao diện hoặc bộ chuyển đổi để cô lập khác biệt cần giữ
+  - Hợp nhất phần chung sau khi hiểu rõ các khác biệt về ngữ nghĩa
+  - Kiểm chứng ngoại lệ, trạng thái và tác dụng phụ khi chuẩn hóa giao diện
+  - Tránh ép các lớp khác bản chất vào cùng một hợp đồng
+- level1: Kế thừa không phù hợp
+  level2:
+  - Nhận diện lớp con không dùng hoặc từ chối hành vi được thừa hưởng (Refused Bequest)
+  - Phát hiện phương thức bị vô hiệu hóa hoặc ném lỗi để tránh hợp đồng của lớp cha
+  - Phân biệt quan hệ kiểu con với nhu cầu tái sử dụng một đoạn mã
+  - Đánh giá khả năng thay thế lớp cha bằng lớp con theo kỳ vọng bên gọi
+  - Phát hiện lớp con phụ thuộc vào chi tiết và thứ tự thực thi của lớp cha
+  - Tách giao diện hoặc điều chỉnh ranh giới trách nhiệm khi phù hợp
+  - Thay kế thừa bằng kết hợp đối tượng để chia sẻ hành vi có chọn lọc
+  - Đánh giá tác động tới API công khai và các lớp con hiện có
+  - Kiểm chứng bất biến và hợp đồng sau khi thay đổi hệ thống phân cấp
+  - Tránh loại bỏ kế thừa chỉ vì một lớp con không sử dụng mọi phương thức
+- level1: Phân cấp song song
+  level2:
+  - Nhận diện các hệ thống phân cấp phải mở rộng cùng nhau (Parallel Inheritance Hierarchies)
+  - Theo dõi thay đổi buộc tạo lớp tương ứng ở nhiều nhánh
+  - Phân biệt tương ứng có ý nghĩa với phụ thuộc do cách chia trách nhiệm
+  - Đưa trách nhiệm về đối tượng phù hợp hoặc giảm một chiều phân cấp
+  - Sử dụng kết hợp đối tượng khi hai chiều hành vi cần thay đổi độc lập
+  - Đánh giá lớp ánh xạ và cơ chế tạo đối tượng trước khi tái cấu trúc
+  - Kiểm chứng số lượng biến thể và tính đầy đủ của các cặp kết hợp
+  - Tránh thay cấu trúc song song bằng cấu hình ngầm khó kiểm tra hơn
+- level1: Thay đổi phân tán
+  level2:
+  - Nhận diện một thay đổi phải sửa nhiều nơi (Shotgun Surgery)
+  - Dùng lịch sử thay đổi để tìm quy tắc bị phân tán
+  - Phân biệt sửa nhiều lớp do trách nhiệm phân tán với phối hợp hợp lý
+  - Gom dữ liệu và hành vi của cùng một quy tắc về nơi phù hợp
+  - Điều chỉnh ranh giới mô-đun để giảm số điểm cần thay đổi
+  - Loại bỏ hằng số, điều kiện và quy tắc bị sao chép
+  - Giữ các hợp đồng ngoài phạm vi trong khi hợp nhất trách nhiệm
+  - Kiểm chứng một yêu cầu thay đổi mới để đánh giá thiết kế sau sửa
+  - Tránh tạo lớp trung tâm chứa mọi hành vi nhằm giảm số tệp phải sửa
+- level1: Nhiều lý do thay đổi
+  level2:
+  - Nhận diện lớp đổi vì nhiều nguyên nhân độc lập (Divergent Change)
+  - Phân tích lịch sử sửa mã theo nghiệp vụ, lưu trữ, giao tiếp và trình bày
+  - Phân biệt Divergent Change với Shotgun Surgery
+  - Tìm các nhóm trách nhiệm có nhịp và lý do thay đổi khác nhau
+  - Tách lớp hoặc mô-đun theo ranh giới thay đổi
+  - Cô lập chi tiết kỹ thuật khỏi quy tắc nghiệp vụ khi cần
+  - Thiết kế giao diện giữa các phần sau khi phân chia
+  - Kiểm chứng tính gắn kết và tránh tách trách nhiệm quá vụn
+- level1: Ranh giới mô-đun
+  level2:
+  - Phát hiện phụ thuộc vòng giữa lớp, gói và mô-đun
+  - Nhận diện tầng bên trong phụ thuộc trực tiếp vào chi tiết bên ngoài
+  - Phân biệt dấu hiệu ở mã cục bộ với vấn đề ở ranh giới kiến trúc
+  - Phát hiện dữ liệu nội bộ bị chia sẻ rộng và làm nhiều thành phần đổi theo
+  - Đối chiếu ranh giới mô-đun với năng lực nghiệp vụ và chủ sở hữu
+  - Đảo chiều phụ thuộc hoặc tách hợp đồng tại ranh giới phù hợp
+  - Đánh giá thư viện dùng chung đang trở thành điểm kết nối quá lớn
+  - Kiểm chứng hướng phụ thuộc và phạm vi thay đổi sau điều chỉnh
+- level1: API và luồng xử lý
+  level2:
+  - Nhận diện hàm truy vấn có tác dụng phụ gây bất ngờ
+  - Phát hiện đối tượng phải được gọi theo thứ tự ngầm mới hoạt động đúng
+  - Nhận diện chuỗi giá trị rỗng làm bên gọi lặp lại kiểm tra phòng vệ
+  - Phân biệt dữ liệu vắng mặt hợp lệ với lỗi bị che bằng giá trị mặc định
+  - Phát hiện xử lý ngoại lệ bị sao chép, bỏ qua hoặc mất ngữ cảnh
+  - Nhận diện hàm trả nhiều loại kết quả khó phân biệt bằng hợp đồng
+  - Đóng gói điều kiện hợp lệ và làm rõ các trạng thái được phép
+  - Đánh giá phương thức đa nhiệm bị điều khiển bởi cờ hoặc chế độ
+  - Giữ thông tin lỗi và kỳ vọng bên gọi khi cải thiện luồng xử lý
+- level1: Kiểm thử và chẩn đoán
+  level2:
+  - Nhận diện mã khó kiểm thử do phụ thuộc ngầm và trạng thái dùng chung
+  - Phân biệt khó kiểm thử vì công cụ với vấn đề thiết kế cần điều chỉnh
+  - Đánh giá kiểm thử cần dựng quá nhiều đối tượng để gọi một hành vi nhỏ
+  - Phát hiện kiểm thử phụ thuộc chi tiết cài đặt và thường vỡ khi tái cấu trúc
+  - Nhận diện mô phỏng quá nhiều cộng tác viên như dấu hiệu cần xem lại trách nhiệm
+  - Viết kiểm thử đặc trưng hóa để ghi nhận hành vi hiện tại của mã cũ
+  - Phân biệt hành vi cần giữ với lỗi cần sửa theo quyết định riêng
+  - Tạo điểm kiểm soát phụ thuộc để kiểm thử thời gian, I/O và nguồn dữ liệu
+  - Kiểm chứng các đường lỗi, tác dụng phụ và tính độc lập giữa kiểm thử
+- level1: Công cụ và chỉ số
+  level2:
+  - Sử dụng phân tích tĩnh để tìm ứng viên cần xem xét
+  - Đọc kết quả phát hiện mã trùng lặp và giới hạn của phép so sánh
+  - Diễn giải số dòng, số tham số và kích thước lớp trong bối cảnh
+  - Đánh giá độ phức tạp nhánh và độ khó theo dõi luồng điều khiển
+  - Quan sát mức phụ thuộc, tính gắn kết và điểm tập trung thay đổi
+  - Kết hợp lịch sử Git với mức độ thường xuyên thay đổi của mã
+  - Phân biệt tín hiệu đo được với kết luận chất lượng thiết kế
+  - Điều chỉnh luật và xử lý cảnh báo không phù hợp có giải thích
+  - Tránh dùng một ngưỡng số học để tự động quyết định mọi lần tái cấu trúc
+- level1: Ưu tiên và nợ kỹ thuật
+  level2:
+  - Ưu tiên dấu hiệu theo tác động tới công việc đang thực hiện
+  - Kết hợp mức độ khó hiểu, tần suất thay đổi và hậu quả sai sót
+  - Xác định khu vực vừa phức tạp vừa thường xuyên thay đổi
+  - Phân biệt cải thiện có giá trị với làm đẹp mã theo sở thích
+  - Ước lượng phạm vi ảnh hưởng, công sức và mức chắc chắn của thay đổi
+  - Lập kế hoạch cải thiện theo từng bước có thể kiểm chứng
+  - Ghi nhận nợ kỹ thuật bằng bằng chứng và hệ quả cụ thể
+  - Quyết định giữ nguyên khi chi phí hoặc rủi ro vượt lợi ích hiện tại
+  - Theo dõi hiệu quả qua công việc thay đổi thực tế sau khi xử lý
+- level1: Quy trình tái cấu trúc
+  level2:
+  - Xác định hành vi quan sát được và hợp đồng phải bảo toàn
+  - Thiết lập kiểm thử và đường cơ sở trước khi sửa
+  - Chọn kỹ thuật phù hợp giả thuyết về trách nhiệm hoặc phụ thuộc
+  - Thực hiện bước nhỏ và giữ mã ở trạng thái có thể kiểm chứng
+  - Di chuyển dữ liệu, hành vi và bên gọi theo thứ tự an toàn
+  - Tách thay đổi cấu trúc khỏi thay đổi hành vi trong bằng chứng đánh giá
+  - Chạy kiểm thử phù hợp sau từng nhóm thay đổi có ý nghĩa
+  - Rà soát khác biệt để phát hiện thay đổi ngoài mục tiêu
+  - Hoàn tác hoặc điều chỉnh hướng khi bằng chứng không ủng hộ giả thuyết
+  - Ghi nhận kết quả và điều kiện dừng của lần tái cấu trúc
+- level1: Rủi ro và đánh đổi
+  level2:
+  - Giữ tính tương thích của API công khai và bên sử dụng ngoài kho mã
+  - Kiểm tra tác động tới tuần tự hóa, ánh xạ dữ liệu và cấu hình
+  - Bảo toàn thứ tự thực thi, tác dụng phụ và ngữ nghĩa ngoại lệ
+  - Kiểm chứng vòng đời đối tượng và thời điểm cấp phát tài nguyên
+  - Đánh giá thay đổi về đồng thời, tính nguyên tử và đồng bộ hóa
+  - Đo hiệu năng khi thay đổi cấu trúc có khả năng ảnh hưởng đường chạy quan trọng
+  - Tránh sửa nhiều dấu hiệu cùng lúc làm khó truy nguyên lỗi
+  - Nhận diện tái cấu trúc quá mức và trừu tượng làm việc đọc mã khó hơn
+  - So sánh lợi ích cục bộ với chi phí cho bên gọi và toàn mô-đun
+  - Phân biệt rủi ro đã kiểm chứng với giả định cần theo dõi
+- level1: Rà soát và duy trì
+  level2:
+  - Đưa nhận diện code smell vào rà soát theo mục tiêu thay đổi
+  - Mô tả dấu hiệu bằng bằng chứng thay vì phán xét phong cách cá nhân
+  - Đặt câu hỏi về trách nhiệm, hợp đồng và hướng thay đổi
+  - Thảo luận phương án đơn giản hơn cùng các đánh đổi cụ thể
+  - Phân biệt vấn đề cần sửa trong thay đổi hiện tại với việc theo dõi sau
+  - Xây dựng ví dụ chung để thống nhất cách hiểu trong nhóm
+  - Đưa kiểm thử và kiểm tra tự động phù hợp vào quy trình phát triển
+  - Rà soát lại dấu hiệu sau khi yêu cầu hoặc cấu trúc hệ thống thay đổi
+  - Duy trì thiết kế dễ thay đổi mà không đặt mục tiêu xóa sạch mọi cảnh báo
+- level1: Tình huống và thực hành
+  level2:
+  - Chẩn đoán hàm dài xử lý nhiều bước và đề xuất ranh giới tách
+  - Phân chia lớp chứa đồng thời nghiệp vụ, lưu trữ và trình bày
+  - Thiết kế kiểu giá trị cho dữ liệu có quy tắc hợp lệ riêng
+  - Đánh giá hai đoạn mã giống nhau trước khi quyết định hợp nhất
+  - Xử lý nhóm tham số lặp lại mà vẫn giữ rõ ý nghĩa đầu vào
+  - Di chuyển hành vi đang truy cập sâu vào dữ liệu của lớp khác
+  - So sánh giữ điều kiện tập trung với chuyển sang đa hình
+  - Giảm dữ liệu toàn cục và kiểm chứng cô lập giữa các kiểm thử
+  - Thay quan hệ kế thừa không phù hợp bằng kết hợp đối tượng
+  - Phân biệt Divergent Change và Shotgun Surgery qua lịch sử yêu cầu
+  - Đánh giá một lần tái cấu trúc gây thêm tầng trung gian và điều chỉnh lại
+  - Lập hồ sơ trước và sau gồm dấu hiệu, giả thuyết, thay đổi và bằng chứng
+  - Thực hiện tái cấu trúc mã cũ bằng các bước nhỏ có kiểm thử bảo vệ
+  - Giải thích quyết định giữ nguyên một dấu hiệu theo bối cảnh và rủi ro

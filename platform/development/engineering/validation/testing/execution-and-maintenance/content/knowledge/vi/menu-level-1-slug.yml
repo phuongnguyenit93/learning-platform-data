@@ -1,0 +1,106 @@
+menu:
+- title: Vận hành kiểm thử
+  slug: test-operations
+  index: 0
+- title: Chu kỳ thực thi
+  slug: execution-cycle
+  index: 1
+- title: Điều kiện đầu vào
+  slug: input-conditions
+  index: 2
+- title: Tổ chức bộ kiểm thử
+  slug: test-suite-organization
+  index: 3
+- title: Cấu hình lần chạy
+  slug: run-configuration
+  index: 4
+- title: Môi trường kiểm thử
+  slug: test-environment
+  index: 5
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 6
+- title: Fixture và tài nguyên
+  slug: fixtures-and-resources
+  index: 7
+- title: Thực thi thủ công
+  slug: manual-execution
+  index: 8
+- title: JUnit và vòng đời
+  slug: junit-lifecycle
+  index: 9
+- title: Maven và Gradle
+  slug: maven-and-gradle
+  index: 10
+- title: Phụ thuộc bên ngoài
+  slug: external-dependencies
+  index: 11
+- title: Database và giao dịch
+  slug: database-transactions
+  index: 12
+- title: API và bất đồng bộ
+  slug: api-and-async
+  index: 13
+- title: Giao diện người dùng
+  slug: user-interface
+  index: 14
+- title: Tính xác định
+  slug: determinism
+  index: 15
+- title: Song song và cô lập
+  slug: parallel-isolation
+  index: 16
+- title: Timeout và chạy lại
+  slug: timeout-and-retry
+  index: 17
+- title: Tích hợp CI/CD
+  slug: ci-cd-integration
+  index: 18
+- title: Phân phối công việc
+  slug: work-distribution
+  index: 19
+- title: Bộ kiểm thử chuyên biệt
+  slug: specialized-test-suites
+  index: 20
+- title: Bằng chứng thực thi
+  slug: execution-evidence
+  index: 21
+- title: Báo cáo kết quả
+  slug: result-reporting
+  index: 22
+- title: Phân tích thất bại
+  slug: failure-analysis
+  index: 23
+- title: Quản lý lỗi
+  slug: error-management
+  index: 24
+- title: Xác nhận và hồi quy
+  slug: validation-and-regression
+  index: 25
+- title: Kiểm thử thất thường
+  slug: flaky-tests
+  index: 26
+- title: Cách ly và quality gate
+  slug: isolation-and-quality-gate
+  index: 27
+- title: Bảo trì bộ kiểm thử
+  slug: test-suite-maintenance
+  index: 28
+- title: Cải tổ mã kiểm thử
+  slug: test-code-refactoring
+  index: 29
+- title: Ứng phó thay đổi
+  slug: change-response
+  index: 30
+- title: Quản lý phiên bản
+  slug: version-management
+  index: 31
+- title: Chỉ số vận hành
+  slug: operational-metrics
+  index: 32
+- title: Tài nguyên và bảo mật
+  slug: resources-and-security
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

@@ -1,0 +1,3 @@
+menuLevel1: Ngoại lệ runtime
+menuLevel2: ConcurrentModificationException và giới hạn của cơ chế fail-fast
+status: WRITTEN

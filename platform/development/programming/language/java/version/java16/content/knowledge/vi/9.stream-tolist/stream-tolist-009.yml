@@ -1,0 +1,3 @@
+menuLevel1: Stream.toList
+menuLevel2: Tạo bản sao ArrayList khi bên nhận thực sự cần danh sách mutable
+status: ""

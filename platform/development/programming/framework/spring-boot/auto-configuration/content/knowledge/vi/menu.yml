@@ -1,0 +1,356 @@
+menu:
+- level1: Bức tranh tự cấu hình
+  level2:
+  - Tự cấu hình (auto-configuration) là gì và giải quyết sự lặp lại cấu hình như thế nào
+  - Vai trò của tự cấu hình trong mối quan hệ giữa Spring Framework và Spring Boot
+  - Thư viện, starter, thuộc tính và bean người dùng cùng quyết định cấu hình được chọn
+  - Phân biệt tự cấu hình với quét thành phần, tiêm phụ thuộc và gắn thuộc tính
+  - Từ danh sách cấu hình ứng viên đến tập bean thực sự có trong ứng dụng
+  - Cấu hình mặc định có điều kiện và cơ chế nhường chỗ cho người dùng (back-off)
+  - Phạm vi tự cấu hình khi xây ứng dụng và khi phát triển thư viện dùng chung
+  - 'Những ngộ nhận: thêm starter luôn tạo bean, mọi cấu hình đều được bật và Boot thay thế Spring'
+  - Trình tự học từ quan sát bean đến tự viết và kiểm chứng một thư viện tự cấu hình
+- level1: Nền tảng cần biết
+  level2:
+  - ApplicationContext, BeanFactory và định nghĩa bean trong quá trình khởi động
+  - Phân biệt đăng ký định nghĩa bean với khởi tạo đối tượng bean
+  - '@Configuration, @Bean và @Import trong cấu hình bằng Java'
+  - '@ComponentScan và ranh giới package của cấu hình do ứng dụng sở hữu'
+  - Classpath, ClassLoader và sự hiện diện của dependency tùy chọn
+  - Environment, PropertySource và thời điểm thuộc tính sẵn sàng cho điều kiện
+  - Annotation tổng hợp, siêu dữ liệu annotation và khai báo theo tên lớp
+  - Dependency trực tiếp, dependency bắc cầu và phiên bản Spring Boot đang sử dụng
+- level1: Kích hoạt tự cấu hình
+  level2:
+  - '@SpringBootApplication kết hợp cấu hình ứng dụng, quét thành phần và tự cấu hình'
+  - '@EnableAutoConfiguration kích hoạt lựa chọn cấu hình như thế nào'
+  - Vai trò của @AutoConfigurationPackage và AutoConfigurationPackages
+  - Phân biệt package tự cấu hình với phạm vi @ComponentScan
+  - AutoConfigurationImportSelector trong chuỗi xử lý @Import
+  - DeferredImportSelector và lý do trì hoãn xử lý cấu hình tự động
+  - Cấu hình người dùng và thời điểm xem xét cấu hình mặc định
+  - Từ SpringApplication.run đến xử lý lớp cấu hình và đăng ký định nghĩa bean
+  - Phân biệt nhập một lớp bằng @Import với bật cơ chế @EnableAutoConfiguration
+  - Thiết lập ứng dụng tối thiểu để quan sát tự cấu hình mà không cần máy chủ web
+- level1: Khám phá ứng viên
+  level2:
+  - Đăng ký lớp tại META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+  - Tên lớp đầy đủ, mỗi dòng một ứng viên và quy tắc chú thích trong tệp imports
+  - Đăng ký lớp lồng nhau bằng tên nhị phân có ký tự $
+  - ImportCandidates và việc đọc tài nguyên từ các JAR trên classpath
+  - Hợp nhất danh sách ứng viên, xử lý trùng lặp và danh sách loại trừ
+  - Lọc ứng viên trước khi xử lý đầy đủ cấu hình
+  - Vai trò của AutoConfigurationImportFilter và metadata hỗ trợ lọc
+  - Phối hợp ứng viên qua nhóm DeferredImportSelector và sắp xếp cấu hình
+  - Kiểm tra tệp đăng ký trong JAR thư viện đã đóng gói
+  - Phân biệt lỗi không khám phá được ứng viên với điều kiện của ứng viên không thỏa mãn
+- level1: Lớp tự cấu hình
+  level2:
+  - '@AutoConfiguration và mối quan hệ với @Configuration'
+  - proxyBeanMethods=false và cách cung cấp dependency qua tham số @Bean
+  - Tách cấu hình theo chức năng thay vì gom mọi tích hợp vào một lớp
+  - Điều kiện đặt ở lớp ngoài, lớp lồng nhau và phương thức @Bean
+  - Cô lập cấu hình cho dependency tùy chọn bằng lớp cấu hình lồng nhau
+  - Đặt lớp tự cấu hình ngoài vùng quét thành phần của ứng dụng
+  - Nhập thành phần phụ trợ bằng @Import thay cho quét thành phần rộng
+  - Thiết kế phương thức @Bean công khai đủ thông tin về kiểu trả về
+  - Phân biệt giao diện mở rộng công khai với lớp triển khai tự cấu hình nội bộ
+- level1: Cơ chế điều kiện
+  level2:
+  - '@Conditional và giao ước Condition.matches'
+  - ConditionContext cung cấp Environment, registry, BeanFactory và ClassLoader
+  - AnnotatedTypeMetadata và dữ liệu annotation khi đánh giá điều kiện
+  - Điều kiện ở cấp lớp và cấp phương thức tác động đến phạm vi đăng ký như thế nào
+  - Kết hợp nhiều điều kiện và quy tắc tất cả điều kiện phải thỏa mãn
+  - Phân biệt giai đoạn phân tích cấu hình và giai đoạn đăng ký bean
+  - ConfigurationCondition với PARSE_CONFIGURATION và REGISTER_BEAN
+  - Điều kiện được đánh giá khi xây context, không phải công tắc tự cập nhật theo từng lời gọi
+  - Vì sao điều kiện không nên khởi tạo bean hoặc thực hiện tác vụ có tác dụng phụ
+  - Phân biệt cấu hình không được nhập, điều kiện không khớp và bean khởi tạo thất bại
+- level1: Điều kiện classpath
+  level2:
+  - '@ConditionalOnClass kiểm tra sự hiện diện của các kiểu bắt buộc'
+  - '@ConditionalOnMissingClass chọn phương án khi thư viện không có mặt'
+  - Chọn value hoặc name khi tham chiếu lớp tùy chọn
+  - Kiểm tra đồng thời nhiều lớp và thiết kế điều kiện cho từng nhóm tính năng
+  - Đọc metadata bằng ASM và giới hạn của việc tránh nạp lớp
+  - Rủi ro đặt điều kiện trên @Bean có kiểu trả về không tồn tại
+  - Cô lập chữ ký phương thức và mã triển khai phụ thuộc thư viện tùy chọn
+  - Annotation tổng hợp có điều kiện lớp và trường hợp cần dùng tên lớp
+  - Phân biệt thiếu lớp, thiếu dependency bắc cầu và sai phiên bản thư viện
+- level1: Điều kiện bean
+  level2:
+  - '@ConditionalOnBean và yêu cầu các bean phụ thuộc đã được đăng ký'
+  - '@ConditionalOnMissingBean và lựa chọn bean mặc định khi chưa có ứng viên'
+  - Tra cứu theo kiểu, tên bean và annotation trên bean
+  - Quy tắc kết hợp nhiều yêu cầu trong điều kiện có bean và thiếu bean
+  - Kiểu trả về của @Bean ảnh hưởng đến khả năng suy luận ứng viên
+  - Điều kiện bean chỉ quan sát những định nghĩa đã được xử lý tại thời điểm đánh giá
+  - SearchStrategy.CURRENT, ANCESTORS và ALL trong cây context
+  - ignored và ignoredType khi loại một số kiểu khỏi phép kiểm tra thiếu bean
+  - parameterizedContainer và việc nhận diện kiểu bean qua lớp chứa generic
+  - '@ConditionalOnSingleCandidate khi có một ứng viên hoặc một ứng viên @Primary'
+  - Phân biệt @Primary, @Qualifier và việc ngăn đăng ký bean bằng điều kiện
+  - Hai cấu hình mặc định cùng thỏa điều kiện thiếu bean và vai trò của thứ tự
+  - Đặt điều kiện tại lớp hoặc từng @Bean để kiểm soát mức độ nhường chỗ
+  - Ảnh hưởng của thông tin kiểu không đầy đủ, FactoryBean và bean đăng ký gián tiếp
+- level1: Điều kiện thuộc tính
+  level2:
+  - '@ConditionalOnProperty với prefix, name và value'
+  - Ý nghĩa mặc định khi thuộc tính tồn tại và giá trị khác false
+  - havingValue và cách diễn giải các giá trị true, false hoặc chuỗi tùy chọn
+  - matchIfMissing và quyết định bật hay tắt khi không khai báo thuộc tính
+  - Nhiều tên thuộc tính trong một điều kiện và yêu cầu tất cả cùng khớp
+  - Phân biệt thuộc tính không tồn tại, chuỗi rỗng và giá trị false
+  - Chuẩn hóa tên khóa dạng kebab-case và kiểm tra nguồn giá trị hiệu lực
+  - Giới hạn khi kiểm tra thuộc tính danh sách hoặc phần tử có chỉ số
+  - Phân biệt giá trị mặc định của đối tượng @ConfigurationProperties với thuộc tính trong Environment
+  - '@ConditionalOnExpression và rủi ro tham chiếu bean khiến khởi tạo quá sớm'
+  - Thiết kế khóa bật tính năng rõ ràng và lập bảng trường hợp đầu vào cho điều kiện
+- level1: Điều kiện môi trường
+  level2:
+  - '@ConditionalOnResource và kiểm tra tài nguyên classpath hoặc hệ thống tệp'
+  - '@ConditionalOnWebApplication với ANY, SERVLET và REACTIVE'
+  - '@ConditionalOnNotWebApplication cho ứng dụng không có ngữ cảnh web'
+  - Phân biệt có thư viện web trên classpath với loại ApplicationContext đang chạy
+  - '@ConditionalOnWarDeployment và @ConditionalOnNotWarDeployment'
+  - '@ConditionalOnJava và khoảng phiên bản JVM được chấp nhận'
+  - '@ConditionalOnCloudPlatform và phạm vi nhận diện nền tảng'
+  - '@ConditionalOnJndi và điều kiện hạ tầng tra cứu JNDI'
+  - '@ConditionalOnThreading và cấu hình theo mô hình luồng ở phiên bản hỗ trợ'
+  - '@Profile trong cấu hình có điều kiện và mối quan hệ với nhóm annotation của Boot'
+  - Kết hợp điều kiện môi trường với classpath và bean mà không gây kích hoạt ngoài dự kiến
+- level1: Thứ tự cấu hình
+  level2:
+  - Vì sao cấu hình tạo bean nền phải được xử lý trước cấu hình sử dụng bean đó
+  - before, after, beforeName và afterName trên @AutoConfiguration
+  - '@AutoConfigureBefore và @AutoConfigureAfter khi khai báo quan hệ thứ tự'
+  - '@AutoConfigureOrder cho mức ưu tiên giữa các cấu hình tự động'
+  - Thứ tự xử lý cấu hình khác với thứ tự khởi tạo bean
+  - Phân biệt thứ tự tự cấu hình với @Order, Ordered và @DependsOn
+  - Tham chiếu cấu hình tùy chọn theo tên để tránh phụ thuộc cứng
+  - Đồ thị quan hệ trước sau, quan hệ bắc cầu và vòng lặp thứ tự
+  - Không dựa vào thứ tự dòng trong tệp imports hoặc thứ tự dependency
+  - Kiểm chứng thứ tự bằng kết quả bean và báo cáo điều kiện
+- level1: Thay thế và loại trừ
+  level2:
+  - 'Tùy chỉnh bằng thuộc tính, customizer hoặc bean người dùng: chọn đúng mức can thiệp'
+  - Nhường chỗ theo từng bean thay vì tắt toàn bộ một nhóm cấu hình
+  - exclude trên @SpringBootApplication và @EnableAutoConfiguration
+  - excludeName khi cần loại trừ bằng tên lớp đầy đủ
+  - spring.autoconfigure.exclude qua tệp cấu hình và tham số khởi động
+  - Loại trừ một cấu hình không đồng nghĩa loại dependency khỏi classpath
+  - Phân biệt nhường chỗ có điều kiện với ghi đè định nghĩa bean cùng tên
+  - Rủi ro dùng spring.main.allow-bean-definition-overriding để che xung đột thiết kế
+  - Bean @Primary không tự làm biến mất mọi bean mặc định
+  - Giới hạn của việc loại trừ lớp cấu hình thông thường hoặc lớp lồng nhau nội bộ
+  - Kiểm tra tác động dây chuyền khi loại bean nền mà cấu hình khác đang cần
+- level1: Thuộc tính thư viện
+  level2:
+  - Thiết kế namespace riêng cho @ConfigurationProperties của thư viện
+  - Đăng ký lớp thuộc tính bằng @EnableConfigurationProperties
+  - Chọn kiểu dữ liệu, giá trị mặc định và nhóm thuộc tính theo chức năng
+  - Gắn thuộc tính vào bean mặc định mà không trộn logic nghiệp vụ vào cấu hình
+  - Ràng buộc tính hợp lệ bằng @Validated và phản hồi lỗi cấu hình
+  - Đọc Environment để quyết định kích hoạt và dùng đối tượng thuộc tính để cấu hình bean
+  - Giữ khóa điều khiển bật tắt nhất quán với cấu hình được tạo
+  - Thiết kế thuộc tính bắt buộc khi tính năng bật và hành vi khi tính năng tắt
+  - Phân biệt thuộc tính công khai ổn định với chi tiết triển khai nội bộ
+  - Kiểm tra quyền ưu tiên nguồn cấu hình trong phạm vi tính năng tự cấu hình
+- level1: Điểm mở rộng
+  level2:
+  - Customizer và builder giúp tùy chỉnh bean mà vẫn giữ cấu hình mặc định
+  - ObjectProvider cho dependency tùy chọn và truy xuất theo nhu cầu
+  - Xử lý không có, có một hoặc có nhiều thành phần mở rộng
+  - Áp dụng nhiều customizer theo thứ tự xác định
+  - Chọn điều kiện có một ứng viên khi cấu hình chỉ hỗ trợ một thành phần nền
+  - Thiết kế giao diện chiến lược và bean thay thế cho người dùng thư viện
+  - Tách cấu hình cốt lõi khỏi tích hợp tùy chọn bằng nhiều lớp tự cấu hình
+  - Quy định quyền sở hữu vòng đời và giải phóng tài nguyên của bean tạo tự động
+  - Phân biệt mở rộng qua API công khai với phụ thuộc vào lớp nội bộ của framework
+- level1: Báo cáo điều kiện
+  level2:
+  - Bật báo cáo tự cấu hình bằng --debug hoặc debug=true
+  - Đọc positive matches, negative matches, exclusions và unconditional classes
+  - Xác định điều kiện ở lớp ngoài và phương thức @Bean trong báo cáo
+  - ConditionEvaluationReport và cách tra cứu kết quả theo nguồn cấu hình
+  - ConditionOutcome, thông điệp khớp và thông điệp không khớp
+  - Kết hợp báo cáo điều kiện với danh sách bean thực tế trong context
+  - Điểm cuối Actuator conditions và phạm vi thông tin theo từng context
+  - Giới hạn quyền truy cập khi dùng thông tin chẩn đoán của Actuator
+  - ConditionEvaluationReportLoggingListener trong kiểm thử cấu hình
+  - Phân biệt không khớp có chủ đích với cấu hình bị lỗi ngoài dự kiến
+  - So sánh báo cáo trước và sau khi thay dependency, thuộc tính hoặc bean
+- level1: Đọc mã tự cấu hình
+  level2:
+  - Tìm lớp tự cấu hình tương ứng với một tính năng và đúng phiên bản đang chạy
+  - Đọc điều kiện lớp trước khi phân tích từng phương thức @Bean
+  - Truy vết @Import và cấu hình lồng nhau theo từng nhánh lựa chọn
+  - Xác định thuộc tính đầu vào, bean đầu ra và điểm tùy chỉnh công khai
+  - Lần theo cấu hình tiền đề qua quan hệ before và after
+  - Đọc kiểm thử của framework để hiểu hành vi nhường chỗ và trường hợp biên
+  - Lập bảng classpath, thuộc tính, bean người dùng và kết quả dự kiến
+  - Phân biệt giao ước được tài liệu hóa với chi tiết triển khai có thể thay đổi
+  - Đối chiếu suy luận từ mã nguồn với một thí nghiệm context tối thiểu
+- level1: Ví dụ JDBC
+  level2:
+  - Lần theo điều kiện của DataSourceAutoConfiguration
+  - Classpath JDBC, driver và nguồn dữ liệu nhúng trong các nhánh cấu hình
+  - Thuộc tính kết nối và lựa chọn nguồn dữ liệu mặc định
+  - Bean DataSource do người dùng cung cấp và hành vi nhường chỗ
+  - Nhiều DataSource, ứng viên chính và điều kiện của JdbcTemplateAutoConfiguration
+  - Quan hệ thứ tự giữa cấu hình nguồn dữ liệu và tiện ích JDBC
+  - Đọc báo cáo khi thiếu driver, thiếu thông tin kết nối hoặc bean bị thay thế
+  - Giữ thí nghiệm ở mức cơ chế tự cấu hình, tách khỏi nghiệp vụ truy vấn dữ liệu
+- level1: Ví dụ ứng dụng web
+  level2:
+  - Lần theo điều kiện servlet của WebMvcAutoConfiguration
+  - Lần theo điều kiện reactive của WebFluxAutoConfiguration
+  - Ảnh hưởng của dependency và lựa chọn loại ứng dụng đến nhánh cấu hình web
+  - Phân biệt cấu hình máy chủ web với cấu hình tầng xử lý yêu cầu
+  - WebMvcConfigurer để mở rộng cấu hình MVC đang có
+  - '@EnableWebMvc và tác động đến cơ chế cấu hình mặc định của Boot'
+  - Dùng ứng dụng không web để kiểm chứng cấu hình web không bị kích hoạt
+  - Đối chiếu bean và báo cáo điều kiện mà không xây API nghiệp vụ nhân tạo
+- level1: Thư viện tự cấu hình
+  level2:
+  - Xác định khả năng của thư viện, điều kiện kích hoạt và giao ước tùy chỉnh
+  - Tạo lớp @AutoConfiguration và đăng ký trong tệp imports
+  - Khai báo điều kiện classpath để thư viện tùy chọn không gây lỗi nạp lớp
+  - Tạo bean mặc định với điều kiện nhường chỗ rõ ràng
+  - Tách tích hợp bổ sung thành các cấu hình độc lập
+  - Đăng ký thuộc tính thư viện và cung cấp giá trị mặc định có chủ đích
+  - Thiết kế trường hợp không có dependency hoặc người dùng tắt tính năng
+  - Đảm bảo ứng dụng không cần quét package của thư viện
+  - Kiểm tra tài nguyên đăng ký và các lớp triển khai trong JAR phân phối
+  - Cung cấp ứng dụng tiêu thụ tối thiểu để xác nhận tự khám phá từ dependency
+- level1: Starter tùy chỉnh
+  level2:
+  - Phân biệt mô-đun API, mô-đun autoconfigure và mô-đun starter
+  - Khi nào nên tách starter khỏi mã tự cấu hình và khi nào có thể gộp
+  - Quy ước đặt tên starter bên thứ ba và tránh chiếm namespace Spring Boot
+  - Chọn dependency cần thiết cho trải nghiệm sử dụng mặc định
+  - optional trong Maven và compileOnly hoặc api, implementation trong Gradle
+  - Phân biệt dependency xuất bản tới người dùng với dependency chỉ phục vụ biên dịch
+  - BOM và quản lý phiên bản thư viện theo dòng Spring Boot tương thích
+  - Xuất bản JAR thư viện thông thường thay vì dùng executable JAR làm dependency
+  - Giới hạn dependency bắc cầu để không vô tình kích hoạt tính năng khác
+  - Kiểm chứng starter từ dự án tiêu thụ độc lập với mã nguồn thư viện
+- level1: Metadata
+  level2:
+  - Phân biệt metadata tự cấu hình và metadata thuộc tính cấu hình
+  - spring-boot-autoconfigure-processor và spring-autoconfigure-metadata.properties
+  - Metadata hỗ trợ lọc ứng viên sớm và tối ưu chi phí xử lý cấu hình
+  - spring-boot-configuration-processor và spring-configuration-metadata.json
+  - Khai báo annotation processor phù hợp trong Gradle hoặc Maven
+  - Tài liệu hóa tên khóa, kiểu, mô tả và giá trị mặc định của thuộc tính
+  - additional-spring-configuration-metadata.json cho mô tả bổ sung và gợi ý
+  - Metadata thuộc tính lỗi thời và hướng dẫn khóa thay thế
+  - Kiểm tra metadata sinh ra trong JAR và hỗ trợ hoàn thành cấu hình của IDE
+  - Phân biệt metadata phục vụ công cụ với logic quyết định tạo bean
+- level1: Kiểm thử độc lập
+  level2:
+  - ApplicationContextRunner và lợi ích của context nhỏ cho kiểm thử tự cấu hình
+  - AutoConfigurations.of để nạp đúng tập cấu hình cần kiểm tra
+  - withUserConfiguration để mô phỏng cấu hình ứng dụng
+  - withPropertyValues để thiết lập từng trường hợp thuộc tính
+  - withBean để cung cấp bean người dùng cho thí nghiệm
+  - Kiểm tra có một bean, không có bean, tên bean và danh tính đối tượng
+  - Kiểm tra giá trị cấu hình đã được gắn vào bean mặc định
+  - FilteredClassLoader để mô phỏng thiếu lớp hoặc thiếu gói thư viện
+  - Kiểm tra startup failure và nguyên nhân gốc khi cấu hình không hợp lệ
+  - Đọc báo cáo điều kiện ngay trong kiểm thử để giải thích kết quả
+  - Giải phóng context sau mỗi lần chạy và giữ các trường hợp độc lập
+- level1: Ma trận kiểm thử
+  level2:
+  - Tổ hợp dependency có mặt hoặc vắng mặt với tính năng bật hoặc tắt
+  - Thuộc tính không khai báo, hợp lệ, không hợp lệ và giá trị biên
+  - Không có bean người dùng, có bean thay thế và có nhiều ứng viên
+  - Kiểm tra @Primary cùng trường hợp nhiều ứng viên không có ứng viên chính
+  - withParent để xác minh SearchStrategy trong cây context
+  - WebApplicationContextRunner và ReactiveWebApplicationContextRunner
+  - Kiểm chứng quan hệ thứ tự giữa nhiều lớp tự cấu hình
+  - Kiểm thử tính năng độc lập và trường hợp tích hợp nhiều tính năng
+  - '@ImportAutoConfiguration và giới hạn tập cấu hình trong kiểm thử'
+  - Quan hệ giữa test slice, bộ tự cấu hình được nhập và kiểm thử toàn ứng dụng
+  - Kiểm thử khám phá qua JAR để phát hiện thiếu hoặc sai tệp imports
+  - Phân biệt kiểm thử JVM bằng context runner với kiểm thử ứng dụng native
+- level1: Điều kiện tùy chỉnh
+  level2:
+  - Khi nào annotation điều kiện có sẵn không diễn đạt đủ yêu cầu
+  - Triển khai Condition với dữ liệu đầu vào xác định và không có tác dụng phụ
+  - SpringBootCondition và getMatchOutcome cho kết quả có thể giải thích
+  - Tạo ConditionMessage và thông báo thiếu điều kiện cụ thể
+  - Annotation điều kiện riêng và cách đọc tham số annotation
+  - AnyNestedCondition cho các phương án thay thế
+  - AllNestedConditions cho nhóm yêu cầu đồng thời
+  - NoneNestedConditions cho nhóm điều kiện phủ định
+  - Chọn ConfigurationPhase phù hợp với dữ liệu cần quan sát
+  - Kiểm tra thuộc tính danh sách bằng điều kiện chuyên biệt
+  - Tránh truy cập mạng, đọc bí mật vào log hoặc khởi tạo bean trong điều kiện
+  - Kiểm thử cả nhánh khớp, không khớp và thông điệp chẩn đoán
+- level1: Hiệu năng và AOT
+  level2:
+  - Chi phí khám phá ứng viên, đọc metadata, đánh giá điều kiện và khởi tạo bean
+  - Dùng metadata và điều kiện lớp để tránh xử lý tích hợp không cần thiết
+  - Tránh quét package rộng hoặc thực hiện công việc nặng trong lớp cấu hình
+  - Phân biệt giảm số ứng viên với trì hoãn khởi tạo bean
+  - Đo khởi động trước và sau thay đổi bằng cùng tập dependency và cấu hình
+  - Xử lý trước thời điểm chạy (AOT) và đồ thị bean được xác định khi xây dựng
+  - Giới hạn thay đổi thuộc tính ảnh hưởng đến sự hiện diện của bean sau AOT
+  - RuntimeHints và @ImportRuntimeHints cho reflection, resource hoặc proxy cần thiết
+  - Phân biệt điều kiện classpath với khai báo khả năng truy cập trong native image
+  - Kiểm chứng thư viện tự cấu hình trên JVM và native theo phạm vi hỗ trợ
+- level1: Tương thích phiên bản
+  level2:
+  - Xác định dòng Spring Boot, Spring Framework và JDK làm mốc cho thư viện
+  - Đăng ký qua spring.factories trong mã cũ và chuyển sang AutoConfiguration.imports
+  - Mốc chuyển tiếp Spring Boot 2.7 và thay đổi cơ chế đăng ký trong Boot 3
+  - Tránh suy diễn rằng spring.factories đã bị loại bỏ với mọi cơ chế mở rộng
+  - Thay đổi package, module và dependency khi nâng dòng Spring Boot
+  - Đổi tên lớp tự cấu hình và ảnh hưởng đến exclude hoặc quan hệ thứ tự
+  - AutoConfiguration.replacements ở phiên bản hỗ trợ và ánh xạ tên lớp cũ
+  - Annotation điều kiện mới và cách xác minh phiên bản bắt đầu hỗ trợ
+  - Phân biệt API công khai ổn định với lớp nội bộ không bảo đảm tương thích
+  - Chạy ma trận phiên bản để phát hiện thay đổi điều kiện và hành vi nhường chỗ
+- level1: Xử lý sự cố
+  level2:
+  - Tự cấu hình không được khám phá do thiếu tài nguyên hoặc sai tên lớp đăng ký
+  - Cấu hình không khớp do dependency vắng mặt hoặc thư viện bị loại bắc cầu
+  - NoClassDefFoundError do tham chiếu lớp tùy chọn quá sớm
+  - NoSuchMethodError do phiên bản thư viện không tương thích
+  - Bean mặc định không xuất hiện vì điều kiện thiếu bean đã không còn thỏa mãn
+  - Bean nền có mặt nhưng cấu hình phụ thuộc được đánh giá sai thời điểm
+  - NoUniqueBeanDefinitionException do nhiều bean cùng kiểu
+  - BeanDefinitionOverrideException do đăng ký trùng tên ngoài cơ chế nhường chỗ
+  - Thuộc tính không có hiệu lực do sai khóa, sai nguồn hoặc sai thời điểm đọc
+  - Cấu hình web không khớp vì loại context khác với dự kiến
+  - Cấu hình khớp nhưng tạo bean thất bại do dữ liệu đầu vào hoặc tài nguyên ngoài
+  - Kết quả khác nhau giữa IDE, kiểm thử và JAR do classpath hoặc đóng gói
+  - Tác dụng phụ khi quét nhầm package tự cấu hình hoặc nhập cấu hình nội bộ trực tiếp
+  - Quy trình chẩn đoán từ tái hiện tối thiểu đến báo cáo điều kiện và kiểm thử hồi quy
+- level1: Thiết kế và bảo trì
+  level2:
+  - Mỗi cấu hình có mục đích, đầu vào và bean đầu ra rõ ràng
+  - Mặc định tối thiểu, quyền tùy chỉnh minh bạch và hành vi tắt tính năng nhất quán
+  - Giao ước không có dependency thì không gây lỗi ngoài phạm vi tính năng
+  - Không dùng thứ tự cấu hình để che giấu vòng phụ thuộc trong thiết kế
+  - Không tạo tài nguyên bên ngoài chỉ để kiểm tra điều kiện kích hoạt
+  - Giữ logic nghiệp vụ trong thành phần chuyên trách thay vì lớp cấu hình
+  - Tài liệu hóa thuộc tính, điểm mở rộng, bean thay thế và các loại trừ được hỗ trợ
+  - Rà soát thay đổi dependency để phát hiện kích hoạt tính năng ngoài dự kiến
+  - Dùng kiểm thử hồi quy để bảo vệ giao ước nhường chỗ và tương thích
+  - 'Checklist phát hành JAR: imports, metadata, dependency, kiểm thử và ứng dụng tiêu thụ'
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng thí nghiệm so sánh ứng dụng có và không bật tự cấu hình
+  - Thay đổi dependency và ghi nhận khác biệt trong bean cùng báo cáo điều kiện
+  - Thiết kế thư viện client tối thiểu có thuộc tính, bean mặc định và khóa bật tắt
+  - Thêm bean người dùng rồi kiểm chứng hành vi nhường chỗ theo kiểu và theo tên
+  - Tách tích hợp tùy chọn và kiểm tra khi thiếu dependency bằng FilteredClassLoader
+  - Tạo hai lớp tự cấu hình có quan hệ trước sau và viết kiểm thử chứng minh
+  - Bổ sung customizer để thay đổi hành vi mà không thay toàn bộ bean
+  - Viết điều kiện tổ hợp và kiểm tra thông điệp cho từng nhánh
+  - Đóng gói autoconfigure cùng starter và dùng từ dự án độc lập
+  - Cố ý tạo lỗi đăng ký, điều kiện và xung đột bean rồi chẩn đoán theo bằng chứng
+  - Lập ma trận kiểm thử và tài liệu giao ước để hoàn thiện thư viện tự cấu hình

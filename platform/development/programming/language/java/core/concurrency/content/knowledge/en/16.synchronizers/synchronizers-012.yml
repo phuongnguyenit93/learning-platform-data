@@ -1,0 +1,3 @@
+menuLevel1: Synchronizers
+menuLevel2: Tránh deadlock do thiếu arrive(), countDown() hoặc release()
+status: TRANSLATE

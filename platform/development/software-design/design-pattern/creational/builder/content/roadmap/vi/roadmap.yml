@@ -1,0 +1,49 @@
+roadmap:
+- id: bai-toan-khoi-tao-phuc-tap
+  title: Bài toán khởi tạo phức tạp
+  purpose: Nhận diện khi nhiều tham số và cấu hình tùy chọn khiến việc khởi tạo khó đọc, dễ sai.
+  objectives:
+  - Phát hiện telescoping constructor trong ví dụ Java.
+  - Giải thích mục tiêu tách quy trình dựng khỏi đối tượng kết quả.
+- id: product-cac-buoc-dung
+  title: Product & Các bước dựng
+  purpose: Phân tích cấu trúc đối tượng và các bước tạo nên một sản phẩm hoàn chỉnh.
+  objectives:
+  - Liệt kê thuộc tính bắt buộc, tùy chọn của Product.
+  - Xác định các bước cấu hình và thứ tự phụ thuộc nếu có.
+- id: builder-interface
+  title: Builder Interface
+  purpose: Thiết kế hợp đồng dựng sản phẩm theo từng bước để có thể thay cách biểu diễn.
+  objectives:
+  - Định nghĩa các phương thức tạo thành phần trong Builder.
+  - Phân biệt Builder với giao diện của Product.
+- id: concrete-builder
+  title: Concrete Builder
+  purpose: Cài đặt các bước dựng và quản lý trạng thái trong quá trình khởi tạo.
+  objectives:
+  - Viết ConcreteBuilder cấu hình từng phần của Product.
+  - Trả kết quả từ phương thức build/getResult đúng trạng thái.
+- id: director-tuy-chon
+  title: Director tùy chọn
+  purpose: Hiểu cách tái sử dụng công thức dựng mà không buộc client biết mọi bước.
+  objectives:
+  - Cài đặt Director điều phối một quy trình dựng mẫu.
+  - Giải thích trường hợp client gọi Builder trực tiếp, không cần Director.
+- id: fluent-builder-trong-java
+  title: Fluent Builder trong Java
+  purpose: Áp dụng biến thể Builder quen thuộc với method chaining để tạo đối tượng dễ đọc.
+  objectives:
+  - Tạo builder trả this và kết thúc bằng build().
+  - Viết ví dụ Product có tham số bắt buộc và tùy chọn.
+- id: validation-kiem-thu
+  title: Validation & Kiểm thử
+  purpose: Ngăn tạo sản phẩm thiếu dữ liệu và xác minh các cấu hình khác nhau.
+  objectives:
+  - Kiểm tra ràng buộc bắt buộc trong build().
+  - Test cấu hình mặc định, tùy chọn và trường hợp lỗi.
+- id: so-sanh-danh-doi
+  title: So sánh & Đánh đổi
+  purpose: Biết lúc nào Builder đáng dùng và khi nào cách tạo đối tượng đơn giản là đủ.
+  objectives:
+  - Phân biệt Builder với Factory Method và Abstract Factory.
+  - Đánh giá lợi ích dễ mở rộng so với chi phí tăng mã và lớp.

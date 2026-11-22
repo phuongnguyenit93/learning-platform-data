@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-chi-phi
+  title: Mô hình chi phí
+  purpose: Xác định đơn vị đo để ước lượng tài nguyên mà thuật toán tiêu thụ theo kích thước đầu vào.
+  objectives:
+  - Xác định kích thước đầu vào n và phép toán cơ bản
+  - Ước lượng thời gian T(n) và bộ nhớ S(n)
+  - Phân biệt trường hợp tốt, trung bình và xấu
+- id: ky-phap-tiem-can
+  title: Ký pháp tiệm cận
+  purpose: Nắm cách mô tả tốc độ tăng chi phí khi đầu vào lớn, độc lập với chi tiết máy chạy.
+  objectives:
+  - Giải thích O, Ω và Θ
+  - So sánh logarit, tuyến tính, đa thức và hàm mũ
+  - Chứng minh cận tiệm cận cho hàm đơn giản
+- id: phan-tich-vong-lap
+  title: Phân tích vòng lặp
+  purpose: Biến cấu trúc lặp thành biểu thức đếm số phép toán để suy ra độ phức tạp.
+  objectives:
+  - Đếm số bước của vòng lặp đơn và lồng nhau
+  - Lập tổng cho số lần thực hiện
+  - Phân tích vòng lặp với bước tăng theo cấp số nhân
+- id: de-quy-truy-hoi
+  title: Đệ quy & truy hồi
+  purpose: Sử dụng hệ thức truy hồi để đánh giá thời gian thực thi của thuật toán đệ quy.
+  objectives:
+  - Lập T(n) cùng điều kiện cơ sở
+  - Giải truy hồi bằng khai triển hoặc cây đệ quy
+  - Áp dụng Master Theorem khi thỏa điều kiện
+- id: phan-tich-khau-hao
+  title: Phân tích khấu hao
+  purpose: Đánh giá chi phí bình quân trên một chuỗi thao tác dù có thao tác riêng lẻ tốn kém.
+  objectives:
+  - Phân biệt worst-case từng thao tác với amortized cost
+  - Áp dụng phương pháp aggregate hoặc accounting
+  - Giải thích chi phí của mảng động khi mở rộng
+- id: chung-minh-tinh-dung
+  title: Chứng minh tính đúng
+  purpose: Kết hợp đánh giá hiệu năng với lập luận rằng thuật toán luôn trả về kết quả hợp lệ.
+  objectives:
+  - Xây dựng bất biến vòng lặp
+  - Dùng quy nạp cho thuật toán đệ quy
+  - Chứng minh điều kiện dừng và tính đúng
+- id: ngau-nhien-ky-vong
+  title: Ngẫu nhiên & kỳ vọng
+  purpose: Phân tích chi phí và kết quả khi thuật toán hoặc dữ liệu đầu vào có yếu tố xác suất.
+  objectives:
+  - Phân biệt kỳ vọng với worst-case
+  - Dùng biến chỉ báo và tính tuyến tính kỳ vọng
+  - Giải thích một ví dụ randomized quicksort hoặc hashing
+- id: can-duoi-thuc-nghiem
+  title: Cận dưới & thực nghiệm
+  purpose: Đánh giá giới hạn lý thuyết và đối chiếu ước lượng với thời gian chạy thực tế.
+  objectives:
+  - Nêu cận dưới cho sắp xếp dựa trên so sánh
+  - Đo thời gian theo kích thước đầu vào
+  - Giải thích sai khác giữa mô hình và phép đo

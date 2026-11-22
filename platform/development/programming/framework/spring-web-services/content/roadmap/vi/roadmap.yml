@@ -1,0 +1,57 @@
+roadmap:
+- id: soap-spring-ws
+  title: SOAP & Spring-WS
+  purpose: Hiểu vai trò của Spring Web Services trong tích hợp dịch vụ dựa trên hợp đồng XML.
+  objectives:
+  - Phân biệt SOAP với REST theo định dạng và giao thức
+  - Nhận diện Envelope, Header, Body và SOAP Fault
+  - Giải thích mô hình contract-first của Spring-WS
+- id: thiet-ke-xsd-wsdl
+  title: Thiết kế XSD & WSDL
+  purpose: Định nghĩa hợp đồng ổn định để client và server trao đổi thông điệp có cấu trúc.
+  objectives:
+  - Thiết kế phần tử và kiểu dữ liệu bằng XSD
+  - Xác định operation, message, binding và service trong WSDL
+  - Phân biệt cách công bố WSDL tĩnh và sinh từ XSD
+- id: khoi-tao-soap-server
+  title: Khởi tạo SOAP server
+  purpose: Thiết lập dịch vụ Spring-WS và công bố hợp đồng SOAP qua Spring Boot.
+  objectives:
+  - Cấu hình dependency Spring Web Services
+  - Nắm vai trò MessageDispatcherServlet và đường dẫn SOAP
+  - Xuất WSDL để client truy cập và xác thực
+- id: dinh-tuyen-endpoint
+  title: Định tuyến & Endpoint
+  purpose: Xử lý thông điệp SOAP dựa trên tên phần tử XML và tách phần giao tiếp khỏi nghiệp vụ.
+  objectives:
+  - Tạo @Endpoint với @PayloadRoot
+  - Sử dụng @RequestPayload và @ResponsePayload
+  - Hiểu MessageDispatcher và EndpointMapping
+- id: xml-binding-interceptor
+  title: XML Binding & Interceptor
+  purpose: Chuyển đổi payload và áp dụng xử lý chung mà vẫn giữ hợp đồng XML rõ ràng.
+  objectives:
+  - Sử dụng JAXB marshalling/unmarshalling khi phù hợp
+  - Kiểm soát namespace và lỗi schema
+  - Dùng EndpointInterceptor cho xử lý trước/sau lời gọi
+- id: soap-client
+  title: SOAP Client
+  purpose: Gọi dịch vụ SOAP từ ứng dụng Spring bằng hợp đồng và XML payload tương ứng.
+  objectives:
+  - Sinh hoặc tổ chức lớp dữ liệu từ WSDL/XSD
+  - Gửi và nhận bằng WebServiceTemplate
+  - Cấu hình endpoint URI, SOAPAction và xử lý lỗi
+- id: bao-mat-loi-soap
+  title: Bảo mật & lỗi SOAP
+  purpose: Bảo vệ trao đổi thông điệp và trả về lỗi theo chuẩn SOAP khi có sự cố.
+  objectives:
+  - Phân biệt TLS và WS-Security ở mức thông điệp
+  - Nhận biết UsernameToken, chữ ký và mã hóa khi cần
+  - Ánh xạ exception thành SOAP Fault phù hợp
+- id: kiem-thu-tuong-tac
+  title: Kiểm thử & tương tác
+  purpose: Xác minh hợp đồng và khả năng trao đổi giữa client/server trước khi tích hợp thật.
+  objectives:
+  - Kiểm tra request/response XML theo XSD
+  - Kiểm thử endpoint và WebServiceTemplate bằng mock support
+  - Kiểm tra WSDL, namespace, SOAP Fault và tương thích client

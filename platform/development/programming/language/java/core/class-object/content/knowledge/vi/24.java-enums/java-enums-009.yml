@@ -1,0 +1,3 @@
+menuLevel1: Enum
+menuLevel2: Tránh dùng ordinal() làm mã dữ liệu bền vững
+status: WRITTEN

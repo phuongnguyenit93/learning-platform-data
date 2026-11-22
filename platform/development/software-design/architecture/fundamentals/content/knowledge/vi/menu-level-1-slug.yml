@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Tư duy kiến trúc
+  slug: architectural-thinking
+  index: 1
+- title: Bối cảnh hệ thống
+  slug: system-context
+  index: 2
+- title: Yêu cầu kiến trúc
+  slug: architectural-requirements
+  index: 3
+- title: Thuộc tính chất lượng
+  slug: quality-attributes
+  index: 4
+- title: Trừu tượng và phân rã
+  slug: abstraction-decomposition
+  index: 5
+- title: Mô-đun và ranh giới
+  slug: modules-boundaries
+  index: 6
+- title: Gắn kết và phụ thuộc
+  slug: cohesion-dependencies
+  index: 7
+- title: Nguyên tắc thiết kế
+  slug: design-principles
+  index: 8
+- title: Mô hình miền
+  slug: domain-model
+  index: 9
+- title: Hợp đồng và giao tiếp
+  slug: contracts-communication
+  index: 10
+- title: Trạng thái và vòng đời
+  slug: state-lifecycle
+  index: 11
+- title: Đồng thời và bất đồng bộ
+  slug: concurrency-async
+  index: 12
+- title: Cấu trúc hệ thống
+  slug: system-structure
+  index: 13
+- title: Mẫu kiến trúc
+  slug: architectural-patterns
+  index: 14
+- title: Mẫu thiết kế
+  slug: design-patterns
+  index: 15
+- title: Dữ liệu và lưu trữ
+  slug: data-storage
+  index: 16
+- title: Hệ phân tán căn bản
+  slug: distributed-systems
+  index: 17
+- title: Nhất quán và giao dịch
+  slug: consistency-transactions
+  index: 18
+- title: Độ tin cậy
+  slug: reliability
+  index: 19
+- title: Hiệu năng và mở rộng
+  slug: performance-scalability
+  index: 20
+- title: Bảo mật
+  slug: security
+  index: 21
+- title: Triển khai và hạ tầng
+  slug: deployment-infrastructure
+  index: 22
+- title: Quan sát và vận hành
+  slug: observability-operations
+  index: 23
+- title: Mô hình hóa
+  slug: modeling
+  index: 24
+- title: Tài liệu và quyết định
+  slug: documentation-decisions
+  index: 25
+- title: Đánh giá kiến trúc
+  slug: architecture-evaluation
+  index: 26
+- title: Kiểm thử và kiểm chứng
+  slug: testing-verification
+  index: 27
+- title: Tiến hóa kiến trúc
+  slug: architecture-evolution
+  index: 28
+- title: Nợ kỹ thuật
+  slug: technical-debt
+  index: 29
+- title: Tổ chức và cộng tác
+  slug: team-collaboration
+  index: 30
+- title: Công nghệ và chi phí
+  slug: technology-costs
+  index: 31
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 32
+- title: Minh họa xuyên suốt
+  slug: end-to-end-example
+  index: 33
+- title: Thực hành và tự đánh giá
+  slug: practice-self-assessment
+  index: 34

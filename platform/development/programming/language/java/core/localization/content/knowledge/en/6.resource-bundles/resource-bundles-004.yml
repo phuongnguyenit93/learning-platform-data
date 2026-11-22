@@ -1,0 +1,3 @@
+menuLevel1: ResourceBundle
+menuLevel2: ResourceBundle.getBundle và locale được yêu cầu
+status: WRITTEN

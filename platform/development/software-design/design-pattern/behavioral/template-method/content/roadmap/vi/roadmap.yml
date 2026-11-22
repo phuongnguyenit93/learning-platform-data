@@ -1,0 +1,57 @@
+roadmap:
+- id: nhan-dien-bai-toan
+  title: Nhận diện bài toán
+  purpose: Nhận biết quy trình có khung xử lý cố định nhưng một số bước thay đổi theo trường hợp.
+  objectives:
+  - Tìm thuật toán lặp lại giữa nhiều lớp.
+  - Phân biệt bước chung với bước biến thể.
+  - Nêu tình huống nên áp dụng Template Method.
+- id: khung-thuat-toan
+  title: Khung thuật toán
+  purpose: Thiết kế thứ tự các bước bất biến để tránh lặp logic điều phối trong từng lớp.
+  objectives:
+  - Chia thuật toán thành các bước nhỏ.
+  - Vẽ chuỗi lời gọi theo thứ tự cố định.
+  - Xác định điều kiện trước và sau mỗi bước.
+- id: abstract-class-template
+  title: Abstract Class & Template
+  purpose: Đặt khung xử lý trong lớp cơ sở và ngăn lớp con làm sai trình tự bắt buộc.
+  objectives:
+  - Khai báo abstract base class trong Java.
+  - Cài template method gọi các bước chung.
+  - Dùng final cho template method khi cần giữ bất biến.
+- id: primitive-operations
+  title: Primitive Operations
+  purpose: Tạo điểm mở rộng bắt buộc cho những bước khác nhau ở mỗi biến thể.
+  objectives:
+  - Khai báo các bước abstract cần triển khai.
+  - Dùng protected để giới hạn API mở rộng.
+  - Thực hiện @Override đúng chữ ký ở lớp con.
+- id: hooks-buoc-mac-dinh
+  title: Hooks & bước mặc định
+  purpose: Cho phép tùy chỉnh có kiểm soát mà không buộc mọi lớp con ghi đè từng bước.
+  objectives:
+  - Cài bước dùng chung trong lớp cơ sở.
+  - Định nghĩa hook rỗng hoặc có mặc định.
+  - Kiểm tra hành vi khi lớp con bỏ qua hook.
+- id: concrete-subclasses
+  title: Concrete Subclasses
+  purpose: Tạo nhiều biến thể của một quy trình mà vẫn dùng chung cấu trúc thuật toán.
+  objectives:
+  - Viết ít nhất hai concrete subclasses.
+  - Gọi template method qua kiểu lớp cơ sở.
+  - Xác minh chỉ các bước mở rộng thay đổi.
+- id: refactor-quy-trinh-trung-lap
+  title: Refactor quy trình trùng lặp
+  purpose: Đưa thuật toán giống nhau về một nơi để giảm trùng lặp và dễ bảo trì.
+  objectives:
+  - Tách common steps từ các lớp hiện có.
+  - Chuyển phần khác biệt thành primitive operations.
+  - Đánh giá giới hạn do phụ thuộc kế thừa.
+- id: kiem-thu-lua-chon
+  title: Kiểm thử & lựa chọn
+  purpose: Đảm bảo quy trình giữ đúng thứ tự và biết khi nào chọn giải pháp khác.
+  objectives:
+  - Test thứ tự gọi bước và hook tùy chọn.
+  - Kiểm chứng hai biến thể cho đầu ra mong đợi.
+  - So sánh Template Method với Strategy dùng composition.

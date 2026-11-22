@@ -1,0 +1,7 @@
+# Software Design Architecture Architectural Pattern Clean Architecture
+
+**Clean Architecture** là cách tổ chức phần mềm xoay quanh quy tắc nghiệp vụ, trong đó chi tiết về giao diện, cơ sở dữ liệu và framework được đặt bên ngoài. Nguyên tắc quan trọng nhất là **Dependency Rule**: phụ thuộc mã nguồn hướng vào các chính sách ổn định hơn; lớp bên trong không biết đến tên lớp hoặc định dạng dữ liệu thuộc lớp bên ngoài. Mô hình thường được minh họa bằng các vòng Entities, Use Cases, Interface Adapters và Frameworks & Drivers, nhưng số lượng vòng không phải khuôn mẫu bắt buộc.
+
+Lộ trình gồm **8 mốc**: nhận diện Dependency Rule; xây Entities và domain rules; triển khai use cases; định nghĩa boundaries và đảo chiều phụ thuộc; viết interface adapters; lắp ghép framework và hạ tầng tại composition root; kiểm thử và kiểm soát phụ thuộc kiến trúc; cuối cùng là refactoring và đánh giá các đánh đổi. Người học thực hành với Java/Spring Boot trên một tính năng nhỏ, giữ domain độc lập, thay adapter bằng fake trong unit test rồi xác minh lớp ngoài hoạt động với hạ tầng thật.
+
+Học phần phù hợp với Java developer và software architect đã biết OOP, interface, dependency injection, REST và cơ sở dữ liệu cơ bản. Sau khi hoàn thành, bạn có thể vẽ sơ đồ Clean Architecture, đặt trách nhiệm đúng lớp, thiết kế use case không bị khóa vào framework, kiểm thử ranh giới bằng ArchUnit và nhận biết khi sự phức tạp bổ sung không mang lại lợi ích tương xứng.

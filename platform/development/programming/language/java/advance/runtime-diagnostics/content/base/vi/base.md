@@ -1,0 +1,7 @@
+# Chẩn đoán ứng dụng Java khi chạy (Runtime Diagnostics)
+
+Khi một ứng dụng Java chạy chậm, treo, tiêu thụ nhiều bộ nhớ hoặc gặp sự cố JVM, thay đổi cấu hình theo cảm tính có thể che khuất nguyên nhân thực sự. Chẩn đoán lúc chạy (runtime diagnostics) là quá trình ghi nhận triệu chứng, xây dựng giả thuyết, thu thập bằng chứng và kiểm chứng nguyên nhân trong điều kiện hoạt động cụ thể. Điều quan trọng là phân biệt vấn đề CPU, luồng, I/O, heap, thu gom rác và bộ nhớ ngoài heap trước khi chọn cách xử lý.
+
+Tài liệu này dành cho người đã có nền tảng Java Core, luồng và khái niệm JVM, muốn điều tra lỗi hiệu năng hoặc sự cố trong môi trường chạy thực tế. Lộ trình bắt đầu từ quy trình chẩn đoán và cách dùng công cụ như `jcmd`, MXBean/JMX, sau đó phân tích thread dump, điểm nóng CPU và độ trễ qua Java Flight Recorder (JFR), heap dump cùng đường giữ tham chiếu, nhật ký GC, bộ nhớ native và báo cáo sự cố `hs_err`. Mỗi nguồn dữ liệu có chi phí, giới hạn và ngữ cảnh riêng, nên cần đối chiếu nhiều mẫu đo thay vì kết luận từ một ảnh chụp đơn lẻ.
+
+Sau khi hoàn thành, bạn có thể lựa chọn bằng chứng cần thu cho từng triệu chứng, phân biệt deadlock với chờ khóa hoặc I/O, nhận diện đối tượng bị giữ lâu và đánh giá ảnh hưởng của GC đến thời gian phản hồi. Bạn cũng có thể so sánh mức dùng heap với bộ nhớ tiến trình, xem xét Native Memory Tracking khi khả dụng, rồi tái hiện vấn đề và đối chiếu CPU, bộ nhớ, thông lượng, độ trễ trước và sau thay đổi để xác nhận cải thiện mà không gây thoái lui.

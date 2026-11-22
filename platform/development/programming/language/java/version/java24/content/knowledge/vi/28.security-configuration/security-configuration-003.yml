@@ -1,0 +1,3 @@
+menuLevel1: Cấu hình bảo mật JDK 24
+menuLevel2: Vô hiệu hóa TLS cipher suite bằng pattern trong jdk.tls.disabledAlgorithms
+status: ""

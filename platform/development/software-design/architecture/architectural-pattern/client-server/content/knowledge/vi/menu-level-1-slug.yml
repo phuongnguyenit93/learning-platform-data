@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cấu trúc kiến trúc
+  slug: architectural-structure
+  index: 1
+- title: Phân chia trách nhiệm
+  slug: responsibility-allocation
+  index: 2
+- title: Các biến thể
+  slug: architecture-variants
+  index: 3
+- title: Thành phần trung gian
+  slug: intermediary-components
+  index: 4
+- title: Nền tảng mạng
+  slug: networking-foundations
+  index: 5
+- title: Vòng đời yêu cầu
+  slug: request-lifecycle
+  index: 6
+- title: Kiểu giao tiếp
+  slug: communication-styles
+  index: 7
+- title: Hợp đồng giao tiếp
+  slug: communication-contracts
+  index: 8
+- title: HTTP và API
+  slug: http-api
+  index: 9
+- title: Phía máy khách
+  slug: client-side
+  index: 10
+- title: Phía máy chủ
+  slug: server-side
+  index: 11
+- title: Trạng thái và phiên
+  slug: state-sessions
+  index: 12
+- title: Dữ liệu và đồng thời
+  slug: data-concurrency
+  index: 13
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 14
+- title: Lỗi phân tán
+  slug: distributed-failures
+  index: 15
+- title: Khả năng phục hồi
+  slug: resilience
+  index: 16
+- title: Định danh và quyền
+  slug: identity-access
+  index: 17
+- title: Bảo mật giao tiếp
+  slug: communication-security
+  index: 18
+- title: Hiệu năng
+  slug: performance
+  index: 19
+- title: Mở rộng hệ thống
+  slug: scalability
+  index: 20
+- title: Thời gian thực và ngoại tuyến
+  slug: realtime-offline
+  index: 21
+- title: Triển khai và tiến hóa
+  slug: deployment-evolution
+  index: 22
+- title: Quan sát và vận hành
+  slug: observability-operations
+  index: 23
+- title: Kiểm thử
+  slug: testing
+  index: 24
+- title: Java và Spring
+  slug: java-spring
+  index: 25
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 26
+- title: Đánh giá thiết kế
+  slug: design-evaluation
+  index: 27

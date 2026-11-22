@@ -1,0 +1,3517 @@
+menu:
+- slug: foundation
+  title: Nền tảng
+  childs:
+  - slug: foundation-001
+    title: Jackson là gì và giải quyết bài toán trao đổi dữ liệu nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-002
+    title: Phân biệt tuần tự hóa và giải tuần tự hóa dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-003
+    title: Phân biệt JSON, mô hình Java và thư viện xử lý dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-004
+    title: Phân biệt Jackson và cơ chế tuần tự hóa đối tượng của Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-005
+    title: 'Ba cách xử lý: ánh xạ đối tượng, cây dữ liệu và luồng token'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-006
+    title: Luồng xử lý từ byte đầu vào đến đối tượng Java và ngược lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-007
+    title: Quan hệ giữa cấu trúc dữ liệu, kiểu Java và hợp đồng trao đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-008
+    title: Những kiến thức Java, JSON và I/O cần có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-009
+    title: Khi nào chọn Jackson và khi nào cần công cụ khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-010
+    title: Các thuật ngữ cốt lõi và trình tự học Jackson
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jackson-architecture
+  title: Kiến trúc Jackson
+  childs:
+  - slug: jackson-architecture-001
+    title: Vai trò của lớp xử lý luồng, lớp annotation và lớp ánh xạ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-002
+    title: Mối quan hệ giữa JsonFactory, JsonParser và JsonGenerator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-003
+    title: Mối quan hệ giữa ObjectMapper, ObjectReader và ObjectWriter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-004
+    title: Vai trò của serializer và deserializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-005
+    title: Vai trò của JsonNode trong mô hình cây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-006
+    title: Vai trò của module kiểu dữ liệu và module định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-007
+    title: Phân biệt cấu hình đọc, cấu hình ghi và cấu hình ánh xạ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-008
+    title: Phân biệt tính năng lõi và phần mở rộng theo định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-architecture-009
+    title: Lựa chọn cách xử lý theo kích thước dữ liệu và yêu cầu kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-dependencies
+  title: Phiên bản và phụ thuộc
+  childs:
+  - slug: versions-and-dependencies-001
+    title: Xác định dòng phiên bản Jackson và phạm vi API được sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-002
+    title: Lựa chọn dependency cho JSON và cho các định dạng mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-003
+    title: Giữ phiên bản các thành phần Jackson tương thích với nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-004
+    title: Vai trò của BOM và công cụ quản lý dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-005
+    title: Kiểm tra dependency bắc cầu trong ứng dụng có framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-006
+    title: Phân biệt API thư viện và cấu hình mặc định do framework áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-007
+    title: Quản lý module hỗ trợ kiểu dữ liệu Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-008
+    title: Kiểm tra yêu cầu Java và khả năng hỗ trợ record theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-009
+    title: Nhận diện khác biệt API trước khi sử dụng ví dụ của dòng phiên bản khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-010
+    title: Thiết kế chương trình thử nghiệm có cấu hình mapper tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-mapper
+  title: ObjectMapper
+  childs:
+  - slug: object-mapper-001
+    title: Khởi tạo mapper và lựa chọn cách cấu hình theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-002
+    title: Cấu hình một lần trước khi dùng chung trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-003
+    title: Quản lý vòng đời mapper và tính an toàn khi sử dụng đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-004
+    title: Phân biệt cấu hình toàn cục và cấu hình theo một lần đọc ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-005
+    title: Tạo ObjectReader theo kiểu dữ liệu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-006
+    title: Tạo ObjectWriter theo kiểu dữ liệu và cách trình bày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-007
+    title: Tái sử dụng reader và writer cho các trường hợp sử dụng ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-008
+    title: Quản lý nhiều bộ chính sách JSON trong cùng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-009
+    title: Sao chép cấu hình và tránh thay đổi mapper dùng chung ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-mapper-010
+    title: Tách cấu hình thư viện khỏi logic nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-reading-and-writing
+  title: Đọc và ghi JSON
+  childs:
+  - slug: json-reading-and-writing-001
+    title: Đọc JSON từ String, byte array, tệp và luồng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-002
+    title: Ghi JSON ra String, byte array, tệp và luồng đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-003
+    title: Đọc ghi POJO đơn giản với thuộc tính cơ bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-004
+    title: Đọc ghi đối tượng lồng nhau và mảng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-005
+    title: Xử lý đối tượng gốc, mảng gốc và giá trị vô hướng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-006
+    title: Phân biệt tài liệu JSON rỗng, giá trị null và dữ liệu đầu vào không có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-007
+    title: Lựa chọn JSON gọn và JSON được định dạng dễ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-008
+    title: Xử lý bảng mã, BOM và Unicode ở biên byte
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-009
+    title: Xác định chủ sở hữu tài nguyên và chính sách đóng luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-010
+    title: Phân biệt đóng bộ sinh JSON, flush và độ bền của nơi lưu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-reading-and-writing-011
+    title: Kiểm tra dữ liệu dư sau giá trị JSON mong đợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: properties-and-names
+  title: Thuộc tính và tên
+  childs:
+  - slug: properties-and-names-001
+    title: Cách Jackson nhận diện trường, getter và setter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-002
+    title: Cấu hình mức hiển thị và phạm vi thuộc tính được ánh xạ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-003
+    title: Đặt tên thuộc tính bằng JsonProperty
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-004
+    title: Áp dụng chiến lược đặt tên cho lớp và toàn mapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-005
+    title: Xử lý tên thuộc tính khác nhau giữa Java và JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-006
+    title: Chấp nhận tên cũ bằng JsonAlias
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-007
+    title: Xử lý getter boolean và tên thuộc tính dễ gây nhập nhằng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-008
+    title: Phân biệt thuộc tính chỉ đọc và thuộc tính chỉ ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-009
+    title: Bỏ qua thuộc tính bằng JsonIgnore và JsonIgnoreProperties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-010
+    title: Phân biệt bỏ qua một thuộc tính và bỏ qua mọi thuộc tính không nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-011
+    title: Xác định ưu tiên khi annotation xuất hiện ở nhiều thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-names-012
+    title: Tránh vô tình công bố trường nội bộ qua getter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-creation
+  title: Khởi tạo đối tượng
+  childs:
+  - slug: object-creation-001
+    title: Giải tuần tự hóa qua constructor không tham số và setter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-002
+    title: Khởi tạo đối tượng bất biến qua JsonCreator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-003
+    title: Phân biệt creator dựa trên thuộc tính và creator ủy quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-004
+    title: Gắn tên tham số constructor với thuộc tính JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-005
+    title: Xử lý nhiều constructor và phương thức tạo tĩnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-006
+    title: Ánh xạ Java record theo khả năng hỗ trợ của phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-007
+    title: Ánh xạ mô hình builder và cấu hình bước tạo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-008
+    title: Xử lý lớp lồng và yêu cầu có đối tượng bao ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-009
+    title: Kiểm tra tham số bắt buộc, tham số thiếu và tham số null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-010
+    title: Bảo toàn bất biến nghiệp vụ khi tạo đối tượng từ dữ liệu ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-creation-011
+    title: Phân biệt khả năng khởi tạo đối tượng và kiểm tra dữ liệu hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-types
+  title: Kiểu tổng quát
+  childs:
+  - slug: generic-types-001
+    title: Ảnh hưởng của xóa kiểu khi đọc List và Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-002
+    title: Sử dụng TypeReference để giữ thông tin kiểu tổng quát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-003
+    title: Vai trò của JavaType và TypeFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-004
+    title: Xây dựng kiểu động cho List, Map và kiểu bao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-005
+    title: Đọc cấu trúc tổng quát lồng nhiều cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-006
+    title: Ánh xạ kiểu phản hồi có tham số như trang kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-007
+    title: Phân biệt Map có kiểu và đối tượng không định kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-008
+    title: Xử lý khóa Map không phải String
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-009
+    title: Quản lý kiểu tổng quát trong API tiện ích tự xây dựng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-types-010
+    title: Kiểm tra kiểu kết quả thay vì dựa vào ép kiểu không an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nulls-and-missing-values
+  title: Null và giá trị thiếu
+  childs:
+  - slug: nulls-and-missing-values-001
+    title: Phân biệt thuộc tính vắng mặt, null và giá trị rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-002
+    title: Ảnh hưởng của null khi ánh xạ vào kiểu nguyên thủy và kiểu bao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-003
+    title: Thiết kế giá trị mặc định tại constructor hoặc thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-004
+    title: Cấu hình hành vi setter đối với null bằng JsonSetter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-005
+    title: Xử lý null trong phần tử của mảng, collection và Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-006
+    title: Phân biệt bỏ qua null và ghi đè giá trị hiện có bằng null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-007
+    title: Áp dụng JsonInclude cho giá trị null, rỗng và mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-008
+    title: Kiểm tra ý nghĩa của giá trị mặc định theo kiểu và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-009
+    title: Biểu diễn thuộc tính tùy chọn và vai trò của module hỗ trợ Optional
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nulls-and-missing-values-010
+    title: Giữ khác biệt giữa không cung cấp và yêu cầu xóa giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-type-conversion
+  title: Chuyển kiểu đầu vào
+  childs:
+  - slug: input-type-conversion-001
+    title: Phân biệt JSON đúng cú pháp và dữ liệu đúng kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-002
+    title: Xử lý chuỗi được gửi vào trường kiểu số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-003
+    title: Xử lý số được gửi vào trường kiểu chuỗi hoặc boolean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-004
+    title: Đánh giá chuyển đổi số thực sang số nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-005
+    title: Xử lý chuỗi rỗng và khoảng trắng khi chuyển kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-006
+    title: Xử lý mảng một phần tử và giá trị đơn theo chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-007
+    title: Cấu hình chuyển kiểu theo nhóm kiểu và kiểu cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-008
+    title: Lựa chọn từ chối, chấp nhận hoặc chuẩn hóa đầu vào tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-009
+    title: Phân biệt cấu hình nghiêm ngặt và các tính năng cú pháp mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-type-conversion-010
+    title: Kiểm thử chính sách chuyển kiểu như một phần hợp đồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numbers-strings-and-enums
+  title: Số, chuỗi và enum
+  childs:
+  - slug: numbers-strings-and-enums-001
+    title: Bảo toàn số nguyên lớn và kiểm tra miền giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-002
+    title: Bảo toàn độ chính xác thập phân với BigDecimal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-003
+    title: Phân biệt kiểu số khi đọc dữ liệu không định kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-004
+    title: Kiểm tra biểu diễn số khoa học và quy tắc ghi số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-005
+    title: Xử lý giá trị số không hữu hạn theo định dạng và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-006
+    title: Bảo toàn Unicode và ký tự cần thoát trong chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-007
+    title: Phân biệt chuỗi chứa JSON và đối tượng JSON thực sự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-008
+    title: Ánh xạ enum theo tên và theo giá trị nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-009
+    title: Thiết kế chính sách khi gặp giá trị enum không nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-010
+    title: Phân biệt thuộc tính enum trong giá trị và trong khóa Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-strings-and-enums-011
+    title: Đọc ghi dữ liệu nhị phân và quy ước Base64
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time-and-timezones
+  title: Ngày giờ và múi giờ
+  childs:
+  - slug: date-time-and-timezones-001
+    title: Vai trò của module hỗ trợ java.time
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-002
+    title: Biểu diễn LocalDate, LocalTime và LocalDateTime theo ngữ nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-003
+    title: Biểu diễn Instant, OffsetDateTime và ZonedDateTime theo hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-004
+    title: Lựa chọn chuỗi ngày giờ hoặc dấu thời gian dạng số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-005
+    title: Phân biệt đơn vị giây, mili giây và độ chính xác phần giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-006
+    title: Cấu hình mẫu, locale và múi giờ bằng JsonFormat
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-007
+    title: Phân biệt cấu hình múi giờ của mapper và thông tin trong giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-008
+    title: Làm việc với Date và Calendar trong mô hình cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-009
+    title: Bảo toàn thời điểm và đánh giá mất thông tin vùng thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-010
+    title: Kiểm thử chuyển giờ mùa hè và thời điểm sát ranh giới ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-011
+    title: Quản lý thay đổi định dạng thời gian giữa các phiên bản API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-tree
+  title: Cây JSON
+  childs:
+  - slug: json-tree-001
+    title: Vai trò của JsonNode, ObjectNode và ArrayNode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-002
+    title: Đọc tài liệu thành cây bằng readTree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-003
+    title: Truy cập thuộc tính bằng get và path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-004
+    title: Phân biệt MissingNode và NullNode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-005
+    title: Đọc kiểu dữ liệu và tránh chuyển đổi mặc định ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-006
+    title: Duyệt trường của đối tượng và phần tử của mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-007
+    title: Truy cập vị trí bằng JSON Pointer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-008
+    title: Tạo và sửa ObjectNode, ArrayNode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-009
+    title: Xóa, thay thế và thêm thuộc tính mà không làm sai cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-010
+    title: Sao chép cây và quản lý việc chia sẻ node có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-011
+    title: Chuyển đổi giữa cây JSON và đối tượng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-012
+    title: Lựa chọn cây dữ liệu khi cấu trúc đầu vào chưa cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-tree-013
+    title: Kiểm tra chi phí bộ nhớ của cây theo kích thước tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streaming-read
+  title: Đọc theo luồng
+  childs:
+  - slug: streaming-read-001
+    title: Mô hình token của JsonParser
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-002
+    title: Khởi tạo parser từ nguồn byte và nguồn ký tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-003
+    title: Duyệt token và kiểm tra vị trí trong cấu trúc JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-004
+    title: Đọc tên trường và giá trị theo loại token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-005
+    title: Quản lý trạng thái khi đọc đối tượng và mảng lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-006
+    title: Bỏ qua nhánh không cần xử lý bằng skipChildren
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-007
+    title: Kết hợp đọc token và ánh xạ một phần sang đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-008
+    title: Xử lý trường thiếu, trường thừa và thứ tự trường thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-009
+    title: Nhận diện tài liệu bị cắt dở và kết thúc nguồn không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-010
+    title: Theo dõi vị trí lỗi trong luồng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-read-011
+    title: Quản lý parser và vòng đời nguồn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streaming-write
+  title: Ghi theo luồng
+  childs:
+  - slug: streaming-write-001
+    title: Mô hình ghi token bằng JsonGenerator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-002
+    title: Ghi đối tượng, mảng, tên trường và giá trị đúng cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-003
+    title: Ghi giá trị null và kiểu dữ liệu cơ bản tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-004
+    title: Ghi chuỗi và dữ liệu nhị phân với quy tắc thoát phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-005
+    title: Kết hợp generator với serializer đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-006
+    title: Sao chép token hoặc một cấu trúc từ parser sang generator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-007
+    title: Quản lý bộ đệm, flush và đóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-008
+    title: Xử lý lỗi khi đã ghi một phần đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-009
+    title: Tránh công bố tài liệu JSON chưa kết thúc đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-write-010
+    title: Đánh giá rủi ro khi ghi nội dung thô không qua kiểm tra cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: large-scale-data
+  title: Dữ liệu quy mô lớn
+  childs:
+  - slug: large-scale-data-001
+    title: Lựa chọn đọc từng phần thay vì tạo toàn bộ đồ thị đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-002
+    title: Đọc nhiều giá trị với ObjectReader và MappingIterator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-003
+    title: Ghi nhiều giá trị với ObjectWriter và SequenceWriter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-004
+    title: Phân biệt một mảng JSON và chuỗi nhiều giá trị gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-005
+    title: Thiết kế ranh giới bản ghi khi trao đổi JSON Lines
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-006
+    title: Kiểm tra dữ liệu nhiều dòng mà không tách bản ghi sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-007
+    title: Phối hợp tốc độ đọc, xử lý và ghi bằng áp lực ngược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-008
+    title: Giới hạn bộ nhớ khi đọc mảng lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-009
+    title: Dừng sớm, hủy xử lý và đóng tài nguyên đang sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-010
+    title: Vai trò của parser không chặn và cách cấp thêm dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-011
+    title: Phân biệt chưa đủ dữ liệu đầu vào và lỗi cú pháp thực sự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-data-012
+    title: Lựa chọn TokenBuffer khi cần chuyển tiếp hoặc đọc lại cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: output-policies
+  title: Chính sách đầu ra
+  childs:
+  - slug: output-policies-001
+    title: Thiết kế mô hình JSON riêng cho từng trường hợp sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-002
+    title: Kiểm soát thuộc tính đầu ra bằng JsonInclude
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-003
+    title: Điều chỉnh thứ tự thuộc tính và thứ tự khóa khi cần ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-004
+    title: Tách cách nhìn dữ liệu bằng JsonView
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-005
+    title: Kiểm tra thuộc tính không khai báo view và cấu hình liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-006
+    title: Lọc thuộc tính động bằng JsonFilter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-007
+    title: Gói hoặc bỏ lớp tên gốc theo hợp đồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-008
+    title: Biểu diễn một đối tượng bằng JsonValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-009
+    title: Ẩn dữ liệu nhạy cảm theo chính sách rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-policies-010
+    title: Phân biệt định dạng ổn định và chuẩn hóa JSON dùng để ký hoặc băm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: open-content
+  title: Cấu trúc mở
+  childs:
+  - slug: open-content-001
+    title: Thu thập thuộc tính mở rộng bằng JsonAnySetter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-002
+    title: Ghi thuộc tính mở rộng bằng JsonAnyGetter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-003
+    title: Phân biệt dữ liệu mở rộng được giữ lại và thuộc tính bị bỏ qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-004
+    title: Làm phẳng cấu trúc bằng JsonUnwrapped
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-005
+    title: Xử lý xung đột tên thuộc tính sau khi làm phẳng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-006
+    title: Thiết kế tiền tố và hậu tố cho cấu trúc nhúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-007
+    title: Phân biệt khóa nghiệp vụ và tên trường động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-008
+    title: Đánh giá rủi ro khi trộn thuộc tính tĩnh với dữ liệu mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-content-009
+    title: Kiểm thử nhập lại dữ liệu có thuộc tính chưa được phiên bản hiện tại biết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: polymorphism
+  title: Đa hình
+  childs:
+  - slug: polymorphism-001
+    title: Khi nào hợp đồng dữ liệu cần nhận diện kiểu con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-002
+    title: Phân biệt kiểu khai báo Java và kiểu thực tế của đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-003
+    title: Thiết kế trường phân biệt kiểu theo giá trị nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-004
+    title: Cấu hình JsonTypeInfo và đăng ký kiểu con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-005
+    title: Đăng ký JsonSubTypes hoặc kiểu con qua cấu hình module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-006
+    title: Lựa chọn vị trí lưu thông tin kiểu trong JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-007
+    title: Xử lý kiểu con không nhận diện và trường phân biệt bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-008
+    title: Kết hợp đa hình với collection và kiểu tổng quát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-009
+    title: Ánh xạ hệ phân cấp có lớp trừu tượng hoặc interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-010
+    title: Kiểm tra hỗ trợ mô hình sealed theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-011
+    title: Phân biệt tên kiểu ổn định trong hợp đồng và tên lớp triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-012
+    title: Giới hạn kiểu được phép khi dùng thông tin kiểu từ dữ liệu ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphs-and-references
+  title: Đồ thị và tham chiếu
+  childs:
+  - slug: graphs-and-references-001
+    title: Phân biệt dữ liệu dạng cây và đồ thị đối tượng có chu trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-002
+    title: Nhận diện đệ quy vô hạn khi tuần tự hóa quan hệ hai chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-003
+    title: Cắt vòng tham chiếu bằng thiết kế DTO hoặc bỏ thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-004
+    title: Vai trò của JsonManagedReference và JsonBackReference
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-005
+    title: Biểu diễn định danh đối tượng bằng JsonIdentityInfo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-006
+    title: Phân biệt nhúng đối tượng và tham chiếu bằng định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-007
+    title: Thiết kế khả năng khôi phục liên kết khi giải tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-008
+    title: Xử lý định danh trùng hoặc tham chiếu chưa được giải quyết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-009
+    title: Đánh giá đối tượng ORM có dữ liệu tải chậm và tài nguyên đã đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-references-010
+    title: Tránh để cấu trúc lưu trữ nội bộ quyết định toàn bộ JSON công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-serializers
+  title: Serializer tùy biến
+  childs:
+  - slug: custom-serializers-001
+    title: Khi nào cần serializer riêng thay vì annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-002
+    title: Thiết kế serializer cho một kiểu giá trị nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-003
+    title: Ghi cấu trúc đầu ra thông qua JsonGenerator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-004
+    title: Đăng ký serializer bằng JsonSerialize theo kiểu hoặc thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-005
+    title: Tái sử dụng serializer chuẩn cho các thành phần bên trong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-006
+    title: Quản lý null và phân biệt với serializer giá trị thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-007
+    title: Tùy biến cách ghi khóa Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-008
+    title: Tạo serializer theo ngữ cảnh thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-009
+    title: Phối hợp serializer riêng với thông tin kiểu đa hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-010
+    title: Giữ serializer dùng chung không chứa trạng thái thay đổi theo yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-serializers-011
+    title: Kiểm thử cấu trúc, kiểu và khả năng đọc lại kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-deserializers
+  title: Deserializer tùy biến
+  childs:
+  - slug: custom-deserializers-001
+    title: Khi nào cần deserializer riêng thay vì chuyển kiểu mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-002
+    title: Đọc dữ liệu từ JsonParser với kiểm tra loại token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-003
+    title: Đọc một vùng dữ liệu thành cây để xử lý cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-004
+    title: Thiết kế deserializer cho kiểu giá trị có nhiều cách biểu diễn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-005
+    title: Đăng ký deserializer bằng JsonDeserialize theo kiểu hoặc thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-006
+    title: Phân biệt xử lý null, giá trị thiếu và dữ liệu sai kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-007
+    title: Tạo deserializer theo ngữ cảnh thuộc tính hoặc kiểu tổng quát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-008
+    title: Tùy biến cách đọc khóa Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-009
+    title: Báo lỗi theo ngữ cảnh thay vì âm thầm dùng giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-010
+    title: Tránh gọi lại chính deserializer gây đệ quy vô hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-deserializers-011
+    title: Bảo toàn bất biến và giới hạn dữ liệu khi tạo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modules-and-mix-ins
+  title: Module và mix-in
+  childs:
+  - slug: modules-and-mix-ins-001
+    title: Đóng gói serializer và deserializer bằng SimpleModule
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-002
+    title: Quản lý tên, phiên bản và thứ tự đăng ký module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-003
+    title: Phân biệt đăng ký tường minh và tự phát hiện module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-004
+    title: Vai trò của module hỗ trợ Optional và kiểu dữ liệu Java bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-005
+    title: Vai trò của module hỗ trợ tên tham số constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-006
+    title: Áp dụng annotation cho lớp không sửa được bằng mix-in
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-007
+    title: Xác định phạm vi mix-in để không làm thay đổi nơi dùng khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-008
+    title: Giải quyết xung đột giữa module, annotation và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-009
+    title: Đánh giá phần mở rộng mức thấp như bộ sửa serializer và deserializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-mix-ins-010
+    title: Thiết kế module có thể kiểm thử độc lập với ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conversion-and-update
+  title: Chuyển đổi và cập nhật
+  childs:
+  - slug: conversion-and-update-001
+    title: Chuyển giữa POJO, Map và cây JSON bằng convertValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-002
+    title: Phân biệt chuyển giá trị trong bộ nhớ và đọc một tài liệu JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-003
+    title: Chuyển cây sang đối tượng bằng treeToValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-004
+    title: Chuyển đối tượng thành cây bằng valueToTree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-005
+    title: Đọc cập nhật lên đối tượng có sẵn bằng readerForUpdating
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-006
+    title: Phân biệt thay thế giá trị và hợp nhất cấu trúc bằng JsonMerge
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-007
+    title: Xử lý cập nhật thuộc tính vắng mặt, null và đối tượng lồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-008
+    title: Đánh giá cách cập nhật collection, Map và đối tượng bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-009
+    title: Phân biệt cập nhật đối tượng và giao thức JSON Patch hoặc Merge Patch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-010
+    title: Tránh dùng chuyển đổi như một bảo đảm sao chép sâu hoặc kiểm tra nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-and-update-011
+    title: Kiểm thử ảnh hưởng của annotation và cấu hình lên phép chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-diagnostics
+  title: Lỗi và chẩn đoán
+  childs:
+  - slug: errors-and-diagnostics-001
+    title: Phân biệt lỗi I/O, lỗi cú pháp và lỗi ánh xạ kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-002
+    title: Đọc vị trí và đường dẫn thuộc tính trong thông tin lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-003
+    title: Nhận diện dữ liệu bị cắt dở hoặc token không đúng kỳ vọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-004
+    title: Nhận diện lỗi thiếu creator và định nghĩa kiểu không phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-005
+    title: Xử lý trường không nhận diện và giá trị enum không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-006
+    title: Xử lý số vượt giới hạn và kiểu dữ liệu không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-007
+    title: Giữ nguyên nguyên nhân gốc khi chuyển lỗi sang lớp ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-008
+    title: Báo lỗi theo trường mà không sao chép toàn bộ dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-009
+    title: Phân biệt cấu hình sai và dữ liệu đầu vào sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-010
+    title: Thiết kế chính sách dừng tài liệu hoặc tách bản ghi lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-011
+    title: Tránh tiếp tục sử dụng parser sau lỗi khi không xác định được ranh giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: Xác định cấu trúc JSON công khai độc lập với lớp triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Tách kiểm tra cú pháp, ánh xạ kiểu và kiểm tra nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: Phân biệt annotation ánh xạ và ràng buộc validation thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: Phối hợp JSON Schema hoặc Bean Validation khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Thêm trường mà vẫn giữ tương thích với bên đọc cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Đổi tên trường với chiến lược chấp nhận tên cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Quản lý loại bỏ trường và thay đổi kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Quản lý giá trị enum và kiểu con mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-009
+    title: Xác định chính sách cho thuộc tính không nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-010
+    title: Giữ ý nghĩa của null, thiếu và mặc định qua các phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-011
+    title: Phiên bản hóa định dạng thời gian và biểu diễn số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-012
+    title: Thiết kế dữ liệu mẫu và kiểm thử hợp đồng giữa bên gửi và bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-security
+  title: Bảo mật đầu vào
+  childs:
+  - slug: input-security-001
+    title: Coi dữ liệu JSON bên ngoài là đầu vào không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-002
+    title: Giới hạn kích thước tài liệu và độ sâu lồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-003
+    title: Giới hạn độ dài chuỗi, tên thuộc tính và số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-004
+    title: Cấu hình StreamReadConstraints và StreamWriteConstraints theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-005
+    title: Tránh cho dữ liệu ngoài tự do lựa chọn lớp Java để khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-006
+    title: Đánh giá default typing và giới hạn kiểu bằng PolymorphicTypeValidator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-007
+    title: Kiểm soát creator, setter và mã tùy biến có tác động phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-008
+    title: Từ chối cấu trúc lặp bất thường và tài liệu gây tiêu tốn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-009
+    title: Thiết kế chính sách xử lý tên thuộc tính trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-010
+    title: Không dùng bỏ qua lỗi ánh xạ như một biện pháp kiểm tra dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-011
+    title: Ngăn lộ bí mật qua thuộc tính tự nhận diện và nhật ký lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-012
+    title: Theo dõi cập nhật bảo mật cho toàn bộ hệ dependency Jackson
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jackson-xml
+  title: XML với Jackson
+  childs:
+  - slug: jackson-xml-001
+    title: Vai trò của module XML và XmlMapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-002
+    title: Phân biệt mô hình JSON và mô hình phần tử, thuộc tính XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-003
+    title: Ánh xạ tên phần tử, thuộc tính và phần tử gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-004
+    title: Quản lý namespace trong dữ liệu XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-005
+    title: Ánh xạ collection có hoặc không có phần tử bao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-006
+    title: Phân biệt phần tử vắng mặt, phần tử rỗng và giá trị null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-007
+    title: Xử lý văn bản và giới hạn của nội dung XML hỗn hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-008
+    title: Kết hợp annotation Jackson và annotation riêng của module XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-009
+    title: Cấu hình bộ phân tích XML để hạn chế tài nguyên và thực thể ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-010
+    title: Kiểm thử tương thích thay vì giả định đổi mapper giữ nguyên ngữ nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: yaml-and-csv
+  title: YAML và CSV
+  childs:
+  - slug: yaml-and-csv-001
+    title: Vai trò của module YAML và YAMLMapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-002
+    title: Phân biệt kiểu dữ liệu YAML và biểu diễn JSON tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-003
+    title: Kiểm tra phiên bản cú pháp và cấu hình parser YAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-004
+    title: Giới hạn tài nguyên khi đọc dữ liệu YAML không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-005
+    title: Vai trò của CsvMapper và CsvSchema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-006
+    title: Khai báo cột, thứ tự và dòng tiêu đề cho CSV
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-007
+    title: Đọc ghi giá trị trống và null theo schema CSV
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-008
+    title: Xử lý dấu phân cách, trích dẫn và trường nhiều dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-009
+    title: Đọc ghi nhiều dòng CSV theo từng bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-010
+    title: Giới hạn biểu diễn cấu trúc lồng nhau trong CSV
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-csv-011
+    title: Kiểm thử khả năng nhập lại và tương tác với công cụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binary-formats
+  title: Định dạng nhị phân
+  childs:
+  - slug: binary-formats-001
+    title: Vai trò của các module CBOR và Smile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-002
+    title: Phân biệt cấu trúc dữ liệu và cách mã hóa trên đường truyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-003
+    title: Lựa chọn định dạng theo khả năng tương tác và nhu cầu lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-004
+    title: Làm việc với dữ liệu nhị phân mà không mặc định qua chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-005
+    title: Kiểm tra hỗ trợ kiểu số và đặc điểm của từng định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-006
+    title: Khai báo định dạng khi gửi nhận để tránh đọc sai nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-007
+    title: Đánh giá kích thước, tốc độ và khả năng quan sát dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-008
+    title: Kiểm thử hợp đồng giữa các ngôn ngữ và công cụ khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo thời gian đọc, ghi và chi phí cấp phát đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Tái sử dụng mapper, reader và writer có cấu hình ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Lựa chọn byte array, String, tree hoặc stream theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Tránh chuyển qua nhiều biểu diễn trung gian không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Đánh giá chi phí phản chiếu, serializer cache và khởi tạo lần đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đọc hoặc ghi từng phần cho tập dữ liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Kiểm soát bộ đệm và số lượng đối tượng sống đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đánh giá module tăng tốc theo dòng phiên bản và môi trường Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Giữ cấu hình và kiểu dữ liệu đại diện khi đo hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Phân biệt tối ưu định dạng và tối ưu quá trình truyền dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Theo dõi ảnh hưởng của giới hạn bảo mật và xử lý lỗi tới hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jackson-testing
+  title: Kiểm thử Jackson
+  childs:
+  - slug: jackson-testing-001
+    title: Thiết kế dữ liệu mẫu cho đọc và ghi độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-002
+    title: So sánh cấu trúc JSON thay vì chỉ so sánh chuỗi ký tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-003
+    title: Kiểm thử null, thiếu, rỗng và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-004
+    title: Kiểm thử Unicode, ký tự thoát và nội dung nhiều dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-005
+    title: Kiểm thử số lớn, số thập phân và giá trị biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-006
+    title: Kiểm thử ngày giờ với nhiều múi giờ và độ chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-007
+    title: Kiểm thử generic, record và mô hình bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-008
+    title: Kiểm thử đa hình, chu trình và tham chiếu định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-009
+    title: Kiểm thử serializer, deserializer và module tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-010
+    title: Kiểm thử dữ liệu dư, tên trường trùng và cú pháp mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-011
+    title: Kiểm thử giới hạn tài nguyên bằng dữ liệu được kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-012
+    title: Kiểm thử tương thích với dữ liệu của phiên bản trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-013
+    title: Kiểm thử thuộc tính bảo toàn qua vòng ghi rồi đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-testing-014
+    title: Kiểm thử tài nguyên được đóng khi thành công, hủy và thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Phân biệt mapper tự tạo và mapper do ứng dụng Spring quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Vai trò của bộ chuyển đổi thông điệp HTTP dùng Jackson
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Quản lý module, annotation và cấu hình Jackson trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Tách DTO nhận vào và DTO trả ra theo hợp đồng API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Phân biệt lỗi đọc JSON và lỗi Bean Validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Chuẩn hóa phản hồi lỗi ánh xạ mà không lộ cấu trúc nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Kiểm soát định dạng ngày giờ, tên trường và chính sách null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Tránh thay đổi mapper dùng chung sau khi bắt đầu phục vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Kiểm soát entity ORM và quan hệ tải chậm ở biên JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Thiết kế nhiều chính sách đọc ghi khi các tích hợp có hợp đồng khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Kiểm thử HTTP để xác minh cấu hình thực tế đã được áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-upgrades
+  title: Vận hành và nâng cấp
+  childs:
+  - slug: operations-and-upgrades-001
+    title: Lưu cấu hình và module đang có hiệu lực để hỗ trợ chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-002
+    title: Theo dõi tỷ lệ lỗi theo loại tài liệu và phiên bản hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-003
+    title: Theo dõi kích thước đầu vào, độ trễ và mức sử dụng bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-004
+    title: Bảo vệ thông tin nhạy cảm trong dữ liệu lỗi được lưu mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-005
+    title: Kiểm kê dependency và phát hiện xung đột phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-006
+    title: Đối chiếu thay đổi mặc định trước khi nâng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-007
+    title: Đánh giá đổi API và module khi chuyển dòng phiên bản Jackson
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-008
+    title: Chạy bộ kiểm thử dữ liệu cũ trước khi triển khai cấu hình mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-009
+    title: Triển khai có kiểm soát khi thay chính sách chuyển kiểu hoặc giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-upgrades-010
+    title: Xác minh định dạng đầu ra và khả năng đọc của bên nhận sau nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Thiết kế hợp đồng JSON cho khách hàng, đơn hàng và thanh toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Ánh xạ DTO bất biến có generic và đối tượng lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Bảo toàn số tiền, thời điểm và mã định danh qua vòng đọc ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thiết kế cập nhật có phân biệt thuộc tính thiếu và null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Đọc dữ liệu mở rộng bằng cây JSON và giữ trường chưa nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Xử lý tệp JSON lớn theo từng bản ghi với bộ nhớ giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Ghi JSON theo luồng và xử lý lỗi khi đầu ra chưa hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Thiết kế đa hình bằng tên kiểu nghiệp vụ được phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Viết module cho kiểu giá trị riêng và kiểm thử chuyển đổi hai chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Giải quyết đồ thị có chu trình bằng DTO hoặc định danh tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Đọc ghi CSV và XML bằng module tương ứng với hợp đồng tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Kiểm thử dữ liệu lỗi, giới hạn tài nguyên và tương thích phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Tích hợp DTO vào ứng dụng Spring và kiểm chứng dữ liệu HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-014
+    title: Nghiệm thu bằng tính đúng, tính tương thích, bảo mật và hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

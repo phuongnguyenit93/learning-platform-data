@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Thiết kế assertion
+  slug: assertion-design
+  index: 1
+- title: Ngữ nghĩa so sánh
+  slug: comparison-semantics
+  index: 2
+- title: Java assert
+  slug: java-assert
+  index: 3
+- title: JUnit Assertions
+  slug: junit-assertions
+  index: 4
+- title: JUnit nâng cao
+  slug: advanced-junit
+  index: 5
+- title: AssertJ cơ bản
+  slug: assertj-basics
+  index: 6
+- title: Số và boolean
+  slug: numbers-and-booleans
+  index: 7
+- title: Chuỗi và biểu thức
+  slug: strings-and-expressions
+  index: 8
+- title: Đối tượng và kiểu
+  slug: objects-and-types
+  index: 9
+- title: Tập hợp và mảng
+  slug: collections-and-arrays
+  index: 10
+- title: Map
+  slug: map
+  index: 11
+- title: Optional và Stream
+  slug: optional-and-stream
+  index: 12
+- title: Ngày giờ
+  slug: date-and-time
+  index: 13
+- title: Tệp và tài nguyên
+  slug: files-and-resources
+  index: 14
+- title: Trích xuất và lọc
+  slug: extraction-and-filtering
+  index: 15
+- title: So sánh đệ quy
+  slug: recursive-comparison
+  index: 16
+- title: Ngoại lệ với AssertJ
+  slug: assertj-exception-assertions
+  index: 17
+- title: Soft assertions
+  slug: soft-assertions
+  index: 18
+- title: Assertion tùy chỉnh
+  slug: custom-assertions
+  index: 19
+- title: Hamcrest cơ bản
+  slug: hamcrest-basics
+  index: 20
+- title: Hamcrest nâng cao
+  slug: advanced-hamcrest
+  index: 21
+- title: Google Truth
+  slug: google-truth
+  index: 22
+- title: JSON
+  slug: json
+  index: 23
+- title: XML
+  slug: xml
+  index: 24
+- title: HTTP và dữ liệu
+  slug: http-and-data
+  index: 25
+- title: Bất đồng bộ
+  slug: asynchronous-assertions
+  index: 26
+- title: Dữ liệu sinh tự động
+  slug: generated-test-data
+  index: 27
+- title: Chẩn đoán và bảo trì
+  slug: diagnostics-and-maintenance
+  index: 28
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 29

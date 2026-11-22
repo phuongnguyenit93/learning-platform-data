@@ -1,0 +1,57 @@
+roadmap:
+- id: bit-logic-so
+  title: Bit & logic số
+  purpose: Hiểu cách máy tính biểu diễn và biến đổi thông tin ở mức thấp nhất.
+  objectives:
+  - Giải thích bit, byte và hệ nhị phân
+  - Phân biệt số nguyên, ký tự và dữ liệu mã hóa
+  - Mô tả cổng logic và phép Boolean
+- id: kien-truc-may-tinh
+  title: Kiến trúc máy tính
+  purpose: Nắm vai trò các khối phần cứng khi thực thi lệnh.
+  objectives:
+  - Phân biệt CPU, thanh ghi và bộ nhớ
+  - Giải thích tập lệnh (ISA) và chu trình lệnh
+  - Mô tả luồng dữ liệu giữa các thành phần
+- id: bo-nho-i-o
+  title: Bộ nhớ & I/O
+  purpose: Hiểu cách truy xuất dữ liệu ảnh hưởng đến tốc độ và hành vi chương trình.
+  objectives:
+  - Phân biệt cache, RAM và lưu trữ
+  - Giải thích locality và độ trễ truy cập
+  - Mô tả I/O và ngắt cơ bản
+- id: tu-ma-nguon-den-thuc-thi
+  title: Từ mã nguồn đến thực thi
+  purpose: Liên hệ chương trình viết ra với mã máy và tiến trình chạy.
+  objectives:
+  - Mô tả biên dịch, liên kết và nạp
+  - Phân biệt mã nguồn, tệp thực thi và tiến trình
+  - Nhận biết stack, heap và lời gọi hàm
+- id: he-dieu-hanh
+  title: Hệ điều hành
+  purpose: Hiểu cách hệ điều hành trừu tượng hóa và phân phối tài nguyên.
+  objectives:
+  - Giải thích system call và kernel
+  - Phân biệt tiến trình và luồng
+  - Mô tả lập lịch CPU và bộ nhớ ảo
+- id: dong-thoi-dong-bo
+  title: Đồng thời & đồng bộ
+  purpose: Nhận diện các vấn đề khi nhiều luồng dùng chung tài nguyên.
+  objectives:
+  - Minh họa race condition
+  - Giải thích khóa và semaphore
+  - Phát hiện tình huống deadlock cơ bản
+- id: he-thong-tep
+  title: Hệ thống tệp
+  purpose: Nắm cách lưu trữ dữ liệu bền vững và phục hồi lỗi.
+  objectives:
+  - Giải thích file, thư mục và filesystem
+  - Mô tả đọc/ghi, buffer và cache
+  - Nêu vai trò của journaling và flush
+- id: mang-he-phan-tan
+  title: Mạng & hệ phân tán
+  purpose: Hiểu giao tiếp giữa các máy và giới hạn của hệ thống kết nối.
+  objectives:
+  - Phân biệt IP, TCP và DNS
+  - Giải thích độ trễ, mất gói và timeout
+  - Nhận diện lỗi mạng, retry và nhất quán cơ bản

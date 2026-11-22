@@ -1,0 +1,286 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiến trúc vi nhân (Microkernel) là gì và mô hình lõi kết hợp phần mở rộng
+  - Bài toán biến thể chức năng và nhu cầu mở rộng sản phẩm
+  - 'Các thuật ngữ nền tảng: lõi, hệ chủ, plugin, điểm mở rộng và hợp đồng'
+  - Quan hệ giữa chức năng dùng chung và chức năng có thể thay thế
+  - Luồng minh họa từ yêu cầu người dùng đến lõi và plugin
+  - Phân biệt Microkernel ở cấp ứng dụng với vi nhân hệ điều hành
+  - Phân biệt kiến trúc Microkernel với cơ chế cài thêm plugin đơn lẻ
+  - Lộ trình đọc tài liệu và kiến thức nền cần chuẩn bị
+- level1: Bối cảnh áp dụng
+  level2:
+  - Nhận diện phần ổn định và những trục biến đổi của nghiệp vụ
+  - Ứng dụng có nhiều dòng sản phẩm hoặc bộ tính năng theo khách hàng
+  - Công cụ phát triển, bộ xử lý tài liệu và nền tảng tích hợp
+  - Mở rộng do nhóm nội bộ phát triển và mở rộng từ bên thứ ba
+  - Lợi ích về khả năng thay thế, kiểm thử và phát triển độc lập
+  - Đánh đổi về độ phức tạp hợp đồng, vận hành và quản lý phụ thuộc
+  - Những trường hợp giải pháp mô-đun thông thường đã đáp ứng đủ
+  - Tiêu chí lựa chọn dựa trên nhu cầu mở rộng thực tế
+- level1: Thành phần kiến trúc
+  level2:
+  - Lõi hệ thống (core system) và tập năng lực tối thiểu
+  - Hệ chủ (host application) và trách nhiệm điều phối
+  - Plugin và đơn vị đóng gói chức năng mở rộng
+  - Điểm mở rộng (extension point) và nơi plugin tham gia xử lý
+  - Danh mục plugin (plugin registry) và thông tin khả năng cung cấp
+  - Hợp đồng API/SPI dùng chung giữa lõi và plugin
+  - Bộ quản lý plugin và quan hệ với bộ nạp
+  - Sơ đồ thành phần, chiều phụ thuộc và ranh giới tin cậy
+- level1: Ranh giới lõi
+  level2:
+  - Xác định trách nhiệm lõi theo mục tiêu sản phẩm
+  - Tách chính sách điều phối khỏi cách thực hiện của từng plugin
+  - Những dịch vụ nền tảng lõi có thể cung cấp cho plugin
+  - Ngăn chức năng riêng của khách hàng tích tụ trong lõi
+  - Duy trì lõi hoạt động khi không có plugin tùy chọn
+  - Plugin bắt buộc và giới hạn của khái niệm lõi tối thiểu
+  - Áp dụng đảo ngược phụ thuộc tại ranh giới lõi và plugin
+  - Tổ chức gói và mô-đun để bảo vệ phần triển khai nội bộ
+- level1: Điểm mở rộng
+  level2:
+  - Khảo sát nhu cầu thay đổi để xác định điểm mở rộng
+  - Điểm mở rộng theo thao tác, định dạng và chính sách nghiệp vụ
+  - Lựa chọn một triển khai hoặc kết hợp nhiều triển khai
+  - Mô hình thay thế, chuỗi xử lý và phát thông báo
+  - Điểm móc vòng đời (hook) và giới hạn quyền can thiệp
+  - Độ hạt của điểm mở rộng và chi phí chia quá nhỏ
+  - Quy tắc thứ tự, ưu tiên và xử lý xung đột
+  - Khả năng kiểm tra điều kiện hỗ trợ trước khi gọi plugin
+  - Nguyên tắc bổ sung điểm mở rộng mà vẫn giữ lõi ổn định
+- level1: Hợp đồng plugin
+  level2:
+  - Phân biệt API cho bên sử dụng với SPI cho bên triển khai
+  - Thiết kế giao diện nhỏ, rõ trách nhiệm và dễ kiểm chứng
+  - Mô hình yêu cầu, kết quả và đối tượng truyền dữ liệu
+  - Quy ước lỗi, trạng thái xử lý và kết quả không được hỗ trợ
+  - Ngữ nghĩa thao tác và những điều hợp đồng phải cam kết
+  - Hợp đồng đồng bộ, bất đồng bộ và hủy tác vụ
+  - Yêu cầu an toàn luồng và khả năng tái sử dụng phiên plugin
+  - Giới hạn đối tượng, tài nguyên và dịch vụ truyền qua ranh giới
+  - Tài liệu hợp đồng, ví dụ tối thiểu và bộ tiêu chí tuân thủ
+- level1: Danh mục plugin
+  level2:
+  - Định danh plugin và định danh khả năng cung cấp
+  - 'Tệp mô tả plugin: phiên bản, điểm vào và yêu cầu hệ chủ'
+  - Tìm kiếm plugin từ cấu hình, classpath hoặc thư mục cài đặt
+  - Đăng ký tường minh và khám phá tự động
+  - Xác thực mô tả trước khi đưa plugin vào danh mục
+  - Giải quyết định danh trùng và nhiều nhà cung cấp cùng khả năng
+  - Phân biệt plugin đã cài, đã nạp và sẵn sàng phục vụ
+  - Tra cứu triển khai và công bố danh mục một cách nhất quán
+- level1: Phụ thuộc plugin
+  level2:
+  - Phân biệt phụ thuộc vào lõi, hợp đồng và plugin khác
+  - Mô tả phụ thuộc bắt buộc, tùy chọn và khoảng phiên bản
+  - Dựng đồ thị phụ thuộc và tính thứ tự khởi động
+  - Phát hiện phụ thuộc thiếu, không tương thích và chu trình
+  - Trao đổi qua khả năng hoặc hợp đồng thay vì lớp triển khai
+  - Xung đột phiên bản thư viện dùng chung giữa các plugin
+  - Ảnh hưởng dây chuyền khi tắt hoặc nâng cấp plugin phụ thuộc
+  - Giới hạn liên kết chéo để bảo toàn khả năng thay thế
+- level1: Vòng đời plugin
+  level2:
+  - Thiết kế các trạng thái từ phát hiện đến dừng và gỡ bỏ
+  - Khởi tạo plugin và cấp ngữ cảnh hoạt động
+  - Kiểm tra sẵn sàng trước khi cho phép nhận yêu cầu
+  - Kích hoạt, vô hiệu hóa và dừng nhận yêu cầu mới
+  - Hoàn tất hoặc hủy công việc đang chạy khi dừng
+  - Thu hồi luồng, kết nối, tệp và tài nguyên được đăng ký
+  - Xử lý khởi động thất bại và khôi phục trạng thái nhất quán
+  - Điều kiện hỗ trợ nạp lại hoặc thay thế khi đang chạy
+  - Thiết kế thao tác vòng đời lặp lại an toàn và kiểm soát đồng thời
+- level1: Nạp và cô lập
+  level2:
+  - Plugin cùng tiến trình và plugin ngoài tiến trình
+  - Nạp tĩnh khi khởi động và nạp động trong thời gian chạy
+  - Cô lập không gian tên và phụ thuộc thư viện
+  - Mô hình ClassLoader riêng và quy tắc ủy quyền trong Java
+  - Định danh kiểu tại ranh giới nhiều ClassLoader
+  - Cô lập lỗi chức năng, lỗi tiến trình và mức độ bảo đảm
+  - Giao tiếp qua IPC/RPC khi chọn plugin ngoài tiến trình
+  - Chi phí triển khai và độ trễ của các mức cô lập
+  - Giới hạn dỡ nạp, tham chiếu còn giữ và rò rỉ bộ nhớ
+- level1: Luồng thực thi
+  level2:
+  - Tiếp nhận yêu cầu và xác định khả năng cần thực hiện
+  - Chọn plugin theo định dạng, ngữ cảnh và tiêu chí hỗ trợ
+  - Truyền ngữ cảnh yêu cầu mà không lộ chi tiết hệ chủ
+  - Thực thi một plugin, chuỗi plugin hoặc nhiều plugin độc lập
+  - Quy tắc tổng hợp kết quả và dừng sớm
+  - Quyền sở hữu luồng, bộ thực thi và tác vụ nền
+  - Thời hạn xử lý, tín hiệu hủy và giải phóng tài nguyên
+  - Giữ xử lý xác định khi có nhiều plugin cùng phù hợp
+- level1: Cấu hình plugin
+  level2:
+  - Tách cấu hình hệ chủ, cấu hình plugin và cấu hình từng yêu cầu
+  - Khai báo lược đồ, giá trị mặc định và kiểm tra cấu hình
+  - Bật tắt tính năng và lựa chọn plugin theo môi trường
+  - Cấu hình theo khách hàng hoặc đơn vị sử dụng
+  - Phát hiện xung đột khi nhiều cấu hình cùng có hiệu lực
+  - Cấp bí mật qua dịch vụ có kiểm soát của hệ chủ
+  - Điều kiện cập nhật cấu hình mà không khởi động lại
+  - Theo dõi phiên bản cấu hình và khả năng tái hiện hành vi
+- level1: Dữ liệu và giao dịch
+  level2:
+  - Quyền sở hữu dữ liệu giữa lõi và từng plugin
+  - Lựa chọn lưu trữ dùng chung hoặc kho dữ liệu riêng
+  - Truy cập dữ liệu qua hợp đồng thay vì sửa trực tiếp bảng nội bộ
+  - Quản lý trạng thái plugin và vòng đời phiên xử lý
+  - Ranh giới giao dịch khi lõi và plugin cùng cập nhật dữ liệu
+  - Nhất quán dữ liệu khi plugin hoạt động ngoài tiến trình
+  - Khôi phục hoặc bù trừ khi chuỗi xử lý thất bại một phần
+  - Thay đổi lược đồ dữ liệu và điều kiện quay lui phiên bản
+  - Sao lưu, di chuyển và xử lý dữ liệu khi gỡ plugin
+- level1: Phiên bản và tương thích
+  level2:
+  - Quản lý riêng phiên bản hệ chủ, hợp đồng và plugin
+  - Tương thích mã nguồn, nhị phân và hành vi
+  - Nhận diện thay đổi phá vỡ hợp đồng
+  - Tiến hóa yêu cầu, kết quả và mô tả khả năng
+  - Thương lượng phiên bản hoặc khả năng hỗ trợ
+  - Ma trận tương thích và chính sách các phiên bản được hỗ trợ
+  - Ngừng hỗ trợ API theo giai đoạn và hướng dẫn chuyển đổi
+  - Chạy song song nhiều phiên bản khi có nhu cầu thực tế
+  - Quay lui plugin và kiểm tra tương thích với dữ liệu hiện có
+- level1: Bảo mật plugin
+  level2:
+  - Mô hình đe dọa với plugin nội bộ và bên thứ ba
+  - Ranh giới tin cậy của mã thực thi trong cùng tiến trình
+  - Kiểm tra nguồn gốc, chữ ký và tính toàn vẹn gói plugin
+  - Xác thực nhà phát hành và quy trình phê duyệt plugin
+  - Cấp quyền tối thiểu cho tệp, mạng, dữ liệu và dịch vụ hệ chủ
+  - Cô lập tiến trình hoặc hệ điều hành với mã không đáng tin
+  - Kiểm tra dữ liệu đầu vào và đầu ra qua hợp đồng
+  - Quản lý bí mật, dữ liệu nhạy cảm và nhật ký truy cập
+  - Kiểm soát phụ thuộc, lỗ hổng và thu hồi plugin có vấn đề
+- level1: Độ tin cậy
+  level2:
+  - Phân loại lỗi hợp đồng, lỗi plugin và lỗi hạ tầng
+  - Giới hạn thời gian xử lý theo khả năng của cơ chế thực thi
+  - Giới hạn tài nguyên và số yêu cầu đồng thời cho plugin
+  - Cô lập tài nguyên để hạn chế lỗi lan truyền
+  - Tạm ngắt gọi plugin lỗi và điều kiện cho phép phục hồi
+  - Chọn chức năng dự phòng và suy giảm tính năng có kiểm soát
+  - Thử lại và tính lặp an toàn khi thao tác có tác dụng phụ
+  - Khôi phục sau plugin treo, dừng đột ngột hoặc mất kết nối
+- level1: Hiệu năng
+  level2:
+  - Xác định ngân sách độ trễ tại ranh giới lõi và plugin
+  - Đo chi phí khám phá, nạp và khởi tạo plugin
+  - Chi phí tra cứu, điều phối và chuyển đổi dữ liệu
+  - Bộ nhớ đệm kết quả lựa chọn plugin và điều kiện vô hiệu hóa
+  - Khởi tạo lười và đánh đổi với thời gian đáp ứng đầu tiên
+  - Kiểm soát đồng thời, hàng đợi và áp lực ngược
+  - Đánh giá chi phí tuần tự hóa khi plugin ngoài tiến trình
+  - Đo hiệu năng theo plugin và xử lý nút thắt có bằng chứng
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử lõi bằng plugin giả và dữ liệu tối thiểu
+  - Kiểm thử độc lập từng plugin theo hợp đồng công khai
+  - Bộ kiểm thử tuân thủ dùng chung cho nhà phát triển plugin
+  - Kiểm thử khám phá, đăng ký và chọn đúng triển khai
+  - Kiểm thử đồ thị phụ thuộc và thứ tự vòng đời
+  - Kiểm thử ma trận phiên bản hệ chủ và plugin
+  - Kiểm thử lỗi khởi tạo, ngoại lệ, treo và kết quả sai hợp đồng
+  - Kiểm thử an toàn luồng, hủy tác vụ và thu hồi tài nguyên
+  - Kiểm thử bảo mật và ranh giới cô lập
+  - Kiểm thử luồng đầu cuối với các tổ hợp plugin đại diện
+- level1: Quan sát và vận hành
+  level2:
+  - Gắn định danh plugin và phiên bản vào nhật ký xử lý
+  - Theo dõi trạng thái cài đặt, kích hoạt và mức sẵn sàng
+  - Chỉ số độ trễ, lỗi, lưu lượng và tài nguyên theo plugin
+  - Liên kết dấu vết yêu cầu từ lõi qua các plugin
+  - Phân biệt lỗi lõi, lỗi cấu hình và lỗi plugin khi chẩn đoán
+  - Hiển thị đồ thị phụ thuộc và lý do plugin không hoạt động
+  - Cảnh báo, cô lập và khôi phục plugin theo quy trình vận hành
+  - Lập hồ sơ plugin đang chạy để tái hiện sự cố
+- level1: Đóng gói và phát hành
+  level2:
+  - Cấu trúc gói plugin và các tài nguyên đi kèm
+  - Tách gói hợp đồng khỏi gói triển khai lõi
+  - Kho phân phối plugin và kiểm tra nguồn tải
+  - Quy trình cài đặt, nâng cấp, gỡ bỏ và kiểm tra toàn vẹn
+  - Pipeline xây dựng và kiểm tra plugin trước phát hành
+  - Kiểm soát thay đổi đồng bộ giữa hệ chủ và plugin
+  - Phát hành thăm dò và bật dần plugin theo nhóm người dùng
+  - Quay lui phiên bản và quản lý thay đổi dữ liệu
+  - Danh mục thành phần, giấy phép và nguồn gốc gói phát hành
+- level1: Quản trị mở rộng
+  level2:
+  - Phân công nhóm sở hữu lõi, hợp đồng và từng plugin
+  - Quy trình đề xuất và xét duyệt điểm mở rộng mới
+  - Bộ công cụ phát triển, mẫu plugin và tài liệu tích hợp
+  - Tiêu chí chấp nhận plugin vào hệ sinh thái sản phẩm
+  - Chính sách hỗ trợ, bảo trì và kết thúc vòng đời plugin
+  - Quản lý biến thể sản phẩm mà vẫn kiểm soát tổ hợp tính năng
+  - Ghi quyết định kiến trúc và đánh giá chi phí phát triển dài hạn
+- level1: Triển khai Java
+  level2:
+  - Tách mô-đun hợp đồng, lõi, hệ chủ và plugin trong dự án Java
+  - Thiết kế SPI cho ví dụ xử lý nhiều định dạng tài liệu
+  - Xây dựng lõi điều phối và hai plugin thay thế độc lập
+  - Đăng ký tường minh để kiểm chứng thiết kế trước khi nạp động
+  - Khám phá nhà cung cấp bằng ServiceLoader
+  - Đóng gói plugin thành JAR và quản lý tài nguyên đi kèm
+  - Nạp JAR bằng ClassLoader riêng khi thực sự cần
+  - Chia sẻ đúng kiểu hợp đồng để tránh lỗi ép kiểu
+  - Kết nối plugin với vùng chứa phụ thuộc như Spring
+  - Quản lý tài nguyên plugin khi đóng hệ chủ
+  - Kiểm thử thêm plugin mà không sửa luồng xử lý lõi
+- level1: Hệ sinh thái plugin
+  level2:
+  - So sánh nhu cầu tự xây cơ chế plugin với dùng framework
+  - ServiceLoader trong bài toán khám phá nhà cung cấp Java
+  - PF4J trong bài toán quản lý plugin cho ứng dụng JVM
+  - OSGi trong bài toán mô-đun, dịch vụ và vòng đời động
+  - Eclipse trong nghiên cứu điểm mở rộng và hệ sinh thái plugin
+  - Đánh giá framework theo cô lập, vòng đời và tương thích
+  - Lập bằng chứng thử nghiệm trước khi chọn công nghệ
+- level1: Quan hệ kiến trúc
+  level2:
+  - 'Microkernel và kiến trúc phân lớp: điểm mở rộng trong các lớp'
+  - 'Microkernel và khối đơn thể mô-đun: ranh giới chức năng và khả năng cài thêm'
+  - 'Microkernel và vi dịch vụ: khác biệt về đơn vị triển khai và cô lập'
+  - Microkernel với Hexagonal hoặc Clean Architecture tại ranh giới hợp đồng
+  - Microkernel với Pipes and Filters trong chuỗi biến đổi dữ liệu
+  - Microkernel với kiến trúc hướng sự kiện khi mở rộng bằng thông báo
+  - Strategy, Adapter và Factory trong phần triển khai cơ chế plugin
+  - Đảo ngược phụ thuộc và tiêm phụ thuộc trong hệ chủ
+  - Tránh đồng nhất một design pattern với toàn bộ kiến trúc
+- level1: Chuyển đổi kiến trúc
+  level2:
+  - Khảo sát hệ thống hiện có và lập bản đồ phụ thuộc
+  - Chọn một trục biến đổi làm điểm mở rộng thử nghiệm
+  - Tách hợp đồng và bọc triển khai cũ bằng adapter
+  - Đưa cơ chế lựa chọn plugin vào một luồng có kiểm soát
+  - Di chuyển cấu hình, dữ liệu và trách nhiệm vận hành
+  - Chạy đối chiếu hành vi cũ và mới trước khi chuyển hẳn
+  - Mở rộng từng bước dựa trên kết quả đo và kiểm thử
+  - Điều kiện dừng chuyển đổi hoặc quay lại giải pháp đơn giản hơn
+- level1: Sai lầm thiết kế
+  level2:
+  - Lõi phình to và điểm mở rộng chỉ mang tính hình thức
+  - Plugin phụ thuộc lớp nội bộ của hệ chủ
+  - Plugin gọi chéo tạo mạng phụ thuộc khó thay thế
+  - Hợp đồng quá rộng hoặc rò rỉ chi tiết lưu trữ
+  - Chọn plugin theo thứ tự khám phá không được bảo đảm
+  - Lạm dụng trạng thái toàn cục và tài nguyên dùng chung
+  - Cho rằng ClassLoader hoặc interface tự bảo đảm cách ly bảo mật
+  - Cố hỗ trợ nạp nóng khi chưa giải quyết vòng đời và tài nguyên
+  - Thêm cơ chế plugin khi chưa có nhu cầu biến đổi rõ ràng
+- level1: Bài tập và tình huống
+  level2:
+  - Thiết kế bộ chuyển đổi tài liệu với nhiều định dạng đầu vào
+  - Mở rộng bộ kiểm tra quy tắc theo từng khách hàng
+  - Thiết kế bộ kết nối nguồn dữ liệu bằng hợp đồng plugin
+  - Thêm plugin mới và chứng minh lõi không cần sửa
+  - Mô phỏng phụ thuộc thiếu, trùng định danh và phiên bản không tương thích
+  - Xử lý plugin lỗi hoặc treo và kiểm tra khả năng suy giảm tính năng
+  - Nâng cấp plugin có trạng thái và diễn tập quay lui
+  - So sánh phương án cùng tiến trình và ngoài tiến trình
+  - Xây dựng sơ đồ, quyết định kiến trúc và kế hoạch kiểm thử
+  - Danh sách kiểm tra thiết kế và tiêu chí nghiệm thu hệ thống Microkernel

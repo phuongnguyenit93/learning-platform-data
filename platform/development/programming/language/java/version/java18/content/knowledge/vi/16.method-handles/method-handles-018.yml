@@ -1,0 +1,3 @@
+menuLevel1: MethodHandle
+menuLevel2: Handle immutable và việc chia sẻ giữa nhiều luồng không làm receiver hoặc dữ liệu tự an toàn
+status: ""

@@ -1,0 +1,43 @@
+roadmap:
+- id: bai-toan-chia-se-doi-tuong
+  title: Bài toán chia sẻ đối tượng
+  purpose: Hiểu vì sao hàng nghìn đối tượng có dữ liệu lặp lại gây lãng phí bộ nhớ.
+  objectives:
+  - Nhận diện dữ liệu trùng lặp trong tập đối tượng lớn.
+  - Giải thích mục tiêu tiết kiệm bộ nhớ của Flyweight.
+- id: intrinsic-extrinsic-state
+  title: Intrinsic & Extrinsic State
+  purpose: Biết tách trạng thái có thể chia sẻ khỏi trạng thái riêng của từng ngữ cảnh.
+  objectives:
+  - Phân loại thuộc tính thành intrinsic và extrinsic state.
+  - Đưa extrinsic state ra ngoài đối tượng được chia sẻ.
+- id: cau-truc-flyweight
+  title: Cấu trúc Flyweight
+  purpose: Hiểu cách Flyweight, Client và Context phối hợp để tái sử dụng dữ liệu.
+  objectives:
+  - Mô tả trách nhiệm của Flyweight và Client.
+  - Vẽ luồng truyền extrinsic state khi gọi thao tác.
+- id: flyweight-factory
+  title: Flyweight Factory
+  purpose: Tạo và tái sử dụng flyweight theo khóa ổn định.
+  objectives:
+  - Thiết kế factory lưu flyweight trong Map.
+  - Đảm bảo cùng một khóa lấy lại đối tượng đã tạo.
+- id: cai-dat-bang-java
+  title: Cài đặt bằng Java
+  purpose: Áp dụng pattern vào một ví dụ Java với nhiều đối tượng cùng kiểu.
+  objectives:
+  - Cài đặt ví dụ cây hoặc ký tự dùng flyweight chung.
+  - Truyền vị trí hay thuộc tính riêng từ client khi sử dụng.
+- id: kiem-thu-do-bo-nho
+  title: Kiểm thử & đo bộ nhớ
+  purpose: Xác minh việc dùng chung không làm sai trạng thái và có lợi ích thực tế.
+  objectives:
+  - Kiểm tra nhiều context dùng chung một flyweight đúng cách.
+  - So sánh số instance hoặc bộ nhớ trước và sau khi áp dụng.
+- id: gioi-han-lua-chon
+  title: Giới hạn & lựa chọn
+  purpose: Biết tránh chia sẻ sai dữ liệu và xác định lúc Flyweight thực sự hữu ích.
+  objectives:
+  - Phát hiện rủi ro mutable shared state và cache phình to.
+  - Phân biệt Flyweight với object pool và cache thông thường.

@@ -1,0 +1,3694 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data Neo4j là gì và giải quyết bài toán dữ liệu nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của Neo4j, Neo4j Java Driver, Spring Data và Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: node, label, relationship, property, entity và repository'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng xử lý từ đối tượng Java đến Cypher và kết quả đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: So sánh mô hình đồ thị với mô hình quan hệ và tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Khi nào dùng repository, Neo4jTemplate, Neo4jClient hoặc driver trực tiếp?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt Spring Data Neo4j hiện đại với các thế hệ dùng Neo4j-OGM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và bộ dữ liệu phim–diễn viên dùng xuyên suốt tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-database-fundamentals
+  title: Nền tảng đồ thị
+  childs:
+  - slug: graph-database-fundamentals-001
+    title: Mô hình đồ thị thuộc tính và cách biểu diễn dữ liệu liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-database-fundamentals-002
+    title: Node, nhiều label và ý nghĩa của label trong truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-database-fundamentals-003
+    title: Relationship có hướng, có kiểu và có thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-database-fundamentals-004
+    title: Phân biệt hướng lưu quan hệ với hướng duyệt đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-database-fundamentals-005
+    title: Đường đi, số bước duyệt, chu trình và node có nhiều kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-database-fundamentals-006
+    title: Định danh nghiệp vụ và định danh nội bộ của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-database-fundamentals-007
+    title: So sánh JOIN với duyệt quan hệ qua ví dụ phim–diễn viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-cypher
+  title: Cypher cơ bản
+  childs:
+  - slug: basic-cypher-001
+    title: Đọc mẫu node và relationship trong câu Cypher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-002
+    title: MATCH, WHERE, RETURN và tham số có tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-003
+    title: OPTIONAL MATCH, dữ liệu thiếu và cách xử lý null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-004
+    title: CREATE, MERGE, SET và REMOVE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-005
+    title: DELETE, DETACH DELETE và phạm vi xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-006
+    title: WITH, phạm vi biến và truy vấn nhiều giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-007
+    title: UNWIND, collection, map và xử lý dữ liệu theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-008
+    title: COUNT, COLLECT, DISTINCT và tổng hợp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-009
+    title: ORDER BY, SKIP, LIMIT và thứ tự kết quả ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-010
+    title: Truy vấn nhiều bước, đường đi và giới hạn số bước duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-cypher-011
+    title: CALL, truy vấn con và gọi procedure trong phạm vi hỗ trợ của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Khởi tạo
+  childs:
+  - slug: setup-001
+    title: Chọn phiên bản Java, Spring Boot, SDN, driver và Neo4j tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Khai báo spring-boot-starter-data-neo4j và quản lý dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Chuẩn bị Neo4j bằng Docker, bản cài cục bộ hoặc Aura
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: URI bolt/neo4j, cổng kết nối và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Cấu hình spring.neo4j và spring.data.neo4j.database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Tạo node entity và Neo4jRepository đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Thực hiện vòng CRUD và xác minh dữ liệu trong công cụ truy vấn Neo4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Nạp dữ liệu mẫu và tách cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-architecture
+  title: Cấu hình và kiến trúc
+  childs:
+  - slug: configuration-architecture-001
+    title: Auto-configuration của Spring Boot cho driver và Spring Data Neo4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-002
+    title: Chuỗi thành phần repository → template → client → driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-003
+    title: Kích hoạt @EnableNeo4jRepositories và giới hạn package được quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-004
+    title: Cấu hình thủ công bằng AbstractNeo4jConfig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-005
+    title: Neo4jMappingContext và metadata của mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-006
+    title: Đăng ký Neo4jClient, Neo4jTemplate và Neo4jTransactionManager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-007
+    title: Phân biệt phạm vi cấu hình driver với phạm vi cấu hình SDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-008
+    title: Quản lý vòng đời Driver, session và tài nguyên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-design
+  title: Thiết kế mô hình
+  childs:
+  - slug: model-design-001
+    title: Từ câu hỏi nghiệp vụ đến node, relationship và property
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-002
+    title: Chọn dữ liệu làm thuộc tính hay node độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-003
+    title: Quan hệ có thuộc tính hay node trung gian?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-004
+    title: Ranh giới aggregate và phạm vi đọc–ghi trong một đồ thị liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-005
+    title: Chọn hướng ánh xạ theo ca sử dụng thay vì sao chép mọi quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-006
+    title: Tránh quan hệ hai chiều làm mở rộng đồ thị đối tượng quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-007
+    title: Thiết kế ID ổn định, ràng buộc duy nhất và dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-008
+    title: Phân biệt mô hình ghi nghiệp vụ với mô hình đọc cho báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-design-009
+    title: Thiết kế mô hình phim, diễn viên, vai diễn và đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: node-mapping
+  title: Ánh xạ node
+  childs:
+  - slug: node-mapping-001
+    title: Đánh dấu entity bằng @Node và nhận diện lớp trong mapping context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: node-mapping-002
+    title: Primary label, label bổ sung và quy ước tên mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: node-mapping-003
+    title: Định nghĩa thuộc tính bằng @Property
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: node-mapping-004
+    title: Phân biệt annotation SDN, Spring Data Commons và annotation JPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: node-mapping-005
+    title: Loại bỏ dữ liệu không lưu bằng @Transient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: node-mapping-006
+    title: Thuộc tính chỉ đọc bằng @ReadOnlyProperty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: node-mapping-007
+    title: Đối chiếu entity với node, label và property thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity
+  title: Định danh
+  childs:
+  - slug: identity-001
+    title: Vai trò của @Id khi nhận diện cùng một entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-002
+    title: ID tự gán từ nghiệp vụ và ràng buộc duy nhất tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-003
+    title: '@GeneratedValue và chiến lược sinh ID'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-004
+    title: Phân biệt ID số nội bộ, elementId và ID lưu trong property
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-005
+    title: Giới hạn ổn định của định danh nội bộ và lựa chọn ID công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-006
+    title: Sinh UUID bằng UUIDStringGenerator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-007
+    title: Tùy chỉnh IdGenerator bằng generatorClass hoặc generatorRef
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-008
+    title: Phát hiện entity mới và vai trò của @Version với ID tự gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-009
+    title: Nhận lại ID trên đối tượng được trả về sau save
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-010
+    title: Đổi khóa nghiệp vụ, dữ liệu nhập ngoài và nguy cơ tạo node trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: properties-and-types
+  title: Thuộc tính và kiểu
+  childs:
+  - slug: properties-and-types-001
+    title: Kiểu Cypher, kiểu Java và chuyển đổi mặc định của driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-002
+    title: Chuỗi, số nguyên, số thực, boolean và giới hạn miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-003
+    title: Property không tồn tại, giá trị null và kiểu nguyên thủy Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-004
+    title: 'Mảng và collection thuộc tính: kiểu phần tử và giới hạn lưu trữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-005
+    title: Enum, UUID, BigDecimal và lựa chọn biểu diễn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-006
+    title: Ngày, giờ, thời điểm, múi giờ và duration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-007
+    title: Point, hệ tọa độ và dữ liệu không gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-008
+    title: Phân biệt property đơn giản, map kết quả và đối tượng miền cần ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-types-009
+    title: Kiểm tra biểu diễn dữ liệu để tránh sai so sánh hoặc sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-instantiation
+  title: Khởi tạo đối tượng
+  childs:
+  - slug: object-instantiation-001
+    title: Cách SDN dựng entity từ record và gán thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-instantiation-002
+    title: Constructor, factory và @PersistenceCreator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-instantiation-003
+    title: Tên tham số constructor và tùy chọn biên dịch -parameters
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-instantiation-004
+    title: Thiết kế entity bất biến và phương thức wither
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-instantiation-005
+    title: Ánh xạ Java record và đối tượng có thuộc tính sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-instantiation-006
+    title: Nullability và dữ liệu không đủ để gọi constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-instantiation-007
+    title: equals, hashCode, toString và nguy cơ đệ quy qua relationship
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-instantiation-008
+    title: Ảnh hưởng của Lombok và collection đến định danh đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relationship-mapping
+  title: Ánh xạ quan hệ
+  childs:
+  - slug: relationship-mapping-001
+    title: Khai báo @Relationship với type và direction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-002
+    title: Quan hệ OUTGOING, INCOMING và cách hiểu node đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-003
+    title: Ánh xạ quan hệ đơn bằng một thuộc tính entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-004
+    title: Ánh xạ nhiều quan hệ bằng List hoặc Set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-005
+    title: Chọn đầu chịu trách nhiệm cập nhật khi mô hình có hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-006
+    title: Quan hệ tự tham chiếu và chu trình trong mô hình Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-007
+    title: Thêm, bỏ hoặc thay thế liên kết trong collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-008
+    title: Phân biệt xóa relationship với xóa node được liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-mapping-009
+    title: Nhiều đường liên kết tới cùng node và vấn đề trùng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relationship-properties
+  title: Thuộc tính quan hệ
+  childs:
+  - slug: relationship-properties-001
+    title: Khi nào cần @RelationshipProperties?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-properties-002
+    title: Thiết kế lớp thuộc tính quan hệ và @TargetNode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-properties-003
+    title: '@RelationshipId và nhận diện relationship đã tồn tại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-properties-004
+    title: Ánh xạ vai diễn, điểm đánh giá hoặc thời điểm tạo liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-properties-005
+    title: Nhiều relationship cùng kiểu giữa cùng một cặp node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-properties-006
+    title: Cập nhật thuộc tính relationship mà giữ đúng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-properties-007
+    title: Hướng INCOMING và ý nghĩa TargetNode theo phía đang ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationship-properties-008
+    title: Đối chiếu collection Java với các relationship thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-mapping
+  title: Ánh xạ nâng cao
+  childs:
+  - slug: advanced-mapping-001
+    title: '@DynamicLabels và tập label được quản lý khi đọc–ghi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-mapping-002
+    title: Quan hệ động bằng Map với khóa String hoặc enum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-mapping-003
+    title: Phân biệt Map quan hệ động với Map thuộc tính tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-mapping-004
+    title: '@CompositeProperty, prefix, delimiter và quy tắc trải thuộc tính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-mapping-005
+    title: Kế thừa entity, lớp trừu tượng và ánh xạ đa hình bằng label
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-mapping-006
+    title: Đánh giá phạm vi hỗ trợ interface theo phiên bản SDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-mapping-007
+    title: '@ReadOnlyProperty trên relationship và ranh giới dữ liệu được ghi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-mapping-008
+    title: Phối hợp với ứng dụng khác cùng sửa label hoặc property
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-reading-and-writing
+  title: Đọc và ghi đồ thị
+  childs:
+  - slug: graph-reading-and-writing-001
+    title: Đường đi xử lý save từ entity gốc đến node và relationship liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-002
+    title: Quyết định tạo mới hoặc cập nhật theo ID và version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-003
+    title: Lưu các node dùng chung mà không tạo bản sao ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-004
+    title: Đồng bộ relationship từ trạng thái đồ thị đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-005
+    title: Nguy cơ mất liên kết khi save entity chỉ được tải một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-006
+    title: Phân biệt thuộc tính chưa được tải, null và collection rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-007
+    title: Tải đồ thị theo quan hệ đã ánh xạ và nguy cơ đọc quá nhiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-008
+    title: Chu trình, nhiều nhánh và cách giới hạn đồ thị cần đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-009
+    title: 'Không có dirty checking: thời điểm thay đổi Java được ghi vào Neo4j'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-reading-and-writing-010
+    title: Phạm vi xóa của phương thức repository và tác động lên dữ liệu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-crud
+  title: Repository CRUD
+  childs:
+  - slug: repository-crud-001
+    title: Khai báo Neo4jRepository với entity và kiểu ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-002
+    title: Thiết kế giao diện cơ sở bằng @NoRepositoryBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-003
+    title: save, saveAll và ý nghĩa đối tượng trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-004
+    title: findById, findAllById và findAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-005
+    title: existsById và count
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-006
+    title: delete, deleteById, deleteAllById và deleteAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-007
+    title: Optional, collection rỗng và lỗi kết quả không duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-008
+    title: Phân biệt lời gọi hàng loạt với đảm bảo về hiệu năng hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-009
+    title: Giới hạn tập phương thức công khai theo ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: derived-queries
+  title: Truy vấn suy diễn
+  childs:
+  - slug: derived-queries-001
+    title: Cấu trúc tên phương thức và chiến lược tìm truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-002
+    title: Tìm theo property trực tiếp và đường dẫn qua relationship
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-003
+    title: Kết hợp And, Or và xử lý đường dẫn thuộc tính mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-004
+    title: So sánh bằng, khác, khoảng giá trị và mốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-005
+    title: IsNull, IsNotNull, True, False, In và NotIn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-006
+    title: Tìm chuỗi với Containing, StartingWith, EndingWith và IgnoreCase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-007
+    title: Distinct, OrderBy, First và Top theo khả năng của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-008
+    title: Phương thức count, exists và delete theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-009
+    title: Truy vấn theo vị trí và kiểm chứng từ khóa không gian được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-010
+    title: Nhận diện từ khóa không phù hợp hoặc thuộc tính không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-011
+    title: Đọc Cypher sinh tự động để xác minh đúng ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-cypher
+  title: Cypher tùy chỉnh
+  childs:
+  - slug: custom-cypher-001
+    title: Khai báo @Query từ package Spring Data Neo4j hiện đại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-002
+    title: Bind tham số bằng $name, @Param và tên tham số Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-003
+    title: Trả entity, scalar hoặc DTO theo mục tiêu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-004
+    title: Truy vấn qua nhiều relationship và điều kiện trên thuộc tính quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-005
+    title: SpEL và các phần mở rộng biểu thức được SDN hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-006
+    title: Phân biệt tham số giá trị với label, kiểu quan hệ và cấu trúc Cypher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-007
+    title: Named query và vị trí cấu hình theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-008
+    title: Truy vấn CREATE, MERGE, SET hoặc DELETE qua repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-009
+    title: Đánh dấu count, exists, delete và chọn kiểu kết quả phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-cypher-010
+    title: Chọn ranh giới giao dịch cho truy vấn đọc hoặc ghi tự khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-mapping
+  title: Ánh xạ kết quả
+  childs:
+  - slug: result-mapping-001
+    title: Record của Neo4j khác gì entity trong mô hình miền?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-002
+    title: Yêu cầu một record chứa đủ dữ liệu cho một entity gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-003
+    title: Thu thập node và relationship bằng COLLECT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-004
+    title: Trùng entity gốc, tích Descartes và quan hệ bị thiếu trong kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-005
+    title: OPTIONAL MATCH và collection rỗng trong kết quả đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-006
+    title: 'Kết quả đường đi: tách node và relationship để ánh xạ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-007
+    title: Gom dữ liệu nhiều tầng tại cơ sở dữ liệu hoặc phía ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-008
+    title: Alias cột, kết quả tổng hợp và giá trị scalar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-009
+    title: Khi nào chuyển sang mapping tùy chỉnh bằng Neo4jClient?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: projection-dto
+  title: Projection và DTO
+  childs:
+  - slug: projection-dto-001
+    title: Tách dữ liệu trả về khỏi entity dùng cho ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-002
+    title: Projection interface đóng và projection mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-003
+    title: DTO constructor và Java record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-004
+    title: Projection nhiều tầng để giới hạn relationship cần tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-005
+    title: Projection động qua tham số Class của phương thức repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-006
+    title: Thuộc tính quan hệ và các giới hạn kiểu dữ liệu trong projection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-007
+    title: Định nghĩa aggregate boundary ở entity trong phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-008
+    title: Lưu theo projection bằng Neo4jTemplate.saveAs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-009
+    title: Phạm vi thuộc tính và relationship được cập nhật khi lưu projection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-010
+    title: Tránh ghi lại projection hoặc entity thiếu dữ liệu bằng save toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pagination-results
+  title: Phân trang và kết quả
+  childs:
+  - slug: pagination-results-001
+    title: Chọn entity đơn, Optional, List, Page, Slice hoặc Stream theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-002
+    title: Pageable, PageRequest và Sort trong truy vấn suy diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-003
+    title: Thứ tự ổn định và khóa phụ khi nhiều node cùng giá trị sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-004
+    title: Phân trang Cypher tùy chỉnh với $skip và $limit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-005
+    title: countQuery cho Page và cách đếm đúng số entity gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-006
+    title: Slice và xác định còn kết quả phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-007
+    title: Giới hạn áp dụng Sort từ Pageable cho @Query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-008
+    title: Phân trang node gốc trước khi mở rộng relationship
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-009
+    title: Phân trang theo khóa bằng Cypher tùy chỉnh cho dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-results-010
+    title: Quản lý tài nguyên khi đọc kết quả lớn hoặc dạng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-by-example
+  title: Query by Example
+  childs:
+  - slug: query-by-example-001
+    title: Khi nào dùng Query by Example trong Spring Data Neo4j?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-002
+    title: Tạo đối tượng mẫu, Example và ExampleMatcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-003
+    title: Khớp toàn bộ hoặc bất kỳ thuộc tính được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-004
+    title: Xử lý null, kiểu nguyên thủy và bỏ qua thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-005
+    title: Khớp chuỗi, phân biệt hoa thường và tùy chỉnh theo trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-006
+    title: Tìm, đếm và kiểm tra tồn tại qua QueryByExampleExecutor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-007
+    title: Phân trang, sắp xếp và fluent query theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-008
+    title: Giới hạn điều kiện lồng nhau, collection và truy vấn relationship
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cypher-dsl
+  title: Cypher-DSL
+  childs:
+  - slug: cypher-dsl-001
+    title: Khi nào dùng Cypher-DSL thay vì nối chuỗi truy vấn?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-002
+    title: Khai báo node, relationship, condition và parameter bằng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-003
+    title: Xây bộ lọc tùy chọn và nhóm điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-004
+    title: Tái sử dụng thành phần truy vấn, projection và thứ tự sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-005
+    title: Tích hợp CypherdslConditionExecutor vào repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-006
+    title: Truy vấn đầy đủ bằng CypherdslStatementExecutor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-007
+    title: Biến thể reactive và phạm vi API được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-008
+    title: Render Cypher, truyền tham số và kiểm tra tương thích dialect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cypher-dsl-009
+    title: Phân biệt Cypher-DSL với Querydsl hoặc JPA Criteria
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: neo4j-template
+  title: Neo4jTemplate
+  childs:
+  - slug: neo4j-template-001
+    title: Vai trò của Neo4jOperations và Neo4jTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-template-002
+    title: Thực hiện CRUD mà không cần khai báo repository cho từng kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-template-003
+    title: Tìm entity bằng Cypher và tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-template-004
+    title: 'Fluent find: chọn kiểu miền, projection và kết quả cuối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-template-005
+    title: saveAs và fluent save để giới hạn dữ liệu được ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-template-006
+    title: Điều kiện chọn thuộc tính động khi lưu theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-template-007
+    title: Kết hợp template với converter, callback và giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4j-template-008
+    title: Quyết định dùng template hay client cho kết quả ngoài mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: neo4jclient
+  title: Neo4jClient
+  childs:
+  - slug: neo4jclient-001
+    title: Khởi tạo hoặc dùng Neo4jClient do Spring Boot cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-002
+    title: Thực thi Cypher bằng query và bind tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-003
+    title: Bind nhiều tham số bằng map hoặc chuyển đổi đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-004
+    title: fetch, one, first, all và quy ước số lượng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-005
+    title: fetchAs và mappedBy cho DTO hoặc kết quả tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-006
+    title: Đọc Record, Value, Node, Relationship và Path của driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-007
+    title: run, ResultSummary và số node/relationship bị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-008
+    title: Chọn database cho một thao tác client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-009
+    title: Dùng cùng Driver với transaction manager để tham gia giao dịch Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: neo4jclient-010
+    title: Ủy quyền thao tác driver khi cần truy cập mức thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-customization
+  title: Repository mở rộng
+  childs:
+  - slug: repository-customization-001
+    title: Thiết kế repository fragment và lớp triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-customization-002
+    title: Quy ước tên, phát hiện fragment và ghép giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-customization-003
+    title: Dùng Neo4jTemplate cho entity và Neo4jClient cho kết quả riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-customization-004
+    title: Tái sử dụng fragment giữa nhiều repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-customization-005
+    title: Truyền ranh giới giao dịch qua các phương thức tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-customization-006
+    title: Chọn lớp repository cơ sở khi cần thay đổi hành vi dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-customization-007
+    title: Kiểm thử độc lập fragment và kết hợp với repository sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-conversion
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-conversion-001
+    title: Khi nào cần converter thay vì node hoặc relationship mới?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-002
+    title: Converter đọc và ghi giữa kiểu miền với Neo4j Value
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-003
+    title: Đăng ký chuyển đổi bằng Neo4jConversions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-004
+    title: Chuyển đổi toàn cục và chuyển đổi theo thuộc tính bằng @ConvertWith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-005
+    title: Ánh xạ value object và dữ liệu nhiều property qua cơ chế composite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-006
+    title: Ngày giờ dạng chuỗi hoặc số và tương thích dữ liệu từ hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-007
+    title: Kiểu tiền tệ, enum đặc thù và lựa chọn biểu diễn cho truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-008
+    title: Kiểm thử đọc–ghi đối xứng, null và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronous-transactions
+  title: Giao dịch đồng bộ
+  childs:
+  - slug: synchronous-transactions-001
+    title: Ranh giới giao dịch của Neo4j và của ứng dụng Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-002
+    title: Giao dịch mặc định của CRUD và phương thức truy vấn tự khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-003
+    title: Đặt @Transactional ở tầng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-004
+    title: Phối hợp nhiều repository, template và client trong cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-005
+    title: Neo4jTransactionManager và tài nguyên gắn với luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-006
+    title: readOnly và ảnh hưởng đến định tuyến truy vấn đọc–ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-007
+    title: Rollback, rollbackFor và xử lý exception
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-008
+    title: Propagation, timeout và isolation trong giới hạn hỗ trợ của Neo4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-009
+    title: Proxy, self-invocation và nguyên nhân giao dịch không được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-010
+    title: Quản lý giao dịch lập trình bằng TransactionTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transactions-011
+    title: Phân biệt giao dịch Spring với giao dịch tự mở bằng Driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-control
+  title: Kiểm soát đồng thời
+  childs:
+  - slug: concurrency-control-001
+    title: Mất cập nhật khi nhiều giao dịch cùng sửa node hoặc relationship
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-002
+    title: Optimistic locking bằng @Version trên entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-003
+    title: Version khởi tạo, phát hiện entity mới và cập nhật version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-004
+    title: Xử lý OptimisticLockingFailureException bằng tải lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-005
+    title: Khóa ghi, deadlock và thứ tự cập nhật các node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-006
+    title: Cập nhật nguyên tử bằng Cypher thay cho đọc–sửa–ghi thiếu kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-007
+    title: MERGE, uniqueness constraint và yêu cầu ghi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-008
+    title: Phân biệt lỗi tạm thời có thể thử lại với lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-009
+    title: Idempotency và tác động phụ khi một giao dịch được chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-access
+  title: Truy cập reactive
+  childs:
+  - slug: reactive-access-001
+    title: Phân biệt imperative, asynchronous và reactive API của driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-002
+    title: Mono, Flux, subscription và thời điểm truy vấn được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-003
+    title: Cấu hình AbstractReactiveNeo4jConfig và @EnableReactiveNeo4jRepositories
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-004
+    title: Khai báo ReactiveNeo4jRepository và các kiểu kết quả phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-005
+    title: Thao tác entity bằng ReactiveNeo4jTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-006
+    title: Truy vấn tùy chỉnh bằng ReactiveNeo4jClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-007
+    title: Backpressure, fetch size và tiêu thụ kết quả lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-008
+    title: Tránh block, subscribe thủ công và lẫn API đồng bộ trong chuỗi reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-009
+    title: Lựa chọn xử lý tuần tự hoặc có giới hạn đồng thời cho thao tác ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-transactions
+  title: Giao dịch reactive
+  childs:
+  - slug: reactive-transactions-001
+    title: ReactiveNeo4jTransactionManager và phạm vi Reactor Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-002
+    title: '@Transactional trên phương thức trả về Publisher'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-003
+    title: Quản lý giao dịch bằng TransactionalOperator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-004
+    title: Ghép nhiều thao tác repository/client trong cùng một chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-005
+    title: Phân biệt lỗi, hoàn thành và hủy subscription đối với giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-006
+    title: Giới hạn xử lý song song trên cùng session hoặc transaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-007
+    title: Đặt retry đúng ranh giới để chạy lại trọn đơn vị công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-008
+    title: Phân trang reactive bằng Cypher và phép đếm riêng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-009
+    title: Kiểm thử reactive bằng StepVerifier và xác minh kết quả sau commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: callbacks-and-events
+  title: Callback và sự kiện
+  childs:
+  - slug: callbacks-and-events-001
+    title: Vai trò của EntityCallback trong quy trình ánh xạ SDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-002
+    title: BeforeBindCallback trước khi entity được chuyển thành tham số ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-003
+    title: ReactiveBeforeBindCallback và xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-004
+    title: Callback với entity bất biến và đối tượng được trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-005
+    title: Callback sau chuyển đổi và phạm vi hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-006
+    title: Thứ tự callback tùy chỉnh với callback auditing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-007
+    title: Phân biệt callback SDN, sự kiện nghiệp vụ và sự kiện sau commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-008
+    title: Giới hạn callback khi ghi Cypher trực tiếp hoặc dùng driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-and-events-009
+    title: Thiết kế xử lý sự kiện có thể thử lại mà không lặp tác động phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auditing
+  title: Auditing
+  childs:
+  - slug: auditing-001
+    title: Kích hoạt @EnableNeo4jAuditing cho ứng dụng đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-002
+    title: '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-003
+    title: Cung cấp người thao tác bằng AuditorAware
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-004
+    title: DateTimeProvider, múi giờ và thời gian kiểm thử xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-005
+    title: Kích hoạt @EnableReactiveNeo4jAuditing và ReactiveAuditorAware
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-006
+    title: Lấy người thao tác từ ngữ cảnh bảo mật đồng bộ hoặc reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-007
+    title: Vai trò của ID và version khi phân biệt tạo mới với cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-008
+    title: Giới hạn auditing khi dữ liệu được ghi ngoài quy trình entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-009
+    title: Phân biệt thông tin lần sửa gần nhất với lịch sử thay đổi đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-and-indexes
+  title: Schema và chỉ mục
+  childs:
+  - slug: schema-and-indexes-001
+    title: Vì sao đồ thị linh hoạt vẫn cần schema và ràng buộc?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-indexes-002
+    title: Uniqueness constraint cho khóa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-indexes-003
+    title: Ràng buộc tồn tại, kiểu property và node key theo edition/phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-indexes-004
+    title: Phân biệt khai báo @Id với tạo constraint trong cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-indexes-005
+    title: Chỉ mục range, text, point và token lookup theo nhu cầu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-indexes-006
+    title: Chỉ mục tổng hợp và thứ tự property trong điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-indexes-007
+    title: Kiểm tra trạng thái index và constraint trước khi phục vụ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-and-indexes-008
+    title: Đánh đổi giữa hiệu năng đọc, chi phí ghi và dung lượng chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-migration
+  title: Migration dữ liệu
+  childs:
+  - slug: data-migration-001
+    title: Quản lý Cypher migration có phiên bản và lịch sử thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-002
+    title: Chọn công cụ migration phù hợp thay vì kỳ vọng SDN tự tạo schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-003
+    title: Tạo constraint và index trước khi nạp dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-004
+    title: Đổi label, property hoặc relationship type theo giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-005
+    title: Backfill ID, version và thuộc tính mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-006
+    title: Dùng UNWIND với dữ liệu theo lô và ID ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-007
+    title: Nhập dữ liệu lặp an toàn bằng MERGE kết hợp constraint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-008
+    title: Kiểm tra tính tương thích khi ứng dụng cũ và mới cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-009
+    title: Sao lưu, khôi phục và xác minh kết quả chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: clusters-and-bookmarks
+  title: Cluster và bookmark
+  childs:
+  - slug: clusters-and-bookmarks-001
+    title: URI kết nối trực tiếp và URI có định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clusters-and-bookmarks-002
+    title: Định tuyến đọc–ghi trong cụm Neo4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clusters-and-bookmarks-003
+    title: Causal consistency và bài toán đọc thấy dữ liệu vừa ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clusters-and-bookmarks-004
+    title: Bookmark và vai trò của Neo4jBookmarkManager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clusters-and-bookmarks-005
+    title: Neo4jBookmarksUpdatedEvent và việc thu nhận bookmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clusters-and-bookmarks-006
+    title: Chia sẻ bookmark giữa yêu cầu hoặc phiên bản ứng dụng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clusters-and-bookmarks-007
+    title: Ảnh hưởng khi bỏ quản lý bookmark và các trường hợp đọc dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clusters-and-bookmarks-008
+    title: Failover, lỗi tạm thời và retry theo phạm vi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-databases
+  title: Nhiều database
+  childs:
+  - slug: multiple-databases-001
+    title: Chọn database cố định bằng cấu hình Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-002
+    title: DatabaseSelectionProvider và lựa chọn database theo giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-003
+    title: ReactiveDatabaseSelectionProvider và dữ liệu từ Reactor Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-004
+    title: Thiết kế tenant theo database hoặc theo mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-005
+    title: Dùng nhiều Driver hoặc transaction manager khi kết nối nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-006
+    title: Giữ đúng database khi phối hợp repository, template và client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-007
+    title: Không trộn entity đã tải từ các database hoặc tenant khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-008
+    title: Impersonation, UserSelectionProvider và giới hạn theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-009
+    title: Health check và quyền truy cập khi database mặc định khác database ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-queries
+  title: Truy vấn chuyên biệt
+  childs:
+  - slug: specialized-queries-001
+    title: Truy vấn thời gian và khoảng thời gian với kiểu dữ liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-queries-002
+    title: Truy vấn không gian, khoảng cách và hệ tọa độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-queries-003
+    title: Đường đi ngắn và truy vấn nhiều bước có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-queries-004
+    title: Full-text search qua Cypher và ánh xạ kết quả cùng điểm số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-queries-005
+    title: Vector search theo phiên bản Neo4j và tách biệt với khả năng mapping SDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-queries-006
+    title: 'Gọi APOC: cài đặt, quyền thực thi và dữ liệu trả về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-queries-007
+    title: Ranh giới tích hợp Graph Data Science qua client hoặc procedure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-queries-008
+    title: Ánh xạ kết quả thuật toán thành DTO thay vì entity dùng để lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo thời gian truy vấn, số record, dung lượng và số lượt giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: 'Đọc EXPLAIN và PROFILE: ước lượng so với thực thi thật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Nhận diện full scan, số bước duyệt lớn và tích Descartes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Giới hạn đồ thị được tải bằng mô hình, projection hoặc Cypher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Phân trang entity gốc và tránh nhân bản kết quả do relationship
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tối ưu truy vấn bằng index và điểm bắt đầu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Phân biệt saveAll với truy vấn ghi theo lô bằng UNWIND
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Giới hạn kích thước giao dịch và số phần tử mỗi lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Pool, fetch size và backpressure khi có nhiều yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Cache kết quả ở tầng ứng dụng và vô hiệu hóa khi đồ thị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đo riêng chi phí Neo4j, driver và ánh xạ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Chọn unit test, repository test và integration test theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử mô hình nghiệp vụ không cần Neo4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: '@DataNeo4jTest và phạm vi cấu hình được nạp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Testcontainers với Neo4j cùng phiên bản mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Neo4j Test Harness và kết nối qua Bolt khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: '@DynamicPropertySource hoặc service connection theo Spring Boot'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Chuẩn bị fixture, constraint, index và dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử ID, version, kiểu dữ liệu và converter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử quan hệ động, thuộc tính quan hệ và nhiều relationship cùng cặp node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử @Query, ánh xạ record, projection và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử save dữ liệu được tải một phần và bảo toàn liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử rollback, auditing, callback và xung đột đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử reactive cùng phạm vi commit và cleanup tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Phân biệt hành vi rollback của test với kết quả sau commit thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: Kiểm thử hồi quy truy vấn, dung lượng đồ thị và tính cô lập giữa test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-diagnostics
+  title: Lỗi và chẩn đoán
+  childs:
+  - slug: errors-diagnostics-001
+    title: Phân biệt lỗi driver, lỗi Cypher, lỗi mapping và lỗi Spring Data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-002
+    title: Sai URI, TLS, xác thực, routing hoặc tên database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-003
+    title: Không tìm thấy repository hoặc quét nhầm loại repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-004
+    title: Entity thiếu ID, relationship thiếu định danh hoặc metadata không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-005
+    title: Constructor, alias, kiểu property và giá trị null không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-006
+    title: Không có kết quả, nhiều kết quả hoặc record thiếu dữ liệu để ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-007
+    title: Entity gốc bị trùng và collection quan hệ bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-008
+    title: Save tạo node trùng hoặc xóa liên kết ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-009
+    title: Optimistic locking, vi phạm constraint và deadlock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-010
+    title: Giao dịch không có hiệu lực, cạn pool hoặc truy vấn quá thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-011
+    title: Chuỗi reactive không được thực thi hoặc mất phạm vi giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-012
+    title: Quy trình tái hiện lỗi bằng truy vấn tối thiểu, tham số và kiểm thử tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-operations
+  title: Bảo mật và vận hành
+  childs:
+  - slug: security-operations-001
+    title: Quản lý bí mật kết nối và quyền tài khoản cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-002
+    title: TLS, xác minh chứng chỉ và cấu hình kết nối an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-003
+    title: Bind tham số để phòng Cypher injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-004
+    title: Kiểm soát label, loại relationship và cấu trúc truy vấn động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-005
+    title: Tách quyền đọc, ghi, migration và gọi procedure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-006
+    title: Cấu hình logger cho SDN, driver và truy vấn Cypher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-007
+    title: Health indicator, chỉ số driver/pool và truy vấn chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-008
+    title: Cấu hình timeout, retry và giới hạn tài nguyên theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-009
+    title: Bảo vệ endpoint trả đồ thị khỏi truy vấn sâu hoặc dữ liệu quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-010
+    title: Tuần tự hóa DTO để tránh vòng lặp, lộ thông tin và payload quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-011
+    title: Quan sát log, metric và trace mà không ghi lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migrations-and-upgrades
+  title: Chuyển đổi và nâng cấp
+  childs:
+  - slug: migrations-and-upgrades-001
+    title: Đọc release notes và ma trận tương thích Boot–SDN–driver–Neo4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-002
+    title: Phân biệt tài liệu SDN hiện đại với tài liệu OGM cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-003
+    title: Chuyển annotation, session và API độ sâu từ hệ thống dùng OGM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-004
+    title: Điều chỉnh ID nội bộ, elementId và ID nghiệp vụ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-005
+    title: 'Chuyển từ JPA: thiết kế lại liên kết theo câu hỏi nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-006
+    title: Chuyển từ driver thuần sang client/template/repository theo từng ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-007
+    title: Kiểm tra thay đổi Cypher sinh tự động và dialect khi nâng Neo4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-008
+    title: Đối chiếu callback, projection, aggregate boundary và tính năng mới theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migrations-and-upgrades-009
+    title: Lập kiểm thử hồi quy dữ liệu, giao dịch và hiệu năng trước nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Phân tích câu hỏi nghiệp vụ trên đồ thị phim–diễn viên–đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Thiết kế entity, ID và relationship có thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Dựng database, migration, constraint và dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Triển khai repository CRUD và truy vấn suy diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Viết truy vấn nhiều bước, projection và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Thực nghiệm save đồ thị được tải đầy đủ hoặc một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Bổ sung auditing, optimistic locking và xử lý yêu cầu ghi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Xây một luồng đọc–ghi reactive có giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Kiểm thử bằng Testcontainers và đo truy vấn bằng PROFILE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: 'Bài tập mở rộng: gợi ý phim, tìm đường liên kết và tìm kiếm chuyên biệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: Rà soát tính đúng dữ liệu, bảo mật và tiêu chí sẵn sàng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

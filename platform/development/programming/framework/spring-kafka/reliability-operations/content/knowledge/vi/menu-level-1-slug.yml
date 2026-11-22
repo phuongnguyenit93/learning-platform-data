@@ -1,0 +1,103 @@
+menu:
+- title: Phạm vi vận hành
+  slug: operations-scope
+  index: 0
+- title: Mô hình tin cậy
+  slug: reliability-model
+  index: 1
+- title: Producer bền vững
+  slug: durable-producer
+  index: 2
+- title: Producer vận hành
+  slug: producer-operations
+  index: 3
+- title: Consumer bền vững
+  slug: durable-consumer
+  index: 4
+- title: Consumer group
+  slug: consumer-group
+  index: 5
+- title: Offset và ack
+  slug: offsets-and-acknowledgments
+  index: 6
+- title: Listener container
+  slug: listener-container
+  index: 7
+- title: Concurrency và partition
+  slug: concurrency-and-partitions
+  index: 8
+- title: Phân loại lỗi
+  slug: error-classification
+  index: 9
+- title: DefaultErrorHandler
+  slug: default-error-handler
+  index: 10
+- title: Retry và backoff
+  slug: retries-and-backoff
+  index: 11
+- title: Non-blocking retry
+  slug: non-blocking-retry
+  index: 12
+- title: Dead letter và recovery
+  slug: dead-letter-and-recovery
+  index: 13
+- title: Deserialization và schema
+  slug: deserialization-and-schemas
+  index: 14
+- title: Transaction Kafka
+  slug: kafka-transactions
+  index: 15
+- title: Exactly once
+  slug: exactly-once
+  index: 16
+- title: Kafka và database
+  slug: kafka-and-databases
+  index: 17
+- title: Rebalance và lifecycle
+  slug: rebalancing-and-lifecycle
+  index: 18
+- title: Pause và backpressure
+  slug: pausing-and-backpressure
+  index: 19
+- title: Application events
+  slug: application-events
+  index: 20
+- title: Idle và non-responsive
+  slug: idle-and-unresponsive-consumers
+  index: 21
+- title: Monitoring và metrics
+  slug: monitoring-and-metrics
+  index: 22
+- title: Observation và tracing
+  slug: observability-and-tracing
+  index: 23
+- title: Logging và chẩn đoán
+  slug: logging-and-diagnostics
+  index: 24
+- title: Health và readiness
+  slug: health-and-readiness
+  index: 25
+- title: Bảo mật vận hành
+  slug: operational-security
+  index: 26
+- title: Hiệu năng và capacity
+  slug: performance-and-capacity
+  index: 27
+- title: Tính đúng và idempotency
+  slug: correctness-and-idempotency
+  index: 28
+- title: Incident response
+  slug: incident-response
+  index: 29
+- title: Kiểm thử tin cậy
+  slug: reliability-testing
+  index: 30
+- title: Deployment và cấu hình
+  slug: deployment-and-configuration
+  index: 31
+- title: Nâng cấp và tương thích
+  slug: upgrades-and-compatibility
+  index: 32
+- title: Thực hành vận hành
+  slug: operations-practice
+  index: 33

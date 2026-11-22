@@ -1,0 +1,209 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Chú thích (annotation) là gì và vai trò của siêu dữ liệu
+  - Phân biệt annotation, chú thích mã nguồn và Javadoc
+  - Quan hệ giữa nơi khai báo, nơi sử dụng và bên xử lý annotation
+  - 'Ba cách khai thác: trình biên dịch, công cụ và chương trình lúc chạy'
+  - Vì sao annotation tùy chỉnh cần bộ xử lý để tạo tác dụng
+  - Khi nào dùng annotation, giao diện đánh dấu hoặc cấu hình bên ngoài
+  - Kiến thức nền và trình tự học annotation trong Java Core
+- level1: Cú pháp sử dụng
+  level2:
+  - Tên annotation, import và tên đầy đủ của kiểu
+  - Annotation đánh dấu và cú pháp không có phần tử
+  - Annotation thông thường với các cặp tên–giá trị
+  - Cú pháp rút gọn với phần tử value
+  - 'Truyền mảng: ngoặc nhọn, một phần tử và mảng rỗng'
+  - Truyền annotation lồng nhau làm giá trị
+  - Kết hợp nhiều annotation trên một khai báo
+  - Nhận biết lỗi cú pháp, thiếu phần tử và tên phần tử không hợp lệ
+- level1: Annotation chuẩn
+  level2:
+  - '@Override: kiểm tra ghi đè và thực thi phương thức giao diện'
+  - '@Deprecated: since, forRemoval và quan hệ với thẻ @deprecated'
+  - '@SuppressWarnings: nhóm cảnh báo và giới hạn phạm vi bỏ qua'
+  - '@FunctionalInterface: kiểm tra hợp đồng giao diện hàm'
+  - '@SafeVarargs: điều kiện sử dụng và trách nhiệm với varargs'
+  - '@Serial: kiểm tra các thành phần phục vụ tuần tự hóa'
+  - '@Native: đánh dấu hằng số cho mã native'
+  - 'javax.annotation.processing.Generated: nhận diện mã được sinh'
+  - Phân biệt annotation của Java SE với annotation từ thư viện ngoài
+- level1: Khai báo kiểu
+  level2:
+  - Định nghĩa kiểu annotation bằng @interface
+  - Đặt tên, tổ chức package và chọn phạm vi truy cập
+  - Quan hệ với java.lang.annotation.Annotation
+  - Thiết kế kiểu đánh dấu, một phần tử và nhiều phần tử
+  - 'Quy tắc phương thức phần tử: không tham số, không generic, không throws'
+  - Hằng số, enum và kiểu thành viên bên trong @interface
+  - Giới hạn kế thừa và lỗi phụ thuộc vòng giữa các kiểu annotation
+- level1: Phần tử và giá trị
+  level2:
+  - 'Các kiểu hợp lệ: kiểu nguyên thủy, String, Class, enum và annotation'
+  - Phần tử Class<?> và Class<? extends T>
+  - Giá trị enum và annotation lồng nhau
+  - Mảng một chiều và các kiểu phần tử không được hỗ trợ
+  - Biểu thức hằng, class literal và giới hạn giá trị tại nơi sử dụng
+  - Vì sao null, lời gọi phương thức và đối tượng tùy ý không hợp lệ
+  - Phần tử bắt buộc và khai báo giá trị mặc định bằng default
+  - Giá trị mặc định của mảng và annotation lồng nhau
+  - Ảnh hưởng của thay đổi giá trị mặc định đến annotation đã biên dịch
+- level1: Đích áp dụng
+  level2:
+  - '@Target và tập giá trị ElementType'
+  - 'TYPE và ANNOTATION_TYPE: lớp, giao diện, enum và kiểu annotation'
+  - FIELD, METHOD và CONSTRUCTOR
+  - PARAMETER và LOCAL_VARIABLE
+  - PACKAGE với package-info.java
+  - MODULE với module-info.java
+  - RECORD_COMPONENT và quy tắc lan truyền annotation của record
+  - TYPE_PARAMETER và TYPE_USE
+  - Không khai báo @Target, @Target({}) và lỗi đặt sai vị trí
+- level1: Vòng đời
+  level2:
+  - '@Retention và các chính sách RetentionPolicy'
+  - 'SOURCE: siêu dữ liệu chỉ tồn tại ở mã nguồn'
+  - 'CLASS: lưu trong class file nhưng không đọc bằng reflection chuẩn'
+  - 'RUNTIME: lưu trong class file và có thể đọc khi chạy'
+  - Chính sách CLASS mặc định khi không có @Retention
+  - Chọn vòng đời theo bên xử lý và thời điểm sử dụng
+  - Phân biệt vòng đời của annotation với vòng đời của đối tượng được đánh dấu
+- level1: Tài liệu và kế thừa
+  level2:
+  - '@Documented và việc công bố annotation trong Javadoc'
+  - Viết tài liệu cho ý nghĩa, phần tử và giá trị mặc định
+  - '@Inherited và việc tra cứu annotation qua lớp cha'
+  - 'Giới hạn: không kế thừa từ giao diện, phương thức hoặc trường'
+  - Annotation khai báo tại lớp con che annotation cùng kiểu ở lớp cha
+  - Phân biệt kế thừa annotation với kế thừa thành viên Java
+  - Meta-annotation tùy chỉnh và giới hạn của xử lý bắc cầu trong Java Core
+- level1: Annotation lặp
+  level2:
+  - Vấn đề nhiều giá trị trên cùng một vị trí
+  - '@Repeatable và kiểu annotation chứa'
+  - Khai báo value() trả về mảng của annotation được lặp
+  - Ràng buộc Target, Retention, Documented và Inherited của kiểu chứa
+  - Cú pháp lặp và cú pháp chứa tường minh
+  - Quy tắc phối hợp annotation lặp với annotation chứa
+  - Thứ tự phần tử và hành vi khi tra cứu annotation lặp
+  - Ảnh hưởng tương thích khi chuyển annotation thường thành annotation lặp
+- level1: Annotation trên kiểu
+  level2:
+  - Phân biệt annotation trên khai báo với annotation trên kiểu
+  - TYPE_USE trong kiểu trường, tham số và giá trị trả về
+  - Annotation trên đối số kiểu generic và wildcard
+  - Annotation trên khai báo tham số kiểu và giới hạn kiểu
+  - Annotation trên kiểu phần tử và từng chiều của mảng
+  - Annotation tại ép kiểu, tạo đối tượng và các vị trí kiểu khác
+  - Tham số nhận (receiver parameter) và annotation của kiểu this
+  - Vai trò của công cụ kiểm tra kiểu; annotation không tự áp đặt ràng buộc
+- level1: Đọc khi chạy
+  level2:
+  - Điều kiện RUNTIME và giao diện AnnotatedElement
+  - Đọc annotation trên Class, Field, Method và Constructor
+  - Đọc annotation trên Parameter và tham số phương thức
+  - Đọc annotation trên Package, Module và RecordComponent
+  - Đọc giá trị phần tử qua phương thức của kiểu annotation
+  - isAnnotationPresent và xử lý khi getAnnotation trả về null
+  - Đọc giá trị mặc định bằng Method.getDefaultValue
+  - Phân biệt Type và AnnotatedType khi đọc siêu dữ liệu kiểu
+  - Duyệt AnnotatedParameterizedType, AnnotatedArrayType và các kiểu liên quan
+- level1: Quy tắc tra cứu
+  level2:
+  - Annotation trực tiếp, gián tiếp, hiện diện và liên kết
+  - getAnnotation so với getDeclaredAnnotation
+  - getAnnotations so với getDeclaredAnnotations
+  - getAnnotationsByType so với getDeclaredAnnotationsByType
+  - Khi nào API nhìn xuyên qua annotation chứa
+  - Phối hợp annotation lặp với @Inherited
+  - Phân biệt tìm phương thức được kế thừa với kế thừa annotation của phương thức
+  - Vì sao quét package, tìm lớp và tìm meta-annotation cần thuật toán riêng
+- level1: Giá trị annotation
+  level2:
+  - annotationType() và kiểu thực của annotation
+  - Ngữ nghĩa equals theo kiểu annotation và từng phần tử
+  - Ngữ nghĩa hashCode và cách so sánh phần tử mảng
+  - Biểu diễn toString và giới hạn khi dùng làm định dạng lưu trữ
+  - Tính bất biến quan sát được và mảng trả về từ annotation
+  - Không phụ thuộc vào lớp proxy hoặc cách cài đặt nội bộ của JDK
+  - Định danh kiểu annotation khi dùng nhiều class loader
+- level1: Dấu vết biên dịch
+  level2:
+  - Dùng javap -v để kiểm tra annotation trong class file
+  - RuntimeVisibleAnnotations và RuntimeInvisibleAnnotations
+  - Thuộc tính annotation của tham số và kiểu sử dụng
+  - AnnotationDefault và cách lưu giá trị mặc định
+  - Cách trình biên dịch biểu diễn annotation lặp bằng kiểu chứa
+  - Đối chiếu mã nguồn, class file và kết quả reflection
+- level1: Xử lý khi biên dịch
+  level2:
+  - Annotation processing là gì và khác reflection ở đâu
+  - Processor, AbstractProcessor và ProcessingEnvironment
+  - Khai báo loại annotation, tùy chọn và phiên bản nguồn được hỗ trợ
+  - Vòng đời init, process và các vòng xử lý
+  - RoundEnvironment, phần tử gốc và các phần tử được đánh dấu
+  - processingOver, errorRaised và vòng xử lý cuối
+  - Giá trị trả về của process và quy tắc nhận xử lý annotation
+  - Khả năng xử lý SOURCE annotation và giới hạn với annotation trên kiểu sử dụng
+- level1: Mô hình ngôn ngữ
+  level2:
+  - Element, ElementKind và cấu trúc khai báo
+  - TypeElement, ExecutableElement và VariableElement
+  - TypeMirror và phân biệt mô hình kiểu với Class lúc chạy
+  - AnnotationMirror và AnnotationValue
+  - Đọc phần tử khai báo tường minh và giá trị mặc định
+  - Elements và Types khi kiểm tra tên, kiểu và quan hệ kiểu
+  - Đọc giá trị Class bằng mô hình kiểu và xử lý MirroredTypeException
+  - Visitor và cách duyệt mô hình ngôn ngữ có cấu trúc
+- level1: Kiểm tra và sinh mã
+  level2:
+  - Thiết kế quy tắc kiểm tra vị trí, kiểu và giá trị annotation
+  - Messager và Diagnostic.Kind cho lỗi, cảnh báo và thông tin
+  - Gắn chẩn đoán vào khai báo, annotation hoặc phần tử cụ thể
+  - 'Filer: sinh mã nguồn, class file và tài nguyên'
+  - Quy tắc đặt tên, package và các phần tử nguồn gốc
+  - Xử lý mã được sinh ở vòng tiếp theo và tránh sinh trùng tệp
+  - 'Giới hạn của API chuẩn: sinh tệp so với sửa cây cú pháp bằng công cụ riêng'
+  - Tạo đầu ra ổn định và phối hợp nhiều processor
+- level1: Công cụ và cấu hình
+  level2:
+  - Đăng ký processor qua META-INF/services/javax.annotation.processing.Processor
+  - Đăng ký processor trong hệ mô-đun Java
+  - Tách thư viện annotation, processor và chương trình sử dụng
+  - 'javac: -processor, -processorpath và --processor-module-path'
+  - 'javac: -proc:only, -proc:none, -A và -s'
+  - Theo dõi vòng xử lý bằng -XprintRounds và -XprintProcessorInfo
+  - Liên hệ --release, SourceVersion và tính tương thích JDK
+  - Cấu hình processor trong công cụ dựng và đồng bộ với IDE
+- level1: Thiết kế annotation
+  level2:
+  - Chọn annotation hay API tường minh theo bài toán
+  - Thiết kế tên gọi thể hiện đúng ý nghĩa siêu dữ liệu
+  - Giữ phần tử ít, rõ nghĩa và có kiểu dữ liệu phù hợp
+  - Chọn Target, Retention, Documented, Inherited và Repeatable có chủ đích
+  - Xác định quy tắc xung đột, độ ưu tiên và trường hợp thiếu annotation
+  - Phân biệt meta-annotation Java Core với annotation tổng hợp của framework
+  - 'Tiến hóa hợp đồng: thêm phần tử, đổi kiểu và thay đổi mặc định'
+  - Chi phí reflection, bộ nhớ đệm và quản lý class loader
+- level1: Kiểm thử và lỗi
+  level2:
+  - Kiểm thử biên dịch thành công và các mẫu mã phải bị từ chối
+  - Kiểm thử ma trận Target và Retention
+  - Kiểm thử kế thừa, che khuất và các API tra cứu
+  - Kiểm thử annotation lặp, kiểu chứa và thứ tự kết quả
+  - Kiểm thử annotation trên generic, mảng và record
+  - Kiểm thử processor bằng JavaCompiler và tệp được sinh
+  - Chẩn đoán processor không được phát hiện hoặc không được gọi
+  - TypeNotPresentException, EnumConstantNotPresentException và lỗi thay đổi hợp đồng
+  - AnnotationFormatError, FilerException và cách khoanh vùng nguyên nhân
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo annotation mô tả thông tin tài liệu với enum, Class và giá trị mặc định
+  - Xây dựng bộ kiểm tra đối tượng bằng annotation RUNTIME và reflection
+  - Thêm annotation lặp để mô tả nhiều quy tắc kiểm tra
+  - So sánh kết quả khi thay đổi Target, Retention và Inherited
+  - Viết processor phát hiện khai báo không hợp lệ
+  - Sinh một lớp chỉ mục từ các phần tử được đánh dấu
+  - Đóng gói thư viện annotation và processor rồi dùng từ dự án khác
+  - Bảng tổng kết lựa chọn annotation và câu hỏi tự đánh giá

@@ -1,0 +1,3 @@
+menuLevel1: CompletableFuture
+menuLevel2: 'getNow(): đọc kết quả không chặn và phân biệt null với chưa hoàn tất'
+status: WRITTEN

@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng phân tán
+  slug: distributed-foundations
+  index: 1
+- title: Phiên bản và phụ thuộc
+  slug: versions-and-dependencies
+  index: 2
+- title: Khởi tạo
+  slug: initialization
+  index: 3
+- title: Kiến trúc nền tảng
+  slug: platform-architecture
+  index: 4
+- title: Nạp cấu hình
+  slug: configuration-loading
+  index: 5
+- title: Environment
+  slug: environment
+  index: 6
+- title: Bootstrap
+  slug: bootstrap
+  index: 7
+- title: Phân cấp context
+  slug: context-hierarchy
+  index: 8
+- title: Nguồn cấu hình tùy biến
+  slug: custom-configuration-sources
+  index: 9
+- title: Cấu hình kiểu dữ liệu
+  slug: typed-configuration
+  index: 10
+- title: Refresh Scope
+  slug: refresh-scope
+  index: 11
+- title: Làm mới cấu hình
+  slug: configuration-refresh
+  index: 12
+- title: Vòng đời ứng dụng
+  slug: application-lifecycle
+  index: 13
+- title: Mã hóa cấu hình
+  slug: configuration-encryption
+  index: 14
+- title: Định danh và mạng
+  slug: identity-and-networking
+  index: 15
+- title: DiscoveryClient
+  slug: discoveryclient
+  index: 16
+- title: ServiceRegistry
+  slug: serviceregistry
+  index: 17
+- title: Gọi dịch vụ
+  slug: service-calls
+  index: 18
+- title: Khả năng hệ thống
+  slug: system-capabilities
+  index: 19
+- title: Giá trị ngẫu nhiên
+  slug: random-values
+  index: 20
+- title: Tùy biến tự động cấu hình
+  slug: auto-configuration-customization
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Quan sát
+  slug: observability
+  index: 23
+- title: Bảo mật
+  slug: security
+  index: 24
+- title: Vận hành
+  slug: operations
+  index: 25
+- title: AOT và checkpoint
+  slug: aot-and-checkpoint
+  index: 26
+- title: Nâng cấp
+  slug: upgrades
+  index: 27
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 28
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 29

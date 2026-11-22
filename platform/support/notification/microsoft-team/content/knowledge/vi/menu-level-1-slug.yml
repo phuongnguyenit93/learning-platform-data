@@ -1,0 +1,79 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overview
+  index: 0
+- title: Mô hình Teams
+  slug: teams-model
+  index: 1
+- title: Lựa chọn cơ chế
+  slug: integration-options
+  index: 2
+- title: Chuẩn bị môi trường
+  slug: environment-setup
+  index: 3
+- title: Webhook qua Workflows
+  slug: workflow-webhooks
+  index: 4
+- title: Xác thực webhook
+  slug: webhook-authentication
+  index: 5
+- title: Quản lý Workflows
+  slug: workflow-management
+  index: 6
+- title: Thiết kế nội dung
+  slug: message-design
+  index: 7
+- title: Adaptive Cards
+  slug: adaptive-cards
+  index: 8
+- title: Tương tác với thẻ
+  slug: card-interactions
+  index: 9
+- title: Định dạng và liên kết
+  slug: formatting-links
+  index: 10
+- title: Danh tính và quyền
+  slug: identities-permissions
+  index: 11
+- title: Tin nhắn qua Graph
+  slug: graph-messages
+  index: 12
+- title: Activity feed
+  slug: activity-feed
+  index: 13
+- title: Bot chủ động
+  slug: proactive-bots
+  index: 14
+- title: Tích hợp với Java
+  slug: java-integration
+  index: 15
+- title: Kiến trúc thông báo
+  slug: notification-architecture
+  index: 16
+- title: Định tuyến người nhận
+  slug: recipient-routing
+  index: 17
+- title: Giới hạn và thử lại
+  slug: rate-limits-retries
+  index: 18
+- title: Vòng đời thông báo
+  slug: notification-lifecycle
+  index: 19
+- title: Bảo mật và quản trị
+  slug: security-governance
+  index: 20
+- title: Quan sát và chẩn đoán
+  slug: observability-diagnostics
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Triển khai và vận hành
+  slug: deployment-operations
+  index: 23
+- title: Di trú hệ thống cũ
+  slug: legacy-migration
+  index: 24
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 25

@@ -1,0 +1,258 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - SOLID là gì và vấn đề thiết kế nào cần giải quyết
+  - Ý nghĩa của năm nguyên lý SRP, OCP, LSP, ISP và DIP
+  - Mục tiêu giảm tác động lan truyền khi phần mềm thay đổi
+  - Quan hệ giữa SOLID với hướng đối tượng và thiết kế mô-đun
+  - Phân biệt nguyên lý thiết kế với quy tắc cú pháp và mẫu thiết kế
+  - Vì sao tuân theo hình thức chưa chứng minh thiết kế có chất lượng
+  - Lộ trình từ hiểu trách nhiệm đến thiết kế hợp đồng và hướng phụ thuộc
+- level1: Nền tảng thiết kế
+  level2:
+  - Phân biệt đối tượng, lớp, giao diện và mô-đun
+  - Trách nhiệm, hành vi và trạng thái trong thiết kế
+  - Bên gọi, bên cung cấp và các đối tượng cộng tác
+  - Tính gắn kết nội bộ (cohesion) và liên kết phụ thuộc (coupling)
+  - Đóng gói dữ liệu và che giấu quyết định thiết kế
+  - Trừu tượng hóa theo nhu cầu sử dụng thay vì theo chi tiết triển khai
+  - Phân biệt kế thừa, quan hệ kiểu con và đa hình
+  - Phân biệt phụ thuộc trong mã nguồn với luồng gọi khi chạy
+  - Kết hợp đối tượng (composition) và ủy quyền (delegation)
+- level1: Thay đổi và ranh giới
+  level2:
+  - Nhận diện các lý do thay đổi từ nghiệp vụ và các bên liên quan
+  - Phân biệt thay đổi thường đi cùng nhau với thay đổi độc lập
+  - Đánh giá tác động lan truyền qua đồ thị phụ thuộc
+  - Nhận diện điểm ổn định và điểm có khả năng biến đổi
+  - Chọn ranh giới lớp hoặc mô-đun theo trách nhiệm thực tế
+  - Phân biệt dấu hiệu cần khảo sát với bằng chứng vi phạm nguyên lý
+  - Dùng tình huống thay đổi cụ thể để đánh giá một thiết kế
+- level1: 'SRP: Đơn trách nhiệm'
+  level2:
+  - Nguyên lý đơn trách nhiệm (Single Responsibility Principle) nói về điều gì
+  - Một lý do thay đổi và vai trò của bên yêu cầu thay đổi
+  - Phân biệt trách nhiệm nghiệp vụ với danh sách thao tác kỹ thuật
+  - Vì sao một trách nhiệm không đồng nghĩa một phương thức
+  - Nhận diện lớp gộp tính toán nghiệp vụ, lưu trữ và trình bày
+  - Những thay đổi độc lập nhưng phải sửa cùng một thành phần
+  - Gom hành vi có cùng lý do thay đổi để giữ tính gắn kết
+  - Tách trách nhiệm mà không tạo các lớp chỉ chuyển tiếp vô ích
+  - Xác định lớp điều phối và trách nhiệm phối hợp luồng công việc
+  - Áp dụng SRP ở mức hàm, lớp và mô-đun theo bối cảnh
+  - Phân tích ví dụ xử lý hóa đơn trước và sau khi tách trách nhiệm
+  - Kiểm tra trạng thái và bất biến có còn được bảo vệ sau khi tách
+  - Đánh giá chi phí điều hướng khi thiết kế bị chia quá nhỏ
+  - Kiểm chứng SRP bằng yêu cầu thay đổi thay vì số dòng mã
+- level1: 'OCP: Đóng và mở'
+  level2:
+  - Nguyên lý đóng và mở (Open-Closed Principle) bảo vệ điều gì
+  - Mở rộng hành vi trong khi giữ ổn định phần chính sách đã được chọn
+  - Vì sao OCP không có nghĩa cấm sửa mã nguồn hiện có
+  - Chọn trục biến đổi dựa trên thay đổi đã có bằng chứng
+  - Tách chính sách ổn định khỏi các cách thực hiện có thể thay đổi
+  - Dùng đa hình hoặc kết hợp đối tượng để tạo điểm mở rộng
+  - Phân tích chuỗi if hoặc switch theo loại để tìm điểm cần thiết kế lại
+  - Khi giữ điều kiện rẽ nhánh lại đơn giản và phù hợp hơn đa hình
+  - Thiết kế đăng ký và lựa chọn cách xử lý mà không sửa logic cốt lõi
+  - Mở rộng bằng cấu hình hoặc dữ liệu và giới hạn của cách tiếp cận này
+  - Phân tích ví dụ thêm chính sách giảm giá hoặc cách tính phí
+  - Giữ hợp đồng của điểm mở rộng ổn định khi thêm cách triển khai
+  - Kiểm thử hồi quy phần ổn định và kiểm thử riêng phần mới
+  - Tránh tạo điểm mở rộng cho mọi khả năng chưa xuất hiện
+  - Đánh giá OCP theo một loại thay đổi cụ thể thay vì mọi thay đổi
+- level1: Hợp đồng hành vi
+  level2:
+  - Hợp đồng của một kiểu gồm cam kết nào với bên sử dụng
+  - Điều kiện trước, điều kiện sau và bất biến của đối tượng
+  - Phân biệt hợp đồng cấu trúc với hợp đồng hành vi
+  - Trạng thái có thể quan sát và tác dụng phụ của thao tác
+  - Ý nghĩa của kết quả trả về, lỗi và ngoại lệ trong hợp đồng
+  - Ràng buộc lịch sử đối với các thay đổi trạng thái được phép
+  - Đặc tả hành vi với giá trị rỗng, trường hợp biên và thao tác không hợp lệ
+  - Viết ví dụ và thuộc tính để làm rõ giả định ngầm của bên gọi
+  - Giới hạn của kiểm thử hữu hạn khi kiểm chứng hợp đồng tổng quát
+- level1: 'LSP: Khả năng thay thế'
+  level2:
+  - Nguyên lý thay thế Liskov (Liskov Substitution Principle) là gì
+  - Thay thế đối tượng theo kỳ vọng hành vi của bên sử dụng
+  - Phân biệt quan hệ kế thừa trong mã với quan hệ kiểu con đúng về hành vi
+  - Vì sao kiểu con không được siết chặt điều kiện trước
+  - Vì sao kiểu con không được làm yếu điều kiện sau
+  - Bảo toàn bất biến và các thay đổi trạng thái được cho phép
+  - Kiểm soát ý nghĩa ngoại lệ, kết quả và tác dụng phụ khi thay thế
+  - Dấu hiệu bên gọi phải kiểm tra kiểu cụ thể trước khi sử dụng
+  - Phân tích hình chữ nhật và hình vuông dựa trên hợp đồng thao tác
+  - Phân tích kiểu con không hỗ trợ một thao tác mà kiểu cha đã cam kết
+  - Thiết kế lại quan hệ bằng tách vai trò hoặc kết hợp đối tượng
+  - Phân biệt lỗi trong cách triển khai với hợp đồng kiểu cha không phù hợp
+  - Chạy cùng bộ kiểm thử hợp đồng cho các cách triển khai
+  - Đánh giá LSP theo từng cách sử dụng và phạm vi cam kết rõ ràng
+- level1: 'ISP: Tách giao diện'
+  level2:
+  - Nguyên lý phân tách giao diện (Interface Segregation Principle) là gì
+  - Bên sử dụng không phải phụ thuộc thao tác không cần đến
+  - Thiết kế giao diện theo vai trò của bên gọi
+  - Nhận diện giao diện chứa các nhóm thao tác phục vụ nhu cầu khác nhau
+  - Dấu hiệu phương thức rỗng hoặc ném lỗi vì không được hỗ trợ
+  - Tách khả năng đọc, ghi hoặc quản trị khi nhu cầu sử dụng khác nhau
+  - Một lớp có thể phục vụ nhiều giao diện vai trò
+  - Phân biệt giao diện nhỏ với giao diện có tính gắn kết
+  - Phân tích ví dụ thiết bị đa chức năng và các khả năng độc lập
+  - Ảnh hưởng của thay đổi giao diện đến các bên sử dụng
+  - Tránh tạo một giao diện cho từng phương thức một cách máy móc
+  - Giữ ranh giới giao diện phù hợp với hợp đồng có thể cam kết
+  - Kiểm chứng ISP bằng tập nhu cầu của từng bên gọi
+- level1: 'DIP: Đảo ngược phụ thuộc'
+  level2:
+  - Nguyên lý đảo ngược phụ thuộc (Dependency Inversion Principle) là gì
+  - Phân biệt chính sách cấp cao với chi tiết cấp thấp trong một quan hệ
+  - Cả chính sách và chi tiết phụ thuộc vào trừu tượng phù hợp
+  - Trừu tượng không bị quyết định bởi chi tiết triển khai
+  - Đảo hướng phụ thuộc trong mã mà vẫn giữ được luồng thực thi
+  - Đặt giao diện theo nhu cầu của phần chính sách
+  - Xác định quyền sở hữu trừu tượng và vị trí đặt trong mô-đun
+  - Tránh để kiểu dữ liệu hạ tầng rò rỉ qua ranh giới trừu tượng
+  - Phân tích ví dụ nghiệp vụ phụ thuộc trực tiếp cơ sở dữ liệu hoặc dịch vụ gửi tin
+  - Dùng adapter để nối chi tiết bên ngoài với giao diện cần thiết
+  - Phân biệt phụ thuộc một kiểu cụ thể ổn định với phụ thuộc chi tiết dễ đổi
+  - Vì sao không cần tạo giao diện cho mọi lớp
+  - Kiểm chứng hướng phụ thuộc bằng cấu trúc package và mô-đun
+  - Đánh giá khả năng thay chi tiết mà không sửa chính sách
+  - Nhận diện trừu tượng mang tên giao diện nhưng vẫn bị chi phối bởi hạ tầng
+- level1: DI và IoC
+  level2:
+  - Phân biệt DIP, tiêm phụ thuộc (DI) và đảo quyền điều khiển (IoC)
+  - Tiêm đối tượng từ bên ngoài chưa đủ để thỏa mãn DIP
+  - Thiết kế hàm khởi tạo để biểu đạt các phụ thuộc bắt buộc
+  - Đánh giá tiêm qua hàm khởi tạo, setter và trường dữ liệu
+  - Lắp ghép đối tượng tại điểm khởi tạo tập trung (composition root)
+  - Thực hiện DI thủ công trước khi dùng bộ chứa hoặc framework
+  - Phân biệt cung cấp phụ thuộc với tự tra cứu qua Service Locator
+  - Quản lý vòng đời và cấu hình mà không đẩy vào logic nghiệp vụ
+  - Xử lý phụ thuộc vòng bằng xem lại trách nhiệm thay vì chỉ sửa cấu hình
+  - Dùng đối tượng thay thế trong kiểm thử mà không lạm dụng mock
+- level1: Kế thừa và kết hợp
+  level2:
+  - Chọn kế thừa theo hợp đồng thay vì chỉ để tái sử dụng mã
+  - Phân biệt quan hệ có thể thay thế với quan hệ chứa hoặc sử dụng
+  - Chi phí lan truyền khi thay đổi lớp cha
+  - Đánh giá hành vi mặc định và các điểm ghi đè trong lớp nền
+  - Kết hợp đối tượng để thay hành vi độc lập với cây kế thừa
+  - Ủy quyền nhưng vẫn giữ trách nhiệm và hợp đồng rõ ràng
+  - Phân tích trạng thái có thể thay đổi trong quan hệ cha con
+  - Chọn thiết kế đơn giản hơn khi chưa có nhu cầu đa hình
+- level1: Phối hợp các nguyên lý
+  level2:
+  - SRP giúp xác định phần thay đổi cần được cô lập
+  - OCP cần hợp đồng mở rộng đủ ổn định và có thể thay thế
+  - LSP bảo vệ kỳ vọng tại các điểm mở rộng đa hình
+  - ISP làm rõ vai trò mà bên sử dụng thực sự cần
+  - DIP định hướng phụ thuộc qua các ranh giới trách nhiệm
+  - Một dấu hiệu thiết kế có thể liên quan nhiều nguyên lý
+  - Đánh giá phương án cải thiện một nguyên lý nhưng tăng chi phí ở nơi khác
+  - Phân tích chuỗi tác động từ thay đổi yêu cầu đến trách nhiệm và hợp đồng
+  - Không dùng số nguyên lý được gắn nhãn để chấm điểm chất lượng
+- level1: Liên hệ mẫu thiết kế
+  level2:
+  - Strategy hỗ trợ thay chính sách theo trục biến đổi đã chọn
+  - Factory và điểm lắp ghép đối tượng giúp cô lập việc tạo phụ thuộc
+  - Adapter kết nối chi tiết bên ngoài với giao diện mong muốn
+  - Decorator bổ sung hành vi nhưng vẫn phải giữ hợp đồng thay thế
+  - Template Method tạo điểm mở rộng cùng các ràng buộc kế thừa
+  - Bridge tách các chiều biến đổi cần phát triển độc lập
+  - Facade hỗ trợ giao diện sử dụng mà không tự bảo đảm ISP
+  - Vì sao không có quan hệ một đối một bắt buộc giữa nguyên lý và mẫu thiết kế
+  - Chỉ chọn mẫu thiết kế khi làm rõ được vấn đề và chi phí giải quyết
+- level1: SOLID trong Java
+  level2:
+  - Biểu đạt vai trò và hợp đồng bằng interface hoặc abstract class
+  - Phân biệt ràng buộc ghi đè do trình biên dịch kiểm tra với hợp đồng hành vi
+  - Kiểu trả về, ngoại lệ và trạng thái trong cách triển khai thay thế
+  - Ảnh hưởng của default method đến các lớp triển khai
+  - Dùng lambda và giao diện hàm cho hành vi nhỏ cần thay đổi
+  - Thiết kế package và mức truy cập để bảo vệ ranh giới trách nhiệm
+  - Áp dụng DI thủ công trong một chương trình Java đơn giản
+  - Dùng kiểu giá trị hoặc record khi phù hợp với dữ liệu cần biểu đạt
+  - Cân nhắc kiểu đóng với sealed type và điểm mở rộng đa hình
+  - Phân biệt hợp đồng generic với khả năng thay thế đúng về hành vi
+- level1: Kiểm thử thiết kế
+  level2:
+  - Viết kiểm thử hành vi trước khi tách hoặc thay cấu trúc
+  - Thiết kế kiểm thử hợp đồng dùng chung cho các cách triển khai
+  - Kiểm tra điều kiện trước, điều kiện sau và bất biến quan sát được
+  - Đưa các giá trị biên và chuỗi thao tác vào kiểm thử LSP
+  - Thêm cách triển khai mới để kiểm chứng điểm mở rộng OCP
+  - Thay chi tiết hạ tầng bằng đối tượng thử nghiệm để kiểm chứng DIP
+  - Kiểm tra nhu cầu của từng bên gọi sau khi tách giao diện
+  - Phân biệt kiểm thử hành vi với kiểm thử khóa chặt cách cộng tác nội bộ
+  - Kết hợp kiểm thử đơn vị, tích hợp và ranh giới mô-đun theo rủi ro
+  - Giới hạn của bộ kiểm thử khi kết luận một thiết kế tuân thủ SOLID
+- level1: Tái cấu trúc từng bước
+  level2:
+  - Chọn tình huống thay đổi và xác định điểm gây tác động lan truyền
+  - Làm rõ hành vi hiện tại cùng các ràng buộc cần giữ
+  - Tách trách nhiệm trong phạm vi nhỏ có thể kiểm chứng
+  - Rút giao diện từ nhu cầu bên gọi thay vì sao chép mọi phương thức
+  - Chuyển việc khởi tạo ra điểm lắp ghép và điều chỉnh hướng phụ thuộc
+  - Thay điều kiện phân loại bằng đa hình khi trục biến đổi đã rõ
+  - Sửa quan hệ kế thừa không đáp ứng hợp đồng thay thế
+  - Giữ thay đổi hành vi nghiệp vụ tách khỏi thay đổi cấu trúc
+  - Chạy kiểm thử và rà soát sau mỗi bước thay đổi
+  - Dọn trừu tượng, lớp chuyển tiếp và đường xử lý không còn cần thiết
+- level1: Đánh đổi và giới hạn
+  level2:
+  - Cân bằng khả năng mở rộng với tính đơn giản và chi phí điều hướng
+  - Liên hệ SOLID với KISS, YAGNI và tránh tổng quát hóa sớm
+  - Cân bằng loại bỏ lặp với việc giữ các trách nhiệm độc lập
+  - Đánh giá số lớp, số giao diện và mức gián tiếp phát sinh
+  - Xem xét chi phí hiệu năng khi thêm lớp phối hợp hoặc cấp phát đối tượng
+  - Giữ mô hình dữ liệu đơn giản khi chưa có hành vi cần đa hình
+  - Áp dụng nguyên lý theo mức ổn định và tần suất thay đổi
+  - Chấp nhận đánh đổi có lý do và xác định khi nào cần xem lại
+- level1: Rà soát thiết kế
+  level2:
+  - Đặt câu hỏi về bên yêu cầu thay đổi khi rà soát SRP
+  - Đặt câu hỏi về loại mở rộng được bảo vệ khi rà soát OCP
+  - Đặt câu hỏi về kỳ vọng bên gọi khi rà soát LSP
+  - Đặt câu hỏi về nhu cầu từng vai trò khi rà soát ISP
+  - Đặt câu hỏi về quyền sở hữu trừu tượng khi rà soát DIP
+  - Đọc đồ thị phụ thuộc cùng các tình huống thay đổi thực tế
+  - Đánh giá khả năng đọc hiểu, kiểm thử và bảo trì sau cải tiến
+  - Phân biệt nhận xét có bằng chứng với sở thích tổ chức mã cá nhân
+  - Ghi lý do thiết kế và các điều kiện có thể làm quyết định thay đổi
+- level1: Sai lầm thường gặp
+  level2:
+  - Hiểu SRP thành mỗi lớp chỉ được có một phương thức
+  - Hiểu OCP thành không được sửa bất kỳ mã nguồn cũ nào
+  - Xem kế thừa biên dịch được là đã thỏa mãn LSP
+  - Tạo kiểu con nhưng bỏ trống thao tác hoặc từ chối hợp đồng của kiểu cha
+  - Chia giao diện theo số phương thức mà không nhìn nhu cầu bên gọi
+  - Tạo interface cho mọi lớp rồi coi đó là đã áp dụng DIP
+  - Đồng nhất dùng bộ chứa DI hoặc framework với thiết kế đúng
+  - Dùng kiểm tra kiểu và ép kiểu để bù cho quan hệ đa hình sai
+  - Lạm dụng mẫu thiết kế và các lớp chuyển tiếp chỉ để gắn nhãn SOLID
+  - Đánh giá chất lượng bằng số lớp hoặc tỷ lệ giao diện thay vì chi phí thay đổi
+- level1: Thực hành có hướng dẫn
+  level2:
+  - Tách xử lý nghiệp vụ, lưu trữ và trình bày trong ví dụ hóa đơn
+  - Thiết kế các chính sách tính phí có thể mở rộng
+  - Viết hợp đồng rồi kiểm tra tính thay thế giữa các cách triển khai
+  - Thiết kế lại quan hệ hình chữ nhật và hình vuông theo nhu cầu sử dụng
+  - Tách vai trò đọc, ghi và quản trị theo các bên gọi
+  - Đảo phụ thuộc giữa nghiệp vụ và hệ thống gửi thông báo
+  - Lắp ghép toàn bộ ví dụ bằng DI thủ công
+  - Thêm yêu cầu mới để so sánh tác động trước và sau tái cấu trúc
+  - Đơn giản hóa một thiết kế có quá nhiều trừu tượng
+  - Viết nhận xét rà soát nêu bằng chứng, phương án và đánh đổi
+- level1: Tình huống tổng hợp
+  level2:
+  - Một lớp phục vụ nhiều nhóm khiến thay đổi nhỏ liên tục gây xung đột
+  - Thêm loại chính sách mới buộc sửa nhiều chuỗi điều kiện
+  - Cách triển khai mới đúng chữ ký nhưng làm hỏng giả định của bên gọi
+  - Một bên sử dụng chỉ cần đọc nhưng phải phụ thuộc giao diện quản trị
+  - Logic nghiệp vụ khó kiểm thử vì tự tạo kết nối và gọi dịch vụ ngoài
+  - Đã dùng DI nhưng trừu tượng vẫn làm lộ kiểu dữ liệu hạ tầng
+  - Thiết kế dễ mở rộng nhưng quá khó đọc và thiếu nhu cầu thực tế
+  - Các nguyên lý đưa ra áp lực khác nhau đối với cùng một phương án
+  - Checklist tự đánh giá thiết kế SOLID bằng thay đổi và bằng chứng

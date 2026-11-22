@@ -1,0 +1,3433 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data LDAP là gì và giải quyết bài toán nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: LDAP là gì và vì sao ứng dụng cần truy cập dịch vụ thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt giao thức LDAP, máy chủ thư mục và cơ sở dữ liệu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt JNDI, Spring LDAP, Spring Data LDAP và Spring Security LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Bản đồ các thành phần: ContextSource, LdapTemplate, ODM và Repository'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Các tình huống tra cứu danh bạ, quản lý tài khoản và tra cứu nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Khi nào nên dùng LDAP và khi nào nên chọn hệ lưu trữ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và các kiến thức cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: directory-model
+  title: Mô hình thư mục
+  childs:
+  - slug: directory-model-001
+    title: Entry và attribute trong một bản ghi LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-002
+    title: Cây thông tin thư mục DIT và quan hệ cha–con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-003
+    title: Naming context, suffix và gốc của một miền thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-004
+    title: Vai trò của dc, ou, cn, uid và cách tránh hiểu chúng như từ khóa cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-005
+    title: Phân biệt cấu trúc cây với quan hệ nghiệp vụ giữa các entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-006
+    title: Root DSE và thông tin khả năng của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-007
+    title: Định danh entry bằng DN và phân biệt với tên đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-008
+    title: LDIF và cách biểu diễn dữ liệu thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-model-009
+    title: Phân biệt đọc dữ liệu thư mục với xác thực người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distinguished-names-identities
+  title: DN và định danh
+  childs:
+  - slug: distinguished-names-identities-001
+    title: DN, RDN và thứ tự các thành phần định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-002
+    title: DN tuyệt đối và DN tương đối với base được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-003
+    title: Phân biệt DN, đường dẫn tệp, URL và biểu thức tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-004
+    title: Biểu diễn định danh bằng javax.naming.Name và LdapName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-005
+    title: Tạo DN an toàn bằng LdapNameBuilder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-006
+    title: Thao tác thành phần RDN thay vì nối chuỗi thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-007
+    title: Ký tự đặc biệt, Unicode và quy tắc escape của DN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-008
+    title: RDN nhiều giá trị và ảnh hưởng đến phân tích định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-009
+    title: So sánh DN theo ngữ nghĩa thay vì chuẩn hóa chuỗi tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-010
+    title: Phân biệt DN có thể thay đổi với định danh ổn định như entryUUID hoặc objectGUID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distinguished-names-identities-011
+    title: Thiết kế quy tắc đặt DN để hạn chế đổi tên và di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema
+  title: Schema
+  childs:
+  - slug: schema-001
+    title: Vai trò của schema trong dữ liệu thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-002
+    title: Object class cấu trúc, phụ trợ và trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-003
+    title: Quan hệ kế thừa giữa các object class
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-004
+    title: Thuộc tính bắt buộc MUST và tùy chọn MAY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-005
+    title: Kiểu dữ liệu, cú pháp thuộc tính và matching rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-006
+    title: Thuộc tính một giá trị và nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-007
+    title: Phân biệt thuộc tính thường với thuộc tính vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-008
+    title: Thuộc tính chuỗi, nhị phân, thời gian và giá trị định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-009
+    title: Đối chiếu schema của máy chủ trước khi thiết kế lớp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-010
+    title: Quản lý thay đổi schema và tương thích dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ldap-operations
+  title: Thao tác LDAP
+  childs:
+  - slug: ldap-operations-001
+    title: Bind và Unbind ở mức giao thức để quản lý phiên xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-operations-002
+    title: Search, Compare và đọc thông tin entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-operations-003
+    title: Add, Modify, Delete và Modify DN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-operations-004
+    title: Tính nguyên tử của một yêu cầu và giới hạn chuỗi nhiều yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-operations-005
+    title: Mã kết quả LDAP và thông tin lỗi trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-operations-006
+    title: Controls và extended operations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-operations-007
+    title: Giới hạn thời gian, số lượng kết quả và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-operations-008
+    title: Phân biệt bind của giao thức với bind tạo entry trong API JNDI/Spring LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-architecture
+  title: Kiến trúc Spring
+  childs:
+  - slug: spring-architecture-001
+    title: Vai trò của JNDI trong kết nối LDAP từ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-002
+    title: DirContext, LdapContext và các đối tượng thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-003
+    title: ContextSource và LdapContextSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-004
+    title: Phân biệt context chỉ đọc với context đọc–ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-005
+    title: LdapOperations và LdapTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-006
+    title: ObjectDirectoryMapper và cơ chế ánh xạ ODM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-007
+    title: Cách Repository sử dụng hạ tầng Spring LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-008
+    title: Chuyển NamingException sang hệ ngoại lệ của Spring LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-architecture-009
+    title: Ranh giới trách nhiệm giữa lớp cấu hình, Repository và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Khởi tạo
+  childs:
+  - slug: setup-001
+    title: Chọn phiên bản Spring Boot, Spring Data LDAP và Spring LDAP tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Khai báo dependency bằng Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Khởi tạo máy chủ LDAP phát triển bằng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Chuẩn bị base DN, tài khoản dịch vụ và dữ liệu LDIF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Cấu hình spring.ldap trong application.yml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Cơ chế tự cấu hình ContextSource, LdapTemplate và Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Cấu hình thủ công khi cần nhiều nguồn thư mục hoặc tùy chọn riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Kiểm tra kết nối bằng một truy vấn tra cứu đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-009
+    title: Tổ chức cấu hình theo môi trường và quản lý dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connections
+  title: Kết nối
+  childs:
+  - slug: connections-001
+    title: Cấu hình URL, base DN và tài khoản kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-002
+    title: Phân biệt LDAP URL với base của phép tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-003
+    title: Cấu hình nhiều URL và kiểm tra hành vi chuyển máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-004
+    title: Thiết lập thời gian chờ kết nối và thời gian chờ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-005
+    title: Truyền thuộc tính môi trường cho JNDI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-006
+    title: Anonymous bind, simple bind và điều kiện máy chủ cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-007
+    title: Lấy context với danh tính chỉ định bằng ContextSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-008
+    title: Quản lý vòng đời DirContext và NamingEnumeration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-009
+    title: Kiểm tra khả năng chia sẻ Template và giới hạn chia sẻ context giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-010
+    title: Phân biệt không kết nối được với không đủ quyền đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-authentication
+  title: TLS và xác thực
+  childs:
+  - slug: tls-authentication-001
+    title: Phân biệt LDAP không mã hóa, LDAPS và StartTLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-002
+    title: Cấu hình truststore và kiểm tra chuỗi chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-003
+    title: Xác minh hostname và xử lý chứng chỉ theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-004
+    title: Thương lượng StartTLS qua chiến lược xác thực của Spring LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-005
+    title: Simple bind trên kênh bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-006
+    title: SASL và xác thực bằng chứng chỉ khi hạ tầng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-007
+    title: Tìm DN người dùng rồi bind để kiểm tra thông tin đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-008
+    title: Phân biệt sai mật khẩu, tài khoản bị khóa và tài khoản hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-009
+    title: Thay đổi mật khẩu và các yêu cầu riêng của từng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-authentication-010
+    title: Tương tác giữa TLS, pool và vòng đời kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ldap-template
+  title: LdapTemplate
+  childs:
+  - slug: ldap-template-001
+    title: Sử dụng LdapTemplate cho các thao tác đọc và ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-002
+    title: Lookup một entry theo DN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-003
+    title: Search theo base và bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-004
+    title: Chọn AttributesMapper, ContextMapper hoặc callback xử lý kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-005
+    title: Sử dụng DirContextAdapter để truy cập thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-006
+    title: Thực thi thao tác cấp thấp qua ContextExecutor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-007
+    title: Truy cập thông tin base bằng BaseLdapPathAware khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-008
+    title: Đối chiếu phương thức trả một kết quả với phương thức trả nhiều kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-template-009
+    title: Lựa chọn Template hay Repository theo mức kiểm soát cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search
+  title: Tìm kiếm
+  childs:
+  - slug: search-001
+    title: Ba phạm vi tìm kiếm OBJECT, ONELEVEL và SUBTREE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-002
+    title: Chọn search base phù hợp với ranh giới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-003
+    title: Cấu hình SearchControls
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-004
+    title: Chỉ lấy các thuộc tính cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-005
+    title: Đọc thuộc tính vận hành và kiểm tra quyền máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-006
+    title: Giới hạn số kết quả và thời gian thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-007
+    title: Phân biệt không tìm thấy entry với search base không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-008
+    title: Xử lý một kết quả, nhiều kết quả và kết quả ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-009
+    title: Duyệt kết quả bằng callback và kiểm soát bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-010
+    title: Ảnh hưởng của alias và chính sách dereference
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-011
+    title: Kiểm tra quyền truy cập khi kết quả bị thiếu mà không có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filters
+  title: Bộ lọc
+  childs:
+  - slug: filters-001
+    title: Cấu trúc bộ lọc LDAP và biểu thức so khớp thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-002
+    title: Điều kiện bằng, khác, hiện diện và không hiện diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-003
+    title: Điều kiện chuỗi con, tiền tố và hậu tố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-004
+    title: Kết hợp điều kiện AND, OR và NOT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-005
+    title: So sánh thứ tự và điều kiện phụ thuộc matching rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-006
+    title: Phân biệt thuộc tính vắng mặt với giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-007
+    title: Tìm kiếm trên thuộc tính nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-008
+    title: Xây dựng bộ lọc bằng LdapQueryBuilder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-009
+    title: Dùng các lớp Filter khi cần tổ hợp điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-010
+    title: Escape giá trị bộ lọc và phân biệt với escape DN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-011
+    title: Xử lý bộ lọc tùy chọn mà không vô tình mở rộng phạm vi tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-012
+    title: Extensible matching và kiểm tra khả năng hỗ trợ của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-mapping
+  title: Ánh xạ kết quả
+  childs:
+  - slug: result-mapping-001
+    title: Ánh xạ Attributes sang DTO bằng AttributesMapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-002
+    title: Ánh xạ context bằng ContextMapper và AbstractContextMapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-003
+    title: Đọc thuộc tính một giá trị hoặc nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-004
+    title: Xử lý thuộc tính vắng mặt, giá trị rỗng và giá trị không đúng kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-005
+    title: Đọc dữ liệu nhị phân mà không chuyển chuỗi tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-006
+    title: Chuyển đổi thời gian và kiểu dữ liệu theo schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-007
+    title: Giữ DN của entry trong kết quả ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-008
+    title: Tách mô hình dữ liệu thư mục khỏi mô hình API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-009
+    title: Kiểm soát việc làm lộ mật khẩu và thuộc tính nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: entity-mapping
+  title: Ánh xạ thực thể
+  childs:
+  - slug: entity-mapping-001
+    title: ODM là gì và khác ORM ở những điểm nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-002
+    title: Chọn đúng annotation ODM trong org.springframework.ldap.odm.annotations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-003
+    title: Định nghĩa thực thể bằng @Entry và các objectClasses
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-004
+    title: Cấu hình base của thực thể trong cây thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-005
+    title: Dùng @Id với kiểu javax.naming.Name
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-006
+    title: Ánh xạ thuộc tính bằng @Attribute
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-007
+    title: Ánh xạ thành phần DN bằng @DnAttribute
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-008
+    title: Phân biệt tên thuộc tính LDAP với tên thành phần DN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-009
+    title: Bỏ qua trường không lưu trữ bằng @Transient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-010
+    title: Ánh xạ thuộc tính nhiều giá trị và kiểu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-011
+    title: Cấu hình chuyển đổi kiểu theo khả năng ODM của phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-012
+    title: Yêu cầu khởi tạo đối tượng và giới hạn với mô hình bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-mapping-013
+    title: Kiểm chứng trường nào được đọc, được ghi hoặc bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ldap-repository
+  title: LDAP Repository
+  childs:
+  - slug: ldap-repository-001
+    title: Bật và cấu hình @EnableLdapRepositories
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-002
+    title: Khai báo LdapRepository cho lớp thực thể ODM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-003
+    title: Định danh bằng Name và hợp đồng của phương thức CRUD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-004
+    title: Cơ chế quét và tạo triển khai Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-005
+    title: Ngữ nghĩa save khi tạo mới hoặc cập nhật entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-006
+    title: Đọc theo DN bằng findById và kiểm tra tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-007
+    title: Xóa entry theo định danh hoặc thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-008
+    title: Thao tác nhiều entry và số yêu cầu LDAP phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-009
+    title: Đưa LdapQuery vào findOne và findAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-010
+    title: Giới hạn phân trang, sắp xếp và các chức năng không được suy ra từ JPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ldap-repository-011
+    title: Mở rộng Repository bằng triển khai tùy chỉnh dùng LdapTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-queries
+  title: Truy vấn Repository
+  childs:
+  - slug: repository-queries-001
+    title: Suy diễn truy vấn từ tên phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-002
+    title: Liên hệ tên thuộc tính Java với thuộc tính LDAP được ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-003
+    title: Kết hợp điều kiện bằng And, Or và phủ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-004
+    title: Các từ khóa hiện diện, so khớp chuỗi và so sánh được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-005
+    title: Phân biệt wildcard được chủ ý dùng với dữ liệu đầu vào thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-006
+    title: Vai trò của objectClasses trong phạm vi truy vấn thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-007
+    title: Khai báo bộ lọc bằng @Query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-008
+    title: Liên kết tham số theo vị trí và khả năng tham số có tên theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-009
+    title: Cơ chế mã hóa tham số và giới hạn của biểu thức động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-010
+    title: Chọn kiểu kết quả đơn hoặc tập hợp và xử lý sai số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-011
+    title: Kiểm tra tính hợp lệ của phương thức truy vấn khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: querydsl
+  title: Querydsl
+  childs:
+  - slug: querydsl-001
+    title: Mục đích của truy vấn có kiểm tra kiểu bằng Querydsl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-002
+    title: Sinh lớp truy vấn từ metadata ODM bằng LdapAnnotationProcessor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-003
+    title: Tổ chức annotation processing trong bản dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-004
+    title: Xây dựng điều kiện bằng QueryDslLdapQuery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-005
+    title: Tích hợp khả năng thực thi predicate vào Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: querydsl-006
+    title: Giới hạn biểu thức và đối chiếu hỗ trợ theo phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-writes
+  title: Ghi dữ liệu
+  childs:
+  - slug: data-writes-001
+    title: Tạo entry bằng bind của LdapTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-002
+    title: Thiết lập đầy đủ objectClasses và thuộc tính bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-003
+    title: Cập nhật thuộc tính bằng modifyAttributes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-004
+    title: Phân biệt ADD_ATTRIBUTE, REPLACE_ATTRIBUTE và REMOVE_ATTRIBUTE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-005
+    title: Thêm hoặc xóa một giá trị trong thuộc tính nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-006
+    title: Dùng DirContextAdapter để xác định thay đổi thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-007
+    title: Phân biệt cập nhật chọn lọc với rebind toàn entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-008
+    title: Xóa entry bằng unbind
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-009
+    title: Xóa entry có con và thiết kế thứ tự thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-010
+    title: Dùng các thao tác ODM create, update và delete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-writes-011
+    title: Kiểm tra ngữ nghĩa ghi lặp lại và trạng thái khi yêu cầu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rename-move
+  title: Đổi tên và di chuyển
+  childs:
+  - slug: rename-move-001
+    title: Đổi RDN và di chuyển entry bằng rename
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rename-move-002
+    title: Quan hệ giữa DN mới với thuộc tính đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rename-move-003
+    title: Điều kiện máy chủ cho phép di chuyển trong hoặc ngoài một nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rename-move-004
+    title: Ảnh hưởng của đổi DN đến định danh thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rename-move-005
+    title: Thay đổi trường @DnAttribute và hành vi cập nhật ODM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rename-move-006
+    title: Tham chiếu DN trong nhóm hoặc entry khác sau khi đổi tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rename-move-007
+    title: Giới hạn của cơ chế tự cập nhật tham chiếu theo máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rename-move-008
+    title: Thiết kế quy trình di chuyển có kiểm tra và phương án phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: users-groups
+  title: Người dùng và nhóm
+  childs:
+  - slug: users-groups-001
+    title: Mô hình người dùng với person, organizationalPerson và inetOrgPerson
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-002
+    title: Mô hình nhóm với groupOfNames và groupOfUniqueNames
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-003
+    title: Phân biệt thành viên dạng DN với thành viên dạng tên đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-004
+    title: Nhóm POSIX và thuộc tính memberUid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-005
+    title: Tra cứu nhóm trực tiếp của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-006
+    title: Nhóm lồng nhau và kiểm soát vòng lặp khi duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-007
+    title: Phân biệt member được ghi với memberOf do máy chủ cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-008
+    title: Đồng bộ thêm, xóa thành viên mà không làm mất thay đổi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-009
+    title: Thiết kế mô hình vai trò ứng dụng từ thông tin nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: users-groups-010
+    title: Tránh giả định mọi máy chủ đều có cùng schema nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pagination-controls
+  title: Phân trang và controls
+  childs:
+  - slug: pagination-controls-001
+    title: Vì sao giới hạn kết quả khác với phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-002
+    title: Paged Results Control và điều kiện máy chủ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-003
+    title: Quản lý cookie giữa các lần đọc trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-004
+    title: Dùng DirContextProcessor để gửi và nhận LDAP controls
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-005
+    title: Giữ context phù hợp khi duyệt nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-006
+    title: Chọn kích thước trang theo giới hạn máy chủ và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-007
+    title: Giới hạn nhảy đến trang tùy ý và ước lượng tổng số kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-008
+    title: Sắp xếp phía máy chủ qua control khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-009
+    title: Phân biệt sắp xếp tại ứng dụng với sắp xếp toàn bộ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-010
+    title: Đóng tài nguyên và xử lý dừng sớm giữa quá trình phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-controls-011
+    title: Không đồng nhất phân trang LDAP với Pageable của Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compensating-transactions
+  title: Giao dịch bù trừ
+  childs:
+  - slug: compensating-transactions-001
+    title: Giao dịch bù trừ phía client trong Spring LDAP là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-002
+    title: Phân biệt giao dịch bù trừ với giao dịch ACID ở cơ sở dữ liệu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-003
+    title: Cấu hình ContextSourceTransactionManager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-004
+    title: Đặt @Transactional ở ranh giới dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-005
+    title: Giữ cùng context trong phạm vi giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-006
+    title: Vai trò của bản ghi trạng thái và các thao tác khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-007
+    title: Đổi tên tạm thời và TempEntryRenamingStrategy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-008
+    title: Giới hạn rollback khi mất kết nối hoặc thao tác bù thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-009
+    title: Chi phí, quyền bổ sung và tác động nhìn thấy từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-010
+    title: Phối hợp LDAP với JDBC và đối chiếu khả năng tích hợp theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compensating-transactions-011
+    title: Kiểm chứng cấu hình pool, xác thực và giao dịch cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-consistency
+  title: Đồng thời và nhất quán
+  childs:
+  - slug: concurrency-consistency-001
+    title: Thay đổi nhiều entry và ranh giới nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-002
+    title: Nguy cơ mất cập nhật khi thay thế toàn bộ thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-003
+    title: Cập nhật tăng giảm thành viên bằng thay đổi chọn lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-004
+    title: Kiểm tra điều kiện trước khi ghi và giới hạn race condition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-005
+    title: Assertion Control hoặc cơ chế máy chủ khi cần ghi có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-006
+    title: Không giả định có @Version và khóa lạc quan như JPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-007
+    title: Độ trễ replication và đọc lại sau khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-008
+    title: Thiết kế thao tác lũy đẳng và đối soát trạng thái thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-consistency-009
+    title: Phối hợp nhiều hệ thống bằng quy trình bù trừ hoặc tác vụ đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-pool
+  title: Pool kết nối
+  childs:
+  - slug: connection-pool-001
+    title: Chi phí tạo LDAP context và mục đích của pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-002
+    title: Phân biệt native JNDI pooling với pooling của Spring LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-003
+    title: Chọn triển khai pool tương thích phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-004
+    title: Tách context chỉ đọc và context đọc–ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-005
+    title: Cấu hình số lượng tối đa, số nhàn rỗi và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-006
+    title: Kiểm tra kết nối khi lấy, trả hoặc trong lúc nhàn rỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-007
+    title: Thu hồi kết nối hỏng và phản ứng với CommunicationException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-008
+    title: Giới hạn khi pool dùng chung nhưng danh tính xác thực thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-009
+    title: Phối hợp pool với StartTLS và giao dịch bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pool-010
+    title: Nhận diện cạn pool, rò rỉ context và yêu cầu giữ kết nối lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: referrals-topology
+  title: Referrals và topology
+  childs:
+  - slug: referrals-topology-001
+    title: Referral và continuation reference trong kết quả tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referrals-topology-002
+    title: Lựa chọn ignore, follow hoặc throw cho referral
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referrals-topology-003
+    title: PartialResultException và nguy cơ bỏ qua dữ liệu chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referrals-topology-004
+    title: Kiểm soát danh tính và thông tin xác thực khi theo referral
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referrals-topology-005
+    title: Ảnh hưởng của TLS, truststore và hostname trên máy chủ được giới thiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referrals-topology-006
+    title: Chuyển máy chủ khi mất kết nối và giới hạn failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referrals-topology-007
+    title: Replication, nhiều naming context và giới hạn tìm kiếm xuyên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referrals-topology-008
+    title: Không tự động mở rộng quyền hoặc phạm vi dữ liệu khi theo referral
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-differences
+  title: Khác biệt máy chủ
+  childs:
+  - slug: server-differences-001
+    title: 'OpenLDAP: schema, ACL và dữ liệu LDIF cho môi trường học'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-002
+    title: 'Active Directory: domain, organizational unit và naming context'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-003
+    title: Phân biệt LDAP port với Global Catalog trong Active Directory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-004
+    title: Định danh bằng entryUUID hoặc objectGUID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-005
+    title: Thuộc tính nhị phân và cách ánh xạ objectGUID theo yêu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-006
+    title: memberOf, nhóm lồng nhau và giới hạn của suy luận quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-007
+    title: Giới hạn kích thước kết quả và đọc thuộc tính nhóm nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-008
+    title: Thay đổi mật khẩu, trạng thái tài khoản và chính sách riêng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-009
+    title: LDAP controls và matching rule đặc thù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-differences-010
+    title: Xây dựng lớp thích nghi thay vì buộc mọi máy chủ có cùng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-security
+  title: Spring Security
+  childs:
+  - slug: spring-security-001
+    title: Phân biệt tầng truy cập dữ liệu với tầng xác thực và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-002
+    title: Cấu hình luồng xác thực LDAP trong ứng dụng Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-003
+    title: Bind trực tiếp theo mẫu DN và tìm DN rồi bind
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-004
+    title: Vai trò tài khoản dịch vụ trong tìm kiếm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-005
+    title: Tra cứu nhóm và ánh xạ sang GrantedAuthority
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-006
+    title: Chuẩn hóa tên vai trò theo chính sách ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-007
+    title: Phân biệt xác thực bind với so sánh thuộc tính mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-008
+    title: Xử lý tài khoản khóa, vô hiệu hóa hoặc hết hạn theo máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-009
+    title: Giới hạn việc dùng danh tính người dùng để đọc–ghi dữ liệu thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-security-010
+    title: Tách chi tiết lỗi nội bộ khỏi phản hồi đăng nhập công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Thiết kế dịch vụ danh bạ và ranh giới Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Tách DTO đầu vào khỏi thực thể LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Kiểm tra dữ liệu trước khi xây dựng DN hoặc bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Thiết kế API đọc, tạo, cập nhật và xóa entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Ánh xạ lỗi LDAP sang kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: LDAP client đồng bộ và cách xử lý khi tích hợp với WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Giới hạn mức đồng thời để bảo vệ pool và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Cache kết quả tra cứu và thời hạn phản ánh thay đổi thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Quản lý nhiều ContextSource, Template và nhóm Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Cô lập base DN và quyền truy cập cho từng khách thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-synchronization
+  title: Đồng bộ dữ liệu
+  childs:
+  - slug: data-synchronization-001
+    title: Xác định hệ thống nguồn và chiều đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-002
+    title: Ánh xạ định danh ổn định giữa LDAP và cơ sở dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-003
+    title: Nhập hoặc xuất dữ liệu LDIF theo phạm vi được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-004
+    title: Đồng bộ toàn bộ và chia dữ liệu thành các nhóm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-005
+    title: Đồng bộ tăng dần theo khả năng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-006
+    title: Giới hạn khi suy luận thay đổi từ modifyTimestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-007
+    title: Phân biệt xóa, vô hiệu hóa, đổi tên và di chuyển entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-008
+    title: Xử lý lỗi từng entry, thử lại và tiếp tục từ điểm kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-009
+    title: Đối soát dữ liệu và xử lý xung đột giữa nhiều nguồn ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Hệ ngoại lệ của Spring LDAP và nguyên nhân JNDI bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Phân biệt CommunicationException với AuthenticationException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: NameNotFoundException và search base không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Entry đã tồn tại, thiếu thuộc tính và vi phạm schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Không đủ quyền và máy chủ từ chối thực hiện thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: SizeLimitExceededException và TimeLimitExceededException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: ReferralException, PartialResultException và kết quả chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Timeout sau khi gửi thao tác ghi và trạng thái không chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Retry theo loại lỗi và tính lũy đẳng của thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Giữ thông tin chẩn đoán nhưng che DN hoặc thuộc tính nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân biệt kiểm thử đơn vị với kiểm thử tích hợp LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Mock tại ranh giới dịch vụ thay vì mô phỏng toàn bộ JNDI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Chuẩn bị máy chủ LDAP nhúng hoặc container kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Nạp schema và dữ liệu LDIF xác định trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Cấu hình kết nối động cho Spring Boot test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử DN có ký tự đặc biệt và Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử bộ lọc để ngăn LDAP injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử ODM, Repository và thuộc tính nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử cập nhật, đổi DN, xóa và phục hồi khi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử phân trang, giới hạn máy chủ và referral
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử xác thực, phân quyền và TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử giao dịch bù trừ và cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Đối chiếu hành vi trên máy chủ giống production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Cô lập cây dữ liệu và dọn tài nguyên kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo độ trễ, thông lượng và số yêu cầu LDAP thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Thu hẹp search base, scope và thuộc tính trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Chọn bộ lọc phù hợp với chỉ mục của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Đánh giá chi phí wildcard và tìm kiếm toàn cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Phân trang để kiểm soát bộ nhớ và tải máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tránh truy vấn lặp khi ánh xạ người dùng và nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Điều chỉnh pool, thời gian chờ và mức đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Xử lý nhóm lớn và thuộc tính nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Cache tra cứu với đánh đổi về độ mới và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Đo tải với schema, ACL và khối lượng dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát
+  childs:
+  - slug: observability-001
+    title: Đo thời gian kết nối, xác thực và tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Theo dõi lỗi theo loại thao tác và mã kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Quan sát pool và thời gian chờ context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Liên kết dấu vết yêu cầu với thao tác LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Phân biệt health check kết nối với quyền đọc dữ liệu cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Kiểm tra readiness mà không tạo quá nhiều bind hoặc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Theo dõi lỗi TLS, referral và chuyển máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Giới hạn log thuộc tính, bộ lọc và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Thiết kế cảnh báo theo tác động đến đăng nhập và truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Ngăn LDAP injection trong bộ lọc và DN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Giới hạn khôi phục đối tượng JNDI từ dữ liệu thư mục không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Kiểm soát tên thuộc tính, base và scope do người dùng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Phân quyền tài khoản dịch vụ theo nguyên tắc tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: Tách quyền đọc danh bạ với quyền quản trị tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: Bảo vệ mật khẩu và chứng chỉ bằng kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Giới hạn thuộc tính nhạy cảm được đọc hoặc trả về API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Kiểm soát referral để tránh gửi thông tin xác thực ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Giới hạn truy vấn rộng, dữ liệu trả về và tần suất yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-010
+    title: Ghi nhật ký thay đổi nghiệp vụ mà không lộ thông tin riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-011
+    title: Cô lập dữ liệu và quyền thao tác theo nhánh thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Tách cấu hình phát triển, kiểm thử và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Đóng gói chứng chỉ và cập nhật truststore có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Luân chuyển mật khẩu tài khoản dịch vụ và kiểm tra pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Thiết lập timeout, pool và giới hạn đồng thời theo hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Phối hợp ứng dụng với replication và failover của thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Thay đổi schema hoặc cấu trúc DN khi nhiều phiên bản ứng dụng cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Nâng cấp Spring Data LDAP, Spring LDAP và JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Chuẩn bị phương án khi thư mục chậm hoặc không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Kiểm chứng phục hồi, đối soát dữ liệu và quy trình xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xây dựng chức năng tìm kiếm danh bạ từ schema đến API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Quản lý người dùng bằng ODM và LDAP Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Tạo nhóm và cập nhật thành viên bằng thay đổi chọn lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Thiết kế bộ lọc động có escape và giới hạn phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Đọc danh bạ lớn bằng phân trang LDAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Tích hợp xác thực và ánh xạ quyền từ nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Đổi DN người dùng và xử lý các tham chiếu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Đồng bộ dữ liệu vào ứng dụng bằng định danh ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Viết kiểm thử tích hợp và mô phỏng lỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Đo hiệu năng tìm kiếm và đánh giá cấu hình pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Không tạo được ContextSource, LdapTemplate hoặc Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-002
+    title: Kết nối thành công nhưng tìm kiếm không thấy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-003
+    title: DN bị lặp base, sai RDN hoặc escape không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-004
+    title: ODM ánh xạ thiếu thuộc tính hoặc không đọc được dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-005
+    title: save tạo entry mới hoặc cập nhật khác dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-006
+    title: Cập nhật thất bại do objectClass, schema hoặc ACL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-007
+    title: Đổi DN làm mất liên kết nhóm hoặc tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-008
+    title: Kết quả bị cắt do giới hạn, referral hoặc phân trang sai cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-009
+    title: Xác thực thất bại sau đổi mật khẩu hoặc thay chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-010
+    title: Giao dịch bù trừ không phục hồi đầy đủ khi gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-011
+    title: Cạn pool, context không được đóng hoặc thời gian chờ tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-012
+    title: Kiểm thử chạy đúng nhưng khác hành vi Active Directory hoặc OpenLDAP thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-013
+    title: Danh sách kiểm tra DN, bộ lọc, schema, quyền và cấu hình kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

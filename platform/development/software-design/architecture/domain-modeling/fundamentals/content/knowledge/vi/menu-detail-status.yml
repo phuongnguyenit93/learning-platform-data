@@ -1,0 +1,2134 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Mô hình miền nghiệp vụ là gì và dùng để giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Miền nghiệp vụ, mô hình và phần mềm liên hệ với nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vì sao mô hình luôn là sự chọn lọc thay vì bản sao toàn bộ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt mô hình nghiệp vụ với màn hình, API và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt góc nhìn khái niệm, thiết kế phần mềm và lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Những thuật ngữ nền tảng sẽ xuất hiện trong quá trình mô hình hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lộ trình học qua bài toán đặt hàng có phạm vi xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-understanding
+  title: Hiểu nghiệp vụ
+  childs:
+  - slug: domain-understanding-001
+    title: Xác định vấn đề cần giải quyết và kết quả mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-understanding-002
+    title: Nhận diện người sử dụng, chuyên gia nghiệp vụ và các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-understanding-003
+    title: Tìm hiểu công việc hiện tại trước khi đề xuất cấu trúc phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-understanding-004
+    title: Thu thập mục tiêu, chính sách, ngoại lệ và giới hạn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-understanding-005
+    title: Phân biệt nhu cầu thật với giải pháp được đề xuất sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-understanding-006
+    title: Phân biệt sự kiện đã quan sát với giả định chưa được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-understanding-007
+    title: Chuẩn bị câu hỏi làm rõ các tình huống còn mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-understanding-008
+    title: Đối chiếu hiểu biết với người có thẩm quyền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-scope
+  title: Phạm vi mô hình
+  childs:
+  - slug: model-scope-001
+    title: Xác định phần nghiệp vụ thuộc và không thuộc bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-scope-002
+    title: Chọn góc nhìn mô hình theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-scope-003
+    title: Giới hạn mức chi tiết cần thiết cho một quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-scope-004
+    title: Xác định đầu vào, đầu ra và các hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-scope-005
+    title: Phân biệt ranh giới hệ thống với ranh giới một khái niệm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-scope-006
+    title: Ghi rõ giả định, điều kiện áp dụng và câu hỏi còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-scope-007
+    title: Ngăn mô hình mở rộng sang những quy trình chưa có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ubiquitous-language
+  title: Ngôn ngữ nghiệp vụ
+  childs:
+  - slug: ubiquitous-language-001
+    title: Xây dựng bảng thuật ngữ từ cách người làm nghiệp vụ trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ubiquitous-language-002
+    title: Đặt tên khái niệm theo ý nghĩa thay vì theo loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ubiquitous-language-003
+    title: Nhận diện từ đồng nghĩa và một từ có nhiều nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ubiquitous-language-004
+    title: Phân biệt vai trò, trạng thái và loại đối tượng trong cách gọi tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ubiquitous-language-005
+    title: Định nghĩa thuật ngữ bằng ví dụ và phản ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ubiquitous-language-006
+    title: Giữ tên gọi nhất quán giữa tài liệu, sơ đồ, mã và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ubiquitous-language-007
+    title: Xử lý khác biệt thuật ngữ giữa các bộ phận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-discovery
+  title: Khám phá nghiệp vụ
+  childs:
+  - slug: domain-discovery-001
+    title: Phỏng vấn theo tình huống cụ thể thay vì chỉ hỏi danh sách dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-discovery-002
+    title: Quan sát quy trình và thu thập biểu mẫu cùng dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-discovery-003
+    title: Lần theo một trường hợp từ lúc bắt đầu đến khi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-discovery-004
+    title: Tìm tình huống biên, trường hợp bị từ chối và cách xử lý thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-discovery-005
+    title: Đối chiếu quy định được mô tả với cách vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-discovery-006
+    title: Tổ chức buổi trao đổi chung để kiểm tra điểm chưa thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-discovery-007
+    title: Tổng hợp bằng chứng và truy vết nguồn của mỗi kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: use-cases
+  title: Kịch bản sử dụng
+  childs:
+  - slug: use-cases-001
+    title: Mô tả tác nhân, mục tiêu và điều kiện bắt đầu của một kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-002
+    title: Viết luồng thành công với các bước có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-003
+    title: Bổ sung luồng thay thế và trường hợp thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-004
+    title: Phân biệt thao tác của người dùng với quyết định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-005
+    title: Mô tả điều kiện trước và kết quả phải đạt sau thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-006
+    title: Dùng ví dụ dữ liệu cụ thể để làm rõ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-007
+    title: Liên kết kịch bản với tiêu chí chấp nhận và câu hỏi cần xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-concepts
+  title: Khái niệm nghiệp vụ
+  childs:
+  - slug: domain-concepts-001
+    title: Tìm khái niệm ứng viên từ kịch bản, dữ liệu và quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-concepts-002
+    title: Phân biệt khái niệm nghiệp vụ với chi tiết giao diện hoặc kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-concepts-003
+    title: Xác định ý nghĩa và trách nhiệm của từng khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-concepts-004
+    title: Phân biệt thuộc tính, đối tượng riêng và giá trị suy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-concepts-005
+    title: Chọn mức trừu tượng đủ dùng cho bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-concepts-006
+    title: Phân loại đối tượng có định danh và đối tượng được phân biệt bằng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-concepts-007
+    title: Loại bỏ khái niệm trùng hoặc chưa có vai trò rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-concepts-008
+    title: Kiểm tra mô hình bằng câu chuyện nghiệp vụ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity
+  title: Định danh
+  childs:
+  - slug: identity-001
+    title: Nhận diện đối tượng cần được theo dõi xuyên suốt thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-002
+    title: Phân biệt định danh nghiệp vụ với định danh kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-003
+    title: Phân biệt định danh ổn định với thuộc tính có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-004
+    title: Xác định phạm vi duy nhất của mã định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-005
+    title: Làm rõ hai bản ghi có đang đại diện cùng một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-006
+    title: Xử lý tạo mới, đổi mã, hợp nhất và ngừng sử dụng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-007
+    title: Giữ ý nghĩa định danh khi dữ liệu đi qua nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: value-objects
+  title: Đối tượng giá trị
+  childs:
+  - slug: value-objects-001
+    title: Nhận diện giá trị không cần vòng đời định danh riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-objects-002
+    title: Gom các thuộc tính cùng biểu diễn một ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-objects-003
+    title: Định nghĩa tính bằng nhau dựa trên các thành phần giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-objects-004
+    title: Giữ đối tượng giá trị hợp lệ ngay từ lúc tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-objects-005
+    title: Ưu tiên bất biến khi phù hợp với cách sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-objects-006
+    title: Thay thế toàn bộ giá trị thay vì thay đổi từng thành phần rời rạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-objects-007
+    title: Phân biệt giá trị chuẩn hóa với dữ liệu gốc cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-objects-008
+    title: Tránh dùng chuỗi hoặc số thuần cho mọi khái niệm quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attributes-and-data
+  title: Thuộc tính và dữ liệu
+  childs:
+  - slug: attributes-and-data-001
+    title: Chọn thuộc tính theo câu hỏi nghiệp vụ cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-and-data-002
+    title: Phân biệt dữ liệu bắt buộc, tùy chọn, chưa biết và không áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-and-data-003
+    title: Phân biệt giá trị được nhập, được tính và được sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-and-data-004
+    title: Xác định đơn vị đo, miền giá trị và độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-and-data-005
+    title: Quy định giá trị mặc định và ý nghĩa của việc thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-and-data-006
+    title: Tránh lưu nhiều giá trị biểu diễn cùng một sự thật mà không có quy tắc đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-and-data-007
+    title: Xác định nguồn có thẩm quyền khi dữ liệu được tổng hợp từ nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relationships
+  title: Quan hệ
+  childs:
+  - slug: relationships-001
+    title: Xác định ý nghĩa của quan hệ giữa các khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-002
+    title: Mô tả số lượng liên kết và tính bắt buộc ở mỗi đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-003
+    title: Phân biệt quan hệ sở hữu với liên hệ tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-004
+    title: Mô hình hóa quan hệ có thuộc tính riêng bằng khái niệm trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-005
+    title: Xác định vòng đời của đối tượng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-006
+    title: Đánh giá hướng truy cập thay vì tạo liên kết hai chiều mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-007
+    title: Phân biệt kế thừa theo quan hệ kiểu với phân loại nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-008
+    title: Chọn kết hợp đối tượng khi quan hệ không phù hợp với kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-and-responsibilities
+  title: Hành vi và trách nhiệm
+  childs:
+  - slug: behavior-and-responsibilities-001
+    title: Tìm hành vi từ động từ và quyết định trong kịch bản nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-and-responsibilities-002
+    title: Đặt hành vi gần dữ liệu và quy tắc mà nó phải bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-and-responsibilities-003
+    title: Phân biệt hành vi nghiệp vụ với đọc ghi thuộc tính đơn thuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-and-responsibilities-004
+    title: Thiết kế thao tác theo ý định như xác nhận, hủy hoặc đổi địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-and-responsibilities-005
+    title: Xác định đối tượng cộng tác để hoàn thành một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-and-responsibilities-006
+    title: Phân biệt điều phối quy trình với quyết định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-and-responsibilities-007
+    title: Tránh đối tượng quản lý chung chứa mọi hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-and-responsibilities-008
+    title: Giữ giao diện đối tượng nhỏ và có ý nghĩa với bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rules-and-invariants
+  title: Quy tắc và bất biến
+  childs:
+  - slug: rules-and-invariants-001
+    title: Phân biệt quy tắc nghiệp vụ, ràng buộc dữ liệu và yêu cầu kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-002
+    title: Diễn đạt quy tắc bằng câu rõ điều kiện và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-003
+    title: Nhận diện bất biến phải đúng trong suốt vòng đời đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-004
+    title: Phân biệt bất biến chung với điều kiện của một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-005
+    title: Xác định nơi chịu trách nhiệm kiểm tra và giữ mỗi quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-006
+    title: Lập bảng quyết định cho quy tắc có nhiều điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-007
+    title: Làm rõ mức ưu tiên khi nhiều chính sách cùng áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-008
+    title: Đối chiếu quy tắc bằng ví dụ hợp lệ và phản ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-invariants-009
+    title: Quản lý quy tắc thay đổi theo phiên bản hoặc thời gian hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-and-lifecycle
+  title: Trạng thái và vòng đời
+  childs:
+  - slug: state-and-lifecycle-001
+    title: Xác định trạng thái dựa trên khác biệt hành vi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-lifecycle-002
+    title: Phân biệt trạng thái, cờ kỹ thuật và kết quả được suy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-lifecycle-003
+    title: Mô tả trạng thái đầu, trạng thái kết thúc và đường chuyển hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-lifecycle-004
+    title: Gắn sự kiện kích hoạt và điều kiện cho mỗi lần chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-lifecycle-005
+    title: Làm rõ hành vi khi thao tác không hợp lệ ở trạng thái hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-lifecycle-006
+    title: Phân biệt hủy, xóa, lưu trữ và ngừng hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-lifecycle-007
+    title: Xử lý trạng thái có thể quay lại và trạng thái kết thúc không thể đảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-lifecycle-008
+    title: Tránh kết hợp nhiều cờ tạo ra tổ hợp trạng thái vô nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-time
+  title: Thời gian nghiệp vụ
+  childs:
+  - slug: business-time-001
+    title: Phân biệt thời điểm, ngày nghiệp vụ, thời lượng và khoảng hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-002
+    title: Xác định múi giờ có ý nghĩa đối với từng quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-003
+    title: Phân biệt thời gian sự việc xảy ra với thời gian hệ thống ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-004
+    title: Quy định ranh giới bao gồm hoặc loại trừ của khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-005
+    title: Xử lý hết hạn, đặt lịch và thay đổi có hiệu lực trong tương lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-006
+    title: Giữ lịch sử khi dữ liệu nghiệp vụ thay đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-007
+    title: Mô hình hóa thời gian hiện tại như một đầu vào có thể kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: money-and-quantities
+  title: Tiền và số lượng
+  childs:
+  - slug: money-and-quantities-001
+    title: Gắn số tiền với đơn vị tiền tệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: money-and-quantities-002
+    title: Chọn độ chính xác và quy tắc làm tròn theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: money-and-quantities-003
+    title: Phân biệt đơn giá, thành tiền, giảm giá, thuế và tổng thanh toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: money-and-quantities-004
+    title: Quy định thứ tự áp dụng các phép tính có ảnh hưởng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: money-and-quantities-005
+    title: Biểu diễn số lượng cùng đơn vị đo tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: money-and-quantities-006
+    title: Xử lý quy đổi đơn vị và giá trị không thể so sánh trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: money-and-quantities-007
+    title: Phân biệt giá trị được chốt trong giao dịch với giá trị hiện tại trong danh mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: money-and-quantities-008
+    title: Kiểm tra chênh lệch do làm tròn và phân bổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-events
+  title: Sự kiện nghiệp vụ
+  childs:
+  - slug: domain-events-001
+    title: Nhận diện sự việc đã xảy ra có ý nghĩa với nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-002
+    title: Phân biệt yêu cầu thực hiện hành động với sự kiện đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-003
+    title: Đặt tên sự kiện theo kết quả đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-004
+    title: Chọn dữ liệu cần ghi lại để hiểu sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-005
+    title: Liên kết sự kiện với thay đổi trạng thái và quyết định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-006
+    title: Phân biệt lịch sử nghiệp vụ với log kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-007
+    title: Giữ phạm vi mô hình sự kiện độc lập với lựa chọn cơ chế truyền tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boundaries-and-ownership
+  title: Ranh giới và sở hữu
+  childs:
+  - slug: boundaries-and-ownership-001
+    title: Xác định ai có quyền thay đổi một dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-ownership-002
+    title: Gom dữ liệu và hành vi cần cùng bảo vệ một bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-ownership-003
+    title: Giữ bên ngoài tương tác qua thao tác hợp lệ của đối tượng sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-ownership-004
+    title: Phân biệt tham chiếu tới đối tượng với quyền sửa đối tượng đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-ownership-005
+    title: Xác định quy tắc nằm trong và nằm ngoài một ranh giới nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-ownership-006
+    title: Làm rõ cùng một thuật ngữ mang ý nghĩa khác nhau ở các phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-ownership-007
+    title: Giữ mô hình nội bộ khỏi bị chi phối bởi cấu trúc hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-ownership-008
+    title: Nhận diện điểm cần trao đổi thêm trước khi chia mô hình thành nhiều phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-representation
+  title: Biểu diễn mô hình
+  childs:
+  - slug: model-representation-001
+    title: Chọn sơ đồ theo câu hỏi cần làm rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-representation-002
+    title: Vẽ sơ đồ khái niệm với tên, thuộc tính và quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-representation-003
+    title: Biểu diễn số lượng liên kết, sở hữu và kế thừa bằng UML khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-representation-004
+    title: Vẽ sơ đồ trạng thái để kiểm tra vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-representation-005
+    title: Vẽ sơ đồ tuần tự để kiểm tra phân chia trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-representation-006
+    title: Dùng bảng quyết định cho chính sách nhiều nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-representation-007
+    title: Phân biệt sơ đồ lớp, sơ đồ quy trình và sơ đồ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-representation-008
+    title: Giữ sơ đồ đủ nhỏ để thảo luận và tránh thể hiện mọi chi tiết mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: models-to-java
+  title: Từ mô hình đến Java
+  childs:
+  - slug: models-to-java-001
+    title: Ánh xạ khái niệm sang lớp hoặc kiểu dữ liệu có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-to-java-002
+    title: Biểu diễn đối tượng có định danh và đối tượng giá trị trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-to-java-003
+    title: Dùng hàm khởi tạo hoặc phương thức tạo để bảo đảm dữ liệu hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-to-java-004
+    title: Chọn enum cho tập giá trị đóng khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-to-java-005
+    title: Dùng record cho dữ liệu giá trị và hiểu giới hạn bất biến nông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-to-java-006
+    title: Định nghĩa equals và hashCode theo ý nghĩa của từng loại đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-to-java-007
+    title: Kiểm soát khả năng thay đổi và không để lộ tập hợp nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-to-java-008
+    title: Viết phương thức theo hành vi nghiệp vụ thay vì mở setter tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-decomposition
+  title: Phân tách mô hình
+  childs:
+  - slug: model-decomposition-001
+    title: Phân biệt mô hình miền với dữ liệu trao đổi qua API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-decomposition-002
+    title: Phân biệt mô hình miền với cấu trúc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-decomposition-003
+    title: Phân biệt mô hình miền với dữ liệu phục vụ màn hình và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-decomposition-004
+    title: Ánh xạ dữ liệu bên ngoài vào kiểu có ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-decomposition-005
+    title: Giữ quy tắc nghiệp vụ khỏi phụ thuộc trực tiếp vào bộ điều khiển và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-decomposition-006
+    title: Đặt phần điều phối ca sử dụng tách khỏi hành vi cốt lõi khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-decomposition-007
+    title: Đánh giá khi nào một biểu diễn đơn giản có thể dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-store
+  title: Lưu trữ
+  childs:
+  - slug: storage-store-001
+    title: Chuyển mô hình khái niệm thành thiết kế dữ liệu mà không đồng nhất hai việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-store-002
+    title: Ánh xạ định danh, đối tượng giá trị và quan hệ vào nơi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-store-003
+    title: Phân biệt ràng buộc cơ sở dữ liệu với quy tắc trong mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-store-004
+    title: Khôi phục đối tượng từ dữ liệu đã lưu mà vẫn giữ bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-store-005
+    title: Xử lý dữ liệu cũ không còn thỏa quy tắc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-store-006
+    title: Phân biệt lưu trạng thái hiện tại với lưu lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-store-007
+    title: Giữ mô hình có thể kiểm thử mà không bắt buộc kết nối cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Xác định dữ liệu phải cùng thay đổi để giữ đúng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Chọn ranh giới giao dịch từ bất biến cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Nhận diện tranh chấp khi hai yêu cầu cùng sửa một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Phân biệt kiểm tra trước thao tác với bảo đảm đúng khi ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Nhận diện nhu cầu kiểm soát phiên bản và xử lý xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Quy định cách xử lý yêu cầu lặp theo ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Làm rõ trường hợp chấp nhận độ trễ đồng bộ giữa các phần mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Nhận biết giới hạn của mô hình đối tượng trước yêu cầu phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-errors
+  title: Lỗi nghiệp vụ
+  childs:
+  - slug: business-errors-001
+    title: Phân biệt dữ liệu không hợp lệ, thao tác bị từ chối và lỗi kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-errors-002
+    title: Đặt tên lỗi theo quy tắc bị vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-errors-003
+    title: Chọn kết quả hoặc ngoại lệ phù hợp với hợp đồng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-errors-004
+    title: Giữ đối tượng ở trạng thái hợp lệ khi thao tác thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-errors-005
+    title: Xác định thông tin cần trả lại để người dùng có thể sửa yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-errors-006
+    title: Không để kiểm tra trên giao diện trở thành nơi duy nhất giữ quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-errors-007
+    title: Phân biệt lỗi có thể thử lại với yêu cầu phải thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-validation
+  title: Kiểm chứng mô hình
+  childs:
+  - slug: model-validation-001
+    title: Đi qua từng kịch bản cùng người hiểu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-validation-002
+    title: Kiểm tra ví dụ hợp lệ, ngoại lệ và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-validation-003
+    title: Đối chiếu mô hình với ngôn ngữ và quy tắc đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-validation-004
+    title: Kiểm thử hành vi miền bằng dữ liệu nhỏ và độc lập hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-validation-005
+    title: Kiểm thử bất biến sau chuỗi thao tác thay vì chỉ từng phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-validation-006
+    title: Kiểm thử tính bằng nhau và chuẩn hóa đối tượng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-validation-007
+    title: Kiểm tra vòng đời với ma trận thao tác và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-validation-008
+    title: Nhận diện điểm chưa biết thay vì coi sơ đồ đã vẽ là sự thật cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-evolution
+  title: Thay đổi mô hình
+  childs:
+  - slug: model-evolution-001
+    title: Nhận diện tín hiệu mô hình không còn phản ánh đúng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-002
+    title: Làm rõ thay đổi thuật ngữ trước khi đổi cấu trúc mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-003
+    title: Tách hoặc gộp khái niệm theo trách nhiệm và vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-004
+    title: Đánh giá ảnh hưởng lên quy tắc, kịch bản, dữ liệu và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-005
+    title: Giữ hành vi đã xác nhận bằng kiểm thử khi tái cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-006
+    title: Lập kế hoạch chuyển đổi dữ liệu và tương thích khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-evolution-007
+    title: Ghi lại quyết định và kiểm tra mô hình sau mỗi thay đổi đáng kể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-decisions
+  title: Lựa chọn thiết kế
+  childs:
+  - slug: design-decisions-001
+    title: So sánh mô hình tập trung dữ liệu với mô hình có hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-002
+    title: Nhận biết khi xử lý theo thủ tục đơn giản phù hợp với bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-003
+    title: Đánh giá chi phí trừu tượng hóa so với mức phức tạp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-004
+    title: Tránh tạo lớp hoặc mẫu thiết kế chỉ để đạt một hình thức kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-005
+    title: Đánh giá khả năng hiểu, kiểm thử và thay đổi của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-006
+    title: Phân biệt nền tảng mô hình miền với phương pháp Domain-Driven Design
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-007
+    title: Nhận diện thời điểm cần học sâu hơn về miền con, Bounded Context và Aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Bắt đầu từ bảng dữ liệu rồi coi đó là toàn bộ mô hình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Biến mọi danh từ trong yêu cầu thành một lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Đặt tên kỹ thuật chung chung làm mất ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Gom nhiều ý nghĩa khác nhau vào cùng một đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Để setter và tập hợp công khai phá vỡ bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Mô hình hóa mọi chi tiết thực tế dù bài toán không sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Dùng kế thừa chỉ để tái sử dụng thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Giữ cùng một khái niệm ở nhiều nơi mà không rõ quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Bỏ qua ngoại lệ và chỉ mô hình hóa luồng thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-documentation
+  title: Tài liệu mô hình
+  childs:
+  - slug: model-documentation-001
+    title: Tổ chức bảng thuật ngữ, phạm vi và giả định của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-002
+    title: Liên kết khái niệm với kịch bản và quy tắc tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-003
+    title: Ghi rõ quyết định, lý do và phương án đã cân nhắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-004
+    title: Lưu sơ đồ cùng ví dụ có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-005
+    title: Đánh dấu mức độ chắc chắn và các câu hỏi cần người nghiệp vụ trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-documentation-006
+    title: Cập nhật tài liệu theo thay đổi của mã và quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Thu thập yêu cầu cho bài toán đặt hàng có giới hạn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Lập bảng thuật ngữ và mô tả kịch bản đặt, xác nhận và hủy đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Xác định đơn hàng, dòng hàng, mã sản phẩm và địa chỉ nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Mô hình hóa giá đã chốt, số lượng và cách tính tổng tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Thiết kế vòng đời đơn hàng và bảng thao tác hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Phân chia trách nhiệm để bảo vệ các bất biến đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Viết mô hình Java và bộ kiểm thử độc lập với framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Đưa ra thay đổi nghiệp vụ để kiểm tra khả năng thích ứng của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Rà soát mô hình bằng sơ đồ, mã, ví dụ và phản hồi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

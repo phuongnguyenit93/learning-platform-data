@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "5"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Đây là nơi tập trung chủ yếu về Spring Aspect \nCác kiến thức chung về Aspect đã có ở một chủ đề khác \nChỉ tập trung về Aspect trong Spring"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SPRING_AOP"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Tập trung vào Spring AOP để bổ sung hành vi cho bean thông qua proxy do Spring quản lý, với @Aspect, pointcut và các loại advice. Người học kiểm chứng JDK/CGLIB proxy, thứ tự thực thi, self-invocation, giới hạn intercept và cấu hình trong ApplicationContext, không lặp lại lý thuyết AOP chung."
+  }
+}

@@ -1,0 +1,386 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Lập trình siêu chương trình (metaprogramming) là gì?
+  - Chương trình đích và chương trình thao tác trên chương trình
+  - Vì sao cần tự động hóa việc tạo và thay đổi mã?
+  - Mối liên hệ giữa mã nguồn, siêu dữ liệu và hành vi thực thi
+  - 'Những bài toán phù hợp: mã lặp, ánh xạ, kiểm tra và thích nghi'
+  - Phân biệt metaprogramming với lập trình thông thường và cấu hình
+  - Quan hệ với lập trình hướng đối tượng, hàm và khai báo
+  - Bức tranh tổng thể từ mô tả đầu vào đến chương trình được tạo
+  - Kiến thức nền và lộ trình tiếp cận các cơ chế
+- level1: Cơ chế và phân loại
+  level2:
+  - Sinh chương trình (generative programming) và phản chiếu (reflection)
+  - Tự quan sát cấu trúc (introspection) và can thiệp hành vi
+  - Metaprogramming tĩnh và metaprogramming động
+  - Thao tác ở thời điểm biên dịch, nạp lớp và thực thi
+  - Biến đổi mã nguồn, cây cú pháp và mã trung gian
+  - Cơ chế do ngôn ngữ cung cấp và cơ chế do thư viện cung cấp
+  - Thay đổi cấu trúc và thay đổi hành vi của chương trình
+  - Mã được tạo trước và mã được tạo theo yêu cầu
+  - Những trục phân loại có thể kết hợp trong cùng giải pháp
+- level1: Biểu diễn chương trình
+  level2:
+  - Mã nguồn dưới dạng văn bản và giới hạn của xử lý chuỗi
+  - Token và phân tích từ vựng
+  - Cây cú pháp cụ thể (CST) và cây cú pháp trừu tượng (AST)
+  - Duyệt cây bằng Visitor và biến đổi các nút
+  - Bảng ký hiệu, phạm vi tên và liên kết định danh
+  - Thông tin kiểu và phân tích ngữ nghĩa
+  - Biểu diễn trung gian (IR), bytecode và mã máy
+  - Biểu diễn dữ liệu giống mã (homoiconicity) và ý nghĩa đối với macro
+  - Giữ chú thích, định dạng và vị trí nguồn khi biến đổi
+  - Lựa chọn mức biểu diễn phù hợp với yêu cầu
+- level1: Ngữ nghĩa và thời điểm
+  level2:
+  - Các giai đoạn phân tích, biên dịch, liên kết, nạp và chạy
+  - Thời điểm ràng buộc (binding time) và dữ liệu sẵn có
+  - Biến đổi cú pháp hợp lệ và bảo toàn ý nghĩa chương trình
+  - Phạm vi từ vựng, che khuất tên và phân giải tên
+  - Ràng buộc tên ngoài ý muốn (variable capture)
+  - Thứ tự đánh giá và nguy cơ thực thi biểu thức nhiều lần
+  - Tác dụng phụ, ngoại lệ và luồng điều khiển sau biến đổi
+  - Quy tắc kiểu của mã đầu vào và mã được tạo
+  - Ranh giới giữa giai đoạn sinh mã và giai đoạn chạy mã
+  - Đánh đổi giữa kiểm tra sớm và tính linh hoạt khi chạy
+- level1: Siêu dữ liệu và phản chiếu
+  level2:
+  - Siêu dữ liệu (metadata) mô tả chương trình như thế nào?
+  - Siêu dữ liệu khai báo, siêu dữ liệu suy ra và cấu hình bên ngoài
+  - Truy vấn kiểu, thành viên và quan hệ kế thừa
+  - Từ mô tả thành viên đến truy cập và gọi động
+  - Cơ chế phản chiếu và quyền truy cập
+  - Giao thức siêu đối tượng (metaobject protocol)
+  - Tạo bộ diễn giải hành vi dựa trên siêu dữ liệu
+  - Bộ nhớ đệm và vòng đời thông tin phản chiếu
+  - Giới hạn của việc suy luận ý định từ cấu trúc mã
+- level1: Sinh mã nguồn
+  level2:
+  - Quy trình mô tả đầu vào → mô hình → bộ sinh → mã đầu ra
+  - Sinh mã bằng nối chuỗi, khuôn mẫu và AST
+  - Thiết kế mô hình đầu vào thay vì phụ thuộc trực tiếp vào văn bản
+  - Tham số hóa khuôn mẫu và tái sử dụng các thành phần
+  - Xử lý tên, từ khóa, kiểu, import và ký tự cần thoát
+  - Sinh nhiều tệp và quản lý quan hệ phụ thuộc
+  - Tạo mã xác định, lặp lại được và không sinh bản trùng
+  - Phân tách mã được sinh với mã do người viết quản lý
+  - Ánh xạ lỗi của mã được tạo về mô tả đầu vào
+  - Kiểm tra cú pháp, biên dịch và hành vi của mã đầu ra
+  - Sinh lại toàn bộ và sinh tăng dần theo thay đổi
+- level1: Macro
+  level2:
+  - Macro là gì và khác hàm ở khả năng nào?
+  - Macro thay thế văn bản và macro thao tác trên cú pháp
+  - Định nghĩa, gọi và mở rộng macro
+  - Trích dẫn mã (quote), giải trích dẫn (unquote) và chèn cấu trúc
+  - Macro bảo toàn phạm vi tên (hygienic macro)
+  - Tạo tên mới và tránh va chạm định danh
+  - Mở rộng lồng nhau, đệ quy và giới hạn độ sâu
+  - Ngữ cảnh cú pháp và kiểm tra kiểu sau mở rộng
+  - Tránh đánh giá lặp và thay đổi tác dụng phụ
+  - Đọc mã sau mở rộng để giải thích hành vi
+  - Khi nào macro giúp tạo cú pháp mới và khi nào làm mã khó hiểu
+- level1: Lập trình nhiều giai đoạn
+  level2:
+  - Lập trình nhiều giai đoạn (staged programming) là gì?
+  - Tạo giá trị biểu diễn mã và thực thi mã ở giai đoạn sau
+  - Trích dẫn có kiểu và chèn mã trong mô hình nhiều giai đoạn
+  - Truyền giá trị giữa các giai đoạn và giới hạn phạm vi
+  - Chuyên biệt hóa chương trình theo dữ liệu đã biết
+  - Đánh giá một phần (partial evaluation)
+  - Khác biệt giữa đánh giá một phần, tối ưu hóa và JIT
+  - Kiểm soát tác dụng phụ khi chuẩn bị và chạy mã
+  - Lựa chọn giai đoạn để cân bằng chi phí tạo mã và thực thi
+- level1: Ngôn ngữ chuyên biệt
+  level2:
+  - Ngôn ngữ chuyên biệt (DSL) và ranh giới miền bài toán
+  - DSL nội bộ và DSL bên ngoài
+  - Thiết kế từ vựng, cú pháp và ngữ nghĩa của DSL
+  - DSL nội bộ bằng API thông thường và phương thức nối tiếp
+  - Phân tích DSL bên ngoài thành AST hoặc mô hình trung gian
+  - Kiểm tra kiểu, tham chiếu và ràng buộc nghiệp vụ
+  - Thông dịch DSL và biên dịch DSL thành mã
+  - Báo lỗi kèm vị trí trong mô tả gốc
+  - Mở rộng DSL, quản lý phiên bản và tương thích
+  - Khi nào chỉ cần dữ liệu cấu hình thay vì một ngôn ngữ mới
+- level1: Lập trình ở mức kiểu
+  level2:
+  - Dùng hệ kiểu để biểu diễn và kiểm tra tính toán
+  - Lập trình tổng quát và giới hạn của việc xem generics là metaprogramming
+  - Khởi tạo mẫu ở thời điểm biên dịch trong C++
+  - Chuyên biệt hóa mẫu và lựa chọn cách triển khai
+  - Tính toán hằng ở thời điểm biên dịch và quan hệ với sinh mã
+  - Ràng buộc kiểu và thông báo lỗi cho người sử dụng
+  - Kiểu điều kiện và kiểu ánh xạ trong TypeScript
+  - Vai trò của kiểu phụ thuộc và họ kiểu trong mô hình nâng cao
+  - Giới hạn biểu đạt, độ phức tạp và chi phí biên dịch
+- level1: Annotations Java
+  level2:
+  - Annotation trong Java mô tả điều gì và không tự làm điều gì?
+  - Khai báo annotation type và sử dụng trên phần tử chương trình
+  - Kiểu dữ liệu hợp lệ của phần tử annotation và giá trị mặc định
+  - Chính sách giữ lại SOURCE, CLASS và RUNTIME
+  - Giới hạn vị trí với @Target và annotation trên kiểu
+  - Annotation lặp lại với @Repeatable
+  - Phạm vi kế thừa của @Inherited
+  - Vai trò của @Documented và các meta-annotation
+  - Đọc annotation trực tiếp, gián tiếp và hiện diện theo API
+  - Annotation so với naming convention, XML và cấu hình ngoài
+  - Thiết kế hợp đồng annotation dễ hiểu và dễ mở rộng
+  - Lựa chọn bộ xử lý khi biên dịch hoặc bộ đọc khi chạy
+- level1: Reflection Java
+  level2:
+  - Class, thành viên phản chiếu và cách lấy đối tượng Class
+  - Phân biệt getMethods/getFields với getDeclaredMethods/getDeclaredFields
+  - Khảo sát lớp cha, interface và thành viên kế thừa
+  - Đọc annotation trên lớp, thành viên, tham số và kiểu
+  - Tạo đối tượng qua Constructor
+  - Đọc và ghi trường qua Field
+  - Tìm và gọi phương thức qua Method
+  - Tham số, kiểu trả về, varargs và chuyển đổi giá trị khi gọi
+  - Phản chiếu kiểu tổng quát với Type và các dạng liên quan
+  - Type erasure và giới hạn khôi phục thông tin kiểu
+  - Đọc record components, enum và thành viên do trình biên dịch tạo
+  - Quyền truy cập, trySetAccessible và ranh giới module
+  - Xử lý InvocationTargetException và ngoại lệ truy cập
+  - Tên tham số, tùy chọn -parameters và giới hạn siêu dữ liệu
+- level1: MethodHandle và VarHandle
+  level2:
+  - Mục đích của MethodHandle, MethodType và Lookup
+  - Tra cứu phương thức tĩnh, phương thức đối tượng và constructor
+  - Quyền tra cứu với Lookup và privateLookupIn
+  - Phân biệt invokeExact với invoke
+  - Điều chỉnh chữ ký bằng asType và bindTo
+  - Kết hợp MethodHandle để tạo chuỗi xử lý động
+  - CallSite, invokedynamic và cơ chế liên kết động
+  - Vai trò của VarHandle trong truy cập biến
+  - Các chế độ truy cập, thao tác nguyên tử và trật tự bộ nhớ
+  - Khi nào chọn reflection, MethodHandle hoặc lời gọi trực tiếp
+- level1: Proxy động
+  level2:
+  - Proxy là gì và thay đổi đường đi lời gọi như thế nào?
+  - Tạo JDK dynamic proxy từ các interface
+  - Hợp đồng InvocationHandler và phương thức invoke
+  - Xử lý đối số, kết quả trả về và ngoại lệ
+  - Xử lý equals, hashCode và toString
+  - Gọi phương thức mặc định của interface qua InvocationHandler.invokeDefault
+  - Ủy quyền đến đối tượng đích và quản lý trạng thái
+  - Chặn lời gọi để đo thời gian, ghi log và kiểm tra quyền
+  - Proxy theo interface và proxy sinh lớp con
+  - Quan hệ giữa proxy, Decorator và lập trình hướng khía cạnh
+  - Giới hạn tự gọi nội bộ, định danh đối tượng và kiểu cụ thể
+- level1: Annotation Processing
+  level2:
+  - Mô hình xử lý annotation tại thời điểm biên dịch
+  - Processor, AbstractProcessor và ProcessingEnvironment
+  - Khai báo annotation được hỗ trợ, tùy chọn và phiên bản nguồn
+  - Các vòng xử lý và RoundEnvironment
+  - Cây phần tử với Element, TypeElement và ExecutableElement
+  - Biểu diễn kiểu với TypeMirror, Types và Elements
+  - Kiểm tra ràng buộc và phát chẩn đoán bằng Messager
+  - Tạo tệp nguồn, tệp lớp và tài nguyên bằng Filer
+  - Quy tắc đặt tên và tránh tạo lại cùng một tệp
+  - Điều phối nhiều processor và ý nghĩa kết quả process
+  - Đăng ký processor và tách đường dẫn processor khỏi mã ứng dụng
+  - Giới hạn của API chuẩn đối với việc sửa cây mã nguồn có sẵn
+  - Kiểm thử processor bằng mã đầu vào đúng và sai
+  - Vai trò của MapStruct và sự khác biệt với cách Lombok can thiệp trình biên dịch
+- level1: Biên dịch động Java
+  level2:
+  - Mục đích và phạm vi của Java Compiler API
+  - Lấy trình biên dịch qua ToolProvider.getSystemJavaCompiler
+  - JavaCompiler, CompilationTask và các tùy chọn biên dịch
+  - Cấp mã nguồn bằng JavaFileObject
+  - Quản lý tệp và đầu ra trong bộ nhớ bằng JavaFileManager
+  - Thu thập lỗi, cảnh báo và vị trí nguồn qua DiagnosticCollector
+  - Thiết lập classpath, module path và phiên bản đích
+  - Nạp lớp được biên dịch và gọi qua một hợp đồng ổn định
+  - Đánh giá biểu thức và thử nghiệm tương tác bằng JShell
+  - Quản lý tài nguyên, bộ nhớ đệm và vòng đời mã sinh khi chạy
+  - Giới hạn của biên dịch động khi chỉ có môi trường chạy tối giản
+- level1: Biến đổi bytecode
+  level2:
+  - Cấu trúc tệp .class và vai trò của bytecode JVM
+  - Constant pool, trường, phương thức và thuộc tính lớp
+  - Lệnh bytecode, ngăn xếp toán hạng và biến cục bộ
+  - Bộ kiểm chứng bytecode và stack map frames
+  - Sinh lớp mới và biến đổi lớp có sẵn
+  - Mô hình Visitor và mô hình cây của ASM
+  - Mô tả hành vi và ủy quyền bằng Byte Buddy
+  - Thao tác bytecode với Javassist và khác biệt về mức trừu tượng
+  - Chèn mã trước, sau và quanh thân phương thức
+  - Giữ annotation, thông tin gỡ lỗi và ánh xạ dòng
+  - Kiểm tra bytecode bằng javap và công cụ phân tích
+  - Lựa chọn sinh mã nguồn hoặc sinh bytecode trực tiếp
+- level1: Class Loader và Agent
+  level2:
+  - 'Vòng đời lớp: nạp, liên kết và khởi tạo'
+  - Ủy quyền nạp lớp và lựa chọn ClassLoader
+  - Định danh lớp gắn với tên nhị phân và bộ nạp
+  - Phân tách mã ứng dụng, thư viện và mã được sinh
+  - Khả năng thu hồi lớp và nguy cơ giữ tham chiếu ClassLoader
+  - Định nghĩa hidden class bằng MethodHandles.Lookup
+  - Java Agent, premain, agentmain và Instrumentation
+  - Biến đổi lớp bằng ClassFileTransformer
+  - Phân biệt redefineClasses với retransformClasses
+  - Giới hạn thay đổi cấu trúc lớp đã được nạp
+  - Xử lý nhiều bộ biến đổi và tránh biến đổi lặp
+  - Quản lý agent, quyền gắn động và ảnh hưởng đến môi trường chạy
+- level1: Đối chiếu ngôn ngữ
+  level2:
+  - 'Java: annotations, processor, reflection và bytecode'
+  - 'Lisp và Scheme: mã dưới dạng dữ liệu và macro'
+  - 'C++: templates, chuyên biệt hóa và tính toán khi biên dịch'
+  - 'Rust: macro_rules và procedural macros'
+  - 'Python: decorator, descriptor và metaclass'
+  - 'JavaScript: Proxy, Reflect và biến đổi AST'
+  - 'TypeScript: hệ kiểu nâng cao và giới hạn tại thời điểm chạy'
+  - 'C#: reflection, expression trees và source generators'
+  - 'Scala: inline, quotes và splices'
+  - So sánh thời điểm mở rộng, độ an toàn kiểu và hỗ trợ công cụ
+  - Chuyển ý tưởng giữa ngôn ngữ mà không giả định cơ chế tương đương
+- level1: Ứng dụng thực tế
+  level2:
+  - Tạo mã ánh xạ đối tượng và chuyển đổi dữ liệu
+  - Tuần tự hóa dữ liệu dựa trên cấu trúc và siêu dữ liệu
+  - Kiểm tra tính hợp lệ từ annotation và mô tả ràng buộc
+  - Khởi tạo và liên kết đối tượng trong dependency injection
+  - Chặn lời gọi phục vụ giao dịch, phân quyền và quan sát
+  - Ánh xạ đối tượng với cơ sở dữ liệu và tạo truy vấn
+  - Sinh máy khách, máy chủ và hợp đồng API từ schema
+  - Tạo bộ chuyển đổi, lớp bao và mã tích hợp lặp lại
+  - Tự động hóa di chuyển và tái cấu trúc mã
+  - Đánh giá biểu thức, luật và cấu hình miền bài toán
+  - Tạo dữ liệu thử nghiệm và công cụ kiểm thử
+  - Phân biệt cơ chế metaprogramming với nghiệp vụ mà framework cung cấp
+- level1: Kiến trúc giải pháp
+  level2:
+  - Xác định hợp đồng đầu vào, đầu ra và phạm vi biến đổi
+  - Tách mô hình miền, bộ phân tích và bộ sinh mã
+  - Thiết kế các bước biến đổi độc lập và dễ kiểm thử
+  - Quyền sở hữu mã được tạo và điểm mở rộng cho mã viết tay
+  - Tạo đầu ra xác định và khả năng truy nguyên nguồn gốc
+  - Đặt tên ổn định, tránh va chạm và quản lý không gian tên
+  - Quản lý phụ thuộc giữa mã nguồn gốc và mã được sinh
+  - Thiết kế chẩn đoán phục vụ người viết mô tả đầu vào
+  - Lựa chọn xử lý lỗi sớm hoặc trì hoãn đến lúc thực thi
+  - Cơ chế dự phòng khi không thể sinh hoặc nạp mã
+  - Giới hạn mức độ tự động hóa để người bảo trì vẫn hiểu hệ thống
+- level1: Tích hợp build
+  level2:
+  - Phân biệt tạo mã trước biên dịch, trong biên dịch và khi chạy
+  - Tổ chức thư mục nguồn sinh và cấu hình source set
+  - Khai báo processor bằng annotationProcessor trong Gradle
+  - Phân biệt compileClasspath, runtimeClasspath và processor path
+  - Mô tả đầu vào, đầu ra và quan hệ phụ thuộc giữa tác vụ
+  - Sinh mã tăng dần và xử lý tệp đầu vào bị xóa
+  - Bộ nhớ đệm build và yêu cầu đầu ra xác định
+  - Quản lý tài nguyên phụ trợ và đường dẫn giữa các môi trường
+  - IDE, tác vụ dòng lệnh và CI cần dùng cùng cấu hình
+  - Quyết định có lưu mã sinh trong kho mã hay không
+  - Tách thư viện annotation, bộ xử lý và mã ứng dụng
+- level1: Kiểm thử
+  level2:
+  - Các tầng kiểm thử của một giải pháp metaprogramming
+  - Kiểm thử mô hình đầu vào và từng phép biến đổi
+  - So sánh mã sinh bằng snapshot và giới hạn của kiểm thử văn bản
+  - Chuẩn hóa định dạng trước khi so sánh cấu trúc
+  - Biên dịch mã được sinh như một cổng kiểm tra bắt buộc
+  - Kiểm tra chẩn đoán cho đầu vào sai và trường hợp biên
+  - Kiểm thử hành vi của chương trình được tạo
+  - Đối chiếu hành vi giữa bản gốc và bản biến đổi
+  - Kiểm thử thuộc tính và sinh đầu vào tự động
+  - Kiểm thử nhiều processor, nhiều vòng và nhiều tệp nguồn
+  - Kiểm tra xóa, đổi tên đầu vào và tính đúng của build tăng dần
+  - Kiểm thử proxy, ClassLoader và agent trong môi trường tách biệt
+- level1: Gỡ lỗi và quan sát
+  level2:
+  - Tìm lỗi thuộc giai đoạn sinh mã hay giai đoạn thực thi
+  - Lưu và đọc mã nguồn, AST hoặc bytecode được tạo
+  - Theo dõi quá trình mở rộng macro và các bước biến đổi
+  - Ánh xạ stack trace về mã nguồn và mô tả gốc
+  - Đặt breakpoint và giữ thông tin gỡ lỗi trong mã sinh
+  - Chẩn đoán lỗi tìm lớp, nạp lớp và xung đột bộ nạp
+  - Chẩn đoán lỗi truy cập và phản chiếu trong hệ module
+  - Phân tích lỗi xác minh bytecode và lỗi liên kết
+  - Ghi nhận thời gian sinh, biên dịch, nạp và gọi mã
+  - Thu gọn ví dụ gây lỗi để tái hiện độc lập
+- level1: Bảo mật
+  level2:
+  - Ranh giới tin cậy giữa mô tả đầu vào và mã thực thi
+  - Chèn mã qua khuôn mẫu, chuỗi và biểu thức động
+  - Kiểm tra cấu trúc và giới hạn ngữ pháp đầu vào
+  - Danh sách cho phép đối với kiểu, thành viên và thao tác
+  - Không coi ClassLoader là cơ chế cô lập bảo mật đầy đủ
+  - Rủi ro mở quyền truy cập bằng reflection hoặc cấu hình module
+  - Quyền thực thi của annotation processor và công cụ sinh mã
+  - Nguồn gốc thư viện, plugin và chuỗi cung ứng build
+  - Giới hạn tài nguyên để tránh mở rộng hoặc biên dịch quá mức
+  - Cô lập tiến trình khi cần thực thi mã không đáng tin cậy
+  - Bảo vệ bí mật trong mã sinh, log và thông báo lỗi
+- level1: Hiệu năng
+  level2:
+  - Tách chi phí sinh mã, biên dịch, nạp lớp và gọi mã
+  - Chi phí khởi động so với chi phí thực thi ổn định
+  - Bộ nhớ đệm siêu dữ liệu, handle và lớp được tạo
+  - Khóa bộ nhớ đệm theo cấu hình, kiểu và bộ nạp lớp
+  - Lời gọi trực tiếp, reflection, MethodHandle và proxy trong phép đo
+  - Khởi động JIT, khả năng nội tuyến và dạng lời gọi
+  - Thiết kế phép đo JMH tránh kết luận từ một vòng lặp đơn giản
+  - Bùng nổ số lớp, kích thước mã và sử dụng metaspace
+  - Tham chiếu yếu, vòng đời bộ nhớ đệm và khả năng thu hồi lớp
+  - An toàn luồng khi sinh mã và khởi tạo bộ nhớ đệm
+  - Đánh đổi tốc độ chạy với thời gian build và độ phức tạp bảo trì
+- level1: Tương thích
+  level2:
+  - Phân biệt tương thích nguồn, nhị phân và hành vi
+  - Phiên bản Java nguồn, bytecode đích và thư viện cần có
+  - Module path, classpath và đóng gói API nội bộ
+  - Giới hạn khi phụ thuộc API trình biên dịch không chuẩn
+  - Nâng cấp thư viện thao tác bytecode theo định dạng lớp
+  - Thay đổi schema, annotation và hợp đồng mã sinh
+  - Chạy trên JDK đầy đủ, runtime image và môi trường hạn chế
+  - Reflection, proxy và sinh mã trong ứng dụng native image
+  - Các giới hạn cần kiểm tra khi kết hợp nhiều agent hoặc framework
+  - Lập ma trận phiên bản và kế hoạch di chuyển có kiểm chứng
+- level1: Lỗi thường gặp
+  level2:
+  - Dùng metaprogramming cho vấn đề giải quyết được bằng thiết kế thông thường
+  - Tạo quá nhiều lớp gián tiếp làm khó đọc luồng xử lý
+  - Biến đổi mã bằng biểu thức chính quy khi cần hiểu cú pháp
+  - Macro làm đổi phạm vi tên hoặc đánh giá biểu thức nhiều lần
+  - Giả định annotation tự tạo hành vi mà không cần bộ xử lý
+  - Nhầm annotation processor chuẩn với công cụ sửa AST nội bộ
+  - Dựa vào thứ tự thành viên mà API không cam kết
+  - Nuốt ngoại lệ phản chiếu và làm mất nguyên nhân gốc
+  - Giữ tham chiếu lớp động quá lâu gây rò rỉ bộ nạp
+  - Sinh tệp trùng, giữ tệp cũ và tạo phụ thuộc build vòng
+  - Sửa tay mã sinh rồi đánh mất thay đổi ở lần tạo tiếp theo
+  - Đánh giá hiệu năng hoặc bảo mật từ giả định chưa kiểm chứng
+- level1: Dự án thực hành
+  level2:
+  - Khảo sát một đối tượng và xuất mô tả cấu trúc bằng reflection
+  - Xây bộ kiểm tra dữ liệu dựa trên annotation có giới hạn rõ ràng
+  - Tạo proxy đo thời gian với hợp đồng ngoại lệ và định danh được kiểm thử
+  - Viết annotation processor sinh bộ dựng đối tượng
+  - Phát triển bộ ánh xạ đơn giản và kiểm tra lỗi ngay khi biên dịch
+  - Sinh mã từ schema và kiểm tra build tăng dần khi schema thay đổi
+  - Thiết kế DSL biểu thức nhỏ với bộ phân tích và thông báo lỗi
+  - Biên dịch mã Java trong bộ nhớ và gọi qua interface ổn định
+  - Tạo lớp động bằng thư viện bytecode và kiểm tra mã đầu ra
+  - Viết Java Agent quan sát lời gọi trong một ứng dụng thử nghiệm
+  - So sánh các cơ chế trên cùng một bài toán bằng kiểm thử và phép đo
+  - Hoàn thiện dự án với mô tả giới hạn, mô hình tin cậy và hướng bảo trì
+- level1: Lựa chọn giải pháp
+  level2:
+  - Xuất phát từ bài toán và phần lặp thực sự cần loại bỏ
+  - So sánh cấu hình, tổ hợp đối tượng, hàm và sinh mã
+  - Chọn annotation processing, reflection, proxy hoặc bytecode trong Java
+  - Chọn macro, DSL hoặc thư viện API theo nhu cầu biểu đạt
+  - Đặt tiêu chí về kiểm tra sớm, hiệu năng và hỗ trợ công cụ
+  - Đánh giá chi phí sử dụng, gỡ lỗi và đào tạo người bảo trì
+  - Kiểm chứng giả thuyết bằng nguyên mẫu nhỏ có thể loại bỏ
+  - Ghi lại quyết định, giới hạn và điều kiện xem xét lại
+  - Duy trì lộ trình quay về giải pháp đơn giản hơn khi yêu cầu thay đổi

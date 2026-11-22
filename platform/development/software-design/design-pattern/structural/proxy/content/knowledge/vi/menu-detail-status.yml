@@ -1,0 +1,2110 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Mẫu Proxy là gì và thuộc nhóm mẫu cấu trúc ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vấn đề kiểm soát truy cập tới một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Proxy như đối tượng đại diện trước đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Các thuật ngữ Subject, RealSubject, Proxy và Client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Lợi ích về khởi tạo, quyền truy cập và vị trí đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Chi phí trung gian và giới hạn của tính minh bạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt mẫu Proxy trong mã với proxy mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học từ lớp đại diện thủ công tới proxy được tạo tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structure-and-interaction
+  title: Cấu trúc và tương tác
+  childs:
+  - slug: structure-and-interaction-001
+    title: Hợp đồng chung giữa Proxy và đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-interaction-002
+    title: Trách nhiệm của bên sử dụng và nơi lựa chọn đối tượng đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-interaction-003
+    title: Quan hệ tham chiếu giữa Proxy với đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-interaction-004
+    title: Sơ đồ lớp cùng sơ đồ trình tự một lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-interaction-005
+    title: Các bước trước, trong và sau khi chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-interaction-006
+    title: Khi Proxy tự xử lý thay vì gọi đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-interaction-007
+    title: Khởi tạo đối tượng thật ngay hoặc trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-interaction-008
+    title: Vị trí lắp ráp và cách cấp Proxy cho bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-contract
+  title: Hợp đồng hành vi
+  childs:
+  - slug: behavior-contract-001
+    title: Giữ ý nghĩa tham số, giá trị trả về và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-002
+    title: Điều kiện trước, điều kiện sau và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-003
+    title: Khả năng thay thế qua cùng một kiểu giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-004
+    title: Những khác biệt về thời gian thực thi cần được công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-005
+    title: Ngữ nghĩa lỗi khi thêm kiểm soát hoặc truy cập từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-006
+    title: Cam kết về an toàn luồng và khả năng gọi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-007
+    title: Ranh giới giữa kiểm soát truy cập và thay đổi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-008
+    title: Xác định phần minh bạch và phần phải đưa vào hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: manual-proxy
+  title: Proxy thủ công
+  childs:
+  - slug: manual-proxy-001
+    title: Định nghĩa interface cho dịch vụ cần đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-002
+    title: Xây dựng đối tượng thật với trách nhiệm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-003
+    title: Xây dựng Proxy giữ tham chiếu tới đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-004
+    title: Chuyển tiếp đầy đủ phương thức, tham số và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-005
+    title: Bổ sung kiểm tra hoặc xử lý quanh lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-006
+    title: Cấp thành phần phụ thuộc qua constructor hoặc Factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-007
+    title: Đối chiếu lời gọi trực tiếp với lời gọi qua Proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-008
+    title: Chi phí mã chuyển tiếp khi hợp đồng mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-proxy-009
+    title: Khi một lớp Proxy viết tay là lựa chọn đủ đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-proxy
+  title: Proxy ảo
+  childs:
+  - slug: virtual-proxy-001
+    title: Trì hoãn tạo đối tượng có chi phí lớn (Virtual Proxy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-002
+    title: Phân biệt tạo Proxy với tạo đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-003
+    title: Xác định thao tác nào cần kích hoạt khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-004
+    title: Quản lý trạng thái chưa tạo, đang tạo, sẵn sàng và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-005
+    title: Xử lý thất bại khi tải hoặc khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-006
+    title: Gộp các yêu cầu khởi tạo đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-007
+    title: Chọn thời điểm giải phóng và điều kiện khởi tạo lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-008
+    title: Ví dụ tải tài liệu hoặc ảnh khi thực sự được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-proxy-009
+    title: Đánh giá lợi ích khi phần lớn đối tượng không được truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protection-proxy
+  title: Proxy bảo vệ
+  childs:
+  - slug: protection-proxy-001
+    title: Kiểm soát quyền trước khi truy cập đối tượng (Protection Proxy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-002
+    title: Phân biệt xác thực danh tính với kiểm tra quyền thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-003
+    title: Lấy ngữ cảnh người dùng và phạm vi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-004
+    title: Áp dụng chính sách theo phương thức và dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-005
+    title: Ngăn bên sử dụng đi vòng tới đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-006
+    title: Quy định hành vi khi thiếu ngữ cảnh hoặc bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-007
+    title: Bảo toàn ngữ cảnh khi xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-008
+    title: Ghi nhận truy cập và hạn chế lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-proxy-009
+    title: Giới hạn của Proxy như một phần trong thiết kế phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remote-proxy
+  title: Proxy từ xa
+  childs:
+  - slug: remote-proxy-001
+    title: Đại diện đối tượng nằm ở tiến trình hoặc máy khác (Remote Proxy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-002
+    title: Phân biệt ngữ nghĩa lời gọi cục bộ và lời gọi mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-003
+    title: Chuyển tham số, kết quả và lỗi qua ranh giới tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-004
+    title: Tuần tự hóa dữ liệu và quản lý phiên bản hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-005
+    title: Timeout, mất kết nối và tình huống không rõ kết quả xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-006
+    title: Retry cùng yêu cầu về tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-007
+    title: Độ trễ, số lượt trao đổi và nguy cơ API quá nhiều lời gọi nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-008
+    title: Quản lý kết nối và vòng đời tài nguyên truyền thông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-009
+    title: Minh họa stub trong Java RMI và client RPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-proxy-010
+    title: Không che giấu những bảo đảm mà hệ thống phân tán không đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-proxy
+  title: Proxy bộ nhớ đệm
+  childs:
+  - slug: cache-proxy-001
+    title: Lưu kết quả để giảm truy cập đối tượng thật (Caching Proxy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-002
+    title: Chọn phương thức có thể lưu kết quả an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-003
+    title: Thiết kế khóa theo tham số và ngữ cảnh người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-004
+    title: TTL, vô hiệu hóa và độ mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-005
+    title: Phân biệt kết quả rỗng với chưa có dữ liệu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-006
+    title: Xử lý nhiều lời gọi cùng yêu cầu một kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-007
+    title: Giới hạn dung lượng và vòng đời dữ liệu được giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-008
+    title: Quy định có lưu lỗi hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-009
+    title: Đo tỷ lệ sử dụng dữ liệu đệm và thay đổi ngữ nghĩa quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: smart-references
+  title: Tham chiếu thông minh
+  childs:
+  - slug: smart-references-001
+    title: Vai trò của Smart Reference trong quản lý truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-references-002
+    title: Theo dõi việc sử dụng và trạng thái tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-references-003
+    title: Kiểm tra điều kiện sẵn sàng trước khi gọi đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-references-004
+    title: Quản lý mượn và trả tài nguyên qua đối tượng đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-references-005
+    title: Thực hiện công việc phụ trợ gắn với mỗi lần truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-references-006
+    title: Quan hệ với quản lý vòng đời và quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-references-007
+    title: Phân biệt đếm sử dụng nghiệp vụ với quản lý bộ nhớ của JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-references-008
+    title: Giới hạn khi bên sử dụng giữ hoặc làm lộ tham chiếu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: call-interception
+  title: Chặn lời gọi
+  childs:
+  - slug: call-interception-001
+    title: Bổ sung hành vi dùng chung quanh phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: call-interception-002
+    title: Phân biệt xử lý trước gọi, sau thành công và sau thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: call-interception-003
+    title: Đo thời gian của toàn lời gọi hay riêng phần xử lý thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: call-interception-004
+    title: Ghi log với định danh tương quan và dữ liệu được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: call-interception-005
+    title: Kiểm soát giao dịch hoặc giới hạn truy cập tại ranh giới phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: call-interception-006
+    title: Dọn dẹp tài nguyên bằng đường xử lý luôn được thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: call-interception-007
+    title: Phân biệt Proxy với cơ chế interceptor tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: call-interception-008
+    title: Giữ trách nhiệm nghiệp vụ trong đối tượng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-and-concurrency
+  title: Vòng đời và đồng thời
+  childs:
+  - slug: lifecycle-and-concurrency-001
+    title: Bên tạo Proxy và bên sở hữu đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-002
+    title: Thành phần dùng riêng so với thành phần được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-003
+    title: Công bố an toàn đối tượng được khởi tạo lười
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-004
+    title: Tránh tạo trùng đối tượng khi nhiều luồng cùng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-005
+    title: Rủi ro giữ khóa trong khi gọi tác vụ chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-006
+    title: Trạng thái theo lời gọi và trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-007
+    title: Đóng tài nguyên đúng một lần khi có nhiều lớp đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-008
+    title: Xử lý lời gọi còn đang chạy lúc ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-concurrency-009
+    title: Ngăn rò rỉ tham chiếu và giữ tài nguyên quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-and-wrappers
+  title: Danh tính và lớp bọc
+  childs:
+  - slug: identity-and-wrappers-001
+    title: Phân biệt danh tính Proxy với danh tính đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-002
+    title: Thiết kế equals và hashCode nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-003
+    title: toString có thể kích hoạt tải hoặc gọi từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-004
+    title: Kiểm tra kiểu bằng instanceof và giới hạn khi ép kiểu cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-005
+    title: Lời gọi nội bộ của đối tượng thật có đi qua Proxy hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-006
+    title: Giá trị trả về chứa this và nguy cơ làm lộ đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-007
+    title: Làm lộ collection hoặc thành phần con vượt qua kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-008
+    title: Tuần tự hóa Proxy và các trạng thái cần tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-wrappers-009
+    title: Tính minh bạch trong gỡ lỗi, phản chiếu và nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdk-dynamic-proxy
+  title: JDK Dynamic Proxy
+  childs:
+  - slug: jdk-dynamic-proxy-001
+    title: Tạo Proxy động từ tập interface tại thời điểm chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-002
+    title: Vai trò của java.lang.reflect.Proxy và InvocationHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-003
+    title: Chuẩn bị class loader và các interface cần đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-004
+    title: Tạo đối tượng bằng Proxy.newProxyInstance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-005
+    title: Luồng từ phương thức interface tới InvocationHandler.invoke
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-006
+    title: Chuyển tiếp tới đối tượng thật bằng Method.invoke
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-007
+    title: Nhận diện đối tượng Proxy và truy cập bộ xử lý lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-008
+    title: Ràng buộc về khả năng truy cập và interface được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-009
+    title: Giới hạn khi bên sử dụng chỉ có kiểu lớp cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-dynamic-proxy-010
+    title: So sánh mã Proxy động với lớp đại diện viết tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: invocationhandler-design
+  title: Thiết kế InvocationHandler
+  childs:
+  - slug: invocationhandler-design-001
+    title: Đọc metadata Method và chọn hành vi theo phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-002
+    title: Xử lý args khi phương thức không có tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-003
+    title: Đối số varargs và mảng tham số qua phản chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-004
+    title: Giá trị trả về cho void, kiểu nguyên thủy và giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-005
+    title: Xử lý equals, hashCode và toString trong bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-006
+    title: Ngoại lệ nghiệp vụ, InvocationTargetException và việc mở lớp bọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-007
+    title: Checked exception cùng UndeclaredThrowableException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-008
+    title: Gọi phương thức mặc định bằng InvocationHandler.invokeDefault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-009
+    title: Phương thức trùng chữ ký trên nhiều interface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-010
+    title: Tránh tạo vòng lặp khi bộ xử lý gọi lại chính Proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocationhandler-design-011
+    title: Chọn chính sách chặn theo hợp đồng thay vì tên phương thức mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-based-proxies
+  title: Proxy dựa trên lớp
+  childs:
+  - slug: class-based-proxies-001
+    title: Đại diện lớp cụ thể bằng lớp con được tạo tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-002
+    title: Vai trò của sinh bytecode trong CGLIB hoặc Byte Buddy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-003
+    title: Ảnh hưởng của final, private và static tới khả năng chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-004
+    title: Ràng buộc về constructor và quá trình tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-005
+    title: Khả năng truy cập phương thức theo package và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-006
+    title: Phân biệt đối tượng Proxy với đối tượng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-007
+    title: Lời gọi tự thân và khác biệt giữa các cơ chế chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-008
+    title: So sánh proxy theo interface với proxy theo lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-based-proxies-009
+    title: Chi phí phụ thuộc thư viện và quản lý class loader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-proxy
+  title: Proxy trong Spring
+  childs:
+  - slug: spring-proxy-001
+    title: Vai trò của Proxy trong Spring AOP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-002
+    title: Đối tượng mục tiêu, advice, pointcut và interceptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-003
+    title: Nhận diện loại Proxy thực tế thay vì dựa vào giả định mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-004
+    title: Phương thức được gọi qua bean tham chiếu so với gọi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-005
+    title: Tự gọi trong cùng đối tượng và giới hạn của AOP dựa trên Proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-006
+    title: Ảnh hưởng của kiểu bean công khai tới khả năng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-007
+    title: Liên hệ với giao dịch, cache và xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-008
+    title: Thứ tự advice khi có nhiều hành vi bao quanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-009
+    title: Minh họa tạo Proxy bằng Spring ProxyFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-proxy-010
+    title: Phân biệt AOP qua Proxy với weaving
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: orm-proxy
+  title: Proxy trong ORM
+  childs:
+  - slug: orm-proxy-001
+    title: Đối tượng đại diện phục vụ tải lười trong ORM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-002
+    title: Thời điểm truy cập làm phát sinh truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-003
+    title: Định danh entity và dữ liệu chưa được khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-004
+    title: Vòng đời persistence context cùng khả năng tải dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-005
+    title: equals, hashCode và kiểm tra kiểu đối với entity đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-006
+    title: Ghi log hoặc tuần tự hóa vô tình kích hoạt tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-007
+    title: Truy vấn N+1 phát sinh từ cách truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-008
+    title: Phân biệt ORM proxy với cơ chế tăng cường bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orm-proxy-009
+    title: Thiết kế biên dữ liệu để tránh làm lộ trạng thái tải lười
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-chains
+  title: Chuỗi Proxy
+  childs:
+  - slug: proxy-chains-001
+    title: Kết hợp nhiều lớp đại diện quanh một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-002
+    title: Thứ tự kiểm tra quyền, đọc cache và gọi đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-003
+    title: Thứ tự retry, giao dịch và ghi nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-004
+    title: Phân biệt số lần gọi nghiệp vụ với số lần thử thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-005
+    title: Ngăn cùng một chính sách bị áp dụng lặp ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-006
+    title: Chia sẻ ngữ cảnh giữa các lớp chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-007
+    title: Quan sát luồng đi qua nhiều lớp đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-008
+    title: Xác định trách nhiệm tạo, đóng và thay thế cả chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-chains-009
+    title: Chọn chuỗi interceptor khi phù hợp hơn nhiều lớp bọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-asynchrony
+  title: Lỗi và bất đồng bộ
+  childs:
+  - slug: errors-and-asynchrony-001
+    title: Giữ nguyên nguyên nhân lỗi khi chuyển tiếp lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-002
+    title: Phân biệt lỗi của Proxy với lỗi của đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-003
+    title: Ngăn log trùng và tránh nuốt ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-004
+    title: Quy định fallback theo ý nghĩa hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-005
+    title: Đo thời gian hoàn thành thay vì chỉ thời gian trả về tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-006
+    title: Lỗi phát sinh sau khi phương thức đã trả Future hoặc CompletionStage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-007
+    title: Truyền ngữ cảnh, hủy tác vụ và xử lý timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-008
+    title: Giải phóng tài nguyên sau khi tác vụ bất đồng bộ kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-asynchrony-009
+    title: Kiểm soát retry khi kết quả thực thi chưa được xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-comparison
+  title: So sánh các mẫu
+  childs:
+  - slug: pattern-comparison-001
+    title: Proxy và Decorator giống cấu trúc nhưng khác mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-002
+    title: Proxy và Adapter trong việc giữ hoặc chuyển đổi hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-003
+    title: Proxy và Facade theo phạm vi đối tượng được đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-004
+    title: Proxy và Bridge theo chiều biến đổi thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-005
+    title: Proxy và Strategy theo vị trí lựa chọn hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-006
+    title: Proxy với Factory trong tạo và cấp đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-007
+    title: Proxy với middleware hoặc Chain of Responsibility
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-008
+    title: Phân biệt lớp bọc nói chung với một triển khai mẫu Proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-comparison-009
+    title: Phân loại mẫu bằng ý định cùng luồng tương tác thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-testing
+  title: Kiểm thử Proxy
+  childs:
+  - slug: proxy-testing-001
+    title: Kiểm thử hợp đồng chung cho Proxy và đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-002
+    title: Xác nhận đúng tham số, kết quả và số lần chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-003
+    title: Kiểm thử nhánh được xử lý tại Proxy mà không gọi tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-004
+    title: Kiểm thử khởi tạo lười và thất bại khi tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-005
+    title: Kiểm thử quyền truy cập cùng các đường đi vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-006
+    title: Kiểm thử cache theo khóa, thời hạn và ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-007
+    title: Kiểm thử nhiều luồng cùng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-008
+    title: Kiểm thử ngoại lệ phản chiếu và phương thức mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-009
+    title: Kiểm thử thứ tự chuỗi Proxy cùng tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-testing-010
+    title: Tách kiểm thử bộ xử lý khỏi kiểm thử tích hợp framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-diagnostics
+  title: Hiệu năng và chẩn đoán
+  childs:
+  - slug: performance-and-diagnostics-001
+    title: Phân tách chi phí tạo Proxy với chi phí mỗi lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-diagnostics-002
+    title: So sánh lời gọi trực tiếp, Proxy thủ công và Proxy động bằng đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-diagnostics-003
+    title: Đo độ trễ có khởi tạo lười và độ trễ ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-diagnostics-004
+    title: Ảnh hưởng của phản chiếu, cấp phát và metadata được lưu lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-diagnostics-005
+    title: Thiết kế benchmark có warm-up và kết quả được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-diagnostics-006
+    title: Phân tích stack trace qua lớp sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-diagnostics-007
+    title: Phát hiện Proxy lồng quá sâu hoặc lặp xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-diagnostics-008
+    title: Theo dõi tham chiếu, tài nguyên và class loader bị giữ lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-traps
+  title: Bẫy thiết kế
+  childs:
+  - slug: design-traps-001
+    title: Tạo Proxy dù chưa có yêu cầu kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-002
+    title: Làm lớp đại diện ôm nghiệp vụ không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-003
+    title: Quảng bá tính minh bạch vượt quá bảo đảm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-004
+    title: Để đối tượng thật thoát ra ngoài ranh giới kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-005
+    title: Khởi tạo lười nhưng thiếu cơ chế đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-006
+    title: Lưu cache dùng chung cho dữ liệu khác quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-007
+    title: Retry thao tác có tác dụng phụ mà không có quy ước chống lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-008
+    title: Ép kiểu sang lớp thật làm phá vỡ khả năng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-traps-009
+    title: Tạo quy tắc theo tên phương thức thiếu hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: selection-and-migration
+  title: Lựa chọn và chuyển đổi
+  childs:
+  - slug: selection-and-migration-001
+    title: Xác định nhu cầu đại diện thay vì chỉ nhu cầu tái sử dụng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-002
+    title: Chọn Proxy thủ công, theo interface hoặc theo lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-003
+    title: Xác định các phương thức và ngữ nghĩa cần bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-004
+    title: Tạo kiểm thử đặc tả trước khi thêm lớp đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-005
+    title: Chuyển nơi sử dụng sang nhận đối tượng qua hợp đồng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-006
+    title: Tách mã lắp ráp và chính sách chặn khỏi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-007
+    title: Đánh giá yêu cầu tương thích kiểu, lỗi và vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-008
+    title: Triển khai từng bước và quan sát tác động thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-migration-009
+    title: Loại bỏ lớp Proxy khi chi phí lớn hơn giá trị kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây dựng Proxy ghi nhận truy cập cho dịch vụ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Trì hoãn tải ảnh và kiểm thử nhiều luồng truy cập lần đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Kiểm tra quyền đọc tài liệu theo người dùng và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thiết kế cache không làm lẫn dữ liệu giữa người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tạo JDK Dynamic Proxy và xử lý ngoại lệ đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Kiểm chứng equals, hashCode, toString và phương thức mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Quan sát tự gọi trong một bean Spring được đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Phân tích truy vấn phát sinh khi truy cập entity tải lười
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Kết hợp kiểm tra quyền, cache và đo thời gian theo thứ tự có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: So sánh các phương án Proxy bằng kiểm thử và số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

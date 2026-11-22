@@ -1,0 +1,7 @@
+# Spring Framework JMX
+
+Java Management Extensions (JMX) là cơ chế chuẩn của Java để theo dõi và quản lý ứng dụng thông qua các Managed Bean (MBean), thuộc tính, thao tác và thông báo sự kiện. Spring Framework cung cấp lớp tích hợp giúp đăng ký Spring bean vào MBeanServer, chỉ định tên quản trị, kiểm soát những thuộc tính hoặc phương thức được công bố và truy cập MBean qua proxy. Module này tập trung vào năng lực quan sát và thao tác quản trị có kiểm soát, không nhầm JMX với một giao thức API nghiệp vụ thông thường.
+
+Người học nên có nền tảng Java, Spring IoC/Bean và khái niệm giám sát JVM. Lộ trình bắt đầu từ MBean, MBeanServer và ObjectName, sau đó thực hành MBeanExporter, các annotation @ManagedResource, @ManagedAttribute, @ManagedOperation và @EnableMBeanExport. Tiếp theo, người học kiểm tra kết quả bằng JConsole, hiểu vị trí của Spring Boot Actuator khi công bố endpoint qua JMX, xử lý notification/listener và truy cập MBean bằng proxy hoặc JMX connector. Mốc cuối dành cho kiểm soát bề mặt quản trị, xác thực truy cập từ xa và kiểm thử vòng đời đăng ký MBean.
+
+Sau khi hoàn thành, bạn có thể xuất một Spring bean làm MBean, lựa chọn thuộc tính chỉ đọc và operation được phép gọi, quan sát chúng bằng công cụ JMX, đồng thời mô tả cách kết nối từ xa an toàn. Khi triển khai thật, cần tránh xuất toàn bộ phương thức public một cách vô thức, không để JMX remote mở công khai thiếu bảo vệ và cân nhắc ảnh hưởng của các operation có khả năng thay đổi trạng thái hệ thống.

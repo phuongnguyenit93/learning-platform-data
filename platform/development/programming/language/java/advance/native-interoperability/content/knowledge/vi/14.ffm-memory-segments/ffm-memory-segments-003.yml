@@ -1,0 +1,3 @@
+menuLevel1: MemorySegment
+menuLevel2: Cấp phát vùng nhớ rồi đọc, ghi theo ValueLayout và vị trí byte
+status: WRITTEN

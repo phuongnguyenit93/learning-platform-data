@@ -1,0 +1,64 @@
+menu:
+- title: Tổng quan
+  slug: annotation-overview
+  index: 0
+- title: Cú pháp sử dụng
+  slug: annotation-syntax
+  index: 1
+- title: Annotation chuẩn
+  slug: standard-annotations
+  index: 2
+- title: Khai báo kiểu
+  slug: type-declaration-annotations
+  index: 3
+- title: Phần tử và giá trị
+  slug: annotation-elements
+  index: 4
+- title: Đích áp dụng
+  slug: annotation-targets
+  index: 5
+- title: Vòng đời
+  slug: annotation-retention
+  index: 6
+- title: Tài liệu và kế thừa
+  slug: documentation-and-inheritance
+  index: 7
+- title: Annotation lặp
+  slug: repeatable-annotations
+  index: 8
+- title: Annotation trên kiểu
+  slug: type-use-annotations
+  index: 9
+- title: Đọc khi chạy
+  slug: runtime-reading
+  index: 10
+- title: Quy tắc tra cứu
+  slug: lookup-rules
+  index: 11
+- title: Giá trị annotation
+  slug: annotation-values
+  index: 12
+- title: Dấu vết biên dịch
+  slug: compilation-trace
+  index: 13
+- title: Xử lý khi biên dịch
+  slug: compile-time-processing
+  index: 14
+- title: Mô hình ngôn ngữ
+  slug: language-model
+  index: 15
+- title: Kiểm tra và sinh mã
+  slug: validation-and-codegen
+  index: 16
+- title: Công cụ và cấu hình
+  slug: tools-and-configuration
+  index: 17
+- title: Thiết kế annotation
+  slug: annotation-design
+  index: 18
+- title: Kiểm thử và lỗi
+  slug: testing-and-errors
+  index: 19
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 20

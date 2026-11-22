@@ -1,0 +1,2305 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Reactor Netty là gì và giải quyết bài toán vào ra mạng nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Quan hệ giữa Reactive Streams, Reactor Core, Netty và Reactor Netty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt vào ra không chặn, thực thi bất đồng bộ và xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của Mono, Flux và cơ chế điều tiết theo nhu cầu trong luồng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Bản đồ thành phần: client, server, connection, channel và event loop'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Các giao thức được hỗ trợ và tiêu chí chọn HTTP, WebSocket, TCP hoặc UDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ranh giới giữa Reactor Netty với WebFlux, WebClient và Netty thuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức tiên quyết và lộ trình từ kết nối đơn giản đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-foundations
+  title: Nền tảng mạng
+  childs:
+  - slug: network-foundations-001
+    title: Địa chỉ IP, tên miền, cổng và điểm cuối kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-foundations-002
+    title: TCP truyền luồng byte và UDP truyền gói dữ liệu khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-foundations-003
+    title: Kết nối, yêu cầu, phản hồi và luồng logic là những đơn vị khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-foundations-004
+    title: Thiết lập kết nối, đóng kết nối và đóng một chiều trong TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-foundations-005
+    title: Phân biệt TCP keepalive, HTTP keep-alive và nhịp kiểm tra ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-foundations-006
+    title: Vai trò của DNS, proxy, bộ cân bằng tải và NAT trên đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-foundations-007
+    title: Vì sao một lần gửi không tương ứng một lần nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Thiết lập
+  childs:
+  - slug: setup-001
+    title: Chọn phiên bản Reactor Netty tương thích với Reactor Core, Netty và JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Quản lý phụ thuộc bằng Reactor BOM hoặc cơ chế quản lý của Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Phân biệt reactor-netty-core, reactor-netty-http và các phụ thuộc giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Khởi tạo dự án Maven hoặc Gradle và bật nhật ký phục vụ học tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Viết chương trình HTTP client và server tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Phân biệt cấu hình bất biến với tài nguyên thực thi được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Khởi tạo sớm tài nguyên bằng warmup và phân biệt với mở kết nối thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-model
+  title: Mô hình thực thi
+  childs:
+  - slug: execution-model-001
+    title: Event loop là gì và một luồng phục vụ nhiều kết nối như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-002
+    title: Quan hệ giữa EventLoopGroup, Channel và vòng đời xử lý sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-003
+    title: Vị trí thực thi của callback mạng và toán tử Reactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-004
+    title: Hậu quả của block, ngủ hoặc gọi thư viện chặn trên event loop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-005
+    title: Chuyển công việc chặn sang Scheduler phù hợp mà vẫn giữ chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-006
+    title: Ảnh hưởng của publishOn, subscribeOn và mức đồng thời đến luồng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-007
+    title: Giữ thứ tự dữ liệu khi xử lý bất đồng bộ hoặc chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-008
+    title: Khi nào được chờ đồng bộ ở điểm khởi động hoặc biên kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-lifecycle
+  title: Vòng đời kết nối
+  childs:
+  - slug: connection-lifecycle-001
+    title: Phân biệt cấu hình client hoặc server với việc bind, connect và subscribe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-002
+    title: bind và connect bất đồng bộ so với bindNow và connectNow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-003
+    title: Connection, DisposableServer và các tín hiệu đóng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-004
+    title: NettyInbound, NettyOutbound và hợp đồng của hàm handle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-005
+    title: Kết hợp đọc, xử lý và ghi thành một Publisher hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-006
+    title: Callback vòng đời và ConnectionObserver dùng để theo dõi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-007
+    title: Hủy đăng ký, hoàn thành và lỗi ảnh hưởng đến kết nối như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-008
+    title: Tránh subscribe lồng nhau và tách tác vụ khỏi vòng đời yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-009
+    title: Đóng kết nối và giải phóng tài nguyên trong cả đường thành công lẫn thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-buffers
+  title: Bộ đệm dữ liệu
+  childs:
+  - slug: data-buffers-001
+    title: ByteBuf, ByteBufFlux và ByteBufMono trong luồng nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-002
+    title: Bộ nhớ heap, bộ nhớ trực tiếp và bộ cấp phát có tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-003
+    title: Đếm tham chiếu và trách nhiệm giữ hoặc giải phóng ByteBuf
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-004
+    title: Cơ chế giải phóng tự động của Reactor Netty và giới hạn sử dụng bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-005
+    title: Chuyển bộ đệm sang chuỗi hoặc mảng byte với bộ mã ký tự phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-006
+    title: Phân biệt sao chép dữ liệu với slice, duplicate và retain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-007
+    title: Giữ bộ đệm an toàn khi chuyển luồng hoặc lưu ngoài callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-008
+    title: Gom dữ liệu bằng aggregate và kiểm soát dung lượng bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-buffers-009
+    title: Phát hiện rò rỉ bộ đệm và lỗi IllegalReferenceCountException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backpressure
+  title: Điều tiết dữ liệu
+  childs:
+  - slug: backpressure-001
+    title: Nhu cầu request của Reactive Streams tác động đến việc đọc dữ liệu mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-002
+    title: Phân biệt bộ đệm ứng dụng, bộ đệm socket và điều khiển luồng giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-003
+    title: Điều tiết tốc độ đọc khi bên xử lý hoặc bên nhận chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-004
+    title: Giới hạn số tác vụ đang chạy, hàng đợi và lượng dữ liệu chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-005
+    title: Ảnh hưởng của prefetch, flatMap và concatMap đến thứ tự và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-006
+    title: Giới hạn khi đăng ký nhiều lần vào cùng luồng inbound
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-007
+    title: Truyền dữ liệu liên tục và điều khiển ghi, flush theo từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-008
+    title: Phản ứng khi hủy luồng giữa chừng và dọn dữ liệu chưa được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-009
+    title: Giới hạn của cơ chế điều tiết cục bộ đối với UDP và bên gửi từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tcp-server
+  title: TCP Server
+  childs:
+  - slug: tcp-server-001
+    title: Tạo TcpServer và chọn địa chỉ, cổng lắng nghe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-server-002
+    title: Đọc và ghi bằng NettyInbound, NettyOutbound trong hàm handle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-server-003
+    title: Xây máy chủ phản hồi lại dữ liệu để quan sát luồng byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-server-004
+    title: Quản lý trạng thái riêng của từng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-server-005
+    title: Cấu hình ChannelOption cho kênh lắng nghe và kênh con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-server-006
+    title: Theo dõi kết nối mới, kết nối đóng và lỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-server-007
+    title: Phát hiện kết nối không hoạt động và dọn phiên bỏ dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tcp-client
+  title: TCP Client
+  childs:
+  - slug: tcp-client-001
+    title: Tạo TcpClient và thiết lập kết nối đến máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-client-002
+    title: Gửi dữ liệu rồi đọc phản hồi theo vòng đời giao thức ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-client-003
+    title: Giữ kết nối dài hạn và trao đổi nhiều thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-client-004
+    title: Xử lý máy chủ từ chối, ngắt kết nối hoặc đóng một chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-client-005
+    title: Thiết kế kết nối lại có giãn cách và khôi phục trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-client-006
+    title: ConnectionProvider với TCP và giới hạn tái sử dụng khác HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-client-007
+    title: Đóng client có chủ đích và tránh vòng lặp kết nối lại ngoài kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tcp-framing
+  title: Định khung TCP
+  childs:
+  - slug: tcp-framing-001
+    title: Vấn đề thông điệp bị chia nhỏ hoặc gộp trong luồng TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-framing-002
+    title: Định khung theo độ dài cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-framing-003
+    title: Định khung theo dấu phân cách hoặc ký tự xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-framing-004
+    title: Định khung bằng trường độ dài và LengthFieldBasedFrameDecoder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-framing-005
+    title: Xây bộ mã hóa và giải mã cho giao thức nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-framing-006
+    title: Giới hạn kích thước khung và xử lý dữ liệu đầu vào chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-framing-007
+    title: Ghép yêu cầu với phản hồi bằng định danh tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-framing-008
+    title: Kiểm tra thông điệp lỗi, nhiều khung liên tiếp và ranh giới bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: udp
+  title: UDP
+  childs:
+  - slug: udp-001
+    title: Thiết lập UdpServer và UdpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-002
+    title: Đọc DatagramPacket cùng địa chỉ người gửi và người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-003
+    title: Gửi phản hồi đúng điểm cuối và bảo toàn ranh giới gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-004
+    title: Ý nghĩa của connect đối với socket UDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-005
+    title: Giới hạn kích thước gói, MTU và nguy cơ phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-006
+    title: Xử lý mất gói, gói trùng và sai thứ tự ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-007
+    title: Cấu hình broadcast hoặc multicast khi hệ điều hành và transport hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-008
+    title: Thiết kế bộ thu UDP chịu tải mà không giả định giao nhận tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-server
+  title: HTTP Server
+  childs:
+  - slug: http-server-001
+    title: Khởi tạo HttpServer, bind địa chỉ và quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-002
+    title: Định tuyến theo phương thức, đường dẫn và thứ tự đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-003
+    title: Đọc URI, tham số đường dẫn, chuỗi truy vấn và header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-004
+    title: Xây phản hồi với mã trạng thái, header, cookie và kiểu nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-005
+    title: Phân biệt gửi header với hoàn tất nội dung phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-006
+    title: Xử lý tuyến không khớp và lỗi phát sinh trước hoặc sau khi gửi header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-007
+    title: Phục vụ tệp và tài nguyên tĩnh trong giới hạn đường dẫn cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-server-008
+    title: Cấu hình giới hạn kết nối và phạm vi hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-semantics
+  title: Ngữ nghĩa HTTP
+  childs:
+  - slug: http-semantics-001
+    title: Content-Length, truyền theo từng phần và ranh giới nội dung HTTP/1.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-002
+    title: Kết nối HTTP/1.1 được tái sử dụng trong điều kiện nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-003
+    title: Đọc hết hoặc bỏ nội dung đúng cách trước khi tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-004
+    title: Yêu cầu HEAD và các phản hồi không có nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-005
+    title: Mã trạng thái 4xx, 5xx khác lỗi truyền tải như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-006
+    title: Xử lý chuyển hướng và giới hạn chuyển tiếp header nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-007
+    title: Nén, giải nén và ảnh hưởng đến kích thước dữ liệu thực nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-008
+    title: Cookie và header truyền tải khác trạng thái phiên của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-semantics-009
+    title: Giới hạn bộ giải mã đối với dòng yêu cầu, header và từng phần nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-client
+  title: HTTP Client
+  childs:
+  - slug: http-client-001
+    title: Tạo HttpClient và cấu hình địa chỉ cơ sở hoặc URI đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-002
+    title: Gửi GET, POST và các phương thức HTTP khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-003
+    title: Thiết lập header, cookie và nội dung yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-004
+    title: Chọn response, responseSingle hoặc responseContent theo cách dùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-005
+    title: Quản lý vòng đời response body trong callback và sau khi callback kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-006
+    title: Xây chính sách xử lý mã trạng thái ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-007
+    title: Theo dõi các giai đoạn gửi yêu cầu, nhận phản hồi và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-008
+    title: Cơ chế thử lại do ngắt kết nối và điều kiện tắt hành vi này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-009
+    title: Hủy yêu cầu đang chạy và ảnh hưởng đến việc tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-streaming
+  title: Truyền nội dung
+  childs:
+  - slug: content-streaming-001
+    title: Nhận và gửi nội dung dạng luồng thay vì gom toàn bộ vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-streaming-002
+    title: Truyền tệp lớn và điều kiện áp dụng kỹ thuật giảm sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-streaming-003
+    title: Gửi biểu mẫu URL-encoded và multipart từ HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-streaming-004
+    title: Nhận multipart, quản lý tệp tạm và giới hạn tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-streaming-005
+    title: Xử lý JSON theo từng phần và ranh giới trách nhiệm của bộ mã hóa ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-streaming-006
+    title: Truyền sự kiện một chiều bằng Server-Sent Events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-streaming-007
+    title: Điều chỉnh nhịp flush cho dữ liệu phát liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-streaming-008
+    title: Phát hiện bên nhận ngắt kết nối và dừng nguồn dữ liệu kịp thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-pooling
+  title: Pool kết nối
+  childs:
+  - slug: connection-pooling-001
+    title: Vai trò của ConnectionProvider và phạm vi pool theo đích kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-002
+    title: Phân biệt kết nối mới, kết nối đang dùng, kết nối rảnh và yêu cầu chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-003
+    title: Cấu hình maxConnections theo mức đồng thời và tài nguyên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-004
+    title: Giới hạn hàng đợi và thời gian chờ lấy kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-005
+    title: maxIdleTime, maxLifeTime và cơ chế loại bỏ kết nối cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-006
+    title: Chọn chiến lược cấp phát FIFO hoặc LIFO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-007
+    title: Đối chiếu thời hạn kết nối rảnh với máy chủ, proxy và bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-008
+    title: Ảnh hưởng của nội dung chưa được tiêu thụ đến khả năng trả kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-009
+    title: Khác biệt giữa pool kết nối HTTP/1.1 với pool luồng HTTP/2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-010
+    title: Khi nào cần kết nối riêng và cách đóng ConnectionProvider do ứng dụng sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts
+  title: Thời hạn chờ
+  childs:
+  - slug: timeouts-001
+    title: Phân biệt ngân sách thời gian toàn yêu cầu với thời hạn từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-002
+    title: Thời hạn chờ phân giải tên miền và lấy kết nối từ pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-003
+    title: Cấu hình thời hạn thiết lập kết nối TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-004
+    title: Thời hạn TLS handshake và đóng phiên TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-005
+    title: Ý nghĩa của responseTimeout và khoảng chờ giữa các lần đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-006
+    title: ReadTimeoutHandler, WriteTimeoutHandler và giới hạn khi gắn vào kênh dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-007
+    title: Toán tử timeout của Reactor khác cấu hình timeout ở tầng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-008
+    title: Thời hạn đọc yêu cầu và thời gian kết nối rảnh phía HTTP server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-009
+    title: Xử lý hủy, đóng kết nối và thu hồi tài nguyên sau khi hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-proxies
+  title: DNS và proxy
+  childs:
+  - slug: dns-proxies-001
+    title: Phân giải tên miền bất đồng bộ và cấu hình resolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-proxies-002
+    title: Bộ nhớ đệm DNS, TTL và thay đổi địa chỉ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-proxies-003
+    title: Lựa chọn địa chỉ IPv4, IPv6 và xử lý lỗi phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-proxies-004
+    title: Phân biệt phân giải tên miền tại client với tại proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-proxies-005
+    title: Cấu hình HTTP CONNECT hoặc SOCKS proxy theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-proxies-006
+    title: Xác thực proxy, danh sách đích bỏ qua và thời hạn kết nối proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-proxies-007
+    title: Chẩn đoán lỗi DNS, định tuyến và kết nối qua nhiều tầng trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls
+  title: TLS
+  childs:
+  - slug: tls-001
+    title: Vai trò của TLS trong xác thực đối tác và mã hóa đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-002
+    title: Cấu hình secure cho client và server bằng SslContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-003
+    title: Chuỗi chứng thư, trust store và kiểm tra tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-004
+    title: Xác thực hai chiều bằng chứng thư client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-005
+    title: Server Name Indication và phục vụ nhiều tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-006
+    title: ALPN và thương lượng giao thức HTTP/2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-007
+    title: Lựa chọn nhà cung cấp TLS, giao thức và bộ mã hóa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-008
+    title: Chẩn đoán lỗi handshake, chứng thư hết hạn và chuỗi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-009
+    title: Quản lý chứng thư trong môi trường phát triển và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http2-http3
+  title: HTTP/2 và HTTP/3
+  childs:
+  - slug: http2-http3-001
+    title: Khác biệt giữa kết nối vật lý và nhiều luồng HTTP đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http2-http3-002
+    title: Chọn HTTP/1.1, H2 hoặc H2C và hiểu cơ chế nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http2-http3-003
+    title: Cấu hình HTTP/2 qua TLS và kết nối không mã hóa khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http2-http3-004
+    title: Điều khiển luồng, giới hạn số luồng và tác động đến tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http2-http3-005
+    title: Xử lý đóng luồng, GOAWAY và duy trì kết nối HTTP/2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http2-http3-006
+    title: Quan sát pool luồng thay vì chỉ đếm số kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http2-http3-007
+    title: HTTP/3, QUIC và các điều kiện về phiên bản, thư viện native, nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http2-http3-008
+    title: Đối chiếu tính năng, đường truyền và phương án tương thích khi đổi giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: websocket
+  title: WebSocket
+  childs:
+  - slug: websocket-001
+    title: Phân biệt WebSocket với HTTP thông thường và Server-Sent Events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-002
+    title: Thiết lập nâng cấp WebSocket ở server và kết nối từ client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-003
+    title: Gửi, nhận khung văn bản, khung nhị phân và thông điệp phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-004
+    title: Cấu hình giới hạn khung, ghép thông điệp và giao thức con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-005
+    title: Ping, pong và phát hiện kết nối không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-006
+    title: Điều tiết dữ liệu khi hai phía có tốc độ xử lý khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-007
+    title: Đóng phiên với mã trạng thái và xử lý mất kết nối bất ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-008
+    title: Thiết kế kết nối lại, xác thực và khôi phục đăng ký ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: netty-customization
+  title: Tùy biến Netty
+  childs:
+  - slug: netty-customization-001
+    title: ChannelPipeline và thứ tự xử lý sự kiện inbound, outbound
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: netty-customization-002
+    title: Dùng doOnChannelInit hoặc doOnConnected để bổ sung handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: netty-customization-003
+    title: Chọn addHandlerFirst, addHandlerLast và vị trí tương đối với bộ mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: netty-customization-004
+    title: Phân biệt handler dùng chung an toàn với trạng thái riêng theo kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: netty-customization-005
+    title: Tích hợp bộ giải mã, giám sát trạng thái rảnh và giới hạn ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: netty-customization-006
+    title: Lan truyền lỗi, hoàn thành ghi và quy tắc sở hữu ByteBuf trong handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: netty-customization-007
+    title: Giới hạn tùy biến pipeline với kết nối tái sử dụng và kênh con HTTP/2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-management
+  title: Quản lý tài nguyên
+  childs:
+  - slug: resource-management-001
+    title: Tài nguyên mặc định dùng chung trong HttpResources và TcpResources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-002
+    title: Tạo LoopResources riêng và gắn bằng runOn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-003
+    title: Lựa chọn transport NIO hoặc native phù hợp hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-004
+    title: Unix domain socket và điều kiện hỗ trợ theo transport
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-005
+    title: Phân quyền sở hữu event loop, pool kết nối và client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-006
+    title: Thiết kế khởi động, dừng nhận việc và chờ tác vụ đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-007
+    title: dispose, disposeLater và thời gian chờ giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-008
+    title: Hậu quả của việc đóng tài nguyên chung khi các thành phần khác vẫn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Phân biệt access log, wiretap, metrics và distributed tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Cấu hình wiretap cùng định dạng ghi dữ liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Access log phía server và thông tin cần để truy vết một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Theo dõi thời gian DNS, kết nối, TLS, gửi và nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Quan sát kết nối đang dùng, kết nối rảnh và hàng đợi lấy kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Theo dõi bộ nhớ ByteBuf, tác vụ event loop và dấu hiệu nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Chuẩn hóa nhãn URI để giới hạn số lượng giá trị đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Truyền ngữ cảnh quan sát giữa Reactor Context và callback Netty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Che thông tin xác thực, cookie và nội dung nhạy cảm khi ghi nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đặt mục tiêu thông lượng, độ trễ p95, p99 và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo riêng chi phí khởi động, làm nóng và xử lý ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Điều chỉnh số luồng event loop theo tải và tài nguyên thực có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Cân bằng số kết nối, mức đồng thời và kích thước hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Ảnh hưởng của bộ đệm, gom nội dung và sao chép dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đánh đổi giữa nén, TLS, flush và kích thước dữ liệu gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Giới hạn file descriptor, bộ nhớ trực tiếp và cổng tạm của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đánh giá bên nhận chậm, tải đột biến và hiệu ứng nghẽn dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Phân loại lỗi DNS, kết nối, TLS, giao thức và xử lý ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chẩn đoán PrematureCloseException và phản hồi bị đóng chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Phân biệt hết thời gian lấy kết nối với hết thời gian kết nối hoặc phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Chẩn đoán connection reset, broken pipe và đóng bởi trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Phát hiện event loop bị chặn hoặc hàng đợi tác vụ tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Chẩn đoán nội dung bị tiêu thụ nhiều lần hoặc thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Theo dõi bộ nhớ trực tiếp tăng và xác định rò rỉ ByteBuf
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Thiết kế retry có giới hạn theo tính lặp lại an toàn của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Quy trình thu thập bằng chứng từ nhật ký, chỉ số và kiểm tra đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Kiểm tra chứng thư và tên máy chủ thay vì bỏ xác minh TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Giới hạn kích thước header, nội dung, khung và thời gian đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Kiểm soát URL đích, chuyển hướng và proxy để hạn chế SSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Chỉ tin cậy Forwarded hoặc X-Forwarded-* từ trung gian đã xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Giới hạn kết nối, mức đồng thời và tốc độ theo khả năng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Kiểm soát nguồn gốc và thông tin xác thực khi nâng cấp WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Ngăn truy cập ngoài thư mục khi phục vụ tệp hoặc nhận tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Rà soát phụ thuộc Netty, Reactor Netty và các thư viện native khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Vai trò của Reactor Netty khi làm HTTP server cho Spring WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Dùng ReactorClientHttpConnector để cấu hình transport cho WebClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Tách xử lý HTTP của WebClient khỏi cấu hình mạng của HttpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Quản lý tài nguyên cùng vòng đời Spring bằng ReactorResourceFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Tùy biến máy chủ Netty do Spring Boot quản lý qua điểm mở rộng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Phân biệt thuộc tính do Spring Boot quản lý với cấu hình API trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Tránh tạo pool, event loop hoặc server mới cho từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Tổ chức cấu hình theo môi trường và kiểm tra lại tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Chọn kiểm thử đơn vị, tích hợp giao thức và kiểm thử tải theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Khởi động server với cổng ngẫu nhiên và đóng tài nguyên sau mỗi bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Dùng StepVerifier để xác minh tín hiệu hoàn thành, lỗi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra nội dung theo từng phần thay vì giả định ranh giới gói mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Mô phỏng bên gửi chậm, bên nhận chậm và kết nối bị đóng giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử timeout, pool bão hòa và chính sách retry bằng điều kiện có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử TLS, proxy, HTTP/2 và WebSocket trong môi trường phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm tra rò rỉ bộ đệm, luồng và kết nối sau khi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Phân biệt thời gian ảo của Reactor với hoạt động mạng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-lab
+  title: Thực hành
+  childs:
+  - slug: hands-on-lab-001
+    title: Xây cặp TCP client–server có định khung thông điệp và định danh tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-002
+    title: Xây bộ thu UDP và thống kê mất gói, gói trùng, sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-003
+    title: Xây HTTP server cùng client truyền tệp lớn với giới hạn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-004
+    title: Xây luồng Server-Sent Events xử lý bên nhận ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-005
+    title: Xây phiên WebSocket có nhịp kiểm tra và quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-006
+    title: Thử nghiệm pool bão hòa, thời hạn chờ và bên nhận chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-007
+    title: So sánh HTTP/1.1 với HTTP/2 trên cùng kịch bản tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-008
+    title: Hoàn thiện bảng chỉ số, quy trình chẩn đoán và kế hoạch dừng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

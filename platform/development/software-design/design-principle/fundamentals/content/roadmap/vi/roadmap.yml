@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-thiet-ke
+  title: Mục tiêu thiết kế
+  purpose: Hiểu nguyên tắc thiết kế là tiêu chí hỗ trợ quyết định để phần mềm dễ hiểu, dễ sửa và dễ kiểm thử.
+  objectives:
+  - Phân biệt yêu cầu chức năng với chất lượng thiết kế.
+  - Nhận diện dấu hiệu thay đổi nhỏ nhưng phải sửa nhiều nơi.
+  - Giải thích vì sao nguyên tắc là hướng dẫn, không phải luật cứng.
+- id: truu-tuong-dong-goi
+  title: Trừu tượng & đóng gói
+  purpose: Giảm phụ thuộc vào chi tiết triển khai và giữ trạng thái nội bộ nhất quán.
+  objectives:
+  - Dùng interface để biểu diễn hợp đồng cần thiết.
+  - Ẩn trạng thái và chi tiết triển khai qua API rõ ràng.
+  - So sánh abstraction hữu ích với abstraction quá sớm.
+- id: trach-nhiem-tach-moi-quan-tam
+  title: Trách nhiệm & tách mối quan tâm
+  purpose: Phân chia công việc theo lý do thay đổi thay vì gom nhiều hành vi vào một thành phần.
+  objectives:
+  - Nhận diện lớp hoặc hàm có nhiều lý do phải sửa.
+  - Tách nghiệp vụ, giao diện và truy cập dữ liệu hợp lý.
+  - Giải thích SRP và Separation of Concerns qua ví dụ Java.
+- id: cohesion-coupling
+  title: Cohesion & coupling
+  purpose: Thiết kế các thành phần có trách nhiệm gắn kết và ít biết chi tiết của nhau.
+  objectives:
+  - Nhận diện high cohesion trong một lớp hoặc module.
+  - Phát hiện coupling qua truy cập nội bộ và gọi chuỗi dài.
+  - Vẽ ranh giới module cùng các phụ thuộc quan trọng.
+- id: solid-chieu-phu-thuoc
+  title: SOLID & chiều phụ thuộc
+  purpose: Nắm nhóm nguyên tắc SOLID ở mức nền tảng và cách hướng phụ thuộc về hợp đồng.
+  objectives:
+  - Tóm tắt SRP, OCP, LSP, ISP và DIP bằng ví dụ ngắn.
+  - Dùng dependency inversion để tách nghiệp vụ khỏi hạ tầng.
+  - Nhận biết khi một interface làm tăng phức tạp không cần thiết.
+- id: composition-ke-thua
+  title: Composition & kế thừa
+  purpose: Chọn cách mở rộng hành vi có kiểm soát thay vì tạo hệ phân cấp cứng nhắc.
+  objectives:
+  - Phân biệt quan hệ has-a và is-a trong Java.
+  - So sánh delegation/composition với inheritance.
+  - Xác định trường hợp kế thừa hợp lý và nguy cơ lớp con phụ thuộc lớp cha.
+- id: dry-kiss-yagni
+  title: DRY, KISS & YAGNI
+  purpose: Giữ giải pháp đơn giản, tránh sao chép tri thức và chưa xây tính năng không cần thiết.
+  objectives:
+  - Tách logic lặp thực sự nhưng không gộp hai khái niệm khác nhau.
+  - Giải thích KISS và YAGNI khi chọn phương án thiết kế.
+  - Nhận diện overengineering và speculative generality.
+- id: danh-gia-cai-tien-thiet-ke
+  title: Đánh giá & cải tiến thiết kế
+  purpose: Áp dụng nguyên tắc qua code review, kiểm thử và tái cấu trúc nhỏ có mục tiêu.
+  objectives:
+  - Nhận diện code smell như Large Class và Shotgun Surgery.
+  - Viết test bảo vệ hành vi trước khi refactor.
+  - So sánh độ dễ hiểu, phụ thuộc và chi phí thay đổi trước/sau.

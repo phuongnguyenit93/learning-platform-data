@@ -1,0 +1,1801 @@
+menu:
+- slug: pattern-overview
+  title: Tổng quan
+  childs:
+  - slug: pattern-overview-001
+    title: 'Ý định của Strategy: đóng gói các thuật toán thay thế được sau cùng một hợp đồng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-002
+    title: Bài toán nhiều biến thể hành vi và sự phình to của các nhánh if/else hoặc switch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-003
+    title: Các dấu hiệu nên tách chiến lược trong mã Java và trong yêu cầu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-004
+    title: Lợi ích về khả năng mở rộng, cô lập thay đổi và kiểm thử độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-005
+    title: Chi phí về số lượng kiểu, cấu hình và trách nhiệm chọn chiến lược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-006
+    title: Quan hệ với nguyên tắc Open/Closed, Dependency Inversion và Liskov Substitution
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-007
+    title: Điều kiện áp dụng và trường hợp một hàm hoặc nhánh điều kiện vẫn phù hợp hơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-008
+    title: Thuật ngữ Strategy, ConcreteStrategy, Context và Client trong cùng một ví dụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: structure-and-execution
+  title: Cấu trúc và luồng chạy
+  childs:
+  - slug: structure-and-execution-001
+    title: Vai trò của Strategy trong việc định nghĩa điểm thay thế thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-execution-002
+    title: Vai trò của ConcreteStrategy trong việc hiện thực từng biến thể hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-execution-003
+    title: Vai trò của Context trong việc ủy quyền xử lý và giữ luồng nghiệp vụ ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-execution-004
+    title: Vai trò của Client trong việc tạo đối tượng, cung cấp phụ thuộc và chọn chiến lược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-execution-005
+    title: Quan hệ composition và hướng phụ thuộc từ Context đến hợp đồng Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-execution-006
+    title: Luồng gọi từ Client qua Context đến chiến lược và trả kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-execution-007
+    title: Ranh giới giữa lựa chọn chiến lược và thực thi thuật toán đã chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-execution-008
+    title: Biểu diễn sơ đồ lớp và sơ đồ tuần tự cho một Context có nhiều chiến lược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: strategy-contract
+  title: Hợp đồng Strategy
+  childs:
+  - slug: strategy-contract-001
+    title: Xác định phần hành vi thực sự biến thiên trước khi thiết kế interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-contract-002
+    title: Đặt tên phương thức theo ý nghĩa nghiệp vụ và kết quả mà bên gọi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-contract-003
+    title: Thiết kế dữ liệu đầu vào và đầu ra chung cho các thuật toán thay thế nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-contract-004
+    title: Thống nhất tiền điều kiện, hậu điều kiện và các bất biến của hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-contract-005
+    title: Quy định cách xử lý null, dữ liệu rỗng và giá trị ngoài miền hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-contract-006
+    title: Thống nhất ngoại lệ, tác dụng phụ và tính xác định của từng chiến lược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-contract-007
+    title: Tránh interface quá rộng và phương thức chỉ có ý nghĩa với một triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-contract-008
+    title: Phát triển hợp đồng khi có biến thể mới mà vẫn kiểm soát ảnh hưởng đến bên gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interface-implementation
+  title: Hiện thực bằng interface
+  childs:
+  - slug: interface-implementation-001
+    title: Xây dựng interface ShippingStrategy và mô hình yêu cầu tính phí vận chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-implementation-002
+    title: Hiện thực các chiến lược giao tiêu chuẩn, giao nhanh và nhận tại cửa hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-implementation-003
+    title: Đóng gói công thức và điều kiện riêng trong từng lớp ConcreteStrategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-implementation-004
+    title: Cấp các phụ thuộc như bảng giá hoặc dịch vụ khoảng cách qua constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-implementation-005
+    title: Chia sẻ phép tính thuần bằng cộng tác viên thay vì ép các chiến lược kế thừa nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-implementation-006
+    title: Tổ chức package cho hợp đồng, triển khai, Context và mã lắp ráp đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-implementation-007
+    title: Chọn phạm vi truy cập để hạn chế phụ thuộc trực tiếp vào lớp triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-implementation-008
+    title: Chạy ví dụ Java hoàn chỉnh và thêm biến thể mới qua cùng một interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: context-design
+  title: Thiết kế Context
+  childs:
+  - slug: context-design-001
+    title: Giữ trách nhiệm nghiệp vụ của Context và ủy quyền đúng phần thuật toán biến thiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-002
+    title: Bắt buộc cung cấp Strategy qua constructor để bảo đảm Context luôn hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-003
+    title: Truyền Strategy theo từng lời gọi khi lựa chọn thay đổi theo yêu cầu xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-004
+    title: Cho phép đổi Strategy bằng setter và xác định rõ tác động của trạng thái thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-005
+    title: Đặt bước kiểm tra, chuẩn hóa và hoàn tất dùng chung quanh lời gọi Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-006
+    title: Truyền dữ liệu cần thiết thay vì đưa toàn bộ Context cho chiến lược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-007
+    title: Tránh instanceof, ép kiểu và nhánh điều kiện theo lớp cụ thể trong Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-008
+    title: Thiết kế API của Context để bên gọi không phụ thuộc chi tiết triển khai thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lambdas-and-method-references
+  title: Lambda và method reference
+  childs:
+  - slug: lambdas-and-method-references-001
+    title: Thiết kế functional interface cho chiến lược có một phương thức trừu tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambdas-and-method-references-002
+    title: Dùng lambda để biểu diễn chiến lược ngắn và không cần lớp riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambdas-and-method-references-003
+    title: Dùng method reference để tái sử dụng hàm nghiệp vụ có sẵn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambdas-and-method-references-004
+    title: Chọn Function, Predicate, Comparator hoặc interface nghiệp vụ phù hợp với hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambdas-and-method-references-005
+    title: Xử lý biến được capture, yêu cầu effectively final và trạng thái có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambdas-and-method-references-006
+    title: Biểu diễn ngoại lệ và kết quả thất bại khi dùng chiến lược dạng lambda
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambdas-and-method-references-007
+    title: Đặt tên và đăng ký lambda để vẫn truy vết được chiến lược đang thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambdas-and-method-references-008
+    title: Chuyển từ lambda sang lớp riêng khi logic, phụ thuộc hoặc yêu cầu kiểm thử tăng lên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: enum-strategies
+  title: Strategy bằng enum
+  childs:
+  - slug: enum-strategies-001
+    title: Biểu diễn tập chiến lược hữu hạn bằng các hằng enum có hành vi riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: enum-strategies-002
+    title: Hiện thực phương thức trừu tượng trên enum bằng thân lớp riêng của từng hằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: enum-strategies-003
+    title: Cho enum triển khai interface để Context tiếp tục phụ thuộc vào hợp đồng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: enum-strategies-004
+    title: Gắn mã định danh và thông tin mô tả cho từng chiến lược enum
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: enum-strategies-005
+    title: Ánh xạ dữ liệu đầu vào sang enum bằng mã ổn định và kiểm tra giá trị không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: enum-strategies-006
+    title: Tránh trạng thái theo yêu cầu và phụ thuộc có vòng đời ngắn trong hằng enum dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: enum-strategies-007
+    title: Nhận diện giới hạn mở rộng khi thêm chiến lược đòi hỏi sửa định nghĩa enum
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: enum-strategies-008
+    title: So sánh enum, lớp triển khai và lambda theo khả năng mở rộng và quản lý phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: generics-and-data-types
+  title: Generics và kiểu dữ liệu
+  childs:
+  - slug: generics-and-data-types-001
+    title: Thiết kế Strategy với tham số kiểu cho dữ liệu đầu vào và kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-types-002
+    title: Ràng buộc kiểu giữa Context và Strategy để phát hiện dùng sai ngay khi biên dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-types-003
+    title: Sử dụng giới hạn kiểu và wildcard khi API nhận hoặc trả về chiến lược tổng quát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-types-004
+    title: Đóng gói nhiều tham số nghiệp vụ trong đối tượng yêu cầu có ý nghĩa rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-types-005
+    title: Dùng đối tượng kết quả chung để tránh trả Object và ép kiểu tại bên gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-types-006
+    title: Xử lý biến thể cần dữ liệu bổ sung mà không làm hợp đồng chung trở nên tùy tiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-types-007
+    title: Thiết kế registry có kiểm soát kiểu và nhận diện giới hạn do type erasure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-types-008
+    title: Giữ các hợp đồng riêng khi hai thuật toán không có ngữ nghĩa thay thế tương đương
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-and-lifecycle
+  title: Trạng thái và vòng đời
+  childs:
+  - slug: state-and-lifecycle-001
+    title: Phân biệt chiến lược không trạng thái và chiến lược có trạng thái nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-lifecycle-002
+    title: Tách cấu hình bất biến khỏi dữ liệu thay đổi theo từng yêu cầu xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-lifecycle-003
+    title: Xác định khi nào có thể tái sử dụng một instance Strategy cho nhiều Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-lifecycle-004
+    title: Chọn vòng đời theo ứng dụng, theo phiên hoặc theo yêu cầu dựa trên trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-lifecycle-005
+    title: Tránh rò rỉ dữ liệu giữa các lần gọi khi chiến lược được dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-lifecycle-006
+    title: Quy định quyền sở hữu và trách nhiệm đóng tài nguyên mà chiến lược sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-lifecycle-007
+    title: Quản lý cache nội bộ với khóa, giới hạn dung lượng và cơ chế vô hiệu hóa phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-lifecycle-008
+    title: Ghi rõ yêu cầu reset hoặc tạo instance mới đối với chiến lược tích lũy trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: runtime-selection
+  title: Lựa chọn lúc chạy
+  childs:
+  - slug: runtime-selection-001
+    title: Chọn chiến lược từ tham số người dùng, loại yêu cầu hoặc ngữ cảnh nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-selection-002
+    title: Tách bộ chọn Strategy khỏi Context để thay đổi chính sách lựa chọn độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-selection-003
+    title: Ánh xạ mã chiến lược sang triển khai bằng Map thay cho chuỗi nhánh điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-selection-004
+    title: Chọn theo khả năng hỗ trợ dữ liệu và phân biệt supports với thực thi thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-selection-005
+    title: Quy định ưu tiên khi nhiều chiến lược phù hợp và tránh phụ thuộc thứ tự ngẫu nhiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-selection-006
+    title: Xử lý rõ trường hợp không có chiến lược phù hợp hoặc mã lựa chọn không được nhận diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-selection-007
+    title: Xác thực quyền sử dụng chiến lược và các ràng buộc nghiệp vụ trước khi thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-selection-008
+    title: Cố định chiến lược cho một lần xử lý để bảo đảm kết quả nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: registry-and-instantiation
+  title: Registry và khởi tạo
+  childs:
+  - slug: registry-and-instantiation-001
+    title: Thiết kế registry ánh xạ khóa ổn định sang các instance Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: registry-and-instantiation-002
+    title: Khởi tạo và đăng ký chiến lược tại điểm lắp ráp phụ thuộc của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: registry-and-instantiation-003
+    title: Phát hiện khóa trùng, chiến lược thiếu và cấu hình không hợp lệ ngay khi khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: registry-and-instantiation-004
+    title: Dùng factory khi chiến lược cần tạo mới theo dữ liệu hoặc vòng đời cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: registry-and-instantiation-005
+    title: Phân biệt trách nhiệm tạo Strategy của factory và trách nhiệm thực thi của Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: registry-and-instantiation-006
+    title: Giữ registry chỉ đọc sau khởi tạo khi không cần cập nhật động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: registry-and-instantiation-007
+    title: Dùng ServiceLoader cho trường hợp mở rộng triển khai qua cơ chế cung cấp dịch vụ Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: registry-and-instantiation-008
+    title: Kiểm soát đăng ký động và tránh biến registry thành điểm truy cập phụ thuộc toàn cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: configuration-and-integration
+  title: Cấu hình và tích hợp
+  childs:
+  - slug: configuration-and-integration-001
+    title: Chọn chiến lược từ cấu hình môi trường và kiểm tra tính hợp lệ khi nạp cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-integration-002
+    title: Tích hợp Strategy vào lớp dịch vụ mà vẫn giữ hợp đồng độc lập với framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-integration-003
+    title: Tiêm tập chiến lược qua dependency injection và dựng registry từ mã nghiệp vụ ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-integration-004
+    title: Lắp ráp các bean Strategy trong Spring khi ứng dụng sử dụng Spring
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-integration-005
+    title: Quy định chiến lược mặc định và tránh lựa chọn mơ hồ khi có nhiều triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-integration-006
+    title: Bảo đảm mỗi chiến lược được tiêm đúng phụ thuộc và vòng đời cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-integration-007
+    title: Áp dụng feature flag hoặc phân nhóm thử nghiệm với quy tắc lựa chọn có thể kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-integration-008
+    title: Thay cấu hình trong lúc chạy bằng ảnh chụp nhất quán và có đường quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: strategy-composition
+  title: Kết hợp chiến lược
+  childs:
+  - slug: strategy-composition-001
+    title: Ghép các chiến lược xử lý tuần tự khi đầu ra của bước trước là đầu vào bước sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-composition-002
+    title: Kết hợp Predicate hoặc Comparator bằng các phép kết hợp có ngữ nghĩa rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-composition-003
+    title: Bọc Strategy để bổ sung đo thời gian, ghi log hoặc cache mà giữ nguyên hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-composition-004
+    title: Tách các chiều biến thiên độc lập thành các Strategy riêng thay vì nhân số lớp kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-composition-005
+    title: Xây dựng chiến lược tổng hợp có quy tắc kết hợp kết quả và xử lý lỗi rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-composition-006
+    title: Xác định thứ tự áp dụng khi phép kết hợp các thuật toán không có tính giao hoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-composition-007
+    title: Phân biệt chọn một Strategy với chạy nhiều handler trong một chuỗi xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-composition-008
+    title: Giới hạn độ sâu kết hợp để hệ thống vẫn dễ theo dõi và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-and-fallbacks
+  title: Lỗi và dự phòng
+  childs:
+  - slug: errors-and-fallbacks-001
+    title: Phân loại lỗi đầu vào, lỗi nghiệp vụ và lỗi phụ thuộc bên ngoài trong Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-fallbacks-002
+    title: Quy định ngoại lệ chung và thông tin lỗi mà Context được phép xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-fallbacks-003
+    title: Chọn fail fast hoặc trả kết quả lỗi theo ngữ nghĩa của hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-fallbacks-004
+    title: Dùng chiến lược dự phòng khi được nghiệp vụ cho phép và giữ dấu vết lựa chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-fallbacks-005
+    title: Tránh mặc định im lặng khi chiến lược không được tìm thấy hoặc cấu hình bị sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-fallbacks-006
+    title: Đặt retry và giới hạn thời gian ở ranh giới phù hợp với phụ thuộc bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-fallbacks-007
+    title: Bảo vệ tính lũy đẳng khi retry hoặc chuyển chiến lược sau một lần xử lý thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-fallbacks-008
+    title: Xác định ranh giới giao dịch và xử lý tác dụng phụ đã xảy ra trước khi thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-and-async
+  title: Đồng thời và bất đồng bộ
+  childs:
+  - slug: concurrency-and-async-001
+    title: Đánh giá tính an toàn luồng của Strategy, dữ liệu dùng chung và các phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-002
+    title: Ưu tiên chiến lược bất biến và biến cục bộ khi phục vụ nhiều yêu cầu đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-003
+    title: Nhận diện race condition khi thay Strategy trên Context đang được dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-004
+    title: Công bố tham chiếu Strategy an toàn và dùng một ảnh chụp cho mỗi lần thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-005
+    title: Tránh khóa quá rộng quanh thuật toán có thời gian chạy dài hoặc thao tác I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-006
+    title: Thiết kế hợp đồng trả CompletionStage khi các biến thể đều xử lý bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-007
+    title: Thống nhất cách truyền lỗi, giới hạn thời gian và kỳ vọng hủy tác vụ bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-008
+    title: Truyền thông tin truy vết và ngữ cảnh yêu cầu khi thực thi trên luồng khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-observability
+  title: Hiệu năng và quan sát
+  childs:
+  - slug: performance-and-observability-001
+    title: Phân biệt chi phí chọn chiến lược, cấp phát đối tượng và chạy thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-002
+    title: Đo trên dữ liệu và điều kiện đại diện trước khi tối ưu cách hiện thực Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-003
+    title: Thiết kế phép đo hiệu năng Java có warmup và tránh kết luận từ phép đo thủ công đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-004
+    title: So sánh các chiến lược theo độ trễ, thông lượng và mức dùng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-005
+    title: Tái sử dụng chiến lược an toàn và kiểm soát chi phí tạo mới khi cần giữ trạng thái riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-006
+    title: Gắn mã chiến lược ổn định vào log, metric và trace của lần xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-007
+    title: Theo dõi tỷ lệ lựa chọn, lỗi và sử dụng dự phòng theo từng chiến lược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-008
+    title: Giữ nhãn metric có số lượng giá trị hữu hạn và hạn chế ghi dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refactoring-conditionals
+  title: Tái cấu trúc mã
+  childs:
+  - slug: refactoring-conditionals-001
+    title: Nhận diện cụm if/else hoặc switch đang chọn các thuật toán cùng mục đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-002
+    title: Ghi nhận hành vi hiện tại bằng kiểm thử trước khi tách các nhánh điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-003
+    title: Tách dữ liệu chung và xác định hợp đồng đủ nhỏ cho các biến thể hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-004
+    title: Trích từng nhánh sang Strategy và giữ nguyên kết quả quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-005
+    title: Đưa logic chung về Context và loại bỏ phần lặp giữa các triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-006
+    title: Chuyển lựa chọn sang bộ chọn hoặc registry và cập nhật nơi lắp ráp phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-007
+    title: Chuyển dần các điểm gọi và đối chiếu hành vi sau mỗi bước thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-008
+    title: Đánh giá lại thiết kế khi các nhánh khác nhau về quy trình thay vì thuật toán thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-comparisons
+  title: Phân biệt các mẫu
+  childs:
+  - slug: pattern-comparisons-001
+    title: 'Strategy và State: chọn thuật toán so với hành vi gắn với trạng thái và chuyển trạng thái'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-002
+    title: 'Strategy và Template Method: thay hành vi bằng composition so với khung xử lý qua kế thừa'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-003
+    title: 'Strategy và Command: thuật toán thay thế so với đối tượng biểu diễn yêu cầu thực thi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-004
+    title: 'Strategy và Factory Method: thực thi hành vi so với quyết định tạo đối tượng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-005
+    title: 'Strategy và Decorator: thay thuật toán so với bọc để bổ sung trách nhiệm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-006
+    title: 'Strategy và Chain of Responsibility: chọn một biến thể so với chuyển yêu cầu qua chuỗi handler'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-007
+    title: 'Strategy và Bridge: thay thuật toán so với tách hai hệ phân cấp biến thiên độc lập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-008
+    title: 'Strategy và đa hình đơn thuần: nhận diện ý định thiết kế thay vì chỉ nhìn cấu trúc interface'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: individual-strategy-testing
+  title: Kiểm thử từng chiến lược
+  childs:
+  - slug: individual-strategy-testing-001
+    title: Kiểm thử đơn vị từng ConcreteStrategy bằng đầu vào và kết quả nghiệp vụ rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: individual-strategy-testing-002
+    title: Dùng kiểm thử tham số hóa cho các trường hợp thông thường và các giá trị biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: individual-strategy-testing-003
+    title: Xây dựng bộ kiểm thử hợp đồng dùng chung cho mọi triển khai có thể thay thế nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: individual-strategy-testing-004
+    title: Kiểm tra null, dữ liệu rỗng, dữ liệu không hợp lệ và ngoại lệ đã cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: individual-strategy-testing-005
+    title: Kiểm tra bất biến, tính xác định và tác dụng phụ theo hợp đồng của thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: individual-strategy-testing-006
+    title: Dùng stub hoặc fake cho phụ thuộc bên ngoài để kiểm soát dữ liệu và tình huống lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: individual-strategy-testing-007
+    title: Kiểm thử lambda, method reference và enum qua cùng hợp đồng như chiến lược dạng lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: individual-strategy-testing-008
+    title: Xác minh các thuật toán tương đương trên cùng dữ liệu khi nghiệp vụ yêu cầu kết quả giống nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: context-and-selection-testing
+  title: Kiểm thử Context và lựa chọn
+  childs:
+  - slug: context-and-selection-testing-001
+    title: Dùng Strategy giả để kiểm tra Context chuyển đúng dữ liệu và trả đúng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-and-selection-testing-002
+    title: Xác minh các bước dùng chung trong Context xảy ra đúng thứ tự quanh lời gọi Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-and-selection-testing-003
+    title: Kiểm thử ánh xạ mã chiến lược, khóa không tồn tại và khóa đăng ký trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-and-selection-testing-004
+    title: Kiểm thử quy tắc ưu tiên khi nhiều chiến lược phù hợp với một yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-and-selection-testing-005
+    title: Kiểm tra thay Strategy giữa các lần gọi và giữ lựa chọn ổn định trong một lần gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-and-selection-testing-006
+    title: Kiểm thử lỗi, dự phòng và điều kiện retry mà không che giấu thất bại gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-and-selection-testing-007
+    title: Kiểm thử tích hợp cấu hình và dependency injection để phát hiện lắp ráp sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-and-selection-testing-008
+    title: Kiểm tra yêu cầu đồng thời và thêm biến thể mới mà không phải sửa Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: real-world-use-cases
+  title: Tình huống thực tế
+  childs:
+  - slug: real-world-use-cases-001
+    title: Tính phí vận chuyển theo hình thức giao hàng với đầu vào và đơn vị kết quả thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: real-world-use-cases-002
+    title: Áp dụng chính sách giảm giá theo nhóm khách hàng và quy tắc ưu tiên rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: real-world-use-cases-003
+    title: Chọn thuật toán sắp xếp hoặc Comparator theo mục đích hiển thị dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: real-world-use-cases-004
+    title: Xuất cùng mô hình dữ liệu sang các định dạng khác nhau bằng chiến lược xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: real-world-use-cases-005
+    title: Chọn thuật toán nén với hợp đồng về dữ liệu đầu ra và quyền sở hữu luồng I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: real-world-use-cases-006
+    title: Chọn cách định tuyến dựa trên mục tiêu thời gian, khoảng cách hoặc chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: real-world-use-cases-007
+    title: Chọn chiến lược phân bổ công việc theo tải và khả năng của tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: real-world-use-cases-008
+    title: So sánh các tình huống để nhận diện ranh giới thuật toán và phần thuộc về bộ chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-exercises
+  title: Bài thực hành Java
+  childs:
+  - slug: java-exercises-001
+    title: Xây dựng ứng dụng tính phí vận chuyển với interface, ba chiến lược và một Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-exercises-002
+    title: Chuyển một chiến lược đơn giản sang lambda và một hàm có sẵn sang method reference
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-exercises-003
+    title: Hiện thực lại tập chiến lược hữu hạn bằng enum và giải thích các đánh đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-exercises-004
+    title: Bổ sung registry để chọn chiến lược từ mã nhập vào mà không sửa Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-exercises-005
+    title: Thêm chiến lược cần phụ thuộc bên ngoài và truyền phụ thuộc qua constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-exercises-006
+    title: Tái cấu trúc phiên bản dùng switch sang Strategy với kiểm thử bảo toàn hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-exercises-007
+    title: Viết bộ kiểm thử hợp đồng, kiểm thử bộ chọn và các trường hợp lỗi biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-exercises-008
+    title: Hoàn thiện bài tổng hợp với cấu hình, lựa chọn lúc chạy và một biến thể bổ sung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-pitfalls
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Tạo Strategy cho mọi khác biệt nhỏ khiến mô hình phức tạp hơn nhu cầu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-002
+    title: Đưa toàn bộ logic lựa chọn trở lại Context bằng instanceof hoặc tên lớp triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-003
+    title: Thiết kế hợp đồng quá chung bằng Object, Map tùy ý hoặc quá nhiều cờ điều khiển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-004
+    title: Dùng cờ để phân nhánh nhiều thuật toán ngay bên trong một ConcreteStrategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-005
+    title: Cho các chiến lược có tiền điều kiện hoặc tác dụng phụ không tương thích dùng chung hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-006
+    title: Chia sẻ instance chứa dữ liệu theo yêu cầu gây nhiễu trạng thái giữa các bên gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-007
+    title: Phụ thuộc vào thứ tự đăng ký ngẫu nhiên hoặc tự động chọn mặc định khi cấu hình sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-008
+    title: Lạm dụng mock và chi tiết nội bộ khiến kiểm thử không phản ánh hành vi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-review-criteria
+  title: Tiêu chí thiết kế
+  childs:
+  - slug: design-review-criteria-001
+    title: Xác nhận mỗi Strategy đại diện một thuật toán có mục đích và hợp đồng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-criteria-002
+    title: Kiểm tra Context chỉ phụ thuộc hợp đồng và giữ trách nhiệm điều phối nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-criteria-003
+    title: Đánh giá việc thêm biến thể có giới hạn thay đổi tại triển khai và nơi đăng ký phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-criteria-004
+    title: Rà soát quy tắc lựa chọn, hành vi khi không tìm thấy và khả năng truy vết quyết định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-criteria-005
+    title: Rà soát tính thay thế, kiểu dữ liệu, ngoại lệ và các bất biến giữa các chiến lược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-criteria-006
+    title: Kiểm tra vòng đời, tính an toàn luồng và quyền sở hữu tài nguyên của mỗi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-criteria-007
+    title: Đánh giá độ bao phủ kiểm thử theo hợp đồng, từng biến thể và luồng tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-criteria-008
+    title: Giải thích được lựa chọn interface, lambda hoặc enum và thời điểm nên đơn giản hóa thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

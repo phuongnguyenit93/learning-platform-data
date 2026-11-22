@@ -1,0 +1,106 @@
+menu:
+- title: Bản đồ Spring Vault
+  slug: spring-vault-overview
+  index: 0
+- title: Nền tảng Vault
+  slug: vault-foundations
+  index: 1
+- title: Phân quyền truy cập
+  slug: access-control
+  index: 2
+- title: Phiên bản và phụ thuộc
+  slug: versions-and-dependencies
+  index: 3
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 4
+- title: Kiến trúc client
+  slug: client-architecture
+  index: 5
+- title: Cấu hình Java
+  slug: java-configuration
+  index: 6
+- title: HTTP và TLS
+  slug: http-and-tls
+  index: 7
+- title: VaultTemplate
+  slug: vault-template
+  index: 8
+- title: KV phiên bản 1
+  slug: kv-v1
+  index: 9
+- title: KV phiên bản 2
+  slug: kv-v2
+  index: 10
+- title: Ánh xạ dữ liệu
+  slug: data-mapping
+  index: 11
+- title: Nền tảng xác thực
+  slug: authentication-foundations
+  index: 12
+- title: Xác thực AppRole
+  slug: approle-authentication
+  index: 13
+- title: Kubernetes và JWT
+  slug: kubernetes-and-jwt
+  index: 14
+- title: Xác thực cloud
+  slug: cloud-authentication
+  index: 15
+- title: Chứng thư và tài khoản
+  slug: certificates-and-accounts
+  index: 16
+- title: Phiên và vòng đời token
+  slug: sessions-and-token-lifecycle
+  index: 17
+- title: Authentication Steps
+  slug: authentication-steps
+  index: 18
+- title: Vòng đời lease
+  slug: lease-lifecycle
+  index: 19
+- title: Xoay vòng trong ứng dụng
+  slug: application-rotation
+  index: 20
+- title: Nguồn cấu hình
+  slug: configuration-sources
+  index: 21
+- title: API reactive
+  slug: reactive-api
+  index: 22
+- title: Vault Repository
+  slug: vault-repository
+  index: 23
+- title: Mã hóa Transit
+  slug: transit-encryption
+  index: 24
+- title: Chứng thư PKI
+  slug: pki-certificates
+  index: 25
+- title: Cubbyhole và wrapping
+  slug: cubbyhole-and-wrapping
+  index: 26
+- title: Engine mở rộng
+  slug: extended-engines
+  index: 27
+- title: API hệ thống
+  slug: system-api
+  index: 28
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 29
+- title: Lỗi và khả năng phục hồi
+  slug: errors-and-resilience
+  index: 30
+- title: Quan sát và hiệu năng
+  slug: observability-and-performance
+  index: 31
+- title: Kiểm thử
+  slug: testing
+  index: 32
+- title: Nâng cấp và tương thích
+  slug: upgrade-and-compatibility
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

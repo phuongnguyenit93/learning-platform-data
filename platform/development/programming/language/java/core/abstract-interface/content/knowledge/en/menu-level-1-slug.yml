@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng kiểu
+  slug: type-foundations
+  index: 1
+- title: Lớp trừu tượng
+  slug: abstract-classes
+  index: 2
+- title: Phương thức abstract
+  slug: abstract-methods
+  index: 3
+- title: Khởi tạo đối tượng
+  slug: object-initialization
+  index: 4
+- title: Khai báo interface
+  slug: interface-declaration
+  index: 5
+- title: Thành viên interface
+  slug: interface-members
+  index: 6
+- title: Triển khai hợp đồng
+  slug: contract-implementation
+  index: 7
+- title: Ghi đè phương thức
+  slug: method-overriding
+  index: 8
+- title: Đa hình
+  slug: polymorphism
+  index: 9
+- title: Phương thức default
+  slug: default-methods
+  index: 10
+- title: Static và private
+  slug: static-and-private
+  index: 11
+- title: Đa kế thừa
+  slug: multiple-inheritance
+  index: 12
+- title: Interface và Object
+  slug: interface-and-object
+  index: 13
+- title: Interface hàm
+  slug: functional-interfaces
+  index: 14
+- title: Kiểu tổng quát
+  slug: generics
+  index: 15
+- title: Kiểu lồng
+  slug: nested-types
+  index: 16
+- title: Enum và record
+  slug: enums-and-records
+  index: 17
+- title: Phân cấp sealed
+  slug: sealed-hierarchies
+  index: 18
+- title: Khởi tạo kiểu
+  slug: type-initialization
+  index: 19
+- title: Lựa chọn trừu tượng
+  slug: abstraction-choices
+  index: 20
+- title: Mẫu thiết kế
+  slug: design-patterns
+  index: 21
+- title: API trong JDK
+  slug: jdk-apis
+  index: 22
+- title: Tiến hóa API
+  slug: api-evolution
+  index: 23
+- title: Kiểm thử và chẩn đoán
+  slug: testing-and-diagnostics
+  index: 24
+- title: Thực hành
+  slug: practice
+  index: 25
+- title: Tra cứu
+  slug: reference
+  index: 26

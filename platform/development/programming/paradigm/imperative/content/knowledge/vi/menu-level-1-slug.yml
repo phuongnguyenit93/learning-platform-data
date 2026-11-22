@@ -1,0 +1,73 @@
+menu:
+- title: Tư duy mệnh lệnh
+  slug: imperative-mental-model
+  index: 0
+- title: Trạng thái chương trình
+  slug: program-state
+  index: 1
+- title: Lệnh và phép gán
+  slug: statements-and-assignment
+  index: 2
+- title: Biểu thức và hiệu ứng
+  slug: expressions-and-effects
+  index: 3
+- title: Điều khiển có cấu trúc
+  slug: structured-control
+  index: 4
+- title: Rẽ nhánh
+  slug: conditionals
+  index: 5
+- title: Vòng lặp
+  slug: loops
+  index: 6
+- title: Hàm và thủ tục
+  slug: functions-and-procedures
+  index: 7
+- title: Phạm vi và thời gian sống
+  slug: scope-and-lifetimes
+  index: 8
+- title: Tham chiếu và biến đổi
+  slug: references-and-mutation
+  index: 9
+- title: Dữ liệu có cấu trúc
+  slug: structured-data
+  index: 10
+- title: Thiết kế thủ tục
+  slug: procedural-design
+  index: 11
+- title: Mẫu thuật toán
+  slug: algorithm-patterns
+  index: 12
+- title: Máy trạng thái
+  slug: state-machines
+  index: 13
+- title: Đầu vào và hiệu ứng ngoài
+  slug: inputs-and-side-effects
+  index: 14
+- title: Lỗi và tài nguyên
+  slug: errors-and-resources
+  index: 15
+- title: Lý luận tính đúng
+  slug: correctness-reasoning
+  index: 16
+- title: Ngữ nghĩa thực thi
+  slug: execution-semantics
+  index: 17
+- title: Đồng thời và trạng thái
+  slug: concurrency-and-state
+  index: 18
+- title: Kiểm thử và gỡ lỗi
+  slug: testing-and-debugging
+  index: 19
+- title: Chất lượng và tái cấu trúc
+  slug: code-quality-and-refactoring
+  index: 20
+- title: Hiệu năng và đánh đổi
+  slug: performance-tradeoffs
+  index: 21
+- title: Quan hệ các mô hình
+  slug: paradigm-comparisons
+  index: 22
+- title: Bài thực hành
+  slug: hands-on-labs
+  index: 23

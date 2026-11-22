@@ -1,0 +1,4672 @@
+menu:
+- slug: overview
+  title: Tổng quan PDF
+  childs:
+  - slug: overview-001
+    title: PDF là gì và bài toán giữ nguyên cách trình bày tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: PDF trong quy trình tạo, trao đổi và lưu trữ hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt PDF, tài liệu soạn thảo, HTML và ảnh chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt PDF sinh từ dữ liệu, PDF quét và PDF hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: PDF 1.7, PDF 2.0 và khả năng tương thích trình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Các thành phần: trang, đối tượng, font, nội dung và tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Mối liên hệ giữa hình thức hiển thị và cấu trúc ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Bản đồ thao tác: tạo mới, biến đổi, trích xuất và xác minh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Giới hạn chỉnh sửa, chuyển đổi và khôi phục bố cục PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình học từ tài liệu một trang đến quy trình xử lý hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-processing-workflow
+  title: Quy trình xử lý
+  childs:
+  - slug: document-processing-workflow-001
+    title: Xác định đầu vào, đầu ra và tiêu chí chất lượng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-002
+    title: Phân biệt tạo PDF theo tọa độ và theo luồng bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-003
+    title: Chọn cách tạo bằng Java, mẫu HTML hoặc XSL-FO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-004
+    title: Chọn cách xử lý PDF có sẵn hoặc dựng lại từ nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-005
+    title: Thứ tự tạo nội dung, điền biểu mẫu, đóng dấu và ký số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-006
+    title: Xác định yêu cầu hiển thị, tìm kiếm, in và lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-007
+    title: Các họ chuẩn PDF/A, PDF/UA, PDF/X và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-008
+    title: Thiết kế bộ tài liệu mẫu cho dữ liệu bình thường và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-processing-workflow-009
+    title: Xác định bằng chứng kiểm tra trước khi bàn giao PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-pdf-libraries
+  title: Công cụ Java
+  childs:
+  - slug: java-pdf-libraries-001
+    title: Vai trò của Apache PDFBox trong đọc và thao tác PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-002
+    title: Vai trò của iText trong tạo bố cục và xử lý tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-003
+    title: Vai trò của OpenPDF và các thành phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-004
+    title: Vai trò của OpenHTMLtoPDF và bộ chuyển đổi HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-005
+    title: Vai trò của Apache FOP trong quy trình XML và XSL-FO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-006
+    title: Phân biệt thư viện PDF, bộ kết xuất, OCR và trình xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-007
+    title: Đánh giá tính năng theo phiên bản Java và thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-008
+    title: Kiểm tra giấy phép thư viện, font và thành phần bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-009
+    title: Quản lý dependency và tránh trộn API giữa các thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-pdf-libraries-010
+    title: Đọc tài liệu API, ví dụ chính thức và hướng dẫn nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdfbox-setup
+  title: Khởi tạo PDFBox
+  childs:
+  - slug: pdfbox-setup-001
+    title: Thiết lập dự án Java và dependency Apache PDFBox 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-002
+    title: Tạo PDDocument và bổ sung PDPage đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-003
+    title: Ghi nội dung cơ bản bằng PDPageContentStream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-004
+    title: Lưu PDF ra Path, File và OutputStream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-005
+    title: Mở tài liệu có sẵn bằng Loader trong PDFBox 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-006
+    title: Lựa chọn nguồn đọc và bộ nhớ đệm cho tệp lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-007
+    title: Quản lý tài nguyên bằng try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-008
+    title: Quyền sở hữu và thời điểm đóng luồng đầu vào, đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-009
+    title: Tách đường dẫn nguồn và đích khi lưu tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfbox-setup-010
+    title: Thực hành tạo, mở lại và xác minh PDF đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdf-structure
+  title: Cấu trúc PDF
+  childs:
+  - slug: pdf-structure-001
+    title: Header, body, cross-reference và trailer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-002
+    title: Đối tượng trực tiếp và tham chiếu gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-003
+    title: 'Các kiểu dữ liệu COS: số, chuỗi, mảng và dictionary'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-004
+    title: Luồng dữ liệu, bộ lọc và cơ chế giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-005
+    title: Document Catalog và cây trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-006
+    title: Page Resources và phạm vi tái sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-007
+    title: Content Stream và các toán tử vẽ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-008
+    title: Cross-reference table, cross-reference stream và object stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-009
+    title: Lưu toàn phần và cập nhật tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-010
+    title: Các lần sửa đổi và dữ liệu còn lại trong lịch sử tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-structure-011
+    title: Duyệt cấu trúc bằng COS API và PDFDebugger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pages-and-coordinates
+  title: Trang và tọa độ
+  childs:
+  - slug: pages-and-coordinates-001
+    title: Đơn vị point và quy đổi từ milimét, inch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-002
+    title: Kích thước A4, Letter và trang tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-003
+    title: MediaBox, CropBox, BleedBox, TrimBox và ArtBox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-004
+    title: Gốc tọa độ, hướng trục và tọa độ hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-005
+    title: Chuyển từ tọa độ góc trên trái sang hệ tọa độ PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-006
+    title: Xoay trang và tác động đến vị trí nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-007
+    title: 'Ma trận biến đổi: tịnh tiến, co giãn và xoay'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-008
+    title: Lưu và khôi phục trạng thái đồ họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-009
+    title: Lề trang, vùng nội dung và vùng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-010
+    title: Tài liệu có nhiều kích thước và hướng trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pages-and-coordinates-011
+    title: Chuyển tọa độ giữa trang PDF, ảnh kết xuất và giao diện chọn vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fonts-and-unicode
+  title: Font và Unicode
+  childs:
+  - slug: fonts-and-unicode-001
+    title: Mối liên hệ giữa Unicode, mã ký tự và glyph
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-002
+    title: Font chuẩn, TrueType, OpenType và khả năng hỗ trợ của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-003
+    title: Nạp font từ classpath, tệp và tài nguyên đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-004
+    title: Nhúng font toàn bộ và nhúng tập con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-005
+    title: Font Type 0, CIDFont và vai trò của ToUnicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-006
+    title: Hiển thị tiếng Việt và kiểm tra đầy đủ dấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-007
+    title: Chuẩn hóa Unicode với văn bản tổ hợp và dựng sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-008
+    title: Phát hiện ký tự thiếu và lựa chọn font thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-009
+    title: Chữ đậm, nghiêng và các biến thể font
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-010
+    title: Đo độ rộng chữ, đường cơ sở và chiều cao dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-011
+    title: Chữ viết phức tạp, chữ ghép và văn bản từ phải sang trái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fonts-and-unicode-012
+    title: Kiểm tra tính nhất quán của font giữa máy phát triển và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-handling
+  title: Văn bản
+  childs:
+  - slug: text-handling-001
+    title: Khối văn bản và vòng đời beginText, endText
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-002
+    title: Đặt font, cỡ chữ, màu chữ và vị trí bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-003
+    title: Dịch con trỏ văn bản và xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-004
+    title: Khoảng cách ký tự, khoảng cách từ và giãn dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-005
+    title: Căn trái, căn phải, căn giữa và căn đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-006
+    title: Ngắt dòng theo độ rộng thực tế của font
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-007
+    title: Xử lý từ dài, đường dẫn và chuỗi không có khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-008
+    title: Phối hợp nhiều kiểu chữ trong cùng một dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-009
+    title: Vẽ chữ xoay, chữ dọc và văn bản theo ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-010
+    title: Các chế độ vẽ chữ và văn bản không hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-handling-011
+    title: Thực hành trình bày đoạn văn tiếng Việt nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: page-layout
+  title: Bố cục
+  childs:
+  - slug: page-layout-001
+    title: Phân biệt mô hình nội dung và mô hình bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-002
+    title: Đo phần tử trước khi đặt lên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-003
+    title: Phân trang tự động theo chiều cao còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-004
+    title: Khoảng cách đoạn, thụt đầu dòng và danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-005
+    title: Tiêu đề, cấp heading và hệ thống kiểu trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-006
+    title: Giữ tiêu đề cùng đoạn kế tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-007
+    title: Xử lý dòng lẻ đầu trang và cuối trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-008
+    title: Bố cục nhiều cột và vùng nội dung cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-009
+    title: Đầu trang, chân trang và nền trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-010
+    title: Số trang hiện tại, tổng số trang và cách xử lý hai lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-011
+    title: Chú thích cuối trang và tham chiếu chéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-layout-012
+    title: Thực hành tài liệu nhiều trang với nội dung dài biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-tables
+  title: Bảng dữ liệu
+  childs:
+  - slug: data-tables-001
+    title: Mô hình bảng, cột, hàng và ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-002
+    title: Tính chiều rộng cột theo nội dung và khổ trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-003
+    title: Đo chiều cao ô khi văn bản xuống nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-004
+    title: Căn lề nội dung và khoảng đệm trong ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-005
+    title: Đường viền, màu nền và định dạng xen kẽ hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-006
+    title: Gộp ô theo hàng và theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-007
+    title: Lặp tiêu đề bảng khi chuyển trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-008
+    title: Giữ hàng nguyên vẹn hoặc chia hàng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-009
+    title: Xử lý một ô cao hơn toàn bộ vùng nội dung trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-010
+    title: Dòng tổng cộng, nhóm dữ liệu và tiêu đề nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-011
+    title: Định dạng số, tiền tệ và ngày tháng trong bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-tables-012
+    title: Thực hành bảng dài có dữ liệu rỗng và chuỗi quá dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: images
+  title: Hình ảnh
+  childs:
+  - slug: images-001
+    title: Phân biệt ảnh raster, ảnh vector và ảnh nhúng trong PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-002
+    title: Nạp PNG, JPEG và định dạng ảnh được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-003
+    title: Nhúng ảnh bằng PDImageXObject
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-004
+    title: Tính kích thước hiển thị theo pixel và DPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-005
+    title: Co ảnh vừa khung và giữ tỷ lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-006
+    title: Cắt ảnh theo vùng và xử lý lề thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-007
+    title: Ảnh trong suốt, mặt nạ và nền ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-008
+    title: Chọn nén không mất dữ liệu hoặc có mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-009
+    title: Đọc hướng ảnh và xử lý sai lệch màu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-010
+    title: Tái sử dụng ảnh chung để hạn chế tăng dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-011
+    title: Tạo PDF từ nhiều ảnh và TIFF nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-012
+    title: Kiểm tra độ sắc nét của ảnh khi xem và in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vector-graphics
+  title: Đồ họa
+  childs:
+  - slug: vector-graphics-001
+    title: Đường thẳng, hình chữ nhật và đường cong Bézier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-002
+    title: Màu tô, màu nét, độ dày và kiểu nét đứt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-003
+    title: Đường dẫn, quy tắc tô và vùng cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-004
+    title: Không gian màu xám, RGB, CMYK và ICC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-005
+    title: Độ trong suốt và chế độ hòa trộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-006
+    title: Form XObject và khối đồ họa dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-007
+    title: Lớp nội dung tùy chọn và trạng thái hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-008
+    title: Đưa SVG vào PDF và kiểm tra giới hạn chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-009
+    title: Chèn biểu đồ Java dưới dạng vector hoặc ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-010
+    title: Tạo và bố trí mã vạch, mã QR có thể quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-graphics-011
+    title: Thực hành phối hợp hình, chữ và biểu đồ trên một trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: navigation
+  title: Điều hướng
+  childs:
+  - slug: navigation-001
+    title: Tạo bookmark và cây mục lục điều hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-002
+    title: Đích đến theo trang và đích đến có tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-003
+    title: Liên kết nội bộ giữa các phần tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-004
+    title: Liên kết URL và vùng bấm trên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-005
+    title: Mục lục có số trang và liên kết tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-006
+    title: Nhãn trang và sự khác biệt với số thứ tự vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-007
+    title: Chế độ mở tài liệu và thiết lập trình xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-008
+    title: Đồng bộ bookmark và liên kết sau khi thay đổi trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-009
+    title: Thực hành tài liệu có bìa, mục lục và phụ lục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: itext-pdf-generation
+  title: Tạo PDF với iText
+  childs:
+  - slug: itext-pdf-generation-001
+    title: Các thành phần kernel, layout và mô hình đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-002
+    title: PdfWriter, PdfDocument và Document trong vòng đời tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-003
+    title: Tạo đoạn văn, danh sách và các phần tử bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-004
+    title: Tạo bảng với độ rộng cột và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-005
+    title: Quản lý font, ảnh và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-006
+    title: Canvas, renderer và phần mở rộng bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-007
+    title: Sự kiện trang cho đầu trang, chân trang và số trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-008
+    title: Đọc, sửa và lưu PDF có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-009
+    title: Phân biệt chức năng lõi và các thành phần bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: itext-pdf-generation-010
+    title: Thực hành cùng một tài liệu bằng PDFBox và iText
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: openpdf-pdf-generation
+  title: Tạo PDF với OpenPDF
+  childs:
+  - slug: openpdf-pdf-generation-001
+    title: Chọn phiên bản OpenPDF phù hợp với Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-002
+    title: Nhận diện thay đổi package và API giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-003
+    title: Vòng đời tài liệu, writer và luồng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-004
+    title: Tạo văn bản, danh sách, bảng và hình ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-005
+    title: Cấu hình font nhúng và nội dung tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-006
+    title: Sự kiện trang và các thành phần trang dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-007
+    title: Đọc, ghép và đóng dấu PDF có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-008
+    title: Vai trò riêng của openpdf-html và openpdf-renderer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-009
+    title: Kiểm tra khác biệt khi chuyển từ mã iText cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openpdf-pdf-generation-010
+    title: Thực hành tạo biểu mẫu tài liệu bằng OpenPDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: html-to-pdf
+  title: HTML sang PDF
+  childs:
+  - slug: html-to-pdf-001
+    title: Quy trình dữ liệu, HTML, CSS và PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-002
+    title: Chọn bộ chuyển đổi theo tập tính năng HTML và CSS cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-003
+    title: Tạo HTML từ Thymeleaf hoặc FreeMarker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-004
+    title: Chuẩn hóa HTML, XHTML và mã hóa ký tự đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-005
+    title: Cấu hình base URI và bộ phân giải tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-006
+    title: Nhúng font, CSS và ảnh từ nguồn được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-007
+    title: 'CSS cho trang in: khổ giấy, lề và ngắt trang'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-008
+    title: Đầu trang, chân trang và bộ đếm số trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-009
+    title: Bảng nhiều trang và quy tắc giữ phần tử cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-010
+    title: Giới hạn JavaScript, Flexbox và Grid theo bộ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-011
+    title: Phân biệt bộ chuyển đổi Java và trình duyệt chạy nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-012
+    title: Chờ font, ảnh và nội dung động trước khi in bằng trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-to-pdf-013
+    title: Thực hành đối chiếu HTML trên trình duyệt với PDF xuất ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: markdown-to-pdf
+  title: Markdown sang PDF
+  childs:
+  - slug: markdown-to-pdf-001
+    title: Quy trình Markdown, cây cú pháp, HTML và PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-002
+    title: Chọn bộ phân tích Markdown và quy ước cú pháp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-003
+    title: Ánh xạ heading, đoạn văn, danh sách và trích dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-004
+    title: Trình bày khối mã, mã nội dòng và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-005
+    title: Chuyển bảng Markdown và xử lý cột rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-006
+    title: Phân giải ảnh, đường dẫn tương đối và tài nguyên cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-007
+    title: Tạo mục lục và chuyển anchor thành liên kết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-008
+    title: Làm sạch HTML nhúng và kiểm soát URL trong Markdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-009
+    title: Thiết lập giao diện in cho tài liệu kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-to-pdf-010
+    title: Kiểm tra ngắt trang và bố cục với tài liệu Markdown dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-to-pdf
+  title: XML sang PDF
+  childs:
+  - slug: xml-to-pdf-001
+    title: Vai trò của XML, XSLT, XSL-FO và Apache FOP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-002
+    title: Thiết lập FopFactory và cấu hình mỗi lần kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-003
+    title: Biến đổi XML thành XSL-FO bằng JAXP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-004
+    title: Truyền dữ liệu qua SAX để giảm tài liệu trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-005
+    title: Page master, vùng trang và luồng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-006
+    title: Bảng, font, ảnh và SVG trong XSL-FO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-007
+    title: Thu thập sự kiện cảnh báo và lỗi bố cục FOP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-008
+    title: Kiểm soát URI và tài nguyên ngoài trong quy trình XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-to-pdf-009
+    title: Thực hành xuất hồ sơ nhiều trang từ dữ liệu XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-templates
+  title: Mẫu tài liệu
+  childs:
+  - slug: document-templates-001
+    title: Phân biệt mẫu bố cục, mẫu PDF và biểu mẫu tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-002
+    title: Tách dữ liệu nghiệp vụ khỏi cấu trúc trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-003
+    title: Thiết kế dữ liệu đầu vào bằng DTO bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-004
+    title: Kiểm tra trường bắt buộc và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-005
+    title: Định dạng theo ngôn ngữ, múi giờ và đơn vị tiền tệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-006
+    title: Bố cục điều kiện và phần nội dung lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-007
+    title: Quản lý phiên bản mẫu, font và tài nguyên đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-008
+    title: Định nghĩa phần dùng chung cho nhận diện tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-009
+    title: Kiểm thử mẫu với dữ liệu trống, dài và đa ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-templates-010
+    title: Tái tạo tài liệu từ phiên bản mẫu và dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: merge-and-split
+  title: Ghép và tách
+  childs:
+  - slug: merge-and-split-001
+    title: Ghép nhiều PDF theo thứ tự đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-002
+    title: Tách từng trang và tách theo khoảng trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-003
+    title: Chọn trang theo chỉ mục, nhãn trang hoặc bookmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-004
+    title: Chèn, xóa, sao chép và sắp xếp lại trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-005
+    title: Xử lý trang có kích thước và góc xoay khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-006
+    title: Quản lý tài nguyên khi nhập trang từ tài liệu khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-007
+    title: Bảo toàn hoặc xây dựng lại bookmark và liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-008
+    title: Xử lý trùng tên trường biểu mẫu khi ghép tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-009
+    title: Đánh giá ảnh hưởng đến tagging, PDF/A và chữ ký số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-and-split-010
+    title: Thực hành ghép bộ hồ sơ và tách theo mục lục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: editing-and-stamping
+  title: Sửa và đóng dấu
+  childs:
+  - slug: editing-and-stamping-001
+    title: Giới hạn thay chữ trực tiếp trong content stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-002
+    title: Phân biệt chỉnh sửa nội dung gốc và vẽ thêm nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-003
+    title: Thêm nội dung phía trước hoặc phía sau nội dung hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-004
+    title: Đóng dấu văn bản và ảnh trên nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-005
+    title: Watermark chéo, độ trong suốt và vị trí theo khổ trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-006
+    title: Đánh số hồ sơ liên tục bằng Bates numbering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-007
+    title: Thêm ngày xuất, số phiên bản và mã tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-008
+    title: Xử lý trang xoay và CropBox khi đóng dấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-009
+    title: Lựa chọn lưu toàn phần hoặc tăng dần theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: editing-and-stamping-010
+    title: Thực hành đóng dấu có kiểm tra dữ liệu gốc được giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-extraction
+  title: Trích xuất văn bản
+  childs:
+  - slug: text-extraction-001
+    title: Cơ chế trích xuất chữ và giới hạn suy luận ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-002
+    title: Đọc toàn bộ văn bản bằng PDFTextStripper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-003
+    title: Giới hạn phạm vi trang cần trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-004
+    title: Thứ tự lưu trữ và thứ tự đọc trên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-005
+    title: Theo dõi vị trí chữ bằng TextPosition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-006
+    title: Trích xuất chữ trong vùng chữ nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-007
+    title: Xử lý tài liệu nhiều cột, đầu trang và chân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-008
+    title: Khôi phục khoảng trắng, dòng và đoạn văn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-009
+    title: Thiếu ToUnicode, font mã hóa riêng và chữ sai dấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-010
+    title: Phân biệt trang không có chữ với lỗi trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-011
+    title: Phát hiện văn bản trùng và lớp chữ OCR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-extraction-012
+    title: Thực hành đối chiếu nội dung trích xuất với trang kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-extraction
+  title: Trích xuất dữ liệu
+  childs:
+  - slug: data-extraction-001
+    title: Phân biệt trích xuất văn bản và nhận diện trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-002
+    title: Tìm nhãn và giá trị theo vị trí trên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-003
+    title: Nhận diện bảng có đường kẻ và bảng không đường kẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-004
+    title: Suy luận hàng, cột và ô gộp từ tọa độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-005
+    title: Xử lý bảng kéo dài qua nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-006
+    title: Trích xuất ảnh XObject và ảnh vẽ trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-007
+    title: Đọc thông tin font, kích thước trang và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-008
+    title: Xuất dữ liệu sang JSON, CSV hoặc mô hình Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-009
+    title: Lưu bằng chứng trang, vùng và nguồn của dữ liệu trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-extraction-010
+    title: Đánh giá độ chính xác và xử lý trường không chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rendering-and-printing
+  title: Kết xuất và in
+  childs:
+  - slug: rendering-and-printing-001
+    title: Kết xuất trang bằng PDFRenderer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-002
+    title: Chọn DPI, hệ màu và kích thước ảnh đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-003
+    title: Tạo ảnh xem trước và ảnh thu nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-004
+    title: Kết xuất một trang hoặc một khoảng trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-005
+    title: Xử lý CropBox, xoay trang và nền trong suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-006
+    title: Khử răng cưa và lựa chọn chất lượng kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-007
+    title: Khác biệt hiển thị giữa các trình xem PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-008
+    title: Dự toán bộ nhớ theo kích thước ảnh và số trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-009
+    title: In bằng Java Print Service và PDFPrintable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-010
+    title: Tỷ lệ in, căn trang, khổ giấy và vùng không in được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rendering-and-printing-011
+    title: Kiểm tra font và màu trên ảnh kết xuất trước khi in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ocr
+  title: OCR
+  childs:
+  - slug: ocr-001
+    title: Khi nào cần nhận dạng ký tự quang học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-002
+    title: Phát hiện trang quét trong tài liệu PDF hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-003
+    title: Chuyển trang PDF thành ảnh trước khi nhận dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-004
+    title: Tích hợp Tesseract qua Tess4J hoặc tiến trình riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-005
+    title: Cài đặt dữ liệu ngôn ngữ tiếng Việt và tiếng Anh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-006
+    title: Lựa chọn DPI, khử nhiễu và tăng tương phản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-007
+    title: Chỉnh nghiêng, nhận diện hướng và phân vùng trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-008
+    title: Chọn chế độ phân đoạn phù hợp với bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-009
+    title: Đọc văn bản, hộp giới hạn và độ tin cậy nhận dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-010
+    title: Tạo PDF tìm kiếm được bằng lớp chữ khớp ảnh gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-011
+    title: Tránh nhận dạng lặp và tạo nhiều lớp chữ chồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-012
+    title: Đánh giá lỗi ký tự, lỗi từ và dữ liệu nghiệp vụ sau OCR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocr-013
+    title: Thực hành xử lý bộ hồ sơ quét nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: forms
+  title: Biểu mẫu
+  childs:
+  - slug: forms-001
+    title: AcroForm, trường dữ liệu và widget annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-002
+    title: Phân biệt AcroForm và XFA theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-003
+    title: Liệt kê cây trường và tên trường đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-004
+    title: Đọc, điền và kiểm tra trường văn bản tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-005
+    title: Checkbox, radio button, danh sách chọn và nút bấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-006
+    title: Trường nhiều dòng, giới hạn độ dài và định dạng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-007
+    title: Font mặc định, tài nguyên và appearance stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-008
+    title: NeedAppearances và sự khác biệt giữa các trình xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-009
+    title: Cờ bắt buộc, chỉ đọc, ẩn và thứ tự chuyển trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-010
+    title: Nhập, xuất dữ liệu biểu mẫu bằng FDF hoặc XFDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-011
+    title: Làm phẳng biểu mẫu và hệ quả mất khả năng nhập liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-012
+    title: Phân biệt trường chữ ký với thao tác ký số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forms-013
+    title: Thực hành điền hàng loạt biểu mẫu và mở lại để xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotations
+  title: Chú thích
+  childs:
+  - slug: annotations-001
+    title: Phân biệt annotation, nội dung trang và trường biểu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-002
+    title: Tạo ghi chú văn bản và hộp chú giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-003
+    title: Tô sáng, gạch chân và gạch bỏ đoạn chữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-004
+    title: Tọa độ QuadPoints và chú thích trên trang xoay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-005
+    title: Chú thích hình học, mực viết và dấu đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-006
+    title: Appearance stream và cờ hiển thị, in của chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-007
+    title: Đọc tác giả, thời gian và chuỗi phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-008
+    title: Nhập, xuất chú thích bằng XFDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-009
+    title: Ẩn, xóa và làm phẳng chú thích theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-010
+    title: Kiểm tra chú thích sau khi ghép, cắt hoặc xoay trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata-and-attachments
+  title: Metadata và tệp đính kèm
+  childs:
+  - slug: metadata-and-attachments-001
+    title: Thông tin tài liệu trong Document Information Dictionary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-002
+    title: Metadata XMP và mối liên hệ với thông tin truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-003
+    title: Đọc, ghi và đồng bộ tiêu đề, tác giả, chủ đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-004
+    title: Thời điểm tạo, sửa và cách biểu diễn múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-005
+    title: Ngôn ngữ tài liệu và các thuộc tính tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-006
+    title: Định danh tài liệu và dấu vết nguồn tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-007
+    title: Nhúng tệp, MIME type và tên hiển thị Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-008
+    title: Associated Files và quan hệ với tài liệu hoặc đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-009
+    title: Trích xuất tệp đính kèm vào vùng lưu trữ kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-010
+    title: Xử lý dung lượng, tên tệp và tệp đính kèm không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-attachments-011
+    title: Thực hành kiểm kê metadata và tài nguyên đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdf-encryption
+  title: Mã hóa PDF
+  childs:
+  - slug: pdf-encryption-001
+    title: Mục đích của mật khẩu mở tệp và mật khẩu chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-002
+    title: Phân biệt mã hóa, quyền thao tác và chữ ký số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-003
+    title: Cơ chế Security Handler và thuật toán theo phiên bản PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-004
+    title: Thiết lập mã hóa bằng API thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-005
+    title: Mở tài liệu có mật khẩu và xử lý mật khẩu sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-006
+    title: Quyền in, sao chép, chú thích và thay đổi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-007
+    title: Giới hạn thực thi quyền giữa các phần mềm đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-008
+    title: Quản lý bí mật và tránh đưa mật khẩu vào log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-009
+    title: Giải mã hoặc thay đổi bảo vệ khi có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdf-encryption-010
+    title: Tác động của mã hóa đến lưu trữ, truy cập và xử lý tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: digital-signatures
+  title: Chữ ký số
+  childs:
+  - slug: digital-signatures-001
+    title: Phân biệt ảnh chữ ký, chữ ký điện tử và chữ ký số PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-002
+    title: Hàm băm, chứng thư số và khóa ký trong quy trình PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-003
+    title: Trường chữ ký, ByteRange và vùng chứa chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-004
+    title: Chữ ký CMS và các hồ sơ PAdES
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-005
+    title: Nạp khóa và chứng thư từ PKCS#12
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-006
+    title: Ký bằng Bouncy Castle và API PDF của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-007
+    title: Ký bên ngoài với HSM, PKCS#11 hoặc dịch vụ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-008
+    title: Dự trù kích thước chữ ký trước khi hoàn tất tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-009
+    title: Tạo phần hiển thị chữ ký mà không nhầm với bằng chứng mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-010
+    title: Ký phê duyệt và ký chứng nhận tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-011
+    title: DocMDP, FieldMDP và phạm vi thay đổi được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-012
+    title: Ký nhiều lần bằng cập nhật tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-013
+    title: Dấu thời gian tin cậy và thời gian tự khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signatures-014
+    title: Thực hành ký tài liệu sau khi hoàn tất nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signature-verification
+  title: Xác minh chữ ký
+  childs:
+  - slug: signature-verification-001
+    title: Kiểm tra tính toàn vẹn của vùng dữ liệu đã ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-002
+    title: Phân tích lần sửa đổi tương ứng với từng chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-003
+    title: Phát hiện thay đổi sau ký và phân loại thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-004
+    title: Kiểm tra chuỗi chứng thư theo nguồn tin cậy cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-005
+    title: Phân biệt chữ ký hợp lệ về mật mã và danh tính được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-006
+    title: Kiểm tra hiệu lực chứng thư tại thời điểm xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-007
+    title: Kiểm tra thu hồi bằng OCSP và CRL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-008
+    title: Xác minh dấu thời gian và chứng thư của dịch vụ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-009
+    title: Dữ liệu xác minh dài hạn, DSS và hồ sơ PAdES LT, LTA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-010
+    title: Xử lý kết quả không xác định khi thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-011
+    title: Đối chiếu kết quả giữa thư viện và trình xem độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-verification-012
+    title: Thực hành phát hiện PDF bị sửa sau ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-redaction
+  title: Che xóa dữ liệu
+  childs:
+  - slug: data-redaction-001
+    title: Phân biệt vẽ che, chú thích redaction và xóa dữ liệu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-002
+    title: Xác định dữ liệu nhạy cảm trong chữ, ảnh và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-003
+    title: Tìm vùng cần xóa bằng tọa độ và kết quả trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-004
+    title: Xóa hoặc dựng lại content stream bằng công cụ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-005
+    title: Xử lý chữ trong Form XObject và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-006
+    title: Xóa dữ liệu nhạy cảm trong ảnh và lớp chữ OCR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-007
+    title: Làm sạch trường biểu mẫu, chú thích và tệp đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-008
+    title: Loại bỏ dữ liệu cũ còn lại trong các lần cập nhật tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-009
+    title: Đánh giá phương án kết xuất thành ảnh và các thông tin bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-010
+    title: Kiểm chứng bằng trích xuất, kiểm tra đối tượng và xem ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-redaction-011
+    title: Thực hành tạo bản công khai từ hồ sơ có dữ liệu riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accessibility
+  title: Khả năng truy cập
+  childs:
+  - slug: accessibility-001
+    title: Mục đích của Tagged PDF và PDF/UA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-002
+    title: Cấu trúc logic và thứ tự đọc so với vị trí hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-003
+    title: Structure Tree, marked content và MCID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-004
+    title: Phân cấp heading, đoạn văn và danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-005
+    title: Gắn thẻ bảng với ô tiêu đề và quan hệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-006
+    title: Văn bản thay thế cho ảnh, biểu đồ và công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-007
+    title: Ngôn ngữ tài liệu và ngôn ngữ từng đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-008
+    title: ActualText, Unicode và nội dung cần đọc thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-009
+    title: Đánh dấu nội dung trang trí bằng artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-010
+    title: Liên kết và biểu mẫu có tên mô tả, thứ tự bàn phím
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-011
+    title: Bảo toàn cấu trúc truy cập khi biến đổi PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-012
+    title: Kiểm tra tự động và kiểm tra thủ công bằng công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-013
+    title: Thực hành đọc tài liệu bằng trình đọc màn hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdfa-archival
+  title: Lưu trữ PDF/A
+  childs:
+  - slug: pdfa-archival-001
+    title: Mục tiêu lưu trữ dài hạn và giới hạn của PDF/A
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-002
+    title: Các họ PDF/A-1, PDF/A-2, PDF/A-3 và PDF/A-4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-003
+    title: Chọn hồ sơ phù hợp với nội dung và hệ thống tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-004
+    title: Yêu cầu font nhúng và khả năng tái hiện tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-005
+    title: ICC Output Intent và quản lý màu cho hồ sơ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-006
+    title: XMP và khai báo mức tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-007
+    title: Giới hạn mã hóa, nội dung động và tài nguyên phụ thuộc ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-008
+    title: Tệp đính kèm và quan hệ tài liệu theo hồ sơ PDF/A
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-009
+    title: Phân biệt khai báo PDF/A và kết quả xác minh đạt chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-010
+    title: Xác minh bằng veraPDF và phân tích quy tắc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-011
+    title: Kiểm tra lại sau khi ghép, đóng dấu hoặc ký số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfa-archival-012
+    title: Thực hành tạo hồ sơ PDF/A kèm báo cáo kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdfx-print-production
+  title: In ấn PDF/X
+  childs:
+  - slug: pdfx-print-production-001
+    title: Mục đích PDF/X trong trao đổi tệp in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfx-print-production-002
+    title: Chọn hồ sơ PDF/X theo yêu cầu đơn vị in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfx-print-production-003
+    title: Khổ thành phẩm, vùng tràn lề và dấu cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfx-print-production-004
+    title: CMYK, màu pha và hồ sơ màu đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfx-print-production-005
+    title: Độ phân giải ảnh, font nhúng và chất lượng bản in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfx-print-production-006
+    title: Trong suốt, overprint và khác biệt giữa các quy trình in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfx-print-production-007
+    title: Kiểm tra trước in bằng công cụ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdfx-print-production-008
+    title: Thực hành xuất tài liệu với thông số in đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-optimization
+  title: Tối ưu tệp
+  childs:
+  - slug: file-optimization-001
+    title: Phân tích phần dung lượng do ảnh, font và luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-002
+    title: Nén content stream và object stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-003
+    title: Giảm độ phân giải ảnh theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-004
+    title: Chọn định dạng ảnh và chất lượng nén phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-005
+    title: Loại bỏ tài nguyên thừa và dùng chung tài nguyên lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-006
+    title: Tối ưu font nhúng mà vẫn giữ đủ glyph
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-007
+    title: Tác động của cập nhật tăng dần đến kích thước tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-008
+    title: Lưu lại toàn phần và kiểm tra dữ liệu cần bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-009
+    title: Linearization và điều kiện xem tài liệu qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-010
+    title: Phân biệt giảm dung lượng với cải thiện tốc độ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-011
+    title: Đo chất lượng trước và sau tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-optimization-012
+    title: Thực hành tối ưu hồ sơ có nhiều ảnh và trang lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-design
+  title: Thiết kế dịch vụ
+  childs:
+  - slug: service-design-001
+    title: Tách nghiệp vụ khỏi thư viện thao tác PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-002
+    title: Định nghĩa hợp đồng tạo, biến đổi và trích xuất tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-003
+    title: Mô hình đầu vào, lựa chọn xử lý và kết quả có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-004
+    title: Tổ chức bộ chuyển đổi cho các thư viện PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-005
+    title: Quản lý font, mẫu và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-006
+    title: Phân biệt cấu hình bất biến và tài liệu có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-007
+    title: Chuỗi bước xử lý với điều kiện đầu vào, đầu ra rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-008
+    title: Phân loại lỗi dữ liệu, thư viện và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-009
+    title: Bảo toàn tệp nguồn và xuất kết quả bằng thao tác nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-010
+    title: Lưu nguồn dữ liệu, phiên bản mẫu và dấu vết xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-011
+    title: Thực hành thiết kế PdfService độc lập với lớp HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Cấu hình dịch vụ PDF và tài nguyên qua Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Nhận tệp bằng MultipartFile và giới hạn upload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Kiểm tra nội dung PDF sau khi nhận tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Trả application/pdf với Content-Disposition phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Tên tệp Unicode và chế độ inline, attachment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Chọn byte array, Resource hoặc StreamingResponseBody
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Giới hạn bộ nhớ khi sinh PDF trước khi trả phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Xử lý ngắt kết nối và lỗi sau khi gửi HTTP header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Tải một phần tài liệu có sẵn bằng HTTP Range khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Xác thực quyền truy cập từng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Điều khiển cache và lưu trữ tạm cho tài liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-012
+    title: Thực hành API tạo, xem trước và tải PDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batch-processing
+  title: Xử lý hàng loạt
+  childs:
+  - slug: batch-processing-001
+    title: Chọn xử lý đồng bộ hoặc công việc nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-002
+    title: Chia lô tài liệu và giới hạn mức song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-003
+    title: Trạng thái công việc, tiến độ và kết quả từng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-004
+    title: Chống tạo trùng bằng khóa yêu cầu và dấu vân tay đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-005
+    title: Thử lại lỗi tạm thời và tránh xử lý lại tài liệu đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-006
+    title: Hủy tác vụ và giới hạn thời gian từng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-007
+    title: Xử lý thành công một phần và lưu danh sách thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-008
+    title: Lưu kết quả lớn ngoài bộ nhớ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-009
+    title: Đóng gói nhiều PDF thành ZIP có cấu trúc rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-010
+    title: Dọn tệp trung gian sau hoàn tất, lỗi hoặc hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-011
+    title: Thực hành xuất hàng nghìn tài liệu theo lô nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-security
+  title: An toàn đầu vào
+  childs:
+  - slug: input-security-001
+    title: Xác minh định dạng thực thay vì tin phần mở rộng và MIME
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-002
+    title: Giới hạn số trang, kích thước ảnh và tổng dữ liệu giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-003
+    title: Xử lý PDF lỗi cấu trúc, bị cắt cụt hoặc có tham chiếu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-004
+    title: Giới hạn CPU, bộ nhớ và thời gian với tệp không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-005
+    title: Cô lập bộ phân tích, OCR và công cụ chuyển đổi bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-006
+    title: Kiểm soát JavaScript, action, liên kết và nội dung chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-007
+    title: Ngăn SSRF khi HTML, SVG hoặc CSS tải tài nguyên từ URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-008
+    title: Ngăn XXE và truy cập ngoài ý muốn trong XML, XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-009
+    title: Ngăn vượt thư mục qua tên tệp và đường dẫn tệp đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-010
+    title: Kiểm soát tiến trình ngoài mà không ghép lệnh từ dữ liệu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-011
+    title: Làm sạch dữ liệu đầu vào trong mẫu HTML và Markdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-012
+    title: Bảo vệ tệp tạm và ngăn rò rỉ dữ liệu giữa người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-013
+    title: Thực hành bộ tệp đối kháng trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Lập mô hình chi phí theo trang, ảnh, font và thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo thời gian phân tích, bố cục, kết xuất và lưu tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Đo heap, bộ nhớ ngoài heap và dung lượng tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chọn đọc từ tệp, mảng byte hoặc nguồn truy cập ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Bộ nhớ đệm dữ liệu luồng trong PDFBox 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Xử lý từng trang và tránh giữ nhiều ảnh kết xuất cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Dùng lại cấu hình an toàn và hạn chế tạo lại tài nguyên nặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Giới hạn chia sẻ đối tượng tài liệu giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Chọn số tác vụ đồng thời theo bộ nhớ và CPU thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Đánh giá áp lực GC khi xuất và kết xuất PDF lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đo tải với kích thước tài liệu và dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Thực hành tìm điểm nghẽn và kiểm chứng mức cải thiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân tầng kiểm tra cấu trúc, nội dung, hình ảnh và chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Mở lại PDF đầu ra và xác minh số trang, kích thước trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm tra văn bản tiếng Việt, thứ tự đọc và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra font nhúng, ảnh, liên kết và bookmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm tra giá trị biểu mẫu và appearance sau khi lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra dữ liệu bị xóa bằng nhiều cách đọc độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kết xuất trang thành ảnh và so sánh với ảnh chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Thiết lập sai số cho khử răng cưa và khác biệt môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Tách dữ liệu biến đổi như ngày tạo khỏi phép so sánh phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tránh dùng so sánh byte làm bằng chứng duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra PDF/A và phần có thể tự động kiểm tra của PDF/UA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm tra chữ ký với tệp nguyên vẹn, bị sửa và thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Bộ kiểm thử tệp hỏng, tệp có mật khẩu và tài liệu rất lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm tra đầy đủ quy trình tạo, tải xuống và mở bằng trình xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: Thực hành xây bộ kiểm thử hồi quy bằng JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Lỗi không tìm thấy font và ký tự không có glyph
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chữ tiếng Việt sai dấu hoặc trích xuất thành ký tự lạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Nội dung bị cắt, tràn lề hoặc mất dòng cuối trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Trang trắng và content stream không hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Ảnh ngược hướng, mất trong suốt hoặc sai màu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Biểu mẫu có giá trị nhưng không hiển thị khi mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Bookmark và liên kết hỏng sau khi ghép hoặc đổi trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Chữ ký báo thay đổi sau khi đóng dấu hoặc tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: PDF mở được nhưng không đạt hồ sơ tiêu chuẩn đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi cross-reference, trailer và dữ liệu cuối tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: OutOfMemoryError khi kết xuất ảnh hoặc ghép hồ sơ lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Luồng đóng sớm, tệp bị khóa và đầu ra ghi dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Khác biệt font, tài nguyên và đường dẫn trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Rút gọn tài liệu lỗi và kiểm tra bằng PDFDebugger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Lập báo cáo tái hiện lỗi với đầu vào đã khử dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Đóng gói font, mẫu và cấu hình trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Môi trường Java headless và các phụ thuộc hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Cài OCR, bộ font và dữ liệu ngôn ngữ trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Phân quyền và hạn mức thư mục tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Cấu hình bộ nhớ, CPU và giới hạn tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Theo dõi thời gian xử lý, kích thước đầu ra và tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Log có mã tài liệu và mã công việc, không lộ nội dung riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Theo dõi phiên bản thư viện và cảnh báo lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Nâng cấp thư viện bằng bộ tài liệu hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-010
+    title: Chính sách lưu giữ, dọn dẹp và truy vết kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-011
+    title: Thực hành triển khai dịch vụ PDF có đo lường và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Tạo tài liệu kỹ thuật từ Markdown có mục lục và khối mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Xuất hóa đơn tiếng Việt với bảng dài và mã QR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Tạo báo cáo có biểu đồ, ảnh và phân trang tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Điền mẫu hợp đồng, làm phẳng và ký số theo đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Ghép bộ hồ sơ có bookmark và số hồ sơ liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Chuyển hồ sơ quét thành PDF tìm kiếm được và đánh giá OCR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Trích xuất dữ liệu hóa đơn kèm vị trí nguồn trên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Tạo bản công khai sau khi xóa dữ liệu nhạy cảm và kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Chuẩn bị hồ sơ PDF/A và báo cáo xác minh độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Xây dịch vụ xuất PDF hàng loạt với giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

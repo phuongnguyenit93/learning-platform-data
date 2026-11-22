@@ -1,0 +1,710 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - gRPC là gì và giải quyết bài toán giao tiếp nào?
+  - Quan hệ giữa gRPC, HTTP/2, Protocol Buffers và RPC
+  - Client, server, service và method trong một cuộc gọi
+  - Khi nào gRPC phù hợp hơn REST hoặc messaging?
+  - Luồng từ file proto đến mã client và server
+  - Spring hỗ trợ quản lý gRPC service ở lớp nào?
+  - Các thành phần sẽ gặp trong một ứng dụng Spring gRPC
+  - Giao tiếp nội bộ và giao tiếp public khác nhau thế nào?
+  - Giới hạn của việc coi RPC như gọi hàm cục bộ
+  - Lộ trình từ unary RPC đến streaming và production
+- level1: Kiến trúc gRPC
+  level2:
+  - Kênh, connection và HTTP/2 stream
+  - Client stub và server implementation
+  - Service definition trong Protocol Buffers
+  - RPC method và request, response message
+  - Metadata và headers trong cuộc gọi
+  - Deadline, cancellation và status
+  - Trailers và thông tin kết quả
+  - Load balancing và name resolution
+  - Interceptor ở phía client và server
+  - Channel lifecycle và tái sử dụng connection
+  - Một cuộc gọi qua proxy hoặc gateway
+  - Khác biệt giữa logical RPC và network exchange
+- level1: Protocol Buffers
+  level2:
+  - Message và field trong proto3
+  - Scalar types và kiểu dữ liệu tương ứng
+  - Field number và wire compatibility
+  - Field name, JSON name và reserved field
+  - Optional field trong proto3
+  - Default value và presence
+  - Repeated field và map field
+  - Enum và giá trị chưa biết
+  - Nested message và nested enum
+  - Oneof và lựa chọn field
+  - Bytes, string và encoding
+  - Timestamp, Duration và well-known types
+  - Any, Empty, FieldMask và wrappers
+  - Import proto và package namespace
+  - Reserved number và reserved name
+- level1: Schema design
+  level2:
+  - Đặt package cho proto
+  - Đặt tên message, field và service
+  - Thiết kế request và response rõ nghĩa
+  - Tách command, query và event message
+  - Không dùng message quá lớn cho mọi RPC
+  - Chọn field bắt buộc theo khả năng tương thích
+  - Thêm field mới mà không phá client cũ
+  - Xóa field bằng reserved
+  - Thay đổi enum an toàn
+  - Versioning package và service
+  - Tách public contract khỏi model nội bộ
+  - Kiểm tra schema bằng lint và breaking change check
+- level1: Code generation
+  level2:
+  - protoc và plugin code generation
+  - Sinh message class từ proto
+  - Sinh client stub và server base
+  - Blocking, future và async stub
+  - Grpc Java codegen
+  - Generated source trong Gradle hoặc Maven
+  - Source set cho mã sinh
+  - Đường dẫn proto và import path
+  - Lặp lại code generation có xác định
+  - Không sửa tay mã được sinh
+  - Quản lý version protoc và plugin
+  - Khác biệt generated API giữa các phiên bản
+  - Kiểm tra mã sinh trong build
+- level1: RPC methods
+  level2:
+  - Định nghĩa unary RPC
+  - Định nghĩa server streaming RPC
+  - Định nghĩa client streaming RPC
+  - Định nghĩa bidirectional streaming RPC
+  - Request và response của từng loại method
+  - Chọn loại RPC theo luồng dữ liệu
+  - Một request một response không đồng nghĩa không có stream
+  - Streaming message và backpressure
+  - Tên method và khả năng đọc contract
+  - Method không có payload bằng Empty
+  - Phân biệt RPC command với event notification
+- level1: Unary RPC
+  level2:
+  - Một request và một response trong unary call
+  - Blocking stub cho unary RPC
+  - Async stub cho unary RPC
+  - Future stub và kết quả bất đồng bộ
+  - Mapping request từ application model
+  - Mapping response về application model
+  - Deadline cho unary call
+  - Retry unary call và idempotency
+  - Lỗi status trong unary call
+  - Metadata request và response
+  - Không chặn event loop ngoài ý muốn
+  - Kiểm thử unary service và client
+- level1: Server streaming
+  level2:
+  - Server streaming trả nhiều response
+  - Khi server streaming phù hợp
+  - onNext, onError và onCompleted
+  - Thứ tự response trong một stream
+  - Client đọc từng message và backpressure
+  - Hủy stream giữa chừng
+  - Deadline của server stream
+  - Lỗi sau khi đã phát một phần dữ liệu
+  - Kích thước response và giới hạn bộ nhớ
+  - Retry server stream và khả năng phát lại
+  - Kiểm thử stream rỗng, nhiều phần tử và lỗi
+- level1: Client streaming
+  level2:
+  - Client streaming nhận nhiều request
+  - Khi client streaming phù hợp
+  - onNext từ client đến server
+  - Server hoàn tất bằng onCompleted
+  - Tổng hợp request stream thành một kết quả
+  - Lỗi khi stream chưa hoàn tất
+  - Hủy client stream và giải phóng resource
+  - Giới hạn số message và kích thước batch
+  - Deadline cho toàn bộ stream
+  - Idempotency khi client gửi lại batch
+  - Kiểm thử client gửi rỗng, một phần và đầy đủ
+- level1: Bidirectional streaming
+  level2:
+  - Hai chiều streaming độc lập trong một RPC
+  - Client và server gửi message đồng thời
+  - Điều phối onNext ở cả hai phía
+  - Thứ tự message theo từng hướng
+  - Correlation giữa request và response
+  - Nhiều response cho một request
+  - Hủy một phía và kết thúc stream
+  - Lỗi ở một hướng ảnh hưởng hướng còn lại thế nào?
+  - Backpressure trong bidi stream
+  - Giới hạn concurrency của stream
+  - Kiểm thử chat, command stream và phản hồi liên tục
+- level1: Spring Boot integration
+  level2:
+  - Spring Boot starter cho gRPC
+  - Auto-configuration của gRPC server
+  - Auto-configuration của gRPC client
+  - Đăng ký service vào Spring ApplicationContext
+  - Cấu hình port và server lifecycle
+  - Cấu hình channel đến remote server
+  - Profile cho local, test và production
+  - Properties và YAML cho gRPC
+  - Bean phụ thuộc vào generated type
+  - Khởi động server cùng Spring Boot
+  - Tắt server có kiểm soát
+  - Kiểm tra điều kiện auto-configuration
+- level1: Spring service
+  level2:
+  - Đăng ký gRPC service bean trong Spring
+  - Annotation hoặc cơ chế nhận diện service
+  - Kế thừa generated service base
+  - Inject service dependency
+  - Tách application service khỏi gRPC adapter
+  - Mapping protobuf DTO sang domain command
+  - Không đưa entity persistence vào proto contract
+  - Xử lý transaction trong RPC handler
+  - Blocking handler và thread model
+  - Async handler và callback
+  - Service lifecycle trong ApplicationContext
+  - Nhiều service trong một server
+- level1: Spring client
+  level2:
+  - Tạo gRPC client channel trong Spring
+  - GrpcChannelFactory và channel lifecycle
+  - Inject stub vào application service
+  - Blocking stub và async stub trong Spring
+  - Cấu hình nhiều channel đích
+  - Channel theo tên hoặc theo target
+  - Đóng channel khi context dừng
+  - Timeout mặc định của client
+  - Interceptor dùng chung cho client
+  - Mapping lỗi gRPC sang exception ứng dụng
+  - Tách client adapter khỏi business code
+- level1: Channel và connection
+  level2:
+  - ManagedChannel và vòng đời
+  - Kết nối plaintext trong môi trường phát triển
+  - Kết nối TLS trong production
+  - Keepalive và HTTP/2 connection
+  - Connection pooling và giới hạn channel
+  - Name resolver và target URI
+  - Reconnection sau khi server khởi động lại
+  - Idle timeout và connection state
+  - Channel shutdown và await termination
+  - Không tạo channel mỗi request
+  - Quan sát trạng thái channel
+  - Cấu hình channel riêng cho từng dependency
+- level1: Metadata
+  level2:
+  - Metadata key và value trong gRPC
+  - ASCII metadata và binary metadata
+  - Authorization metadata
+  - Correlation ID và trace context
+  - Tenant ID và locale
+  - Metadata interceptor
+  - Metadata từ client sang server
+  - Metadata từ server về client
+  - Không truyền payload lớn qua metadata
+  - Không log credential hoặc token
+  - Metadata bị mất qua proxy
+  - Kiểm thử metadata bắt buộc và tùy chọn
+- level1: Status codes
+  level2:
+  - OK và kết quả thành công
+  - CANCELLED và client chủ động hủy
+  - UNKNOWN và lỗi không xác định
+  - INVALID_ARGUMENT
+  - DEADLINE_EXCEEDED
+  - NOT_FOUND
+  - ALREADY_EXISTS
+  - PERMISSION_DENIED
+  - UNAUTHENTICATED
+  - RESOURCE_EXHAUSTED
+  - FAILED_PRECONDITION
+  - ABORTED
+  - OUT_OF_RANGE
+  - UNIMPLEMENTED
+  - INTERNAL, UNAVAILABLE và DATA_LOSS
+  - Chọn status code phản ánh đúng nguyên nhân
+- level1: Error handling
+  level2:
+  - StatusRuntimeException và StatusException
+  - Đọc status code và status description
+  - Trailers chứa thông tin lỗi
+  - Mapping lỗi domain sang gRPC status
+  - Không trả INTERNAL cho mọi exception
+  - Không lộ stack trace hoặc dữ liệu nhạy cảm
+  - Lỗi validation và INVALID_ARGUMENT
+  - Lỗi quyền và UNAUTHENTICATED, PERMISSION_DENIED
+  - Lỗi dependency và UNAVAILABLE
+  - Lỗi cạnh tranh và ABORTED
+  - Global server exception handling
+  - Kiểm thử error status và metadata
+- level1: Deadlines
+  level2:
+  - Deadline là giới hạn thời gian của RPC
+  - Deadline truyền từ client đến server
+  - Deadline propagation qua nested call
+  - Deadline hết hạn tạo DEADLINE_EXCEEDED
+  - Kiểm tra Context.isCancelled
+  - Hủy công việc khi deadline hết hạn
+  - Không đặt deadline vô hạn mặc định
+  - Chọn deadline theo loại RPC
+  - Deadline và retry
+  - Deadline qua proxy và load balancer
+  - Kiểm thử server chậm và client timeout
+- level1: Cancellation
+  level2:
+  - Client hủy một RPC
+  - Server nhận tín hiệu cancellation
+  - Context cancellation trong handler
+  - Dọn tài nguyên khi RPC bị hủy
+  - Hủy stream khi client ngắt kết nối
+  - Không tiếp tục side effect sau cancellation
+  - Cancellation khác với deadline
+  - Truyền cancellation sang downstream RPC
+  - Cancellable future và reactive bridge
+  - Kiểm thử hủy giữa chừng
+  - Theo dõi RPC bị hủy
+- level1: Retry
+  level2:
+  - Retryable status code
+  - Retry policy và điều kiện áp dụng
+  - Backoff và jitter
+  - Maximum attempts
+  - Retry delay và deadline còn lại
+  - Idempotency của unary RPC
+  - Không retry non-idempotent command tùy ý
+  - Retry server streaming và stream position
+  - Retry client streaming và batch duplicate
+  - Retry qua service config
+  - Retry ở client hay ở gateway
+  - Quan sát số lần thử và kết quả cuối
+- level1: Load balancing
+  level2:
+  - Client-side load balancing
+  - Name resolution trả nhiều địa chỉ
+  - Round robin và các policy khác
+  - Pick first và failover
+  - Kết nối đến nhiều server instance
+  - Health-aware load balancing
+  - Sticky routing và session state
+  - Retry kết hợp load balancing
+  - Phối hợp load balancing với cơ chế khám phá service
+  - Cân bằng giữa region hoặc zone
+  - Load balancing qua proxy
+  - Kiểm thử server instance bị lỗi
+- level1: Service discovery
+  level2:
+  - Target URI và resolver
+  - DNS resolver cho gRPC
+  - Resolver tùy chỉnh
+  - Đăng ký service trong discovery system
+  - Cập nhật danh sách endpoint
+  - Endpoint không khỏe và loại khỏi pool
+  - TTL của service record
+  - Resolver và load balancer
+  - Tên service khác với package proto
+  - Môi trường local và production discovery
+  - Fallback khi discovery không sẵn sàng
+- level1: Interceptors
+  level2:
+  - Client interceptor và server interceptor
+  - Ghi log method name và latency
+  - Gắn correlation ID
+  - Xác thực metadata
+  - Đo metric theo RPC method
+  - Tracing interceptor
+  - Interceptor order
+  - Interceptor cho unary và streaming
+  - Chuyển exception trong interceptor
+  - Không làm interceptor chứa nghiệp vụ
+  - Interceptor dùng chung và cấu hình riêng
+  - Kiểm thử interceptor thành công và lỗi
+- level1: Authentication
+  level2:
+  - TLS transport security và identity
+  - Bearer token trong metadata
+  - Basic credential và giới hạn sử dụng
+  - mTLS giữa client và server
+  - Certificate chain và trust store
+  - Rotation certificate
+  - Auth interceptor
+  - Xác thực service account
+  - Phân biệt authentication và authorization
+  - Metadata không an toàn khi dùng plaintext
+  - Kiểm thử request thiếu credential
+- level1: Authorization
+  level2:
+  - Quyền gọi theo service và method
+  - Role, scope và permission
+  - Authorization interceptor
+  - Tenant isolation
+  - Kiểm tra quyền trước business action
+  - Mapping permission failure sang status
+  - Không dựa vào method name từ client
+  - Context chứa principal và quyền
+  - Audit quyết định authorization
+  - Quyền cho streaming RPC
+  - Kiểm thử allow, deny và missing context
+- level1: TLS
+  level2:
+  - Tạo server credential từ certificate
+  - Server certificate và hostname
+  - Client trust certificate
+  - mTLS client certificate
+  - TLS version và cipher policy
+  - SNI và nhiều hostname
+  - Trust manager và certificate rotation
+  - Plaintext chỉ dùng trong môi trường phù hợp
+  - Lỗi handshake và chứng chỉ hết hạn
+  - Debug TLS an toàn
+  - Kiểm thử TLS bằng test certificate
+  - Không bỏ qua xác minh hostname trong production
+- level1: Protobuf compatibility
+  level2:
+  - Thêm field mới mà client cũ vẫn đọc được
+  - Không tái sử dụng field number đã xóa
+  - Reserved field để ngăn tái sử dụng
+  - Đổi tên field và wire compatibility
+  - Đổi kiểu field có thể phá tương thích
+  - Thêm enum value và client cũ
+  - oneof thay đổi và tác động
+  - Thay đổi package hoặc service name
+  - Versioned service và versioned message
+  - Kiểm tra breaking change trong CI
+  - Backward compatibility và forward compatibility
+  - Migration schema theo giai đoạn
+- level1: API evolution
+  level2:
+  - Thay đổi RPC request mà không phá caller
+  - Thêm field tùy chọn
+  - Thêm method mới
+  - Deprecate method cũ
+  - Giữ service cũ trong thời gian chuyển đổi
+  - Thay đổi semantics không chỉ là đổi schema
+  - Version negotiation qua metadata
+  - Song song contract mới và cũ
+  - Compatibility của generated code
+  - Kiểm thử client cũ với server mới
+  - Kiểm thử server cũ với client mới
+- level1: Streaming flow
+  level2:
+  - Flow control trong HTTP/2
+  - Inbound và outbound message queue
+  - Backpressure khi client chậm
+  - Giới hạn inbound message size
+  - Giới hạn outbound message size
+  - Buffering trong stream observer
+  - Không gọi onNext sau onError hoặc onCompleted
+  - Kết thúc stream đúng lifecycle
+  - Lỗi giữa stream và giải phóng buffer
+  - Concurrency trong callback
+  - Thread safety của stream observer
+  - Kiểm thử burst và consumer chậm
+- level1: Thread model
+  level2:
+  - Thread nào thực thi gRPC handler?
+  - Netty event loop và blocking work
+  - Tách blocking call khỏi event loop
+  - Executor cho service implementation
+  - Virtual thread và giới hạn theo workload
+  - Thread safety của generated stub
+  - Callback thread trong async stub
+  - Context propagation giữa thread
+  - MDC và correlation context
+  - Giới hạn executor và queue
+  - Shutdown executor cùng server
+  - Đo contention và starvation
+- level1: Spring configuration
+  level2:
+  - Cấu hình gRPC server bằng properties
+  - Cấu hình port và bind address
+  - Cấu hình client channel theo target
+  - Cấu hình TLS cho server
+  - Cấu hình TLS cho client
+  - Cấu hình keepalive và message size
+  - Cấu hình executor
+  - Cấu hình interceptor
+  - Cấu hình health service và reflection
+  - Profile local, test, staging và production
+  - Secret và certificate từ secret store
+  - Kiểm tra cấu hình khi context khởi động
+- level1: Generated stubs
+  level2:
+  - BlockingStub và thread gọi
+  - FutureStub và ListenableFuture
+  - AsyncStub và StreamObserver
+  - Stub immutable và cấu hình deadline
+  - withDeadline và withCallCredentials
+  - withInterceptors và metadata
+  - Tạo stub từ channel
+  - Tái sử dụng stub trong application service
+  - Stub cho từng service
+  - Stub trong test
+  - Không chia sẻ stub với channel đã đóng
+  - Mapping generated type sang application type
+- level1: Spring service adapter
+  level2:
+  - Service adapter nhận generated request
+  - Validate protobuf request tại boundary
+  - Chuyển request thành command hoặc query
+  - Gọi application service
+  - Chuyển domain result thành protobuf response
+  - Mapping domain error sang Status
+  - Không để generated class lan vào domain
+  - Transaction trong adapter
+  - Context và metadata trong adapter
+  - Xử lý blocking I/O
+  - Tách adapter theo service
+  - Kiểm thử adapter độc lập với transport
+- level1: Health and reflection
+  level2:
+  - gRPC Health Checking Protocol
+  - Health status của service
+  - Readiness khác với liveness
+  - Thay đổi health khi dependency lỗi
+  - Health check qua load balancer
+  - Server reflection dùng để khám phá service
+  - Giới hạn reflection trong production
+  - grpcurl và kiểm tra endpoint
+  - Bảo vệ health và reflection
+  - Kiểm thử health transition
+  - Không coi port mở là service healthy
+- level1: Observability
+  level2:
+  - Metric số RPC theo service và method
+  - Latency histogram cho unary và streaming
+  - Status code distribution
+  - Active stream và stream duration
+  - Message count trong streaming
+  - Deadline exceeded và cancellation
+  - Retry attempt và final status
+  - Trace context qua gRPC metadata
+  - Log request ID và method name
+  - Che payload trong log
+  - Dashboard theo client, server và dependency
+  - Alert theo error rate và saturation
+- level1: OpenTelemetry
+  level2:
+  - Trace span cho mỗi RPC
+  - Propagator qua metadata
+  - Client span và server span
+  - Parent-child relationship qua downstream call
+  - Baggage và rủi ro truyền dữ liệu
+  - Trace streaming dài
+  - Span event cho status và exception
+  - Sampling trong hệ thống lưu lượng cao
+  - Liên kết trace với log và metric
+  - Kiểm thử propagation
+  - Không tạo span lồng vô hạn
+- level1: Performance
+  level2:
+  - Chi phí serialization và deserialization
+  - Kích thước protobuf message
+  - Unary latency và throughput
+  - Streaming throughput
+  - Batching và message frequency
+  - Compression và CPU trade-off
+  - Connection reuse
+  - Executor sizing
+  - HTTP/2 multiplexing
+  - Flow control và memory
+  - Large message và chunking
+  - Benchmark client-server
+- level1: Resource limits
+  level2:
+  - max inbound message size
+  - max outbound message size
+  - Số stream đồng thời
+  - Số message trong một stream
+  - Deadline bắt buộc
+  - Giới hạn metadata
+  - Giới hạn executor queue
+  - Giới hạn buffer
+  - Rate limit theo client
+  - Giới hạn số connection
+  - Xử lý RESOURCE_EXHAUSTED
+  - Theo dõi tài nguyên khi tải tăng
+- level1: Database RPC
+  level2:
+  - Transaction trong unary RPC
+  - Transaction trong streaming RPC
+  - Không giữ transaction quá lâu khi stream
+  - Optimistic locking và ABORTED
+  - Idempotency khi client retry command
+  - Connection pool dưới tải RPC
+  - Timeout database nhỏ hơn deadline RPC
+  - Mapping not found thành NOT_FOUND
+  - Mapping validation thành INVALID_ARGUMENT
+  - Side effect và retry
+  - Outbox cho event sau RPC
+  - Kiểm thử rollback và retry
+- level1: Messaging bridge
+  level2:
+  - gRPC như ingress vào message flow
+  - Chuyển RPC request thành command message
+  - Phát event sau khi RPC thành công
+  - Trả response trước hoặc sau khi publish
+  - Correlation giữa RPC và message
+  - Async reply từ message về gRPC
+  - Deadline qua message boundary
+  - Retry giữa gRPC và broker
+  - Idempotency của command
+  - Không giữ stream mở vô hạn để chờ broker
+  - Khi gRPC phù hợp hơn messaging và ngược lại
+- level1: Testing basics
+  level2:
+  - Unit test mapping protobuf
+  - Unit test validation và status mapping
+  - Mock application service phía sau adapter
+  - Kiểm tra generated request và response
+  - In-process gRPC server
+  - In-process channel cho test
+  - Test blocking stub
+  - Test async stub
+  - Test server interceptor
+  - Test client interceptor
+  - Kiểm tra metadata và deadline
+  - Không dùng network thật cho mọi unit test
+- level1: Integration testing
+  level2:
+  - Khởi động gRPC server trong test context
+  - Kết nối client test tới port động
+  - Kiểm thử nhiều service cùng server
+  - Kiểm thử TLS với certificate test
+  - Kiểm thử auth metadata
+  - Kiểm thử health check
+  - Kiểm thử retry và server restart
+  - Kiểm thử streaming end to end
+  - Kiểm thử message size limit
+  - Dọn channel và server sau test
+  - Tránh port cố định và test phụ thuộc thứ tự
+- level1: Contract testing
+  level2:
+  - Contract test dựa trên proto
+  - Kiểm tra service method tồn tại
+  - Kiểm tra request và response field
+  - Kiểm tra status code contract
+  - Kiểm tra metadata contract
+  - Kiểm tra deadline và cancellation semantics
+  - Kiểm tra backward compatibility
+  - Client fixture và server fixture
+  - Consumer-driven contract cho gRPC
+  - Breaking change check trong CI
+  - Contract của error detail
+  - Versioning contract test
+- level1: Error testing
+  level2:
+  - Test INVALID_ARGUMENT từ request sai
+  - Test NOT_FOUND và resource thiếu
+  - Test PERMISSION_DENIED
+  - Test UNAUTHENTICATED
+  - Test DEADLINE_EXCEEDED
+  - Test UNAVAILABLE khi server dừng
+  - Test RESOURCE_EXHAUSTED
+  - Test INTERNAL không làm lộ chi tiết
+  - Test cancellation
+  - Test retryable và non-retryable status
+  - Test lỗi sau một phần streaming
+  - Assertion status, description và metadata
+- level1: Deployment
+  level2:
+  - Đóng gói gRPC server cùng Spring Boot
+  - Expose HTTP/2 và port gRPC
+  - TLS termination ở ứng dụng hay proxy
+  - Load balancer hỗ trợ HTTP/2
+  - Health check cho orchestrator
+  - Graceful shutdown
+  - Chờ RPC đang chạy hoàn tất
+  - Draining connection trước khi dừng
+  - Rolling deployment tương thích proto
+  - Canary server và client
+  - Cấu hình resource container
+  - Kiểm tra endpoint sau deploy
+- level1: Reliability
+  level2:
+  - Graceful retry và idempotent command
+  - Failover khi một server unavailable
+  - Circuit breaker cho dependency gRPC
+  - Bulkhead theo client hoặc method
+  - Timeout budget qua nhiều downstream call
+  - Hedging và nguy cơ tạo duplicate work
+  - Outbox khi RPC kích hoạt event
+  - Persist request state cho tác vụ dài
+  - Redelivery và duplicate response
+  - Recovery sau restart
+  - Runbook cho UNAVAILABLE tăng đột biến
+  - SLO cho success, latency và availability
+- level1: Security operations
+  level2:
+  - Rotation access token
+  - Rotation server và client certificate
+  - Thu hồi certificate
+  - Quản lý trust store
+  - Audit quyền gọi method
+  - Giới hạn service reflection
+  - Network policy cho port gRPC
+  - Secret không xuất hiện trong generated config
+  - Metadata injection từ client
+  - Bảo vệ against oversized message
+  - Theo dõi request bất thường
+  - Kiểm tra dependency và plugin codegen
+- level1: Troubleshooting
+  level2:
+  - Không kết nối được đến port gRPC
+  - Server chạy nhưng client không resolve target
+  - TLS handshake thất bại
+  - UNIMPLEMENTED do service chưa đăng ký
+  - UNAUTHENTICATED do metadata thiếu
+  - DEADLINE_EXCEEDED do downstream chậm
+  - UNAVAILABLE do connection reset
+  - RESOURCE_EXHAUSTED do message hoặc quota
+  - Generated code không khớp proto
+  - Streaming kết thúc sớm
+  - Header hoặc trace context bị mất
+  - Server shutdown làm RPC lỗi
+  - Dùng grpcurl để thu hẹp nguyên nhân
+- level1: Lỗi thường gặp
+  level2:
+  - Coi gRPC là gọi hàm cục bộ và bỏ qua deadline
+  - Tạo channel mới cho từng request
+  - Dùng plaintext trong production
+  - Retry command không idempotent
+  - Đặt message quá lớn để tránh thiết kế schema
+  - Dùng string tự do thay cho enum hoặc message rõ nghĩa
+  - Đổi field number đã phát hành
+  - Nuốt status code thành INTERNAL
+  - Chặn event loop bằng lời gọi blocking
+  - Không giới hạn stream hoặc buffer
+  - Dùng sleep trong streaming test
+  - Mock mọi thứ và bỏ qua contract
+  - Không graceful shutdown server
+  - Log toàn bộ payload và credential
+- level1: Chọn giao tiếp
+  level2:
+  - Chọn gRPC cho RPC nội bộ độ trễ thấp
+  - Chọn REST cho browser và hệ sinh thái HTTP rộng
+  - Chọn messaging cho giao tiếp bất đồng bộ
+  - Chọn server streaming cho dữ liệu liên tục
+  - Chọn client streaming cho upload hoặc batch
+  - Chọn bidi streaming cho tương tác hai chiều
+  - Đánh giá schema evolution trước khi chốt proto
+  - Đánh giá observability và vận hành
+  - Đánh giá client library của hệ sinh thái
+  - Đánh giá firewall, proxy và load balancer
+  - Ghi lại lý do chọn gRPC và giới hạn
+- level1: Dự án thực hành
+  level2:
+  - Định nghĩa proto cho service quản lý đơn hàng
+  - Sinh generated message và stub trong Gradle
+  - Tạo Spring Boot gRPC server
+  - Tạo unary RPC với validation và status mapping
+  - Tạo server streaming cho danh sách lớn
+  - Tạo client streaming cho upload batch
+  - Tạo bidi streaming cho phiên tương tác
+  - Cấu hình Spring client channel
+  - Thêm deadline và retry có kiểm soát
+  - Thêm interceptor cho auth và correlation ID
+  - Bật TLS và health check
+  - Viết unit, integration và contract test
+  - Đưa service vào container và graceful shutdown
+  - Đo latency, throughput và lỗi sau khi triển khai

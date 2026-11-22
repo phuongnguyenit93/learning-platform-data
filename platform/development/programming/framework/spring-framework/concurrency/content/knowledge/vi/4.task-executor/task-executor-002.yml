@@ -1,0 +1,3 @@
+menuLevel1: TaskExecutor
+menuLevel2: execute(Runnable) không mặc nhiên bảo đảm chạy trên luồng khác
+status: WRITTEN

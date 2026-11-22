@@ -1,0 +1,7 @@
+# Spring Boot - Testing
+
+Kiểm thử giúp chứng minh ứng dụng Spring Boot đáp ứng hành vi mong đợi và phát hiện sai lệch khi mã nguồn thay đổi. Một bộ kiểm thử hữu ích cần chỉ rõ điều đang được kiểm chứng, những thành phần tham gia và bằng chứng để kết luận đúng hay sai. Module này giúp bạn chọn phạm vi kiểm thử phù hợp, từ một quy tắc nghiệp vụ độc lập đến luồng xử lý có lớp web, cơ sở dữ liệu và dịch vụ bên ngoài.
+
+Module dành cho người đã có kiến thức Java, Spring Boot và cấu trúc ứng dụng cơ bản. Bạn sẽ học cách kết hợp JUnit Jupiter, các phép kiểm tra kết quả và Mockito với công cụ kiểm thử của Spring Boot; hiểu khi nào cần nạp ngữ cảnh Spring, khi nào chỉ cần kiểm thử một phần ứng dụng (test slice) và khi nào cần tích hợp đầy đủ. Phạm vi bao gồm cấu hình kiểm thử, Spring MVC hoặc WebFlux, truy cập dữ liệu, giao dịch, Testcontainers và kiểm soát phụ thuộc bên ngoài, với các ví dụ Spring Boot định hướng theo phiên bản 3.3.
+
+Lộ trình bắt đầu bằng chiến lược và kiểm thử đơn vị, tiếp đến ngữ cảnh Spring, lớp web và lớp dữ liệu. Sau đó, bạn mở rộng sang kiểm thử tích hợp, hạ tầng thật và cách vận hành bộ kiểm thử ổn định trong CI. Tư duy xuyên suốt là dùng phạm vi vừa đủ để kiểm chứng hành vi, chủ động quản lý dữ liệu và tài nguyên, rồi giải thích kết quả bằng báo cáo cùng nhật ký thay vì chỉ nhìn trạng thái chạy thành công.

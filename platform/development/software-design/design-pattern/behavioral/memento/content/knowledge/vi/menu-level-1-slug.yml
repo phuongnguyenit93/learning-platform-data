@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Bài toán thiết kế
+  slug: design-problem
+  index: 1
+- title: Thành phần
+  slug: pattern-participants
+  index: 2
+- title: Cơ chế hoạt động
+  slug: operation-mechanism
+  index: 3
+- title: Thiết kế Java
+  slug: java-design
+  index: 4
+- title: Đóng gói
+  slug: encapsulation
+  index: 5
+- title: Tính bất biến
+  slug: immutability
+  index: 6
+- title: Sao chép dữ liệu
+  slug: data-copying
+  index: 7
+- title: Phục hồi nhất quán
+  slug: consistent-restoration
+  index: 8
+- title: Quản lý lịch sử
+  slug: history-management
+  index: 9
+- title: Undo và Redo
+  slug: undo-and-redo
+  index: 10
+- title: Biến thể lịch sử
+  slug: history-variants
+  index: 11
+- title: Kết hợp Command
+  slug: command-pattern-integration
+  index: 12
+- title: Ví dụ soạn thảo
+  slug: text-editor-example
+  index: 13
+- title: Ví dụ đồ họa
+  slug: graphics-editor-example
+  index: 14
+- title: Java Swing
+  slug: java-swing
+  index: 15
+- title: Lưu trữ
+  slug: state-storage
+  index: 16
+- title: Tương thích phiên bản
+  slug: version-compatibility
+  index: 17
+- title: Đồng thời
+  slug: concurrency
+  index: 18
+- title: Xử lý thất bại
+  slug: failure-handling
+  index: 19
+- title: Hiệu năng
+  slug: performance
+  index: 20
+- title: Dữ liệu nhạy cảm
+  slug: sensitive-data
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Mẫu liên quan
+  slug: related-patterns
+  index: 23
+- title: Lỗi thiết kế
+  slug: design-pitfalls
+  index: 24
+- title: Áp dụng thực tế
+  slug: practical-applications
+  index: 25
+- title: Thực hành
+  slug: practice
+  index: 26

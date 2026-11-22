@@ -1,0 +1,3 @@
+menuLevel1: Kết hợp CompletableFuture
+menuLevel2: Tránh gửi tác vụ hai lần khi vừa dùng @Async vừa dùng supplyAsync()
+status: WRITTEN

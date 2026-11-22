@@ -1,0 +1,322 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Transactional Outbox là gì và bài toán cần giải quyết
+  - Quan hệ giữa giao dịch cơ sở dữ liệu, sự kiện và bộ môi giới thông điệp
+  - Vì sao cập nhật dữ liệu và phát sự kiện dễ mất nhất quán
+  - Vai trò của bên ghi, bảng Outbox, bộ chuyển tiếp và bên nhận
+  - Phân biệt bảo đảm ghi nhận sự kiện với bảo đảm xử lý nghiệp vụ
+  - Trường hợp nên dùng, chi phí và giới hạn của Outbox
+  - Lộ trình từ giao dịch cục bộ đến luồng sự kiện có thể phục hồi
+- level1: Bài toán ghi kép
+  level2:
+  - Phân tích ghi cơ sở dữ liệu trước rồi mới gửi thông điệp
+  - Phân tích gửi thông điệp trước rồi mới ghi cơ sở dữ liệu
+  - Phân tích gửi thông điệp khi giao dịch chưa kết thúc
+  - Lập bảng sự cố theo thời điểm tiến trình dừng
+  - Nhận diện sự kiện bị mất, sự kiện không có dữ liệu và sự kiện trùng
+  - Vì sao thử lại đơn thuần chưa giải quyết tính nguyên tử
+  - Đánh giá gọi sau commit, hàng đợi trong bộ nhớ và giao dịch phân tán
+  - Xác định yêu cầu nghiệp vụ trước khi chọn cơ chế phát sự kiện
+- level1: Kiến trúc
+  level2:
+  - Ghi dữ liệu nghiệp vụ và bản ghi Outbox trong cùng giao dịch
+  - Đọc sự kiện đã commit và gửi qua bộ chuyển tiếp
+  - Tách vòng đời yêu cầu nghiệp vụ khỏi quá trình phát thông điệp
+  - Mô tả luồng thành công bằng sơ đồ trình tự
+  - Mô tả luồng rollback và lỗi phát thông điệp
+  - So sánh chuyển tiếp bằng polling và đọc nhật ký giao dịch
+  - Phân chia trách nhiệm giữa ứng dụng, cơ sở dữ liệu và hạ tầng thông điệp
+  - Xác định ranh giới sở hữu Outbox theo dịch vụ
+- level1: Bảo đảm nhất quán
+  level2:
+  - Tính nguyên tử giữa thay đổi nghiệp vụ và ý định phát sự kiện
+  - Không phát sự kiện của giao dịch đã rollback
+  - Điều kiện để sự kiện đã commit cuối cùng được chuyển tiếp
+  - Phân biệt tính an toàn với khả năng tiếp tục tiến triển
+  - Hiểu tính nhất quán sau một khoảng thời gian
+  - Phân biệt giao ít nhất một lần với xử lý nghiệp vụ không lặp
+  - Giới hạn của bảo đảm đúng một lần trên toàn bộ luồng
+  - Phân biệt xác nhận của broker với kết quả xử lý của consumer
+  - Xác định điều kiện về độ bền dữ liệu, thời gian lưu và khả năng khôi phục
+- level1: Hợp đồng sự kiện
+  level2:
+  - Phân biệt sự kiện miền và sự kiện tích hợp
+  - Đặt tên sự kiện theo sự việc nghiệp vụ đã xảy ra
+  - Thiết kế eventId ổn định qua các lần gửi lại
+  - Xác định aggregateId, loại đối tượng và loại sự kiện
+  - Phân biệt thời điểm nghiệp vụ, thời điểm ghi và thời điểm phát
+  - Thiết kế nội dung dữ liệu đủ để bên nhận xử lý
+  - Lưu correlationId, causationId và thông tin truy vết cần thiết
+  - Chọn khóa phân vùng theo yêu cầu thứ tự
+  - Tránh phụ thuộc cấu trúc bảng hoặc thực thể ORM trong hợp đồng công khai
+- level1: Lược đồ Outbox
+  level2:
+  - Thiết kế bảng Outbox cho ứng dụng quan hệ
+  - Chọn kiểu khóa chính và ràng buộc duy nhất của sự kiện
+  - Lưu nội dung sự kiện dưới dạng JSON hoặc dữ liệu đã mã hóa
+  - Thiết kế trạng thái, số lần thử và thời điểm thử lại cho polling
+  - Lưu thông tin nhận việc và thời hạn sở hữu khi có nhiều bộ chuyển tiếp
+  - Thiết kế chỉ mục theo truy vấn lấy việc và lịch thử lại
+  - Phân biệt lược đồ polling có cập nhật với Outbox chỉ thêm mới cho CDC
+  - Thiết kế bản ghi xóa nghiệp vụ mà vẫn giữ đủ nội dung sự kiện
+  - Đánh đổi khi gộp nhiều loại sự kiện trong một bảng
+- level1: Giao dịch cục bộ
+  level2:
+  - Xác định cùng cơ sở dữ liệu và cùng ranh giới giao dịch
+  - Thực hiện cập nhật nghiệp vụ và thêm Outbox bằng JDBC
+  - Thực hiện cập nhật nghiệp vụ và thêm Outbox bằng JPA
+  - Kiểm tra rollback khi một trong hai bước ghi thất bại
+  - Phân biệt flush với commit và thời điểm dữ liệu trở nên khả kiến
+  - Giữ dữ liệu sự kiện tương ứng với thay đổi được commit
+  - Xử lý một giao dịch tạo nhiều sự kiện
+  - Tránh tạo Outbox từ dữ liệu đọc lại sau khi đã commit
+  - Phân biệt chống lặp yêu cầu nghiệp vụ với chống lặp lần phát sự kiện
+- level1: Spring Boot
+  level2:
+  - Đặt @Transactional tại lớp dịch vụ điều phối thay đổi
+  - Kiểm tra transaction manager và nguồn dữ liệu được sử dụng
+  - Nhận diện lời gọi nội bộ không đi qua proxy giao dịch
+  - Xác định quy tắc rollback đối với các loại ngoại lệ
+  - Tránh REQUIRES_NEW tách bản ghi Outbox khỏi giao dịch nghiệp vụ
+  - Phân biệt sự kiện trong tiến trình với sự kiện tích hợp bền vững
+  - Đánh giá @TransactionalEventListener theo từng giai đoạn giao dịch
+  - Vì sao AFTER_COMMIT và @Async không tự thay thế Transactional Outbox
+  - Kiểm chứng cấu hình giao dịch bằng kiểm thử tích hợp
+- level1: Polling Publisher
+  level2:
+  - Thiết kế vòng lặp đọc, nhận việc, phát và hoàn tất
+  - Chọn sự kiện đến hạn theo trạng thái và thời điểm thử lại
+  - Giới hạn kích thước lô và thời gian mỗi lượt xử lý
+  - Phân biệt chu kỳ polling cố định với thời gian nghỉ thích ứng
+  - Xử lý xác nhận bất đồng bộ từ thư viện gửi thông điệp
+  - Đánh đổi giữa giữ khóa khi gửi và tách giao dịch nhận việc
+  - Thiết kế vòng đời NEW, PROCESSING, PUBLISHED và FAILED
+  - Khởi động lại vòng lặp mà không bỏ quên công việc đang dở
+  - Đảm bảo tác vụ nền không làm nghẽn giao dịch nghiệp vụ
+- level1: Khóa và quyền xử lý
+  level2:
+  - Ngăn nhiều bộ chuyển tiếp nhận cùng một bản ghi
+  - Dùng SELECT FOR UPDATE SKIP LOCKED trong PostgreSQL
+  - Hiểu giới hạn của SKIP LOCKED đối với thứ tự xử lý
+  - Nhận việc bằng cập nhật nguyên tử và kiểm tra số dòng thay đổi
+  - Thiết kế thời hạn sở hữu và thu hồi việc bị bỏ dở
+  - Xử lý tiến trình chậm tiếp tục chạy sau khi quyền sở hữu hết hạn
+  - Dùng mã thế hệ hoặc điều kiện sở hữu khi cập nhật kết quả
+  - Phân biệt ngăn ghi đè trạng thái với ngăn phát trùng ra broker
+  - Giữ giao dịch ngắn và theo dõi tranh chấp khóa
+- level1: Xác nhận phát tin
+  level2:
+  - Xác định thế nào là broker đã chấp nhận thông điệp
+  - Cập nhật trạng thái hoàn tất sau xác nhận gửi phù hợp
+  - Phân tích cửa sổ lỗi sau khi gửi nhưng trước khi ghi nhận hoàn tất
+  - Xử lý hết thời gian chờ khi chưa biết thông điệp đã được nhận hay chưa
+  - Cấu hình độ bền, xác nhận và thử lại của producer theo broker
+  - Hiểu phạm vi chống trùng của Kafka idempotent producer
+  - Phân biệt giao dịch Kafka với giao dịch cơ sở dữ liệu nghiệp vụ
+  - Giữ nguyên định danh sự kiện khi phát lại
+  - Không suy ra consumer thành công từ trạng thái PUBLISHED
+- level1: CDC
+  level2:
+  - CDC là gì và quan hệ với nhật ký giao dịch
+  - Đọc thay đổi đã commit để chuyển tiếp sự kiện
+  - Phân biệt CDC bảng nghiệp vụ với CDC bảng Outbox
+  - Theo dõi vị trí đọc và điểm phục hồi của bộ kết nối
+  - Hiểu vai trò của snapshot ban đầu và dữ liệu đang tồn tại
+  - Phân tích độ trễ và khả năng phát lại khi bộ kết nối khởi động lại
+  - Xác định quyền truy cập và cấu hình nhật ký của cơ sở dữ liệu
+  - Đánh đổi độ phức tạp vận hành giữa CDC và polling
+- level1: Debezium
+  level2:
+  - Tổ chức luồng PostgreSQL, Debezium, Kafka Connect và Kafka
+  - Thiết kế các cột id, aggregateid, aggregatetype, type và payload
+  - Cấu hình Outbox Event Router để chuyển đổi bản ghi thay đổi
+  - Ánh xạ khóa sự kiện, nội dung, header và topic đích
+  - Chỉ áp dụng phép biến đổi cho bản ghi Outbox phù hợp
+  - Phân biệt cấu hình dữ liệu JSON với định dạng thông điệp đầu ra
+  - Giữ mô hình chỉ thêm mới và hiểu xử lý UPDATE hoặc DELETE
+  - Kiểm tra snapshot, điểm đọc và hành vi phát lại theo phiên bản
+  - Quản lý replication slot, lượng WAL giữ lại và độ trễ bộ kết nối
+  - Xác định chiến lược dọn bảng mà không làm mất sự kiện chưa thu thập
+- level1: Thứ tự sự kiện
+  level2:
+  - Xác định cần thứ tự toàn cục hay thứ tự theo đối tượng nghiệp vụ
+  - Thiết kế số phiên bản hoặc số thứ tự theo aggregate
+  - Phân biệt thứ tự cấp số, thời điểm tạo và thứ tự commit
+  - Điều phối các giao dịch cùng thay đổi một aggregate
+  - Giữ cùng khóa phân vùng cho chuỗi sự kiện liên quan
+  - Ngăn nhiều bộ chuyển tiếp làm đảo thứ tự phát trong cùng chuỗi
+  - Đánh đổi thứ tự với xử lý song song và thông lượng
+  - Xử lý sự kiện đến trễ, thiếu số thứ tự hoặc sai thứ tự
+  - Hiểu tác động của thử lại và sự kiện lỗi lên thứ tự
+- level1: Chống xử lý trùng
+  level2:
+  - Phân biệt gửi trùng, giao lại và lặp yêu cầu nghiệp vụ
+  - Xác định ranh giới tác động cần bảo đảm không lặp
+  - Thiết kế consumer có tính lũy đẳng theo eventId
+  - Ghi dấu sự kiện đã xử lý và thay đổi nghiệp vụ trong cùng giao dịch
+  - Dùng ràng buộc duy nhất để xử lý nhiều bản sao đến đồng thời
+  - Phân biệt kiểm tra rồi ghi với thao tác có bảo vệ ở cơ sở dữ liệu
+  - Xác nhận thông điệp hoặc commit offset sau khi xử lý thành công
+  - Thiết kế Inbox và phạm vi định danh theo bên nhận
+  - Giới hạn của chống trùng trong bộ nhớ hoặc bộ nhớ đệm
+  - Xử lý tác động bên ngoài bằng khóa chống lặp hoặc Outbox tiếp theo
+- level1: Thử lại
+  level2:
+  - Phân loại lỗi tạm thời, lỗi dữ liệu và lỗi cấu hình
+  - Lùi thời gian thử lại theo cấp số nhân và thêm độ ngẫu nhiên
+  - Lưu số lần thử và lịch xử lý lại qua các lần khởi động
+  - Thiết kế giới hạn thời gian chờ và thời gian giữ quyền xử lý
+  - Tránh nhiều tầng thử lại làm khuếch đại tải
+  - Tạm dừng hoặc giảm tốc khi broker gặp sự cố kéo dài
+  - Giữ định danh và nội dung sự kiện nhất quán giữa các lần thử
+  - Theo dõi sự kiện bị trì hoãn mà vẫn bảo toàn yêu cầu nghiệp vụ
+- level1: Sự kiện lỗi
+  level2:
+  - Nhận diện sự kiện luôn làm quá trình phát hoặc xử lý thất bại
+  - Phân biệt lỗi trước broker với lỗi tại consumer
+  - Thiết kế trạng thái cách ly và hàng đợi thư lỗi
+  - Lưu lý do lỗi cùng thông tin đủ để điều tra
+  - Đánh đổi bỏ qua sự kiện với dừng chuỗi cần giữ thứ tự
+  - Xây dựng quy trình sửa dữ liệu và phát lại có kiểm soát
+  - Phân biệt gửi lại cùng sự kiện với tạo một sự kiện sửa sai mới
+  - Ngăn vòng lặp đưa sự kiện lỗi trở lại luồng vô hạn
+- level1: Tiến hóa hợp đồng
+  level2:
+  - Gắn phiên bản và xác định quy tắc tương thích của sự kiện
+  - Thêm trường mà vẫn hỗ trợ consumer cũ
+  - Đổi tên, loại bỏ trường và thay đổi ý nghĩa dữ liệu
+  - Chọn JSON, Avro hoặc Protobuf theo yêu cầu hợp đồng
+  - Đánh giá vai trò của schema registry khi được sử dụng
+  - Triển khai producer và consumer lệch phiên bản
+  - Đọc lại sự kiện cũ và chuyển đổi sang mô hình mới
+  - Kiểm thử hợp đồng trước khi phát hành thay đổi
+- level1: Dọn dữ liệu
+  level2:
+  - Xác định điều kiện an toàn để xóa hoặc lưu trữ bản ghi Outbox
+  - Tách thời gian lưu Outbox, thông điệp broker và dấu chống trùng
+  - Dọn dữ liệu polling theo trạng thái hoàn tất và thời gian lưu
+  - Dọn dữ liệu CDC theo tiến độ thu thập và phương án phục hồi
+  - Xóa theo lô để giới hạn khóa, tải I/O và thời lượng giao dịch
+  - Đánh giá phân vùng bảng, chỉ mục và bảo trì cơ sở dữ liệu
+  - Giữ đủ thông tin để điều tra và đối soát sự kiện
+  - Ngăn lịch dọn dữ liệu làm mất khả năng phát lại cần thiết
+- level1: Khôi phục hệ thống
+  level2:
+  - Khôi phục sau khi tiến trình ghi nghiệp vụ dừng
+  - Khôi phục bộ chuyển tiếp khi còn bản ghi đang được nhận xử lý
+  - Khởi động lại CDC và kiểm tra điểm đọc đã lưu
+  - Xử lý mất nhật ký giao dịch hoặc vị trí đọc không còn hợp lệ
+  - Đánh giá khôi phục cơ sở dữ liệu về thời điểm trước các sự kiện đã phát
+  - Đối soát dữ liệu nghiệp vụ, Outbox và kết quả bên nhận
+  - Xác định phạm vi phát lại sau sự cố và nguy cơ tác động trùng
+  - Lập quy trình phục hồi mà vẫn giữ thứ tự cần thiết
+- level1: Quan sát hệ thống
+  level2:
+  - Đo số bản ghi chờ và tuổi của sự kiện cũ nhất
+  - Phân biệt độ trễ ghi Outbox, chuyển tiếp và xử lý tại consumer
+  - Theo dõi tốc độ ghi, tốc độ phát và tốc độ xử lý
+  - Đo tỷ lệ thử lại, sự kiện lỗi và công việc quá hạn sở hữu
+  - Theo dõi độ trễ CDC, replication slot và dung lượng nhật ký
+  - Liên kết nhật ký và dấu vết bằng eventId cùng correlationId
+  - Thiết kế cảnh báo dựa trên thời gian chờ và mục tiêu phục vụ
+  - Xây dựng bảng theo dõi và hướng dẫn điều tra sự cố
+- level1: Hiệu năng
+  level2:
+  - Ước lượng tải ghi thêm do bảng Outbox và chỉ mục
+  - Đo độ trễ giao dịch nghiệp vụ khi thêm sự kiện
+  - Tối ưu truy vấn lấy việc bằng chỉ mục và giới hạn lô
+  - Cân bằng chu kỳ polling giữa độ trễ và tải cơ sở dữ liệu
+  - Cân bằng số lần gửi đồng thời với giới hạn broker
+  - Xử lý sự kiện có nội dung lớn và giới hạn kích thước thông điệp
+  - Giảm áp lực bộ nhớ khi có nhiều xác nhận gửi đang chờ
+  - Điều tiết tốc độ khi lượng ghi vượt khả năng chuyển tiếp
+  - Đo thông lượng ổn định và thời gian giải phóng tồn đọng
+- level1: Mở rộng
+  level2:
+  - Chia việc cho nhiều bộ chuyển tiếp theo lô hoặc phân vùng
+  - Giữ quyền sở hữu sự kiện khi thêm hoặc bớt tiến trình
+  - Phân vùng theo aggregate và xử lý đối tượng có tải cao
+  - Thiết kế Outbox khi dữ liệu nghiệp vụ được chia nhiều cơ sở dữ liệu
+  - Giữ tính nguyên tử trong đúng phạm vi giao dịch của từng phân vùng
+  - Đánh giá Outbox nhúng trong tài liệu của cơ sở dữ liệu NoSQL
+  - Tách dữ liệu và giới hạn tài nguyên giữa nhiều khách thuê
+  - Xác định giới hạn của kiến trúc khi triển khai nhiều vùng
+- level1: Bảo mật
+  level2:
+  - Giảm dữ liệu nhạy cảm trong nội dung và header sự kiện
+  - Phân quyền riêng cho ứng dụng, bộ chuyển tiếp và CDC
+  - Bảo vệ kết nối đến cơ sở dữ liệu và broker
+  - Quản lý thông tin xác thực bằng cấu hình bí mật phù hợp
+  - Kiểm soát quyền truy cập topic, hàng đợi và dữ liệu cách ly
+  - Tránh làm lộ nội dung sự kiện trong nhật ký và công cụ giám sát
+  - Kiểm tra lược đồ, kích thước và nguồn dữ liệu tại bên nhận
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị việc xây dựng dữ liệu sự kiện
+  - Kiểm thử commit đồng thời dữ liệu nghiệp vụ và Outbox
+  - Kiểm thử rollback khi ghi nghiệp vụ hoặc ghi Outbox thất bại
+  - Kiểm thử polling với nhiều bộ chuyển tiếp trên PostgreSQL thực
+  - Kiểm thử broker và CDC bằng hạ tầng cô lập hoặc Testcontainers
+  - Kiểm thử consumer nhận cùng sự kiện nhiều lần và đồng thời
+  - Kiểm thử thứ tự theo aggregate trong điều kiện cạnh tranh
+  - Kiểm thử tương thích dữ liệu sự kiện giữa các phiên bản
+  - Kiểm thử dọn dữ liệu và quy trình phát lại
+  - Tránh dựa vào cơ sở dữ liệu giả để kết luận về khóa và giao dịch
+- level1: Thử nghiệm sự cố
+  level2:
+  - Dừng tiến trình trước và sau commit giao dịch nghiệp vụ
+  - Dừng bộ chuyển tiếp sau khi broker nhận nhưng trước khi ghi hoàn tất
+  - Làm hết thời gian chờ khi kết quả gửi chưa rõ
+  - Để quyền xử lý hết hạn khi tiến trình cũ vẫn còn chạy
+  - Ngắt broker rồi quan sát tồn đọng và quá trình phục hồi
+  - Dừng CDC đủ lâu để kiểm tra lượng nhật ký giữ lại
+  - Đưa sự kiện lỗi vào giữa chuỗi cần bảo toàn thứ tự
+  - Cho consumer dừng sau khi commit nghiệp vụ nhưng trước khi xác nhận
+  - Đối chiếu dữ liệu cuối cùng với các điều kiện nhất quán đã đặt ra
+- level1: Triển khai
+  level2:
+  - Ghim phiên bản cơ sở dữ liệu, broker, thư viện và bộ kết nối
+  - Quản lý thay đổi lược đồ Outbox tương thích với tiến trình đang chạy
+  - Bật luồng phát sự kiện từng bước và kiểm tra trước khi chuyển tải
+  - Ngăn polling và CDC cùng phát một tập sự kiện ngoài chủ đích
+  - Dừng nhận việc mới và hoàn tất công việc đang dở khi tắt tiến trình
+  - Kiểm soát phát lại khi thay cấu hình topic hoặc bộ định tuyến
+  - Chuẩn bị giới hạn tài nguyên, giám sát và quy trình trực vận hành
+  - Ghi lại giả định về thứ tự, lưu giữ và khả năng phục hồi
+- level1: Mẫu liên quan
+  level2:
+  - 'Outbox và Inbox: bảo đảm ở phía phát với phía nhận'
+  - 'Outbox và Saga: phát thông điệp cho các bước nghiệp vụ phân tán'
+  - 'Outbox và CQRS: cập nhật mô hình đọc qua sự kiện'
+  - 'Outbox và Event Sourcing: ý định phát với nguồn lịch sử nghiệp vụ'
+  - 'Outbox và 2PC: giao dịch cục bộ với phối hợp giao dịch phân tán'
+  - 'Outbox và CDC trực tiếp bảng nghiệp vụ: hợp đồng có chủ đích với thay đổi dữ liệu'
+  - 'Outbox và hàng đợi tác vụ: phân phối sự kiện với điều phối công việc'
+  - 'Outbox và lời gọi đồng bộ: lựa chọn theo nhu cầu phản hồi và nhất quán'
+- level1: Lỗi thiết kế
+  level2:
+  - Ghi Outbox ở giao dịch khác với dữ liệu nghiệp vụ
+  - Đánh dấu hoàn tất trước khi broker xác nhận
+  - Cho rằng @Transactional tự bao trùm cơ sở dữ liệu và broker
+  - Cho rằng Kafka chống trùng producer loại bỏ mọi bản sao Outbox
+  - Dùng thời điểm tạo hoặc khóa tăng dần để suy ra thứ tự commit
+  - Cho rằng cùng khóa Kafka tự sửa thứ tự phát đã bị đảo
+  - Thêm bản ghi Outbox từ listener sau commit mà không xử lý cửa sổ mất sự kiện
+  - Làm lại eventId ở mỗi lần gửi hoặc dùng sai phạm vi chống trùng
+  - Dọn dữ liệu quá sớm hoặc không theo dõi sự kiện bị kẹt
+  - Trộn trạng thái cập nhật của polling vào luồng CDC chỉ nhận thêm mới
+  - Bỏ qua tác động bên ngoài và gọi toàn bộ luồng là đúng một lần
+- level1: Thực hành
+  level2:
+  - Xây dựng ví dụ tạo đơn hàng và ghi Outbox trong một giao dịch
+  - Triển khai bộ chuyển tiếp polling với xác nhận gửi
+  - Thêm nhận việc có thời hạn và chạy nhiều bộ chuyển tiếp
+  - Xây dựng consumer có Inbox và ràng buộc chống xử lý trùng
+  - Chuyển ví dụ sang CDC với Debezium Outbox Event Router
+  - Thiết kế và kiểm chứng thứ tự sự kiện theo đơn hàng
+  - Bổ sung thử lại, cách ly và phát lại sự kiện lỗi
+  - Tạo số liệu độ trễ, tồn đọng và cảnh báo cần thiết
+  - Thực hiện các thử nghiệm dừng tiến trình tại cửa sổ lỗi
+  - So sánh polling với CDC bằng độ đúng, chi phí và khả năng vận hành
+  - Tự đánh giá toàn bộ luồng theo các điều kiện nhất quán đã xác định

@@ -1,0 +1,64 @@
+roadmap:
+- id: springdoc-va-openapi
+  title: Springdoc và OpenAPI
+  purpose: Hiểu vai trò của springdoc-openapi trong việc mô tả API HTTP theo chuẩn OpenAPI.
+  objectives:
+  - Phân biệt thư viện springdoc-openapi, OpenAPI Specification và Swagger UI
+  - Giải thích cách Springdoc tạo tài liệu từ Spring controller
+  - Nhận biết cấu trúc paths, operations và components của OpenAPI
+- id: starter-va-tuong-thich
+  title: Starter và tương thích
+  purpose: Chọn đúng starter phù hợp với Spring Boot và mô hình web của ứng dụng.
+  objectives:
+  - Phân biệt starter cho Spring Web MVC và WebFlux
+  - Nhận biết cặp phiên bản Spring Boot và springdoc-openapi tương thích
+  - Thêm dependency tối thiểu và khởi chạy ứng dụng mẫu
+- id: api-docs-va-swagger-ui
+  title: API Docs và Swagger UI
+  purpose: Truy cập và kiểm tra tài liệu API được sinh tự động.
+  objectives:
+  - Mở endpoint /v3/api-docs dạng JSON và YAML
+  - Dùng Swagger UI để đọc endpoint và thử request
+  - Phân biệt tài liệu được sinh ra với hành vi API thực tế
+- id: thong-tin-va-operation
+  title: Thông tin và Operation
+  purpose: Làm rõ ý nghĩa endpoint bằng metadata và các annotation OpenAPI.
+  objectives:
+  - Khai báo thông tin API, server và tag qua cấu hình hoặc annotation
+  - Dùng @Operation, @Parameter và @ApiResponse để mô tả API
+  - Đối chiếu mã HTTP, nội dung trả về và mô tả được sinh
+- id: schema-va-validation
+  title: Schema và Validation
+  purpose: Mô tả chính xác cấu trúc dữ liệu, ràng buộc và phản hồi của API.
+  objectives:
+  - Sử dụng @Schema và annotation validation cho DTO
+  - Kiểm tra trường bắt buộc, kiểu dữ liệu, enum và ví dụ
+  - Mô tả request body và error response theo hợp đồng API
+- id: nhom-va-loc-api
+  title: Nhóm và lọc API
+  purpose: Tổ chức nhiều nhóm tài liệu theo module, phiên bản hoặc đối tượng sử dụng.
+  objectives:
+  - Cấu hình GroupedOpenApi cho các nhóm endpoint
+  - Lọc theo package, path và annotation ẩn
+  - Kiểm tra URL tài liệu của từng nhóm
+- id: tai-lieu-bao-mat
+  title: Tài liệu bảo mật
+  purpose: Biểu diễn yêu cầu xác thực, phân quyền trong OpenAPI một cách rõ ràng.
+  objectives:
+  - Khai báo security scheme cho bearer token hoặc OAuth2
+  - Gắn @SecurityRequirement với API cần bảo vệ
+  - Kiểm tra Swagger UI gửi thông tin xác thực đúng cách
+- id: tuy-chinh-va-cau-hinh
+  title: Tùy chỉnh và cấu hình
+  purpose: Điều chỉnh nội dung và cách hiển thị tài liệu theo nhu cầu của dự án.
+  objectives:
+  - Cấu hình đường dẫn, tính năng Swagger UI và việc bật/tắt API docs
+  - Áp dụng OpenAPI bean hoặc OpenApiCustomizer cho metadata chung
+  - Giải thích cách bảo vệ endpoint tài liệu ở môi trường triển khai
+- id: kiem-chung-va-phat-hanh
+  title: Kiểm chứng và phát hành
+  purpose: Đảm bảo tài liệu được sinh đúng, đầy đủ và nhất quán với phiên bản API.
+  objectives:
+  - Xuất JSON/YAML để chia sẻ hoặc dùng trong công cụ tích hợp
+  - Kiểm tra endpoint, schema và response so với API thực tế
+  - Đưa bước kiểm tra thay đổi tài liệu vào quy trình build/CI

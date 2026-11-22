@@ -1,0 +1,49 @@
+roadmap:
+- id: grpc-spring
+  title: gRPC & Spring
+  purpose: Nắm mô hình RPC hiệu năng cao và vai trò của Spring gRPC trong ứng dụng Java.
+  objectives:
+  - '- Phân biệt gRPC với REST và HTTP/JSON.'
+  - '- Giải thích HTTP/2, Protobuf và service contract.'
+- id: dinh-nghia-protobuf
+  title: Định nghĩa Protobuf
+  purpose: Thiết kế hợp đồng API độc lập ngôn ngữ trước khi viết mã xử lý.
+  objectives:
+  - '- Khai báo message, field và service trong .proto.'
+  - '- Phân biệt các kiểu RPC unary và streaming.'
+- id: khoi-tao-codegen
+  title: Khởi tạo & Codegen
+  purpose: Chuẩn bị build và sinh lớp Java từ hợp đồng .proto.
+  objectives:
+  - '- Thêm dependency Spring gRPC phù hợp phiên bản Boot.'
+  - '- Cấu hình protoc/gRPC plugin và kiểm tra mã sinh.'
+- id: xay-dung-grpc-server
+  title: Xây dựng gRPC Server
+  purpose: Triển khai dịch vụ gRPC và cho Spring quản lý vòng đời server.
+  objectives:
+  - '- Kế thừa lớp ImplBase được sinh từ .proto.'
+  - '- Đăng ký BindableService và xử lý StreamObserver.'
+- id: grpc-client-channel
+  title: gRPC Client & Channel
+  purpose: Kết nối đến dịch vụ từ ứng dụng Spring bằng stub và channel.
+  objectives:
+  - '- Tạo channel với GrpcChannelFactory.'
+  - '- Gọi unary RPC bằng blocking hoặc async stub.'
+- id: streaming-flow
+  title: Streaming & Flow
+  purpose: Truyền nhiều thông điệp qua một RPC mà không cần tạo nhiều yêu cầu riêng.
+  objectives:
+  - '- Triển khai server/client hoặc bidirectional streaming.'
+  - '- Quản lý onNext, onCompleted và onError.'
+- id: status-security
+  title: Status & Security
+  purpose: Giải quyết lỗi, giới hạn thời gian gọi và bảo vệ kết nối RPC.
+  objectives:
+  - '- Trả gRPC Status phù hợp; đặt deadline khi gọi.'
+  - '- Phân biệt metadata/interceptor, TLS và xác thực.'
+- id: testing-observability
+  title: Testing & Observability
+  purpose: Kiểm chứng contract và theo dõi độ ổn định của dịch vụ.
+  objectives:
+  - '- Viết integration test với in-process gRPC.'
+  - '- Kiểm tra health, metrics và lỗi timeout.'

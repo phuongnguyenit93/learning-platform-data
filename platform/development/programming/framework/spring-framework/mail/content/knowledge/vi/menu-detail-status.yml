@@ -1,0 +1,3964 @@
+menu:
+- slug: mail-intro
+  title: Nhập môn
+  childs:
+  - slug: mail-intro-001
+    title: Spring Framework Mail là gì và giải quyết phần việc nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-002
+    title: Luồng gửi email từ ứng dụng đến máy chủ thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-003
+    title: Vai trò của ứng dụng, mail client, MTA, MDA và mailbox
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-004
+    title: SMTP, IMAP và POP3 trong hệ sinh thái thư điện tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-005
+    title: Phân biệt gửi thư với đọc, đồng bộ và quản lý hộp thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-006
+    title: Plain text, HTML và thư nhiều phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-007
+    title: Spring hỗ trợ tạo và gửi thư ở lớp trừu tượng nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-008
+    title: Khi nào dùng JavaMailSender và khi nào cần thư viện chuyên biệt?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-009
+    title: Các thành phần sẽ gặp trong một module gửi mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-010
+    title: Giới hạn của việc coi email như một lời gọi đồng bộ đơn giản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-intro-011
+    title: Lộ trình từ thư thử nghiệm đến hệ thống gửi thư đáng tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-architecture
+  title: Kiến trúc email
+  childs:
+  - slug: mail-architecture-001
+    title: Message User Agent và nơi người dùng soạn thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-002
+    title: Mail Submission Agent tiếp nhận thư từ ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-003
+    title: Mail Transfer Agent định tuyến thư giữa các miền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-004
+    title: Mail Delivery Agent đưa thư vào mailbox
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-005
+    title: DNS MX và cách miền nhận thư được tìm thấy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-006
+    title: SMTP envelope và phần header, body của message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-007
+    title: Đường đi nhiều chặng và các điểm có thể phát sinh lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-008
+    title: Queue thư trên máy chủ và thời điểm thư được coi là đã gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-009
+    title: Reply-To, Return-Path và địa chỉ người nhận thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-010
+    title: Bounces, delivery status notification và phản hồi không đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-011
+    title: Khác biệt giữa accepted, delivered, opened và clicked
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-smtp
+  title: SMTP
+  childs:
+  - slug: mail-smtp-001
+    title: Phiên SMTP từ kết nối đến đóng phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-002
+    title: EHLO, HELO, MAIL FROM, RCPT TO và DATA
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-003
+    title: Một message có nhiều người nhận và nhiều lệnh RCPT TO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-004
+    title: Mã phản hồi 2xx, 4xx và 5xx
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-005
+    title: Lỗi tạm thời và chiến lược thử lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-006
+    title: Lỗi vĩnh viễn do địa chỉ, chính sách hoặc nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-007
+    title: SMTP relay và giới hạn quyền gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-008
+    title: Submission port và khác biệt với cổng SMTP truyền thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-009
+    title: STARTTLS và nâng cấp kết nối trong phiên SMTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-010
+    title: SMTP AUTH và các cơ chế xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-011
+    title: Envelope sender khác với From hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-012
+    title: Kích thước thư, giới hạn dòng và giới hạn máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-013
+    title: Timeout kết nối, timeout đọc và timeout ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-mime
+  title: MIME
+  childs:
+  - slug: mail-mime-001
+    title: Cấu trúc MIME của một email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-002
+    title: Content-Type, charset và Content-Transfer-Encoding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-003
+    title: multipart/mixed cho nội dung và tệp đính kèm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-004
+    title: multipart/alternative cho plain text và HTML thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-005
+    title: multipart/related cho HTML và tài nguyên inline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-006
+    title: Boundary và cách các phần được phân tách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-007
+    title: Base64, quoted-printable và dữ liệu nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-008
+    title: Filename, tên hiển thị và mã hóa tham số MIME
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-009
+    title: Content-Disposition inline và attachment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-010
+    title: Content-ID và tham chiếu cid trong HTML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-011
+    title: Thứ tự các phần và khả năng tương thích mail client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-012
+    title: Kích thước MIME sau mã hóa khác với kích thước tệp gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-013
+    title: Kiểm tra MIME tree khi chẩn đoán thư hiển thị sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-address-headers
+  title: Địa chỉ và header
+  childs:
+  - slug: mail-address-headers-001
+    title: InternetAddress và cú pháp địa chỉ email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-002
+    title: Địa chỉ hiển thị tên và mã hóa tên người nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-003
+    title: From, To, Cc và Bcc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-004
+    title: Reply-To và địa chỉ nhận phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-005
+    title: Subject và mã hóa tiêu đề Unicode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-006
+    title: Message-ID và định danh message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-007
+    title: Date, In-Reply-To và References
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-008
+    title: Headers do ứng dụng tự đặt và rủi ro xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-009
+    title: Header injection và kiểm soát dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-010
+    title: Danh sách người nhận rỗng, trùng hoặc không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-011
+    title: Phân biệt địa chỉ phong bì với địa chỉ trong header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-address-headers-012
+    title: Quy tắc header của nhà cung cấp và email gateway
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-java-mail-api
+  title: API Java Mail
+  childs:
+  - slug: mail-java-mail-api-001
+    title: MailSender và hợp đồng gửi thư đơn giản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-002
+    title: JavaMailSender và khả năng tạo MimeMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-003
+    title: MimeMessage và vòng đời tạo message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-004
+    title: MimeMessagePreparator để chuẩn bị message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-005
+    title: SimpleMailMessage cho thư chỉ có văn bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-006
+    title: MimeMessageHelper như lớp hỗ trợ tạo MIME
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-007
+    title: Session, Transport và các đối tượng Jakarta Mail liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-008
+    title: Kiểm tra trạng thái message trước khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-009
+    title: Gửi nhiều message và tái sử dụng sender
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-010
+    title: Gửi một message đến nhiều người nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-011
+    title: MailException và các lỗi Spring thường gặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-012
+    title: Phân biệt MailParseException, MailAuthenticationException và MailSendException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-java-mail-api-013
+    title: Đọc nguyên nhân gốc từ exception chain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-sender-configuration
+  title: Cấu hình sender
+  childs:
+  - slug: mail-sender-configuration-001
+    title: Cấu hình host, port và protocol của mail server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-002
+    title: Username, password và thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-003
+    title: Default encoding cho message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-004
+    title: Default FileTypeMap và xử lý kiểu nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-005
+    title: Protocol smtp, smtps và lựa chọn theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-006
+    title: JavaMailSenderImpl và các thuộc tính cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-007
+    title: JavaMailSender làm bean dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-008
+    title: Cấu hình nhiều sender cho nhiều mục đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-009
+    title: Sender cho email giao dịch và email marketing
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-010
+    title: Tách cấu hình khỏi mã nguồn và quản lý secret
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-011
+    title: Profile phát triển, kiểm thử, staging và production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-012
+    title: Cấu hình động theo tenant hoặc miền người gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-sender-configuration-013
+    title: Kiểm tra cấu hình sớm khi ứng dụng khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-spring-boot
+  title: Spring Boot
+  childs:
+  - slug: mail-spring-boot-001
+    title: Auto-configuration cho mail sender
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-002
+    title: spring-boot-starter-mail và các dependency liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-003
+    title: Các thuộc tính spring.mail.host, port, username và password
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-004
+    title: spring.mail.properties.* truyền thuộc tính cho Jakarta Mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-005
+    title: spring.mail.default-encoding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-006
+    title: spring.mail.protocol và test-connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-007
+    title: Cấu hình timeout qua thuộc tính mail.smtp.*
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-008
+    title: Cấu hình debug protocol và tác động đến log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-009
+    title: Ghi đè auto-config bằng bean JavaMailSender riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-010
+    title: Tách cấu hình bằng application properties và YAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-011
+    title: Quản lý secret bằng biến môi trường hoặc secret store
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-012
+    title: Cấu hình sender trong nhiều profile Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-013
+    title: Kiểm tra điều kiện auto-configuration khi bean không xuất hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-boot-014
+    title: Giới hạn của cấu hình mặc định trong hệ thống nhiều sender
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-simple-mail
+  title: Simple mail
+  childs:
+  - slug: mail-simple-mail-001
+    title: Khi SimpleMailMessage phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-002
+    title: Đặt From, To, Cc, Bcc và Subject
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-003
+    title: Thiết lập nội dung văn bản thuần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-004
+    title: Tạo message từ dữ liệu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-005
+    title: Gửi message qua MailSender
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-006
+    title: Phân biệt setTo với addTo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-007
+    title: Một message cho nhiều địa chỉ nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-008
+    title: Kiểm tra địa chỉ trước khi tạo message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-009
+    title: Giữ nội dung không chứa dữ liệu nhạy cảm ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-010
+    title: Giới hạn của plain text khi cần định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-011
+    title: Tách mail service khỏi controller hoặc domain service
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-simple-mail-012
+    title: Đảm bảo message không bị sửa sau khi đưa vào hàng đợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-mime-message-helper
+  title: MimeMessageHelper
+  childs:
+  - slug: mail-mime-message-helper-001
+    title: Khởi tạo MimeMessageHelper với message và encoding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-002
+    title: Multipart mode và lựa chọn chế độ phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-003
+    title: Đặt From, To, Cc, Bcc và Reply-To
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-004
+    title: Đặt subject và text
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-005
+    title: text plain text và HTML trong cùng message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-006
+    title: setText với hai phiên bản nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-007
+    title: Thêm attachment từ File, InputStream và Resource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-008
+    title: Tên attachment và kiểu nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-009
+    title: Thêm inline resource với Content-ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-010
+    title: Tham chiếu inline resource từ HTML bằng cid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-011
+    title: Xử lý thứ tự add inline và set text
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-012
+    title: Đóng InputStream và quyền sở hữu tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-013
+    title: Kiểm tra MIME tree sau khi helper tạo message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-mime-message-helper-014
+    title: Giới hạn của helper khi cần MIME structure đặc biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-html-content
+  title: Nội dung HTML
+  childs:
+  - slug: mail-html-content-001
+    title: HTML email khác HTML của trình duyệt như thế nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-002
+    title: Mẫu HTML và dữ liệu được chèn từ ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-003
+    title: Escape dữ liệu người dùng trước khi đưa vào HTML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-004
+    title: CSS inline và giới hạn hỗ trợ của mail client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-005
+    title: Hình ảnh từ URL công khai và tài nguyên inline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-006
+    title: Plain text thay thế cho khả năng truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-007
+    title: Liên kết, nút và nội dung có thể đọc trên màn hình nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-008
+    title: Mã hóa ký tự trong subject và body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-009
+    title: Template engine và ranh giới giữa dữ liệu với markup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-010
+    title: Không đưa script hoặc nội dung động nguy hiểm vào email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-011
+    title: Kiểm tra HTML sau khi render bằng dữ liệu biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-012
+    title: Giữ template versioned và theo dõi thay đổi nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-html-content-013
+    title: Đo kích thước HTML và ảnh trước khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-email-templates
+  title: Template email
+  childs:
+  - slug: mail-email-templates-001
+    title: Mô hình dữ liệu cho một email template
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-002
+    title: Template variable và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-003
+    title: Template cho subject, plain text và HTML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-004
+    title: Phân tách layout chung với nội dung từng loại thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-005
+    title: Thư mục template và cách nạp resource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-006
+    title: Thymeleaf, FreeMarker hoặc engine khác trong luồng gửi mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-007
+    title: Render template ngoài transaction nghiệp vụ khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-008
+    title: Kiểm soát expression và dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-009
+    title: Escape HTML, URL và text theo ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-010
+    title: Template không tìm thấy và lỗi render
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-011
+    title: Kiểm thử template với dữ liệu đầy đủ và thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-012
+    title: Bản địa hóa subject và nội dung email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-email-templates-013
+    title: Versioning template và khả năng tương thích dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-attachments
+  title: Đính kèm
+  childs:
+  - slug: mail-attachments-001
+    title: Đính kèm tệp từ FileSystemResource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-002
+    title: Đính kèm từ ByteArrayResource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-003
+    title: Đính kèm từ InputStreamSource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-004
+    title: Đính kèm dữ liệu sinh trong bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-005
+    title: Tên tệp Unicode và xử lý encoding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-006
+    title: Content type của tệp và FileTypeMap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-007
+    title: Kích thước tệp và giới hạn message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-008
+    title: Không giữ InputStream quá thời gian gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-009
+    title: Tạo PDF hoặc báo cáo trước khi tạo message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-010
+    title: Xử lý tệp không tồn tại hoặc không đọc được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-011
+    title: Xóa tệp tạm sau khi gửi hoặc thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-012
+    title: Ngăn tệp người dùng tùy ý trở thành attachment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-013
+    title: Kiểm tra virus và loại tệp trước khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-attachments-014
+    title: Phân biệt attachment với inline resource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-inline-resources
+  title: Inline resource
+  childs:
+  - slug: mail-inline-resources-001
+    title: Mục đích của tài nguyên inline trong email HTML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-002
+    title: cid URL và Content-ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-003
+    title: Tạo Content-ID ổn định trong một message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-004
+    title: Đặt tên resource và kiểu nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-005
+    title: Thứ tự tạo HTML và thêm resource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-006
+    title: Một resource dùng cho nhiều vị trí trong HTML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-007
+    title: Mail client không hỗ trợ inline và phương án dự phòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-008
+    title: Kích thước ảnh inline và ảnh từ URL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-009
+    title: Đường dẫn classpath và resource trong JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-010
+    title: Không dùng đường dẫn file cục bộ trong HTML gửi đi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-011
+    title: Kiểm tra multipart/related và liên kết cid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-012
+    title: Loại bỏ resource không được tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-inline-resources-013
+    title: Bảo vệ resource khỏi dữ liệu ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-multi-format-sending
+  title: Gửi nhiều định dạng
+  childs:
+  - slug: mail-multi-format-sending-001
+    title: Thiết kế multipart/alternative cho plain text và HTML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-002
+    title: Chọn phần ưu tiên khi mail client hỗ trợ nhiều loại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-003
+    title: Nội dung thay thế phải diễn đạt cùng thông tin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-004
+    title: Thêm attachment mà không phá alternative
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-005
+    title: Kết hợp alternative, related và mixed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-006
+    title: Cấu trúc MIME lồng nhau cần được xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-007
+    title: Thứ tự multipart ảnh hưởng khả năng hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-008
+    title: Kiểm tra trên mail client khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-009
+    title: Xử lý client chỉ đọc plain text
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-010
+    title: Encoding nhất quán giữa các phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-011
+    title: Rủi ro khi tạo MIME thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multi-format-sending-012
+    title: Khi dùng helper và khi tạo Multipart trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-application-sending
+  title: Gửi trong ứng dụng
+  childs:
+  - slug: mail-application-sending-001
+    title: Tách use case gửi mail khỏi lớp vận chuyển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-002
+    title: Xây MailService với hợp đồng rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-003
+    title: Dùng command hoặc DTO cho dữ liệu email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-004
+    title: Kiểm tra dữ liệu trước khi tạo message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-005
+    title: Map dữ liệu nghiệp vụ sang mail model
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-006
+    title: Không để domain model phụ thuộc MimeMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-007
+    title: Xử lý email bắt buộc và email tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-008
+    title: Nội dung email thay đổi theo trạng thái nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-009
+    title: Template subject theo mã sự kiện hoặc loại thông báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-010
+    title: Giữ quy tắc người nhận ngoài controller
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-011
+    title: Bảo đảm không gửi trùng do một thao tác được gọi lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-application-sending-012
+    title: Ghi nhận message key để truy nguyên một email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-events-and-transactions
+  title: Sự kiện và giao dịch
+  childs:
+  - slug: mail-events-and-transactions-001
+    title: Gửi email trực tiếp trong transaction nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-002
+    title: Rủi ro email đã gửi nhưng transaction bị rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-003
+    title: Rủi ro transaction commit nhưng gửi mail thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-004
+    title: Phát sự kiện sau commit bằng transaction synchronization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-005
+    title: Transactional event listener và các phase xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-006
+    title: Đưa yêu cầu gửi mail vào outbox
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-007
+    title: Đảm bảo một sự kiện chỉ tạo một yêu cầu gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-008
+    title: Đọc outbox và gửi mail ngoài transaction chính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-009
+    title: Cập nhật trạng thái outbox sau khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-010
+    title: Khả năng phát lại và xử lý bản ghi lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-011
+    title: Tách giao dịch dữ liệu khỏi giao dịch SMTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-events-and-transactions-012
+    title: Giới hạn của việc gọi SMTP trong transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-asynchronous
+  title: Bất đồng bộ
+  childs:
+  - slug: mail-asynchronous-001
+    title: Khi gửi mail đồng bộ phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-002
+    title: Khi tách gửi mail sang tác vụ bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-003
+    title: TaskExecutor và thread pool cho mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-004
+    title: '@Async và ranh giới proxy của lời gọi bất đồng bộ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-005
+    title: Không tự gọi phương thức @Async trong cùng bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-006
+    title: Truyền security context và correlation context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-007
+    title: Xử lý exception trong tác vụ bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-008
+    title: Theo dõi queue và số tác vụ chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-009
+    title: Giới hạn tốc độ để không làm đầy mail server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-010
+    title: Executor riêng cho mail và các tác vụ khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-011
+    title: Shutdown có kiểm soát khi ứng dụng dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-asynchronous-012
+    title: Đảm bảo transaction không bị hiểu nhầm là kéo dài qua task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-retry-and-idempotency
+  title: Thử lại và idempotency
+  childs:
+  - slug: mail-retry-and-idempotency-001
+    title: Lỗi tạm thời và điều kiện thử lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-002
+    title: Lỗi xác thực hoặc địa chỉ không nên thử lại mù
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-003
+    title: Backoff, jitter và số lần thử tối đa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-004
+    title: Phân loại exception cho chính sách retry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-005
+    title: Retry ở client, queue worker hoặc nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-006
+    title: Message key để nhận diện cùng một yêu cầu gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-007
+    title: Idempotency khi worker đọc lại outbox
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-008
+    title: Ngăn gửi trùng sau timeout không rõ kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-009
+    title: Trạng thái queued, sending, sent, failed và dead letter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-010
+    title: Lưu số lần thử và nguyên nhân thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-011
+    title: Thời hạn hết hiệu lực của email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-retry-and-idempotency-012
+    title: Kiểm tra retry không tạo bão gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-errors-and-diagnostics
+  title: Lỗi và chẩn đoán
+  childs:
+  - slug: mail-errors-and-diagnostics-001
+    title: MailParseException khi tạo message không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-002
+    title: MailAuthenticationException khi xác thực thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-003
+    title: MailSendException và các failed message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-004
+    title: MailConnectException khi không kết nối được máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-005
+    title: MessagingException và nguyên nhân từ Jakarta Mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-006
+    title: Lỗi DNS, timeout và từ chối kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-007
+    title: Lỗi TLS, chứng chỉ và handshake
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-008
+    title: Lỗi recipient bị từ chối từng phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-009
+    title: Xác định message đã được gửi đến server hay chưa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-010
+    title: Đọc log SMTP ở mức phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-011
+    title: Không ghi password hoặc nội dung nhạy cảm vào log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-012
+    title: Bảo toàn correlation ID qua các lớp gửi mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-errors-and-diagnostics-013
+    title: Tạo bản sao message hoặc MIME dump an toàn để điều tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-smtp-security
+  title: Bảo mật SMTP
+  childs:
+  - slug: mail-smtp-security-001
+    title: TLS trong kết nối tới mail server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-002
+    title: STARTTLS và SMTPS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-003
+    title: Kiểm tra hostname và chứng chỉ máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-004
+    title: Trust store và cách tránh tắt xác minh TLS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-005
+    title: Xác thực username, password và token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-006
+    title: OAuth2 hoặc cơ chế xác thực hiện đại của nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-007
+    title: Bảo vệ secret trong cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-008
+    title: Xoay vòng secret và xử lý secret hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-009
+    title: Giới hạn quyền của tài khoản gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-010
+    title: Tách tài khoản gửi theo môi trường hoặc chức năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-011
+    title: Không tin dữ liệu để tạo header, địa chỉ và template
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-012
+    title: Chống header injection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-013
+    title: Bảo vệ attachment và đường dẫn resource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-smtp-security-014
+    title: Đánh giá rủi ro khi log SMTP debug
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-deliverability
+  title: Deliverability
+  childs:
+  - slug: mail-deliverability-001
+    title: Envelope sender và địa chỉ nhận bounce
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-002
+    title: SPF, DKIM và DMARC ở cấp miền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-003
+    title: Cấu hình PTR, reverse DNS và uy tín IP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-004
+    title: Tách miền gửi giao dịch với miền marketing
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-005
+    title: Nhà cung cấp giới hạn tốc độ và quota
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-006
+    title: Thư bị đánh dấu spam dù SMTP trả accepted
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-007
+    title: Địa chỉ bounce và xử lý phản hồi thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-008
+    title: List-Unsubscribe cho email đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-009
+    title: Tần suất gửi và tín hiệu người nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-010
+    title: Hủy đăng ký và yêu cầu không gửi tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-011
+    title: Nội dung, liên kết và hình ảnh ảnh hưởng deliverability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-012
+    title: Theo dõi accepted, bounced, deferred và complained
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-deliverability-013
+    title: Không suy ra delivery chỉ từ việc send trả thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-unit-testing
+  title: Kiểm thử đơn vị
+  childs:
+  - slug: mail-unit-testing-001
+    title: Kiểm thử dữ liệu dùng để tạo SimpleMailMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-002
+    title: Kiểm thử subject, From, To, Cc và Bcc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-003
+    title: Kiểm thử nội dung plain text và ký tự Unicode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-004
+    title: Kiểm thử MimeMessageHelper với multipart
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-005
+    title: Mock JavaMailSender đúng hợp đồng cần kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-006
+    title: ArgumentCaptor để kiểm tra message đã tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-007
+    title: Đọc MimeMessage trong test và xác minh header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-008
+    title: Kiểm tra attachment, inline resource và Content-ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-009
+    title: Kiểm tra template render với dữ liệu biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-010
+    title: Kiểm tra lỗi khi địa chỉ hoặc resource không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-011
+    title: Không phụ thuộc mail server thật trong unit test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-unit-testing-012
+    title: Tách kiểm thử logic chọn template khỏi kiểm thử transport
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-integration-testing
+  title: Kiểm thử tích hợp
+  childs:
+  - slug: mail-integration-testing-001
+    title: Mail server giả lập hoặc SMTP test container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-002
+    title: Cấu hình sender dành riêng cho test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-003
+    title: Gửi message qua SMTP và đọc lại message nhận được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-004
+    title: Xác minh MIME tree trên server kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-005
+    title: Kiểm thử TLS và xác thực trong môi trường cô lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-006
+    title: Kiểm thử timeout và server từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-007
+    title: Kiểm thử nhiều người nhận và recipient bị lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-008
+    title: Kiểm thử transaction với outbox
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-009
+    title: Kiểm thử retry và dead letter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-010
+    title: Dọn message và tài nguyên giữa các test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-011
+    title: Tránh test phụ thuộc thứ tự hoặc mailbox dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-integration-testing-012
+    title: Kiểm tra khác biệt giữa JavaMail mock và server thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-observability-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: mail-observability-operations-001
+    title: Metric số message tạo, gửi, thành công và thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-002
+    title: Đo thời gian tạo message và thời gian chờ SMTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-003
+    title: Theo dõi queue, retry count và dead letter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-004
+    title: Log message ID, template ID và correlation ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-005
+    title: Ẩn hoặc băm dữ liệu người nhận trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-006
+    title: Trace luồng từ sự kiện nghiệp vụ đến mail server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-007
+    title: Cảnh báo tỷ lệ lỗi, timeout và bounce tăng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-008
+    title: Theo dõi quota và tốc độ nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-009
+    title: Dashboard theo sender, tenant và loại email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-010
+    title: Kiểm tra outbox bị tồn đọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-011
+    title: Runbook cho lỗi xác thực, TLS và DNS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-observability-operations-012
+    title: Kiểm tra health indicator không gửi email thật ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-performance-limits
+  title: Hiệu năng và giới hạn
+  childs:
+  - slug: mail-performance-limits-001
+    title: Chi phí tạo MIME và mã hóa attachment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-002
+    title: Tái sử dụng JavaMailSender và connection configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-003
+    title: Giới hạn thread pool gửi email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-004
+    title: Giới hạn kích thước message và dữ liệu trong bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-005
+    title: Streaming attachment khi có thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-006
+    title: Gom hoặc chia lô yêu cầu gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-007
+    title: Giới hạn tốc độ theo nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-008
+    title: Giảm số lần render template không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-009
+    title: Tách tác vụ chuẩn bị nội dung khỏi tác vụ gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-010
+    title: Xử lý nhiều tenant và cô lập quota
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-011
+    title: Backpressure ở queue gửi mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-performance-limits-012
+    title: Đo throughput, latency và tỷ lệ thành công cùng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-multiple-providers
+  title: Nhiều nhà cung cấp
+  childs:
+  - slug: mail-multiple-providers-001
+    title: Abstraction chung cho nhiều SMTP provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-002
+    title: Cấu hình sender theo tenant hoặc miền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-003
+    title: Chọn provider dự phòng khi provider chính lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-004
+    title: Khác biệt mã lỗi và giới hạn giữa nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-005
+    title: Định tuyến theo loại email hoặc khu vực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-006
+    title: Bảo toàn message key khi chuyển provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-007
+    title: Không thử lại sang provider khác với lỗi không thể gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-008
+    title: Quản lý credential và quota riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-009
+    title: Kiểm thử contract của từng provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-010
+    title: Theo dõi deliverability khác nhau giữa các provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-011
+    title: Tránh phụ thuộc tính năng riêng khi không cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-multiple-providers-012
+    title: Báo cáo nguồn gửi trong observability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-incoming-mailboxes
+  title: Nhận thư và hộp thư
+  childs:
+  - slug: mail-incoming-mailboxes-001
+    title: Phạm vi gửi thư của JavaMailSender so với đọc thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-002
+    title: IMAP và POP3 trong các bài toán nhận thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-003
+    title: Session và kết nối đọc mailbox
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-004
+    title: Mail receiver trong Spring Integration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-005
+    title: Inbound channel adapter và polling
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-006
+    title: Folder, message và đánh dấu đã đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-007
+    title: Xử lý duplicate khi polling mailbox
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-008
+    title: Lưu message ID và trạng thái xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-009
+    title: Xử lý attachment từ thư đến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-010
+    title: Giới hạn quyền và kiểm tra nội dung thư đến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-011
+    title: Xử lý lỗi kết nối khi nhận thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-incoming-mailboxes-012
+    title: Khi nào tách module nhận mail khỏi module gửi mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-spring-integration
+  title: Spring Integration Mail
+  childs:
+  - slug: mail-spring-integration-001
+    title: Outbound mail adapter và message channel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-002
+    title: Chuyển Spring Message thành email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-003
+    title: MailSendingMessageHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-004
+    title: Mapping payload và header sang MimeMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-005
+    title: Định tuyến message theo loại email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-006
+    title: Poller, queue channel và lịch gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-007
+    title: Inbound mail adapter và message source
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-008
+    title: Lọc thư trước khi đưa vào flow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-009
+    title: Chuyển đổi mail message thành domain event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-010
+    title: Xử lý lỗi trong Integration flow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-011
+    title: Error channel và dead letter flow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-spring-integration-012
+    title: Phân biệt Spring Integration Mail với JavaMailSender trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-scheduled-sending
+  title: Lập lịch gửi
+  childs:
+  - slug: mail-scheduled-sending-001
+    title: Gửi ngay và gửi vào thời điểm được yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-002
+    title: Lưu thời điểm gửi cùng trạng thái message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-003
+    title: '@Scheduled và giới hạn của tác vụ định kỳ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-004
+    title: Quartz hoặc scheduler ngoài cho lịch bền vững
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-005
+    title: Tránh chạy trùng khi có nhiều instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-006
+    title: Distributed lock cho worker gửi mail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-007
+    title: Chọn batch size và khoảng polling
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-008
+    title: Xử lý email quá hạn hoặc bị bỏ qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-009
+    title: Múi giờ của lịch gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-010
+    title: Thay đổi lịch mà không làm mất yêu cầu đang chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-011
+    title: Theo dõi job gửi và các lần chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-scheduled-sending-012
+    title: Dừng lịch gửi an toàn khi bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-production-patterns
+  title: Mẫu thiết kế production
+  childs:
+  - slug: mail-production-patterns-001
+    title: Mail command và message key
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-002
+    title: Outbox pattern cho yêu cầu gửi mail bền vững
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-003
+    title: Worker gửi mail tách khỏi request thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-004
+    title: Dead letter và quy trình xử lý thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-005
+    title: Idempotency key và chống gửi trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-006
+    title: Template registry và phiên bản nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-007
+    title: Provider adapter và chiến lược fallback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-008
+    title: Rate limiter theo tài khoản hoặc tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-009
+    title: Policy xử lý địa chỉ bounce và unsubscribe
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-010
+    title: Data retention cho nội dung và metadata email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-011
+    title: Mã hóa hoặc loại bỏ nội dung nhạy cảm sau khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-012
+    title: Phân quyền thao tác retry và resend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-production-patterns-013
+    title: Thiết kế audit trail không lưu quá mức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-common-errors
+  title: Lỗi thường gặp
+  childs:
+  - slug: mail-common-errors-001
+    title: Cấu hình đúng host nhưng quên port hoặc protocol
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-002
+    title: Dùng password sai nhưng chỉ nhìn exception ngoài cùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-003
+    title: Tắt TLS verification để né lỗi chứng chỉ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-004
+    title: Gọi send trong transaction rồi giả định rollback được email
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-005
+    title: Dùng @Async nhưng gọi nội bộ cùng bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-006
+    title: Không đọc failed message trong MailSendException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-007
+    title: Tạo HTML nhưng quên plain text thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-008
+    title: Tham chiếu ảnh bằng đường dẫn file cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-009
+    title: Dùng ByteArrayResource nhưng đặt tên attachment không đúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-010
+    title: Đóng InputStream trước khi sender đọc xong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-011
+    title: Thử lại mọi exception với cùng một backoff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-012
+    title: Log toàn bộ message và dữ liệu người nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-013
+    title: Gửi lại sau timeout mà không xét khả năng server đã nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-014
+    title: Dùng mock JavaMailSender rồi kết luận deliverability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-common-errors-015
+    title: Không kiểm tra message ở mail client thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-architecture-decisions
+  title: Quyết định kiến trúc
+  childs:
+  - slug: mail-architecture-decisions-001
+    title: Chọn gửi trực tiếp hay qua queue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-002
+    title: Chọn SMTP relay hay HTTP email provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-003
+    title: Chọn template engine theo yêu cầu nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-004
+    title: Chọn attachment inline hay object storage link
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-005
+    title: Chọn retry trong ứng dụng hay trong nền tảng gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-006
+    title: Chọn lưu toàn bộ message hay chỉ lưu metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-007
+    title: Chọn một sender hay nhiều sender
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-008
+    title: Chọn đồng bộ hay bất đồng bộ theo trải nghiệm người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-009
+    title: Đánh giá yêu cầu giao nhận, bảo mật và kiểm toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-010
+    title: Đánh giá quota, chi phí và khả năng mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-011
+    title: Đặt ranh giới phần Spring Mail trong hệ thống lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-architecture-decisions-012
+    title: Ghi lại quyết định, giả thiết và phương án thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mail-practice-project
+  title: Dự án thực hành
+  childs:
+  - slug: mail-practice-project-001
+    title: Tạo endpoint yêu cầu gửi email xác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-002
+    title: Xây MailService gửi plain text bằng SimpleMailMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-003
+    title: Tạo email HTML và plain text bằng MimeMessageHelper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-004
+    title: Thêm attachment và inline image từ classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-005
+    title: Render email bằng template engine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-006
+    title: Kiểm thử message bằng mock JavaMailSender
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-007
+    title: Chạy SMTP server kiểm thử và đọc lại MIME
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-008
+    title: Tạo outbox cho email sau khi transaction commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-009
+    title: Xây worker retry với trạng thái và dead letter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-010
+    title: Thêm metric, correlation ID và log an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-011
+    title: Cấu hình TLS và secret theo profile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-012
+    title: Mô phỏng provider timeout và recipient bị từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-013
+    title: Thiết kế flow nhận mail bằng Spring Integration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mail-practice-project-014
+    title: Đánh giá khả năng mở rộng và giới hạn của dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

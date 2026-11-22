@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Thành phần vòng đời
+  slug: lifecycle-components
+  index: 1
+- title: Phân loại mô hình
+  slug: model-classification
+  index: 2
+- title: Thác nước
+  slug: waterfall-model
+  index: 3
+- title: Mô hình V
+  slug: vmodel
+  index: 4
+- title: Phát triển lặp
+  slug: iterative-development
+  index: 5
+- title: Phát triển tăng dần
+  slug: incremental-development
+  index: 6
+- title: Phát triển tiến hóa
+  slug: evolutionary-development
+  index: 7
+- title: Tạo mẫu
+  slug: prototyping
+  index: 8
+- title: Xoắn ốc
+  slug: spiral-model
+  index: 9
+- title: Phát triển nhanh
+  slug: rapid-development
+  index: 10
+- title: Quy trình hợp nhất
+  slug: unified-process
+  index: 11
+- title: Thích ứng và Agile
+  slug: adaptation-and-agile
+  index: 12
+- title: Hoạt động đồng thời
+  slug: concurrent-activities
+  index: 13
+- title: Tái sử dụng và tích hợp
+  slug: reuse-and-integration
+  index: 14
+- title: Phát hành liên tục
+  slug: continuous-release
+  index: 15
+- title: Mô hình lai
+  slug: hybrid-models
+  index: 16
+- title: Lựa chọn mô hình
+  slug: model-selection
+  index: 17
+- title: Điều chỉnh vòng đời
+  slug: lifecycle-tailoring
+  index: 18
+- title: Kế hoạch và mốc quyết định
+  slug: plans-and-decision-gates
+  index: 19
+- title: Sản phẩm và truy vết
+  slug: artifacts-and-traceability
+  index: 20
+- title: Chất lượng xuyên vòng đời
+  slug: lifecycle-quality
+  index: 21
+- title: Rủi ro và thay đổi
+  slug: risks-and-change
+  index: 22
+- title: Vận hành và kết thúc
+  slug: operation-and-closure
+  index: 23
+- title: Bối cảnh áp dụng
+  slug: application-context
+  index: 24
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 25
+- title: Áp dụng và đánh giá
+  slug: adoption-evaluation
+  index: 26
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 27

@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-libretranslate
+  title: Tổng quan LibreTranslate
+  purpose: Hiểu vai trò của LibreTranslate như một API dịch máy mã nguồn mở cho văn bản và tài liệu.
+  objectives:
+  - Giải thích luồng gửi nội dung và nhận bản dịch.
+  - Nêu các tình huống phù hợp khi tích hợp vào công cụ tài liệu.
+- id: cai-dat-self-host
+  title: Cài đặt & Self-host
+  purpose: Dựng một máy chủ dịch thử nghiệm và hiểu các lựa chọn vận hành.
+  objectives:
+  - Chạy LibreTranslate bằng Python hoặc Docker.
+  - Gửi yêu cầu thử đến instance cục bộ và xác minh phản hồi.
+- id: ngon-ngu-mo-hinh
+  title: Ngôn ngữ & Mô hình
+  purpose: Chọn được cặp ngôn ngữ có sẵn và hiểu giới hạn của mô hình dịch.
+  objectives:
+  - Tra cứu GET /languages và thử POST /detect.
+  - Kiểm tra ngôn ngữ nguồn/đích trước khi dịch.
+- id: rest-api-dich-van-ban
+  title: REST API dịch văn bản
+  purpose: Thao tác dịch tự động qua API với tham số và phản hồi đúng định dạng.
+  objectives:
+  - Gọi POST /translate với q, source, target và format.
+  - Xử lý translatedText và các lỗi yêu cầu cơ bản.
+- id: dich-tep-html
+  title: Dịch tệp & HTML
+  purpose: Áp dụng dịch máy cho tài liệu mà vẫn kiểm tra tính toàn vẹn của định dạng.
+  objectives:
+  - Thử POST /translate_file với loại tệp được hỗ trợ.
+  - Kiểm tra nội dung, cấu trúc và thẻ HTML sau dịch.
+- id: tich-hop-quy-trinh-tai-lieu
+  title: Tích hợp quy trình tài liệu
+  purpose: Kết nối dịch thuật vào ứng dụng với cách xử lý dữ liệu đáng tin cậy.
+  objectives:
+  - Xây dựng hàm gọi API và ánh xạ kết quả cho tài liệu.
+  - Chia nội dung dài thành phần hợp lý và xử lý lỗi tạm thời.
+- id: bao-mat-han-muc
+  title: Bảo mật & Hạn mức
+  purpose: Hạn chế rò rỉ nội dung và tránh làm quá tải dịch vụ khi triển khai.
+  objectives:
+  - Phân biệt API key của dịch vụ quản lý với self-host.
+  - Đề xuất HTTPS, giới hạn yêu cầu và kiểm soát tài liệu nhạy cảm.
+- id: chat-luong-giam-sat
+  title: Chất lượng & Giám sát
+  purpose: Đánh giá mức hữu ích của bản dịch và theo dõi chất lượng dịch vụ.
+  objectives:
+  - Đối chiếu thuật ngữ, ý nghĩa và bố cục trên mẫu tài liệu.
+  - Theo dõi độ trễ, lỗi dịch và kết quả health check.

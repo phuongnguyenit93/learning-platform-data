@@ -1,0 +1,112 @@
+menu:
+- title: Bản đồ nền tảng toán
+  slug: mathematical-foundations-overview
+  index: 0
+- title: Ngôn ngữ toán học
+  slug: mathematical-language
+  index: 1
+- title: Logic mệnh đề
+  slug: propositional-logic
+  index: 2
+- title: Logic vị từ
+  slug: predicate-logic
+  index: 3
+- title: Phương pháp chứng minh
+  slug: proof-methods
+  index: 4
+- title: Quy nạp và bất biến
+  slug: induction-and-invariants
+  index: 5
+- title: Tập hợp
+  slug: sets
+  index: 6
+- title: Quan hệ
+  slug: relations
+  index: 7
+- title: Hàm số
+  slug: functions
+  index: 8
+- title: Lực lượng và vô hạn
+  slug: cardinality-and-infinity
+  index: 9
+- title: Thứ tự và dàn
+  slug: orders-and-lattices
+  index: 10
+- title: Số học và đồng dư
+  slug: number-theory-and-congruences
+  index: 11
+- title: Cấu trúc đại số
+  slug: algebraic-structures
+  index: 12
+- title: Đại số Boolean
+  slug: boolean-algebra
+  index: 13
+- title: Dãy và tổng
+  slug: sequences-and-sums
+  index: 14
+- title: Tăng trưởng hàm
+  slug: function-growth
+  index: 15
+- title: Đệ quy và truy hồi
+  slug: recursion-and-recurrences
+  index: 16
+- title: Nguyên lý đếm
+  slug: counting-principles
+  index: 17
+- title: Tổ hợp nâng cao
+  slug: advanced-combinatorics
+  index: 18
+- title: Hàm sinh
+  slug: generating-functions
+  index: 19
+- title: Lý thuyết đồ thị
+  slug: graph-theory
+  index: 20
+- title: Cây
+  slug: trees
+  index: 21
+- title: Đường đi và mạng
+  slug: paths-and-networks
+  index: 22
+- title: Xác suất cơ sở
+  slug: probability-basics
+  index: 23
+- title: Biến ngẫu nhiên
+  slug: random-variables
+  index: 24
+- title: Phân phối xác suất
+  slug: probability-distributions
+  index: 25
+- title: Kỳ vọng và hội tụ
+  slug: expectations-and-convergence
+  index: 26
+- title: Thống kê và suy luận
+  slug: statistics-and-inference
+  index: 27
+- title: Lý thuyết thông tin
+  slug: information-theory
+  index: 28
+- title: Vectơ và không gian
+  slug: vectors-and-spaces
+  index: 29
+- title: Ma trận và hệ tuyến tính
+  slug: matrices-and-linear-systems
+  index: 30
+- title: Trị riêng và phân rã
+  slug: eigenvalues-and-decompositions
+  index: 31
+- title: Giải tích một biến
+  slug: single-variable-calculus
+  index: 32
+- title: Giải tích nhiều biến
+  slug: multivariable-calculus
+  index: 33
+- title: Tối ưu hóa
+  slug: optimization
+  index: 34
+- title: Tính toán số
+  slug: numerical-computation
+  index: 35
+- title: Mô hình và thực hành
+  slug: models-and-practice
+  index: 36

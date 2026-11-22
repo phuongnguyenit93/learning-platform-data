@@ -1,0 +1,288 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Mô hình miền nghiệp vụ là gì và dùng để giải quyết vấn đề nào
+  - Miền nghiệp vụ, mô hình và phần mềm liên hệ với nhau như thế nào
+  - Vì sao mô hình luôn là sự chọn lọc thay vì bản sao toàn bộ thực tế
+  - Phân biệt mô hình nghiệp vụ với màn hình, API và cơ sở dữ liệu
+  - Phân biệt góc nhìn khái niệm, thiết kế phần mềm và lưu trữ
+  - Những thuật ngữ nền tảng sẽ xuất hiện trong quá trình mô hình hóa
+  - Lộ trình học qua bài toán đặt hàng có phạm vi xác định
+- level1: Hiểu nghiệp vụ
+  level2:
+  - Xác định vấn đề cần giải quyết và kết quả mong muốn
+  - Nhận diện người sử dụng, chuyên gia nghiệp vụ và các bên liên quan
+  - Tìm hiểu công việc hiện tại trước khi đề xuất cấu trúc phần mềm
+  - Thu thập mục tiêu, chính sách, ngoại lệ và giới hạn vận hành
+  - Phân biệt nhu cầu thật với giải pháp được đề xuất sẵn
+  - Phân biệt sự kiện đã quan sát với giả định chưa được xác nhận
+  - Chuẩn bị câu hỏi làm rõ các tình huống còn mơ hồ
+  - Đối chiếu hiểu biết với người có thẩm quyền nghiệp vụ
+- level1: Phạm vi mô hình
+  level2:
+  - Xác định phần nghiệp vụ thuộc và không thuộc bài toán
+  - Chọn góc nhìn mô hình theo mục đích sử dụng
+  - Giới hạn mức chi tiết cần thiết cho một quyết định thiết kế
+  - Xác định đầu vào, đầu ra và các hệ thống bên ngoài
+  - Phân biệt ranh giới hệ thống với ranh giới một khái niệm nghiệp vụ
+  - Ghi rõ giả định, điều kiện áp dụng và câu hỏi còn mở
+  - Ngăn mô hình mở rộng sang những quy trình chưa có yêu cầu
+- level1: Ngôn ngữ nghiệp vụ
+  level2:
+  - Xây dựng bảng thuật ngữ từ cách người làm nghiệp vụ trao đổi
+  - Đặt tên khái niệm theo ý nghĩa thay vì theo loại dữ liệu
+  - Nhận diện từ đồng nghĩa và một từ có nhiều nghĩa
+  - Phân biệt vai trò, trạng thái và loại đối tượng trong cách gọi tên
+  - Định nghĩa thuật ngữ bằng ví dụ và phản ví dụ
+  - Giữ tên gọi nhất quán giữa tài liệu, sơ đồ, mã và kiểm thử
+  - Xử lý khác biệt thuật ngữ giữa các bộ phận
+- level1: Khám phá nghiệp vụ
+  level2:
+  - Phỏng vấn theo tình huống cụ thể thay vì chỉ hỏi danh sách dữ liệu
+  - Quan sát quy trình và thu thập biểu mẫu cùng dữ liệu mẫu
+  - Lần theo một trường hợp từ lúc bắt đầu đến khi kết thúc
+  - Tìm tình huống biên, trường hợp bị từ chối và cách xử lý thủ công
+  - Đối chiếu quy định được mô tả với cách vận hành thực tế
+  - Tổ chức buổi trao đổi chung để kiểm tra điểm chưa thống nhất
+  - Tổng hợp bằng chứng và truy vết nguồn của mỗi kết luận
+- level1: Kịch bản sử dụng
+  level2:
+  - Mô tả tác nhân, mục tiêu và điều kiện bắt đầu của một kịch bản
+  - Viết luồng thành công với các bước có thể quan sát
+  - Bổ sung luồng thay thế và trường hợp thất bại
+  - Phân biệt thao tác của người dùng với quyết định nghiệp vụ
+  - Mô tả điều kiện trước và kết quả phải đạt sau thao tác
+  - Dùng ví dụ dữ liệu cụ thể để làm rõ yêu cầu
+  - Liên kết kịch bản với tiêu chí chấp nhận và câu hỏi cần xác nhận
+- level1: Khái niệm nghiệp vụ
+  level2:
+  - Tìm khái niệm ứng viên từ kịch bản, dữ liệu và quy tắc
+  - Phân biệt khái niệm nghiệp vụ với chi tiết giao diện hoặc kỹ thuật
+  - Xác định ý nghĩa và trách nhiệm của từng khái niệm
+  - Phân biệt thuộc tính, đối tượng riêng và giá trị suy ra
+  - Chọn mức trừu tượng đủ dùng cho bài toán
+  - Phân loại đối tượng có định danh và đối tượng được phân biệt bằng giá trị
+  - Loại bỏ khái niệm trùng hoặc chưa có vai trò rõ ràng
+  - Kiểm tra mô hình bằng câu chuyện nghiệp vụ thực tế
+- level1: Định danh
+  level2:
+  - Nhận diện đối tượng cần được theo dõi xuyên suốt thời gian
+  - Phân biệt định danh nghiệp vụ với định danh kỹ thuật
+  - Phân biệt định danh ổn định với thuộc tính có thể thay đổi
+  - Xác định phạm vi duy nhất của mã định danh
+  - Làm rõ hai bản ghi có đang đại diện cùng một đối tượng
+  - Xử lý tạo mới, đổi mã, hợp nhất và ngừng sử dụng đối tượng
+  - Giữ ý nghĩa định danh khi dữ liệu đi qua nhiều hệ thống
+- level1: Đối tượng giá trị
+  level2:
+  - Nhận diện giá trị không cần vòng đời định danh riêng
+  - Gom các thuộc tính cùng biểu diễn một ý nghĩa nghiệp vụ
+  - Định nghĩa tính bằng nhau dựa trên các thành phần giá trị
+  - Giữ đối tượng giá trị hợp lệ ngay từ lúc tạo
+  - Ưu tiên bất biến khi phù hợp với cách sử dụng
+  - Thay thế toàn bộ giá trị thay vì thay đổi từng thành phần rời rạc
+  - Phân biệt giá trị chuẩn hóa với dữ liệu gốc cần giữ
+  - Tránh dùng chuỗi hoặc số thuần cho mọi khái niệm quan trọng
+- level1: Thuộc tính và dữ liệu
+  level2:
+  - Chọn thuộc tính theo câu hỏi nghiệp vụ cần trả lời
+  - Phân biệt dữ liệu bắt buộc, tùy chọn, chưa biết và không áp dụng
+  - Phân biệt giá trị được nhập, được tính và được sao chép
+  - Xác định đơn vị đo, miền giá trị và độ chính xác
+  - Quy định giá trị mặc định và ý nghĩa của việc thiếu dữ liệu
+  - Tránh lưu nhiều giá trị biểu diễn cùng một sự thật mà không có quy tắc đồng bộ
+  - Xác định nguồn có thẩm quyền khi dữ liệu được tổng hợp từ nhiều nơi
+- level1: Quan hệ
+  level2:
+  - Xác định ý nghĩa của quan hệ giữa các khái niệm
+  - Mô tả số lượng liên kết và tính bắt buộc ở mỗi đầu
+  - Phân biệt quan hệ sở hữu với liên hệ tham chiếu
+  - Mô hình hóa quan hệ có thuộc tính riêng bằng khái niệm trung gian
+  - Xác định vòng đời của đối tượng thành phần
+  - Đánh giá hướng truy cập thay vì tạo liên kết hai chiều mặc định
+  - Phân biệt kế thừa theo quan hệ kiểu với phân loại nghiệp vụ
+  - Chọn kết hợp đối tượng khi quan hệ không phù hợp với kế thừa
+- level1: Hành vi và trách nhiệm
+  level2:
+  - Tìm hành vi từ động từ và quyết định trong kịch bản nghiệp vụ
+  - Đặt hành vi gần dữ liệu và quy tắc mà nó phải bảo vệ
+  - Phân biệt hành vi nghiệp vụ với đọc ghi thuộc tính đơn thuần
+  - Thiết kế thao tác theo ý định như xác nhận, hủy hoặc đổi địa chỉ
+  - Xác định đối tượng cộng tác để hoàn thành một thao tác
+  - Phân biệt điều phối quy trình với quyết định nghiệp vụ
+  - Tránh đối tượng quản lý chung chứa mọi hành vi
+  - Giữ giao diện đối tượng nhỏ và có ý nghĩa với bên sử dụng
+- level1: Quy tắc và bất biến
+  level2:
+  - Phân biệt quy tắc nghiệp vụ, ràng buộc dữ liệu và yêu cầu kỹ thuật
+  - Diễn đạt quy tắc bằng câu rõ điều kiện và kết quả
+  - Nhận diện bất biến phải đúng trong suốt vòng đời đối tượng
+  - Phân biệt bất biến chung với điều kiện của một thao tác
+  - Xác định nơi chịu trách nhiệm kiểm tra và giữ mỗi quy tắc
+  - Lập bảng quyết định cho quy tắc có nhiều điều kiện
+  - Làm rõ mức ưu tiên khi nhiều chính sách cùng áp dụng
+  - Đối chiếu quy tắc bằng ví dụ hợp lệ và phản ví dụ
+  - Quản lý quy tắc thay đổi theo phiên bản hoặc thời gian hiệu lực
+- level1: Trạng thái và vòng đời
+  level2:
+  - Xác định trạng thái dựa trên khác biệt hành vi nghiệp vụ
+  - Phân biệt trạng thái, cờ kỹ thuật và kết quả được suy ra
+  - Mô tả trạng thái đầu, trạng thái kết thúc và đường chuyển hợp lệ
+  - Gắn sự kiện kích hoạt và điều kiện cho mỗi lần chuyển
+  - Làm rõ hành vi khi thao tác không hợp lệ ở trạng thái hiện tại
+  - Phân biệt hủy, xóa, lưu trữ và ngừng hiệu lực
+  - Xử lý trạng thái có thể quay lại và trạng thái kết thúc không thể đảo
+  - Tránh kết hợp nhiều cờ tạo ra tổ hợp trạng thái vô nghĩa
+- level1: Thời gian nghiệp vụ
+  level2:
+  - Phân biệt thời điểm, ngày nghiệp vụ, thời lượng và khoảng hiệu lực
+  - Xác định múi giờ có ý nghĩa đối với từng quy tắc
+  - Phân biệt thời gian sự việc xảy ra với thời gian hệ thống ghi nhận
+  - Quy định ranh giới bao gồm hoặc loại trừ của khoảng thời gian
+  - Xử lý hết hạn, đặt lịch và thay đổi có hiệu lực trong tương lai
+  - Giữ lịch sử khi dữ liệu nghiệp vụ thay đổi theo thời gian
+  - Mô hình hóa thời gian hiện tại như một đầu vào có thể kiểm soát
+- level1: Tiền và số lượng
+  level2:
+  - Gắn số tiền với đơn vị tiền tệ
+  - Chọn độ chính xác và quy tắc làm tròn theo nghiệp vụ
+  - Phân biệt đơn giá, thành tiền, giảm giá, thuế và tổng thanh toán
+  - Quy định thứ tự áp dụng các phép tính có ảnh hưởng kết quả
+  - Biểu diễn số lượng cùng đơn vị đo tương ứng
+  - Xử lý quy đổi đơn vị và giá trị không thể so sánh trực tiếp
+  - Phân biệt giá trị được chốt trong giao dịch với giá trị hiện tại trong danh mục
+  - Kiểm tra chênh lệch do làm tròn và phân bổ
+- level1: Sự kiện nghiệp vụ
+  level2:
+  - Nhận diện sự việc đã xảy ra có ý nghĩa với nghiệp vụ
+  - Phân biệt yêu cầu thực hiện hành động với sự kiện đã hoàn tất
+  - Đặt tên sự kiện theo kết quả đã xảy ra
+  - Chọn dữ liệu cần ghi lại để hiểu sự kiện
+  - Liên kết sự kiện với thay đổi trạng thái và quyết định nghiệp vụ
+  - Phân biệt lịch sử nghiệp vụ với log kỹ thuật
+  - Giữ phạm vi mô hình sự kiện độc lập với lựa chọn cơ chế truyền tin
+- level1: Ranh giới và sở hữu
+  level2:
+  - Xác định ai có quyền thay đổi một dữ liệu nghiệp vụ
+  - Gom dữ liệu và hành vi cần cùng bảo vệ một bất biến
+  - Giữ bên ngoài tương tác qua thao tác hợp lệ của đối tượng sở hữu
+  - Phân biệt tham chiếu tới đối tượng với quyền sửa đối tượng đó
+  - Xác định quy tắc nằm trong và nằm ngoài một ranh giới nhất quán
+  - Làm rõ cùng một thuật ngữ mang ý nghĩa khác nhau ở các phạm vi
+  - Giữ mô hình nội bộ khỏi bị chi phối bởi cấu trúc hệ thống bên ngoài
+  - Nhận diện điểm cần trao đổi thêm trước khi chia mô hình thành nhiều phần
+- level1: Biểu diễn mô hình
+  level2:
+  - Chọn sơ đồ theo câu hỏi cần làm rõ
+  - Vẽ sơ đồ khái niệm với tên, thuộc tính và quan hệ
+  - Biểu diễn số lượng liên kết, sở hữu và kế thừa bằng UML khi phù hợp
+  - Vẽ sơ đồ trạng thái để kiểm tra vòng đời
+  - Vẽ sơ đồ tuần tự để kiểm tra phân chia trách nhiệm
+  - Dùng bảng quyết định cho chính sách nhiều nhánh
+  - Phân biệt sơ đồ lớp, sơ đồ quy trình và sơ đồ dữ liệu
+  - Giữ sơ đồ đủ nhỏ để thảo luận và tránh thể hiện mọi chi tiết mã
+- level1: Từ mô hình đến Java
+  level2:
+  - Ánh xạ khái niệm sang lớp hoặc kiểu dữ liệu có ý nghĩa
+  - Biểu diễn đối tượng có định danh và đối tượng giá trị trong Java
+  - Dùng hàm khởi tạo hoặc phương thức tạo để bảo đảm dữ liệu hợp lệ
+  - Chọn enum cho tập giá trị đóng khi phù hợp
+  - Dùng record cho dữ liệu giá trị và hiểu giới hạn bất biến nông
+  - Định nghĩa equals và hashCode theo ý nghĩa của từng loại đối tượng
+  - Kiểm soát khả năng thay đổi và không để lộ tập hợp nội bộ
+  - Viết phương thức theo hành vi nghiệp vụ thay vì mở setter tùy ý
+- level1: Phân tách mô hình
+  level2:
+  - Phân biệt mô hình miền với dữ liệu trao đổi qua API
+  - Phân biệt mô hình miền với cấu trúc lưu trữ
+  - Phân biệt mô hình miền với dữ liệu phục vụ màn hình và báo cáo
+  - Ánh xạ dữ liệu bên ngoài vào kiểu có ý nghĩa nghiệp vụ
+  - Giữ quy tắc nghiệp vụ khỏi phụ thuộc trực tiếp vào bộ điều khiển và giao diện
+  - Đặt phần điều phối ca sử dụng tách khỏi hành vi cốt lõi khi cần
+  - Đánh giá khi nào một biểu diễn đơn giản có thể dùng chung
+- level1: Lưu trữ
+  level2:
+  - Chuyển mô hình khái niệm thành thiết kế dữ liệu mà không đồng nhất hai việc
+  - Ánh xạ định danh, đối tượng giá trị và quan hệ vào nơi lưu trữ
+  - Phân biệt ràng buộc cơ sở dữ liệu với quy tắc trong mô hình
+  - Khôi phục đối tượng từ dữ liệu đã lưu mà vẫn giữ bất biến
+  - Xử lý dữ liệu cũ không còn thỏa quy tắc mới
+  - Phân biệt lưu trạng thái hiện tại với lưu lịch sử thay đổi
+  - Giữ mô hình có thể kiểm thử mà không bắt buộc kết nối cơ sở dữ liệu
+- level1: Nhất quán dữ liệu
+  level2:
+  - Xác định dữ liệu phải cùng thay đổi để giữ đúng nghiệp vụ
+  - Chọn ranh giới giao dịch từ bất biến cần bảo vệ
+  - Nhận diện tranh chấp khi hai yêu cầu cùng sửa một đối tượng
+  - Phân biệt kiểm tra trước thao tác với bảo đảm đúng khi ghi dữ liệu
+  - Nhận diện nhu cầu kiểm soát phiên bản và xử lý xung đột
+  - Quy định cách xử lý yêu cầu lặp theo ý nghĩa nghiệp vụ
+  - Làm rõ trường hợp chấp nhận độ trễ đồng bộ giữa các phần mô hình
+  - Nhận biết giới hạn của mô hình đối tượng trước yêu cầu phân tán
+- level1: Lỗi nghiệp vụ
+  level2:
+  - Phân biệt dữ liệu không hợp lệ, thao tác bị từ chối và lỗi kỹ thuật
+  - Đặt tên lỗi theo quy tắc bị vi phạm
+  - Chọn kết quả hoặc ngoại lệ phù hợp với hợp đồng thao tác
+  - Giữ đối tượng ở trạng thái hợp lệ khi thao tác thất bại
+  - Xác định thông tin cần trả lại để người dùng có thể sửa yêu cầu
+  - Không để kiểm tra trên giao diện trở thành nơi duy nhất giữ quy tắc
+  - Phân biệt lỗi có thể thử lại với yêu cầu phải thay đổi dữ liệu
+- level1: Kiểm chứng mô hình
+  level2:
+  - Đi qua từng kịch bản cùng người hiểu nghiệp vụ
+  - Kiểm tra ví dụ hợp lệ, ngoại lệ và giá trị biên
+  - Đối chiếu mô hình với ngôn ngữ và quy tắc đã thống nhất
+  - Kiểm thử hành vi miền bằng dữ liệu nhỏ và độc lập hạ tầng
+  - Kiểm thử bất biến sau chuỗi thao tác thay vì chỉ từng phương thức
+  - Kiểm thử tính bằng nhau và chuẩn hóa đối tượng giá trị
+  - Kiểm tra vòng đời với ma trận thao tác và trạng thái
+  - Nhận diện điểm chưa biết thay vì coi sơ đồ đã vẽ là sự thật cuối cùng
+- level1: Thay đổi mô hình
+  level2:
+  - Nhận diện tín hiệu mô hình không còn phản ánh đúng nghiệp vụ
+  - Làm rõ thay đổi thuật ngữ trước khi đổi cấu trúc mã
+  - Tách hoặc gộp khái niệm theo trách nhiệm và vòng đời
+  - Đánh giá ảnh hưởng lên quy tắc, kịch bản, dữ liệu và giao diện
+  - Giữ hành vi đã xác nhận bằng kiểm thử khi tái cấu trúc
+  - Lập kế hoạch chuyển đổi dữ liệu và tương thích khi cần
+  - Ghi lại quyết định và kiểm tra mô hình sau mỗi thay đổi đáng kể
+- level1: Lựa chọn thiết kế
+  level2:
+  - So sánh mô hình tập trung dữ liệu với mô hình có hành vi
+  - Nhận biết khi xử lý theo thủ tục đơn giản phù hợp với bài toán
+  - Đánh giá chi phí trừu tượng hóa so với mức phức tạp nghiệp vụ
+  - Tránh tạo lớp hoặc mẫu thiết kế chỉ để đạt một hình thức kiến trúc
+  - Đánh giá khả năng hiểu, kiểm thử và thay đổi của mô hình
+  - Phân biệt nền tảng mô hình miền với phương pháp Domain-Driven Design
+  - Nhận diện thời điểm cần học sâu hơn về miền con, Bounded Context và Aggregate
+- level1: Lỗi thường gặp
+  level2:
+  - Bắt đầu từ bảng dữ liệu rồi coi đó là toàn bộ mô hình nghiệp vụ
+  - Biến mọi danh từ trong yêu cầu thành một lớp
+  - Đặt tên kỹ thuật chung chung làm mất ý nghĩa nghiệp vụ
+  - Gom nhiều ý nghĩa khác nhau vào cùng một đối tượng dùng chung
+  - Để setter và tập hợp công khai phá vỡ bất biến
+  - Mô hình hóa mọi chi tiết thực tế dù bài toán không sử dụng
+  - Dùng kế thừa chỉ để tái sử dụng thuộc tính
+  - Giữ cùng một khái niệm ở nhiều nơi mà không rõ quyền sở hữu
+  - Bỏ qua ngoại lệ và chỉ mô hình hóa luồng thành công
+- level1: Tài liệu mô hình
+  level2:
+  - Tổ chức bảng thuật ngữ, phạm vi và giả định của mô hình
+  - Liên kết khái niệm với kịch bản và quy tắc tương ứng
+  - Ghi rõ quyết định, lý do và phương án đã cân nhắc
+  - Lưu sơ đồ cùng ví dụ có thể kiểm chứng
+  - Đánh dấu mức độ chắc chắn và các câu hỏi cần người nghiệp vụ trả lời
+  - Cập nhật tài liệu theo thay đổi của mã và quy tắc
+- level1: Thực hành tổng hợp
+  level2:
+  - Thu thập yêu cầu cho bài toán đặt hàng có giới hạn rõ ràng
+  - Lập bảng thuật ngữ và mô tả kịch bản đặt, xác nhận và hủy đơn
+  - Xác định đơn hàng, dòng hàng, mã sản phẩm và địa chỉ nhận
+  - Mô hình hóa giá đã chốt, số lượng và cách tính tổng tiền
+  - Thiết kế vòng đời đơn hàng và bảng thao tác hợp lệ
+  - Phân chia trách nhiệm để bảo vệ các bất biến đã thống nhất
+  - Viết mô hình Java và bộ kiểm thử độc lập với framework
+  - Đưa ra thay đổi nghiệp vụ để kiểm tra khả năng thích ứng của mô hình
+  - Rà soát mô hình bằng sơ đồ, mã, ví dụ và phản hồi nghiệp vụ

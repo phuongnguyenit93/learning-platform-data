@@ -1,0 +1,57 @@
+roadmap:
+- id: quy-trinh-chan-doan
+  title: Quy trình chẩn đoán
+  purpose: Chuyển triệu chứng lúc chạy thành giả thuyết có thể kiểm chứng.
+  objectives:
+  - Ghi nhận thời điểm, tải, JDK và cấu hình khi lỗi xuất hiện.
+  - Phân biệt vấn đề CPU, bộ nhớ, luồng và I/O.
+  - Chọn bằng chứng cần thu trước khi thay đổi cấu hình.
+- id: cong-cu-va-du-lieu
+  title: Công cụ và dữ liệu
+  purpose: Thu thập đúng dữ liệu từ tiến trình với mức tác động được hiểu rõ.
+  objectives:
+  - Dùng jcmd để nhận diện tiến trình và lệnh chẩn đoán khả dụng.
+  - Đọc số liệu JVM qua MXBean/JMX và đối chiếu số liệu hệ điều hành.
+  - Đánh giá chi phí, quyền truy cập và dữ liệu nhạy cảm trong bản ghi.
+- id: luong-va-tac-nghen
+  title: Luồng và tắc nghẽn
+  purpose: Tìm nguyên nhân treo, chờ kéo dài hoặc tranh chấp khóa.
+  objectives:
+  - Đọc thread dump và phân biệt trạng thái luồng.
+  - Nhận diện deadlock, chờ khóa và chờ I/O.
+  - So sánh nhiều ảnh chụp theo thời gian thay vì kết luận từ một mẫu.
+- id: cpu-va-do-tre
+  title: CPU và độ trễ
+  purpose: Liên hệ điểm nóng thực thi với thời gian phản hồi quan sát được.
+  objectives:
+  - Thu bản ghi JFR theo khoảng thời gian có triệu chứng.
+  - Phân biệt luồng dùng CPU với luồng đang chờ.
+  - Đối chiếu mẫu thực thi, khóa và I/O để đề xuất điểm nghẽn.
+- id: heap-va-ro-ri
+  title: Heap và rò rỉ
+  purpose: Giải thích bộ nhớ đối tượng tăng bằng quan hệ giữ tham chiếu.
+  objectives:
+  - Đọc histogram và thu heap dump khi phù hợp.
+  - Tìm đối tượng chiếm nhiều bộ nhớ và đường giữ tới GC root.
+  - Phân biệt tăng cấp phát tạm thời với dữ liệu bị giữ lâu ngoài dự kiến.
+- id: gc-va-thoi-gian-dung
+  title: GC và thời gian dừng
+  purpose: Đánh giá tác động thu gom rác lên ứng dụng từ dữ liệu thực tế.
+  objectives:
+  - Thu và đọc unified GC log hoặc sự kiện GC trong JFR.
+  - Liên hệ tốc độ cấp phát, heap sau GC và thời gian dừng.
+  - Phân biệt áp lực heap với vấn đề cần đổi bộ thu gom.
+- id: bo-nho-native-va-su-co-jvm
+  title: Bộ nhớ native và sự cố JVM
+  purpose: Điều tra tài nguyên ngoài heap và lỗi làm tiến trình kết thúc.
+  objectives:
+  - Đối chiếu heap với tổng bộ nhớ tiến trình.
+  - Dùng Native Memory Tracking khi được bật và nêu giới hạn theo dõi.
+  - Đọc hs_err để xác định luồng, frame và thư viện liên quan tới sự cố.
+- id: kiem-chung-cai-thien
+  title: Kiểm chứng cải thiện
+  purpose: Xác nhận biện pháp xử lý giải quyết đúng nguyên nhân và không gây thoái lui.
+  objectives:
+  - Tái hiện vấn đề với tải và dữ liệu được kiểm soát.
+  - So sánh CPU, bộ nhớ, thông lượng và độ trễ trước–sau.
+  - Lưu bằng chứng, điều kiện đo và ngưỡng theo dõi tái phát.

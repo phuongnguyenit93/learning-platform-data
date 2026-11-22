@@ -1,0 +1,3 @@
+menuLevel1: MemorySegment
+menuLevel2: Tạo segment từ mảng hoặc ByteBuffer và hiểu thời gian sống của vùng nền
+status: WRITTEN

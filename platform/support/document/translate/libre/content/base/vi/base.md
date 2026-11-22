@@ -1,0 +1,5 @@
+# Support Document — LibreTranslate
+
+LibreTranslate là một API dịch máy mã nguồn mở, hỗ trợ dịch văn bản và tích hợp dịch thuật vào quy trình xử lý tài liệu. Công cụ sử dụng nền tảng Argos Translate và có thể được triển khai trên máy chủ tự quản. Khi dùng để dịch tài liệu, cần chú ý không chỉ kết quả ngôn ngữ mà cả loại tệp được hỗ trợ, định dạng, thuật ngữ chuyên môn và quyền riêng tư của nội dung.
+
+Module này phù hợp với người đã biết HTTP/REST, JSON và khái niệm triển khai dịch vụ. Bạn sẽ cài đặt LibreTranslate, khám phá ngôn ngữ được hỗ trợ, thử API phát hiện ngôn ngữ và dịch văn bản, rồi thực hành dịch tệp hoặc HTML. Phần tiếp theo là tích hợp vào ứng dụng, kiểm soát API key và hạn mức, bảo vệ dữ liệu, xử lý lỗi, kiểm tra chất lượng bản dịch và theo dõi dịch vụ. Kết thúc lộ trình, bạn có thể xây dựng một luồng dịch tài liệu cơ bản và đánh giá các giới hạn trước khi sử dụng trong sản phẩm thực tế.

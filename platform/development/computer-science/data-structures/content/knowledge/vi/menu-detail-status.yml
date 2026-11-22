@@ -1,0 +1,3826 @@
+menu:
+- slug: data-structures-overview
+  title: Tổng quan
+  childs:
+  - slug: data-structures-overview-001
+    title: Cấu trúc dữ liệu là gì và vấn đề tổ chức dữ liệu để làm gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-002
+    title: Dữ liệu, quan hệ giữa dữ liệu và các phép toán cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-003
+    title: Phân biệt kiểu dữ liệu, kiểu dữ liệu trừu tượng và cách cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-004
+    title: Mối liên hệ giữa cấu trúc dữ liệu và thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-005
+    title: Cấu trúc tuyến tính, phân cấp, đồ thị và kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-006
+    title: Cấu trúc tĩnh, động, khả biến và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-007
+    title: Truy cập theo vị trí, khóa, thứ tự và quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-008
+    title: Đánh đổi giữa tốc độ, bộ nhớ và độ phức tạp cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-009
+    title: 'Bản đồ thuật ngữ: phần tử, nút, liên kết, khóa và chỉ mục'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-overview-010
+    title: Lộ trình học từ cấu trúc cơ bản đến cấu trúc chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specifications-and-costs
+  title: Đặc tả và chi phí
+  childs:
+  - slug: specifications-and-costs-001
+    title: Đặc tả kiểu dữ liệu trừu tượng bằng tập phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-002
+    title: Tiền điều kiện, hậu điều kiện và bất biến biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-003
+    title: Phân biệt giao diện sử dụng với chi tiết lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-004
+    title: Đo kích thước dữ liệu và xác định phép toán cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-005
+    title: Chi phí truy cập, tìm kiếm, chèn, xóa và duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-006
+    title: Độ phức tạp thời gian và không gian phụ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-007
+    title: Trường hợp tốt nhất, xấu nhất, trung bình và chi phí kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-008
+    title: Phân tích khấu hao và sự khác biệt với lấy trung bình trên dữ liệu ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-009
+    title: Chi phí xây dựng ban đầu và chi phí cập nhật về sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-010
+    title: Bộ nhớ trên mỗi phần tử và chi phí do cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-011
+    title: Vai trò của phân bố dữ liệu và chuỗi thao tác thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-costs-012
+    title: Mô hình so sánh, mô hình RAM và giả định về kích thước từ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-and-representation
+  title: Bộ nhớ và biểu diễn
+  childs:
+  - slug: memory-and-representation-001
+    title: Lưu trữ liên tiếp và lưu trữ bằng các nút liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-002
+    title: Giá trị, địa chỉ, con trỏ, tham chiếu và tính gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-003
+    title: Căn chỉnh, phần đệm và chi phí thông tin phụ của nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-004
+    title: Tính cục bộ dữ liệu và ảnh hưởng của bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-005
+    title: Sao chép dữ liệu so với chia sẻ cùng vùng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-006
+    title: Bí danh tham chiếu và thay đổi có thể quan sát từ nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-007
+    title: Quyền sở hữu, vòng đời và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-008
+    title: Tham chiếu treo, rò rỉ bộ nhớ và giữ tham chiếu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-009
+    title: Sao chép nông, sao chép sâu và phần tử có trạng thái khả biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-010
+    title: Giá trị rỗng, nút canh gác và quy ước biểu diễn rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-011
+    title: So sánh bằng nhau, thứ tự toàn phần và tính nhất quán của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-and-representation-012
+    title: Bộ duyệt và điều kiện làm mất hiệu lực khi cấu trúc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arrays
+  title: Mảng
+  childs:
+  - slug: arrays-001
+    title: Mảng như ánh xạ từ chỉ số sang phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-002
+    title: Độ dài, chỉ số hợp lệ và quy ước khoảng nửa kín
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-003
+    title: Cách tính địa chỉ phần tử trong bộ nhớ liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-004
+    title: Truy cập theo chỉ số và giới hạn của tìm kiếm theo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-005
+    title: Chèn, xóa và chi phí dịch chuyển phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-006
+    title: Mảng có thứ tự và mảng không có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-007
+    title: Mảng nhiều chiều và cách trải phẳng theo hàng hoặc theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-008
+    title: Mảng răng cưa và biểu diễn nhiều chiều không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-009
+    title: Lát cắt, khung nhìn và quan hệ với mảng gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-010
+    title: Tìm kiếm tuyến tính và nhị phân nhìn từ yêu cầu biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-011
+    title: Tách mảng cấu trúc thành các mảng trường và đánh đổi bố trí dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-012
+    title: Lỗi vượt biên, lệch một đơn vị và nhầm độ dài với chỉ số cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-arrays
+  title: Mảng động
+  childs:
+  - slug: dynamic-arrays-001
+    title: Phân biệt số phần tử đang dùng với dung lượng đã cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-002
+    title: Biểu diễn mảng động bằng bộ đệm, kích thước và dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-003
+    title: Thêm cuối khi còn chỗ và khi phải cấp phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-004
+    title: Vì sao tăng dung lượng theo cấp số nhân cho chi phí khấu hao hằng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-005
+    title: Hệ số tăng trưởng và đánh đổi giữa sao chép với bộ nhớ dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-006
+    title: Vì sao tăng dung lượng từng đơn vị có thể gây chi phí bậc hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-007
+    title: Chèn, xóa tại vị trí bất kỳ và dịch chuyển vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-008
+    title: Thu nhỏ dung lượng và tránh tăng–giảm liên tục quanh ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-009
+    title: Đặt trước dung lượng khi biết quy mô dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-010
+    title: Mất hiệu lực của con trỏ, tham chiếu hoặc bộ duyệt sau cấp phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-011
+    title: Dọn các ô không còn dùng để tránh giữ đối tượng ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-012
+    title: So sánh mảng động với mảng cố định và danh sách liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-and-bit-sequences
+  title: Chuỗi và dãy bit
+  childs:
+  - slug: strings-and-bit-sequences-001
+    title: Chuỗi như dãy ký hiệu và các lựa chọn biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-002
+    title: Phân biệt byte, đơn vị mã, điểm mã Unicode và ký tự hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-003
+    title: Độ dài và truy cập ký tự phụ thuộc vào cách mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-004
+    title: Chuỗi khả biến, bất biến và bộ đệm xây dựng chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-005
+    title: Chi phí nối lặp nhiều lần và vai trò của bộ đệm tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-006
+    title: Chuỗi con được sao chép hay chia sẻ vùng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-007
+    title: Kết thúc bằng ký hiệu canh gác so với lưu độ dài tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-008
+    title: Dãy bit và đóng gói nhiều giá trị Boolean trong một từ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-009
+    title: Đặt, xóa, kiểm tra và duyệt các bit đang bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-010
+    title: Hợp, giao, hiệu và đếm phần tử bằng phép toán bit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-011
+    title: Đánh đổi của bitset khi miền giá trị dày hoặc thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bit-sequences-012
+    title: So sánh chuỗi, mảng ký tự, mảng byte và dãy bit theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linked-lists
+  title: Danh sách liên kết
+  childs:
+  - slug: linked-lists-001
+    title: Nút và liên kết trong danh sách đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-002
+    title: Con trỏ đầu, con trỏ cuối và bất biến của danh sách rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-003
+    title: Duyệt tuần tự và chi phí truy cập theo vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-004
+    title: Chèn đầu, chèn sau nút và thêm cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-005
+    title: Xóa đầu, xóa sau nút và giới hạn khi chỉ biết nút cần xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-006
+    title: Danh sách đôi và liên kết hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-007
+    title: Chèn, xóa một nút trong danh sách đôi khi đã có tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-008
+    title: Danh sách vòng đơn, vòng đôi và điều kiện kết thúc duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-009
+    title: Nút đầu giả, nút cuối giả và nút canh gác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-010
+    title: Đảo danh sách và cập nhật liên kết an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-011
+    title: Ghép, tách và chuyển đoạn nút giữa các danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-012
+    title: Danh sách nội tại (intrusive list) và quyền sở hữu nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-013
+    title: Phát hiện chu trình và phân biệt chu trình hợp lệ với lỗi liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linked-lists-014
+    title: So sánh chi phí cấp phát, bộ nhớ đệm và dịch chuyển dữ liệu với mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stacks
+  title: Ngăn xếp
+  childs:
+  - slug: stacks-001
+    title: Kiểu dữ liệu trừu tượng LIFO và các phép push, pop, peek
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-002
+    title: Ngăn xếp bằng mảng cố định hoặc mảng động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-003
+    title: Ngăn xếp bằng danh sách liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-004
+    title: Tràn, rỗng và lựa chọn chính sách xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-005
+    title: Ngăn xếp lời gọi và mối liên hệ với đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-006
+    title: Đổi đệ quy thành ngăn xếp tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-007
+    title: Ứng dụng kiểm tra dấu ngoặc và lưu trạng thái xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-008
+    title: Duy trì giá trị nhỏ nhất hoặc lớn nhất cùng ngăn xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-009
+    title: Ngăn xếp đơn điệu và bất biến thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-010
+    title: Lịch sử hoàn tác và giới hạn của mô hình một ngăn xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stacks-011
+    title: So sánh chi phí và lựa chọn cách biểu diễn ngăn xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-and-deques
+  title: Hàng đợi và deque
+  childs:
+  - slug: queues-and-deques-001
+    title: Kiểu dữ liệu trừu tượng FIFO và các phép thêm–lấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-002
+    title: Hàng đợi bằng danh sách đơn có đầu và cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-003
+    title: Vì sao xóa đầu mảng bằng dịch chuyển gây chi phí tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-004
+    title: Hàng đợi vòng bằng mảng và chỉ số quay vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-005
+    title: Phân biệt trạng thái đầy và rỗng trong bộ đệm vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-006
+    title: 'Bộ đệm có giới hạn: từ chối, chờ hoặc ghi đè dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-007
+    title: Mở rộng hàng đợi vòng và sắp xếp lại phần tử khi sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-008
+    title: Hàng đợi hai đầu (deque) và bốn phép thêm–lấy ở hai phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-009
+    title: Deque bằng mảng vòng hoặc các khối liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-010
+    title: Cài đặt hàng đợi bằng hai ngăn xếp và chi phí khấu hao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-011
+    title: Cài đặt ngăn xếp bằng hàng đợi và đánh đổi phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-012
+    title: Deque đơn điệu cho cực trị trên cửa sổ trượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deques-013
+    title: Phân biệt hàng đợi thường với hàng đợi ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sets-and-maps
+  title: Tập hợp và ánh xạ
+  childs:
+  - slug: sets-and-maps-001
+    title: Tập hợp như kiểu dữ liệu trừu tượng không chứa phần tử trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-002
+    title: Ánh xạ khóa–giá trị và tính duy nhất của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-003
+    title: Thêm mới, cập nhật, tra cứu và xóa theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-004
+    title: Phân biệt thiếu khóa với giá trị rỗng hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-005
+    title: Đa tập hợp và lưu số lần xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-006
+    title: Đa ánh xạ và nhiều giá trị cho cùng một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-007
+    title: Hợp, giao, hiệu và kiểm tra quan hệ tập con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-008
+    title: Thứ tự chèn, thứ tự sắp xếp và thứ tự duyệt không được bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-009
+    title: Ảnh hưởng của quy tắc bằng nhau và bộ so sánh đến khóa trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-010
+    title: Cài đặt tập hợp hoặc ánh xạ bằng mảng, danh sách, bảng băm và cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-and-maps-011
+    title: Khung nhìn khóa, giá trị, cặp khóa–giá trị và thay đổi trên cấu trúc gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash-tables
+  title: Bảng băm
+  childs:
+  - slug: hash-tables-001
+    title: Ý tưởng ánh xạ khóa vào vị trí lưu trữ bằng hàm băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-002
+    title: Phân biệt mã băm của khóa với chỉ số ô trong bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-003
+    title: Điều kiện nhất quán giữa phép so sánh bằng nhau và hàm băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-004
+    title: Hàm băm tốt, phân bố đều và giả định dùng trong phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-005
+    title: Va chạm và giải quyết bằng chuỗi liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-006
+    title: Địa chỉ mở và quy tắc thăm dò ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-007
+    title: Thăm dò tuyến tính và hiện tượng kết cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-008
+    title: Thăm dò bậc hai, băm kép và điều kiện để duyệt được vị trí cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-009
+    title: Hệ số tải và ảnh hưởng đến tìm kiếm, chèn, xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-010
+    title: Dấu mốc đã xóa và lý do không thể đơn giản đặt ô về rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-011
+    title: Băm lại khi tăng hoặc giảm dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-012
+    title: Chi phí kỳ vọng, khấu hao và trường hợp xấu nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-013
+    title: Khóa thay đổi sau khi chèn và nguy cơ không tìm lại được dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-014
+    title: Băm chuỗi, khóa tổ hợp và chi phí tính hàm băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-015
+    title: Tấn công gây va chạm và vai trò của ngẫu nhiên hóa hàm băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-tables-016
+    title: Vì sao bảng băm thông thường không hỗ trợ hiệu quả truy vấn thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash-table-variants
+  title: Biến thể bảng băm
+  childs:
+  - slug: hash-table-variants-001
+    title: Băm phổ dụng và lựa chọn ngẫu nhiên từ một họ hàm băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-002
+    title: Băm hoàn hảo cho tập khóa tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-003
+    title: Băm hoàn hảo tối thiểu và đánh đổi khi tập khóa thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-004
+    title: Băm cuckoo và chuỗi di chuyển khóa khi chèn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-005
+    title: Băm Robin Hood và cân bằng khoảng cách thăm dò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-006
+    title: Băm hopscotch và vùng lân cận của một ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-007
+    title: Băm có thể mở rộng và thư mục các nhóm khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-008
+    title: Băm tuyến tính và tăng số nhóm khóa từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-009
+    title: Băm nhất quán khi phân chia khóa giữa các nút lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-010
+    title: Phân biệt băm phục vụ tra cứu với băm mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-table-variants-011
+    title: Lựa chọn biến thể theo tải, cập nhật, bộ nhớ và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-trees
+  title: Cây cơ bản
+  childs:
+  - slug: basic-trees-001
+    title: Cây như quan hệ phân cấp và cây như đồ thị liên thông không chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-002
+    title: Gốc, nút cha, nút con, anh em, lá và nút trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-003
+    title: Độ sâu, chiều cao, bậc của nút và quy ước tính chiều cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-004
+    title: Cây có thứ tự, cây không thứ tự và rừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-005
+    title: Cây nhị phân và giới hạn tối đa hai nút con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-006
+    title: Cây nhị phân đầy đủ (full), hoàn chỉnh (complete), hoàn hảo (perfect) và suy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-007
+    title: Quan hệ giữa chiều cao với số nút và số lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-008
+    title: Biểu diễn cây bằng liên kết cha–con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-009
+    title: Biểu diễn cây nhị phân bằng mảng và công thức chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-010
+    title: Biểu diễn cây tổng quát bằng danh sách con hoặc con đầu–anh em kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-011
+    title: Quyền sở hữu cây con và những thay đổi ảnh hưởng nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-trees-012
+    title: Phân biệt cây biểu diễn dữ liệu với cây tìm kiếm và heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tree-traversal-and-transformation
+  title: Duyệt và biến đổi cây
+  childs:
+  - slug: tree-traversal-and-transformation-001
+    title: Duyệt trước, giữa, sau và ý nghĩa thứ tự xử lý nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-002
+    title: Duyệt theo tầng bằng hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-003
+    title: Duyệt cây bằng đệ quy và chi phí ngăn xếp theo chiều cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-004
+    title: Duyệt không đệ quy bằng ngăn xếp tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-005
+    title: Bộ duyệt lười và trạng thái cần giữ giữa các lần lấy phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-006
+    title: Tính kích thước, chiều cao và tổng hợp thông tin từ cây con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-007
+    title: Tìm đường từ gốc và xác định tổ tiên chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-008
+    title: Dựng lại cây nhị phân từ các thứ tự duyệt và điều kiện duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-009
+    title: Tuần tự hóa, khôi phục cây và mã hóa nút con rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-010
+    title: Sao chép, giải phóng và duyệt cây có độ sâu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-011
+    title: Duyệt Morris bằng liên kết tạm và điều kiện sử dụng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-and-transformation-012
+    title: Phát hiện cấu trúc không còn là cây do chu trình hoặc nhiều cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binary-search-trees
+  title: Cây tìm kiếm nhị phân
+  childs:
+  - slug: binary-search-trees-001
+    title: Bất biến BST trên toàn bộ cây con trái và phải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-002
+    title: Tra cứu khóa và đường đi quyết định bởi phép so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-003
+    title: Chèn nút mới và chính sách xử lý khóa trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-004
+    title: Tìm khóa nhỏ nhất, lớn nhất, tiền nhiệm và kế nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-005
+    title: Tìm khóa gần nhất theo cận dưới và cận trên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-006
+    title: Xóa nút lá và nút chỉ có một con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-007
+    title: Xóa nút hai con bằng tiền nhiệm hoặc kế nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-008
+    title: Giữ đúng liên kết cha, gốc và thông tin phụ khi xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-009
+    title: Duyệt giữa để lấy các khóa theo thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-010
+    title: Truy vấn một khoảng khóa và giới hạn số phần tử đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-011
+    title: Chi phí theo chiều cao và nguy cơ suy biến khi dữ liệu đã có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-012
+    title: Dựng BST cân đối từ dãy khóa đã sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-search-trees-013
+    title: Kiểm tra BST bằng miền khóa hợp lệ thay vì chỉ so sánh con trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: balanced-search-trees
+  title: Cây tìm kiếm cân bằng
+  childs:
+  - slug: balanced-search-trees-001
+    title: Mục tiêu khống chế chiều cao và các dạng bất biến cân bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-002
+    title: Phép quay trái, quay phải và bảo toàn thứ tự BST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-003
+    title: 'Cây AVL: chiều cao và hệ số cân bằng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-004
+    title: Bốn trường hợp mất cân bằng khi chèn vào AVL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-005
+    title: Xóa trong AVL và lan truyền thay đổi chiều cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-006
+    title: 'Cây đỏ–đen: màu nút, lá rỗng và chiều cao đen'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-007
+    title: Khôi phục bất biến đỏ–đen sau khi chèn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-008
+    title: Các trường hợp khôi phục sau khi xóa trong cây đỏ–đen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-009
+    title: Quan hệ giữa cây đỏ–đen và cây 2–3–4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-010
+    title: So sánh AVL với đỏ–đen theo tra cứu, cập nhật và thông tin phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-011
+    title: Cây splay và thao tác đưa nút vừa truy cập lên gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-012
+    title: Các bước zig, zig-zig và zig-zag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-013
+    title: Chi phí khấu hao của splay và một thao tác có thể vẫn tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: balanced-search-trees-014
+    title: Duy trì bộ duyệt và tham chiếu khi quay hoặc tổ chức lại cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiway-trees
+  title: Cây nhiều nhánh
+  childs:
+  - slug: multiway-trees-001
+    title: Động cơ gom nhiều khóa và con trỏ trong cùng một nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-002
+    title: Cây 2–3, cây 2–3–4 và quy tắc số con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-003
+    title: Định nghĩa B-tree và các quy ước về bậc hoặc bậc tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-004
+    title: Bất biến số khóa, số con và độ sâu của các lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-005
+    title: Tìm kiếm khóa trong một nút và chọn nhánh con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-006
+    title: Chèn vào B-tree bằng tách nút đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-007
+    title: Xóa bằng mượn khóa, gộp nút và điều chỉnh gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-008
+    title: B+-tree và việc lưu bản ghi ở tầng lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-009
+    title: Khóa phân cách, sao chép khóa và liên kết giữa các lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-010
+    title: Truy vấn khoảng trên B+-tree
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-011
+    title: Chọn kích thước nút theo trang lưu trữ và chi phí I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-012
+    title: So sánh B-tree, B+-tree và cây nhị phân cân bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiway-trees-013
+    title: Kiểm tra bất biến cây nhiều nhánh sau chuỗi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: heaps-and-priority-queues
+  title: Heap và hàng đợi ưu tiên
+  childs:
+  - slug: heaps-and-priority-queues-001
+    title: Kiểu dữ liệu trừu tượng hàng đợi ưu tiên và khóa ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-002
+    title: Min-heap, max-heap và bất biến thứ tự bộ phận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-003
+    title: Heap nhị phân bằng mảng và quan hệ cha–con theo chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-004
+    title: Thêm phần tử bằng đẩy lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-005
+    title: Lấy phần tử ưu tiên nhất bằng đẩy xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-006
+    title: Xây heap từ dưới lên với chi phí tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-007
+    title: Thay đổi khóa, xóa phần tử và nhu cầu biết vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-008
+    title: Heap có chỉ mục và ánh xạ ngược từ phần tử sang vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-009
+    title: Phân biệt heap với BST và với một dãy đã sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-010
+    title: Heap d-nhánh và đánh đổi chiều cao với số phép so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-011
+    title: Heap nhị thức và phép hợp nhất các cây theo bậc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-012
+    title: Heap Fibonacci, cập nhật lười và bảo đảm khấu hao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-013
+    title: Heap ghép cặp (pairing heap) và cách ghép các cây con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-014
+    title: Thứ tự giữa các phần tử có cùng ưu tiên và cách giữ tính ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-015
+    title: Ứng dụng top-k, ghép nhiều dãy và lập lịch tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heaps-and-priority-queues-016
+    title: So sánh cấu trúc theo nhu cầu decrease-key, meld và chi phí cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disjoint-sets
+  title: Tập hợp rời nhau
+  childs:
+  - slug: disjoint-sets-001
+    title: Bài toán quản lý các nhóm không giao nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-002
+    title: Các phép make-set, find và union
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-003
+    title: Đại diện của tập hợp và rừng cây cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-004
+    title: Cài đặt cơ bản bằng mảng cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-005
+    title: Hợp theo kích thước hoặc theo hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-006
+    title: Nén đường đi, chia đôi đường đi và cập nhật cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-007
+    title: Chi phí khấu hao với hàm nghịch đảo Ackermann
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-008
+    title: Phân biệt hạng với chiều cao thực sau khi nén đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-009
+    title: Duy trì kích thước và thông tin tổng hợp của mỗi nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-010
+    title: Ứng dụng thành phần liên thông tăng dần và phát hiện chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-011
+    title: Giới hạn đối với việc tách nhóm hoặc xóa liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disjoint-sets-012
+    title: DSU hoàn tác và lý do thường không dùng nén đường đi tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tries-and-string-indexes
+  title: Trie và chỉ mục chuỗi
+  childs:
+  - slug: tries-and-string-indexes-001
+    title: Trie như cây các tiền tố của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-002
+    title: Nút kết thúc khóa và sự khác biệt giữa tiền tố với khóa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-003
+    title: Tìm, chèn và xóa một khóa trong trie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-004
+    title: Lưu nhánh bằng mảng, bảng băm hoặc tập cạnh có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-005
+    title: Chi phí theo độ dài khóa và kích thước bảng chữ cái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-006
+    title: Liệt kê khóa theo tiền tố và hỗ trợ gợi ý tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-007
+    title: Trie nén và việc gộp chuỗi cạnh một con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-008
+    title: Cây radix, Patricia trie và cách phân biệt bit của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-009
+    title: Cây tìm kiếm ba nhánh cho ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-010
+    title: Cây hậu tố và biểu diễn các hậu tố bằng đoạn của chuỗi gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-011
+    title: Mảng hậu tố và mảng tiền tố chung dài nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-012
+    title: So sánh cây hậu tố với mảng hậu tố theo bộ nhớ và phép truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-013
+    title: Trie bit cho khóa số nguyên và truy vấn theo bit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tries-and-string-indexes-014
+    title: Quy ước chuẩn hóa Unicode và so sánh khóa chuỗi khi lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-representations
+  title: Biểu diễn đồ thị
+  childs:
+  - slug: graph-representations-001
+    title: Đỉnh, cạnh, cung và lựa chọn định danh cho đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-002
+    title: Đồ thị có hướng, vô hướng, trọng số và không trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-003
+    title: Khuyên, cạnh song song và yêu cầu biểu diễn đa đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-004
+    title: Ma trận kề và chi phí theo số đỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-005
+    title: Danh sách kề và chi phí theo số đỉnh, số cạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-006
+    title: Danh sách cạnh và cấu trúc bản ghi của cạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-007
+    title: Danh sách kề có thứ tự, tập kề và kiểm tra cạnh tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-008
+    title: Biểu diễn cạnh ngược và đỉnh đi vào cho đồ thị có hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-009
+    title: Đồ thị thưa, đồ thị dày và lựa chọn cách lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-010
+    title: Biểu diễn nén CSR, CSC và đánh đổi khi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-011
+    title: Thêm, xóa đỉnh hoặc cạnh và giữ nhất quán các chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-012
+    title: Thông tin đánh dấu, cha và khoảng cách khi duyệt đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-013
+    title: Ảnh hưởng của biểu diễn đến BFS, DFS và duyệt láng giềng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-014
+    title: Tuần tự hóa đồ thị có chu trình và bảo toàn danh tính nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-representations-015
+    title: So sánh lưu đối tượng đỉnh với các mảng chỉ số liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: range-queries
+  title: Truy vấn đoạn
+  childs:
+  - slug: range-queries-001
+    title: Mô hình truy vấn trên đoạn và quy ước biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-002
+    title: Tính kết hợp, phần tử đơn vị, phép nghịch đảo và tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-003
+    title: Tổng tiền tố và truy vấn tổng khi dữ liệu không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-004
+    title: Mảng hiệu và cập nhật cả đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-005
+    title: Phân rã căn bậc hai và cân bằng kích thước khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-006
+    title: Bảng thưa (sparse table) cho dữ liệu tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-007
+    title: 'Cây Fenwick: vùng phụ trách của mỗi chỉ số'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-008
+    title: Cập nhật điểm và truy vấn tiền tố bằng Fenwick
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-009
+    title: Truy vấn đoạn, tìm theo tổng tích lũy và điều kiện cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-010
+    title: Biến đổi Fenwick để cập nhật đoạn và truy vấn tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-011
+    title: Cây đoạn (segment tree) và phân chia miền chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-012
+    title: Xây cây đoạn, cập nhật điểm và truy vấn đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-013
+    title: Lan truyền lười (lazy propagation) cho cập nhật đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-014
+    title: Hợp thành nhãn cập nhật và bảo toàn bất biến tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-015
+    title: Cây đoạn động cho miền chỉ số lớn và thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-016
+    title: Truy vấn hai chiều và chi phí tăng theo số chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: range-queries-017
+    title: So sánh mảng tiền tố, bảng thưa, Fenwick và cây đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: randomized-structures
+  title: Cấu trúc ngẫu nhiên
+  childs:
+  - slug: randomized-structures-001
+    title: Ngẫu nhiên hóa hình dạng cấu trúc thay vì chỉ ngẫu nhiên hóa dữ liệu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-002
+    title: Skip list và các tầng liên kết bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-003
+    title: Tìm kiếm, chèn và xóa trong skip list
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-004
+    title: Phân bố chiều cao nút và chi phí kỳ vọng của skip list
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-005
+    title: Giới hạn trường hợp xấu nhất của các bảo đảm kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-006
+    title: Treap kết hợp thứ tự khóa của BST với thứ tự ưu tiên của heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-007
+    title: Chèn, xóa và quay trong treap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-008
+    title: Tách và hợp treap theo miền khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-009
+    title: Phân biệt ưu tiên ngẫu nhiên với độ ưu tiên nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-structures-010
+    title: Hạt giống ngẫu nhiên, khả năng tái hiện lỗi và dữ liệu bất lợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: augmented-trees
+  title: Cây tăng cường
+  childs:
+  - slug: augmented-trees-001
+    title: Nguyên tắc thêm thông tin phụ vào một cây nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-002
+    title: Duy trì thông tin cây con sau chèn, xóa và quay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-003
+    title: Cây thống kê thứ tự với kích thước cây con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-004
+    title: Tìm phần tử theo hạng và tính hạng của một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-005
+    title: Cây khoảng (interval tree) và phát hiện các khoảng giao nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-006
+    title: Cây tìm kiếm có tổng, cực trị hoặc dữ liệu tổng hợp của cây con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-007
+    title: Treap theo vị trí và tách–ghép một dãy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-008
+    title: Cây rope cho chuỗi dài và các thao tác ghép–cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-009
+    title: Bộ đệm khoảng trống (gap buffer) cho chỉnh sửa văn bản cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-010
+    title: Danh sách khối (unrolled linked list) và kết hợp lưu liên tiếp với liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-011
+    title: Cây Cartesian và quan hệ với truy vấn cực trị trên đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: augmented-trees-012
+    title: Chọn thông tin phụ dựa trên phép truy vấn cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spatial-indexes
+  title: Chỉ mục không gian
+  childs:
+  - slug: spatial-indexes-001
+    title: Điểm, hộp bao và truy vấn trên dữ liệu nhiều chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-002
+    title: Lưới không gian và chia miền thành các ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-003
+    title: Quadtree, octree và phân chia không gian theo vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-004
+    title: Cây k-d và lựa chọn trục chia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-005
+    title: Truy vấn miền chữ nhật trên cây k-d
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-006
+    title: Tìm láng giềng gần nhất và cắt nhánh bằng cận khoảng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-007
+    title: R-tree và nhóm các hộp bao có thể chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-008
+    title: Chèn, tách nút và ảnh hưởng của độ chồng lấn trong R-tree
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-009
+    title: So sánh phân chia điểm với phân chia vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-010
+    title: Dữ liệu lệch, cập nhật động và sự suy giảm hiệu quả của chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spatial-indexes-011
+    title: Lời nguyền số chiều và giới hạn của giả định truy vấn nhanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: probabilistic-structures
+  title: Cấu trúc xác suất
+  childs:
+  - slug: probabilistic-structures-001
+    title: Đánh đổi độ chính xác lấy bộ nhớ hoặc tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-002
+    title: Bloom filter và kiểm tra một phần tử có thể đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-003
+    title: Dương tính giả và điều kiện bảo đảm không có âm tính giả của Bloom filter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-004
+    title: Chọn số bit, số hàm băm và dung lượng dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-005
+    title: Vì sao Bloom filter chuẩn không hỗ trợ xóa tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-006
+    title: Counting Bloom filter và rủi ro khi cập nhật bộ đếm sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-007
+    title: Cuckoo filter và lưu dấu vân tay của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-008
+    title: Count-Min Sketch cho ước lượng tần suất phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-009
+    title: HyperLogLog cho ước lượng số phần tử phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-010
+    title: Hợp nhất cấu trúc xác suất và điều kiện tương thích tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-011
+    title: Phân biệt bộ lọc xác suất với tập hợp lưu khóa chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-structures-012
+    title: Đánh giá sai số, mức tin cậy và tác động đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integer-keys
+  title: Khóa số nguyên
+  childs:
+  - slug: integer-keys-001
+    title: Miền khóa hữu hạn và kích thước từ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-002
+    title: Bảng địa chỉ trực tiếp cho miền khóa nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-003
+    title: Tập hợp thưa (sparse set) và ánh xạ hai chiều giữa phần tử với vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-004
+    title: Bitset, bitmap nén và phân bố khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-005
+    title: Truy vấn tiền nhiệm, kế nhiệm và phần tử nhỏ nhất theo miền số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-006
+    title: Trie nhị phân và đường đi theo các bit của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-007
+    title: Cây van Emde Boas và phân rã miền khóa đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-008
+    title: x-fast trie, y-fast trie và ý tưởng kết hợp tiền tố với bảng băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-009
+    title: Chi phí theo số phần tử, độ lớn miền khóa và số bit của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integer-keys-010
+    title: Phân biệt cấu trúc cho khóa số nguyên với cây chỉ dựa vào phép so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: immutability-and-versions
+  title: Bất biến và phiên bản
+  childs:
+  - slug: immutability-and-versions-001
+    title: Bất biến của cấu trúc sau khi tạo và bất biến của các phần tử bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-002
+    title: 'Cấu trúc bền vững (persistent): giữ phiên bản cũ sau cập nhật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-003
+    title: Phân biệt cấu trúc bất biến với một khung nhìn chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-004
+    title: Sao chép toàn bộ và chia sẻ cấu trúc giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-005
+    title: Danh sách bất biến và dùng chung phần đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-006
+    title: Sao chép đường đi trong cây khi cập nhật một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-007
+    title: Bền vững từng phần, toàn phần và hợp nhất các nhánh phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-008
+    title: Cây đoạn nhiều phiên bản cho truy vấn lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-009
+    title: Trie băm HAMT và ánh xạ bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-010
+    title: Vector trie và dãy bất biến có truy cập theo vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-011
+    title: Quản lý vòng đời các phiên bản và chi phí giữ nút được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-012
+    title: Phân biệt lưu phiên bản với ghi bền dữ liệu xuống thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-versions-013
+    title: Lựa chọn giữa bất biến, sao chép khi ghi và sửa trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compact-representations
+  title: Biểu diễn gọn
+  childs:
+  - slug: compact-representations-001
+    title: Đo bộ nhớ theo bit và giới hạn thông tin tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-002
+    title: Mã hóa số nguyên có độ dài thay đổi và mã hóa chênh lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-003
+    title: Đóng gói trường dữ liệu và đánh đổi chi phí giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-004
+    title: Vector bit với các phép rank và select
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-005
+    title: Dùng chỉ mục phụ để tăng tốc rank và select
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-006
+    title: Biểu diễn cây bằng dãy ngoặc cân bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-007
+    title: Biểu diễn cây theo tầng LOUDS ở mức nguyên lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-008
+    title: Wavelet tree cho dãy ký hiệu và truy vấn tần suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-009
+    title: Nén danh sách số tăng dần và biểu diễn Elias–Fano
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-010
+    title: Ma trận thưa bằng bộ ba tọa độ, CSR và CSC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-011
+    title: Đánh đổi giữa nén, truy cập ngẫu nhiên và cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-representations-012
+    title: Phân biệt cấu trúc dữ liệu gọn với chỉ nén toàn bộ dữ liệu thành một khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-memory-data
+  title: Dữ liệu ngoài bộ nhớ
+  childs:
+  - slug: external-memory-data-001
+    title: Phân cấp thanh ghi, bộ nhớ đệm, RAM và thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-002
+    title: Mô hình I/O và đơn vị truyền dữ liệu theo khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-003
+    title: Vì sao số lần đọc trang có thể quan trọng hơn số phép so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-004
+    title: Thiết kế nút theo trang và tận dụng quét liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-005
+    title: Cây B+-tree dưới góc nhìn chỉ mục lưu trên thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-006
+    title: 'Cấu trúc LSM-tree: bộ đệm trong RAM và các tệp có thứ tự'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-007
+    title: SSTable, chỉ mục khối và bộ lọc khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-008
+    title: Hợp nhất tệp và các kiểu khuếch đại đọc, ghi, không gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-009
+    title: So sánh B+-tree với LSM-tree theo tải tra cứu và cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-010
+    title: Bố trí dữ liệu nhận biết bộ nhớ đệm và hướng cache-oblivious
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-011
+    title: Ánh xạ tệp vào bộ nhớ và những chi phí không tự biến mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-memory-data-012
+    title: Tuần tự hóa, phiên bản định dạng và khôi phục cấu trúc từ dữ liệu lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-access
+  title: Truy cập đồng thời
+  childs:
+  - slug: concurrent-access-001
+    title: Cấu trúc an toàn luồng và các thao tác có thể xen kẽ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-002
+    title: Bảo vệ bất biến khi nhiều luồng cùng đọc hoặc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-003
+    title: Khóa toàn cấu trúc, khóa từng vùng và đánh đổi mức tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-004
+    title: Vì sao từng phép toán an toàn chưa đủ cho một chuỗi kiểm tra–cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-005
+    title: Thao tác nguyên tử và điểm tuyến tính hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-006
+    title: Bộ duyệt nhất quán yếu, bộ duyệt ảnh chụp và phát hiện sửa đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-007
+    title: Ảnh chụp bất biến và sao chép khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-008
+    title: Giới thiệu CAS và yêu cầu về khả năng quan sát thay đổi bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-009
+    title: Phân biệt blocking, lock-free và wait-free
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-010
+    title: Vấn đề ABA và thu hồi nút khi vẫn còn người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-011
+    title: Chọn cấu trúc theo tỷ lệ đọc–ghi và yêu cầu nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-012
+    title: Giới hạn của đo hiệu năng khi bỏ qua tranh chấp hoặc cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: selection-and-design
+  title: Lựa chọn và thiết kế
+  childs:
+  - slug: selection-and-design-001
+    title: Bắt đầu từ phép toán chủ đạo và các bảo đảm cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-002
+    title: So sánh tra cứu theo chỉ số, khóa, thứ tự, tiền tố và khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-003
+    title: So sánh chi phí xây dựng, cập nhật, duyệt và truy vấn hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-004
+    title: Dữ liệu tĩnh hay động, dày hay thưa, có thứ tự hay ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-005
+    title: Đánh đổi giữa bảo đảm xấu nhất, kỳ vọng và khấu hao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-006
+    title: Giữ ổn định danh tính phần tử, tham chiếu và thứ tự duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-007
+    title: Kết hợp bảng băm với danh sách đôi để xây bộ đệm LRU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-008
+    title: Kết hợp heap với bảng vị trí để cập nhật ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-009
+    title: Duy trì nhiều chỉ mục trên cùng tập dữ liệu và tính nhất quán khi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-010
+    title: Chọn cấu trúc cho lịch sự kiện, gợi ý tiền tố và truy vấn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-011
+    title: Nhận biết tối ưu hóa sớm và thời điểm cần đổi cách biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-and-design-012
+    title: Lập bảng quyết định theo khối lượng dữ liệu, bộ nhớ và tải thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: verification-and-practice
+  title: Kiểm chứng và thực hành
+  childs:
+  - slug: verification-and-practice-001
+    title: Viết đặc tả phép toán trước khi cài đặt cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-002
+    title: Kiểm tra bất biến sau từng thao tác cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-003
+    title: Ca rỗng, một phần tử, khóa trùng, biên chỉ số và đầy dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-004
+    title: Đối chiếu với một mô hình tham chiếu đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-005
+    title: Sinh ngẫu nhiên chuỗi thao tác và tìm trường hợp tối thiểu gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-006
+    title: Kiểm tra bảo toàn phần tử, thứ tự và tính nhất quán giữa các chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-007
+    title: Đo hiệu năng với dữ liệu và tải thao tác đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-008
+    title: Tách ảnh hưởng của khởi động, cấp phát, thu gom rác và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-009
+    title: Đếm phép so sánh, lần cấp phát và lượng bộ nhớ bên cạnh đo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-010
+    title: Thực hành cài đặt cùng một kiểu dữ liệu trừu tượng bằng nhiều cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-011
+    title: Thực hành kiểm tra phép quay cây, xóa bảng băm và mở rộng mảng động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-012
+    title: Thực hành truy vấn khoảng, tiền tố và phiên bản dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-013
+    title: Phân tích một thiết kế sai do chọn cấu trúc không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-practice-014
+    title: Bài tập tổng hợp từ yêu cầu sử dụng đến cài đặt và chứng minh bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

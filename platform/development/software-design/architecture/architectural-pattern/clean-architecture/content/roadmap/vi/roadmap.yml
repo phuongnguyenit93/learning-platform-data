@@ -1,0 +1,57 @@
+roadmap:
+- id: clean-architecture-quy-tac-phu-thuoc
+  title: Clean Architecture & Quy tắc phụ thuộc
+  purpose: Hiểu cách bảo vệ nghiệp vụ cốt lõi bằng ranh giới và chiều phụ thuộc mã nguồn hướng vào trong.
+  objectives:
+  - Vẽ Entities, Use Cases, Interface Adapters, Frameworks & Drivers
+  - Giải thích Dependency Rule và separation of concerns
+  - Chỉ ra một phụ thuộc đi ngược chiều quy tắc
+- id: entities-domain-rules
+  title: Entities & Domain Rules
+  purpose: Đặt quy tắc nghiệp vụ ổn định trong domain thay vì rải trong controller hoặc database code.
+  objectives:
+  - Thiết kế Entity chứa bất biến nghiệp vụ
+  - Phân biệt Entity với ORM entity hoặc DTO
+  - Kiểm thử domain không khởi động framework
+- id: use-cases-application
+  title: Use Cases & Application
+  purpose: Tổ chức luồng nghiệp vụ cụ thể ở lớp ứng dụng mà không gắn với giao diện hay hạ tầng.
+  objectives:
+  - Viết một use case nhận input và trả output rõ ràng
+  - Phối hợp Entity và các cổng truy cập dữ liệu
+  - Giữ transaction policy phù hợp ranh giới use case
+- id: boundaries-dependency-inversion
+  title: Boundaries & Dependency Inversion
+  purpose: Đảo chiều phụ thuộc qua interface để chính sách bên trong không phải biết chi tiết bên ngoài.
+  objectives:
+  - Định nghĩa input boundary và output port cần thiết
+  - Đặt interface tại lớp sở hữu nhu cầu sử dụng
+  - Tạo fake adapter để chạy use case độc lập
+- id: interface-adapters
+  title: Interface Adapters
+  purpose: Chuyển đổi dữ liệu giữa thế giới bên ngoài và mô hình nghiệp vụ mà không làm rò rỉ chi tiết kỹ thuật.
+  objectives:
+  - Tạo REST controller gọi use case
+  - Ánh xạ HTTP DTO thành request model nội bộ
+  - Triển khai repository adapter cho cổng lưu trữ
+- id: frameworks-composition
+  title: Frameworks & Composition
+  purpose: Lắp ghép các implementation ở rìa hệ thống và giữ framework như một chi tiết có thể thay thế.
+  objectives:
+  - Đặt Spring Boot và database ở lớp ngoài
+  - Dùng constructor injection nối use case với adapter
+  - Vẽ composition root và sơ đồ phụ thuộc module
+- id: testing-architecture-rules
+  title: Testing & Architecture Rules
+  purpose: Xác minh cả hành vi ứng dụng lẫn hướng phụ thuộc để kiến trúc không bị xói mòn.
+  objectives:
+  - Viết unit test cho Entity và Use Case
+  - Thử integration test của adapter với hạ tầng thật
+  - Dùng ArchUnit chặn phụ thuộc sai giữa các package
+- id: refactoring-trade-offs
+  title: Refactoring & Trade-offs
+  purpose: Đánh giá lợi ích độc lập và khả năng kiểm thử so với chi phí interface, mapping và cấu trúc.
+  objectives:
+  - Tách một service đang trộn domain với persistence
+  - So sánh Clean Architecture với layered và hexagonal
+  - Nêu khi nào ứng dụng nhỏ chưa cần nhiều lớp

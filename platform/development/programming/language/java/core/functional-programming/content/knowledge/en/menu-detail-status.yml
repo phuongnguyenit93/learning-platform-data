@@ -1,0 +1,2449 @@
+menu:
+- slug: functional-overview
+  title: Tổng quan
+  childs:
+  - slug: functional-overview-001
+    title: Lập trình hàm là gì và giải quyết vấn đề nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-002
+    title: Từ mô tả từng bước tới mô tả phép biến đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-003
+    title: Mối liên hệ giữa hàm, dữ liệu, lambda và Stream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-004
+    title: Kết hợp phong cách hàm với hướng đối tượng trong Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-005
+    title: Java hỗ trợ lập trình theo phong cách hàm qua những cơ chế nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-006
+    title: Phân biệt dùng lambda với thiết kế có tính chất hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-007
+    title: 'Ví dụ xuyên suốt: lọc, biến đổi và tổng hợp đơn hàng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-008
+    title: Lộ trình học và kiến thức nền tảng cần có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-principles
+  title: Nguyên lý cốt lõi
+  childs:
+  - slug: functional-principles-001
+    title: Hàm thuần và điều kiện cùng đầu vào cho cùng đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-principles-002
+    title: Tác dụng phụ và phụ thuộc vào trạng thái bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-principles-003
+    title: Tính minh bạch tham chiếu và khả năng thay biểu thức bằng giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-principles-004
+    title: Dữ liệu bất biến và hạn chế thay đổi trạng thái dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-principles-005
+    title: 'Hàm bậc cao: nhận hàm hoặc trả về hàm'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-principles-006
+    title: Đánh giá ngay và đánh giá trì hoãn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-principles-007
+    title: Kết hợp các phép biến đổi nhỏ thành quy trình lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-principles-008
+    title: Đệ quy và giới hạn tối ưu lời gọi đuôi trong Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-interfaces
+  title: Functional interface
+  childs:
+  - slug: functional-interfaces-001
+    title: Functional interface và phương thức trừu tượng duy nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-002
+    title: '@FunctionalInterface: annotation tùy chọn để diễn đạt và kiểm tra ý định'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-003
+    title: Phương thức default, static và private không làm tăng số phương thức trừu tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-004
+    title: Phương thức tương ứng với phương thức public của Object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-005
+    title: Kế thừa interface và những chữ ký được hợp nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-006
+    title: Kiểu tham số, kiểu kết quả và mệnh đề throws của phương thức hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-007
+    title: Interface generic và giới hạn của phương thức hàm generic khi dùng lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-008
+    title: Nhận diện Runnable, Callable và Comparator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-009
+    title: Tạo functional interface riêng khi cần hợp đồng nghiệp vụ rõ nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-010
+    title: Vì sao sealed interface không thể làm kiểu đích cho lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-util-function
+  title: java.util.function
+  childs:
+  - slug: java-util-function-001
+    title: Function<T,R> cho phép biến đổi một đầu vào thành kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-002
+    title: Predicate<T> cho điều kiện đúng hoặc sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-003
+    title: Consumer<T> cho thao tác không trả về kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-004
+    title: Supplier<T> cho thao tác cung cấp giá trị không nhận đối số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-005
+    title: UnaryOperator<T> và BinaryOperator<T>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-006
+    title: BiFunction, BiPredicate và BiConsumer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-007
+    title: IntFunction, ToIntFunction và phân biệt chiều chuyển đổi kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-008
+    title: Các biến thể primitive cho int, long, double và boolean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-009
+    title: ObjIntConsumer và phối hợp đối tượng với kiểu nguyên thủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-util-function-010
+    title: Chọn interface theo số đối số, kiểu kết quả và ý nghĩa thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lambda-syntax
+  title: Cú pháp lambda
+  childs:
+  - slug: lambda-syntax-001
+    title: Cấu trúc tham số, dấu -> và phần thân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-syntax-002
+    title: Lambda không tham số, một tham số và nhiều tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-syntax-003
+    title: Thân biểu thức và thân khối lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-syntax-004
+    title: Quy tắc return và đường đi trả về giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-syntax-005
+    title: Khai báo kiểu tham số tường minh hoặc để suy luận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-syntax-006
+    title: Dùng var trong tham số lambda và yêu cầu nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-syntax-007
+    title: Lambda trả về void và biểu thức có thể dùng như câu lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-syntax-008
+    title: Viết lambda ngắn, đặt tên tham số rõ nghĩa và tách thân quá dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-capture
+  title: Phạm vi và bắt giữ
+  childs:
+  - slug: scope-capture-001
+    title: Phạm vi tên của tham số và biến cục bộ trong lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-capture-002
+    title: Giới hạn khai báo trùng tên với biến bao ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-capture-003
+    title: Bắt giữ biến cục bộ final và effectively final
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-capture-004
+    title: Phân biệt gán lại biến với thay đổi đối tượng được tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-capture-005
+    title: Truy cập trường đối tượng và trường static từ lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-capture-006
+    title: Ý nghĩa this và super trong lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-capture-007
+    title: So sánh phạm vi và this với lớp vô danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-capture-008
+    title: Rủi ro bắt giữ đối tượng lớn hoặc trạng thái có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: target-typing-inference
+  title: Kiểu đích và suy luận
+  childs:
+  - slug: target-typing-inference-001
+    title: Lambda cần kiểu đích là functional interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-002
+    title: Ngữ cảnh gán, truyền đối số, trả về và ép kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-003
+    title: Kiểm tra tương thích tham số và kiểu kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-004
+    title: Vì sao var không thể tự suy ra kiểu của lambda đứng riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-005
+    title: Suy luận generic khi truyền lambda vào phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-006
+    title: Wildcard ? super và ? extends trong API nhận hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-007
+    title: Nạp chồng phương thức nhận lambda và lời gọi không rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-008
+    title: Dùng kiểu tham số hoặc ép kiểu tường minh để giải quyết suy luận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-typing-inference-009
+    title: Không dựa vào lớp triển khai hoặc danh tính tham chiếu của lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-references
+  title: Tham chiếu phương thức
+  childs:
+  - slug: method-references-001
+    title: Method reference và quan hệ tương đương với lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-002
+    title: Tham chiếu phương thức static bằng Type::method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-003
+    title: Tham chiếu phương thức trên đối tượng đã có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-004
+    title: Tham chiếu phương thức đối tượng qua tên kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-005
+    title: Đối tượng nhận lời gọi trở thành tham số đầu tiên của kiểu hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-006
+    title: Tham chiếu hàm khởi tạo bằng Type::new
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-007
+    title: Tham chiếu hàm tạo mảng bằng Type[]::new
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-008
+    title: Chọn phương thức nạp chồng theo kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-009
+    title: Thời điểm đánh giá đối tượng nhận lời gọi và nguy cơ null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-references-010
+    title: Khi nào method reference làm mã dễ đọc hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: function-composition
+  title: Kết hợp hàm
+  childs:
+  - slug: function-composition-001
+    title: Function.compose() và Function.andThen()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-composition-002
+    title: Theo dõi thứ tự thực thi và kiểu trung gian khi kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-composition-003
+    title: Function.identity() và vai trò hàm đồng nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-composition-004
+    title: Predicate.and(), or(), negate() và đánh giá ngắn mạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-composition-005
+    title: Predicate.not() và Predicate.isEqual()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-composition-006
+    title: Consumer.andThen() và ảnh hưởng khi thao tác trước ném ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-composition-007
+    title: Currying và áp dụng trước một phần đối số bằng lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-composition-008
+    title: Xây dựng và kiểm tra quy trình biến đổi có thể tái sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavioral-apis
+  title: API nhận hành vi
+  childs:
+  - slug: behavioral-apis-001
+    title: Truyền quy tắc nghiệp vụ qua Predicate hoặc Function
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-002
+    title: Trả về Supplier hoặc Function từ phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-003
+    title: Collection.removeIf(), List.replaceAll() và Collection.forEach()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-004
+    title: Comparator.comparing(), thenComparing() và đảo thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-005
+    title: Comparator.comparingInt() và xử lý giá trị null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-006
+    title: Map.computeIfAbsent(), compute() và merge()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-007
+    title: Supplier để trì hoãn tạo giá trị hoặc thông báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-008
+    title: Nhận diện Function và Consumer trong CompletableFuture
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-apis-009
+    title: Thay lớp chiến lược đơn giản bằng lambda khi hợp đồng phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-exceptions
+  title: Ngoại lệ
+  childs:
+  - slug: functional-exceptions-001
+    title: Checked exception phải tương thích với throws của kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-exceptions-002
+    title: Vì sao Function và Consumer không khai báo checked exception
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-exceptions-003
+    title: Bắt và xử lý ngoại lệ bên trong lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-exceptions-004
+    title: Bọc ngoại lệ và giữ nguyên nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-exceptions-005
+    title: Functional interface riêng có throws khi thật sự cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-exceptions-006
+    title: Chọn dừng toàn bộ hay biểu diễn kết quả thành công, thất bại cho từng phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-exceptions-007
+    title: Không nuốt ngoại lệ để làm cho quy trình Stream tiếp tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-exceptions-008
+    title: Giữ phần đọc ghi và tác dụng phụ ở ranh giới dễ kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: optional
+  title: Optional
+  childs:
+  - slug: optional-001
+    title: Optional biểu diễn có hoặc không có kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-002
+    title: empty(), of() và ofNullable()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-003
+    title: map(), flatMap() và filter() trên Optional
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-004
+    title: Phân biệt hàm map trả về null với flatMap trả về null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-005
+    title: orElse() đánh giá đối số ngay và orElseGet() gọi Supplier khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-006
+    title: or(), orElseThrow() và lựa chọn xử lý khi không có giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-007
+    title: ifPresent() và ifPresentOrElse()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-008
+    title: Optional.stream() để phối hợp với Stream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-009
+    title: Tránh get() không kiểm tra và Optional có giá trị null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-010
+    title: Vai trò chính của Optional ở giá trị trả về và giới hạn khi lạm dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stream-model
+  title: Mô hình Stream
+  childs:
+  - slug: stream-model-001
+    title: Stream là dòng xử lý dữ liệu và không phải cấu trúc lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-model-002
+    title: Nguồn dữ liệu, phép biến đổi trung gian và thao tác kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-model-003
+    title: Phân biệt Stream, Collection, Iterator và luồng nhập xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-model-004
+    title: Đánh giá trì hoãn của thao tác trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-model-005
+    title: Một pipeline chỉ được tiêu thụ một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-model-006
+    title: Stream tuần tự và Stream song song
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-model-007
+    title: Thứ tự gặp phần tử và thứ tự thực thi thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-model-008
+    title: Đọc một pipeline theo kiểu dữ liệu ở từng bước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stream-creation
+  title: Tạo Stream
+  childs:
+  - slug: stream-creation-001
+    title: Tạo từ Collection.stream() và parallelStream()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-002
+    title: Stream.of(), empty() và ofNullable()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-003
+    title: Arrays.stream() với mảng đối tượng hoặc mảng nguyên thủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-004
+    title: Stream.generate() với Supplier
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-005
+    title: Stream.iterate() có hoặc không có điều kiện dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-006
+    title: Stream.builder() và Stream.concat()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-007
+    title: Nguồn từ tệp, dòng văn bản và các API JDK khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-008
+    title: Giới hạn nguồn vô hạn để pipeline có thể kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-creation-009
+    title: Đóng Stream giữ tài nguyên bằng try-with-resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stream-filtering
+  title: Lọc và chọn phần tử
+  childs:
+  - slug: stream-filtering-001
+    title: filter() và thiết kế Predicate không thay đổi nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-filtering-002
+    title: distinct() và ảnh hưởng của equals(), hashCode()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-filtering-003
+    title: limit() và skip()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-filtering-004
+    title: takeWhile() và dropWhile() trên nguồn có thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-filtering-005
+    title: Phân biệt filter() với takeWhile()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-filtering-006
+    title: Kết hợp điều kiện lọc bằng Predicate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-filtering-007
+    title: Xử lý phần tử null trước khi truy cập thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-filtering-008
+    title: Thứ tự đặt thao tác lọc và giới hạn làm thay đổi kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stream-mapping
+  title: Biến đổi dữ liệu
+  childs:
+  - slug: stream-mapping-001
+    title: map() và phép biến đổi một-một
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-mapping-002
+    title: flatMap() và làm phẳng dữ liệu lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-mapping-003
+    title: Phân biệt map() tạo Stream lồng với flatMap()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-mapping-004
+    title: mapMulti() cho phép biến đổi không, một hoặc nhiều phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-mapping-005
+    title: mapToInt(), mapToLong() và mapToDouble()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-mapping-006
+    title: Tạo đối tượng kết quả thay cho sửa đối tượng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-mapping-007
+    title: Kết hợp Optional và Stream mà không gọi get() tùy tiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-mapping-008
+    title: Chọn vòng lặp khi phép biến đổi có nhiều nhánh khó đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stream-sorting-observing
+  title: Sắp xếp và quan sát
+  childs:
+  - slug: stream-sorting-observing-001
+    title: sorted() theo thứ tự tự nhiên hoặc Comparator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-sorting-observing-002
+    title: Sắp xếp theo nhiều khóa và xử lý khóa null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-sorting-observing-003
+    title: Tính ổn định của sorted() trên Stream có thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-sorting-observing-004
+    title: Phân biệt sắp xếp đầu vào với sắp xếp kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-sorting-observing-005
+    title: peek() để quan sát khi gỡ lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-sorting-observing-006
+    title: Vì sao peek() không phù hợp cho thao tác nghiệp vụ bắt buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-sorting-observing-007
+    title: Chi phí giữ trạng thái của sorted() và distinct()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-sorting-observing-008
+    title: Ảnh hưởng của vị trí sorted(), limit() và distinct()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: terminal-operations
+  title: Thao tác kết thúc
+  childs:
+  - slug: terminal-operations-001
+    title: forEach() và forEachOrdered()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-002
+    title: count() và những trường hợp không cần duyệt từng phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-003
+    title: findFirst() và findAny()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-004
+    title: anyMatch(), allMatch() và noneMatch()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-005
+    title: Kết quả của các phép kiểm tra khi Stream rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-006
+    title: min(), max() và Comparator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-007
+    title: toArray() với mảng có kiểu cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-008
+    title: toList(), collect() và reduce() phục vụ các kiểu kết quả khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-operations-009
+    title: Thao tác ngắn mạch và phần tử có thể không được xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: primitive-streams
+  title: Stream nguyên thủy
+  childs:
+  - slug: primitive-streams-001
+    title: IntStream, LongStream và DoubleStream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-streams-002
+    title: range() và rangeClosed()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-streams-003
+    title: sum(), average(), min(), max() và summaryStatistics()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-streams-004
+    title: OptionalInt, OptionalLong và OptionalDouble
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-streams-005
+    title: boxed(), mapToObj() và chuyển đổi giữa các Stream nguyên thủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-streams-006
+    title: Tránh boxing không cần thiết trong phép tính số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-streams-007
+    title: Tràn số nguyên và sai số số thực trong phép tổng hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-streams-008
+    title: Chọn BigDecimal cho yêu cầu tính toán thập phân chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reduce-operations
+  title: Rút gọn bằng reduce
+  childs:
+  - slug: reduce-operations-001
+    title: Phép rút gọn kết hợp nhiều phần tử thành một kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-002
+    title: reduce() không có giá trị khởi đầu và kết quả Optional
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-003
+    title: Phần tử đơn vị và reduce() có giá trị khởi đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-004
+    title: Tính kết hợp của phép toán và vì sao phép trừ thường không phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-005
+    title: 'reduce() ba tham số: identity, accumulator và combiner'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-006
+    title: Yêu cầu tương thích giữa accumulator và combiner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-007
+    title: Tại sao giá trị đơn vị sai làm kết quả song song sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-008
+    title: Không dùng đối tượng tích lũy có thể thay đổi chung trong reduce()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reduce-operations-009
+    title: Chọn reduce() hay collect() theo bản chất kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collectors
+  title: Thu thập kết quả
+  childs:
+  - slug: collectors-001
+    title: collect() và phép rút gọn với vùng tích lũy có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-002
+    title: Stream.toList() trả về danh sách không cho sửa cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-003
+    title: Collectors.toList() không cam kết kiểu triển khai hoặc khả năng sửa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-004
+    title: toCollection() để chọn loại Collection tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-005
+    title: toSet(), toUnmodifiableList() và toUnmodifiableSet()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-006
+    title: joining() để ghép chuỗi với dấu phân cách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-007
+    title: toMap() với hàm tạo khóa và giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-008
+    title: Khóa trùng, hàm gộp và lựa chọn loại Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-009
+    title: toUnmodifiableMap() và yêu cầu về dữ liệu null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-010
+    title: Phân biệt tập hợp không cho sửa với bất biến sâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grouping-partitioning
+  title: Nhóm và phân vùng
+  childs:
+  - slug: grouping-partitioning-001
+    title: groupingBy() theo một thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-partitioning-002
+    title: Nhóm nhiều tầng và cấu trúc Map lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-partitioning-003
+    title: Chọn loại Map để kiểm soát thứ tự khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-partitioning-004
+    title: partitioningBy() chia dữ liệu theo Predicate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-partitioning-005
+    title: Phân biệt partitioningBy() với groupingBy() theo boolean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-partitioning-006
+    title: Đếm, tính tổng và tìm phần tử đại diện theo nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-partitioning-007
+    title: Thiết kế khóa nhóm ổn định và xử lý khóa thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-partitioning-008
+    title: Đọc kiểu kết quả của các collector kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collector-composition
+  title: Collector kết hợp
+  childs:
+  - slug: collector-composition-001
+    title: counting(), summingInt() và averagingDouble()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-002
+    title: summarizingInt(), summarizingLong() và summarizingDouble()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-003
+    title: mapping() để biến đổi trong từng nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-004
+    title: flatMapping() để làm phẳng trong từng nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-005
+    title: filtering() phía sau groupingBy() khác lọc toàn pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-006
+    title: reducing(), minBy() và maxBy() phía sau collector khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-007
+    title: collectingAndThen() để hoàn thiện kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-008
+    title: teeing() để kết hợp hai phép tổng hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-composition-009
+    title: Kết hợp collector đủ rõ ràng và tránh cấu trúc lồng quá sâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-collectors
+  title: Collector tùy chỉnh
+  childs:
+  - slug: custom-collectors-001
+    title: Collector<T,A,R> và vai trò của ba kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-002
+    title: Supplier tạo vùng tích lũy mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-003
+    title: Accumulator thêm phần tử vào vùng tích lũy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-004
+    title: Combiner gộp các vùng tích lũy độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-005
+    title: Finisher chuyển vùng tích lũy thành kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-006
+    title: Collector.of() và xây dựng collector đơn giản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-007
+    title: IDENTITY_FINISH, UNORDERED và CONCURRENT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-008
+    title: Luật phần tử đơn vị, tính kết hợp và tính tương đương kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-collectors-009
+    title: Kiểm tra collector với nguồn rỗng, chia nhóm và thực thi song song
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-model
+  title: Cơ chế thực thi
+  childs:
+  - slug: execution-model-001
+    title: Pipeline được xây dựng trước và thực thi khi có thao tác kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-002
+    title: Các bước có thể được phối hợp trong một lần duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-003
+    title: Xử lý từng phần tử thay vì chạy từng bước trên toàn bộ tập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-004
+    title: Thao tác không giữ trạng thái và thao tác phải giữ trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-005
+    title: Ngắn mạch không bảo đảm mọi pipeline trên nguồn vô hạn đều kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-006
+    title: Vì sao thiếu thao tác kết thúc làm lambda không được gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-007
+    title: Pipeline không có tác dụng phụ bắt buộc khi JDK tối ưu bỏ bước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-008
+    title: Tạo Stream mới từ nguồn hoặc Supplier để xử lý nhiều lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-side-effects
+  title: Trạng thái và tác dụng phụ
+  childs:
+  - slug: state-side-effects-001
+    title: Yêu cầu không can thiệp vào nguồn dữ liệu đang duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-002
+    title: Phân biệt hàm không giữ trạng thái với thao tác Stream có giữ trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-003
+    title: Thay đổi biến bên ngoài làm kết quả phụ thuộc thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-004
+    title: Rủi ro thêm kết quả vào ArrayList từ forEach() song song
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-005
+    title: Dùng collect() thay cho bộ tích lũy bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-006
+    title: Không dùng AtomicInteger chỉ để lách quy tắc effectively final
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-007
+    title: Tính bất biến của đối tượng kết quả và đối tượng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-008
+    title: Tách việc biến đổi dữ liệu khỏi gửi thông báo, ghi tệp hoặc cập nhật hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parallel-processing
+  title: Xử lý song song
+  childs:
+  - slug: parallel-processing-001
+    title: parallelStream(), parallel() và sequential()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-002
+    title: Chế độ cuối cùng áp dụng cho toàn pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-003
+    title: Chia nguồn, xử lý từng phần và gộp kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-004
+    title: Tính kết hợp, không can thiệp nguồn và không giữ trạng thái dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-005
+    title: Thứ tự gặp phần tử khác thứ tự thực thi lambda
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-006
+    title: findAny(), forEach() và các kết quả không quyết định thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-007
+    title: forEachOrdered() và chi phí duy trì thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-008
+    title: groupingByConcurrent(), toConcurrentMap() và yêu cầu collector đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-009
+    title: Chi phí tách, gộp, boxing và thao tác chặn nhập xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-010
+    title: Đo kiểm trước khi chọn song song cho bài toán cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-sources
+  title: Nguồn tùy chỉnh
+  childs:
+  - slug: custom-sources-001
+    title: Spliterator và vai trò duyệt hoặc phân chia nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-sources-002
+    title: tryAdvance(), forEachRemaining() và trySplit()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-sources-003
+    title: estimateSize() và kích thước chính xác khi được biết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-sources-004
+    title: ORDERED, SIZED, SUBSIZED, SORTED và DISTINCT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-sources-005
+    title: IMMUTABLE, CONCURRENT và NONNULL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-sources-006
+    title: Tạo Stream bằng StreamSupport
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-sources-007
+    title: Thiết kế nguồn hữu hạn, nguồn trì hoãn và trách nhiệm đóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-sources-008
+    title: Khi nào dùng nguồn tùy chỉnh thay cho nguồn JDK có sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-design
+  title: Thiết kế theo hàm
+  childs:
+  - slug: functional-design-001
+    title: Xây dựng phần tính toán thuần và giữ tác dụng phụ ở ranh giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-002
+    title: Chia nghiệp vụ thành các hàm nhỏ có đầu vào và đầu ra rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-003
+    title: Dùng đối tượng bất biến để truyền kết quả giữa các bước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-004
+    title: Truyền hành vi thay cho tạo nhiều lớp chỉ khác một thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-005
+    title: Kết hợp quy tắc kiểm tra bằng Predicate có tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-006
+    title: Cân nhắc lưu kết quả hàm và điều kiện để không làm sai hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-007
+    title: Không thay mọi vòng lặp bằng Stream khi luồng điều khiển cần rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-008
+    title: Giữ tên miền nghiệp vụ dễ hiểu khi dùng generic và hàm bậc cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-design-009
+    title: Cân bằng độ ngắn, khả năng đọc và chi phí xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-practice
+  title: Kiểm thử và thực hành
+  childs:
+  - slug: testing-practice-001
+    title: Kiểm thử hàm thuần bằng bảng đầu vào và đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-002
+    title: Kiểm tra nguồn rỗng, một phần tử, null và dữ liệu trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-003
+    title: Kiểm tra tính kết hợp và phần tử đơn vị của phép rút gọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-004
+    title: So sánh kết quả tuần tự với song song khi hợp đồng cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-005
+    title: Tách thân lambda phức tạp thành phương thức để kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-006
+    title: Thực hành quy trình lọc, chuẩn hóa và tính tổng đơn hàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-007
+    title: Thực hành nhóm dữ liệu và tạo báo cáo với collector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-008
+    title: Thực hành Optional cho chuỗi thao tác có thể thiếu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-009
+    title: Thực hành sửa pipeline dùng trạng thái bên ngoài hoặc reduce() sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-010
+    title: Đo hiệu năng đúng cách và tổng hợp tiêu chí chọn API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

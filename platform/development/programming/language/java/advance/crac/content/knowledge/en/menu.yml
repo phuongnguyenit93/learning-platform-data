@@ -1,0 +1,292 @@
+menu:
+- level1: Tổng quan CRaC
+  level2:
+  - 'CRaC là gì: Coordinated Restore at Checkpoint'
+  - Khởi động chậm và giai đoạn làm nóng của ứng dụng Java
+  - 'Checkpoint, ảnh trạng thái và restore: các khái niệm cốt lõi'
+  - Vai trò của ứng dụng, JVM và cơ chế tạo ảnh
+  - Trạng thái trong tiến trình và tài nguyên bên ngoài tiến trình
+  - 'Vòng đời tổng thể: khởi động, làm nóng, checkpoint và restore'
+  - 'Tình huống áp dụng: mở rộng nhanh, khởi động lại và dịch vụ ít truy cập'
+  - Giới hạn của CRaC đối với dữ liệu bền vững và hệ thống bên ngoài
+  - Kiến thức đầu vào và trình tự học CRaC
+- level1: Nền tảng JVM
+  level2:
+  - Nạp lớp và khởi tạo lớp trước thời điểm checkpoint
+  - Heap, metaspace và mã máy do JIT biên dịch
+  - Thông tin thực thi và ảnh hưởng của JIT đến hiệu năng sau restore
+  - Luồng Java, luồng hệ điều hành và trạng thái đồng bộ
+  - File descriptor và tài nguyên do hệ điều hành quản lý
+  - Garbage Collector, bộ nhớ đang dùng và kích thước ảnh
+  - Ranh giới giữa trạng thái Java, mã native và trạng thái hệ điều hành
+- level1: Môi trường thực hành
+  level2:
+  - Phân biệt JDK thông thường với bản dựng JDK có hỗ trợ CRaC
+  - Chọn và cố định phiên bản JDK, thư viện org.crac và hệ điều hành
+  - Kiểm tra khả năng hỗ trợ CRaC của bản dựng đang sử dụng
+  - Chuẩn bị môi trường Linux cho bài thực hành
+  - Vai trò của CRIU trong cơ chế checkpoint dựa trên Linux
+  - Quyền hệ điều hành và capabilities theo yêu cầu của từng cơ chế
+  - Phân biệt criuengine, simengine và cơ chế riêng của nhà cung cấp
+  - Phạm vi mô phỏng bằng simengine và giới hạn của kết quả kiểm thử
+  - Khai báo org.crac:crac trong Maven hoặc Gradle
+  - Cấu trúc dự án mẫu và lệnh chạy có thể tái lập
+- level1: Chu kỳ checkpoint–restore
+  level2:
+  - Chạy ứng dụng với -XX:CRaCCheckpointTo
+  - Chuẩn bị thư mục ảnh và các điều kiện trước checkpoint
+  - Xác định thời điểm checkpoint bằng tín hiệu sẵn sàng của ứng dụng
+  - Yêu cầu checkpoint bằng jcmd và JDK.checkpoint
+  - Yêu cầu checkpoint trong chương trình bằng Core.checkpointRestore()
+  - Khôi phục ứng dụng bằng -XX:CRaCRestoreFrom
+  - Quan sát điểm tiếp tục thực thi và vòng đời phương thức main
+  - Phân biệt checkpoint thành công, checkpoint thất bại và restore thất bại
+  - Khôi phục nhiều tiến trình từ cùng một ảnh
+  - Giới hạn của checkpoint lặp lại theo bản dựng và cơ chế tạo ảnh
+- level1: API CRaC
+  level2:
+  - Quan hệ giữa API tương thích org.crac và API jdk.crac
+  - 'Resource: khai báo thành phần cần tham gia checkpoint và restore'
+  - 'Context: quản lý nhóm Resource và phân phối thông báo'
+  - Core.getGlobalContext() và Context.register()
+  - 'beforeCheckpoint(): chuẩn bị trạng thái trước khi tạo ảnh'
+  - 'afterRestore(): tái lập tài nguyên trước khi phục vụ'
+  - 'Thứ tự callback: ngược thứ tự đăng ký trước checkpoint, thuận sau restore'
+  - Context lồng nhau và điều phối quan hệ phụ thuộc
+  - Tham chiếu yếu trong Context và cách giữ Resource còn tồn tại
+  - CheckpointException, RestoreException và các ngoại lệ bị gom
+  - Khôi phục trạng thái thành phần khi checkpoint bị hủy
+  - Hành vi của org.crac trên JVM không hỗ trợ checkpoint
+- level1: Vòng đời tài nguyên
+  level2:
+  - Kiểm kê tài nguyên và xác định thành phần chịu trách nhiệm quản lý
+  - Phân loại trạng thái có thể giữ lại, phải đóng và phải tạo mới
+  - Ngừng nhận công việc mới và chờ công việc đang chạy hoàn tất
+  - Đóng tài nguyên theo thứ tự phụ thuộc và mở lại theo thứ tự ngược
+  - Thiết kế trạng thái đang hoạt động, đang tạm dừng và sẵn sàng trở lại
+  - Ngăn truy cập tài nguyên trong khoảng chuyển tiếp checkpoint–restore
+  - Thiết kế callback có thể xử lý trạng thái khởi tạo dở dang
+  - Thời hạn chờ, hủy thao tác và tránh khóa chết trong callback
+  - Khôi phục một phần và chính sách dừng ứng dụng khi không thể phục vụ an toàn
+  - Phân biệt callback CRaC với shutdown hook và AutoCloseable
+- level1: Tệp và bộ nhớ native
+  level2:
+  - Đóng và mở lại InputStream, OutputStream và FileChannel
+  - Lưu vị trí đọc ghi và kiểm tra nội dung tệp sau restore
+  - Bộ đệm ghi, thao tác flush và nguy cơ mất hoặc lặp dữ liệu
+  - Tệp log, xoay vòng log và việc mở lại đích ghi
+  - Tệp tạm, đường dẫn tuyệt đối và tài nguyên đóng gói trong JAR
+  - Khóa tệp, WatchService và tài nguyên theo dõi hệ thống tệp
+  - MappedByteBuffer, bộ nhớ ngoài heap và giới hạn theo bản dựng
+  - Tài nguyên JNI, thư viện native và file descriptor ngoài JDK
+  - Chính sách file descriptor qua jdk.crac.resource-policies
+  - Phạm vi close, reopen và giới hạn của chính sách tài nguyên
+- level1: Kết nối mạng
+  level2:
+  - Vì sao kết nối đang mở không bảo đảm còn hợp lệ sau restore
+  - Đóng và mở lại socket lắng nghe của máy chủ
+  - Ngừng nhận yêu cầu và xử lý các yêu cầu đang phục vụ
+  - Khôi phục HTTP client và nhóm kết nối dùng lại
+  - DNS, địa chỉ IP và thông tin máy chủ có thể thay đổi
+  - TLS, chứng chỉ và phiên kết nối sau khoảng tạm dừng
+  - WebSocket, gRPC và kết nối kéo dài qua ranh giới checkpoint
+  - Đăng ký lại dịch vụ và phát hiện địa chỉ của tiến trình mới
+  - Kết nối lại với thời gian chờ, số lần thử và độ trễ ngẫu nhiên phù hợp
+- level1: Cơ sở dữ liệu
+  level2:
+  - Quản lý vòng đời DataSource và nhóm kết nối JDBC
+  - Đóng kết nối trước checkpoint và kiểm tra lại sau restore
+  - HikariCP và mức hỗ trợ CRaC theo phiên bản thư viện
+  - Giao dịch chưa hoàn tất và ranh giới checkpoint an toàn
+  - EntityManager, Hibernate Session và tài nguyên truy cập dữ liệu
+  - Thông tin xác thực cơ sở dữ liệu hết hạn hoặc được xoay vòng
+  - Tránh chạy lại thay đổi lược đồ và khởi tạo dữ liệu ngoài ý muốn
+  - Khôi phục nhiều bản sao mà không gây bùng nổ số kết nối
+  - Xử lý trường hợp cơ sở dữ liệu chưa sẵn sàng khi restore
+- level1: Luồng và tác vụ nền
+  level2:
+  - Phối hợp luồng ứng dụng với luồng thực hiện callback
+  - Thread pool, ExecutorService và công việc đang chờ xử lý
+  - Tác vụ đang chạy và cách đưa hệ thống về trạng thái yên ổn
+  - 'ScheduledExecutorService: fixedRate, fixedDelay và lịch bị bỏ lỡ'
+  - Hủy lịch trước checkpoint và đăng ký lịch lại sau restore
+  - Event loop và thứ tự tạm dừng các thành phần dùng chung
+  - Khóa, điều kiện chờ và khả năng hiển thị trạng thái giữa các luồng
+  - ThreadLocal và dữ liệu gắn với yêu cầu đã kết thúc
+  - 'Virtual thread và structured concurrency: kiểm tra hỗ trợ theo bản dựng'
+  - Luồng không phải daemon và nguy cơ JVM kết thúc trước khi tạo ảnh
+- level1: Thời gian và định danh
+  level2:
+  - Khoảng thời gian tạm dừng và dữ liệu thời gian được lưu trong ảnh
+  - Đồng hồ thời gian thực, nanoTime và cách tính lại thời lượng
+  - TTL, thời điểm hết hạn và vô hiệu hóa dữ liệu đã cũ
+  - Thời hạn yêu cầu, phiên đăng nhập và token hết hạn
+  - Lịch cron, tác vụ định kỳ và chính sách xử lý lần chạy bị bỏ lỡ
+  - ID tiến trình, tên máy và định danh bản sao sau restore
+  - UUID và bộ đếm được tạo trước checkpoint khi nhân nhiều bản sao
+  - Random, SecureRandom và việc đánh giá tính duy nhất theo runtime
+  - Lease, khóa phân tán và nhiệm kỳ chủ sở hữu đã hết hiệu lực
+- level1: Trạng thái và cấu hình
+  level2:
+  - Phân biệt trạng thái khởi tạo dùng chung với trạng thái riêng từng bản sao
+  - Biến static, singleton và dữ liệu đã khởi tạo trước checkpoint
+  - Cache trong bộ nhớ và chiến lược làm mới sau restore
+  - Biến môi trường, system property và cấu hình đã được ứng dụng lưu lại
+  - Giới hạn thay đổi tham số JVM và cấu hình tại thời điểm restore
+  - Tách cấu hình lúc dựng ảnh khỏi cấu hình lúc triển khai
+  - Tạo lại định danh, tài nguyên và thông tin xác thực riêng từng bản sao
+  - Đối chiếu trạng thái trong ảnh với trạng thái hiện tại của dịch vụ ngoài
+  - Không dùng checkpoint thay cho sao lưu cơ sở dữ liệu hoặc nhật ký giao dịch
+- level1: Làm nóng JVM
+  level2:
+  - Phân biệt khởi tạo ứng dụng với làm nóng các đường thực thi
+  - Chọn tập yêu cầu làm nóng đại diện cho tải thực tế
+  - Chuẩn bị lớp, bộ phân tích dữ liệu và các thành phần khởi tạo lười
+  - Làm nóng JIT mà không tạo giao dịch hoặc dữ liệu nghiệp vụ thật
+  - Dùng dữ liệu giả lập và dịch vụ phụ thuộc kiểm soát được
+  - Kiểm soát cache, phân bổ bộ nhớ và tài nguyên sinh ra khi làm nóng
+  - Chọn thời điểm checkpoint dựa trên tiêu chí có thể quan sát
+  - Đánh đổi giữa mức độ làm nóng, thời gian dựng ảnh và kích thước ảnh
+  - Kiểm tra hiệu năng sau restore thay vì suy ra từ trạng thái trước checkpoint
+- level1: Spring Boot
+  level2:
+  - Điều kiện tích hợp Spring Framework, Spring Boot và org.crac
+  - Quan hệ giữa Lifecycle, SmartLifecycle và callback CRaC
+  - Dừng và khởi động lại bean khi checkpoint theo yêu cầu
+  - Thứ tự phase và quan hệ phụ thuộc giữa các bean
+  - Checkpoint tự động tại onRefresh bằng spring.context.checkpoint
+  - Thử giai đoạn khởi tạo bằng spring.context.exit=onRefresh
+  - Phân biệt checkpoint lúc refresh với checkpoint sau khi làm nóng
+  - Quản lý máy chủ web nhúng và nhóm kết nối dữ liệu
+  - Tích hợp Resource tùy chỉnh cho thành phần không thuộc Spring
+  - Tác vụ @Scheduled và công việc nền sau restore
+  - Trì hoãn truy cập dịch vụ ngoài và nạp bí mật tới giai đoạn phù hợp
+  - Readiness, liveness và thời điểm cho phép nhận lưu lượng sau restore
+- level1: Tích hợp thư viện
+  level2:
+  - Đánh giá mức hỗ trợ CRaC của thư viện và phiên bản đang dùng
+  - Redis client, cache phân tán và việc tái lập kết nối
+  - Kafka, RabbitMQ và vòng đời producer hoặc consumer
+  - Thông điệp đang xử lý, offset, xác nhận và nguy cơ xử lý lặp
+  - SDK đám mây, bộ cấp thông tin xác thực và bộ đệm kết nối
+  - Logging bất đồng bộ, metrics và tracing sau restore
+  - Java agent, profiler và tài nguyên do công cụ giám sát mở
+  - Thiết kế lớp bọc Resource cho thư viện chưa có tích hợp
+  - Đối chiếu cách tích hợp của Quarkus và Micronaut với mô hình CRaC chung
+- level1: Đóng gói checkpoint
+  level2:
+  - Phân biệt ảnh checkpoint, JAR ứng dụng và container image
+  - Cấu trúc bộ tệp checkpoint và yêu cầu bảo toàn tính đầy đủ
+  - Quan hệ giữa ảnh, JDK, mã ứng dụng và thư viện phụ thuộc
+  - Gắn phiên bản, mã nguồn và thông tin môi trường vào bản phát hành ảnh
+  - Kiểm tra checksum và phát hiện ảnh thiếu hoặc hỏng
+  - Quyền truy cập, chủ sở hữu và đường dẫn cần giữ khi phân phối
+  - Lưu trữ, truyền tải và dọn dẹp ảnh không còn sử dụng
+  - Khi nào phải tạo lại ảnh sau thay đổi mã nguồn hoặc bản vá
+  - Tách giai đoạn tạo ảnh khỏi giai đoạn khôi phục
+- level1: Giới hạn tương thích
+  level2:
+  - Tương thích giữa checkpoint và restore theo phiên bản, nhà cung cấp JDK
+  - Kiến trúc CPU và các tập lệnh được mã JIT sử dụng
+  - Khác biệt kernel, thư viện hệ thống và môi trường native
+  - Hệ thống tệp, mount và tài nguyên bắt buộc phải có khi restore
+  - Giới hạn thay đổi heap, GC và các cờ JVM theo bản dựng
+  - Cgroups, CPU và bộ nhớ khả dụng trong môi trường đích
+  - Tương thích theo checkpoint engine và phần mở rộng của nhà cung cấp
+  - Xây dựng ma trận môi trường được kiểm chứng thay vì giả định ảnh chạy mọi nơi
+- level1: Container và Kubernetes
+  level2:
+  - Xây dựng container có JDK hỗ trợ CRaC
+  - Tạo ảnh checkpoint trong quy trình container build
+  - Bố trí checkpoint trong image layer hoặc volume
+  - Capabilities, seccomp và security context theo checkpoint engine
+  - PID namespace và xung đột định danh khi dùng cơ chế CRIU
+  - Quyền người dùng, filesystem chỉ đọc và thư mục cần ghi
+  - Startup probe, readiness probe và liveness probe sau restore
+  - Khôi phục nhiều Pod và kiểm soát tải lên dịch vụ phụ thuộc
+  - Rolling update, autoscaling và định danh riêng của từng Pod
+  - Xác minh môi trường khôi phục trên node và kiến trúc CPU đích
+- level1: Bảo mật checkpoint
+  level2:
+  - Nhận diện bí mật và dữ liệu nhạy cảm có thể tồn tại trong ảnh bộ nhớ
+  - Tạo checkpoint bằng dữ liệu giả và thông tin xác thực giới hạn
+  - Nạp hoặc làm mới bí mật sau restore và giới hạn của việc xóa dấu vết trong heap
+  - Mã hóa ảnh khi lưu trữ và truyền tải
+  - Phân quyền tải ảnh và kiểm soát nguồn phát hành
+  - Kiểm tra tính toàn vẹn và độ tin cậy trước khi restore
+  - Token, chứng chỉ, nonce và dữ liệu bảo mật không được dùng lại giữa các bản sao
+  - Phân tách quyền tạo ảnh với quyền chạy ứng dụng trong môi trường thật
+  - Thu hồi ảnh cũ và tạo lại ảnh khi vá JDK hoặc thư viện
+- level1: Kiểm thử
+  level2:
+  - Xây dựng tiêu chí đúng đắn cho ứng dụng trước và sau restore
+  - Kiểm thử callback độc lập với cơ chế tạo ảnh
+  - Kiểm thử thứ tự đăng ký, phụ thuộc và vòng đời Resource
+  - Kiểm thử mô phỏng bằng simengine khi bản dựng hỗ trợ
+  - Kiểm thử tích hợp bằng checkpoint và restore thật trên Linux
+  - Giả lập ngoại lệ trong beforeCheckpoint() và afterRestore()
+  - Kiểm thử restore sau khi token, TTL và kết nối đã hết hạn
+  - Kiểm thử nhiều bản sao để phát hiện ID trùng và tác dụng phụ lặp
+  - Kiểm thử dịch vụ phụ thuộc chậm, mất kết nối hoặc chưa sẵn sàng
+  - Kiểm thử ma trận JDK, kernel, CPU và container trong CI
+- level1: Chẩn đoán sự cố
+  level2:
+  - Phân loại lỗi khởi chạy, checkpoint, restore và phục vụ sau restore
+  - Đọc CheckpointException, RestoreException và suppressed exceptions
+  - Tìm tệp hoặc socket còn mở từ thông báo lỗi
+  - Thu thập vị trí tạo file descriptor bằng jdk.crac.collect-fd-stacktraces
+  - Đọc log JVM, log checkpoint engine và log CRIU
+  - Chẩn đoán file descriptor phát sinh từ mã native
+  - Phát hiện callback bị treo và khóa chết khi tạm dừng tài nguyên
+  - Chẩn đoán thiếu quyền, seccomp và xung đột PID
+  - Chẩn đoán đường dẫn, thư viện hoặc CPU không tương thích
+  - Phân biệt lệnh yêu cầu checkpoint báo thành công với ảnh thực sự hợp lệ
+  - Thu thập bằng chứng lỗi mà không làm lộ dữ liệu trong checkpoint
+- level1: Đánh giá hiệu năng
+  level2:
+  - Định nghĩa thời gian khởi động, thời gian sẵn sàng và thời gian đáp ứng đầu tiên
+  - So sánh khởi động lạnh, JVM đã làm nóng và tiến trình vừa restore
+  - Đo thời gian checkpoint và chi phí tạo ảnh
+  - Đo thời gian tải ảnh, restore và mở lại tài nguyên
+  - Đo độ trễ p50, p95, p99 và thông lượng sau restore
+  - Đo RSS, bộ nhớ container, CPU và dung lượng lưu trữ ảnh
+  - Ảnh hưởng của cache hệ điều hành, page fault và tốc độ ổ đĩa
+  - Thiết kế phép đo có tải tương đương, lặp lại và kiểm soát môi trường
+  - Đánh giá khả năng mở rộng đồng thời và tải tái kết nối
+  - Tính tổng chi phí dựng, lưu, phân phối và sử dụng ảnh
+- level1: Vận hành thực tế
+  level2:
+  - Thiết kế pipeline dựng ứng dụng, làm nóng, tạo ảnh và kiểm chứng
+  - Chỉ phát hành ảnh đã vượt qua kiểm thử restore
+  - Truy vết bản phát hành từ mã nguồn tới JDK và checkpoint
+  - Chọn chính sách tạo lại ảnh theo thay đổi và tuổi của ảnh
+  - Triển khai thử trên một phần lưu lượng và theo dõi chất lượng
+  - Giám sát lỗi restore, thời gian sẵn sàng và sức khỏe tài nguyên
+  - Khởi động thông thường dự phòng khi restore không đáp ứng điều kiện
+  - Quay lui bản phát hành mà không dùng lại trạng thái nghiệp vụ không hợp lệ
+  - Kiểm soát việc nhân bản tác vụ, consumer và thành phần giữ vai trò duy nhất
+  - Quy trình xử lý sự cố, thu hồi ảnh và giải phóng dung lượng
+- level1: Lựa chọn giải pháp
+  level2:
+  - 'CRaC và Java serialization: khác biệt về đối tượng được lưu'
+  - CRaC và checkpoint tiến trình bằng CRIU không có phối hợp ứng dụng
+  - 'CRaC và CDS hoặc AppCDS: khác biệt về phạm vi trạng thái'
+  - 'CRaC và các cơ chế AOT của JDK: kiểm tra theo phiên bản'
+  - 'CRaC và GraalVM Native Image: đánh đổi khởi động, tính tương thích và vận hành'
+  - 'CRaC và snapshot của máy ảo hoặc container: ranh giới trách nhiệm'
+  - API CRaC và dịch vụ snapshot được quản lý như AWS Lambda SnapStart
+  - Chọn giải pháp theo tần suất khởi động, trạng thái ứng dụng và chi phí tích hợp
+- level1: Bài thực hành
+  level2:
+  - Tạo chương trình Java tối thiểu và thực hiện checkpoint–restore
+  - Quan sát thứ tự callback của các Resource phụ thuộc nhau
+  - Tái hiện lỗi Resource bị thu gom do chỉ còn tham chiếu yếu
+  - Đóng và mở lại tệp với vị trí đọc ghi được kiểm chứng
+  - Tạm dừng máy chủ HTTP và tái lập kết nối sau restore
+  - Khôi phục ứng dụng JDBC khi nhóm kết nối cũ đã hết hiệu lực
+  - Xử lý tác vụ định kỳ và dữ liệu hết hạn sau thời gian tạm dừng
+  - Làm mới định danh khi khôi phục nhiều bản sao từ một ảnh
+  - So sánh Spring Boot onRefresh với checkpoint sau làm nóng
+  - Đóng gói và khôi phục ứng dụng trong container Linux
+  - Chủ động gây lỗi checkpoint và restore để luyện chẩn đoán
+  - Xây dựng báo cáo hiệu năng và tiêu chí chấp nhận cho ứng dụng mẫu

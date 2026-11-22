@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SUPPORT_DOCUMENT_TRANSLATION_LIBRETRANSLATE"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Tích hợp LibreTranslate, dịch vụ dịch máy mã nguồn mở, vào quy trình xử lý văn bản và tài liệu qua REST API, phát hiện ngôn ngữ và dịch hàng loạt. Học triển khai máy chủ tự quản, dịch HTML/Markdown/tệp, kết nối Java/Spring và kiểm soát chất lượng, định dạng, bảo mật dữ liệu."
+  }
+}

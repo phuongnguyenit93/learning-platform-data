@@ -1,0 +1,166 @@
+menu:
+- title: Nhập môn
+  slug: introduction
+  index: 0
+- title: Job
+  slug: job
+  index: 1
+- title: Step
+  slug: step
+  index: 2
+- title: JobRepository
+  slug: job-repository
+  index: 3
+- title: JobLauncher
+  slug: job-launcher
+  index: 4
+- title: JobParameters
+  slug: job-parameters
+  index: 5
+- title: Chunk processing
+  slug: chunk-processing
+  index: 6
+- title: ItemReader
+  slug: item-reader
+  index: 7
+- title: ItemProcessor
+  slug: item-processor
+  index: 8
+- title: ItemWriter
+  slug: item-writer
+  index: 9
+- title: Tasklet
+  slug: tasklet
+  index: 10
+- title: Transactions
+  slug: transactions
+  index: 11
+- title: Commit policy
+  slug: commit-policy
+  index: 12
+- title: ExecutionContext
+  slug: execution-context
+  index: 13
+- title: Listeners
+  slug: listeners
+  index: 14
+- title: Flow
+  slug: flow
+  index: 15
+- title: JobStep
+  slug: job-step
+  index: 16
+- title: Partitioning
+  slug: partitioning
+  index: 17
+- title: Parallel flow
+  slug: parallel-flow
+  index: 18
+- title: Skip
+  slug: skip
+  index: 19
+- title: Retry
+  slug: retry
+  index: 20
+- title: Fault tolerance
+  slug: fault-tolerance
+  index: 21
+- title: Rollback
+  slug: rollback
+  index: 22
+- title: Restart
+  slug: restart
+  index: 23
+- title: Job execution status
+  slug: job-execution-status
+  index: 24
+- title: Scope
+  slug: scope
+  index: 25
+- title: Parameter injection
+  slug: parameter-injection
+  index: 26
+- title: Resource management
+  slug: resource-management
+  index: 27
+- title: Flat file
+  slug: flat-file
+  index: 28
+- title: Database
+  slug: database
+  index: 29
+- title: XML
+  slug: xml
+  index: 30
+- title: JSON
+  slug: json
+  index: 31
+- title: Custom components
+  slug: custom-components
+  index: 32
+- title: Composite
+  slug: composite
+  index: 33
+- title: Classifier
+  slug: classifier
+  index: 34
+- title: Multi-resource
+  slug: multi-resource
+  index: 35
+- title: Jdbc processing
+  slug: jdbc-processing
+  index: 36
+- title: JPA processing
+  slug: jpa-processing
+  index: 37
+- title: Message processing
+  slug: message-processing
+  index: 38
+- title: Processor patterns
+  slug: processor-patterns
+  index: 39
+- title: Output consistency
+  slug: output-consistency
+  index: 40
+- title: Testing batch
+  slug: batch-testing
+  index: 41
+- title: Test data
+  slug: test-data
+  index: 42
+- title: Test infrastructure
+  slug: test-infrastructure
+  index: 43
+- title: Execution control
+  slug: execution-control
+  index: 44
+- title: Scheduling
+  slug: scheduling
+  index: 45
+- title: Monitoring
+  slug: monitoring
+  index: 46
+- title: Logging
+  slug: logging
+  index: 47
+- title: Performance
+  slug: performance
+  index: 48
+- title: Failure recovery
+  slug: failure-recovery
+  index: 49
+- title: Data quality
+  slug: data-quality
+  index: 50
+- title: Security
+  slug: security
+  index: 51
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 52
+- title: Quyết định thiết kế
+  slug: design-decisions
+  index: 53
+- title: Dự án thực hành
+  slug: practice-project
+  index: 54

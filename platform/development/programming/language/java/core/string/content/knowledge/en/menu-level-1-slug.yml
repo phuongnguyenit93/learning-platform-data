@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: string-overview
+  index: 0
+- title: Khai báo và tạo chuỗi
+  slug: string-creation
+  index: 1
+- title: Unicode và UTF-16
+  slug: unicode-utf-16
+  index: 2
+- title: Tính bất biến
+  slug: string-immutability
+  index: 3
+- title: Pool và intern
+  slug: string-pool-and-intern
+  index: 4
+- title: Độ dài và truy cập
+  slug: string-access
+  index: 5
+- title: Trích xuất chuỗi
+  slug: string-extraction
+  index: 6
+- title: So sánh
+  slug: string-comparison
+  index: 7
+- title: Tìm kiếm
+  slug: string-search
+  index: 8
+- title: Chuỗi trắng
+  slug: string-whitespace
+  index: 9
+- title: Biến đổi nội dung
+  slug: string-transformation
+  index: 10
+- title: Hoa thường và chuẩn hóa
+  slug: case-and-normalization
+  index: 11
+- title: Nối chuỗi
+  slug: string-concatenation
+  index: 12
+- title: StringBuilder
+  slug: string-builder
+  index: 13
+- title: StringBuffer
+  slug: string-buffer
+  index: 14
+- title: Ghép nhiều phần
+  slug: string-joining
+  index: 15
+- title: Tách chuỗi
+  slug: string-splitting
+  index: 16
+- title: Biểu thức chính quy
+  slug: regular-expressions
+  index: 17
+- title: Thay thế bằng regex
+  slug: regex-replacement
+  index: 18
+- title: Định dạng chuỗi
+  slug: string-formatting
+  index: 19
+- title: Text block
+  slug: text-blocks
+  index: 20
+- title: Dòng và Stream
+  slug: string-lines-and-streams
+  index: 21
+- title: Chuỗi và byte
+  slug: strings-and-bytes
+  index: 22
+- title: Chuyển đổi giá trị
+  slug: value-conversion
+  index: 23
+- title: String trong collection
+  slug: strings-in-collections
+  index: 24
+- title: Bộ nhớ và cài đặt
+  slug: string-internals
+  index: 25
+- title: Hiệu năng
+  slug: string-performance
+  index: 26
+- title: Thiết kế API
+  slug: string-api-design
+  index: 27
+- title: Kiểm thử và lỗi
+  slug: string-testing
+  index: 28
+- title: Thực hành tổng hợp
+  slug: string-practice
+  index: 29

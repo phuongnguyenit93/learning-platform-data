@@ -1,0 +1,3 @@
+menuLevel1: Công bố repository
+menuLevel2: Ẩn phương thức CRUD hoặc truy vấn bằng @RestResource(exported = false)
+status: WRITTEN

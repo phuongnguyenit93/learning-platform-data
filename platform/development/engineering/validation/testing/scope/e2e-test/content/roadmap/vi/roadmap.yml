@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-pham-vi-e2e
+  title: Vai trò & phạm vi E2E
+  purpose: Xác định điều cần kiểm chứng ở cấp độ hành trình hoàn chỉnh và phân biệt với kiểm thử ở tầng thấp.
+  objectives:
+  - Giải thích khi nào cần E2E Test
+  - Khoanh vùng hệ thống và điểm bắt đầu/kết thúc
+  - Ưu tiên ít luồng có giá trị, rủi ro cao
+- id: hanh-trinh-nghiep-vu
+  title: Hành trình nghiệp vụ
+  purpose: Chọn luồng tiêu biểu thể hiện giá trị thực với người dùng qua nhiều thành phần.
+  objectives:
+  - Xác định actor, bước và kết quả mong đợi
+  - Vẽ luồng xuyên UI, API, dữ liệu và dịch vụ
+  - Chọn happy path và các nhánh quan trọng
+- id: kich-ban-tieu-chi-dat
+  title: Kịch bản & tiêu chí đạt
+  purpose: Biến hành trình thành test case có tiền điều kiện, thao tác và xác nhận rõ ràng.
+  objectives:
+  - Viết tiền điều kiện, hành động và assertion
+  - Xác nhận kết quả quan sát được từ bên ngoài
+  - Bổ sung tình huống lỗi có ý nghĩa nghiệp vụ
+- id: moi-truong-du-lieu
+  title: Môi trường & dữ liệu
+  purpose: Dựng điều kiện chạy có thể tái lập mà không phụ thuộc vào dữ liệu ngẫu nhiên.
+  objectives:
+  - Chuẩn bị môi trường kiểm thử tích hợp
+  - Tạo và cô lập dữ liệu cho từng test
+  - Quản lý tài khoản thử và cấu hình an toàn
+- id: thuc-thi-xuyen-he-thong
+  title: Thực thi xuyên hệ thống
+  purpose: Kiểm tra tương tác từ điểm vào đến kết quả cuối cùng trong hệ thống tích hợp.
+  objectives:
+  - Đi qua luồng thực tế từ đầu đến cuối
+  - Quan sát kết quả và thay đổi trạng thái
+  - Xử lý tác vụ bất đồng bộ bằng điều kiện chờ
+- id: co-lap-chong-flaky
+  title: Cô lập & chống flaky
+  purpose: Giúp test chạy độc lập, ổn định và dễ bảo trì khi UI hoặc hạ tầng thay đổi.
+  objectives:
+  - Dùng selector/locator bền vững
+  - Tránh sleep cố định và phụ thuộc thứ tự test
+  - Kiểm soát dữ liệu, mock ranh giới bên thứ ba khi cần
+- id: tu-dong-hoa-ci
+  title: Tự động hóa & CI
+  purpose: Đưa các hành trình quan trọng vào bộ kiểm thử lặp lại trong pipeline.
+  objectives:
+  - Tổ chức smoke suite E2E gọn
+  - Chạy test bằng công cụ phù hợp và trên CI
+  - Phân biệt trigger, retry và chạy song song
+- id: bao-cao-cai-tien
+  title: Báo cáo & cải tiến
+  purpose: Dựa trên lỗi và độ phủ hành trình để nâng độ tin cậy của bộ E2E.
+  objectives:
+  - Đọc report, screenshot, trace và log
+  - Phân loại lỗi sản phẩm với lỗi môi trường
+  - Rà soát độ phủ theo rủi ro và chi phí

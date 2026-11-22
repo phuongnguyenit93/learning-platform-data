@@ -1,0 +1,3 @@
+menuLevel1: Stream.toList
+menuLevel2: Không dựa vào identity hoặc dùng danh sách kết quả làm khóa đồng bộ
+status: ""

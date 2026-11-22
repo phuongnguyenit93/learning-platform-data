@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: exception-overview
+  index: 0
+- title: Phân cấp ngoại lệ
+  slug: exception-hierarchy
+  index: 1
+- title: Luồng thực thi
+  slug: exception-control-flow
+  index: 2
+- title: Lệnh throw
+  slug: throw-statement
+  index: 3
+- title: Mệnh đề throws
+  slug: throws-clause
+  index: 4
+- title: Try và catch
+  slug: try-catch
+  index: 5
+- title: Multi-catch và rethrow
+  slug: multi-catch-rethrow
+  index: 6
+- title: Khối finally
+  slug: finally
+  index: 7
+- title: Try-with-resources
+  slug: try-with-resources
+  index: 8
+- title: Đối tượng Throwable
+  slug: throwable-internals
+  index: 9
+- title: Nguyên nhân và lỗi phụ
+  slug: cause-and-suppressed
+  index: 10
+- title: Ngoại lệ tùy chỉnh
+  slug: custom-exceptions
+  index: 11
+- title: Kế thừa và hợp đồng
+  slug: exception-inheritance
+  index: 12
+- title: Lambda và generic
+  slug: lambda-generic-exceptions
+  index: 13
+- title: Ngoại lệ runtime
+  slug: common-runtime-exceptions
+  index: 14
+- title: Ngoại lệ API
+  slug: api-exceptions
+  index: 15
+- title: Error và khởi tạo
+  slug: error-and-initialization
+  index: 16
+- title: Thiết kế API
+  slug: exception-api-design
+  index: 17
+- title: Bảo toàn trạng thái
+  slug: exception-safety
+  index: 18
+- title: Ngoại lệ và luồng
+  slug: thread-exception-handling
+  index: 19
+- title: Ngắt và hủy
+  slug: interruption-and-cancellation
+  index: 20
+- title: CompletableFuture
+  slug: completable-future-exceptions
+  index: 21
+- title: Chẩn đoán và ghi log
+  slug: exception-diagnostics-and-logging
+  index: 22
+- title: Hiệu năng
+  slug: exception-performance
+  index: 23
+- title: Sai lầm thường gặp
+  slug: exception-handling-pitfalls
+  index: 24
+- title: Kiểm thử
+  slug: exception-testing
+  index: 25
+- title: Thực hành
+  slug: exception-handling-practice
+  index: 26
+- title: Tra cứu
+  slug: exception-reference
+  index: 27

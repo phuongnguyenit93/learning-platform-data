@@ -1,0 +1,3 @@
+menuLevel1: BlockingQueue
+menuLevel2: DelayQueue, Delayed và thời điểm phần tử được lấy
+status: WRITTEN

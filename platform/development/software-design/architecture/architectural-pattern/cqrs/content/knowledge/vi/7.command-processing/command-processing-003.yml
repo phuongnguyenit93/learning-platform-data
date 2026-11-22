@@ -1,0 +1,3 @@
+menuLevel1: Xử lý lệnh
+menuLevel2: Gọi handler trực tiếp, dùng mediator và dùng command bus
+status: ''

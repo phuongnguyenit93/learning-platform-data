@@ -1,0 +1,3 @@
+menuLevel1: CompletableFuture
+menuLevel2: 'delayedExecutor(): lên lịch khởi chạy mà không chặn luồng chờ'
+status: TRANSLATE

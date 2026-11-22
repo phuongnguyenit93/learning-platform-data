@@ -1,0 +1,7 @@
+# Spring Cloud Configuration
+
+**Spring Cloud Configuration** tập trung vào cách quản lý cấu hình bên ngoài mã nguồn cho các ứng dụng Spring Boot và hệ thống nhiều dịch vụ. Thay vì đóng gói mọi biến môi trường, endpoint hoặc tham số vận hành vào từng bản build, **Spring Cloud Config** cung cấp Config Server và Config Client để phân phối các `PropertySource` từ một nguồn được quản lý tập trung, thường là Git. Việc dùng cấu hình tập trung cần đi kèm hiểu biết về thứ tự ưu tiên thuộc tính, phân tách môi trường và ranh giới bảo mật.
+
+Lộ trình gồm tám mốc: externalized configuration; Config Server và HTTP API; Git backend, profile và label; Config Client với `spring.config.import`; bảo mật và secrets; cập nhật thông qua `@RefreshScope`/Spring Cloud Bus; tính sẵn sàng cùng health check; cuối cùng là kiểm thử và quản trị thay đổi. Người học sẽ thấy vì sao không phải mọi bean đều tự làm mới khi cấu hình thay đổi, vì sao secret không nên xuất hiện trong log hoặc Git dưới dạng rõ, và cách xác minh phiên bản cấu hình được phục vụ cho từng ứng dụng.
+
+Module phù hợp với lập trình viên Java/Spring Boot, kỹ sư DevOps và người vận hành đã biết Spring `Environment`, YAML/properties, Git và HTTP. Sau khi hoàn thành, bạn có thể thiết lập Config Server/Client cho một ứng dụng mẫu, tổ chức cấu hình nhiều profile, bảo vệ truy cập, thực hiện refresh đúng cách, kiểm tra các tình huống mất kết nối và xây dựng quy trình review/rollback cấu hình an toàn.

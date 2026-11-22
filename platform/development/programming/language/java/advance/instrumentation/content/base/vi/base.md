@@ -1,0 +1,7 @@
+# Java Advance – Instrumentation
+
+Instrumentation cho phép quan sát và bổ sung mã đo lường vào chương trình Java bằng cách tác động có kiểm soát lên bytecode, thay vì phải đặt lệnh ghi log trực tiếp ở mọi vị trí cần theo dõi. Trong Java, `java.lang.instrument` cung cấp cơ chế Java agent và transformer để can thiệp vào lớp khi nạp hoặc khi được phép cập nhật trong tiến trình. Nắm rõ cơ chế này giúp bạn đánh giá cách thu thập dữ liệu thực thi, phân biệt instrumentation với lấy mẫu, và hiểu những giới hạn ảnh hưởng đến tính đúng đắn của ứng dụng.
+
+Module dành cho người đã có nền tảng Java Core, class loader, bytecode và vòng đời lớp. Bạn sẽ tìm hiểu vai trò của `Instrumentation` và `ClassFileTransformer`, đóng gói agent JAR với `premain` và chạy bằng `-javaagent`, đồng thời nhận biết `agentmain` và các giới hạn của việc gắn agent động. Tiếp đó, bạn học cách chọn đúng lớp cần biến đổi, giữ bytecode hợp lệ, đo cả đường thực thi bình thường lẫn ngoại lệ, và phân biệt `retransformClasses` với `redefineClasses` khi xử lý lớp đã nạp.
+
+Lộ trình tiếp tục với mối quan hệ giữa mã của agent, class loader và hệ thống module, bao gồm khả năng truy cập lớp hỗ trợ và nguy cơ giữ tham chiếu làm cản trở thu hồi bộ nạp. Ở phần kiểm chứng, bạn sẽ so sánh ứng dụng khi bật và tắt agent, thử nghiệm nhiều luồng và transformer, xử lý lỗi rồi đo tác động lên CPU, bộ nhớ và độ trễ. Kết thúc module, bạn có thể xây dựng một agent đo lường nhỏ, xác minh rằng nó không làm sai hành vi gốc và giải thích những ràng buộc tương thích với JDK, class file và môi trường chạy.

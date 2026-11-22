@@ -1,0 +1,2479 @@
+menu:
+- slug: overview
+  title: Mô hình tổng quan
+  childs:
+  - slug: overview-001
+    title: Class loader là gì và vì sao JVM cần nạp lớp động
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Từ mã nguồn, bytecode đến lớp đang tồn tại trong JVM
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt ClassLoader, Class và đối tượng của lớp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt nạp lớp, liên kết và khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Không gian tên, khả năng nhìn thấy và cô lập phụ thuộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Một ví dụ xuyên suốt: ứng dụng chủ và plugin'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức tiên quyết và trình tự học đề xuất
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Quy tắc đặc tả, chi tiết HotSpot và khác biệt theo phiên bản JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: names-and-bytecode
+  title: Tên và bytecode
+  childs:
+  - slug: names-and-bytecode-001
+    title: Tên nhị phân, tên chuẩn và tên nội bộ của lớp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-bytecode-002
+    title: Tên lớp lồng, lớp cục bộ và lớp vô danh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-bytecode-003
+    title: Chuyển tên lớp thành đường dẫn tài nguyên .class
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-bytecode-004
+    title: Cấu trúc ClassFile tối thiểu cần biết
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-bytecode-005
+    title: Phiên bản major, minor và giới hạn JDK hỗ trợ bytecode
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-bytecode-006
+    title: Constant pool và tham chiếu ký hiệu tới kiểu, field, method
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-bytecode-007
+    title: Descriptor của kiểu, phương thức và lớp mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-bytecode-008
+    title: Vì sao trình nạp phải nhận đúng tên và bytecode tương ứng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-lifecycle
+  title: Vòng đời lớp
+  childs:
+  - slug: class-lifecycle-001
+    title: Thời điểm JVM cần tạo và nạp một lớp hoặc interface
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-002
+    title: Tìm biểu diễn nhị phân và tạo Class trong JVM
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-003
+    title: Nạp các lớp cha và interface cha cần thiết
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-004
+    title: 'Verification: kiểm tra cấu trúc và tính hợp lệ của bytecode'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-005
+    title: 'Preparation: cấp phát và thiết lập giá trị mặc định cho static field'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-006
+    title: 'Resolution: phân giải tham chiếu ký hiệu'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-007
+    title: Phân giải sớm, phân giải muộn và thời điểm xuất hiện lỗi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-008
+    title: Phân biệt liên kết lớp với khởi tạo lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-009
+    title: Khởi tạo lớp trước khi thực thi các thao tác yêu cầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-lifecycle-010
+    title: Vòng đời lớp khác vòng đời đối tượng như thế nào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-initialization
+  title: Khởi tạo lớp
+  childs:
+  - slug: class-initialization-001
+    title: Phương thức <clinit>, static field initializer và static block
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-002
+    title: Phân biệt <clinit> với constructor <init>
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-003
+    title: Các thao tác chủ động kích hoạt khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-004
+    title: 'Các thao tác không kích hoạt khởi tạo: class literal, mảng và hằng biên dịch'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-005
+    title: Khởi tạo lớp cha và thứ tự thực hiện static initializer
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-006
+    title: Khởi tạo interface và ảnh hưởng của default method
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-007
+    title: 'Đọc static field kế thừa: kiểu thực sự khai báo field'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-008
+    title: Đồng bộ khởi tạo lớp giữa nhiều luồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-009
+    title: Khởi tạo đệ quy, phụ thuộc vòng và giá trị chưa hoàn thiện
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-010
+    title: ExceptionInInitializerError và trạng thái khởi tạo thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: built-in-class-loaders
+  title: Loader tích hợp
+  childs:
+  - slug: built-in-class-loaders-001
+    title: Bootstrap class loader và vai trò của JVM
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-002
+    title: Platform class loader trong JDK hiện đại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-003
+    title: System class loader và application class loader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-004
+    title: Quan hệ cha và phạm vi lớp mà mỗi loader phụ trách
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-005
+    title: Class.getClassLoader và cách hiểu kết quả null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-006
+    title: ClassLoader.getPlatformClassLoader và getSystemClassLoader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-007
+    title: Extension class loader trong Java 8 và thay đổi từ Java 9
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-008
+    title: Vì sao không nên ép application class loader thành URLClassLoader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-009
+    title: 'Runtime image, jrt: và việc loại bỏ rt.jar'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-010
+    title: Giới hạn của sơ đồ ba loader khi làm việc với named module
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-class-loaders-011
+    title: Tùy chỉnh system class loader bằng java.system.class.loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parent-delegation
+  title: Cơ chế ủy quyền
+  childs:
+  - slug: parent-delegation-001
+    title: Parent delegation và mục đích dùng chung kiểu nền tảng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-002
+    title: 'Trình tự mặc định: findLoadedClass, loader cha và findClass'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-003
+    title: Vai trò của parent null khi ủy quyền tới bootstrap
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-004
+    title: Quan hệ parent là quan hệ đối tượng, không phải kế thừa lớp Java
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-005
+    title: Defining loader và initiating loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-006
+    title: Phân biệt loader được yêu cầu với loader thực sự định nghĩa lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-007
+    title: Khả năng nhìn thấy từ loader con tới loader cha
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-008
+    title: Vì sao loader cha không tự tìm phụ thuộc của loader con
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parent-delegation-009
+    title: Ủy quyền trong mô hình đồ thị và ngoại lệ với hệ module
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-identity
+  title: Định danh kiểu
+  childs:
+  - slug: type-identity-001
+    title: Định danh lớp bằng tên nhị phân và defining loader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-002
+    title: Hai lớp cùng tên nhưng khác loader là hai kiểu khác nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-003
+    title: So sánh Class, instanceof, isInstance và isAssignableFrom
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-004
+    title: ClassCastException khi tên lớp nguồn và đích giống nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-005
+    title: Runtime package được xác định bởi tên package và loader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-006
+    title: Truy cập package-private giữa các lớp do loader khác nhau định nghĩa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-007
+    title: Loading constraint bảo đảm nhất quán kiểu trong chữ ký
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-008
+    title: Lớp mảng, kiểu phần tử và loader tương ứng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-009
+    title: Kiểu nguyên thủy, void và giới hạn của loadClass
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-identity-010
+    title: Thiết kế kiểu API dùng chung tại ranh giới nhiều loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-loading-api
+  title: API nạp lớp
+  childs:
+  - slug: class-loading-api-001
+    title: ClassLoader.loadClass và ý nghĩa của tham số resolve
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-002
+    title: 'findClass: điểm mở rộng để tìm bytecode'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-003
+    title: findLoadedClass và việc tái sử dụng lớp đã được loader ghi nhận
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-004
+    title: 'defineClass: tạo lớp từ byte[] hoặc ByteBuffer'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-005
+    title: resolveClass và khác biệt với khởi tạo lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-006
+    title: Class.forName(String) và lựa chọn loader mặc định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-007
+    title: Class.forName(name, initialize, loader)
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-008
+    title: Class.forName(Module, name) và trường hợp không tìm thấy lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-009
+    title: Class.getClassLoader, getParent và đặt tên loader
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-010
+    title: Phân biệt nạp lớp, tạo đối tượng và gọi constructor bằng reflection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-api-011
+    title: Điều khiển assertion theo lớp, package và giá trị mặc định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classpath-and-module-path
+  title: Đường dẫn tìm kiếm
+  childs:
+  - slug: classpath-and-module-path-001
+    title: Classpath là gì và cách xác định thư mục gốc
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-002
+    title: Thiết lập -cp, --class-path và biến CLASSPATH
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-003
+    title: Classpath lúc biên dịch khác classpath lúc chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-004
+    title: Thứ tự tìm kiếm và lớp trùng tên trong nhiều JAR
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-005
+    title: Wildcard trong classpath và giới hạn tìm kiếm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-006
+    title: JAR, manifest Main-Class và Class-Path
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-007
+    title: Chế độ java -jar và các quy tắc classpath liên quan
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-008
+    title: Multi-release JAR và chọn bytecode theo phiên bản Java
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-009
+    title: Phân biệt classpath, module path và đường dẫn native library
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-010
+    title: Khác biệt giữa dependency của công cụ build và đường dẫn thực tế của JVM
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-loading
+  title: Tài nguyên
+  childs:
+  - slug: resource-loading-001
+    title: Resource là gì và quan hệ với classpath
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-002
+    title: 'Class.getResource: đường dẫn tương đối và dấu / ở đầu'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-003
+    title: 'ClassLoader.getResource: đường dẫn tính từ gốc tài nguyên'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-004
+    title: getResourceAsStream và xử lý trường hợp không tìm thấy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-005
+    title: getResources, resources và liệt kê nhiều tài nguyên cùng tên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-006
+    title: findResource, findResources và điểm mở rộng cho loader tùy chỉnh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-007
+    title: Thứ tự ủy quyền tài nguyên phải nhất quán với chính sách nạp lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-008
+    title: 'file:, jar:, jrt: và giới hạn chuyển URL thành File'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-009
+    title: Đọc tài nguyên trong JAR và đóng InputStream đúng cách
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-loading-010
+    title: Tài nguyên named module và các quy tắc đóng gói, opens
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-class-loader
+  title: Loader ngữ cảnh
+  childs:
+  - slug: context-class-loader-001
+    title: Thread context class loader là gì
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-002
+    title: Vì sao API nền tảng cần nhìn thấy cách triển khai của ứng dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-003
+    title: getContextClassLoader và setContextClassLoader
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-004
+    title: Lựa chọn loader tường minh thay vì phụ thuộc ngầm vào luồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-005
+    title: Truyền và kế thừa context class loader khi tạo luồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-006
+    title: Thread pool và ngữ cảnh có thể khác luồng gửi công việc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-007
+    title: Đổi context class loader trong phạm vi hẹp và khôi phục bằng finally
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-008
+    title: Rò rỉ bộ nhớ khi luồng sống lâu giữ loader của plugin
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-class-loader-009
+    title: ServiceLoader và các API dùng loader ngữ cảnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: url-class-loader
+  title: URLClassLoader
+  childs:
+  - slug: url-class-loader-001
+    title: Tạo URLClassLoader từ thư mục và JAR
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-002
+    title: Chọn parent và phạm vi phụ thuộc được kế thừa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-003
+    title: Thứ tự URL và xử lý JAR hoặc lớp trùng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-004
+    title: Nạp lớp và tài nguyên qua URLClassLoader
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-005
+    title: getURLs và giới hạn của addURL
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-006
+    title: Quản lý vòng đời bằng close và try-with-resources
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-007
+    title: Close không đồng nghĩa với gỡ bỏ lớp đã nạp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-008
+    title: Ảnh hưởng của close tới JAR handle và thao tác tải đang diễn ra
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: url-class-loader-009
+    title: Giới hạn tìm nested JAR và khác biệt với launcher chuyên dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-class-loader
+  title: Loader tùy chỉnh
+  childs:
+  - slug: custom-class-loader-001
+    title: Khi nào cần mở rộng ClassLoader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-002
+    title: Chọn constructor, parent và tên loader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-003
+    title: Ưu tiên ghi đè findClass khi giữ cơ chế ủy quyền mặc định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-004
+    title: Đọc và kiểm tra bytecode từ thư mục, bộ nhớ hoặc nguồn riêng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-005
+    title: Ánh xạ tên lớp tới nguồn dữ liệu có giới hạn rõ ràng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-006
+    title: Truyền tên, offset và length chính xác cho defineClass
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-007
+    title: Định nghĩa package và nguồn mã khi cần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-008
+    title: Phân loại lỗi không tìm thấy với bytecode không hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-009
+    title: Không định nghĩa lại cùng một tên trong cùng loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-010
+    title: Bổ sung khả năng tìm tài nguyên tương ứng với lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-011
+    title: Giữ bất biến định danh kiểu và đóng tài nguyên do loader sở hữu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-class-loader-012
+    title: findLibrary và trách nhiệm tra cứu thư viện native
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loading-policies
+  title: Chính sách nạp
+  childs:
+  - slug: loading-policies-001
+    title: So sánh parent-first và child-first
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-002
+    title: Khi nào việc ghi đè loadClass là cần thiết
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-003
+    title: Thiết kế chính sách chọn lọc theo package
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-004
+    title: Ủy quyền bắt buộc cho kiểu nền tảng và API dùng chung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-005
+    title: Cô lập nhiều phiên bản thư viện giữa các plugin
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-006
+    title: Ngăn lớp và tài nguyên dùng các thứ tự ưu tiên khác nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-007
+    title: Rủi ro nạp trùng API, annotation hoặc kiểu exception
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-008
+    title: Phát hiện chu trình ủy quyền và tránh gọi lặp vô hạn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-policies-009
+    title: Đánh đổi giữa cô lập, tương thích và khả năng chẩn đoán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-class-loading
+  title: Nạp đồng thời
+  childs:
+  - slug: concurrent-class-loading-001
+    title: Khóa nạp lớp trong triển khai mặc định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-class-loading-002
+    title: getClassLoadingLock và khóa theo tên lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-class-loading-003
+    title: Parallel-capable class loader là gì
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-class-loading-004
+    title: registerAsParallelCapable và điều kiện đăng ký
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-class-loading-005
+    title: Tránh race condition giữa findLoadedClass và defineClass
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-class-loading-006
+    title: Deadlock khi nhiều loader ủy quyền chéo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-class-loading-007
+    title: Phân biệt khóa nạp lớp với khóa khởi tạo lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-class-loading-008
+    title: Thiết kế cache bytecode và nguồn tài nguyên an toàn cho nhiều luồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packages-and-code-sources
+  title: Package và nguồn mã
+  childs:
+  - slug: packages-and-code-sources-001
+    title: definePackage, getDefinedPackage và getDefinedPackages
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-code-sources-002
+    title: Package cùng tên trong nhiều loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-code-sources-003
+    title: Package sealing và thông tin manifest
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-code-sources-004
+    title: CodeSource và vị trí nguồn bytecode
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-code-sources-005
+    title: ProtectionDomain trong các biến thể defineClass
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-code-sources-006
+    title: SecureClassLoader và vai trò lịch sử của quyền truy cập
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-code-sources-007
+    title: Chữ ký JAR, chứng thư và tính nhất quán trong cùng package
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-code-sources-008
+    title: Giới hạn định nghĩa lớp trong package java.*
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modules-and-layers
+  title: Module và layer
+  childs:
+  - slug: modules-and-layers-001
+    title: JPMS thay đổi mô hình quan sát và truy cập kiểu như thế nào
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-002
+    title: Named module, unnamed module và automatic module
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-003
+    title: Phân biệt khả năng tìm thấy lớp với quyền truy cập lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-004
+    title: Readability, exports và opens
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-005
+    title: Quan hệ một loader với một hoặc nhiều module
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-006
+    title: ModuleLayer.boot và các layer được tạo động
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-007
+    title: ModuleFinder, Configuration và giải quyết phụ thuộc module
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-008
+    title: defineModulesWithOneLoader và defineModulesWithManyLoaders
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-009
+    title: findLoader và chọn loader cho module
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-010
+    title: Giới hạn split package và các lỗi cấu hình layer
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-011
+    title: Nạp tài nguyên từ module bằng Class, ClassLoader và Module
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-layers-012
+    title: Phân biệt --add-reads, --add-exports và --add-opens
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-loading
+  title: Nạp dịch vụ
+  childs:
+  - slug: service-loading-001
+    title: Service Provider Interface và vai trò của ServiceLoader
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-002
+    title: Khai báo provider bằng META-INF/services trên classpath
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-003
+    title: uses và provides trong module-info.java
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-004
+    title: ServiceLoader.load với loader tường minh hoặc loader ngữ cảnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-005
+    title: ServiceLoader.load với ModuleLayer
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-006
+    title: Khám phá provider và khởi tạo lười
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-007
+    title: Iterator, stream và ServiceLoader.Provider
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-008
+    title: Cache provider, reload và giới hạn dùng đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-009
+    title: ServiceConfigurationError và provider không tương thích kiểu dịch vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-loading-010
+    title: Provider constructor, provider method và khác biệt theo cách triển khai
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-architecture
+  title: Kiến trúc plugin
+  childs:
+  - slug: plugin-architecture-001
+    title: Phân chia ứng dụng chủ, API chung và triển khai plugin
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-002
+    title: Chọn loader cho API chung và phụ thuộc riêng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-003
+    title: Mỗi plugin một loader hay nhiều plugin dùng chung loader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-004
+    title: Giao tiếp qua interface, DTO và exception có định danh thống nhất
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-005
+    title: Khởi tạo plugin và quản lý context class loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-006
+    title: Quy trình dừng plugin, hủy đăng ký và giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-007
+    title: Thay phiên bản plugin bằng loader mới
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-008
+    title: Ranh giới của hot reload và trạng thái đang được sử dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-009
+    title: Vì sao class loader không tạo thành sandbox bảo mật
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-architecture-010
+    title: Nhận diện mô hình cô lập trong container và test runner
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-class-definition
+  title: Định nghĩa lớp động
+  childs:
+  - slug: dynamic-class-definition-001
+    title: Reflection và việc chọn loader cho tên lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-002
+    title: Dynamic Proxy và khả năng nhìn thấy các interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-003
+    title: MethodHandles.Lookup.defineClass và ngữ cảnh định nghĩa lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-004
+    title: Hidden class và giới hạn khám phá bằng tên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-005
+    title: Phân biệt bootstrap class loader với bootstrap method của invokedynamic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-006
+    title: Sinh bytecode, biên dịch động và trách nhiệm quản lý loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-007
+    title: 'Instrumentation: transform trước khi định nghĩa lớp'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-008
+    title: Redefine, retransform và khác biệt với nạp lớp bằng loader mới
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-class-definition-009
+    title: Ràng buộc phiên bản, cấu trúc lớp và quyền truy cập khi tạo lớp động
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-unloading-and-memory
+  title: Dỡ lớp và bộ nhớ
+  childs:
+  - slug: class-unloading-and-memory-001
+    title: Điều kiện để lớp và defining loader có thể được thu gom
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-002
+    title: Vì sao không có thao tác unload tùy ý một lớp thông thường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-003
+    title: Phân biệt mất tham chiếu đối tượng, đóng loader và class unloading
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-004
+    title: Quan hệ giữa Class, đối tượng instance và loader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-005
+    title: Metaspace trong HotSpot và giới hạn của mô hình method area
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-006
+    title: Static field, cache reflection và tham chiếu từ ứng dụng chủ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-007
+    title: Thread, ThreadLocal, context class loader và tác vụ chưa dừng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-008
+    title: Listener, registry, ServiceLoader cache và nguyên nhân giữ plugin
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-009
+    title: Giải phóng JAR handle và tránh giữ file sau reload
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-unloading-and-memory-010
+    title: Quan sát unloading và tránh kết luận từ một lần gọi System.gc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-boundaries
+  title: Ranh giới bảo mật
+  childs:
+  - slug: security-boundaries-001
+    title: Bytecode verification bảo vệ điều gì và không bảo vệ điều gì
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-boundaries-002
+    title: Phân biệt cô lập không gian tên với cô lập quyền thực thi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-boundaries-003
+    title: Kiểm soát nguồn JAR, tính toàn vẹn và phụ thuộc được phép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-boundaries-004
+    title: Tránh lấy tên lớp hoặc đường dẫn tùy ý từ dữ liệu không tin cậy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-boundaries-005
+    title: Rủi ro tải lớp từ nguồn mạng hoặc thư mục có thể bị thay đổi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-boundaries-006
+    title: SecurityManager là cơ chế lịch sử và cần đối chiếu phiên bản JDK
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-boundaries-007
+    title: Tách tiến trình khi cần ranh giới bảo mật mạnh hơn loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-class-loading-errors
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-class-loading-errors-001
+    title: 'ClassNotFoundException: yêu cầu tìm lớp tường minh không thành công'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-002
+    title: NoClassDefFoundError do thiếu lớp phụ thuộc hoặc sai tên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-003
+    title: NoClassDefFoundError sau khi khởi tạo lớp thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-004
+    title: UnsupportedClassVersionError và phiên bản bytecode
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-005
+    title: ClassFormatError, VerifyError và ClassCircularityError
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-006
+    title: LinkageError do định nghĩa lớp trùng hoặc vi phạm loading constraint
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-007
+    title: NoSuchMethodError và NoSuchFieldError do lệch phiên bản
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-008
+    title: AbstractMethodError và IncompatibleClassChangeError
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-009
+    title: IllegalAccessError, IllegalAccessException và InaccessibleObjectException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-010
+    title: ClassCastException do khác định danh loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-011
+    title: SecurityException do package sealing, chứng thư hoặc package bị cấm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-class-loading-errors-012
+    title: UnsatisfiedLinkError và native library trong nhiều loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-loading-diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: class-loading-diagnostics-001
+    title: In tên lớp, loader, module và nguồn mã trong thông tin lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-002
+    title: Lần theo parent chain và loader thực sự định nghĩa lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-003
+    title: Xác định lớp đến từ thư mục, JAR hay runtime image nào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-004
+    title: Liệt kê tài nguyên trùng tên và xác định thứ tự được chọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-005
+    title: -verbose:class và unified logging -Xlog:class+load
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-006
+    title: Theo dõi khởi tạo và dỡ lớp bằng các log tag phù hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-007
+    title: jcmd VM.classloaders, VM.classloader_stats và VM.class_hierarchy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-008
+    title: 'ClassLoadingMXBean: tổng lớp đã nạp, lớp hiện có và lớp đã dỡ'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-009
+    title: JFR, heap dump và đường tham chiếu giữ class loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-010
+    title: javap, jar và jdeps trong điều tra bytecode, JAR và phụ thuộc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-diagnostics-011
+    title: Đối chiếu runtime classpath thực tế với cây dependency của công cụ build
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-loading-performance
+  title: Hiệu năng
+  childs:
+  - slug: class-loading-performance-001
+    title: Chi phí đọc JAR, verification, linking và initialization
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-performance-002
+    title: Phân biệt độ trễ khởi động với chi phí lời gọi sau khi đã nạp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-performance-003
+    title: Nạp lười và tác động của preloading
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-performance-004
+    title: Tái sử dụng loader so với tạo loader cho từng yêu cầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-performance-005
+    title: Cache đúng phạm vi mà không giữ loader đã hết vòng đời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-performance-006
+    title: CDS, AppCDS và giới hạn theo loader hoặc cấu hình chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-performance-007
+    title: Đo hiệu năng với cùng JDK, classpath và tập lớp được sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-performance-008
+    title: Đánh đổi giữa số loader, mức cô lập và dung lượng metaspace
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-loading-verification
+  title: Kiểm chứng hành vi
+  childs:
+  - slug: class-loading-verification-001
+    title: Tạo fixture có cùng tên lớp trong hai JAR
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-002
+    title: Kiểm chứng thứ tự ủy quyền và định danh Class
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-003
+    title: Kiểm chứng loadClass khác Class.forName về khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-004
+    title: Kiểm chứng thứ tự static initializer và lỗi khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-005
+    title: Kiểm chứng package-private khi dùng hai loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-006
+    title: Kiểm chứng tìm tài nguyên và provider dịch vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-007
+    title: Kiểm chứng nạp đồng thời và xử lý tên lớp trùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-008
+    title: Kiểm chứng vòng đời đóng loader, dừng plugin và giải phóng tham chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-verification-009
+    title: Tách từng kịch bản bằng loader hoặc tiến trình JVM mới
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-loading-exercises
+  title: Thực hành
+  childs:
+  - slug: class-loading-exercises-001
+    title: In cây loader và nguồn gốc các lớp trong một ứng dụng nhỏ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-002
+    title: Đọc cấu hình từ thư mục và JAR bằng API resource
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-003
+    title: Xây dựng loader nạp bytecode từ bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-004
+    title: Cô lập hai phiên bản thư viện trong hai loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-005
+    title: Tạo plugin dùng API chung và phát hiện bằng ServiceLoader
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-006
+    title: Tạo module layer cho plugin mô đun hóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-007
+    title: Tái hiện và sửa lỗi cùng tên lớp nhưng không ép kiểu được
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-008
+    title: Tái hiện NoClassDefFoundError và lỗi khởi tạo lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-009
+    title: Thực hiện reload plugin bằng loader mới
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-exercises-010
+    title: Điều tra một tình huống rò rỉ class loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reference-tables
+  title: Tra cứu
+  childs:
+  - slug: reference-tables-001
+    title: Bảng đối chiếu loadClass, forName, defineClass và resolveClass
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-tables-002
+    title: Bảng thao tác kích hoạt khởi tạo lớp hoặc interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-tables-003
+    title: Bảng lỗi theo giai đoạn nạp, liên kết, khởi tạo và sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-tables-004
+    title: Bảng thay đổi class loading giữa Java 8 và Java hiện đại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-tables-005
+    title: Thuật ngữ defining loader, initiating loader, runtime package và layer
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-tables-006
+    title: Tra cứu JVMS, JLS, Javadoc và công cụ JDK theo chủ đề
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

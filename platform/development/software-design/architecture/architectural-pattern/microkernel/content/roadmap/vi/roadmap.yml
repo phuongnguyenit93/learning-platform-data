@@ -1,0 +1,57 @@
+roadmap:
+- id: microkernel-use-cases
+  title: Microkernel & Use Cases
+  purpose: Nhận diện bài toán cần lõi ổn định và tính năng mở rộng độc lập, không nhầm với nhân hệ điều hành.
+  objectives:
+  - Giải thích core system và plug-in modules
+  - Nêu ví dụ IDE hoặc sản phẩm có tiện ích mở rộng
+  - Đánh giá khi nào kiến trúc plugin phù hợp
+- id: core-plugin-boundary
+  title: Core & Plugin Boundary
+  purpose: Giữ lõi chỉ chứa năng lực nền tảng, đẩy tính năng biến động ra khỏi core.
+  objectives:
+  - Vẽ sơ đồ core và các plugin độc lập
+  - Phân bổ trách nhiệm giữa core với plugin
+  - Phát hiện phụ thuộc plugin ngược vào nội bộ core
+- id: extension-points-api
+  title: Extension Points & API
+  purpose: Thiết kế hợp đồng ổn định để plugin thêm hành vi mà core không cần biết implementation.
+  objectives:
+  - Định nghĩa extension interface trong Java
+  - Tạo hai plugin triển khai cùng interface
+  - Thử thay plugin không cần sửa logic core
+- id: discovery-registry
+  title: Discovery & Registry
+  purpose: Đăng ký và tìm kiếm plugin theo metadata để hệ thống khởi tạo đúng thành phần.
+  objectives:
+  - Đọc plugin ID, version và dependency metadata
+  - Dùng PluginManager phát hiện và nạp plugin
+  - Truy vấn extension theo điểm mở rộng
+- id: plugin-lifecycle
+  title: Plugin Lifecycle
+  purpose: Quản lý load, start, stop và unload có kiểm soát trong suốt thời gian chạy ứng dụng.
+  objectives:
+  - Phân biệt trạng thái RESOLVED, STARTED và STOPPED
+  - Thử bật và tắt plugin trong môi trường test
+  - Dọn tài nguyên khi plugin kết thúc
+- id: isolation-dependencies
+  title: Isolation & Dependencies
+  purpose: Giảm xung đột class và liên kết quá mức giữa các plugin cùng chạy trên JVM.
+  objectives:
+  - Giải thích vai trò PluginClassLoader
+  - Thử tình huống thiếu hoặc lệch dependency
+  - Tránh gọi trực tiếp nội bộ của plugin khác
+- id: compatibility-security
+  title: Compatibility & Security
+  purpose: Giữ hệ sinh thái plugin an toàn, có thể nâng cấp và kiểm soát tương thích.
+  objectives:
+  - Lập quy tắc version cho extension API
+  - Kiểm thử plugin cũ với bản core mới
+  - Đánh giá quyền và nguồn gốc plugin bên thứ ba
+- id: testing-trade-offs
+  title: Testing & Trade-offs
+  purpose: Đánh giá tính mở rộng, vận hành và chi phí phức tạp trước khi chọn Microkernel.
+  objectives:
+  - Viết contract test cho extension interface
+  - Thử ứng dụng khi một plugin lỗi hoặc vắng mặt
+  - So sánh microkernel với layered hoặc microservices

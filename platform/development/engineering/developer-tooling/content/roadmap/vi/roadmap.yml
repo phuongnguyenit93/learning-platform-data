@@ -1,0 +1,57 @@
+roadmap:
+- id: moi-truong-phat-trien
+  title: Môi trường phát triển
+  purpose: Thiết lập công cụ và workspace nhất quán để dự án có thể chạy trên máy phát triển.
+  objectives:
+  - Cài JDK và thiết lập JAVA_HOME/PATH.
+  - Kiểm tra phiên bản java, javac và công cụ cần thiết.
+  - Sắp xếp workspace, biến môi trường và cấu hình cục bộ.
+- id: terminal-shell
+  title: Terminal & Shell
+  purpose: Sử dụng dòng lệnh hiệu quả khi thao tác dự án và tự động hóa công việc thường ngày.
+  objectives:
+  - Điều hướng, tìm kiếm và xử lý tệp qua terminal.
+  - Hiểu biến môi trường, quoting, pipeline và exit code.
+  - Viết script ngắn cho các thao tác lặp lại.
+- id: ide-editor
+  title: IDE & Editor
+  purpose: Khai thác trình biên tập để viết, hiểu và thay đổi mã nhanh, chính xác.
+  objectives:
+  - Cấu hình workspace, SDK, extensions và run configurations.
+  - Tìm ký hiệu, định nghĩa, tham chiếu và sử dụng refactor.
+  - Chạy ứng dụng và đọc lỗi ngay trong IDE.
+- id: git-quan-ly-phien-ban
+  title: Git & Quản lý phiên bản
+  purpose: Theo dõi thay đổi mã nguồn và cộng tác an toàn qua lịch sử phiên bản.
+  objectives:
+  - Thực hiện clone, status, diff, add và commit.
+  - Tạo nhánh, đồng bộ và merge thay đổi.
+  - Đọc lịch sử, phát hiện và xử lý conflict.
+- id: go-loi-ung-dung
+  title: Gỡ lỗi ứng dụng
+  purpose: Xác định nguyên nhân lỗi bằng công cụ debug và dữ liệu thực thi.
+  objectives:
+  - Đặt breakpoint, step into/over và watch expression.
+  - Đọc call stack, biến và trạng thái khi chương trình dừng.
+  - Tái hiện, cô lập và xác nhận bản sửa lỗi.
+- id: chat-luong-ma
+  title: Chất lượng mã
+  purpose: Duy trì mã nguồn dễ đọc và phát hiện lỗi sớm bằng kiểm tra tự động.
+  objectives:
+  - Cấu hình formatter và quy ước định dạng.
+  - Chạy lint, static analysis và sửa cảnh báo phù hợp.
+  - Thiết lập Git hooks cho kiểm tra trước commit.
+- id: cong-cu-http-api
+  title: Công cụ HTTP/API
+  purpose: Gửi và phân tích request để kiểm tra tích hợp trong lúc phát triển.
+  objectives:
+  - Gửi request qua curl hoặc Postman.
+  - Thao tác method, headers, query, body và authentication.
+  - Đọc status, response và lưu collection tái sử dụng.
+- id: cong-tac-quy-trinh
+  title: Cộng tác & Quy trình
+  purpose: Liên kết công cụ cá nhân với quy trình nhóm để thay đổi rõ ràng, dễ kiểm tra.
+  objectives:
+  - Tạo pull request và review thay đổi dựa trên diff.
+  - Ghi README, hướng dẫn thiết lập và ghi chú kỹ thuật.
+  - Chuẩn hóa script/tác vụ để đồng đội chạy lại được.

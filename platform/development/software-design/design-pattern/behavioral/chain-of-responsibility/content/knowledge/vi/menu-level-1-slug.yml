@@ -1,0 +1,91 @@
+menu:
+  - title: "Tổng quan"
+    slug: chain-overview
+    index: 0
+  - title: "Vai trò và cấu trúc"
+    slug: roles-and-structure
+    index: 1
+  - title: "Ngữ nghĩa xử lý"
+    slug: processing-semantics
+    index: 2
+  - title: "Hợp đồng handler"
+    slug: handler-contracts
+    index: 3
+  - title: "Triển khai Java"
+    slug: java-implementation
+    index: 4
+  - title: "Kết quả xử lý"
+    slug: processing-results
+    index: 5
+  - title: "Ngữ cảnh yêu cầu"
+    slug: request-context
+    index: 6
+  - title: "Lắp ghép chuỗi"
+    slug: chain-assembly
+    index: 7
+  - title: "Cấu hình động"
+    slug: dynamic-configuration
+    index: 8
+  - title: "Vòng đời chuỗi"
+    slug: chain-lifecycle
+    index: 9
+  - title: "Kiểm tra đầu vào"
+    slug: input-validation
+    index: 10
+  - title: "Lỗi và phục hồi"
+    slug: error-handling-and-recovery
+    index: 11
+  - title: "Giao dịch và tác dụng phụ"
+    slug: transactions-and-side-effects
+    index: 12
+  - title: "Đồng thời"
+    slug: concurrency
+    index: 13
+  - title: "Chuỗi bất đồng bộ"
+    slug: asynchronous-chains
+    index: 14
+  - title: "Timeout và hủy"
+    slug: timeouts-and-cancellation
+    index: 15
+  - title: "Chuỗi reactive"
+    slug: reactive-chains
+    index: 16
+  - title: "Middleware web"
+    slug: web-middleware
+    index: 17
+  - title: "Servlet Filter"
+    slug: servlet-filters
+    index: 18
+  - title: "Tích hợp Spring"
+    slug: spring-integration
+    index: 19
+  - title: "Bảo mật"
+    slug: chain-security
+    index: 20
+  - title: "Quan sát hệ thống"
+    slug: chain-observability
+    index: 21
+  - title: "Kiểm thử"
+    slug: chain-testing
+    index: 22
+  - title: "Hiệu năng"
+    slug: chain-performance
+    index: 23
+  - title: "So sánh mẫu"
+    slug: pattern-comparisons
+    index: 24
+  - title: "Anti-pattern"
+    slug: chain-antipatterns
+    index: 25
+  - title: "Tái cấu trúc"
+    slug: refactoring-to-chains
+    index: 26
+  - title: "Thực hành Java"
+    slug: java-chain-exercises
+    index: 27
+  - title: "Thực hành web"
+    slug: web-chain-exercises
+    index: 28
+  - title: "Vận hành chuỗi"
+    slug: chain-operations
+    index: 29

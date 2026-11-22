@@ -1,0 +1,3 @@
+menuLevel1: Optional
+menuLevel2: Không trả Optional null hoặc gọi get vô điều kiện
+status: WRITTEN

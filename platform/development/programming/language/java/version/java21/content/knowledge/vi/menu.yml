@@ -1,0 +1,361 @@
+menu:
+- level1: Tổng quan Java 21
+  level2:
+  - Vị trí của Java 21 trong nền tảng Java được duy trì hiện nay
+  - Phạm vi ngôn ngữ, thư viện chuẩn, JVM và công cụ của JDK 21
+  - Bản đồ tính năng đã hoàn thiện và có thể dùng không cần bật preview
+  - Phân biệt phiên bản ngôn ngữ, API, bytecode và bản cập nhật JDK
+  - Xác định yêu cầu tương thích khi ứng dụng vẫn chạy trên Java 21
+  - Đọc Java SE Specification, API Specification và release notes chính thức
+  - Lựa chọn tính năng theo bài toán thay vì thay đổi mã chỉ vì có cú pháp mới
+- level1: Môi trường và toolchain
+  level2:
+  - Cài đặt bản cập nhật JDK 21 được nhà cung cấp duy trì
+  - Kiểm tra java, javac, JAVA_HOME và phiên bản JVM thực thi
+  - Quản lý nhiều JDK trên máy phát triển và trong môi trường CI
+  - Cấu hình Java toolchain cho Maven và Gradle
+  - Thiết lập javac --release 21 để kiểm soát ngôn ngữ, bytecode và API
+  - Đồng bộ JDK giữa IDE, build tool, test runner và production
+  - Tạo project Java 21 với classpath hoặc module path phù hợp
+  - Cấu hình mã nguồn, tài nguyên và encoding nhất quán
+  - Kiểm tra khả năng hỗ trợ JDK 21 của plugin, thư viện và annotation processor
+- level1: Mô hình dữ liệu
+  level2:
+  - Ôn tập record như nền tảng để sử dụng Record Patterns
+  - Thành phần record, accessor và constructor ảnh hưởng đến deconstruction
+  - Thiết kế record có validation và giữ invariant của dữ liệu
+  - Phân biệt record bất biến nông với dữ liệu thực sự bất biến
+  - Sealed class, sealed interface và tập hợp kiểu con được phép
+  - Kết hợp sealed hierarchy với record để mô hình hóa các biến thể dữ liệu
+  - Type pattern với instanceof và phạm vi biến theo luồng điều khiển
+  - Ranh giới giữa mô hình dữ liệu bằng record và đối tượng có hành vi, vòng đời
+- level1: Record Patterns
+  level2:
+  - Cấu trúc cú pháp Record Patterns đã hoàn thiện trong Java 21
+  - Kiểm tra kiểu và tách các component trong một lần matching
+  - So sánh type pattern với record pattern trên cùng một record
+  - Sử dụng record pattern trong biểu thức instanceof
+  - Sử dụng record pattern trong nhãn case của switch
+  - Khai báo component pattern bằng kiểu tường minh hoặc var
+  - Record pattern lồng nhau để duyệt cấu trúc dữ liệu nhiều tầng
+  - Xử lý record có giá trị null và component có thể null
+  - Phạm vi, tên biến và điều kiện sử dụng biến sau matching
+  - Accessor được gọi khi deconstruction và tác động của accessor tùy chỉnh
+  - Xử lý MatchException khi quá trình matching không hoàn tất bình thường
+- level1: Generics và patterns
+  level2:
+  - Record generic và kiểu của các component trong pattern
+  - Type argument tường minh trong record pattern
+  - Suy luận type argument từ kiểu của selector hoặc biểu thức instanceof
+  - Suy luận kiểu với var trong các record pattern lồng nhau
+  - Giới hạn type erasure và matching đòi hỏi unchecked conversion
+  - Quan hệ giữa kiểu tĩnh, kiểu runtime và tính hợp lệ của pattern
+  - Kết hợp record generic với sealed hierarchy
+  - Nhận diện lỗi biên dịch do suy luận kiểu hoặc pattern không tương thích
+- level1: Pattern switch
+  level2:
+  - Pattern Matching cho switch đã hoàn thiện trong Java 21
+  - Switch statement và switch expression khi dùng pattern
+  - Selector là reference type và các giới hạn kiểu trong Java 21
+  - Type pattern cho class, interface, record và array
+  - Kết hợp constant case và pattern case trong một switch
+  - Guard bằng when để bổ sung điều kiện nghiệp vụ
+  - Thứ tự đánh giá pattern và guard
+  - Khai báo case null và case null, default
+  - Qualified enum constant trong các switch phù hợp
+  - Phạm vi pattern variable trong guard, nhánh và khối lệnh
+  - Chuyển chuỗi instanceof hoặc if-else sang pattern switch có kiểm soát
+- level1: Tính đầy đủ của switch
+  level2:
+  - Type coverage và điều kiện exhaustive của switch có pattern
+  - Phân biệt yêu cầu exhaustive của switch statement và expression
+  - Bao phủ sealed hierarchy mà không che mất biến thể chưa xử lý
+  - Exhaustiveness với enum và qualified enum constant
+  - Exhaustiveness với record pattern lồng nhau và record generic
+  - Pattern dominance và các nhánh không thể tới
+  - Ảnh hưởng của guard khi kiểm tra dominance và type coverage
+  - Phân biệt default, pattern bao phủ toàn bộ kiểu và xử lý null
+  - MatchException khi hierarchy thay đổi nhưng mã sử dụng chưa được biên dịch lại
+  - Lựa chọn giữa kiểm tra đầy đủ lúc biên dịch và nhánh dự phòng theo nghiệp vụ
+- level1: Sequenced Collections
+  level2:
+  - Encounter order và nhu cầu truy cập hai đầu collection
+  - SequencedCollection, SequencedSet và SequencedMap trong Java 21
+  - Quan hệ của List và Deque với SequencedCollection
+  - getFirst, getLast và hành vi khi collection rỗng
+  - addFirst, addLast, removeFirst và removeLast
+  - reversed như một view có thứ tự ngược
+  - Ảnh hưởng của reversed đến iterator, stream và thao tác hai đầu
+  - Các thao tác tùy chọn và UnsupportedOperationException
+  - Lựa chọn ArrayList, ArrayDeque hoặc LinkedList theo đặc tính thao tác
+  - Thay thế mã xử lý phần tử đầu cuối bằng API biểu đạt đúng ý định
+- level1: SequencedSet
+  level2:
+  - SequencedSet và sự kết hợp giữa tính duy nhất với encounter order
+  - LinkedHashSet và thứ tự chèn của phần tử
+  - addFirst, addLast và di chuyển vị trí phần tử đã tồn tại
+  - Truy cập hoặc xóa phần tử ở hai đầu của set
+  - Reversed view của SequencedSet
+  - SortedSet, NavigableSet và thứ tự do comparator quyết định
+  - Giới hạn addFirst, addLast trên các set có thứ tự sắp xếp
+  - Thiết kế API nhận SequencedSet khi thứ tự là một phần của hợp đồng
+- level1: SequencedMap
+  level2:
+  - SequencedMap và encounter order của các entry
+  - LinkedHashMap theo insertion order hoặc access order
+  - firstEntry, lastEntry và kết quả khi map rỗng
+  - pollFirstEntry, pollLastEntry và thao tác lấy kèm xóa
+  - putFirst, putLast và định vị lại entry
+  - sequencedKeySet, sequencedValues và sequencedEntrySet
+  - Reversed view và quan hệ thứ tự giữa map với các view
+  - Ảnh hưởng của truy cập và cập nhật đến access-ordered LinkedHashMap
+  - SortedMap, NavigableMap và giới hạn định vị entry tường minh
+  - Entry snapshot từ các thao tác hai đầu và khả năng cập nhật giá trị
+  - Ứng dụng map có thứ tự vào lịch sử truy cập, hàng đợi và bộ nhớ đệm
+- level1: Views và tính bất biến
+  level2:
+  - Phân biệt view, bản sao, snapshot và collection bất biến
+  - Thay đổi qua reversed view và tác động đến collection gốc
+  - Reversed hai lần và cách kiểm tra thứ tự theo hợp đồng
+  - Tạo unmodifiableSequencedCollection, unmodifiableSequencedSet và unmodifiableSequencedMap
+  - Giới hạn của unmodifiable view khi dữ liệu gốc vẫn có thể thay đổi
+  - Tạo sequenced set bằng Collections.newSequencedSetFromMap
+  - Quy tắc equals, hashCode và thứ tự của List, Set, Map
+  - Làm việc với collection immutable có hỗ trợ đọc hai đầu và reversed
+  - Đánh giá thread safety và concurrent modification theo implementation
+- level1: Virtual Threads
+  level2:
+  - Mô hình virtual thread, platform thread và carrier thread
+  - Bài toán tăng khả năng xử lý đồng thời cho workload chờ I/O
+  - Vòng đời mount, unmount và tiếp tục thực thi virtual thread
+  - Quan hệ giữa số virtual thread với số luồng hệ điều hành
+  - Khả năng tương thích với Thread API và mã blocking hiện có
+  - Giới hạn của virtual thread đối với tác vụ CPU-bound
+  - Trạng thái daemon và ảnh hưởng đến thời điểm JVM kết thúc
+  - Chi phí stack, đối tượng thread và số lượng tác vụ còn sống
+  - Vì sao không dùng thread pool để tái sử dụng virtual thread
+  - Phân biệt concurrency, parallelism, throughput và latency
+  - Tiêu chí chọn virtual thread cho một đường xử lý cụ thể
+- level1: Thread API
+  level2:
+  - Tạo và khởi chạy bằng Thread.startVirtualThread
+  - Thread.ofVirtual và builder cho virtual thread
+  - Tạo thread chưa chạy bằng unstarted và khởi chạy bằng start
+  - Đặt tên thread, số thứ tự và tạo ThreadFactory
+  - Thread.ofPlatform khi cần cấu hình platform thread
+  - Kiểm tra Thread.isVirtual và định danh thread trong chẩn đoán
+  - Thread.currentThread và phân biệt danh tính virtual thread với carrier
+  - Join, interrupt và phối hợp hoàn thành giữa các thread
+  - Thiết lập UncaughtExceptionHandler và quan sát lỗi không được bắt
+  - Kiểm soát việc kế thừa InheritableThreadLocal qua thread builder
+- level1: Executor và tác vụ
+  level2:
+  - Executors.newVirtualThreadPerTaskExecutor và mô hình mỗi task một thread
+  - Executors.newThreadPerTaskExecutor với ThreadFactory
+  - Quản lý ExecutorService bằng try-with-resources
+  - Submit Runnable, Callable và lấy kết quả qua Future
+  - Phân biệt lỗi trong Future với lỗi chuyển tới uncaught exception handler
+  - Chờ kết quả có timeout và xử lý ExecutionException
+  - Hủy task bằng Future.cancel và giới hạn của interruption
+  - Quản lý shutdown, shutdownNow và chờ kết thúc executor
+  - Fan-out nhiều tác vụ bằng các API ExecutorService đã ổn định
+  - Kết hợp virtual thread với CompletableFuture qua executor tường minh
+  - Kiểm soát vòng đời tác vụ để tránh công việc chạy quá phạm vi request
+- level1: Blocking I/O
+  level2:
+  - Cách virtual thread làm việc với socket và các thao tác chờ
+  - Phân biệt I/O có thể unmount với thao tác còn chiếm carrier trên JDK 21
+  - Thiết kế xử lý request theo phong cách tuần tự với blocking API
+  - Tích hợp JDBC và xác minh khả năng tương thích của driver
+  - Tích hợp HTTP client, file I/O và dịch vụ bên ngoài
+  - Thiết lập connect timeout, read timeout và deadline nghiệp vụ
+  - Truyền cancellation qua lời gọi I/O có hỗ trợ interruption
+  - Đóng stream, socket, connection và tài nguyên khi task thất bại
+  - Tránh chặn nhầm event-loop khi kết hợp với thư viện bất đồng bộ
+  - Phân tích bottleneck ở dịch vụ phụ thuộc khi tăng mức đồng thời
+- level1: Đồng bộ và pinning
+  level2:
+  - Thread safety và Java Memory Model vẫn áp dụng với virtual thread
+  - Phân biệt lock contention, blocking và carrier pinning
+  - Pinning khi blocking trong synchronized trên JDK 21
+  - Pinning liên quan đến native call và giới hạn chẩn đoán
+  - Phát hiện vùng giữ monitor lâu hoặc có I/O bên trong
+  - Đánh giá ReentrantLock cho điểm nghẽn đã đo được trên JDK 21
+  - Giữ synchronized cho vùng tới hạn phù hợp thay vì thay đồng loạt
+  - Phân biệt giới hạn pinning của JDK 21 với cải tiến synchronized từ JDK 24
+  - Condition, semaphore và primitive đồng bộ tương thích với virtual thread
+  - Kiểm tra deadlock, starvation và tranh chấp tài nguyên ngoài thread
+- level1: Context và ThreadLocal
+  level2:
+  - ThreadLocal trên virtual thread và phạm vi dữ liệu theo task
+  - Chi phí bộ nhớ khi mỗi virtual thread giữ một bản sao dữ liệu
+  - Giới hạn mô hình cache tài nguyên đắt tiền trong ThreadLocal
+  - Dọn dữ liệu bằng remove trong finally khi có nhu cầu
+  - InheritableThreadLocal và rủi ro sao chép context ngoài ý muốn
+  - Truyền request context bằng tham số hoặc wrapper tường minh
+  - Truyền MDC, tracing và security context qua executor phù hợp
+  - Tích hợp thư viện cần thread affinity và nhận diện giới hạn
+  - Ngăn lộ dữ liệu nhạy cảm qua context, log và task chạy nền
+- level1: Giới hạn đồng thời
+  level2:
+  - Tách số lượng task khỏi giới hạn tài nguyên đang sử dụng
+  - Semaphore để giới hạn số tác vụ đồng thời theo tài nguyên
+  - Connection pool cơ sở dữ liệu khi dùng virtual thread
+  - Rate limit, bulkhead và giới hạn gọi dịch vụ bên ngoài
+  - Backpressure tại điểm tiếp nhận công việc
+  - Giới hạn hàng đợi, bộ nhớ và số request đang chờ
+  - Ngân sách timeout xuyên nhiều bước của một request
+  - Xử lý overload và phục hồi khi dependency chậm
+  - Phối hợp tác vụ CPU-bound với executor có mức song song phù hợp
+- level1: HttpClient
+  level2:
+  - HttpClient triển khai AutoCloseable trong Java 21
+  - Lựa chọn phạm vi sống của client và tái sử dụng connection
+  - close và quá trình chờ hoàn tất request đã gửi
+  - shutdown, shutdownNow, awaitTermination và isTerminated
+  - Body handler trả stream và yêu cầu tiêu thụ hoặc đóng response body
+  - send với virtual thread và sendAsync theo nhu cầu xử lý
+  - Timeout, interruption và hủy yêu cầu HTTP
+  - Đóng client đúng thứ tự khi ứng dụng graceful shutdown
+  - Kiểm thử request chưa hoàn tất, lỗi mạng và rò rỉ tài nguyên
+- level1: Chuỗi và Unicode
+  level2:
+  - String.indexOf với khoảng beginIndex và endIndex
+  - String.splitWithDelimiters và giữ lại dấu phân tách
+  - Pattern.splitWithDelimiters và tái sử dụng regular expression
+  - Ảnh hưởng của limit và kết quả rỗng khi tách chuỗi
+  - StringBuilder.repeat với code point hoặc CharSequence
+  - StringBuffer.repeat và lựa chọn cấu trúc chuỗi phù hợp
+  - Unicode 15.0 trong Java 21 và giới hạn của xử lý theo char
+  - Character.isEmoji và các thuộc tính emoji liên quan
+  - Kiểm thử supplementary code point, chuỗi rỗng và dữ liệu Unicode
+- level1: Toán học và tiện ích
+  level2:
+  - Math.clamp và StrictMath.clamp để giới hạn giá trị trong khoảng
+  - Chọn overload clamp cho số nguyên và số thực
+  - NaN, signed zero và kiểm tra biên min, max của clamp
+  - Collections.shuffle với RandomGenerator
+  - Lựa chọn nguồn ngẫu nhiên cho kiểm thử có thể lặp lại
+  - Phân biệt nguồn ngẫu nhiên mô phỏng với SecureRandom cho bảo mật
+  - Đọc since, exception contract và đặc tính API trước khi thay mã tiện ích riêng
+- level1: KEM
+  level2:
+  - Key Encapsulation Mechanism và vai trò chia sẻ khóa đối xứng
+  - Phân biệt KEM, key agreement và mã hóa dữ liệu ứng dụng
+  - javax.crypto.KEM và mô hình lựa chọn security provider
+  - KEM.getInstance với thuật toán được provider hỗ trợ
+  - DHKEM và chuẩn bị cặp khóa tương thích
+  - Tạo Encapsulator từ public key và sinh encapsulation
+  - KEM.Encapsulated gồm secret key, encapsulation và tham số
+  - Tạo Decapsulator từ private key để khôi phục shared secret
+  - Chọn thuật toán, độ dài khóa và xử lý đầu vào không hợp lệ
+  - Quản lý SecureRandom, private key và dữ liệu nhạy cảm trong kiểm thử
+  - Phân biệt API KEM với khả năng kháng lượng tử của thuật toán được chọn
+  - Kết hợp KEM với giao thức có xác thực và mã hóa đối xứng theo thiết kế đã đánh giá
+- level1: Generational ZGC
+  level2:
+  - Mục tiêu giảm độ trễ và mô hình young, old generation
+  - Allocation rate, live set và lý do phân thế hệ
+  - Các pha xử lý đồng thời và tác động đến ứng dụng
+  - Cấu hình Generational ZGC trên đúng JDK 21
+  - Xác minh collector thực tế bằng startup log và GC log
+  - Thiết lập heap có đủ headroom cho thu gom đồng thời
+  - Đánh giá pause time, allocation stall, CPU và throughput
+  - Phân tích promotion, object lifetime và tải cấp phát
+  - So sánh G1 với Generational ZGC trên workload đại diện
+  - Đo đạc trước khi điều chỉnh số GC thread hoặc tham số chuyên sâu
+  - Kiểm tra tùy chọn GC theo phiên bản khi nâng từ JDK 21 lên JDK mới
+- level1: Quan sát runtime
+  level2:
+  - Thu thập Java Flight Recorder cho ứng dụng Java 21
+  - Sự kiện virtual thread start, end, pinned và submit failed
+  - Đọc thread dump có hỗ trợ virtual thread bằng công cụ JDK 21
+  - Thread.dump_to_file qua jcmd và lựa chọn định dạng dump
+  - Phân biệt số virtual thread với số platform thread trong metrics
+  - Giới hạn của ThreadMXBean khi quan sát virtual thread
+  - Tương quan request ID, trace ID và tên task thay vì phụ thuộc carrier
+  - Đọc GC log, heap usage và thông tin cấp phát
+  - Phân tích JFR bằng công cụ tương thích với JDK 21
+  - jfr view và các bảng tổng hợp sự kiện hữu ích
+  - Bảo vệ dữ liệu nhạy cảm và kiểm soát overhead khi thu thập chẩn đoán
+- level1: Agent và instrumentation
+  level2:
+  - Mục đích thay đổi chính sách nạp agent trong JDK 21
+  - Phân biệt agent nạp lúc JVM khởi động với dynamic attach
+  - Khai báo -javaagent hoặc -agentlib theo hướng dẫn của công cụ
+  - Nhận diện thư viện kiểm thử hoặc quan sát đang tự attach agent
+  - jdk.instrument.traceUsage để truy tìm việc dùng Instrumentation
+  - Kiểm thử ứng dụng khi không cho phép dynamic agent loading
+  - Kiểm tra tính tương thích của mocking, coverage, profiler và APM
+  - Quản lý quyền nạp agent và cấu hình tường minh theo môi trường
+- level1: Kiểm thử Java 21
+  level2:
+  - Thiết lập test runner và dependency tương thích Java 21
+  - Kiểm thử record pattern với dữ liệu lồng nhau, generic và null
+  - Kiểm thử exhaustive switch, guard và các nhánh nghiệp vụ
+  - Kiểm tra encounter order và write-through của reversed view
+  - Kiểm thử collection rỗng, bất biến và thao tác không được hỗ trợ
+  - Kiểm thử task chạy trên virtual thread theo hành vi cần bảo đảm
+  - Kiểm thử timeout, cancellation, interruption và cleanup
+  - Kiểm thử đồng thời mà không phụ thuộc sleep hoặc lịch chạy cụ thể
+  - Kiểm thử giới hạn connection, semaphore và phản ứng khi overload
+  - Kiểm thử tài nguyên HttpClient, Unicode và biên của API mới
+  - Kiểm thử KEM bằng đối chiếu shared secret và xử lý encapsulation không hợp lệ
+- level1: Đo lường hiệu năng
+  level2:
+  - Xây baseline trước khi thay đổi ngôn ngữ, executor hoặc collector
+  - Phân loại workload CPU-bound, I/O-bound và hỗn hợp
+  - Đo throughput cùng percentile latency và tỷ lệ lỗi
+  - Mô hình hóa arrival rate, concurrency và thời gian chờ dependency
+  - JMH cho microbenchmark API và phép biến đổi dữ liệu
+  - Load test đầu cuối cho virtual thread và giới hạn tài nguyên
+  - Warmup, JIT, GC và yếu tố gây sai lệch phép đo
+  - So sánh mức dùng CPU, heap, native memory và số thread hệ điều hành
+  - Phân tích pinning, lock contention và connection pool saturation
+  - Đặt tiêu chí chấp nhận và kiểm tra hồi quy hiệu năng trong CI
+- level1: Nâng cấp lên Java 21
+  level2:
+  - Lập danh mục ứng dụng, dependency, plugin và agent cần nâng cấp
+  - Phân biệt chạy mã hiện có trên JDK 21 với biên dịch bằng --release 21
+  - Nâng từ Java 17 lên Java 21 theo từng thay đổi có thể kiểm chứng
+  - Phân tích dependency bằng jdeps và API có cảnh báo bằng jdeprscan
+  - Thay truy cập JDK internal API bằng API được hỗ trợ
+  - Rà soát reflection, annotation processing và bytecode generation
+  - Kiểm tra UTF-8 mặc định, locale, timezone và hành vi môi trường
+  - Đánh giá xung đột source khi lớp riêng bổ sung các phương thức trùng API collection mới
+  - Tách nâng runtime khỏi chuyển đổi sang pattern hoặc virtual thread
+  - Giữ tương thích hợp đồng dữ liệu, serialization và giao tiếp hệ thống
+  - Triển khai theo giai đoạn, theo dõi hồi quy và chuẩn bị rollback
+- level1: Build và CI
+  level2:
+  - Khai báo phiên bản JDK và toolchain có thể tái lập
+  - Đồng bộ compile, test, integration test và đóng gói trên Java 21
+  - Chạy ma trận CI với các runtime nằm trong phạm vi hỗ trợ
+  - Kiểm tra artifact không tham chiếu API ngoài baseline Java 21
+  - Cấu hình annotation processor và plugin phân tích mã
+  - Biên dịch mẫu tài liệu bằng cú pháp Java 21 đã hoàn thiện
+  - Tổ chức test cho bytecode, agent và thư viện tích hợp
+  - Quản lý dependency lock, provenance và cập nhật bảo mật của JDK
+- level1: Triển khai production
+  level2:
+  - Chọn runtime image và bản vá JDK 21 theo chính sách vận hành
+  - Thiết lập CPU, memory limit và heap phù hợp trong container
+  - Định cỡ connection pool và tài nguyên khi bật virtual thread
+  - Kiểm tra mức dùng native memory, file descriptor và socket
+  - Graceful shutdown với executor, HTTP client và tác vụ đang chạy
+  - Cấu hình GC và quan sát theo workload đã đo
+  - Thiết lập health check và cảnh báo lỗi tài nguyên
+  - Canary deployment, kiểm tra tính tương thích và rollback
+  - Runbook thu thập thread dump, JFR và GC log khi xảy ra sự cố
+- level1: Thực hành tổng hợp
+  level2:
+  - Mô hình hóa miền dữ liệu bằng record và sealed interface
+  - Xây bộ xử lý dữ liệu bằng record pattern lồng nhau và pattern switch
+  - Thiết kế API thao tác hai đầu với SequencedCollection, Set và Map
+  - Kiểm chứng reversed view và các hợp đồng bất biến
+  - Xây dịch vụ gọi nhiều dependency bằng virtual thread và ExecutorService
+  - Bổ sung timeout, cancellation, semaphore và context cho từng request
+  - Tích hợp HttpClient có vòng đời tài nguyên rõ ràng
+  - Thực hành KEM với provider và cặp khóa được hỗ trợ trên Java 21
+  - So sánh G1 với Generational ZGC bằng tải đại diện
+  - Hoàn thiện báo cáo JFR, kiểm thử hồi quy và hướng dẫn vận hành

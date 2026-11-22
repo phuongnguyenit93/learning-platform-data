@@ -1,0 +1,2683 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Assertion là gì và vai trò của phép xác minh trong một bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Kết quả mong đợi, kết quả thực tế và nguồn xác định tính đúng đắn (test oracle)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt assertion thất bại với lỗi phát sinh ngoài dự kiến khi chạy kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt từ khóa assert của Java với thư viện assertion dành cho kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa assertion, dữ liệu chuẩn bị và hành vi được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của thông báo thất bại và bản so sánh khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi của JUnit Assertions, AssertJ, Hamcrest và Google Truth
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình từ xác minh một giá trị đến kiểm tra cấu trúc dữ liệu và hành vi phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertion-design
+  title: Thiết kế assertion
+  childs:
+  - slug: assertion-design-001
+    title: Chuyển yêu cầu nghiệp vụ thành kết quả có thể xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-002
+    title: Xác định điểm quan sát qua giá trị trả về, trạng thái và tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-003
+    title: Tổ chức chuẩn bị, thực thi và xác minh theo Arrange–Act–Assert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-004
+    title: 'Chọn mức chính xác phù hợp: bằng tuyệt đối, chứa giá trị hay thỏa điều kiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-005
+    title: Tránh tự tính kết quả mong đợi bằng chính thuật toán đang được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-006
+    title: Chọn assertion chuyên biệt thay cho biểu thức boolean khó chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-007
+    title: Thiết kế assertion độc lập và tránh kiểm tra quá nhiều hành vi không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-008
+    title: Kiểm tra cả kết quả thành công, dữ liệu biên và điều kiện thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-009
+    title: Nhận diện bài kiểm thử vẫn thành công dù assertion không được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-design-010
+    title: Cân bằng độ chặt chẽ với khả năng chịu thay đổi của bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparison-semantics
+  title: Ngữ nghĩa so sánh
+  childs:
+  - slug: comparison-semantics-001
+    title: So sánh giá trị và so sánh danh tính đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-002
+    title: Vai trò của equals, hashCode và Comparator trong kiểm tra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-003
+    title: So sánh nông, so sánh sâu và so sánh đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-004
+    title: Phân biệt null, giá trị rỗng và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-005
+    title: Kiểu nguyên thủy, lớp bao và ảnh hưởng của tự động đóng hộp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-006
+    title: So sánh BigDecimal theo giá trị số và theo biểu diễn có scale
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-007
+    title: Sai số số thực, độ chính xác và lựa chọn ngưỡng chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-008
+    title: NaN, vô cực và số không có dấu trong phép kiểm tra số thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-009
+    title: Thứ tự phần tử, số lần xuất hiện và ngữ nghĩa của tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-semantics-010
+    title: Lựa chọn quy tắc so sánh theo hợp đồng nghiệp vụ thay vì cấu trúc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-assert
+  title: Java assert
+  childs:
+  - slug: java-assert-001
+    title: Cú pháp assert với điều kiện và biểu thức thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-assert-002
+    title: Bật hoặc tắt assertion bằng tùy chọn JVM -ea và -da
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-assert-003
+    title: Phạm vi bật assertion theo lớp hoặc package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-assert-004
+    title: AssertionError và thông tin đi kèm khi điều kiện không thỏa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-assert-005
+    title: Kiểm tra bất biến nội bộ và các giả định trong mã chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-assert-006
+    title: Tránh tác động phụ trong biểu thức assert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-assert-007
+    title: Giới hạn của Java assert trong xác thực đầu vào và kiểm thử tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: junit-assertions
+  title: JUnit Assertions
+  childs:
+  - slug: junit-assertions-001
+    title: Thiết lập JUnit Jupiter và sử dụng static import cho Assertions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-002
+    title: assertTrue và assertFalse với điều kiện boolean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-003
+    title: assertEquals và assertNotEquals cho kiểu nguyên thủy và đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-004
+    title: assertNull và assertNotNull để kiểm tra sự hiện diện của giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-005
+    title: assertSame và assertNotSame để kiểm tra danh tính đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-006
+    title: assertInstanceOf để kiểm tra kiểu và sử dụng giá trị đã được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-007
+    title: assertArrayEquals và lựa chọn phép so sánh cho từng loại mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-008
+    title: assertIterableEquals và kiểm tra nội dung có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-009
+    title: assertLinesMatch và đối chiếu danh sách dòng văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-010
+    title: fail và mô tả nhánh thực thi không được phép xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-011
+    title: Thông báo tùy chỉnh và Supplier để tạo thông báo khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-assertions-012
+    title: Thứ tự đối số expected, actual và ảnh hưởng tới báo cáo khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-junit
+  title: JUnit nâng cao
+  childs:
+  - slug: advanced-junit-001
+    title: assertThrows và kiểm tra ngoại lệ thuộc kiểu được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-002
+    title: assertThrowsExactly và yêu cầu kiểu ngoại lệ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-003
+    title: Đọc thông báo, nguyên nhân và thuộc tính của ngoại lệ được trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-004
+    title: assertDoesNotThrow và phạm vi khối mã cần xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-005
+    title: assertAll và tập hợp nhiều phép xác minh trong một lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-006
+    title: Nhóm assertion phụ thuộc dữ liệu và tránh lỗi dây chuyền che khuất nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-007
+    title: assertTimeout và đo giới hạn thời gian trên luồng thực thi hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-008
+    title: assertTimeoutPreemptively và ảnh hưởng của việc thực thi trên luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-009
+    title: Phân biệt kiểm tra thời hạn với chờ kết quả bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-junit-010
+    title: JUnit assumptions và ranh giới giữa bỏ qua bài kiểm thử với xác nhận thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertj-basics
+  title: AssertJ cơ bản
+  childs:
+  - slug: assertj-basics-001
+    title: Thiết lập AssertJ và bắt đầu với assertThat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-002
+    title: Chọn kiểu assertion theo kiểu dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-003
+    title: Chuỗi phương thức fluent và cách đọc một phép kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-004
+    title: isEqualTo, isNotEqualTo và ngữ nghĩa của đối tượng được so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-005
+    title: isNull, isNotNull và các assertion về sự hiện diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-006
+    title: as, describedAs và bổ sung ngữ cảnh cho thông báo thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-007
+    title: withFailMessage và tùy chỉnh thông báo theo mục tiêu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-008
+    title: satisfies và nhóm các yêu cầu liên quan đến một giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-009
+    title: Condition và biểu diễn điều kiện có tên dùng lại được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-basics-010
+    title: Static import, suy luận kiểu và xử lý lời gọi assertion mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numbers-and-booleans
+  title: Số và boolean
+  childs:
+  - slug: numbers-and-booleans-001
+    title: Kiểm tra boolean và diễn đạt điều kiện nghiệp vụ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-002
+    title: Kiểm tra số dương, số âm, số không và dấu của giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-003
+    title: So sánh lớn hơn, nhỏ hơn và các ranh giới bao gồm hoặc loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-004
+    title: Kiểm tra giá trị nằm trong khoảng hoặc ngoài khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-005
+    title: Kiểm tra số thực gần bằng với độ lệch tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-006
+    title: Lựa chọn độ lệch tương đối theo đặc điểm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-007
+    title: So sánh BigDecimal bằng quy tắc phù hợp với số học nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-008
+    title: Kiểm tra số đặc biệt và trường hợp phép tính không cho kết quả hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-009
+    title: Kiểm tra kiểu số, chuyển đổi số và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-booleans-010
+    title: Tránh suy giảm độ chính xác khi xây dựng giá trị mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-and-expressions
+  title: Chuỗi và biểu thức
+  childs:
+  - slug: strings-and-expressions-001
+    title: Kiểm tra chuỗi null, rỗng, trắng và có độ dài xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-002
+    title: So sánh chuỗi chính xác và so sánh không phân biệt hoa thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-003
+    title: Kiểm tra tiền tố, hậu tố, chuỗi con và vị trí xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-004
+    title: Kiểm tra nhiều đoạn văn bản theo thứ tự hoặc không theo thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-005
+    title: Kiểm tra mẫu bằng biểu thức chính quy và giới hạn phạm vi khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-006
+    title: Xử lý khoảng trắng, xuống dòng và khác biệt quy ước cuối dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-007
+    title: Kiểm tra Unicode, dấu tiếng Việt và ký tự tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-008
+    title: Phân biệt so sánh chuỗi hiển thị với so sánh sau chuẩn hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-009
+    title: Kiểm tra danh sách dòng và nội dung văn bản nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-expressions-010
+    title: Viết thông báo khác biệt dễ đọc khi chuỗi dài hoặc có ký tự ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: objects-and-types
+  title: Đối tượng và kiểu
+  childs:
+  - slug: objects-and-types-001
+    title: Kiểm tra kiểu chính xác và quan hệ kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-002
+    title: Kiểm tra record, enum và đối tượng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-003
+    title: Kiểm tra thuộc tính qua phương thức truy cập thay vì trường nội bộ khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-004
+    title: Xác minh nhiều thuộc tính liên quan bằng satisfies
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-005
+    title: Trích xuất một thuộc tính và tiếp tục chuỗi assertion theo kiểu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-006
+    title: Kiểm tra nhiều thuộc tính bằng tuple
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-007
+    title: Lựa chọn giữa equals và xác minh từng thuộc tính nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-008
+    title: Kiểm tra đối tượng bất biến và thay đổi trạng thái trước, sau thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-types-009
+    title: Tránh phụ thuộc vào toString hoặc chi tiết riêng không thuộc hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections-and-arrays
+  title: Tập hợp và mảng
+  childs:
+  - slug: collections-and-arrays-001
+    title: Kiểm tra tập hợp null, rỗng, kích thước và số lượng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-002
+    title: contains và yêu cầu tồn tại của các phần tử mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-003
+    title: containsExactly và kiểm tra đầy đủ nội dung theo đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-004
+    title: containsExactlyInAnyOrder và kiểm tra đầy đủ nội dung khi thứ tự không quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-005
+    title: containsOnly và ngữ nghĩa khi có phần tử lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-006
+    title: Kiểm tra không chứa phần tử, không trùng lặp và không chứa null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-007
+    title: Kiểm tra phần tử đầu, cuối hoặc phần tử duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-008
+    title: Kiểm tra thứ tự sắp xếp tự nhiên hoặc theo Comparator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-009
+    title: allSatisfy, anySatisfy và kiểm tra điều kiện trên các phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-010
+    title: Kiểm tra cấu trúc lồng nhau và tập hợp các đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-011
+    title: Kiểm tra mảng nguyên thủy, mảng đối tượng và mảng nhiều chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-012
+    title: Tránh phụ thuộc thứ tự không được bảo đảm của Set hoặc nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: map
+  title: Map
+  childs:
+  - slug: map-001
+    title: Kiểm tra Map rỗng, kích thước và sự hiện diện của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-002
+    title: Kiểm tra giá trị và cặp khóa–giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-003
+    title: Kiểm tra Map có đúng các entry mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-004
+    title: Phân biệt khóa không tồn tại với khóa ánh xạ tới null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-005
+    title: Kiểm tra tập khóa, tập giá trị và tập entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-006
+    title: Xác minh một giá trị trong Map bằng chuỗi assertion phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-007
+    title: Kiểm tra Map lồng nhau và Map chứa tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-008
+    title: Kiểm tra thứ tự entry khi hợp đồng yêu cầu có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-009
+    title: Viết thông báo thất bại chỉ rõ khóa thiếu, giá trị sai và entry dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: optional-and-stream
+  title: Optional và Stream
+  childs:
+  - slug: optional-and-stream-001
+    title: Kiểm tra Optional rỗng hoặc có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-and-stream-002
+    title: Kiểm tra giá trị bên trong Optional và tiếp tục xác minh thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-and-stream-003
+    title: Kiểm tra OptionalInt, OptionalLong và OptionalDouble
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-and-stream-004
+    title: Phân biệt Optional.empty với tham chiếu Optional bằng null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-and-stream-005
+    title: Kiểm tra nội dung Stream bằng assertion hoặc thu về tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-and-stream-006
+    title: Vòng đời Stream và giới hạn sử dụng lại sau thao tác kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-and-stream-007
+    title: Kiểm tra kết quả pipeline lọc, ánh xạ và nhóm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optional-and-stream-008
+    title: Xử lý thứ tự và tính hữu hạn của nguồn Stream trong bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-and-time
+  title: Ngày giờ
+  childs:
+  - slug: date-and-time-001
+    title: Kiểm tra LocalDate, LocalTime và LocalDateTime theo mốc mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-002
+    title: Kiểm tra Instant, OffsetDateTime và ZonedDateTime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-003
+    title: Phân biệt cùng thời điểm với cùng biểu diễn ngày giờ và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-004
+    title: Kiểm tra trước, sau, bằng và nằm trong khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-005
+    title: Kiểm tra độ gần của hai thời điểm với dung sai phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-006
+    title: Kiểm tra Duration và Period theo đúng ý nghĩa của từng kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-007
+    title: Cố định Clock để xây dựng kết quả mong đợi có thể tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-008
+    title: Kiểm tra ranh giới ngày, cuối tháng và năm nhuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-009
+    title: Kiểm tra chuyển đổi múi giờ và thời điểm chuyển giờ mùa hè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-and-time-010
+    title: Tránh assertion phụ thuộc thời gian hiện tại hoặc múi giờ mặc định của máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-resources
+  title: Tệp và tài nguyên
+  childs:
+  - slug: files-and-resources-001
+    title: Kiểm tra tệp hoặc thư mục tồn tại và có đúng loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-002
+    title: Kiểm tra Path, đường dẫn tương đối và đường dẫn đã chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-003
+    title: Kiểm tra nội dung văn bản với bộ mã ký tự xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-004
+    title: Kiểm tra nội dung nhị phân và mảng byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-005
+    title: Kiểm tra danh sách tệp con và cấu trúc thư mục theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-006
+    title: Kiểm tra kích thước tệp và thuộc tính tệp có tính ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-007
+    title: So sánh nội dung InputStream và quản lý tài nguyên sau khi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-008
+    title: Kiểm tra tài nguyên classpath và xử lý trường hợp không tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-009
+    title: Tránh phụ thuộc đường dẫn tuyệt đối, dấu phân cách và quyền tệp của máy phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extraction-and-filtering
+  title: Trích xuất và lọc
+  childs:
+  - slug: extraction-and-filtering-001
+    title: extracting và chuyển từ đối tượng sang giá trị cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-002
+    title: Trích xuất nhiều thuộc tính và kiểm tra bằng tuple
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-003
+    title: flatExtracting và kiểm tra dữ liệu sau khi làm phẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-004
+    title: filteredOn và chọn phần tử theo thuộc tính hoặc điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-005
+    title: Lọc theo predicate khi dữ liệu có quy tắc nghiệp vụ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-006
+    title: Kiểm tra phần tử duy nhất sau lọc và xác nhận số lượng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-007
+    title: Giữ ngữ cảnh kiểu dữ liệu khi chuyển giữa các bước assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-008
+    title: Tránh lọc bỏ phần tử sai trước khi kiểm tra tính đầy đủ của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extraction-and-filtering-009
+    title: Tách thao tác biến đổi dữ liệu khỏi assertion khi chuỗi kiểm tra trở nên khó đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recursive-comparison
+  title: So sánh đệ quy
+  childs:
+  - slug: recursive-comparison-001
+    title: usingRecursiveComparison và tình huống cần so sánh cấu trúc đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-002
+    title: Xác định trường nghiệp vụ cần kiểm tra và trường được phép bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-003
+    title: Bỏ qua trường sinh tự động, thời gian tạo và metadata không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-004
+    title: Quy tắc so sánh null và nguy cơ bỏ sót khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-005
+    title: So sánh tập hợp lồng nhau với yêu cầu về thứ tự riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-006
+    title: Đăng ký Comparator theo kiểu hoặc theo trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-007
+    title: Ảnh hưởng của equals tùy chỉnh và lựa chọn cấu hình so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-008
+    title: So sánh cấu trúc có chu trình và tham chiếu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-009
+    title: Kiểm tra tính tương thích kiểu khi so sánh các đối tượng khác lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-010
+    title: Đọc đường dẫn trường trong báo cáo khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-comparison-011
+    title: Giới hạn so sánh đệ quy khi đối tượng chứa proxy, trạng thái tải lười hoặc tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertj-exception-assertions
+  title: Ngoại lệ với AssertJ
+  childs:
+  - slug: assertj-exception-assertions-001
+    title: assertThatThrownBy và xác minh một thao tác ném ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-002
+    title: assertThatExceptionOfType và biểu diễn loại ngoại lệ được mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-003
+    title: catchThrowable và tách bước thực thi khỏi bước xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-004
+    title: Kiểm tra kiểu ngoại lệ chính xác hoặc theo quan hệ kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-005
+    title: Kiểm tra thông báo đầy đủ, chứa đoạn văn bản hoặc khớp mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-006
+    title: Kiểm tra cause và root cause trong chuỗi ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-007
+    title: Kiểm tra thuộc tính nghiệp vụ của ngoại lệ tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-008
+    title: assertThatCode và xác nhận khối mã không ném ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-009
+    title: Giới hạn phạm vi lambda để bảo đảm ngoại lệ đến từ đúng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertj-exception-assertions-010
+    title: Tránh kỳ vọng thông báo phụ thuộc nền tảng hoặc phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: soft-assertions
+  title: Soft assertions
+  childs:
+  - slug: soft-assertions-001
+    title: Phân biệt dừng ở lỗi đầu tiên với thu thập nhiều lỗi xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-002
+    title: SoftAssertions và vai trò của assertAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-003
+    title: assertSoftly và giới hạn phạm vi thu thập lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-004
+    title: AutoCloseableSoftAssertions và đóng phạm vi xác minh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-005
+    title: Tích hợp SoftAssertions với vòng đời JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-006
+    title: Kiểm tra nhiều thuộc tính của cùng một kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-007
+    title: Xử lý assertion phụ thuộc nhau khi dữ liệu đầu vào đã không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-008
+    title: Tránh dùng chung bộ thu lỗi giữa các luồng hoặc các bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: soft-assertions-009
+    title: Nhận diện bài kiểm thử thành công giả khi quên kết thúc soft assertions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-assertions
+  title: Assertion tùy chỉnh
+  childs:
+  - slug: custom-assertions-001
+    title: Khi nào nên tạo assertion theo ngôn ngữ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-002
+    title: Xây dựng lớp assertion kế thừa AbstractAssert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-003
+    title: Thiết kế điểm vào assertThat cho kiểu dữ liệu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-004
+    title: Kiểm tra null và thất bại sớm với thông báo nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-005
+    title: Thiết kế phương thức fluent cho các thuộc tính nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-006
+    title: Tạo thông báo nêu rõ kết quả mong đợi, thực tế và ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-007
+    title: Tái sử dụng Condition hoặc Comparator thay vì tạo lớp mới không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-008
+    title: Tùy chỉnh cách biểu diễn dữ liệu trong thông báo thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-009
+    title: Kiểm thử chính assertion tùy chỉnh bằng trường hợp đạt và không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-assertions-010
+    title: Tổ chức thư viện assertion dùng chung và tránh đưa logic sản phẩm vào phép xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hamcrest-basics
+  title: Hamcrest cơ bản
+  childs:
+  - slug: hamcrest-basics-001
+    title: Matcher là gì và cấu trúc assertThat với Hamcrest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-002
+    title: Thiết lập Hamcrest và phân biệt các nguồn static import
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-003
+    title: is, equalTo và diễn đạt phép so sánh dễ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-004
+    title: nullValue, notNullValue, sameInstance và instanceOf
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-005
+    title: not, allOf và anyOf trong kết hợp điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-006
+    title: Matcher cho chuỗi, tiền tố, hậu tố và đoạn văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-007
+    title: Matcher cho số và phạm vi giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-008
+    title: hasItem, hasItems, contains và containsInAnyOrder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-009
+    title: Matcher cho Map, khóa và entry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hamcrest-basics-010
+    title: Đọc phần expected, but và mô tả nguyên nhân không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-hamcrest
+  title: Hamcrest nâng cao
+  childs:
+  - slug: advanced-hamcrest-001
+    title: Kết hợp matcher lồng nhau cho đối tượng chứa tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-002
+    title: hasProperty và kiểm tra thuộc tính theo hợp đồng JavaBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-003
+    title: Matcher cho ngoại lệ và tích hợp với khối thực thi của framework kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-004
+    title: Tạo matcher tùy chỉnh bằng TypeSafeMatcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-005
+    title: Mô tả sự khác biệt bằng TypeSafeDiagnosingMatcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-006
+    title: FeatureMatcher và kiểm tra một đặc trưng của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-007
+    title: Thiết kế matcher có thể kết hợp và thông báo đúng trọng tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-008
+    title: Tránh matcher có tác động phụ hoặc làm thay đổi đối tượng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-hamcrest-009
+    title: Kiểm thử matcher với đầu vào đúng, sai và null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: google-truth
+  title: Google Truth
+  childs:
+  - slug: google-truth-001
+    title: Cấu trúc Subject và cách đọc assertion bằng Google Truth
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-truth-002
+    title: Thiết lập Truth và quản lý xung đột static import với thư viện khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-truth-003
+    title: Kiểm tra giá trị cơ bản, chuỗi và đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-truth-004
+    title: Kiểm tra Iterable, thứ tự và phần tử lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-truth-005
+    title: Kiểm tra Map và các cặp khóa–giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-truth-006
+    title: Thông báo thất bại và bổ sung ngữ cảnh cho assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-truth-007
+    title: Tạo Subject tùy chỉnh cho kiểu dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-truth-008
+    title: Lựa chọn Truth theo hệ sinh thái dự án và quy ước của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json
+  title: JSON
+  childs:
+  - slug: json-001
+    title: Phân biệt so sánh chuỗi JSON với so sánh cấu trúc dữ liệu JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-002
+    title: JSONassert và lựa chọn chế độ so sánh nghiêm ngặt hoặc linh hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-003
+    title: JSON Unit và cấu hình quy tắc so sánh tài liệu JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-004
+    title: Kiểm tra trường bắt buộc, trường dư và giá trị không được mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-005
+    title: Phân biệt thuộc tính không tồn tại với thuộc tính có giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-006
+    title: Kiểm soát thứ tự phần tử và phần tử lặp trong mảng JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-007
+    title: Kiểm tra giá trị số, dung sai và khác biệt biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-008
+    title: Bỏ qua hoặc kiểm tra theo quy tắc đối với trường sinh động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-009
+    title: Kiểm tra một phần tài liệu qua đường dẫn JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-010
+    title: So sánh cây JSON bằng Jackson kết hợp thư viện assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-011
+    title: Đọc báo cáo khác biệt theo đường dẫn và tránh che mất lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml
+  title: XML
+  childs:
+  - slug: xml-001
+    title: Phân biệt so sánh văn bản XML với so sánh cấu trúc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-002
+    title: XMLUnit và xây dựng phép so sánh bằng DiffBuilder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-003
+    title: Phân biệt tài liệu giống về cấu trúc với tài liệu giống hoàn toàn theo cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-004
+    title: Kiểm soát khoảng trắng, chú thích và cách biểu diễn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-005
+    title: Kiểm tra namespace, tên phần tử và thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-006
+    title: NodeMatcher và lựa chọn cách ghép phần tử giữa hai tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-007
+    title: Kiểm tra giá trị hoặc sự tồn tại của nút bằng XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-008
+    title: DifferenceEvaluator và giới hạn những khác biệt được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-009
+    title: Đọc danh sách khác biệt và xác định đúng đường dẫn phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-and-data
+  title: HTTP và dữ liệu
+  childs:
+  - slug: http-and-data-001
+    title: Xác minh mã trạng thái, header và nội dung phản hồi theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-002
+    title: Kết hợp Hamcrest với assertion trong REST Assured
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-003
+    title: Kết hợp AssertJ với giá trị lấy từ MockMvc hoặc WebTestClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-004
+    title: Kiểm tra cấu trúc phản hồi trước khi xác minh giá trị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-005
+    title: Xác minh tập dữ liệu truy vấn với thứ tự và số lượng bản ghi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-006
+    title: Kiểm tra dữ liệu tiền tệ, ngày giờ và null sau khi ánh xạ từ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-007
+    title: Xác minh trạng thái trước, sau và tác động phụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-008
+    title: Phân biệt assertion về dữ liệu với việc xác minh lời gọi trên mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-data-009
+    title: Tránh phụ thuộc vào ID tự sinh hoặc thứ tự SQL không được bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-assertions
+  title: Bất đồng bộ
+  childs:
+  - slug: asynchronous-assertions-001
+    title: Phân biệt assertion tức thời với chờ trạng thái cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-002
+    title: Awaitility untilAsserted và thực thi lại assertion trong thời hạn cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-003
+    title: Chọn thời hạn chờ và chu kỳ kiểm tra theo hành vi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-004
+    title: Xác minh kết quả, lỗi và trạng thái hoàn tất của Future hoặc CompletableFuture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-005
+    title: Xử lý ngoại lệ bọc khi kết quả bất đồng bộ thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-006
+    title: StepVerifier và kiểm tra chuỗi tín hiệu phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-007
+    title: Kiểm tra thứ tự dữ liệu, tín hiệu hoàn tất và tín hiệu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-008
+    title: Kiểm soát thời gian ảo khi nguồn phản ứng hỗ trợ cách kiểm thử đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-009
+    title: Xác minh hành vi không xảy ra trong một khoảng thời gian có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-assertions-010
+    title: Tránh assertion thất bại trên luồng nền mà framework kiểm thử không thu nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generated-test-data
+  title: Dữ liệu sinh tự động
+  childs:
+  - slug: generated-test-data-001
+    title: Assertion trong kiểm thử tham số hóa với nhiều bộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-test-data-002
+    title: Diễn đạt bất biến để kiểm tra trên dữ liệu sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-test-data-003
+    title: Phân biệt ví dụ mong đợi cụ thể với thuộc tính luôn phải đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-test-data-004
+    title: Kiểm tra quan hệ đảo ngược, tính lũy đẳng và các quan hệ giữa nhiều kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-test-data-005
+    title: Thiết kế thông báo chứa đầu vào gây lỗi để tái hiện trường hợp thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-test-data-006
+    title: Giữ quy tắc so sánh nhất quán khi công cụ thu nhỏ dữ liệu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-test-data-007
+    title: Kết hợp assertion tùy chỉnh với jqwik hoặc công cụ kiểm thử thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generated-test-data-008
+    title: Tránh thuộc tính quá yếu khiến mọi cách triển khai đều vượt qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics-and-maintenance
+  title: Chẩn đoán và bảo trì
+  childs:
+  - slug: diagnostics-and-maintenance-001
+    title: Đọc báo cáo thất bại theo giá trị mong đợi, giá trị thực tế và vị trí khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-002
+    title: Bổ sung mã giao dịch, tên trường hoặc chỉ mục phần tử vào thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-003
+    title: Nhận diện assertion luôn đúng, điều kiện đảo và giá trị mong đợi không độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-004
+    title: Tránh nuốt AssertionError hoặc ngoại lệ làm bài kiểm thử báo thành công sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-005
+    title: Chẩn đoán khác biệt do equals, Comparator và cấu hình so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-006
+    title: Chẩn đoán assertion chập chờn do thời gian, thứ tự và trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-007
+    title: Tránh chia sẻ đối tượng khả biến giữa dữ liệu thực tế và dữ liệu mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-008
+    title: Rà soát snapshot hoặc golden file trước khi cập nhật kết quả chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-009
+    title: Thống nhất thư viện assertion và quy ước static import trong dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-010
+    title: Thay thế assertion khó đọc bằng phép xác minh trực tiếp có thông báo tốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-maintenance-011
+    title: Rà soát bài kiểm thử sau khi thay đổi hợp đồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Viết assertion cho hàm tính tiền với BigDecimal và quy tắc làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Kiểm tra danh sách kết quả có thứ tự, phần tử lặp và dữ liệu lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Kiểm tra Map chứa Optional hoặc tập hợp với thông báo chỉ rõ khóa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: So sánh hai đối tượng nghiệp vụ và bỏ qua đúng các trường sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Kiểm tra ngoại lệ tùy chỉnh cùng thông báo, nguyên nhân và mã lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Thu thập nhiều lỗi của một đối tượng bằng soft assertions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Xây dựng assertion tùy chỉnh cho một mô hình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Kiểm tra phản hồi JSON có trường động và mảng không yêu cầu thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Chờ cập nhật bất đồng bộ và xác minh trạng thái cuối bằng Awaitility
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Refactor bộ assertion khó chẩn đoán thành các phép kiểm tra rõ ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,50 @@
+roadmap:
+- id: buc-tranh-spring-boot
+  title: Bức tranh Spring Boot
+  purpose: Hiểu Spring Boot giúp giải quyết việc gì và liên hệ với kiến thức Spring nền tảng.
+  objectives:
+  - Phân biệt vai trò của Java, Spring Framework và Spring Boot.
+  - Nhận diện bean, ngữ cảnh ứng dụng, starter và cấu hình tự động.
+  - Mô tả hành trình từ khai báo phụ thuộc đến ứng dụng chạy được.
+- id: du-an-va-starter
+  title: Dự án và starter
+  purpose: Tạo điểm xuất phát rõ ràng và hiểu các thư viện được đưa vào ứng dụng.
+  objectives:
+  - Khởi tạo dự án với JDK và công cụ xây dựng phù hợp.
+  - Nhận diện vai trò của starter, quản lý phiên bản phụ thuộc và plugin xây dựng.
+  - Sắp xếp lớp main, gói mã nguồn và tài nguyên cấu hình.
+- id: bean-va-tiem-phu-thuoc
+  title: Bean và tiêm phụ thuộc
+  purpose: Hiểu cách Spring tạo và kết nối các đối tượng để tổ chức mã ứng dụng.
+  objectives:
+  - Phân biệt đối tượng tự tạo với bean do ApplicationContext quản lý.
+  - Khai báo bean bằng @Component hoặc @Configuration kết hợp @Bean.
+  - Tiêm phụ thuộc qua hàm khởi tạo và xác định phạm vi quét thành phần.
+- id: cau-hinh-tu-dong
+  title: Cấu hình tự động
+  purpose: Giải thích vì sao một số thành phần xuất hiện dù ứng dụng chưa khai báo trực tiếp.
+  objectives:
+  - Tách vai trò cấu hình, quét thành phần và cấu hình tự động trong @SpringBootApplication.
+  - Liên hệ thư viện hiện có, bean và thuộc tính với điều kiện cấu hình.
+  - Quan sát cấu hình mặc định nhường chỗ cho bean do ứng dụng khai báo.
+- id: cau-hinh-ngoai-va-ho-so
+  title: Cấu hình ngoài và hồ sơ
+  purpose: Điều chỉnh hành vi giữa các môi trường mà không sửa mã nghiệp vụ.
+  objectives:
+  - Đọc thuộc tính từ application.properties hoặc YAML, biến môi trường và tham số chạy.
+  - Liên kết cấu hình bằng @Value hoặc @ConfigurationProperties.
+  - Kiểm tra thứ tự ghi đè và kích hoạt hồ sơ (profile) phù hợp.
+- id: khoi-dong-va-chay-ung-dung
+  title: Khởi động và chạy ứng dụng
+  purpose: Nối lớp main với ngữ cảnh Spring và sản phẩm ứng dụng có thể thực thi.
+  objectives:
+  - Theo dõi SpringApplication.run và tác vụ sau khởi tạo bằng CommandLineRunner.
+  - Phân biệt ứng dụng không có web với ứng dụng dùng máy chủ web nhúng.
+  - Chạy bằng IDE hoặc công cụ xây dựng; đóng gói JAR thực thi và chạy bằng java -jar.
+- id: kiem-chung-va-chan-doan
+  title: Kiểm chứng và chẩn đoán
+  purpose: Củng cố nền tảng bằng hành vi quan sát được và chuẩn bị cho các chủ đề chuyên sâu.
+  objectives:
+  - Viết kiểm thử đơn vị và kiểm tra ngữ cảnh bằng @SpringBootTest.
+  - Dùng nhật ký, báo cáo điều kiện và thông báo lỗi để tìm nguyên nhân khởi động thất bại.
+  - Chọn hướng học tiếp về cấu hình, thời gian chạy, web, tích hợp hoặc kiểm thử.

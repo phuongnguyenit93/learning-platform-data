@@ -1,0 +1,57 @@
+roadmap:
+- id: khi-nao-dung-chain
+  title: Khi nào dùng Chain
+  purpose: Nhận biết nhu cầu chuyển một yêu cầu qua nhiều đối tượng xử lý mà không gắn cứng bên nhận.
+  objectives:
+  - Phân biệt gọi trực tiếp với truyền request dọc chuỗi.
+  - Nêu ví dụ phê duyệt đơn hàng và lọc HTTP.
+  - Giải thích lợi ích giảm phụ thuộc sender–receiver.
+- id: handler-request
+  title: Handler & Request
+  purpose: Thiết kế hợp đồng chung để các thành phần xử lý thay thế được cho nhau.
+  objectives:
+  - Định nghĩa interface Handler với handle(request).
+  - Tạo Request chứa dữ liệu và ngữ cảnh cần thiết.
+  - Chọn cách biểu diễn kết quả đã xử lý hoặc chưa xử lý.
+- id: concretehandler
+  title: ConcreteHandler
+  purpose: Tách từng quy tắc xử lý thành lớp có trách nhiệm rõ ràng.
+  objectives:
+  - Cài đặt các handler kiểm tra điều kiện khác nhau.
+  - Phân biệt logic tự xử lý với quyết định chuyển tiếp.
+  - Tránh để handler phụ thuộc vào lớp kế tiếp cụ thể.
+- id: noi-chuoi-thu-tu
+  title: Nối chuỗi & Thứ tự
+  purpose: Lắp ghép các handler linh hoạt và hiểu ảnh hưởng của thứ tự chạy.
+  objectives:
+  - Khai báo next handler qua constructor hoặc setter.
+  - Lắp chuỗi theo thứ tự nghiệp vụ.
+  - Thử thay đổi hoặc thêm handler mà không sửa client.
+- id: chuyen-tiep-fallback
+  title: Chuyển tiếp & Fallback
+  purpose: Kiểm soát điểm dừng và trường hợp không có handler nào nhận yêu cầu.
+  objectives:
+  - Chọn dừng ở handler đầu tiên xử lý được hoặc tiếp tục qua pipeline.
+  - Xử lý next=null bằng kết quả mặc định rõ ràng.
+  - Ngăn chuỗi tạo vòng lặp vô hạn.
+- id: thuc-hanh-chain-bang-java
+  title: Thực hành Chain bằng Java
+  purpose: Kết hợp các vai trò thành ví dụ có thể chạy và quan sát được.
+  objectives:
+  - Xây dựng chuỗi kiểm tra yêu cầu hỗ trợ theo cấp độ.
+  - Gửi request từ client vào handler đầu tiên.
+  - Quan sát handler xử lý và cách kết thúc chuỗi.
+- id: filter-middleware
+  title: Filter & Middleware
+  purpose: Liên hệ mẫu với cơ chế xử lý request trong ứng dụng Java.
+  objectives:
+  - Nhận biết Jakarta Servlet FilterChain.doFilter().
+  - Liên hệ chuỗi filter với các bước logging và kiểm tra.
+  - So sánh với interceptor Spring MVC và giới hạn áp dụng.
+- id: kiem-thu-danh-doi
+  title: Kiểm thử & Đánh đổi
+  purpose: Đảm bảo chuỗi đúng hành vi và nhận biết khi không nên dùng mẫu này.
+  objectives:
+  - Test yêu cầu được xử lý ở đầu, giữa và cuối chuỗi.
+  - Test trường hợp không có handler phù hợp và cấu hình sai thứ tự.
+  - Đánh giá khả năng mở rộng so với chi phí truy vết và số lớp.

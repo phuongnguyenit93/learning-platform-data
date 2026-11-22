@@ -1,0 +1,118 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình AMQP
+  slug: amqp-model
+  index: 1
+- title: Phiên bản và thư viện
+  slug: versions-libraries
+  index: 2
+- title: Khởi tạo
+  slug: setup
+  index: 3
+- title: Khai báo tài nguyên
+  slug: resource-declarations
+  index: 4
+- title: Định tuyến thông điệp
+  slug: message-routing
+  index: 5
+- title: Các loại hàng đợi
+  slug: queue-types
+  index: 6
+- title: Chính sách hàng đợi
+  slug: queue-policies
+  index: 7
+- title: Kết nối và channel
+  slug: connections-channels
+  index: 8
+- title: Cấu trúc thông điệp
+  slug: message-structure
+  index: 9
+- title: Chuyển đổi dữ liệu
+  slug: data-conversion
+  index: 10
+- title: Gửi thông điệp
+  slug: message-publishing
+  index: 11
+- title: Confirm và return
+  slug: publisher-confirms-returns
+  index: 12
+- title: Nhận thông điệp
+  slug: message-consumption
+  index: 13
+- title: Listener khai báo
+  slug: listener-configuration
+  index: 14
+- title: Listener container
+  slug: listener-containers
+  index: 15
+- title: Xác nhận tiêu thụ
+  slug: consumer-acknowledgments
+  index: 16
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 17
+- title: Thử lại thông điệp
+  slug: message-retries
+  index: 18
+- title: Dead-letter và trì hoãn
+  slug: dead-letter-delayed-messages
+  index: 19
+- title: Yêu cầu và phản hồi
+  slug: request-reply
+  index: 20
+- title: Xử lý bất đồng bộ
+  slug: async-processing
+  index: 21
+- title: Xử lý theo lô
+  slug: batch-processing
+  index: 22
+- title: Giao dịch
+  slug: transactions
+  index: 23
+- title: Độ tin cậy đầu cuối
+  slug: end-to-end-reliability
+  index: 24
+- title: Thứ tự và đồng thời
+  slug: ordering-concurrency
+  index: 25
+- title: Phục hồi kết nối
+  slug: connection-recovery
+  index: 26
+- title: Nhiều broker và khách hàng
+  slug: multiple-brokers-clients
+  index: 27
+- title: RabbitMQ Streams
+  slug: rabbitmq-streams
+  index: 28
+- title: AMQP 1.0
+  slug: amqp-1-0
+  index: 29
+- title: Bảo mật
+  slug: security
+  index: 30
+- title: Quan sát hệ thống
+  slug: observability
+  index: 31
+- title: Kiểm thử
+  slug: testing
+  index: 32
+- title: Hiệu năng
+  slug: performance
+  index: 33
+- title: Triển khai và vận hành
+  slug: deployment-operations
+  index: 34
+- title: Mẫu tích hợp
+  slug: integration-patterns
+  index: 35
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 36
+- title: Nâng cấp và tương thích
+  slug: upgrades-compatibility
+  index: 37
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 38

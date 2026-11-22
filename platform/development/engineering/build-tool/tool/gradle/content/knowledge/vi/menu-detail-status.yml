@@ -1,0 +1,3343 @@
+menu:
+- slug: gradle-overview
+  title: Tổng quan Gradle
+  childs:
+  - slug: gradle-overview-001
+    title: Gradle là gì và những vấn đề tự động hóa build cần giải quyết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-overview-002
+    title: Vai trò của Gradle trong chuỗi biên dịch, kiểm thử, đóng gói và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-overview-003
+    title: Mô hình Project, Task, Plugin và Dependency cùng mối quan hệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-overview-004
+    title: Build khai báo, đồ thị công việc và khả năng mở rộng bằng mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-overview-005
+    title: Phân biệt build tool, trình biên dịch, trình quản lý dependency và CI server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-overview-006
+    title: So sánh cách tiếp cận của Gradle, Maven và Ant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-overview-007
+    title: 'Groovy DSL và Kotlin DSL: cách lựa chọn và đọc tài liệu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-overview-008
+    title: Lộ trình học từ dự án đơn đến build nhiều dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-and-wrapper
+  title: Cài đặt và Wrapper
+  childs:
+  - slug: installation-and-wrapper-001
+    title: Điều kiện chạy Gradle và phân biệt JDK chạy build với JDK biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-wrapper-002
+    title: Cài đặt Gradle thủ công, bằng trình quản lý phiên bản và qua IDE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-wrapper-003
+    title: Kiểm tra phiên bản Gradle, JVM và môi trường thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-wrapper-004
+    title: 'Gradle Wrapper: vai trò của gradlew, gradlew.bat và gradle-wrapper'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-wrapper-005
+    title: Khởi tạo và sử dụng Wrapper nhất quán trên Windows, Linux và macOS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-wrapper-006
+    title: Cấu hình bản phân phối và phiên bản trong gradle-wrapper.properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-wrapper-007
+    title: Kiểm tra checksum bản phân phối và tính toàn vẹn Wrapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-wrapper-008
+    title: Nâng cấp Wrapper và xử lý quyền thực thi, đường dẫn, proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-structure
+  title: Cấu trúc dự án
+  childs:
+  - slug: project-structure-001
+    title: Khởi tạo dự án bằng gradle init và lựa chọn mẫu phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-structure-002
+    title: Vai trò của settings.gradle, build.gradle và các biến thể .kts
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-structure-003
+    title: Phân biệt gradle.properties, local.properties và tệp cấu hình tự định nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-structure-004
+    title: Bố cục src/main, src/test, resources và thư mục build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-structure-005
+    title: Root project, subproject, đường dẫn thư mục và Gradle project path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-structure-006
+    title: Vai trò của thư mục .gradle, Gradle User Home và cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-structure-007
+    title: Chọn tệp cần quản lý bằng Git và tệp đầu ra cần bỏ qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-structure-008
+    title: Đọc một dự án Gradle có sẵn theo thứ tự các tệp cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-line
+  title: Dòng lệnh
+  childs:
+  - slug: command-line-001
+    title: Cú pháp chạy Wrapper và cách gọi một hoặc nhiều task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-002
+    title: Tra cứu help, tasks, projects, properties và tên task đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-003
+    title: Chọn task bằng project path và tránh gọi nhầm task trùng tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-004
+    title: Nhóm lệnh clean, check, build, assemble và ý nghĩa theo plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-005
+    title: Truyền project property bằng -P và JVM system property bằng -D
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-006
+    title: Điều chỉnh log, stacktrace, chế độ cảnh báo và console
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-007
+    title: Xem kế hoạch thực thi bằng --dry-run và loại task bằng -x
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-008
+    title: Dùng offline, refresh-dependencies, rerun-tasks đúng tình huống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-009
+    title: Kiểm soát thư mục chạy, Gradle User Home và cấu hình tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-lifecycle
+  title: Vòng đời build
+  childs:
+  - slug: build-lifecycle-001
+    title: Ba giai đoạn khởi tạo, cấu hình và thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-002
+    title: Vai trò của Settings, Project và Gradle trong từng giai đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-003
+    title: Phân biệt mã cấu hình task với hành động thực thi task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-004
+    title: Cách Gradle xác định các project tham gia một build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-005
+    title: Đồ thị task và thời điểm xác định thứ tự thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-006
+    title: Các hook vòng đời và giới hạn khi can thiệp cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-007
+    title: Tác dụng phụ trong giai đoạn cấu hình và cách loại bỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-lifecycle-008
+    title: Theo dấu một lệnh build qua toàn bộ vòng đời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: groovy-dsl
+  title: Groovy DSL
+  childs:
+  - slug: groovy-dsl-001
+    title: Cú pháp Groovy cần thiết để đọc và viết build script
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-002
+    title: Closure, delegate và cách hiểu các khối cấu hình Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-003
+    title: Chuỗi, nội suy, collection, map và named arguments
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-004
+    title: Biến, phương thức, phạm vi và giá trị trả về ngầm định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-005
+    title: Truy cập thuộc tính, gọi phương thức và các dạng cú pháp rút gọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-006
+    title: Cấu hình extension và đối tượng có tên bằng Groovy DSL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-007
+    title: Extra properties, script plugin và giới hạn của cấu hình động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groovy-dsl-008
+    title: Lỗi thường gặp do tên thuộc tính, kiểu dữ liệu và thời điểm cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kotlin-dsl
+  title: Kotlin DSL
+  childs:
+  - slug: kotlin-dsl-001
+    title: Cú pháp Kotlin cần thiết cho build script .gradle.kts
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kotlin-dsl-002
+    title: Lambda có receiver và cách đọc khối cấu hình có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kotlin-dsl-003
+    title: Type-safe accessors và thời điểm chúng được tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kotlin-dsl-004
+    title: Truy cập task, extension và container bằng API có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kotlin-dsl-005
+    title: Chuỗi, nội suy, collection và giá trị nullable trong build script
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kotlin-dsl-006
+    title: Cấu hình plugin ngoài và xử lý extension chưa có accessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kotlin-dsl-007
+    title: Phân biệt phạm vi plugins, buildscript và phần thân script
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kotlin-dsl-008
+    title: Chuyển build script từ Groovy DSL sang Kotlin DSL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: properties-and-environment
+  title: Thuộc tính và môi trường
+  childs:
+  - slug: properties-and-environment-001
+    title: Project properties, system properties và biến môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-environment-002
+    title: Đặt thuộc tính ở cấp dự án, người dùng và dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-environment-003
+    title: Thứ tự ưu tiên và xử lý thuộc tính trùng tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-environment-004
+    title: Đọc giá trị bằng providers.gradleProperty và providers.environmentVariable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-environment-005
+    title: Chuyển đổi kiểu, giá trị mặc định và kiểm tra cấu hình bắt buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-environment-006
+    title: Cấu hình JVM của Gradle và JVM của tiến trình do task khởi chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-environment-007
+    title: Quản lý thông tin bí mật mà không ghi vào source hoặc log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-environment-008
+    title: Tách cấu hình môi trường và tránh phụ thuộc ngầm vào máy cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: providers-and-lazy-configuration
+  title: Provider và cấu hình lười
+  childs:
+  - slug: providers-and-lazy-configuration-001
+    title: Vì sao cấu hình lười cần thiết trong build có khả năng mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-lazy-configuration-002
+    title: Provider, Property và mô hình giá trị chưa được tính ngay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-lazy-configuration-003
+    title: RegularFileProperty, DirectoryProperty và collection properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-lazy-configuration-004
+    title: Phân biệt set, convention và giá trị được suy ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-lazy-configuration-005
+    title: Biến đổi giá trị bằng map, flatMap và kết hợp Provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-lazy-configuration-006
+    title: Liên kết đầu ra task với đầu vào task khác để suy ra dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-lazy-configuration-007
+    title: Thời điểm get, finalizeValue và disallowChanges có ý nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-lazy-configuration-008
+    title: Tránh đọc Provider sớm và nhận diện tác dụng phụ khi cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tasks-and-graph
+  title: Task và đồ thị
+  childs:
+  - slug: tasks-and-graph-001
+    title: Task có hành động và lifecycle task dùng để nhóm công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-002
+    title: Đăng ký task bằng tasks.register và lấy tham chiếu bằng tasks.named
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-003
+    title: TaskProvider và sự khác biệt giữa đăng ký, cấu hình, khởi tạo task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-004
+    title: Thêm hành động bằng doFirst, doLast và kiểm soát thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-005
+    title: dependsOn, mustRunAfter, shouldRunAfter và finalizedBy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-006
+    title: Dependency ngầm qua đầu vào, đầu ra và Provider của task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-007
+    title: onlyIf, enabled, điều kiện bỏ qua và xử lý lỗi task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-008
+    title: Trạng thái SUCCESS, UP-TO-DATE, FROM-CACHE, NO-SOURCE và SKIPPED
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-graph-009
+    title: Phát hiện chu trình và chẩn đoán task chạy ngoài dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-tasks
+  title: Task tùy chỉnh
+  childs:
+  - slug: custom-tasks-001
+    title: Khi nào dùng task có sẵn và khi nào tạo task type riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-002
+    title: Xây dựng lớp DefaultTask và hành động @TaskAction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-003
+    title: Khai báo đầu vào bằng @Input, @InputFile, @InputFiles và @InputDirectory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-004
+    title: Khai báo đầu ra bằng @OutputFile, @OutputFiles và @OutputDirectory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-005
+    title: Phân biệt @Internal, @Optional và dữ liệu cần theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-006
+    title: Chuẩn hóa đường dẫn, nội dung và ảnh hưởng đến tính tái sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-007
+    title: Tiêm dịch vụ và sử dụng ExecOperations, FileSystemOperations
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-008
+    title: Xử lý thay đổi tệp bằng InputChanges cho task tăng dần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-009
+    title: Worker API, chế độ cô lập và công việc có thể chạy song song
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-tasks-010
+    title: Build Service dùng chung, vòng đời tài nguyên và giới hạn đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-resources
+  title: Tệp và tài nguyên
+  childs:
+  - slug: files-and-resources-001
+    title: File, Directory, FileCollection và FileTree trong Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-002
+    title: Giải quyết đường dẫn tương đối theo project và layout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-003
+    title: Chọn tệp bằng include, exclude và pattern
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-004
+    title: Sao chép bằng Copy, đồng bộ bằng Sync và xóa bằng Delete
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-005
+    title: Dùng CopySpec để tái sử dụng quy tắc bố trí tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-006
+    title: Lọc tài nguyên, thay thế biến và giới hạn khi xử lý tệp nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-007
+    title: Chính sách tệp trùng, quyền truy cập và bảo toàn cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-008
+    title: Tạo archive, đọc archive và sử dụng artifact do task khác sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-resources-009
+    title: Tránh đường dẫn tuyệt đối, tác dụng phụ và đầu ra chồng lấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-model
+  title: Mô hình dependency
+  childs:
+  - slug: dependency-model-001
+    title: Dependency ngoài, dependency project và dependency tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-002
+    title: Tọa độ group, name, version, classifier và extension
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-003
+    title: Dependency trực tiếp, bắc cầu, constraint và artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-004
+    title: Configuration khai báo, phân giải và công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-005
+    title: Quan hệ extendsFrom và phạm vi kế thừa dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-006
+    title: Classpath biên dịch, runtime, kiểm thử và annotation processor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-007
+    title: Phân biệt dependency của ứng dụng, plugin và build script
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-008
+    title: Đọc đồ thị dependency trước khi quyết định thay đổi cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repositories
+  title: Kho thư viện
+  childs:
+  - slug: repositories-001
+    title: Repository plugin và repository dependency giải quyết hai nhu cầu khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-002
+    title: Cấu hình repositories và pluginManagement.repositories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-003
+    title: Tập trung repository bằng dependencyResolutionManagement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-004
+    title: Vai trò của Maven Central, Google Maven, kho nội bộ và mavenLocal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-005
+    title: Thứ tự repository và tác động đến kết quả phân giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-006
+    title: Lọc nội dung kho bằng content filter và exclusiveContent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-007
+    title: Xác thực kho riêng bằng thông tin bí mật bên ngoài source
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-008
+    title: Cấu hình proxy, TLS và chẩn đoán lỗi kết nối repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-009
+    title: Rủi ro của flatDir, kho cục bộ và dependency không có metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-declarations
+  title: Khai báo dependency
+  childs:
+  - slug: dependency-declarations-001
+    title: Khai báo dependency theo chuỗi tọa độ và dạng có cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-002
+    title: implementation, api và ranh giới API của thư viện Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-003
+    title: compileOnly, runtimeOnly và compileOnlyApi theo plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-004
+    title: testImplementation, testRuntimeOnly và dependency cho bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-005
+    title: annotationProcessor và testAnnotationProcessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-006
+    title: Dependency giữa các project và lựa chọn API được công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-007
+    title: Dependency cục bộ từ files, fileTree và hạn chế metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-008
+    title: Exclude dependency bắc cầu và tránh loại nhầm thư viện cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-declarations-009
+    title: Lựa chọn phiên bản cố định, động, snapshot và changing module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-resolution
+  title: Phân giải dependency
+  childs:
+  - slug: dependency-resolution-001
+    title: Quá trình phân giải từ khai báo đến component, variant và artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-002
+    title: Xung đột phiên bản và nguyên tắc lựa chọn mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-003
+    title: Quan sát đồ thị bằng dependencies và dependencyInsight
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-004
+    title: 'Dependency constraints và rich versions: strictly, prefer, reject'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-005
+    title: Dependency substitution và component selection rules
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-006
+    title: Resolution strategy, force và phạm vi tác động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-007
+    title: Component metadata rules để sửa metadata thiếu hoặc sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-008
+    title: BOM, căn chỉnh phiên bản và phát hiện tổ hợp thư viện không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-009
+    title: Cache metadata, changing module, offline và refresh-dependencies
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-resolution-010
+    title: Chẩn đoán dependency không tìm thấy, sai phiên bản hoặc thiếu artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: variants-and-capabilities
+  title: Variant và capability
+  childs:
+  - slug: variants-and-capabilities-001
+    title: Variant là gì và vì sao một component có nhiều biến thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-002
+    title: Consumable configuration và resolvable configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-003
+    title: Attributes, schema và quy tắc ghép producer với consumer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-004
+    title: Phân biệt apiElements, runtimeElements và các variant Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-005
+    title: Capabilities và xử lý xung đột nhiều thư viện cùng chức năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-006
+    title: Feature variants và công bố tính năng tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-007
+    title: Đọc báo cáo outgoingVariants và resolvableConfigurations
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-008
+    title: Artifact transform và vai trò trong quá trình tiêu thụ dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variants-and-capabilities-009
+    title: Chẩn đoán lỗi không có variant phù hợp hoặc có nhiều variant phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: catalogs-and-platforms
+  title: Catalog và platform
+  childs:
+  - slug: catalogs-and-platforms-001
+    title: Version catalog giải quyết việc đặt tên và tập trung tọa độ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-002
+    title: 'Cấu trúc libs.versions.toml: versions, libraries, bundles và plugins'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-003
+    title: Dùng alias trong dependencies và plugins
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-004
+    title: Chia sẻ catalog giữa các project và các build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-005
+    title: 'Giới hạn catalog: phiên bản đề xuất không phải kết quả phân giải bắt buộc'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-006
+    title: Java Platform plugin và khai báo dependency constraints
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-007
+    title: Tiêu thụ BOM bằng platform và enforcedPlatform
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-008
+    title: Phân biệt catalog, platform, dependency locking và convention plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: catalogs-and-platforms-009
+    title: Tổ chức chiến lược phiên bản cho hệ thống nhiều module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locking-and-verification
+  title: Khóa và xác minh
+  childs:
+  - slug: locking-and-verification-001
+    title: Build tái lập và các nguồn biến động ngoài source code
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-002
+    title: Dependency locking và phạm vi configuration cần khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-003
+    title: Tạo, cập nhật và kiểm tra dependency lockfile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-004
+    title: Quản lý lockfile trong Git và xử lý thay đổi dependency có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-005
+    title: Dependency verification bằng checksum và chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-006
+    title: Vai trò của verification-metadata.xml và quy trình tin cậy artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-007
+    title: Xử lý lỗi xác minh mà không vô hiệu hóa kiểm tra toàn cục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-008
+    title: Phân biệt khóa phiên bản, xác minh artifact và checksum Wrapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-and-verification-009
+    title: Kiểm tra tính tái lập qua môi trường sạch và build độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-usage
+  title: Sử dụng plugin
+  childs:
+  - slug: plugin-usage-001
+    title: Plugin cung cấp task, extension, configuration và quy ước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-002
+    title: Core plugin, plugin ngoài và plugin tự xây dựng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-003
+    title: Plugins DSL, plugin id, phiên bản và apply false
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-004
+    title: Plugin management, plugin marker và nơi phân giải plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-005
+    title: Phân biệt plugins, apply plugin và buildscript classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-006
+    title: Cấu hình extension do plugin cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-007
+    title: Tương tác giữa plugin và thời điểm dùng withPlugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-008
+    title: Quản lý plugin thống nhất qua settings và version catalog
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-usage-009
+    title: Chẩn đoán plugin không tìm thấy, xung đột classpath và sai phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-projects
+  title: Dự án Java
+  childs:
+  - slug: java-projects-001
+    title: Java plugin và đồ thị task chuẩn của dự án Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-002
+    title: SourceSet, source directory, resources và classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-003
+    title: Java Library plugin và ranh giới api với implementation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-004
+    title: Application plugin, mainClass và chạy ứng dụng bằng run
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-005
+    title: Cấu hình compiler args, encoding và tham số trình biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-006
+    title: Javadoc, sources JAR và tài liệu đi kèm thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-007
+    title: Tạo source set bổ sung và nối vào task kiểm tra, đóng gói
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-008
+    title: Java Module System và những điểm cần cấu hình trong build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-projects-009
+    title: Đối chiếu build trong IDE với build bằng Wrapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdk-and-toolchains
+  title: JDK và toolchain
+  childs:
+  - slug: jdk-and-toolchains-001
+    title: Phân biệt JVM chạy Gradle, Java compiler và JVM chạy kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-toolchains-002
+    title: Java Toolchains và lựa chọn languageVersion
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-toolchains-003
+    title: Chọn vendor, phát hiện JDK và cấu hình nơi tìm JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-toolchains-004
+    title: Toolchain resolver và điều kiện tải JDK tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-toolchains-005
+    title: sourceCompatibility, targetCompatibility và javac --release
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-toolchains-006
+    title: Cấu hình toolchain riêng cho JavaCompile, Test và JavaExec
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-toolchains-007
+    title: Kiểm tra toolchain thực tế bằng javaToolchains và log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-toolchains-008
+    title: Chẩn đoán unsupported class version và tổ hợp Gradle, JDK không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compilation-and-resources
+  title: Biên dịch và tài nguyên
+  childs:
+  - slug: compilation-and-resources-001
+    title: Luồng compileJava, processResources, classes và testClasses
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-002
+    title: Biên dịch tăng dần, compile avoidance và ranh giới thay đổi API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-003
+    title: Annotation processing và khai báo processor đúng configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-004
+    title: Tạo mã nguồn và nối đầu ra generator vào source set
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-005
+    title: Thiết lập quan hệ task cho mã hoặc tài nguyên sinh tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-006
+    title: Lọc biến môi trường trong resources và tránh rò rỉ thông tin bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-007
+    title: Cấu hình JavaExec, Exec và công cụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-and-resources-008
+    title: Xử lý lỗi encoding, đường dẫn, tài nguyên trùng và mã sinh không ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Task Test và mối quan hệ với test, check, build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Cấu hình JUnit Platform và các test engine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Lọc theo lớp, phương thức, tag và bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Phân biệt source set kiểm thử riêng với JVM Test Suite
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Tạo integration test và gắn vào lifecycle có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Dependency giữa kiểm thử tích hợp và hạ tầng cần khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Cấu hình heap, JVM args, system properties và test logging
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Fork tiến trình, maxParallelForks và tài nguyên dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Báo cáo HTML, XML, tổng hợp kết quả và lưu bằng chứng trên CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Test thất thường, chạy lại bằng plugin phù hợp và chẩn đoán nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Phân biệt task cache hit với kiểm thử thực sự được thực thi lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-quality
+  title: Chất lượng mã
+  childs:
+  - slug: code-quality-001
+    title: Vai trò của quality gate và nối công cụ kiểm tra vào check
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-002
+    title: Cấu hình Checkstyle cho quy tắc mã nguồn Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-003
+    title: Cấu hình PMD và SpotBugs theo plugin tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-004
+    title: Định dạng tự động và tách task kiểm tra với task sửa mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-005
+    title: 'JaCoCo: thu thập dữ liệu, tạo báo cáo và đặt ngưỡng coverage'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-006
+    title: Tổng hợp coverage nhiều module và giới hạn của số phần trăm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-007
+    title: Kiểm tra dependency có lỗ hổng bằng công cụ hoặc plugin phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-008
+    title: Quản lý cấu hình dùng chung, baseline và ngoại lệ có giải thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packaging
+  title: Đóng gói
+  childs:
+  - slug: packaging-001
+    title: Jar, Zip, Tar và phân biệt classes với artifact phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-002
+    title: Thiết lập archive name, version, classifier và nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-003
+    title: Manifest, Main-Class và cách chạy JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-004
+    title: Thin JAR, fat JAR và trách nhiệm đóng gói dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-005
+    title: Gộp service descriptor, tài nguyên trùng và giới hạn của fat JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-006
+    title: Application distribution, start scripts, installDist và distZip
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-007
+    title: Giữ archive ổn định về thứ tự tệp và timestamp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-008
+    title: Kiểm tra artifact tạo ra trước khi phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-009
+    title: Kết nối đóng gói container qua task hoặc plugin có phạm vi rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artifact-publishing
+  title: Xuất bản artifact
+  childs:
+  - slug: artifact-publishing-001
+    title: Maven Publish plugin và mô hình publication, component, repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-002
+    title: Công bố thư viện Java cùng sources JAR và Javadoc JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-003
+    title: Cấu hình group, artifactId, version và thông tin POM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-004
+    title: Gradle Module Metadata và thông tin variant khi công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-005
+    title: Phân biệt publishToMavenLocal với publish lên repository từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-006
+    title: Tách repository snapshot, release và thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-007
+    title: Ký artifact bằng Signing plugin và quản lý khóa bên ngoài source
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-008
+    title: Kiểm tra metadata và dùng dự án consumer để xác minh artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-publishing-009
+    title: Quy trình phiên bản, changelog, tag và phát hành có thể truy vết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-project-builds
+  title: Build nhiều dự án
+  childs:
+  - slug: multi-project-builds-001
+    title: Khi nào tách module và cách xác định ranh giới phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-002
+    title: Khai báo include và ánh xạ projectDir trong settings
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-003
+    title: Đường dẫn project và cách gọi task toàn bộ hoặc từng module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-004
+    title: Dependency project so với dependency vào đường dẫn artifact thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-005
+    title: Chia sẻ cấu hình bằng allprojects, subprojects và các giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-006
+    title: Đưa quy ước chung vào convention plugin thay cho cấu hình chéo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-007
+    title: Trao đổi artifact qua configuration và variant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-008
+    title: Tránh afterEvaluate, thứ tự cấu hình ngầm và truy cập nội bộ project khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-009
+    title: Thiết kế đồ thị module để kiểm thử và build có thể thực thi độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-010
+    title: Tổng hợp báo cáo và artifact mà không làm mất ranh giới module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: composite-builds
+  title: Composite build
+  childs:
+  - slug: composite-builds-001
+    title: Phân biệt multi-project build với composite build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-002
+    title: includeBuild trong settings và build được include
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-003
+    title: Dependency substitution tự động và trường hợp cần cấu hình rõ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-004
+    title: Dùng thư viện từ source cục bộ thay artifact đã công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-005
+    title: Tham chiếu task giữa các included build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-006
+    title: Plugin development build và includeBuild trong pluginManagement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-007
+    title: Phạm vi riêng của settings, properties, catalog và repository giữa các build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-008
+    title: Tránh vòng lặp include, trùng tọa độ và hiểu nhầm phạm vi task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-builds-009
+    title: Xác minh consumer hoạt động với cả source build lẫn artifact đã phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shared-build-logic
+  title: Build logic dùng chung
+  childs:
+  - slug: shared-build-logic-001
+    title: Nhận diện cấu hình lặp và lựa chọn mức tái sử dụng phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-002
+    title: Script plugin và giới hạn về kiểu, classpath, kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-003
+    title: 'buildSrc: cấu trúc, dependency và ảnh hưởng đến build'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-004
+    title: Included build build-logic và cơ chế phát triển plugin nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-005
+    title: Precompiled script plugin với Groovy DSL hoặc Kotlin DSL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-006
+    title: Convention plugin cho Java, kiểm thử, chất lượng và xuất bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-007
+    title: Quản lý dependency của build logic tách khỏi dependency ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-008
+    title: Thiết kế extension để module khai báo nhu cầu thay vì sửa cơ chế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-build-logic-009
+    title: So sánh buildSrc, build-logic và plugin đã công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-development
+  title: Phát triển plugin
+  childs:
+  - slug: plugin-development-001
+    title: Cấu trúc dự án plugin và Java Gradle Plugin Development plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-002
+    title: Plugin<Project>, Plugin<Settings> và phạm vi áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-003
+    title: Khai báo plugin id, implementationClass và metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-004
+    title: Thiết kế extension có kiểu bằng managed properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-005
+    title: Đăng ký task lười và kết nối extension với đầu vào task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-006
+    title: Phối hợp plugin bằng pluginManager.withPlugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-007
+    title: Tách chính sách, cơ chế, dịch vụ và tác dụng phụ của task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-008
+    title: Thông báo lỗi cấu hình rõ ràng và API tương thích về sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-009
+    title: Kiểm thử logic đơn vị và build chức năng bằng Gradle TestKit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-010
+    title: Thiết lập fixture, chạy nhiều phiên bản Gradle và kiểm tra task outcome
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-development-011
+    title: Công bố plugin nội bộ hoặc lên Gradle Plugin Portal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incremental-build
+  title: Build tăng dần
+  childs:
+  - slug: incremental-build-001
+    title: Up-to-date check và mô hình đầu vào, đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-002
+    title: Phân biệt task không cần chạy với kết quả lấy từ build cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-003
+    title: Tác động của nội dung tệp, đường dẫn và thuộc tính đến trạng thái task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-004
+    title: Đầu ra chồng lấn, tác vụ không khai báo và nguyên nhân mất tính tăng dần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-005
+    title: Input normalization và PathSensitivity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-006
+    title: Thiết kế task cacheable bằng @CacheableTask
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-007
+    title: Phân biệt thay đổi cần chạy lại toàn bộ với thay đổi có thể xử lý tăng dần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-008
+    title: Kiểm chứng hành vi bằng hai lần build và thay đổi đầu vào có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-layers
+  title: Các lớp cache
+  childs:
+  - slug: cache-layers-001
+    title: Phân biệt dependency cache, build cache và configuration cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-002
+    title: Cấu hình build cache cục bộ và từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-003
+    title: Cache key, khả năng dùng lại giữa máy và tính ổn định đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-004
+    title: Bật configuration cache và đọc báo cáo không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-005
+    title: Tránh truy cập Project, trạng thái toàn cục và dữ liệu không được theo dõi lúc thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-006
+    title: Dùng Provider, ValueSource và Build Service đúng mục đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-007
+    title: Quản lý credential, dữ liệu nhạy cảm và quyền ghi remote cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-008
+    title: Chẩn đoán cache miss, cache sai và trường hợp cần tắt cache có phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-layers-009
+    title: Chính sách dọn cache và phân biệt với xóa thư mục build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-performance
+  title: Hiệu năng build
+  childs:
+  - slug: build-performance-001
+    title: Đo baseline và tách thời gian khởi động, cấu hình, thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-002
+    title: Gradle Daemon, tái sử dụng JVM và cấu hình bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-003
+    title: Configuration avoidance và loại bỏ công việc không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-004
+    title: Chạy task song song, giới hạn worker và kiểm soát tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-005
+    title: Đo tác động của test fork, compiler, I/O và dependency resolution
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-006
+    title: Dùng --profile và Build Scan với cân nhắc dữ liệu được chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-007
+    title: Nhận diện nút thắt build logic, script compilation và buildSrc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-008
+    title: Tối ưu pipeline theo module bị ảnh hưởng và dependency thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-009
+    title: Đánh giá Isolated Projects theo khả năng hỗ trợ của phiên bản sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-performance-010
+    title: So sánh kết quả nhiều lần và tránh đánh đổi tính đúng để tăng tốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: ci-cd-integration-001
+    title: Dùng Wrapper, JDK và toolchain nhất quán trên máy CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-002
+    title: Thiết kế các bước kiểm tra, kiểm thử, đóng gói và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-003
+    title: Caching Gradle User Home với khóa, phạm vi và quyền phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-004
+    title: Phân biệt cache tăng tốc với artifact cần lưu hoặc phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-005
+    title: Xây dựng workflow Gradle trên GitHub Actions
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-006
+    title: Tích hợp Gradle vào GitLab CI hoặc Jenkins theo cùng nguyên tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-007
+    title: Chạy ma trận hệ điều hành, JDK hoặc phiên bản Gradle có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-008
+    title: Lưu test report, coverage, log và artifact để chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-009
+    title: Chỉ cấp thông tin bí mật và quyền phát hành cho nhánh, sự kiện hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-010
+    title: Xác minh artifact từ môi trường sạch trước khi triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-security
+  title: An toàn build
+  childs:
+  - slug: build-security-001
+    title: Build script và plugin là mã có quyền thực thi trên máy build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-002
+    title: Ranh giới tin cậy của pull request, plugin và repository bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-003
+    title: Ngăn dependency confusion bằng repository policy và content filter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-004
+    title: Kết hợp Wrapper checksum, dependency verification và locking
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-005
+    title: Không đưa token, mật khẩu hoặc khóa ký vào Git và artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-006
+    title: Giảm dữ liệu nhạy cảm trong log, test report và Build Scan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-007
+    title: Phân quyền remote cache và ngăn kết quả build không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-008
+    title: Rà soát init script, Gradle User Home và cấu hình toàn máy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-009
+    title: Thiết kế môi trường CI tách biệt cho build kiểm tra và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ide-and-diagnostics
+  title: IDE và chẩn đoán
+  childs:
+  - slug: ide-and-diagnostics-001
+    title: Import dự án vào IntelliJ IDEA, Eclipse hoặc VS Code
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-002
+    title: Chọn Gradle JVM và cơ chế build, chạy test trong IDE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-003
+    title: Gradle sync, tải dependency và phân biệt với thực thi task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-004
+    title: Đọc stacktrace từ nguyên nhân gốc thay vì thông báo tổng quát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-005
+    title: Chẩn đoán lỗi plugin, repository, dependency và toolchain theo từng lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-006
+    title: Chẩn đoán khác biệt giữa IDE, terminal và CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-007
+    title: Xử lý file lock, daemon, đường dẫn dài và quyền truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-008
+    title: Debug build logic và plugin bằng IDE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-009
+    title: Thu thập bản tái hiện tối thiểu và log vừa đủ để báo lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-diagnostics-010
+    title: Tránh dùng clean hoặc xóa toàn bộ cache như cách sửa lỗi mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-and-migration
+  title: Nâng cấp và di chuyển
+  childs:
+  - slug: upgrades-and-migration-001
+    title: Kiểm kê phiên bản Gradle, JDK, plugin và API build đang dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-002
+    title: Đọc compatibility matrix, release notes và upgrading guide
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-003
+    title: Phát hiện deprecation trước khi nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-004
+    title: Nâng từng bước và kiểm tra Wrapper, plugin, build logic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-005
+    title: Chuyển từ API cấu hình sớm sang lazy configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-006
+    title: Chuyển build Ant hoặc Maven sang Gradle có kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-007
+    title: Giữ nguyên hành vi dependency, kiểm thử và đóng gói khi di chuyển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-008
+    title: So sánh artifact, metadata và consumer trước với sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-009
+    title: Kế hoạch rollback và quản lý thay đổi lockfile, verification metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-ecosystem
+  title: Hệ sinh thái Gradle
+  childs:
+  - slug: gradle-ecosystem-001
+    title: Tích hợp Kotlin JVM và phối hợp Java, Kotlin trong một project
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-002
+    title: Scala, Groovy và cách plugin ngôn ngữ mở rộng mô hình build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-003
+    title: 'Spring Boot plugin: bootRun, bootJar và ranh giới với Java plugin'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-004
+    title: Quản lý phiên bản dependency trong dự án Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-005
+    title: 'Android Gradle Plugin: module, build type, product flavor và variant'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-006
+    title: 'Kotlin Multiplatform: target, source set và vai trò của plugin'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-007
+    title: Native build C++ hoặc Swift và yêu cầu môi trường tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-008
+    title: Tích hợp công cụ frontend qua task hoặc plugin có khai báo đầu vào, đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-ecosystem-009
+    title: Phân biệt API cốt lõi Gradle với khả năng do plugin của từng hệ sinh thái cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Xây dựng ứng dụng Java từ init đến chạy, kiểm thử và phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Thiết kế thư viện Java công khai API rõ ràng và xuất bản thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Tổ chức hệ thống nhiều module bằng convention plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Phát triển plugin nội bộ có extension, custom task và TestKit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Tạo task sinh mã hoạt động đúng với up-to-date check và build cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Tái hiện rồi xử lý xung đột dependency, variant và toolchain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Thiết lập integration test, quality gate và báo cáo trên CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Thực hiện nâng cấp Gradle với bằng chứng hành vi trước và sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Kiểm chứng build tái lập, artifact độc lập và quản lý thông tin bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: 'Checklist review build: tính đúng, khả năng bảo trì, hiệu năng và an toàn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

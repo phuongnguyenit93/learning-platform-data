@@ -1,0 +1,57 @@
+roadmap:
+- id: nhan-dien-quyet-dinh
+  title: Nhận diện quyết định
+  purpose: Xác định thay đổi nào có ảnh hưởng dài hạn và cần được ghi lại như một quyết định kiến trúc.
+  objectives:
+  - Phân biệt quyết định kiến trúc với chi tiết triển khai.
+  - Nhận diện tác động đến cấu trúc, chất lượng và giao diện.
+  - Chọn một quyết định quan trọng để lập ADR.
+- id: context-drivers
+  title: Context & Drivers
+  purpose: Làm rõ vấn đề và các yếu tố buộc nhóm phải đưa ra quyết định.
+  objectives:
+  - Viết bối cảnh và mục tiêu của quyết định.
+  - Liệt kê ràng buộc kỹ thuật, vận hành và thời gian.
+  - Xác định stakeholder và tiêu chí chất lượng.
+- id: phuong-an-trade-offs
+  title: Phương án & Trade-offs
+  purpose: So sánh giải pháp theo tiêu chí rõ ràng thay vì chỉ ghi lựa chọn cuối cùng.
+  objectives:
+  - Đề xuất ít nhất hai phương án khả thi.
+  - So sánh chi phí, rủi ro và yêu cầu phi chức năng.
+  - Giải thích lý do loại bỏ các phương án còn lại.
+- id: cau-truc-adr
+  title: Cấu trúc ADR
+  purpose: Ghi quyết định thành tài liệu ngắn, đủ thông tin để người khác hiểu lại sau này.
+  objectives:
+  - Viết Title, Date, Status và Context.
+  - Ghi Decision cùng lý do lựa chọn.
+  - Nêu Consequences tích cực, tiêu cực và rủi ro.
+- id: review-dong-thuan
+  title: Review & đồng thuận
+  purpose: Kiểm tra tính hợp lý của ADR và thông báo quyết định đến người liên quan.
+  objectives:
+  - Phân công author hoặc owner cho ADR.
+  - Thu thập nhận xét và phản biện của nhóm.
+  - Ghi kết quả review và trạng thái phê duyệt.
+- id: vong-doi-quyet-dinh
+  title: Vòng đời quyết định
+  purpose: Theo dõi lịch sử mà không xóa mất lý do của các quyết định cũ.
+  objectives:
+  - Phân biệt Proposed, Accepted và Rejected.
+  - Dùng Deprecated hoặc Superseded đúng ngữ cảnh.
+  - Tạo ADR mới và liên kết khi thay đổi quyết định.
+- id: decision-log-lien-ket
+  title: Decision Log & liên kết
+  purpose: Giúp tìm kiếm và đối chiếu quyết định với thiết kế, mã nguồn và thay đổi hệ thống.
+  objectives:
+  - Lưu ADR Markdown trong repository hoặc wiki.
+  - Tổ chức mã số, tên file và chỉ mục decision log.
+  - Liên kết ADR với sơ đồ, issue và pull request.
+- id: thuc-hanh-bao-tri
+  title: Thực hành & bảo trì
+  purpose: Dùng ADR như tài liệu sống để kiểm tra sự nhất quán của thay đổi kiến trúc.
+  objectives:
+  - Hoàn thiện một ADR cho ứng dụng mẫu.
+  - Đối chiếu một thay đổi code với ADR đã chấp nhận.
+  - Đánh giá khi cần lập ADR thay thế hoặc cập nhật liên kết.

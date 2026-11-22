@@ -1,0 +1,450 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Jackson là gì và giải quyết bài toán trao đổi dữ liệu nào
+  - Phân biệt tuần tự hóa và giải tuần tự hóa dữ liệu
+  - Phân biệt JSON, mô hình Java và thư viện xử lý dữ liệu
+  - Phân biệt Jackson và cơ chế tuần tự hóa đối tượng của Java
+  - 'Ba cách xử lý: ánh xạ đối tượng, cây dữ liệu và luồng token'
+  - Luồng xử lý từ byte đầu vào đến đối tượng Java và ngược lại
+  - Quan hệ giữa cấu trúc dữ liệu, kiểu Java và hợp đồng trao đổi
+  - Những kiến thức Java, JSON và I/O cần có
+  - Khi nào chọn Jackson và khi nào cần công cụ khác
+  - Các thuật ngữ cốt lõi và trình tự học Jackson
+- level1: Kiến trúc Jackson
+  level2:
+  - Vai trò của lớp xử lý luồng, lớp annotation và lớp ánh xạ
+  - Mối quan hệ giữa JsonFactory, JsonParser và JsonGenerator
+  - Mối quan hệ giữa ObjectMapper, ObjectReader và ObjectWriter
+  - Vai trò của serializer và deserializer
+  - Vai trò của JsonNode trong mô hình cây
+  - Vai trò của module kiểu dữ liệu và module định dạng
+  - Phân biệt cấu hình đọc, cấu hình ghi và cấu hình ánh xạ
+  - Phân biệt tính năng lõi và phần mở rộng theo định dạng
+  - Lựa chọn cách xử lý theo kích thước dữ liệu và yêu cầu kiểm soát
+- level1: Phiên bản và phụ thuộc
+  level2:
+  - Xác định dòng phiên bản Jackson và phạm vi API được sử dụng
+  - Lựa chọn dependency cho JSON và cho các định dạng mở rộng
+  - Giữ phiên bản các thành phần Jackson tương thích với nhau
+  - Vai trò của BOM và công cụ quản lý dependency
+  - Kiểm tra dependency bắc cầu trong ứng dụng có framework
+  - Phân biệt API thư viện và cấu hình mặc định do framework áp dụng
+  - Quản lý module hỗ trợ kiểu dữ liệu Java
+  - Kiểm tra yêu cầu Java và khả năng hỗ trợ record theo phiên bản
+  - Nhận diện khác biệt API trước khi sử dụng ví dụ của dòng phiên bản khác
+  - Thiết kế chương trình thử nghiệm có cấu hình mapper tường minh
+- level1: ObjectMapper
+  level2:
+  - Khởi tạo mapper và lựa chọn cách cấu hình theo phiên bản
+  - Cấu hình một lần trước khi dùng chung trong ứng dụng
+  - Quản lý vòng đời mapper và tính an toàn khi sử dụng đồng thời
+  - Phân biệt cấu hình toàn cục và cấu hình theo một lần đọc ghi
+  - Tạo ObjectReader theo kiểu dữ liệu đích
+  - Tạo ObjectWriter theo kiểu dữ liệu và cách trình bày
+  - Tái sử dụng reader và writer cho các trường hợp sử dụng ổn định
+  - Quản lý nhiều bộ chính sách JSON trong cùng ứng dụng
+  - Sao chép cấu hình và tránh thay đổi mapper dùng chung ngoài ý muốn
+  - Tách cấu hình thư viện khỏi logic nghiệp vụ
+- level1: Đọc và ghi JSON
+  level2:
+  - Đọc JSON từ String, byte array, tệp và luồng đầu vào
+  - Ghi JSON ra String, byte array, tệp và luồng đầu ra
+  - Đọc ghi POJO đơn giản với thuộc tính cơ bản
+  - Đọc ghi đối tượng lồng nhau và mảng dữ liệu
+  - Xử lý đối tượng gốc, mảng gốc và giá trị vô hướng
+  - Phân biệt tài liệu JSON rỗng, giá trị null và dữ liệu đầu vào không có
+  - Lựa chọn JSON gọn và JSON được định dạng dễ đọc
+  - Xử lý bảng mã, BOM và Unicode ở biên byte
+  - Xác định chủ sở hữu tài nguyên và chính sách đóng luồng
+  - Phân biệt đóng bộ sinh JSON, flush và độ bền của nơi lưu dữ liệu
+  - Kiểm tra dữ liệu dư sau giá trị JSON mong đợi
+- level1: Thuộc tính và tên
+  level2:
+  - Cách Jackson nhận diện trường, getter và setter
+  - Cấu hình mức hiển thị và phạm vi thuộc tính được ánh xạ
+  - Đặt tên thuộc tính bằng JsonProperty
+  - Áp dụng chiến lược đặt tên cho lớp và toàn mapper
+  - Xử lý tên thuộc tính khác nhau giữa Java và JSON
+  - Chấp nhận tên cũ bằng JsonAlias
+  - Xử lý getter boolean và tên thuộc tính dễ gây nhập nhằng
+  - Phân biệt thuộc tính chỉ đọc và thuộc tính chỉ ghi
+  - Bỏ qua thuộc tính bằng JsonIgnore và JsonIgnoreProperties
+  - Phân biệt bỏ qua một thuộc tính và bỏ qua mọi thuộc tính không nhận diện
+  - Xác định ưu tiên khi annotation xuất hiện ở nhiều thành phần
+  - Tránh vô tình công bố trường nội bộ qua getter
+- level1: Khởi tạo đối tượng
+  level2:
+  - Giải tuần tự hóa qua constructor không tham số và setter
+  - Khởi tạo đối tượng bất biến qua JsonCreator
+  - Phân biệt creator dựa trên thuộc tính và creator ủy quyền
+  - Gắn tên tham số constructor với thuộc tính JSON
+  - Xử lý nhiều constructor và phương thức tạo tĩnh
+  - Ánh xạ Java record theo khả năng hỗ trợ của phiên bản
+  - Ánh xạ mô hình builder và cấu hình bước tạo đối tượng
+  - Xử lý lớp lồng và yêu cầu có đối tượng bao ngoài
+  - Kiểm tra tham số bắt buộc, tham số thiếu và tham số null
+  - Bảo toàn bất biến nghiệp vụ khi tạo đối tượng từ dữ liệu ngoài
+  - Phân biệt khả năng khởi tạo đối tượng và kiểm tra dữ liệu hợp lệ
+- level1: Kiểu tổng quát
+  level2:
+  - Ảnh hưởng của xóa kiểu khi đọc List và Map
+  - Sử dụng TypeReference để giữ thông tin kiểu tổng quát
+  - Vai trò của JavaType và TypeFactory
+  - Xây dựng kiểu động cho List, Map và kiểu bao
+  - Đọc cấu trúc tổng quát lồng nhiều cấp
+  - Ánh xạ kiểu phản hồi có tham số như trang kết quả
+  - Phân biệt Map có kiểu và đối tượng không định kiểu
+  - Xử lý khóa Map không phải String
+  - Quản lý kiểu tổng quát trong API tiện ích tự xây dựng
+  - Kiểm tra kiểu kết quả thay vì dựa vào ép kiểu không an toàn
+- level1: Null và giá trị thiếu
+  level2:
+  - Phân biệt thuộc tính vắng mặt, null và giá trị rỗng
+  - Ảnh hưởng của null khi ánh xạ vào kiểu nguyên thủy và kiểu bao
+  - Thiết kế giá trị mặc định tại constructor hoặc thuộc tính
+  - Cấu hình hành vi setter đối với null bằng JsonSetter
+  - Xử lý null trong phần tử của mảng, collection và Map
+  - Phân biệt bỏ qua null và ghi đè giá trị hiện có bằng null
+  - Áp dụng JsonInclude cho giá trị null, rỗng và mặc định
+  - Kiểm tra ý nghĩa của giá trị mặc định theo kiểu và cấu hình
+  - Biểu diễn thuộc tính tùy chọn và vai trò của module hỗ trợ Optional
+  - Giữ khác biệt giữa không cung cấp và yêu cầu xóa giá trị
+- level1: Chuyển kiểu đầu vào
+  level2:
+  - Phân biệt JSON đúng cú pháp và dữ liệu đúng kiểu đích
+  - Xử lý chuỗi được gửi vào trường kiểu số
+  - Xử lý số được gửi vào trường kiểu chuỗi hoặc boolean
+  - Đánh giá chuyển đổi số thực sang số nguyên
+  - Xử lý chuỗi rỗng và khoảng trắng khi chuyển kiểu
+  - Xử lý mảng một phần tử và giá trị đơn theo chính sách
+  - Cấu hình chuyển kiểu theo nhóm kiểu và kiểu cụ thể
+  - Lựa chọn từ chối, chấp nhận hoặc chuẩn hóa đầu vào tường minh
+  - Phân biệt cấu hình nghiêm ngặt và các tính năng cú pháp mở rộng
+  - Kiểm thử chính sách chuyển kiểu như một phần hợp đồng dữ liệu
+- level1: Số, chuỗi và enum
+  level2:
+  - Bảo toàn số nguyên lớn và kiểm tra miền giá trị
+  - Bảo toàn độ chính xác thập phân với BigDecimal
+  - Phân biệt kiểu số khi đọc dữ liệu không định kiểu
+  - Kiểm tra biểu diễn số khoa học và quy tắc ghi số
+  - Xử lý giá trị số không hữu hạn theo định dạng và cấu hình
+  - Bảo toàn Unicode và ký tự cần thoát trong chuỗi
+  - Phân biệt chuỗi chứa JSON và đối tượng JSON thực sự
+  - Ánh xạ enum theo tên và theo giá trị nghiệp vụ
+  - Thiết kế chính sách khi gặp giá trị enum không nhận diện
+  - Phân biệt thuộc tính enum trong giá trị và trong khóa Map
+  - Đọc ghi dữ liệu nhị phân và quy ước Base64
+- level1: Ngày giờ và múi giờ
+  level2:
+  - Vai trò của module hỗ trợ java.time
+  - Biểu diễn LocalDate, LocalTime và LocalDateTime theo ngữ nghĩa
+  - Biểu diễn Instant, OffsetDateTime và ZonedDateTime theo hợp đồng
+  - Lựa chọn chuỗi ngày giờ hoặc dấu thời gian dạng số
+  - Phân biệt đơn vị giây, mili giây và độ chính xác phần giây
+  - Cấu hình mẫu, locale và múi giờ bằng JsonFormat
+  - Phân biệt cấu hình múi giờ của mapper và thông tin trong giá trị
+  - Làm việc với Date và Calendar trong mô hình cũ
+  - Bảo toàn thời điểm và đánh giá mất thông tin vùng thời gian
+  - Kiểm thử chuyển giờ mùa hè và thời điểm sát ranh giới ngày
+  - Quản lý thay đổi định dạng thời gian giữa các phiên bản API
+- level1: Cây JSON
+  level2:
+  - Vai trò của JsonNode, ObjectNode và ArrayNode
+  - Đọc tài liệu thành cây bằng readTree
+  - Truy cập thuộc tính bằng get và path
+  - Phân biệt MissingNode và NullNode
+  - Đọc kiểu dữ liệu và tránh chuyển đổi mặc định ngoài ý muốn
+  - Duyệt trường của đối tượng và phần tử của mảng
+  - Truy cập vị trí bằng JSON Pointer
+  - Tạo và sửa ObjectNode, ArrayNode
+  - Xóa, thay thế và thêm thuộc tính mà không làm sai cấu trúc
+  - Sao chép cây và quản lý việc chia sẻ node có thể thay đổi
+  - Chuyển đổi giữa cây JSON và đối tượng Java
+  - Lựa chọn cây dữ liệu khi cấu trúc đầu vào chưa cố định
+  - Kiểm tra chi phí bộ nhớ của cây theo kích thước tài liệu
+- level1: Đọc theo luồng
+  level2:
+  - Mô hình token của JsonParser
+  - Khởi tạo parser từ nguồn byte và nguồn ký tự
+  - Duyệt token và kiểm tra vị trí trong cấu trúc JSON
+  - Đọc tên trường và giá trị theo loại token
+  - Quản lý trạng thái khi đọc đối tượng và mảng lồng nhau
+  - Bỏ qua nhánh không cần xử lý bằng skipChildren
+  - Kết hợp đọc token và ánh xạ một phần sang đối tượng
+  - Xử lý trường thiếu, trường thừa và thứ tự trường thay đổi
+  - Nhận diện tài liệu bị cắt dở và kết thúc nguồn không hợp lệ
+  - Theo dõi vị trí lỗi trong luồng đầu vào
+  - Quản lý parser và vòng đời nguồn dữ liệu
+- level1: Ghi theo luồng
+  level2:
+  - Mô hình ghi token bằng JsonGenerator
+  - Ghi đối tượng, mảng, tên trường và giá trị đúng cấu trúc
+  - Ghi giá trị null và kiểu dữ liệu cơ bản tường minh
+  - Ghi chuỗi và dữ liệu nhị phân với quy tắc thoát phù hợp
+  - Kết hợp generator với serializer đối tượng
+  - Sao chép token hoặc một cấu trúc từ parser sang generator
+  - Quản lý bộ đệm, flush và đóng tài nguyên
+  - Xử lý lỗi khi đã ghi một phần đầu ra
+  - Tránh công bố tài liệu JSON chưa kết thúc đầy đủ
+  - Đánh giá rủi ro khi ghi nội dung thô không qua kiểm tra cấu trúc
+- level1: Dữ liệu quy mô lớn
+  level2:
+  - Lựa chọn đọc từng phần thay vì tạo toàn bộ đồ thị đối tượng
+  - Đọc nhiều giá trị với ObjectReader và MappingIterator
+  - Ghi nhiều giá trị với ObjectWriter và SequenceWriter
+  - Phân biệt một mảng JSON và chuỗi nhiều giá trị gốc
+  - Thiết kế ranh giới bản ghi khi trao đổi JSON Lines
+  - Kiểm tra dữ liệu nhiều dòng mà không tách bản ghi sai
+  - Phối hợp tốc độ đọc, xử lý và ghi bằng áp lực ngược
+  - Giới hạn bộ nhớ khi đọc mảng lớn
+  - Dừng sớm, hủy xử lý và đóng tài nguyên đang sử dụng
+  - Vai trò của parser không chặn và cách cấp thêm dữ liệu
+  - Phân biệt chưa đủ dữ liệu đầu vào và lỗi cú pháp thực sự
+  - Lựa chọn TokenBuffer khi cần chuyển tiếp hoặc đọc lại cấu trúc
+- level1: Chính sách đầu ra
+  level2:
+  - Thiết kế mô hình JSON riêng cho từng trường hợp sử dụng
+  - Kiểm soát thuộc tính đầu ra bằng JsonInclude
+  - Điều chỉnh thứ tự thuộc tính và thứ tự khóa khi cần ổn định
+  - Tách cách nhìn dữ liệu bằng JsonView
+  - Kiểm tra thuộc tính không khai báo view và cấu hình liên quan
+  - Lọc thuộc tính động bằng JsonFilter
+  - Gói hoặc bỏ lớp tên gốc theo hợp đồng dữ liệu
+  - Biểu diễn một đối tượng bằng JsonValue
+  - Ẩn dữ liệu nhạy cảm theo chính sách rõ ràng
+  - Phân biệt định dạng ổn định và chuẩn hóa JSON dùng để ký hoặc băm
+- level1: Cấu trúc mở
+  level2:
+  - Thu thập thuộc tính mở rộng bằng JsonAnySetter
+  - Ghi thuộc tính mở rộng bằng JsonAnyGetter
+  - Phân biệt dữ liệu mở rộng được giữ lại và thuộc tính bị bỏ qua
+  - Làm phẳng cấu trúc bằng JsonUnwrapped
+  - Xử lý xung đột tên thuộc tính sau khi làm phẳng
+  - Thiết kế tiền tố và hậu tố cho cấu trúc nhúng
+  - Phân biệt khóa nghiệp vụ và tên trường động
+  - Đánh giá rủi ro khi trộn thuộc tính tĩnh với dữ liệu mở rộng
+  - Kiểm thử nhập lại dữ liệu có thuộc tính chưa được phiên bản hiện tại biết
+- level1: Đa hình
+  level2:
+  - Khi nào hợp đồng dữ liệu cần nhận diện kiểu con
+  - Phân biệt kiểu khai báo Java và kiểu thực tế của đối tượng
+  - Thiết kế trường phân biệt kiểu theo giá trị nghiệp vụ
+  - Cấu hình JsonTypeInfo và đăng ký kiểu con
+  - Đăng ký JsonSubTypes hoặc kiểu con qua cấu hình module
+  - Lựa chọn vị trí lưu thông tin kiểu trong JSON
+  - Xử lý kiểu con không nhận diện và trường phân biệt bị thiếu
+  - Kết hợp đa hình với collection và kiểu tổng quát
+  - Ánh xạ hệ phân cấp có lớp trừu tượng hoặc interface
+  - Kiểm tra hỗ trợ mô hình sealed theo phiên bản
+  - Phân biệt tên kiểu ổn định trong hợp đồng và tên lớp triển khai
+  - Giới hạn kiểu được phép khi dùng thông tin kiểu từ dữ liệu ngoài
+- level1: Đồ thị và tham chiếu
+  level2:
+  - Phân biệt dữ liệu dạng cây và đồ thị đối tượng có chu trình
+  - Nhận diện đệ quy vô hạn khi tuần tự hóa quan hệ hai chiều
+  - Cắt vòng tham chiếu bằng thiết kế DTO hoặc bỏ thuộc tính
+  - Vai trò của JsonManagedReference và JsonBackReference
+  - Biểu diễn định danh đối tượng bằng JsonIdentityInfo
+  - Phân biệt nhúng đối tượng và tham chiếu bằng định danh
+  - Thiết kế khả năng khôi phục liên kết khi giải tuần tự hóa
+  - Xử lý định danh trùng hoặc tham chiếu chưa được giải quyết
+  - Đánh giá đối tượng ORM có dữ liệu tải chậm và tài nguyên đã đóng
+  - Tránh để cấu trúc lưu trữ nội bộ quyết định toàn bộ JSON công khai
+- level1: Serializer tùy biến
+  level2:
+  - Khi nào cần serializer riêng thay vì annotation
+  - Thiết kế serializer cho một kiểu giá trị nghiệp vụ
+  - Ghi cấu trúc đầu ra thông qua JsonGenerator
+  - Đăng ký serializer bằng JsonSerialize theo kiểu hoặc thuộc tính
+  - Tái sử dụng serializer chuẩn cho các thành phần bên trong
+  - Quản lý null và phân biệt với serializer giá trị thông thường
+  - Tùy biến cách ghi khóa Map
+  - Tạo serializer theo ngữ cảnh thuộc tính
+  - Phối hợp serializer riêng với thông tin kiểu đa hình
+  - Giữ serializer dùng chung không chứa trạng thái thay đổi theo yêu cầu
+  - Kiểm thử cấu trúc, kiểu và khả năng đọc lại kết quả
+- level1: Deserializer tùy biến
+  level2:
+  - Khi nào cần deserializer riêng thay vì chuyển kiểu mặc định
+  - Đọc dữ liệu từ JsonParser với kiểm tra loại token
+  - Đọc một vùng dữ liệu thành cây để xử lý cục bộ
+  - Thiết kế deserializer cho kiểu giá trị có nhiều cách biểu diễn
+  - Đăng ký deserializer bằng JsonDeserialize theo kiểu hoặc thuộc tính
+  - Phân biệt xử lý null, giá trị thiếu và dữ liệu sai kiểu
+  - Tạo deserializer theo ngữ cảnh thuộc tính hoặc kiểu tổng quát
+  - Tùy biến cách đọc khóa Map
+  - Báo lỗi theo ngữ cảnh thay vì âm thầm dùng giá trị mặc định
+  - Tránh gọi lại chính deserializer gây đệ quy vô hạn
+  - Bảo toàn bất biến và giới hạn dữ liệu khi tạo đối tượng
+- level1: Module và mix-in
+  level2:
+  - Đóng gói serializer và deserializer bằng SimpleModule
+  - Quản lý tên, phiên bản và thứ tự đăng ký module
+  - Phân biệt đăng ký tường minh và tự phát hiện module
+  - Vai trò của module hỗ trợ Optional và kiểu dữ liệu Java bổ sung
+  - Vai trò của module hỗ trợ tên tham số constructor
+  - Áp dụng annotation cho lớp không sửa được bằng mix-in
+  - Xác định phạm vi mix-in để không làm thay đổi nơi dùng khác
+  - Giải quyết xung đột giữa module, annotation và cấu hình
+  - Đánh giá phần mở rộng mức thấp như bộ sửa serializer và deserializer
+  - Thiết kế module có thể kiểm thử độc lập với ứng dụng
+- level1: Chuyển đổi và cập nhật
+  level2:
+  - Chuyển giữa POJO, Map và cây JSON bằng convertValue
+  - Phân biệt chuyển giá trị trong bộ nhớ và đọc một tài liệu JSON
+  - Chuyển cây sang đối tượng bằng treeToValue
+  - Chuyển đối tượng thành cây bằng valueToTree
+  - Đọc cập nhật lên đối tượng có sẵn bằng readerForUpdating
+  - Phân biệt thay thế giá trị và hợp nhất cấu trúc bằng JsonMerge
+  - Xử lý cập nhật thuộc tính vắng mặt, null và đối tượng lồng
+  - Đánh giá cách cập nhật collection, Map và đối tượng bất biến
+  - Phân biệt cập nhật đối tượng và giao thức JSON Patch hoặc Merge Patch
+  - Tránh dùng chuyển đổi như một bảo đảm sao chép sâu hoặc kiểm tra nghiệp vụ
+  - Kiểm thử ảnh hưởng của annotation và cấu hình lên phép chuyển đổi
+- level1: Lỗi và chẩn đoán
+  level2:
+  - Phân biệt lỗi I/O, lỗi cú pháp và lỗi ánh xạ kiểu
+  - Đọc vị trí và đường dẫn thuộc tính trong thông tin lỗi
+  - Nhận diện dữ liệu bị cắt dở hoặc token không đúng kỳ vọng
+  - Nhận diện lỗi thiếu creator và định nghĩa kiểu không phù hợp
+  - Xử lý trường không nhận diện và giá trị enum không hợp lệ
+  - Xử lý số vượt giới hạn và kiểu dữ liệu không tương thích
+  - Giữ nguyên nguyên nhân gốc khi chuyển lỗi sang lớp ứng dụng
+  - Báo lỗi theo trường mà không sao chép toàn bộ dữ liệu nhạy cảm
+  - Phân biệt cấu hình sai và dữ liệu đầu vào sai
+  - Thiết kế chính sách dừng tài liệu hoặc tách bản ghi lỗi
+  - Tránh tiếp tục sử dụng parser sau lỗi khi không xác định được ranh giới
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Xác định cấu trúc JSON công khai độc lập với lớp triển khai
+  - Tách kiểm tra cú pháp, ánh xạ kiểu và kiểm tra nghiệp vụ
+  - Phân biệt annotation ánh xạ và ràng buộc validation thực tế
+  - Phối hợp JSON Schema hoặc Bean Validation khi phù hợp
+  - Thêm trường mà vẫn giữ tương thích với bên đọc cũ
+  - Đổi tên trường với chiến lược chấp nhận tên cũ
+  - Quản lý loại bỏ trường và thay đổi kiểu dữ liệu
+  - Quản lý giá trị enum và kiểu con mới
+  - Xác định chính sách cho thuộc tính không nhận diện
+  - Giữ ý nghĩa của null, thiếu và mặc định qua các phiên bản
+  - Phiên bản hóa định dạng thời gian và biểu diễn số
+  - Thiết kế dữ liệu mẫu và kiểm thử hợp đồng giữa bên gửi và bên nhận
+- level1: Bảo mật đầu vào
+  level2:
+  - Coi dữ liệu JSON bên ngoài là đầu vào không tin cậy
+  - Giới hạn kích thước tài liệu và độ sâu lồng
+  - Giới hạn độ dài chuỗi, tên thuộc tính và số
+  - Cấu hình StreamReadConstraints và StreamWriteConstraints theo phiên bản
+  - Tránh cho dữ liệu ngoài tự do lựa chọn lớp Java để khởi tạo
+  - Đánh giá default typing và giới hạn kiểu bằng PolymorphicTypeValidator
+  - Kiểm soát creator, setter và mã tùy biến có tác động phụ
+  - Từ chối cấu trúc lặp bất thường và tài liệu gây tiêu tốn tài nguyên
+  - Thiết kế chính sách xử lý tên thuộc tính trùng
+  - Không dùng bỏ qua lỗi ánh xạ như một biện pháp kiểm tra dữ liệu
+  - Ngăn lộ bí mật qua thuộc tính tự nhận diện và nhật ký lỗi
+  - Theo dõi cập nhật bảo mật cho toàn bộ hệ dependency Jackson
+- level1: XML với Jackson
+  level2:
+  - Vai trò của module XML và XmlMapper
+  - Phân biệt mô hình JSON và mô hình phần tử, thuộc tính XML
+  - Ánh xạ tên phần tử, thuộc tính và phần tử gốc
+  - Quản lý namespace trong dữ liệu XML
+  - Ánh xạ collection có hoặc không có phần tử bao
+  - Phân biệt phần tử vắng mặt, phần tử rỗng và giá trị null
+  - Xử lý văn bản và giới hạn của nội dung XML hỗn hợp
+  - Kết hợp annotation Jackson và annotation riêng của module XML
+  - Cấu hình bộ phân tích XML để hạn chế tài nguyên và thực thể ngoài
+  - Kiểm thử tương thích thay vì giả định đổi mapper giữ nguyên ngữ nghĩa
+- level1: YAML và CSV
+  level2:
+  - Vai trò của module YAML và YAMLMapper
+  - Phân biệt kiểu dữ liệu YAML và biểu diễn JSON tương ứng
+  - Kiểm tra phiên bản cú pháp và cấu hình parser YAML
+  - Giới hạn tài nguyên khi đọc dữ liệu YAML không tin cậy
+  - Vai trò của CsvMapper và CsvSchema
+  - Khai báo cột, thứ tự và dòng tiêu đề cho CSV
+  - Đọc ghi giá trị trống và null theo schema CSV
+  - Xử lý dấu phân cách, trích dẫn và trường nhiều dòng
+  - Đọc ghi nhiều dòng CSV theo từng bản ghi
+  - Giới hạn biểu diễn cấu trúc lồng nhau trong CSV
+  - Kiểm thử khả năng nhập lại và tương tác với công cụ bên ngoài
+- level1: Định dạng nhị phân
+  level2:
+  - Vai trò của các module CBOR và Smile
+  - Phân biệt cấu trúc dữ liệu và cách mã hóa trên đường truyền
+  - Lựa chọn định dạng theo khả năng tương tác và nhu cầu lưu trữ
+  - Làm việc với dữ liệu nhị phân mà không mặc định qua chuỗi
+  - Kiểm tra hỗ trợ kiểu số và đặc điểm của từng định dạng
+  - Khai báo định dạng khi gửi nhận để tránh đọc sai nội dung
+  - Đánh giá kích thước, tốc độ và khả năng quan sát dữ liệu
+  - Kiểm thử hợp đồng giữa các ngôn ngữ và công cụ khác nhau
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian đọc, ghi và chi phí cấp phát đối tượng
+  - Tái sử dụng mapper, reader và writer có cấu hình ổn định
+  - Lựa chọn byte array, String, tree hoặc stream theo nhu cầu
+  - Tránh chuyển qua nhiều biểu diễn trung gian không cần thiết
+  - Đánh giá chi phí phản chiếu, serializer cache và khởi tạo lần đầu
+  - Đọc hoặc ghi từng phần cho tập dữ liệu lớn
+  - Kiểm soát bộ đệm và số lượng đối tượng sống đồng thời
+  - Đánh giá module tăng tốc theo dòng phiên bản và môi trường Java
+  - Giữ cấu hình và kiểu dữ liệu đại diện khi đo hiệu năng
+  - Phân biệt tối ưu định dạng và tối ưu quá trình truyền dữ liệu
+  - Theo dõi ảnh hưởng của giới hạn bảo mật và xử lý lỗi tới hiệu năng
+- level1: Kiểm thử Jackson
+  level2:
+  - Thiết kế dữ liệu mẫu cho đọc và ghi độc lập
+  - So sánh cấu trúc JSON thay vì chỉ so sánh chuỗi ký tự
+  - Kiểm thử null, thiếu, rỗng và giá trị mặc định
+  - Kiểm thử Unicode, ký tự thoát và nội dung nhiều dòng
+  - Kiểm thử số lớn, số thập phân và giá trị biên
+  - Kiểm thử ngày giờ với nhiều múi giờ và độ chính xác
+  - Kiểm thử generic, record và mô hình bất biến
+  - Kiểm thử đa hình, chu trình và tham chiếu định danh
+  - Kiểm thử serializer, deserializer và module tùy biến
+  - Kiểm thử dữ liệu dư, tên trường trùng và cú pháp mở rộng
+  - Kiểm thử giới hạn tài nguyên bằng dữ liệu được kiểm soát
+  - Kiểm thử tương thích với dữ liệu của phiên bản trước
+  - Kiểm thử thuộc tính bảo toàn qua vòng ghi rồi đọc
+  - Kiểm thử tài nguyên được đóng khi thành công, hủy và thất bại
+- level1: Tích hợp Spring
+  level2:
+  - Phân biệt mapper tự tạo và mapper do ứng dụng Spring quản lý
+  - Vai trò của bộ chuyển đổi thông điệp HTTP dùng Jackson
+  - Quản lý module, annotation và cấu hình Jackson trong ứng dụng
+  - Tách DTO nhận vào và DTO trả ra theo hợp đồng API
+  - Phân biệt lỗi đọc JSON và lỗi Bean Validation
+  - Chuẩn hóa phản hồi lỗi ánh xạ mà không lộ cấu trúc nội bộ
+  - Kiểm soát định dạng ngày giờ, tên trường và chính sách null
+  - Tránh thay đổi mapper dùng chung sau khi bắt đầu phục vụ
+  - Kiểm soát entity ORM và quan hệ tải chậm ở biên JSON
+  - Thiết kế nhiều chính sách đọc ghi khi các tích hợp có hợp đồng khác nhau
+  - Kiểm thử HTTP để xác minh cấu hình thực tế đã được áp dụng
+- level1: Vận hành và nâng cấp
+  level2:
+  - Lưu cấu hình và module đang có hiệu lực để hỗ trợ chẩn đoán
+  - Theo dõi tỷ lệ lỗi theo loại tài liệu và phiên bản hợp đồng
+  - Theo dõi kích thước đầu vào, độ trễ và mức sử dụng bộ nhớ
+  - Bảo vệ thông tin nhạy cảm trong dữ liệu lỗi được lưu mẫu
+  - Kiểm kê dependency và phát hiện xung đột phiên bản
+  - Đối chiếu thay đổi mặc định trước khi nâng phiên bản
+  - Đánh giá đổi API và module khi chuyển dòng phiên bản Jackson
+  - Chạy bộ kiểm thử dữ liệu cũ trước khi triển khai cấu hình mới
+  - Triển khai có kiểm soát khi thay chính sách chuyển kiểu hoặc giới hạn
+  - Xác minh định dạng đầu ra và khả năng đọc của bên nhận sau nâng cấp
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế hợp đồng JSON cho khách hàng, đơn hàng và thanh toán
+  - Ánh xạ DTO bất biến có generic và đối tượng lồng nhau
+  - Bảo toàn số tiền, thời điểm và mã định danh qua vòng đọc ghi
+  - Thiết kế cập nhật có phân biệt thuộc tính thiếu và null
+  - Đọc dữ liệu mở rộng bằng cây JSON và giữ trường chưa nhận diện
+  - Xử lý tệp JSON lớn theo từng bản ghi với bộ nhớ giới hạn
+  - Ghi JSON theo luồng và xử lý lỗi khi đầu ra chưa hoàn tất
+  - Thiết kế đa hình bằng tên kiểu nghiệp vụ được phép
+  - Viết module cho kiểu giá trị riêng và kiểm thử chuyển đổi hai chiều
+  - Giải quyết đồ thị có chu trình bằng DTO hoặc định danh tham chiếu
+  - Đọc ghi CSV và XML bằng module tương ứng với hợp đồng tường minh
+  - Kiểm thử dữ liệu lỗi, giới hạn tài nguyên và tương thích phiên bản
+  - Tích hợp DTO vào ứng dụng Spring và kiểm chứng dữ liệu HTTP
+  - Nghiệm thu bằng tính đúng, tính tương thích, bảo mật và hiệu năng

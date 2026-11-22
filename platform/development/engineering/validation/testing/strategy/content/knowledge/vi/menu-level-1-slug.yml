@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: testing-overview
+  index: 0
+- title: Bối cảnh sản phẩm
+  slug: product-context
+  index: 1
+- title: Mục tiêu chất lượng
+  slug: quality-objectives
+  index: 2
+- title: Phạm vi kiểm thử
+  slug: testing-scope
+  index: 3
+- title: Rủi ro
+  slug: risks
+  index: 4
+- title: Cách tiếp cận
+  slug: approach
+  index: 5
+- title: Phân bổ kiểm thử
+  slug: testing-allocation
+  index: 6
+- title: Vòng đời phát triển
+  slug: development-lifecycle
+  index: 7
+- title: Kiểm thử tĩnh
+  slug: static-testing
+  index: 8
+- title: Đơn vị và tích hợp
+  slug: unit-and-integration
+  index: 9
+- title: API và hợp đồng
+  slug: api-and-contracts
+  index: 10
+- title: Hệ thống và E2E
+  slug: system-and-e2e
+  index: 11
+- title: Chấp nhận sản phẩm
+  slug: product-acceptance
+  index: 12
+- title: Phi chức năng
+  slug: non-functional-testing
+  index: 13
+- title: Thiết kế bao phủ
+  slug: coverage-design
+  index: 14
+- title: Thủ công và khám phá
+  slug: manual-and-exploratory
+  index: 15
+- title: Tự động hóa
+  slug: test-automation
+  index: 16
+- title: Khả năng kiểm thử
+  slug: testability
+  index: 17
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 18
+- title: Môi trường kiểm thử
+  slug: test-environment
+  index: 19
+- title: Hồi quy
+  slug: regression-testing
+  index: 20
+- title: CI/CD
+  slug: continuous-integration-and-delivery
+  index: 21
+- title: Tiêu chí chất lượng
+  slug: quality-criteria
+  index: 22
+- title: Nguồn lực
+  slug: resources
+  index: 23
+- title: Trách nhiệm
+  slug: responsibilities
+  index: 24
+- title: Lỗi và sự cố
+  slug: defects-and-incidents
+  index: 25
+- title: Đo lường
+  slug: measurement
+  index: 26
+- title: Phát hành và vận hành
+  slug: release-and-operations
+  index: 27
+- title: Tài liệu chiến lược
+  slug: strategy-documentation
+  index: 28
+- title: Quản lý thay đổi
+  slug: change-management
+  index: 29
+- title: Kiến trúc đặc thù
+  slug: specialized-architecture
+  index: 30
+- title: Thực hành
+  slug: practice
+  index: 31

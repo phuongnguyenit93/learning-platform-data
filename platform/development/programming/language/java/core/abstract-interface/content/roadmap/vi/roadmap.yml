@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-truu-tuong
+  title: Tư duy trừu tượng
+  purpose: Hiểu cách mô tả điều một đối tượng làm trước khi chọn cách thực hiện.
+  objectives:
+  - Phân biệt hợp đồng và phần triển khai
+  - Giải thích vai trò của abstract class và interface
+  - Nhận diện quan hệ kế thừa và đa hình
+- id: lop-truu-tuong
+  title: Lớp trừu tượng
+  purpose: Dùng abstract class để chia sẻ trạng thái và hành vi cho các lớp có quan hệ kế thừa.
+  objectives:
+  - Khai báo lớp và phương thức abstract
+  - Sử dụng constructor, trường và phương thức cụ thể
+  - Hoàn thiện phương thức trừu tượng trong lớp con
+- id: hop-dong-interface
+  title: Hợp đồng interface
+  purpose: Dùng interface để biểu diễn khả năng chung giữa các lớp khác nhau.
+  objectives:
+  - Khai báo interface và triển khai bằng implements
+  - Hiểu phương thức abstract và hằng số trong interface
+  - Phân biệt extends với implements
+- id: da-hinh-qua-hop-dong
+  title: Đa hình qua hợp đồng
+  purpose: Lập trình thông qua kiểu trừu tượng để thay thế cách triển khai linh hoạt.
+  objectives:
+  - Sử dụng tham chiếu kiểu abstract class hoặc interface
+  - Dự đoán phương thức được gọi lúc chạy
+  - Truyền nhiều cách triển khai vào cùng một nơi sử dụng
+- id: hanh-vi-trong-interface
+  title: Hành vi trong interface
+  purpose: Hiểu các dạng phương thức có thân trong interface và giới hạn sử dụng.
+  objectives:
+  - Phân biệt default, static và private
+  - Gọi đúng phương thức theo từng loại
+  - Dùng phương thức private để tái sử dụng nội bộ
+- id: ke-thua-va-xung-dot
+  title: Kế thừa và xung đột
+  purpose: Kết hợp nhiều hợp đồng mà vẫn xác định rõ hành vi được kế thừa.
+  objectives:
+  - Mở rộng interface và triển khai nhiều interface
+  - Giải quyết xung đột phương thức default
+  - Áp dụng quy tắc ghi đè và mức truy cập
+- id: chon-cach-truu-tuong
+  title: Chọn cách trừu tượng
+  purpose: Chọn abstract class, interface hoặc phối hợp cả hai theo nhu cầu thiết kế.
+  objectives:
+  - So sánh chia sẻ trạng thái với mô tả khả năng
+  - Cân nhắc kế thừa lớp đơn và nhiều interface
+  - Nhận diện interface hàm và giới hạn bằng sealed
+- id: thuc-hanh-thiet-ke
+  title: Thực hành thiết kế
+  purpose: Củng cố lựa chọn trừu tượng bằng một ví dụ có nhiều cách triển khai.
+  objectives:
+  - Thiết kế hợp đồng và các lớp triển khai
+  - Tách phần dùng hợp đồng khỏi chi tiết xử lý
+  - Kiểm tra khả năng thay thế và giải thích lựa chọn

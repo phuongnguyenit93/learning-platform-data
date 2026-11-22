@@ -1,0 +1,378 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Java Platform Module System (JPMS) là gì
+  - Vì sao classpath cần một mô hình module rõ ràng hơn
+  - Module giúp đóng gói, phụ thuộc và ẩn package như thế nào
+  - Biên dịch, chạy và phân phối ứng dụng modular
+  - Phân biệt module với package, JAR và project build
+  - Quan hệ giữa compile-time, run-time và module graph
+  - Những vấn đề JPMS giải quyết và những vấn đề không giải quyết
+  - Lộ trình học từ module descriptor đến custom ModuleLayer
+- level1: Classpath và module path
+  level2:
+  - Classpath và cách class được tìm kiếm truyền thống
+  - Module path và cách module được phân giải
+  - Đặt JAR trên classpath, module path và hệ quả
+  - Named module, automatic module và unnamed module
+  - Readability graph thay cho classpath visibility
+  - Package export và khả năng truy cập giữa module
+  - Vì sao cùng một JAR có thể có hành vi khác theo vị trí đặt
+  - Chẩn đoán lỗi khi trộn classpath với module path
+- level1: Module descriptor
+  level2:
+  - module-info.java và vai trò của module descriptor
+  - Tên module và quy tắc đặt tên
+  - requires, exports, opens, uses và provides
+  - Module descriptor được biên dịch thành Module attribute
+  - Module descriptor trong JAR modular
+  - Đọc descriptor bằng javap hoặc ModuleDescriptor
+  - Descriptor tĩnh và module graph runtime
+  - Kiểm tra descriptor trước khi phát hành module
+- level1: Requires
+  level2:
+  - requires và cạnh phụ thuộc module
+  - requires java.base ngầm định
+  - requires transitive và phụ thuộc được truyền tiếp
+  - requires static cho phụ thuộc chỉ cần lúc biên dịch
+  - Phân biệt requires với import trong mã Java
+  - Phụ thuộc trực tiếp và phụ thuộc bắc cầu
+  - Vòng phụ thuộc module và lỗi resolve
+  - Giảm phụ thuộc bằng API nhỏ và boundary rõ
+- level1: Exports
+  level2:
+  - exports package để module khác compile và access
+  - Package không export và tính đóng gói
+  - Qualified exports tới một module cụ thể
+  - Exports type public và điều kiện truy cập
+  - Phân biệt exports với public trong mã nguồn
+  - Export package API và package implementation
+  - Thay đổi export ảnh hưởng binary compatibility
+  - Rà soát package nào thực sự cần export
+- level1: Opens và reflection
+  level2:
+  - opens package cho deep reflection runtime
+  - Qualified opens tới module cụ thể
+  - open module và mở toàn bộ package
+  - Phân biệt opens với exports
+  - Reflection access tới private member
+  - Framework cần opens để bind, proxy hoặc serialize
+  - Strong encapsulation và lỗi InaccessibleObjectException
+  - Giới hạn việc mở package thay vì open module toàn bộ
+- level1: Uses và provides
+  level2:
+  - uses khai báo service consumer
+  - provides ... with khai báo service provider
+  - Service interface và provider implementation
+  - ServiceLoader tìm provider theo module graph
+  - Provider constructor và yêu cầu khởi tạo
+  - Provider module không export implementation package
+  - Provider nhiều implementation và thứ tự
+  - Kiểm tra service binding bằng module descriptor
+- level1: Named modules
+  level2:
+  - Named module và module identity
+  - Explicit named module từ module-info.java
+  - Named module trên module path
+  - Readability của named module
+  - Unnamed module đọc named module theo điều kiện nào
+  - Named module và package uniqueness
+  - API public nhưng không export vẫn bị giới hạn
+  - Thiết kế named module cho thư viện công khai
+- level1: Automatic modules
+  level2:
+  - Automatic module hình thành từ modular JAR thiếu descriptor
+  - Tên automatic module từ Automatic-Module-Name
+  - Suy ra tên từ tên file JAR
+  - Automatic module exports mọi package
+  - Automatic module đọc các module khác
+  - Automatic module và chuyển tiếp sang explicit module
+  - Rủi ro tên module phụ thuộc tên file
+  - Chiến lược loại bỏ automatic module trong dự án lâu dài
+- level1: Unnamed module
+  level2:
+  - Unnamed module của classpath
+  - Unnamed module đọc mọi named module được export
+  - Named module không tự đọc unnamed module
+  - Classpath library khi ứng dụng đã modular
+  - Reflection và unnamed module
+  - Migration khi code test vẫn ở unnamed module
+  - Giới hạn đóng gói của classpath
+  - Rà soát dependency còn nằm ngoài module path
+- level1: Module graph
+  level2:
+  - Root modules và tập module ban đầu
+  - Configuration resolve module graph
+  - Readability edge và accessible package
+  - Đồ thị phụ thuộc đầy đủ và module thừa
+  - Module path tìm module theo tên
+  - Duplicate module name và lỗi resolution
+  - Optional dependency và requires static
+  - Kiểm tra graph bằng jdeps và runtime options
+- level1: Module resolution
+  level2:
+  - ModuleFinder.of và tìm module trên path
+  - System module finder và các module JDK
+  - ModuleReference và ModuleReader
+  - Configuration.resolve và resolveAndBind
+  - Parent configuration trong quá trình resolve
+  - Missing module và missing package
+  - Service binding khi resolveAndBind
+  - Phân biệt tìm descriptor với định nghĩa class
+- level1: ModuleLayer
+  level2:
+  - ModuleLayer và tập module đã định nghĩa
+  - Boot layer và module layer mặc định
+  - Configuration tạo layer mới
+  - defineModulesWithOneLoader
+  - defineModulesWithManyLoaders
+  - Class loader trong một module layer
+  - Layer parent và khả năng đọc module
+  - Truy vấn layer bằng findModule và modules
+  - Vòng đời và khả năng thu hồi của custom layer
+- level1: Class loader và module
+  level2:
+  - ClassLoader của platform, application và module
+  - ModuleLayer xác định class loader cho module
+  - One loader và many loaders trong layer
+  - Class identity giữa các loader khác nhau
+  - Split package khi có nhiều layer
+  - Resource lookup trong modular class
+  - Thread context class loader và ServiceLoader
+  - Chẩn đoán ClassNotFoundException và NoClassDefFoundError
+- level1: Module access
+  level2:
+  - Điều kiện một type được access từ module khác
+  - Public type trong exported package
+  - Package-private và private vẫn bị giới hạn
+  - Readability kết hợp với exports
+  - Reflection access khác với compile-time access
+  - IllegalAccessError, IllegalAccessException và InaccessibleObjectException
+  - Access tới JDK internal API
+  - Xác định module của class bằng getModule
+- level1: JDK modules
+  level2:
+  - java.base và các module nền tảng
+  - java.logging, java.sql và các module chuẩn phổ biến
+  - jdk.* module và công cụ phát triển
+  - JDK internal module không phải API công khai
+  - requires module JDK và runtime image
+  - jdeps phát hiện phụ thuộc module JDK
+  - jmods và module metadata của JDK
+  - Kiểm tra module có tồn tại trong JDK runtime
+- level1: Module API
+  level2:
+  - java.lang.Module và module identity runtime
+  - ModuleDescriptor đọc metadata của module
+  - ModuleLayer và configuration API
+  - ModuleReference, ModuleReader và resource
+  - ModuleFinder và custom module source
+  - Module::isNamed, getName và getDescriptor
+  - Module::getClassLoader và giới hạn loader
+  - Module::canRead, isExported và isOpen
+  - Dùng reflection để quan sát module mà không phá encapsulation
+- level1: ServiceLoader
+  level2:
+  - Service provider interface và consumer
+  - ServiceLoader.load từ caller module
+  - ServiceLoader.load với ModuleLayer
+  - Provider stream và lazy instantiation
+  - ServiceLoader.Provider type
+  - Provider bị lỗi và ServiceConfigurationError
+  - Ordering, duplicate provider và lựa chọn implementation
+  - Context class loader với service discovery
+  - Kiểm thử service khi provider nằm ở layer khác
+- level1: Service binding
+  level2:
+  - Bind service provider vào module graph
+  - resolveAndBind và khác biệt với resolve
+  - Root service consumer ảnh hưởng graph
+  - Provider module được kéo vào graph thế nào
+  - Service binding với nhiều provider
+  - Giảm module thừa khi không dùng service
+  - Phân biệt service binding với reflection scan
+  - Kiểm tra provider bị thiếu sau khi đóng gói
+- level1: JAR modular
+  level2:
+  - JAR modular và module-info.class
+  - Đặt module-info.java ở source root
+  - Compile module-info cùng source
+  - Manifest Automatic-Module-Name
+  - Multi-release JAR và module-info ở META-INF/versions
+  - Module version và main class metadata
+  - jarsigner, signature và module path
+  - Kiểm tra JAR bằng jar --describe-module
+  - Đảm bảo JAR phát hành không chứa split package
+- level1: Compile modular
+  level2:
+  - javac --module-source-path
+  - javac --module-path và --add-modules
+  - javac -d tạo output theo module
+  - javac --module và compile một module
+  - javac --patch-module trong build hoặc test
+  - Generated sources và module-info
+  - Annotation processor trong modular compilation
+  - Compile error do requires hoặc exports thiếu
+  - Phân biệt compile classpath với processor path
+- level1: Run modular
+  level2:
+  - java --module-path chạy module
+  - java -m module/main-class
+  - java --add-modules thêm root module
+  - java --show-module-resolution
+  - java --list-modules
+  - java --describe-module
+  - Main class trong module descriptor hoặc command line
+  - Runtime error do module không resolve
+  - Xác minh runtime image chứa đúng module
+- level1: Runtime options
+  level2:
+  - --add-reads thêm readability tạm thời
+  - --add-exports mở export tạm thời
+  - --add-opens cho deep reflection
+  - --add-modules thêm observable root
+  - --limit-modules giới hạn universe module
+  - --patch-module thay nội dung module
+  - --upgrade-module-path thay module hệ thống
+  - Phân biệt giải pháp tạm thời với sửa descriptor lâu dài
+- level1: Strong encapsulation
+  level2:
+  - Strong encapsulation của module package
+  - JDK internal API và cảnh báo migration
+  - InaccessibleObjectException khi reflection sâu
+  - IllegalAccessError sau khi module graph thay đổi
+  - Mở package cho framework bằng --add-opens
+  - Export package cho compile hoặc runtime access
+  - Giảm phụ thuộc vào internal API bằng API công khai
+  - Đánh giá rủi ro khi dùng command line escape hatch
+- level1: Split package
+  level2:
+  - Split package là gì
+  - Vì sao một package không được chia giữa named module
+  - Split package giữa module path và classpath
+  - Split package qua nhiều library
+  - Automatic module làm lộ split package
+  - Nhận diện bằng jdeps và module resolution
+  - Di chuyển package để sửa split package
+  - Không dùng open hoặc export để che lỗi split package
+- level1: Encapsulation design
+  level2:
+  - Chia package theo API và implementation
+  - Export tối thiểu cho public surface
+  - Không export package nội bộ chỉ vì test
+  - Qualified export cho integration đặc thù
+  - Qualified opens cho reflection có giới hạn
+  - Module boundary và thay đổi implementation
+  - Đặt type public tại package phù hợp
+  - Kiểm thử rằng module không lộ API ngoài ý muốn
+- level1: Migration
+  level2:
+  - Đánh giá ứng dụng classpath trước khi modular hóa
+  - Lập danh sách package và dependency hiện tại
+  - Thêm Automatic-Module-Name như bước chuyển tiếp
+  - Chuyển thư viện sang module path từng phần
+  - Tạo module-info.java cho ứng dụng
+  - Xử lý reflection, service loader và resource lookup
+  - Duy trì test và plugin build trong giai đoạn chuyển đổi
+  - Loại bỏ add-exports và add-opens tạm thời
+  - Đo tác động tới đóng gói và triển khai
+- level1: Build tools
+  level2:
+  - Module path trong Maven
+  - Module path trong Gradle Java Plugin
+  - Compile modules trong multi-project build
+  - Dependency declaration và requires tương ứng
+  - Test module path và test module descriptor
+  - Annotation processor và compiler arguments
+  - javadoc và module documentation
+  - Packaging modular JAR trong build
+  - Kiểm tra dependency graph trước khi publish
+- level1: Testing modules
+  level2:
+  - Test code trong named test module
+  - Test module-info.java và requires static
+  - Add-reads hoặc add-opens cho test có kiểm soát
+  - JUnit trên module path
+  - Reflection test khi package đóng
+  - Test ServiceLoader với provider module
+  - Test custom ModuleLayer
+  - Test split package và duplicate module name
+  - Không mở toàn bộ production module chỉ để test tiện hơn
+- level1: Documentation
+  level2:
+  - Module Javadoc và package Javadoc
+  - module-info.java với chú thích API
+  - Ghi rõ requires, exports, uses và provides
+  - Tài liệu service provider contract
+  - Module graph trong tài liệu kiến trúc
+  - Hướng dẫn chạy với module path
+  - Document add-opens hoặc add-exports còn bắt buộc
+  - Changelog khi thay đổi module boundary
+  - Ví dụ modular tối thiểu có thể build và chạy
+- level1: Troubleshooting
+  level2:
+  - ModuleNotFoundException và module path sai
+  - FindException khi resolve module
+  - ResolutionException do graph không hợp lệ
+  - LayerInstantiationException khi tạo layer
+  - IllegalAccessError do thiếu exports hoặc reads
+  - InaccessibleObjectException do thiếu opens
+  - ClassNotFoundException do loader hoặc layer sai
+  - NoSuchMethodError sau khi module version không khớp
+  - Cách đọc --show-module-resolution và jdeps output
+- level1: Packaging và runtime image
+  level2:
+  - jlink và custom runtime image
+  - Chọn module bằng --add-modules
+  - Giảm runtime image bằng --limit-modules
+  - Launcher script và module main
+  - Compression, strip debug và reproducibility
+  - jmod create và module native command
+  - jpackage kết hợp modular application
+  - Kiểm thử image trên môi trường triển khai
+  - Phân biệt JAR modular với runtime image
+- level1: Security
+  level2:
+  - Encapsulation như một lớp giảm bề mặt truy cập
+  - Không coi module boundary là authorization nghiệp vụ
+  - Giới hạn reflection và dynamic loading
+  - Kiểm soát module path và module source không tin cậy
+  - Provider service và code implementation cần tin cậy
+  - Module patching và rủi ro production
+  - Signed JAR, certificate và xác minh artifact
+  - Không cấp add-opens rộng hơn nhu cầu
+  - Audit module graph trong pipeline phát hành
+- level1: Hiệu năng và triển khai
+  level2:
+  - Chi phí resolve module graph lúc khởi động
+  - Class loading trong one-loader và many-loader layer
+  - jlink image và thời gian khởi động
+  - ServiceLoader discovery và lazy provider
+  - Resource lookup trong modular JAR
+  - Ảnh hưởng của reflection và deep access
+  - Đo startup, memory và class loading
+  - Không tối ưu bằng cách loại bỏ boundary cần thiết
+  - Reproducible module image và cache build
+- level1: Thiết kế ứng dụng
+  level2:
+  - Xác định module boundary theo capability
+  - API module và implementation module
+  - Module nhỏ có thật sự giảm phụ thuộc không
+  - Đặt service interface và provider implementation
+  - Tránh module graph quá sâu hoặc quá nhiều cạnh
+  - Chọn layer khi cần plugin hoặc isolation
+  - Quản lý version module và compatibility
+  - Thiết kế migration boundary cho hệ thống legacy
+  - Rà soát graph bằng dependency và access evidence
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo hai named module với requires và exports
+  - Ẩn implementation package và kiểm tra lỗi access
+  - Đăng ký service provider bằng uses và provides
+  - Chạy ServiceLoader trên module path
+  - Tạo custom ModuleLayer từ ModuleFinder
+  - Dùng jdeps để chuyển ứng dụng classpath sang module graph
+  - Đóng gói modular JAR và chạy bằng java -m
+  - Tạo runtime image bằng jlink
+  - Kiểm thử add-opens, reflection và strong encapsulation
+  - 'Hồ sơ hoàn chỉnh: descriptor, graph, service, layer, image và kiểm chứng'

@@ -1,0 +1,67 @@
+menu:
+- title: Định hướng Java 23
+  slug: java23-orientation
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: Javadoc Markdown
+  slug: javadoc-markdown
+  index: 2
+- title: Chất lượng tài liệu
+  slug: documentation-quality
+  index: 3
+- title: Import module
+  slug: module-imports
+  index: 4
+- title: Chương trình gọn
+  slug: compact-source-programs
+  index: 5
+- title: Constructor linh hoạt
+  slug: flexible-constructors
+  index: 6
+- title: Pattern nguyên thủy
+  slug: primitive-patterns
+  index: 7
+- title: Gatherer có sẵn
+  slug: built-in-gatherers
+  index: 8
+- title: Gatherer tùy biến
+  slug: custom-gatherers
+  index: 9
+- title: Scoped Value
+  slug: scoped-value
+  index: 10
+- title: Đồng thời có cấu trúc
+  slug: structured-concurrency
+  index: 11
+- title: Vector API
+  slug: vector-api
+  index: 12
+- title: Đọc class file
+  slug: class-file-reading
+  index: 13
+- title: Biến đổi class file
+  slug: class-file-transformations
+  index: 14
+- title: Bộ nhớ an toàn
+  slug: memory-safety
+  index: 15
+- title: ZGC phân thế hệ
+  slug: generational-zgc
+  index: 16
+- title: Annotation processing
+  slug: annotation-processing
+  index: 17
+- title: API tiện ích
+  slug: utility-apis
+  index: 18
+- title: Chẩn đoán và bảo mật
+  slug: diagnostics-security
+  index: 19
+- title: Nâng cấp và triển khai
+  slug: upgrades-deployment
+  index: 20
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 21

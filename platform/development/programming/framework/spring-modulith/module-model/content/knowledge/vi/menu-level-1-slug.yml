@@ -1,0 +1,100 @@
+menu:
+- title: Mô hình tư duy
+  slug: mental-model
+  index: 0
+- title: Application Module
+  slug: application-module
+  index: 1
+- title: ApplicationModules
+  slug: application-modules
+  index: 2
+- title: ApplicationModule API
+  slug: application-module-api
+  index: 3
+- title: Package arrangement
+  slug: package-organization
+  index: 4
+- title: Module boundary
+  slug: module-boundaries
+  index: 5
+- title: Named Interfaces
+  slug: named-interfaces
+  index: 6
+- title: Allowed dependencies
+  slug: allowed-dependencies
+  index: 7
+- title: Open modules
+  slug: open-modules
+  index: 8
+- title: Module detection
+  slug: module-detection
+  index: 9
+- title: Explicit detection
+  slug: explicit-module-detection
+  index: 10
+- title: Custom detection
+  slug: custom-module-detection
+  index: 11
+- title: Excluding packages
+  slug: excluded-packages
+  index: 12
+- title: Module dependencies
+  slug: module-dependencies
+  index: 13
+- title: Dependency types
+  slug: dependency-types
+  index: 14
+- title: Acyclic graph
+  slug: acyclic-dependency-graph
+  index: 15
+- title: API và internal
+  slug: public-api-and-internals
+  index: 16
+- title: Module identifier
+  slug: module-identifiers
+  index: 17
+- title: ApplicationModule annotation
+  slug: applicationmodule-annotation
+  index: 18
+- title: Package metadata
+  slug: package-metadata
+  index: 19
+- title: Verification
+  slug: module-verification
+  index: 20
+- title: Verification options
+  slug: verification-options
+  index: 21
+- title: Kiến trúc bổ sung
+  slug: additional-architecture-rules
+  index: 22
+- title: Model và Spring beans
+  slug: model-and-spring-beans
+  index: 23
+- title: Model và events
+  slug: model-and-events
+  index: 24
+- title: Model và documentation
+  slug: model-and-documentation
+  index: 25
+- title: Model và tests
+  slug: model-and-tests
+  index: 26
+- title: Runtime verification
+  slug: runtime-verification
+  index: 27
+- title: Legacy modularization
+  slug: legacy-modularization
+  index: 28
+- title: Cấu hình và phiên bản
+  slug: configuration-and-versions
+  index: 29
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 30
+- title: Thực hành
+  slug: hands-on-exercises
+  index: 31
+- title: Đánh giá thiết kế
+  slug: design-review
+  index: 32

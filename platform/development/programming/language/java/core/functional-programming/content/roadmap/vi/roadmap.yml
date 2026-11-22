@@ -1,0 +1,58 @@
+roadmap:
+- id: tu-duy-ham
+  title: Tư duy hàm
+  purpose: Hiểu cách mô tả phép biến đổi dữ liệu bằng hàm và hạn chế trạng thái thay đổi.
+  objectives:
+  - Phân biệt cách viết mệnh lệnh và khai báo
+  - Nhận diện hàm thuần và tác dụng phụ
+  - Giải thích vai trò của tính bất biến
+- id: giao-dien-ham
+  title: Giao diện hàm
+  purpose: Biểu diễn một thao tác có thể truyền vào hoặc trả về bằng giao diện hàm.
+  objectives:
+  - Nhận diện giao diện có một phương thức trừu tượng
+  - Sử dụng @FunctionalInterface
+  - Chọn Predicate, Function, Consumer và Supplier
+- id: bieu-thuc-lambda
+  title: Biểu thức lambda
+  purpose: Viết thao tác ngắn gọn theo kiểu đích mà Java yêu cầu.
+  objectives:
+  - Viết lambda có tham số và giá trị trả về
+  - Giải thích kiểu đích của lambda
+  - Sử dụng biến được bắt giữ và effectively final
+- id: tham-chieu-phuong-thuc
+  title: Tham chiếu phương thức
+  purpose: Tái sử dụng phương thức hoặc hàm khởi tạo khi chúng khớp giao diện hàm.
+  objectives:
+  - Chuyển lambda phù hợp thành tham chiếu phương thức
+  - Phân biệt tham chiếu phương thức static và đối tượng
+  - Sử dụng tham chiếu hàm khởi tạo
+- id: ket-hop-ham
+  title: Kết hợp hàm
+  purpose: Ghép các thao tác nhỏ thành quy trình có thể tái sử dụng.
+  objectives:
+  - Truyền và trả về giao diện hàm
+  - Kết hợp Function bằng compose và andThen
+  - Kết hợp Predicate bằng and, or và negate
+- id: luong-xu-ly-du-lieu
+  title: Luồng xử lý dữ liệu
+  purpose: Xây dựng chuỗi thao tác Stream để lọc và biến đổi dữ liệu.
+  objectives:
+  - Phân biệt nguồn, thao tác trung gian và kết thúc
+  - Sử dụng filter, map và flatMap
+  - Giải thích tính lười và quy tắc dùng luồng một lần
+- id: tong-hop-va-thu-thap
+  title: Tổng hợp và thu thập
+  purpose: Rút gọn dữ liệu thành kết quả với quy tắc tích lũy phù hợp.
+  objectives:
+  - Sử dụng reduce và collect
+  - Thu thập và phân nhóm bằng Collectors
+  - Nhận biết tính kết hợp và phần tử đơn vị
+  - Đánh giá điều kiện dùng luồng song song
+- id: optional-va-thuc-hanh
+  title: Optional và thực hành
+  purpose: Biểu diễn kết quả có thể vắng mặt và vận dụng phong cách hàm vào bài toán thực tế.
+  objectives:
+  - Dùng map, flatMap và filter với Optional
+  - Chọn orElse và orElseGet phù hợp
+  - Viết và kiểm tra chuỗi xử lý ít tác dụng phụ

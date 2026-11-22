@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan đồng thời
+  slug: concurrency-overview
+  index: 0
+- title: Mô hình thực thi
+  slug: execution-models
+  index: 1
+- title: Trạng thái và chia sẻ
+  slug: state-and-sharing
+  index: 2
+- title: Thứ tự sự kiện
+  slug: event-ordering
+  index: 3
+- title: Độ đúng và tiến triển
+  slug: correctness-and-progress
+  index: 4
+- title: Điều kiện tranh chấp
+  slug: race-conditions
+  index: 5
+- title: Mô hình bộ nhớ
+  slug: memory-models
+  index: 6
+- title: Thao tác nguyên tử
+  slug: atomic-operations
+  index: 7
+- title: Khóa và loại trừ
+  slug: locks-and-exclusion
+  index: 8
+- title: Biến điều kiện
+  slug: condition-variables
+  index: 9
+- title: Semaphore
+  slug: semaphores
+  index: 10
+- title: Rào đồng bộ
+  slug: synchronization-barriers
+  index: 11
+- title: Deadlock
+  slug: deadlock
+  index: 12
+- title: Công bằng và ưu tiên
+  slug: fairness-and-priority
+  index: 13
+- title: An toàn bằng thiết kế
+  slug: design-safety
+  index: 14
+- title: Hàng đợi đồng thời
+  slug: concurrent-queues
+  index: 15
+- title: Truyền thông điệp
+  slug: message-passing
+  index: 16
+- title: Actor và CSP
+  slug: actors-and-csp
+  index: 17
+- title: Tác vụ và bộ thực thi
+  slug: tasks-and-executors
+  index: 18
+- title: Bất đồng bộ và sự kiện
+  slug: async-and-events
+  index: 19
+- title: Future và hợp thành
+  slug: futures-and-composition
+  index: 20
+- title: Vòng đời và hủy
+  slug: lifecycle-and-cancellation
+  index: 21
+- title: Mẫu phối hợp
+  slug: coordination-patterns
+  index: 22
+- title: Bộ sưu tập đồng thời
+  slug: concurrent-collections
+  index: 23
+- title: Tiến triển không khóa
+  slug: lock-free-progress
+  index: 24
+- title: Thu hồi bộ nhớ
+  slug: memory-reclamation
+  index: 25
+- title: Giao dịch bộ nhớ
+  slug: memory-transactions
+  index: 26
+- title: Hiệu năng và mở rộng
+  slug: performance-and-scaling
+  index: 27
+- title: Thiết kế giao diện
+  slug: interface-design
+  index: 28
+- title: Kiểm thử đồng thời
+  slug: concurrency-testing
+  index: 29
+- title: Quan sát và chẩn đoán
+  slug: observation-and-diagnostics
+  index: 30
+- title: Kiểm chứng mô hình
+  slug: model-checking
+  index: 31
+- title: Thực hành nền tảng
+  slug: platform-practice
+  index: 32

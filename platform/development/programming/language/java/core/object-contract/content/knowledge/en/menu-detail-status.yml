@@ -1,0 +1,2245 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Hợp đồng của đối tượng là gì và vì sao mã gọi cần dựa vào hợp đồng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Object là lớp gốc và các phương thức dùng chung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt danh tính, giá trị và thứ tự của đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Mối liên hệ giữa equals(), hashCode(), compareTo() và Comparator
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của toString(), getClass() và clone()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt yêu cầu bắt buộc, quy ước và chi tiết triển khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Hậu quả khi một lớp phá vỡ hợp đồng trong thư viện chuẩn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và ví dụ xuyên suốt với đối tượng giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-identity
+  title: Danh tính đối tượng
+  childs:
+  - slug: object-identity-001
+    title: Biến tham chiếu khác với đối tượng được tham chiếu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-identity-002
+    title: Toán tử == và != trên tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-identity-003
+    title: Hai đối tượng độc lập có thể biểu diễn cùng giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-identity-004
+    title: Phép gán tham chiếu không tạo đối tượng mới
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-identity-005
+    title: Object.equals() mặc định dựa trên danh tính
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-identity-006
+    title: System.identityHashCode() bỏ qua hashCode() được ghi đè
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-identity-007
+    title: Identity hash code có thể trùng và không phải địa chỉ bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-identity-008
+    title: Phân biệt danh tính trong bộ nhớ với mã định danh nghiệp vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equals-contract
+  title: Hợp đồng equals
+  childs:
+  - slug: equals-contract-001
+    title: equals() định nghĩa quan hệ tương đương trên tham chiếu khác null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-contract-002
+    title: 'Tính phản xạ: đối tượng bằng chính nó'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-contract-003
+    title: Tính đối xứng khi đổi vị trí hai đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-contract-004
+    title: Tính bắc cầu giữa ba đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-contract-005
+    title: Tính nhất quán khi dữ liệu dùng để so sánh không thay đổi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-contract-006
+    title: So sánh với null phải trả về false
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-contract-007
+    title: Phân biệt x.equals(null) với gọi equals() trên tham chiếu null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-contract-008
+    title: Chia các đối tượng thành những nhóm có cùng giá trị theo hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equals-implementation
+  title: Cài đặt equals
+  childs:
+  - slug: equals-implementation-001
+    title: Chữ ký public boolean equals(Object) và kiểm tra bằng @Override
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-002
+    title: Vì sao equals(MyType) là nạp chồng thay vì ghi đè
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-003
+    title: Kiểm tra cùng tham chiếu trước khi so sánh trường
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-004
+    title: Kiểm tra null và kiểu đối tượng trước khi đọc dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-005
+    title: So sánh trường nguyên thủy và trường tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-006
+    title: Dùng Objects.equals() cho trường có thể null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-007
+    title: Kết hợp nhiều trường theo định nghĩa bằng nhau đã chọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-008
+    title: Không thay đổi trạng thái hoặc phụ thuộc thời gian trong equals()
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-009
+    title: Tránh so sánh qua toString() hoặc hashCode()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-implementation-010
+    title: Giữ equals() dễ hiểu, không gây tác dụng phụ và không ném lỗi cho dữ liệu thông thường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equality-semantics
+  title: Chọn quan hệ bằng nhau
+  childs:
+  - slug: equality-semantics-001
+    title: Đối tượng giá trị và đối tượng có danh tính nghiệp vụ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-semantics-002
+    title: Chọn trường thực sự quyết định giá trị của đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-semantics-003
+    title: Phân biệt dữ liệu cốt lõi với dữ liệu suy ra hoặc dữ liệu ghi nhớ tạm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-semantics-004
+    title: Mã định danh chưa được gán và rủi ro thay đổi quan hệ bằng nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-semantics-005
+    title: Chuẩn hóa dữ liệu trước khi so sánh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-semantics-006
+    title: So sánh không phân biệt hoa thường và quy tắc nghiệp vụ tường minh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-semantics-007
+    title: Vì sao so sánh số thực bằng một ngưỡng sai số có thể mất tính bắc cầu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-semantics-008
+    title: Tách phép so khớp gần đúng khỏi equals() khi không tạo quan hệ tương đương
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equals-and-inheritance
+  title: Equals và kế thừa
+  childs:
+  - slug: equals-and-inheritance-001
+    title: Mở rộng lớp có equals() và nguy cơ mất đối xứng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-002
+    title: Thêm trường giá trị ở lớp con và nguy cơ mất bắc cầu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-003
+    title: Kiểm tra kiểu bằng instanceof hoặc getClass()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-004
+    title: Ảnh hưởng của lựa chọn kiểm tra kiểu tới quan hệ lớp cha, lớp con
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-005
+    title: Gọi super.equals() và những điều việc đó không tự bảo đảm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-006
+    title: Lớp final hoặc phương thức equals() final để giới hạn thay đổi hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-007
+    title: Dùng composition khi mở rộng giá trị qua kế thừa làm hợp đồng khó giữ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-008
+    title: 'Mẫu canEqual(): mục đích, điều kiện phối hợp và giới hạn'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equals-and-inheritance-009
+    title: Kiểm tra các cặp và bộ ba đối tượng ở nhiều mức kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash-code-contract
+  title: Hợp đồng hashCode
+  childs:
+  - slug: hash-code-contract-001
+    title: hashCode() trả về int để hỗ trợ cấu trúc dữ liệu băm
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-002
+    title: Hai đối tượng equals() phải có cùng hash code
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-003
+    title: Cùng hash code không suy ra equals()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-004
+    title: Đối tượng không bằng nhau vẫn được phép trùng hash code
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-005
+    title: Tính ổn định trong một lần chạy khi thông tin dùng trong equals() không đổi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-006
+    title: Không có yêu cầu giữ cùng hash code giữa các lần chạy chương trình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-007
+    title: Vì sao ghi đè equals() thường phải ghi đè hashCode() cùng lúc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-008
+    title: Hash code hằng có thể đúng hợp đồng nhưng phân bố kém
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-contract-009
+    title: Không dùng hashCode() làm mã định danh duy nhất hoặc mã bảo mật
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash-code-implementation
+  title: Cài đặt hashCode
+  childs:
+  - slug: hash-code-implementation-001
+    title: Chọn dữ liệu băm phù hợp với quan hệ equals()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-002
+    title: Không đưa dữ liệu làm phân biệt hai đối tượng đang được coi là bằng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-003
+    title: Kết hợp hash của nhiều trường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-004
+    title: Dùng phương thức hashCode() của các lớp bao cho kiểu nguyên thủy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-005
+    title: Trường null và Objects.hashCode()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-006
+    title: Objects.hash() cho nhiều trường và khác biệt với hashCode() của một trường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-007
+    title: Dùng Arrays.hashCode() hoặc deepHashCode() theo cách so sánh mảng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-008
+    title: Cân nhắc boxing, mảng varargs và chi phí trên đường chạy thường xuyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-code-implementation-009
+    title: Chỉ lưu sẵn hash code khi trạng thái và cơ chế đồng bộ cho phép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash-collections
+  title: Cấu trúc dữ liệu băm
+  childs:
+  - slug: hash-collections-001
+    title: HashMap và HashSet phối hợp hashCode() với equals()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-collections-002
+    title: Phân biệt băm để định hướng tìm kiếm với xác nhận bằng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-collections-003
+    title: Thêm hai đối tượng bằng nhau vào HashSet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-collections-004
+    title: Dùng đối tượng mới nhưng bằng nhau để tìm khóa trong HashMap
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-collections-005
+    title: Khóa trùng và giá trị thay thế khi gọi Map.put()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-collections-006
+    title: Va chạm hash không tự nó làm mất tính đúng đắn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-collections-007
+    title: Lỗi khi chỉ ghi đè equals() hoặc chỉ thiết kế hash không tương thích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-collections-008
+    title: Phân biệt hợp đồng API với cách tổ chức nội bộ của bảng băm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mutable-state
+  title: Trạng thái thay đổi
+  childs:
+  - slug: mutable-state-001
+    title: Ảnh hưởng của thay đổi trường tham gia equals() hoặc hashCode()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutable-state-002
+    title: Vì sao một khóa có thể không tìm lại được sau khi thay đổi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutable-state-003
+    title: Thay đổi phần tử trong HashSet và khả năng xuất hiện giá trị trùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutable-state-004
+    title: Ưu tiên khóa bất biến
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutable-state-005
+    title: Trường final không bảo đảm đối tượng thành phần bất biến
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutable-state-006
+    title: Sao chép phòng vệ để bảo vệ trường mảng hoặc tập hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutable-state-007
+    title: Loại bỏ rồi thêm lại dữ liệu khi nghiệp vụ thật sự cần đổi khóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutable-state-008
+    title: Tránh so sánh trạng thái đang bị thay đổi đồng thời mà không có chính sách nhất quán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standard-types
+  title: Các kiểu chuẩn
+  childs:
+  - slug: standard-types-001
+    title: String.equals() so sánh nội dung và không phụ thuộc danh tính
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-002
+    title: Lớp bao số nguyên khác kiểu không mặc nhiên bằng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-003
+    title: 'Float và Double: NaN, +0.0 và -0.0'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-004
+    title: Phân biệt == trên số thực với equals() của lớp bao
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-005
+    title: BigDecimal.equals() xét cả giá trị và scale
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-006
+    title: BigDecimal.compareTo() có thể bằng 0 khi equals() là false
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-007
+    title: Enum giữ danh tính từng hằng và không cho ghi đè equals() hoặc hashCode()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-008
+    title: Đối tượng giá trị của java.time và yêu cầu đọc đúng hợp đồng từng kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-types-009
+    title: Không suy rộng quy tắc của một lớp chuẩn cho mọi lớp khác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arrays-and-nested-structures
+  title: Mảng và cấu trúc lồng
+  childs:
+  - slug: arrays-and-nested-structures-001
+    title: equals() và hashCode() của mảng mặc định dựa trên danh tính
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-002
+    title: Arrays.equals() và Arrays.hashCode() cho mảng một chiều
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-003
+    title: Arrays.deepEquals() và Arrays.deepHashCode() cho mảng lồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-004
+    title: Objects.deepEquals() và cách xử lý hai đối số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-005
+    title: Mảng nguyên thủy khác mảng lớp bao
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-006
+    title: Chọn so sánh theo thứ tự hay theo tập giá trị trước khi viết mã
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-007
+    title: Trường mảng trong lớp tự viết và yêu cầu đồng bộ equals() với hashCode()
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-008
+    title: Giới hạn khi cấu trúc có tham chiếu vòng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-nested-structures-009
+    title: Kiểm tra null, mảng rỗng và phần tử mảng null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collection-value-semantics
+  title: Giá trị của Collection
+  childs:
+  - slug: collection-value-semantics-001
+    title: List.equals() xét phần tử theo thứ tự
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-value-semantics-002
+    title: Set.equals() xét cùng các phần tử và không theo thứ tự duyệt
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-value-semantics-003
+    title: Map.equals() xét cùng các ánh xạ khóa, giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-value-semantics-004
+    title: Hash code của List, Set và Map theo hợp đồng tương ứng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-value-semantics-005
+    title: Quan hệ bằng nhau có thể áp dụng giữa các lớp triển khai cùng hợp đồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-value-semantics-006
+    title: Tập hợp lồng nhau phụ thuộc equals() của từng phần tử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-value-semantics-007
+    title: Phần tử mảng trong Collection vẫn dùng quan hệ bằng nhau của mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-value-semantics-008
+    title: Tập hợp không cho sửa cấu trúc không đồng nghĩa với bất biến sâu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-contracts
+  title: Hợp đồng record
+  childs:
+  - slug: record-contracts-001
+    title: equals(), hashCode() và toString() được sinh từ các thành phần
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-002
+    title: equals() yêu cầu cùng lớp record và các thành phần tương ứng bằng nhau
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-003
+    title: So sánh thành phần float hoặc double theo quy tắc lớp bao
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-004
+    title: Thành phần tham chiếu dùng quan hệ bằng nhau của chính kiểu thành phần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-005
+    title: Thành phần mảng không tự động được so sánh sâu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-006
+    title: Record chỉ bất biến nông và vẫn có thể chứa dữ liệu thay đổi được
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-007
+    title: Bất biến sao chép qua accessor và hàm khởi tạo chuẩn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-008
+    title: Tùy biến accessor, chuẩn hóa hoặc sao chép phòng vệ phải giữ hợp đồng record
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-contracts-009
+    title: Không dựa vào thuật toán hash hoặc định dạng toString() được sinh như một giao thức cố định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: natural-ordering
+  title: Thứ tự tự nhiên
+  childs:
+  - slug: natural-ordering-001
+    title: Comparable<T> và ý nghĩa của thứ tự tự nhiên
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-002
+    title: compareTo() trả về dấu âm, bằng không hoặc dấu dương
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-003
+    title: Quy tắc đảo dấu khi đổi vị trí hai đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-004
+    title: Tính bắc cầu của quan hệ thứ tự
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-005
+    title: Hai giá trị compareTo() bằng 0 phải được so sánh nhất quán với giá trị thứ ba
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-006
+    title: Khuyến nghị nhất quán giữa compareTo() bằng 0 và equals()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-007
+    title: So sánh với null và kiểu không tương thích
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-008
+    title: Không dùng phép trừ dễ tràn số để cài đặt compareTo()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: natural-ordering-009
+    title: Viết tài liệu khi thứ tự tự nhiên cố ý không nhất quán với equals()
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparators
+  title: Comparator
+  childs:
+  - slug: comparators-001
+    title: Comparator<T> định nghĩa thứ tự bên ngoài lớp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-002
+    title: Hợp đồng dấu, bắc cầu và các nhóm có kết quả so sánh bằng 0
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-003
+    title: comparing() và các biến thể comparingInt(), comparingLong(), comparingDouble()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-004
+    title: thenComparing() để tạo thứ tự theo nhiều khóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-005
+    title: reversed() và vị trí áp dụng trong chuỗi so sánh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-006
+    title: nullsFirst() và nullsLast()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-007
+    title: Chọn quy tắc so sánh chuỗi theo yêu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-008
+    title: Phân biệt Comparator dùng cho hiển thị với quan hệ bằng nhau của đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-009
+    title: Trạng thái thay đổi trong Comparator làm kết quả sắp xếp không ổn định
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparators-010
+    title: Comparator.equals() khác với việc compare() trả về 0 cho hai phần tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ordered-collections
+  title: Tập hợp có thứ tự
+  childs:
+  - slug: ordered-collections-001
+    title: TreeSet và TreeMap dùng phép so sánh để nhận diện khóa tương đương
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordered-collections-002
+    title: Hai đối tượng equals() false nhưng Comparator trả về 0
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordered-collections-003
+    title: Hai đối tượng equals() true nhưng Comparator phân biệt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordered-collections-004
+    title: Khác biệt kết quả giữa HashSet với TreeSet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordered-collections-005
+    title: Ví dụ BigDecimal có scale khác nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordered-collections-006
+    title: Comparator không nhất quán với equals() và hợp đồng Set hoặc Map
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordered-collections-007
+    title: Thay đổi trường sắp xếp khi đối tượng đang nằm trong cây
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordered-collections-008
+    title: Phân biệt loại phần tử trùng với giữ tất cả phần tử rồi sắp xếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: objects-utilities
+  title: Tiện ích Objects
+  childs:
+  - slug: objects-utilities-001
+    title: Objects.equals() xử lý null và ủy quyền tới equals()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-002
+    title: Objects.deepEquals() khác Objects.equals() ở đối số mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-003
+    title: Objects.hashCode() cho một đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-004
+    title: Objects.hash() cho nhiều giá trị và tình huống truyền mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-005
+    title: Objects.toString() với giá trị mặc định khi null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-006
+    title: requireNonNull() và thông báo lỗi tường minh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-007
+    title: requireNonNullElse() với requireNonNullElseGet()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-008
+    title: Objects.compare() với Comparator được cung cấp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-utilities-009
+    title: Tiện ích không sửa được một equals() hoặc Comparator đã vi phạm hợp đồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: to-string-representation
+  title: Biểu diễn toString
+  childs:
+  - slug: to-string-representation-001
+    title: Vai trò của toString() trong quan sát và chẩn đoán
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-002
+    title: Dạng mặc định tên lớp, ký hiệu @ và hash code dạng thập lục phân
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-003
+    title: Vì sao phần sau @ không được hiểu là địa chỉ bộ nhớ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-004
+    title: Thiết kế chuỗi ngắn gọn, có tên trường và đủ thông tin
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-005
+    title: Không đưa mật khẩu, token hoặc dữ liệu nhạy cảm vào biểu diễn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-006
+    title: Phân biệt toString() với tuần tự hóa và định dạng trao đổi ổn định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-007
+    title: Không dùng toString() để quyết định equals() hoặc hashCode()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-008
+    title: Tránh đệ quy vô hạn trong quan hệ tham chiếu hai chiều
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-009
+    title: Tránh tính toán nặng hoặc tác dụng phụ khi tạo biểu diễn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: to-string-representation-010
+    title: Arrays.toString(), deepToString() và biểu diễn thành phần lồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: real-world-classes
+  title: Lớp thực tế
+  childs:
+  - slug: real-world-classes-001
+    title: getClass() trả về đối tượng Class của lớp thực tế
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-classes-002
+    title: Phân biệt kiểu khai báo với lớp thực tế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-classes-003
+    title: getClass() là final và không thể ghi đè
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-classes-004
+    title: Class literal Type.class và so sánh với getClass()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-classes-005
+    title: So sánh chính xác lớp khác với kiểm tra khả năng là một kiểu con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-classes-006
+    title: Cùng tên lớp không bảo đảm cùng lớp khi có class loader khác nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-classes-007
+    title: Vai trò của getClass() trong equals(), clone() và chẩn đoán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: clone-contract
+  title: Hợp đồng clone
+  childs:
+  - slug: clone-contract-001
+    title: clone() tạo bản sao và ý nghĩa sao chép phụ thuộc lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-002
+    title: Object.clone() có quyền truy cập protected
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-003
+    title: Cloneable là marker interface và không tự khai báo phương thức clone()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-004
+    title: CloneNotSupportedException khi Object.clone() không được phép
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-005
+    title: super.clone() sao chép nông các trường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-006
+    title: Hàm khởi tạo thông thường không được chạy bởi Object.clone()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-007
+    title: Quy ước bản sao khác tham chiếu, cùng lớp và thường cùng giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-008
+    title: Phân biệt quy ước sao chép với các bảo đảm tuyệt đối của API
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-009
+    title: Ghi đè clone() public và dùng kiểu trả về cụ thể
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clone-contract-010
+    title: Mảng hỗ trợ clone() và mảng nhiều chiều vẫn chia sẻ mảng con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: copy-and-independence
+  title: Sao chép và độc lập
+  childs:
+  - slug: copy-and-independence-001
+    title: Sao chép nông khác với sao chép sâu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-002
+    title: Trường trỏ tới đối tượng bất biến có thể chia sẻ an toàn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-003
+    title: Sao chép thành phần có thể thay đổi khi cần độc lập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-004
+    title: Tham chiếu dùng chung và chu trình trong đồ thị đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-005
+    title: Trường final và giới hạn của cách bổ sung sao chép sau super.clone()
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-006
+    title: Hàm khởi tạo sao chép và phương thức tạo bản sao có tên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-007
+    title: Chọn phạm vi sao chép theo quyền sở hữu dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-008
+    title: Kiểm tra thay đổi bản sao có ảnh hưởng bản gốc hay không
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: copy-and-independence-009
+    title: Không xem serialize rồi deserialize là cách sao chép mặc định cho mọi lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-comparison
+  title: So sánh theo danh tính
+  childs:
+  - slug: identity-comparison-001
+    title: Khi bài toán cần phân biệt từng thể hiện dù giá trị bằng nhau
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-comparison-002
+    title: IdentityHashMap dùng == cho cả khóa và giá trị thay vì equals()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-comparison-003
+    title: Dùng danh tính khi duyệt và theo dõi đồ thị đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-comparison-004
+    title: Phân biệt identity hash code với mã duy nhất
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-comparison-005
+    title: Không thay HashMap bằng IdentityHashMap nếu nghiệp vụ cần bằng nhau theo giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-comparison-006
+    title: IdentityHashMap cố ý khác hợp đồng Map thông thường ở quan hệ so sánh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-comparison-007
+    title: Đối tượng value-based và lý do không dựa vào danh tính thể hiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-monitor
+  title: Monitor của Object
+  childs:
+  - slug: object-monitor-001
+    title: Mỗi đối tượng có monitor phục vụ cơ chế đồng bộ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-monitor-002
+    title: wait(), notify() và notifyAll() là phương thức final
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-monitor-003
+    title: Điều kiện sở hữu monitor và IllegalMonitorStateException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-monitor-004
+    title: wait() nhả monitor của đối tượng đang chờ và phải giành lại trước khi trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-monitor-005
+    title: Thức dậy không bảo đảm điều kiện đã đúng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-monitor-006
+    title: Dùng vòng while kiểm tra điều kiện trước và sau khi chờ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-monitor-007
+    title: notify() không chuyển khóa ngay cho luồng được đánh thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-monitor-008
+    title: Xử lý InterruptedException và thời hạn chờ theo hợp đồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-and-resources
+  title: Vòng đời và tài nguyên
+  childs:
+  - slug: lifecycle-and-resources-001
+    title: finalize() trong Object đã bị đánh dấu deprecated for removal
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-resources-002
+    title: Không bảo đảm thời điểm hoặc việc finalizer sẽ được chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-resources-003
+    title: Phân biệt final, finally và finalize()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-resources-004
+    title: Không dùng finalizer làm cơ chế bắt buộc để giải phóng tài nguyên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-resources-005
+    title: AutoCloseable và try-with-resources cho đóng tài nguyên tường minh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-resources-006
+    title: Nhận diện Cleaner như cơ chế hỗ trợ có giới hạn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-design
+  title: Thiết kế hợp đồng
+  childs:
+  - slug: contract-design-001
+    title: Xác định ý nghĩa bằng nhau trước khi sinh mã
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-002
+    title: Giữ equals(), hashCode() và thứ tự so sánh cùng một mô hình nghiệp vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-003
+    title: Chọn thành phần bất biến cho đối tượng giá trị và khóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-004
+    title: Quy định tường minh cách xử lý null, chuẩn hóa và dữ liệu suy ra
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-005
+    title: Tài liệu hóa trường tham gia so sánh và những ngoại lệ có chủ ý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-006
+    title: Đánh giá ảnh hưởng khi thêm trường hoặc thay đổi phiên bản lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-007
+    title: Rà soát mã được IDE sinh thay vì coi là tự động đúng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-008
+    title: Không để định dạng chẩn đoán hoặc thuật toán băm trở thành giao thức ngoài ý muốn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-verification
+  title: Kiểm chứng hợp đồng
+  childs:
+  - slug: contract-verification-001
+    title: Tạo các đối tượng cùng tham chiếu, cùng giá trị và khác giá trị
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-002
+    title: Kiểm thử tính phản xạ, đối xứng và bắc cầu của equals()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-003
+    title: Kiểm thử nhất quán, null và đối tượng khác kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-004
+    title: Kiểm thử equals() true luôn kéo theo hashCode() bằng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-005
+    title: Không viết kiểm thử đòi mọi đối tượng khác nhau phải có hash code khác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-006
+    title: Kiểm thử bộ ba cho compareTo() và Comparator
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-007
+    title: Kiểm thử tra cứu bằng đối tượng bằng nhau trong HashMap và HashSet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-008
+    title: Kiểm thử null, NaN, +0.0, -0.0, mảng và cấu trúc lồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-009
+    title: Kiểm thử kế thừa, thay đổi trạng thái và độc lập sau sao chép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-verification-010
+    title: Phân biệt kiểm thử tính đúng với đánh giá phân bố hoặc hiệu năng băm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practical-exercises-001
+    title: Xây dựng đối tượng tọa độ bất biến với equals(), hashCode() và toString()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-002
+    title: Xây dựng khóa nghiệp vụ có nhiều trường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-003
+    title: Sửa lớp có equals(MyType) nhưng chưa ghi đè equals(Object)
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-004
+    title: Thực nghiệm va chạm hash với các đối tượng không bằng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-005
+    title: Tái hiện lỗi thay đổi khóa sau khi đưa vào HashMap
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-006
+    title: So sánh HashSet và TreeSet với BigDecimal hoặc Comparator theo một khóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-007
+    title: Thiết kế lớp chứa mảng và kiểm tra sao chép phòng vệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-008
+    title: Rà soát một hệ lớp kế thừa làm mất tính đối xứng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-009
+    title: Tổng hợp danh sách câu hỏi trước khi công bố một lớp có hợp đồng giá trị
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

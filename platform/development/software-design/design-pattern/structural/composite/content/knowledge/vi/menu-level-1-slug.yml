@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Bài toán phần–toàn thể
+  slug: part-whole-problem
+  index: 1
+- title: Cấu trúc mẫu
+  slug: pattern-structure
+  index: 2
+- title: Hợp đồng Component
+  slug: component-contract
+  index: 3
+- title: Lá và nút tổ hợp
+  slug: leaves-composites
+  index: 4
+- title: Trong suốt và an toàn
+  slug: transparent-safe-interfaces
+  index: 5
+- title: Xây dựng cấu trúc
+  slug: building-composites
+  index: 6
+- title: Sở hữu và định danh
+  slug: ownership-and-identity
+  index: 7
+- title: Duyệt cây
+  slug: tree-traversal
+  index: 8
+- title: Tính toán tổng hợp
+  slug: aggregate-computation
+  index: 9
+- title: Triển khai Java
+  slug: java-implementation
+  index: 10
+- title: Thiết kế kiểu Java
+  slug: java-type-design
+  index: 11
+- title: Trạng thái và thay đổi
+  slug: state-changes
+  index: 12
+- title: Lỗi và tính nhất quán
+  slug: errors-consistency
+  index: 13
+- title: Hiệu năng
+  slug: performance
+  index: 14
+- title: Lưu trữ và khôi phục
+  slug: persistence-recovery
+  index: 15
+- title: Kết hợp mẫu thiết kế
+  slug: pattern-composition
+  index: 16
+- title: So sánh và lựa chọn
+  slug: comparison-selection
+  index: 17
+- title: Kiểm thử Composite
+  slug: composite-testing
+  index: 18
+- title: Tái cấu trúc sang Composite
+  slug: refactoring-to-composite
+  index: 19
+- title: Tình huống áp dụng
+  slug: application-scenario
+  index: 20
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 21
+- title: Bài thực hành
+  slug: hands-on-practice
+  index: 22
+- title: Quy trình thiết kế
+  slug: design-process
+  index: 23

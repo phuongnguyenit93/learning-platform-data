@@ -1,0 +1,431 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Developer Tooling là gì và những vấn đề công cụ giúp giải quyết
+  - 'Chu trình phát triển: đọc mã, sửa mã, chạy, kiểm tra và chẩn đoán'
+  - Phân biệt trình soạn thảo, IDE, JDK, công cụ build và công cụ vận hành
+  - Mối quan hệ giữa công cụ dòng lệnh, giao diện đồ họa và tự động hóa
+  - Đầu vào, đầu ra, cấu hình và phạm vi tác động của một công cụ
+  - Chọn công cụ theo công việc, hệ điều hành và khả năng tái lập
+  - Phân biệt khả năng của công cụ với kiến thức nền tảng cần có
+  - Lộ trình học công cụ qua một ứng dụng Java xuyên suốt
+- level1: Môi trường Java
+  level2:
+  - Kiểm kê hệ điều hành, kiến trúc CPU và các công cụ đã cài
+  - Phân biệt JDK, môi trường chạy Java và JVM
+  - Cài JDK và xác minh bằng java -version, javac -version
+  - Cấu hình JAVA_HOME, PATH và kiểm tra executable thực sự được gọi
+  - Quản lý nhiều phiên bản JDK và chuyển phiên bản theo dự án
+  - Đồng bộ JDK của terminal, IDE, công cụ build và CI
+  - Quản lý công cụ qua trình quản lý gói và tệp khai báo phiên bản
+  - Cấu hình proxy, chứng chỉ và quyền truy cập kho thư viện
+  - Kiểm soát encoding, locale, múi giờ và thư mục tạm
+  - Tạo bước kiểm tra môi trường có thể chạy lại trên máy mới
+- level1: Dòng lệnh
+  level2:
+  - Phân biệt terminal, shell và tiến trình được khởi chạy
+  - Điều hướng thư mục và làm việc với đường dẫn tuyệt đối, tương đối
+  - Truyền đối số và đặt dấu nháy trong Bash hoặc PowerShell
+  - Biến shell, biến môi trường và phạm vi kế thừa của tiến trình con
+  - Chuyển hướng stdin, stdout, stderr và ghi kết quả ra tệp
+  - Pipeline văn bản của shell và pipeline đối tượng của PowerShell
+  - Mã thoát và cách kết hợp lệnh theo kết quả thành công, thất bại
+  - Tìm lệnh và đọc trợ giúp bằng help, man hoặc Get-Help
+  - Lịch sử lệnh, hoàn thành tự động và tìm lại thao tác thường dùng
+  - Chạy script, cấu hình thư mục làm việc và nhận biết quyền thực thi
+- level1: Tệp và dữ liệu
+  level2:
+  - Tìm tệp theo tên, đường dẫn và phần mở rộng
+  - Tìm nội dung bằng ripgrep và giới hạn phạm vi tìm kiếm
+  - Tìm kiếm theo biểu thức chính quy và kiểm tra kết quả khớp
+  - Đọc tệp lớn, trích dòng và theo dõi phần nội dung mới
+  - So sánh tệp, thư mục và nhận diện thay đổi ngoài dự kiến
+  - Đọc, lọc và chuyển đổi JSON bằng jq
+  - Đọc YAML, XML, CSV bằng công cụ phù hợp với cấu trúc dữ liệu
+  - Nhận biết encoding, BOM, ký tự xuống dòng và ký tự ẩn
+  - Tính checksum, kiểm tra tệp tải xuống và nội dung gói nén
+  - Thay thế hàng loạt có xem trước và kiểm tra diff
+- level1: Workspace
+  level2:
+  - Phân biệt repository, workspace, project và module trong công cụ
+  - Mở đúng thư mục gốc và nhận diện cấu trúc dự án
+  - Tách mã nguồn, cấu hình, dữ liệu cục bộ và sản phẩm được sinh
+  - Thiết lập encoding, thụt lề và xuống dòng bằng EditorConfig
+  - Quản lý tệp bỏ qua bằng .gitignore và cơ chế loại trừ của công cụ
+  - Phân biệt cấu hình dùng chung với cấu hình riêng của máy cá nhân
+  - Tổ chức biến môi trường và tệp cấu hình mẫu không chứa bí mật
+  - Lưu cấu hình tác vụ, chạy ứng dụng và gỡ lỗi có thể chia sẻ
+  - Thiết kế quy trình mở dự án và chạy lần đầu từ bản clone sạch
+- level1: IDE Java
+  level2:
+  - Vai trò của mô hình dự án, bộ chỉ mục và language server
+  - Thiết lập Java project trong IntelliJ IDEA
+  - Thiết lập Java project trong Eclipse IDE
+  - Thiết lập Java trong VS Code với các extension cần thiết
+  - Import dự án Maven hoặc Gradle và đồng bộ mô hình build
+  - Cấu hình Project SDK, mức ngôn ngữ và thư mục nguồn
+  - Quản lý plugin, extension và kiểm tra tính tương thích
+  - Phân biệt tính năng tích hợp sẵn với tính năng cần plugin hoặc giấy phép
+  - Điều chỉnh keymap, cửa sổ công cụ và khả năng truy cập
+  - Hiểu workspace trust và giới hạn thực thi khi mở dự án lạ
+  - Xuất, chia sẻ và khôi phục cấu hình IDE
+- level1: Đọc mã
+  level2:
+  - Tìm nhanh tệp, lớp, phương thức và ký hiệu
+  - Đi đến khai báo, triển khai và quay lại vị trí trước
+  - Tìm nơi sử dụng và phân biệt tìm kiếm văn bản với tìm theo ký hiệu
+  - Khám phá quan hệ kế thừa và các lớp triển khai interface
+  - Theo dõi lời gọi bằng call hierarchy
+  - Đọc cấu trúc tệp, sơ đồ module và quan hệ phụ thuộc
+  - Tra cứu Javadoc, mã nguồn thư viện và tài liệu API trong IDE
+  - Đọc mã dịch ngược và nhận biết giới hạn so với mã nguồn gốc
+  - Dùng bookmark, danh sách việc cần làm và vùng mã để điều hướng
+- level1: Soạn thảo
+  level2:
+  - Hoàn thành mã, gợi ý tham số và hỗ trợ import
+  - Tạo lớp, constructor, accessor và phương thức được ghi đè
+  - Snippet, live template và mẫu tệp theo dự án
+  - Sửa nhiều vị trí, chọn theo cột và thao tác với nhiều con trỏ
+  - Định dạng mã, sắp xếp import và áp dụng quy ước thống nhất
+  - Đọc cảnh báo và lựa chọn quick fix có kiểm tra tác động
+  - Phân biệt mã được sinh với mã do lập trình viên quản lý
+  - Soạn thảo Java, XML, YAML, JSON và tệp cấu hình liên quan
+  - Xem diff trước khi lưu hoặc chấp nhận thay đổi hàng loạt
+- level1: Refactor
+  level2:
+  - Phân biệt refactor theo cấu trúc mã với thay thế văn bản
+  - Đổi tên lớp, phương thức, biến và cập nhật tham chiếu
+  - Di chuyển lớp, package và tài nguyên có liên quan
+  - Tách biến, hằng số, phương thức và lớp
+  - Thay đổi chữ ký phương thức và kiểm tra các nơi gọi
+  - Inline mã, loại bỏ mã không dùng và giảm trùng lặp
+  - Xem trước thay đổi và xử lý tham chiếu trong cấu hình
+  - Kiểm tra giới hạn với reflection, chuỗi tên lớp và mã sinh tự động
+  - Xác minh refactor bằng diff, biên dịch và kiểm thử phù hợp
+- level1: Chạy ứng dụng
+  level2:
+  - Tạo cấu hình chạy cho lớp có main và ứng dụng web Java
+  - Thiết lập module, classpath và thư mục làm việc
+  - Phân biệt đối số chương trình, tùy chọn JVM và system property
+  - Truyền biến môi trường và lựa chọn cấu hình ứng dụng
+  - Chạy bằng IDE, lệnh Java và công cụ build
+  - Chạy nhiều dịch vụ với cổng và cấu hình riêng
+  - Quản lý dừng, khởi động lại và các tiến trình còn sót
+  - Lưu cấu hình chạy để chia sẻ mà không đưa bí mật vào Git
+  - Đối chiếu hành vi chạy trong IDE với chạy sản phẩm đóng gói
+- level1: Gỡ lỗi
+  level2:
+  - 'Mô hình debugger: breakpoint, stack frame, biến và luồng thực thi'
+  - Đặt breakpoint theo dòng và theo ngoại lệ
+  - Sử dụng breakpoint có điều kiện, số lần gặp và logpoint
+  - Phân biệt step over, step into, step out và run to cursor
+  - Quan sát biến, biểu thức theo dõi và đối tượng trong bộ nhớ
+  - Đánh giá biểu thức và nhận biết tác dụng phụ khi gỡ lỗi
+  - Đọc call stack và chọn đúng stack frame
+  - Quan sát nhiều thread, khóa và điểm chờ
+  - Gỡ lỗi kiểm thử và ứng dụng được khởi chạy bằng công cụ build
+  - Kết nối gỡ lỗi từ xa bằng JDWP
+  - Ánh xạ mã nguồn, phiên bản bytecode và breakpoint không có hiệu lực
+  - HotSwap và giới hạn thay đổi mã khi tiến trình đang chạy
+  - Giới hạn truy cập cổng debug và tác động của việc tạm dừng ứng dụng
+- level1: JDK cơ bản
+  level2:
+  - Chạy lớp, JAR và tệp mã nguồn bằng lệnh java
+  - Biên dịch bằng javac với classpath, encoding và mức release
+  - Tạo, liệt kê và giải nén JAR bằng công cụ jar
+  - Thử nghiệm biểu thức và đoạn mã bằng JShell
+  - Nạp thư viện, script và quản lý phiên làm việc trong JShell
+  - Sinh tài liệu API bằng javadoc
+  - Phục vụ tệp tĩnh cục bộ bằng jwebserver và nhận biết giới hạn sử dụng
+  - Đọc trợ giúp và xác minh tùy chọn theo đúng phiên bản JDK
+- level1: Phân tích Java
+  level2:
+  - Đọc chữ ký lớp và bytecode bằng javap
+  - Quan sát constant pool, số dòng và thông tin debug bằng javap
+  - Phân tích phụ thuộc giữa package, JAR và module bằng jdeps
+  - Tìm sử dụng API bị đánh dấu lỗi thời bằng jdeprscan
+  - Kiểm tra module descriptor và nội dung tệp JMOD
+  - Tạo runtime tùy chỉnh bằng jlink
+  - Tạo gói ứng dụng độc lập bằng jpackage
+  - Phân biệt JAR, runtime image và gói cài đặt của hệ điều hành
+  - Kiểm tra kết quả phân tích với reflection và dependency chỉ xuất hiện lúc chạy
+- level1: Git cục bộ
+  level2:
+  - Mô hình working tree, staging area, commit và repository
+  - Khởi tạo hoặc clone repository và cấu hình danh tính
+  - Kiểm tra thay đổi bằng status, diff và diff --staged
+  - Chọn phần thay đổi để stage và tạo commit có phạm vi rõ ràng
+  - Đọc lịch sử bằng log, show và blame
+  - Tạo, chuyển và so sánh nhánh làm việc
+  - Tạm cất thay đổi bằng stash và xử lý xung đột khi khôi phục
+  - Phân biệt restore, reset và revert theo phạm vi tác động
+  - Tìm lại tham chiếu bằng reflog và nhận biết giới hạn phục hồi
+  - Quản lý nhiều thư mục làm việc bằng git worktree
+  - Tìm commit gây lỗi bằng git bisect
+- level1: Git cộng tác
+  level2:
+  - Cấu hình remote và phân biệt fetch, pull, push
+  - Nhánh theo dõi và quan hệ giữa nhánh cục bộ với nhánh từ xa
+  - Merge, rebase và cách lựa chọn theo quy ước nhóm
+  - Nhận diện, giải quyết và kiểm tra xung đột
+  - Cherry-pick thay đổi có chọn lọc giữa các nhánh
+  - Tạo pull request và sử dụng công cụ xem diff, bình luận mã
+  - Quản lý tag và liên kết phiên bản sản phẩm với commit
+  - Credential helper, SSH key và xác thực HTTPS
+  - Chuẩn hóa xuống dòng và thuộc tính tệp bằng .gitattributes
+  - Sử dụng Git LFS và submodule khi dự án thực sự cần
+  - Phân biệt cập nhật lịch sử cá nhân với viết lại lịch sử dùng chung
+- level1: Build và thư viện
+  level2:
+  - Vai trò của công cụ build trong chu trình sử dụng công cụ phát triển
+  - Chạy tác vụ Maven, Gradle hoặc Ant từ terminal và IDE
+  - Sử dụng Maven Wrapper hoặc Gradle Wrapper theo dự án
+  - Phân biệt build trong IDE với build do công cụ dự án điều khiển
+  - Xem dependency tree và giải thích thư viện được chọn
+  - Tìm JAR trùng lặp, xung đột phiên bản và dependency không mong muốn
+  - Đính kèm source JAR, Javadoc và tra cứu thư viện
+  - Cấu hình repository, proxy, chế độ ngoại tuyến và bộ nhớ đệm
+  - Nhận diện mã nguồn được sinh và vòng đời annotation processing
+  - Đọc build log, báo cáo lỗi và đối chiếu JDK thực thi
+  - Kiểm tra sản phẩm JAR hoặc WAR và manifest bằng công cụ phù hợp
+- level1: Công cụ kiểm thử
+  level2:
+  - Khám phá và chạy kiểm thử Java trong IDE
+  - Chạy một phương thức, một lớp hoặc nhóm kiểm thử
+  - Chọn tag, tham số và cấu hình kiểm thử phù hợp
+  - Gỡ lỗi ca kiểm thử và chạy lại ca thất bại
+  - Đọc cây kết quả, assertion diff và dấu vết ngoại lệ
+  - Đối chiếu kết quả kiểm thử giữa IDE và dòng lệnh
+  - Xem độ bao phủ mã và hiểu giới hạn của chỉ số coverage
+  - Chuẩn bị dữ liệu, biến môi trường và dịch vụ phụ trợ cho kiểm thử
+  - Đọc và xuất báo cáo kiểm thử để dùng trong CI
+  - Phân biệt công cụ chạy kiểm thử, đo hiệu năng và phân tích chương trình
+- level1: Chất lượng mã
+  level2:
+  - Phân biệt formatter, linter, inspection và công cụ phân tích tĩnh
+  - Thiết lập quy ước định dạng thống nhất giữa IDE và build
+  - Sử dụng Checkstyle để kiểm tra quy ước mã Java
+  - Sử dụng PMD và SpotBugs để tìm vấn đề trong mã
+  - Đọc cảnh báo, xác minh kết quả và xử lý cảnh báo không phù hợp
+  - Quản lý cấu hình loại trừ và suppression có lý do
+  - Tích hợp kiểm tra vào tác vụ cục bộ và CI
+  - Xem báo cáo chất lượng bằng nền tảng tổng hợp khi dự án có sử dụng
+  - Đặt mức chặn thay đổi và quản lý cảnh báo tồn đọng
+- level1: HTTP và API
+  level2:
+  - 'Chọn công cụ gọi API: curl, HTTP client trong IDE hoặc ứng dụng chuyên dụng'
+  - Tạo request với method, URL, query parameter và header
+  - Gửi JSON, form, multipart và tải tệp
+  - Quan sát status, response header, nội dung và thời gian phản hồi
+  - Quản lý biến môi trường và tập request có thể chạy lại
+  - Sử dụng cookie, session và các cơ chế xác thực theo API
+  - Thực hiện luồng OAuth hoặc cung cấp token bằng công cụ client
+  - Import, export và đồng bộ tập request theo nhóm
+  - Đọc đặc tả OpenAPI và tạo request từ hợp đồng API
+  - Kiểm tra redirect, timeout, proxy và lỗi kết nối
+  - Quan sát WebSocket hoặc Server-Sent Events bằng công cụ hỗ trợ
+  - Chia sẻ ví dụ request đã loại bỏ token và dữ liệu nhạy cảm
+- level1: Cơ sở dữ liệu
+  level2:
+  - Chọn SQL client dòng lệnh, công cụ cơ sở dữ liệu trong IDE hoặc ứng dụng riêng
+  - Cấu hình driver JDBC, URL kết nối và thông tin xác thực
+  - Phân biệt kết nối phát triển, kiểm thử và môi trường dùng chung
+  - Khám phá schema, bảng, khóa và metadata bằng công cụ
+  - Viết truy vấn với hoàn thành mã, tham số và lịch sử thực thi
+  - Kiểm soát transaction, auto-commit và thao tác cập nhật dữ liệu
+  - Đọc execution plan qua giao diện hoặc lệnh EXPLAIN phù hợp
+  - Xuất, nhập và làm sạch dữ liệu mẫu có kiểm soát
+  - Kiểm tra trạng thái migration và phiên bản schema
+  - Sử dụng client cho Redis hoặc hệ thống hàng đợi khi ứng dụng phụ thuộc
+  - Giới hạn quyền, số dòng kết quả và dữ liệu hiển thị trong công cụ
+- level1: DevTools trình duyệt
+  level2:
+  - Mở DevTools và lựa chọn panel theo vấn đề cần kiểm tra
+  - Đọc Console và phân biệt lỗi giao diện với lỗi máy chủ
+  - Quan sát HTTP request, response và chuỗi redirect trong Network
+  - Tìm request khởi phát từ đâu và sao chép request thành lệnh curl
+  - Kiểm tra cache, throttling và tình huống mất kết nối
+  - Quan sát cookie, localStorage, sessionStorage và trạng thái ứng dụng
+  - Phân tích lỗi CORS từ bằng chứng trong trình duyệt và máy chủ
+  - Kiểm tra DOM, CSS và trạng thái giao diện để tái hiện lỗi
+  - Đặt breakpoint JavaScript khi theo dõi luồng gọi API
+  - Xuất HAR và loại bỏ dữ liệu nhạy cảm trước khi chia sẻ
+- level1: Mạng và TLS
+  level2:
+  - Kiểm tra DNS bằng nslookup hoặc dig
+  - Kiểm tra khả năng kết nối và giới hạn của ping, traceroute
+  - Tìm cổng đang lắng nghe và tiến trình sở hữu cổng
+  - Kiểm tra HTTP bằng curl với chế độ hiển thị chi tiết
+  - Phân biệt lỗi DNS, TCP, TLS và lỗi phản hồi HTTP
+  - Quan sát chứng chỉ và chuỗi tin cậy bằng OpenSSL
+  - Quản lý keystore, truststore và chứng chỉ Java bằng keytool
+  - Kiểm tra proxy, chứng chỉ nội bộ và khác biệt giữa JVM với hệ điều hành
+  - Sử dụng công cụ bắt gói khi cần kiểm tra lưu lượng được phép
+  - Thu thập bằng chứng mạng và che thông tin xác thực
+- level1: Tiến trình hệ thống
+  level2:
+  - Nhận diện PID, tiến trình cha và dòng lệnh khởi chạy
+  - Quan sát CPU, RAM và đĩa bằng công cụ hệ điều hành
+  - Tìm tiến trình Java bằng jps, jcmd hoặc danh sách tiến trình
+  - Phân biệt dừng có kiểm soát với kết thúc cưỡng bức
+  - Phát hiện cổng bị chiếm, tệp bị khóa và tiến trình còn sót
+  - Kiểm tra biến môi trường và thư mục làm việc của tiến trình
+  - Phân biệt bộ nhớ tiến trình, Java heap và giới hạn container
+  - Quan sát tài nguyên bằng Task Manager, Resource Monitor hoặc công cụ tương đương
+  - Thu thập thông tin máy và tiến trình phục vụ tái hiện lỗi
+- level1: Nhật ký
+  level2:
+  - Thu thập stdout, stderr và tệp log của ứng dụng
+  - Theo dõi log liên tục và xử lý tệp được xoay vòng
+  - Lọc theo mức độ, thời gian, tên logger và mã yêu cầu
+  - Tìm và đọc stack trace nhiều dòng
+  - Đọc log có cấu trúc JSON bằng công cụ xử lý dữ liệu
+  - Đối chiếu thời gian giữa nhiều tiến trình và múi giờ
+  - Truy vết một yêu cầu qua log và trace id khi hệ thống hỗ trợ
+  - Xem log của container và tác vụ CI
+  - Tạo gói bằng chứng lỗi gọn, có ngữ cảnh và không chứa bí mật
+- level1: Chẩn đoán JVM
+  level2:
+  - Phân biệt theo dõi chỉ số, lấy mẫu, thread dump và heap dump
+  - Khám phá lệnh chẩn đoán có sẵn bằng jcmd help
+  - Đọc phiên bản, dòng lệnh và system property của JVM
+  - Quan sát heap, class histogram và bộ nhớ native khi đã bật theo dõi
+  - Lấy và đọc thread dump bằng công cụ phù hợp
+  - Nhận diện thread bị chặn, deadlock và chuỗi chờ
+  - Thu thập heap dump và chuẩn bị dung lượng lưu trữ
+  - Quan sát thống kê JVM bằng jstat và công cụ tương thích
+  - Theo dõi ứng dụng qua JMX bằng JConsole hoặc công cụ hỗ trợ
+  - Nhận biết giới hạn quan sát virtual thread theo công cụ và phiên bản JDK
+  - Đọc tệp lỗi JVM hs_err và chuẩn bị dữ liệu phân tích sự cố
+  - Kiểm soát quyền attach và tác động của lệnh chẩn đoán lên ứng dụng
+- level1: Phân tích hiệu năng
+  level2:
+  - Chọn công cụ theo câu hỏi về CPU, cấp phát bộ nhớ, khóa hoặc I/O
+  - Tạo bản ghi Java Flight Recorder khi khởi động hoặc qua jcmd
+  - Kiểm soát thời lượng, dung lượng và cấu hình sự kiện JFR
+  - Đọc tệp JFR bằng lệnh jfr và JDK Mission Control
+  - Sử dụng VisualVM để quan sát và khảo sát ứng dụng Java
+  - Phân tích heap dump bằng Eclipse Memory Analyzer
+  - Đọc dominator tree, retained size và đường giữ tham chiếu
+  - Lấy mẫu CPU hoặc cấp phát bằng async-profiler khi nền tảng hỗ trợ
+  - Đọc flame graph và phân biệt thời gian CPU với thời gian chờ
+  - Đánh giá chi phí đo và kiểm tra lại kết luận bằng bằng chứng khác
+  - Lưu điều kiện chạy và so sánh các lần đo có cùng bối cảnh
+- level1: Container
+  level2:
+  - Phân biệt image, container, volume và network trong môi trường phát triển
+  - Cài công cụ container và kiểm tra engine đang sử dụng
+  - Khởi chạy cơ sở dữ liệu hoặc dịch vụ phụ trợ bằng container
+  - Ánh xạ cổng và phân biệt localhost của máy với mạng container
+  - Mount mã nguồn, cấu hình và dữ liệu phát triển
+  - Tổ chức nhiều dịch vụ bằng Docker Compose
+  - Quản lý biến môi trường, healthcheck và điều kiện sẵn sàng
+  - Sử dụng logs, exec, inspect và stats để khảo sát container
+  - Build image ứng dụng Java và kiểm tra phiên bản runtime
+  - Quản lý cache image, volume và thao tác dọn dữ liệu
+  - Đối chiếu quyền tệp, đường dẫn và tài nguyên giữa máy với container
+- level1: Làm việc từ xa
+  level2:
+  - Phân biệt IDE cục bộ, môi trường WSL và máy phát triển từ xa
+  - Kết nối SSH và quản lý khóa truy cập
+  - Chuyển tiếp cổng để truy cập dịch vụ phát triển
+  - Chỉnh sửa và gỡ lỗi dự án trên máy từ xa
+  - Sử dụng Dev Container để mô tả môi trường phát triển
+  - Quản lý mã nguồn giữa hệ thống tệp Windows và Linux
+  - Đồng bộ công cụ, extension và cấu hình theo môi trường
+  - Kiểm soát thông tin xác thực, kết nối lại và tiến trình chạy nền
+- level1: Tự động hóa
+  level2:
+  - Chuyển thao tác lặp lại thành script có đầu vào và đầu ra rõ ràng
+  - Thiết kế script Bash hoặc PowerShell có mã thoát đáng tin cậy
+  - Quản lý quoting, đường dẫn và thư mục làm việc trong script
+  - Tạo task dùng chung giữa terminal và IDE
+  - Chuẩn bị, khởi động và dọn môi trường phát triển bằng một lệnh
+  - Sử dụng Git hook hoặc pre-commit cho kiểm tra cục bộ
+  - Thiết kế thao tác có thể chạy lại và kiểm tra điều kiện trước khi thay đổi
+  - Tách cấu hình khỏi script và giảm phụ thuộc vào máy cá nhân
+  - Quản lý timeout, nhật ký và kết quả của công cụ được gọi
+- level1: CI/CD
+  level2:
+  - Ánh xạ thao tác phát triển cục bộ thành các bước pipeline
+  - Đọc cấu hình công việc trong GitHub Actions hoặc Jenkins
+  - Chuẩn bị JDK, công cụ và phiên bản dependency trên runner
+  - Truyền tham số, biến môi trường và bí mật vào công cụ
+  - Đọc log, mã thoát và xác định bước thất bại
+  - Thu thập báo cáo kiểm thử, coverage và sản phẩm dưới dạng artifact
+  - Thiết kế cache dependency có khóa và phạm vi phù hợp
+  - Chạy ma trận môi trường để phát hiện khác biệt nền tảng
+  - Tái hiện lỗi CI trên máy phát triển và so sánh điều kiện chạy
+- level1: Công cụ bảo mật
+  level2:
+  - Phân biệt quét bí mật, quét dependency và phân tích mã
+  - Phát hiện thông tin xác thực trong thay đổi và lịch sử Git
+  - Quét thư viện có lỗ hổng và xác minh dependency bị ảnh hưởng
+  - Đọc mức độ nghiêm trọng, phạm vi tác động và kết quả không chính xác
+  - Tạo và đọc danh mục thành phần phần mềm SBOM
+  - Kiểm tra nguồn gốc plugin, extension và công cụ tải về
+  - Kiểm tra chữ ký JAR và chứng chỉ bằng jarsigner, keytool
+  - Giới hạn quyền truy cập repository, terminal và dịch vụ bên ngoài
+  - Xử lý kết quả quét trong quy trình phát triển và CI
+- level1: Tài liệu kỹ thuật
+  level2:
+  - Soạn và xem trước Markdown trong trình soạn thảo
+  - Viết code block, bảng, liên kết và nội dung có thể tra cứu
+  - Tạo sơ đồ kỹ thuật bằng Mermaid hoặc công cụ tương đương
+  - Liên kết tài liệu với mã nguồn, lệnh chạy và ví dụ thực thi
+  - Tra cứu Javadoc theo đúng phiên bản thư viện
+  - Viết hướng dẫn chuẩn bị môi trường và xử lý lỗi thường gặp
+  - Tạo tệp mẫu, snippet và tập lệnh minh họa có thể kiểm chứng
+  - Kiểm tra liên kết, định dạng và ví dụ lệnh trong tài liệu
+  - Lưu quyết định lựa chọn công cụ cùng điều kiện và lý do
+- level1: Trợ lý AI
+  level2:
+  - Phân biệt hoàn thành mã, hội thoại hỗ trợ và tác nhân thực thi
+  - Giao nhiệm vụ bằng bối cảnh, mục tiêu và tiêu chí kiểm tra
+  - Cung cấp phạm vi tệp và tài liệu cần thiết cho công việc
+  - Kiểm soát quyền đọc, sửa tệp, chạy lệnh và truy cập dịch vụ
+  - Nhận diện hướng dẫn không đáng tin trong tệp hoặc nội dung được truy xuất
+  - Kiểm tra mã, lệnh và dependency do trợ lý đề xuất
+  - Đánh giá thay đổi bằng diff, biên dịch và kiểm thử phù hợp
+  - Bảo vệ bí mật, dữ liệu cá nhân và nội dung có giới hạn chia sẻ
+  - Nhận biết thông tin bịa đặt, bối cảnh lỗi thời và giới hạn suy luận
+  - Phối hợp trợ lý với debugger, tài liệu chính thức và đánh giá của lập trình viên
+- level1: Khắc phục lỗi
+  level2:
+  - Phân loại lỗi công cụ, cấu hình, dependency và mã ứng dụng
+  - Chẩn đoán khác biệt JDK giữa terminal, IDE và công cụ build
+  - Xử lý import dự án lỗi, thiếu thư viện và mã không được nhận diện
+  - Phân biệt vấn đề chỉ mục IDE với lỗi biên dịch thực tế
+  - Kiểm tra cache trước khi xóa hoặc xây dựng lại
+  - Chẩn đoán lỗi quyền truy cập, đường dẫn, encoding và khóa tệp
+  - Xử lý lỗi proxy, chứng chỉ, DNS và tải dependency
+  - Tái hiện sự cố bằng project tối thiểu và bản clone sạch
+  - Thu thập phiên bản, cấu hình, log và bước tái hiện để báo lỗi
+  - Xác minh cách khắc phục và ghi lại nguyên nhân
+- level1: Chuẩn hóa nhóm
+  level2:
+  - Thống nhất bộ công cụ tối thiểu và các lựa chọn có thể thay thế
+  - Khai báo phiên bản JDK, wrapper và cấu hình định dạng trong dự án
+  - Chia sẻ cấu hình IDE, tập request và task mà không chứa dữ liệu cá nhân
+  - Xây hướng dẫn thiết lập môi trường cho thành viên mới
+  - Đồng bộ kiểm tra chất lượng giữa máy cá nhân và CI
+  - Đánh giá và cập nhật plugin theo nhu cầu thực tế
+  - Thử nâng cấp công cụ trên nhánh riêng và xác minh khả năng tương thích
+  - Lập hướng dẫn bảo trì, khôi phục và xử lý môi trường bị hỏng
+- level1: Thực hành
+  level2:
+  - Thiết lập môi trường Java và chạy dự án từ bản clone sạch
+  - Nhập cùng một dự án vào IDE và chạy bằng dòng lệnh để đối chiếu
+  - Tìm một luồng xử lý bằng tìm ký hiệu, nơi sử dụng và call hierarchy
+  - Refactor một chức năng rồi xác minh bằng diff và kiểm thử
+  - Gỡ lỗi một ngoại lệ và ghi lại chuỗi nguyên nhân
+  - Khảo sát JAR bằng jar, javap và jdeps
+  - Tìm commit gây lỗi bằng Git bisect
+  - Tạo bộ request API có cấu hình môi trường dùng chung
+  - Khởi chạy cơ sở dữ liệu bằng Compose và kiểm tra bằng SQL client
+  - Chẩn đoán cổng bị chiếm, lỗi kết nối và lỗi chứng chỉ
+  - Thu thập thread dump, heap dump hoặc JFR theo tình huống được giao
+  - Phân tích một vấn đề CPU hoặc bộ nhớ bằng bằng chứng từ profiler
+  - Tự động hóa kiểm tra cục bộ và chạy lại cùng lệnh trong CI
+  - Đánh giá thay đổi do trợ lý AI tạo và chứng minh kết quả kiểm tra
+  - Viết hướng dẫn công cụ đủ để người khác tái hiện quy trình

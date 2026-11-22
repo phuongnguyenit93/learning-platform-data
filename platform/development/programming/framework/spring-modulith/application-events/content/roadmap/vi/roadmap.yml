@@ -1,0 +1,49 @@
+roadmap:
+- id: event-giua-cac-module
+  title: Event giữa các module
+  purpose: Hiểu cơ chế giao tiếp lỏng giữa các application module bằng sự kiện nghiệp vụ.
+  objectives:
+  - '- Phân biệt gọi trực tiếp và phát event.'
+  - '- Xác định event mang dữ liệu nghiệp vụ tối thiểu.'
+- id: publish-application-event
+  title: Publish Application Event
+  purpose: Phát sự kiện từ module nguồn tại điểm thay đổi trạng thái nghiệp vụ.
+  objectives:
+  - '- Dùng ApplicationEventPublisher.publishEvent(...).'
+  - '- Thiết kế payload sự kiện rõ ý nghĩa, ít phụ thuộc.'
+- id: application-module-listener
+  title: Application Module Listener
+  purpose: Nhận và xử lý sự kiện ở module khác mà không phụ thuộc trực tiếp module phát.
+  objectives:
+  - '- Khai báo @ApplicationModuleListener đúng vị trí.'
+  - '- Phân biệt listener Modulith với @EventListener.'
+- id: transaction-async
+  title: Transaction & Async
+  purpose: Hiểu thời điểm chạy listener và ranh giới giao dịch trong xử lý sự kiện.
+  objectives:
+  - '- So sánh xử lý đồng bộ, @TransactionalEventListener và @Async.'
+  - '- Giải thích transaction mới của @ApplicationModuleListener.'
+- id: event-publication-registry
+  title: Event Publication Registry
+  purpose: Lưu trạng thái phát sự kiện để hỗ trợ giao sự kiện đáng tin cậy.
+  objectives:
+  - '- Chọn starter lưu publication phù hợp với datastore.'
+  - '- Mô tả ghi publication cùng business transaction và đánh dấu hoàn tất.'
+- id: loi-phat-lai
+  title: Lỗi & Phát lại
+  purpose: Phục hồi sự kiện xử lý chưa xong mà giảm rủi ro tạo tác dụng phụ lặp.
+  objectives:
+  - '- Phân biệt publication hoàn tất và chưa hoàn tất/thất bại.'
+  - '- Thiết kế resubmit, idempotency và xử lý lỗi listener.'
+- id: externalize-events
+  title: Externalize Events
+  purpose: Chọn sự kiện cần đưa ra ngoài ứng dụng qua message broker.
+  objectives:
+  - '- Dùng @Externalized và xác định routing target.'
+  - '- Nhận diện kết nối Kafka, AMQP hoặc JMS theo module hỗ trợ.'
+- id: kiem-thu-event-flow
+  title: Kiểm thử Event Flow
+  purpose: Kiểm chứng sự kiện được phát và tác dụng của listener trong module.
+  objectives:
+  - '- Dùng PublishedEvents với @ApplicationModuleTest.'
+  - '- Viết Scenario cho event và thay đổi trạng thái bất đồng bộ.'

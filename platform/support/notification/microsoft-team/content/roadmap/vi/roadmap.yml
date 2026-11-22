@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-teams-notification
+  title: Tổng quan Teams Notification
+  purpose: Hiểu mục đích đưa thông báo hệ thống đến đúng người hoặc channel trong Microsoft Teams.
+  objectives:
+  - Phân biệt cảnh báo cần hành động với thông tin thường nhật.
+  - Chọn channel hoặc chat phù hợp cho từng sự kiện.
+- id: lua-chon-cach-tich-hop
+  title: Lựa chọn cách tích hợp
+  purpose: Biết chọn phương thức gửi thông báo dựa trên kịch bản và quyền truy cập.
+  objectives:
+  - So sánh Workflows webhook, Microsoft Graph và bot.
+  - Nhận biết connector-based webhook cũ đã ngừng hỗ trợ.
+- id: thiet-lap-teams-workflows
+  title: Thiết lập Teams Workflows
+  purpose: Tạo luồng nhận yêu cầu HTTP và gửi thông báo vào Teams.
+  objectives:
+  - Tạo workflow nhận webhook từ template hoặc trigger.
+  - Xác minh đích nhận, owner và webhook URL.
+- id: gui-webhook-json
+  title: Gửi Webhook JSON
+  purpose: Gửi thông báo cơ bản từ ứng dụng tới workflow bằng HTTP POST.
+  objectives:
+  - Tạo request JSON có thông điệp và nội dung rõ ràng.
+  - Kiểm tra phản hồi HTTP và thông báo xuất hiện đúng nơi.
+- id: adaptive-cards
+  title: Adaptive Cards
+  purpose: Trình bày cảnh báo có cấu trúc dễ đọc và hỗ trợ người nhận thao tác.
+  objectives:
+  - Tạo card hiển thị mức độ, sự kiện và liên kết xử lý.
+  - Phân biệt Adaptive Card với thông điệp văn bản.
+- id: quyen-bao-mat
+  title: Quyền & bảo mật
+  purpose: Bảo vệ webhook và giới hạn những người hoặc hệ thống được phép gửi.
+  objectives:
+  - Lưu URL, token trong secret store; tránh đưa vào log.
+  - Xem xét xác thực workflow và quyền Graph khi cần.
+- id: java-client-retry
+  title: Java Client & Retry
+  purpose: Kết nối service Java với Teams mà không làm gián đoạn luồng nghiệp vụ.
+  objectives:
+  - Gửi POST bằng Java HttpClient với timeout.
+  - Xử lý 429, lỗi tạm thời bằng retry có backoff.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Duy trì kênh thông báo tin cậy và tránh gây nhiễu cho người nhận.
+  objectives:
+  - Kiểm thử sự kiện lỗi, payload và gửi trùng.
+  - Theo dõi delivery, mức nhiễu và người sở hữu workflow.

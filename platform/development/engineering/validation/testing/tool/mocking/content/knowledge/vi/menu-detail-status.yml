@@ -1,0 +1,2755 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Mocking là gì và giải quyết vấn đề nào trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Đối tượng đang kiểm thử và các đối tượng cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phụ thuộc trực tiếp, phụ thuộc gián tiếp và ranh giới cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Kiểm tra kết quả, trạng thái và tương tác: ba góc nhìn khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của mocking trong unit test và giới hạn trong integration test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Ví dụ xuyên suốt: kiểm thử dịch vụ đặt hàng có nhiều phụ thuộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Bản đồ thuật ngữ: test double, stubbing, verification và spy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Trình tự học và kiến thức Java, JUnit cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-double-types
+  title: Các loại test double
+  childs:
+  - slug: test-double-types-001
+    title: 'Dummy: đối tượng chỉ dùng để đáp ứng danh sách tham số'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-002
+    title: 'Stub: cung cấp dữ liệu đầu vào gián tiếp cho tình huống kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-003
+    title: 'Fake: phiên bản đơn giản có hành vi hoạt động thực sự'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-004
+    title: 'Spy: quan sát lời gọi và phân biệt hai cách dùng thuật ngữ spy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-005
+    title: 'Mock: khai báo kỳ vọng và kiểm chứng tương tác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-006
+    title: Phân biệt loại test double theo vai trò thay vì tên thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-007
+    title: Tự viết test double bằng lớp Java và đối chiếu với mock sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-008
+    title: Chọn đối tượng thật, fake, stub hoặc mock theo mục tiêu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-double-types-009
+    title: Rủi ro khi test double không còn phản ánh hợp đồng của phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testable-design
+  title: Thiết kế dễ kiểm thử
+  childs:
+  - slug: testable-design-001
+    title: Nhận diện phụ thuộc cần thay thế trong một lớp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-002
+    title: Tiêm phụ thuộc qua constructor, setter và tham số phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-003
+    title: Thiết kế ranh giới bằng interface và tránh tạo interface không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-004
+    title: Tách logic nghiệp vụ thuần khỏi thao tác nhập xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-005
+    title: Đóng gói đồng hồ, bộ sinh ID và bộ sinh số ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-006
+    title: Giảm phụ thuộc vào static, singleton và trạng thái toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-007
+    title: Tách việc khởi tạo đối tượng khỏi việc sử dụng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-008
+    title: Thiết kế lại chuỗi truy cập dài và phụ thuộc khó thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testable-design-009
+    title: Khi nào nên sửa thiết kế thay vì bổ sung kỹ thuật mocking
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-environment
+  title: Công cụ và môi trường
+  childs:
+  - slug: tools-environment-001
+    title: Hệ sinh thái mocking trên JVM và vai trò của Mockito
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-002
+    title: Khai báo mockito-core và mockito-junit-jupiter trong Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-003
+    title: Quản lý phiên bản tương thích giữa Java, Mockito, JUnit và Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-004
+    title: Chạy cùng một bài kiểm thử từ IDE và Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-005
+    title: 'MockMaker: cơ chế sinh mock và lựa chọn theo khả năng cần dùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-006
+    title: Phân biệt cơ chế subclass và inline trong bối cảnh mocking
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-007
+    title: Byte Buddy, instrumentation và vai trò của Java agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-008
+    title: Cấu hình agent theo JDK và phiên bản Mockito đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-009
+    title: Nhận diện xung đột dependency và tài nguyên mockito-extensions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-environment-010
+    title: Xác nhận môi trường bằng một bài kiểm thử độc lập tối giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-test
+  title: Bài kiểm thử đầu tiên
+  childs:
+  - slug: first-test-001
+    title: Xác định một hành vi nghiệp vụ và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-test-002
+    title: Tổ chức Arrange–Act–Assert hoặc Given–When–Then
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-test-003
+    title: Tạo mock thủ công và truyền vào đối tượng đang kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-test-004
+    title: Khai báo hành vi phụ thuộc bằng when và thenReturn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-test-005
+    title: Kiểm tra kết quả bằng assertion trước khi kiểm chứng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-test-006
+    title: Kiểm chứng một lời gọi bằng verify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-test-007
+    title: Thử làm sai mã nguồn để nhận biết khả năng phát hiện lỗi của test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mock-creation
+  title: Khởi tạo mock
+  childs:
+  - slug: mock-creation-001
+    title: Tạo mock bằng Mockito.mock và đặt tên hỗ trợ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-002
+    title: Khởi tạo @Mock bằng MockitoExtension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-003
+    title: Khởi tạo và đóng tài nguyên bằng MockitoAnnotations.openMocks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-004
+    title: '@InjectMocks và các cơ chế đưa phụ thuộc vào đối tượng đang kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-005
+    title: Giới hạn của @InjectMocks với đồ thị phụ thuộc phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-006
+    title: Phân biệt đối tượng do @InjectMocks tạo với mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-007
+    title: Phân biệt @Mock, @Spy và đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-008
+    title: Tiêm mock qua tham số test khi dùng MockitoExtension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-009
+    title: Tổ chức mock theo từng test và tránh trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mock-creation-010
+    title: Chọn khởi tạo tường minh hay annotation để bài kiểm thử dễ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: default-behavior
+  title: Hành vi mặc định
+  childs:
+  - slug: default-behavior-001
+    title: Điều gì xảy ra khi gọi phương thức chưa được khai báo hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-002
+    title: Giá trị mặc định của kiểu nguyên thủy và kiểu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-003
+    title: Hành vi mặc định với collection, Optional và các kiểu được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-004
+    title: RETURNS_DEFAULTS và cách kiểm tra hành vi theo kiểu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-005
+    title: RETURNS_SMART_NULLS và khả năng hỗ trợ tìm nguồn lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-006
+    title: Tùy chỉnh defaultAnswer cho một mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-007
+    title: Phân biệt không khai báo hành vi với khai báo trả về null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-behavior-008
+    title: Vì sao giá trị mặc định có thể làm bài kiểm thử vượt qua sai mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: return-value-stubbing
+  title: Khai báo giá trị trả về
+  childs:
+  - slug: return-value-stubbing-001
+    title: Cú pháp when–thenReturn và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-002
+    title: Trả về đối tượng, collection và giá trị tùy theo đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-003
+    title: thenReturn nhiều giá trị cho các lần gọi liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-004
+    title: Chuỗi thenReturn, thenThrow và hành vi ở lần gọi tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-005
+    title: Nhiều khai báo cho cùng phương thức và vùng tham số chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-006
+    title: Đối chiếu when–thenReturn với doReturn–when
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-007
+    title: Khai báo hành vi cho phương thức nạp chồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-008
+    title: Khai báo hành vi với generic và suy luận kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-009
+    title: 'Phong cách BDD: given–willReturn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-value-stubbing-010
+    title: Giữ phần khai báo hành vi tối thiểu và gắn với từng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions-void-methods
+  title: Ngoại lệ và phương thức void
+  childs:
+  - slug: exceptions-void-methods-001
+    title: Khai báo ngoại lệ bằng thenThrow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-002
+    title: Checked exception và hợp đồng throws của phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-003
+    title: Runtime exception và nhánh xử lý lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-004
+    title: doThrow cho phương thức void
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-005
+    title: doNothing và tình huống cần khai báo tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-006
+    title: doAnswer để mô phỏng tác dụng phụ của phương thức void
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-007
+    title: Chuỗi hành vi thành công, thất bại và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-008
+    title: Kết hợp assertion ngoại lệ với kiểm chứng tương tác bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-void-methods-009
+    title: Phong cách BDD với willThrow và willDoNothing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: argument-matchers
+  title: Đối sánh tham số
+  childs:
+  - slug: argument-matchers-001
+    title: Giá trị cụ thể, equals và cơ chế chọn khai báo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-002
+    title: Quy tắc dùng matcher cho toàn bộ danh sách tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-003
+    title: any, anyInt, anyString và khác biệt với giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-004
+    title: eq, same và sự khác nhau giữa bằng giá trị với cùng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-005
+    title: isNull, notNull và nullable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-006
+    title: argThat và matcher viết bằng lambda
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-007
+    title: Xây dựng ArgumentMatcher có thông báo lỗi dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-008
+    title: Đối sánh chuỗi bằng contains, startsWith, endsWith và matches
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-009
+    title: Đối sánh collection, mảng và varargs theo phiên bản Mockito
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-010
+    title: Đối sánh generic, tham số nạp chồng và ép kiểu khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-011
+    title: AdditionalMatchers và kết hợp điều kiện đối sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-012
+    title: Không dùng matcher như giá trị dữ liệu ngoài ngữ cảnh Mockito
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-matchers-013
+    title: Chọn matcher vừa đủ chặt để phát hiện sai lệch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interaction-verification
+  title: Kiểm chứng tương tác
+  childs:
+  - slug: interaction-verification-001
+    title: verify và ý nghĩa của một lần gọi mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-002
+    title: times, never, atLeast và atMost
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-003
+    title: verifyNoInteractions để kiểm tra chưa có tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-004
+    title: verifyNoMoreInteractions và các tương tác chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-005
+    title: Phân biệt không gọi một phương thức với không gọi toàn bộ mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-006
+    title: Kiểm chứng lời gọi với tham số cụ thể và matcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-007
+    title: Phân biệt lời gọi được khai báo hành vi với lời gọi được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-008
+    title: 'Phong cách BDD: then–should'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-009
+    title: Kiểm chứng hành vi có ý nghĩa thay vì mọi chi tiết triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-010
+    title: Kết hợp assertion kết quả và verification trong cùng một kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: invocation-order
+  title: Thứ tự lời gọi
+  childs:
+  - slug: invocation-order-001
+    title: Thứ tự tương tác khi nào là một phần của hợp đồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocation-order-002
+    title: Tạo InOrder cho một hoặc nhiều mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocation-order-003
+    title: Kiểm chứng chuỗi lời gọi liên quan qua nhiều phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocation-order-004
+    title: Kiểm chứng một phần chuỗi tương tác bằng InOrder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocation-order-005
+    title: Kiểm tra không còn tương tác tiếp theo trong phạm vi thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocation-order-006
+    title: Phân biệt thứ tự lời gọi với thứ tự hoàn thành công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invocation-order-007
+    title: Tránh ràng buộc thứ tự cho các thao tác độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: argument-captors
+  title: Thu thập tham số
+  childs:
+  - slug: argument-captors-001
+    title: ArgumentCaptor giải quyết vấn đề gì sau khi lời gọi đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-002
+    title: Khởi tạo ArgumentCaptor và @Captor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-003
+    title: capture và getValue trong kiểm chứng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-004
+    title: getAllValues để kiểm tra dữ liệu của nhiều lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-005
+    title: Thu thập DTO, entity và thông điệp được gửi ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-006
+    title: Thu thập callback để chủ động kích hoạt nhánh xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-007
+    title: Đối tượng khả biến và thời điểm dữ liệu được quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-008
+    title: Phân biệt ArgumentCaptor, ArgumentMatcher và Answer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-captors-009
+    title: Kiểm tra các trường nghiệp vụ cần thiết thay vì toàn bộ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-answers
+  title: Answer tùy biến
+  childs:
+  - slug: custom-answers-001
+    title: thenAnswer và dữ liệu của một InvocationOnMock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-002
+    title: Đọc tham số, phương thức và mock trong một Answer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-003
+    title: Tính giá trị trả về dựa trên đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-004
+    title: returnsFirstArg và các tiện ích AdditionalAnswers phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-005
+    title: answersWithDelay và giới hạn của việc tạo độ trễ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-006
+    title: Mô phỏng thay đổi trạng thái và tác dụng phụ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-007
+    title: Kích hoạt callback thành công hoặc thất bại bằng Answer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-008
+    title: Xây dựng Answer có trạng thái và cô lập giữa các test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-answers-009
+    title: Khi nào nên thay Answer phức tạp bằng fake
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spies-partial-mocks
+  title: Spy và mock một phần
+  childs:
+  - slug: spies-partial-mocks-001
+    title: Spy trong Mockito và mối quan hệ với đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-002
+    title: Tạo spy từ đối tượng đã có và từ lớp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-003
+    title: Lời gọi phương thức thật khi dùng when trên spy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-004
+    title: doReturn, doThrow và doAnswer khi cấu hình spy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-005
+    title: doCallRealMethod và CALLS_REAL_METHODS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-006
+    title: Trạng thái đối tượng và điều kiện cần để gọi phương thức thật an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-007
+    title: Phân biệt spy với mô hình ủy quyền bằng delegatesTo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-008
+    title: Quan sát lời gọi nội bộ và giới hạn theo cơ chế mocking
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-009
+    title: Rủi ro khi spy thực hiện truy cập mạng, cơ sở dữ liệu hoặc tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spies-partial-mocks-010
+    title: Giới hạn mock một phần trong kiểm thử mã nguồn cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-type-considerations
+  title: Đặc điểm kiểu Java
+  childs:
+  - slug: java-type-considerations-001
+    title: Mock interface và lựa chọn dùng lớp triển khai thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-002
+    title: Mock lớp cụ thể và lớp trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-003
+    title: Default method của interface và việc gọi phần triển khai thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-004
+    title: Phương thức final, lớp final và khả năng của MockMaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-005
+    title: 'Record và sealed type: cân nhắc kỹ thuật và mục đích sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-006
+    title: Generic, bridge method và phương thức nạp chồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-007
+    title: Varargs, mảng và kiểu nguyên thủy trong khai báo hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-008
+    title: Phương thức private và ranh giới kiểm thử qua hành vi công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-009
+    title: equals, hashCode, toString và các giới hạn cần biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-010
+    title: Phạm vi package, classloader và Java Platform Module System
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-considerations-011
+    title: Vì sao thường dùng đối tượng thật cho value object và kiểu dữ liệu JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-construction-mocking
+  title: Static và khởi tạo
+  childs:
+  - slug: static-construction-mocking-001
+    title: Nhận diện tình huống cần thay lời gọi static hoặc new
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-002
+    title: Tạo và sử dụng MockedStatic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-003
+    title: Khai báo hành vi và kiểm chứng lời gọi static
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-004
+    title: Quản lý phạm vi MockedStatic bằng try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-005
+    title: Phạm vi luồng và rủi ro khi static mock đi qua luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-006
+    title: Tạo MockedConstruction để quan sát đối tượng được khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-007
+    title: Đọc ngữ cảnh constructor và cấu hình từng mock được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-008
+    title: Kiểm tra danh sách constructed và các tương tác liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-009
+    title: Đóng tài nguyên để tránh rò rỉ cấu hình sang test khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-010
+    title: Giới hạn của công cụ với lớp hệ thống và khởi tạo tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-construction-mocking-011
+    title: Thay static hoặc new bằng factory, adapter hay dependency injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-strictness
+  title: Vòng đời và độ nghiêm ngặt
+  childs:
+  - slug: lifecycle-strictness-001
+    title: Vòng đời tạo, khai báo hành vi, sử dụng và kiểm chứng mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-002
+    title: STRICT_STUBS và mục đích phát hiện cấu hình thừa hoặc sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-003
+    title: Phân biệt chế độ STRICT_STUBS, WARN và LENIENT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-004
+    title: UnnecessaryStubbingException và phần khai báo không được dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-005
+    title: PotentialStubbingProblem và tham số không khớp kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-006
+    title: lenient ở phạm vi nhỏ và lý do cần ghi rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-007
+    title: MockitoSession khi cần tự quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-008
+    title: reset và clearInvocations khác nhau ở phần trạng thái bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-009
+    title: Tránh dùng reset để bù cho thiết kế test dùng chung trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-strictness-010
+    title: Đóng tài nguyên của spy, static mock và construction mock đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: junit-integration
+  title: Kết hợp JUnit
+  childs:
+  - slug: junit-integration-001
+    title: MockitoExtension trong vòng đời JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-002
+    title: '@BeforeEach, @AfterEach và giới hạn của thiết lập dùng chung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-003
+    title: '@Nested và cách tổ chức nhiều ngữ cảnh kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-004
+    title: '@ParameterizedTest với hành vi mock riêng cho từng bộ dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-005
+    title: '@MethodSource và tách dữ liệu kiểm thử khỏi việc tạo mock'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-006
+    title: '@TestInstance và ảnh hưởng tới trạng thái được dùng lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-007
+    title: Chạy song song và cô lập mock theo từng test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-008
+    title: Phối hợp assertion ngoại lệ, assertion theo nhóm và verification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-integration-009
+    title: Phân biệt khả năng của JUnit với trách nhiệm của Mockito
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Kết hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Unit test không khởi động Spring Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Phân biệt @Mock với bean thay thế trong ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: '@MockBean, @SpyBean và cơ chế thay bean theo phiên bản Spring'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Tương thích và lộ trình thay đổi annotation theo Spring Boot, Spring Framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Tiêm phụ thuộc có qualifier, tên bean và nhiều implementation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Thay phụ thuộc trong web slice test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Thay phụ thuộc trong @SpringBootTest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Proxy, AOP và việc quan sát bean gốc hoặc bean được bọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Vòng đời mock bean, reset và bộ nhớ đệm của test context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Vì sao mock repository không kiểm chứng mapping JPA hoặc câu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Vì sao mock không chứng minh transaction, security hay cấu hình thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-012
+    title: Tách mục tiêu của Mockito, MockMvc và công cụ giả lập dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-logic-testing
+  title: Kiểm thử nghiệp vụ
+  childs:
+  - slug: business-logic-testing-001
+    title: Kiểm thử service có repository và bộ ánh xạ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-002
+    title: Kiểm tra quy tắc nghiệp vụ trước khi gọi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-003
+    title: Mô phỏng tìm thấy, không tìm thấy và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-004
+    title: Thu thập đối tượng được lưu và kiểm tra trường nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-005
+    title: Kiểm chứng không lưu hoặc không gửi thông báo khi điều kiện thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-006
+    title: Phân biệt thứ tự xử lý nghiệp vụ với chi tiết triển khai nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-007
+    title: Kiểm thử thành công một phần và nhánh bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-008
+    title: Kiểm thử tính lặp an toàn bằng fake có trạng thái hoặc bằng tương tác phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-testing-009
+    title: Giới hạn của unit test khi đánh giá tính nhất quán dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-dependencies
+  title: Phụ thuộc bên ngoài
+  childs:
+  - slug: external-dependencies-001
+    title: Mock cổng gọi HTTP ở ranh giới adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-002
+    title: Phân biệt mock Java client với máy chủ HTTP giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-003
+    title: Mock repository và lựa chọn fake hoặc cơ sở dữ liệu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-004
+    title: Mock email, SMS và dịch vụ thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-005
+    title: Mock cổng thanh toán và mô phỏng kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-006
+    title: Mock bộ phát sự kiện và phân biệt gửi với nhận thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-007
+    title: Kiểm soát thời gian bằng Clock thay vì phụ thuộc đồng hồ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-008
+    title: Kiểm soát UUID, số ngẫu nhiên và dữ liệu sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-009
+    title: Đóng gói thao tác tệp, biến môi trường và cấu hình hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-010
+    title: Kiểm thử cache và giới hạn của mock không lưu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-011
+    title: Bổ sung integration test hoặc contract test tại ranh giới cần xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-multithreaded
+  title: Bất đồng bộ và đa luồng
+  childs:
+  - slug: asynchronous-multithreaded-001
+    title: Phân biệt lời gọi bất đồng bộ với công việc hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-002
+    title: Mock CompletableFuture ở trạng thái thành công, thất bại hoặc chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-003
+    title: Chủ động điều khiển completion để kiểm tra thứ tự các nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-004
+    title: Mock callback và kích hoạt từng đường đi thành công hoặc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-005
+    title: Tiêm Executor hoặc scheduler để kiểm soát thời điểm thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-006
+    title: 'timeout và after trong verification: phạm vi và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-007
+    title: Đồng bộ test bằng latch, future hoặc điều kiện chờ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-008
+    title: Tránh Thread.sleep và các bài kiểm thử phụ thuộc lịch chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-009
+    title: An toàn luồng khi sử dụng, khai báo hành vi và kiểm chứng mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-010
+    title: Static mock, construction mock và ranh giới giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-011
+    title: Reactive Publisher và khi nào cần công cụ kiểm thử reactive chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-multithreaded-012
+    title: Phân biệt unit test bất đồng bộ với kiểm thử điều kiện tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-configuration
+  title: Cấu hình nâng cao
+  childs:
+  - slug: advanced-configuration-001
+    title: MockSettings và tùy chỉnh cấu hình theo mục tiêu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-002
+    title: RETURNS_SELF cho API dạng builder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-003
+    title: RETURNS_DEEP_STUBS và rủi ro gắn test với chuỗi lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-004
+    title: extraInterfaces và giới hạn khi bổ sung kiểu cho mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-005
+    title: stubOnly khi chỉ cần cung cấp hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-006
+    title: mockingDetails để kiểm tra mock, spy và thông tin tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-007
+    title: InvocationListener và thông tin chẩn đoán có chọn lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-008
+    title: Mock có khả năng tuần tự hóa và các ràng buộc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-configuration-009
+    title: Tái sử dụng cấu hình tối thiểu mà không che khuất ý nghĩa test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: easymock
+  title: EasyMock
+  childs:
+  - slug: easymock-001
+    title: Mô hình record–replay–verify của EasyMock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-002
+    title: Tạo mock và khai báo hành vi bằng expect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-003
+    title: Phân biệt mock mặc định, strict mock và nice mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-004
+    title: replay, verify và reset trong vòng đời kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-005
+    title: Khai báo ngoại lệ, phương thức void và số lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-006
+    title: Đối sánh và thu thập tham số trong EasyMock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-007
+    title: Kiểm chứng thứ tự tương tác khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-008
+    title: Tích hợp EasyMock với JUnit và quản lý trạng thái test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: easymock-009
+    title: Đối chiếu cách diễn đạt cùng một kịch bản bằng EasyMock và Mockito
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-alternatives
+  title: Công cụ khác và mã cũ
+  childs:
+  - slug: legacy-alternatives-001
+    title: 'jMock: mô hình khai báo Expectations và đối tượng được kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-002
+    title: 'jMock: đối sánh, số lần gọi và chuỗi tương tác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-003
+    title: 'JMockit: phạm vi khả năng và điều kiện tích hợp theo phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-004
+    title: 'PowerMock: nhu cầu lịch sử và các ràng buộc về classloader'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-005
+    title: Đánh giá tương thích Java, JUnit và agent trước khi giữ công cụ cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-006
+    title: Nhận diện bài kiểm thử phụ thuộc private, static hoặc khởi tạo đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-007
+    title: Chuyển kịch bản phù hợp sang Mockito hoặc test double tự viết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-008
+    title: Di chuyển từng nhóm test và đối chiếu khả năng phát hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-alternatives-009
+    title: Tiêu chí lựa chọn công cụ theo thiết kế, khả năng bảo trì và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: 'WantedButNotInvoked: lời gọi mong đợi không xảy ra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: TooManyActualInvocations và TooFewActualInvocations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: NeverWantedButInvoked và NoInteractionsWanted
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: InvalidUseOfMatchersException và trộn matcher sai cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: MissingMethodInvocationException và lời gọi không hợp lệ trong when
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: NotAMockException và NullInsteadOfMockException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: UnnecessaryStubbingException và cấu hình dùng chung không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: PotentialStubbingProblem và khai báo hành vi không khớp tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: WrongTypeOfReturnValue, generic và cấu hình spy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: NullPointerException do phụ thuộc chưa tiêm hoặc hành vi chưa khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Lỗi static mock đã được đăng ký hoặc chưa đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Lỗi khởi tạo MockMaker, Byte Buddy và Java agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Test chạy riêng thành công nhưng thất bại khi chạy cả bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Test khác kết quả giữa IDE, Gradle và môi trường CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-quality
+  title: Chất lượng bài kiểm thử
+  childs:
+  - slug: test-quality-001
+    title: Chỉ mock ranh giới cần kiểm soát và giữ logic miền dùng đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-002
+    title: Dùng assertion để xác nhận hành vi nghiệp vụ trước khi đếm lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-003
+    title: Tránh mock chính đối tượng đang kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-004
+    title: Tránh kiểm thử lại phần khai báo hành vi của mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-005
+    title: Tránh verify mọi lời gọi hoặc dùng verifyNoMoreInteractions tràn lan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-006
+    title: Nhận diện deep stub và mock một phần che giấu thiết kế khó kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-007
+    title: Dùng dữ liệu kiểm thử và builder thay cho đồ thị mock phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-008
+    title: Tên test diễn đạt điều kiện, hành động và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-009
+    title: Giữ thông báo thất bại đủ rõ để xác định lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-010
+    title: Phát hiện test vẫn thành công khi bỏ mất xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-quality-011
+    title: Đánh giá khoảng trống mà mock có thể che khuất bằng kiểm thử bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring-maintenance
+  title: Tái cấu trúc và bảo trì
+  childs:
+  - slug: refactoring-maintenance-001
+    title: Giảm phần thiết lập lặp mà vẫn đọc được từng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-002
+    title: Tách helper, fixture và builder theo trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-003
+    title: Thay mock có trạng thái phức tạp bằng fake nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-004
+    title: Xóa khai báo hành vi thừa bằng strict stubbing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-005
+    title: Giảm phụ thuộc vào thứ tự gọi không thuộc hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-006
+    title: Cập nhật test khi thay cấu trúc nội bộ nhưng giữ hành vi công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-007
+    title: Nâng cấp Mockito, JUnit và JDK theo từng bước kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-008
+    title: Kiểm tra tương tác giữa agent mocking và công cụ đo coverage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-009
+    title: Chạy test trong CI với cấu hình dependency và agent có thể tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-maintenance-010
+    title: Theo dõi test chập chờn, rò rỉ tài nguyên và trạng thái toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây dựng bộ unit test cho dịch vụ đặt hàng từ trường hợp thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Bổ sung trường hợp dữ liệu không hợp lệ và phụ thuộc không được gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Mô phỏng thanh toán thất bại và kiểm tra nhánh bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thu thập sự kiện và xác nhận nội dung được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Kiểm thử chính sách thử lại bằng chuỗi kết quả có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Kiểm thử tác vụ bất đồng bộ mà không chờ thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Kiểm thử thành phần Spring bằng mock bean và đối chiếu với unit test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Thay phụ thuộc static bằng adapter có thể tiêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: So sánh mock, fake và integration test trên cùng một ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: 'Rà soát bộ test: độ rõ ràng, độ cô lập và khả năng phát hiện lỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Lập ma trận kịch bản và xác định phần còn cần bằng chứng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

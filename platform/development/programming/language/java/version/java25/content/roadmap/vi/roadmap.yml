@@ -1,0 +1,43 @@
+roadmap:
+- id: chuong-trinh-nguon-gon
+  title: Chương trình nguồn gọn
+  purpose: Viết và chạy chương trình nhỏ với ít mã khung hơn bằng cú pháp chính thức của Java 25.
+  objectives:
+  - Viết void main() trong tệp nguồn gọn.
+  - Đọc, in dữ liệu bằng java.lang.IO.
+  - Chuyển sang lớp có tên khi chương trình cần cấu trúc lớn hơn.
+- id: import-theo-module
+  title: Import theo module
+  purpose: Rút gọn phần nhập kiểu khi dùng nhiều package được một module xuất ra.
+  objectives:
+  - Dùng import module để nhập các kiểu được xuất.
+  - Phân biệt nhập kiểu với requires trong module-info.java.
+  - Giải quyết trùng tên bằng import tường minh hoặc tên đầy đủ.
+- id: ham-khoi-tao-linh-hoat
+  title: Hàm khởi tạo linh hoạt
+  purpose: Đặt bước kiểm tra và chuẩn bị dữ liệu trước lời gọi hàm khởi tạo khác.
+  objectives:
+  - Kiểm tra, biến đổi tham số trước super(...) hoặc this(...).
+  - Nhận diện giới hạn truy cập đối tượng trước lời gọi hàm khởi tạo khác.
+  - Kiểm chứng thứ tự khởi tạo giữa lớp cha và lớp con.
+- id: ngu-canh-voi-scopedvalue
+  title: Ngữ cảnh với ScopedValue
+  purpose: Truyền dữ liệu ngữ cảnh theo phạm vi thực thi mà không phải thêm tham số qua mọi tầng.
+  objectives:
+  - Gắn giá trị bằng ScopedValue.where và giới hạn trong run hoặc call.
+  - Đọc giá trị trong chuỗi lời gọi và kiểm tra phạm vi hiệu lực.
+  - Phân biệt ràng buộc theo phạm vi với đối tượng có thể thay đổi.
+- id: dan-xuat-khoa-bang-kdf
+  title: Dẫn xuất khóa bằng KDF
+  purpose: Tạo khóa mới từ dữ liệu khóa đầu vào bằng API mật mã chuẩn.
+  objectives:
+  - Dùng KDF với HKDFParameterSpec và thuật toán HKDF phù hợp.
+  - Phân biệt dữ liệu khóa đầu vào, salt và ngữ cảnh info.
+  - Kiểm chứng khóa dẫn xuất bằng bộ mẫu kiểm thử chuẩn.
+- id: toi-uu-khoi-dong-voi-aot
+  title: Tối ưu khởi động với AOT
+  purpose: Giảm thời gian khởi động và làm nóng ứng dụng bằng bộ nhớ đệm AOT của JVM.
+  objectives:
+  - Tạo bộ nhớ đệm bằng -XX:AOTCacheOutput qua một lượt chạy huấn luyện.
+  - Dùng lại bằng -XX:AOTCache với cấu hình ứng dụng tương ứng.
+  - Đo hiệu quả và nhận diện trường hợp bộ nhớ đệm không dùng được.

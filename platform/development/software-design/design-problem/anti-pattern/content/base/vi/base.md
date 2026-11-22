@@ -1,0 +1,5 @@
+# Software Design — Design Problem: Anti-pattern
+
+Anti-pattern là một cách giải quyết vấn đề thiết kế có vẻ thuận tiện hoặc quen thuộc nhưng trong một bối cảnh nhất định lại tạo ra những hệ quả khó bảo trì, khó mở rộng hoặc làm tăng chi phí thay đổi. Một *code smell* chỉ là tín hiệu gợi ý cần điều tra, không tự động khẳng định có lỗi; vì vậy, việc đánh giá luôn phải dựa trên trách nhiệm của thành phần, phụ thuộc và nhu cầu thực tế của hệ thống.
+
+Module dành cho người học Java và thiết kế hướng đối tượng muốn cải thiện chất lượng kiến trúc và mã nguồn. Bạn sẽ học cách nhận diện lớp hoặc phương thức phình to, phụ thuộc rối, lạm dụng kế thừa, mô hình miền thiếu hành vi, mã trùng lặp và thiết kế quá mức. Từ đó, bạn thực hành refactoring theo từng thay đổi nhỏ có kiểm thử, đồng thời xây dựng tiêu chí review để hạn chế tái diễn. Kết thúc lộ trình, bạn có thể giải thích vì sao một thiết kế gây hại trong ngữ cảnh cụ thể và đề xuất cách cải thiện có cân nhắc chi phí.

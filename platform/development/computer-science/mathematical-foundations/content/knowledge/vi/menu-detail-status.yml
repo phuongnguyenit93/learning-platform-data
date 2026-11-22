@@ -1,0 +1,4099 @@
+menu:
+- slug: mathematical-foundations-overview
+  title: Bản đồ nền tảng toán
+  childs:
+  - slug: mathematical-foundations-overview-001
+    title: Toán học giải quyết những bài toán nào trong khoa học máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-foundations-overview-002
+    title: Toán rời rạc, toán liên tục và mối liên hệ giữa hai hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-foundations-overview-003
+    title: Đối tượng, cấu trúc, quan hệ và phép biến đổi trong mô hình toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-foundations-overview-004
+    title: Mệnh đề, định nghĩa, giả thiết, định lý và chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-foundations-overview-005
+    title: Vai trò của logic, tập hợp, đếm và đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-foundations-overview-006
+    title: Vai trò của xác suất, đại số tuyến tính, giải tích và tối ưu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-foundations-overview-007
+    title: Phân biệt mô hình toán học với cách biểu diễn trên máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-foundations-overview-008
+    title: Lộ trình từ đọc ký hiệu đến chứng minh và xây dựng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mathematical-language
+  title: Ngôn ngữ toán học
+  childs:
+  - slug: mathematical-language-001
+    title: Biến, hằng, tham số và miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-002
+    title: Các tập số tự nhiên, số nguyên, hữu tỉ, thực và phức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-003
+    title: Ký hiệu thuộc, bao hàm, bằng nhau và tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-004
+    title: Biểu thức, phương trình, bất phương trình và điều kiện xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-005
+    title: Khoảng, đoạn, giá trị tuyệt đối và khoảng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-006
+    title: Chỉ số, bộ có thứ tự và quy ước đánh số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-007
+    title: Ký hiệu tổng, tích và các quy ước biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-008
+    title: Điều kiện cần, điều kiện đủ và điều kiện cần–đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-009
+    title: Đọc phát biểu có nhiều giả thiết và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-language-010
+    title: Đơn vị đo, thứ nguyên và kiểm tra tính nhất quán của đại lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: propositional-logic
+  title: Logic mệnh đề
+  childs:
+  - slug: propositional-logic-001
+    title: Mệnh đề, giá trị chân lý và phát biểu không phải mệnh đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-002
+    title: Phủ định, hội, tuyển và tuyển loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-003
+    title: Phép kéo theo và sự khác biệt với quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-004
+    title: Phép tương đương và phát biểu hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-005
+    title: Bảng chân trị và cách đánh giá công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-006
+    title: Hằng đúng, hằng sai và tính thỏa được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-007
+    title: Các luật tương đương logic và luật De Morgan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-008
+    title: Mệnh đề đảo, phản và phản đảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-009
+    title: Dạng chuẩn hội, dạng chuẩn tuyển và chuyển đổi công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-010
+    title: Quy tắc suy diễn và tính hợp lệ của lập luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-011
+    title: Phản ví dụ bằng phép gán giá trị chân lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: propositional-logic-012
+    title: Ứng dụng logic vào điều kiện và đặc tả chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: predicate-logic
+  title: Logic vị từ
+  childs:
+  - slug: predicate-logic-001
+    title: Vị từ, đối số và miền diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-002
+    title: Biến tự do, biến bị ràng buộc và phạm vi lượng từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-003
+    title: Lượng từ với mọi và lượng từ tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-004
+    title: Lượng từ lồng nhau và ảnh hưởng của thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-005
+    title: Phủ định phát biểu có lượng từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-006
+    title: Diễn đạt tồn tại duy nhất và các ràng buộc số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-007
+    title: Chuyển câu tiếng Việt thành công thức logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-008
+    title: Quy tắc suy diễn với lượng từ và điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-009
+    title: Phân biệt chân lý trong một mô hình với tính đúng phổ quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-010
+    title: Lập luận có miền rỗng và các trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicate-logic-011
+    title: Ứng dụng vị từ vào hợp đồng, truy vấn và tính chất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proof-methods
+  title: Phương pháp chứng minh
+  childs:
+  - slug: proof-methods-001
+    title: Cấu trúc một chứng minh và nghĩa vụ cần hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-002
+    title: Chứng minh trực tiếp từ định nghĩa và giả thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-003
+    title: Chứng minh bằng phản đảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-004
+    title: Chứng minh bằng phản chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-005
+    title: Chứng minh tương đương theo hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-006
+    title: Chứng minh bằng chia trường hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-007
+    title: Chứng minh tồn tại bằng xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-008
+    title: Chứng minh tồn tại không mang tính xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-009
+    title: Chứng minh tính duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-010
+    title: Bác bỏ phát biểu bằng phản ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-011
+    title: Tách bổ đề và tổ chức chuỗi lập luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-012
+    title: Phân biệt kiểm tra nhiều ví dụ với chứng minh tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proof-methods-013
+    title: Nhận diện lập luận vòng quanh, thiếu giả thiết và suy diễn sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: induction-and-invariants
+  title: Quy nạp và bất biến
+  childs:
+  - slug: induction-and-invariants-001
+    title: Nguyên lý quy nạp toán học và tập chỉ số áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-002
+    title: Bước cơ sở, giả thiết quy nạp và bước chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-003
+    title: Quy nạp mạnh và quan hệ với quy nạp thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-004
+    title: Nguyên lý thứ tự tốt của số tự nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-005
+    title: Quy nạp theo cấu trúc đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-006
+    title: Quy nạp theo độ dài chuỗi và kích thước cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-007
+    title: Quy nạp nhiều biến và thứ tự từ điển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-008
+    title: Bất biến và cách phát hiện đại lượng được bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-009
+    title: Bất biến vòng lặp và chứng minh tính đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-010
+    title: Hàm biến thiên và lập luận về sự kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-011
+    title: Phân biệt đúng bộ phận với đúng toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: induction-and-invariants-012
+    title: Lỗi thường gặp khi chọn giả thiết hoặc bước cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sets
+  title: Tập hợp
+  childs:
+  - slug: sets-001
+    title: Tập hợp, phần tử và các cách mô tả tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-002
+    title: Tập rỗng, tập vũ trụ, tập con và tập con thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-003
+    title: Hợp, giao, hiệu và phần bù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-004
+    title: Hiệu đối xứng và các phép biến đổi tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-005
+    title: Các đẳng thức tập hợp và đối ngẫu với logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-006
+    title: Chứng minh hai tập bằng nhau bằng hai quan hệ bao hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-007
+    title: Tích Descartes và bộ có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-008
+    title: Tập lũy thừa và quan hệ với tập các tập con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-009
+    title: Họ tập hợp, hợp chỉ số và giao chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-010
+    title: Phân hoạch và các lớp không giao nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-011
+    title: Biểu đồ Venn và giới hạn của minh họa trực quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sets-012
+    title: Mô hình hóa dữ liệu và không gian trạng thái bằng tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relations
+  title: Quan hệ
+  childs:
+  - slug: relations-001
+    title: Quan hệ hai ngôi và biểu diễn bằng tập cặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-002
+    title: Quan hệ nhiều ngôi và mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-003
+    title: Biểu diễn quan hệ bằng bảng, ma trận và đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-004
+    title: Quan hệ ngược và phép hợp thành quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-005
+    title: Tính phản xạ, phi phản xạ, đối xứng và phản đối xứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-006
+    title: Tính bắc cầu và cách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-007
+    title: Quan hệ tương đương và các lớp tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-008
+    title: Tập thương và phân hoạch sinh bởi quan hệ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-009
+    title: Bao đóng phản xạ, đối xứng và bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-010
+    title: Quan hệ đạt tới trong mô hình chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-011
+    title: Quan hệ tương thích với phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relations-012
+    title: Mô hình hóa sự phụ thuộc, kết nối và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functions
+  title: Hàm số
+  childs:
+  - slug: functions-001
+    title: Hàm số, miền xác định, đối miền và tập ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-002
+    title: Hàm toàn phần và hàm bộ phận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-003
+    title: Hàm một biến, nhiều biến và hàm nhận giá trị có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-004
+    title: Đơn ánh, toàn ánh và song ánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-005
+    title: Hợp thành hàm và điều kiện xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-006
+    title: Hàm đồng nhất và hàm ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-007
+    title: Ảnh và nghịch ảnh của tập con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-008
+    title: Hạn chế miền, mở rộng hàm và đổi miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-009
+    title: Hàm đơn điệu và quan hệ với thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-010
+    title: Hàm sàn, hàm trần và phần nguyên trong bài toán rời rạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-011
+    title: Đặc tả phép biến đổi dữ liệu bằng hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-012
+    title: Phân biệt một hàm toán học với chương trình tính hàm đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cardinality-and-infinity
+  title: Lực lượng và vô hạn
+  childs:
+  - slug: cardinality-and-infinity-001
+    title: Lực lượng của tập hữu hạn và phép đếm phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-002
+    title: So sánh lực lượng bằng đơn ánh và song ánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-003
+    title: Tập vô hạn đếm được và cách xây dựng phép liệt kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-004
+    title: Tính đếm được của số nguyên và số hữu tỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-005
+    title: Hợp đếm được, tích hữu hạn và điều kiện bảo toàn tính đếm được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-006
+    title: Tập không đếm được và lập luận đường chéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-007
+    title: Lực lượng của tập lũy thừa và định lý Cantor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-008
+    title: Nguyên lý chuồng bồ câu nhìn từ quan hệ giữa hai lực lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-009
+    title: Tính vô hạn và sự khác biệt giữa vô hạn với hữu hạn rất lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-and-infinity-010
+    title: Giới hạn của việc mã hóa đối tượng bằng chuỗi hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: orders-and-lattices
+  title: Thứ tự và dàn
+  childs:
+  - slug: orders-and-lattices-001
+    title: Quan hệ thứ tự bộ phận và thứ tự toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-002
+    title: Thứ tự chặt và thứ tự không chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-003
+    title: Tập có thứ tự và sơ đồ Hasse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-004
+    title: Chuỗi, phản chuỗi và các phần tử không so sánh được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-005
+    title: Phần tử tối tiểu, tối đại, nhỏ nhất và lớn nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-006
+    title: Cận trên, cận dưới, cận trên đúng và cận dưới đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-007
+    title: Dàn, phép hợp và phép giao theo thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-008
+    title: Dàn đầy đủ và các ví dụ bằng tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-009
+    title: Hàm đơn điệu giữa các tập có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-010
+    title: Điểm bất động và mô hình lặp để đạt trạng thái ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orders-and-lattices-011
+    title: Thứ tự phụ thuộc và ý nghĩa của một thứ tự tuyến tính mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: number-theory-and-congruences
+  title: Số học và đồng dư
+  childs:
+  - slug: number-theory-and-congruences-001
+    title: Phép chia hết, ước số và bội số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-002
+    title: Phép chia có dư và quy ước với số âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-003
+    title: Số nguyên tố, hợp số và phân tích thừa số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-004
+    title: Ước chung lớn nhất và bội chung nhỏ nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-005
+    title: Đẳng thức Bézout và tính chất của các tổ hợp tuyến tính nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-006
+    title: Nguyên tố cùng nhau và các hệ quả về chia hết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-007
+    title: Phương trình Diophantine tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-008
+    title: Quan hệ đồng dư và các lớp số dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-009
+    title: Phép cộng, trừ, nhân và lũy thừa theo modulo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-010
+    title: Nghịch đảo modulo và điều kiện tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-011
+    title: Hệ đồng dư và định lý phần dư Trung Hoa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-012
+    title: Định lý Fermat nhỏ, định lý Euler và giả thiết áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-013
+    title: Biểu diễn số theo cơ số và chuyển đổi cơ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-theory-and-congruences-014
+    title: Ứng dụng đồng dư vào chu kỳ, kiểm tra và phân bố giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: algebraic-structures
+  title: Cấu trúc đại số
+  childs:
+  - slug: algebraic-structures-001
+    title: Phép toán hai ngôi, tính đóng và các tính chất cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-002
+    title: Nửa nhóm, monoid và phần tử đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-003
+    title: Nhóm, nghịch đảo và các ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-004
+    title: Nhóm giao hoán và vai trò của phép cộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-005
+    title: Nhóm con, nhóm sinh bởi một phần tử và cấp của phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-006
+    title: Vành, miền nguyên và trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-007
+    title: Trường hữu hạn và số học trên trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-008
+    title: Đa thức, phép chia đa thức và nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-009
+    title: Đồng cấu, đẳng cấu và bảo toàn cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-010
+    title: Cấu trúc tích và cách kết hợp các mô hình đại số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-011
+    title: Tính kết hợp, phần tử đơn vị và khả năng gom nhóm phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algebraic-structures-012
+    title: Ứng dụng cấu trúc đại số trong mã hóa và tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boolean-algebra
+  title: Đại số Boolean
+  childs:
+  - slug: boolean-algebra-001
+    title: Tập giá trị Boolean và các tiên đề đại số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-002
+    title: Phép hội, tuyển, phủ định và nguyên lý đối ngẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-003
+    title: Đẳng thức Boolean và biến đổi biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-004
+    title: Hàm Boolean và bảng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-005
+    title: Minh hạng, đại hạng và các dạng biểu diễn chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-006
+    title: Tính đầy đủ hàm của tập phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-007
+    title: Liên hệ giữa biểu thức Boolean với cổng logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-008
+    title: Bản đồ Karnaugh và ý tưởng tối giản hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-009
+    title: Tập hợp, logic mệnh đề và đại số Boolean nhìn chung một cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boolean-algebra-010
+    title: Ứng dụng vào điều kiện, mặt nạ bit và mạch số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sequences-and-sums
+  title: Dãy và tổng
+  childs:
+  - slug: sequences-and-sums-001
+    title: Dãy hữu hạn, dãy vô hạn và chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-002
+    title: Cách mô tả dãy bằng công thức và quy tắc truy hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-003
+    title: Cấp số cộng và tổng cấp số cộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-004
+    title: Cấp số nhân và tổng cấp số nhân hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-005
+    title: Tổng lũy thừa của số nguyên và các mẫu thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-006
+    title: Tổng điều hòa và cách xây dựng cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-007
+    title: Tổng rút gọn (telescoping) và khử các số hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-008
+    title: Đổi chỉ số và biến đổi miền lấy tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-009
+    title: Tổng kép và đổi thứ tự lấy tổng hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-010
+    title: Tích hữu hạn, giai thừa và hệ số tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-011
+    title: Bất đẳng thức cơ bản và đánh giá cận của tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequences-and-sums-012
+    title: Kiểm tra công thức bằng trường hợp biên và quy nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: function-growth
+  title: Tăng trưởng hàm
+  childs:
+  - slug: function-growth-001
+    title: Lũy thừa, hàm mũ và logarit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-002
+    title: Các quy tắc logarit và phép đổi cơ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-003
+    title: So sánh tăng trưởng hằng, logarit, đa thức và hàm mũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-004
+    title: Cận trên tiệm cận với ký hiệu O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-005
+    title: Cận dưới tiệm cận với ký hiệu Ω
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-006
+    title: Cận chặt tiệm cận với ký hiệu Θ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-007
+    title: Tăng trưởng nghiêm ngặt với ký hiệu o và ω
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-008
+    title: Quy tắc biến đổi các cận và ý nghĩa của hằng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-009
+    title: Xấp xỉ giai thừa bằng công thức Stirling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-010
+    title: Phân biệt giá trị chính xác, xấp xỉ và cận tiệm cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: function-growth-011
+    title: Chứng minh cận từ định nghĩa thay vì chỉ so vài giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recursion-and-recurrences
+  title: Đệ quy và truy hồi
+  childs:
+  - slug: recursion-and-recurrences-001
+    title: Định nghĩa đệ quy và điều kiện làm cho định nghĩa hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-002
+    title: Quan hệ truy hồi, điều kiện đầu và nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-003
+    title: Giải truy hồi bằng khai triển lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-004
+    title: Dự đoán nghiệm và kiểm chứng bằng quy nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-005
+    title: Truy hồi tuyến tính thuần nhất với hệ số hằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-006
+    title: Phương trình đặc trưng và nghiệm phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-007
+    title: Nghiệm đặc trưng lặp và dạng nghiệm tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-008
+    title: Truy hồi tuyến tính không thuần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-009
+    title: Hệ truy hồi và cách biểu diễn bằng ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-010
+    title: Truy hồi chia để trị và ý nghĩa của các số hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-011
+    title: Cận trên, cận dưới và so sánh nghiệm truy hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursion-and-recurrences-012
+    title: Mô hình hóa quá trình rời rạc bằng phương trình sai phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: counting-principles
+  title: Nguyên lý đếm
+  childs:
+  - slug: counting-principles-001
+    title: Xác định đối tượng cần đếm và điều kiện hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-002
+    title: Quy tắc cộng và các trường hợp rời nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-003
+    title: Quy tắc nhân và quá trình lựa chọn theo bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-004
+    title: Đếm phần bù và tránh đếm trực tiếp phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-005
+    title: Hoán vị, chỉnh hợp và tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-006
+    title: Lựa chọn có lặp và không lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-007
+    title: Phân biệt thứ tự có ý nghĩa với thứ tự không có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-008
+    title: Hoán vị của các phần tử không hoàn toàn phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-009
+    title: Phân phối đồ vật phân biệt vào hộp phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-010
+    title: Phương pháp sao và vạch cho các nghiệm nguyên không âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-011
+    title: Nguyên lý chuồng bồ câu và dạng tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-012
+    title: Đếm hai cách và chứng minh bằng song ánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counting-principles-013
+    title: Phân biệt đếm thiếu, đếm trùng và chia theo đối xứng không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-combinatorics
+  title: Tổ hợp nâng cao
+  childs:
+  - slug: advanced-combinatorics-001
+    title: Nguyên lý bù trừ cho nhiều tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-002
+    title: Nhị thức Newton và hệ số nhị thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-003
+    title: Tam giác Pascal và các đồng nhất thức tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-004
+    title: Định lý đa thức (multinomial) và hệ số đa thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-005
+    title: Phân hoạch số nguyên và phân hoạch tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-006
+    title: Số Stirling và các cách chia tập thành nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-007
+    title: Số Bell và số phân hoạch của một tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-008
+    title: Số Catalan và các cấu trúc được đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-009
+    title: Phép đếm theo quỹ đạo và vai trò của đối xứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-010
+    title: Bổ đề Burnside trong đếm các cấu hình tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-combinatorics-011
+    title: Xây dựng truy hồi từ cấu trúc của đối tượng tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generating-functions
+  title: Hàm sinh
+  childs:
+  - slug: generating-functions-001
+    title: Chuỗi lũy thừa hình thức và cách đọc hệ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-002
+    title: Hàm sinh thông thường của một dãy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-003
+    title: Dịch chỉ số và nhân với một lũy thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-004
+    title: Cộng và nhân hàm sinh để kết hợp phép đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-005
+    title: Tích chập và hệ số của tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-006
+    title: Trích hệ số từ các khai triển quen thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-007
+    title: Giải quan hệ truy hồi bằng hàm sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-008
+    title: Mô hình hóa lựa chọn lặp bằng tích các hàm sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-009
+    title: Hàm sinh mũ cho các đối tượng có nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generating-functions-010
+    title: Phân biệt thao tác hình thức với yêu cầu hội tụ giải tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graph-theory
+  title: Lý thuyết đồ thị
+  childs:
+  - slug: graph-theory-001
+    title: Đỉnh, cạnh và mô hình quan hệ bằng đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-002
+    title: Đồ thị vô hướng, có hướng và có trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-003
+    title: Đồ thị đơn, đa đồ thị và khuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-004
+    title: Bậc đỉnh, bậc vào, bậc ra và bổ đề bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-005
+    title: Đồ thị con, đồ thị cảm sinh và đồ thị bù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-006
+    title: Đẳng cấu đồ thị và các tính chất được bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-007
+    title: Đường đi, hành trình, vết đi và chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-008
+    title: Tính liên thông và các thành phần liên thông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-009
+    title: Đồ thị hai phía và các cách nhận biết về mặt toán học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-010
+    title: Đồ thị đầy đủ, đồ thị chính quy và các họ đồ thị cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-011
+    title: Ma trận kề, ma trận liên thuộc và diễn giải quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-012
+    title: Đồ thị phẳng và công thức Euler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-013
+    title: Tô màu đỉnh, tô màu cạnh và các bài toán xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graph-theory-014
+    title: Mô hình hóa các bài toán thực tế bằng loại đồ thị phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trees
+  title: Cây
+  childs:
+  - slug: trees-001
+    title: Cây, rừng và các đặc trưng tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-002
+    title: Quan hệ giữa số đỉnh, số cạnh và tính liên thông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-003
+    title: Tính duy nhất của đường đi trong cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-004
+    title: Cây có gốc, quan hệ tổ tiên và quan hệ hậu duệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-005
+    title: Độ sâu, chiều cao, lá và nút trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-006
+    title: Cây có thứ tự và cây không có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-007
+    title: Cây nhị phân, cây m nhánh và các cận số nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-008
+    title: Cây khung và mối liên hệ với đồ thị gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-009
+    title: Đếm cây và các bài toán tổ hợp trên cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-010
+    title: Chứng minh tính chất của cây bằng quy nạp cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trees-011
+    title: Mô hình phân cấp, cây quyết định và biểu thức toán học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paths-and-networks
+  title: Đường đi và mạng
+  childs:
+  - slug: paths-and-networks-001
+    title: Đường đi ngắn nhất và các giả thiết về trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-002
+    title: Khoảng cách đồ thị và các tính chất của khoảng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-003
+    title: Đường đi Euler, chu trình Euler và điều kiện tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-004
+    title: Đường đi Hamilton, chu trình Hamilton và sự khác biệt với Euler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-005
+    title: Đồ thị có hướng không chu trình và thứ tự tô-pô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-006
+    title: Điểm khớp, cạnh cầu và tính bền vững của kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-007
+    title: Lát cắt, khả năng liên thông và các đường đi rời nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-008
+    title: Định lý Menger và quan hệ giữa đường đi với lát cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-009
+    title: Mạng luồng, sức chứa và điều kiện bảo toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-010
+    title: Định lý luồng cực đại–lát cắt cực tiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-011
+    title: Ghép cặp trong đồ thị hai phía và điều kiện Hall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-networks-012
+    title: Phủ đỉnh, ghép cặp và các quan hệ cực tiểu–cực đại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: probability-basics
+  title: Xác suất cơ sở
+  childs:
+  - slug: probability-basics-001
+    title: Phép thử ngẫu nhiên, không gian mẫu và biến cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-002
+    title: Các phép toán trên biến cố và quan hệ với tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-003
+    title: Các tiên đề xác suất và hệ quả cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-004
+    title: Mô hình hữu hạn đồng khả năng và phép đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-005
+    title: Xác suất của hợp, giao và biến cố đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-006
+    title: Xác suất có điều kiện và điều kiện xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-007
+    title: Công thức nhân và chuỗi điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-008
+    title: Công thức xác suất toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-009
+    title: Định lý Bayes và ảnh hưởng của xác suất nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-010
+    title: Độc lập giữa hai biến cố và độc lập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-011
+    title: Phân biệt độc lập với xung khắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-012
+    title: Cận hợp và đánh giá xác suất của nhiều sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-basics-013
+    title: Xây dựng mô hình xác suất từ giả thiết thay vì trực giác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: random-variables
+  title: Biến ngẫu nhiên
+  childs:
+  - slug: random-variables-001
+    title: Biến ngẫu nhiên là hàm từ kết quả phép thử đến giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-002
+    title: Biến ngẫu nhiên rời rạc và hàm khối xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-003
+    title: Biến ngẫu nhiên liên tục và hàm mật độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-004
+    title: Hàm phân phối tích lũy và các tính chất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-005
+    title: Phân phối chung của nhiều biến ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-006
+    title: Phân phối biên và phân phối có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-007
+    title: Độc lập của các biến ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-008
+    title: Biến chỉ báo và cách biểu diễn số lượng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-009
+    title: Hàm của biến ngẫu nhiên và phân phối kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-010
+    title: Biến đổi tuyến tính và thay đổi thang đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: random-variables-011
+    title: Vectơ ngẫu nhiên và mối liên hệ giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: probability-distributions
+  title: Phân phối xác suất
+  childs:
+  - slug: probability-distributions-001
+    title: Phân phối Bernoulli và một phép thử hai kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-002
+    title: Phân phối nhị thức và số lần thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-003
+    title: Phân phối hình học và số lần chờ đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-004
+    title: Phân phối nhị thức âm và quy ước đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-005
+    title: Phân phối siêu bội và lấy mẫu không hoàn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-006
+    title: Phân phối Poisson và mô hình đếm sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-007
+    title: Phân phối đều rời rạc và phân phối đều liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-008
+    title: Phân phối mũ và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-009
+    title: Phân phối chuẩn và chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-010
+    title: Phân phối đa thức và nhiều loại kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-011
+    title: Phân phối beta, gamma và quan hệ với các mô hình xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-012
+    title: Quan hệ xấp xỉ giữa các phân phối và điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-distributions-013
+    title: Lựa chọn phân phối từ cơ chế sinh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expectations-and-convergence
+  title: Kỳ vọng và hội tụ
+  childs:
+  - slug: expectations-and-convergence-001
+    title: Kỳ vọng trong trường hợp rời rạc và liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-002
+    title: Tính tuyến tính của kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-003
+    title: Kỳ vọng có điều kiện và quy tắc kỳ vọng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-004
+    title: Phương sai, độ lệch chuẩn và phép biến đổi tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-005
+    title: Hiệp phương sai, tương quan và sự phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-006
+    title: Phương sai của tổng và vai trò của giả thiết độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-007
+    title: Mômen (moment) và hàm sinh xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-008
+    title: Hàm sinh mômen và cách dùng để đánh giá xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-009
+    title: Bất đẳng thức Markov và giới hạn từ kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-010
+    title: Bất đẳng thức Chebyshev và giới hạn từ phương sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-011
+    title: Cận Chernoff và hiện tượng tập trung xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-012
+    title: Luật số lớn và ý nghĩa của trung bình mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-013
+    title: Định lý giới hạn trung tâm và các giả thiết áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-014
+    title: Phân biệt hội tụ gần chắc chắn, theo xác suất và theo phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expectations-and-convergence-015
+    title: Ứng dụng kỳ vọng vào số lần thử và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: statistics-and-inference
+  title: Thống kê và suy luận
+  childs:
+  - slug: statistics-and-inference-001
+    title: Tổng thể, mẫu và cơ chế thu thập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-002
+    title: Tham số, thống kê và phân phối lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-003
+    title: Trung bình, trung vị, phân vị và các thước đo phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-004
+    title: Ước lượng điểm, độ chệch và tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-005
+    title: Sai số chuẩn và sự khác biệt với độ lệch chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-006
+    title: Khoảng tin cậy và cách diễn giải đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-007
+    title: Giả thuyết không, giả thuyết đối và thống kê kiểm định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-008
+    title: Giá trị p, mức ý nghĩa và giới hạn kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-009
+    title: Sai lầm loại I, sai lầm loại II và lực kiểm định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-010
+    title: Cỡ mẫu, kích thước hiệu ứng và ý nghĩa thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-011
+    title: Ước lượng hợp lý cực đại và ý tưởng suy luận Bayes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-012
+    title: Bootstrap, lấy mẫu lại và đánh giá độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-013
+    title: Tương quan, hồi quy và giới hạn suy luận nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-014
+    title: Thiên lệch chọn mẫu, kiểm định nhiều lần và khả năng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: information-theory
+  title: Lý thuyết thông tin
+  childs:
+  - slug: information-theory-001
+    title: Tự thông tin và độ bất ngờ của một kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-002
+    title: Entropy và mức độ bất định của phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-003
+    title: Entropy chung, entropy có điều kiện và quy tắc chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-004
+    title: Thông tin tương hỗ và mức độ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-005
+    title: Độ phân kỳ KL và điều kiện để giá trị hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-006
+    title: Entropy chéo và quan hệ với sai khác phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-007
+    title: Mã nhị phân, độ dài từ mã và tính giải mã duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-008
+    title: Mã tiền tố và bất đẳng thức Kraft
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-009
+    title: Giới hạn nén không mất dữ liệu và độ dài mã trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-010
+    title: Khoảng cách Hamming và ý tưởng phát hiện, sửa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-theory-011
+    title: Mối liên hệ giữa thông tin, xác suất và lựa chọn biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vectors-and-spaces
+  title: Vectơ và không gian
+  childs:
+  - slug: vectors-and-spaces-001
+    title: Đại lượng vô hướng, vectơ và cách biểu diễn tọa độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-002
+    title: Phép cộng vectơ và phép nhân với vô hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-003
+    title: Không gian vectơ và các tiên đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-004
+    title: Không gian con và cách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-005
+    title: Tổ hợp tuyến tính và không gian sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-006
+    title: Độc lập tuyến tính và phụ thuộc tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-007
+    title: Cơ sở, tọa độ theo cơ sở và số chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-008
+    title: Ánh xạ tuyến tính và các tính chất bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-009
+    title: Hạt nhân, ảnh và định lý liên hệ hạng với số chiều hạt nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-010
+    title: Tích vô hướng, độ dài và góc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-011
+    title: Chuẩn vectơ, khoảng cách và các chuẩn thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectors-and-spaces-012
+    title: Trực giao, trực chuẩn và phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: matrices-and-linear-systems
+  title: Ma trận và hệ tuyến tính
+  childs:
+  - slug: matrices-and-linear-systems-001
+    title: Ma trận, kích thước và các loại ma trận cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-002
+    title: Cộng, nhân, chuyển vị và các quy tắc đại số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-003
+    title: Ma trận biểu diễn ánh xạ tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-004
+    title: Hợp thành ánh xạ và phép nhân ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-005
+    title: Hệ phương trình tuyến tính và ma trận mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-006
+    title: Biến đổi sơ cấp, dạng bậc thang và khử Gauss
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-007
+    title: Điều kiện có nghiệm, vô nghiệm và nghiệm duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-008
+    title: Hạng ma trận và cấu trúc tập nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-009
+    title: Ma trận khả nghịch và hệ phương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-010
+    title: Định thức và ý nghĩa về biến đổi thể tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-011
+    title: Đổi cơ sở và biểu diễn của cùng một ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrices-and-linear-systems-012
+    title: Ma trận thưa, ma trận khối và ý nghĩa cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: eigenvalues-and-decompositions
+  title: Trị riêng và phân rã
+  childs:
+  - slug: eigenvalues-and-decompositions-001
+    title: Trị riêng, vectơ riêng và phương trình đặc trưng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-002
+    title: Không gian riêng và bội của trị riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-003
+    title: Điều kiện chéo hóa và vai trò của cơ sở vectơ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-004
+    title: Ma trận đối xứng và định lý phổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-005
+    title: Ma trận xác định dương và dạng toàn phương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-006
+    title: Phân rã LU và giải nhiều hệ với cùng ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-007
+    title: Phân rã QR và cơ sở trực chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-008
+    title: Phân rã giá trị kỳ dị (SVD)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-009
+    title: Hạng thấp và xấp xỉ ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-010
+    title: Bài toán bình phương tối thiểu và phần dư trực giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eigenvalues-and-decompositions-011
+    title: Ứng dụng phổ và lũy thừa ma trận vào quá trình lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: single-variable-calculus
+  title: Giải tích một biến
+  childs:
+  - slug: single-variable-calculus-001
+    title: Hàm số thực, miền xác định và đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-002
+    title: Giới hạn hàm và giới hạn dãy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-003
+    title: Tính liên tục và các tính chất trên khoảng đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-004
+    title: Đạo hàm và tốc độ biến thiên cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-005
+    title: Quy tắc đạo hàm và quy tắc dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-006
+    title: Định lý giá trị trung bình và các giả thiết áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-007
+    title: Đơn điệu, cực trị và phân tích đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-008
+    title: Khai triển Taylor và phần dư xấp xỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-009
+    title: Nguyên hàm và tích phân xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-010
+    title: Định lý cơ bản của giải tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-011
+    title: Tích phân suy rộng và điều kiện hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-012
+    title: Chuỗi số và các tiêu chuẩn hội tụ cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-013
+    title: Chuỗi lũy thừa và bán kính hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-variable-calculus-014
+    title: Đánh giá tổng bằng tích phân trong bài toán tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multivariable-calculus
+  title: Giải tích nhiều biến
+  childs:
+  - slug: multivariable-calculus-001
+    title: Hàm nhiều biến và không gian đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-002
+    title: Giới hạn, liên tục và đường tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-003
+    title: Đạo hàm riêng và sự phụ thuộc theo từng biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-004
+    title: Gradient và hướng tăng nhanh nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-005
+    title: Đạo hàm theo hướng và vai trò của chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-006
+    title: Khả vi toàn phần và xấp xỉ tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-007
+    title: Ma trận Jacobian của ánh xạ nhiều đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-008
+    title: Quy tắc dây chuyền với nhiều biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-009
+    title: Ma trận Hessian và thông tin độ cong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-010
+    title: Điểm dừng, cực trị và điểm yên ngựa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-011
+    title: Tích phân nhiều chiều và đổi biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multivariable-calculus-012
+    title: Khai triển Taylor nhiều biến và ước lượng cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: optimization
+  title: Tối ưu hóa
+  childs:
+  - slug: optimization-001
+    title: Biến quyết định, hàm mục tiêu và miền khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-002
+    title: Bài toán có ràng buộc và không có ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-003
+    title: Cực tiểu cục bộ, cực tiểu toàn cục và sự tồn tại nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-004
+    title: Tập lồi, tổ hợp lồi và hàm lồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-005
+    title: Điều kiện bậc nhất và bậc hai cho cực trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-006
+    title: Ý nghĩa của tính lồi đối với nghiệm tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-007
+    title: Nhân tử Lagrange cho ràng buộc đẳng thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-008
+    title: Điều kiện KKT và các giả thiết chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-009
+    title: Quy hoạch tuyến tính và hình học miền đa diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-010
+    title: Đối ngẫu và các cận cho giá trị tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-011
+    title: Hạ gradient, lựa chọn bước và tiêu chí dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-012
+    title: Phương pháp Newton và vai trò của độ cong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-013
+    title: Điều chuẩn và đánh đổi giữa độ khớp với độ ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-014
+    title: Mô hình hóa tối ưu rời rạc và giới hạn của nới lỏng liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numerical-computation
+  title: Tính toán số
+  childs:
+  - slug: numerical-computation-001
+    title: Phân biệt bài toán toán học với cách giải gần đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-002
+    title: Sai số tuyệt đối, sai số tương đối và số chữ số có nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-003
+    title: Biểu diễn dấu phẩy động và giới hạn độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-004
+    title: Làm tròn, mất chữ số và hiện tượng triệt tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-005
+    title: Sai số dữ liệu đầu vào, sai số rời rạc hóa và sai số tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-006
+    title: Độ nhạy của bài toán và số điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-007
+    title: Tính ổn định của phương pháp và lan truyền sai số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-008
+    title: Tìm nghiệm gần đúng và tiêu chí kiểm tra phần dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-009
+    title: Giải hệ tuyến tính trong số học hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-010
+    title: Nội suy và xấp xỉ hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-011
+    title: Tích phân số và sự cân bằng giữa bước lưới với sai số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-012
+    title: Monte Carlo và đánh giá độ bất định của ước lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numerical-computation-013
+    title: Kiểm tra hội tụ, độ chính xác và khả năng tái lập kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: models-and-practice
+  title: Mô hình và thực hành
+  childs:
+  - slug: models-and-practice-001
+    title: Từ bài toán thực tế đến biến, miền giá trị và giả thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-002
+    title: Chọn mô hình tập hợp, quan hệ, hàm hoặc đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-003
+    title: Viết đặc tả bằng logic và tìm phản ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-004
+    title: Chứng minh tính chất bằng quy nạp và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-005
+    title: Đếm cấu hình bằng nhiều phương pháp để đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-006
+    title: Lập và giải truy hồi cho một quá trình rời rạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-007
+    title: Xây dựng mô hình xác suất và kiểm tra giả thiết độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-008
+    title: Phân tích dữ liệu với ước lượng và độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-009
+    title: Biểu diễn phép biến đổi bằng vectơ và ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-010
+    title: Chọn công cụ giải tích hoặc tối ưu hóa cho một mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-011
+    title: Đối chiếu lời giải chính xác, lời giải số và mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-012
+    title: Kiểm tra trường hợp biên, đơn vị đo và mức độ nhạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: models-and-practice-013
+    title: Trình bày lập luận cùng giới hạn áp dụng của kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

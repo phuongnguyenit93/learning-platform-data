@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-model-driven
+  title: Tư duy Model-Driven
+  purpose: Hiểu việc sử dụng mô hình như hiện vật kỹ thuật có thể phân tích và chuyển đổi, không chỉ là sơ đồ minh họa.
+  objectives:
+  - Phân biệt Model-Driven Development với lập trình trực tiếp.
+  - Giải thích vai trò model, transformation và generator.
+  - Phân biệt MDD nói chung với kiến trúc MDA của OMG.
+- id: mo-hinh-mien-pim
+  title: Mô hình miền & PIM
+  purpose: Biểu diễn yêu cầu nghiệp vụ độc lập công nghệ trước khi quyết định cách triển khai.
+  objectives:
+  - Xác định thực thể, quan hệ, quy tắc và hành vi cốt lõi.
+  - Vẽ mô hình miền hoặc Platform-Independent Model (PIM).
+  - Liên kết yêu cầu với phần tử mô hình tương ứng.
+- id: metamodel-ecore
+  title: Metamodel & Ecore
+  purpose: Định nghĩa ngôn ngữ mô hình để các công cụ có thể đọc, chỉnh sửa và kiểm tra nhất quán.
+  objectives:
+  - Phân biệt model, metamodel và instance.
+  - Tạo EClass, EAttribute, EReference với Eclipse EMF.
+  - Lưu hoặc trao đổi mô hình qua XMI khi phù hợp.
+- id: uml-dsl-trinh-bien-tap
+  title: UML, DSL & trình biên tập
+  purpose: Chọn cách biểu diễn mô hình đủ sát miền nghiệp vụ và hỗ trợ người dùng xây dựng mô hình.
+  objectives:
+  - So sánh UML chuẩn với Domain-Specific Language (DSL).
+  - Xác định cú pháp và ngữ nghĩa cơ bản của một DSL.
+  - Thử công cụ mô hình hóa hoặc text DSL bằng Xtext.
+- id: rang-buoc-kiem-tra-mo-hinh
+  title: Ràng buộc & kiểm tra mô hình
+  purpose: Phát hiện sai lệch trong mô hình trước khi biến đổi hoặc sinh ra hiện vật triển khai.
+  objectives:
+  - Định nghĩa bất biến và ràng buộc nghiệp vụ trên model.
+  - Áp dụng OCL hoặc cơ chế validation tương đương.
+  - Viết test cho mô hình hợp lệ và mô hình vi phạm.
+- id: chuyen-doi-pim-psm
+  title: Chuyển đổi PIM → PSM
+  purpose: Ánh xạ mô hình nghiệp vụ sang mô hình phù hợp nền tảng mà vẫn giữ ý nghĩa ban đầu.
+  objectives:
+  - Phân biệt model-to-model với model-to-text transformation.
+  - Xây quy tắc ánh xạ PIM sang Platform-Specific Model.
+  - Nhận diện vai trò của QVT và các thay đổi cần truy vết.
+- id: sinh-ma-hien-vat
+  title: Sinh mã & hiện vật
+  purpose: Tự động tạo mã hoặc cấu hình từ mô hình để giảm công việc lặp lại và sai khác thủ công.
+  objectives:
+  - Dùng EMF Codegen hoặc Acceleo sinh Java/cấu hình mẫu.
+  - Tách mã sinh tự động khỏi phần tự viết để dễ tái sinh.
+  - Kiểm tra tính lặp lại và kết quả khi mô hình thay đổi.
+- id: vong-doi-mo-hinh-ci
+  title: Vòng đời mô hình & CI
+  purpose: Duy trì tính nhất quán giữa yêu cầu, model và sản phẩm khi hệ thống tiến hóa.
+  objectives:
+  - Quản lý phiên bản, review và kiểm thử model/transformation.
+  - Tự động hóa validate, generate và build trong CI.
+  - Đánh giá rủi ro model-code drift, chi phí công cụ và khả năng bảo trì.

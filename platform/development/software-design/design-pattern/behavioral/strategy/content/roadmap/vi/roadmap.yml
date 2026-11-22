@@ -1,0 +1,57 @@
+roadmap:
+- id: dau-hieu-can-strategy
+  title: Dấu hiệu cần Strategy
+  purpose: Nhận diện những hành vi có nhiều biến thể và thay đổi thường xuyên trong cùng một ngữ cảnh.
+  objectives:
+  - Phát hiện nhánh if/else chọn thuật toán
+  - Tách phần ổn định khỏi phần biến đổi
+  - Đánh giá khi nào Strategy thực sự hữu ích
+- id: strategy-interface
+  title: Strategy Interface
+  purpose: Thiết kế hợp đồng chung để các thuật toán có thể thay thế nhau.
+  objectives:
+  - Xác định đầu vào và đầu ra chung
+  - Định nghĩa một Strategy interface
+  - Giữ hợp đồng độc lập với implementation
+- id: concrete-strategies
+  title: Concrete Strategies
+  purpose: Đóng gói từng biến thể hành vi để dễ mở rộng và kiểm thử riêng.
+  objectives:
+  - Tạo ít nhất hai ConcreteStrategy
+  - Đảm bảo các strategy tuân thủ hợp đồng
+  - Giảm phụ thuộc giữa các thuật toán
+- id: context-composition
+  title: Context & Composition
+  purpose: Tách logic sử dụng thuật toán khỏi phần triển khai cụ thể nhờ composition.
+  objectives:
+  - Lưu Strategy trong Context
+  - Ủy quyền xử lý qua interface
+  - Thay strategy mà không sửa Context
+- id: chon-doi-strategy
+  title: Chọn & đổi Strategy
+  purpose: Cho phép client chọn hành vi phù hợp và thay đổi khi chạy.
+  objectives:
+  - Truyền Strategy qua constructor hoặc setter
+  - Chọn strategy theo yêu cầu nghiệp vụ
+  - Quan sát kết quả khi đổi hành vi runtime
+- id: lambda-comparator
+  title: Lambda & Comparator
+  purpose: Vận dụng tính năng Java để triển khai strategy gọn hơn khi hợp đồng đơn giản.
+  objectives:
+  - Viết strategy bằng functional interface
+  - Truyền lambda hoặc method reference
+  - Thử Comparator với hai cách sắp xếp
+- id: refactor-kiem-thu
+  title: Refactor & kiểm thử
+  purpose: Chuyển mã điều kiện cồng kềnh sang Strategy và bảo vệ tính đúng đắn.
+  objectives:
+  - Tách các nhánh thuật toán thành lớp riêng
+  - Viết unit test cho từng strategy
+  - Kiểm tra Context hoạt động với strategy giả
+- id: danh-doi-so-sanh
+  title: Đánh đổi & so sánh
+  purpose: Chọn Strategy đúng ngữ cảnh, tránh lạm dụng và phân biệt các mẫu gần giống.
+  objectives:
+  - Phân tích lợi ích mở rộng và chi phí lớp
+  - So sánh Strategy với State
+  - Phân biệt Strategy và Template Method

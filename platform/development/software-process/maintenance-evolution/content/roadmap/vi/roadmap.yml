@@ -1,0 +1,57 @@
+roadmap:
+- id: loai-hinh-vong-doi-bao-tri
+  title: Loại hình & Vòng đời bảo trì
+  purpose: Hiểu bảo trì phần mềm sau khi bàn giao và phân biệt cải tiến sản phẩm với vận hành hằng ngày.
+  objectives:
+  - Phân biệt corrective, adaptive, perfective, preventive maintenance
+  - Giải thích vòng đời tiếp nhận, thay đổi và xác minh
+  - Nhận diện các bên liên quan và trách nhiệm bảo trì
+- id: tiep-nhan-uu-tien-thay-doi
+  title: Tiếp nhận & Ưu tiên thay đổi
+  purpose: Chọn đúng công việc cần xử lý dựa trên ảnh hưởng người dùng, rủi ro và giá trị lâu dài.
+  objectives:
+  - Phân loại bug, yêu cầu thích ứng và yêu cầu cải tiến
+  - Tái hiện sự cố và xác định tiêu chí chấp nhận
+  - Đánh giá mức độ ảnh hưởng, ưu tiên và ước lượng
+- id: hieu-he-thong-hien-huu
+  title: Hiểu hệ thống hiện hữu
+  purpose: Giảm rủi ro sửa sai khi hệ thống cũ thiếu tài liệu hoặc chứa nhiều phụ thuộc ngầm.
+  objectives:
+  - Đọc codebase, kiến trúc và lịch sử thay đổi
+  - Vẽ luồng dữ liệu, dependency và điểm tích hợp
+  - Thiết lập baseline hành vi bằng characterization tests
+- id: kiem-soat-kiem-thu-hoi-quy
+  title: Kiểm soát & Kiểm thử hồi quy
+  purpose: Đưa thay đổi vào hệ thống một cách kiểm chứng được mà không làm hỏng hành vi đã hoạt động.
+  objectives:
+  - Thực hiện change review và phân tích tác động
+  - Viết unit, integration và regression tests phù hợp
+  - Chuẩn bị release notes, kiểm tra triển khai và rollback
+- id: refactoring-no-ky-thuat
+  title: Refactoring & Nợ kỹ thuật
+  purpose: Cải thiện cấu trúc bên trong để giảm chi phí thay đổi mà vẫn giữ nguyên hành vi quan sát được.
+  objectives:
+  - Nhận diện code smells và hotspot thường xuyên thay đổi
+  - Refactor từng bước nhỏ với test bảo vệ
+  - Ưu tiên technical debt theo chi phí và tác động
+- id: phu-thuoc-tuong-thich
+  title: Phụ thuộc & Tương thích
+  purpose: Thích ứng với thay đổi nền tảng, thư viện và yêu cầu bảo mật mà vẫn hạn chế gián đoạn.
+  objectives:
+  - Kiểm tra dependency lỗi thời hoặc có lỗ hổng
+  - Lập kế hoạch nâng cấp API, runtime và schema
+  - Đánh giá backward compatibility và deprecation
+- id: tien-hoa-hien-dai-hoa-dan
+  title: Tiến hóa & Hiện đại hóa dần
+  purpose: Thay đổi kiến trúc hoặc thay thế thành phần lỗi thời từng phần thay vì viết lại toàn bộ một lần.
+  objectives:
+  - Chọn seam và ranh giới để tách legacy module
+  - Áp dụng Strangler Fig cho chức năng phù hợp
+  - Di chuyển từng bước với kiểm tra tương đương và rollback
+- id: do-luong-ngung-ho-tro
+  title: Đo lường & Ngừng hỗ trợ
+  purpose: Duy trì khả năng bảo trì lâu dài và quyết định khi nào nên cải tiến, thay thế hoặc nghỉ hưu phần mềm.
+  objectives:
+  - Theo dõi thời gian sửa lỗi, thay đổi thất bại và toil
+  - Cập nhật tài liệu, ownership và lịch sử quyết định
+  - Lập kế hoạch end-of-life và decommission an toàn

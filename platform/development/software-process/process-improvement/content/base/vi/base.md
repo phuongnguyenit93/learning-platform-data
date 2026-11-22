@@ -1,0 +1,7 @@
+# Software Process Process Improvement
+
+Process Improvement trong phát triển phần mềm là việc liên tục xem xét và điều chỉnh cách một nhóm biến yêu cầu thành giá trị cho người dùng. Trọng tâm không phải bổ sung thật nhiều quy định hay công cụ, mà là giảm chờ đợi, loại bỏ thao tác không tạo giá trị, nâng độ tin cậy và giúp công việc luân chuyển tốt hơn. Một thay đổi quy trình chỉ nên được xem là cải tiến khi có kết quả phù hợp với mục tiêu, được đội ngũ kiểm chứng và không gây suy giảm chất lượng hoặc sức khỏe làm việc.
+
+Module dành cho người đã hiểu vòng đời phát triển phần mềm, Git, code review, kiểm thử và CI/CD ở mức cơ bản. Lộ trình bắt đầu từ xác định mục tiêu và phạm vi thay đổi, thiết lập baseline với flow metrics và chỉ số hiệu suất phân phối phần mềm, rồi dùng Value Stream Mapping để tìm thời gian chờ và điểm nghẽn. Sau đó người học tìm nguyên nhân gốc, ưu tiên improvement backlog và triển khai thử nghiệm nhỏ theo PDCA (Plan–Do–Check–Act). Các phần cuối tập trung chuẩn hóa thực hành hiệu quả, tự động hóa hợp lý và vận hành vòng phản hồi qua retrospective, postmortem và số liệu sau thay đổi.
+
+Hoàn thành module, bạn có thể vẽ luồng delivery của một nhóm, lựa chọn chỉ số đo hiện trạng, đề xuất một thí nghiệm cải tiến có tiêu chí thành công và đánh giá kết quả trước–sau. Nên theo dõi xu hướng của chính hệ thống theo thời gian, tránh dùng một chỉ số đơn lẻ để chấm điểm cá nhân hay so sánh những nhóm có bối cảnh khác nhau. Cải tiến bền vững cần người chịu trách nhiệm, hành động cụ thể và vòng rà soát tiếp nối sau mỗi thay đổi.

@@ -1,0 +1,3 @@
+menuLevel1: Điều kiện bean
+menuLevel2: '@ConditionalOnBean và yêu cầu các bean phụ thuộc đã được đăng ký'
+status: WRITTEN

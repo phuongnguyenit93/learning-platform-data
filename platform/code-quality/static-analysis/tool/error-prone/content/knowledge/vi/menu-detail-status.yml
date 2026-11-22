@@ -1,0 +1,2911 @@
+menu:
+- slug: error-prone-overview
+  title: Tổng quan
+  childs:
+  - slug: error-prone-overview-001
+    title: Error Prone là gì và bài toán phát hiện lỗi ngay khi biên dịch Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-002
+    title: Phân biệt lỗi compiler, chẩn đoán của checker và lỗi khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-003
+    title: Checker, bug pattern, severity và suggested fix là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-004
+    title: So sánh phạm vi Error Prone với PMD, SpotBugs và Checkstyle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-005
+    title: Vai trò của thông tin kiểu và ngữ nghĩa trong phát hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-006
+    title: Tích hợp kiểm tra vào lần biên dịch thường ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-007
+    title: Giới hạn của phân tích tĩnh và ý nghĩa của kết quả không có cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-008
+    title: Phân biệt Error Prone core, checker mở rộng, NullAway và Refaster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-prone-overview-009
+    title: Kiến thức nền và thứ tự học từ sử dụng đến viết checker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: javac-mechanism
+  title: Cơ chế javac
+  childs:
+  - slug: javac-mechanism-001
+    title: Vị trí Error Prone trong các giai đoạn xử lý của javac
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-002
+    title: Từ mã nguồn đến cây cú pháp và thông tin kiểu đã phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-003
+    title: Tree, symbol, type và quan hệ với mã nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-004
+    title: Cơ chế nạp bằng -Xplugin:ErrorProne
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-005
+    title: Phân biệt compiler plugin với annotation processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-006
+    title: Vì sao dependency Error Prone vẫn được đặt trên processor path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-007
+    title: Checker nhận dữ liệu từ javac và phát sinh chẩn đoán như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-008
+    title: Quan hệ giữa classpath ứng dụng, processor path và môi trường chạy compiler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-009
+    title: Giới hạn khi mã không biên dịch được hoặc bị tạo, biến đổi bởi công cụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javac-mechanism-010
+    title: Ảnh hưởng của API nội bộ javac đến tương thích JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Thiết lập
+  childs:
+  - slug: setup-001
+    title: Kiểm tra JDK tối thiểu và phiên bản Error Prone tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Phân biệt JDK chạy công cụ với --release của mã đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Chọn phiên bản core, build plugin và checker mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Khai báo error_prone_core và error_prone_annotations đúng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Chuẩn bị dự án Java nhỏ có ví dụ bị checker phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Chạy lần biên dịch đầu tiên với Error Prone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Nhận diện tên checker, vị trí nguồn và đề xuất sửa trong thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Sửa ví dụ, biên dịch lại và xác nhận kiểm tra thực sự hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-009
+    title: Cố định phiên bản và ghi lại lệnh chạy có thể tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-line
+  title: Dòng lệnh
+  childs:
+  - slug: command-line-001
+    title: Chạy javac với plugin Error Prone và dependency cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-002
+    title: Cấu hình processor path và classpath ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-003
+    title: Phân biệt tham số javac, tham số JVM của compiler và tham số -Xep
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-004
+    title: Compile policy, điểm dừng khi có lỗi và yêu cầu của phiên bản đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-005
+    title: Truyền tùy chọn checker cùng đối số -Xplugin:ErrorProne
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-006
+    title: Thiết lập --add-exports, --add-opens theo hướng dẫn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-007
+    title: Dùng --release, source encoding và classpath phù hợp với dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-008
+    title: Tệp đối số @file và cấu hình dùng chung khi phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-009
+    title: Trích dẫn đối số, khoảng trắng và xuống dòng trên Windows, Linux, macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-010
+    title: Phân biệt kết quả biên dịch thất bại do lỗi Java, checker hay hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-integration
+  title: Tích hợp Maven
+  childs:
+  - slug: maven-integration-001
+    title: Cấu hình maven-compiler-plugin thay vì một tác vụ phân tích bytecode riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-002
+    title: Khai báo Error Prone trong annotationProcessorPaths
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-003
+    title: Truyền -Xplugin:ErrorProne và cờ -Xep qua compilerArgs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-004
+    title: Cấu hình showWarnings và quan hệ với chẩn đoán mức WARN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-005
+    title: Biên dịch trong tiến trình Maven và chế độ fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-006
+    title: Đặt cờ mở module vào đúng JVM với .mvn/jvm.config hoặc đối số -J
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-007
+    title: Kết hợp Maven toolchains với phiên bản Java nguồn và --release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-008
+    title: Khai báo đầy đủ các annotation processor khác khi processor path được chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-009
+    title: Kiểm soát phạm vi compile, testCompile và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-010
+    title: Quản lý cấu hình chung bằng parent POM và pluginManagement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-011
+    title: Đọc effective POM và xác minh compiler thực sự được gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-012
+    title: Kiểm tra cấu hình đối số nhiều dòng và argument file trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-integration
+  title: Tích hợp Gradle
+  childs:
+  - slug: gradle-integration-001
+    title: Áp dụng plugin net.ltgt.errorprone và kiểm tra tương thích Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-002
+    title: Khai báo error_prone_core trong configuration errorprone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-003
+    title: Quan hệ giữa errorprone và annotationProcessor của từng source set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-004
+    title: Cấu hình options.errorprone trên JavaCompile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-005
+    title: compileJava, compileTestJava và source set bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-006
+    title: Bật, tắt hoặc đặt mức từng checker bằng DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-007
+    title: Truyền checker options và đối số bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-008
+    title: Cấu hình mã test, excludedPaths và warnings trong mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-009
+    title: Kết hợp Java toolchain với sourceCompatibility, targetCompatibility và release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-010
+    title: Thêm checker ngoài vào đúng configuration và đúng source set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-011
+    title: Phân biệt JavaCompile được gắn với source set và task JavaCompile tự tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-012
+    title: Đối chiếu Groovy DSL, Kotlin DSL và cấu hình compiler hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bazel-and-ide
+  title: Bazel và IDE
+  childs:
+  - slug: bazel-and-ide-001
+    title: Kiểm tra tích hợp Error Prone trong Java toolchain của Bazel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-002
+    title: Cấu hình Java target và kiểm chứng checker thực sự được bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-003
+    title: Đưa checker tùy chỉnh vào java_plugin và dependency tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-004
+    title: Chia sẻ cấu hình checker giữa công cụ build và môi trường phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-005
+    title: Phân biệt phân tích riêng của IDE với biên dịch qua build đã bật Error Prone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-006
+    title: Ủy quyền build cho Maven hoặc Gradle khi cần kết quả nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-007
+    title: Đối chiếu JDK, flags và processor path khi IDE khác CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-008
+    title: Tích hợp Ant hoặc javac trực tiếp trong dự án hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bazel-and-ide-009
+    title: Giới hạn với Android, Kotlin và tác vụ không biên dịch Java bằng javac
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: checker-configuration
+  title: Cấu hình checker
+  childs:
+  - slug: checker-configuration-001
+    title: Đọc danh mục checker và trạng thái bật mặc định theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-002
+    title: Phân biệt nhóm ERROR, WARNING và checker bị tắt mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-003
+    title: Cú pháp -Xep:CheckName với OFF, WARN và ERROR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-004
+    title: Canonical name, alias và xử lý tên checker không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-005
+    title: Thứ tự tùy chọn và giá trị cuối cùng được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-006
+    title: -XepDisableAllChecks rồi bật tường minh các checker cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-007
+    title: Chuyển mức toàn cục bằng AllErrorsAsWarnings và các cờ tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-008
+    title: Đánh giá từng checker trước khi bật hàng loạt checker thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-009
+    title: Truyền cấu hình riêng qua -XepOpt:Namespace:Option=Value
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-010
+    title: Phân biệt severity của checker với cơ chế javac -Werror
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-configuration-011
+    title: Lưu cấu hình theo phạm vi dự án và kiểm tra khác biệt giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-reading
+  title: Đọc chẩn đoán
+  childs:
+  - slug: diagnostic-reading-001
+    title: 'Cấu trúc thông báo: tệp, dòng, severity, tên checker và mô tả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-002
+    title: Tra tài liệu checker bằng đường dẫn đi kèm chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-003
+    title: Phân biệt lỗi được xác định, cảnh báo và đề xuất cải thiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-004
+    title: Đọc vị trí chính và ngữ cảnh kiểu, overload hoặc generic liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-005
+    title: Phân biệt nhận diện lỗi và khả năng tự động tạo bản sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-006
+    title: Kiểm chứng cảnh báo bằng đầu vào cụ thể và hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-007
+    title: Phân loại cảnh báo thật, cảnh báo sai và trường hợp thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-008
+    title: Tạo ví dụ tối thiểu trước khi thay cấu hình hoặc báo lỗi checker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-009
+    title: Sửa nguyên nhân, thêm kiểm thử và biên dịch lại toàn phạm vi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-reading-010
+    title: Ưu tiên xử lý theo ảnh hưởng thực tế thay vì chỉ dựa vào số cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparison-and-types
+  title: So sánh và kiểu
+  childs:
+  - slug: comparison-and-types-001
+    title: ReferenceEquality và việc dùng == với đối tượng có ngữ nghĩa giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-002
+    title: BoxedPrimitiveEquality và bẫy so sánh đối tượng bọc số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-003
+    title: EqualsHashCode và tính nhất quán giữa equals với hashCode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-004
+    title: EqualsNull, EqualsNaN và so sánh không biểu đạt đúng ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-005
+    title: So sánh các kiểu không thể tương thích và lời gọi equals đáng ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-006
+    title: CompareToZero và giả định sai về giá trị trả về của compareTo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-007
+    title: Ép kiểu, instanceof và kiểu đích không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-008
+    title: Hợp đồng Comparable, comparator và dữ liệu trong tập hợp có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-009
+    title: Nhận diện kiểu thực bằng ngữ nghĩa thay vì chỉ nhìn tên trong mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-types-010
+    title: Viết kiểm thử cho bản sửa làm thay đổi hành vi so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections-and-arrays
+  title: Collections và mảng
+  childs:
+  - slug: collections-and-arrays-001
+    title: CollectionIncompatibleType và đối số không phù hợp với collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-002
+    title: ArrayEquals, ArrayHashCode và ngữ nghĩa nội dung mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-003
+    title: ArrayToString và biểu diễn mảng không đúng mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-004
+    title: ArraysAsListPrimitiveArray và sự khác biệt giữa mảng nguyên thủy, mảng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-005
+    title: Collection.toArray và kiểu mảng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-006
+    title: Lời gọi List.remove mơ hồ giữa chỉ số và giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-007
+    title: DuplicateMapKeys và khóa trùng trong API tạo Map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-008
+    title: ModifyingCollectionWithItself và thao tác collection với chính nó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-009
+    title: DoubleBraceInitialization và trạng thái, lớp ẩn danh phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-arrays-010
+    title: Generic, wildcard và kiểm tra đối số dựa trên thông tin kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arithmetic-and-conditions
+  title: Số học và điều kiện
+  childs:
+  - slug: arithmetic-and-conditions-001
+    title: ConstantOverflow và tràn số trong biểu thức hằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-002
+    title: BadShiftAmount và phạm vi dịch bit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-003
+    title: ComparisonOutOfRange và điều kiện không thể thỏa mãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-004
+    title: Chuyển đổi int, long, float, double và nguy cơ mất độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-005
+    title: Phép chia, ép kiểu và thứ tự tính của biểu thức trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-006
+    title: ConditionalExpressionNumericPromotion và kiểu của toán tử ba ngôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-007
+    title: Phép toán bit đáng ngờ và nhầm với điều kiện boolean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-008
+    title: ShortCircuitBoolean và khác biệt & với &&, | với ||
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-009
+    title: LoopConditionChecker và biến điều kiện không được thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-010
+    title: Tự gán, nhánh trùng và phép tính không có tác dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-and-date-time
+  title: Chuỗi và ngày giờ
+  childs:
+  - slug: strings-and-date-time-001
+    title: Checker định dạng printf và đối số không khớp format string
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-002
+    title: DefaultCharset, StringCharset và lựa chọn charset tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-003
+    title: StringCaseLocaleUsage và xử lý hoa, thường theo Locale
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-004
+    title: String.split và hành vi biểu thức chính quy, phần tử rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-005
+    title: MisusedWeekYear và nhầm năm theo tuần với năm lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-006
+    title: MisusedDayOfYear và nhầm ngày trong năm với ngày trong tháng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-007
+    title: Duration, Period, Instant và loại đơn vị được API chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-008
+    title: TimeUnitMismatch và giá trị mang đơn vị không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-009
+    title: Nhận diện lỗi API thời gian Java hiện đại và thư viện được checker hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-date-time-010
+    title: Kiểm thử Unicode, mốc cuối năm, múi giờ và giá trị biên sau khi sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: return-values
+  title: Giá trị trả về
+  childs:
+  - slug: return-values-001
+    title: CheckReturnValue và các tên thay thế theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-002
+    title: Lỗi bỏ qua kết quả của phương thức trên đối tượng bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-003
+    title: '@CheckReturnValue ở cấp method, class và package'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-004
+    title: '@CanIgnoreReturnValue và phương thức có tác dụng phụ chính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-005
+    title: FutureReturnValueIgnored và ngoại lệ trong tác vụ bất đồng bộ bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-006
+    title: Giá trị trả về của stream, builder và API xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-007
+    title: Ngữ cảnh kiểm thử ngoại lệ hoặc thiết lập mock được checker nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-008
+    title: Khi việc bỏ qua kết quả là có chủ đích và cách thể hiện rõ ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: return-values-009
+    title: Phân biệt hợp đồng bắt buộc dùng kết quả với quy tắc cho mọi phương thức non-void
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions-and-resources
+  title: Ngoại lệ và tài nguyên
+  childs:
+  - slug: exceptions-and-resources-001
+    title: DeadException và đối tượng ngoại lệ được tạo nhưng không throw
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-002
+    title: Finally và việc làm mất kết quả hoặc ngoại lệ trước đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-003
+    title: Giữ nguyên nguyên nhân khi chuyển đổi, ném lại ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-004
+    title: InterruptedException bị nuốt và hợp đồng xử lý ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-005
+    title: StreamResourceLeak và stream giữ tài nguyên cần đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-006
+    title: MustBeClosedChecker cùng hợp đồng @MustBeClosed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-007
+    title: Quyền sở hữu tài nguyên giữa nơi tạo và nơi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-008
+    title: Try-with-resources và kiểm chứng mọi đường thực thi quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-resources-009
+    title: Catch, logging và khác biệt giữa cảnh báo kỹ thuật với lựa chọn xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streams-and-optional
+  title: Stream và Optional
+  childs:
+  - slug: streams-and-optional-001
+    title: Tính lười của stream và tác dụng của thao tác kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-002
+    title: Sử dụng lại stream hoặc biến stream thành Iterable chỉ dùng được một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-003
+    title: OptionalMapToOptional và lựa chọn map hoặc flatMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-004
+    title: OptionalNotPresent và truy cập Optional đã được xác định rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-005
+    title: UnnecessaryOptionalGet và sử dụng tham số của lambda
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-006
+    title: Giá trị null trong Optional hoặc API bất đồng bộ theo hợp đồng cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-007
+    title: Biểu thức lambda, method reference và overload có thể thay đổi ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-008
+    title: Bỏ qua kết quả của chuỗi lời gọi và nhận diện thao tác không có tác dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-optional-009
+    title: Kiểm thử độ tương đương về số lần đánh giá, ngoại lệ và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-and-immutability
+  title: Đồng thời và bất biến
+  childs:
+  - slug: concurrency-and-immutability-001
+    title: GuardedBy và yêu cầu giữ khóa khi truy cập trường, phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-002
+    title: Biểu thức khóa, khóa đối tượng và java.util.concurrent.Lock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-003
+    title: Giới hạn của phân tích khóa trong lambda, alias và lời gọi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-004
+    title: Khóa trên đối tượng bọc số, String hoặc trường có thể đổi tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-005
+    title: DeadThread và luồng được tạo nhưng không khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-006
+    title: Thread pool, Future và hợp đồng hoàn tất, hủy tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-007
+    title: '@Immutable và kiểm tra tính bất biến sâu theo mô hình của checker'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-008
+    title: Generic container, containerOf và @ImmutableTypeParameter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-009
+    title: Phân biệt final, collection chỉ đọc và dữ liệu thực sự bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-010
+    title: Giới hạn của kiểm tra tĩnh đối với race condition và deadlock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-immutability-011
+    title: Kiểm chứng bản sửa với Java Memory Model và ca kiểm thử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-contracts
+  title: Hợp đồng API
+  childs:
+  - slug: api-contracts-001
+    title: Vai trò của artifact error_prone_annotations đối với mã thư viện và bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-002
+    title: '@CompileTimeConstant và dữ liệu cần xác định tại thời điểm biên dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-003
+    title: '@FormatMethod, @FormatString và API định dạng tự viết'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-004
+    title: '@DoNotCall và lời gọi API bị cấm theo hợp đồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-005
+    title: '@DoNotMock và loại đối tượng không nên giả lập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-006
+    title: '@ForOverride và điểm mở rộng được thiết kế cho lớp con'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-007
+    title: '@RestrictedApi và phạm vi sử dụng API được kiểm soát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-008
+    title: Phạm vi áp dụng và kế thừa của annotation theo từng checker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-009
+    title: Phân biệt annotation Error Prone với annotation cùng tên của thư viện khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-010
+    title: Phân biệt hợp đồng được compiler kiểm tra với kiểm tra bắt buộc khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nullaway
+  title: NullAway
+  childs:
+  - slug: nullaway-001
+    title: NullAway là checker mở rộng và khác với các kiểm tra null tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-002
+    title: Chọn phiên bản NullAway tương thích với Error Prone và JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-003
+    title: Thêm checker vào processor path hoặc configuration của build plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-004
+    title: Bật kiểm tra cho phạm vi package hoặc chế độ annotation được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-005
+    title: '@Nullable, khởi tạo trường và hợp đồng tham số, giá trị trả về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-006
+    title: JSpecify và cấu hình nullness theo chế độ, phiên bản đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-007
+    title: Dependency chưa có annotation, mô hình thư viện và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-008
+    title: Áp dụng từng phạm vi, xử lý ngoại lệ có bằng chứng và kiểm tra trên CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nullaway-009
+    title: Giới hạn bảo đảm null-safety và ranh giới với Checker Framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-code-and-frameworks
+  title: Mã test và framework
+  childs:
+  - slug: test-code-and-frameworks-001
+    title: JUnit4TestNotRun và phương thức kiểm thử không được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-002
+    title: Assertion có đối số đảo thứ tự hoặc kiểm tra sai loại bằng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-003
+    title: MockitoUsage và lời gọi verify, stubbing chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-004
+    title: ExpectedException, assertThrows và giới hạn phạm vi ngoại lệ được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-005
+    title: DoNotMock và lựa chọn đối tượng thay thế phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-006
+    title: Checker cho Guava, JUnit, Mockito, Guice hoặc Dagger khi dự án sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-007
+    title: Tránh bật checker chuyên framework lên mã không có ngữ cảnh tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-008
+    title: Phân biệt cấu hình compilingTestOnlyCode và tắt toàn bộ checker cho test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-and-frameworks-009
+    title: Giữ kiểm thử có ý nghĩa sau khi áp dụng bản sửa được đề xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inspection-scope
+  title: Phạm vi kiểm tra
+  childs:
+  - slug: inspection-scope-001
+    title: Xác định nguồn chính, nguồn test, nguồn sinh và dependency ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-002
+    title: '@SuppressWarnings("CheckName") và phạm vi khai báo gần nhất phù hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-003
+    title: Chọn đúng canonical name hoặc alias được checker hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-004
+    title: Phân biệt suppression một vị trí, tắt một checker và tắt plugin cho một task
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-005
+    title: Giải thích vì sao cảnh báo an toàn để bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-006
+    title: -XepExcludedPaths và đối sánh biểu thức chính quy theo đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-007
+    title: Khác biệt dấu phân cách đường dẫn giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-008
+    title: DisableWarningsInGeneratedCode chỉ tác động đến mức cảnh báo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-009
+    title: Vai trò của @Generated và vị trí annotation trên mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-010
+    title: Rà soát suppression quá rộng hoặc không còn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-011
+    title: Kiểm chứng mã bị loại và mã vẫn được kiểm tra bằng ví dụ đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-fixes
+  title: Bản sửa tự động
+  childs:
+  - slug: automated-fixes-001
+    title: Suggested fix là gì và vì sao không phải checker nào cũng có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-002
+    title: Phân biệt đọc đề xuất, tạo patch và sửa trực tiếp tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-003
+    title: Chọn checker được phép sửa bằng -XepPatchChecks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-004
+    title: Chọn gốc đường dẫn với -XepPatchLocation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-005
+    title: Đọc unified diff trong error-prone.patch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-006
+    title: Chế độ IN_PLACE và phạm vi tệp thực sự có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-007
+    title: Xử lý nhiều bản sửa xung đột hoặc chồng vùng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-008
+    title: Rà soát import, biểu thức, ngoại lệ và tác dụng phụ sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-009
+    title: Biên dịch lại, chạy kiểm thử và kiểm tra diff sau mỗi đợt sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-fixes-010
+    title: Đánh giá giới hạn và tương thích của chế độ patch theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refaster
+  title: Refaster
+  childs:
+  - slug: refaster-001
+    title: Refaster là gì và khác với checker phát sinh chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-002
+    title: Biểu diễn chuyển đổi mã bằng @BeforeTemplate và @AfterTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-003
+    title: Kiểu tham số, giá trị trả về và quá trình đối sánh template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-004
+    title: Nhiều mẫu trước tương ứng với một mẫu sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-005
+    title: Annotation bổ sung như @AlsoNegation khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-006
+    title: Biên dịch template thành tệp .refaster theo công cụ của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-007
+    title: Áp dụng template qua cơ chế patching của Error Prone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-008
+    title: Giữ nguyên kiểu, số lần đánh giá, tác dụng phụ và ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refaster-009
+    title: Kiểm thử mẫu khớp, mẫu không khớp và kiểm tra diff trước khi áp dụng rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inline-me
+  title: InlineMe
+  childs:
+  - slug: inline-me-001
+    title: '@InlineMe và lộ trình thay thế API đã deprecated'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-002
+    title: Khai báo replacement, imports và staticImports
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-003
+    title: Yêu cầu lưu tên tham số bằng -parameters
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-004
+    title: 'Phạm vi API phù hợp: constructor, static method và method không thể bị ghi đè'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-005
+    title: Vai trò của InlineMeSuggester, InlineMeValidator và InlineMeInliner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-006
+    title: Tạo và rà soát bản sửa ở phía mã gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-007
+    title: Ràng buộc quyền truy cập, overload và tương thích nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-008
+    title: Kiểm chứng thư viện và bên sử dụng sau khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-me-009
+    title: Phân biệt thay thế API bằng InlineMe với biến đổi mẫu tổng quát bằng Refaster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-checkers
+  title: Checker tùy chỉnh
+  childs:
+  - slug: custom-checkers-001
+    title: Khi nào nên viết checker mới thay vì cấu hình checker có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-002
+    title: Thiết kế mẫu lỗi, phản ví dụ và tiêu chí để chặn ở mức ERROR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-003
+    title: Tạo project với error_prone_check_api và dependency tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-004
+    title: Kế thừa BugChecker và khai báo @BugPattern
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-005
+    title: Chọn TreeMatcher phù hợp như MethodInvocationTreeMatcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-006
+    title: Dùng VisitorState để đọc ngữ cảnh và thông tin nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-007
+    title: Dùng ASTHelpers, symbol, type và matcher ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-008
+    title: Trả Description.NO_MATCH hoặc chẩn đoán có vị trí hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-009
+    title: Tạo SuggestedFix với thay thế nguồn và điều chỉnh import
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-010
+    title: Đọc cấu hình checker bằng ErrorProneFlags
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-011
+    title: Đăng ký ServiceLoader bằng @AutoService(BugChecker.class)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-012
+    title: Đóng gói JAR và nạp checker từ annotation processor path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-checkers-013
+    title: Kiểm soát trạng thái checker, chi phí phân tích và phụ thuộc javac
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: checker-testing
+  title: Kiểm thử checker
+  childs:
+  - slug: checker-testing-001
+    title: Dùng error_prone_test_helpers phù hợp phiên bản checker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-002
+    title: CompilationTestHelper cho ví dụ có và không có chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-003
+    title: Chỉ định vị trí và thông báo mong đợi trong mã test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-004
+    title: BugCheckerRefactoringTestHelper cho đầu vào, đầu ra sau bản sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-005
+    title: Kiểm tra generic, overload, lớp lồng và tên kiểu trùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-006
+    title: Kiểm tra import, static import và biểu thức nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-007
+    title: Kiểm tra tác dụng phụ, ngoại lệ và số lần đánh giá biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-008
+    title: Kiểm tra -XepOpt, severity và suppression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-009
+    title: Thêm ca hồi quy cho cảnh báo sai hoặc trường hợp bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checker-testing-010
+    title: Kiểm tra tương thích JDK, classpath và nạp plugin trong một lần biên dịch thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-and-quality
+  title: CI và chất lượng
+  childs:
+  - slug: ci-and-quality-001
+    title: Đưa Error Prone vào tác vụ biên dịch chuẩn của pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-002
+    title: Chọn checker chặn build và checker cảnh báo theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-003
+    title: Áp dụng từng giai đoạn cho dự án đã có nhiều vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-004
+    title: Phân biệt chính sách bật checker với baseline hoặc công cụ quản lý nợ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-005
+    title: Giữ phiên bản core, plugin và checker tùy chỉnh nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-006
+    title: Xác minh phân tích đúng nguồn mã và commit cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-007
+    title: Lưu log chẩn đoán và dùng bộ chuyển đổi báo cáo phù hợp nếu cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-008
+    title: Xác định đầu ra chẩn đoán của core và khả năng báo cáo của công cụ tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-009
+    title: Kiểm tra cổng chất lượng thật sự chặn bằng vi phạm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-010
+    title: Tách đợt tạo bản sửa khỏi lần biên dịch chỉ kiểm tra thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-011
+    title: Giữ thông báo CI đủ rõ để người phát triển chạy lại tại máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-projects
+  title: Dự án nhiều module
+  childs:
+  - slug: multi-module-projects-001
+    title: Quản lý cấu hình chung bằng parent POM hoặc convention plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-002
+    title: Chọn checker và mức phù hợp cho từng module, source set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-003
+    title: Đặt checker tùy chỉnh thành artifact độc lập dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-004
+    title: Phối hợp dependency giữa module, processor path và annotation trên API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-005
+    title: Mã do Lombok hoặc annotation processor khác sinh, biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-006
+    title: Thứ tự xử lý và tương thích giữa compiler plugin với công cụ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-007
+    title: Kiểm tra đường dẫn mã sinh và phạm vi exclusion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-008
+    title: Tác vụ biên dịch bổ sung, mã test tích hợp và module không dùng javac
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-009
+    title: Giữ cấu hình checker không rò rỉ vào dependency runtime ngoài ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-010
+    title: Xác minh từng module được kiểm tra và tránh kết luận từ task bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-and-performance
+  title: Nâng cấp và hiệu năng
+  childs:
+  - slug: upgrades-and-performance-001
+    title: Đọc release notes và đối chiếu hỗ trợ JDK, javac trước nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-002
+    title: Phân biệt nâng core, Gradle plugin và checker ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-003
+    title: Checker mới, thay đổi mặc định và tên checker bị đổi hoặc hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-004
+    title: Rà soát flags, suppression và API javac mà checker tùy chỉnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-005
+    title: Kiểm tra lại test helpers, SuggestedFix và template chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-006
+    title: Đo phần chi phí Error Prone thêm vào lần biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-007
+    title: Phân biệt incremental compilation của build với phạm vi kiểm tra của checker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-008
+    title: Vô hiệu hóa kết quả cũ khi phiên bản hoặc cấu hình checker thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-009
+    title: Phân bổ heap, số compiler chạy song song và phạm vi mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-performance-010
+    title: Đối chiếu kết quả trước, sau nâng cấp bằng cùng bộ nguồn và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Khắc phục sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Plugin not found do Error Prone không có trên processor path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: IllegalAccessError hoặc InaccessibleObjectException do cấu hình module JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: NoSuchMethodError và lỗi javac nội bộ do phiên bản không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: UnsupportedClassVersionError và xác định JVM thực sự chạy compiler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Tên checker không hợp lệ hoặc checker ngoài chưa được ServiceLoader nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Không có chẩn đoán do task up-to-date, exclusion hoặc plugin chưa bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Annotation processor khác ngừng chạy sau khi cấu hình processor path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Khác biệt giữa Maven fork, toolchain, Gradle daemon và IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Lỗi đối số, xuống dòng, dấu cách và đường dẫn trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Checker crash, cảnh báo sai và cách tạo ví dụ tái hiện tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Patch không xuất hiện vì checker không có fix hoặc nguồn không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practice-001
+    title: Khởi tạo dự án Java với Error Prone trên một công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Chứng minh checker được nạp bằng ví dụ lỗi dễ tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Sửa lỗi so sánh, collection và giá trị trả về bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Sửa lỗi ngoại lệ, tài nguyên, ngày giờ và đơn vị thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Thêm annotation hợp đồng API và kiểm chứng ở phía mã gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Cấu hình severity, phạm vi mã test và suppression hẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Bật NullAway cho một phạm vi nhỏ và xử lý các chẩn đoán đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Tạo patch có chọn lọc và kiểm chứng sau khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Viết checker tùy chỉnh cùng test chẩn đoán, test bản sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Thử một template Refaster hoặc lộ trình InlineMe có kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Tích hợp CI và thực hiện một lần nâng cấp có đối chiếu hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

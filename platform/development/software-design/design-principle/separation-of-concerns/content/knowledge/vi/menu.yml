@@ -1,0 +1,264 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phân tách các mối quan tâm (Separation of Concerns) là gì
+  - Mối quan tâm (concern) là khía cạnh nào của bài toán phần mềm
+  - Vì sao trộn nghiệp vụ, giao tiếp và lưu trữ làm thay đổi khó kiểm soát
+  - 'Mục tiêu: hiểu từng phần, giới hạn tác động và kiểm thử độc lập'
+  - Phân tách trách nhiệm nhưng vẫn phối hợp để hoàn thành một hành vi
+  - 'Các cấp áp dụng: hàm, lớp, module và kiến trúc'
+  - Một ví dụ xuyên suốt từ yêu cầu người dùng tới dữ liệu được lưu
+  - Kiến thức nền và lộ trình học từ nhận diện mối quan tâm tới đánh giá ranh giới
+- level1: Nhận diện mối quan tâm
+  level2:
+  - Phân biệt mục tiêu nghiệp vụ với cơ chế kỹ thuật thực hiện
+  - Nhận diện các quyết định có thể thay đổi độc lập
+  - Nhóm các phần thay đổi vì cùng một nguyên nhân
+  - Phân tích người yêu cầu thay đổi và chính sách họ chịu trách nhiệm
+  - Mối quan tâm chức năng và yêu cầu chất lượng
+  - Quy tắc nghiệp vụ, điều phối ca sử dụng và tương tác hạ tầng
+  - Mối quan tâm cục bộ và mối quan tâm xuyên suốt nhiều thành phần
+  - Phân biệt dữ liệu đầu vào, trạng thái và hành vi cần xử lý
+  - Lập bản đồ mối quan tâm trên một luồng xử lý hiện có
+- level1: Nguyên lý liên quan
+  level2:
+  - 'SoC và trách nhiệm đơn nhất (SRP): quan hệ và khác biệt'
+  - SoC với tính gắn kết cao và mức liên kết thấp
+  - Ẩn thông tin và đóng gói các quyết định có thể thay đổi
+  - Trừu tượng hóa và lựa chọn điều gì cần được che giấu
+  - SoC với mô-đun hóa và ranh giới truy cập
+  - Đảo ngược phụ thuộc để giữ chính sách độc lập với cơ chế
+  - Kết hợp đối tượng và DI như công cụ hỗ trợ phân tách
+  - Vì sao nhiều lớp, interface hoặc thư mục chưa chứng minh được SoC
+- level1: Ranh giới thiết kế
+  level2:
+  - Đặt ranh giới theo trách nhiệm và lý do thay đổi
+  - Tính gắn kết bên trong và chi phí giao tiếp qua ranh giới
+  - Phân biệt phân tách logic với tách tiến trình hoặc triển khai
+  - Phân tách theo chức năng, theo tầng kỹ thuật và theo chính sách
+  - Nhận diện phần cần biết nhau để giữ bất biến nghiệp vụ
+  - Quyền sở hữu quyết định và dữ liệu tại mỗi ranh giới
+  - Ranh giới quá rộng và tác động của thay đổi lan truyền
+  - Ranh giới quá nhỏ và chi phí điều phối tăng
+  - Đánh giá ranh giới bằng tình huống thay đổi cụ thể
+  - Điều chỉnh ranh giới khi hiểu biết về miền bài toán thay đổi
+- level1: Hợp đồng và thông tin
+  level2:
+  - Hợp đồng đầu vào, đầu ra, lỗi và điều kiện sử dụng
+  - Cung cấp thông tin tối thiểu mà bên sử dụng thực sự cần
+  - Che giấu cấu trúc dữ liệu và chi tiết triển khai nội bộ
+  - Tránh để kiểu của framework hoặc hệ thống ngoài chi phối hợp đồng nghiệp vụ
+  - 'DTO, mô hình miền và mô hình lưu trữ: khi nào cần tách'
+  - Ánh xạ dữ liệu tại ranh giới và quyền sở hữu quy tắc chuyển đổi
+  - Tính bất biến và tránh chia sẻ cấu trúc dữ liệu có thể sửa tùy ý
+  - Giữ ngôn ngữ hợp đồng phù hợp với trách nhiệm của thành phần
+  - Giới hạn của lớp bọc chỉ đổi tên mà không tạo ranh giới thông tin
+- level1: Hướng phụ thuộc
+  level2:
+  - Đồ thị phụ thuộc và hướng lan truyền của một thay đổi
+  - Phụ thuộc giữa chính sách nghiệp vụ và chi tiết hạ tầng
+  - Đặt abstraction theo nhu cầu của phía sử dụng
+  - Phụ thuộc trực tiếp, gián tiếp và phụ thuộc ẩn
+  - Trạng thái toàn cục và cơ chế truy cập xuyên ranh giới
+  - Tránh module phụ thuộc vòng bằng điều chỉnh trách nhiệm
+  - Giữ API nội bộ tách khỏi API được công bố
+  - Phân biệt phụ thuộc mã nguồn với đường gọi lúc chạy
+  - Kiểm chứng hướng phụ thuộc bằng mã và cấu hình build
+- level1: Hàm và phương thức
+  level2:
+  - Nhận diện một hàm trộn nhiều mức trừu tượng
+  - Tách đọc dữ liệu, tính toán và tạo tác dụng phụ
+  - Lõi tính toán thuần và lớp vỏ tương tác với bên ngoài
+  - Tham số, giá trị trả về và sự tường minh của dữ liệu cần dùng
+  - Tách điều kiện nghiệp vụ khỏi thao tác định dạng và giao tiếp
+  - Tránh hàm nhận cờ để thực hiện nhiều nhóm trách nhiệm khác nhau
+  - Đặt tên hàm theo ý nghĩa thay vì theo chuỗi thao tác kỹ thuật
+  - Giữ luồng điều khiển dễ đọc sau khi trích xuất phương thức
+  - Kiểm tra tính gắn kết trước khi tiếp tục chia nhỏ hàm
+- level1: Lớp và đối tượng
+  level2:
+  - Nhận diện các nhóm hành vi và dữ liệu thực sự thuộc cùng nhau
+  - Tách đối tượng nghiệp vụ khỏi đối tượng truy cập tài nguyên
+  - Tránh lớp điều phối vừa quyết định chính sách vừa thực hiện mọi chi tiết
+  - Đối tượng giá trị và nơi bảo vệ điều kiện bất biến
+  - Kết hợp các thành phần cộng tác qua hợp đồng rõ ràng
+  - Constructor thể hiện nhu cầu phụ thuộc và dấu hiệu trách nhiệm quá rộng
+  - Tránh tách dữ liệu khỏi mọi hành vi một cách máy móc
+  - Tránh lớp tiện ích tổng quát trở thành nơi gom mã không cùng mục đích
+  - Đánh giá lớp theo khả năng thay đổi và kiểm thử một trách nhiệm
+- level1: Module và tính năng
+  level2:
+  - Tổ chức module theo năng lực nghiệp vụ hoặc đặc điểm thay đổi
+  - Tổ chức theo tính năng so với tổ chức theo tầng kỹ thuật
+  - Gom mã gắn kết và giới hạn số phần cần sửa cho một tính năng
+  - API công khai, chi tiết nội bộ và mức truy cập trong Java
+  - Quyền sở hữu dữ liệu và hành vi giữa các module
+  - Ngăn truy cập vòng qua API bằng import hoặc thao tác dữ liệu trực tiếp
+  - Module dùng chung và nguy cơ tích tụ các mối quan tâm không liên quan
+  - Phân biệt dùng lại có ý nghĩa với gom mã vì giống hình thức
+  - Ranh giới module trong một ứng dụng triển khai chung
+  - Điều kiện cần cân nhắc trước khi chuyển ranh giới logic thành dịch vụ riêng
+- level1: Kiểu kiến trúc
+  level2:
+  - Kiến trúc phân tầng và việc phân chia trình bày, nghiệp vụ, lưu trữ
+  - Phân tầng chặt, bỏ qua tầng và điều kiện lựa chọn
+  - 'MVC: vai trò mô hình, giao diện và thành phần điều khiển'
+  - 'Ports and Adapters: cô lập nghiệp vụ khỏi phương thức tương tác'
+  - 'Clean Architecture: hướng phụ thuộc và ranh giới chính sách'
+  - 'Vertical Slice: giữ một luồng tính năng gắn kết theo chiều dọc'
+  - Ứng dụng nguyên khối có module và giới hạn của việc chỉ chia package
+  - Microservices và chi phí mới khi ranh giới đi qua mạng
+  - Lựa chọn cách tổ chức dựa trên nhu cầu thay đổi thay vì tên kiến trúc
+- level1: Luồng nghiệp vụ
+  level2:
+  - Phân biệt quy tắc miền với điều phối một ca sử dụng
+  - Thành phần điều khiển nhận yêu cầu và chuyển giao công việc
+  - Ca sử dụng phối hợp các đối tượng mà không nắm mọi chi tiết hạ tầng
+  - Đặt kiểm tra định dạng, điều kiện nghiệp vụ và ràng buộc lưu trữ đúng nơi
+  - Tránh nhân bản quy tắc giữa giao diện, dịch vụ và cơ sở dữ liệu
+  - Thao tác nghiệp vụ nhiều bước và nơi quản lý thứ tự thực hiện
+  - Tách quyết định chính sách khỏi cơ chế gửi thông báo hoặc gọi hệ thống ngoài
+  - Tác vụ định kỳ và API dùng lại cùng ca sử dụng
+  - Giữ bất biến nghiệp vụ khi luồng xử lý được chia thành nhiều thành phần
+  - Truy vết một yêu cầu qua các ranh giới mà vẫn hiểu được kết quả tổng thể
+- level1: Dữ liệu và lưu trữ
+  level2:
+  - Tách khái niệm nghiệp vụ khỏi hình dạng bảng và tài liệu lưu trữ
+  - Repository hoặc cổng truy cập dữ liệu như một ranh giới có chủ đích
+  - Ánh xạ giữa đối tượng miền và biểu diễn lưu trữ
+  - Giới hạn để truy vấn hoặc API của ORM lan ra lớp nghiệp vụ
+  - Phân biệt lưu dữ liệu với quyết định dữ liệu có được phép thay đổi
+  - Quyền sở hữu truy vấn phục vụ đọc và thao tác cập nhật nghiệp vụ
+  - Hiệu năng truy vấn và trường hợp ranh giới cần được điều chỉnh
+  - Cache như chi tiết tối ưu và tác động đến tính đúng đắn
+  - Schema migration, tương thích dữ liệu và trách nhiệm chuyển đổi
+  - Kiểm chứng khả năng thay đổi cơ chế lưu trữ mà giữ hợp đồng cần thiết
+- level1: Giao diện và giao tiếp
+  level2:
+  - Tách trình bày, tương tác người dùng và trạng thái giao diện
+  - Phân biệt quy tắc nghiệp vụ với định dạng và thông báo hiển thị
+  - 'HTML, CSS và JavaScript: phân chia theo công nghệ và theo mối quan tâm'
+  - Thành phần giao diện gắn kết và nguy cơ tách tệp theo hình thức
+  - HTTP, mã trạng thái và ánh xạ yêu cầu tại adapter giao tiếp
+  - Phân biệt hợp đồng API bên ngoài với mô hình nội bộ
+  - Tách client tích hợp khỏi chính sách chọn và sử dụng dịch vụ ngoài
+  - Chuyển đổi định dạng, phiên bản và quy ước giữa hai hệ thống
+  - Tránh để chi tiết phân trang, serialization hoặc giao thức rò vào miền
+  - Tái sử dụng ca sử dụng qua web, CLI hoặc xử lý thông điệp
+- level1: Mối quan tâm xuyên suốt
+  level2:
+  - Vì sao logging, bảo mật và giao dịch xuất hiện ở nhiều luồng
+  - Mã bị rải nhiều nơi và mã bị trộn nhiều trách nhiệm
+  - Middleware, filter, interceptor và decorator trong tách cơ chế chung
+  - 'AOP: khái niệm aspect, join point và phạm vi áp dụng'
+  - Thứ tự thực thi và tương tác giữa các cơ chế xuyên suốt
+  - Logging kỹ thuật so với ghi nhận sự kiện kiểm toán nghiệp vụ
+  - Xác thực danh tính so với quyết định phân quyền theo nghiệp vụ
+  - Đo lường, tracing và truyền ngữ cảnh qua các ranh giới
+  - Retry, cache và transaction có thể làm thay đổi ngữ nghĩa xử lý
+  - Giới hạn của hành vi ẩn và yêu cầu giữ luồng thực thi có thể truy vết
+  - Khi một mối quan tâm cần được biểu diễn tường minh thay vì tự động chèn vào
+- level1: Cấu hình và lắp ghép
+  level2:
+  - Tách cấu hình ứng dụng khỏi quy tắc xử lý nghiệp vụ
+  - Điểm lắp ghép đối tượng (Composition Root) và lựa chọn triển khai
+  - DI thủ công hoặc container để kết nối các thành phần
+  - Giữ việc biết lớp cụ thể gần nơi khởi động
+  - Kiểm tra cấu hình tại ranh giới trước khi đưa vào sử dụng
+  - Phân biệt cấu hình hạ tầng với chính sách nghiệp vụ có thể thay đổi
+  - Không truyền container hoặc tập cấu hình tổng quát khắp ứng dụng
+  - Kiểm thử lắp ghép và phát hiện ranh giới bị nối sai
+- level1: Trạng thái và giao dịch
+  level2:
+  - Xác định thành phần sở hữu và được phép sửa từng trạng thái
+  - Tránh chia sẻ trạng thái có thể thay đổi làm nhiều module gắn chặt
+  - Đặt ranh giới giao dịch theo bất biến và đơn vị công việc
+  - Điều phối giao dịch và trách nhiệm xử lý nghiệp vụ bên trong
+  - Phân biệt ranh giới tổ chức mã với ranh giới nhất quán dữ liệu
+  - Sự kiện miền và sự kiện tích hợp như các loại thông điệp khác nhau
+  - Xử lý bất đồng bộ, lặp lại và thứ tự khi thành phần phối hợp qua sự kiện
+  - Tác dụng phụ bên ngoài và quyết định bù trừ nghiệp vụ
+  - Giới hạn của việc dùng event để che giấu mọi quan hệ phụ thuộc
+- level1: Xử lý lỗi
+  level2:
+  - Lỗi nhập liệu, vi phạm nghiệp vụ và lỗi hạ tầng
+  - Thành phần nào phát hiện, giải thích và quyết định cách xử lý lỗi
+  - Chuyển lỗi kỹ thuật thành hợp đồng lỗi phù hợp ở ranh giới
+  - Không làm mất nguyên nhân khi bổ sung ngữ cảnh
+  - Tách chính sách thử lại khỏi chi tiết thực hiện một lần gọi
+  - Tránh bắt lỗi chung ở mọi tầng và tạo log trùng
+  - Ánh xạ lỗi sang phản hồi giao diện hoặc giao thức ngoài
+  - Kiểm chứng tác động của lỗi khi nhiều mối quan tâm cùng tham gia
+- level1: Kiểm thử ranh giới
+  level2:
+  - Unit test phần tính toán hoặc quy tắc độc lập với hạ tầng
+  - Thay phụ thuộc ngoài bằng fake hoặc stub đúng phạm vi
+  - Kiểm thử hợp đồng giữa các thành phần
+  - Kiểm thử tích hợp tại ranh giới lưu trữ và dịch vụ ngoài
+  - Kiểm thử toàn luồng để xác minh các phần phối hợp đúng
+  - Tổ chức dữ liệu kiểm thử theo trách nhiệm đang được đánh giá
+  - Kiểm chứng logging, phân quyền và giao dịch mà không lệ thuộc cấu trúc nội bộ
+  - Nhận diện test phải khởi động quá nhiều thành phần như dấu hiệu cần xem lại thiết kế
+  - Kiểm tra một thay đổi ở hạ tầng không buộc sửa test nghiệp vụ ngoài ý muốn
+  - Tránh coi khả năng mock mọi thứ là bằng chứng duy nhất của SoC
+- level1: Refactor
+  level2:
+  - Lập bản đồ trách nhiệm và điểm thay đổi trong mã hiện có
+  - Chọn tình huống thay đổi cụ thể làm mục tiêu refactor
+  - Bổ sung kiểm thử bảo vệ hành vi trước khi dịch chuyển trách nhiệm
+  - Trích xuất hàm và lớp theo mối quan tâm có ý nghĩa
+  - Di chuyển quy tắc nghiệp vụ khỏi giao tiếp và lưu trữ
+  - Đưa phụ thuộc ra ngoài và tổ chức lại điểm lắp ghép
+  - Tách mô hình dữ liệu hoặc thêm adapter khi có rò rỉ chi tiết
+  - Giảm phụ thuộc vòng và gom lại phần bị phân tán không cần thiết
+  - Thực hiện thay đổi từng bước và giữ tương thích hợp đồng
+  - Đối chiếu thiết kế trước sau bằng phạm vi thay đổi và độ dễ kiểm thử
+- level1: Dấu hiệu vi phạm
+  level2:
+  - Đối tượng ôm quá nhiều trách nhiệm (God Object)
+  - Controller chứa nghiệp vụ và thao tác lưu trữ chi tiết
+  - Quy tắc nghiệp vụ bị nhân bản ở nhiều lớp hoặc kênh giao tiếp
+  - Thay một chính sách phải sửa nhiều module không liên quan
+  - Nhiều loại thay đổi độc lập cùng dồn vào một thành phần
+  - Kiểu dữ liệu hoặc ngoại lệ của hạ tầng lan khắp ứng dụng
+  - Module dùng chung trở thành điểm phụ thuộc của mọi phần
+  - Thứ tự gọi ngầm và dữ liệu dùng chung buộc các thành phần biết quá nhiều
+  - Lớp trung gian chỉ chuyển tiếp nhưng làm tăng khó khăn điều hướng
+  - Tách quá nhỏ khiến một hành vi đơn giản trải qua quá nhiều thành phần
+  - Cơ chế xuyên suốt ẩn quyết định nghiệp vụ và gây khó chẩn đoán
+- level1: Đánh đổi thiết kế
+  level2:
+  - Phân tách có ích và nguy cơ thiết kế quá mức
+  - Độ gắn kết, mức liên kết và tính cục bộ của thay đổi
+  - Số ranh giới, số phép ánh xạ và chi phí hiểu luồng xử lý
+  - Tái sử dụng so với giữ độc lập các khái niệm chỉ giống nhau tạm thời
+  - Khả năng kiểm thử so với chi phí dựng thêm abstraction
+  - Hiệu năng, giao dịch và tính nhất quán khi tăng khoảng cách giữa các phần
+  - Nhu cầu hiện tại so với dự đoán thay đổi chưa có bằng chứng
+  - Khi nên gộp lại thành phần đã bị tách quá mức
+  - Chấp nhận ngoại lệ có lý do và ghi nhận tác động
+  - Phát triển ranh giới dần thay vì áp dụng một khuôn cho mọi dự án
+- level1: Đánh giá và bảo vệ
+  level2:
+  - Danh sách kiểm tra trách nhiệm và quyết định thuộc từng thành phần
+  - 'Đánh giá tình huống thay đổi: phần nào cần sửa và phần nào cần giữ ổn định'
+  - Đối chiếu API công khai với chi tiết đã được che giấu
+  - Theo dõi phụ thuộc, vòng phụ thuộc và thay đổi đồng thời trong mã
+  - Kiểm tra kiến trúc tự động cho package, module và hướng import
+  - Giới hạn của chỉ số định lượng khi không hiểu ý nghĩa nghiệp vụ
+  - Rà soát mã theo luồng nghiệp vụ và ranh giới thông tin
+  - Ghi quyết định thiết kế, giả định và điều kiện cần xem xét lại
+  - Duy trì ranh giới khi thêm tính năng, tích hợp và thành viên mới
+- level1: Thực hành
+  level2:
+  - Phân tích một hàm trộn đọc yêu cầu, tính toán, lưu dữ liệu và tạo phản hồi
+  - Tách quy tắc tính giá khỏi giao thức HTTP và cơ chế lưu trữ
+  - Thiết kế cùng ca sử dụng cho API và tác vụ xử lý nền
+  - Tạo adapter cho dịch vụ ngoài mà không đưa kiểu của nhà cung cấp vào miền
+  - Tách xác thực, kiểm tra định dạng và điều kiện nghiệp vụ đúng nơi
+  - Áp dụng decorator cho đo lường và quan sát thứ tự hành vi
+  - Refactor quy tắc nghiệp vụ bị lặp ở nhiều kênh gọi
+  - Thử thay chi tiết lưu trữ để kiểm chứng ranh giới phụ thuộc
+  - Viết test nghiệp vụ, test hợp đồng và test tích hợp theo trách nhiệm
+  - So sánh một thiết kế trộn trách nhiệm với một thiết kế bị chia quá nhỏ
+  - Lập báo cáo trước sau bằng tình huống thay đổi và bằng chứng kiểm thử

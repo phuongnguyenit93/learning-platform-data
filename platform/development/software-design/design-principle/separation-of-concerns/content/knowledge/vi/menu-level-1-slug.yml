@@ -1,0 +1,70 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nhận diện mối quan tâm
+  slug: concerns-identification
+  index: 1
+- title: Nguyên lý liên quan
+  slug: related-principles
+  index: 2
+- title: Ranh giới thiết kế
+  slug: design-boundaries
+  index: 3
+- title: Hợp đồng và thông tin
+  slug: contracts-information
+  index: 4
+- title: Hướng phụ thuộc
+  slug: dependency-direction
+  index: 5
+- title: Hàm và phương thức
+  slug: functions-methods
+  index: 6
+- title: Lớp và đối tượng
+  slug: classes-objects
+  index: 7
+- title: Module và tính năng
+  slug: modules-features
+  index: 8
+- title: Kiểu kiến trúc
+  slug: architectural-styles
+  index: 9
+- title: Luồng nghiệp vụ
+  slug: business-flow
+  index: 10
+- title: Dữ liệu và lưu trữ
+  slug: data-and-storage
+  index: 11
+- title: Giao diện và giao tiếp
+  slug: interfaces-communication
+  index: 12
+- title: Mối quan tâm xuyên suốt
+  slug: cross-cutting-concerns
+  index: 13
+- title: Cấu hình và lắp ghép
+  slug: configuration-and-composition
+  index: 14
+- title: Trạng thái và giao dịch
+  slug: state-and-transactions
+  index: 15
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 16
+- title: Kiểm thử ranh giới
+  slug: boundary-testing
+  index: 17
+- title: Refactor
+  slug: refactor
+  index: 18
+- title: Dấu hiệu vi phạm
+  slug: violation-signs
+  index: 19
+- title: Đánh đổi thiết kế
+  slug: design-tradeoffs
+  index: 20
+- title: Đánh giá và bảo vệ
+  slug: evaluation-justification
+  index: 21
+- title: Thực hành
+  slug: practice
+  index: 22

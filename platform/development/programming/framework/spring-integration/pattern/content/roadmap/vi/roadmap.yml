@@ -1,0 +1,57 @@
+roadmap:
+- id: eip-message-flow
+  title: EIP & Message Flow
+  purpose: Hiểu cách mô hình Enterprise Integration Patterns tổ chức một luồng tích hợp dựa trên thông điệp.
+  objectives:
+  - Nhận biết Message, payload và headers
+  - Phân biệt luồng one-way và request-reply
+  - Phác thảo một IntegrationFlow đơn giản
+- id: channel-pub-sub
+  title: Channel & Pub/Sub
+  purpose: Chọn cách phân phối thông điệp phù hợp với số lượng và vai trò của consumer.
+  objectives:
+  - Phân biệt point-to-point và publish-subscribe
+  - Giải thích cách kênh tách producer và consumer
+  - Minh họa Wire Tap cho một nhánh quan sát
+- id: router-filter
+  title: Router & Filter
+  purpose: Điều hướng hoặc loại bỏ thông điệp theo nội dung và metadata mà không trộn lẫn logic nghiệp vụ.
+  objectives:
+  - Định tuyến theo payload hoặc header
+  - Viết điều kiện Filter cho thông điệp
+  - Kiểm tra default channel và discard channel
+- id: transformer-enricher
+  title: Transformer & Enricher
+  purpose: Thay đổi cấu trúc thông điệp hoặc bổ sung dữ liệu trước khi chuyển sang bước kế tiếp.
+  objectives:
+  - Ánh xạ payload với Transformer
+  - Bổ sung header hoặc payload bằng Enricher
+  - Phân biệt biến đổi nội dung và làm giàu dữ liệu
+- id: splitter-aggregator
+  title: Splitter & Aggregator
+  purpose: Chia thông điệp lớn thành các phần độc lập rồi ghép kết quả về đúng nhóm.
+  objectives:
+  - Cấu hình Splitter cho một tập phần tử
+  - Dùng correlationId và sequence headers
+  - Giải thích CorrelationStrategy và ReleaseStrategy
+- id: correlation-resequencer
+  title: Correlation & Resequencer
+  purpose: Giữ đúng nhóm và thứ tự khi các thông điệp được xử lý không đồng bộ.
+  objectives:
+  - Nhận diện correlationId và sequenceNumber
+  - Sắp xếp lại thông điệp bằng Resequencer
+  - Xử lý nhóm thiếu hoặc quá hạn chờ
+- id: gateway-scatter-gather
+  title: Gateway & Scatter-Gather
+  purpose: Kết hợp request-reply với việc gọi nhiều nhánh xử lý và thu thập phản hồi.
+  objectives:
+  - Tạo @MessagingGateway cho điểm vào luồng
+  - Gửi yêu cầu tới nhiều recipient
+  - Gom kết quả với Scatter-Gather và timeout
+- id: idempotency-error-flow
+  title: Idempotency & Error Flow
+  purpose: Ngăn tác dụng phụ do thông điệp lặp và thiết kế nhánh xử lý khi một bước gặp lỗi.
+  objectives:
+  - Áp dụng Idempotent Receiver cho thông điệp trùng
+  - Phân tuyến lỗi qua errorChannel
+  - Kiểm thử thông điệp lỗi, trùng và hết hạn

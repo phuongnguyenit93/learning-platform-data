@@ -1,0 +1,43 @@
+roadmap:
+- id: moi-truong-java-17
+  title: Môi trường Java 17
+  purpose: Thiết lập môi trường biên dịch và chạy thống nhất.
+  objectives:
+  - Xác nhận java và javac cùng phiên bản 17.
+  - Biên dịch, chạy chương trình Java 17.
+- id: sealed-classes
+  title: Sealed classes
+  purpose: Giới hạn kế thừa để mô hình hóa miền dữ liệu rõ ràng.
+  objectives:
+  - Khai báo sealed, permits và các lớp con hợp lệ.
+  - Chọn final, sealed hoặc non-sealed cho lớp con.
+- id: randomgenerator
+  title: RandomGenerator
+  purpose: Sinh số giả ngẫu nhiên qua API thống nhất.
+  objectives:
+  - Tạo bộ sinh LXM bằng RandomGeneratorFactory.
+  - Kiểm chứng chuỗi sinh với cùng thuật toán và seed.
+- id: so-thuc-nhat-quan
+  title: Số thực nhất quán
+  purpose: Hiểu cách phép tính float/double được đánh giá nhất quán.
+  objectives:
+  - Giải thích ngữ nghĩa always-strict từ Java 17.
+  - Kiểm chứng làm tròn, NaN và vô cực.
+- id: dong-goi-manh-cua-jdk
+  title: Đóng gói mạnh của JDK
+  purpose: Dùng API công khai để tôn trọng ranh giới truy cập của JDK.
+  objectives:
+  - Tìm phụ thuộc nội bộ bằng jdeps --jdk-internals.
+  - Sửa lỗi reflection bằng API công khai hoặc thư viện cập nhật.
+- id: loc-giai-tuan-tu
+  title: Lọc giải tuần tự
+  purpose: Kiểm soát lớp và tài nguyên khi hệ thống cần giải tuần tự.
+  objectives:
+  - Đặt filter factory bằng setSerialFilterFactory.
+  - Kiểm thử chặn lớp lạ, độ sâu và kích thước mảng.
+- id: nang-cap-va-kiem-chung
+  title: Nâng cấp và kiểm chứng
+  purpose: Xác nhận ứng dụng chạy đúng trên Java 17.
+  objectives:
+  - Cập nhật thư viện và cấu hình build cho Java 17.
+  - Chạy kiểm thử hồi quy và xử lý lỗi tương thích.

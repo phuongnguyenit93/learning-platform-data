@@ -1,0 +1,7 @@
+# Software Design Architecture Domain Modeling Domain Driven Design
+
+**Domain-Driven Design (DDD)** là cách tiếp cận thiết kế phần mềm dựa trên hiểu biết sâu về miền nghiệp vụ. Thay vì bắt đầu bằng bảng dữ liệu, framework hoặc sơ đồ lớp, nhóm phát triển hợp tác với chuyên gia nghiệp vụ để xây dựng mô hình và một ngôn ngữ chung (*Ubiquitous Language*). DDD đặc biệt hữu ích khi bài toán có nhiều quy tắc thay đổi, nhiều nhóm tham gia hoặc cùng một khái niệm mang ý nghĩa khác nhau trong các ngữ cảnh.
+
+Lộ trình gồm tám mốc: khám phá domain, thiết lập ngôn ngữ chung, phân loại subdomain và core domain, xác định bounded context, lập context map để tích hợp, mô hình hóa entity/value object, thiết kế aggregate/repository, rồi sử dụng domain events và kiểm thử để phát triển mô hình. Nội dung kết hợp **strategic design** (phân ranh giới và quan hệ giữa mô hình) với **tactical design** (thể hiện quy tắc trong mã) mà không mặc định mỗi bounded context phải trở thành một microservice.
+
+Module phù hợp với lập trình viên và kiến trúc sư phần mềm đã hiểu hướng đối tượng, nghiệp vụ ứng dụng và các khái niệm service/API cơ bản. Sau khi hoàn thành, bạn có thể trao đổi với domain expert bằng ngôn ngữ nhất quán, phác thảo các bounded context, xác định aggregate bảo vệ invariant và thiết kế một mô hình domain có thể kiểm thử, thay đổi mà không phụ thuộc chặt vào hạ tầng lưu trữ.

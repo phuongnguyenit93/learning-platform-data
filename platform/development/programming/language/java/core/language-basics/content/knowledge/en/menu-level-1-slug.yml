@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: language-overview
+  index: 0
+- title: Công cụ và thực thi
+  slug: tools-and-execution
+  index: 1
+- title: Cấu trúc chương trình
+  slug: program-structure
+  index: 2
+- title: Từ vựng Java
+  slug: java-vocabulary
+  index: 3
+- title: Literal
+  slug: literals
+  index: 4
+- title: Biến và hằng
+  slug: variables-and-constants
+  index: 5
+- title: Kiểu nguyên thủy
+  slug: primitive-types
+  index: 6
+- title: Ký tự và chuỗi
+  slug: characters-and-strings
+  index: 7
+- title: Tham chiếu và null
+  slug: references-and-null
+  index: 8
+- title: Chuyển đổi kiểu
+  slug: type-conversion
+  index: 9
+- title: Lớp bao nguyên thủy
+  slug: primitive-wrappers
+  index: 10
+- title: Suy luận với var
+  slug: var-type-inference
+  index: 11
+- title: Biểu thức
+  slug: expressions
+  index: 12
+- title: Số học
+  slug: arithmetic
+  index: 13
+- title: Gán và toán tử một ngôi
+  slug: assignment-and-unary-operators
+  index: 14
+- title: So sánh
+  slug: comparisons
+  index: 15
+- title: Logic và điều kiện
+  slug: logic-and-conditions
+  index: 16
+- title: Toán tử bit
+  slug: bitwise-operators
+  index: 17
+- title: Rẽ nhánh if
+  slug: if-statements
+  index: 18
+- title: Switch
+  slug: switch-statements
+  index: 19
+- title: Mẫu kiểm tra kiểu
+  slug: type-patterns
+  index: 20
+- title: Vòng lặp
+  slug: loops
+  index: 21
+- title: Duyệt và chuyển luồng
+  slug: iteration-and-control-flow
+  index: 22
+- title: Mảng một chiều
+  slug: one-dimensional-arrays
+  index: 23
+- title: Mảng nhiều chiều
+  slug: multidimensional-arrays
+  index: 24
+- title: Phương thức
+  slug: methods
+  index: 25
+- title: Phạm vi và khởi tạo
+  slug: scope-and-initialization
+  index: 26
+- title: Lớp và đối tượng
+  slug: classes-and-objects
+  index: 27
+- title: Package và import
+  slug: packages-and-imports
+  index: 28
+- title: Lỗi và ngoại lệ
+  slug: errors-and-exceptions
+  index: 29
+- title: Nhập xuất cơ bản
+  slug: basic-io
+  index: 30
+- title: Thực hành và chất lượng
+  slug: practice-and-quality
+  index: 31

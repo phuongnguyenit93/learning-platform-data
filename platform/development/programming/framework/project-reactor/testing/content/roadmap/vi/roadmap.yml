@@ -1,0 +1,57 @@
+roadmap:
+- id: reactor-test-signals
+  title: Reactor Test & Signals
+  purpose: Thiết lập công cụ kiểm thử Mono/Flux và hiểu kiểm thử reactive phải xác nhận sự kiện khi được subscribe.
+  objectives:
+  - Thêm reactor-test ở test scope
+  - Phân biệt onNext, onError và onComplete
+  - Nhận diện Publisher lạnh và thời điểm subscribe
+- id: stepverifier-co-ban
+  title: StepVerifier Cơ bản
+  purpose: Mô tả trình tự các giá trị mong đợi theo cách khai báo và xác minh luồng kết thúc đúng.
+  objectives:
+  - Tạo StepVerifier.create cho Mono và Flux
+  - Dùng expectNext, assertNext và expectNextCount
+  - Kết thúc bằng verifyComplete hoặc verify
+- id: error-empty-cancel
+  title: Error, Empty & Cancel
+  purpose: Kiểm tra các luồng thất bại, luồng không có dữ liệu và tình huống hủy subscription.
+  objectives:
+  - Xác minh Mono.empty và Flux.empty
+  - Dùng expectErrorMatches hoặc verifyError
+  - Kiểm tra thenCancel với luồng không kết thúc
+- id: backpressure-demand
+  title: Backpressure & Demand
+  purpose: Kiểm chứng lượng request và hành vi phát dữ liệu khi downstream tiêu thụ có giới hạn.
+  objectives:
+  - Khởi tạo StepVerifierOptions.initialRequest
+  - Dùng thenRequest để điều khiển demand
+  - Thử trường hợp phát vượt request hoặc bị cancel
+- id: virtual-time-scheduler
+  title: Virtual Time & Scheduler
+  purpose: Kiểm thử delay, interval và timeout mà không phải chờ thời gian thực.
+  objectives:
+  - Dùng StepVerifier.withVirtualTime với Supplier tạo luồng mới
+  - Phân biệt thenAwait và expectNoEvent
+  - Tránh tạo Publisher quá sớm hoặc dùng Scheduler không tương thích
+- id: context-assertions
+  title: Context & Assertions
+  purpose: Kiểm chứng dữ liệu Context và các tác động sau khi chuỗi hoàn thành.
+  objectives:
+  - Thiết lập Context ban đầu bằng StepVerifierOptions
+  - Dùng expectAccessibleContext để xác minh khóa
+  - Dùng verifyThenAssertThat kiểm tra dropped/discarded signals
+- id: testpublisher-fault-injection
+  title: TestPublisher & Fault Injection
+  purpose: Tự điều khiển dữ liệu phát ra để kiểm thử các nhánh xử lý và lỗi bất thường.
+  objectives:
+  - Phát onNext, onComplete và onError với TestPublisher
+  - Xác minh subscriber và request bằng assertion
+  - Mô phỏng vi phạm Reactive Streams khi phù hợp
+- id: publisherprobe-test-hygiene
+  title: PublisherProbe & Test Hygiene
+  purpose: Xác nhận nhánh xử lý thực sự được subscribe và duy trì bài kiểm thử ổn định, dễ chẩn đoán.
+  objectives:
+  - Dùng PublisherProbe kiểm tra nhánh switchIfEmpty
+  - Xác minh subscribed, requested hoặc cancelled
+  - Đặt timeout, mô tả test và tránh phụ thuộc sleep

@@ -1,0 +1,91 @@
+menu:
+  - title: "Tổng quan Stream API"
+    slug: stream-api-overview
+    index: 0
+  - title: "Hợp đồng và vòng đời pipeline"
+    slug: pipeline-contracts-and-lifecycle
+    index: 1
+  - title: "Hàm hành vi và kiểu dữ liệu"
+    slug: behavioral-functions-and-types
+    index: 2
+  - title: "Tạo Stream từ dữ liệu có sẵn"
+    slug: streams-from-existing-data
+    index: 3
+  - title: "Dãy số và Stream vô hạn"
+    slug: sequences-and-infinite-streams
+    index: 4
+  - title: "Lọc và biến đổi phần tử"
+    slug: filtering-and-transformation
+    index: 5
+  - title: "Thứ tự, loại trùng và cắt lát"
+    slug: ordering-deduplication-and-slicing
+    index: 6
+  - title: "Duyệt, tìm kiếm và đối sánh"
+    slug: traversal-search-and-matching
+    index: 7
+  - title: "Stream kiểu nguyên thủy"
+    slug: primitive-streams
+    index: 8
+  - title: "Độ chính xác khi tổng hợp số"
+    slug: numeric-aggregation-accuracy
+    index: 9
+  - title: "Optional trong kết quả Stream"
+    slug: optional-stream-results
+    index: 10
+  - title: "Phép rút gọn với reduce"
+    slug: reduction-with-reduce
+    index: 11
+  - title: "Cơ chế collect và Collector"
+    slug: collect-and-collector-contracts
+    index: 12
+  - title: "Thu thập thành Collection"
+    slug: collecting-to-collections
+    index: 13
+  - title: "Thu thập thành Map"
+    slug: collecting-to-maps
+    index: 14
+  - title: "Phân nhóm và phân hoạch"
+    slug: grouping-and-partitioning
+    index: 15
+  - title: "Collector nhiều tầng và tổng hợp"
+    slug: composed-collectors-and-aggregation
+    index: 16
+  - title: "Nguồn vào ra và quản lý tài nguyên"
+    slug: io-sources-and-resource-management
+    index: 17
+  - title: "Spliterator và nguồn tự định nghĩa"
+    slug: spliterators-and-custom-sources
+    index: 18
+  - title: "Ngữ nghĩa xử lý song song"
+    slug: parallel-stream-semantics
+    index: 19
+  - title: "Thu thập đồng thời"
+    slug: concurrent-collectors
+    index: 20
+  - title: "Hiệu năng và bộ nhớ"
+    slug: performance-and-memory
+    index: 21
+  - title: "Ngoại lệ và tính an toàn"
+    slug: exceptions-and-safety
+    index: 22
+  - title: "Gỡ lỗi và kiểm thử pipeline"
+    slug: debugging-and-testing-pipelines
+    index: 23
+  - title: "Stream Gatherer"
+    slug: stream-gatherers
+    index: 24
+  - title: "Xây dựng Gatherer tùy biến"
+    slug: custom-gatherers
+    index: 25
+  - title: "Khả năng tương thích JDK"
+    slug: jdk-compatibility
+    index: 26
+  - title: "Mẫu xử lý dữ liệu thực tế"
+    slug: practical-data-processing-patterns
+    index: 27
+  - title: "Bài tập nền tảng và trung cấp"
+    slug: beginner-and-intermediate-exercises
+    index: 28
+  - title: "Bài tập nâng cao và dự án"
+    slug: advanced-exercises-and-projects
+    index: 29

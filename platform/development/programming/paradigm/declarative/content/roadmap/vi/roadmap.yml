@@ -1,0 +1,57 @@
+roadmap:
+- id: what-vs-how
+  title: What vs How
+  purpose: Hiểu tư duy mô tả kết quả cần đạt thay vì liệt kê chi tiết từng bước xử lý.
+  objectives:
+  - So sánh cùng bài toán dưới dạng vòng lặp và biểu thức
+  - Phân biệt kết quả mong muốn với thứ tự thao tác
+  - Nêu ví dụ phù hợp và không phù hợp với cách khai báo
+- id: bieu-thuc-quy-tac
+  title: Biểu thức & Quy tắc
+  purpose: Ghép các điều kiện, phép biến đổi và ràng buộc thành mô tả có thể thực thi.
+  objectives:
+  - Viết biểu thức lọc và biến đổi dữ liệu
+  - Đọc quy tắc điều kiện–kết quả đơn giản
+  - Phân biệt dữ liệu đầu vào với quy tắc áp dụng
+- id: sql-truy-van
+  title: SQL & Truy vấn
+  purpose: Dùng SQL để yêu cầu tập kết quả mà không điều khiển thuật toán tìm từng bản ghi.
+  objectives:
+  - Viết SELECT với WHERE và ORDER BY
+  - Kết hợp hai bảng bằng JOIN
+  - Tổng hợp kết quả bằng GROUP BY
+- id: java-stream-pipelines
+  title: Java Stream Pipelines
+  purpose: Diễn tả quá trình xử lý collection bằng các phép biến đổi cấp cao.
+  objectives:
+  - Viết pipeline filter–map–collect
+  - Phân biệt intermediate và terminal operation
+  - Thử tránh sửa nguồn hoặc trạng thái chung trong pipeline
+- id: logic-constraints
+  title: Logic & Constraints
+  purpose: Làm quen mô hình khai báo bằng facts, rules và truy vấn đáp án thỏa điều kiện.
+  objectives:
+  - Viết facts và rules đơn giản bằng Prolog
+  - Đặt truy vấn tìm các kết quả thỏa quy tắc
+  - So sánh khai báo ràng buộc với tự duyệt trường hợp
+- id: style-desired-state
+  title: Style & Desired State
+  purpose: Nhận diện khai báo trong cấu hình giao diện và hạ tầng theo trạng thái mong muốn.
+  objectives:
+  - Viết quy tắc CSS cho một nhóm phần tử
+  - Đọc cấu hình Terraform mô tả tài nguyên
+  - Phân biệt desired state với lệnh thao tác tuần tự
+- id: thuc-thi-toi-uu
+  title: Thực thi & Tối ưu
+  purpose: Hiểu engine chịu trách nhiệm chọn cách thực thi, nhưng hiệu năng không tự được bảo đảm.
+  objectives:
+  - Dùng EXPLAIN quan sát kế hoạch truy vấn SQL
+  - Giải thích tính lazy của thao tác Java Stream
+  - So sánh chi phí hai mô tả cho cùng kết quả
+- id: kiem-thu-danh-doi
+  title: Kiểm thử & Đánh đổi
+  purpose: Chọn phong cách khai báo khi nó tăng độ rõ ràng mà vẫn kiểm soát được lỗi và tác dụng phụ.
+  objectives:
+  - Kiểm thử kết quả của cùng bài toán theo hai cách
+  - Nhận diện side effect hoặc thứ tự gây sai lệch
+  - Nêu khi nào vòng lặp tường minh dễ hiểu hơn

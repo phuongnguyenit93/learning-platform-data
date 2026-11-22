@@ -1,0 +1,7 @@
+# Software Design — Design Principle: Loose Coupling
+
+Loose Coupling (liên kết lỏng) là nguyên tắc thiết kế giúp các lớp và module biết ít nhất có thể về chi tiết triển khai của nhau. Một thay đổi bên trong thành phần cung cấp dịch vụ lý tưởng không buộc nhiều thành phần khác phải sửa theo, miễn là hợp đồng giao tiếp vẫn được giữ. Mục tiêu không phải xóa mọi phụ thuộc — các thành phần vẫn cần hợp tác — mà là kiểm soát hướng, số lượng và mức độ ổn định của những phụ thuộc thực sự cần thiết.
+
+Module dành cho người đã quen lập trình hướng đối tượng Java, class, interface và unit test cơ bản. Bạn sẽ bắt đầu bằng cách phân biệt coupling với cohesion, nhận diện các dấu hiệu coupling chặt như khởi tạo trực tiếp implementation, truy cập sâu vào cấu trúc đối tượng hoặc phụ thuộc vòng. Tiếp theo là dùng interface và hợp đồng nhỏ, đóng gói và ẩn chi tiết, Dependency Inversion và constructor-based Dependency Injection để làm phần nghiệp vụ ít phụ thuộc vào thư viện hay hạ tầng cụ thể. Phần thiết kế ranh giới module cho thấy cách đặt abstraction và adapter theo hướng phụ thuộc mong muốn.
+
+Ở chặng cuối, bạn sẽ refactor một ví dụ Java đang coupling chặt, viết test với fake hoặc mock dependency và đánh giá mức độ ảnh hưởng khi thay thế implementation. Thiết kế tốt cần sự cân bằng: tạo abstraction đúng nơi có biến động thực tế, tránh sinh hàng loạt interface hoặc tầng chuyển tiếp chỉ để theo đuổi coupling thấp bằng mọi giá. Sau module, bạn có thể giải thích và minh họa Loose Coupling bằng mã nguồn, sơ đồ phụ thuộc và các kiểm thử cụ thể.

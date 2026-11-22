@@ -1,0 +1,3 @@
+menuLevel1: Dynamic proxy
+menuLevel2: Gọi default method bằng InvocationHandler.invokeDefault
+status: WRITTEN

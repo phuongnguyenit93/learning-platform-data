@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Bảo toàn hành vi
+  slug: behavior-preservation
+  index: 1
+- title: Dấu hiệu cần cải tiến
+  slug: refactoring-signs
+  index: 2
+- title: Đánh giá thiết kế
+  slug: design-assessment
+  index: 3
+- title: Quy trình an toàn
+  slug: safe-process
+  index: 4
+- title: Kiểm thử bảo vệ
+  slug: characterization-tests
+  index: 5
+- title: Mã thiếu kiểm thử
+  slug: untested-code
+  index: 6
+- title: Tên và diễn đạt
+  slug: naming-clarity
+  index: 7
+- title: Hàm và biểu thức
+  slug: functions-expressions
+  index: 8
+- title: Giao diện hàm
+  slug: function-signatures
+  index: 9
+- title: Điều kiện
+  slug: conditionals
+  index: 10
+- title: Vòng lặp và tập hợp
+  slug: loops-collections
+  index: 11
+- title: Cấu trúc dữ liệu
+  slug: data-structures
+  index: 12
+- title: Trạng thái và bất biến
+  slug: state-and-immutability
+  index: 13
+- title: Lớp và trách nhiệm
+  slug: classes-responsibilities
+  index: 14
+- title: Di chuyển mã
+  slug: moving-code
+  index: 15
+- title: Phụ thuộc và ranh giới
+  slug: dependencies-boundaries
+  index: 16
+- title: Kế thừa và ủy quyền
+  slug: inheritance-delegation
+  index: 17
+- title: Mô hình nghiệp vụ
+  slug: domain-model
+  index: 18
+- title: Ngoại lệ và tài nguyên
+  slug: exceptions-resources
+  index: 19
+- title: Tác dụng phụ
+  slug: side-effects
+  index: 20
+- title: Đồng thời và bất đồng bộ
+  slug: concurrency-asynchrony
+  index: 21
+- title: Lưu trữ và giao dịch
+  slug: persistence-transactions
+  index: 22
+- title: API và tương thích
+  slug: api-compatibility
+  index: 23
+- title: Cấu trúc mô đun
+  slug: module-structure
+  index: 24
+- title: Cải tiến kiểm thử
+  slug: improving-tests
+  index: 25
+- title: Hiệu năng và tài nguyên
+  slug: performance-and-resources
+  index: 26
+- title: Công cụ hỗ trợ
+  slug: tooling
+  index: 27
+- title: Thay đổi quy mô lớn
+  slug: large-scale-refactoring
+  index: 28
+- title: Làm việc nhóm
+  slug: teamwork
+  index: 29
+- title: Đánh giá kết quả
+  slug: outcome-assessment
+  index: 30
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 31
+- title: Bài thực hành
+  slug: practice-labs
+  index: 32

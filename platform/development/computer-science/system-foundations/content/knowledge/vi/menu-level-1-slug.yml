@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan hệ thống
+  slug: system-overview
+  index: 0
+- title: Biểu diễn dữ liệu
+  slug: data-representation
+  index: 1
+- title: Logic số
+  slug: digital-logic
+  index: 2
+- title: Kiến trúc máy tính
+  slug: computer-architecture
+  index: 3
+- title: Tập lệnh và hợp ngữ
+  slug: instruction-set-and-assembly
+  index: 4
+- title: Tổ chức bộ xử lý
+  slug: processor-organization
+  index: 5
+- title: Phân cấp bộ nhớ
+  slug: memory-hierarchy
+  index: 6
+- title: Biên dịch và thực thi
+  slug: compilation-and-execution
+  index: 7
+- title: Nền tảng hệ điều hành
+  slug: operating-systems
+  index: 8
+- title: Tiến trình
+  slug: processes
+  index: 9
+- title: Luồng và lập lịch
+  slug: threads-and-scheduling
+  index: 10
+- title: Đồng bộ
+  slug: synchronization
+  index: 11
+- title: Bộ nhớ ảo
+  slug: virtual-memory
+  index: 12
+- title: Giao tiếp tiến trình
+  slug: interprocess-communication
+  index: 13
+- title: Thiết bị và vào ra
+  slug: devices-and-input-output
+  index: 14
+- title: Hệ thống tệp
+  slug: file-systems
+  index: 15
+- title: Lưu trữ bền vững
+  slug: persistent-storage
+  index: 16
+- title: Hệ quản trị dữ liệu
+  slug: data-management
+  index: 17
+- title: Khởi động hệ thống
+  slug: system-boot
+  index: 18
+- title: Nền tảng mạng
+  slug: networking-fundamentals
+  index: 19
+- title: Ethernet và IP
+  slug: ethernet-and-ip
+  index: 20
+- title: TCP và UDP
+  slug: tcp-and-udp
+  index: 21
+- title: Giao thức ứng dụng
+  slug: application-protocols
+  index: 22
+- title: Lập trình mạng
+  slug: network-programming
+  index: 23
+- title: Bảo vệ hệ thống
+  slug: system-security
+  index: 24
+- title: Mật mã và kênh an toàn
+  slug: cryptography-and-secure-channels
+  index: 25
+- title: Ảo hóa
+  slug: virtualization
+  index: 26
+- title: Container
+  slug: containers
+  index: 27
+- title: Tính toán song song
+  slug: parallel-computing
+  index: 28
+- title: Nền tảng phân tán
+  slug: distributed-systems
+  index: 29
+- title: Thời gian và nhất quán
+  slug: time-and-consistency
+  index: 30
+- title: Chịu lỗi
+  slug: fault-tolerance
+  index: 31
+- title: Hiệu năng
+  slug: performance
+  index: 32
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 33
+- title: Thực hành tích hợp
+  slug: integrated-practice
+  index: 34

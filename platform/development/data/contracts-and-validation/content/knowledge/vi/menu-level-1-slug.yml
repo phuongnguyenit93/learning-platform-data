@@ -1,0 +1,85 @@
+menu:
+- title: Nền tảng
+  slug: foundation
+  index: 0
+- title: Thiết kế hợp đồng
+  slug: contract-design
+  index: 1
+- title: Kiểu và cấu trúc
+  slug: types-and-structure
+  index: 2
+- title: Quy tắc ngữ nghĩa
+  slug: semantic-rules
+  index: 3
+- title: Chuẩn hóa dữ liệu
+  slug: data-normalization
+  index: 4
+- title: JSON Schema
+  slug: json-schema
+  index: 5
+- title: Hợp đồng HTTP
+  slug: http-contracts
+  index: 6
+- title: Hợp đồng thông điệp
+  slug: message-contracts
+  index: 7
+- title: Phiên bản hợp đồng
+  slug: contract-versioning
+  index: 8
+- title: Kiến trúc kiểm tra
+  slug: validation-architecture
+  index: 9
+- title: Jakarta Validation
+  slug: jakarta-validation
+  index: 10
+- title: Ràng buộc chuẩn
+  slug: standard-constraints
+  index: 11
+- title: Dữ liệu lồng nhau
+  slug: nested-data
+  index: 12
+- title: Ràng buộc tùy chỉnh
+  slug: custom-constraints
+  index: 13
+- title: Nhóm kiểm tra
+  slug: validation-groups
+  index: 14
+- title: Kiểm tra phương thức
+  slug: method-validation
+  index: 15
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 16
+- title: Thông báo và lỗi
+  slug: errors-and-messages
+  index: 17
+- title: Quy tắc nghiệp vụ
+  slug: business-rules
+  index: 18
+- title: Nhất quán và lưu trữ
+  slug: consistency-and-storage
+  index: 19
+- title: Nhập liệu và xử lý lô
+  slug: batch-input-processing
+  index: 20
+- title: Bảo mật đầu vào
+  slug: input-security
+  index: 21
+- title: Thời gian và ngữ cảnh
+  slug: time-and-context
+  index: 22
+- title: Hiệu năng
+  slug: performance
+  index: 23
+- title: Kiểm thử ràng buộc
+  slug: constraint-testing
+  index: 24
+- title: Kiểm thử hợp đồng
+  slug: contract-testing
+  index: 25
+- title: Vận hành hợp đồng
+  slug: contract-operations
+  index: 26
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 27

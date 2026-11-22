@@ -1,0 +1,2776 @@
+menu:
+- slug: overview
+  title: Tổng quan Java 21
+  childs:
+  - slug: overview-001
+    title: Vị trí của Java 21 trong nền tảng Java được duy trì hiện nay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phạm vi ngôn ngữ, thư viện chuẩn, JVM và công cụ của JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Bản đồ tính năng đã hoàn thiện và có thể dùng không cần bật preview
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt phiên bản ngôn ngữ, API, bytecode và bản cập nhật JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Xác định yêu cầu tương thích khi ứng dụng vẫn chạy trên Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Đọc Java SE Specification, API Specification và release notes chính thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lựa chọn tính năng theo bài toán thay vì thay đổi mã chỉ vì có cú pháp mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: toolchains
+  title: Môi trường và toolchain
+  childs:
+  - slug: toolchains-001
+    title: Cài đặt bản cập nhật JDK 21 được nhà cung cấp duy trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-002
+    title: Kiểm tra java, javac, JAVA_HOME và phiên bản JVM thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-003
+    title: Quản lý nhiều JDK trên máy phát triển và trong môi trường CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-004
+    title: Cấu hình Java toolchain cho Maven và Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-005
+    title: Thiết lập javac --release 21 để kiểm soát ngôn ngữ, bytecode và API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-006
+    title: Đồng bộ JDK giữa IDE, build tool, test runner và production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-007
+    title: Tạo project Java 21 với classpath hoặc module path phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-008
+    title: Cấu hình mã nguồn, tài nguyên và encoding nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchains-009
+    title: Kiểm tra khả năng hỗ trợ JDK 21 của plugin, thư viện và annotation processor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-modeling
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-modeling-001
+    title: Ôn tập record như nền tảng để sử dụng Record Patterns
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-002
+    title: Thành phần record, accessor và constructor ảnh hưởng đến deconstruction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-003
+    title: Thiết kế record có validation và giữ invariant của dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-004
+    title: Phân biệt record bất biến nông với dữ liệu thực sự bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-005
+    title: Sealed class, sealed interface và tập hợp kiểu con được phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-006
+    title: Kết hợp sealed hierarchy với record để mô hình hóa các biến thể dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-007
+    title: Type pattern với instanceof và phạm vi biến theo luồng điều khiển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-008
+    title: Ranh giới giữa mô hình dữ liệu bằng record và đối tượng có hành vi, vòng đời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-patterns
+  title: Record Patterns
+  childs:
+  - slug: record-patterns-001
+    title: Cấu trúc cú pháp Record Patterns đã hoàn thiện trong Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-002
+    title: Kiểm tra kiểu và tách các component trong một lần matching
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-003
+    title: So sánh type pattern với record pattern trên cùng một record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-004
+    title: Sử dụng record pattern trong biểu thức instanceof
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-005
+    title: Sử dụng record pattern trong nhãn case của switch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-006
+    title: Khai báo component pattern bằng kiểu tường minh hoặc var
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-007
+    title: Record pattern lồng nhau để duyệt cấu trúc dữ liệu nhiều tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-008
+    title: Xử lý record có giá trị null và component có thể null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-009
+    title: Phạm vi, tên biến và điều kiện sử dụng biến sau matching
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-010
+    title: Accessor được gọi khi deconstruction và tác động của accessor tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-patterns-011
+    title: Xử lý MatchException khi quá trình matching không hoàn tất bình thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-patterns
+  title: Generics và patterns
+  childs:
+  - slug: generic-patterns-001
+    title: Record generic và kiểu của các component trong pattern
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-patterns-002
+    title: Type argument tường minh trong record pattern
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-patterns-003
+    title: Suy luận type argument từ kiểu của selector hoặc biểu thức instanceof
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-patterns-004
+    title: Suy luận kiểu với var trong các record pattern lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-patterns-005
+    title: Giới hạn type erasure và matching đòi hỏi unchecked conversion
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-patterns-006
+    title: Quan hệ giữa kiểu tĩnh, kiểu runtime và tính hợp lệ của pattern
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-patterns-007
+    title: Kết hợp record generic với sealed hierarchy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-patterns-008
+    title: Nhận diện lỗi biên dịch do suy luận kiểu hoặc pattern không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-switch
+  title: Pattern switch
+  childs:
+  - slug: pattern-switch-001
+    title: Pattern Matching cho switch đã hoàn thiện trong Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-002
+    title: Switch statement và switch expression khi dùng pattern
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-003
+    title: Selector là reference type và các giới hạn kiểu trong Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-004
+    title: Type pattern cho class, interface, record và array
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-005
+    title: Kết hợp constant case và pattern case trong một switch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-006
+    title: Guard bằng when để bổ sung điều kiện nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-007
+    title: Thứ tự đánh giá pattern và guard
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-008
+    title: Khai báo case null và case null, default
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-009
+    title: Qualified enum constant trong các switch phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-010
+    title: Phạm vi pattern variable trong guard, nhánh và khối lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-switch-011
+    title: Chuyển chuỗi instanceof hoặc if-else sang pattern switch có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: switch-exhaustiveness
+  title: Tính đầy đủ của switch
+  childs:
+  - slug: switch-exhaustiveness-001
+    title: Type coverage và điều kiện exhaustive của switch có pattern
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-002
+    title: Phân biệt yêu cầu exhaustive của switch statement và expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-003
+    title: Bao phủ sealed hierarchy mà không che mất biến thể chưa xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-004
+    title: Exhaustiveness với enum và qualified enum constant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-005
+    title: Exhaustiveness với record pattern lồng nhau và record generic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-006
+    title: Pattern dominance và các nhánh không thể tới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-007
+    title: Ảnh hưởng của guard khi kiểm tra dominance và type coverage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-008
+    title: Phân biệt default, pattern bao phủ toàn bộ kiểu và xử lý null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-009
+    title: MatchException khi hierarchy thay đổi nhưng mã sử dụng chưa được biên dịch lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-exhaustiveness-010
+    title: Lựa chọn giữa kiểm tra đầy đủ lúc biên dịch và nhánh dự phòng theo nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sequenced-collections
+  title: Sequenced Collections
+  childs:
+  - slug: sequenced-collections-001
+    title: Encounter order và nhu cầu truy cập hai đầu collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-002
+    title: SequencedCollection, SequencedSet và SequencedMap trong Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-003
+    title: Quan hệ của List và Deque với SequencedCollection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-004
+    title: getFirst, getLast và hành vi khi collection rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-005
+    title: addFirst, addLast, removeFirst và removeLast
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-006
+    title: reversed như một view có thứ tự ngược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-007
+    title: Ảnh hưởng của reversed đến iterator, stream và thao tác hai đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-008
+    title: Các thao tác tùy chọn và UnsupportedOperationException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-009
+    title: Lựa chọn ArrayList, ArrayDeque hoặc LinkedList theo đặc tính thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-collections-010
+    title: Thay thế mã xử lý phần tử đầu cuối bằng API biểu đạt đúng ý định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sequenced-set
+  title: SequencedSet
+  childs:
+  - slug: sequenced-set-001
+    title: SequencedSet và sự kết hợp giữa tính duy nhất với encounter order
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-set-002
+    title: LinkedHashSet và thứ tự chèn của phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-set-003
+    title: addFirst, addLast và di chuyển vị trí phần tử đã tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-set-004
+    title: Truy cập hoặc xóa phần tử ở hai đầu của set
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-set-005
+    title: Reversed view của SequencedSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-set-006
+    title: SortedSet, NavigableSet và thứ tự do comparator quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-set-007
+    title: Giới hạn addFirst, addLast trên các set có thứ tự sắp xếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-set-008
+    title: Thiết kế API nhận SequencedSet khi thứ tự là một phần của hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sequenced-map
+  title: SequencedMap
+  childs:
+  - slug: sequenced-map-001
+    title: SequencedMap và encounter order của các entry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-002
+    title: LinkedHashMap theo insertion order hoặc access order
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-003
+    title: firstEntry, lastEntry và kết quả khi map rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-004
+    title: pollFirstEntry, pollLastEntry và thao tác lấy kèm xóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-005
+    title: putFirst, putLast và định vị lại entry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-006
+    title: sequencedKeySet, sequencedValues và sequencedEntrySet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-007
+    title: Reversed view và quan hệ thứ tự giữa map với các view
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-008
+    title: Ảnh hưởng của truy cập và cập nhật đến access-ordered LinkedHashMap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-009
+    title: SortedMap, NavigableMap và giới hạn định vị entry tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-010
+    title: Entry snapshot từ các thao tác hai đầu và khả năng cập nhật giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sequenced-map-011
+    title: Ứng dụng map có thứ tự vào lịch sử truy cập, hàng đợi và bộ nhớ đệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collection-views
+  title: Views và tính bất biến
+  childs:
+  - slug: collection-views-001
+    title: Phân biệt view, bản sao, snapshot và collection bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-002
+    title: Thay đổi qua reversed view và tác động đến collection gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-003
+    title: Reversed hai lần và cách kiểm tra thứ tự theo hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-004
+    title: Tạo unmodifiableSequencedCollection, unmodifiableSequencedSet và unmodifiableSequencedMap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-005
+    title: Giới hạn của unmodifiable view khi dữ liệu gốc vẫn có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-006
+    title: Tạo sequenced set bằng Collections.newSequencedSetFromMap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-007
+    title: Quy tắc equals, hashCode và thứ tự của List, Set, Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-008
+    title: Làm việc với collection immutable có hỗ trợ đọc hai đầu và reversed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-views-009
+    title: Đánh giá thread safety và concurrent modification theo implementation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-threads
+  title: Virtual Threads
+  childs:
+  - slug: virtual-threads-001
+    title: Mô hình virtual thread, platform thread và carrier thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-002
+    title: Bài toán tăng khả năng xử lý đồng thời cho workload chờ I/O
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-003
+    title: Vòng đời mount, unmount và tiếp tục thực thi virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-004
+    title: Quan hệ giữa số virtual thread với số luồng hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-005
+    title: Khả năng tương thích với Thread API và mã blocking hiện có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-006
+    title: Giới hạn của virtual thread đối với tác vụ CPU-bound
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-007
+    title: Trạng thái daemon và ảnh hưởng đến thời điểm JVM kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-008
+    title: Chi phí stack, đối tượng thread và số lượng tác vụ còn sống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-009
+    title: Vì sao không dùng thread pool để tái sử dụng virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-010
+    title: Phân biệt concurrency, parallelism, throughput và latency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-011
+    title: Tiêu chí chọn virtual thread cho một đường xử lý cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-api
+  title: Thread API
+  childs:
+  - slug: thread-api-001
+    title: Tạo và khởi chạy bằng Thread.startVirtualThread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-002
+    title: Thread.ofVirtual và builder cho virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-003
+    title: Tạo thread chưa chạy bằng unstarted và khởi chạy bằng start
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-004
+    title: Đặt tên thread, số thứ tự và tạo ThreadFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-005
+    title: Thread.ofPlatform khi cần cấu hình platform thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-006
+    title: Kiểm tra Thread.isVirtual và định danh thread trong chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-007
+    title: Thread.currentThread và phân biệt danh tính virtual thread với carrier
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-008
+    title: Join, interrupt và phối hợp hoàn thành giữa các thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-009
+    title: Thiết lập UncaughtExceptionHandler và quan sát lỗi không được bắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-api-010
+    title: Kiểm soát việc kế thừa InheritableThreadLocal qua thread builder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: task-execution
+  title: Executor và tác vụ
+  childs:
+  - slug: task-execution-001
+    title: Executors.newVirtualThreadPerTaskExecutor và mô hình mỗi task một thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-002
+    title: Executors.newThreadPerTaskExecutor với ThreadFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-003
+    title: Quản lý ExecutorService bằng try-with-resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-004
+    title: Submit Runnable, Callable và lấy kết quả qua Future
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-005
+    title: Phân biệt lỗi trong Future với lỗi chuyển tới uncaught exception handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-006
+    title: Chờ kết quả có timeout và xử lý ExecutionException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-007
+    title: Hủy task bằng Future.cancel và giới hạn của interruption
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-008
+    title: Quản lý shutdown, shutdownNow và chờ kết thúc executor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-009
+    title: Fan-out nhiều tác vụ bằng các API ExecutorService đã ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-010
+    title: Kết hợp virtual thread với CompletableFuture qua executor tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-011
+    title: Kiểm soát vòng đời tác vụ để tránh công việc chạy quá phạm vi request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: blocking-io
+  title: Blocking I/O
+  childs:
+  - slug: blocking-io-001
+    title: Cách virtual thread làm việc với socket và các thao tác chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-002
+    title: Phân biệt I/O có thể unmount với thao tác còn chiếm carrier trên JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-003
+    title: Thiết kế xử lý request theo phong cách tuần tự với blocking API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-004
+    title: Tích hợp JDBC và xác minh khả năng tương thích của driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-005
+    title: Tích hợp HTTP client, file I/O và dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-006
+    title: Thiết lập connect timeout, read timeout và deadline nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-007
+    title: Truyền cancellation qua lời gọi I/O có hỗ trợ interruption
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-008
+    title: Đóng stream, socket, connection và tài nguyên khi task thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-009
+    title: Tránh chặn nhầm event-loop khi kết hợp với thư viện bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blocking-io-010
+    title: Phân tích bottleneck ở dịch vụ phụ thuộc khi tăng mức đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronization-pinning
+  title: Đồng bộ và pinning
+  childs:
+  - slug: synchronization-pinning-001
+    title: Thread safety và Java Memory Model vẫn áp dụng với virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-002
+    title: Phân biệt lock contention, blocking và carrier pinning
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-003
+    title: Pinning khi blocking trong synchronized trên JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-004
+    title: Pinning liên quan đến native call và giới hạn chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-005
+    title: Phát hiện vùng giữ monitor lâu hoặc có I/O bên trong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-006
+    title: Đánh giá ReentrantLock cho điểm nghẽn đã đo được trên JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-007
+    title: Giữ synchronized cho vùng tới hạn phù hợp thay vì thay đồng loạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-008
+    title: Phân biệt giới hạn pinning của JDK 21 với cải tiến synchronized từ JDK 24
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-009
+    title: Condition, semaphore và primitive đồng bộ tương thích với virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-pinning-010
+    title: Kiểm tra deadlock, starvation và tranh chấp tài nguyên ngoài thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-context
+  title: Context và ThreadLocal
+  childs:
+  - slug: thread-context-001
+    title: ThreadLocal trên virtual thread và phạm vi dữ liệu theo task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-002
+    title: Chi phí bộ nhớ khi mỗi virtual thread giữ một bản sao dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-003
+    title: Giới hạn mô hình cache tài nguyên đắt tiền trong ThreadLocal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-004
+    title: Dọn dữ liệu bằng remove trong finally khi có nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-005
+    title: InheritableThreadLocal và rủi ro sao chép context ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-006
+    title: Truyền request context bằng tham số hoặc wrapper tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-007
+    title: Truyền MDC, tracing và security context qua executor phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-008
+    title: Tích hợp thư viện cần thread affinity và nhận diện giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-context-009
+    title: Ngăn lộ dữ liệu nhạy cảm qua context, log và task chạy nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-limits
+  title: Giới hạn đồng thời
+  childs:
+  - slug: concurrency-limits-001
+    title: Tách số lượng task khỏi giới hạn tài nguyên đang sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-002
+    title: Semaphore để giới hạn số tác vụ đồng thời theo tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-003
+    title: Connection pool cơ sở dữ liệu khi dùng virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-004
+    title: Rate limit, bulkhead và giới hạn gọi dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-005
+    title: Backpressure tại điểm tiếp nhận công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-006
+    title: Giới hạn hàng đợi, bộ nhớ và số request đang chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-007
+    title: Ngân sách timeout xuyên nhiều bước của một request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-008
+    title: Xử lý overload và phục hồi khi dependency chậm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-limits-009
+    title: Phối hợp tác vụ CPU-bound với executor có mức song song phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-client
+  title: HttpClient
+  childs:
+  - slug: http-client-001
+    title: HttpClient triển khai AutoCloseable trong Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-002
+    title: Lựa chọn phạm vi sống của client và tái sử dụng connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-003
+    title: close và quá trình chờ hoàn tất request đã gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-004
+    title: shutdown, shutdownNow, awaitTermination và isTerminated
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-005
+    title: Body handler trả stream và yêu cầu tiêu thụ hoặc đóng response body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-006
+    title: send với virtual thread và sendAsync theo nhu cầu xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-007
+    title: Timeout, interruption và hủy yêu cầu HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-008
+    title: Đóng client đúng thứ tự khi ứng dụng graceful shutdown
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-client-009
+    title: Kiểm thử request chưa hoàn tất, lỗi mạng và rò rỉ tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-unicode
+  title: Chuỗi và Unicode
+  childs:
+  - slug: strings-unicode-001
+    title: String.indexOf với khoảng beginIndex và endIndex
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-002
+    title: String.splitWithDelimiters và giữ lại dấu phân tách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-003
+    title: Pattern.splitWithDelimiters và tái sử dụng regular expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-004
+    title: Ảnh hưởng của limit và kết quả rỗng khi tách chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-005
+    title: StringBuilder.repeat với code point hoặc CharSequence
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-006
+    title: StringBuffer.repeat và lựa chọn cấu trúc chuỗi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-007
+    title: Unicode 15.0 trong Java 21 và giới hạn của xử lý theo char
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-008
+    title: Character.isEmoji và các thuộc tính emoji liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-unicode-009
+    title: Kiểm thử supplementary code point, chuỗi rỗng và dữ liệu Unicode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: math-utilities
+  title: Toán học và tiện ích
+  childs:
+  - slug: math-utilities-001
+    title: Math.clamp và StrictMath.clamp để giới hạn giá trị trong khoảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-utilities-002
+    title: Chọn overload clamp cho số nguyên và số thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-utilities-003
+    title: NaN, signed zero và kiểm tra biên min, max của clamp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-utilities-004
+    title: Collections.shuffle với RandomGenerator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-utilities-005
+    title: Lựa chọn nguồn ngẫu nhiên cho kiểm thử có thể lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-utilities-006
+    title: Phân biệt nguồn ngẫu nhiên mô phỏng với SecureRandom cho bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-utilities-007
+    title: Đọc since, exception contract và đặc tính API trước khi thay mã tiện ích riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-encapsulation
+  title: KEM
+  childs:
+  - slug: key-encapsulation-001
+    title: Key Encapsulation Mechanism và vai trò chia sẻ khóa đối xứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-002
+    title: Phân biệt KEM, key agreement và mã hóa dữ liệu ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-003
+    title: javax.crypto.KEM và mô hình lựa chọn security provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-004
+    title: KEM.getInstance với thuật toán được provider hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-005
+    title: DHKEM và chuẩn bị cặp khóa tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-006
+    title: Tạo Encapsulator từ public key và sinh encapsulation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-007
+    title: KEM.Encapsulated gồm secret key, encapsulation và tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-008
+    title: Tạo Decapsulator từ private key để khôi phục shared secret
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-009
+    title: Chọn thuật toán, độ dài khóa và xử lý đầu vào không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-010
+    title: Quản lý SecureRandom, private key và dữ liệu nhạy cảm trong kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-011
+    title: Phân biệt API KEM với khả năng kháng lượng tử của thuật toán được chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-encapsulation-012
+    title: Kết hợp KEM với giao thức có xác thực và mã hóa đối xứng theo thiết kế đã đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generational-zgc
+  title: Generational ZGC
+  childs:
+  - slug: generational-zgc-001
+    title: Mục tiêu giảm độ trễ và mô hình young, old generation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-002
+    title: Allocation rate, live set và lý do phân thế hệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-003
+    title: Các pha xử lý đồng thời và tác động đến ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-004
+    title: Cấu hình Generational ZGC trên đúng JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-005
+    title: Xác minh collector thực tế bằng startup log và GC log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-006
+    title: Thiết lập heap có đủ headroom cho thu gom đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-007
+    title: Đánh giá pause time, allocation stall, CPU và throughput
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-008
+    title: Phân tích promotion, object lifetime và tải cấp phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-009
+    title: So sánh G1 với Generational ZGC trên workload đại diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-010
+    title: Đo đạc trước khi điều chỉnh số GC thread hoặc tham số chuyên sâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-011
+    title: Kiểm tra tùy chọn GC theo phiên bản khi nâng từ JDK 21 lên JDK mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-observability
+  title: Quan sát runtime
+  childs:
+  - slug: runtime-observability-001
+    title: Thu thập Java Flight Recorder cho ứng dụng Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-002
+    title: Sự kiện virtual thread start, end, pinned và submit failed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-003
+    title: Đọc thread dump có hỗ trợ virtual thread bằng công cụ JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-004
+    title: Thread.dump_to_file qua jcmd và lựa chọn định dạng dump
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-005
+    title: Phân biệt số virtual thread với số platform thread trong metrics
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-006
+    title: Giới hạn của ThreadMXBean khi quan sát virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-007
+    title: Tương quan request ID, trace ID và tên task thay vì phụ thuộc carrier
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-008
+    title: Đọc GC log, heap usage và thông tin cấp phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-009
+    title: Phân tích JFR bằng công cụ tương thích với JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-010
+    title: jfr view và các bảng tổng hợp sự kiện hữu ích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-observability-011
+    title: Bảo vệ dữ liệu nhạy cảm và kiểm soát overhead khi thu thập chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instrumentation-agents
+  title: Agent và instrumentation
+  childs:
+  - slug: instrumentation-agents-001
+    title: Mục đích thay đổi chính sách nạp agent trong JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-agents-002
+    title: Phân biệt agent nạp lúc JVM khởi động với dynamic attach
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-agents-003
+    title: Khai báo -javaagent hoặc -agentlib theo hướng dẫn của công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-agents-004
+    title: Nhận diện thư viện kiểm thử hoặc quan sát đang tự attach agent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-agents-005
+    title: jdk.instrument.traceUsage để truy tìm việc dùng Instrumentation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-agents-006
+    title: Kiểm thử ứng dụng khi không cho phép dynamic agent loading
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-agents-007
+    title: Kiểm tra tính tương thích của mocking, coverage, profiler và APM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-agents-008
+    title: Quản lý quyền nạp agent và cấu hình tường minh theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử Java 21
+  childs:
+  - slug: testing-001
+    title: Thiết lập test runner và dependency tương thích Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử record pattern với dữ liệu lồng nhau, generic và null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử exhaustive switch, guard và các nhánh nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra encounter order và write-through của reversed view
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử collection rỗng, bất biến và thao tác không được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử task chạy trên virtual thread theo hành vi cần bảo đảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử timeout, cancellation, interruption và cleanup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử đồng thời mà không phụ thuộc sleep hoặc lịch chạy cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử giới hạn connection, semaphore và phản ứng khi overload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tài nguyên HttpClient, Unicode và biên của API mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử KEM bằng đối chiếu shared secret và xử lý encapsulation không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-measurement
+  title: Đo lường hiệu năng
+  childs:
+  - slug: performance-measurement-001
+    title: Xây baseline trước khi thay đổi ngôn ngữ, executor hoặc collector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-002
+    title: Phân loại workload CPU-bound, I/O-bound và hỗn hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-003
+    title: Đo throughput cùng percentile latency và tỷ lệ lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-004
+    title: Mô hình hóa arrival rate, concurrency và thời gian chờ dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-005
+    title: JMH cho microbenchmark API và phép biến đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-006
+    title: Load test đầu cuối cho virtual thread và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-007
+    title: Warmup, JIT, GC và yếu tố gây sai lệch phép đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-008
+    title: So sánh mức dùng CPU, heap, native memory và số thread hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-009
+    title: Phân tích pinning, lock contention và connection pool saturation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-010
+    title: Đặt tiêu chí chấp nhận và kiểm tra hồi quy hiệu năng trong CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration
+  title: Nâng cấp lên Java 21
+  childs:
+  - slug: migration-001
+    title: Lập danh mục ứng dụng, dependency, plugin và agent cần nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-002
+    title: Phân biệt chạy mã hiện có trên JDK 21 với biên dịch bằng --release 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-003
+    title: Nâng từ Java 17 lên Java 21 theo từng thay đổi có thể kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-004
+    title: Phân tích dependency bằng jdeps và API có cảnh báo bằng jdeprscan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-005
+    title: Thay truy cập JDK internal API bằng API được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-006
+    title: Rà soát reflection, annotation processing và bytecode generation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-007
+    title: Kiểm tra UTF-8 mặc định, locale, timezone và hành vi môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-008
+    title: Đánh giá xung đột source khi lớp riêng bổ sung các phương thức trùng API collection mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-009
+    title: Tách nâng runtime khỏi chuyển đổi sang pattern hoặc virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-010
+    title: Giữ tương thích hợp đồng dữ liệu, serialization và giao tiếp hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-011
+    title: Triển khai theo giai đoạn, theo dõi hồi quy và chuẩn bị rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-ci
+  title: Build và CI
+  childs:
+  - slug: build-ci-001
+    title: Khai báo phiên bản JDK và toolchain có thể tái lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-ci-002
+    title: Đồng bộ compile, test, integration test và đóng gói trên Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-ci-003
+    title: Chạy ma trận CI với các runtime nằm trong phạm vi hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-ci-004
+    title: Kiểm tra artifact không tham chiếu API ngoài baseline Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-ci-005
+    title: Cấu hình annotation processor và plugin phân tích mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-ci-006
+    title: Biên dịch mẫu tài liệu bằng cú pháp Java 21 đã hoàn thiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-ci-007
+    title: Tổ chức test cho bytecode, agent và thư viện tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-ci-008
+    title: Quản lý dependency lock, provenance và cập nhật bảo mật của JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-deployment
+  title: Triển khai production
+  childs:
+  - slug: production-deployment-001
+    title: Chọn runtime image và bản vá JDK 21 theo chính sách vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-002
+    title: Thiết lập CPU, memory limit và heap phù hợp trong container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-003
+    title: Định cỡ connection pool và tài nguyên khi bật virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-004
+    title: Kiểm tra mức dùng native memory, file descriptor và socket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-005
+    title: Graceful shutdown với executor, HTTP client và tác vụ đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-006
+    title: Cấu hình GC và quan sát theo workload đã đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-007
+    title: Thiết lập health check và cảnh báo lỗi tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-008
+    title: Canary deployment, kiểm tra tính tương thích và rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-009
+    title: Runbook thu thập thread dump, JFR và GC log khi xảy ra sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-labs
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practical-labs-001
+    title: Mô hình hóa miền dữ liệu bằng record và sealed interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-002
+    title: Xây bộ xử lý dữ liệu bằng record pattern lồng nhau và pattern switch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-003
+    title: Thiết kế API thao tác hai đầu với SequencedCollection, Set và Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-004
+    title: Kiểm chứng reversed view và các hợp đồng bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-005
+    title: Xây dịch vụ gọi nhiều dependency bằng virtual thread và ExecutorService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-006
+    title: Bổ sung timeout, cancellation, semaphore và context cho từng request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-007
+    title: Tích hợp HttpClient có vòng đời tài nguyên rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-008
+    title: Thực hành KEM với provider và cặp khóa được hỗ trợ trên Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-009
+    title: So sánh G1 với Generational ZGC bằng tải đại diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-labs-010
+    title: Hoàn thiện báo cáo JFR, kiểm thử hồi quy và hướng dẫn vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

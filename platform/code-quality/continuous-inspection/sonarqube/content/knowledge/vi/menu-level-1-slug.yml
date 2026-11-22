@@ -1,0 +1,100 @@
+menu:
+- title: Mô hình tư duy
+  slug: mental-model
+  index: 0
+- title: Sản phẩm và phiên bản
+  slug: product-and-versions
+  index: 1
+- title: Kiến trúc phân tích
+  slug: analysis-architecture
+  index: 2
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 3
+- title: Dự án đầu tiên
+  slug: first-project
+  index: 4
+- title: Phạm vi phân tích
+  slug: analysis-scope
+  index: 5
+- title: Java và bytecode
+  slug: java-and-bytecode
+  index: 6
+- title: Tích hợp Gradle
+  slug: gradle-integration
+  index: 7
+- title: Maven và Scanner CLI
+  slug: maven-and-scanner-cli
+  index: 8
+- title: Dự án nhiều mô-đun
+  slug: multi-module-projects
+  index: 9
+- title: Kiểm thử và coverage
+  slug: testing-and-coverage
+  index: 10
+- title: Chỉ số chất lượng
+  slug: quality-metrics
+  index: 11
+- title: Quy tắc và chế độ
+  slug: rules-and-modes
+  index: 12
+- title: Quality Profile
+  slug: quality-profile
+  index: 13
+- title: Quality Gate
+  slug: quality-gate
+  index: 14
+- title: New Code
+  slug: new-code
+  index: 15
+- title: Vòng đời vấn đề
+  slug: issue-lifecycle
+  index: 16
+- title: Security Hotspot
+  slug: security-hotspots
+  index: 17
+- title: Quy trình của lập trình viên
+  slug: developer-workflow
+  index: 18
+- title: SCM, nhánh và pull request
+  slug: scm-branches-and-pull-requests
+  index: 19
+- title: Tích hợp CI/CD
+  slug: ci-cd-integration
+  index: 20
+- title: Quality Gate trong pipeline
+  slug: pipeline-quality-gate
+  index: 21
+- title: Công cụ bên ngoài
+  slug: external-tools
+  index: 22
+- title: Ngoại lệ và cảnh báo nhầm
+  slug: false-positives-and-exceptions
+  index: 23
+- title: Phân quyền và bí mật
+  slug: permissions-and-secrets
+  index: 24
+- title: Web API và webhook
+  slug: web-api-and-webhooks
+  index: 25
+- title: Vận hành máy chủ
+  slug: server-operations
+  index: 26
+- title: Sao lưu và nâng cấp
+  slug: backup-and-upgrade
+  index: 27
+- title: Hiệu năng phân tích
+  slug: analysis-performance
+  index: 28
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 29
+- title: Áp dụng trong nhóm
+  slug: team-adoption
+  index: 30
+- title: Thực hành
+  slug: practice
+  index: 31
+- title: Đánh giá cấu hình
+  slug: configuration-assessment
+  index: 32

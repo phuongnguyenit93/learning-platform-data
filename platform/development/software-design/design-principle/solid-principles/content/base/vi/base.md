@@ -1,0 +1,7 @@
+# Software Design Design Principle Solid Principles
+
+SOLID là tập hợp năm nguyên lý thiết kế hướng đối tượng: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation và Dependency Inversion. Các nguyên lý này giúp hạn chế phụ thuộc không cần thiết, tạo ranh giới trách nhiệm rõ ràng và hỗ trợ thay đổi phần mềm mà không làm ảnh hưởng dây chuyền đến những thành phần khác. SOLID không phải bộ luật bắt buộc áp dụng máy móc; giá trị của chúng nằm ở việc giải quyết những vấn đề thiết kế có thật trong mã nguồn.
+
+Lộ trình một cấp gồm tám mốc, bắt đầu với mục tiêu của SOLID và lần lượt thực hành SRP, OCP, LSP, ISP, DIP. Mỗi nguyên lý được gắn với dấu hiệu vi phạm, cấu trúc thiết kế có thể cải thiện và cách kiểm chứng hành vi bằng Java. Hai mốc cuối tổng hợp các nguyên lý trong bài tập refactoring, kiểm thử tính mở rộng, khả năng thay thế và cân nhắc chi phí tạo thêm interface hoặc abstraction.
+
+Module phù hợp với người đã nắm lập trình hướng đối tượng, interface, kế thừa, đa hình và unit testing cơ bản. Sau khi hoàn thành, bạn có thể phân tích mã Java để phát hiện trách nhiệm trộn lẫn, phụ thuộc cứng, subtype vi phạm hợp đồng hoặc interface quá lớn; từ đó refactor theo từng bước nhỏ và giải thích rõ vì sao một thiết kế mới dễ thay đổi, dễ thử nghiệm hơn mà không trở nên phức tạp quá mức.

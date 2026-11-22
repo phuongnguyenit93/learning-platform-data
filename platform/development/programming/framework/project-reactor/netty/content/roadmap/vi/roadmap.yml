@@ -1,0 +1,57 @@
+roadmap:
+- id: reactor-netty-non-blocking-i-o
+  title: Reactor Netty & Non-blocking I/O
+  purpose: Hiểu Reactor Netty kết hợp Netty với Reactor để xử lý mạng bất đồng bộ cho HTTP, TCP và UDP.
+  objectives:
+  - Phân biệt blocking I/O với event-driven I/O
+  - Giải thích vai trò Reactor Core, Netty và backpressure
+  - Nhận diện HttpClient, HttpServer, TcpClient, TcpServer
+- id: event-loop-resource-lifecycle
+  title: Event Loop & Resource Lifecycle
+  purpose: Hiểu cách event loop xử lý tác vụ I/O và vòng đời tài nguyên để tránh khóa luồng hoặc rò rỉ kết nối.
+  objectives:
+  - Giải thích vì sao không chạy tác vụ blocking trên event loop
+  - Nhận biết LoopResources và tài nguyên dùng chung
+  - Thực hành bind, connect và dispose an toàn
+- id: tcp-client-server
+  title: TCP Client & Server
+  purpose: Tạo kết nối TCP và truyền dữ liệu qua luồng inbound/outbound để hiểu lớp vận chuyển nền tảng.
+  objectives:
+  - Tạo TcpServer và TcpClient mẫu
+  - Dùng receive(), sendString() hoặc send() đúng luồng
+  - Xử lý đóng kết nối và lỗi I/O cơ bản
+- id: http-server-routing
+  title: HTTP Server & Routing
+  purpose: Xây dựng HTTP server phản hồi yêu cầu bất đồng bộ, kiểm soát endpoint và vòng đời phản hồi.
+  objectives:
+  - Khởi tạo HttpServer và khai báo route
+  - Xử lý request, response và mã trạng thái
+  - Thử gửi nhận body dạng stream
+- id: http-client-requests
+  title: HTTP Client & Requests
+  purpose: Gửi yêu cầu HTTP không chặn luồng và đọc nội dung phản hồi theo kiểu reactive.
+  objectives:
+  - Tạo HttpClient và thực hiện GET/POST
+  - Đọc status, headers và response body
+  - Phân biệt response(), responseSingle() và responseContent()
+- id: connection-pool-timeouts
+  title: Connection Pool & Timeouts
+  purpose: Điều chỉnh tái sử dụng kết nối và giới hạn thời gian để tránh nghẽn tài nguyên khi tải cao hoặc upstream chậm.
+  objectives:
+  - Cấu hình ConnectionProvider và maxConnections
+  - Phân biệt connect timeout, response timeout, pending acquire
+  - Quan sát active, idle và pending connections
+- id: tls-streaming-protocols
+  title: TLS, Streaming & Protocols
+  purpose: Bảo vệ kênh truyền, kiểm soát luồng dữ liệu liên tục và nhận diện các giao thức mà Reactor Netty hỗ trợ.
+  objectives:
+  - Kích hoạt TLS cho HTTP client/server
+  - Phân biệt HTTP/1.1, HTTP/2 và WebSocket
+  - Nhận biết giới hạn bộ nhớ và ByteBuf khi streaming
+- id: observability-fault-testing
+  title: Observability & Fault Testing
+  purpose: Theo dõi hành vi mạng và xác minh khả năng chịu lỗi bằng logs, metrics và kiểm thử tình huống bất lợi.
+  objectives:
+  - Bật wiretap có kiểm soát và Micrometer metrics
+  - Mô phỏng timeout, ngắt kết nối và server chậm
+  - Đánh giá latency, connection pool và graceful shutdown

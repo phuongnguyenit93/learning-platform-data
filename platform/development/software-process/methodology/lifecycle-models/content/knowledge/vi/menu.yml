@@ -1,0 +1,329 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Mô hình vòng đời phần mềm là gì và vấn đề tổ chức công việc mà nó giải quyết
+  - Vì sao cùng một sản phẩm có thể được phát triển theo các mô hình khác nhau
+  - Phân biệt vòng đời sản phẩm, vòng đời phát triển và vòng đời dự án
+  - Phân biệt mô hình vòng đời, quy trình, phương pháp luận và thực hành kỹ thuật
+  - Quan hệ giữa giai đoạn, hoạt động, sản phẩm công việc và mốc quyết định
+  - Vai trò của yêu cầu, phản hồi, rủi ro và giá trị trong việc định hình vòng đời
+  - Phạm vi từ hình thành ý tưởng đến vận hành và ngừng sử dụng
+  - Lộ trình học các mô hình từ tuần tự đến thích ứng và kết hợp
+- level1: Thành phần vòng đời
+  level2:
+  - Khảo sát nhu cầu, tính khả thi và lý do đầu tư
+  - Xác định yêu cầu và tiêu chí chấp nhận
+  - Thiết kế kiến trúc và thiết kế chi tiết
+  - Xây dựng, tích hợp và quản lý cấu hình
+  - Kiểm tra, xác nhận giá trị sử dụng và nghiệm thu
+  - Triển khai, chuyển giao và chuẩn bị vận hành
+  - Bảo trì, phát triển tiếp và ngừng sử dụng
+  - 'Hoạt động hỗ trợ xuyên suốt: quản lý, chất lượng, an toàn thông tin và tài liệu'
+  - Đầu vào, đầu ra và điều kiện chuyển tiếp giữa các giai đoạn
+  - Vì sao cùng một hoạt động có thể xuất hiện trong nhiều giai đoạn hoặc vòng lặp
+- level1: Phân loại mô hình
+  level2:
+  - Phân biệt cách tiếp cận dự đoán trước với cách tiếp cận thích ứng
+  - Phân biệt phát triển tuần tự, lặp và tăng dần
+  - Quan hệ giữa phát triển lặp, tăng dần và tiến hóa
+  - 'Phân loại theo yếu tố dẫn dắt: kế hoạch, rủi ro, phản hồi hoặc giá trị'
+  - Phân biệt nhịp thực hiện công việc, nhịp tích hợp và nhịp phát hành
+  - Phân biệt giai đoạn phát triển với cấp độ kiểm thử
+  - Mô hình vòng đời và thực hành Agile, DevOps hoặc phát triển dựa trên mô hình
+  - Nhận diện phát triển thử rồi sửa (code-and-fix) và hạn chế của nhãn Big Bang
+  - Cách đọc sơ đồ vòng đời mà không đồng nhất hình vẽ với quy tắc bắt buộc
+- level1: Thác nước
+  level2:
+  - Cấu trúc và giả định của mô hình thác nước (Waterfall)
+  - Luồng công việc từ yêu cầu đến thiết kế, xây dựng, kiểm thử và bàn giao
+  - Đường cơ sở và phê duyệt sản phẩm công việc ở từng giai đoạn
+  - Cách lập kế hoạch và theo dõi tiến độ trong phát triển tuần tự
+  - Cơ chế tiếp nhận thay đổi và quay lại công việc đã hoàn tất
+  - Biến thể có phản hồi và giới hạn của cách hiểu chỉ được đi một chiều
+  - Chi phí phát hiện muộn yêu cầu sai hoặc vấn đề tích hợp
+  - 'Điều kiện thuận lợi: yêu cầu tương đối ổn định và công việc có thể dự đoán'
+  - Rủi ro khi áp dụng cho bài toán nhiều bất định hoặc cần phản hồi sớm
+  - Ví dụ tổ chức một dự án theo thác nước và các điểm quyết định
+- level1: Mô hình V
+  level2:
+  - Mô hình V và mối liên hệ giữa phân rã yêu cầu với tích hợp, kiểm thử
+  - Phân biệt kiểm tra tính đúng đắn (verification) với xác nhận đáp ứng nhu cầu (validation)
+  - Liên kết nhu cầu người dùng với xác nhận và nghiệm thu
+  - Liên kết yêu cầu hệ thống với kiểm thử hệ thống
+  - Liên kết kiến trúc, thiết kế thành phần với kiểm thử tích hợp và đơn vị
+  - Vì sao kế hoạch kiểm thử cần được hình thành cùng công việc phát triển
+  - Truy vết hai chiều giữa yêu cầu, thiết kế và bằng chứng kiểm thử
+  - Vai trò của rà soát, điều kiện chuyển giai đoạn và quản lý thay đổi
+  - Biến thể của mô hình V và giới hạn của một sơ đồ ánh xạ cố định
+  - Điều kiện áp dụng và chi phí khi yêu cầu thay đổi thường xuyên
+  - Phân biệt mô hình V với việc chỉ thực hiện kiểm thử sau khi viết mã
+- level1: Phát triển lặp
+  level2:
+  - Bản chất của phát triển lặp (iterative development)
+  - Mục tiêu học hỏi và cải thiện sản phẩm qua từng vòng lặp
+  - Một vòng lặp có thể bao gồm yêu cầu, thiết kế, xây dựng và kiểm thử
+  - Lựa chọn mục tiêu, phạm vi và thời lượng vòng lặp
+  - Sử dụng phản hồi để sửa đổi yêu cầu hoặc giải pháp
+  - Phân biệt lặp có chủ đích với sửa sai không được quản lý
+  - Quản lý kiến trúc và chất lượng khi sản phẩm được chỉnh sửa nhiều lần
+  - Đầu ra của một vòng lặp và điều kiện chuyển sang vòng tiếp theo
+  - Trường hợp phát triển lặp nhưng chưa cung cấp thêm chức năng mới
+- level1: Phát triển tăng dần
+  level2:
+  - Bản chất của phát triển tăng dần (incremental development)
+  - Phân chia sản phẩm thành các phần chức năng tạo giá trị
+  - Phân biệt một phần tăng trưởng với một tầng kỹ thuật chưa dùng được
+  - Ưu tiên thứ tự các phần theo giá trị, phụ thuộc và rủi ro
+  - Lập kế hoạch kiến trúc và tích hợp cho nhiều phần tăng trưởng
+  - Phân biệt hoàn thành một phần chức năng với đưa phần đó vào vận hành
+  - Kiểm thử hồi quy khi bổ sung phần chức năng mới
+  - Lợi ích của bàn giao sớm và học hỏi từ sử dụng thực tế
+  - Rủi ro khi chia phần sai hoặc để tích hợp đến cuối dự án
+  - Kết hợp tăng dần với phát triển tuần tự hoặc phát triển lặp
+- level1: Phát triển tiến hóa
+  level2:
+  - Mô hình tiến hóa (evolutionary development) và yêu cầu chưa được biết đầy đủ
+  - Phát triển sản phẩm cùng với việc khám phá yêu cầu
+  - Quan hệ giữa bản đầu tiên, phản hồi thực tế và các phiên bản tiếp theo
+  - Phân biệt tăng dần theo kế hoạch với thay đổi hướng theo điều đã học
+  - Kết hợp lặp và tăng dần trong một vòng đời tiến hóa
+  - Quản lý kiến trúc, nợ kỹ thuật và phạm vi khi sản phẩm thay đổi
+  - Vai trò của người dùng và người quyết định sản phẩm
+  - Điều kiện dừng, hội tụ và đánh giá giá trị của phiên bản mới
+- level1: Tạo mẫu
+  level2:
+  - Mục đích của tạo mẫu (prototyping) trong khám phá yêu cầu và giải pháp
+  - Phân biệt mẫu bỏ đi (throwaway) với mẫu phát triển thành sản phẩm (evolutionary)
+  - Tạo mẫu giao diện và mẫu kỹ thuật theo loại bất định cần kiểm chứng
+  - Phân biệt mẫu ngang, mẫu dọc và mức độ hoàn thiện của mẫu
+  - Xác định giả thuyết, đối tượng phản hồi và tiêu chí thành công
+  - Vòng lặp tạo mẫu, đánh giá và chỉnh sửa
+  - Chọn khi nào bỏ mẫu, làm lại hoặc tiếp tục phát triển
+  - Rủi ro khi đưa mã mẫu vào sản xuất mà chưa hoàn thiện chất lượng
+  - Phân biệt prototype, proof of concept và sản phẩm khả dụng tối thiểu
+  - Tích hợp tạo mẫu vào thác nước, xoắn ốc hoặc vòng đời thích ứng
+- level1: Xoắn ốc
+  level2:
+  - Mô hình xoắn ốc (Spiral) và nguyên tắc dẫn dắt bằng rủi ro
+  - Xác định mục tiêu, phương án và ràng buộc cho một vòng xoắn
+  - Phân tích, ưu tiên và giảm rủi ro trước khi cam kết tiếp
+  - Lựa chọn tạo mẫu, mô phỏng hoặc thử nghiệm để giải quyết bất định
+  - Phát triển và kiểm chứng phần giải pháp được lựa chọn
+  - Lập kế hoạch và quyết định cho vòng xoắn kế tiếp
+  - Vai trò của các bên liên quan tại các điểm đánh giá
+  - Phạm vi và công sức mỗi vòng thay đổi theo rủi ro
+  - Phân biệt xoắn ốc với chỉ lặp lại các giai đoạn theo lịch cố định
+  - Quan hệ giữa mô hình xoắn ốc với các phương án vòng đời được lựa chọn bên trong
+  - Lợi ích và chi phí trong dự án lớn, phức tạp hoặc nhiều rủi ro
+  - Nhận diện áp dụng hình thức khi có vòng lặp nhưng không quản lý rủi ro
+- level1: Phát triển nhanh
+  level2:
+  - Phát triển ứng dụng nhanh (Rapid Application Development, RAD) và mục tiêu rút ngắn phản hồi
+  - Vai trò của người dùng, tạo mẫu, tái sử dụng và công cụ hỗ trợ
+  - Giai đoạn lập kế hoạch yêu cầu trong một cách tổ chức RAD điển hình
+  - Thiết kế cùng người dùng và hoàn thiện mẫu
+  - Xây dựng nhanh trong khung thời gian có giới hạn
+  - Chuyển đổi, nghiệm thu, đào tạo và đưa vào sử dụng
+  - Phân chia công việc và phối hợp tích hợp giữa các nhóm
+  - 'Điều kiện áp dụng: khả năng chia nhỏ và mức tham gia của người dùng'
+  - Giới hạn khi kiến trúc phức tạp, tích hợp chặt hoặc nguồn lực thiếu
+  - Phân biệt phát triển nhanh với bỏ qua kiểm thử và thiết kế
+- level1: Quy trình hợp nhất
+  level2:
+  - Unified Process và đặc trưng lặp, tăng dần, hướng kiến trúc
+  - Phân biệt Unified Process với Rational Unified Process (RUP)
+  - Vai trò của ca sử dụng, kiến trúc và rủi ro trong lập kế hoạch
+  - 'Khởi đầu (Inception): xác định mục tiêu, phạm vi và tính khả thi'
+  - 'Làm rõ (Elaboration): củng cố kiến trúc và xử lý rủi ro chính'
+  - 'Xây dựng (Construction): hoàn thiện các phần chức năng'
+  - 'Chuyển giao (Transition): đưa sản phẩm vào môi trường sử dụng'
+  - Quan hệ giữa bốn giai đoạn với các vòng lặp bên trong
+  - Phân biệt giai đoạn với luồng công việc hoặc lĩnh vực hoạt động
+  - Các mốc đánh giá mục tiêu, kiến trúc, khả năng vận hành ban đầu và phát hành
+  - Điều chỉnh sản phẩm công việc và vai trò theo quy mô dự án
+  - Tránh biến bốn giai đoạn của RUP thành bốn bước thác nước
+- level1: Thích ứng và Agile
+  level2:
+  - Vòng đời thích ứng và cách phản hồi với yêu cầu thay đổi
+  - Quan hệ giữa các giá trị Agile với cách tổ chức vòng đời
+  - Lặp ngắn, tăng trưởng sản phẩm và phản hồi thường xuyên
+  - Lập kế hoạch ở mức định hướng và bổ sung chi tiết khi cần
+  - Vai trò của khách hàng và người dùng trong điều chỉnh ưu tiên
+  - Phân biệt vòng đời theo khung thời gian với cách làm theo dòng công việc
+  - Phân biệt Agile với Scrum, Kanban và các thực hành kỹ thuật
+  - Chất lượng liên tục và điều kiện để phần tăng trưởng sẵn sàng sử dụng
+  - Kết hợp mốc quản trị hoặc yêu cầu bằng chứng với phát triển thích ứng
+  - Giới hạn của việc đổi tên cuộc họp mà không thay đổi cơ chế phản hồi
+- level1: Hoạt động đồng thời
+  level2:
+  - Cách mô hình đồng thời (concurrent model) biểu diễn nhiều hoạt động cùng tồn tại
+  - 'Trạng thái của từng hoạt động: đang thực hiện, chờ, rà soát hoặc thay đổi'
+  - Sự kiện làm chuyển trạng thái và kích hoạt công việc liên quan
+  - Chồng lấn phân tích, thiết kế, xây dựng và kiểm thử có kiểm soát
+  - Quản lý phụ thuộc, phiên bản và đồng bộ sản phẩm công việc
+  - Phân biệt mô hình đồng thời với việc đơn thuần có nhiều người làm việc song song
+  - Điều kiện áp dụng trong dự án nhiều thành phần và nhiều nhóm
+  - Rủi ro giao diện thay đổi, tích hợp muộn và trách nhiệm không rõ
+- level1: Tái sử dụng và tích hợp
+  level2:
+  - Cách tổ chức vòng đời khi ưu tiên thành phần hoặc sản phẩm có sẵn
+  - Khảo sát thành phần, dịch vụ hoặc phần mềm thương mại trước khi chốt giải pháp
+  - Điều chỉnh yêu cầu theo khả năng và giới hạn của thành phần được chọn
+  - Thiết kế kiến trúc tích hợp và hợp đồng giao diện
+  - Phát triển phần còn thiếu, cấu hình và kết nối các thành phần
+  - Kiểm chứng tích hợp, khả năng thay thế và chất lượng toàn hệ thống
+  - Quản lý phiên bản, phụ thuộc và vòng đời của nhà cung cấp
+  - Rủi ro khóa chặt nhà cung cấp và thành phần hết hỗ trợ
+  - Kết hợp tái sử dụng với mô hình tuần tự, tăng dần hoặc thích ứng
+- level1: Phát hành liên tục
+  level2:
+  - Quan hệ giữa vòng đời phát triển với phát triển và vận hành phối hợp (DevOps)
+  - 'Phân biệt CI/CD: tích hợp liên tục, chuyển giao liên tục và triển khai liên tục'
+  - Phân biệt tích hợp mã, triển khai kỹ thuật và phát hành cho người dùng
+  - Vòng phản hồi từ môi trường vận hành về kế hoạch phát triển
+  - Tự động hóa tạo bản dựng, kiểm thử và chuẩn bị phát hành
+  - Điểm phê duyệt và bằng chứng chất lượng trong dòng chuyển giao
+  - Giảm quy mô thay đổi để rút ngắn phản hồi và hạn chế tác động
+  - Phối hợp thay đổi ứng dụng, dữ liệu và các hệ thống phụ thuộc
+  - Vai trò của quay lui và khôi phục khi một thay đổi không đạt yêu cầu
+  - Vì sao DevOps và công cụ CI/CD không tự thay thế việc xác định mô hình vòng đời
+- level1: Mô hình lai
+  level2:
+  - Mô hình lai (hybrid) và lý do kết hợp nhiều cách tổ chức vòng đời
+  - Kết hợp quản trị theo giai đoạn với xây dựng lặp và tăng dần
+  - Tạo mẫu ở đầu dự án rồi triển khai theo kế hoạch đã được kiểm chứng
+  - Phối hợp nhóm phần mềm thích ứng với phần cứng có chu kỳ dài
+  - Áp dụng mô hình khác nhau cho các thành phần có mức rủi ro khác nhau
+  - Xác định ranh giới, giao diện và điểm đồng bộ giữa các mô hình
+  - Thống nhất tiêu chí hoàn tất và bằng chứng bàn giao
+  - Quản lý thay đổi xuyên qua hợp đồng hoặc mốc phê duyệt cố định
+  - Phân biệt kết hợp có chủ đích với ghép quy trình mâu thuẫn
+- level1: Lựa chọn mô hình
+  level2:
+  - Bắt đầu từ mục tiêu sản phẩm và bối cảnh thay vì tên mô hình quen thuộc
+  - Đánh giá mức ổn định, rõ ràng và khả năng chia nhỏ của yêu cầu
+  - Đánh giá bất định công nghệ, kiến trúc và tích hợp
+  - Đánh giá mức độ tham gia và tốc độ phản hồi của người dùng
+  - Xem xét thời hạn, ngân sách và nhu cầu bàn giao sớm
+  - Xem xét độ quan trọng của phần mềm và bằng chứng cần cung cấp
+  - Xem xét quy mô nhóm, năng lực kỹ thuật và phân bố địa lý
+  - Xem xét phụ thuộc phần cứng, nhà cung cấp và hệ thống đang vận hành
+  - So sánh chi phí thay đổi, khả năng đảo ngược quyết định và thời gian học hỏi
+  - Lập ma trận tiêu chí, trọng số và các giả định lựa chọn
+  - Đánh giá độ nhạy khi trọng số hoặc giả định thay đổi
+  - Ghi lại quyết định, đánh đổi và điều kiện cần xem xét lại mô hình
+- level1: Điều chỉnh vòng đời
+  level2:
+  - Điều chỉnh mô hình theo bối cảnh (tailoring) và phạm vi được thay đổi
+  - Chọn số giai đoạn, độ dài vòng lặp và quy mô phần tăng trưởng
+  - Xác định hoạt động bắt buộc và mức độ bằng chứng phù hợp
+  - Điều chỉnh vai trò, tài liệu và quyền phê duyệt theo quy mô
+  - Chọn hoạt động có thể chồng lấn và phụ thuộc phải được bảo toàn
+  - Liên kết vòng đời phần mềm với vòng đời hệ thống hoặc sản phẩm
+  - Áp dụng mô hình cho phát triển mới, nâng cấp hoặc bảo trì
+  - Quan hệ giữa ISO/IEC/IEEE 12207 và mô hình vòng đời được dự án lựa chọn
+  - Phân biệt chuẩn hóa quy trình với bắt mọi dự án dùng cùng một mô hình
+  - Định nghĩa lại vòng đời khi bối cảnh thay đổi và lưu lý do điều chỉnh
+- level1: Kế hoạch và mốc quyết định
+  level2:
+  - Chuyển mô hình đã chọn thành kế hoạch thực hiện có thể theo dõi
+  - Xác định mục tiêu, đầu ra và người chịu trách nhiệm cho từng giai đoạn
+  - Thiết lập điều kiện bắt đầu, điều kiện kết thúc và tiêu chí chuyển tiếp
+  - Phân biệt hoàn thành hoạt động với đạt kết quả cần thiết
+  - Chọn mốc đánh giá theo mức trưởng thành của yêu cầu, kiến trúc và sản phẩm
+  - 'Lập kế hoạch ở nhiều mức: vòng đời, bản phát hành và vòng lặp'
+  - Quản lý phần dự phòng và cam kết theo mức thông tin đang có
+  - Quyết định tiếp tục, điều chỉnh, tạm dừng hoặc kết thúc dự án
+  - Theo dõi tiến độ bằng sản phẩm và bằng chứng thay vì chỉ đếm tài liệu
+- level1: Sản phẩm và truy vết
+  level2:
+  - Xác định sản phẩm công việc cần thiết theo mô hình và bối cảnh
+  - Liên kết nhu cầu, yêu cầu, thiết kế, mã và kết quả kiểm thử
+  - Quản lý đường cơ sở trong mô hình tuần tự và mô hình lặp
+  - Duy trì truy vết khi yêu cầu được chia thành nhiều phần tăng trưởng
+  - Quản lý phiên bản tài liệu cùng phiên bản sản phẩm
+  - Xác định tài liệu phải có trước quyết định và tài liệu có thể hoàn thiện dần
+  - Bàn giao bằng chứng giữa nhóm phát triển, kiểm thử, vận hành và khách hàng
+  - Phân biệt tài liệu tạo giá trị với tài liệu chỉ phục vụ thủ tục
+  - Quản lý thay đổi của sản phẩm công việc mà không làm mất lịch sử quyết định
+- level1: Chất lượng xuyên vòng đời
+  level2:
+  - Lập kế hoạch kiểm tra và xác nhận phù hợp với mô hình đã chọn
+  - Rà soát yêu cầu và kiến trúc để phát hiện vấn đề trước khi xây dựng
+  - Phân bổ kiểm thử đơn vị, tích hợp, hệ thống và nghiệm thu theo vòng đời
+  - Tích hợp thường xuyên và kiểm thử hồi quy trong phát triển tăng dần
+  - Xác định tiêu chí chất lượng cho mẫu thử, bản trung gian và bản phát hành
+  - Lập kế hoạch kiểm chứng thuộc tính phi chức năng từ sớm
+  - Lồng ghép an toàn thông tin vào các giai đoạn và vòng lặp
+  - Điều phối hoạt động bảo đảm độc lập với nhịp phát triển khi cần
+  - Phân biệt vượt qua điểm kiểm soát với thực sự có bằng chứng chất lượng
+- level1: Rủi ro và thay đổi
+  level2:
+  - Nhận diện rủi ro yêu cầu, kỹ thuật, tích hợp, nguồn lực và vận hành
+  - Đặt hoạt động giảm rủi ro trước các cam kết khó đảo ngược
+  - So sánh xử lý thay đổi trong mô hình tuần tự, lặp và thích ứng
+  - Phân tích tác động của thay đổi lên yêu cầu, thiết kế, kiểm thử và kế hoạch
+  - Phân biệt phản hồi có giá trị với mở rộng phạm vi không được quyết định
+  - Ưu tiên thay đổi theo giá trị, mức khẩn cấp và chi phí trì hoãn
+  - Quản lý nợ kỹ thuật khi phải cân bằng tốc độ và khả năng phát triển tiếp
+  - Xác định dấu hiệu cho thấy mô hình hiện tại không còn phù hợp
+  - Đưa bài học từ sự cố hoặc phản hồi vào quyết định vòng đời tiếp theo
+- level1: Vận hành và kết thúc
+  level2:
+  - Vì sao bàn giao phần mềm chưa phải điểm kết thúc vòng đời sản phẩm
+  - Chuẩn bị vận hành, hỗ trợ và trách nhiệm sau phát hành
+  - Nghiệm thu, chuyển giao tri thức và theo dõi việc chấp nhận của người dùng
+  - Tổ chức sửa lỗi, nâng cấp và phát triển tiếp theo mô hình phù hợp
+  - Phối hợp nhiều phiên bản hoặc nhiều thế hệ sản phẩm đang được hỗ trợ
+  - Quyết định tiếp tục phát triển, tái cấu trúc, thay thế hoặc ngừng sử dụng
+  - Lập kế hoạch chuyển dữ liệu và chuyển người dùng sang hệ thống thay thế
+  - Ngừng dịch vụ, lưu giữ bằng chứng và kết thúc nghĩa vụ hỗ trợ theo kế hoạch
+- level1: Bối cảnh áp dụng
+  level2:
+  - Chọn vòng đời cho sản phẩm mới cần khám phá thị trường
+  - Chọn vòng đời cho hệ thống nghiệp vụ có yêu cầu tương đối ổn định
+  - Tổ chức vòng đời cho phần mềm nhúng và sản phẩm kết hợp phần cứng
+  - Chọn mức kiểm soát theo độ quan trọng và hậu quả khi phần mềm lỗi
+  - Tổ chức phát triển khi phải cung cấp bằng chứng đánh giá hoặc nghiệm thu
+  - Áp dụng cho dự án tích hợp nhiều hệ thống và nhiều nhà cung cấp
+  - Áp dụng cho hệ thống cũ cần nâng cấp trong khi vẫn vận hành
+  - Áp dụng cho nhóm phân tán với độ trễ phản hồi và phụ thuộc lớn
+  - Điều chỉnh mô hình cho nghiên cứu khả thi hoặc thử nghiệm kỹ thuật
+- level1: Sai lầm thường gặp
+  level2:
+  - Đồng nhất mô hình vòng đời với một danh sách bước cố định cho mọi dự án
+  - Cho rằng thác nước không thể có phản hồi hoặc thay đổi
+  - Cho rằng phát triển lặp luôn đồng nghĩa với bàn giao phần chức năng mới
+  - Cho rằng phát triển tăng dần tự động đồng nghĩa với Agile
+  - Cho rằng tạo mẫu giao diện đã đủ chứng minh kiến trúc khả thi
+  - Cho rằng mô hình V chỉ bổ sung kiểm thử ở cuối quá trình
+  - Cho rằng mỗi vòng xoắn bắt buộc tạo ra một bản phát hành
+  - Cho rằng RUP là thác nước vì có bốn giai đoạn
+  - Cho rằng phát hành thường xuyên đồng nghĩa với thiếu quản trị hoặc tài liệu
+  - Chọn mô hình theo xu hướng mà không kiểm chứng giả định áp dụng
+- level1: Áp dụng và đánh giá
+  level2:
+  - Đánh giá cách làm hiện tại trước khi thay đổi mô hình vòng đời
+  - Thử nghiệm mô hình hoặc phần điều chỉnh trên phạm vi có thể kiểm soát
+  - Thống nhất vai trò, cách phối hợp và tiêu chí thành công của thử nghiệm
+  - Chọn chỉ số về thời gian phản hồi, giá trị bàn giao và công sức làm lại
+  - Theo dõi lỗi lọt ra vận hành, rủi ro còn lại và chất lượng bằng chứng
+  - Đánh giá chi phí phối hợp, tài liệu và chuyển tiếp giữa các nhóm
+  - Phân biệt ảnh hưởng của mô hình với ảnh hưởng của năng lực nhóm hoặc công cụ
+  - So sánh kết quả với đường cơ sở mà không chỉ dựa vào tỷ lệ hoàn thành kế hoạch
+  - Quyết định duy trì, điều chỉnh hoặc thay thế cách tổ chức vòng đời
+  - Cập nhật mô tả vòng đời và chia sẻ bài học sau đánh giá
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ vòng đời cho cùng một sản phẩm theo thác nước, tăng dần và tiến hóa
+  - Phân biệt hoạt động lặp với phần tăng trưởng trong một tình huống cụ thể
+  - Lập ma trận lựa chọn mô hình từ yêu cầu, rủi ro và mức phản hồi
+  - Thiết kế một vòng xoắn để xử lý rủi ro tích hợp công nghệ mới
+  - Chọn mẫu bỏ đi hoặc mẫu tiến hóa cho bài toán chưa rõ yêu cầu
+  - Liên kết yêu cầu với kế hoạch kiểm thử trong một mô hình V
+  - Lập kế hoạch bốn giai đoạn và các vòng lặp cho ví dụ Unified Process
+  - Thiết kế mô hình lai cho sản phẩm có phần cứng và phần mềm
+  - Bổ sung chuyển giao, vận hành và ngừng sử dụng vào một kế hoạch chỉ có phát triển
+  - Phân tích thay đổi lớn và quyết định điều chỉnh mô hình giữa dự án
+  - Rà soát một mô tả vòng đời có mốc hình thức, tích hợp muộn hoặc thiếu phản hồi
+  - Đề xuất và bảo vệ lựa chọn mô hình bằng giả định, bằng chứng và đánh đổi

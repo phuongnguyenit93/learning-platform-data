@@ -1,0 +1,3016 @@
+menu:
+- slug: introduction
+  title: Nhập môn
+  childs:
+  - slug: introduction-001
+    title: Lập trình siêu chương trình (metaprogramming) là gì?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-002
+    title: Chương trình đích và chương trình thao tác trên chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-003
+    title: Vì sao cần tự động hóa việc tạo và thay đổi mã?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-004
+    title: Mối liên hệ giữa mã nguồn, siêu dữ liệu và hành vi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-005
+    title: 'Những bài toán phù hợp: mã lặp, ánh xạ, kiểm tra và thích nghi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-006
+    title: Phân biệt metaprogramming với lập trình thông thường và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-007
+    title: Quan hệ với lập trình hướng đối tượng, hàm và khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-008
+    title: Bức tranh tổng thể từ mô tả đầu vào đến chương trình được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: introduction-009
+    title: Kiến thức nền và lộ trình tiếp cận các cơ chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mechanisms-and-types
+  title: Cơ chế và phân loại
+  childs:
+  - slug: mechanisms-and-types-001
+    title: Sinh chương trình (generative programming) và phản chiếu (reflection)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-002
+    title: Tự quan sát cấu trúc (introspection) và can thiệp hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-003
+    title: Metaprogramming tĩnh và metaprogramming động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-004
+    title: Thao tác ở thời điểm biên dịch, nạp lớp và thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-005
+    title: Biến đổi mã nguồn, cây cú pháp và mã trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-006
+    title: Cơ chế do ngôn ngữ cung cấp và cơ chế do thư viện cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-007
+    title: Thay đổi cấu trúc và thay đổi hành vi của chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-008
+    title: Mã được tạo trước và mã được tạo theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mechanisms-and-types-009
+    title: Những trục phân loại có thể kết hợp trong cùng giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: program-representation
+  title: Biểu diễn chương trình
+  childs:
+  - slug: program-representation-001
+    title: Mã nguồn dưới dạng văn bản và giới hạn của xử lý chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-002
+    title: Token và phân tích từ vựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-003
+    title: Cây cú pháp cụ thể (CST) và cây cú pháp trừu tượng (AST)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-004
+    title: Duyệt cây bằng Visitor và biến đổi các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-005
+    title: Bảng ký hiệu, phạm vi tên và liên kết định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-006
+    title: Thông tin kiểu và phân tích ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-007
+    title: Biểu diễn trung gian (IR), bytecode và mã máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-008
+    title: Biểu diễn dữ liệu giống mã (homoiconicity) và ý nghĩa đối với macro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-009
+    title: Giữ chú thích, định dạng và vị trí nguồn khi biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-representation-010
+    title: Lựa chọn mức biểu diễn phù hợp với yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantics-and-timing
+  title: Ngữ nghĩa và thời điểm
+  childs:
+  - slug: semantics-and-timing-001
+    title: Các giai đoạn phân tích, biên dịch, liên kết, nạp và chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-002
+    title: Thời điểm ràng buộc (binding time) và dữ liệu sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-003
+    title: Biến đổi cú pháp hợp lệ và bảo toàn ý nghĩa chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-004
+    title: Phạm vi từ vựng, che khuất tên và phân giải tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-005
+    title: Ràng buộc tên ngoài ý muốn (variable capture)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-006
+    title: Thứ tự đánh giá và nguy cơ thực thi biểu thức nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-007
+    title: Tác dụng phụ, ngoại lệ và luồng điều khiển sau biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-008
+    title: Quy tắc kiểu của mã đầu vào và mã được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-009
+    title: Ranh giới giữa giai đoạn sinh mã và giai đoạn chạy mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-and-timing-010
+    title: Đánh đổi giữa kiểm tra sớm và tính linh hoạt khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata-and-reflection
+  title: Siêu dữ liệu và phản chiếu
+  childs:
+  - slug: metadata-and-reflection-001
+    title: Siêu dữ liệu (metadata) mô tả chương trình như thế nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-002
+    title: Siêu dữ liệu khai báo, siêu dữ liệu suy ra và cấu hình bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-003
+    title: Truy vấn kiểu, thành viên và quan hệ kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-004
+    title: Từ mô tả thành viên đến truy cập và gọi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-005
+    title: Cơ chế phản chiếu và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-006
+    title: Giao thức siêu đối tượng (metaobject protocol)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-007
+    title: Tạo bộ diễn giải hành vi dựa trên siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-008
+    title: Bộ nhớ đệm và vòng đời thông tin phản chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-and-reflection-009
+    title: Giới hạn của việc suy luận ý định từ cấu trúc mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-code-generation
+  title: Sinh mã nguồn
+  childs:
+  - slug: source-code-generation-001
+    title: Quy trình mô tả đầu vào → mô hình → bộ sinh → mã đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-002
+    title: Sinh mã bằng nối chuỗi, khuôn mẫu và AST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-003
+    title: Thiết kế mô hình đầu vào thay vì phụ thuộc trực tiếp vào văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-004
+    title: Tham số hóa khuôn mẫu và tái sử dụng các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-005
+    title: Xử lý tên, từ khóa, kiểu, import và ký tự cần thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-006
+    title: Sinh nhiều tệp và quản lý quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-007
+    title: Tạo mã xác định, lặp lại được và không sinh bản trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-008
+    title: Phân tách mã được sinh với mã do người viết quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-009
+    title: Ánh xạ lỗi của mã được tạo về mô tả đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-010
+    title: Kiểm tra cú pháp, biên dịch và hành vi của mã đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-generation-011
+    title: Sinh lại toàn bộ và sinh tăng dần theo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: macros
+  title: Macro
+  childs:
+  - slug: macros-001
+    title: Macro là gì và khác hàm ở khả năng nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-002
+    title: Macro thay thế văn bản và macro thao tác trên cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-003
+    title: Định nghĩa, gọi và mở rộng macro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-004
+    title: Trích dẫn mã (quote), giải trích dẫn (unquote) và chèn cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-005
+    title: Macro bảo toàn phạm vi tên (hygienic macro)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-006
+    title: Tạo tên mới và tránh va chạm định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-007
+    title: Mở rộng lồng nhau, đệ quy và giới hạn độ sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-008
+    title: Ngữ cảnh cú pháp và kiểm tra kiểu sau mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-009
+    title: Tránh đánh giá lặp và thay đổi tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-010
+    title: Đọc mã sau mở rộng để giải thích hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macros-011
+    title: Khi nào macro giúp tạo cú pháp mới và khi nào làm mã khó hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-stage-programming
+  title: Lập trình nhiều giai đoạn
+  childs:
+  - slug: multi-stage-programming-001
+    title: Lập trình nhiều giai đoạn (staged programming) là gì?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-002
+    title: Tạo giá trị biểu diễn mã và thực thi mã ở giai đoạn sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-003
+    title: Trích dẫn có kiểu và chèn mã trong mô hình nhiều giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-004
+    title: Truyền giá trị giữa các giai đoạn và giới hạn phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-005
+    title: Chuyên biệt hóa chương trình theo dữ liệu đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-006
+    title: Đánh giá một phần (partial evaluation)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-007
+    title: Khác biệt giữa đánh giá một phần, tối ưu hóa và JIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-008
+    title: Kiểm soát tác dụng phụ khi chuẩn bị và chạy mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-stage-programming-009
+    title: Lựa chọn giai đoạn để cân bằng chi phí tạo mã và thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-specific-languages
+  title: Ngôn ngữ chuyên biệt
+  childs:
+  - slug: domain-specific-languages-001
+    title: Ngôn ngữ chuyên biệt (DSL) và ranh giới miền bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-002
+    title: DSL nội bộ và DSL bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-003
+    title: Thiết kế từ vựng, cú pháp và ngữ nghĩa của DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-004
+    title: DSL nội bộ bằng API thông thường và phương thức nối tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-005
+    title: Phân tích DSL bên ngoài thành AST hoặc mô hình trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-006
+    title: Kiểm tra kiểu, tham chiếu và ràng buộc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-007
+    title: Thông dịch DSL và biên dịch DSL thành mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-008
+    title: Báo lỗi kèm vị trí trong mô tả gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-009
+    title: Mở rộng DSL, quản lý phiên bản và tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-specific-languages-010
+    title: Khi nào chỉ cần dữ liệu cấu hình thay vì một ngôn ngữ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-level-programming
+  title: Lập trình ở mức kiểu
+  childs:
+  - slug: type-level-programming-001
+    title: Dùng hệ kiểu để biểu diễn và kiểm tra tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-002
+    title: Lập trình tổng quát và giới hạn của việc xem generics là metaprogramming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-003
+    title: Khởi tạo mẫu ở thời điểm biên dịch trong C++
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-004
+    title: Chuyên biệt hóa mẫu và lựa chọn cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-005
+    title: Tính toán hằng ở thời điểm biên dịch và quan hệ với sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-006
+    title: Ràng buộc kiểu và thông báo lỗi cho người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-007
+    title: Kiểu điều kiện và kiểu ánh xạ trong TypeScript
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-008
+    title: Vai trò của kiểu phụ thuộc và họ kiểu trong mô hình nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-level-programming-009
+    title: Giới hạn biểu đạt, độ phức tạp và chi phí biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-annotations
+  title: Annotations Java
+  childs:
+  - slug: java-annotations-001
+    title: Annotation trong Java mô tả điều gì và không tự làm điều gì?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-002
+    title: Khai báo annotation type và sử dụng trên phần tử chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-003
+    title: Kiểu dữ liệu hợp lệ của phần tử annotation và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-004
+    title: Chính sách giữ lại SOURCE, CLASS và RUNTIME
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-005
+    title: Giới hạn vị trí với @Target và annotation trên kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-006
+    title: Annotation lặp lại với @Repeatable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-007
+    title: Phạm vi kế thừa của @Inherited
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-008
+    title: Vai trò của @Documented và các meta-annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-009
+    title: Đọc annotation trực tiếp, gián tiếp và hiện diện theo API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-010
+    title: Annotation so với naming convention, XML và cấu hình ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-011
+    title: Thiết kế hợp đồng annotation dễ hiểu và dễ mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-annotations-012
+    title: Lựa chọn bộ xử lý khi biên dịch hoặc bộ đọc khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-reflection
+  title: Reflection Java
+  childs:
+  - slug: java-reflection-001
+    title: Class, thành viên phản chiếu và cách lấy đối tượng Class
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-002
+    title: Phân biệt getMethods/getFields với getDeclaredMethods/getDeclaredFields
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-003
+    title: Khảo sát lớp cha, interface và thành viên kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-004
+    title: Đọc annotation trên lớp, thành viên, tham số và kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-005
+    title: Tạo đối tượng qua Constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-006
+    title: Đọc và ghi trường qua Field
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-007
+    title: Tìm và gọi phương thức qua Method
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-008
+    title: Tham số, kiểu trả về, varargs và chuyển đổi giá trị khi gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-009
+    title: Phản chiếu kiểu tổng quát với Type và các dạng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-010
+    title: Type erasure và giới hạn khôi phục thông tin kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-011
+    title: Đọc record components, enum và thành viên do trình biên dịch tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-012
+    title: Quyền truy cập, trySetAccessible và ranh giới module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-013
+    title: Xử lý InvocationTargetException và ngoại lệ truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-reflection-014
+    title: Tên tham số, tùy chọn -parameters và giới hạn siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: methodhandles-and-varhandles
+  title: MethodHandle và VarHandle
+  childs:
+  - slug: methodhandles-and-varhandles-001
+    title: Mục đích của MethodHandle, MethodType và Lookup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-002
+    title: Tra cứu phương thức tĩnh, phương thức đối tượng và constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-003
+    title: Quyền tra cứu với Lookup và privateLookupIn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-004
+    title: Phân biệt invokeExact với invoke
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-005
+    title: Điều chỉnh chữ ký bằng asType và bindTo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-006
+    title: Kết hợp MethodHandle để tạo chuỗi xử lý động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-007
+    title: CallSite, invokedynamic và cơ chế liên kết động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-008
+    title: Vai trò của VarHandle trong truy cập biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-009
+    title: Các chế độ truy cập, thao tác nguyên tử và trật tự bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodhandles-and-varhandles-010
+    title: Khi nào chọn reflection, MethodHandle hoặc lời gọi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-proxies
+  title: Proxy động
+  childs:
+  - slug: dynamic-proxies-001
+    title: Proxy là gì và thay đổi đường đi lời gọi như thế nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-002
+    title: Tạo JDK dynamic proxy từ các interface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-003
+    title: Hợp đồng InvocationHandler và phương thức invoke
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-004
+    title: Xử lý đối số, kết quả trả về và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-005
+    title: Xử lý equals, hashCode và toString
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-006
+    title: Gọi phương thức mặc định của interface qua InvocationHandler.invokeDefault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-007
+    title: Ủy quyền đến đối tượng đích và quản lý trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-008
+    title: Chặn lời gọi để đo thời gian, ghi log và kiểm tra quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-009
+    title: Proxy theo interface và proxy sinh lớp con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-010
+    title: Quan hệ giữa proxy, Decorator và lập trình hướng khía cạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-011
+    title: Giới hạn tự gọi nội bộ, định danh đối tượng và kiểu cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-processing
+  title: Annotation Processing
+  childs:
+  - slug: annotation-processing-001
+    title: Mô hình xử lý annotation tại thời điểm biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-002
+    title: Processor, AbstractProcessor và ProcessingEnvironment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-003
+    title: Khai báo annotation được hỗ trợ, tùy chọn và phiên bản nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-004
+    title: Các vòng xử lý và RoundEnvironment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-005
+    title: Cây phần tử với Element, TypeElement và ExecutableElement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-006
+    title: Biểu diễn kiểu với TypeMirror, Types và Elements
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-007
+    title: Kiểm tra ràng buộc và phát chẩn đoán bằng Messager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-008
+    title: Tạo tệp nguồn, tệp lớp và tài nguyên bằng Filer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-009
+    title: Quy tắc đặt tên và tránh tạo lại cùng một tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-010
+    title: Điều phối nhiều processor và ý nghĩa kết quả process
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-011
+    title: Đăng ký processor và tách đường dẫn processor khỏi mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-012
+    title: Giới hạn của API chuẩn đối với việc sửa cây mã nguồn có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-013
+    title: Kiểm thử processor bằng mã đầu vào đúng và sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-014
+    title: Vai trò của MapStruct và sự khác biệt với cách Lombok can thiệp trình biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-java-compilation
+  title: Biên dịch động Java
+  childs:
+  - slug: dynamic-java-compilation-001
+    title: Mục đích và phạm vi của Java Compiler API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-002
+    title: Lấy trình biên dịch qua ToolProvider.getSystemJavaCompiler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-003
+    title: JavaCompiler, CompilationTask và các tùy chọn biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-004
+    title: Cấp mã nguồn bằng JavaFileObject
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-005
+    title: Quản lý tệp và đầu ra trong bộ nhớ bằng JavaFileManager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-006
+    title: Thu thập lỗi, cảnh báo và vị trí nguồn qua DiagnosticCollector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-007
+    title: Thiết lập classpath, module path và phiên bản đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-008
+    title: Nạp lớp được biên dịch và gọi qua một hợp đồng ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-009
+    title: Đánh giá biểu thức và thử nghiệm tương tác bằng JShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-010
+    title: Quản lý tài nguyên, bộ nhớ đệm và vòng đời mã sinh khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-java-compilation-011
+    title: Giới hạn của biên dịch động khi chỉ có môi trường chạy tối giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bytecode-transformation
+  title: Biến đổi bytecode
+  childs:
+  - slug: bytecode-transformation-001
+    title: Cấu trúc tệp .class và vai trò của bytecode JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-002
+    title: Constant pool, trường, phương thức và thuộc tính lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-003
+    title: Lệnh bytecode, ngăn xếp toán hạng và biến cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-004
+    title: Bộ kiểm chứng bytecode và stack map frames
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-005
+    title: Sinh lớp mới và biến đổi lớp có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-006
+    title: Mô hình Visitor và mô hình cây của ASM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-007
+    title: Mô tả hành vi và ủy quyền bằng Byte Buddy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-008
+    title: Thao tác bytecode với Javassist và khác biệt về mức trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-009
+    title: Chèn mã trước, sau và quanh thân phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-010
+    title: Giữ annotation, thông tin gỡ lỗi và ánh xạ dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-011
+    title: Kiểm tra bytecode bằng javap và công cụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-transformation-012
+    title: Lựa chọn sinh mã nguồn hoặc sinh bytecode trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classloaders-and-agents
+  title: Class Loader và Agent
+  childs:
+  - slug: classloaders-and-agents-001
+    title: 'Vòng đời lớp: nạp, liên kết và khởi tạo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-002
+    title: Ủy quyền nạp lớp và lựa chọn ClassLoader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-003
+    title: Định danh lớp gắn với tên nhị phân và bộ nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-004
+    title: Phân tách mã ứng dụng, thư viện và mã được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-005
+    title: Khả năng thu hồi lớp và nguy cơ giữ tham chiếu ClassLoader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-006
+    title: Định nghĩa hidden class bằng MethodHandles.Lookup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-007
+    title: Java Agent, premain, agentmain và Instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-008
+    title: Biến đổi lớp bằng ClassFileTransformer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-009
+    title: Phân biệt redefineClasses với retransformClasses
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-010
+    title: Giới hạn thay đổi cấu trúc lớp đã được nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-011
+    title: Xử lý nhiều bộ biến đổi và tránh biến đổi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-and-agents-012
+    title: Quản lý agent, quyền gắn động và ảnh hưởng đến môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: language-comparison
+  title: Đối chiếu ngôn ngữ
+  childs:
+  - slug: language-comparison-001
+    title: 'Java: annotations, processor, reflection và bytecode'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-002
+    title: 'Lisp và Scheme: mã dưới dạng dữ liệu và macro'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-003
+    title: 'C++: templates, chuyên biệt hóa và tính toán khi biên dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-004
+    title: 'Rust: macro_rules và procedural macros'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-005
+    title: 'Python: decorator, descriptor và metaclass'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-006
+    title: 'JavaScript: Proxy, Reflect và biến đổi AST'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-007
+    title: 'TypeScript: hệ kiểu nâng cao và giới hạn tại thời điểm chạy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-008
+    title: 'C#: reflection, expression trees và source generators'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-009
+    title: 'Scala: inline, quotes và splices'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-010
+    title: So sánh thời điểm mở rộng, độ an toàn kiểu và hỗ trợ công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-011
+    title: Chuyển ý tưởng giữa ngôn ngữ mà không giả định cơ chế tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: real-world-applications
+  title: Ứng dụng thực tế
+  childs:
+  - slug: real-world-applications-001
+    title: Tạo mã ánh xạ đối tượng và chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-002
+    title: Tuần tự hóa dữ liệu dựa trên cấu trúc và siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-003
+    title: Kiểm tra tính hợp lệ từ annotation và mô tả ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-004
+    title: Khởi tạo và liên kết đối tượng trong dependency injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-005
+    title: Chặn lời gọi phục vụ giao dịch, phân quyền và quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-006
+    title: Ánh xạ đối tượng với cơ sở dữ liệu và tạo truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-007
+    title: Sinh máy khách, máy chủ và hợp đồng API từ schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-008
+    title: Tạo bộ chuyển đổi, lớp bao và mã tích hợp lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-009
+    title: Tự động hóa di chuyển và tái cấu trúc mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-010
+    title: Đánh giá biểu thức, luật và cấu hình miền bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-011
+    title: Tạo dữ liệu thử nghiệm và công cụ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-applications-012
+    title: Phân biệt cơ chế metaprogramming với nghiệp vụ mà framework cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solution-architecture
+  title: Kiến trúc giải pháp
+  childs:
+  - slug: solution-architecture-001
+    title: Xác định hợp đồng đầu vào, đầu ra và phạm vi biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-002
+    title: Tách mô hình miền, bộ phân tích và bộ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-003
+    title: Thiết kế các bước biến đổi độc lập và dễ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-004
+    title: Quyền sở hữu mã được tạo và điểm mở rộng cho mã viết tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-005
+    title: Tạo đầu ra xác định và khả năng truy nguyên nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-006
+    title: Đặt tên ổn định, tránh va chạm và quản lý không gian tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-007
+    title: Quản lý phụ thuộc giữa mã nguồn gốc và mã được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-008
+    title: Thiết kế chẩn đoán phục vụ người viết mô tả đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-009
+    title: Lựa chọn xử lý lỗi sớm hoặc trì hoãn đến lúc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-010
+    title: Cơ chế dự phòng khi không thể sinh hoặc nạp mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-architecture-011
+    title: Giới hạn mức độ tự động hóa để người bảo trì vẫn hiểu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-integration
+  title: Tích hợp build
+  childs:
+  - slug: build-integration-001
+    title: Phân biệt tạo mã trước biên dịch, trong biên dịch và khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-002
+    title: Tổ chức thư mục nguồn sinh và cấu hình source set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-003
+    title: Khai báo processor bằng annotationProcessor trong Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-004
+    title: Phân biệt compileClasspath, runtimeClasspath và processor path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-005
+    title: Mô tả đầu vào, đầu ra và quan hệ phụ thuộc giữa tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-006
+    title: Sinh mã tăng dần và xử lý tệp đầu vào bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-007
+    title: Bộ nhớ đệm build và yêu cầu đầu ra xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-008
+    title: Quản lý tài nguyên phụ trợ và đường dẫn giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-009
+    title: IDE, tác vụ dòng lệnh và CI cần dùng cùng cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-010
+    title: Quyết định có lưu mã sinh trong kho mã hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-integration-011
+    title: Tách thư viện annotation, bộ xử lý và mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Các tầng kiểm thử của một giải pháp metaprogramming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử mô hình đầu vào và từng phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: So sánh mã sinh bằng snapshot và giới hạn của kiểm thử văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Chuẩn hóa định dạng trước khi so sánh cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Biên dịch mã được sinh như một cổng kiểm tra bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra chẩn đoán cho đầu vào sai và trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử hành vi của chương trình được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Đối chiếu hành vi giữa bản gốc và bản biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử thuộc tính và sinh đầu vào tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử nhiều processor, nhiều vòng và nhiều tệp nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra xóa, đổi tên đầu vào và tính đúng của build tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử proxy, ClassLoader và agent trong môi trường tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debugging-and-observability
+  title: Gỡ lỗi và quan sát
+  childs:
+  - slug: debugging-and-observability-001
+    title: Tìm lỗi thuộc giai đoạn sinh mã hay giai đoạn thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-002
+    title: Lưu và đọc mã nguồn, AST hoặc bytecode được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-003
+    title: Theo dõi quá trình mở rộng macro và các bước biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-004
+    title: Ánh xạ stack trace về mã nguồn và mô tả gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-005
+    title: Đặt breakpoint và giữ thông tin gỡ lỗi trong mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-006
+    title: Chẩn đoán lỗi tìm lớp, nạp lớp và xung đột bộ nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-007
+    title: Chẩn đoán lỗi truy cập và phản chiếu trong hệ module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-008
+    title: Phân tích lỗi xác minh bytecode và lỗi liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-009
+    title: Ghi nhận thời gian sinh, biên dịch, nạp và gọi mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-observability-010
+    title: Thu gọn ví dụ gây lỗi để tái hiện độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Ranh giới tin cậy giữa mô tả đầu vào và mã thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Chèn mã qua khuôn mẫu, chuỗi và biểu thức động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Kiểm tra cấu trúc và giới hạn ngữ pháp đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Danh sách cho phép đối với kiểu, thành viên và thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Không coi ClassLoader là cơ chế cô lập bảo mật đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Rủi ro mở quyền truy cập bằng reflection hoặc cấu hình module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Quyền thực thi của annotation processor và công cụ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Nguồn gốc thư viện, plugin và chuỗi cung ứng build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Giới hạn tài nguyên để tránh mở rộng hoặc biên dịch quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Cô lập tiến trình khi cần thực thi mã không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Bảo vệ bí mật trong mã sinh, log và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Tách chi phí sinh mã, biên dịch, nạp lớp và gọi mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Chi phí khởi động so với chi phí thực thi ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Bộ nhớ đệm siêu dữ liệu, handle và lớp được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Khóa bộ nhớ đệm theo cấu hình, kiểu và bộ nạp lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Lời gọi trực tiếp, reflection, MethodHandle và proxy trong phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Khởi động JIT, khả năng nội tuyến và dạng lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Thiết kế phép đo JMH tránh kết luận từ một vòng lặp đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Bùng nổ số lớp, kích thước mã và sử dụng metaspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Tham chiếu yếu, vòng đời bộ nhớ đệm và khả năng thu hồi lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: An toàn luồng khi sinh mã và khởi tạo bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đánh đổi tốc độ chạy với thời gian build và độ phức tạp bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility
+  title: Tương thích
+  childs:
+  - slug: compatibility-001
+    title: Phân biệt tương thích nguồn, nhị phân và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-002
+    title: Phiên bản Java nguồn, bytecode đích và thư viện cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-003
+    title: Module path, classpath và đóng gói API nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-004
+    title: Giới hạn khi phụ thuộc API trình biên dịch không chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-005
+    title: Nâng cấp thư viện thao tác bytecode theo định dạng lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-006
+    title: Thay đổi schema, annotation và hợp đồng mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-007
+    title: Chạy trên JDK đầy đủ, runtime image và môi trường hạn chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-008
+    title: Reflection, proxy và sinh mã trong ứng dụng native image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-009
+    title: Các giới hạn cần kiểm tra khi kết hợp nhiều agent hoặc framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-010
+    title: Lập ma trận phiên bản và kế hoạch di chuyển có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Dùng metaprogramming cho vấn đề giải quyết được bằng thiết kế thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Tạo quá nhiều lớp gián tiếp làm khó đọc luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Biến đổi mã bằng biểu thức chính quy khi cần hiểu cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Macro làm đổi phạm vi tên hoặc đánh giá biểu thức nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Giả định annotation tự tạo hành vi mà không cần bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Nhầm annotation processor chuẩn với công cụ sửa AST nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Dựa vào thứ tự thành viên mà API không cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Nuốt ngoại lệ phản chiếu và làm mất nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Giữ tham chiếu lớp động quá lâu gây rò rỉ bộ nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-010
+    title: Sinh tệp trùng, giữ tệp cũ và tạo phụ thuộc build vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-011
+    title: Sửa tay mã sinh rồi đánh mất thay đổi ở lần tạo tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-012
+    title: Đánh giá hiệu năng hoặc bảo mật từ giả định chưa kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Dự án thực hành
+  childs:
+  - slug: hands-on-project-001
+    title: Khảo sát một đối tượng và xuất mô tả cấu trúc bằng reflection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Xây bộ kiểm tra dữ liệu dựa trên annotation có giới hạn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Tạo proxy đo thời gian với hợp đồng ngoại lệ và định danh được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Viết annotation processor sinh bộ dựng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Phát triển bộ ánh xạ đơn giản và kiểm tra lỗi ngay khi biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Sinh mã từ schema và kiểm tra build tăng dần khi schema thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Thiết kế DSL biểu thức nhỏ với bộ phân tích và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Biên dịch mã Java trong bộ nhớ và gọi qua interface ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Tạo lớp động bằng thư viện bytecode và kiểm tra mã đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Viết Java Agent quan sát lời gọi trong một ứng dụng thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: So sánh các cơ chế trên cùng một bài toán bằng kiểm thử và phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Hoàn thiện dự án với mô tả giới hạn, mô hình tin cậy và hướng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solution-selection
+  title: Lựa chọn giải pháp
+  childs:
+  - slug: solution-selection-001
+    title: Xuất phát từ bài toán và phần lặp thực sự cần loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-002
+    title: So sánh cấu hình, tổ hợp đối tượng, hàm và sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-003
+    title: Chọn annotation processing, reflection, proxy hoặc bytecode trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-004
+    title: Chọn macro, DSL hoặc thư viện API theo nhu cầu biểu đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-005
+    title: Đặt tiêu chí về kiểm tra sớm, hiệu năng và hỗ trợ công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-006
+    title: Đánh giá chi phí sử dụng, gỡ lỗi và đào tạo người bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-007
+    title: Kiểm chứng giả thuyết bằng nguyên mẫu nhỏ có thể loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-008
+    title: Ghi lại quyết định, giới hạn và điều kiện xem xét lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-009
+    title: Duy trì lộ trình quay về giải pháp đơn giản hơn khi yêu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

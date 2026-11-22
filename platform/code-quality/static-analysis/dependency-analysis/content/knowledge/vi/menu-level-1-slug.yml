@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Loại phụ thuộc
+  slug: dependency-types
+  index: 1
+- title: Đồ thị phụ thuộc
+  slug: dependency-graph
+  index: 2
+- title: Thu thập bằng chứng
+  slug: evidence-collection
+  index: 3
+- title: Phụ thuộc trong mã Java
+  slug: java-code-dependencies
+  index: 4
+- title: Phân tích Maven
+  slug: maven-analysis
+  index: 5
+- title: Phân tích Gradle
+  slug: gradle-analysis
+  index: 6
+- title: Sử dụng jdeps
+  slug: jdeps-usage
+  index: 7
+- title: Module JPMS
+  slug: jpms-modules
+  index: 8
+- title: Khai báo và sử dụng
+  slug: declaration-and-usage
+  index: 9
+- title: API và phạm vi phụ thuộc
+  slug: dependency-apis-and-scopes
+  index: 10
+- title: Phiên bản và xung đột
+  slug: versions-and-conflicts
+  index: 11
+- title: Lớp trùng và liên kết
+  slug: duplicate-classes-and-linking
+  index: 12
+- title: Phụ thuộc động
+  slug: dynamic-dependencies
+  index: 13
+- title: Chu kỳ phụ thuộc
+  slug: dependency-cycles
+  index: 14
+- title: Chỉ số phụ thuộc
+  slug: dependency-metrics
+  index: 15
+- title: Tác động thay đổi
+  slug: change-impact
+  index: 16
+- title: Đóng gói và triển khai
+  slug: packaging-and-deployment
+  index: 17
+- title: Dự án nhiều module
+  slug: multi-module-projects
+  index: 18
+- title: Công cụ phân tích
+  slug: analysis-tools
+  index: 19
+- title: Kiểm kê và SCA
+  slug: inventory-and-sca
+  index: 20
+- title: Đọc báo cáo và ngoại lệ
+  slug: reports-and-exceptions
+  index: 21
+- title: Chính sách và CI
+  slug: policies-and-ci
+  index: 22
+- title: Tối giản và tái cấu trúc
+  slug: simplification-and-restructuring
+  index: 23
+- title: Kiểm chứng thay đổi
+  slug: change-verification
+  index: 24
+- title: Hiệu năng và tái lập
+  slug: performance-and-reproducibility
+  index: 25
+- title: Khắc phục sự cố
+  slug: troubleshooting
+  index: 26
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 27

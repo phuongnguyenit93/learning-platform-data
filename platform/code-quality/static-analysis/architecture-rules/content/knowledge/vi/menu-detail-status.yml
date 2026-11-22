@@ -1,0 +1,2962 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Quy tắc kiến trúc là gì và vì sao cần kiểm tra tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt kiến trúc mong muốn, cấu trúc thực tế và sai lệch kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa chất lượng mã, khả năng bảo trì và ranh giới mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt quy tắc kiến trúc, định dạng mã và mẫu lỗi lập trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Lớp, gói, mô-đun, tầng và thành phần trong mô hình kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Kiểm thử kiến trúc như một phần của bộ kiểm thử tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Những điều phân tích tĩnh chứng minh được và không chứng minh được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức Java, bytecode, kiểm thử và đồ thị cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-model
+  title: Mô hình phụ thuộc
+  childs:
+  - slug: dependency-model-001
+    title: Biểu diễn lớp, gói và mô-đun bằng đồ thị có hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-002
+    title: Phụ thuộc qua kế thừa, interface và khai báo kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-003
+    title: Phụ thuộc qua trường, tham số, kiểu trả về và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-004
+    title: Phụ thuộc qua lời gọi phương thức và truy cập trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-005
+    title: Annotation, generic và các thông tin hiện diện trong bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-006
+    title: Phân biệt phụ thuộc trực tiếp và đường đi phụ thuộc gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-007
+    title: Phân biệt hướng phụ thuộc mã nguồn và luồng gọi lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-008
+    title: Ranh giới phân tích và tác động của lớp nằm ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-009
+    title: Phân biệt đồ thị phụ thuộc mã với dependency khai báo trong build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-010
+    title: Nhận biết ghép nối chặt, phụ thuộc vòng và điểm hội tụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-specification
+  title: Đặc tả quy tắc
+  childs:
+  - slug: rule-specification-001
+    title: Chuyển quyết định kiến trúc thành ràng buộc có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-002
+    title: Xác định đối tượng áp dụng, điều kiện và phạm vi loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-003
+    title: Mô tả quan hệ được phép và quan hệ bị cấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-004
+    title: Lựa chọn danh sách cho phép hoặc danh sách cấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-005
+    title: Định nghĩa API công khai, phần nội bộ và chủ sở hữu mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-006
+    title: Viết ví dụ tuân thủ và ví dụ vi phạm trước khi cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-007
+    title: Phân biệt quy tắc cấu trúc, quy tắc phụ thuộc và quy tắc ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-008
+    title: Gắn lý do nghiệp vụ, quyết định kiến trúc và mức ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-specification-009
+    title: Tránh quy tắc mơ hồ, tuyệt đối hóa hoặc chỉ phản ánh sở thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: So sánh phân tích mã nguồn, AST và bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: ArchUnit cho kiểm thử quan hệ giữa các thành phần Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: jdeps để khảo sát phụ thuộc lớp, gói và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: JPMS để cưỡng chế khả năng đọc mô-đun và truy cập gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Spring Modulith để xác minh mô-đun nghiệp vụ trong ứng dụng Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Vai trò bổ sung của Checkstyle, PMD, Error Prone và nền tảng kiểm tra liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Khi cần phân tích đồ thị build hoặc dữ liệu lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Tiêu chí lựa chọn theo độ chính xác, phạm vi, chi phí và khả năng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: archunit-setup
+  title: Thiết lập ArchUnit
+  childs:
+  - slug: archunit-setup-001
+    title: 'Cấu trúc thư viện ArchUnit: Core, Lang và Library'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-002
+    title: Thêm dependency kiểm thử trong Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-003
+    title: Chọn artifact tích hợp JUnit tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-004
+    title: Viết kiểm thử đầu tiên bằng ClassFileImporter và ArchRule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-005
+    title: Tổ chức kiểm thử bằng @AnalyzeClasses và @ArchTest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-006
+    title: Phân biệt kiểm thử Java thông thường và ArchUnit TestEngine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-007
+    title: Cấu hình JUnit Platform để phát hiện và thực thi quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-008
+    title: Tổ chức package kiểm thử và tên quy tắc dễ nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: archunit-setup-009
+    title: Đọc lỗi đầu tiên và xác nhận quy tắc đã được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-scope
+  title: Phạm vi phân tích
+  childs:
+  - slug: analysis-scope-001
+    title: Nhập lớp theo package bằng ClassFileImporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-002
+    title: Nhập lớp theo vị trí, thư mục biên dịch hoặc JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-003
+    title: '@AnalyzeClasses và lựa chọn package theo lớp đại diện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-004
+    title: Loại trừ mã kiểm thử bằng ImportOption
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-005
+    title: Xử lý mã sinh tự động, thư viện và thư mục đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-006
+    title: Classpath thiếu, lớp tham chiếu chưa được nhập và cơ chế phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-007
+    title: Phân biệt lớp được chọn để kiểm tra và lớp cần phân giải metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-008
+    title: Ảnh hưởng của source set, test fixture và nhiều mô-đun build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-009
+    title: Loại bỏ bytecode cũ trước khi đối chiếu cấu trúc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-010
+    title: Kiểm tra phạm vi rỗng để tránh bộ quy tắc vượt qua vô nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-syntax
+  title: Cú pháp quy tắc
+  childs:
+  - slug: rule-syntax-001
+    title: Cấu trúc chọn đối tượng, lọc điều kiện và khẳng định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-002
+    title: classes, noClasses và ý nghĩa của mệnh đề phủ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-003
+    title: that, should và cách diễn giải quy tắc thành câu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-004
+    title: Kết hợp and, or và kiểm soát nhóm điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-005
+    title: Phân biệt DescribedPredicate và ArchCondition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-006
+    title: Quy tắc cho lớp, trường, phương thức, constructor và code unit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-007
+    title: Kiểm tra bằng check hoặc lấy kết quả qua evaluate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-008
+    title: Đặt mô tả bằng as và bổ sung lý do bằng because
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-009
+    title: Priority và cách sử dụng trong báo cáo hoặc cổng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-syntax-010
+    title: Quy tắc trên tập rỗng và cấu hình failOnEmptyShould
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: package-dependencies
+  title: Phụ thuộc gói
+  childs:
+  - slug: package-dependencies-001
+    title: Định nghĩa ranh giới theo package và mẫu khớp package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-002
+    title: Ý nghĩa của dấu chấm kép và phần khớp nhiều cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-003
+    title: Cấm phụ thuộc từ gói miền vào gói hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-004
+    title: Chỉ cho phép một nhóm gói phụ thuộc vào các gói xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-005
+    title: Phân biệt dependOnClassesThat và accessClassesThat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-006
+    title: Kiểm tra phụ thuộc đi ra và thành phần được phép truy cập vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-007
+    title: Ngăn gói dùng chung trở thành nơi chứa phụ thuộc tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-008
+    title: Kiểm tra đường dẫn phụ thuộc gián tiếp khi yêu cầu cần đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-009
+    title: Phát hiện mô-đun mới chưa được phân loại trong quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-dependencies-010
+    title: Tránh mẫu package quá rộng, quá hẹp hoặc khớp nhầm tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-access
+  title: Truy cập lớp
+  childs:
+  - slug: class-access-001
+    title: Kiểm tra quan hệ giữa từng lớp hoặc nhóm lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-002
+    title: Giới hạn truy cập lớp triển khai qua interface được công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-003
+    title: Kiểm tra kế thừa, implement và quan hệ kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-004
+    title: Giới hạn lớp được phép gọi constructor của thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-005
+    title: Cấm lời gọi tới API vượt qua ranh giới đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-006
+    title: Kiểm tra truy cập trường và ngăn phụ thuộc vào chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-007
+    title: Phân biệt lớp khai báo thành viên và lớp đích của lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-008
+    title: Xử lý phương thức kế thừa và metadata cần phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-access-009
+    title: Chọn kiểm tra quan hệ cụ thể thay vì cấm mọi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: members-and-apis
+  title: Thành viên và API
+  childs:
+  - slug: members-and-apis-001
+    title: Quy tắc cho trường, phương thức và constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-002
+    title: Kiểm soát public, protected và package-private tại ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-003
+    title: Ngăn API công khai trả về kiểu nội bộ hoặc kiểu hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-004
+    title: Kiểm tra tham số, kiểu trả về và ngoại lệ trong chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-005
+    title: Kiểm tra generic trong hợp đồng API theo khả năng phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-006
+    title: Giới hạn trạng thái static và quyền sửa trường theo thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-007
+    title: Kiểm soát constructor và cách tạo đối tượng qua factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-008
+    title: Quy tắc cho annotation trên lớp hoặc thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-and-apis-009
+    title: Phân biệt hình dạng API với tính đúng đắn của hành vi lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structural-conventions
+  title: Quy ước cấu trúc
+  childs:
+  - slug: structural-conventions-001
+    title: Đặt tên lớp và gói để thể hiện vai trò kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-002
+    title: Đối chiếu hậu tố tên lớp với package hoặc annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-003
+    title: Kiểm tra vị trí Controller, Service, Repository và Adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-004
+    title: Giới hạn quy tắc đặt tên trong phạm vi có ý nghĩa kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-005
+    title: Tổ chức theo tính năng và tổ chức theo tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-006
+    title: Phân biệt quy tắc vị trí mã với quy tắc hướng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-007
+    title: Xử lý lớp lồng nhau, lớp ẩn danh và thành viên tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-008
+    title: Annotation tự định nghĩa để đánh dấu vai trò thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-conventions-009
+    title: Tránh suy luận trách nhiệm chỉ từ tên lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: layered-architecture
+  title: Kiến trúc phân tầng
+  childs:
+  - slug: layered-architecture-001
+    title: Xác định trách nhiệm của tầng giao diện, ứng dụng, miền và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-002
+    title: Thiết kế ma trận phụ thuộc giữa các tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-003
+    title: Khai báo tầng bằng layeredArchitecture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-004
+    title: Kiểm soát toàn bộ phụ thuộc hoặc chỉ phụ thuộc giữa các tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-005
+    title: Phân biệt quy tắc truy cập vào tầng và phụ thuộc đi ra khỏi tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-006
+    title: Tầng tùy chọn và cách xử lý lớp không thuộc tầng nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-007
+    title: Ngăn Controller truy cập trực tiếp tầng lưu trữ khi hợp đồng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-008
+    title: Xử lý thành phần cấu hình và điểm lắp ghép ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-009
+    title: Thư viện dùng chung và ngoại lệ có phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-010
+    title: Tránh gán một mô hình phân tầng cho mọi loại mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-oriented-architecture
+  title: Kiến trúc hướng lõi
+  childs:
+  - slug: core-oriented-architecture-001
+    title: Nguyên tắc phụ thuộc hướng về chính sách nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-002
+    title: Phân biệt kiến trúc lục giác, Onion và Clean Architecture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-003
+    title: Port đầu vào, port đầu ra và adapter tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-004
+    title: Vị trí interface và đảo ngược phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-005
+    title: Giữ lõi nghiệp vụ độc lập với web, lưu trữ và thư viện triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-006
+    title: Kiểm tra Onion Architecture bằng thư viện ArchUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-007
+    title: Kiểm tra các adapter không phụ thuộc trực tiếp lẫn nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-008
+    title: Vai trò của composition root và cấu hình tiêm phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-009
+    title: Ngăn DTO giao thức và Entity lưu trữ xuyên vào lõi trái hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-010
+    title: Phân biệt phụ thuộc mã nguồn với hướng gọi giữa port và adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-oriented-architecture-011
+    title: Lựa chọn mức ràng buộc phù hợp thay vì áp dụng máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-modules
+  title: Mô-đun nghiệp vụ
+  childs:
+  - slug: domain-modules-001
+    title: Xác định mô-đun theo năng lực nghiệp vụ và trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-002
+    title: Package API và package nội bộ của từng mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-003
+    title: Chỉ cho phép truy cập qua hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-004
+    title: Quy định danh sách mô-đun được phép phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-005
+    title: Phân biệt mô-đun nghiệp vụ, Gradle project và mô-đun JPMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-006
+    title: Chia sẻ kiểu dữ liệu và giới hạn shared kernel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-007
+    title: Giao tiếp qua sự kiện và phụ thuộc vào hợp đồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-008
+    title: Kiểm tra mô-đun bằng ArchModules khi phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-009
+    title: Giữ ranh giới khi thêm tính năng và khi tách mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-modules-010
+    title: Nhận biết mô-đun quá nhỏ hoặc phụ thuộc chéo quá nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cycle-detection
+  title: Phát hiện chu trình
+  childs:
+  - slug: cycle-detection-001
+    title: Chu trình phụ thuộc là gì và ảnh hưởng đến khả năng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-002
+    title: Phân biệt chu trình ở mức lớp, package và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-003
+    title: Chia mã thành slices theo mẫu package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-004
+    title: Kiểm tra beFreeOfCycles với các lát cắt đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-005
+    title: Phân biệt không có chu trình và không được phụ thuộc nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-006
+    title: Tùy chỉnh cách gán lớp vào slice khi cấu trúc không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-007
+    title: Đọc đường đi chu trình và tìm cạnh phụ thuộc cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-008
+    title: Chu trình bị che khuất bởi phạm vi nhập lớp không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-009
+    title: Giới hạn số chu trình báo cáo và chi phí phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cycle-detection-010
+    title: Phá chu trình bằng đổi trách nhiệm, interface hoặc sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-and-jpa
+  title: Spring và JPA
+  childs:
+  - slug: spring-and-jpa-001
+    title: Chuyển vai trò Spring thành tiêu chí chọn lớp trong quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-002
+    title: Kiểm tra Controller, Service và Repository đúng ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-003
+    title: Kiểm soát phụ thuộc framework trong mô hình miền theo quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-004
+    title: Quy tắc tiêm phụ thuộc qua constructor và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-005
+    title: Giới hạn truy cập EntityManager, JDBC hoặc Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-006
+    title: Ngăn Entity lưu trữ xuất hiện trong hợp đồng web khi yêu cầu tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-007
+    title: Quy ước ranh giới giao dịch và vị trí @Transactional
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-008
+    title: Giới hạn kiểm chứng lời gọi nội bộ, proxy và annotation giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-009
+    title: Cấu hình Spring, bean được chọn lúc chạy và điểm mù phân tích tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-and-jpa-010
+    title: Kiểm thử kiến trúc mà không cần khởi động ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: libraries-and-platforms
+  title: Thư viện và nền tảng
+  childs:
+  - slug: libraries-and-platforms-001
+    title: Kiểm soát package được phép sử dụng thư viện bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-002
+    title: Ngăn phụ thuộc vào JDK internal API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-003
+    title: Giới hạn logging, HTTP client và truy cập tệp ở tầng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-004
+    title: Đóng gói thư viện đặc thù sau interface hoặc adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-005
+    title: Kiểm soát việc tạo thread và truy cập đồng hồ theo kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-006
+    title: GeneralCodingRules và lựa chọn quy tắc có liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-007
+    title: Ngăn nhiều cách truy cập dữ liệu ngoài hợp đồng đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-008
+    title: Phân biệt quy tắc sử dụng thư viện với quét lỗ hổng dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-platforms-009
+    title: Đánh giá trường hợp ngoại lệ thay vì cấm toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-rules
+  title: Quy tắc tùy biến
+  childs:
+  - slug: custom-rules-001
+    title: Khi DSL có sẵn chưa diễn đạt được khái niệm kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-002
+    title: Tạo DescribedPredicate cho vai trò nghiệp vụ hoặc nhóm lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-003
+    title: Tạo ArchCondition và mô tả điều kiện cần thỏa mãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-004
+    title: Duyệt JavaClass, JavaMethod, JavaField và Dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-005
+    title: Phát hiện vi phạm qua ConditionEvents và SimpleConditionEvent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-006
+    title: Kết hợp predicate, condition và thông tin mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-007
+    title: Khởi tạo, thu thập và kết thúc đánh giá khi quy tắc xét nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-008
+    title: Phân tích đường đi phụ thuộc hoặc quan hệ xuyên nhiều lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-009
+    title: Đóng gói thư viện quy tắc dùng chung và tham số hóa phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-010
+    title: Giữ quy tắc xác định, dễ kiểm thử và không phụ thuộc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-testing
+  title: Kiểm thử quy tắc
+  childs:
+  - slug: rule-testing-001
+    title: Vì sao quy tắc kiến trúc cũng có thể chứa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-002
+    title: Tạo lớp mẫu tuân thủ và lớp mẫu cố tình vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-003
+    title: Kiểm tra một vi phạm cụ thể thay vì chỉ xác nhận có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-004
+    title: Kiểm thử mẫu package, điều kiện phủ định và tổ hợp and, or
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-005
+    title: Kiểm thử lớp nằm ngoài phạm vi hoặc không có lớp nào được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-006
+    title: Kiểm thử generic, kế thừa, annotation và lớp lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-007
+    title: Đánh giá false positive và false negative bằng ví dụ đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-008
+    title: Thêm trường hợp hồi quy khi phát hiện quy tắc bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-009
+    title: Kiểm tra việc bổ sung một mô-đun mới không làm mất phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-010
+    title: Giữ lớp mẫu tách biệt khỏi mã ứng dụng và phạm vi nhập thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: violation-reporting
+  title: Báo cáo vi phạm
+  childs:
+  - slug: violation-reporting-001
+    title: Đọc tên quy tắc, mô tả, đối tượng và vị trí vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-002
+    title: Phân biệt vi phạm kiến trúc và lỗi của hạ tầng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-003
+    title: EvaluationResult, FailureReport và xử lý kết quả theo API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-004
+    title: Truy ngược từ lời gọi hoặc chữ ký đến cạnh phụ thuộc gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-005
+    title: Nhóm vi phạm theo quy tắc, mô-đun và nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-006
+    title: Viết thông báo có lý do, bằng chứng và hướng sửa khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-007
+    title: Ưu tiên xử lý theo ảnh hưởng thay vì chỉ theo số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-008
+    title: Ánh xạ Priority vào cách báo cáo và quyết định build của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: violation-reporting-009
+    title: Lưu kết quả đủ để so sánh mà không phụ thuộc thứ tự đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: controlled-exceptions
+  title: Ngoại lệ có kiểm soát
+  childs:
+  - slug: controlled-exceptions-001
+    title: Phân biệt ngoại lệ có chủ đích, báo sai và vi phạm cần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-002
+    title: Loại trừ bằng predicate hoặc API bỏ qua có phạm vi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-003
+    title: archunit_ignore_patterns.txt và giới hạn khi bỏ qua theo thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-004
+    title: Vì sao @SuppressWarnings không mặc nhiên tắt mọi quy tắc ArchUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-005
+    title: Ghi rõ lý do, chủ sở hữu và điều kiện hết hạn ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-006
+    title: Không dùng wildcard rộng để che vi phạm chưa được phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-007
+    title: Kiểm tra ngoại lệ không còn cần thiết sau khi refactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-008
+    title: Theo dõi số ngoại lệ và ngăn danh sách bỏ qua tăng vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-exceptions-009
+    title: Tách ngoại lệ cho mã sinh tự động khỏi mã do nhóm bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-code-rollout
+  title: Triển khai trên mã cũ
+  childs:
+  - slug: legacy-code-rollout-001
+    title: Khảo sát cấu trúc hiện tại trước khi áp dụng cổng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-002
+    title: Xác định ranh giới đích từ quyết định kiến trúc đã được thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-003
+    title: Phân loại vi phạm hiện có theo nguyên nhân và mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-004
+    title: Thiết lập đường cơ sở để chặn vi phạm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-005
+    title: FreezingArchRule và cơ chế lưu các vi phạm đã được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-006
+    title: Cấu hình violation store và quản lý dữ liệu đường cơ sở trong Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-007
+    title: Kiểm soát quyền tạo mới hoặc cập nhật đường cơ sở trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-008
+    title: Nhận diện lỗi do đổi tên lớp, dịch chuyển dòng và thay mô tả quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-009
+    title: Giảm dần nợ kiến trúc bằng nguyên tắc không tăng vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-rollout-010
+    title: Không tái tạo đường cơ sở tự động để biến build lỗi thành thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-and-maven
+  title: Gradle và Maven
+  childs:
+  - slug: gradle-and-maven-001
+    title: Tổ chức architecture test trong source set hoặc test suite riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-002
+    title: Thiết lập dependency kiểm thử và engine đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-003
+    title: Chạy kiểm thử kiến trúc trong test hoặc giai đoạn xác minh riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-004
+    title: Liên kết tác vụ kiểm tra với check của Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-005
+    title: Phối hợp Maven Surefire hoặc Failsafe theo loại bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-006
+    title: Biên dịch các mô-đun cần thiết trước khi nhập bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-007
+    title: Phân biệt dependency khai báo và lớp thực sự xuất hiện trong classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-008
+    title: Phân phối bộ quy tắc dùng chung qua test fixture hoặc thư viện kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-009
+    title: Tách kiểm tra cục bộ một mô-đun và kiểm tra ranh giới toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-and-maven-010
+    title: Kiểm tra phát hiện test và ngăn tác vụ thành công với số quy tắc bằng 0
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-and-quality-gates
+  title: CI và cổng kiểm tra
+  childs:
+  - slug: ci-and-quality-gates-001
+    title: Chọn thời điểm chạy quy tắc trong pull request và nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-002
+    title: Cổng kiểm tra cho vi phạm mới và chiến lược triển khai từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-003
+    title: Thất bại build khi vi phạm hợp đồng đã được thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-004
+    title: Công bố báo cáo dễ truy ngược về mã gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-005
+    title: Bảo đảm CI dùng đúng commit, bytecode và tập mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-006
+    title: Giới hạn kiểm tra theo thay đổi nhưng vẫn xét phụ thuộc xuyên mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-007
+    title: Không bỏ qua quy tắc chỉ vì mã vi phạm nằm ở tệp không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-008
+    title: Quản lý artifact, cache và kết quả giữa các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-009
+    title: Tách lỗi tải dependency hoặc hạ tầng khỏi lỗi kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-010
+    title: Phân quyền thay đổi quy tắc, ngoại lệ và đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jpms-and-jdeps
+  title: JPMS và jdeps
+  childs:
+  - slug: jpms-and-jdeps-001
+    title: Phân biệt package-private, public và package được exports
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-002
+    title: requires, requires transitive và hướng đọc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-003
+    title: exports, opens và khác biệt truy cập thông thường với reflection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-004
+    title: uses, provides và quan hệ qua ServiceLoader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-005
+    title: Phân biệt named module, automatic module và unnamed module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-006
+    title: Khảo sát phụ thuộc bằng jdeps ở mức lớp, gói và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-007
+    title: Phân tích API công khai, JDK internal API và dependency bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-008
+    title: Đọc classpath, module path và multi-release JAR đúng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-009
+    title: Xuất đồ thị DOT và đối chiếu với ranh giới kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-010
+    title: Phối hợp cưỡng chế bằng trình biên dịch với kiểm thử ArchUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-and-jdeps-011
+    title: Giới hạn của --add-exports, --add-opens và các ngoại lệ đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-modulith
+  title: Spring Modulith
+  childs:
+  - slug: spring-modulith-001
+    title: Mô hình application module và quy ước package trong Spring Modulith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-002
+    title: Xác định mô-đun bằng ApplicationModules
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-003
+    title: Kiểm tra cấu trúc bằng verify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-004
+    title: Ngăn chu trình giữa các mô-đun nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-005
+    title: Ngăn tham chiếu tới package nội bộ của mô-đun khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-006
+    title: '@ApplicationModule và allowedDependencies'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-007
+    title: Named interface để công khai một phần hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-008
+    title: Open module và đánh đổi khi nới ranh giới nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-009
+    title: Thu thập hoặc lọc vi phạm qua API theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-010
+    title: Tích hợp quy tắc DDD hoặc kiến trúc từ jMolecules khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modulith-011
+    title: Phân biệt kiểm tra mô-đun tĩnh và kiểm thử hành vi tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagrams-and-contracts
+  title: Sơ đồ và hợp đồng
+  childs:
+  - slug: diagrams-and-contracts-001
+    title: Vai trò của sơ đồ kiến trúc khi định nghĩa quan hệ được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-002
+    title: Chuyển PlantUML component diagram thành quy tắc ArchUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-003
+    title: Ánh xạ component trong sơ đồ sang package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-004
+    title: Kiểm soát phạm vi dependency được đưa vào đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-005
+    title: Lớp không thuộc component và rủi ro bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-006
+    title: Đối chiếu đồ thị thực tế với sơ đồ được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-007
+    title: Phân biệt sơ đồ dùng để kiểm tra và sơ đồ sinh từ hiện trạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-008
+    title: Liên kết quy tắc với quyết định kiến trúc được ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagrams-and-contracts-009
+    title: Cập nhật đồng bộ sơ đồ, quy tắc và mã khi thay đổi thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-metrics
+  title: Chỉ số kiến trúc
+  childs:
+  - slug: architecture-metrics-001
+    title: Vai trò của phép đo trong nhận diện khu vực cần xem xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-002
+    title: Phụ thuộc đi vào và đi ra của một thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-003
+    title: Coupling, cohesion và cách chọn đơn vị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-004
+    title: Instability, abstractness và khoảng cách theo mô hình đo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-005
+    title: Phân tích thành phần phụ thuộc mạnh và chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-006
+    title: Software architecture metrics trong thư viện ArchUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-007
+    title: Ảnh hưởng của phạm vi nhập lớp và mã sinh đến kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-008
+    title: Theo dõi xu hướng thay đổi thay vì tuyệt đối hóa một ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-metrics-009
+    title: Phân biệt chỉ số cảnh báo và ràng buộc đủ cơ sở để chặn build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-performance
+  title: Hiệu năng phân tích
+  childs:
+  - slug: analysis-performance-001
+    title: Đo thời gian nhập bytecode và thời gian đánh giá quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-002
+    title: Tái sử dụng JavaClasses và cơ chế cache của tích hợp JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-003
+    title: Giới hạn phạm vi mà vẫn giữ đủ bằng chứng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-004
+    title: Cấu hình phân giải lớp tham chiếu theo nhu cầu quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-005
+    title: Chi phí kiểm tra chu trình và truy vấn đồ thị tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-006
+    title: Tránh quét lại toàn bộ lớp trong từng condition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-007
+    title: Quản lý bộ nhớ khi phân tích nhiều JAR hoặc mô-đun lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-008
+    title: Chạy song song và tránh trạng thái mutable dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-performance-009
+    title: Cân bằng phản hồi nhanh tại máy cá nhân và xác minh đầy đủ trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: limits-and-biases
+  title: Giới hạn và sai lệch
+  childs:
+  - slug: limits-and-biases-001
+    title: Bytecode khác mã nguồn và ảnh hưởng của bước biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-002
+    title: Reflection, tên lớp dạng chuỗi và quan hệ không thể suy ra đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-003
+    title: Spring proxy, tiêm phụ thuộc và cấu hình lựa chọn lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-004
+    title: Annotation có retention khác nhau và metadata không còn trong bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-005
+    title: Generic, bridge method, lambda và thành viên do trình biên dịch tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-006
+    title: Mã sinh tự động, Lombok và công cụ biến đổi bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-007
+    title: Classpath thiếu hoặc bytecode cũ gây kết luận không chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-008
+    title: Giao tiếp HTTP, messaging và phụ thuộc xuyên tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-009
+    title: Quy tắc cấu trúc không chứng minh tính đúng đắn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-and-biases-010
+    title: Kết hợp kiểm thử tích hợp, quan sát lúc chạy và đánh giá thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-governance
+  title: Quản trị quy tắc
+  childs:
+  - slug: rule-governance-001
+    title: Chọn chủ sở hữu và phạm vi trách nhiệm cho từng nhóm quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-002
+    title: Rà soát quy tắc như mã sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-003
+    title: Quản lý phiên bản thư viện quy tắc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-004
+    title: Đánh giá tác động khi thêm hoặc siết chặt một ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-005
+    title: Nâng cấp ArchUnit, JUnit và JDK có kiểm tra hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-006
+    title: Tài liệu hóa ví dụ tuân thủ, vi phạm và cách khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-007
+    title: Quy trình thay đổi hợp đồng kiến trúc có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-008
+    title: Loại bỏ quy tắc lỗi thời và ngoại lệ không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-009
+    title: Đo mức hữu ích qua sai lệch phát hiện được và chi phí bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-refactoring
+  title: Refactor kiến trúc
+  childs:
+  - slug: architecture-refactoring-001
+    title: Đọc bằng chứng vi phạm trước khi lựa chọn cách sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-002
+    title: Chuyển trách nhiệm thay vì chỉ đổi tên package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-003
+    title: Tách interface để đảo chiều phụ thuộc phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-004
+    title: Đưa kiểu dữ liệu về mô-đun sở hữu đúng trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-005
+    title: Tách DTO, mô hình miền và Entity lưu trữ khi hợp đồng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-006
+    title: Giảm shared package và phân biệt dùng chung có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-007
+    title: Phá chu trình bằng tách mô-đun hoặc giao tiếp qua hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-008
+    title: Thực hiện từng bước nhỏ với kiểm thử hành vi và kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-009
+    title: Xác minh cấu trúc mới không tạo đường phụ thuộc thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-refactoring-010
+    title: Cập nhật đường cơ sở chỉ sau khi đối chiếu vi phạm đã được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Viết hợp đồng kiến trúc cho ứng dụng Java có nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Tái hiện Controller truy cập sai tầng và quan sát quy tắc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Bảo vệ lõi nghiệp vụ khỏi phụ thuộc Spring hoặc thư viện hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tạo mô-đun API, internal và kiểm tra truy cập trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tạo chu trình giữa tính năng rồi refactor để loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Viết condition tùy biến và bộ lớp mẫu kiểm thử chính quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Áp dụng FreezingArchRule cho mã cũ và chặn vi phạm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Đối chiếu phụ thuộc bằng ArchUnit, jdeps và JPMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Xác minh modular monolith bằng Spring Modulith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Tích hợp bộ quy tắc vào Gradle hoặc Maven và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Đánh giá kết quả bằng phạm vi bảo vệ, độ chính xác và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

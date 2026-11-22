@@ -1,0 +1,82 @@
+menu:
+- title: Mô hình tư duy
+  slug: mental-model
+  index: 0
+- title: Ngữ nghĩa sự kiện
+  slug: event-semantics
+  index: 1
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 2
+- title: Luồng xử lý
+  slug: processing-flows
+  index: 3
+- title: Bộ xử lý
+  slug: event-handlers
+  index: 4
+- title: Đăng ký và định tuyến
+  slug: subscription-and-routing
+  index: 5
+- title: Sự kiện nội bộ
+  slug: internal-events
+  index: 6
+- title: Vòng lặp sự kiện
+  slug: event-loop
+  index: 7
+- title: Java nền tảng
+  slug: core-java
+  index: 8
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 9
+- title: Đồng thời và thứ tự
+  slug: concurrency-and-ordering
+  index: 10
+- title: Lỗi và phục hồi
+  slug: failures-and-recovery
+  index: 11
+- title: Bảo đảm chuyển giao
+  slug: delivery-guarantees
+  index: 12
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 13
+- title: Giao dịch và Outbox
+  slug: transactions-and-outbox
+  index: 14
+- title: Thời gian sự kiện
+  slug: event-time
+  index: 15
+- title: Quy trình nghiệp vụ
+  slug: business-workflows
+  index: 16
+- title: Ranh giới kiến trúc
+  slug: architecture-boundaries
+  index: 17
+- title: Hạ tầng truyền sự kiện
+  slug: event-infrastructure
+  index: 18
+- title: Reactive và luồng dữ liệu
+  slug: reactive-and-streaming
+  index: 19
+- title: Quan sát hệ thống
+  slug: observability
+  index: 20
+- title: Kiểm thử
+  slug: testing
+  index: 21
+- title: Bảo mật
+  slug: security
+  index: 22
+- title: Hiệu năng
+  slug: performance
+  index: 23
+- title: Vận hành và tiến hóa
+  slug: operations-and-evolution
+  index: 24
+- title: Thực hành
+  slug: hands-on-labs
+  index: 25
+- title: Đánh giá thiết kế
+  slug: design-review
+  index: 26

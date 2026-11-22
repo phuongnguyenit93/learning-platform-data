@@ -1,0 +1,60 @@
+roadmap:
+- id: mo-hinh-thong-diep
+  title: Mô hình thông điệp
+  purpose: Hiểu các thành phần Spring Messaging dùng để tách bên tạo thông điệp khỏi bên xử lý.
+  objectives:
+  - Phân biệt nội dung (payload), siêu dữ liệu (header) và đối tượng Message
+  - Tạo thông điệp bằng MessageBuilder
+  - Nhận diện MessageChannel, MessageHandler và vai trò của broker
+- id: kenh-va-template
+  title: Kênh và template
+  purpose: Truyền thông điệp qua các hợp đồng kênh và sử dụng template phù hợp với cách gửi, nhận.
+  objectives:
+  - Phân biệt gửi, đăng ký nhận và chủ động nhận từ kênh
+  - Giải thích thực thi đồng bộ hoặc qua executor khi phân phối thông điệp
+  - Dùng MessagingTemplate với loại kênh phù hợp
+- id: chuyen-doi-va-xu-ly
+  title: Chuyển đổi và xử lý
+  purpose: Chuyển nội dung thông điệp thành dữ liệu Java và đưa tới đúng phương thức xử lý.
+  objectives:
+  - Chọn MessageConverter theo kiểu nội dung và content-type
+  - Ánh xạ đích bằng @MessageMapping
+  - Đọc payload, header và kiểm tra dữ liệu đầu vào
+- id: stomp-qua-websocket
+  title: STOMP qua WebSocket
+  purpose: Kết nối ứng dụng với máy khách bằng WebSocket và sử dụng STOMP để gửi hoặc đăng ký nhận thông điệp.
+  objectives:
+  - Phân biệt giao thức WebSocket với STOMP
+  - Cấu hình endpoint và tiền tố định tuyến ứng dụng
+  - Theo dõi SEND, SUBSCRIBE và MESSAGE qua các kênh vào, ra
+- id: broker-va-nguoi-nhan
+  title: Broker và người nhận
+  purpose: Định tuyến thông điệp tới nhóm đăng ký hoặc từng người dùng và chọn hạ tầng broker theo yêu cầu.
+  objectives:
+  - Phân biệt simple broker với broker relay
+  - Gửi thông điệp bằng SimpMessagingTemplate
+  - Chọn đích phản hồi qua @SendTo và @SendToUser
+  - Phân biệt định tuyến với bảo đảm lưu bền hoặc giao nhận
+- id: rsocket
+  title: RSocket
+  purpose: Áp dụng mô hình xử lý thông điệp của Spring cho giao tiếp RSocket theo nhu cầu nhận dữ liệu.
+  objectives:
+  - Phân biệt request-response, request-stream, channel và fire-and-forget
+  - Dùng RSocketRequester và @MessageMapping theo route
+  - Phân biệt nội dung và siêu dữ liệu (metadata) của yêu cầu
+  - Giải thích điều tiết nhu cầu nhận và hủy luồng
+- id: loi-va-bao-ve
+  title: Lỗi và bảo vệ
+  purpose: Kiểm soát lỗi, quyền truy cập và giới hạn tài nguyên trên luồng thông điệp.
+  objectives:
+  - Phân biệt lỗi chuyển đổi, xử lý và kết nối; dùng @MessageExceptionHandler đúng phạm vi
+  - Dùng ChannelInterceptor để kiểm tra hoặc quan sát thông điệp
+  - Phân biệt xác thực kết nối với quyền gửi và đăng ký nhận
+  - Kiểm soát kích thước thông điệp, hàng đợi và máy khách chậm
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Kiểm chứng đường đi của thông điệp và quan sát hệ thống trong điều kiện kết nối, tải và lỗi thực tế.
+  objectives:
+  - Kiểm thử phương thức xử lý riêng với kiểm thử tích hợp giao thức
+  - Kiểm tra định tuyến, chuyển đổi, quyền truy cập và ngắt kết nối
+  - Theo dõi lỗi, kết nối, hàng đợi và thời gian xử lý

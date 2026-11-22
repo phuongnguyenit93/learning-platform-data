@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-key-value
+  title: Tổng quan Key-Value
+  purpose: Hiểu mô hình lưu dữ liệu theo khóa và phạm vi Spring Data KeyValue.
+  objectives:
+  - Mô tả cặp key-value và vai trò của Spring Data.
+  - Phân biệt lưu trữ Map trong bộ nhớ với cơ sở dữ liệu bền vững.
+- id: cau-hinh-map-adapter
+  title: Cấu hình Map Adapter
+  purpose: Khởi tạo lớp truy cập dữ liệu sử dụng Map cho ứng dụng Spring.
+  objectives:
+  - Cấu hình MapKeyValueAdapter và KeyValueTemplate.
+  - Giải thích quan hệ giữa Adapter và KeyValueOperations.
+- id: entity-keyspace
+  title: Entity & Keyspace
+  purpose: Xác định cách định danh và phân vùng đối tượng được lưu.
+  objectives:
+  - Sử dụng @Id và @KeySpace cho entity.
+  - Giải thích keyspace mặc định và keyspace tùy chỉnh.
+- id: keyvaluetemplate-crud
+  title: KeyValueTemplate CRUD
+  purpose: Thao tác trực tiếp với đối tượng thông qua Template API.
+  objectives:
+  - Thực hiện insert, update, findById và delete.
+  - Đọc tập bản ghi theo loại entity với findAllOf.
+- id: map-repositories
+  title: Map Repositories
+  purpose: Sử dụng repository để giảm mã lặp trong tầng truy cập dữ liệu.
+  objectives:
+  - Kích hoạt @EnableMapRepositories.
+  - Tạo CrudRepository và thực hiện CRUD theo ID.
+- id: truy-van-sap-xep
+  title: Truy vấn & Sắp xếp
+  purpose: Hiểu cách lọc, truy xuất và sắp xếp dữ liệu qua cơ chế truy vấn.
+  objectives:
+  - Viết phương thức findBy... trong repository.
+  - Sử dụng KeyValueQuery và Sort phù hợp QueryEngine.
+- id: mo-rong-adapter
+  title: Mở rộng Adapter
+  purpose: Nhận biết điểm mở rộng khi cần tích hợp kiểu lưu trữ khác.
+  objectives:
+  - Giải thích trách nhiệm KeyValueAdapter và QueryEngine.
+  - Nêu yêu cầu khi thay cấu hình lưu trữ hoặc truy vấn.
+- id: kiem-thu-gioi-han
+  title: Kiểm thử & Giới hạn
+  purpose: Đánh giá hành vi và giới hạn của cách lưu dữ liệu trong bộ nhớ.
+  objectives:
+  - Kiểm thử CRUD, keyspace và trường hợp không tìm thấy.
+  - Nhận diện giới hạn về vòng đời dữ liệu và đồng thời.

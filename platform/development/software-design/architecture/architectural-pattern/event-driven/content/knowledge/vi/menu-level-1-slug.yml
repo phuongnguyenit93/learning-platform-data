@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khái niệm cốt lõi
+  slug: core-concepts
+  index: 1
+- title: Phong cách kiến trúc
+  slug: architectural-style
+  index: 2
+- title: Ranh giới nghiệp vụ
+  slug: domain-boundaries
+  index: 3
+- title: Mô hình truyền tin
+  slug: messaging-model
+  index: 4
+- title: Cấu trúc sự kiện
+  slug: event-structure
+  index: 5
+- title: Hợp đồng và phiên bản
+  slug: contracts-versioning
+  index: 6
+- title: Thiết kế luồng
+  slug: flow-design
+  index: 7
+- title: Phát sự kiện
+  slug: event-publishing
+  index: 8
+- title: Tiêu thụ sự kiện
+  slug: event-consumption
+  index: 9
+- title: Ngữ nghĩa giao nhận
+  slug: delivery-semantics
+  index: 10
+- title: Thứ tự và thời gian
+  slug: ordering-time
+  index: 11
+- title: Xử lý trùng lặp
+  slug: duplicate-handling
+  index: 12
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 13
+- title: Giao dịch và Outbox
+  slug: transactions-outbox
+  index: 14
+- title: Saga và bù trừ
+  slug: saga-compensation
+  index: 15
+- title: Lỗi và phục hồi
+  slug: failure-recovery
+  index: 16
+- title: Lưu giữ và phát lại
+  slug: retention-replay
+  index: 17
+- title: Mở rộng và hiệu năng
+  slug: scaling-performance
+  index: 18
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 19
+- title: Bảo mật
+  slug: security
+  index: 20
+- title: Kiểm thử
+  slug: testing
+  index: 21
+- title: Triển khai và vận hành
+  slug: deployment-operations
+  index: 22
+- title: Lựa chọn công nghệ
+  slug: technology-selection
+  index: 23
+- title: Mẫu liên quan
+  slug: related-patterns
+  index: 24
+- title: Sai lầm thường gặp
+  slug: common-pitfalls
+  index: 25
+- title: Chuyển đổi kiến trúc
+  slug: architecture-migration
+  index: 26
+- title: Minh họa đặt hàng
+  slug: order-processing-example
+  index: 27
+- title: Thực hành
+  slug: hands-on-practice
+  index: 28
+- title: Đánh giá thiết kế
+  slug: design-review
+  index: 29

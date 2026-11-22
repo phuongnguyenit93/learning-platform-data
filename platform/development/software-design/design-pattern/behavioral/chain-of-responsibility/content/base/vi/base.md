@@ -1,0 +1,7 @@
+# Software Design Design Pattern Behavioral Chain Of Responsibility
+
+Chain of Responsibility là mẫu thiết kế hành vi cho phép gửi một yêu cầu qua một chuỗi các đối tượng xử lý (handler). Mỗi handler có thể tự xử lý, chuyển tiếp đến phần tử kế tiếp hoặc chủ động dừng luồng. Nhờ đó, thành phần gửi yêu cầu không cần biết trước handler cụ thể nào sẽ giải quyết công việc; chuỗi cũng có thể được lắp ghép hoặc thay đổi theo nhu cầu nghiệp vụ.
+
+Module dành cho lập trình viên Java đã quen class, interface và nguyên tắc thiết kế hướng đối tượng. Lộ trình bắt đầu với các tình huống phù hợp, cấu trúc Handler/Request và ConcreteHandler, sau đó xây dựng liên kết `next`, kiểm soát thứ tự, điều kiện dừng và cách xử lý khi không có handler phù hợp. Bạn sẽ tự viết một chuỗi xử lý bằng Java, liên hệ với `jakarta.servlet.FilterChain` và interceptor Spring MVC, rồi kiểm thử các trường hợp chuyển tiếp, dừng sớm và thay đổi cấu hình. Lưu ý rằng filter xử lý tuần tự không hoàn toàn giống phiên bản chỉ một handler nhận yêu cầu; cả hai là cách tổ chức chuỗi có thể gặp trong thực tế.
+
+Hãy thử xây dựng quy trình hỗ trợ khách hàng với ba cấp: tiếp nhận, kỹ thuật và chuyên gia. Từng cấp quyết định xử lý hay chuyển tiếp yêu cầu; nếu không cấp nào xử lý được, ứng dụng trả về kết quả dự phòng có ý nghĩa. Kết thúc module, bạn có thể tự cài đặt Chain of Responsibility, giải thích vị trí từng handler và đánh giá lợi ích tách phụ thuộc so với độ khó truy vết thứ tự xử lý.

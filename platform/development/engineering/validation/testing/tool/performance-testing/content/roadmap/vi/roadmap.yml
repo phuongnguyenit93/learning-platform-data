@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-hieu-nang-slo
+  title: Mục tiêu hiệu năng & SLO
+  purpose: Chuyển yêu cầu trải nghiệm người dùng thành tiêu chí đo lường rõ ràng trước khi thử tải.
+  objectives:
+  - Định nghĩa latency, throughput và error rate
+  - Chọn p95/p99 cho các luồng quan trọng
+  - Đặt SLO và điều kiện pass/fail có thể kiểm chứng
+- id: mo-hinh-tai-thuc-te
+  title: Mô hình tải thực tế
+  purpose: Mô phỏng hành vi truy cập phù hợp với lưu lượng và kịch bản nghiệp vụ thay vì chỉ tăng số request.
+  objectives:
+  - Ước lượng concurrent users và request rate
+  - Phân biệt open model với closed model
+  - Thiết kế tỉ lệ thao tác, think time và ramp-up
+- id: moi-truong-du-lieu-kiem-thu
+  title: Môi trường & dữ liệu kiểm thử
+  purpose: Bảo đảm kết quả có thể tái lập và phản ánh hệ thống mục tiêu mà không làm hỏng dữ liệu thật.
+  objectives:
+  - Chuẩn bị cấu hình hạ tầng và dataset đại diện
+  - Tách môi trường thử tải khỏi hệ thống nhạy cảm
+  - Ghi nhận phiên bản, tài nguyên và điều kiện nền
+- id: kich-ban-cong-cu-tao-tai
+  title: Kịch bản & công cụ tạo tải
+  purpose: Dùng công cụ để phát sinh request đúng quy trình nghiệp vụ và kiểm tra cả kết quả trả về.
+  objectives:
+  - Viết test script bằng k6 hoặc Apache JMeter
+  - Tham số hóa dữ liệu, session và xác thực
+  - Thêm checks cho status và tính đúng của response
+- id: cac-loai-bai-thu-tai
+  title: Các loại bài thử tải
+  purpose: Chọn kiểu kiểm thử tương ứng với tải thông thường, tải đỉnh, biến động đột ngột và độ bền dài hạn.
+  objectives:
+  - Chạy smoke và load test để lập baseline
+  - Phân biệt stress, spike và breakpoint test
+  - Thiết kế soak test để phát hiện suy giảm theo thời gian
+- id: thuc-thi-quan-sat-he-thong
+  title: Thực thi & quan sát hệ thống
+  purpose: Đo đồng thời hoạt động của bộ tạo tải và hệ thống đích để tránh đưa ra kết luận sai.
+  objectives:
+  - Theo dõi CPU, memory, GC, database và pool kết nối
+  - Kết hợp metrics, logs và traces khi chạy tải
+  - Phát hiện lỗi do load generator hoặc dropped iterations
+- id: phan-tich-diem-nghen
+  title: Phân tích điểm nghẽn
+  purpose: Tìm nguyên nhân làm tăng độ trễ hoặc lỗi thay vì chỉ báo một con số hiệu năng tổng hợp.
+  objectives:
+  - So sánh p95/p99, throughput và error rate theo tải
+  - Khoanh vùng bottleneck bằng telemetry và profiling
+  - Đối chiếu baseline trước và sau tối ưu
+- id: thresholds-ci-regression
+  title: Thresholds & CI Regression
+  purpose: Biến kết quả thử tải thành tiêu chí chất lượng lặp lại trong quy trình phát hành.
+  objectives:
+  - Cấu hình performance thresholds và exit status
+  - Lưu báo cáo, kịch bản và baseline theo phiên bản
+  - Chạy kiểm thử hồi quy phù hợp trong CI/CD

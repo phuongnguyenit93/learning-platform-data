@@ -1,0 +1,49 @@
+roadmap:
+- id: layered-architecture
+  title: Layered Architecture
+  purpose: Hiểu mô hình phân tách trách nhiệm theo tầng trong một ứng dụng.
+  objectives:
+  - Nhận diện presentation, business và data access layers.
+  - Phân biệt logical layer với physical deployment tier.
+- id: ranh-gioi-dependency
+  title: Ranh giới & Dependency
+  purpose: Ngăn phụ thuộc vòng và làm rõ cách các tầng được phép tương tác.
+  objectives:
+  - Vẽ sơ đồ phụ thuộc từ tầng trên xuống tầng dưới.
+  - So sánh quy tắc closed-layer với open-layer.
+- id: presentation-api-layer
+  title: Presentation / API Layer
+  purpose: Giữ xử lý giao tiếp HTTP và ánh xạ dữ liệu ngoài business logic.
+  objectives:
+  - Tạo controller xử lý request/response DTO.
+  - Đưa quy tắc nghiệp vụ ra khỏi tầng giao diện.
+- id: application-service-layer
+  title: Application Service Layer
+  purpose: Điều phối một use case và quản lý giao dịch ở ranh giới phù hợp.
+  objectives:
+  - Viết service gọi thành phần domain và repository.
+  - Đặt @Transactional tại thao tác nghiệp vụ cần tính nhất quán.
+- id: domain-business-layer
+  title: Domain / Business Layer
+  purpose: Tập trung tính toán và bất biến nghiệp vụ trong nơi dễ kiểm thử.
+  objectives:
+  - Mô hình hóa entity và nghiệp vụ không phụ thuộc HTTP.
+  - Viết kiểm thử cho quy tắc nghiệp vụ và trường hợp lỗi.
+- id: data-access-repository
+  title: Data Access / Repository
+  purpose: Cô lập chi tiết lưu trữ khỏi controller và điều phối nghiệp vụ.
+  objectives:
+  - Dùng repository/DAO để truy vấn và lưu dữ liệu.
+  - Phân biệt domain model với persistence mapping khi cần.
+- id: trien-khai-java-spring
+  title: Triển khai Java / Spring
+  purpose: Kết nối các tầng thành một luồng xử lý hoàn chỉnh, rõ vai trò.
+  objectives:
+  - Tổ chức controller, service, domain và repository theo package.
+  - Truy vết request → xử lý nghiệp vụ → lưu trữ → response.
+- id: testing-trade-offs
+  title: Testing & Trade-offs
+  purpose: Bảo vệ kiến trúc khi mã phát triển và biết giới hạn của phân tầng.
+  objectives:
+  - Viết unit/integration tests và quy tắc layering bằng ArchUnit.
+  - Nhận diện coupling xuyên tầng, lớp trung gian thừa và nhu cầu tách module.

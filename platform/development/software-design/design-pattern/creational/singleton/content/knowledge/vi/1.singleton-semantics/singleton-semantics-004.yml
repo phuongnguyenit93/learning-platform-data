@@ -1,0 +1,3 @@
+menuLevel1: Bản chất Singleton
+menuLevel2: Vì sao Singleton không bảo đảm duy nhất giữa nhiều JVM, tiến trình hoặc máy chủ
+status: ""

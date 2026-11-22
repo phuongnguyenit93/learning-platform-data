@@ -1,0 +1,49 @@
+roadmap:
+- id: reactive-streams-signals
+  title: Reactive Streams & Signals
+  purpose: Nắm mô hình lập trình luồng bất đồng bộ và giao thức tín hiệu của Reactor.
+  objectives:
+  - Phân biệt Publisher, Subscriber và Subscription.
+  - Giải thích onNext, onError, onComplete và request.
+- id: flux-mono-subscription
+  title: Flux, Mono & Subscription
+  purpose: Chọn đúng loại Publisher và hiểu thời điểm chuỗi được thực thi.
+  objectives:
+  - Phân biệt Mono 0–1 phần tử với Flux 0–N phần tử.
+  - Tạo Flux/Mono bằng just, fromIterable, defer và subscribe.
+- id: operators-composition
+  title: Operators & Composition
+  purpose: Biến đổi dữ liệu bằng chuỗi operator khai báo, dễ đọc và tái sử dụng.
+  objectives:
+  - Dùng map, filter, take và collectList.
+  - Phân biệt assembly với execution; nhận biết cold/hot source.
+- id: async-ket-hop-chuoi
+  title: Async & Kết hợp Chuỗi
+  purpose: Ghép các tác vụ bất đồng bộ và kiểm soát thứ tự kết quả.
+  objectives:
+  - So sánh flatMap, concatMap, zip và merge.
+  - Quan sát kết quả khi xử lý song song hoặc có độ trễ.
+- id: error-handling-retry
+  title: Error Handling & Retry
+  purpose: Xử lý sự cố có chủ đích, không che giấu lỗi hoặc retry vô hạn.
+  objectives:
+  - Dùng onErrorReturn, onErrorResume và doOnError.
+  - Áp dụng retryWhen với giới hạn/backoff cho lỗi tạm thời.
+- id: schedulers-context
+  title: Schedulers & Context
+  purpose: Kiểm soát luồng thực thi và truyền ngữ cảnh không phụ thuộc ThreadLocal.
+  objectives:
+  - Phân biệt subscribeOn với publishOn, parallel với boundedElastic.
+  - Dùng contextWrite và deferContextual cho correlation ID.
+- id: backpressure-cancellation
+  title: Backpressure & Cancellation
+  purpose: Bảo vệ consumer chậm và kiểm soát nhu cầu xử lý từ upstream.
+  objectives:
+  - Giải thích cơ chế request(n) và demand.
+  - Thực hành limitRate hoặc BaseSubscriber và cancel subscription.
+- id: stepverifier-thuc-hanh
+  title: StepVerifier & Thực hành
+  purpose: Kiểm thử tín hiệu, hoàn thành và lỗi của pipeline trước khi tích hợp hệ thống.
+  objectives:
+  - Viết StepVerifier expectNext/verifyComplete/verifyError.
+  - Kiểm thử pipeline xử lý dữ liệu và phát hiện lời gọi block() sai chỗ.

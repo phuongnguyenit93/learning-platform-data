@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-sdlc
+  title: Tổng quan SDLC
+  purpose: Hiểu vòng đời phần mềm và phân biệt các giai đoạn thực hiện với mô hình tổ chức công việc.
+  objectives:
+  - Liệt kê các giai đoạn từ yêu cầu đến bảo trì/ngừng dùng.
+  - Phân biệt life cycle, process và development model.
+  - Vẽ luồng công việc phát triển của một sản phẩm mẫu.
+- id: waterfall-tuan-tu
+  title: Waterfall tuần tự
+  purpose: Nắm cách tổ chức các giai đoạn theo trình tự và đánh giá tác động khi yêu cầu thay đổi muộn.
+  objectives:
+  - Mô tả luồng requirements → design → build → test.
+  - Xác định deliverable và điều kiện qua từng giai đoạn.
+  - Nêu ưu, nhược điểm khi yêu cầu ít thay đổi.
+- id: v-model-v-v
+  title: V-Model & V&V
+  purpose: Liên kết hoạt động đặc tả và thiết kế với các cấp kiểm thử để phát hiện sai lệch.
+  objectives:
+  - Ghép yêu cầu với acceptance/system test.
+  - Ghép kiến trúc và thiết kế với integration/unit test.
+  - Phân biệt verification và validation.
+- id: iterative-incremental
+  title: Iterative & Incremental
+  purpose: Hiểu sự khác nhau giữa tinh chỉnh qua vòng lặp và bổ sung chức năng theo từng phần.
+  objectives:
+  - Mô tả một iteration nhận phản hồi rồi cải tiến.
+  - Chia sản phẩm thành các increment có giá trị.
+  - Phân biệt việc lặp để học với việc thêm năng lực.
+- id: spiral-quan-tri-rui-ro
+  title: Spiral & quản trị rủi ro
+  purpose: Lặp chu kỳ phát triển có phân tích rủi ro để giảm bất định trước quyết định đầu tư.
+  objectives:
+  - Nêu các bước mục tiêu, phân tích rủi ro và kiểm chứng.
+  - Đề xuất prototype để kiểm tra một rủi ro lớn.
+  - Xác định quyết định tiếp tục hoặc thay đổi ở mỗi vòng.
+- id: prototyping-rad
+  title: Prototyping & RAD
+  purpose: Dùng nguyên mẫu và phản hồi người dùng để làm rõ yêu cầu trước khi hoàn thiện sản phẩm.
+  objectives:
+  - Phân biệt prototype thử nghiệm và bản sản phẩm.
+  - Phác thảo vòng thiết kế–demo–lấy phản hồi.
+  - Nêu điều kiện RAD phù hợp và rủi ro thiếu kiểm soát.
+- id: adaptive-continuous
+  title: Adaptive & Continuous
+  purpose: Nhận diện cách tổ chức phát triển thích ứng và phân phối thường xuyên khi yêu cầu thay đổi.
+  objectives:
+  - Mô tả vòng phản hồi ngắn trong Agile.
+  - Giải thích tác động của CI/CD đến nhịp phát hành.
+  - Phân biệt mô hình vòng đời với practice hoặc framework.
+- id: lua-chon-ket-hop-mo-hinh
+  title: Lựa chọn & kết hợp mô hình
+  purpose: Đánh giá điều kiện dự án để chọn và điều chỉnh mô hình thay vì áp dụng cứng nhắc.
+  objectives:
+  - So sánh độ ổn định yêu cầu, rủi ro và cadence phát hành.
+  - Chọn mô hình cho hai kịch bản dự án khác nhau.
+  - Giải thích trade-off và cách đặt checkpoint kiểm soát.

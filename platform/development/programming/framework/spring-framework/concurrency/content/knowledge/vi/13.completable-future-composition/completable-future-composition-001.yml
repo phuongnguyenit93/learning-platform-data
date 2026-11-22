@@ -1,0 +1,3 @@
+menuLevel1: Kết hợp CompletableFuture
+menuLevel2: thenApply() biến đổi kết quả và thenCompose() nối công việc phụ thuộc
+status: WRITTEN

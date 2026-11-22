@@ -1,0 +1,67 @@
+menu:
+  - title: "Tổng quan"
+    slug: intent-and-core-concepts
+    index: 0
+  - title: "Nhận diện vấn đề"
+    slug: problem-identification
+    index: 1
+  - title: "Cấu trúc mẫu"
+    slug: pattern-structure
+    index: 2
+  - title: "Hợp đồng cộng tác"
+    slug: collaboration-contracts
+    index: 3
+  - title: "Thiết kế tương tác"
+    slug: interaction-design
+    index: 4
+  - title: "Triển khai Java"
+    slug: java-implementation
+    index: 5
+  - title: "Ví dụ phòng chat"
+    slug: chat-room-example
+    index: 6
+  - title: "Ví dụ biểu mẫu"
+    slug: form-coordination-example
+    index: 7
+  - title: "Ví dụ đặt hàng"
+    slug: order-coordination-example
+    index: 8
+  - title: "Trạng thái và vòng đời"
+    slug: state-and-lifecycle
+    index: 9
+  - title: "Xử lý lỗi"
+    slug: error-handling
+    index: 10
+  - title: "Đồng thời và bất đồng bộ"
+    slug: concurrency-and-asynchrony
+    index: 11
+  - title: "Kiểm thử"
+    slug: testing-collaborations
+    index: 12
+  - title: "Refactor sang Mediator"
+    slug: refactoring-to-mediator
+    index: 13
+  - title: "So sánh các mẫu"
+    slug: pattern-comparisons
+    index: 14
+  - title: "Ranh giới kiến trúc"
+    slug: architectural-boundaries
+    index: 15
+  - title: "Tích hợp Java"
+    slug: java-integration
+    index: 16
+  - title: "Hiệu năng và quan sát"
+    slug: performance-and-observability
+    index: 17
+  - title: "Đánh đổi thiết kế"
+    slug: design-tradeoffs
+    index: 18
+  - title: "Lỗi thiết kế thường gặp"
+    slug: common-design-pitfalls
+    index: 19
+  - title: "Bài tập thực hành"
+    slug: practice-exercises
+    index: 20
+  - title: "Checklist áp dụng"
+    slug: adoption-checklist
+    index: 21

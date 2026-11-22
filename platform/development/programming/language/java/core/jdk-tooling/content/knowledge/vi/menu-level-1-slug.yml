@@ -1,0 +1,133 @@
+menu:
+- title: Tổng quan JDK Tooling
+  slug: jdk-tooling-overview
+  index: 0
+- title: Cài đặt JDK
+  slug: jdk-installation
+  index: 1
+- title: Java launcher
+  slug: java-launcher
+  index: 2
+- title: Tham số runtime
+  slug: runtime-arguments
+  index: 3
+- title: javac
+  slug: javac
+  index: 4
+- title: Tùy chọn javac
+  slug: javac-options
+  index: 5
+- title: Compilation pipeline
+  slug: compilation-pipeline
+  index: 6
+- title: Class file
+  slug: class-files
+  index: 7
+- title: javap
+  slug: javap
+  index: 8
+- title: jar
+  slug: jar-tool
+  index: 9
+- title: jmod
+  slug: jmod
+  index: 10
+- title: Module toolchain
+  slug: module-toolchain
+  index: 11
+- title: jlink
+  slug: jlink
+  index: 12
+- title: jpackage
+  slug: jpackage
+  index: 13
+- title: jshell
+  slug: jshell
+  index: 14
+- title: Javadoc
+  slug: javadoc
+  index: 15
+- title: Doclint
+  slug: doclint
+  index: 16
+- title: jdeps
+  slug: jdeps
+  index: 17
+- title: jdeprscan
+  slug: jdeprscan
+  index: 18
+- title: keytool
+  slug: keytool
+  index: 19
+- title: jarsigner
+  slug: jarsigner
+  index: 20
+- title: Bảo mật runtime
+  slug: runtime-security
+  index: 21
+- title: jcmd
+  slug: jcmd
+  index: 22
+- title: jps
+  slug: jps
+  index: 23
+- title: jinfo
+  slug: jinfo
+  index: 24
+- title: jstack
+  slug: jstack
+  index: 25
+- title: jmap
+  slug: jmap
+  index: 26
+- title: jstat
+  slug: jstat
+  index: 27
+- title: jconsole
+  slug: jconsole
+  index: 28
+- title: Java Flight Recorder
+  slug: java-flight-recorder
+  index: 29
+- title: JFR analysis
+  slug: jfr-analysis
+  index: 30
+- title: Debugging JVM
+  slug: jvm-debugging
+  index: 31
+- title: Performance tooling
+  slug: performance-tooling
+  index: 32
+- title: GC diagnostics
+  slug: gc-diagnostics
+  index: 33
+- title: Build integration
+  slug: build-integration
+  index: 34
+- title: CI/CD tooling
+  slug: ci-cd-tooling
+  index: 35
+- title: Reproducible build
+  slug: reproducible-builds
+  index: 36
+- title: Cross-platform tooling
+  slug: cross-platform-tooling
+  index: 37
+- title: Quản lý artifact
+  slug: artifact-management
+  index: 38
+- title: Xử lý sự cố
+  slug: tooling-troubleshooting
+  index: 39
+- title: Anti-pattern tooling
+  slug: tooling-anti-patterns
+  index: 40
+- title: Thiết kế toolchain
+  slug: toolchain-design
+  index: 41
+- title: Dự án thực hành
+  slug: jdk-tooling-exercises
+  index: 42
+- title: Tổng kết JDK Tooling
+  slug: jdk-tooling-summary
+  index: 43

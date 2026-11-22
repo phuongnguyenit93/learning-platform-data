@@ -1,0 +1,106 @@
+menu:
+  - title: "Tổng quan Java 27"
+    slug: platform-overview
+    index: 0
+  - title: "Môi trường phát triển"
+    slug: development-environment
+    index: 1
+  - title: "Chương trình Java hiện đại"
+    slug: modern-program-structure
+    index: 2
+  - title: "Kiểu dữ liệu và biểu thức"
+    slug: data-types-and-expressions
+    index: 3
+  - title: "Điều khiển luồng"
+    slug: control-flow
+    index: 4
+  - title: "Phương thức và tham số"
+    slug: methods-and-parameters
+    index: 5
+  - title: "Lớp và đối tượng"
+    slug: classes-and-objects
+    index: 6
+  - title: "Kế thừa và thiết kế hướng đối tượng"
+    slug: inheritance-and-object-design
+    index: 7
+  - title: "Records và hệ phân cấp sealed"
+    slug: records-and-sealed-hierarchies
+    index: 8
+  - title: "Pattern matching"
+    slug: pattern-matching
+    index: 9
+  - title: "Chuỗi và dữ liệu văn bản"
+    slug: strings-and-text
+    index: 10
+  - title: "Generics và hệ thống kiểu"
+    slug: generics-and-type-system
+    index: 11
+  - title: "Collections hiện đại"
+    slug: modern-collections
+    index: 12
+  - title: "Lambda và interface hàm"
+    slug: lambdas-and-functional-interfaces
+    index: 13
+  - title: "Xử lý dữ liệu bằng Stream"
+    slug: stream-data-processing
+    index: 14
+  - title: "Ngoại lệ và vòng đời tài nguyên"
+    slug: exceptions-and-resource-lifecycle
+    index: 15
+  - title: "Tệp và nhập xuất"
+    slug: file-io
+    index: 16
+  - title: "Thời gian và số học chính xác"
+    slug: date-time-and-precise-arithmetic
+    index: 17
+  - title: "Module và đóng gói thư viện"
+    slug: modules-and-library-packaging
+    index: 18
+  - title: "Annotation và truy cập động"
+    slug: annotations-and-dynamic-access
+    index: 19
+  - title: "Nền tảng lập trình đồng thời"
+    slug: concurrency-fundamentals
+    index: 20
+  - title: "Virtual threads và ngữ cảnh tác vụ"
+    slug: virtual-threads-and-task-context
+    index: 21
+  - title: "Tác vụ bất đồng bộ"
+    slug: asynchronous-tasks
+    index: 22
+  - title: "Mạng và HTTP"
+    slug: networking-and-http
+    index: 23
+  - title: "Truy cập cơ sở dữ liệu"
+    slug: database-access
+    index: 24
+  - title: "Bảo mật ứng dụng Java"
+    slug: application-security
+    index: 25
+  - title: "Bộ nhớ ngoài heap và mã native"
+    slug: off-heap-memory-and-native-code
+    index: 26
+  - title: "JVM, bộ nhớ và thu gom rác"
+    slug: jvm-memory-and-garbage-collection
+    index: 27
+  - title: "Chẩn đoán và hiệu năng"
+    slug: diagnostics-and-performance
+    index: 28
+  - title: "Build và quản lý phụ thuộc"
+    slug: builds-and-dependency-management
+    index: 29
+  - title: "Kiểm thử và chất lượng"
+    slug: testing-and-quality
+    index: 30
+  - title: "Đóng gói và triển khai"
+    slug: packaging-and-deployment
+    index: 31
+  - title: "Nâng cấp và tương thích Java 27"
+    slug: upgrade-and-compatibility
+    index: 32
+  - title: "Tính năng thử nghiệm có kiểm soát"
+    slug: controlled-experimental-features
+    index: 33
+  - title: "Thực hành tích hợp"
+    slug: integration-projects
+    index: 34

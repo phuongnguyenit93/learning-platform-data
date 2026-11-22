@@ -1,0 +1,1558 @@
+menu:
+- slug: annotation-overview
+  title: Tổng quan
+  childs:
+  - slug: annotation-overview-001
+    title: Chú thích (annotation) là gì và vai trò của siêu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-overview-002
+    title: Phân biệt annotation, chú thích mã nguồn và Javadoc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-overview-003
+    title: Quan hệ giữa nơi khai báo, nơi sử dụng và bên xử lý annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-overview-004
+    title: 'Ba cách khai thác: trình biên dịch, công cụ và chương trình lúc chạy'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-overview-005
+    title: Vì sao annotation tùy chỉnh cần bộ xử lý để tạo tác dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-overview-006
+    title: Khi nào dùng annotation, giao diện đánh dấu hoặc cấu hình bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-overview-007
+    title: Kiến thức nền và trình tự học annotation trong Java Core
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-syntax
+  title: Cú pháp sử dụng
+  childs:
+  - slug: annotation-syntax-001
+    title: Tên annotation, import và tên đầy đủ của kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-syntax-002
+    title: Annotation đánh dấu và cú pháp không có phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-syntax-003
+    title: Annotation thông thường với các cặp tên–giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-syntax-004
+    title: Cú pháp rút gọn với phần tử value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-syntax-005
+    title: 'Truyền mảng: ngoặc nhọn, một phần tử và mảng rỗng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-syntax-006
+    title: Truyền annotation lồng nhau làm giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-syntax-007
+    title: Kết hợp nhiều annotation trên một khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-syntax-008
+    title: Nhận biết lỗi cú pháp, thiếu phần tử và tên phần tử không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standard-annotations
+  title: Annotation chuẩn
+  childs:
+  - slug: standard-annotations-001
+    title: '@Override: kiểm tra ghi đè và thực thi phương thức giao diện'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-002
+    title: '@Deprecated: since, forRemoval và quan hệ với thẻ @deprecated'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-003
+    title: '@SuppressWarnings: nhóm cảnh báo và giới hạn phạm vi bỏ qua'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-004
+    title: '@FunctionalInterface: kiểm tra hợp đồng giao diện hàm'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-005
+    title: '@SafeVarargs: điều kiện sử dụng và trách nhiệm với varargs'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-006
+    title: '@Serial: kiểm tra các thành phần phục vụ tuần tự hóa'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-007
+    title: '@Native: đánh dấu hằng số cho mã native'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-008
+    title: 'javax.annotation.processing.Generated: nhận diện mã được sinh'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-annotations-009
+    title: Phân biệt annotation của Java SE với annotation từ thư viện ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-declaration-annotations
+  title: Khai báo kiểu
+  childs:
+  - slug: type-declaration-annotations-001
+    title: Định nghĩa kiểu annotation bằng @interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-declaration-annotations-002
+    title: Đặt tên, tổ chức package và chọn phạm vi truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-declaration-annotations-003
+    title: Quan hệ với java.lang.annotation.Annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-declaration-annotations-004
+    title: Thiết kế kiểu đánh dấu, một phần tử và nhiều phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-declaration-annotations-005
+    title: 'Quy tắc phương thức phần tử: không tham số, không generic, không throws'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-declaration-annotations-006
+    title: Hằng số, enum và kiểu thành viên bên trong @interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-declaration-annotations-007
+    title: Giới hạn kế thừa và lỗi phụ thuộc vòng giữa các kiểu annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-elements
+  title: Phần tử và giá trị
+  childs:
+  - slug: annotation-elements-001
+    title: 'Các kiểu hợp lệ: kiểu nguyên thủy, String, Class, enum và annotation'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-002
+    title: Phần tử Class<?> và Class<? extends T>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-003
+    title: Giá trị enum và annotation lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-004
+    title: Mảng một chiều và các kiểu phần tử không được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-005
+    title: Biểu thức hằng, class literal và giới hạn giá trị tại nơi sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-006
+    title: Vì sao null, lời gọi phương thức và đối tượng tùy ý không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-007
+    title: Phần tử bắt buộc và khai báo giá trị mặc định bằng default
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-008
+    title: Giá trị mặc định của mảng và annotation lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-elements-009
+    title: Ảnh hưởng của thay đổi giá trị mặc định đến annotation đã biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-targets
+  title: Đích áp dụng
+  childs:
+  - slug: annotation-targets-001
+    title: '@Target và tập giá trị ElementType'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-002
+    title: 'TYPE và ANNOTATION_TYPE: lớp, giao diện, enum và kiểu annotation'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-003
+    title: FIELD, METHOD và CONSTRUCTOR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-004
+    title: PARAMETER và LOCAL_VARIABLE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-005
+    title: PACKAGE với package-info.java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-006
+    title: MODULE với module-info.java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-007
+    title: RECORD_COMPONENT và quy tắc lan truyền annotation của record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-008
+    title: TYPE_PARAMETER và TYPE_USE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-targets-009
+    title: Không khai báo @Target, @Target({}) và lỗi đặt sai vị trí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-retention
+  title: Vòng đời
+  childs:
+  - slug: annotation-retention-001
+    title: '@Retention và các chính sách RetentionPolicy'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-retention-002
+    title: 'SOURCE: siêu dữ liệu chỉ tồn tại ở mã nguồn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-retention-003
+    title: 'CLASS: lưu trong class file nhưng không đọc bằng reflection chuẩn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-retention-004
+    title: 'RUNTIME: lưu trong class file và có thể đọc khi chạy'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-retention-005
+    title: Chính sách CLASS mặc định khi không có @Retention
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-retention-006
+    title: Chọn vòng đời theo bên xử lý và thời điểm sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-retention-007
+    title: Phân biệt vòng đời của annotation với vòng đời của đối tượng được đánh dấu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-and-inheritance
+  title: Tài liệu và kế thừa
+  childs:
+  - slug: documentation-and-inheritance-001
+    title: '@Documented và việc công bố annotation trong Javadoc'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-inheritance-002
+    title: Viết tài liệu cho ý nghĩa, phần tử và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-inheritance-003
+    title: '@Inherited và việc tra cứu annotation qua lớp cha'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-inheritance-004
+    title: 'Giới hạn: không kế thừa từ giao diện, phương thức hoặc trường'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-inheritance-005
+    title: Annotation khai báo tại lớp con che annotation cùng kiểu ở lớp cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-inheritance-006
+    title: Phân biệt kế thừa annotation với kế thừa thành viên Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-inheritance-007
+    title: Meta-annotation tùy chỉnh và giới hạn của xử lý bắc cầu trong Java Core
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repeatable-annotations
+  title: Annotation lặp
+  childs:
+  - slug: repeatable-annotations-001
+    title: Vấn đề nhiều giá trị trên cùng một vị trí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-annotations-002
+    title: '@Repeatable và kiểu annotation chứa'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-annotations-003
+    title: Khai báo value() trả về mảng của annotation được lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-annotations-004
+    title: Ràng buộc Target, Retention, Documented và Inherited của kiểu chứa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-annotations-005
+    title: Cú pháp lặp và cú pháp chứa tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-annotations-006
+    title: Quy tắc phối hợp annotation lặp với annotation chứa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-annotations-007
+    title: Thứ tự phần tử và hành vi khi tra cứu annotation lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-annotations-008
+    title: Ảnh hưởng tương thích khi chuyển annotation thường thành annotation lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-use-annotations
+  title: Annotation trên kiểu
+  childs:
+  - slug: type-use-annotations-001
+    title: Phân biệt annotation trên khai báo với annotation trên kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-002
+    title: TYPE_USE trong kiểu trường, tham số và giá trị trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-003
+    title: Annotation trên đối số kiểu generic và wildcard
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-004
+    title: Annotation trên khai báo tham số kiểu và giới hạn kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-005
+    title: Annotation trên kiểu phần tử và từng chiều của mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-006
+    title: Annotation tại ép kiểu, tạo đối tượng và các vị trí kiểu khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-007
+    title: Tham số nhận (receiver parameter) và annotation của kiểu this
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-008
+    title: Vai trò của công cụ kiểm tra kiểu; annotation không tự áp đặt ràng buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-reading
+  title: Đọc khi chạy
+  childs:
+  - slug: runtime-reading-001
+    title: Điều kiện RUNTIME và giao diện AnnotatedElement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-002
+    title: Đọc annotation trên Class, Field, Method và Constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-003
+    title: Đọc annotation trên Parameter và tham số phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-004
+    title: Đọc annotation trên Package, Module và RecordComponent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-005
+    title: Đọc giá trị phần tử qua phương thức của kiểu annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-006
+    title: isAnnotationPresent và xử lý khi getAnnotation trả về null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-007
+    title: Đọc giá trị mặc định bằng Method.getDefaultValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-008
+    title: Phân biệt Type và AnnotatedType khi đọc siêu dữ liệu kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-reading-009
+    title: Duyệt AnnotatedParameterizedType, AnnotatedArrayType và các kiểu liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lookup-rules
+  title: Quy tắc tra cứu
+  childs:
+  - slug: lookup-rules-001
+    title: Annotation trực tiếp, gián tiếp, hiện diện và liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-rules-002
+    title: getAnnotation so với getDeclaredAnnotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-rules-003
+    title: getAnnotations so với getDeclaredAnnotations
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-rules-004
+    title: getAnnotationsByType so với getDeclaredAnnotationsByType
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-rules-005
+    title: Khi nào API nhìn xuyên qua annotation chứa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-rules-006
+    title: Phối hợp annotation lặp với @Inherited
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-rules-007
+    title: Phân biệt tìm phương thức được kế thừa với kế thừa annotation của phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-rules-008
+    title: Vì sao quét package, tìm lớp và tìm meta-annotation cần thuật toán riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-values
+  title: Giá trị annotation
+  childs:
+  - slug: annotation-values-001
+    title: annotationType() và kiểu thực của annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-values-002
+    title: Ngữ nghĩa equals theo kiểu annotation và từng phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-values-003
+    title: Ngữ nghĩa hashCode và cách so sánh phần tử mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-values-004
+    title: Biểu diễn toString và giới hạn khi dùng làm định dạng lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-values-005
+    title: Tính bất biến quan sát được và mảng trả về từ annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-values-006
+    title: Không phụ thuộc vào lớp proxy hoặc cách cài đặt nội bộ của JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-values-007
+    title: Định danh kiểu annotation khi dùng nhiều class loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compilation-trace
+  title: Dấu vết biên dịch
+  childs:
+  - slug: compilation-trace-001
+    title: Dùng javap -v để kiểm tra annotation trong class file
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-trace-002
+    title: RuntimeVisibleAnnotations và RuntimeInvisibleAnnotations
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-trace-003
+    title: Thuộc tính annotation của tham số và kiểu sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-trace-004
+    title: AnnotationDefault và cách lưu giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-trace-005
+    title: Cách trình biên dịch biểu diễn annotation lặp bằng kiểu chứa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compilation-trace-006
+    title: Đối chiếu mã nguồn, class file và kết quả reflection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compile-time-processing
+  title: Xử lý khi biên dịch
+  childs:
+  - slug: compile-time-processing-001
+    title: Annotation processing là gì và khác reflection ở đâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compile-time-processing-002
+    title: Processor, AbstractProcessor và ProcessingEnvironment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compile-time-processing-003
+    title: Khai báo loại annotation, tùy chọn và phiên bản nguồn được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compile-time-processing-004
+    title: Vòng đời init, process và các vòng xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compile-time-processing-005
+    title: RoundEnvironment, phần tử gốc và các phần tử được đánh dấu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compile-time-processing-006
+    title: processingOver, errorRaised và vòng xử lý cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compile-time-processing-007
+    title: Giá trị trả về của process và quy tắc nhận xử lý annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compile-time-processing-008
+    title: Khả năng xử lý SOURCE annotation và giới hạn với annotation trên kiểu sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: language-model
+  title: Mô hình ngôn ngữ
+  childs:
+  - slug: language-model-001
+    title: Element, ElementKind và cấu trúc khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-model-002
+    title: TypeElement, ExecutableElement và VariableElement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-model-003
+    title: TypeMirror và phân biệt mô hình kiểu với Class lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-model-004
+    title: AnnotationMirror và AnnotationValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-model-005
+    title: Đọc phần tử khai báo tường minh và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-model-006
+    title: Elements và Types khi kiểm tra tên, kiểu và quan hệ kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-model-007
+    title: Đọc giá trị Class bằng mô hình kiểu và xử lý MirroredTypeException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-model-008
+    title: Visitor và cách duyệt mô hình ngôn ngữ có cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-and-codegen
+  title: Kiểm tra và sinh mã
+  childs:
+  - slug: validation-and-codegen-001
+    title: Thiết kế quy tắc kiểm tra vị trí, kiểu và giá trị annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-codegen-002
+    title: Messager và Diagnostic.Kind cho lỗi, cảnh báo và thông tin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-codegen-003
+    title: Gắn chẩn đoán vào khai báo, annotation hoặc phần tử cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-codegen-004
+    title: 'Filer: sinh mã nguồn, class file và tài nguyên'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-codegen-005
+    title: Quy tắc đặt tên, package và các phần tử nguồn gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-codegen-006
+    title: Xử lý mã được sinh ở vòng tiếp theo và tránh sinh trùng tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-codegen-007
+    title: 'Giới hạn của API chuẩn: sinh tệp so với sửa cây cú pháp bằng công cụ riêng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-codegen-008
+    title: Tạo đầu ra ổn định và phối hợp nhiều processor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-configuration
+  title: Công cụ và cấu hình
+  childs:
+  - slug: tools-and-configuration-001
+    title: Đăng ký processor qua META-INF/services/javax.annotation.processing.Processor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-configuration-002
+    title: Đăng ký processor trong hệ mô-đun Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-configuration-003
+    title: Tách thư viện annotation, processor và chương trình sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-configuration-004
+    title: 'javac: -processor, -processorpath và --processor-module-path'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-configuration-005
+    title: 'javac: -proc:only, -proc:none, -A và -s'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-configuration-006
+    title: Theo dõi vòng xử lý bằng -XprintRounds và -XprintProcessorInfo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-configuration-007
+    title: Liên hệ --release, SourceVersion và tính tương thích JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-configuration-008
+    title: Cấu hình processor trong công cụ dựng và đồng bộ với IDE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-design
+  title: Thiết kế annotation
+  childs:
+  - slug: annotation-design-001
+    title: Chọn annotation hay API tường minh theo bài toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-design-002
+    title: Thiết kế tên gọi thể hiện đúng ý nghĩa siêu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-design-003
+    title: Giữ phần tử ít, rõ nghĩa và có kiểu dữ liệu phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-design-004
+    title: Chọn Target, Retention, Documented, Inherited và Repeatable có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-design-005
+    title: Xác định quy tắc xung đột, độ ưu tiên và trường hợp thiếu annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-design-006
+    title: Phân biệt meta-annotation Java Core với annotation tổng hợp của framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-design-007
+    title: 'Tiến hóa hợp đồng: thêm phần tử, đổi kiểu và thay đổi mặc định'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-design-008
+    title: Chi phí reflection, bộ nhớ đệm và quản lý class loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-errors
+  title: Kiểm thử và lỗi
+  childs:
+  - slug: testing-and-errors-001
+    title: Kiểm thử biên dịch thành công và các mẫu mã phải bị từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-002
+    title: Kiểm thử ma trận Target và Retention
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-003
+    title: Kiểm thử kế thừa, che khuất và các API tra cứu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-004
+    title: Kiểm thử annotation lặp, kiểu chứa và thứ tự kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-005
+    title: Kiểm thử annotation trên generic, mảng và record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-006
+    title: Kiểm thử processor bằng JavaCompiler và tệp được sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-007
+    title: Chẩn đoán processor không được phát hiện hoặc không được gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-008
+    title: TypeNotPresentException, EnumConstantNotPresentException và lỗi thay đổi hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-errors-009
+    title: AnnotationFormatError, FilerException và cách khoanh vùng nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Tạo annotation mô tả thông tin tài liệu với enum, Class và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây dựng bộ kiểm tra đối tượng bằng annotation RUNTIME và reflection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Thêm annotation lặp để mô tả nhiều quy tắc kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: So sánh kết quả khi thay đổi Target, Retention và Inherited
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Viết processor phát hiện khai báo không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Sinh một lớp chỉ mục từ các phần tử được đánh dấu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Đóng gói thư viện annotation và processor rồi dùng từ dự án khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Bảng tổng kết lựa chọn annotation và câu hỏi tự đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

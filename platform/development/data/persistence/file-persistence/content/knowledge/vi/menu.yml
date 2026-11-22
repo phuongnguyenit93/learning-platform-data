@@ -1,0 +1,398 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Lưu trữ bền vững trên tệp là gì và giải quyết vấn đề nào
+  - Phân biệt dữ liệu trong bộ nhớ và dữ liệu đã lưu bền vững
+  - Phân biệt thao tác tệp, tuần tự hóa và cơ chế lưu trữ dữ liệu
+  - Phân biệt tệp dữ liệu, tệp cấu hình, tệp xuất và nhật ký ứng dụng
+  - Khi nào nên lưu bằng tệp và khi nào nên chọn cơ sở dữ liệu
+  - Vòng đời từ tạo, đọc, cập nhật đến xóa dữ liệu trên tệp
+  - Các yêu cầu về tính nguyên tử, nhất quán, cô lập và độ bền
+  - Mối liên hệ giữa biểu diễn dữ liệu, bố cục tệp và khả năng phục hồi
+  - Ranh giới bảo đảm của ứng dụng, hệ điều hành và thiết bị lưu trữ
+  - Các thuật ngữ cốt lõi và trình tự học File Persistence
+- level1: Hệ thống tệp
+  level2:
+  - Tệp, thư mục, đường dẫn và mục thư mục
+  - Nội dung tệp và siêu dữ liệu của tệp
+  - Phân biệt tên tệp, định danh tệp và đối tượng đang được mở
+  - Tệp thông thường, liên kết tượng trưng và liên kết cứng
+  - Phân vùng, ổ đĩa, điểm gắn và ranh giới hệ thống tệp
+  - Quyền truy cập, chủ sở hữu và thuộc tính chỉ đọc
+  - Ý nghĩa của kích thước và các dấu thời gian của tệp
+  - Bộ đệm ứng dụng, bộ đệm hệ điều hành và bộ nhớ thiết bị
+  - Ảnh hưởng của việc đổi tên hoặc xóa tệp đang mở
+  - Những khác biệt hệ điều hành cần kiểm tra khi thiết kế lưu trữ
+- level1: Mô hình lưu trữ
+  level2:
+  - Xác định đơn vị dữ liệu và khóa nhận diện cần lưu
+  - Lựa chọn một tệp cho toàn bộ dữ liệu hoặc một tệp cho mỗi đối tượng
+  - Lựa chọn tệp dữ liệu và tệp siêu dữ liệu đi kèm
+  - Lựa chọn ghi thay thế, cập nhật tại chỗ và ghi nối tiếp
+  - Xác định thứ tự bản ghi và cách tìm dữ liệu
+  - Thiết kế bất biến nghiệp vụ cần giữ sau mỗi lần cập nhật
+  - Xác định phạm vi giao dịch và khả năng thành công một phần
+  - Thiết kế bản ghi xóa và vòng đời dữ liệu
+  - Xác định mức tăng trưởng, kích thước tệp và số lượng tệp
+  - Thiết kế chính sách phiên bản, kiểm chứng và phục hồi
+- level1: Đường dẫn và định danh
+  level2:
+  - Phân biệt đường dẫn tuyệt đối và đường dẫn tương đối
+  - Xác định thư mục gốc lưu trữ độc lập với thư mục làm việc
+  - Ghép và phân giải đường dẫn bằng Path
+  - Phân biệt chuẩn hóa đường dẫn và phân giải đường dẫn thực
+  - Kiểm tra đường dẫn có nằm trong thư mục được phép
+  - Ánh xạ khóa nghiệp vụ thành tên tệp an toàn
+  - Xử lý Unicode, chữ hoa chữ thường và ký tự tên tệp
+  - Xử lý liên kết tượng trưng khi truy cập dữ liệu
+  - Phân biệt so sánh tên đường dẫn và kiểm tra cùng một tệp
+  - Tránh phụ thuộc vào dấu phân cách và quy ước đường dẫn hệ điều hành
+  - Xử lý rủi ro thay đổi tệp giữa lúc kiểm tra và lúc sử dụng
+- level1: API tệp trong Java
+  level2:
+  - Vai trò của File, Path, Files và FileSystem
+  - Tạo thư mục và tệp với điều kiện tồn tại tường minh
+  - Lựa chọn tùy chọn mở để đọc, ghi, tạo và cắt ngắn tệp
+  - Đọc và cập nhật thuộc tính tệp
+  - Duyệt thư mục và đóng tài nguyên khi liệt kê tệp
+  - Sao chép, di chuyển và đổi tên tệp
+  - Xóa tệp và xử lý thư mục không rỗng
+  - Phân loại IOException và các lỗi truy cập thường gặp
+  - Phân biệt kiểm tra tồn tại trước và xử lý kết quả thao tác thực tế
+  - Lựa chọn API theo yêu cầu bộ nhớ, hiệu năng và tính khả chuyển
+- level1: Luồng và bảng mã
+  level2:
+  - Phân biệt luồng byte và luồng ký tự
+  - Đọc ghi theo luồng thay vì nạp toàn bộ tệp vào bộ nhớ
+  - Thiết kế bộ đệm và kích thước khối đọc ghi
+  - Xử lý đọc chưa đủ dữ liệu và dấu kết thúc luồng
+  - Lựa chọn bảng mã tường minh khi lưu văn bản
+  - Xử lý BOM, ký tự xuống dòng và dòng cuối tệp
+  - Phân biệt byte lỗi, ký tự lỗi và dữ liệu không đúng định dạng
+  - Phân biệt flush, close và yêu cầu độ bền dữ liệu
+  - Quản lý tài nguyên bằng try-with-resources
+  - Xử lý lỗi khi đóng luồng mà vẫn giữ nguyên nguyên nhân chính
+  - Đọc ghi dữ liệu nhị phân với quy ước kiểu và thứ tự byte rõ ràng
+- level1: Truy cập theo vị trí
+  level2:
+  - Khi nào cần truy cập ngẫu nhiên thay vì đọc tuần tự
+  - Đọc ghi với RandomAccessFile và con trỏ tệp
+  - Vai trò của FileChannel và ByteBuffer
+  - Quản lý position, limit và capacity của bộ đệm
+  - Phân biệt vị trí của kênh và vị trí đọc ghi được chỉ định
+  - Xử lý đọc ghi một phần và vòng lặp hoàn tất thao tác
+  - Thiết kế truy cập bản ghi theo độ lệch byte
+  - Thay đổi độ dài tệp và kiểm tra ranh giới truy cập
+  - Lựa chọn bộ đệm trên heap và bộ đệm trực tiếp
+  - Sao chép dữ liệu bằng kênh và xử lý giới hạn mỗi lần truyền
+  - Đánh giá vai trò của truy cập tệp bất đồng bộ
+- level1: Định dạng và bản ghi
+  level2:
+  - Lựa chọn văn bản, nhị phân và định dạng có cấu trúc
+  - Lựa chọn JSON, CSV hoặc định dạng riêng theo kiểu truy cập
+  - Thiết kế tiêu đề tệp với dấu nhận diện và phiên bản
+  - Phân tách bản ghi bằng dấu kết thúc, độ dài hoặc kích thước cố định
+  - Thiết kế bản ghi nhiều dòng và quy tắc thoát ký tự
+  - Biểu diễn khóa, giá trị null và dữ liệu tùy chọn
+  - Bảo toàn số thập phân, ngày giờ và định danh dài
+  - Giới hạn độ dài bản ghi và kiểm tra tràn khi tính kích thước
+  - Thiết kế mã kiểm tra cho bản ghi và khối dữ liệu
+  - Phát hiện bản ghi chưa ghi xong và vùng dữ liệu chưa sử dụng
+  - Đánh giá lưu đối tượng Java bằng ObjectOutputStream
+  - Đánh giá tương thích và rủi ro khi đọc lại đối tượng Java
+  - Tách bộ mã hóa dữ liệu khỏi cơ chế đọc ghi tệp
+- level1: Tổ chức thư mục
+  level2:
+  - Thiết kế cấu trúc thư mục theo tập dữ liệu và loại đối tượng
+  - Phân chia thư mục theo khóa băm để tránh tập trung quá nhiều tệp
+  - Phân vùng dữ liệu theo thời gian hoặc phạm vi nghiệp vụ
+  - Đặt tên tệp dữ liệu, tệp tạm, tệp khóa và tệp chỉ mục
+  - Thiết kế tệp kê khai (manifest) cho một thế hệ dữ liệu
+  - Phân biệt dữ liệu đang hoạt động và dữ liệu chờ công bố
+  - Quản lý tệp không còn được tham chiếu
+  - Giữ cấu trúc thư mục ổn định khi số lượng đối tượng tăng
+  - Thiết kế kiểm kê dữ liệu mà không phải đọc toàn bộ nội dung
+  - Kiểm tra tính nhất quán giữa manifest và các tệp thực tế
+- level1: Ghi thay thế an toàn
+  level2:
+  - Rủi ro khi cắt ngắn tệp cũ trước khi ghi bản mới
+  - Thiết kế ghi bản mới vào tệp tạm cùng khu vực lưu trữ
+  - Ghi đủ nội dung và kiểm tra trước khi công bố
+  - Phân biệt hoàn tất ghi nội dung và đổi tên công bố
+  - Sử dụng yêu cầu di chuyển nguyên tử và kiểm tra khả năng hỗ trợ
+  - Xử lý trường hợp di chuyển qua hai hệ thống tệp
+  - Xác định chính sách khi thao tác nguyên tử không được hỗ trợ
+  - Bảo vệ bản cũ khi bản mới ghi thất bại
+  - Phối hợp ghi thay thế với người đọc đang mở tệp
+  - Xử lý tệp tạm sót lại và xác định phiên bản đang có hiệu lực
+  - Kiểm tra trạng thái thực sau khi kết quả đổi tên không rõ ràng
+- level1: Độ bền dữ liệu
+  level2:
+  - Phân biệt nhìn thấy dữ liệu mới và dữ liệu tồn tại sau sự cố
+  - Theo dõi đường đi từ bộ đệm Java tới thiết bị lưu trữ
+  - Vai trò của FileChannel.force và FileDescriptor.sync
+  - Phân biệt đồng bộ nội dung và đồng bộ siêu dữ liệu
+  - Vai trò của tùy chọn SYNC và DSYNC khi mở tệp
+  - Độ bền của thay đổi thư mục và giới hạn API khả chuyển
+  - Thiết kế thời điểm xác nhận ghi thành công cho bên gọi
+  - Lựa chọn đồng bộ từng bản ghi, từng khối hoặc theo chu kỳ
+  - Phân biệt lỗi tiến trình, lỗi hệ điều hành và mất nguồn
+  - Đánh giá bảo đảm trên hệ thống tệp và thiết bị thực tế
+  - Lưu bằng chứng về cấu hình và mức bảo đảm độ bền đã kiểm chứng
+- level1: Đồng thời trong tiến trình
+  level2:
+  - Phân biệt an toàn luồng và an toàn dữ liệu bền vững
+  - Lựa chọn một luồng ghi và hàng đợi yêu cầu ghi
+  - Đồng bộ thao tác đọc sửa ghi như một đơn vị nghiệp vụ
+  - Sử dụng khóa đọc ghi theo phạm vi dữ liệu
+  - Quản lý khóa theo đường dẫn hoặc khóa đối tượng
+  - Tránh tạo hai khóa cho cùng một tệp qua các đường dẫn khác nhau
+  - Phối hợp thay thế tệp với bộ nhớ đệm và người đọc
+  - Phân biệt đọc ảnh chụp ổn định và đọc trạng thái đang thay đổi
+  - Thiết kế thứ tự lấy khóa để tránh bế tắc (deadlock)
+  - Xử lý hủy, timeout và lỗi trong vùng giữ khóa
+  - Kiểm tra cập nhật đồng thời không làm mất thay đổi đã ghi
+- level1: Khóa giữa tiến trình
+  level2:
+  - Phạm vi bảo vệ của khóa Java và khóa tệp hệ điều hành
+  - Sử dụng FileLock với FileChannel
+  - Phân biệt khóa chia sẻ và khóa độc quyền
+  - Khóa toàn tệp và khóa theo vùng byte
+  - Phân biệt chờ khóa và thử lấy khóa không chờ
+  - Xử lý vùng khóa chồng lấn trong cùng JVM
+  - Đánh giá sự tuân thủ khóa của các tiến trình truy cập
+  - Quản lý vòng đời khóa khi đóng kênh hoặc tiến trình kết thúc
+  - Thiết kế tệp khóa và giới hạn của khóa dựa trên sự tồn tại
+  - Xử lý đổi tên và thay thế tệp đang được dùng làm đối tượng khóa
+  - Kiểm chứng hành vi khóa trên Windows, Linux và hệ thống tệp từ xa
+- level1: Nhật ký nối tiếp
+  level2:
+  - Mô hình lưu bằng cách nối thêm bản ghi thay đổi
+  - Phân biệt nhật ký dữ liệu và nhật ký chẩn đoán ứng dụng
+  - Thiết kế bản ghi tạo, cập nhật và xóa
+  - Đánh số thứ tự và nhận diện bản ghi đã áp dụng
+  - Ghi đầy đủ một bản ghi và đánh dấu ranh giới hợp lệ
+  - Xử lý nhiều bên ghi mà không giả định mọi lần ghi nối là nguyên tử
+  - Phát hiện và bỏ qua phần đuôi bị ghi dở khi phục hồi
+  - Phát lại nhật ký để dựng trạng thái trong bộ nhớ
+  - Chia nhật ký thành các phân đoạn
+  - Xác định thời điểm chuyển phân đoạn và đóng phân đoạn cũ
+  - Thiết kế xác nhận ghi theo mức độ bền đã chọn
+- level1: Chỉ mục và tra cứu
+  level2:
+  - Phân biệt dữ liệu nguồn và chỉ mục có thể tái tạo
+  - Ánh xạ khóa nghiệp vụ đến tệp, phân đoạn và độ lệch byte
+  - Xây dựng chỉ mục trong bộ nhớ khi khởi động
+  - Lưu chỉ mục trên đĩa để giảm thời gian khởi động
+  - Tra cứu theo khóa, theo khoảng và theo thứ tự
+  - Cập nhật chỉ mục khi bản ghi đổi vị trí hoặc bị xóa
+  - Phối hợp ghi dữ liệu và cập nhật chỉ mục
+  - Phát hiện chỉ mục cũ hoặc không khớp thế hệ dữ liệu
+  - Xây dựng lại chỉ mục từ tệp nguồn có kiểm chứng
+  - Đánh đổi giữa kích thước chỉ mục, bộ nhớ và số lần đọc tệp
+- level1: Bản chụp và hợp nhất
+  level2:
+  - Bản chụp trạng thái (snapshot) và mục tiêu rút ngắn phục hồi
+  - Chọn thời điểm tạo bản chụp nhất quán
+  - Phối hợp bản chụp với vị trí đã áp dụng trong nhật ký
+  - Ghi và công bố bản chụp như một thế hệ dữ liệu mới
+  - Kiểm tra bản chụp trước khi thay thế bản đang sử dụng
+  - Hợp nhất dữ liệu để loại bỏ phiên bản cũ và bản ghi xóa
+  - Giữ khả năng đọc trong lúc xây dựng dữ liệu hợp nhất
+  - Xử lý thay đổi mới phát sinh trong quá trình hợp nhất
+  - Cập nhật manifest và chuyển thế hệ dữ liệu
+  - Xóa phân đoạn cũ sau khi không còn người đọc hoặc bản sao lưu phụ thuộc
+  - Đánh giá chi phí ghi lại và khoảng dung lượng tạm cần thiết
+- level1: Giao dịch nhiều tệp
+  level2:
+  - Vì sao ghi thành công từng tệp chưa đủ cho giao dịch nhiều tệp
+  - Xác định đơn vị thay đổi cần được công bố đồng thời
+  - Dùng thế hệ dữ liệu và manifest để công bố một tập tệp
+  - Thiết kế bản ghi chuẩn bị và dấu xác nhận hoàn tất
+  - Nguyên tắc ghi nhật ký trước khi sửa dữ liệu gốc
+  - Phân biệt phục hồi bằng áp dụng lại và bằng hoàn tác
+  - Thiết kế thứ tự ghi, đồng bộ và công bố trạng thái
+  - Phát hiện giao dịch chưa hoàn tất sau khi khởi động lại
+  - Bảo đảm áp dụng lại hoặc hoàn tác có tính lũy đẳng
+  - Phối hợp khóa với giao dịch cập nhật nhiều đối tượng
+  - Đánh giá khi độ phức tạp giao dịch vượt phạm vi lưu trữ bằng tệp
+- level1: Khôi phục sau sự cố
+  level2:
+  - Xác định các trạng thái có thể có sau mỗi điểm gián đoạn
+  - Phân biệt tệp thiếu, tệp rỗng, tệp hỏng và tệp ghi dở
+  - Quét và xác định phần dữ liệu hợp lệ có thể sử dụng
+  - Kiểm tra bản chụp và lựa chọn chuỗi nhật ký cần phát lại
+  - Phục hồi giao dịch chưa hoàn tất theo giao thức đã thiết kế
+  - Xử lý tệp tạm, tệp mồ côi và thế hệ chưa được công bố
+  - Giữ nguyên bằng chứng hỏng dữ liệu trước khi sửa chữa
+  - Thiết kế chế độ chỉ đọc khi chưa thể bảo đảm tính nhất quán
+  - Thực hiện phục hồi có thể chạy lại nhiều lần
+  - Đối soát bất biến và chỉ mục trước khi mở lại quyền ghi
+  - Báo cáo dữ liệu đã khôi phục và phần chưa thể xác nhận
+- level1: Toàn vẹn dữ liệu
+  level2:
+  - Phân biệt lỗi cấu trúc, lỗi nội dung và lỗi nghiệp vụ
+  - Kiểm tra dấu nhận diện, phiên bản và kích thước khai báo
+  - Dùng mã kiểm tra (checksum) để phát hiện hỏng bản ghi và phân đoạn
+  - Phân biệt phát hiện hỏng dữ liệu và chống sửa đổi có chủ đích
+  - Đối chiếu số lượng bản ghi và tổng kiểm soát
+  - Kiểm tra khóa trùng và tham chiếu giữa các đối tượng
+  - Phát hiện bản ghi bị thiếu, lặp hoặc sai thứ tự
+  - Xử lý dữ liệu không giải mã được mà không bỏ qua âm thầm
+  - Kiểm tra định kỳ dữ liệu ít được đọc
+  - Thiết kế công cụ kiểm tra chỉ đọc trước khi sửa tệp
+- level1: Phiên bản dữ liệu
+  level2:
+  - Phiên bản hóa tiêu đề tệp và cấu trúc bản ghi
+  - Phân biệt tương thích khi đọc và tương thích khi ghi
+  - Thêm trường tùy chọn và xác định giá trị mặc định
+  - Xử lý đổi tên, đổi kiểu và loại bỏ trường
+  - Bảo toàn ý nghĩa khi thay đổi đơn vị đo hoặc quy tắc thời gian
+  - Thiết kế bộ đọc hỗ trợ nhiều phiên bản dữ liệu
+  - Lựa chọn chuyển đổi khi đọc hoặc chuyển đổi dữ liệu lưu sẵn
+  - Di chuyển dữ liệu bằng thế hệ mới thay vì sửa trực tiếp không kiểm chứng
+  - Tiếp tục hoặc hủy quá trình chuyển đổi bị gián đoạn
+  - Lập kế hoạch quay lại phiên bản trước cùng giới hạn tương thích
+  - Kiểm chứng dữ liệu trước và sau chuyển đổi
+- level1: Tệp ánh xạ bộ nhớ
+  level2:
+  - Cơ chế ánh xạ vùng tệp vào không gian địa chỉ tiến trình
+  - Sử dụng MappedByteBuffer để truy cập dữ liệu
+  - Lựa chọn chế độ chỉ đọc, đọc ghi và ánh xạ riêng
+  - Phân biệt thay đổi vùng nhớ và thời điểm dữ liệu được lưu bền
+  - Chia cửa sổ ánh xạ cho tệp có kích thước lớn
+  - Phối hợp ánh xạ với thay đổi kích thước và thay thế tệp
+  - Quản lý vòng đời ánh xạ trong phạm vi Java 21
+  - Xử lý giới hạn tài nguyên và lỗi khi truy cập vùng ánh xạ
+  - Đánh giá khi ánh xạ bộ nhớ phù hợp hơn đọc ghi qua kênh
+- level1: Hiệu năng và quy mô
+  level2:
+  - Đo độ trễ, thông lượng và số thao tác đọc ghi
+  - Phân biệt tải tuần tự, ngẫu nhiên và hỗn hợp
+  - Đánh giá ảnh hưởng của bộ đệm và dữ liệu đã được hệ điều hành lưu đệm
+  - Lựa chọn kích thước khối và kích thước phân đoạn bằng đo đạc
+  - Gom nhiều yêu cầu ghi để giảm chi phí đồng bộ
+  - Thiết kế bộ nhớ đệm phù hợp với phiên bản dữ liệu trên tệp
+  - Giới hạn số tệp mở và quản lý vòng đời kênh
+  - Đánh giá chi phí khi có nhiều tệp nhỏ hoặc thư mục rất lớn
+  - Giảm khuếch đại ghi khi cập nhật và hợp nhất dữ liệu
+  - Quản lý dung lượng trống và phần dự phòng cho ghi thay thế
+  - Đo hiệu năng trong khi tạo bản chụp, sao lưu và hợp nhất
+  - Nhận diện giới hạn cần chuyển sang cơ sở dữ liệu hoặc kho đối tượng
+- level1: Bảo mật lưu trữ
+  level2:
+  - Xác định quyền đọc, ghi và xóa theo người dùng ứng dụng
+  - Phân tách thư mục dữ liệu khỏi mã chương trình và tài nguyên công khai
+  - Ngăn đường dẫn thoát khỏi thư mục lưu trữ cho phép
+  - Kiểm soát liên kết tượng trưng và thay đổi đường dẫn ngoài ý muốn
+  - Tạo tệp tạm với quyền truy cập phù hợp
+  - Giới hạn kích thước, số lượng tệp và tài nguyên giải mã
+  - Giảm rủi ro khi giải tuần tự đối tượng Java không tin cậy
+  - Bảo vệ dữ liệu nhạy cảm trên tệp và trong nhật ký
+  - Quản lý mã hóa và khóa mã hóa tách khỏi dữ liệu lưu trữ
+  - Kiểm tra tính xác thực khi cần phát hiện sửa đổi có chủ đích
+  - Đánh giá rủi ro xóa tệp, bản sao và dữ liệu còn lưu trong bản sao lưu
+- level1: Vòng đời và dọn dẹp
+  level2:
+  - Phân biệt dữ liệu hoạt động, dữ liệu tạm và dữ liệu đã hết hạn
+  - Thiết kế chính sách thời hạn lưu và điều kiện xóa
+  - Đánh dấu xóa logic trước khi thu hồi vật lý
+  - Xác định tệp còn được người đọc, chỉ mục hoặc bản sao lưu tham chiếu
+  - Dọn tệp tạm sót lại sau khi tiến trình dừng bất thường
+  - Thu hồi thế hệ và phân đoạn dữ liệu cũ an toàn
+  - Tránh xóa nhầm khi tác vụ dọn dẹp chạy đồng thời với tác vụ ghi
+  - Xử lý lỗi xóa và lập lịch thử lại có kiểm soát
+  - Kiểm kê dung lượng và phát hiện tệp mồ côi
+  - Thiết kế chế độ kiểm tra trước khi thực hiện dọn dẹp
+- level1: Sao lưu và phục hồi
+  level2:
+  - Phân biệt bản chụp nội bộ và bản sao lưu độc lập
+  - Xác định phạm vi dữ liệu, manifest, nhật ký và khóa cần sao lưu
+  - Tạo bản sao lưu nhất quán khi ứng dụng vẫn hoạt động
+  - Lựa chọn sao lưu đầy đủ và sao lưu bổ sung
+  - Kiểm tra số phần, kích thước và checksum của bản sao lưu
+  - Lưu bản sao tách khỏi nơi lưu dữ liệu đang hoạt động
+  - Xác định mục tiêu mất dữ liệu và thời gian phục hồi chấp nhận được
+  - Phục hồi vào khu vực riêng trước khi thay thế dữ liệu đang dùng
+  - Đối soát dữ liệu và kiểm tra phiên bản sau phục hồi
+  - Diễn tập phục hồi thay vì chỉ kiểm tra tác vụ sao lưu thành công
+  - Quản lý thời hạn lưu và quyền truy cập bản sao lưu
+- level1: Kiểm thử độ tin cậy
+  level2:
+  - Kiểm thử đọc ghi bằng thư mục tạm riêng cho từng tình huống
+  - Kiểm thử tuần tự hóa hai chiều và bất biến nghiệp vụ
+  - Kiểm thử bản ghi rỗng, lớn, sai độ dài và hỏng mã kiểm tra
+  - Kiểm thử tệp thiếu, quyền truy cập và dung lượng không đủ
+  - Mô phỏng đọc ghi một phần và lỗi tại từng ranh giới thao tác
+  - Kiểm thử dừng tiến trình tại các điểm trước và sau công bố
+  - Kiểm thử phục hồi chạy lặp mà không nhân bản thay đổi
+  - Kiểm thử cạnh tranh giữa nhiều luồng và nhiều tiến trình
+  - Kiểm thử thay thế tệp khi còn người đọc
+  - Kiểm thử di chuyển phiên bản và dữ liệu của phiên bản cũ
+  - Kiểm thử sao lưu và phục hồi với dữ liệu đã kiểm chứng
+  - Phân biệt mô phỏng lỗi tiến trình và kiểm chứng mất nguồn thực tế
+  - Kiểm thử trên các hệ điều hành và hệ thống tệp mục tiêu
+- level1: Theo dõi vận hành
+  level2:
+  - Ghi nhật ký theo thao tác, khóa dữ liệu và thế hệ lưu trữ
+  - Theo dõi số lượng tệp, dung lượng và tốc độ tăng trưởng
+  - Đo thời gian đọc, ghi, đồng bộ và chờ khóa
+  - Theo dõi số bản ghi chưa được đồng bộ theo chính sách
+  - Theo dõi tiến độ tạo bản chụp, hợp nhất và sao lưu
+  - Phân biệt lỗi dữ liệu với lỗi thiết bị và lỗi quyền truy cập
+  - Cảnh báo sớm về dung lượng thấp và giới hạn tệp mở
+  - Cảnh báo hỏng dữ liệu, phục hồi thất bại và không thể xác nhận ghi
+  - Bảo vệ dữ liệu nhạy cảm trong bằng chứng sự cố
+  - Lập hướng dẫn điều tra và xác minh trước khi cho phép ghi lại
+- level1: Tích hợp ứng dụng
+  level2:
+  - Đặt ranh giới giữa nghiệp vụ và bộ lưu trữ trên tệp
+  - Thiết kế giao diện kho dữ liệu độc lập với định dạng lưu
+  - Quản lý thư mục gốc bằng cấu hình ứng dụng
+  - Kiểm tra dữ liệu và khả năng phục hồi khi khởi động
+  - Nạp trạng thái cần thiết trước khi sẵn sàng phục vụ
+  - Quản lý một bộ ghi dùng chung và vòng đời tài nguyên
+  - Đồng bộ trạng thái trong bộ nhớ sau khi dữ liệu được công bố
+  - Chuyển lỗi lưu trữ thành kết quả nghiệp vụ có thể xử lý
+  - Thiết kế dừng ứng dụng có kiểm soát và giới hạn chờ ghi
+  - Tách tác vụ bảo trì khỏi luồng xử lý yêu cầu chính
+  - Giữ bộ kiểm tra, sao lưu và phục hồi dùng chung quy tắc định dạng
+- level1: Triển khai đa môi trường
+  level2:
+  - Tách dữ liệu bền vững khỏi thư mục cài đặt ứng dụng
+  - Xử lý đường dẫn và quyền truy cập khác nhau giữa môi trường
+  - Đánh giá khác biệt hành vi tệp trên Windows và Linux
+  - Lưu dữ liệu trong container và xác định nơi dữ liệu tồn tại
+  - Phân biệt lớp ghi tạm của container và vùng lưu trữ gắn ngoài
+  - Kiểm tra khả năng hỗ trợ khóa và thao tác nguyên tử của nhà cung cấp
+  - Đánh giá hệ thống tệp mạng trước khi dùng chung dữ liệu
+  - Tránh nhiều bản sao ứng dụng ghi chung tệp khi chưa có giao thức phù hợp
+  - Kiểm tra hạn mức dung lượng, quyền và tùy chọn gắn vùng lưu trữ
+  - Lập quy trình di chuyển thư mục dữ liệu giữa máy
+  - Xác minh mức độ bền trên hạ tầng triển khai thực tế
+- level1: Repository trên tệp
+  level2:
+  - Thiết kế mô hình khóa và bản ghi có phiên bản
+  - Xây dựng bộ mã hóa và giải mã với kiểm tra định dạng
+  - Triển khai kho một tệp cho mỗi đối tượng
+  - Triển khai ghi thay thế với tệp tạm và bước công bố
+  - Triển khai kho nhật ký nối tiếp với một bộ ghi
+  - Xây dựng chỉ mục theo khóa và cập nhật trạng thái trong bộ nhớ
+  - Tạo bản chụp và phục hồi bằng phát lại nhật ký
+  - Tách bộ đồng bộ dữ liệu để kiểm thử chính sách độ bền
+  - Thiết kế điểm chèn lỗi phục vụ kiểm thử giao thức ghi
+  - So sánh các mô hình kho theo tính đúng và chi phí vận hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế kho hồ sơ trên tệp với yêu cầu lưu trữ rõ ràng
+  - Lưu và đọc dữ liệu Unicode, số thập phân và ngày giờ
+  - Cập nhật bản ghi mà vẫn giữ bản cũ khi ghi thất bại
+  - Phát hiện hai yêu cầu cập nhật đồng thời cùng một đối tượng
+  - Xây dựng kho khóa giá trị bằng nhật ký nối tiếp
+  - Mô phỏng bản ghi cuối bị ghi dở và phục hồi phần hợp lệ
+  - Tạo bản chụp, hợp nhất nhật ký và kiểm tra thế hệ đang dùng
+  - Thử chuyển đổi định dạng rồi phục hồi khi quá trình bị gián đoạn
+  - Tạo bản sao lưu và phục hồi sang thư mục dữ liệu mới
+  - Đo hiệu năng với chính sách đồng bộ và kích thước dữ liệu khác nhau
+  - Đánh giá giới hạn của giải pháp và đề xuất khi nào chuyển hệ lưu trữ
+  - Nghiệm thu bằng bất biến dữ liệu và bằng chứng phục hồi

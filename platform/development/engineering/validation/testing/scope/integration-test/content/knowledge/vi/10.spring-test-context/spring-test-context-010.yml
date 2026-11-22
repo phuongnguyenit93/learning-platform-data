@@ -1,0 +1,3 @@
+menuLevel1: Spring TestContext
+menuLevel2: Giữ trạng thái singleton không làm nhiễm các test dùng chung context
+status: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: kich-ban-thong-bao
+  title: Kịch bản thông báo
+  purpose: Xác định sự kiện, người nhận và mức ưu tiên trước khi kết nối với Slack.
+  objectives:
+  - Phân loại alert, trạng thái xử lý và bản tin định kỳ.
+  - Ánh xạ loại sự kiện đến channel hoặc nhóm phụ trách.
+  - Xác định thông tin bắt buộc trong mỗi thông báo.
+- id: slack-app-quyen
+  title: Slack App & quyền
+  purpose: Thiết lập ứng dụng Slack với phạm vi truy cập tối thiểu và bảo vệ thông tin xác thực.
+  objectives:
+  - Tạo Slack app và chọn workspace thử nghiệm.
+  - Cấp scope chat:write cho bot khi cần Web API.
+  - Lưu bot token và webhook URL trong secret store.
+- id: incoming-webhooks
+  title: Incoming Webhooks
+  purpose: Gửi thông báo đơn giản bằng HTTP POST đến đích được cấu hình sẵn.
+  objectives:
+  - Kích hoạt Incoming Webhooks trong Slack app.
+  - Gửi payload JSON có trường text.
+  - Nêu giới hạn chọn channel và sửa/xóa bản tin của webhook.
+- id: chat-postmessage
+  title: chat.postMessage
+  purpose: Gửi thông báo linh hoạt qua Slack Web API và kiểm tra kết quả trả về.
+  objectives:
+  - Gửi message tới channel ID bằng bot token.
+  - Đọc trường ok, error và ts trong response.
+  - Dùng thread_ts khi cần gom thông báo theo luồng.
+- id: noi-dung-block-kit
+  title: Nội dung & Block Kit
+  purpose: Tạo thông báo dễ đọc, có ngữ cảnh, liên kết hành động và bản dự phòng văn bản.
+  objectives:
+  - Định dạng mrkdwn, link và trường trạng thái.
+  - Tạo layout bằng section hoặc context blocks.
+  - Cung cấp text fallback, tránh lộ dữ liệu nhạy cảm.
+- id: tich-hop-java
+  title: Tích hợp Java
+  purpose: Đóng gói việc gửi Slack thành thành phần Java có thể tái sử dụng.
+  objectives:
+  - Gọi Slack Java SDK hoặc HTTP client trong service.
+  - Tạo model thông báo và lớp SlackNotifier.
+  - Tách sự kiện nghiệp vụ khỏi thao tác gửi mạng.
+- id: loi-rate-limits
+  title: Lỗi & rate limits
+  purpose: Giữ dịch vụ gửi ổn định khi mạng lỗi hoặc Slack giới hạn tần suất.
+  objectives:
+  - Xử lý lỗi HTTP, ok=false và timeout.
+  - Tôn trọng HTTP 429 cùng Retry-After.
+  - Áp dụng backoff và ngăn gửi trùng khi retry.
+- id: kiem-thu-giam-sat
+  title: Kiểm thử & giám sát
+  purpose: Xác minh thông báo đến đúng nơi mà không gây spam hoặc mất dữ liệu.
+  objectives:
+  - Mock API để kiểm tra payload, channel và secret.
+  - Thử nghiệm trên channel sandbox và tình huống lỗi.
+  - Theo dõi số lần gửi, lỗi, độ trễ và queue backlog.

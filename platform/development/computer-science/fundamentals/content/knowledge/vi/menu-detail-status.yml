@@ -1,0 +1,3232 @@
+menu:
+- slug: computing-overview
+  title: Tổng quan ngành
+  childs:
+  - slug: computing-overview-001
+    title: 'Khoa học máy tính nghiên cứu điều gì: thông tin, tính toán và hệ thống'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computing-overview-002
+    title: Phân biệt khoa học máy tính, lập trình, công nghệ thông tin và kỹ nghệ phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computing-overview-003
+    title: Từ bài toán thực tế đến mô hình, thuật toán, chương trình và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computing-overview-004
+    title: Mối liên hệ giữa toán học, thuật toán, ngôn ngữ và hệ thống máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computing-overview-005
+    title: 'Các lớp trừu tượng: phần cứng, hệ điều hành, nền tảng thực thi và ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computing-overview-006
+    title: 'Các hướng ứng dụng: xử lý dữ liệu, đồ họa, trí tuệ nhân tạo và hệ nhúng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computing-overview-007
+    title: Nền tảng chung, kiến thức tiên quyết và các hướng học chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computing-overview-008
+    title: Cách học bằng mô hình, ví dụ, phản ví dụ, thí nghiệm và giải thích kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: computational-thinking
+  title: Tư duy tính toán
+  childs:
+  - slug: computational-thinking-001
+    title: Phân rã vấn đề thành các phần có trách nhiệm rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-002
+    title: Nhận diện mẫu và tái sử dụng cách giải cho những bài toán tương tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-003
+    title: 'Trừu tượng hóa: giữ thông tin cần thiết và bỏ chi tiết không liên quan'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-004
+    title: Lựa chọn mức trừu tượng phù hợp với câu hỏi đang giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-005
+    title: Mô hình hóa trạng thái và các phép chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-006
+    title: Tách dữ liệu đầu vào, quy tắc xử lý và kết quả đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-007
+    title: Thiết kế quy trình có thể mô tả, thực hiện và kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-008
+    title: 'Tư duy đệ quy: bài toán con, trường hợp cơ sở và tiến triển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-009
+    title: 'Tư duy bất biến: điều gì phải đúng trước, trong và sau mỗi bước'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-thinking-010
+    title: Phân biệt tương quan, quan hệ nhân quả và giả thuyết cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: problems-and-specifications
+  title: Bài toán và đặc tả
+  childs:
+  - slug: problems-and-specifications-001
+    title: Chuyển yêu cầu bằng ngôn ngữ tự nhiên thành bài toán rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-002
+    title: Xác định miền đầu vào, miền đầu ra và điều kiện hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-003
+    title: Tiền điều kiện, hậu điều kiện và hợp đồng của lời giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-004
+    title: Ràng buộc chức năng, tài nguyên, thời gian và môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-005
+    title: Ví dụ chuẩn, trường hợp biên và đầu vào không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-006
+    title: Bài toán quyết định, tìm kiếm, đếm và tối ưu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-007
+    title: Lời giải chính xác, lời giải gần đúng và kết quả có tính xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-008
+    title: Phân biệt yêu cầu bắt buộc với lựa chọn thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-009
+    title: Xử lý yêu cầu mơ hồ, thiếu thông tin và giả định chưa được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problems-and-specifications-010
+    title: Tiêu chí chấp nhận và cách nhận biết một bài toán đã được giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: information-and-representation
+  title: Thông tin và biểu diễn
+  childs:
+  - slug: information-and-representation-001
+    title: Phân biệt dữ liệu, thông tin, ý nghĩa và ngữ cảnh diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-002
+    title: Biểu diễn rời rạc và chuyển đổi từ tín hiệu liên tục sang dữ liệu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-003
+    title: Bit, byte, đơn vị dung lượng và số lượng trạng thái có thể biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-004
+    title: Hệ nhị phân, thập lục phân và chuyển đổi giữa các cơ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-005
+    title: Biểu diễn số nguyên, số có dấu và giới hạn miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-006
+    title: Số dấu phẩy động, sai số biểu diễn và giới hạn so sánh số thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-007
+    title: Ký tự, Unicode, điểm mã và mã hóa UTF-8, UTF-16
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-008
+    title: Biểu diễn hình ảnh, âm thanh và các đánh đổi khi lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-009
+    title: Mã hóa biểu diễn, nén, mã hóa bảo mật và băm phục vụ những mục đích gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-010
+    title: Nén không mất dữ liệu, nén mất dữ liệu và giới hạn khả năng nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-011
+    title: Lượng thông tin, entropy và quan hệ với mức độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-and-representation-012
+    title: Phát hiện lỗi dữ liệu, kiểm tra toàn vẹn và giới hạn của checksum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logic-and-reasoning
+  title: Logic và suy luận
+  childs:
+  - slug: logic-and-reasoning-001
+    title: Mệnh đề, giá trị chân lý và các phép toán logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-002
+    title: Bảng chân trị và kiểm tra tương đương logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-003
+    title: Kéo theo, tương đương, điều kiện cần và điều kiện đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-004
+    title: Phủ định mệnh đề và các quy tắc De Morgan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-005
+    title: Vị từ, miền xét và lượng từ với mọi, tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-006
+    title: Phủ định biểu thức có lượng từ và tránh nhầm thứ tự lượng từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-007
+    title: Suy luận hợp lệ, giả thiết, kết luận và lỗi suy luận thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-008
+    title: Chứng minh trực tiếp, phản chứng và phản đảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-009
+    title: Phản ví dụ và cách bác bỏ một khẳng định tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-reasoning-010
+    title: Biểu thức điều kiện trong chương trình và sự khác nhau với logic toán học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-mathematics
+  title: Toán học cốt lõi
+  childs:
+  - slug: core-mathematics-001
+    title: Tập hợp, phần tử, tập con và các phép toán trên tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-002
+    title: Tích Descartes, bộ giá trị và biểu diễn dữ liệu có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-003
+    title: Quan hệ, tính tương đương và quan hệ thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-004
+    title: Hàm, miền xác định, miền giá trị và phép hợp thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-005
+    title: Dãy, tổng, tích và những quy luật tăng trưởng cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-006
+    title: Lũy thừa, logarit và ý nghĩa trong chia đôi, mã hóa, tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-007
+    title: Quy nạp toán học và quy nạp theo cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-008
+    title: Quy tắc đếm, hoán vị, chỉnh hợp và tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-009
+    title: Xác suất, xác suất có điều kiện và tính độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-010
+    title: Biến ngẫu nhiên, kỳ vọng và phân biệt trung bình với từng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-011
+    title: Số học modulo và ứng dụng trong chỉ mục vòng, băm, kiểm tra chia hết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-mathematics-012
+    title: Đồ thị, đỉnh, cạnh, đường đi và quan hệ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: computational-models
+  title: Mô hình tính toán
+  childs:
+  - slug: computational-models-001
+    title: Mô hình tính toán và lý do cần tách cách tính khỏi thiết bị thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-002
+    title: Hệ chuyển trạng thái và cách mô tả một phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-003
+    title: Máy trạng thái hữu hạn và những giới hạn về bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-004
+    title: Bộ nhớ có ngăn xếp và khả năng xử lý cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-005
+    title: Máy Turing và ý tưởng về một mô hình tính toán tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-006
+    title: Thuật toán, chương trình và thiết bị tính toán không phải là một khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-007
+    title: Khả năng tính toán, tính quyết định được và bài toán không quyết định được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-008
+    title: Bài toán dừng và giới hạn của việc tự động phân tích mọi chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computational-models-009
+    title: Phân biệt bài toán không thể giải tổng quát với bài toán quá tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: algorithm-foundations
+  title: Nền tảng thuật toán
+  childs:
+  - slug: algorithm-foundations-001
+    title: Thuật toán là gì và cần mô tả những thông tin nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-002
+    title: Tính xác định của từng bước, tính hiệu quả thực hiện và điều kiện dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-003
+    title: Mã giả, sơ đồ luồng và bảng lần vết thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-004
+    title: Thực hiện tuần tự, lựa chọn và lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-005
+    title: Đầu vào, đầu ra, trạng thái trung gian và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-006
+    title: Thuật toán xác định và thuật toán có sử dụng ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-007
+    title: Thuật toán lặp và thuật toán đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-008
+    title: Duyệt tuần tự, tìm kiếm và tích lũy kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-009
+    title: Sắp xếp, thứ tự so sánh và ý nghĩa của tính ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-foundations-010
+    title: Biểu diễn cùng một thuật toán bằng nhiều ngôn ngữ hoặc mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: algorithm-design
+  title: Thiết kế thuật toán
+  childs:
+  - slug: algorithm-design-001
+    title: Vét cạn và sử dụng lời giải đơn giản làm mốc đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-002
+    title: Giảm kích thước bài toán và tiến dần đến trường hợp cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-003
+    title: Chia để trị và kết hợp lời giải các bài toán con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-004
+    title: Tham lam và điều kiện để lựa chọn cục bộ dẫn đến kết quả đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-005
+    title: Quy hoạch động, trạng thái và bài toán con chồng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-006
+    title: Ghi nhớ kết quả và lập bảng tính theo thứ tự phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-007
+    title: Quay lui, khôi phục trạng thái và cắt bỏ nhánh không khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-008
+    title: Biến đổi cách biểu diễn để bài toán dễ giải hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-009
+    title: Mô hình hóa quan hệ thành đồ thị để duyệt và tìm đường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-design-010
+    title: Chọn chiến lược dựa trên cấu trúc bài toán và ràng buộc đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: program-correctness
+  title: Độ đúng chương trình
+  childs:
+  - slug: program-correctness-001
+    title: Độ đúng so với đặc tả và sự khác nhau giữa đúng với có vẻ hợp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-002
+    title: Độ đúng bộ phận, tính kết thúc và độ đúng toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-003
+    title: 'Bất biến vòng lặp: khởi tạo, duy trì và kết luận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-004
+    title: Đại lượng giảm và cách lập luận rằng vòng lặp sẽ dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-005
+    title: Hợp đồng của hàm và kết hợp các thành phần đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-006
+    title: Chứng minh thuật toán đệ quy bằng quy nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-007
+    title: Điều kiện biên, chỉ số và lỗi lệch một đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-008
+    title: Độ đúng số học khi có tràn số, làm tròn hoặc mất độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-009
+    title: Kiểm thử, chứng minh và phân tích tĩnh cung cấp những bằng chứng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-correctness-010
+    title: Phản ví dụ nhỏ nhất và thu hẹp đầu vào gây sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-analysis
+  title: Phân tích chi phí
+  childs:
+  - slug: cost-analysis-001
+    title: Kích thước đầu vào và mô hình đếm phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-002
+    title: Chi phí thời gian và chi phí bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-003
+    title: Trường hợp tốt nhất, xấu nhất và trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-004
+    title: Ký hiệu O, Omega, Theta và cách diễn giải giới hạn tiệm cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-005
+    title: Tăng trưởng hằng số, logarit, tuyến tính, đa thức và hàm mũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-006
+    title: Phân tích chuỗi lệnh, nhánh điều kiện và vòng lặp lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-007
+    title: Phân tích đệ quy bằng phương trình truy hồi đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-008
+    title: Chi phí khấu hao và sự khác nhau với chi phí trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-009
+    title: Đánh đổi thời gian, bộ nhớ và độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-010
+    title: Chi phí I/O, truyền dữ liệu và giới hạn của mô hình chỉ đếm CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-011
+    title: Tính khả thi thực tế và ý nghĩa nhập môn của P, NP, NP-complete, NP-hard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-analysis-012
+    title: Vì sao số đo thời gian chạy không thay thế được phân tích độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-models
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-models-001
+    title: Mô hình dữ liệu và cách chọn những thuộc tính cần biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-002
+    title: Giá trị vô hướng, bản ghi, bộ giá trị và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-003
+    title: Danh tính đối tượng và sự bằng nhau về giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-004
+    title: Dữ liệu khả biến, bất biến và quan hệ với trạng thái chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-005
+    title: Giá trị thiếu, null, tập rỗng và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-006
+    title: Bất biến dữ liệu và trách nhiệm giữ dữ liệu hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-007
+    title: Quan hệ một một, một nhiều, nhiều nhiều và cách biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-008
+    title: Mô hình cây, đồ thị và lựa chọn theo quan hệ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-009
+    title: Kiểu dữ liệu trừu tượng và phân biệt giao diện với cách cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-010
+    title: Tuần tự hóa, lược đồ và thay đổi định dạng dữ liệu theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-structures
+  title: Cấu trúc dữ liệu
+  childs:
+  - slug: data-structures-001
+    title: Mảng và truy cập phần tử theo chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-002
+    title: Mảng động, dung lượng dự phòng và chi phí mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-003
+    title: Danh sách liên kết và đánh đổi giữa truy cập với cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-004
+    title: Ngăn xếp và xử lý theo thứ tự vào sau ra trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-005
+    title: Hàng đợi, hàng đợi hai đầu và bộ đệm vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-006
+    title: Bảng băm, hàm băm, va chạm và tra cứu theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-007
+    title: Tập hợp, ánh xạ và các hợp đồng về tính duy nhất, thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-008
+    title: Cây, cây tìm kiếm và ý nghĩa của việc giữ cây cân bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-009
+    title: Heap và hàng đợi ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-010
+    title: Biểu diễn đồ thị bằng danh sách kề hoặc ma trận kề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-011
+    title: Chọn cấu trúc theo thao tác chủ đạo, dữ liệu và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structures-012
+    title: Ảnh hưởng của bố trí bộ nhớ, tính cục bộ và chi phí quản lý phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: programming-foundations
+  title: Nền tảng lập trình
+  childs:
+  - slug: programming-foundations-001
+    title: Giá trị, biến, tên và trạng thái trong chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-002
+    title: Biểu thức, toán tử, thứ tự tính và phép gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-003
+    title: Rẽ nhánh, điều kiện kết hợp và cách tránh logic khó theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-004
+    title: Vòng lặp, điều kiện dừng và các dạng duyệt dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-005
+    title: Hàm, tham số, đối số và kết quả trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-006
+    title: Phạm vi tên, che khuất tên và thời gian sống của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-007
+    title: Tác dụng phụ và phân biệt tính toán với cập nhật trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-008
+    title: Đầu vào, đầu ra và kiểm tra dữ liệu ở ranh giới chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-009
+    title: Lỗi có thể dự kiến, ngoại lệ và lựa chọn cách biểu diễn thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-010
+    title: Đọc mã, lần vết thực hiện và dự đoán kết quả trước khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-foundations-011
+    title: 'Phong cách viết mã rõ ràng: đặt tên, độ dài hàm và mức lồng nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functions-and-modules
+  title: Hàm và mô-đun
+  childs:
+  - slug: functions-and-modules-001
+    title: Trừu tượng hóa bằng hàm và che giấu chi tiết xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-002
+    title: Hàm thuần, tác dụng phụ và tính dễ kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-003
+    title: Tham số, giá trị trả về và truyền sự phụ thuộc rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-004
+    title: Truyền giá trị, truyền tham chiếu và chia sẻ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-005
+    title: Đệ quy, ngăn xếp lời gọi và giới hạn độ sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-006
+    title: Mô-đun, giao diện công khai và chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-007
+    title: Tính gắn kết trong mô-đun và mức phụ thuộc giữa các mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-008
+    title: Hợp thành chức năng và tránh lặp lại quy tắc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-009
+    title: Quản lý trạng thái dùng chung và giảm phụ thuộc ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-modules-010
+    title: Tái sử dụng phù hợp và tránh trừu tượng hóa khi chưa có nhu cầu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: programming-languages
+  title: Ngôn ngữ lập trình
+  childs:
+  - slug: programming-languages-001
+    title: Cú pháp, ngữ nghĩa và sự khác nhau giữa mã hợp lệ với mã đúng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-002
+    title: Từ vựng, phân tích cú pháp và cây cú pháp ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-003
+    title: Kiểu dữ liệu và vai trò của hệ thống kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-004
+    title: Kiểm tra kiểu tĩnh, kiểm tra kiểu động và thời điểm phát hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-005
+    title: Suy luận kiểu, chuyển kiểu tường minh và chuyển kiểu ngầm định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-006
+    title: Đa hình tham số, kiểu con và tái sử dụng theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-007
+    title: Kiểu hàm, giá trị hàm và đóng gói môi trường bằng closure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-008
+    title: Biên dịch, thông dịch, AOT, JIT và các cách thực thi kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-009
+    title: Ngôn ngữ, thư viện chuẩn, môi trường thực thi và hệ sinh thái công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-languages-010
+    title: Lựa chọn ngôn ngữ theo bài toán, môi trường và những đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: programming-styles
+  title: Phong cách lập trình
+  childs:
+  - slug: programming-styles-001
+    title: Lập trình mệnh lệnh và mô tả các bước thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-002
+    title: Lập trình thủ tục và tổ chức chương trình bằng hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-003
+    title: 'Lập trình hướng đối tượng: đối tượng, trách nhiệm và sự cộng tác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-004
+    title: Đóng gói, đa hình và hợp thành trong thiết kế hướng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-005
+    title: 'Lập trình hàm: hàm thuần, dữ liệu bất biến và hợp thành phép biến đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-006
+    title: Lập trình khai báo và mô tả kết quả cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-007
+    title: Lập trình logic và suy luận từ các quan hệ, quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-008
+    title: Lập trình hướng sự kiện và phản ứng với thay đổi từ môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programming-styles-009
+    title: Ngôn ngữ đa phong cách và lựa chọn cách tổ chức phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: programs-and-memory
+  title: Chương trình và bộ nhớ
+  childs:
+  - slug: programs-and-memory-001
+    title: Biến trong mã nguồn, vị trí lưu trữ và giá trị khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-002
+    title: Địa chỉ bộ nhớ, con trỏ và tham chiếu ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-003
+    title: Ngăn xếp lời gọi, khung hàm và dữ liệu cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-004
+    title: Heap, cấp phát động và thời gian sống vượt khỏi lời gọi hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-005
+    title: Chia sẻ tham chiếu, bí danh và thay đổi dữ liệu qua nhiều tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-006
+    title: Sao chép nông, sao chép sâu và tác động đến dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-007
+    title: Quyền sở hữu, mượn tài nguyên và trách nhiệm thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-008
+    title: Thu gom rác và phân biệt khả năng truy cập với tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-009
+    title: Rò rỉ bộ nhớ, tham chiếu treo và sử dụng sau khi giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-010
+    title: Quản lý tệp, socket, khóa và thu dọn tài nguyên có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programs-and-memory-011
+    title: Đo mức sử dụng bộ nhớ và giải thích sự khác nhau giữa các chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: computers-and-execution
+  title: Máy tính và thực thi
+  childs:
+  - slug: computers-and-execution-001
+    title: Mô hình chương trình lưu trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-002
+    title: CPU, RAM, thiết bị lưu trữ và thiết bị vào ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-003
+    title: Lệnh máy, tập lệnh và vai trò của hợp ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-004
+    title: Chu trình lấy lệnh, giải mã và thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-005
+    title: Thanh ghi, cache và tháp phân cấp bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-006
+    title: Tần số, số lõi, CPI và các giới hạn của việc so sánh CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-007
+    title: Từ mã nguồn qua biên dịch, liên kết, nạp đến chạy chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-008
+    title: Phần cứng, hệ điều hành và môi trường thực thi phối hợp như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-009
+    title: Ngắt, ngoại lệ bộ xử lý và phản ứng với sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: computers-and-execution-010
+    title: Máy vật lý, máy ảo và container khác nhau ở ranh giới nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operating-systems
+  title: Hệ điều hành
+  childs:
+  - slug: operating-systems-001
+    title: Hệ điều hành quản lý và trừu tượng hóa những tài nguyên nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-002
+    title: Không gian người dùng, không gian nhân và lời gọi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-003
+    title: Chương trình, tiến trình, luồng và vòng đời thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-004
+    title: Lập lịch, chuyển ngữ cảnh và chia sẻ CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-005
+    title: Không gian địa chỉ, bộ nhớ ảo và bảo vệ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-006
+    title: Tệp, thư mục, đường dẫn và bộ mô tả tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-007
+    title: I/O có đệm, chặn, không chặn và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-008
+    title: Giao tiếp giữa tiến trình và các cơ chế chia sẻ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-009
+    title: Người dùng, quyền truy cập và nguyên tắc đặc quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-010
+    title: Tín hiệu, kết thúc tiến trình và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-011
+    title: Giới hạn tài nguyên, cạn bộ nhớ, cạn dung lượng và các dạng thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-and-parallelism
+  title: Đồng thời và song song
+  childs:
+  - slug: concurrency-and-parallelism-001
+    title: Đồng thời và song song giải quyết những vấn đề khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-002
+    title: Tác vụ dùng nhiều CPU, tác vụ chờ I/O và lựa chọn mô hình thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-003
+    title: Thứ tự xen kẽ, điều kiện tranh chấp và tính không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-004
+    title: Nguyên tử, tính hiển thị và thứ tự bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-005
+    title: Vùng tới hạn, khóa và duy trì bất biến dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-006
+    title: Semaphore, biến điều kiện và phối hợp tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-007
+    title: Deadlock, livelock, starvation và cách phân biệt triệu chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-008
+    title: Dữ liệu bất biến, quyền sở hữu và truyền thông điệp để giảm chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-009
+    title: Nhóm luồng, hàng đợi công việc và giới hạn số việc đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-010
+    title: Bất đồng bộ, vòng lặp sự kiện và áp lực ngược (backpressure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-011
+    title: Chi phí phối hợp, phần tuần tự và giới hạn tăng tốc theo Amdahl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networks-and-internet
+  title: Mạng và Internet
+  childs:
+  - slug: networks-and-internet-001
+    title: Mạng, nút, liên kết và truyền dữ liệu theo gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-002
+    title: Phân lớp giao thức, đóng gói và mô hình TCP/IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-003
+    title: Địa chỉ MAC, địa chỉ IP, cổng và tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-004
+    title: Mạng cục bộ, định tuyến và hành trình qua nhiều mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-005
+    title: Băng thông, thông lượng, độ trễ, mất gói và jitter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-006
+    title: TCP, UDP và sự khác nhau giữa luồng byte với datagram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-007
+    title: Socket, kết nối và giao tiếp giữa hai tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-008
+    title: DNS và quá trình phân giải tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-009
+    title: HTTP, yêu cầu, phản hồi và tính không lưu phiên của giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-010
+    title: TLS, chứng chỉ và thiết lập kênh truyền được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-011
+    title: Proxy, cân bằng tải, cache và các thành phần trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-and-internet-012
+    title: Hết thời gian chờ, gửi lại và kết quả chưa biết khi mạng có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: persistent-data
+  title: Dữ liệu bền vững
+  childs:
+  - slug: persistent-data-001
+    title: Dữ liệu tạm thời, dữ liệu bền vững và vòng đời vượt khỏi tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-002
+    title: Tệp văn bản, tệp nhị phân và định dạng trao đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-003
+    title: Lưu trực tiếp vào tệp, dùng hệ quản trị cơ sở dữ liệu và tiêu chí lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-004
+    title: 'Mô hình quan hệ: bảng, hàng, cột, khóa và ràng buộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-005
+    title: Mô hình tài liệu, khóa giá trị, đồ thị và nhu cầu truy cập tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-006
+    title: Lược đồ, dư thừa dữ liệu và các bất thường khi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-007
+    title: Truy vấn, lọc, kết hợp, nhóm và tổng hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-008
+    title: Chỉ mục, kế hoạch truy vấn và chi phí đọc, ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-009
+    title: Giao dịch, ACID và ranh giới bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-010
+    title: Cập nhật đồng thời, mức cô lập và xung đột dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-011
+    title: Nhật ký, bản sao lưu, snapshot và kiểm tra phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistent-data-012
+    title: Thay đổi lược đồ, tương thích dữ liệu và di chuyển dữ liệu an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-systems
+  title: Hệ thống phân tán
+  childs:
+  - slug: distributed-systems-001
+    title: Hệ thống phân tán, nút độc lập và lỗi từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-002
+    title: Mô hình máy khách, máy chủ và giao tiếp giữa dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-003
+    title: Độ trễ, đồng hồ khác nhau và thiếu góc nhìn toàn cục tức thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-004
+    title: Sao chép, phân vùng dữ liệu và mục tiêu mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-005
+    title: Nhất quán mạnh, nhất quán cuối cùng và trải nghiệm quan sát dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-006
+    title: Phân vùng mạng và cách hiểu đúng đánh đổi CAP ở mức nhập môn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-007
+    title: Hết thời gian chờ, thử lại và thao tác lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-008
+    title: Hàng đợi thông điệp, xử lý lặp và bảo đảm giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-009
+    title: Đồng thuận, bầu chọn nút dẫn đầu và trật tự cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-010
+    title: Khả dụng, chịu lỗi và chi phí phối hợp giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-011
+    title: Khi nào nên giữ kiến trúc một máy hoặc một khối ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: information-security
+  title: An toàn thông tin
+  childs:
+  - slug: information-security-001
+    title: Bí mật, toàn vẹn, khả dụng và tài sản cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-002
+    title: Mô hình đe dọa, bề mặt tấn công và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-003
+    title: Xác thực, phân quyền và ghi nhận truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-004
+    title: Mã hóa đối xứng, bất đối xứng và trao đổi khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-005
+    title: Hàm băm mật mã, MAC, chữ ký số và các mục tiêu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-006
+    title: Mật khẩu, salt, hàm dẫn xuất khóa và quản lý bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-007
+    title: Kiểm tra đầu vào, chèn lệnh và xử lý dữ liệu không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-008
+    title: An toàn bộ nhớ, lỗi truy cập và cơ chế giảm thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-009
+    title: Đặc quyền tối thiểu, cách ly và giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-010
+    title: Rò rỉ thông tin qua nhật ký, lỗi trả về và dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-011
+    title: Nguồn gốc phụ thuộc, cập nhật thành phần và bảo vệ chuỗi cung ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-security-012
+    title: Phòng vệ nhiều lớp và giới hạn của việc chỉ dựa vào một biện pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-development
+  title: Phát triển phần mềm
+  childs:
+  - slug: software-development-001
+    title: Vòng đời từ yêu cầu đến thiết kế, cài đặt, kiểm chứng và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-002
+    title: Yêu cầu chức năng, chất lượng và bối cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-003
+    title: Thiết kế giao diện, hợp đồng và ranh giới thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-004
+    title: Tách trách nhiệm, che giấu thông tin và quản lý sự phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-005
+    title: Đánh đổi thiết kế, giả định và ghi lại quyết định quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-006
+    title: Đọc mã, nhận xét mã và phối hợp thay đổi trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-007
+    title: Quản lý phiên bản, lịch sử thay đổi và truy nguyên nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-008
+    title: Tài liệu sử dụng, tài liệu thiết kế và ví dụ có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-009
+    title: Phụ thuộc, cấu hình và khả năng tái tạo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-010
+    title: Tích hợp liên tục, tạo bản phát hành và kiểm tra trước khi đưa vào sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-development-011
+    title: Bảo trì, tương thích ngược, nợ kỹ thuật và cải tiến từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-debugging
+  title: Kiểm thử và gỡ lỗi
+  childs:
+  - slug: testing-and-debugging-001
+    title: Phân biệt lỗi trong mã, trạng thái sai và thất bại quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-002
+    title: Kiểm thử đơn vị, tích hợp, toàn hệ thống và kiểm thử chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-003
+    title: Chọn ca kiểm thử theo lớp tương đương và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-004
+    title: Đối chiếu kết quả với đặc tả và vấn đề xác định đáp án đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-005
+    title: Kiểm thử theo thuộc tính, quan hệ biến đổi và kiểm thử ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-006
+    title: Kiểm thử hồi quy và bảo vệ hành vi đã được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-007
+    title: Test double, mock, stub và giới hạn của môi trường giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-008
+    title: Độ bao phủ và lý do số phần trăm không chứng minh chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-009
+    title: Tái hiện lỗi, thu hẹp tình huống và tạo ví dụ tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-010
+    title: Breakpoint, quan sát biến, stack trace và lần theo luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-011
+    title: Nhật ký có mục đích, giả thuyết nguyên nhân và kiểm chứng cách sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-012
+    title: Phân tích tĩnh, kiểm tra kiểu và kết hợp nhiều nguồn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-reliability
+  title: Hiệu năng và tin cậy
+  childs:
+  - slug: performance-and-reliability-001
+    title: Phân biệt hiệu quả thuật toán với hiệu năng của toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-002
+    title: Thời gian CPU, thời gian thực và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-003
+    title: Độ trễ trung bình, phân vị và thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-004
+    title: Nút thắt CPU, bộ nhớ, lưu trữ, mạng và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-005
+    title: Đo chuẩn với tải đại diện, thời gian làm nóng và điều kiện tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-006
+    title: Chi phí cố định, xử lý theo lô và tái sử dụng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-007
+    title: Cache, tính cục bộ và bài toán vô hiệu hóa dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-008
+    title: Quá tải, hàng đợi, giới hạn tài nguyên và từ chối công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-009
+    title: Lỗi tạm thời, phục hồi, thử lại có giới hạn và tránh khuếch đại tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-010
+    title: Quan sát bằng log, metric, trace và lựa chọn bằng chứng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-011
+    title: Mục tiêu chất lượng dịch vụ và đánh đổi giữa độ tin cậy với chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-environments
+  title: Công cụ và môi trường
+  childs:
+  - slug: tools-and-environments-001
+    title: Hệ thống tệp, thư mục làm việc và cách tổ chức dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-002
+    title: Terminal, shell, đối số, mã thoát và biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-003
+    title: Luồng vào ra chuẩn, chuyển hướng và kết nối lệnh qua pipe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-004
+    title: Trình soạn thảo, IDE, trình biên dịch và bộ gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-005
+    title: 'Git: kho mã, vùng chuẩn bị, commit và lịch sử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-006
+    title: Nhánh, hợp nhất, xung đột và cộng tác qua bản thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-007
+    title: Công cụ build, đồ thị phụ thuộc và tạo tác đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-008
+    title: Trình quản lý gói, phiên bản phụ thuộc và tệp khóa phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-009
+    title: Môi trường cục bộ, môi trường kiểm thử và sự khác biệt cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-010
+    title: Tự động hóa thao tác lặp lại và kiểm tra kết quả bằng mã thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: human-computer-interaction
+  title: Tương tác người và máy
+  childs:
+  - slug: human-computer-interaction-001
+    title: Người dùng, nhiệm vụ, ngữ cảnh và mục tiêu của giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: human-computer-interaction-002
+    title: Mô hình tư duy của người dùng và cách trình bày trạng thái hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: human-computer-interaction-003
+    title: Phản hồi, khả năng khám phá và tính nhất quán của thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: human-computer-interaction-004
+    title: Ngăn ngừa lỗi, thông báo lỗi và hỗ trợ phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: human-computer-interaction-005
+    title: Thiết kế tương tác cho bàn phím và các phương thức hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: human-computer-interaction-006
+    title: Khả năng tiếp cận, độ tương phản và thông tin không chỉ dựa vào màu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: human-computer-interaction-007
+    title: Nguyên mẫu, đánh giá khả dụng và quan sát người dùng thực hiện nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: human-computer-interaction-008
+    title: Phân biệt giao diện dễ nhìn với giao diện giúp hoàn thành công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artificial-intelligence
+  title: Trí tuệ nhân tạo
+  childs:
+  - slug: artificial-intelligence-001
+    title: Trí tuệ nhân tạo, học máy và khoa học dữ liệu liên hệ như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-002
+    title: Biểu diễn tri thức, tìm kiếm và ra quyết định theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-003
+    title: Học có giám sát, không giám sát và học tăng cường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-004
+    title: Dữ liệu, đặc trưng, nhãn, mô hình và tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-005
+    title: Huấn luyện, suy luận và sự khác nhau về chi phí thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-006
+    title: Tập huấn luyện, kiểm định, kiểm thử và rò rỉ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-007
+    title: Khái quát hóa, quá khớp và sai khác phân phối dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-008
+    title: Chọn thước đo theo mục tiêu và chi phí của các loại dự đoán sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-009
+    title: Tính xác suất, độ bất định và giới hạn của đầu ra do mô hình tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artificial-intelligence-010
+    title: Kết hợp mô hình với quy tắc, kiểm chứng và trách nhiệm của con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: professional-responsibility
+  title: Trách nhiệm nghề nghiệp
+  childs:
+  - slug: professional-responsibility-001
+    title: Tác động của hệ thống máy tính đến cá nhân, tổ chức và xã hội
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: professional-responsibility-002
+    title: Quyền riêng tư, thu thập tối thiểu và vòng đời dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: professional-responsibility-003
+    title: Thiên lệch dữ liệu, công bằng và nhóm người có thể bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: professional-responsibility-004
+    title: Khả năng giải thích, minh bạch và truy nguyên quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: professional-responsibility-005
+    title: Bản quyền, giấy phép phần mềm và trách nhiệm khi tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: professional-responsibility-006
+    title: Thực hành bảo mật có trách nhiệm và tôn trọng phạm vi được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: professional-responsibility-007
+    title: Chi phí năng lượng, lưu trữ và lựa chọn sử dụng tài nguyên phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: professional-responsibility-008
+    title: Trung thực với số đo, giới hạn bằng chứng và mức độ chắc chắn của kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fundamentals-practice
+  title: Thực hành nền tảng
+  childs:
+  - slug: fundamentals-practice-001
+    title: Đặc tả một bài toán quản lý danh sách từ yêu cầu còn mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-002
+    title: Lần vết thuật toán bằng tay và tìm trường hợp biên trước khi viết mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-003
+    title: Xây dựng lời giải vét cạn rồi cải tiến dựa trên cấu trúc bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-004
+    title: So sánh hai cấu trúc dữ liệu với cùng tập thao tác thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-005
+    title: Chứng minh bất biến vòng lặp và kiểm tra bằng ca thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-006
+    title: Khảo sát tràn số, sai số dấu phẩy động và mã hóa Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-007
+    title: Tổ chức chương trình thành hàm, mô-đun và hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-008
+    title: Đọc, lưu, kiểm tra và khôi phục dữ liệu khi chương trình có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-009
+    title: Quan sát tiến trình, bộ nhớ, tệp và kết nối mạng của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-010
+    title: Tái hiện tranh chấp dữ liệu và đánh giá một cách đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-011
+    title: Xây dựng ứng dụng máy khách, máy chủ với xử lý lỗi đầu vào và mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-012
+    title: Đo hiệu năng, khoanh vùng nút thắt và xác nhận lợi ích của cách cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fundamentals-practice-013
+    title: Hoàn thiện dự án nhỏ với quản lý phiên bản, kiểm thử, tài liệu và đánh giá rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

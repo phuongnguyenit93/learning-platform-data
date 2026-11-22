@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan tương tác
+  slug: native-interop-overview
+  index: 0
+- title: C và ABI
+  slug: c-and-abi
+  index: 1
+- title: Nạp thư viện
+  slug: native-library-loading
+  index: 2
+- title: JNI đầu tiên
+  slug: jni-introduction
+  index: 3
+- title: Kiểu và chữ ký JNI
+  slug: jni-types-and-signatures
+  index: 4
+- title: Gọi Java từ JNI
+  slug: jni-java-callbacks
+  index: 5
+- title: Tham chiếu và GC
+  slug: jni-references-and-gc
+  index: 6
+- title: Chuỗi và mảng JNI
+  slug: jni-strings-and-arrays
+  index: 7
+- title: Ngoại lệ JNI
+  slug: jni-exceptions
+  index: 8
+- title: Luồng với JNI
+  slug: jni-threading
+  index: 9
+- title: Vòng đời JNI
+  slug: jni-lifecycle
+  index: 10
+- title: Nhúng JVM
+  slug: jvm-embedding
+  index: 11
+- title: FFM và phiên bản
+  slug: ffm-versioning
+  index: 12
+- title: MemorySegment
+  slug: ffm-memory-segments
+  index: 13
+- title: Arena và cấp phát
+  slug: ffm-arenas
+  index: 14
+- title: Bố trí dữ liệu
+  slug: ffm-memory-layouts
+  index: 15
+- title: Con trỏ và sở hữu
+  slug: ffm-pointers-and-ownership
+  index: 16
+- title: Gọi hàm bằng FFM
+  slug: ffm-downcalls
+  index: 17
+- title: Gọi lại bằng FFM
+  slug: ffm-upcalls
+  index: 18
+- title: Sinh liên kết jextract
+  slug: jextract-bindings
+  index: 19
+- title: Bộ đệm và tệp
+  slug: direct-buffers-and-files
+  index: 20
+- title: Bao bọc thư viện C++
+  slug: c-plus-plus-wrapping
+  index: 21
+- title: Quyền truy cập native
+  slug: native-access-permissions
+  index: 22
+- title: Đồng thời và tài nguyên
+  slug: native-concurrency-and-resources
+  index: 23
+- title: Chẩn đoán lỗi
+  slug: native-interop-troubleshooting
+  index: 24
+- title: Hiệu năng tương tác
+  slug: native-interop-performance
+  index: 25
+- title: Kiểm thử và phân phối
+  slug: native-testing-distribution
+  index: 26
+- title: Bài thực hành
+  slug: native-interop-practice
+  index: 27

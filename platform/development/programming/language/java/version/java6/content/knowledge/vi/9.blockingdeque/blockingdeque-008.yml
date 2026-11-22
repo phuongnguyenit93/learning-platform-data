@@ -1,0 +1,3 @@
+menuLevel1: BlockingDeque
+menuLevel2: Bảo đảm nhìn thấy dữ liệu khi chuyển phần tử giữa các luồng
+status: WRITTEN

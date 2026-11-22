@@ -1,0 +1,3 @@
+menuLevel1: Xử lý lỗi và tăng độ tin cậy khi gọi công cụ
+menuLevel2: Ngăn thực thi lặp bằng idempotency key ở công cụ có tác động
+status: ""

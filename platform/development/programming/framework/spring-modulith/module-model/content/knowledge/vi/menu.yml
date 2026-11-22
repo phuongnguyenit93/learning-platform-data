@@ -1,0 +1,372 @@
+menu:
+- level1: Mô hình tư duy
+  level2:
+  - Spring Modulith mô hình hóa phần nào của ứng dụng Spring Boot?
+  - Application module là ranh giới chức năng hay chỉ là một thư mục?
+  - API cung cấp, API yêu cầu và phần triển khai nội bộ
+  - Quan hệ giữa package, bean Spring, application event và module
+  - Từ cách sắp xếp mã đến mô hình module trong bộ nhớ
+  - Mô hình module hỗ trợ verification, documentation và testing ra sao?
+  - Phân biệt module logic trong một ứng dụng với module Gradle
+  - Khi nào một package nên trở thành module?
+  - Đánh đổi giữa mô-đun hóa, tốc độ thay đổi và độ phức tạp
+- level1: Application Module
+  level2:
+  - Cấu trúc cơ bản của một application module
+  - Base package và các package con của module
+  - API package và cách module khác được phép truy cập
+  - Internal package và mục đích che giấu triển khai
+  - Provided interface và required interface
+  - Spring bean được module cung cấp
+  - Application event được module phát ra
+  - Dependency tới bean, event listener và configuration property
+  - Đọc module như một đơn vị trách nhiệm nghiệp vụ
+- level1: ApplicationModules
+  level2:
+  - ApplicationModules là mô hình tổng của các module
+  - Khởi tạo bằng ApplicationModules.of(Application.class)
+  - Khởi tạo theo tên package gốc
+  - Quét classpath và suy ra cấu trúc package
+  - Duyệt ApplicationModule bằng stream
+  - Đọc system name và metadata toàn ứng dụng
+  - withinRootPackages và nhận diện type thuộc root package
+  - Comparator sắp xếp type theo quan hệ phụ thuộc
+  - Giữ model trong test để kiểm tra lặp lại
+- level1: ApplicationModule API
+  level2:
+  - ApplicationModule đại diện cho một module cụ thể
+  - Module base package, display name và identifier
+  - Đọc named interfaces của module
+  - Đọc direct dependencies và all dependencies
+  - Kiểm tra type có được module expose hay không
+  - Truy tìm type theo tên đơn giản hoặc tên đầy đủ
+  - Phân biệt metadata module với bean instance
+  - Giữ tên module ổn định khi refactor package
+- level1: Package arrangement
+  level2:
+  - Package của lớp ứng dụng chính làm root package
+  - Module nằm trong direct sub-package theo quy ước mặc định
+  - Vì sao package phẳng làm boundary khó nhìn?
+  - Đặt package theo capability thay vì technical layer
+  - API ở root package và implementation ở sub-package
+  - internal, spi và các package có ý nghĩa khác nhau
+  - Tránh component scan phá vỡ ý định đóng gói
+  - Package dùng chung và rủi ro tạo phụ thuộc ngầm
+  - Đọc package tree trước khi khai báo annotation
+- level1: Module boundary
+  level2:
+  - Ranh giới logic được suy ra từ package base
+  - Incoming dependency và outgoing dependency
+  - Access trực tiếp vào internal package bị xem là vi phạm
+  - Dependency qua API package so với named interface
+  - Module phụ thuộc vào type chưa thuộc module nào
+  - Shared kernel và phạm vi nên được kiểm soát
+  - Phân biệt compile dependency với dependency nghiệp vụ
+  - Ranh giới module không thay thế ranh giới database
+  - Kiểm tra boundary bằng ví dụ hợp lệ và không hợp lệ
+- level1: Named Interfaces
+  level2:
+  - Named interface là vùng API bổ sung của module
+  - '@NamedInterface trên package-info.java'
+  - '@PackageInfo khi cần biểu diễn metadata'
+  - Đặt tên named interface theo capability
+  - Cho phép module khác truy cập package được expose
+  - Module root package và named interface khác nhau thế nào?
+  - SPI package và API package trong cùng module
+  - Kiểm tra type thuộc named interface nào
+  - Giữ named interface ổn định khi thay implementation
+- level1: Allowed dependencies
+  level2:
+  - '@ApplicationModule(allowedDependencies = …) là hợp đồng phụ thuộc'
+  - Dependency tới module bằng identifier
+  - 'Dependency tới named interface bằng module :: interface'
+  - Wildcard * cho các named interface
+  - Module không khai báo allowedDependencies có hành vi gì?
+  - Allowed dependency là whitelist hay tài liệu?
+  - Phát hiện dependency ngoài danh sách cho phép
+  - Đổi module identifier và tác động tới cấu hình
+  - Kiểm thử hợp đồng sau khi thêm module mới
+- level1: Open modules
+  level2:
+  - '@ApplicationModule(type = Type.OPEN) dùng khi nào?'
+  - Open module cho phép truy cập internal ở mức nào?
+  - Unnamed named interface trong open module
+  - Named interface tường minh trong open module
+  - Open module hữu ích khi di chuyển ứng dụng legacy
+  - Open module khác module đóng gói tốt ra sao?
+  - Rủi ro dùng open module trong ứng dụng mới
+  - Đọc ảnh hưởng của Type.OPEN lên verification
+  - Thu hẹp open module theo từng bước
+- level1: Module detection
+  level2:
+  - Chiến lược phát hiện module mặc định
+  - Direct sub-packages và điều kiện được coi là module
+  - Module package không có annotation được nhận diện ra sao?
+  - Detection dựa trên package của lớp Spring Boot chính
+  - Đổi package làm thay đổi module model thế nào?
+  - Kiểm tra module được phát hiện bằng ApplicationModules
+  - Module rỗng và package chỉ chứa technical class
+  - Phát hiện nhầm package thành module
+  - Đặt quy ước package trước khi bật verification
+- level1: Explicit detection
+  level2:
+  - Detection strategy explicitly-annotated
+  - '@ApplicationModule để đánh dấu package tường minh'
+  - jMolecules @Module và quan hệ với Modulith
+  - Thiết lập spring.modulith.detection-strategy
+  - Module annotation trong package-info.java
+  - Biểu diễn metadata khi ngôn ngữ thiếu package-info.java
+  - Phân biệt module được đánh dấu với package thông thường
+  - Migration từ detection mặc định sang explicit detection
+  - Kiểm tra thiếu annotation sau khi đổi chiến lược
+- level1: Custom detection
+  level2:
+  - ApplicationModuleDetectionStrategy giải quyết bài toán nào?
+  - getModuleBasePackages(JavaPackage) và đầu vào strategy
+  - Chọn module theo quy ước tên package
+  - Chọn module theo annotation riêng
+  - Đăng ký strategy trong test sources
+  - Đồng bộ strategy giữa verification và documentation
+  - Đưa strategy vào production khi runtime cần dùng
+  - Kiểm thử strategy với package tree đại diện
+  - Đánh giá chi phí bảo trì của detection tùy biến
+- level1: Excluding packages
+  level2:
+  - Loại trừ class hoặc package khỏi module inspection
+  - ApplicationModules.of với predicate bỏ qua type
+  - JavaClass.Predicates.resideInAPackage
+  - Match package chính và match các package con
+  - Loại trừ package database khỏi model
+  - Loại trừ generated code có kiểm soát
+  - Rủi ro che vi phạm bằng exclusion quá rộng
+  - Kiểm tra model trước và sau exclusion
+  - Không dùng exclusion để thay việc sửa boundary
+- level1: Module dependencies
+  level2:
+  - Dependency graph giữa các ApplicationModule
+  - Direct dependency và transitive dependency
+  - Dependency từ field, parameter và return type
+  - Dependency từ Spring bean injection
+  - Dependency từ application event listener
+  - Dependency từ configuration property
+  - Dependency tới root package và named interface
+  - Đọc nguồn gốc dependency qua API model
+  - Static model khác hành vi runtime ra sao?
+- level1: Dependency types
+  level2:
+  - Ý nghĩa của DependencyType trong module model
+  - Class dependency được thu nhận thế nào?
+  - Spring bean dependency trong ứng dụng
+  - Event publication và event listener tạo liên hệ
+  - Configuration property như một required interface
+  - Nhóm nhiều loại dependency khi phân tích
+  - Đọc dependency source thay vì chỉ nhìn mũi tên
+  - Dependency cùng module và dependency ra ngoài
+  - Giới hạn của static inspection
+- level1: Acyclic graph
+  level2:
+  - Vì sao module graph nên là directed acyclic graph?
+  - Chu kỳ trực tiếp giữa hai module
+  - Chu kỳ dài qua ba hoặc nhiều module
+  - Chu kỳ do event listener tạo ra
+  - Chu kỳ do interface dùng chung
+  - Chia module khi phát hiện vòng phụ thuộc
+  - Đưa dependency về abstraction hoặc named interface
+  - Đảo chiều dependency bằng event hoặc port
+  - Không phá chu kỳ bằng cách mở toàn bộ module
+- level1: API và internal
+  level2:
+  - API package là cổng truy cập mặc định
+  - Internal sub-package bị chặn trong module đóng
+  - Reference tới class internal bị báo vi phạm
+  - Expose một type qua named interface
+  - Đưa interface ra API và giữ implementation bên trong
+  - Trả về kiểu internal trong API public có rủi ro gì?
+  - Generic type làm lộ internal thế nào?
+  - Đọc vị trí nguyên nhân của access violation
+  - Thiết kế API đủ nhỏ để boundary có ý nghĩa
+- level1: Module identifier
+  level2:
+  - ApplicationModuleIdentifier biểu diễn tên logic
+  - Identifier mặc định từ package hoặc tên module
+  - Display name và identifier khác nhau ra sao?
+  - Identifier trong allowedDependencies
+  - Identifier trong tài liệu và biểu đồ
+  - Giữ identifier ổn định khi đổi display name
+  - Đổi package nhưng bảo toàn hợp đồng module
+  - Tránh identifier trùng hoặc mơ hồ
+  - Đặt quy tắc tên module cho toàn ứng dụng
+- level1: ApplicationModule annotation
+  level2:
+  - '@ApplicationModule và các thuộc tính chính'
+  - allowedDependencies trong annotation
+  - type OPEN và mô hình open module
+  - systemName ở cấp ứng dụng
+  - additionalPackages làm root package bổ sung
+  - sharedModules cho kiểm thử module
+  - Đặt annotation trên package-info.java
+  - Đặt metadata trên type trong trường hợp đặc biệt
+  - Đối chiếu annotation với model thực tế
+- level1: Package metadata
+  level2:
+  - package-info.java và vai trò trong module model
+  - '@PackageInfo cung cấp metadata rõ ràng'
+  - '@NamedInterface trên package metadata'
+  - '@ApplicationModule trên package metadata'
+  - Package metadata khác Java module system thế nào?
+  - Quản lý metadata khi đổi tên package
+  - Kiểm tra compiler và IDE nhận annotation
+  - Giữ metadata gần boundary được mô tả
+  - Tránh tách metadata khỏi cấu trúc package
+- level1: Verification
+  level2:
+  - ApplicationModules.verify() kiểm tra những gì?
+  - Không có cycle ở cấp module
+  - Chỉ truy cập module khác qua API
+  - Allowed dependencies được tôn trọng
+  - verify() ném exception khi có vi phạm
+  - detectViolations() trả về tập vi phạm
+  - throwIfPresent() và thời điểm làm pipeline thất bại
+  - verify() chạy một lần so với detectViolations()
+  - Đọc thông báo vi phạm và vị trí nguyên nhân
+  - Đưa verification vào test build
+- level1: Verification options
+  level2:
+  - VerificationOptions điều khiển việc kiểm tra
+  - Verification mặc định và verification bổ sung
+  - Tắt hoặc thay đổi verification tích hợp
+  - Đăng ký additional verifications
+  - jMolecules architecture rules trong options
+  - VerificationDepth và mức nghiêm ngặt
+  - Chọn options theo mục tiêu dự án
+  - Giữ options dùng chung giữa các test
+  - Không tắt verification chỉ để build xanh
+- level1: Kiến trúc bổ sung
+  level2:
+  - Spring Modulith tích hợp jMolecules ở mức nào?
+  - DDD architecture rules khi thư viện có trên classpath
+  - Hexagonal architecture rules và verification depth
+  - Phân biệt rule Modulith với rule jMolecules
+  - Chỉ bật rule phù hợp với mô hình ứng dụng
+  - Đọc lỗi do rule bổ sung gây ra
+  - Giữ test kiến trúc độc lập và dễ chẩn đoán
+  - Đánh giá chi phí chạy rule bổ sung
+- level1: Model và Spring beans
+  level2:
+  - Bean được module cung cấp được nhận diện ra sao?
+  - SpringBean dependency và component scan
+  - Bean interface ở API package
+  - Bean implementation trong internal package
+  - Injection trực tiếp vào module khác
+  - Event listener tạo required interface
+  - Configuration property như hợp đồng module
+  - Bean proxy và ảnh hưởng tới static inspection
+  - Kiểm tra bean dependency bằng ví dụ thực tế
+- level1: Model và events
+  level2:
+  - Application event là kênh giao tiếp giữa module
+  - Module phát event và module khác lắng nghe
+  - Event listener tạo dependency không qua import
+  - Event type ở API package
+  - Event payload không lộ type internal
+  - Event publication có tạo cycle hay không?
+  - Static dependency khác choreography runtime
+  - Thiết kế event giảm coupling nhưng giữ ngữ nghĩa
+  - Kiểm thử graph khi thêm subscriber
+- level1: Model và documentation
+  level2:
+  - ApplicationModules làm nguồn cho tài liệu module
+  - Biểu diễn module graph và quan hệ phụ thuộc
+  - Module canvas và thông tin cần hiển thị
+  - API package, named interface và internal trong tài liệu
+  - systemName giúp tài liệu dễ hiểu
+  - Biểu đồ không thay thế hợp đồng access
+  - Kiểm tra tài liệu sau khi đổi package
+  - Giữ display name ổn định
+  - Đối chiếu tài liệu với package tree
+- level1: Model và tests
+  level2:
+  - Application module integration test dựa trên model
+  - Chọn module test và phạm vi context
+  - sharedModules và module luôn được đưa vào test
+  - Kiểm tra phụ thuộc module trong test
+  - Test module dùng API module khác
+  - Phát hiện test truy cập internal package
+  - Test model khác test runtime ra sao?
+  - Đưa verify vào test suite
+  - Giữ test kiến trúc ổn định trong CI
+- level1: Runtime verification
+  level2:
+  - spring-modulith-runtime cung cấp thành phần nào?
+  - ApplicationModulesRuntime và model lúc chạy
+  - RuntimeApplicationModuleVerifier
+  - Bật spring.modulith.runtime.verification-enabled
+  - Kiểm tra model lúc startup
+  - Verification test khác verification runtime
+  - Custom detection trong production sources
+  - ApplicationModuleInitializer và khởi tạo module
+  - Rủi ro ứng dụng không khởi động vì violation
+  - Đọc log startup để khoanh vùng
+- level1: Legacy modularization
+  level2:
+  - Nhận diện module trong ứng dụng legacy
+  - Khi nào dùng open module để bắt đầu di chuyển?
+  - Chia technical layer thành capability module
+  - Đưa API ra root package từng bước
+  - Đặt named interface cho vùng dùng chung
+  - Giảm dependency trực tiếp vào internal
+  - Chuyển dần sang allowedDependencies
+  - Đo tiến bộ bằng số violation và độ rõ graph
+  - Giữ hệ thống chạy được trong từng bước
+  - Xác định điểm kết thúc migration
+- level1: Cấu hình và phiên bản
+  level2:
+  - Chọn artifact Modulith theo tính năng cần dùng
+  - Quản lý version bằng Spring Modulith BOM
+  - Đối chiếu Spring Boot compatibility matrix
+  - spring.modulith.detection-strategy
+  - spring.modulith.runtime.verification-enabled
+  - Tham số test và production khác nhau thế nào?
+  - Kiểm tra thay đổi package khi nâng version
+  - Đọc appendix để phát hiện thuộc tính deprecated
+  - Không suy diễn API từ tài liệu phiên bản khác
+  - Khóa version để model tái lập trong CI
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không phát hiện được module mong đợi
+  - Package gốc của lớp ứng dụng chính bị chọn sai
+  - Module biến mất sau khi đổi detection strategy
+  - Type API bị báo là internal
+  - Named interface không được nhận diện
+  - allowedDependencies không khớp identifier
+  - Cycle xuất hiện sau khi thêm event listener
+  - Runtime verification lỗi nhưng test verification không chạy
+  - Rule bổ sung tạo lỗi ngoài dự kiến
+  - Thu thập package tree, config và version để tái hiện
+- level1: Thực hành
+  level2:
+  - Tạo ứng dụng Spring Boot có ba module chức năng
+  - Khởi tạo ApplicationModules và in module model
+  - Đặt API package và internal package
+  - Thêm @NamedInterface cho một SPI package
+  - Khai báo allowedDependencies bằng identifier
+  - Kích hoạt explicitly-annotated detection
+  - Viết custom ApplicationModuleDetectionStrategy
+  - Chạy ApplicationModules.verify() trong test
+  - Lọc violation bằng detectViolations()
+  - Bật runtime verification trong ứng dụng mẫu
+  - Thêm event listener và quan sát dependency graph
+  - Migration một package legacy thành open module
+  - Kiểm thử model sau khi đổi package
+- level1: Đánh giá thiết kế
+  level2:
+  - Xác định module boundary từ trách nhiệm nghiệp vụ
+  - Kiểm tra API, internal và named interface
+  - Đánh giá graph có cycle hoặc dependency thừa
+  - Đối chiếu allowedDependencies với nhu cầu
+  - Chọn detection strategy dễ hiểu và tái lập
+  - Quyết định có nên dùng open module
+  - Đánh giá static verification và runtime verification
+  - Kiểm tra ảnh hưởng tới docs, tests và events
+  - Đánh giá refactor mà không phá hợp đồng
+  - Tự đánh giá bằng package tree và verification evidence

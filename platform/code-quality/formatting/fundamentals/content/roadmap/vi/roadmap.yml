@@ -1,0 +1,50 @@
+roadmap:
+- id: vai-tro-cua-formatting
+  title: Vai trò của formatting
+  purpose: Hiểu mục tiêu định dạng nhất quán và ranh giới giữa trình bày mã, chất lượng mã và hành vi chương trình.
+  objectives:
+  - Giải thích code formatting và lợi ích khi đọc, review, hợp tác.
+  - Phân biệt formatting với linting và refactoring.
+  - Nhận biết thay đổi chỉ về trình bày trong một diff.
+- id: khoang-trang-ky-tu-dong
+  title: Khoảng trắng & ký tự dòng
+  purpose: Chuẩn hóa những chi tiết văn bản thường gây diff nhiễu và lỗi hiển thị giữa môi trường.
+  objectives:
+  - Phân biệt tab và space; chọn độ thụt lề thống nhất.
+  - Kiểm tra CRLF/LF, khoảng trắng cuối dòng và dòng trống cuối tệp.
+  - Xác định mã hóa UTF-8 khi lưu tệp nguồn.
+- id: khoi-lenh-ngat-dong
+  title: Khối lệnh & ngắt dòng
+  purpose: Giữ cấu trúc mã dễ theo dõi bằng quy tắc căn lề, dấu ngoặc và xuống dòng ổn định.
+  objectives:
+  - Áp dụng quy tắc thụt lề cho khối lồng nhau.
+  - Nhận diện vị trí dấu ngoặc, dấu cách và ngắt dòng.
+  - So sánh cách bọc dòng dài mà không đổi ý nghĩa mã.
+- id: imports-chu-thich-bo-cuc
+  title: Imports, chú thích & bố cục
+  purpose: Giúp tệp nguồn có cấu trúc dễ quét và nhất quán tại các vùng ngoài thân hàm.
+  objectives:
+  - Tổ chức nhóm import và khoảng cách giữa các phần.
+  - Giữ định dạng chú thích và tài liệu mã nguồn dễ đọc.
+  - Nhận biết giới hạn của tự động sắp xếp hoặc xóa import.
+- id: quy-uoc-cau-hinh
+  title: Quy ước & cấu hình
+  purpose: Biến lựa chọn trình bày thành quy tắc có thể chia sẻ và tái lập giữa các thành viên.
+  objectives:
+  - Đọc các nguyên tắc trong một style guide.
+  - Thiết lập lựa chọn cơ bản bằng .editorconfig.
+  - Phân biệt quy tắc chung với quy tắc theo ngôn ngữ.
+- id: formatter-tu-dong
+  title: Formatter tự động
+  purpose: Sử dụng công cụ định dạng nhất quán thay cho chỉnh tay những quy tắc lặp lại.
+  objectives:
+  - Thực hiện format qua IDE hoặc CLI trên mã ví dụ.
+  - Phân biệt chế độ kiểm tra và chế độ sửa.
+  - 'Kiểm chứng tính lặp lại: format hai lần không phát sinh diff.'
+- id: review-tich-hop-nhom
+  title: Review & tích hợp nhóm
+  purpose: Đưa formatting vào quy trình phát triển để giảm xung đột và tránh thay đổi ngoài ý muốn.
+  objectives:
+  - Kiểm tra diff để tách thay đổi định dạng khỏi thay đổi logic.
+  - Thiết lập kiểm tra format tự động trước khi merge.
+  - Nhận diện ngoại lệ như tệp sinh, mã bên thứ ba và literal nhạy cảm.

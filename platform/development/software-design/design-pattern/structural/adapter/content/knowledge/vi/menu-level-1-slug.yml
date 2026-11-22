@@ -1,0 +1,76 @@
+menu:
+  - title: "Tổng quan Adapter"
+    slug: adapter-overview
+    index: 0
+  - title: "Bài toán tương thích"
+    slug: interface-incompatibilities
+    index: 1
+  - title: "Cấu trúc Adapter"
+    slug: adapter-structure
+    index: 2
+  - title: "Hợp đồng giao diện"
+    slug: interface-contracts
+    index: 3
+  - title: "Object Adapter"
+    slug: object-adapter
+    index: 4
+  - title: "Class Adapter"
+    slug: class-adapter
+    index: 5
+  - title: "Biến thể Adapter"
+    slug: adapter-variants
+    index: 6
+  - title: "Chuyển đổi dữ liệu"
+    slug: data-conversion
+    index: 7
+  - title: "Chuyển đổi hành vi"
+    slug: behavior-adaptation
+    index: 8
+  - title: "Thiết kế Java"
+    slug: java-implementation
+    index: 9
+  - title: "Lỗi và ngoại lệ"
+    slug: error-and-exception-handling
+    index: 10
+  - title: "Tài nguyên và trạng thái"
+    slug: resource-and-state-management
+    index: 11
+  - title: "Đồng bộ và bất đồng bộ"
+    slug: sync-and-async-adaptation
+    index: 12
+  - title: "Tích hợp SDK"
+    slug: sdk-integration
+    index: 13
+  - title: "Kết nối hệ thống cũ"
+    slug: legacy-system-integration
+    index: 14
+  - title: "Vai trò kiến trúc"
+    slug: architectural-role
+    index: 15
+  - title: "Kiểm thử đơn vị"
+    slug: unit-testing
+    index: 16
+  - title: "Kiểm thử tích hợp"
+    slug: integration-testing
+    index: 17
+  - title: "Hiệu năng và vận hành"
+    slug: performance-and-observability
+    index: 18
+  - title: "Tái cấu trúc với Adapter"
+    slug: refactoring-with-adapters
+    index: 19
+  - title: "So sánh mẫu thiết kế"
+    slug: design-pattern-comparisons
+    index: 20
+  - title: "Lỗi thiết kế thường gặp"
+    slug: common-design-mistakes
+    index: 21
+  - title: "Ví dụ Java thực tế"
+    slug: practical-java-examples
+    index: 22
+  - title: "Bài tập thực hành"
+    slug: hands-on-exercises
+    index: 23
+  - title: "Đánh giá thiết kế"
+    slug: design-review
+    index: 24

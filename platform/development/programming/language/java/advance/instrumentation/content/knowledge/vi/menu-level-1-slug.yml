@@ -1,0 +1,58 @@
+menu:
+- title: Bức tranh instrumentation
+  slug: instrumentation-overview
+  index: 0
+- title: Nền tảng class file
+  slug: class-file-fundamentals
+  index: 1
+- title: Agent khi khởi động
+  slug: startup-java-agents
+  index: 2
+- title: Attach vào JVM
+  slug: dynamic-jvm-attach
+  index: 3
+- title: Khả năng Instrumentation
+  slug: instrumentation-capabilities
+  index: 4
+- title: Hợp đồng transformer
+  slug: class-file-transformer-contract
+  index: 5
+- title: Chuỗi biến đổi
+  slug: transformer-chaining
+  index: 6
+- title: Class-File API
+  slug: class-file-api
+  index: 7
+- title: Thiết kế điểm đo
+  slug: probe-design
+  index: 8
+- title: Retransformation
+  slug: class-retransformation
+  index: 9
+- title: Redefinition
+  slug: class-redefinition
+  index: 10
+- title: Class loader và helper
+  slug: class-loaders-and-helpers
+  index: 11
+- title: Instrumentation và module
+  slug: module-aware-instrumentation
+  index: 12
+- title: Khảo sát khi chạy
+  slug: runtime-class-inspection
+  index: 13
+- title: Native và JVM TI
+  slug: native-method-and-jvmti
+  index: 14
+- title: Đồng thời và hiệu năng
+  slug: instrumentation-concurrency-performance
+  index: 15
+- title: Đóng gói và triển khai
+  slug: agent-packaging-deployment
+  index: 16
+- title: Kiểm thử và chẩn đoán
+  slug: instrumentation-testing-diagnostics
+  index: 17
+- title: Thực nghiệm agent
+  slug: java-agent-practice
+  index: 18

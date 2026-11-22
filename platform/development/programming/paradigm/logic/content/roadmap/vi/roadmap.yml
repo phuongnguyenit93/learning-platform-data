@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-lap-trinh-logic
+  title: Tư duy lập trình logic
+  purpose: Nắm cách mô tả tri thức và quan hệ để bộ suy diễn tìm lời giải thay vì viết chuỗi bước xử lý.
+  objectives:
+  - Phân biệt lập trình khai báo với mệnh lệnh
+  - Giải thích facts, rules và goals theo logic mệnh đề
+  - Nhận diện vai trò Horn clauses trong Prolog
+- id: facts-rules-predicates
+  title: Facts, Rules & Predicates
+  purpose: Biểu diễn một miền bài toán bằng các mệnh đề có thể truy vấn và suy diễn.
+  objectives:
+  - Viết fact và rule trong Prolog
+  - Phân biệt tên predicate và số đối số (arity)
+  - Tạo cơ sở tri thức quan hệ đơn giản
+- id: terms-unification
+  title: Terms & Unification
+  purpose: Hiểu cách biến logic nhận giá trị và cách Prolog ghép các biểu thức tương thích.
+  objectives:
+  - Phân biệt atom, number, variable, compound term và list
+  - Thực hiện unification với =/2
+  - Nhận diện điểm khác giữa unification và assignment
+- id: queries-backtracking
+  title: Queries & Backtracking
+  purpose: Suy luận nhiều đáp án từ cùng tập quy tắc và hiểu cơ chế tìm kiếm của trình thông dịch.
+  objectives:
+  - Viết truy vấn với biến và nhiều goals
+  - Giải thích lựa chọn clause, goal order và backtracking
+  - Thu thập nhiều nghiệm với findall/3
+- id: de-quy-danh-sach
+  title: Đệ quy & Danh sách
+  purpose: Xây dựng quan hệ phức tạp bằng các quy tắc đệ quy có điểm dừng và mẫu cấu trúc dữ liệu.
+  objectives:
+  - Viết quy tắc đệ quy với base case
+  - Phân tách list theo [Head|Tail]
+  - Tạo các predicate như member hoặc ancestor
+- id: phu-dinh-dieu-khien
+  title: Phủ định & Điều khiển
+  purpose: Nhận diện những trường hợp tính đúng đắn hoặc số nghiệm phụ thuộc vào cách Prolog thực thi.
+  objectives:
+  - Giải thích negation as failure và giới hạn closed-world
+  - Phân biệt cut (!), fail và điều kiện
+  - Phát hiện loop hoặc mất nghiệm do thứ tự goals
+- id: constraint-logic-programming
+  title: Constraint Logic Programming
+  purpose: Diễn đạt quan hệ số học và ràng buộc trước khi yêu cầu bộ giải tìm giá trị thỏa mãn.
+  objectives:
+  - 'Dùng CLP(FD) với #=, #< và miền giá trị'
+  - Phân biệt constraints với phép tính is/2
+  - Giải bài toán phân công hoặc xếp lịch đơn giản
+- id: mo-hinh-hoa-kiem-thu
+  title: Mô hình hóa & Kiểm thử
+  purpose: Áp dụng lập trình logic vào một bài toán nhỏ và kiểm chứng cả nghiệm đúng lẫn phản ví dụ.
+  objectives:
+  - Mô hình hóa quan hệ và truy vấn trên dữ liệu mẫu
+  - Viết unit test với plunit cho predicate
+  - Dùng trace/debug để kiểm tra đường suy diễn

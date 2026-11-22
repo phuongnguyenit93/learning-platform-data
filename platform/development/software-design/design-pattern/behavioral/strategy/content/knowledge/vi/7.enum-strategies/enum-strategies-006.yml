@@ -1,0 +1,3 @@
+menuLevel1: Strategy bằng enum
+menuLevel2: Tránh trạng thái theo yêu cầu và phụ thuộc có vòng đời ngắn trong hằng enum dùng chung
+status: ""

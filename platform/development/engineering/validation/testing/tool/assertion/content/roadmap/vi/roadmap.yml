@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-assertion
+  title: Tư duy Assertion
+  purpose: Hiểu assertion là điều kiện kiểm chứng kết quả thực tế theo hành vi mong đợi của phần mềm.
+  objectives:
+  - Phân biệt expected, actual và assertion failure.
+  - Viết điều kiện kiểm chứng cho một hàm Java đơn giản.
+  - Phân biệt test setup, hành động và bước assert.
+- id: gia-tri-equality
+  title: Giá trị & Equality
+  purpose: Chọn phép kiểm tra phù hợp với số, boolean, null và quan hệ bằng nhau của đối tượng.
+  objectives:
+  - Dùng assertEquals, assertTrue và assertNotNull.
+  - Phân biệt equals với same reference.
+  - Kiểm tra số thực bằng sai số cho phép.
+- id: string-collections
+  title: String & Collections
+  purpose: Xác minh kết quả dạng chuỗi, mảng và tập hợp mà không phụ thuộc chi tiết không liên quan.
+  objectives:
+  - Kiểm tra chuỗi chứa tiền tố hoặc đoạn cần tìm.
+  - So sánh danh sách theo thứ tự khi đặc tả yêu cầu.
+  - Kiểm tra kích thước và phần tử của collection.
+- id: exception-assertions
+  title: Exception Assertions
+  purpose: Xác nhận lỗi dự kiến và bảo đảm chương trình không ném ngoại lệ ngoài mong muốn.
+  objectives:
+  - Dùng assertThrows cho exception phù hợp.
+  - Kiểm tra thông điệp hoặc thuộc tính của lỗi khi cần.
+  - Thử assertDoesNotThrow cho trường hợp hợp lệ.
+- id: fluent-assertions-matchers
+  title: Fluent Assertions & Matchers
+  purpose: Viết điều kiện dễ đọc cho thuộc tính, đối tượng lồng nhau và dữ liệu phức tạp.
+  objectives:
+  - Viết assertion chuỗi bằng AssertJ assertThat.
+  - Dùng extracting hoặc recursive comparison đúng mục đích.
+  - So sánh cú pháp matcher của Hamcrest với AssertJ.
+- id: grouped-soft-assertions
+  title: Grouped & Soft Assertions
+  purpose: Kiểm tra nhiều thuộc tính liên quan và nhận phản hồi đầy đủ hơn khi một số điều kiện thất bại.
+  objectives:
+  - Gộp kiểm tra độc lập bằng JUnit assertAll.
+  - Phân biệt fail-fast với AssertJ soft assertions.
+  - Đảm bảo soft assertions được kết thúc bằng assertAll.
+- id: thong-bao-loi-bien
+  title: Thông báo lỗi & Biên
+  purpose: Tạo assertion giúp xác định đúng nguyên nhân lỗi và bao phủ những trạng thái quan trọng.
+  objectives:
+  - Thêm failure message mô tả hành vi mong đợi.
+  - Thử dữ liệu rỗng, biên và giá trị không hợp lệ.
+  - Tránh assertion quá chung hoặc trói vào implementation.
+- id: timeout-chat-luong-test
+  title: Timeout & Chất lượng Test
+  purpose: Dùng assertion ổn định để hạn chế false positive và kiểm soát hành vi có giới hạn thời gian.
+  objectives:
+  - Dùng assertTimeout cho tác vụ có thời hạn hợp lý.
+  - Nhận diện rủi ro assertTimeoutPreemptively với ThreadLocal.
+  - Refactor test giòn, chạy lại và kiểm tra lỗi rõ ràng.

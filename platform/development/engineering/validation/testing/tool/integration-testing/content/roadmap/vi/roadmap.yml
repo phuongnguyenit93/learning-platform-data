@@ -1,0 +1,55 @@
+roadmap:
+- id: pham-vi-integration-test
+  title: Phạm vi Integration Test
+  purpose: Kiểm chứng các thành phần thật phối hợp đúng tại ranh giới dữ liệu và dịch vụ.
+  objectives:
+  - Phân biệt unit, integration và end-to-end test.
+  - Chọn luồng API–service–database cần kiểm thử tích hợp.
+- id: junit-test-lifecycle
+  title: JUnit & Test Lifecycle
+  purpose: Tổ chức kịch bản tích hợp có thiết lập, kiểm tra và dọn dẹp rõ ràng.
+  objectives:
+  - Viết test JUnit Jupiter với @Test và assertions.
+  - Dùng @BeforeEach/@AfterEach và đặt tên test theo hành vi.
+- id: spring-test-http
+  title: Spring Test & HTTP
+  purpose: Chạy luồng nghiệp vụ qua Spring context và kiểm tra hợp đồng HTTP.
+  objectives:
+  - Dùng @SpringBootTest để tải cấu hình tích hợp.
+  - Kiểm tra request, response và status bằng MockMvc hoặc HTTP client.
+- id: dich-vu-that-voi-testcontainers
+  title: Dịch vụ thật với Testcontainers
+  purpose: Tăng độ tin cậy của test bằng database hoặc broker cùng loại với môi trường chạy.
+  objectives:
+  - Khởi tạo PostgreSQL container cho integration test.
+  - Kết nối datasource và kiểm tra thao tác ghi/đọc thực tế.
+- id: gia-lap-api-ngoai-voi-wiremock
+  title: Giả lập API ngoài với WireMock
+  purpose: Chủ động tạo phản hồi của phụ thuộc HTTP không thuộc phạm vi kiểm thử.
+  objectives:
+  - Stub API trả về 200, 4xx, 5xx hoặc timeout.
+  - Xác minh request gửi ra đúng path, header và payload.
+- id: fixture-co-lap-du-lieu
+  title: Fixture & Cô lập dữ liệu
+  purpose: Giữ kết quả ổn định khi test chạy lặp lại hoặc song song.
+  objectives:
+  - Tạo dữ liệu đầu vào cố định bằng fixture hoặc migration.
+  - Dọn/reset database và tránh phụ thuộc thứ tự test.
+- id: event-bat-dong-bo
+  title: Event & Bất đồng bộ
+  purpose: Kiểm tra luồng xử lý qua message hoặc background task mà không dùng sleep cứng.
+  objectives:
+  - Phát sự kiện và xác minh trạng thái cuối cùng bằng Awaitility.
+  - Đặt timeout và điều kiện hoàn thành có thể kiểm chứng.
+- id: loi-bao-mat-luong
+  title: Lỗi & Bảo mật luồng
+  purpose: Bảo đảm tích hợp xử lý lỗi và phân quyền xuyên suốt các lớp.
+  objectives:
+  - Kiểm tra validation, 401/403 và rollback phù hợp.
+  - Mô phỏng dependency unavailable rồi xác minh hành vi retry/fallback.
+- id: ci-chan-doan-flaky-test
+  title: CI & Chẩn đoán Flaky Test
+  purpose: Chạy bộ tích hợp lặp lại được và nhanh chóng tìm nguyên nhân thất bại.
+  objectives:
+  - Tích hợp Maven Failsafe vào mvn verify trên CI.
+  - Thu thập log, kết quả test và xử lý flaky do thời gian/tài nguyên.

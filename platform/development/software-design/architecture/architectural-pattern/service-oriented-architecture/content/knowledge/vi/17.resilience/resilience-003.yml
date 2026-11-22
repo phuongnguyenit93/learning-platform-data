@@ -1,0 +1,3 @@
+menuLevel1: Khả năng phục hồi
+menuLevel2: Retry với backoff, jitter và giới hạn số lần
+status: ''

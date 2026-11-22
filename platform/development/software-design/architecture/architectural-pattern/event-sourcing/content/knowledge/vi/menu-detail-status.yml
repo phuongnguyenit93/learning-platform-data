@@ -1,0 +1,2749 @@
+menu:
+- slug: concepts-and-architecture
+  title: Tổng quan
+  childs:
+  - slug: concepts-and-architecture-001
+    title: Event Sourcing là gì và vì sao lưu chuỗi sự kiện thay cho chỉ lưu trạng thái hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concepts-and-architecture-002
+    title: Sự kiện nghiệp vụ bất biến làm nguồn dữ liệu chuẩn để tái dựng trạng thái aggregate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concepts-and-architecture-003
+    title: 'Các thành phần chính: command handler, aggregate, event store, projection và read model'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concepts-and-architecture-004
+    title: Vòng đời từ ý định nghiệp vụ đến lưu sự kiện và cập nhật dữ liệu phục vụ truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concepts-and-architecture-005
+    title: Phân biệt Event Sourcing với CRUD, audit log và lưu lịch sử thay đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concepts-and-architecture-006
+    title: Phân biệt Event Sourcing với Event-Driven Architecture, messaging và CDC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concepts-and-architecture-007
+    title: Quan hệ giữa Event Sourcing, CQRS và Domain-Driven Design
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concepts-and-architecture-008
+    title: Lợi ích, chi phí vận hành và giới hạn của việc lấy lịch sử làm nguồn sự thật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-from-events
+  title: Tư duy trạng thái
+  childs:
+  - slug: state-from-events-001
+    title: Trạng thái hiện tại là kết quả fold chuỗi sự kiện theo thứ tự xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-from-events-002
+    title: Phân biệt ý định trong command, sự thật trong event và dữ liệu dẫn xuất trong projection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-from-events-003
+    title: 'Hàm tiến hóa trạng thái: trạng thái trước, sự kiện đầu vào và trạng thái sau'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-from-events-004
+    title: Tính xác định khi áp dụng sự kiện và ảnh hưởng của thời gian, số ngẫu nhiên, dữ liệu bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-from-events-005
+    title: Tái dựng trạng thái tại một phiên bản hoặc một thời điểm trong lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-from-events-006
+    title: Phân biệt lịch sử nghiệp vụ với cách diễn giải lịch sử của từng read model
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-from-events-007
+    title: Bất biến của sự kiện đã ghi và cách biểu diễn sửa sai bằng sự kiện mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-from-events-008
+    title: Tách việc áp dụng sự kiện quá khứ khỏi việc kiểm tra quy tắc cho command mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: adoption-and-scope
+  title: Phạm vi áp dụng
+  childs:
+  - slug: adoption-and-scope-001
+    title: Nhận diện miền nghiệp vụ cần truy vết quyết định và lịch sử có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-and-scope-002
+    title: Đánh giá nhu cầu tái dựng trạng thái, phân tích lịch sử và tạo góc nhìn mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-and-scope-003
+    title: 'Các tình huống phù hợp: đơn hàng, tồn kho, sổ cái và quy trình nhiều bước'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-and-scope-004
+    title: 'Các tình huống ít phù hợp: CRUD đơn giản, lịch sử ít giá trị và dữ liệu thay đổi quá lớn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-and-scope-005
+    title: Đánh giá chi phí nhận thức, lưu trữ, độ trễ nhất quán và năng lực vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-and-scope-006
+    title: Áp dụng Event Sourcing có chọn lọc theo bounded context và aggregate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-and-scope-007
+    title: Kết hợp mô hình lưu trạng thái với mô hình lưu sự kiện trong cùng hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-and-scope-008
+    title: Ghi nhận quyết định kiến trúc, giả định và tiêu chí dừng hoặc điều chỉnh cách áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-modeling
+  title: Mô hình miền
+  childs:
+  - slug: domain-modeling-001
+    title: Xác định bounded context, ngôn ngữ chung và chủ sở hữu dữ liệu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-002
+    title: Khám phá sự kiện, command và chính sách nghiệp vụ bằng Event Storming
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-003
+    title: Chọn aggregate root làm ranh giới nhất quán và đơn vị lưu event stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-004
+    title: Phân biệt entity, value object, aggregate và process manager trong mô hình sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-005
+    title: Tìm bất biến nghiệp vụ và xác định dữ liệu cần để kiểm tra command
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-006
+    title: Thiết kế kích thước aggregate để cân bằng tính nhất quán, độ tranh chấp và chi phí nạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-007
+    title: Mô hình hóa vòng đời aggregate qua các trạng thái và chuyển tiếp hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-008
+    title: Giảm phụ thuộc giữa aggregate bằng định danh và sự kiện có ý nghĩa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-009
+    title: Tách sự kiện nội bộ của miền khỏi hợp đồng tích hợp giữa các bounded context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-design
+  title: Thiết kế sự kiện
+  childs:
+  - slug: event-design-001
+    title: Đặt tên sự kiện theo sự thật đã xảy ra và ngôn ngữ nghiệp vụ ở thì quá khứ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-002
+    title: Chọn độ hạt sự kiện đủ diễn đạt quyết định mà không phụ thuộc cấu trúc bảng hoặc giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-003
+    title: Thiết kế payload chứa đủ dữ liệu để diễn giải và tái dựng lịch sử lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-004
+    title: Tách payload nghiệp vụ khỏi envelope và metadata kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-005
+    title: Thiết kế event ID, event type, schema version và thông tin nguồn phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-006
+    title: Gắn correlation ID, causation ID và command ID để theo dõi chuỗi nguyên nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-007
+    title: Ghi nhận tác nhân, lý do và ngữ cảnh quyết định với mức dữ liệu cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-008
+    title: Biểu diễn tiền tệ, đơn vị đo, số thập phân và giá trị đặc biệt ổn định qua thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-009
+    title: Xử lý dữ liệu tham chiếu có thể thay đổi mà vẫn giữ ý nghĩa lịch sử của sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-design-010
+    title: Thiết kế sự kiện điều chỉnh, đảo tác động và hủy nghiệp vụ mà không sửa sự kiện cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity-and-time
+  title: Định danh và thời gian
+  childs:
+  - slug: identity-and-time-001
+    title: Thiết kế aggregate ID, stream ID và quy tắc đặt tên stream theo miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-time-002
+    title: Phân biệt event ID, số thứ tự trong stream và vị trí trong log dùng cho đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-time-003
+    title: Bảo đảm định danh không trùng và không suy diễn thứ tự chỉ từ ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-time-004
+    title: Phân biệt thời điểm nghiệp vụ xảy ra, thời điểm ghi nhận và thời điểm xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-time-005
+    title: Quy ước múi giờ, độ chính xác thời gian và biểu diễn timestamp nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-time-006
+    title: Xử lý lệch đồng hồ và xác định thứ tự bằng phiên bản thay vì chỉ dùng timestamp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-time-007
+    title: Mô hình hóa sự kiện đến muộn hoặc có hiệu lực hồi tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-time-008
+    title: Truy vấn theo thời gian hiệu lực và thời gian hệ thống biết thông tin khi nghiệp vụ yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: command-processing
+  title: Xử lý command
+  childs:
+  - slug: command-processing-001
+    title: Thiết kế command như ý định nghiệp vụ có đầu vào và kết quả rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-002
+    title: 'Luồng xử lý: xác thực, nạp aggregate, quyết định, append sự kiện và trả kết quả'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-003
+    title: Phân biệt kiểm tra định dạng, phân quyền và kiểm tra bất biến nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-004
+    title: Tách command handler điều phối khỏi logic quyết định của aggregate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-005
+    title: Sinh không, một hoặc nhiều sự kiện từ một command và xác định ý nghĩa kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-006
+    title: Thiết kế command ID và idempotency key cho yêu cầu gửi lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-007
+    title: Lưu dấu kết quả xử lý để trả lại phản hồi ổn định khi command bị lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-008
+    title: Phân biệt từ chối nghiệp vụ, xung đột phiên bản và lỗi hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-009
+    title: Xử lý timeout khi chưa biết append đã thành công hay chưa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-processing-010
+    title: Đặt ranh giới cho tác dụng phụ bên ngoài và công việc chỉ được thực hiện sau commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregates-and-invariants
+  title: Aggregate và bất biến
+  childs:
+  - slug: aggregates-and-invariants-001
+    title: Khởi tạo aggregate từ trạng thái rỗng và chuỗi sự kiện đã lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-002
+    title: Áp dụng từng loại sự kiện để cập nhật trạng thái mà không phát sinh tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-003
+    title: Kiểm tra bất biến trên trạng thái hiện tại trước khi tạo sự kiện mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-004
+    title: Quản lý phiên bản đã đọc, sự kiện chưa commit và trạng thái sau quyết định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-005
+    title: Phân biệt tạo aggregate mới, aggregate chưa tồn tại và aggregate đã kết thúc vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-006
+    title: Đưa thời gian hiện tại và kết quả dịch vụ ngoài vào bước quyết định một cách có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-007
+    title: Xử lý quy tắc nghiệp vụ thay đổi mà vẫn tái dựng được lịch sử hợp lệ trước đây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-008
+    title: Tránh đọc projection có độ trễ để kiểm tra bất biến cần nhất quán mạnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-store-design
+  title: Thiết kế event store
+  childs:
+  - slug: event-store-design-001
+    title: 'Các năng lực cốt lõi: append, đọc stream, kiểm tra phiên bản và theo dõi sự kiện mới'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-002
+    title: Mô hình bản ghi gồm stream ID, stream version, event ID, type, payload và metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-003
+    title: Định nghĩa append có điều kiện bằng expected version
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-004
+    title: Bảo đảm ghi nguyên tử toàn bộ nhóm sự kiện của một command trong một stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-005
+    title: Thiết kế API đọc stream theo chiều, phiên bản bắt đầu và giới hạn phân trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-006
+    title: Ràng buộc duy nhất cho phiên bản trong stream và chính sách chống trùng event ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-007
+    title: Phân biệt event store lưu nguồn sự thật với message broker phục vụ phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-008
+    title: Phân biệt thứ tự trong stream với thứ tự toàn cục và khả năng thực tế của từng storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-009
+    title: Hợp đồng đối với stream chưa tồn tại, stream rỗng, stream đóng và stream bị xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-store-design-010
+    title: Kiểm tra tính đầy đủ, khả năng giải mã và tính liên tục của lịch sử đã lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-and-indexing
+  title: Lưu trữ và chỉ mục
+  childs:
+  - slug: storage-and-indexing-001
+    title: Thiết kế bảng sự kiện trên cơ sở dữ liệu quan hệ và ranh giới transaction cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-indexing-002
+    title: Đánh giá event store chuyên dụng theo bảo đảm nhất quán và chức năng đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-indexing-003
+    title: Lựa chọn định dạng serialization theo độ bền hợp đồng và khả năng tiến hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-indexing-004
+    title: Thiết kế chỉ mục phục vụ đọc stream, kiểm tra phiên bản và quét sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-indexing-005
+    title: Phân vùng dữ liệu theo stream, tenant hoặc thời gian và hệ quả với thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-indexing-006
+    title: Xử lý payload lớn bằng tham chiếu có kiểm soát và bảo đảm tài nguyên được lưu lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-indexing-007
+    title: Nén dữ liệu, lưu trữ theo tầng và cân bằng chi phí đọc lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-indexing-008
+    title: Quản lý kết nối, giới hạn kích thước batch và tránh khóa quá rộng khi append
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-durability
+  title: Giao dịch và độ bền
+  childs:
+  - slug: transactions-and-durability-001
+    title: Xác định điểm commit và thời điểm có thể xác nhận command thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-durability-002
+    title: Bảo đảm không xuất hiện nhóm sự kiện chỉ được ghi một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-durability-003
+    title: Phân biệt tính nguyên tử, khả năng nhìn thấy dữ liệu và độ bền sau sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-durability-004
+    title: Chọn mức cô lập và ràng buộc dữ liệu phù hợp với cơ chế append có điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-durability-005
+    title: Phân tích sự cố trước commit, sau commit và trong lúc trả phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-durability-006
+    title: Thiết kế retry ghi dữ liệu khi kết quả lần ghi trước chưa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-durability-007
+    title: Đánh giá giao dịch nhiều stream và giới hạn hỗ trợ của storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-durability-008
+    title: Kiểm chứng bảo đảm độ bền khi failover, mất kết nối hoặc mất node
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-and-conflicts
+  title: Đồng thời và xung đột
+  childs:
+  - slug: concurrency-and-conflicts-001
+    title: Optimistic concurrency bằng expected version và so sánh phiên bản khi append
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-002
+    title: Phát hiện hai command cùng quyết định trên một phiên bản aggregate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-003
+    title: Phân biệt xung đột kỹ thuật có thể thử lại với xung đột nghiệp vụ phải từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-004
+    title: Nạp lại lịch sử và đánh giá lại toàn bộ command trước khi retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-005
+    title: Áp dụng backoff, jitter và giới hạn retry để tránh khuếch đại tranh chấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-006
+    title: Thiết kế thao tác có tính giao hoán khi ngữ nghĩa nghiệp vụ cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-007
+    title: Dùng khóa hoặc xử lý tuần tự theo aggregate và đánh giá giới hạn của từng cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-008
+    title: Phát hiện hot aggregate và điều chỉnh ranh giới hoặc cách phân bổ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-conflicts-009
+    title: Bảo vệ tính duy nhất và giới hạn tài nguyên xuyên aggregate bằng cơ chế phối hợp rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ordering-and-delivery
+  title: Thứ tự và phân phối
+  childs:
+  - slug: ordering-and-delivery-001
+    title: 'Xác định phạm vi cần giữ thứ tự: một aggregate, một partition hay nhiều stream'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-delivery-002
+    title: Chọn partition key để giữ các sự kiện của cùng aggregate trên cùng tuyến xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-delivery-003
+    title: Phân biệt thứ tự ghi, thứ tự công bố, thứ tự nhận và thứ tự hoàn thành xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-delivery-004
+    title: Phát hiện sự kiện trùng, khoảng trống phiên bản và sự kiện đến sai thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-delivery-005
+    title: Thiết kế bộ đệm, chờ bổ sung hoặc đọc lại stream khi thiếu sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-delivery-006
+    title: Bảo toàn thứ tự cần thiết khi tăng số consumer và khi rebalance partition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-delivery-007
+    title: Theo dõi quan hệ nhân quả giữa stream mà không giả định luôn có thứ tự toàn cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-delivery-008
+    title: Phân tích đánh đổi giữa yêu cầu thứ tự, độ trễ, thông lượng và khả năng chịu lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-publishing
+  title: Công bố sự kiện
+  childs:
+  - slug: event-publishing-001
+    title: Nhận diện lỗi dual write giữa event store và message broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-publishing-002
+    title: Đọc log sự kiện đã commit để công bố theo khả năng của event store
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-publishing-003
+    title: Áp dụng transactional outbox khi sự kiện và outbox có thể commit cùng giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-publishing-004
+    title: Theo dõi vị trí công bố, xác nhận gửi và retry sau khi publisher khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-publishing-005
+    title: Chấp nhận khả năng công bố lặp và giữ event ID ổn định qua các lần gửi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-publishing-006
+    title: Phân biệt domain event được lưu với integration event được công bố ra ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-publishing-007
+    title: Xử lý broker ngừng hoạt động, backlog tăng và áp lực ngược lên publisher
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-publishing-008
+    title: Đối soát sự kiện đã commit với sự kiện đã công bố để phát hiện mất hoặc bỏ sót
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: subscriptions-and-checkpoints
+  title: Subscription và checkpoint
+  childs:
+  - slug: subscriptions-and-checkpoints-001
+    title: Phân biệt subscription quét bù lịch sử, theo dõi trực tiếp và subscription bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-002
+    title: Chuyển từ đọc lịch sử sang theo dõi sự kiện mới mà không tạo khoảng trống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-003
+    title: Thiết kế checkpoint theo consumer, projection, partition và thế hệ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-004
+    title: Commit cập nhật projection và checkpoint nguyên tử khi cùng storage hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-005
+    title: Dùng inbox hoặc dấu xử lý khi checkpoint và tác dụng xử lý nằm khác storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-006
+    title: Chọn thời điểm acknowledge để cân bằng nguy cơ lặp và nguy cơ mất xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-007
+    title: Quản lý quyền sở hữu partition, lease và consumer lỗi hoặc mất kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-008
+    title: Phân loại lỗi tạm thời, sự kiện không xử lý được và chính sách đưa vào hàng chờ lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subscriptions-and-checkpoints-009
+    title: Retry, xử lý lại hàng chờ lỗi và giữ đúng quan hệ thứ tự của dữ liệu phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: projections
+  title: Projection
+  childs:
+  - slug: projections-001
+    title: Thiết kế projection từ nhu cầu đọc và hợp đồng dữ liệu cần cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-002
+    title: Chuyển sự kiện thành bảng tra cứu, dữ liệu tổng hợp, chỉ mục tìm kiếm hoặc cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-003
+    title: Thiết kế projector có tính xác định và kiểm soát tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-004
+    title: Cập nhật idempotent bằng event ID, stream version hoặc vị trí đã xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-005
+    title: Xử lý thao tác tăng giảm, upsert và xóa logic khi sự kiện có thể được nhận lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-006
+    title: Thiết kế projection nhận sự kiện từ nhiều aggregate và nhiều loại sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-007
+    title: Giải quyết dữ liệu tham chiếu đến muộn và quan hệ phụ thuộc giữa các projection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-008
+    title: Quản lý phiên bản projection độc lập với phiên bản schema của sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-009
+    title: Xử lý sự kiện điều chỉnh, hủy và đến muộn trong dữ liệu tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: projections-010
+    title: Đối soát projection với nguồn sự kiện để phát hiện và sửa dữ liệu lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cqrs-and-queries
+  title: CQRS và truy vấn
+  childs:
+  - slug: cqrs-and-queries-001
+    title: Tách mô hình ghi bảo vệ bất biến khỏi mô hình đọc tối ưu theo truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cqrs-and-queries-002
+    title: Áp dụng CQRS cùng Event Sourcing và nhận diện phần có thể triển khai độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cqrs-and-queries-003
+    title: Thiết kế API command và query với trách nhiệm, kết quả và lỗi rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cqrs-and-queries-004
+    title: Chọn storage cho read model theo kiểu truy vấn và nhu cầu cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cqrs-and-queries-005
+    title: Thiết kế nhiều read model cho danh sách, chi tiết, thống kê và tìm kiếm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cqrs-and-queries-006
+    title: Phân trang, lọc và sắp xếp trên dữ liệu projection đang tiếp tục thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cqrs-and-queries-007
+    title: Cung cấp truy vấn lịch sử và truy vấn tại phiên bản với ngữ nghĩa rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cqrs-and-queries-008
+    title: Quản lý cache và tránh tạo thêm nguồn dữ liệu cạnh tranh với event store
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: consistency-and-user-experience
+  title: Nhất quán và trải nghiệm
+  childs:
+  - slug: consistency-and-user-experience-001
+    title: Phân biệt nhất quán trong aggregate với nhất quán cuối cùng của read model
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-user-experience-002
+    title: Định nghĩa độ trễ chấp nhận được giữa command thành công và query nhìn thấy kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-user-experience-003
+    title: Dùng phiên bản hoặc consistency token để theo dõi dữ liệu đã được projection xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-user-experience-004
+    title: Thiết kế read-your-writes bằng chờ có giới hạn, polling hoặc thông báo cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-user-experience-005
+    title: Phản hồi trạng thái đang xử lý khi nghiệp vụ chưa hoàn tất ở các thành phần liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-user-experience-006
+    title: Dùng cập nhật giao diện lạc quan và xử lý kết quả bị từ chối hoặc điều chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-user-experience-007
+    title: Xử lý đọc replica có độ trễ và lựa chọn tuyến đọc phù hợp với mức nhất quán cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-user-experience-008
+    title: Định nghĩa freshness, watermark và giới hạn chờ để tránh treo yêu cầu truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-replay
+  title: Replay
+  childs:
+  - slug: event-replay-001
+    title: Phân biệt rehydrate aggregate, replay projection và gửi lại integration event
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-002
+    title: Xác định mục tiêu, phạm vi stream, khoảng phiên bản và điểm kết thúc replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-003
+    title: Giữ logic áp dụng lịch sử có tính xác định và tương thích với dữ liệu cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-004
+    title: Ngăn replay gửi lại email, thanh toán hoặc các tác dụng phụ nghiệp vụ ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-005
+    title: Rebuild projection trên storage hoặc namespace mới với checkpoint riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-006
+    title: Chia batch, giới hạn tốc độ và checkpoint để tiếp tục replay sau sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-007
+    title: Bắt kịp sự kiện mới trong khi replay và xác định watermark chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-008
+    title: So sánh kết quả cũ và mới trước khi chuyển query sang projection đã rebuild
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-009
+    title: Chuyển đổi và quay lui read model an toàn khi replay cho kết quả sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-replay-010
+    title: Kiểm tra quyền truy cập, dữ liệu nhạy cảm và tài nguyên cần thiết trước replay diện rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: snapshots
+  title: Snapshot
+  childs:
+  - slug: snapshots-001
+    title: Vai trò của snapshot trong giảm thời gian rehydrate và quan hệ với nguồn sự kiện chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snapshots-002
+    title: Chọn ngưỡng tạo snapshot theo số sự kiện, thời gian nạp hoặc chi phí xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snapshots-003
+    title: Thiết kế snapshot gồm aggregate ID, trạng thái, stream version và phiên bản định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snapshots-004
+    title: Nạp snapshot và chỉ áp dụng các sự kiện sau phiên bản được chụp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snapshots-005
+    title: Tạo snapshot khi có ghi đồng thời mà vẫn gắn đúng phiên bản trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snapshots-006
+    title: Tiến hóa định dạng snapshot và loại bỏ snapshot không tương thích hoặc bị hỏng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snapshots-007
+    title: Kiểm chứng trạng thái từ snapshot tương đương trạng thái replay toàn bộ lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snapshots-008
+    title: Quản lý lưu giữ snapshot, chi phí tạo và nguy cơ lạm dụng snapshot để che vấn đề mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: schema-evolution
+  title: Tiến hóa schema
+  childs:
+  - slug: schema-evolution-001
+    title: Phân biệt thay đổi biểu diễn dữ liệu với thay đổi ý nghĩa nghiệp vụ của sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-002
+    title: Thiết kế thay đổi tương thích khi thêm trường, giá trị mặc định hoặc loại sự kiện mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-003
+    title: Đánh giá tác động khi đổi tên trường, đổi kiểu, bỏ trường hoặc đổi đơn vị dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-004
+    title: Gắn phiên bản schema và định tuyến deserializer phù hợp với dữ liệu đã lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-005
+    title: Dùng upcaster để chuyển biểu diễn cũ khi đọc mà không sửa bản ghi gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-006
+    title: Tổ chức chuỗi upcaster, fixture lịch sử và kiểm tra tính xác định của chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-007
+    title: Hỗ trợ nhiều phiên bản sự kiện và xử lý loại sự kiện chưa biết theo từng consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-008
+    title: Lựa chọn giữa upcasting, sự kiện bổ sung và chuyển đổi vật lý theo yêu cầu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-009
+    title: Kiểm soát chuyển đổi vật lý lịch sử bằng bản sao lưu, đối soát, truy vết và phương án khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-evolution-010
+    title: Phối hợp phiên bản producer, consumer, snapshot và projection khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cross-aggregate-workflows
+  title: Quy trình nhiều aggregate
+  childs:
+  - slug: cross-aggregate-workflows-001
+    title: Nhận diện quy trình cần nhiều aggregate và ranh giới giao dịch từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-aggregate-workflows-002
+    title: Phân biệt choreography qua sự kiện với orchestration bằng process manager
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-aggregate-workflows-003
+    title: Thiết kế saga hoặc process manager có trạng thái và lịch sử tiến trình rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-aggregate-workflows-004
+    title: Liên kết command và event giữa các bước bằng correlation ID và causation ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-aggregate-workflows-005
+    title: Làm cho từng bước có thể retry và chịu được sự kiện đến lặp hoặc sai thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-aggregate-workflows-006
+    title: Mô hình hóa timeout, lịch hẹn bền vững và khôi phục tiến trình sau khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-aggregate-workflows-007
+    title: Thiết kế hành động bù theo nghiệp vụ và giới hạn của việc đảo tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-aggregate-workflows-008
+    title: Bảo vệ bất biến xuyên aggregate bằng reservation, hạn mức hoặc điều phối phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-integration
+  title: Tích hợp hệ thống
+  childs:
+  - slug: system-integration-001
+    title: Thiết kế hợp đồng integration event ổn định và độc lập với chi tiết aggregate nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-integration-002
+    title: Chuyển domain event thành integration event với dữ liệu được phép chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-integration-003
+    title: Dùng anti-corruption layer để ánh xạ sự kiện từ hệ thống ngoài vào mô hình miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-integration-004
+    title: Xử lý webhook, message và callback bên ngoài có khả năng lặp hoặc đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-integration-005
+    title: Ghi nhận kết quả dịch vụ ngoài để tái dựng quyết định mà không gọi lại khi replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-integration-006
+    title: Phân biệt CDC dùng chuyển tải dữ liệu với sự kiện có ý nghĩa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-integration-007
+    title: Cấp dữ liệu cho phân tích, kho dữ liệu và tìm kiếm theo hợp đồng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-integration-008
+    title: Quản lý tương thích, đối soát và trách nhiệm khôi phục giữa các hệ thống tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-strategies
+  title: Kiểm thử
+  childs:
+  - slug: testing-strategies-001
+    title: Kiểm thử aggregate theo Given các sự kiện, When command, Then sự kiện hoặc lỗi mong đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-002
+    title: Kiểm thử riêng hàm quyết định và hàm áp dụng sự kiện để định vị lỗi mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-003
+    title: Kiểm thử bất biến bằng chuỗi command và sự kiện sinh theo thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-004
+    title: Kiểm thử event store với append nguyên tử, expected version và dữ liệu trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-005
+    title: Kiểm thử hai command đồng thời và kết quả timeout không xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-006
+    title: Kiểm thử projector với sự kiện lặp, thiếu, đến muộn và sai thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-007
+    title: Kiểm thử replay tương đương, snapshot tương đương và dữ liệu lịch sử nhiều phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-008
+    title: Kiểm thử hợp đồng serialization, upcaster và tương thích producer-consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-009
+    title: Kiểm thử sự cố tại ranh giới commit, publish, checkpoint và failover
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategies-010
+    title: Kiểm thử đầu cuối và tải thực tế cho độ trễ projection, stream dài và hot aggregate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-scaling
+  title: Hiệu năng và mở rộng
+  childs:
+  - slug: performance-and-scaling-001
+    title: Đo chi phí nạp aggregate theo độ dài stream, kích thước payload và snapshot
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-scaling-002
+    title: Tối ưu append bằng batch, quản lý transaction và tránh tăng thời gian giữ khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-scaling-003
+    title: Mở rộng command handler theo stream và kiểm soát cache aggregate khi có nhiều instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-scaling-004
+    title: Mở rộng projector theo partition trong giới hạn thứ tự cần bảo toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-scaling-005
+    title: Tối ưu projection với batch update, chỉ mục và phân tách workload đọc ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-scaling-006
+    title: Kiểm soát backpressure, backlog và tài nguyên giữa xử lý trực tiếp với replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-scaling-007
+    title: Đánh giá hot partition, stream quá dài và nhu cầu chia lại ranh giới aggregate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-scaling-008
+    title: Lập kế hoạch dung lượng từ tốc độ sự kiện, replication, snapshot và số read model
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-and-privacy
+  title: Bảo mật và riêng tư
+  childs:
+  - slug: security-and-privacy-001
+    title: Phân quyền command, quyền append, quyền đọc lịch sử và quyền replay theo trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-002
+    title: Cô lập tenant tại stream, subscription, projection và công cụ vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-003
+    title: Giảm thiểu dữ liệu nhạy cảm trong payload, metadata và log quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-004
+    title: Tách dữ liệu định danh cá nhân sang kho riêng khi yêu cầu nghiệp vụ cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-005
+    title: Mã hóa khi truyền, khi lưu và quản lý vòng đời khóa cho dữ liệu lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-006
+    title: Đánh giá yêu cầu lưu giữ, xóa và ẩn danh dữ liệu khi lịch sử có tính bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-007
+    title: Đánh giá crypto-shredding cùng giới hạn từ bản sao lưu, bản sao dữ liệu và projection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-008
+    title: Bảo vệ luồng giải mã và kiểm tra schema để tránh payload độc hại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-privacy-009
+    title: Truy vết truy cập và phát hiện sửa đổi lịch sử bằng cơ chế kiểm chứng phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operational-observability
+  title: Quan sát vận hành
+  childs:
+  - slug: operational-observability-001
+    title: Liên kết trace từ command qua append, publish, consume đến projection bằng metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-002
+    title: Theo dõi độ trễ command, tỷ lệ từ chối nghiệp vụ và tỷ lệ xung đột phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-003
+    title: Theo dõi thông lượng append, lỗi storage và thời gian rehydrate aggregate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-004
+    title: Đo projection lag theo thời gian, vị trí log và mục tiêu freshness của nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-005
+    title: Theo dõi checkpoint đứng yên, số lần retry và sự kiện trong hàng chờ lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-006
+    title: Quan sát độ dài stream, hot aggregate, backlog và tốc độ replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-007
+    title: Thiết lập SLI, SLO và cảnh báo gắn với khả năng xử lý command và độ mới read model
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-008
+    title: Xây công cụ tra cứu dòng thời gian aggregate, command và chuỗi nguyên nhân sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-observability-009
+    title: Chuẩn bị runbook cho projection chậm, publish bị kẹt, lỗi schema và lịch sử không đọc được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: availability-and-recovery
+  title: Khả dụng và khôi phục
+  childs:
+  - slug: availability-and-recovery-001
+    title: Xác định RPO, RTO và mức nhất quán cần giữ khi event store gặp sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-recovery-002
+    title: Thiết kế replication, quorum và failover theo bảo đảm của storage được chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-recovery-003
+    title: Phòng tránh split-brain, ghi trùng và mất phiên bản khi chuyển node ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-recovery-004
+    title: Sao lưu event store cùng metadata, khóa, schema và cấu hình cần để đọc lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-recovery-005
+    title: Phục hồi event store rồi tái dựng projection, snapshot và checkpoint phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-recovery-006
+    title: Đối soát phiên bản stream, sự kiện đã công bố và dữ liệu dẫn xuất sau phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-recovery-007
+    title: Diễn tập khôi phục và đo thời gian replay theo dung lượng lịch sử thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-recovery-008
+    title: Đánh giá triển khai nhiều vùng theo độ trễ, quyền ghi và cơ chế giải quyết xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-lifecycle
+  title: Vòng đời dữ liệu
+  childs:
+  - slug: data-lifecycle-001
+    title: Phân loại chính sách lưu giữ cho event, snapshot, projection và dữ liệu theo dõi xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-002
+    title: Đóng aggregate, đánh dấu kết thúc và quản lý định danh sau khi vòng đời hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-003
+    title: Lưu trữ lạnh stream cũ và bảo đảm vẫn có thể khôi phục hoặc truy vấn lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-004
+    title: Đánh giá việc rút gọn lịch sử và ảnh hưởng đến nguồn sự thật, kiểm toán và replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-005
+    title: Quản lý vòng đời dữ liệu ngoài được payload tham chiếu tới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-006
+    title: Quản lý danh mục event type, chủ sở hữu, hợp đồng và phiên bản còn được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-007
+    title: Ngừng consumer hoặc projection cũ và thu hồi dữ liệu dẫn xuất có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-008
+    title: Lập kế hoạch bảo trì chỉ mục, nâng cấp storage và kiểm tra tính toàn vẹn định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-migration
+  title: Chuyển đổi hệ thống
+  childs:
+  - slug: system-migration-001
+    title: Chọn phạm vi thí điểm và chuyển đổi từng bounded context theo chiến lược strangler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-migration-002
+    title: Khảo sát nguồn dữ liệu hiện tại và phân biệt lịch sử thật với dữ liệu chỉ biết trạng thái cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-migration-003
+    title: Thiết kế sự kiện nhập trạng thái ban đầu mà không bịa lại lịch sử nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-migration-004
+    title: Xác định mốc cắt, đồng bộ thay đổi tiếp theo và đối soát dữ liệu trước chuyển quyền ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-migration-005
+    title: Kiểm soát dual write trong giai đoạn chuyển tiếp bằng cơ chế đồng bộ có bảo đảm rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-migration-006
+    title: Chạy shadow projection và so sánh hành vi đọc, ghi với hệ thống cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-migration-007
+    title: Lập phương án cutover, rollback và xử lý command đang chạy tại thời điểm chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-migration-008
+    title: Triển khai cuốn chiếu khi nhiều phiên bản ứng dụng cùng đọc và ghi sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: implementation-choices
+  title: Lựa chọn triển khai
+  childs:
+  - slug: implementation-choices-001
+    title: So sánh event store chuyên dụng với xây event store trên cơ sở dữ liệu sẵn có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-choices-002
+    title: Đánh giá thư viện theo mô hình aggregate, concurrency, snapshot và khả năng đọc lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-choices-003
+    title: Thiết kế các cổng cho event store, serializer, publisher và clock để giảm phụ thuộc hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-choices-004
+    title: Phân chia lớp domain, application và infrastructure trong ứng dụng Event Sourcing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-choices-005
+    title: Ánh xạ transaction, ràng buộc duy nhất và subscription vào công nghệ được chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-choices-006
+    title: Xác định nhu cầu broker riêng và mức bảo đảm end-to-end thực sự đạt được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-choices-007
+    title: So sánh chi phí vận hành, giới hạn mở rộng, công cụ hỗ trợ và khả năng chuyển nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-choices-008
+    title: Tạo thử nghiệm khả thi bằng workload, lỗi và dữ liệu lịch sử đại diện cho nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-antipatterns
+  title: Lỗi thiết kế thường gặp
+  childs:
+  - slug: design-antipatterns-001
+    title: Coi mọi thay đổi trường hoặc bản ghi cơ sở dữ liệu là một sự kiện nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-002
+    title: Lưu sự kiện thiếu ngữ cảnh rồi phụ thuộc dữ liệu hiện tại để hiểu quá khứ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-003
+    title: Dùng event store như hàng đợi có thể xóa ngay sau khi consumer xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-004
+    title: Giả định timestamp hoặc broker luôn bảo đảm thứ tự toàn cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-005
+    title: Giả định exactly-once end-to-end và bỏ qua idempotency ở ranh giới tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-006
+    title: Retry command mà không nạp lại aggregate và đánh giá lại bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-007
+    title: Replay bằng logic tạo tác dụng phụ hoặc kiểm tra lại quy tắc mới cho lịch sử cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-008
+    title: Sửa hoặc xóa lịch sử tùy tiện để chữa lỗi projection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-009
+    title: Tạo aggregate quá lớn hoặc transaction xuyên stream để né việc thiết kế ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-antipatterns-010
+    title: Áp dụng Event Sourcing toàn hệ thống khi chưa có nhu cầu lịch sử và năng lực vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-exercises
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Mô hình hóa đơn hàng từ command, sự kiện và các bất biến của vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-002
+    title: Xây aggregate thuần với hàm quyết định và hàm áp dụng sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-003
+    title: Xây event store tối thiểu có append nguyên tử và expected version
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-004
+    title: Mô phỏng command trùng, xung đột đồng thời và timeout sau commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-005
+    title: Xây read model CQRS với xử lý idempotent và checkpoint có thể khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-006
+    title: Rebuild projection khi vẫn có command mới và chuyển read model theo watermark
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-007
+    title: Thêm snapshot và upcaster rồi kiểm chứng bằng fixture lịch sử nhiều phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-008
+    title: Xây quy trình giữ hàng, thanh toán và hủy bằng process manager cùng hành động bù
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-009
+    title: Diễn tập publisher lỗi, consumer dừng và phục hồi event store kèm đối soát dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-review-checklist
+  title: Rà soát thiết kế
+  childs:
+  - slug: design-review-checklist-001
+    title: Kiểm tra lý do áp dụng, ranh giới bounded context và giá trị của lịch sử nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-checklist-002
+    title: Kiểm tra ranh giới aggregate, bất biến, định danh và ngữ nghĩa từng loại sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-checklist-003
+    title: Kiểm tra append nguyên tử, expected version và xử lý command lặp hoặc kết quả chưa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-checklist-004
+    title: Kiểm tra thứ tự, công bố tin cậy, idempotency và phục hồi subscription từ checkpoint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-checklist-005
+    title: Kiểm tra hợp đồng query, độ trễ nhất quán và khả năng đối soát projection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-checklist-006
+    title: Kiểm tra replay an toàn, snapshot tương thích và tiến hóa schema trên lịch sử thật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-checklist-007
+    title: Kiểm tra quyền truy cập, dữ liệu nhạy cảm, lưu giữ và khả năng khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-checklist-008
+    title: Kiểm tra mục tiêu vận hành, dung lượng, chi phí và tiêu chí nghiệm thu trước triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

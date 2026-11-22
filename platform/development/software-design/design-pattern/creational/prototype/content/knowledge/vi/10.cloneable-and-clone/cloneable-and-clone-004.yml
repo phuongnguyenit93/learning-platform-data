@@ -1,0 +1,3 @@
+menuLevel1: Cloneable và clone()
+menuLevel2: Luồng super.clone trong cây kế thừa và việc constructor không được gọi
+status: ""

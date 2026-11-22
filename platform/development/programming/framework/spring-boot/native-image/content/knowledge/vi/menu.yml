@@ -1,0 +1,402 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Native Image là gì và bài toán khởi động, bộ nhớ mà nó hướng tới
+  - Phân biệt JAR chạy trên JVM với tệp thực thi native
+  - Spring AOT, GraalVM Native Image và Native Build Tools liên hệ thế nào
+  - AOT khác với JIT và không đồng nghĩa với mọi tối ưu cho JVM
+  - Đánh đổi giữa chi phí build, mức sử dụng bộ nhớ và hiệu năng lúc chạy
+  - 'Những tình huống phù hợp: dịch vụ ngắn hạn, co giãn nhanh và tài nguyên giới hạn'
+  - Ranh giới với container image, jlink, CDS và các cơ chế checkpoint
+  - Những phần ứng dụng có thể thay đổi khi chạy và những phần bị cố định khi build
+  - Kiến thức đầu vào và lộ trình từ ứng dụng JVM đến bản native được kiểm chứng
+- level1: Cơ chế Native Image
+  level2:
+  - Giả định thế giới đóng và yêu cầu biết tập lớp khi build
+  - Phân tích khả năng được gọi từ điểm vào của chương trình
+  - Reachability và việc loại bỏ mã không cần thiết
+  - Biên dịch mã Java và các thành phần runtime vào tệp thực thi
+  - Image heap và trạng thái đối tượng được tạo trong giai đoạn build
+  - Phân biệt bộ nhớ của tiến trình build với bộ nhớ ứng dụng native
+  - Truy cập động khiến phân tích tĩnh không suy ra đủ thông tin
+  - Vai trò của metadata đối với reflection, tài nguyên, proxy và JNI
+  - Phụ thuộc hệ điều hành, kiến trúc CPU và thư viện hệ thống
+  - Giới hạn tương thích Java cần tra cứu theo phiên bản GraalVM
+- level1: Spring AOT
+  level2:
+  - Vì sao Spring cần xử lý trước khi biên dịch thành native image
+  - Phân tích cấu hình và chuẩn bị BeanFactory trong giai đoạn AOT
+  - Bean definition khác với bean instance và thời điểm xử lý mỗi loại
+  - Sinh mã đăng ký, tạo và liên kết các bean
+  - Sinh proxy, tài nguyên và metadata để GraalVM tiếp tục phân tích
+  - ApplicationContextInitializer được sinh và khởi tạo ApplicationContext
+  - Vai trò của BeanFactoryInitializationAotProcessor
+  - Vai trò của BeanRegistrationAotProcessor
+  - Phân biệt Spring AOT thành công với biên dịch native thành công
+  - Đọc mã, lớp và metadata được sinh để giải thích hành vi ứng dụng
+- level1: Môi trường build
+  level2:
+  - Chọn bộ phiên bản tương thích giữa Spring Boot, Java, GraalVM và plugin
+  - Phân biệt GraalVM JDK, native-image và JDK dùng để chạy Gradle hoặc Maven
+  - Kiểm tra java, native-image, JAVA_HOME và toolchain thực sự được chọn
+  - Công cụ C, linker và các thư viện phát triển cần có trên Linux
+  - MSVC, Visual Studio Build Tools và Windows SDK trên Windows
+  - Xcode Command Line Tools và kiến trúc CPU trên macOS
+  - Quyền truy cập Docker khi build bằng Cloud Native Buildpacks
+  - Dung lượng đĩa, RAM và CPU cho quá trình biên dịch native
+  - Ảnh hưởng của proxy mạng, kho dependency và tải công cụ build
+  - Tách môi trường build khỏi môi trường chạy tệp thực thi
+- level1: Ứng dụng đầu tiên
+  level2:
+  - Chọn một ứng dụng Spring Boot nhỏ làm mốc so sánh JVM và native
+  - Chạy và kiểm chứng hành vi trên JVM trước khi bật AOT
+  - Tạo một endpoint hoặc tác vụ có đầu vào, đầu ra dễ xác nhận
+  - Bật tích hợp Spring AOT và Native Build Tools
+  - Build tệp native lần đầu và nhận diện các giai đoạn trong log
+  - Chạy binary với tham số, biến môi trường và cấu hình cần thiết
+  - So sánh chức năng với bản JVM bằng cùng bộ yêu cầu
+  - Ghi lại thời gian build, kích thước sản phẩm và điều kiện đo ban đầu
+- level1: Gradle
+  level2:
+  - Tích hợp Spring Boot Gradle plugin với org.graalvm.buildtools.native
+  - Java toolchain và lựa chọn GraalVM dùng cho native build
+  - processAot và đầu vào cấu hình của quá trình phân tích ứng dụng
+  - Các tác vụ biên dịch mã AOT và đưa tài nguyên sinh ra vào classpath
+  - nativeCompile và quan hệ phụ thuộc với Spring AOT
+  - nativeRun, tham số ứng dụng và môi trường thực thi
+  - Cấu hình graalvmNative, binary name và build arguments
+  - processTestAot và nativeTest cho mã kiểm thử
+  - bootBuildImage để tạo container image native bằng buildpacks
+  - 'Dự án nhiều module: chọn đúng ứng dụng, classpath và dependency được đóng gói'
+- level1: Maven
+  level2:
+  - Spring Boot Maven plugin và GraalVM Native Build Tools Maven plugin
+  - Profile native khi dùng spring-boot-starter-parent
+  - spring-boot:process-aot và các execution trong vòng đời build
+  - Biên dịch native với profile và goal phù hợp cấu hình plugin
+  - Classpath gốc khác với cấu trúc Spring Boot executable JAR
+  - Profile nativeTest và spring-boot:process-test-aot
+  - Cấu hình AOT, native test khi không dùng Spring Boot parent
+  - spring-boot:build-image để tạo container image native
+  - Truyền tham số, profile và quản lý phiên bản plugin một cách nhất quán
+- level1: Buildpacks
+  level2:
+  - Cloud Native Buildpacks và vai trò của builder, buildpack, run image
+  - Phân biệt build executable tại máy với build container image
+  - BP_NATIVE_IMAGE và cách tích hợp của Spring Boot build plugin
+  - Chọn builder, run image và phiên bản tương thích thay vì phụ thuộc mặc định
+  - Build bằng Docker mà không cần cài GraalVM trực tiếp trên máy
+  - Truyền cấu hình build mà không nhầm với biến môi trường lúc chạy
+  - Cache buildpack, lớp image và ảnh hưởng đến thời gian build
+  - Tài nguyên dành cho Docker daemon và tiến trình native-image trong build
+  - Đặt tên, gắn tag và xuất image tới registry
+  - Chạy container và kiểm chứng binary, cổng, quyền người dùng, dependency hệ thống
+- level1: Sản phẩm build
+  level2:
+  - Phân biệt source, bytecode, mã AOT và binary native
+  - Vị trí mã nguồn, lớp và tài nguyên được sinh bởi Maven hoặc Gradle
+  - META-INF/native-image và cách metadata đi cùng classpath
+  - Spring Boot executable JAR chứa kết quả AOT để chuyển đổi ở bước sau
+  - Chuyển JAR đã xử lý AOT bằng buildpacks hoặc native-image
+  - Giới hạn của một JAR thông thường chưa chứa kết quả Spring AOT
+  - Xác định hệ điều hành, kiến trúc và thư viện liên kết của binary
+  - Quản lý checksum, báo cáo build và truy vết đầu vào của sản phẩm
+- level1: Bean và AOT
+  level2:
+  - Định nghĩa bean phải được xác định trong giai đoạn phân tích
+  - Khai báo kiểu trả về đủ cụ thể trên phương thức @Bean
+  - Generic, FactoryBean và thông tin kiểu mà AOT cần suy ra
+  - BeanDefinition có thể phân tích khác với đăng ký singleton trực tiếp
+  - Đăng ký bean bằng mã và chọn API có hỗ trợ xử lý AOT
+  - BeanFactoryPostProcessor, BeanDefinitionRegistryPostProcessor và điểm cần kiểm tra
+  - BeanPostProcessor và giới hạn khi thay đổi cấu trúc bean ngoài thông tin đã biết
+  - InstanceSupplier, constructor và đường tạo bean được sinh
+  - '@Configuration, proxyBeanMethods và lời gọi giữa các phương thức @Bean'
+  - Giữ mã khởi tạo an toàn, không phụ thuộc dịch vụ ngoài khi đang phân tích build
+- level1: Cấu hình hai giai đoạn
+  level2:
+  - Phân biệt thuộc tính quyết định cấu trúc bean với giá trị cấu hình lúc chạy
+  - '@Profile và profile-specific configuration trong quá trình AOT'
+  - '@ConditionalOnProperty và các điều kiện được đánh giá khi build'
+  - Ảnh hưởng của classpath đến auto-configuration đã được chọn
+  - Giá trị như cổng, địa chỉ dịch vụ và credentials có thể được cung cấp lúc chạy
+  - '@ConfigurationProperties và việc binding trong ứng dụng native'
+  - Thuộc tính lồng nhau và @NestedConfigurationProperty
+  - Truyền môi trường cho processAot hoặc process-aot
+  - Tạo các biến thể build khi tập bean cần khác nhau theo môi trường
+  - Kiểm thử cấu hình runtime để phát hiện giả định sai về tính linh hoạt của binary
+- level1: Runtime hints
+  level2:
+  - RuntimeHints và thông tin bổ sung cho các truy cập không suy ra bằng phân tích tĩnh
+  - RuntimeHintsRegistrar và tổ chức hints theo thành phần sở hữu
+  - '@ImportRuntimeHints để đưa registrar vào ứng dụng'
+  - META-INF/spring/aot.factories cho RuntimeHintsRegistrar dùng chung
+  - ReflectionHints và mức truy cập MemberCategory
+  - ResourceHints cho tệp, mẫu đường dẫn và resource bundle
+  - ProxyHints cho JDK dynamic proxy
+  - SerializationHints cho Java serialization
+  - RuntimeHints.jni() và các kiểu truy cập từ mã native
+  - Đăng ký có điều kiện theo classpath và giữ phạm vi metadata cần thiết
+  - Phân biệt hints do Spring sinh, do dependency cung cấp và do ứng dụng tự khai báo
+- level1: Reflection
+  level2:
+  - Phân biệt gọi trực tiếp với truy cập lớp, constructor, method và field bằng reflection
+  - Những lời gọi reflection mà GraalVM có thể hoặc không thể suy ra
+  - Đăng ký kiểu và thành viên cần truy cập qua RuntimeHints
+  - Phân biệt xem thông tin thành viên với quyền gọi hoặc đọc, ghi
+  - MemberCategory và lựa chọn phạm vi khai báo phù hợp
+  - '@Reflective và các cơ chế xử lý annotation liên quan'
+  - '@RegisterReflectionForBinding cho kiểu dữ liệu được binding hoặc chuyển đổi'
+  - Generic, kiểu lồng nhau và các kiểu chỉ xuất hiện qua tên chuỗi
+  - Kiểm chứng đường truy cập thực tế thay vì đăng ký toàn bộ package
+- level1: Tài nguyên
+  level2:
+  - Classpath resource khác với tệp bên ngoài binary
+  - ResourceHints và các mẫu đường dẫn cần đóng gói
+  - ResourceBundle, đa ngôn ngữ và dữ liệu locale
+  - Template, tệp SQL, tệp cấu hình và dữ liệu đọc qua ClassLoader
+  - ServiceLoader, provider và tài nguyên META-INF/services
+  - Quét classpath, liệt kê tài nguyên và các giới hạn cần thay đổi thiết kế
+  - Đường dẫn tương đối, thư mục làm việc và khác biệt phân biệt chữ hoa, chữ thường
+  - Đọc, ghi tệp runtime mà không giả định tài nguyên nhúng là tệp có thể sửa
+  - Kiểm tra tài nguyên bị thiếu và tránh đóng gói dữ liệu bí mật
+- level1: Proxy và AOP
+  level2:
+  - JDK dynamic proxy và danh sách interface phải được biết trước
+  - Thứ tự interface và sự khớp đúng của metadata proxy
+  - Proxy dựa trên lớp và mã proxy do Spring AOT chuẩn bị
+  - '@Transactional, @Async, cache và method security trong ứng dụng native'
+  - Điều kiện tạo proxy phải được xác định khi phân tích bean
+  - Kiểu trả về, interface và thông tin target ảnh hưởng tới sinh proxy
+  - Lời gọi nội bộ trong cùng đối tượng và các giới hạn AOP vốn có
+  - Thư viện sinh bytecode lúc chạy và yêu cầu tìm cách tích hợp tương thích
+  - Kiểm thử hành vi qua proxy thật trên JVM AOT và binary native
+- level1: Binding và JSON
+  level2:
+  - '@ConfigurationProperties, constructor binding và kiểu dữ liệu lồng nhau'
+  - '@NestedConfigurationProperty khi cấu trúc lồng nhau cần được nhận diện rõ'
+  - Jackson với DTO, record, enum và các thành viên truy cập động
+  - Kiểu request, response được suy ra từ khai báo endpoint
+  - Kiểu chỉ được chuyển đổi thông qua mã gọi chung hoặc generic bị mất thông tin
+  - Polymorphic deserialization và tập subtype cần được biết trước
+  - Custom serializer, deserializer và module Jackson
+  - Bean Validation, annotation và dữ liệu metadata cần có
+  - Kiểm thử JSON, validation và cấu hình với cùng dữ liệu ở JVM và native
+- level1: Serialization và JNI
+  level2:
+  - Phân biệt Java serialization với chuyển đổi JSON
+  - Đăng ký kiểu Serializable và giới hạn serialization của proxy
+  - Định dạng dữ liệu, tương thích phiên bản và rủi ro nhận dữ liệu không tin cậy
+  - JNI và những lớp, field, method được mã native gọi tới
+  - Thư viện .so, .dll, .dylib và nền tảng đích
+  - Quản lý đường dẫn, cách nạp và phân phối thư viện native
+  - Dependency dùng JNI dù ứng dụng không trực tiếp viết mã C
+  - Kiểm thử binary trên môi trường chạy thực để phát hiện thiếu thư viện
+- level1: Khởi tạo lớp
+  level2:
+  - Phân biệt nạp lớp, liên kết lớp và khởi tạo lớp
+  - Static initializer chạy ở giai đoạn build hoặc lúc ứng dụng khởi động
+  - Image heap và các giá trị được lưu từ static field
+  - --initialize-at-build-time và phạm vi lớp được tác động
+  - --initialize-at-run-time và lựa chọn trì hoãn khởi tạo
+  - Quan hệ khởi tạo giữa lớp cha, lớp con và các kiểu được tham chiếu
+  - Đối tượng không phù hợp để tồn tại trong image heap
+  - Random, thời gian, biến môi trường và trạng thái gắn với máy build
+  - Theo dõi chuỗi khởi tạo để tìm nguyên nhân lỗi
+  - Ưu tiên sửa phạm vi cụ thể thay vì áp đặt một chế độ cho mọi lớp
+- level1: Giới hạn động
+  level2:
+  - Classpath cố định và hệ quả đối với plugin được tải sau khi triển khai
+  - Class.forName với tên lớp chỉ được biết khi chạy
+  - Sinh, biến đổi bytecode và tạo lớp mới lúc chạy
+  - Script engine, expression và thư viện dùng biên dịch động
+  - 'Java agent và instrumentation: tra cứu khả năng hỗ trợ theo phiên bản'
+  - Runtime proxy và trường hợp metadata không thể thay thế thiết kế không tương thích
+  - Chọn cơ chế đăng ký tường minh thay cho quét hoặc phát hiện hoàn toàn động
+  - Tách thành phần chưa tương thích sang ranh giới dịch vụ khi phù hợp
+  - Phân biệt hạn chế của GraalVM với hạn chế riêng của Spring AOT
+- level1: Thư viện ngoài
+  level2:
+  - Lập danh sách dependency và các tính năng động mà chúng sử dụng
+  - Xác định hỗ trợ native theo đúng phiên bản thư viện
+  - Metadata đi kèm JAR và hints do Spring integration cung cấp
+  - GraalVM Reachability Metadata Repository và tích hợp Native Build Tools
+  - Metadata có điều kiện và sự phù hợp với phiên bản dependency
+  - Đóng góp RuntimeHintsRegistrar cho thư viện dùng chung
+  - Khi nào cần nâng cấp, thay thư viện hoặc thay cách tích hợp
+  - Không xem dependency đã biên dịch thành công là bằng chứng mọi luồng đều hoạt động
+  - Kiểm thử hợp đồng cho các tích hợp có reflection, service loading hoặc JNI
+- level1: Tracing agent
+  level2:
+  - Native Image Tracing Agent quan sát truy cập động khi ứng dụng chạy trên JVM
+  - Phân biệt GraalVM tracing agent với Spring RuntimeHints Agent
+  - Chạy ứng dụng với native-image-agent và config-output-dir
+  - Thiết kế kịch bản để đi qua các endpoint, dữ liệu và nhánh tích hợp cần hỗ trợ
+  - config-merge-dir khi kết hợp nhiều lượt thu thập
+  - Caller filter, access filter và loại metadata không thuộc phạm vi ứng dụng
+  - Tránh ghi metadata của framework kiểm thử hoặc công cụ phát triển không cần thiết
+  - Rà soát dữ liệu sinh ra và đưa phần cần thiết vào vị trí metadata
+  - 'Giới hạn bao phủ: đường đi không được thực thi có thể vẫn thiếu metadata'
+  - Build lại và kiểm thử native sau khi kết hợp hints với kết quả agent
+- level1: Kiểm thử hints
+  level2:
+  - RuntimeHintsPredicates để xác nhận loại truy cập đã được khai báo
+  - Kiểm thử reflection cho constructor, method và field thực sự dùng
+  - Kiểm thử mẫu resource, resource bundle và danh sách interface proxy
+  - RuntimeHints Agent trong spring-core-test để ghi nhận truy cập cần hints
+  - So khớp các thao tác được ghi nhận với RuntimeHints của thành phần
+  - Kiểm thử registrar khi dependency tùy chọn có hoặc không có trên classpath
+  - Giữ kiểm thử gắn với hành vi cần hỗ trợ thay vì lặp lại mọi dòng cấu hình
+  - Phân biệt kiểm thử hints đạt với bằng chứng ứng dụng native chạy đúng
+- level1: Kiểm thử AOT
+  level2:
+  - Chạy ứng dụng trên JVM với kết quả AOT đã được sinh
+  - spring.aot.enabled và điều kiện classpath phải chứa kết quả AOT
+  - Phân biệt lỗi phân tích bean với lỗi chỉ xảy ra khi biên dịch native
+  - Kiểm thử ApplicationContext sau khi cố định profile và điều kiện build
+  - Kiểm tra cấu hình runtime không làm thay đổi tập bean ngoài dự kiến
+  - Kiểm thử HTTP, JSON, tài nguyên và các proxy trong chế độ AOT
+  - So sánh hành vi ứng dụng JVM thông thường với JVM AOT
+  - Dùng JVM AOT để rút ngắn vòng lặp tìm lỗi trước native build
+- level1: Kiểm thử native
+  level2:
+  - Native Build Tools và cách chạy JUnit bên trong native executable
+  - Spring TestContext AOT phát hiện, xử lý và sinh context cho bài kiểm thử
+  - processTestAot, nativeTest và các tác vụ liên quan trong Gradle
+  - Profile nativeTest và cấu hình test AOT tương ứng trong Maven
+  - '@SpringBootTest, test slice và lựa chọn phạm vi kiểm thử'
+  - Mocking, instrumentation và tính năng kiểm thử cần xác nhận theo phiên bản
+  - Phân biệt binary chứa bộ kiểm thử với binary ứng dụng dùng để triển khai
+  - Kiểm thử hộp đen qua HTTP hoặc giao thức thực của binary đã build
+  - Giữ phần lớn kiểm thử nhanh trên JVM và chọn đường đi quan trọng cho native
+  - Thu thập kết quả, log và mã thoát để xác nhận thất bại trong CI
+- level1: Tích hợp ứng dụng
+  level2:
+  - Spring MVC, WebFlux và các lớp dữ liệu tại biên HTTP
+  - Jackson, Bean Validation và xử lý lỗi với các kiểu chỉ xuất hiện lúc chạy
+  - JDBC, driver, connection pool và cấu hình kết nối runtime
+  - JPA, Hibernate và các proxy, enhancement, metadata cần được kiểm chứng
+  - Spring Data repository và thông tin kiểu của mô hình dữ liệu
+  - Giao dịch, cache và xử lý bất đồng bộ qua AOP
+  - Spring Security với filter chain, method security và tích hợp danh tính
+  - HTTP client, TLS, truststore và kết nối tới dịch vụ ngoài
+  - Messaging, scheduled task và các lớp thông điệp được chuyển đổi động
+  - Flyway, Liquibase hoặc tài nguyên migration theo phiên bản hỗ trợ
+  - Kiểm thử đường đi ít gặp như lỗi dữ liệu, retry và khôi phục kết nối
+- level1: Quan sát
+  level2:
+  - Logging và các thành phần cấu hình hoặc layout được nạp động
+  - Actuator, health và kiểm chứng ứng dụng sẵn sàng nhận yêu cầu
+  - Micrometer, metric và tracing trong native executable
+  - JFR, heap dump và khả năng giám sát theo phiên bản, nền tảng
+  - Build arguments cần thiết để bật khả năng quan sát được lựa chọn
+  - Debug symbol và công cụ gỡ lỗi native theo hệ điều hành
+  - Phân biệt công cụ giám sát tiến trình JVM với công cụ dành cho binary native
+  - Ảnh hưởng của logging, metric và tracing đến số đo hiệu năng
+  - Bảo vệ endpoint quản trị, log chẩn đoán và dữ liệu dump
+- level1: Đo hiệu năng
+  level2:
+  - Xác định mục tiêu trước khi so sánh JVM với native
+  - Phân biệt thời gian tiến trình khởi động với thời điểm ứng dụng thực sự sẵn sàng
+  - Độ trễ yêu cầu đầu tiên, trạng thái chưa tải và trạng thái ổn định
+  - RSS, heap, bộ nhớ ngoài heap và giới hạn container
+  - Thông lượng, các phân vị độ trễ và cùng một tải thử nghiệm
+  - Đo CPU, hoạt động GC và ảnh hưởng của mức tài nguyên được cấp
+  - Thời gian build, RAM build, kích thước binary và kích thước container image
+  - Giữ cùng dữ liệu, cấu hình, dependency và hạ tầng khi so sánh
+  - Lặp phép đo, ghi điều kiện và phân biệt sai số với thay đổi có ý nghĩa
+  - Đánh giá chi phí vận hành tổng thể thay vì chỉ nhìn thời gian khởi động
+- level1: Tối ưu
+  level2:
+  - Đọc báo cáo build để tìm thành phần làm tăng kích thước hoặc thời gian biên dịch
+  - Giảm dependency và tài nguyên không cần thiết dựa trên chức năng thực tế
+  - Giới hạn reflection, resource và proxy metadata theo nhu cầu đã kiểm chứng
+  - Chọn mức tối ưu biên dịch theo yêu cầu thời gian build, kích thước và tốc độ
+  - Giới hạn RAM, số luồng build và đánh đổi khi biên dịch trong CI
+  - Garbage collector và các tùy chọn khả dụng theo distribution, phiên bản
+  - 'PGO: thu thập profile đại diện và biên dịch lại trên nền tảng được hỗ trợ'
+  - CPU target và khả năng chạy binary trên những máy có tập lệnh khác nhau
+  - Liên kết động, liên kết tĩnh và điều kiện dùng glibc hoặc musl
+  - Đo lại và chạy hồi quy chức năng sau mỗi thay đổi tối ưu
+- level1: Container
+  level2:
+  - Container image chứa native executable khác với container chạy JAR
+  - Multi-stage Dockerfile tách môi trường biên dịch khỏi runtime image
+  - Chọn runtime base image theo libc và các thư viện binary cần
+  - Giới hạn dùng scratch hoặc distroless khi còn tài nguyên hệ thống cần thiết
+  - Chứng thư CA, DNS, timezone, locale và tệp cấu hình ngoài
+  - Chạy bằng người dùng không có quyền root và quyền thư mục tạm
+  - Truyền tham số, biến môi trường và secret lúc container khởi động
+  - Giới hạn CPU, RAM, health check và tín hiệu kết thúc
+  - Kiến trúc amd64, arm64 và chiến lược build cho từng đích
+  - Kiểm chứng image cuối cùng thay vì chỉ thử binary trên máy build
+- level1: CI/CD
+  level2:
+  - Tách các cổng kiểm tra JVM, AOT, native build và smoke test
+  - Ghim phiên bản JDK, GraalVM, plugin, builder và dependency
+  - Thiết kế runner đủ RAM, CPU và dung lượng cho native compilation
+  - Cache Gradle, Maven, metadata và buildpack theo đầu vào thích hợp
+  - Chiến lược build theo từng hệ điều hành, kiến trúc đích
+  - Chuyển JAR có kết quả AOT sang native tại job chuyên biệt
+  - Định danh sản phẩm bằng nguồn, toolchain, cấu hình build và checksum
+  - Lưu log build, báo cáo kiểm thử và thông tin chẩn đoán khi thất bại
+  - Chỉ phát hành sau khi binary hoặc container cuối cùng vượt qua kiểm chứng
+- level1: Vận hành
+  level2:
+  - Cung cấp cấu hình, credentials và địa chỉ dịch vụ khi ứng dụng chạy
+  - Timeout khởi động, readiness và cơ chế tự khởi động lại của nền tảng
+  - Giới hạn bộ nhớ và quan sát hành vi khi tải tăng
+  - Kết thúc an toàn, shutdown hook và thời gian chờ hoàn tất yêu cầu
+  - Chứng thư, truststore, DNS và sự khác nhau giữa máy build với môi trường chạy
+  - Thư mục tạm, quyền tệp và lưu trữ ngoài binary
+  - Thu thập log, metric và dữ liệu sự cố từ tiến trình native
+  - Đóng gói, cập nhật và quay lại bản trước bằng sản phẩm đã được kiểm chứng
+  - Theo dõi thay đổi cấu hình vượt quá những gì bản build hiện tại hỗ trợ
+- level1: Chẩn đoán
+  level2:
+  - Không tìm thấy native-image hoặc chọn nhầm JDK, toolchain
+  - Thiếu C compiler, linker, header hoặc thư viện hệ thống
+  - Build bị dừng do thiếu RAM, timeout hoặc giới hạn tài nguyên runner
+  - Spring AOT không suy ra được kiểu bean hoặc cách tạo đối tượng
+  - Binary thiếu bean do profile, condition hoặc classpath tại thời điểm build
+  - Thiếu metadata reflection, proxy, serialization hoặc JNI
+  - Không tìm thấy resource, template, bundle hoặc tài nguyên migration
+  - Lỗi khởi tạo lớp và đối tượng không hợp lệ trong image heap
+  - Dependency dùng sinh bytecode hoặc tải lớp động ngoài khả năng hỗ trợ
+  - Binary không chạy do sai kiến trúc, libc hoặc thư viện liên kết
+  - JVM chạy đúng nhưng native sai ở JSON, TLS, locale hoặc nhánh ít được thử
+  - Thu nhỏ ví dụ tái hiện và xác định lỗi thuộc ứng dụng, Spring hay GraalVM
+- level1: Bảo mật
+  level2:
+  - Dữ liệu đọc lúc khởi tạo build có thể trở thành một phần của image heap
+  - Giữ secret và dữ liệu gắn với môi trường ở giai đoạn runtime phù hợp
+  - Binary native vẫn cần quản lý lỗ hổng và kiểm tra dependency
+  - SBOM, danh mục thư viện và khả năng tạo báo cáo theo bộ công cụ sử dụng
+  - Cập nhật JDK, GraalVM hoặc thư viện có thể yêu cầu build và phát hành binary mới
+  - Giảm thành phần được đóng gói nhưng không coi đó là thay thế kiểm tra bảo mật
+  - Quyền tối thiểu cho builder, runner, runtime container và registry
+  - Bảo vệ metadata, log, profile PGO, debug symbol và dữ liệu chẩn đoán
+  - Xác thực nguồn sản phẩm và kiểm tra tính toàn vẹn trước khi triển khai
+- level1: Di chuyển và nâng cấp
+  level2:
+  - Kiểm kê tính năng động và đánh giá khả năng chuyển một ứng dụng JVM hiện có
+  - Chọn lát cắt nhỏ để chạy AOT và native trước khi mở rộng toàn ứng dụng
+  - Xử lý dependency chưa tương thích bằng nâng cấp, hints hoặc thay cách tích hợp
+  - Chuyển cách đăng ký bean, tải tài nguyên và cấu hình môi trường
+  - Di chuyển từ Spring Native thử nghiệm cũ sang hỗ trợ AOT của Spring Boot phù hợp
+  - Đối chiếu hướng dẫn nâng cấp Spring Boot, Framework, GraalVM và Native Build Tools
+  - Kiểm tra định dạng reachability metadata và các build flag theo phiên bản
+  - Duy trì so sánh chức năng, hiệu năng giữa JVM, JVM AOT và native
+  - Tiêu chí chấp nhận, chi phí bảo trì và trường hợp tiếp tục dùng JVM
+- level1: Thực hành tổng hợp
+  level2:
+  - Build cùng một ứng dụng thành JAR, native executable và container native
+  - So sánh chức năng và đo khởi động, RSS bằng cùng một kịch bản
+  - Tái hiện lỗi reflection rồi bổ sung RuntimeHints tối thiểu
+  - Bổ sung template, resource bundle và tài nguyên đọc qua ClassLoader
+  - Kiểm chứng @Transactional hoặc @Async đi qua proxy sau AOT
+  - Thay đổi profile và property để quan sát ranh giới build với runtime
+  - Thu thập metadata bằng tracing agent rồi rà soát, kiểm thử lại
+  - Tích hợp một dependency có metadata từ repository hoặc hints của ứng dụng
+  - Dựng CI với kiểm thử JVM, AOT, native và kiểm chứng container cuối cùng
+  - Lập báo cáo lựa chọn JVM hay native dựa trên chức năng, số đo và chi phí build

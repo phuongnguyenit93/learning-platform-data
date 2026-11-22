@@ -1,0 +1,3 @@
+menuLevel1: Tạo Stream từ dữ liệu có sẵn
+menuLevel2: Tạo Stream bằng Stream.of, Stream.empty và Stream.ofNullable
+status: WRITTEN

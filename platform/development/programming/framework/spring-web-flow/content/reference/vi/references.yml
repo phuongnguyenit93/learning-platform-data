@@ -1,0 +1,13 @@
+references:
+  - title: "Spring Web Flow - Project Overview"
+    url: "https://spring.io/projects/spring-webflow/"
+    description: "Trang dự án chính thức, giới thiệu mục tiêu, trường hợp sử dụng và phiên bản Spring Web Flow."
+  - title: "Spring Web Flow - Reference Guide"
+    url: "https://docs.spring.io/spring-webflow/docs/current/reference/"
+    description: "Tài liệu chính thức về states, transitions, actions, scopes, binding, MVC integration, security và tests."
+  - title: "Spring Web Flow - Source Repository"
+    url: "https://github.com/spring-projects/spring-webflow"
+    description: "Mã nguồn, tài liệu và lịch sử phát triển của dự án Spring Web Flow."
+  - title: "Spring Web Flow - Official Samples"
+    url: "https://github.com/spring-projects/spring-webflow-samples"
+    description: "Ví dụ thực tế như booking-mvc, booking-faces và webflow-showcase."

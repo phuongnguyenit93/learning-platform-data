@@ -1,0 +1,293 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Ngày giờ trong chương trình: khái niệm, vai trò và các bài toán thường gặp'
+  - Phân biệt ngày, giờ địa phương, thời điểm và khoảng thời gian
+  - Mối liên hệ giữa lịch, múi giờ, độ lệch UTC và dòng thời gian
+  - Vì sao một chuỗi ngày giờ chưa chắc xác định được một thời điểm
+  - Toàn cảnh java.time và các API ngày giờ cũ
+  - Chọn kiểu dữ liệu theo ý nghĩa nghiệp vụ
+  - Tính bất biến, an toàn luồng và so sánh theo giá trị
+  - Lộ trình học từ thao tác cơ bản tới múi giờ và kiểm thử
+- level1: Nền tảng thời gian
+  level2:
+  - Lịch ISO-8601 và quy tắc Gregorian mở rộng về quá khứ
+  - Năm nhuận, số ngày trong tháng và ngày không hợp lệ
+  - UTC, GMT và cách hiểu hậu tố Z
+  - Mốc epoch và dấu thời gian trước, sau epoch
+  - Giây, mili giây, micro giây và nano giây
+  - Phân biệt độ phân giải dữ liệu với độ chính xác của đồng hồ
+  - Giờ mùa hè và nguyên nhân ngày không luôn dài 24 giờ
+  - Thang thời gian Java và giới hạn biểu diễn giây nhuận
+  - Phân biệt thời gian đồng hồ với thời gian trôi qua
+- level1: Làm quen java.time
+  level2:
+  - Các gói java.time, temporal, format, zone và chrono
+  - Tạo giá trị bằng of(), now(), parse() và from()
+  - Đọc dữ liệu bằng get...() và kiểm tra bằng is...()
+  - Thay đổi bất biến bằng with...(), plus...() và minus...()
+  - Kết hợp và chuyển kiểu bằng at...() và to...()
+  - Tại sao phải nhận lại kết quả của phép biến đổi
+  - DateTimeException và UnsupportedTemporalTypeException
+  - Truyền ZoneId, Locale và Clock tường minh thay cho phụ thuộc môi trường
+- level1: LocalDate
+  level2:
+  - LocalDate biểu diễn ngày không có giờ hoặc múi giờ
+  - Tạo ngày từ năm, tháng, ngày và ngày thứ bao nhiêu trong năm
+  - Đọc năm, tháng, ngày, thứ và ngày thứ bao nhiêu trong năm
+  - Kiểm tra năm nhuận, độ dài tháng và độ dài năm
+  - Cộng trừ ngày, tuần, tháng và năm
+  - Thay một thành phần ngày và xử lý ngày cuối tháng
+  - Đếm ngày bằng ChronoUnit và sinh dãy ngày bằng datesUntil()
+  - Kết hợp ngày với giờ bằng atTime()
+  - Chọn LocalDate cho ngày sinh, ngày hóa đơn và ngày hiệu lực
+- level1: LocalTime
+  level2:
+  - LocalTime biểu diễn giờ trong ngày không có ngày và múi giờ
+  - Tạo giờ với độ chính xác tới nano giây
+  - Đọc giờ, phút, giây và phần lẻ của giây
+  - Cộng trừ giờ và hiện tượng quay vòng qua nửa đêm
+  - Chuyển đổi giây hoặc nano giây tính từ đầu ngày
+  - Cắt bớt độ chính xác bằng truncatedTo()
+  - Kết hợp LocalTime với LocalDate hoặc ZoneOffset
+  - Mô hình hóa giờ mở cửa và khoảng giờ đi qua nửa đêm
+- level1: LocalDateTime
+  level2:
+  - LocalDateTime kết hợp ngày và giờ nhưng chưa xác định một thời điểm
+  - Tạo từ các thành phần hoặc từ LocalDate và LocalTime
+  - Tách phần ngày và phần giờ
+  - Cộng trừ thời gian khi đi qua ranh giới ngày, tháng và năm
+  - Thay thành phần và cắt bớt độ chính xác
+  - Kết hợp với ZoneId hoặc ZoneOffset để xác định thời điểm
+  - Chuyển thành epoch cần độ lệch UTC phù hợp
+  - Khi nào LocalDateTime phù hợp và khi nào dễ làm mất ý nghĩa thời gian
+- level1: Instant
+  level2:
+  - Instant là một điểm trên dòng thời gian
+  - Tạo thời điểm hiện tại từ đồng hồ
+  - Tạo từ epoch giây, epoch mili giây và phần nano giây
+  - Đọc epoch và xử lý thời điểm trước năm 1970
+  - Phân tích và biểu diễn Instant bằng chuỗi ISO-8601
+  - Cộng trừ khoảng thời gian và đơn vị được hỗ trợ
+  - Độ chính xác nano giây và mất dữ liệu khi chuyển sang mili giây
+  - Chuyển Instant thành ngày giờ tại một múi giờ
+  - Ứng dụng Instant cho nhật ký, thời điểm tạo và hạn hết hiệu lực
+- level1: Múi giờ
+  level2:
+  - ZoneId biểu diễn múi giờ theo vùng
+  - ZoneOffset biểu diễn độ lệch cố định so với UTC
+  - Phân biệt tên vùng Asia/Ho_Chi_Minh với độ lệch +07:00
+  - Tạo, kiểm tra và liệt kê mã múi giờ
+  - ZoneId.systemDefault() và tác động của cấu hình môi trường
+  - Rủi ro của tên viết tắt múi giờ không rõ nghĩa
+  - Quy tắc lịch sử và thay đổi tương lai trong cơ sở dữ liệu múi giờ
+  - ZoneRules, độ lệch hợp lệ và thời điểm chuyển đổi
+  - Chọn múi giờ người dùng, hệ thống và nghiệp vụ
+- level1: ZonedDateTime
+  level2:
+  - ZonedDateTime gồm ngày giờ địa phương, ZoneId và độ lệch đã xác định
+  - Tạo từ Instant hoặc LocalDateTime cùng múi giờ
+  - Giờ bị bỏ qua khi chuyển sang giờ mùa hè
+  - Giờ lặp lại khi kết thúc giờ mùa hè
+  - Cách atZone() xử lý mặc định khoảng trống và chồng lặp
+  - Chọn độ lệch sớm hoặc muộn bằng withEarlierOffsetAtOverlap() và withLaterOffsetAtOverlap()
+  - Kiểm tra tổ hợp ngày giờ, độ lệch và múi giờ bằng ofStrict()
+  - Đổi múi giờ giữ thời điểm với withZoneSameInstant()
+  - Đổi múi giờ giữ giờ địa phương với withZoneSameLocal()
+  - So sánh cộng một ngày lịch với cộng 24 giờ qua ranh giới DST
+- level1: Ngày giờ có offset
+  level2:
+  - OffsetDateTime biểu diễn ngày giờ kèm độ lệch UTC
+  - Tạo, đọc, cộng trừ và phân tích OffsetDateTime
+  - Đổi độ lệch giữ thời điểm hoặc giữ ngày giờ địa phương
+  - Vì sao offset không chứa đầy đủ quy tắc của múi giờ vùng
+  - OffsetTime biểu diễn giờ kèm độ lệch nhưng không có ngày
+  - Tính giới hạn của OffsetTime khi suy luận một thời điểm
+  - Chuyển giữa OffsetDateTime, Instant và ZonedDateTime
+  - Lựa chọn dữ liệu có offset khi trao đổi qua giao thức
+- level1: Chuyển đổi kiểu
+  level2:
+  - Bản đồ chuyển đổi giữa các kiểu ngày giờ chính
+  - LocalDate và LocalTime kết hợp thành LocalDateTime
+  - LocalDateTime thành ZonedDateTime cần ZoneId và chính sách DST
+  - LocalDateTime thành Instant cần ZoneOffset phù hợp
+  - Instant thành LocalDateTime, LocalDate và LocalTime theo múi giờ
+  - ZonedDateTime thành OffsetDateTime và thông tin bị mất
+  - Lấy ngày địa phương từ một thời điểm ở các múi giờ khác nhau
+  - atStartOfDay(ZoneId) và thời điểm bắt đầu ngày hợp lệ
+  - Nhận diện phép chuyển đổi làm mất ngày, múi giờ hoặc độ chính xác
+- level1: Duration
+  level2:
+  - Duration biểu diễn lượng thời gian bằng giây và nano giây
+  - Tạo từ giây, phút, giờ, ngày 24 giờ và chuỗi ISO-8601
+  - Đo khoảng cách giữa hai giá trị bằng between()
+  - Khoảng thời gian âm, bằng không và dương
+  - Cộng, trừ, nhân, chia, đổi dấu và lấy trị tuyệt đối
+  - Phân biệt tổng số đơn vị với các phần toHoursPart() và toMinutesPart()
+  - Chuyển sang mili giây hoặc nano giây và nguy cơ tràn số
+  - Vì sao Duration.ofDays(1) luôn là 24 giờ
+  - Áp dụng Duration cho thời hạn, độ trễ và thời gian thực sự trôi qua
+- level1: Period
+  level2:
+  - Period biểu diễn lượng thời gian theo năm, tháng và ngày lịch
+  - Tạo Period và đọc chuỗi ISO-8601
+  - Tính khoảng ngày bằng Period.between()
+  - Phân biệt thành phần getDays() với tổng số ngày
+  - Chuẩn hóa năm và tháng bằng normalized()
+  - Cộng trừ Period và thứ tự áp dụng lên ngày
+  - Tính tuổi và xử lý sinh nhật ngày 29 tháng 2
+  - So sánh Period với Duration khi đi qua DST và cuối tháng
+- level1: Phép tính thời gian
+  level2:
+  - Chọn phép tính theo ngày lịch hoặc theo dòng thời gian
+  - plusMonths() ở cuối tháng và tính không đảo ngược của một số phép tính
+  - plusYears() từ ngày nhuận và quy tắc điều chỉnh
+  - Thứ tự cộng năm, tháng và ngày có thể làm đổi kết quả
+  - ChronoUnit.between(), until() và đơn vị nguyên hoàn chỉnh
+  - Phép tính trên các kiểu khác nhau và yêu cầu kiểu tương thích
+  - Cắt bớt độ chính xác khác với làm tròn thời gian
+  - Giới hạn giá trị và xử lý DateTimeException hoặc ArithmeticException
+  - Tránh đổi tháng, năm thành số giây cố định
+- level1: So sánh và khoảng
+  level2:
+  - equals(), compareTo(), isBefore() và isAfter() theo từng kiểu
+  - So sánh cùng thời điểm bằng isEqual() trên kiểu có múi giờ
+  - Khác biệt giữa bằng nhau về cấu trúc và bằng nhau trên dòng thời gian
+  - Sắp xếp ngày giờ và chọn Comparator theo ý nghĩa cần dùng
+  - Quy ước khoảng đóng, khoảng mở và khoảng nửa mở
+  - Kiểm tra một thời điểm nằm trong khoảng
+  - Phát hiện giao nhau, tiếp giáp và khoảng rỗng
+  - Biểu diễn cả ngày bằng đầu ngày tới đầu ngày tiếp theo
+- level1: Định dạng
+  level2:
+  - DateTimeFormatter và vai trò tách dữ liệu khỏi cách hiển thị
+  - Sử dụng các bộ định dạng ISO có sẵn
+  - Tạo mẫu định dạng bằng ofPattern()
+  - Phân biệt uuuu, yyyy và YYYY
+  - Phân biệt MM với mm, dd với DD
+  - Giờ 12 tiếng, 24 tiếng và ký hiệu AM/PM
+  - Định dạng phần lẻ giây và ảnh hưởng tới độ chính xác
+  - Định dạng offset, tên múi giờ và ZoneId
+  - Ký tự cố định, dấu nháy và thành phần tùy chọn
+  - Locale, FormatStyle và định dạng tiếng Việt
+- level1: Phân tích chuỗi
+  level2:
+  - parse() và yêu cầu dữ liệu phù hợp kiểu đích
+  - Phân tích chuỗi ISO trước khi xây dựng mẫu tùy chỉnh
+  - ResolverStyle.STRICT, SMART và LENIENT
+  - Kiểm tra ngày không hợp lệ và sự khác biệt giữa các chế độ
+  - Vì sao uuuu phù hợp hơn yyyy trong nhiều mẫu phân tích nghiêm ngặt
+  - Phân biệt phân tích không phân biệt hoa thường với xử lý ngày nghiêm ngặt
+  - Phân tích chuỗi có offset hoặc múi giờ
+  - Chuỗi thiếu trường và thông tin bổ sung để tạo kiểu đích
+  - Đọc vị trí lỗi từ DateTimeParseException
+  - Thiết kế đầu vào không mơ hồ và kiểm tra toàn bộ chuỗi
+- level1: Tùy biến định dạng
+  level2:
+  - DateTimeFormatterBuilder và khi nào cần dùng
+  - Ghép trường số, văn bản và ký tự cố định
+  - Thành phần tùy chọn và nhiều dạng đầu vào
+  - Giá trị mặc định bằng parseDefaulting()
+  - Độ rộng, dấu và phần lẻ của giây
+  - parseBest() để chọn kiểu kết quả phù hợp
+  - Tách giai đoạn đọc trường và giải quyết trường ngày giờ
+  - Tái sử dụng formatter bất biến và cấu hình Locale hoặc ZoneId tường minh
+- level1: Điều chỉnh ngày
+  level2:
+  - TemporalAdjuster và phép biến đổi theo quy tắc
+  - Đầu tháng, cuối tháng, đầu năm và cuối năm
+  - Tìm thứ kế tiếp hoặc trước đó
+  - Phân biệt next() với nextOrSame()
+  - Tìm một thứ cụ thể trong tháng
+  - Tạo TemporalAdjuster bằng ofDateAdjuster()
+  - Tính ngày làm việc và tách chính sách ngày nghỉ khỏi phép tính lịch
+  - Kiểm tra quy tắc điều chỉnh tại cuối tháng và năm nhuận
+- level1: Trường và đơn vị
+  level2:
+  - TemporalAccessor để đọc và Temporal để thay đổi giá trị
+  - TemporalField và TemporalUnit
+  - ChronoField và ChronoUnit thường dùng
+  - get(), getLong(), range() và giới hạn của trường
+  - isSupported() trước khi dùng trường hoặc đơn vị
+  - with() và plus() qua giao diện temporal
+  - TemporalAmount và mối liên hệ với Duration, Period
+  - TemporalQuery và các truy vấn có sẵn trong TemporalQueries
+  - UnsupportedTemporalTypeException khi chọn sai trường hoặc đơn vị
+- level1: Các phần của ngày
+  level2:
+  - Year và kiểm tra tính hợp lệ của năm nhuận
+  - YearMonth cho kỳ báo cáo và hạn theo tháng
+  - MonthDay cho ngày kỷ niệm không gắn năm
+  - Gắn ngày, tháng hoặc năm để tạo LocalDate
+  - Month và DayOfWeek là enum có ý nghĩa lịch
+  - Lấy giá trị số và tên hiển thị theo Locale
+  - Xử lý MonthDay ngày 29 tháng 2 khi gắn một năm
+  - Lựa chọn kiểu thành phần thay cho số nguyên hoặc chuỗi tùy ý
+- level1: Tuần và hệ lịch
+  level2:
+  - Tuần ISO, ngày đầu tuần và năm theo tuần
+  - WeekFields và quy tắc tuần phụ thuộc Locale
+  - Ngày đầu năm thuộc tuần của năm trước hoặc năm sau
+  - IsoFields cho quý và năm theo tuần
+  - Chronology và mối quan hệ giữa hệ lịch với ngày ISO
+  - Nhận diện JapaneseDate, ThaiBuddhistDate, HijrahDate và MinguoDate
+  - Chuyển đổi hệ lịch để hiển thị và giới hạn khi trao đổi dữ liệu
+  - Phân biệt hệ lịch khác với định dạng ngôn ngữ hoặc múi giờ
+- level1: Clock và kiểm thử
+  level2:
+  - Vì sao gọi now() trực tiếp làm kiểm thử khó lặp lại
+  - Clock cung cấp thời điểm hiện tại và múi giờ
+  - Clock.systemUTC() và Clock.system(ZoneId)
+  - Clock.fixed() để cố định thời điểm kiểm thử
+  - Clock.offset() và Clock.tick()
+  - InstantSource khi chỉ cần nguồn cung cấp thời điểm
+  - Truyền Clock vào lớp nghiệp vụ
+  - Kiểm thử trước, đúng và sau thời điểm hết hạn
+  - Kiểm thử cuối tháng, năm nhuận, nửa đêm và chuyển DST
+  - System.nanoTime() cho đo thời gian trôi qua và giới hạn của đồng hồ hệ thống
+- level1: API cũ
+  level2:
+  - java.util.Date biểu diễn thời điểm và vì sao tên lớp dễ gây nhầm
+  - Tính có thể thay đổi của Date và các phương thức lỗi thời
+  - Calendar, GregorianCalendar và TimeZone
+  - Chỉ số tháng của Calendar và lỗi lệch tháng thường gặp
+  - Calendar lenient và chuẩn hóa giá trị ngoài phạm vi
+  - 'SimpleDateFormat: mẫu định dạng, Locale và múi giờ'
+  - SimpleDateFormat không an toàn khi dùng chung giữa nhiều luồng
+  - Chuyển Date với Instant, Calendar với ZonedDateTime
+  - Chuyển TimeZone với ZoneId và kiểm tra mã múi giờ không hợp lệ
+  - Khác biệt lịch Gregorian lịch sử khi di chuyển dữ liệu cũ
+- level1: Lưu trữ và trao đổi
+  level2:
+  - Chọn dữ liệu ngày thuần túy, giờ địa phương hay thời điểm khi lưu trữ
+  - Quy ước ISO-8601 và offset tường minh trên giao diện trao đổi
+  - Phân biệt số epoch giây với epoch mili giây trong hợp đồng dữ liệu
+  - Lưu ZoneId riêng khi cần giữ quy tắc múi giờ vùng
+  - java.sql.Date với LocalDate và java.sql.Time với LocalTime
+  - java.sql.Timestamp với Instant hoặc LocalDateTime theo ngữ nghĩa
+  - Giới hạn toInstant() trên java.sql.Date và java.sql.Time
+  - 'JDBC getObject() và setObject() với java.time: kiểm tra khả năng của trình điều khiển'
+  - Độ chính xác cột dữ liệu và mất phần nano giây khi đọc ghi
+  - Kiểm tra chuyển đổi đi-về giữa dữ liệu Java, chuỗi và kho lưu trữ
+- level1: Thiết kế nghiệp vụ
+  level2:
+  - Ngày sinh, ngày hết hạn và lịch hẹn cần các kiểu thời gian khác nhau
+  - Phân biệt sự kiện đã xảy ra với lịch hẹn tương lai
+  - Lịch lặp theo giờ địa phương cần giữ múi giờ và chính sách DST
+  - Xác định thế nào là hôm nay theo múi giờ nghiệp vụ
+  - Quy ước thời điểm hết hạn bao gồm hay không bao gồm điểm cuối
+  - Tách giờ hiển thị khỏi thời điểm lưu trữ
+  - Không dùng chuỗi đã định dạng làm dữ liệu ngày giờ nội bộ
+  - Đặt tên trường và tham số thể hiện đơn vị, múi giờ và ý nghĩa
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng bộ nhập ngày nghiêm ngặt và thông báo lỗi rõ ràng
+  - Tính tuổi, ngày kỷ niệm và hạn cuối tháng
+  - Tính ngày làm việc kế tiếp theo chính sách ngày nghỉ
+  - Chuyển lịch hẹn giữa hai múi giờ và xử lý DST
+  - Tính thời gian phiên làm việc qua nửa đêm
+  - Kiểm tra khoảng hiệu lực bằng quy ước nửa mở
+  - Thiết kế dịch vụ hết hạn có Clock và kiểm thử lặp lại được
+  - Di chuyển đoạn mã Date, Calendar, SimpleDateFormat sang java.time
+  - Lập bảng ca biên cho múi giờ, năm nhuận, độ chính xác và đầu vào sai
+  - Tổng hợp lỗi thường gặp và tiêu chí chọn đúng API

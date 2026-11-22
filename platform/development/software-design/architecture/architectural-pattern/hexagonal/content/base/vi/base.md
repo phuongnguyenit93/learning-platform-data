@@ -1,0 +1,7 @@
+# Software Design Architecture Architectural Pattern Hexagonal
+
+**Hexagonal Architecture (Ports & Adapters)** là mẫu kiến trúc do Alistair Cockburn giới thiệu nhằm tách ứng dụng và quy tắc nghiệp vụ khỏi những chi tiết dễ thay đổi như giao diện người dùng, cơ sở dữ liệu và dịch vụ bên ngoài. Lõi ứng dụng giao tiếp thông qua các **port** (hợp đồng) và được kết nối với thế giới bên ngoài bằng **adapter** (bộ chuyển đổi). Hình lục giác là cách diễn đạt ranh giới *bên trong – bên ngoài*, không có nghĩa hệ thống bắt buộc phải có sáu cổng hoặc một số lớp cố định.
+
+Lộ trình gồm tám mốc: tư duy hexagonal và ranh giới phụ thuộc; domain core cùng use cases; input/output ports; driving adapters như REST/CLI; driven adapters cho database/API/broker; dependency inversion và dependency injection; kiểm thử lõi, adapter và luật kiến trúc; cuối cùng là áp dụng và tiến hóa một luồng nghiệp vụ. Người học sẽ hiểu rằng **luồng yêu cầu có thể đi từ adapter vào lõi rồi ra hệ thống khác**, trong khi hướng phụ thuộc trong mã được kiểm soát để lõi không bị ràng buộc bởi công nghệ bên ngoài.
+
+Module phù hợp với lập trình viên backend, Java/Spring và người học thiết kế phần mềm đã biết OOP, interface, dependency injection và kiểm thử cơ bản. Sau khi hoàn thành, bạn có thể thiết kế sơ đồ ports/adapters, viết một use case không phụ thuộc framework, thay thế hạ tầng qua adapter, tạo unit/integration tests đúng ranh giới và đánh giá khi nào tính linh hoạt của kiến trúc xứng đáng với số lượng abstraction bổ sung.

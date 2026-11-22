@@ -1,0 +1,49 @@
+roadmap:
+- id: muc-dich-proxy
+  title: Mục đích Proxy
+  purpose: Hiểu khi nào cần một đối tượng trung gian kiểm soát việc truy cập đối tượng gốc.
+  objectives:
+  - Nêu ý định của Proxy trong nhóm Structural Patterns.
+  - Nhận diện tình huống cần trì hoãn hoặc kiểm soát truy cập.
+- id: cau-truc-proxy
+  title: Cấu trúc Proxy
+  purpose: Hiểu quan hệ giữa Subject, RealSubject, Proxy và Client.
+  objectives:
+  - Phác họa sơ đồ các vai trò và giao diện chung.
+  - Giải thích vì sao Client có thể dùng Proxy thay RealSubject.
+- id: uy-quyen-vong-doi
+  title: Ủy quyền & vòng đời
+  purpose: Nắm cách Proxy xử lý trước hoặc sau khi chuyển lời gọi tới đối tượng thật.
+  objectives:
+  - Mô tả luồng Client → Proxy → RealSubject.
+  - Quyết định thời điểm tạo và giữ tham chiếu đối tượng thật.
+- id: virtual-proxy
+  title: Virtual Proxy
+  purpose: Trì hoãn tạo tài nguyên tốn kém đến khi thật sự cần.
+  objectives:
+  - Viết ví dụ lazy initialization cho một dịch vụ nặng.
+  - Xác minh đối tượng thật chỉ được khởi tạo khi truy cập.
+- id: protection-proxy
+  title: Protection Proxy
+  purpose: Áp dụng kiểm tra quyền trước khi cho phép truy cập tài nguyên.
+  objectives:
+  - Thiết lập quy tắc truy cập trong Proxy.
+  - Kiểm thử trường hợp được phép và bị từ chối.
+- id: remote-smart-proxy
+  title: Remote & Smart Proxy
+  purpose: Nhận diện các biến thể đại diện từ xa và bổ sung quản lý truy cập.
+  objectives:
+  - Mô tả Remote Proxy che giấu lời gọi qua mạng.
+  - Nêu ví dụ Smart Proxy với logging hoặc đếm truy cập.
+- id: proxy-trong-java
+  title: Proxy trong Java
+  purpose: Hiểu cách xây dựng Proxy tĩnh và JDK Dynamic Proxy.
+  objectives:
+  - Tạo Proxy tĩnh triển khai cùng interface.
+  - Giải thích vai trò Proxy và InvocationHandler trong Java.
+- id: ung-dung-kiem-thu
+  title: Ứng dụng & kiểm thử
+  purpose: Đánh giá lợi ích, chi phí và sự khác biệt với các pattern gần nhau.
+  objectives:
+  - Kiểm tra việc ủy quyền, xử lý lỗi và hành vi Client.
+  - Phân biệt mục tiêu của Proxy với Decorator và Adapter.

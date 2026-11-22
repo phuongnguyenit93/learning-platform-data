@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-module
+  title: Mô hình module
+  purpose: Dùng ApplicationModules làm nguồn để mô tả đúng cấu trúc và ranh giới kiến trúc.
+  objectives:
+  - Tạo mô hình bằng ApplicationModules.of(...).
+  - Nhận diện tên, API và phụ thuộc giữa các module.
+  - Đối chiếu mô hình với các module thực tế.
+- id: so-do-kien-truc
+  title: Sơ đồ kiến trúc
+  purpose: Trực quan hóa mối quan hệ giữa các module để người đọc nắm luồng phụ thuộc.
+  objectives:
+  - Sinh sơ đồ tổng bằng Documenter.
+  - Sinh sơ đồ riêng của từng module.
+  - Phân biệt cách trình bày C4 và UML.
+- id: application-module-canvas
+  title: Application Module Canvas
+  purpose: Tạo bản tóm tắt nhất quán về thành phần và trách nhiệm của từng module.
+  objectives:
+  - Sinh canvas bằng writeModuleCanvases().
+  - Đọc Spring beans, aggregate roots và cấu hình.
+  - Xác định các sự kiện module phát và lắng nghe.
+- id: tai-lieu-tu-dong
+  title: Tài liệu tự động
+  purpose: Giữ tài liệu kiến trúc cập nhật theo cấu trúc mã nguồn qua quy trình sinh tài liệu.
+  objectives:
+  - Tạo tài liệu tổng hợp bằng Documenter.
+  - Kiểm tra sơ đồ, canvas và tệp Asciidoc được sinh.
+  - Chạy bước tạo tài liệu trong quy trình kiểm tra.
+- id: modulith-actuator
+  title: Modulith Actuator
+  purpose: Công khai metadata kiến trúc tại runtime để kiểm tra cấu trúc module đang chạy.
+  objectives:
+  - Bật Spring Modulith Actuator với Spring Boot Actuator.
+  - Đọc endpoint /actuator/modulith.
+  - Kiểm tra module, base package và dependencies.
+- id: thiet-lap-observability
+  title: Thiết lập Observability
+  purpose: Bật khả năng quan sát tương tác module với các công cụ runtime thích hợp.
+  objectives:
+  - Chọn starter-insight hoặc observability-core.
+  - Kết nối Micrometer và hệ thống xuất trace/metric.
+  - Phân biệt tín hiệu logs, metrics và traces.
+- id: tracing-lien-module
+  title: Tracing liên module
+  purpose: Theo dõi lời gọi qua các API module và sự kiện để xác định luồng xử lý.
+  objectives:
+  - Tạo tình huống gọi bean qua ranh giới module.
+  - Quan sát spans và nhãn nhận diện module.
+  - Lần theo sự kiện và bước xử lý chậm trong trace.
+- id: metrics-xac-minh
+  title: Metrics & xác minh
+  purpose: Đo hoạt động của module và xác nhận dữ liệu quan sát phản ánh thực tế.
+  objectives:
+  - Quan sát metric module.events.published.
+  - Đọc tag về module và loại sự kiện.
+  - Kiểm tra metric và trace sau khi phát sự kiện.

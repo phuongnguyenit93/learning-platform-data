@@ -1,0 +1,50 @@
+roadmap:
+- id: tu-duy-pipeline
+  title: Tư duy pipeline
+  purpose: Nắm cách dữ liệu đi qua các bước xử lý có đầu vào và đầu ra rõ ràng.
+  objectives:
+  - Phân biệt dữ liệu thô, trung gian và kết quả
+  - Phác thảo một pipeline đơn giản
+  - Xác định đầu vào và đầu ra từng bước
+- id: loc-bien-doi
+  title: Lọc & biến đổi
+  purpose: Chuyển dữ liệu về dạng phù hợp để tính toán và sử dụng.
+  objectives:
+  - Dùng filter, map và flatMap với Java Stream
+  - Chuẩn hóa giá trị thiếu và sai định dạng
+  - Giữ phép biến đổi dễ kiểm thử
+- id: gom-nhom-tong-hop
+  title: Gom nhóm & tổng hợp
+  purpose: Rút ra thông tin có ý nghĩa từ nhiều bản ghi.
+  objectives:
+  - Nhóm dữ liệu theo khóa
+  - Tính count, sum, average và reduce
+  - Kết hợp hoặc tổng hợp dữ liệu theo yêu cầu
+- id: xu-ly-theo-lo
+  title: Xử lý theo lô
+  purpose: Thiết kế quy trình xử lý dữ liệu hữu hạn với các lần chạy rõ ràng.
+  objectives:
+  - Mô tả các bước đọc–xử lý–ghi
+  - Xử lý theo chunk phù hợp
+  - Giải thích cách tiếp tục khi job lỗi
+- id: xu-ly-luong
+  title: Xử lý luồng
+  purpose: Hiểu cách xử lý sự kiện liên tục theo thời gian.
+  objectives:
+  - Phân biệt batch và streaming
+  - Gom sự kiện theo cửa sổ thời gian
+  - Giải thích state và sự kiện đến muộn
+- id: hieu-nang-song-song
+  title: Hiệu năng & song song
+  purpose: Tăng tốc xử lý mà vẫn giữ kết quả chính xác.
+  objectives:
+  - Đo thời gian và mức dùng bộ nhớ
+  - Chọn xử lý tuần tự hoặc song song
+  - Nhận biết nghẽn và tác động của thứ tự
+- id: kiem-thu-phuc-hoi
+  title: Kiểm thử & phục hồi
+  purpose: Phát hiện lỗi và chứng minh pipeline hoạt động ổn định.
+  objectives:
+  - Kiểm thử từng phép biến đổi và toàn pipeline
+  - Thiết kế retry và xử lý dữ liệu trùng
+  - Theo dõi số bản ghi, lỗi và thời gian chạy

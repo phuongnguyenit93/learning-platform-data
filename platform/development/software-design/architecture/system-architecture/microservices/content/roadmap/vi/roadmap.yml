@@ -1,0 +1,58 @@
+roadmap:
+- id: kien-truc-trade-offs
+  title: Kiến trúc & Trade-offs
+  purpose: Hiểu microservices là các dịch vụ tự chủ có thể triển khai độc lập, đồng thời biết cân nhắc chi phí của hệ phân
+    tán.
+  objectives:
+  - So sánh monolith, modular monolith và microservices
+  - Đánh giá lợi ích deploy/scale độc lập với độ phức tạp
+  - Nêu dấu hiệu chưa nên tách hệ thống thành service
+- id: bounded-context-phan-ra
+  title: Bounded Context & Phân rã
+  purpose: Thiết kế ranh giới dịch vụ dựa trên năng lực nghiệp vụ, quyền sở hữu và mức thay đổi cùng nhau.
+  objectives:
+  - Vẽ bounded context và business capability map
+  - Tách Order, Inventory, Payment theo trách nhiệm
+  - Kiểm tra coupling và việc deploy độc lập của mỗi service
+- id: contracts-giao-tiep
+  title: Contracts & Giao tiếp
+  purpose: Thiết lập hợp đồng ổn định và chọn giao tiếp đồng bộ hay bất đồng bộ dựa trên độ trễ, lỗi và phụ thuộc.
+  objectives:
+  - Thiết kế API contract, version và tương thích ngược
+  - So sánh REST/gRPC với message/event bất đồng bộ
+  - Nhận diện chatty API, timeout và phụ thuộc dây chuyền
+- id: du-lieu-ownership
+  title: Dữ liệu & Ownership
+  purpose: Giữ dữ liệu riêng cho từng dịch vụ để giảm coupling, đồng thời xử lý truy vấn cần dữ liệu nhiều miền.
+  objectives:
+  - Áp dụng database per service ở mức schema hoặc DB
+  - Ngăn service khác đọc/ghi trực tiếp bảng nội bộ
+  - So sánh API Composition với read projection/CQRS
+- id: saga-tin-cay-su-kien
+  title: Saga & Tin cậy sự kiện
+  purpose: Điều phối nghiệp vụ qua nhiều kho dữ liệu mà không giả định có một transaction ACID toàn hệ thống.
+  objectives:
+  - Vẽ Saga gồm các local transactions và bù trừ
+  - Giải thích transactional outbox khi publish event
+  - Thiết kế consumer idempotent khi gặp message trùng
+- id: gateway-bao-mat
+  title: Gateway & Bảo mật
+  purpose: Tạo điểm vào rõ ràng và bảo vệ lời gọi giữa các dịch vụ theo nguyên tắc quyền tối thiểu.
+  objectives:
+  - Vẽ API Gateway và service discovery/Service DNS
+  - Phân biệt authentication ở gateway và authorization nội bộ
+  - Mô tả TLS/mTLS, token và quản lý secret
+- id: resilience-observability
+  title: Resilience & Observability
+  purpose: Ngăn lỗi lan truyền và theo dõi được một yêu cầu xuyên nhiều dịch vụ.
+  objectives:
+  - Thiết kế timeout, retry có giới hạn và circuit breaker
+  - Dùng trace ID liên kết logs, metrics và distributed trace
+  - Kiểm tra health probes và hành vi khi một service ngừng
+- id: testing-deploy-evolution
+  title: Testing, Deploy & Evolution
+  purpose: Kiểm chứng hợp đồng và tính tự chủ của dịch vụ trước khi triển khai, nâng cấp hoặc tách dần từ hệ cũ.
+  objectives:
+  - Viết unit, contract và integration tests theo ranh giới
+  - Thiết kế CI/CD và rollout độc lập từng service
+  - Mô tả canary/rollback và chiến lược strangler migration

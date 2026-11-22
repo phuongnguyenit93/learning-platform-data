@@ -1,0 +1,7 @@
+# Validation Testing Type - Performance Test
+
+Performance Testing là nhóm kiểm thử đánh giá khả năng đáp ứng, tốc độ xử lý, thông lượng, mức tiêu thụ tài nguyên và độ ổn định của phần mềm dưới những điều kiện tải xác định. Trong hệ thống Java/Spring hoặc ứng dụng web/API, phép thử này giúp kiểm chứng yêu cầu chất lượng phi chức năng, phát hiện điểm nghẽn trước khi phát hành và làm rõ hệ thống hoạt động ra sao khi lượng truy cập thay đổi. Người học cần nắm nguyên tắc thiết kế phép đo công bằng, kiểm soát môi trường và xác thực phản hồi trong lúc tạo tải.
+
+Lộ trình bắt đầu bằng việc xác định mục tiêu và chỉ số như độ trễ p95/p99, throughput, error rate, CPU, bộ nhớ, GC hoặc connection pool. Tiếp theo, người học xây dựng workload và dữ liệu đại diện, chọn các loại phép thử phù hợp: load test cho tải dự kiến, stress test cho giới hạn, spike test cho tải tăng đột ngột, soak test cho độ ổn định dài hạn và scalability test cho khả năng mở rộng. Môi trường đo, baseline và kịch bản tạo bằng k6 hoặc Apache JMeter phải được kiểm soát để kết quả có thể tái lập.
+
+Sau khi thực thi, người học đối chiếu số liệu từ công cụ tạo tải với metrics, log hoặc trace phía server để nhận diện bottleneck, phân biệt nguyên nhân thực với nhiễu phép đo. Cuối cùng, kết quả được so sánh với ngưỡng và baseline, báo cáo kèm giới hạn thử nghiệm, rồi dùng để ưu tiên tối ưu và phát hiện hồi quy hiệu năng trong các chu kỳ phát triển tiếp theo.

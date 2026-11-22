@@ -1,0 +1,64 @@
+roadmap:
+- id: tu-duy-functional-programming
+  title: Tư duy Functional Programming
+  purpose: Hiểu cách mô tả phép biến đổi dữ liệu bằng hàm thay vì điều khiển trạng thái tuần tự.
+  objectives:
+  - Phân biệt phong cách functional và imperative qua cùng bài toán.
+  - Nhận diện expression, function và transformation.
+  - Giải thích vì sao FP có thể kết hợp với OOP.
+- id: pure-function-tinh-thay-the
+  title: Pure Function & Tính thay thế
+  purpose: Viết hàm dễ dự đoán nhờ kết quả chỉ phụ thuộc đầu vào và không có side effect.
+  objectives:
+  - Nhận diện hàm pure và impure từ mã nguồn.
+  - Giải thích referential transparency bằng ví dụ đơn giản.
+  - Viết unit test lặp lại cho một pure function.
+- id: immutability-state
+  title: Immutability & State
+  purpose: Giảm lỗi do thay đổi dữ liệu dùng chung bằng giá trị bất biến.
+  objectives:
+  - Phân biệt mutation và tạo giá trị mới.
+  - Thử cập nhật danh sách hoặc record bằng cách tạo bản sao.
+  - Giải thích lợi ích và chi phí cấp phát của immutable data.
+- id: lambda-first-class-functions
+  title: Lambda & First-class Functions
+  purpose: Xem hàm như giá trị có thể gán, truyền và trả về.
+  objectives:
+  - Viết lambda và method reference trong Java.
+  - Dùng Function hoặc Predicate làm tham số.
+  - Tạo một hàm trả về hàm khác.
+- id: higher-order-composition
+  title: Higher-order & Composition
+  purpose: Kết hợp các hàm nhỏ thành luồng xử lý có thể tái sử dụng.
+  objectives:
+  - Viết higher-order function nhận callback.
+  - Ghép hai phép biến đổi với compose hoặc andThen.
+  - Phân biệt composition với gọi hàm có side effect.
+- id: map-filter-reduce
+  title: map, filter & reduce
+  purpose: Thực hiện biến đổi, lọc và tổng hợp collection theo pipeline.
+  objectives:
+  - Dùng map và filter để tạo collection kết quả.
+  - Viết reduce với identity và phép kết hợp phù hợp.
+  - Phân biệt intermediate lazy và terminal operations trong Java Stream.
+- id: recursion-de-quy-duoi
+  title: Recursion & Đệ quy đuôi
+  purpose: Giải bài toán lặp theo định nghĩa hàm và hiểu giới hạn stack.
+  objectives:
+  - Xác định base case và recursive case.
+  - Chuyển một vòng lặp đơn giản thành recursion.
+  - Giải thích tail recursion và không giả định Java tối ưu tail call.
+- id: option-either-adt
+  title: Option, Either & ADT
+  purpose: Biểu diễn thiếu dữ liệu hoặc lỗi bằng kiểu rõ ràng thay vì giá trị mơ hồ.
+  objectives:
+  - Dùng Optional hoặc Option cho kết quả có thể vắng mặt.
+  - Phân biệt kiểu thành công/thất bại như Either hoặc Result.
+  - Thử pattern matching với các nhánh của ADT.
+- id: effects-kiem-thu-ung-dung
+  title: Effects, Kiểm thử & Ứng dụng
+  purpose: Tổ chức logic thuần ở lõi và cô lập I/O tại ranh giới chương trình.
+  objectives:
+  - Tách phần tính toán pure khỏi file, DB hoặc HTTP.
+  - Viết test cho dữ liệu rỗng, lỗi và tính bất biến.
+  - Refactor một quy trình xử lý dữ liệu thành các hàm nhỏ.

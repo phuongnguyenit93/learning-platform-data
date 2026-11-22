@@ -1,0 +1,58 @@
+roadmap:
+- id: tu-duy-event-sourcing
+  title: Tư duy Event Sourcing
+  purpose: Hiểu việc lấy chuỗi sự kiện làm nguồn sự thật thay vì chỉ lưu trạng thái hiện tại, và cân nhắc khi nào đáng áp
+    dụng.
+  objectives:
+  - Phân biệt Event Sourcing với CRUD và audit log
+  - Giải thích append-only event stream là source of truth
+  - Nêu hai lợi ích và hai chi phí vận hành của pattern
+- id: domain-events-schema
+  title: Domain Events & Schema
+  purpose: Thiết kế sự kiện bất biến thể hiện việc đã xảy ra trong nghiệp vụ, đủ dữ liệu để khôi phục trạng thái.
+  objectives:
+  - Đặt event dạng quá khứ như OrderPlaced
+  - Chọn eventId, aggregateId, version và timestamp
+  - Tách domain event khỏi command và integration event
+- id: commands-aggregates
+  title: Commands & Aggregates
+  purpose: Giữ quy tắc nghiệp vụ trong aggregate khi xử lý command trước khi phát sinh sự kiện mới.
+  objectives:
+  - Phân biệt command với event đã được chấp nhận
+  - Viết quyết định validate → emit event theo invariant
+  - Xác định ranh giới nhất quán của một aggregate
+- id: event-store-concurrency
+  title: Event Store & Concurrency
+  purpose: Ghi nối tiếp sự kiện theo từng stream và ngăn hai lệnh cùng ghi dựa trên một phiên bản trạng thái cũ.
+  objectives:
+  - Thiết kế append-only store theo aggregateId
+  - Dùng expected version/optimistic concurrency
+  - Thử hai ghi đồng thời và xử lý version conflict
+- id: replay-snapshot
+  title: Replay & Snapshot
+  purpose: Tái dựng trạng thái từ các sự kiện theo đúng thứ tự và tối ưu hiệu năng khi stream quá dài.
+  objectives:
+  - Viết hàm apply(event) để rehydrate aggregate
+  - Replay chuỗi sự kiện và so sánh trạng thái cuối
+  - Tạo snapshot rồi replay phần sự kiện mới
+- id: cqrs-projections
+  title: CQRS & Projections
+  purpose: Xây dựng read model từ luồng sự kiện để truy vấn nhanh mà vẫn chấp nhận độ trễ đồng bộ.
+  objectives:
+  - Tách write model và read projection
+  - Thiết kế projection cho order history hoặc balance
+  - Rebuild projection từ event store khi cần
+- id: evolution-reliability
+  title: Evolution & Reliability
+  purpose: Giữ dữ liệu lịch sử đọc được và xử lý sự kiện trùng, sai thứ tự hoặc cần sửa theo nghiệp vụ.
+  objectives:
+  - Áp dụng event versioning và upcasting khi cần
+  - Làm event handler idempotent, theo dõi offset
+  - Dùng compensating event thay vì sửa lịch sử
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Đảm bảo lô-gic sự kiện đáng tin cậy và phát hiện vấn đề về replay, dữ liệu nhạy cảm hay hiệu năng.
+  objectives:
+  - Test given events → when command → then events
+  - Kiểm thử restart, duplicate, projection rebuild
+  - Theo dõi replay lag, backup và retention/PII

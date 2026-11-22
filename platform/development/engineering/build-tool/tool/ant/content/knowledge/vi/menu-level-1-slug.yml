@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cài đặt
+  slug: setup
+  index: 1
+- title: Build đầu tiên
+  slug: first-build
+  index: 2
+- title: Cấu trúc buildfile
+  slug: buildfile-structure
+  index: 3
+- title: Lệnh Ant
+  slug: ant-commands
+  index: 4
+- title: Target
+  slug: targets
+  index: 5
+- title: Property
+  slug: properties
+  index: 6
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 7
+- title: Chọn tệp
+  slug: file-selection
+  index: 8
+- title: Tài nguyên
+  slug: resources
+  index: 9
+- title: Đường dẫn
+  slug: paths
+  index: 10
+- title: Thao tác tệp
+  slug: file-operations
+  index: 11
+- title: Lọc nội dung
+  slug: content-filtering
+  index: 12
+- title: Điều kiện
+  slug: conditions
+  index: 13
+- title: Biên dịch Java
+  slug: java-compilation
+  index: 14
+- title: Chạy Java
+  slug: running-java
+  index: 15
+- title: Thư viện
+  slug: libraries
+  index: 16
+- title: Kiểm thử
+  slug: testing
+  index: 17
+- title: Chất lượng mã
+  slug: code-quality
+  index: 18
+- title: Tài liệu
+  slug: documentation
+  index: 19
+- title: Đóng gói
+  slug: packaging
+  index: 20
+- title: Phát hành
+  slug: release
+  index: 21
+- title: Tái sử dụng
+  slug: reuse
+  index: 22
+- title: Nhiều dự án
+  slug: multi-project-builds
+  index: 23
+- title: Mở rộng Ant
+  slug: ant-extensions
+  index: 24
+- title: Tiến trình ngoài
+  slug: external-processes
+  index: 25
+- title: Build tăng dần
+  slug: incremental-build
+  index: 26
+- title: Build tái lập
+  slug: reproducible-build
+  index: 27
+- title: Nhật ký và lỗi
+  slug: logging-and-errors
+  index: 28
+- title: Hiệu năng
+  slug: performance
+  index: 29
+- title: Đa nền tảng
+  slug: cross-platform
+  index: 30
+- title: CI/CD
+  slug: ci-cd
+  index: 31
+- title: An toàn build
+  slug: build-security
+  index: 32
+- title: Bảo trì
+  slug: maintenance
+  index: 33
+- title: Chuyển đổi build
+  slug: build-migration
+  index: 34
+- title: Thực hành
+  slug: integrated-practice
+  index: 35

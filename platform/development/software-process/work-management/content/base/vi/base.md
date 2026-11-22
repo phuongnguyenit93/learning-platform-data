@@ -1,0 +1,5 @@
+# Software Process — Work Management
+
+**Work Management** trong phát triển phần mềm là cách một nhóm tiếp nhận, tổ chức, ưu tiên, thực hiện và hoàn tất công việc một cách minh bạch. Công việc có thể là tính năng, sửa lỗi, nợ kỹ thuật hoặc hoạt động vận hành; mỗi hạng mục cần mục tiêu, người phụ trách, trạng thái và tiêu chí hoàn tất đủ rõ. Backlog, board và workflow giúp nhóm nhìn thấy luồng công việc, kiểm soát việc đang làm (WIP) và xử lý sớm các vướng mắc thay vì chỉ theo dõi số lượng nhiệm vụ.
+
+Module phù hợp với lập trình viên, QA, technical lead hoặc thành viên nhóm sản phẩm đã quen quy trình phát triển phần mềm cơ bản. Bạn sẽ học cách chia nhỏ yêu cầu thành epic/story/task, ưu tiên backlog, thiết kế workflow theo Scrum hoặc Kanban, lập kế hoạch dựa trên capacity và theo dõi phụ thuộc. Sau đó, bạn thực hành nghiệm thu bằng acceptance criteria và Definition of Done, đo cycle time, throughput và WIP, rồi dùng retrospective để cải thiện quy trình. Lộ trình tập trung vào **quản lý luồng công việc**; các công cụ như Jira hoặc GitHub Projects chỉ là phương tiện áp dụng, không thay thế nguyên tắc cộng tác và ưu tiên giá trị.

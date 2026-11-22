@@ -1,0 +1,88 @@
+menu:
+- title: Nhập môn
+  slug: introduction
+  index: 0
+- title: Bài toán và ràng buộc
+  slug: problem-and-constraints
+  index: 1
+- title: Mô hình và ngôn ngữ
+  slug: modeling-language
+  index: 2
+- title: Trách nhiệm
+  slug: responsibilities
+  index: 3
+- title: Phân tách mối quan tâm
+  slug: separation-of-concerns
+  index: 4
+- title: Mô đun hóa
+  slug: modularity
+  index: 5
+- title: Tính gắn kết
+  slug: cohesion
+  index: 6
+- title: Mức phụ thuộc
+  slug: coupling-level
+  index: 7
+- title: Trừu tượng hóa
+  slug: abstraction
+  index: 8
+- title: Đóng gói thông tin
+  slug: information-encapsulation
+  index: 9
+- title: Giao diện và hợp đồng
+  slug: interfaces-and-contracts
+  index: 10
+- title: Hướng phụ thuộc
+  slug: dependency-direction
+  index: 11
+- title: SOLID
+  slug: solid
+  index: 12
+- title: Tránh lặp tri thức
+  slug: knowledge-deduplication
+  index: 13
+- title: Đơn giản và nhu cầu
+  slug: simplicity-necessity
+  index: 14
+- title: Giới hạn hiểu biết
+  slug: knowledge-boundaries
+  index: 15
+- title: Kết hợp và kế thừa
+  slug: composition-inheritance
+  index: 16
+- title: Dữ liệu và trạng thái
+  slug: data-state
+  index: 17
+- title: Tác dụng phụ và lỗi
+  slug: side-effects-errors
+  index: 18
+- title: Phong cách thiết kế
+  slug: design-styles
+  index: 19
+- title: Cấu trúc mã
+  slug: code-structure
+  index: 20
+- title: Thay đổi và tiến hóa
+  slug: change-and-evolution
+  index: 21
+- title: Kiểm thử và phản hồi
+  slug: testing-feedback
+  index: 22
+- title: Thuộc tính chất lượng
+  slug: quality-attributes
+  index: 23
+- title: Quyết định và đánh đổi
+  slug: decisions-and-tradeoffs
+  index: 24
+- title: Dấu hiệu rủi ro
+  slug: risk-signs
+  index: 25
+- title: Đánh giá thiết kế
+  slug: design-assessment
+  index: 26
+- title: Tình huống minh họa
+  slug: illustrative-scenario
+  index: 27
+- title: Bài thực hành
+  slug: practical-exercises
+  index: 28

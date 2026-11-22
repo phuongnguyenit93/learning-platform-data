@@ -1,0 +1,595 @@
+menu:
+- level1: Tổng quan PDF
+  level2:
+  - PDF là gì và bài toán giữ nguyên cách trình bày tài liệu
+  - PDF trong quy trình tạo, trao đổi và lưu trữ hồ sơ
+  - Phân biệt PDF, tài liệu soạn thảo, HTML và ảnh chụp
+  - Phân biệt PDF sinh từ dữ liệu, PDF quét và PDF hỗn hợp
+  - PDF 1.7, PDF 2.0 và khả năng tương thích trình đọc
+  - 'Các thành phần: trang, đối tượng, font, nội dung và tài nguyên'
+  - Mối liên hệ giữa hình thức hiển thị và cấu trúc ngữ nghĩa
+  - 'Bản đồ thao tác: tạo mới, biến đổi, trích xuất và xác minh'
+  - Giới hạn chỉnh sửa, chuyển đổi và khôi phục bố cục PDF
+  - Lộ trình học từ tài liệu một trang đến quy trình xử lý hoàn chỉnh
+- level1: Quy trình xử lý
+  level2:
+  - Xác định đầu vào, đầu ra và tiêu chí chất lượng tài liệu
+  - Phân biệt tạo PDF theo tọa độ và theo luồng bố cục
+  - Chọn cách tạo bằng Java, mẫu HTML hoặc XSL-FO
+  - Chọn cách xử lý PDF có sẵn hoặc dựng lại từ nguồn
+  - Thứ tự tạo nội dung, điền biểu mẫu, đóng dấu và ký số
+  - Xác định yêu cầu hiển thị, tìm kiếm, in và lưu trữ
+  - Các họ chuẩn PDF/A, PDF/UA, PDF/X và phạm vi sử dụng
+  - Thiết kế bộ tài liệu mẫu cho dữ liệu bình thường và ngoại lệ
+  - Xác định bằng chứng kiểm tra trước khi bàn giao PDF
+- level1: Công cụ Java
+  level2:
+  - Vai trò của Apache PDFBox trong đọc và thao tác PDF
+  - Vai trò của iText trong tạo bố cục và xử lý tài liệu
+  - Vai trò của OpenPDF và các thành phần mở rộng
+  - Vai trò của OpenHTMLtoPDF và bộ chuyển đổi HTML
+  - Vai trò của Apache FOP trong quy trình XML và XSL-FO
+  - Phân biệt thư viện PDF, bộ kết xuất, OCR và trình xem
+  - Đánh giá tính năng theo phiên bản Java và thư viện
+  - Kiểm tra giấy phép thư viện, font và thành phần bổ sung
+  - Quản lý dependency và tránh trộn API giữa các thế hệ
+  - Đọc tài liệu API, ví dụ chính thức và hướng dẫn nâng cấp
+- level1: Khởi tạo PDFBox
+  level2:
+  - Thiết lập dự án Java và dependency Apache PDFBox 3
+  - Tạo PDDocument và bổ sung PDPage đầu tiên
+  - Ghi nội dung cơ bản bằng PDPageContentStream
+  - Lưu PDF ra Path, File và OutputStream
+  - Mở tài liệu có sẵn bằng Loader trong PDFBox 3
+  - Lựa chọn nguồn đọc và bộ nhớ đệm cho tệp lớn
+  - Quản lý tài nguyên bằng try-with-resources
+  - Quyền sở hữu và thời điểm đóng luồng đầu vào, đầu ra
+  - Tách đường dẫn nguồn và đích khi lưu tài liệu
+  - Thực hành tạo, mở lại và xác minh PDF đầu tiên
+- level1: Cấu trúc PDF
+  level2:
+  - Header, body, cross-reference và trailer
+  - Đối tượng trực tiếp và tham chiếu gián tiếp
+  - 'Các kiểu dữ liệu COS: số, chuỗi, mảng và dictionary'
+  - Luồng dữ liệu, bộ lọc và cơ chế giải nén
+  - Document Catalog và cây trang
+  - Page Resources và phạm vi tái sử dụng tài nguyên
+  - Content Stream và các toán tử vẽ
+  - Cross-reference table, cross-reference stream và object stream
+  - Lưu toàn phần và cập nhật tăng dần
+  - Các lần sửa đổi và dữ liệu còn lại trong lịch sử tệp
+  - Duyệt cấu trúc bằng COS API và PDFDebugger
+- level1: Trang và tọa độ
+  level2:
+  - Đơn vị point và quy đổi từ milimét, inch
+  - Kích thước A4, Letter và trang tùy chỉnh
+  - MediaBox, CropBox, BleedBox, TrimBox và ArtBox
+  - Gốc tọa độ, hướng trục và tọa độ hiển thị
+  - Chuyển từ tọa độ góc trên trái sang hệ tọa độ PDF
+  - Xoay trang và tác động đến vị trí nội dung
+  - 'Ma trận biến đổi: tịnh tiến, co giãn và xoay'
+  - Lưu và khôi phục trạng thái đồ họa
+  - Lề trang, vùng nội dung và vùng an toàn
+  - Tài liệu có nhiều kích thước và hướng trang
+  - Chuyển tọa độ giữa trang PDF, ảnh kết xuất và giao diện chọn vùng
+- level1: Font và Unicode
+  level2:
+  - Mối liên hệ giữa Unicode, mã ký tự và glyph
+  - Font chuẩn, TrueType, OpenType và khả năng hỗ trợ của thư viện
+  - Nạp font từ classpath, tệp và tài nguyên đóng gói
+  - Nhúng font toàn bộ và nhúng tập con
+  - Font Type 0, CIDFont và vai trò của ToUnicode
+  - Hiển thị tiếng Việt và kiểm tra đầy đủ dấu
+  - Chuẩn hóa Unicode với văn bản tổ hợp và dựng sẵn
+  - Phát hiện ký tự thiếu và lựa chọn font thay thế
+  - Chữ đậm, nghiêng và các biến thể font
+  - Đo độ rộng chữ, đường cơ sở và chiều cao dòng
+  - Chữ viết phức tạp, chữ ghép và văn bản từ phải sang trái
+  - Kiểm tra tính nhất quán của font giữa máy phát triển và máy chủ
+- level1: Văn bản
+  level2:
+  - Khối văn bản và vòng đời beginText, endText
+  - Đặt font, cỡ chữ, màu chữ và vị trí bắt đầu
+  - Dịch con trỏ văn bản và xuống dòng
+  - Khoảng cách ký tự, khoảng cách từ và giãn dòng
+  - Căn trái, căn phải, căn giữa và căn đều
+  - Ngắt dòng theo độ rộng thực tế của font
+  - Xử lý từ dài, đường dẫn và chuỗi không có khoảng trắng
+  - Phối hợp nhiều kiểu chữ trong cùng một dòng
+  - Vẽ chữ xoay, chữ dọc và văn bản theo ma trận
+  - Các chế độ vẽ chữ và văn bản không hiển thị
+  - Thực hành trình bày đoạn văn tiếng Việt nhiều dòng
+- level1: Bố cục
+  level2:
+  - Phân biệt mô hình nội dung và mô hình bố cục
+  - Đo phần tử trước khi đặt lên trang
+  - Phân trang tự động theo chiều cao còn lại
+  - Khoảng cách đoạn, thụt đầu dòng và danh sách
+  - Tiêu đề, cấp heading và hệ thống kiểu trình bày
+  - Giữ tiêu đề cùng đoạn kế tiếp
+  - Xử lý dòng lẻ đầu trang và cuối trang
+  - Bố cục nhiều cột và vùng nội dung cố định
+  - Đầu trang, chân trang và nền trang
+  - Số trang hiện tại, tổng số trang và cách xử lý hai lượt
+  - Chú thích cuối trang và tham chiếu chéo
+  - Thực hành tài liệu nhiều trang với nội dung dài biến đổi
+- level1: Bảng dữ liệu
+  level2:
+  - Mô hình bảng, cột, hàng và ô
+  - Tính chiều rộng cột theo nội dung và khổ trang
+  - Đo chiều cao ô khi văn bản xuống nhiều dòng
+  - Căn lề nội dung và khoảng đệm trong ô
+  - Đường viền, màu nền và định dạng xen kẽ hàng
+  - Gộp ô theo hàng và theo cột
+  - Lặp tiêu đề bảng khi chuyển trang
+  - Giữ hàng nguyên vẹn hoặc chia hàng có kiểm soát
+  - Xử lý một ô cao hơn toàn bộ vùng nội dung trang
+  - Dòng tổng cộng, nhóm dữ liệu và tiêu đề nhóm
+  - Định dạng số, tiền tệ và ngày tháng trong bảng
+  - Thực hành bảng dài có dữ liệu rỗng và chuỗi quá dài
+- level1: Hình ảnh
+  level2:
+  - Phân biệt ảnh raster, ảnh vector và ảnh nhúng trong PDF
+  - Nạp PNG, JPEG và định dạng ảnh được hỗ trợ
+  - Nhúng ảnh bằng PDImageXObject
+  - Tính kích thước hiển thị theo pixel và DPI
+  - Co ảnh vừa khung và giữ tỷ lệ
+  - Cắt ảnh theo vùng và xử lý lề thừa
+  - Ảnh trong suốt, mặt nạ và nền ảnh
+  - Chọn nén không mất dữ liệu hoặc có mất dữ liệu
+  - Đọc hướng ảnh và xử lý sai lệch màu
+  - Tái sử dụng ảnh chung để hạn chế tăng dung lượng
+  - Tạo PDF từ nhiều ảnh và TIFF nhiều trang
+  - Kiểm tra độ sắc nét của ảnh khi xem và in
+- level1: Đồ họa
+  level2:
+  - Đường thẳng, hình chữ nhật và đường cong Bézier
+  - Màu tô, màu nét, độ dày và kiểu nét đứt
+  - Đường dẫn, quy tắc tô và vùng cắt
+  - Không gian màu xám, RGB, CMYK và ICC
+  - Độ trong suốt và chế độ hòa trộn
+  - Form XObject và khối đồ họa dùng lại
+  - Lớp nội dung tùy chọn và trạng thái hiển thị
+  - Đưa SVG vào PDF và kiểm tra giới hạn chuyển đổi
+  - Chèn biểu đồ Java dưới dạng vector hoặc ảnh
+  - Tạo và bố trí mã vạch, mã QR có thể quét
+  - Thực hành phối hợp hình, chữ và biểu đồ trên một trang
+- level1: Điều hướng
+  level2:
+  - Tạo bookmark và cây mục lục điều hướng
+  - Đích đến theo trang và đích đến có tên
+  - Liên kết nội bộ giữa các phần tài liệu
+  - Liên kết URL và vùng bấm trên trang
+  - Mục lục có số trang và liên kết tương ứng
+  - Nhãn trang và sự khác biệt với số thứ tự vật lý
+  - Chế độ mở tài liệu và thiết lập trình xem
+  - Đồng bộ bookmark và liên kết sau khi thay đổi trang
+  - Thực hành tài liệu có bìa, mục lục và phụ lục
+- level1: Tạo PDF với iText
+  level2:
+  - Các thành phần kernel, layout và mô hình đối tượng
+  - PdfWriter, PdfDocument và Document trong vòng đời tài liệu
+  - Tạo đoạn văn, danh sách và các phần tử bố cục
+  - Tạo bảng với độ rộng cột và phân trang
+  - Quản lý font, ảnh và tài nguyên dùng chung
+  - Canvas, renderer và phần mở rộng bố cục
+  - Sự kiện trang cho đầu trang, chân trang và số trang
+  - Đọc, sửa và lưu PDF có sẵn
+  - Phân biệt chức năng lõi và các thành phần bổ sung
+  - Thực hành cùng một tài liệu bằng PDFBox và iText
+- level1: Tạo PDF với OpenPDF
+  level2:
+  - Chọn phiên bản OpenPDF phù hợp với Java
+  - Nhận diện thay đổi package và API giữa các phiên bản
+  - Vòng đời tài liệu, writer và luồng đầu ra
+  - Tạo văn bản, danh sách, bảng và hình ảnh
+  - Cấu hình font nhúng và nội dung tiếng Việt
+  - Sự kiện trang và các thành phần trang dùng lại
+  - Đọc, ghép và đóng dấu PDF có sẵn
+  - Vai trò riêng của openpdf-html và openpdf-renderer
+  - Kiểm tra khác biệt khi chuyển từ mã iText cũ
+  - Thực hành tạo biểu mẫu tài liệu bằng OpenPDF
+- level1: HTML sang PDF
+  level2:
+  - Quy trình dữ liệu, HTML, CSS và PDF
+  - Chọn bộ chuyển đổi theo tập tính năng HTML và CSS cần dùng
+  - Tạo HTML từ Thymeleaf hoặc FreeMarker
+  - Chuẩn hóa HTML, XHTML và mã hóa ký tự đầu vào
+  - Cấu hình base URI và bộ phân giải tài nguyên
+  - Nhúng font, CSS và ảnh từ nguồn được kiểm soát
+  - 'CSS cho trang in: khổ giấy, lề và ngắt trang'
+  - Đầu trang, chân trang và bộ đếm số trang
+  - Bảng nhiều trang và quy tắc giữ phần tử cùng nhau
+  - Giới hạn JavaScript, Flexbox và Grid theo bộ chuyển đổi
+  - Phân biệt bộ chuyển đổi Java và trình duyệt chạy nền
+  - Chờ font, ảnh và nội dung động trước khi in bằng trình duyệt
+  - Thực hành đối chiếu HTML trên trình duyệt với PDF xuất ra
+- level1: Markdown sang PDF
+  level2:
+  - Quy trình Markdown, cây cú pháp, HTML và PDF
+  - Chọn bộ phân tích Markdown và quy ước cú pháp hỗ trợ
+  - Ánh xạ heading, đoạn văn, danh sách và trích dẫn
+  - Trình bày khối mã, mã nội dòng và ký tự đặc biệt
+  - Chuyển bảng Markdown và xử lý cột rộng
+  - Phân giải ảnh, đường dẫn tương đối và tài nguyên cục bộ
+  - Tạo mục lục và chuyển anchor thành liên kết nội bộ
+  - Làm sạch HTML nhúng và kiểm soát URL trong Markdown
+  - Thiết lập giao diện in cho tài liệu kỹ thuật
+  - Kiểm tra ngắt trang và bố cục với tài liệu Markdown dài
+- level1: XML sang PDF
+  level2:
+  - Vai trò của XML, XSLT, XSL-FO và Apache FOP
+  - Thiết lập FopFactory và cấu hình mỗi lần kết xuất
+  - Biến đổi XML thành XSL-FO bằng JAXP
+  - Truyền dữ liệu qua SAX để giảm tài liệu trung gian
+  - Page master, vùng trang và luồng nội dung
+  - Bảng, font, ảnh và SVG trong XSL-FO
+  - Thu thập sự kiện cảnh báo và lỗi bố cục FOP
+  - Kiểm soát URI và tài nguyên ngoài trong quy trình XML
+  - Thực hành xuất hồ sơ nhiều trang từ dữ liệu XML
+- level1: Mẫu tài liệu
+  level2:
+  - Phân biệt mẫu bố cục, mẫu PDF và biểu mẫu tương tác
+  - Tách dữ liệu nghiệp vụ khỏi cấu trúc trình bày
+  - Thiết kế dữ liệu đầu vào bằng DTO bất biến
+  - Kiểm tra trường bắt buộc và dữ liệu không hợp lệ
+  - Định dạng theo ngôn ngữ, múi giờ và đơn vị tiền tệ
+  - Bố cục điều kiện và phần nội dung lặp
+  - Quản lý phiên bản mẫu, font và tài nguyên đi kèm
+  - Định nghĩa phần dùng chung cho nhận diện tài liệu
+  - Kiểm thử mẫu với dữ liệu trống, dài và đa ngôn ngữ
+  - Tái tạo tài liệu từ phiên bản mẫu và dữ liệu đã lưu
+- level1: Ghép và tách
+  level2:
+  - Ghép nhiều PDF theo thứ tự đầu vào
+  - Tách từng trang và tách theo khoảng trang
+  - Chọn trang theo chỉ mục, nhãn trang hoặc bookmark
+  - Chèn, xóa, sao chép và sắp xếp lại trang
+  - Xử lý trang có kích thước và góc xoay khác nhau
+  - Quản lý tài nguyên khi nhập trang từ tài liệu khác
+  - Bảo toàn hoặc xây dựng lại bookmark và liên kết
+  - Xử lý trùng tên trường biểu mẫu khi ghép tài liệu
+  - Đánh giá ảnh hưởng đến tagging, PDF/A và chữ ký số
+  - Thực hành ghép bộ hồ sơ và tách theo mục lục
+- level1: Sửa và đóng dấu
+  level2:
+  - Giới hạn thay chữ trực tiếp trong content stream
+  - Phân biệt chỉnh sửa nội dung gốc và vẽ thêm nội dung
+  - Thêm nội dung phía trước hoặc phía sau nội dung hiện có
+  - Đóng dấu văn bản và ảnh trên nhiều trang
+  - Watermark chéo, độ trong suốt và vị trí theo khổ trang
+  - Đánh số hồ sơ liên tục bằng Bates numbering
+  - Thêm ngày xuất, số phiên bản và mã tra cứu
+  - Xử lý trang xoay và CropBox khi đóng dấu
+  - Lựa chọn lưu toàn phần hoặc tăng dần theo yêu cầu
+  - Thực hành đóng dấu có kiểm tra dữ liệu gốc được giữ lại
+- level1: Trích xuất văn bản
+  level2:
+  - Cơ chế trích xuất chữ và giới hạn suy luận ngữ nghĩa
+  - Đọc toàn bộ văn bản bằng PDFTextStripper
+  - Giới hạn phạm vi trang cần trích xuất
+  - Thứ tự lưu trữ và thứ tự đọc trên trang
+  - Theo dõi vị trí chữ bằng TextPosition
+  - Trích xuất chữ trong vùng chữ nhật
+  - Xử lý tài liệu nhiều cột, đầu trang và chân trang
+  - Khôi phục khoảng trắng, dòng và đoạn văn
+  - Thiếu ToUnicode, font mã hóa riêng và chữ sai dấu
+  - Phân biệt trang không có chữ với lỗi trích xuất
+  - Phát hiện văn bản trùng và lớp chữ OCR
+  - Thực hành đối chiếu nội dung trích xuất với trang kết xuất
+- level1: Trích xuất dữ liệu
+  level2:
+  - Phân biệt trích xuất văn bản và nhận diện trường dữ liệu
+  - Tìm nhãn và giá trị theo vị trí trên trang
+  - Nhận diện bảng có đường kẻ và bảng không đường kẻ
+  - Suy luận hàng, cột và ô gộp từ tọa độ
+  - Xử lý bảng kéo dài qua nhiều trang
+  - Trích xuất ảnh XObject và ảnh vẽ trực tiếp
+  - Đọc thông tin font, kích thước trang và tài nguyên
+  - Xuất dữ liệu sang JSON, CSV hoặc mô hình Java
+  - Lưu bằng chứng trang, vùng và nguồn của dữ liệu trích xuất
+  - Đánh giá độ chính xác và xử lý trường không chắc chắn
+- level1: Kết xuất và in
+  level2:
+  - Kết xuất trang bằng PDFRenderer
+  - Chọn DPI, hệ màu và kích thước ảnh đầu ra
+  - Tạo ảnh xem trước và ảnh thu nhỏ
+  - Kết xuất một trang hoặc một khoảng trang
+  - Xử lý CropBox, xoay trang và nền trong suốt
+  - Khử răng cưa và lựa chọn chất lượng kết xuất
+  - Khác biệt hiển thị giữa các trình xem PDF
+  - Dự toán bộ nhớ theo kích thước ảnh và số trang
+  - In bằng Java Print Service và PDFPrintable
+  - Tỷ lệ in, căn trang, khổ giấy và vùng không in được
+  - Kiểm tra font và màu trên ảnh kết xuất trước khi in
+- level1: OCR
+  level2:
+  - Khi nào cần nhận dạng ký tự quang học
+  - Phát hiện trang quét trong tài liệu PDF hỗn hợp
+  - Chuyển trang PDF thành ảnh trước khi nhận dạng
+  - Tích hợp Tesseract qua Tess4J hoặc tiến trình riêng
+  - Cài đặt dữ liệu ngôn ngữ tiếng Việt và tiếng Anh
+  - Lựa chọn DPI, khử nhiễu và tăng tương phản
+  - Chỉnh nghiêng, nhận diện hướng và phân vùng trang
+  - Chọn chế độ phân đoạn phù hợp với bố cục
+  - Đọc văn bản, hộp giới hạn và độ tin cậy nhận dạng
+  - Tạo PDF tìm kiếm được bằng lớp chữ khớp ảnh gốc
+  - Tránh nhận dạng lặp và tạo nhiều lớp chữ chồng nhau
+  - Đánh giá lỗi ký tự, lỗi từ và dữ liệu nghiệp vụ sau OCR
+  - Thực hành xử lý bộ hồ sơ quét nhiều trang
+- level1: Biểu mẫu
+  level2:
+  - AcroForm, trường dữ liệu và widget annotation
+  - Phân biệt AcroForm và XFA theo khả năng hỗ trợ
+  - Liệt kê cây trường và tên trường đầy đủ
+  - Đọc, điền và kiểm tra trường văn bản tiếng Việt
+  - Checkbox, radio button, danh sách chọn và nút bấm
+  - Trường nhiều dòng, giới hạn độ dài và định dạng dữ liệu
+  - Font mặc định, tài nguyên và appearance stream
+  - NeedAppearances và sự khác biệt giữa các trình xem
+  - Cờ bắt buộc, chỉ đọc, ẩn và thứ tự chuyển trường
+  - Nhập, xuất dữ liệu biểu mẫu bằng FDF hoặc XFDF
+  - Làm phẳng biểu mẫu và hệ quả mất khả năng nhập liệu
+  - Phân biệt trường chữ ký với thao tác ký số
+  - Thực hành điền hàng loạt biểu mẫu và mở lại để xác minh
+- level1: Chú thích
+  level2:
+  - Phân biệt annotation, nội dung trang và trường biểu mẫu
+  - Tạo ghi chú văn bản và hộp chú giải
+  - Tô sáng, gạch chân và gạch bỏ đoạn chữ
+  - Tọa độ QuadPoints và chú thích trên trang xoay
+  - Chú thích hình học, mực viết và dấu đóng
+  - Appearance stream và cờ hiển thị, in của chú thích
+  - Đọc tác giả, thời gian và chuỗi phản hồi
+  - Nhập, xuất chú thích bằng XFDF
+  - Ẩn, xóa và làm phẳng chú thích theo mục đích
+  - Kiểm tra chú thích sau khi ghép, cắt hoặc xoay trang
+- level1: Metadata và tệp đính kèm
+  level2:
+  - Thông tin tài liệu trong Document Information Dictionary
+  - Metadata XMP và mối liên hệ với thông tin truyền thống
+  - Đọc, ghi và đồng bộ tiêu đề, tác giả, chủ đề
+  - Thời điểm tạo, sửa và cách biểu diễn múi giờ
+  - Ngôn ngữ tài liệu và các thuộc tính tùy chỉnh
+  - Định danh tài liệu và dấu vết nguồn tạo
+  - Nhúng tệp, MIME type và tên hiển thị Unicode
+  - Associated Files và quan hệ với tài liệu hoặc đối tượng
+  - Trích xuất tệp đính kèm vào vùng lưu trữ kiểm soát
+  - Xử lý dung lượng, tên tệp và tệp đính kèm không đáng tin
+  - Thực hành kiểm kê metadata và tài nguyên đính kèm
+- level1: Mã hóa PDF
+  level2:
+  - Mục đích của mật khẩu mở tệp và mật khẩu chủ sở hữu
+  - Phân biệt mã hóa, quyền thao tác và chữ ký số
+  - Cơ chế Security Handler và thuật toán theo phiên bản PDF
+  - Thiết lập mã hóa bằng API thư viện
+  - Mở tài liệu có mật khẩu và xử lý mật khẩu sai
+  - Quyền in, sao chép, chú thích và thay đổi tài liệu
+  - Giới hạn thực thi quyền giữa các phần mềm đọc
+  - Quản lý bí mật và tránh đưa mật khẩu vào log
+  - Giải mã hoặc thay đổi bảo vệ khi có thẩm quyền
+  - Tác động của mã hóa đến lưu trữ, truy cập và xử lý tiếp
+- level1: Chữ ký số
+  level2:
+  - Phân biệt ảnh chữ ký, chữ ký điện tử và chữ ký số PDF
+  - Hàm băm, chứng thư số và khóa ký trong quy trình PDF
+  - Trường chữ ký, ByteRange và vùng chứa chữ ký
+  - Chữ ký CMS và các hồ sơ PAdES
+  - Nạp khóa và chứng thư từ PKCS#12
+  - Ký bằng Bouncy Castle và API PDF của thư viện
+  - Ký bên ngoài với HSM, PKCS#11 hoặc dịch vụ ký
+  - Dự trù kích thước chữ ký trước khi hoàn tất tệp
+  - Tạo phần hiển thị chữ ký mà không nhầm với bằng chứng mật mã
+  - Ký phê duyệt và ký chứng nhận tài liệu
+  - DocMDP, FieldMDP và phạm vi thay đổi được cho phép
+  - Ký nhiều lần bằng cập nhật tăng dần
+  - Dấu thời gian tin cậy và thời gian tự khai báo
+  - Thực hành ký tài liệu sau khi hoàn tất nội dung
+- level1: Xác minh chữ ký
+  level2:
+  - Kiểm tra tính toàn vẹn của vùng dữ liệu đã ký
+  - Phân tích lần sửa đổi tương ứng với từng chữ ký
+  - Phát hiện thay đổi sau ký và phân loại thay đổi
+  - Kiểm tra chuỗi chứng thư theo nguồn tin cậy cấu hình
+  - Phân biệt chữ ký hợp lệ về mật mã và danh tính được tin cậy
+  - Kiểm tra hiệu lực chứng thư tại thời điểm xác minh
+  - Kiểm tra thu hồi bằng OCSP và CRL
+  - Xác minh dấu thời gian và chứng thư của dịch vụ thời gian
+  - Dữ liệu xác minh dài hạn, DSS và hồ sơ PAdES LT, LTA
+  - Xử lý kết quả không xác định khi thiếu bằng chứng
+  - Đối chiếu kết quả giữa thư viện và trình xem độc lập
+  - Thực hành phát hiện PDF bị sửa sau ký
+- level1: Che xóa dữ liệu
+  level2:
+  - Phân biệt vẽ che, chú thích redaction và xóa dữ liệu thật
+  - Xác định dữ liệu nhạy cảm trong chữ, ảnh và metadata
+  - Tìm vùng cần xóa bằng tọa độ và kết quả trích xuất
+  - Xóa hoặc dựng lại content stream bằng công cụ phù hợp
+  - Xử lý chữ trong Form XObject và tài nguyên dùng chung
+  - Xóa dữ liệu nhạy cảm trong ảnh và lớp chữ OCR
+  - Làm sạch trường biểu mẫu, chú thích và tệp đính kèm
+  - Loại bỏ dữ liệu cũ còn lại trong các lần cập nhật tăng dần
+  - Đánh giá phương án kết xuất thành ảnh và các thông tin bị mất
+  - Kiểm chứng bằng trích xuất, kiểm tra đối tượng và xem ảnh
+  - Thực hành tạo bản công khai từ hồ sơ có dữ liệu riêng tư
+- level1: Khả năng truy cập
+  level2:
+  - Mục đích của Tagged PDF và PDF/UA
+  - Cấu trúc logic và thứ tự đọc so với vị trí hiển thị
+  - Structure Tree, marked content và MCID
+  - Phân cấp heading, đoạn văn và danh sách
+  - Gắn thẻ bảng với ô tiêu đề và quan hệ dữ liệu
+  - Văn bản thay thế cho ảnh, biểu đồ và công thức
+  - Ngôn ngữ tài liệu và ngôn ngữ từng đoạn
+  - ActualText, Unicode và nội dung cần đọc thay thế
+  - Đánh dấu nội dung trang trí bằng artifact
+  - Liên kết và biểu mẫu có tên mô tả, thứ tự bàn phím
+  - Bảo toàn cấu trúc truy cập khi biến đổi PDF
+  - Kiểm tra tự động và kiểm tra thủ công bằng công cụ hỗ trợ
+  - Thực hành đọc tài liệu bằng trình đọc màn hình
+- level1: Lưu trữ PDF/A
+  level2:
+  - Mục tiêu lưu trữ dài hạn và giới hạn của PDF/A
+  - Các họ PDF/A-1, PDF/A-2, PDF/A-3 và PDF/A-4
+  - Chọn hồ sơ phù hợp với nội dung và hệ thống tiếp nhận
+  - Yêu cầu font nhúng và khả năng tái hiện tài liệu
+  - ICC Output Intent và quản lý màu cho hồ sơ lưu trữ
+  - XMP và khai báo mức tuân thủ
+  - Giới hạn mã hóa, nội dung động và tài nguyên phụ thuộc ngoài
+  - Tệp đính kèm và quan hệ tài liệu theo hồ sơ PDF/A
+  - Phân biệt khai báo PDF/A và kết quả xác minh đạt chuẩn
+  - Xác minh bằng veraPDF và phân tích quy tắc thất bại
+  - Kiểm tra lại sau khi ghép, đóng dấu hoặc ký số
+  - Thực hành tạo hồ sơ PDF/A kèm báo cáo kiểm tra
+- level1: In ấn PDF/X
+  level2:
+  - Mục đích PDF/X trong trao đổi tệp in
+  - Chọn hồ sơ PDF/X theo yêu cầu đơn vị in
+  - Khổ thành phẩm, vùng tràn lề và dấu cắt
+  - CMYK, màu pha và hồ sơ màu đầu ra
+  - Độ phân giải ảnh, font nhúng và chất lượng bản in
+  - Trong suốt, overprint và khác biệt giữa các quy trình in
+  - Kiểm tra trước in bằng công cụ phù hợp
+  - Thực hành xuất tài liệu với thông số in đã xác định
+- level1: Tối ưu tệp
+  level2:
+  - Phân tích phần dung lượng do ảnh, font và luồng dữ liệu
+  - Nén content stream và object stream
+  - Giảm độ phân giải ảnh theo mục đích sử dụng
+  - Chọn định dạng ảnh và chất lượng nén phù hợp
+  - Loại bỏ tài nguyên thừa và dùng chung tài nguyên lặp
+  - Tối ưu font nhúng mà vẫn giữ đủ glyph
+  - Tác động của cập nhật tăng dần đến kích thước tệp
+  - Lưu lại toàn phần và kiểm tra dữ liệu cần bảo toàn
+  - Linearization và điều kiện xem tài liệu qua mạng
+  - Phân biệt giảm dung lượng với cải thiện tốc độ xử lý
+  - Đo chất lượng trước và sau tối ưu
+  - Thực hành tối ưu hồ sơ có nhiều ảnh và trang lặp
+- level1: Thiết kế dịch vụ
+  level2:
+  - Tách nghiệp vụ khỏi thư viện thao tác PDF
+  - Định nghĩa hợp đồng tạo, biến đổi và trích xuất tài liệu
+  - Mô hình đầu vào, lựa chọn xử lý và kết quả có cấu trúc
+  - Tổ chức bộ chuyển đổi cho các thư viện PDF
+  - Quản lý font, mẫu và tài nguyên dùng chung
+  - Phân biệt cấu hình bất biến và tài liệu có trạng thái
+  - Chuỗi bước xử lý với điều kiện đầu vào, đầu ra rõ ràng
+  - Phân loại lỗi dữ liệu, thư viện và hạ tầng
+  - Bảo toàn tệp nguồn và xuất kết quả bằng thao tác nguyên tử
+  - Lưu nguồn dữ liệu, phiên bản mẫu và dấu vết xử lý
+  - Thực hành thiết kế PdfService độc lập với lớp HTTP
+- level1: Spring Boot
+  level2:
+  - Cấu hình dịch vụ PDF và tài nguyên qua Spring
+  - Nhận tệp bằng MultipartFile và giới hạn upload
+  - Kiểm tra nội dung PDF sau khi nhận tệp
+  - Trả application/pdf với Content-Disposition phù hợp
+  - Tên tệp Unicode và chế độ inline, attachment
+  - Chọn byte array, Resource hoặc StreamingResponseBody
+  - Giới hạn bộ nhớ khi sinh PDF trước khi trả phản hồi
+  - Xử lý ngắt kết nối và lỗi sau khi gửi HTTP header
+  - Tải một phần tài liệu có sẵn bằng HTTP Range khi phù hợp
+  - Xác thực quyền truy cập từng tài liệu
+  - Điều khiển cache và lưu trữ tạm cho tài liệu nhạy cảm
+  - Thực hành API tạo, xem trước và tải PDF
+- level1: Xử lý hàng loạt
+  level2:
+  - Chọn xử lý đồng bộ hoặc công việc nền
+  - Chia lô tài liệu và giới hạn mức song song
+  - Trạng thái công việc, tiến độ và kết quả từng tệp
+  - Chống tạo trùng bằng khóa yêu cầu và dấu vân tay đầu vào
+  - Thử lại lỗi tạm thời và tránh xử lý lại tài liệu đã hoàn tất
+  - Hủy tác vụ và giới hạn thời gian từng tài liệu
+  - Xử lý thành công một phần và lưu danh sách thất bại
+  - Lưu kết quả lớn ngoài bộ nhớ tiến trình
+  - Đóng gói nhiều PDF thành ZIP có cấu trúc rõ ràng
+  - Dọn tệp trung gian sau hoàn tất, lỗi hoặc hủy
+  - Thực hành xuất hàng nghìn tài liệu theo lô nhỏ
+- level1: An toàn đầu vào
+  level2:
+  - Xác minh định dạng thực thay vì tin phần mở rộng và MIME
+  - Giới hạn số trang, kích thước ảnh và tổng dữ liệu giải nén
+  - Xử lý PDF lỗi cấu trúc, bị cắt cụt hoặc có tham chiếu bất thường
+  - Giới hạn CPU, bộ nhớ và thời gian với tệp không đáng tin
+  - Cô lập bộ phân tích, OCR và công cụ chuyển đổi bên ngoài
+  - Kiểm soát JavaScript, action, liên kết và nội dung chủ động
+  - Ngăn SSRF khi HTML, SVG hoặc CSS tải tài nguyên từ URL
+  - Ngăn XXE và truy cập ngoài ý muốn trong XML, XSLT
+  - Ngăn vượt thư mục qua tên tệp và đường dẫn tệp đính kèm
+  - Kiểm soát tiến trình ngoài mà không ghép lệnh từ dữ liệu người dùng
+  - Làm sạch dữ liệu đầu vào trong mẫu HTML và Markdown
+  - Bảo vệ tệp tạm và ngăn rò rỉ dữ liệu giữa người dùng
+  - Thực hành bộ tệp đối kháng trong môi trường cô lập
+- level1: Hiệu năng
+  level2:
+  - Lập mô hình chi phí theo trang, ảnh, font và thao tác
+  - Đo thời gian phân tích, bố cục, kết xuất và lưu tệp
+  - Đo heap, bộ nhớ ngoài heap và dung lượng tạm
+  - Chọn đọc từ tệp, mảng byte hoặc nguồn truy cập ngẫu nhiên
+  - Bộ nhớ đệm dữ liệu luồng trong PDFBox 3
+  - Xử lý từng trang và tránh giữ nhiều ảnh kết xuất cùng lúc
+  - Dùng lại cấu hình an toàn và hạn chế tạo lại tài nguyên nặng
+  - Giới hạn chia sẻ đối tượng tài liệu giữa các luồng
+  - Chọn số tác vụ đồng thời theo bộ nhớ và CPU thực tế
+  - Đánh giá áp lực GC khi xuất và kết xuất PDF lớn
+  - Đo tải với kích thước tài liệu và dữ liệu đại diện
+  - Thực hành tìm điểm nghẽn và kiểm chứng mức cải thiện
+- level1: Kiểm thử
+  level2:
+  - Phân tầng kiểm tra cấu trúc, nội dung, hình ảnh và chuẩn
+  - Mở lại PDF đầu ra và xác minh số trang, kích thước trang
+  - Kiểm tra văn bản tiếng Việt, thứ tự đọc và ký tự đặc biệt
+  - Kiểm tra font nhúng, ảnh, liên kết và bookmark
+  - Kiểm tra giá trị biểu mẫu và appearance sau khi lưu
+  - Kiểm tra dữ liệu bị xóa bằng nhiều cách đọc độc lập
+  - Kết xuất trang thành ảnh và so sánh với ảnh chuẩn
+  - Thiết lập sai số cho khử răng cưa và khác biệt môi trường
+  - Tách dữ liệu biến đổi như ngày tạo khỏi phép so sánh phù hợp
+  - Tránh dùng so sánh byte làm bằng chứng duy nhất
+  - Kiểm tra PDF/A và phần có thể tự động kiểm tra của PDF/UA
+  - Kiểm tra chữ ký với tệp nguyên vẹn, bị sửa và thiếu bằng chứng
+  - Bộ kiểm thử tệp hỏng, tệp có mật khẩu và tài liệu rất lớn
+  - Kiểm tra đầy đủ quy trình tạo, tải xuống và mở bằng trình xem
+  - Thực hành xây bộ kiểm thử hồi quy bằng JUnit
+- level1: Chẩn đoán lỗi
+  level2:
+  - Lỗi không tìm thấy font và ký tự không có glyph
+  - Chữ tiếng Việt sai dấu hoặc trích xuất thành ký tự lạ
+  - Nội dung bị cắt, tràn lề hoặc mất dòng cuối trang
+  - Trang trắng và content stream không hiển thị
+  - Ảnh ngược hướng, mất trong suốt hoặc sai màu
+  - Biểu mẫu có giá trị nhưng không hiển thị khi mở
+  - Bookmark và liên kết hỏng sau khi ghép hoặc đổi trang
+  - Chữ ký báo thay đổi sau khi đóng dấu hoặc tối ưu
+  - PDF mở được nhưng không đạt hồ sơ tiêu chuẩn đã chọn
+  - Lỗi cross-reference, trailer và dữ liệu cuối tệp
+  - OutOfMemoryError khi kết xuất ảnh hoặc ghép hồ sơ lớn
+  - Luồng đóng sớm, tệp bị khóa và đầu ra ghi dở
+  - Khác biệt font, tài nguyên và đường dẫn trên Linux
+  - Rút gọn tài liệu lỗi và kiểm tra bằng PDFDebugger
+  - Lập báo cáo tái hiện lỗi với đầu vào đã khử dữ liệu nhạy cảm
+- level1: Vận hành
+  level2:
+  - Đóng gói font, mẫu và cấu hình trong ứng dụng
+  - Môi trường Java headless và các phụ thuộc hệ điều hành
+  - Cài OCR, bộ font và dữ liệu ngôn ngữ trong container
+  - Phân quyền và hạn mức thư mục tạm
+  - Cấu hình bộ nhớ, CPU và giới hạn tiến trình
+  - Theo dõi thời gian xử lý, kích thước đầu ra và tỷ lệ lỗi
+  - Log có mã tài liệu và mã công việc, không lộ nội dung riêng tư
+  - Theo dõi phiên bản thư viện và cảnh báo lỗ hổng
+  - Nâng cấp thư viện bằng bộ tài liệu hồi quy
+  - Chính sách lưu giữ, dọn dẹp và truy vết kết quả
+  - Thực hành triển khai dịch vụ PDF có đo lường và giới hạn tài nguyên
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo tài liệu kỹ thuật từ Markdown có mục lục và khối mã
+  - Xuất hóa đơn tiếng Việt với bảng dài và mã QR
+  - Tạo báo cáo có biểu đồ, ảnh và phân trang tự động
+  - Điền mẫu hợp đồng, làm phẳng và ký số theo đúng thứ tự
+  - Ghép bộ hồ sơ có bookmark và số hồ sơ liên tục
+  - Chuyển hồ sơ quét thành PDF tìm kiếm được và đánh giá OCR
+  - Trích xuất dữ liệu hóa đơn kèm vị trí nguồn trên trang
+  - Tạo bản công khai sau khi xóa dữ liệu nhạy cảm và kiểm chứng
+  - Chuẩn bị hồ sơ PDF/A và báo cáo xác minh độc lập
+  - Xây dịch vụ xuất PDF hàng loạt với giới hạn tài nguyên

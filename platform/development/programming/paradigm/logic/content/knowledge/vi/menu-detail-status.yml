@@ -1,0 +1,2719 @@
+menu:
+- slug: logic-programming-overview
+  title: Bức tranh tổng thể
+  childs:
+  - slug: logic-programming-overview-001
+    title: Lập trình logic (logic programming) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-002
+    title: Mô tả điều đúng bằng quan hệ thay cho chỉ dẫn từng bước thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-003
+    title: Sự kiện, luật, truy vấn và bộ máy suy diễn liên hệ với nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-004
+    title: Vai trò của phép hợp nhất và tìm kiếm lời giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-005
+    title: Quan hệ giữa lập trình logic với lập trình khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-006
+    title: Phân biệt chương trình logic với hệ luật, cơ sở dữ liệu và bộ chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-007
+    title: 'Các hướng tiếp cận: Prolog, Datalog, ràng buộc và tập trả lời'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-008
+    title: Bài toán phù hợp, lợi ích và giới hạn của cách mô hình hóa bằng logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-programming-overview-009
+    title: Lộ trình từ truy vấn đơn giản đến thiết kế và kiểm chứng chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logic-foundations
+  title: Nền tảng logic
+  childs:
+  - slug: logic-foundations-001
+    title: Mệnh đề, vị từ, đối số và quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-002
+    title: Hằng, biến, hàm và miền diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-003
+    title: Phép hội, tuyển, phủ định, kéo theo và tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-004
+    title: Lượng từ tồn tại, lượng từ phổ quát và phạm vi biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-005
+    title: Phân biệt biến tự do với biến bị ràng buộc bởi lượng từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-006
+    title: Mệnh đề Horn và mệnh đề xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-007
+    title: Đọc luật theo chiều kéo theo và tránh hiểu nhầm chiều suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-008
+    title: Thỏa mãn, mô hình và hệ quả logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-foundations-009
+    title: Phân biệt cú pháp của biểu thức với ý nghĩa trong một diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: facts-rules-queries
+  title: Sự kiện, luật, truy vấn
+  childs:
+  - slug: facts-rules-queries-001
+    title: Biểu diễn tri thức bằng các sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-002
+    title: Định nghĩa quan hệ dẫn xuất bằng luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-003
+    title: Phần đầu, phần thân và các mục tiêu trong luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-004
+    title: Nhiều luật cùng định nghĩa một vị từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-005
+    title: Truy vấn đóng và truy vấn cần tìm giá trị cho biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-006
+    title: Các mục tiêu kết hợp trong cùng một truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-007
+    title: Nhiều câu trả lời, không có câu trả lời và kết quả lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-008
+    title: Đọc chương trình như một tập quan hệ trước khi xét thứ tự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facts-rules-queries-009
+    title: Xây dựng cơ sở tri thức quan hệ gia đình làm ví dụ xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: terms-variables
+  title: Hạng thức và biến
+  childs:
+  - slug: terms-variables-001
+    title: Nguyên tử, số và hạng thức phức hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-002
+    title: Tên hàm, số đối số và định danh vị từ bằng tên/số đối số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-003
+    title: Biến logic và sự khác nhau với ô nhớ có thể gán lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-004
+    title: Phạm vi biến trong từng mệnh đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-005
+    title: Biến ẩn danh và các vị trí không cần giữ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-006
+    title: Hạng thức đóng, hạng thức chưa đóng và cấu trúc có biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-007
+    title: Chia sẻ biến giữa các đối số để biểu diễn quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-008
+    title: Đổi tên biến khi sử dụng một luật mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terms-variables-009
+    title: Cú pháp toán tử và cấu trúc hạng thức nằm bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unification
+  title: Hợp nhất
+  childs:
+  - slug: unification-001
+    title: Phép hợp nhất (unification) và vai trò khi gọi một quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-002
+    title: Phép thế và cách áp dụng phép thế cho hạng thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-003
+    title: Hợp nhất hằng, biến và các cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-004
+    title: Phép hợp nhất tổng quát nhất (MGU)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-005
+    title: Sự nhất quán khi cùng một biến xuất hiện nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-006
+    title: Những trường hợp không thể hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-007
+    title: Occurs check và việc ngăn cấu trúc chứa chính biến đang được gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-008
+    title: Cây hữu hạn, cây hữu tỉ và khác biệt giữa các cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-009
+    title: Phân biệt hợp nhất với phép gán, so sánh và tính giá trị biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unification-010
+    title: Theo dõi chuỗi phép thế qua nhiều mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: program-semantics
+  title: Ngữ nghĩa chương trình
+  childs:
+  - slug: program-semantics-001
+    title: Cách đọc khai báo và cách đọc vận hành của cùng một luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-semantics-002
+    title: Vũ trụ Herbrand và cơ sở Herbrand
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-semantics-003
+    title: Diễn giải Herbrand và các sự kiện đóng của chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-semantics-004
+    title: Mô hình nhỏ nhất của chương trình xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-semantics-005
+    title: Toán tử hệ quả trực tiếp và quá trình đạt điểm bất động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-semantics-006
+    title: Quan hệ giữa câu trả lời truy vấn với hệ quả của chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-semantics-007
+    title: Phân biệt tính đúng đắn, tính đầy đủ và tính kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-semantics-008
+    title: Những giả thiết cần nêu rõ khi chuyển sang phủ định hoặc tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resolution-inference
+  title: Hợp giải và suy diễn
+  childs:
+  - slug: resolution-inference-001
+    title: Hợp giải (resolution) và ý tưởng chứng minh bằng biến đổi mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-inference-002
+    title: SLD-resolution cho chương trình mệnh đề xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-inference-003
+    title: Chọn mục tiêu và chọn mệnh đề áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-inference-004
+    title: Hợp nhất phần đầu luật với mục tiêu đang xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-inference-005
+    title: Thay mục tiêu bằng phần thân luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-inference-006
+    title: Phép thế câu trả lời được tính toán từ một nhánh suy diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-inference-007
+    title: Cây SLD, nhánh thành công, nhánh thất bại và nhánh vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-inference-008
+    title: Đối chiếu chứng minh logic với vết thực thi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backtracking-search
+  title: Quay lui và tìm kiếm
+  childs:
+  - slug: backtracking-search-001
+    title: Điểm lựa chọn và các phương án còn có thể thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-002
+    title: Quay lui để khôi phục lựa chọn và thử nhánh khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-003
+    title: Tìm kiếm theo chiều sâu trong mô hình thực thi Prolog truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-004
+    title: Ảnh hưởng của thứ tự mệnh đề đến thứ tự tìm nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-005
+    title: Ảnh hưởng của thứ tự mục tiêu đến khả năng kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-006
+    title: Vì sao một nhánh vô hạn có thể che khuất một nghiệm tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-007
+    title: Tìm kiếm theo chiều rộng và đánh đổi về bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-008
+    title: Tìm kiếm sâu dần và ý tưởng tìm kiếm công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backtracking-search-009
+    title: Phân biệt không tìm được nghiệm với chứng minh không có nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relational-recursion
+  title: Đệ quy quan hệ
+  childs:
+  - slug: relational-recursion-001
+    title: Trường hợp cơ sở và bước đệ quy trong định nghĩa quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-002
+    title: Đệ quy trên cấu trúc dữ liệu và trên quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-003
+    title: Đệ quy trực tiếp và đệ quy tương hỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-004
+    title: Quan hệ tổ tiên và phép bao đóng bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-005
+    title: Đệ quy trái, đệ quy phải và ảnh hưởng đến cách thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-006
+    title: Chọn đại lượng giảm để lập luận về kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-007
+    title: Phát hiện chu trình và theo dõi các trạng thái đã thăm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-008
+    title: Biến tích lũy và đánh đổi với tính sử dụng nhiều chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relational-recursion-009
+    title: Kiểm tra định nghĩa đệ quy bằng các trường hợp nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lists
+  title: Danh sách
+  childs:
+  - slug: lists-001
+    title: Danh sách rỗng và cấu trúc đầu–đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-002
+    title: Danh sách đúng, danh sách mở và đuôi chưa được xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-003
+    title: Hợp nhất và tách mẫu danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-004
+    title: Quan hệ thành viên và nối danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-005
+    title: Quan hệ độ dài và các cách sử dụng khác nhau của một quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-006
+    title: Đảo danh sách bằng đệ quy và bằng biến tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-007
+    title: Quan hệ chọn phần tử, hoán vị và tập con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-008
+    title: Danh sách hiệu và cách ghép dãy qua phần đuôi mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-009
+    title: Nguy cơ sinh vô hạn khi truy vấn danh sách chưa có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-data
+  title: Dữ liệu có cấu trúc
+  childs:
+  - slug: structured-data-001
+    title: Biểu diễn bản ghi và dữ liệu có nhiều dạng bằng hạng thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-002
+    title: Tách mẫu lồng nhau để đọc cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-003
+    title: Biểu diễn cây nhị phân và cây cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-004
+    title: Duyệt cây và mô tả quan hệ giữa nút với nút con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-005
+    title: Biểu diễn đồ thị bằng sự kiện cạnh hoặc danh sách kề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-006
+    title: Cấu trúc liên kết bằng biến dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-007
+    title: Chọn cấu trúc có lợi cho hợp nhất và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-008
+    title: Phân biệt dữ liệu mang nghĩa miền bài toán với dữ liệu điều khiển tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arithmetic-comparisons
+  title: Số học và so sánh
+  childs:
+  - slug: arithmetic-comparisons-001
+    title: Biểu thức số học dưới dạng hạng thức và thời điểm được tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-002
+    title: is/2 trong Prolog và yêu cầu khởi tạo biến ở biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-003
+    title: So sánh giá trị số bằng =:=/2 và các quan hệ thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-004
+    title: Phân biệt =/2, ==/2 và phép so sánh số học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-005
+    title: Phân biệt không hợp nhất tại thời điểm gọi với ràng buộc khác nhau dif/2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-006
+    title: Số nguyên, số hữu tỉ, số thực và khác biệt theo hệ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-007
+    title: Phép chia, phần dư, tràn số và độ chính xác cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-008
+    title: Vì sao số học tính giá trị thông thường hạn chế cách chạy ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-comparisons-009
+    title: Khi cần chuyển từ tính giá trị sang ràng buộc số học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: negation
+  title: Phủ định
+  childs:
+  - slug: negation-001
+    title: Phủ định cổ điển và phủ định do thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-002
+    title: Giả thiết thế giới đóng và thế giới mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-003
+    title: Thất bại của một truy vấn khác với có bằng chứng phủ định thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-004
+    title: Phủ định một mục tiêu đã có đủ giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-005
+    title: Nguy cơ khi phủ định mục tiêu còn chứa biến chưa được xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-006
+    title: Floundering và điều kiện sử dụng phủ định an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-007
+    title: Thứ tự mục tiêu và ảnh hưởng lên kết quả phủ định do thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-008
+    title: Vòng phụ thuộc qua phủ định và sự mơ hồ cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-009
+    title: Giới thiệu phân tầng, ngữ nghĩa xác định tốt và mô hình ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: negation-010
+    title: Lựa chọn ngữ nghĩa phủ định phù hợp với yêu cầu tri thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-control
+  title: Điều khiển tìm kiếm
+  childs:
+  - slug: search-control-001
+    title: Phép hội, phép tuyển và cách nhóm các mục tiêu trong Prolog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-002
+    title: fail và true trong điều khiển luồng tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-003
+    title: Cut và những điểm lựa chọn bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-004
+    title: 'Green cut và red cut: ảnh hưởng đến tập nghiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-005
+    title: once/1 và giới hạn ở lời giải đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-006
+    title: Điều kiện nếu–thì–ngược lại và phạm vi cam kết lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-007
+    title: Khác biệt giữa điều khiển thủ tục với ý nghĩa logic thuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-008
+    title: Tách kiểm tra điều kiện khỏi sinh dữ liệu để tránh dùng cut tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-control-009
+    title: Đánh giá lại các cách gọi quan hệ khi thêm cơ chế cắt nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relation-design
+  title: Thiết kế quan hệ
+  childs:
+  - slug: relation-design-001
+    title: Thiết kế một quan hệ dùng được theo nhiều chiều truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-002
+    title: 'Chế độ sử dụng đối số: đầu vào, đầu ra và đối số chưa xác định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-003
+    title: Tính tất định, bán tất định và khả năng có nhiều nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-004
+    title: Tách sinh ứng viên khỏi kiểm tra điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-005
+    title: Sắp thứ tự mục tiêu dựa trên liên kết biến và khả năng kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-006
+    title: Quan hệ thuần và khả năng thay thế biểu thức theo nghĩa khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-007
+    title: Chia quan hệ lớn thành các quan hệ nhỏ có hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-008
+    title: Tránh phép kiểm tra kiểu làm mất các cách gọi hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relation-design-009
+    title: Ghi rõ điều kiện sử dụng và bảo đảm kết thúc của từng quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solution-collection
+  title: Thu thập nghiệm
+  childs:
+  - slug: solution-collection-001
+    title: Xử lý lần lượt từng nghiệm qua cơ chế quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-collection-002
+    title: findall/3 và tập hợp các kết quả của một mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-collection-003
+    title: bagof/3 và việc nhóm theo các biến tự do còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-collection-004
+    title: setof/3 và loại trùng theo quy ước sắp thứ tự của hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-collection-005
+    title: Lượng từ tồn tại trong mục tiêu thu thập kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-collection-006
+    title: Kết quả rỗng và khác biệt hành vi cần kiểm tra giữa các phép thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-collection-007
+    title: Đếm, tính tổng và lấy giá trị cực trị từ các nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-collection-008
+    title: Giới hạn bộ nhớ khi thu thập một tập nghiệm lớn hoặc vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metaprogramming
+  title: Siêu lập trình
+  childs:
+  - slug: metaprogramming-001
+    title: Chương trình và mục tiêu được biểu diễn bằng hạng thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metaprogramming-002
+    title: Gọi mục tiêu được truyền vào bằng call
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metaprogramming-003
+    title: Vị từ bậc cao và truyền thêm đối số cho mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metaprogramming-004
+    title: Ánh xạ, lọc và gấp dữ liệu bằng các quan hệ trợ giúp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metaprogramming-005
+    title: Phân tích và xây dựng hạng thức một cách có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metaprogramming-006
+    title: Bộ thông dịch logic đơn giản bằng các quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metaprogramming-007
+    title: Tách ngôn ngữ đối tượng khỏi ngôn ngữ dùng để thông dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metaprogramming-008
+    title: Rủi ro khi thực thi mục tiêu được dựng từ dữ liệu bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: definite-clause-grammars
+  title: Văn phạm DCG
+  childs:
+  - slug: definite-clause-grammars-001
+    title: Definite Clause Grammar và mục đích mô tả dãy đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-002
+    title: Quy tắc văn phạm và quan hệ Prolog được chuyển đổi bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-003
+    title: Mối liên hệ giữa DCG với danh sách hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-004
+    title: Ký hiệu kết thúc, ký hiệu không kết thúc và phần đầu vào còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-005
+    title: Truyền thuộc tính qua các quy tắc văn phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-006
+    title: Dựng cây cú pháp trong quá trình phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-007
+    title: Đệ quy trái, sự mơ hồ và nguy cơ không kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-008
+    title: Phân tích, sinh chuỗi và giới hạn khi đổi chiều sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definite-clause-grammars-009
+    title: Xây dựng văn phạm cho một ngôn ngữ biểu thức nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constraint-logic-programming
+  title: Logic ràng buộc
+  childs:
+  - slug: constraint-logic-programming-001
+    title: Kết hợp suy diễn logic với giải ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-002
+    title: Ràng buộc còn tồn đọng và lời giải chưa phải phép gán đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-003
+    title: 'CLP(FD): biến nguyên hữu hạn và ràng buộc quan hệ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-004
+    title: Phân biệt hợp nhất, tính số học bằng is/2 và ràng buộc số học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-005
+    title: Lan truyền miền trước khi phân nhánh tìm giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-006
+    title: Tách khai báo điều kiện khỏi quá trình liệt kê bằng labeling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-007
+    title: Ràng buộc khác nhau và ràng buộc toàn cục trong mô hình quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-008
+    title: CLP(R) và các miền ràng buộc khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-logic-programming-009
+    title: Giữ tính sử dụng nhiều chiều khi mô hình hóa bài toán số học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tabling
+  title: Ghi nhớ truy vấn
+  childs:
+  - slug: tabling-001
+    title: Tabling và việc ghi nhớ lời gọi cùng các câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-002
+    title: Phân biệt ghi nhớ lời giải với chỉ đánh dấu nút đồ thị đã thăm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-003
+    title: Đánh giá theo nhóm mục tiêu phụ thuộc đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-004
+    title: Xử lý đệ quy trái và chu trình bằng tái sử dụng lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-005
+    title: Lời gọi tương đương theo đổi tên biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-006
+    title: Điều kiện hữu hạn và vì sao tabling không bảo đảm kết thúc mọi chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-007
+    title: Bộ nhớ của bảng và chi phí duy trì nhiều câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-008
+    title: Dữ liệu thay đổi và yêu cầu vô hiệu hóa hoặc cập nhật bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tabling-009
+    title: Giới hạn khi kết hợp tabling với cut, phủ định hoặc tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: datalog
+  title: Datalog
+  childs:
+  - slug: datalog-001
+    title: Datalog và mô hình suy diễn trên các quan hệ hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-002
+    title: Quan hệ dữ liệu đầu vào và quan hệ dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-003
+    title: Quy tắc về biến an toàn và giới hạn của hạng thức hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-004
+    title: Đánh giá từ dưới lên bằng lặp đến điểm bất động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-005
+    title: Naive evaluation và semi-naive evaluation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-006
+    title: Phép nối quan hệ và truyền liên kết biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-007
+    title: Tối ưu theo truy vấn bằng ý tưởng Magic Sets
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-008
+    title: Truy vấn đệ quy trên đồ thị và dữ liệu có quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-009
+    title: Phủ định phân tầng và thứ tự đánh giá các tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-010
+    title: Phép tổng hợp và những điều kiện khi kết hợp với đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datalog-011
+    title: So sánh Datalog với Prolog và truy vấn đệ quy trong SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: answer-set-programming
+  title: Mô hình tập trả lời
+  childs:
+  - slug: answer-set-programming-001
+    title: Answer Set Programming (ASP) và cách mô tả các mô hình lời giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-002
+    title: Ngữ nghĩa mô hình ổn định và suy luận không đơn điệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-003
+    title: Phân biệt phủ định mặc định với phủ định tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-004
+    title: 'Grounding: tạo chương trình đóng từ biến và miền dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-005
+    title: Sinh lựa chọn và dùng ràng buộc để loại mô hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-006
+    title: Bài toán không có, có một hoặc có nhiều tập trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-007
+    title: Tối ưu và mức ưu tiên giữa các tập trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-008
+    title: Phân biệt điều đúng trong một mô hình với điều đúng trong mọi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-set-programming-009
+    title: Khi biểu diễn bằng ASP phù hợp hơn truy vấn suy diễn kiểu Prolog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extensions
+  title: Các hướng mở rộng
+  childs:
+  - slug: extensions-001
+    title: Constraint Handling Rules và các luật biến đổi ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-002
+    title: Suy luận giả thuyết (abduction) từ quan sát đến lời giải thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-003
+    title: Suy luận với mặc định và khả năng rút lại kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-004
+    title: Lập trình logic xác suất và việc gắn bất định với mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-005
+    title: Học logic quy nạp từ ví dụ cùng tri thức nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-006
+    title: Lập trình logic bậc cao và các giới hạn biểu diễn được thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-007
+    title: Phân biệt các phần mở rộng bằng ngữ nghĩa, loại truy vấn và cách tính lời giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-side-effects
+  title: Trạng thái và tác dụng phụ
+  childs:
+  - slug: state-side-effects-001
+    title: Cơ sở tri thức tĩnh và dữ liệu thay đổi trong lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-002
+    title: Thêm hoặc xóa mệnh đề bằng các thao tác cơ sở dữ liệu động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-003
+    title: Phạm vi quan sát cập nhật khi một truy vấn đang thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-004
+    title: Quay lui của liên kết biến và những tác dụng phụ không được hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-005
+    title: Đọc, ghi và thứ tự thực hiện I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-006
+    title: Ngoại lệ khác với thất bại logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-007
+    title: Bảo đảm dọn dẹp tài nguyên khi thành công, thất bại hoặc bị ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-side-effects-008
+    title: Giữ phần quan hệ thuần riêng khỏi lớp tương tác với thế giới bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modules-organization
+  title: Mô-đun và tổ chức
+  childs:
+  - slug: modules-organization-001
+    title: Tổ chức vị từ theo miền tri thức và trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-organization-002
+    title: Định danh vị từ, không gian tên và xung đột tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-organization-003
+    title: Giao diện công khai và các quan hệ trợ giúp nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-organization-004
+    title: Nạp dữ liệu, nạp mã và quản lý phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-organization-005
+    title: Hợp đồng về kiểu hạng thức, chế độ gọi và số lượng nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-organization-006
+    title: Đặt tên quan hệ thể hiện ý nghĩa thay vì thủ tục thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-organization-007
+    title: Tài liệu hóa giả thiết thế giới đóng và các tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-organization-008
+    title: Khác biệt phương ngữ và ranh giới giữa chuẩn với phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-model
+  title: Cơ chế thực thi
+  childs:
+  - slug: execution-model-001
+    title: Đối chiếu mô hình suy diễn với cấu trúc bên trong một hệ Prolog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-002
+    title: Khung lời gọi, môi trường biến và điểm lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-003
+    title: Vùng lưu hạng thức và việc chia sẻ cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-004
+    title: 'Trail: ghi nhận liên kết cần khôi phục khi quay lui'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-005
+    title: Lập chỉ mục mệnh đề để giảm số lựa chọn phải thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-006
+    title: Tối ưu lời gọi cuối và các điều kiện thực thi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-007
+    title: Thu gom rác và vòng đời dữ liệu trong quá trình tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-008
+    title: Ảnh hưởng của giữ điểm lựa chọn đến bộ nhớ và khả năng thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử thành công, thất bại và phép thế trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: So sánh tập nghiệm thay vì chỉ kiểm tra nghiệm đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm tra nghiệm trùng và thứ tự kết quả khi hợp đồng có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử nhiều chế độ gọi của cùng một quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử trên dữ liệu rỗng, biến chưa xác định và cấu trúc có chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Giới hạn tài nguyên để phát hiện truy vấn không kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Đối chiếu bài toán nhỏ với cách liệt kê độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử thuộc tính, tính đối xứng và các quan hệ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm tra riêng tác dụng phụ, ngoại lệ và dọn dẹp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Giữ các truy vấn hồi quy cho những lỗi suy diễn đã gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debugging-observability
+  title: Gỡ lỗi và quan sát
+  childs:
+  - slug: debugging-observability-001
+    title: Theo dõi các cổng call, exit, redo và fail trong trình gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-002
+    title: Đọc liên kết biến và mục tiêu còn lại trên từng nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-003
+    title: Điểm dừng và giới hạn phạm vi truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-004
+    title: Chẩn đoán truy vấn thất bại do hợp nhất hoặc dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-005
+    title: Chẩn đoán kết quả sai do biến không được chia sẻ đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-006
+    title: Chẩn đoán vòng lặp do thứ tự mục tiêu hoặc định nghĩa đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-007
+    title: Phát hiện tập nghiệm bị thay đổi bởi cut và điều kiện thủ tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-008
+    title: Đọc thống kê suy diễn, điểm lựa chọn và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-observability-009
+    title: Thu nhỏ chương trình để tạo truy vấn lỗi có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo chi phí suy diễn, thời gian và lượng bộ nhớ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đưa điều kiện có tính chọn lọc vào vị trí thực thi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Chọn biểu diễn dữ liệu để hỗ trợ lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Giảm điểm lựa chọn thừa mà vẫn giữ đúng tập nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Đánh đổi giữa tính quan hệ tổng quát và cách gọi được tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tránh dựng hạng thức và nối danh sách lặp lại không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Lựa chọn đệ quy, biến tích lũy hoặc tabling theo bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Kiểm soát kích thước phép nối và tập kết quả trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Ảnh hưởng của grounding, miền biến và ràng buộc trong các hệ mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Benchmark trên nhiều mẫu truy vấn và dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Tách cơ sở tri thức, lớp suy diễn và giao diện ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Chuyển dữ liệu có cấu trúc thành hạng thức và quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Chọn cơ chế nhúng bộ máy logic hoặc gọi dịch vụ suy diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Trao đổi dữ liệu với Java và các ngôn ngữ chủ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Trả nhiều nghiệm dưới dạng luồng và điều kiện dừng nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Giới hạn thời gian, bộ nhớ và khả năng hủy truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Kiểm soát mục tiêu truy vấn được phép thực thi từ dữ liệu bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Quản lý phiên truy vấn, dữ liệu động và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Theo dõi phiên bản tri thức và giải thích kết quả cho người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: use-cases
+  title: Ứng dụng tiêu biểu
+  childs:
+  - slug: use-cases-001
+    title: Cơ sở dữ liệu suy diễn và truy vấn quan hệ đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-002
+    title: Phân tích đồ thị, phụ thuộc và khả năng đi tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-003
+    title: Phân tích tĩnh và suy luận thuộc tính của chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-004
+    title: Phân tích văn phạm và xử lý cấu trúc ký hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-005
+    title: Mô hình hóa chính sách và phát hiện xung đột điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-006
+    title: Lập kế hoạch và lựa chọn hành động thỏa mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-007
+    title: Chẩn đoán dựa trên tri thức và giải thích suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: use-cases-008
+    title: Kết hợp dữ liệu quan hệ với các quy tắc nghiệp vụ có ngữ nghĩa rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: 'Quan hệ gia đình: nhiều chiều truy vấn và kiểm tra tập nghiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: 'Đồ thị có chu trình: tìm đường đi và so sánh cách kiểm soát đệ quy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: 'Danh sách: xây dựng quan hệ nối, đảo và hoán vị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: 'Ngôn ngữ biểu thức nhỏ: DCG, cây cú pháp và kiểm tra cấu trúc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Bài toán chữ số hoặc N quân hậu bằng ràng buộc miền hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Phân tích phụ thuộc bằng các luật Datalog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Bài toán lựa chọn có điều kiện bằng mô hình tập trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Tích hợp một chức năng suy diễn vào ứng dụng có giao diện truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: 'Hồ sơ hoàn chỉnh: tri thức, ngữ nghĩa, kiểm thử và đo hiệu năng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paradigm-selection
+  title: Lựa chọn mô hình
+  childs:
+  - slug: paradigm-selection-001
+    title: Nhận diện phần bài toán nên biểu diễn bằng quan hệ và luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-selection-002
+    title: Khi cách xử lý mệnh lệnh hoặc truy vấn dữ liệu thông thường đã đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-selection-003
+    title: Chọn Prolog, Datalog, CLP hoặc ASP theo loại câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-selection-004
+    title: Xác định ngữ nghĩa phủ định và giả thiết về độ đầy đủ của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-selection-005
+    title: Cân bằng khả năng giải thích với chi phí suy diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-selection-006
+    title: Đánh giá khả năng kết thúc và giới hạn tài nguyên trước khi vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-selection-007
+    title: Rà soát sự phụ thuộc vào thứ tự mục tiêu và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-selection-008
+    title: Kiểm tra lại tập nghiệm khi tối ưu hoặc thay đổi mô hình thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

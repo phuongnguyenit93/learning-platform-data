@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình phụ thuộc
+  slug: dependency-model
+  index: 1
+- title: Nguyên lý liên quan
+  slug: related-principles
+  index: 2
+- title: Các cách truyền phụ thuộc
+  slug: injection-methods
+  index: 3
+- title: Thiết kế constructor
+  slug: constructor-design
+  index: 4
+- title: Hợp đồng phụ thuộc
+  slug: dependency-contracts
+  index: 5
+- title: DI thủ công
+  slug: manual-dependency-injection
+  index: 6
+- title: Điểm lắp ghép
+  slug: composition-root
+  index: 7
+- title: Đồ thị đối tượng
+  slug: object-graph
+  index: 8
+- title: Vòng đời và phạm vi
+  slug: lifecycle-scopes
+  index: 9
+- title: Sở hữu tài nguyên
+  slug: resource-ownership
+  index: 10
+- title: Factory và Provider
+  slug: factories-providers
+  index: 11
+- title: Lựa chọn thành phần
+  slug: component-selection
+  index: 12
+- title: Bộ chứa DI
+  slug: di-containers
+  index: 13
+- title: Cấu hình lắp ghép
+  slug: composition-configuration
+  index: 14
+- title: DI trong framework
+  slug: framework-di
+  index: 15
+- title: Kiểm thử
+  slug: testing
+  index: 16
+- title: Kỹ thuật kết hợp
+  slug: combined-techniques
+  index: 17
+- title: Đồng thời và bất đồng bộ
+  slug: concurrency-asynchrony
+  index: 18
+- title: Refactor sang DI
+  slug: refactoring-to-di
+  index: 19
+- title: Lỗi thiết kế
+  slug: design-errors
+  index: 20
+- title: Đánh đổi thiết kế
+  slug: design-tradeoffs
+  index: 21
+- title: Thực hành
+  slug: practice
+  index: 22
+- title: Chẩn đoán DI
+  slug: di-diagnostics
+  index: 23

@@ -1,0 +1,3 @@
+menuLevel1: Enum Singleton
+menuLevel2: Vì sao reflection chuẩn không cho tạo enum bằng Constructor.newInstance
+status: ""

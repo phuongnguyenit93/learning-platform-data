@@ -1,0 +1,345 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Gọi công cụ (tool calling) là gì và giải quyết vấn đề nào
+  - Phân biệt trả lời bằng kiến thức mô hình và truy cập dữ liệu thực tế
+  - Trách nhiệm của mô hình, Spring AI và mã thực thi công cụ
+  - Phân biệt tool calling, function calling, structured output và agent
+  - Quan hệ với RAG, bộ nhớ hội thoại và MCP
+  - Khi nào dùng công cụ và khi nào gọi trực tiếp dịch vụ nghiệp vụ
+  - Kiến thức cần có và lộ trình từ công cụ đầu tiên đến vận hành
+- level1: Luồng gọi công cụ
+  level2:
+  - Tool definition gồm tên, mô tả và schema tham số
+  - Mô hình chọn công cụ và sinh đối số thay vì trực tiếp chạy mã
+  - Tool call ID và liên kết giữa yêu cầu gọi với kết quả
+  - Vai trò của ChatClient, ChatModel, ToolCallback và ToolCallingManager
+  - Luồng gửi định nghĩa, nhận yêu cầu gọi, thực thi và trả kết quả
+  - Vòng lặp nhiều lượt và điều kiện kết thúc
+  - Phân biệt thông điệp assistant chứa tool call với câu trả lời cuối
+  - Thay đổi vị trí điều phối vòng lặp giữa Spring AI 1.x và 2.x
+- level1: Thiết lập dự án
+  level2:
+  - Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
+  - Quản lý dependency bằng Spring AI BOM trong Maven và Gradle
+  - Chọn starter và mô hình có hỗ trợ gọi công cụ
+  - Cấu hình thông tin xác thực, endpoint và tên mô hình
+  - Tổ chức ChatClient, lớp công cụ và dịch vụ nghiệp vụ
+  - Tách môi trường kiểm thử khỏi tài nguyên sản xuất
+  - Ghi lại phiên bản và điều kiện tái lập các ví dụ
+- level1: Công cụ đầu tiên
+  level2:
+  - Xây dựng công cụ chỉ đọc với đầu vào và kết quả đơn giản
+  - Khai báo phương thức bằng @Tool
+  - Đưa công cụ vào một yêu cầu ChatClient
+  - Đặt câu hỏi cần dữ liệu từ công cụ và quan sát luồng thực thi
+  - Kiểm tra kết quả khi mô hình chọn không gọi công cụ
+  - Phân biệt kết quả thực thi đã xác minh và nội dung mô hình diễn giải
+- level1: '@Tool và @ToolParam'
+  level2:
+  - Đặt tên công cụ rõ nghĩa và duy nhất trong tập được cung cấp
+  - Viết mô tả nêu chức năng, điều kiện dùng và giới hạn
+  - Mô tả tham số bằng @ToolParam
+  - Tham số bắt buộc, tùy chọn và giá trị có thể null
+  - Phương thức instance, static và phạm vi truy cập được hỗ trợ
+  - Dependency injection cho lớp chứa công cụ
+  - Quan hệ giữa lời gọi qua bean, proxy Spring và xử lý nghiệp vụ
+  - Tùy chỉnh returnDirect và bộ chuyển đổi kết quả
+- level1: Schema đầu vào
+  level2:
+  - Vai trò của JSON Schema trong hợp đồng gọi công cụ
+  - Sinh schema từ tham số Java và kiểu dữ liệu đầu vào
+  - Mô hình hóa đối số bằng record hoặc DTO
+  - Kiểu nguyên thủy, chuỗi, enum và trường có cấu trúc
+  - Danh sách, đối tượng lồng nhau và kiểu generic theo khả năng hỗ trợ
+  - Biểu diễn required, optional và nullable
+  - Mô tả đơn vị, múi giờ, định dạng thời gian và định danh tài nguyên
+  - Tùy chỉnh schema bằng annotation Spring AI, Jackson hoặc Swagger
+  - Phân biệt ràng buộc schema với kiểm tra dữ liệu lúc thực thi
+  - Giới hạn kiểu Optional, bất đồng bộ và reactive ở method-based tool
+  - Kiểm tra schema thực tế và mức tương thích với từng nhà cung cấp
+- level1: MethodToolCallback
+  level2:
+  - Khi nào tạo callback từ phương thức thay cho khai báo trực tiếp
+  - Chọn Method và đối tượng chứa phương thức
+  - Xây dựng ToolDefinition và metadata cho phương thức
+  - Chuyển JSON đối số sang tham số Java
+  - Truyền ToolContext vào phương thức khi cần
+  - Chọn bộ chuyển đổi kết quả và xử lý lỗi
+  - Đánh giá reflection, proxy và khả năng biên dịch AOT
+- level1: FunctionToolCallback
+  level2:
+  - Chọn Function, Supplier, Consumer hoặc BiFunction theo nhu cầu
+  - Định nghĩa kiểu đầu vào và đầu ra tường minh
+  - Tạo FunctionToolCallback từ lambda hoặc method reference
+  - Cung cấp tên, mô tả và schema đầu vào
+  - Tiếp nhận ToolContext qua dạng hàm tương ứng
+  - Phân biệt hàm không có đầu vào và hàm không trả dữ liệu
+  - Đóng gói thành ToolCallback bean và tái sử dụng
+- level1: ToolCallback tùy chỉnh
+  level2:
+  - Hợp đồng của ToolCallback và trách nhiệm khi tự triển khai
+  - Xây dựng ToolDefinition với JSON Schema riêng
+  - Đọc và kiểm tra đối số trước khi gọi hệ thống phía sau
+  - Truyền ngữ cảnh và áp dụng chính sách tại thời điểm thực thi
+  - Chuyển kết quả về biểu diễn phù hợp với giao thức
+  - Đóng gói lỗi bằng ToolExecutionException theo hợp đồng
+  - Bọc callback bằng decorator để bổ sung kiểm soát và quan sát
+- level1: Đăng ký công cụ
+  level2:
+  - Phân biệt tạo bean, phân giải theo tên và cung cấp công cụ cho yêu cầu
+  - Cung cấp công cụ theo từng lần gọi ChatClient
+  - Đặt công cụ mặc định và đánh giá phạm vi dùng chung
+  - Kết hợp POJO, ToolCallback và ToolCallbackProvider theo API phiên bản
+  - Tạo callback từ đối tượng và gom nhóm công cụ
+  - Quy tắc kết hợp hoặc ghi đè giữa mặc định và cấu hình lúc gọi
+  - Phát hiện trùng tên giữa nhiều nguồn công cụ
+  - Lựa chọn tập công cụ theo chức năng và quyền của người dùng
+  - Đảm bảo công cụ có trong ứng dụng không tự động trở thành công cụ được phép chạy
+- level1: Phân giải động
+  level2:
+  - Vai trò của ToolCallbackResolver
+  - Phân giải tĩnh từ tập ToolCallback đã biết
+  - Tạo resolver tùy chỉnh cho danh mục công cụ động
+  - Phân biệt phân giải theo tên với quảng bá định nghĩa cho mô hình
+  - Giới hạn công cụ được thực thi trong từng yêu cầu
+  - Đánh giá cơ chế resolution fallback theo phiên bản
+  - Xử lý tên không tồn tại, trùng tên và công cụ bị thu hồi
+  - Quản lý thay đổi danh mục mà không làm sai hợp đồng đang sử dụng
+- level1: ToolContext
+  level2:
+  - Phân biệt đối số do mô hình sinh và ngữ cảnh do ứng dụng cung cấp
+  - Truyền thông tin người dùng, tenant và định danh yêu cầu
+  - Đọc ToolContext trong phương thức hoặc callback
+  - Quy tắc kết hợp ngữ cảnh mặc định và ngữ cảnh từng lần gọi
+  - Giữ thông tin xác thực và quyền truy cập ngoài schema gửi mô hình
+  - Kiểm tra quyền từ nguồn tin cậy tại thời điểm thực thi
+  - Tránh rò rỉ ngữ cảnh vào kết quả công cụ hoặc nhật ký
+  - Cô lập ngữ cảnh giữa các hội thoại và yêu cầu đồng thời
+- level1: Vòng lặp tự động
+  level2:
+  - ToolCallingAdvisor và kiến trúc vòng lặp trong Spring AI 2.x
+  - Cơ chế tự đăng ký advisor khi dùng ChatClient theo phiên bản
+  - ToolCallingManager và quá trình tìm, gọi, thu thập kết quả công cụ
+  - Duy trì lịch sử thông điệp giữa các vòng gọi mô hình
+  - Xác định phản hồi cần thực thi công cụ và phản hồi đã hoàn tất
+  - Thứ tự advisor và thành phần nằm trong hoặc ngoài vòng lặp
+  - Ràng buộc một ToolAdvisor trong chuỗi theo phiên bản
+  - Tùy chỉnh điều kiện tiếp tục bằng ToolExecutionEligibilityChecker
+  - Phân biệt đường gọi ChatClient và ChatModel trực tiếp
+- level1: Tự điều phối
+  level2:
+  - Khi nào ứng dụng cần kiểm soát từng vòng thực thi
+  - Tắt vòng lặp tự động theo cơ chế của phiên bản đang dùng
+  - Đọc tool call từ ChatResponse và chuẩn bị ngữ cảnh thực thi
+  - Thực thi bằng ToolCallingManager và tiếp nhận ToolExecutionResult
+  - Xây dựng lượt gọi tiếp theo từ lịch sử đã cập nhật
+  - Giữ đúng tool call ID, thứ tự thông điệp và kết quả
+  - Chèn bước kiểm tra chính sách hoặc xác nhận của người dùng
+  - Dừng, tạm hoãn hoặc hủy luồng theo trạng thái ứng dụng
+  - Tránh thực thi hai lần khi kết hợp vòng lặp thủ công với advisor
+- level1: Giới hạn thực thi
+  level2:
+  - Phân biệt số vòng gọi mô hình và tổng số lần gọi công cụ
+  - Giới hạn lượt gọi của từng công cụ và toàn bộ một lượt hội thoại
+  - Cấu hình hạn mức chung và ngoại lệ theo khả năng phiên bản
+  - Đặt thời hạn cho công cụ và cho toàn bộ yêu cầu
+  - Phát hiện vòng lặp lặp lại cùng công cụ hoặc cùng đối số
+  - Chọn kết thúc bằng lỗi hay trả thông báo cho mô hình khi vượt giới hạn
+  - Bảo toàn kết quả đã hoàn tất khi một phần lượt thực thi bị giới hạn
+  - Thiết kế điều kiện dừng nghiệp vụ và ngân sách chi phí
+- level1: Kết quả công cụ
+  level2:
+  - Thiết kế DTO kết quả có cấu trúc và ngữ nghĩa rõ ràng
+  - Chuyển kết quả bằng DefaultToolCallResultConverter
+  - Tùy chỉnh ToolCallResultConverter
+  - Xử lý kết quả rỗng, null và công cụ không trả dữ liệu
+  - Giới hạn kích thước, phân trang và rút gọn dữ liệu trả về
+  - Return direct và trường hợp bỏ lượt diễn giải tiếp theo của mô hình
+  - Phối hợp returnDirect khi một phản hồi yêu cầu nhiều công cụ
+  - Phân biệt kết quả công cụ với structured output của câu trả lời cuối
+  - Lưu nguồn dữ liệu và thời điểm đọc để hỗ trợ kiểm chứng
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi schema, đối số, phân giải, thực thi và dịch vụ ngoài
+  - ToolExecutionException và ToolExecutionExceptionProcessor
+  - Chọn trả lỗi có kiểm soát cho mô hình hoặc ném lỗi cho ứng dụng
+  - Kiểm tra hành vi với checked exception, runtime exception và Error
+  - Thiết kế mã lỗi, thông tin có thể khôi phục và thông báo an toàn
+  - Yêu cầu bổ sung dữ kiện thay vì tự đoán đối số còn thiếu
+  - Retry có giới hạn với lỗi tạm thời
+  - Xử lý nhiều công cụ khi một công cụ thất bại
+  - Tránh lặp vô hạn việc sửa đối số và tránh tiết lộ bí mật trong lỗi
+- level1: Streaming và đồng thời
+  level2:
+  - Phân biệt luồng token của mô hình với tiến trình thực thi công cụ
+  - Gom đủ tên và đối số từ các phần tool call trước khi thực thi
+  - Vòng lặp streaming qua ChatClient và advisor theo phiên bản
+  - Đưa trạng thái công cụ ra SSE hoặc WebSocket
+  - Phân biệt nhiều tool call trong một lượt với thực thi song song
+  - Xác định phụ thuộc dữ liệu trước khi chạy các công cụ đồng thời
+  - Giới hạn số công việc, thread và kết nối tới dịch vụ ngoài
+  - Giữ đúng liên kết kết quả khi các công cụ hoàn tất khác thứ tự
+  - Không chặn luồng xử lý reactive bằng tác vụ chậm
+  - Phân biệt streaming chat với khả năng trả Mono, Flux hoặc Future của công cụ
+  - Hủy luồng và xử lý công việc đã bắt đầu hoặc đã tạo tác động
+- level1: Lịch sử hội thoại
+  level2:
+  - Phân biệt lịch sử nội bộ của vòng lặp với bộ nhớ giữa nhiều lượt
+  - Giữ cặp tool request và tool response hợp lệ trong hội thoại
+  - Ảnh hưởng của vị trí ChatMemory advisor đối với thông điệp được lưu
+  - Tránh nhân đôi lịch sử khi nhiều thành phần cùng quản lý
+  - Khả năng lưu thông điệp công cụ của từng repository
+  - Cắt giảm lịch sử mà không tách rời cặp lời gọi và kết quả
+  - Cô lập conversation ID và tenant
+  - Phân biệt phát lại lịch sử với cho phép chạy lại hành động
+- level1: Bảo mật
+  level2:
+  - Mô hình đề xuất hành động và ứng dụng quyết định quyền thực thi
+  - Kiểm tra danh tính và quyền trên từng tài nguyên nghiệp vụ
+  - Xây dựng danh sách công cụ được phép theo yêu cầu và vai trò
+  - Phân biệt dữ liệu đầu vào không tin cậy và chỉ dẫn được phép thực hiện
+  - Prompt injection qua câu hỏi, tài liệu và kết quả công cụ
+  - Ngăn truy cập URL, tệp hoặc truy vấn ngoài phạm vi cho phép
+  - Bảo vệ khóa API, thông tin cá nhân và dữ liệu khác tenant
+  - Đánh giá tác động của công cụ mặc định và phân giải fallback
+  - Xác nhận thao tác nhạy cảm bằng nội dung cụ thể có thể kiểm tra
+  - Ghi nhật ký kiểm toán với dữ liệu được che phù hợp
+- level1: Tác động nghiệp vụ
+  level2:
+  - Phân biệt công cụ chỉ đọc và công cụ làm thay đổi trạng thái
+  - Tách bước chuẩn bị, kiểm tra và thực hiện hành động
+  - Thiết kế khóa lũy đẳng để ngăn xử lý trùng
+  - Phạm vi transaction trong một lần gọi công cụ
+  - Phối hợp nhiều hệ thống bằng outbox hoặc bù trừ khi cần
+  - Retry sau timeout khi chưa biết hành động đã hoàn tất hay chưa
+  - Kiểm tra dữ liệu thay đổi giữa lúc đề xuất và lúc thực hiện
+  - Quản lý trạng thái chờ xác nhận hoặc tác vụ kéo dài
+  - Khôi phục sau khi ứng dụng dừng giữa chuỗi hành động
+- level1: Tích hợp dịch vụ
+  level2:
+  - Bọc REST API hoặc SDK trong dịch vụ công cụ có hợp đồng rõ ràng
+  - Truy vấn cơ sở dữ liệu qua thao tác nghiệp vụ được giới hạn
+  - Kết hợp dữ liệu truy xuất với công cụ mà không thay thế toàn bộ quy trình RAG
+  - Phân biệt công cụ Java cục bộ và công cụ từ MCP server
+  - Chuyển công cụ MCP thành callback qua tích hợp tương ứng
+  - Đặt tiền tố tên và xử lý xung đột công cụ cục bộ với công cụ từ xa
+  - Timeout, quyền truy cập và kiểm tra dữ liệu trả về từ dịch vụ ngoài
+  - Ranh giới của module Tool Calling với module MCP và Memory Advisors
+- level1: Danh mục công cụ lớn
+  level2:
+  - Ảnh hưởng của số lượng công cụ và độ dài schema đến lựa chọn
+  - Nhóm công cụ theo miền nghiệp vụ và tác vụ
+  - Chỉ cung cấp công cụ liên quan tới yêu cầu hiện tại
+  - Progressive tool disclosure và tìm kiếm định nghĩa khi cần
+  - ToolSearchToolCallingAdvisor và điều kiện hỗ trợ theo phiên bản
+  - Lựa chọn chỉ mục và chất lượng truy xuất công cụ
+  - Lọc quyền trước và sau bước tìm công cụ
+  - Cập nhật danh mục, bộ nhớ đệm và kiểm thử công cụ khó phân biệt
+- level1: Mở rộng advisor
+  level2:
+  - Khi nào mở rộng vòng lặp thay vì tự viết lại toàn bộ điều phối
+  - Tạo ToolAdvisor hoặc mở rộng ToolCallingAdvisor theo phiên bản
+  - Hook khởi tạo, trước gọi, sau gọi và kết thúc vòng lặp
+  - Xử lý cả đường gọi đồng bộ và đường streaming
+  - Chèn chính sách, quan sát hoặc điều chỉnh tập công cụ giữa các vòng
+  - Bổ sung trường vào schema bằng AugmentedToolCallbackProvider khi hỗ trợ
+  - Xử lý metadata bổ sung mà không làm đổi hợp đồng công cụ gốc
+  - Kiểm tra tương tác giữa advisor tùy chỉnh, lịch sử và giới hạn thực thi
+- level1: Quan sát
+  level2:
+  - Theo dõi một yêu cầu qua lượt gọi mô hình và các lần thực thi công cụ
+  - Metric về số lượt gọi, độ trễ, lỗi và tỷ lệ hoàn tất
+  - Liên kết trace giữa ChatClient, tool callback và dịch vụ ngoài
+  - Ghi nhận lựa chọn công cụ và nguồn kết quả để kiểm tra
+  - Phân biệt số token, chi phí mô hình và chi phí hệ thống được gọi
+  - Che đối số, kết quả và dữ liệu nhạy cảm trong log hoặc span
+  - Quan sát vòng lặp bị dừng, giới hạn vượt mức và hành động bị từ chối
+  - Thiết kế bảng theo dõi và cảnh báo gắn với tác vụ nghiệp vụ
+- level1: Kiểm thử
+  level2:
+  - Unit test logic công cụ tách khỏi mô hình
+  - Kiểm thử schema, required field và chuyển đổi kiểu dữ liệu
+  - Kiểm thử ToolCallback và ToolContext trực tiếp
+  - Giả lập ChatModel với phản hồi có hoặc không có tool call
+  - Kiểm thử chuỗi nhiều vòng và nhiều tool call trong cùng phản hồi
+  - Kiểm thử tool call ID, lịch sử hội thoại và returnDirect
+  - Kiểm thử lỗi, retry, hạn mức và điều kiện dừng
+  - Kiểm thử quyền truy cập, dữ liệu khác tenant và prompt injection
+  - Kiểm thử hành động lũy đẳng khi nhận yêu cầu trùng
+  - Kiểm thử tích hợp có kiểm soát với mô hình và dịch vụ thật
+- level1: Đánh giá chất lượng
+  level2:
+  - Xây dựng tập tình huống cần gọi và không nên gọi công cụ
+  - Đánh giá độ chính xác chọn công cụ
+  - Đánh giá tính đúng và đầy đủ của đối số
+  - Đánh giá chuỗi hành động và kết quả nghiệp vụ cuối
+  - Kiểm tra khả năng hỏi lại khi thiếu dữ kiện hoặc yêu cầu mơ hồ
+  - Đánh giá hiệu quả mô tả công cụ và schema
+  - So sánh mô hình trên cùng hợp đồng và tập dữ liệu kiểm tra
+  - Phân biệt nhận xét bằng mô hình với bằng chứng thực thi xác định
+- level1: Khác biệt mô hình
+  level2:
+  - Kiểm tra hỗ trợ tool calling của mô hình và nhà cung cấp
+  - Khác biệt tên công cụ, schema và kiểu dữ liệu được chấp nhận
+  - Chế độ tự chọn, bắt buộc hoặc chỉ định công cụ khi API hỗ trợ
+  - Khả năng nhiều tool call, streaming và xử lý kết quả
+  - Giới hạn strict schema và ràng buộc định dạng theo nhà cung cấp
+  - Ảnh hưởng của system prompt và tham số sinh đến quyết định gọi
+  - Kiểm tra khả năng thực tế của mô hình cục bộ và endpoint tương thích
+  - Kiểm thử lại hợp đồng trước khi đổi mô hình hoặc nhà cung cấp
+- level1: Hiệu năng và chi phí
+  level2:
+  - Ước lượng số lượt mô hình cho một tác vụ nhiều công cụ
+  - Giảm token bằng mô tả ngắn rõ và tập công cụ phù hợp
+  - Giới hạn kích thước kết quả và lịch sử gửi lại mô hình
+  - Lưu đệm kết quả chỉ đọc theo dữ liệu, danh tính và thời hạn
+  - Tái sử dụng client và quản lý connection pool
+  - Chạy đồng thời công cụ độc lập khi kiến trúc cho phép
+  - Đặt ngân sách thời gian, token và số hành động
+  - Đo chất lượng cùng độ trễ trước khi tối ưu hoặc đổi mô hình
+- level1: Vận hành
+  level2:
+  - Quản lý cấu hình công cụ và quyền theo môi trường
+  - Bảo đảm callback dùng chung an toàn với nhiều yêu cầu đồng thời
+  - Đặt timeout, quota và giới hạn phụ thuộc bên ngoài
+  - Kiểm tra reflection, AOT và native image theo phiên bản
+  - Triển khai thay đổi schema cùng mã công cụ tương thích
+  - Điều khiển bật tắt hoặc thu hồi công cụ đang gặp sự cố
+  - Lưu vết hành động đã thực hiện để hỗ trợ khôi phục
+  - Xây dựng quy trình xử lý sự cố và dọn dữ liệu tạm
+- level1: Chẩn đoán sự cố
+  level2:
+  - Mô hình không gọi công cụ dù công cụ đã được khai báo
+  - Mô hình chọn nhầm công cụ hoặc tự tạo tên không tồn tại
+  - Công cụ được tạo thành bean nhưng không có trong yêu cầu
+  - Lỗi schema, required field, null và chuyển đổi đối số
+  - Công cụ chạy lặp do cấu hình vòng lặp hoặc retry chồng nhau
+  - Lỗi thiếu tool response, sai ID hoặc sai thứ tự thông điệp
+  - Return direct không có hiệu lực như mong đợi
+  - Streaming bị treo, mất ngữ cảnh hoặc chặn luồng reactive
+  - Lỗi thiếu quyền, timeout và hành động đã chạy nhưng phản hồi bị mất
+  - Trùng tên công cụ từ nhiều nguồn hoặc resolver trả sai callback
+  - Kết quả nghiệp vụ đúng nhưng câu trả lời cuối diễn giải sai
+- level1: Nâng cấp
+  level2:
+  - Đọc migration guide và đối chiếu API đúng phiên bản Spring AI
+  - Phân biệt API FunctionCallback kế thừa và ToolCallback
+  - Chuyển từ vòng lặp bên trong ChatModel 1.x sang cơ chế 2.x
+  - Phân biệt ToolCallAdvisor ở phiên bản trước và ToolCallingAdvisor
+  - Đối chiếu cơ chế tắt tự thực thi và thuộc tính đã thay đổi
+  - Chuyển hàm bean phân giải theo tên sang đăng ký callback tường minh khi cần
+  - Kiểm tra thay đổi về ghép tập công cụ, fallback và lịch sử
+  - Kiểm thử hồi quy schema, lỗi, streaming và quyền trước triển khai
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng trợ lý tra cứu dữ liệu bằng công cụ chỉ đọc
+  - Thiết kế công cụ tìm kiếm và công cụ chi tiết dùng kết quả của nhau
+  - Thêm ToolContext để cô lập dữ liệu theo người dùng và tenant
+  - Thực hiện hành động thay đổi trạng thái với xác nhận và khóa lũy đẳng
+  - Tự điều phối một quy trình có giới hạn và điều kiện dừng
+  - Kết hợp công cụ cục bộ với một dịch vụ ngoài hoặc MCP
+  - Hiển thị tiến trình qua streaming và xử lý việc hủy yêu cầu
+  - Mô phỏng lỗi đối số, timeout, trùng yêu cầu và khôi phục
+  - So sánh chất lượng, độ trễ và chi phí trên tập tình huống cố định
+  - Viết hướng dẫn tái lập cùng bằng chứng thực thi và quy trình vận hành

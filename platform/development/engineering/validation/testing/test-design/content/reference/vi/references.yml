@@ -1,0 +1,13 @@
+references:
+  - title: "ISTQB - Certified Tester Foundation Level Syllabus v4.0.1"
+    url: "https://istqb.org/wp-content/uploads/2024/11/ISTQB_CTFL_Syllabus_v4.0.1.pdf"
+    description: "Chương 4 trình bày kỹ thuật hộp đen, hộp trắng, dựa trên kinh nghiệm và thiết kế cộng tác."
+  - title: "ISTQB Glossary - Test Technique"
+    url: "https://glossary.istqb.org/en_US/term/test-technique"
+    description: "Định nghĩa chuẩn và phạm vi của kỹ thuật thiết kế kiểm thử."
+  - title: "ISTQB Glossary - Test Case"
+    url: "https://glossary.istqb.org/en_US/term/test-case?exact_matches_first=true"
+    description: "Thành phần cần có trong test case gồm điều kiện, đầu vào, thao tác và expected result."
+  - title: "ISTQB - Advanced Level Test Analyst v4.0"
+    url: "https://istqb.org/certifications/certified-tester-advanced-level-test-analyst/"
+    description: "Tài liệu mở rộng về phân tích, lựa chọn kỹ thuật và chất lượng của test case."

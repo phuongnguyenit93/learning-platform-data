@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SOFTWARE_PROCESS_REQUIREMENTS_ENGINEERING"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Nắm quy trình kỹ thuật yêu cầu từ xác định stakeholder, khai thác nhu cầu và phân tích xung đột đến đặc tả, xác thực và quản lý thay đổi. Thực hành mô hình hóa nghiệp vụ, user story, tiêu chí nghiệm thu, ưu tiên và truy vết để chuyển mục tiêu sản phẩm thành yêu cầu kiểm chứng được."
+  }
+}

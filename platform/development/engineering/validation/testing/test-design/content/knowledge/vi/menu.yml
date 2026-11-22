@@ -1,0 +1,390 @@
+menu:
+- level1: Tổng quan thiết kế test
+  level2:
+  - Thiết kế kiểm thử là gì và bài toán lựa chọn tình huống cần kiểm tra
+  - Quan hệ giữa phân tích kiểm thử, thiết kế test và triển khai thực thi
+  - Phân biệt test condition, test scenario, test case và test procedure
+  - Cơ sở kiểm thử, mô hình hành vi và kết quả mong đợi liên hệ thế nào
+  - Phân biệt cấp độ kiểm thử, loại kiểm thử và kỹ thuật thiết kế
+  - Thiết kế hộp đen, hộp trắng và dựa trên kinh nghiệm
+  - Vì sao kiểm thử đầy đủ mọi tổ hợp thường không khả thi
+  - Lộ trình từ yêu cầu đến bộ test có mục đích và bằng chứng bao phủ
+- level1: Phân tích yêu cầu
+  level2:
+  - Xác định cơ sở kiểm thử từ yêu cầu, đặc tả, hợp đồng và mô hình
+  - Tách hành vi quan sát được khỏi mô tả cách triển khai
+  - Nhận diện quy tắc nghiệp vụ, ràng buộc và giả định
+  - Chuyển acceptance criteria thành điều kiện có thể kiểm tra
+  - Tìm yêu cầu thiếu, mâu thuẫn hoặc không đo lường được
+  - Phân tích điều kiện trước, điều kiện sau và bất biến
+  - Xác định đối tượng sử dụng, vai trò và ngữ cảnh vận hành
+  - Liệt kê đầu vào, đầu ra, trạng thái và tác dụng phụ
+  - Ghi câu hỏi cần làm rõ thay vì tự sáng tác kết quả mong đợi
+- level1: Mô hình hóa hành vi
+  level2:
+  - Chọn mô hình phù hợp với quy tắc hoặc tương tác cần kiểm tra
+  - Mô hình miền dữ liệu, khoảng giá trị và quan hệ giữa các trường
+  - Mô hình quyết định từ điều kiện và hành động
+  - Mô hình trạng thái, sự kiện, guard và chuyển tiếp
+  - Mô hình luồng nghiệp vụ, nhánh thay thế và ngoại lệ
+  - Mô hình tương tác giữa người dùng, hệ thống và dependency
+  - Phân biệt mô hình kiểm thử với bản sao chi tiết của mã triển khai
+  - Xác định giả định, giới hạn và phần hành vi chưa được mô hình hóa
+  - Giữ mô hình và yêu cầu nhất quán khi có thay đổi
+- level1: Rủi ro và ưu tiên
+  level2:
+  - Nhận diện rủi ro sản phẩm từ tác động và khả năng xảy ra lỗi
+  - Ưu tiên nghiệp vụ quan trọng, dữ liệu nhạy cảm và điểm tích hợp
+  - Chọn kỹ thuật kiểm thử theo dạng lỗi cần phát hiện
+  - Cân đối luồng phổ biến với tình huống hiếm nhưng hậu quả lớn
+  - Phân biệt mức ưu tiên test với mức độ nghiêm trọng của lỗi
+  - Xác định mức bao phủ mục tiêu theo rủi ro
+  - Lựa chọn tập test khi giới hạn thời gian hoặc tài nguyên
+  - Ghi nhận rủi ro còn lại và lý do chưa thiết kế test
+- level1: Kết quả mong đợi
+  level2:
+  - Oracle kiểm thử là gì và nguồn xác định kết quả đúng
+  - Dùng đặc tả, quy tắc nghiệp vụ hoặc bất biến làm oracle
+  - Kết quả trả về, thay đổi trạng thái và tác dụng phụ cần quan sát
+  - Xác định kết quả cho đầu vào không hợp lệ và điều kiện lỗi
+  - Kiểm tra sự vắng mặt của tác dụng phụ ngoài chủ đích
+  - Tránh tính expected result bằng chính thuật toán đang được kiểm tra
+  - Oracle độc lập, đối chiếu nhiều cách thực hiện và giới hạn tin cậy
+  - Sai số, độ chính xác số học và điều kiện chấp nhận
+  - Kết quả không xác định hoặc không có đáp án duy nhất
+  - Phân biệt oracle yếu, oracle sai và hành vi chưa được đặc tả
+- level1: Đặc tả bằng ví dụ
+  level2:
+  - Khám phá quy tắc nghiệp vụ qua ví dụ cụ thể
+  - Phối hợp góc nhìn nghiệp vụ, phát triển và kiểm thử
+  - Given, When, Then và vai trò của từng phần
+  - Chọn ví dụ thể hiện quy tắc thay vì mô tả thao tác giao diện quá chi tiết
+  - Scenario outline và bảng dữ liệu cho cùng một hành vi
+  - Ví dụ phản chứng để tìm giới hạn của quy tắc
+  - Quan hệ giữa BDD, ATDD và đặc tả có thể thực thi
+  - Giữ kịch bản dễ đọc và tránh biến thành ngôn ngữ lập trình thu nhỏ
+  - Cập nhật ví dụ khi yêu cầu hoặc cách hiểu nghiệp vụ thay đổi
+- level1: Cấu trúc test case
+  level2:
+  - Đặt mục tiêu và tên test thể hiện hành vi cần bảo vệ
+  - Ghi điều kiện trước và trạng thái khởi tạo tối thiểu
+  - Chọn đầu vào, thao tác và kết quả mong đợi rõ ràng
+  - Phân biệt một hành vi với một hoặc nhiều assertion
+  - Xác định dữ liệu, dependency và cấu hình cần thiết
+  - Thiết kế điều kiện sau và yêu cầu dọn tài nguyên
+  - Tách test case trừu tượng khỏi dữ liệu thực thi cụ thể
+  - Định danh, ưu tiên và liên kết test với yêu cầu
+  - Giữ test có thể thực hiện và hiểu độc lập
+  - Tránh test dài kiểm tra nhiều hành vi không liên quan
+- level1: Phân lớp tương đương
+  level2:
+  - Cơ sở của equivalence partitioning và giả định tính tương đương
+  - Xác định các lớp hợp lệ và không hợp lệ
+  - Phân lớp theo đầu vào, đầu ra hoặc trạng thái
+  - Chọn đại diện cho từng lớp và giải thích lựa chọn
+  - Kiểm tra lớp rỗng, giao nhau hoặc bị bỏ sót
+  - Phân biệt bao phủ từng lớp với bao phủ tổ hợp các trường
+  - Xử lý null, thiếu trường, chuỗi rỗng và khoảng trắng
+  - Phân lớp miền dữ liệu có thứ tự và không có thứ tự
+  - Giới hạn của phân lớp khi bên trong lớp có hành vi khác nhau
+- level1: Giá trị biên
+  level2:
+  - Vì sao lỗi thường xuất hiện gần giới hạn miền dữ liệu
+  - Xác định biên bao gồm, biên loại trừ và khoảng trống giữa các miền
+  - Phân tích biên với hai giá trị hoặc ba giá trị quanh điểm chuyển
+  - Chọn giá trị ngay dưới, đúng biên và ngay trên biên
+  - Biên của số nguyên, số thực và độ chính xác biểu diễn
+  - Biên của độ dài, số phần tử, dung lượng và kích thước
+  - Biên ngày giờ, thời hạn và chu kỳ lịch
+  - Biên nhiều chiều khi các đầu vào có ràng buộc liên quan
+  - Phân biệt biên hợp lệ với biên do giới hạn kỹ thuật
+  - Kết hợp giá trị biên với phân lớp để giảm test trùng
+- level1: Bảng quyết định
+  level2:
+  - Chọn decision table cho quy tắc có nhiều điều kiện
+  - Liệt kê điều kiện, miền giá trị và hành động tương ứng
+  - Xây dựng bảng đầy đủ trước khi tối giản
+  - Phân biệt điều kiện không ảnh hưởng với tổ hợp không khả thi
+  - Tìm mâu thuẫn, thiếu quy tắc và thứ tự ưu tiên chưa rõ
+  - Chuyển mỗi quy tắc khả thi thành một hoặc nhiều test case
+  - Bao phủ quy tắc và giới hạn khi chỉ chọn luồng thường gặp
+  - Mô hình nguyên nhân, kết quả và ràng buộc logic
+  - Kiểm tra chính sách giảm giá, phí hoặc phân quyền bằng bảng quyết định
+- level1: Chuyển trạng thái
+  level2:
+  - Xác định trạng thái quan sát được và sự kiện kích hoạt
+  - Phân biệt trạng thái với giá trị dữ liệu đơn thuần
+  - Guard, hành động và kết quả của một chuyển tiếp
+  - Biểu diễn bằng sơ đồ hoặc bảng chuyển trạng thái
+  - Bao phủ trạng thái và bao phủ chuyển tiếp hợp lệ
+  - Thiết kế test cho sự kiện không hợp lệ tại từng trạng thái
+  - Kiểm tra chuỗi chuyển tiếp và ảnh hưởng của lịch sử
+  - Khởi tạo, đặt lại và kết thúc chuỗi trạng thái
+  - Xử lý trạng thái lỗi, hủy, hết hạn và khôi phục
+  - Giới hạn mô hình khi hệ thống có nhiều trạng thái đồng thời
+- level1: Kịch bản nghiệp vụ
+  level2:
+  - Thiết kế test từ use case, user story hoặc hành trình sử dụng
+  - Luồng chính, luồng thay thế và tình huống ngoại lệ
+  - Đầu vào, vai trò và điều kiện trước của mỗi kịch bản
+  - Điểm ra quyết định và bước có tác dụng phụ
+  - Kiểm tra gián đoạn, quay lại và thao tác lặp
+  - Kịch bản nhiều người dùng hoặc nhiều hệ thống phối hợp
+  - Chọn điểm quan sát cho từng mốc quan trọng
+  - Phân biệt test một luồng nghiệp vụ với test toàn bộ hệ thống
+  - Tránh chỉ bao phủ đường đi thành công từ đầu đến cuối
+- level1: Miền dữ liệu và cú pháp
+  level2:
+  - Thiết kế test từ định dạng, cấu trúc hoặc ngữ pháp đầu vào
+  - Số, ngày giờ, định danh và chuỗi theo mẫu
+  - Unicode, ký tự kết hợp, encoding và chuẩn hóa
+  - JSON, XML hoặc tệp có cấu trúc với trường bắt buộc, tùy chọn
+  - Đầu vào sai cú pháp khác với đầu vào đúng cú pháp nhưng sai nghĩa
+  - Dữ liệu lồng nhau, độ sâu và kích thước tối đa
+  - Ràng buộc liên trường và quan hệ tổng thể của dữ liệu
+  - Thiết kế test cho parser và kiểm tra giữ nguyên ý nghĩa khi chuyển đổi
+- level1: Kết hợp tham số
+  level2:
+  - Nhận diện bùng nổ tổ hợp khi có nhiều yếu tố
+  - Chọn yếu tố, giá trị và mức trừu tượng phù hợp
+  - Pairwise testing và ý nghĩa của bao phủ từng cặp
+  - T-way testing cho tương tác bậc cao hơn
+  - Ràng buộc loại bỏ tổ hợp không hợp lệ
+  - Phân biệt tổ hợp không hợp lệ với tình huống lỗi cần kiểm tra
+  - Kiểm chứng tập test sinh ra thật sự đạt mức bao phủ đã chọn
+  - Kết hợp tổ hợp với ưu tiên rủi ro và giá trị biên
+  - Giới hạn suy luận khi dùng pairwise thay toàn bộ tổ hợp
+  - Thiết kế ma trận cấu hình, nền tảng hoặc quyền truy cập
+- level1: Kiểm thử theo mô hình
+  level2:
+  - Model-based testing và cách sinh test từ mô hình
+  - Chọn mô hình trạng thái, luồng hoặc quan hệ dữ liệu
+  - Xác định điểm đầu, điểm kết thúc và hành vi cần bao phủ
+  - Sinh đường đi có giới hạn để tránh bùng nổ số test
+  - Ánh xạ thao tác trừu tượng sang thao tác có thể thực thi
+  - Xây oracle từ trạng thái và bất biến của mô hình
+  - Đối chiếu mô hình với yêu cầu thay vì coi mô hình luôn đúng
+  - Quản lý phiên bản mô hình và khả năng truy vết test được sinh
+- level1: Bao phủ cấu trúc
+  level2:
+  - Thiết kế hộp trắng từ cấu trúc điều khiển của mã
+  - Statement coverage và hành vi chưa được kiểm chứng chỉ bằng số dòng
+  - Branch coverage và kết quả của từng quyết định
+  - Phân biệt đạt coverage với assertion đủ sức phát hiện lỗi
+  - Nhánh không khả thi và mã không thể tiếp cận
+  - Ảnh hưởng của exception, early return và nhánh mặc định
+  - Kết hợp thông tin coverage với kỹ thuật hộp đen
+  - Dùng báo cáo coverage để tìm khoảng trống thiết kế
+  - Tránh viết test chỉ để tăng tỷ lệ bao phủ
+- level1: Điều kiện logic
+  level2:
+  - Điều kiện đơn và quyết định gồm nhiều điều kiện
+  - Condition coverage và decision coverage khác nhau thế nào
+  - Condition/decision coverage và giới hạn còn lại
+  - Multiple condition coverage và số tổ hợp tăng theo điều kiện
+  - MC/DC và việc chứng minh ảnh hưởng độc lập của từng điều kiện
+  - Short-circuit evaluation trong biểu thức AND, OR
+  - Quan hệ phụ thuộc khiến một số tổ hợp logic không khả thi
+  - Thiết kế test cho biểu thức lồng nhau và điều kiện phủ định
+  - Giữ khả năng giải thích vì sao từng test cần xuất hiện
+- level1: Đường đi và luồng dữ liệu
+  level2:
+  - Mô hình control-flow graph và đường đi qua chương trình
+  - Basis path và ý nghĩa giới hạn của độ phức tạp chu trình
+  - Vòng lặp với không lần, một lần, nhiều lần và giới hạn
+  - Đường đi không khả thi và số đường đi không bị chặn
+  - Định nghĩa, sử dụng và cập nhật giá trị trong luồng dữ liệu
+  - Def-use pair và lựa chọn đường đi kiểm tra dữ liệu
+  - Biến chưa được khởi tạo, giá trị cũ và cập nhật bị bỏ qua
+  - Đường đi qua exception handler, finally và cleanup
+  - Kết hợp cấu trúc mã với bất biến nghiệp vụ để chọn assertion
+- level1: Kinh nghiệm và khám phá
+  level2:
+  - Error guessing từ lịch sử lỗi và hiểu biết miền nghiệp vụ
+  - Checklist để nhớ nhóm rủi ro mà không thay thế tư duy thiết kế
+  - Heuristic giúp đặt câu hỏi và tìm tình huống ít được chú ý
+  - Exploratory testing và quan hệ giữa học, thiết kế, thực thi
+  - Test charter, mục tiêu và giới hạn của phiên khám phá
+  - Ghi lại giả thuyết, dữ liệu, quan sát và câu hỏi mới
+  - Dùng phản chứng hoặc thay đổi một yếu tố để điều tra hành vi
+  - Chuyển phát hiện có giá trị thành test hồi quy phù hợp
+  - Nhận diện thiên lệch khi chỉ thử theo kinh nghiệm quen thuộc
+- level1: Kiểm thử dựa thuộc tính
+  level2:
+  - Property-based testing và khác biệt với ví dụ đầu vào cố định
+  - Chuyển bất biến hoặc quy luật miền thành thuộc tính
+  - Thiết kế generator bao phủ cả dữ liệu thường gặp và dữ liệu biên
+  - Ràng buộc dữ liệu hợp lệ và nguy cơ lọc bỏ quá nhiều mẫu
+  - Shrinking để tìm trường hợp phản chứng nhỏ
+  - Lưu seed và đầu vào phản chứng để tái hiện
+  - Kiểm tra chuỗi thao tác trên đối tượng có trạng thái
+  - Tránh thuộc tính đúng hiển nhiên hoặc sao chép thuật toán sản phẩm
+  - Kết hợp test dựa thuộc tính với ví dụ nghiệp vụ cụ thể
+  - Chọn công cụ trong hệ sinh thái Java theo nhu cầu thiết kế
+- level1: Quan hệ biến đổi
+  level2:
+  - Metamorphic testing khi khó xác định đáp án cho từng đầu vào
+  - Thiết kế quan hệ giữa đầu vào gốc và đầu vào đã biến đổi
+  - Bất biến theo hoán vị, mở rộng hoặc thay đổi biểu diễn có điều kiện
+  - Quan hệ tăng giảm, tỷ lệ và giới hạn áp dụng
+  - Round-trip và trường hợp chuyển đổi có mất thông tin
+  - Chọn dữ liệu nguồn để quan hệ biến đổi có ý nghĩa
+  - Phân biệt quan hệ mong đợi với giả định chưa được xác minh
+  - Kết hợp oracle từng phần với quan hệ biến đổi để tăng khả năng phát hiện lỗi
+- level1: Fuzzing và dữ liệu ngẫu nhiên
+  level2:
+  - Phân biệt sinh test ngẫu nhiên, fuzzing và kiểm thử dựa thuộc tính
+  - Chọn đầu vào mục tiêu và tín hiệu nhận diện lỗi
+  - Thiết kế corpus ban đầu từ dữ liệu hợp lệ và tình huống biên
+  - Biến đổi dữ liệu thô so với sinh dữ liệu theo cấu trúc
+  - Dùng phản hồi coverage để hướng việc tìm đầu vào mới
+  - Giới hạn kích thước, độ sâu và thời gian xử lý một đầu vào kiểm thử
+  - Nhận diện crash, hang, lỗi tài nguyên và vi phạm bất biến
+  - Thu nhỏ, phân loại và lưu đầu vào gây lỗi
+  - Chuyển trường hợp được phát hiện thành test hồi quy xác định
+- level1: Kiểm thử đột biến
+  level2:
+  - Mutation testing đánh giá sức phát hiện lỗi của bộ test thế nào
+  - Mutation operator và lỗi giả lập trong mã
+  - Phân biệt mutant bị phát hiện, sống sót và không thể chạy
+  - Mutant tương đương và khó khăn khi diễn giải kết quả
+  - Mutation score và phạm vi dữ liệu được tính
+  - Nhận diện test chạy qua mã nhưng không kiểm tra kết quả
+  - Dùng mutant sống sót để cải thiện dữ liệu hoặc assertion
+  - Ưu tiên mutation theo rủi ro và chi phí thực thi
+  - Giới hạn của mutation testing so với chứng minh tính đúng
+- level1: Ranh giới và test double
+  level2:
+  - Chọn đơn vị hành vi và ranh giới của mỗi test
+  - Phân biệt dependency thật, dummy, stub, fake, spy và mock
+  - Thiết kế quan sát trạng thái so với xác minh tương tác
+  - Khi nào số lần gọi, thứ tự gọi hoặc tham số là yêu cầu
+  - Tránh mô phỏng quá nhiều khiến test không kiểm tra hành vi thực
+  - Thiết kế test double theo hợp đồng của dependency
+  - Xác định phần cần kiểm tra lại với dependency thật
+  - Tách fixture khỏi kết quả mong đợi để tránh tự xác nhận
+  - Giữ khả năng thay đổi cấu trúc bên trong mà test vẫn có ý nghĩa
+- level1: API và hợp đồng
+  level2:
+  - Thiết kế test theo endpoint, operation và quy tắc nghiệp vụ
+  - Method, route, parameter, header và payload
+  - Status code, error structure và tác dụng phụ
+  - Trường bắt buộc, trường tùy chọn, null và giá trị mặc định
+  - Vai trò người dùng, quyền truy cập và phạm vi tài nguyên
+  - Pagination, sorting, filtering và tính ổn định kết quả
+  - Idempotency, yêu cầu trùng và thao tác được gửi lại
+  - Khả năng tương thích khi producer và consumer khác phiên bản
+  - Phân biệt kiểm tra schema với kiểm tra ngữ nghĩa hợp đồng
+  - Chọn phạm vi unit, integration hoặc contract test cho từng điều kiện
+- level1: Dữ liệu và giao dịch
+  level2:
+  - Thiết kế test cho constraint, quan hệ và bất biến dữ liệu
+  - Phân biệt trạng thái dữ liệu trong bộ nhớ với dữ liệu đã lưu
+  - Commit, rollback và thay đổi dở dang khi xảy ra lỗi
+  - Đầu vào trùng, cập nhật mất dữ liệu và xung đột phiên bản
+  - Chọn dữ liệu cho truy vấn, phân trang và sắp xếp
+  - Thiết kế test cho migration và dữ liệu từ phiên bản cũ
+  - Xác định điều kiện cô lập dữ liệu giữa các test
+  - Kiểm tra tác dụng phụ không xuất hiện sau giao dịch thất bại
+- level1: Thời gian và bất đồng bộ
+  level2:
+  - Mô hình hóa sự kiện có thể xảy ra trước, đúng hoặc sau thời hạn
+  - Chọn thời gian giả lập và Clock cho hành vi theo thời gian
+  - Múi giờ, DST, lịch và ranh giới ngày tháng
+  - Phân biệt tác vụ được tiếp nhận với tác vụ đã hoàn thành
+  - Thiết kế oracle cho eventual consistency
+  - Chờ điều kiện có giới hạn thay vì giả định thời gian sleep
+  - Timeout, cancellation và công việc còn chạy sau khi dừng chờ
+  - Sự kiện đến muộn, sai thứ tự hoặc được phát lại
+  - Xác định dữ liệu và bằng chứng cần giữ để tái hiện
+- level1: Đồng thời
+  level2:
+  - Nhận diện trạng thái chia sẻ và bất biến cần giữ
+  - Thiết kế tình huống hai thao tác cạnh tranh cùng tài nguyên
+  - Đồng bộ lịch thực thi bằng latch hoặc barrier
+  - Race condition, lost update và thao tác kiểm tra rồi cập nhật
+  - Xung đột khóa, deadlock và khả năng hoàn thành
+  - Yêu cầu trùng và tính nguyên tử của cơ chế idempotency
+  - Phân biệt nhiều kết quả hợp lệ với kết quả vi phạm hợp đồng
+  - Giới hạn suy luận từ một lịch thực thi hoặc một lần chạy
+  - Tách lỗi trong test harness khỏi lỗi đồng thời của sản phẩm
+- level1: Ngoại lệ và phục hồi
+  level2:
+  - Liệt kê điểm có thể thất bại trong một luồng xử lý
+  - Thiết kế lỗi đầu vào, lỗi nghiệp vụ và lỗi dependency
+  - Timeout, retry, fallback và kết quả khi hết số lần thử
+  - Thất bại sau khi đã tạo một phần tác dụng phụ
+  - Cleanup tài nguyên khi có exception hoặc cancellation
+  - Bù trừ, khôi phục và tiếp tục công việc bị ngắt
+  - Phân biệt báo lỗi đúng với che giấu lỗi ngoài chủ đích
+  - Kiểm tra trạng thái cuối cùng sau khi phục hồi
+  - Chọn điểm gây lỗi có kiểm soát để kiểm chứng từng giả thuyết
+- level1: Yêu cầu phi chức năng
+  level2:
+  - Chuyển yêu cầu chất lượng thành điều kiện và chỉ số có thể kiểm tra
+  - Thiết kế workload cho latency, throughput và mức sử dụng tài nguyên
+  - Chọn ngưỡng, thời lượng và môi trường đo theo mục tiêu
+  - Thiết kế tình huống bảo mật từ mối đe dọa và ranh giới tin cậy
+  - Kiểm tra quyền, dữ liệu nhạy cảm và đầu vào không được tin cậy
+  - Thiết kế tình huống độ tin cậy, gián đoạn và khôi phục
+  - Ma trận nền tảng, phiên bản và cấu hình cho khả năng tương thích
+  - Nhiệm vụ người dùng và tiêu chí khả năng sử dụng
+  - Thiết kế điều kiện tiếp cận bằng bàn phím hoặc công nghệ hỗ trợ
+  - Phân biệt test chức năng với bằng chứng định lượng về thuộc tính chất lượng
+- level1: Thiết kế để tự động hóa
+  level2:
+  - Chọn điểm vào và điểm quan sát ổn định cho test
+  - Arrange, Act, Assert và phân tách mục đích từng phần
+  - Ánh xạ Given, When, Then sang cấu trúc test thực thi
+  - Tham số hóa test mà vẫn giữ tên và kết quả dễ hiểu
+  - Thiết kế fixture tối thiểu, độc lập và có cleanup rõ ràng
+  - Kiểm soát thời gian, tính ngẫu nhiên và dependency bên ngoài
+  - Assertion cụ thể với thông báo giúp chẩn đoán thất bại
+  - Tránh test phụ thuộc thứ tự hoặc trạng thái của test khác
+  - Chọn phần tự động hóa và phần cần đánh giá bởi con người
+  - Giữ mục đích nghiệp vụ khi chuyển test case sang mã
+- level1: Bao phủ và truy vết
+  level2:
+  - Xác định coverage item theo kỹ thuật thiết kế
+  - Liên kết yêu cầu, rủi ro, điều kiện kiểm thử và test case
+  - Ma trận truy vết và cách phát hiện yêu cầu chưa có test
+  - Đối chiếu bao phủ lớp, biên, quy tắc, trạng thái và cấu trúc mã
+  - Phân biệt thiết kế đủ test với test đã được thực thi
+  - Ghi lý do loại trừ trường hợp không khả thi
+  - Nhận diện test không liên kết với nhu cầu hoặc rủi ro rõ ràng
+  - Đánh giá độ sâu assertion bên cạnh độ rộng coverage
+  - Trình bày khoảng trống bao phủ và rủi ro còn lại
+- level1: Rà soát và tối giản
+  level2:
+  - Kiểm tra test có mục tiêu rõ, dữ liệu đủ và oracle đáng tin
+  - Tìm trường hợp trùng, thiếu hoặc mâu thuẫn
+  - Rà soát phân lớp, biên và tổ hợp chưa được đại diện
+  - Đối chiếu test với mô hình và quy tắc nghiệp vụ
+  - Tối giản bộ test mà vẫn giữ mức bao phủ và giá trị bảo vệ
+  - Phân biệt test dư thừa với test tương tự nhưng bắt lỗi khác
+  - Ước lượng chi phí thực thi, điều tra và bảo trì
+  - Rà soát chéo với người hiểu nghiệp vụ và người triển khai
+  - Đánh giá thiết kế bằng lỗi thực tế hoặc mutant phù hợp
+- level1: Thiết kế khi thay đổi
+  level2:
+  - Phân tích tác động khi yêu cầu, API hoặc mô hình dữ liệu đổi
+  - Xác định test cần thêm, sửa, giữ lại hoặc loại bỏ
+  - Giữ lịch sử thay đổi kết quả mong đợi và lý do
+  - Bổ sung test từ lỗi đã phát hiện mà không chỉ sao chép tình huống duy nhất
+  - Cập nhật mô hình, dữ liệu và truy vết cùng test case
+  - Phân biệt thích nghi với yêu cầu mới và làm yếu điều kiện kiểm tra
+  - TDD và vai trò của việc thiết kế hành vi trước khi triển khai
+  - Duy trì đặc tả bằng ví dụ khi nhiều nhóm cùng phát triển
+  - Kiểm tra bộ test sau thay đổi vẫn bảo vệ hành vi cần thiết
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế bộ test cho biểu mẫu bằng phân lớp và giá trị biên
+  - Chuyển chính sách giảm giá hoặc phân quyền thành bảng quyết định
+  - Mô hình hóa vòng đời đơn hàng và sinh test chuyển trạng thái
+  - Tạo tập test cấu hình bằng pairwise có ràng buộc
+  - Thiết kế test cho biểu thức logic và giải thích mức bao phủ
+  - Xây thuộc tính cùng generator cho collection hoặc phép chuyển đổi
+  - Tìm lỗi parser bằng fuzzing rồi tạo test hồi quy tối thiểu
+  - Cải thiện oracle dựa trên mutant sống sót
+  - Thiết kế tình huống timeout, xử lý trùng và lỗi đồng thời
+  - Bàn giao bộ test có mô hình, truy vết, ưu tiên và kết quả mong đợi

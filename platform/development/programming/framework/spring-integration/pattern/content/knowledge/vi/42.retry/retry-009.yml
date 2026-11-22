@@ -1,0 +1,3 @@
+menuLevel1: Retry
+menuLevel2: Retry không idempotent gây side effect lặp
+status: WRITTEN

@@ -1,0 +1,55 @@
+roadmap:
+- id: tong-quan-azure-translator
+  title: Tổng quan Azure Translator
+  purpose: Hiểu cách Azure Translator hỗ trợ dịch văn bản và tài liệu trong hệ thống.
+  objectives:
+  - Phân biệt Text Translation và Document Translation.
+  - Chọn hình thức dịch phù hợp cho đoạn văn và tệp tài liệu.
+- id: azure-resource-endpoint
+  title: Azure Resource & Endpoint
+  purpose: Chuẩn bị tài nguyên dịch thuật và thông tin kết nối an toàn.
+  objectives:
+  - Tạo Translator resource và lấy endpoint/region.
+  - Phân biệt subscription key với quyền truy cập Blob Storage.
+- id: ngon-ngu-phat-hien
+  title: Ngôn ngữ & Phát hiện
+  purpose: Xác định ngôn ngữ đầu vào và khả năng hỗ trợ trước khi dịch.
+  objectives:
+  - Tra cứu danh sách ngôn ngữ hỗ trợ qua API.
+  - Thử detect cho văn bản và chọn cặp ngôn ngữ nguồn/đích.
+- id: text-translation-api
+  title: Text Translation API
+  purpose: Gọi dịch văn bản bằng REST và xử lý phản hồi chuẩn.
+  objectives:
+  - Gửi yêu cầu translate với nội dung và ngôn ngữ đích.
+  - Trích xuất bản dịch, xử lý lỗi xác thực và dữ liệu không hợp lệ.
+- id: dich-tep-dong-bo
+  title: Dịch tệp đồng bộ
+  purpose: Dịch một tài liệu và nhận tệp kết quả ngay trong phản hồi.
+  objectives:
+  - Chuẩn bị tệp thuộc định dạng được hỗ trợ và MIME type.
+  - Thử synchronous document translation, kiểm tra cấu trúc đầu ra.
+- id: dich-batch-qua-blob
+  title: Dịch batch qua Blob
+  purpose: Xây dựng quy trình xử lý nhiều tài liệu hoặc tài liệu lớn bất đồng bộ.
+  objectives:
+  - Cấu hình container nguồn/đích và cấp quyền truy cập Blob.
+  - Tạo batch job, theo dõi trạng thái và tải tệp đã dịch.
+- id: glossary-dinh-dang
+  title: Glossary & Định dạng
+  purpose: Giữ thuật ngữ chuyên ngành và kiểm tra bố cục sau dịch.
+  objectives:
+  - Chuẩn bị glossary bằng định dạng được hỗ trợ.
+  - Đánh giá độ chính xác thuật ngữ và bố cục bảng, hình, đoạn.
+- id: bao-mat-han-muc
+  title: Bảo mật & Hạn mức
+  purpose: Vận hành API đáng tin cậy, có kiểm soát chi phí và dữ liệu nhạy cảm.
+  objectives:
+  - Bảo vệ key, SAS hoặc dùng managed identity khi phù hợp.
+  - Thiết kế timeout, retry giới hạn và xử lý lỗi quota.
+- id: tich-hop-qa
+  title: Tích hợp & QA
+  purpose: Đưa dịch thuật vào luồng tài liệu và kiểm chứng kết quả thực tế.
+  objectives:
+  - Tạo pipeline tải tài liệu, gọi dịch và trả kết quả.
+  - Đo độ trễ, tỷ lệ lỗi, chất lượng bản dịch trên bộ mẫu.

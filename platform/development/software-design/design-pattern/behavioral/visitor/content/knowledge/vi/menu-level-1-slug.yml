@@ -1,0 +1,73 @@
+menu:
+  - title: "Tổng quan"
+    slug: intent-and-use-cases
+    index: 0
+  - title: "Bài toán mở rộng"
+    slug: extensibility-problem
+    index: 1
+  - title: "Cấu trúc Visitor"
+    slug: roles-and-collaboration
+    index: 2
+  - title: "Double dispatch"
+    slug: double-dispatch
+    index: 3
+  - title: "Hợp đồng accept"
+    slug: accept-contract
+    index: 4
+  - title: "Cài đặt Java"
+    slug: java-implementation
+    index: 5
+  - title: "Kết quả và ngữ cảnh"
+    slug: results-and-context
+    index: 6
+  - title: "Duyệt cấu trúc"
+    slug: structure-traversal
+    index: 7
+  - title: "Cây đối tượng"
+    slug: object-trees
+    index: 8
+  - title: "Thiết kế AST"
+    slug: ast-design
+    index: 9
+  - title: "Phân tích AST"
+    slug: ast-analysis
+    index: 10
+  - title: "Biến đổi AST"
+    slug: ast-transformation
+    index: 11
+  - title: "Mở rộng thao tác"
+    slug: adding-operations
+    index: 12
+  - title: "Thay đổi phần tử"
+    slug: evolving-element-hierarchies
+    index: 13
+  - title: "Biến thể Visitor"
+    slug: visitor-variants
+    index: 14
+  - title: "So sánh giải pháp"
+    slug: alternatives-and-related-patterns
+    index: 15
+  - title: "Thiết kế API"
+    slug: api-design
+    index: 16
+  - title: "Xử lý lỗi"
+    slug: error-handling
+    index: 17
+  - title: "Kiểm thử"
+    slug: testing-strategies
+    index: 18
+  - title: "Hiệu năng"
+    slug: performance-and-benchmarking
+    index: 19
+  - title: "Đồng thời"
+    slug: concurrency-and-reentrancy
+    index: 20
+  - title: "Tái cấu trúc"
+    slug: refactoring-to-visitor
+    index: 21
+  - title: "Bài tập thực hành"
+    slug: practical-exercises
+    index: 22
+  - title: "Đánh giá thiết kế"
+    slug: design-evaluation
+    index: 23

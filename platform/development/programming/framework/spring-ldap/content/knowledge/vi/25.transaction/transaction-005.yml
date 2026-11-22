@@ -1,0 +1,3 @@
+menuLevel1: Transaction
+menuLevel2: Compensating transaction khi server không hỗ trợ rollback đầy đủ
+status: ''

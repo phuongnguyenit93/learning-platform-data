@@ -1,0 +1,7 @@
+# Spring Cloud Stream
+
+**Spring Cloud Stream** là framework trên nền Spring Boot giúp xây dựng ứng dụng và microservice xử lý sự kiện qua các hệ thống messaging như Apache Kafka hoặc RabbitMQ. Framework cung cấp lớp trừu tượng **binder** để kết nối logic ứng dụng với broker, đồng thời hỗ trợ *publish-subscribe*, *consumer groups* và *partitioning*. Trọng tâm của module là hiểu các hợp đồng message, cách luồng dữ liệu được ràng buộc vào ứng dụng và những giới hạn về thứ tự, giao nhận và xử lý lại thông điệp.
+
+Lộ trình gồm tám mốc: kiến trúc event-driven và binder; mô hình lập trình với `Supplier`, `Function`, `Consumer`; kết nối broker và bindings; payload, headers và `StreamBridge`; consumer groups và partitioning; retry, dead-letter queue (DLQ) cùng idempotency; kiểm thử bằng Test Binder; cuối cùng là observability và vận hành. Người học sẽ phân biệt các khả năng chung của Spring Cloud Stream với cấu hình riêng của từng binder, tránh coi mọi broker hoặc mọi kiểu function đều có cùng cơ chế xử lý lỗi.
+
+Module phù hợp với lập trình viên Java/Spring Boot đã biết dependency injection, REST API, JSON và kiến thức cơ bản về bất đồng bộ. Sau khi hoàn thành, bạn có thể tạo một ứng dụng nhận và phát sự kiện, cấu hình Kafka/RabbitMQ, kiểm thử các nhánh thành công và lỗi, lựa chọn consumer group/partition key phù hợp và bổ sung giám sát để đưa luồng xử lý vào môi trường thực tế.

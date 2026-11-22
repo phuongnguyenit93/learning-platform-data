@@ -1,0 +1,332 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring AI là gì và giải quyết vấn đề nào trong ứng dụng Java
+  - Vai trò của Spring AI giữa ứng dụng, mô hình và nhà cung cấp
+  - Phân biệt mô hình, nhà cung cấp, điểm truy cập API và ứng dụng AI
+  - Phạm vi Spring AI Core và các hướng mở rộng chuyên sâu
+  - 'Các tác vụ nền tảng: hỏi đáp, tóm tắt, phân loại, trích xuất và sinh nội dung'
+  - Luồng xử lý từ yêu cầu người dùng đến kết quả mô hình
+  - Giới hạn của AI tạo sinh và trách nhiệm kiểm chứng của ứng dụng
+  - Kiến thức tiên quyết và trình tự học Spring AI Core
+- level1: Nền tảng LLM
+  level2:
+  - Mô hình ngôn ngữ lớn và cơ chế dự đoán token ở mức khái niệm
+  - Token, cách tách token và ảnh hưởng của ngôn ngữ đầu vào
+  - Cửa sổ ngữ cảnh và ngân sách cho đầu vào, đầu ra
+  - Phân biệt huấn luyện mô hình, suy luận và cung cấp ngữ cảnh
+  - Đặc tính xác suất và giới hạn tái lập kết quả
+  - Kiến thức trong mô hình, thời điểm cập nhật và thông tin bên ngoài
+  - Hiện tượng bịa thông tin và cách nhận biết câu trả lời thiếu căn cứ
+  - Phân biệt khả năng của mô hình với tính năng do framework cung cấp
+  - Đánh đổi giữa chất lượng, độ trễ, chi phí và quyền riêng tư
+- level1: Kiến trúc
+  level2:
+  - Các lớp trừu tượng Model, ModelRequest, ModelResponse và ModelOptions
+  - Quan hệ giữa ChatModel, StreamingChatModel và ChatClient
+  - Vai trò của Prompt, Message, Generation và ChatResponse
+  - Lớp tích hợp nhà cung cấp và giới hạn tính tương thích
+  - Starter, tự động cấu hình và cơ chế quản lý bean
+  - Tách cấu hình kỹ thuật khỏi nghiệp vụ sử dụng AI
+  - Ranh giới giữa mã ứng dụng, mô hình từ xa và mô hình cục bộ
+  - Các điểm mở rộng và vòng đời một lời gọi mô hình
+- level1: Thiết lập
+  level2:
+  - Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
+  - Quản lý phiên bản Spring AI bằng BOM
+  - Thêm starter theo nhà cung cấp bằng Maven hoặc Gradle
+  - Cấu trúc dự án tối thiểu cho ứng dụng Spring AI
+  - Cấp thông tin xác thực và cấu hình bằng biến môi trường
+  - Khởi tạo ChatClient từ ChatClient.Builder do Spring cung cấp
+  - Thực hiện lời gọi đầu tiên và xác nhận kết nối
+  - Chạy thử với mô hình cục bộ
+  - Kiểm tra dependency và tự động cấu hình khi khởi động thất bại
+- level1: Cấu hình
+  level2:
+  - Nhóm cấu hình kết nối, mô hình, suy luận và khả năng được bật
+  - Nạp cấu hình từ application.yml, biến môi trường và tham số khởi chạy
+  - Tách cấu hình theo môi trường bằng Spring Profiles
+  - Quản lý API key, địa chỉ dịch vụ và tên mô hình
+  - Phân biệt tên mô hình, bí danh và tên triển khai của nhà cung cấp
+  - Bật, tắt hoặc thay thế tự động cấu hình khi cần
+  - Khai báo ChatModel và ChatClient thủ công
+  - Giá trị mặc định và cấu hình riêng cho từng yêu cầu
+  - Xác thực cấu hình bắt buộc và phát hiện sai cấu hình sớm
+- level1: Nhà cung cấp
+  level2:
+  - Lựa chọn dịch vụ đám mây hoặc mô hình chạy cục bộ
+  - Kết nối dịch vụ OpenAI qua tích hợp Spring AI
+  - Kết nối mô hình cục bộ qua Ollama
+  - Đặc điểm cấu hình khi tích hợp Anthropic, Gemini hoặc Azure OpenAI
+  - Kiểm tra khả năng chat, streaming, đa phương thức và đầu ra có cấu trúc
+  - Sử dụng điểm truy cập tương thích OpenAI và kiểm tra mức tương thích
+  - Phân biệt thư viện tích hợp, dịch vụ cung cấp và mô hình thực tế
+  - Khác biệt về xác thực, vùng triển khai, hạn mức và quyền truy cập
+  - Đổi nhà cung cấp và xác định phần cấu hình phải kiểm thử lại
+- level1: Message
+  level2:
+  - Message và vai trò của từng thông điệp trong hội thoại
+  - SystemMessage và chỉ dẫn do ứng dụng quản lý
+  - UserMessage và dữ liệu đầu vào của người dùng
+  - AssistantMessage và kết quả do mô hình tạo ra
+  - ToolResponseMessage và vị trí trong luồng gọi công cụ
+  - Thứ tự thông điệp và ảnh hưởng đến ngữ cảnh
+  - Nội dung văn bản, metadata và dữ liệu đa phương thức
+  - Tạo lịch sử hội thoại tường minh bằng danh sách Message
+  - Phân biệt gửi lại lịch sử với cơ chế bộ nhớ hội thoại tự động
+- level1: Prompt
+  level2:
+  - Prompt là tập hợp thông điệp và tùy chọn cho một lần suy luận
+  - Tạo Prompt từ chuỗi văn bản
+  - Tạo Prompt từ một hoặc nhiều Message
+  - Kết hợp chỉ dẫn hệ thống, yêu cầu người dùng và ngữ cảnh bổ sung
+  - Gắn ChatOptions vào Prompt
+  - Phân biệt chỉ dẫn, dữ liệu tham chiếu và yêu cầu định dạng
+  - Quản lý thứ tự, độ dài và phần ngữ cảnh được gửi
+  - Kiểm tra Prompt thực tế trước khi gọi mô hình
+- level1: PromptTemplate
+  level2:
+  - PromptTemplate và nhu cầu tái sử dụng chỉ dẫn
+  - Khai báo biến và truyền tham số cho mẫu
+  - Tạo nội dung, Message hoặc Prompt từ mẫu
+  - Mẫu thông điệp hệ thống và thông điệp người dùng
+  - Đọc mẫu từ Resource và tệp trong classpath
+  - Sử dụng mẫu qua các hàm cấu hình system và user của ChatClient
+  - TemplateRenderer và lựa chọn dấu phân cách biến
+  - Xử lý dấu ngoặc trong JSON, mã nguồn và văn bản mẫu
+  - Phát hiện biến thiếu, dữ liệu rỗng và đầu vào không hợp lệ
+  - Quản lý phiên bản và kiểm thử mẫu chỉ dẫn
+- level1: Thiết kế chỉ dẫn
+  level2:
+  - Xác định tác vụ, đối tượng sử dụng và tiêu chí đầu ra
+  - Cung cấp ngữ cảnh liên quan và loại bỏ dữ liệu thừa
+  - Diễn đạt chỉ dẫn rõ ràng, có thứ tự ưu tiên
+  - Yêu cầu độ dài, ngôn ngữ và định dạng câu trả lời
+  - Đưa ví dụ mẫu và phân biệt zero-shot với few-shot
+  - Phân tách dữ liệu không tin cậy khỏi chỉ dẫn của ứng dụng
+  - Yêu cầu nêu giới hạn và xử lý trường hợp thiếu thông tin
+  - Chia tác vụ phức tạp thành các bước có thể kiểm chứng
+  - Thử nghiệm thay đổi chỉ dẫn và so sánh kết quả
+- level1: ChatModel
+  level2:
+  - Hợp đồng ChatModel và khi nào nên gọi trực tiếp
+  - Gọi mô hình bằng chuỗi văn bản
+  - Gọi mô hình bằng Prompt và nhận ChatResponse
+  - Đọc Generation và AssistantMessage từ kết quả
+  - Thực hiện hội thoại nhiều lượt bằng thông điệp tường minh
+  - Truyền tùy chọn riêng cho một lần gọi
+  - Sử dụng StreamingChatModel cho kết quả theo luồng
+  - Tạo lớp dịch vụ bao bọc ChatModel
+  - Giới hạn tính độc lập nhà cung cấp của ChatModel
+- level1: ChatClient
+  level2:
+  - Fluent API và các giai đoạn xây dựng yêu cầu
+  - Tạo ChatClient bằng create, builder hoặc bean được cấu hình
+  - Khởi tạo yêu cầu bằng prompt và bổ sung system, user, messages
+  - Kết hợp văn bản, Resource và tham số trong yêu cầu
+  - Thiết lập defaultSystem, defaultUser và defaultOptions
+  - Ghi đè giá trị mặc định tại từng lời gọi
+  - Sử dụng call để nhận kết quả đồng bộ
+  - Lấy nội dung, ChatResponse hoặc đối tượng Java từ kết quả
+  - Sử dụng stream để nhận kết quả theo luồng
+  - Tái sử dụng cấu hình client và tránh chia sẻ trạng thái yêu cầu
+- level1: Tùy chọn mô hình
+  level2:
+  - ChatOptions chung và tùy chọn riêng của nhà cung cấp
+  - Chọn mô hình cho từng yêu cầu
+  - Temperature và mức biến thiên trong quá trình sinh
+  - Top-p và lấy mẫu theo phân bố xác suất
+  - Giới hạn token đầu ra và tham số tương ứng của từng mô hình
+  - Chuỗi dừng và điều kiện kết thúc câu trả lời
+  - Các tùy chọn mở rộng như seed và điều chỉnh lặp khi được hỗ trợ
+  - Cấu hình mặc định, giá trị không khai báo và thứ tự áp dụng
+  - Tham số không được hỗ trợ hoặc không thể kết hợp
+  - Thiết kế thí nghiệm để đánh giá tác động của từng tham số
+- level1: Kết quả
+  level2:
+  - Cấu trúc ChatResponse, danh sách Generation và kết quả chính
+  - Đọc văn bản, metadata và nội dung của AssistantMessage
+  - Phân biệt một kết quả với nhiều phương án sinh
+  - Lý do kết thúc và phát hiện đầu ra bị cắt ngắn
+  - Số token đầu vào, đầu ra và tổng mức sử dụng
+  - Thông tin mô hình, mã yêu cầu và metadata của nhà cung cấp
+  - Xử lý nội dung rỗng, từ chối trả lời và kết quả phi văn bản
+  - Ánh xạ kết quả mô hình sang đối tượng phản hồi của ứng dụng
+  - Bảo toàn metadata cần thiết cho chẩn đoán và tính chi phí
+- level1: Đầu ra có cấu trúc
+  level2:
+  - Khi nào cần dữ liệu có cấu trúc thay cho văn bản tự do
+  - Chuyển kết quả sang class hoặc record bằng entity
+  - Biểu diễn danh sách và kiểu lồng nhau bằng kiểu Java phù hợp
+  - Sử dụng ParameterizedTypeReference cho kiểu tổng quát
+  - Phân biệt JSON mode, JSON Schema và chỉ dẫn định dạng
+  - Đầu ra có cấu trúc do nhà cung cấp hỗ trợ trực tiếp
+  - StructuredOutputConverter và vai trò trước, sau lời gọi
+  - BeanOutputConverter, ListOutputConverter và MapOutputConverter
+  - Bổ sung hướng dẫn định dạng khi sử dụng ChatModel trực tiếp
+  - Xử lý kiểu dữ liệu sai, trường thiếu, giá trị null và enum không hợp lệ
+  - Kiểm tra schema và ràng buộc nghiệp vụ sau chuyển đổi
+  - Phục hồi có giới hạn khi đầu ra không đúng cấu trúc
+- level1: Streaming
+  level2:
+  - Khác biệt giữa phản hồi đầy đủ và phản hồi theo luồng
+  - Nhận Flux<String> qua ChatClient
+  - Nhận luồng ChatResponse và metadata
+  - Hiểu từng phần dữ liệu trả về và ghép nội dung hoàn chỉnh
+  - Phân biệt thời gian đến phần đầu tiên với tổng thời gian xử lý
+  - Chuyển luồng kết quả thành Server-Sent Events
+  - Lan truyền lỗi xảy ra trước và sau khi bắt đầu gửi phản hồi
+  - Hủy yêu cầu, ngắt kết nối và giải phóng tài nguyên
+  - Giới hạn thời gian và xử lý luồng bị gián đoạn
+  - Giới hạn bộ đệm và tránh block trên luồng xử lý phản ứng
+  - Giới hạn của chuyển đổi đối tượng khi JSON chưa được nhận đủ
+- level1: Đa phương thức
+  level2:
+  - Đầu vào đa phương thức và khả năng cụ thể của từng mô hình
+  - Media, MIME type và Resource trong thông điệp
+  - Gửi ảnh từ URL, classpath hoặc dữ liệu tải lên
+  - Kết hợp câu hỏi văn bản với một hoặc nhiều ảnh
+  - Kiểm tra dung lượng, định dạng và quyền truy cập dữ liệu
+  - Khả năng tiếp nhận âm thanh, video hoặc tài liệu theo nhà cung cấp
+  - Phân biệt hiểu nội dung ảnh với sinh ảnh
+  - Đọc kết quả chứa văn bản hoặc dữ liệu phương tiện
+  - Giới hạn ngữ cảnh, độ tin cậy và quyền riêng tư của dữ liệu đa phương thức
+- level1: Sinh ảnh
+  level2:
+  - ImageModel và phạm vi tác vụ sinh ảnh
+  - ImagePrompt và cách diễn đạt yêu cầu hình ảnh
+  - Tùy chọn số lượng, kích thước, chất lượng và định dạng khi được hỗ trợ
+  - Gọi mô hình và đọc ImageResponse
+  - Nhận ảnh bằng URL hoặc dữ liệu mã hóa theo nhà cung cấp
+  - Lưu trữ kết quả, thời hạn URL và quản lý dung lượng
+  - Xử lý lỗi, nội dung bị từ chối và giới hạn tính di động
+- level1: Âm thanh
+  level2:
+  - Phân biệt nhận dạng lời nói, tổng hợp giọng nói và hội thoại âm thanh
+  - Chuẩn bị Resource âm thanh và kiểm tra định dạng đầu vào
+  - Chuyển lời nói thành văn bản bằng Transcription API
+  - Tùy chọn ngôn ngữ, định dạng kết quả và metadata khi được hỗ trợ
+  - Chuyển văn bản thành giọng nói bằng Speech API
+  - Chọn giọng đọc, định dạng và tốc độ khi được hỗ trợ
+  - Nhận và lưu dữ liệu âm thanh hoặc xử lý theo luồng
+  - Kết hợp nhận dạng, xử lý bằng LLM và tổng hợp giọng nói
+  - Giới hạn dung lượng, độ trễ và quyền riêng tư của dữ liệu âm thanh
+- level1: Kiểm duyệt
+  level2:
+  - Vai trò và giới hạn của mô hình kiểm duyệt nội dung
+  - Gửi nội dung kiểm tra qua tích hợp Moderation
+  - Đọc nhãn, cờ cảnh báo và điểm phân loại
+  - Xây dựng chính sách xử lý kết quả kiểm duyệt trong ứng dụng
+  - Kiểm tra trước khi gọi mô hình và trước khi công bố kết quả
+  - Xử lý nhận diện sai, dịch vụ không khả dụng và yêu cầu xem xét lại
+- level1: Điểm mở rộng
+  level2:
+  - Advisor và vị trí can thiệp vào luồng ChatClient
+  - Phân biệt Advisor với lớp dịch vụ nghiệp vụ
+  - Bộ nhớ hội thoại và giới hạn của ChatClient không lưu trạng thái
+  - EmbeddingModel, Document và VectorStore trong hệ sinh thái Spring AI
+  - Bổ sung dữ liệu truy xuất bằng RAG ở mức kiến trúc
+  - Gọi công cụ và trách nhiệm thực thi của ứng dụng
+  - MCP và quan hệ với công cụ, mô hình, ứng dụng
+  - Phân biệt phản hồi có cấu trúc với yêu cầu gọi công cụ
+  - Ranh giới chuyển sang các chuyên đề Memory, Advisors, RAG, Tool Calling và MCP
+- level1: Nhiều mô hình
+  level2:
+  - Khi nào cần nhiều ChatModel trong cùng ứng dụng
+  - Đặt tên bean và phân giải bằng Qualifier
+  - Xây dựng ChatClient riêng cho từng mô hình
+  - Chọn mô hình theo tác vụ, khả năng và ngân sách
+  - Định tuyến bằng quy tắc ứng dụng có thể kiểm soát
+  - Dự phòng giữa các mô hình và điều kiện cho phép chuyển đổi
+  - Chuẩn hóa đầu ra và kiểm thử khác biệt giữa nhà cung cấp
+  - Giới hạn chia sẻ ngữ cảnh, cấu hình và dữ liệu giữa các mô hình
+- level1: Tích hợp ứng dụng
+  level2:
+  - Thiết kế lớp dịch vụ AI và hợp đồng đầu vào, đầu ra
+  - Xây dựng tác vụ CLI, lịch chạy hoặc xử lý nền
+  - Tích hợp HTTP đồng bộ khi phù hợp với nhu cầu ứng dụng
+  - Tích hợp HTTP theo luồng và hợp đồng sự kiện
+  - Kiểm tra đầu vào và ánh xạ lỗi sang phản hồi nghiệp vụ
+  - Xử lý tác vụ dài bằng công việc nền và trạng thái rõ ràng
+  - Kết hợp nhiều lời gọi theo chuỗi hoặc song song có giới hạn
+  - Quản lý ranh giới giao dịch cơ sở dữ liệu khi gọi dịch vụ AI
+  - Kiểm chứng kết quả trước khi lưu dữ liệu hoặc thực hiện hành động
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi cấu hình, xác thực, kết nối, mô hình và chuyển đổi
+  - Phân biệt lỗi có thể thử lại với lỗi cần sửa yêu cầu
+  - Xử lý giới hạn tốc độ, hết hạn mức và dịch vụ tạm gián đoạn
+  - Cấu hình thời gian chờ kết nối, đọc dữ liệu và toàn tác vụ
+  - Retry, giãn cách tăng dần và giới hạn số lần thử
+  - Tránh thử lại chồng chéo giữa thư viện và ứng dụng
+  - Nguy cơ tính phí lặp và tác dụng phụ khi thực hiện lại tác vụ
+  - Circuit breaker, giới hạn đồng thời và cơ chế dự phòng ở lớp ứng dụng
+  - Xử lý yêu cầu vượt cửa sổ ngữ cảnh hoặc đầu ra bị cắt
+  - Thiết kế thông báo lỗi hữu ích và che thông tin nhạy cảm
+- level1: Bảo mật
+  level2:
+  - Quản lý bí mật và nguyên tắc cấp quyền tối thiểu
+  - Xác thực người dùng và phân quyền tác vụ AI
+  - Phân biệt chỉ dẫn đáng tin cậy với dữ liệu do người dùng cung cấp
+  - Prompt injection và giới hạn của chỉ dẫn phòng vệ
+  - Giảm dữ liệu cá nhân, thông tin mật và dữ liệu không cần thiết
+  - Kiểm tra đầu ra trước khi hiển thị HTML, chạy lệnh hoặc tạo truy vấn
+  - Kiểm soát URL và tệp phương tiện để giảm nguy cơ SSRF
+  - Cách ly dữ liệu và ngữ cảnh giữa người dùng
+  - Chính sách lưu trữ dữ liệu và khu vực xử lý của nhà cung cấp
+  - Giới hạn yêu cầu, token và chi phí để chống lạm dụng
+- level1: Hiệu năng
+  level2:
+  - Phân rã độ trễ theo chuẩn bị dữ liệu, kết nối và suy luận
+  - Đo thời gian phản hồi đầu tiên và thời gian hoàn tất
+  - Giảm độ dài chỉ dẫn, ngữ cảnh và đầu ra có chủ đích
+  - Chọn mô hình theo chất lượng và yêu cầu thời gian đáp ứng
+  - Giới hạn đồng thời và điều tiết lưu lượng
+  - Tái sử dụng tài nguyên kết nối và tránh tạo client trong từng yêu cầu
+  - Điều kiện áp dụng bộ nhớ đệm và rủi ro lộ dữ liệu
+  - Tính chi phí từ mức sử dụng thực tế và biểu giá của nhà cung cấp
+  - Đặt ngân sách, hạn mức và ngưỡng cảnh báo cho ứng dụng
+  - Đánh giá hiệu năng với tải thực tế và dữ liệu đại diện
+- level1: Kiểm thử
+  level2:
+  - Tách kiểm thử mã tích hợp khỏi đánh giá chất lượng mô hình
+  - Kiểm thử đơn vị lớp dịch vụ bằng ChatModel giả lập
+  - Kiểm tra vai trò, thứ tự thông điệp và tham số của Prompt
+  - Kiểm thử PromptTemplate với dữ liệu thiếu và ký tự đặc biệt
+  - Kiểm thử ánh xạ đối tượng và dữ liệu có cấu trúc không hợp lệ
+  - Kiểm thử streaming với phần dữ liệu rỗng, lỗi và hủy luồng
+  - Kiểm thử giới hạn thời gian, thử lại và dự phòng
+  - Kiểm thử tích hợp với nhà cung cấp thật hoặc mô hình cục bộ
+  - Thiết kế bộ tình huống và tiêu chí chấp nhận cho kết quả xác suất
+  - Quản lý bí mật, chi phí và điều kiện chạy kiểm thử trong CI
+- level1: Chẩn đoán
+  level2:
+  - Kiểm tra dependency, bean và báo cáo tự động cấu hình
+  - Chẩn đoán sai API key, địa chỉ dịch vụ hoặc tên mô hình
+  - Chẩn đoán Prompt sai, biến mẫu chưa được thay và mất ngữ cảnh
+  - Chẩn đoán kết quả rỗng, đầu ra bị cắt và chuyển đổi thất bại
+  - Chẩn đoán streaming bị dồn dữ liệu hoặc ngắt giữa chừng
+  - Theo dõi mã yêu cầu, thời gian xử lý và mức sử dụng token
+  - Ghi log có chọn lọc và che nội dung nhạy cảm
+  - Phân biệt log kỹ thuật cơ bản với chuyên đề Observability và Evaluation
+- level1: Triển khai
+  level2:
+  - Chuẩn bị cấu hình và bí mật cho từng môi trường
+  - Kiểm tra khả năng truy cập dịch vụ và yêu cầu mạng
+  - Thiết lập hạn mức, thời gian chờ và giới hạn đồng thời
+  - Tách trạng thái sẵn sàng của ứng dụng khỏi sức khỏe nhà cung cấp
+  - Quản lý phiên bản mô hình và phiên bản mẫu chỉ dẫn
+  - Nâng cấp Spring AI và kiểm tra tương thích API, cấu hình
+  - Triển khai thay đổi mô hình có kiểm soát và phương án quay lui
+  - Kiểm tra chất lượng, chi phí và lỗi sau triển khai
+- level1: Thực hành
+  level2:
+  - Ứng dụng hỏi đáp không lưu hội thoại bằng ChatClient
+  - Tóm tắt văn bản với chỉ dẫn về độ dài và ngôn ngữ
+  - Phân loại nội dung và kiểm tra tập nhãn hợp lệ
+  - Trích xuất dữ liệu thành Java record có kiểm tra nghiệp vụ
+  - Hội thoại nhiều lượt với danh sách Message tường minh
+  - Trả kết quả theo Server-Sent Events và xử lý hủy yêu cầu
+  - Hỏi đáp về ảnh với kiểm tra tệp đầu vào
+  - Chuyển đổi giữa mô hình cục bộ và nhà cung cấp từ xa
+  - Ứng dụng tổng hợp với giới hạn token, phục hồi lỗi và kiểm thử

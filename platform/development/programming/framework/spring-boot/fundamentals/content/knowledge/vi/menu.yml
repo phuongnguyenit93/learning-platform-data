@@ -1,0 +1,415 @@
+menu:
+- level1: Bức tranh Spring Boot
+  level2:
+  - Spring Boot là gì và giải quyết trở ngại nào khi xây dựng ứng dụng Java
+  - Spring Framework cung cấp nền tảng gì và Spring Boot bổ sung điều gì
+  - Quy ước mặc định, tự cấu hình và quyền chủ động của người phát triển
+  - Quan hệ giữa Spring Boot, Spring MVC, WebFlux, Spring Data và Spring Security
+  - Phân biệt Spring Boot với Spring Cloud và kiến trúc microservices
+  - Bean, container, dependency injection, starter và auto-configuration trong một bức tranh
+  - Mã nguồn, cấu hình, dependency và môi trường cùng quyết định hành vi ứng dụng
+  - Ứng dụng dòng lệnh, ứng dụng web và tác vụ nền đều có thể dùng Spring Boot
+  - Ranh giới kiến thức nền tảng với tích hợp dữ liệu, web và vận hành chuyên sâu
+  - Trình tự học từ ứng dụng tối thiểu đến giải thích được cơ chế tự cấu hình
+- level1: Kiến thức chuẩn bị
+  level2:
+  - JDK, JVM, bytecode và tiến trình Java khi chạy ứng dụng
+  - Class, interface và quan hệ phụ thuộc giữa các đối tượng
+  - Constructor, tính bất biến và thiết kế đối tượng dễ kiểm thử
+  - Package, classpath, JAR và cách Java tìm lớp
+  - Annotation, meta-annotation và vai trò của reflection
+  - Exception, stack trace và cách truy nguyên nguyên nhân lỗi
+  - 'Gradle hoặc Maven: phân biệt dependency, plugin và task'
+  - Đọc tài liệu đúng dòng Spring Boot và phiên bản Spring Framework
+  - Tương thích JDK, framework và thư viện bên thứ ba
+- level1: Dự án đầu tiên
+  level2:
+  - Chọn kiểu ứng dụng và tập dependency tối thiểu
+  - Khởi tạo dự án bằng Spring Initializr
+  - Group, artifact, package, phiên bản và lựa chọn build tool
+  - Đọc cấu trúc dự án sinh ra từ Initializr
+  - Lớp main và lời gọi SpringApplication.run
+  - Chạy bằng IDE, Gradle wrapper hoặc Maven wrapper
+  - Đọc log khởi động và xác nhận ứng dụng đã chạy đúng loại
+  - Đăng ký một service và gọi từ ApplicationRunner
+  - Phân biệt lỗi biên dịch, lỗi dependency và lỗi khởi động
+  - Thay đổi mã, chạy lại và xác minh kết quả quan sát được
+- level1: Tổ chức mã nguồn
+  level2:
+  - src/main/java, src/main/resources và các thư mục kiểm thử
+  - Vị trí lớp main và ảnh hưởng tới phạm vi tìm thành phần
+  - Package gốc, package con và rủi ro dùng default package
+  - Tổ chức theo chức năng hoặc theo miền nghiệp vụ
+  - Vai trò của service, adapter, configuration và thành phần truy cập dữ liệu
+  - Phân biệt mã nghiệp vụ với mã cấu hình hạ tầng
+  - Ranh giới package không tự tạo ra ranh giới Spring context
+  - Ứng dụng nhiều module và cách đưa thành phần dùng chung vào context
+  - Tổ chức resource và cấu hình để chạy nhất quán từ IDE và JAR
+- level1: Dependency và starter
+  level2:
+  - Starter gom những dependency nào và vì sao cần starter
+  - Dependency trực tiếp, dependency bắc cầu và classpath cuối cùng
+  - spring-boot-dependencies BOM và tập phiên bản được quản lý
+  - Phân biệt BOM, Maven parent và Spring Boot build plugin
+  - Dependency management trong Gradle hoặc Maven
+  - Starter chức năng, thư viện thực thi và embedded server
+  - Thêm dependency có thể kích hoạt auto-configuration như thế nào
+  - Phạm vi compile, runtime, test và development-only
+  - Đọc dependency tree để tìm xung đột hoặc thư viện bị kéo vào ngoài dự kiến
+  - Ghi đè phiên bản hoặc loại dependency và kiểm chứng tương thích
+  - Khác biệt cách chia starter, module giữa các dòng Spring Boot
+- level1: '@SpringBootApplication'
+  level2:
+  - Ba vai trò của @SpringBootConfiguration, @EnableAutoConfiguration và @ComponentScan
+  - '@SpringBootConfiguration trong mối liên hệ với @Configuration'
+  - '@ComponentScan tìm ứng viên bean trong phạm vi nào'
+  - '@EnableAutoConfiguration lựa chọn cấu hình theo điều kiện'
+  - Phân biệt lớp main Java với lớp cấu hình nguồn của Spring
+  - scanBasePackages và scanBasePackageClasses
+  - Phạm vi component scan khác với entity scan hoặc repository scan
+  - exclude, excludeName và loại một auto-configuration cụ thể
+  - Tách các annotation khi cần kiểm soát rõ từng cơ chế
+- level1: IoC container
+  level2:
+  - Đảo ngược điều khiển và bài toán quản lý đồ thị đối tượng
+  - Dependency injection là một cách thực hiện IoC
+  - Bean là đối tượng được container quản lý như thế nào
+  - BeanFactory và ApplicationContext
+  - BeanDefinition, đối tượng bean thực tế và proxy của bean
+  - Đăng ký định nghĩa, tạo đối tượng, tiêm phụ thuộc và khởi tạo
+  - Phân biệt đối tượng được tạo bằng new với bean trong context
+  - Tên bean, kiểu bean và alias
+  - Tra cứu bean bằng tên hoặc kiểu để quan sát container
+  - Ranh giới trách nhiệm của container và mã nghiệp vụ
+- level1: Đăng ký bean
+  level2:
+  - '@Component và cơ chế phát hiện thành phần'
+  - '@Service, @Repository, @Controller và ý nghĩa stereotype'
+  - '@Bean cho thư viện bên ngoài hoặc đối tượng cần tạo tường minh'
+  - Quy tắc đặt tên bean mặc định và đặt tên chủ động
+  - '@ComponentScan với include filter, exclude filter và phạm vi quét'
+  - '@Import để đưa lớp cấu hình hoặc thành phần vào context'
+  - Component scan, import và auto-configuration là các con đường đăng ký khác nhau
+  - Đụng tên bean, nhiều bean cùng type và hai loại xung đột cần phân biệt
+  - Bean definition overriding và giới hạn của việc dùng nó để xử lý xung đột
+  - Đăng ký bean theo interface và ảnh hưởng của kiểu trả về phương thức @Bean
+  - Kiểm tra bean đã được đăng ký bằng công cụ hoặc truy vấn context
+- level1: Tiêm phụ thuộc
+  level2:
+  - Tiêm qua hàm dựng (constructor injection) cho phụ thuộc bắt buộc
+  - Tiêm qua setter cho phụ thuộc tùy chọn hoặc cần cấu hình lại
+  - Tiêm trực tiếp vào trường dữ liệu và ảnh hưởng tới khả năng kiểm thử
+  - '@Autowired và trường hợp constructor không cần annotation'
+  - Tiêm bean theo interface để tách mã nghiệp vụ khỏi phần hiện thực
+  - Tiêm List, Set hoặc Map của nhiều bean cùng kiểu
+  - Optional, @Nullable và dependency không bắt buộc
+  - ObjectProvider để lấy bean khi cần hoặc chọn nhiều ứng viên
+  - Dependency vòng và nguyên nhân lỗi khi tạo đồ thị bean
+  - Phân biệt vòng phụ thuộc trong thiết kế với lỗi thiếu bean
+  - Giữ dependency tường minh thay vì tra cứu context rải rác trong nghiệp vụ
+- level1: Chọn bean
+  level2:
+  - Chọn ứng viên theo type và xử lý khi có nhiều bean phù hợp
+  - '@Qualifier và định danh nhóm dependency'
+  - '@Primary và ứng viên ưu tiên'
+  - '@Resource, tên bean và khác biệt với lựa chọn theo type'
+  - Custom qualifier annotation để mô tả ý nghĩa nghiệp vụ
+  - Tên tham số, metadata biên dịch và khác biệt theo phiên bản
+  - Ordered, @Order và thứ tự các bean trong collection
+  - Chọn cách hiện thực bằng profile hoặc thuộc tính cấu hình
+  - '@Fallback trong các phiên bản Spring Framework hỗ trợ'
+  - Kiểm thử trường hợp không có ứng viên hoặc có nhiều ứng viên
+- level1: Phạm vi bean
+  level2:
+  - Singleton theo container và khác biệt với một đối tượng dùng chung toàn JVM
+  - Prototype và thời điểm một instance mới được tạo
+  - Bean singleton có trạng thái và vấn đề an toàn khi nhiều luồng truy cập
+  - Tiêm prototype vào singleton và hệ quả của việc chỉ tiêm một lần
+  - ObjectProvider hoặc scoped proxy để lấy instance đúng phạm vi
+  - Request, session, application scope trong web context
+  - Scope web chỉ hoạt động khi có ngữ cảnh tương ứng
+  - Scoped proxy và sự khác nhau giữa tham chiếu proxy với đối tượng đích
+  - Trách nhiệm dọn tài nguyên của prototype
+  - Chọn scope theo vòng đời dữ liệu và cách sử dụng
+- level1: Vòng đời bean
+  level2:
+  - Từ BeanDefinition đến đối tượng đã sẵn sàng sử dụng
+  - Khởi tạo constructor, tiêm dependency và callback vòng đời
+  - '@PostConstruct và namespace jakarta.annotation theo dòng phiên bản'
+  - InitializingBean và initMethod trên @Bean
+  - '@PreDestroy, DisposableBean và destroyMethod'
+  - Thứ tự callback khi kết hợp nhiều cơ chế khởi tạo, hủy
+  - BeanPostProcessor trước, sau khởi tạo và khả năng trả về proxy
+  - Eager initialization, @Lazy và thời điểm phát hiện lỗi cấu hình
+  - '@DependsOn và thứ tự khởi tạo, hủy giữa các bean'
+  - '@Order không thay thế quan hệ phụ thuộc khi tạo bean'
+  - SmartInitializingSingleton và thời điểm singleton đã được chuẩn bị
+  - Giới hạn của callback bean với tác vụ cần ứng dụng đã khởi động xong
+- level1: Java configuration
+  level2:
+  - '@Configuration và phương thức @Bean'
+  - Full configuration, lite configuration và xử lý lời gọi giữa các @Bean
+  - proxyBeanMethods=true hoặc false và tác động tới instance được sử dụng
+  - Tiêm dependency qua tham số @Bean thay vì gọi phương thức thủ công
+  - '@Import và chia cấu hình theo trách nhiệm'
+  - ImportSelector, DeferredImportSelector và lựa chọn cấu hình có chương trình
+  - ImportBeanDefinitionRegistrar và đăng ký định nghĩa nâng cao
+  - BeanFactoryPostProcessor và thay đổi metadata trước khi tạo bean
+  - BeanDefinitionRegistryPostProcessor và giai đoạn đăng ký bổ sung
+  - FactoryBean khác với BeanFactory
+  - EnvironmentAware, ApplicationContextAware và giới hạn phụ thuộc vào container
+- level1: Cấu hình theo điều kiện
+  level2:
+  - '@Conditional và thời điểm quyết định một cấu hình có được đăng ký'
+  - Condition, ConditionContext và dữ liệu dùng để đánh giá
+  - '@ConditionalOnClass, @ConditionalOnMissingClass và classpath'
+  - '@ConditionalOnBean, @ConditionalOnMissingBean và bean đã được biết tới'
+  - '@ConditionalOnSingleCandidate khi một type có nhiều bean'
+  - '@ConditionalOnProperty với havingValue và matchIfMissing'
+  - '@ConditionalOnWebApplication, @ConditionalOnNotWebApplication và loại ứng dụng'
+  - '@ConditionalOnResource và điều kiện tài nguyên'
+  - '@ConditionalOnExpression và giới hạn khi biểu thức tham chiếu bean sớm'
+  - Điều kiện trên lớp, trên phương thức @Bean và sự kết hợp
+  - Thứ tự xử lý cấu hình và nguyên nhân điều kiện bean cho kết quả khác dự đoán
+  - ConditionEvaluationReport để giải thích điều kiện khớp hoặc không khớp
+- level1: Auto-configuration
+  level2:
+  - Auto-configuration nhận đầu vào từ classpath, properties và bean hiện có
+  - '@EnableAutoConfiguration và cơ chế import cấu hình'
+  - '@AutoConfiguration và cấu hình ứng viên'
+  - AutoConfiguration.imports và cách đăng ký ở các dòng Spring Boot hiện đại
+  - Quan hệ lịch sử giữa spring.factories và đăng ký auto-configuration
+  - Điều kiện lớp ngoài và điều kiện trên từng bean
+  - Cơ chế nhường quyền (back-off) khi ứng dụng đã cung cấp bean phù hợp
+  - Thứ tự auto-configuration và khác biệt với thứ tự tạo bean
+  - '@AutoConfigureBefore, @AutoConfigureAfter hoặc thuộc tính tương ứng'
+  - Loại auto-configuration bằng annotation hoặc spring.autoconfigure.exclude
+  - Theo dõi một ví dụ từ dependency đến bean được tạo
+  - Thay dependency, property hoặc bean và kiểm chứng cấu hình thay đổi
+- level1: Tùy biến Spring Boot
+  level2:
+  - 'Chọn cấp tùy biến: property, customizer, bean hay thay cấu hình'
+  - Cung cấp bean riêng để thay một mặc định có điều kiện
+  - Hàm tùy biến (customizer) và cách giữ các mặc định còn lại
+  - Phân biệt bean cùng type với bean cùng tên
+  - Giới hạn của @Primary khi muốn ngăn một auto-configuration tạo bean
+  - '@ImportAutoConfiguration và phạm vi sử dụng có chủ đích'
+  - Viết một auto-configuration nhỏ có back-off rõ ràng
+  - Tách module auto-configuration khỏi starter gom dependency
+  - Đăng ký cấu hình dùng chung mà không quét toàn bộ package thư viện
+  - Kiểm chứng cấu hình người dùng luôn có đường tùy chỉnh dự kiến
+- level1: SpringApplication
+  level2:
+  - SpringApplication.run và các giai đoạn khởi động tổng quát
+  - Chuẩn bị Environment trước khi tạo ApplicationContext
+  - Đăng ký nguồn cấu hình và nạp bean definition
+  - Refresh context và hoàn tất hạ tầng container
+  - WebApplicationType NONE, SERVLET, REACTIVE
+  - Classpath ảnh hưởng tới việc chọn loại ứng dụng như thế nào
+  - Đặt loại ứng dụng tường minh khi cần
+  - SpringApplication instance, setter và SpringApplicationBuilder
+  - ApplicationContextInitializer và tùy chỉnh trước refresh
+  - ApplicationArguments, option argument và non-option argument
+  - Context hierarchy khi ứng dụng có nhiều context
+  - ApplicationStartup và quan sát thời gian các bước khởi động
+- level1: Sự kiện và runner
+  level2:
+  - SpringApplicationEvent và sự kiện chuẩn của ApplicationContext
+  - ApplicationStartingEvent và ApplicationEnvironmentPreparedEvent
+  - ApplicationContextInitializedEvent và ApplicationPreparedEvent
+  - ContextRefreshedEvent, WebServerInitializedEvent và phạm vi phát sinh
+  - ApplicationStartedEvent khác thời điểm ApplicationReadyEvent
+  - ApplicationFailedEvent và thông tin lỗi khởi động
+  - ApplicationListener, @EventListener và đăng ký listener đủ sớm
+  - Listener trước khi context tồn tại không thể chỉ khai báo như bean thông thường
+  - ApplicationEventPublisher và sự kiện nghiệp vụ trong ứng dụng
+  - ApplicationRunner với ApplicationArguments
+  - CommandLineRunner với mảng tham số dòng lệnh
+  - Ordered, @Order và thứ tự các runner
+  - Phân biệt callback khởi tạo bean, runner và tín hiệu sẵn sàng
+- level1: Trạng thái và dừng
+  level2:
+  - ApplicationAvailability và trạng thái của ứng dụng
+  - Liveness, readiness và sự khác nhau về mục đích
+  - AvailabilityChangeEvent và thời điểm đổi trạng thái
+  - Context khởi động xong không đồng nghĩa tác vụ chuẩn bị đã hoàn tất
+  - Shutdown hook, đóng context và hủy bean
+  - Lifecycle, SmartLifecycle và thứ tự start, stop theo phase
+  - Dọn executor, scheduler, connection và tài nguyên tự tạo
+  - Giới hạn của graceful shutdown theo loại ứng dụng
+  - SpringApplication.exit, ExitCodeGenerator và mã thoát tiến trình
+  - Phân biệt dừng có kiểm soát với tiến trình bị kết thúc cưỡng bức
+- level1: Cấu hình ứng dụng
+  level2:
+  - Environment, PropertySource và giá trị cấu hình tại thời điểm chạy
+  - application.properties, application.yml và lựa chọn định dạng
+  - Cấu hình trong classpath, file bên ngoài, biến môi trường và dòng lệnh
+  - Nguyên tắc ưu tiên khi một thuộc tính xuất hiện ở nhiều nguồn
+  - Placeholder ${...}, giá trị mặc định và tham chiếu thuộc tính
+  - '@Value cho giá trị đơn và khác biệt với biểu thức SpEL'
+  - '@ConfigurationProperties để gom cấu hình theo tiền tố'
+  - Đăng ký bằng @ConfigurationPropertiesScan hoặc @EnableConfigurationProperties
+  - Binding vào JavaBean, constructor hoặc record theo phiên bản
+  - Relaxed binding và quy ước tên thuộc tính, biến môi trường
+  - Chuyển đổi Duration, DataSize, collection và cấu hình lồng nhau
+  - '@Validated và phát hiện cấu hình không hợp lệ khi khởi động'
+  - Configuration metadata và gợi ý thuộc tính trong IDE
+  - Phân biệt cấu hình ứng dụng với secret cần cung cấp từ môi trường
+- level1: Profile
+  level2:
+  - Profile dùng để lựa chọn phần cấu hình nào
+  - '@Profile trên component, configuration và nhóm bean'
+  - spring.profiles.active và profile mặc định
+  - application-{profile}.properties hoặc YAML tương ứng
+  - Kích hoạt nhiều profile và xử lý giá trị chồng lấp
+  - Biểu thức profile với AND, OR, NOT
+  - Profile group và cấu hình nhóm môi trường
+  - spring.config.activate.on-profile và tài liệu cấu hình nhiều phần
+  - Phân biệt profile Spring với profile hoặc task của build tool
+  - Kiểm tra profile thực sự có hiệu lực và tránh nhầm môi trường
+- level1: Tài nguyên và dữ liệu
+  level2:
+  - Resource, ResourceLoader và các tiền tố classpath, file, URL
+  - Đọc tài nguyên bằng InputStream và giới hạn của Resource.getFile trong JAR
+  - ResourcePatternResolver khi cần tìm nhiều tài nguyên
+  - Charset, đóng stream và vòng đời tài nguyên tự mở
+  - Environment, ConversionService và chuyển đổi giá trị sang kiểu đích
+  - Converter tùy chỉnh và phạm vi áp dụng
+  - Bean Validation, constraint annotation và đối tượng cần kiểm tra
+  - '@Valid, @Validated và điều kiện để kiểm tra dữ liệu được thực thi'
+  - Method validation và vai trò proxy
+  - MessageSource, thông báo lỗi và lựa chọn ngôn ngữ
+  - Phân biệt kiểm tra dữ liệu đầu vào, cấu hình và quy tắc nghiệp vụ
+- level1: AOP và proxy
+  level2:
+  - Bài toán hành vi dùng chung và lý do có AOP
+  - Aspect, advice, pointcut, join point và đối tượng đích
+  - Spring AOP dựa trên proxy trong container
+  - JDK dynamic proxy và proxy dựa trên lớp
+  - Nhận diện bean proxy và kiểu tham chiếu có thể tiêm
+  - Self-invocation và trường hợp gọi nội bộ không qua proxy
+  - Giới hạn với final, private và phương thức không thể can thiệp
+  - '@Transactional, @Async, @Cacheable và điều kiện hạ tầng tương ứng'
+  - '@EnableAspectJAutoProxy so với tự cấu hình AOP của Spring Boot'
+  - Thứ tự advice và giới hạn của việc suy luận từ annotation đơn lẻ
+  - Kiểm chứng lời gọi qua bean thật thay vì đối tượng tự tạo
+- level1: Logging
+  level2:
+  - Logging facade, SLF4J và thư viện thực thi
+  - Logging starter và cấu hình mặc định theo dòng Spring Boot
+  - Đọc timestamp, level, logger, thread và thông điệp
+  - TRACE, DEBUG, INFO, WARN, ERROR và chọn mức ghi log
+  - logging.level theo package hoặc logger cụ thể
+  - Tham số hóa thông điệp và ghi exception kèm stack trace
+  - Log console, log file và giới hạn quản lý vòng đời file
+  - logback-spring.xml hoặc cấu hình tương ứng của logging system
+  - Logging khởi tạo sớm và vì sao một số nguồn cấu hình đến quá muộn
+  - Phân biệt --debug với bật DEBUG cho toàn bộ ứng dụng
+  - Dữ liệu nhạy cảm, context của request và nội dung nên ghi log
+- level1: Công cụ phát triển
+  level2:
+  - Spring Boot Devtools và phạm vi dependency khi phát triển
+  - Automatic restart dựa trên thay đổi classpath
+  - Restart classloader, base classloader và vấn đề tương thích
+  - Phân biệt restart ứng dụng với hot swap của JVM
+  - Tài nguyên cần restart, tài nguyên loại trừ và trigger file
+  - LiveReload và điều kiện để trình duyệt cập nhật
+  - Các mặc định phục vụ phát triển và cách kiểm tra cấu hình được thay đổi
+  - Devtools trong dự án nhiều module
+  - Đóng gói, phạm vi development-only và kiểm tra artifact triển khai
+- level1: Chạy và đóng gói
+  level2:
+  - Chạy từ main, IDE, bootRun hoặc lệnh tương ứng của Maven
+  - Biên dịch, kiểm thử và đóng gói là các giai đoạn khác nhau
+  - JAR thư viện với executable JAR của ứng dụng
+  - Spring Boot build plugin và vai trò đóng gói lại
+  - Lớp main, manifest, dependency và cấu trúc JAR thực thi
+  - java -jar, JVM system property và tham số ứng dụng
+  - Classpath resource khi chạy từ thư mục lớp hoặc từ JAR
+  - Thư mục làm việc, đường dẫn tương đối và cấu hình ngoài
+  - 'WAR truyền thống và executable JAR: nhận diện mô hình triển khai'
+  - Kiểm chứng cùng artifact chạy ở nhiều môi trường bằng cấu hình bên ngoài
+  - Ranh giới với build image, container và native executable
+- level1: Quan sát ứng dụng
+  level2:
+  - Actuator bổ sung khả năng quan sát gì cho ứng dụng
+  - Dependency Actuator và quan hệ với auto-configuration
+  - Endpoint tồn tại, được bật, được expose và được phép truy cập
+  - health, info và ý nghĩa dữ liệu được công bố
+  - beans, conditions, env, configprops khi cần chẩn đoán
+  - loggers, metrics và các tín hiệu vận hành cơ bản
+  - Health status khác với liveness hoặc readiness
+  - Management path, port và phạm vi cấu hình cơ bản
+  - Dữ liệu cấu hình nhạy cảm và chính sách công bố endpoint
+  - Giới hạn của health check hoặc startup log khi chứng minh ứng dụng hoạt động đúng
+- level1: Kiểm thử nền tảng
+  level2:
+  - Unit test cho service được thiết kế bằng constructor injection
+  - Kiểm thử bean qua Spring context và đối tượng tạo trực tiếp
+  - '@SpringBootTest để kiểm tra ứng dụng được lắp ghép đầy đủ'
+  - WebEnvironment.NONE cho ứng dụng không cần môi trường web
+  - ApplicationContextRunner cho cấu hình và điều kiện có phạm vi hẹp
+  - Kiểm thử @Bean, @Qualifier, @Primary và cấu hình thiếu ứng viên
+  - Kiểm thử profile, property và cách hiện thực được lựa chọn
+  - Kiểm thử auto-configuration có back-off khi người dùng cung cấp bean
+  - Kiểm thử init, runner, sự kiện và giải phóng tài nguyên
+  - Phân biệt smoke test context với kiểm thử hành vi nghiệp vụ
+  - Giữ test độc lập với thứ tự chạy và dịch vụ ngoài không liên quan
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc startup log và tìm nguyên nhân gốc trong chuỗi exception
+  - FailureAnalyzer và thông báo hướng dẫn xử lý lỗi khởi động
+  - 'NoSuchBeanDefinitionException: bean thiếu hoặc nằm ngoài phạm vi đăng ký'
+  - 'NoUniqueBeanDefinitionException: nhiều ứng viên nhưng chưa có cách chọn'
+  - BeanDefinitionOverrideException và đụng tên bean
+  - BeanCurrentlyInCreationException và vòng phụ thuộc
+  - BeanCreationException do constructor, init hoặc dependency thất bại
+  - BeanNotOfRequiredTypeException và kiểu thực tế của proxy
+  - NoClassDefFoundError, NoSuchMethodError và dependency không tương thích
+  - Auto-configuration không chạy vì classpath, property hoặc bean hiện có
+  - Property không được đọc, binding lỗi hoặc profile sai
+  - Ứng dụng chọn sai web type, thiếu server hoặc cổng bị chiếm
+  - Callback, runner hoặc listener không được gọi đúng thời điểm mong đợi
+  - Ứng dụng không thoát hoặc không dọn tài nguyên sau khi đóng context
+  - Kết hợp log, conditions report, dependency tree và kiểm thử tái hiện
+- level1: Thiết kế ứng dụng
+  level2:
+  - Tách quy tắc nghiệp vụ khỏi cơ chế khởi tạo và cấu hình Spring
+  - Thiết kế constructor để biểu lộ dependency bắt buộc
+  - Chọn bean do container quản lý hay đối tượng dữ liệu tạo trực tiếp
+  - Tách interface theo nhu cầu thay thế, tránh tạo lớp trung gian không có vai trò
+  - Giữ đồ thị phụ thuộc có hướng rõ ràng và xử lý vòng từ thiết kế
+  - Bean singleton không lưu trạng thái riêng của từng request
+  - Cấu hình theo chức năng và hạn chế component scan quá rộng
+  - Đưa tích hợp bên ngoài qua adapter để dễ kiểm thử
+  - Thiết kế thư viện dùng chung có cấu hình rõ và khả năng tùy chỉnh
+  - Quản lý tài nguyên theo vòng đời ứng dụng
+  - Từ bằng chứng quan sát được đến quyết định thay đổi cấu hình
+- level1: Phiên bản và mở rộng
+  level2:
+  - Quan hệ phiên bản giữa Spring Boot, Spring Framework và JDK
+  - Đọc tài liệu theo phiên bản đang chạy và kiểm tra API mới
+  - Nhận diện thay đổi javax sang jakarta khi gặp mã cũ
+  - Annotation tổng hợp, alias và custom composed annotation
+  - Thay đổi cách đăng ký auto-configuration qua các dòng Spring Boot
+  - Thay đổi starter, module, logging hoặc công cụ test khi nâng phiên bản
+  - '@Fallback và các tiện ích chỉ có ở Spring Framework mới'
+  - AOT, runtime hints và native image ở mức khái niệm
+  - Virtual thread và các khả năng phụ thuộc phiên bản JDK, Spring Boot
+  - Ranh giới học tiếp về web runtime, external configuration, dữ liệu và bảo mật
+  - Checklist nâng cấp dựa trên dependency, cấu hình, startup và kiểm thử
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng ứng dụng dòng lệnh tối thiểu với một service và ApplicationRunner
+  - Đăng ký cùng chức năng bằng component scan và Java configuration
+  - Tạo nhiều implementation rồi chọn bằng @Qualifier hoặc @Primary
+  - Quan sát singleton, prototype và cách lấy bean theo nhu cầu
+  - Theo dõi constructor, init, proxy, runner và callback hủy
+  - Chuyển cách hiện thực bằng profile hoặc property
+  - Tạo auto-configuration có điều kiện và back-off khi có bean người dùng
+  - Dùng conditions report giải thích vì sao một bean xuất hiện hoặc vắng mặt
+  - Kiểm chứng self-invocation và lời gọi qua proxy
+  - Đóng gói JAR rồi chạy bằng cấu hình ngoài ở hai môi trường
+  - Quan sát health, beans và thông tin khởi động trong phạm vi được cho phép
+  - Tạo lỗi thiếu bean, trùng bean, cấu hình sai rồi viết test tái hiện
+  - Tổng hợp sơ đồ khởi động, đồ thị bean và bằng chứng hành vi ứng dụng

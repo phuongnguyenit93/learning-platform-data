@@ -1,0 +1,2971 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Apache Ant là gì và bài toán tự động hóa quy trình dựng phần mềm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vị trí của Ant trong chuỗi biên dịch, kiểm thử, đóng gói và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối quan hệ giữa project, target, task, property và kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Cách Ant mô tả công việc và phụ thuộc bằng XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Ant, Make, Maven và Gradle: khác biệt về mô hình và phạm vi sử dụng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Task có sẵn, task tùy chọn và phần mở rộng bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ưu điểm, giới hạn và tình huống phù hợp với Ant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học Ant từ build đơn giản đến hệ thống nhiều dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Cài đặt
+  childs:
+  - slug: setup-001
+    title: Yêu cầu tương thích giữa phiên bản Ant, JDK và hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Cài đặt Ant từ bản phân phối và kiểm tra tính toàn vẹn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Cấu hình JAVA_HOME, ANT_HOME và PATH
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Xác minh môi trường bằng ant -version và ant -diagnostics
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Phân biệt JDK chạy Ant và JDK dùng để biên dịch dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Tổ chức thư viện trong ANT_HOME/lib, thư mục người dùng và -lib
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Cấu hình JVM chạy Ant bằng ANT_OPTS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Tích hợp Ant với IDE và kiểm tra khác biệt với dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-build
+  title: Build đầu tiên
+  childs:
+  - slug: first-build-001
+    title: Tổ chức thư mục src, resources, test, build và dist
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-build-002
+    title: Tạo build.xml tối thiểu với project và target mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-build-003
+    title: Chuẩn bị thư mục đầu ra bằng mkdir
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-build-004
+    title: Biên dịch chương trình Java đầu tiên bằng javac
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-build-005
+    title: Đóng gói và chạy JAR đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-build-006
+    title: Tạo chuỗi init, compile, test, jar và clean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-build-007
+    title: Đọc kết quả BUILD SUCCESSFUL, BUILD FAILED và mã thoát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: buildfile-structure
+  title: Cấu trúc buildfile
+  childs:
+  - slug: buildfile-structure-001
+    title: 'Cấu trúc XML: phần tử, thuộc tính, nội dung lồng và chú thích'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildfile-structure-002
+    title: Phần tử project với name, default và basedir
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildfile-structure-003
+    title: Phân biệt target, task và khai báo kiểu dữ liệu trong build.xml
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildfile-structure-004
+    title: Target ngầm định và thời điểm chạy các task ở cấp project
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildfile-structure-005
+    title: Mô tả dự án và target bằng description
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildfile-structure-006
+    title: Tham chiếu đối tượng bằng id và refid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildfile-structure-007
+    title: Namespace XML và định danh task bằng URI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buildfile-structure-008
+    title: Escape ký tự XML, CDATA và biểu thức property trong văn bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ant-commands
+  title: Lệnh Ant
+  childs:
+  - slug: ant-commands-001
+    title: Chọn buildfile bằng -f, -file và -buildfile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-commands-002
+    title: Chạy target mặc định, target cụ thể và nhiều target
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-commands-003
+    title: Khám phá target bằng -projecthelp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-commands-004
+    title: Truyền property bằng -D và -propertyfile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-commands-005
+    title: Tìm buildfile trong cây thư mục bằng -find
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-commands-006
+    title: Điều chỉnh đầu ra bằng -quiet, -verbose, -debug và -silent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-commands-007
+    title: Ghi nhật ký bằng -logfile và điều khiển nhập liệu bằng -noinput
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-commands-008
+    title: Tiếp tục các nhánh độc lập bằng -keep-going
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: targets
+  title: Target
+  childs:
+  - slug: targets-001
+    title: Thiết kế target theo một trách nhiệm rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-002
+    title: Mô hình đồ thị phụ thuộc và thuộc tính depends
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-003
+    title: Thứ tự phụ thuộc, phụ thuộc chung và chu kỳ target
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-004
+    title: Phân biệt phụ thuộc target với phụ thuộc giữa tệp nguồn và đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-005
+    title: Hành vi chạy lặp khi gọi nhiều target hoặc tạo lần chạy Ant mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-006
+    title: Điều kiện if và unless trên target
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-007
+    title: Thời điểm kiểm tra điều kiện sau khi xử lý depends
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-008
+    title: Điểm mở rộng extension-point và extensionOf
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-009
+    title: Phân biệt target công khai và target hỗ trợ nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: targets-010
+    title: Thiết kế target clean, kiểm tra và phát hành có thể chạy độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: properties
+  title: Property
+  childs:
+  - slug: properties-001
+    title: Khai báo property và tham chiếu bằng cú pháp ${...}
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-002
+    title: Tính bất biến thông thường và nguyên tắc giá trị được đặt trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-003
+    title: User property và độ ưu tiên của giá trị truyền từ dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-004
+    title: Nạp cấu hình từ tệp .properties và tham số -propertyfile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-005
+    title: Nạp biến môi trường bằng property environment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-006
+    title: Phân biệt value và location khi khai báo đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-007
+    title: 'Property có sẵn: basedir, ant.file, ant.version và ant.java.version'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-008
+    title: Thời điểm mở rộng property, property chưa được đặt và ký tự escape
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-009
+    title: Property cục bộ với local và phạm vi trong sequential hoặc macro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-010
+    title: Tổ chức cấu hình mặc định, cấu hình cá nhân và cấu hình môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-011
+    title: Đọc và ghi cấu hình bằng loadproperties, loadfile và propertyfile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Vai trò của kiểu dữ liệu và khác biệt với task thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-002
+    title: Đối tượng tham chiếu, phạm vi id và tái sử dụng refid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-003
+    title: PatternSet và chia sẻ mẫu chọn tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-004
+    title: FileList và tập tệp có danh sách, thứ tự tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-005
+    title: PropertySet và lựa chọn nhóm property
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-006
+    title: FilterSet, FilterChain và dữ liệu cấu hình cho xử lý nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-007
+    title: XMLCatalog và phân giải tài nguyên XML cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-selection
+  title: Chọn tệp
+  childs:
+  - slug: file-selection-001
+    title: FileSet, DirSet và thư mục gốc khi quét tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-002
+    title: Mẫu Ant với dấu *, dấu ? và dấu **
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-003
+    title: Kết hợp includes, excludes, includesfile và excludesfile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-004
+    title: Các mẫu loại trừ mặc định và defaultexcludes
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-005
+    title: Phân biệt chữ hoa, chữ thường và cách xử lý liên kết tượng trưng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-006
+    title: Tái sử dụng PatternSet trong nhiều FileSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-007
+    title: Chọn tệp theo tên, loại, kích thước và thời điểm sửa đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-008
+    title: Chọn tệp theo nội dung hoặc trạng thái thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-009
+    title: Kết hợp selector bằng and, or và not
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-selection-010
+    title: Kiểm tra tập tệp rỗng và tránh chọn nhầm thư mục đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources
+  title: Tài nguyên
+  childs:
+  - slug: resources-001
+    title: Resource và ResourceCollection trong mô hình dữ liệu Ant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-002
+    title: Tài nguyên tệp, chuỗi, URL và phần tử trong kho nén
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-003
+    title: Union, intersect và difference giữa các tập tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-004
+    title: Giới hạn tài nguyên bằng restrict và resource selector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-005
+    title: Sắp xếp và chọn tài nguyên bằng sort, first và last
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-006
+    title: Đếm và biểu diễn tập tài nguyên bằng resourcecount và pathconvert
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-007
+    title: Khác biệt giữa tập tài nguyên tổng quát và task chỉ nhận tệp hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paths
+  title: Đường dẫn
+  childs:
+  - slug: paths-001
+    title: Khai báo path và pathelement bằng location hoặc path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-002
+    title: Tạo classpath từ thư mục lớp và tập JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-003
+    title: Tái sử dụng đường dẫn bằng refid và classpathref
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-004
+    title: Phân biệt classpath của Ant, trình biên dịch, ứng dụng và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-005
+    title: Chuyển đổi đường dẫn bằng pathconvert và định dạng theo hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-006
+    title: Thứ tự classpath, JAR trùng lặp và xung đột phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-007
+    title: Kiểm soát CLASSPATH, -noclasspath và -nouserlib
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-008
+    title: Classpath, modulepath và ranh giới sử dụng trong dự án Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-operations
+  title: Thao tác tệp
+  childs:
+  - slug: file-operations-001
+    title: Tạo thư mục bằng mkdir và xóa đầu ra bằng delete
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-002
+    title: Sao chép bằng copy với FileSet và tập tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-003
+    title: Di chuyển, đổi tên bằng move và ánh xạ tên bằng mapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-004
+    title: Đồng bộ cây thư mục bằng sync và bảo vệ tệp cần giữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-005
+    title: Ghép nội dung bằng concat và cập nhật dấu thời gian bằng touch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-006
+    title: Ánh xạ tên bằng globmapper, regexpmapper, flattenmapper và các mapper kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-007
+    title: Xử lý ghi đè, tệp chỉ đọc và thư mục rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-008
+    title: Kiểm tra checksum của tệp và gói phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-operations-009
+    title: Đặt quyền tệp theo hệ điều hành và kiểm soát phạm vi xóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-filtering
+  title: Lọc nội dung
+  childs:
+  - slug: content-filtering-001
+    title: Thay token bằng FilterSet và cú pháp token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-filtering-002
+    title: Xử lý luồng văn bản bằng FilterChain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-filtering-003
+    title: Thay thế nội dung bằng replace và replaceregexp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-filtering-004
+    title: Sao chép tài nguyên có lọc và tách tệp văn bản khỏi tệp nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-filtering-005
+    title: Chuyển đổi encoding và xử lý tiếng Việt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-filtering-006
+    title: Chuẩn hóa xuống dòng bằng fixcrlf
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-filtering-007
+    title: Nạp mẫu và tạo tệp cấu hình cho từng môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-filtering-008
+    title: Biến đổi và xác thực XML bằng xslt, xmlvalidate và XMLCatalog
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditions
+  title: Điều kiện
+  childs:
+  - slug: conditions-001
+    title: Tạo property điều kiện bằng condition
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-002
+    title: Kết hợp phép kiểm tra bằng and, or, not và xor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-003
+    title: Kiểm tra tệp, lớp và tài nguyên bằng available
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-004
+    title: Kiểm tra hệ điều hành, chuỗi và property đã được đặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-005
+    title: Phân biệt kiểm tra sự tồn tại của property với kiểm tra giá trị boolean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-006
+    title: Dừng build có chủ đích bằng fail và thông báo có ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-007
+    title: Thu thập tham số bằng input và thiết kế chế độ không tương tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-008
+    title: Điều kiện trên task bằng namespace ant:if và ant:unless
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-009
+    title: Giới hạn điều khiển luồng của Ant lõi và khi cần phần mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-compilation
+  title: Biên dịch Java
+  childs:
+  - slug: java-compilation-001
+    title: Cấu hình javac với srcdir, destdir và cấu trúc package
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-002
+    title: Chọn nguồn biên dịch bằng includes, excludes và nhiều thư mục nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-003
+    title: Thiết lập classpath, sourcepath và includeAntRuntime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-004
+    title: Chọn mức ngôn ngữ, bytecode bằng source, target và release
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-005
+    title: Thiết lập encoding, debug, deprecation và compilerarg
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-006
+    title: Biên dịch trong JVM hiện tại hoặc tách tiến trình bằng fork
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-007
+    title: Chọn executable và giới hạn bộ nhớ cho trình biên dịch ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-008
+    title: Annotation processing và quản lý mã nguồn được sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-009
+    title: Biên dịch Java module bằng modulepath và modulesourcepath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-010
+    title: Tách đầu ra mã chính, mã kiểm thử và tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-011
+    title: Giới hạn kiểm tra thay đổi của javac và vai trò của depend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-compilation-012
+    title: Xử lý lỗi biên dịch bằng failonerror và errorProperty
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: running-java
+  title: Chạy Java
+  childs:
+  - slug: running-java-001
+    title: Chạy lớp có main bằng task java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: running-java-002
+    title: Chạy JAR với jar, classpath và cấu hình manifest
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: running-java-003
+    title: Phân biệt JVM của Ant và JVM ứng dụng với fork
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: running-java-004
+    title: Truyền đối số ứng dụng bằng arg và đối số JVM bằng jvmarg
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: running-java-005
+    title: Truyền system property, biến môi trường và thư mục làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: running-java-006
+    title: Chuyển hướng stdin, stdout và stderr
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: running-java-007
+    title: Quản lý timeout, mã kết quả và failonerror
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: running-java-008
+    title: Chạy ứng dụng dùng Java module và phân biệt modulepath với classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: libraries
+  title: Thư viện
+  childs:
+  - slug: libraries-001
+    title: Giới hạn quản lý dependency của Ant lõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-002
+    title: Quản lý thư viện thủ công trong lib và mô tả nguồn gốc phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-003
+    title: Tải tài nguyên bằng get và xác minh checksum
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-004
+    title: Phân biệt thư viện ứng dụng với thư viện cần cho task tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-005
+    title: Giới thiệu Apache Ivy như phần mở rộng quản lý dependency cho Ant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-006
+    title: Khai báo module và dependency trong ivy.xml
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-007
+    title: Cấu hình resolver, repository và cache bằng ivysettings.xml
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-008
+    title: Resolve, retrieve và tạo classpath theo Ivy configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-009
+    title: Phụ thuộc bắc cầu, loại trừ và xử lý xung đột phiên bản với Ivy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-010
+    title: Cố định phiên bản và chuẩn bị thư viện cho build ngoại tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Thiết kế target compile-test và test với đầu ra riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Chạy JUnit 3 hoặc JUnit 4 bằng task junit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Chạy JUnit Platform và JUnit Jupiter bằng task junitlauncher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Cấu hình thư viện launcher, test engine và classpath kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Chọn lớp kiểm thử, nhóm kiểm thử và tag phù hợp với từng task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Tách kiểm thử đơn vị và kiểm thử tích hợp trong đồ thị target
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Chọn JVM, working directory và tham số cho tiến trình kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Thiết lập timeout và kiểm soát dừng build khi kiểm thử thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Ghi nhận stdout, stderr và tạo báo cáo kiểm thử XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tổng hợp báo cáo HTML bằng junitreport và định dạng XML tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Quản lý dữ liệu kiểm thử, tài nguyên và dọn dẹp môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-quality
+  title: Chất lượng mã
+  childs:
+  - slug: code-quality-001
+    title: Tích hợp công cụ phân tích mã qua task ngoài hoặc dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-002
+    title: Kiểm tra quy ước mã bằng Checkstyle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-003
+    title: Phân tích tĩnh bằng PMD và SpotBugs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-004
+    title: Đo độ bao phủ kiểm thử bằng JaCoCo Ant Tasks
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-005
+    title: Đặt ngưỡng chất lượng và truyền lỗi kiểm tra về kết quả build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-006
+    title: Tách cấu hình công cụ, tệp loại trừ và báo cáo khỏi mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation
+  title: Tài liệu
+  childs:
+  - slug: documentation-001
+    title: Sinh tài liệu API bằng task javadoc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-002
+    title: Cấu hình nguồn, classpath, encoding và liên kết Javadoc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-003
+    title: Đóng gói source JAR và Javadoc JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-004
+    title: Tạo thông tin phiên bản và tài liệu mô tả gói phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-005
+    title: Tổ chức báo cáo kiểm thử, chất lượng mã và tài liệu API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-006
+    title: Biến đổi báo cáo XML bằng XSLT và quản lý tài nguyên stylesheet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packaging
+  title: Đóng gói
+  childs:
+  - slug: packaging-001
+    title: Tạo JAR từ lớp biên dịch và tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-002
+    title: Cấu hình manifest với Main-Class, Class-Path và thông tin phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-003
+    title: Ghép hoặc cập nhật manifest bằng task manifest
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-004
+    title: Kiểm soát trùng lặp, cập nhật và nội dung đầu vào của JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-005
+    title: JAR thực thi với thư viện bên ngoài và giới hạn đường dẫn manifest
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-006
+    title: Gộp thư viện vào JAR và xử lý tài nguyên trùng, service descriptor, chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-007
+    title: Đóng gói WAR với WEB-INF/classes, WEB-INF/lib và web.xml khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-008
+    title: Vai trò của EAR trong hệ thống Java EE hoặc Jakarta EE hiện hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-009
+    title: Tạo ZIP, TAR, GZip và các gói phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-010
+    title: Giải nén, kiểm tra nội dung và bảo vệ vị trí đích khi giải nén
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-011
+    title: Ký JAR và kiểm tra chữ ký bằng signjar và verifyjar
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-012
+    title: Kiểm tra sản phẩm đóng gói bằng một lần chạy thử độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release
+  title: Phát hành
+  childs:
+  - slug: release-001
+    title: Thiết kế target dist và cấu trúc thư mục phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-002
+    title: Quản lý phiên bản, tên tệp và định danh bản phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-003
+    title: Đóng gói script khởi động, cấu hình mẫu và tài liệu đi kèm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-004
+    title: Tạo checksum và thông tin nguồn gốc sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-005
+    title: Tách build, publish và deploy thành các thao tác tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-006
+    title: Truyền thông tin xác thực cho tác vụ phát hành qua môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-007
+    title: Tải hoặc chuyển sản phẩm bằng HTTP, SCP và task ngoài khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-008
+    title: Kiểm tra điều kiện phát hành và xác minh gói sau khi phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reuse
+  title: Tái sử dụng
+  childs:
+  - slug: reuse-001
+    title: Định nghĩa chuỗi task tái sử dụng bằng macrodef
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-002
+    title: Tham số macro với attribute và cú pháp @{...}
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-003
+    title: Tham số mặc định, doubleexpanding và escape trong macro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-004
+    title: Truyền phần tử lồng, phần tử implicit và nội dung text
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-005
+    title: Chuyên biệt hóa task hoặc kiểu dữ liệu bằng presetdef
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-006
+    title: Tách buildfile bằng import và include
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-007
+    title: Khác biệt về tên target, ghi đè và phụ thuộc khi import hoặc include
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-008
+    title: Quản lý basedir và đường dẫn của tệp build được nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-009
+    title: Kết hợp extension-point với phần build dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reuse-010
+    title: Thiết kế macro có đầu vào rõ ràng và property cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-project-builds
+  title: Nhiều dự án
+  childs:
+  - slug: multi-project-builds-001
+    title: Phân rã hệ thống thành dự án gốc và các dự án con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-002
+    title: Gọi buildfile khác bằng task ant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-003
+    title: Gọi target cùng buildfile bằng antcall và phân biệt với depends
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-004
+    title: Điều phối tập dự án con bằng subant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-005
+    title: Truyền property, param và reference giữa các lần gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-006
+    title: Ảnh hưởng của inheritAll, inheritRefs và basedir
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-007
+    title: Quản lý thứ tự build và sản phẩm phụ thuộc giữa các dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-008
+    title: Tách cấu hình dùng chung với cấu hình riêng của từng dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-builds-009
+    title: Tránh gọi lặp, vòng phụ thuộc và chia sẻ thư mục đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ant-extensions
+  title: Mở rộng Ant
+  childs:
+  - slug: ant-extensions-001
+    title: Đăng ký task và kiểu dữ liệu bằng taskdef và typedef
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-002
+    title: Cấu hình classpath, classloaderref và xử lý thiếu thư viện mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-003
+    title: Tổ chức antlib.xml và sử dụng namespace cho thư viện task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-004
+    title: Viết task Java kế thừa org.apache.tools.ant.Task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-005
+    title: Vòng đời task, phương thức init và execute
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-006
+    title: Ánh xạ thuộc tính XML qua setter và chuyển đổi kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-007
+    title: Nhận nội dung lồng bằng addText và phần tử lồng bằng create, add, addConfigured
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-008
+    title: Truy cập Project, property, reference và vị trí lỗi trong custom task
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-009
+    title: Ghi log và ném BuildException có thông tin hữu ích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-010
+    title: Viết task chứa các task con bằng TaskContainer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-011
+    title: Kiểm thử custom task và buildfile bằng AntUnit hoặc bộ kiểm thử Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ant-extensions-012
+    title: Đóng gói, quản lý phiên bản và phân phối antlib
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-processes
+  title: Tiến trình ngoài
+  childs:
+  - slug: external-processes-001
+    title: Gọi công cụ hệ thống bằng exec
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-002
+    title: Truyền đối số bằng arg và tránh lỗi tách chuỗi lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-003
+    title: Thiết lập executable, dir, environment và điều kiện hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-004
+    title: Thu thập output, error, resultproperty và chuyển hướng bằng redirector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-005
+    title: Kiểm soát timeout, failonerror và failifexecutionfails
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-006
+    title: Thực thi công cụ trên nhiều tệp bằng apply
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-007
+    title: Chạy tuần tự hoặc song song bằng sequential và parallel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-008
+    title: Đồng bộ tác vụ chờ bằng waitfor và quản lý giới hạn thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-009
+    title: Viết script với script, scriptdef và bổ sung engine JSR-223 cho JDK cần dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-processes-010
+    title: Sử dụng ant-contrib như phần mở rộng và đánh giá chi phí bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incremental-build
+  title: Build tăng dần
+  childs:
+  - slug: incremental-build-001
+    title: Phân biệt đồ thị target với quyết định task có cần tạo lại đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-002
+    title: So sánh dấu thời gian và kiểm tra up-to-date
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-003
+    title: Bỏ qua công việc khi đầu ra còn hợp lệ bằng uptodate và điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-004
+    title: Quản lý nhóm nguồn và đầu ra bằng dependset
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-005
+    title: Giới hạn khi nguồn bị xóa, dependency thay đổi hoặc cấu hình đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-006
+    title: Chọn clean build để phát hiện lớp cũ và tài nguyên còn sót
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-007
+    title: Dùng checksum khi dấu thời gian không phản ánh thay đổi nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-build-008
+    title: Thiết kế tác vụ có thể chạy lại mà không làm sai đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reproducible-build
+  title: Build tái lập
+  childs:
+  - slug: reproducible-build-001
+    title: Kiểm soát phiên bản Ant, JDK, thư viện và công cụ ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-build-002
+    title: Loại bỏ phụ thuộc ngầm vào máy cá nhân và thư mục người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-build-003
+    title: Cố định encoding, locale, múi giờ và xuống dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-build-004
+    title: Quản lý timestamp, thứ tự phần tử và metadata trong kho nén
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-build-005
+    title: Kiểm soát thông tin phiên bản sinh tự động và đường dẫn tuyệt đối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-build-006
+    title: Tách thư mục đầu ra theo dự án và lần chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-build-007
+    title: Xác minh hai build bằng checksum và so sánh nội dung sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-build-008
+    title: Cân bằng tính tái lập với thông tin thời điểm phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-and-errors
+  title: Nhật ký và lỗi
+  childs:
+  - slug: logging-and-errors-001
+    title: Sử dụng echo, mức log và thông báo theo ngữ cảnh target
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-002
+    title: Ghi nhật ký từng giai đoạn bằng record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-003
+    title: Chọn logger và listener bằng tùy chọn dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-004
+    title: Đọc lỗi XML, tên task, đường dẫn buildfile và số dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-005
+    title: Chẩn đoán target không tồn tại và phụ thuộc vòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-006
+    title: Chẩn đoán property chưa được đặt hoặc có giá trị ngoài dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-007
+    title: Chẩn đoán taskdef lỗi, ClassNotFoundException và NoClassDefFoundError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-008
+    title: Chẩn đoán lỗi biên dịch, classpath và phiên bản bytecode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-009
+    title: Phân biệt lỗi công cụ con, lỗi kiểm thử và lỗi gói phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-errors-010
+    title: Xây dựng ca tái hiện tối thiểu và thu thập dữ liệu chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo thời gian từng giai đoạn trước khi tối ưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Giảm quét thư mục rộng và tái sử dụng tập tệp phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tránh antcall hoặc sub-build không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Cân bằng chi phí fork JVM với nhu cầu cô lập tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Giới hạn tài nguyên và tránh tranh chấp khi dùng parallel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Quản lý cache thư viện và tránh tải lại dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Đánh giá tối ưu bằng thời gian chạy và tính đúng của sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-platform
+  title: Đa nền tảng
+  childs:
+  - slug: cross-platform-001
+    title: Thiết kế đường dẫn độc lập với Windows, Linux và macOS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-platform-002
+    title: Xử lý dấu cách, Unicode và phân biệt chữ hoa, chữ thường trong tên tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-platform-003
+    title: Tách tham số khỏi chuỗi lệnh để giảm phụ thuộc shell
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-platform-004
+    title: Chọn công cụ ngoài theo hệ điều hành và xác minh trước khi chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-platform-005
+    title: Kiểm soát quyền thực thi, liên kết tượng trưng và xuống dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-platform-006
+    title: Xử lý giới hạn độ dài lệnh và classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-platform-007
+    title: Kiểm tra khóa tệp, xóa tệp và khác biệt hệ thống tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-platform-008
+    title: Chạy cùng buildfile trên nhiều hệ điều hành để phát hiện phụ thuộc ngầm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd
+  title: CI/CD
+  childs:
+  - slug: ci-cd-001
+    title: Thiết kế một lệnh Ant chuẩn cho máy phát triển và CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-002
+    title: Chuẩn bị agent với Ant, JDK và công cụ ngoài đã xác định phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-003
+    title: Build không tương tác với -noinput và property từ môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-004
+    title: Tích hợp lệnh Ant trong Jenkins hoặc GitHub Actions
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-005
+    title: Chạy ma trận JDK, hệ điều hành và cấu hình cần hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-006
+    title: Lưu báo cáo kiểm thử, nhật ký và sản phẩm dưới dạng artifact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-007
+    title: Thiết kế cache dependency và phục hồi khi cache không còn hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-008
+    title: Truyền mã lỗi và chặn phát hành khi kiểm tra không đạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-009
+    title: Tách quyền và thông tin xác thực giữa build kiểm tra và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-010
+    title: Đối chiếu kết quả build cục bộ với môi trường CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-security
+  title: An toàn build
+  childs:
+  - slug: build-security-001
+    title: Ranh giới tin cậy của build.xml, antlib và công cụ ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-002
+    title: Xác minh nguồn tải Ant, JAR mở rộng và dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-003
+    title: Giữ bí mật ngoài buildfile, tệp phân phối và nhật ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-004
+    title: Kiểm tra tham số đầu vào trước thao tác xóa, ghi và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-005
+    title: Giới hạn đường dẫn đích của delete, sync và giải nén
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-006
+    title: Giảm quyền truy cập mạng, hệ thống tệp và tài khoản CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-007
+    title: Kiểm soát XML bên ngoài và sử dụng catalog khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-security-008
+    title: Rà soát thư viện cũ và cập nhật các thành phần build có lỗ hổng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintenance
+  title: Bảo trì
+  childs:
+  - slug: maintenance-001
+    title: Quy ước đặt tên target, property, path id và macro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-002
+    title: Tách cấu hình, định nghĩa tái sử dụng và luồng công việc chính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-003
+    title: Tài liệu hóa target công khai, đầu vào, đầu ra và điều kiện chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-004
+    title: Phát hiện đường dẫn cứng, task sao chép và property khó theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-005
+    title: Thay task lỗi thời và kiểm tra tương thích sau nâng cấp Ant hoặc JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-006
+    title: Kiểm thử hồi quy build bằng clean build, ca lỗi và kiểm tra sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-007
+    title: Giữ sản phẩm sinh tự động ngoài vùng mã nguồn được quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-008
+    title: Đọc và cải tiến buildfile cũ mà vẫn giữ hợp đồng đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-migration
+  title: Chuyển đổi build
+  childs:
+  - slug: build-migration-001
+    title: Kiểm kê target, dependency, sản phẩm và công cụ trong build Ant hiện hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-migration-002
+    title: Gọi Ant từ Maven hoặc Gradle trong giai đoạn chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-migration-003
+    title: Ánh xạ target Ant sang lifecycle Maven hoặc task Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-migration-004
+    title: Chuyển quản lý JAR thủ công sang cơ chế dependency có phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-migration-005
+    title: Chuyển từng giai đoạn biên dịch, kiểm thử và đóng gói
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-migration-006
+    title: So sánh sản phẩm, báo cáo và hành vi trước và sau chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-migration-007
+    title: Tiêu chí giữ Ant, kết hợp công cụ hoặc kết thúc chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành
+  childs:
+  - slug: integrated-practice-001
+    title: Xây build Java console với compile, test, jar, run và clean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Bổ sung thư viện ngoài và chạy JAR từ thư mục phân phối sạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Tạo cấu hình môi trường bằng property, mẫu tệp và bộ lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tích hợp Ivy để phân giải và chuẩn bị thư viện kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tạo báo cáo JUnit Platform và đo độ bao phủ bằng công cụ ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Tách build chung bằng macrodef, import và extension-point
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Điều phối hệ thống nhiều dự án với ant hoặc subant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Viết và kiểm thử một custom task Java có đóng gói antlib
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Đóng gói WAR cho ứng dụng web hiện hữu và kiểm tra cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Thiết lập CI với kiểm tra chất lượng, artifact và gói phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Thử nghiệm build tăng dần, clean build và tính tái lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Chẩn đoán buildfile lỗi và đánh giá chất lượng thiết kế build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

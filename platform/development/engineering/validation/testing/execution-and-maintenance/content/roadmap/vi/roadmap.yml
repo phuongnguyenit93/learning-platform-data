@@ -1,0 +1,57 @@
+roadmap:
+- id: chuan-bi-thuc-thi
+  title: Chuẩn bị thực thi
+  purpose: Đảm bảo bộ kiểm thử, phiên bản ứng dụng và điều kiện bắt đầu đã sẵn sàng trước khi chạy.
+  objectives:
+  - Kiểm tra tiêu chí bắt đầu và phạm vi lần chạy.
+  - Ưu tiên test theo rủi ro và lịch thực thi.
+  - Xác nhận phiên bản ứng dụng, test suite và người phụ trách.
+- id: moi-truong-va-du-lieu
+  title: Môi trường và dữ liệu
+  purpose: Thiết lập điều kiện chạy có thể kiểm soát và tái lập kết quả kiểm thử.
+  objectives:
+  - Xác minh cấu hình, dịch vụ và quyền truy cập môi trường.
+  - Chuẩn bị dữ liệu đầu vào và trạng thái ban đầu.
+  - Dọn dẹp hoặc khôi phục dữ liệu sau mỗi lượt chạy.
+- id: chay-test-va-ghi-ket-qua
+  title: Chạy test và ghi kết quả
+  purpose: Thực hiện các test case nhất quán và so sánh hành vi thực tế với mong đợi.
+  objectives:
+  - Chạy manual hoặc automated test theo thứ tự phù hợp.
+  - Đối chiếu expected với actual result.
+  - Ghi trạng thái passed, failed, blocked hoặc skipped.
+- id: bang-chung-va-dieu-tra
+  title: Bằng chứng và điều tra
+  purpose: Lưu đủ thông tin để xác minh kết quả, phân tích thất bại và tái hiện sự cố.
+  objectives:
+  - Thu thập log, ảnh chụp, trace và dữ liệu liên quan.
+  - Gắn bằng chứng với test case, phiên bản và thời điểm.
+  - Phân biệt lỗi sản phẩm với lỗi môi trường hoặc script test.
+- id: defect-va-retest
+  title: Defect và Retest
+  purpose: Chuyển phát hiện lỗi thành báo cáo có thể xử lý và kiểm tra lại sau khi sửa.
+  objectives:
+  - Mô tả bước tái hiện, expected và actual behavior.
+  - Phân loại mức độ ảnh hưởng, ưu tiên và trạng thái lỗi.
+  - Chạy lại test thất bại sau bản sửa và cập nhật kết quả.
+- id: regression-testing
+  title: Regression Testing
+  purpose: Kiểm soát rủi ro thay đổi bằng việc kiểm tra các chức năng có thể bị ảnh hưởng.
+  objectives:
+  - Phân biệt retest với regression test.
+  - Chọn bộ regression theo vùng thay đổi và rủi ro.
+  - So sánh kết quả trước và sau cập nhật.
+- id: theo-doi-va-bao-cao
+  title: Theo dõi và báo cáo
+  purpose: Giúp nhóm hiểu tiến độ, mức độ bao phủ và rủi ro còn lại trước khi hoàn tất vòng kiểm thử.
+  objectives:
+  - Tổng hợp số test passed, failed, blocked và chưa chạy.
+  - Theo dõi defect còn mở, xu hướng lỗi và trở ngại.
+  - Đối chiếu tiêu chí kết thúc, lập báo cáo bàn giao.
+- id: bao-tri-bo-kiem-thu
+  title: Bảo trì bộ kiểm thử
+  purpose: Giữ test suite hữu ích và ổn định khi yêu cầu, sản phẩm và môi trường thay đổi.
+  objectives:
+  - Cập nhật test case, dữ liệu và expected result lỗi thời.
+  - Điều tra flaky test trước khi dùng retry.
+  - Loại bỏ test trùng lặp, quản lý phiên bản và chạy CI định kỳ.

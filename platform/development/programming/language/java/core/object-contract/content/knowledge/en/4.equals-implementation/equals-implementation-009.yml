@@ -1,0 +1,3 @@
+menuLevel1: Cài đặt equals
+menuLevel2: Tránh so sánh qua toString() hoặc hashCode()
+status: WRITTEN

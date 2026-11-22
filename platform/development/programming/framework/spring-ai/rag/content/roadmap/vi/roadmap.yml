@@ -1,0 +1,64 @@
+roadmap:
+- id: rag-luong-du-lieu
+  title: RAG & Luồng dữ liệu
+  purpose: Hiểu cách truy xuất tài liệu bổ sung ngữ cảnh cho mô hình tạo sinh thay vì chỉ dựa vào kiến thức có sẵn.
+  objectives:
+  - Phân biệt retrieval, augmentation và generation.
+  - Vẽ luồng ingest → index → retrieve → answer.
+  - Nhận diện rủi ro trả lời thiếu nguồn hoặc không có dữ liệu.
+- id: spring-ai-setup-chatclient
+  title: Spring AI Setup & ChatClient
+  purpose: Khởi tạo ứng dụng Spring Boot có chat model và cấu hình thư viện tương thích.
+  objectives:
+  - Chọn Spring AI BOM, model starter và cấu hình credentials an toàn.
+  - Tạo ChatClient và kiểm tra một lời gọi đơn giản.
+  - Phân biệt ChatModel với EmbeddingModel.
+- id: document-etl-metadata
+  title: Document ETL & Metadata
+  purpose: Chuẩn hóa tài liệu thành dữ liệu có thể truy xuất và giữ nguồn gốc của từng đoạn.
+  objectives:
+  - Đọc tài liệu bằng DocumentReader phù hợp với định dạng.
+  - Gắn metadata như source, version và tenant/document ID.
+  - Xác định quy trình cập nhật, xóa và nạp lại dữ liệu.
+- id: chunking-embeddings
+  title: Chunking & Embeddings
+  purpose: Biến nội dung dài thành các đoạn và vector giúp tìm kiếm theo ngữ nghĩa.
+  objectives:
+  - Dùng TokenTextSplitter và thử nhiều kích thước chunk.
+  - Tạo embedding bằng EmbeddingModel cho các đoạn văn bản.
+  - Giải thích ảnh hưởng của chunk size và số chiều vector.
+- id: vectorstore-pgvector
+  title: VectorStore & PGvector
+  purpose: Lưu trữ và tìm kiếm embedding qua giao diện VectorStore trong Spring AI.
+  objectives:
+  - Cấu hình PGvector starter và embedding model tương thích.
+  - Nạp Document với vectorStore.add() rồi kiểm tra index.
+  - Thử xóa và nạp lại tài liệu mà không sinh bản sao sai.
+- id: semantic-retrieval-filters
+  title: Semantic Retrieval & Filters
+  purpose: Chọn đúng ngữ cảnh cho câu hỏi và giới hạn dữ liệu theo phạm vi được phép.
+  objectives:
+  - Thử similaritySearch với topK và similarityThreshold.
+  - Lọc metadata theo loại tài liệu hoặc tenant.
+  - Kiểm tra phân quyền từ ứng dụng trước khi trả tài liệu truy xuất.
+- id: advisors-grounded-answer
+  title: Advisors & Grounded Answer
+  purpose: Ghép tài liệu truy xuất vào prompt bằng cơ chế RAG của Spring AI.
+  objectives:
+  - Dùng QuestionAnswerAdvisor hoặc RetrievalAugmentationAdvisor.
+  - Thực hiện truy vấn có và không có ngữ cảnh phù hợp.
+  - Trả kèm thông tin nguồn và tránh tự khẳng định khi thiếu chứng cứ.
+- id: retrieval-tuning-guardrails
+  title: Retrieval Tuning & Guardrails
+  purpose: Cải thiện kết quả tìm kiếm và ngăn tài liệu không tin cậy điều khiển ứng dụng.
+  objectives:
+  - Thử query rewriting, reranking hoặc lọc đoạn không liên quan.
+  - Phân biệt nội dung truy xuất với chỉ dẫn hệ thống đáng tin cậy.
+  - Kiểm tra prompt injection và ngăn lộ dữ liệu chéo tenant.
+- id: evaluation-observability
+  title: Evaluation & Observability
+  purpose: Đo chất lượng, chi phí và độ ổn định bằng bài kiểm thử có thể lặp lại.
+  objectives:
+  - Tạo bộ câu hỏi có đáp án/nguồn để đánh giá retrieval và groundedness.
+  - Dùng RelevancyEvaluator cùng test lỗi/no-context.
+  - Theo dõi latency, token usage và vector-store metrics/traces.

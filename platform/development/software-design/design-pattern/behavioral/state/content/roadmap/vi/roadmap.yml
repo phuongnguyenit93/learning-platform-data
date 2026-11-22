@@ -1,0 +1,57 @@
+roadmap:
+- id: state-pattern-bai-toan
+  title: State Pattern & bài toán
+  purpose: Hiểu khi nào hành vi phụ thuộc trạng thái khiến điều kiện if/switch trở nên khó bảo trì.
+  objectives:
+  - Mô tả ý định của State Pattern
+  - Nhận diện các nhánh xử lý lặp theo trạng thái
+  - Nêu tình huống nên và không nên dùng State
+- id: mo-hinh-trang-thai-su-kien
+  title: Mô hình trạng thái & sự kiện
+  purpose: Biểu diễn quy tắc chuyển trạng thái trước khi triển khai bằng các lớp đối tượng.
+  objectives:
+  - Liệt kê trạng thái, sự kiện và hành động
+  - Vẽ sơ đồ chuyển trạng thái đơn giản
+  - Xác định chuyển đổi hợp lệ và không hợp lệ
+- id: context-state-concretestate
+  title: Context, State & ConcreteState
+  purpose: Nắm ba vai trò cốt lõi của mẫu thiết kế và quan hệ giữa chúng.
+  objectives:
+  - Tạo giao diện State cho các hành vi
+  - Định nghĩa các lớp ConcreteState
+  - Cho Context giữ tham chiếu tới State hiện tại
+- id: uy-quyen-hanh-vi
+  title: Ủy quyền hành vi
+  purpose: Chuyển logic thay đổi theo trạng thái vào các lớp chuyên trách bằng đa hình.
+  objectives:
+  - Cho Context ủy quyền lời gọi tới State hiện tại
+  - Cài đặt phản hồi khác nhau ở từng State
+  - Loại bỏ nhánh điều kiện phụ thuộc trạng thái
+- id: chuyen-trang-thai-bat-bien
+  title: Chuyển trạng thái & bất biến
+  purpose: Kiểm soát nơi thay đổi trạng thái để hành vi luôn tuân theo các quy tắc nghiệp vụ.
+  objectives:
+  - Phân biệt chuyển trạng thái tại Context hoặc State
+  - Thực hiện chuyển đổi sau một sự kiện
+  - Bảo đảm điều kiện trước/sau và trạng thái hợp lệ
+- id: refactor-sang-state
+  title: Refactor sang State
+  purpose: Áp dụng từng bước lên mã hiện có, giữ nguyên hành vi bên ngoài trong quá trình cải tiến.
+  objectives:
+  - Tách các nhánh trạng thái thành class riêng
+  - Di chuyển xử lý tương ứng vào ConcreteState
+  - Kiểm tra lại hành vi trước và sau refactor
+- id: state-vs-strategy-danh-doi
+  title: State vs Strategy & đánh đổi
+  purpose: Biết phân biệt State với các mẫu có cấu trúc tương tự và nhận diện chi phí thiết kế.
+  objectives:
+  - So sánh mục đích State với Strategy
+  - Đánh giá lợi ích mở rộng và cô lập hành vi
+  - Nhận diện chi phí tăng số lớp và phụ thuộc
+- id: kiem-thu-may-trang-thai
+  title: Kiểm thử máy trạng thái
+  purpose: Xác minh hoạt động của State Pattern qua chuỗi sự kiện và các đường chuyển hợp lệ.
+  objectives:
+  - Viết bảng kiểm thử state-event-next state
+  - Kiểm thử hành vi theo từng trạng thái
+  - Kiểm tra sự kiện không hợp lệ và chuỗi chuyển liên tiếp

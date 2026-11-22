@@ -1,0 +1,57 @@
+roadmap:
+- id: document-key-value
+  title: Document & Key-Value
+  purpose: Hiểu mô hình dữ liệu Couchbase trước khi chọn cách truy cập bằng Spring Data.
+  objectives:
+  - Mô tả JSON document, ID và key-value lookup
+  - Phân biệt bucket, scope và collection
+  - So sánh truy cập theo ID với truy vấn SQL++
+- id: ket-noi-cau-hinh
+  title: Kết nối & cấu hình
+  purpose: Thiết lập ứng dụng Spring Boot kết nối đúng Couchbase và kiểm soát thông tin truy cập.
+  objectives:
+  - Thêm Spring Data Couchbase starter phù hợp
+  - Cấu hình cluster, bucket và thông tin xác thực
+  - Kiểm tra kết nối cùng khả năng tương thích phiên bản
+- id: entity-mapping
+  title: Entity & Mapping
+  purpose: Ánh xạ đối tượng Java thành document với định danh và thuộc tính rõ ràng.
+  objectives:
+  - Khai báo @Document, @Id và @Field
+  - Xác định trường lưu và trường không lưu
+  - Giải thích @Version phục vụ optimistic locking
+- id: template-crud
+  title: Template & CRUD
+  purpose: Thực hiện thao tác document khi cần quyền kiểm soát cao hơn repository.
+  objectives:
+  - Dùng CouchbaseTemplate ghi và tìm theo ID
+  - Phân biệt insert, upsert, replace và delete
+  - Kiểm tra xử lý ngoại lệ khi document không tồn tại
+- id: repository-query
+  title: Repository & Query
+  purpose: Giảm mã truy cập dữ liệu và hiểu cách truy vấn ảnh hưởng đến chỉ mục.
+  objectives:
+  - Tạo CouchbaseRepository cho một entity
+  - Viết derived query và truy vấn tùy chỉnh
+  - Giải thích vì sao SQL++ cần chỉ mục phù hợp
+- id: scope-collection-ttl
+  title: Scope, Collection & TTL
+  purpose: Tổ chức document theo phạm vi và quản lý vòng đời dữ liệu.
+  objectives:
+  - Ánh xạ entity vào scope/collection cụ thể
+  - Thiết kế TTL cho document có hạn sử dụng
+  - Phân biệt xóa chủ động và tự hết hạn
+- id: reactive-data-access
+  title: Reactive Data Access
+  purpose: Sử dụng cách truy cập bất đồng bộ khi ứng dụng cần xử lý theo luồng phản ứng.
+  objectives:
+  - Thao tác với ReactiveCouchbaseTemplate
+  - Khai báo reactive repository dùng Mono và Flux
+  - Tránh chặn luồng khi kết hợp các publisher
+- id: dong-thoi-giao-dich
+  title: Đồng thời & Giao dịch
+  purpose: Giữ dữ liệu nhất quán trước cập nhật đồng thời và nhận biết giới hạn giao dịch.
+  objectives:
+  - Phát hiện xung đột CAS thông qua @Version
+  - Chọn durability phù hợp cho thao tác ghi
+  - Kiểm tra yêu cầu và hành vi @Transactional của Couchbase

@@ -1,0 +1,288 @@
+menu:
+- level1: Nền tảng chất lượng
+  level2:
+  - Chất lượng phần mềm là gì và ai quyết định chất lượng
+  - Chất lượng sản phẩm, dịch vụ và quy trình trong vòng đời phần mềm
+  - Phân biệt quản lý chất lượng, đảm bảo chất lượng, kiểm soát chất lượng và kiểm thử
+  - Sai sót con người, khiếm khuyết trong sản phẩm và sự cố khi thực thi
+  - Sự phù hợp yêu cầu và sự phù hợp mục đích sử dụng
+  - Quan hệ giữa chất lượng, giá trị kinh doanh, rủi ro, tiến độ và chi phí
+  - Bản đồ thuật ngữ và luồng từ mục tiêu chất lượng đến bằng chứng nghiệm thu
+  - Phạm vi quản lý chất lượng và quan hệ với quản lý dự án, yêu cầu và cải tiến quy trình
+- level1: Mô hình chất lượng
+  level2:
+  - Vai trò của mô hình chất lượng và hệ tiêu chuẩn SQuaRE
+  - Chất lượng sản phẩm theo ISO/IEC 25010:2023 và khác biệt với phiên bản 2011
+  - Mức phù hợp chức năng (functional suitability) và độ đầy đủ, đúng đắn của chức năng
+  - Hiệu quả hiệu năng (performance efficiency) và giới hạn tài nguyên
+  - Khả năng tương thích (compatibility) giữa hệ thống và thành phần
+  - Khả năng tương tác với người dùng (interaction capability)
+  - Độ tin cậy (reliability), khả năng chịu lỗi và phục hồi
+  - Bảo mật (security) và bảo vệ thông tin, quyền truy cập
+  - Khả năng bảo trì (maintainability) và tác động của thay đổi
+  - Tính linh hoạt (flexibility) và khả năng thích nghi với bối cảnh mới
+  - An toàn (safety) và giảm tác hại do hệ thống gây ra
+  - Chất lượng khi sử dụng theo ISO/IEC 25019 và vai trò của bối cảnh sử dụng
+  - Chuyển thuộc tính chất lượng thành tiêu chí đánh giá và xử lý đánh đổi giữa thuộc tính
+- level1: Nguyên tắc
+  level2:
+  - Tập trung vào khách hàng và các bên chịu ảnh hưởng bởi phần mềm
+  - Cam kết lãnh đạo và sự tham gia của các vai trò
+  - Tiếp cận theo quy trình và nhận diện quan hệ giữa các quy trình
+  - Phòng ngừa khiếm khuyết và xây dựng chất lượng ngay từ đầu
+  - Ra quyết định dựa trên bằng chứng và công khai độ không chắc chắn
+  - Tư duy dựa trên rủi ro và cơ hội nâng cao chất lượng
+  - Chu trình Plan–Do–Check–Act và vòng phản hồi chất lượng
+  - Quản lý quan hệ với nhà cung cấp và trách nhiệm chất lượng toàn chuỗi
+- level1: Hệ thống chất lượng
+  level2:
+  - Hệ thống quản lý chất lượng (QMS) và phạm vi áp dụng trong tổ chức phần mềm
+  - Chính sách chất lượng, mục tiêu tổ chức và mục tiêu của từng dự án
+  - Cấu trúc chính sách, quy trình, thủ tục, hướng dẫn và hồ sơ
+  - Vai trò ISO 9001 và kiểm tra phiên bản tiêu chuẩn đang áp dụng
+  - ISO/IEC/IEEE 90003 và giới hạn hướng dẫn theo phiên bản ISO 9001 được viện dẫn
+  - Định vị SWEBOK, IEEE 730 và các chuẩn vòng đời trong quản lý chất lượng
+  - Chọn yêu cầu áp dụng từ tiêu chuẩn, hợp đồng và đặc thù ngành
+  - Điều chỉnh quy trình và kiểm soát ngoại lệ bằng phê duyệt có căn cứ
+  - Phân biệt đáp ứng tiêu chuẩn, đánh giá năng lực quy trình và chứng nhận hệ thống
+- level1: Tổ chức chất lượng
+  level2:
+  - Phân định trách nhiệm giữa lãnh đạo, quản lý dự án, phát triển, kiểm thử và vận hành
+  - Vai trò bộ phận đảm bảo chất lượng và mức độc lập cần thiết
+  - Ma trận trách nhiệm RACI cho hoạt động và quyết định chất lượng
+  - Thẩm quyền chấp nhận rủi ro, miễn trừ tiêu chí và dừng phát hành
+  - Năng lực chuyên môn, đào tạo và quản lý tri thức chất lượng
+  - Văn hóa báo cáo vấn đề sớm và học từ sai sót không quy chụp cá nhân
+  - Đạo đức nghề nghiệp và tính trung thực của báo cáo, bằng chứng
+  - Cơ chế phối hợp giữa các nhóm và xử lý xung đột mục tiêu
+- level1: Kế hoạch chất lượng
+  level2:
+  - Mục đích và cấu trúc kế hoạch chất lượng phần mềm
+  - Xác định phạm vi, sản phẩm bàn giao, giả định và ràng buộc
+  - Đặt mục tiêu chất lượng đo được và gắn với nhu cầu các bên liên quan
+  - Lập ma trận tiêu chuẩn, hoạt động, người phụ trách và bằng chứng đầu ra
+  - Lập lịch rà soát, kiểm thử, đánh giá và mốc kiểm soát chất lượng
+  - Ước lượng nhân lực, ngân sách, công cụ và môi trường cần thiết
+  - Xác định tiêu chí bắt đầu, kết thúc và điều kiện chuyển giai đoạn
+  - Quy định báo cáo, xử lý vấn đề, ngoại lệ và tuyến báo cáo vượt cấp
+  - Phê duyệt, quản lý phiên bản và cập nhật kế hoạch khi phạm vi thay đổi
+- level1: Rủi ro chất lượng
+  level2:
+  - Phân biệt rủi ro chất lượng sản phẩm và rủi ro của quy trình thực hiện
+  - Nhận diện rủi ro từ nghiệp vụ, kiến trúc, dữ liệu và phụ thuộc bên ngoài
+  - Ước lượng xác suất, tác động và khả năng phát hiện
+  - Lập sổ đăng ký rủi ro với chủ sở hữu, biện pháp và dấu hiệu kích hoạt
+  - Phân tích dạng sai hỏng và ảnh hưởng bằng FMEA khi phù hợp
+  - Ưu tiên hoạt động đảm bảo và kiểm soát theo mức rủi ro
+  - Đánh giá rủi ro còn lại và thẩm quyền chấp nhận
+  - Theo dõi rủi ro mới khi yêu cầu, môi trường hoặc sản phẩm thay đổi
+- level1: Yêu cầu chất lượng
+  level2:
+  - Thu thập nhu cầu chất lượng từ người dùng, khách hàng và vận hành
+  - Viết yêu cầu chất lượng cụ thể thay cho các mô tả nhanh, dễ dùng, ổn định
+  - Kịch bản chất lượng với kích thích, môi trường, phản ứng và phép đo
+  - Xác định ngưỡng chấp nhận, tải tham chiếu và điều kiện đo
+  - Rà soát tính đầy đủ, nhất quán, khả thi và khả năng kiểm chứng của yêu cầu
+  - Liên kết yêu cầu với rủi ro, thiết kế, hoạt động kiểm tra và kết quả
+  - Quản lý thay đổi yêu cầu và phân tích tác động đến cam kết chất lượng
+  - Thống nhất yêu cầu với khách hàng trước khi dùng làm căn cứ nghiệm thu
+- level1: Đảm bảo quy trình
+  level2:
+  - Mục tiêu SQA và cách tạo niềm tin dựa trên bằng chứng
+  - Xác định quy trình cần giám sát theo kế hoạch và mức rủi ro
+  - Đảm bảo chất lượng trong hoạt động yêu cầu và thiết kế
+  - Đảm bảo chất lượng trong lập trình, tích hợp và kiểm thử
+  - Đảm bảo chất lượng khi bàn giao, vận hành, bảo trì và ngừng sử dụng
+  - Kiểm tra sự tuân thủ và đánh giá hiệu lực thực tế của quy trình
+  - Ghi nhận điểm không phù hợp và theo dõi hành động xử lý
+  - Báo cáo đảm bảo chất lượng độc lập với báo cáo tiến độ
+- level1: Rà soát kỹ thuật
+  level2:
+  - Vai trò rà soát tĩnh và phân biệt với kiểm thử thực thi
+  - Chọn rà soát đồng cấp, walkthrough hoặc inspection theo mục đích
+  - Chuẩn bị đầu vào, tiêu chí rà soát và danh sách kiểm tra
+  - Phân công tác giả, người điều phối, người rà soát và người ghi nhận
+  - Rà soát yêu cầu, thiết kế, mã nguồn, kế hoạch kiểm thử và tài liệu
+  - Phát hiện, phân loại và ghi nhận vấn đề có thể hành động
+  - Theo dõi sửa chữa và xác nhận đóng vấn đề sau rà soát
+  - Đo hiệu quả rà soát và tránh biến cuộc họp thành hình thức phê duyệt
+- level1: Kiểm chứng sản phẩm
+  level2:
+  - Phân biệt kiểm chứng (verification) và thẩm định (validation)
+  - Lựa chọn kiểm tra, phân tích, mô phỏng, trình diễn và kiểm thử
+  - Lập kế hoạch V&V phù hợp mức rủi ro và vòng đời
+  - Kiểm chứng sản phẩm trung gian so với yêu cầu và thiết kế đã thống nhất
+  - Thẩm định giải pháp với người dùng trong bối cảnh sử dụng thực tế
+  - Đánh giá độc lập khi cần và quản lý xung đột lợi ích
+  - Tổng hợp bằng chứng, giới hạn kiểm chứng và phần chưa được xác nhận
+  - Liên kết kết quả V&V với quyết định chấp nhận sản phẩm
+- level1: Quản lý kiểm thử
+  level2:
+  - Xây dựng chiến lược kiểm thử từ yêu cầu và rủi ro chất lượng
+  - Phân bổ kiểm thử đơn vị, tích hợp, hệ thống và nghiệm thu
+  - Cân bằng kiểm thử chức năng và các thuộc tính chất lượng khác
+  - Chọn kỹ thuật thiết kế kiểm thử và xác định mức bao phủ cần thiết
+  - Quản lý môi trường, dữ liệu thử và tính đại diện so với thực tế
+  - Kiểm thử hồi quy và lựa chọn phạm vi sau thay đổi
+  - Phối hợp kiểm thử khám phá, kiểm thử thủ công và tự động hóa
+  - Kiểm soát kiểm thử không ổn định, kết quả không tái lập và thiếu bằng chứng
+  - Theo dõi tiến độ, mức bao phủ rủi ro và tiêu chí kết thúc kiểm thử
+  - Đọc báo cáo kiểm thử và tránh suy ra chất lượng chỉ từ tỷ lệ ca kiểm thử đạt
+- level1: Chất lượng kỹ thuật
+  level2:
+  - Liên kết quyết định kiến trúc với mục tiêu và rủi ro chất lượng
+  - Tiêu chuẩn mã nguồn, cấu trúc thiết kế và khả năng hiểu chương trình
+  - Phân tích tĩnh, độ phức tạp và khả năng bảo trì
+  - Kiểm soát trùng lặp, phụ thuộc và ranh giới thành phần
+  - Đánh giá nợ kỹ thuật và ưu tiên xử lý theo tác động
+  - Quản lý yêu cầu bảo mật và bằng chứng kiểm tra lỗ hổng
+  - Đánh giá hiệu năng, tải, độ bền và khả năng phục hồi
+  - Đánh giá trải nghiệm người dùng và khả năng tiếp cận
+  - Chất lượng dữ liệu, tài liệu và giao diện tích hợp trong sản phẩm bàn giao
+- level1: Tự động hóa
+  level2:
+  - Vai trò công cụ trong quản lý chất lượng và giới hạn của tự động hóa
+  - Tích hợp rà soát và kiểm tra tự động vào luồng thay đổi mã nguồn
+  - Thiết kế cổng chất lượng (quality gate) theo mức rủi ro
+  - Kết hợp kiểm thử, phân tích tĩnh và kiểm tra thành phần phụ thuộc trong CI/CD
+  - Chặn phát hành có căn cứ và kiểm soát ngoại lệ khi cổng chất lượng không đạt
+  - Đánh giá độ chính xác, cảnh báo sai và lỗi bị bỏ sót của công cụ
+  - Quản lý phiên bản bộ quy tắc, cấu hình công cụ và ngưỡng cảnh báo
+  - Bảo đảm tính tái lập của môi trường và kết quả kiểm tra tự động
+  - Lưu bằng chứng pipeline và đo chi phí bảo trì tự động hóa
+- level1: Quản lý lỗi
+  level2:
+  - Phân biệt khiếm khuyết, điểm không phù hợp, yêu cầu thay đổi và sự cố
+  - 'Nội dung báo cáo lỗi: điều kiện tái hiện, mong đợi, thực tế và bằng chứng'
+  - Phân biệt mức nghiêm trọng (severity) và mức ưu tiên (priority)
+  - Thiết kế vòng đời lỗi và trách nhiệm chuyển trạng thái
+  - Phân loại, loại trùng và điều phối xử lý qua phiên phân loại lỗi
+  - Xác định phiên bản phát sinh, phạm vi ảnh hưởng và sản phẩm liên quan
+  - Kiểm tra bản sửa, kiểm thử hồi quy và điều kiện đóng lỗi
+  - Quản lý lỗi mở lại, lỗi tồn lâu, lỗi hoãn sửa và ngoại lệ chấp nhận
+  - Thông báo lỗi quan trọng và theo dõi cam kết xử lý với bên liên quan
+- level1: Đo lường
+  level2:
+  - Xây dựng mục tiêu, câu hỏi và phép đo theo Goal–Question–Metric
+  - Phân biệt dữ liệu gốc, phép đo, chỉ số và tiêu chí ra quyết định
+  - Định nghĩa chỉ số với công thức, đơn vị, nguồn dữ liệu và chu kỳ đo
+  - Chọn chỉ số dẫn dắt và chỉ số kết quả phù hợp từng mục tiêu
+  - Mật độ khiếm khuyết và giới hạn khi so sánh khác quy mô hoặc ngôn ngữ
+  - Lỗi lọt sau phát hành và hiệu quả phát hiện khiếm khuyết
+  - Bao phủ yêu cầu, rủi ro và mã nguồn cùng giới hạn diễn giải
+  - Thời gian phát hiện, xử lý và đóng lỗi theo mức độ ảnh hưởng
+  - Đo chất lượng vận hành bằng độ sẵn sàng, lỗi và thời gian khôi phục
+  - Đo sự hài lòng, mức hoàn thành tác vụ và giá trị người dùng nhận được
+  - Quản lý chất lượng dữ liệu đo và tránh biến chỉ số thành mục tiêu đối phó
+- level1: Phân tích dữ liệu
+  level2:
+  - Lập đường cơ sở chất lượng và phân đoạn dữ liệu theo bối cảnh
+  - Phân tích xu hướng, phân bố và các điểm bất thường
+  - Dùng Pareto để ưu tiên nhóm vấn đề có tác động lớn
+  - Phân biệt biến động thông thường và biến động có nguyên nhân đặc biệt
+  - Biểu đồ kiểm soát và điều kiện áp dụng cho dữ liệu quy trình phần mềm
+  - Lấy mẫu, sai lệch dữ liệu và độ không chắc chắn của kết luận
+  - Phân biệt tương quan với nguyên nhân khi giải thích chỉ số
+  - Thiết kế bảng theo dõi, ngưỡng cảnh báo và báo cáo cho từng nhóm ra quyết định
+- level1: Chi phí chất lượng
+  level2:
+  - Chi phí phòng ngừa, thẩm định, sai hỏng nội bộ và sai hỏng bên ngoài
+  - Ước tính chi phí làm lại, sự cố, hỗ trợ và mất cơ hội
+  - Đánh giá lợi ích của rà soát sớm và tự động hóa phù hợp
+  - Cân bằng ngân sách chất lượng với mức rủi ro chấp nhận được
+  - Lập luận đầu tư xử lý nợ kỹ thuật dựa trên chi phí và tác động
+  - So sánh phương án chất lượng với giả định và độ không chắc chắn rõ ràng
+  - Tránh coi cắt hoạt động kiểm tra là tiết kiệm chi phí mặc định
+- level1: Bằng chứng chất lượng
+  level2:
+  - Xác định hồ sơ và bằng chứng cần lưu cho mỗi hoạt động chất lượng
+  - Quản lý phiên bản yêu cầu, thiết kế, mã nguồn và kết quả kiểm tra
+  - Thiết lập đường cơ sở và định danh chính xác bản dựng được đánh giá
+  - Truy vết hai chiều giữa yêu cầu, thay đổi, lỗi và bằng chứng
+  - Bảo đảm tính toàn vẹn, quyền truy cập và thời hạn lưu trữ hồ sơ
+  - Liên kết bằng chứng tự động với báo cáo và quyết định phê duyệt
+  - Chứng minh khả năng tái lập bản dựng và kết quả kiểm tra
+  - Lập luận bảo đảm chất lượng bằng tuyên bố, lập luận và bằng chứng
+- level1: Đánh giá tuân thủ
+  level2:
+  - Phân biệt đánh giá tuân thủ (audit), rà soát kỹ thuật và xem xét của lãnh đạo
+  - Lập chương trình đánh giá nội bộ theo phạm vi và rủi ro
+  - Xác định tiêu chí, người đánh giá và tính độc lập cần thiết
+  - Thu thập bằng chứng qua hồ sơ, phỏng vấn và lấy mẫu
+  - Viết phát hiện đánh giá gắn với yêu cầu và bằng chứng khách quan
+  - Phân loại điểm không phù hợp và thống nhất hành động xử lý
+  - Theo dõi thời hạn, xác nhận hiệu lực hành động và đóng phát hiện
+  - Chuẩn bị đánh giá bên ngoài và phân biệt hồ sơ đầy đủ với hiệu lực hệ thống
+- level1: Nghiệm thu và phát hành
+  level2:
+  - Phân biệt hoàn thành phát triển, nghiệm thu và sẵn sàng phát hành
+  - Tổng hợp tiêu chí chấp nhận và bằng chứng chất lượng của phiên bản
+  - Rà soát lỗi còn mở, lỗ hổng, giới hạn đã biết và rủi ro còn lại
+  - Tổ chức quyết định phát hành hoặc dừng với người có thẩm quyền
+  - Quản lý miễn trừ, chấp nhận có điều kiện và thời hạn khắc phục
+  - Kiểm tra tài liệu, cấu hình, phương án chuyển đổi và khả năng quay lại
+  - Bàn giao hỗ trợ, hướng dẫn vận hành và trách nhiệm sau phát hành
+  - Xác nhận nghiệm thu, lưu quyết định và theo dõi cam kết còn lại
+- level1: Chất lượng vận hành
+  level2:
+  - Thu thập tín hiệu chất lượng từ người dùng, hỗ trợ và hệ thống đang chạy
+  - Xác định SLI, SLO và liên hệ với thỏa thuận SLA
+  - Theo dõi lỗi sau phát hành, mức ảnh hưởng và độ tin cậy dịch vụ
+  - Quan sát bằng log, metric, trace và bảo vệ dữ liệu trong bằng chứng vận hành
+  - Kiểm tra chất lượng khi triển khai từng phần và mở rộng phát hành
+  - Quản lý sự cố, khôi phục dịch vụ và bảo toàn bằng chứng
+  - Rà soát sau sự cố và đưa phát hiện về hoạt động phòng ngừa
+  - Đánh giá hồi quy chất lượng khi bảo trì, nâng cấp hoặc thay đổi cấu hình
+  - Quản lý chất lượng khi di chuyển dữ liệu và ngừng sử dụng hệ thống
+- level1: Nhà cung cấp
+  level2:
+  - Đánh giá năng lực và rủi ro chất lượng của nhà cung cấp
+  - Thống nhất yêu cầu, tiêu chí nghiệm thu và trách nhiệm trong hợp đồng
+  - Yêu cầu bằng chứng đối với phần mềm thuê ngoài và dịch vụ bên thứ ba
+  - Đánh giá chất lượng thành phần nguồn mở và phụ thuộc thương mại
+  - Theo dõi thay đổi phiên bản, lỗ hổng và vòng đời hỗ trợ của phụ thuộc
+  - Kiểm tra tích hợp và xử lý sự không phù hợp từ sản phẩm cung cấp
+  - Quản lý thay đổi nhà cung cấp và kế hoạch duy trì chất lượng
+- level1: Cải tiến chất lượng
+  level2:
+  - Chọn vấn đề cải tiến từ lỗi lặp lại, số liệu và phản hồi
+  - Phân biệt sửa lỗi tức thời, khắc phục nguyên nhân và phòng ngừa
+  - Phân tích nguyên nhân gốc bằng 5 Whys và sơ đồ nhân quả
+  - Kiểm chứng giả thuyết nguyên nhân bằng bằng chứng
+  - Lập hành động với chủ sở hữu, thời hạn và tiêu chí hiệu lực
+  - Thử nghiệm biện pháp trên phạm vi nhỏ và theo dõi tác dụng ngoài dự kiến
+  - Đánh giá kết quả so với đường cơ sở và cập nhật quy trình phù hợp
+  - Xác nhận vấn đề không tái diễn và chia sẻ bài học
+  - Chuyển nhu cầu cải tiến quy trình rộng hơn sang chương trình cải tiến của tổ chức
+- level1: Điều chỉnh bối cảnh
+  level2:
+  - Quản lý chất lượng trong vòng đời tuần tự và theo các mốc bàn giao
+  - Quản lý chất lượng trong Agile bằng tiêu chí chấp nhận và Definition of Done
+  - Quản lý chất lượng trong DevOps với phản hồi liên tục và trách nhiệm chung
+  - Áp dụng kế hoạch chất lượng tinh gọn cho nhóm nhỏ
+  - Phối hợp chất lượng giữa nhiều nhóm, địa điểm và hệ thống tích hợp
+  - Điều chỉnh mức độc lập và bằng chứng cho phần mềm có rủi ro cao
+  - Quản lý chất lượng hệ thống cũ với dữ liệu và kiểm thử còn thiếu
+  - Điều chỉnh đánh giá cho sản phẩm dùng AI và kết quả có tính xác suất
+  - Đánh giá lại hoạt động chất lượng khi quy mô, bối cảnh hoặc mức rủi ro thay đổi
+- level1: Sai lầm thường gặp
+  level2:
+  - Đồng nhất đảm bảo chất lượng với một nhóm kiểm thử ở cuối dự án
+  - Đánh giá chất lượng chỉ bằng số lỗi, độ bao phủ hoặc số ca kiểm thử
+  - Sao chép ngưỡng chất lượng giữa các sản phẩm không cùng bối cảnh
+  - Đặt mục tiêu không lỗi tuyệt đối mà thiếu phạm vi và bằng chứng
+  - Chạy theo chứng nhận nhưng không cải thiện kết quả thực tế
+  - Cho qua cổng chất lượng mà không ghi nhận rủi ro và thẩm quyền
+  - Đổ lỗi cá nhân hoặc đóng hành động trước khi kiểm tra hiệu lực
+  - Tự động hóa nhiều nhưng bỏ qua cảnh báo sai, kiểm thử không ổn định và chi phí duy trì
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân tích bối cảnh và các bên liên quan của một sản phẩm mẫu
+  - Xây dựng mục tiêu, mô hình và bộ yêu cầu chất lượng đo được
+  - Soạn kế hoạch chất lượng và ma trận trách nhiệm
+  - Lập sổ rủi ro và lựa chọn biện pháp đảm bảo, kiểm soát
+  - Thiết kế rà soát, chiến lược kiểm thử và cổng chất lượng
+  - Tạo báo cáo lỗi, bộ bằng chứng truy vết và bảng theo dõi chất lượng
+  - Thực hiện đánh giá nội bộ và lập hành động khắc phục
+  - Ra quyết định phát hành dựa trên lỗi còn lại, bằng chứng và rủi ro
+  - Phân tích phản hồi sau phát hành và đánh giá hiệu lực một biện pháp cải tiến

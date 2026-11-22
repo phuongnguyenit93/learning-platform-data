@@ -1,0 +1,266 @@
+menu:
+- level1: Tổng quan email
+  level2:
+  - Email thông báo là gì và vai trò trong luồng nghiệp vụ
+  - Phân biệt thư giao dịch, thư nhắc việc, bản tin và thư tiếp thị
+  - 'Các khái niệm nền tảng: người gửi, người nhận, máy chủ, hộp thư và miền'
+  - Phân biệt gửi email với xác nhận thư đã đến hộp thư hoặc đã được đọc
+  - So sánh email với thông báo trong ứng dụng, SMS và thông báo đẩy
+  - 'Những giới hạn của email: độ trễ, thư rác, khả năng hiển thị và phản hồi'
+  - Xác định phạm vi tính năng gửi thông báo và kiến thức cần chuẩn bị
+  - 'Ví dụ xuyên suốt: thông báo xác nhận và cập nhật trạng thái đơn hàng'
+- level1: Luồng chuyển phát
+  level2:
+  - Từ sự kiện nghiệp vụ đến tạo nội dung và yêu cầu gửi thư
+  - Vai trò phần mềm đọc thư, máy chủ nộp thư, chuyển thư và phát vào hộp thư
+  - Gửi qua SMTP relay hoặc API của dịch vụ email
+  - Tra cứu DNS, chuyển tiếp qua máy chủ và tiếp nhận tại miền người nhận
+  - 'Các trạng thái: chờ gửi, đang gửi, được tiếp nhận, bị trì hoãn và bị từ chối'
+  - Phản hồi đồng bộ khi gửi và thông báo chuyển phát đến sau
+  - Ranh giới trách nhiệm của ứng dụng, nhà cung cấp và máy chủ nhận
+  - Phân biệt các mốc thời gian nghiệp vụ, gửi thư và ghi nhận kết quả
+- level1: Địa chỉ và định danh
+  level2:
+  - Cấu trúc địa chỉ email, tên hiển thị và miền người nhận
+  - Phân biệt địa chỉ From, Sender, Reply-To và địa chỉ nhận phản hồi lỗi
+  - SMTP envelope và các header hiển thị trong nội dung thư
+  - To, Cc, Bcc và bảo vệ danh sách người nhận
+  - Message-ID, mã thông báo nghiệp vụ và mã yêu cầu của nhà cung cấp
+  - In-Reply-To, References và cách các thư được nhóm thành hội thoại
+  - Kiểm tra định dạng địa chỉ và giới hạn của việc xác minh hộp thư tồn tại
+  - Địa chỉ quốc tế hóa, Unicode và khả năng hỗ trợ của hệ thống gửi nhận
+- level1: Giao thức SMTP
+  level2:
+  - 'Phiên SMTP: kết nối, chào máy chủ, khai báo người gửi và người nhận'
+  - EHLO và việc thương lượng các khả năng mở rộng
+  - MAIL FROM, RCPT TO, DATA và ranh giới giữa envelope với nội dung
+  - Phân biệt kết quả chấp nhận người nhận với kết quả chấp nhận toàn bộ thư
+  - Mã phản hồi SMTP và mã trạng thái mở rộng
+  - Lỗi tạm thời, lỗi vĩnh viễn và cách diễn giải theo ngữ cảnh
+  - Gửi nhiều người nhận và xử lý trường hợp chỉ một phần được chấp nhận
+  - Timeout, mất kết nối và trạng thái gửi không xác định
+  - Đọc bản ghi phiên SMTP để hiểu luồng xử lý mà không lộ bí mật
+- level1: MIME và nội dung
+  level2:
+  - 'Cấu trúc thông điệp email: header, dòng trống và phần thân'
+  - MIME và cách mô tả kiểu nội dung, bộ ký tự và dữ liệu nhiều phần
+  - Content-Type, charset và Content-Transfer-Encoding
+  - Tiêu đề, tên hiển thị và nội dung tiếng Việt có dấu
+  - multipart/alternative cho phiên bản văn bản thuần và HTML
+  - multipart/mixed cho nội dung thư đi cùng tệp đính kèm
+  - multipart/related cho HTML và tài nguyên nội tuyến
+  - Ranh giới MIME, thứ tự các phần và cấu trúc lồng nhau
+  - Kiểm tra thông điệp gốc để tìm lỗi mã hóa hoặc bố cục nội dung
+- level1: HTML cho email
+  level2:
+  - Khác biệt giữa HTML email với trang web thông thường
+  - Thiết kế bố cục có khả năng hiển thị trên nhiều phần mềm đọc thư
+  - CSS nội tuyến, thuộc tính được hỗ trợ và cách xử lý khi CSS bị bỏ
+  - Thiết kế thích ứng trên màn hình nhỏ và kiểm tra chế độ tối
+  - Tiêu đề, đoạn xem trước và thứ bậc nội dung dễ quét
+  - Nút hành động, liên kết, hình ảnh và văn bản thay thế
+  - 'Khả năng tiếp cận: độ tương phản, cỡ chữ và nội dung khi ảnh không tải'
+  - Bản văn bản thuần và trải nghiệm khi HTML không được hiển thị
+- level1: Mẫu và ngôn ngữ
+  level2:
+  - Tách mẫu thư, dữ liệu nghiệp vụ và cấu hình người gửi
+  - Thiết kế bố cục chung, phần nội dung dùng lại và mẫu theo loại thông báo
+  - Khai báo biến bắt buộc, giá trị mặc định và kiểm tra dữ liệu mẫu
+  - Thoát ký tự theo ngữ cảnh để tránh chèn nội dung ngoài ý muốn
+  - Kết xuất mẫu phía máy chủ và mẫu được quản lý tại nhà cung cấp
+  - Ngôn ngữ, múi giờ và định dạng ngày giờ, số tiền theo người nhận
+  - Quản lý phiên bản mẫu và khả năng truy lại nội dung đã gửi
+  - Xem trước, phê duyệt và kiểm tra mẫu trước khi phát hành
+- level1: Tệp và hình ảnh
+  level2:
+  - Phân biệt tệp đính kèm, ảnh nội tuyến và liên kết tải tài liệu
+  - Đặt tên tệp tiếng Việt, MIME type và Content-Disposition
+  - Content-ID và tham chiếu ảnh nội tuyến trong HTML
+  - Giới hạn kích thước thư và chi phí tăng kích thước do mã hóa
+  - Đọc tệp theo luồng và quản lý bộ nhớ, tài nguyên khi gửi
+  - Kiểm tra loại tệp, nguồn tệp và quyền truy cập tài liệu
+  - Thời hạn liên kết tải, quyền người nhận và cách tránh lộ tài liệu
+  - Kiểm thử tệp rỗng, tệp hỏng, tên tệp đặc biệt và nhiều tệp cùng thư
+- level1: Xác thực tên miền
+  level2:
+  - Quan hệ giữa miền gửi, miền ký, địa chỉ envelope và danh tính hiển thị
+  - 'Bản ghi DNS liên quan: MX, TXT và thông tin xác thực miền'
+  - 'SPF: kiểm tra nguồn gửi theo miền trong envelope'
+  - 'DKIM: ký thông điệp và xác minh bằng khóa công khai trong DNS'
+  - 'DMARC: sự căn chỉnh miền và chính sách xử lý kết quả xác thực'
+  - Đọc kết quả xác thực trong header thư và báo cáo liên quan
+  - Tách miền hoặc miền con cho từng luồng gửi và từng môi trường
+  - Quy trình thêm nguồn gửi, xác minh DNS và luân chuyển khóa ký
+  - Giới hạn của xác thực miền đối với khả năng vào hộp thư chính
+- level1: Khả năng chuyển phát
+  level2:
+  - Phân biệt thư được tiếp nhận, được phát và được xếp vào hộp thư chính
+  - Danh tiếng miền, địa chỉ IP và lịch sử gửi thư
+  - Ảnh hưởng của chất lượng danh sách, thư bị trả lại và khiếu nại
+  - Nội dung, liên kết và sự nhất quán của danh tính người gửi
+  - Tăng lưu lượng gửi có kiểm soát và tránh thay đổi đột ngột
+  - Địa chỉ IP dùng chung, IP riêng và trách nhiệm vận hành tương ứng
+  - Theo dõi thư rác, chính sách lọc và tín hiệu từ từng miền nhận
+  - Vai trò của PTR, HELO và cấu hình máy chủ khi tự vận hành hạ tầng gửi
+  - Phân tích nguyên nhân thư vào spam bằng dữ liệu thay vì chỉ sửa câu chữ
+- level1: Kết nối và xác thực
+  level2:
+  - Thiết lập máy chủ, cổng và thông tin tài khoản gửi
+  - Phân biệt TLS ngay khi kết nối với nâng cấp kết nối bằng STARTTLS
+  - Kiểm tra chứng thư, tên máy chủ và chính sách bắt buộc mã hóa
+  - SMTP AUTH và lựa chọn cơ chế được nhà cung cấp hỗ trợ
+  - Mật khẩu ứng dụng, OAuth 2.0 và quản lý vòng đời thông tin truy cập
+  - Tách tài khoản, bí mật và quyền gửi theo môi trường hoặc miền
+  - Timeout kết nối, đọc, ghi và giới hạn thời gian toàn thao tác
+  - Kiểm tra kết nối từ môi trường triển khai thực tế
+  - Luân chuyển thông tin truy cập và phục hồi khi quyền gửi bị thu hồi
+- level1: Email với Jakarta Mail
+  level2:
+  - Vai trò Jakarta Mail, triển khai thư viện và quan hệ với API JavaMail
+  - Cấu hình Session, thuộc tính kết nối và thông tin xác thực
+  - Tạo MimeMessage với người gửi, người nhận, tiêu đề và ngày gửi
+  - Tạo thư văn bản thuần hoặc HTML bằng bộ ký tự phù hợp
+  - Lắp ghép MimeMultipart cho HTML, ảnh nội tuyến và tệp đính kèm
+  - Gửi thư bằng Transport và quản lý vòng đời kết nối
+  - Xử lý lỗi xác thực, lỗi địa chỉ và lỗi gửi một phần
+  - Quản lý stream, tài nguyên tệp và thông điệp khi gửi đồng thời
+  - Kiểm tra nội dung MIME thực tế và cấu hình chẩn đoán an toàn
+- level1: Email với Spring Boot
+  level2:
+  - Vai trò hỗ trợ Mail của Spring Boot và JavaMailSender
+  - Cấu hình kết nối SMTP bằng thuộc tính theo từng môi trường
+  - Gửi thư đơn giản với SimpleMailMessage
+  - Tạo thư MIME bằng MimeMessage và MimeMessageHelper
+  - Kết xuất mẫu thư từ dữ liệu nghiệp vụ trước khi gửi
+  - Tách dịch vụ thông báo, bộ dựng thư và thành phần chuyển phát
+  - Quản lý exception và chuyển lỗi thư viện thành kết quả gửi có cấu trúc
+  - Xử lý nền và giới hạn của việc chỉ dùng @Async để gửi thư
+  - Quản lý bean, bí mật và cấu hình timeout trong ứng dụng
+  - Kiểm chứng luồng gửi bằng máy chủ SMTP giả lập và dữ liệu kiểm thử
+- level1: API gửi email
+  level2:
+  - So sánh SMTP relay với HTTP API theo nhu cầu tích hợp
+  - Thiết kế lớp chuyển đổi để ứng dụng không phụ thuộc sâu vào nhà cung cấp
+  - Ánh xạ người nhận, nội dung, mẫu, tệp và metadata sang yêu cầu API
+  - Quản lý khóa API, quyền gửi và miền đã được xác minh
+  - Phân biệt phản hồi tiếp nhận API với kết quả chuyển phát cuối cùng
+  - Mã yêu cầu, khóa chống lặp và các khả năng riêng cần kiểm tra trong hợp đồng
+  - Xử lý hạn ngạch, giới hạn tốc độ và lỗi phản hồi từ nhà cung cấp
+  - Thay đổi nhà cung cấp và quản lý trạng thái gửi không xác định
+- level1: Thiết kế thông báo
+  level2:
+  - Xác định sự kiện nào cần email và thông tin người nhận cần biết
+  - 'Mô hình thông báo: loại, người nhận, mẫu, dữ liệu và mức ưu tiên'
+  - Phân biệt thời điểm phát sinh nghiệp vụ với thời điểm lập kế hoạch gửi
+  - Thiết kế trạng thái thông báo, lần gửi và kết quả từng người nhận
+  - Xác định thông báo tức thời, thông báo theo lịch và bản tổng hợp
+  - Thời hạn giá trị, hủy thông báo và xử lý khi nghiệp vụ đã thay đổi
+  - Ưu tiên email quan trọng và cô lập khỏi luồng gửi số lượng lớn
+  - Thiết kế lịch sử phục vụ hỗ trợ mà không lưu thừa dữ liệu nhạy cảm
+- level1: Hàng đợi và giao dịch
+  level2:
+  - Vì sao không nên gắn việc chờ gửi email với giao dịch nghiệp vụ dài
+  - Cửa sổ lỗi khi ghi dữ liệu nghiệp vụ và gửi email bằng hai thao tác riêng
+  - Mẫu transactional outbox cho yêu cầu gửi phát sinh cùng giao dịch
+  - Đưa công việc vào hàng đợi và lưu trạng thái bền vững
+  - Worker lấy việc, khóa hoặc lease và phân chia công việc giữa nhiều tiến trình
+  - Thời điểm xác nhận công việc đã xử lý và cập nhật kết quả gửi
+  - Khôi phục công việc đang chạy khi tiến trình hoặc máy chủ bị dừng
+  - Tách giai đoạn lập kế hoạch, dựng nội dung và chuyển phát
+- level1: Retry và chống trùng
+  level2:
+  - Phân loại lỗi có thể thử lại, lỗi vĩnh viễn và lỗi cần can thiệp
+  - Thiết kế khoảng chờ tăng dần, jitter và giới hạn số lần thử
+  - Áp dụng thời hạn thông báo khi email không còn giá trị sử dụng
+  - Khóa chống trùng theo sự kiện nghiệp vụ, người nhận và loại thông báo
+  - Giao dịch trạng thái và xử lý khi nhiều worker nhận cùng công việc
+  - Khoảng trống giữa máy chủ chấp nhận thư với việc ứng dụng ghi nhận thành công
+  - Giới hạn bảo đảm không gửi trùng khi kết quả chuyển phát chưa xác định
+  - Hàng đợi thất bại cuối cùng và thao tác gửi lại có kiểm soát
+  - Giữ nguyên nội dung hay kết xuất lại mẫu khi thử lại hoặc gửi lại thủ công
+- level1: Phản hồi chuyển phát
+  level2:
+  - Thông báo trạng thái chuyển phát và dữ liệu phản hồi từ nhà cung cấp
+  - Thư trả lại tạm thời (soft bounce), vĩnh viễn (hard bounce) và mã lý do
+  - Phản hồi lỗi sau khi SMTP đã chấp nhận yêu cầu gửi
+  - Khiếu nại thư rác, vòng phản hồi (feedback loop) và quy trình ngừng gửi
+  - Xác thực webhook phản hồi, chống phát lại và bảo vệ endpoint tiếp nhận
+  - Liên kết phản hồi với thông báo, lần gửi và đúng người nhận
+  - Xử lý sự kiện phản hồi trùng, đến muộn hoặc không đúng thứ tự
+  - Danh sách ngừng gửi và điều kiện xem xét khôi phục người nhận
+  - Đối soát trạng thái khi thiếu phản hồi hoặc có dữ liệu mâu thuẫn
+- level1: Người nhận và tùy chọn
+  level2:
+  - Xác minh quyền sử dụng địa chỉ email và xử lý khi người dùng đổi địa chỉ
+  - Quản lý lựa chọn nhận thư theo loại nội dung và kênh thông báo
+  - Phân biệt tùy chọn thư quảng bá với thông báo nghiệp vụ thiết yếu
+  - Ghi nhận căn cứ đăng ký nhận và lịch sử thay đổi tùy chọn
+  - Luồng hủy đăng ký, header List-Unsubscribe và hủy đăng ký một lần nhấp khi áp dụng
+  - Giới hạn tần suất, giờ yên lặng và tổng hợp thông báo theo múi giờ
+  - Người nhận đã bị ngừng gửi, địa chỉ sai và tài khoản không còn hoạt động
+  - Kiểm tra lại trạng thái người nhận trước khi gửi công việc đã xếp hàng
+- level1: Bảo mật email
+  level2:
+  - Ngăn chèn header và kiểm tra dữ liệu dùng trong người gửi, người nhận, tiêu đề
+  - Ngăn chèn mẫu hoặc HTML không mong muốn từ dữ liệu đầu vào
+  - Bảo vệ liên kết đặt lại mật khẩu, xác minh tài khoản và hành động nhạy cảm
+  - Giới hạn nội dung nhạy cảm và tránh dùng email làm kho lưu trữ bí mật
+  - Quản lý khóa SMTP, token API và quyền truy cập cấu hình
+  - Phân quyền xem lịch sử, xem nội dung và gửi lại thông báo
+  - Ngăn endpoint gửi thử bị lạm dụng thành công cụ phát tán thư
+  - Kiểm soát nguồn ảnh, tệp và tài nguyên tải từ URL bên ngoài
+  - Phân biệt mã hóa đường truyền với mã hóa nội dung đầu cuối
+- level1: Hiệu năng gửi thư
+  level2:
+  - Ước lượng lưu lượng theo số thông báo, số người nhận và số lần thử
+  - Giới hạn tốc độ theo nhà cung cấp, miền nhận, tenant và loại thông báo
+  - Giới hạn số worker, luồng xử lý và kết nối SMTP
+  - Tái sử dụng kết nối theo khả năng thư viện và chính sách máy chủ
+  - Quản lý bộ nhớ khi nhiều thư có HTML, ảnh hoặc tệp lớn
+  - Bộ đệm bền vững, áp lực ngược và xử lý backlog tăng nhanh
+  - Đo chi phí gửi theo dung lượng, số lần gửi và tính năng sử dụng
+  - Thử nghiệm tăng tải và kiểm tra mức ảnh hưởng đến luồng nghiệp vụ
+- level1: Kiểm thử email
+  level2:
+  - Lập ma trận kiểm thử theo loại thông báo và trạng thái chuyển phát
+  - Kiểm thử dữ liệu mẫu, biến thiếu và nội dung tiếng Việt
+  - Kiểm thử MIME, bản văn bản thuần, HTML và tệp đính kèm
+  - Kiểm tra hiển thị trên nhiều phần mềm đọc thư và thiết bị
+  - Dùng máy chủ SMTP kiểm thử để giữ thư trong môi trường an toàn
+  - Kiểm thử lỗi xác thực, lỗi TLS, timeout và gửi một phần
+  - Kiểm thử outbox, retry, chống trùng và phục hồi sau khi dừng tiến trình
+  - Kiểm thử webhook phản hồi, suppression và hủy đăng ký
+  - Kiểm thử tải, giới hạn tài nguyên và cô lập luồng ưu tiên
+  - Chặn gửi nhầm đến địa chỉ thật trong môi trường phát triển và CI
+- level1: Quan sát và vận hành
+  level2:
+  - Log có cấu trúc theo mã thông báo, lần gửi và mã nhà cung cấp
+  - Metric cho hàng đợi, tỷ lệ tiếp nhận, lỗi gửi và thời gian chờ
+  - Theo dõi bounce, khiếu nại và kết quả xác thực tên miền
+  - Độ trễ từ sự kiện nghiệp vụ đến lúc email được tiếp nhận
+  - Giới hạn của số liệu mở thư, nhấp liên kết và tác động của bảo vệ riêng tư
+  - Dashboard và cảnh báo theo mức ưu tiên hoặc miền nhận
+  - Triển khai nhiều bản sao, dừng worker an toàn và tiếp tục việc chưa xong
+  - Quản lý thời hạn lưu lịch sử, payload và dữ liệu phản hồi
+  - Runbook thay đổi cấu hình, nhà cung cấp và thông tin truy cập
+- level1: Xử lý sự cố
+  level2:
+  - 'Không kết nối được SMTP: kiểm tra DNS, cổng, mạng và cấu hình TLS'
+  - 'Xác thực thất bại: kiểm tra cơ chế đăng nhập, quyền và thông tin truy cập'
+  - Máy chủ đã nhận thư nhưng người nhận chưa thấy trong hộp thư
+  - 'Thư vào spam: kiểm tra danh tính, xác thực miền và chất lượng danh sách'
+  - Lỗi tiếng Việt, tiêu đề sai hoặc nội dung MIME bị hỏng
+  - Ảnh không hiển thị, tệp không mở được hoặc bố cục HTML lệch
+  - Thư gửi trùng, gửi muộn hoặc vẫn gửi sau khi nghiệp vụ đã hủy
+  - Backlog tăng, vượt hạn ngạch và lỗi gửi tập trung ở một miền nhận
+  - Đối soát sự cố, khoanh vùng thư ảnh hưởng và gửi lại có dấu vết
+- level1: Dự án thực hành
+  level2:
+  - Phân tích nhu cầu xác nhận đơn hàng và thông báo thay đổi trạng thái
+  - Thiết kế mẫu thư song ngữ, người nhận và tùy chọn thông báo
+  - Xây dựng dịch vụ gửi bằng Spring Boot với lớp chuyển phát thay thế được
+  - Tích hợp outbox, worker, giới hạn tốc độ và chính sách thử lại
+  - Bảo vệ liên kết hành động bằng token, thời hạn giá trị và kiểm tra quyền
+  - Tiếp nhận phản hồi chuyển phát và cập nhật danh sách ngừng gửi
+  - Mô phỏng mất kết nối, lỗi một phần, gửi trùng và sự kiện đến muộn
+  - Nghiệm thu nội dung, khả năng quan sát và quy trình phục hồi toàn luồng

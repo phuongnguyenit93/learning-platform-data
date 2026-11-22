@@ -1,0 +1,7 @@
+# Spring Security - Authentication
+
+Xác thực danh tính (authentication) là quá trình kiểm tra bằng chứng để xác định ai đang tương tác với ứng dụng. Spring Security cung cấp các thành phần để tiếp nhận thông tin đăng nhập, kiểm tra tài khoản và đưa kết quả xác thực đến nơi cần sử dụng. Module này dành cho người đã biết Java, Spring cơ bản và HTTP, muốn hiểu cơ chế xác thực để cấu hình, mở rộng và kiểm thử một luồng đăng nhập có thể giải thích được.
+
+Điểm xuất phát là phân biệt danh tính được khai báo với danh tính đã được kiểm chứng. Người học sẽ làm rõ quan hệ giữa chủ thể (principal), thông tin chứng minh danh tính (credentials), quyền hạn (authorities) và Authentication, rồi theo dõi cách bộ máy xác thực tạo ra kết quả đáng tin cậy. Kết quả ấy là đầu vào cho kiểm tra quyền truy cập. Các ví dụ HTTP Basic và đăng nhập biểu mẫu minh họa cơ chế qua ngăn xếp Servlet; việc giữ ngữ cảnh trong yêu cầu và lưu kết quả cho yêu cầu tiếp theo cần được xem xét riêng.
+
+Lộ trình đi từ mô hình danh tính và bộ máy xác thực đến dữ liệu người dùng, băm mật khẩu và các cơ chế đăng nhập. Tiếp đó, người học quản lý ngữ cảnh, phiên, remember-me và đăng xuất trước khi tự xây dựng thành phần xác thực phù hợp. Phần cuối dùng kiểm thử và sự kiện xác thực để đối chiếu cả trường hợp thành công lẫn thất bại. Trọng tâm là vòng đời xác thực; thiết kế chính sách phân quyền và chuyên sâu các giao thức liên kết danh tính thuộc các phạm vi học tiếp theo.

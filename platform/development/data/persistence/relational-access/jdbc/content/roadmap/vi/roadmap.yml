@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-jdbc
+  title: Tổng quan JDBC
+  purpose: Hiểu JDBC là API truy cập dữ liệu quan hệ bằng SQL và nắm luồng làm việc với driver.
+  objectives:
+  - Giải thích vai trò JDBC driver và các lớp chính.
+  - Phác họa luồng kết nối, thực thi SQL, đọc kết quả.
+  - Phân biệt JDBC với ORM ở mức sử dụng.
+- id: ket-noi-datasource
+  title: Kết nối & DataSource
+  purpose: Thiết lập kết nối ổn định và hiểu cách ứng dụng quản lý tài nguyên kết nối.
+  objectives:
+  - Kết nối bằng JDBC URL và driver phù hợp.
+  - So sánh DriverManager với DataSource.
+  - Nêu lợi ích của connection pooling.
+- id: sql-preparedstatement
+  title: SQL & PreparedStatement
+  purpose: Thực thi SQL có tham số một cách an toàn và chủ động lựa chọn API thích hợp.
+  objectives:
+  - Tạo PreparedStatement và gán tham số đúng kiểu.
+  - Phân biệt executeQuery, executeUpdate và execute.
+  - Tránh nối trực tiếp dữ liệu người dùng vào SQL.
+- id: resultset-anh-xa
+  title: ResultSet & ánh xạ
+  purpose: Đọc dữ liệu trả về và chuyển từng hàng thành đối tượng Java một cách chính xác.
+  objectives:
+  - Duyệt ResultSet và đọc các kiểu cột.
+  - Xử lý giá trị SQL NULL phù hợp.
+  - Ánh xạ hàng dữ liệu vào DTO hoặc domain object.
+- id: crud-khoa-sinh
+  title: CRUD & khóa sinh
+  purpose: Thực hiện trọn vẹn thao tác đọc, thêm, sửa, xóa với dữ liệu quan hệ.
+  objectives:
+  - Viết SELECT, INSERT, UPDATE và DELETE có tham số.
+  - Đọc số hàng bị ảnh hưởng để kiểm tra kết quả.
+  - Lấy generated keys sau INSERT khi cần.
+- id: transaction-nhat-quan
+  title: Transaction & nhất quán
+  purpose: Kiểm soát nhóm thao tác SQL để dữ liệu chỉ được ghi nhận khi thành công.
+  objectives:
+  - Quản lý autoCommit, commit và rollback.
+  - Dùng savepoint cho trường hợp phù hợp.
+  - Giải thích ý nghĩa mức cô lập giao dịch cơ bản.
+- id: hieu-nang-xu-ly-loi
+  title: Hiệu năng & xử lý lỗi
+  purpose: Giảm chi phí truy cập dữ liệu và giải quyết lỗi JDBC mà không rò rỉ tài nguyên.
+  objectives:
+  - Dùng batch update cho nhiều thao tác tương tự.
+  - Đóng Connection, Statement, ResultSet bằng try-with-resources.
+  - Xử lý SQLException, timeout và kiểm tra pool.
+- id: thuc-hanh-kiem-thu
+  title: Thực hành & kiểm thử
+  purpose: Vận dụng toàn bộ luồng JDBC vào chức năng dữ liệu có thể kiểm chứng.
+  objectives:
+  - Xây dựng một luồng CRUD với DataSource.
+  - Kiểm thử thao tác thành công và rollback khi lỗi.
+  - Xác nhận dữ liệu, tài nguyên và hành vi SQL đúng kỳ vọng.

@@ -1,0 +1,3 @@
+menuLevel1: Kiểm thử Singleton
+menuLevel2: Cô lập dữ liệu dùng chung để tránh kiểm thử phụ thuộc thứ tự hoặc gây lỗi khi chạy song song
+status: ""

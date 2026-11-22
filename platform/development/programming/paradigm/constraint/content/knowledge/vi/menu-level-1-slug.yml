@@ -1,0 +1,94 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overview
+  index: 0
+- title: Mô hình CSP
+  slug: constraint-satisfaction-problems
+  index: 1
+- title: Biến và miền
+  slug: variables-and-domains
+  index: 2
+- title: Biểu thức ràng buộc
+  slug: constraint-expressions
+  index: 3
+- title: Thiết kế mô hình
+  slug: model-design
+  index: 4
+- title: Ràng buộc toàn cục
+  slug: global-constraints
+  index: 5
+- title: Mức nhất quán
+  slug: consistency-levels
+  index: 6
+- title: Lan truyền
+  slug: constraint-propagation
+  index: 7
+- title: Tìm kiếm
+  slug: search-strategies
+  index: 8
+- title: Chọn nhánh
+  slug: branching-heuristics
+  index: 9
+- title: Học từ xung đột
+  slug: conflict-learning
+  index: 10
+- title: Đối xứng và dư thừa
+  slug: symmetry-and-redundancy
+  index: 11
+- title: Nghiệm và liệt kê
+  slug: solutions-and-enumeration
+  index: 12
+- title: Tối ưu hóa
+  slug: optimization
+  index: 13
+- title: Mục tiêu và ưu tiên
+  slug: objectives-and-priorities
+  index: 14
+- title: Số học và độ chính xác
+  slug: arithmetic-and-precision
+  index: 15
+- title: Tập hợp và cấu trúc
+  slug: sets-and-structures
+  index: 16
+- title: Miền liên tục
+  slug: continuous-domains
+  index: 17
+- title: Thời gian và lịch
+  slug: scheduling
+  index: 18
+- title: Phân công và phân bổ
+  slug: assignment-and-allocation
+  index: 19
+- title: Đồ thị và đường đi
+  slug: graphs-and-paths
+  index: 20
+- title: Cấu trúc bài toán
+  slug: problem-structure
+  index: 21
+- title: Các mô hình liên quan
+  slug: related-models
+  index: 22
+- title: Làm việc với bộ giải
+  slug: working-with-solvers
+  index: 23
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 24
+- title: Dữ liệu và thay đổi
+  slug: dynamic-data-and-changes
+  index: 25
+- title: Chẩn đoán mô hình
+  slug: model-diagnostics
+  index: 26
+- title: Kiểm thử
+  slug: testing
+  index: 27
+- title: Hiệu năng
+  slug: performance
+  index: 28
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 29
+- title: Thiết kế và lựa chọn
+  slug: design-tradeoffs
+  index: 30

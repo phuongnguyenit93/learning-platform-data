@@ -1,0 +1,7 @@
+# Java Advance – Networking
+
+Giao tiếp mạng cho phép các chương trình Java trao đổi dữ liệu với dịch vụ và thiết bị khác, nhưng một kết nối thành công chưa đủ để bảo đảm thông điệp được xử lý đúng, tài nguyên được giải phóng hay lỗi mạng được kiểm soát. Module **Networking** giúp bạn hiểu từ địa chỉ IP, cổng, DNS, URI/URL đến cách lựa chọn TCP, UDP và HTTP theo yêu cầu truyền dữ liệu. Trọng tâm là hợp đồng của từng giao thức, ranh giới thông điệp và hành vi thực tế khi kết nối chậm, gián đoạn hoặc không đáng tin cậy.
+
+Nội dung dành cho người đã nắm Java Core, xử lý ngoại lệ, luồng dữ liệu và kiến thức mạng căn bản. Bạn sẽ xây dựng client/server TCP với `Socket` và `ServerSocket`, thực hành gửi nhận datagram UDP rồi so sánh I/O chặn, không chặn và bất đồng bộ với channel, buffer, `Selector` và virtual thread. Tiếp theo, bạn sử dụng `HttpClient` để gửi yêu cầu đồng bộ hoặc bất đồng bộ, tìm hiểu vòng đời WebSocket và thiết lập kết nối TLS với `SSLContext`, chứng chỉ cùng cơ chế xác thực máy chủ.
+
+Ở phần cuối, bạn sẽ thiết kế timeout, retry có giới hạn, hủy tác vụ và kiểm soát lượng kết nối, tốc độ gửi cũng như kích thước dữ liệu. Các thí nghiệm trên loopback với máy chủ chậm, dữ liệu thiếu hoặc kết nối bị đóng đột ngột giúp bạn kiểm chứng cách xử lý EOF, lỗi và giải phóng tài nguyên; đồng thời đo độ trễ và thông lượng trước khi tối ưu. Sau module, bạn có thể lựa chọn API mạng phù hợp, xây dựng giao tiếp an toàn hơn và giải thích hành vi của ứng dụng bằng kiểm thử cụ thể.

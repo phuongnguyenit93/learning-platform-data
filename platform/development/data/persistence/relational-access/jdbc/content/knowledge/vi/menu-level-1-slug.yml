@@ -1,0 +1,106 @@
+menu:
+- title: Nền tảng
+  slug: foundation
+  index: 0
+- title: Kiến trúc JDBC
+  slug: jdbc-architecture
+  index: 1
+- title: Driver và cấu hình
+  slug: drivers-and-configuration
+  index: 2
+- title: Quản lý kết nối
+  slug: connection-management
+  index: 3
+- title: Vòng đời tài nguyên
+  slug: resource-lifecycle
+  index: 4
+- title: Thực thi SQL
+  slug: sql-execution
+  index: 5
+- title: Truy vấn tham số
+  slug: parameterized-queries
+  index: 6
+- title: Đọc ResultSet
+  slug: result-set-reading
+  index: 7
+- title: Kiểu dữ liệu và NULL
+  slug: data-types-and-nulls
+  index: 8
+- title: Số và văn bản
+  slug: numbers-and-text
+  index: 9
+- title: Ngày giờ và múi giờ
+  slug: date-time-and-timezones
+  index: 10
+- title: Ánh xạ bản ghi
+  slug: record-mapping
+  index: 11
+- title: CRUD và khóa sinh
+  slug: crud-and-generated-keys
+  index: 12
+- title: Giao dịch cơ bản
+  slug: basic-transactions
+  index: 13
+- title: Giao dịch nâng cao
+  slug: advanced-transactions
+  index: 14
+- title: Cô lập và khóa
+  slug: isolation-and-locking
+  index: 15
+- title: Lỗi và cảnh báo
+  slug: errors-and-warnings
+  index: 16
+- title: Xử lý theo lô
+  slug: batch-processing
+  index: 17
+- title: Thủ tục lưu trữ
+  slug: stored-procedures
+  index: 18
+- title: Siêu dữ liệu
+  slug: metadata
+  index: 19
+- title: Dữ liệu lớn
+  slug: large-data
+  index: 20
+- title: Kiểu SQL nâng cao
+  slug: advanced-sql-types
+  index: 21
+- title: ResultSet nâng cao
+  slug: advanced-result-sets
+  index: 22
+- title: RowSet ngoại tuyến
+  slug: offline-row-sets
+  index: 23
+- title: Pool kết nối
+  slug: connection-pooling
+  index: 24
+- title: Timeout và hủy
+  slug: timeouts-and-cancellation
+  index: 25
+- title: Truy vấn quy mô lớn
+  slug: large-scale-queries
+  index: 26
+- title: Hiệu năng
+  slug: performance
+  index: 27
+- title: Bảo mật truy cập
+  slug: access-security
+  index: 28
+- title: Kiểm thử JDBC
+  slug: jdbc-testing
+  index: 29
+- title: DAO và Repository
+  slug: dao-and-repository
+  index: 30
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 31
+- title: Giám sát vận hành
+  slug: operational-monitoring
+  index: 32
+- title: Đa hệ quản trị
+  slug: multi-database-support
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

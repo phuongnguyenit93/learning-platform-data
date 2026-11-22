@@ -1,0 +1,7 @@
+# Software Design Architecture Architectural Pattern Microkernel
+
+**Microkernel Architecture** (hay **Plug-in Architecture**) tổ chức ứng dụng thành một **core system** cung cấp năng lực tối thiểu, ổn định và các **plug-in modules** bổ sung tính năng chuyên biệt thông qua hợp đồng mở rộng. Mẫu này phù hợp với sản phẩm cần tùy biến hoặc phát triển nhiều tính năng độc lập, chẳng hạn IDE và công cụ dành cho nhà phát triển. Ở đây, microkernel là **mẫu kiến trúc ứng dụng**; không nên nhầm trực tiếp với thiết kế nhân của hệ điều hành.
+
+Lộ trình gồm **8 mốc**: nhận diện bối cảnh phù hợp; tách ranh giới core và plugin; định nghĩa extension points; đăng ký và khám phá plugin; quản lý vòng đời; xử lý class loading cùng dependencies; bảo đảm tương thích và an toàn; cuối cùng là kiểm thử và đánh đổi kiến trúc. Người học thực hành bằng Java với PF4J để tạo một lõi nhỏ, cài đặt hai plugin, quan sát trạng thái nạp và kiểm tra hợp đồng API khi thay phiên bản.
+
+Học phần dành cho Java developer và software architect đã biết interface, module, classpath và nguyên lý coupling/cohesion cơ bản. Sau khi hoàn thành, bạn có thể thiết kế sơ đồ microkernel rõ ràng, xác định API mở rộng ổn định, vận hành plugin có kiểm soát và nhận biết những giới hạn về bảo mật, phụ thuộc và độ phức tạp triển khai trước khi áp dụng vào hệ thống thực tế.

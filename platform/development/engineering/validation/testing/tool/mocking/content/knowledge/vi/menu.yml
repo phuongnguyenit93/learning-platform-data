@@ -1,0 +1,357 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Mocking là gì và giải quyết vấn đề nào trong kiểm thử
+  - Đối tượng đang kiểm thử và các đối tượng cộng tác
+  - Phụ thuộc trực tiếp, phụ thuộc gián tiếp và ranh giới cô lập
+  - 'Kiểm tra kết quả, trạng thái và tương tác: ba góc nhìn khác nhau'
+  - Vai trò của mocking trong unit test và giới hạn trong integration test
+  - 'Ví dụ xuyên suốt: kiểm thử dịch vụ đặt hàng có nhiều phụ thuộc'
+  - 'Bản đồ thuật ngữ: test double, stubbing, verification và spy'
+  - Trình tự học và kiến thức Java, JUnit cần chuẩn bị
+- level1: Các loại test double
+  level2:
+  - 'Dummy: đối tượng chỉ dùng để đáp ứng danh sách tham số'
+  - 'Stub: cung cấp dữ liệu đầu vào gián tiếp cho tình huống kiểm thử'
+  - 'Fake: phiên bản đơn giản có hành vi hoạt động thực sự'
+  - 'Spy: quan sát lời gọi và phân biệt hai cách dùng thuật ngữ spy'
+  - 'Mock: khai báo kỳ vọng và kiểm chứng tương tác'
+  - Phân biệt loại test double theo vai trò thay vì tên thư viện
+  - Tự viết test double bằng lớp Java và đối chiếu với mock sinh tự động
+  - Chọn đối tượng thật, fake, stub hoặc mock theo mục tiêu kiểm thử
+  - Rủi ro khi test double không còn phản ánh hợp đồng của phụ thuộc
+- level1: Thiết kế dễ kiểm thử
+  level2:
+  - Nhận diện phụ thuộc cần thay thế trong một lớp Java
+  - Tiêm phụ thuộc qua constructor, setter và tham số phương thức
+  - Thiết kế ranh giới bằng interface và tránh tạo interface không cần thiết
+  - Tách logic nghiệp vụ thuần khỏi thao tác nhập xuất
+  - Đóng gói đồng hồ, bộ sinh ID và bộ sinh số ngẫu nhiên
+  - Giảm phụ thuộc vào static, singleton và trạng thái toàn cục
+  - Tách việc khởi tạo đối tượng khỏi việc sử dụng đối tượng
+  - Thiết kế lại chuỗi truy cập dài và phụ thuộc khó thay thế
+  - Khi nào nên sửa thiết kế thay vì bổ sung kỹ thuật mocking
+- level1: Công cụ và môi trường
+  level2:
+  - Hệ sinh thái mocking trên JVM và vai trò của Mockito
+  - Khai báo mockito-core và mockito-junit-jupiter trong Gradle hoặc Maven
+  - Quản lý phiên bản tương thích giữa Java, Mockito, JUnit và Spring
+  - Chạy cùng một bài kiểm thử từ IDE và Gradle
+  - 'MockMaker: cơ chế sinh mock và lựa chọn theo khả năng cần dùng'
+  - Phân biệt cơ chế subclass và inline trong bối cảnh mocking
+  - Byte Buddy, instrumentation và vai trò của Java agent
+  - Cấu hình agent theo JDK và phiên bản Mockito đang sử dụng
+  - Nhận diện xung đột dependency và tài nguyên mockito-extensions
+  - Xác nhận môi trường bằng một bài kiểm thử độc lập tối giản
+- level1: Bài kiểm thử đầu tiên
+  level2:
+  - Xác định một hành vi nghiệp vụ và kết quả mong đợi
+  - Tổ chức Arrange–Act–Assert hoặc Given–When–Then
+  - Tạo mock thủ công và truyền vào đối tượng đang kiểm thử
+  - Khai báo hành vi phụ thuộc bằng when và thenReturn
+  - Kiểm tra kết quả bằng assertion trước khi kiểm chứng tương tác
+  - Kiểm chứng một lời gọi bằng verify
+  - Thử làm sai mã nguồn để nhận biết khả năng phát hiện lỗi của test
+- level1: Khởi tạo mock
+  level2:
+  - Tạo mock bằng Mockito.mock và đặt tên hỗ trợ chẩn đoán
+  - Khởi tạo @Mock bằng MockitoExtension
+  - Khởi tạo và đóng tài nguyên bằng MockitoAnnotations.openMocks
+  - '@InjectMocks và các cơ chế đưa phụ thuộc vào đối tượng đang kiểm thử'
+  - Giới hạn của @InjectMocks với đồ thị phụ thuộc phức tạp
+  - Phân biệt đối tượng do @InjectMocks tạo với mock
+  - Phân biệt @Mock, @Spy và đối tượng thật
+  - Tiêm mock qua tham số test khi dùng MockitoExtension
+  - Tổ chức mock theo từng test và tránh trạng thái dùng chung
+  - Chọn khởi tạo tường minh hay annotation để bài kiểm thử dễ đọc
+- level1: Hành vi mặc định
+  level2:
+  - Điều gì xảy ra khi gọi phương thức chưa được khai báo hành vi
+  - Giá trị mặc định của kiểu nguyên thủy và kiểu tham chiếu
+  - Hành vi mặc định với collection, Optional và các kiểu được hỗ trợ
+  - RETURNS_DEFAULTS và cách kiểm tra hành vi theo kiểu trả về
+  - RETURNS_SMART_NULLS và khả năng hỗ trợ tìm nguồn lỗi
+  - Tùy chỉnh defaultAnswer cho một mock
+  - Phân biệt không khai báo hành vi với khai báo trả về null
+  - Vì sao giá trị mặc định có thể làm bài kiểm thử vượt qua sai mục tiêu
+- level1: Khai báo giá trị trả về
+  level2:
+  - Cú pháp when–thenReturn và phạm vi áp dụng
+  - Trả về đối tượng, collection và giá trị tùy theo đầu vào
+  - thenReturn nhiều giá trị cho các lần gọi liên tiếp
+  - Chuỗi thenReturn, thenThrow và hành vi ở lần gọi tiếp theo
+  - Nhiều khai báo cho cùng phương thức và vùng tham số chồng lấn
+  - Đối chiếu when–thenReturn với doReturn–when
+  - Khai báo hành vi cho phương thức nạp chồng
+  - Khai báo hành vi với generic và suy luận kiểu
+  - 'Phong cách BDD: given–willReturn'
+  - Giữ phần khai báo hành vi tối thiểu và gắn với từng kịch bản
+- level1: Ngoại lệ và phương thức void
+  level2:
+  - Khai báo ngoại lệ bằng thenThrow
+  - Checked exception và hợp đồng throws của phương thức
+  - Runtime exception và nhánh xử lý lỗi nghiệp vụ
+  - doThrow cho phương thức void
+  - doNothing và tình huống cần khai báo tường minh
+  - doAnswer để mô phỏng tác dụng phụ của phương thức void
+  - Chuỗi hành vi thành công, thất bại và phục hồi
+  - Kết hợp assertion ngoại lệ với kiểm chứng tương tác bị chặn
+  - Phong cách BDD với willThrow và willDoNothing
+- level1: Đối sánh tham số
+  level2:
+  - Giá trị cụ thể, equals và cơ chế chọn khai báo phù hợp
+  - Quy tắc dùng matcher cho toàn bộ danh sách tham số
+  - any, anyInt, anyString và khác biệt với giá trị null
+  - eq, same và sự khác nhau giữa bằng giá trị với cùng đối tượng
+  - isNull, notNull và nullable
+  - argThat và matcher viết bằng lambda
+  - Xây dựng ArgumentMatcher có thông báo lỗi dễ hiểu
+  - Đối sánh chuỗi bằng contains, startsWith, endsWith và matches
+  - Đối sánh collection, mảng và varargs theo phiên bản Mockito
+  - Đối sánh generic, tham số nạp chồng và ép kiểu khi cần
+  - AdditionalMatchers và kết hợp điều kiện đối sánh
+  - Không dùng matcher như giá trị dữ liệu ngoài ngữ cảnh Mockito
+  - Chọn matcher vừa đủ chặt để phát hiện sai lệch nghiệp vụ
+- level1: Kiểm chứng tương tác
+  level2:
+  - verify và ý nghĩa của một lần gọi mặc định
+  - times, never, atLeast và atMost
+  - verifyNoInteractions để kiểm tra chưa có tương tác
+  - verifyNoMoreInteractions và các tương tác chưa được kiểm chứng
+  - Phân biệt không gọi một phương thức với không gọi toàn bộ mock
+  - Kiểm chứng lời gọi với tham số cụ thể và matcher
+  - Phân biệt lời gọi được khai báo hành vi với lời gọi được kiểm chứng
+  - 'Phong cách BDD: then–should'
+  - Kiểm chứng hành vi có ý nghĩa thay vì mọi chi tiết triển khai
+  - Kết hợp assertion kết quả và verification trong cùng một kịch bản
+- level1: Thứ tự lời gọi
+  level2:
+  - Thứ tự tương tác khi nào là một phần của hợp đồng nghiệp vụ
+  - Tạo InOrder cho một hoặc nhiều mock
+  - Kiểm chứng chuỗi lời gọi liên quan qua nhiều phụ thuộc
+  - Kiểm chứng một phần chuỗi tương tác bằng InOrder
+  - Kiểm tra không còn tương tác tiếp theo trong phạm vi thứ tự
+  - Phân biệt thứ tự lời gọi với thứ tự hoàn thành công việc
+  - Tránh ràng buộc thứ tự cho các thao tác độc lập
+- level1: Thu thập tham số
+  level2:
+  - ArgumentCaptor giải quyết vấn đề gì sau khi lời gọi đã xảy ra
+  - Khởi tạo ArgumentCaptor và @Captor
+  - capture và getValue trong kiểm chứng tương tác
+  - getAllValues để kiểm tra dữ liệu của nhiều lần gọi
+  - Thu thập DTO, entity và thông điệp được gửi ra ngoài
+  - Thu thập callback để chủ động kích hoạt nhánh xử lý
+  - Đối tượng khả biến và thời điểm dữ liệu được quan sát
+  - Phân biệt ArgumentCaptor, ArgumentMatcher và Answer
+  - Kiểm tra các trường nghiệp vụ cần thiết thay vì toàn bộ đối tượng
+- level1: Answer tùy biến
+  level2:
+  - thenAnswer và dữ liệu của một InvocationOnMock
+  - Đọc tham số, phương thức và mock trong một Answer
+  - Tính giá trị trả về dựa trên đầu vào
+  - returnsFirstArg và các tiện ích AdditionalAnswers phù hợp
+  - answersWithDelay và giới hạn của việc tạo độ trễ giả lập
+  - Mô phỏng thay đổi trạng thái và tác dụng phụ có kiểm soát
+  - Kích hoạt callback thành công hoặc thất bại bằng Answer
+  - Xây dựng Answer có trạng thái và cô lập giữa các test
+  - Khi nào nên thay Answer phức tạp bằng fake
+- level1: Spy và mock một phần
+  level2:
+  - Spy trong Mockito và mối quan hệ với đối tượng thật
+  - Tạo spy từ đối tượng đã có và từ lớp phù hợp
+  - Lời gọi phương thức thật khi dùng when trên spy
+  - doReturn, doThrow và doAnswer khi cấu hình spy
+  - doCallRealMethod và CALLS_REAL_METHODS
+  - Trạng thái đối tượng và điều kiện cần để gọi phương thức thật an toàn
+  - Phân biệt spy với mô hình ủy quyền bằng delegatesTo
+  - Quan sát lời gọi nội bộ và giới hạn theo cơ chế mocking
+  - Rủi ro khi spy thực hiện truy cập mạng, cơ sở dữ liệu hoặc tệp
+  - Giới hạn mock một phần trong kiểm thử mã nguồn cũ
+- level1: Đặc điểm kiểu Java
+  level2:
+  - Mock interface và lựa chọn dùng lớp triển khai thật
+  - Mock lớp cụ thể và lớp trừu tượng
+  - Default method của interface và việc gọi phần triển khai thật
+  - Phương thức final, lớp final và khả năng của MockMaker
+  - 'Record và sealed type: cân nhắc kỹ thuật và mục đích sử dụng'
+  - Generic, bridge method và phương thức nạp chồng
+  - Varargs, mảng và kiểu nguyên thủy trong khai báo hành vi
+  - Phương thức private và ranh giới kiểm thử qua hành vi công khai
+  - equals, hashCode, toString và các giới hạn cần biết
+  - Phạm vi package, classloader và Java Platform Module System
+  - Vì sao thường dùng đối tượng thật cho value object và kiểu dữ liệu JDK
+- level1: Static và khởi tạo
+  level2:
+  - Nhận diện tình huống cần thay lời gọi static hoặc new
+  - Tạo và sử dụng MockedStatic
+  - Khai báo hành vi và kiểm chứng lời gọi static
+  - Quản lý phạm vi MockedStatic bằng try-with-resources
+  - Phạm vi luồng và rủi ro khi static mock đi qua luồng khác
+  - Tạo MockedConstruction để quan sát đối tượng được khởi tạo
+  - Đọc ngữ cảnh constructor và cấu hình từng mock được tạo
+  - Kiểm tra danh sách constructed và các tương tác liên quan
+  - Đóng tài nguyên để tránh rò rỉ cấu hình sang test khác
+  - Giới hạn của công cụ với lớp hệ thống và khởi tạo tĩnh
+  - Thay static hoặc new bằng factory, adapter hay dependency injection
+- level1: Vòng đời và độ nghiêm ngặt
+  level2:
+  - Vòng đời tạo, khai báo hành vi, sử dụng và kiểm chứng mock
+  - STRICT_STUBS và mục đích phát hiện cấu hình thừa hoặc sai
+  - Phân biệt chế độ STRICT_STUBS, WARN và LENIENT
+  - UnnecessaryStubbingException và phần khai báo không được dùng
+  - PotentialStubbingProblem và tham số không khớp kỳ vọng
+  - lenient ở phạm vi nhỏ và lý do cần ghi rõ
+  - MockitoSession khi cần tự quản lý vòng đời
+  - reset và clearInvocations khác nhau ở phần trạng thái bị xóa
+  - Tránh dùng reset để bù cho thiết kế test dùng chung trạng thái
+  - Đóng tài nguyên của spy, static mock và construction mock đúng phạm vi
+- level1: Kết hợp JUnit
+  level2:
+  - MockitoExtension trong vòng đời JUnit Jupiter
+  - '@BeforeEach, @AfterEach và giới hạn của thiết lập dùng chung'
+  - '@Nested và cách tổ chức nhiều ngữ cảnh kiểm thử'
+  - '@ParameterizedTest với hành vi mock riêng cho từng bộ dữ liệu'
+  - '@MethodSource và tách dữ liệu kiểm thử khỏi việc tạo mock'
+  - '@TestInstance và ảnh hưởng tới trạng thái được dùng lại'
+  - Chạy song song và cô lập mock theo từng test
+  - Phối hợp assertion ngoại lệ, assertion theo nhóm và verification
+  - Phân biệt khả năng của JUnit với trách nhiệm của Mockito
+- level1: Kết hợp Spring
+  level2:
+  - Unit test không khởi động Spring Context
+  - Phân biệt @Mock với bean thay thế trong ApplicationContext
+  - '@MockBean, @SpyBean và cơ chế thay bean theo phiên bản Spring'
+  - Tương thích và lộ trình thay đổi annotation theo Spring Boot, Spring Framework
+  - Tiêm phụ thuộc có qualifier, tên bean và nhiều implementation
+  - Thay phụ thuộc trong web slice test
+  - Thay phụ thuộc trong @SpringBootTest
+  - Proxy, AOP và việc quan sát bean gốc hoặc bean được bọc
+  - Vòng đời mock bean, reset và bộ nhớ đệm của test context
+  - Vì sao mock repository không kiểm chứng mapping JPA hoặc câu truy vấn
+  - Vì sao mock không chứng minh transaction, security hay cấu hình thực
+  - Tách mục tiêu của Mockito, MockMvc và công cụ giả lập dịch vụ
+- level1: Kiểm thử nghiệp vụ
+  level2:
+  - Kiểm thử service có repository và bộ ánh xạ dữ liệu
+  - Kiểm tra quy tắc nghiệp vụ trước khi gọi phụ thuộc
+  - Mô phỏng tìm thấy, không tìm thấy và dữ liệu không hợp lệ
+  - Thu thập đối tượng được lưu và kiểm tra trường nghiệp vụ
+  - Kiểm chứng không lưu hoặc không gửi thông báo khi điều kiện thất bại
+  - Phân biệt thứ tự xử lý nghiệp vụ với chi tiết triển khai nội bộ
+  - Kiểm thử thành công một phần và nhánh bù trừ
+  - Kiểm thử tính lặp an toàn bằng fake có trạng thái hoặc bằng tương tác phù hợp
+  - Giới hạn của unit test khi đánh giá tính nhất quán dữ liệu
+- level1: Phụ thuộc bên ngoài
+  level2:
+  - Mock cổng gọi HTTP ở ranh giới adapter
+  - Phân biệt mock Java client với máy chủ HTTP giả lập
+  - Mock repository và lựa chọn fake hoặc cơ sở dữ liệu thật
+  - Mock email, SMS và dịch vụ thông báo
+  - Mock cổng thanh toán và mô phỏng kết quả nghiệp vụ
+  - Mock bộ phát sự kiện và phân biệt gửi với nhận thực tế
+  - Kiểm soát thời gian bằng Clock thay vì phụ thuộc đồng hồ hệ thống
+  - Kiểm soát UUID, số ngẫu nhiên và dữ liệu sinh tự động
+  - Đóng gói thao tác tệp, biến môi trường và cấu hình hệ thống
+  - Kiểm thử cache và giới hạn của mock không lưu trạng thái
+  - Bổ sung integration test hoặc contract test tại ranh giới cần xác thực
+- level1: Bất đồng bộ và đa luồng
+  level2:
+  - Phân biệt lời gọi bất đồng bộ với công việc hoàn thành
+  - Mock CompletableFuture ở trạng thái thành công, thất bại hoặc chưa hoàn tất
+  - Chủ động điều khiển completion để kiểm tra thứ tự các nhánh
+  - Mock callback và kích hoạt từng đường đi thành công hoặc lỗi
+  - Tiêm Executor hoặc scheduler để kiểm soát thời điểm thực thi
+  - 'timeout và after trong verification: phạm vi và giới hạn'
+  - Đồng bộ test bằng latch, future hoặc điều kiện chờ phù hợp
+  - Tránh Thread.sleep và các bài kiểm thử phụ thuộc lịch chạy
+  - An toàn luồng khi sử dụng, khai báo hành vi và kiểm chứng mock
+  - Static mock, construction mock và ranh giới giữa các luồng
+  - Reactive Publisher và khi nào cần công cụ kiểm thử reactive chuyên dụng
+  - Phân biệt unit test bất đồng bộ với kiểm thử điều kiện tranh chấp
+- level1: Cấu hình nâng cao
+  level2:
+  - MockSettings và tùy chỉnh cấu hình theo mục tiêu kiểm thử
+  - RETURNS_SELF cho API dạng builder
+  - RETURNS_DEEP_STUBS và rủi ro gắn test với chuỗi lời gọi
+  - extraInterfaces và giới hạn khi bổ sung kiểu cho mock
+  - stubOnly khi chỉ cần cung cấp hành vi
+  - mockingDetails để kiểm tra mock, spy và thông tin tương tác
+  - InvocationListener và thông tin chẩn đoán có chọn lọc
+  - Mock có khả năng tuần tự hóa và các ràng buộc liên quan
+  - Tái sử dụng cấu hình tối thiểu mà không che khuất ý nghĩa test
+- level1: EasyMock
+  level2:
+  - Mô hình record–replay–verify của EasyMock
+  - Tạo mock và khai báo hành vi bằng expect
+  - Phân biệt mock mặc định, strict mock và nice mock
+  - replay, verify và reset trong vòng đời kiểm thử
+  - Khai báo ngoại lệ, phương thức void và số lần gọi
+  - Đối sánh và thu thập tham số trong EasyMock
+  - Kiểm chứng thứ tự tương tác khi cần
+  - Tích hợp EasyMock với JUnit và quản lý trạng thái test
+  - Đối chiếu cách diễn đạt cùng một kịch bản bằng EasyMock và Mockito
+- level1: Công cụ khác và mã cũ
+  level2:
+  - 'jMock: mô hình khai báo Expectations và đối tượng được kiểm thử'
+  - 'jMock: đối sánh, số lần gọi và chuỗi tương tác'
+  - 'JMockit: phạm vi khả năng và điều kiện tích hợp theo phiên bản'
+  - 'PowerMock: nhu cầu lịch sử và các ràng buộc về classloader'
+  - Đánh giá tương thích Java, JUnit và agent trước khi giữ công cụ cũ
+  - Nhận diện bài kiểm thử phụ thuộc private, static hoặc khởi tạo đặc biệt
+  - Chuyển kịch bản phù hợp sang Mockito hoặc test double tự viết
+  - Di chuyển từng nhóm test và đối chiếu khả năng phát hiện lỗi
+  - Tiêu chí lựa chọn công cụ theo thiết kế, khả năng bảo trì và môi trường
+- level1: Chẩn đoán lỗi
+  level2:
+  - 'WantedButNotInvoked: lời gọi mong đợi không xảy ra'
+  - TooManyActualInvocations và TooFewActualInvocations
+  - NeverWantedButInvoked và NoInteractionsWanted
+  - InvalidUseOfMatchersException và trộn matcher sai cách
+  - MissingMethodInvocationException và lời gọi không hợp lệ trong when
+  - NotAMockException và NullInsteadOfMockException
+  - UnnecessaryStubbingException và cấu hình dùng chung không cần thiết
+  - PotentialStubbingProblem và khai báo hành vi không khớp tham số
+  - WrongTypeOfReturnValue, generic và cấu hình spy
+  - NullPointerException do phụ thuộc chưa tiêm hoặc hành vi chưa khai báo
+  - Lỗi static mock đã được đăng ký hoặc chưa đóng tài nguyên
+  - Lỗi khởi tạo MockMaker, Byte Buddy và Java agent
+  - Test chạy riêng thành công nhưng thất bại khi chạy cả bộ
+  - Test khác kết quả giữa IDE, Gradle và môi trường CI
+- level1: Chất lượng bài kiểm thử
+  level2:
+  - Chỉ mock ranh giới cần kiểm soát và giữ logic miền dùng đối tượng thật
+  - Dùng assertion để xác nhận hành vi nghiệp vụ trước khi đếm lời gọi
+  - Tránh mock chính đối tượng đang kiểm thử
+  - Tránh kiểm thử lại phần khai báo hành vi của mock
+  - Tránh verify mọi lời gọi hoặc dùng verifyNoMoreInteractions tràn lan
+  - Nhận diện deep stub và mock một phần che giấu thiết kế khó kiểm thử
+  - Dùng dữ liệu kiểm thử và builder thay cho đồ thị mock phức tạp
+  - Tên test diễn đạt điều kiện, hành động và kết quả
+  - Giữ thông báo thất bại đủ rõ để xác định lỗi
+  - Phát hiện test vẫn thành công khi bỏ mất xử lý nghiệp vụ
+  - Đánh giá khoảng trống mà mock có thể che khuất bằng kiểm thử bổ sung
+- level1: Tái cấu trúc và bảo trì
+  level2:
+  - Giảm phần thiết lập lặp mà vẫn đọc được từng kịch bản
+  - Tách helper, fixture và builder theo trách nhiệm
+  - Thay mock có trạng thái phức tạp bằng fake nhỏ
+  - Xóa khai báo hành vi thừa bằng strict stubbing
+  - Giảm phụ thuộc vào thứ tự gọi không thuộc hợp đồng
+  - Cập nhật test khi thay cấu trúc nội bộ nhưng giữ hành vi công khai
+  - Nâng cấp Mockito, JUnit và JDK theo từng bước kiểm chứng
+  - Kiểm tra tương tác giữa agent mocking và công cụ đo coverage
+  - Chạy test trong CI với cấu hình dependency và agent có thể tái tạo
+  - Theo dõi test chập chờn, rò rỉ tài nguyên và trạng thái toàn cục
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng bộ unit test cho dịch vụ đặt hàng từ trường hợp thành công
+  - Bổ sung trường hợp dữ liệu không hợp lệ và phụ thuộc không được gọi
+  - Mô phỏng thanh toán thất bại và kiểm tra nhánh bù trừ
+  - Thu thập sự kiện và xác nhận nội dung được công bố
+  - Kiểm thử chính sách thử lại bằng chuỗi kết quả có kiểm soát
+  - Kiểm thử tác vụ bất đồng bộ mà không chờ thời gian thực
+  - Kiểm thử thành phần Spring bằng mock bean và đối chiếu với unit test
+  - Thay phụ thuộc static bằng adapter có thể tiêm
+  - So sánh mock, fake và integration test trên cùng một ranh giới
+  - 'Rà soát bộ test: độ rõ ràng, độ cô lập và khả năng phát hiện lỗi'
+  - Lập ma trận kịch bản và xác định phần còn cần bằng chứng tích hợp

@@ -1,0 +1,2215 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Circuit Breaker là gì và ngăn lỗi lan truyền như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phụ thuộc từ xa, lỗi từng phần và hiệu ứng sụp đổ dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Thất bại nhanh và duy trì khả năng phục vụ khi hệ thống phụ thuộc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Các khái niệm: lời gọi, lỗi, ngưỡng, trạng thái và phương án dự phòng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt Circuit Breaker, timeout, retry, Bulkhead và Rate Limiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của Spring Cloud CircuitBreaker và thư viện hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Khi nào cần ngắt mạch và khi nào nên trả lỗi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và trình tự học từ một lời gọi đến hệ thống nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-machine
+  title: Mô hình trạng thái
+  childs:
+  - slug: state-machine-001
+    title: 'CLOSED: cho phép lời gọi và ghi nhận kết quả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-002
+    title: 'OPEN: từ chối lời gọi và lỗi CallNotPermittedException'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-003
+    title: 'HALF_OPEN: cho phép một số lời gọi thăm dò phục hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-004
+    title: Điều kiện chuyển từ CLOSED sang OPEN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-005
+    title: Thời gian chờ trước khi thử phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-006
+    title: Giới hạn lời gọi và điều kiện kết thúc HALF_OPEN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-007
+    title: Chuyển trạng thái tự động so với chuyển khi có lời gọi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-008
+    title: FORCED_OPEN, DISABLED và METRICS_ONLY trong Resilience4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machine-009
+    title: Trạng thái cục bộ trong từng tiến trình và ảnh hưởng khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sliding-windows
+  title: Cửa sổ thống kê
+  childs:
+  - slug: sliding-windows-001
+    title: Cửa sổ theo số lời gọi và theo khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-002
+    title: slidingWindowSize và lượng dữ liệu được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-003
+    title: minimumNumberOfCalls và thời điểm đủ mẫu để đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-004
+    title: Tính failureRateThreshold từ các lời gọi được ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-005
+    title: slowCallDurationThreshold và phân loại lời gọi chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-006
+    title: slowCallRateThreshold khác ngưỡng tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-007
+    title: Lời gọi vừa chậm vừa lỗi được ghi nhận như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-008
+    title: Mẫu thống kê trong HALF_OPEN khác cửa sổ ở CLOSED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sliding-windows-009
+    title: Cửa sổ thống kê không phải giới hạn số lời gọi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Chuẩn bị môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Chọn Java, Spring Boot và Spring Cloud Release Train tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Quản lý phiên bản bằng Spring Cloud BOM trong Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Chọn starter Resilience4j cho ứng dụng blocking hoặc reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Phân biệt starter Spring Cloud với starter Resilience4j trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Chuẩn bị ứng dụng gọi và dịch vụ có thể chủ động gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Thêm Actuator, Micrometer và phụ thuộc cần cho từng thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Kiểm tra classpath, tự cấu hình và hiện thực CircuitBreakerFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Tổ chức profile và cấu hình để tái lập hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-api
+  title: API chung
+  childs:
+  - slug: common-api-001
+    title: Hợp đồng CircuitBreakerFactory và CircuitBreaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-api-002
+    title: Tạo bộ ngắt mạch bằng ID ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-api-003
+    title: Thực thi Supplier bằng run và đọc kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-api-004
+    title: Truyền hàm fallback nhận Throwable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-api-005
+    title: ReactiveCircuitBreakerFactory và ReactiveCircuitBreaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-api-006
+    title: Trang trí Mono hoặc Flux qua API chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-api-007
+    title: Phạm vi cấu hình có thể dùng chung giữa các hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-api-008
+    title: Tính năng đặc thù cần truy cập API của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resilience4j-integration
+  title: Tích hợp Resilience4j
+  childs:
+  - slug: resilience4j-integration-001
+    title: Resilience4JCircuitBreakerFactory và các thành phần được phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience4j-integration-002
+    title: ReactiveResilience4JCircuitBreakerFactory trong ứng dụng WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience4j-integration-003
+    title: Cấu hình mặc định bằng Customizer và configureDefault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience4j-integration-004
+    title: Cấu hình riêng theo ID bằng configure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience4j-integration-005
+    title: Kết hợp CircuitBreakerConfig với TimeLimiterConfig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience4j-integration-006
+    title: Customizer sau khi tạo bộ ngắt mạch và bộ lắng nghe sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience4j-integration-007
+    title: Tùy chỉnh ExecutorService và vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience4j-integration-008
+    title: Phân biệt lớp bao Spring Cloud với CircuitBreaker gốc của Resilience4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration
+  title: Cấu hình
+  childs:
+  - slug: configuration-001
+    title: Tổ chức resilience4j.circuitbreaker.configs và instances
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-002
+    title: baseConfig và kế thừa cấu hình dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-003
+    title: Ánh xạ factory.create(id, groupName) với cấu hình nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-004
+    title: Phân biệt nhóm cấu hình và ID bộ ngắt mạch thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-005
+    title: Thứ tự ưu tiên cấu hình thuộc tính so với Java Customizer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-006
+    title: Cấu hình Circuit Breaker và TimeLimiter có thể lấy từ nhóm khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-007
+    title: Đặt ngưỡng, thời gian và đơn vị Duration rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-008
+    title: Cấu hình theo profile và xác minh giá trị đang được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-009
+    title: Bật hoặc tắt từng tích hợp theo tính năng và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-010
+    title: Giới hạn cập nhật cấu hình của instance đã tồn tại trong registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-classification
+  title: Phân loại kết quả
+  childs:
+  - slug: result-classification-001
+    title: Phân biệt lỗi hạ tầng, quá tải và lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-002
+    title: recordExceptions, ignoreExceptions và phạm vi ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-003
+    title: recordExceptionPredicate và quy tắc phân loại tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-004
+    title: Phân biệt ngoại lệ bị bỏ qua với lời gọi được tính thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-005
+    title: Đánh giá kết quả trả về bằng predicate khi phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-006
+    title: Chuyển HTTP status thành lỗi trước khi Circuit Breaker ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-007
+    title: Xử lý timeout, kết nối bị từ chối và lỗi phân giải tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-008
+    title: Phân biệt lỗi khi đang thực thi với lời gọi bị từ chối ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-classification-009
+    title: Đối chiếu tỷ lệ lỗi của bộ ngắt mạch với kết quả fallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronous-calls
+  title: Lời gọi đồng bộ
+  childs:
+  - slug: synchronous-calls-001
+    title: Bao lời gọi RestClient hoặc RestTemplate bằng factory.run
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-calls-002
+    title: Đặt ranh giới ngắt mạch quanh đúng thao tác từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-calls-003
+    title: Phân biệt lỗi tạo yêu cầu với lỗi nhận phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-calls-004
+    title: Truyền tham số và ánh xạ kết quả mà không tạo ID theo từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-calls-005
+    title: Xử lý exception wrapper và xác định nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-calls-006
+    title: Luồng thực thi khi có TimeLimiter hoặc thread-pool Bulkhead
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-calls-007
+    title: Bảo toàn ngữ cảnh log, tracing và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-calls-008
+    title: Kiểm chứng rằng OPEN không gọi lại hệ thống phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-streams
+  title: Luồng reactive
+  childs:
+  - slug: reactive-streams-001
+    title: Đánh giá lười và thời điểm đăng ký thực thi Mono hoặc Flux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-002
+    title: Bao WebClient bằng ReactiveCircuitBreakerFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-003
+    title: Đơn vị ghi nhận của một subscription so với từng phần tử Flux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-004
+    title: Đặt ranh giới bao bên ngoài Publisher chứa lời gọi thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-005
+    title: Lỗi phát sinh trước khi tạo Publisher và lỗi phát trên luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-006
+    title: Ảnh hưởng của nhiều subscription tới số lần gọi và thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-007
+    title: Thứ tự onErrorResume, retryWhen, timeout và Circuit Breaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-008
+    title: Hủy subscription và giới hạn hủy tác vụ phía hệ thống phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-009
+    title: Reactor Context khác ThreadLocal khi chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-010
+    title: Tránh block trên event loop và chọn scheduler cho tác vụ blocking
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fallback-strategies
+  title: Phương án dự phòng
+  childs:
+  - slug: fallback-strategies-001
+    title: Fallback là gì và những tình huống phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-002
+    title: Trả dữ liệu đã lưu với dấu hiệu độ mới rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-003
+    title: Trả kết quả suy giảm chức năng mà vẫn đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-004
+    title: Từ chối thao tác quan trọng thay vì tạo kết quả thành công giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-005
+    title: Phân biệt fallback cho lỗi gọi, timeout và mạch đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-006
+    title: Tránh fallback gọi lại chính hệ thống đang lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-007
+    title: Giới hạn thời gian và bảo vệ tài nguyên của fallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-008
+    title: Xử lý fallback tiếp tục thất bại và giữ nguyên nguyên nhân lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-strategies-009
+    title: Đo tỷ lệ dùng fallback mà không che mất sự cố thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-limiter
+  title: TimeLimiter
+  childs:
+  - slug: time-limiter-001
+    title: Ranh giới giữa ngắt mạch và giới hạn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-002
+    title: timeoutDuration và cancelRunningFuture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-003
+    title: Deadline tổng thể khác connect timeout và read timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-004
+    title: Ngưỡng lời gọi chậm không tự dừng lời gọi đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-005
+    title: Phối hợp TimeLimiter với Future hoặc CompletionStage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-006
+    title: Giới hạn interrupt và tác vụ HTTP tiếp tục chạy sau timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-007
+    title: Giới hạn thời gian trong luồng reactive và xử lý cancellation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-008
+    title: Bật hoặc tắt TimeLimiter toàn cục, theo nhóm hoặc instance khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-limiter-009
+    title: Thiết kế ngân sách thời gian qua nhiều lớp gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bulkhead
+  title: Bulkhead
+  childs:
+  - slug: bulkhead-001
+    title: Cô lập tài nguyên để một phụ thuộc lỗi không chiếm hết năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-002
+    title: SemaphoreBulkhead và giới hạn maxConcurrentCalls
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-003
+    title: ThreadPoolBulkhead, kích thước thread pool và hàng đợi hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-004
+    title: maxWaitDuration và hành vi khi hết chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-005
+    title: Tích hợp tự động khi resilience4j-bulkhead có trên classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-006
+    title: Chọn mặc định và cấu hình riêng qua BulkheadProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-007
+    title: 'Bulkhead trong reactive: khả năng hỗ trợ theo phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-008
+    title: Phân biệt BulkheadFullException với CallNotPermittedException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulkhead-009
+    title: Đặt giới hạn theo từng phụ thuộc và phối hợp với HTTP connection pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-composition
+  title: Phối hợp chính sách
+  childs:
+  - slug: policy-composition-001
+    title: Thứ tự bao Circuit Breaker và Retry thay đổi mẫu thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-002
+    title: Thử lại lỗi tạm thời và bỏ qua lỗi nghiệp vụ hoặc mạch đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-003
+    title: Backoff, jitter và ngân sách số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-004
+    title: Tính lũy đẳng khi thử lại yêu cầu có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-005
+    title: Phối hợp Retry với timeout tổng thể và timeout từng lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-006
+    title: Rate Limiter giới hạn tốc độ khác Bulkhead giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-007
+    title: Thứ tự Rate Limiter, Bulkhead, TimeLimiter và Circuit Breaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-008
+    title: Tránh nhiều lớp retry nhân số yêu cầu qua Gateway, client và SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-009
+    title: Phân biệt bộ đệm HTTP, cache nghiệp vụ và dữ liệu fallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-composition-010
+    title: Vẽ chuỗi thực thi và kiểm chứng thứ tự bằng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotations-aop
+  title: Annotation và AOP
+  childs:
+  - slug: annotations-aop-001
+    title: '@CircuitBreaker của Resilience4j khác API Spring Cloud CircuitBreaker'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-aop-002
+    title: Phụ thuộc và điều kiện để Spring AOP kích hoạt annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-aop-003
+    title: Đặt tên instance và liên kết với cấu hình YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-aop-004
+    title: Chữ ký fallbackMethod và cách chọn theo kiểu ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-aop-005
+    title: Giới hạn self-invocation, proxy và phạm vi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-aop-006
+    title: Thứ tự aspect khi kết hợp Retry, Bulkhead và TimeLimiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-aop-007
+    title: Kiểu trả về đồng bộ, bất đồng bộ và reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-aop-008
+    title: Tránh bao cùng thao tác hai lần qua factory và annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: openfeign
+  title: OpenFeign
+  childs:
+  - slug: openfeign-001
+    title: Kích hoạt Spring Cloud CircuitBreaker cho Feign client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-002
+    title: Quy tắc đặt tên theo client, method và chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-003
+    title: Tùy chỉnh tên bằng CircuitBreakerNameResolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-004
+    title: Ánh xạ tên sinh ra với khóa cấu hình Resilience4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-005
+    title: Khai báo fallback và fallbackFactory để đọc nguyên nhân lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-006
+    title: Phạm vi bật nhóm cấu hình và lựa chọn theo từng Feign client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-007
+    title: Phối hợp timeout, ErrorDecoder và chính sách retry của Feign
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openfeign-008
+    title: Kiểm chứng ngắt mạch khi dùng Service Discovery và LoadBalancer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gateway
+  title: Gateway
+  childs:
+  - slug: gateway-001
+    title: Vai trò của CircuitBreaker filter trên ranh giới Gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-002
+    title: Chọn tích hợp cho Gateway WebFlux và kiểm tra hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-003
+    title: Khai báo tên bộ ngắt mạch và phạm vi từng route
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-004
+    title: 'fallbackUri với forward: và xử lý phản hồi dự phòng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-005
+    title: Chuyển HTTP status được chọn thành lỗi để kích hoạt ngắt mạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-006
+    title: Truyền nguyên nhân fallback và tránh lộ chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-007
+    title: Ranh giới phối hợp với Retry filter, timeout và LoadBalancer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-registry
+  title: Registry và sự kiện
+  childs:
+  - slug: event-registry-001
+    title: CircuitBreakerRegistry và vòng đời các instance có tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-registry-002
+    title: Lấy lại cùng instance so với tạo registry độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-registry-003
+    title: Đọc cấu hình, trạng thái và snapshot thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-registry-004
+    title: Sự kiện thành công, lỗi, lời gọi chậm và bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-registry-005
+    title: Lắng nghe chuyển trạng thái và tránh đăng ký listener lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-registry-006
+    title: Quản lý dung lượng bộ đệm sự kiện và chi phí xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-registry-007
+    title: Chuyển trạng thái thủ công, reset và tác động tới thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-registry-008
+    title: Mở rộng registry hoặc event consumer mà không chặn đường xử lý chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alternative-implementations
+  title: Các hiện thực khác
+  childs:
+  - slug: alternative-implementations-001
+    title: Đối chiếu hiện thực được hỗ trợ trong đúng Spring Cloud Release Train
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-002
+    title: SpringRetryCircuitBreakerFactory và SpringRetryConfigBuilder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-003
+    title: CircuitBreakerRetryPolicy, DefaultRetryState và stateful retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-004
+    title: Tùy chỉnh RetryPolicy, thời gian mở mạch và RetryListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-005
+    title: Phân biệt ngữ nghĩa Spring Retry với cửa sổ tỷ lệ lỗi Resilience4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-006
+    title: 'Spring Framework Retry: điều kiện Spring Framework 7 và phiên bản tương thích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-007
+    title: FrameworkRetryCircuitBreakerFactory và giới hạn ứng dụng reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-008
+    title: Đánh giá tích hợp Sentinel hoặc hiện thực bên ngoài theo artifact thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alternative-implementations-009
+    title: Kiểm thử hợp đồng và giới hạn khi đổi nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Tích hợp Actuator, resilience4j-micrometer và hệ thống thu thập số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Đọc số lời gọi thành công, lỗi và bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Theo dõi tỷ lệ lỗi, lời gọi chậm và thời gian thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Quan sát trạng thái, số lần chuyển mạch và thời gian giữ OPEN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Phân biệt số liệu tác vụ gốc với số liệu fallback và retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Health indicator của bộ ngắt mạch và ảnh hưởng tới readiness
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Tránh dùng lỗi một phụ thuộc tùy chọn để làm hỏng liveness
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Kiểm soát số lượng nhãn và ID trong metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Dashboard và cảnh báo dựa trên tác động phục vụ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boundary-design
+  title: Thiết kế ranh giới
+  childs:
+  - slug: boundary-design-001
+    title: Chọn một bộ ngắt mạch theo phụ thuộc hay theo thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-002
+    title: Không dùng một ID chung cho các hệ thống độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-003
+    title: Cân nhắc tách thao tác đọc, ghi và nhóm độ trễ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-004
+    title: Quản lý tenant mà không tạo số instance không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-005
+    title: Trạng thái riêng mỗi replica và hiệu ứng thăm dò đồng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-006
+    title: Quan hệ với Service Discovery, cân bằng tải và instance bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-007
+    title: Đặt ngưỡng phù hợp lưu lượng thấp và lưu lượng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-008
+    title: Hệ thống nhiều tầng gọi và chiến lược tránh lỗi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-design-009
+    title: Giới hạn Circuit Breaker cục bộ so với bảo vệ toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Chi phí thống kê theo kích thước cửa sổ và số instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Tính an toàn luồng và phạm vi đồng bộ hóa của Resilience4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Năng lực phục vụ, độ trễ và ước lượng số lời gọi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Thread pool, hàng đợi và connection pool khi phụ thuộc chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Chi phí log sự kiện và metrics trên đường xử lý chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đo overhead với tải bình thường, lỗi liên tục và mạch mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Điều chỉnh ngưỡng bằng số liệu thay vì sao chép cấu hình mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử chuỗi kết quả để xác minh CLOSED chuyển sang OPEN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử minimumNumberOfCalls và trường hợp chưa đủ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử lời gọi chậm độc lập với lời gọi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử cửa sổ theo số lượng và theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử OPEN không thực thi Supplier hoặc Publisher gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử HALF_OPEN phục hồi thành công và mở lại khi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử recordExceptions, ignoreExceptions và predicate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử fallback, timeout và tác vụ vẫn chạy sau khi hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử nhiều luồng, Bulkhead đầy và hàng đợi bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Dùng StepVerifier cho lỗi, subscription và thời gian trong luồng reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử tích hợp bằng HTTP giả lập và registry được cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Triển khai cấu hình ngắt mạch theo profile và phạm vi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Chạy thử ở chế độ chỉ quan sát khi hiện thực hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Phát hành thử ngưỡng mới trên một nhóm replica
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Giám sát tải phục hồi khi nhiều bộ ngắt mạch cùng HALF_OPEN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Quy trình ép OPEN, reset và trả lại chế độ tự động có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Bảo vệ endpoint quản trị và quyền thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Đối chiếu cấu hình mong muốn với instance đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Viết quy trình xử lý sự cố cùng điều kiện xác nhận phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Bộ ngắt mạch không mở vì chưa đủ mẫu hoặc cấu hình sai ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: HTTP trả lỗi nhưng vẫn được ghi nhận là thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Mạch mở quá sớm do nhiều thao tác dùng chung thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Đã hết thời gian OPEN nhưng chưa có lời gọi thăm dò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: HALF_OPEN giữ quá lâu vì lời gọi chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Fallback luôn chạy do TimeLimiter mặc định hoặc hàng đợi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Annotation không có hiệu lực vì self-invocation hoặc thiếu AOP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Reactive pipeline không được bao đúng hoặc bị đăng ký nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Không có metrics hay health indicator do thiếu phụ thuộc hoặc exposure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Feign hoặc Gateway sinh tên khác khóa cấu hình mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Mất ngữ cảnh log, tracing hoặc thông tin xác thực khi chuyển thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Retry nhiều lớp, rò rỉ tác vụ và fallback gây quá tải thứ cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-migration
+  title: Chuyển đổi tích hợp
+  childs:
+  - slug: integration-migration-001
+    title: Đọc ma trận tương thích trước khi nâng cấp Spring Cloud hoặc Resilience4j
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-migration-002
+    title: Phân biệt cấu hình Hystrix cũ với Spring Cloud CircuitBreaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-migration-003
+    title: Ánh xạ mục đích timeout, isolation và fallback khi rời Hystrix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-migration-004
+    title: Chuyển từ API nhà cung cấp trực tiếp sang abstraction khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-migration-005
+    title: Chuyển giữa annotation và factory mà giữ nguyên ranh giới bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-migration-006
+    title: Kiểm tra thay đổi mặc định của TimeLimiter, Bulkhead và quy tắc đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-migration-007
+    title: Kiểm thử hồi quy số liệu, luồng xử lý và ngữ nghĩa fallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Dựng dịch vụ phụ thuộc có chế độ thành công, lỗi và phản hồi chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Đo chuỗi CLOSED, OPEN, HALF_OPEN rồi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: So sánh ngắt mạch theo tỷ lệ lỗi và theo tỷ lệ lời gọi chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Bảo vệ lời gọi blocking và luồng WebClient với cùng mục tiêu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Thiết kế fallback đọc dữ liệu cũ có thông tin độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Gây timeout rồi chứng minh trạng thái tác vụ thực tế phía phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Cô lập hai phụ thuộc bằng Bulkhead và ID ngắt mạch riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Thay thứ tự Retry với Circuit Breaker rồi so sánh thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Tích hợp Feign hoặc Gateway và xác minh cấu hình theo tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Chạy thử nhiều replica, dựng dashboard và viết báo cáo phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

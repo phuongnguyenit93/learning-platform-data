@@ -1,0 +1,3 @@
+menuLevel1: Phạm vi class loader
+menuLevel2: Rò rỉ class loader do luồng nền, ThreadLocal, registry hoặc tham chiếu static giữ lại
+status: ""

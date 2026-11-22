@@ -1,0 +1,59 @@
+roadmap:
+- id: ioc-va-container
+  title: IoC và container
+  purpose: Hiểu cách Spring tạo, cấu hình và nối các đối tượng để ứng dụng giảm phụ thuộc vào việc tự khởi tạo chúng.
+  objectives:
+  - Phân biệt đối tượng thông thường với bean do Spring quản lý
+  - Giải thích IoC, tiêm phụ thuộc và vai trò BeanFactory, ApplicationContext
+  - Theo dõi cấu hình biến thành một đồ thị bean
+- id: khai-bao-bean
+  title: Khai báo bean
+  purpose: Đăng ký rõ ràng những đối tượng container cần quản lý và tổ chức cấu hình theo chức năng.
+  objectives:
+  - Khai báo bean bằng @Configuration và @Bean
+  - Dùng @Component cùng cơ chế quét thành phần
+  - Kết hợp cấu hình với @Import và nhận diện cấu hình XML
+- id: tiem-phu-thuoc
+  title: Tiêm phụ thuộc
+  purpose: Cung cấp đúng các đối tượng cộng tác cho bean và giải quyết trường hợp có nhiều ứng viên.
+  objectives:
+  - Ưu tiên hàm khởi tạo cho phụ thuộc bắt buộc và phân biệt với tiêm qua setter
+  - Chọn ứng viên bằng kiểu, @Qualifier và @Primary
+  - Cung cấp phụ thuộc tùy chọn hoặc nhiều bean bằng ObjectProvider và tập hợp
+- id: pham-vi-va-vong-doi
+  title: Phạm vi và vòng đời
+  purpose: Kiểm soát số thể hiện bean, thời điểm tạo và công việc khởi tạo hoặc giải phóng tài nguyên.
+  objectives:
+  - Phân biệt singleton, prototype và các phạm vi theo yêu cầu web
+  - Theo dõi khởi tạo sớm, trì hoãn và callback khởi tạo, hủy
+  - Xử lý phụ thuộc khác phạm vi bằng cơ chế cung cấp hoặc proxy phù hợp
+  - Giải thích giới hạn quản lý hủy bean prototype
+- id: moi-truong-va-gia-tri
+  title: Môi trường và giá trị
+  purpose: Tách giá trị cấu hình khỏi mã xử lý và lựa chọn bean theo điều kiện của môi trường chạy.
+  objectives:
+  - Đọc cấu hình qua Environment và các PropertySource
+  - 'Phân biệt placeholder ${...} với biểu thức SpEL #{...}'
+  - Cấp giá trị bằng @Value và kiểm tra chuyển đổi kiểu
+  - Chọn cấu hình bằng @Profile và @Conditional
+- id: tien-ich-applicationcontext
+  title: Tiện ích ApplicationContext
+  purpose: Sử dụng những khả năng chung của ApplicationContext để truy cập tài nguyên, thông điệp và sự kiện nội bộ.
+  objectives:
+  - Đọc tài nguyên qua Resource và ResourceLoader
+  - Lấy thông điệp theo ngôn ngữ bằng MessageSource
+  - Phát và nhận sự kiện ứng dụng qua ApplicationEventPublisher, @EventListener
+- id: mo-rong-container
+  title: Mở rộng container
+  purpose: Nhận biết đúng điểm can thiệp vào định nghĩa và thể hiện bean để tùy biến container có kiểm soát.
+  objectives:
+  - Phân biệt BeanFactoryPostProcessor với BeanPostProcessor
+  - Nhận diện callback Aware và trường hợp bean được bọc bằng proxy
+  - Phân biệt FactoryBean tạo sản phẩm với BeanFactory quản lý bean
+- id: kiem-chung-cau-hinh
+  title: Kiểm chứng cấu hình
+  purpose: Chạy một cấu hình nhỏ và kiểm chứng đồ thị bean để phát hiện lỗi lắp ghép trước khi tích hợp vào ứng dụng lớn.
+  objectives:
+  - Khởi tạo, sử dụng và đóng AnnotationConfigApplicationContext
+  - Kiểm tra chọn bean, phạm vi và callback vòng đời
+  - Chẩn đoán thiếu bean, nhiều ứng viên và phụ thuộc vòng

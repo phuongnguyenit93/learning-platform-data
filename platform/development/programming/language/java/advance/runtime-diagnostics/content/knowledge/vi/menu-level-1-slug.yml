@@ -1,0 +1,67 @@
+menu:
+- title: 1. Mô hình chẩn đoán
+  slug: runtime-diagnostics-model
+  index: 0
+- title: 2. Phương pháp đo
+  slug: diagnostic-measurement
+  index: 1
+- title: 3. Tiến trình và môi trường
+  slug: process-environment
+  index: 2
+- title: 4. Công cụ jcmd
+  slug: jcmd-diagnostics
+  index: 3
+- title: 5. Nhật ký và stack trace
+  slug: logging-and-stack-traces
+  index: 4
+- title: 6. MXBeans
+  slug: jvm-management-beans
+  index: 5
+- title: 7. JMX
+  slug: jmx-monitoring
+  index: 6
+- title: 8. Thread dump
+  slug: thread-dumps
+  index: 7
+- title: 9. Treo và tranh chấp
+  slug: deadlocks-and-contention
+  index: 8
+- title: 10. Virtual thread
+  slug: virtual-thread-diagnostics
+  index: 9
+- title: 11. Heap và GC
+  slug: heap-and-garbage-collection
+  index: 10
+- title: 12. Heap dump và rò rỉ
+  slug: heap-dump-leak-analysis
+  index: 11
+- title: 13. Bộ nhớ native
+  slug: native-memory-diagnostics
+  index: 12
+- title: 14. Thu bản ghi JFR
+  slug: jfr-recording
+  index: 13
+- title: 15. Phân tích JFR
+  slug: jfr-analysis
+  index: 14
+- title: 16. JFR trong mã Java
+  slug: jfr-java-api
+  index: 15
+- title: 17. CPU, JIT và lớp
+  slug: cpu-and-jit-class-diagnostics
+  index: 16
+- title: 18. I/O và độ trễ
+  slug: io-and-latency-diagnostics
+  index: 17
+- title: 19. Debugging
+  slug: java-debugging
+  index: 18
+- title: 20. Crash và phân tích sau lỗi
+  slug: crash-forensics
+  index: 19
+- title: 21. Thu thập khi vận hành
+  slug: production-diagnostic-collection
+  index: 20
+- title: 22. Thực hành tổng hợp
+  slug: diagnostic-practice-scenarios
+  index: 21

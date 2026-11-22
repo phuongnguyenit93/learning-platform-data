@@ -1,0 +1,3154 @@
+menu:
+- slug: formatting-principles
+  title: Tư duy định dạng
+  childs:
+  - slug: formatting-principles-001
+    title: Định dạng mã nguồn là gì và vì sao tính nhất quán giúp đọc mã nhanh hơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-002
+    title: Phân biệt formatting, quy ước đặt tên, linting, refactoring và tối ưu hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-003
+    title: Thành phần của một quy tắc định dạng và cách mô tả bằng ví dụ trước sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-004
+    title: Khoảng trắng, dòng vật lý và cấu trúc cú pháp trong cách trình bày mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-005
+    title: Đọc luồng điều khiển và phạm vi khối qua bố cục trực quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-006
+    title: Formatter dựa trên cú pháp và thao tác thay thế văn bản khác nhau thế nào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-007
+    title: Tính xác định, tính lặp ổn định và khả năng tái lập của formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-008
+    title: Giới hạn của formatter trong phát hiện lỗi và bảo đảm hành vi chương trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-009
+    title: Chi phí của tranh luận phong cách, thay đổi thuần định dạng và nhiễu review
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-principles-010
+    title: Xác định phạm vi định dạng cho mã sản phẩm, mã kiểm thử và tệp cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: whitespace
+  title: Khoảng trắng
+  childs:
+  - slug: whitespace-001
+    title: Quy tắc khoảng trắng quanh toán tử gán, số học, so sánh và logic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-002
+    title: Khoảng trắng với toán tử một ngôi, tăng giảm và biểu thức điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-003
+    title: Khoảng trắng sau dấu phẩy trong tham số, đối số và danh sách kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-004
+    title: Khoảng trắng quanh dấu chấm phẩy trong vòng lặp for
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-005
+    title: Khoảng trắng giữa từ khóa điều khiển và dấu ngoặc tròn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-006
+    title: Khoảng trắng trong lời gọi hàm, ép kiểu và khai báo generic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-007
+    title: Khoảng trắng quanh dấu ngoặc nhọn và các khối rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-008
+    title: Dòng trống giữa các nhóm câu lệnh và các giai đoạn xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-009
+    title: Dòng trống giữa trường, constructor, phương thức và kiểu lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-010
+    title: Phát hiện khoảng trắng cuối dòng và dòng trống chứa ký tự ẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-011
+    title: Tránh căn cột bằng nhiều dấu cách khi độ dài tên thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-012
+    title: Kiểm tra quy tắc khoảng trắng bằng các đoạn mã nhỏ có kết quả mong đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: indentation
+  title: Thụt lề
+  childs:
+  - slug: indentation-001
+    title: Chọn tabs hoặc spaces và xác định độ rộng một mức thụt lề
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-002
+    title: Phân biệt indent_size, tab_width và cách trình soạn thảo hiển thị tab
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-003
+    title: Thụt lề khối lớp, phương thức và các khối lệnh lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-004
+    title: Thụt lề dòng tiếp nối và phân biệt với độ sâu của khối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-005
+    title: Căn dòng theo dấu ngoặc mở và thụt lề tiếp nối cố định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-006
+    title: Thụt lề danh sách tham số, đối số và phần tử mảng nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-007
+    title: Thụt lề case, default và khối lệnh trong switch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-008
+    title: Thụt lề lambda, anonymous class và biểu thức nhiều tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-009
+    title: Nhận diện mixed indentation và lỗi hiển thị khác nhau giữa các máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-010
+    title: Ảnh hưởng của việc đổi thụt lề tới text block và dữ liệu nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-011
+    title: Quan sát độ lồng sâu qua thụt lề mà không tự ý sửa cấu trúc chương trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indentation-012
+    title: Kiểm chứng thụt lề trên tệp mẫu có tabs, spaces và dòng tiếp nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: braces-and-parentheses
+  title: Dấu ngoặc
+  childs:
+  - slug: braces-and-parentheses-001
+    title: Chọn vị trí dấu ngoặc nhọn mở và đóng cho lớp, phương thức và khối lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-002
+    title: Trình bày if, else if và else theo một quy tắc thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-003
+    title: Trình bày try, catch, finally và try-with-resources
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-004
+    title: Trình bày for, while và do-while cùng vị trí dấu chấm phẩy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-005
+    title: Phân biệt định dạng dấu ngoặc với quy tắc bắt buộc thêm braces
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-006
+    title: Nguy cơ hiểu sai if lồng nhau khi câu lệnh không có ngoặc nhọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-007
+    title: Quy tắc trình bày khối rỗng và câu lệnh rỗng có chủ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-008
+    title: Đặt ngoặc tròn cho biểu thức nhiều dòng và tránh thay đổi độ ưu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-009
+    title: Trình bày ngoặc vuông trong khai báo mảng và truy cập phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-010
+    title: Trình bày ngoặc nhọn trong array initializer và annotation initializer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-011
+    title: Giữ dấu ngoặc cân bằng khi định dạng mã đang viết dở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: braces-and-parentheses-012
+    title: Đọc diff để phân biệt đổi vị trí ngoặc với thêm hoặc xóa khối lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: line-wrapping
+  title: Ngắt dòng
+  childs:
+  - slug: line-wrapping-001
+    title: Chọn giới hạn độ dài dòng và phân biệt giới hạn mềm với giới hạn cứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-002
+    title: Phân biệt soft wrap của trình soạn thảo và xuống dòng thực trong tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-003
+    title: Xác định điểm ngắt theo cấu trúc cú pháp và khả năng đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-004
+    title: Ngắt dòng trước hoặc sau toán tử theo chính sách thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-005
+    title: Ngắt danh sách tham số khai báo phương thức và constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-006
+    title: Ngắt danh sách đối số gọi hàm và lời gọi lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-007
+    title: Ngắt method chain, fluent API và chuỗi thao tác Stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-008
+    title: Ngắt điều kiện boolean dài và biểu thức điều kiện ba ngôi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-009
+    title: Ngắt generic, extends, implements và throws nhiều kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-010
+    title: Ngắt array initializer, enum constant và annotation nhiều thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-011
+    title: Vị trí dấu ngoặc đóng và dấu phân cách ở cấu trúc nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-012
+    title: Xử lý chuỗi, URL, đường dẫn và token dài khó ngắt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-013
+    title: Hiểu vì sao formatter có thể gộp lại các dòng đã ngắt thủ công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: line-wrapping-014
+    title: Đánh giá diff khi thay đổi line length hoặc quy tắc wrapping
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-file-layout
+  title: Bố cục tệp Java
+  childs:
+  - slug: java-file-layout-001
+    title: Trật tự phần đầu tệp, package, import và khai báo kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-002
+    title: Vị trí thông báo bản quyền và header theo chính sách dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-003
+    title: Khoảng cách giữa package, các nhóm import và khai báo lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-004
+    title: Nhóm và sắp xếp import thường với static import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-005
+    title: Chính sách wildcard import và sự khác biệt giữa formatter với import organizer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-006
+    title: Xóa import không dùng và kiểm tra ảnh hưởng tới khả năng biên dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-007
+    title: Nguy cơ đổi phân giải tên khi tối ưu hóa import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-008
+    title: Phạm vi tổ chức top-level type và quy ước một kiểu chính trong một tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-009
+    title: Bố cục package-info.java và chú thích tài liệu package
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-010
+    title: Bố cục module-info.java và các directive nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-011
+    title: Trình bày tệp nguồn kiểm thử theo cùng chính sách với mã sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-file-layout-012
+    title: Phân biệt tổ chức nội dung trong tệp với di chuyển tệp hoặc đổi package
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: type-declarations
+  title: Khai báo kiểu
+  childs:
+  - slug: type-declarations-001
+    title: Trình bày class, interface, enum và annotation type
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-002
+    title: Trình bày record header và danh sách record component
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-003
+    title: Ngắt khai báo extends và implements có nhiều kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-004
+    title: Trình bày sealed type và danh sách permits
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-005
+    title: Trình bày type parameter và generic bound nhiều thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-006
+    title: Vị trí annotation trên kiểu và annotation có nhiều thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-007
+    title: Khoảng cách giữa annotation, modifier và tên kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-008
+    title: Trình bày kiểu lồng nhau và inner class trong lớp lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-009
+    title: Trình bày anonymous class trong lời gọi hàm nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-010
+    title: Trình bày enum constant có đối số, thân riêng và thành viên dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-011
+    title: Xử lý cú pháp Java mới khi formatter chưa hỗ trợ mức ngôn ngữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-declarations-012
+    title: Đánh giá bố cục khai báo kiểu bằng ví dụ ngắn và ví dụ nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: class-members
+  title: Thành viên lớp
+  childs:
+  - slug: class-members-001
+    title: Trình bày trường, hằng số và giá trị khởi tạo nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-002
+    title: Trình bày khai báo nhiều biến và giới hạn của thay đổi thuần định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-003
+    title: Trình bày static initializer và instance initializer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-004
+    title: Trình bày constructor, lời gọi this hoặc super và danh sách tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-005
+    title: Trình bày compact constructor của record
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-006
+    title: Trình bày chữ ký phương thức với annotation và generic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-007
+    title: Trình bày varargs, array parameter và annotation trên tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-008
+    title: Trình bày phương thức abstract, default, static và thân phương thức rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-009
+    title: Nhóm thành viên bằng dòng trống và chú thích phân đoạn có chủ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-010
+    title: Phân biệt sắp xếp thành viên với formatter chỉ thay đổi bố cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-011
+    title: Nguy cơ đổi thứ tự khởi tạo khi công cụ tự động sắp xếp trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-members-012
+    title: Kiểm tra bố cục lớp có thành viên dài, ngắn và kiểu lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: statement-layout
+  title: Câu lệnh
+  childs:
+  - slug: statement-layout-001
+    title: Trình bày khai báo biến cục bộ và biểu thức khởi tạo nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-002
+    title: Trình bày if lồng nhau và nhánh điều kiện dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-003
+    title: Trình bày for truyền thống và enhanced for
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-004
+    title: Trình bày while, do-while và vòng lặp có thân rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-005
+    title: Trình bày switch statement với case liên tiếp và fall-through
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-006
+    title: Trình bày switch expression với nhánh mũi tên và yield
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-007
+    title: Trình bày pattern và guard trong switch theo mức cú pháp được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-008
+    title: Trình bày try-with-resources với nhiều tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-009
+    title: Trình bày multi-catch, catch liên tiếp và finally
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-010
+    title: Trình bày synchronized block và nhãn câu lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-011
+    title: Ngắt dòng cho return, throw và assert có biểu thức dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statement-layout-012
+    title: Giữ nguyên thứ tự câu lệnh và phạm vi biến khi chuẩn hóa bố cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: expression-layout
+  title: Biểu thức
+  childs:
+  - slug: expression-layout-001
+    title: Trình bày biểu thức số học nhiều toán tử theo độ ưu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-002
+    title: Trình bày điều kiện logic kết hợp với nhiều tầng ngoặc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-003
+    title: Trình bày biểu thức ba ngôi và biểu thức ba ngôi lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-004
+    title: Trình bày ép kiểu, instanceof và pattern variable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-005
+    title: Trình bày biểu thức tạo đối tượng và constructor generic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-006
+    title: Trình bày truy cập mảng, array initializer và mảng nhiều chiều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-007
+    title: Trình bày lambda một biểu thức và lambda có khối lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-008
+    title: Trình bày method reference và lời gọi có kiểu tham số tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-009
+    title: Trình bày method chain dài với nhiều lời gọi có đối số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-010
+    title: Trình bày Stream pipeline có lambda, collector và thao tác kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-011
+    title: Ngắt phép nối chuỗi mà không sửa nội dung literal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-layout-012
+    title: Phát hiện thay đổi token, toán tử hoặc dấu phân cách trong diff định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: comments-and-javadoc
+  title: Chú thích
+  childs:
+  - slug: comments-and-javadoc-001
+    title: Trình bày line comment và khoảng cách với câu lệnh liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-002
+    title: Trình bày block comment và căn dấu sao nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-003
+    title: Vị trí chú thích cuối dòng khi formatter ngắt câu lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-004
+    title: Giữ chú thích gắn đúng câu lệnh khi formatter di chuyển bố cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-005
+    title: Ngắt dòng Javadoc và tách đoạn mô tả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-006
+    title: Trình bày các tag @param, @return, @throws và @see
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-007
+    title: Giữ nguyên inline tag, liên kết và tham chiếu trong Javadoc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-008
+    title: Bảo toàn khối pre, code và ví dụ có thụt lề trong Javadoc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-009
+    title: Trình bày chú thích tài liệu dùng cú pháp được JDK hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-010
+    title: Bảo toàn bảng văn bản, sơ đồ ASCII và đoạn mã nhúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-011
+    title: Quản lý TODO, FIXME và marker công cụ khi định dạng chú thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comments-and-javadoc-012
+    title: Kiểm tra tài liệu sinh ra sau khi formatter thay đổi Javadoc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: strings-and-embedded-data
+  title: Chuỗi và dữ liệu
+  childs:
+  - slug: strings-and-embedded-data-001
+    title: Phân biệt khoảng trắng trong mã với khoảng trắng thuộc dữ liệu chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-002
+    title: Bảo toàn escape sequence và ký tự Unicode trong string literal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-003
+    title: Text block và cơ chế loại bỏ khoảng trắng thụt lề
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-004
+    title: Vị trí delimiter đóng và ảnh hưởng tới nội dung text block
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-005
+    title: Bảo toàn newline cuối cùng và khoảng trắng có ý nghĩa trong text block
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-006
+    title: Định dạng mã chứa JSON, XML hoặc SQL nhúng trong chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-007
+    title: Bảo toàn regular expression khi formatter thay đổi vùng mã xung quanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-008
+    title: Bảo toàn template, golden file và snapshot dùng so sánh chính xác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-009
+    title: Tách quy tắc định dạng mã Java khỏi quy tắc định dạng dữ liệu nhúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strings-and-embedded-data-010
+    title: Đối chiếu giá trị chuỗi trước sau bằng kiểm thử đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: text-file-conventions
+  title: Chuẩn tệp văn bản
+  childs:
+  - slug: text-file-conventions-001
+    title: Chọn UTF-8 và xác định chính sách BOM cho tệp nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-002
+    title: Phân biệt LF, CRLF và tệp trộn nhiều kiểu kết thúc dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-003
+    title: Newline cuối tệp và sự khác biệt với dòng trống cuối tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-004
+    title: Loại bỏ trailing whitespace mà không làm mất dữ liệu có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-005
+    title: Nhận diện non-breaking space, zero-width character và ký tự tab
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-006
+    title: Ảnh hưởng của Unicode tiếng Việt tới cách hiển thị và đo độ dài dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-007
+    title: Giữ nguyên quyền thực thi và metadata tệp khi chạy công cụ định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-008
+    title: Phát hiện tệp nhị phân và định dạng không được phép xử lý như văn bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-009
+    title: Quy tắc riêng cho tệp trống, tệp chỉ có chú thích và tệp cực dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-010
+    title: Nguy cơ chuyển đổi encoding hoặc newline trên toàn bộ repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-011
+    title: Kiểm tra encoding, newline và ký tự ẩn bằng trình soạn thảo và công cụ dòng lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-file-conventions-012
+    title: Xây dựng bộ tệp mẫu để so sánh kết quả trên Windows, Linux và macOS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: formatting-policy
+  title: Chính sách định dạng
+  childs:
+  - slug: formatting-policy-001
+    title: Khảo sát phong cách hiện hữu và xác định yêu cầu đọc mã của nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-002
+    title: Chọn style có sẵn hoặc profile tùy chỉnh theo tiêu chí cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-003
+    title: Xác định nguồn cấu hình chuẩn được lưu cùng repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-004
+    title: Phân biệt quy tắc bắt buộc, tùy chọn trình soạn thảo và ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-005
+    title: Xác định độ ưu tiên giữa cấu hình toàn cục, dự án, thư mục và ngôn ngữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-006
+    title: Chọn formatter theo cú pháp Java, khả năng tích hợp và mức tùy biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-007
+    title: Chốt phiên bản formatter, plugin và môi trường chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-008
+    title: Giới hạn tập tệp bằng include, exclude và đường dẫn tương đối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-009
+    title: Loại trừ mã sinh tự động, mã bên thứ ba và thư mục build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-010
+    title: Quản lý marker tắt bật formatter cho vùng cần giữ bố cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-011
+    title: Tài liệu hóa quy tắc bằng ví dụ chuẩn và lệnh kiểm tra tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-policy-012
+    title: Đánh giá và phê duyệt thay đổi chính sách trước khi áp dụng rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: editorconfig
+  title: EditorConfig
+  childs:
+  - slug: editorconfig-001
+    title: Vai trò của .editorconfig trong thống nhất thiết lập trình soạn thảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-002
+    title: Cấu trúc tệp, section và glob pattern của EditorConfig
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-003
+    title: root = true và phạm vi tìm cấu hình trong cây thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-004
+    title: Thứ tự áp dụng section và ghi đè cấu hình từ thư mục con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-005
+    title: Cấu hình indent_style cho tabs và spaces
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-006
+    title: Cấu hình indent_size và tab_width cùng các trường hợp dễ nhầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-007
+    title: Cấu hình end_of_line và charset theo loại tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-008
+    title: Cấu hình trim_trailing_whitespace và insert_final_newline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-009
+    title: Dùng unset để bỏ một thuộc tính được kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-010
+    title: Tạo section riêng cho Java, YAML, Markdown và script
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-011
+    title: Phân biệt thuộc tính chuẩn với phần mở rộng phụ thuộc IDE hoặc plugin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-012
+    title: Giới hạn của EditorConfig đối với braces, wrapping và tổ chức import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-013
+    title: Kiểm tra cấu hình có hiệu lực trên từng tệp và phát hiện plugin chưa hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: editorconfig-014
+    title: Xử lý xung đột giữa EditorConfig, code style của IDE và formatter ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-formatters
+  title: Bộ định dạng Java
+  childs:
+  - slug: java-formatters-001
+    title: Hiểu đầu vào, phân tích cú pháp và đầu ra của một Java formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-002
+    title: So sánh formatter ít tùy chọn với formatter dùng profile cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-003
+    title: google-java-format và cách tiếp cận style định sẵn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-004
+    title: Chạy google-java-format ở chế độ kiểm tra và chế độ ghi lại tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-005
+    title: Các lựa chọn style của google-java-format và giới hạn tùy chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-006
+    title: Eclipse JDT formatter và profile XML được quản lý theo dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-007
+    title: Cấu hình độ rộng dòng, thụt lề và wrapping trong profile Eclipse
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-008
+    title: Phân biệt formatter IntelliJ với formatter dùng engine ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-009
+    title: Spotless và vai trò điều phối formatter cùng các bước xử lý tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-010
+    title: Thứ tự formatter, import organizer, license header và chuẩn hóa whitespace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-011
+    title: Tương thích giữa phiên bản engine, JDK chạy công cụ và cú pháp nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-012
+    title: Định dạng toàn tệp, vùng chọn và dòng thay đổi cùng các giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatters-013
+    title: Kiểm tra lần chạy thứ hai không tạo thêm thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: intellij-formatting
+  title: IntelliJ IDEA
+  childs:
+  - slug: intellij-formatting-001
+    title: Phân biệt code style toàn cục của IDE và code style của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-002
+    title: Thiết lập tabs, indentation, continuation indent và line length
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-003
+    title: Cấu hình spaces, braces, blank lines và wrapping cho Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-004
+    title: Cấu hình import layout, static import và ngưỡng wildcard import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-005
+    title: Import và export scheme code style để chia sẻ trong nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-006
+    title: Kiểm tra tác động của EditorConfig lên thiết lập đang có hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-007
+    title: Reformat Code cho vùng chọn, tệp và thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-008
+    title: Phân biệt Reformat Code, Optimize Imports và Rearrange Code
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-009
+    title: Cấu hình Actions on Save và giới hạn tập tệp bị tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-010
+    title: Tích hợp formatter ngoài và xác định engine thực sự đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-011
+    title: Kiểm soát hành động định dạng tự động khi commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: intellij-formatting-012
+    title: Đối chiếu kết quả của IDE với lệnh formatter dùng trong CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: eclipse-formatting
+  title: Eclipse
+  childs:
+  - slug: eclipse-formatting-001
+    title: Phân biệt formatter profile trong workspace và project-specific settings
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-002
+    title: Tạo, import và export Java formatter profile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-003
+    title: Cấu hình indentation, braces, whitespace và blank lines
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-004
+    title: Cấu hình line wrapping, comment formatting và giới hạn độ dài dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-005
+    title: Phân biệt Format, Organize Imports và Clean Up
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-006
+    title: Cấu hình Save Actions và tránh bật kèm thay đổi ngoài định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-007
+    title: Chia sẻ thiết lập dự án để thành viên dùng cùng profile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-008
+    title: Tắt bật formatter cho vùng đặc biệt theo marker được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-009
+    title: Kiểm tra phiên bản JDT khi dự án dùng cú pháp Java mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eclipse-formatting-010
+    title: Đối chiếu kết quả Eclipse với formatter headless trong build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vs-code-formatting
+  title: VS Code
+  childs:
+  - slug: vs-code-formatting-001
+    title: Phân biệt user settings, workspace settings và cấu hình theo ngôn ngữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-002
+    title: Chọn default formatter cho Java khi có nhiều extension
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-003
+    title: Cấu hình editor.formatOnSave, editor.formatOnPaste và editor.formatOnType
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-004
+    title: Cấu hình editor.tabSize, editor.insertSpaces và tự phát hiện thụt lề
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-005
+    title: Khai báo [java] để giới hạn thiết lập định dạng cho Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-006
+    title: Cấu hình java.format.settings.url để dùng profile được chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-007
+    title: Chọn java.format.settings.profile và xác minh profile được nạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-008
+    title: Phân biệt format document, format selection và code actions on save
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-009
+    title: Phối hợp EditorConfig với Java extension và workspace nhiều thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-010
+    title: Chẩn đoán xung đột giữa nhiều formatter hoặc hành động lưu tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vs-code-formatting-011
+    title: So sánh kết quả VS Code với engine và profile của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: maven-formatting
+  title: Maven
+  childs:
+  - slug: maven-formatting-001
+    title: Tích hợp kiểm tra định dạng vào pom.xml bằng plugin phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-002
+    title: Khai báo phiên bản Spotless Maven Plugin và Java formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-003
+    title: Cấu hình tập tệp Java được xử lý và các đường dẫn loại trừ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-004
+    title: Khai báo google-java-format hoặc Eclipse formatter trong Spotless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-005
+    title: Quản lý import order, unused imports và license header theo chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-006
+    title: Chạy spotless:check để phát hiện sai định dạng mà không sửa mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-007
+    title: Chạy spotless:apply và kiểm tra phạm vi thay đổi trước khi đưa vào review
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-008
+    title: Gắn bước check vào lifecycle và phân biệt với bước tự động apply
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-009
+    title: Quản lý cấu hình kế thừa trong dự án Maven nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-010
+    title: Phân biệt pluginManagement với plugin thực sự được áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-011
+    title: Tái hiện lỗi bằng Maven Wrapper và cùng JDK với CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-formatting-012
+    title: Đọc diff và thông báo lỗi khi Maven formatter check thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gradle-formatting
+  title: Gradle
+  childs:
+  - slug: gradle-formatting-001
+    title: Tích hợp Spotless vào Gradle với cấu hình Groovy DSL hoặc Kotlin DSL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-002
+    title: Cố định phiên bản plugin và formatter trong build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-003
+    title: Cấu hình java target, targetExclude và phạm vi source set
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-004
+    title: Chọn googleJavaFormat hoặc eclipse cùng profile tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-005
+    title: Cấu hình importOrder, removeUnusedImports và licenseHeader theo phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-006
+    title: Cấu hình trimTrailingWhitespace, endWithNewline và line endings
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-007
+    title: Chạy spotlessCheck để kiểm tra và spotlessApply để sửa định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-008
+    title: Tổ chức kiểm tra định dạng trong vòng đời check của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-009
+    title: Chia sẻ cấu hình bằng convention plugin cho dự án nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-010
+    title: Định dạng thay đổi từ mốc Git bằng ratchet và giới hạn của cách kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-011
+    title: Hiểu up-to-date check và cache khi đánh giá kết quả định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-formatting-012
+    title: Tái hiện kết quả bằng Gradle Wrapper, đúng task path và môi trường chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: supporting-files
+  title: Tệp hỗ trợ
+  childs:
+  - slug: supporting-files-001
+    title: Xác định phạm vi formatter cho Java, cấu hình build và tài liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-002
+    title: Định dạng JSON với thụt lề, newline và bảo toàn giá trị chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-003
+    title: Định dạng YAML và bảo toàn ý nghĩa của indentation, scalar và block scalar
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-004
+    title: Định dạng XML trong pom.xml cùng attribute và phần tử nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-005
+    title: Định dạng Gradle script và phân biệt Groovy DSL với Kotlin DSL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-006
+    title: Định dạng properties và nguy cơ thay đổi escape hoặc dòng nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-007
+    title: Định dạng Markdown và bảo toàn hard line break, bảng và code fence
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-008
+    title: Định dạng shell script và bảo toàn shebang, quoting cùng dòng nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-009
+    title: Bảo toàn tab có ý nghĩa trong Makefile và loại trừ công cụ không phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-010
+    title: Dùng Prettier cho loại tệp được hỗ trợ và xác định phạm vi plugin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-011
+    title: Quản lý ignore pattern giữa formatter, IDE và hệ thống build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-files-012
+    title: Loại trừ lockfile, tệp sinh tự động và nội dung bên thứ ba theo chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: git-and-code-review
+  title: Git và review
+  childs:
+  - slug: git-and-code-review-001
+    title: Đọc git diff để nhận diện thay đổi thuần whitespace và newline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-002
+    title: Dùng git diff --check để phát hiện một số lỗi whitespace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-003
+    title: Dùng tùy chọn bỏ qua whitespace khi review và hiểu thông tin có thể bị che
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-004
+    title: Kiểm tra staged diff khi format-on-save và pre-commit cùng hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-005
+    title: Quy định .gitattributes cho text, eol và đường dẫn ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-006
+    title: Phân biệt .gitattributes với core.autocrlf và end_of_line của EditorConfig
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-007
+    title: Nguy cơ renormalize làm thay đổi hàng loạt tệp ngoài dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-008
+    title: Tách commit định dạng khỏi thay đổi hành vi để review rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-009
+    title: Chuẩn bị pull request định dạng với phạm vi và bằng chứng kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-010
+    title: Giảm xung đột merge khi nhiều nhánh cùng sửa các dòng bị định dạng lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-011
+    title: Dùng git blame bỏ qua revision định dạng để tra cứu lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-012
+    title: Thiết kế pre-commit hook kiểm tra nhanh và cách chạy lại thủ công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-and-code-review-013
+    title: Giới hạn của hook cục bộ và vai trò của kiểm tra bắt buộc trong CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-format-checks
+  title: Kiểm tra CI
+  childs:
+  - slug: ci-format-checks-001
+    title: Thiết kế bước formatter check và điều kiện làm pipeline thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-002
+    title: Chạy chế độ kiểm tra chỉ đọc trong môi trường CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-003
+    title: Dùng cùng wrapper, JDK, phiên bản formatter và profile với máy lập trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-004
+    title: Xác định working directory và tập tệp cho pipeline nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-005
+    title: Kiểm tra toàn repository hoặc chỉ phần thay đổi theo mục tiêu kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-006
+    title: Tính tập tệp thay đổi từ merge base và xử lý tệp thêm, đổi tên hoặc xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-007
+    title: Giới hạn của shallow clone khi kiểm tra dựa trên lịch sử Git
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-008
+    title: Xử lý đường dẫn có khoảng trắng và tên tệp Unicode trong lệnh CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-009
+    title: Đặt bước định dạng trong pipeline để phản hồi sớm với chi phí phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-010
+    title: Quản lý cache theo phiên bản công cụ và cấu hình để tránh kết quả cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-011
+    title: Xuất danh sách tệp vi phạm và diff đủ rõ để người viết mã tự sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-012
+    title: Phân biệt lỗi format với lỗi tải dependency, lỗi parser và lỗi môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-013
+    title: Xác minh formatter check kết thúc mà không để lại working tree bị sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-format-checks-014
+    title: Đưa kiểm tra định dạng thành điều kiện hợp nhất và hướng dẫn sửa tại máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: formatting-verification
+  title: Kiểm chứng kết quả
+  childs:
+  - slug: formatting-verification-001
+    title: Lập bộ mẫu đại diện cho các cấu trúc Java và quy tắc định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-002
+    title: So sánh kết quả thực tế với bản định dạng chuẩn của từng mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-003
+    title: Kiểm tra tính idempotent bằng hai lần định dạng liên tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-004
+    title: Kiểm tra tính xác định giữa IDE, dòng lệnh và CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-005
+    title: Kiểm tra tính tái lập trên các hệ điều hành khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-006
+    title: Xác minh include, exclude và marker bằng các tệp nằm ở ranh giới phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-007
+    title: So sánh token hoặc cây cú pháp và hiểu giới hạn của phép so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-008
+    title: Biên dịch sau định dạng để phát hiện lỗi cú pháp và phân giải import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-009
+    title: Chạy kiểm thử phù hợp khi có text block, dữ liệu nhúng hoặc thứ tự khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-010
+    title: Kiểm tra riêng comment, Javadoc và tài liệu sinh ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-011
+    title: Kiểm tra encoding, BOM, newline cuối tệp và line ending trong diff
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-012
+    title: Đo số tệp, số dòng đổi và phát hiện phạm vi vượt kế hoạch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-verification-013
+    title: Xác nhận bước check trả kết quả thành công sau khi apply
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: legacy-code-formatting
+  title: Chuyển đổi mã hiện hữu
+  childs:
+  - slug: legacy-code-formatting-001
+    title: Khảo sát hiện trạng phong cách và lập danh sách tệp đủ điều kiện chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-002
+    title: Chốt cấu hình cùng phiên bản công cụ trước đợt định dạng đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-003
+    title: Chọn định dạng toàn bộ một lần hoặc triển khai dần theo rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-004
+    title: Thiết lập baseline cho mã cũ và quy tắc đối với mã mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-005
+    title: Thử nghiệm trên nhóm tệp đại diện trước khi mở rộng phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-006
+    title: Chuẩn bị working tree và bảo toàn thay đổi đang làm của lập trình viên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-007
+    title: Đánh giá dry-run hoặc diff dự kiến trước khi ghi lại tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-008
+    title: Điều phối nhánh đang hoạt động và chọn thời điểm giảm xung đột merge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-009
+    title: Áp dụng theo đợt có thể review và truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-010
+    title: Tách đổi cấu hình formatter, định dạng mã và thay đổi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-011
+    title: Kiểm tra biên dịch, kiểm thử và dữ liệu nhạy whitespace sau mỗi đợt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-012
+    title: Khôi phục thay đổi định dạng sai phạm vi mà không làm mất chỉnh sửa khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-formatting-013
+    title: Duy trì CI và hướng dẫn IDE để tránh quay lại nhiều phong cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: formatting-troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: formatting-troubleshooting-001
+    title: IDE định dạng khác CI do khác engine, phiên bản hoặc profile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-002
+    title: EditorConfig không có hiệu lực do glob, thứ tự ghi đè hoặc plugin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-003
+    title: Tệp đổi qua lại sau mỗi lần lưu do nhiều formatter cùng chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-004
+    title: Formatter check thành công nhưng bỏ sót tệp do cấu hình target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-005
+    title: Formatter sửa nhầm mã sinh tự động do exclude không khớp đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-006
+    title: Parser thất bại vì cú pháp Java mới, preview feature hoặc mã chưa hoàn chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-007
+    title: Formatter chạy được tại máy nhưng lỗi trong CI do khác JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-008
+    title: Toàn bộ tệp xuất hiện trong diff do encoding hoặc line ending
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-009
+    title: Import bị thay đổi ngoài ý muốn do save action hoặc bước xử lý bổ sung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-010
+    title: Marker tắt bật formatter không được nhận diện hoặc bao vùng quá rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-011
+    title: Chú thích, Javadoc hoặc bảng văn bản bị ngắt dòng sai mục đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-012
+    title: Text block hoặc snapshot thay đổi giá trị sau khi chuẩn hóa whitespace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-013
+    title: Kết quả cache hoặc kiểm tra theo Git làm che vi phạm định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-troubleshooting-014
+    title: Thu nhỏ ví dụ lỗi, thu thập cấu hình hiệu lực và xác nhận cách sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Chuẩn hóa một lớp Java có lỗi khoảng trắng, thụt lề và dấu ngoặc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-002
+    title: Thiết kế ví dụ chuẩn cho method chain, lambda và khai báo generic dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-003
+    title: Xây dựng .editorconfig cho dự án Java có YAML và Markdown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-004
+    title: Chọn và cấu hình một formatter Java làm nguồn kết quả chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-005
+    title: Đồng bộ IntelliJ IDEA, Eclipse và VS Code với cấu hình dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-006
+    title: Tích hợp check và apply cho dự án Maven hoặc Gradle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-007
+    title: Thiết kế pipeline từ phát hiện sai định dạng đến kiểm tra hợp nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-008
+    title: Review diff có lẫn định dạng và nghiệp vụ rồi đề xuất cách tách thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-009
+    title: Chuyển đổi thử một phần mã cũ và kiểm chứng các ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-010
+    title: Điều tra tình huống formatter không ổn định giữa máy cá nhân và CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-011
+    title: Lập hướng dẫn đóng góp với lệnh kiểm tra, lệnh sửa và quy trình nâng phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-012
+    title: Đánh giá cuối cùng bằng phạm vi tệp, kết quả tái lập và kiểm chứng hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

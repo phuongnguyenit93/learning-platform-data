@@ -1,0 +1,507 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data JPA là gì và giải quyết vấn đề truy cập dữ liệu nào
+  - Mối liên hệ giữa Spring Data, JPA, Hibernate, JDBC và cơ sở dữ liệu
+  - Entity, bảng, khóa định danh, Repository và giao dịch trong cùng một mô hình
+  - Luồng xử lý từ lời gọi Repository đến câu SQL và kết quả trả về
+  - So sánh Spring Data JPA với JDBC, Spring Data JDBC và R2DBC
+  - Khi nên dùng JPA và khi nên chọn công cụ truy cập dữ liệu khác
+  - Kiến thức Java, SQL và Spring cần có trước khi bắt đầu
+  - Thứ tự học và mô hình nghiệp vụ xuyên suốt tài liệu
+- level1: Khởi tạo
+  level2:
+  - Tạo ứng dụng Spring Boot với Spring Data JPA và trình điều khiển JDBC
+  - Quản lý phiên bản Spring Boot, Spring Data và Hibernate bằng BOM
+  - Cấu hình DataSource, thông tin kết nối và hồ sơ môi trường
+  - Khởi tạo Entity, JpaRepository và dịch vụ nghiệp vụ đầu tiên
+  - Chạy thử thao tác thêm, đọc, sửa và xóa dữ liệu
+  - Phân biệt cơ sở dữ liệu nhúng và cơ sở dữ liệu dùng trong triển khai
+  - Cấu hình ghi nhật ký SQL và tham số truy vấn theo môi trường
+  - Tổ chức gói mã nguồn và phạm vi quét Entity, Repository
+  - Kiểm tra kết nối, tạo schema thử nghiệm và lỗi khởi động thường gặp
+- level1: Hạ tầng JPA
+  level2:
+  - Vai trò của DataSource, EntityManagerFactory và EntityManager
+  - Persistence unit, PersistenceContext và vòng đời tài nguyên
+  - Cơ chế tự cấu hình JPA của Spring Boot
+  - Cấu hình @EnableJpaRepositories và @EntityScan
+  - Cấu hình JPA bằng Java khi không dùng Spring Boot
+  - Vai trò của JpaVendorAdapter và các thuộc tính nhà cung cấp
+  - Cấu hình TransactionManager và liên kết với persistence unit
+  - Chế độ khởi tạo Repository DEFAULT, LAZY và DEFERRED
+  - Cấu hình XML, persistence.xml và phạm vi áp dụng trong hệ thống cũ
+- level1: Repository
+  level2:
+  - Repository, CrudRepository và hợp đồng thao tác dữ liệu
+  - ListCrudRepository, PagingAndSortingRepository và JpaRepository
+  - Lựa chọn interface theo phiên bản và nhu cầu của ứng dụng
+  - Kiểu Entity và kiểu khóa định danh trong khai báo Repository
+  - Cơ chế tạo proxy và vai trò của SimpleJpaRepository
+  - Chọn lọc phương thức bằng RepositoryDefinition và interface cơ sở
+  - Ngăn tạo Repository trung gian bằng @NoRepositoryBean
+  - Phân biệt phương thức CRUD kế thừa và phương thức truy vấn tự khai báo
+  - Nhận diện Repository khi nhiều mô-đun Spring Data cùng tồn tại
+- level1: Ánh xạ Entity
+  level2:
+  - '@Entity, @Table và quan hệ giữa tên Entity với tên bảng'
+  - Yêu cầu về constructor, lớp Entity và khả năng tạo proxy
+  - Chọn truy cập theo trường hoặc thuộc tính bằng @Access
+  - '@Column, nullability, độ dài, precision và scale'
+  - Phân biệt ràng buộc ánh xạ, Bean Validation và ràng buộc cơ sở dữ liệu
+  - Loại trừ thuộc tính bằng @Transient và từ khóa transient
+  - Ánh xạ thời gian bằng LocalDate, LocalDateTime, Instant và múi giờ
+  - Ánh xạ enum bằng STRING, ORDINAL và rủi ro thay đổi thứ tự
+  - Ánh xạ LOB, dữ liệu nhị phân và chi phí tải dữ liệu lớn
+  - Quy tắc đặt tên vật lý, tên logic và tên trùng từ khóa SQL
+- level1: Khóa định danh
+  level2:
+  - Khóa tự nhiên, khóa thay thế và tiêu chí lựa chọn
+  - Khai báo @Id và các yêu cầu về tính ổn định của định danh
+  - So sánh chiến lược sinh khóa AUTO, IDENTITY, SEQUENCE và TABLE
+  - Cấu hình @SequenceGenerator và phân bổ giá trị khóa
+  - Sinh khóa UUID và yêu cầu tương thích phiên bản JPA, Hibernate
+  - Khóa do ứng dụng gán và cách Spring Data nhận diện Entity mới
+  - Khóa ghép với @EmbeddedId và @IdClass
+  - Định danh phụ thuộc với @MapsId
+  - Thiết kế equals và hashCode cho khóa ghép
+  - Tác động của chiến lược sinh khóa đến nhập dữ liệu theo lô
+- level1: Kiểu giá trị
+  level2:
+  - Phân biệt Entity và đối tượng giá trị
+  - Tái sử dụng nhóm thuộc tính bằng @Embeddable và @Embedded
+  - Ghi đè ánh xạ bằng @AttributeOverride và @AssociationOverride
+  - Tập hợp kiểu cơ bản và đối tượng giá trị với @ElementCollection
+  - Cấu hình bảng tập hợp bằng @CollectionTable
+  - Chuyển đổi dữ liệu bằng AttributeConverter và @Convert
+  - Áp dụng autoApply và giới hạn của bộ chuyển đổi
+  - Ánh xạ giá trị tiền tệ, mã nghiệp vụ và thời gian có quy tắc riêng
+  - Lựa chọn kiểu chuẩn JPA hoặc kiểu đặc thù nhà cung cấp
+- level1: Quan hệ đơn
+  level2:
+  - Phân biệt quan hệ đơn hướng, hai hướng và phía sở hữu
+  - Ánh xạ nhiều-một bằng @ManyToOne và @JoinColumn
+  - Ánh xạ một-một bằng @OneToOne
+  - Quan hệ một-một dùng khóa chính chung với @MapsId
+  - Vai trò của mappedBy và vị trí lưu khóa ngoại
+  - Đồng bộ hai phía quan hệ bằng phương thức nghiệp vụ
+  - optional, nullable, khóa ngoại và ràng buộc duy nhất
+  - Lựa chọn LAZY hoặc EAGER cho quan hệ đơn
+  - Xử lý tham chiếu không tồn tại và giới hạn tải lười theo nhà cung cấp
+- level1: Quan hệ tập hợp
+  level2:
+  - Ánh xạ một-nhiều bằng @OneToMany
+  - So sánh một-nhiều dùng khóa ngoại và bảng liên kết
+  - Ánh xạ nhiều-nhiều bằng @ManyToMany và @JoinTable
+  - Thay quan hệ nhiều-nhiều bằng Entity liên kết có thuộc tính riêng
+  - Chọn List, Set và Map cho quan hệ tập hợp
+  - Duy trì thứ tự bằng @OrderBy và @OrderColumn
+  - Ánh xạ khóa Map bằng @MapKey và các biến thể phù hợp
+  - CascadeType và phạm vi lan truyền từng thao tác
+  - Phân biệt orphanRemoval, CascadeType.REMOVE và ON DELETE của cơ sở dữ liệu
+  - Thêm, xóa và thay thế phần tử mà vẫn giữ nhất quán hai phía
+  - Rủi ro xóa dây chuyền và cập nhật dư thừa ở quan hệ lớn
+- level1: Kế thừa
+  level2:
+  - Lựa chọn kế thừa Entity hoặc kết hợp đối tượng
+  - Chia sẻ thuộc tính bằng @MappedSuperclass
+  - Chiến lược SINGLE_TABLE và cột phân biệt
+  - Chiến lược JOINED và chi phí kết nối bảng
+  - Chiến lược TABLE_PER_CLASS và truy vấn đa hình
+  - Cấu hình @Inheritance, @DiscriminatorColumn và @DiscriminatorValue
+  - Truy vấn theo lớp cha và xử lý lớp con
+  - Đánh đổi giữa toàn vẹn dữ liệu, khả năng mở rộng và hiệu năng
+- level1: Vòng đời Entity
+  level2:
+  - Các trạng thái transient, managed, detached và removed
+  - Bộ nhớ đệm cấp một và định danh đối tượng trong PersistenceContext
+  - persist, merge, remove, find và getReference
+  - Dirty checking và thời điểm phát hiện thay đổi
+  - Flush khác commit như thế nào
+  - FlushModeType.AUTO, COMMIT và ảnh hưởng đến truy vấn
+  - detach, clear, refresh và khi cần đồng bộ lại trạng thái
+  - Vì sao merge trả về một đối tượng managed khác
+  - Entity callback với @PrePersist, @PreUpdate, @PostLoad và các mốc liên quan
+  - EntityListener, Bean Validation và giới hạn xử lý trong callback
+  - Thiết kế equals, hashCode, toString và sử dụng Lombok an toàn với Entity
+- level1: Thao tác CRUD
+  level2:
+  - save và cách lựa chọn persist hoặc merge
+  - Nhận diện Entity mới qua thuộc tính version, id và Persistable
+  - Cập nhật Entity managed mà không gọi save lặp lại
+  - saveAll và sự khác biệt với câu lệnh chèn theo lô
+  - findById, Optional và hợp đồng khi dữ liệu không tồn tại
+  - getReferenceById, proxy và thời điểm kiểm tra sự tồn tại
+  - findAll, findAllById và giới hạn khi đọc tập dữ liệu lớn
+  - existsById, count và chi phí truy vấn
+  - delete, deleteById, deleteAll và ảnh hưởng đến callback
+  - flush, saveAndFlush và saveAllAndFlush
+  - deleteAllInBatch, deleteAllByIdInBatch và trạng thái PersistenceContext
+- level1: Truy vấn theo tên
+  level2:
+  - 'Cấu trúc tên phương thức: chủ ngữ, điều kiện và thứ tự'
+  - 'Query lookup strategy: CREATE, USE_DECLARED_QUERY và CREATE_IF_NOT_FOUND'
+  - Duyệt thuộc tính lồng nhau và phân giải tên bằng dấu gạch dưới
+  - Tìm theo điều kiện bằng, so sánh, khoảng và thời gian
+  - Xử lý null, boolean, In và NotIn
+  - Tìm chuỗi bằng Like, Containing, StartingWith và EndingWith
+  - Ký tự đại diện, escaping và khác biệt khi truyền null
+  - Kết hợp And, Or và giới hạn biểu diễn điều kiện có nhóm
+  - IgnoreCase, AllIgnoreCase và tác động đến chỉ mục
+  - Distinct, countDistinct và ý nghĩa thực tế của phép đếm
+  - Top, First, OrderBy và giới hạn số kết quả
+  - existsBy, countBy, deleteBy và removeBy
+  - Tên phương thức dành riêng và xung đột với thuộc tính tên id
+  - Nhận biết tên phương thức quá dài và thời điểm chuyển cách truy vấn
+- level1: JPQL
+  level2:
+  - JPQL truy vấn theo Entity và thuộc tính thay vì bảng và cột
+  - Khai báo truy vấn bằng @Query
+  - SELECT, WHERE, ORDER BY và biểu thức điều kiện
+  - INNER JOIN, LEFT JOIN và điều kiện ON
+  - Đường dẫn thuộc tính và các phép join phát sinh ngầm
+  - JOIN FETCH và khác biệt với join phục vụ lọc dữ liệu
+  - GROUP BY, HAVING và các hàm tổng hợp
+  - Truy vấn con, EXISTS và điều kiện tương quan
+  - DISTINCT, giá trị null và kết quả trùng do join
+  - Biểu thức CASE, COALESCE, NULLIF và hàm chuẩn
+  - Truy vấn đa hình với TYPE và TREAT
+  - Constructor expression để trả về DTO
+  - Hàm cơ sở dữ liệu, FUNCTION và giới hạn tính khả chuyển
+- level1: SQL thuần
+  level2:
+  - Khi nào cần native SQL thay cho JPQL
+  - Khai báo @Query với nativeQuery và khả năng dùng @NativeQuery theo phiên bản
+  - Ánh xạ kết quả native query về Entity
+  - Trả về dữ liệu vô hướng, interface projection và DTO
+  - Ánh xạ phức tạp bằng @SqlResultSetMapping và @ConstructorResult
+  - Phân trang native query và khai báo countQuery
+  - Sắp xếp động, bộ phân tích truy vấn và giới hạn theo phiên bản
+  - Truy vấn CTE, hàm cửa sổ và cú pháp riêng của cơ sở dữ liệu
+  - Ràng buộc tham số an toàn và tránh ghép SQL từ đầu vào
+  - Kiểm thử tính đúng đắn và khả năng chuyển cơ sở dữ liệu
+- level1: Truy vấn đặt tên
+  level2:
+  - Định nghĩa JPQL bằng @NamedQuery và @NamedQueries
+  - Định nghĩa SQL bằng @NamedNativeQuery
+  - Quy ước tên Entity.phươngThức và cơ chế tìm truy vấn
+  - Tổ chức truy vấn trong META-INF/orm.xml
+  - Thứ tự lựa chọn giữa @Query, named query và truy vấn theo tên
+  - Áp dụng query hints và giới hạn phụ thuộc nhà cung cấp
+  - Sử dụng @Meta để bổ sung chú thích truy vấn khi được hỗ trợ
+  - Phát hiện truy vấn sai lúc khởi tạo và lúc thực thi
+- level1: Tham số và kết quả
+  level2:
+  - Ràng buộc tham số theo vị trí và theo tên với @Param
+  - Biểu thức giá trị trong @Query và biến entityName
+  - Truyền tập hợp, enum, thời gian và tham số có thể null
+  - Phân biệt không truyền bộ lọc, lọc IS NULL và lọc bằng giá trị
+  - Kiểu trả về đơn, Optional và nhiều kết quả
+  - Collection, List, Set và hợp đồng thứ tự kết quả
+  - Truy vấn vô hướng và ánh xạ giá trị tổng hợp
+  - Nullability của tham số và kết quả theo phiên bản Spring Data
+  - Xử lý kết quả rỗng và IncorrectResultSizeDataAccessException
+  - Lựa chọn kiểu trả về theo mục đích sử dụng và chi phí truy vấn
+- level1: Projection và DTO
+  level2:
+  - Vì sao nên chọn dữ liệu cần đọc thay vì luôn tải Entity
+  - Interface projection đóng và ánh xạ tên thuộc tính
+  - Interface projection mở với biểu thức và đánh đổi tối ưu
+  - Projection lồng nhau và nguy cơ tải quan hệ ngoài dự kiến
+  - Default method và wrapper cho thuộc tính có thể null
+  - DTO theo constructor và lựa chọn constructor bằng @PersistenceCreator
+  - Sử dụng Java record làm DTO projection
+  - Projection động với tham số Class<T>
+  - Projection cho truy vấn theo tên, JPQL và native SQL
+  - Phân biệt DTO trả kết quả truy vấn và DTO nhận dữ liệu cập nhật
+- level1: Sắp xếp và phân trang
+  level2:
+  - Sort, Sort.Order và sắp xếp theo nhiều thuộc tính
+  - Chiều sắp xếp, thứ tự null và khác biệt giữa cơ sở dữ liệu
+  - Sắp xếp theo biểu thức và rủi ro của JpaSort.unsafe
+  - Pageable, PageRequest và quy ước chỉ số trang bắt đầu từ 0
+  - Phân biệt List, Slice và Page
+  - Count query tự sinh, countQuery tùy chỉnh và chi phí đếm
+  - Phân trang khi join quan hệ và tránh đếm trùng
+  - Vì sao phân trang với collection fetch join dễ sai hoặc tốn bộ nhớ
+  - Thứ tự ổn định, khóa phụ và thay đổi dữ liệu giữa các trang
+  - Giới hạn kích thước trang và kiểm soát thuộc tính được phép sắp xếp
+  - Tích hợp Pageable, Sort với Spring MVC và quy tắc cấu hình
+  - Ánh xạ Page<Entity> sang Page<DTO> và hợp đồng phản hồi
+- level1: Cuộn và luồng
+  level2:
+  - Giới hạn của phân trang offset khi dữ liệu tăng lớn
+  - Mô hình Window, ScrollPosition và truy vấn hỗ trợ scrolling
+  - So sánh offset scrolling và keyset scrolling
+  - Thiết kế thứ tự sắp xếp và chỉ mục cho keyset
+  - Ràng buộc về giá trị null và thuộc tính sắp xếp trong projection
+  - Duyệt nhiều cửa sổ và quản lý vị trí tiếp tục
+  - Đọc kết quả bằng Stream<T> trong phạm vi giao dịch
+  - Đóng Stream, fetch size và thời gian giữ kết nối
+  - Giới hạn số kết quả bằng Top, First hoặc Limit theo phiên bản
+  - Truy vấn bất đồng bộ với @Async và giới hạn của JPA đồng bộ
+- level1: Query by Example
+  level2:
+  - Mô hình probe, Example và ExampleMatcher
+  - Cấu hình thuộc tính được xét hoặc bỏ qua
+  - So khớp chuỗi, phân biệt chữ hoa thường và giá trị null
+  - matchingAll, matchingAny và tùy chỉnh theo thuộc tính
+  - Xử lý giá trị mặc định của kiểu nguyên thủy trong probe
+  - Tìm kiếm, đếm, kiểm tra tồn tại và phân trang bằng Example
+  - Thực thi linh hoạt với fluent query của QueryByExampleExecutor
+  - Giới hạn về điều kiện nhóm, quan hệ và truy vấn phức tạp
+  - Lựa chọn Query by Example cho biểu mẫu tìm kiếm đơn giản
+- level1: Specification
+  level2:
+  - Vì sao cần Specification cho bộ lọc kết hợp động
+  - JpaSpecificationExecutor và hợp đồng Specification<T>
+  - CriteriaBuilder, CriteriaQuery, Root, Path và Predicate
+  - Tạo điều kiện so sánh, chuỗi, khoảng, null và tập hợp
+  - Kết hợp điều kiện bằng and, or, not và nhóm logic
+  - Join quan hệ, truy vấn con và xử lý kết quả trùng
+  - Xây dựng bộ lọc tùy chọn mà không sinh điều kiện thừa
+  - Metamodel tĩnh và giảm lỗi tên thuộc tính khi tái cấu trúc
+  - Phân trang, sắp xếp và fluent query khi phiên bản hỗ trợ
+  - Tách điều kiện lọc khỏi fetch join và logic count query
+  - Giới hạn thao tác xóa theo Specification và tác động của bulk delete
+  - Kiểm thử bộ Specification tái sử dụng
+- level1: Querydsl
+  level2:
+  - Vai trò của Querydsl và lựa chọn so với Specification
+  - Cấu hình sinh Q-type tương thích Jakarta Persistence
+  - Xây dựng predicate có kiểm tra kiểu bằng Q-type
+  - QuerydslPredicateExecutor cho tìm kiếm, đếm và tồn tại
+  - Kết hợp điều kiện tìm kiếm động bằng BooleanBuilder
+  - Join, projection và truy vấn phức tạp trong Repository tùy biến
+  - Phân trang, sắp xếp và kiểm soát count query với Querydsl
+  - Ràng buộc bộ lọc từ web bằng QuerydslBinderCustomizer
+  - Kiểm soát thuộc tính được công khai khi nhận predicate từ web
+  - Đánh giá phiên bản, nguồn phát hành và chi phí phụ thuộc Querydsl
+- level1: Repository tùy biến
+  level2:
+  - Khi nào nên bổ sung hành vi ngoài phương thức truy vấn
+  - Thiết kế Repository fragment và lớp triển khai
+  - Quy ước tên lớp triển khai, hậu tố và phạm vi quét
+  - Kết hợp nhiều fragment và xử lý phương thức trùng
+  - Tiêm EntityManager bằng @PersistenceContext
+  - Tạo truy vấn động bằng EntityManager
+  - Tùy chỉnh lớp Repository cơ sở và repositoryBaseClass
+  - Phân biệt default method, fragment và dịch vụ nghiệp vụ
+  - Phối hợp JPA với JDBC cho thao tác đặc thù trong cùng giao dịch
+  - Kiểm thử fragment và bảo đảm cấu hình được áp dụng
+- level1: Giao dịch
+  level2:
+  - Ranh giới giao dịch theo một thao tác nghiệp vụ
+  - Giao dịch mặc định của CRUD và phương thức truy vấn tự khai báo
+  - Đặt @Transactional ở dịch vụ và phối hợp nhiều Repository
+  - Cơ chế proxy, lời gọi nội bộ và tình huống giao dịch không hoạt động
+  - Propagation REQUIRED, REQUIRES_NEW và giới hạn NESTED với JPA
+  - Isolation, hiện tượng đọc dữ liệu và khả năng hỗ trợ của cơ sở dữ liệu
+  - Quy tắc rollback, checked exception và rollbackFor
+  - readOnly là gợi ý tối ưu và giới hạn bảo vệ dữ liệu
+  - Timeout, flush và thời điểm phát sinh lỗi ràng buộc
+  - UnexpectedRollbackException và xử lý rollback-only
+  - Giao dịch qua luồng, @Async và phạm vi EntityManager
+  - TransactionTemplate khi cần điều khiển giao dịch bằng mã
+- level1: Khóa và đồng thời
+  level2:
+  - Cập nhật mất dữ liệu và nhu cầu kiểm soát đồng thời
+  - Khóa lạc quan bằng @Version
+  - Xử lý OptimisticLockException và xung đột cập nhật
+  - Khóa bi quan và các LockModeType phù hợp
+  - Áp dụng @Lock lên truy vấn và phương thức CRUD khai báo lại
+  - Thời gian chờ khóa, deadlock và khác biệt theo cơ sở dữ liệu
+  - Khóa quan hệ và giới hạn phạm vi bảo vệ
+  - Cập nhật nguyên tử bằng điều kiện nghiệp vụ và kiểm tra số dòng
+  - Retry có giới hạn, tính lặp an toàn và giao dịch mới sau lỗi
+  - Kiểm thử đồng thời cho tồn kho, số dư và đặt chỗ
+- level1: Tải dữ liệu
+  level2:
+  - FetchType, proxy và thời điểm truy cập quan hệ
+  - Nhận diện N+1 từ số câu SQL và hình dạng dữ liệu
+  - JOIN FETCH để tải dữ liệu theo nhu cầu từng trường hợp
+  - '@EntityGraph, @NamedEntityGraph và attributePaths'
+  - Phân biệt fetch graph và load graph
+  - Kết hợp EntityGraph với phương thức truy vấn phù hợp
+  - Batch fetching, @BatchSize và cấu hình đặc thù Hibernate
+  - LazyInitializationException và thiết kế ranh giới đọc dữ liệu
+  - Open EntityManager in View, cấu hình open-in-view và đánh đổi
+  - Tránh vòng lặp, tải lười và lộ dữ liệu khi tuần tự hóa Entity
+  - Tải nhiều tập hợp, tích Descartes và MultipleBagFetchException
+  - Chọn fetch plan theo màn hình, DTO và giao dịch
+- level1: Thao tác hàng loạt
+  level2:
+  - Phân biệt saveAll, JDBC batching và bulk DML
+  - JPQL UPDATE, DELETE và @Modifying
+  - Yêu cầu giao dịch cho truy vấn thay đổi dữ liệu
+  - flushAutomatically và clearAutomatically
+  - PersistenceContext lỗi thời sau bulk update hoặc bulk delete
+  - Bulk DML và giới hạn callback, cascade, version
+  - Đếm số dòng tác động và xác nhận điều kiện cập nhật
+  - Cấu hình batch size, order_inserts và order_updates trong Hibernate
+  - Tác động của IDENTITY và SEQUENCE đến khả năng batching
+  - Chia lô, flush và clear khi nhập tập dữ liệu lớn
+  - Khôi phục khi một lô thất bại và thiết kế xử lý lặp an toàn
+  - Lựa chọn JDBC hoặc công cụ chuyên dụng khi JPA không phù hợp
+- level1: Auditing
+  level2:
+  - Kích hoạt kiểm toán với @EnableJpaAuditing
+  - '@CreatedDate, @LastModifiedDate và kiểu thời gian phù hợp'
+  - '@CreatedBy, @LastModifiedBy và AuditorAware'
+  - Tích hợp người thao tác với ngữ cảnh xác thực
+  - Cấu hình AuditingEntityListener và lớp thuộc tính dùng chung
+  - DateTimeProvider, múi giờ và đồng hồ có thể kiểm thử
+  - Giá trị kiểm toán khi nhập dữ liệu nền hoặc chạy tác vụ định kỳ
+  - Giới hạn auditing với bulk DML và cập nhật ngoài JPA
+  - Phân biệt thông tin người sửa cuối với lịch sử từng phiên bản
+  - Spring Data Envers, RevisionRepository và yêu cầu Hibernate Envers
+- level1: Sự kiện
+  level2:
+  - Công bố sự kiện từ aggregate bằng @DomainEvents
+  - Dọn sự kiện bằng @AfterDomainEventPublication
+  - Phương thức Repository có tham gia công bố sự kiện và các ngoại lệ
+  - Sử dụng AbstractAggregateRoot khi phù hợp với mô hình nghiệp vụ
+  - Phân biệt sự kiện miền, Entity callback và auditing
+  - Xử lý sự kiện theo giai đoạn giao dịch bằng @TransactionalEventListener
+  - Hành vi khi rollback, khi không có giao dịch và khi dùng @Async
+  - Giới hạn giao nhận sự kiện trong bộ nhớ
+  - Mẫu transactional outbox cho thay đổi dữ liệu và công bố thông điệp
+  - Thiết kế bộ xử lý sự kiện có tính lặp an toàn
+- level1: Thủ tục lưu trữ
+  level2:
+  - Khi nào nên gọi stored procedure từ ứng dụng JPA
+  - Khai báo phương thức Repository bằng @Procedure
+  - Định nghĩa @NamedStoredProcedureQuery và tham số thủ tục
+  - Phân biệt IN, OUT, INOUT và REF_CURSOR theo khả năng hỗ trợ
+  - Ánh xạ giá trị trả về, nhiều OUT và tập kết quả
+  - Gọi thủ tục bằng EntityManager khi cần điều khiển chi tiết
+  - Giao dịch, lỗi thủ tục và quy tắc riêng của cơ sở dữ liệu
+  - Kiểm thử thủ tục trên đúng hệ quản trị mục tiêu
+- level1: Bộ nhớ đệm
+  level2:
+  - Phạm vi và tính nhất quán của bộ nhớ đệm cấp một
+  - Bộ nhớ đệm cấp hai và cách cấu hình theo nhà cung cấp
+  - Chính sách truy cập cache cho Entity có thay đổi
+  - Bộ nhớ đệm kết quả truy vấn và quan hệ với cache Entity
+  - Làm mất hiệu lực cache khi cập nhật từ JPA và hệ thống khác
+  - Query hints và CacheRetrieveMode, CacheStoreMode
+  - Phân biệt JPA cache với Spring Cache
+  - Chọn dữ liệu nên cache, thời hạn và khả năng chấp nhận dữ liệu cũ
+  - Đo hit, miss và kiểm thử tính đúng đắn khi bật cache
+- level1: Hiệu năng
+  level2:
+  - Thiết lập dữ liệu và phép đo trước khi tối ưu
+  - Quan sát số truy vấn, thời gian SQL và số dòng trả về
+  - Đọc execution plan và thiết kế chỉ mục theo truy vấn thực tế
+  - Tránh đọc toàn bảng, chọn thừa cột và đếm không cần thiết
+  - Giảm N+1 bằng fetch plan hoặc projection phù hợp
+  - Tối ưu join, DISTINCT, truy vấn con và bộ lọc lớn
+  - Giới hạn kích thước PersistenceContext và bộ nhớ ứng dụng
+  - Cấu hình connection pool theo tải và thời gian giữ kết nối
+  - Đo chi phí flush, dirty checking và cập nhật dư thừa
+  - Thống kê Hibernate, công cụ theo dõi SQL và chỉ số vận hành
+  - Kiểm thử hiệu năng với cơ sở dữ liệu và dữ liệu gần thực tế
+  - Lựa chọn giữa tối ưu JPA, native SQL và truy cập JDBC
+- level1: Kiểm thử
+  level2:
+  - Phân biệt kiểm thử đơn vị dịch vụ và kiểm thử tích hợp Repository
+  - Phạm vi tự cấu hình của @DataJpaTest
+  - Tạo dữ liệu thử nghiệm bằng TestEntityManager
+  - Rollback trong kiểm thử và lỗi bị che khuất bởi giao dịch thử nghiệm
+  - flush và clear để xác minh dữ liệu thực trong cơ sở dữ liệu
+  - Dùng Testcontainers với PostgreSQL hoặc MySQL
+  - Khác biệt H2 với hệ quản trị triển khai và rủi ro kết quả sai lệch
+  - Kiểm thử mapping, cascade, orphanRemoval và ràng buộc dữ liệu
+  - Kiểm thử derived query, JPQL, native SQL và Specification
+  - Kiểm thử Page, count query, projection và trường hợp kết quả rỗng
+  - Kiểm thử auditing, callback và sự kiện sau commit
+  - Kiểm thử khóa, xung đột đồng thời và rollback
+  - Phát hiện N+1 và hồi quy số truy vấn
+  - Quản lý fixture bằng @Sql, migration và dữ liệu có tính xác định
+- level1: Chẩn đoán lỗi
+  level2:
+  - Phân loại lỗi cấu hình, ánh xạ, truy vấn và dữ liệu
+  - PropertyReferenceException và tên thuộc tính không hợp lệ
+  - QueryCreationException, lỗi JPQL và tham số không khớp
+  - Not a managed type và lỗi quét Entity
+  - TransientPropertyValueException và tham chiếu chưa được lưu
+  - Detached Entity, merge sai và EntityExistsException
+  - LazyInitializationException và truy cập ngoài PersistenceContext
+  - DataIntegrityViolationException và ràng buộc cơ sở dữ liệu
+  - IncorrectResultSizeDataAccessException và dữ liệu không duy nhất
+  - Lỗi khóa lạc quan, khóa bi quan và deadlock
+  - DataAccessException và cơ chế chuyển đổi ngoại lệ của Spring
+  - Lỗi chỉ xuất hiện lúc flush hoặc commit
+  - Đọc chuỗi nguyên nhân, SQLState và log mà không lộ dữ liệu nhạy cảm
+- level1: Schema và triển khai
+  level2:
+  - Phân biệt tạo schema bằng JPA và quản lý migration
+  - Ý nghĩa các chế độ ddl-auto trong từng môi trường
+  - Quản lý thay đổi bằng Flyway hoặc Liquibase
+  - Phối hợp migration, kiểm tra mapping và khởi động ứng dụng
+  - Thứ tự schema.sql, data.sql và khởi tạo dữ liệu của Spring Boot
+  - Thay đổi cột, chỉ mục và ràng buộc mà vẫn tương thích triển khai
+  - Backfill dữ liệu và chiến lược thay đổi schema nhiều bước
+  - Quản lý bí mật kết nối và quyền tối thiểu cho tài khoản ứng dụng
+  - Cấu hình dialect, múi giờ, pool và timeout theo môi trường
+  - Kiểm tra kết nối, quan sát lỗi và phục hồi sau sự cố cơ sở dữ liệu
+- level1: Nhiều nguồn dữ liệu
+  level2:
+  - Khi nào cần nhiều DataSource trong một ứng dụng
+  - Tách EntityManagerFactory, persistence unit và TransactionManager
+  - Phân vùng gói Repository bằng entityManagerFactoryRef và transactionManagerRef
+  - Chọn giao dịch theo tên TransactionManager
+  - Giới hạn tính nguyên tử khi cập nhật nhiều nguồn dữ liệu
+  - Tổng quan JTA, XA và lựa chọn bù trừ nghiệp vụ
+  - Định tuyến đọc-ghi, độ trễ bản sao và nhất quán sau ghi
+  - Mô hình đa khách hàng theo cơ sở dữ liệu, schema hoặc tenant_id
+  - Truyền ngữ cảnh khách hàng và ngăn rò rỉ dữ liệu chéo
+  - Kiểm thử định tuyến, giao dịch và cách ly dữ liệu
+- level1: Thiết kế ứng dụng
+  level2:
+  - Đặt Repository ở đâu trong kiến trúc phân lớp
+  - Thiết kế aggregate và ranh giới cập nhật nhất quán
+  - Phân tách Entity lưu trữ với DTO và mô hình phản hồi
+  - Cập nhật một phần, giá trị null và tránh ghi đè dữ liệu ngoài ý muốn
+  - Kiểm tra tồn tại trước khi ghi và cuộc đua dữ liệu đồng thời
+  - Kết hợp Bean Validation, quy tắc nghiệp vụ và ràng buộc cơ sở dữ liệu
+  - Chọn truy vấn theo tên, JPQL, Specification, Querydsl hoặc native SQL
+  - Thiết kế bộ lọc an toàn, giới hạn phân trang và kiểm soát quyền dữ liệu
+  - Tách luồng đọc và ghi khi yêu cầu truy vấn khác biệt
+  - Tránh Repository quá lớn, generic CRUD tùy tiện và gọi save dư thừa
+- level1: Mở rộng Hibernate
+  level2:
+  - Phân biệt chuẩn Jakarta Persistence và tính năng riêng của Hibernate
+  - Unwrap EntityManager sang Session khi có nhu cầu cụ thể
+  - Xóa mềm, lọc dữ liệu và tính duy nhất sau khi xóa
+  - Lựa chọn cơ chế soft delete hoặc filter theo phiên bản Hibernate
+  - Ánh xạ JSON và kiểu cơ sở dữ liệu đặc thù
+  - Thuộc tính tính toán, trường do cơ sở dữ liệu sinh và rủi ro đồng bộ
+  - Khóa tự nhiên và khả năng truy xuất đặc thù Hibernate
+  - Bytecode enhancement, tải lười thuộc tính và dirty tracking
+  - Đánh giá chi phí phụ thuộc nhà cung cấp trước khi sử dụng
+  - Kiểm thử tính năng mở rộng trên phiên bản và cơ sở dữ liệu mục tiêu
+- level1: Phiên bản và nâng cấp
+  level2:
+  - Đọc ma trận tương thích Java, Spring Boot, Spring Data và Hibernate
+  - Chuyển từ javax.persistence sang jakarta.persistence
+  - Thay đổi phân cấp Repository và hợp đồng phương thức giữa các dòng phiên bản
+  - Thay API lỗi thời như getOne, getById và các phương thức xóa theo lô
+  - Kiểm tra thay đổi bộ phân tích JPQL, native query và count query
+  - Đánh giá API mới như Limit, scrolling hoặc Specification theo phiên bản
+  - Cập nhật annotation processor cho metamodel và Querydsl
+  - Đối chiếu SQL sinh ra và hành vi tải quan hệ sau nâng cấp
+  - Kiểm thử native image, AOT và reflection khi có yêu cầu triển khai
+  - Lập bộ kiểm tra hồi quy dữ liệu, giao dịch và hiệu năng trước phát hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng quản lý khách hàng với CRUD, validation và DTO
+  - Thiết kế đơn hàng, dòng hàng và vòng đời aggregate
+  - Xây dựng tìm kiếm nhiều điều kiện bằng Specification
+  - Làm báo cáo có projection, tổng hợp và phân trang chính xác
+  - Tái hiện N+1 và so sánh các phương án khắc phục
+  - Mô phỏng hai giao dịch tranh chấp tồn kho và xử lý xung đột
+  - Nhập dữ liệu lớn với chia lô, flush và phục hồi lỗi
+  - Kết hợp auditing, lịch sử thay đổi và sự kiện nghiệp vụ
+  - Kiểm thử Repository bằng Testcontainers và migration thực tế
+  - Đánh giá giải pháp bằng tính đúng đắn, SQL, hiệu năng và khả năng bảo trì

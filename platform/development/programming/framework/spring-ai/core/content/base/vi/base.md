@@ -1,0 +1,7 @@
+# Spring AI Core
+
+**Spring AI Core** giới thiệu các API nền tảng để tích hợp mô hình trí tuệ nhân tạo vào ứng dụng Java/Spring Boot theo cách nhất quán và dễ thay đổi provider. Các khái niệm trung tâm gồm `ChatModel`, `ChatClient`, `Prompt`, các loại message, cấu hình model và `ChatResponse`. Ứng dụng có thể nhận văn bản, đối tượng Java có cấu trúc hoặc phản hồi theo luồng; tuy nhiên, đầu ra sinh bởi AI có tính không tất định nên vẫn cần kiểm tra và xử lý lỗi ở phía ứng dụng.
+
+Lộ trình gồm **8 mốc**: tổng quan kiến trúc Spring AI; khởi tạo dự án và cấu hình provider; gọi `ChatModel`; sử dụng `ChatClient`; thiết kế prompt và template; structured output cùng streaming; làm quen tool calling, advisors và embeddings; cuối cùng là kiểm thử và observability. Người học thực hành một dịch vụ hỏi đáp nhỏ, chuyển từ API cấp thấp sang fluent API, xử lý kết quả, kiểm tra phản hồi không hợp lệ và quan sát chi phí vận hành.
+
+Học phần dành cho Java/backend developer đã biết Spring Boot, dependency management, REST và cấu hình ứng dụng. Sau khi hoàn thành, bạn có thể tích hợp một chat model có kiểm soát, quản lý cấu hình cùng bí mật truy cập, xây prompt có thể bảo trì, chọn kiểu phản hồi phù hợp và đánh giá độ tin cậy trước khi mở rộng sang các chủ đề riêng như RAG, memory, MCP hoặc hệ thống agent.

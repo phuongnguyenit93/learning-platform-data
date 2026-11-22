@@ -1,0 +1,440 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Khung kiểm thử (test framework) là gì và vì sao cần thay cho chương trình kiểm tra thủ công
+  - Phân biệt ca kiểm thử, phương thức kiểm thử, lớp kiểm thử và bộ kiểm thử
+  - Vai trò của framework trong việc phát hiện, thực thi và tổng hợp kết quả kiểm thử
+  - Mối quan hệ giữa framework, bộ chạy (runner), bộ máy thực thi (engine) và công cụ build
+  - Phân biệt framework kiểm thử với thư viện assertion, mocking và công cụ đo độ bao phủ
+  - Framework hỗ trợ kiểm thử đơn vị, tích hợp và hệ thống như thế nào
+  - Bản đồ JUnit, TestNG và các framework chuyên biệt trên JVM
+  - 'Kiến thức Java cần có: annotation, ngoại lệ, lambda, reflection và quản lý tài nguyên'
+  - Lộ trình học từ ca kiểm thử đầu tiên đến bộ kiểm thử có thể bảo trì
+- level1: Kiến trúc framework
+  level2:
+  - 'Cơ chế đảo ngược điều khiển: framework gọi mã kiểm thử và các điểm móc vòng đời'
+  - 'Từ mã nguồn đến kết quả: biên dịch, phát hiện, lựa chọn, thực thi và báo cáo'
+  - Phân biệt lỗi phát hiện kiểm thử, lỗi chuẩn bị môi trường và kiểm chứng thất bại
+  - 'Cây thực thi: bộ chứa (container), ca kiểm thử và từng lần gọi có dữ liệu'
+  - Trạng thái thành công, thất bại, bị bỏ qua và bị hủy theo từng framework
+  - 'JUnit Platform, Jupiter và Vintage: trách nhiệm và cách phối hợp'
+  - 'API biên dịch, engine lúc chạy và launcher: vì sao cần đúng thành phần'
+  - Mô hình suite, test trong XML, class và method của TestNG
+  - Ranh giới giữa cơ chế framework và quy tắc nghiệp vụ của mã cần kiểm thử
+- level1: Khởi tạo dự án
+  level2:
+  - Bố trí src/main/java, src/test/java và src/test/resources
+  - Chọn phiên bản framework theo JDK, công cụ build và nền tảng ứng dụng
+  - Khai báo JUnit Jupiter và phân biệt phụ thuộc lúc biên dịch với lúc chạy
+  - Đồng bộ các thành phần JUnit bằng BOM và kiểm tra xung đột phiên bản
+  - Khai báo TestNG và cấu hình bộ chạy tương ứng
+  - Thiết lập JDK chạy kiểm thử độc lập với JDK biên dịch khi cần
+  - Quản lý tệp cấu hình framework và tài nguyên trên test classpath
+  - Tạo dự án kiểm thử tối thiểu và xác nhận công cụ build phát hiện đúng test
+  - Giữ thư viện kiểm thử ngoài phụ thuộc chạy thật của ứng dụng
+- level1: Kiểm thử đầu tiên
+  level2:
+  - Viết phương thức @Test của Jupiter và xác định hành vi cần kiểm chứng
+  - Quy tắc chữ ký, phạm vi truy cập và phương thức hợp lệ của Jupiter
+  - Tổ chức bước chuẩn bị, thực hiện và kiểm chứng theo Arrange–Act–Assert
+  - Đặt tên theo hành vi, điều kiện đầu vào và kết quả mong đợi
+  - Dùng @DisplayName và DisplayNameGenerator để làm rõ ý nghĩa kiểm thử
+  - Đọc kết quả thành công, thông báo thất bại và vị trí lỗi trong stack trace
+  - Tạo lỗi có chủ đích để xác nhận kiểm thử thực sự phát hiện sai lệch
+  - Chạy lại một phương thức kiểm thử và xác nhận kết quả lặp lại
+- level1: Tổ chức kiểm thử
+  level2:
+  - Nhóm lớp kiểm thử theo thành phần nghiệp vụ và ranh giới trách nhiệm
+  - Dùng @Nested để thể hiện bối cảnh và các tình huống liên quan
+  - Vòng đời lớp lồng nhau và quan hệ chuẩn bị giữa lớp ngoài với lớp trong
+  - Tái sử dụng hợp đồng kiểm thử bằng interface và default method của Jupiter
+  - 'Kế thừa lớp kiểm thử: thành phần nào được kế thừa và rủi ro phụ thuộc ẩn'
+  - Tạo annotation kết hợp để dùng chung @Test, @Tag và cấu hình extension
+  - Tách dữ liệu kiểm thử dùng chung khỏi các điều kiện riêng của từng ca
+  - Tổ chức kiểm thử nhanh và chậm bằng nhãn hoặc tập nguồn riêng
+- level1: Vòng đời Jupiter
+  level2:
+  - Thứ tự khởi tạo đối tượng, chuẩn bị, chạy test và dọn dẹp
+  - Chuẩn bị và dọn dẹp từng ca với @BeforeEach và @AfterEach
+  - Chuẩn bị và dọn dẹp cấp lớp với @BeforeAll và @AfterAll
+  - 'PER_METHOD và PER_CLASS: số lượng đối tượng kiểm thử và phạm vi trạng thái'
+  - Điều kiện dùng phương thức vòng đời không static trong PER_CLASS
+  - Vòng đời kết hợp với kế thừa và lớp @Nested
+  - Rủi ro dựa vào thứ tự nhiều phương thức chuẩn bị cùng cấp
+  - Truy cập tên, tag và lớp kiểm thử bằng tham số TestInfo
+  - Xử lý ngoại lệ trong bước chuẩn bị và bảo đảm dọn dẹp khi thất bại
+  - Cấu hình vòng đời mặc định và giữ nhất quán giữa IDE với build
+  - Phân biệt vòng đời mỗi test, mỗi lớp, mỗi launcher session và mỗi JVM
+- level1: Kiểm chứng kết quả
+  level2:
+  - Vai trò của điều kiện kiểm chứng (assertion) và thông báo thất bại
+  - Kiểm chứng giá trị, null, boolean và định danh đối tượng bằng Jupiter Assertions
+  - Phân biệt assertEquals với assertSame và ý nghĩa hợp đồng equals
+  - So sánh số thực bằng sai số cho phép và tránh kiểm thử thiếu ổn định
+  - Kiểm chứng mảng, Iterable và nội dung nhiều dòng
+  - Gom các kiểm chứng độc lập bằng assertAll để thu đủ thông tin thất bại
+  - Kiểm chứng ngoại lệ với assertThrows, assertThrowsExactly và assertDoesNotThrow
+  - Kiểm tra thông điệp, nguyên nhân và dữ liệu của ngoại lệ trả về
+  - Dùng thông báo tạo theo nhu cầu bằng Supplier và chủ động báo lỗi bằng fail
+  - Ranh giới sử dụng assertion tích hợp với thư viện assertion chuyên dụng
+- level1: Điều kiện thực thi
+  level2:
+  - Phân biệt assertion, giả định (assumption) và vô hiệu hóa kiểm thử
+  - Dùng assumeTrue, assumeFalse và assumingThat trong Jupiter
+  - Dùng @Disabled và ghi rõ lý do cùng điều kiện kích hoạt lại
+  - Điều kiện theo hệ điều hành và kiến trúc môi trường chạy
+  - Điều kiện theo JRE, khoảng phiên bản JRE và cấu hình JVM
+  - Điều kiện theo system property và biến môi trường
+  - Điều kiện tùy chỉnh với @EnabledIf, @DisabledIf và phương thức điều kiện
+  - Theo dõi kiểm thử bị bỏ qua để tránh bộ kiểm thử thành công giả
+- level1: Kiểm thử tham số
+  level2:
+  - Khi nào dùng @ParameterizedTest thay cho nhiều phương thức gần giống nhau
+  - Đưa dữ liệu đơn vào @ValueSource và @EnumSource
+  - Kiểm thử dữ liệu null, rỗng và khoảng trắng với các nguồn phù hợp
+  - Đưa nhiều tham số vào @CsvSource và xử lý dấu phân cách
+  - 'Đọc dữ liệu từ @CsvFileSource: đường dẫn, mã hóa và dòng tiêu đề'
+  - Sinh dữ liệu bằng @MethodSource và quy tắc phương thức cung cấp dữ liệu
+  - Viết @ArgumentsSource và ArgumentsProvider có thể tái sử dụng
+  - Đặt tên từng lần gọi để phân biệt đầu vào và định vị dữ liệu gây lỗi
+  - Kết hợp nhiều nguồn dữ liệu và phân biệt với phép nhân tổ hợp
+  - Vòng đời từng lần gọi và xử lý nguồn không cung cấp dữ liệu
+  - Thiết kế bảng dữ liệu theo giá trị biên và các trường hợp không hợp lệ
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Quy tắc chuyển đổi kiểu ngầm định của Jupiter cho tham số kiểm thử
+  - Phân biệt chuỗi rỗng, giá trị null và dấu nháy trong dữ liệu CSV
+  - Chuyển đổi enum, kiểu thời gian và kiểu giá trị do ứng dụng định nghĩa
+  - Tùy chỉnh chuyển đổi với @ConvertWith và ArgumentConverter
+  - Sử dụng ArgumentsAccessor khi một hàng dữ liệu có nhiều cột
+  - Gom nhiều cột thành đối tượng bằng @AggregateWith và ArgumentsAggregator
+  - Phân biệt tham số từ nguồn dữ liệu, bộ gom dữ liệu và ParameterResolver
+  - Chẩn đoán sai số lượng tham số, sai kiểu và lỗi chuyển đổi dữ liệu
+- level1: Kiểm thử lặp và động
+  level2:
+  - Dùng @RepeatedTest và RepetitionInfo để quan sát các lần chạy
+  - Phân biệt lặp kiểm thử với thử lại sau thất bại
+  - Trạng thái và vòng đời chuẩn bị ở từng lần lặp
+  - Sinh kiểm thử lúc chạy bằng @TestFactory và DynamicTest
+  - Gom kiểm thử động thành cây với DynamicContainer
+  - 'Giới hạn vòng đời: @BeforeEach và @AfterEach không chạy riêng cho từng DynamicTest'
+  - Quản lý dữ liệu, luồng dữ liệu và tài nguyên khi sinh kiểm thử động
+  - Chọn kiểm thử thường, kiểm thử tham số, kiểm thử lặp hoặc kiểm thử động
+  - Đặt tên ổn định cho ca kiểm thử sinh động để dễ tái hiện lỗi
+- level1: Mẫu kiểm thử
+  level2:
+  - Mẫu kiểm thử (test template) giải quyết bài toán chạy cùng hợp đồng nhiều ngữ cảnh
+  - Tạo @TestTemplate và TestTemplateInvocationContextProvider
+  - Cấp tên hiển thị, tham số và extension cho từng ngữ cảnh mẫu
+  - Phân biệt TestTemplate với ParameterizedTest và TestFactory
+  - 'Mẫu cấp lớp với @ClassTemplate: điều kiện phiên bản và trường hợp sử dụng'
+  - 'Kiểm thử lớp có tham số với @ParameterizedClass: phiên bản, trạng thái API và vòng đời'
+  - Đánh giá chi phí bảo trì trước khi tự xây cơ chế sinh kiểm thử
+- level1: Chọn và gom kiểm thử
+  level2:
+  - Gắn @Tag để phân loại kiểm thử theo mục đích thực thi
+  - Viết biểu thức bao gồm và loại trừ tag
+  - Chọn theo package, lớp, phương thức và định danh kiểm thử
+  - Phân biệt bộ chọn (selector) với bộ lọc (filter)
+  - Tạo bộ kiểm thử Jupiter trên Platform bằng @Suite
+  - Dùng @SelectClasses, @SelectPackages và các bộ lọc suite
+  - Lọc theo engine khi nhiều engine cùng tồn tại
+  - Phân biệt bộ kiểm thử Platform với tập kiểm thử do build tool định nghĩa
+  - Tránh thực thi trùng khi chạy đồng thời suite và các lớp thành viên
+  - Xác nhận tập kiểm thử đã chọn trước khi dùng cấu hình trong CI
+- level1: Thứ tự và trạng thái
+  level2:
+  - Thứ tự mặc định của framework và lý do không dựa vào thứ tự ngẫu nhiên quan sát được
+  - Sắp xếp phương thức Jupiter bằng @TestMethodOrder và MethodOrderer
+  - Sắp xếp lớp bằng @TestClassOrder và ClassOrderer khi phù hợp
+  - Kiểm tra tính độc lập bằng thứ tự ngẫu nhiên có seed tái hiện
+  - Quan hệ giữa thứ tự thực thi, PER_CLASS và trạng thái dùng chung
+  - Nhận diện ca kiểm thử chỉ thành công khi một ca khác chạy trước
+  - Tách chuỗi thao tác nghiệp vụ thành một kịch bản có chuẩn bị rõ ràng
+  - Giới hạn của thứ tự thực thi khi bật nhiều luồng hoặc nhiều tiến trình
+- level1: Thời gian kiểm thử
+  level2:
+  - Phân biệt giới hạn thời gian cho test, tác vụ build và tiến trình JVM
+  - Kiểm tra thời lượng bằng assertTimeout
+  - Khác biệt của assertTimeoutPreemptively về luồng chạy và cơ chế ngắt
+  - Dùng @Timeout và cấu hình giới hạn thời gian mặc định của Jupiter
+  - Tác động của timeout đến ThreadLocal, giao dịch và tài nguyên chưa đóng
+  - Chờ Future hoặc CompletableFuture với thời hạn thay vì sleep cố định
+  - Kiểm chứng công việc bất đồng bộ bằng điều kiện hoàn tất có giới hạn
+  - Thu thập trạng thái luồng khi test treo và phân biệt chậm với deadlock
+  - Vì sao timeout của framework không thay thế công cụ kiểm thử hiệu năng
+- level1: Chạy song song
+  level2:
+  - Phân biệt chạy đồng thời trong một JVM với chạy nhiều JVM kiểm thử
+  - Bật và cấu hình Jupiter parallel execution bằng configuration parameters
+  - Chọn chế độ SAME_THREAD hoặc CONCURRENT với @Execution
+  - Cấu hình số luồng cố định hoặc động theo khả năng phiên bản sử dụng
+  - Quan hệ giữa chạy song song, vòng đời PER_CLASS và thứ tự phương thức
+  - Khóa tài nguyên dùng chung bằng @ResourceLock và chế độ đọc/ghi
+  - Cô lập lớp kiểm thử bằng @Isolated khi cần truy cập độc quyền
+  - Bảo vệ system property, locale, timezone, tệp và đầu ra dùng chung
+  - Giới hạn tổng mức song song khi công cụ build cũng tạo nhiều tiến trình kiểm thử
+  - Phát hiện rò rỉ trạng thái và tái hiện lỗi chỉ xảy ra khi chạy đồng thời
+  - Đo thời gian thực thi để đánh giá lợi ích song song và chi phí tranh chấp
+- level1: Tài nguyên kiểm thử
+  level2:
+  - Tạo thư mục tạm bằng @TempDir và xác định phạm vi sử dụng
+  - Chính sách dọn thư mục tạm và giữ bằng chứng khi kiểm thử thất bại
+  - Đọc tài nguyên từ classpath thay vì phụ thuộc thư mục làm việc
+  - Đóng stream, socket và executor khi ca kiểm thử thành công hoặc thất bại
+  - Khôi phục trạng thái toàn cục đã thay đổi trong bước kiểm thử
+  - Chọn tên tệp, thư mục và cổng tránh xung đột khi chạy đồng thời
+  - Cố định đồng hồ, seed và dữ liệu để kiểm thử có thể tái hiện
+  - Phân biệt tài nguyên cấp test, cấp lớp, cấp session và tài nguyên bên ngoài
+  - Ranh giới giữa quản lý vòng đời framework với quản lý môi trường kiểm thử
+- level1: Mở rộng Jupiter
+  level2:
+  - Khi nào cần extension thay cho lớp cơ sở hoặc hàm tiện ích
+  - Đăng ký khai báo bằng @ExtendWith và annotation kết hợp
+  - Đăng ký lập trình bằng @RegisterExtension ở cấp static hoặc đối tượng
+  - Tự phát hiện extension qua ServiceLoader và điều kiện kích hoạt
+  - Theo dõi vòng đời bằng BeforeAllCallback, BeforeEachCallback và các callback tương ứng
+  - Phân biệt callback quanh test với callback quanh phương thức kiểm thử
+  - Điều khiển điều kiện thực thi bằng ExecutionCondition
+  - Can thiệp lời gọi kiểm thử bằng InvocationInterceptor
+  - Xử lý ngoại lệ và theo dõi kết quả bằng các extension API phù hợp
+  - Thứ tự đăng ký, thứ tự thực thi và nguyên tắc bao bọc của extension
+  - Phân biệt thứ tự extension với thứ tự phương thức kiểm thử
+- level1: Ngữ cảnh extension
+  level2:
+  - Vai trò của ExtensionContext và quan hệ ngữ cảnh cha–con
+  - Lưu trạng thái theo phạm vi bằng ExtensionContext.Store và Namespace
+  - Quản lý tài nguyên tự đóng trong Store theo hợp đồng của phiên bản JUnit
+  - Cấp tham số bằng ParameterResolver và kiểm tra supportsParameter
+  - Truy cập chú thích tham số và siêu dữ liệu bằng ParameterContext
+  - Giải quyết xung đột khi nhiều ParameterResolver cùng nhận một tham số
+  - TestInstanceFactory, TestInstancePostProcessor và thời điểm tạo đối tượng kiểm thử
+  - Đọc configuration parameters để extension không phụ thuộc cấu hình viết cứng
+  - Thiết kế extension an toàn khi chạy song song và không giữ trạng thái ngoài phạm vi
+  - Chia sẻ tài nguyên cấp session bằng Platform API khi vòng đời Jupiter chưa đáp ứng
+- level1: Kiểm thử extension
+  level2:
+  - Thiết kế lớp kiểm thử mẫu dành riêng cho từng hành vi extension
+  - Dùng JUnit Platform Test Kit và EngineTestKit để chạy kiểm thử kiểm chứng
+  - Kiểm tra sự kiện bắt đầu, kết thúc, bỏ qua và kết quả thất bại
+  - Xác nhận callback và dọn dẹp vẫn đúng khi chuẩn bị hoặc test ném ngoại lệ
+  - Kiểm tra tính độc lập giữa nhiều lần chạy và nhiều ngữ cảnh
+  - Kiểm chứng extension khi kết hợp Nested, ParameterizedTest và parallel execution
+  - Đóng gói extension, công bố cấu hình và xác định ma trận phiên bản hỗ trợ
+- level1: Nền tảng JUnit
+  level2:
+  - Dùng Launcher API khi cần phát hiện và thực thi kiểm thử bằng chương trình
+  - Tạo LauncherDiscoveryRequest với selectors, filters và configuration parameters
+  - Đọc TestPlan và phân biệt TestIdentifier của test với container
+  - Theo dõi kết quả bằng TestExecutionListener và SummaryGeneratingListener
+  - Theo dõi lỗi phát hiện bằng LauncherDiscoveryListener
+  - Quản lý vòng đời LauncherSession và LauncherSessionListener
+  - Đăng ký engine, listener và dịch vụ bằng ServiceLoader
+  - Kiểm soát tự đăng ký với LauncherConfig khi nhúng nền tảng
+  - Cấu hình bằng junit-platform.properties, system properties và yêu cầu launcher
+  - Xác định thứ tự ưu tiên cấu hình và tránh khác biệt giữa các bộ chạy
+- level1: Tự xây TestEngine
+  level2:
+  - Khi nào cần TestEngine riêng thay vì Jupiter extension
+  - Phân tách discovery và execution trong hợp đồng TestEngine
+  - Xây TestDescriptor và UniqueId ổn định cho cây kiểm thử
+  - Xử lý selector, filter và ánh xạ vị trí nguồn của ca kiểm thử
+  - Phát sự kiện đúng thứ tự qua EngineExecutionListener
+  - Ánh xạ kết quả thành công, thất bại, bị hủy và bị bỏ qua
+  - Đăng ký engine và kiểm chứng hành vi bằng EngineTestKit
+  - Đánh giá khả năng tương thích với IDE, suite và công cụ build
+- level1: TestNG cơ bản
+  level2:
+  - Viết @Test của TestNG và phân biệt import với Jupiter
+  - Chú thích @Test ở cấp lớp và phạm vi phương thức được đưa vào kiểm thử
+  - Đặt tên, mô tả và điều khiển enabled cho phương thức kiểm thử
+  - Các cấp vòng đời Suite, Test, Class, Groups và Method
+  - Phân biệt @BeforeTest với @BeforeMethod
+  - Thứ tự @Before và @After khi kế thừa lớp kiểm thử
+  - Dùng alwaysRun cho cấu hình dọn dẹp và hiểu phạm vi tác động
+  - Kiểm chứng bằng TestNG Assert và kiểm chứng mềm với SoftAssert.assertAll
+  - Kiểm chứng ngoại lệ bằng expectedExceptions và biểu thức thông điệp
+  - Đọc trạng thái thành công, thất bại, bỏ qua và lỗi cấu hình của TestNG
+- level1: Dữ liệu TestNG
+  level2:
+  - Truyền tham số từ testng.xml bằng @Parameters
+  - Giá trị tùy chọn bằng @Optional và phạm vi ghi đè tham số
+  - Cấp dữ liệu bằng @DataProvider với Object[][]
+  - Cấp dữ liệu theo nhu cầu bằng Iterator và quản lý tài nguyên nguồn
+  - Tái sử dụng DataProvider từ lớp riêng và quy tắc phương thức cung cấp dữ liệu
+  - Chọn dữ liệu theo Method hoặc ITestContext khi thật sự cần
+  - Chạy dữ liệu song song bằng DataProvider và cô lập trạng thái từng lần gọi
+  - Tạo nhiều đối tượng kiểm thử bằng @Factory
+  - Kết hợp Factory với DataProvider và phân biệt dữ liệu cấp đối tượng với cấp phương thức
+  - Chẩn đoán sai tên nguồn, sai kiểu, sai số tham số và lỗi tạo dữ liệu
+- level1: Suite và phụ thuộc
+  level2:
+  - 'Cấu trúc testng.xml: suite, test, classes, methods và packages'
+  - Chọn lớp và phương thức bằng include hoặc exclude
+  - Đặt groups, chọn nhóm và tổ hợp nhóm trong TestNG
+  - Phân biệt priority với dependsOnMethods và dependsOnGroups
+  - Phụ thuộc cứng, phụ thuộc mềm và tác động của alwaysRun
+  - Ảnh hưởng của ca thất bại đến các ca phụ thuộc và trạng thái SKIP
+  - Phát hiện vòng phụ thuộc, phụ thuộc không tồn tại và cấu hình quá mong manh
+  - Cấu hình preserve-order và giới hạn khi kết hợp với song song
+  - Gom nhiều suite và quản lý tên định danh để đọc báo cáo
+  - Chọn mô hình ca độc lập hoặc chuỗi kịch bản có phụ thuộc theo nhu cầu
+- level1: Song song TestNG
+  level2:
+  - Các chế độ parallel theo methods, tests, classes và instances
+  - Cấu hình thread-count và phân biệt với luồng của DataProvider
+  - invocationCount, threadPoolSize và phạm vi tác dụng
+  - singleThreaded và yêu cầu cô lập trạng thái trong một lớp
+  - 'timeOut và invocationTimeOut: giới hạn mỗi lần chạy và tổng thời gian'
+  - Trạng thái đối tượng khi nhiều phương thức hoặc lần gọi chạy đồng thời
+  - Tái hiện tranh chấp bằng mã định danh thread và dữ liệu đầu vào
+  - Phối hợp TestNG parallel với JVM forks của công cụ build
+  - Dọn dẹp tài nguyên khi có timeout, lỗi cấu hình hoặc ca phụ thuộc bị bỏ qua
+- level1: Mở rộng TestNG
+  level2:
+  - Phân biệt listener theo dõi sự kiện với reporter tổng hợp cuối lượt chạy
+  - Nhận sự kiện kiểm thử qua ITestListener
+  - Theo dõi suite, thực thi, cấu hình và lời gọi bằng các listener phù hợp
+  - Đăng ký listener qua @Listeners, XML và ServiceLoader
+  - Biến đổi annotation bằng IAnnotationTransformer và cách đăng ký hợp lệ
+  - Lựa chọn phương thức bằng IMethodInterceptor và dữ liệu bằng IDataProviderInterceptor
+  - Đọc ITestContext và ITestResult để thu bằng chứng chẩn đoán
+  - Tạo báo cáo bằng IReporter và Reporter.log
+  - Chạy TestNG bằng API để xây bộ chạy theo nhu cầu
+  - Dùng IRetryAnalyzer có giới hạn và lưu lại lần thất bại ban đầu
+  - Kiểm thử listener và bảo đảm an toàn khi có nhiều luồng
+- level1: Tích hợp Gradle
+  level2:
+  - Bật JUnit Platform bằng useJUnitPlatform và chọn engine cần chạy
+  - Chạy TestNG bằng useTestNG và cấu hình suite XML
+  - Đặt dependencies đúng testImplementation, testCompileOnly và testRuntimeOnly
+  - Chạy chọn lớp hoặc phương thức bằng --tests
+  - Lọc Jupiter tags hoặc TestNG groups ở tác vụ Test
+  - Tạo tác vụ kiểm thử và source set riêng cho kiểm thử tích hợp
+  - Chia sẻ cấu hình kiểm thử giữa các module mà vẫn giữ quyền tùy chỉnh
+  - Phân biệt maxParallelForks, forkEvery và số luồng bên trong framework
+  - Truyền system properties, biến môi trường và JVM arguments
+  - Đọc test logging, báo cáo HTML và kết quả XML của Gradle
+  - Hiểu UP-TO-DATE, cache và điều kiện buộc chạy lại kiểm thử
+  - Phân biệt NO-SOURCE, không có test phù hợp và test bị bỏ qua
+- level1: Tích hợp Maven
+  level2:
+  - Chọn phiên bản Surefire hoặc Failsafe tương thích với framework
+  - Cấu hình JUnit Platform, Jupiter và các engine trong Maven
+  - Cấu hình TestNG, groups và suite XML theo phiên bản plugin
+  - Quy ước tên lớp, includes và excludes khi phát hiện kiểm thử
+  - Chạy một lớp, một phương thức hoặc một tập kiểm thử bằng tham số Maven
+  - Phân biệt Surefire cho test với Failsafe trong chu kỳ integration-test và verify
+  - Quản lý BOM, dependency scope test và xung đột phiên bản
+  - Cấu hình forkCount, reuseForks và tham số JVM cho tiến trình kiểm thử
+  - Truyền cấu hình framework qua plugin, system properties và tệp cấu hình
+  - Đọc báo cáo, xử lý không tìm thấy test và giữ mã thoát thất bại
+- level1: IDE và dòng lệnh
+  level2:
+  - Chạy và gỡ lỗi từng test trong IDE bằng breakpoint
+  - Phân biệt bộ chạy của IDE với chế độ ủy quyền cho Gradle hoặc Maven
+  - Đồng bộ JDK, classpath, thư mục làm việc và cấu hình giữa các bộ chạy
+  - Chạy JUnit bằng Console Launcher và chọn classpath hoặc module path
+  - Lọc kiểm thử và xuất kết quả từ Console Launcher
+  - Chạy TestNG bằng dòng lệnh và testng.xml
+  - Truyền đúng tham số khi đường dẫn có khoảng trắng trên Windows
+  - Chuyển cấu hình IDE cá nhân thành lệnh build có thể tái hiện
+- level1: Tích hợp hệ sinh thái
+  level2:
+  - Tích hợp thư viện assertion mà vẫn giữ rõ trách nhiệm của framework
+  - Đăng ký mocking extension và quản lý vòng đời đối tượng thay thế
+  - Vai trò SpringExtension và quan hệ với vòng đời Jupiter
+  - Phân biệt kiểm thử Java thuần với kiểm thử cần Spring ApplicationContext
+  - Phạm vi dùng @SpringBootTest và các test slice qua góc nhìn framework
+  - Quan hệ giữa giao dịch kiểm thử, luồng thực thi và timeout
+  - Tích hợp thư viện tài nguyên bên ngoài qua extension hoặc listener
+  - Phân tách vòng đời kiểm thử với cấu hình container, dịch vụ giả lập và cơ sở dữ liệu
+  - Tương tác giữa framework, bộ thu coverage và tác nhân JVM
+  - Kiểm tra hỗ trợ Java 21 và tương thích phiên bản trước khi ghép công cụ
+- level1: Framework chuyên biệt
+  level2:
+  - Phân biệt kiểm thử dựa trên ví dụ với kiểm thử dựa trên thuộc tính
+  - 'Vai trò của jqwik: thuộc tính, bộ sinh dữ liệu, seed và thu nhỏ dữ liệu gây lỗi'
+  - Quan hệ giữa jqwik engine và JUnit Platform
+  - 'Vai trò của Cucumber: feature, scenario, step definition và bộ chạy'
+  - Phân biệt mô tả BDD với cơ chế thực thi JUnit hoặc TestNG
+  - 'Vai trò của Spock: specification, feature method và dữ liệu dạng bảng'
+  - Ranh giới Java với Groovy khi dùng Spock trong dự án JVM
+  - Tiêu chí chọn framework chuyên biệt và chi phí thêm engine hoặc ngôn ngữ
+  - Giữ nhất quán cách lọc, báo cáo và thực thi khi nhiều framework cùng tồn tại
+- level1: Báo cáo và CI
+  level2:
+  - Phân biệt số test được phát hiện, được chọn, thực thi và từng lần gọi
+  - Đọc stack trace, lỗi chuẩn bị và nhiều lỗi kiểm chứng trong báo cáo
+  - Ý nghĩa báo cáo XML kiểu JUnit và khác biệt giữa các công cụ xuất
+  - Ghi nhận đầu vào, seed, tên test và cấu hình cần để tái hiện lỗi
+  - Xuất dữ liệu chẩn đoán bằng TestReporter và cơ chế báo cáo của bộ chạy
+  - Thu thập log và bằng chứng đúng ca khi chạy song song
+  - Giữ mã thoát thất bại để pipeline phản ánh đúng kết quả kiểm thử
+  - Đưa lệnh kiểm thử vào CI và quản lý cấu hình có thể tái hiện
+  - Thiết kế ma trận JDK, hệ điều hành và phiên bản framework theo phạm vi hỗ trợ
+  - Chia bộ kiểm thử thành các phần chạy song song mà không bỏ sót hoặc chạy trùng
+  - Thử lại kiểm thử không ổn định có kiểm soát và theo dõi kết quả ban đầu
+  - Lưu báo cáo khi bước kiểm thử thất bại và tránh lộ thông tin nhạy cảm trong log
+- level1: Chuyển đổi và nâng cấp
+  level2:
+  - Nhận diện JUnit 3, JUnit 4 và Jupiter qua lớp cơ sở, import và annotation
+  - Khác biệt assertion giữa JUnit 4, Jupiter và TestNG
+  - Chuyển @Before, @After, @BeforeClass và @AfterClass sang vòng đời Jupiter
+  - Chuyển expected exception và timeout của JUnit 4 sang cơ chế tương ứng
+  - Chuyển Runner, Rule và MethodRule sang Jupiter extension
+  - Dùng Vintage làm cầu nối tạm thời và lập kế hoạch loại bỏ
+  - Chuyển Categories, suite và bộ lọc sang tags hoặc Platform Suite
+  - 'Đánh giá chuyển TestNG sang Jupiter: dữ liệu, phụ thuộc, listeners và parallel'
+  - 'Nâng cấp JUnit 5 lên JUnit 6: yêu cầu JDK, API thay đổi và công cụ build'
+  - So sánh tập test, trạng thái bỏ qua và báo cáo trước với sau chuyển đổi
+  - Triển khai từng phần và giữ khả năng chạy song song bộ kiểm thử cũ với mới
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'No tests found: kiểm tra vị trí nguồn, chữ ký, tên lớp và bộ lọc'
+  - Thiếu engine hoặc launcher dù mã kiểm thử biên dịch thành công
+  - Trộn org.junit.Test, org.junit.jupiter.api.Test và org.testng.annotations.Test
+  - NoSuchMethodError hoặc ClassNotFoundException do các thành phần lệch phiên bản
+  - Test chạy được trong IDE nhưng thất bại ở Gradle, Maven hoặc CI
+  - ParameterResolutionException và nguồn dữ liệu không khớp chữ ký
+  - 'Lỗi reflection hoặc JPMS: xác định package cần mở trên module path'
+  - Test thành công khi chạy riêng nhưng thất bại khi chạy toàn bộ
+  - Test chỉ thất bại ngẫu nhiên khi bật song song hoặc đổi thứ tự
+  - Kiểm thử treo do luồng nền, tài nguyên chưa đóng hoặc chờ không giới hạn
+  - Ca bị bỏ qua do assumption, điều kiện môi trường, phụ thuộc hoặc lỗi cấu hình
+  - Test chạy trùng do suite, nhiều tác vụ hoặc cấu hình phát hiện chồng lấn
+  - Pipeline thành công dù test không chạy hoặc kết quả thất bại bị bỏ qua
+- level1: Thiết kế và bảo trì
+  level2:
+  - Chọn đơn vị hành vi để mỗi test có lý do thất bại rõ ràng
+  - Giữ dữ liệu chuẩn bị tối thiểu và tránh fixture dùng chung quá lớn
+  - Phân biệt tái sử dụng hợp lý với trừu tượng hóa làm khó đọc kiểm thử
+  - Giữ kiểm thử độc lập với thời gian thật, thứ tự chạy và dữ liệu ngẫu nhiên không kiểm soát
+  - Tránh phụ thuộc vào chi tiết triển khai và phản chiếu quá mức
+  - Giảm lớp cơ sở kiểm thử sâu bằng helper, annotation kết hợp hoặc extension phù hợp
+  - Đặt quy ước tên, tag, group và cấu hình trong một bộ kiểm thử lớn
+  - Theo dõi test bị vô hiệu hóa, retry kéo dài và tài nguyên rò rỉ
+  - Đánh giá framework theo khả năng mở rộng, hệ sinh thái và chi phí bảo trì
+  - Review kiểm thử theo khả năng phát hiện lỗi, chẩn đoán và tái hiện
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây bộ Jupiter cho lớp xử lý dữ liệu với ca hợp lệ, biên và ngoại lệ
+  - Chuyển nhiều test lặp lại thành bảng dữ liệu có tên từng lần gọi
+  - Thiết kế @Nested cho nhiều bối cảnh và kiểm tra tính độc lập vòng đời
+  - Viết extension quản lý tài nguyên và kiểm chứng đường dọn dẹp khi test lỗi
+  - Chạy bộ kiểm thử song song rồi tìm và sửa tranh chấp tài nguyên
+  - Xây suite TestNG có DataProvider, nhóm và listener thu kết quả
+  - So sánh cùng một hợp đồng nghiệp vụ được kiểm thử bằng Jupiter với TestNG
+  - Chuyển một bộ JUnit 4 sang Jupiter và đối chiếu tập test thực thi
+  - Tạo lệnh Gradle hoặc Maven thống nhất cho máy cá nhân và CI
+  - Tái hiện và chẩn đoán bộ tình huống thiếu engine, sai lọc và sai vòng đời
+  - Hoàn thiện dự án mẫu với hướng dẫn chạy, cấu hình và báo cáo kiểm thử
+- level1: Tra cứu
+  level2:
+  - Bảng annotation Jupiter theo mục đích và phạm vi áp dụng
+  - Bảng annotation TestNG theo cấp vòng đời và nguồn dữ liệu
+  - Bảng đối chiếu vòng đời, tham số, nhóm và mở rộng giữa Jupiter với TestNG
+  - Sơ đồ chọn test thường, tham số, lặp, động hoặc mẫu
+  - Danh mục tệp cấu hình, vị trí đặt và thứ tự ưu tiên cần kiểm tra
+  - Danh sách kiểm tra khi tạo dự án, bật song song và đưa test vào CI
+  - Cách tra tài liệu đúng phiên bản, release notes và trạng thái API

@@ -1,0 +1,498 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Spring Framework Mail là gì và giải quyết phần việc nào?
+  - Luồng gửi email từ ứng dụng đến máy chủ thư
+  - Vai trò của ứng dụng, mail client, MTA, MDA và mailbox
+  - SMTP, IMAP và POP3 trong hệ sinh thái thư điện tử
+  - Phân biệt gửi thư với đọc, đồng bộ và quản lý hộp thư
+  - Plain text, HTML và thư nhiều phần
+  - Spring hỗ trợ tạo và gửi thư ở lớp trừu tượng nào?
+  - Khi nào dùng JavaMailSender và khi nào cần thư viện chuyên biệt?
+  - Các thành phần sẽ gặp trong một module gửi mail
+  - Giới hạn của việc coi email như một lời gọi đồng bộ đơn giản
+  - Lộ trình từ thư thử nghiệm đến hệ thống gửi thư đáng tin cậy
+- level1: Kiến trúc email
+  level2:
+  - Message User Agent và nơi người dùng soạn thư
+  - Mail Submission Agent tiếp nhận thư từ ứng dụng
+  - Mail Transfer Agent định tuyến thư giữa các miền
+  - Mail Delivery Agent đưa thư vào mailbox
+  - DNS MX và cách miền nhận thư được tìm thấy
+  - SMTP envelope và phần header, body của message
+  - Đường đi nhiều chặng và các điểm có thể phát sinh lỗi
+  - Queue thư trên máy chủ và thời điểm thư được coi là đã gửi
+  - Reply-To, Return-Path và địa chỉ người nhận thực tế
+  - Bounces, delivery status notification và phản hồi không đồng bộ
+  - Khác biệt giữa accepted, delivered, opened và clicked
+- level1: SMTP
+  level2:
+  - Phiên SMTP từ kết nối đến đóng phiên
+  - EHLO, HELO, MAIL FROM, RCPT TO và DATA
+  - Một message có nhiều người nhận và nhiều lệnh RCPT TO
+  - Mã phản hồi 2xx, 4xx và 5xx
+  - Lỗi tạm thời và chiến lược thử lại
+  - Lỗi vĩnh viễn do địa chỉ, chính sách hoặc nội dung
+  - SMTP relay và giới hạn quyền gửi
+  - Submission port và khác biệt với cổng SMTP truyền thống
+  - STARTTLS và nâng cấp kết nối trong phiên SMTP
+  - SMTP AUTH và các cơ chế xác thực
+  - Envelope sender khác với From hiển thị
+  - Kích thước thư, giới hạn dòng và giới hạn máy chủ
+  - Timeout kết nối, timeout đọc và timeout ghi
+- level1: MIME
+  level2:
+  - Cấu trúc MIME của một email
+  - Content-Type, charset và Content-Transfer-Encoding
+  - multipart/mixed cho nội dung và tệp đính kèm
+  - multipart/alternative cho plain text và HTML thay thế
+  - multipart/related cho HTML và tài nguyên inline
+  - Boundary và cách các phần được phân tách
+  - Base64, quoted-printable và dữ liệu nhị phân
+  - Filename, tên hiển thị và mã hóa tham số MIME
+  - Content-Disposition inline và attachment
+  - Content-ID và tham chiếu cid trong HTML
+  - Thứ tự các phần và khả năng tương thích mail client
+  - Kích thước MIME sau mã hóa khác với kích thước tệp gốc
+  - Kiểm tra MIME tree khi chẩn đoán thư hiển thị sai
+- level1: Địa chỉ và header
+  level2:
+  - InternetAddress và cú pháp địa chỉ email
+  - Địa chỉ hiển thị tên và mã hóa tên người nhận
+  - From, To, Cc và Bcc
+  - Reply-To và địa chỉ nhận phản hồi
+  - Subject và mã hóa tiêu đề Unicode
+  - Message-ID và định danh message
+  - Date, In-Reply-To và References
+  - Headers do ứng dụng tự đặt và rủi ro xung đột
+  - Header injection và kiểm soát dữ liệu đầu vào
+  - Danh sách người nhận rỗng, trùng hoặc không hợp lệ
+  - Phân biệt địa chỉ phong bì với địa chỉ trong header
+  - Quy tắc header của nhà cung cấp và email gateway
+- level1: API Java Mail
+  level2:
+  - MailSender và hợp đồng gửi thư đơn giản
+  - JavaMailSender và khả năng tạo MimeMessage
+  - MimeMessage và vòng đời tạo message
+  - MimeMessagePreparator để chuẩn bị message
+  - SimpleMailMessage cho thư chỉ có văn bản
+  - MimeMessageHelper như lớp hỗ trợ tạo MIME
+  - Session, Transport và các đối tượng Jakarta Mail liên quan
+  - Kiểm tra trạng thái message trước khi gửi
+  - Gửi nhiều message và tái sử dụng sender
+  - Gửi một message đến nhiều người nhận
+  - MailException và các lỗi Spring thường gặp
+  - Phân biệt MailParseException, MailAuthenticationException và MailSendException
+  - Đọc nguyên nhân gốc từ exception chain
+- level1: Cấu hình sender
+  level2:
+  - Cấu hình host, port và protocol của mail server
+  - Username, password và thông tin xác thực
+  - Default encoding cho message
+  - Default FileTypeMap và xử lý kiểu nội dung
+  - Protocol smtp, smtps và lựa chọn theo môi trường
+  - JavaMailSenderImpl và các thuộc tính cấu hình
+  - JavaMailSender làm bean dùng chung
+  - Cấu hình nhiều sender cho nhiều mục đích
+  - Sender cho email giao dịch và email marketing
+  - Tách cấu hình khỏi mã nguồn và quản lý secret
+  - Profile phát triển, kiểm thử, staging và production
+  - Cấu hình động theo tenant hoặc miền người gửi
+  - Kiểm tra cấu hình sớm khi ứng dụng khởi động
+- level1: Spring Boot
+  level2:
+  - Auto-configuration cho mail sender
+  - spring-boot-starter-mail và các dependency liên quan
+  - Các thuộc tính spring.mail.host, port, username và password
+  - spring.mail.properties.* truyền thuộc tính cho Jakarta Mail
+  - spring.mail.default-encoding
+  - spring.mail.protocol và test-connection
+  - Cấu hình timeout qua thuộc tính mail.smtp.*
+  - Cấu hình debug protocol và tác động đến log
+  - Ghi đè auto-config bằng bean JavaMailSender riêng
+  - Tách cấu hình bằng application properties và YAML
+  - Quản lý secret bằng biến môi trường hoặc secret store
+  - Cấu hình sender trong nhiều profile Spring
+  - Kiểm tra điều kiện auto-configuration khi bean không xuất hiện
+  - Giới hạn của cấu hình mặc định trong hệ thống nhiều sender
+- level1: Simple mail
+  level2:
+  - Khi SimpleMailMessage phù hợp
+  - Đặt From, To, Cc, Bcc và Subject
+  - Thiết lập nội dung văn bản thuần
+  - Tạo message từ dữ liệu nghiệp vụ
+  - Gửi message qua MailSender
+  - Phân biệt setTo với addTo
+  - Một message cho nhiều địa chỉ nhận
+  - Kiểm tra địa chỉ trước khi tạo message
+  - Giữ nội dung không chứa dữ liệu nhạy cảm ngoài ý muốn
+  - Giới hạn của plain text khi cần định dạng
+  - Tách mail service khỏi controller hoặc domain service
+  - Đảm bảo message không bị sửa sau khi đưa vào hàng đợi
+- level1: MimeMessageHelper
+  level2:
+  - Khởi tạo MimeMessageHelper với message và encoding
+  - Multipart mode và lựa chọn chế độ phù hợp
+  - Đặt From, To, Cc, Bcc và Reply-To
+  - Đặt subject và text
+  - text plain text và HTML trong cùng message
+  - setText với hai phiên bản nội dung
+  - Thêm attachment từ File, InputStream và Resource
+  - Tên attachment và kiểu nội dung
+  - Thêm inline resource với Content-ID
+  - Tham chiếu inline resource từ HTML bằng cid
+  - Xử lý thứ tự add inline và set text
+  - Đóng InputStream và quyền sở hữu tài nguyên
+  - Kiểm tra MIME tree sau khi helper tạo message
+  - Giới hạn của helper khi cần MIME structure đặc biệt
+- level1: Nội dung HTML
+  level2:
+  - HTML email khác HTML của trình duyệt như thế nào?
+  - Mẫu HTML và dữ liệu được chèn từ ứng dụng
+  - Escape dữ liệu người dùng trước khi đưa vào HTML
+  - CSS inline và giới hạn hỗ trợ của mail client
+  - Hình ảnh từ URL công khai và tài nguyên inline
+  - Plain text thay thế cho khả năng truy cập
+  - Liên kết, nút và nội dung có thể đọc trên màn hình nhỏ
+  - Mã hóa ký tự trong subject và body
+  - Template engine và ranh giới giữa dữ liệu với markup
+  - Không đưa script hoặc nội dung động nguy hiểm vào email
+  - Kiểm tra HTML sau khi render bằng dữ liệu biên
+  - Giữ template versioned và theo dõi thay đổi nội dung
+  - Đo kích thước HTML và ảnh trước khi gửi
+- level1: Template email
+  level2:
+  - Mô hình dữ liệu cho một email template
+  - Template variable và giá trị mặc định
+  - Template cho subject, plain text và HTML
+  - Phân tách layout chung với nội dung từng loại thư
+  - Thư mục template và cách nạp resource
+  - Thymeleaf, FreeMarker hoặc engine khác trong luồng gửi mail
+  - Render template ngoài transaction nghiệp vụ khi cần
+  - Kiểm soát expression và dữ liệu đầu vào
+  - Escape HTML, URL và text theo ngữ cảnh
+  - Template không tìm thấy và lỗi render
+  - Kiểm thử template với dữ liệu đầy đủ và thiếu
+  - Bản địa hóa subject và nội dung email
+  - Versioning template và khả năng tương thích dữ liệu
+- level1: Đính kèm
+  level2:
+  - Đính kèm tệp từ FileSystemResource
+  - Đính kèm từ ByteArrayResource
+  - Đính kèm từ InputStreamSource
+  - Đính kèm dữ liệu sinh trong bộ nhớ
+  - Tên tệp Unicode và xử lý encoding
+  - Content type của tệp và FileTypeMap
+  - Kích thước tệp và giới hạn message
+  - Không giữ InputStream quá thời gian gửi
+  - Tạo PDF hoặc báo cáo trước khi tạo message
+  - Xử lý tệp không tồn tại hoặc không đọc được
+  - Xóa tệp tạm sau khi gửi hoặc thất bại
+  - Ngăn tệp người dùng tùy ý trở thành attachment
+  - Kiểm tra virus và loại tệp trước khi gửi
+  - Phân biệt attachment với inline resource
+- level1: Inline resource
+  level2:
+  - Mục đích của tài nguyên inline trong email HTML
+  - cid URL và Content-ID
+  - Tạo Content-ID ổn định trong một message
+  - Đặt tên resource và kiểu nội dung
+  - Thứ tự tạo HTML và thêm resource
+  - Một resource dùng cho nhiều vị trí trong HTML
+  - Mail client không hỗ trợ inline và phương án dự phòng
+  - Kích thước ảnh inline và ảnh từ URL
+  - Đường dẫn classpath và resource trong JAR
+  - Không dùng đường dẫn file cục bộ trong HTML gửi đi
+  - Kiểm tra multipart/related và liên kết cid
+  - Loại bỏ resource không được tham chiếu
+  - Bảo vệ resource khỏi dữ liệu ngoài ý muốn
+- level1: Gửi nhiều định dạng
+  level2:
+  - Thiết kế multipart/alternative cho plain text và HTML
+  - Chọn phần ưu tiên khi mail client hỗ trợ nhiều loại
+  - Nội dung thay thế phải diễn đạt cùng thông tin
+  - Thêm attachment mà không phá alternative
+  - Kết hợp alternative, related và mixed
+  - Cấu trúc MIME lồng nhau cần được xác minh
+  - Thứ tự multipart ảnh hưởng khả năng hiển thị
+  - Kiểm tra trên mail client khác nhau
+  - Xử lý client chỉ đọc plain text
+  - Encoding nhất quán giữa các phần
+  - Rủi ro khi tạo MIME thủ công
+  - Khi dùng helper và khi tạo Multipart trực tiếp
+- level1: Gửi trong ứng dụng
+  level2:
+  - Tách use case gửi mail khỏi lớp vận chuyển
+  - Xây MailService với hợp đồng rõ ràng
+  - Dùng command hoặc DTO cho dữ liệu email
+  - Kiểm tra dữ liệu trước khi tạo message
+  - Map dữ liệu nghiệp vụ sang mail model
+  - Không để domain model phụ thuộc MimeMessage
+  - Xử lý email bắt buộc và email tùy chọn
+  - Nội dung email thay đổi theo trạng thái nghiệp vụ
+  - Template subject theo mã sự kiện hoặc loại thông báo
+  - Giữ quy tắc người nhận ngoài controller
+  - Bảo đảm không gửi trùng do một thao tác được gọi lại
+  - Ghi nhận message key để truy nguyên một email
+- level1: Sự kiện và giao dịch
+  level2:
+  - Gửi email trực tiếp trong transaction nghiệp vụ
+  - Rủi ro email đã gửi nhưng transaction bị rollback
+  - Rủi ro transaction commit nhưng gửi mail thất bại
+  - Phát sự kiện sau commit bằng transaction synchronization
+  - Transactional event listener và các phase xử lý
+  - Đưa yêu cầu gửi mail vào outbox
+  - Đảm bảo một sự kiện chỉ tạo một yêu cầu gửi
+  - Đọc outbox và gửi mail ngoài transaction chính
+  - Cập nhật trạng thái outbox sau khi gửi
+  - Khả năng phát lại và xử lý bản ghi lỗi
+  - Tách giao dịch dữ liệu khỏi giao dịch SMTP
+  - Giới hạn của việc gọi SMTP trong transaction
+- level1: Bất đồng bộ
+  level2:
+  - Khi gửi mail đồng bộ phù hợp
+  - Khi tách gửi mail sang tác vụ bất đồng bộ
+  - TaskExecutor và thread pool cho mail
+  - '@Async và ranh giới proxy của lời gọi bất đồng bộ'
+  - Không tự gọi phương thức @Async trong cùng bean
+  - Truyền security context và correlation context
+  - Xử lý exception trong tác vụ bất đồng bộ
+  - Theo dõi queue và số tác vụ chờ
+  - Giới hạn tốc độ để không làm đầy mail server
+  - Executor riêng cho mail và các tác vụ khác
+  - Shutdown có kiểm soát khi ứng dụng dừng
+  - Đảm bảo transaction không bị hiểu nhầm là kéo dài qua task
+- level1: Thử lại và idempotency
+  level2:
+  - Lỗi tạm thời và điều kiện thử lại
+  - Lỗi xác thực hoặc địa chỉ không nên thử lại mù
+  - Backoff, jitter và số lần thử tối đa
+  - Phân loại exception cho chính sách retry
+  - Retry ở client, queue worker hoặc nhà cung cấp
+  - Message key để nhận diện cùng một yêu cầu gửi
+  - Idempotency khi worker đọc lại outbox
+  - Ngăn gửi trùng sau timeout không rõ kết quả
+  - Trạng thái queued, sending, sent, failed và dead letter
+  - Lưu số lần thử và nguyên nhân thất bại
+  - Thời hạn hết hiệu lực của email
+  - Kiểm tra retry không tạo bão gửi
+- level1: Lỗi và chẩn đoán
+  level2:
+  - MailParseException khi tạo message không hợp lệ
+  - MailAuthenticationException khi xác thực thất bại
+  - MailSendException và các failed message
+  - MailConnectException khi không kết nối được máy chủ
+  - MessagingException và nguyên nhân từ Jakarta Mail
+  - Lỗi DNS, timeout và từ chối kết nối
+  - Lỗi TLS, chứng chỉ và handshake
+  - Lỗi recipient bị từ chối từng phần
+  - Xác định message đã được gửi đến server hay chưa
+  - Đọc log SMTP ở mức phù hợp
+  - Không ghi password hoặc nội dung nhạy cảm vào log
+  - Bảo toàn correlation ID qua các lớp gửi mail
+  - Tạo bản sao message hoặc MIME dump an toàn để điều tra
+- level1: Bảo mật SMTP
+  level2:
+  - TLS trong kết nối tới mail server
+  - STARTTLS và SMTPS
+  - Kiểm tra hostname và chứng chỉ máy chủ
+  - Trust store và cách tránh tắt xác minh TLS
+  - Xác thực username, password và token
+  - OAuth2 hoặc cơ chế xác thực hiện đại của nhà cung cấp
+  - Bảo vệ secret trong cấu hình
+  - Xoay vòng secret và xử lý secret hết hạn
+  - Giới hạn quyền của tài khoản gửi
+  - Tách tài khoản gửi theo môi trường hoặc chức năng
+  - Không tin dữ liệu để tạo header, địa chỉ và template
+  - Chống header injection
+  - Bảo vệ attachment và đường dẫn resource
+  - Đánh giá rủi ro khi log SMTP debug
+- level1: Deliverability
+  level2:
+  - Envelope sender và địa chỉ nhận bounce
+  - SPF, DKIM và DMARC ở cấp miền
+  - Cấu hình PTR, reverse DNS và uy tín IP
+  - Tách miền gửi giao dịch với miền marketing
+  - Nhà cung cấp giới hạn tốc độ và quota
+  - Thư bị đánh dấu spam dù SMTP trả accepted
+  - Địa chỉ bounce và xử lý phản hồi thất bại
+  - List-Unsubscribe cho email đăng ký
+  - Tần suất gửi và tín hiệu người nhận
+  - Hủy đăng ký và yêu cầu không gửi tiếp
+  - Nội dung, liên kết và hình ảnh ảnh hưởng deliverability
+  - Theo dõi accepted, bounced, deferred và complained
+  - Không suy ra delivery chỉ từ việc send trả thành công
+- level1: Kiểm thử đơn vị
+  level2:
+  - Kiểm thử dữ liệu dùng để tạo SimpleMailMessage
+  - Kiểm thử subject, From, To, Cc và Bcc
+  - Kiểm thử nội dung plain text và ký tự Unicode
+  - Kiểm thử MimeMessageHelper với multipart
+  - Mock JavaMailSender đúng hợp đồng cần kiểm tra
+  - ArgumentCaptor để kiểm tra message đã tạo
+  - Đọc MimeMessage trong test và xác minh header
+  - Kiểm tra attachment, inline resource và Content-ID
+  - Kiểm tra template render với dữ liệu biên
+  - Kiểm tra lỗi khi địa chỉ hoặc resource không hợp lệ
+  - Không phụ thuộc mail server thật trong unit test
+  - Tách kiểm thử logic chọn template khỏi kiểm thử transport
+- level1: Kiểm thử tích hợp
+  level2:
+  - Mail server giả lập hoặc SMTP test container
+  - Cấu hình sender dành riêng cho test
+  - Gửi message qua SMTP và đọc lại message nhận được
+  - Xác minh MIME tree trên server kiểm thử
+  - Kiểm thử TLS và xác thực trong môi trường cô lập
+  - Kiểm thử timeout và server từ chối
+  - Kiểm thử nhiều người nhận và recipient bị lỗi
+  - Kiểm thử transaction với outbox
+  - Kiểm thử retry và dead letter
+  - Dọn message và tài nguyên giữa các test
+  - Tránh test phụ thuộc thứ tự hoặc mailbox dùng chung
+  - Kiểm tra khác biệt giữa JavaMail mock và server thực
+- level1: Quan sát và vận hành
+  level2:
+  - Metric số message tạo, gửi, thành công và thất bại
+  - Đo thời gian tạo message và thời gian chờ SMTP
+  - Theo dõi queue, retry count và dead letter
+  - Log message ID, template ID và correlation ID
+  - Ẩn hoặc băm dữ liệu người nhận trong log
+  - Trace luồng từ sự kiện nghiệp vụ đến mail server
+  - Cảnh báo tỷ lệ lỗi, timeout và bounce tăng
+  - Theo dõi quota và tốc độ nhà cung cấp
+  - Dashboard theo sender, tenant và loại email
+  - Kiểm tra outbox bị tồn đọng
+  - Runbook cho lỗi xác thực, TLS và DNS
+  - Kiểm tra health indicator không gửi email thật ngoài ý muốn
+- level1: Hiệu năng và giới hạn
+  level2:
+  - Chi phí tạo MIME và mã hóa attachment
+  - Tái sử dụng JavaMailSender và connection configuration
+  - Giới hạn thread pool gửi email
+  - Giới hạn kích thước message và dữ liệu trong bộ nhớ
+  - Streaming attachment khi có thể
+  - Gom hoặc chia lô yêu cầu gửi
+  - Giới hạn tốc độ theo nhà cung cấp
+  - Giảm số lần render template không cần thiết
+  - Tách tác vụ chuẩn bị nội dung khỏi tác vụ gửi
+  - Xử lý nhiều tenant và cô lập quota
+  - Backpressure ở queue gửi mail
+  - Đo throughput, latency và tỷ lệ thành công cùng nhau
+- level1: Nhiều nhà cung cấp
+  level2:
+  - Abstraction chung cho nhiều SMTP provider
+  - Cấu hình sender theo tenant hoặc miền
+  - Chọn provider dự phòng khi provider chính lỗi
+  - Khác biệt mã lỗi và giới hạn giữa nhà cung cấp
+  - Định tuyến theo loại email hoặc khu vực
+  - Bảo toàn message key khi chuyển provider
+  - Không thử lại sang provider khác với lỗi không thể gửi
+  - Quản lý credential và quota riêng
+  - Kiểm thử contract của từng provider
+  - Theo dõi deliverability khác nhau giữa các provider
+  - Tránh phụ thuộc tính năng riêng khi không cần
+  - Báo cáo nguồn gửi trong observability
+- level1: Nhận thư và hộp thư
+  level2:
+  - Phạm vi gửi thư của JavaMailSender so với đọc thư
+  - IMAP và POP3 trong các bài toán nhận thư
+  - Session và kết nối đọc mailbox
+  - Mail receiver trong Spring Integration
+  - Inbound channel adapter và polling
+  - Folder, message và đánh dấu đã đọc
+  - Xử lý duplicate khi polling mailbox
+  - Lưu message ID và trạng thái xử lý
+  - Xử lý attachment từ thư đến
+  - Giới hạn quyền và kiểm tra nội dung thư đến
+  - Xử lý lỗi kết nối khi nhận thư
+  - Khi nào tách module nhận mail khỏi module gửi mail
+- level1: Spring Integration Mail
+  level2:
+  - Outbound mail adapter và message channel
+  - Chuyển Spring Message thành email
+  - MailSendingMessageHandler
+  - Mapping payload và header sang MimeMessage
+  - Định tuyến message theo loại email
+  - Poller, queue channel và lịch gửi
+  - Inbound mail adapter và message source
+  - Lọc thư trước khi đưa vào flow
+  - Chuyển đổi mail message thành domain event
+  - Xử lý lỗi trong Integration flow
+  - Error channel và dead letter flow
+  - Phân biệt Spring Integration Mail với JavaMailSender trực tiếp
+- level1: Lập lịch gửi
+  level2:
+  - Gửi ngay và gửi vào thời điểm được yêu cầu
+  - Lưu thời điểm gửi cùng trạng thái message
+  - '@Scheduled và giới hạn của tác vụ định kỳ'
+  - Quartz hoặc scheduler ngoài cho lịch bền vững
+  - Tránh chạy trùng khi có nhiều instance
+  - Distributed lock cho worker gửi mail
+  - Chọn batch size và khoảng polling
+  - Xử lý email quá hạn hoặc bị bỏ qua
+  - Múi giờ của lịch gửi
+  - Thay đổi lịch mà không làm mất yêu cầu đang chờ
+  - Theo dõi job gửi và các lần chạy
+  - Dừng lịch gửi an toàn khi bảo trì
+- level1: Mẫu thiết kế production
+  level2:
+  - Mail command và message key
+  - Outbox pattern cho yêu cầu gửi mail bền vững
+  - Worker gửi mail tách khỏi request thread
+  - Dead letter và quy trình xử lý thủ công
+  - Idempotency key và chống gửi trùng
+  - Template registry và phiên bản nội dung
+  - Provider adapter và chiến lược fallback
+  - Rate limiter theo tài khoản hoặc tenant
+  - Policy xử lý địa chỉ bounce và unsubscribe
+  - Data retention cho nội dung và metadata email
+  - Mã hóa hoặc loại bỏ nội dung nhạy cảm sau khi gửi
+  - Phân quyền thao tác retry và resend
+  - Thiết kế audit trail không lưu quá mức
+- level1: Lỗi thường gặp
+  level2:
+  - Cấu hình đúng host nhưng quên port hoặc protocol
+  - Dùng password sai nhưng chỉ nhìn exception ngoài cùng
+  - Tắt TLS verification để né lỗi chứng chỉ
+  - Gọi send trong transaction rồi giả định rollback được email
+  - Dùng @Async nhưng gọi nội bộ cùng bean
+  - Không đọc failed message trong MailSendException
+  - Tạo HTML nhưng quên plain text thay thế
+  - Tham chiếu ảnh bằng đường dẫn file cục bộ
+  - Dùng ByteArrayResource nhưng đặt tên attachment không đúng
+  - Đóng InputStream trước khi sender đọc xong
+  - Thử lại mọi exception với cùng một backoff
+  - Log toàn bộ message và dữ liệu người nhận
+  - Gửi lại sau timeout mà không xét khả năng server đã nhận
+  - Dùng mock JavaMailSender rồi kết luận deliverability
+  - Không kiểm tra message ở mail client thật
+- level1: Quyết định kiến trúc
+  level2:
+  - Chọn gửi trực tiếp hay qua queue
+  - Chọn SMTP relay hay HTTP email provider
+  - Chọn template engine theo yêu cầu nội dung
+  - Chọn attachment inline hay object storage link
+  - Chọn retry trong ứng dụng hay trong nền tảng gửi
+  - Chọn lưu toàn bộ message hay chỉ lưu metadata
+  - Chọn một sender hay nhiều sender
+  - Chọn đồng bộ hay bất đồng bộ theo trải nghiệm người dùng
+  - Đánh giá yêu cầu giao nhận, bảo mật và kiểm toán
+  - Đánh giá quota, chi phí và khả năng mở rộng
+  - Đặt ranh giới phần Spring Mail trong hệ thống lớn
+  - Ghi lại quyết định, giả thiết và phương án thay thế
+- level1: Dự án thực hành
+  level2:
+  - Tạo endpoint yêu cầu gửi email xác nhận
+  - Xây MailService gửi plain text bằng SimpleMailMessage
+  - Tạo email HTML và plain text bằng MimeMessageHelper
+  - Thêm attachment và inline image từ classpath
+  - Render email bằng template engine
+  - Kiểm thử message bằng mock JavaMailSender
+  - Chạy SMTP server kiểm thử và đọc lại MIME
+  - Tạo outbox cho email sau khi transaction commit
+  - Xây worker retry với trạng thái và dead letter
+  - Thêm metric, correlation ID và log an toàn
+  - Cấu hình TLS và secret theo profile
+  - Mô phỏng provider timeout và recipient bị từ chối
+  - Thiết kế flow nhận mail bằng Spring Integration
+  - Đánh giá khả năng mở rộng và giới hạn của dự án

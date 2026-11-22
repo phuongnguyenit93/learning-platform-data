@@ -1,0 +1,3 @@
+menuLevel1: '@CacheEvict'
+menuLevel2: beforeInvocation=true và xóa trước khi phương thức chạy
+status: WRITTEN

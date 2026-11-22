@@ -1,0 +1,293 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Project Reactor Testing là gì và vì sao luồng phản ứng cần cách kiểm thử riêng
+  - Quan hệ giữa reactor-core, reactor-test và đặc tả Reactive Streams
+  - Vai trò của Publisher, Subscriber, Subscription và các tín hiệu trong một bài kiểm thử
+  - Phân biệt lúc lắp ráp, đăng ký và thực thi chuỗi xử lý
+  - 'Ba công cụ chính: StepVerifier, TestPublisher và PublisherProbe'
+  - 'Các chiều cần kiểm chứng: dữ liệu, kết thúc, lỗi, nhu cầu, thời gian và hủy'
+  - Phân biệt kiểm thử đơn vị, kiểm thử tích hợp và kiểm thử tuân thủ giao thức
+  - Kiến thức tiên quyết và lộ trình học từ kịch bản đơn giản đến nâng cao
+- level1: Thiết lập
+  level2:
+  - Khai báo reactor-test với phạm vi test trong Gradle và Maven
+  - Đồng bộ phiên bản reactor-core và reactor-test bằng Reactor BOM hoặc Spring Boot
+  - Tích hợp JUnit Jupiter, AssertJ và thư viện giả lập khi cần
+  - Tổ chức mã kiểm thử và dữ liệu mẫu cho phương thức trả về Mono hoặc Flux
+  - Chuẩn bị các nguồn just, empty, error, never và defer
+  - Viết và chạy bài kiểm thử Mono đầu tiên bằng StepVerifier
+  - Viết và chạy bài kiểm thử Flux đầu tiên bằng StepVerifier
+  - Thiết lập giới hạn thời gian và dọn tài nguyên cho bộ kiểm thử
+- level1: StepVerifier cơ bản
+  level2:
+  - 'Mô hình kịch bản: khai báo nguồn, mô tả tín hiệu và kích hoạt xác minh'
+  - StepVerifier.create và thời điểm Publisher được đăng ký
+  - Vai trò của FirstStep, Step và LastStep trong chuỗi lời gọi
+  - Kiểm tra đăng ký bằng expectSubscription và expectSubscriptionMatches
+  - Kiểm tra giá trị và thứ tự phát bằng expectNext
+  - Kiểm tra kết thúc bình thường bằng expectComplete và verifyComplete
+  - Kiểm tra chuỗi rỗng và phân biệt với chuỗi không bao giờ kết thúc
+  - Đọc AssertionError khi thiếu, thừa hoặc sai thứ tự tín hiệu
+  - Lỗi quên gọi verify và cách phát hiện bài kiểm thử chưa chạy
+- level1: Kiểm tra dữ liệu
+  level2:
+  - Kiểm tra một dãy dữ liệu bằng expectNextSequence
+  - Kiểm tra số phần tử bằng expectNextCount và giới hạn của phép đếm
+  - Kiểm tra điều kiện trên phần tử bằng expectNextMatches
+  - Kiểm tra đối tượng phức tạp bằng assertNext và AssertJ
+  - Tiêu thụ phần tử và thực hiện xác nhận tùy chỉnh bằng consumeNextWith
+  - Kiểm tra List, Map, tập hợp và dữ liệu lồng nhau được phát trong một tín hiệu
+  - Ghi nhận dữ liệu bằng recordWith và kiểm tra bằng consumeRecordedWith
+  - Kiểm tra tập dữ liệu đã ghi bằng expectRecordedMatches
+  - Tiêu thụ có điều kiện bằng thenConsumeWhile và xử lý phần tử kế tiếp
+  - Chọn phép so sánh cho dữ liệu có thứ tự và dữ liệu không bảo đảm thứ tự
+- level1: Lỗi và kết thúc
+  level2:
+  - Kiểm tra tín hiệu lỗi bằng expectError và verifyError
+  - Kiểm tra kiểu ngoại lệ và thông báo lỗi
+  - Kiểm tra điều kiện trên lỗi bằng expectErrorMatches
+  - Kiểm tra nguyên nhân và thuộc tính ngoại lệ bằng expectErrorSatisfies
+  - Tiêu thụ lỗi bằng consumeErrorWith và kết hợp xác nhận tùy chỉnh
+  - Kiểm tra chuỗi phát một phần dữ liệu rồi mới báo lỗi
+  - Phân biệt lỗi khi lắp ráp chuỗi với lỗi được phát qua onError
+  - Phân biệt tín hiệu onError với lỗi do chính phép xác nhận gây ra
+  - Kiểm tra Mono<Void> và hành vi chỉ có tín hiệu kết thúc
+  - Chọn đúng kỳ vọng kết thúc để tránh bài kiểm thử đợi vô hạn
+- level1: Điều khiển kịch bản
+  level2:
+  - StepVerifierOptions và các tùy chọn theo từng kịch bản
+  - Đặt tên kịch bản bằng scenarioName và mô tả bước bằng as
+  - Chạy hành động đúng thời điểm bằng then
+  - Quan sát Subscription bằng consumeSubscriptionWith
+  - Hủy luồng bằng thenCancel và xác minh hành vi trước khi hủy
+  - Khởi động xác minh không chặn bằng verifyLater và hoàn tất bằng verify
+  - Giới hạn thời gian cho một lần xác minh bằng verify(Duration)
+  - Thiết lập và khôi phục giới hạn mặc định bằng setDefaultTimeout và resetDefaultTimeout
+  - Phân biệt giới hạn thời gian của bộ kiểm thử với toán tử timeout của ứng dụng
+  - Giới hạn của nhãn as khi xác nhận tùy chỉnh tự ném AssertionError
+- level1: Backpressure
+  level2:
+  - Nhu cầu dữ liệu request(n) và vì sao giá trị đúng chưa đủ để kiểm chứng luồng
+  - Thiết lập nhu cầu ban đầu bằng create(Publisher, initialRequest)
+  - Thiết lập initialRequest trong StepVerifierOptions
+  - Bắt đầu với nhu cầu bằng 0 và yêu cầu theo từng đợt bằng thenRequest
+  - Kiểm tra luồng chỉ phát dữ liệu trong phạm vi nhu cầu cho phép
+  - Phân biệt nhu cầu của bộ xác minh với nhu cầu mà toán tử gửi lên nguồn
+  - Kiểm tra ảnh hưởng của prefetch, buffer và limitRate đến nhu cầu
+  - Phát hiện kịch bản thiếu request bằng checkUnderRequesting
+  - Kiểm tra chính sách buffer, drop, latest và error khi quá tải
+  - Kiểm tra hủy đăng ký khi vẫn còn nhu cầu hoặc dữ liệu đang chờ
+- level1: Thời gian thực
+  level2:
+  - Kiểm tra hành vi có độ trễ và lựa chọn giữa thời gian thực với thời gian ảo
+  - Tạm chờ trong kịch bản bằng thenAwait
+  - Khẳng định không có tín hiệu trong một khoảng bằng expectNoEvent
+  - Vì sao cần xử lý tín hiệu đăng ký trước expectNoEvent
+  - Kiểm tra luồng chưa kết thúc bằng expectTimeout và verifyTimeout
+  - Phân biệt không có tín hiệu với chưa có tín hiệu kết thúc
+  - Chọn giới hạn xác minh cho nguồn bất đồng bộ và môi trường CI
+  - Tránh Thread.sleep và các phép đo thời gian quá khắt khe trong kiểm thử hành vi
+- level1: Thời gian ảo
+  level2:
+  - Cơ chế đồng hồ ảo và quan hệ với Reactor Scheduler
+  - Khởi tạo kịch bản bằng StepVerifier.withVirtualTime
+  - Khởi tạo Publisher trễ trong Supplier để toán tử dùng đúng Scheduler
+  - Tiến đồng hồ bằng thenAwait và kiểm tra khoảng im lặng bằng expectNoEvent
+  - Kết hợp nhu cầu ban đầu với thời gian ảo
+  - Cung cấp VirtualTimeScheduler qua overload hoặc StepVerifierOptions
+  - Quản lý VirtualTimeScheduler bằng create, getOrSet, set và reset
+  - Điều khiển đồng hồ trực tiếp bằng advanceTimeBy và advanceTimeTo
+  - Giới hạn khi dùng Scheduler được tạo sẵn hoặc Scheduler truyền tường minh
+  - Giới hạn với I/O bên ngoài, Clock hệ thống và các tác vụ chặn
+  - Nguyên nhân bế tắc khi chờ tín hiệu trước khi tiến đồng hồ
+  - Cô lập trạng thái Scheduler toàn cục giữa các bài kiểm thử
+- level1: Toán tử theo thời gian
+  level2:
+  - Kiểm tra Mono.delay và Flux.interval bằng thời gian ảo
+  - Kiểm tra delayElements và delaySubscription
+  - Kiểm tra timeout khi nguồn kịp phản hồi, phản hồi muộn hoặc im lặng
+  - Kiểm tra nhánh dự phòng được kích hoạt bởi timeout
+  - Kiểm tra retryWhen với Retry.backoff và kiểm soát jitter để kết quả lặp lại được
+  - Kiểm tra lấy mẫu và gộp sự kiện bằng sample và sampleTimeout
+  - Kiểm tra bufferTimeout và các cửa sổ dữ liệu theo thời gian
+  - Kiểm tra thời hạn cache và hành vi đăng ký lại trước hoặc sau khi hết hạn
+  - Kiểm tra giá trị ngay trước, tại và sau mốc thời gian biên
+- level1: Reactor Context
+  level2:
+  - Context gắn với đăng ký và sự khác biệt với ThreadLocal
+  - Cấp Context ban đầu bằng withInitialContext
+  - Bắt đầu kiểm tra Context bằng expectAccessibleContext
+  - Kiểm tra khóa, giá trị, kích thước và tập con trong Context
+  - Quay lại kỳ vọng tín hiệu bằng then sau ContextExpectations
+  - Kiểm tra trường hợp không có Context truy cập được bằng expectNoAccessibleContext
+  - Kiểm tra contextWrite, deferContextual và phạm vi nhìn thấy dữ liệu
+  - Kiểm tra Context qua flatMap, publishOn và các lần đăng ký lại
+  - Kiểm tra hành vi khi thiếu khóa Context hoặc giá trị không hợp lệ
+  - Kiểm tra mã định danh yêu cầu và dữ liệu người dùng theo từng đăng ký
+- level1: Xác nhận sau thực thi
+  level2:
+  - Vai trò của verifyThenAssertThat và các phép xác nhận hậu kiểm
+  - Phân biệt phần tử bị discard với tín hiệu bị drop
+  - Kiểm tra phần tử bị drop bằng hasDropped và hasDroppedElements
+  - Kiểm tra phần tử bị discard bằng hasDiscarded và hasDiscardedExactly
+  - Kiểm tra nội dung discard bằng các biến thể Matching và Satisfying
+  - Kiểm tra lỗi bị drop theo số lượng, kiểu, thông báo và điều kiện
+  - Kiểm tra lỗi toán tử được ghi nhận bằng hasOperatorErrors và các biến thể
+  - Kiểm tra không có drop, discard hoặc lỗi toán tử ngoài dự kiến
+  - Kiểm tra thời gian thực thi bằng tookLessThan và tookMoreThan
+  - Giới hạn của hậu kiểm khi toán tử hoặc nguồn không hỗ trợ cơ chế quan sát tương ứng
+- level1: TestPublisher
+  level2:
+  - Khi nào cần nguồn phát có thể điều khiển thay vì Mono.just hoặc Flux.just
+  - Tạo TestPublisher và đưa nguồn vào chuỗi bằng flux hoặc mono
+  - Phát dữ liệu bằng next và phân biệt với emit
+  - Kết thúc nguồn bằng complete hoặc error
+  - Phối hợp TestPublisher với StepVerifier.then theo từng bước
+  - Kiểm tra đăng ký bằng assertSubscribers và assertNoSubscribers
+  - Kiểm tra hủy bằng assertCancelled và assertNotCancelled
+  - Kiểm tra nhu cầu bằng assertMinRequested và assertMaxRequested
+  - Kiểm tra vượt nhu cầu bằng assertRequestOverflow và assertNoRequestOverflow
+  - Phân biệt nguồn nóng create với nguồn lạnh createCold
+  - So sánh createCold và createColdNonBuffering khi nhu cầu chưa đủ
+  - Giới hạn an toàn luồng và cách cô lập TestPublisher cho mỗi kịch bản
+- level1: Nguồn vi phạm giao thức
+  level2:
+  - Mục đích của createNoncompliant khi kiểm thử khả năng phòng vệ của toán tử
+  - 'REQUEST_OVERFLOW: phát dữ liệu khi chưa có đủ nhu cầu'
+  - 'ALLOW_NULL: chủ động mô phỏng giá trị null trái giao thức'
+  - 'CLEANUP_ON_TERMINATE: mô phỏng hành vi quanh tín hiệu kết thúc'
+  - 'DEFER_CANCELLATION: mô phỏng nguồn tiếp tục hoạt động sau hủy'
+  - Kết hợp các Violation và xác định rõ hành vi mong đợi
+  - Kiểm tra tín hiệu đến muộn sau onComplete, onError hoặc cancel
+  - Giới hạn của kiểm thử với nguồn sai giao thức và vai trò riêng của Reactive Streams TCK
+- level1: PublisherProbe
+  level2:
+  - Khi kết quả đầu ra không đủ chứng minh nhánh xử lý đã được thực thi
+  - Tạo nguồn dò bằng PublisherProbe.empty và PublisherProbe.of
+  - Chèn nguồn dò vào chuỗi bằng mono và flux
+  - Kiểm tra đăng ký bằng assertWasSubscribed và assertWasNotSubscribed
+  - Kiểm tra nhu cầu bằng assertWasRequested và assertWasNotRequested
+  - Kiểm tra hủy bằng assertWasCancelled và assertWasNotCancelled
+  - Đếm số lượt đăng ký bằng subscribeCount
+  - Kiểm chứng nhánh switchIfEmpty và nhánh phục hồi onErrorResume
+  - Kiểm chứng đường đi của Mono<Void>, then và chuỗi chỉ thực hiện tác động phụ
+  - Chọn PublisherProbe hoặc TestPublisher theo mục tiêu quan sát hay điều khiển
+- level1: Biến đổi và phối hợp
+  level2:
+  - Kiểm tra map, filter và chuỗi biến đổi dữ liệu theo hợp đồng đầu ra
+  - Kiểm tra flatMap khi kết quả có thể xen kẽ
+  - Kiểm tra concatMap và flatMapSequential khi cần giữ thứ tự
+  - Kiểm tra concat, merge và zip với nhiều nguồn điều khiển được
+  - Kiểm tra combineLatest khi từng nguồn phát dữ liệu ở các thời điểm khác nhau
+  - Kiểm tra zip khi một nguồn rỗng, báo lỗi hoặc bị hủy
+  - Kiểm tra switchMap và hủy nguồn con đã bị thay thế
+  - Kiểm tra take, skip, next và việc kết thúc sớm
+  - Kiểm tra buffer, window và groupBy bao gồm các luồng con
+  - Kiểm tra collectList, reduce và các trường hợp đầu vào rỗng
+  - Kiểm tra toán tử trì hoãn lỗi và tác động lên các nguồn còn lại
+- level1: Phục hồi và đăng ký lại
+  level2:
+  - Kiểm tra onErrorReturn và giá trị thay thế
+  - Kiểm tra onErrorResume với các loại lỗi khác nhau
+  - Kiểm tra onErrorMap và bảo toàn nguyên nhân lỗi
+  - Kiểm tra doOnError mà không nhầm tác động phụ với phục hồi lỗi
+  - Kiểm tra retry theo số lần và điều kiện cho phép thử lại
+  - Kiểm tra retryWhen khi thành công sau lỗi hoặc cạn số lần thử
+  - Kiểm tra repeat, repeatWhen và điều kiện dừng khi lặp lại
+  - Dùng defer và bộ đếm theo đăng ký để mô phỏng kết quả thay đổi qua từng lần thử
+  - Kiểm tra hủy trong lúc đợi thử lại và ngăn lần đăng ký tiếp theo
+  - Kiểm tra tính lũy đẳng của tác động phụ khi chuỗi được đăng ký lại
+- level1: Nguồn nóng và Sinks
+  level2:
+  - Kiểm tra nguồn lạnh với nhiều lượt đăng ký độc lập
+  - Kiểm tra nguồn nóng khi người nhận đăng ký trước hoặc sau lúc phát
+  - Kiểm tra share, publish và refCount theo vòng đời người đăng ký
+  - Kiểm tra replay và cache với người đăng ký đến muộn
+  - Kiểm tra Sinks.One và Sinks.Empty
+  - Kiểm tra Sinks.Many theo chính sách unicast, multicast và replay
+  - Kiểm tra kết quả tryEmitNext, tryEmitComplete và tryEmitError
+  - Phối hợp verifyLater với việc phát tín hiệu từ Sinks
+  - Kiểm tra người nhận chậm, hủy và kết thúc trên nguồn nóng
+  - Phân biệt kiểm thử hành vi Sinks với kiểm thử tranh chấp khi phát đồng thời
+- level1: Tài nguyên và tác động phụ
+  level2:
+  - Kiểm tra đăng ký, phát dữ liệu và kết thúc qua các doOn
+  - Phân biệt doOnTerminate, doAfterTerminate, doOnCancel và doFinally
+  - Kiểm tra SignalType khi hoàn tất, báo lỗi hoặc bị hủy
+  - Kiểm tra cấp phát và giải phóng tài nguyên bằng using
+  - Kiểm tra các nhánh dọn tài nguyên bất đồng bộ của usingWhen
+  - Kiểm tra doOnDiscard và việc giải phóng dữ liệu bị loại
+  - Kiểm tra nguồn con bị hủy khi chuỗi cha kết thúc sớm
+  - Kiểm tra callback, listener và Disposable được dọn đúng vòng đời
+  - Kiểm tra tác động phụ đúng số lần mà không tạo thêm đăng ký ngoài ý muốn
+- level1: Bất đồng bộ
+  level2:
+  - Kiểm tra chuỗi có subscribeOn và publishOn
+  - Phân biệt kiểm tra ngữ nghĩa luồng với ràng buộc về luồng thực thi
+  - Truyền Scheduler qua tham số để kiểm soát việc thực thi trong kiểm thử
+  - Đồng bộ bằng tín hiệu, latch hoặc barrier có giới hạn chờ
+  - Kiểm tra tính chất của kết quả khi thứ tự thực thi không xác định
+  - Kiểm tra cạnh tranh giữa phát dữ liệu, kết thúc và hủy
+  - Kiểm tra ParallelFlux và hợp nhất kết quả bằng sequential
+  - Giới hạn của StepVerifier và thời gian ảo trong chứng minh tính đúng đắn đồng thời
+  - Dọn Scheduler và Executor do bài kiểm thử tự tạo
+  - Phát hiện lời gọi chặn bằng BlockHound khi môi trường hỗ trợ
+- level1: Toán tử tùy chỉnh
+  level2:
+  - Xác định hợp đồng của toán tử tự viết trước khi xây dựng bộ kiểm thử
+  - 'Ma trận đầu vào: rỗng, một phần tử, nhiều phần tử, lỗi và không kết thúc'
+  - Kiểm tra truyền request, cancel và terminal signal qua toán tử
+  - Kiểm tra đường truyền Context và giải phóng dữ liệu
+  - Kiểm tra fusion bằng expectFusion và các chế độ Fuseable
+  - Kiểm tra nguồn không hỗ trợ fusion bằng expectNoFusionSupport
+  - Kiểm tra đường đi không fusion bằng hide khi phù hợp
+  - Kiểm tra ConditionalSubscriber bằng enableConditionalSupport
+  - Kiểm tra cả đường đồng bộ và bất đồng bộ của toán tử
+  - Phân biệt xác nhận tối ưu nội bộ với hợp đồng công khai cần giữ ổn định
+- level1: Kiểm thử ứng dụng
+  level2:
+  - Kiểm thử hàm và dịch vụ trả về Mono hoặc Flux mà không khởi động Spring
+  - Giả lập phụ thuộc phản ứng bằng Publisher thật thay vì giả lập chuỗi toán tử
+  - Kiểm tra đối số, số lần gọi và thời điểm đăng ký khi dùng Mockito
+  - Kiểm tra dịch vụ phối hợp kho dữ liệu và nhánh dự phòng bằng PublisherProbe
+  - Kiểm tra luồng từ WebClient với máy chủ HTTP thử nghiệm có kiểm soát
+  - Kết hợp WebTestClient với StepVerifier để kiểm tra phần thân phản hồi dạng luồng
+  - Phân biệt thời gian ảo trong reactor-test với thời gian của mạng và hệ thống bên ngoài
+  - Kiểm tra tích hợp với cơ sở dữ liệu hoặc broker bằng tài nguyên thử nghiệm cô lập
+  - Kiểm tra lỗi hạ tầng, ngắt kết nối và hủy luồng ở đúng lớp tích hợp
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc chênh lệch giữa tín hiệu mong đợi và tín hiệu thực tế trong AssertionError
+  - Chẩn đoán bài kiểm thử treo do thiếu request hoặc thiếu tín hiệu kết thúc
+  - Chẩn đoán sai thời gian ảo do tạo Publisher hoặc Scheduler quá sớm
+  - Chẩn đoán mất dữ liệu do phát nguồn nóng trước khi có đăng ký
+  - Chẩn đoán lỗi thứ tự khi dùng flatMap hoặc nhiều luồng thực thi
+  - Chẩn đoán tương tác giữa retry, tác động phụ và nhiều lượt đăng ký
+  - Dùng log và checkpoint để định vị lỗi trong chuỗi đang được kiểm thử
+  - Dùng công cụ gỡ lỗi Reactor có chọn lọc và khôi phục Hooks sau kiểm thử
+  - Phân tích bài kiểm thử thất bại thất thường trên CI mà vẫn chạy được ở máy cá nhân
+- level1: Thiết kế bộ kiểm thử
+  level2:
+  - Thiết kế kịch bản từ hợp đồng quan sát được và các bất biến của luồng
+  - Lập ma trận dữ liệu, lỗi, thời gian, backpressure và hủy
+  - Tổ chức Given–When–Then và đặt tên theo hành vi
+  - Tham số hóa kiểm thử với JUnit cho dữ liệu biên và nhiều loại nguồn
+  - Tạo hàm hỗ trợ xác minh mà vẫn giữ kịch bản dễ đọc
+  - Tránh block, subscribe thủ công và collectList khi chúng che mất hành vi cần kiểm tra
+  - Tránh xác nhận quá mức vào prefetch, tên luồng hoặc chi tiết tối ưu nội bộ
+  - Cô lập trạng thái dùng chung, Hooks và Scheduler khi chạy kiểm thử song song
+  - Đánh giá độ bao phủ hành vi bên cạnh độ bao phủ dòng mã
+  - Giữ bộ kiểm thử lặp lại được, có giới hạn chờ và giải phóng đầy đủ tài nguyên
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng bộ kiểm thử chuỗi biến đổi dữ liệu với đầu vào rỗng và không hợp lệ
+  - Kiểm thử tra cứu dữ liệu với cache, nguồn chính và nhánh dự phòng
+  - Kiểm thử tác vụ có timeout, thử lại theo backoff và hủy giữa chừng
+  - Kiểm thử xử lý theo lô với bufferTimeout bằng thời gian ảo
+  - Kiểm thử luồng thông báo từ Sinks với nhiều người đăng ký
+  - Kiểm thử truyền mã định danh yêu cầu bằng Reactor Context
+  - Kiểm thử dịch vụ dùng tài nguyên bất đồng bộ và các nhánh dọn dẹp
+  - Bổ sung kiểm thử cho toán tử tự viết với nguồn vi phạm giao thức
+  - Chuyển bài kiểm thử dùng sleep hoặc block sang kịch bản StepVerifier
+  - Rà soát bộ kiểm thử tổng hợp theo dữ liệu, lỗi, nhu cầu, thời gian và tài nguyên

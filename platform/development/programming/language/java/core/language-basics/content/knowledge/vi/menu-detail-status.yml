@@ -1,0 +1,2698 @@
+menu:
+- slug: language-overview
+  title: Tổng quan
+  childs:
+  - slug: language-overview-001
+    title: Ngôn ngữ Java là gì và dùng để diễn đạt bài toán như thế nào
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-overview-002
+    title: Mối liên hệ giữa mã nguồn, trình biên dịch, bytecode và JVM
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-overview-003
+    title: Phân biệt Java, Java SE, JDK và môi trường chạy
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-overview-004
+    title: Dữ liệu, biểu thức, câu lệnh và luồng thực thi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-overview-005
+    title: Kiểu dữ liệu tĩnh và những lỗi được phát hiện khi biên dịch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-overview-006
+    title: Từ đầu vào tới xử lý và đầu ra của một chương trình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-overview-007
+    title: Phân biệt cú pháp đúng với kết quả nghiệp vụ đúng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-overview-008
+    title: Lộ trình học và chương trình ví dụ xuyên suốt
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-execution
+  title: Công cụ và thực thi
+  childs:
+  - slug: tools-and-execution-001
+    title: Kiểm tra phiên bản java và javac
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-execution-002
+    title: Tạo tệp nguồn và biên dịch bằng javac
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-execution-003
+    title: Chạy lớp bằng java và phân biệt tên lớp với tên tệp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-execution-004
+    title: Thư mục làm việc, thư mục đầu ra và classpath
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-execution-005
+    title: Chạy chương trình một tệp nguồn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-execution-006
+    title: Thử biểu thức, biến và phương thức với JShell
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-execution-007
+    title: Phân biệt tham số JVM với đối số chương trình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-execution-008
+    title: Nhận diện lỗi không tìm thấy lớp và không tương thích phiên bản
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: program-structure
+  title: Cấu trúc chương trình
+  childs:
+  - slug: program-structure-001
+    title: Tệp nguồn, lớp và phương thức trong chương trình tối thiểu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-structure-002
+    title: Vai trò của public static void main(String[] args)
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-structure-003
+    title: Quy tắc tên tệp với lớp public
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-structure-004
+    title: Dấu ngoặc nhọn, dấu chấm phẩy và khối lệnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-structure-005
+    title: Khai báo khác với câu lệnh thực thi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-structure-006
+    title: Câu lệnh biểu thức và câu lệnh rỗng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-structure-007
+    title: Cách chương trình bắt đầu, gọi phương thức và kết thúc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-structure-008
+    title: Thụt lề để thể hiện cấu trúc và tránh hiểu nhầm phạm vi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-vocabulary
+  title: Từ vựng Java
+  childs:
+  - slug: java-vocabulary-001
+    title: 'Token: tên định danh, từ khóa, literal, toán tử và dấu phân cách'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-vocabulary-002
+    title: Quy tắc tên định danh và phân biệt chữ hoa, chữ thường
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-vocabulary-003
+    title: Từ khóa dành riêng và từ khóa theo ngữ cảnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-vocabulary-004
+    title: Phân biệt true, false, null với từ khóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-vocabulary-005
+    title: Giới hạn của tên _, const và goto
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-vocabulary-006
+    title: Khoảng trắng, xuống dòng và phân tách token
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-vocabulary-007
+    title: Chú thích một dòng, nhiều dòng và chú thích tài liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-vocabulary-008
+    title: Unicode trong mã nguồn và xử lý Unicode escape trước phân tích token
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: literals
+  title: Literal
+  childs:
+  - slug: literals-001
+    title: Literal số nguyên thập phân, nhị phân, bát phân và thập lục phân
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-002
+    title: Hậu tố L và kiểu mặc định của literal số nguyên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-003
+    title: Literal số thực, ký hiệu số mũ và hậu tố F hoặc D
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-004
+    title: Dấu gạch dưới trong literal số và vị trí không hợp lệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-005
+    title: Literal boolean
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-006
+    title: Literal ký tự và literal chuỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-007
+    title: Escape sequence cho xuống dòng, dấu nháy và dấu gạch chéo ngược
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-008
+    title: 'Text block: cú pháp mở đóng và xử lý thụt lề'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: literals-009
+    title: Literal null và những nơi không thể gán null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: variables-and-constants
+  title: Biến và hằng
+  childs:
+  - slug: variables-and-constants-001
+    title: Khai báo biến, khởi tạo và phép gán
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-002
+    title: Kiểu khai báo quyết định giá trị biến có thể giữ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-003
+    title: Phân biệt biến cục bộ, tham số và trường
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-004
+    title: Yêu cầu gán giá trị trước khi đọc biến cục bộ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-005
+    title: Giá trị mặc định của trường và phần tử mảng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-006
+    title: Khai báo nhiều biến và những cách viết dễ gây nhầm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-007
+    title: final trên biến và quy tắc chỉ gán một lần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-008
+    title: Hằng tại thời điểm biên dịch và hằng static final
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-009
+    title: Quy ước đặt tên biến, tham số và hằng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-and-constants-010
+    title: Tham chiếu final không đổi nhưng đối tượng vẫn có thể thay đổi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: primitive-types
+  title: Kiểu nguyên thủy
+  childs:
+  - slug: primitive-types-001
+    title: Toàn cảnh tám kiểu nguyên thủy trong Java
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-002
+    title: 'byte, short, int và long: độ rộng và miền giá trị'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-003
+    title: Số nguyên có dấu và biểu diễn bù hai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-004
+    title: char là đơn vị mã UTF-16 không dấu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-005
+    title: float và double theo mô hình dấu phẩy động nhị phân
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-006
+    title: boolean chỉ có true và false
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-007
+    title: Phân biệt kiểu nguyên thủy với kiểu tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-008
+    title: Chọn kiểu theo miền dữ liệu và yêu cầu tính toán
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-009
+    title: Giới hạn giá trị với MIN_VALUE, MAX_VALUE và SIZE
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-types-010
+    title: Nhận diện vấn đề tràn số và độ chính xác trước khi viết phép tính
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: characters-and-strings
+  title: Ký tự và chuỗi
+  childs:
+  - slug: characters-and-strings-001
+    title: Phân biệt char, String và mảng char
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-002
+    title: Đơn vị mã UTF-16, code point và ký tự ngoài BMP
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-003
+    title: String là đối tượng bất biến
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-004
+    title: Nối chuỗi bằng + và chuyển giá trị thành văn bản
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-005
+    title: Ảnh hưởng của thứ tự phép + khi trộn số với chuỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-006
+    title: length(), charAt() và substring()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-007
+    title: So sánh nội dung bằng equals() thay cho ==
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-008
+    title: Phân biệt chuỗi rỗng, chuỗi trắng và null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-009
+    title: Giới thiệu StringBuilder khi cần ghép chuỗi lặp lại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: characters-and-strings-010
+    title: Chọn encoding tường minh khi chuyển giữa văn bản và byte
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: references-and-null
+  title: Tham chiếu và null
+  childs:
+  - slug: references-and-null-001
+    title: Biến tham chiếu và đối tượng mà biến tham chiếu tới
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-null-002
+    title: Khai báo biến không đồng nghĩa với tạo đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-null-003
+    title: new tạo đối tượng và trả về tham chiếu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-null-004
+    title: Gán tham chiếu làm nhiều biến cùng dùng một đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-null-005
+    title: Thay đổi trạng thái khác với gán lại biến tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-null-006
+    title: == trên tham chiếu kiểm tra cùng đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-null-007
+    title: null biểu thị không tham chiếu tới đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-null-008
+    title: Nhận diện NullPointerException và đặt kiểm tra tại điểm phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-conversion
+  title: Chuyển đổi kiểu
+  childs:
+  - slug: type-conversion-001
+    title: Chuyển đổi ngầm định và ép kiểu tường minh
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-002
+    title: Mở rộng và thu hẹp kiểu nguyên thủy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-003
+    title: Mở rộng số nguyên sang số thực vẫn có thể mất độ chính xác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-004
+    title: Thu hẹp số nguyên và phần bit bị loại bỏ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-005
+    title: Chuyển số thực sang số nguyên và cắt phần thập phân
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-006
+    title: Unary numeric promotion và binary numeric promotion
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-007
+    title: Vì sao phép cộng byte hoặc short thường cho kết quả int
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-008
+    title: Chuyển đổi trong phép gán, lời gọi phương thức và biểu thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-009
+    title: Phép gán hằng nằm trong miền giá trị của byte, short hoặc char
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-010
+    title: Ép kiểu tham chiếu, instanceof và ClassCastException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: primitive-wrappers
+  title: Lớp bao nguyên thủy
+  childs:
+  - slug: primitive-wrappers-001
+    title: Integer, Long, Double, Boolean và các lớp bao khác
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-wrappers-002
+    title: Boxing, unboxing và autoboxing
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-wrappers-003
+    title: Unboxing tham chiếu null gây NullPointerException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-wrappers-004
+    title: Phân biệt so sánh tham chiếu lớp bao với so sánh giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-wrappers-005
+    title: Bộ đệm đối tượng lớp bao và vì sao không dựa vào ==
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-wrappers-006
+    title: parseInt(), parseDouble(), valueOf() và kiểu kết quả
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-wrappers-007
+    title: NumberFormatException khi chuỗi không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-wrappers-008
+    title: Chọn kiểu nguyên thủy hay lớp bao theo yêu cầu dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: var-type-inference
+  title: Suy luận với var
+  childs:
+  - slug: var-type-inference-001
+    title: var suy luận kiểu biến cục bộ từ biểu thức khởi tạo
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: var-type-inference-002
+    title: var giữ nguyên kiểm tra kiểu tĩnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: var-type-inference-003
+    title: Những vị trí được phép dùng var
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: var-type-inference-004
+    title: Vì sao var cần giá trị khởi tạo
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: var-type-inference-005
+    title: Không suy ra kiểu từ null hoặc danh sách khởi tạo mảng đứng riêng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: var-type-inference-006
+    title: Không dùng var cho trường hoặc kiểu trả về phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: var-type-inference-007
+    title: Kiểu suy ra từ literal và các phép tính số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: var-type-inference-008
+    title: Chọn var khi kiểu vẫn rõ ràng với người đọc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expressions
+  title: Biểu thức
+  childs:
+  - slug: expressions-001
+    title: Biểu thức tạo ra giá trị và có kiểu tại thời điểm biên dịch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-002
+    title: Toán hạng, toán tử và biểu thức lồng nhau
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-003
+    title: Độ ưu tiên và tính kết hợp của toán tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-004
+    title: Dùng dấu ngoặc để làm rõ ý định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-005
+    title: Phân biệt thứ tự nhóm biểu thức với thứ tự đánh giá
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-006
+    title: Đánh giá toán hạng và đối số từ trái sang phải
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-007
+    title: Tác dụng phụ trong biểu thức và nguy cơ khó dự đoán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-008
+    title: Kết thúc bình thường hoặc đột ngột do ngoại lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arithmetic
+  title: Số học
+  childs:
+  - slug: arithmetic-001
+    title: Cộng, trừ, nhân, chia và phép lấy phần dư
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-002
+    title: Chia số nguyên và cắt phần thập phân về phía không
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-003
+    title: Ép kiểu trước phép chia để nhận kết quả số thực
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-004
+    title: Dấu của phần dư với toán hạng âm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-005
+    title: Chia số nguyên cho không gây ArithmeticException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-006
+    title: Tràn số nguyên không tự động ném ngoại lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-007
+    title: NaN, vô cực và số không có dấu trong phép tính số thực
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-008
+    title: Sai số nhị phân khi tính với float hoặc double
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-009
+    title: Giới thiệu Math cho trị tuyệt đối, lũy thừa và làm tròn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-010
+    title: Giới thiệu phép toán exact và BigDecimal khi yêu cầu vượt khả năng kiểu cơ bản
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assignment-and-unary-operators
+  title: Gán và toán tử một ngôi
+  childs:
+  - slug: assignment-and-unary-operators-001
+    title: Phép gán = và giá trị của biểu thức gán
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assignment-and-unary-operators-002
+    title: Gán liên tiếp và lý do nên hạn chế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assignment-and-unary-operators-003
+    title: Phép gán kết hợp +=, -=, *=, /= và %=
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assignment-and-unary-operators-004
+    title: Chuyển kiểu ngầm định trong phép gán kết hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assignment-and-unary-operators-005
+    title: Tăng giảm tiền tố và hậu tố
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assignment-and-unary-operators-006
+    title: Phân biệt giá trị biểu thức với giá trị biến sau ++ hoặc --
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assignment-and-unary-operators-007
+    title: Toán tử dấu +, dấu - và phủ định !
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assignment-and-unary-operators-008
+    title: Tránh nhiều phép tăng giảm trên cùng biến trong một biểu thức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparisons
+  title: So sánh
+  childs:
+  - slug: comparisons-001
+    title: Toán tử <, <=, > và >= cho giá trị số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-002
+    title: == và != trên kiểu nguyên thủy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-003
+    title: So sánh boolean và giới hạn dùng toán tử quan hệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-004
+    title: Phân biệt so sánh giá trị với so sánh tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-005
+    title: NaN và những kết quả so sánh khác trực giác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-006
+    title: So sánh số thực bằng sai số phù hợp yêu cầu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-007
+    title: Không viết chuỗi so sánh kiểu toán học như 0 < x < 10
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-008
+    title: Xây dựng điều kiện kiểm tra miền giá trị rõ ràng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logic-and-conditions
+  title: Logic và điều kiện
+  childs:
+  - slug: logic-and-conditions-001
+    title: '&&, || và ! trong biểu thức boolean'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-002
+    title: Đánh giá ngắn mạch và những biểu thức không được chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-003
+    title: Dùng ngắn mạch để kiểm tra null và giới hạn mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-004
+    title: '&, | và ^ khi áp dụng lên boolean'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-005
+    title: Phân biệt && với & và || với |
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-006
+    title: Định luật De Morgan và đơn giản hóa điều kiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-007
+    title: 'Toán tử ba ngôi ?: và chỉ đánh giá nhánh được chọn'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-008
+    title: Kiểu kết quả của biểu thức điều kiện và chuyển kiểu có thể xảy ra
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logic-and-conditions-009
+    title: Tránh lồng quá nhiều toán tử ba ngôi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bitwise-operators
+  title: Toán tử bit
+  childs:
+  - slug: bitwise-operators-001
+    title: Biểu diễn bit của số nguyên có dấu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitwise-operators-002
+    title: AND, OR, XOR và NOT theo từng bit
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitwise-operators-003
+    title: Dịch trái <<
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitwise-operators-004
+    title: Dịch phải có dấu >> và không dấu >>>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitwise-operators-005
+    title: Quy tắc giới hạn số bit dịch theo kiểu toán hạng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitwise-operators-006
+    title: Numeric promotion khi thao tác trên byte, short hoặc char
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitwise-operators-007
+    title: Mặt nạ bit để đọc, bật, tắt và đảo cờ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitwise-operators-008
+    title: Phân biệt phép tính theo bit với điều kiện boolean
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: if-statements
+  title: Rẽ nhánh if
+  childs:
+  - slug: if-statements-001
+    title: Cú pháp if, else và chuỗi else if
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: if-statements-002
+    title: Điều kiện phải có kiểu boolean hoặc Boolean được unboxing
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: if-statements-003
+    title: Khối lệnh và rủi ro bỏ dấu ngoặc nhọn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: if-statements-004
+    title: else gắn với if gần nhất chưa có else
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: if-statements-005
+    title: Phân biệt nhiều if độc lập với một chuỗi loại trừ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: if-statements-006
+    title: Điều kiện biên và thứ tự xét các nhánh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: if-statements-007
+    title: Guard clause để giảm mức lồng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: if-statements-008
+    title: Kiểm tra từng nhánh bằng bảng trường hợp đầu vào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: switch-statements
+  title: Switch
+  childs:
+  - slug: switch-statements-001
+    title: Switch statement và các kiểu dữ liệu lựa chọn được hỗ trợ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-002
+    title: Nhãn case, default và nhãn trùng lặp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-003
+    title: Dạng dấu hai chấm và cơ chế rơi tiếp xuống nhánh sau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-004
+    title: break để kết thúc switch statement
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-005
+    title: Dạng mũi tên -> và phạm vi của khối nhánh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-006
+    title: Switch expression trả về một giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-007
+    title: yield trong khối nhánh của switch expression
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-008
+    title: Yêu cầu bao phủ các trường hợp và chọn kiểu kết quả
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-009
+    title: Xử lý null trong switch và phân biệt với default
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-statements-010
+    title: Chọn if hoặc switch theo bản chất điều kiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-patterns
+  title: Mẫu kiểm tra kiểu
+  childs:
+  - slug: type-patterns-001
+    title: instanceof kiểm tra kiểu và kết quả khi đối tượng là null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-002
+    title: Type pattern kết hợp kiểm tra kiểu và khai báo biến
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-003
+    title: Phạm vi biến mẫu phụ thuộc luồng điều kiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-004
+    title: Kết hợp instanceof pattern với && hoặc guard clause
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-005
+    title: Pattern matching cho switch trong Java 21
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-006
+    title: Điều kiện bảo vệ when và thứ tự nhãn mẫu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-007
+    title: Mẫu bao phủ, nhãn không thể được chọn và yêu cầu đầy đủ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-008
+    title: Nhận diện record pattern để tách dữ liệu của record
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-patterns-009
+    title: Phân biệt tính năng chính thức với cú pháp preview theo phiên bản
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loops
+  title: Vòng lặp
+  childs:
+  - slug: loops-001
+    title: while kiểm tra điều kiện trước mỗi lần lặp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-002
+    title: do-while thực thi thân ít nhất một lần
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-003
+    title: for với phần khởi tạo, điều kiện và cập nhật
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-004
+    title: Vòng đời biến đếm trong for
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-005
+    title: Vòng lặp vô hạn và điều kiện bảo đảm kết thúc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-006
+    title: Lặp lồng nhau và theo dõi từng biến đếm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-007
+    title: Lỗi lệch một đơn vị tại biên vòng lặp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-008
+    title: Mẫu tích lũy tổng, đếm và tìm giá trị lớn nhất
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-009
+    title: Duy trì điều kiện bất biến đơn giản qua mỗi lần lặp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-010
+    title: Chọn while, do-while hoặc for theo bài toán
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: iteration-and-control-flow
+  title: Duyệt và chuyển luồng
+  childs:
+  - slug: iteration-and-control-flow-001
+    title: Enhanced for để duyệt mảng hoặc Iterable
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-002
+    title: Biến vòng lặp là bản sao giá trị phần tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-003
+    title: Gán lại biến enhanced for không thay phần tử mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-004
+    title: Thay đổi đối tượng được tham chiếu qua biến vòng lặp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-005
+    title: break và continue không nhãn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-006
+    title: break và continue có nhãn trong vòng lặp lồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-007
+    title: return kết thúc phương thức đang chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-008
+    title: Phân biệt break, continue, return và yield
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: iteration-and-control-flow-009
+    title: Nhận diện câu lệnh không thể tới và ảnh hưởng tới biên dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: one-dimensional-arrays
+  title: Mảng một chiều
+  childs:
+  - slug: one-dimensional-arrays-001
+    title: Mảng là đối tượng chứa số phần tử cố định cùng kiểu thành phần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-002
+    title: Khai báo biến mảng và tạo mảng bằng new
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-003
+    title: Khởi tạo mảng bằng danh sách giá trị
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-004
+    title: Chỉ số bắt đầu từ 0 và trường length
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-005
+    title: Giá trị mặc định của phần tử nguyên thủy và tham chiếu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-006
+    title: Mảng rỗng khác tham chiếu mảng null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-007
+    title: Đọc, cập nhật và duyệt phần tử
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-008
+    title: ArrayIndexOutOfBoundsException và NegativeArraySizeException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-009
+    title: Gán mảng chỉ sao chép tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: one-dimensional-arrays-010
+    title: Giới thiệu Arrays.toString(), Arrays.equals() và Arrays.copyOf()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multidimensional-arrays
+  title: Mảng nhiều chiều
+  childs:
+  - slug: multidimensional-arrays-001
+    title: Mảng nhiều chiều là mảng chứa tham chiếu tới mảng con
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-002
+    title: Tạo ma trận chữ nhật và mảng có hàng dài khác nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-003
+    title: Khởi tạo từng mảng con và hàng chưa được tạo
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-004
+    title: Lấy số hàng và độ dài của từng hàng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-005
+    title: Duyệt bằng chỉ số hoặc enhanced for lồng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-006
+    title: Sao chép nông và chia sẻ các mảng con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-007
+    title: Arrays.deepToString() và Arrays.deepEquals()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-008
+    title: Mảng tham chiếu hiệp biến và nguy cơ ArrayStoreException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multidimensional-arrays-009
+    title: Phân biệt int[] với Integer[] và khả năng gán qua Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: methods
+  title: Phương thức
+  childs:
+  - slug: methods-001
+    title: 'Khai báo phương thức: tên, tham số, kiểu trả về và thân'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-002
+    title: Định nghĩa phương thức khác với gọi phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-003
+    title: Phân biệt tham số hình thức và đối số
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-004
+    title: Phương thức static cho các chương trình nhập môn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-005
+    title: return với giá trị và return trong phương thức void
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-006
+    title: Truyền tham trị cho kiểu nguyên thủy và tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-007
+    title: Thay đổi nội dung mảng khác với gán lại tham số mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-008
+    title: Nạp chồng phương thức và những thành phần tạo chữ ký
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-009
+    title: Varargs và mối quan hệ với mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-010
+    title: Đệ quy, trường hợp dừng và nguy cơ StackOverflowError
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-011
+    title: Tách bài toán thành các phương thức có trách nhiệm rõ ràng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-and-initialization
+  title: Phạm vi và khởi tạo
+  childs:
+  - slug: scope-and-initialization-001
+    title: Phạm vi tên trong khối, vòng lặp và phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-initialization-002
+    title: Thời gian tồn tại của biến khác phạm vi sử dụng tên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-initialization-003
+    title: Biến cục bộ trùng tên trong khối lồng và các khai báo không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-initialization-004
+    title: Tham số hoặc biến cục bộ che khuất trường
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-initialization-005
+    title: Dùng this hoặc tên lớp để chỉ rõ trường bị che khuất
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-initialization-006
+    title: Kiểm tra biến đã được gán trên mọi nhánh trước khi sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-initialization-007
+    title: final có thể được gán trong các nhánh loại trừ nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-initialization-008
+    title: Giữ phạm vi biến nhỏ và khai báo gần nơi sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classes-and-objects
+  title: Lớp và đối tượng
+  childs:
+  - slug: classes-and-objects-001
+    title: Lớp mô tả kiểu và đối tượng là thể hiện cụ thể
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-002
+    title: Trường biểu diễn dữ liệu và phương thức biểu diễn hành vi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-003
+    title: Tạo đối tượng và gọi phương thức bằng dấu chấm
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-004
+    title: Hàm khởi tạo thiết lập giá trị ban đầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-005
+    title: this biểu thị đối tượng hiện tại
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-006
+    title: Phân biệt thành viên static với thành viên đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-007
+    title: Nhận diện public, private và truy cập trong gói
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-008
+    title: Giới thiệu enum, record và interface ở mức đọc hiểu cú pháp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-009
+    title: Từ chương trình chỉ có main tới chương trình có nhiều lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-010
+    title: Đọc cú pháp generic như List<String> và ý nghĩa kiểm tra kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-011
+    title: Nhận diện lambda và tham chiếu phương thức trong lời gọi API
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classes-and-objects-012
+    title: Nhận diện annotation @Override và @Deprecated
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packages-and-imports
+  title: Package và import
+  childs:
+  - slug: packages-and-imports-001
+    title: Package tổ chức tên kiểu và tránh trùng tên
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-002
+    title: Khai báo package và cấu trúc thư mục tương ứng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-003
+    title: Tên đơn giản và tên đầy đủ của lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-004
+    title: Import một kiểu và import theo yêu cầu bằng dấu *
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-005
+    title: Static import cho thành viên static
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-006
+    title: java.lang được import ngầm định
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-007
+    title: Import không tự động bao gồm package con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-008
+    title: Xử lý hai lớp trùng tên và giới hạn của import
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-and-imports-009
+    title: Phân biệt package, classpath và module ở mức định hướng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-exceptions
+  title: Lỗi và ngoại lệ
+  childs:
+  - slug: errors-and-exceptions-001
+    title: Lỗi biên dịch, lỗi khi chạy và lỗi logic
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-002
+    title: Đọc thông báo javac và sửa từ lỗi gốc
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-003
+    title: Đọc stack trace và tìm vị trí phát sinh lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-004
+    title: try-catch để xử lý tình huống có thể thất bại
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-005
+    title: throw để báo lỗi và throws để khai báo khả năng phát sinh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-006
+    title: Nhận diện checked exception và unchecked exception
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-007
+    title: finally và giới thiệu try-with-resources
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-008
+    title: assert để kiểm tra giả định nội bộ và bật bằng -ea
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-exceptions-009
+    title: Không dùng assert thay kiểm tra dữ liệu đầu vào bắt buộc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-io
+  title: Nhập xuất cơ bản
+  childs:
+  - slug: basic-io-001
+    title: System.out.print(), println() và printf()
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-002
+    title: Định dạng số, chuỗi, xuống dòng và ký hiệu % trong printf()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-003
+    title: System.err cho thông báo chẩn đoán
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-004
+    title: Đọc đối số chương trình từ String[] args
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-005
+    title: Đọc dữ liệu console bằng Scanner
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-006
+    title: Phân biệt next(), nextInt() và nextLine()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-007
+    title: Xử lý phần xuống dòng còn lại sau khi đọc số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-008
+    title: Kiểm tra đầu vào và chuyển chuỗi thành số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-io-009
+    title: Locale, dấu phân cách thập phân và trách nhiệm đóng nguồn nhập
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-and-quality
+  title: Thực hành và chất lượng
+  childs:
+  - slug: practice-and-quality-001
+    title: Phân tích bài toán thành dữ liệu vào, xử lý và kết quả
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-002
+    title: Viết mã giả và bảng theo dõi trước khi lập trình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-003
+    title: Đặt tên rõ nghĩa, thụt lề và tránh số không giải thích
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-004
+    title: Chú thích lý do và viết tài liệu cho phương thức khi cần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-005
+    title: Gỡ lỗi bằng breakpoint, chạy từng bước và xem giá trị biến
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-006
+    title: Kiểm tra trường hợp rỗng, biên, số âm, dữ liệu sai và giá trị lớn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-007
+    title: Thực hành chương trình tính tiền với điều kiện và vòng lặp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-008
+    title: Thực hành thống kê mảng và tách thành phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-009
+    title: Thực hành menu console với kiểm tra đầu vào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-and-quality-010
+    title: Tổng hợp lỗi thường gặp và tiêu chí tự đánh giá nền tảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

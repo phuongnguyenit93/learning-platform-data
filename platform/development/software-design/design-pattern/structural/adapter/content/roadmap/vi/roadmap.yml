@@ -1,0 +1,57 @@
+roadmap:
+- id: interface-khong-tuong-thich
+  title: Interface không tương thích
+  purpose: Nhận diện trường hợp một thành phần có chức năng cần dùng nhưng interface không khớp với mã hiện tại.
+  objectives:
+  - Phát hiện điểm không tương thích giữa client và thư viện
+  - Giải thích vì sao không nên sửa trực tiếp mã bên thứ ba
+  - Nêu mục đích của Adapter Pattern
+- id: cau-truc-adapter
+  title: Cấu trúc Adapter
+  purpose: Hiểu các vai trò và cách Adapter chuyển lời gọi giữa hai hợp đồng khác nhau.
+  objectives:
+  - Phân biệt Client, Target, Adaptee và Adapter
+  - Vẽ sơ đồ quan hệ giữa bốn vai trò
+  - Mô tả luồng gọi từ Target đến Adaptee
+- id: object-adapter
+  title: Object Adapter
+  purpose: Dùng composition để bọc đối tượng cũ và đáp ứng interface mà client mong đợi.
+  objectives:
+  - Định nghĩa Target interface trong Java
+  - Cài đặt Adapter chứa một Adaptee
+  - Ủy quyền phương thức qua đối tượng được bọc
+- id: class-adapter
+  title: Class Adapter
+  purpose: Nhận biết biến thể dựa trên kế thừa và giới hạn của cách tiếp cận này trong Java.
+  objectives:
+  - Cài đặt Adapter extends Adaptee và implements Target
+  - So sánh kế thừa với composition
+  - Giải thích giới hạn đơn kế thừa trong Java
+- id: chuyen-doi-uy-quyen
+  title: Chuyển đổi & ủy quyền
+  purpose: Ánh xạ tham số, kết quả và lỗi giữa hai interface mà vẫn giữ đúng hợp đồng với client.
+  objectives:
+  - Chuyển đổi tên phương thức và kiểu tham số
+  - Ánh xạ kết quả, đơn vị hoặc định dạng dữ liệu
+  - Xử lý exception và giá trị không tương thích
+- id: tich-hop-legacy-sdk
+  title: Tích hợp legacy & SDK
+  purpose: Áp dụng Adapter để kết nối hệ thống cũ hoặc API bên ngoài mà không làm thay đổi mã nghiệp vụ.
+  objectives:
+  - Bọc một dịch vụ legacy bằng interface ổn định
+  - Thay SDK bên ngoài qua một Adapter mới
+  - Nhận diện InputStreamReader như ví dụ chuyển đổi interface
+- id: so-sanh-structural-patterns
+  title: So sánh Structural Patterns
+  purpose: Chọn đúng pattern và tránh nhầm Adapter với những lớp wrapper có mục đích khác.
+  objectives:
+  - Phân biệt Adapter với Facade
+  - Phân biệt Adapter với Decorator và Proxy
+  - Xác định khi nào không cần thêm Adapter
+- id: kiem-thu-bao-tri
+  title: Kiểm thử & bảo trì
+  purpose: Kiểm tra Adapter giữ nguyên hợp đồng kỳ vọng và không khiến tầng chuyển đổi trở nên phức tạp.
+  objectives:
+  - Viết unit test cho mapping và delegation
+  - Kiểm tra tình huống lỗi và dữ liệu biên
+  - Đánh giá coupling và chi phí bảo trì Adapter

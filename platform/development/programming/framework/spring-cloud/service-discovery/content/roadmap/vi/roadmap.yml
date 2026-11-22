@@ -1,0 +1,57 @@
+roadmap:
+- id: service-discovery-microservices
+  title: Service Discovery & Microservices
+  purpose: Hiểu cách microservice tìm địa chỉ dịch vụ theo tên logic thay vì cấu hình cứng IP hoặc port dễ thay đổi.
+  objectives:
+  - Phân biệt service name với địa chỉ instance
+  - So sánh client-side và server-side discovery
+  - Vẽ luồng đăng ký, tra cứu và gọi dịch vụ
+- id: service-registry-lifecycle
+  title: Service Registry & Lifecycle
+  purpose: Mô tả vòng đời instance từ đăng ký đến thu hồi và vai trò metadata, health check trong danh sách dịch vụ.
+  objectives:
+  - Xác định service ID, host, port và metadata
+  - Giải thích registration, heartbeat và deregistration
+  - Nhận diện nguy cơ registry chứa instance đã lỗi
+- id: spring-discoveryclient-api
+  title: Spring DiscoveryClient API
+  purpose: Dùng abstraction của Spring Cloud để tra cứu dịch vụ mà không phụ thuộc chặt vào một nhà cung cấp registry.
+  objectives:
+  - Phân biệt DiscoveryClient và ServiceRegistry
+  - Gọi getServices() và getInstances(serviceId)
+  - Đọc URI và metadata từ ServiceInstance
+- id: eureka-server-client
+  title: Eureka Server & Client
+  purpose: Thiết lập môi trường thực hành với Netflix Eureka và kiểm chứng instance có thể được đăng ký, tìm thấy.
+  objectives:
+  - Tạo Eureka Server và chạy dashboard
+  - Cấu hình Eureka Client và spring.application.name
+  - Chạy nhiều instance rồi kiểm tra đăng ký
+- id: consul-service-discovery
+  title: Consul Service Discovery
+  purpose: Khám phá mô hình registry thay thế có health check và metadata để lựa chọn theo môi trường vận hành.
+  objectives:
+  - Kích hoạt spring-cloud-starter-consul-discovery
+  - Cấu hình agent và đăng ký service instance
+  - Quan sát HTTP health check và trạng thái service
+- id: kubernetes-discovery
+  title: Kubernetes Discovery
+  purpose: Phân biệt tra cứu Service bằng DNS có sẵn của Kubernetes với Spring Cloud Kubernetes DiscoveryClient qua API.
+  objectives:
+  - Giải thích Service DNS và namespace trong cluster
+  - Sử dụng DNS tên service thay vì pod IP
+  - Truy vấn ServiceInstance bằng Kubernetes DiscoveryClient
+- id: discovery-loadbalancer
+  title: Discovery & LoadBalancer
+  purpose: Kết nối kết quả tra cứu instance với cơ chế chọn đích để phân phối lời gọi giữa nhiều bản sao dịch vụ.
+  objectives:
+  - Dùng service ID khi gọi thay vì URL cố định
+  - Giải thích Spring Cloud LoadBalancer chọn instance
+  - Thử tắt một instance và quan sát hành vi
+- id: health-failures-testing
+  title: Health, Failures & Testing
+  purpose: Kiểm chứng khả năng vận hành khi instance đăng ký chậm, mất kết nối hoặc registry trả dữ liệu không còn mới.
+  objectives:
+  - Kiểm thử instance UP, DOWN và chưa sẵn sàng
+  - Quan sát health indicator và cache registry
+  - Đề xuất timeout, retry giới hạn và giám sát

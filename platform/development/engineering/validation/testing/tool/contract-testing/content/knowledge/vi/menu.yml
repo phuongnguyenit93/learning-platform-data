@@ -1,0 +1,359 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử hợp đồng (contract testing) là gì?
+  - Vì sao các dịch vụ vẫn tích hợp lỗi dù kiểm thử riêng lẻ thành công?
+  - Bên sử dụng (consumer) và bên cung cấp (provider)
+  - Hợp đồng, tương tác và bằng chứng xác minh
+  - Vị trí của contract testing trong chiến lược kiểm thử
+  - Phân biệt kiểm thử hợp đồng, kiểm thử tích hợp và kiểm thử đầu cuối
+  - Phân biệt hợp đồng tích hợp với Design by Contract trong lập trình
+  - Phân biệt hợp đồng, tài liệu API và lược đồ dữ liệu
+  - Những rủi ro contract testing phát hiện được và giới hạn bảo đảm
+  - Kiến thức đầu vào và hành trình học với hai ứng dụng Java
+- level1: Chiến lược hợp đồng
+  level2:
+  - Hợp đồng do consumer dẫn dắt (consumer-driven contract)
+  - Hợp đồng do provider dẫn dắt (provider-driven contract)
+  - Kiểm thử hợp đồng hai chiều (bi-directional contract testing)
+  - Quyền tác giả và vị trí lưu hợp đồng là hai quyết định khác nhau
+  - Hợp đồng cho HTTP đồng bộ và thông điệp bất đồng bộ
+  - Lựa chọn chiến lược cho API nội bộ, API công khai và API bên thứ ba
+  - Hợp đồng theo từng cặp tích hợp khi một provider có nhiều consumer
+  - Kết hợp hợp đồng với kiểm thử nghiệp vụ và kiểm thử hạ tầng
+  - Tiêu chí xác định một điểm tích hợp phù hợp để thí điểm
+- level1: Thiết kế hợp đồng
+  level2:
+  - Xác định phần giao tiếp mà mã consumer thực sự sử dụng
+  - Thiết kế tương tác theo tình huống độc lập
+  - Phân biệt ví dụ cụ thể và quy tắc chấp nhận dữ liệu
+  - Chọn mức chi tiết đủ để bảo vệ nhu cầu tích hợp
+  - Giá trị cố định, kiểu dữ liệu và ràng buộc định dạng
+  - Tình huống thành công, không có dữ liệu và lỗi có ý nghĩa với consumer
+  - Phân biệt trường bị thiếu, giá trị null và giá trị rỗng
+  - Những cam kết ngữ nghĩa không thể suy ra từ kiểu dữ liệu
+  - Đặt tên consumer, provider và mô tả tương tác
+  - Xác định trách nhiệm kiểm thử của hai bên
+  - Nhận diện hợp đồng quá chặt hoặc quá lỏng
+- level1: Hợp đồng HTTP
+  level2:
+  - Phương thức HTTP, đường dẫn và tham số đường dẫn
+  - Query parameter, tham số lặp và quy tắc mã hóa
+  - Header, Content-Type và thương lượng nội dung
+  - JSON object, thuộc tính lồng nhau và trường bổ sung
+  - Mảng, số phần tử và yêu cầu về thứ tự
+  - Kiểu số, độ chính xác và biểu diễn giá trị tiền
+  - UUID, ngày giờ, múi giờ và giá trị được tạo động
+  - Mã trạng thái và cấu trúc phản hồi thành công
+  - Cấu trúc lỗi, mã lỗi và thông tin consumer cần đọc
+  - Phân trang, bộ lọc và thông tin sắp xếp
+  - Hợp đồng cho phản hồi không có body
+  - XML, multipart và dữ liệu nhị phân theo khả năng của công cụ
+  - Phạm vi kiểm thử timeout, retry, cache và idempotency
+- level1: Công cụ và môi trường
+  level2:
+  - Tổng quan Pact JVM và các thành phần của hệ sinh thái Pact
+  - Tổng quan Spring Cloud Contract Verifier và Stub Runner
+  - Vai trò của WireMock trong quy trình hợp đồng
+  - Vai trò của OpenAPI, JSON Schema, AsyncAPI và công cụ kiểm tra đặc tả
+  - So sánh quy trình Pact với Spring Cloud Contract
+  - Kiểm tra tương thích Java, Spring Boot, Spring Cloud và JUnit
+  - Khai báo phụ thuộc kiểm thử bằng Maven hoặc Gradle
+  - Tách mã consumer, mã provider và tài nguyên hợp đồng
+  - Chuẩn bị môi trường chạy cục bộ bằng Docker khi cần
+  - Ghim phiên bản công cụ và chọn nguồn tài liệu tương ứng
+- level1: Pact consumer
+  level2:
+  - Luồng kiểm thử consumer và quá trình tạo pact file
+  - Cấu hình Pact JVM consumer với JUnit Jupiter
+  - Vai trò của @PactConsumerTest, @Pact và @PactTestFor
+  - Mô tả tương tác HTTP bằng Java DSL
+  - Nhận MockServer và cấu hình URL động cho client thật
+  - Kiểm thử mã client, bộ tuần tự hóa và bộ giải tuần tự thực tế
+  - Khẳng định dữ liệu client đã đọc từ phản hồi
+  - Kiểm thử cách client gửi request body, query và header
+  - Kiểm thử xử lý mã lỗi và phản hồi không có dữ liệu
+  - Nhận diện request không khớp và tương tác chưa được thực thi
+  - Tạo, kiểm tra và quản lý thư mục pact file
+  - Tránh ghi pact file bằng tay hoặc kiểm thử bằng lời gọi giả lập thay cho client
+- level1: Quy tắc khớp Pact
+  level2:
+  - Quy tắc khớp (matcher) và giá trị ví dụ trong Pact
+  - So khớp bằng giá trị cố định và theo kiểu dữ liệu
+  - Biểu thức chính quy cho đường dẫn, header và nội dung
+  - So khớp object lồng nhau và thuộc tính không được kỳ vọng
+  - So khớp mảng theo từng phần tử và giới hạn kích thước
+  - Trường hợp mảng rỗng, thứ tự và biến thể cấu trúc
+  - Phân biệt trường vắng mặt với trường mang giá trị null
+  - Định dạng ngày giờ và dữ liệu có cấu trúc đặc biệt
+  - Phân biệt quy tắc khớp request với quy tắc khớp response
+  - Giá trị sinh động và biểu thức lấy dữ liệu từ provider state
+  - Quy tắc khớp metadata của thông điệp
+  - Giới hạn tính năng theo Pact Specification và thư viện đang sử dụng
+  - Đọc lỗi so khớp để điều chỉnh hợp đồng có căn cứ
+- level1: Pact provider
+  level2:
+  - Luồng xác minh provider từ pact file
+  - Cấu hình Pact JVM provider với JUnit Jupiter
+  - Vai trò của @Provider, @TestTemplate và PactVerificationContext
+  - Đọc hợp đồng từ thư mục cục bộ hoặc Pact Broker
+  - Thiết lập HttpTestTarget và HttpsTestTarget
+  - Chạy provider thật với cổng động trong kiểm thử
+  - Thực thi từng tương tác bằng verifyInteraction
+  - Đối chiếu phản hồi thực tế với hợp đồng consumer
+  - Phạm vi cho phép khi thay thế các phụ thuộc phía sau provider
+  - Gắn phiên bản provider và công bố kết quả xác minh
+  - Phân biệt xác minh thành công cục bộ với bằng chứng được lưu trên Broker
+- level1: Trạng thái provider
+  level2:
+  - Trạng thái provider (provider state) là tiền điều kiện gì?
+  - Khai báo given ở phía consumer và xử lý @State ở phía provider
+  - Đặt tên trạng thái theo dữ liệu và tình huống có thể chuẩn bị
+  - Truyền tham số cho trạng thái
+  - Chuẩn bị trường hợp dữ liệu tồn tại, không tồn tại và không hợp lệ
+  - Sinh định danh động và trả dữ liệu cho biểu thức provider state
+  - Thiết lập phụ thuộc để tạo phản hồi lỗi cần kiểm thử
+  - Cô lập dữ liệu và dọn dẹp sau từng tương tác
+  - Tránh chuỗi tương tác phụ thuộc thứ tự
+  - Giới hạn quyền truy cập của cơ chế chuẩn bị trạng thái
+- level1: Pact với Spring
+  level2:
+  - Chọn tích hợp Pact phù hợp với Spring Framework và Spring Boot
+  - Xác minh qua HTTP thật trong ứng dụng Spring Boot
+  - Xác minh controller bằng MockMvc khi phù hợp
+  - Phạm vi hỗ trợ WebFlux và WebTestClient theo phiên bản
+  - Lựa chọn độ rộng của ApplicationContext trong kiểm thử
+  - Đưa provider state vào cấu hình kiểm thử Spring
+  - Giữ nguyên cấu hình Jackson và quy tắc ánh xạ DTO
+  - Kiểm thử client dùng RestClient, WebClient hoặc OpenFeign
+  - Xử lý xác thực thử nghiệm và bộ lọc Spring Security
+  - Giới hạn của việc chỉ xác minh lớp controller với service bị mock
+- level1: Pact thông điệp
+  level2:
+  - Vai trò producer và consumer trong hợp đồng sự kiện
+  - Hợp đồng thông điệp bất đồng bộ trong Pact
+  - Định nghĩa payload, metadata và quy tắc khớp
+  - Đưa thông điệp mẫu vào bộ xử lý thật của consumer
+  - Xác minh hàm tạo thông điệp ở phía producer
+  - Cấu hình MessageTestTarget và điểm cung cấp thông điệp
+  - Phân biệt hợp đồng payload với kiểm thử Kafka hoặc RabbitMQ
+  - Giới hạn bảo đảm về thứ tự, retry, acknowledgement và giao nhận
+  - Thông điệp yêu cầu - phản hồi đồng bộ trong Pact Specification V4
+  - Công bố và xác minh hợp đồng thông điệp trong cùng vòng đời Broker
+- level1: Pact Broker
+  level2:
+  - Pact Broker lưu trữ và kết nối những bằng chứng nào?
+  - Phân biệt Pact Broker nguồn mở với nền tảng PactFlow
+  - Khởi chạy Broker cục bộ cùng cơ sở dữ liệu bằng Docker
+  - Khái niệm pacticipant, phiên bản ứng dụng và nội dung hợp đồng
+  - Công bố hợp đồng consumer bằng plugin build hoặc Broker CLI
+  - Lấy hợp đồng cần xác minh từ Broker
+  - Công bố kết quả xác minh gắn đúng provider version
+  - Đọc Pact Matrix và đồ thị phụ thuộc tích hợp
+  - Phân biệt nội dung hợp đồng thay đổi với phiên bản ứng dụng thay đổi
+  - Webhook kích hoạt xác minh hợp đồng cần kiểm tra
+  - Xác thực truy cập và phân quyền công bố, đọc, quản trị
+- level1: Phiên bản và nhánh
+  level2:
+  - Định danh phiên bản ứng dụng bằng commit hoặc build bất biến
+  - Phân biệt phiên bản ứng dụng, phiên bản hợp đồng và Pact Specification
+  - Gắn tên nhánh khi công bố pact và kết quả xác minh
+  - Khai báo nhánh chính cho từng pacticipant
+  - Luồng phát triển trên feature branch
+  - Phân biệt branch, tag và environment trong Pact Broker
+  - Nguy cơ dùng latest hoặc định danh phiên bản không duy nhất
+  - Khả năng tái sử dụng kết quả khi nội dung hợp đồng không đổi
+  - Quy tắc phiên bản khi build lại cùng mã nguồn
+  - Quản lý consumer cũ còn được triển khai hoặc còn được hỗ trợ
+- level1: Chọn hợp đồng
+  level2:
+  - Consumer version selectors quyết định tập hợp đồng cần xác minh
+  - Chọn hợp đồng trên nhánh chính
+  - Chọn các phiên bản đang được triển khai hoặc phát hành
+  - Xác minh feature branch và tránh che khuất tương thích với nhánh chính
+  - Pending pact và tác động đến kết quả build provider
+  - Work In Progress pact và phạm vi includeWipPactsSince
+  - Mối liên hệ giữa pending, WIP và provider branch
+  - Phân biệt lượt xác minh thường với lượt được webhook kích hoạt
+  - Phát hiện tập lựa chọn rỗng hoặc bỏ sót consumer đang hoạt động
+- level1: Triển khai tương thích
+  level2:
+  - Vì sao kiểm thử đã xanh vẫn cần kiểm tra trước triển khai?
+  - can-i-deploy và ma trận phiên bản thực sự sẽ giao tiếp
+  - Kiểm tra consumer trước khi đưa vào một environment
+  - Kiểm tra provider với các consumer đang được sử dụng
+  - Phân biệt kết quả tương thích, không tương thích và chưa đủ bằng chứng
+  - Ghi nhận record-deployment sau khi triển khai thành công
+  - Phân biệt deployment và release có nhiều phiên bản còn được hỗ trợ
+  - Thời điểm ghi nhận khi triển khai cuốn chiếu
+  - Rollback và ghi lại phiên bản thực sự đang chạy
+  - Quản lý nhiều application instance hoặc nhiều môi trường dùng chung
+  - Chờ kết quả xác minh mới mà không bỏ qua cổng triển khai
+  - Giới hạn của can-i-deploy khi dữ liệu triển khai trong Broker không đầy đủ
+- level1: Spring Cloud Contract
+  level2:
+  - Luồng hợp đồng, kiểm thử sinh tự động và stub được xác minh
+  - Quy trình consumer-driven với hợp đồng đặt phía producer
+  - Quy trình producer-driven và thống nhất yêu cầu với consumer
+  - Lưu hợp đồng cùng provider hoặc trong repository riêng
+  - Cấu hình Spring Cloud Contract Gradle plugin
+  - Cấu hình Spring Cloud Contract Maven plugin
+  - Vai trò của Contract Verifier và phụ thuộc kiểm thử
+  - Cấu trúc thư mục hợp đồng và quy ước đặt tên
+  - Chạy quy trình tối thiểu từ hợp đồng đến bộ kiểm thử xanh
+  - Đối chiếu bằng chứng của Spring Cloud Contract với mô hình Pact
+- level1: DSL hợp đồng HTTP
+  level2:
+  - Chọn Groovy DSL, YAML hoặc Java DSL theo công cụ hỗ trợ
+  - Khai báo tên, mô tả và nhóm hợp đồng
+  - Mô tả request gồm method, URL, query, header và body
+  - Mô tả response gồm status, header và body
+  - Giá trị phía consumer và phía producer trong cùng hợp đồng
+  - Quy tắc động bằng biểu thức chính quy
+  - Body matcher và điều kiện kiểm tra JSON
+  - Sử dụng tệp mẫu cho nội dung request hoặc response
+  - Biểu thức tham chiếu dữ liệu request trong response khi được hỗ trợ
+  - Hợp đồng cho phản hồi lỗi và trường hợp không có body
+  - Mảng, phần tử lồng nhau và dữ liệu tùy chọn theo DSL
+  - Đánh giá rủi ro của hợp đồng ignored hoặc in-progress
+- level1: Sinh kiểm thử provider
+  level2:
+  - Quá trình chuyển hợp đồng thành mã kiểm thử
+  - Chọn framework kiểm thử và chế độ kiểm thử phù hợp
+  - Thiết lập lớp cơ sở cho kiểm thử được sinh
+  - Ánh xạ nhóm hợp đồng tới các lớp cơ sở
+  - Cấu hình MockMvc và REST Assured trong lớp cơ sở
+  - Chế độ chạy qua HTTP thật và giới hạn của chế độ mô phỏng
+  - Chuẩn bị dữ liệu nghiệp vụ cho kiểm thử sinh tự động
+  - Giữ logic hợp đồng không bị thay bằng khẳng định viết tay thiếu liên kết
+  - Kiểm tra mã được sinh mà không chỉnh sửa trực tiếp
+  - Xác minh provider trước khi công bố stub artifact
+- level1: Stub Runner
+  level2:
+  - Stub được xác minh khác gì với bản mô phỏng viết tay?
+  - Đóng gói hợp đồng và WireMock mapping thành stubs JAR
+  - Tọa độ group, artifact, version và classifier của stub
+  - Phân biệt chế độ CLASSPATH, LOCAL và REMOTE
+  - Cấu hình @AutoConfigureStubRunner
+  - Tải stub từ Maven repository, Nexus hoặc Artifactory
+  - Lấy cổng động và kết nối client tới đúng stub
+  - Kiểm thử consumer bằng stub đã được provider xác minh
+  - Ghim phiên bản stub và nguy cơ dùng phiên bản mới nhất
+  - Phân biệt mock WireMock độc lập với toàn bộ quy trình hợp đồng
+  - Chẩn đoán stub thiếu, không khớp hoặc chưa được xác minh
+- level1: Thông điệp với Spring
+  level2:
+  - Mô hình input, output và label trong hợp đồng thông điệp
+  - Tạo thông điệp đầu ra bằng lời gọi phương thức
+  - Xác minh ứng dụng nhận thông điệp và phát phản hồi
+  - Khai báo destination, header và payload
+  - Chuẩn bị bộ xác minh thông điệp trong lớp cơ sở
+  - Tích hợp Spring Cloud Stream và cơ chế binder kiểm thử
+  - Tích hợp Spring Integration theo nhu cầu ứng dụng
+  - Kiểm tra hỗ trợ Spring AMQP hoặc JMS theo phiên bản
+  - Kích hoạt thông điệp bằng label qua Stub Runner
+  - Phân biệt stub messaging với broker thông điệp thật
+  - Kết hợp kiểm thử hợp đồng và kiểm thử giao vận bằng Testcontainers
+- level1: Đặc tả và lược đồ
+  level2:
+  - OpenAPI mô tả hợp đồng HTTP và nhu cầu xác minh triển khai
+  - Kiểm tra request và response thực tế theo đặc tả
+  - Phát hiện chênh lệch giữa đặc tả và ứng dụng đang chạy
+  - Giới hạn của việc chỉ sinh client hoặc server từ OpenAPI
+  - Kiểm tra thay đổi OpenAPI có khả năng phá vỡ tương thích
+  - JSON Schema cho kiểu dữ liệu, trường bắt buộc và giá trị null
+  - AsyncAPI cho kênh, thao tác và cấu trúc thông điệp
+  - Avro và chính sách tương thích trong Schema Registry
+  - Protobuf, gRPC và vai trò của plugin hợp đồng phù hợp
+  - Luồng hai chiều với đặc tả provider và bằng chứng kiểm thử riêng
+  - Phân biệt khả năng tương thích lược đồ với khả năng tích hợp thực tế
+- level1: Tiến hóa hợp đồng
+  level2:
+  - Tương thích ngược và tương thích xuôi theo từng chiều giao tiếp
+  - Thêm trường response và khả năng giải tuần tự của consumer
+  - Xóa, đổi tên hoặc đổi kiểu một trường
+  - Thay đổi trường bắt buộc, giá trị mặc định hoặc khả năng nhận null
+  - Mở rộng enum và cách consumer xử lý giá trị chưa biết
+  - Thay đổi mã trạng thái, header hoặc cấu trúc lỗi
+  - Thay đổi đơn vị, định dạng và ý nghĩa dữ liệu khi schema vẫn giữ nguyên
+  - Thay đổi phân trang và thứ tự kết quả
+  - Đổi payload sự kiện khi còn consumer dùng phiên bản cũ
+  - Chiến lược mở rộng - chuyển đổi - thu hẹp
+  - Thứ tự triển khai consumer và provider trong thay đổi phối hợp
+  - Ngừng hỗ trợ hợp đồng sau khi xác minh consumer cũ đã ngừng sử dụng
+- level1: Dữ liệu và cô lập
+  level2:
+  - Chọn dữ liệu mẫu đại diện cho nhu cầu tích hợp
+  - Cố định giá trị ví dụ để hợp đồng dễ tái tạo và review
+  - Cô lập cơ sở dữ liệu và trạng thái giữa các tương tác
+  - Kiểm soát thời gian, định danh và nguồn ngẫu nhiên
+  - Tránh phụ thuộc vào môi trường dùng chung hoặc dữ liệu production
+  - Tách lỗi hợp đồng khỏi lỗi mạng và tài nguyên ngoài
+  - Xử lý token ngắn hạn mà không làm thay đổi cam kết giao tiếp
+  - Giữ dữ liệu cá nhân và thông tin xác thực ngoài artifact hợp đồng
+  - Chạy song song với cổng, tệp và tài nguyên kiểm thử độc lập
+- level1: CI/CD
+  level2:
+  - 'Pipeline consumer: kiểm thử, tạo hợp đồng và công bố đúng phiên bản'
+  - 'Pipeline provider: lấy hợp đồng, xác minh và công bố kết quả'
+  - Tách kiểm thử contract thành task hoặc test suite trong Gradle
+  - Tách kiểm thử contract trong vòng đời Maven theo nhu cầu
+  - Truyền cấu hình và thuộc tính hệ thống tới đúng JVM kiểm thử
+  - Thiết kế webhook và tránh vòng lặp kích hoạt build
+  - Gắn nguồn commit và đường dẫn build vào bằng chứng xác minh
+  - Đặt can-i-deploy trước bước triển khai thực tế
+  - Ghi nhận deployment hoặc release sau bước xác minh triển khai
+  - Quản lý bí mật CI, quyền truy cập Broker và artifact repository
+  - Chính sách khi Broker không truy cập được hoặc thiếu bằng chứng
+  - Lưu báo cáo, log và cấu hình đủ để tái hiện thất bại
+- level1: Tích hợp nhiều dự án
+  level2:
+  - Tổ chức consumer và provider trong Gradle multi-project
+  - Tổ chức module hợp đồng và ứng dụng trong Maven reactor
+  - Dùng cấu hình chung mà giữ riêng danh tính từng consumer và provider
+  - Phân phối stub và hợp đồng giữa các repository độc lập
+  - Kiểm tra tương thích Pact Specification giữa các ngôn ngữ
+  - Tránh để DTO dùng chung che khuất thay đổi định dạng qua mạng
+  - Giới hạn khi một consumer phụ thuộc nhiều provider
+  - Hợp đồng tại API gateway và dịch vụ chuyển tiếp
+  - Kế hoạch áp dụng cho hệ thống cũ và dịch vụ bên thứ ba
+- level1: Chẩn đoán sự cố
+  level2:
+  - Request không khớp do method, path, query hoặc header
+  - JSON nhìn giống nhau nhưng khác kiểu, null hoặc cấu trúc
+  - Consumer test xanh nhưng client thật không được thực thi
+  - Không tìm thấy pact file hoặc không có tương tác để xác minh
+  - Provider state thiếu, sai tên hoặc chuẩn bị dữ liệu không đúng
+  - Lỗi cổng động, URL gốc hoặc kết nối HTTP được tái sử dụng
+  - Xác minh cục bộ thành công nhưng công bố kết quả thất bại
+  - Selector chọn sai nhánh hoặc bỏ sót hợp đồng đã triển khai
+  - can-i-deploy chưa có kết quả hoặc dùng sai phiên bản ứng dụng
+  - Đọc sai trạng thái pending và WIP
+  - Không sinh được kiểm thử Spring Cloud Contract hoặc sai lớp cơ sở
+  - Không tải được stub artifact hoặc dùng nhầm classifier
+  - Khác biệt giữa máy cá nhân và CI do phiên bản, classpath hoặc thuộc tính
+  - Thu thập báo cáo so khớp và tạo ví dụ tối thiểu tái hiện lỗi
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng cặp dịch vụ đơn hàng và danh mục sản phẩm
+  - Viết Pact consumer test từ mã client thật
+  - Xác minh provider với dữ liệu có và không tồn tại
+  - Đưa hai ứng dụng cùng hợp đồng lên Pact Broker cục bộ
+  - Mô phỏng thay đổi phá vỡ tương thích và đọc kết quả
+  - Thực hiện thay đổi tương thích theo từng giai đoạn triển khai
+  - Tạo cùng tình huống HTTP bằng Spring Cloud Contract
+  - Đóng gói và sử dụng stub từ một repository artifact
+  - Kiểm thử sự kiện tạo đơn hàng bằng hợp đồng thông điệp
+  - Tích hợp kiểm tra trước triển khai vào pipeline thử nghiệm
+  - Lập hồ sơ gồm hợp đồng, phiên bản, kết quả xác minh và ma trận tương thích
+- level1: Vận hành và quản trị
+  level2:
+  - Thống nhất quyền sở hữu hợp đồng giữa các nhóm
+  - Review hợp đồng cùng thay đổi mã consumer và provider
+  - Quản lý vòng đời, ngừng hỗ trợ và xóa dữ liệu hợp đồng cũ
+  - Vận hành Broker với lưu trữ bền vững, sao lưu và phục hồi
+  - Theo dõi tích hợp thiếu xác minh và bằng chứng không còn phù hợp
+  - Đánh giá thời gian phản hồi, độ ổn định và chi phí bảo trì
+  - Tránh chạy theo số hợp đồng hoặc tỷ lệ kiểm thử xanh
+  - Nâng cấp công cụ và kiểm tra tương thích artifact
+  - Checklist hoàn tất và kế hoạch mở rộng phạm vi áp dụng

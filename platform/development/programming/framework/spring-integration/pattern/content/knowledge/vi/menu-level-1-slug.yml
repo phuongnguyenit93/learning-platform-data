@@ -1,0 +1,151 @@
+menu:
+- title: Nhập môn
+  slug: introduction
+  index: 0
+- title: Message system
+  slug: message-system
+  index: 1
+- title: Message channel
+  slug: message-channel
+  index: 2
+- title: Endpoint
+  slug: endpoint
+  index: 3
+- title: Pipes and filters
+  slug: pipes-and-filters
+  index: 4
+- title: Message router
+  slug: message-router
+  index: 5
+- title: Content-based router
+  slug: content-based-router
+  index: 6
+- title: Header-based router
+  slug: header-based-router
+  index: 7
+- title: Recipient list
+  slug: recipient-list
+  index: 8
+- title: Publish subscribe
+  slug: publish-subscribe
+  index: 9
+- title: Routing slip
+  slug: routing-slip
+  index: 10
+- title: Dynamic router
+  slug: dynamic-router
+  index: 11
+- title: Filter
+  slug: filter
+  index: 12
+- title: Transformer
+  slug: transformer
+  index: 13
+- title: Content enricher
+  slug: content-enricher
+  index: 14
+- title: Splitter
+  slug: splitter
+  index: 15
+- title: Aggregator
+  slug: aggregator
+  index: 16
+- title: Scatter gather
+  slug: scatter-gather
+  index: 17
+- title: Resequencer
+  slug: resequencer
+  index: 18
+- title: Claim check
+  slug: claim-check
+  index: 19
+- title: Content-based correlation
+  slug: content-based-correlation
+  index: 20
+- title: Idempotent receiver
+  slug: idempotent-receiver
+  index: 21
+- title: Message filter và validation
+  slug: message-filter-validation
+  index: 22
+- title: Normalizer
+  slug: normalizer
+  index: 23
+- title: Envelope wrapper
+  slug: envelope-wrapper
+  index: 24
+- title: Message translator
+  slug: message-translator
+  index: 25
+- title: Service activator
+  slug: service-activator
+  index: 26
+- title: Messaging gateway
+  slug: messaging-gateway
+  index: 27
+- title: Request reply
+  slug: request-reply
+  index: 28
+- title: Remote procedure invocation
+  slug: remote-procedure-invocation
+  index: 29
+- title: Message broker
+  slug: message-broker
+  index: 30
+- title: Channel adapter
+  slug: channel-adapter
+  index: 31
+- title: Bridge
+  slug: bridge
+  index: 32
+- title: Wire tap
+  slug: wire-tap
+  index: 33
+- title: Message logger
+  slug: message-logger
+  index: 34
+- title: Control bus
+  slug: control-bus
+  index: 35
+- title: Error channel
+  slug: error-channel
+  index: 36
+- title: Dead letter
+  slug: dead-letter
+  index: 37
+- title: Null channel
+  slug: null-channel
+  index: 38
+- title: Priority
+  slug: priority
+  index: 39
+- title: Transactional messaging
+  slug: transactional-messaging
+  index: 40
+- title: Retry
+  slug: retry
+  index: 41
+- title: Circuit breaker
+  slug: circuit-breaker
+  index: 42
+- title: Rate limiter
+  slug: rate-limiter
+  index: 43
+- title: Delay
+  slug: delay
+  index: 44
+- title: Barrier
+  slug: barrier
+  index: 45
+- title: Resequencer nâng cao
+  slug: advanced-resequencer
+  index: 46
+- title: Audit và observability
+  slug: auditing-observability
+  index: 47
+- title: Kiểm thử pattern
+  slug: pattern-testing
+  index: 48
+- title: Lỗi thường gặp
+  slug: common-mistakes
+  index: 49

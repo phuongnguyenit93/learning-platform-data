@@ -1,0 +1,354 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Đánh giá và quan sát ứng dụng AI là gì
+  - Phân biệt tính đúng của phần mềm, chất lượng câu trả lời và sức khỏe hệ thống
+  - Vai trò của Evaluation và Observability trong vòng đời ứng dụng Spring AI
+  - Quan hệ giữa dữ liệu kiểm thử, kết quả đánh giá và bằng chứng thực thi
+  - Phân biệt đánh giá ngoại tuyến và theo dõi chất lượng khi vận hành
+  - Ranh giới với các module Core, RAG, Tool Calling và Memory Advisors
+  - Lộ trình từ một ca đánh giá đến theo dõi toàn bộ ứng dụng
+- level1: Thiết lập dự án
+  level2:
+  - Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
+  - Quản lý phiên bản và dependency bằng Spring AI BOM
+  - Cấu hình mô hình sinh câu trả lời và mô hình dùng để đánh giá
+  - Tách thông tin xác thực và tài nguyên theo môi trường
+  - Tổ chức mã đánh giá, dữ liệu tình huống và cấu hình quan sát
+  - Bổ sung Actuator, Micrometer và thành phần tracing phù hợp
+  - Tạo ứng dụng mẫu có kết quả thành công, sai và lỗi kỹ thuật
+  - Ghi lại phiên bản để tái lập thí nghiệm
+- level1: Tiêu chí chất lượng
+  level2:
+  - Độ liên quan của câu trả lời với câu hỏi
+  - Mức độ được hỗ trợ bởi ngữ cảnh và nguồn dữ liệu
+  - Tính đúng của thông tin, tính đầy đủ và mức hữu ích
+  - Tuân thủ định dạng, schema và ràng buộc nghiệp vụ
+  - Khả năng hỏi lại hoặc từ chối khi thiếu dữ kiện
+  - Tính nhất quán giữa câu trả lời và hành động công cụ thực tế
+  - Chất lượng ngôn ngữ, cách trình bày và trích dẫn nguồn
+  - Phân biệt tiêu chí bắt buộc với mục tiêu tối ưu
+- level1: Bộ dữ liệu đánh giá
+  level2:
+  - Thiết kế ca gồm đầu vào, ngữ cảnh, kết quả tham chiếu và tiêu chí
+  - Xây dựng tập chuẩn từ tình huống nghiệp vụ có thể kiểm chứng
+  - Phân chia dữ liệu phát triển, hiệu chỉnh và kiểm tra độc lập
+  - Bao phủ câu hỏi thường gặp, trường hợp biên và dữ liệu thiếu
+  - Thiết kế tình huống phủ định, mơ hồ và ngoài phạm vi
+  - Định danh ca, phiên bản dữ liệu và nguồn gốc bằng chứng
+  - Quản lý dữ liệu nhiều ngôn ngữ và nhiều nhóm người dùng
+  - Tránh trùng lặp, rò rỉ đáp án và dữ liệu nhạy cảm
+  - Cập nhật bộ dữ liệu từ lỗi thực tế đã được rà soát
+- level1: API Evaluator
+  level2:
+  - Evaluator và hợp đồng evaluate
+  - EvaluationRequest với câu hỏi, dữ liệu hỗ trợ và nội dung phản hồi
+  - Chuẩn bị dữ liệu đầu vào đúng ngữ nghĩa của từng evaluator
+  - EvaluationResponse với trạng thái, điểm, phản hồi và metadata
+  - Phân biệt ý nghĩa isPass và score của từng implementation
+  - Gọi evaluator độc lập hoặc trong kiểm thử tích hợp
+  - Xử lý lỗi gọi mô hình và kết quả đánh giá không hợp lệ
+  - Đọc API đúng phiên bản thay vì giả định mọi evaluator giống nhau
+- level1: RelevancyEvaluator
+  level2:
+  - Mục đích đánh giá sự phù hợp với câu hỏi và ngữ cảnh
+  - Cung cấp câu hỏi, phản hồi và dữ liệu hỗ trợ
+  - Khởi tạo evaluator với ChatClient.Builder phù hợp
+  - Vai trò của prompt đánh giá và định dạng phán quyết
+  - Tùy chỉnh PromptTemplate với các biến bắt buộc
+  - Kiểm tra phản hồi lệch định dạng hoặc không có phán quyết
+  - Giới hạn khi ngữ cảnh thiếu, sai hoặc không liên quan
+  - Phân biệt đánh giá liên quan với xác minh sự thật ngoài ngữ cảnh
+- level1: FactCheckingEvaluator
+  level2:
+  - Mục đích kiểm tra phát biểu có được tài liệu hỗ trợ
+  - Ánh xạ dữ liệu thành claim và document theo implementation
+  - Chọn mô hình đánh giá phù hợp với prompt kiểm chứng
+  - Chuẩn bị phát biểu đơn và câu trả lời chứa nhiều phát biểu
+  - Kiểm tra thông tin đúng, mâu thuẫn và không đủ bằng chứng
+  - Diễn giải phán quyết và giới hạn của điểm trả về
+  - Phân biệt được tài liệu hỗ trợ với đúng trong thực tế
+  - Kiểm thử tích hợp với ngữ cảnh có thể xác minh
+- level1: Evaluator tùy chỉnh
+  level2:
+  - Khi nào cần triển khai Evaluator riêng
+  - Kiểm tra có tính xác định bằng quy tắc, schema và dữ liệu nghiệp vụ
+  - Đánh giá định dạng JSON, trường bắt buộc và giá trị cho phép
+  - Thiết kế thang điểm, trạng thái không áp dụng và phản hồi có cấu trúc
+  - Kết hợp nhiều evaluator bằng mã điều phối của ứng dụng
+  - Đặt ngưỡng cho từng tiêu chí và quy tắc tổng hợp kết quả
+  - Lưu bằng chứng và phiên bản chính sách đánh giá
+  - Xử lý lỗi hệ thống đánh giá tách khỏi kết quả chất lượng
+- level1: Mô hình làm giám khảo
+  level2:
+  - Lựa chọn mô hình đánh giá độc lập với mô hình sinh
+  - Viết tiêu chí chấm có ví dụ rõ ràng
+  - Thiết kế phán quyết có cấu trúc và kiểm tra khả năng phân tích
+  - Hiệu chỉnh kết quả với tập đã được con người đánh giá
+  - Đo độ ổn định khi lặp lại cùng tình huống
+  - Thiên lệch theo vị trí, độ dài và cách diễn đạt câu trả lời
+  - Chống chỉ dẫn đánh lừa bên trong dữ liệu cần chấm
+  - Phân biệt mức tự tin tự báo với độ tin cậy được đo
+  - Cân đối chi phí, độ trễ và chất lượng giám khảo
+- level1: Đánh giá RAG
+  level2:
+  - Phân biệt chất lượng truy xuất và chất lượng sinh câu trả lời
+  - Ghi lại đúng tài liệu đã đi vào yêu cầu mô hình
+  - Lấy ngữ cảnh từ metadata của advisor theo phiên bản
+  - Đánh giá độ liên quan và mức bao phủ của tài liệu truy xuất
+  - Thiết kế phép đo precision, recall hoặc thứ hạng khi có nhãn phù hợp
+  - Đánh giá câu trả lời có căn cứ và tính đúng của trích dẫn
+  - Kiểm tra trường hợp không có tài liệu hoặc tài liệu mâu thuẫn
+  - So sánh thay đổi top-k, bộ lọc và bước xếp hạng lại
+  - Khoanh vùng lỗi ở dữ liệu, truy xuất, prompt hay bước sinh
+- level1: Đánh giá công cụ
+  level2:
+  - Kiểm tra quyết định gọi hoặc không gọi công cụ
+  - Đánh giá lựa chọn công cụ và tính đúng của đối số
+  - Kiểm chứng kết quả nghiệp vụ bằng dữ liệu hoặc trạng thái thực tế
+  - Đánh giá chuỗi nhiều bước và điều kiện dừng
+  - Phân biệt hành động đã thực hiện với nội dung mô hình tuyên bố
+  - Kiểm tra quyền truy cập, yêu cầu trùng và xử lý lỗi
+  - Đánh giá hội thoại nhiều lượt và tính nhất quán của ngữ cảnh
+  - Giữ phạm vi đánh giá tách khỏi triển khai sâu Tool Calling hoặc Memory
+- level1: Chiến lược kiểm thử
+  level2:
+  - Phân biệt unit test, kiểm thử hợp đồng và đánh giá bằng mô hình thật
+  - Giả lập mô hình để kiểm tra luồng xử lý có tính xác định
+  - Kiểm thử evaluator với phán quyết đạt, không đạt và sai định dạng
+  - Kiểm thử trường hợp giám khảo timeout, lỗi hoặc bị giới hạn tốc độ
+  - Thực hiện kiểm thử tích hợp với mô hình và tài nguyên biệt lập
+  - Tách ca kiểm thử ổn định khỏi thí nghiệm chất lượng có biến động
+  - Đặt thời hạn, ngân sách và khả năng tái chạy
+  - Không chuyển lỗi giám khảo thành kết quả đạt mặc định
+  - Cô lập dữ liệu, ngữ cảnh hội thoại và tài nguyên giữa các ca
+- level1: Quy trình đánh giá
+  level2:
+  - Tổ chức luồng tạo phản hồi, thu thập ngữ cảnh và chấm điểm
+  - Chạy đánh giá theo lô với số công việc đồng thời có giới hạn
+  - Lưu cấu hình prompt, mô hình, dữ liệu và tham số của mỗi lần chạy
+  - Phân biệt ca đạt, không đạt, bị bỏ qua và lỗi kỹ thuật
+  - Tạo báo cáo tổng hợp cùng danh sách ca thất bại
+  - So sánh kết quả với đường cơ sở đã xác nhận
+  - Đưa tiêu chí kiểm tra hồi quy vào CI/CD
+  - Quản lý retry và chạy tiếp từ các ca chưa hoàn tất
+  - Giữ khả năng truy ngược báo cáo đến từng đầu vào và bằng chứng
+- level1: So sánh thí nghiệm
+  level2:
+  - Thiết kế so sánh theo cùng một tập tình huống
+  - Đánh giá theo từng nhóm nghiệp vụ và độ khó
+  - Đo tỷ lệ đạt, phân bố điểm và số lỗi nghiêm trọng
+  - Đánh giá biến động qua nhiều lần chạy
+  - Cỡ mẫu, khoảng bất định và giới hạn của kết luận
+  - Tránh che lỗi một nhóm bằng điểm trung bình toàn bộ
+  - Phân biệt cải thiện chất lượng với thay đổi độ trễ hoặc chi phí
+  - Xác định điều kiện chấp nhận và lý do nâng cấp đường cơ sở
+- level1: Nền tảng quan sát
+  level2:
+  - Phân biệt log, metric, trace và sự kiện nghiệp vụ
+  - Observation và vòng đời một phép quan sát trong Micrometer
+  - ObservationRegistry, MeterRegistry và tracing bridge
+  - Quan hệ giữa trace, span và ngữ cảnh đang hoạt động
+  - Low-cardinality và high-cardinality trong thuộc tính quan sát
+  - Phân biệt instrumentation của Spring AI, HTTP client và ứng dụng
+  - Khả năng quan sát theo thành phần và nhà cung cấp
+  - Đọc semantic convention theo phiên bản thư viện
+- level1: Cấu hình telemetry
+  level2:
+  - Bật Actuator và lựa chọn endpoint quản trị cần thiết
+  - Cấu hình registry xuất metric phù hợp môi trường
+  - Thiết lập tracing bridge và bộ xuất trace
+  - Lựa chọn OTLP hoặc hệ thu thập được hỗ trợ
+  - Kết nối Prometheus, Grafana và hệ lưu trace theo kiến trúc
+  - Cấu hình sampling, endpoint và thông tin xác thực
+  - Xác minh một yêu cầu mẫu tạo đủ metric và trace
+  - Phân biệt telemetry chưa được tạo với telemetry chưa được chuyển đi
+- level1: ChatClient và advisor
+  level2:
+  - Phép quan sát cho ChatClient call và stream
+  - Phân biệt thời gian toàn yêu cầu và thời gian gọi mô hình
+  - Quan sát từng advisor trong chuỗi xử lý
+  - Thời gian advisor bao gồm các bước nằm bên trong
+  - Ảnh hưởng của thứ tự advisor và vòng lặp gọi công cụ
+  - Liên kết conversation ID và tập công cụ ở phạm vi trace
+  - Nhận diện nhiều lượt mô hình trong một yêu cầu ChatClient
+  - Tránh cộng trùng thời gian hoặc số lần gọi giữa các lớp
+- level1: Quan sát mô hình
+  level2:
+  - Phép quan sát thao tác ChatModel theo nhà cung cấp
+  - Định danh mô hình yêu cầu và mô hình thực tế phản hồi
+  - Theo dõi thời lượng, trạng thái kết thúc và lỗi
+  - Đọc token đầu vào, đầu ra và tổng mức sử dụng
+  - Phân biệt token được cache, token thông thường và thông tin không có
+  - Tương tác giữa span mô hình và span HTTP phía dưới
+  - Khác biệt instrumentation giữa call, stream và các nhà cung cấp
+  - Giới hạn dữ liệu được cung cấp bởi mô hình cục bộ hoặc endpoint tương thích
+- level1: Embedding và đa phương thức
+  level2:
+  - Quan sát thời gian và mức sử dụng của EmbeddingModel
+  - Theo dõi kích thước vector và mô hình embedding
+  - Phân biệt một lô embedding với từng tài liệu bên trong
+  - Quan sát ImageModel theo phạm vi instrumentation hỗ trợ
+  - Đánh giá khả năng quan sát các thao tác âm thanh theo phiên bản
+  - Phân biệt số token, ảnh, thời lượng âm thanh và đơn vị tính phí
+  - Kiểm tra dữ liệu thiếu và khác biệt giữa các nhà cung cấp
+- level1: Quan sát VectorStore
+  level2:
+  - Phép quan sát thêm, truy vấn và xóa dữ liệu vector
+  - Định danh hệ lưu trữ, collection và namespace
+  - Theo dõi thời lượng và lỗi thao tác
+  - Thu thập top-k, ngưỡng tương đồng và bộ lọc theo khả năng hỗ trợ
+  - Liên kết truy vấn vector với embedding và bước sinh câu trả lời
+  - Phân biệt độ trễ truy xuất với chất lượng tài liệu trả về
+  - Kiểm soát nội dung truy vấn và tài liệu trong telemetry
+  - Đối chiếu metric phía ứng dụng với số liệu cơ sở dữ liệu
+- level1: Quan sát công cụ
+  level2:
+  - Phép quan sát cho mỗi lần thực thi tool callback
+  - Liên kết tool call ID với lượt gọi mô hình và yêu cầu ứng dụng
+  - Theo dõi tên công cụ, thời lượng và lỗi
+  - Quan sát công cụ cục bộ và dịch vụ ngoài được gọi
+  - Phân biệt số lần thử, số lần hoàn tất và tác động nghiệp vụ
+  - Phân biệt vòng lặp công cụ với các lượt chat độc lập
+  - Kiểm soát ghi đối số và kết quả công cụ
+  - Liên kết thông tin đánh giá chuỗi hành động với bằng chứng trace
+- level1: Streaming và bất đồng bộ
+  level2:
+  - Vòng đời observation từ subscription đến hoàn tất hoặc hủy
+  - Phân biệt độ trễ token đầu tiên và thời gian hoàn tất
+  - Đo các mốc streaming khi có dữ liệu cần thiết
+  - Thu thập usage cuối luồng và xử lý phản hồi chưa hoàn tất
+  - Lan truyền observation qua Reactor Context và scheduler
+  - Truyền ngữ cảnh qua executor hoặc tác vụ nền
+  - Xử lý trace đứt đoạn khi SDK đổi thread
+  - Quan sát timeout, retry và hủy luồng
+  - Tránh tạo một metric hoặc span dư thừa cho mỗi token
+- level1: Thiết kế metric
+  level2:
+  - Chọn counter, timer, distribution summary và gauge
+  - Đặt tên metric và đơn vị đo nhất quán
+  - Phân biệt tên Micrometer với tên xuất ra Prometheus
+  - Histogram, percentile và cách đọc độ trễ
+  - Đo tỷ lệ lỗi, timeout và giới hạn tốc độ
+  - Thiết kế nhãn ổn định và giới hạn cardinality
+  - Phân biệt không có dữ liệu với giá trị bằng không
+  - Đăng ký metric chất lượng bằng instrumentation riêng khi cần
+  - Liên kết metric vận hành với mục tiêu nghiệp vụ
+- level1: Thiết kế trace
+  level2:
+  - Xây dựng cây span cho HTTP, ChatClient, advisor, mô hình và công cụ
+  - Lan truyền trace context giữa các dịch vụ
+  - Kết nối span của các bước RAG và truy cập dữ liệu
+  - Phân biệt span cha con với span link cho tác vụ bất đồng bộ
+  - Đặt tên span và thuộc tính có giá trị chẩn đoán
+  - Sampling theo lưu lượng và nhu cầu điều tra
+  - Phân tích retry, chờ đợi và các nhánh thực thi
+  - Tránh instrumentation trùng khi kết hợp thư viện và Java agent
+- level1: Nhật ký
+  level2:
+  - Nhật ký có cấu trúc và liên kết trace ID, span ID
+  - Ghi sự kiện nghiệp vụ, cấu hình và lỗi có thể xử lý
+  - Phân biệt log metadata với nội dung prompt và phản hồi
+  - Cấu hình ghi nội dung theo thành phần và môi trường
+  - Rút gọn dữ liệu lớn và che giá trị nhạy cảm
+  - Phân biệt phản hồi mô hình, kết quả công cụ và kết quả đánh giá
+  - Giữ đủ bằng chứng điều tra mà không ghi lặp toàn bộ hội thoại
+  - Đặt mức log và thời hạn lưu phù hợp mục đích sử dụng
+- level1: Quan sát tùy chỉnh
+  level2:
+  - Tạo Observation cho toàn bộ tác vụ nghiệp vụ
+  - Đăng ký convention để bổ sung thuộc tính phù hợp
+  - Sử dụng filter, predicate hoặc handler theo cơ chế Micrometer
+  - Ghi nhận điểm chất lượng và trạng thái giám khảo riêng
+  - Liên kết evaluation run ID với request ID hoặc trace ID
+  - Quan sát pipeline đánh giá theo lô
+  - Kiểm tra overhead của instrumentation bổ sung
+  - Kiểm thử metric, span và dữ liệu che bằng registry hoặc exporter thử nghiệm
+- level1: Bảo vệ dữ liệu
+  level2:
+  - Phân loại prompt, tài liệu, phản hồi và đối số công cụ
+  - Giữ khóa API và thông tin xác thực ngoài log hoặc span
+  - Che hoặc loại bỏ dữ liệu cá nhân trước khi xuất telemetry
+  - Cô lập dữ liệu và quyền xem theo tenant
+  - Kiểm soát ghi nội dung và lấy mẫu dữ liệu đánh giá
+  - Quản lý quyền truy cập hệ thống giám sát và bộ dữ liệu
+  - Thời hạn lưu, xóa và truy vết nguồn gốc dữ liệu
+  - Đánh giá dữ liệu gửi tới mô hình giám khảo bên ngoài
+  - Kiểm thử trường hợp nội dung nhạy cảm lọt vào thông báo lỗi
+- level1: Chi phí và hiệu năng
+  level2:
+  - Tách chi phí sinh câu trả lời, embedding, công cụ và đánh giá
+  - Ước lượng chi phí từ usage với bảng giá có phiên bản
+  - Phân biệt ước lượng phía ứng dụng với hóa đơn nhà cung cấp
+  - Đo chất lượng trên mỗi mức chi phí và độ trễ
+  - Đặt ngân sách đánh giá và giới hạn số công việc đồng thời
+  - Lấy mẫu đánh giá khi vận hành theo mục tiêu chất lượng
+  - Tối ưu cache, batching và lượng ngữ cảnh dựa trên số liệu
+  - Đánh giá chi phí lưu trữ log, metric và trace
+  - Giám sát quota, rate limit và tăng chi phí bất thường
+- level1: Dashboard và cảnh báo
+  level2:
+  - Chọn chỉ số cho sức khỏe hệ thống và chất lượng câu trả lời
+  - Theo dõi lưu lượng, độ trễ, lỗi và mức sử dụng token
+  - Hiển thị chi phí theo tính năng hoặc mô hình
+  - Theo dõi tỷ lệ đạt, giám khảo lỗi và tình huống chưa được đánh giá
+  - Thiết kế SLI, SLO và ngưỡng cảnh báo phù hợp
+  - Phân biệt lỗi từng yêu cầu với suy giảm trên cả nhóm
+  - Liên kết cảnh báo tới trace, dữ liệu đánh giá và hướng dẫn xử lý
+  - Tránh cảnh báo nhiễu khi cỡ mẫu nhỏ hoặc dữ liệu đến chậm
+- level1: Chất lượng khi vận hành
+  level2:
+  - Thu thập phản hồi người dùng cùng ngữ cảnh cần thiết
+  - Lấy mẫu yêu cầu thật để đánh giá sau khi xử lý
+  - Phát hiện thay đổi phân bố câu hỏi và chất lượng theo thời gian
+  - Phân biệt thay đổi dữ liệu, prompt, mô hình và công cụ
+  - Kết hợp đánh giá tự động với rà soát của con người
+  - Triển khai canary hoặc so sánh song song với phạm vi có kiểm soát
+  - Ngăn phản hồi chưa xác minh tự động trở thành đáp án chuẩn
+  - Đưa lỗi đã xác nhận trở lại bộ dữ liệu kiểm tra hồi quy
+- level1: Vận hành
+  level2:
+  - Quản lý cấu hình exporter, giám khảo và sampling theo môi trường
+  - Giới hạn tác động khi hệ thống telemetry bị chậm hoặc lỗi
+  - Hàng đợi, batching và chính sách bỏ dữ liệu khi quá tải
+  - Tách tài nguyên đánh giá khỏi tài nguyên phục vụ chính
+  - Theo dõi sức khỏe của collector, registry và kho kết quả
+  - Triển khai thay đổi instrumentation hoặc rubric theo phiên bản
+  - Hoàn tác cấu hình và phục hồi các lần đánh giá chưa hoàn tất
+  - Chuẩn bị quy trình xử lý sự cố và bàn giao vận hành
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không có metric do thiếu registry hoặc auto-configuration
+  - Metric có trong Actuator nhưng không tới hệ thu thập
+  - Không thấy trace do sampling, exporter hoặc lỗi kết nối
+  - Trace bị tách khi đổi thread, dùng executor hoặc SDK streaming
+  - Số token thiếu, khác nhau hoặc bị tính trùng
+  - Cardinality tăng do nhãn chứa định danh hoặc nội dung động
+  - Evaluator không đạt do phán quyết lệch định dạng
+  - Thiếu ngữ cảnh hoặc ánh xạ sai dữ liệu EvaluationRequest
+  - Kết quả đánh giá dao động khi code và bộ dữ liệu không đổi
+  - Giám khảo lỗi bị nhầm thành lỗi chất lượng
+  - Điểm tổng hợp tốt nhưng một nhóm tình huống suy giảm
+  - Telemetry làm tăng độ trễ, tốn bộ nhớ hoặc để lộ dữ liệu
+- level1: Nâng cấp
+  level2:
+  - Đối chiếu API evaluator và khả năng hỗ trợ theo phiên bản Spring AI
+  - Kiểm tra thay đổi tên metric, span và thuộc tính semantic convention
+  - Đối chiếu cấu hình ghi nội dung và mặc định bảo vệ dữ liệu
+  - Kiểm tra thay đổi instrumentation của SDK và HTTP client
+  - Quản lý phiên bản prompt chấm, rubric và mô hình giám khảo
+  - Đánh giá lại khi thay mô hình sinh, embedding hoặc tài liệu
+  - Kiểm thử dashboard, cảnh báo và truy vấn metric sau nâng cấp
+  - Bảo toàn khả năng so sánh với kết quả thí nghiệm trước
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo bộ dữ liệu nhỏ có ca đúng, sai và thiếu ngữ cảnh
+  - Chạy RelevancyEvaluator và FactCheckingEvaluator rồi đọc kết quả
+  - Viết evaluator nghiệp vụ có kiểm tra xác định
+  - Kết hợp đánh giá câu trả lời với bằng chứng thực thi công cụ
+  - Bật metric và trace cho một luồng RAG hoặc tool calling
+  - Xây dựng báo cáo đánh giá cùng dashboard vận hành
+  - So sánh hai cấu hình theo chất lượng, độ trễ và chi phí
+  - Mô phỏng lỗi giám khảo, mất exporter và gián đoạn streaming
+  - Thiết lập kiểm tra hồi quy trong CI với ngân sách giới hạn
+  - Viết hướng dẫn tái lập, lưu bằng chứng và dọn dữ liệu thực hành

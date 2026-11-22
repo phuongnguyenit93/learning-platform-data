@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường Java
+  slug: java-environment
+  index: 1
+- title: Dòng lệnh
+  slug: command-line
+  index: 2
+- title: Tệp và dữ liệu
+  slug: files-and-data
+  index: 3
+- title: Workspace
+  slug: workspace
+  index: 4
+- title: IDE Java
+  slug: java-ide
+  index: 5
+- title: Đọc mã
+  slug: code-reading
+  index: 6
+- title: Soạn thảo
+  slug: editing
+  index: 7
+- title: Refactor
+  slug: refactoring
+  index: 8
+- title: Chạy ứng dụng
+  slug: run-applications
+  index: 9
+- title: Gỡ lỗi
+  slug: debugging
+  index: 10
+- title: JDK cơ bản
+  slug: jdk-basics
+  index: 11
+- title: Phân tích Java
+  slug: java-analysis
+  index: 12
+- title: Git cục bộ
+  slug: local-git
+  index: 13
+- title: Git cộng tác
+  slug: collaborative-git
+  index: 14
+- title: Build và thư viện
+  slug: build-and-libraries
+  index: 15
+- title: Công cụ kiểm thử
+  slug: testing-tools
+  index: 16
+- title: Chất lượng mã
+  slug: code-quality
+  index: 17
+- title: HTTP và API
+  slug: http-and-api
+  index: 18
+- title: Cơ sở dữ liệu
+  slug: database
+  index: 19
+- title: DevTools trình duyệt
+  slug: browser-dev-tools
+  index: 20
+- title: Mạng và TLS
+  slug: networking-and-tls
+  index: 21
+- title: Tiến trình hệ thống
+  slug: system-processes
+  index: 22
+- title: Nhật ký
+  slug: logging
+  index: 23
+- title: Chẩn đoán JVM
+  slug: jvm-diagnostics
+  index: 24
+- title: Phân tích hiệu năng
+  slug: performance-analysis
+  index: 25
+- title: Container
+  slug: container
+  index: 26
+- title: Làm việc từ xa
+  slug: remote-work
+  index: 27
+- title: Tự động hóa
+  slug: automation
+  index: 28
+- title: CI/CD
+  slug: continuous-integration-and-delivery
+  index: 29
+- title: Công cụ bảo mật
+  slug: security-tools
+  index: 30
+- title: Tài liệu kỹ thuật
+  slug: technical-documentation
+  index: 31
+- title: Trợ lý AI
+  slug: ai-assistant
+  index: 32
+- title: Khắc phục lỗi
+  slug: troubleshooting
+  index: 33
+- title: Chuẩn hóa nhóm
+  slug: team-standardization
+  index: 34
+- title: Thực hành
+  slug: practice
+  index: 35

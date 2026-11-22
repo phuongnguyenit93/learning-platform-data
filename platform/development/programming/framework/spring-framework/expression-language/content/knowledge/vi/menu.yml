@@ -1,0 +1,401 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Spring Expression Language (SpEL) là gì và giải quyết bài toán nào
+  - Biểu thức, ngữ cảnh đánh giá và kết quả đánh giá liên hệ với nhau
+  - Đặt SpEL bên cạnh Java code, placeholder cấu hình và template expression
+  - Những nơi Spring dùng SpEL trong hệ sinh thái
+  - Giá trị của việc tách biểu thức khỏi mã Java cố định
+  - Khả năng đọc, khả năng kiểm tra và rủi ro khi biểu thức thay đổi
+  - Giới hạn của SpEL so với ngôn ngữ lập trình đầy đủ
+  - Lộ trình học từ cú pháp cơ bản đến tích hợp an toàn
+- level1: Kiến trúc SpEL
+  level2:
+  - Parser, expression tree và quá trình phân tích cú pháp
+  - Expression object và lời gọi getValue
+  - EvaluationContext và dữ liệu mà biểu thức được phép nhìn thấy
+  - Root object, active context object và biến biểu thức
+  - PropertyAccessor, MethodResolver và ConstructorResolver
+  - TypeLocator, TypeConverter và OperatorOverloader
+  - StandardEvaluationContext với đầy đủ khả năng mở rộng
+  - SimpleEvaluationContext với bề mặt thao tác giới hạn
+  - Chuỗi xử lý từ văn bản biểu thức đến giá trị cuối cùng
+- level1: Khởi tạo parser
+  level2:
+  - SpelExpressionParser và cách tạo expression
+  - Đọc một biểu thức từ chuỗi với parser
+  - ParserContext cho template expression
+  - TemplateParserContext và phần văn bản bao quanh biểu thức
+  - Định dạng biểu thức trong chuỗi cấu hình
+  - Lỗi parse và vị trí lỗi trong biểu thức
+  - SpringEL compiler mode và ParserConfiguration
+  - Auto grow null references và auto grow collections
+  - Đánh đổi giữa linh hoạt, chẩn đoán lỗi và hiệu năng khi cấu hình parser
+- level1: Cú pháp cơ bản
+  level2:
+  - Biểu thức nguyên tử và giá trị trả về
+  - Chuỗi ký tự, dấu nháy đơn và dấu nháy kép
+  - Khoảng trắng và cách đọc token trong SpEL
+  - Dấu chấm phẩy, dấu ngoặc và cấu trúc lồng nhau
+  - Toán tử truy cập property và method
+  - Biểu thức lồng trong biểu thức lớn
+  - Thứ tự phân tích cú pháp và nhóm bằng dấu ngoặc
+  - Phân biệt văn bản nguyên bản với phần được SpEL đánh giá
+- level1: Literal
+  level2:
+  - Literal null, Boolean, số nguyên và số thực
+  - Literal số thập phân và các kiểu số được suy ra
+  - Literal chuỗi và ký tự đặc biệt
+  - Literal số mũ và giá trị lớn
+  - Literal mảng, list và map
+  - Literal inline collection và kiểu phần tử
+  - Literal không thay đổi với dữ liệu đầu vào
+  - Kiểm tra kiểu runtime của giá trị literal
+- level1: Toán tử số học
+  level2:
+  - Phép cộng, trừ, nhân và chia
+  - Phép chia lấy dư và số mũ
+  - Thứ tự ưu tiên của các toán tử số học
+  - Chuyển đổi kiểu khi hai toán hạng khác nhau
+  - Số nguyên, số thực và kết quả phép tính
+  - Phép toán với null và trường hợp biểu thức lỗi
+  - Giới hạn độ chính xác và khả năng tràn số
+  - Dùng ngoặc để làm rõ ý định của biểu thức số học
+- level1: Toán tử so sánh
+  level2:
+  - Phép bằng và khác trong SpEL
+  - So sánh lớn hơn, nhỏ hơn và các biến thể có bằng
+  - Semantics so sánh null với giá trị khác
+  - So sánh chuỗi, số và các kiểu có thể chuyển đổi
+  - Phân biệt so sánh giá trị với so sánh identity
+  - Toán tử instanceof và kiểm tra kiểu
+  - Toán tử matches với biểu thức chính quy
+  - Toán tử between và cách diễn đạt khoảng giá trị
+- level1: Toán tử logic
+  level2:
+  - AND, OR và NOT trong SpEL
+  - Dạng ký hiệu chữ và dạng ký hiệu toán tử logic
+  - Thứ tự ưu tiên giữa NOT, AND và OR
+  - Short-circuit và ảnh hưởng đến mục tiêu ở vế sau
+  - Biểu thức Boolean có giá trị null
+  - Phân nhóm điều kiện dài bằng dấu ngoặc
+  - Tránh lặp điều kiện và điều kiện phủ định khó đọc
+  - Kiểm tra bảng chân trị của biểu thức logic
+- level1: Toán tử gán
+  level2:
+  - Gán giá trị trong một expression
+  - Toán tử gán và tác dụng phụ lên object đích
+  - Gán property đơn và property lồng nhau
+  - Điều kiện để property có thể ghi
+  - Phân biệt gán trong SpEL với bind dữ liệu của framework
+  - Nguy cơ làm thay đổi trạng thái qua biểu thức
+  - Giới hạn gán trong SimpleEvaluationContext
+  - Chỉ cho phép gán khi hợp đồng ngữ cảnh xác nhận rõ
+- level1: Toán tử điều kiện
+  level2:
+  - Toán tử ba ngôi và nhánh đúng hoặc sai
+  - Toán tử Elvis cho giá trị mặc định
+  - Khác biệt giữa Elvis và điều kiện ba ngôi đầy đủ
+  - Elvis với chuỗi rỗng, null và giá trị false
+  - Lồng toán tử điều kiện và cách giữ khả năng đọc
+  - Phân biệt giá trị mặc định với xử lý lỗi
+  - Kiểm thử tất cả nhánh của biểu thức điều kiện
+  - Chuyển điều kiện phức tạp về mã Java khi biểu thức mất rõ ràng
+- level1: Truy cập property
+  level2:
+  - Truy cập property qua getter theo JavaBean convention
+  - Truy cập field và các property được expose
+  - Property lồng nhau bằng chuỗi dấu chấm
+  - Property của root object và object trung gian
+  - Property không tồn tại và lỗi đánh giá
+  - Property null giữa đường dẫn truy cập
+  - Null-safe navigation bằng toán tử ?.
+  - Indexer null-safe ?.[] và các dạng null-safe liên quan
+  - Kiểm soát property được truy cập qua PropertyAccessor
+- level1: Gọi method
+  level2:
+  - Gọi method không tham số và có tham số
+  - Method overload và lựa chọn chữ ký phù hợp
+  - Truyền literal, property và expression làm đối số
+  - Varargs và chuyển đổi đối số
+  - Method trên root object, property object và collection
+  - Gọi method tĩnh qua type reference
+  - Method không tồn tại hoặc không thể truy cập
+  - MethodResolver và cách giới hạn method được phép gọi
+  - Rủi ro tác dụng phụ khi gọi method từ biểu thức
+- level1: Indexer
+  level2:
+  - Indexer trên mảng và list
+  - Indexer trên map theo key
+  - Indexer trên string và chuỗi ký tự
+  - Indexer trên object có accessor tương ứng
+  - Biểu thức chỉ số và giá trị được tính động
+  - Chỉ số âm, chỉ số vượt giới hạn và lỗi đánh giá
+  - Indexer cho collection có thể null
+  - Null-safe collection selection và index access
+  - Chọn indexer hay property theo mô hình dữ liệu
+- level1: Mảng và collection inline
+  level2:
+  - Tạo mảng inline trong SpEL
+  - Tạo list inline và danh sách lồng nhau
+  - Tạo map inline với key và value
+  - List và map rỗng
+  - Kiểu phần tử của inline collection
+  - Collection literal cố định và biểu thức động
+  - Inline list được tối ưu thành constant collection khi có thể
+  - Truy cập phần tử sau khi tạo collection
+  - Giới hạn kích thước và dữ liệu do người dùng cung cấp
+- level1: Selection collection
+  level2:
+  - Collection selection .?[selectionExpression]
+  - 'Lọc phần tử theo điều kiện trên #this'
+  - 'Biến #this trong ngữ cảnh selection'
+  - Selection trả về list kết quả
+  - First selection .^[] và last selection .$[]
+  - Phân biệt selection thường với first hoặc last selection
+  - Selection trên list, map và collection khác nhau
+  - Null-safe selection ?.[]
+  - Chi phí duyệt collection và kiểm soát dữ liệu lớn
+- level1: Projection collection
+  level2:
+  - Collection projection .![projectionExpression]
+  - 'Biến #this trong projection'
+  - Chuyển collection object thành collection giá trị
+  - Projection trên property lồng nhau
+  - Projection kết hợp với selection
+  - Projection trên map và hình dạng kết quả
+  - Null-safe projection ?.!
+  - Phân biệt projection với mapping trong mã Java
+  - Giữ kiểu kết quả và thứ tự phần tử sau projection
+- level1: Collection operations
+  level2:
+  - Kết hợp selection và projection trong một biểu thức
+  - Truy cập size, empty và các thuộc tính collection
+  - Truy vấn phần tử đầu, cuối và phần tử thỏa điều kiện
+  - Collection lồng nhau và nhiều tầng xử lý
+  - Thao tác với map entry, key và value
+  - Giữ thứ tự khi lọc và chiếu collection
+  - Phân biệt collection mutable với kết quả chỉ đọc
+  - Tránh biểu thức collection quá dài và khó kiểm thử
+- level1: Bean reference
+  level2:
+  - Tham chiếu bean bằng @beanName
+  - Tham chiếu bean trong ApplicationContext
+  - BeanFactoryResolver và cơ chế phân giải bean
+  - Bean name có ký tự đặc biệt và cú pháp tham chiếu
+  - Gọi method trên bean được tham chiếu
+  - Truy cập property của bean Spring
+  - Tham chiếu bean trong annotation và cấu hình
+  - Không expose bean ngoài phạm vi biểu thức cần thiết
+  - Rủi ro khi expression có quyền gọi bean tùy ý
+- level1: Type reference
+  level2:
+  - Toán tử T(Type) trong SpEL
+  - Tham chiếu java.lang tự động
+  - Tham chiếu kiểu đầy đủ package
+  - Gọi method static qua type reference
+  - Truy cập hằng static
+  - Toán tử instanceof kết hợp với type reference
+  - TypeLocator và package import
+  - Giới hạn type được phép tham chiếu
+  - Rủi ro thực thi code khi cho phép type tùy ý
+- level1: Constructor
+  level2:
+  - Toán tử new trong SpEL
+  - Khởi tạo kiểu bằng tên đầy đủ
+  - Khởi tạo object với constructor arguments
+  - Khởi tạo mảng và kiểu collection
+  - ConstructorResolver và việc chọn constructor
+  - Kiểu không có constructor phù hợp
+  - Giới hạn constructor trong SimpleEvaluationContext
+  - Không dùng new thay cho việc kiểm soát dependency
+  - Đánh giá rủi ro khi expression tạo object hoặc tài nguyên
+- level1: Variables
+  level2:
+  - Khai báo và đọc biến trong EvaluationContext
+  - 'setVariable và cú pháp #variable'
+  - Biến có giá trị null
+  - Biến dùng chung giữa nhiều phần của expression
+  - Biến trong selection và projection
+  - Biến truyền từ context của ứng dụng
+  - Phân biệt biến SpEL với property của root object
+  - Quản lý vòng đời và khả năng thay đổi của biến
+  - Không đưa dữ liệu bí mật vào context nếu biểu thức không cần
+- level1: Root và this
+  level2:
+  - Root object trong StandardEvaluationContext
+  - '#root và object gốc của phép đánh giá'
+  - '#this và object hiện tại trong scope'
+  - Thay đổi active context object trong collection expression
+  - Root object với property và method resolution
+  - 'Tránh nhầm #this với #root'
+  - Root object null và chiến lược xử lý
+  - Thiết kế root object nhỏ theo mục tiêu biểu thức
+  - Kiểm thử expression với root object giả lập
+- level1: Functions
+  level2:
+  - Đăng ký hàm Java vào EvaluationContext
+  - Method static dùng làm function
+  - 'Cú pháp gọi function bằng #functionName'
+  - Truyền tham số cho function
+  - Function kết hợp với biến và collection
+  - Kiểm soát danh sách function được expose
+  - Khác biệt giữa function và method của root object
+  - Chữ ký function, chuyển đổi kiểu và lỗi đánh giá
+  - Tránh function có tác dụng phụ hoặc truy cập tài nguyên ngoài ý muốn
+- level1: Type conversion
+  level2:
+  - TypeConverter trong quá trình đánh giá
+  - ConversionService và tích hợp chuyển đổi kiểu của Spring
+  - Chuyển chuỗi thành số, Boolean và enum
+  - Chuyển collection hoặc map theo yêu cầu kiểu
+  - Chuyển đổi khi gán property
+  - Custom converter và phạm vi áp dụng
+  - Conversion error và thông tin chẩn đoán
+  - Phân biệt conversion với validation
+  - Giới hạn implicit conversion để tránh kết quả bất ngờ
+- level1: EvaluationContext
+  level2:
+  - StandardEvaluationContext và khả năng mở rộng
+  - SimpleEvaluationContext và bề mặt an toàn hơn
+  - Root object, variables và bean resolver trong context
+  - Đăng ký PropertyAccessor, MethodResolver và ConstructorResolver
+  - TypeLocator, TypeConverter và operator overloader
+  - Read-only và read-write data binding
+  - Xây context theo từng use case thay vì dùng context toàn quyền
+  - Tái sử dụng context và nguy cơ state bị giữ lại
+  - Kiểm tra quyền truy cập trước khi đưa expression vào runtime
+- level1: Data binding
+  level2:
+  - SpEL trong binding property của object
+  - Read-only data binding và dữ liệu nguồn
+  - Read-write data binding và cập nhật object
+  - DataBinder và vai trò của SpEL trong quá trình bind
+  - Nested path và property accessor
+  - Auto-grow nested paths và collection
+  - Lỗi bind, conversion và validation cần tách biệt
+  - Giới hạn property được phép ghi
+  - Kiểm thử binding với dữ liệu thiếu, null và sai kiểu
+- level1: Template expression
+  level2:
+  - Phân biệt expression thuần với template expression
+  - ParserContext và delimiter của template
+  - Trộn văn bản cố định với biểu thức động
+  - Chuỗi kết quả khi có nhiều đoạn expression
+  - Template không có expression và hành vi tương ứng
+  - Escape delimiter và văn bản chứa ký hiệu đặc biệt
+  - SpEL template trong message, annotation và cấu hình
+  - Kiểm soát dữ liệu được chèn vào chuỗi kết quả
+  - Không nhầm SpEL template với Thymeleaf hoặc JSP EL
+- level1: Spring annotation
+  level2:
+  - SpEL trong @Value
+  - SpEL trong điều kiện cấu hình và thuộc tính bean
+  - SpEL trong @Cacheable, @CachePut và @CacheEvict
+  - SpEL trong @PreAuthorize và các annotation bảo mật
+  - SpEL trong @EventListener condition
+  - SpEL trong @Scheduled và giá trị cấu hình
+  - SpEL trong test annotation và kiểm tra context
+  - Method parameter names và metadata phục vụ expression
+  - Xác định EvaluationContext do từng module Spring cung cấp
+- level1: Bean definition
+  level2:
+  - SpEL trong XML bean definition
+  - SpEL trong thuộc tính constructor và property
+  - SpEL trong Java configuration
+  - SpEL trong @Bean method và giá trị khởi tạo
+  - Tham chiếu bean trong cấu hình
+  - Thứ tự khởi tạo bean và expression evaluation
+  - Vòng phụ thuộc khi expression tham chiếu bean khác
+  - Đọc cấu hình từ environment và system property
+  - Giới hạn expression trong cấu hình để giữ hệ thống dễ hiểu
+- level1: Compiler
+  level2:
+  - SpEL expression compiler là gì
+  - Interpreter mode, immediate mode và mixed mode
+  - ParserConfiguration và compiler mode
+  - Điều kiện để expression có thể biên dịch
+  - Expression không hỗ trợ compiler và fallback
+  - Hiệu năng warm-up và chi phí biên dịch
+  - Thay đổi kiểu runtime ảnh hưởng compiled expression
+  - Đo đạc trước khi bật compiler
+  - Kiểm thử tương đương giữa interpreted và compiled expression
+- level1: Security
+  level2:
+  - Đe dọa khi đánh giá expression từ dữ liệu không tin cậy
+  - Phân biệt expression authored bởi nhà phát triển với expression do người dùng nhập
+  - Giới hạn root object, property accessor và resolver
+  - Chặn type reference, constructor và method nguy hiểm
+  - Không expose ApplicationContext toàn bộ cho expression
+  - SimpleEvaluationContext như một lựa chọn giới hạn quyền
+  - Kiểm tra độ dài, cú pháp và tài nguyên của expression
+  - Không dùng parse thành công làm bằng chứng an toàn
+  - Thiết kế allowlist và kiểm thử các trường hợp vượt quyền
+- level1: Error handling
+  level2:
+  - ParseException và lỗi cú pháp
+  - EvaluationException và lỗi trong lúc đánh giá
+  - AccessException từ accessor hoặc resolver
+  - Lỗi property, method, constructor và conversion
+  - Thông tin vị trí trong expression bị lỗi
+  - Phân biệt lỗi cấu hình với lỗi dữ liệu runtime
+  - Giữ nguyên nguyên nhân khi bọc lỗi ở tầng Spring
+  - Thông báo lỗi không làm lộ dữ liệu nhạy cảm
+  - Thiết kế fallback rõ ràng thay vì nuốt lỗi expression
+- level1: Testing
+  level2:
+  - Kiểm thử expression độc lập với ApplicationContext lớn
+  - Kiểm thử parser với expression hợp lệ và không hợp lệ
+  - Kiểm thử root object và variables
+  - Kiểm thử bean reference bằng context tối thiểu
+  - Kiểm thử selection, projection và null-safe navigation
+  - Kiểm thử conversion, binding và lỗi kiểu
+  - Kiểm thử cả nhánh điều kiện và trường hợp collection rỗng
+  - Kiểm thử expression dùng trong annotation của Spring
+  - Đối chiếu kết quả SpEL với logic Java tham chiếu
+  - Kiểm thử giới hạn quyền và expression không tin cậy
+- level1: Debugging
+  level2:
+  - Đọc expression string và expression tree khi chẩn đoán lỗi
+  - Xác định active object tại điểm truy cập lỗi
+  - Kiểm tra tên biến, bean và function đã đăng ký
+  - Khoanh vùng property path dài bằng expression nhỏ hơn
+  - Kiểm tra kiểu runtime trước khi chọn toán tử
+  - Phân tích lỗi do resolver hoặc converter
+  - Phân biệt lỗi parse với lỗi evaluation
+  - Thu nhỏ context để phát hiện quyền truy cập dư thừa
+  - Chẩn đoán khác biệt giữa môi trường test và runtime
+- level1: Hiệu năng
+  level2:
+  - Chi phí parse expression và thời điểm tạo parser
+  - Tái sử dụng parsed Expression khi biểu thức lặp lại
+  - Chi phí evaluation context và object graph
+  - Chi phí selection, projection và method invocation
+  - Ảnh hưởng của conversion và resolver tùy biến
+  - Expression compiler và tiêu chí đo hiệu quả
+  - Giới hạn kích thước expression và dữ liệu đầu vào
+  - Cache expression theo nguồn và vòng đời cấu hình
+  - Đo độ trễ, cấp phát và thông lượng trước khi tối ưu
+- level1: Thiết kế biểu thức
+  level2:
+  - Giữ expression ngắn và tập trung vào một quyết định
+  - Đặt tên biến và root property để biểu thức tự giải thích
+  - Tách logic nghiệp vụ lớn khỏi SpEL
+  - Chọn method Java thay cho chuỗi expression khó đọc
+  - Không che giấu tác dụng phụ trong expression
+  - Chuẩn hóa cách viết expression giữa các module
+  - Ghi tài liệu về context, bean và biến mà expression cần
+  - Quản lý expression như mã nguồn có phiên bản và review
+  - Thiết kế điểm thay thế khi biểu thức không còn phù hợp
+- level1: Thực hành tổng hợp
+  level2:
+  - Đánh giá property của root object và xử lý null-safe
+  - Lọc và chiếu danh sách object bằng selection và projection
+  - Tham chiếu bean để tính giá trị cấu hình có kiểm soát
+  - Xây expression điều kiện với Elvis và toán tử ba ngôi
+  - Dùng variable và function trong một EvaluationContext tối thiểu
+  - Bind dữ liệu chuỗi vào object qua conversion và validation
+  - Tích hợp SpEL vào @Value hoặc annotation cache
+  - Đo interpreted expression và compiled expression trên cùng dữ liệu
+  - Thiết kế allowlist cho expression do người dùng cung cấp
+  - 'Hồ sơ hoàn chỉnh: cú pháp, context, kiểm thử, bảo mật và hiệu năng'

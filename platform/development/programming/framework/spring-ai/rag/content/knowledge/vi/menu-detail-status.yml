@@ -1,0 +1,2467 @@
+menu:
+- slug: orientation
+  title: Định hướng
+  childs:
+  - slug: orientation-001
+    title: RAG là gì và giải quyết hạn chế nào của mô hình ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-002
+    title: Phân biệt kiến thức trong trọng số với dữ liệu được truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-003
+    title: 'Các khái niệm: tài liệu, đoạn văn, embedding, retriever và ngữ cảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-004
+    title: Luồng tổng thể từ câu hỏi đến câu trả lời có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-005
+    title: So sánh RAG với prompt dài, fine-tuning, bộ nhớ hội thoại và tool calling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-006
+    title: Khi nào RAG phù hợp và khi nào truy vấn dữ liệu có cấu trúc hiệu quả hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-007
+    title: 'Giới hạn của RAG: có tài liệu liên quan chưa bảo đảm câu trả lời đúng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-008
+    title: Kiến thức nền và trình tự học từ ví dụ tối thiểu đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rag-architecture
+  title: Kiến trúc RAG
+  childs:
+  - slug: rag-architecture-001
+    title: Nhánh chuẩn bị dữ liệu và nhánh xử lý câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-architecture-002
+    title: Tách thu thập, biến đổi, lập chỉ mục và truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-architecture-003
+    title: Từ câu hỏi qua truy xuất, bổ sung ngữ cảnh đến sinh câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-architecture-004
+    title: Vai trò của ChatClient, ChatModel, EmbeddingModel và VectorStore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-architecture-005
+    title: Advisor chain và vị trí chèn các bước RAG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-architecture-006
+    title: Phân biệt RAG cơ bản, RAG nâng cao và RAG mô đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-architecture-007
+    title: Ranh giới giữa mã nghiệp vụ, pipeline RAG và hạ tầng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-architecture-008
+    title: Phân loại lỗi do dữ liệu, truy xuất, ngữ cảnh hoặc bước sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Chuẩn bị môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Quản lý phiên bản bằng Spring AI BOM trong Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Chọn chat model, embedding model và kho vector phù hợp thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Phụ thuộc cho QuestionAnswerAdvisor và RetrievalAugmentationAdvisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Cấu hình thông tin xác thực, endpoint và profile bên ngoài mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Chuẩn bị bộ tài liệu nhỏ cùng câu hỏi có đáp án kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Chạy kho vector và dịch vụ mô hình cục bộ hoặc từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Kiểm tra kết nối từng thành phần trước khi ghép pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-model
+  title: Mô hình Document
+  childs:
+  - slug: document-model-001
+    title: Document và vai trò của nội dung, ID, metadata cùng điểm truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-002
+    title: Phân biệt tài liệu gốc với các đoạn được đưa vào chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-003
+    title: Thiết kế sourceId, chunkId và liên kết ngược về tài liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-004
+    title: Metadata cho tiêu đề, URL, số trang và vị trí mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-005
+    title: Metadata cho phiên bản, ngôn ngữ, thời điểm hiệu lực và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-006
+    title: Metadata cho tenant, nhóm quyền và phạm vi được truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-007
+    title: Giữ kiểu dữ liệu metadata phù hợp với bộ lọc của backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-008
+    title: Nội dung đưa vào embedding khác nội dung đưa vào prompt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-model-009
+    title: Chuẩn hóa định dạng Document giữa reader, transformer và retriever
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-ingestion
+  title: Thu thập tài liệu
+  childs:
+  - slug: document-ingestion-001
+    title: DocumentReader, DocumentTransformer và DocumentWriter trong ETL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-002
+    title: Đọc văn bản và quản lý charset, Unicode cùng dấu tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-003
+    title: Đọc Markdown và bảo toàn tiêu đề, đoạn mã cùng cấu trúc mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-004
+    title: Đọc PDF theo trang và xử lý header, footer hoặc thứ tự văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-005
+    title: Đọc HTML bằng selector để loại menu và nội dung không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-006
+    title: Tích hợp Tika hoặc reader chuyên biệt theo loại tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-007
+    title: Khi cần OCR cho tài liệu quét và cách kiểm tra kết quả trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-008
+    title: Xử lý bảng, đoạn mã và hình ảnh chứa thông tin cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-ingestion-009
+    title: Giới hạn kích thước, nguồn truy cập và tài liệu không đọc được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-chunking
+  title: Chia nhỏ tài liệu
+  childs:
+  - slug: document-chunking-001
+    title: Vì sao cần chia đoạn cho embedding và cửa sổ ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-002
+    title: Token khác ký tự và ảnh hưởng của ngôn ngữ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-003
+    title: Cấu hình TokenTextSplitter và kiểm tra kết quả chia đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-004
+    title: Chọn kích thước đoạn theo cấu trúc nội dung và nhu cầu truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-005
+    title: Giữ ranh giới câu, đoạn, tiêu đề, bảng và khối mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-006
+    title: Thiết kế đoạn chồng lấn và đánh đổi trùng lặp ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-007
+    title: Giữ metadata nguồn khi tách một tài liệu thành nhiều đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-008
+    title: Bổ sung tiêu đề hoặc đường dẫn mục để đoạn có đủ ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-009
+    title: Xử lý đoạn quá ngắn, quá dài hoặc chỉ chứa nội dung lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-010
+    title: Đánh giá chia đoạn bằng câu hỏi kiểm chứng thay vì chỉ đếm token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rag-embeddings
+  title: Embedding cho RAG
+  childs:
+  - slug: rag-embeddings-001
+    title: Vai trò của embedding tài liệu và embedding câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-embeddings-002
+    title: Dùng mô hình và cấu hình embedding nhất quán giữa lập chỉ mục và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-embeddings-003
+    title: Số chiều giống nhau chưa đủ để bảo đảm cùng không gian biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-embeddings-004
+    title: Chọn mô hình theo ngôn ngữ và loại nội dung cần tìm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-embeddings-005
+    title: Giới hạn độ dài đầu vào, batch và điều tiết tốc độ tạo embedding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-embeddings-006
+    title: Tác động của chuẩn hóa văn bản và metadata được đưa vào embedding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-embeddings-007
+    title: Thay mô hình embedding và kế hoạch tái lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexing
+  title: Lập chỉ mục
+  childs:
+  - slug: indexing-001
+    title: Nối reader, transformer và VectorStore thành pipeline ETL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-002
+    title: Ghi theo batch và kiểm tra số tài liệu đã được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-003
+    title: Tạo ID ổn định để nạp lại không sinh bản trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-004
+    title: Ngữ nghĩa thêm, cập nhật và upsert theo backend được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-005
+    title: Phát hiện tài liệu mới, sửa đổi hoặc bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-006
+    title: Xóa đoạn cũ trước hoặc trong quá trình thay phiên bản tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-007
+    title: Ghi nhận hash nội dung, phiên bản splitter và embedding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-008
+    title: Khôi phục sau lỗi giữa batch và khả năng chạy tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-009
+    title: Tách quyền ghi chỉ mục khỏi quyền truy xuất khi phục vụ câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vector-retrieval
+  title: Truy xuất vector
+  childs:
+  - slug: vector-retrieval-001
+    title: VectorStore.similaritySearch và SearchRequest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-002
+    title: topK và giới hạn số đoạn được trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-003
+    title: similarityThreshold và cách hiệu chỉnh theo dữ liệu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-004
+    title: Độ tương đồng khác xác suất câu trả lời đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-005
+    title: Khoảng cách, độ tương đồng và khác biệt điểm số giữa backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-006
+    title: Lọc metadata bằng biểu thức chuỗi hoặc Filter.Expression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-007
+    title: Kết hợp bộ lọc ngôn ngữ, phiên bản và phạm vi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-008
+    title: Truy xuất có điều kiện trước khi chọn topK và hỗ trợ của từng backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-009
+    title: Phân biệt không có kết quả với lỗi kết nối kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-retrieval-010
+    title: Kiểm tra trực tiếp đoạn truy xuất trước khi gọi mô hình sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: questionansweradvisor
+  title: QuestionAnswerAdvisor
+  childs:
+  - slug: questionansweradvisor-001
+    title: Thiết lập RAG cơ bản từ VectorStore đã có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-002
+    title: Xây QuestionAnswerAdvisor và gắn vào ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-003
+    title: Cấu hình SearchRequest cho topK, ngưỡng và bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-004
+    title: Bộ lọc động theo yêu cầu qua tham số advisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-005
+    title: Điểm chèn tài liệu truy xuất vào nội dung câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-006
+    title: Tùy chỉnh PromptTemplate của advisor đúng placeholder theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-007
+    title: Phân biệt template của advisor với TemplateRenderer của ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-008
+    title: Lấy tài liệu đã truy xuất từ ngữ cảnh hoặc metadata phản hồi theo API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: questionansweradvisor-009
+    title: Giới hạn của pipeline cơ bản và thời điểm chuyển sang RAG mô đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rag-mo-dun
+  title: RAG mô đun
+  childs:
+  - slug: rag-mo-dun-001
+    title: Vai trò của RetrievalAugmentationAdvisor và phụ thuộc spring-ai-rag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-002
+    title: Mô hình Query gồm nội dung, lịch sử và context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-003
+    title: Luồng pre-retrieval, retrieval, post-retrieval và generation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-004
+    title: Cấu hình VectorStoreDocumentRetriever cho pipeline tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-005
+    title: Kết hợp nhiều QueryTransformer theo thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-006
+    title: Chèn QueryExpander, DocumentJoiner và DocumentPostProcessor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-007
+    title: Vai trò của QueryAugmenter trong chuẩn bị prompt cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-008
+    title: Truyền cấu hình theo yêu cầu mà không chia sẻ trạng thái người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-mo-dun-009
+    title: Kiểm chứng từng mô đun độc lập trước khi chạy toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-transformation
+  title: Biến đổi truy vấn
+  childs:
+  - slug: query-transformation-001
+    title: Giữ nguyên mục đích câu hỏi khi chuẩn hóa đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-002
+    title: RewriteQueryTransformer cho câu hỏi dài, mơ hồ hoặc nhiều nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-003
+    title: CompressionQueryTransformer tạo câu hỏi độc lập từ lịch sử hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-004
+    title: TranslationQueryTransformer cho ngôn ngữ khác mô hình embedding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-005
+    title: Chọn thứ tự viết lại, nén hội thoại và dịch câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-006
+    title: Tùy chỉnh prompt của transformer và kiểm soát đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-007
+    title: Dùng ChatClient riêng cho biến đổi để tránh gọi RAG đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-008
+    title: Giới hạn độ dài, số lần gọi và độ trễ biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-transformation-009
+    title: So sánh truy xuất từ câu hỏi gốc với câu hỏi đã biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-expansion
+  title: Mở rộng truy vấn
+  childs:
+  - slug: query-expansion-001
+    title: QueryExpander và mục đích tìm thêm cách diễn đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-expansion-002
+    title: MultiQueryExpander và số lượng truy vấn được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-expansion-003
+    title: Giữ hoặc loại truy vấn gốc theo mục tiêu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-expansion-004
+    title: Phân tách câu hỏi nhiều ý thành truy vấn thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-expansion-005
+    title: Giữ phạm vi quyền và metadata trên mọi truy vấn mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-expansion-006
+    title: Giới hạn thực thi song song và số lượt truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-expansion-007
+    title: Loại truy vấn trùng hoặc làm sai lệch ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-expansion-008
+    title: Đánh đổi tăng độ bao phủ với chi phí và nhiễu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retrieval-sources
+  title: Nguồn truy xuất
+  childs:
+  - slug: retrieval-sources-001
+    title: Hợp đồng DocumentRetriever và thiết kế retriever tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-sources-002
+    title: VectorStoreDocumentRetriever với ngưỡng, topK và filter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-sources-003
+    title: Bộ lọc của retriever so với bộ lọc truyền theo từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-sources-004
+    title: Truy xuất từ công cụ tìm kiếm từ khóa hoặc chỉ mục toàn văn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-sources-005
+    title: Truy xuất lai theo khả năng backend và adapter tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-sources-006
+    title: Kết hợp nhiều kho hoặc nhiều tập tài liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-sources-007
+    title: Ánh xạ kết quả nguồn ngoài thành Document có nguồn gốc rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-sources-008
+    title: Giới hạn thời gian, số kết quả và lỗi từng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-merging
+  title: Ghép kết quả
+  childs:
+  - slug: result-merging-001
+    title: Vai trò của DocumentJoiner sau nhiều truy vấn hoặc nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-merging-002
+    title: ConcatenationDocumentJoiner và hành vi giữ kết quả trùng đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-merging-003
+    title: Định nghĩa tài liệu trùng theo ID hoặc nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-merging-004
+    title: Điểm số giữ nguyên và vấn đề so sánh khác thang đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-merging-005
+    title: Hợp nhất theo thứ hạng với chiến lược tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-merging-006
+    title: Giới hạn số đoạn mỗi nguồn để tránh một nguồn lấn át
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-merging-007
+    title: Bảo toàn nguồn gốc và quyền truy cập sau khi ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ranking-refinement
+  title: Xếp hạng và tinh lọc
+  childs:
+  - slug: ranking-refinement-001
+    title: DocumentPostProcessor và vị trí hậu xử lý truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-002
+    title: Phân biệt tìm ứng viên với xếp hạng lại theo câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-003
+    title: Tích hợp mô hình reranker qua post-processor phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-004
+    title: Loại đoạn không liên quan và đoạn nội dung lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-005
+    title: Nén nội dung có điều kiện mà giữ nguyên dữ kiện cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-006
+    title: Cân bằng mức liên quan với sự đa dạng thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-007
+    title: Lấy đoạn cha hoặc đoạn lân cận để khôi phục ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-008
+    title: Thứ tự tài liệu và hiện tượng bỏ sót thông tin ở giữa ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranking-refinement-009
+    title: Đánh giá lợi ích xếp hạng lại so với chi phí và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-enrichment
+  title: Bổ sung ngữ cảnh
+  childs:
+  - slug: context-enrichment-001
+    title: ContextualQueryAugmenter và cách kết hợp câu hỏi với tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-002
+    title: PromptTemplate cho câu hỏi và các đoạn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-003
+    title: Phân tách chỉ dẫn hệ thống khỏi nội dung tài liệu không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-004
+    title: Định dạng ranh giới tài liệu, mã nguồn và metadata nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-005
+    title: Ngân sách token cho chỉ dẫn, lịch sử, tài liệu và đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-006
+    title: Chọn, cắt hoặc nén tài liệu khi vượt ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-007
+    title: allowEmptyContext và chính sách khi không có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-008
+    title: Tùy chỉnh emptyContextPromptTemplate cho phản hồi thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-009
+    title: Xử lý tài liệu mâu thuẫn, cũ hoặc khác phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-enrichment-010
+    title: Kiểm tra prompt cuối mà không ghi lộ nội dung nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: answer-generation
+  title: Sinh câu trả lời
+  childs:
+  - slug: answer-generation-001
+    title: Chỉ dẫn trả lời dựa trên bằng chứng và nêu giới hạn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-002
+    title: Chọn mô hình sinh độc lập với mô hình embedding và viết lại truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-003
+    title: Điều chỉnh tùy chọn mô hình theo khả năng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-004
+    title: Trả lời có cấu trúc và kiểm tra schema kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-005
+    title: Phân biệt call() với stream() trong luồng RAG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-006
+    title: Thời gian truy xuất trước token đầu tiên trong phản hồi streaming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-007
+    title: Hủy yêu cầu và giới hạn thời gian cho từng công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-008
+    title: Từ chối kết luận khi bằng chứng không đủ hoặc không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-generation-009
+    title: Kiểm tra đầu ra sau sinh mà vẫn giữ nguyên ý nghĩa bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-citations
+  title: Dẫn nguồn
+  childs:
+  - slug: source-citations-001
+    title: Liên kết câu trả lời với Document thực sự đã truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-citations-002
+    title: Thiết kế mã trích dẫn ổn định trong từng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-citations-003
+    title: Ánh xạ mã nguồn về tiêu đề, URL, trang hoặc mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-citations-004
+    title: Kiểm tra nguồn được dẫn có tồn tại trong tập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-citations-005
+    title: Phân biệt dẫn nguồn đúng với khẳng định được nguồn hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-citations-006
+    title: Xử lý nguồn trùng, tài liệu nhiều trang và phiên bản khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-citations-007
+    title: Không cho mô hình tự tạo URL hoặc metadata nguồn không có trong dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-citations-008
+    title: Thiết kế phản hồi gồm nội dung, nguồn và trạng thái thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conversational-rag
+  title: RAG hội thoại
+  childs:
+  - slug: conversational-rag-001
+    title: Câu hỏi tiếp nối và nhu cầu giải quyết đại từ hoặc ý bị lược bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversational-rag-002
+    title: Phân biệt lịch sử hội thoại với kho tri thức dùng để truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversational-rag-003
+    title: Đưa lịch sử cần thiết vào Query cho bước nén hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversational-rag-004
+    title: Phối hợp thứ tự memory advisor với RAG advisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversational-rag-005
+    title: Giới hạn lịch sử và tránh truy xuất bằng toàn bộ cuộc hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversational-rag-006
+    title: Giữ conversationId và phạm vi tenant độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversational-rag-007
+    title: Thay đổi chủ đề và xử lý ngữ cảnh cũ không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversational-rag-008
+    title: Kiểm thử nhiều lượt hỏi cùng nguồn và chuyển nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-rag-patterns
+  title: Mẫu RAG nâng cao
+  childs:
+  - slug: advanced-rag-patterns-001
+    title: Truy xuất nhiều tầng theo tiêu đề, mục rồi đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-rag-patterns-002
+    title: Chiến lược parent-child và khôi phục đoạn bằng chứng chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-rag-patterns-003
+    title: HyDE như một bước tạo truy vấn trung gian tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-rag-patterns-004
+    title: Định tuyến câu hỏi tới nguồn dữ liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-rag-patterns-005
+    title: Truy xuất lặp khi bằng chứng ban đầu chưa đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-rag-patterns-006
+    title: Graph RAG và giới hạn của retriever vector thuần túy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-rag-patterns-007
+    title: Agentic RAG qua công cụ truy xuất với giới hạn số vòng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-rag-patterns-008
+    title: Phân biệt mô đun Spring AI có sẵn với chiến lược cần tự triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retrieval-evaluation
+  title: Đánh giá truy xuất
+  childs:
+  - slug: retrieval-evaluation-001
+    title: Xây tập câu hỏi có đoạn bằng chứng và nguồn kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-evaluation-002
+    title: Phân biệt độ bao phủ tài liệu với chất lượng câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-evaluation-003
+    title: Precision@K, Recall@K và ý nghĩa trên tập đã gán nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-evaluation-004
+    title: Đánh giá thứ hạng bằng MRR hoặc nDCG khi dữ liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-evaluation-005
+    title: So sánh splitter, embedding, topK và ngưỡng trên cùng tập câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-evaluation-006
+    title: Phân nhóm kết quả theo ngôn ngữ, loại câu hỏi và độ mới tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-evaluation-007
+    title: Đo ảnh hưởng của rewrite, multi-query, hybrid search và reranker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-evaluation-008
+    title: Giữ tập kiểm chứng riêng và tránh điều chỉnh chỉ để khớp bộ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: answer-evaluation
+  title: Đánh giá câu trả lời
+  childs:
+  - slug: answer-evaluation-001
+    title: Phân biệt liên quan, đầy đủ, đúng dữ kiện và có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-evaluation-002
+    title: Evaluator, EvaluationRequest và EvaluationResponse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-evaluation-003
+    title: RelevancyEvaluator trong kiểm chứng luồng RAG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-evaluation-004
+    title: FactCheckingEvaluator và phạm vi đối chiếu với bằng chứng được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-evaluation-005
+    title: Đánh giá dẫn nguồn, phản hồi thiếu dữ liệu và tài liệu mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-evaluation-006
+    title: Giới hạn của LLM làm giám khảo và nhu cầu kiểm tra bởi con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-evaluation-007
+    title: Đặt tiêu chí đạt cùng phiên bản prompt đánh giá rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: answer-evaluation-008
+    title: Cân bằng chất lượng, độ trễ và chi phí khi so sánh cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử reader với tài liệu có cấu trúc và lỗi mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử splitter bảo toàn nội dung, metadata và liên kết nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử nạp lại, cập nhật và xóa tài liệu không để đoạn cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử retriever giả lập với tập Document xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử filter bắt buộc và cô lập dữ liệu nhiều tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử chuỗi transformer, expander, joiner và post-processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử prompt, ngân sách token và trường hợp ngữ cảnh rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử nguồn dẫn và đầu ra có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử tích hợp với kho vector thật bằng Testcontainers khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tách kiểm thử xác định khỏi đánh giá mô hình và theo dõi hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Phân quyền tài liệu ngay ở bước thu thập và truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Lấy tenant và quyền từ danh tính đã xác minh phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Kết hợp bộ lọc bắt buộc với bộ lọc động để tránh ghi đè phạm vi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Ngăn prompt injection gián tiếp từ nội dung tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: Không cho chỉ dẫn trong tài liệu kích hoạt công cụ hoặc thay đổi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: Lọc dữ liệu cá nhân và bí mật trước khi gửi tới nhà cung cấp mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Bảo vệ nguồn tải tài liệu trước SSRF và tệp độc hại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Cô lập cache, lịch sử và bộ nhớ hội thoại theo phạm vi truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Xóa tài liệu, thu hồi quyền và vô hiệu dữ liệu còn trong cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-010
+    title: Kiểm thử truy xuất trái quyền và rò rỉ qua câu trả lời hoặc log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-cost
+  title: Hiệu năng và chi phí
+  childs:
+  - slug: performance-cost-001
+    title: Phân rã độ trễ thành embedding, truy xuất, rerank và sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-002
+    title: Tính số lượt gọi mô hình do rewrite và multi-query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-003
+    title: Điều chỉnh topK, kích thước đoạn và token ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-004
+    title: Batch embedding, giới hạn song song và xử lý giới hạn tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-005
+    title: Cache embedding, kết quả truy xuất và câu trả lời đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-006
+    title: Khóa cache gắn với quyền, nguồn dữ liệu và phiên bản pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-007
+    title: Giới hạn thời gian toàn luồng cùng retry cho lỗi tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-008
+    title: Đánh đổi mô hình cục bộ với dịch vụ từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-009
+    title: Đo tải và chi phí trên bộ câu hỏi đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-observability
+  title: Quan sát pipeline
+  childs:
+  - slug: pipeline-observability-001
+    title: Theo dõi ChatClient, advisor, EmbeddingModel, ChatModel và VectorStore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-observability-002
+    title: Liên kết trace giữa câu hỏi, bước truy xuất và phản hồi cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-observability-003
+    title: Ghi nhận số đoạn ứng viên, đoạn được chọn và trường hợp rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-observability-004
+    title: Theo dõi điểm truy xuất và tỷ lệ dẫn nguồn hợp lệ theo tập kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-observability-005
+    title: Ghi nhận phiên bản mô hình, chỉ mục, prompt và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-observability-006
+    title: Đo token, độ trễ từng công đoạn và lỗi nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-observability-007
+    title: Che câu hỏi, tài liệu và phản hồi nhạy cảm trong log hoặc trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-observability-008
+    title: Cảnh báo suy giảm truy xuất, lỗi nạp dữ liệu và tăng chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Tách tiến trình nạp dữ liệu khỏi đường phục vụ câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Quản lý lịch cập nhật và mức độ mới của kho tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Phát hành chỉ mục mới rồi chuyển lưu lượng có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Thay embedding, splitter hoặc metadata schema theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Theo dõi tài liệu lỗi, hàng đợi xử lý lại và khả năng chạy tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Sao lưu nguồn tài liệu, metadata và cấu hình tái lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Phương án khi kho vector, reranker hoặc mô hình sinh mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Quay lại phiên bản pipeline và đối chiếu chất lượng sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Tài liệu hóa quyền truy cập, vòng đời dữ liệu và quy trình xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Tài liệu đã nạp nhưng truy xuất không thấy đoạn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Sai mô hình embedding, số chiều hoặc cấu hình chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Chia đoạn làm mất quan hệ giữa tiêu đề và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Ngưỡng quá cao, topK quá nhỏ hoặc bộ lọc sai kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Rewrite hoặc dịch câu hỏi làm lệch ý định ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Multi-query trả nhiều đoạn trùng và tăng nhiễu ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Prompt thiếu placeholder hoặc template của advisor không được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Vượt cửa sổ ngữ cảnh hoặc mất bằng chứng khi cắt token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Câu trả lời bịa dữ kiện hoặc dẫn nguồn không hỗ trợ kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Dữ liệu cũ còn tồn tại sau cập nhật, xóa hoặc thu hồi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Vòng gọi đệ quy, sai thứ tự advisor hoặc trộn lịch sử hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Độ trễ cao, lỗi giới hạn tốc độ và chi phí tăng bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Dựng RAG tối thiểu cho một bộ tài liệu Markdown có nguồn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Nạp PDF nhiều trang và trả câu trả lời dẫn đúng trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: So sánh QuestionAnswerAdvisor với RetrievalAugmentationAdvisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thử các chiến lược chia đoạn trên cùng tập câu hỏi kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Kết hợp rewrite, multi-query và reranker rồi đo tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Xử lý câu hỏi tiếp nối bằng lịch sử hội thoại có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Cô lập hai tenant và kiểm thử quyền truy xuất bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Kiểm thử ngữ cảnh rỗng, tài liệu mâu thuẫn và prompt injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Cập nhật hoặc xóa tài liệu rồi xác minh chỉ mục cùng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Phát hành thử pipeline với báo cáo chất lượng, độ trễ và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

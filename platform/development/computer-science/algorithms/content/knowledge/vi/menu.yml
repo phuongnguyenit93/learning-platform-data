@@ -1,0 +1,586 @@
+menu:
+- level1: Bản đồ thuật toán
+  level2:
+  - Thuật toán là gì và quan hệ với bài toán, chương trình, dữ liệu
+  - Đầu vào, đầu ra, bước xử lý và điều kiện kết thúc
+  - Bài toán quyết định, tìm kiếm, liệt kê, đếm và tối ưu
+  - Từ ví dụ cụ thể đến quy tắc giải tổng quát
+  - Vai trò của biểu diễn dữ liệu trong thiết kế lời giải
+  - Tính đúng, hiệu quả và giới hạn tài nguyên
+  - Các họ kỹ thuật thiết kế và cách nhận diện
+  - Phân biệt thuật toán, cấu trúc dữ liệu và phân tích thuật toán
+  - Lộ trình từ lời giải trực tiếp đến lựa chọn giải pháp phù hợp
+- level1: Mô hình và đặc tả
+  level2:
+  - Chuyển yêu cầu thành hợp đồng đầu vào–đầu ra
+  - Tiền điều kiện, hậu điều kiện và các trường hợp không hợp lệ
+  - Miền giá trị, kích thước đầu vào và ràng buộc tài nguyên
+  - Mô hình hóa trạng thái và các phép chuyển
+  - Lời giải khả thi, hàm mục tiêu và tiêu chí tối ưu
+  - Phân biệt một lời giải bất kỳ với tất cả lời giải
+  - Đặc tả thứ tự, tính duy nhất và cách xử lý kết quả bằng nhau
+  - Giả mã và cách diễn đạt độc lập với ngôn ngữ lập trình
+  - Tách mô hình toán học khỏi cách lưu trữ trên máy
+  - Xây dựng lời giải vét cạn làm mốc đối chiếu
+  - Chọn ví dụ nhỏ, phản ví dụ và trường hợp biên
+- level1: Tính đúng và chi phí
+  level2:
+  - Bất biến vòng lặp và chứng minh từng bước xử lý
+  - Quy nạp theo kích thước đầu vào và cấu trúc lời giải
+  - Chứng minh kết thúc bằng đại lượng giảm
+  - Chứng minh tính đầy đủ và tránh sinh trùng kết quả
+  - Chứng minh tối ưu bằng cận và đối chiếu lời giải
+  - Phân biệt đúng bộ phận với đúng toàn phần
+  - Mô hình chi phí và phép toán cơ bản
+  - Thời gian, bộ nhớ phụ và chi phí lưu kết quả
+  - Ký hiệu O, Ω, Θ trong mô tả một thuật toán
+  - Trường hợp tốt nhất, xấu nhất, trung bình và kỳ vọng
+  - Chi phí khấu hao và chuỗi thao tác
+  - Phân biệt cận lý thuyết với số đo trên một bộ dữ liệu
+- level1: Cấu trúc hỗ trợ
+  level2:
+  - Lựa chọn cấu trúc theo thao tác thuật toán cần thực hiện
+  - Mảng, danh sách và đánh đổi khi truy cập, thêm, xóa
+  - Ngăn xếp cho trạng thái xử lý chưa hoàn tất
+  - Hàng đợi và hàng đợi hai đầu trong duyệt dữ liệu
+  - Bảng băm, tập hợp và ánh xạ để tra cứu
+  - Cây tìm kiếm có thứ tự và truy vấn theo miền giá trị
+  - Heap và hàng đợi ưu tiên để chọn phần tử tốt nhất
+  - Tập hợp rời nhau (DSU) và thao tác hợp nhất
+  - Bitset và biểu diễn tập bằng các bit
+  - Biểu diễn đồ thị theo danh sách kề hoặc ma trận
+  - Trie và cấu trúc chỉ mục cho tiền tố
+  - Tính bất biến, quyền sửa dữ liệu và ảnh hưởng đến lời giải
+- level1: Xử lý dãy
+  level2:
+  - Duyệt một lần với trạng thái tích lũy
+  - Theo dõi cực trị, tần suất và các thống kê đơn giản
+  - Tổng tiền tố và truy vấn tổng đoạn
+  - Tổng tiền tố nhiều chiều
+  - Mảng hiệu và cập nhật hàng loạt trên đoạn
+  - Hai con trỏ cùng chiều và ngược chiều
+  - Cửa sổ trượt có độ dài cố định
+  - Cửa sổ trượt có độ dài thay đổi và điều kiện đơn điệu
+  - Ngăn xếp đơn điệu và phần tử gần nhất thỏa điều kiện
+  - Hàng đợi đơn điệu và cực trị trong cửa sổ
+  - Phân hoạch dãy và gom nhóm tại chỗ
+  - Trộn các dãy đã có thứ tự
+  - Chọn ứng viên chiếm đa số bằng Boyer–Moore và bước xác minh
+- level1: Tìm kiếm
+  level2:
+  - Tìm kiếm tuyến tính và điều kiện dừng sớm
+  - Tìm kiếm trên dữ liệu có thứ tự và không có thứ tự
+  - Tìm kiếm nhị phân với bất biến khoảng
+  - Khoảng đóng, nửa mở và cách cập nhật hai biên
+  - Tìm vị trí xuất hiện đầu tiên và cuối cùng
+  - Cận dưới (lower bound) và cận trên (upper bound)
+  - Tìm vị trí chèn và xử lý phần tử trùng
+  - Tìm kiếm theo vị từ đơn điệu
+  - Tìm kiếm nhị phân trên giá trị đáp án
+  - Tìm miền tìm kiếm bằng tăng gấp đôi
+  - Tìm kiếm trong dãy xoay có thứ tự và các giả thiết áp dụng
+  - Tìm kiếm trên ma trận có cấu trúc thứ tự
+  - Tránh tràn khi tính trung điểm và lỗi lệch một đơn vị
+- level1: Sắp xếp so sánh
+  level2:
+  - Khóa sắp xếp, bộ so sánh và yêu cầu thứ tự nhất quán
+  - Tính ổn định, tại chỗ và khả năng thích nghi
+  - Sắp xếp chọn (selection sort)
+  - Sắp xếp chèn (insertion sort)
+  - Sắp xếp nổi bọt và điều kiện dừng sớm
+  - Shell sort và vai trò của dãy bước nhảy
+  - Sắp xếp trộn (merge sort)
+  - Quicksort và các cách phân hoạch
+  - Phân hoạch ba phía khi có nhiều khóa trùng
+  - Heapsort và lựa chọn phần tử qua heap
+  - Introsort và cách kết hợp nhiều chiến lược
+  - Natural merge sort, Timsort và khai thác các đoạn đã có thứ tự
+  - Sắp xếp nhiều khóa và xử lý phần tử bằng nhau
+  - Lựa chọn thuật toán theo dữ liệu, bộ nhớ và yêu cầu ổn định
+- level1: Sắp xếp phân phối
+  level2:
+  - Khai thác cấu trúc khóa để vượt khỏi mô hình chỉ so sánh
+  - Counting sort và miền khóa nguyên hữu hạn
+  - Tính ổn định trong cách xây dựng kết quả counting sort
+  - Radix sort từ chữ số thấp đến cao
+  - Radix sort từ chữ số cao đến thấp
+  - Lựa chọn cơ số và số lượt phân phối
+  - Bucket sort và giả thiết về phân bố dữ liệu
+  - Xử lý số âm, độ dài khóa và thứ tự ký tự
+  - Chi phí bộ nhớ và dữ liệu có miền giá trị rất lớn
+  - Chọn giữa sắp xếp phân phối và sắp xếp so sánh
+- level1: Chọn và thứ tự
+  level2:
+  - Tìm nhỏ nhất, lớn nhất và đồng thời cả hai
+  - Bài toán phần tử nhỏ thứ k và quy ước đánh số
+  - Quickselect và việc chỉ tiếp tục trên một phần phân hoạch
+  - Chọn pivot ngẫu nhiên và bảo đảm theo kỳ vọng
+  - Median of medians và lựa chọn pivot có bảo đảm
+  - Chọn top-k bằng heap kích thước giới hạn
+  - Chọn top-k bằng phân hoạch và sắp xếp phần cần trả
+  - Trung vị, phân vị và kết quả khi có nhiều giá trị bằng nhau
+  - Trộn nhiều dãy có thứ tự bằng hàng đợi ưu tiên
+  - So sánh nhu cầu chọn một phần với sắp xếp toàn bộ
+- level1: Chia để trị
+  level2:
+  - Nhận diện bài toán con, bước chia và bước kết hợp
+  - Điều kiện cơ sở và bảo đảm kích thước giảm
+  - Các bài toán con độc lập và các bài toán con chồng lặp
+  - Thiết kế giá trị trả về để kết hợp đủ thông tin
+  - Đếm nghịch thế bằng phép trộn
+  - Tìm đoạn con có tổng lớn nhất bằng chia để trị
+  - Tìm phần tử chiếm đa số bằng cách kết hợp ứng viên
+  - Lựa chọn cách chia cân bằng và ảnh hưởng của lệch kích thước
+  - Biểu diễn chi phí bằng quan hệ truy hồi
+  - Giảm chi phí kết hợp và tái sử dụng vùng nhớ
+  - Chuyển một số lời giải đệ quy sang xử lý bằng ngăn xếp
+- level1: Biến đổi và tiền xử lý
+  level2:
+  - Biến bài toán về một bài toán đã biết cách giải
+  - Sắp xếp trước để đơn giản hóa các bước xử lý
+  - Nén tọa độ và bảo toàn quan hệ thứ tự
+  - Lập chỉ mục bằng băm để giảm tra cứu lặp lại
+  - Tiền xử lý một lần cho nhiều truy vấn
+  - Lưu kết quả trung gian và đánh đổi thời gian–bộ nhớ
+  - Tách dữ liệu tĩnh khỏi dữ liệu thay đổi
+  - Xử lý sự kiện theo thứ tự và quy tắc khi cùng thời điểm
+  - Biến đổi khoảng, miền giá trị và cấu trúc đầu vào
+  - Dấu vân tay dữ liệu, va chạm băm và bước xác minh
+  - Đánh giá khi chi phí tiền xử lý không đáng với số truy vấn
+- level1: Tham lam
+  level2:
+  - Lựa chọn cục bộ và yêu cầu tối ưu toàn cục
+  - Tính lựa chọn tham lam và cấu trúc con tối ưu
+  - Chứng minh bằng phép trao đổi
+  - Chứng minh bằng duy trì lợi thế qua từng bước
+  - Lập lịch chọn nhiều khoảng không giao nhau nhất
+  - Phân phòng cho các khoảng thời gian chồng lấn
+  - Lập lịch để giảm độ trễ lớn nhất
+  - Bài toán ba lô phân số và giới hạn của lựa chọn theo tỷ lệ
+  - Đổi tiền tham lam và phản ví dụ trên hệ mệnh giá
+  - Trộn tối ưu và mã Huffman
+  - Lựa chọn tham lam trên matroid và các điều kiện áp dụng
+  - Phân biệt có chứng minh tối ưu với kinh nghiệm chọn tốt
+- level1: Quy hoạch động
+  level2:
+  - Bài toán con chồng lặp và cấu trúc con tối ưu
+  - Xác định trạng thái chứa đủ thông tin cho tương lai
+  - Thiết kế quan hệ chuyển và điều kiện cơ sở
+  - Ghi nhớ kết quả theo hướng từ trên xuống
+  - Lập bảng theo hướng từ dưới lên
+  - Chọn thứ tự tính theo quan hệ phụ thuộc
+  - Trạng thái không thể đạt và giá trị khởi tạo
+  - Bài toán tồn tại, đếm, cực tiểu và cực đại
+  - Truy vết để khôi phục một lời giải
+  - Đếm số lời giải tối ưu và xử lý trường hợp bằng nhau
+  - Rút gọn chiều lưu trữ và điều kiện giữ đúng dữ liệu
+  - Phân tích số trạng thái cùng chi phí mỗi chuyển
+  - Kiểm tra trạng thái thừa, thiếu và phụ thuộc tạo chu trình
+- level1: Quy hoạch động dãy
+  level2:
+  - Dãy con tăng dài nhất và phiên bản không giảm
+  - Tối ưu dãy con tăng bằng tìm kiếm nhị phân
+  - Dãy con chung dài nhất và cách truy vết
+  - Khoảng cách chỉnh sửa giữa hai chuỗi
+  - Đoạn con chung dài nhất và phân biệt với dãy con
+  - Dãy con đối xứng dài nhất
+  - Đếm cách tạo một dãy con đích
+  - Tách chuỗi theo từ điển
+  - Đan xen hai chuỗi để tạo chuỗi đích
+  - Khớp chuỗi với ký tự đại diện và ngữ nghĩa mẫu
+  - Đường đi trên bảng với các trạng thái bị chặn
+  - Thiết kế trạng thái theo phần tử cuối và trạng thái trước đó
+- level1: Quy hoạch động tài nguyên
+  level2:
+  - Ba lô 0/1 và lựa chọn lấy hoặc bỏ
+  - Ba lô không giới hạn và thứ tự cập nhật
+  - Ba lô có số lượng giới hạn
+  - Đổi tiền với mục tiêu ít đồng nhất
+  - Đếm tổ hợp và đếm thứ tự chọn tiền
+  - Tổng tập con và phép nén trạng thái bằng bitset
+  - Phân hoạch tập theo tổng hoặc độ chênh lệch
+  - Trạng thái theo sức chứa và trạng thái theo tổng giá trị
+  - Nhiều tài nguyên và sự gia tăng số chiều
+  - Kiểm soát giới hạn bộ nhớ và lưu vết khi tối ưu bảng
+- level1: Quy hoạch động cấu trúc
+  level2:
+  - Quy hoạch động trên đồ thị có hướng không chu trình
+  - Quy hoạch động trên cây với trạng thái ở gốc cây con
+  - Đổi gốc để tính kết quả cho mọi đỉnh
+  - Quy hoạch động trên đoạn và lựa chọn điểm tách
+  - Nhân chuỗi ma trận với chi phí nhỏ nhất
+  - Cây tìm kiếm nhị phân tối ưu
+  - Mã hóa tập trạng thái bằng mặt nạ bit
+  - Bài toán người du lịch trên tập đỉnh nhỏ
+  - Quy hoạch động theo chữ số và ràng buộc tiền tố
+  - Quy hoạch động theo biên trên bảng hẹp
+  - Tách trạng thái cấu trúc khỏi trạng thái tài nguyên
+  - Truy vết khi một bước chuyển ghép nhiều bài toán con
+- level1: Tối ưu quy hoạch động
+  level2:
+  - Loại bỏ trạng thái tương đương và trạng thái bị trội
+  - Tổng tiền tố để gom các phép chuyển theo đoạn
+  - Hàng đợi đơn điệu để tối ưu cửa sổ chuyển
+  - Tách nhóm số lượng trong ba lô giới hạn
+  - Dùng biểu thức đại số để tách phần phụ thuộc từng chỉ số
+  - Chia để trị tối ưu khi vị trí tối ưu có tính đơn điệu
+  - Tối ưu Knuth và các điều kiện bắt buộc
+  - Convex hull trick cho các phép chuyển tuyến tính
+  - Cây Li Chao và miền truy vấn của các đường thẳng
+  - Tìm kiếm hệ số phạt và điều kiện đơn điệu của lời giải
+  - Kiểm tra giả thiết tối ưu hóa bằng phản ví dụ và lời giải gốc
+- level1: Quay lui
+  level2:
+  - Cây tìm kiếm và biểu diễn một lời giải đang xây dựng
+  - Sinh lựa chọn, kiểm tra hợp lệ và hoàn tác trạng thái
+  - Liệt kê tập con, tổ hợp và hoán vị
+  - Tránh kết quả trùng khi đầu vào có phần tử lặp
+  - Chọn thứ tự biến và thứ tự thử giá trị
+  - Kiểm tra ràng buộc sớm để cắt nhánh
+  - Bài toán N quân hậu
+  - Tô màu đồ thị bằng số màu giới hạn
+  - Điền bảng theo ràng buộc và bài toán Sudoku
+  - Tìm từ hoặc đường đi trên lưới
+  - Loại bỏ các trạng thái đối xứng
+  - Ghi nhớ trạng thái thất bại và giới hạn sử dụng
+  - Phân biệt liệt kê đầy đủ với dừng sau lời giải đầu tiên
+- level1: Nhánh và cận
+  level2:
+  - Lời giải khả thi hiện có và cận cho nhánh chưa xét
+  - Cận dưới, cận trên và chiều tối ưu
+  - Xây dựng cận bằng nới lỏng ràng buộc
+  - Chọn nhánh theo chiều sâu, chiều rộng hoặc cận tốt nhất
+  - Cập nhật lời giải tốt nhất và điều kiện loại nhánh
+  - Nhánh và cận cho bài toán ba lô 0/1
+  - Nhánh và cận cho bài toán người du lịch
+  - Ảnh hưởng của thứ tự duyệt và độ chặt của cận
+  - Chứng minh không loại bỏ lời giải tối ưu
+  - Phân biệt nhánh và cận với quay lui kiểm tra tính hợp lệ
+- level1: Duyệt đồ thị
+  level2:
+  - Khởi tạo trạng thái và duyệt mọi thành phần
+  - Duyệt theo chiều rộng (BFS)
+  - Duyệt theo chiều sâu (DFS)
+  - DFS đệ quy và DFS dùng ngăn xếp
+  - Thời điểm đánh dấu đã thăm và tránh đưa đỉnh vào nhiều lần
+  - Cây duyệt, đỉnh cha và khôi phục đường đi
+  - BFS nhiều nguồn
+  - Khoảng cách theo số cạnh trên đồ thị không trọng số
+  - Kiểm tra tính hai phía bằng tô màu
+  - Phát hiện chu trình trong đồ thị vô hướng
+  - Phát hiện chu trình trong đồ thị có hướng
+  - Thời điểm vào, ra và phân loại cạnh DFS
+  - Duyệt lưới và đồ thị được sinh ngầm
+- level1: Cấu trúc đồ thị
+  level2:
+  - Sắp xếp tô-pô bằng bậc vào
+  - Sắp xếp tô-pô bằng thứ tự kết thúc DFS
+  - Phát hiện trường hợp không có thứ tự tô-pô
+  - Thành phần liên thông mạnh và đồ thị thu gọn
+  - Thuật toán Kosaraju
+  - Thuật toán Tarjan cho thành phần liên thông mạnh
+  - Giá trị low-link trong xác định điểm khớp và cạnh cầu
+  - Các thành phần song liên thông
+  - Tìm đường đi Euler bằng thuật toán Hierholzer
+  - Điều kiện bậc và liên thông trước khi dựng đường đi Euler
+  - Dùng cấu trúc đồ thị để thu nhỏ bài toán
+  - Giải 2-SAT qua đồ thị suy diễn và thành phần liên thông mạnh
+- level1: Đường đi ngắn nhất
+  level2:
+  - Phép nới lỏng cạnh và điều kiện duy trì khoảng cách
+  - Đường đi ngắn nhất trên đồ thị có hướng không chu trình
+  - Thuật toán Dijkstra và giả thiết trọng số không âm
+  - Dijkstra với hàng đợi ưu tiên và bản ghi đã lỗi thời
+  - Thuật toán Bellman–Ford
+  - Phát hiện chu trình âm có thể đạt từ nguồn
+  - Phân biệt không có đường đi với không có khoảng cách hữu hạn
+  - Thuật toán Floyd–Warshall và thứ tự vòng lặp
+  - Thuật toán Johnson và phép đổi trọng số
+  - 0–1 BFS cho trọng số bằng không hoặc một
+  - Truy vấn nhiều nguồn, nhiều đích và toàn bộ các cặp
+  - Khôi phục đường đi và xử lý nhiều lời giải bằng nhau
+  - Đường đi dài nhất trên đồ thị có hướng không chu trình
+  - Kiểm soát tràn số, giá trị vô cực và sai số trọng số
+- level1: Cây khung
+  level2:
+  - Cây khung nhỏ nhất, rừng khung và điều kiện liên thông
+  - Tính chất lát cắt và cạnh an toàn
+  - Tính chất chu trình và cạnh có thể loại bỏ
+  - Thuật toán Kruskal với DSU
+  - Thuật toán Prim với các cách chọn cạnh
+  - Thuật toán Borůvka và hợp nhất theo thành phần
+  - Trọng số âm, cạnh trùng và nhiều cạnh cùng trọng số
+  - Tính duy nhất và nhiều cây khung tối ưu
+  - Cây khung lớn nhất và thay đổi tiêu chí lựa chọn
+  - Thay cạnh để tìm cây khung khác tốt nhất và xử lý trọng số bằng nhau
+  - Lựa chọn thuật toán theo mật độ đồ thị và bộ nhớ
+- level1: Thuật toán trên cây
+  level2:
+  - Gốc hóa cây và xử lý theo thứ tự trước, sau
+  - Kích thước cây con, độ sâu và khoảng cách từ gốc
+  - Duyệt Euler để chuyển cây con thành một đoạn
+  - Tổ tiên nhảy bậc bằng binary lifting
+  - Tổ tiên chung thấp nhất (LCA)
+  - LCA qua duyệt Euler và truy vấn cực tiểu
+  - Khoảng cách và tổng trọng số trên đường đi
+  - Tìm đường kính cây với giả thiết trọng số phù hợp
+  - Tâm cây, trọng tâm và các tiêu chí cân bằng
+  - Phân rã trọng tâm cho truy vấn theo khoảng cách
+  - Phân rã nặng–nhẹ (HLD) cho truy vấn trên đường đi
+  - Gộp thông tin cây con và kỹ thuật giữ dữ liệu nhánh lớn
+  - Dựng cây ảo từ một tập đỉnh cần xử lý
+- level1: Luồng mạng
+  level2:
+  - Mạng luồng, sức chứa và điều kiện bảo toàn
+  - Mạng dư, cạnh ngược và đường tăng luồng
+  - Định lý luồng cực đại–lát cắt cực tiểu
+  - Phương pháp Ford–Fulkerson và ảnh hưởng của cách chọn đường
+  - Thuật toán Edmonds–Karp
+  - Thuật toán Dinic với đồ thị mức và luồng chặn
+  - Phương pháp đẩy–đổi nhãn (push–relabel)
+  - Khôi phục lát cắt từ mạng dư sau khi tìm luồng cực đại
+  - Nhiều nguồn, nhiều đích và mô hình nút nguồn–đích phụ
+  - Ràng buộc sức chứa trên đỉnh và kỹ thuật tách đỉnh
+  - Luồng có cận dưới và bài toán tuần hoàn
+  - Luồng chi phí nhỏ nhất với các đường tăng
+  - Thế năng và đổi trọng số trong bài toán luồng chi phí
+  - Kiểm tra tính khả thi, giá trị luồng và chi phí kết quả
+- level1: Ghép cặp và phân công
+  level2:
+  - Ghép cặp cực đại theo bao hàm và ghép cặp có kích thước lớn nhất
+  - Đường tăng và điều kiện cải thiện ghép cặp
+  - Ghép cặp hai phía bằng tìm đường tăng
+  - Thuật toán Hopcroft–Karp
+  - Chuyển bài toán ghép cặp hai phía thành luồng mạng
+  - Phủ đỉnh nhỏ nhất trong đồ thị hai phía từ ghép cặp
+  - Ghép cặp trọng số và bài toán phân công
+  - Thuật toán Hungarian
+  - Ghép cặp trên đồ thị tổng quát và ý tưởng co blossom
+  - Mô hình hóa điều kiện một–một, giới hạn năng lực và cặp bị cấm
+- level1: Tìm kiếm trạng thái
+  level2:
+  - Mô hình trạng thái, hành động và chi phí chuyển
+  - Biểu diễn trạng thái và kiểm tra đã gặp
+  - Tìm kiếm theo chiều rộng khi mọi bước có cùng chi phí
+  - Tìm kiếm sâu dần (iterative deepening)
+  - Tìm kiếm chi phí đều và quan hệ với Dijkstra
+  - Hàm ước lượng (heuristic) và cận cho chi phí còn lại
+  - A* với heuristic chấp nhận được và nhất quán
+  - Mở lại trạng thái và điều kiện dừng của A*
+  - IDA* và đánh đổi giữa bộ nhớ với duyệt lặp
+  - Tìm kiếm hai chiều và điều kiện ghép hai phía
+  - Tìm kiếm theo chùm (beam search) và giới hạn bảo đảm
+  - Tìm đường trên lưới với chướng ngại và luật di chuyển
+- level1: Tìm kiếm chuỗi
+  level2:
+  - Chuỗi, mẫu, bảng chữ cái và đơn vị so khớp
+  - So khớp trực tiếp và các tình huống tốn nhiều phép so sánh
+  - Hàm tiền tố và thuật toán KMP
+  - Hàm Z và cách so khớp bằng chuỗi ghép
+  - Băm cuộn và thuật toán Rabin–Karp
+  - Va chạm băm, nhiều môđun và xác minh kết quả
+  - Boyer–Moore và các quy tắc dịch mẫu
+  - Tìm nhiều mẫu bằng Aho–Corasick
+  - Liên kết thất bại và cách báo nhiều mẫu cùng kết thúc
+  - Đếm lần xuất hiện có chồng lấn hoặc không chồng lấn
+  - Tìm mẫu trên dữ liệu nhận từng phần
+  - Chuẩn hóa Unicode và lựa chọn so khớp theo ký tự hay đơn vị mã
+- level1: Xử lý chuỗi nâng cao
+  level2:
+  - Truy vấn tiền tố và từ điển bằng trie
+  - Mảng hậu tố và thứ tự từ điển của các hậu tố
+  - Dựng mảng hậu tố bằng phương pháp nhân đôi
+  - Mảng LCP và thuật toán Kasai
+  - Truy vấn đoạn chung bằng LCP và cực tiểu trên đoạn
+  - Máy tự động hậu tố (suffix automaton) và biểu diễn các chuỗi con
+  - Đếm chuỗi con phân biệt và số lần xuất hiện
+  - Cây hậu tố và ý tưởng lập chỉ mục chuỗi
+  - Thuật toán Manacher cho các đoạn đối xứng
+  - Phép quay có thứ tự từ điển nhỏ nhất và thuật toán Booth
+  - So sánh chuỗi con bằng chỉ mục và dấu vân tay
+  - Chọn chỉ mục theo số lượng truy vấn và kích thước văn bản
+- level1: Thuật toán số học
+  level2:
+  - Euclid để tìm ước chung lớn nhất
+  - Euclid mở rộng và nghiệm Bézout
+  - Lũy thừa nhanh bằng bình phương liên tiếp
+  - Nhân và lũy thừa theo modulo với kiểm soát tràn
+  - Nghịch đảo modulo và điều kiện tồn tại
+  - Giải hệ đồng dư bằng định lý phần dư Trung Hoa
+  - Sàng Eratosthenes và đánh dấu theo bội
+  - Sàng phân đoạn và xử lý khoảng số lớn
+  - Tiền xử lý ước nguyên tố nhỏ nhất
+  - Phân tích thừa số bằng chia thử
+  - Kiểm tra nguyên tố Miller–Rabin và lựa chọn cơ sở
+  - Phân tích thừa số bằng Pollard rho
+  - Tính tổ hợp theo modulo và giả thiết về môđun
+  - Biểu diễn và xử lý số nguyên vượt độ rộng máy
+- level1: Đa thức và biến đổi
+  level2:
+  - Biểu diễn đa thức và đánh giá bằng sơ đồ Horner
+  - Cộng, nhân đa thức và tích chập trực tiếp
+  - Nhân số lớn bằng chia để trị Karatsuba
+  - Biến đổi Fourier rời rạc và cách nhìn theo giá trị đa thức
+  - FFT bằng chia để trị chẵn–lẻ
+  - Biến đổi ngược và khôi phục hệ số tích
+  - Chọn độ dài, đệm số không và tránh tích chập vòng ngoài ý muốn
+  - NTT và điều kiện của môđun, căn đơn vị
+  - Sai số làm tròn và khôi phục hệ số nguyên
+  - Ứng dụng tích chập vào đếm cặp và phân bố tổng
+- level1: Hình học tính toán
+  level2:
+  - Điểm, vectơ và các phép kiểm tra hình học cơ bản
+  - Tích có hướng và hướng quay của ba điểm
+  - Kiểm tra thẳng hàng, nằm giữa và trên đoạn
+  - Giao nhau của hai đoạn thẳng
+  - Kiểm tra điểm trong đa giác và xử lý điểm trên biên
+  - Tính diện tích đa giác bằng tổng có hướng
+  - Bao lồi bằng Graham scan
+  - Bao lồi bằng chuỗi đơn điệu
+  - Cặp điểm gần nhất bằng chia để trị
+  - Quét mặt phẳng và quản lý sự kiện hình học
+  - Calip quay và đường kính của bao lồi
+  - 'Các trường hợp suy biến: điểm trùng, thẳng hàng, cạnh chồng'
+  - Tính chính xác của phép kiểm tra và lựa chọn số nguyên hay số thực
+  - Kiểm thử hình học bằng đối xứng và phép biến đổi bảo toàn
+- level1: Thuật toán số
+  level2:
+  - Chọn nghiệm gần đúng, độ chính xác và tiêu chí dừng
+  - Chia đôi khoảng để tìm nghiệm với điều kiện phù hợp
+  - Tìm kiếm tam phân trên hàm đơn đỉnh và giới hạn áp dụng
+  - Newton cho phương trình phi tuyến
+  - Giải hệ tuyến tính bằng khử Gauss và chọn phần tử trụ
+  - Phân rã ma trận để giải nhiều hệ liên quan
+  - Phương pháp lặp và kiểm tra hội tụ
+  - Tích phân số bằng quy tắc hình thang và Simpson
+  - Nội suy đa thức và đánh giá sai số
+  - Hạ gradient cho bài toán tối ưu khả vi
+  - Phân biệt sai số phương pháp với sai số dấu phẩy động
+  - Kiểm tra phần dư, độ nhạy và kết quả có vẻ hội tụ sai
+- level1: Ngẫu nhiên hóa
+  level2:
+  - Nguồn ngẫu nhiên và vai trò trong thiết kế thuật toán
+  - Thuật toán Las Vegas và thuật toán Monte Carlo
+  - Phân biệt kỳ vọng thời gian với xác suất sai
+  - Xáo trộn đồng đều bằng Fisher–Yates
+  - Lấy mẫu có hoàn lại và không hoàn lại
+  - Lấy mẫu theo trọng số bằng tổng tiền tố
+  - Ngẫu nhiên hóa việc chọn pivot và phân bố khóa
+  - Thuật toán Karger cho lát cắt nhỏ nhất
+  - Lặp độc lập để tăng xác suất thành công
+  - Chọn seed, tái lập kết quả và nguy cơ phân bố lệch
+  - Phân biệt đầu vào ngẫu nhiên với thuật toán dùng ngẫu nhiên
+  - Kiểm thử phân bố thay vì chỉ kiểm tra một lần chạy
+- level1: Độ khó bài toán
+  level2:
+  - Độ khó của bài toán và chi phí của một thuật toán cụ thể
+  - Đầu vào theo số bit và giới hạn của cách đếm theo giá trị
+  - Thuật toán đa thức, giả đa thức và hàm mũ
+  - Bài toán quyết định, chứng chỉ và kiểm tra lời giải
+  - Phép quy giảm và chiều lập luận về độ khó
+  - P, NP, NP-hard và NP-complete ở mức lựa chọn lời giải
+  - Nhận diện các mô hình như SAT, clique và tập phủ
+  - Thuật toán tham số hóa và giới hạn tìm kiếm theo tham số
+  - Khai thác trường hợp đặc biệt để có lời giải hiệu quả
+  - Lựa chọn giữa chính xác, xấp xỉ và kinh nghiệm khi tài nguyên hạn chế
+- level1: Xấp xỉ và kinh nghiệm
+  level2:
+  - Nghiệm khả thi, giá trị tối ưu và hệ số xấp xỉ
+  - Bảo đảm xấp xỉ cho bài toán cực tiểu và cực đại
+  - Phủ đỉnh bằng các đầu mút của một ghép cặp cực đại
+  - Tập phủ tham lam và ý nghĩa của bảo đảm xấp xỉ
+  - Xấp xỉ người du lịch trong trường hợp thỏa bất đẳng thức tam giác
+  - Co giãn giá trị cho lược đồ xấp xỉ bài toán ba lô
+  - Nới lỏng liên tục và làm tròn lời giải
+  - Tìm kiếm cục bộ và thiết kế lân cận
+  - Ủ mô phỏng (simulated annealing) và lịch giảm nhiệt
+  - Khởi tạo nhiều lần và lựa chọn lời giải tốt nhất
+  - Đối chiếu nghiệm với cận để đánh giá chất lượng
+  - Phân biệt bảo đảm toán học với kết quả thực nghiệm
+- level1: Trực tuyến và luồng
+  level2:
+  - Thuật toán trực tuyến khi chưa biết dữ liệu tương lai
+  - Tỷ số cạnh tranh và lời giải biết trước toàn bộ đầu vào
+  - Bài toán thuê hay mua (ski rental)
+  - Thay trang và các chiến lược lưu đệm
+  - Xử lý một lượt với bộ nhớ giới hạn
+  - Lấy mẫu luồng bằng reservoir sampling
+  - Theo dõi ứng viên chiếm đa số và phần tử xuất hiện thường xuyên
+  - Misra–Gries và bước kiểm chứng tần suất
+  - Count-Min Sketch trên luồng có cập nhật không âm
+  - Bloom filter và xác suất trả lời dương tính giả
+  - Ước lượng số phần tử phân biệt bằng HyperLogLog
+  - Thống kê thứ tự gần đúng và đánh đổi độ chính xác–bộ nhớ
+  - Trạng thái có thể gộp và xử lý dữ liệu theo nhiều phần
+- level1: Truy vấn và ngoại tuyến
+  level2:
+  - Chọn xử lý trực tuyến hay sắp xếp lại truy vấn ngoại tuyến
+  - Tổng tiền tố cho dữ liệu tĩnh và giới hạn khi cập nhật
+  - Truy vấn cập nhật điểm, cập nhật đoạn và truy vấn tổng hợp
+  - Cây Fenwick cho tổng tiền tố và các phép biến đổi truy vấn
+  - Cây đoạn và các điều kiện gộp kết quả
+  - Lan truyền trì hoãn khi cập nhật theo đoạn
+  - Sparse table cho truy vấn tĩnh với phép toán phù hợp
+  - Phân rã căn bậc hai và xử lý theo khối
+  - Thuật toán Mo và chi phí di chuyển hai biên
+  - Quét sự kiện kết hợp nén tọa độ và cấu trúc truy vấn
+  - DSU ngoại tuyến và các truy vấn kết nối
+  - Lưu lịch sử cập nhật bằng cấu trúc bền vững
+  - Kiểm tra ranh giới đoạn, thứ tự sự kiện và trạng thái sau mỗi truy vấn
+- level1: Ngoài bộ nhớ
+  level2:
+  - Mô hình khối dữ liệu và chi phí đọc, ghi
+  - Chọn kích thước lô theo bộ nhớ khả dụng
+  - Sắp xếp trộn ngoài bộ nhớ
+  - Trộn nhiều đường và lựa chọn phần tử bằng heap
+  - Sinh các đoạn có thứ tự ban đầu
+  - Hợp, giao và nối dữ liệu đã sắp xếp
+  - Phân hoạch theo băm khi dữ liệu không vừa bộ nhớ
+  - Chặn khối trong phép xử lý ma trận và dãy
+  - Giảm truy cập ngẫu nhiên và số lượt quét
+  - Quản lý kết quả trung gian và kiểm tra tính đầy đủ
+- level1: Thuật toán song song
+  level2:
+  - Công việc tổng, độ dài đường phụ thuộc và khả năng tăng tốc
+  - Phân chia tác vụ độc lập và phân chia dữ liệu
+  - Phép rút gọn song song và yêu cầu tính kết hợp
+  - Tổng tiền tố song song (parallel scan)
+  - Sắp xếp song song bằng trộn và phân hoạch
+  - Duyệt đồ thị song song và phối hợp trạng thái đã thăm
+  - Cân bằng tải khi các bài toán con có kích thước khác nhau
+  - Chi phí đồng bộ, truyền dữ liệu và tạo tác vụ
+  - Tranh chấp dữ liệu và tính đúng của kết quả
+  - Tính xác định và ảnh hưởng của thứ tự phép toán số thực
+  - Phân biệt mô hình bộ nhớ chung với mô hình phân tán
+  - Chọn ngưỡng xử lý tuần tự thay vì tách thêm tác vụ
+- level1: Cài đặt và kiểm thử
+  level2:
+  - Ánh xạ giả mã sang kiểu dữ liệu và giao diện hàm
+  - Chỉ số, khoảng nửa mở và quy tắc quản lý biên
+  - Tràn số nguyên, giá trị vô cực và tính toán modulo
+  - Sai số số thực và phép so sánh theo yêu cầu bài toán
+  - Trạng thái dùng lại, dữ liệu đầu vào bị sửa và khả năng gọi nhiều lần
+  - Độ sâu đệ quy, ngăn xếp và cách chuyển sang lặp
+  - Truy vết một lần chạy bằng bảng trạng thái
+  - Kiểm thử trường hợp rỗng, nhỏ nhất, lớn nhất và phần tử trùng
+  - Kiểm thử đối kháng với đầu vào đã có thứ tự hoặc mất cân bằng
+  - Đối chiếu lời giải tối ưu với vét cạn trên dữ liệu nhỏ
+  - Kiểm thử tính chất và quan hệ biến đổi bảo toàn đáp án
+  - Sinh dữ liệu có kiểm soát và thu nhỏ phản ví dụ
+  - Đo thời gian, bộ nhớ và tách chi phí chuẩn bị dữ liệu
+  - Ghi rõ giả thiết, bất biến và giới hạn sử dụng của lời giải
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân loại bài toán trước khi chọn kỹ thuật
+  - Từ vét cạn đến tiền xử lý, tham lam hoặc quy hoạch động
+  - Kết hợp tìm kiếm nhị phân trên đáp án với phép kiểm tra khả thi
+  - Kết hợp sắp xếp, hai con trỏ và xử lý theo sự kiện
+  - Lập lịch và phân bổ nguồn lực theo các ràng buộc khác nhau
+  - Mô hình hóa đường đi và chi phí trên mạng
+  - Mô hình hóa phân công bằng ghép cặp hoặc luồng
+  - Tìm kiếm văn bản với một mẫu, nhiều mẫu và nhiều truy vấn
+  - Xử lý bài toán số học với miền giá trị lớn
+  - Lựa chọn giải pháp khi dữ liệu không vừa bộ nhớ
+  - Đánh giá lời giải ngẫu nhiên hoặc gần đúng bằng tiêu chí phù hợp
+  - Hoàn thiện bài giải với chứng minh, phân tích chi phí và kiểm thử
+  - So sánh nhiều lời giải trên cùng hợp đồng đầu vào–đầu ra

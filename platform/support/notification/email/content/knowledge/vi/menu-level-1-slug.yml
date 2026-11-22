@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan email
+  slug: email-overview
+  index: 0
+- title: Luồng chuyển phát
+  slug: delivery-flow
+  index: 1
+- title: Địa chỉ và định danh
+  slug: addresses-identities
+  index: 2
+- title: Giao thức SMTP
+  slug: smtp-protocol
+  index: 3
+- title: MIME và nội dung
+  slug: mime-content
+  index: 4
+- title: HTML cho email
+  slug: html-email
+  index: 5
+- title: Mẫu và ngôn ngữ
+  slug: templates-localization
+  index: 6
+- title: Tệp và hình ảnh
+  slug: attachments-images
+  index: 7
+- title: Xác thực tên miền
+  slug: domain-authentication
+  index: 8
+- title: Khả năng chuyển phát
+  slug: deliverability
+  index: 9
+- title: Kết nối và xác thực
+  slug: smtp-connection-authentication
+  index: 10
+- title: Email với Jakarta Mail
+  slug: jakarta-mail
+  index: 11
+- title: Email với Spring Boot
+  slug: spring-boot-email
+  index: 12
+- title: API gửi email
+  slug: email-sending-api
+  index: 13
+- title: Thiết kế thông báo
+  slug: notification-design
+  index: 14
+- title: Hàng đợi và giao dịch
+  slug: queues-transactions
+  index: 15
+- title: Retry và chống trùng
+  slug: retries-deduplication
+  index: 16
+- title: Phản hồi chuyển phát
+  slug: delivery-feedback
+  index: 17
+- title: Người nhận và tùy chọn
+  slug: recipients-preferences
+  index: 18
+- title: Bảo mật email
+  slug: email-security
+  index: 19
+- title: Hiệu năng gửi thư
+  slug: sending-performance
+  index: 20
+- title: Kiểm thử email
+  slug: email-testing
+  index: 21
+- title: Quan sát và vận hành
+  slug: observability-operations
+  index: 22
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 23
+- title: Dự án thực hành
+  slug: practice-project
+  index: 24

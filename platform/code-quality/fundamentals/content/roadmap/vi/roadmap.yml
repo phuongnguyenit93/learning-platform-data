@@ -1,0 +1,57 @@
+roadmap:
+- id: chat-luong-ma-tieu-chi
+  title: Chất lượng mã & tiêu chí
+  purpose: Hiểu những thuộc tính quyết định mã nguồn có đáng tin cậy, dễ hiểu và dễ thay đổi hay không.
+  objectives:
+  - Phân biệt tính đúng, dễ đọc, dễ bảo trì và an toàn
+  - Xác định tiêu chí chất lượng cho một thay đổi
+  - Giải thích đánh đổi giữa các tiêu chí
+- id: de-doc-nhat-quan
+  title: Dễ đọc & nhất quán
+  purpose: Hình thành thói quen viết mã rõ ý, thống nhất và dễ được đồng đội tiếp nhận.
+  objectives:
+  - Đặt tên biến, hàm và lớp theo mục đích
+  - Nhận diện mã dài dòng hoặc diễn đạt mơ hồ
+  - Áp dụng quy ước format và chú thích hữu ích
+- id: thiet-ke-de-bao-tri
+  title: Thiết kế dễ bảo trì
+  purpose: Tổ chức trách nhiệm và phụ thuộc hợp lý để hạn chế tác động dây chuyền khi sửa mã.
+  objectives:
+  - Nhận diện coupling và cohesion
+  - Tách trách nhiệm trong hàm và module
+  - Đánh giá độ phức tạp của một thiết kế
+- id: tinh-dung-kiem-thu
+  title: Tính đúng & kiểm thử
+  purpose: Biết kiểm chứng hành vi mong đợi và ngăn lỗi cũ tái xuất hiện khi thay đổi mã.
+  objectives:
+  - Viết tình huống kiểm thử thành công và biên
+  - Phân biệt unit test với integration test
+  - Giải thích vai trò của regression test
+- id: code-smell-no-ky-thuat
+  title: Code Smell & nợ kỹ thuật
+  purpose: Nhận ra dấu hiệu gây khó hiểu, khó mở rộng hoặc tăng chi phí phát triển lâu dài.
+  objectives:
+  - Phát hiện trùng lặp, hàm dài và phụ thuộc chặt
+  - Phân biệt code smell với lỗi chức năng
+  - Ưu tiên xử lý nợ kỹ thuật theo rủi ro
+- id: refactoring-an-toan
+  title: Refactoring an toàn
+  purpose: Cải thiện cấu trúc mã theo những bước nhỏ mà vẫn bảo toàn hành vi bên ngoài.
+  objectives:
+  - Chọn kỹ thuật tách hàm, đổi tên hoặc khử lặp
+  - Dùng kiểm thử để xác nhận hành vi không đổi
+  - Thực hiện refactor từng bước có thể kiểm chứng
+- id: review-kiem-tra-tu-dong
+  title: Review & kiểm tra tự động
+  purpose: Phối hợp đánh giá của con người và công cụ để phát hiện vấn đề trước khi tích hợp.
+  objectives:
+  - Lập checklist review về thiết kế và tính đúng
+  - Phân biệt format, lint, static analysis và test
+  - Thiết lập tiêu chí quality gate cơ bản
+- id: do-luong-cai-tien
+  title: Đo lường & cải tiến
+  purpose: Dùng tín hiệu chất lượng và phản hồi để quyết định ưu tiên nâng cấp mã nguồn.
+  objectives:
+  - Theo dõi độ phức tạp, trùng lặp và kết quả kiểm thử
+  - Diễn giải giới hạn của từng chỉ số
+  - Lập kế hoạch cải tiến theo mức độ ảnh hưởng

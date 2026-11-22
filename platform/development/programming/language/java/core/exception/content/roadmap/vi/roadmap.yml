@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-ngoai-le
+  title: Tư duy ngoại lệ
+  purpose: Hiểu ngoại lệ biểu diễn thất bại và làm thay đổi luồng chạy chương trình.
+  objectives:
+  - Phân biệt kết quả bình thường với ngoại lệ
+  - Mô tả quá trình lan truyền qua ngăn xếp lời gọi
+  - Xác định nơi có thể xử lý thất bại
+- id: phan-loai-ngoai-le
+  title: Phân loại ngoại lệ
+  purpose: Nắm hệ thống Throwable để hiểu nghĩa vụ kiểm tra và cách lựa chọn loại lỗi.
+  objectives:
+  - Phân biệt Error, Exception và RuntimeException
+  - Phân biệt checked với unchecked exception
+  - Giải thích yêu cầu của trình biên dịch
+- id: bat-va-xu-ly
+  title: Bắt và xử lý
+  purpose: Dùng try-catch để xử lý ngoại lệ tại nơi có đủ thông tin và khả năng phục hồi.
+  objectives:
+  - Viết try-catch và multi-catch
+  - Sắp xếp catch từ cụ thể đến tổng quát
+  - Chọn phục hồi hoặc tiếp tục lan truyền
+- id: nem-va-khai-bao
+  title: Ném và khai báo
+  purpose: Thiết kế phương thức báo thất bại rõ ràng cho nơi gọi.
+  objectives:
+  - Phân biệt throw với throws
+  - Khai báo ngoại lệ checked và quy tắc khi ghi đè
+  - Giữ nguyên nguyên nhân khi bọc hoặc ném lại
+- id: don-dep-tai-nguyen
+  title: Dọn dẹp tài nguyên
+  purpose: Đảm bảo tài nguyên được giải phóng cả khi chương trình gặp ngoại lệ.
+  objectives:
+  - Giải thích vai trò và giới hạn của finally
+  - Dùng try-with-resources với AutoCloseable
+  - Theo dõi thứ tự đóng và ngoại lệ bị nén
+- id: ngoai-le-tuy-chinh
+  title: Ngoại lệ tùy chỉnh
+  purpose: Biểu diễn thất bại của miền nghiệp vụ bằng kiểu ngoại lệ phù hợp.
+  objectives:
+  - Chọn kế thừa Exception hoặc RuntimeException
+  - Thiết kế thông điệp và nguyên nhân hữu ích
+  - Giữ hợp đồng ngoại lệ nhất quán
+- id: chan-doan-va-chinh-sach
+  title: Chẩn đoán và chính sách
+  purpose: Lần theo nguyên nhân gốc và tránh cách xử lý che giấu lỗi.
+  objectives:
+  - Đọc stack trace và chuỗi nguyên nhân
+  - Tránh nuốt ngoại lệ hoặc bắt quá rộng
+  - Bảo toàn tín hiệu ngắt khi xử lý InterruptedException
+- id: thuc-hanh-kiem-chung
+  title: Thực hành kiểm chứng
+  purpose: Kết hợp báo lỗi, xử lý và dọn dẹp trong một tình huống thực tế.
+  objectives:
+  - Thiết kế luồng thành công và các trường hợp thất bại
+  - Kiểm thử loại ngoại lệ, thông điệp và nguyên nhân
+  - Kiểm chứng đóng tài nguyên và hành vi phục hồi

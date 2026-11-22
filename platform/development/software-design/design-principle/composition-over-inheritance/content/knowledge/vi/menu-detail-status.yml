@@ -1,0 +1,1918 @@
+menu:
+- slug: composition-over-inheritance-foundations
+  title: Nền tảng của nguyên tắc composition over inheritance
+  childs:
+  - slug: composition-over-inheritance-foundations-001
+    title: Ý nghĩa của việc ưu tiên composition khi tái sử dụng và kết hợp hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-over-inheritance-foundations-002
+    title: Phân biệt kế thừa triển khai với kế thừa kiểu trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-over-inheritance-foundations-003
+    title: 'Composition, delegation và forwarding: vai trò và mối liên hệ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-over-inheritance-foundations-004
+    title: So sánh phụ thuộc vào lớp cha với phụ thuộc qua đối tượng cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-over-inheritance-foundations-005
+    title: Tái sử dụng mã, tái sử dụng hợp đồng và khả năng thay thế hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-over-inheritance-foundations-006
+    title: Đánh đổi giữa số lượng lớp, mã ủy quyền và độ linh hoạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-over-inheritance-foundations-007
+    title: Những ngộ nhận về việc loại bỏ hoàn toàn kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-over-inheritance-foundations-008
+    title: Khảo sát một thiết kế Java trước và sau khi chuyển sang composition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-relationship-semantics
+  title: Phân biệt quan hệ is-a, has-a và uses-a
+  childs:
+  - slug: object-relationship-semantics-001
+    title: Kiểm tra quan hệ is-a bằng kỳ vọng hành vi của mã khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-002
+    title: Nhận diện quan hệ has-a khi một đối tượng giữ đối tượng cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-003
+    title: Phân biệt has-a với uses-a qua phụ thuộc tạm thời trong phương thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-004
+    title: Phân biệt composition ở mức thiết kế với composition và aggregation trong UML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-005
+    title: Thể hiện quan hệ qua extends, implements, trường đối tượng và tham số Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-006
+    title: Vì sao giống cấu trúc dữ liệu chưa đủ để xác lập quan hệ kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-007
+    title: Tách vai trò nghiệp vụ khỏi hệ phân cấp phân loại đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-008
+    title: Chọn quan hệ cho các ví dụ tài khoản, chính sách giá và kênh thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-relationship-semantics-009
+    title: Bài tập nhận diện is-a giả và đề xuất quan hệ cộng tác thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-contracts-substitutability
+  title: Hợp đồng kế thừa và khả năng thay thế trong Java
+  childs:
+  - slug: inheritance-contracts-substitutability-001
+    title: Quan hệ subtype, dynamic dispatch và hành vi quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-002
+    title: Nguyên tắc Liskov khi đánh giá một lớp con có thể thay lớp cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-003
+    title: Tiền điều kiện, hậu điều kiện và bất biến trong hợp đồng lớp cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-004
+    title: Ghi đè phương thức và rủi ro thay đổi ý nghĩa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-005
+    title: Phương thức protected và mức độ lộ chi tiết triển khai cho lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-006
+    title: 'Self-use trong lớp cha: phương thức này gọi phương thức có thể ghi đè khác'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-007
+    title: Rủi ro gọi phương thức có thể ghi đè từ constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-008
+    title: Giới hạn của đơn kế thừa lớp và vai trò của implements nhiều interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-substitutability-009
+    title: Phân biệt interface default method với cơ chế kế thừa trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-hierarchy-risks
+  title: Nhận diện rủi ro của hệ phân cấp kế thừa
+  childs:
+  - slug: inheritance-hierarchy-risks-001
+    title: Fragile base class khi lớp cha thay đổi cách triển khai nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-002
+    title: Tổ hợp tính năng làm tăng số lớp con theo nhiều chiều biến thiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-003
+    title: Lớp con phải vô hiệu hóa hành vi được thừa kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-004
+    title: Kế thừa chỉ để dùng một vài phương thức tiện ích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-005
+    title: Phụ thuộc ngầm vào thứ tự gọi hook và trạng thái protected
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-006
+    title: Override gọi super và hợp đồng phối hợp khó kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-007
+    title: Thay đổi lớp cha gây lỗi lan truyền sang các lớp con không liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-008
+    title: Hệ phân cấp sâu làm khó việc truy vết hành vi và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-009
+    title: Chi phí thay đổi khi yêu cầu nghiệp vụ không khớp cây kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-hierarchy-risks-010
+    title: Lập danh sách dấu hiệu cần xem xét chuyển sang composition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: composition-and-delegation-mechanics
+  title: Cơ chế composition, delegation và forwarding trong Java
+  childs:
+  - slug: composition-and-delegation-mechanics-001
+    title: Thiết kế đối tượng chủ và đối tượng nhận ủy quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-002
+    title: Chuyển lời gọi qua trường private thay cho extends
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-003
+    title: Forwarding thuần túy và delegation có bổ sung quyết định hoặc biến đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-004
+    title: Tách lựa chọn hành vi khỏi thực thi hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-005
+    title: Ủy quyền một phần API và xây dựng facade phù hợp với mã khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-006
+    title: Self-call trong delegate và giới hạn can thiệp của wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-007
+    title: Khác biệt về this, danh tính đối tượng và kiểu runtime khi bọc đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-008
+    title: Xử lý phương thức fluent trả về this để tránh làm lộ delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-009
+    title: Tránh vòng ủy quyền, chuỗi chuyển tiếp khó theo dõi và phụ thuộc hai chiều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-and-delegation-mechanics-010
+    title: Bài tập chuyển một lớp kế thừa tiện ích thành lớp dùng đối tượng cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collaborator-interface-design
+  title: Thiết kế interface làm hợp đồng cho đối tượng cộng tác
+  childs:
+  - slug: collaborator-interface-design-001
+    title: Rút interface từ nhu cầu của bên sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-002
+    title: Giữ interface tập trung vào một vai trò và một lý do thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-003
+    title: Thiết kế tham số, giá trị trả về và lỗi theo ý nghĩa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-004
+    title: Diễn đạt bất biến, tác dụng phụ và yêu cầu về thứ tự gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-005
+    title: Áp dụng interface segregation và dependency inversion trong thiết kế composition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-006
+    title: Phân biệt interface miền nghiệp vụ với API của thư viện bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-007
+    title: Sử dụng generic để bảo toàn kiểu khi thay thế implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-008
+    title: Chọn functional interface và lambda cho hành vi đơn phương thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-009
+    title: Nhận diện interface quá tổng quát, interface rỗng và abstraction tạo quá sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaborator-interface-design-010
+    title: Bài tập thiết kế hợp đồng cho chính sách giá, bộ gửi tin và bộ kết xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: component-state-ownership-and-lifecycle
+  title: Trạng thái, quyền sở hữu và vòng đời của thành phần
+  childs:
+  - slug: component-state-ownership-and-lifecycle-001
+    title: Quyền sở hữu tham chiếu khác với quyền sở hữu vòng đời đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-002
+    title: Lựa chọn thành phần riêng cho từng đối tượng hoặc dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-003
+    title: Giữ bất biến của đối tượng chủ khi delegate có trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-004
+    title: Trường final, tính bất biến và giới hạn của final với đối tượng khả biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-005
+    title: Defensive copy và tránh làm lộ trạng thái nội bộ qua getter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-006
+    title: Phân biệt cấu hình hành vi với trạng thái nghiệp vụ thay đổi theo thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-007
+    title: Quy định trách nhiệm mở và đóng thành phần AutoCloseable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-008
+    title: Xử lý thành phần tùy chọn và thiết kế hành vi mặc định rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-009
+    title: Ngăn tham chiếu thoát ra trong quá trình khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-state-ownership-and-lifecycle-010
+    title: Bài tập phân tích lỗi do dùng chung một delegate khả biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-graph-assembly
+  title: Khởi tạo và lắp ghép đồ thị đối tượng
+  childs:
+  - slug: object-graph-assembly-001
+    title: Constructor injection cho phụ thuộc bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-002
+    title: Kiểm tra null và cấu hình không hợp lệ tại ranh giới khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-003
+    title: So sánh truyền phụ thuộc từ ngoài với tự new bên trong lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-004
+    title: Composition root và nơi quyết định implementation cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-005
+    title: Dùng factory để chọn thành phần theo cấu hình hoặc ngữ cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-006
+    title: Dùng builder khi cần lắp nhiều thành phần tùy chọn có ràng buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-007
+    title: Tránh service locator và phụ thuộc ẩn trong mã nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-008
+    title: Quản lý vòng phụ thuộc khi các cộng tác viên cần gọi lẫn nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-graph-assembly-009
+    title: Thực hành lắp ghép bằng Java thuần trước khi dùng DI container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: strategy-pattern
+  title: 'Strategy: thay thế thuật toán qua composition'
+  childs:
+  - slug: strategy-pattern-001
+    title: Nhận diện một họ thuật toán cùng thực hiện một trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-002
+    title: Phân tách Context, Strategy và các Concrete Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-003
+    title: Rút chính sách ra khỏi chuỗi if-else và switch theo loại hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-004
+    title: Thiết kế dữ liệu đầu vào để Strategy không lệ thuộc nội bộ Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-005
+    title: Triển khai Strategy bằng lớp riêng, lambda hoặc method reference
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-006
+    title: Chọn Strategy khi khởi tạo và chọn Strategy theo từng yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-007
+    title: Đánh đổi khi cho phép thay Strategy trong vòng đời Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-008
+    title: Tránh Strategy phải giữ tham chiếu hai chiều về Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-009
+    title: Xử lý thuật toán có trạng thái, lỗi và dữ liệu cấu hình riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-010
+    title: Khi nào giữ điều kiện đơn giản và khi nào nên tách Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-pattern-011
+    title: Bài tập bổ sung thuật toán mới mà không sửa logic điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: decorator-pattern
+  title: 'Decorator: kết hợp trách nhiệm quanh một hợp đồng'
+  childs:
+  - slug: decorator-pattern-001
+    title: Phân tách Component, Concrete Component và Decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-002
+    title: Giữ cùng hợp đồng để có thể bọc lồng nhiều tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-003
+    title: Triển khai forwarding cơ sở và thêm hành vi trước hoặc sau lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-004
+    title: Ảnh hưởng của thứ tự bọc đến kết quả và tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-005
+    title: Phân biệt Decorator tùy chọn với chuỗi xử lý bắt buộc theo quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-006
+    title: Xử lý ngoại lệ và tránh che mất lỗi của thành phần được bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-007
+    title: 'Retry, logging và đo thời gian: ảnh hưởng đến số lần gọi delegate'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-008
+    title: Giới hạn của wrapper đối với self-call bên trong delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-009
+    title: equals, hashCode và danh tính khi đối tượng được bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-010
+    title: Không làm lộ API đặc thù của Concrete Component qua Decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-011
+    title: Trách nhiệm đóng tài nguyên trong chuỗi Decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-pattern-012
+    title: Bài tập kiểm chứng hai thứ tự bọc tạo ra hành vi khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bridge-pattern
+  title: 'Bridge: tách hai chiều biến thiên độc lập'
+  childs:
+  - slug: bridge-pattern-001
+    title: Nhận diện hai chiều biến thiên gây tổ hợp lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-002
+    title: Phân tách Abstraction, Refined Abstraction và Implementor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-003
+    title: Thiết kế interface Implementor bằng thao tác mà Abstraction cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-004
+    title: Đặt quy tắc nghiệp vụ ở Abstraction và thao tác nền tảng ở Implementor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-005
+    title: Liên kết Abstraction với Implementor bằng composition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-006
+    title: Bổ sung một loại Abstraction mà không nhân bản các implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-007
+    title: Bổ sung implementation mà không sửa mọi loại Abstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-008
+    title: Tránh hợp đồng Implementor làm rò rỉ chi tiết của một nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-009
+    title: So sánh Bridge với Strategy theo mục tiêu và chiều biến thiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-pattern-010
+    title: Bài tập thiết kế nhiều loại báo cáo với nhiều bộ kết xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: composition-pattern-choice-integration
+  title: Chọn và phối hợp các mẫu thiết kế dựa trên composition
+  childs:
+  - slug: composition-pattern-choice-integration-001
+    title: So sánh Strategy, Decorator và Bridge theo vấn đề cần giải quyết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-002
+    title: Adapter chuyển đổi hợp đồng và khả năng kết hợp với Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-003
+    title: Proxy kiểm soát truy cập so với Decorator bổ sung trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-004
+    title: Template Method dựa trên kế thừa so với điều phối bằng các Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-005
+    title: Phân biệt mẫu Composite với nguyên tắc ưu tiên composition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-006
+    title: Kết hợp Bridge với Strategy khi từng chiều còn có thuật toán riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-007
+    title: Kết hợp Strategy với Decorator khi cần thêm trách nhiệm quanh thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-008
+    title: Tránh xếp nhiều mẫu khi một đối tượng cộng tác đơn giản đã đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-pattern-choice-integration-009
+    title: Bài tập chọn thiết kế từ yêu cầu thay đổi thay vì từ tên pattern
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-to-composition-refactoring
+  title: Quy trình tái cấu trúc từ kế thừa sang composition
+  childs:
+  - slug: inheritance-to-composition-refactoring-001
+    title: Xác định lý do dùng extends và hành vi mã khách đang phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-002
+    title: Lập bản đồ phương thức thừa kế, override, super-call và trạng thái chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-003
+    title: Đóng băng hành vi hiện có bằng characterization test
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-004
+    title: Xác định ranh giới cần tách và hợp đồng nhỏ nhất của delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-005
+    title: Trích xuất thành phần và chuyển trạng thái về đúng nơi sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-006
+    title: Thay liên kết kế thừa bằng trường cộng tác và constructor injection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-007
+    title: Chuyển các override sang Strategy hoặc Decorator theo mục đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-008
+    title: Thay các hook của lớp cha bằng điểm mở rộng tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-009
+    title: Cập nhật nơi khởi tạo và nơi đang yêu cầu kiểu lớp cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-010
+    title: Dùng adapter chuyển tiếp khi cần di chuyển mã khách theo từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-011
+    title: Kiểm tra lại hành vi, lỗi, tài nguyên và tính tương thích sau mỗi bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-to-composition-refactoring-012
+    title: Loại bỏ API thừa và phụ thuộc protected khi quá trình di chuyển hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: instrumented-set-workshop
+  title: 'Thực hành Java: bộ sưu tập có theo dõi số phần tử thêm'
+  childs:
+  - slug: instrumented-set-workshop-001
+    title: Phân tích lỗi đếm khi kế thừa HashSet và ghi đè add cùng addAll
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-002
+    title: Xác định đếm số lần thử thêm hay số phần tử được thêm thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-003
+    title: Tạo kiểm thử tái hiện lỗi và chốt hợp đồng của bộ đếm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-004
+    title: Thiết kế InstrumentedSet nhận Set làm delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-005
+    title: Ủy quyền các thao tác Set và chỉ bổ sung đo đếm tại điểm đã chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-006
+    title: Kiểm tra phần tử trùng, tập rỗng và quy tắc null theo delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-007
+    title: Xem xét iterator, thao tác xóa và các phương thức mặc định của hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-008
+    title: Thay HashSet bằng implementation Set khác để kiểm tra mức phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-009
+    title: Đánh giá giới hạn về equals, hashCode và việc lộ delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instrumented-set-workshop-010
+    title: So sánh thiết kế trước và sau theo phạm vi thay đổi và khả năng kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pricing-strategy-workshop
+  title: 'Thực hành Java: chính sách định giá bằng Strategy'
+  childs:
+  - slug: pricing-strategy-workshop-001
+    title: Phân tích hệ phân cấp đơn hàng tạo ra để thay công thức tính giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-002
+    title: Tách dữ liệu đơn hàng khỏi chính sách tính toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-003
+    title: Định nghĩa PricingStrategy với đầu vào và kết quả rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-004
+    title: Triển khai chính sách giá cơ bản và các chính sách ưu đãi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-005
+    title: Chọn chính sách tại composition root hoặc theo ngữ cảnh yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-006
+    title: Xác định quy tắc khi nhiều ưu đãi có thể kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-007
+    title: Giữ quy tắc làm tròn và bất biến kết quả nhất quán giữa các Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-008
+    title: Bổ sung chính sách mới và xác định các tệp thực sự cần thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pricing-strategy-workshop-009
+    title: Kiểm thử mỗi Strategy độc lập và Context với thành phần giả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: notification-decorator-workshop
+  title: 'Thực hành Java: bộ gửi thông báo với Decorator'
+  childs:
+  - slug: notification-decorator-workshop-001
+    title: Phân tích tổ hợp lớp con do trộn kênh gửi và trách nhiệm bổ sung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-002
+    title: Định nghĩa hợp đồng NotificationSender và kết quả gửi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-003
+    title: Tạo bộ gửi nền tảng và adapter cho dịch vụ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-004
+    title: Bọc logging và đo thời gian quanh thao tác gửi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-005
+    title: Thiết kế retry có giới hạn và phân biệt lỗi có thể thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-006
+    title: Đánh giá nguy cơ gửi trùng và yêu cầu idempotency khi retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-007
+    title: So sánh logging ngoài retry với logging cho từng lần thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-008
+    title: Kiểm thử số lần gọi, thứ tự bọc và cách truyền ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: notification-decorator-workshop-009
+    title: Lắp ghép cấu hình gửi từ các thành phần mà không sinh lớp cho mọi tổ hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reporting-bridge-workshop
+  title: 'Thực hành Java: hệ thống báo cáo bằng Bridge'
+  childs:
+  - slug: reporting-bridge-workshop-001
+    title: Phân tích số lớp khi trộn loại báo cáo với định dạng đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-002
+    title: Tách mô hình báo cáo khỏi giao diện bộ kết xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-003
+    title: Thiết kế các thao tác kết xuất theo nhu cầu nội dung báo cáo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-004
+    title: Xây dựng báo cáo tổng hợp và báo cáo chi tiết dùng chung hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-005
+    title: Triển khai bộ kết xuất văn bản và HTML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-006
+    title: Giữ quy tắc định dạng đặc thù bên trong từng implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-007
+    title: Thêm một loại báo cáo mà không sao chép các bộ kết xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-008
+    title: Thêm một bộ kết xuất mà không sửa mọi lớp báo cáo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-bridge-workshop-009
+    title: Kiểm thử các tổ hợp hợp lệ và phát hiện tính năng không được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collaboration-contract-testing
+  title: Kiểm thử hợp đồng và tương tác giữa các thành phần
+  childs:
+  - slug: collaboration-contract-testing-001
+    title: Phân biệt kiểm thử kết quả với kiểm thử tương tác cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-002
+    title: Unit test cho đối tượng chủ bằng fake hoặc stub có mục đích rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-003
+    title: Contract test dùng chung cho nhiều implementation của một interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-004
+    title: Kiểm tra tiền điều kiện, hậu điều kiện và bất biến qua mọi Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-005
+    title: Kiểm thử Decorator độc lập và các tổ hợp có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-006
+    title: Kiểm tra thứ tự gọi và số lần gọi khi có retry hoặc nhiều wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-007
+    title: Kiểm thử Bridge theo từng chiều và các điểm giao có rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-008
+    title: Kiểm tra lỗi, trạng thái dở dang và việc đóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-009
+    title: Integration test cho đồ thị đối tượng tại composition root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-010
+    title: Tránh mock quá mức khiến kiểm thử phụ thuộc chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-contract-testing-011
+    title: Bài tập chứng minh refactor bảo toàn hành vi và mở được điểm thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: composition-api-evolution
+  title: Thiết kế API và khả năng tiến hóa của hệ thống composition
+  childs:
+  - slug: composition-api-evolution-001
+    title: Giới hạn API công khai để không buộc mã khách biết lớp triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-002
+    title: Tránh public getter làm lộ delegate và phá vỡ ranh giới đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-003
+    title: Đánh giá tác động khi thêm phương thức vào interface cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-004
+    title: Default method và giới hạn bảo toàn hợp đồng của implementation cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-005
+    title: Giữ tương thích nguồn, nhị phân và hành vi khi thay extends bằng delegation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-006
+    title: Xử lý mã khách đang dựa vào instanceof, downcast hoặc kiểu lớp cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-007
+    title: Lựa chọn ngoại lệ và cách truyền lỗi qua các tầng ủy quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-008
+    title: Vị trí của adapter để cô lập thay đổi từ thư viện bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-api-evolution-009
+    title: Tài liệu hóa điểm mở rộng, quyền sở hữu và trách nhiệm của implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-concurrency-operability
+  title: Hiệu năng, đồng thời và khả năng vận hành
+  childs:
+  - slug: performance-concurrency-operability-001
+    title: Nhận diện chi phí cấp phát, số đối tượng và độ sâu chuỗi lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-002
+    title: Đo hiệu năng theo tình huống sử dụng trước khi tối ưu thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-003
+    title: Giới hạn của suy luận rằng delegation luôn chậm hơn kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-004
+    title: Thread safety của đối tượng chủ khi delegate được chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-005
+    title: Phân biệt thành phần stateless với thành phần an toàn khi truy cập đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-006
+    title: Thay Strategy khi đang xử lý và yêu cầu nhất quán theo từng thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-007
+    title: Chọn phạm vi khóa và tránh giữ khóa khi gọi thành phần không kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-008
+    title: Truy vết lời gọi qua nhiều Decorator mà không ghi lặp thông tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-009
+    title: Kiểm tra trách nhiệm cleanup khi một bước trong chuỗi thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-operability-010
+    title: Bài tập đánh giá một đồ thị đối tượng có trạng thái dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-tradeoffs-and-design-review
+  title: Khi nên giữ kế thừa và cách đánh giá thiết kế cuối cùng
+  childs:
+  - slug: inheritance-tradeoffs-and-design-review-001
+    title: Dùng kế thừa khi có quan hệ subtype bền vững và hợp đồng thay thế rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-002
+    title: Abstract class có điểm mở rộng được thiết kế và tài liệu hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-003
+    title: Giữ Template Method khi quy trình ổn định và hook có phạm vi kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-004
+    title: Vai trò của final và sealed trong việc giới hạn khả năng mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-005
+    title: Kế thừa do framework yêu cầu và cách ủy quyền phần nghiệp vụ ra ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-006
+    title: Chấp nhận mã lặp nhỏ khi abstraction chung chưa có cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-007
+    title: Checklist đánh giá coupling, cohesion, khả năng thay thế và chi phí thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-008
+    title: Bài tập so sánh hai phương án bằng cùng một yêu cầu mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-009
+    title: Đồ án refactor một hệ phân cấp Java kết hợp Strategy, Decorator và Bridge ở các điểm phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-tradeoffs-and-design-review-010
+    title: 'Tiêu chí nghiệm thu đồ án: bảo toàn hợp đồng, kiểm thử và giải thích các đánh đổi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

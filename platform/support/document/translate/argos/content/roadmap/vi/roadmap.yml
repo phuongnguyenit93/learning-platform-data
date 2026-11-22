@@ -1,0 +1,57 @@
+roadmap:
+- id: argos-translate-offline
+  title: Argos Translate & offline
+  purpose: Hiểu cách Argos dịch bằng mô hình cài cục bộ và xác định phạm vi áp dụng cho tài liệu.
+  objectives:
+  - Phân biệt dịch offline với dịch qua API đám mây
+  - Nhận diện Argos là thư viện Python, có CLI/GUI
+  - Mô tả luồng tài liệu → văn bản → bản dịch
+- id: cai-dat-moi-truong
+  title: Cài đặt môi trường
+  purpose: Chuẩn bị môi trường chạy độc lập để tái hiện và kiểm thử khả năng dịch.
+  objectives:
+  - Cài argostranslate trong Python virtualenv
+  - Kiểm tra argos-translate và argospm qua CLI
+  - Thực hiện dịch thử sau khi cài model
+- id: model-cap-ngon-ngu
+  title: Model & cặp ngôn ngữ
+  purpose: Chọn và quản lý model dịch theo cặp ngôn ngữ mà tài liệu cần sử dụng.
+  objectives:
+  - Tra cứu cặp ngôn ngữ trong package index
+  - Cài và liệt kê gói .argosmodel bằng argospm
+  - Giải thích pivot qua ngôn ngữ trung gian và đánh đổi chất lượng
+- id: python-api-cli
+  title: Python API & CLI
+  purpose: Biết hai cách gọi Argos để xử lý văn bản nhất quán trong pipeline.
+  objectives:
+  - Dịch chuỗi bằng argostranslate.translate
+  - Gọi argos-translate với mã nguồn/đích
+  - Xử lý cặp ngôn ngữ thiếu và lỗi khi dịch
+- id: xu-ly-dinh-dang-tai-lieu
+  title: Xử lý định dạng tài liệu
+  purpose: Tách phần văn bản cần dịch khỏi cấu trúc tệp để hạn chế hỏng định dạng.
+  objectives:
+  - Đọc/xử lý TXT, HTML và DOCX bằng công cụ phù hợp
+  - Giữ nguyên tag, bảng, liên kết và placeholder
+  - Ghép đoạn đã dịch về đúng cấu trúc ban đầu
+- id: tich-hop-tu-java
+  title: Tích hợp từ Java
+  purpose: Kết nối ứng dụng Java với engine Python mà không giả định có Argos Java SDK chính thức.
+  objectives:
+  - Thiết kế adapter gọi CLI qua ProcessBuilder
+  - So sánh subprocess với LibreTranslate self-hosted API
+  - Đặt timeout, giới hạn payload và xử lý stderr/HTTP lỗi
+- id: chat-luong-hieu-nang
+  title: Chất lượng & hiệu năng
+  purpose: Đánh giá tính sử dụng được của bản dịch trước khi tăng số lượng tài liệu xử lý.
+  objectives:
+  - Đối chiếu thuật ngữ, số liệu, tên riêng và placeholder
+  - So sánh kết quả model trực tiếp với pivot
+  - Đo độ trễ, bộ nhớ và throughput theo kích thước đoạn
+- id: bao-mat-van-hanh
+  title: Bảo mật & vận hành
+  purpose: Vận hành dịch offline có thể kiểm chứng và kiểm soát tài liệu nhạy cảm.
+  objectives:
+  - Đóng gói sẵn model cho môi trường không mạng
+  - Kiểm soát quyền đọc/ghi tài liệu, file tạm và log
+  - Pin phiên bản model, chạy regression test và giám sát lỗi

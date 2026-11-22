@@ -1,0 +1,276 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phát triển hướng kiểm thử (TDD) là gì và giải quyết vấn đề nào
+  - Vì sao kiểm thử trước có thể dẫn dắt thiết kế và tạo phản hồi sớm
+  - Chu trình Đỏ–Xanh–Tái cấu trúc và vai trò của danh sách kiểm thử
+  - Phân biệt TDD, viết kiểm thử trước và viết kiểm thử sau
+  - Quan hệ giữa TDD, kiểm thử tự động và phòng ngừa lỗi hồi quy
+  - Phân biệt TDD với BDD và ATDD về mục đích và phạm vi
+  - TDD trong phát triển linh hoạt và thiết kế tiến hóa
+  - Lợi ích, chi phí, điều kiện áp dụng và lộ trình học
+- level1: Nền tảng kiểm thử
+  level2:
+  - Hành vi quan sát được và đơn vị hành vi cần kiểm thử
+  - Phân biệt kiểm thử đơn vị, tích hợp, hợp đồng và đầu cuối
+  - Thời điểm viết kiểm thử khác với cấp độ kiểm thử như thế nào
+  - Phần mềm đang được kiểm thử, dữ liệu vào và kết quả mong đợi
+  - Nguồn xác định kết quả đúng (test oracle) và giới hạn của ví dụ
+  - Đặc điểm của kiểm thử nhanh, độc lập, lặp lại được và tự xác định kết quả
+  - Một ca kiểm thử phát hiện thay đổi sai như thế nào
+  - Phân biệt lỗi trong chương trình, trong kiểm thử và trong môi trường
+- level1: Công cụ thực hành
+  level2:
+  - Chuẩn bị dự án Java với JDK và thư viện kiểm thử tương thích
+  - Tổ chức mã sản phẩm và mã kiểm thử trong Maven hoặc Gradle
+  - Chạy kiểm thử bằng IDE, dòng lệnh và bộ chạy tự động
+  - Viết ca kiểm thử đầu tiên bằng JUnit Jupiter
+  - Thiết lập dữ liệu và dọn tài nguyên theo vòng đời kiểm thử
+  - Dùng assertion của JUnit hoặc thư viện như AssertJ theo nhu cầu
+  - Dùng kiểm thử tham số hóa để biểu diễn nhiều ví dụ cùng một quy tắc
+  - Đọc báo cáo thất bại và rút ngắn thời gian chạy vòng phản hồi
+- level1: Phân tích hành vi
+  level2:
+  - Chuyển yêu cầu thành các hành vi có thể quan sát và kiểm chứng
+  - Làm rõ tiền điều kiện, hành động và hậu điều kiện
+  - Chọn ví dụ cụ thể để phát hiện quy tắc còn mơ hồ
+  - Phân loại trường hợp bình thường, trường hợp biên và đầu vào không hợp lệ
+  - Xác định quy tắc bất biến và các chuyển trạng thái
+  - Làm rõ hành vi khi phụ thuộc thất bại hoặc dữ liệu không tồn tại
+  - Thiết kế cách sử dụng API từ góc nhìn người gọi
+  - Ghi nhận câu hỏi chưa có lời giải thay vì tự suy diễn yêu cầu
+- level1: Danh sách kiểm thử
+  level2:
+  - Lập danh sách các biến thể hành vi trước khi bắt đầu vòng TDD
+  - Phân biệt danh sách ý tưởng với việc viết sẵn toàn bộ ca kiểm thử
+  - Chọn ca đầu tiên đủ nhỏ để mở đường cho thiết kế
+  - Sắp xếp các ca để từng bước loại bỏ giả định chưa đúng
+  - Chia hành vi lớn thành những bước có thể kiểm chứng độc lập
+  - Bổ sung ca mới khi phát hiện quy tắc hoặc rủi ro trong lúc lập trình
+  - Theo dõi hành vi đã có và hành vi còn thiếu
+  - Xác định điểm kết thúc một phiên làm việc và hành vi tiếp theo
+- level1: Bước Đỏ
+  level2:
+  - Viết đúng một ca kiểm thử cho hành vi chưa có
+  - Tạo tên kiểm thử thể hiện điều kiện và kết quả mong đợi
+  - Viết cách gọi API và assertion trước phần triển khai
+  - Phân biệt lỗi biên dịch có chủ đích với thất bại kiểm tra hành vi
+  - Xác nhận kiểm thử thất bại vì đúng hành vi đang thiếu
+  - Xử lý trường hợp ca mới chạy thành công ngay từ đầu
+  - Giữ nguyên yêu cầu đúng thay vì nới assertion để tránh thất bại
+  - Giảm phạm vi ca kiểm thử khi chưa xác định được bước triển khai tiếp theo
+- level1: Bước Xanh
+  level2:
+  - Viết phần triển khai nhỏ nhất đủ đáp ứng ca mới và các ca trước
+  - Tạm dùng giá trị cụ thể khi phù hợp với bước tiến hiện tại
+  - Phân biệt kỹ thuật Fake It trong TDD với đối tượng fake dùng khi kiểm thử
+  - Dùng phép đối chiếu nhiều ví dụ (triangulation) để đi đến quy tắc tổng quát
+  - Chọn triển khai trực tiếp khi lời giải đã rõ
+  - Tránh thêm hành vi hoặc lớp trừu tượng chưa có nhu cầu
+  - Chạy các kiểm thử liên quan và xử lý lỗi hồi quy
+  - Ghi thêm ý tưởng cần làm vào danh sách thay vì mở rộng bước Xanh tùy ý
+- level1: Tái cấu trúc
+  level2:
+  - Phân biệt thay đổi cấu trúc bên trong với bổ sung hoặc sửa hành vi
+  - Đánh giá nhu cầu tái cấu trúc khi bộ kiểm thử đang xanh
+  - Nhận diện lặp mã, tên khó hiểu và trách nhiệm bị trộn lẫn
+  - Đổi tên, tách hàm và di chuyển trách nhiệm bằng các bước nhỏ
+  - Tái cấu trúc cả mã sản phẩm lẫn mã kiểm thử
+  - Chọn thời điểm khái quát hóa từ các ví dụ đã có
+  - Giữ bộ kiểm thử chạy được sau từng bước thay đổi
+  - Xử lý kiểm thử vỡ do bám vào cấu trúc triển khai
+  - Dừng tái cấu trúc khi mã đã đủ rõ cho hành vi tiếp theo
+- level1: Thiết kế qua kiểm thử
+  level2:
+  - Kiểm thử trước giúp làm rõ giao diện sử dụng như thế nào
+  - Lắng nghe khó khăn khi viết kiểm thử để nhận diện vấn đề thiết kế
+  - Phân tách trách nhiệm và tăng tính gắn kết của một thành phần
+  - Giảm phụ thuộc và truyền các thành phần cộng tác từ bên ngoài
+  - Tách phần tính toán thuần khỏi thao tác có tác dụng phụ
+  - Chọn biểu diễn trạng thái và dữ liệu giúp duy trì quy tắc bất biến
+  - Cân bằng thiết kế tiến hóa với quyết định kiến trúc cần có sớm
+  - Giữ API phục vụ nghiệp vụ thay vì mở chi tiết chỉ để kiểm thử
+  - Vai trò của TDD và giới hạn đối với việc tạo ra thiết kế tốt
+- level1: Cấu trúc kiểm thử
+  level2:
+  - Tổ chức ca kiểm thử theo Chuẩn bị–Thực hiện–Kiểm tra (AAA)
+  - Dùng Cho trước–Khi–Thì để diễn đạt tình huống khi phù hợp
+  - Giữ một hành vi rõ ràng dù cần nhiều assertion liên quan
+  - Tách các tình huống độc lập để lỗi dễ chẩn đoán
+  - Đặt tên và nhóm kiểm thử theo hành vi thay vì tên hàm nội bộ
+  - Giới hạn việc dùng chung dữ liệu thiết lập giữa các ca
+  - Thiết kế helper kiểm thử ngắn và giữ điều kiện quan trọng dễ nhìn thấy
+  - Giữ kiểm thử như ví dụ sử dụng có thể đọc và bảo trì
+- level1: Assertion
+  level2:
+  - Chọn kết quả quan sát được phù hợp với mục đích kiểm thử
+  - Kiểm tra giá trị, trạng thái và tác dụng phụ qua ranh giới công khai
+  - Kiểm tra ngoại lệ với kiểu lỗi và thông tin thực sự thuộc hợp đồng
+  - So sánh tập hợp khi thứ tự có hoặc không mang ý nghĩa
+  - So sánh số thực, tiền tệ và quy tắc làm tròn theo miền bài toán
+  - Tạo kết quả mong đợi độc lập với thuật toán đang được kiểm thử
+  - Thiết kế thông báo thất bại giúp xác định nguyên nhân
+  - Phát hiện assertion yếu, điều kiện quá rộng và kiểm thử luôn xanh
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Chọn dữ liệu nhỏ nhất làm nổi bật quy tắc đang xét
+  - Áp dụng phân lớp tương đương và giá trị biên vào danh sách kiểm thử
+  - Biểu diễn trường hợp rỗng, thiếu, trùng và không hợp lệ theo hợp đồng
+  - Dùng dữ liệu minh họa có ý nghĩa nghiệp vụ
+  - Xây bộ dựng dữ liệu kiểm thử mà không che mất điều kiện quan trọng
+  - Tham số hóa các ví dụ và giữ từng trường hợp dễ nhận diện
+  - Tránh dữ liệu dùng chung có thể thay đổi và phụ thuộc thứ tự chạy
+  - Quản lý tệp mẫu và dữ liệu nhạy cảm khi cần kiểm thử thực tế
+- level1: Đối tượng thay thế
+  level2:
+  - Đối tượng thay thế (test double) là gì và khi nào cần dùng
+  - Phân biệt dummy, stub, fake, spy và mock
+  - Dùng stub để điều khiển phản hồi của phụ thuộc
+  - Dùng fake để mô phỏng chức năng có triển khai đơn giản
+  - Dùng spy hoặc mock để kiểm tra tương tác có ý nghĩa
+  - Chọn đối tượng thật khi việc dùng thật đơn giản và ổn định
+  - Tự viết đối tượng thay thế hoặc dùng Mockito theo nhu cầu
+  - Tránh giả định thuật ngữ của mọi thư viện thay thế đều giống nhau
+  - Kiểm tra tính tương thích giữa đối tượng thay thế với thành phần thật
+- level1: Phong cách TDD
+  level2:
+  - Phân biệt xác minh trạng thái với xác minh tương tác
+  - Phong cách cổ điển và phong cách dựa nhiều vào mock
+  - Kiểm thử một thành phần riêng lẻ hoặc cùng các đối tượng cộng tác
+  - Cách tiếp cận từ trong ra ngoài đối với logic nghiệp vụ
+  - Cách tiếp cận từ ngoài vào trong từ một hành vi người dùng
+  - Vòng kiểm thử chấp nhận bên ngoài và vòng TDD nhỏ bên trong
+  - Chọn phong cách theo độ phức tạp, phụ thuộc và nhu cầu phản hồi
+  - Tránh biến lựa chọn phong cách thành quy tắc áp dụng cứng cho mọi bài toán
+- level1: Ranh giới kiến trúc
+  level2:
+  - Nhận diện ranh giới giữa miền nghiệp vụ, ứng dụng và hạ tầng
+  - Dẫn dắt thiết kế cổng và bộ chuyển đổi từ nhu cầu sử dụng
+  - Kiểm thử quy tắc nghiệp vụ mà không khởi động toàn bộ hệ thống
+  - Giữ giao tiếp cơ sở dữ liệu, mạng và giao diện ở ranh giới rõ ràng
+  - Dùng hợp đồng chung để kiểm chứng các triển khai của cùng một cổng
+  - Kiểm chứng sự nối ghép giữa các thành phần ngoài bộ kiểm thử đơn vị
+  - Tránh tạo quá nhiều interface hoặc lớp gián tiếp chỉ vì đang viết kiểm thử
+- level1: Logic nghiệp vụ
+  level2:
+  - Dùng TDD để phát triển phép tính và quy tắc giá theo từng ví dụ
+  - Dùng TDD với giá trị miền và quy tắc bất biến
+  - Dẫn dắt điều kiện hợp lệ và thông báo lỗi từ hợp đồng nghiệp vụ
+  - Kiểm thử chuyển trạng thái và các thao tác bị cấm trong từng trạng thái
+  - Phân tích quy tắc chồng lấn và thứ tự ưu tiên
+  - Phát triển bộ phân tích hoặc chuyển đổi dữ liệu bằng ví dụ nhỏ
+  - Làm rõ hành vi lặp lại an toàn và tác dụng phụ cần xảy ra đúng phạm vi
+  - Kiểm thử hồi quy khi quy tắc nghiệp vụ được bổ sung hoặc thay đổi
+- level1: Tính xác định
+  level2:
+  - Nhận diện thời gian, số ngẫu nhiên và môi trường như nguồn bất định
+  - Truyền Clock để kiểm soát thời điểm và khoảng thời gian trong Java
+  - Kiểm soát bộ sinh số ngẫu nhiên và lưu thông tin tái lập lỗi
+  - Cô lập múi giờ, ngôn ngữ và cấu hình môi trường
+  - Quản lý tệp, thư mục tạm và tài nguyên riêng cho từng kiểm thử
+  - Tách trạng thái toàn cục và dữ liệu dùng chung có thể thay đổi
+  - Phân biệt logic nghiệp vụ phụ thuộc thời gian với việc chờ thực tế
+  - Phát hiện và tái lập kiểm thử lúc thành công lúc thất bại
+- level1: Lưu trữ dữ liệu
+  level2:
+  - Phát triển ca sử dụng với cổng lưu trữ và triển khai giả trong bộ nhớ
+  - Xác định hợp đồng lưu, tìm, cập nhật và xóa từ hành vi nghiệp vụ
+  - Kiểm chứng bộ chuyển đổi bằng cơ sở dữ liệu thật trong môi trường cô lập
+  - Dùng Testcontainers khi cần môi trường cơ sở dữ liệu tái lập được
+  - Phát triển kiểm thử cho ràng buộc dữ liệu và ánh xạ
+  - Kiểm tra giao dịch, hoàn tác và tính nhất quán theo hành vi mong muốn
+  - Nhận diện khác biệt giữa cơ sở dữ liệu giả với hệ thống vận hành
+  - Dọn dữ liệu và phân tách vòng kiểm thử nhanh với vòng tích hợp
+- level1: Giao tiếp bên ngoài
+  level2:
+  - Phát triển client hoặc bộ chuyển đổi từ hợp đồng giao tiếp
+  - Dùng máy chủ giả để điều khiển phản hồi HTTP và lỗi truyền tải
+  - Kiểm thử yêu cầu gửi đi, nội dung phản hồi và ánh xạ lỗi
+  - Phân biệt hành vi của ứng dụng với chi tiết của thư viện mạng
+  - Kiểm thử thời hạn chờ, thử lại và tác dụng phụ lặp lại
+  - Kiểm chứng hợp đồng để giảm sai lệch giữa giả lập và dịch vụ thật
+  - Phát triển thành phần gửi thông điệp với kiểm tra nội dung và đích gửi
+  - Chọn số ít luồng đầu cuối để xác nhận sự phối hợp toàn hệ thống
+- level1: Xử lý bất đồng bộ
+  level2:
+  - Tách hành vi cần kiểm tra khỏi cơ chế lập lịch thực thi
+  - Kiểm soát executor, scheduler hoặc đồng hồ thử nghiệm khi có thể
+  - Chờ theo điều kiện với thời hạn thay vì chờ cố định theo phỏng đoán
+  - Kiểm tra hoàn thành, thất bại và hủy của tác vụ bất đồng bộ
+  - Dẫn dắt hành vi khi phản hồi đến trễ hoặc sai thứ tự
+  - Kiểm thử cơ chế thử lại, trì hoãn và giới hạn số lần
+  - Phát triển kiểm thử cho chia sẻ trạng thái và cạnh tranh tài nguyên
+  - Giới hạn của kiểm thử ví dụ đối với việc phát hiện mọi cách xen kẽ luồng
+- level1: Mã nguồn có sẵn
+  level2:
+  - Khó khăn khi áp dụng TDD cho mã chưa có kiểm thử
+  - Chọn điểm thay đổi nhỏ và xác định hành vi cần bảo vệ
+  - Viết kiểm thử mô tả hành vi hiện tại (characterization test)
+  - Phân biệt hành vi đang tồn tại với hành vi đúng theo yêu cầu
+  - Tạo điểm tách phụ thuộc (seam) bằng thay đổi có kiểm soát
+  - Dùng đầu ra mẫu cho hành vi phức tạp và quản lý rủi ro chấp nhận sai lệch
+  - Sửa lỗi bằng ca tái hiện thất bại trước khi thay đổi mã
+  - Từng bước rút logic ra khỏi mã khó kiểm thử
+  - Giữ phạm vi thay đổi nhỏ thay vì viết lại toàn bộ để dễ kiểm thử
+- level1: Đánh giá bộ kiểm thử
+  level2:
+  - Đánh giá khả năng phát hiện sai lệch hành vi thay vì chỉ đếm số ca
+  - Phân biệt độ bao phủ dòng, nhánh và mức bao phủ yêu cầu
+  - Vì sao độ bao phủ cao chưa chứng minh assertion đủ mạnh
+  - Kiểm thử đột biến (mutation testing) và cách đọc biến thể còn sống
+  - Dùng PIT để đánh giá bộ kiểm thử Java trong phạm vi phù hợp
+  - Phân biệt biến thể tương đương với khoảng trống kiểm thử thực sự
+  - Đo tốc độ, tính ổn định và chi phí bảo trì của bộ kiểm thử
+  - Rà soát ca trùng, ca không còn giá trị và nguyên nhân kiểm thử dễ vỡ
+- level1: Kỹ thuật bổ trợ
+  level2:
+  - Kết hợp kiểm thử theo ví dụ với kiểm thử dựa trên thuộc tính
+  - Chuyển quy tắc bất biến thành thuộc tính có thể kiểm tra
+  - Sinh dữ liệu, thu nhỏ đầu vào lỗi và lưu ví dụ hồi quy
+  - Dùng kiểm thử biến hình khi khó xác định trực tiếp kết quả đúng
+  - Thử nghiệm khảo sát kỹ thuật (spike) khi chưa hiểu công nghệ hoặc giải pháp
+  - Quay lại chu trình TDD sau khi khảo sát thay vì giữ nguyên mã thử nghiệm
+  - Phối hợp TDD với kiểm thử khám phá, hiệu năng và bảo mật theo rủi ro
+- level1: Tổ chức dự án
+  level2:
+  - Tổ chức bộ kiểm thử theo thành phần, hành vi và ranh giới
+  - Tách ca chạy nhanh với kiểm thử phụ thuộc hạ tầng
+  - Chạy kiểm thử thường xuyên trong quá trình phát triển và trên CI
+  - Thiết kế các bước kiểm tra để nhận phản hồi sớm
+  - Cô lập dữ liệu và tài nguyên trước khi chạy kiểm thử song song
+  - Xử lý kiểm thử không ổn định có trách nhiệm và theo dõi việc sửa
+  - Giữ nhánh chính có bộ kiểm thử đáng tin cậy
+  - Quản lý thay đổi yêu cầu cùng thay đổi mã và ví dụ kiểm thử
+- level1: Cộng tác nhóm
+  level2:
+  - Luyện TDD theo cặp và luân phiên viết kiểm thử với triển khai
+  - Rà soát mã kiểm thử như một phần của rà soát thiết kế
+  - Thống nhất quy ước vừa đủ về tên, dữ liệu và tổ chức kiểm thử
+  - Làm rõ yêu cầu với chuyên gia nghiệp vụ qua các ví dụ
+  - Ghi lại phiên Đỏ–Xanh–Tái cấu trúc để phản tư cách chọn bước
+  - Đưa TDD vào nhóm bằng phạm vi thử nghiệm nhỏ và hướng dẫn tại chỗ
+  - Đánh giá lợi ích qua tốc độ phản hồi, lỗi hồi quy và khả năng thay đổi
+  - Tránh đo mức thực hành TDD bằng tỷ lệ bao phủ hoặc số kiểm thử đơn thuần
+- level1: Sai lầm và giới hạn
+  level2:
+  - Viết sẵn toàn bộ kiểm thử hoặc toàn bộ triển khai rồi mới quay lại chu trình
+  - Bỏ qua xác nhận bước Đỏ và không biết kiểm thử có thể phát hiện lỗi hay không
+  - Sao chép thuật toán triển khai vào phần tính kết quả mong đợi
+  - Lạm dụng mock và kiểm tra các tương tác không thuộc hợp đồng
+  - Kiểm thử từng hàm riêng tư thay vì hành vi qua ranh giới phù hợp
+  - Tạo lớp trừu tượng quá sớm hoặc tái cấu trúc vượt nhu cầu
+  - Chạy quá nhiều kiểm thử chậm trong từng vòng phản hồi nhỏ
+  - Nhầm kiểm thử xanh với yêu cầu đầy đủ hoặc phần mềm không còn lỗi
+  - Giới hạn của TDD với trải nghiệm người dùng, thuộc tính hệ thống và yêu cầu chưa rõ
+  - Cân nhắc chi phí và lựa chọn cách kiểm chứng phù hợp với thay đổi
+- level1: Thực hành
+  level2:
+  - Luyện vòng TDD đầu tiên với quy tắc tính toán hoặc chuyển đổi đơn giản
+  - Phát triển bộ tính giá có điều kiện biên, ưu tiên và quy tắc làm tròn
+  - Phát triển giá trị miền và máy trạng thái bằng chuỗi ví dụ
+  - Phát triển ca sử dụng có kho lưu trữ và thành phần gửi thông báo
+  - Tái hiện một lỗi, sửa bằng TDD và giữ lại kiểm thử hồi quy
+  - Tạo đường kiểm thử cho mã cũ rồi cải tiến thiết kế từng bước
+  - Bổ sung kiểm thử tích hợp để kiểm chứng một bộ chuyển đổi thật
+  - Dùng thuộc tính và đột biến để tìm khoảng trống của bộ kiểm thử
+  - Đánh giá quyết định thiết kế, thứ tự kiểm thử và bài học từ toàn bộ phiên TDD

@@ -1,0 +1,3 @@
+menuLevel1: Trạng thái dùng chung
+menuLevel2: Tránh giữ request context, thông tin người dùng hoặc dữ liệu tenant trong trường toàn cục
+status: ""

@@ -1,0 +1,424 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Lập trình theo luồng dữ liệu (dataflow programming) là gì?
+  - Vì sao mô tả quan hệ phụ thuộc thay vì thứ tự câu lệnh?
+  - Nút tính toán, cạnh truyền dữ liệu và đơn vị dữ liệu
+  - Từ biểu thức đơn giản đến mạng xử lý dữ liệu
+  - Khi nào dữ liệu sẵn sàng kích hoạt một phép tính?
+  - Vai trò của bộ thực thi trong việc điều phối đồ thị
+  - Các bài toán phù hợp và giới hạn của mô hình
+  - Phân biệt dataflow với lưu đồ điều khiển và sơ đồ kiến trúc
+  - Lộ trình học từ mô hình tính toán đến chương trình thực tế
+- level1: Đồ thị dữ liệu
+  level2:
+  - Biểu diễn phép tính bằng đồ thị có hướng
+  - Nút nguồn, nút biến đổi và nút đầu ra
+  - Cổng vào, cổng ra và hợp đồng kết nối
+  - Cạnh biểu diễn quan hệ phụ thuộc và kênh truyền
+  - Đơn vị dữ liệu (token) và ý nghĩa của một lần kích hoạt
+  - Đồ thị không chu trình (DAG) và đồ thị có phản hồi
+  - Nhánh tách, nhánh hợp và nút có nhiều đầu vào
+  - Đồ thị tĩnh và đồ thị thay đổi khi chạy
+  - Đồ thị logic và đồ thị thực thi vật lý
+  - Đồ thị con, thành phần tái sử dụng và ranh giới chương trình
+  - Phân biệt đồ thị cấp bản ghi với đồ thị cấp tác vụ
+- level1: Ngữ nghĩa thực thi
+  level2:
+  - Điều kiện sẵn sàng và quy tắc kích hoạt nút
+  - Tiêu thụ dữ liệu đầu vào và phát dữ liệu đầu ra
+  - Một lần kích hoạt và vòng đời của một nút
+  - Thứ tự theo quan hệ phụ thuộc và thứ tự thực thi thực tế
+  - Truyền dữ liệu chủ động (push) và lấy dữ liệu theo nhu cầu (pull)
+  - Thực thi háo hức, trì hoãn và theo nhu cầu
+  - Hàm thuần, tác dụng phụ và tính xác định
+  - Kích hoạt một lần, nhiều lần và xử lý dữ liệu trùng
+  - Thứ tự trong một kênh và thứ tự giữa nhiều kênh
+  - Phân biệt chưa có dữ liệu, hết dữ liệu và lỗi
+  - Hoàn thành đồ thị hữu hạn và vận hành luồng không kết thúc
+  - Ngữ nghĩa dữ liệu, lỗi, hủy và đóng kênh
+- level1: Các mô hình dataflow
+  level2:
+  - Luồng dữ liệu tĩnh và luồng dữ liệu động
+  - Mô hình dựa trên tác vụ và mô hình dựa trên token
+  - Mạng tiến trình Kahn (KPN)
+  - Luồng dữ liệu đồng bộ (SDF) và ý nghĩa của tốc độ cố định
+  - Luồng dữ liệu tuần hoàn (CSDF)
+  - Mô hình có tốc độ phụ thuộc dữ liệu và nhánh điều kiện
+  - Luồng có gắn nhãn để phân biệt các lần tính toán
+  - Mô hình lặp, điểm bất động và tính toán gia tăng
+  - Các giả thiết khác nhau về kênh, trạng thái và bộ lập lịch
+  - Chọn mô hình theo yêu cầu phân tích và thực thi
+- level1: Dữ liệu và hợp đồng
+  level2:
+  - 'Xác định đơn vị xử lý: giá trị, bản ghi, lô nhỏ hay tập dữ liệu'
+  - Kiểu dữ liệu trên cổng và khả năng ghép nối các nút
+  - Schema, trường bắt buộc và giá trị mặc định
+  - Phân biệt giá trị null, dữ liệu thiếu và không có token
+  - Quyền sở hữu dữ liệu và sử dụng đối tượng bất biến
+  - Sao chép, chia sẻ và tái sử dụng vùng nhớ
+  - Gắn khóa, nhãn và thông tin nguồn gốc cho bản ghi
+  - Biểu diễn lỗi như tín hiệu riêng hoặc dữ liệu có kiểu
+  - Chuyển đổi schema và kiểm tra hợp đồng đầu vào
+  - Tuần tự hóa dữ liệu khi đi qua ranh giới tiến trình
+- level1: Phép biến đổi
+  level2:
+  - Ánh xạ giá trị bằng map
+  - Lọc dữ liệu bằng filter
+  - Mở rộng một đầu vào thành nhiều đầu ra bằng flatMap
+  - Chọn trường, đổi tên và chuyển đổi kiểu dữ liệu
+  - Tách dữ liệu thành nhiều nhánh theo điều kiện
+  - Nhân bản dữ liệu đến nhiều nhánh xử lý
+  - Gom nhóm theo khóa và chia dữ liệu thành phân vùng
+  - Tích lũy bằng fold, reduce và aggregate
+  - Phát kết quả tích lũy trung gian bằng scan
+  - Loại trùng và quản lý phạm vi ghi nhớ
+  - Sắp xếp, giới hạn và thao tác cần biết điểm kết thúc
+  - Tính kết hợp, tính giao hoán và điều kiện thực hiện phép gộp
+- level1: Kết hợp luồng
+  level2:
+  - Hợp luồng và giữ nguyên nguồn gốc dữ liệu
+  - Ghép phần tử theo vị trí bằng zip
+  - Kết hợp các giá trị mới nhất và hợp đồng phát kết quả
+  - Nối theo khóa và điều kiện khớp bản ghi
+  - Nối trong, nối ngoài và xử lý bản ghi chưa có đối ứng
+  - Chờ đủ đầu vào và xử lý chênh lệch tốc độ
+  - Ngữ nghĩa khi một đầu vào kết thúc sớm
+  - Phân nhánh rồi tổng hợp kết quả
+  - Thứ tự đầu ra và yêu cầu xác định kết quả
+  - Giới hạn bộ nhớ khi kết hợp các luồng không giới hạn
+- level1: Mạng tiến trình Kahn
+  level2:
+  - Tiến trình tuần tự và kênh FIFO trong mô hình KPN
+  - Đọc chặn và ghi không chặn theo mô hình lý thuyết
+  - Kênh không giới hạn và giả thiết về lưu trữ
+  - Tính xác định khi các tiến trình đều xác định
+  - Quan hệ giữa lịch thực thi và kết quả quan sát được
+  - Biểu diễn mạng có phản hồi
+  - Phân biệt chờ dữ liệu, bế tắc và không kết thúc
+  - Ảnh hưởng của việc thay kênh không giới hạn bằng hàng đợi hữu hạn
+  - Giới hạn phân tích tài nguyên và hành vi của mạng tổng quát
+  - Khi nào mô hình KPN phù hợp để suy luận chương trình
+- level1: Luồng đồng bộ
+  level2:
+  - Một lần kích hoạt và tốc độ sản xuất, tiêu thụ cố định trong SDF
+  - Tốc độ token và sự khác biệt với tốc độ theo thời gian
+  - Phương trình cân bằng dữ liệu trên từng cạnh
+  - Vector số lần kích hoạt trong một chu kỳ
+  - Điều kiện cân bằng và giới hạn của việc chỉ kiểm tra cân bằng
+  - Tạo lịch thực thi tuần hoàn
+  - Vai trò của token khởi tạo trên vòng phản hồi
+  - Khả năng thực thi, bế tắc và kiểm tra trạng thái ban đầu
+  - Tính kích thước bộ đệm theo lịch thực thi
+  - Tối ưu lịch, bộ nhớ và mức độ song song
+  - Ví dụ mạng xử lý tín hiệu nhiều tốc độ
+  - Mở rộng từ SDF sang tốc độ biến thiên tuần hoàn trong CSDF
+- level1: Luồng động
+  level2:
+  - Tốc độ sinh và tiêu thụ phụ thuộc dữ liệu
+  - Nhánh điều kiện, chọn đường đi và hợp nhánh
+  - Sự hiện diện hoặc vắng mặt của token
+  - Kích hoạt lặp lại và gắn nhãn cho các lần tính toán
+  - Tạo tác vụ và mở rộng đồ thị theo yêu cầu
+  - Chuyển tuyến theo khóa, loại dữ liệu hoặc điều kiện nghiệp vụ
+  - Điều phối khi chưa biết trước số lượng đầu ra
+  - Ảnh hưởng đến phân tích lịch và giới hạn bộ đệm
+  - Quản lý tài nguyên khi cấu trúc hoặc khối lượng thay đổi
+  - Đánh đổi tính linh hoạt với khả năng dự đoán
+- level1: Lập lịch
+  level2:
+  - Xác định các nút sẵn sàng từ quan hệ phụ thuộc
+  - Lập lịch tĩnh và lập lịch động
+  - Thực thi theo thứ tự tô-pô trên DAG
+  - Chạy song song các nhánh độc lập
+  - Song song giữa các giai đoạn và song song trên phân vùng dữ liệu
+  - Chia hạt tác vụ và chi phí điều phối
+  - Phân phối công việc, công bằng và tránh bỏ đói
+  - Giữ thứ tự đầu ra khi tác vụ hoàn thành không theo thứ tự
+  - Giới hạn số tác vụ đang chạy và số tác vụ đang chờ
+  - Tránh chặn luồng thực thi đang cần để hoàn thành tác vụ phụ thuộc
+  - Xử lý phụ thuộc tài nguyên ngoài đồ thị dữ liệu
+  - Điều phối hủy và kết thúc toàn bộ đồ thị
+- level1: Điều tiết luồng
+  level2:
+  - Tốc độ nguồn, tốc độ xử lý và nút thắt cổ chai
+  - Hàng đợi hữu hạn, hàng đợi không giới hạn và hậu quả tài nguyên
+  - Áp lực ngược (backpressure) và truyền tín hiệu nhu cầu
+  - Chặn bên sản xuất, giảm nguồn phát và giới hạn tác vụ đang xử lý
+  - Lựa chọn chờ, bỏ bản ghi, giữ bản mới nhất hoặc báo lỗi
+  - Phân biệt backpressure với giới hạn tốc độ và giới hạn tần suất
+  - Gom lô, đọc trước và kích thước bộ đệm
+  - Nhánh chậm ảnh hưởng đến việc phát dữ liệu cho nhiều bên nhận
+  - Chu kỳ hàng đợi và nguy cơ bế tắc do giới hạn dung lượng
+  - Bộ đệm bền vững, tràn ra đĩa và giới hạn sử dụng
+  - Truyền điều tiết qua ranh giới bất đồng bộ hoặc mạng
+  - Chọn chính sách khi tải vượt khả năng xử lý lâu dài
+- level1: Lô và luồng
+  level2:
+  - Dữ liệu hữu hạn và dữ liệu không giới hạn
+  - Xử lý theo lô (batch) và xử lý dòng dữ liệu (streaming)
+  - Xử lý từng bản ghi và theo lô nhỏ (micro-batch)
+  - Kết quả cuối cùng và kết quả được cập nhật liên tục
+  - Toán tử chặn toàn bộ dữ liệu và toán tử có thể phát sớm
+  - Tái sử dụng mô hình đồ thị giữa batch và streaming
+  - Nguồn có thể phát lại và nguồn không thể phát lại
+  - Kết thúc đầu vào, dữ liệu nhàn rỗi và tín hiệu hoàn thành
+  - Độ trễ, thông lượng và yêu cầu độ mới của kết quả
+  - Giới hạn thao tác toàn cục trên đầu vào không kết thúc
+- level1: Trạng thái và phản hồi
+  level2:
+  - Nút không trạng thái và nút có trạng thái
+  - Trạng thái cục bộ, theo khóa và dùng chung
+  - Tích lũy giá trị theo chuỗi bản ghi
+  - Biến chỉ gán một lần và cơ chế chờ giá trị
+  - Cạnh phản hồi, giá trị trễ và token khởi tạo
+  - Mô hình hóa vòng lặp bằng dữ liệu phản hồi
+  - Điều kiện dừng, số vòng lặp và tiêu chí hội tụ
+  - Bảo đảm thứ tự cập nhật trạng thái
+  - Tính xác định khi trạng thái và tác dụng phụ cùng tồn tại
+  - Vòng đời, giới hạn dung lượng và thời hạn giữ trạng thái
+  - Quyền sở hữu trạng thái khi tăng mức độ song song
+  - Bảo vệ bất biến và tránh chia sẻ đối tượng có thể sửa đổi
+- level1: Thời gian và cửa sổ
+  level2:
+  - Thời gian sự kiện (event time) và thời gian xử lý (processing time)
+  - Dấu thời gian và dữ liệu đến không đúng thứ tự
+  - Watermark và giả thiết về tiến độ của dữ liệu
+  - Cửa sổ cố định, cửa sổ trượt và cửa sổ phiên
+  - Cửa sổ theo số lượng bản ghi và theo thời gian
+  - Gom nhóm theo khóa trong từng cửa sổ
+  - Điều kiện phát kết quả (trigger)
+  - Kết quả sớm, kết quả đúng thời điểm và cập nhật muộn
+  - Dữ liệu đến muộn và thời gian chấp nhận trễ
+  - Tích lũy, thay thế và thu hồi kết quả đã phát
+  - Bộ định thời và dọn dẹp trạng thái cửa sổ
+  - Ghép luồng theo khoảng thời gian và quản lý dữ liệu chờ
+  - Ảnh hưởng của nguồn nhàn rỗi hoặc chậm đến tiến độ toàn đồ thị
+- level1: Tính toán gia tăng
+  level2:
+  - Tái tính toán toàn bộ và chỉ cập nhật phần chịu ảnh hưởng
+  - Theo dõi phụ thuộc giữa dữ liệu đầu vào và kết quả
+  - Làm mất hiệu lực bộ nhớ đệm khi dữ liệu thay đổi
+  - Truyền phần chênh lệch (delta) qua các nút
+  - Biểu diễn thêm, cập nhật và xóa dữ liệu
+  - Bảo trì kết quả tổng hợp và kết quả nối theo thay đổi
+  - Phản hồi, tính toán đệ quy và điểm bất động
+  - Tính đơn điệu và điều kiện hội tụ trong mô hình phù hợp
+  - Kết quả tạm thời, tiến độ và xác định khi nào có thể chốt
+  - Đồ thị phụ thuộc động và cập nhật cấu trúc tính toán
+  - Đánh đổi bộ nhớ lưu kết quả với chi phí tính lại
+  - Phân biệt tính toán gia tăng với xử lý streaming nói chung
+- level1: Thực thi phân tán
+  level2:
+  - Ánh xạ đồ thị logic lên các tiến trình và máy thực thi
+  - Chia toán tử thành nhiều bản thực thi song song
+  - Phân vùng theo khóa, chia đều và phát đến mọi phân vùng
+  - Shuffle và trao đổi dữ liệu qua mạng
+  - Giữ dữ liệu gần nơi xử lý và giảm truyền tải
+  - Trật tự cục bộ, trật tự theo khóa và giới hạn trật tự toàn cục
+  - Khóa lệch tải, phân vùng nóng và phân phối lại công việc
+  - Đồng bộ các nhánh có tốc độ hoặc tiến độ khác nhau
+  - Giới hạn luồng đang xử lý giữa các tiến trình
+  - Tăng giảm tài nguyên và di chuyển trạng thái
+  - Phát hiện tiến độ và kết thúc trong đồ thị phân tán
+  - Ranh giới giữa bộ điều phối, bộ thực thi và nơi lưu trạng thái
+- level1: Lỗi và khôi phục
+  level2:
+  - Phân loại lỗi bản ghi, lỗi toán tử và lỗi hạ tầng
+  - Chọn dừng toàn đồ thị, cô lập nhánh hoặc chuyển bản ghi lỗi
+  - Thử lại và điều kiện thao tác có thể thực hiện lặp an toàn
+  - Lùi thời gian thử lại, giới hạn lần thử và bản ghi lỗi kéo dài
+  - Ngữ nghĩa giao nhận ít nhất một lần, nhiều nhất một lần và đúng một lần
+  - Nguồn phát lại, vị trí đọc và điểm khôi phục
+  - Chụp trạng thái và tính nhất quán giữa dữ liệu với trạng thái
+  - Phối hợp checkpoint giữa các nhánh và kênh đang truyền
+  - Khôi phục từ checkpoint và xử lý dữ liệu được phát lại
+  - Phân biệt trạng thái nhất quán với hiệu ứng bên ngoài đúng một lần
+  - Đầu ra có giao dịch, ghi lặp an toàn và chống trùng
+  - Hủy tác vụ, đóng tài nguyên và kết thúc có kiểm soát
+  - Đánh đổi thời gian khôi phục, dung lượng lưu trữ và chi phí vận hành
+- level1: Tối ưu đồ thị
+  level2:
+  - Bảo toàn ngữ nghĩa khi thay đổi cấu trúc đồ thị
+  - Loại nút không sử dụng và tính toán lặp
+  - Đẩy phép lọc và chọn trường về gần nguồn
+  - Hợp nhất toán tử và giảm chi phí truyền dữ liệu
+  - Tách toán tử để tăng song song và cô lập nút chậm
+  - Kết hợp từng phần trước khi trao đổi dữ liệu
+  - Đổi thứ tự phép biến đổi khi thỏa điều kiện
+  - Ghi nhớ kết quả trung gian và lựa chọn điểm lưu
+  - Lựa chọn chiến lược nối và phân vùng
+  - Tối ưu theo thống kê, độ chọn lọc và phân bố khóa
+  - Mâu thuẫn giữa hợp nhất, backpressure và khả năng khôi phục
+  - Đọc kế hoạch thực thi để kiểm chứng tối ưu thực sự
+- level1: Thiết kế chương trình
+  level2:
+  - Chuyển yêu cầu thành nguồn, phép biến đổi và đầu ra
+  - Xác định kết quả quan sát được và bất biến cần giữ
+  - Chọn hạt dữ liệu, khóa và ranh giới trạng thái
+  - Thiết kế đồ thị con với hợp đồng cổng rõ ràng
+  - Tách mô tả đồ thị khỏi cơ chế thực thi
+  - Đặt tác dụng phụ tại ranh giới dễ kiểm soát
+  - Mô tả chính sách lỗi, thứ tự, hủy và hoàn thành
+  - Thiết kế kết nối với cơ sở dữ liệu, tệp và dịch vụ ngoài
+  - Quản lý cấu hình, schema và phiên bản đồ thị
+  - Tái sử dụng phép biến đổi mà không làm ẩn phụ thuộc
+  - Đánh giá tài nguyên và điều kiện vận hành trước khi triển khai
+  - Ghi lại giả thiết về dữ liệu, thời gian và khả năng phát lại
+- level1: Dataflow trong Java
+  level2:
+  - Biểu diễn phép biến đổi bằng Function, Predicate và các kiểu hàm
+  - Dữ liệu bất biến và kiểm soát tác dụng phụ giữa các nút
+  - Pipeline Java Stream như một cách biểu diễn chuỗi biến đổi
+  - Tính trì hoãn, toán tử trung gian và thao tác kết thúc
+  - Giới hạn của Stream so với bộ thực thi đồ thị tổng quát
+  - Reduce, collect và yêu cầu kết hợp kết quả đúng
+  - Parallel stream và điều kiện an toàn của phép biến đổi
+  - Biểu diễn kênh hữu hạn bằng BlockingQueue
+  - Tách nguồn, nút xử lý và đầu ra bằng các hợp đồng Java
+  - Quản lý Executor, hàng đợi tác vụ và số lượng công việc đang xử lý
+  - Luồng ảo trong JDK 21 và giới hạn khi công việc nặng tính toán
+  - Kết thúc kênh, xử lý gián đoạn và đóng tài nguyên
+  - Phân biệt mô tả luồng dữ liệu với bảo đảm tự động về song song
+- level1: CompletableFuture
+  level2:
+  - Giá trị tương lai và quan hệ phụ thuộc giữa tác vụ
+  - CompletableFuture và hợp đồng CompletionStage
+  - Biến đổi kết quả bằng thenApply
+  - Nối tác vụ bất đồng bộ bằng thenCompose
+  - Kết hợp hai nhánh độc lập bằng thenCombine
+  - Phân nhánh xử lý và đồng bộ nhiều kết quả bằng allOf
+  - anyOf và ý nghĩa kết quả hoàn thành trước
+  - Biến thể đồng bộ, bất đồng bộ và lựa chọn Executor
+  - Truyền lỗi qua đồ thị bằng exceptionally, handle và whenComplete
+  - Thời hạn chờ với orTimeout và completeOnTimeout
+  - Hủy future và giới hạn của việc dừng công việc bên dưới
+  - Tránh join hoặc get chặn tiến độ trong cùng nhóm luồng
+  - Quản lý tài nguyên của đồ thị có nhiều nhánh
+  - Giới hạn của future một kết quả đối với luồng nhiều bản ghi
+- level1: Flow và Reactive Streams
+  level2:
+  - Publisher, Subscriber, Subscription và Processor
+  - Tín hiệu đăng ký, dữ liệu, lỗi và hoàn thành
+  - Nhu cầu qua request và điều tiết tốc độ phát
+  - Hủy đăng ký và giải phóng tài nguyên
+  - Tạo Processor làm nút biến đổi và nối các giai đoạn
+  - Quản lý tuần tự tín hiệu khi có nhiều luồng thực thi
+  - SubmissionPublisher, Executor và bộ đệm cho bên nhận
+  - Chính sách submit, offer và xử lý bên nhận chậm
+  - Phân biệt luồng nóng, luồng lạnh và khả năng phát lại trong thiết kế
+  - Xử lý nhiều bên nhận và mức độ độc lập của từng nhánh
+  - Ranh giới giữa giao thức Reactive Streams và ngữ nghĩa đồ thị dataflow
+  - Khi nào dùng thư viện xử lý phản ứng thay vì tự xây giao thức
+- level1: Công cụ và hệ sinh thái
+  level2:
+  - Ngôn ngữ dataflow và công cụ lập trình trực quan
+  - Flow-based programming và xử lý bằng các thành phần nối cổng
+  - Apache NiFi và mô hình điều phối dòng dữ liệu
+  - 'Apache Beam: mô hình pipeline, PCollection và runner'
+  - Phân biệt mô hình dataflow với dịch vụ Google Cloud Dataflow
+  - 'Apache Flink: đồ thị toán tử, trạng thái và xử lý luồng'
+  - 'Apache Spark: đồ thị phụ thuộc và kế hoạch xử lý phân tán'
+  - Đồ thị tính toán trong học máy và vi phân tự động
+  - Bảng tính như một ví dụ về phụ thuộc và tính toán lại
+  - Đọc mô hình thực thi thay vì suy luận từ giao diện pipeline
+  - Giới hạn khi chuyển một thiết kế giữa các nền tảng
+  - Tiêu chí khảo sát công cụ theo bài toán và môi trường
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử từng phép biến đổi độc lập với bộ thực thi
+  - Kiểm tra hợp đồng kiểu, schema và cổng kết nối
+  - So sánh kết quả đồ thị với một bản thực hiện tuần tự
+  - Kiểm thử thuộc tính và bất biến trên nhiều dạng đầu vào
+  - Kiểm tra thứ tự chỉ ở những nơi hợp đồng yêu cầu
+  - Kiểm thử nhiều lịch thực thi và mức độ song song
+  - Kiểm thử nguồn nhanh, nhánh chậm và đầy bộ đệm
+  - Điều khiển thời gian để kiểm tra cửa sổ và bản ghi đến muộn
+  - Tiêm lỗi, phát lại dữ liệu và kiểm tra trạng thái sau khôi phục
+  - Kiểm thử bản ghi trùng, mất kết nối và hiệu ứng bên ngoài
+  - Kiểm tra hoàn thành, hủy, đóng tài nguyên và bế tắc
+  - Kiểm thử ranh giới hữu hạn, luồng rỗng và dữ liệu rất lớn
+  - Tách kiểm thử kết quả khỏi kiểm thử hiệu năng
+- level1: Gỡ lỗi và quan sát
+  level2:
+  - Vẽ đồ thị logic và đối chiếu với kế hoạch thực thi
+  - Theo dõi bản ghi bằng mã định danh và thông tin nguồn gốc
+  - Đo độ sâu hàng đợi và số tác vụ đang xử lý
+  - Quan sát thông lượng, độ trễ và thời gian chờ từng nút
+  - Theo dõi watermark, cửa sổ và kích thước trạng thái
+  - Phân biệt thiếu dữ liệu, nghẽn tài nguyên và bế tắc
+  - Xác định nút thắt qua tình trạng nhánh và phân vùng
+  - Lần theo lỗi qua các ranh giới bất đồng bộ
+  - Đọc log khôi phục, checkpoint và phát lại nguồn
+  - Tạo dữ liệu tái hiện nhỏ mà vẫn giữ cấu trúc lỗi
+  - Giới hạn quan sát để tránh làm thay đổi tải hoặc lộ dữ liệu
+- level1: Hiệu năng
+  level2:
+  - Thông lượng, độ trễ và độ biến thiên thời gian xử lý
+  - Lập ngân sách thời gian và bộ nhớ cho từng giai đoạn
+  - Đo riêng chi phí tính toán, xếp hàng và truyền dữ liệu
+  - Chọn kích thước lô, bộ đệm và số tác vụ đồng thời
+  - Cân bằng hạt công việc với chi phí điều phối
+  - Giảm sao chép, cấp phát và tuần tự hóa không cần thiết
+  - Tối ưu phân vùng, giảm shuffle và xử lý khóa lệch tải
+  - Tái sử dụng kết quả trung gian khi đem lại lợi ích thực tế
+  - Ảnh hưởng của checkpoint và lưu trạng thái đến hiệu năng
+  - Kiểm tra mức sử dụng CPU, I/O, bộ nhớ và thu gom rác
+  - Đo tải ổn định, tải tăng đột biến và khả năng phục hồi
+  - Dùng JMH cho phép tính cục bộ và phép thử tải cho toàn pipeline
+  - Kiểm chứng tối ưu vẫn giữ đúng ngữ nghĩa
+- level1: Bảo mật và tài nguyên
+  level2:
+  - Ranh giới tin cậy của nguồn dữ liệu, cấu hình và nút mở rộng
+  - Kiểm tra schema, kích thước bản ghi và dữ liệu bất thường
+  - Giới hạn hàng đợi, trạng thái và lượng dữ liệu đang xử lý
+  - Hạn ngạch thời gian, số lần thử lại và mức độ song song
+  - Vòng phản hồi hoặc nhánh mở rộng gây tăng dữ liệu không kiểm soát
+  - Phân quyền truy cập nguồn, đầu ra và nơi lưu checkpoint
+  - Bảo vệ dữ liệu trên đường truyền và trong trạng thái lưu bền
+  - Quản lý bí mật trong connector, log và công cụ quan sát
+  - Cô lập mã biến đổi hoặc plugin không đáng tin cậy
+  - Thời hạn giữ dữ liệu, xóa trạng thái và dấu vết truy cập
+- level1: Lỗi thường gặp
+  level2:
+  - Vẽ luồng điều khiển rồi coi đó là đồ thị phụ thuộc dữ liệu
+  - Giả định mọi pipeline đều có đầy đủ ngữ nghĩa dataflow
+  - Đồng nhất dataflow với reactive, hướng sự kiện hoặc hướng dữ liệu
+  - Cho rằng đồ thị có thể song song thì luôn chạy nhanh hơn
+  - Nhầm tốc độ token cố định với thời gian thực thi cố định
+  - Xem hàng đợi không giới hạn là cách giải quyết nghẽn tải
+  - Quên token khởi tạo hoặc điều kiện dừng của vòng phản hồi
+  - Dùng trạng thái chia sẻ làm kết quả phụ thuộc lịch thực thi
+  - Nối luồng không giới hạn mà không giới hạn dữ liệu chờ
+  - Đồng nhất hết dữ liệu tạm thời với kết thúc nguồn
+  - Thử lại tác dụng phụ mà không kiểm soát ghi trùng
+  - Tuyên bố đúng một lần mà chưa xét nguồn và đầu ra bên ngoài
+  - Chặn tác vụ phụ thuộc trong nhóm luồng đã cạn tài nguyên
+- level1: Dự án thực hành
+  level2:
+  - Mô hình hóa một biểu thức thành DAG và thực thi theo phụ thuộc
+  - Xây pipeline làm sạch dữ liệu với kiểm thử từng phép biến đổi
+  - Thực hiện mạng SDF nhỏ và kiểm tra cân bằng token
+  - Mô phỏng mạng tiến trình với hàng đợi và khảo sát bế tắc
+  - Tách nhánh xử lý song song rồi kết hợp bằng CompletableFuture
+  - Xây pipeline BlockingQueue có bộ đệm hữu hạn và kết thúc rõ ràng
+  - Tạo Flow Processor và kiểm tra bên nhận chậm
+  - Đếm theo khóa với cửa sổ và dữ liệu đến không đúng thứ tự
+  - Bổ sung lưu trạng thái, checkpoint và phát lại sau lỗi
+  - Xây kết quả tổng hợp được cập nhật khi dữ liệu thay đổi
+  - So sánh nhiều cách phân vùng trên tập dữ liệu lệch tải
+  - Đo cùng bài toán theo thực hiện tuần tự, song song và streaming
+  - Hoàn thiện tài liệu về giả thiết, giới hạn và cách vận hành
+- level1: Lựa chọn mô hình
+  level2:
+  - Xác định bài toán nằm ở phụ thuộc dữ liệu hay điều phối nghiệp vụ
+  - So sánh dataflow với điều khiển mệnh lệnh và chia sẻ bộ nhớ
+  - Quan hệ với lập trình hàm, actor và truyền thông điệp
+  - Quan hệ với hướng sự kiện, xử lý phản ứng và truy vấn khai báo
+  - Phân biệt mô hình dataflow với thiết kế hướng dữ liệu
+  - Chọn DAG hữu hạn, mạng có phản hồi hoặc luồng liên tục
+  - Chọn bộ thực thi cục bộ hoặc nền tảng phân tán
+  - Cân nhắc yêu cầu thứ tự, thời gian, khôi phục và tài nguyên
+  - Bắt đầu từ thiết kế nhỏ có thể kiểm chứng
+  - Đánh giá chi phí vận hành và khả năng giải thích của giải pháp
+  - Ghi lại giả thiết và điều kiện cần thay đổi mô hình

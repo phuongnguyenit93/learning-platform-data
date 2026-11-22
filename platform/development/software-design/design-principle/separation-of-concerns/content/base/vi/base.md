@@ -1,0 +1,7 @@
+# Software Design — Separation of Concerns
+
+Separation of Concerns (SoC) là nguyên tắc thiết kế tách các phần mềm theo những mối quan tâm hoặc trách nhiệm khác nhau. Chẳng hạn, xử lý HTTP, kiểm tra quy tắc nghiệp vụ và truy cập cơ sở dữ liệu là ba loại công việc có lý do thay đổi khác nhau; đặt tất cả vào cùng một hàm khiến việc sửa, thử nghiệm và bảo trì khó khăn hơn. SoC hướng tới ranh giới rõ ràng giữa các thành phần, không có nghĩa là mọi chức năng phải thành một dịch vụ triển khai riêng.
+
+Module phù hợp với người đã biết Java, hướng đối tượng, interface và cấu trúc ứng dụng web cơ bản. Lộ trình bắt đầu từ cách nhận diện *concern* trộn lẫn, sau đó phân tách presentation, domain/business logic và data access theo mô hình layered architecture hoặc các biến thể phù hợp. Bạn sẽ học phân chia class, package, module theo trách nhiệm, thiết kế interface và hướng phụ thuộc để phần nghiệp vụ không gắn cứng vào hạ tầng. SoC có liên hệ với Single Responsibility Principle và Dependency Injection, nhưng không đồng nghĩa với hai kỹ thuật này.
+
+Phần cuối đề cập các *cross-cutting concerns* như logging, xác thực và transaction, vốn xuất hiện ở nhiều luồng xử lý, cùng các lựa chọn filter, interceptor hoặc AOP khi cần. Qua bài thực hành refactor một controller đang trộn HTTP, business rule và database, người học sẽ viết unit test riêng cho nghiệp vụ và xác minh hành vi không đổi. Sau module, bạn có thể mô tả ranh giới trách nhiệm, chỉ ra dấu hiệu vi phạm SoC và đề xuất mức phân tách vừa đủ để mã nguồn dễ hiểu, dễ kiểm thử và phát triển.

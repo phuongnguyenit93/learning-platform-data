@@ -1,0 +1,43 @@
+roadmap:
+- id: ban-chat-phu-thuoc
+  title: Bản chất phụ thuộc
+  purpose: Hiểu các dạng phụ thuộc trong mã Java và cấu hình build để chọn đúng phạm vi phân tích.
+  objectives:
+  - Phân biệt phụ thuộc class/package/module với thư viện build.
+  - Nhận diện phụ thuộc trực tiếp và bắc cầu.
+- id: do-thi-phu-thuoc
+  title: Đồ thị phụ thuộc
+  purpose: Biểu diễn các mối quan hệ để nhìn rõ chiều và đường đi của phụ thuộc.
+  objectives:
+  - Vẽ đồ thị nút–cạnh cho một module Java.
+  - Truy vết đường phụ thuộc giữa các thành phần.
+- id: khao-sat-bang-jdeps
+  title: Khảo sát bằng jdeps
+  purpose: Đọc phụ thuộc tĩnh cấp class, package và module từ mã Java đã biên dịch.
+  objectives:
+  - Chạy jdeps trên JAR hoặc thư mục class.
+  - Xác định phụ thuộc ngoài dự kiến từ báo cáo.
+- id: cay-phu-thuoc-gradle
+  title: Cây phụ thuộc Gradle
+  purpose: Hiểu thư viện được kéo vào và lý do phiên bản được lựa chọn.
+  objectives:
+  - Đọc kết quả tasks dependencies và dependencyInsight.
+  - Truy vết phụ thuộc bắc cầu hoặc xung đột phiên bản.
+- id: coupling-va-vong-phu-thuoc
+  title: Coupling và vòng phụ thuộc
+  purpose: Nhận ra liên kết chặt và chu trình gây khó bảo trì mã nguồn.
+  objectives:
+  - Xác định chiều phụ thuộc giữa các package/layer.
+  - Phát hiện và giải thích một vòng phụ thuộc.
+- id: quy-tac-voi-archunit
+  title: Quy tắc với ArchUnit
+  purpose: Kiểm tra tự động các ranh giới phụ thuộc đã thiết kế.
+  objectives:
+  - Viết quy tắc giới hạn phụ thuộc giữa các tầng.
+  - Chạy bài kiểm tra phát hiện vi phạm kiến trúc.
+- id: khac-phuc-va-ci
+  title: Khắc phục và CI
+  purpose: Giảm phụ thuộc không mong muốn và ngăn tái phát trong quy trình phát triển.
+  objectives:
+  - Refactor một vòng phụ thuộc hoặc vi phạm rule.
+  - Tích hợp kiểm tra kiến trúc vào Gradle và CI.

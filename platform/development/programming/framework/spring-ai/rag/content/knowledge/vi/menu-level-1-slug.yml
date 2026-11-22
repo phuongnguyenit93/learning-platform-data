@@ -1,0 +1,91 @@
+menu:
+- title: Định hướng
+  slug: orientation
+  index: 0
+- title: Kiến trúc RAG
+  slug: rag-architecture
+  index: 1
+- title: Chuẩn bị môi trường
+  slug: environment-setup
+  index: 2
+- title: Mô hình Document
+  slug: document-model
+  index: 3
+- title: Thu thập tài liệu
+  slug: document-ingestion
+  index: 4
+- title: Chia nhỏ tài liệu
+  slug: document-chunking
+  index: 5
+- title: Embedding cho RAG
+  slug: rag-embeddings
+  index: 6
+- title: Lập chỉ mục
+  slug: indexing
+  index: 7
+- title: Truy xuất vector
+  slug: vector-retrieval
+  index: 8
+- title: QuestionAnswerAdvisor
+  slug: questionansweradvisor
+  index: 9
+- title: RAG mô đun
+  slug: rag-mo-dun
+  index: 10
+- title: Biến đổi truy vấn
+  slug: query-transformation
+  index: 11
+- title: Mở rộng truy vấn
+  slug: query-expansion
+  index: 12
+- title: Nguồn truy xuất
+  slug: retrieval-sources
+  index: 13
+- title: Ghép kết quả
+  slug: result-merging
+  index: 14
+- title: Xếp hạng và tinh lọc
+  slug: ranking-refinement
+  index: 15
+- title: Bổ sung ngữ cảnh
+  slug: context-enrichment
+  index: 16
+- title: Sinh câu trả lời
+  slug: answer-generation
+  index: 17
+- title: Dẫn nguồn
+  slug: source-citations
+  index: 18
+- title: RAG hội thoại
+  slug: conversational-rag
+  index: 19
+- title: Mẫu RAG nâng cao
+  slug: advanced-rag-patterns
+  index: 20
+- title: Đánh giá truy xuất
+  slug: retrieval-evaluation
+  index: 21
+- title: Đánh giá câu trả lời
+  slug: answer-evaluation
+  index: 22
+- title: Kiểm thử
+  slug: testing
+  index: 23
+- title: Bảo mật dữ liệu
+  slug: data-security
+  index: 24
+- title: Hiệu năng và chi phí
+  slug: performance-cost
+  index: 25
+- title: Quan sát pipeline
+  slug: pipeline-observability
+  index: 26
+- title: Vận hành
+  slug: operations
+  index: 27
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 28
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 29

@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phân tích bài toán
+  slug: problem-analysis
+  index: 1
+- title: Tách dữ liệu và xử lý
+  slug: data-processing-separation
+  index: 2
+- title: Biểu diễn dữ liệu
+  slug: data-representation
+  index: 3
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 4
+- title: Bất biến
+  slug: immutability
+  index: 5
+- title: Biến đổi dữ liệu
+  slug: data-transformation
+  index: 6
+- title: Quan hệ dữ liệu
+  slug: data-relationships
+  index: 7
+- title: API dữ liệu
+  slug: data-apis
+  index: 8
+- title: Cấu trúc lưu trữ
+  slug: storage-layout
+  index: 9
+- title: Mô hình phần cứng
+  slug: hardware-model
+  index: 10
+- title: Bố trí bộ nhớ
+  slug: memory-layout
+  index: 11
+- title: Tính cục bộ
+  slug: data-locality
+  index: 12
+- title: Thiết kế theo dữ liệu
+  slug: data-driven-design
+  index: 13
+- title: ECS
+  slug: ecs
+  index: 14
+- title: Xử lý theo lô
+  slug: batch-processing
+  index: 15
+- title: Vòng lặp và SIMD
+  slug: loops-and-simd
+  index: 16
+- title: Xử lý đồng thời
+  slug: concurrent-processing
+  index: 17
+- title: Java và JVM
+  slug: java-and-jvm
+  index: 18
+- title: Quản lý bộ nhớ
+  slug: memory-management
+  index: 19
+- title: Tuần tự hóa
+  slug: serialization
+  index: 20
+- title: Tiến hóa lược đồ
+  slug: schema-evolution
+  index: 21
+- title: Lưu trữ và truy vấn
+  slug: storage-and-queries
+  index: 22
+- title: Kiểm thử
+  slug: testing
+  index: 23
+- title: Đo hiệu năng
+  slug: performance-measurement
+  index: 24
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 25
+- title: Chuyển đổi thiết kế
+  slug: design-migration
+  index: 26
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 27
+- title: Bài thực hành
+  slug: hands-on-labs
+  index: 28

@@ -1,0 +1,3 @@
+menuLevel1: Phân tích Maven
+menuLevel2: Đọc mvn dependency:tree và lọc artifact, scope hoặc nhánh cần xem
+status: ''

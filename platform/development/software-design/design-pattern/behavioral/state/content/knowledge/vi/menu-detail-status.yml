@@ -1,0 +1,1585 @@
+menu:
+- slug: state-overview
+  title: Tổng quan State
+  childs:
+  - slug: state-overview-001
+    title: Bài toán hành vi đối tượng thay đổi theo trạng thái nội tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-overview-002
+    title: Ý định của State và vai trò trong nhóm mẫu hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-overview-003
+    title: Phân biệt trạng thái, sự kiện, hành vi và chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-overview-004
+    title: Dấu hiệu nhận biết các nhánh if/switch theo trạng thái cần tái cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-overview-005
+    title: Ủy quyền hành vi và nguyên tắc đóng gói phần thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-overview-006
+    title: Lợi ích về tính rõ ràng, khả năng mở rộng và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-overview-007
+    title: Chi phí số lượng lớp và trường hợp chưa cần áp dụng State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-structure
+  title: Cấu trúc mẫu
+  childs:
+  - slug: pattern-structure-001
+    title: Context quản lý dữ liệu nghiệp vụ và tham chiếu State hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-002
+    title: Giao diện State xác định hợp đồng hành vi phụ thuộc trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-003
+    title: ConcreteState hiện thực hành vi cho từng trạng thái cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-004
+    title: Client khởi tạo và sử dụng Context qua giao diện nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-005
+    title: Quan hệ giữa Context, State và các cộng tác viên nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-006
+    title: Sơ đồ lớp UML thể hiện cấu trúc và chiều phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-007
+    title: Sơ đồ đối tượng minh họa thay thế State trong cùng một Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-flow
+  title: Luồng thực thi
+  childs:
+  - slug: execution-flow-001
+    title: Context tiếp nhận yêu cầu và ủy quyền cho State đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-002
+    title: State sử dụng dữ liệu Context để thực hiện hành vi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-003
+    title: Đánh giá điều kiện bảo vệ trước khi chấp nhận sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-004
+    title: Chọn trạng thái đích và điều phối việc chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-005
+    title: Thứ tự thực hiện hành vi, cập nhật State và thông báo kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-006
+    title: Hành vi tại trạng thái kết thúc và yêu cầu đến sau khi kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-007
+    title: Sơ đồ tuần tự cho luồng thành công và yêu cầu bị từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-modeling
+  title: Mô hình trạng thái
+  childs:
+  - slug: state-modeling-001
+    title: Thu thập vòng đời nghiệp vụ và phân định phạm vi đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-modeling-002
+    title: Xác định tập trạng thái bằng ý nghĩa nghiệp vụ và hành vi khác biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-modeling-003
+    title: Lập bảng trạng thái nguồn, sự kiện, điều kiện và trạng thái đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-modeling-004
+    title: Vẽ sơ đồ chuyển trạng thái với hành động và điều kiện bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-modeling-005
+    title: Xác định trạng thái khởi đầu, kết thúc, chu trình và khả năng đi tới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-modeling-006
+    title: Phát hiện chuyển trạng thái trái phép, ngõ cụt và trường hợp bỏ sót
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-modeling-007
+    title: Phân biệt trạng thái vòng đời với thuộc tính, cờ và trạng thái suy ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: invariants-and-contracts
+  title: Bất biến và hợp đồng
+  childs:
+  - slug: invariants-and-contracts-001
+    title: Xác định bất biến dữ liệu phải được giữ trong toàn bộ vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invariants-and-contracts-002
+    title: Định nghĩa tiền điều kiện và hậu điều kiện của từng hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invariants-and-contracts-003
+    title: Thiết kế điều kiện bảo vệ rõ ràng và không gây tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invariants-and-contracts-004
+    title: Bảo đảm State hiện tại nhất quán với dữ liệu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invariants-and-contracts-005
+    title: Ngăn quan sát hoặc sử dụng Context khi chuyển trạng thái dở dang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invariants-and-contracts-006
+    title: Kiểm tra bất biến sau thành công, từ chối và ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invariants-and-contracts-007
+    title: Xác định nguồn sự thật khi trạng thái trong bộ nhớ và lưu trữ cùng tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: context-design
+  title: Thiết kế Context
+  childs:
+  - slug: context-design-001
+    title: Thiết kế API theo ý định nghiệp vụ thay vì thao tác đổi State tùy ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-002
+    title: Đặt dữ liệu dùng chung và quy tắc sở hữu dữ liệu trong Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-003
+    title: Cung cấp thao tác nội bộ tối thiểu cho các lớp State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-004
+    title: Giới hạn quyền thay thế State để bảo vệ đồ thị chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-005
+    title: Phân chia trách nhiệm xác thực giữa Context, State và dịch vụ miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-006
+    title: Cung cấp truy vấn trạng thái và ảnh chụp dữ liệu an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: context-design-007
+    title: Khởi tạo mới và khôi phục Context với trạng thái hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-class-design
+  title: Thiết kế lớp State
+  childs:
+  - slug: state-class-design-001
+    title: Đặt tên ConcreteState theo ngôn ngữ nghiệp vụ của từng trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-class-design-002
+    title: Lựa chọn interface hoặc lớp trừu tượng cho hợp đồng State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-class-design-003
+    title: Gom các hành vi cùng trạng thái và giữ trách nhiệm lớp rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-class-design-004
+    title: Quy định hành vi mặc định cho thao tác không được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-class-design-005
+    title: Truyền Context qua tham số hoặc giữ tham chiếu trong State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-class-design-006
+    title: Quản lý tài nguyên và ranh giới trách nhiệm khi State ngừng hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-class-design-007
+    title: Chia sẻ logic phù hợp mà không tạo hệ phân cấp kế thừa phức tạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transition-coordination
+  title: Điều phối chuyển trạng thái
+  childs:
+  - slug: transition-coordination-001
+    title: Lựa chọn Context, State hoặc bộ điều phối làm nơi quyết định chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transition-coordination-002
+    title: Tập trung chính sách chuyển trạng thái và tránh quy tắc trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transition-coordination-003
+    title: Biểu diễn quan hệ giữa sự kiện, điều kiện bảo vệ và trạng thái đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transition-coordination-004
+    title: Phân biệt sự kiện lặp, chuyển về chính nó và yêu cầu có tính lũy đẳng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transition-coordination-005
+    title: Kiểm soát chuỗi chuyển tiếp và xử lý xong một sự kiện trước sự kiện tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transition-coordination-006
+    title: Ngăn chuyển trạng thái hai lần trong cùng một thao tác nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transition-coordination-007
+    title: Quy định việc hủy, mở lại và rời trạng thái kết thúc theo nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Triển khai Java
+  childs:
+  - slug: java-implementation-001
+    title: Xây dựng interface State với các phương thức nghiệp vụ rõ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Hiện thực ConcreteState và kiểm soát phụ thuộc giữa các lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Cài đặt Context ủy quyền từng thao tác cho State hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Dùng constructor, factory và phạm vi package để kiểm soát khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Kết hợp enum mã trạng thái với lớp State và cân nhắc sealed interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Thiết kế kiểu kết quả và ngoại lệ miền cho các thao tác State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Đối chiếu mã Java dùng if/switch với phiên bản áp dụng State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-and-lifecycle
+  title: Dữ liệu và vòng đời
+  childs:
+  - slug: data-and-lifecycle-001
+    title: Phân bổ dữ liệu cho Context hoặc State theo phạm vi và thời gian sống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-lifecycle-002
+    title: Lựa chọn State bất biến và giới hạn dữ liệu có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-lifecycle-003
+    title: Điều kiện dùng chung State không mang dữ liệu bằng singleton
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-lifecycle-004
+    title: Tạo State bằng factory và tiêm phụ thuộc mà không tạo vòng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-lifecycle-005
+    title: Chọn vòng đời instance theo Context, yêu cầu hoặc phạm vi ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-lifecycle-006
+    title: Phân biệt định danh trạng thái với định danh instance và phép so sánh bằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-lifecycle-007
+    title: Đánh giá chi phí cấp phát, giữ tham chiếu và giải phóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: entry-and-exit-actions
+  title: Tác vụ vào và ra
+  childs:
+  - slug: entry-and-exit-actions-001
+    title: Xác định khi nào cần hành động vào trạng thái và rời trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entry-and-exit-actions-002
+    title: Quy định thứ tự exit, cập nhật State và entry trong một lần chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entry-and-exit-actions-003
+    title: Kiểm tra điều kiện và chuẩn bị dữ liệu trước tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entry-and-exit-actions-004
+    title: Xử lý ngoại lệ tại entry hoặc exit và xác định trạng thái có hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entry-and-exit-actions-005
+    title: Phân biệt chuyển nội bộ và chuyển về chính nó có chạy lại entry/exit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entry-and-exit-actions-006
+    title: Quản lý bộ định thời, đăng ký lắng nghe và tác vụ nền theo State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entry-and-exit-actions-007
+    title: Ngăn callback cũ và lời gọi tái nhập làm sai thứ tự chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-handling-and-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: error-handling-and-recovery-001
+    title: Phân loại thao tác không hợp lệ, điều kiện không đạt và lỗi hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-002
+    title: Lựa chọn trả kết quả từ chối hoặc ném ngoại lệ miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-003
+    title: Bảo đảm dữ liệu và State hợp lệ khi một thao tác thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-004
+    title: Phục hồi hoặc bù trừ khi tác dụng phụ chỉ hoàn thành một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-005
+    title: Mô hình hóa trạng thái lỗi, thử lại và chờ phục hồi khi nghiệp vụ cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-006
+    title: Giới hạn số lần thử lại và xác định điểm chuyển sang thất bại cuối cùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-and-recovery-007
+    title: Thiết kế thông tin lỗi và hướng phục hồi mà không che giấu vi phạm bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-and-async
+  title: Đồng thời và bất đồng bộ
+  childs:
+  - slug: concurrency-and-async-001
+    title: Nhận diện tranh chấp khi nhiều luồng đọc, xử lý và đổi State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-002
+    title: Lựa chọn xử lý tuần tự, khóa hoặc cập nhật có điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-003
+    title: Dùng phiên bản trạng thái để phát hiện quyết định dựa trên dữ liệu cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-004
+    title: Gắn định danh tác vụ để loại bỏ sự kiện đến muộn hoặc sai phiên xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-005
+    title: Tách tác vụ kéo dài khỏi khóa và tiếp nhận kết quả qua sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-006
+    title: Giải quyết cạnh tranh giữa hoàn thành, hủy bỏ và hết thời gian chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-007
+    title: Kiểm soát callback, lời gọi tái nhập và nguy cơ khóa chéo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: persistence-and-rehydration
+  title: Lưu và khôi phục
+  childs:
+  - slug: persistence-and-rehydration-001
+    title: Lưu mã trạng thái ổn định thay vì tên lớp hoặc tham chiếu đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-rehydration-002
+    title: Thiết kế ảnh chụp gồm dữ liệu nghiệp vụ, mã State và phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-rehydration-003
+    title: Ánh xạ mã lưu trữ về ConcreteState bằng factory hoặc registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-rehydration-004
+    title: Ghi trạng thái và dữ liệu liên quan trong cùng ranh giới nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-rehydration-005
+    title: Ánh xạ với cơ sở dữ liệu và ORM mà không phụ thuộc tuần tự hóa lớp State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-rehydration-006
+    title: Khôi phục Context mà không chạy lặp tác dụng phụ của entry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-rehydration-007
+    title: Di trú dữ liệu cũ và xử lý mã trạng thái không còn được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-integration
+  title: Giao dịch và tích hợp
+  childs:
+  - slug: transactions-and-integration-001
+    title: Xác định ranh giới giao dịch cho xử lý sự kiện và chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-integration-002
+    title: Kiểm soát cập nhật đồng thời bằng khóa lạc quan và phiên bản bản ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-integration-003
+    title: Dùng khóa lũy đẳng để xử lý yêu cầu hoặc thông điệp gửi lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-integration-004
+    title: Phát sự kiện sau commit và áp dụng outbox khi cần độ bền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-integration-005
+    title: Phân biệt chuyển trạng thái cục bộ với phối hợp giao dịch nhiều dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-integration-006
+    title: Tiếp tục công việc sau khi tiến trình dừng giữa lưu trạng thái và gửi sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-integration-007
+    title: Xử lý thứ tự, trùng lặp và bàn giao tác vụ giữa các worker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-observability
+  title: Theo dõi trạng thái
+  childs:
+  - slug: state-observability-001
+    title: Ghi log trạng thái nguồn, sự kiện, trạng thái đích và lý do chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-observability-002
+    title: Lưu lịch sử chuyển trạng thái với thời điểm, chủ thể và kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-observability-003
+    title: Đo số lần chuyển, tỷ lệ từ chối và thời gian lưu ở mỗi trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-observability-004
+    title: Phát hiện đối tượng mắc kẹt, chuyển bất thường và lỗi phục hồi lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-observability-005
+    title: Liên kết log và trace bằng định danh Context, yêu cầu và tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-observability-006
+    title: Bảo vệ dữ liệu nhạy cảm trong lịch sử và thông tin chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-observability-007
+    title: Phân biệt trạng thái nghiệp vụ với tình trạng kỹ thuật của hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: behavior-testing
+  title: Kiểm thử hành vi
+  childs:
+  - slug: behavior-testing-001
+    title: Kiểm thử đơn vị hành vi của từng ConcreteState bằng cộng tác viên phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-testing-002
+    title: Kiểm tra Context ủy quyền đúng State và trả đúng kết quả nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-testing-003
+    title: Sinh ca kiểm thử tham số hóa từ bảng chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-testing-004
+    title: Kiểm tra điều kiện bảo vệ ở biên và các tổ hợp dữ liệu quan trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-testing-005
+    title: Xác minh yêu cầu trái phép bị từ chối và không làm thay đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-testing-006
+    title: Kiểm tra thứ tự và số lần thực hiện entry, exit cùng tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-testing-007
+    title: Kiểm thử trạng thái khởi đầu, kết thúc và sự kiện không được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resilience-testing
+  title: Kiểm thử độ bền
+  childs:
+  - slug: resilience-testing-001
+    title: Kiểm thử dựa trên thuộc tính để giữ bất biến qua chuỗi sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-testing-002
+    title: Đánh giá độ bao phủ trạng thái, cạnh chuyển và đường đi quan trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-testing-003
+    title: Kiểm thử đồng thời bằng lịch thực thi có kiểm soát thay vì phụ thuộc sleep
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-testing-004
+    title: Chèn lỗi tại thao tác nghiệp vụ, entry, exit và điểm phát sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-testing-005
+    title: Kiểm thử tích hợp lưu trữ, xung đột phiên bản và ranh giới giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-testing-006
+    title: Mô phỏng khởi động lại, thông điệp lặp và kết quả bất đồng bộ đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-testing-007
+    title: Kiểm tra tương thích ảnh chụp trạng thái qua các phiên bản ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refactoring-conditionals
+  title: Tái cấu trúc if/switch
+  childs:
+  - slug: refactoring-conditionals-001
+    title: Tìm các nhánh điều kiện lặp theo cùng một biến trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-002
+    title: Ghi nhận hành vi hiện tại bằng kiểm thử trước khi thay đổi thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-003
+    title: Chuyển các điều kiện rải rác thành bảng hành vi và bảng chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-004
+    title: Trích xuất hợp đồng State và giữ ổn định API của Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-005
+    title: Di chuyển hành vi sang ConcreteState theo từng bước nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-006
+    title: Hợp nhất điểm đổi State và loại bỏ dữ liệu trạng thái trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-conditionals-007
+    title: So sánh hành vi trước sau và loại bỏ nhánh điều kiện đã được thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-comparison-and-selection
+  title: So sánh và lựa chọn
+  childs:
+  - slug: pattern-comparison-and-selection-001
+    title: State và Strategy khác nhau về ý định, cách lựa chọn và vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparison-and-selection-002
+    title: Lựa chọn giữa enum kết hợp switch và các lớp ConcreteState
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparison-and-selection-003
+    title: Quan hệ giữa mẫu State và mô hình máy trạng thái hữu hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparison-and-selection-004
+    title: So sánh State hướng đối tượng với bảng chuyển và bộ diễn giải trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparison-and-selection-005
+    title: Phân định phạm vi State trong đối tượng và workflow engine trong quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparison-and-selection-006
+    title: Kết hợp Command biểu diễn yêu cầu và Observer nhận thông báo thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparison-and-selection-007
+    title: Cân nhắc chi phí thiết kế theo số trạng thái, hành vi và tần suất thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-extensions
+  title: Mở rộng thiết kế
+  childs:
+  - slug: design-extensions-001
+    title: Đánh giá tác động khi thêm trạng thái mới hoặc thêm hành vi mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-extensions-002
+    title: Tách hợp đồng State khi một giao diện chứa quá nhiều thao tác không liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-extensions-003
+    title: Dùng thành phần dùng chung cho hành vi lặp giữa nhiều State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-extensions-004
+    title: Mô hình hóa trạng thái phân cấp khi nhiều trạng thái con có quy tắc chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-extensions-005
+    title: Tách các chiều trạng thái độc lập để hạn chế bùng nổ tổ hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-extensions-006
+    title: Tách chính sách và điều kiện bảo vệ có thể thay đổi khỏi lớp State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-extensions-007
+    title: Kết hợp cấu hình chuyển trạng thái với hành vi viết bằng mã khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-design-mistakes
+  title: Lỗi thiết kế thường gặp
+  childs:
+  - slug: common-design-mistakes-001
+    title: Giữ nguyên if/switch phức tạp bên trong mọi ConcreteState
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-002
+    title: Đẩy toàn bộ nghiệp vụ vào Context khiến State chỉ còn là tên gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-003
+    title: Để các State phụ thuộc chéo và tự tạo toàn bộ trạng thái đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-004
+    title: Công khai setter trạng thái cho phép bỏ qua điều kiện bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-005
+    title: Chia sẻ State có dữ liệu thay đổi làm rò rỉ dữ liệu giữa các Context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-006
+    title: Chạy lại tác dụng phụ khi khôi phục hoặc nhận lại cùng sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-007
+    title: Tạo quá nhiều State vụn hoặc gộp các trạng thái có bất biến khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: order-workflow-practice
+  title: Thực hành đơn hàng
+  childs:
+  - slug: order-workflow-practice-001
+    title: Xác định vòng đời đơn hàng, tập sự kiện và bảng chuyển hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-workflow-practice-002
+    title: Thiết kế OrderContext cùng State cho tạo mới, thanh toán và hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-workflow-practice-003
+    title: Ủy quyền xác nhận, thanh toán, giao hàng và hủy theo State hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-workflow-practice-004
+    title: Bảo vệ bất biến số tiền, điều kiện hủy và điều kiện giao hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-workflow-practice-005
+    title: Lưu trạng thái đơn hàng và kiểm soát cập nhật đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-workflow-practice-006
+    title: Xử lý thanh toán lỗi, thông báo lặp và yêu cầu đến sau khi hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-workflow-practice-007
+    title: Kiểm thử vòng đời đầy đủ và đối chiếu với phiên bản dùng if/switch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: background-job-practice
+  title: Thực hành tác vụ nền
+  childs:
+  - slug: background-job-practice-001
+    title: Mô hình hóa tác vụ chờ chạy, đang chạy, thành công, thất bại và bị hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-job-practice-002
+    title: Thiết kế JobContext và State điều phối bắt đầu, hoàn tất và thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-job-practice-003
+    title: Quản lý số lần thử, thời gian chờ và điều kiện thất bại cuối cùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-job-practice-004
+    title: Phối hợp hủy, hết thời gian và callback bằng định danh lần thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-job-practice-005
+    title: Lưu tiến độ và khôi phục tác vụ sau khi ứng dụng khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-job-practice-006
+    title: Xử lý kết quả đến muộn và tranh chấp giữa các worker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: background-job-practice-007
+    title: Kiểm thử bất biến, chuỗi phục hồi và các điểm gián đoạn của tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

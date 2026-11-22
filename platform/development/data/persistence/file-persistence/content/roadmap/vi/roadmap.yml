@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-luu-tru-tep
+  title: Vai trò lưu trữ tệp
+  purpose: Hiểu khi nào dữ liệu cần tồn tại trên hệ tệp và đánh đổi so với lưu trong bộ nhớ hoặc cơ sở dữ liệu.
+  objectives:
+  - Giải thích tính bền vững dữ liệu qua các lần chạy.
+  - Nêu các trường hợp nên lưu dữ liệu bằng tệp.
+  - So sánh giới hạn của tệp với cơ sở dữ liệu.
+- id: duong-dan-he-tep
+  title: Đường dẫn & hệ tệp
+  purpose: Nắm cách định vị, tạo và quản lý tệp/thư mục một cách rõ ràng và an toàn.
+  objectives:
+  - Phân biệt đường dẫn tuyệt đối và tương đối.
+  - Dùng Path và Files để tạo, tìm, di chuyển, xóa tệp.
+  - Kiểm tra lỗi và chuẩn hóa đường dẫn.
+- id: doc-ghi-byte-van-ban
+  title: Đọc/ghi byte & văn bản
+  purpose: Chọn cách đọc ghi phù hợp với dữ liệu nhị phân hoặc văn bản để tránh mất hay sai lệch nội dung.
+  objectives:
+  - Phân biệt byte stream với character stream.
+  - Đọc và ghi văn bản với UTF-8 rõ ràng.
+  - Quản lý tài nguyên bằng try-with-resources.
+- id: to-chuc-du-lieu-tep
+  title: Tổ chức dữ liệu tệp
+  purpose: Thiết kế cấu trúc tệp đơn giản, dễ đọc, cập nhật và duy trì qua các phiên bản.
+  objectives:
+  - Chọn một dạng biểu diễn dữ liệu phù hợp.
+  - Quy định bản ghi, trường, quy tắc đặt tên tệp.
+  - Xử lý dữ liệu thiếu, sai định dạng và phiên bản cũ.
+- id: streaming-tep-lon
+  title: Streaming & tệp lớn
+  purpose: Xử lý dữ liệu theo luồng và truy cập vị trí tệp khi cần mà không giữ toàn bộ nội dung trong bộ nhớ.
+  objectives:
+  - Đọc ghi từng phần với bộ đệm.
+  - Dùng FileChannel hoặc API tương đương cho truy cập vị trí.
+  - So sánh bộ nhớ và tốc độ giữa các cách I/O.
+- id: ghi-an-toan-nhat-quan
+  title: Ghi an toàn & nhất quán
+  purpose: Giảm nguy cơ tệp bị hỏng hoặc dang dở khi thao tác ghi bị gián đoạn.
+  objectives:
+  - Ghi ra tệp tạm trước khi thay thế tệp đích.
+  - Hiểu ATOMIC_MOVE và giới hạn hỗ trợ hệ tệp.
+  - Xác định khi nào cần đồng bộ dữ liệu xuống thiết bị lưu trữ.
+- id: dong-thoi-quyen-truy-cap
+  title: Đồng thời & quyền truy cập
+  purpose: Kiểm soát xung đột khi nhiều tác vụ dùng cùng một tệp và bảo vệ dữ liệu khỏi truy cập ngoài ý muốn.
+  objectives:
+  - Nhận diện tranh chấp đọc/ghi và race condition.
+  - Giải thích FileLock và giới hạn phụ thuộc hệ điều hành.
+  - Kiểm tra quyền truy cập và đầu vào đường dẫn.
+- id: kiem-thu-khoi-phuc
+  title: Kiểm thử & khôi phục
+  purpose: Đảm bảo nội dung tệp chính xác trước và sau lỗi I/O, đồng thời có cách phục hồi dữ liệu cần giữ.
+  objectives:
+  - Kiểm thử đọc ghi lại, tệp rỗng, thiếu và hỏng.
+  - Mô phỏng lỗi quyền truy cập, ghi dở và khóa tệp.
+  - Thiết kế sao lưu, kiểm tra và phục hồi dữ liệu.

@@ -1,0 +1,7 @@
+# Software Design Design Pattern Behavioral State
+
+State là một mẫu thiết kế hành vi cho phép đối tượng thay đổi cách phản hồi trước cùng một yêu cầu khi trạng thái nội tại thay đổi. Thay vì phân tán các nhánh if/switch kiểm tra trạng thái khắp một lớp lớn, State Pattern gom những hành vi phụ thuộc trạng thái vào các đối tượng riêng và để Context ủy quyền xử lý cho trạng thái hiện tại. Cách này đặc biệt phù hợp với nghiệp vụ có nhiều trạng thái và quy tắc chuyển đổi thường xuyên được bổ sung.
+
+Roadmap một cấp gồm tám mốc, bắt đầu từ việc nhận diện bài toán và mô hình hóa các trạng thái, sự kiện, chuyển đổi. Bạn sẽ tìm hiểu các vai trò Context, State và ConcreteState, cơ chế đa hình và ủy quyền, rồi thiết kế quy tắc chuyển trạng thái có kiểm soát. Phần tiếp theo hướng dẫn refactor mã điều kiện sang State, phân biệt State với Strategy và đánh giá chi phí đánh đổi, cuối cùng kiểm thử hành vi theo từng trạng thái và chuỗi sự kiện.
+
+Module phù hợp với người đã biết lập trình hướng đối tượng, interface và đa hình, đặc biệt khi xây dựng workflow, giao diện hoặc hệ thống có vòng đời trạng thái. Sau khi học, bạn có thể tự thiết kế và hiện thực một State Pattern nhỏ, giải thích trách nhiệm từng thành phần, và xác minh cả hành vi hợp lệ lẫn trường hợp chuyển trạng thái bị từ chối.

@@ -1,0 +1,59 @@
+roadmap:
+- id: mo-hinh-jms
+  title: Mô hình JMS
+  purpose: Hiểu cách trao đổi thông điệp và vai trò của Spring JMS với máy chủ môi giới (broker).
+  objectives:
+  - Phân biệt chuẩn JMS/Jakarta Messaging với thư viện Spring
+  - Mô tả bên gửi, bên nhận và đích thông điệp
+  - Phân biệt hàng đợi (queue) và chủ đề (topic)
+- id: ket-noi-va-tai-nguyen
+  title: Kết nối và tài nguyên
+  purpose: Thiết lập kết nối broker và quản lý tài nguyên JMS trong Spring.
+  objectives:
+  - Cấu hình ConnectionFactory và destination
+  - Bật @EnableJms và cấu hình listener container factory
+  - Nhận biết vai trò của CachingConnectionFactory
+- id: gui-thong-diep
+  title: Gửi thông điệp
+  purpose: Gửi dữ liệu qua Spring và chọn các thuộc tính phát thông điệp phù hợp.
+  objectives:
+  - Gửi bằng JmsTemplate.send hoặc convertAndSend
+  - Điều chỉnh chế độ gửi, độ ưu tiên và thời gian sống
+  - Đặt header hoặc thuộc tính bằng MessagePostProcessor
+- id: nhan-thong-diep
+  title: Nhận thông điệp
+  purpose: Tiếp nhận và xử lý thông điệp theo cách đồng bộ hoặc bất đồng bộ.
+  objectives:
+  - Nhận đồng bộ bằng JmsTemplate với thời gian chờ phù hợp
+  - Xử lý bất đồng bộ bằng @JmsListener
+  - Điều chỉnh listener container và số bên nhận đồng thời
+- id: hop-dong-thong-diep
+  title: Hợp đồng thông điệp
+  purpose: Xác định cấu trúc dữ liệu và ánh xạ giữa đối tượng Java với thông điệp JMS.
+  objectives:
+  - Phân biệt nội dung, header và thuộc tính thông điệp
+  - Cấu hình MessageConverter cho dữ liệu trao đổi
+  - Quản lý phiên bản và kiểm tra dữ liệu nhận
+- id: dinh-tuyen-va-phan-hoi
+  title: Định tuyến và phản hồi
+  purpose: Chọn đúng nơi nhận và liên kết thông điệp yêu cầu với phản hồi.
+  objectives:
+  - Dùng DestinationResolver và bộ chọn thông điệp (selector)
+  - Nhận biết đăng ký bền vững cho topic
+  - Dùng JMSReplyTo, JMSCorrelationID và @SendTo
+- id: giao-dich-va-gui-lai
+  title: Giao dịch và gửi lại
+  purpose: Xử lý lỗi nhận thông điệp đồng thời kiểm soát mất dữ liệu và xử lý trùng.
+  objectives:
+  - Phân biệt chế độ xác nhận với Session có giao dịch
+  - Giải thích hoàn tác (rollback) và phát lại thông điệp
+  - Thiết kế xử lý không lặp tác dụng khi nhận trùng
+  - Phân biệt giao dịch JMS cục bộ với phối hợp giao dịch cơ sở dữ liệu
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Kiểm chứng luồng gửi–nhận và theo dõi độ ổn định khi broker hoặc ứng dụng gặp lỗi.
+  objectives:
+  - Kiểm thử gửi–nhận, lỗi chuyển đổi và nhận trùng
+  - Kiểm tra khôi phục kết nối và dừng listener an toàn
+  - Theo dõi hàng đợi, độ trễ và lỗi xử lý
+  - Cấu hình gửi lại và hàng đợi lỗi tại broker

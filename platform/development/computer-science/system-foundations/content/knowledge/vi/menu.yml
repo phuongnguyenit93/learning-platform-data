@@ -1,0 +1,437 @@
+menu:
+- level1: Tổng quan hệ thống
+  level2:
+  - 'Hệ thống máy tính là gì: phần cứng, phần mềm và môi trường thực thi'
+  - 'Các lớp trừu tượng: mạch số, tập lệnh, hệ điều hành và ứng dụng'
+  - 'Tài nguyên hệ thống: năng lực xử lý, bộ nhớ, lưu trữ và kết nối'
+  - 'Hành trình một chương trình: từ mã nguồn đến tiến trình đang chạy'
+  - 'Hành trình một yêu cầu: từ ứng dụng qua hệ điều hành đến thiết bị'
+  - Phân biệt chương trình, tiến trình, luồng, lõi xử lý và máy chủ
+  - 'Giao diện và hợp đồng giữa các lớp: ISA, ABI, API và giao thức'
+  - 'Đánh đổi nền tảng: tốc độ, chi phí, độ tin cậy, an toàn và tính đơn giản'
+  - Cách đọc sơ đồ hệ thống, luồng dữ liệu và đường đi của lỗi
+- level1: Biểu diễn dữ liệu
+  level2:
+  - Bit, byte, từ máy và các đơn vị dung lượng thập phân, nhị phân
+  - Hệ nhị phân, thập lục phân và chuyển đổi cơ số
+  - Phép toán bit, mặt nạ và dịch bit logic, số học
+  - Số nguyên không dấu và số nguyên có dấu theo mã bù hai
+  - Miền giá trị, mở rộng dấu, cắt bớt bit và tràn số nguyên
+  - 'Số dấu phẩy động IEEE 754: biểu diễn, độ chính xác và làm tròn'
+  - 'Giá trị đặc biệt: số dưới chuẩn, vô cực, NaN và số không có dấu'
+  - 'Thứ tự byte: little-endian, big-endian và trao đổi dữ liệu'
+  - 'Ký tự và văn bản: ASCII, Unicode, điểm mã và UTF-8, UTF-16'
+  - Địa chỉ, con trỏ, căn chỉnh và phần đệm trong bố trí dữ liệu
+  - 'Tuần tự hóa: phân định bản ghi, kiểu dữ liệu và khả năng tương thích'
+  - 'Kiểm tra lỗi dữ liệu: bit chẵn lẻ, checksum, CRC và giới hạn phát hiện lỗi'
+- level1: Logic số
+  level2:
+  - Đại số Boolean, bảng chân trị và các cổng logic cơ bản
+  - 'Mạch tổ hợp và mạch tuần tự: khác biệt về trạng thái'
+  - Bộ chọn, bộ giải mã và bộ cộng nhị phân
+  - Latch, flip-flop, thanh ghi và cách lưu một bit
+  - ALU và cách kết hợp phép toán số học với phép toán logic
+  - Xung nhịp, độ trễ lan truyền và đường tới hạn
+  - Máy trạng thái hữu hạn và điều khiển hoạt động của mạch
+  - 'Từ thanh ghi đến bộ nhớ: tổ chức ô nhớ và tín hiệu đọc, ghi'
+- level1: Kiến trúc máy tính
+  level2:
+  - Mô hình chương trình lưu trong bộ nhớ và kiến trúc von Neumann
+  - CPU, bộ nhớ, bộ điều khiển và thiết bị ngoại vi phối hợp ra sao
+  - Bus, liên kết điểm tới điểm và truyền dữ liệu giữa các thành phần
+  - 'Kiến trúc tập lệnh và vi kiến trúc: cùng giao diện, khác cách thực hiện'
+  - Thanh ghi, bộ đếm chương trình, con trỏ ngăn xếp và trạng thái máy
+  - Chu trình lấy lệnh, giải mã, thực hiện và cập nhật trạng thái
+  - 'Kiến trúc 32 bit, 64 bit: độ rộng dữ liệu và không gian địa chỉ'
+  - Máy đơn lõi, đa lõi, đa bộ xử lý và cấu trúc NUMA
+  - Hệ thống trên chip, bộ tăng tốc và vai trò của GPU
+  - Ranh giới giữa cơ chế phần cứng và chính sách phần mềm
+- level1: Tập lệnh và hợp ngữ
+  level2:
+  - Cấu trúc lệnh máy, mã thao tác và toán hạng
+  - 'Các kiểu định địa chỉ: tức thời, thanh ghi, trực tiếp và gián tiếp'
+  - Lệnh nạp, lưu và kiến trúc load-store
+  - Lệnh số học, logic, so sánh và chuyển kiểu dữ liệu
+  - Rẽ nhánh, vòng lặp và ánh xạ luồng điều khiển xuống lệnh máy
+  - Lời gọi hàm, khung ngăn xếp và quy ước gọi hàm
+  - Truyền tham số, giá trị trả về và bảo toàn thanh ghi theo ABI
+  - Lệnh đặc quyền, lời gọi hệ thống và chuyển mức đặc quyền
+  - 'Ngắt, ngoại lệ và bẫy đồng bộ: nguồn phát sinh và cách xử lý'
+  - Đọc hợp ngữ đơn giản từ mã nguồn và kết quả giải mã lệnh
+- level1: Tổ chức bộ xử lý
+  level2:
+  - Đường dữ liệu và bộ điều khiển trong một bộ xử lý
+  - Pipeline và sự khác nhau giữa độ trễ với thông lượng
+  - Xung đột cấu trúc, dữ liệu, điều khiển và cách xử lý
+  - Chuyển tiếp dữ liệu, dừng pipeline và dự đoán rẽ nhánh
+  - Thực thi nhiều lệnh mỗi chu kỳ và thực thi ngoài thứ tự
+  - Đổi tên thanh ghi, thực thi suy đoán và hoàn tất lệnh theo thứ tự
+  - Tần số, số lệnh, CPI và cách ước lượng thời gian xử lý
+  - Đa luồng đồng thời trên phần cứng và giới hạn chia sẻ tài nguyên
+  - Điện năng, nhiệt độ, điều chỉnh tần số và giới hạn tăng tốc
+- level1: Phân cấp bộ nhớ
+  level2:
+  - Thanh ghi, cache, RAM và lưu trữ trong tháp phân cấp bộ nhớ
+  - Tính cục bộ theo thời gian, theo không gian và tập dữ liệu đang dùng
+  - Dòng cache, ánh xạ cache và cách tra cứu thẻ địa chỉ
+  - Cache hit, cache miss và các nguyên nhân bỏ lỡ bộ nhớ đệm
+  - Chính sách thay thế, ghi xuyên, ghi trả và cấp phát khi ghi
+  - Cache nhiều cấp và thời gian truy cập bộ nhớ trung bình
+  - Nạp trước dữ liệu và ảnh hưởng của mẫu truy cập tuần tự, ngẫu nhiên
+  - Nhất quán cache giữa các lõi và vai trò của giao thức coherence
+  - Chia sẻ giả (false sharing), căn chỉnh dữ liệu và tranh chấp dòng cache
+  - Thứ tự bộ nhớ, hàng rào bộ nhớ và quan hệ với cơ chế đồng bộ
+  - 'NUMA: vị trí cấp phát, truy cập bộ nhớ từ xa và gắn luồng với CPU'
+- level1: Biên dịch và thực thi
+  level2:
+  - Biên dịch, hợp dịch, liên kết, nạp và các tạo tác trung gian
+  - Tệp đối tượng, tệp thực thi và định dạng ELF, PE ở mức khái niệm
+  - Ký hiệu, phân giải ký hiệu, định vị lại và lỗi liên kết
+  - Liên kết tĩnh, liên kết động và thư viện dùng chung
+  - Bộ nạp chương trình, thư viện động và thời điểm phân giải phụ thuộc
+  - Các vùng mã, dữ liệu, BSS, heap và stack trong ảnh tiến trình
+  - ABI, bố trí dữ liệu và tương thích giữa các thành phần đã biên dịch
+  - Thông dịch, AOT, JIT và sự khác nhau giữa máy ảo với máy vật lý
+  - Bộ nhớ do chương trình quản lý và bộ nhớ được thu gom tự động
+  - 'Từ lỗi mã nguồn đến lỗi khi chạy: vai trò của ký hiệu gỡ lỗi và stack trace'
+- level1: Nền tảng hệ điều hành
+  level2:
+  - 'Vai trò của hệ điều hành: trừu tượng hóa, phân chia và bảo vệ tài nguyên'
+  - Nhân hệ điều hành, không gian người dùng và không gian nhân
+  - Lời gọi hệ thống, thư viện chuẩn và chi phí chuyển ranh giới
+  - Ngắt phần cứng, ngoại lệ bộ xử lý và công việc trì hoãn trong nhân
+  - Cơ chế, chính sách và các đánh đổi khi thiết kế hệ điều hành
+  - Nhân nguyên khối, vi nhân và mô-đun nhân
+  - Tài nguyên được đặt tên bằng handle, bộ mô tả tệp và định danh
+  - Quyền sở hữu, vòng đời tài nguyên và rò rỉ tài nguyên
+  - Tính đồng thời và khả năng bị ngắt trong hoạt động của nhân
+  - Giao diện POSIX, khác biệt giữa các hệ điều hành và tính khả chuyển
+- level1: Tiến trình
+  level2:
+  - Tiến trình là gì và hệ điều hành cần lưu những thông tin nào
+  - Không gian địa chỉ riêng, tài nguyên riêng và tài nguyên dùng chung
+  - Vòng đời tiến trình và các trạng thái chạy, sẵn sàng, chờ
+  - 'Tạo tiến trình: fork, exec và mô hình tạo mới trên các hệ điều hành'
+  - Tiến trình cha, tiến trình con, mã thoát và thu hồi trạng thái
+  - Zombie, tiến trình mồ côi và trách nhiệm của trình quản lý tiến trình
+  - Chuyển ngữ cảnh tiến trình và các thành phần chi phí
+  - Biến môi trường, đối số, thư mục làm việc và luồng vào ra chuẩn
+  - Định danh người dùng, nhóm và thông tin xác thực của tiến trình
+  - Tín hiệu, kết thúc mềm, kết thúc cưỡng bức và thu dọn tài nguyên
+- level1: Luồng và lập lịch
+  level2:
+  - 'Luồng là gì: ngăn xếp riêng và không gian địa chỉ dùng chung'
+  - Luồng người dùng, luồng nhân và các mô hình ánh xạ
+  - Đồng thời, song song và khác biệt giữa tác vụ chờ I/O với tác vụ dùng CPU
+  - Lập lịch ưu tiên, có quyền ngắt và chuyển đổi luồng
+  - FCFS, SJF, round-robin và các giả định của từng chính sách
+  - Công bằng, độ phản hồi, thông lượng và thời gian chờ
+  - Hàng đợi nhiều mức phản hồi và điều chỉnh độ ưu tiên
+  - Lập lịch đa lõi, gắn luồng với CPU và cân bằng tải
+  - Ưu tiên thời gian thực, hạn chót và giới hạn bảo đảm
+  - Số luồng, vượt mức tài nguyên (oversubscription) và chi phí tranh chấp
+- level1: Đồng bộ
+  level2:
+  - Vùng tới hạn, điều kiện tranh chấp và bất biến của dữ liệu dùng chung
+  - Thao tác nguyên tử, tính hiển thị và thứ tự quan sát dữ liệu
+  - Khóa mutex, spinlock và lựa chọn chờ bận hay ngủ chờ
+  - Semaphore, biến điều kiện và cách phối hợp trạng thái chờ
+  - Monitor và kiểm tra điều kiện chờ bằng vòng lặp
+  - CAS, cập nhật nguyên tử và giới hạn của cách làm không khóa
+  - 'Deadlock: bốn điều kiện cần và sơ đồ chờ tài nguyên'
+  - Phòng ngừa, tránh, phát hiện và phục hồi khi deadlock
+  - Starvation, livelock, đảo ngược ưu tiên và chuyển giao ưu tiên
+  - Giảm chia sẻ, thứ tự lấy khóa và vòng đời khóa an toàn
+  - Mô hình bộ nhớ phần cứng, mô hình ngôn ngữ và hợp đồng của đồng bộ
+- level1: Bộ nhớ ảo
+  level2:
+  - Địa chỉ ảo, địa chỉ vật lý và mục đích của không gian địa chỉ
+  - MMU, phân trang và dịch địa chỉ qua bảng trang
+  - Bảng trang nhiều cấp và chi phí quản lý không gian địa chỉ
+  - TLB, TLB miss và ảnh hưởng của chuyển ngữ cảnh
+  - Quyền đọc, ghi, thực thi và bảo vệ ở mức trang
+  - Lỗi trang hợp lệ, vi phạm truy cập và quá trình xử lý page fault
+  - Nạp trang theo nhu cầu, phân trang trước và trang dùng chung
+  - Copy-on-write và mối quan hệ với tạo tiến trình
+  - Ánh xạ tệp vào bộ nhớ và ánh xạ ẩn danh
+  - Chính sách thay thế trang, working set và hiện tượng thrashing
+  - Swap, áp lực bộ nhớ, cạn bộ nhớ và hành vi OOM
+  - Cấp phát heap, phân mảnh trong, phân mảnh ngoài và trả bộ nhớ
+  - Trang lớn, ghim bộ nhớ và các đánh đổi về hiệu năng
+- level1: Giao tiếp tiến trình
+  level2:
+  - 'Chia sẻ bộ nhớ và truyền thông điệp: hai mô hình giao tiếp'
+  - Pipe, named pipe và truyền dữ liệu theo luồng byte
+  - Socket cục bộ và trao đổi thông tin giữa các tiến trình cùng máy
+  - Hàng đợi thông điệp và phân định ranh giới thông điệp
+  - Bộ nhớ chia sẻ, ánh xạ chung và trách nhiệm đồng bộ
+  - 'Tín hiệu và sự kiện: thông báo không đồng nghĩa với lưu dữ liệu'
+  - Giao tiếp chặn, không chặn và các điều kiện đánh thức
+  - Áp lực ngược (backpressure), dung lượng bộ đệm và điều tiết bên gửi
+  - Đóng kênh, lỗi phía đối tác và dọn dẹp tài nguyên giao tiếp
+- level1: Thiết bị và vào ra
+  level2:
+  - Bộ điều khiển thiết bị, trình điều khiển và giao diện của nhân
+  - Port-mapped I/O, memory-mapped I/O và truy cập thanh ghi thiết bị
+  - Thăm dò, ngắt và lựa chọn cơ chế nhận biết hoàn tất I/O
+  - DMA và truyền dữ liệu giữa thiết bị với bộ nhớ
+  - I/O đồng bộ, bất đồng bộ, chặn và không chặn
+  - Bộ đệm, gộp yêu cầu, cache trang và chi phí sao chép dữ liệu
+  - I/O có đệm, I/O trực tiếp và I/O đồng bộ xuống lưu trữ
+  - Độ sâu hàng đợi, gộp thao tác và lập lịch yêu cầu thiết bị
+  - 'Zero-copy: những lần sao chép có thể tránh và các điều kiện áp dụng'
+  - Lỗi thiết bị, hết thời gian chờ, hủy yêu cầu và khôi phục
+- level1: Hệ thống tệp
+  level2:
+  - Tệp, thư mục, đường dẫn tuyệt đối và đường dẫn tương đối
+  - Tên tệp, metadata, inode và cách phân giải đường dẫn
+  - Hard link, symbolic link và liên kết bị đứt
+  - Bộ mô tả tệp, open file description và vị trí đọc, ghi
+  - Tạo, mở, đọc, ghi, đổi tên, xóa và đóng tệp
+  - Quyền truy cập, chủ sở hữu, nhóm và danh sách kiểm soát truy cập
+  - Tệp thưa, cấp phát khối, extent và phân mảnh
+  - Mount, hệ thống tệp ảo và phối hợp nhiều loại hệ thống tệp
+  - Page cache, dentry cache, inode cache và tính nhất quán quan sát được
+  - Khóa tệp, nhiều bên ghi và giới hạn bảo đảm của thao tác nối thêm
+  - Đổi tên nguyên tử, fsync tệp, fsync thư mục và công bố tệp an toàn
+  - Hạn ngạch, hết dung lượng, hết inode và lỗi tệp vẫn mở sau khi xóa
+- level1: Lưu trữ bền vững
+  level2:
+  - HDD, SSD và khác biệt về độ trễ, truy cập ngẫu nhiên, tuổi thọ
+  - Sector, block, căn chỉnh và các lớp đệm trong đường ghi
+  - 'SSD: flash, FTL, thu gom rác và khuếch đại ghi'
+  - RAID, sao chép, parity và các dạng lỗi lưu trữ
+  - Tính nguyên tử, thứ tự ghi và độ bền sau sự cố
+  - Journaling, copy-on-write và cơ chế khôi phục hệ thống tệp
+  - Ghi nhật ký trước (write-ahead logging), điểm kiểm tra và phục hồi sau sự cố
+  - Checksum, phát hiện hỏng âm thầm và kiểm tra toàn vẹn định kỳ
+  - Snapshot, sao lưu và bản sao dự phòng phục vụ các mục đích khác nhau
+  - RPO, RTO và kiểm chứng khả năng phục hồi từ bản sao lưu
+- level1: Hệ quản trị dữ liệu
+  level2:
+  - Vì sao cần hệ quản trị dữ liệu thay vì chỉ đọc, ghi tệp
+  - Trang dữ liệu, bản ghi, bộ đệm và đường đi của thao tác đọc, ghi
+  - Chỉ mục B+ tree và tổ chức LSM ở mức hệ thống lưu trữ
+  - Chi phí I/O, tính cục bộ và đánh đổi giữa khuếch đại đọc, ghi, dung lượng
+  - Giao dịch, tính nguyên tử, tính nhất quán và độ bền
+  - Mức cô lập và các bất thường khi giao dịch chạy đồng thời
+  - Khóa, MVCC và góc nhìn dữ liệu theo phiên bản
+  - Phối hợp nhật ký, điểm kiểm tra và phục hồi giao dịch
+  - Truy vấn, kế hoạch thực thi và tài nguyên CPU, bộ nhớ, I/O
+  - Giới hạn kết nối, nhóm kết nối và áp lực tài nguyên từ ứng dụng
+- level1: Khởi động hệ thống
+  level2:
+  - 'Từ cấp nguồn đến firmware: POST, BIOS và UEFI'
+  - Bộ nạp khởi động, nạp nhân và hệ thống tệp ban đầu
+  - Khởi tạo nhân, nhận diện thiết bị và gắn hệ thống tệp gốc
+  - Tiến trình đầu tiên và trình quản lý dịch vụ
+  - Phụ thuộc dịch vụ, khởi động song song và trạng thái sẵn sàng
+  - Khởi động lại, tắt máy có trật tự và bảo toàn dữ liệu
+  - Nhật ký khởi động, chế độ cứu hộ và khoanh vùng lỗi khởi động
+- level1: Nền tảng mạng
+  level2:
+  - Mạng máy tính, nút mạng, liên kết, giao diện và đường truyền
+  - Chuyển mạch gói, chuyển mạch kênh và chia sẻ tài nguyên
+  - Các lớp giao thức, mô hình TCP/IP và vai trò tham chiếu của OSI
+  - Đóng gói, tháo gói và đơn vị dữ liệu ở từng lớp
+  - Địa chỉ MAC, địa chỉ IP, cổng và tên miền giải quyết những việc gì
+  - Băng thông, thông lượng, độ trễ, jitter và mất gói
+  - Độ trễ truyền, lan truyền, xử lý và xếp hàng
+  - MTU, phân mảnh và giới hạn kích thước trên đường truyền
+  - Unicast, broadcast, multicast và các phạm vi mạng
+  - Hành trình gói tin giữa hai tiến trình qua nhiều thiết bị mạng
+- level1: Ethernet và IP
+  level2:
+  - Khung Ethernet, địa chỉ MAC và chuyển tiếp trong mạng cục bộ
+  - Switch, học địa chỉ, bảng chuyển tiếp và vòng lặp lớp liên kết
+  - ARP với IPv4, Neighbor Discovery với IPv6 và phân giải láng giềng
+  - IPv4, IPv6, tiền tố mạng và ký hiệu CIDR
+  - Chia subnet, tính địa chỉ và xác định hai máy có cùng mạng
+  - Router, default gateway và tra cứu tuyến theo tiền tố dài nhất
+  - 'Chuyển tiếp gói và định tuyến: phân biệt mặt phẳng dữ liệu, điều khiển'
+  - ICMP, TTL, Hop Limit và cách ping, traceroute hoạt động
+  - DHCP, cấu hình tự động IPv6 và thiết lập địa chỉ mạng
+  - NAT, PAT và ảnh hưởng đến kết nối đầu cuối
+  - VLAN, miền quảng bá và phân đoạn mạng
+  - Path MTU Discovery, phân mảnh và các lỗi đường truyền khó quan sát
+- level1: TCP và UDP
+  level2:
+  - Cổng, socket và bộ thông tin nhận diện một luồng truyền
+  - 'UDP: datagram, bảo toàn ranh giới và trách nhiệm của ứng dụng'
+  - 'TCP: luồng byte tin cậy và sự độc lập với ranh giới thông điệp'
+  - Thiết lập TCP, bắt tay ba bước và trạng thái kết nối
+  - Số thứ tự, ACK, phát hiện mất gói và truyền lại
+  - Cửa sổ trượt, bộ đệm nhận và điều khiển luồng
+  - Điều khiển tắc nghẽn, khởi đầu chậm và thay đổi cửa sổ tắc nghẽn
+  - RTT, thời gian chờ truyền lại và bộ định thời
+  - Đóng kết nối, half-close, TIME_WAIT và reset
+  - Nghẽn đầu hàng (head-of-line blocking), gộp gói nhỏ và ảnh hưởng đến độ trễ
+  - Giữ kết nối, kết nối chết và phân biệt TCP keepalive với nhịp tim ứng dụng
+  - 'QUIC: kết nối trên UDP, nhiều luồng và các khác biệt nền tảng với TCP'
+- level1: Giao thức ứng dụng
+  level2:
+  - 'DNS: không gian tên, truy vấn đệ quy và phân giải có thẩm quyền'
+  - Bộ nhớ đệm DNS, TTL, bản ghi âm và độ trễ cập nhật tên
+  - 'HTTP: yêu cầu, phản hồi, phương thức, mã trạng thái và header'
+  - HTTP/1.1, HTTP/2, HTTP/3 và cách tổ chức kết nối, luồng
+  - Xác định độ dài nội dung, truyền theo khối và truyền dữ liệu liên tục
+  - 'Cache HTTP: độ mới, kiểm tra lại và vô hiệu hóa'
+  - Proxy xuôi, reverse proxy, gateway và cân bằng tải
+  - Cookie, phiên đăng nhập và trạng thái trên giao thức không lưu phiên
+  - WebSocket, Server-Sent Events và trao đổi hai chiều, một chiều
+  - RPC, mã hóa thông điệp và tương thích khi thay đổi giao thức
+  - Tính an toàn, tính lũy đẳng và ý nghĩa của việc gửi lại yêu cầu
+  - Kết nối tên miền, DNS, TCP hoặc QUIC, TLS và HTTP trong một lần truy cập
+- level1: Lập trình mạng
+  level2:
+  - 'Vòng đời socket: tạo, bind, listen, accept, connect và close'
+  - Đọc, ghi một phần và thiết kế bộ phân định thông điệp
+  - EOF, half-close, reset và cách nhận biết kết thúc kênh
+  - Mô hình một luồng mỗi kết nối và giới hạn mở rộng
+  - select, poll, epoll, kqueue và I/O readiness ở mức khái niệm
+  - Thông báo hoàn tất I/O, vòng lặp sự kiện và tránh chặn luồng sự kiện
+  - Bộ đệm gửi, nhận, áp lực ngược và giới hạn dữ liệu đang chờ
+  - Timeout theo giai đoạn, hạn chót tổng thể và hủy tác vụ
+  - Tái sử dụng kết nối, giới hạn kết nối và cạn cổng tạm thời
+  - Máy chủ đang lắng nghe, hàng đợi chấp nhận và xử lý quá tải
+  - Đóng máy chủ có trật tự và hoàn tất các yêu cầu đang xử lý
+- level1: Bảo vệ hệ thống
+  level2:
+  - Mô hình đe dọa, tài sản cần bảo vệ và ranh giới tin cậy
+  - Xác thực, phân quyền và ghi nhận truy cập
+  - Nguyên tắc đặc quyền tối thiểu và thu hẹp bề mặt tấn công
+  - Cách ly tiến trình, mức đặc quyền và kiểm tra quyền truy cập tài nguyên
+  - 'An toàn bộ nhớ: tràn bộ đệm, use-after-free và truy cập ngoài biên'
+  - DEP, NX, ASLR, canary và giới hạn của từng biện pháp giảm thiểu
+  - Kiểm tra đầu vào, chuẩn hóa đường dẫn và tránh chèn lệnh
+  - Tranh chấp TOCTOU và thao tác với tài nguyên không đáng tin
+  - Quản lý bí mật, quyền đọc cấu hình và tránh rò rỉ qua nhật ký
+  - Cập nhật thành phần, xác minh nguồn gốc và giảm rủi ro phụ thuộc
+  - Giới hạn tài nguyên, tấn công từ chối dịch vụ và cách cô lập ảnh hưởng
+- level1: Mật mã và kênh an toàn
+  level2:
+  - 'Mục tiêu bảo mật: bí mật, toàn vẹn, xác thực và chống phát lại'
+  - Phân biệt mã hóa, mã hóa biểu diễn, băm và nén
+  - Mã hóa đối xứng, nonce, IV và mã hóa có xác thực
+  - Mã hóa bất đối xứng, trao đổi khóa và chữ ký số
+  - Hàm băm mật mã, MAC, HMAC và phạm vi bảo đảm
+  - Lưu mật khẩu bằng hàm dẫn xuất khóa có salt và chi phí thích hợp
+  - Nguồn ngẫu nhiên mật mã và hậu quả của việc tái sử dụng nonce
+  - Chứng chỉ, CA, chuỗi tin cậy và xác minh tên máy chủ
+  - 'TLS: bắt tay, xác thực đối tác và bảo vệ dữ liệu ứng dụng'
+  - Vòng đời khóa, luân chuyển, thu hồi và giới hạn của mã hóa đường truyền
+- level1: Ảo hóa
+  level2:
+  - Ảo hóa phần cứng và mục đích chia sẻ một máy vật lý
+  - Hypervisor loại 1, loại 2 và hệ điều hành khách
+  - Ảo hóa CPU, lệnh đặc quyền và hỗ trợ từ phần cứng
+  - Ảo hóa bộ nhớ, bảng trang lồng nhau và chi phí dịch địa chỉ
+  - Ảo hóa I/O, thiết bị mô phỏng, paravirtualization và passthrough
+  - CPU ảo, bộ nhớ cấp phát và tác động của việc phân bổ vượt mức
+  - Đĩa ảo, snapshot máy ảo và tính nhất quán của dữ liệu
+  - Cách ly, chia sẻ tài nguyên và ảnh hưởng của máy khách cùng hạ tầng
+  - So sánh máy vật lý, máy ảo và container theo ranh giới thực thi
+- level1: Container
+  level2:
+  - Container là tiến trình được cách ly trên nhân dùng chung
+  - 'Namespace: phân tách tiến trình, mạng, mount và các góc nhìn hệ thống'
+  - 'cgroup: kế toán, giới hạn CPU, bộ nhớ và I/O'
+  - Image, các lớp chỉ đọc và lớp ghi của container
+  - Bind mount, volume và vòng đời dữ liệu ngoài container
+  - Mạng container, bridge, chuyển tiếp cổng và phân giải tên
+  - Người dùng, capabilities, seccomp và giảm đặc quyền
+  - PID 1, truyền tín hiệu, thu hồi tiến trình con và tắt container
+  - Giới hạn bộ nhớ, OOM, tiết lưu CPU (throttling) và chẩn đoán tài nguyên
+  - Khác biệt giữa container đang chạy, dịch vụ sẵn sàng và ứng dụng khỏe mạnh
+- level1: Tính toán song song
+  level2:
+  - Phân rã tác vụ và phân rã dữ liệu để thực hiện song song
+  - Phần tuần tự, chi phí phối hợp và định luật Amdahl
+  - Quy mô bài toán thay đổi và góc nhìn của định luật Gustafson
+  - Song song mức lệnh, SIMD, đa lõi và tính toán trên GPU
+  - Chia sẻ bộ nhớ và truyền thông điệp trong tính toán song song
+  - Cân bằng tải, độ hạt công việc và chi phí lập lịch
+  - Chi phí truyền dữ liệu, đồng bộ và hợp nhất kết quả
+  - Giới hạn băng thông bộ nhớ và giới hạn năng lực tính toán
+  - Tính xác định, sai số dấu phẩy động và thứ tự tính toán song song
+- level1: Nền tảng phân tán
+  level2:
+  - Hệ thống phân tán là gì và khác gì với một tiến trình đa luồng
+  - Nút độc lập, độ trễ mạng và thiếu một góc nhìn toàn cục tức thời
+  - Lỗi từng phần, thông điệp thất lạc và trạng thái kết quả chưa biết
+  - Giao tiếp đồng bộ, bất đồng bộ và các giả định về thời gian
+  - Khám phá dịch vụ, định danh nút và thay đổi thành viên
+  - Phân vùng dữ liệu, định tuyến yêu cầu và phân bố khóa
+  - Sao chép dữ liệu, bản sao dẫn đầu và bản sao theo sau
+  - Sao chép đồng bộ, bất đồng bộ và đánh đổi về độ trễ, mất dữ liệu
+  - Quorum, giao nhau tập phản hồi và các giả định để bảo đảm an toàn
+  - Bầu chọn nút dẫn đầu và vai trò của đồng thuận
+  - 'Raft hoặc Paxos ở mức khái niệm: thống nhất một nhật ký có thứ tự'
+  - 'Giới hạn phạm vi: khi nào một máy hoặc một cơ sở dữ liệu là đủ'
+- level1: Thời gian và nhất quán
+  level2:
+  - Đồng hồ thời gian thực, đồng hồ đơn điệu và chọn đồng hồ cho đo thời lượng
+  - Độ lệch, độ trôi, đồng bộ NTP và giới hạn của dấu thời gian vật lý
+  - Quan hệ happened-before, đồng hồ Lamport và đồng hồ vector
+  - Thứ tự toàn phần, thứ tự nhân quả và các sự kiện đồng thời
+  - Nhất quán tuyến tính và nhất quán tuần tự
+  - Nhất quán nhân quả, nhất quán cuối cùng và các bảo đảm trong một phiên
+  - 'CAP: phân vùng mạng và đánh đổi giữa khả dụng với nhất quán tuyến tính'
+  - Phân biệt tính nhất quán bản sao với tính cô lập của giao dịch
+  - Giao dịch phân tán, two-phase commit và tình huống bị chặn
+  - Lease, thời hạn khóa và fencing token khi quyền sở hữu thay đổi
+  - Độ mới dữ liệu, chi phí phối hợp và lựa chọn bảo đảm phù hợp
+- level1: Chịu lỗi
+  level2:
+  - Phân biệt lỗi chương trình, lỗi thành phần và lỗi quan sát được ở dịch vụ
+  - Phát hiện lỗi bằng timeout và các khả năng nghi ngờ sai
+  - Thử lại có giới hạn, giãn cách (backoff), độ lệch ngẫu nhiên (jitter)
+  - Thao tác lũy đẳng, khóa chống trùng và xử lý kết quả chưa biết
+  - Ngữ nghĩa at-most-once, at-least-once và phạm vi bảo đảm exactly-once
+  - Hàng đợi bền vững, xác nhận thông điệp và phục hồi bên xử lý
+  - Chuyển đổi dự phòng, khôi phục nút và xử lý split-brain
+  - Circuit breaker, bulkhead và cô lập lỗi lan truyền
+  - Kiểm tra sống, kiểm tra sẵn sàng và rủi ro khởi động lại dây chuyền
+  - Giảm chức năng, từ chối tải và ưu tiên công việc khi quá tải
+  - Kiểm thử lỗi, diễn tập phục hồi và xác nhận các giả định vận hành
+- level1: Hiệu năng
+  level2:
+  - Thời gian thực, thời gian CPU và cách phân loại thời gian chờ
+  - Thông lượng, độ trễ trung bình, percentile và phần đuôi phân phối
+  - Nút thắt tài nguyên và sự khác nhau giữa bão hòa với sử dụng cao
+  - Định luật Little và quan hệ giữa lưu lượng, thời gian lưu, số việc đang xử lý
+  - Hàng đợi, mức sử dụng và độ trễ tăng mạnh khi gần bão hòa
+  - Chi phí cố định, chi phí mỗi đơn vị và lợi ích của xử lý theo lô
+  - 'Đo chuẩn: chọn tải, dữ liệu, thời gian làm nóng và trạng thái cache'
+  - Phép đo lặp lại, nhiễu, độ biến thiên và so sánh có căn cứ
+  - Benchmark vi mô, benchmark toàn hệ thống và tính đại diện của tải
+  - Hồ sơ CPU, bộ nhớ, I/O và phân biệt thời gian chạy với thời gian bị chặn
+  - Mở rộng theo chiều dọc, chiều ngang và giới hạn của tài nguyên chia sẻ
+  - Lập kế hoạch dung lượng, dự phòng tài nguyên và kiểm thử ngưỡng quá tải
+- level1: Quan sát hệ thống
+  level2:
+  - Log, metric, trace và câu hỏi phù hợp với từng loại bằng chứng
+  - Counter, gauge, histogram và cách đọc tốc độ thay đổi
+  - Tương quan sự kiện bằng định danh yêu cầu và ngữ cảnh truy vết
+  - Đọc trạng thái tiến trình, luồng, CPU và hàng đợi chạy
+  - Phân biệt bộ nhớ ảo, RSS, cache trang và bộ nhớ thực sự sẵn có
+  - Đọc thống kê thiết bị, độ trễ I/O và dung lượng hệ thống tệp
+  - Kiểm tra giao diện mạng, bảng định tuyến, kết nối và gói tin
+  - Theo dõi lời gọi hệ thống, stack và hồ sơ lấy mẫu
+  - 'Chẩn đoán theo giả thuyết: thu bằng chứng, cô lập lớp lỗi và kiểm chứng'
+  - Chi phí quan sát, lấy mẫu, số tổ hợp nhãn (cardinality) và dữ liệu nhạy cảm
+  - SLI, SLO, ngân sách lỗi và cảnh báo gắn với tác động đến người dùng
+- level1: Thực hành tích hợp
+  level2:
+  - Lần theo một chương trình từ biên dịch, liên kết đến không gian địa chỉ
+  - Quan sát cây tiến trình, luồng, chuyển ngữ cảnh và tín hiệu kết thúc
+  - So sánh truy cập bộ nhớ tuần tự, ngẫu nhiên và ảnh hưởng của cache
+  - Tái hiện tranh chấp dữ liệu, deadlock và tác động của cách đồng bộ
+  - Quan sát page fault, copy-on-write và áp lực bộ nhớ
+  - Kiểm chứng ghi tệp an toàn khi tiến trình dừng giữa chừng
+  - Lần theo truy cập web qua DNS, kết nối, TLS và HTTP
+  - Xây dựng giao tiếp socket với đọc, ghi một phần và áp lực ngược
+  - Đo tác động của giới hạn CPU, bộ nhớ và I/O trong môi trường cách ly
+  - Tạo tải, tìm nút thắt và giải thích thay đổi p50, p95, p99
+  - Mô phỏng mất kết nối, thử lại, thông điệp trùng và phục hồi
+  - Thiết kế sơ đồ toàn hệ thống kèm giả định, ranh giới tin cậy và phương án phục hồi

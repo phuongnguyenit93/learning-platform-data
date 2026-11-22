@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cơ sở mô hình
+  slug: model-foundation
+  index: 1
+- title: Quy trình
+  slug: process
+  index: 2
+- title: Siêu mô hình
+  slug: metamodel
+  index: 3
+- title: Ngôn ngữ mô hình
+  slug: modeling-language
+  index: 4
+- title: UML và Profile
+  slug: uml-profiles
+  index: 5
+- title: OCL
+  slug: ocl
+  index: 6
+- title: MDA
+  slug: mda
+  index: 7
+- title: Yêu cầu và miền
+  slug: requirements-domain
+  index: 8
+- title: Kiến trúc
+  slug: architecture
+  index: 9
+- title: Biến đổi mô hình
+  slug: model-transformation
+  index: 10
+- title: Ngôn ngữ biến đổi
+  slug: transformation-language
+  index: 11
+- title: Sinh mã
+  slug: code-generation
+  index: 12
+- title: Thực thi mô hình
+  slug: model-execution
+  index: 13
+- title: Đồng bộ
+  slug: synchronization
+  index: 14
+- title: Truy vết
+  slug: traceability
+  index: 15
+- title: Chất lượng
+  slug: quality
+  index: 16
+- title: Kiểm thử
+  slug: testing
+  index: 17
+- title: Quản lý cấu hình
+  slug: configuration-management
+  index: 18
+- title: Tiến hóa
+  slug: evolution
+  index: 19
+- title: Chuỗi công cụ
+  slug: toolchain
+  index: 20
+- title: CI/CD
+  slug: ci-cd
+  index: 21
+- title: Biến thể sản phẩm
+  slug: product-variants
+  index: 22
+- title: Hệ thống hiện hữu
+  slug: legacy-systems
+  index: 23
+- title: Tổ chức áp dụng
+  slug: adoption-organization
+  index: 24
+- title: Đánh đổi
+  slug: tradeoffs
+  index: 25
+- title: Thực hành
+  slug: practice
+  index: 26

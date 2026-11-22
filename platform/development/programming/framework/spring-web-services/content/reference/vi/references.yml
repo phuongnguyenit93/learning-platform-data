@@ -1,0 +1,13 @@
+references:
+  - title: "Spring Web Services – Official Project"
+    url: "https://spring.io/projects/spring-ws/"
+    description: "Tổng quan chính thức về Spring-WS, contract-first SOAP, XML mapping và WS-Security."
+  - title: "Spring Web Services – Reference Documentation"
+    url: "https://docs.spring.io/spring-ws/docs/current/reference/html/"
+    description: "Tài liệu gốc về SOAP messages, WSDL, endpoints, WebServiceTemplate, security và testing."
+  - title: "Spring Guide – Producing a SOAP Web Service"
+    url: "https://spring.io/guides/gs/producing-web-service/"
+    description: "Hướng dẫn từng bước xây dựng SOAP server, XSD/WSDL và @Endpoint bằng Spring Boot."
+  - title: "Spring Guide – Consuming a SOAP Web Service"
+    url: "https://spring.io/guides/gs/consuming-web-service/"
+    description: "Hướng dẫn tạo SOAP client từ WSDL và sử dụng Spring WebServiceTemplate."

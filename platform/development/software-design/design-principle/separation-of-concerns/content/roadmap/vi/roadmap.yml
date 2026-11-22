@@ -1,0 +1,49 @@
+roadmap:
+- id: khai-niem-soc
+  title: Khái niệm SoC
+  purpose: Hiểu nguyên tắc tách các loại trách nhiệm để thay đổi phần mềm ít ảnh hưởng lẫn nhau.
+  objectives:
+  - Định nghĩa Separation of Concerns trong thiết kế phần mềm.
+  - Phân biệt SoC ở cấp hệ thống với Single Responsibility ở cấp lớp.
+- id: nhan-dien-concern
+  title: Nhận diện Concern
+  purpose: Phát hiện đoạn mã trộn nhiều nhiệm vụ có lý do thay đổi khác nhau.
+  objectives:
+  - Chỉ ra UI, nghiệp vụ và truy cập dữ liệu trong một hàm.
+  - Giải thích tác động khi thay đổi một concern.
+- id: tach-ui-nghiep-vu
+  title: Tách UI & Nghiệp vụ
+  purpose: Giữ xử lý HTTP và trình bày riêng với các quy tắc nghiệp vụ.
+  objectives:
+  - Đưa xử lý request/response vào controller hoặc adapter.
+  - Đưa quy tắc nghiệp vụ khỏi code giao diện.
+- id: tach-nghiep-vu-du-lieu
+  title: Tách Nghiệp vụ & Dữ liệu
+  purpose: Giữ domain logic độc lập với lựa chọn database và thư viện lưu trữ.
+  objectives:
+  - Đưa thao tác truy vấn/lưu vào repository hoặc gateway.
+  - Tránh phụ thuộc SQL và ORM trong business rule.
+- id: lop-package-module
+  title: Lớp, Package & Module
+  purpose: Thiết kế ranh giới chức năng theo trách nhiệm rõ ràng.
+  objectives:
+  - Phân nhóm lớp vào package hoặc module theo concern.
+  - Nhận diện lớp ôm quá nhiều trách nhiệm để tách nhỏ.
+- id: interface-huong-phu-thuoc
+  title: Interface & Hướng phụ thuộc
+  purpose: Cho các thành phần phối hợp qua hợp đồng ổn định thay vì chi tiết triển khai.
+  objectives:
+  - Định nghĩa interface nhỏ giữa nghiệp vụ và hạ tầng.
+  - Dùng constructor injection để thay implementation.
+- id: cross-cutting-concerns
+  title: Cross-cutting Concerns
+  purpose: Xử lý logic dùng chung mà không lặp lại ở mọi chức năng nghiệp vụ.
+  objectives:
+  - Nhận diện logging, authentication và transaction.
+  - Chọn filter, interceptor hoặc AOP khi phù hợp.
+- id: refactor-kiem-chung
+  title: Refactor & Kiểm chứng
+  purpose: Áp dụng SoC có kiểm chứng mà không tạo các tầng trừu tượng không cần thiết.
+  objectives:
+  - Tách một controller trộn logic thành các trách nhiệm rõ.
+  - Viết unit test cho business rule và kiểm tra hành vi giữ nguyên.

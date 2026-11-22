@@ -1,0 +1,3 @@
+menuLevel1: SequencedSet
+menuLevel2: SortedSet, NavigableSet và thứ tự do comparator quyết định
+status: WRITTEN

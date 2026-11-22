@@ -1,0 +1,284 @@
+menu:
+- level1: Tổng quan tương tác
+  level2:
+  - Tương tác với mã bản địa (native code) là gì và vì sao cần đến
+  - Quan hệ giữa JVM, mã Java, thư viện C/C++ và bộ nhớ ngoài heap
+  - 'Hai chiều gọi: Java sang hàm bản địa và hàm bản địa gọi lại Java'
+  - So sánh JNI, Foreign Function and Memory API và giao tiếp qua tiến trình
+  - Phân biệt tương tác bản địa với biên dịch Java thành mã máy hoặc native image
+  - Chi phí đánh đổi về tính khả chuyển, độ an toàn, hiệu năng và vận hành
+  - Kiến thức C, con trỏ và quản lý tài nguyên cần có trước khi thực hành
+- level1: C và ABI
+  level2:
+  - Phân biệt hợp đồng API ở mã nguồn với giao diện nhị phân ABI
+  - Kích thước, dấu và giới hạn của kiểu số nguyên trên từng nền tảng
+  - Vì sao C long, size_t và con trỏ không mặc nhiên tương ứng với Java long
+  - Quy ước gọi hàm, truyền tham số và giá trị trả về
+  - Thứ tự byte, căn chỉnh địa chỉ và byte đệm của struct
+  - Con trỏ, con trỏ kép, mảng liên tục và con trỏ hàm
+  - Chuỗi kết thúc bằng byte 0, dữ liệu nhị phân và tham số độ dài
+  - Biểu diễn mã lỗi, giá trị sentinel và quyền sở hữu bộ nhớ trong hợp đồng C
+- level1: Nạp thư viện
+  level2:
+  - Thư viện động .dll, .so, .dylib và kiến trúc của tiến trình Java
+  - Phân biệt System.load theo đường dẫn tuyệt đối với System.loadLibrary theo tên
+  - Ánh xạ tên bằng System.mapLibraryName và vai trò java.library.path
+  - Phân biệt tìm thư viện chính với tìm phụ thuộc động của hệ điều hành
+  - Nạp trong khởi tạo lớp và xử lý thất bại bằng UnsatisfiedLinkError
+  - Thư viện bản địa gắn với class loader và giới hạn nạp lại
+  - Chọn phiên bản thư viện theo hệ điều hành, CPU và ABI thực tế
+  - Giới hạn của việc thay đổi đường dẫn tìm thư viện sau khi JVM khởi động
+- level1: JNI đầu tiên
+  level2:
+  - Luồng từ phương thức native đến phần triển khai C hoặc C++
+  - Khai báo phương thức native cho đối tượng và phương thức static
+  - Sinh tệp header bằng javac -h thay cho công cụ javah cũ
+  - Vai trò jni.h, header theo nền tảng, JNIEXPORT và JNICALL
+  - Biên dịch, liên kết và xuất ký hiệu của thư viện dùng chung
+  - Tham số JNIEnv cùng jobject hoặc jclass ở đầu hàm JNI
+  - Chạy ví dụ tối thiểu và kiểm tra kiểu, kết quả, lỗi nạp và lỗi liên kết
+- level1: Kiểu và chữ ký JNI
+  level2:
+  - Ánh xạ boolean, byte, char, số nguyên và số thực sang kiểu JNI
+  - Phân biệt jlong, địa chỉ bản địa và kiểu con trỏ của C
+  - jobject, jclass, jstring và các kiểu mảng là tham chiếu mờ
+  - Đọc bộ mô tả kiểu cho lớp, mảng và phương thức
+  - Tên nhị phân, dấu gạch chéo và quy tắc tên hàm JNI
+  - Nạp chồng phương thức native và tên ký hiệu ngắn hoặc đầy đủ
+  - Truyền danh sách tham số qua jvalue và các biến thể A hoặc V
+- level1: Gọi Java từ JNI
+  level2:
+  - Tìm lớp bằng FindClass và ảnh hưởng của ngữ cảnh class loader
+  - Tạo đối tượng qua constructor và phân biệt với AllocObject
+  - Lấy jmethodID, jfieldID theo tên và chữ ký chính xác
+  - Gọi phương thức đối tượng, static và phương thức không đa hình
+  - Đọc hoặc ghi trường đối tượng và trường static bằng hàm đúng kiểu
+  - So sánh đối tượng bằng IsSameObject thay vì so giá trị tham chiếu
+  - Lưu bộ nhớ đệm mã định danh cùng vòng đời của lớp tương ứng
+  - Gọi phương thức phụ thuộc bên gọi và xử lý trường hợp không có khung Java
+- level1: Tham chiếu và GC
+  level2:
+  - Vì sao tham chiếu JNI không phải địa chỉ ổn định của đối tượng Java
+  - Phạm vi theo lời gọi và theo luồng của tham chiếu cục bộ
+  - Giải phóng tham chiếu cục bộ trong vòng lặp và lời gọi kéo dài
+  - Quản lý khung tham chiếu bằng PushLocalFrame và PopLocalFrame
+  - Tạo, lưu giữ và xóa tham chiếu toàn cục bằng NewGlobalRef, DeleteGlobalRef
+  - Tham chiếu toàn cục yếu và cách nâng thành tham chiếu mạnh trước khi dùng
+  - Quan hệ giữa tham chiếu JNI, GC và khả năng dỡ lớp
+  - Thiết kế quyền sở hữu tham chiếu để tránh rò rỉ hoặc dùng tham chiếu hết hạn
+- level1: Chuỗi và mảng JNI
+  level2:
+  - UTF-16 của Java và Modified UTF-8 của JNI khác UTF-8 thông thường
+  - Tạo chuỗi, đọc độ dài theo đơn vị ký tự hoặc byte và xử lý dữ liệu lớn
+  - Đi theo cặp GetStringChars hoặc GetStringUTFChars với hàm Release tương ứng
+  - Đọc hoặc ghi một vùng mảng bằng GetArrayRegion, SetArrayRegion
+  - GetArrayElements có thể sao chép hoặc ghim mảng tùy JVM
+  - Ý nghĩa sao chép ngược, JNI_COMMIT và JNI_ABORT khi trả mảng
+  - Giới hạn không chặn và không gọi JNI tùy ý trong vùng Critical
+  - Tạo, duyệt mảng đối tượng và dọn tham chiếu cục bộ phát sinh
+  - Xử lý ký tự 0, Unicode ngoài BMP, mảng rỗng và kiểm tra giới hạn
+- level1: Ngoại lệ JNI
+  level2:
+  - Phân biệt mã lỗi bản địa, giá trị trả về đặc biệt và ngoại lệ Java
+  - Kiểm tra ngoại lệ đang chờ sau khi JNI gọi phương thức Java
+  - ExceptionCheck, ExceptionOccurred và các trường hợp cần dùng
+  - Ném ngoại lệ Java bằng Throw hoặc ThrowNew với thông điệp phù hợp
+  - Truyền ngoại lệ về Java hoặc xóa rồi xử lý theo chính sách tường minh
+  - Những thao tác dọn dẹp được phép khi ngoại lệ vẫn đang chờ
+  - Ngăn ngoại lệ C++ thoát qua ranh giới JNI và chuyển thành lỗi Java
+  - Bảo đảm trả tài nguyên trên mọi nhánh lỗi bằng cấu trúc dọn dẹp hoặc RAII
+- level1: Luồng với JNI
+  level2:
+  - Phân biệt JavaVM dùng để truy cập JVM với JNIEnv riêng của từng luồng
+  - Không chia sẻ JNIEnv hoặc tham chiếu cục bộ giữa các luồng
+  - Lấy JavaVM bằng GetJavaVM và kiểm tra trạng thái luồng bằng GetEnv
+  - Gắn luồng bản địa bằng AttachCurrentThread hoặc AttachCurrentThreadAsDaemon
+  - Tháo luồng do mã bản địa gắn và dọn tham chiếu trước khi kết thúc
+  - Callback từ luồng bản địa và cách tìm đúng lớp ứng dụng
+  - MonitorEnter, MonitorExit và nguy cơ bế tắc khi gọi lại Java đang giữ khóa
+  - Ảnh hưởng của lời gọi native kéo dài đối với luồng ảo và khả năng phục vụ
+  - Quy định hủy hợp tác thay vì giả định interrupt luôn dừng được hàm C
+- level1: Vòng đời JNI
+  level2:
+  - Khai báo phiên bản JNI mà thư viện yêu cầu
+  - Khởi tạo thư viện qua JNI_OnLoad và xử lý mã trả về
+  - Đăng ký phương thức bằng RegisterNatives thay cho tìm ký hiệu theo tên
+  - Phạm vi và giới hạn sử dụng UnregisterNatives
+  - Định nghĩa quyền sở hữu handle bản địa gắn với đối tượng Java
+  - Giải phóng bằng close tường minh và giới hạn của Cleaner hoặc GC
+  - JNI_OnUnload, dỡ class loader và những việc cần tránh trong hook dỡ thư viện
+  - Dừng callback và luồng nền trước khi giải phóng thư viện hoặc handle
+- level1: Nhúng JVM
+  level2:
+  - Khi nào ứng dụng C/C++ cần tạo JVM thay vì được Java gọi vào
+  - Chuẩn bị JavaVMInitArgs, tùy chọn JVM và liên kết với thư viện JVM
+  - Tạo JVM bằng JNI_CreateJavaVM và nhận JNIEnv của luồng khởi tạo
+  - Tra cứu JVM đã tạo và hiểu giới hạn nhiều JVM trong một tiến trình
+  - Tìm lớp, gọi điểm vào Java và quản lý ngoại lệ từ ứng dụng chủ bản địa
+  - Gắn các luồng của ứng dụng chủ và điều phối vòng đời của chúng
+  - DestroyJavaVM, luồng không daemon và điều kiện kết thúc máy ảo
+- level1: FFM và phiên bản
+  level2:
+  - Mô hình MemorySegment, Arena, MemoryLayout, SymbolLookup và Linker
+  - Phân biệt API FFM thử nghiệm ở JDK 21 với API chính thức từ JDK 22
+  - Tùy chọn --enable-preview khi biên dịch và chạy mã FFM cho JDK 21
+  - Những tên phương thức cần kiểm tra khi chuyển mã FFM giữa các phiên bản
+  - An toàn phạm vi, thời gian sống và truy cập theo luồng mà FFM kiểm tra
+  - Những thông tin về ABI, con trỏ và hợp đồng C mà FFM không tự suy ra
+  - Chọn FFM hay JNI theo phiên bản Java và mức độ phụ thuộc vào đối tượng JVM
+- level1: MemorySegment
+  level2:
+  - Phân biệt vùng nhớ trên heap, ngoài heap và vùng ánh xạ tệp
+  - Địa chỉ, kích thước, scope và căn chỉnh của một segment
+  - Cấp phát vùng nhớ rồi đọc, ghi theo ValueLayout và vị trí byte
+  - Phân biệt offset theo byte với chỉ số phần tử trong getAtIndex, setAtIndex
+  - Tạo lát cắt asSlice và quan hệ chia sẻ dữ liệu với segment gốc
+  - Sao chép, điền dữ liệu, đối chiếu và chuyển sang mảng Java
+  - Giới hạn chỉ đọc và lỗi truy cập ngoài phạm vi hoặc sai căn chỉnh
+  - Tạo segment từ mảng hoặc ByteBuffer và hiểu thời gian sống của vùng nền
+- level1: Arena và cấp phát
+  level2:
+  - Vì sao Arena quản lý thời gian sống chung cho nhiều vùng nhớ
+  - Arena.ofConfined và quyền truy cập của luồng sở hữu
+  - Arena.ofShared và quy tắc đóng khi có nhiều luồng sử dụng
+  - Arena.ofAuto, GC và thời điểm giải phóng không xác định
+  - Arena.global và bộ nhớ có thời gian sống không giới hạn
+  - Đóng Arena bằng try-with-resources và xử lý đóng lại hoặc đóng sai luồng
+  - Phân biệt đối tượng segment còn được giữ với vùng nhớ đã hết hạn
+  - SegmentAllocator, cấp phát theo layout và chiến lược chia lát vùng nhớ lớn
+- level1: Bố trí dữ liệu
+  level2:
+  - ValueLayout mô tả kiểu Java mang dữ liệu, kích thước và căn chỉnh
+  - Chọn thứ tự byte phù hợp với dữ liệu bản địa hoặc định dạng tệp
+  - StructLayout, UnionLayout và SequenceLayout biểu diễn cấu trúc C
+  - Tính byte đệm tường minh thay vì giả định structLayout tự mô phỏng trình biên dịch C
+  - Đặt tên trường và tìm offset bằng MemoryLayout.PathElement
+  - Đọc cấu trúc lồng nhau và mảng cấu trúc bằng đường dẫn layout
+  - Tạo VarHandle cho trường và phần tử cần truy cập lặp lại
+  - Dùng canonicalLayouts của Linker để đối chiếu kiểu C của ABI
+  - Kiểm chứng sizeof, alignof và offsetof bằng một chương trình C đi kèm
+- level1: Con trỏ và sở hữu
+  level2:
+  - ValueLayout.ADDRESS và MemorySegment.NULL biểu diễn địa chỉ C
+  - Phân biệt segment chứa địa chỉ với vùng nhớ mà địa chỉ trỏ tới
+  - Con trỏ trả về thường có kích thước 0 và cần hợp đồng độ dài rõ ràng
+  - reinterpret thay đổi biên nhìn thấy mà không xác minh vùng nhớ thực
+  - AddressLayout.withTargetLayout và trách nhiệm xác định đúng vùng nhớ được trỏ tới
+  - Xử lý tham số đầu ra, con trỏ kép và vùng đệm do thư viện điền
+  - Quy định bộ nhớ được mượn, chuyển giao hoặc phải giải phóng bởi bên gọi
+  - Ghép đúng hàm cấp phát và giải phóng của cùng thư viện hoặc bộ quản lý bộ nhớ
+  - Đọc chuỗi C với bảng mã, byte kết thúc và giới hạn chiều dài
+  - Gắn hành động dọn dẹp với scope phù hợp, tránh giải phóng hai lần
+- level1: Gọi hàm bằng FFM
+  level2:
+  - Tìm ký hiệu bằng defaultLookup, loaderLookup hoặc libraryLookup
+  - Phân biệt thư viện nạp qua JNI với thư viện do libraryLookup quản lý
+  - Chọn Arena cho thời gian sống của thư viện và địa chỉ ký hiệu
+  - Mô tả chữ ký C bằng FunctionDescriptor.of hoặc ofVoid
+  - Tạo downcall MethodHandle và đối chiếu MethodType thực tế
+  - Gọi bằng invokeExact với kiểu tham số và kiểu nhận kết quả chính xác
+  - Truyền struct theo giá trị, nhận struct và tham số SegmentAllocator bổ sung
+  - Hàm có số đối số biến đổi, firstVariadicArg và quy tắc nâng kiểu của C
+  - Thu trạng thái errno hoặc lỗi nền tảng bằng captureCallState
+  - Kiểm tra giá trị trả về trước khi đọc mã lỗi theo hợp đồng của hàm
+- level1: Gọi lại bằng FFM
+  level2:
+  - Hàm gọi lại (callback), con trỏ hàm và khái niệm upcall
+  - Chuẩn bị MethodHandle cho phương thức Java làm hàm gọi lại
+  - Tạo upcallStub với FunctionDescriptor và Arena phù hợp
+  - Truyền con trỏ hàm vào thư viện C và đọc dữ liệu tham số
+  - Giữ stub sống trong suốt thời gian thư viện còn có thể gọi lại
+  - Bắt mọi ngoại lệ trong callback để tránh ngoại lệ thoát qua ranh giới upcall
+  - Callback từ luồng bản địa và giới hạn truy cập segment thuộc Arena riêng luồng
+  - Truyền trạng thái ứng dụng qua tham số user data theo hợp đồng C
+  - Hủy đăng ký callback, chờ lời gọi đang chạy rồi mới đóng Arena
+- level1: Sinh liên kết jextract
+  level2:
+  - Vai trò jextract trong sinh mã Java từ header thư viện C
+  - Phân biệt công cụ jextract phân phối riêng với lệnh có sẵn của JDK
+  - Chọn phiên bản jextract phù hợp với API FFM và JDK mục tiêu
+  - Cấu hình đường dẫn header, macro và các khai báo cần xuất
+  - Đọc mã sinh cho hàm, hằng số, cấu trúc và con trỏ hàm
+  - Tách mã sinh khỏi lớp bao quản lý tài nguyên và kiểm tra dữ liệu
+  - Sinh lại khi header thay đổi và kiểm chứng với thư viện nhị phân được phân phối
+- level1: Bộ đệm và tệp
+  level2:
+  - ByteBuffer trực tiếp và sự khác nhau giữa đối tượng Java với vùng nhớ nền
+  - Chia sẻ bộ đệm qua NewDirectByteBuffer và GetDirectBufferAddress trong JNI
+  - Quy định bên sở hữu khi Java giữ bộ đệm trỏ vào bộ nhớ do C cấp phát
+  - Chuyển giữa ByteBuffer và MemorySegment mà không giả định có bản sao
+  - Ánh xạ tệp thành MemorySegment với FileChannel và Arena
+  - Quyền đọc ghi, thời gian sống, flush dữ liệu và giới hạn do hệ điều hành
+  - Phân biệt vùng nhớ dùng chung giữa luồng với vùng nhớ dùng chung giữa tiến trình
+- level1: Bao bọc thư viện C++
+  level2:
+  - Vì sao lớp, nạp chồng và ABI C++ cần được xem xét trước khi liên kết
+  - Xuất một lớp API C ổn định bằng extern "C" quanh thư viện C++
+  - Dùng handle mờ để tạo, sử dụng và hủy đối tượng C++
+  - Giữ ngoại lệ, std::string và bộ cấp phát C++ bên trong lớp bao
+  - Chuyển dữ liệu bằng vùng đệm và độ dài thay vì lộ kiểu nội bộ
+  - Thiết kế AutoCloseable phía Java với trạng thái đã đóng rõ ràng
+  - Giới hạn của JNI hoặc FFM khi thư viện chỉ xuất API C++ phức tạp
+- level1: Quyền truy cập native
+  level2:
+  - Phương thức restricted và lý do cần cho phép truy cập bản địa tường minh
+  - --enable-native-access cho module có tên và ALL-UNNAMED trên classpath
+  - Phân biệt cho phép native access với --enable-preview và --add-opens
+  - Cấu hình cảnh báo hoặc từ chối bằng --illegal-native-access trên JDK hỗ trợ
+  - Các hạn chế đối với JNI được mở rộng từ JDK 24 và ảnh hưởng khi nâng JDK
+  - Kiểm tra hoặc cấp quyền cho module động trong phạm vi API cho phép
+  - Quyền truy cập native không xác nhận chữ ký C hoặc độ an toàn của thư viện
+  - Chọn tiến trình riêng khi cần ranh giới chịu lỗi hoặc giới hạn tài nguyên
+- level1: Đồng thời và tài nguyên
+  level2:
+  - Quy định thư viện có an toàn khi gọi đồng thời hoặc chỉ cho phép một luồng
+  - Trạng thái toàn cục, biến cục bộ theo luồng và tính tái nhập của hàm C
+  - Đồng bộ dữ liệu mà Java và mã bản địa cùng đọc hoặc ghi
+  - Không giả định Arena dùng chung tự ngăn tranh chấp dữ liệu
+  - Điều phối callback tái nhập và tránh giữ khóa khi vượt ranh giới Java/C
+  - Chờ công việc bất đồng bộ kết thúc trước khi trả vùng đệm hoặc handle
+  - Hủy tác vụ kéo dài, timeout và giới hạn khả năng can thiệp của luồng Java
+  - Thứ tự đóng callback, đối tượng bản địa, bộ nhớ và thư viện
+- level1: Chẩn đoán lỗi
+  level2:
+  - Phân loại lỗi không thấy thư viện, thiếu phụ thuộc và không thấy ký hiệu
+  - Đối chiếu OS, CPU, bitness và phiên bản ABI khi nạp thư viện thất bại
+  - Dùng -Xcheck:jni để phát hiện một số vi phạm hợp đồng JNI
+  - Dò việc dùng JNI bằng jnativescan và kiểm tra quyền native access khi nâng JDK
+  - Nhận diện WrongMethodTypeException, WrongThreadException và segment đã đóng
+  - Điều tra lỗi phạm vi Java khác với truy cập con trỏ không hợp lệ phía C
+  - Đọc hs_err_pid, khung gây lỗi và dấu vết ngăn xếp Java hoặc bản địa
+  - Thu tệp dump, ký hiệu gỡ lỗi và thông tin thư viện để tái hiện sự cố
+  - Dùng công cụ kiểm tra bộ nhớ bản địa và hiểu giới hạn của Native Memory Tracking
+  - Theo dõi sự kiện JFR nạp và dỡ thư viện bản địa
+  - Tách ví dụ lỗi tối thiểu khỏi ứng dụng lớn trước khi kết luận lỗi JVM
+- level1: Hiệu năng tương tác
+  level2:
+  - Đo chi phí vượt ranh giới Java/C thay vì chỉ đo thời gian thuật toán C
+  - Gộp công việc để giảm số lần JNI, downcall và callback
+  - Đánh đổi sao chép, ghim mảng, bộ đệm trực tiếp và cấp phát ngoài heap
+  - Lưu lại lookup, layout, MethodHandle hoặc mã định danh JNI đúng vòng đời
+  - Điều kiện nghiêm ngặt của Linker.Option.critical và hạn chế với hàm chặn hoặc upcall
+  - Đo riêng khởi động, liên kết, làm nóng JIT và thực thi ổn định
+  - Theo dõi bộ nhớ bản địa, số handle và độ trễ khi chạy lâu dài
+- level1: Kiểm thử và phân phối
+  level2:
+  - Tạo thư viện C nhỏ làm minh chứng cho hợp đồng dữ liệu và quyền sở hữu
+  - Kiểm thử giá trị biên, null, Unicode, vùng đệm ngắn và tràn số kích thước
+  - Kiểm thử lỗi cấp phát, mã lỗi thư viện, ngoại lệ callback và dọn dẹp một phần
+  - Chạy kiểm thử gây crash hoặc lỗi nạp trong tiến trình riêng
+  - Đối chiếu JNI và FFM với cùng tập đầu vào, kết quả và thư viện C
+  - Chạy ma trận JDK, hệ điều hành, CPU và công cụ biên dịch được hỗ trợ
+  - Đóng gói thư viện bản địa cùng phụ thuộc và hướng dẫn quyền truy cập lúc chạy
+  - Xác minh nguồn gốc, tính toàn vẹn và phiên bản của tệp nhị phân phát hành
+  - Kiểm thử đóng nhiều lần, truy cập sau đóng và callback đến muộn
+- level1: Bài thực hành
+  level2:
+  - Tạo thư viện tính toán C và gọi cùng một hàm qua JNI rồi qua FFM
+  - Truyền chuỗi Unicode và mảng số với chính sách sao chép tường minh
+  - Truyền struct lồng nhau rồi kiểm chứng kích thước và offset giữa Java với C
+  - Nhận vùng nhớ do C cấp phát và bọc nó bằng tài nguyên có thể đóng
+  - Đăng ký callback Java và dừng an toàn khi thư viện gọi từ luồng nền
+  - Nhúng JVM trong ứng dụng C và gọi một dịch vụ Java
+  - Sinh liên kết bằng jextract rồi thêm lớp bao kiểm tra hợp đồng
+  - Tạo bộ kiểm thử đa nền tảng và bảng quyết định JNI, FFM hoặc tiến trình riêng

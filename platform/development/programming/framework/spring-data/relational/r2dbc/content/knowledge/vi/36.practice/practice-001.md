@@ -1,0 +1,1344 @@
+# Xây dựng chức năng quản lý dữ liệu từ schema đến API WebFlux
+
+Một chức năng quản lý dữ liệu trong ứng dụng Spring Data Relational R2DBC không chỉ gồm repository và controller. Để triển khai hoàn chỉnh, cần thiết kế schema, migration, mapping entity, truy vấn reactive, quy tắc nghiệp vụ, validation, API contract, xử lý lỗi, transaction và kiểm thử với database thật.
+
+Bài thực hành này xây dựng chức năng quản lý sản phẩm (Product) theo luồng từ PostgreSQL tới HTTP API bằng Spring WebFlux và Spring Data R2DBC. Người dùng có thể tạo sản phẩm, xem chi tiết, liệt kê theo trang cursor, cập nhật và xóa. Ví dụ dùng PostgreSQL, Java và Spring Boot; tên package, phiên bản dependency và một số property cần điều chỉnh theo phiên bản dự án thực tế.
+
+## 1. Xác định yêu cầu và API contract
+
+Trước khi viết SQL hoặc Java, xác định dữ liệu và hành vi mà chức năng phải cung cấp.
+
+Sản phẩm có các thuộc tính:
+
+| Thuộc tính | Kiểu | Quy tắc |
+|---|---|---|
+| id | BIGINT | Khóa chính, database sinh |
+| sku | VARCHAR(64) | Bắt buộc, duy nhất |
+| name | VARCHAR(200) | Bắt buộc |
+| description | TEXT | Tùy chọn |
+| price | NUMERIC(12,2) | Bắt buộc, không âm |
+| active | BOOLEAN | Mặc định true |
+| created_at | TIMESTAMPTZ | Thời điểm tạo |
+| updated_at | TIMESTAMPTZ | Thời điểm cập nhật |
+| version | BIGINT | Phiên bản optimistic locking |
+
+API contract:
+
+| Method | Endpoint | Mục đích | Kết quả chính |
+|---|---|---|---|
+| GET | /api/products | Liệt kê theo cursor | 200 |
+| GET | /api/products/{id} | Xem chi tiết | 200, 404 |
+| POST | /api/products | Tạo sản phẩm | 201, 400, 409 |
+| PUT | /api/products/{id} | Thay thế dữ liệu có thể sửa | 200, 400, 404, 409 |
+| DELETE | /api/products/{id} | Xóa sản phẩm | 204, 404 |
+
+Danh sách dùng keyset pagination theo id, có page size tối đa. Cách này giúp query có giới hạn và tránh phải materialize toàn bộ bảng.
+
+Luồng xử lý:
+
+~~~text
+HTTP request
+    |
+    v
+WebFlux Controller
+    |
+    v
+Request validation / DTO
+    |
+    v
+Product Service
+    |
+    +---- business rules
+    |
+    v
+Spring Data R2DBC Repository / DatabaseClient
+    |
+    v
+R2DBC PostgreSQL Driver
+    |
+    v
+PostgreSQL schema
+~~~
+
+Controller xử lý giao thức HTTP và chuyển dữ liệu. Service giữ quy tắc nghiệp vụ. Repository/DatabaseClient thực hiện truy cập dữ liệu. Database constraint là hàng rào cuối cùng bảo vệ tính toàn vẹn, kể cả khi có nhiều request đồng thời.
+
+## 2. Chuẩn bị project và dependency
+
+Một project Spring Boot cần các thành phần chính:
+
+- Spring WebFlux để xây dựng HTTP API reactive.
+- Spring Data R2DBC để mapping entity và repository.
+- R2DBC PostgreSQL driver để kết nối PostgreSQL.
+- Spring Boot Validation để kiểm tra request DTO.
+- Spring Boot Actuator/Micrometer nếu cần metrics vận hành.
+- Spring Boot Test và Reactor Test để kiểm thử.
+- PostgreSQL Testcontainers cho integration test.
+
+Ví dụ dependencies Maven (dùng Spring Boot dependency management/BOM của project để quản lý version):
+
+~~~xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-webflux</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-r2dbc</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>r2dbc-postgresql</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.projectreactor</groupId>
+        <artifactId>reactor-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+~~~
+
+Nếu dùng Flyway để quản lý migration, bổ sung Flyway và JDBC PostgreSQL driver theo phiên bản tương ứng. Flyway thường kết nối bằng JDBC, trong khi runtime data access của chức năng này dùng R2DBC. Hai connection path có thể cùng tồn tại nhưng phải được cấu hình và tính ngân sách riêng. Với các phiên bản Flyway mới, database support có thể nằm trong module riêng như flyway-database-postgresql; hãy dùng đúng dependency theo version.
+
+Không thêm JDBC starter chỉ để có migration mà không hiểu auto-configuration của Spring Boot, vì nó có thể tạo thêm DataSource và connection pool. Nếu cần Flyway, chỉ cấu hình JDBC migration connection có chủ đích.
+
+## 3. Tạo migration cho PostgreSQL schema
+
+Tạo migration, ví dụ file V1__create_product.sql:
+
+~~~sql
+CREATE TABLE product (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    sku VARCHAR(64) NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    price NUMERIC(12, 2) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT uk_product_sku UNIQUE (sku),
+    CONSTRAINT ck_product_price_non_negative CHECK (price >= 0)
+);
+
+CREATE INDEX idx_product_active_id
+    ON product (active, id);
+~~~
+
+Khóa chính identity do PostgreSQL cấp. Unique constraint bảo vệ SKU không bị trùng trong các request đồng thời. Check constraint ngăn dữ liệu giá âm ngay cả khi một writer khác bỏ qua validation ở API.
+
+Primary key đã tạo index trên id, vì vậy không cần tạo thêm index trùng chỉ để phục vụ sắp xếp theo id. Index (active, id) chỉ nên giữ nếu query lọc theo active và sắp xếp theo id đủ thường xuyên để có lợi. Kiểm tra execution plan trên dữ liệu đại diện trước khi giữ index.
+
+Migration sau khi đã áp dụng trên môi trường thật nên được xem là bất biến. Khi thay đổi schema, tạo migration mới thay vì sửa file cũ đã chạy.
+
+### 3.1. Chạy migration trước khi rollout ứng dụng
+
+Thứ tự triển khai thông thường:
+
+1. Tạo database/schema hoặc cấp quyền cho application user.
+2. Chạy migration bằng một migration job/runner được kiểm soát.
+3. Xác nhận migration thành công.
+4. Khởi động hoặc rollout application dùng schema mới.
+5. Theo dõi lỗi mapping/query sau triển khai.
+
+Không để nhiều application replica cùng chạy DDL tùy tiện khi khởi động nếu migration tool và lock coordination chưa được cấu hình rõ.
+
+### 3.2. Cấu hình application database
+
+Ví dụ application.yml:
+
+~~~yaml
+spring:
+  application:
+    name: product-service
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/catalog
+    username: catalog_app
+    password: change-me
+    pool:
+      enabled: true
+      initial-size: 2
+      max-size: 10
+      max-acquire-time: 2s
+      max-create-connection-time: 3s
+      max-idle-time: 10m
+      max-life-time: 30m
+server:
+  port: 8080
+~~~
+
+Các giá trị pool chỉ là ví dụ. max-size là giới hạn của một pool trong một instance; khi scale nhiều replica, phải nhân với số instance tối đa và cộng mọi pool khác cùng truy cập database. Property có sẵn và tên chính xác phụ thuộc Spring Boot/R2DBC Pool version.
+
+Không đặt mật khẩu thật trong file được commit. Dùng secret manager hoặc biến môi trường do môi trường triển khai cung cấp. Nếu dùng TLS, cấu hình certificate/SSL theo yêu cầu của PostgreSQL driver và hạ tầng.
+
+## 4. Tạo entity Product
+
+Entity ánh xạ một hàng trong bảng product. Dùng @Table và @Column để khai báo tên bảng/cột rõ ràng:
+
+~~~java
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("product")
+public class Product {
+
+    @Id
+    private Long id;
+    @Column("sku")
+    private String sku;
+    @Column("name")
+    private String name;
+    @Column("description")
+    private String description;
+    @Column("price")
+    private BigDecimal price;
+    @Column("active")
+    private Boolean active;
+    @Column("created_at")
+    private OffsetDateTime createdAt;
+    @Column("updated_at")
+    private OffsetDateTime updatedAt;
+    @Version
+    @Column("version")
+    private Long version;
+
+    public Product() {
+    }
+
+    public Product(
+            Long id,
+            String sku,
+            String name,
+            String description,
+            BigDecimal price,
+            Boolean active,
+            OffsetDateTime createdAt,
+            OffsetDateTime updatedAt,
+            Long version) {
+        this.id = id;
+        this.sku = sku;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.active = active;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.version = version;
+    }
+
+    public Long getId() { return id; }
+    public String getSku() { return sku; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public BigDecimal getPrice() { return price; }
+    public Boolean getActive() { return active; }
+    public OffsetDateTime getCreatedAt() { return createdAt; }
+    public OffsetDateTime getUpdatedAt() { return updatedAt; }
+    public Long getVersion() { return version; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setSku(String sku) { this.sku = sku; }
+    public void setName(String name) { this.name = name; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    public void setActive(Boolean active) { this.active = active; }
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    public void setVersion(Long version) { this.version = version; }
+}
+~~~
+
+Các điểm quan trọng:
+
+- Dùng Long nullable cho ID mới để biểu diễn entity chưa được database cấp khóa.
+- Dùng BigDecimal cho tiền; không dùng double/float vì sai số nhị phân.
+- OffsetDateTime phù hợp với cột PostgreSQL TIMESTAMPTZ và giữ thông tin offset khi mapping qua driver.
+- @Version bật optimistic locking khi Spring Data R2DBC xử lý thao tác update entity. Cần xác nhận hành vi theo version Spring Data đang dùng.
+- Không nhận trực tiếp entity từ request HTTP. DTO giúp tách API contract khỏi persistence model.
+
+Khi entity mới được lưu, Spring Data có thể lấy generated ID và version rồi trả entity đã lưu trong publisher. Hãy dùng entity phát ra từ save, không giả định object đầu vào đã được thay đổi tại chỗ.
+
+## 5. Tạo repository
+
+Repository reactive cơ bản:
+
+~~~java
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Mono;
+
+public interface ProductRepository
+        extends ReactiveCrudRepository<Product, Long> {
+
+    Mono<Boolean> existsBySku(String sku);
+
+    Mono<Boolean> existsBySkuAndIdNot(String sku, Long id);
+}
+~~~
+
+ReactiveCrudRepository cung cấp các thao tác CRUD trả về Mono/Flux. Các method existsBy... được Spring Data phân tích thành query method theo tên thuộc tính.
+
+Không gọi block() trong controller/service để lấy kết quả repository. Hãy compose các publisher bằng map, flatMap, switchIfEmpty và trả publisher cho WebFlux.
+
+### 5.1. Repository không thay thế database constraint
+
+Service có thể kiểm tra SKU trước khi INSERT để trả lỗi dễ hiểu. Nhưng hai request đồng thời vẫn có thể cùng thấy SKU chưa tồn tại rồi cùng INSERT. Unique constraint uk_product_sku mới là hàng rào cuối cùng.
+
+Do đó:
+
+- Kiểm tra ở service để cải thiện trải nghiệm.
+- Giữ unique constraint trong database để bảo đảm tính đúng đắn.
+- Chuyển unique violation thành HTTP 409 ở boundary phù hợp.
+
+## 6. Tạo DTO cho request và response
+
+Request DTO định nghĩa dữ liệu client được phép gửi:
+
+~~~java
+import java.math.BigDecimal;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+public record ProductWriteRequest(
+    @NotBlank
+    @Size(max = 64)
+    String sku,
+    @NotBlank
+    @Size(max = 200)
+    String name,
+    @Size(max = 4000)
+    String description,
+    @NotNull
+    @DecimalMin(value = "0.00", inclusive = true)
+    @Digits(integer = 10, fraction = 2)
+    BigDecimal price,
+    Boolean active
+) {
+}
+~~~
+
+Quy tắc:
+
+- SKU và tên không được rỗng.
+- SKU tối đa 64 ký tự.
+- Tên tối đa 200 ký tự.
+- Description tối đa 4.000 ký tự.
+- Giá bắt buộc, không âm và tối đa hai chữ số thập phân.
+- active có thể bỏ qua; service sẽ dùng mặc định true khi tạo.
+
+Response DTO không tiết lộ persistence object:
+
+~~~java
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
+public record ProductResponse(
+    Long id,
+    String sku,
+    String name,
+    String description,
+    BigDecimal price,
+    Boolean active,
+    OffsetDateTime createdAt,
+    OffsetDateTime updatedAt,
+    Long version
+) {
+    public static ProductResponse from(Product product) {
+        return new ProductResponse(
+            product.getId(),
+            product.getSku(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice(),
+            product.getActive(),
+            product.getCreatedAt(),
+            product.getUpdatedAt(),
+            product.getVersion()
+        );
+    }
+}
+~~~
+
+Response phân trang:
+
+~~~java
+import java.util.List;
+
+public record ProductPageResponse(
+    List<ProductResponse> items,
+    Long nextAfterId
+) {
+}
+~~~
+
+nextAfterId là ID cuối cùng của trang hiện tại. Client gửi giá trị này vào request tiếp theo. Nếu không còn phần tử, nextAfterId là null.
+
+## 7. Viết reader phân trang bằng DatabaseClient
+
+Spring Data reactive repository phù hợp với CRUD cơ bản. Với truy vấn page cần SQL rõ ràng, có thể dùng DatabaseClient.
+
+~~~java
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
+import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+
+@Repository
+public class ProductPageReader {
+
+    private final DatabaseClient databaseClient;
+
+    public ProductPageReader(DatabaseClient databaseClient) {
+        this.databaseClient = databaseClient;
+    }
+
+    public Flux<Product> findAfter(long afterId, int pageSize) {
+        return databaseClient.sql("""
+                SELECT id, sku, name, description, price, active,
+                       created_at, updated_at, version
+                FROM product
+                WHERE id > :afterId
+                ORDER BY id
+                LIMIT :pageSize
+                """)
+            .bind("afterId", afterId)
+            .bind("pageSize", pageSize)
+            .map((row, metadata) -> new Product(
+                row.get("id", Long.class),
+                row.get("sku", String.class),
+                row.get("name", String.class),
+                row.get("description", String.class),
+                row.get("price", BigDecimal.class),
+                row.get("active", Boolean.class),
+                row.get("created_at", OffsetDateTime.class),
+                row.get("updated_at", OffsetDateTime.class),
+                row.get("version", Long.class)
+            ))
+            .all();
+    }
+}
+~~~
+
+Query dùng keyset pagination:
+
+- id > :afterId bắt đầu sau cursor.
+- ORDER BY id bảo đảm thứ tự.
+- LIMIT :pageSize giới hạn số hàng database trả về.
+
+ID là khóa chính nên thứ tự cursor là duy nhất. Khi dùng một cột sort không duy nhất, cần thêm khóa duy nhất làm tie-breaker trong cả điều kiện cursor và ORDER BY.
+
+Mapping Row.get phải dùng kiểu tương thích với driver. PostgreSQL R2DBC driver thường ánh xạ NUMERIC sang BigDecimal, TIMESTAMPTZ sang OffsetDateTime, BIGINT sang Long. Nếu version/codec của dự án khác, hãy điều chỉnh converter và integration test.
+
+## 8. Xây dựng service và quy tắc nghiệp vụ
+
+Service chịu trách nhiệm:
+
+- Chuẩn hóa input ở mức nghiệp vụ.
+- Kiểm tra SKU đã tồn tại.
+- Tạo timestamp.
+- Tìm entity trước khi cập nhật/xóa để trả 404.
+- Cập nhật entity rồi gọi repository.
+- Giới hạn page size.
+- Chuyển entity thành response DTO.
+
+~~~java
+import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
+@Service
+public class ProductService {
+
+    private static final int DEFAULT_PAGE_SIZE = 50;
+    private static final int MAX_PAGE_SIZE = 200;
+
+    private final ProductRepository repository;
+    private final ProductPageReader pageReader;
+    private final Clock clock;
+
+    public ProductService(
+            ProductRepository repository,
+            ProductPageReader pageReader,
+            Clock clock) {
+        this.repository = repository;
+        this.pageReader = pageReader;
+        this.clock = clock;
+    }
+
+    public Mono<ProductResponse> create(ProductWriteRequest request) {
+        return repository.existsBySku(request.sku())
+            .flatMap(exists -> {
+                if (exists) {
+                    return Mono.error(
+                        new ProductSkuConflictException(request.sku())
+                    );
+                }
+
+                OffsetDateTime now = now();
+                Product product = new Product(
+                    null,
+                    request.sku(),
+                    request.name(),
+                    request.description(),
+                    request.price(),
+                    request.active() == null ? true : request.active(),
+                    now,
+                    now,
+                    null
+                );
+
+                return repository.save(product)
+                    .map(ProductResponse::from);
+            });
+    }
+
+    public Mono<ProductResponse> findById(Long id) {
+        return repository.findById(id)
+            .switchIfEmpty(Mono.error(
+                new ProductNotFoundException(id)
+            ))
+            .map(ProductResponse::from);
+    }
+
+    public Mono<ProductResponse> update(
+            Long id,
+            ProductWriteRequest request) {
+
+        return repository.findById(id)
+            .switchIfEmpty(Mono.error(
+                new ProductNotFoundException(id)
+            ))
+            .flatMap(product ->
+                repository.existsBySkuAndIdNot(request.sku(), id)
+                    .flatMap(skuExists -> {
+                        if (skuExists) {
+                            return Mono.error(
+                                new ProductSkuConflictException(request.sku())
+                            );
+                        }
+
+                        product.setSku(request.sku());
+                        product.setName(request.name());
+                        product.setDescription(request.description());
+                        product.setPrice(request.price());
+                        if (request.active() != null) {
+                            product.setActive(request.active());
+                        }
+                        product.setUpdatedAt(now());
+
+                        return repository.save(product);
+                    })
+            )
+            .map(ProductResponse::from);
+    }
+
+    public Mono<Void> delete(Long id) {
+        return repository.findById(id)
+            .switchIfEmpty(Mono.error(
+                new ProductNotFoundException(id)
+            ))
+            .flatMap(repository::delete);
+    }
+
+    public Mono<ProductPageResponse> findPage(
+            long afterId,
+            Integer requestedSize) {
+
+        if (afterId < 0) {
+            return Mono.error(
+                new IllegalArgumentException("afterId must be non-negative")
+            );
+        }
+
+        int pageSize = requestedSize == null
+            ? DEFAULT_PAGE_SIZE
+            : Math.min(Math.max(requestedSize, 1), MAX_PAGE_SIZE);
+
+        return pageReader.findAfter(afterId, pageSize)
+            .collectList()
+            .map(products -> {
+                List<ProductResponse> items = products.stream()
+                    .map(ProductResponse::from)
+                    .toList();
+
+                Long nextAfterId = products.isEmpty()
+                    ? null
+                    : products.get(products.size() - 1).getId();
+
+                return new ProductPageResponse(items, nextAfterId);
+            });
+    }
+
+    private OffsetDateTime now() {
+        return OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+    }
+}
+~~~
+
+Khai báo Clock bean để test có thể điều khiển thời gian:
+
+~~~java
+import java.time.Clock;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class TimeConfiguration {
+
+    @Bean
+    Clock clock() {
+        return Clock.systemUTC();
+    }
+}
+~~~
+
+### 8.1. Vì sao kiểm tra SKU ở service vẫn cần unique constraint?
+
+Hai request có thể cùng chạy existsBySku và nhận false. Sau đó cả hai cùng INSERT. Chỉ một request được database chấp nhận; request còn lại nhận unique violation.
+
+Trong production, cần chuyển đúng unique violation của constraint uk_product_sku thành ProductSkuConflictException hoặc lỗi conflict tương ứng. Có thể phân loại bằng SQLSTATE/vendor metadata và tên constraint theo driver/database. Không chuyển mọi DataIntegrityViolationException thành SKU conflict vì check constraint hoặc foreign key có ý nghĩa khác.
+
+Phần service trên minh họa kiểm tra sớm để trả lỗi thân thiện. Unique constraint vẫn là cơ chế bảo vệ tính đúng đắn.
+
+### 8.2. Optimistic locking khi cập nhật đồng thời
+
+Entity có @Version. Spring Data R2DBC có thể dùng version để chỉ cập nhật khi version trong database khớp version entity được đọc. Nếu một request khác đã cập nhật trước, thao tác save có thể phát OptimisticLockingFailureException.
+
+API có thể trả 409 Conflict để client tải lại dữ liệu rồi quyết định cập nhật lại. Nếu không cần kiểm soát cập nhật đồng thời, có thể bỏ cột version và @Version; khi đó phải chấp nhận last-write-wins hoặc tự định nghĩa chính sách khác.
+
+### 8.3. Giới hạn của collectList trong phân trang
+
+Service dùng collectList nhưng query đã giới hạn LIMIT và service giới hạn page size tối đa 200. Đây là materialization có giới hạn rõ ràng, khác với việc gom toàn bộ bảng.
+
+Không bỏ LIMIT khỏi SQL chỉ vì service đã gọi collectList. Page size phải được kiểm soát ở cả tầng API và query.
+
+## 9. Tạo exception nghiệp vụ
+
+Các lỗi domain nên có kiểu riêng để error handler ánh xạ sang HTTP status:
+
+~~~java
+public class ProductNotFoundException extends RuntimeException {
+
+    public ProductNotFoundException(Long id) {
+        super("Product not found: " + id);
+    }
+}
+~~~
+
+~~~java
+public class ProductSkuConflictException extends RuntimeException {
+
+    public ProductSkuConflictException(String sku) {
+        super("Product SKU already exists: " + sku);
+    }
+}
+~~~
+
+Không đưa SQL, bind parameter, password, connection URL hoặc stack trace vào thông báo lỗi trả cho client. Log nội bộ có thể giữ cause theo chính sách redaction và phân quyền.
+
+## 10. Xây dựng WebFlux Controller
+
+Controller khai báo HTTP route và trả publisher:
+
+~~~java
+import java.net.URI;
+
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    private final ProductService service;
+
+    public ProductController(ProductService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    public Mono<ProductPageResponse> list(
+            @RequestParam(defaultValue = "0") long afterId,
+            @RequestParam(defaultValue = "50") Integer size) {
+        return service.findPage(afterId, size);
+    }
+
+    @GetMapping("/{id}")
+    public Mono<ProductResponse> findById(@PathVariable Long id) {
+        return service.findById(id);
+    }
+
+    @PostMapping
+    public Mono<ResponseEntity<ProductResponse>> create(
+            @Valid @RequestBody ProductWriteRequest request) {
+        return service.create(request)
+            .map(product -> ResponseEntity
+                .created(URI.create("/api/products/" + product.id()))
+                .body(product));
+    }
+
+    @PutMapping("/{id}")
+    public Mono<ProductResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductWriteRequest request) {
+        return service.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<Void>> delete(@PathVariable Long id) {
+        return service.delete(id)
+            .thenReturn(ResponseEntity.noContent().build());
+    }
+}
+~~~
+
+WebFlux subscribe vào publisher khi xử lý request. Không gọi subscribe() hoặc block() trong controller. Việc tự subscribe tách thao tác khỏi lifecycle HTTP, có thể làm mất cancellation propagation, security/transaction context và xử lý lỗi của request.
+
+### 10.1. Validation request body
+
+@Valid kích hoạt Bean Validation cho DTO. Khi request không hợp lệ, WebFlux có thể phát WebExchangeBindException trong quá trình resolve request body. Hành vi chi tiết của method validation có thể khác theo Spring Framework version; kiểm tra exception thực tế khi viết handler.
+
+Validation ở API không thay thế constraint database. Client có thể bị bỏ qua, hoặc dữ liệu có thể được ghi từ batch job và service khác.
+
+### 10.2. Ý nghĩa HTTP status
+
+| Trường hợp | HTTP status |
+|---|---:|
+| Đọc thành công | 200 OK |
+| Tạo thành công | 201 Created |
+| Cập nhật thành công | 200 OK |
+| Xóa thành công | 204 No Content |
+| Request không hợp lệ | 400 Bad Request |
+| Không tìm thấy sản phẩm | 404 Not Found |
+| SKU đã tồn tại | 409 Conflict |
+| Optimistic locking conflict | 409 Conflict |
+| Lỗi hệ thống không dự kiến | 500 Internal Server Error |
+
+## 11. Chuẩn hóa lỗi bằng ProblemDetail
+
+Spring Framework 6 hỗ trợ ProblemDetail để trả lỗi theo cấu trúc thống nhất:
+
+~~~java
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.support.WebExchangeBindException;
+
+@RestControllerAdvice
+public class ApiExceptionHandler {
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ProblemDetail> notFound(
+            ProductNotFoundException error) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.NOT_FOUND,
+            "The requested product does not exist."
+        );
+        problem.setTitle("Product not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(ProductSkuConflictException.class)
+    public ResponseEntity<ProblemDetail> skuConflict(
+            ProductSkuConflictException error) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.CONFLICT,
+            "A product with the same SKU already exists."
+        );
+        problem.setTitle("Product SKU conflict");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> concurrentUpdate(
+            OptimisticLockingFailureException error) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.CONFLICT,
+            "The product was changed by another request. Reload and retry."
+        );
+        problem.setTitle("Concurrent update");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(WebExchangeBindException.class)
+    public ResponseEntity<ProblemDetail> validation(
+            WebExchangeBindException error) {
+
+        List<Map<String, String>> fieldErrors =
+            error.getFieldErrors().stream()
+                .map(fieldError -> Map.of(
+                    "field", fieldError.getField(),
+                    "message", String.valueOf(fieldError.getDefaultMessage())
+                ))
+                .toList();
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            "One or more request fields are invalid."
+        );
+        problem.setTitle("Validation failed");
+        problem.setProperty("errors", fieldErrors);
+        return ResponseEntity.badRequest().body(problem);
+    }
+}
+~~~
+
+Trong một ứng dụng hoàn chỉnh, bổ sung handler cho IllegalArgumentException hoặc lỗi query parameter phù hợp. Không tạo handler chung bắt mọi exception rồi trả 400; lỗi database hoặc bug nội bộ cần được ghi nhận là server error.
+
+### 11.1. Ánh xạ unique violation từ database
+
+Pre-check SKU trong service không loại bỏ race condition. Khi unique constraint phát lỗi:
+
+1. Bắt exception ở persistence/service boundary phù hợp.
+2. Duyệt cause chain hoặc metadata driver để lấy SQLSTATE/vendor code.
+3. Xác nhận đó là unique violation của constraint uk_product_sku.
+4. Chuyển thành ProductSkuConflictException.
+5. Giữ nguyên các lỗi integrity khác để handler phân loại riêng.
+
+Với PostgreSQL, SQLSTATE 23505 biểu thị unique violation. Nếu một bảng có nhiều unique constraint, cần phân biệt constraint name để tránh trả thông báo SKU conflict cho một vi phạm khác. Exception translation có thể thay đổi theo driver và Spring Data version.
+
+## 12. Transaction trong chức năng quản lý dữ liệu
+
+Các thao tác đơn như một INSERT, UPDATE hoặc DELETE thường đã là một statement nguyên tử ở database. Không cần mở transaction tường minh chỉ để gọi một repository method.
+
+Khi use case gồm nhiều thao tác cần thành công/thất bại cùng nhau, dùng reactive transaction:
+
+~~~java
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Mono;
+
+@Service
+public class ProductImportService {
+
+    private final ProductRepository repository;
+    private final TransactionalOperator transactionalOperator;
+
+    public ProductImportService(
+            ProductRepository repository,
+            TransactionalOperator transactionalOperator) {
+        this.repository = repository;
+        this.transactionalOperator = transactionalOperator;
+    }
+
+    public Mono<Void> importTwoProducts(
+            Product first,
+            Product second) {
+
+        Mono<Void> work = repository.save(first)
+            .then(repository.save(second))
+            .then();
+
+        return transactionalOperator.transactional(work);
+    }
+}
+~~~
+
+Ví dụ này minh họa hai thao tác ghi trong cùng transaction. Nếu thao tác thứ hai lỗi, transaction manager có thể rollback cả hai. TransactionalOperator cần được cấu hình với ReactiveTransactionManager tương ứng; Spring Boot thường auto-configure khi có R2DBC connection factory phù hợp.
+
+Không gọi block() hoặc subscribe() bên trong transaction. Transaction context được truyền theo Reactor Context của subscription. Tách publisher bằng subscription thủ công có thể làm thao tác chạy ngoài transaction dự kiến.
+
+### 12.1. Không giữ transaction khi gọi dịch vụ ngoài lâu
+
+Tránh bọc HTTP call chậm, chờ người dùng hoặc xử lý file lớn bên trong transaction database nếu không cần. Transaction dài giữ connection và có thể tăng lock/snapshot pressure.
+
+Nếu use case cần phối hợp database với message broker hoặc dịch vụ khác, cân nhắc transactional outbox/saga thay vì giữ transaction mở trong toàn bộ workflow phân tán.
+
+## 13. Thêm lọc và tìm kiếm
+
+Khi API cần lọc theo trạng thái active, có thể thêm query tường minh:
+
+~~~sql
+SELECT id, sku, name, description, price, active,
+       created_at, updated_at, version
+FROM product
+WHERE active = :active
+  AND id > :afterId
+ORDER BY id
+LIMIT :pageSize;
+~~~
+
+Tạo method reader nhận active và bind kiểu Boolean. Nếu filter là tùy chọn, có thể dùng hai query rõ ràng hoặc điều kiện SQL có xử lý null. Tránh nối trực tiếp giá trị từ request vào SQL.
+
+### 13.1. Tìm kiếm theo tên
+
+~~~sql
+SELECT id, sku, name, price, active
+FROM product
+WHERE name ILIKE :pattern
+  AND id > :afterId
+ORDER BY id
+LIMIT :pageSize;
+~~~
+
+ILIKE là extension PostgreSQL cho tìm kiếm không phân biệt hoa thường. Cần cân nhắc index phù hợp nếu dữ liệu lớn; B-tree thông thường không tối ưu cho mọi pattern có wildcard đầu chuỗi. Có thể dùng trigram index nếu extension và workload phù hợp.
+
+### 13.2. Không nối chuỗi SQL từ input
+
+Không làm:
+
+~~~java
+String sql = "SELECT * FROM product WHERE name = '" + userInput + "'";
+~~~
+
+Dùng bind parameter:
+
+~~~java
+databaseClient.sql(
+        "SELECT id, name FROM product WHERE name = :name"
+    )
+    .bind("name", userInput);
+~~~
+
+Bind parameter bảo vệ giá trị dữ liệu khỏi bị diễn giải như SQL syntax. Với tên cột hoặc sort direction động, bind parameter không thể thay thế identifier; hãy dùng allowlist các lựa chọn đã định nghĩa trong code.
+
+## 14. API pagination và ví dụ request/response
+
+Gọi trang đầu:
+
+~~~http
+GET /api/products?afterId=0&size=50
+Accept: application/json
+~~~
+
+Response:
+
+~~~json
+{
+  "items": [
+    {
+      "id": 101,
+      "sku": "KB-101",
+      "name": "Mechanical Keyboard",
+      "description": "Compact keyboard",
+      "price": 89.90,
+      "active": true,
+      "createdAt": "2026-11-15T09:00:00Z",
+      "updatedAt": "2026-11-15T09:00:00Z",
+      "version": 0
+    }
+  ],
+  "nextAfterId": 101
+}
+~~~
+
+Trang tiếp theo dùng cursor:
+
+~~~http
+GET /api/products?afterId=101&size=50
+~~~
+
+Cursor là giá trị do server trả về; client không cần tự tính ID kế tiếp. Nếu không có hàng tiếp theo, items là mảng rỗng và nextAfterId là null.
+
+Keyset pagination phù hợp cho duyệt liên tục theo thứ tự khóa. Nó không hỗ trợ nhảy trực tiếp tới trang 20 như offset pagination. Nếu UI cần nhảy trang tùy ý, phải cân nhắc offset hoặc một cursor/index riêng.
+
+## 15. Thử API bằng HTTP
+
+### 15.1. Tạo sản phẩm
+
+~~~bash
+curl -i -X POST http://localhost:8080/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sku": "KB-101",
+    "name": "Mechanical Keyboard",
+    "description": "Compact mechanical keyboard",
+    "price": 89.90,
+    "active": true
+  }'
+~~~
+
+Kết quả mong đợi là 201 Created, header Location trỏ tới /api/products/{id} và response chứa ID do database sinh.
+
+### 15.2. Đọc chi tiết
+
+~~~bash
+curl -i http://localhost:8080/api/products/101
+~~~
+
+Nếu ID không tồn tại, API trả 404 Not Found với ProblemDetail.
+
+### 15.3. Cập nhật
+
+~~~bash
+curl -i -X PUT http://localhost:8080/api/products/101 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sku": "KB-101",
+    "name": "Mechanical Keyboard Pro",
+    "description": "Updated model",
+    "price": 99.90,
+    "active": true
+  }'
+~~~
+
+Nếu version trong database đã thay đổi sau khi entity được đọc, optimistic locking có thể phát conflict. Client nên tải lại bản mới trước khi thử cập nhật lại.
+
+### 15.4. Xóa
+
+~~~bash
+curl -i -X DELETE http://localhost:8080/api/products/101
+~~~
+
+Kết quả thành công là 204 No Content.
+
+### 15.5. Validation lỗi
+
+~~~bash
+curl -i -X POST http://localhost:8080/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sku": "",
+    "name": "",
+    "price": -10
+  }'
+~~~
+
+Kết quả là 400 Bad Request với danh sách field lỗi. Request không hợp lệ không được ghi vào database.
+
+## 16. Kiểm thử service và repository
+
+Kiểm thử nên chia thành unit test cho logic và integration test cho mapping/SQL/driver.
+
+### 16.1. Unit test service bằng StepVerifier
+
+Nếu repository được mock, có thể kiểm tra service phát đúng lỗi khi SKU đã tồn tại:
+
+~~~java
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ProductServiceTest {
+
+    @Mock
+    ProductRepository repository;
+
+    @Mock
+    ProductPageReader pageReader;
+
+    @Test
+    void rejectsDuplicateSku() {
+        Clock clock = Clock.fixed(
+            Instant.parse("2026-11-15T09:00:00Z"),
+            ZoneOffset.UTC
+        );
+
+        ProductService service = new ProductService(
+            repository, pageReader, clock
+        );
+
+        ProductWriteRequest request = new ProductWriteRequest(
+            "KB-101",
+            "Keyboard",
+            null,
+            new BigDecimal("89.90"),
+            true
+        );
+
+        when(repository.existsBySku("KB-101"))
+            .thenReturn(Mono.just(true));
+
+        StepVerifier.create(service.create(request))
+            .expectError(ProductSkuConflictException.class)
+            .verify();
+
+        verify(repository, never()).save(any());
+    }
+}
+~~~
+
+Unit test xác nhận nhánh nghiệp vụ và việc không gọi save khi pre-check phát hiện trùng. Nó không kiểm tra unique constraint hoặc exception thực tế của PostgreSQL.
+
+### 16.2. Kiểm thử pagination giới hạn page size
+
+Mock ProductPageReader để trả một số hàng nhỏ, gọi service với size lớn hơn giới hạn và xác nhận reader nhận size tối đa. Unit test giúp bảo vệ quy tắc giới hạn ở service; integration test cần xác nhận SQL thực sự có LIMIT.
+
+## 17. Integration test với PostgreSQL thật
+
+Mapping, SQL dialect, identity, constraint và optimistic locking cần được kiểm thử với database tương thích. PostgreSQL Testcontainers là một lựa chọn.
+
+Ví dụ cấu hình container:
+
+~~~java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+class ProductApiIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres =
+        new PostgreSQLContainer<>("postgres:16-alpine");
+
+    @DynamicPropertySource
+    static void databaseProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.r2dbc.url", () ->
+            "r2dbc:postgresql://" + postgres.getHost()
+                + ":" + postgres.getFirstMappedPort()
+                + "/" + postgres.getDatabaseName()
+        );
+        registry.add("spring.r2dbc.username", postgres::getUsername);
+        registry.add("spring.r2dbc.password", postgres::getPassword);
+    }
+
+    @Autowired
+    WebTestClient webTestClient;
+
+    @Test
+    void createsAndReadsProduct() {
+        String body = """
+            {
+              "sku": "KB-101",
+              "name": "Mechanical Keyboard",
+              "description": "Compact keyboard",
+              "price": 89.90,
+              "active": true
+            }
+            """;
+
+        webTestClient.post()
+            .uri("/api/products")
+            .header("Content-Type", "application/json")
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isCreated()
+            .expectHeader().exists("Location")
+            .expectBody()
+            .jsonPath("$.id").exists()
+            .jsonPath("$.sku").isEqualTo("KB-101");
+    }
+}
+~~~
+
+Đoạn test minh họa cấu hình R2DBC bằng URL động. Cần chạy migration schema trước test. Nếu dùng Flyway, cấu hình JDBC URL/credentials động tương ứng và thêm JDBC driver cùng Flyway database module phù hợp. Không giả định cấu hình JDBC tự động cấu hình cả R2DBC.
+
+### 17.1. Các integration scenario nên có
+
+- INSERT entity mới và xác nhận generated ID.
+- Đọc lại hàng đã ghi.
+- Unique constraint từ chối SKU trùng.
+- Check constraint từ chối giá âm khi ghi trực tiếp qua database path.
+- findById trả empty khi không tồn tại.
+- Update thay đổi updated_at và version.
+- Hai update đồng thời tạo optimistic locking conflict theo cấu hình.
+- Delete thành công và lần đọc sau trả 404.
+- Keyset page không lặp/không bỏ sót ID trong dữ liệu tĩnh.
+- Page size không vượt giới hạn.
+- Query lỗi/timeout trả connection về pool.
+
+### 17.2. Kiểm thử API validation và ProblemDetail
+
+Gửi request thiếu SKU hoặc giá âm và xác nhận:
+
+- HTTP status là 400.
+- Response có content type/problem structure phù hợp.
+- Có trường lỗi validation.
+- Không có hàng tương ứng trong database.
+
+Gửi SKU đã tồn tại và xác nhận 409. Với race condition, nên có test database-level unique constraint hoặc test đồng thời để bảo đảm chỉ một request tạo được hàng.
+
+## 18. Kiểm thử tính đúng đắn của cursor pagination
+
+Với dữ liệu tĩnh có ID 1 đến 5 và page size 2:
+
+| Request | Hàng trả về | Cursor tiếp theo |
+|---|---|---:|
+| afterId=0 | 1, 2 | 2 |
+| afterId=2 | 3, 4 | 4 |
+| afterId=4 | 5 | 5 |
+| afterId=5 | Không có | null |
+
+Test nên lặp lấy page tới khi items rỗng và xác nhận:
+
+- Mọi ID xuất hiện đúng một lần.
+- Thứ tự tăng dần.
+- Mỗi page không vượt size tối đa.
+- Cursor bằng ID cuối của page trước.
+
+Keyset pagination tránh chi phí OFFSET lớn nhưng không tự bảo đảm snapshot nhất quán nếu hàng bị cập nhật/xóa trong lúc client lấy nhiều page. Với export cần snapshot, cần thêm cutoff/version hoặc cơ chế snapshot riêng.
+
+## 19. Bảo mật API và dữ liệu
+
+Ví dụ chưa cấu hình Spring Security để tập trung vào luồng dữ liệu. Khi triển khai thật, cần xác định:
+
+- Ai được đọc danh sách và chi tiết?
+- Ai được tạo/cập nhật/xóa?
+- Có phân quyền theo tenant hoặc owner không?
+- SKU có phải duy nhất toàn hệ thống hay theo tenant?
+- Có cần audit actor và timestamp không?
+- Có cần rate limit hoặc quota cho list/export không?
+
+Không tin cậy tenantId, createdBy, role hoặc owner ID do client gửi trong body. Lấy danh tính/tenant từ security context đã xác thực và kiểm tra authorization ở service/query boundary.
+
+Không trả stack trace, SQL, bind values, database hostname, credentials hoặc token trong ProblemDetail. Log nội bộ cần structured logging, redaction và correlation ID.
+
+### 19.1. Phân trang cũng là một giới hạn tài nguyên
+
+API phải áp max page size và có thể thêm quota theo user/tenant. Không để client yêu cầu size=1000000 rồi materialize một response khổng lồ. Với dữ liệu lớn, cung cấp export job riêng.
+
+## 20. Quan sát và vận hành
+
+Một chức năng CRUD cần có metrics đủ để phát hiện lỗi:
+
+- HTTP request rate, 4xx/5xx và p95/p99 latency.
+- R2DBC pool acquired, idle, pending acquire và acquire timeout.
+- Query/operation duration theo operation name.
+- Database exception category và retry count.
+- Transaction duration/rollback nếu có.
+- JVM heap, allocation rate và GC pause.
+
+Operation name nên là hằng số như product.create, product.find-by-id, product.list-page, không dùng product ID hoặc SKU làm metric tag. Không log toàn bộ bind parameter vì có thể chứa dữ liệu nhạy cảm.
+
+Nếu pool pending acquire tăng, kiểm tra query/transaction giữ connection lâu, số replica và tổng pool capacity. Nếu query latency tăng, xem database execution plan, lock waits và index. Nếu HTTP response chậm nhưng SQL nhanh, kiểm tra mapping, downstream và network.
+
+## 21. Các lỗi thường gặp khi xây từ schema tới API
+
+| Lỗi | Hệ quả | Cách xử lý |
+|---|---|---|
+| Tạo entity trước khi thống nhất schema | Tên/kiểu cột không khớp | Thiết kế migration và mapping cùng nhau |
+| Không có migration versioned | Môi trường dev/test/prod lệch schema | Quản lý DDL bằng Flyway/Liquibase hoặc công cụ tương đương |
+| Chỉ validate ở controller | Writer khác có thể ghi dữ liệu sai | Kết hợp validation và database constraints |
+| Chỉ kiểm tra SKU bằng SELECT | Race condition tạo SKU trùng | Unique constraint và ánh xạ unique violation |
+| Dùng double cho giá | Sai số tiền tệ | Dùng BigDecimal và NUMERIC |
+| Dùng entity làm request/response | Client có thể sửa field nội bộ | Dùng DTO riêng |
+| Gọi block() trong WebFlux | Chặn thread và làm mất lợi ích reactive | Compose publisher và trả về caller |
+| Gọi subscribe() trong service | Tách công việc khỏi lifecycle request | Trả publisher, để framework subscribe |
+| Dùng findAll().collectList() | Heap tăng theo toàn bộ bảng | SQL LIMIT/keyset page hoặc streaming có giới hạn |
+| Phân trang bằng cursor không ổn định | Lặp hoặc bỏ sót hàng | Dùng thứ tự duy nhất và tie-breaker |
+| Bỏ qua optimistic locking | Last-write-wins có thể ghi đè thay đổi | Dùng @Version nếu nghiệp vụ cần |
+| Bắt mọi lỗi database thành 400 | Che giấu lỗi server | Phân loại lỗi theo nguyên nhân |
+| Trả exception message cho client | Lộ SQL hoặc thông tin nội bộ | ProblemDetail với thông báo an toàn |
+| Mở transaction qua HTTP call lâu | Giữ connection và transaction quá lâu | Rút ngắn transaction, dùng workflow/outbox |
+| Chỉ test bằng mock | Không phát hiện lỗi dialect/codec/constraint | Integration test PostgreSQL thật |
+| Không kiểm tra generated ID | Client nhận entity chưa có ID hoặc mapping sai | Test INSERT và đọc lại database |
+| Cấu hình pool chỉ theo một pod | Scale replica làm vượt DB limit | Tính tổng pool theo peak replica |
+
+## 22. Trình tự triển khai từ đầu đến cuối
+
+Một quy trình thực hành có thể theo các bước:
+
+1. **Chốt yêu cầu:** xác định field, validation, uniqueness, update/delete semantics và API status.
+2. **Thiết kế schema:** chọn kiểu dữ liệu, primary key, unique/check constraints và index.
+3. **Tạo migration:** viết DDL versioned, chạy trên database test.
+4. **Cấu hình R2DBC:** URL, credentials, pool size và timeout theo môi trường.
+5. **Tạo entity:** mapping rõ ràng, kiểu Java phù hợp và version field nếu cần.
+6. **Tạo repository:** dùng reactive CRUD và derived query cho thao tác đơn giản.
+7. **Tạo query reader:** dùng DatabaseClient cho SQL page/filter đặc thù.
+8. **Tạo DTO:** tách request/response và khai báo Bean Validation.
+9. **Viết service:** quy tắc nghiệp vụ, timestamp, not-found, conflict và page limit.
+10. **Viết controller:** route HTTP, request binding và trả Mono/Flux.
+11. **Chuẩn hóa lỗi:** ProblemDetail, 400/404/409/500 và không lộ chi tiết database.
+12. **Kiểm thử unit:** validation branch, business rules và publisher signals.
+13. **Kiểm thử integration:** migration, mapping, generated ID, constraint, pagination và transaction trên PostgreSQL.
+14. **Kiểm thử tải/quan sát:** pool, latency, heap và nhiều request đồng thời.
+15. **Triển khai:** chạy migration trước rollout, kiểm tra health/metrics và chuẩn bị rollback.
+
+## 23. Checklist hoàn thiện chức năng
+
+| Hạng mục | Điều kiện hoàn tất |
+|---|---|
+| Schema | Có primary key, kiểu dữ liệu và constraint đúng |
+| Migration | Versioned, chạy lặp theo lịch sử tool và được kiểm soát |
+| R2DBC config | Credentials từ secret, pool/timeout có giới hạn |
+| Entity | Mapping khớp schema, ID và version đúng |
+| Repository | Không có blocking call |
+| Custom query | Bind parameter, projection và LIMIT rõ ràng |
+| Service | Business rule và not-found/conflict được xử lý |
+| DTO | Validation và response contract riêng |
+| Controller | HTTP method/status đúng, trả publisher |
+| Error handler | ProblemDetail an toàn, không lộ SQL/secret |
+| Transaction | Boundary rõ, không giữ transaction khi chờ việc ngoài lâu |
+| Tests | Unit và PostgreSQL integration tests |
+| Observability | HTTP, pool, query, error và JVM metrics |
+| Security | Authentication, authorization và tenant scope được xác định |
+| Deployment | Migration trước app, pool budget tính theo peak replica |
+
+## 24. Nguyên tắc cần nhớ
+
+- Bắt đầu từ yêu cầu và API contract, rồi thiết kế schema/migration trước khi mapping entity.
+- Dùng database primary key, unique/check constraints để bảo vệ dữ liệu ở tầng cuối.
+- Dùng migration versioned và triển khai schema tương thích với code đang chạy.
+- Dùng Long nullable cho identity mới, BigDecimal cho tiền và kiểu thời gian tương thích PostgreSQL.
+- Tách entity khỏi request/response DTO.
+- Dùng ReactiveCrudRepository cho CRUD cơ bản và DatabaseClient cho query cần kiểm soát SQL.
+- Không gọi block() hoặc subscribe() trong controller/service reactive.
+- Kiểm tra SKU ở service để phản hồi sớm nhưng vẫn giữ unique constraint để chống race condition.
+- Dùng @Version khi cần phát hiện cập nhật đồng thời.
+- Giới hạn page size trong service và trong SQL; keyset cursor cần thứ tự ổn định.
+- collectList chỉ phù hợp khi query đã bị giới hạn rõ ràng.
+- Dùng ProblemDetail để trả lỗi an toàn và phân biệt 400, 404, 409, 500.
+- Chỉ mở reactive transaction khi nhiều thao tác cần tính nguyên tử; tránh giữ connection khi chờ network lâu.
+- Kiểm thử với PostgreSQL thật để xác nhận driver codec, identity, SQL, constraint và transaction.
+- Quan sát HTTP latency/error, R2DBC pool, query duration, retry và JVM memory.
+- Tính pool theo tổng replica, mọi pool và rollout surge trước khi scale.
+
+Một chức năng quản lý dữ liệu hoàn chỉnh hình thành từ sự nhất quán giữa schema, mapping, business rules và HTTP contract. PostgreSQL constraint bảo vệ dữ liệu, Spring Data R2DBC quản lý persistence reactive, service thực thi quy tắc nghiệp vụ, còn WebFlux cung cấp API không blocking. Migration có kiểm soát, pagination hữu hạn, xử lý lỗi an toàn và integration test với database thật giúp chức năng hoạt động ổn định khi dữ liệu, traffic và số replica tăng lên.

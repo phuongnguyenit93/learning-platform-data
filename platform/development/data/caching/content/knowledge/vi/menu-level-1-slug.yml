@@ -1,0 +1,97 @@
+menu:
+- title: Định hướng
+  slug: direction
+  index: 0
+- title: Phạm vi dữ liệu
+  slug: data-scope
+  index: 1
+- title: Khóa và giá trị
+  slug: keys-and-values
+  index: 2
+- title: Tra cứu và nạp
+  slug: lookup-and-loading
+  index: 3
+- title: Chiến lược ghi
+  slug: write-strategies
+  index: 4
+- title: TTL và hết hạn
+  slug: ttl-and-expiration
+  index: 5
+- title: Dung lượng và loại bỏ
+  slug: capacity-and-eviction
+  index: 6
+- title: Vô hiệu hóa
+  slug: invalidation
+  index: 7
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 8
+- title: Giao dịch
+  slug: transactions
+  index: 9
+- title: Đồng thời
+  slug: concurrency
+  index: 10
+- title: Chống dồn tải
+  slug: cache-stampede-protection
+  index: 11
+- title: Làm mới dữ liệu
+  slug: data-refresh
+  index: 12
+- title: Cache nhiều tầng
+  slug: multilevel-caching
+  index: 13
+- title: Cache phân tán
+  slug: distributed-caching
+  index: 14
+- title: Hiệu năng và chi phí
+  slug: performance-and-cost
+  index: 15
+- title: Cache trong JVM
+  slug: jvm-cache
+  index: 16
+- title: Caffeine
+  slug: caffeine
+  index: 17
+- title: Redis cho cache
+  slug: redis-caching
+  index: 18
+- title: Redis phân tán
+  slug: distributed-redis
+  index: 19
+- title: Spring Cache
+  slug: spring-cache
+  index: 20
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 21
+- title: Cache HTTP
+  slug: http-caching
+  index: 22
+- title: Cache truy vấn
+  slug: query-caching
+  index: 23
+- title: Thiết kế nghiệp vụ
+  slug: domain-design
+  index: 24
+- title: Khả năng chịu lỗi
+  slug: fault-tolerance
+  index: 25
+- title: Bảo mật
+  slug: security
+  index: 26
+- title: Quan sát hệ thống
+  slug: observability
+  index: 27
+- title: Kiểm thử
+  slug: testing
+  index: 28
+- title: Vận hành
+  slug: operations
+  index: 29
+- title: Lỗi thiết kế
+  slug: design-pitfalls
+  index: 30
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 31

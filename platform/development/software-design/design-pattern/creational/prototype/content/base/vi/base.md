@@ -1,0 +1,7 @@
+# Software Design Design Pattern Creational Prototype
+
+**Prototype** là mẫu thiết kế khởi tạo (creational design pattern) giúp tạo đối tượng mới bằng cách sao chép một đối tượng đã tồn tại, thay vì yêu cầu mã sử dụng phải biết lớp cụ thể hoặc dựng lại toàn bộ cấu hình. Mẫu này hữu ích với những đối tượng nhiều thuộc tính, có mẫu cấu hình lặp lại hoặc được lựa chọn theo kiểu động. Trọng tâm là định nghĩa hợp đồng sao chép rõ ràng và kiểm soát cách trạng thái được nhân bản.
+
+Lộ trình gồm **8 mốc**: nhận diện nhu cầu dùng Prototype, thiết kế hợp đồng copy, triển khai Concrete Prototypes, phân biệt shallow/deep copy, tìm hiểu Cloneable và Object.clone() trong Java, xây dựng Prototype Registry, kiểm thử tính độc lập của bản sao và đánh giá các lựa chọn thay thế. Người học thực hành sao chép nhiều kiểu đối tượng, thay đổi dữ liệu lồng nhau và quan sát lỗi chia sẻ tham chiếu ngoài ý muốn.
+
+Học phần phù hợp với người đã biết Java, class, interface, constructor và lập trình hướng đối tượng. Sau khi hoàn thành, bạn có thể xây dựng cơ chế sao chép đa hình, chọn mức độ copy phù hợp, tránh lỗi aliasing ở đối tượng mutable và quyết định khi nào nên dùng Prototype thay vì Factory Method, Builder hoặc khởi tạo trực tiếp.

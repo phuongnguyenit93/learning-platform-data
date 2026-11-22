@@ -1,0 +1,57 @@
+roadmap:
+- id: bai-toan-coupling-giua-doi-tuong
+  title: Bài toán coupling giữa đối tượng
+  purpose: Nhận diện khi các thành phần tham chiếu và gọi chéo nhau khiến thay đổi nhỏ lan ra toàn hệ thống.
+  objectives:
+  - Vẽ quan hệ nhiều-nhiều giữa các Colleague
+  - Chỉ ra các phụ thuộc trực tiếp khó bảo trì
+  - Nêu tình huống nên dùng Mediator
+- id: mediator-colleague
+  title: Mediator & Colleague
+  purpose: Nắm ý định và các vai trò chính của mẫu thiết kế trước khi triển khai bằng lớp Java.
+  objectives:
+  - Giải thích Mediator điều phối tương tác
+  - Phân biệt Colleague với ConcreteMediator
+  - Mô tả luồng thông báo qua trung gian
+- id: giao-dien-mediator
+  title: Giao diện Mediator
+  purpose: Thiết kế hợp đồng cộng tác đủ rõ để từng Colleague không cần biết các Colleague khác.
+  objectives:
+  - Xác định các sự kiện và yêu cầu cần điều phối
+  - Khai báo interface Mediator phù hợp
+  - Giới hạn trách nhiệm ở mức phối hợp
+- id: concretemediator-dieu-phoi
+  title: ConcreteMediator điều phối
+  purpose: Tập trung quy tắc tương tác vào đối tượng điều phối mà không đưa nghiệp vụ riêng của từng thành phần vào đó.
+  objectives:
+  - Kết nối các Colleague cần cộng tác
+  - Chuyển tiếp sự kiện tới thành phần đích
+  - Xử lý điều kiện phối hợp giữa nhiều Colleague
+- id: colleague-phat-thong-bao
+  title: Colleague phát thông báo
+  purpose: Để từng thành phần giao tiếp gián tiếp qua Mediator, giảm phụ thuộc cụ thể vào lớp khác.
+  objectives:
+  - Gắn Mediator vào mỗi Colleague
+  - Thông báo sự kiện thay vì gọi trực tiếp đồng nghiệp
+  - Tiếp nhận cập nhật qua giao diện đã định nghĩa
+- id: refactor-sang-mediator
+  title: Refactor sang Mediator
+  purpose: Chuyển dần mã giao tiếp trực tiếp sang Mediator trong khi vẫn giữ nguyên hành vi của hệ thống.
+  objectives:
+  - Tách quan hệ gọi chéo khỏi các component
+  - Thay lời gọi trực tiếp bằng thông báo tới Mediator
+  - Đối chiếu hành vi trước và sau refactor
+- id: so-sanh-danh-doi
+  title: So sánh & đánh đổi
+  purpose: Biết phân biệt Mediator với các pattern gần nhau và đánh giá rủi ro trung tâm điều phối quá lớn.
+  objectives:
+  - So sánh Mediator với Observer và Facade
+  - Đánh giá lợi ích giảm coupling và tăng tái sử dụng
+  - Nhận diện nguy cơ Mediator thành God Object
+- id: kiem-thu-tuong-tac
+  title: Kiểm thử tương tác
+  purpose: Xác minh các thành phần cộng tác đúng qua Mediator và dễ cô lập trong unit test.
+  objectives:
+  - Kiểm thử chuỗi sự kiện và lệnh điều phối
+  - Dùng fake Mediator để thử từng Colleague
+  - Kiểm thử thiếu thành phần hoặc sự kiện bất hợp lệ

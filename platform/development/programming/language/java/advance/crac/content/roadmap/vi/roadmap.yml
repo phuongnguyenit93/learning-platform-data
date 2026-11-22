@@ -1,0 +1,49 @@
+roadmap:
+- id: crac-jvm-startup
+  title: CRaC & JVM Startup
+  purpose: Hiểu cách snapshot một JVM đã khởi động để giảm thời gian khởi động và làm nóng ứng dụng.
+  objectives:
+  - '- Phân biệt cold start, warm-up, checkpoint và restore.'
+  - '- Nêu tình huống CRaC phù hợp và giới hạn so với khởi động thông thường.'
+- id: jdk-linux-engines
+  title: JDK, Linux & Engines
+  purpose: Chuẩn bị runtime có CRaC và môi trường có khả năng tạo/khôi phục checkpoint thực.
+  objectives:
+  - '- Chọn bản JDK hỗ trợ CRaC và kiểm tra Linux, kiến trúc CPU.'
+  - '- Phân biệt CRIU, Warp theo bản phân phối và simulation engine.'
+- id: checkpoint-restore-cli
+  title: Checkpoint & Restore CLI
+  purpose: Thực hành chu trình lưu và khôi phục trạng thái JVM với lệnh và tùy chọn runtime.
+  objectives:
+  - '- Khởi động với -XX:CRaCCheckpointTo và gọi jcmd JDK.checkpoint.'
+  - '- Restore bằng -XX:CRaCRestoreFrom và kiểm tra dịch vụ hoạt động.'
+- id: resource-lifecycle-api
+  title: Resource Lifecycle API
+  purpose: Phối hợp trạng thái ứng dụng trước và sau snapshot bằng API chuẩn của CRaC.
+  objectives:
+  - '- Cài đặt Resource.beforeCheckpoint và afterRestore.'
+  - '- Đăng ký Resource vào Context; xác minh thứ tự callback.'
+- id: ket-noi-trang-thai-ngoai-jvm
+  title: Kết nối & Trạng thái ngoài JVM
+  purpose: Ngăn socket, file handle, connection pool hay dữ liệu môi trường lỗi thời gây lỗi khi restore.
+  objectives:
+  - '- Đóng/mở lại file, HTTP listener, DB connection đúng thời điểm.'
+  - '- Làm mới timer, credential và cấu hình phụ thuộc môi trường.'
+- id: warm-up-benchmark
+  title: Warm-up & Benchmark
+  purpose: Đánh giá lợi ích thực của snapshot đã warm-up trên workload tương đương.
+  objectives:
+  - '- Tạo tải làm nóng class loading/JIT trước khi checkpoint.'
+  - '- So sánh startup, time-to-first-response, latency và kích thước image.'
+- id: spring-framework-support
+  title: Spring & Framework Support
+  purpose: Tích hợp CRaC với lifecycle framework mà không làm hỏng quá trình khởi động ứng dụng.
+  objectives:
+  - '- Phân biệt checkpoint on-demand và onRefresh trong Spring.'
+  - '- Kiểm tra Spring bean Lifecycle và các dependency cần xử lý riêng.'
+- id: trien-khai-bao-mat-debug
+  title: Triển khai, Bảo mật & Debug
+  purpose: Chuẩn bị snapshot cho môi trường vận hành và chẩn đoán lỗi checkpoint/restore.
+  objectives:
+  - '- Bảo vệ checkpoint image có thể chứa secret và kiểm tra tương thích OS/CPU/JDK.'
+  - '- Phân tích lỗi open file descriptor, quyền engine và thử restore sau deploy.'

@@ -1,0 +1,3 @@
+menuLevel1: Generational ZGC
+menuLevel2: Thiết lập heap có đủ headroom cho thu gom đồng thời
+status: WRITTEN

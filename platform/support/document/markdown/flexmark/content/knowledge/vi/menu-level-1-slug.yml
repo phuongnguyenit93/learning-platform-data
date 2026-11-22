@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Thiết lập
+  slug: setup
+  index: 1
+- title: Bố cục tài liệu
+  slug: document-structure
+  index: 2
+- title: Văn bản
+  slug: text
+  index: 3
+- title: Tiêu đề
+  slug: headings
+  index: 4
+- title: Định dạng nội dòng
+  slug: inline-formatting
+  index: 5
+- title: Danh sách
+  slug: lists
+  index: 6
+- title: Trích dẫn
+  slug: blockquotes
+  index: 7
+- title: Khối mã
+  slug: code-blocks
+  index: 8
+- title: Liên kết
+  slug: links
+  index: 9
+- title: Hình ảnh
+  slug: images
+  index: 10
+- title: Bảng
+  slug: tables
+  index: 11
+- title: Tác vụ
+  slug: task-lists
+  index: 12
+- title: Cú pháp bổ sung
+  slug: extended-syntax
+  index: 13
+- title: Chú thích
+  slug: footnotes
+  index: 14
+- title: Định nghĩa
+  slug: definitions
+  index: 15
+- title: HTML nhúng
+  slug: embedded-html
+  index: 16
+- title: Thuộc tính
+  slug: attributes
+  index: 17
+- title: Mục lục
+  slug: table-of-contents
+  index: 18
+- title: Khối cảnh báo
+  slug: admonition-blocks
+  index: 19
+- title: Siêu dữ liệu
+  slug: metadata
+  index: 20
+- title: Công thức và sơ đồ
+  slug: math-and-diagrams
+  index: 21
+- title: Hồ sơ cú pháp
+  slug: syntax-profiles
+  index: 22
+- title: Phân tích cú pháp
+  slug: parsing
+  index: 23
+- title: Cây cú pháp
+  slug: syntax-tree
+  index: 24
+- title: Kết xuất HTML
+  slug: html-rendering
+  index: 25
+- title: Định dạng nguồn
+  slug: source-formatting
+  index: 26
+- title: Mở rộng Flexmark
+  slug: flexmark-extensions
+  index: 27
+- title: An toàn
+  slug: safety-and-sanitization
+  index: 28
+- title: Kiểm tra chất lượng
+  slug: quality-checks
+  index: 29
+- title: Quản lý tài liệu
+  slug: document-management
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-exercise
+  index: 31

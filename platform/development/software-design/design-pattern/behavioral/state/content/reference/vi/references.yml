@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring Guru — State Pattern"
+    url: "https://refactoring.guru/design-patterns/state"
+    description: "Trình bày ý định, thành phần Context/State, các trường hợp áp dụng, lợi ích và hạn chế của State Pattern."
+  - title: "Refactoring Guru — State in Java"
+    url: "https://refactoring.guru/design-patterns/state/java/example"
+    description: "Ví dụ Java với các ConcreteState, sự kiện điều khiển trình phát nhạc và cách Context thay đổi trạng thái."
+  - title: "Game Programming Patterns — State"
+    url: "https://gameprogrammingpatterns.com/state.html"
+    description: "Chương sách mở về finite state machine, chuyển trạng thái và thiết kế hành vi theo trạng thái."
+  - title: "SourceMaking — State Design Pattern"
+    url: "https://sourcemaking.com/design_patterns/state"
+    description: "Giải thích các vai trò Context/State, trách nhiệm chuyển trạng thái và so sánh State với Strategy."

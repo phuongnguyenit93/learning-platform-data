@@ -1,0 +1,3 @@
+menuLevel1: Enum Singleton
+menuLevel2: Đánh giá enum khi cần inject phụ thuộc, kiểm thử thay thế hoặc đóng tài nguyên
+status: ""

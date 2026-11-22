@@ -1,0 +1,2872 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiến trúc hướng sự kiện (Event-Driven Architecture) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vấn đề của các chuỗi gọi đồng bộ giữa nhiều thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vai trò của sự kiện trong phối hợp nghiệp vụ và tích hợp hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng xử lý từ sự kiện phát sinh đến kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ với kiến trúc phân lớp, nguyên khối mô-đun và microservices
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt hướng sự kiện, bất đồng bộ và xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lợi ích về khả năng mở rộng, phản hồi và phát triển độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Chi phí về tính nhất quán, độ phức tạp và khả năng chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Trường hợp phù hợp và trường hợp nên giữ luồng đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Kiến thức nền và lộ trình đọc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-concepts
+  title: Khái niệm cốt lõi
+  childs:
+  - slug: core-concepts-001
+    title: Sự kiện là sự thật nghiệp vụ đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-002
+    title: Phân biệt sự kiện, lệnh (command) và truy vấn (query)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-003
+    title: Phân biệt sự kiện nghiệp vụ và thông điệp vận chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-004
+    title: Bên phát, bên nhận và trình xử lý sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-005
+    title: Kênh truyền, bộ định tuyến và hệ thống trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-006
+    title: 'Vòng đời sự kiện: tạo, công bố, tiếp nhận và xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-007
+    title: Phản hồi kỹ thuật và kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-008
+    title: Trạng thái xử lý và tác động phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-009
+    title: Tách phụ thuộc về địa chỉ, thời gian và mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-concepts-010
+    title: Các đánh đổi còn tồn tại sau khi tách phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-style
+  title: Phong cách kiến trúc
+  childs:
+  - slug: architectural-style-001
+    title: Mô hình môi giới sự kiện (broker topology)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-002
+    title: Mô hình điều phối trung tâm (mediator topology)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-003
+    title: Phối hợp phân tán (choreography) và điều phối (orchestration)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-004
+    title: Thông báo sự kiện (event notification)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-005
+    title: Truyền trạng thái qua sự kiện (event-carried state transfer)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-006
+    title: Cộng tác giữa các thành phần qua sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-007
+    title: Kiến trúc kết hợp luồng đồng bộ và luồng hướng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-008
+    title: Đối chiếu các phong cách theo mức phụ thuộc và khả năng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-style-009
+    title: Chọn phong cách theo quy mô và yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-boundaries
+  title: Ranh giới nghiệp vụ
+  childs:
+  - slug: domain-boundaries-001
+    title: Khám phá sự kiện từ quy trình và kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-002
+    title: Lập bản đồ luồng nghiệp vụ bằng Event Storming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-003
+    title: Đặt tên sự kiện bằng ngôn ngữ nghiệp vụ và thì quá khứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-004
+    title: Xác định ranh giới ngữ cảnh (bounded context) và quyền sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-005
+    title: Sự kiện miền (domain event) và sự kiện tích hợp (integration event)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-006
+    title: Ranh giới đối tượng kết tụ (aggregate) và điều kiện luôn phải đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-007
+    title: Chuyển sự kiện nội bộ thành hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-008
+    title: Phân rã sự kiện quá lớn và tránh sự kiện quá vụn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-009
+    title: Phân biệt sự kiện nghiệp vụ với thay đổi kỹ thuật của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-boundaries-010
+    title: Trách nhiệm của nhóm sở hữu và nhóm sử dụng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-model
+  title: Mô hình truyền tin
+  childs:
+  - slug: messaging-model-001
+    title: Hàng đợi điểm tới điểm (point-to-point queue)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-002
+    title: Công bố và đăng ký nhận (publish/subscribe)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-003
+    title: Nhóm bên nhận cạnh tranh (competing consumers)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-004
+    title: Luồng sự kiện có lưu giữ (event stream)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-005
+    title: Phân biệt bản ghi lưu bền, vị trí đọc và xác nhận xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-006
+    title: Đăng ký bền vững và hành vi khi bên nhận tạm ngừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-007
+    title: Định tuyến theo chủ đề, khóa và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-008
+    title: Phát tới nhiều bên nhận (fan-out) và tổng hợp kết quả (fan-in)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-009
+    title: Yêu cầu và phản hồi bất đồng bộ (request/reply)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-model-010
+    title: Lựa chọn hàng đợi, chủ đề và luồng theo yêu cầu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-structure
+  title: Cấu trúc sự kiện
+  childs:
+  - slug: event-structure-001
+    title: Phân tách phần bao (envelope), siêu dữ liệu và dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-002
+    title: Định danh sự kiện và quy tắc duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-003
+    title: Loại sự kiện, nguồn phát và đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-004
+    title: Thời điểm phát sinh và thời điểm công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-005
+    title: Khóa nghiệp vụ, khóa phân vùng và phạm vi thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-006
+    title: Định danh tương quan (correlation ID) và nguyên nhân (causation ID)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-007
+    title: Ngữ cảnh truy vết xuyên thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-008
+    title: Phiên bản lược đồ và loại nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-009
+    title: Chọn dữ liệu chênh lệch, ảnh chụp trạng thái hoặc tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-010
+    title: Giới hạn kích thước và xử lý dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-011
+    title: Chuẩn hóa phần bao bằng CloudEvents
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-structure-012
+    title: Tối thiểu hóa dữ liệu nhạy cảm trong hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contracts-versioning
+  title: Hợp đồng và phiên bản
+  childs:
+  - slug: contracts-versioning-001
+    title: Hợp đồng ngữ nghĩa và hợp đồng cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-002
+    title: Lược đồ và định dạng tuần tự hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-003
+    title: JSON, Avro và Protocol Buffers trong trao đổi sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-004
+    title: Kiểm tra hợp lệ ở bên phát và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-005
+    title: Tương thích ngược, tương thích xuôi và tương thích đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-006
+    title: Thêm, đổi tên, xóa trường và xử lý giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-007
+    title: Thay đổi ý nghĩa nghiệp vụ dù cấu trúc không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-008
+    title: Quản lý lược đồ bằng kho đăng ký (schema registry)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-009
+    title: Đồng tồn tại nhiều phiên bản khi triển khai lệch thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-010
+    title: Ngừng hỗ trợ hợp đồng và kế hoạch chuyển đổi bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-011
+    title: Tài liệu hóa kênh và thông điệp bằng AsyncAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-012
+    title: Kiểm soát quyền sở hữu và phê duyệt thay đổi hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flow-design
+  title: Thiết kế luồng
+  childs:
+  - slug: flow-design-001
+    title: Biểu diễn luồng sự kiện bằng sơ đồ thành phần và sơ đồ trình tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-002
+    title: Xác định điểm bắt đầu, kết quả và điều kiện kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-003
+    title: Phân biệt sự kiện hoàn tất với sự kiện tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-004
+    title: Chọn điểm giao tiếp đồng bộ trong quy trình bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-005
+    title: Thiết kế bộ xử lý độc lập và ranh giới tác động phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-006
+    title: Quản lý trạng thái của quy trình kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-007
+    title: Tương quan yêu cầu, kết quả và thời hạn chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-008
+    title: Phát hiện vòng lặp sự kiện và chuỗi phụ thuộc ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-009
+    title: Kiểm soát mức lan truyền khi một hành động tạo nhiều sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-010
+    title: Thiết kế phản hồi cho người dùng khi kết quả chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-publishing
+  title: Phát sự kiện
+  childs:
+  - slug: event-publishing-001
+    title: Xác định thời điểm tạo và công bố sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-002
+    title: Tạo định danh trước lần thử công bố đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-003
+    title: Lựa chọn kênh, khóa định tuyến và khóa phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-004
+    title: Công bố đồng bộ và công bố bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-005
+    title: Bộ đệm, gộp lô và giới hạn tài nguyên bên phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-006
+    title: Xác nhận công bố và yêu cầu lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-007
+    title: Phân biệt lỗi công bố rõ ràng và kết quả công bố chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-008
+    title: Thử lại ở bên phát và nguy cơ phát trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-009
+    title: Kiểm soát tốc độ khi hệ thống truyền tin quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-publishing-010
+    title: Đóng bên phát an toàn và xử lý dữ liệu chưa gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-consumption
+  title: Tiêu thụ sự kiện
+  childs:
+  - slug: event-consumption-001
+    title: Đăng ký nhận và vòng lặp tiếp nhận thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-002
+    title: Nhóm bên nhận, phân công phân vùng và phân phối công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-003
+    title: Tiền nạp (prefetch), số thông điệp đang xử lý và áp lực bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-004
+    title: Giải mã, kiểm tra hợp đồng và phân loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-005
+    title: Xác nhận nhận tin, xác nhận xử lý và lưu vị trí đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-006
+    title: Thời hạn giữ quyền xử lý và khả năng giao lại thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-007
+    title: Xử lý đồng thời và ranh giới an toàn của trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-008
+    title: Quản lý giao dịch dữ liệu bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-009
+    title: Tái cân bằng và chuyển quyền xử lý khi thành viên thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-010
+    title: Dừng an toàn và hoàn tất công việc đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-consumption-011
+    title: Cô lập bên nhận chậm để hạn chế ảnh hưởng lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-semantics
+  title: Ngữ nghĩa giao nhận
+  childs:
+  - slug: delivery-semantics-001
+    title: Giao tối đa một lần (at-most-once)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-002
+    title: Giao ít nhất một lần (at-least-once)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-003
+    title: Phạm vi bảo đảm xử lý đúng một lần (exactly-once)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-004
+    title: Phân biệt giao nhận, thực thi bộ xử lý và tác động nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-005
+    title: Các điểm lỗi trước và sau khi ghi dữ liệu hoặc xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-006
+    title: Mất phản hồi dù bên kia đã hoàn tất thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-007
+    title: Quan hệ giữa độ bền dữ liệu, sao chép và khả năng mất tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-008
+    title: Đánh giá bảo đảm xuyên suốt từ nguồn phát đến hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-009
+    title: Lựa chọn ngữ nghĩa theo chi phí mất tin và xử lý lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ordering-time
+  title: Thứ tự và thời gian
+  childs:
+  - slug: ordering-time-001
+    title: Thứ tự toàn cục và thứ tự trong từng phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-002
+    title: Chọn khóa phân vùng theo thực thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-003
+    title: Quan hệ giữa số phân vùng, mức song song và thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-004
+    title: Số thứ tự, phiên bản thực thể và phát hiện khoảng trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-005
+    title: Sự kiện đến sai thứ tự và sự kiện đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-006
+    title: Thời gian sự kiện, thời gian tiếp nhận và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-007
+    title: Sai lệch đồng hồ và giới hạn suy luận từ dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-008
+    title: Cửa sổ xử lý và mốc tiến độ (watermark)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-009
+    title: Thứ tự nhân quả giữa các sự kiện liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-time-010
+    title: Thay đổi phân vùng hoặc số bên nhận mà vẫn bảo vệ yêu cầu thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: duplicate-handling
+  title: Xử lý trùng lặp
+  childs:
+  - slug: duplicate-handling-001
+    title: Tính lũy đẳng (idempotency) trong xử lý sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-002
+    title: Phân biệt bản giao lặp với hai hành động nghiệp vụ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-003
+    title: Chọn khóa lũy đẳng theo sự kiện và nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-004
+    title: Lưu dấu đã xử lý bằng mẫu Inbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-005
+    title: Ghi dấu xử lý và thay đổi dữ liệu trong cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-006
+    title: Ràng buộc duy nhất và tranh chấp khi xử lý đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-007
+    title: Thời hạn giữ khóa và ảnh hưởng của việc phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-008
+    title: Lũy đẳng cho tác động phụ qua API hoặc hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-009
+    title: Khôi phục khi một phần tác động phụ đã thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-010
+    title: Kiểm chứng tính lũy đẳng bằng các điểm lỗi có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Nhất quán tức thời và nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Xác định dữ liệu chuẩn và quyền cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Xây dựng mô hình đọc (projection) từ sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Độ trễ mô hình đọc và trải nghiệm sau thao tác ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Giữ quan hệ nhân quả khi cập nhật qua nhiều thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Xung đột cập nhật và kiểm soát phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Xử lý thiếu sự kiện, dữ liệu lệch và sửa chữa mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Đối soát định kỳ giữa nguồn dữ liệu và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-009
+    title: Định nghĩa giới hạn chấp nhận được của độ trễ nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-outbox
+  title: Giao dịch và Outbox
+  childs:
+  - slug: transactions-outbox-001
+    title: Vấn đề ghi kép (dual write) giữa dữ liệu và hệ thống truyền tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-002
+    title: Ranh giới giao dịch cục bộ và giao dịch phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-003
+    title: Mẫu Transactional Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-004
+    title: Lưu dữ liệu nghiệp vụ và bản ghi Outbox nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-005
+    title: Chuyển tiếp Outbox bằng cơ chế thăm dò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-006
+    title: Chuyển tiếp Outbox bằng thu nhận thay đổi dữ liệu (CDC)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-007
+    title: Lỗi giữa gửi thành công và đánh dấu đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-008
+    title: Bảo toàn định danh và thứ tự khi chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-009
+    title: Dọn dữ liệu Outbox và theo dõi độ trễ chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-010
+    title: Kết hợp Outbox với Inbox để bảo vệ luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-outbox-011
+    title: Lựa chọn Outbox, CDC và giao dịch của hệ thống truyền tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saga-compensation
+  title: Saga và bù trừ
+  childs:
+  - slug: saga-compensation-001
+    title: Vấn đề giao dịch nghiệp vụ qua nhiều thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-002
+    title: Saga dưới dạng chuỗi giao dịch cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-003
+    title: Saga phối hợp phân tán và Saga điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-004
+    title: Mô hình trạng thái và lưu tiến độ Saga
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-005
+    title: Thiết kế hành động bù trừ theo ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-006
+    title: Phân biệt bù trừ và hoàn tác giao dịch cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-007
+    title: Thời hạn chờ, sự kiện muộn và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-008
+    title: Xử lý lặp, thực thi bù trừ lặp và khôi phục sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-009
+    title: Xung đột giữa các Saga và điểm không thể đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-010
+    title: Xử lý bù trừ thất bại và chuyển sang can thiệp thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saga-compensation-011
+    title: Tiêu chí chọn Saga thay cho một giao dịch cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: failure-recovery-001
+    title: Phân loại lỗi tạm thời, lỗi vĩnh viễn và lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-002
+    title: Thử lại có giới hạn, giãn cách lũy tiến và độ lệch ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-003
+    title: Hàng đợi thử lại và ảnh hưởng tới thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-004
+    title: Thông điệp gây lỗi lặp (poison message)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-005
+    title: Hàng đợi lỗi (dead-letter queue) và thông tin chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-006
+    title: Quy trình kiểm tra, sửa nguyên nhân và đưa tin trở lại xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-007
+    title: Thời hạn xử lý, hết hạn thông điệp và dữ liệu không còn giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-008
+    title: Ngắt mạch (circuit breaker) và cô lập tài nguyên (bulkhead)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-009
+    title: Áp lực ngược (backpressure) và giới hạn tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-010
+    title: Bão thử lại, hàng tồn đọng và suy giảm dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-011
+    title: Khôi phục sau gián đoạn kết nối hoặc ngừng hệ thống trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-012
+    title: Quyền hạn và nhật ký cho thao tác phục hồi thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retention-replay
+  title: Lưu giữ và phát lại
+  childs:
+  - slug: retention-replay-001
+    title: Mục tiêu lưu giữ sự kiện và chính sách hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-002
+    title: Phân biệt nhật ký sự kiện, hàng đợi và kho kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-003
+    title: Phát lại sự kiện để sửa lỗi và xây dựng lại mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-004
+    title: Chọn điểm bắt đầu, phạm vi và tốc độ phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-005
+    title: Tách tác động phụ khỏi luồng xây dựng lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-006
+    title: Xử lý phiên bản hợp đồng cũ khi đọc lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-007
+    title: Bảo vệ thứ tự và tính lũy đẳng trong quá trình phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-008
+    title: Phát lại song song với luồng đang vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-009
+    title: Đối chiếu kết quả và chuyển sang mô hình đọc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-replay-010
+    title: Tác động của xóa dữ liệu và giới hạn lưu giữ tới khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scaling-performance
+  title: Mở rộng và hiệu năng
+  childs:
+  - slug: scaling-performance-001
+    title: Ước lượng lưu lượng, kích thước sự kiện và số bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-002
+    title: Đo thông lượng, độ trễ xử lý và tuổi của hàng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-003
+    title: Phân vùng và mở rộng ngang bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-004
+    title: Khóa nóng, phân bố lệch và tái phân phối tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-005
+    title: Đánh đổi giữa gộp lô, thông lượng và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-006
+    title: Tác động của tuần tự hóa, nén và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-007
+    title: Giới hạn kết nối, bộ nhớ và công việc đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-008
+    title: Đoạn nghẽn ở cơ sở dữ liệu và hệ thống phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-009
+    title: Tự mở rộng theo độ trễ tiêu thụ và tốc độ tăng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-performance-010
+    title: Kiểm thử tải ổn định, tải tăng đột biến và tải kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Truy vết phân tán qua chuỗi sự kiện bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Truyền ngữ cảnh truy vết và liên kết nhiều nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Nhật ký có cấu trúc với định danh sự kiện và tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Chỉ số bên phát, hệ thống truyền tin và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Theo dõi độ trễ tiêu thụ, tuổi thông điệp và tiến độ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Đo thử lại, tin trùng, lỗi hợp đồng và hàng đợi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Mục tiêu dịch vụ (SLO) cho kết quả nghiệp vụ xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Cảnh báo theo triệu chứng và ngưỡng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Bảng theo dõi luồng và khả năng tìm một giao dịch cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-010
+    title: Giới hạn dữ liệu nhạy cảm và độ đa dạng nhãn chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Mô hình đe dọa cho luồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Xác thực bên phát, bên nhận và dịch vụ trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Phân quyền tối thiểu theo kênh và thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Mã hóa khi truyền và khi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Kiểm tra nguồn gốc, tính toàn vẹn và hợp đồng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Bảo vệ trước giả mạo sự kiện và phát lại trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Phân tách dữ liệu và quyền truy cập giữa các khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Quản lý bí mật, chứng chỉ và xoay vòng thông tin truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Kiểm soát dữ liệu cá nhân trong bản sao và lịch sử sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Kiểm toán thao tác quản trị và truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Chiến lược kiểm thử theo ranh giới và rủi ro của luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử đơn vị cho chuyển trạng thái và bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử hợp đồng giữa bên phát và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử tích hợp với hệ thống truyền tin và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử xuyên suốt luồng bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Chờ theo điều kiện và thời hạn thay cho thời gian ngủ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kịch bản tin trùng, sai thứ tự, đến muộn và thất lạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Chèn lỗi tại ranh giới giao dịch và xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử Outbox, Inbox, Saga và bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tương thích khi triển khai nhiều phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử phát lại và đối soát tính đúng đắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử hỗn loạn và tiêu chí phục hồi sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-operations-001
+    title: Quản lý kênh, phân vùng và chính sách bằng cấu hình có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-002
+    title: Thứ tự triển khai bên phát, hợp đồng và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-003
+    title: Triển khai cuốn chiếu và dừng xử lý an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-004
+    title: Chuyển đổi kênh hoặc hợp đồng khi hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-005
+    title: Giám sát dung lượng lưu trữ và chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-006
+    title: Khả dụng cao, miền lỗi và cơ chế sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-007
+    title: Sao lưu, khôi phục và mục tiêu mất dữ liệu hoặc thời gian phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-008
+    title: Quy trình xử lý bên nhận bị kẹt và tồn đọng kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-009
+    title: Quy trình xử lý sự cố hợp đồng và phát nhầm sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-010
+    title: Kế hoạch quay lui khi dữ liệu hoặc hợp đồng đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-011
+    title: Phân công trực vận hành và trách nhiệm xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technology-selection
+  title: Lựa chọn công nghệ
+  childs:
+  - slug: technology-selection-001
+    title: Tách yêu cầu kiến trúc khỏi tính năng của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-002
+    title: Tiêu chí chọn môi giới thông điệp hoặc nền tảng luồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-003
+    title: Đối chiếu Apache Kafka, RabbitMQ và dịch vụ truyền tin được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-004
+    title: So sánh lưu bền, thứ tự, định tuyến và mô hình tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-005
+    title: Khả năng giao dịch, chống trùng và phạm vi bảo đảm của từng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-006
+    title: Khả năng tích hợp, quan sát và quản lý lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-007
+    title: Tự vận hành và dùng dịch vụ được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-008
+    title: Chi phí hạ tầng, lưu trữ, băng thông và đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-009
+    title: Thiết kế thử nghiệm để kiểm chứng lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-010
+    title: Ghi nhận quyết định và đánh đổi bằng Architecture Decision Record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: related-patterns
+  title: Mẫu liên quan
+  childs:
+  - slug: related-patterns-001
+    title: Phân biệt kiến trúc hướng sự kiện và Event Sourcing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-002
+    title: Kết hợp với CQRS và giới hạn cần thiết của mô hình đọc riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-003
+    title: Quan hệ với Domain-Driven Design và Hexagonal Architecture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-004
+    title: Phân biệt xử lý sự kiện nghiệp vụ và xử lý luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-005
+    title: Thu nhận thay đổi dữ liệu cho tích hợp và giới hạn ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-006
+    title: Cổng tích hợp, bộ chuyển đổi và lớp bảo vệ mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-007
+    title: Mẫu định tuyến, lọc, chuyển đổi và tổng hợp thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-008
+    title: Phân biệt luồng sự kiện và quy trình công việc (workflow)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-009
+    title: Ranh giới với tác vụ nền và xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-010
+    title: Khi các mẫu liên quan cần tài liệu hoặc mô-đun riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Dùng sự kiện để che giấu một lệnh gửi tới bên nhận duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Tạo chuỗi gọi đồng bộ ẩn sau hình thức bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Sự kiện chỉ mang định danh khiến bên nhận phải gọi ngược liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Đưa mô hình dữ liệu nội bộ vào hợp đồng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Tin rằng hệ thống truyền tin tự bảo đảm mọi tác động đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Thử lại vô hạn và coi hàng đợi lỗi là nơi bỏ quên thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Giả định thứ tự toàn cục hoặc đồng hồ luôn chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Phát quá nhiều sự kiện kỹ thuật không có ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Thiếu quyền sở hữu, tài liệu và khả năng truy tìm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-010
+    title: Chọn hướng sự kiện khi chi phí vượt giá trị mang lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-migration
+  title: Chuyển đổi kiến trúc
+  childs:
+  - slug: architecture-migration-001
+    title: Đánh giá hiện trạng và chọn luồng thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-002
+    title: Xác định kết quả, ràng buộc và thước đo thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-003
+    title: Tách ranh giới nghiệp vụ trước khi thêm hệ thống truyền tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-004
+    title: Đưa sự kiện vào hệ thống nguyên khối theo từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-005
+    title: Chuyển luồng đồng bộ sang bất đồng bộ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-006
+    title: Chuyển dữ liệu ban đầu và xác định điểm bắt đầu nhận sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-007
+    title: Chạy song song, đối chiếu và ngăn tác động nghiệp vụ lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-008
+    title: Chuyển lưu lượng, theo dõi và phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-009
+    title: Loại bỏ luồng cũ và kết thúc giai đoạn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-010
+    title: Đánh giá lại độ phức tạp và giá trị sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: order-processing-example
+  title: Minh họa đặt hàng
+  childs:
+  - slug: order-processing-example-001
+    title: Yêu cầu đặt hàng, tồn kho, thanh toán và giao vận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-002
+    title: Phân tích ranh giới và xác định nguồn dữ liệu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-003
+    title: Danh mục sự kiện, lệnh và hợp đồng của luồng đặt hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-004
+    title: Luồng thành công từ tạo đơn đến hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-005
+    title: Thiết kế Saga và các bước bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-006
+    title: Áp dụng Outbox và Inbox tại ranh giới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-007
+    title: Xử lý thanh toán trùng, hết hàng và phản hồi muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-008
+    title: Bảo vệ thứ tự cập nhật trạng thái của cùng một đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-009
+    title: Theo dõi đơn đang xử lý và thông báo kết quả cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: order-processing-example-010
+    title: Kiểm thử các điểm lỗi và đối soát trạng thái cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây dựng luồng sự kiện tối giản trong cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thay kênh nội bộ bằng hệ thống truyền tin có lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Thiết kế và kiểm tra hợp đồng sự kiện đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thêm bên nhận độc lập mà không sửa luồng phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Mô phỏng giao lặp và bổ sung xử lý lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Mô phỏng lỗi ghi kép và áp dụng Transactional Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thêm thử lại, hàng đợi lỗi và thao tác phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Xây dựng lại mô hình đọc bằng phát lại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Bổ sung truy vết, chỉ số và cảnh báo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Đo hiệu năng và giải thích đánh đổi của phương án thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-review
+  title: Đánh giá thiết kế
+  childs:
+  - slug: design-review-001
+    title: Kiểm tra sự phù hợp giữa yêu cầu và phong cách kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-002
+    title: Kiểm tra ranh giới nghiệp vụ và quyền sở hữu sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-003
+    title: Kiểm tra hợp đồng, phiên bản và kế hoạch tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-004
+    title: Kiểm tra giao nhận, thứ tự, lũy đẳng và tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-005
+    title: Kiểm tra phục hồi, phát lại và xử lý bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-006
+    title: Kiểm tra bảo mật, quan sát và khả năng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-007
+    title: Kiểm tra năng lực xử lý và chi phí thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-008
+    title: Câu hỏi phản biện theo các tình huống lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-009
+    title: Tiêu chí nghiệm thu và bằng chứng kiểm chứng thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-010
+    title: Tổng hợp quyết định và các đánh đổi còn chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

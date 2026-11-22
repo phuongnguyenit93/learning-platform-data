@@ -1,0 +1,64 @@
+roadmap:
+- id: provider-service-mapping
+  title: Provider & Service Mapping
+  purpose: Hiểu cách Spring kết nối dịch vụ AWS, Azure và Google Cloud mà không nhầm lẫn các API riêng.
+  objectives:
+  - Đối chiếu S3/Blob Storage/Cloud Storage và SQS/Service Bus/Pub/Sub.
+  - Nhận diện thư viện Spring Cloud AWS, Azure và Google Cloud.
+  - Xác định một use case tích hợp cần thực hiện.
+- id: bom-starters-compatibility
+  title: BOM, Starters & Compatibility
+  purpose: Thiết lập phụ thuộc đúng phiên bản trước khi bật auto-configuration cho cloud service.
+  objectives:
+  - Đọc bảng tương thích Spring Boot, Spring Cloud và provider integration.
+  - Import BOM phù hợp và thêm starter theo dịch vụ.
+  - Kiểm tra dependency tree để phát hiện version conflict.
+- id: cloud-identity-iam
+  title: Cloud Identity & IAM
+  purpose: Cho ứng dụng truy cập tài nguyên bằng danh tính được cấp quyền tối thiểu.
+  objectives:
+  - Phân biệt local credentials và workload/managed identity.
+  - Dùng credential provider chain hoặc ADC phù hợp môi trường.
+  - Thử từ chối truy cập khi role thiếu quyền cần thiết.
+- id: config-profiles-secrets
+  title: Config, Profiles & Secrets
+  purpose: Tách cấu hình theo môi trường và nạp bí mật từ dịch vụ quản lý chuyên dụng.
+  objectives:
+  - Phân biệt property thông thường với secret nhạy cảm.
+  - Đọc secret qua Secrets Manager, Key Vault hoặc Secret Manager.
+  - Không hardcode key và không ghi secret vào log.
+- id: object-storage-integration
+  title: Object Storage Integration
+  purpose: Tương tác với đối tượng trên cloud qua starter hoặc SDK chính thức phù hợp.
+  objectives:
+  - Tải lên và tải xuống object từ S3, Azure Blob hoặc Cloud Storage.
+  - Thiết lập bucket/container, định danh và metadata.
+  - Kiểm tra lỗi không có quyền hoặc object không tồn tại.
+- id: messaging-event-integration
+  title: Messaging & Event Integration
+  purpose: Kết nối ứng dụng Spring với dịch vụ queue hoặc publish-subscribe của provider.
+  objectives:
+  - Phân biệt queue và topic/subscription theo luồng nghiệp vụ.
+  - Thử gửi và nhận message bằng SQS, Service Bus hoặc Pub/Sub.
+  - Thiết kế ack, retry và xử lý message trùng.
+- id: managed-data-services
+  title: Managed Data Services
+  purpose: Tích hợp kho dữ liệu cloud mà vẫn kiểm soát connection, quyền và tính nhất quán.
+  objectives:
+  - Chọn dịch vụ phù hợp như DynamoDB, Cosmos DB hoặc Spanner.
+  - Dùng starter/repository/SDK được hỗ trợ cho dịch vụ đã chọn.
+  - Kiểm tra lỗi xác thực, timeout và giới hạn truy cập dữ liệu.
+- id: resilience-observability
+  title: Resilience & Observability
+  purpose: Vận hành cloud client ổn định trước độ trễ, quota và sự cố mạng.
+  objectives:
+  - Cấu hình timeout, retry có backoff và idempotency phù hợp.
+  - Theo dõi latency, error rate và số lần retry qua Actuator/Micrometer.
+  - Nhận diện quota/throttling so với lỗi xác thực hoặc mạng.
+- id: local-test-ci-deploy
+  title: Local Test, CI & Deploy
+  purpose: Xác minh tích hợp từ môi trường phát triển tới cloud thật theo quy trình an toàn.
+  objectives:
+  - Dùng mock, emulator hoặc sandbox khi dịch vụ hỗ trợ.
+  - Viết integration test cho success, permission denied và retry.
+  - Triển khai với workload identity, kiểm tra chi phí và dọn tài nguyên lab.

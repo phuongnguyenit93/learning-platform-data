@@ -1,0 +1,2284 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: CQRS là gì và ý nghĩa của Command Query Responsibility Segregation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao một mô hình dùng chung có thể khó đáp ứng cả đọc và ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Lệnh, truy vấn, mô hình ghi và mô hình đọc trong một bức tranh tổng thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Luồng đặt hàng: từ yêu cầu nghiệp vụ đến kết quả hiển thị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt dữ liệu có thẩm quyền với dữ liệu được chiếu để đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Lợi ích, chi phí và những vấn đề CQRS không tự giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Các thuật ngữ cốt lõi: handler, aggregate, projection và consistency'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức cần có và thứ tự học từ CQRS đơn giản đến phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: foundations
+  title: Nền tảng
+  childs:
+  - slug: foundations-001
+    title: Tách lệnh và truy vấn ở mức phương thức với Command Query Separation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-002
+    title: 'Từ CQS đến CQRS: khác nhau về cấp độ và trách nhiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-003
+    title: So sánh CRUD và CQRS trên cùng một bài toán nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-004
+    title: Phân biệt lệnh thể hiện ý định với sự kiện ghi nhận điều đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-005
+    title: Phân biệt mô hình miền, mô hình lưu trữ và mô hình truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-006
+    title: CQRS với kiến trúc phân lớp, Hexagonal và Clean Architecture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-007
+    title: Quan hệ giữa CQRS, Domain-Driven Design và kiến trúc hướng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-008
+    title: Phân biệt CQRS với sao chép cơ sở dữ liệu, bộ nhớ đệm và cơ sở dữ liệu báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: applicability
+  title: Phạm vi áp dụng
+  childs:
+  - slug: applicability-001
+    title: Nhận diện nghiệp vụ có quy tắc ghi phức tạp và nhu cầu đọc khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applicability-002
+    title: Đánh giá tỷ lệ đọc/ghi cùng yêu cầu độ trễ và độ mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applicability-003
+    title: Xác định ranh giới áp dụng theo miền nghiệp vụ và bounded context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applicability-004
+    title: Kết hợp CQRS ở một phần hệ thống với CRUD ở các phần còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applicability-005
+    title: Những trường hợp CRUD và tối ưu truy vấn thông thường đã đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applicability-006
+    title: Đánh giá năng lực đội ngũ, chi phí hạ tầng và gánh nặng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applicability-007
+    title: Đặt tiêu chí thành công và giới hạn độ phức tạp trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applicability-008
+    title: Ghi quyết định kiến trúc cùng phương án thay thế và điều kiện xem xét lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-variants
+  title: Biến thể kiến trúc
+  childs:
+  - slug: architectural-variants-001
+    title: Tách mô hình đọc/ghi trong một tiến trình và cùng cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-002
+    title: Tách mô hình với các bảng hoặc lược đồ riêng trong cùng cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-003
+    title: Tách kho đọc và kho ghi với cơ chế đồng bộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-004
+    title: Xử lý lệnh đồng bộ và xử lý lệnh bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-005
+    title: Cập nhật mô hình đọc trong giao dịch và cập nhật sau giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-006
+    title: CQRS trong ứng dụng nguyên khối có mô-đun và trong microservices
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-007
+    title: Kết hợp cơ sở dữ liệu quan hệ, tài liệu và công cụ tìm kiếm theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-008
+    title: So sánh mức cô lập lỗi, khả năng mở rộng và tính nhất quán giữa các biến thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-variants-009
+    title: Chọn biến thể tối thiểu đáp ứng yêu cầu và lộ trình nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: write-model
+  title: Mô hình ghi
+  childs:
+  - slug: write-model-001
+    title: Thiết kế mô hình ghi xoay quanh hành vi và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-002
+    title: Thực thể, đối tượng giá trị và định danh trong mô hình ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-003
+    title: Tập hợp nghiệp vụ (aggregate) và ranh giới bảo vệ tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-004
+    title: Xác định điều kiện bất biến và chuyển trạng thái hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-005
+    title: Thiết kế hành vi thay cho việc cho phép sửa tùy ý mọi thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-006
+    title: Vai trò của dịch vụ miền khi quy tắc không thuộc một thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-007
+    title: Kho lưu trữ (repository) và ranh giới truy cập dữ liệu ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-008
+    title: Kiểm tra quyết định nghiệp vụ bằng dữ liệu có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-009
+    title: Phân biệt mô hình miền với thực thể ORM và hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-model-010
+    title: Lựa chọn mô hình ghi đơn giản khi nghiệp vụ không cần đầy đủ DDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-design
+  title: Thiết kế lệnh
+  childs:
+  - slug: command-design-001
+    title: Đặt tên lệnh theo ý định nghiệp vụ thay cho thao tác cập nhật chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-002
+    title: Thiết kế dữ liệu đầu vào tối thiểu và bất biến của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-003
+    title: Phân biệt kiểm tra cú pháp, kiểm tra quyền và kiểm tra quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-004
+    title: Truyền danh tính người thực hiện và ngữ cảnh yêu cầu một cách tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-005
+    title: Định danh lệnh, khóa chống lặp và phạm vi hiệu lực của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-006
+    title: Phiên bản mong đợi để phát hiện lệnh dựa trên dữ liệu đã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-007
+    title: 'Thiết kế kết quả lệnh: định danh, phiên bản và trạng thái thực thi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-008
+    title: Phân biệt tiếp nhận lệnh, hoàn tất ghi và sẵn sàng để đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-009
+    title: Thiết kế lỗi nghiệp vụ, lỗi xung đột và lỗi có thể thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-design-010
+    title: Lệnh đơn, lệnh theo lô và ranh giới giao dịch của từng lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-processing
+  title: Xử lý lệnh
+  childs:
+  - slug: command-processing-001
+    title: Luồng xử lý từ nhận lệnh đến nạp, thay đổi và lưu mô hình ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-002
+    title: Trách nhiệm của command handler và cách giữ handler dễ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-003
+    title: Gọi handler trực tiếp, dùng mediator và dùng command bus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-004
+    title: Chuỗi xử lý chung cho kiểm tra dữ liệu, phân quyền và đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-005
+    title: Đặt ranh giới giao dịch quanh một lần xử lý lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-006
+    title: Phát sinh sự kiện miền và chuyển thành sự kiện tích hợp khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-007
+    title: Phân loại lỗi trước giao dịch, trong giao dịch và sau khi commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-008
+    title: Xử lý việc bên gọi hết thời gian chờ nhưng lệnh có thể đã thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-processing-009
+    title: Giới hạn thời gian, hủy yêu cầu và ngữ nghĩa thử lại của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: read-model
+  title: Mô hình đọc
+  childs:
+  - slug: read-model-001
+    title: Thiết kế mô hình đọc từ màn hình và nhu cầu sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-002
+    title: Phép chiếu (projection), mô hình đọc và khung nhìn vật hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-003
+    title: Phi chuẩn hóa dữ liệu để giảm truy vấn nối và xử lý khi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-004
+    title: Một mô hình ghi phục vụ nhiều mô hình đọc chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-005
+    title: Thiết kế dữ liệu chi tiết, danh sách, tổng hợp và tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-006
+    title: Ranh giới giữa phép tính phục vụ hiển thị và quyết định nghiệp vụ ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-007
+    title: Chọn định danh, chỉ mục và cấu trúc lưu trữ cho mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-008
+    title: Xử lý thêm, sửa, xóa và dữ liệu liên quan trong phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-009
+    title: Lưu phiên bản và mốc cập nhật để đánh giá độ mới của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-model-010
+    title: Quyền sở hữu, khả năng tái tạo và giới hạn của từng mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-design
+  title: Thiết kế truy vấn
+  childs:
+  - slug: query-design-001
+    title: Thiết kế query object, query handler và kết quả chỉ phục vụ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-002
+    title: Ánh xạ kết quả sang DTO thay cho việc trả trực tiếp thực thể miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-003
+    title: Lọc, sắp xếp và phân trang với thứ tự ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-004
+    title: So sánh phân trang theo độ lệch và theo con trỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-005
+    title: Truy vấn chi tiết, tổng hợp và tìm kiếm trên các mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-006
+    title: Tránh N+1, nạp thừa dữ liệu và truy vấn nối không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-007
+    title: 'Truy vấn nhiều nguồn: hợp nhất kết quả và chấp nhận độ mới khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-008
+    title: Thiết kế bộ nhớ đệm và cơ chế vô hiệu hóa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-009
+    title: Xử lý kết quả rỗng, chưa được chiếu và dữ liệu đã xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-design-010
+    title: Bảo đảm truy vấn không làm thay đổi trạng thái nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-concurrency
+  title: Giao dịch và đồng thời
+  childs:
+  - slug: transactions-concurrency-001
+    title: Phạm vi giao dịch ACID trên phía ghi và các điều kiện cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-002
+    title: Cập nhật mô hình đọc cùng giao dịch khi dùng chung cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-003
+    title: Kiểm soát đồng thời lạc quan bằng phiên bản và compare-and-set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-004
+    title: Khóa bi quan và các trường hợp cần tuần tự hóa thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-005
+    title: Ngăn mất cập nhật và đánh giá lại nghiệp vụ sau xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-006
+    title: Ràng buộc cơ sở dữ liệu để bảo vệ duy nhất và tính hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-007
+    title: Xử lý cạnh tranh khi giữ hàng, giữ chỗ và trừ số dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-008
+    title: Giới hạn của mức cô lập và hiện tượng lệch ghi (write skew)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-009
+    title: Chống xử lý lặp lệnh trong cùng ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-concurrency-010
+    title: Ranh giới nhiều aggregate và lựa chọn giao dịch hay quy trình nhiều bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-synchronization
+  title: Đồng bộ dữ liệu
+  childs:
+  - slug: data-synchronization-001
+    title: Lựa chọn cập nhật trực tiếp, sự kiện hay thu thập thay đổi dữ liệu (CDC)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-002
+    title: Vấn đề ghi kép khi vừa lưu dữ liệu vừa phát thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-003
+    title: 'Transactional Outbox: lưu thay đổi nghiệp vụ và bản ghi sự kiện nguyên tử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-004
+    title: Đọc outbox bằng thăm dò và bằng CDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-005
+    title: Thiết kế sự kiện đủ dữ liệu cho bên dựng phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-006
+    title: Cập nhật mô hình đọc từ sự kiện nghiệp vụ và từ thay đổi dữ liệu thô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-007
+    title: Đồng bộ bản ghi phép chiếu và mốc xử lý trong giao dịch phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-008
+    title: Tạo dữ liệu ban đầu từ ảnh chụp và tiếp nối luồng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-009
+    title: Đồng bộ xóa dữ liệu, dấu xóa và thay đổi dữ liệu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-010
+    title: Đối soát mô hình đọc với nguồn có thẩm quyền và sửa sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliable-messaging
+  title: Truyền tin tin cậy
+  childs:
+  - slug: reliable-messaging-001
+    title: Ngữ nghĩa giao nhận tối đa một lần, ít nhất một lần và giới hạn đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-002
+    title: Thiết kế bộ tiêu thụ có tính lũy đẳng để chịu thông điệp trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-003
+    title: Inbox và lưu dấu thông điệp đã xử lý cùng thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-004
+    title: Phạm vi bảo đảm thứ tự theo thực thể, khóa và phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-005
+    title: Phát hiện sự kiện đến muộn, sai thứ tự hoặc thiếu phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-006
+    title: Xác nhận thông điệp và xử lý sự cố giữa commit với acknowledgment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-007
+    title: Thử lại có giãn cách, giới hạn số lần và phân loại lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-008
+    title: Hàng đợi lỗi (dead-letter queue), thông điệp lỗi và quy trình phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-009
+    title: Điều tiết tải, giới hạn bộ đệm và áp lực ngược (backpressure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-messaging-010
+    title: Giới hạn của bảo đảm từ broker đối với tác dụng phụ ngoài broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency
+  title: Tính nhất quán
+  childs:
+  - slug: consistency-001
+    title: Nhất quán mạnh và nhất quán cuối cùng trong các biến thể CQRS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-002
+    title: Mô hình độ trễ từ ghi thành công đến dữ liệu đọc được cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-003
+    title: Đọc lại thay đổi vừa ghi (read-your-writes) và phạm vi bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-004
+    title: Dùng phiên bản hoặc mã mốc để chờ mô hình đọc theo kịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-005
+    title: Định tuyến tạm sang nguồn có thẩm quyền và các giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-006
+    title: Ngăn quyết định ghi dựa hoàn toàn vào dữ liệu chiếu đã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-007
+    title: Nhất quán khi một truy vấn kết hợp nhiều phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-008
+    title: Thiết kế hành vi khi đồng bộ dừng, vượt ngưỡng trễ hoặc mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-009
+    title: Lựa chọn mức nhất quán theo rủi ro của từng thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-interaction
+  title: Giao tiếp người dùng
+  childs:
+  - slug: user-interaction-001
+    title: Thiết kế API lệnh theo thao tác nghiệp vụ và API truy vấn theo nhu cầu đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interaction-002
+    title: Ánh xạ trạng thái lệnh sang phản hồi HTTP đồng bộ và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interaction-003
+    title: Trả mã thao tác và cung cấp truy vấn trạng thái cho lệnh chạy nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interaction-004
+    title: Phân biệt đang tiếp nhận, đang xử lý, hoàn tất ghi và cập nhật hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interaction-005
+    title: Cập nhật giao diện lạc quan và khôi phục khi lệnh bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interaction-006
+    title: Chờ dữ liệu mới bằng polling, Server-Sent Events hoặc WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interaction-007
+    title: Xử lý gửi lặp, tải lại trang và kết nối đứt trong lúc thực hiện lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interaction-008
+    title: Thông báo dữ liệu cũ, xung đột và lỗi nghiệp vụ theo cách người dùng hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: Phân biệt hợp đồng lệnh, truy vấn, sự kiện miền và sự kiện tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Định danh thông điệp, thời điểm, nguồn phát và phiên bản lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: Correlation ID và causation ID để theo dõi chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: Thay đổi tương thích ngược và quy trình triển khai các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Sự kiện chứa toàn bộ trạng thái và sự kiện chứa phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Ngữ nghĩa giá trị thiếu, null và mặc định khi tiến hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Chuyển đổi sự kiện cũ và điều kiện có thể tái dựng phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Phiên bản mô hình đọc và chạy song song phép chiếu cũ/mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-009
+    title: Quyền sở hữu hợp đồng và ngăn phụ thuộc trực tiếp vào lược đồ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-domain-workflows
+  title: Quy trình liên miền
+  childs:
+  - slug: cross-domain-workflows-001
+    title: Ranh giới bounded context và quyền sở hữu dữ liệu giữa các miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-002
+    title: Phối hợp lệnh và sự kiện qua nhiều dịch vụ hoặc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-003
+    title: Phân biệt giao dịch cục bộ với quy trình nghiệp vụ phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-004
+    title: Saga và bộ điều phối quy trình trong luồng nhiều bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-005
+    title: So sánh điều phối tập trung và phối hợp bằng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-006
+    title: Thao tác bù, hết hạn và xử lý kết quả đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-007
+    title: Thiết kế khả năng thử lại và chống lặp cho từng bước quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-008
+    title: Tổng hợp dữ liệu đọc liên miền mà không tạo kho ghi dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-domain-workflows-009
+    title: Phân biệt CQRS với Saga và tránh mở rộng phạm vi sang toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cqrs-event-sourcing
+  title: CQRS và Event Sourcing
+  childs:
+  - slug: cqrs-event-sourcing-001
+    title: 'Tách biệt hai quyết định: mô hình đọc/ghi và cách lưu trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-002
+    title: CQRS với cơ sở dữ liệu lưu trạng thái hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-003
+    title: CQRS kết hợp kho sự kiện làm nguồn có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-004
+    title: Luồng nạp lịch sử, khôi phục aggregate, thực thi lệnh và ghi sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-005
+    title: Kiểm soát đồng thời khi nối sự kiện vào luồng bằng phiên bản mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-006
+    title: Phân biệt phép chiếu truy vấn với snapshot phục vụ nạp mô hình ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-007
+    title: Tái dựng phép chiếu từ lịch sử đầy đủ và yêu cầu tính xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-008
+    title: Giới hạn phát lại khi lịch sử thiếu, bị cắt hoặc chưa từng được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-009
+    title: Ngăn phát lại phép chiếu kích hoạt tác dụng phụ nghiệp vụ lần nữa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cqrs-event-sourcing-010
+    title: Đánh giá chi phí bổ sung và lựa chọn Event Sourcing theo nhu cầu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân quyền lệnh theo hành động và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Phân quyền truy vấn theo bản ghi, thuộc tính và phạm vi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Tách tài khoản và đặc quyền truy cập kho đọc với kho ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Ngăn giả mạo người thực hiện và thay đổi ngữ cảnh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Cô lập dữ liệu nhiều khách hàng (multi-tenancy) trên toàn bộ luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Kiểm soát dữ liệu nhạy cảm trong sự kiện, phép chiếu và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Áp dụng thay đổi quyền cho dữ liệu đọc đã được lưu sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Lưu vết thao tác và liên kết danh tính với quá trình thực thi lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Xóa hoặc ẩn danh dữ liệu trên các bản sao và giới hạn phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring
+  title: Java và Spring
+  childs:
+  - slug: java-spring-001
+    title: Tổ chức gói theo nghiệp vụ với luồng lệnh và truy vấn tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-002
+    title: Mô hình hóa command, query và DTO bằng Java record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-003
+    title: Thiết kế interface handler và định tuyến lệnh mà không phụ thuộc framework riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-004
+    title: Phía ghi với Spring Data JPA và kiểm soát phiên bản bằng @Version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-005
+    title: Phía đọc với JDBC hoặc DTO projection theo nhu cầu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-006
+    title: Đặt @Transactional đúng ranh giới và nhận diện lời gọi nội bộ proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-007
+    title: Sự kiện trong tiến trình, @TransactionalEventListener và giới hạn sau commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-008
+    title: Triển khai outbox, relay và consumer thay cho giả định sự kiện luôn được giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-009
+    title: Ánh xạ lỗi nghiệp vụ, xung đột và khóa chống lặp tại REST API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-010
+    title: Chọn Kafka, RabbitMQ hoặc xử lý nội bộ theo yêu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-011
+    title: Đánh giá thư viện CQRS/Event Sourcing theo bảo đảm và mức phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử hành vi mô hình ghi và các điều kiện bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử command handler với trường hợp chấp nhận và từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử truy vấn, phép chiếu và ánh xạ DTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử tích hợp giao dịch, khóa và ràng buộc cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử lệnh trùng, thông điệp trùng và khôi phục sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử thứ tự, sự kiện thiếu, sự kiện đến muộn và phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử nguyên tử outbox và nguyên tử cập nhật phép chiếu với checkpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử bất đồng bộ bằng điều kiện chờ có thời hạn thay cho thời gian ngủ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử hợp đồng và tương thích dữ liệu giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử từ đầu đến cuối qua cả ghi thành công và dữ liệu đọc hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử tải, gián đoạn kết nối và lỗi thành phần với Testcontainers khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo riêng thông lượng ghi, độ trễ truy vấn và độ trễ phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Phân tích kế hoạch thực thi và thiết kế chỉ mục cho từng mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Chọn mức phi chuẩn hóa dựa trên chi phí đọc và khuếch đại ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chia lô cập nhật phép chiếu và đánh đổi độ trễ với thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Mở rộng độc lập handler, consumer và kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Chọn khóa phân vùng và xử lý điểm nóng trên một thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Chi phí bộ nhớ đệm, vô hiệu hóa và độ mới dữ liệu sau ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Giới hạn tài nguyên và ngăn phía đọc làm nghẽn phía ghi khi dùng chung hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đánh giá dung lượng, chi phí lưu trữ và tốc độ tái dựng phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Theo dõi một yêu cầu xuyên suốt từ lệnh đến mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Liên kết log, metric và trace bằng định danh lệnh và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Đo tỷ lệ chấp nhận, từ chối, xung đột và thử lại lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Đo độ trễ outbox, độ sâu hàng đợi và độ trễ consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Phân biệt độ trễ theo thời gian, độ lệch phiên bản và dữ liệu bị kẹt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Theo dõi lỗi phép chiếu, hàng đợi lỗi và sai lệch khi đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Đặt mục tiêu chất lượng dịch vụ cho ghi, đọc và độ mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Thiết kế kiểm tra sống, sẵn sàng và trạng thái đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Xây cảnh báo gắn với ảnh hưởng nghiệp vụ và hướng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-recovery
+  title: Vận hành và phục hồi
+  childs:
+  - slug: operations-recovery-001
+    title: Triển khai thay đổi mô hình ghi, sự kiện và mô hình đọc theo thứ tự an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-002
+    title: Khởi tạo phép chiếu mới từ dữ liệu nền và theo kịp luồng trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-003
+    title: Tái dựng phép chiếu song song và chuyển đổi sau khi đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-004
+    title: Khôi phục sau khi broker hoặc kho đọc ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-005
+    title: Xử lý outbox tồn đọng và consumer chậm kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-006
+    title: Cô lập thông điệp lỗi, sửa nguyên nhân và phát lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-007
+    title: Sao lưu nguồn có thẩm quyền, thông điệp còn hiệu lực và mốc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-008
+    title: Chính sách lưu giữ dữ liệu và giới hạn khả năng khôi phục lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-009
+    title: Phục hồi thảm họa với mục tiêu mất dữ liệu và thời gian khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-010
+    title: Quay lui triển khai khi hai phiên bản mô hình hoặc hợp đồng cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-recovery-011
+    title: Quản lý tác vụ sửa dữ liệu và kiểm chứng lại các phép chiếu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-migration
+  title: Di trú hệ thống
+  childs:
+  - slug: system-migration-001
+    title: Khảo sát CRUD hiện tại và chọn luồng nghiệp vụ để thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-002
+    title: Tách DTO đọc và hành vi ghi trước khi tách cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-003
+    title: Đưa command handler và query handler vào hệ thống hiện hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-004
+    title: Bổ sung outbox hoặc CDC mà không tạo lỗ hổng đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-005
+    title: Nạp dữ liệu nền và xác định điểm nối với thay đổi phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-006
+    title: Chạy truy vấn đối chiếu và so sánh mô hình đọc mới với kết quả cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-007
+    title: Chuyển dần lưu lượng bằng cờ tính năng và đặt điều kiện quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-008
+    title: Ngăn hai đường ghi cạnh tranh khi cũ và mới chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-migration-009
+    title: Đo hiệu quả sau di trú và loại bỏ thành phần không còn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Đơn hàng với mô hình ghi nghiệp vụ và màn hình tổng hợp riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Giữ hàng tồn kho dưới tải đồng thời và kiểm tra số lượng có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Đặt chỗ với xung đột phiên bản và lệnh gửi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Danh mục sản phẩm với kho tìm kiếm cập nhật bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Luồng thanh toán với kết quả xử lý chưa xác định và đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Dựng bản tối thiểu dùng chung cơ sở dữ liệu rồi so sánh với CRUD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Bổ sung kho đọc riêng, outbox và consumer có tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Thực nghiệm dữ liệu cũ, lỗi giao nhận và phục hồi phép chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Nâng phiên bản hợp đồng và chuyển phép chiếu khi hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Đánh giá từng phương án bằng tính đúng đắn, độ trễ và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-review
+  title: Đánh giá thiết kế
+  childs:
+  - slug: design-review-001
+    title: Nhận diện việc chỉ đổi tên lớp CRUD mà chưa tách trách nhiệm mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-002
+    title: Nhận diện tách cơ sở dữ liệu hoặc microservices quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-003
+    title: Phát hiện quy tắc ghi bị chuyển sang mô hình đọc thiếu thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-004
+    title: Phát hiện ghi kép, mất sự kiện và giả định sai về xử lý đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-005
+    title: Phát hiện hợp đồng sự kiện phụ thuộc lược đồ nội bộ và dữ liệu thiếu để phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-006
+    title: Phát hiện handler quá lớn, chuỗi gọi vòng và bus gây che khuất luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-007
+    title: Đánh giá CQRS khi truy vấn chậm nhưng miền nghiệp vụ đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-008
+    title: Rà soát độ mới dữ liệu, khả năng phục hồi và trải nghiệm sau ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-009
+    title: Checklist quyết định giữ, đơn giản hóa hoặc mở rộng CQRS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

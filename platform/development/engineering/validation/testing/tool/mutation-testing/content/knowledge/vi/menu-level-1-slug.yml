@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cơ chế hoạt động
+  slug: mutation-testing-mechanism
+  index: 1
+- title: Công cụ và lựa chọn
+  slug: tools-and-selection
+  index: 2
+- title: PIT với Gradle
+  slug: pit-with-gradle
+  index: 3
+- title: PIT với Maven
+  slug: pit-with-maven
+  index: 4
+- title: Phạm vi phân tích
+  slug: analysis-scope
+  index: 5
+- title: Toán tử cơ bản
+  slug: basic-mutation-operators
+  index: 6
+- title: Toán tử mở rộng
+  slug: extended-mutation-operators
+  index: 7
+- title: Báo cáo và chỉ số
+  slug: reports-and-metrics
+  index: 8
+- title: Phân tích mutant sống
+  slug: surviving-mutant-analysis
+  index: 9
+- title: Mutant tương đương
+  slug: equivalent-mutants
+  index: 10
+- title: Thiết kế kiểm thử
+  slug: test-design
+  index: 11
+- title: Tình huống Java
+  slug: java-scenarios
+  index: 12
+- title: Mockito và phụ thuộc
+  slug: mockito-and-dependencies
+  index: 13
+- title: Spring Boot
+  slug: spring-boot
+  index: 14
+- title: Tính ổn định
+  slug: stability
+  index: 15
+- title: Hiệu năng
+  slug: performance
+  index: 16
+- title: Phân tích gia tăng
+  slug: incremental-analysis
+  index: 17
+- title: Dự án đa module
+  slug: multi-module-projects
+  index: 18
+- title: CI và cổng chất lượng
+  slug: ci-and-quality-gates
+  index: 19
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 20
+- title: Mở rộng PIT
+  slug: pit-extensions
+  index: 21
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 22
+- title: Áp dụng thực tế
+  slug: real-world-adoption
+  index: 23

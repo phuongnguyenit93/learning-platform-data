@@ -1,0 +1,13 @@
+references:
+  - title: "Java SE 21 JDBC API: java.sql"
+    url: "https://docs.oracle.com/en/java/javase/21/docs/api/java.sql/java/sql/package-summary.html"
+    description: "Tài liệu API chuẩn JDBC về Connection, PreparedStatement, ResultSet và SQLException."
+  - title: "Java SE 21 JDBC API: javax.sql"
+    url: "https://docs.oracle.com/en/java/javase/21/docs/api/java.sql/javax/sql/package-summary.html"
+    description: "API DataSource, kết nối và pooling trong Java SE."
+  - title: "JDBC Basics — Oracle Java Tutorials"
+    url: "https://docs.oracle.com/javase/tutorial/jdbc/basics/index.html"
+    description: "Hướng dẫn JDBC căn bản về kết nối, truy vấn, ResultSet và transaction; ví dụ được viết cho JDK 8."
+  - title: "HikariCP — official repository"
+    url: "https://github.com/brettwooldridge/HikariCP"
+    description: "Tài liệu triển khai JDBC connection pooling và các lựa chọn cấu hình."

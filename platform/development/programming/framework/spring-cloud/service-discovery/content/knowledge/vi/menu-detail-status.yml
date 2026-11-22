@@ -1,0 +1,2185 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Khám phá dịch vụ là gì và giải quyết bài toán nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao địa chỉ cố định không phù hợp với dịch vụ co giãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các khái niệm: dịch vụ, phiên bản chạy, sổ đăng ký và bên gọi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng tổng thể từ đăng ký đến khám phá và gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vị trí của Service Discovery trong hệ sinh thái Spring Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt khám phá dịch vụ, cân bằng tải, Gateway và cấu hình tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Khi nào cần sổ đăng ký và khi nào có thể dùng DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và trình tự học trong module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discovery-architecture
+  title: Kiến trúc khám phá
+  childs:
+  - slug: discovery-architecture-001
+    title: Khám phá phía máy khách và phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-002
+    title: Tự đăng ký và đăng ký thông qua thành phần trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-003
+    title: Sổ đăng ký tập trung và sổ đăng ký phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-004
+    title: Đường điều khiển đăng ký và đường truyền yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-005
+    title: Truy vấn định kỳ, theo dõi thay đổi và lưu đệm danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-006
+    title: 'Cơ chế phát hiện lỗi: nhịp báo sống, kiểm tra sức khỏe và phiên kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-007
+    title: Độ trễ lan truyền thay đổi và tính nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-008
+    title: Vai trò của DNS, bộ định tuyến và service mesh trong khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-architecture-009
+    title: So sánh Eureka, Consul và Zookeeper theo yêu cầu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Chuẩn bị môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Chọn Spring Boot, Spring Cloud Release Train và JDK tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Quản lý phiên bản thư viện bằng Spring Cloud BOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Chọn starter khám phá và đọc cây phụ thuộc Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Chuẩn bị ứng dụng cung cấp dịch vụ và ứng dụng gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Cấu hình application.yml, profile và biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Thiết lập Spring Boot Actuator cho các thí nghiệm khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Chạy sổ đăng ký và nhiều phiên bản dịch vụ bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Kiểm tra tự cấu hình và cô lập từng nhà cung cấp khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discoveryclient
+  title: DiscoveryClient
+  childs:
+  - slug: discoveryclient-001
+    title: Hợp đồng DiscoveryClient và cách lấy danh sách dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-002
+    title: Lấy các ServiceInstance bằng getInstances(serviceId)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-003
+    title: Đọc serviceId, instanceId, host, port, URI và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-004
+    title: ReactiveDiscoveryClient và cách xử lý kết quả bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-005
+    title: Bật hoặc tắt khám phá kiểu blocking và reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-006
+    title: Vai trò của @EnableDiscoveryClient và điều kiện tự cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-007
+    title: 'Nhiều DiscoveryClient: thứ tự ưu tiên và hành vi tổng hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-008
+    title: Danh sách rỗng, dịch vụ không tồn tại và lỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-009
+    title: Phân biệt DiscoveryClient của Spring Cloud và EurekaClient của Netflix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discoveryclient-010
+    title: Giới hạn của hợp đồng chung và đặc điểm riêng của từng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serviceregistry
+  title: ServiceRegistry
+  childs:
+  - slug: serviceregistry-001
+    title: Hợp đồng ServiceRegistry và đối tượng Registration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-002
+    title: Đăng ký, hủy đăng ký, đọc và cập nhật trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-003
+    title: Tự động đăng ký trong vòng đời ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-004
+    title: Tắt tự đăng ký nhưng vẫn giữ chức năng khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-005
+    title: Sự kiện trước và sau khi đăng ký phiên bản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-006
+    title: Dùng đúng kiểu Registration cho Eureka, Consul và Zookeeper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-007
+    title: Điều khiển trạng thái qua Actuator serviceregistry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-008
+    title: Phân biệt tắt đăng ký, tắt truy vấn và tắt toàn bộ khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceregistry-009
+    title: Trạng thái được hỗ trợ và giới hạn chuyển đổi giữa các sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-identities-metadata
+  title: Định danh và metadata
+  childs:
+  - slug: service-identities-metadata-001
+    title: Tên dịch vụ logic và quy ước spring.application.name
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-metadata-002
+    title: Phân biệt tên dịch vụ, mã phiên bản chạy và phiên bản phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-metadata-003
+    title: Tạo instanceId duy nhất khi chạy nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-metadata-004
+    title: Chọn hostname hoặc địa chỉ IP được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-metadata-005
+    title: Công bố đúng cổng, giao thức và đường dẫn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-metadata-006
+    title: Thiết kế metadata cho môi trường, vùng và phiên bản phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-metadata-007
+    title: Phạm vi tên dịch vụ giữa môi trường và nhóm triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-metadata-008
+    title: Giới hạn kích thước metadata và những dữ liệu không nên công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: eureka-server
+  title: Eureka Server
+  childs:
+  - slug: eureka-server-001
+    title: Vai trò của Eureka Server và cấu trúc thông tin đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-server-002
+    title: Khởi tạo máy chủ bằng starter và @EnableEurekaServer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-server-003
+    title: Thiết lập Eureka độc lập với profile riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-server-004
+    title: Cấu hình register-with-eureka và fetch-registry trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-server-005
+    title: Đọc Dashboard và kiểm tra ứng dụng cùng các instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-server-006
+    title: Quan sát đăng ký và trạng thái qua Eureka REST API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-server-007
+    title: Đường dẫn /eureka/, context path và địa chỉ mà client truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-server-008
+    title: Khởi động, làm nóng sổ đăng ký và giới hạn của một máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: eureka-client
+  title: Eureka Client
+  childs:
+  - slug: eureka-client-001
+    title: Thêm starter Eureka Client và cấu hình tên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-002
+    title: Kết nối máy chủ qua serviceUrl.defaultZone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-003
+    title: Chữ hoa, chữ thường và ánh xạ cấu hình defaultZone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-004
+    title: Chạy nhiều instance của cùng một dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-005
+    title: Cấu hình instanceId, hostname và prefer-ip-address
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-006
+    title: Công bố trang trạng thái, địa chỉ sức khỏe và cổng HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-007
+    title: Chỉ đăng ký, chỉ truy vấn hoặc thực hiện cả hai vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-008
+    title: Đồng bộ trạng thái Actuator với Eureka healthcheck
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-009
+    title: Thời điểm an toàn để sử dụng EurekaClient trong vòng đời Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-client-010
+    title: Các tùy chọn kết nối HTTP của Eureka Client theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: eureka-mechanisms
+  title: Cơ chế Eureka
+  childs:
+  - slug: eureka-mechanisms-001
+    title: Chu trình đăng ký, gia hạn thuê và hủy đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-002
+    title: Thời hạn thuê và khoảng cách giữa các nhịp báo sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-003
+    title: Loại bỏ bản đăng ký hết hạn và độ trễ phát hiện instance chết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-004
+    title: Tải đầy đủ và cập nhật chênh lệch danh sách đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-005
+    title: Bộ đệm phía máy chủ, bộ đệm phía client và đường truyền thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-006
+    title: Vì sao dịch vụ vừa đăng ký chưa được bên gọi nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-007
+    title: 'Self-preservation: mục đích, ngưỡng kích hoạt và ảnh hưởng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-008
+    title: Phân biệt instance UP, DOWN, STARTING và OUT_OF_SERVICE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-009
+    title: Điều chỉnh chu kỳ cập nhật trong thử nghiệm và đánh đổi vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-mechanisms-010
+    title: Khởi động lại Eureka và quá trình tái lập sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: eureka-clustering
+  title: Cụm Eureka
+  childs:
+  - slug: eureka-clustering-001
+    title: Mô hình sao chép ngang hàng và quan hệ giữa các máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-clustering-002
+    title: Cấu hình nhiều Eureka peer bằng các profile riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-clustering-003
+    title: Đăng ký chéo giữa peer và đồng bộ dữ liệu ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-clustering-004
+    title: Cấu hình nhiều địa chỉ Eureka phía client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-clustering-005
+    title: Chuyển sang máy chủ khác khi một peer mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-clustering-006
+    title: Thiết kế vùng, khu vực và metadata về vị trí triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-clustering-007
+    title: Khám phá ưu tiên cùng vùng và phạm vi của cơ chế cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: eureka-clustering-008
+    title: Phân vùng mạng, dữ liệu lệch giữa peer và quá trình hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consul-discovery
+  title: Consul Discovery
+  childs:
+  - slug: consul-discovery-001
+    title: Kiến trúc Consul agent, client agent và server agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-002
+    title: Vai trò của gossip, Raft và quorum trong cụm Consul
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-003
+    title: Khởi tạo Consul cục bộ và giới hạn của chế độ phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-004
+    title: Kết nối Spring Cloud Consul Discovery tới Consul agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-005
+    title: Đăng ký service-name, instance-id, địa chỉ và cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-006
+    title: Khai báo tags, metadata và vị trí vùng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-007
+    title: Truy vấn dịch vụ qua Spring DiscoveryClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-008
+    title: Phân biệt Consul Catalog API, Health API và DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-009
+    title: Catalog Watch và cách ứng dụng nhận biết thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-discovery-010
+    title: Tách cấu hình Consul Discovery khỏi Consul Config
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consul-health-checks
+  title: Sức khỏe với Consul
+  childs:
+  - slug: consul-health-checks-001
+    title: Kiểm tra HTTP tới Actuator health và trạng thái passing, warning, critical
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-health-checks-002
+    title: Cấu hình đường dẫn, chu kỳ và thời gian chờ kiểm tra sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-health-checks-003
+    title: Địa chỉ mà Consul agent truy cập khác địa chỉ bên gọi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-health-checks-004
+    title: Xử lý cổng quản trị riêng và dịch vụ quản trị đăng ký kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-health-checks-005
+    title: Kiểm tra bằng TTL và cơ chế heartbeat của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-health-checks-006
+    title: Lọc các instance đạt kiểm tra sức khỏe khi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-health-checks-007
+    title: Hủy đăng ký instance lỗi kéo dài và xử lý bản ghi còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consul-health-checks-008
+    title: Đánh đổi giữa HTTP check, TTL heartbeat và mức tải kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zookeeper-discovery
+  title: Zookeeper Discovery
+  childs:
+  - slug: zookeeper-discovery-001
+    title: Vai trò của Zookeeper và Curator trong khám phá dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-002
+    title: Znode, nút tạm thời và cấu trúc đường dẫn đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-003
+    title: Phiên kết nối, thời hạn phiên và vòng đời nút tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-004
+    title: Khởi tạo cụm Zookeeper và cấu hình connect-string
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-005
+    title: Đăng ký ứng dụng bằng Spring Cloud Zookeeper Discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-006
+    title: Thiết lập tên dịch vụ, instanceId, địa chỉ và thư mục gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-007
+    title: Truy vấn ServiceInstance và đọc payload của bản đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-008
+    title: Theo dõi thay đổi, lưu đệm và tái kết nối với Curator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-009
+    title: Phân biệt mất kết nối tạm thời và hết hạn phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-010
+    title: Trạng thái kết nối Zookeeper khác trạng thái sức khỏe nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zookeeper-discovery-011
+    title: Giới hạn sử dụng Zookeeper cho khám phá và phạm vi quản lý dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-discovery
+  title: Khám phá tĩnh
+  childs:
+  - slug: static-discovery-001
+    title: Vai trò và điều kiện sử dụng SimpleDiscoveryClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-discovery-002
+    title: Khai báo nhiều instance bằng thuộc tính simple.instances
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-discovery-003
+    title: Ánh xạ URI, giao thức và thông tin ServiceInstance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-discovery-004
+    title: Khám phá tĩnh không tự đăng ký hoặc tự phát hiện instance chết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-discovery-005
+    title: Tách danh sách dịch vụ theo profile và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-discovery-006
+    title: Dùng khám phá tĩnh cho kiểm thử và hệ thống quy mô nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-call-integration
+  title: Tích hợp gọi dịch vụ
+  childs:
+  - slug: service-call-integration-001
+    title: Từ serviceId đến danh sách instance rồi đến một yêu cầu HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-002
+    title: Ranh giới giữa khám phá và chọn instance bằng Spring Cloud LoadBalancer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-003
+    title: ServiceInstanceListSupplier và nguồn danh sách từ DiscoveryClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-004
+    title: Gọi tên dịch vụ bằng RestClient hoặc RestTemplate với @LoadBalanced
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-005
+    title: Gọi tên dịch vụ bằng WebClient và bộ lọc cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-006
+    title: OpenFeign dùng tên dịch vụ và sự khác biệt với URL cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-007
+    title: Tích hợp Gateway với lb:// và giới hạn của tự tạo route từ discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-008
+    title: Dùng metadata để lọc instance theo vùng hoặc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-009
+    title: Xử lý không có instance mà không che giấu lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-call-integration-010
+    title: Phân biệt bộ đệm khám phá, bộ đệm cân bằng tải và kết nối HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-discovery
+  title: Khám phá trên Kubernetes
+  childs:
+  - slug: kubernetes-discovery-001
+    title: Khám phá bằng Kubernetes Service và DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-discovery-002
+    title: Service, Pod và các endpoint trong mô hình khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-discovery-003
+    title: So sánh DNS với Spring Cloud Kubernetes DiscoveryClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-discovery-004
+    title: Các lựa chọn client Kubernetes và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-discovery-005
+    title: Giới hạn khám phá theo namespace, nhãn và cổng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-discovery-006
+    title: Trạng thái readiness và danh sách endpoint sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-discovery-007
+    title: ServiceAccount và quyền đọc tài nguyên phục vụ khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-discovery-008
+    title: Khi nào cần kết hợp Kubernetes với sổ đăng ký ngoài cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-deployment
+  title: Mạng và triển khai
+  childs:
+  - slug: network-deployment-001
+    title: Địa chỉ lắng nghe, địa chỉ công bố và khả năng định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-002
+    title: Localhost trên máy chủ, trong container và trong mạng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-003
+    title: Hostname, DNS nội bộ và mạng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-004
+    title: Cổng trong container, cổng công bố và ánh xạ NAT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-005
+    title: Dịch vụ nhiều giao diện mạng và lựa chọn InetUtils
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-006
+    title: Reverse proxy, TLS termination và địa chỉ được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-007
+    title: Khởi động theo mức sẵn sàng thay vì chỉ theo thứ tự tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-008
+    title: Triển khai trên máy ảo, container và môi trường lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-deployment-009
+    title: Kiểm tra đường mạng riêng cho đăng ký, kiểm tra sức khỏe và gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-lifecycle
+  title: Vòng đời dịch vụ
+  childs:
+  - slug: service-lifecycle-001
+    title: Phân biệt tiến trình sống, ứng dụng sẵn sàng và khả năng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-002
+    title: Thứ tự khởi tạo ứng dụng, đăng ký và nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-003
+    title: Làm nóng ứng dụng trước khi công bố trạng thái phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-004
+    title: Liên hệ giữa liveness, readiness và health check của sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-005
+    title: Chuyển trạng thái ngừng nhận yêu cầu trước khi bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-006
+    title: Rút lưu lượng, chờ yêu cầu đang chạy và tắt ứng dụng êm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-007
+    title: Tắt tiến trình đột ngột và thời gian loại bỏ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-008
+    title: Rolling update, blue-green và thời gian chồng lấn các instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-lifecycle-009
+    title: Mở rộng hoặc thu hẹp số bản sao và xác minh quá trình hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency-recovery
+  title: Nhất quán và phục hồi
+  childs:
+  - slug: consistency-recovery-001
+    title: Đánh đổi giữa độ mới danh sách, tính sẵn sàng và chi phí đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-002
+    title: Phân vùng mạng ảnh hưởng đến đăng ký và truy vấn như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-003
+    title: Sổ đăng ký mất kết nối nhưng bộ đệm client vẫn còn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-004
+    title: Khởi động mới khi sổ đăng ký không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-005
+    title: Phân biệt danh sách rỗng, dữ liệu cũ và lỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-006
+    title: Giới hạn thời gian chờ, thử lại và giãn cách khi kết nối sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-007
+    title: Tránh đồng loạt đăng ký hoặc truy vấn lại sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-008
+    title: Ranh giới phối hợp với Circuit Breaker và chính sách gọi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-009
+    title: Đặt tiêu chí phục hồi và kiểm chứng bằng thí nghiệm gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Mô hình đe dọa và ranh giới tin cậy của sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Ngăn đăng ký giả và công bố địa chỉ dịch vụ độc hại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Bảo vệ Eureka bằng Spring Security và HTTP Basic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Phạm vi CSRF cho Eureka API và bảo vệ các đường dẫn còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: TLS, mTLS, chứng thư và truststore khi kết nối sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Consul ACL token và quyền tối thiểu cho đăng ký hoặc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Zookeeper ACL, xác thực và bảo vệ đường dẫn đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Quản lý thông tin xác thực bằng cấu hình bí mật bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Giới hạn mạng và quyền truy cập Dashboard, API cùng Actuator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Tránh lộ thông tin xác thực trong URL, log và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: DiscoveryClientHealthIndicator và health tổng hợp của khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Giảm chi phí getServices trong kiểm tra sức khỏe bằng probe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Theo dõi số instance và biến động đăng ký theo dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Đo lỗi đăng ký, lỗi truy vấn và độ trễ kết nối sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Theo dõi nhịp báo sống, kiểm tra sức khỏe và dữ liệu quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Đọc log tự cấu hình, đăng ký và tái kết nối có ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Liên kết log với serviceId, instanceId và vùng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Thiết kế cảnh báo mất toàn bộ instance và cảnh báo lỗi lan rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Ước lượng tải theo số dịch vụ, instance và chu kỳ cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Chi phí truy vấn toàn bộ danh mục và giới hạn phạm vi khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tối ưu bộ đệm và đánh đổi với độ trễ lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chi phí tải đầy đủ, cập nhật chênh lệch và theo dõi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Điều chỉnh kết nối HTTP, timeout và tài nguyên client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tác động của metadata lớn và thay đổi instance liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Đo tải khi khởi động đồng loạt và phục hồi cả cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Lập kế hoạch dung lượng, độ sẵn sàng và nâng cấp sổ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị với DiscoveryClient giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử hợp đồng ServiceInstance và dữ liệu metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Dùng SimpleDiscoveryClient để kiểm thử ứng dụng gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử đăng ký thực với Eureka, Consul hoặc Zookeeper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Dùng Testcontainers và cổng động cho môi trường kiểm thử cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Chờ điều kiện hội tụ thay vì đặt thời gian ngủ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử nhiều instance, đổi trạng thái và hủy đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử mất sổ đăng ký, mất peer và instance chết đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử đường mạng, chứng thư và quyền truy cập bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Dọn tài nguyên và ngăn dữ liệu kiểm thử lẫn giữa các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Ứng dụng không đăng ký: kiểm tra starter, profile và tự cấu hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Sai tên dịch vụ hoặc trùng instanceId giữa các bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Eureka không kết nối do sai defaultZone hoặc đường dẫn /eureka/
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Dịch vụ xuất hiện trên Dashboard nhưng bên gọi không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Danh sách instance rỗng dù sổ đăng ký còn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Instance đã tắt nhưng vẫn xuất hiện trong kết quả khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Eureka bật self-preservation hoặc liên tục lỗi gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Consul báo critical do sai đường dẫn, cổng hoặc quyền health check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Zookeeper mất session, lỗi đường dẫn hoặc quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi tên miền, NAT, TLS, xác thực và đồng bộ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Xung đột nhiều DiscoveryClient hoặc không tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Quy trình thu thập bằng chứng và khoanh vùng từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scaling-migration
+  title: Mở rộng và chuyển đổi
+  childs:
+  - slug: scaling-migration-001
+    title: Khi nào cần một DiscoveryClient tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-migration-002
+    title: Triển khai hợp đồng truy vấn và ánh xạ ServiceInstance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-migration-003
+    title: Thiết kế thứ tự và kết hợp với các client có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-migration-004
+    title: Mở rộng đăng ký với ServiceRegistry khi thật sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-migration-005
+    title: Chuyển từ địa chỉ cố định hoặc SimpleDiscoveryClient sang registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-migration-006
+    title: Chuyển giữa Eureka, Consul và Zookeeper qua lớp trừu tượng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-migration-007
+    title: Chạy song song hai nguồn khám phá và kiểm soát trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-migration-008
+    title: Nhận diện cấu hình Ribbon, @EnableEurekaClient và hướng dẫn cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Dựng Eureka và hai dịch vụ để quan sát đầy đủ chu trình khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Chạy nhiều instance và chứng minh bên gọi dùng tên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Đo thời gian từ đăng ký mới đến khi bên gọi nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: So sánh tắt ứng dụng êm với buộc dừng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Gây lỗi một Eureka peer và xác minh client tiếp tục khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Dựng Consul để so sánh HTTP check với TTL heartbeat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Dựng Zookeeper và quan sát mất kết nối cùng hết hạn phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Thực hiện rolling update và kiểm tra instance ngừng nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Bảo vệ sổ đăng ký và kiểm thử đăng ký trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Thiết kế phương án khám phá cho hệ thống giả định và giải thích đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

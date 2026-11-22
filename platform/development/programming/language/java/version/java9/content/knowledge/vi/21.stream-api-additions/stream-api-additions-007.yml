@@ -1,0 +1,3 @@
+menuLevel1: Stream mở rộng
+menuLevel2: Tạo luồng có thể rỗng bằng Stream.ofNullable
+status: WRITTEN

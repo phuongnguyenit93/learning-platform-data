@@ -1,0 +1,3 @@
+menuLevel1: Xử lý bất đồng bộ
+menuLevel2: '@RabbitListener trả về CompletableFuture hoặc Mono'
+status: ''

@@ -1,0 +1,2203 @@
+menu:
+- slug: localization-overview
+  title: Tổng quan
+  childs:
+  - slug: localization-overview-001
+    title: Quốc tế hóa (i18n) và bản địa hóa (l10n) là gì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-overview-002
+    title: Vì sao bản địa hóa không chỉ là dịch chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-overview-003
+    title: Quan hệ giữa ngôn ngữ, khu vực, locale và tài nguyên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-overview-004
+    title: Phân biệt locale, bộ mã ký tự, múi giờ và hệ lịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-overview-005
+    title: Dữ liệu trung lập với locale và cách trình bày cho người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-overview-006
+    title: Các nhóm API Java Core phục vụ bản địa hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-overview-007
+    title: Ranh giới giữa xử lý dữ liệu, tài nguyên và giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-overview-008
+    title: Kiến thức nền và trình tự học localization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locale-model
+  title: Mô hình Locale
+  childs:
+  - slug: locale-model-001
+    title: Locale là định danh yêu cầu quy ước văn hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-model-002
+    title: Thành phần language, script, region và variant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-model-003
+    title: Thẻ ngôn ngữ BCP 47 và dấu phân cách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-model-004
+    title: Phân biệt ngôn ngữ giống nhau ở các khu vực khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-model-005
+    title: Vai trò chữ viết trong các locale có cùng ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-model-006
+    title: Locale.ROOT và dữ liệu không phụ thuộc ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-model-007
+    title: Locale không tự chứa toàn bộ dữ liệu định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-model-008
+    title: Vì sao tạo được Locale không có nghĩa mọi dịch vụ đều hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locale-creation
+  title: Tạo và đọc Locale
+  childs:
+  - slug: locale-creation-001
+    title: Locale.of và các hằng locale có sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-creation-002
+    title: Locale.forLanguageTag và chuyển ngược bằng toLanguageTag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-creation-003
+    title: Locale.Builder và kiểm tra tính hợp lệ của cú pháp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-creation-004
+    title: Phân biệt kiểm tra cú pháp với xác minh mã ngôn ngữ hoặc khu vực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-creation-005
+    title: Đọc language, country, script, variant và extension
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-creation-006
+    title: Tên hiển thị bằng getDisplayName và locale dùng để hiển thị tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-creation-007
+    title: Unicode locale extension cho lịch, hệ chữ số và quy ước khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-creation-008
+    title: equals, stripExtensions và giới hạn dùng toString làm định dạng lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locale-selection
+  title: Chọn locale
+  childs:
+  - slug: locale-selection-001
+    title: Danh sách locale được ứng dụng hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-selection-002
+    title: Thứ tự ưu tiên giữa lựa chọn người dùng và cấu hình mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-selection-003
+    title: Locale.LanguageRange và trọng số ưu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-selection-004
+    title: Phân tích danh sách ưu tiên ngôn ngữ bằng LanguageRange.parse
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-selection-005
+    title: Locale.filter, filterTags, lookup và lookupTag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-selection-006
+    title: Phân biệt lọc nhiều kết quả với chọn một kết quả phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-selection-007
+    title: Xử lý không có locale khớp bằng chính sách tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locale-selection-008
+    title: Phân biệt chọn locale ứng dụng với cơ chế dự phòng ResourceBundle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: default-locale
+  title: Locale mặc định
+  childs:
+  - slug: default-locale-001
+    title: Locale.getDefault và giá trị khởi tạo từ môi trường chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-locale-002
+    title: Hai nhóm Locale.Category.DISPLAY và FORMAT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-locale-003
+    title: Locale.setDefault và phạm vi ảnh hưởng toàn tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-locale-004
+    title: Vì sao không đổi locale mặc định theo từng người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-locale-005
+    title: Truyền locale tường minh tới từng thao tác định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-locale-006
+    title: Ảnh hưởng của thời điểm tạo formatter và bộ nhớ đệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-locale-007
+    title: Rủi ro khác kết quả giữa máy phát triển, kiểm thử và máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-locale-008
+    title: Khôi phục locale mặc định khi kiểm thử thay đổi cấu hình chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-bundles
+  title: ResourceBundle
+  childs:
+  - slug: resource-bundles-001
+    title: Tách văn bản khỏi mã nguồn bằng khóa tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-bundles-002
+    title: Base name, package và quy tắc đặt tên bundle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-bundles-003
+    title: Tạo bundle gốc và các bản dịch theo locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-bundles-004
+    title: ResourceBundle.getBundle và locale được yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-bundles-005
+    title: getString, getObject, getStringArray và kiểu tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-bundles-006
+    title: containsKey, keySet và việc truy cập tài nguyên cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-bundles-007
+    title: PropertyResourceBundle so với ListResourceBundle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-bundles-008
+    title: getLocale để xác định bundle thực sự được nạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fallback-chains
+  title: Chuỗi dự phòng
+  childs:
+  - slug: fallback-chains-001
+    title: Danh sách ứng viên theo language, script, region và variant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-chains-002
+    title: Quan hệ tài nguyên con với bundle cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-chains-003
+    title: Phân biệt tìm bundle phù hợp với tìm khóa trong chuỗi cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-chains-004
+    title: Vai trò của locale mặc định và bundle gốc khi không có bản khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-chains-005
+    title: Thứ tự tìm bundle dạng lớp và dạng properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-chains-006
+    title: MissingResourceException khi thiếu bundle hoặc thiếu khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-chains-007
+    title: Định nghĩa chính sách dự phòng không phụ thuộc môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fallback-chains-008
+    title: Các trường hợp đặc biệt của tên locale và cách kiểm tra chuỗi ứng viên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-files
+  title: Tệp tài nguyên
+  childs:
+  - slug: resource-files-001
+    title: 'Cú pháp .properties: khóa, giá trị, chú thích và dòng tiếp nối'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-files-002
+    title: Ký tự escape, Unicode escape và dấu phân cách trong khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-files-003
+    title: UTF-8 của PropertyResourceBundle và cơ chế đọc lại ISO-8859-1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-files-004
+    title: java.util.PropertyResourceBundle.encoding và thời điểm có hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-files-005
+    title: Phân biệt Properties.load(InputStream) với PropertyResourceBundle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-files-006
+    title: Chọn Reader với charset tường minh khi cần kiểm soát mã hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-files-007
+    title: Tổ chức khóa ổn định và chú thích ngữ cảnh cho người dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-files-008
+    title: Phát hiện khóa trùng, khóa thiếu, khóa thừa và khoảng trắng ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-format
+  title: MessageFormat
+  childs:
+  - slug: message-format-001
+    title: Vì sao cần định dạng toàn câu thay cho nối các mảnh văn bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-002
+    title: Mẫu thông điệp và đối số theo chỉ số {0}, {1}
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-003
+    title: Đảo thứ tự đối số theo cấu trúc câu của từng ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-004
+    title: Các kiểu number, date, time và choice của MessageFormat
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-005
+    title: Quy tắc dấu nháy đơn, ngoặc nhọn và escape trong mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-006
+    title: Locale của MessageFormat và các formatter thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-007
+    title: Đặt formatter riêng cho đối số và giới hạn với các kiểu java.time
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-008
+    title: Phân biệt MessageFormat với String.format và Formatter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-format-009
+    title: Đối số thiếu, giá trị null, parse và giới hạn đảo ngược thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plural-grammar
+  title: Số nhiều và ngữ pháp
+  childs:
+  - slug: plural-grammar-001
+    title: Vì sao không ghép hậu tố số nhiều theo một quy tắc chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plural-grammar-002
+    title: ChoiceFormat và lựa chọn thông điệp theo khoảng số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plural-grammar-003
+    title: Biên bao gồm, biên loại trừ và các nhánh choice
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plural-grammar-004
+    title: Kết hợp ChoiceFormat với MessageFormat
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plural-grammar-005
+    title: Thông điệp lồng nhau và các lớp escape cần phân biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plural-grammar-006
+    title: Giới hạn của ChoiceFormat với quy tắc số nhiều và giới tính ngữ pháp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plural-grammar-007
+    title: Tách mẫu câu đầy đủ và cung cấp ngữ cảnh cho bản dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plural-grammar-008
+    title: Nhận diện khi yêu cầu ngôn ngữ vượt khả năng API Java Core
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: number-formatting
+  title: Định dạng số
+  childs:
+  - slug: number-formatting-001
+    title: NumberFormat cho số thông thường và số nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-002
+    title: Định dạng phần trăm và quan hệ với giá trị gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-003
+    title: CompactNumberFormat với dạng ngắn hoặc dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-004
+    title: Dấu thập phân, phân nhóm và hệ chữ số theo locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-005
+    title: Số chữ số phần nguyên, phần lẻ và tác động làm tròn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-006
+    title: Định dạng BigInteger, BigDecimal và giới hạn chuyển đổi qua double
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-007
+    title: Phân biệt chuỗi hiển thị với biểu diễn số để lưu trữ hoặc trao đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-008
+    title: Định dạng có vị trí trường bằng FieldPosition và AttributedCharacterIterator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: decimal-format
+  title: DecimalFormat
+  childs:
+  - slug: decimal-format-001
+    title: Mẫu định dạng và vai trò của DecimalFormatSymbols
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-002
+    title: 'Ký hiệu 0, #, dấu thập phân và dấu phân nhóm'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-003
+    title: Mẫu số dương, số âm, phần tiền tố và hậu tố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-004
+    title: Phần trăm, phần nghìn và hệ số nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-005
+    title: Ký hiệu khoa học và giới hạn biểu diễn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-006
+    title: Mẫu chuẩn so với mẫu được bản địa hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-007
+    title: RoundingMode và kiểm soát số chữ số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-008
+    title: setParseBigDecimal và bảo toàn độ chính xác khi phân tích số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decimal-format-009
+    title: Giới hạn ép kiểu từ NumberFormat sang DecimalFormat
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: currency-formatting
+  title: Tiền tệ
+  childs:
+  - slug: currency-formatting-001
+    title: Currency, mã tiền tệ và locale hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: currency-formatting-002
+    title: Ký hiệu, tên hiển thị và số chữ số phần lẻ mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: currency-formatting-003
+    title: NumberFormat.getCurrencyInstance và setCurrency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: currency-formatting-004
+    title: Phân biệt đơn vị tiền tệ với quy ước trình bày theo locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: currency-formatting-005
+    title: Vì sao đổi ký hiệu hoặc mã tiền không thực hiện quy đổi giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: currency-formatting-006
+    title: Tách giá trị BigDecimal, mã tiền và quy tắc làm tròn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: currency-formatting-007
+    title: Khoảng trắng, vị trí ký hiệu và định dạng âm theo dữ liệu locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: currency-formatting-008
+    title: Giới hạn suy ra tiền tệ chỉ từ ngôn ngữ hoặc khu vực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-parsing
+  title: Phân tích đầu vào
+  childs:
+  - slug: input-parsing-001
+    title: Phân biệt format, parse và kiểm tra dữ liệu hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parsing-002
+    title: NumberFormat.parse có thể chỉ đọc phần đầu của chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parsing-003
+    title: ParsePosition, vị trí kết thúc và vị trí lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parsing-004
+    title: Kiểm tra toàn bộ đầu vào thay vì chấp nhận phần dư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parsing-005
+    title: Dấu phân nhóm, khoảng trắng và chữ số Unicode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parsing-006
+    title: Thông báo lỗi theo locale nhưng giữ mã lỗi ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parsing-007
+    title: Giới hạn của việc định dạng rồi phân tích để khôi phục dữ liệu gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parsing-008
+    title: Quy ước máy đọc được cho tệp, API và dữ liệu lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: localized-date-time
+  title: Ngày giờ bản địa
+  childs:
+  - slug: localized-date-time-001
+    title: DateTimeFormatter với locale tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-002
+    title: ofLocalizedDate, ofLocalizedTime và ofLocalizedDateTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-003
+    title: 'FormatStyle: FULL, LONG, MEDIUM và SHORT'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-004
+    title: ofPattern và khác biệt với mẫu tự chọn theo locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-005
+    title: ofLocalizedPattern và mẫu yêu cầu trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-006
+    title: withLocale so với localizedBy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-007
+    title: withZone, withChronology và withDecimalStyle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-008
+    title: Tên tháng, tên ngày, kỳ trong ngày và TextStyle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localized-date-time-009
+    title: Tính bất biến và an toàn đa luồng của DateTimeFormatter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: patterns-calendars
+  title: Mẫu và lịch
+  childs:
+  - slug: patterns-calendars-001
+    title: Phân biệt u, y và Y trong mẫu năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-calendars-002
+    title: Phân biệt M với L và dạng tên tháng độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-calendars-003
+    title: Định dạng 12 giờ, 24 giờ và ký hiệu kỳ trong ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-calendars-004
+    title: 'WeekFields: ngày đầu tuần và số ngày tối thiểu của tuần đầu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-calendars-005
+    title: Năm theo tuần ở ranh giới cuối năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-calendars-006
+    title: Chronology và các hệ lịch được Java hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-calendars-007
+    title: Locale không thay thế ZoneId hoặc tự xác định múi giờ người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-calendars-008
+    title: ResolverStyle.STRICT, SMART, LENIENT và phân tích ngày hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-date-time-api
+  title: API ngày giờ cũ
+  childs:
+  - slug: legacy-date-time-api-001
+    title: DateFormat và các factory theo locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-api-002
+    title: SimpleDateFormat và DateFormatSymbols
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-api-003
+    title: Calendar, TimeZone và các giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-api-004
+    title: Phân biệt mẫu SimpleDateFormat với DateTimeFormatter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-api-005
+    title: setLenient và ParsePosition khi phân tích ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-api-006
+    title: Vì sao không chia sẻ SimpleDateFormat tùy ý giữa nhiều luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-api-007
+    title: Chuyển đổi giữa Date, Instant và kiểu java.time
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-api-008
+    title: Di chuyển mã bản địa hóa từ API cũ sang java.time
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unicode-characters
+  title: Unicode và ký tự
+  childs:
+  - slug: unicode-characters-001
+    title: Unicode, code point, UTF-16 code unit và ký tự người dùng nhìn thấy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-characters-002
+    title: char không luôn biểu diễn trọn một ký tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-characters-003
+    title: Surrogate pair và ký tự ngoài BMP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-characters-004
+    title: length, codePointCount, codePoints và chỉ số UTF-16
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-characters-005
+    title: Dấu kết hợp, tiếng Việt và các cách biểu diễn tương đương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-characters-006
+    title: Chữ số, chữ cái và thuộc tính Unicode qua Character
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-characters-007
+    title: Phân biệt không gian Unicode với bộ mã bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-characters-008
+    title: Giới hạn cắt hoặc đảo chuỗi theo chỉ số char
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unicode-normalization
+  title: Chuẩn hóa Unicode
+  childs:
+  - slug: unicode-normalization-001
+    title: Chuẩn hóa là gì và khác với dịch hoặc phiên âm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-normalization-002
+    title: Normalizer với NFC, NFD, NFKC và NFKD
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-normalization-003
+    title: Tương đương chính tắc so với tương đương tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-normalization-004
+    title: Normalizer.isNormalized và chọn chính sách chuẩn hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-normalization-005
+    title: Ảnh hưởng đến so sánh, tìm kiếm và khóa dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-normalization-006
+    title: Vì sao loại bỏ dấu không phải bước chuẩn hóa trung lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-normalization-007
+    title: Giữ dữ liệu gốc khi phép biến đổi làm mất thông tin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: case-conversion
+  title: Chữ hoa và thường
+  childs:
+  - slug: case-conversion-001
+    title: String.toLowerCase và toUpperCase với locale tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-conversion-002
+    title: Khác biệt chữ I trong tiếng Thổ Nhĩ Kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-conversion-003
+    title: Phép đổi hoa–thường có thể đổi độ dài chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-conversion-004
+    title: Locale.ROOT cho định danh kỹ thuật khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-conversion-005
+    title: Giới hạn của equalsIgnoreCase và so sánh không phân biệt hoa–thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-conversion-006
+    title: Phân biệt chữ hiển thị, khóa tìm kiếm và mã định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-conversion-007
+    title: Không áp dụng cùng một chính sách cho mọi trường dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: language-comparison
+  title: So sánh ngôn ngữ
+  childs:
+  - slug: language-comparison-001
+    title: Vì sao String.compareTo không tương đương thứ tự từ điển địa phương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-002
+    title: Collator.getInstance theo locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-003
+    title: Các mức PRIMARY, SECONDARY, TERTIARY và IDENTICAL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-004
+    title: Phân biệt hoa–thường, dấu và quy tắc ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-005
+    title: Chế độ phân rã của Collator và quan hệ với chuẩn hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-006
+    title: CollationKey khi cần so sánh lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-007
+    title: RuleBasedCollator và quy tắc sắp xếp tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-comparison-008
+    title: Comparator không nhất quán với equals trong TreeSet hoặc TreeMap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-boundaries
+  title: Ranh giới văn bản
+  childs:
+  - slug: text-boundaries-001
+    title: BreakIterator cho ký tự, từ, câu và vị trí ngắt dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-boundaries-002
+    title: first, next, previous và BreakIterator.DONE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-boundaries-003
+    title: following, preceding, isBoundary và chỉ số UTF-16
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-boundaries-004
+    title: Cụm ký tự hiển thị, dấu kết hợp và chuỗi emoji
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-boundaries-005
+    title: Vì sao dấu cách không đủ để tách từ cho mọi ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-boundaries-006
+    title: Phân biệt ranh giới từ với các đoạn dấu câu hoặc khoảng trắng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-boundaries-007
+    title: Ngắt dòng ngôn ngữ so với bố trí theo chiều rộng giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-boundaries-008
+    title: StringCharacterIterator và giới hạn khi dùng cho mã lập trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-direction-display
+  title: Chiều chữ và hiển thị
+  childs:
+  - slug: text-direction-display-001
+    title: Thứ tự logic so với thứ tự hiển thị trong văn bản hai chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-direction-display-002
+    title: java.text.Bidi và hướng cơ sở
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-direction-display-003
+    title: Các đoạn chữ có hướng khác nhau và mức nhúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-direction-display-004
+    title: Trộn chữ trái–phải, phải–trái, số và dấu câu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-direction-display-005
+    title: Giới hạn xử lý Bidi khi giao diện đã có bộ bố trí văn bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-direction-display-006
+    title: Phông chữ, glyph và vì sao mã hóa đúng chưa bảo đảm hiển thị đúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-direction-display-007
+    title: Nhận diện vai trò NumericShaper và cơ chế nhập văn bản của Java SE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-direction-display-008
+    title: Độ dài bản dịch, xuống dòng và trách nhiệm của lớp giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: charset-io
+  title: Charset và I/O
+  childs:
+  - slug: charset-io-001
+    title: Charset, StandardCharsets và lựa chọn UTF-8 tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charset-io-002
+    title: Phân biệt encode với decode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charset-io-003
+    title: InputStreamReader, OutputStreamWriter và API Files
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charset-io-004
+    title: Charset mặc định và thay đổi từ JDK 18
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charset-io-005
+    title: CharsetDecoder, CharsetEncoder và CodingErrorAction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charset-io-006
+    title: MalformedInputException, ký tự thay thế và mất dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charset-io-007
+    title: BOM, console, terminal và nguồn gốc chữ bị lỗi mã hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charset-io-008
+    title: Kiểm tra chuỗi qua ranh giới tệp, tài nguyên và đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdk-locale-data
+  title: Dữ liệu locale JDK
+  childs:
+  - slug: jdk-locale-data-001
+    title: CLDR và vai trò cung cấp quy ước bản địa hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-locale-data-002
+    title: Locale.getAvailableLocales so với locale hỗ trợ của từng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-locale-data-003
+    title: java.locale.providers và thứ tự nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-locale-data-004
+    title: Khác biệt nhà cung cấp và dữ liệu giữa các phiên bản JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-locale-data-005
+    title: Thay đổi tên, ký hiệu, dấu phân nhóm hoặc khoảng trắng sau nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-locale-data-006
+    title: Giới hạn phụ thuộc quy ước của hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-locale-data-007
+    title: jdk.localedata và tập dữ liệu trong runtime tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-locale-data-008
+    title: jlink --include-locales và kiểm tra dữ liệu còn lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: localization-packaging
+  title: Đóng gói và mở rộng
+  childs:
+  - slug: localization-packaging-001
+    title: Đặt resource bundle đúng đường dẫn khi đóng gói JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-packaging-002
+    title: Class loader và phạm vi tìm tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-packaging-003
+    title: Bộ nhớ đệm ResourceBundle và clearCache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-packaging-004
+    title: 'ResourceBundle.Control: ứng viên, định dạng và thời gian sống'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-packaging-005
+    title: Giới hạn ResourceBundle.Control trong named module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-packaging-006
+    title: ResourceBundleProvider cho tài nguyên trong hệ mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-packaging-007
+    title: LocaleServiceProvider và các SPI cho tên hoặc định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-packaging-008
+    title: Đăng ký dịch vụ, cấu hình lúc khởi động và xác minh khả năng hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-design
+  title: Thiết kế ứng dụng
+  childs:
+  - slug: application-design-001
+    title: Tách dữ liệu nghiệp vụ khỏi văn bản hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-002
+    title: Truyền locale và ZoneId qua ngữ cảnh xử lý tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-003
+    title: Tổ chức dịch vụ lấy thông điệp và định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-004
+    title: Quản lý khóa, phiên bản tài nguyên và hợp đồng tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-005
+    title: Giữ nguyên câu hoàn chỉnh để người dịch thay đổi trật tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-006
+    title: Giữ mã lỗi, tên trường kỹ thuật và định dạng máy ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-007
+    title: Quản lý formatter khả biến và bộ nhớ đệm theo locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-008
+    title: Đổi ngôn ngữ khi đang chạy và làm mới dữ liệu đã định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: localization-testing
+  title: Kiểm thử và lỗi
+  childs:
+  - slug: localization-testing-001
+    title: 'Ma trận locale: vi-VN, en-US, de-DE, tr-TR và ngôn ngữ phải–trái'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-002
+    title: Kiểm thử khóa tài nguyên và tham số mẫu giữa các bản dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-003
+    title: Kiểm thử chuỗi dự phòng, thiếu bundle và thiếu khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-004
+    title: Kiểm thử dấu nháy đơn, ngoặc nhọn và mẫu MessageFormat
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-005
+    title: Kiểm thử số thập phân, phần trăm, tiền tệ và phân tích toàn chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-006
+    title: Kiểm thử ranh giới năm–tuần, lịch và múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-007
+    title: Kiểm thử dấu kết hợp, emoji và biến đổi hoa–thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-008
+    title: Kiểm thử nhiều luồng với formatter và locale khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-testing-009
+    title: Đối chiếu thay đổi đầu ra khi nâng JDK, CLDR hoặc runtime image
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: localization-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: localization-exercises-001
+    title: Xây dựng chương trình dòng lệnh đổi ngôn ngữ bằng ResourceBundle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-002
+    title: Chọn locale từ danh sách ưu tiên và danh sách được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-003
+    title: Tạo thông điệp có tham số và nhánh số lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-004
+    title: Hiển thị cùng dữ liệu số, tiền tệ, ngày giờ ở nhiều locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-005
+    title: Phân tích dữ liệu nhập theo locale với kiểm tra toàn chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-006
+    title: Sắp xếp tên tiếng Việt bằng Collator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-007
+    title: Cắt văn bản theo cụm ký tự bằng BreakIterator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-008
+    title: Đóng gói JAR hoặc runtime image và kiểm tra tài nguyên bản dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: localization-exercises-009
+    title: Lập bảng chọn API và tự đánh giá các lỗi bản địa hóa thường gặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,2977 @@
+menu:
+- slug: reflection-overview
+  title: Tổng quan
+  childs:
+  - slug: reflection-overview-001
+    title: Reflection là gì và vấn đề cần giải quyết
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-overview-002
+    title: Phân biệt thông tin kiểu lúc biên dịch và lúc chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-overview-003
+    title: Quan sát metadata khác thực thi hoặc thay đổi đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-overview-004
+    title: Vai trò của Class và java.lang.reflect
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-overview-005
+    title: Quan hệ giữa reflection, kế thừa, generic và annotation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-overview-006
+    title: Khi nào nên dùng reflection và khi nào gọi trực tiếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-overview-007
+    title: 'Một ví dụ xuyên suốt: khám phá và sử dụng một kiểu chưa biết trước'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-overview-008
+    title: Kiến thức tiên quyết, phạm vi Java Core và trình tự học đề xuất
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-objects
+  title: Đối tượng Class
+  childs:
+  - slug: class-objects-001
+    title: Lấy Class bằng class literal
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-002
+    title: Lấy kiểu thực tế bằng Object.getClass
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-003
+    title: Class.forName với tên nhị phân
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-004
+    title: Class.forName(name, initialize, loader)
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-005
+    title: Nạp lớp khác khởi tạo lớp như thế nào
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-006
+    title: Class<T>, Class<?> và giới hạn kiểm tra kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-007
+    title: Class đại diện cho primitive, void, mảng, interface, enum và record
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-008
+    title: Vì sao int.class khác Integer.class
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-009
+    title: Không tạo Class bằng constructor thông thường
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-objects-010
+    title: Phân biệt đối tượng Class với instance của kiểu được mô tả
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-names-identity
+  title: Tên và định danh kiểu
+  childs:
+  - slug: type-names-identity-001
+    title: getName, getSimpleName, getCanonicalName và getTypeName
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-002
+    title: Tên nhị phân của lớp thành viên, lớp cục bộ và lớp vô danh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-003
+    title: Tên mảng, component type và descriptorString
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-004
+    title: Trường hợp tên chuẩn không tồn tại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-005
+    title: getClassLoader và ý nghĩa kết quả null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-006
+    title: Tên lớp giống nhau nhưng khác defining loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-007
+    title: getPackage, getPackageName và getModule
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-008
+    title: Nhận diện isPrimitive, isArray, isInterface và isAnnotation
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-009
+    title: Class.isInstance khác instanceof với kiểu biết trước
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-names-identity-010
+    title: isAssignableFrom, cast và asSubclass
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-relationships
+  title: Quan hệ kiểu
+  childs:
+  - slug: type-relationships-001
+    title: getSuperclass và các trường hợp trả về null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-relationships-002
+    title: getInterfaces trả về các interface trực tiếp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-relationships-003
+    title: Duyệt toàn bộ chuỗi lớp cha
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-relationships-004
+    title: Duyệt đồ thị interface và tránh lặp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-relationships-005
+    title: Phân biệt quan hệ khai báo với kiểu thực tế của đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-relationships-006
+    title: Kiểu mảng với Object, Cloneable và Serializable
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-relationships-007
+    title: Primitive và wrapper không có quan hệ kế thừa thay cho boxing
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-relationships-008
+    title: Chọn kiểu khai báo hoặc kiểu thực tế khi khám phá thành viên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: member-lookup
+  title: Tra cứu thành viên
+  childs:
+  - slug: member-lookup-001
+    title: Member, Field, Method, Constructor và Executable
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-002
+    title: getField, getMethod, getConstructor
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-003
+    title: getDeclaredField, getDeclaredMethod, getDeclaredConstructor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-004
+    title: Public member kế thừa khác member được khai báo tại chính lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-005
+    title: Tra cứu một thành viên và liệt kê nhiều thành viên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-006
+    title: Tên, kiểu tham số và điều kiện khớp chính xác khi tra cứu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-007
+    title: Vì sao getMethod không tự giải overload như trình biên dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-008
+    title: Primitive parameter type khác wrapper parameter type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-009
+    title: Tra cứu theo kiểu sau type erasure
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-010
+    title: Thứ tự thành viên được trả về không phải thứ tự khai báo được bảo đảm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: member-lookup-011
+    title: Xây dựng chính sách tìm kiếm xuyên phân cấp một cách tường minh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modifiers-flags
+  title: Modifier và cờ
+  childs:
+  - slug: modifiers-flags-001
+    title: getModifiers và cách giải mã bằng Modifier
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-002
+    title: public, protected, private và package-private
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-003
+    title: static, final, abstract, synchronized, native và strictfp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-004
+    title: Phân biệt modifier có ý nghĩa trên lớp, field hoặc executable
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-005
+    title: volatile, transient và thành viên dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-006
+    title: isSynthetic và cấu trúc do trình biên dịch sinh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-007
+    title: Bridge method và isBridge
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-008
+    title: AccessFlag, accessFlags và khác biệt theo phiên bản JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-flags-009
+    title: Không suy ra toàn bộ cú pháp nguồn từ cờ trong class file
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control
+  title: Quyền truy cập
+  childs:
+  - slug: access-control-001
+    title: Tra cứu thấy thành viên không đồng nghĩa được quyền sử dụng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-002
+    title: Kiểm tra truy cập Java khi get, set, invoke hoặc newInstance
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-003
+    title: AccessibleObject và trạng thái bỏ qua kiểm tra truy cập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-004
+    title: canAccess và đối tượng đích phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-005
+    title: setAccessible khác trySetAccessible
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-006
+    title: Ý nghĩa thực sự của isAccessible và lý do API này lỗi thời
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-007
+    title: Package, lớp khai báo và thành viên public trong kiểu không public
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-008
+    title: Nestmate và quyền truy cập private giữa các lớp liên quan
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-009
+    title: Không xem setAccessible là bảo đảm sửa được mọi field
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-encapsulation
+  title: Module và đóng gói
+  childs:
+  - slug: module-encapsulation-001
+    title: JPMS và strong encapsulation
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-002
+    title: Readability, exports và opens
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-003
+    title: Public reflection khác deep reflection
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-004
+    title: Điều kiện truy cập khi caller và lớp đích ở cùng module
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-005
+    title: Named module, unnamed module và open module
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-006
+    title: Module.isExported, isOpen và kiểm tra ngữ cảnh truy cập
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-007
+    title: InaccessibleObjectException và nguyên nhân không thể mở truy cập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-008
+    title: Phân biệt --add-exports với --add-opens
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-009
+    title: Giới hạn của --illegal-access trong Java hiện đại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-encapsulation-010
+    title: Thiết kế API công khai thay vì phụ thuộc nội bộ JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fields
+  title: Field
+  childs:
+  - slug: fields-001
+    title: Tên, declaring class, raw type và generic type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-002
+    title: getFields khác getDeclaredFields khi có kế thừa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-003
+    title: Field hiding và nhiều field trùng tên trong phân cấp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-004
+    title: Đọc field instance bằng đối tượng đúng kiểu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-005
+    title: Đọc field static và đối số đích bị bỏ qua
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-006
+    title: Field.get trả primitive dưới dạng wrapper
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-007
+    title: Các phương thức getInt, getLong, getDouble và chuyển đổi được phép
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-008
+    title: Field.set với kiểu tham chiếu hoặc primitive
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-009
+    title: Các phương thức setInt, setLong và giới hạn widening
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-010
+    title: Giá trị null với field tham chiếu và primitive
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-011
+    title: Truy cập static field có thể kích hoạt khởi tạo lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-012
+    title: Field volatile và phân biệt thao tác đọc ghi với cập nhật nguyên tử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: final-fields
+  title: Field final
+  childs:
+  - slug: final-fields-001
+    title: Phân biệt đọc field final với thay đổi field final
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-fields-002
+    title: Điều kiện giới hạn khi Field.set gặp final
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-fields-003
+    title: Static final là field không thể sửa bằng cơ chế mở truy cập thông thường
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-fields-004
+    title: Final field trong record và hidden class
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-fields-005
+    title: Giá trị hằng có thể đã được nhúng vào mã sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-fields-006
+    title: Không xem sửa field là thay thế constructor và bất biến đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-fields-007
+    title: Ảnh hưởng tới khả năng quan sát, tối ưu và hành vi phụ thuộc phiên bản
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-fields-008
+    title: Chọn constructor, factory hoặc API cập nhật được thiết kế sẵn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: methods
+  title: Method
+  childs:
+  - slug: methods-001
+    title: 'Method metadata: tên, lớp khai báo và kiểu trả về'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-002
+    title: Kiểu tham số, kiểu throws và các biến thể generic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-003
+    title: getMethods khác getDeclaredMethods
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-004
+    title: Overload và chữ ký cần dùng để tìm phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-005
+    title: invoke với receiver và mảng đối số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-006
+    title: Gọi phương thức static bằng receiver null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-007
+    title: Liên kết động khi Method của lớp cha được gọi trên lớp con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-008
+    title: Phân biệt gọi virtual với mong muốn gọi riêng triển khai super
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-009
+    title: Primitive return được boxing và void trả về null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-010
+    title: Phương thức abstract, default và phương thức interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-011
+    title: Method.invoke không tự chờ Future hoặc CompletionStage trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-012
+    title: Không nhầm Method object với kết quả gọi phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constructors
+  title: Constructor
+  childs:
+  - slug: constructors-001
+    title: Constructor<T> và constructor không được kế thừa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-002
+    title: Tra cứu constructor public hoặc declared
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-003
+    title: newInstance với danh sách đối số đúng kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-004
+    title: Constructor mặc định khác constructor không tham số được khai báo tường minh
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-005
+    title: Constructor private và điều kiện truy cập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-006
+    title: Không khởi tạo abstract class hoặc interface bằng constructor thông thường
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-007
+    title: Constructor của non-static inner class và tham số đối tượng bao ngoài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-008
+    title: Tham số ngầm định hoặc synthetic của constructor
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-009
+    title: Constructor ném ngoại lệ và lớp bọc InvocationTargetException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-010
+    title: Vì sao không dùng Class.newInstance đã lỗi thời
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-011
+    title: Khởi tạo lớp và lỗi xảy ra trước hoặc trong constructor
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: argument-conversions
+  title: Đối số và chuyển đổi
+  childs:
+  - slug: argument-conversions-001
+    title: Phân biệt quy tắc tra cứu với quy tắc chuyển đổi khi gọi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-002
+    title: Unboxing và widening primitive trong invoke hoặc newInstance
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-003
+    title: Vì sao narrowing hoặc đổi String thành số không được tự thực hiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-004
+    title: Chuyển tham chiếu theo quan hệ assignability
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-005
+    title: Số lượng đối số và IllegalArgumentException
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-006
+    title: Receiver null khi gọi phương thức instance
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-007
+    title: Varargs của phương thức đích được biểu diễn bằng một tham số mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-008
+    title: Varargs Object... của API reflection và cách truyền một mảng như một đối số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-009
+    title: Phân biệt không có đối số với một đối số null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-010
+    title: Chuyển đổi giá trị trả về và ClassCastException ở mã gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argument-conversions-011
+    title: Mảng primitive không thay thế mảng wrapper
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: executable-parameters
+  title: Tham số executable
+  childs:
+  - slug: executable-parameters-001
+    title: Executable dùng chung cho Method và Constructor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-002
+    title: getParameters và Parameter
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-003
+    title: getParameterTypes khác getGenericParameterTypes
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-004
+    title: Tên tham số và tùy chọn biên dịch -parameters
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-005
+    title: isNamePresent và tên tổng hợp arg0, arg1
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-006
+    title: isImplicit, isSynthetic và isVarArgs
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-007
+    title: Modifier của tham số và giới hạn metadata có sẵn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-008
+    title: Annotation trên từng tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-009
+    title: getAnnotatedParameterTypes và getAnnotatedReceiverType
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-parameters-010
+    title: Không dùng tên tham số như hợp đồng ổn định khi build không bảo đảm metadata
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-type-model
+  title: Mô hình generic
+  childs:
+  - slug: generic-type-model-001
+    title: Class khác Type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-002
+    title: ParameterizedType và actual type arguments
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-003
+    title: Raw type, owner type và kiểu lồng có generic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-004
+    title: TypeVariable và GenericDeclaration
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-005
+    title: getBounds và nhiều giới hạn kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-006
+    title: WildcardType với upper bound và lower bound
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-007
+    title: GenericArrayType khác Class của mảng cụ thể
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-008
+    title: getGenericSuperclass và getGenericInterfaces
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-009
+    title: getGenericType, getGenericReturnType và getGenericExceptionTypes
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-010
+    title: Đọc tên kiểu bằng getTypeName thay vì ép mọi Type sang Class
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-model-011
+    title: Phân biệt metadata generic trong khai báo với thông tin bị xóa lúc chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-type-resolution
+  title: Phân giải generic
+  childs:
+  - slug: generic-type-resolution-001
+    title: Type erasure và giới hạn nhìn thấy kiểu List<String> của một instance
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-002
+    title: Thông tin kiểu từ lớp con có superclass được tham số hóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-003
+    title: Ánh xạ TypeVariable sang kiểu cụ thể qua nhiều tầng kế thừa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-004
+    title: Thay thế kiểu lồng trong ParameterizedType
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-005
+    title: Xử lý wildcard, generic array và owner type
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-006
+    title: Biến kiểu của phương thức khác biến kiểu của lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-007
+    title: Giới hạn kiểu chưa được ràng buộc và trường hợp raw type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-008
+    title: Mẫu type token và anonymous subclass
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-009
+    title: Không suy ra kiểu phần tử chỉ bằng việc xem các phần tử đang có
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-resolution-010
+    title: Tránh đệ quy vô hạn khi giới hạn kiểu tự tham chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-annotations
+  title: Annotation runtime
+  childs:
+  - slug: runtime-annotations-001
+    title: AnnotatedElement và các đối tượng hỗ trợ annotation
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-002
+    title: Retention SOURCE, CLASS, RUNTIME và giới hạn quan sát
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-003
+    title: getAnnotation, getDeclaredAnnotation và isAnnotationPresent
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-004
+    title: getAnnotations khác getDeclaredAnnotations
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-005
+    title: '@Inherited chỉ áp dụng theo các quy tắc kế thừa annotation của lớp'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-006
+    title: Annotation trên interface hoặc phương thức không tự truyền như annotation lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-007
+    title: Repeatable annotation và container annotation
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-008
+    title: getAnnotationsByType khác getDeclaredAnnotationsByType
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-009
+    title: Đọc giá trị phần tử annotation qua phương thức của annotation type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-010
+    title: Method.getDefaultValue cho phần tử có giá trị mặc định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-011
+    title: equals, hashCode và annotationType của annotation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-annotations-012
+    title: Annotation không tự thực thi validation hay hành vi nghiệp vụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-use-annotations
+  title: Annotation trên kiểu
+  childs:
+  - slug: type-use-annotations-001
+    title: Phân biệt declaration annotation với type-use annotation
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-002
+    title: AnnotatedType và kiểu nền bên dưới
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-003
+    title: AnnotatedParameterizedType và annotation trên đối số kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-004
+    title: AnnotatedArrayType và annotation ở các chiều mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-005
+    title: AnnotatedWildcardType và annotation trên bound
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-006
+    title: AnnotatedTypeVariable và các bound có annotation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-007
+    title: getAnnotatedReturnType, getAnnotatedExceptionTypes và receiver type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-008
+    title: Annotation trên superclass và interface được khai báo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-use-annotations-009
+    title: Xây dựng trình duyệt cây kiểu mà vẫn giữ vị trí annotation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-arrays
+  title: Mảng động
+  childs:
+  - slug: dynamic-arrays-001
+    title: Array.newInstance với component type biết lúc chạy
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-002
+    title: Tạo mảng nhiều chiều và ý nghĩa của danh sách kích thước
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-003
+    title: Array.getLength và kiểm tra isArray
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-004
+    title: Array.get, Array.set và các biến thể primitive
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-005
+    title: Boxing khi đọc mảng primitive bằng Array.get
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-006
+    title: Điều kiện widening và lỗi sai kiểu khi gán phần tử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-007
+    title: getComponentType cho từng tầng mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-008
+    title: ArrayIndexOutOfBoundsException, NegativeArraySizeException và đầu vào không phải mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-009
+    title: Mảng generic, erasure và giới hạn tạo T[]
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-arrays-010
+    title: Không ép int[] thành Object[]
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nested-types-nestmates
+  title: Kiểu lồng và nest
+  childs:
+  - slug: nested-types-nestmates-001
+    title: getClasses khác getDeclaredClasses
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-002
+    title: getDeclaringClass khác getEnclosingClass
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-003
+    title: getEnclosingMethod và getEnclosingConstructor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-004
+    title: isMemberClass, isLocalClass và isAnonymousClass
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-005
+    title: Static nested class khác non-static inner class
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-006
+    title: getNestHost, getNestMembers và isNestmateOf
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-007
+    title: Tham số hoặc field tổng hợp để giữ ngữ cảnh bao ngoài
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-008
+    title: Tên và cấu trúc do compiler sinh không phải hợp đồng ứng dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-nestmates-009
+    title: Hidden class, isHidden và giới hạn khám phá bằng Class.forName
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: enum-types
+  title: Enum
+  childs:
+  - slug: enum-types-001
+    title: isEnum và getEnumConstants
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enum-types-002
+    title: Thứ tự hằng enum và trường hợp API trả về null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enum-types-003
+    title: Field.isEnumConstant
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enum-types-004
+    title: Enum.valueOf với Class của enum
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enum-types-005
+    title: Enum có thân riêng trên hằng và khác biệt getClass với getDeclaringClass
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enum-types-006
+    title: Không tạo thêm hằng enum bằng Constructor.newInstance
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enum-types-007
+    title: Đọc method và field do compiler bổ sung mà không phụ thuộc tên nội bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-types
+  title: Record
+  childs:
+  - slug: record-types-001
+    title: isRecord và getRecordComponents
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-002
+    title: 'RecordComponent: tên, kiểu, generic type và accessor'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-003
+    title: Thứ tự component và canonical constructor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-004
+    title: Khởi tạo record qua constructor thay vì sửa field final
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-005
+    title: Component annotation khác annotation trên field, accessor hoặc parameter
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-006
+    title: Annotation được truyền sang các khai báo liên quan theo @Target
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-007
+    title: Accessor được khai báo tường minh và metadata thực tế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-008
+    title: RecordComponent.getAnnotatedType và kiểu thành phần có annotation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-types-009
+    title: Thiết kế công cụ ánh xạ hỗ trợ record và lớp thông thường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sealed-hierarchies
+  title: Sealed và phân cấp
+  childs:
+  - slug: sealed-hierarchies-001
+    title: isSealed và getPermittedSubclasses
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-002
+    title: Các lớp hoặc interface con trực tiếp được phép
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-003
+    title: Phân biệt metadata permits với mọi kiểu con đang tồn tại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-004
+    title: Trường hợp không sealed và kết quả API tương ứng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-005
+    title: Phân cấp kết hợp sealed, non-sealed, final, enum và record
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-006
+    title: Phân biệt đọc metadata, nạp lớp và kích hoạt khởi tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-007
+    title: Giới hạn dùng danh sách permits để quyết định toàn bộ cách khởi tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-proxies
+  title: Dynamic proxy
+  childs:
+  - slug: dynamic-proxies-001
+    title: Proxy và InvocationHandler
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-002
+    title: Tạo proxy bằng newProxyInstance
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-003
+    title: Chọn class loader nhìn thấy đúng các interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-004
+    title: Điều kiện interface public, non-public, hidden hoặc sealed
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-005
+    title: Gọi proxy được chuyển thành InvocationHandler.invoke
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-006
+    title: Method, proxy instance và args trong handler
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-007
+    title: equals, hashCode, toString và hợp đồng cần định nghĩa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-008
+    title: Kiểu trả về, unboxing và giới hạn của giá trị null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-009
+    title: Checked exception và UndeclaredThrowableException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-010
+    title: Gọi default method bằng InvocationHandler.invokeDefault
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-011
+    title: Tránh gọi lại chính proxy gây đệ quy vô hạn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-012
+    title: Nhiều interface có phương thức trùng chữ ký
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-013
+    title: Proxy.isProxyClass, getInvocationHandler và giới hạn phụ thuộc tên lớp proxy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-014
+    title: Proxy interface khác cơ chế tạo lớp con bằng thư viện sinh bytecode
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-handles-var-handles
+  title: MethodHandle và VarHandle
+  childs:
+  - slug: method-handles-var-handles-001
+    title: Phân biệt core reflection với java.lang.invoke
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-002
+    title: MethodHandles.Lookup và quyền truy cập được kiểm tra khi tạo handle
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-003
+    title: findVirtual, findStatic, findConstructor và findSpecial
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-004
+    title: unreflect Method, Constructor hoặc Field
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-005
+    title: MethodType và kiểm tra chữ ký
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-006
+    title: invoke, invokeExact và khác biệt chuyển đổi đối số
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-007
+    title: privateLookupIn và điều kiện mở truy cập theo module
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-008
+    title: VarHandle cho field hoặc phần tử mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-009
+    title: Access mode thường, volatile, acquire-release và atomic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-010
+    title: Khi nào chọn Method, MethodHandle hoặc VarHandle
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handles-var-handles-011
+    title: Không mặc định một cơ chế luôn nhanh hơn cơ chế còn lại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions-diagnostics
+  title: Ngoại lệ và chẩn đoán
+  childs:
+  - slug: exceptions-diagnostics-001
+    title: ClassNotFoundException và NoClassDefFoundError
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-002
+    title: NoSuchFieldException và NoSuchMethodException
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-003
+    title: IllegalAccessException khác InaccessibleObjectException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-004
+    title: IllegalArgumentException do receiver hoặc đối số không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-005
+    title: InstantiationException và kiểu không thể khởi tạo
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-006
+    title: InvocationTargetException và cách giữ nguyên cause
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-007
+    title: ExceptionInInitializerError khi thao tác kích hoạt khởi tạo lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-008
+    title: GenericSignatureFormatError, TypeNotPresentException và MalformedParameterizedTypeException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-009
+    title: MalformedParametersException và metadata tham số không hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-010
+    title: AnnotationTypeMismatchException và IncompleteAnnotationException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-011
+    title: Phân biệt lỗi ở công cụ reflection với lỗi trong mã đích
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-diagnostics-012
+    title: Ghi ngữ cảnh lớp, loader, module và chữ ký khi điều tra
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tooling-design
+  title: Thiết kế công cụ
+  childs:
+  - slug: tooling-design-001
+    title: Tách khám phá metadata khỏi thực thi thao tác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-002
+    title: Định nghĩa chính sách field, property hoặc accessor cần dùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-003
+    title: Không mặc định mọi field đều là dữ liệu nghiệp vụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-004
+    title: Lọc static, synthetic, bridge và thành viên không phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-005
+    title: Xử lý field trùng tên hoặc method ghi đè theo chính sách nhất quán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-006
+    title: Sắp xếp metadata để đầu ra có thứ tự ổn định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-007
+    title: Xác thực kiểu và khả năng truy cập trước khi chạy hàng loạt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-008
+    title: Ánh xạ giá trị đầu vào theo quy tắc chuyển đổi tường minh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-009
+    title: JavaBeans Introspector và khác biệt với duyệt field trực tiếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-010
+    title: Quét classpath khác khám phá một Class đã biết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tooling-design-011
+    title: Giữ constructor, setter và bất biến đối tượng làm ranh giới thiết kế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching-performance
+  title: Cache và hiệu năng
+  childs:
+  - slug: caching-performance-001
+    title: Chi phí tra cứu metadata khác chi phí invoke
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-002
+    title: Cache Field, Method và Constructor theo ngữ cảnh phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-003
+    title: Khóa cache cần xét Class và định danh loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-004
+    title: ClassValue cho dữ liệu liên kết với từng Class
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-005
+    title: Cache giữ Class có thể giữ cả class loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-006
+    title: Tránh cache toàn JVM không có chính sách vòng đời
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-007
+    title: An toàn nhiều luồng khi công bố hoặc sử dụng metadata đã cache
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-008
+    title: Không chia sẻ khả năng truy cập private ngoài phạm vi cần thiết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-009
+    title: Benchmark với warmup, lời gọi trực tiếp và workload thực tế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-performance-010
+    title: Chi tiết triển khai reflection có thể thay đổi giữa các phiên bản JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: limitations-alternatives
+  title: Giới hạn và lựa chọn
+  childs:
+  - slug: limitations-alternatives-001
+    title: Reflection không khôi phục đầy đủ mã nguồn hoặc thân phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-002
+    title: Tên biến cục bộ và thông tin debug không phải API core reflection thông thường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-003
+    title: Generic bị xóa và metadata phụ thuộc nội dung class file
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-004
+    title: Không có API core reflection tự liệt kê mọi lớp trong classpath
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-005
+    title: Đổi tên, obfuscation và thay đổi nội bộ có thể làm hỏng liên kết theo chuỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-006
+    title: Kiểm tra quyền và giới hạn dữ liệu đầu vào chọn lớp hoặc phương thức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-007
+    title: Phân biệt reflection runtime với annotation processing lúc biên dịch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-008
+    title: So sánh với interface, Strategy, ServiceLoader và code generation
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-009
+    title: Không dùng reflection chỉ để tránh thiết kế API rõ ràng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limitations-alternatives-010
+    title: Đối chiếu hành vi khi dùng runtime hạn chế reflection hoặc biên dịch trước
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reflection-testing
+  title: Kiểm thử
+  childs:
+  - slug: reflection-testing-001
+    title: Fixture có public, protected, package-private và private member
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-002
+    title: Kiểm thử declared member khác inherited member
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-003
+    title: Kiểm thử tra cứu primitive, wrapper, overload và generic erasure
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-004
+    title: Kiểm thử invoke với null, varargs, mảng và sai kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-005
+    title: Kiểm thử lỗi mã đích được giữ qua InvocationTargetException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-006
+    title: Kiểm thử runtime annotation, repeatable và type-use annotation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-007
+    title: Kiểm thử non-static inner class, enum, record và sealed type
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-008
+    title: Kiểm thử quyền truy cập trong cùng và khác module
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-009
+    title: Kiểm thử metadata có và không có -parameters
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-010
+    title: Kiểm thử hai loader định nghĩa lớp cùng tên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-testing-011
+    title: Kiểm thử cache không giữ plugin đã hết vòng đời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reflection-practice
+  title: Thực hành
+  childs:
+  - slug: reflection-practice-001
+    title: Xây dựng trình in cấu trúc một Class theo thứ tự ổn định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-002
+    title: Viết công cụ gọi phương thức từ một hợp đồng đã xác thực
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-003
+    title: Tạo factory từ constructor có kiểu và thông báo lỗi rõ ràng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-004
+    title: Đọc object graph có kiểm soát vòng tham chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-005
+    title: Xây dựng bộ ánh xạ dữ liệu nhỏ qua accessor hoặc record component
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-006
+    title: Xây dựng bộ kiểm tra annotation runtime đơn giản
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-007
+    title: Phân giải generic của một lớp con qua nhiều tầng kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-008
+    title: Tạo proxy ghi thời gian xử lý và giữ nguyên ngoại lệ mã đích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-009
+    title: So sánh gọi trực tiếp, Method.invoke và MethodHandle
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-practice-010
+    title: Hoàn thiện ví dụ module hóa cùng bộ kiểm thử quyền truy cập
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reflection-reference
+  title: Tra cứu
+  childs:
+  - slug: reflection-reference-001
+    title: Bảng getX và getDeclaredX
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-reference-002
+    title: Bảng Class, Member, Executable, Field, Method và Constructor
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-reference-003
+    title: Bảng chuyển đổi được phép khi get, set, invoke hoặc newInstance
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-reference-004
+    title: Bảng Class, Type, AnnotatedType và các loại generic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-reference-005
+    title: Bảng annotation trực tiếp, gián tiếp và được kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-reference-006
+    title: Bảng quyền truy cập theo modifier, package, nest và module
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-reference-007
+    title: Bảng ngoại lệ reflection và thông tin cần kiểm tra
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-reference-008
+    title: Tra cứu Javadoc và quy tắc ngôn ngữ theo từng thao tác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

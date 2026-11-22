@@ -1,0 +1,282 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Trừu tượng hóa là gì và vấn đề cần giải quyết
+  - Phân biệt trừu tượng hóa với đóng gói và kế thừa
+  - Hợp đồng, cách triển khai và mã sử dụng hợp đồng
+  - Vai trò của lớp trừu tượng và interface trong Java
+  - Quan hệ giữa kiểu, đối tượng, trạng thái và hành vi
+  - 'Một ví dụ xuyên suốt: nhiều cách xử lý cùng một yêu cầu'
+  - Kiến thức tiên quyết và trình tự học đề xuất
+  - Phạm vi Java Core và cách đối chiếu phiên bản JDK
+- level1: Nền tảng kiểu
+  level2:
+  - Kiểu tham chiếu và kiểu thực tế của đối tượng
+  - Quan hệ kiểu cha và kiểu con
+  - Kế thừa kiểu, kế thừa mã và kế thừa trạng thái
+  - Đơn kế thừa lớp và đa kế thừa interface
+  - Phân biệt extends và implements
+  - Phạm vi truy cập public, protected, package-private và private
+  - Đọc sơ đồ lớp và quan hệ thực thi hợp đồng
+- level1: Lớp trừu tượng
+  level2:
+  - Cú pháp khai báo abstract class
+  - Vì sao không thể khởi tạo trực tiếp lớp trừu tượng
+  - Lớp trừu tượng có hoặc không có phương thức abstract
+  - Thuộc tính và trạng thái dùng chung của các lớp con
+  - Phương thức có thân và mã triển khai dùng chung
+  - Thành viên static, final và private trong lớp trừu tượng
+  - Constructor và lựa chọn phạm vi truy cập
+  - Chuỗi kế thừa qua nhiều lớp trừu tượng
+  - Lớp con cụ thể và trách nhiệm hoàn thiện triển khai
+  - Tổ hợp modifier hợp lệ và xung đột abstract với final
+- level1: Phương thức abstract
+  level2:
+  - Cú pháp khai báo và dấu chấm phẩy thay cho thân phương thức
+  - Quan hệ giữa phương thức abstract và lớp chứa nó
+  - Tham số, kiểu trả về và mệnh đề throws
+  - Phạm vi public, protected và package-private
+  - Vì sao abstract không kết hợp với private, static hoặc final
+  - Các modifier không hợp lệ khác của phương thức abstract
+  - Overload phương thức abstract
+  - Khai báo lại phương thức đã có thân thành abstract
+  - Phương thức package-private khi lớp con nằm khác package
+- level1: Khởi tạo đối tượng
+  level2:
+  - Constructor lớp cha khi khởi tạo lớp con
+  - Chuỗi gọi super và truyền dữ liệu bắt buộc
+  - Thứ tự khởi tạo thuộc tính, khối khởi tạo và constructor
+  - Duy trì trạng thái hợp lệ trong lớp trừu tượng
+  - Rủi ro gọi phương thức có thể bị ghi đè trong constructor
+  - Tránh để this thoát ra khi đối tượng chưa khởi tạo xong
+  - Constructor không được kế thừa và không thể abstract
+  - Factory tạo lớp cụ thể nhưng trả về kiểu trừu tượng
+- level1: Khai báo interface
+  level2:
+  - Cú pháp, tên và mục đích của interface
+  - Interface là kiểu tham chiếu và ngầm định abstract
+  - 'Interface cấp cao nhất: public và package-private'
+  - Interface mở rộng một hoặc nhiều interface bằng extends
+  - Lớp thực thi một hoặc nhiều interface bằng implements
+  - Vì sao interface không có constructor và thuộc tính instance
+  - Kiểu thành viên được khai báo bên trong interface
+  - Phân biệt interface thông thường với annotation interface
+- level1: Thành viên interface
+  level2:
+  - Phân loại phương thức abstract, default, static và private
+  - Phương thức abstract ngầm định public
+  - Thuộc tính ngầm định public static final và bắt buộc khởi tạo
+  - Phân biệt thuộc tính final với đối tượng bất biến
+  - Hằng thời điểm biên dịch và thuộc tính cần khởi tạo lúc chạy
+  - Truy cập hằng qua tên interface và xử lý tên hằng trùng nhau
+  - Giới hạn truy cập và modifier không hợp lệ
+  - Giới hạn tham chiếu thuộc tính và thứ tự khai báo
+- level1: Triển khai hợp đồng
+  level2:
+  - Triển khai đầy đủ các phương thức abstract còn thiếu
+  - Phương thức thực thi interface phải public
+  - Lớp trừu tượng thực thi một phần interface
+  - Dùng phương thức kế thừa từ lớp cha để đáp ứng interface
+  - Một phương thức đáp ứng nhiều interface có cùng chữ ký
+  - Nhiều interface có yêu cầu kiểu trả về không tương thích
+  - Triển khai tường minh bằng phương thức có @Override
+  - Không tự động trở thành kiểu con chỉ vì có phương thức giống nhau
+  - Giữ đúng ý nghĩa hợp đồng bên cạnh việc biên dịch thành công
+- level1: Ghi đè phương thức
+  level2:
+  - Chữ ký phương thức và điều kiện ghi đè
+  - Phân biệt override, overload và static method hiding
+  - Không thu hẹp phạm vi truy cập khi ghi đè
+  - Kiểu trả về đồng biến và giới hạn với kiểu nguyên thủy
+  - Checked exception khi ghi đè phương thức
+  - Unchecked exception và trách nhiệm của mã gọi
+  - Phương thức final, private và static trong quan hệ kế thừa
+  - Vai trò của @Override trong phát hiện sai chữ ký
+  - Tham số varargs, mảng và các nhầm lẫn khi ghi đè
+  - Gọi triển khai lớp cha bằng super
+- level1: Đa hình
+  level2:
+  - Khai báo biến, tham số và kiểu trả về bằng kiểu trừu tượng
+  - Liên kết động khi gọi phương thức instance
+  - Phương thức được phép gọi theo kiểu khai báo
+  - Chọn overload lúc biên dịch và chọn override lúc chạy
+  - Upcast và downcast giữa lớp, lớp trừu tượng và interface
+  - instanceof, pattern matching và kiểm tra trước khi ép kiểu
+  - ClassCastException và giới hạn ép kiểu không hợp lệ
+  - Đối tượng null và lời gọi qua tham chiếu interface
+  - Vì sao truy cập field và phương thức static không đa hình
+- level1: Phương thức default
+  level2:
+  - Động cơ bổ sung default method từ Java 8
+  - Cú pháp và thân phương thức default
+  - Gọi phương thức abstract từ phương thức default
+  - Ghi đè default method trong lớp triển khai
+  - Kế thừa default method qua interface con
+  - Biến default method thành yêu cầu abstract ở interface con
+  - Gọi default method bằng InterfaceName.super
+  - Giới hạn gọi super qua interface trực tiếp
+  - Giới hạn chia sẻ trạng thái và hợp đồng của default method
+- level1: Static và private
+  level2:
+  - Phương thức static trong interface từ Java 8
+  - Gọi static method qua đúng tên interface
+  - Static method không được kế thừa bởi interface con hoặc lớp triển khai
+  - Phương thức private trong interface từ Java 9
+  - Chia sẻ mã giữa các default method bằng private instance method
+  - Private static method và giới hạn truy cập thành viên instance
+  - Phân biệt private helper với điểm mở rộng cho lớp triển khai
+- level1: Đa kế thừa
+  level2:
+  - Bài toán hình thoi trong hệ phân cấp interface
+  - Kế thừa cùng một khai báo abstract qua nhiều đường
+  - Nhiều khai báo abstract tương thích và kiểu trả về chung
+  - Ưu tiên phương thức có thân kế thừa từ lớp cha
+  - Ưu tiên default method của interface cụ thể hơn
+  - Xung đột default method từ hai interface không liên quan
+  - Xung đột giữa default method và abstract method độc lập
+  - Phương thức abstract của lớp cha chặn triển khai default
+  - Giải quyết xung đột bằng ghi đè và chọn lời gọi super hợp lệ
+  - Phân biệt xung đột phương thức, hằng và kiểu thành viên
+- level1: Interface và Object
+  level2:
+  - Quan hệ giữa interface và các phương thức public của Object
+  - Khai báo equals, hashCode và toString trong hợp đồng
+  - Vì sao default method không được ghi đè phương thức public của Object
+  - Triển khai equals và hashCode nhất quán giữa các kiểu con
+  - clone có phạm vi protected và yêu cầu public của interface
+  - Giới hạn của marker interface Cloneable
+- level1: Interface hàm
+  level2:
+  - Khái niệm functional interface và một hợp đồng hàm duy nhất
+  - '@FunctionalInterface và kiểm tra tại thời điểm biên dịch'
+  - Cách xác định phương thức abstract từ các interface cha
+  - Loại trừ phương thức public của Object khi xác định hợp đồng hàm
+  - Default, static và private method không tạo thêm yêu cầu hàm
+  - Lambda expression như một cách cung cấp triển khai
+  - Method reference và kiểu đích của biểu thức
+  - Kiểu tham số, kiểu trả về và checked exception của hợp đồng hàm
+  - Giới hạn với sealed interface và phương thức hàm có kiểu tổng quát
+  - Chọn interface riêng hay dùng Runnable, Callable và java.util.function
+- level1: Kiểu tổng quát
+  level2:
+  - Khai báo generic interface và generic abstract class
+  - Triển khai interface với tham số kiểu cụ thể hoặc giữ tham số kiểu
+  - Phương thức generic và khác biệt với kiểu chứa generic
+  - Giới hạn kiểu bằng abstract class và interface
+  - Nhiều giới hạn kiểu và intersection type
+  - Tính bất biến của generic và wildcard tại ranh giới API
+  - Tự tham chiếu kiểu với Comparable<T> và kiểu fluent
+  - Type erasure, bridge method và quan hệ ghi đè
+  - Name clash do cùng erasure và kế thừa nhiều tham số kiểu
+  - Raw type, unchecked warning và giới hạn nhận biết tham số kiểu lúc chạy
+- level1: Kiểu lồng
+  level2:
+  - Interface lồng trong lớp và interface lồng trong interface
+  - Interface lồng ngầm định static và không có đối tượng bao ngoài
+  - Phạm vi truy cập của kiểu lồng và cách tham chiếu
+  - Lớp thành viên bên trong interface và modifier ngầm định
+  - Triển khai bằng local class và anonymous class
+  - Khởi tạo anonymous subclass của abstract class
+  - So sánh anonymous class với lambda về this và phạm vi tên
+  - Biến được bắt giữ và quy tắc effectively final
+- level1: Enum và record
+  level2:
+  - Enum thực thi interface và hành vi riêng của từng hằng
+  - Phương thức abstract trong enum và trách nhiệm của các hằng
+  - Record thực thi interface bằng accessor hoặc phương thức bổ sung
+  - Vì sao enum và record không extends lớp trừu tượng tùy ý
+  - Kết hợp record, enum và interface để mô hình hóa miền dữ liệu
+  - Giới hạn khi dùng record hoặc enum trong phân cấp sealed
+- level1: Phân cấp sealed
+  level2:
+  - Mục đích kiểm soát các kiểu con trực tiếp từ Java 17
+  - Sealed abstract class và sealed interface
+  - Cú pháp permits và trường hợp suy ra danh sách cho phép
+  - Yêu cầu cùng module hoặc cùng package trong unnamed module
+  - Modifier final, sealed và non-sealed của lớp con trực tiếp
+  - Interface con sealed hoặc non-sealed
+  - Lớp trừu tượng vừa abstract vừa sealed hoặc non-sealed
+  - Nhánh mở rộng được phép và giới hạn của anonymous class, lambda
+  - Pattern matching switch và tính đầy đủ của phân cấp đóng
+- level1: Khởi tạo kiểu
+  level2:
+  - Phân biệt nạp, liên kết và khởi tạo lớp hoặc interface
+  - Truy cập static field và kiểu thực sự khai báo field
+  - Truy cập hằng thời điểm biên dịch không kích hoạt khởi tạo interface
+  - Khởi tạo interface không mặc nhiên khởi tạo mọi interface cha
+  - Khởi tạo lớp và các interface cha có khai báo default method
+  - Ví dụ theo dõi thứ tự khởi tạo bằng dấu vết thực thi
+- level1: Lựa chọn trừu tượng
+  level2:
+  - So sánh abstract class và interface theo mục tiêu thiết kế
+  - Chọn interface cho vai trò chung của các lớp không cùng họ
+  - Chọn abstract class khi cần trạng thái và quy trình dùng chung
+  - Kết hợp interface công khai với lớp trừu tượng hỗ trợ tùy chọn
+  - Đánh đổi giữa kế thừa triển khai và composition, delegation
+  - Nguyên tắc thay thế Liskov và các bất biến của hợp đồng
+  - Tách interface theo nhu cầu sử dụng và tránh interface quá lớn
+  - Đảo ngược phụ thuộc bằng tham số hoặc constructor
+  - Tránh tạo interface cho mọi lớp khi chưa có nhu cầu
+  - Tránh constant interface và cây kế thừa chỉ để tái sử dụng mã
+- level1: Mẫu thiết kế
+  level2:
+  - 'Template Method: quy trình cố định và các bước abstract'
+  - Hook method, phương thức final và bảo vệ bất biến
+  - 'Strategy: thay thuật toán qua interface'
+  - 'Factory Method: tách quyết định chọn lớp cụ thể'
+  - 'Adapter: đưa kiểu có sẵn về hợp đồng mong muốn'
+  - 'Decorator: bổ sung hành vi qua cùng interface'
+  - 'Callback và Listener: giao quyền xử lý sự kiện'
+  - 'Skeletal implementation: triển khai khung kết hợp interface'
+  - Chọn mẫu theo vấn đề và tránh áp dụng hình thức
+- level1: API trong JDK
+  level2:
+  - 'Collection, List và AbstractList: hợp đồng và triển khai khung'
+  - InputStream, Reader và các lớp con cụ thể
+  - 'Comparable và Comparator: hai cách biểu diễn việc so sánh'
+  - 'Iterable và Iterator: hợp đồng duyệt dữ liệu'
+  - AutoCloseable và Closeable trong try-with-resources
+  - 'Runnable và Callable: hợp đồng công việc và kết quả'
+  - Serializable, Cloneable và giới hạn của marker interface
+  - Đọc Javadoc về yêu cầu triển khai, phương thức tùy chọn và default method
+- level1: Tiến hóa API
+  level2:
+  - Mốc Java 8 cho default, static method và interface hàm
+  - Mốc Java 9 cho private method trong interface
+  - Mốc Java 17 cho sealed class và sealed interface
+  - Phân biệt tương thích mã nguồn, nhị phân và hành vi
+  - Thêm abstract method và tác động tới các lớp triển khai cũ
+  - Thêm default method và nguy cơ xung đột kế thừa
+  - Đổi chữ ký, kiểu trả về hoặc throws và ảnh hưởng tới bên sử dụng
+  - Thay đổi hằng interface và rủi ro giá trị bị nhúng vào mã đã biên dịch
+  - Lộ trình chuyển API cũ bằng interface con, adapter và deprecation
+- level1: Kiểm thử và chẩn đoán
+  level2:
+  - Kiểm thử cùng một hợp đồng trên nhiều cách triển khai
+  - Kiểm thử lớp trừu tượng qua lớp con cụ thể tối thiểu
+  - Kiểm thử thứ tự bước và hook của Template Method
+  - Dùng fake, stub hoặc mock qua interface
+  - Kiểm thử bất biến, null, exception và hành vi biên
+  - Chẩn đoán lỗi chưa triển khai phương thức và sai phạm vi truy cập
+  - Chẩn đoán lỗi ambiguous default, kiểu trả về và erasure
+  - Phân biệt lỗi biên dịch với AbstractMethodError, InstantiationError và linkage error
+  - 'Kiểm tra bytecode bằng javap: abstract flag, interface flag và bridge method'
+- level1: Thực hành
+  level2:
+  - Xây dựng hợp đồng thanh toán với nhiều cách triển khai
+  - Tạo lớp trừu tượng chia sẻ kiểm tra dữ liệu và nhật ký
+  - Thực hiện Template Method cho quy trình nhập dữ liệu
+  - Giải quyết bài toán hình thoi với nhiều interface
+  - Tách interface lớn thành các vai trò nhỏ
+  - Thay cây kế thừa khó mở rộng bằng composition
+  - Xây dựng kho dữ liệu generic với nhiều cách lưu trữ
+  - Mô hình hóa kết quả bằng sealed interface và record
+  - So sánh lambda với anonymous class trong cùng bài toán
+  - Hoàn thiện ví dụ tích hợp và bộ kiểm thử hợp đồng
+- level1: Tra cứu
+  level2:
+  - Bảng so sánh abstract class, interface và concrete class
+  - Bảng modifier hợp lệ theo loại thành viên
+  - Bảng quy tắc ưu tiên và xử lý xung đột phương thức
+  - Các hiểu lầm thường gặp và cách kiểm chứng
+  - Tra cứu Java Language Specification và Javadoc theo chủ đề

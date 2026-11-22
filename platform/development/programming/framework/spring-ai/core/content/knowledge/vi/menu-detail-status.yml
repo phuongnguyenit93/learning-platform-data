@@ -1,0 +1,2530 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring AI là gì và giải quyết vấn đề nào trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của Spring AI giữa ứng dụng, mô hình và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt mô hình, nhà cung cấp, điểm truy cập API và ứng dụng AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phạm vi Spring AI Core và các hướng mở rộng chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Các tác vụ nền tảng: hỏi đáp, tóm tắt, phân loại, trích xuất và sinh nội dung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Luồng xử lý từ yêu cầu người dùng đến kết quả mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Giới hạn của AI tạo sinh và trách nhiệm kiểm chứng của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức tiên quyết và trình tự học Spring AI Core
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: llm-foundations
+  title: Nền tảng LLM
+  childs:
+  - slug: llm-foundations-001
+    title: Mô hình ngôn ngữ lớn và cơ chế dự đoán token ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-002
+    title: Token, cách tách token và ảnh hưởng của ngôn ngữ đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-003
+    title: Cửa sổ ngữ cảnh và ngân sách cho đầu vào, đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-004
+    title: Phân biệt huấn luyện mô hình, suy luận và cung cấp ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-005
+    title: Đặc tính xác suất và giới hạn tái lập kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-006
+    title: Kiến thức trong mô hình, thời điểm cập nhật và thông tin bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-007
+    title: Hiện tượng bịa thông tin và cách nhận biết câu trả lời thiếu căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-008
+    title: Phân biệt khả năng của mô hình với tính năng do framework cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: llm-foundations-009
+    title: Đánh đổi giữa chất lượng, độ trễ, chi phí và quyền riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Các lớp trừu tượng Model, ModelRequest, ModelResponse và ModelOptions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-002
+    title: Quan hệ giữa ChatModel, StreamingChatModel và ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-003
+    title: Vai trò của Prompt, Message, Generation và ChatResponse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-004
+    title: Lớp tích hợp nhà cung cấp và giới hạn tính tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-005
+    title: Starter, tự động cấu hình và cơ chế quản lý bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-006
+    title: Tách cấu hình kỹ thuật khỏi nghiệp vụ sử dụng AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-007
+    title: Ranh giới giữa mã ứng dụng, mô hình từ xa và mô hình cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-008
+    title: Các điểm mở rộng và vòng đời một lời gọi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Thiết lập
+  childs:
+  - slug: setup-001
+    title: Chọn tổ hợp Java, Spring Boot và Spring AI tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Quản lý phiên bản Spring AI bằng BOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Thêm starter theo nhà cung cấp bằng Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Cấu trúc dự án tối thiểu cho ứng dụng Spring AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Cấp thông tin xác thực và cấu hình bằng biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Khởi tạo ChatClient từ ChatClient.Builder do Spring cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Thực hiện lời gọi đầu tiên và xác nhận kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Chạy thử với mô hình cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-009
+    title: Kiểm tra dependency và tự động cấu hình khi khởi động thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration
+  title: Cấu hình
+  childs:
+  - slug: configuration-001
+    title: Nhóm cấu hình kết nối, mô hình, suy luận và khả năng được bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-002
+    title: Nạp cấu hình từ application.yml, biến môi trường và tham số khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-003
+    title: Tách cấu hình theo môi trường bằng Spring Profiles
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-004
+    title: Quản lý API key, địa chỉ dịch vụ và tên mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-005
+    title: Phân biệt tên mô hình, bí danh và tên triển khai của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-006
+    title: Bật, tắt hoặc thay thế tự động cấu hình khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-007
+    title: Khai báo ChatModel và ChatClient thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-008
+    title: Giá trị mặc định và cấu hình riêng cho từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-009
+    title: Xác thực cấu hình bắt buộc và phát hiện sai cấu hình sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: providers
+  title: Nhà cung cấp
+  childs:
+  - slug: providers-001
+    title: Lựa chọn dịch vụ đám mây hoặc mô hình chạy cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-002
+    title: Kết nối dịch vụ OpenAI qua tích hợp Spring AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-003
+    title: Kết nối mô hình cục bộ qua Ollama
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-004
+    title: Đặc điểm cấu hình khi tích hợp Anthropic, Gemini hoặc Azure OpenAI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-005
+    title: Kiểm tra khả năng chat, streaming, đa phương thức và đầu ra có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-006
+    title: Sử dụng điểm truy cập tương thích OpenAI và kiểm tra mức tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-007
+    title: Phân biệt thư viện tích hợp, dịch vụ cung cấp và mô hình thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-008
+    title: Khác biệt về xác thực, vùng triển khai, hạn mức và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-009
+    title: Đổi nhà cung cấp và xác định phần cấu hình phải kiểm thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messages
+  title: Message
+  childs:
+  - slug: messages-001
+    title: Message và vai trò của từng thông điệp trong hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-002
+    title: SystemMessage và chỉ dẫn do ứng dụng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-003
+    title: UserMessage và dữ liệu đầu vào của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-004
+    title: AssistantMessage và kết quả do mô hình tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-005
+    title: ToolResponseMessage và vị trí trong luồng gọi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-006
+    title: Thứ tự thông điệp và ảnh hưởng đến ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-007
+    title: Nội dung văn bản, metadata và dữ liệu đa phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-008
+    title: Tạo lịch sử hội thoại tường minh bằng danh sách Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-009
+    title: Phân biệt gửi lại lịch sử với cơ chế bộ nhớ hội thoại tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prompts
+  title: Prompt
+  childs:
+  - slug: prompts-001
+    title: Prompt là tập hợp thông điệp và tùy chọn cho một lần suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompts-002
+    title: Tạo Prompt từ chuỗi văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompts-003
+    title: Tạo Prompt từ một hoặc nhiều Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompts-004
+    title: Kết hợp chỉ dẫn hệ thống, yêu cầu người dùng và ngữ cảnh bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompts-005
+    title: Gắn ChatOptions vào Prompt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompts-006
+    title: Phân biệt chỉ dẫn, dữ liệu tham chiếu và yêu cầu định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompts-007
+    title: Quản lý thứ tự, độ dài và phần ngữ cảnh được gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompts-008
+    title: Kiểm tra Prompt thực tế trước khi gọi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prompt-templates
+  title: PromptTemplate
+  childs:
+  - slug: prompt-templates-001
+    title: PromptTemplate và nhu cầu tái sử dụng chỉ dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-002
+    title: Khai báo biến và truyền tham số cho mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-003
+    title: Tạo nội dung, Message hoặc Prompt từ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-004
+    title: Mẫu thông điệp hệ thống và thông điệp người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-005
+    title: Đọc mẫu từ Resource và tệp trong classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-006
+    title: Sử dụng mẫu qua các hàm cấu hình system và user của ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-007
+    title: TemplateRenderer và lựa chọn dấu phân cách biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-008
+    title: Xử lý dấu ngoặc trong JSON, mã nguồn và văn bản mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-009
+    title: Phát hiện biến thiếu, dữ liệu rỗng và đầu vào không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prompt-templates-010
+    title: Quản lý phiên bản và kiểm thử mẫu chỉ dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instruction-design
+  title: Thiết kế chỉ dẫn
+  childs:
+  - slug: instruction-design-001
+    title: Xác định tác vụ, đối tượng sử dụng và tiêu chí đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-002
+    title: Cung cấp ngữ cảnh liên quan và loại bỏ dữ liệu thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-003
+    title: Diễn đạt chỉ dẫn rõ ràng, có thứ tự ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-004
+    title: Yêu cầu độ dài, ngôn ngữ và định dạng câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-005
+    title: Đưa ví dụ mẫu và phân biệt zero-shot với few-shot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-006
+    title: Phân tách dữ liệu không tin cậy khỏi chỉ dẫn của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-007
+    title: Yêu cầu nêu giới hạn và xử lý trường hợp thiếu thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-008
+    title: Chia tác vụ phức tạp thành các bước có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instruction-design-009
+    title: Thử nghiệm thay đổi chỉ dẫn và so sánh kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chat-model
+  title: ChatModel
+  childs:
+  - slug: chat-model-001
+    title: Hợp đồng ChatModel và khi nào nên gọi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-002
+    title: Gọi mô hình bằng chuỗi văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-003
+    title: Gọi mô hình bằng Prompt và nhận ChatResponse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-004
+    title: Đọc Generation và AssistantMessage từ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-005
+    title: Thực hiện hội thoại nhiều lượt bằng thông điệp tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-006
+    title: Truyền tùy chọn riêng cho một lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-007
+    title: Sử dụng StreamingChatModel cho kết quả theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-008
+    title: Tạo lớp dịch vụ bao bọc ChatModel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-model-009
+    title: Giới hạn tính độc lập nhà cung cấp của ChatModel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chat-client
+  title: ChatClient
+  childs:
+  - slug: chat-client-001
+    title: Fluent API và các giai đoạn xây dựng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-002
+    title: Tạo ChatClient bằng create, builder hoặc bean được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-003
+    title: Khởi tạo yêu cầu bằng prompt và bổ sung system, user, messages
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-004
+    title: Kết hợp văn bản, Resource và tham số trong yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-005
+    title: Thiết lập defaultSystem, defaultUser và defaultOptions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-006
+    title: Ghi đè giá trị mặc định tại từng lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-007
+    title: Sử dụng call để nhận kết quả đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-008
+    title: Lấy nội dung, ChatResponse hoặc đối tượng Java từ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-009
+    title: Sử dụng stream để nhận kết quả theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chat-client-010
+    title: Tái sử dụng cấu hình client và tránh chia sẻ trạng thái yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-options
+  title: Tùy chọn mô hình
+  childs:
+  - slug: model-options-001
+    title: ChatOptions chung và tùy chọn riêng của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-002
+    title: Chọn mô hình cho từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-003
+    title: Temperature và mức biến thiên trong quá trình sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-004
+    title: Top-p và lấy mẫu theo phân bố xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-005
+    title: Giới hạn token đầu ra và tham số tương ứng của từng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-006
+    title: Chuỗi dừng và điều kiện kết thúc câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-007
+    title: Các tùy chọn mở rộng như seed và điều chỉnh lặp khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-008
+    title: Cấu hình mặc định, giá trị không khai báo và thứ tự áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-009
+    title: Tham số không được hỗ trợ hoặc không thể kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-options-010
+    title: Thiết kế thí nghiệm để đánh giá tác động của từng tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-responses
+  title: Kết quả
+  childs:
+  - slug: model-responses-001
+    title: Cấu trúc ChatResponse, danh sách Generation và kết quả chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-002
+    title: Đọc văn bản, metadata và nội dung của AssistantMessage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-003
+    title: Phân biệt một kết quả với nhiều phương án sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-004
+    title: Lý do kết thúc và phát hiện đầu ra bị cắt ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-005
+    title: Số token đầu vào, đầu ra và tổng mức sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-006
+    title: Thông tin mô hình, mã yêu cầu và metadata của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-007
+    title: Xử lý nội dung rỗng, từ chối trả lời và kết quả phi văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-008
+    title: Ánh xạ kết quả mô hình sang đối tượng phản hồi của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-responses-009
+    title: Bảo toàn metadata cần thiết cho chẩn đoán và tính chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-output
+  title: Đầu ra có cấu trúc
+  childs:
+  - slug: structured-output-001
+    title: Khi nào cần dữ liệu có cấu trúc thay cho văn bản tự do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-002
+    title: Chuyển kết quả sang class hoặc record bằng entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-003
+    title: Biểu diễn danh sách và kiểu lồng nhau bằng kiểu Java phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-004
+    title: Sử dụng ParameterizedTypeReference cho kiểu tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-005
+    title: Phân biệt JSON mode, JSON Schema và chỉ dẫn định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-006
+    title: Đầu ra có cấu trúc do nhà cung cấp hỗ trợ trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-007
+    title: StructuredOutputConverter và vai trò trước, sau lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-008
+    title: BeanOutputConverter, ListOutputConverter và MapOutputConverter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-009
+    title: Bổ sung hướng dẫn định dạng khi sử dụng ChatModel trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-010
+    title: Xử lý kiểu dữ liệu sai, trường thiếu, giá trị null và enum không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-011
+    title: Kiểm tra schema và ràng buộc nghiệp vụ sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-output-012
+    title: Phục hồi có giới hạn khi đầu ra không đúng cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streaming
+  title: Streaming
+  childs:
+  - slug: streaming-001
+    title: Khác biệt giữa phản hồi đầy đủ và phản hồi theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-002
+    title: Nhận Flux<String> qua ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-003
+    title: Nhận luồng ChatResponse và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-004
+    title: Hiểu từng phần dữ liệu trả về và ghép nội dung hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-005
+    title: Phân biệt thời gian đến phần đầu tiên với tổng thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-006
+    title: Chuyển luồng kết quả thành Server-Sent Events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-007
+    title: Lan truyền lỗi xảy ra trước và sau khi bắt đầu gửi phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-008
+    title: Hủy yêu cầu, ngắt kết nối và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-009
+    title: Giới hạn thời gian và xử lý luồng bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-010
+    title: Giới hạn bộ đệm và tránh block trên luồng xử lý phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-011
+    title: Giới hạn của chuyển đổi đối tượng khi JSON chưa được nhận đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multimodal
+  title: Đa phương thức
+  childs:
+  - slug: multimodal-001
+    title: Đầu vào đa phương thức và khả năng cụ thể của từng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-002
+    title: Media, MIME type và Resource trong thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-003
+    title: Gửi ảnh từ URL, classpath hoặc dữ liệu tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-004
+    title: Kết hợp câu hỏi văn bản với một hoặc nhiều ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-005
+    title: Kiểm tra dung lượng, định dạng và quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-006
+    title: Khả năng tiếp nhận âm thanh, video hoặc tài liệu theo nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-007
+    title: Phân biệt hiểu nội dung ảnh với sinh ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-008
+    title: Đọc kết quả chứa văn bản hoặc dữ liệu phương tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multimodal-009
+    title: Giới hạn ngữ cảnh, độ tin cậy và quyền riêng tư của dữ liệu đa phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: image-generation
+  title: Sinh ảnh
+  childs:
+  - slug: image-generation-001
+    title: ImageModel và phạm vi tác vụ sinh ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-generation-002
+    title: ImagePrompt và cách diễn đạt yêu cầu hình ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-generation-003
+    title: Tùy chọn số lượng, kích thước, chất lượng và định dạng khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-generation-004
+    title: Gọi mô hình và đọc ImageResponse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-generation-005
+    title: Nhận ảnh bằng URL hoặc dữ liệu mã hóa theo nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-generation-006
+    title: Lưu trữ kết quả, thời hạn URL và quản lý dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-generation-007
+    title: Xử lý lỗi, nội dung bị từ chối và giới hạn tính di động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: audio
+  title: Âm thanh
+  childs:
+  - slug: audio-001
+    title: Phân biệt nhận dạng lời nói, tổng hợp giọng nói và hội thoại âm thanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-002
+    title: Chuẩn bị Resource âm thanh và kiểm tra định dạng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-003
+    title: Chuyển lời nói thành văn bản bằng Transcription API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-004
+    title: Tùy chọn ngôn ngữ, định dạng kết quả và metadata khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-005
+    title: Chuyển văn bản thành giọng nói bằng Speech API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-006
+    title: Chọn giọng đọc, định dạng và tốc độ khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-007
+    title: Nhận và lưu dữ liệu âm thanh hoặc xử lý theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-008
+    title: Kết hợp nhận dạng, xử lý bằng LLM và tổng hợp giọng nói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: audio-009
+    title: Giới hạn dung lượng, độ trễ và quyền riêng tư của dữ liệu âm thanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: moderation
+  title: Kiểm duyệt
+  childs:
+  - slug: moderation-001
+    title: Vai trò và giới hạn của mô hình kiểm duyệt nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderation-002
+    title: Gửi nội dung kiểm tra qua tích hợp Moderation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderation-003
+    title: Đọc nhãn, cờ cảnh báo và điểm phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderation-004
+    title: Xây dựng chính sách xử lý kết quả kiểm duyệt trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderation-005
+    title: Kiểm tra trước khi gọi mô hình và trước khi công bố kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderation-006
+    title: Xử lý nhận diện sai, dịch vụ không khả dụng và yêu cầu xem xét lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extension-points
+  title: Điểm mở rộng
+  childs:
+  - slug: extension-points-001
+    title: Advisor và vị trí can thiệp vào luồng ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-002
+    title: Phân biệt Advisor với lớp dịch vụ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-003
+    title: Bộ nhớ hội thoại và giới hạn của ChatClient không lưu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-004
+    title: EmbeddingModel, Document và VectorStore trong hệ sinh thái Spring AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-005
+    title: Bổ sung dữ liệu truy xuất bằng RAG ở mức kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-006
+    title: Gọi công cụ và trách nhiệm thực thi của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-007
+    title: MCP và quan hệ với công cụ, mô hình, ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-008
+    title: Phân biệt phản hồi có cấu trúc với yêu cầu gọi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-009
+    title: Ranh giới chuyển sang các chuyên đề Memory, Advisors, RAG, Tool Calling và MCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-models
+  title: Nhiều mô hình
+  childs:
+  - slug: multiple-models-001
+    title: Khi nào cần nhiều ChatModel trong cùng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-models-002
+    title: Đặt tên bean và phân giải bằng Qualifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-models-003
+    title: Xây dựng ChatClient riêng cho từng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-models-004
+    title: Chọn mô hình theo tác vụ, khả năng và ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-models-005
+    title: Định tuyến bằng quy tắc ứng dụng có thể kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-models-006
+    title: Dự phòng giữa các mô hình và điều kiện cho phép chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-models-007
+    title: Chuẩn hóa đầu ra và kiểm thử khác biệt giữa nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-models-008
+    title: Giới hạn chia sẻ ngữ cảnh, cấu hình và dữ liệu giữa các mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Thiết kế lớp dịch vụ AI và hợp đồng đầu vào, đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Xây dựng tác vụ CLI, lịch chạy hoặc xử lý nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Tích hợp HTTP đồng bộ khi phù hợp với nhu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Tích hợp HTTP theo luồng và hợp đồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Kiểm tra đầu vào và ánh xạ lỗi sang phản hồi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Xử lý tác vụ dài bằng công việc nền và trạng thái rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Kết hợp nhiều lời gọi theo chuỗi hoặc song song có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Quản lý ranh giới giao dịch cơ sở dữ liệu khi gọi dịch vụ AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Kiểm chứng kết quả trước khi lưu dữ liệu hoặc thực hiện hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Phân loại lỗi cấu hình, xác thực, kết nối, mô hình và chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Phân biệt lỗi có thể thử lại với lỗi cần sửa yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: Xử lý giới hạn tốc độ, hết hạn mức và dịch vụ tạm gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Cấu hình thời gian chờ kết nối, đọc dữ liệu và toàn tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Retry, giãn cách tăng dần và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Tránh thử lại chồng chéo giữa thư viện và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Nguy cơ tính phí lặp và tác dụng phụ khi thực hiện lại tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Circuit breaker, giới hạn đồng thời và cơ chế dự phòng ở lớp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Xử lý yêu cầu vượt cửa sổ ngữ cảnh hoặc đầu ra bị cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Thiết kế thông báo lỗi hữu ích và che thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Quản lý bí mật và nguyên tắc cấp quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Xác thực người dùng và phân quyền tác vụ AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Phân biệt chỉ dẫn đáng tin cậy với dữ liệu do người dùng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Prompt injection và giới hạn của chỉ dẫn phòng vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Giảm dữ liệu cá nhân, thông tin mật và dữ liệu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Kiểm tra đầu ra trước khi hiển thị HTML, chạy lệnh hoặc tạo truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Kiểm soát URL và tệp phương tiện để giảm nguy cơ SSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Cách ly dữ liệu và ngữ cảnh giữa người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Chính sách lưu trữ dữ liệu và khu vực xử lý của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Giới hạn yêu cầu, token và chi phí để chống lạm dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Phân rã độ trễ theo chuẩn bị dữ liệu, kết nối và suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo thời gian phản hồi đầu tiên và thời gian hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Giảm độ dài chỉ dẫn, ngữ cảnh và đầu ra có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chọn mô hình theo chất lượng và yêu cầu thời gian đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Giới hạn đồng thời và điều tiết lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tái sử dụng tài nguyên kết nối và tránh tạo client trong từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Điều kiện áp dụng bộ nhớ đệm và rủi ro lộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Tính chi phí từ mức sử dụng thực tế và biểu giá của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đặt ngân sách, hạn mức và ngưỡng cảnh báo cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Đánh giá hiệu năng với tải thực tế và dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Tách kiểm thử mã tích hợp khỏi đánh giá chất lượng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử đơn vị lớp dịch vụ bằng ChatModel giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm tra vai trò, thứ tự thông điệp và tham số của Prompt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử PromptTemplate với dữ liệu thiếu và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử ánh xạ đối tượng và dữ liệu có cấu trúc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử streaming với phần dữ liệu rỗng, lỗi và hủy luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử giới hạn thời gian, thử lại và dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử tích hợp với nhà cung cấp thật hoặc mô hình cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Thiết kế bộ tình huống và tiêu chí chấp nhận cho kết quả xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Quản lý bí mật, chi phí và điều kiện chạy kiểm thử trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Kiểm tra dependency, bean và báo cáo tự động cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-002
+    title: Chẩn đoán sai API key, địa chỉ dịch vụ hoặc tên mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-003
+    title: Chẩn đoán Prompt sai, biến mẫu chưa được thay và mất ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-004
+    title: Chẩn đoán kết quả rỗng, đầu ra bị cắt và chuyển đổi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-005
+    title: Chẩn đoán streaming bị dồn dữ liệu hoặc ngắt giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-006
+    title: Theo dõi mã yêu cầu, thời gian xử lý và mức sử dụng token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-007
+    title: Ghi log có chọn lọc và che nội dung nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-008
+    title: Phân biệt log kỹ thuật cơ bản với chuyên đề Observability và Evaluation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Chuẩn bị cấu hình và bí mật cho từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Kiểm tra khả năng truy cập dịch vụ và yêu cầu mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Thiết lập hạn mức, thời gian chờ và giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Tách trạng thái sẵn sàng của ứng dụng khỏi sức khỏe nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Quản lý phiên bản mô hình và phiên bản mẫu chỉ dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Nâng cấp Spring AI và kiểm tra tương thích API, cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Triển khai thay đổi mô hình có kiểm soát và phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Kiểm tra chất lượng, chi phí và lỗi sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Ứng dụng hỏi đáp không lưu hội thoại bằng ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Tóm tắt văn bản với chỉ dẫn về độ dài và ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Phân loại nội dung và kiểm tra tập nhãn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Trích xuất dữ liệu thành Java record có kiểm tra nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Hội thoại nhiều lượt với danh sách Message tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Trả kết quả theo Server-Sent Events và xử lý hủy yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Hỏi đáp về ảnh với kiểm tra tệp đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Chuyển đổi giữa mô hình cục bộ và nhà cung cấp từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Ứng dụng tổng hợp với giới hạn token, phục hồi lỗi và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

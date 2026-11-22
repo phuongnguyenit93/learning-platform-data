@@ -1,0 +1,317 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phát triển hướng mô hình (MDD) là gì và giải quyết vấn đề nào
+  - Mô hình như đầu vào có thể xử lý tự động trong phát triển phần mềm
+  - Quan hệ giữa phát triển có sử dụng mô hình, MDD, MDE và MDA
+  - Phân biệt mô hình thiết kế, sơ đồ minh họa và mô hình có thể thực thi
+  - Vai trò của mô hình, siêu mô hình, phép biến đổi và bộ sinh mã
+  - Luồng từ yêu cầu đến mô hình, mã nguồn và phần mềm chạy được
+  - Lợi ích kỳ vọng và điều kiện để tự động hóa mang lại giá trị
+  - Phạm vi áp dụng và giới hạn của cách tiếp cận hướng mô hình
+  - Kiến thức tiên quyết và trình tự học MDD
+- level1: Cơ sở mô hình
+  level2:
+  - Mô hình, hệ thống được mô hình hóa và mục đích biểu diễn
+  - Trừu tượng hóa, mức chi tiết và phạm vi mô hình
+  - Phần tử, thuộc tính, quan hệ và định danh trong mô hình
+  - Mô hình cấu trúc, hành vi và dữ liệu
+  - Góc nhìn, khung nhìn và các mối quan tâm của bên liên quan
+  - Cú pháp trừu tượng, cú pháp cụ thể và ngữ nghĩa
+  - Phân biệt tính hợp lệ cú pháp với tính đúng đắn nghiệp vụ
+  - Quan hệ tuân thủ siêu mô hình và quan hệ biểu diễn hệ thống
+  - Nguồn dữ liệu chuẩn và quyền sở hữu từng loại mô hình
+  - Phân biệt mô hình, thể hiện của mô hình và hệ thống đang chạy
+- level1: Quy trình
+  level2:
+  - Các đầu vào, đầu ra và vai trò trong một quy trình MDD
+  - Khảo sát miền và xác định phạm vi tự động hóa
+  - Lựa chọn mức trừu tượng và sản phẩm kỹ thuật cần mô hình hóa
+  - Xây dựng ngôn ngữ, quy tắc hợp lệ và công cụ hỗ trợ
+  - Tạo và rà soát mô hình cùng chuyên gia miền
+  - Biến đổi mô hình, sinh mã và tích hợp phần viết tay
+  - Kiểm chứng mô hình và kiểm thử phần mềm được tạo ra
+  - Phản hồi từ thực thi và cập nhật mô hình nguồn
+  - Tổ chức phát triển lặp, tăng trưởng và giao hàng từng phần
+  - Điều kiện hoàn thành và cổng chất lượng ở từng giai đoạn
+- level1: Siêu mô hình
+  level2:
+  - Siêu mô hình (metamodel) và vai trò định nghĩa ngôn ngữ
+  - Các tầng M0, M1, M2, M3 và ví dụ xuyên suốt
+  - Phân biệt quan hệ thể hiện, kế thừa và tuân thủ siêu mô hình
+  - Lớp, kiểu dữ liệu, thuộc tính và tham chiếu
+  - Bội số, tính bắt buộc, tính duy nhất và thứ tự
+  - Quan hệ chứa, tham chiếu chéo và quản lý vòng đời phần tử
+  - Ràng buộc cấu trúc và ràng buộc ngữ nghĩa
+  - Meta Object Facility (MOF), EMOF và CMOF ở mức nền tảng
+  - Ecore và quan hệ với hệ sinh thái mô hình hóa EMF
+  - Thiết kế siêu mô hình nhỏ, nhất quán và có khả năng mở rộng
+- level1: Ngôn ngữ mô hình
+  level2:
+  - Ngôn ngữ đa dụng và ngôn ngữ chuyên biệt miền (DSL)
+  - Xác định người sử dụng, từ vựng và ranh giới của DSL
+  - Lựa chọn ký pháp văn bản, đồ họa hoặc kết hợp
+  - Thiết kế cú pháp trừu tượng trước các cách trình bày
+  - Ngữ pháp, phân tích cú pháp và cây cú pháp trừu tượng
+  - Phân giải tên, phạm vi và liên kết tham chiếu
+  - Định nghĩa ngữ nghĩa bằng ánh xạ, diễn giải hoặc thực thi
+  - Thông báo lỗi, gợi ý sửa và trải nghiệm soạn thảo
+  - Mở rộng, kết hợp và tái sử dụng ngôn ngữ
+  - Trao đổi mô hình và giới hạn tương tác giữa các công cụ
+- level1: UML và Profile
+  level2:
+  - Vai trò của UML trong một quy trình hướng mô hình
+  - Mô hình lớp và quan hệ cho cấu trúc miền
+  - Mô hình hoạt động và máy trạng thái cho hành vi
+  - Mô hình tương tác và các kịch bản phối hợp
+  - Gói, thành phần và triển khai trong các góc nhìn kiến trúc
+  - Profile, stereotype, tagged value và ràng buộc mở rộng
+  - Lựa chọn UML Profile hoặc một siêu mô hình chuyên biệt
+  - Quy ước mô hình đủ chính xác để biến đổi và sinh mã
+  - Giới hạn của sơ đồ UML khi thiếu ngữ nghĩa hoặc quy tắc ánh xạ
+- level1: OCL
+  level2:
+  - Object Constraint Language và nhu cầu ràng buộc mô hình
+  - Ngữ cảnh biểu thức, self và điều hướng quan hệ
+  - Kiểu cơ bản, phép toán và biểu thức điều kiện
+  - Set, Bag, Sequence và OrderedSet
+  - Truy vấn tập hợp bằng select, collect, exists và forAll
+  - Bất biến, tiền điều kiện và hậu điều kiện
+  - Thuộc tính dẫn xuất và phép truy vấn không gây tác dụng phụ
+  - Phân biệt null, invalid và xử lý biểu thức không xác định
+  - Kiểm tra ràng buộc và gắn lỗi với phần tử liên quan
+  - Tổ chức, tái sử dụng và kiểm thử bộ ràng buộc
+- level1: MDA
+  level2:
+  - Model Driven Architecture và vai trò của OMG
+  - Quan điểm độc lập tính toán và mô hình CIM
+  - Quan điểm độc lập nền tảng và mô hình PIM
+  - Quan điểm đặc thù nền tảng và mô hình PSM
+  - Mô hình nền tảng và tham số hóa các quyết định kỹ thuật
+  - Ánh xạ từ yêu cầu nghiệp vụ đến thiết kế và hiện thực
+  - Chuỗi biến đổi từ PIM sang PSM và từ PSM sang mã
+  - Tính tương đối của độc lập nền tảng theo phạm vi lựa chọn
+  - Phân biệt các quan điểm CIM, PIM, PSM với các tầng M0 đến M3
+  - Áp dụng nguyên tắc MDA trong phạm vi phù hợp của dự án
+- level1: Yêu cầu và miền
+  level2:
+  - Thu thập khái niệm, quy tắc và thuật ngữ nghiệp vụ
+  - Xác định ranh giới hệ thống và các bên liên quan
+  - Biểu diễn mục tiêu, kịch bản và quy trình nghiệp vụ
+  - Mô hình hóa dữ liệu, trạng thái và vòng đời đối tượng
+  - Chuyển quy tắc nghiệp vụ thành ràng buộc có thể kiểm tra
+  - Phân biệt kiến thức miền với quyết định triển khai
+  - Liên kết yêu cầu với phần tử mô hình và tiêu chí chấp nhận
+  - Rà soát mô hình với chuyên gia miền bằng ví dụ cụ thể
+- level1: Kiến trúc
+  level2:
+  - Chuyển mối quan tâm kiến trúc thành các góc nhìn mô hình
+  - Mô hình hóa thành phần, giao diện và quan hệ phụ thuộc
+  - Biểu diễn hợp đồng, dữ liệu trao đổi và hành vi phối hợp
+  - Phân bổ trách nhiệm và ranh giới giữa các thành phần
+  - Đưa yêu cầu phi chức năng vào mô hình và quyết định thiết kế
+  - Ánh xạ mô hình sang công nghệ lưu trữ, giao tiếp và triển khai
+  - Tái sử dụng mẫu kiến trúc trong quy tắc biến đổi
+  - Tách mô hình nghiệp vụ khỏi mô hình nền tảng
+  - Ghi nhận quyết định thiết kế và giới hạn của bộ sinh mã
+- level1: Biến đổi mô hình
+  level2:
+  - Phép biến đổi và hợp đồng giữa mô hình nguồn, mô hình đích
+  - Biến đổi mô hình sang mô hình (M2M)
+  - Biến đổi mô hình sang văn bản (M2T) và văn bản sang mô hình (T2M)
+  - Biến đổi nội sinh, ngoại sinh và mức trừu tượng ngang, dọc
+  - Biến đổi tại chỗ và tạo mô hình đích riêng
+  - Luật ánh xạ, điều kiện khớp và cách tạo phần tử đích
+  - Truy vấn, điều hướng và phân giải quan hệ nguồn, đích
+  - Xung đột luật, thứ tự áp dụng và tính kết thúc
+  - Tiền điều kiện, hậu điều kiện và bảo toàn ràng buộc
+  - Kết hợp nhiều phép biến đổi thành một chuỗi có kiểm soát
+  - Xử lý lỗi, kết quả trung gian và chẩn đoán phép biến đổi
+- level1: Ngôn ngữ biến đổi
+  level2:
+  - Cách tiếp cận khai báo, mệnh lệnh và kết hợp
+  - QVT và các ngôn ngữ Relations, Core, Operational
+  - ATL và cấu trúc một mô-đun biến đổi
+  - Luật ánh xạ và hàm hỗ trợ trong ATL
+  - Biến đổi dựa trên đồ thị và quy tắc viết lại
+  - MOFM2T và cách tiếp cận mẫu sinh văn bản
+  - Truy vấn và kiểm tra mô hình trong hệ sinh thái Epsilon
+  - Lựa chọn ngôn ngữ theo yêu cầu, khả năng kiểm thử và công cụ
+  - Khả năng di chuyển và chi phí phụ thuộc ngôn ngữ biến đổi
+- level1: Sinh mã
+  level2:
+  - Vai trò và ranh giới trách nhiệm của bộ sinh mã
+  - Thiết kế mô hình đầu vào và hợp đồng đầu ra
+  - Tổ chức mẫu, hàm hỗ trợ và thư viện dùng chung
+  - Sinh nhiều tệp với đường dẫn, tên và cấu trúc nhất quán
+  - Ánh xạ kiểu, quan hệ, ràng buộc và hành vi sang mã
+  - Sinh cấu hình, tài liệu, kiểm thử và mã nguồn từ cùng mô hình
+  - Tách mã sinh tự động khỏi phần mở rộng viết tay
+  - So sánh vùng bảo vệ, kế thừa, ủy quyền và điểm mở rộng
+  - Tái sinh an toàn khi đổi tên, xóa hoặc di chuyển phần tử
+  - Định dạng, thứ tự ổn định và khả năng tái tạo đầu ra
+  - Kiểm soát dữ liệu chèn vào mẫu, đường dẫn và mã được sinh
+  - Biên dịch và kiểm tra phần mềm sau khi sinh mã
+- level1: Thực thi mô hình
+  level2:
+  - Phân biệt mô phỏng, diễn giải mô hình và sinh mã thực thi
+  - Điều kiện để một mô hình có ngữ nghĩa thực thi xác định
+  - Thực thi máy trạng thái, hoạt động và luồng công việc
+  - Ngữ cảnh thực thi, sự kiện, dữ liệu và trạng thái
+  - Tích hợp mô hình thực thi với thư viện và dịch vụ bên ngoài
+  - Quan sát, đặt điểm dừng và chẩn đoán ở mức mô hình
+  - Mô hình tại thời gian chạy và đồng bộ với hệ thống thực
+  - Đánh đổi hiệu năng, tính linh hoạt và khả năng triển khai
+- level1: Đồng bộ
+  level2:
+  - Phát triển xuôi, kỹ nghệ ngược và đồng bộ hai chiều
+  - Nguồn dữ liệu chuẩn và hướng lan truyền thay đổi
+  - Điều kiện để ánh xạ có thể đảo ngược
+  - Mất thông tin và các quan hệ không thể khôi phục duy nhất
+  - Phát hiện xung đột khi mô hình và mã cùng thay đổi
+  - Quy tắc hợp nhất và vai trò của người giải quyết xung đột
+  - Biến đổi hai chiều, quan hệ nhất quán và tính chất cần kiểm tra
+  - Cập nhật gia tăng và giới hạn phạm vi tính toán lại
+  - Lựa chọn tái sinh một chiều hoặc đồng bộ theo nhu cầu thực tế
+- level1: Truy vết
+  level2:
+  - Mục tiêu truy vết từ yêu cầu đến mô hình, mã và kiểm thử
+  - Định danh ổn định cho phần tử và liên kết truy vết
+  - Truy vết do người tạo và truy vết do công cụ sinh
+  - Quan hệ một-một, một-nhiều và nhiều-nhiều
+  - Lưu lịch sử luật biến đổi và nguồn gốc đầu ra
+  - Phân tích ảnh hưởng khi yêu cầu hoặc mô hình thay đổi
+  - Phát hiện liên kết đứt, kết quả lỗi thời và phần tử không được bao phủ
+  - Sử dụng truy vết cho rà soát, chẩn đoán và kiểm toán
+- level1: Chất lượng
+  level2:
+  - Tiêu chí cú pháp, ngữ nghĩa, tính nhất quán và khả năng sử dụng
+  - Kiểm tra tuân thủ siêu mô hình và ràng buộc
+  - Phân biệt kiểm chứng mô hình với xác nhận đúng nhu cầu
+  - Phát hiện mâu thuẫn giữa các góc nhìn
+  - Đánh giá độ đầy đủ theo mục tiêu và phạm vi mô hình
+  - Mô phỏng hành vi bằng kịch bản và dữ liệu đại diện
+  - Kiểm chứng hình thức và kiểm tra mô hình khi có ngữ nghĩa phù hợp
+  - Giới hạn của kiểm chứng với trạng thái hữu hạn và bài toán bùng nổ trạng thái
+  - Rà soát thủ công và kết hợp kiểm tra tự động
+  - Phân loại mức độ lỗi và thiết lập cổng chất lượng
+- level1: Kiểm thử
+  level2:
+  - Các lớp kiểm thử cho ngôn ngữ, mô hình, phép biến đổi và mã sinh
+  - Tạo mô hình đầu vào tối thiểu và bộ dữ liệu kiểm thử
+  - Kiểm thử cú pháp, liên kết tham chiếu và ràng buộc
+  - Kiểm thử đơn vị luật biến đổi và mẫu sinh mã
+  - Kiểm tra đầu ra mong đợi bằng mô hình hoặc tệp chuẩn
+  - So sánh ngữ nghĩa khi biểu diễn hoặc thứ tự tệp thay đổi
+  - Kiểm thử thuộc tính và sinh tự động mô hình hợp lệ
+  - Kiểm thử dữ liệu không hợp lệ và thông báo lỗi
+  - Kiểm thử hồi quy, tính lặp lại và các phép biến đổi kết hợp
+  - Kiểm thử dựa trên mô hình và quan hệ với MDD
+  - Kiểm thử tích hợp, nghiệm thu và hành vi của phần mềm được tạo
+- level1: Quản lý cấu hình
+  level2:
+  - 'Xác định đơn vị quản lý: mô hình, siêu mô hình, luật và mẫu'
+  - Quản lý phiên bản của toàn bộ chuỗi tạo sản phẩm
+  - Lựa chọn định dạng lưu trữ và phân chia tệp mô hình
+  - Định danh, tham chiếu chéo và tính ổn định khi di chuyển tệp
+  - So sánh mô hình theo cấu trúc và ngữ nghĩa
+  - Phân nhánh, làm việc đồng thời và hợp nhất thay đổi
+  - Nhận diện xung đột vượt quá khác biệt văn bản
+  - Thiết lập đường cơ sở và cấu hình tương thích
+  - Chính sách đưa mã sinh vào kho mã nguồn
+  - Quản lý quyền truy cập, sao lưu và phục hồi kho mô hình
+- level1: Tiến hóa
+  level2:
+  - Thay đổi yêu cầu và phân tích ảnh hưởng qua chuỗi mô hình
+  - Phân loại thay đổi tương thích và không tương thích
+  - Tiến hóa siêu mô hình và di trú mô hình hiện có
+  - Tiến hóa ngôn ngữ, cú pháp và ràng buộc
+  - Cập nhật luật biến đổi, mẫu sinh và mã mở rộng
+  - Duy trì định danh và liên kết truy vết sau di trú
+  - Chuyển đổi dữ liệu đang lưu khi cấu trúc phần mềm thay đổi
+  - Kiểm tra tương thích giữa các phiên bản công cụ và mô hình
+  - Đánh giá kết quả di trú, phục hồi và phương án quay lui
+  - Kiểm soát nợ kỹ thuật trong mô hình và bộ sinh mã
+- level1: Chuỗi công cụ
+  level2:
+  - Thành phần của một môi trường phát triển hướng mô hình
+  - EMF, Ecore và các đối tượng mô hình
+  - Resource, ResourceSet và nạp, lưu mô hình
+  - XMI, URI và phân giải tham chiếu
+  - GenModel và sinh hạ tầng Java từ Ecore
+  - Xtext cho DSL văn bản và công cụ soạn thảo
+  - Sirius cho các khung nhìn và trình biên tập đồ họa
+  - ATL, QVT, Epsilon và lựa chọn công cụ biến đổi
+  - Acceleo và công cụ sinh văn bản từ mô hình
+  - EMF Compare và công cụ hỗ trợ so sánh, hợp nhất
+  - Kết nối công cụ bằng API, định dạng trao đổi và chạy không giao diện
+- level1: CI/CD
+  level2:
+  - Xây dựng chuỗi kiểm tra, biến đổi, sinh mã và đóng gói
+  - Khai báo quan hệ phụ thuộc và thứ tự các bước
+  - Cố định phiên bản công cụ, thư viện và môi trường thực thi
+  - Tái tạo đầu ra từ bản dựng sạch
+  - Phát hiện mã sinh lệch với mô hình nguồn
+  - Lưu báo cáo lỗi, liên kết truy vết và sản phẩm trung gian
+  - Kiểm thử mô hình và mã sinh trong pipeline
+  - Giới hạn thời gian, tài nguyên và tối ưu xử lý gia tăng
+  - Quản lý bí mật, giấy phép và nguồn gốc thành phần công cụ
+  - Phát hành mô hình, bộ sinh và phần mềm với cấu hình tương thích
+- level1: Biến thể sản phẩm
+  level2:
+  - Miền sản phẩm và nhu cầu tái sử dụng có hệ thống
+  - Mô hình đặc trưng và điểm biến thiên
+  - Ràng buộc lựa chọn và tính hợp lệ của cấu hình sản phẩm
+  - Phân biệt xây dựng nền tảng miền với tạo ứng dụng cụ thể
+  - Biến thể ở mức mô hình, luật biến đổi và mẫu sinh
+  - Quản lý phần dùng chung và phần riêng của từng sản phẩm
+  - Kiểm thử tổ hợp biến thể và kiểm soát bùng nổ cấu hình
+  - Tiến hóa nền tảng mà vẫn duy trì các sản phẩm hiện có
+- level1: Hệ thống hiện hữu
+  level2:
+  - Đánh giá kiến trúc, dữ liệu và tài liệu của hệ thống hiện hữu
+  - Trích xuất mô hình từ mã nguồn, cấu hình hoặc lược đồ dữ liệu
+  - Chuẩn hóa và làm giàu mô hình sau kỹ nghệ ngược
+  - Giới hạn khôi phục ý định thiết kế từ hiện thực
+  - Đối chiếu mô hình khôi phục với hành vi thực tế
+  - Áp dụng MDD từng phần quanh các ranh giới ổn định
+  - Hiện đại hóa qua mô hình trung gian và ánh xạ nền tảng
+  - Duy trì khả năng tương tác và kiểm thử hồi quy trong chuyển đổi
+- level1: Tổ chức áp dụng
+  level2:
+  - Vai trò của chuyên gia miền, người mô hình hóa và kỹ sư công cụ
+  - Phân định trách nhiệm giữa nhóm nền tảng và nhóm sản phẩm
+  - Lựa chọn bài toán thí điểm và tiêu chí thành công
+  - Ước lượng công sức xây dựng ngôn ngữ và chuỗi công cụ
+  - Tổ chức backlog, rà soát và giao hàng theo từng lát chức năng
+  - Phối hợp MDD với Agile, DevOps và thực hành kiểm thử
+  - Đào tạo, hướng dẫn sử dụng và hỗ trợ người soạn mô hình
+  - Quản trị tiêu chuẩn, thay đổi và quyền sở hữu sản phẩm kỹ thuật
+  - Đo thời gian phát triển, lỗi, khả năng tái sử dụng và chi phí bảo trì
+  - Mở rộng áp dụng dựa trên kết quả thí điểm và phản hồi thực tế
+- level1: Đánh đổi
+  level2:
+  - Đặc điểm bài toán phù hợp và dấu hiệu nên giới hạn MDD
+  - Chi phí đầu tư ban đầu và điểm hòa vốn của tự động hóa
+  - Mức trừu tượng quá cao, quá thấp và tình trạng mô hình dư thừa
+  - Nguy cơ mô hình tách rời thực tế và tài liệu nhanh lỗi thời
+  - Độ phức tạp chuyển từ mã ứng dụng sang siêu mô hình và bộ sinh
+  - Chất lượng mã sinh và khả năng đọc, sửa, chẩn đoán
+  - Hiệu năng xử lý mô hình lớn và giới hạn mở rộng
+  - Phụ thuộc nhà cung cấp, định dạng đóng và chiến lược chuyển công cụ
+  - So sánh MDD với thư viện, khung ứng dụng, cấu hình và low-code
+  - Tránh kỳ vọng sinh toàn bộ hệ thống khi miền chưa được hiểu rõ
+- level1: Thực hành
+  level2:
+  - Xác định phạm vi một hệ thống quản lý đơn hàng dùng làm ví dụ
+  - Xây dựng từ vựng miền, yêu cầu và kịch bản chấp nhận
+  - Thiết kế siêu mô hình cho thực thể, thuộc tính và quan hệ
+  - Định nghĩa DSL và tạo các mô hình mẫu
+  - Bổ sung ràng buộc cho định danh, kiểu và quan hệ nghiệp vụ
+  - Biến đổi mô hình miền sang mô hình triển khai Java
+  - Sinh mã Java và tích hợp xử lý nghiệp vụ viết tay
+  - Kiểm thử luật biến đổi, mã sinh và hành vi ứng dụng
+  - Theo dõi truy vết từ yêu cầu đến phần tử và mã tương ứng
+  - Thay đổi siêu mô hình, di trú dữ liệu và tái sinh an toàn
+  - Đưa chuỗi xử lý vào CI và kiểm tra khả năng tái tạo
+  - Tổng kết chi phí, giới hạn tự động hóa và quyết định mở rộng

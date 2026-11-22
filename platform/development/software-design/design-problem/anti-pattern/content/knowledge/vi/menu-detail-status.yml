@@ -1,0 +1,2434 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Phản mẫu thiết kế (anti-pattern) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao một cách giải quyết quen thuộc có thể tạo hậu quả xấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt phản mẫu, lỗi lập trình, dấu hiệu mã có vấn đề và nợ kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Quan hệ giữa phản mẫu, mẫu thiết kế và nguyên lý thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Bối cảnh, động lực, hậu quả và hướng cải tiến của một phản mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phản mẫu ở cấp hàm, lớp, mô-đun và kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vì sao không thể kết luận thiết kế xấu chỉ từ tên kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học từ triệu chứng đến bằng chứng và cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-diagnostics
+  title: Chẩn đoán thiết kế
+  childs:
+  - slug: design-diagnostics-001
+    title: Nhận diện khó khăn khi đọc, kiểm thử và thay đổi phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-002
+    title: Tìm nguyên nhân gốc thay vì chỉ xử lý triệu chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-003
+    title: Đọc lịch sử thay đổi và những phần thường phải sửa cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-004
+    title: Quan sát đồ thị phụ thuộc, vòng phụ thuộc và điểm tập trung thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-005
+    title: Đánh giá kết dính, liên kết và khả năng che giấu thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-006
+    title: Dùng độ phức tạp, kích thước và độ trùng lặp làm tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-007
+    title: Giới hạn của công cụ phân tích tĩnh và ngưỡng đo tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-008
+    title: Phân biệt thiết kế có chủ ý với cấu trúc hình thành do tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-diagnostics-009
+    title: Ghi nhận bằng chứng cùng tình huống phản chứng trước khi đề xuất sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responsibility-separation
+  title: Phân chia trách nhiệm
+  childs:
+  - slug: responsibility-separation-001
+    title: Lớp ôm quá nhiều trách nhiệm (God Object hoặc Blob)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-002
+    title: Dịch vụ tổng hợp mọi nghiệp vụ và khó xác định ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-003
+    title: Hàm làm quá nhiều việc và trộn nhiều mức trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-004
+    title: Một lớp phải đổi vì nhiều nguyên nhân (Divergent Change)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-005
+    title: Một thay đổi nhỏ lan qua nhiều nơi (Shotgun Surgery)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-006
+    title: Hành vi phụ thuộc quá nhiều dữ liệu của lớp khác (Feature Envy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-007
+    title: Lớp chỉ chuyển tiếp và thành phần trung gian không có vai trò rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-008
+    title: Đối tượng tồn tại ngắn chỉ để điều phối vụn vặt (Poltergeists)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-separation-009
+    title: Tách trách nhiệm theo lý do thay đổi và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependencies-coupling
+  title: Phụ thuộc và liên kết
+  childs:
+  - slug: dependencies-coupling-001
+    title: Vòng phụ thuộc giữa lớp, package hoặc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-002
+    title: Hai lớp biết quá sâu chi tiết nội bộ của nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-003
+    title: Chuỗi truy cập xuyên nhiều đối tượng (Message Chains)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-004
+    title: Phụ thuộc vào cấu trúc dữ liệu thay vì hợp đồng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-005
+    title: Phụ thuộc ẩn qua biến toàn cục, cấu hình và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-006
+    title: Lan truyền kiểu dữ liệu của thư viện ra toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-007
+    title: Gọi ngược tầng và phụ thuộc sai hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-008
+    title: Dùng interface nhưng vẫn buộc chặt vào một triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-coupling-009
+    title: Giảm liên kết bằng ranh giới cùng hợp đồng ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: abstraction
+  title: Trừu tượng hóa
+  childs:
+  - slug: abstraction-001
+    title: Trừu tượng hóa quá sớm khi chưa có biến thể thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-002
+    title: Khái quát hóa cho nhu cầu chưa xuất hiện (Speculative Generality)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-003
+    title: Trừu tượng sai làm nhiều trường hợp phải dùng ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-004
+    title: Chi tiết triển khai rò rỉ qua lớp trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-005
+    title: Gộp các đoạn mã giống hình thức nhưng khác lý do thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-006
+    title: Hệ thống cấu hình tổng quát hơn nhu cầu sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-007
+    title: Cờ và nhánh điều kiện tăng dần bên trong một lớp trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-008
+    title: Quá nhiều lớp bọc che khuất luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-009
+    title: Chọn thời điểm tách hoặc hợp nhất trừu tượng bằng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inheritance-polymorphism
+  title: Kế thừa và đa hình
+  childs:
+  - slug: inheritance-polymorphism-001
+    title: Dùng kế thừa chỉ để tái sử dụng vài dòng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-002
+    title: Quan hệ kế thừa không phản ánh khả năng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-003
+    title: Lớp con phải vô hiệu hóa hành vi của lớp cha (Refused Bequest)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-004
+    title: Lớp cha thay đổi làm lớp con hỏng ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-005
+    title: Hệ phân cấp sâu và khó xác định hành vi hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-006
+    title: Interface lớn buộc triển khai nhiều phương thức không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-007
+    title: Phân nhánh theo kiểu thay cho hành vi đa hình thích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-008
+    title: Các hệ phân cấp phát triển song song và buộc sửa đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-009
+    title: Đánh giá chuyển từ kế thừa sang kết hợp hoặc ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-model
+  title: Mô hình miền
+  childs:
+  - slug: domain-model-001
+    title: Mô hình chỉ có dữ liệu còn nghiệp vụ nằm rải rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-002
+    title: Khi mô hình miền thiếu hành vi trở thành vấn đề (Anemic Domain Model)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-003
+    title: Phân biệt Transaction Script phù hợp với mô hình thiếu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-004
+    title: Dùng kiểu nguyên thủy thay cho khái niệm nghiệp vụ (Primitive Obsession)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-005
+    title: Nhóm dữ liệu luôn đi cùng nhau nhưng không có kiểu biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-006
+    title: Trộn DTO, entity lưu trữ và đối tượng miền thành một vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-007
+    title: Nhét quy tắc nghiệp vụ vào controller, mapper hoặc câu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-008
+    title: Mô hình dùng chung cho những ngữ cảnh có ý nghĩa khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-009
+    title: Quy tắc bất biến được kiểm tra ở nhiều nơi và dễ bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-010
+    title: Khôi phục ranh giới mô hình từ ngôn ngữ cùng quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-immutability
+  title: Trạng thái và bất biến
+  childs:
+  - slug: state-immutability-001
+    title: Trạng thái toàn cục gây phụ thuộc ẩn và khó cô lập kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-002
+    title: Singleton chứa dữ liệu thay đổi theo người dùng hoặc yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-003
+    title: Đối tượng được dùng trước khi hoàn tất khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-004
+    title: Phương thức phải gọi theo thứ tự ngầm định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-005
+    title: Getter làm lộ collection hoặc đối tượng có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-006
+    title: Setter cho phép đưa đối tượng vào trạng thái không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-007
+    title: Sao chép trạng thái ở nhiều nơi rồi đồng bộ bằng quy ước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-008
+    title: Biến tạm và cờ trạng thái khiến vòng đời đối tượng khó hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-009
+    title: Trộn dữ liệu của nhiều yêu cầu trong thành phần dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-immutability-010
+    title: Giảm trạng thái chia sẻ và biểu diễn chuyển trạng thái tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: control-flow
+  title: Luồng xử lý
+  childs:
+  - slug: control-flow-001
+    title: Mã đan chéo khó lần theo luồng điều khiển (Spaghetti Code)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-002
+    title: Sao chép mã làm quy tắc nghiệp vụ phát triển lệch nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-003
+    title: Hàm dài với nhiều nhánh và điều kiện lồng sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-004
+    title: Tham số cờ lựa chọn những hành vi không cùng trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-005
+    title: Magic number, chuỗi đặc biệt và quy ước ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-006
+    title: Dùng reflection hoặc mã sinh động khi luồng tĩnh đã đủ rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-007
+    title: Lập trình dựa vào hiện tượng quan sát mà chưa hiểu điều kiện đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-008
+    title: Ẩn tác dụng phụ trong hàm có vẻ chỉ đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-009
+    title: Phân biệt tối giản mã với làm rõ ý định và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-contracts
+  title: Hợp đồng API
+  childs:
+  - slug: api-contracts-001
+    title: API quá nhiều lời gọi nhỏ khiến bên dùng phải tự điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-002
+    title: API tổng quát nhận nhiều kiểu dữ liệu và cờ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-003
+    title: Trả null, sentinel hoặc mã lỗi với ý nghĩa không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-004
+    title: Hợp đồng không nêu điều kiện trước, kết quả và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-005
+    title: Để bên dùng phụ thuộc vào thứ tự trường hoặc chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-006
+    title: Thay đổi hành vi ngầm dù chữ ký phương thức không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-007
+    title: Làm lộ entity lưu trữ qua hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-008
+    title: Tham số dài và nhóm tham số dễ truyền nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-009
+    title: Đặt tên tương tự cho hành vi khác nhau hoặc ngược lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-010
+    title: Thiết kế hợp đồng theo nhu cầu bên dùng và tính tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-resources
+  title: Lỗi và tài nguyên
+  childs:
+  - slug: errors-resources-001
+    title: Nuốt ngoại lệ khiến hệ thống tiếp tục với trạng thái sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-002
+    title: Bắt ngoại lệ quá rộng và làm mất nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-003
+    title: Ghi log rồi ném tiếp ở mọi tầng gây nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-004
+    title: Dùng ngoại lệ cho luồng xử lý bình thường thiếu lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-005
+    title: Chuyển lỗi thành giá trị mặc định làm che giấu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-006
+    title: Mỗi tầng tự thử lại nhưng không có giới hạn chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-007
+    title: Quản lý kết nối, tệp và khóa không theo vòng đời rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-008
+    title: Đường xử lý lỗi bỏ quên giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-009
+    title: Trộn lỗi nghiệp vụ, lỗi đầu vào và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-resources-010
+    title: Xác định quyền sở hữu tài nguyên cùng trách nhiệm xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-design
+  title: Thiết kế đồng thời
+  childs:
+  - slug: concurrency-design-001
+    title: Chia sẻ trạng thái thay đổi mà không có mô hình đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-002
+    title: Dùng một khóa toàn cục cho những công việc độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-003
+    title: Giữ khóa trong khi gọi I/O hoặc dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-004
+    title: Khóa lồng nhau với thứ tự không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-005
+    title: Tạo luồng hoặc tác vụ không có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-006
+    title: Hàng đợi vô hạn che giấu quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-007
+    title: Chặn luồng trong mô hình xử lý không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-008
+    title: Giả định thao tác kiểm tra rồi cập nhật luôn nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-009
+    title: Không thiết kế cơ chế hủy và thời hạn cho công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-design-010
+    title: Chọn mô hình sở hữu dữ liệu và giới hạn đồng thời rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-access
+  title: Truy cập dữ liệu
+  childs:
+  - slug: data-access-001
+    title: Truy vấn N+1 hình thành từ cách duyệt đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-002
+    title: Gọi cơ sở dữ liệu lặp lại bên trong vòng lặp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-003
+    title: Tải toàn bộ dữ liệu khi chỉ cần một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-004
+    title: Giữ giao dịch quá lâu hoặc bao quanh lời gọi mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-005
+    title: Mỗi tầng tự ghi dữ liệu mà không có ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-006
+    title: Nhét nghiệp vụ không liên quan vào một repository tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-007
+    title: Lược đồ dạng thuộc tính tổng quát làm mất ràng buộc cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-008
+    title: Lưu danh sách hoặc quan hệ trong chuỗi để tránh mô hình hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-009
+    title: Dùng cơ sở dữ liệu làm điểm tích hợp khiến nhiều mô-đun phụ thuộc nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-010
+    title: Thiết kế thao tác dữ liệu theo bất biến và nhu cầu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: layered-architecture
+  title: Kiến trúc và tầng
+  childs:
+  - slug: layered-architecture-001
+    title: Kiến trúc chắp vá không có ranh giới rõ ràng (Big Ball of Mud)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-002
+    title: Tách tầng theo tên nhưng trách nhiệm vẫn trộn lẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-003
+    title: Luồng đi qua nhiều tầng chỉ chuyển tiếp (Architecture Sinkhole)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-004
+    title: Quá nhiều tầng khiến một thay đổi phải đi qua nhiều bản sao dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-005
+    title: Nghiệp vụ phụ thuộc trực tiếp giao diện hoặc công nghệ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-006
+    title: Mô-đun phân chia hình thức nhưng dùng chung chi tiết triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-007
+    title: Mỗi tính năng tự tạo cấu trúc riêng không có quy ước chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-008
+    title: Các hệ thống biệt lập khó tích hợp (Stovepipe Systems)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: layered-architecture-009
+    title: Chọn ranh giới theo khả năng thay đổi độc lập và yêu cầu chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-boundaries
+  title: Ranh giới dịch vụ
+  childs:
+  - slug: service-boundaries-001
+    title: Chia dịch vụ theo bảng dữ liệu hoặc lớp kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-002
+    title: Đơn khối phân tán (Distributed Monolith) và triển khai phụ thuộc nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-003
+    title: Dịch vụ quá nhỏ làm chi phí phối hợp lấn át giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-004
+    title: Một dịch vụ trung tâm ôm quá nhiều trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-005
+    title: Nhiều dịch vụ dùng chung lược đồ và tự sửa dữ liệu của nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-006
+    title: Thư viện dùng chung buộc các dịch vụ phát hành đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-007
+    title: Ranh giới dịch vụ không khớp quyền sở hữu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-008
+    title: Tách mạng trước khi tách liên kết trong mã và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-009
+    title: Đánh giá gộp hoặc tách dịch vụ bằng chi phí thay đổi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-communication
+  title: Giao tiếp phân tán
+  childs:
+  - slug: distributed-communication-001
+    title: Chuỗi gọi đồng bộ dài làm tăng độ trễ và lan truyền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-002
+    title: API hội thoại nhiều bước làm tăng số lượt trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-003
+    title: Không đặt timeout và chờ tài nguyên vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-004
+    title: Retry chồng tầng tạo bão yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-005
+    title: Thử lại thao tác có tác dụng phụ mà thiếu cơ chế chống lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-006
+    title: Quy trình nghiệp vụ phụ thuộc vào mọi dịch vụ cùng sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-007
+    title: Cấu hình fallback trả dữ liệu sai nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-008
+    title: Giả định mạng nội bộ luôn nhanh và tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-communication-009
+    title: Giới hạn phụ thuộc bằng thời hạn, cô lập và hợp đồng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: events-messaging
+  title: Sự kiện và thông điệp
+  childs:
+  - slug: events-messaging-001
+    title: Đặt tên sự kiện nhưng thực chất ra lệnh cho một bên nhận cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-002
+    title: Dùng sự kiện cho mọi tương tác mà không cân nhắc độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-003
+    title: Luồng sự kiện khó truy vết và không rõ chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-004
+    title: Sự kiện làm lộ toàn bộ entity hoặc cấu trúc bảng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-005
+    title: Giả định bản tin chỉ được giao đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-006
+    title: Xử lý không phù hợp khi bản tin trùng hoặc đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-007
+    title: Mỗi bên tự hiểu phiên bản và ý nghĩa sự kiện theo cách khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-008
+    title: Không thiết kế xử lý bản tin lỗi và khả năng phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-009
+    title: Áp dụng Event Sourcing khi chưa có yêu cầu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-messaging-010
+    title: Thiết kế hợp đồng sự kiện theo sự thật nghiệp vụ và nhu cầu tiến hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Ghi hai hệ thống độc lập rồi giả định luôn cùng thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Mở giao dịch cục bộ để bao quanh quy trình phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Yêu cầu nhất quán tức thời cho mọi dữ liệu mà không xét nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Bỏ qua trạng thái trung gian khi dùng nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Quy trình bù trừ thiếu ý nghĩa nghiệp vụ hoặc không thể thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Đồng bộ hai chiều mà không xác định nguồn dữ liệu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Xử lý lặp làm thay đổi kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Dùng khóa phân tán thay cho phân tích bất biến và quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-009
+    title: Đánh giá ranh giới giao dịch, outbox và idempotency theo từng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-caching
+  title: Hiệu năng và cache
+  childs:
+  - slug: performance-caching-001
+    title: Tối ưu sớm khi chưa đo nút thắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-002
+    title: Đánh đổi cấu trúc rõ ràng để tối ưu giả định chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-003
+    title: Thêm cache cho mọi dữ liệu mà không có chiến lược vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-004
+    title: Cache trở thành nguồn dữ liệu thứ hai với quy tắc khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-005
+    title: Lưu dữ liệu không giới hạn và không kiểm soát vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-006
+    title: Tạo nhiều bản sao dữ liệu để tránh thiết kế luồng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-007
+    title: Batch quá lớn hoặc tải dồn làm tăng bộ nhớ và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-008
+    title: Mở rộng hạ tầng để che giấu thuật toán hoặc truy vấn không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-009
+    title: Kiểm chứng tối ưu bằng số đo cùng tính đúng đắn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: frameworks-technology
+  title: Framework và công nghệ
+  childs:
+  - slug: frameworks-technology-001
+    title: Để framework quyết định toàn bộ mô hình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-002
+    title: Service Locator che giấu phụ thuộc của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-003
+    title: Khởi tạo mọi phụ thuộc bên trong lớp khiến khó thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-004
+    title: Đối tượng nhận quá nhiều thành phần phụ thuộc như dấu hiệu trách nhiệm dàn trải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-005
+    title: Cấu hình, annotation và convention che khuất hành vi quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-006
+    title: Tin rằng công cụ tự động có thể thay thế mọi quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-007
+    title: Đưa kiểu dữ liệu đặc thù nhà cung cấp qua mọi ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-008
+    title: Khi khóa chặt vào nhà cung cấp cản trở thay đổi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-009
+    title: Tạo lớp bọc cho mọi thư viện dù không có ranh giới cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-technology-010
+    title: Cô lập công nghệ ở nơi có biến động hoặc nhu cầu thay thế thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-pattern-overuse
+  title: Lạm dụng mẫu thiết kế
+  childs:
+  - slug: design-pattern-overuse-001
+    title: Dùng giải pháp quen thuộc cho mọi vấn đề (Golden Hammer)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-002
+    title: Áp dụng mẫu vì tên gọi thay vì vấn đề cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-003
+    title: Thêm Factory hoặc Abstract Factory khi cách tạo đối tượng còn đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-004
+    title: Dùng Singleton như biến toàn cục trá hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-005
+    title: Đưa Strategy vào mọi điều kiện dù hành vi chưa có biến thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-006
+    title: Xếp chồng Adapter, Decorator và Proxy khiến khó lần theo hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-007
+    title: Lạm dụng Observer làm luồng điều khiển trở nên ngầm định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-008
+    title: Áp dụng CQRS hoặc kiến trúc nhiều thành phần thiếu nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-overuse-009
+    title: Đánh giá chi phí của mẫu và khả năng quay lại thiết kế đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testability
+  title: Khả năng kiểm thử
+  childs:
+  - slug: testability-001
+    title: Thiết kế buộc kiểm thử phải khởi động toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-002
+    title: Kiểm thử phụ thuộc trạng thái toàn cục hoặc thứ tự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-003
+    title: Mock quá nhiều khiến bài kiểm thử phản chiếu chi tiết triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-004
+    title: Kiểm tra phương thức nội bộ thay vì hợp đồng quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-005
+    title: Thiết kế đặc biệt chỉ để thỏa một công cụ mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-006
+    title: Mã phụ thuộc trực tiếp đồng hồ, ngẫu nhiên và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-007
+    title: Fixture lớn che khuất dữ liệu liên quan đến tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-008
+    title: Chỉ có kiểm thử qua giao diện mà thiếu bằng chứng ở ranh giới quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-009
+    title: Sửa kiểm thử liên tục nhưng không phát hiện hồi quy nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-010
+    title: Dùng độ khó kiểm thử làm bằng chứng để xem lại ranh giới thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-boundaries
+  title: Ranh giới tin cậy
+  childs:
+  - slug: trust-boundaries-001
+    title: Tin dữ liệu nội bộ chỉ vì đã đi qua một lớp kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-002
+    title: Phân quyền rải rác khiến các đường truy cập áp dụng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-003
+    title: Để dữ liệu đầu vào tự quyết định trường nhạy cảm được cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-004
+    title: Mô hình dữ liệu công khai làm lộ thông tin không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-005
+    title: Giấu cơ chế bảo vệ trong tiện ích mà hợp đồng không thể hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-006
+    title: Mặc định cho phép khi thiếu cấu hình hoặc gặp lỗi kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-007
+    title: Trộn trách nhiệm nghiệp vụ với chi tiết xác thực ở nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-008
+    title: Đặt quy tắc bảo vệ tại ranh giới rõ ràng và kiểm chứng mọi đường truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-systems
+  title: Hệ thống cũ
+  childs:
+  - slug: legacy-systems-001
+    title: Mã tích tụ không rõ mục đích nhưng không ai dám xóa (Lava Flow)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-002
+    title: Thành phần không còn hữu ích vẫn được giữ lại (Boat Anchor)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-003
+    title: Đường thực thi đã chết nhưng tiếp tục ảnh hưởng quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-004
+    title: Lớp tương thích tạm thời trở thành phụ thuộc lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-005
+    title: Đường cũ và đường mới cùng ghi dữ liệu theo quy tắc khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-006
+    title: Thay thế toàn bộ hệ thống trong một lần thiếu bước kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-007
+    title: Bản vá cục bộ lặp lại mà không xử lý nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-008
+    title: Phụ thuộc lỗi thời tạo ngõ cụt cho khả năng phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-009
+    title: Khôi phục hiểu biết bằng lịch sử, kiểm thử đặc tả và ranh giới chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-decisions
+  title: Quyết định thiết kế
+  childs:
+  - slug: design-decisions-001
+    title: Thiết kế theo xu hướng thay vì yêu cầu sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-002
+    title: Lựa chọn công nghệ để làm đẹp hồ sơ cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-003
+    title: Phân tích kéo dài khiến không có quyết định có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-004
+    title: Thỏa hiệp nhiều ý kiến thành thiết kế thiếu mục tiêu nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-005
+    title: Tự xây lại giải pháp phổ biến mà không đánh giá chi phí sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-006
+    title: Sao chép kiến trúc của hệ thống có quy mô và bối cảnh khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-007
+    title: Chấp nhận giải pháp tạm nhưng không ghi điều kiện xem xét lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-decisions-008
+    title: Đánh giá quyết định bằng giả định, phương án thay thế và hệ quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incremental-improvement
+  title: Cải tiến từng bước
+  childs:
+  - slug: incremental-improvement-001
+    title: Ưu tiên phản mẫu theo tác động và tần suất thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-002
+    title: Xác định hành vi cần giữ và hợp đồng không được phá vỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-003
+    title: Bổ sung kiểm thử đặc tả trước khi sửa cấu trúc chưa hiểu rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-004
+    title: Tạo điểm tách để cô lập phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-005
+    title: Trích xuất hàm, lớp hoặc mô-đun theo trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-006
+    title: Di chuyển hành vi về gần dữ liệu và quy tắc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-007
+    title: Thay thế trạng thái ngầm bằng tham số hoặc chuyển trạng thái rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-008
+    title: Chuyển đổi từng phần với cơ chế chuyển tiếp có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-009
+    title: Kiểm tra tính tương thích của dữ liệu và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-010
+    title: Đo lại mức liên kết, độ khó thay đổi và chi phí sau cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-improvement-011
+    title: Nhận diện khi một đợt refactor đang tạo phản mẫu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evaluation-prevention
+  title: Đánh giá và phòng ngừa
+  childs:
+  - slug: evaluation-prevention-001
+    title: Review thiết kế từ kịch bản sử dụng và kịch bản thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-002
+    title: Checklist câu hỏi theo trách nhiệm, phụ thuộc, trạng thái và hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-003
+    title: Dùng sơ đồ cấu trúc cùng sơ đồ tương tác để kiểm tra giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-004
+    title: Ghi quyết định kiến trúc và hệ quả bằng ADR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-005
+    title: Kiểm tra ranh giới mô-đun bằng kiểm thử kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-006
+    title: Dùng phân tích tĩnh để hỗ trợ đánh giá có ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-007
+    title: Phát hiện điểm nóng từ lịch sử sửa lỗi và thay đổi cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-008
+    title: Đặt điều kiện chấp nhận nợ kỹ thuật và thời điểm trả nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-prevention-009
+    title: Tránh biến nguyên lý, chỉ số hoặc checklist thành quy tắc máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-scenarios
+  title: Thực hành tình huống
+  childs:
+  - slug: practice-scenarios-001
+    title: Phân tích God Object trong dịch vụ xử lý đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-002
+    title: Tách mô hình miền khỏi controller và lớp lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-003
+    title: Xử lý Singleton chứa trạng thái theo người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-004
+    title: Cải tiến hệ kế thừa vi phạm hợp đồng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-005
+    title: Giảm Shotgun Surgery trong một thay đổi chính sách giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-006
+    title: Chẩn đoán truy vấn N+1 cùng giao dịch kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-007
+    title: Đánh giá đơn khối phân tán và phương án điều chỉnh ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-008
+    title: Thiết kế lại xử lý sự kiện trùng và ghi dữ liệu hai nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-009
+    title: Loại bỏ lớp trừu tượng thừa mà giữ hành vi bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-scenarios-010
+    title: Lập báo cáo trước và sau cải tiến dựa trên bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

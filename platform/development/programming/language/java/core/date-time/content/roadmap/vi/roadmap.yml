@@ -1,0 +1,60 @@
+roadmap:
+- id: mo-hinh-thoi-gian
+  title: Mô hình thời gian
+  purpose: Phân biệt ngày giờ địa phương, thời điểm và múi giờ để chọn đúng kiểu dữ liệu.
+  objectives:
+  - Phân biệt ngày giờ và thời điểm
+  - Nhận diện các nhóm kiểu java.time
+  - Giải thích tính bất biến
+- id: ngay-gio-dia-phuong
+  title: Ngày giờ địa phương
+  purpose: Biểu diễn ngày và giờ không gắn múi giờ bằng các kiểu Local.
+  objectives:
+  - Tạo LocalDate, LocalTime và LocalDateTime
+  - Đọc các thành phần ngày giờ
+  - Chọn kiểu phù hợp với dữ liệu
+- id: thoi-diem-va-mui-gio
+  title: Thời điểm và múi giờ
+  purpose: Biểu diễn một thời điểm và chuyển đổi cách hiển thị theo múi giờ.
+  objectives:
+  - Sử dụng Instant, ZoneId và ZoneOffset
+  - Phân biệt OffsetDateTime và ZonedDateTime
+  - Chuyển đổi múi giờ giữ nguyên thời điểm
+  - Nhận biết giờ mùa hè và giờ bị trùng hoặc thiếu
+- id: tinh-toan-ngay-gio
+  title: Tính toán ngày giờ
+  purpose: Thực hiện phép tính và so sánh thời gian theo đúng đơn vị và ý nghĩa.
+  objectives:
+  - Cộng trừ ngày giờ bằng plus và minus
+  - So sánh bằng isBefore và isAfter
+  - Phân biệt Duration và Period
+  - Tính khoảng cách bằng ChronoUnit
+- id: dinh-dang-va-phan-tich
+  title: Định dạng và phân tích
+  purpose: Chuyển đổi giữa chuỗi và ngày giờ bằng quy tắc rõ ràng.
+  objectives:
+  - Sử dụng DateTimeFormatter và định dạng ISO
+  - Chọn mẫu định dạng và Locale
+  - Phân tích chuỗi và xử lý dữ liệu không hợp lệ
+- id: quy-tac-lich
+  title: Quy tắc lịch
+  purpose: Giải quyết các thao tác theo lịch mà phép cộng đơn giản chưa diễn đạt đủ.
+  objectives:
+  - Xử lý năm nhuận và cuối tháng
+  - Sử dụng YearMonth và MonthDay
+  - Điều chỉnh ngày bằng TemporalAdjusters
+- id: dong-ho-va-kiem-thu
+  title: Đồng hồ và kiểm thử
+  purpose: Kiểm soát nguồn thời gian để chương trình và kiểm thử có kết quả dự đoán được.
+  objectives:
+  - Lấy thời gian qua Clock
+  - Dùng Clock.fixed trong kiểm thử
+  - Chọn múi giờ tường minh
+- id: tich-hop-va-luu-tru
+  title: Tích hợp và lưu trữ
+  purpose: Trao đổi thời gian với hệ thống cũ và nơi lưu trữ mà vẫn giữ đúng ý nghĩa dữ liệu.
+  objectives:
+  - Chuyển đổi Date và Calendar với java.time
+  - Phân biệt epoch giây và mili giây
+  - Chọn biểu diễn lưu trữ và truyền nhận
+  - Kiểm tra chuyển đổi khứ hồi

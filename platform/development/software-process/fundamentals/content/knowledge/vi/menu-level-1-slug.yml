@@ -1,0 +1,70 @@
+menu:
+  - title: "Nền tảng quy trình phát triển phần mềm"
+    slug: software-process-foundations
+    index: 0
+  - title: "Mô hình vòng đời và cách tổ chức công việc"
+    slug: lifecycle-models-and-workflows
+    index: 1
+  - title: "Vai trò, trách nhiệm và cơ chế ra quyết định"
+    slug: roles-responsibilities-decisions
+    index: 2
+  - title: "Tiếp nhận nhu cầu và xác định vấn đề"
+    slug: needs-intake-and-problem-definition
+    index: 3
+  - title: "Khai thác và phân tích yêu cầu"
+    slug: requirements-elicitation-and-analysis
+    index: 4
+  - title: "Đặc tả, xác nhận và truy vết yêu cầu"
+    slug: requirement-spec-validation-traceability
+    index: 5
+  - title: "Lập phạm vi, ước lượng và kế hoạch thực hiện"
+    slug: scope-estimation-and-planning
+    index: 6
+  - title: "Thiết kế giải pháp và chuẩn bị triển khai"
+    slug: solution-design-implementation-readiness
+    index: 7
+  - title: "Triển khai, rà soát mã và tích hợp"
+    slug: implementation-code-review-integration
+    index: 8
+  - title: "Chiến lược và thiết kế kiểm thử"
+    slug: test-strategy-and-design
+    index: 9
+  - title: "Thực hiện kiểm thử và quản lý lỗi"
+    slug: test-execution-and-defect-management
+    index: 10
+  - title: "Bảo đảm chất lượng và các điểm kiểm soát"
+    slug: quality-assurance-and-control-gates
+    index: 11
+  - title: "Quản lý cấu hình, phiên bản và sản phẩm bàn giao"
+    slug: config-version-deliverable-management
+    index: 12
+  - title: "Quản lý thay đổi và kiểm soát phạm vi"
+    slug: change-management-and-scope-control
+    index: 13
+  - title: "Phối hợp công việc và theo dõi tiến độ"
+    slug: work-coordination-and-progress-tracking
+    index: 14
+  - title: "Quản lý rủi ro và xử lý vấn đề"
+    slug: risk-and-issue-management
+    index: 15
+  - title: "Chuẩn bị phát hành và triển khai"
+    slug: release-and-deployment-preparation
+    index: 16
+  - title: "Nghiệm thu, bàn giao và kết thúc dự án"
+    slug: acceptance-handover-and-project-closure
+    index: 17
+  - title: "Vận hành, hỗ trợ và phản hồi sau bàn giao"
+    slug: operations-support-and-feedback
+    index: 18
+  - title: "Bảo trì, phát triển tiếp và ngừng sử dụng"
+    slug: maintenance-evolution-and-retirement
+    index: 19
+  - title: "Đo lường và cải tiến quy trình"
+    slug: process-measurement-and-improvement
+    index: 20
+  - title: "Điều chỉnh quy trình theo bối cảnh và quy mô nhóm"
+    slug: process-tailoring-context-team-size
+    index: 21
+  - title: "Thực hành mô tả và đánh giá quy trình tổng thể"
+    slug: process-modeling-and-assessment-practice
+    index: 22

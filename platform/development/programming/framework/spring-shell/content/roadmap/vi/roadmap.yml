@@ -1,0 +1,57 @@
+roadmap:
+- id: spring-shell-cli
+  title: Spring Shell & CLI
+  purpose: Hiểu Spring Shell giải quyết bài toán xây dựng công cụ dòng lệnh trên nền Spring.
+  objectives:
+  - Phân biệt CLI tương tác và chạy một lệnh
+  - Nhận diện thành phần Spring Shell và Spring Boot
+  - Chọn tình huống sử dụng công cụ terminal
+- id: khoi-tao-chay-ung-dung
+  title: Khởi tạo & chạy ứng dụng
+  purpose: Tạo và vận hành ứng dụng Spring Shell có thể nhận lệnh từ người dùng.
+  objectives:
+  - Thêm dependency Spring Shell phù hợp
+  - Khởi động shell và sử dụng lệnh help
+  - Thử thực thi lệnh theo chế độ phù hợp
+- id: dinh-nghia-commands
+  title: Định nghĩa Commands
+  purpose: Xây dựng các lệnh nghiệp vụ và tổ chức chúng để dễ khám phá, bảo trì.
+  objectives:
+  - Khai báo lệnh với @Command hoặc Command builder
+  - Đặt tên, mô tả và nhóm lệnh
+  - Tách xử lý nghiệp vụ khỏi lớp định nghĩa lệnh
+- id: options-validation
+  title: Options & Validation
+  purpose: Thiết kế tham số đầu vào rõ ràng, kiểm soát lỗi nhập liệu và hướng dẫn cách dùng.
+  objectives:
+  - Khai báo option và positional argument
+  - Xử lý default value và chuyển đổi kiểu
+  - Áp dụng ràng buộc validation cho đầu vào
+- id: command-context-state
+  title: Command Context & State
+  purpose: Sử dụng ngữ cảnh và điều kiện thực thi để kiểm soát hành vi của lệnh.
+  objectives:
+  - Đọc options và arguments qua CommandContext
+  - Bật/tắt khả dụng của lệnh theo trạng thái
+  - Giải thích thông báo khi lệnh chưa sẵn sàng
+- id: trai-nghiem-tuong-tac
+  title: Trải nghiệm tương tác
+  purpose: Giúp người dùng tìm lệnh, tự hoàn thành tham số và đọc đầu ra dễ dàng.
+  objectives:
+  - Tận dụng help, nhóm lệnh và mô tả
+  - Cấu hình completion cho tên hoặc giá trị option
+  - Thiết kế thông báo kết quả và lỗi dễ hiểu
+- id: input-output-terminal
+  title: Input & Output Terminal
+  purpose: Tổ chức giao tiếp với terminal mà vẫn hỗ trợ chạy không tương tác.
+  objectives:
+  - Đọc input và phản hồi qua CommandContext
+  - Hiển thị kết quả và bảng khi phù hợp
+  - Xử lý lỗi và exit status có ý nghĩa
+- id: kiem-thu-dong-goi
+  title: Kiểm thử & đóng gói
+  purpose: Đảm bảo lệnh hoạt động ổn định khi phát hành và chạy trong môi trường tự động.
+  objectives:
+  - Viết test cho command và kết quả đầu ra
+  - Kiểm thử cả tương tác và non-interactive
+  - Đóng gói ứng dụng và thử gọi lệnh từ script hoặc CI

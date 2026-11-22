@@ -1,0 +1,4747 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data MongoDB là gì và giải quyết bài toán lưu trữ nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của MongoDB Server, Java Driver, Spring Data và Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: database, collection, document, BSON, entity và repository'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng xử lý từ đối tượng Java đến lệnh MongoDB và kết quả trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: So sánh mô hình tài liệu với mô hình quan hệ và key-value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Lựa chọn MongoRepository, MongoTemplate hoặc driver trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt API đồng bộ, reactive và các thư viện tương thích MongoDB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và mô hình sản phẩm–khách hàng–đơn hàng dùng xuyên suốt tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: foundation-mongodb
+  title: Nền tảng MongoDB
+  childs:
+  - slug: foundation-mongodb-001
+    title: Database, collection, document và cách tổ chức dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-mongodb-002
+    title: JSON, Extended JSON, BSON và ý nghĩa của kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-mongodb-003
+    title: Trường _id, ObjectId và định danh của document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-mongodb-004
+    title: Document lồng nhau, array và đường dẫn trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-mongodb-005
+    title: Phân biệt trường không tồn tại, null, chuỗi rỗng và array rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-mongodb-006
+    title: Lệnh find, insert, update, replace và delete cơ bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-mongodb-007
+    title: Tính nguyên tử của một document và thao tác trên nhiều document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-mongodb-008
+    title: Standalone, replica set, sharded cluster và MongoDB Atlas
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-design
+  title: Thiết kế document
+  childs:
+  - slug: document-design-001
+    title: Thiết kế theo mẫu truy cập và câu hỏi nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-002
+    title: Xác định ranh giới aggregate và dữ liệu cần cập nhật cùng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-003
+    title: Chọn nhúng dữ liệu hay tham chiếu sang collection khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-004
+    title: Mô hình hóa quan hệ một-một, một-nhiều và nhiều-nhiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-005
+    title: Ảnh chụp dữ liệu (snapshot) trong đơn hàng và dữ liệu nguồn có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-006
+    title: Phi chuẩn hóa (denormalization), dữ liệu lặp và chính sách đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-007
+    title: Array tăng không giới hạn, document lớn và nguy cơ điểm nóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-008
+    title: Các mẫu subset, bucket và dữ liệu tính sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-009
+    title: Thiết kế version schema để nhiều cấu trúc document cùng tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-010
+    title: Từ yêu cầu nghiệp vụ đến document mẫu và chỉ mục dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Khởi tạo
+  childs:
+  - slug: setup-001
+    title: Chọn Java, Spring Boot, Spring Data, driver và MongoDB tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Khai báo starter đồng bộ hoặc starter reactive phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Chuẩn bị MongoDB bằng Docker, máy cục bộ hoặc Atlas
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Chuỗi kết nối, tên database, authSource và tài khoản ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Cấu hình URI và profile theo phiên bản Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Tạo @Document và MongoRepository đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Thực hiện vòng CRUD và quan sát document bằng mongosh hoặc Compass
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Nạp dữ liệu mẫu và giữ bí mật kết nối ngoài mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-009
+    title: Chuẩn bị replica set khi bài thực hành cần transaction hoặc change stream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-architecture
+  title: Cấu hình và kiến trúc
+  childs:
+  - slug: configuration-architecture-001
+    title: Auto-configuration của Spring Boot cho MongoDB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-002
+    title: Vai trò của MongoClient, MongoDatabaseFactory và MongoTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-003
+    title: Cấu hình thủ công bằng AbstractMongoClientConfiguration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-004
+    title: Kích hoạt @EnableMongoRepositories và giới hạn package quét
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-005
+    title: MongoMappingContext, MappingMongoConverter và metadata ánh xạ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-006
+    title: MongoClientSettingsBuilderCustomizer và thiết lập driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-007
+    title: Phân biệt MongoClient đồng bộ với reactive MongoClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-008
+    title: Quản lý vòng đời client, connection pool và session
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-architecture-009
+    title: Phối hợp nhiều Spring Data module mà không quét nhầm repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-mapping
+  title: Ánh xạ cơ bản
+  childs:
+  - slug: basic-mapping-001
+    title: Đánh dấu entity bằng @Document và chọn tên collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-002
+    title: Quy ước ánh xạ tên lớp và thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-003
+    title: Đổi tên trường bằng @Field và cấu hình kiểu BSON đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-004
+    title: Ánh xạ field, constructor và dữ liệu lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-005
+    title: Loại trừ dữ liệu không lưu bằng @Transient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-006
+    title: Thuộc tính chỉ đọc bằng @ReadOnlyProperty
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-007
+    title: Phân biệt metadata Spring Data MongoDB với annotation JPA
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-008
+    title: Ánh xạ _class, kế thừa và @TypeAlias
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mapping-009
+    title: Kiểm tra Document thực tế để xác minh tên trường và kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-state
+  title: Định danh và trạng thái
+  childs:
+  - slug: identity-state-001
+    title: Quy tắc ánh xạ thuộc tính id và @Id vào _id
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-002
+    title: ObjectId trong Java và biểu diễn Extended JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-003
+    title: String có thể chuyển thành ObjectId và lỗi truy vấn khác kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-004
+    title: '@MongoId để điều khiển kiểu định danh'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-005
+    title: UUID, mã nghiệp vụ và ID do ứng dụng tự cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-006
+    title: Phân biệt ID chưa có với document đã tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-007
+    title: Phát hiện entity mới bằng ID, @Version hoặc Persistable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-008
+    title: Giá trị ID trả về sau insert hoặc save
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-009
+    title: Định danh tổng hợp và yêu cầu về cấu trúc, thứ tự trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-state-010
+    title: Chọn ID ổn định và xử lý dữ liệu nhập từ hệ thống khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Kiểu BSON và khả năng biểu diễn tương ứng trong Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-002
+    title: Số nguyên, số thực và nguy cơ mất độ chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-003
+    title: BigDecimal, Decimal128 và khai báo kiểu lưu tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-004
+    title: Chuỗi, Unicode, enum và quy ước giá trị lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-005
+    title: Instant, LocalDateTime, Date và quy ước UTC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-006
+    title: UUID representation, dữ liệu nhị phân và tương thích driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-007
+    title: List, Set, Map và kiểu phần tử trong document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-008
+    title: Nullability, giá trị mặc định và trường không tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-009
+    title: Giới hạn kích thước, độ sâu document và lựa chọn dữ liệu ngoài document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embedded-objects
+  title: Đối tượng và nhúng
+  childs:
+  - slug: embedded-objects-001
+    title: Cách MappingMongoConverter dựng đối tượng từ document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-002
+    title: Constructor, factory và @PersistenceCreator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-003
+    title: Tên tham số constructor, -parameters và lỗi không khớp dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-004
+    title: Entity bất biến, Java record và phương thức wither
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-005
+    title: Ánh xạ value object thành document lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-006
+    title: '@Unwrapped, prefix và trải trường vào document cha'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-007
+    title: USE_NULL, USE_EMPTY và dữ liệu nhúng thiếu một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-008
+    title: Query, update và giới hạn ánh xạ trên thuộc tính unwrapped
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-objects-009
+    title: Tùy chỉnh MongoTypeMapper và duy trì khả năng đọc dữ liệu đa hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-references
+  title: Tham chiếu tài liệu
+  childs:
+  - slug: document-references-001
+    title: Tham chiếu bằng ID và tải tường minh qua repository hoặc template
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-002
+    title: Biểu diễn và phân giải @DBRef
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-003
+    title: '@DocumentReference và tham chiếu mặc định theo ID'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-004
+    title: Tùy chỉnh lookup và bộ chuyển đổi giá trị tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-005
+    title: Tham chiếu đơn, collection tham chiếu và tham chiếu ngược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-006
+    title: Tải ngay, tải trì hoãn (lazy loading), proxy và vòng đời session
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-007
+    title: Lưu document tham chiếu riêng và giới hạn cascade
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-008
+    title: Tham chiếu hỏng, xóa dữ liệu và chính sách toàn vẹn ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-009
+    title: Giới hạn tham chiếu trong reactive và truy vấn suy diễn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-references-010
+    title: So sánh tham chiếu ứng dụng, DBRef, DocumentReference và $lookup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-conversion
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-conversion-001
+    title: Khi nào dùng converter thay vì ánh xạ mặc định?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-002
+    title: Viết @ReadingConverter và @WritingConverter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-003
+    title: Đăng ký MongoCustomConversions
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-004
+    title: Chuyển đổi kiểu miền sang giá trị BSON hoặc Document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-005
+    title: '@ValueConverter và PropertyValueConverter cho từng thuộc tính'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-006
+    title: Phân biệt converter của Spring Data với CodecRegistry của driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-007
+    title: Chuyển đổi ngày giờ, tiền tệ và giá trị đặc thù
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-008
+    title: Chuyển đổi một chiều, null và dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-009
+    title: Kiểm thử đọc–ghi đối xứng cùng dữ liệu từ phiên bản cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-crud
+  title: Repository CRUD
+  childs:
+  - slug: repository-crud-001
+    title: Khai báo MongoRepository với entity và kiểu ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-002
+    title: Thiết kế giao diện cơ sở bằng @NoRepositoryBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-003
+    title: Phân biệt insert, save và saveAll
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-004
+    title: findById, findAllById và findAll
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-005
+    title: existsById, count và ý nghĩa kiểm tra trước khi ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-006
+    title: delete, deleteById, deleteAllById và deleteAll
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-007
+    title: Optional, collection rỗng và lỗi kết quả không duy nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-008
+    title: Phạm vi giao dịch của repository trong MongoDB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-crud-009
+    title: Giới hạn tập phương thức công khai theo nhu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: derived-queries
+  title: Truy vấn suy diễn
+  childs:
+  - slug: derived-queries-001
+    title: Cấu trúc tên phương thức và cơ chế sinh truy vấn BSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-002
+    title: Thuộc tính trực tiếp, đường dẫn lồng nhau và dấu gạch dưới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-003
+    title: Kết hợp And, Or và kiểm tra nhóm điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-004
+    title: So sánh bằng, khác, lớn hơn, nhỏ hơn và khoảng giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-005
+    title: IsNull, IsNotNull, Exists và sự khác biệt null với trường thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-006
+    title: In, NotIn, True, False và tập tham số rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-007
+    title: Containing, StartingWith, EndingWith, Regex và IgnoreCase
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-008
+    title: Truy vấn collection, document nhúng và giới hạn đối sánh phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-009
+    title: Distinct, First, Top, count và exists
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-010
+    title: OrderBy và sắp xếp động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-011
+    title: Kiểm tra từ khóa được hỗ trợ cùng BSON sinh ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-queries
+  title: Truy vấn JSON
+  childs:
+  - slug: json-queries-001
+    title: Khai báo @Query bằng biểu thức truy vấn MongoDB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-002
+    title: Bind tham số vị trí ?0 và biểu thức SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-003
+    title: Giới hạn trường trả về bằng thuộc tính fields
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-004
+    title: Thiết lập sort, collation và hint theo khả năng của phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-005
+    title: Truy vấn count, exists và delete qua annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-006
+    title: Truy vấn document lồng nhau và array bằng toán tử MongoDB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-007
+    title: Named query và quy tắc tìm truy vấn khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-008
+    title: Truyền tham số an toàn thay vì ghép chuỗi JSON từ đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-queries-009
+    title: Chọn @Query, truy vấn suy diễn hoặc triển khai tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: projection-dto
+  title: Projection và DTO
+  childs:
+  - slug: projection-dto-001
+    title: Tách mô hình đọc khỏi entity dùng để ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-002
+    title: Projection interface đóng và projection mở
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-003
+    title: DTO constructor và Java record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-004
+    title: Projection lồng nhau và giới hạn dữ liệu được tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-005
+    title: Projection động với tham số Class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-006
+    title: Chọn hoặc loại trường trả về và ngoại lệ của _id
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-007
+    title: Alias, biểu thức tính toán và mapping kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-008
+    title: Phân biệt kết quả thiếu trường với entity đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projection-dto-009
+    title: Nguy cơ mất dữ liệu khi save entity chỉ được tải một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pagination-streams
+  title: Phân trang và luồng
+  childs:
+  - slug: pagination-streams-001
+    title: Chọn Optional, List, Page, Slice, Stream hoặc Window theo hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-002
+    title: Pageable, PageRequest và Sort
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-003
+    title: Page, truy vấn count và chi phí tổng số kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-004
+    title: Slice và xác định còn dữ liệu tiếp theo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-005
+    title: Thứ tự ổn định khi nhiều document có cùng giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-006
+    title: Offset pagination và chi phí skip trên dữ liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-007
+    title: Keyset pagination bằng điều kiện và chỉ mục phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-008
+    title: Scrolling, ScrollPosition và Window theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-009
+    title: Java Stream, cursor và đóng tài nguyên đúng hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-010
+    title: Batch size, giới hạn kết quả và kiểm soát bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-streams-011
+    title: Phân trang reactive bằng Flux và phép đếm riêng khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mongo-template
+  title: MongoTemplate
+  childs:
+  - slug: mongo-template-001
+    title: Vai trò của MongoOperations và MongoTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-002
+    title: Chọn collection từ entity hoặc chỉ định tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-003
+    title: insert, save, findById, findOne và find
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-004
+    title: count, exactCount, estimatedCount, exists và distinct
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-005
+    title: remove, findAndRemove và findAllAndRemove
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-006
+    title: FluentMongoOperations và các bước chọn kiểu–điều kiện–kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-007
+    title: Trả Document hoặc DTO khi không cần entity đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-008
+    title: Callback execute để dùng MongoDatabase hoặc MongoCollection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-009
+    title: Mapping tên trường và kiểu dữ liệu khi dùng API có kiểu miền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mongo-template-010
+    title: Chọn repository hay template theo mức độ tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queries-criteria
+  title: Query và Criteria
+  childs:
+  - slug: queries-criteria-001
+    title: Tạo Query, Criteria và BasicQuery
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-002
+    title: Điều kiện so sánh, khoảng giá trị và tập giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-003
+    title: Nhóm AND, OR, NOR và phủ định đúng phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-004
+    title: exists, type và đối sánh trường null hoặc không tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-005
+    title: Đường dẫn document nhúng và dot notation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-006
+    title: elemMatch, all, size và điều kiện trên array
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-007
+    title: Regex, phân biệt hoa thường và tác động đến chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-008
+    title: Field projection, sort, limit và skip
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-009
+    title: Collation, hint, comment, maxTime và tùy chọn cursor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-010
+    title: $expr và biểu thức khi điều kiện cần so sánh nhiều trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-criteria-011
+    title: Xây bộ lọc tùy chọn và kiểm soát trường do người dùng lựa chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: writes-and-updates
+  title: Ghi và cập nhật
+  childs:
+  - slug: writes-and-updates-001
+    title: Phân biệt insert, lưu thay thế document và cập nhật từng trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-002
+    title: Update với set, unset, inc, min, max và currentDate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-003
+    title: updateFirst, updateMulti và các biến thể fluent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-004
+    title: 'UpdateResult: acknowledged, matchedCount, modifiedCount và upsertedId'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-005
+    title: Upsert và giá trị chỉ dùng khi insert bằng setOnInsert
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-006
+    title: 'findAndModify: trả dữ liệu trước hoặc sau cập nhật'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-007
+    title: findAndReplace và thay thế có điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-008
+    title: Cập nhật bằng aggregation pipeline với AggregationUpdate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-009
+    title: Giữ _id, version và dữ liệu không có trong mô hình Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-010
+    title: Điều kiện cập nhật nguyên tử theo quy tắc nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writes-and-updates-011
+    title: Lựa chọn save hay update để tránh ghi đè không chủ ý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: array-operations
+  title: Thao tác array
+  childs:
+  - slug: array-operations-001
+    title: Phân biệt thay toàn bộ array và cập nhật từng phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-002
+    title: push, each, position, slice và sort
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-003
+    title: addToSet và giới hạn đảm bảo không trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-004
+    title: pull, pullAll và pop
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-005
+    title: Toán tử vị trí $ và điều kiện xác định phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-006
+    title: Cập nhật mọi phần tử bằng $[]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-007
+    title: Array filters với $[identifier] và filterArray
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-008
+    title: Array lồng nhau và phối hợp nhiều điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-009
+    title: elemMatch để các điều kiện khớp cùng một phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: array-operations-010
+    title: Cạnh tranh ghi và giới hạn kích thước khi array tăng liên tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bulk-writes
+  title: Ghi hàng loạt
+  childs:
+  - slug: bulk-writes-001
+    title: Phân biệt insert nhiều document, saveAll và bulk operations
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-002
+    title: Xây BulkOperations với insert, update, upsert, replace và remove
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-003
+    title: ORDERED, UNORDERED và hành vi khi một thao tác thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-004
+    title: Đọc BulkWriteResult và xử lý lỗi từng phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-005
+    title: Giới hạn optimistic locking, callback và lifecycle event trong bulk
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-006
+    title: Chia lô theo số lượng, dung lượng và thời gian xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-007
+    title: Idempotency và thử lại khi không biết chắc thao tác nào đã thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-008
+    title: Bulk nhiều collection trong phiên bản server và API hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-writes-009
+    title: Phân biệt giảm lượt truyền lệnh với giao dịch nguyên tử toàn bộ lô
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-writes
+  title: Ghi qua repository
+  childs:
+  - slug: repository-writes-001
+    title: Khai báo @Update kết hợp truy vấn suy diễn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-writes-002
+    title: Kết hợp @Query với @Update cho điều kiện riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-writes-003
+    title: Bind tham số trong toán tử cập nhật và update pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-writes-004
+    title: Phạm vi tất cả document khớp và giới hạn từ khóa phân trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-writes-005
+    title: Kiểu trả về và số document được sửa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-writes-006
+    title: Phương thức delete suy diễn và kiểu dữ liệu trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-writes-007
+    title: Giới hạn callback, auditing và version khi dùng truy vấn ghi trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-writes-008
+    title: Xóa mềm bằng điều kiện đọc và lệnh cập nhật nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-by-example
+  title: Query by Example
+  childs:
+  - slug: query-by-example-001
+    title: Tạo đối tượng mẫu, Example và ExampleMatcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-002
+    title: Khớp tất cả hoặc bất kỳ trường được chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-003
+    title: Xử lý null, kiểu nguyên thủy và thuộc tính bỏ qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-004
+    title: Khớp chuỗi và tùy chỉnh theo từng thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-005
+    title: Kiểm tra ảnh hưởng của kiểu miền và _class lên truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-006
+    title: Tìm, đếm và kiểm tra tồn tại qua QueryByExampleExecutor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-007
+    title: Fluent query, projection, phân trang và scrolling theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-by-example-008
+    title: Giới hạn nhóm điều kiện, array và document nhúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extended-repository
+  title: Repository mở rộng
+  childs:
+  - slug: extended-repository-001
+    title: Thiết kế repository fragment và lớp triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-repository-002
+    title: Quy ước tên, quét triển khai và ghép fragment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-repository-003
+    title: Kết hợp MongoOperations với truy vấn có mô hình miền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-repository-004
+    title: Querydsl và QuerydslPredicateExecutor trong phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-repository-005
+    title: Sinh Q-type và xây điều kiện truy vấn có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-repository-006
+    title: Phân biệt Querydsl, Query/Criteria và pipeline aggregation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-repository-007
+    title: Tái sử dụng fragment và tùy chỉnh repository cơ sở khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-repository-008
+    title: Giữ thống nhất mapping, session và ranh giới giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-aggregation
+  title: Aggregation cơ bản
+  childs:
+  - slug: basic-aggregation-001
+    title: Khi nào dùng aggregation thay cho find và xử lý tại ứng dụng?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-002
+    title: Pipeline, stage, expression và luồng document qua từng bước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-003
+    title: Aggregation, TypedAggregation và AggregationResults
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-004
+    title: $match, $project, $set và $unset
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-005
+    title: $group, các accumulator và khóa nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-006
+    title: $sort, $skip, $limit và $count
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-007
+    title: $unwind và xử lý array hoặc giá trị rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-008
+    title: Ánh xạ tên thuộc tính, @Field, alias và strictMapping
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-009
+    title: Ánh xạ kết quả vào DTO và đọc kết quả Document thô
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregation-010
+    title: Kiểm tra từng stage bằng dữ liệu nhỏ và pipeline thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-aggregation
+  title: Aggregation nâng cao
+  childs:
+  - slug: advanced-aggregation-001
+    title: '$lookup: kết hợp collection theo trường hoặc pipeline'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-002
+    title: let, biến pipeline và điều kiện tương quan trong $lookup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-003
+    title: $facet cho nhiều phép phân tích trên cùng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-004
+    title: $bucket, $bucketAuto và phân nhóm dữ liệu theo khoảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-005
+    title: Biểu thức số học, chuỗi, điều kiện và chuyển đổi kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-006
+    title: Biểu thức ngày giờ, múi giờ và nhóm theo thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-007
+    title: Xử lý array với filter, map, reduce và tập hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-008
+    title: $replaceRoot, $unionWith và thay đổi hình dạng kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-009
+    title: $graphLookup và duyệt dữ liệu tham chiếu có giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-010
+    title: $setWindowFields, densify và fill trong phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-011
+    title: $merge, $out và phạm vi pipeline có ghi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-012
+    title: AggregationOptions, allowDiskUse, batch size và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregation-013
+    title: 'Stage chưa có DSL: dùng AggregationOperation hoặc JSON/BSON tường minh'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-aggregation
+  title: Aggregation repository
+  childs:
+  - slug: repository-aggregation-001
+    title: Khai báo @Aggregation với một hoặc nhiều stage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-aggregation-002
+    title: Placeholder và SpEL trong pipeline repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-aggregation-003
+    title: Ánh xạ kết quả thành DTO, scalar hoặc AggregationResults
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-aggregation-004
+    title: Ảnh hưởng của Sort và Pageable lên pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-aggregation-005
+    title: Giới hạn Page và lựa chọn Slice cho @Aggregation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-aggregation-006
+    title: '@Meta, thời gian thực thi và tùy chọn tài nguyên'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-aggregation-007
+    title: Stream hoặc Flux kết quả và đóng cursor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-aggregation-008
+    title: Khi nào chuyển pipeline phức tạp sang template hoặc fragment?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexes
+  title: Chỉ mục
+  childs:
+  - slug: indexes-001
+    title: Chỉ mục đơn, chỉ mục tổng hợp và thứ tự trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-002
+    title: Thiết kế chỉ mục theo điều kiện bằng, sắp xếp và khoảng giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-003
+    title: Multikey index cho array và các giới hạn kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-004
+    title: Unique index, dữ liệu trùng và giá trị thiếu hoặc null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-005
+    title: Sparse index và partial index
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-006
+    title: TTL index và ý nghĩa xóa dữ liệu theo thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-007
+    title: Text, geospatial, hashed và wildcard index
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-008
+    title: Collation của index và điều kiện truy vấn tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-009
+    title: '@Indexed, @CompoundIndex và annotation chỉ mục chuyên biệt'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-010
+    title: IndexOperations, IndexResolver và quản lý chỉ mục bằng mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-011
+    title: 'Tạo chỉ mục tự động: cấu hình tường minh và kiểm soát lúc triển khai'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-012
+    title: Đánh giá chi phí ghi, dung lượng và chỉ mục không được sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections-schema
+  title: Collection và schema
+  childs:
+  - slug: collections-schema-001
+    title: Tạo, kiểm tra và xóa collection bằng template
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-schema-002
+    title: CollectionOptions và các tùy chọn cần có trước khi ghi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-schema-003
+    title: JSON Schema, validator và ràng buộc kiểu BSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-schema-004
+    title: MongoJsonSchema và sinh schema từ metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-schema-005
+    title: required, validationLevel và validationAction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-schema-006
+    title: Phân biệt Bean Validation trong Java với validation tại MongoDB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-schema-007
+    title: Collation cho collection, query và aggregation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-schema-008
+    title: Đổi validator khi dữ liệu cũ chưa phù hợp schema mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-control
+  title: Kiểm soát đồng thời
+  childs:
+  - slug: concurrency-control-001
+    title: Mất cập nhật (lost update) khi nhiều yêu cầu cùng lưu một document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-002
+    title: Tính nguyên tử của một document và giới hạn của nhiều lệnh liên tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-003
+    title: '@Version và optimistic locking'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-004
+    title: Version lúc thêm mới, cập nhật và xóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-005
+    title: Xử lý OptimisticLockingFailureException và tải lại dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-006
+    title: Compare-and-set bằng điều kiện truy vấn và toán tử cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-007
+    title: Giảm tồn kho bằng điều kiện số lượng và inc nguyên tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-008
+    title: Write concern phù hợp để nhận biết lỗi ghi hoặc xung đột version
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-009
+    title: Idempotency, unique index và yêu cầu ghi lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-control-010
+    title: Giới hạn version khi cập nhật trực tiếp hoặc ghi hàng loạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Read preference và lựa chọn primary hoặc secondary
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Read concern và mức bảo đảm của dữ liệu đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Write concern, majority, journal và xác nhận ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Đọc thấy dữ liệu vừa ghi (read-after-write) và tính nhất quán nhân quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Retryable reads, retryable writes và điều kiện hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Phân biệt lỗi ghi thất bại với lỗi chưa biết kết quả cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Tùy chọn ở client, template, thao tác và giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Đánh đổi độ trễ, tính sẵn sàng và yêu cầu nhất quán nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-transactions
+  title: Session và giao dịch
+  childs:
+  - slug: sessions-transactions-001
+    title: ClientSession, causal consistency và giao dịch nhiều document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-002
+    title: Điều kiện replica set hoặc sharded cluster cho transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-003
+    title: Đăng ký MongoTransactionManager và bật quản lý giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-004
+    title: '@Transactional ở tầng dịch vụ với nhiều repository/template'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-005
+    title: TransactionTemplate và quản lý giao dịch lập trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-006
+    title: withSession, phạm vi tài nguyên và đóng session
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-007
+    title: Rollback, exception và thời điểm commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-008
+    title: Read concern, write concern và read preference trong transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-009
+    title: Giới hạn lệnh collection, chỉ mục, count và truy vấn đặc thù theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-010
+    title: Phân biệt retry toàn giao dịch với retry commit khi kết quả chưa xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-011
+    title: Chuẩn bị collection và index trước khi bắt đầu giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-transactions-012
+    title: Giới hạn phối hợp MongoDB với hệ thống dữ liệu khác trong một đơn vị công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-access
+  title: Truy cập reactive
+  childs:
+  - slug: reactive-access-001
+    title: MongoDB Reactive Streams Driver, Mono, Flux và subscription
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-002
+    title: Khai báo spring-boot-starter-data-mongodb-reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-003
+    title: AbstractReactiveMongoConfiguration và @EnableReactiveMongoRepositories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-004
+    title: ReactiveMongoRepository và kiểu kết quả phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-005
+    title: ReactiveMongoTemplate cho truy vấn, update và aggregation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-006
+    title: Backpressure, batch size và tiêu thụ cursor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-007
+    title: Publisher tham số và thời điểm truy vấn được thực hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-008
+    title: Phân trang bằng Flux, Pageable và phép đếm riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-009
+    title: Giới hạn DBRef, document reference và các tính năng chỉ có ở API đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-010
+    title: Tránh block, subscribe thủ công và lẫn client đồng bộ trong chuỗi reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-011
+    title: Ghép nhiều thao tác ghi với mức đồng thời phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-transactions
+  title: Giao dịch reactive
+  childs:
+  - slug: reactive-transactions-001
+    title: ReactiveMongoTransactionManager và Reactor Context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-002
+    title: '@Transactional trên phương thức trả về Publisher'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-003
+    title: TransactionalOperator và ranh giới giao dịch lập trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-004
+    title: Ghép thao tác repository và template trong cùng giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-005
+    title: ClientSession thủ công qua template và giới hạn tích hợp repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-006
+    title: Rollback khi phát lỗi, hủy subscription và đóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-007
+    title: Giới hạn xử lý song song trên cùng session hoặc transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-008
+    title: Đặt retry bao quanh đúng đơn vị công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-transactions-009
+    title: Kiểm thử bằng StepVerifier và xác minh trạng thái sau commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-callbacks
+  title: Vòng đời và callback
+  childs:
+  - slug: lifecycle-callbacks-001
+    title: Các giai đoạn đọc, chuyển đổi, lưu và xóa document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-002
+    title: BeforeConvertCallback trước khi chuyển entity thành Document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-003
+    title: BeforeSaveCallback với entity và Document đã chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-004
+    title: AfterSaveCallback và AfterConvertCallback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-005
+    title: Callback reactive và thứ tự thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-006
+    title: AbstractMongoEventListener và các lifecycle event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-007
+    title: Phân biệt EntityCallback với ApplicationEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-008
+    title: Phạm vi sự kiện trên document gốc và dữ liệu nhúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-009
+    title: Callback với entity bất biến và đối tượng trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-010
+    title: Giới hạn callback/event với update trực tiếp, bulk hoặc driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-callbacks-011
+    title: Sự kiện nghiệp vụ sau commit và xử lý tác động phụ an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auditing
+  title: Auditing
+  childs:
+  - slug: auditing-001
+    title: Kích hoạt @EnableMongoAuditing
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-002
+    title: '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-003
+    title: Cung cấp người thao tác bằng AuditorAware
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-004
+    title: DateTimeProvider, UTC và thời gian kiểm thử xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-005
+    title: Ảnh hưởng của phát hiện entity mới đến thông tin tạo/sửa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-006
+    title: '@EnableReactiveMongoAuditing và ReactiveAuditorAware'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-007
+    title: Lấy người thao tác từ ngữ cảnh bảo mật tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-008
+    title: Giới hạn auditing khi ghi bằng update hoặc driver trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-009
+    title: Phân biệt thông tin lần sửa gần nhất với lịch sử thay đổi đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: geospatial-queries
+  title: Truy vấn không gian
+  childs:
+  - slug: geospatial-queries-001
+    title: GeoJSON và các kiểu Point, LineString, Polygon
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-002
+    title: Thứ tự kinh độ–vĩ độ và hệ tọa độ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-003
+    title: Chỉ mục 2d và 2dsphere
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-004
+    title: Near, Within và toán tử truy vấn không gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-005
+    title: Khoảng cách, đơn vị đo và hệ số chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-006
+    title: Truy vấn suy diễn với Point, Distance và GeoResults theo hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-007
+    title: $geoNear trong aggregation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-008
+    title: Đối sánh vùng địa lý và kiểm thử tọa độ biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-queries-009
+    title: Giới hạn phép đếm, transaction và biến thể reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-search
+  title: Tìm kiếm nâng cao
+  childs:
+  - slug: advanced-search-001
+    title: Text index, @TextIndexed và @Language
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-002
+    title: TextCriteria, TextQuery và tìm kiếm toàn văn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-003
+    title: '@TextScore và sắp xếp theo độ liên quan'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-004
+    title: Phân biệt regex, $text và MongoDB Search
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-005
+    title: Search index, analyzer và điều kiện hỗ trợ của môi trường triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-006
+    title: $search, $searchMeta và ánh xạ kết quả về DTO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-007
+    title: Vector index, embedding và thước đo tương đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-008
+    title: Vector search qua pipeline hoặc API khai báo trong phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-009
+    title: Bộ lọc, giới hạn kết quả và tiêu chí đánh giá chất lượng tìm kiếm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-search-010
+    title: Phân biệt khả năng của MongoDB Server, dịch vụ Search và API Spring Data
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-streams
+  title: Change stream
+  childs:
+  - slug: change-streams-001
+    title: Change stream và bài toán theo dõi thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-002
+    title: Điều kiện replica set hoặc sharded cluster
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-003
+    title: Theo dõi collection hoặc database
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-004
+    title: ChangeStreamOptions, bộ lọc pipeline và kiểu dữ liệu sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-005
+    title: Document đầy đủ, mô tả cập nhật và dữ liệu trước/sau thay đổi theo hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-006
+    title: ReactiveMongoTemplate.changeStream và tiêu thụ bằng Flux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-007
+    title: DefaultMessageListenerContainer cho ứng dụng đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-008
+    title: Resume token, resumeAfter, startAfter và thời điểm bắt đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-009
+    title: Lưu checkpoint sau xử lý thành công và khôi phục sau gián đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-010
+    title: Sự kiện lặp, invalidate, retention và xử lý idempotent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-011
+    title: Backpressure, lỗi listener và quản lý vòng đời subscription
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-streams-012
+    title: Phân biệt change stream của cơ sở dữ liệu với sự kiện nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tailable-cursors
+  title: Tailable cursor
+  childs:
+  - slug: tailable-cursors-001
+    title: Collection giới hạn dung lượng (capped collection) và cursor chờ dữ liệu mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tailable-cursors-002
+    title: Tạo collection có giới hạn kích thước hoặc số document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tailable-cursors-003
+    title: Đọc bằng ReactiveMongoTemplate.tail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tailable-cursors-004
+    title: '@Tailable trên phương thức ReactiveMongoRepository'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tailable-cursors-005
+    title: Cursor không hợp lệ, không có kết quả và chiến lược kết nối lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tailable-cursors-006
+    title: Hủy subscription và giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tailable-cursors-007
+    title: Chọn tailable cursor hay change stream theo loại dữ liệu cần theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grid-fs
+  title: GridFS
+  childs:
+  - slug: grid-fs-001
+    title: Khi nào lưu file bằng GridFS thay vì một document hoặc object storage?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-002
+    title: Bucket, collection files/chunks và metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-003
+    title: Cấu hình GridFsTemplate và GridFsOperations
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-004
+    title: Lưu file từ InputStream kèm tên và metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-005
+    title: Tìm, tải và xóa file bằng GridFsCriteria
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-006
+    title: GridFsResource và cung cấp nội dung cho tầng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-007
+    title: ReactiveGridFsTemplate với Publisher<DataBuffer>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-008
+    title: Quản lý bộ nhớ, stream và lỗi truyền file
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grid-fs-009
+    title: Nhất quán giữa metadata nghiệp vụ, nội dung file và cleanup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-series
+  title: Time series
+  childs:
+  - slug: time-series-001
+    title: Khi nào dùng time-series collection cho dữ liệu đo hoặc sự kiện?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-002
+    title: Tạo collection bằng @TimeSeries hoặc CollectionOptions
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-003
+    title: Chọn timeField, metaField và granularity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-004
+    title: TTL và chính sách giữ dữ liệu theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-005
+    title: Nạp dữ liệu theo lô và thiết kế metadata ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-006
+    title: Truy vấn khoảng thời gian và aggregation báo cáo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-007
+    title: Giới hạn index, update, delete và transaction theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-008
+    title: So sánh time-series collection với mô hình bucket do ứng dụng tự quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sharding
+  title: Sharding
+  childs:
+  - slug: sharding-001
+    title: Mục đích phân mảnh và vai trò của mongos
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-002
+    title: Chọn shard key theo phân bố dữ liệu và mẫu truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-003
+    title: Range, hashed key, chỉ mục và yêu cầu uniqueness
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-004
+    title: '@Sharded và ánh xạ trường shard key'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-005
+    title: Phân biệt metadata @Sharded với việc cấu hình cluster thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-006
+    title: Targeted query, scatter-gather và ảnh hưởng đến độ trễ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-007
+    title: Cập nhật shard key và giới hạn thao tác theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-008
+    title: Tác động của sharding lên upsert, transaction và change stream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharding-009
+    title: Nhận diện phân mảnh chịu tải tập trung (hot shard) và kiểm chứng bằng số đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-databases
+  title: Nhiều database
+  childs:
+  - slug: multiple-databases-001
+    title: Nhiều MongoClient, MongoDatabaseFactory và MongoTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-002
+    title: Liên kết nhóm repository với đúng template
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-003
+    title: Chọn database hoặc collection theo tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-004
+    title: Tách credential, converter và transaction manager khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-005
+    title: Giữ đúng tenant trong luồng đồng bộ và Reactor Context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-006
+    title: Thiết kế index, schema validation và migration cho nhiều tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-007
+    title: Ngăn truy vấn chéo tenant khi tái sử dụng bộ lọc hoặc fragment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-databases-008
+    title: Kiểm thử tính cô lập và giới hạn số pool kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-migration
+  title: Migration dữ liệu
+  childs:
+  - slug: data-migration-001
+    title: Quản lý thay đổi document bằng schema version
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-002
+    title: Đọc tương thích nhiều phiên bản cấu trúc dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-003
+    title: Đổi tên trường, chuyển kiểu BSON và bổ sung giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-004
+    title: Bổ sung dữ liệu còn thiếu (backfill) theo lô, có checkpoint và có thể chạy lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-005
+    title: Thiết kế migration có phiên bản bằng công cụ hoặc tác vụ riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-006
+    title: Chuẩn bị và thay đổi chỉ mục mà không làm gián đoạn ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-007
+    title: Triển khai schema validation theo giai đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-008
+    title: Kiểm tra số lượng, kiểu dữ liệu và tính nhất quán sau chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-009
+    title: Sao lưu, khôi phục và điều kiện quay lại phiên bản ứng dụng cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-encryption
+  title: Mã hóa dữ liệu
+  childs:
+  - slug: data-encryption-001
+    title: Phân biệt TLS, mã hóa lưu trữ và mã hóa ở phía client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-002
+    title: Client-Side Field Level Encryption và điều kiện triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-003
+    title: Key vault, data encryption key và KMS provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-004
+    title: '@Encrypted, JSON Schema và AutoEncryptionSettings'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-005
+    title: Mã hóa tự động hoặc tường minh theo nhu cầu ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-006
+    title: Queryable Encryption và giới hạn toán tử/kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-007
+    title: Ảnh hưởng của mã hóa đến index, tìm kiếm và mapping
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-008
+    title: Quản lý vòng đời khóa và kiểm thử khả năng giải mã dữ liệu cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-encryption-009
+    title: Đối chiếu tính năng server, driver, thư viện mã hóa và edition
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo thời gian, số lệnh, số document và dung lượng truyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Explain và executionStats để kiểm tra kế hoạch truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Đọc COLLSCAN, IXSCAN, FETCH, SORT và số document/index key đã xét
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Truy vấn được chỉ mục bao phủ (covered query) và giới hạn trường trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Tối ưu index theo filter, sort, collation và phân trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đặt $match và $project hợp lý trong pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Giới hạn dữ liệu trung gian từ $lookup, $unwind và $group
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Chọn batch size, cursor và kiểu xử lý để kiểm soát bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đánh giá saveAll, bulk và số lượt kết nối bằng số đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Document lớn, array không giới hạn và mô hình dữ liệu gây điểm nóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Cache kết quả và chính sách vô hiệu hóa khi document thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Phân biệt thời gian server, mạng, driver và chuyển đổi đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Chọn unit test, repository test và integration test theo mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử quy tắc nghiệp vụ không cần MongoDB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: '@DataMongoTest và phạm vi bean được nạp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Cung cấp MongoDB cho test bằng Testcontainers hoặc dịch vụ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Replica set trong test transaction và change stream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: '@DynamicPropertySource hoặc @ServiceConnection theo Spring Boot'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Fixture, index, validator và collection kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử ObjectId, UUID, Decimal128, thời gian và converter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử null, trường thiếu, document nhúng và tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử array filter, update nguyên tử và upsert đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử @Query, projection, scrolling và aggregation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử @Version, rollback và retry khi lỗi tạm thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử callback, auditing và thao tác ghi ngoài entity lifecycle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: StepVerifier cho reactive, change stream và tailable cursor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: Cô lập dữ liệu giữa test và cleanup sau commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-016
+    title: Kiểm thử hồi quy index, hiệu năng và tương thích phiên bản server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-operations
+  title: Bảo mật và vận hành
+  childs:
+  - slug: security-operations-001
+    title: Quản lý URI, bí mật, TLS và quyền tối thiểu của tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-002
+    title: Bind tham số và phòng NoSQL injection trong bộ lọc động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-003
+    title: Giới hạn trường, toán tử, sort và projection được phép từ đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-004
+    title: Giới hạn thời gian, kích thước kết quả và truy vấn tốn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-005
+    title: Theo dõi command, query log và dữ liệu nhạy cảm trong tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-006
+    title: Health indicator, pool metric và lỗi server selection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-007
+    title: Micrometer, observation và tracing theo phiên bản driver/Spring Data
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-008
+    title: Cấu hình timeout, retry và pool theo tải ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-009
+    title: Kiểm soát quyền tạo index, đổi validator và chạy migration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-010
+    title: Quan sát replication lag và ảnh hưởng của read preference
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-011
+    title: Thời hạn giữ dữ liệu, TTL, sao lưu và diễn tập khôi phục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-operations-012
+    title: DTO trả về, kiểm soát trường nội bộ và thông tin cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-diagnostics
+  title: Lỗi và chẩn đoán
+  childs:
+  - slug: errors-diagnostics-001
+    title: Phân loại DataAccessException và lỗi được dịch từ MongoDB driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-002
+    title: 'Không kết nối được: URI, DNS, TLS, authSource hoặc quyền'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-003
+    title: Không tìm thấy repository, nhầm template hoặc quét sai package
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-004
+    title: ObjectId và String không khớp dù ID hiển thị giống nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-005
+    title: Mapping constructor, _class, TypeAlias và converter bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-006
+    title: Sai kiểu số, UUID hoặc thời gian giữa Java và BSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-007
+    title: Document null, trường thiếu hoặc array không khớp dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-008
+    title: DuplicateKeyException, unique index và lỗi schema validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-009
+    title: Save ghi đè dữ liệu, update không khớp hoặc modifiedCount bằng 0
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-010
+    title: Optimistic locking, write conflict và kết quả commit chưa xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-011
+    title: Transaction không hoạt động trên topology hoặc cấu hình hiện tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-012
+    title: Aggregation quá giới hạn, cursor hết hạn hoặc change stream không resume được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-013
+    title: Chuỗi reactive không chạy, cạn pool hoặc truy vấn quá thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-diagnostics-014
+    title: Quy trình tái hiện lỗi bằng BSON thực tế, explain và integration test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-upgrade
+  title: Phiên bản và nâng cấp
+  childs:
+  - slug: version-upgrade-001
+    title: Đọc release train và ma trận Boot–Spring Data–driver–server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-002
+    title: Đối chiếu API với tài liệu đúng phiên bản đang dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-003
+    title: Thay đổi cấu hình Boot, kiểu dữ liệu và UUID representation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-004
+    title: Nâng mapping converter, type alias và quy ước chuyển đổi thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-005
+    title: Đối chiếu API Search, vector, bulk nhiều collection và tính năng mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-006
+    title: AOT, native image và giới hạn cần kiểm chứng khi sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-007
+    title: Tiếp nhận hệ thống cũ dùng Map-Reduce hoặc JavaScript phía server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-008
+    title: Kiểm thử tương thích giao thức MongoDB với dịch vụ cơ sở dữ liệu khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-upgrade-009
+    title: Lập kế hoạch nâng cấp cùng kiểm thử hồi quy dữ liệu và hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Phân tích bài toán sản phẩm, khách hàng, tồn kho và đơn hàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Thiết kế document, tham chiếu, ID và index
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Dựng môi trường replica set và nạp dữ liệu mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Triển khai CRUD, bộ lọc động, projection và phân trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Cập nhật tồn kho nguyên tử và xử lý đơn hàng ghi lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Viết aggregation báo cáo doanh thu và dữ liệu thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Bổ sung version, auditing và giao dịch nhiều document
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Tạo luồng truy cập reactive có xử lý lỗi và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Theo dõi thay đổi bằng change stream với checkpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Kiểm thử bằng Testcontainers và tối ưu theo executionStats
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: 'Bài tập mở rộng: GridFS, time series, tìm kiếm và nhiều tenant'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-012
+    title: Rà soát tính đúng dữ liệu, bảo mật và tiêu chí sẵn sàng triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

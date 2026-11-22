@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan SMS
+  slug: sms-overview
+  index: 0
+- title: Hệ thống truyền SMS
+  slug: sms-delivery-network
+  index: 1
+- title: Định danh người gửi
+  slug: sender-identities
+  index: 2
+- title: Số điện thoại
+  slug: phone-numbers
+  index: 3
+- title: Mã hóa và phân đoạn
+  slug: encoding-and-segmentation
+  index: 4
+- title: Nội dung và mẫu tin
+  slug: message-content-and-templates
+  index: 5
+- title: Kết nối nhà cung cấp
+  slug: provider-connectivity
+  index: 6
+- title: Gửi qua HTTP API
+  slug: http-api-sending
+  index: 7
+- title: Vòng đời giao tin
+  slug: message-delivery-lifecycle
+  index: 8
+- title: Webhook biên nhận
+  slug: delivery-receipt-webhooks
+  index: 9
+- title: Nhận SMS hai chiều
+  slug: two-way-sms
+  index: 10
+- title: Tích hợp SMPP
+  slug: smpp-integration
+  index: 11
+- title: HTTP client trong Java
+  slug: java-http-clients
+  index: 12
+- title: Tích hợp Twilio
+  slug: twilio-integration
+  index: 13
+- title: Tích hợp Vonage
+  slug: vonage-integration
+  index: 14
+- title: Tích hợp Spring Boot
+  slug: spring-boot-integration
+  index: 15
+- title: Kiến trúc dịch vụ SMS
+  slug: sms-service-architecture
+  index: 16
+- title: Lưu trữ và trạng thái
+  slug: storage-and-status
+  index: 17
+- title: Chống trùng và thứ tự
+  slug: deduplication-and-ordering
+  index: 18
+- title: Lỗi và thử lại
+  slug: errors-and-retries
+  index: 19
+- title: Điều tiết tải
+  slug: rate-limiting
+  index: 20
+- title: Lập lịch và ưu tiên
+  slug: scheduling-and-priorities
+  index: 21
+- title: Định tuyến và dự phòng
+  slug: routing-and-failover
+  index: 22
+- title: Gửi hàng loạt
+  slug: bulk-sending
+  index: 23
+- title: Đăng ký và quyền nhận
+  slug: opt-in-and-consent
+  index: 24
+- title: OTP qua SMS
+  slug: sms-otp
+  index: 25
+- title: Bảo mật và dữ liệu riêng tư
+  slug: security-and-privacy
+  index: 26
+- title: Chi phí và đối soát
+  slug: costs-and-reconciliation
+  index: 27
+- title: Kiểm thử
+  slug: testing
+  index: 28
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 29
+- title: Triển khai và mở rộng
+  slug: deployment-and-scaling
+  index: 30
+- title: Vận hành và thay đổi
+  slug: operations-and-change-management
+  index: 31
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 32
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 33

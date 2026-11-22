@@ -1,0 +1,313 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phát triển dẫn dắt bởi kiểm thử chấp nhận (ATDD) là gì
+  - Vì sao cần thống nhất hành vi mong đợi trước khi xây dựng chức năng
+  - Vai trò của hội thoại, ví dụ và kiểm thử trong ATDD
+  - Quan hệ giữa mục tiêu nghiệp vụ, quy tắc, tiêu chí chấp nhận và kết quả quan sát được
+  - Kiểm thử chấp nhận như một cách diễn đạt yêu cầu từ góc nhìn người sử dụng
+  - Phân biệt mục tiêu xây đúng chức năng với kiểm tra mã đã viết
+  - Lợi ích kỳ vọng và điều kiện để ATDD tạo giá trị
+  - Giới hạn của ví dụ hữu hạn và vai trò của các kỹ thuật kiểm thử khác
+  - Kiến thức tiên quyết và lộ trình thực hành ATDD
+- level1: Các cách tiếp cận liên quan
+  level2:
+  - So sánh ATDD với phát triển dẫn dắt bởi kiểm thử đơn vị (TDD)
+  - Quan hệ và phần giao nhau giữa ATDD với phát triển hướng hành vi (BDD)
+  - Quan hệ giữa ATDD với đặc tả bằng ví dụ (Specification by Example)
+  - Phân biệt kiểm thử chấp nhận với kiểm thử đơn vị, tích hợp và hệ thống
+  - Phân biệt viết kiểm thử trước với tự động hóa kiểm thử sau khi hoàn thành
+  - Quan hệ giữa ATDD với kiểm thử chấp nhận của người dùng (UAT)
+  - Phân biệt thực hành ATDD với khuôn khổ làm việc hoặc công cụ cụ thể
+  - Vì sao ATDD không yêu cầu mọi phép kiểm tra đều đi qua giao diện người dùng
+- level1: Chu trình ATDD
+  level2:
+  - Thảo luận nhu cầu và hành vi trước khi bắt đầu triển khai
+  - Làm rõ quy tắc bằng ví dụ đại diện và câu hỏi còn mở
+  - Chuyển các ví dụ đã thống nhất thành đặc tả có thể kiểm tra
+  - Quyết định phép kiểm tra nào cần tự động hóa và khi nào thực hiện
+  - Phát triển chức năng theo tiêu chí và kiểm thử đã thống nhất
+  - Chạy kiểm thử, nhận phản hồi và điều chỉnh giải pháp
+  - Trình diễn kết quả để xác nhận sự hiểu đúng với bên nghiệp vụ
+  - Cập nhật đặc tả và duy trì kiểm thử khi hành vi thay đổi
+  - Áp dụng chu trình theo từng phần chức năng thay vì đặc tả toàn bộ dự án từ đầu
+- level1: Vai trò và phối hợp
+  level2:
+  - Ba góc nhìn nghiệp vụ, phát triển và kiểm thử trong hội thoại Three Amigos
+  - Trách nhiệm của đại diện nghiệp vụ và chuyên gia miền
+  - Trách nhiệm của lập trình viên trong tính khả thi và khả năng kiểm tra
+  - Trách nhiệm của người kiểm thử trong khai phá rủi ro và trường hợp thiếu
+  - Vai trò của người phân tích yêu cầu và người quyết định sản phẩm
+  - Phân biệt ba góc nhìn với yêu cầu luôn có đúng ba người tham dự
+  - Chuẩn bị, điều phối và giới hạn thời gian buổi làm rõ yêu cầu
+  - Giải quyết cách hiểu khác nhau bằng ví dụ cụ thể
+  - Ghi nhận người có thẩm quyền trả lời và quyết định cho câu hỏi chưa rõ
+  - Phối hợp từ xa và duy trì ngôn ngữ chung giữa các nhóm
+- level1: Khám phá yêu cầu
+  level2:
+  - Bắt đầu từ vấn đề, người sử dụng và kết quả nghiệp vụ cần đạt
+  - Xác định phạm vi chức năng và hành vi ngoài phạm vi
+  - Khai thác quy tắc nghiệp vụ từ mô tả hoặc câu chuyện người dùng
+  - Dùng Example Mapping để tổ chức quy tắc, ví dụ và câu hỏi
+  - Phân biệt quy tắc đã thống nhất với giả định chưa được kiểm chứng
+  - Phát hiện yêu cầu thiếu hoặc mâu thuẫn trong lúc thảo luận ví dụ
+  - Tách phần chức năng quá lớn dựa trên quy tắc và giá trị sử dụng
+  - Xem xét thuật ngữ, dữ liệu và trạng thái đang được các bên hiểu khác nhau
+  - Kết thúc buổi khám phá với phạm vi, ví dụ và vấn đề còn mở rõ ràng
+  - Xác định khi nào cần nghiên cứu thêm thay vì cố viết kiểm thử ngay
+- level1: Tiêu chí chấp nhận
+  level2:
+  - Tiêu chí chấp nhận là gì và quan hệ với yêu cầu nghiệp vụ
+  - Phân biệt tiêu chí chấp nhận của một chức năng với Definition of Done của nhóm
+  - Viết tiêu chí theo hành vi quan sát được thay vì chi tiết cài đặt
+  - Phân biệt quy tắc tổng quát với ví dụ minh họa và ca kiểm thử
+  - Xác định điều kiện đầu vào, hành động và kết quả cần đạt
+  - Làm rõ tiêu chí cho luồng thành công, từ chối và trường hợp biên
+  - Biến từ mơ hồ như nhanh, hợp lệ hoặc dễ dùng thành điều kiện có thể đánh giá
+  - Xác định kết quả mong đợi khi nhiều quy tắc cùng áp dụng
+  - Ghi rõ ngoại lệ, mức ưu tiên và giới hạn phạm vi chấp nhận
+  - Rà soát tính nhất quán và khả năng kiểm chứng trước khi triển khai
+- level1: Lựa chọn ví dụ
+  level2:
+  - Chọn ví dụ thể hiện rõ quy tắc và có ý nghĩa với người nghiệp vụ
+  - Lấy ví dụ cho luồng thông thường, ngoại lệ và từ chối
+  - Chọn giá trị ngay dưới, tại và trên ngưỡng nghiệp vụ
+  - Dùng phân lớp tương đương để tránh nhiều ví dụ có cùng ý nghĩa
+  - Chọn ví dụ làm lộ ra xung đột hoặc khoảng trống giữa các quy tắc
+  - Phân biệt tập ví dụ để trao đổi với tập dữ liệu kiểm thử mở rộng
+  - Sử dụng dữ liệu nhỏ, dễ đọc và đủ để chứng minh hành vi
+  - Xác định kết quả mong đợi từ quy tắc đã thống nhất
+  - Tránh suy ra kết quả mong đợi bằng chính thuật toán đang được kiểm thử
+  - Giới hạn của ví dụ đại diện và cách bổ sung kiểm thử dựa trên rủi ro
+- level1: Bảng và quy tắc
+  level2:
+  - Biểu diễn nhiều tổ hợp điều kiện bằng bảng quyết định
+  - Xác định cột điều kiện, cột hành động và kết quả mong đợi
+  - Làm rõ thứ tự ưu tiên khi các quy tắc chồng lấn
+  - Phát hiện tổ hợp bị bỏ sót hoặc không thể xảy ra
+  - Biểu diễn công thức tính, mức phí hoặc chiết khấu bằng bảng ví dụ
+  - Chọn bảng trạng thái khi hành vi phụ thuộc lịch sử xử lý
+  - Phân biệt một bảng đặc tả nghiệp vụ với danh sách dữ liệu không có quy tắc
+  - Rút gọn bảng nhưng vẫn giữ các khác biệt nghiệp vụ cần kiểm chứng
+- level1: Thiết kế kịch bản
+  level2:
+  - Một kịch bản chấp nhận nên thể hiện một hành vi rõ ràng
+  - Cấu trúc bối cảnh, sự kiện và kết quả theo Given–When–Then
+  - Đặt tên kịch bản theo quy tắc hoặc kết quả nghiệp vụ
+  - Giữ kịch bản khai báo hành vi thay vì liệt kê thao tác bấm nút
+  - Phân biệt điều kiện thiết lập với hành động đang được kiểm chứng
+  - Xác nhận đầu ra và tác động quan sát được có ý nghĩa nghiệp vụ
+  - Mô tả hành vi không được phép xảy ra trong trường hợp bị từ chối
+  - Thiết kế kịch bản độc lập, có thể chạy riêng và lặp lại
+  - Tách hành trình dài thành các kịch bản tập trung nhưng vẫn giữ ngữ cảnh cần thiết
+  - Chọn mô tả tự nhiên hoặc bảng khi Given–When–Then không phải cách rõ nhất
+- level1: Gherkin
+  level2:
+  - Vai trò của Gherkin khi nhóm chọn đặc tả bằng văn bản có cấu trúc
+  - Tổ chức Feature, Rule và Scenario theo chức năng và quy tắc
+  - Ý nghĩa của Given, When, Then, And và But
+  - Tái sử dụng bối cảnh bằng Background mà không che giấu điều kiện quan trọng
+  - Tham số hóa kịch bản bằng Scenario Outline và Examples
+  - Biểu diễn dữ liệu có cấu trúc bằng Data Tables
+  - Biểu diễn nội dung dài hoặc nhiều dòng bằng Doc Strings
+  - Phân loại kịch bản bằng Tags với mục đích rõ ràng
+  - Lựa chọn ngôn ngữ và thuật ngữ phù hợp với người cùng rà soát
+  - Phân biệt cú pháp đúng với đặc tả có giá trị và hội thoại ATDD thực sự
+- level1: Rà soát đặc tả
+  level2:
+  - Kiểm tra ví dụ có minh họa đúng quy tắc và mục tiêu nghiệp vụ hay không
+  - Rà soát thuật ngữ và cách hiểu giữa nghiệp vụ, phát triển và kiểm thử
+  - Phát hiện kết quả mong đợi thiếu, mơ hồ hoặc mâu thuẫn
+  - Rà soát sự độc lập của kịch bản và các giả định về trạng thái
+  - Loại chi tiết giao diện, cơ sở dữ liệu hoặc thuật toán không thuộc hợp đồng hành vi
+  - Quyết định câu hỏi nào phải được trả lời trước khi triển khai
+  - Ghi nhận sự thống nhất mà không biến ATDD thành thủ tục phê duyệt nặng nề
+  - Bổ sung phản hồi khi phát hiện tình huống mới trong quá trình phát triển
+- level1: Phát triển từ kiểm thử
+  level2:
+  - Chuyển ví dụ đã thống nhất thành phép kiểm tra thủ công hoặc tự động phù hợp
+  - Tạo kiểm thử cho một phần hành vi nhỏ trước khi triển khai phần đó
+  - Chạy và xác minh lý do thất bại trước khi bổ sung chức năng
+  - Phân biệt chưa có hành vi với lỗi cú pháp hoặc hạ tầng của bộ kiểm thử
+  - Xây dựng phần chức năng đủ để thỏa mãn hợp đồng đã thống nhất
+  - Kết hợp vòng phản hồi chấp nhận với kiểm thử đơn vị theo TDD khi phù hợp
+  - Cải thiện thiết kế trong khi giữ hành vi chấp nhận ổn định
+  - Chạy lại các kịch bản liên quan và kiểm thử hồi quy
+  - Xử lý phát hiện mới bằng trao đổi nghiệp vụ thay vì tự sửa kỳ vọng cho khớp mã
+  - Trình diễn kết quả, thu phản hồi và chốt phạm vi đã hoàn thành
+- level1: Kiến trúc tự động hóa
+  level2:
+  - Tách lớp đặc tả nghiệp vụ, lớp điều khiển kiểm thử và giao diện hệ thống
+  - Chọn kiểm tra qua miền nghiệp vụ, API hoặc giao diện người dùng theo mục tiêu
+  - Phân biệt ý nghĩa chấp nhận của phép kiểm tra với cấp độ thực thi kỹ thuật
+  - Thiết kế mã kết nối hoặc fixture để đặc tả không phụ thuộc chi tiết cài đặt
+  - Ánh xạ bước Gherkin sang Step Definition khi chọn tự động hóa theo kịch bản
+  - Tổ chức bước thiết lập, thực hiện hành vi, xác nhận và dọn dẹp
+  - Tái sử dụng thao tác nghiệp vụ mà không tạo chuỗi bước tổng quát khó hiểu
+  - Phân biệt lớp hỗ trợ kiểm thử với việc sao chép logic nghiệp vụ vào mã kiểm thử
+  - Thiết kế điểm truy cập chức năng giúp kiểm tra ổn định và phù hợp kiến trúc
+  - Giữ số lượng kiểm thử qua giao diện phù hợp với rủi ro cần bao phủ
+  - Đảm bảo phép xác nhận thực sự kiểm tra kết quả và làm bài kiểm thử thất bại khi sai
+  - Tách báo cáo dễ đọc cho nghiệp vụ khỏi dấu vết kỹ thuật phục vụ chẩn đoán
+- level1: Lựa chọn công cụ
+  level2:
+  - Chọn hình thức đặc tả theo khả năng đọc và tham gia của người nghiệp vụ
+  - So sánh công cụ dựa trên bảng, văn bản kịch bản và mã kiểm thử
+  - Vai trò của Cucumber, FitNesse và Robot Framework trong các cách tổ chức ATDD
+  - Đánh giá khả năng kết nối miền nghiệp vụ, API và giao diện người dùng
+  - Đánh giá khả năng quản lý dữ liệu, chạy chọn lọc và tích hợp CI
+  - Đánh giá báo cáo, truy vết và xuất bản đặc tả có kết quả thực thi
+  - Xem xét kỹ năng nhóm, chi phí duy trì và khả năng mở rộng
+  - Thử nghiệm công cụ trên một quy tắc nghiệp vụ trước khi áp dụng rộng
+  - Phân biệt đổi công cụ với cải thiện chất lượng cộng tác và đặc tả
+- level1: Dữ liệu và môi trường
+  level2:
+  - Tạo dữ liệu thể hiện đúng quy tắc đang được kiểm chứng
+  - Thiết lập trạng thái ban đầu rõ ràng và tối thiểu
+  - Sử dụng bộ tạo dữ liệu kiểm thử và fixture dễ đọc
+  - Quản lý định danh, số tiền, làm tròn, ngày giờ và múi giờ
+  - Cô lập dữ liệu để kịch bản không phụ thuộc thứ tự chạy
+  - Khôi phục hoặc dọn dữ liệu sau hoàn tất và thất bại
+  - Quản lý môi trường có phiên bản và cấu hình lặp lại được
+  - Phân biệt dữ liệu giả lập với dữ liệu ẩn danh hóa từ tình huống thực tế
+  - Tránh đưa thông tin nhạy cảm hoặc thông tin đăng nhập vào kịch bản và báo cáo
+  - Chạy song song khi dữ liệu và tài nguyên dùng chung đã được cô lập
+  - Đánh giá mức đại diện của môi trường kiểm thử đối với hành vi cần chấp nhận
+- level1: Phụ thuộc và tích hợp
+  level2:
+  - Xác định hệ thống và giao diện nào nằm trong phạm vi phép kiểm tra
+  - Chọn khi nào dùng hệ thống thật, môi trường thử nghiệm hoặc đối tượng thay thế kiểm thử (test double)
+  - Phân biệt stub, fake và mock theo vai trò trong kiểm thử chấp nhận
+  - Giữ mô phỏng ở ranh giới phụ thuộc và kiểm chứng kết quả nghiệp vụ
+  - Nguy cơ kiểm thử chỉ chứng minh giả định của mô phỏng thay vì hành vi tích hợp thật
+  - Bổ sung kiểm thử hợp đồng và tích hợp cho giao diện phụ thuộc
+  - Thiết kế kịch bản khi dịch vụ ngoài lỗi, quá hạn hoặc phản hồi không hợp lệ
+  - Kiểm tra tác động phụ như lưu dữ liệu, gửi thông báo hoặc phát sự kiện
+  - Quản lý phiên bản phụ thuộc và thay đổi hợp đồng giữa các nhóm
+- level1: Bất đồng bộ và thời gian
+  level2:
+  - Mô tả điều kiện hoàn tất của nghiệp vụ xử lý bất đồng bộ
+  - Phân biệt tiếp nhận yêu cầu với hoàn thành kết quả cuối
+  - Kiểm chứng trạng thái nhất quán sau một khoảng thời gian cho phép
+  - Chờ theo điều kiện có giới hạn thay vì dùng thời gian ngủ cố định
+  - Kiểm soát đồng hồ khi nghiệp vụ phụ thuộc hạn dùng hoặc lịch xử lý
+  - Kiểm tra xử lý trùng lặp và tính lũy đẳng từ góc nhìn nghiệp vụ
+  - Kiểm tra sự kiện đến muộn, khác thứ tự hoặc được thử lại
+  - Xác định ngưỡng thời gian và bằng chứng quan sát để tránh kết quả thất thường
+- level1: Thuộc tính chất lượng
+  level2:
+  - Làm rõ yêu cầu chất lượng như một phần của tiêu chí chấp nhận khi có liên quan
+  - Biểu diễn giới hạn thời gian phản hồi với tải và điều kiện đo cụ thể
+  - Biểu diễn quy tắc xác thực và phân quyền bằng các tình huống có thể kiểm tra
+  - Kiểm tra bảo vệ dữ liệu và giới hạn tiết lộ thông tin qua hành vi quan sát được
+  - Xác định điều kiện chấp nhận về khả năng tiếp cận và sử dụng
+  - Mô tả hành vi khi lỗi và khôi phục bằng ví dụ nghiệp vụ
+  - Phân biệt kiểm tra chấp nhận đại diện với đánh giá chuyên sâu về hiệu năng hoặc bảo mật
+  - Kết hợp kết quả tự động với đánh giá thủ công hoặc chuyên gia khi cần
+  - Nhận diện thuộc tính không thể được chứng minh đầy đủ bằng một kịch bản đơn lẻ
+- level1: Tích hợp CI/CD
+  level2:
+  - Đưa đặc tả và mã tự động hóa vào quản lý phiên bản
+  - Chọn các nhóm kiểm thử cho phản hồi nhanh và kiểm tra trước phát hành
+  - Chạy kiểm thử chấp nhận trong quy trình tích hợp liên tục
+  - Phân loại và chọn kịch bản theo mục tiêu thay vì bỏ qua tùy tiện
+  - Chuẩn bị môi trường và dữ liệu từ quy trình tự động
+  - Quản lý cấu hình và thông tin bí mật ngoài đặc tả
+  - Thu thập kết quả, bằng chứng và dấu vết của mỗi lần chạy
+  - Liên kết kết quả kiểm thử với đúng phiên bản chức năng và môi trường
+  - Chọn điểm chặn chuyển giao dựa trên rủi ro và độ tin cậy của kiểm thử
+  - Phối hợp kiểm thử tự động, trình diễn và quyết định phát hành
+- level1: Chẩn đoán thất bại
+  level2:
+  - Phân loại thất bại do chức năng, đặc tả, mã kiểm thử, dữ liệu hoặc môi trường
+  - Đọc chênh lệch giữa kết quả mong đợi với kết quả thực tế
+  - Tạo thông báo thất bại theo quy tắc nghiệp vụ đang bị vi phạm
+  - Phân biệt thay đổi hành vi có chủ đích với lỗi hồi quy
+  - Thu thập log, trạng thái và bằng chứng đủ để tái hiện tình huống
+  - Điều tra kiểm thử thất thường bằng dữ liệu, thời gian và phụ thuộc
+  - Giới hạn việc chạy lại để tránh che giấu lỗi không ổn định
+  - Quản lý cách ly tạm thời kiểm thử lỗi với người phụ trách và thời hạn xử lý
+  - Kiểm tra trường hợp báo đạt sai do thiếu xác nhận hoặc bỏ qua kịch bản
+- level1: Đặc tả sống
+  level2:
+  - Đặc tả sống (living documentation) là gì và liên hệ với kiểm thử chấp nhận
+  - Tổ chức đặc tả theo năng lực và quy tắc nghiệp vụ
+  - Duy trì thuật ngữ chung giữa mô tả, ví dụ và báo cáo
+  - Liên kết yêu cầu, tiêu chí, kịch bản và kết quả thực thi
+  - Phân biệt mô tả hành vi hiện hành với kế hoạch chức năng chưa triển khai
+  - Xuất bản báo cáo dễ đọc cho người nghiệp vụ và nhóm phát triển
+  - Hiển thị rõ phiên bản, thời điểm chạy và môi trường của kết quả
+  - Giới hạn của báo cáo xanh khi các ví dụ hoặc phép xác nhận chưa đầy đủ
+  - Sử dụng đặc tả để chuyển giao tri thức và hỗ trợ người mới
+- level1: Thay đổi và bảo trì
+  level2:
+  - Cập nhật quy tắc và ví dụ trước khi thay đổi hành vi sản phẩm
+  - Phân tích tác động của thay đổi lên các kịch bản đang có
+  - Phân biệt thay đổi nghiệp vụ với tái cấu trúc kỹ thuật giữ nguyên hành vi
+  - Tái cấu trúc đặc tả, Step Definition và fixture để giảm trùng lặp
+  - Giữ tên và ngôn ngữ kịch bản ổn định khi giao diện kỹ thuật thay đổi
+  - Loại bỏ hoặc lưu lịch sử kịch bản khi quy tắc hết hiệu lực
+  - Quản lý hiệu lực theo thời gian và nhiều phiên bản quy tắc
+  - Duy trì bộ hồi quy có giá trị thay vì chỉ tăng số lượng ca kiểm thử
+  - Rà soát chi phí bảo trì và xử lý nợ kỹ thuật của bộ tự động hóa
+- level1: Tổ chức công việc
+  level2:
+  - Đưa hội thoại ATDD vào quá trình làm rõ và chia nhỏ yêu cầu
+  - Lập kế hoạch cho cả công việc nghiệp vụ, triển khai và tự động hóa
+  - Dùng tiêu chí rõ ràng làm cơ sở thỏa thuận khi chức năng sẵn sàng được phát triển
+  - Kết hợp kiểm thử đạt, phản hồi nghiệp vụ và Definition of Done khi đánh giá hoàn thành
+  - Phối hợp Three Amigos với trình diễn và đánh giá sản phẩm
+  - Thống nhất quy tắc dùng chung giữa nhiều nhóm hoặc nhiều hệ thống
+  - Phân định quyền quyết định khi có yêu cầu mâu thuẫn từ nhiều bên
+  - Giữ quyền sở hữu chung thay vì chuyển đặc tả thành việc riêng của người kiểm thử
+  - Áp dụng cho thay đổi hệ thống cũ khi thông tin nghiệp vụ chưa đầy đủ
+- level1: Áp dụng ATDD
+  level2:
+  - Đánh giá vấn đề hiện tại về hiểu sai yêu cầu, làm lại và phản hồi muộn
+  - Chọn phần chức năng thử nghiệm có giá trị và phạm vi vừa sức
+  - Bắt đầu bằng hội thoại và ví dụ trước khi đầu tư bộ công cụ
+  - Hướng dẫn nhóm viết tiêu chí, ví dụ và phép xác nhận dễ hiểu
+  - Thiết lập cách tổ chức đặc tả và người chịu trách nhiệm bảo trì
+  - Bổ sung tự động hóa từng bước theo tần suất chạy và chi phí thực hiện
+  - Lấy ý kiến người nghiệp vụ về mức hữu ích và khả năng đọc
+  - Mở rộng dựa trên kết quả thực tế và điều chỉnh cách cộng tác
+  - Nhận diện khi cần thêm kiểm thử khám phá hoặc nghiên cứu thay vì thêm kịch bản chấp nhận
+- level1: Sai lầm thường gặp
+  level2:
+  - Viết kiểm thử sau khi hoàn tất rồi gọi đó là ATDD
+  - Để một người viết toàn bộ tiêu chí mà thiếu trao đổi nhiều góc nhìn
+  - Nhầm tiêu chí chấp nhận với danh sách thao tác giao diện
+  - Chỉ viết luồng thành công và bỏ qua quy tắc từ chối hoặc trường hợp biên
+  - Dùng Gherkin như bản ghi thao tác thay vì đặc tả hành vi
+  - Đồng nhất ATDD với Cucumber hoặc tự động hóa toàn bộ qua trình duyệt
+  - Dùng quá nhiều ví dụ trùng ý nghĩa nhưng thiếu khác biệt nghiệp vụ quan trọng
+  - Sao chép thuật toán sản phẩm vào phép tính kết quả mong đợi
+  - Sửa kỳ vọng để kiểm thử đạt mà chưa xác nhận thay đổi nghiệp vụ
+  - Cho rằng toàn bộ kiểm thử chấp nhận đạt đồng nghĩa với không còn lỗi hoặc tự động được phát hành
+  - Đặc tả mọi chi tiết từ đầu khiến phản hồi và phát triển bị trì hoãn
+  - Duy trì bộ kiểm thử chậm, thất thường hoặc không được người nghiệp vụ sử dụng
+- level1: Đánh giá hiệu quả
+  level2:
+  - Đo mức giảm hiểu sai và làm lại do yêu cầu không rõ
+  - Đo thời gian từ đặt câu hỏi đến thống nhất hành vi
+  - Theo dõi tốc độ phản hồi và độ tin cậy của kiểm thử tự động
+  - Đánh giá mức bao phủ quy tắc thay vì chỉ đếm kịch bản
+  - Theo dõi lỗi nghiệp vụ lọt ra sử dụng và các ví dụ còn thiếu
+  - Đánh giá mức tham gia và khả năng đọc đặc tả của các bên
+  - So sánh công sức tạo, chạy và bảo trì với giá trị phản hồi nhận được
+  - Phân biệt hiệu quả ATDD với ảnh hưởng của công cụ hoặc thay đổi tổ chức khác
+  - Dùng kết quả đánh giá để điều chỉnh phạm vi đặc tả và tự động hóa
+- level1: Thực hành tổng hợp
+  level2:
+  - Thảo luận Three Amigos cho chức năng tính phí hoặc chiết khấu đơn hàng
+  - Chuyển mô tả yêu cầu mơ hồ thành quy tắc, ví dụ và câu hỏi bằng Example Mapping
+  - Lập bảng quyết định cho nhiều điều kiện ưu đãi có thể chồng lấn
+  - Thiết kế ví dụ ngay dưới, tại và trên ngưỡng nghiệp vụ
+  - Viết kịch bản chấp nhận cho quyền truy cập và thao tác bị từ chối
+  - Chọn cách biểu diễn cùng một quy tắc bằng bảng hoặc Given–When–Then
+  - Tự động hóa một kịch bản qua miền nghiệp vụ hoặc API và giải thích ranh giới kiểm thử
+  - Thực hành phát triển chức năng từ kiểm thử chưa đạt đến đạt
+  - Thiết kế dữ liệu và điều kiện chờ cho một nghiệp vụ xử lý bất đồng bộ
+  - Phân tích và sửa bộ kiểm thử phụ thuộc thứ tự hoặc thất thường
+  - Thay đổi quy tắc nghiệp vụ và cập nhật đặc tả cùng bộ hồi quy
+  - Xuất bản đặc tả sống và bảo vệ quyết định chấp nhận dựa trên bằng chứng

@@ -1,0 +1,298 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - CQRS là gì và ý nghĩa của Command Query Responsibility Segregation
+  - Vì sao một mô hình dùng chung có thể khó đáp ứng cả đọc và ghi
+  - Lệnh, truy vấn, mô hình ghi và mô hình đọc trong một bức tranh tổng thể
+  - 'Luồng đặt hàng: từ yêu cầu nghiệp vụ đến kết quả hiển thị'
+  - Phân biệt dữ liệu có thẩm quyền với dữ liệu được chiếu để đọc
+  - Lợi ích, chi phí và những vấn đề CQRS không tự giải quyết
+  - 'Các thuật ngữ cốt lõi: handler, aggregate, projection và consistency'
+  - Kiến thức cần có và thứ tự học từ CQRS đơn giản đến phân tán
+- level1: Nền tảng
+  level2:
+  - Tách lệnh và truy vấn ở mức phương thức với Command Query Separation
+  - 'Từ CQS đến CQRS: khác nhau về cấp độ và trách nhiệm'
+  - So sánh CRUD và CQRS trên cùng một bài toán nghiệp vụ
+  - Phân biệt lệnh thể hiện ý định với sự kiện ghi nhận điều đã xảy ra
+  - Phân biệt mô hình miền, mô hình lưu trữ và mô hình truyền dữ liệu
+  - CQRS với kiến trúc phân lớp, Hexagonal và Clean Architecture
+  - Quan hệ giữa CQRS, Domain-Driven Design và kiến trúc hướng sự kiện
+  - Phân biệt CQRS với sao chép cơ sở dữ liệu, bộ nhớ đệm và cơ sở dữ liệu báo cáo
+- level1: Phạm vi áp dụng
+  level2:
+  - Nhận diện nghiệp vụ có quy tắc ghi phức tạp và nhu cầu đọc khác biệt
+  - Đánh giá tỷ lệ đọc/ghi cùng yêu cầu độ trễ và độ mới dữ liệu
+  - Xác định ranh giới áp dụng theo miền nghiệp vụ và bounded context
+  - Kết hợp CQRS ở một phần hệ thống với CRUD ở các phần còn lại
+  - Những trường hợp CRUD và tối ưu truy vấn thông thường đã đủ
+  - Đánh giá năng lực đội ngũ, chi phí hạ tầng và gánh nặng vận hành
+  - Đặt tiêu chí thành công và giới hạn độ phức tạp trước khi áp dụng
+  - Ghi quyết định kiến trúc cùng phương án thay thế và điều kiện xem xét lại
+- level1: Biến thể kiến trúc
+  level2:
+  - Tách mô hình đọc/ghi trong một tiến trình và cùng cơ sở dữ liệu
+  - Tách mô hình với các bảng hoặc lược đồ riêng trong cùng cơ sở dữ liệu
+  - Tách kho đọc và kho ghi với cơ chế đồng bộ dữ liệu
+  - Xử lý lệnh đồng bộ và xử lý lệnh bất đồng bộ
+  - Cập nhật mô hình đọc trong giao dịch và cập nhật sau giao dịch
+  - CQRS trong ứng dụng nguyên khối có mô-đun và trong microservices
+  - Kết hợp cơ sở dữ liệu quan hệ, tài liệu và công cụ tìm kiếm theo nhu cầu
+  - So sánh mức cô lập lỗi, khả năng mở rộng và tính nhất quán giữa các biến thể
+  - Chọn biến thể tối thiểu đáp ứng yêu cầu và lộ trình nâng cấp
+- level1: Mô hình ghi
+  level2:
+  - Thiết kế mô hình ghi xoay quanh hành vi và quy tắc nghiệp vụ
+  - Thực thể, đối tượng giá trị và định danh trong mô hình ghi
+  - Tập hợp nghiệp vụ (aggregate) và ranh giới bảo vệ tính nhất quán
+  - Xác định điều kiện bất biến và chuyển trạng thái hợp lệ
+  - Thiết kế hành vi thay cho việc cho phép sửa tùy ý mọi thuộc tính
+  - Vai trò của dịch vụ miền khi quy tắc không thuộc một thực thể
+  - Kho lưu trữ (repository) và ranh giới truy cập dữ liệu ghi
+  - Kiểm tra quyết định nghiệp vụ bằng dữ liệu có thẩm quyền
+  - Phân biệt mô hình miền với thực thể ORM và hợp đồng API
+  - Lựa chọn mô hình ghi đơn giản khi nghiệp vụ không cần đầy đủ DDD
+- level1: Thiết kế lệnh
+  level2:
+  - Đặt tên lệnh theo ý định nghiệp vụ thay cho thao tác cập nhật chung
+  - Thiết kế dữ liệu đầu vào tối thiểu và bất biến của lệnh
+  - Phân biệt kiểm tra cú pháp, kiểm tra quyền và kiểm tra quy tắc nghiệp vụ
+  - Truyền danh tính người thực hiện và ngữ cảnh yêu cầu một cách tin cậy
+  - Định danh lệnh, khóa chống lặp và phạm vi hiệu lực của yêu cầu
+  - Phiên bản mong đợi để phát hiện lệnh dựa trên dữ liệu đã cũ
+  - 'Thiết kế kết quả lệnh: định danh, phiên bản và trạng thái thực thi'
+  - Phân biệt tiếp nhận lệnh, hoàn tất ghi và sẵn sàng để đọc
+  - Thiết kế lỗi nghiệp vụ, lỗi xung đột và lỗi có thể thử lại
+  - Lệnh đơn, lệnh theo lô và ranh giới giao dịch của từng lựa chọn
+- level1: Xử lý lệnh
+  level2:
+  - Luồng xử lý từ nhận lệnh đến nạp, thay đổi và lưu mô hình ghi
+  - Trách nhiệm của command handler và cách giữ handler dễ kiểm thử
+  - Gọi handler trực tiếp, dùng mediator và dùng command bus
+  - Chuỗi xử lý chung cho kiểm tra dữ liệu, phân quyền và đo lường
+  - Đặt ranh giới giao dịch quanh một lần xử lý lệnh
+  - Phát sinh sự kiện miền và chuyển thành sự kiện tích hợp khi cần
+  - Phân loại lỗi trước giao dịch, trong giao dịch và sau khi commit
+  - Xử lý việc bên gọi hết thời gian chờ nhưng lệnh có thể đã thành công
+  - Giới hạn thời gian, hủy yêu cầu và ngữ nghĩa thử lại của lệnh
+- level1: Mô hình đọc
+  level2:
+  - Thiết kế mô hình đọc từ màn hình và nhu cầu sử dụng dữ liệu
+  - Phép chiếu (projection), mô hình đọc và khung nhìn vật hóa
+  - Phi chuẩn hóa dữ liệu để giảm truy vấn nối và xử lý khi đọc
+  - Một mô hình ghi phục vụ nhiều mô hình đọc chuyên biệt
+  - Thiết kế dữ liệu chi tiết, danh sách, tổng hợp và tìm kiếm
+  - Ranh giới giữa phép tính phục vụ hiển thị và quyết định nghiệp vụ ghi
+  - Chọn định danh, chỉ mục và cấu trúc lưu trữ cho mô hình đọc
+  - Xử lý thêm, sửa, xóa và dữ liệu liên quan trong phép chiếu
+  - Lưu phiên bản và mốc cập nhật để đánh giá độ mới của dữ liệu
+  - Quyền sở hữu, khả năng tái tạo và giới hạn của từng mô hình đọc
+- level1: Thiết kế truy vấn
+  level2:
+  - Thiết kế query object, query handler và kết quả chỉ phục vụ đọc
+  - Ánh xạ kết quả sang DTO thay cho việc trả trực tiếp thực thể miền
+  - Lọc, sắp xếp và phân trang với thứ tự ổn định
+  - So sánh phân trang theo độ lệch và theo con trỏ
+  - Truy vấn chi tiết, tổng hợp và tìm kiếm trên các mô hình đọc
+  - Tránh N+1, nạp thừa dữ liệu và truy vấn nối không cần thiết
+  - 'Truy vấn nhiều nguồn: hợp nhất kết quả và chấp nhận độ mới khác nhau'
+  - Thiết kế bộ nhớ đệm và cơ chế vô hiệu hóa phù hợp
+  - Xử lý kết quả rỗng, chưa được chiếu và dữ liệu đã xóa
+  - Bảo đảm truy vấn không làm thay đổi trạng thái nghiệp vụ
+- level1: Giao dịch và đồng thời
+  level2:
+  - Phạm vi giao dịch ACID trên phía ghi và các điều kiện cần bảo vệ
+  - Cập nhật mô hình đọc cùng giao dịch khi dùng chung cơ sở dữ liệu
+  - Kiểm soát đồng thời lạc quan bằng phiên bản và compare-and-set
+  - Khóa bi quan và các trường hợp cần tuần tự hóa thao tác
+  - Ngăn mất cập nhật và đánh giá lại nghiệp vụ sau xung đột
+  - Ràng buộc cơ sở dữ liệu để bảo vệ duy nhất và tính hợp lệ
+  - Xử lý cạnh tranh khi giữ hàng, giữ chỗ và trừ số dư
+  - Giới hạn của mức cô lập và hiện tượng lệch ghi (write skew)
+  - Chống xử lý lặp lệnh trong cùng ranh giới giao dịch
+  - Ranh giới nhiều aggregate và lựa chọn giao dịch hay quy trình nhiều bước
+- level1: Đồng bộ dữ liệu
+  level2:
+  - Lựa chọn cập nhật trực tiếp, sự kiện hay thu thập thay đổi dữ liệu (CDC)
+  - Vấn đề ghi kép khi vừa lưu dữ liệu vừa phát thông điệp
+  - 'Transactional Outbox: lưu thay đổi nghiệp vụ và bản ghi sự kiện nguyên tử'
+  - Đọc outbox bằng thăm dò và bằng CDC
+  - Thiết kế sự kiện đủ dữ liệu cho bên dựng phép chiếu
+  - Cập nhật mô hình đọc từ sự kiện nghiệp vụ và từ thay đổi dữ liệu thô
+  - Đồng bộ bản ghi phép chiếu và mốc xử lý trong giao dịch phù hợp
+  - Tạo dữ liệu ban đầu từ ảnh chụp và tiếp nối luồng thay đổi
+  - Đồng bộ xóa dữ liệu, dấu xóa và thay đổi dữ liệu liên quan
+  - Đối soát mô hình đọc với nguồn có thẩm quyền và sửa sai lệch
+- level1: Truyền tin tin cậy
+  level2:
+  - Ngữ nghĩa giao nhận tối đa một lần, ít nhất một lần và giới hạn đúng một lần
+  - Thiết kế bộ tiêu thụ có tính lũy đẳng để chịu thông điệp trùng
+  - Inbox và lưu dấu thông điệp đã xử lý cùng thay đổi dữ liệu
+  - Phạm vi bảo đảm thứ tự theo thực thể, khóa và phân vùng
+  - Phát hiện sự kiện đến muộn, sai thứ tự hoặc thiếu phiên bản
+  - Xác nhận thông điệp và xử lý sự cố giữa commit với acknowledgment
+  - Thử lại có giãn cách, giới hạn số lần và phân loại lỗi
+  - Hàng đợi lỗi (dead-letter queue), thông điệp lỗi và quy trình phát lại
+  - Điều tiết tải, giới hạn bộ đệm và áp lực ngược (backpressure)
+  - Giới hạn của bảo đảm từ broker đối với tác dụng phụ ngoài broker
+- level1: Tính nhất quán
+  level2:
+  - Nhất quán mạnh và nhất quán cuối cùng trong các biến thể CQRS
+  - Mô hình độ trễ từ ghi thành công đến dữ liệu đọc được cập nhật
+  - Đọc lại thay đổi vừa ghi (read-your-writes) và phạm vi bảo đảm
+  - Dùng phiên bản hoặc mã mốc để chờ mô hình đọc theo kịp
+  - Định tuyến tạm sang nguồn có thẩm quyền và các giới hạn
+  - Ngăn quyết định ghi dựa hoàn toàn vào dữ liệu chiếu đã cũ
+  - Nhất quán khi một truy vấn kết hợp nhiều phép chiếu
+  - Thiết kế hành vi khi đồng bộ dừng, vượt ngưỡng trễ hoặc mất kết nối
+  - Lựa chọn mức nhất quán theo rủi ro của từng thao tác nghiệp vụ
+- level1: Giao tiếp người dùng
+  level2:
+  - Thiết kế API lệnh theo thao tác nghiệp vụ và API truy vấn theo nhu cầu đọc
+  - Ánh xạ trạng thái lệnh sang phản hồi HTTP đồng bộ và bất đồng bộ
+  - Trả mã thao tác và cung cấp truy vấn trạng thái cho lệnh chạy nền
+  - Phân biệt đang tiếp nhận, đang xử lý, hoàn tất ghi và cập nhật hiển thị
+  - Cập nhật giao diện lạc quan và khôi phục khi lệnh bị từ chối
+  - Chờ dữ liệu mới bằng polling, Server-Sent Events hoặc WebSocket
+  - Xử lý gửi lặp, tải lại trang và kết nối đứt trong lúc thực hiện lệnh
+  - Thông báo dữ liệu cũ, xung đột và lỗi nghiệp vụ theo cách người dùng hiểu
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Phân biệt hợp đồng lệnh, truy vấn, sự kiện miền và sự kiện tích hợp
+  - Định danh thông điệp, thời điểm, nguồn phát và phiên bản lược đồ
+  - Correlation ID và causation ID để theo dõi chuỗi xử lý
+  - Thay đổi tương thích ngược và quy trình triển khai các phiên bản
+  - Sự kiện chứa toàn bộ trạng thái và sự kiện chứa phần thay đổi
+  - Ngữ nghĩa giá trị thiếu, null và mặc định khi tiến hóa dữ liệu
+  - Chuyển đổi sự kiện cũ và điều kiện có thể tái dựng phép chiếu
+  - Phiên bản mô hình đọc và chạy song song phép chiếu cũ/mới
+  - Quyền sở hữu hợp đồng và ngăn phụ thuộc trực tiếp vào lược đồ nội bộ
+- level1: Quy trình liên miền
+  level2:
+  - Ranh giới bounded context và quyền sở hữu dữ liệu giữa các miền
+  - Phối hợp lệnh và sự kiện qua nhiều dịch vụ hoặc mô-đun
+  - Phân biệt giao dịch cục bộ với quy trình nghiệp vụ phân tán
+  - Saga và bộ điều phối quy trình trong luồng nhiều bước
+  - So sánh điều phối tập trung và phối hợp bằng sự kiện
+  - Thao tác bù, hết hạn và xử lý kết quả đến muộn
+  - Thiết kế khả năng thử lại và chống lặp cho từng bước quy trình
+  - Tổng hợp dữ liệu đọc liên miền mà không tạo kho ghi dùng chung
+  - Phân biệt CQRS với Saga và tránh mở rộng phạm vi sang toàn bộ hệ thống
+- level1: CQRS và Event Sourcing
+  level2:
+  - 'Tách biệt hai quyết định: mô hình đọc/ghi và cách lưu trạng thái'
+  - CQRS với cơ sở dữ liệu lưu trạng thái hiện tại
+  - CQRS kết hợp kho sự kiện làm nguồn có thẩm quyền
+  - Luồng nạp lịch sử, khôi phục aggregate, thực thi lệnh và ghi sự kiện
+  - Kiểm soát đồng thời khi nối sự kiện vào luồng bằng phiên bản mong đợi
+  - Phân biệt phép chiếu truy vấn với snapshot phục vụ nạp mô hình ghi
+  - Tái dựng phép chiếu từ lịch sử đầy đủ và yêu cầu tính xác định
+  - Giới hạn phát lại khi lịch sử thiếu, bị cắt hoặc chưa từng được lưu
+  - Ngăn phát lại phép chiếu kích hoạt tác dụng phụ nghiệp vụ lần nữa
+  - Đánh giá chi phí bổ sung và lựa chọn Event Sourcing theo nhu cầu riêng
+- level1: Bảo mật
+  level2:
+  - Phân quyền lệnh theo hành động và quy tắc nghiệp vụ
+  - Phân quyền truy vấn theo bản ghi, thuộc tính và phạm vi dữ liệu
+  - Tách tài khoản và đặc quyền truy cập kho đọc với kho ghi
+  - Ngăn giả mạo người thực hiện và thay đổi ngữ cảnh yêu cầu
+  - Cô lập dữ liệu nhiều khách hàng (multi-tenancy) trên toàn bộ luồng
+  - Kiểm soát dữ liệu nhạy cảm trong sự kiện, phép chiếu và bộ nhớ đệm
+  - Áp dụng thay đổi quyền cho dữ liệu đọc đã được lưu sẵn
+  - Lưu vết thao tác và liên kết danh tính với quá trình thực thi lệnh
+  - Xóa hoặc ẩn danh dữ liệu trên các bản sao và giới hạn phát lại
+- level1: Java và Spring
+  level2:
+  - Tổ chức gói theo nghiệp vụ với luồng lệnh và truy vấn tách biệt
+  - Mô hình hóa command, query và DTO bằng Java record
+  - Thiết kế interface handler và định tuyến lệnh mà không phụ thuộc framework riêng
+  - Phía ghi với Spring Data JPA và kiểm soát phiên bản bằng @Version
+  - Phía đọc với JDBC hoặc DTO projection theo nhu cầu truy vấn
+  - Đặt @Transactional đúng ranh giới và nhận diện lời gọi nội bộ proxy
+  - Sự kiện trong tiến trình, @TransactionalEventListener và giới hạn sau commit
+  - Triển khai outbox, relay và consumer thay cho giả định sự kiện luôn được giao
+  - Ánh xạ lỗi nghiệp vụ, xung đột và khóa chống lặp tại REST API
+  - Chọn Kafka, RabbitMQ hoặc xử lý nội bộ theo yêu cầu thực tế
+  - Đánh giá thư viện CQRS/Event Sourcing theo bảo đảm và mức phụ thuộc
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử hành vi mô hình ghi và các điều kiện bất biến
+  - Kiểm thử command handler với trường hợp chấp nhận và từ chối
+  - Kiểm thử truy vấn, phép chiếu và ánh xạ DTO
+  - Kiểm thử tích hợp giao dịch, khóa và ràng buộc cơ sở dữ liệu
+  - Kiểm thử lệnh trùng, thông điệp trùng và khôi phục sau sự cố
+  - Kiểm thử thứ tự, sự kiện thiếu, sự kiện đến muộn và phát lại
+  - Kiểm thử nguyên tử outbox và nguyên tử cập nhật phép chiếu với checkpoint
+  - Kiểm thử bất đồng bộ bằng điều kiện chờ có thời hạn thay cho thời gian ngủ cố định
+  - Kiểm thử hợp đồng và tương thích dữ liệu giữa các phiên bản
+  - Kiểm thử từ đầu đến cuối qua cả ghi thành công và dữ liệu đọc hội tụ
+  - Kiểm thử tải, gián đoạn kết nối và lỗi thành phần với Testcontainers khi phù hợp
+- level1: Hiệu năng
+  level2:
+  - Đo riêng thông lượng ghi, độ trễ truy vấn và độ trễ phép chiếu
+  - Phân tích kế hoạch thực thi và thiết kế chỉ mục cho từng mô hình đọc
+  - Chọn mức phi chuẩn hóa dựa trên chi phí đọc và khuếch đại ghi
+  - Chia lô cập nhật phép chiếu và đánh đổi độ trễ với thông lượng
+  - Mở rộng độc lập handler, consumer và kho dữ liệu
+  - Chọn khóa phân vùng và xử lý điểm nóng trên một thực thể
+  - Chi phí bộ nhớ đệm, vô hiệu hóa và độ mới dữ liệu sau ghi
+  - Giới hạn tài nguyên và ngăn phía đọc làm nghẽn phía ghi khi dùng chung hạ tầng
+  - Đánh giá dung lượng, chi phí lưu trữ và tốc độ tái dựng phép chiếu
+- level1: Quan sát hệ thống
+  level2:
+  - Theo dõi một yêu cầu xuyên suốt từ lệnh đến mô hình đọc
+  - Liên kết log, metric và trace bằng định danh lệnh và thông điệp
+  - Đo tỷ lệ chấp nhận, từ chối, xung đột và thử lại lệnh
+  - Đo độ trễ outbox, độ sâu hàng đợi và độ trễ consumer
+  - Phân biệt độ trễ theo thời gian, độ lệch phiên bản và dữ liệu bị kẹt
+  - Theo dõi lỗi phép chiếu, hàng đợi lỗi và sai lệch khi đối soát
+  - Đặt mục tiêu chất lượng dịch vụ cho ghi, đọc và độ mới dữ liệu
+  - Thiết kế kiểm tra sống, sẵn sàng và trạng thái đồng bộ
+  - Xây cảnh báo gắn với ảnh hưởng nghiệp vụ và hướng xử lý
+- level1: Vận hành và phục hồi
+  level2:
+  - Triển khai thay đổi mô hình ghi, sự kiện và mô hình đọc theo thứ tự an toàn
+  - Khởi tạo phép chiếu mới từ dữ liệu nền và theo kịp luồng trực tiếp
+  - Tái dựng phép chiếu song song và chuyển đổi sau khi đối soát
+  - Khôi phục sau khi broker hoặc kho đọc ngừng hoạt động
+  - Xử lý outbox tồn đọng và consumer chậm kéo dài
+  - Cô lập thông điệp lỗi, sửa nguyên nhân và phát lại có kiểm soát
+  - Sao lưu nguồn có thẩm quyền, thông điệp còn hiệu lực và mốc xử lý
+  - Chính sách lưu giữ dữ liệu và giới hạn khả năng khôi phục lịch sử
+  - Phục hồi thảm họa với mục tiêu mất dữ liệu và thời gian khôi phục
+  - Quay lui triển khai khi hai phiên bản mô hình hoặc hợp đồng cùng tồn tại
+  - Quản lý tác vụ sửa dữ liệu và kiểm chứng lại các phép chiếu liên quan
+- level1: Di trú hệ thống
+  level2:
+  - Khảo sát CRUD hiện tại và chọn luồng nghiệp vụ để thí điểm
+  - Tách DTO đọc và hành vi ghi trước khi tách cơ sở dữ liệu
+  - Đưa command handler và query handler vào hệ thống hiện hữu
+  - Bổ sung outbox hoặc CDC mà không tạo lỗ hổng đồng bộ
+  - Nạp dữ liệu nền và xác định điểm nối với thay đổi phát sinh
+  - Chạy truy vấn đối chiếu và so sánh mô hình đọc mới với kết quả cũ
+  - Chuyển dần lưu lượng bằng cờ tính năng và đặt điều kiện quay lui
+  - Ngăn hai đường ghi cạnh tranh khi cũ và mới chạy song song
+  - Đo hiệu quả sau di trú và loại bỏ thành phần không còn cần thiết
+- level1: Thực hành tổng hợp
+  level2:
+  - Đơn hàng với mô hình ghi nghiệp vụ và màn hình tổng hợp riêng
+  - Giữ hàng tồn kho dưới tải đồng thời và kiểm tra số lượng có thẩm quyền
+  - Đặt chỗ với xung đột phiên bản và lệnh gửi lặp
+  - Danh mục sản phẩm với kho tìm kiếm cập nhật bất đồng bộ
+  - Luồng thanh toán với kết quả xử lý chưa xác định và đối soát
+  - Dựng bản tối thiểu dùng chung cơ sở dữ liệu rồi so sánh với CRUD
+  - Bổ sung kho đọc riêng, outbox và consumer có tính lũy đẳng
+  - Thực nghiệm dữ liệu cũ, lỗi giao nhận và phục hồi phép chiếu
+  - Nâng phiên bản hợp đồng và chuyển phép chiếu khi hệ thống đang chạy
+  - Đánh giá từng phương án bằng tính đúng đắn, độ trễ và chi phí vận hành
+- level1: Đánh giá thiết kế
+  level2:
+  - Nhận diện việc chỉ đổi tên lớp CRUD mà chưa tách trách nhiệm mô hình
+  - Nhận diện tách cơ sở dữ liệu hoặc microservices quá sớm
+  - Phát hiện quy tắc ghi bị chuyển sang mô hình đọc thiếu thẩm quyền
+  - Phát hiện ghi kép, mất sự kiện và giả định sai về xử lý đúng một lần
+  - Phát hiện hợp đồng sự kiện phụ thuộc lược đồ nội bộ và dữ liệu thiếu để phát lại
+  - Phát hiện handler quá lớn, chuỗi gọi vòng và bus gây che khuất luồng xử lý
+  - Đánh giá CQRS khi truy vấn chậm nhưng miền nghiệp vụ đơn giản
+  - Rà soát độ mới dữ liệu, khả năng phục hồi và trải nghiệm sau ghi
+  - Checklist quyết định giữ, đơn giản hóa hoặc mở rộng CQRS

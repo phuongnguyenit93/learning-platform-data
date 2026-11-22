@@ -1,0 +1,64 @@
+roadmap:
+- id: dau-vao-thiet-ke-kiem-thu
+  title: Đầu vào thiết kế kiểm thử
+  purpose: Chuyển yêu cầu và đặc tả thành các điều kiện kiểm thử có thể xác minh.
+  objectives:
+  - Phân biệt test basis, test condition và test case
+  - Rút ra điều kiện kiểm thử từ yêu cầu và quy tắc nghiệp vụ
+  - Thiết lập truy vết giữa yêu cầu và điều kiện kiểm thử
+- id: test-case-va-du-lieu
+  title: Test Case và dữ liệu
+  purpose: Xây dựng trường hợp kiểm thử rõ đầu vào, thao tác và kết quả mong đợi.
+  objectives:
+  - Mô tả precondition, input, bước thực hiện và expected result
+  - Xác định test data cùng cách tạo hoặc chuẩn bị dữ liệu
+  - Viết test case có thể lặp lại và kiểm tra kết quả
+- id: phan-vung-tuong-duong
+  title: Phân vùng tương đương
+  purpose: Giảm số trường hợp kiểm thử bằng cách nhóm đầu vào có cùng cách xử lý.
+  objectives:
+  - Xác định các lớp hợp lệ và không hợp lệ
+  - Chọn giá trị đại diện cho mỗi lớp tương đương
+  - Giải thích giới hạn của việc chọn một đại diện cho mỗi lớp
+- id: phan-tich-gia-tri-bien
+  title: Phân tích giá trị biên
+  purpose: Tập trung vào các điểm chuyển tiếp dễ phát sinh lỗi trong miền dữ liệu.
+  objectives:
+  - Xác định giới hạn tối thiểu và tối đa của miền đầu vào
+  - Thiết kế test case tại và sát các giá trị biên
+  - Phân biệt kiểm thử giá trị biên với phân vùng tương đương
+- id: bang-quyet-dinh
+  title: Bảng quyết định
+  purpose: Kiểm thử đầy đủ các tổ hợp điều kiện và hành động của quy tắc nghiệp vụ.
+  objectives:
+  - Liệt kê điều kiện, giá trị và kết quả có thể xảy ra
+  - Lập bảng quyết định và nhận diện quy tắc khả thi
+  - Sinh test case đại diện cho từng quy tắc quan trọng
+- id: chuyen-trang-thai
+  title: Chuyển trạng thái
+  purpose: Kiểm thử hệ thống có hành vi phụ thuộc trạng thái hoặc sự kiện.
+  objectives:
+  - Mô tả trạng thái, sự kiện và chuyển tiếp của chức năng
+  - Thiết kế test case cho chuyển tiếp hợp lệ và không hợp lệ
+  - Nhận diện độ bao phủ trạng thái và chuyển tiếp
+- id: bao-phu-cau-truc
+  title: Bao phủ cấu trúc
+  purpose: Hiểu cách cấu trúc mã nguồn định hướng test case và đo mức bao phủ.
+  objectives:
+  - Phân biệt kỹ thuật hộp đen với hộp trắng
+  - Giải thích statement coverage và branch coverage
+  - Đọc ví dụ mã nguồn để chọn đường đi kiểm thử
+- id: thiet-ke-theo-kinh-nghiem
+  title: Thiết kế theo kinh nghiệm
+  purpose: Bổ sung các trường hợp khó suy ra chỉ từ đặc tả nhờ kinh nghiệm kiểm thử.
+  objectives:
+  - Áp dụng error guessing để dự đoán tình huống lỗi
+  - Sử dụng checklist để tránh bỏ sót nhóm kiểm thử
+  - Lập test charter ngắn cho phiên exploratory testing
+- id: tieu-chi-chap-nhan-va-qa
+  title: Tiêu chí chấp nhận và QA
+  purpose: Hoàn thiện bộ test bằng cách kiểm tra độ bao phủ yêu cầu và tiêu chí chấp nhận.
+  objectives:
+  - Chuyển acceptance criteria của user story thành test case
+  - Giải thích vai trò của ATDD trong cộng tác thiết kế test
+  - Đánh giá độ bao phủ và chọn bổ sung trường hợp còn thiếu

@@ -1,0 +1,2794 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiểm thử tính dễ sử dụng (usability testing) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Người dùng, mục tiêu, nhiệm vụ và bối cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Hiệu quả hoàn thành, hiệu suất và mức độ hài lòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Mối quan hệ giữa tính dễ sử dụng và trải nghiệm người dùng (UX)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt kiểm thử tính dễ sử dụng và kiểm thử chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt kiểm thử tính dễ sử dụng, nghiên cứu người dùng và kiểm thử chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiểm thử trong quá trình thiết kế và đánh giá trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Ví dụ xuyên suốt: kiểm thử một luồng đăng ký và hoàn thành giao dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình học từ xác định vấn đề đến xác minh cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: goals-and-scope
+  title: Mục tiêu và phạm vi
+  childs:
+  - slug: goals-and-scope-001
+    title: Chuyển vấn đề sản phẩm thành câu hỏi nghiên cứu có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-002
+    title: Xác định nhóm người dùng, luồng trọng yếu và phạm vi ngoài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-003
+    title: Ưu tiên theo rủi ro, tần suất sử dụng và hậu quả khi thao tác sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-004
+    title: Đặt giả thuyết về trở ngại và xác định bằng chứng cần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-005
+    title: Xác định tiêu chí thành công trước khi quan sát người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-006
+    title: Lựa chọn giai đoạn, độ hoàn thiện sản phẩm và thời điểm kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-007
+    title: Phối hợp mục tiêu kinh doanh với nhu cầu thực tế của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-008
+    title: Xác định ràng buộc thời gian, ngân sách, nhân lực và khả năng tiếp cận mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-009
+    title: Giới hạn suy luận và các câu hỏi mà một đợt kiểm thử không trả lời được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: research-design
+  title: Thiết kế nghiên cứu
+  childs:
+  - slug: research-design-001
+    title: Lựa chọn nghiên cứu khám phá hoặc đánh giá theo mục tiêu đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-002
+    title: So sánh phương pháp định tính, định lượng và kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-003
+    title: Lựa chọn phiên có điều phối hoặc phiên tự thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-004
+    title: Lựa chọn kiểm thử trực tiếp, từ xa và tại bối cảnh sử dụng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-005
+    title: Quan sát hành vi và kỹ thuật nói thành lời suy nghĩ (think-aloud)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-006
+    title: So sánh thiết kế giữa các nhóm và lặp lại trên cùng người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-007
+    title: Lựa chọn kiểm thử đối chiếu phiên bản hoặc sản phẩm cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-008
+    title: Vai trò bổ trợ của đánh giá theo nguyên tắc và đi qua nhiệm vụ bằng góc nhìn người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-009
+    title: Kiểm thử cây điều hướng, lần nhấp đầu tiên và khả năng hiểu thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-010
+    title: Phân biệt kiểm thử tính dễ sử dụng với thử nghiệm A/B và phân tích dữ liệu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: research-design-011
+    title: Kết hợp các nguồn bằng chứng mà vẫn giữ rõ phạm vi từng phương pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-plan
+  title: Kế hoạch kiểm thử
+  childs:
+  - slug: test-plan-001
+    title: 'Cấu trúc kế hoạch: mục tiêu, đối tượng, phương pháp, nhiệm vụ và đầu ra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-002
+    title: Lập ma trận câu hỏi nghiên cứu, nhiệm vụ, chỉ số và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-003
+    title: Phân vai người điều phối, người ghi chép, người quan sát và chủ sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-004
+    title: Lập lịch phiên thử, thời gian nghỉ và phương án người tham gia vắng mặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-005
+    title: Ước lượng khối lượng công việc và nguồn lực cho toàn đợt kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-006
+    title: Chọn tiêu chí bắt đầu, kết thúc và dừng sớm một phiên thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-007
+    title: Thống nhất cách xử lý lỗi kỹ thuật, gián đoạn và tình huống ngoài kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-008
+    title: Lập kế hoạch lưu trữ dữ liệu, phân tích, báo cáo và kiểm tra lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-009
+    title: Rà soát và thống nhất kế hoạch với các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-plan-010
+    title: Quản lý thay đổi kế hoạch mà vẫn giữ khả năng so sánh kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: participants
+  title: Người tham gia
+  childs:
+  - slug: participants-001
+    title: Xác định tiêu chí tuyển chọn từ người dùng thực và bối cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-002
+    title: Phân nhóm theo kinh nghiệm, vai trò, mục tiêu và mức độ quen thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-003
+    title: Soạn bảng sàng lọc (screener) với câu hỏi trung lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-004
+    title: Chọn kênh tuyển, gửi lời mời và xác nhận lịch tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-005
+    title: Xác định số người tham gia theo mục tiêu và mức độ đa dạng của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-006
+    title: Lập luận về cỡ mẫu cho nghiên cứu định tính và định lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-007
+    title: Giới hạn của việc áp dụng máy móc quy tắc năm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-008
+    title: Tuyển người mới, người dùng lâu năm và người dùng sản phẩm đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-009
+    title: Tuyển người khuyết tật, người dùng công nghệ hỗ trợ và nhóm ít được đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-010
+    title: Thiết kế thù lao phù hợp và hạn chế ảnh hưởng đến phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-011
+    title: Xử lý người tham gia không phù hợp, bỏ cuộc hoặc tham gia lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: participants-012
+    title: Theo dõi độ bao phủ mẫu và công bố sai lệch tuyển chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ethics-and-privacy
+  title: Đạo đức và riêng tư
+  childs:
+  - slug: ethics-and-privacy-001
+    title: Giải thích mục đích nghiên cứu và xin sự đồng ý có hiểu biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-002
+    title: Quyền từ chối, bỏ qua nhiệm vụ và dừng tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-003
+    title: Xin phép ghi âm, ghi hình, chia sẻ màn hình và cho người khác quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-004
+    title: Sử dụng tài khoản, danh tính và dữ liệu thử thay cho dữ liệu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-005
+    title: Hạn chế thu thập thông tin cá nhân và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-006
+    title: Ẩn danh bản ghi, trích dẫn, ảnh chụp và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-007
+    title: Phân quyền truy cập, thời hạn lưu trữ và quy trình xóa dữ liệu nghiên cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-008
+    title: Bảo vệ người tham gia trước áp lực, tổn thương và cảm giác bị đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-009
+    title: Xử lý nghiên cứu với trẻ vị thành niên hoặc nhóm dễ bị tổn thương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-010
+    title: Đánh giá công cụ ghi phiên, phiên âm và dịch vụ AI trước khi đưa dữ liệu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ethics-and-privacy-011
+    title: Xử lý yêu cầu rút lại dữ liệu và sự cố lộ thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: usability-tasks
+  title: Nhiệm vụ kiểm thử
+  childs:
+  - slug: usability-tasks-001
+    title: Chuyển mục tiêu người dùng thành tình huống và nhiệm vụ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-002
+    title: Viết nhiệm vụ theo kết quả mong muốn thay vì hướng dẫn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-003
+    title: Tránh gợi ý tên nút, đường đi và đáp án trong mô tả nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-004
+    title: Xác định trạng thái bắt đầu, dữ liệu đầu vào và kết quả hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-005
+    title: Bao phủ luồng chính, luồng thay thế, lỗi thao tác và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-006
+    title: Thiết kế nhiệm vụ cho người dùng lần đầu và người dùng có kinh nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-007
+    title: Xác định độ khó, thời lượng và mức tải nhận thức phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-008
+    title: Sắp xếp hoặc hoán đổi thứ tự để kiểm soát hiệu ứng học và mệt mỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-009
+    title: Tách nhiệm vụ độc lập và xử lý nhiệm vụ có phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-010
+    title: Thiết kế nhiệm vụ khi chỉ có mẫu thử chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-011
+    title: Chuẩn hóa điều kiện dừng, hỗ trợ và bỏ cuộc cho từng nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usability-tasks-012
+    title: Rà soát ngôn ngữ nhiệm vụ với nhóm người dùng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prototype-and-environment
+  title: Mẫu thử và môi trường
+  childs:
+  - slug: prototype-and-environment-001
+    title: Lựa chọn bản phác thảo, mẫu thử tương tác hoặc sản phẩm đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-002
+    title: Xác định giới hạn độ trung thực của mẫu thử đối với câu hỏi nghiên cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-003
+    title: Chuẩn bị tài khoản, quyền truy cập và dữ liệu nhất quán giữa các phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-004
+    title: Thiết lập trạng thái ban đầu và đặt lại sản phẩm sau mỗi phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-005
+    title: Kiểm tra thiết bị, trình duyệt, màn hình, âm thanh và kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-006
+    title: Chuẩn bị ghi màn hình, ghi âm và dấu thời gian để đối chiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-007
+    title: Tách lỗi của mẫu thử, môi trường và sản phẩm khỏi vấn đề tính dễ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-008
+    title: Mô phỏng mạng chậm, gián đoạn và điều kiện sử dụng thực khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-009
+    title: Chuẩn bị môi trường an toàn cho nhiệm vụ có giao dịch hoặc thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-010
+    title: Kiểm tra rò rỉ gợi ý từ dữ liệu mẫu, hướng dẫn và màn hình thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prototype-and-environment-011
+    title: Dự phòng khi hệ thống, tài khoản hoặc công cụ ghi phiên gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenarios-and-forms
+  title: Kịch bản và biểu mẫu
+  childs:
+  - slug: scenarios-and-forms-001
+    title: 'Soạn lời mở đầu: đánh giá sản phẩm và giúp người tham gia cảm thấy an toàn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-002
+    title: Chuẩn bị câu hỏi trước phiên về kinh nghiệm và bối cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-003
+    title: Soạn hướng dẫn nói thành lời suy nghĩ với ví dụ trung lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-004
+    title: Soạn lời giao nhiệm vụ và câu hỏi gợi mở không dẫn dắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-005
+    title: Xây dựng quy tắc can thiệp, trợ giúp và chuyển nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-006
+    title: Thiết kế phiếu ghi chép theo người tham gia, nhiệm vụ và dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-007
+    title: Chuẩn bị biểu mẫu ghi thành công, thất bại, lỗi, trợ giúp và bỏ cuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-008
+    title: Đặt thời điểm hỏi cảm nhận sau nhiệm vụ và sau toàn phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-009
+    title: Soạn câu hỏi tổng kết về kỳ vọng, khó khăn và đề xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-forms-010
+    title: Chuẩn hóa mã người tham gia, mã nhiệm vụ và quy tắc đặt tên bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pilot-testing
+  title: Kiểm thử thí điểm
+  childs:
+  - slug: pilot-testing-001
+    title: Mục tiêu của phiên thí điểm trước khi triển khai chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pilot-testing-002
+    title: Chọn người thử thí điểm và xác định mức độ phù hợp với nhóm mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pilot-testing-003
+    title: Kiểm tra khả năng hiểu nhiệm vụ, thời lượng và độ khó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pilot-testing-004
+    title: Kiểm tra kịch bản điều phối, biểu mẫu và khả năng ghi bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pilot-testing-005
+    title: Phát hiện lỗi mẫu thử, tài khoản và thiết bị làm sai lệch quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pilot-testing-006
+    title: Hiệu chỉnh tiêu chí hoàn thành, trợ giúp và phân loại lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pilot-testing-007
+    title: Quyết định có đưa dữ liệu thí điểm vào phân tích hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pilot-testing-008
+    title: Chốt phiên bản kế hoạch và ghi nhận các thay đổi sau thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: moderated-sessions
+  title: Phiên có điều phối
+  childs:
+  - slug: moderated-sessions-001
+    title: Mở đầu phiên, tạo sự thoải mái và xác nhận lại quyền tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-002
+    title: Quan sát hành vi, lời nói và biểu hiện do dự mà không suy diễn động cơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-003
+    title: Nhắc người tham gia nói thành lời mà không làm gián đoạn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-004
+    title: Giữ trung lập khi người tham gia hỏi cách làm hoặc mong được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-005
+    title: Lựa chọn thời điểm im lặng, hỏi thêm và hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-006
+    title: Đặt câu hỏi hồi tưởng để làm rõ quyết định và kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-007
+    title: Xử lý người ít nói, nói nhiều hoặc có xu hướng làm hài lòng người điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-008
+    title: Xử lý thất bại nhiệm vụ, căng thẳng, mệt mỏi và xin dừng phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-009
+    title: Quản lý người quan sát và ngăn trao đổi làm ảnh hưởng người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-010
+    title: Ghi nhận mọi can thiệp và mức độ trợ giúp đã cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: moderated-sessions-011
+    title: Kết thúc phiên, giải đáp thắc mắc và kiểm tra tính đầy đủ của bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remote-testing
+  title: Kiểm thử từ xa
+  childs:
+  - slug: remote-testing-001
+    title: Lựa chọn đồng bộ hoặc không đồng bộ theo người dùng và nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-002
+    title: Chuẩn bị hướng dẫn kết nối, chia sẻ màn hình và kiểm tra thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-003
+    title: Đánh giá ảnh hưởng của môi trường tại nhà hoặc nơi làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-004
+    title: Quan sát trên thiết bị thật mà vẫn bảo vệ thông báo và dữ liệu riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-005
+    title: Điều phối khi có độ trễ, mất âm thanh hoặc mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-006
+    title: Ghi nhận phần hành vi ngoài màn hình và giới hạn quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-007
+    title: Tổ chức phiên trên điện thoại, máy tính bảng và nhiều màn hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-008
+    title: Phối hợp người phiên dịch hoặc người hỗ trợ mà hạn chế can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-009
+    title: Thiết lập phương án tiếp tục hoặc hẹn lại khi phiên bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-testing-010
+    title: Công bố khác biệt môi trường khi so sánh các nhóm từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unmoderated-sessions
+  title: Phiên tự thực hiện
+  childs:
+  - slug: unmoderated-sessions-001
+    title: Xác định khi nào phương pháp không có người điều phối phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-002
+    title: Soạn hướng dẫn tự thực hiện rõ ràng và kiểm tra mức độ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-003
+    title: Thiết lập câu hỏi sàng lọc, nhiệm vụ và điều kiện kết thúc trên công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-004
+    title: Thiết kế kiểm tra kỹ thuật trước khi bắt đầu ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-005
+    title: Thu lời nói, thao tác và phản hồi mà không có người hỏi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-006
+    title: Phát hiện trả lời qua loa, gian lận tuyển mẫu và bản ghi không sử dụng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-007
+    title: Định nghĩa tiêu chí loại dữ liệu trước khi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-008
+    title: Xử lý bỏ cuộc, không gửi kết quả và dữ liệu từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-009
+    title: Kiểm soát chất lượng khi tuyển nhiều người hoặc nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unmoderated-sessions-010
+    title: Nhận diện câu hỏi chưa được giải đáp để tiếp tục bằng phiên có điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavioral-metrics
+  title: Chỉ số hành vi
+  childs:
+  - slug: behavioral-metrics-001
+    title: Tỷ lệ hoàn thành nhiệm vụ và định nghĩa mẫu số phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-002
+    title: Phân loại hoàn thành độc lập, hoàn thành có trợ giúp và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-003
+    title: 'Thời gian thực hiện: điểm bắt đầu, điểm kết thúc và khoảng gián đoạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-004
+    title: Đo thời gian khi nhiệm vụ thất bại hoặc bị dừng sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-005
+    title: Tần suất, loại lỗi thao tác và tỷ lệ người gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-006
+    title: Số lần cần trợ giúp và số lần người điều phối can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-007
+    title: Độ dài đường đi, số bước thừa và thao tác quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-008
+    title: Khả năng tìm thấy thông tin và kết quả của lần nhấp đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-009
+    title: Đo khả năng học qua các lần thực hiện và chi phí của hiệu ứng học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-010
+    title: Đo khả năng ghi nhớ sau một khoảng thời gian không sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-011
+    title: Phân biệt chỉ số trong phiên thử và chỉ số hành vi ngoài thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavioral-metrics-012
+    title: Chọn bộ chỉ số đủ trả lời câu hỏi nghiên cứu và tránh đo thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: perception-evaluation
+  title: Đánh giá cảm nhận
+  childs:
+  - slug: perception-evaluation-001
+    title: Phân biệt cảm nhận chủ quan và kết quả thực hiện nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-002
+    title: Câu hỏi sau nhiệm vụ và mức độ dễ thực hiện với SEQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-003
+    title: Đánh giá tính dễ sử dụng toàn hệ thống với SUS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-004
+    title: Lựa chọn UMUX hoặc UMUX-LITE theo mục đích nghiên cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-005
+    title: Vai trò của UEQ khi cần khảo sát trải nghiệm rộng hơn tính dễ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-006
+    title: Đánh giá tải công việc với NASA-TLX khi nhiệm vụ có yêu cầu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-007
+    title: Đo sự tự tin, hài lòng, tin tưởng và cảm nhận khả năng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-008
+    title: Thời điểm hỏi và ảnh hưởng của câu hỏi đến hành vi đang quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-009
+    title: Giữ nguyên cách diễn đạt, thang trả lời và quy tắc tính điểm của bảng hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-010
+    title: Sử dụng bản dịch phù hợp và kiểm tra khả năng hiểu câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-011
+    title: Giới hạn khi dùng NPS hoặc mức độ yêu thích để đại diện cho tính dễ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: perception-evaluation-012
+    title: Đối chiếu phản hồi tích cực với lỗi và thất bại quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: qualitative-analysis
+  title: Phân tích định tính
+  childs:
+  - slug: qualitative-analysis-001
+    title: Tổ chức bản ghi, ghi chú, dấu thời gian và thông tin bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-002
+    title: Tách quan sát thực tế, lời trích dẫn, diễn giải và đề xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-003
+    title: Xây dựng bộ mã cho hành vi, trở ngại, kỳ vọng và cách phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-004
+    title: Mã hóa dữ liệu theo nhiệm vụ và theo chủ đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-005
+    title: Nhóm các quan sát bằng sơ đồ tương đồng (affinity mapping)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-006
+    title: Tổng hợp nhiều biểu hiện của cùng một vấn đề mà không đếm trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-007
+    title: Phân tích nguyên nhân có khả năng xảy ra và ghi rõ mức độ chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-008
+    title: Đối chiếu trường hợp trái chiều và các quan sát không khớp giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-009
+    title: Liên kết phát hiện với người tham gia, nhiệm vụ và bằng chứng gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-010
+    title: Phối hợp nhiều người phân tích và xử lý bất đồng mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qualitative-analysis-011
+    title: Phân biệt vấn đề phổ biến, vấn đề cá biệt và phát hiện chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quantitative-analysis
+  title: Phân tích định lượng
+  childs:
+  - slug: quantitative-analysis-001
+    title: Làm sạch dữ liệu theo tiêu chí đã định và lưu vết dữ liệu bị loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-002
+    title: Tổng hợp tỷ lệ hoàn thành theo nhiệm vụ và theo nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-003
+    title: Chọn trung bình, trung vị và độ phân tán cho dữ liệu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-004
+    title: Trình bày khoảng tin cậy và độ bất định của tỷ lệ hoặc điểm số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-005
+    title: Xử lý dữ liệu thiếu, giá trị bất thường và nhiệm vụ chưa hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-006
+    title: Áp dụng quy tắc tính điểm bảng hỏi và kiểm tra câu đảo chiều khi có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-007
+    title: So sánh phiên bản với thiết kế theo cặp hoặc hai nhóm độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-008
+    title: Xác định cỡ mẫu theo độ chính xác hoặc mức khác biệt cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-009
+    title: Phân biệt ý nghĩa thống kê và ý nghĩa đối với trải nghiệm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-010
+    title: Kiểm soát ảnh hưởng của thứ tự, kinh nghiệm và điều kiện kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-011
+    title: Tránh suy rộng từ mẫu nhỏ, tuyển thuận tiện hoặc quá nhiều phép so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantitative-analysis-012
+    title: Trực quan hóa kết quả mà không che giấu cỡ mẫu và độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: issue-classification
+  title: Phân loại vấn đề
+  childs:
+  - slug: issue-classification-001
+    title: Viết một vấn đề rõ bối cảnh, hành vi, trở ngại và hậu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-002
+    title: Phân biệt triệu chứng, nguyên nhân giả định và giải pháp đề xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-003
+    title: Nhóm vấn đề theo điều hướng, nội dung, tương tác, phản hồi và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-004
+    title: Đánh giá mức nghiêm trọng theo tác động, tần suất và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-005
+    title: Phân biệt mức nghiêm trọng của vấn đề với thứ tự ưu tiên triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-006
+    title: Xử lý vấn đề ít gặp nhưng gây hậu quả lớn hoặc loại trừ một nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-007
+    title: Đánh giá độ tin cậy của phát hiện dựa trên chất lượng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-008
+    title: Xử lý phát hiện do lỗi chức năng, giới hạn mẫu thử hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-009
+    title: Hợp nhất vấn đề trùng lặp và giữ khác biệt giữa các nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-010
+    title: Lập danh sách ưu tiên theo tác động, công sức và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-classification-011
+    title: Xác định vấn đề cần nghiên cứu thêm trước khi đề xuất thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-reporting
+  title: Báo cáo kết quả
+  childs:
+  - slug: result-reporting-001
+    title: 'Thiết kế báo cáo theo người đọc: nhóm sản phẩm, thiết kế, phát triển và quản lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-002
+    title: Trình bày mục tiêu, phương pháp, mẫu tham gia và giới hạn nghiên cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-003
+    title: Tóm tắt kết quả theo nhiệm vụ và câu hỏi nghiên cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-004
+    title: Viết phát hiện kèm bằng chứng, ảnh hưởng và mức nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-005
+    title: Chọn ảnh chụp, đoạn video và lời trích dẫn đã xử lý thông tin riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-006
+    title: Trình bày chỉ số cùng cỡ mẫu, định nghĩa và độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-007
+    title: Phân biệt phát hiện đã quan sát và khuyến nghị cần xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-008
+    title: Đề xuất hành động cụ thể, người phụ trách và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-009
+    title: Tổ chức buổi xem lại bằng chứng và thống nhất ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-010
+    title: Chuyển báo cáo thành danh sách công việc có liên kết đến bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-011
+    title: Trình bày kết quả chưa kết luận được và kế hoạch nghiên cứu tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: improvement-and-retesting
+  title: Cải tiến và kiểm tra lại
+  childs:
+  - slug: improvement-and-retesting-001
+    title: Chuyển vấn đề thành giả thuyết cải tiến có thể đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-002
+    title: Chọn thay đổi nhỏ, phương án thay thế và vấn đề cần thiết kế lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-003
+    title: Xác định điều kiện chấp nhận trước khi thử phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-004
+    title: Giữ khả năng so sánh mục tiêu, nhiệm vụ, mẫu và môi trường giữa các đợt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-005
+    title: Lựa chọn người tham gia mới hoặc quay lại theo mục tiêu kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-006
+    title: Đánh giá cải thiện mà không nhầm với hiệu ứng quen thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-007
+    title: Kiểm tra nguy cơ cải thiện một nhóm nhưng gây khó khăn cho nhóm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-008
+    title: Theo dõi vấn đề mở, đã xử lý, tái xuất hiện và chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-009
+    title: Đối chiếu phiên kiểm thử với dữ liệu hỗ trợ và phản hồi sau phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-and-retesting-010
+    title: Xác định thời điểm cần kiểm thử lại khi nội dung, giao diện hoặc luồng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flows-and-interactions
+  title: Luồng và tương tác
+  childs:
+  - slug: flows-and-interactions-001
+    title: Kiểm thử đăng ký, đăng nhập, xác thực và khôi phục quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-002
+    title: Kiểm thử khám phá tính năng, hướng dẫn ban đầu và lần sử dụng đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-003
+    title: Kiểm thử kiến trúc thông tin, điều hướng, tìm kiếm và bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-004
+    title: Kiểm thử biểu mẫu, nhập liệu, xác nhận và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-005
+    title: Kiểm thử luồng nhiều bước, lưu tiến độ và tiếp tục công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-006
+    title: 'Kiểm thử thao tác quan trọng: xác nhận, hoàn tác và tránh mất dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-007
+    title: Kiểm thử phản hồi hệ thống, trạng thái chờ và xử lý tác vụ kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-008
+    title: Kiểm thử trạng thái rỗng, mất kết nối và lỗi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-009
+    title: Kiểm thử nội dung, nhãn, hướng dẫn và thông điệp giúp ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-010
+    title: Kiểm thử thông báo, yêu cầu quyền và các gián đoạn trong luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-011
+    title: Kiểm thử bảng dữ liệu, bảng điều khiển và màn hình mật độ thông tin cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flows-and-interactions-012
+    title: Kiểm thử tính nhất quán giữa các điểm chạm trong cùng hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: devices-and-platforms
+  title: Thiết bị và nền tảng
+  childs:
+  - slug: devices-and-platforms-001
+    title: Lựa chọn thiết bị theo bối cảnh sử dụng và nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-002
+    title: Kiểm thử giao diện thích ứng với kích thước và hướng màn hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-003
+    title: Quan sát thao tác cảm ứng, vùng chạm và nhập liệu trên điện thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-004
+    title: Kiểm thử bằng chuột, bàn phím, phím tắt và thao tác kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-005
+    title: Kiểm thử khả năng sử dụng bằng một tay và khi đang di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-006
+    title: Kiểm thử khác biệt giữa ứng dụng web, ứng dụng di động và ứng dụng máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-007
+    title: Kiểm thử chuyển đổi thiết bị, đồng bộ và tiếp tục cùng một nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-008
+    title: Đánh giá ảnh hưởng của mạng yếu, hiệu năng và mức phản hồi đến thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-009
+    title: Phân biệt vấn đề tương thích kỹ thuật và khó khăn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-platforms-010
+    title: Lập ma trận điều kiện thử mà vẫn giữ số phiên trong khả năng thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accessibility
+  title: Khả năng tiếp cận
+  childs:
+  - slug: accessibility-001
+    title: Mối liên hệ và khác biệt giữa tính dễ sử dụng và khả năng tiếp cận (accessibility)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-002
+    title: Kết hợp kiểm tra yêu cầu tiếp cận với phiên thử có người dùng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-003
+    title: Chuẩn bị phiên với người dùng trình đọc màn hình hoặc bàn phím
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-004
+    title: Quan sát thứ tự tiêu điểm, điều hướng và khả năng hiểu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-005
+    title: Kiểm thử phóng to, chữ lớn, tương phản và nội dung không phụ thuộc màu sắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-006
+    title: Kiểm thử với hạn chế vận động, thính giác hoặc thị giác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-007
+    title: Đánh giá độ rõ ràng của ngôn ngữ, tải nhận thức và khả năng ghi nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-008
+    title: Thiết kế hỗ trợ phù hợp cho người lớn tuổi và người ít kỹ năng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-009
+    title: Đánh giá ngôn ngữ, bản địa hóa và khác biệt văn hóa trong nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-010
+    title: Điều chỉnh thời lượng, phương tiện và cách giao tiếp theo nhu cầu người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accessibility-011
+    title: Trình bày rào cản theo từng nhóm và tránh kết luận đại diện thay người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-contexts
+  title: Bối cảnh chuyên biệt
+  childs:
+  - slug: specialized-contexts-001
+    title: Kiểm thử phần mềm nội bộ với vai trò, quyền hạn và quy trình công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-002
+    title: Kiểm thử công cụ chuyên môn có đường học dài và người dùng giàu kinh nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-003
+    title: 'Kiểm thử thương mại điện tử: tìm sản phẩm, quyết định mua và thanh toán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-004
+    title: Kiểm thử dịch vụ công và luồng cần đọc hiểu biểu mẫu hoặc yêu cầu hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-005
+    title: Kiểm thử ứng dụng tài chính với yêu cầu rõ ràng, tin tưởng và tránh thao tác nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-006
+    title: Kiểm thử nền tảng học tập với mục tiêu tìm nội dung và theo dõi tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-007
+    title: Kiểm thử giao diện dòng lệnh và công cụ dành cho lập trình viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-008
+    title: Kiểm thử giao diện hội thoại và hệ thống có câu trả lời do AI tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-009
+    title: Đánh giá khả năng nhận biết sai sót, sửa yêu cầu và lấy lại quyền kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-contexts-010
+    title: Xác định khi nào cần chuyên gia lĩnh vực và phương án thử không gây hậu quả thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-automation
+  title: Công cụ và tự động hóa
+  childs:
+  - slug: tools-and-automation-001
+    title: Chọn công cụ theo tuyển mẫu, điều phối, ghi phiên, khảo sát và phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-002
+    title: Thiết kế kho bằng chứng có khả năng tìm kiếm và truy vết phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-003
+    title: Dùng bảng tính hoặc mã xử lý dữ liệu để tổng hợp chỉ số có thể kiểm tra lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-004
+    title: Dùng phiên âm, gắn dấu thời gian và trích đoạn để hỗ trợ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-005
+    title: Phạm vi hỗ trợ và giới hạn của bản đồ nhiệt hoặc xem lại phiên truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-006
+    title: Giới hạn của phân tích tự động khi thiếu mục tiêu và bối cảnh người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-007
+    title: Kết hợp kiểm tra giao diện, tiếp cận và hiệu năng với quan sát trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-008
+    title: Phân biệt kiểm thử UI tự động và kiểm thử tính dễ sử dụng với người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-009
+    title: Sử dụng AI để hỗ trợ mã hóa, tóm tắt và soạn báo cáo có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-010
+    title: Kiểm tra sai sót phiên âm, suy diễn từ AI và việc truy vết về bằng chứng gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-011
+    title: Đánh giá chi phí, khả năng xuất dữ liệu, quyền truy cập và sự phụ thuộc công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: development-integration
+  title: Tích hợp phát triển
+  childs:
+  - slug: development-integration-001
+    title: Đưa kiểm thử tính dễ sử dụng vào khám phá yêu cầu và phát triển lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-002
+    title: Phối hợp nhà nghiên cứu, thiết kế, kiểm thử viên và lập trình viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-003
+    title: Tổ chức các đợt kiểm thử nhỏ theo rủi ro và quyết định cần đưa ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-004
+    title: Liên kết phát hiện với yêu cầu, mẫu thiết kế, công việc và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-005
+    title: Xác định điều kiện sẵn sàng phát hành từ rủi ro sử dụng còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-006
+    title: Quản lý ngoại lệ khi chưa thể xử lý một vấn đề nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-007
+    title: Kết hợp phản hồi chăm sóc khách hàng, phân tích truy cập và nghiên cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-008
+    title: Theo dõi chỉ số qua nhiều phiên bản với phương pháp đo nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-009
+    title: Xây dựng kho bài học và tránh lặp lại các vấn đề đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-integration-010
+    title: Duy trì kiểm thử khi thay đổi thiết kế chung hoặc thành phần dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: biases-and-limitations
+  title: Sai lệch và giới hạn
+  childs:
+  - slug: biases-and-limitations-001
+    title: Thiên lệch xác nhận khi chỉ tìm bằng chứng ủng hộ thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-002
+    title: Ảnh hưởng của câu hỏi dẫn dắt, trợ giúp sớm và lời khen trong phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-003
+    title: Thiên lệch xã hội khi người tham gia muốn làm hài lòng nhóm sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-004
+    title: Ảnh hưởng của việc bị quan sát và yêu cầu nói thành lời suy nghĩ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-005
+    title: Hiệu ứng thứ tự, quen thuộc, mệt mỏi và chuyển giao kinh nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-006
+    title: Sai lệch do tuyển người dễ tiếp cận hoặc dùng đồng nghiệp thay người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-007
+    title: Sai lệch do mẫu thử chưa hoàn chỉnh và nhiệm vụ thiếu bối cảnh thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-008
+    title: Nhầm lẫn giữa sở thích được phát biểu và khả năng sử dụng quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-009
+    title: Đếm số vấn đề hoặc số người tham gia mà bỏ qua mức độ ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-010
+    title: Kết luận quan hệ nhân quả từ quan sát chưa được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-011
+    title: Che giấu dữ liệu trái chiều, thất bại nhiệm vụ hoặc độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: biases-and-limitations-012
+    title: Nhận diện khi nào cần đổi phương pháp hoặc tiếp tục thu thập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Lập kế hoạch kiểm thử cho luồng đăng ký và hoàn thành giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Soạn bộ sàng lọc, giấy đồng ý và lịch tuyển người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Viết nhiệm vụ trung lập và tiêu chí hoàn thành có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Chuẩn bị mẫu thử, tài khoản và dữ liệu trước một phiên thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Thực hành điều phối và ghi chép một phiên hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Xây dựng bảng dữ liệu kết quả nhiệm vụ và tính các chỉ số đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Mã hóa quan sát, nhóm vấn đề và truy vết về bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Phân tích một trường hợp lời khen mâu thuẫn với kết quả thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Ưu tiên phát hiện và đề xuất cải tiến theo bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Soạn báo cáo cùng danh sách công việc và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Thiết kế đợt kiểm tra lại và so sánh trước với sau cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Tự đánh giá chất lượng kế hoạch, phiên thử, phân tích và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

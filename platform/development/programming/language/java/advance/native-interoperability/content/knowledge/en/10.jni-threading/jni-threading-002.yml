@@ -1,0 +1,3 @@
+menuLevel1: Luồng với JNI
+menuLevel2: Không chia sẻ JNIEnv hoặc tham chiếu cục bộ giữa các luồng
+status: TRANSLATE

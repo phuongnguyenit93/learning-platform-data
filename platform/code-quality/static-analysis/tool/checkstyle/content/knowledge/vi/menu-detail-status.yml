@@ -1,0 +1,3421 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Checkstyle là gì và vì sao cần tự động hóa quy ước mã Java?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vị trí của Checkstyle trong quy trình bảo đảm chất lượng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: cấu hình, module, check, token, vi phạm và báo cáo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng kiểm tra từ tệp nguồn đến thông báo vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phạm vi phân tích cú pháp và giới hạn suy luận kiểu hoặc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: So sánh vai trò Checkstyle, formatter, PMD, SpotBugs và SonarQube
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Khi nào dùng quy tắc có sẵn, suppression hoặc quy tắc tùy chỉnh?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và dự án Java mẫu dùng xuyên suốt tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup-and-launch
+  title: Cài đặt và khởi chạy
+  childs:
+  - slug: setup-and-launch-001
+    title: Chọn phiên bản Checkstyle theo JDK chạy công cụ và cú pháp nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-launch-002
+    title: Phân biệt phiên bản Checkstyle với phiên bản plugin Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-launch-003
+    title: Tải bản phân phối chính thức và chuẩn bị môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-launch-004
+    title: Tạo cấu hình tối thiểu với Checker và TreeWalker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-launch-005
+    title: Chạy kiểm tra một tệp hoặc thư mục Java lần đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-launch-006
+    title: Đọc đường dẫn, dòng, cột, severity và tên check trong kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-launch-007
+    title: Sửa một vi phạm và chạy lại để xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-launch-008
+    title: Chọn cách chạy bằng CLI, build tool hoặc IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-mechanism
+  title: Cơ chế phân tích
+  childs:
+  - slug: analysis-mechanism-001
+    title: Checker và chu trình kiểm tra tập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-002
+    title: Phân biệt FileSetCheck với check chạy trong TreeWalker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-003
+    title: Cây cú pháp trừu tượng (AST) và TokenTypes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-004
+    title: TreeWalker duyệt cây và gọi các check theo token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-005
+    title: Vị trí dòng/cột, ký tự tab và cách xác định vị trí vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-006
+    title: Comment, Javadoc và các cây cú pháp liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-007
+    title: AuditEvent, filter và AuditListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-008
+    title: Phân biệt lỗi phân tích cú pháp, lỗi cấu hình và vi phạm quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-009
+    title: Vì sao cấu trúc AST quyết định khả năng viết hoặc miễn trừ một check?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-configuration
+  title: Cấu hình XML
+  childs:
+  - slug: xml-configuration-001
+    title: Cấu trúc XML và DTD của tệp checkstyle.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-002
+    title: Module gốc Checker và cách đặt module con đúng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-003
+    title: Khai báo check bằng tên ngắn hoặc tên lớp đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-004
+    title: Property, kiểu dữ liệu và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-005
+    title: Cấu hình một check nhiều lần với bộ tham số khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-006
+    title: Module id để phân biệt các cấu hình cùng loại check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-007
+    title: severity và chính sách error, warning, info hoặc ignore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-008
+    title: Tùy chỉnh thông báo qua message key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-009
+    title: Charset, fileExtensions và phạm vi tệp được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-010
+    title: 'Đọc tài liệu check: Parent Module, Properties, Tokens, Examples và Since'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-configuration-011
+    title: Kiểm chứng cấu hình bằng một mẫu đạt và một mẫu vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameters-and-resources
+  title: Tham số và tài nguyên
+  childs:
+  - slug: parameters-and-resources-001
+    title: Thay thế property từ CLI hoặc build tool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-resources-002
+    title: Giá trị dự phòng khi property chưa được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-resources-003
+    title: Boolean, số, enum, biểu thức chính quy và danh sách token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-resources-004
+    title: Escape ký tự trong XML, Java regex và đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-resources-005
+    title: Phân giải tệp cấu hình, resource trên classpath và đường dẫn tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-resources-006
+    title: Cấu hình suppression, header và import control từ tài nguyên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-resources-007
+    title: Encoding, locale và thông báo nhất quán giữa máy phát triển với CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-resources-008
+    title: Quản lý cấu hình dùng chung cùng phiên bản các tài nguyên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-sets
+  title: Bộ quy tắc
+  childs:
+  - slug: rule-sets-001
+    title: Lựa chọn google_checks.xml, sun_checks.xml hoặc cấu hình tự xây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-sets-002
+    title: Đối chiếu style guide với tập check thực sự được công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-sets-003
+    title: Cấu hình OpenJDK và các bộ quy tắc phụ thuộc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-sets-004
+    title: Xác định mục tiêu của từng nhóm quy tắc trước khi bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-sets-005
+    title: Chọn mức severity và ngoại lệ có lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-sets-006
+    title: Điều chỉnh tham số thay vì sao chép mặc định thiếu đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-sets-007
+    title: Phát hiện các quy tắc trùng lặp hoặc có chính sách đối lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-sets-008
+    title: Tài liệu hóa quyết định và quy trình thay đổi quy ước nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: naming-rules
+  title: Quy tắc đặt tên
+  childs:
+  - slug: naming-rules-001
+    title: TypeName, AbstractClassName và tên kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-002
+    title: MethodName, ParameterName và tên phương thức hoặc tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-003
+    title: MemberName, StaticVariableName và ConstantName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-004
+    title: LocalVariableName, LocalFinalVariableName và CatchParameterName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-005
+    title: PackageName và quy ước tên package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-006
+    title: ClassTypeParameterName, InterfaceTypeParameterName và MethodTypeParameterName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-007
+    title: LambdaParameterName, PatternVariableName và RecordComponentName theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-008
+    title: AbbreviationAsWordInName và xử lý chữ viết tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-009
+    title: IllegalIdentifierName và chính sách tên bị cấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-rules-010
+    title: Cấu hình regex cùng ngoại lệ cho mã framework hoặc mã kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: imports-and-dependencies
+  title: Import và phụ thuộc
+  childs:
+  - slug: imports-and-dependencies-001
+    title: AvoidStarImport và kiểm soát import dùng dấu sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-002
+    title: AvoidStaticImport cùng danh sách ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-003
+    title: UnusedImports, RedundantImport và giới hạn phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-004
+    title: ImportOrder và CustomImportOrder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-005
+    title: IllegalImport cho package hoặc kiểu không được phép dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-006
+    title: ImportControl để ràng buộc import theo package hoặc tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-007
+    title: Tên kiểu đầy đủ và chính sách import tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-008
+    title: Module import và các check liên quan trong phiên bản Java/Checkstyle hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imports-and-dependencies-009
+    title: Giới hạn của kiểm tra import khi đánh giá kiến trúc phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: whitespace
+  title: Khoảng trắng
+  childs:
+  - slug: whitespace-001
+    title: WhitespaceAround và WhitespaceAfter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-002
+    title: NoWhitespaceBefore, NoWhitespaceAfter và chính sách theo token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-003
+    title: ParenPad, TypecastParenPad và khoảng trắng trong dấu ngoặc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-004
+    title: MethodParamPad cho khai báo và lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-005
+    title: GenericWhitespace và cú pháp generic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-006
+    title: Khoảng trắng ở array, dấu phân cách và biểu thức đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-007
+    title: FileTabCharacter và quy ước dùng tab hoặc dấu cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-008
+    title: EmptyLineSeparator và phân tách thành phần trong tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-009
+    title: Khoảng trắng ở thân rỗng và các trường hợp cú pháp mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: whitespace-010
+    title: Chọn tập token để tránh áp dụng quy tắc ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indentation-and-line-breaks
+  title: Thụt lề và xuống dòng
+  childs:
+  - slug: indentation-and-line-breaks-001
+    title: Indentation và các mức thụt lề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-002
+    title: Thụt lề tiếp dòng cho tham số, biểu thức và lời gọi nối chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-003
+    title: OperatorWrap và vị trí toán tử khi xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-004
+    title: SeparatorWrap cho dấu chấm, dấu phẩy và thành phần được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-005
+    title: NoLineWrap và những khai báo phải nằm trên một dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-006
+    title: LineLength, tabWidth và biểu thức bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-007
+    title: Thụt lề lambda, array initializer, switch và text block theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-008
+    title: Đồng bộ quy tắc Checkstyle với thiết lập formatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indentation-and-line-breaks-009
+    title: Phân biệt quy tắc bố cục chủ động chọn với giới hạn kiểm tra của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-blocks
+  title: Khối lệnh
+  childs:
+  - slug: code-blocks-001
+    title: NeedBraces và phạm vi áp dụng cho cấu trúc điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-002
+    title: LeftCurly, RightCurly và chính sách đặt dấu ngoặc nhọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-003
+    title: EmptyBlock và cách hiểu nội dung comment trong khối rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-004
+    title: EmptyCatchBlock và ngoại lệ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-005
+    title: AvoidNestedBlocks và khối lệnh không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-006
+    title: Khối một dòng, thân rỗng và các tùy chọn ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-007
+    title: Kiểm tra sự tương thích giữa quy tắc dấu ngoặc, xuống dòng và formatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modifiers-and-design
+  title: Modifier và thiết kế
+  childs:
+  - slug: modifiers-and-design-001
+    title: ModifierOrder và thứ tự modifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-002
+    title: RedundantModifier và modifier ngầm định theo loại khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-003
+    title: VisibilityModifier và quyền truy cập thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-004
+    title: HideUtilityClassConstructor cho lớp tiện ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-005
+    title: FinalClass và DesignForExtension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-006
+    title: InterfaceIsType và giới hạn quy ước sử dụng interface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-007
+    title: OneTopLevelClass, InnerTypeLast và bố cục kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-008
+    title: MutableException, ThrowsCount và chính sách thiết kế exception
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-009
+    title: IllegalCatch và IllegalThrows cho chính sách sử dụng exception
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-010
+    title: Sealed class, permits và các check phụ thuộc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modifiers-and-design-011
+    title: Đánh giá cảnh báo thiết kế theo ngữ cảnh thay vì đồng nhất với chất lượng kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: declarations-and-variables
+  title: Khai báo và biến
+  childs:
+  - slug: declarations-and-variables-001
+    title: DeclarationOrder và thứ tự khai báo thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-002
+    title: OverloadMethodsDeclarationOrder và nhóm phương thức nạp chồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-003
+    title: MultipleVariableDeclarations và OneStatementPerLine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-004
+    title: HiddenField, RequireThis và biến che khuất field
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-005
+    title: ParameterAssignment và thay đổi giá trị tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-006
+    title: FinalLocalVariable và các biến không thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-007
+    title: VariableDeclarationUsageDistance và phạm vi biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-008
+    title: ExplicitInitialization và giá trị khởi tạo mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-009
+    title: ArrayTypeStyle và cách viết kiểu array
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarations-and-variables-010
+    title: IllegalType và IllegalInstantiation cho quy ước dùng kiểu hoặc factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expressions-and-control
+  title: Biểu thức và điều khiển
+  childs:
+  - slug: expressions-and-control-001
+    title: SimplifyBooleanExpression và SimplifyBooleanReturn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-002
+    title: EqualsAvoidNull, StringLiteralEquality và so sánh chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-003
+    title: EqualsHashCode, CovariantEquals và cấu trúc phương thức liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-004
+    title: MagicNumber cùng các ngữ cảnh được phép dùng literal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-005
+    title: MultipleStringLiterals và chuỗi lặp trong cùng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-006
+    title: InnerAssignment, EmptyStatement và dấu chấm phẩy thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-007
+    title: MissingSwitchDefault, DefaultComesLast và FallThrough
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-008
+    title: ModifiedControlVariable và thay đổi biến điều khiển vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-009
+    title: ReturnCount, AvoidInlineConditionals và chính sách cấu trúc biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-010
+    title: IllegalToken, IllegalTokenText và giới hạn cú pháp được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-control-011
+    title: Lambda, pattern matching và lựa chọn check theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotations
+  title: Annotation
+  childs:
+  - slug: annotations-001
+    title: AnnotationLocation và vị trí annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-002
+    title: AnnotationUseStyle và cách viết giá trị annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-003
+    title: MissingDeprecated và sự nhất quán với Javadoc @deprecated
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-004
+    title: MissingOverride và phạm vi điều kiện thực sự được check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-005
+    title: PackageAnnotation và package-info.java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-006
+    title: SuppressWarnings check để kiểm soát nội dung được phép miễn trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-007
+    title: Phân biệt kiểm tra annotation với cơ chế áp dụng suppression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-008
+    title: Annotation trên record, type use và cú pháp mới theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: javadocs
+  title: Javadoc
+  childs:
+  - slug: javadocs-001
+    title: Phạm vi tài liệu cần có theo mức truy cập và chính sách API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-002
+    title: MissingJavadocType, MissingJavadocMethod và JavadocPackage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-003
+    title: JavadocType, JavadocMethod và tính hợp lệ của tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-004
+    title: JavadocVariable và tài liệu cho field hoặc hằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-005
+    title: SummaryJavadoc và câu tóm tắt đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-006
+    title: JavadocStyle, JavadocParagraph và cấu trúc đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-007
+    title: AtclauseOrder, JavadocTagContinuationIndentation và bố cục tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-008
+    title: Vị trí Javadoc so với annotation và khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-009
+    title: HTML, inline tag, tham số kiểu và @inheritDoc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-010
+    title: Giới hạn suy luận kiểu exception hoặc liên kết khi kiểm tra Javadoc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadocs-011
+    title: Chính sách riêng cho test, mã sinh tự động và API nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: size-and-complexity
+  title: Kích thước và độ phức tạp
+  childs:
+  - slug: size-and-complexity-001
+    title: FileLength, MethodLength và cách tính dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-002
+    title: ParameterNumber và RecordComponentNumber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-003
+    title: MethodCount, OuterTypeNumber và số lượng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-004
+    title: AnonInnerLength, LambdaBodyLength và ExecutableStatementCount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-005
+    title: CyclomaticComplexity và số nhánh điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-006
+    title: NPathComplexity và số đường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-007
+    title: BooleanExpressionComplexity và độ phức tạp biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-008
+    title: ClassFanOutComplexity và ClassDataAbstractionCoupling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-009
+    title: JavaNCSS và cách diễn giải số câu lệnh nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-010
+    title: Chọn ngưỡng dựa trên ngữ cảnh và kiểm chứng cách đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-complexity-011
+    title: Phân biệt tín hiệu cần xem xét với kết luận bắt buộc phải tách mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: headers-and-source-files
+  title: Header và tệp nguồn
+  childs:
+  - slug: headers-and-source-files-001
+    title: Header và RegexpHeader cho mẫu đầu tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-002
+    title: Quản lý dòng thay đổi và tài nguyên header dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-003
+    title: NewlineAtEndOfFile và chuẩn xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-004
+    title: Tên tệp, tên kiểu ngoài cùng và package declaration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-005
+    title: FileTabCharacter, charset và ký tự không mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-006
+    title: TodoComment, TrailingComment và chính sách comment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-007
+    title: OrderedProperties và kiểm tra tài nguyên ngoài Java khi được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-008
+    title: Phạm vi mã chính, mã kiểm thử, mã sinh tự động và tài nguyên phụ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-source-files-009
+    title: Tính nhất quán giữa Windows, Linux và công cụ quản lý mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: regex-and-xpath
+  title: Regex và XPath
+  childs:
+  - slug: regex-and-xpath-001
+    title: Chọn kiểm tra văn bản, token hoặc cấu trúc AST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-and-xpath-002
+    title: RegexpSingleline và RegexpSinglelineJava
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-and-xpath-003
+    title: RegexpMultiline và mẫu trải qua nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-and-xpath-004
+    title: RegexpOnFilename cho tên tệp hoặc thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-and-xpath-005
+    title: Đếm số lần xuất hiện, bỏ qua comment và kiểm tra có/không có mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-and-xpath-006
+    title: Escape regex trong XML và kiểm thử trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-and-xpath-007
+    title: MatchXpath để diễn đạt mẫu cấu trúc chưa cần viết check Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-and-xpath-008
+    title: Đánh giá giới hạn regex khi yêu cầu phụ thuộc cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modern-java
+  title: Java hiện đại
+  childs:
+  - slug: modern-java-001
+    title: Ma trận JDK chạy công cụ, Java nguồn và phiên bản parser
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modern-java-002
+    title: Record, compact constructor và record component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modern-java-003
+    title: Lambda, method reference, text block và cú pháp switch mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modern-java-004
+    title: Pattern matching, sealed type và biến không đặt tên theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modern-java-005
+    title: module-info.java và các check Java Platform Module System
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modern-java-006
+    title: package-info.java, annotation và tài liệu package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modern-java-007
+    title: Preview feature và quy trình xác minh parser trước khi bật kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modern-java-008
+    title: Nâng phiên bản Checkstyle khi dự án nâng mức ngôn ngữ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-and-file-filters
+  title: Phạm vi và lọc tệp
+  childs:
+  - slug: scope-and-file-filters-001
+    title: Chọn tệp main, test, tài nguyên và mã sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-file-filters-002
+    title: fileExtensions và include/exclude của công cụ gọi Checkstyle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-file-filters-003
+    title: BeforeExecutionExclusionFileFilter trước bước phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-file-filters-004
+    title: Phân biệt bỏ tệp trước khi chạy với lọc thông báo sau khi kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-file-filters-005
+    title: Đường dẫn tuyệt đối, tương đối và biểu thức đa nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-file-filters-006
+    title: Tệp module-info.java, package-info.java và các ngoại lệ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-file-filters-007
+    title: Phát hiện thư mục bị bỏ sót hoặc bị quét lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-file-filters-008
+    title: Kiểm chứng phạm vi bằng danh sách tệp và báo cáo thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-suppression
+  title: Suppression bằng XML
+  childs:
+  - slug: xml-suppression-001
+    title: Khi nào cần miễn trừ một vi phạm và cách ghi lý do?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-002
+    title: Cấu trúc suppressions.xml và DTD tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-003
+    title: SuppressionFilter và vị trí dưới Checker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-004
+    title: Chọn theo files, checks, id, message, lines hoặc columns
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-005
+    title: SuppressionSingleFilter cho ngoại lệ cấu hình trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-006
+    title: Module id để tránh miễn trừ nhiều check cùng tên ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-007
+    title: Ảnh hưởng của locale và thay đổi nội dung thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-008
+    title: Tệp suppression thiếu, đường dẫn sai và lựa chọn optional
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-suppression-009
+    title: Giới hạn phạm vi miễn trừ và rà soát ngoại lệ đã hết lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comments-and-annotations
+  title: Comment và annotation
+  childs:
+  - slug: comments-and-annotations-001
+    title: SuppressionCommentFilter và cặp comment tắt/bật kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-002
+    title: Phạm vi TreeWalker và các check có thể được bộ lọc áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-003
+    title: SuppressWithNearbyCommentFilter và số dòng ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-004
+    title: Suppression bằng văn bản cho FileSetCheck theo bộ lọc được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-005
+    title: '@SuppressWarnings với tiền tố checkstyle'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-006
+    title: Phối hợp SuppressWarningsHolder và SuppressWarningsFilter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-007
+    title: Alias, module id và đối chiếu tên check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-008
+    title: Kiểm soát comment hoặc annotation quá rộng bằng chính sách nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comments-and-annotations-009
+    title: Thử nghiệm ngoại lệ có tác dụng đúng vị trí và không che vi phạm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xpath-suppression
+  title: Suppression bằng XPath
+  childs:
+  - slug: xpath-suppression-001
+    title: Khi nào dùng XPath để tránh phụ thuộc số dòng?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-002
+    title: Cây AST và các node được phép truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-003
+    title: SuppressionXpathFilter, suppress-xpath và vị trí cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-004
+    title: SuppressionXpathSingleFilter cho một ngoại lệ tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-005
+    title: Tạo biểu thức từ vị trí vi phạm bằng công cụ CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-006
+    title: Đối chiếu biểu thức XPath với node thực sự được check báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-007
+    title: Giới hạn check hoặc loại vi phạm được XPath hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-008
+    title: Độ ổn định khi đổi tên, tái cấu trúc mã hoặc nâng parser
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-suppression-009
+    title: Kiểm thử để biểu thức không vô tình miễn trừ nhiều cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cli-and-ant
+  title: CLI và Ant
+  childs:
+  - slug: cli-and-ant-001
+    title: Chạy JAR độc lập với tệp cấu hình và các đầu vào nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-002
+    title: Tùy chọn output plain, XML hoặc SARIF theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-003
+    title: Nạp property, chọn tệp đầu ra và loại trừ đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-004
+    title: Exit code, severity và kết quả thành công/thất bại của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-005
+    title: Xuất AST, AST có comment và cây Javadoc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-006
+    title: Sinh suppression và chế độ debug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-007
+    title: Xử lý đường dẫn có dấu cách, Unicode và khác biệt shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-008
+    title: Tích hợp Checkstyle Ant task vào quy trình Ant hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-and-ant-009
+    title: Nhúng Checker vào ứng dụng Java và quản lý vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-integration
+  title: Tích hợp Maven
+  childs:
+  - slug: maven-integration-001
+    title: Khai báo và cố định phiên bản maven-checkstyle-plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-002
+    title: Phân biệt checkstyle:checkstyle, checkstyle:check và báo cáo aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-003
+    title: Gắn cổng kiểm tra vào phase phù hợp của lifecycle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-004
+    title: configLocation, propertiesLocation và suppression resource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-005
+    title: Chọn source/test/resource và loại mã sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-006
+    title: Severity, ngưỡng vi phạm và điều kiện làm build thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-007
+    title: Phân biệt cấu hình trong build với reporting
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-008
+    title: Đổi phiên bản engine Checkstyle qua dependency của plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-009
+    title: Nạp JAR chứa check hoặc cấu hình tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-010
+    title: Xác minh hành vi khi chạy trực tiếp, Maven Site và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-integration
+  title: Tích hợp Gradle
+  childs:
+  - slug: gradle-integration-001
+    title: Áp dụng plugin checkstyle trong Groovy hoặc Kotlin DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-002
+    title: checkstyleMain, checkstyleTest và task cho source set bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-003
+    title: Quan hệ giữa task check và các task Checkstyle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-004
+    title: toolVersion và JDK chạy Checkstyle qua toolchain/javaLauncher theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-005
+    title: configDirectory, config, configProperties và biến config_loc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-006
+    title: Chọn source, include/exclude và classpath cho từng task
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-007
+    title: ignoreFailures, maxErrors, maxWarnings và showViolations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-008
+    title: Cấu hình báo cáo XML, HTML và SARIF theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-009
+    title: Nạp check tùy chỉnh và giữ đúng dependency engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-010
+    title: Thiết lập heap cho tiến trình kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-011
+    title: Chia sẻ cấu hình bằng convention plugin cho nhiều module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ide-and-formatter
+  title: IDE và formatter
+  childs:
+  - slug: ide-and-formatter-001
+    title: Nạp cùng cấu hình Checkstyle trong IntelliJ IDEA hoặc Eclipse qua plugin phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-formatter-002
+    title: Đồng bộ phiên bản engine và JDK giữa IDE với build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-formatter-003
+    title: Phân giải property, resource và JAR check tùy chỉnh trong IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-formatter-004
+    title: Đọc vi phạm ngay khi sửa mã và chạy kiểm tra theo phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-formatter-005
+    title: Chọn formatter phù hợp với bộ quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-formatter-006
+    title: Đồng bộ import order, tab, line wrapping và độ dài dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-formatter-007
+    title: Phân biệt sửa tự động bằng formatter với xác minh bằng Checkstyle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ide-and-formatter-008
+    title: Chẩn đoán trường hợp IDE đạt nhưng build hoặc CI báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reports-and-ci
+  title: Báo cáo và CI
+  childs:
+  - slug: reports-and-ci-001
+    title: Thiết kế cổng chất lượng dựa trên severity và ngưỡng vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-002
+    title: Chạy Checkstyle trong pipeline cùng lệnh build đã chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-003
+    title: Báo cáo plain, XML, HTML và SARIF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-004
+    title: Tùy biến HTML bằng stylesheet khi build tool hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-005
+    title: Lưu artifact và liên kết vi phạm về đúng tệp/dòng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-006
+    title: Tích hợp kết quả vào giao diện review qua hệ thống CI phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-007
+    title: Phân biệt báo cáo được tạo thành công với cổng kiểm tra đã đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-008
+    title: Giữ báo cáo khi task thất bại và không làm mất exit status
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-009
+    title: Kiểm tra toàn dự án hoặc tệp thay đổi và giới hạn của từng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-ci-010
+    title: Đường dẫn, encoding, locale và kết quả tái lập giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-projects
+  title: Dự án nhiều module
+  childs:
+  - slug: multi-module-projects-001
+    title: Chọn nguồn cấu hình chuẩn cho toàn repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-002
+    title: Chia sẻ cấu hình qua artifact, parent POM hoặc convention plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-003
+    title: Tách phiên bản bộ quy tắc với phiên bản engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-004
+    title: Property đường dẫn dùng chung và tài nguyên suppression/header/import control
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-005
+    title: Quy tắc mặc định và ngoại lệ có chủ sở hữu cho từng module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-006
+    title: Phân biệt báo cáo từng module với báo cáo tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-007
+    title: Phối hợp source set, mã sinh và ngôn ngữ ngoài Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-008
+    title: Kiểm tra sự nhất quán khi module chạy riêng hoặc từ root
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-code
+  title: Áp dụng cho mã cũ
+  childs:
+  - slug: legacy-code-001
+    title: Kiểm kê vi phạm trước khi chọn chính sách áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-002
+    title: Phân loại lỗi bố cục, lỗi quy ước và trường hợp cần xem xét thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-003
+    title: Thiết lập mốc vi phạm ban đầu từ báo cáo hoặc suppression có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-004
+    title: Phân biệt baseline do quy trình tạo với khả năng có sẵn của Checkstyle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-005
+    title: Bật từng nhóm quy tắc theo giá trị và chi phí sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-006
+    title: Tách thay đổi định dạng diện rộng khỏi thay đổi hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-007
+    title: Chính sách cho mã mới, mã được sửa và mã chưa chạm tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-008
+    title: Giảm ngoại lệ theo giai đoạn, có lý do và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-009
+    title: Đánh giá tác động đến review, merge conflict và trải nghiệm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-ast-checks
+  title: Check AST tùy chỉnh
+  childs:
+  - slug: custom-ast-checks-001
+    title: Viết đặc tả quy tắc và chọn AbstractCheck
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-002
+    title: Tạo dự án JAR có dependency API Checkstyle phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-003
+    title: getDefaultTokens, getAcceptableTokens và getRequiredTokens
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-004
+    title: visitToken, leaveToken, beginTree và finishTree
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-005
+    title: Điều hướng DetailAST qua node cha, con và node cùng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-006
+    title: Lấy nội dung token, vị trí nguồn và phân biệt ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-007
+    title: Khai báo property qua setter và kiểm tra giá trị cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-008
+    title: Phát thông báo bằng log cùng messages.properties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-009
+    title: Quản lý trạng thái theo tệp và tránh rò rỉ giữa các lần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-010
+    title: Comment token, hỗ trợ XPath và giới hạn phân tích cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-ast-checks-011
+    title: Đóng gói JAR, đăng ký module và kiểm tra khả năng nạp lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-and-javadoc-checks
+  title: Check tệp và Javadoc
+  childs:
+  - slug: file-and-javadoc-checks-001
+    title: Khi nào chọn AbstractFileSetCheck?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-002
+    title: processFiltered, FileText và nội dung tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-003
+    title: Giới hạn fileExtensions và vị trí báo vi phạm trên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-004
+    title: Khai báo tài nguyên ngoài để xử lý cache đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-005
+    title: Phân biệt Java AST với cây Javadoc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-006
+    title: AbstractJavadocCheck, DetailNode và JavadocTokenTypes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-007
+    title: Truy cập ngữ cảnh Java từ check Javadoc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-008
+    title: Giới hạn parser HTML/Javadoc và cách kiểm thử dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-and-javadoc-checks-009
+    title: Chọn check Java, check tệp hoặc check Javadoc theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-filters-and-listeners
+  title: Filter và listener riêng
+  childs:
+  - slug: custom-filters-and-listeners-001
+    title: Khi nào cần filter riêng thay vì thêm check hoặc suppression chuẩn?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-002
+    title: Filter, AuditEvent và điều kiện chấp nhận sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-003
+    title: TreeWalkerFilter và phạm vi sự kiện trong TreeWalker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-004
+    title: BeforeExecutionFileFilter cho quyết định loại trừ trước phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-005
+    title: AuditListener và các sự kiện bắt đầu/kết thúc, lỗi và exception
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-006
+    title: Tạo báo cáo tùy chỉnh mà không thay đổi logic phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-007
+    title: Cấu hình module, property và classpath cho thành phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-008
+    title: Giữ chi phí xử lý, trạng thái và tài nguyên trong giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-filters-and-listeners-009
+    title: Kiểm chứng kết quả sau khi ghép check, filter và listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-testing
+  title: Kiểm thử quy tắc
+  childs:
+  - slug: rule-testing-001
+    title: Thiết kế fixture đạt, vi phạm và trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-002
+    title: Chạy Checker với cấu hình kiểm thử bằng JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-003
+    title: Thu AuditEvent và đối chiếu check, dòng, cột, thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-004
+    title: Kiểm thử property mặc định, tùy chỉnh và không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-005
+    title: Kiểm thử token được chọn, token bắt buộc và ngữ cảnh cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-006
+    title: Comment, chuỗi, Unicode, tab và xuống dòng CRLF/LF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-007
+    title: Record, lambda, generic và cú pháp Java mới trong phạm vi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-008
+    title: Kiểm thử nhiều tệp liên tiếp để phát hiện trạng thái tồn dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-009
+    title: Kiểm thử từng suppression cùng một vi phạm lân cận không được miễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-010
+    title: Kiểm thử JAR tùy chỉnh qua CLI và build tool thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-011
+    title: Kiểm thử hồi quy cấu hình khi nâng engine hoặc plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-012
+    title: Giữ fixture nhỏ để thông báo lỗi phản ánh đúng quy tắc đang kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-caching
+  title: Hiệu năng và cache
+  childs:
+  - slug: performance-and-caching-001
+    title: Đo thời gian theo số tệp, kích thước mã và nhóm check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-002
+    title: Cache của Checker và điều kiện khiến kết quả phải được tính lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-003
+    title: Thay đổi cấu hình, tài nguyên ngoài hoặc check tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-004
+    title: Phân biệt cache Checkstyle với up-to-date/build cache của Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-005
+    title: Loại trừ mã sinh hoặc đầu vào trùng đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-006
+    title: Regex tốn tài nguyên, XPath rộng và duyệt cây không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-007
+    title: Cấp heap phù hợp và nhận diện rò rỉ trạng thái trong check riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-008
+    title: Giới hạn chạy song song và an toàn của thành phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-caching-009
+    title: Chọn phép đo tái lập trước khi tối ưu pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-diagnostics
+  title: Lỗi và chẩn đoán
+  childs:
+  - slug: errors-and-diagnostics-001
+    title: Lỗi XML, DTD, property chưa được thay thế hoặc kiểu giá trị sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-002
+    title: Đặt check/filter sai Parent Module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-003
+    title: Không tìm thấy module, class hoặc resource trên classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-004
+    title: UnsupportedClassVersionError và JDK chạy công cụ không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-005
+    title: Parser không hỗ trợ cú pháp Java hoặc preview feature đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-006
+    title: Token không được check chấp nhận hoặc cấu hình tokens sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-007
+    title: Suppression không có tác dụng vì sai đường dẫn, id hoặc AST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-008
+    title: Regex và XML escape khác dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-009
+    title: Khác biệt dòng/cột do tab, encoding hoặc chuẩn xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-010
+    title: Vi phạm lặp hoặc thiếu do quét nguồn sai phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-011
+    title: IDE, Maven, Gradle và CI dùng engine hoặc cấu hình khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-diagnostics-012
+    title: Quy trình tái hiện tối thiểu bằng một tệp nguồn và một cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrade-and-governance
+  title: Nâng cấp và quản trị
+  childs:
+  - slug: upgrade-and-governance-001
+    title: Đọc release notes và yêu cầu JDK của engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-002
+    title: Tách nâng plugin build, engine và bộ quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-003
+    title: Check mới, property đổi tên, token mới và giá trị mặc định thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-004
+    title: Đối chiếu thay đổi google_checks.xml, sun_checks.xml hoặc style khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-005
+    title: Kiểm tra tương thích JAR quy tắc tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-006
+    title: Chạy so sánh báo cáo trước–sau trên tập mã đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-007
+    title: Rà soát suppression đã lỗi thời và XPath bị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-008
+    title: Version hóa cấu hình và ghi nhận quyết định quy ước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-governance-009
+    title: Lập kế hoạch triển khai cùng phương án quay lại cấu hình trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Thiết lập dự án Java mẫu và quy ước nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Viết checkstyle.xml tối thiểu và tạo các vi phạm có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Thực hành naming, import, whitespace, Javadoc và metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tích hợp với Maven hoặc Gradle theo cấu trúc dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Đồng bộ formatter và plugin IDE với lệnh build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Viết suppression XML, comment và XPath có phạm vi hẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tạo một AbstractCheck theo quy tắc riêng của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Kiểm thử fixture, property và đóng gói check thành JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Chạy CI, lưu báo cáo và xác minh điều kiện làm build thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Áp dụng dần cho một module mã cũ và đánh giá thay đổi vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Nâng engine hoặc bộ quy tắc trên nhánh thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Rà soát tính đúng của cấu hình, phạm vi nguồn và khả năng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

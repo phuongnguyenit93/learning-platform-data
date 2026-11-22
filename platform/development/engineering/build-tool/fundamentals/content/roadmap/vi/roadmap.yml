@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-cua-build-tool
+  title: Vai trò của Build Tool
+  purpose: Hiểu vì sao dự án cần tự động hóa build và công cụ build đảm nhiệm những việc gì.
+  objectives:
+  - Nêu được vai trò của build tool trong dự án phần mềm
+  - Phân biệt build tool với trình biên dịch và hệ thống CI
+  - Nhận biết các công cụ phổ biến như Ant, Maven, Gradle
+- id: quy-trinh-build-co-ban
+  title: Quy trình build cơ bản
+  purpose: Nắm luồng biến mã nguồn thành sản phẩm có thể kiểm thử và phân phối.
+  objectives:
+  - Mô tả được chuỗi compile, test, package và publish
+  - Phân biệt đầu vào, đầu ra và build artifact
+  - Giải thích mục đích của từng bước build
+- id: cau-truc-va-cau-hinh
+  title: Cấu trúc và cấu hình
+  purpose: Biết cách một dự án mô tả thông tin và quy tắc build một cách nhất quán.
+  objectives:
+  - Nhận diện tệp cấu hình build và cấu trúc thư mục chính
+  - Phân biệt cấu hình dự án, biến môi trường và tham số build
+  - Giải thích lợi ích của quy ước cấu trúc dự án
+- id: task-va-vong-doi-build
+  title: Task và vòng đời build
+  purpose: Hiểu cách build tool tổ chức các thao tác và thực thi theo quan hệ phụ thuộc.
+  objectives:
+  - Phân biệt task, target và build lifecycle
+  - Đọc được quan hệ phụ thuộc giữa các tác vụ
+  - Giải thích vì sao thứ tự thực thi ảnh hưởng kết quả build
+- id: quan-ly-dependency
+  title: Quản lý dependency
+  purpose: Hiểu cách khai báo và phân giải các thư viện cần cho quá trình build.
+  objectives:
+  - Phân biệt dependency trực tiếp và bắc cầu
+  - Nêu vai trò của repository và phiên bản thư viện
+  - Nhận biết xung đột phiên bản và cách kiểm tra dependency
+- id: plugin-va-mo-rong
+  title: Plugin và mở rộng
+  purpose: Biết cách build tool bổ sung khả năng mà không lặp lại toàn bộ logic build.
+  objectives:
+  - Giải thích vai trò của plugin trong cấu hình build
+  - Phân biệt tính năng có sẵn với tác vụ tùy chỉnh
+  - Nhận diện khi nào cần tái sử dụng quy tắc build
+- id: toi-uu-va-tai-lap-build
+  title: Tối ưu và tái lập build
+  purpose: Nhận biết những yếu tố giúp build nhanh hơn và cho kết quả đáng tin cậy.
+  objectives:
+  - Giải thích khái niệm incremental build và build cache
+  - Nêu điều kiện để build tái lập với cùng đầu vào
+  - Nhận diện các nguyên nhân gây build chậm hoặc thiếu ổn định
+- id: build-tu-dong-trong-ci
+  title: Build tự động trong CI
+  purpose: Liên hệ kiến thức build cơ bản với việc kiểm chứng dự án trên môi trường chung.
+  objectives:
+  - Mô tả cách chạy build từ dòng lệnh và trong CI
+  - Nhận biết các bước kiểm thử, đóng gói và báo lỗi
+  - Đề xuất cách kiểm tra khi build trên CI thất bại

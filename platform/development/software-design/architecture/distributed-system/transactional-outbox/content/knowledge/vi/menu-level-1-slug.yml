@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Bài toán ghi kép
+  slug: dual-write-problem
+  index: 1
+- title: Kiến trúc
+  slug: architecture
+  index: 2
+- title: Bảo đảm nhất quán
+  slug: consistency-guarantees
+  index: 3
+- title: Hợp đồng sự kiện
+  slug: event-contracts
+  index: 4
+- title: Lược đồ Outbox
+  slug: outbox-schema
+  index: 5
+- title: Giao dịch cục bộ
+  slug: local-transactions
+  index: 6
+- title: Spring Boot
+  slug: spring-boot
+  index: 7
+- title: Polling Publisher
+  slug: polling-publisher
+  index: 8
+- title: Khóa và quyền xử lý
+  slug: locking-processing-ownership
+  index: 9
+- title: Xác nhận phát tin
+  slug: publishing-acknowledgments
+  index: 10
+- title: CDC
+  slug: cdc
+  index: 11
+- title: Debezium
+  slug: debezium
+  index: 12
+- title: Thứ tự sự kiện
+  slug: event-ordering
+  index: 13
+- title: Chống xử lý trùng
+  slug: deduplication
+  index: 14
+- title: Thử lại
+  slug: retries
+  index: 15
+- title: Sự kiện lỗi
+  slug: failed-events
+  index: 16
+- title: Tiến hóa hợp đồng
+  slug: contract-evolution
+  index: 17
+- title: Dọn dữ liệu
+  slug: data-cleanup
+  index: 18
+- title: Khôi phục hệ thống
+  slug: system-recovery
+  index: 19
+- title: Quan sát hệ thống
+  slug: observability
+  index: 20
+- title: Hiệu năng
+  slug: performance
+  index: 21
+- title: Mở rộng
+  slug: scaling
+  index: 22
+- title: Bảo mật
+  slug: security
+  index: 23
+- title: Kiểm thử
+  slug: testing
+  index: 24
+- title: Thử nghiệm sự cố
+  slug: failure-injection
+  index: 25
+- title: Triển khai
+  slug: deployment
+  index: 26
+- title: Mẫu liên quan
+  slug: related-patterns
+  index: 27
+- title: Lỗi thiết kế
+  slug: design-mistakes
+  index: 28
+- title: Thực hành
+  slug: hands-on-practice
+  index: 29

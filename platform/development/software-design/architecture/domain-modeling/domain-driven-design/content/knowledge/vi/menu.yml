@@ -1,0 +1,357 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Thiết kế hướng miền (Domain-Driven Design): mục tiêu và tư tưởng cốt lõi'
+  - 'Miền nghiệp vụ, mô hình miền và phần mềm: mối liên hệ nền tảng'
+  - Vai trò của chuyên gia nghiệp vụ và nhóm phát triển trong xây dựng mô hình
+  - 'Thiết kế chiến lược và thiết kế chiến thuật: hai mức độ bổ sung nhau'
+  - Độ phức tạp nghiệp vụ so với độ phức tạp kỹ thuật
+  - Khi nào DDD đem lại giá trị và khi nào một mô hình đơn giản đã đủ
+  - DDD, lập trình hướng đối tượng và thiết kế hướng dữ liệu
+  - Phân biệt DDD với microservices, kiến trúc phân lớp và việc dùng framework
+- level1: Khám phá nghiệp vụ
+  level2:
+  - Xác định mục tiêu kinh doanh, phạm vi vấn đề và các bên liên quan
+  - Phỏng vấn chuyên gia bằng tình huống và ví dụ nghiệp vụ cụ thể
+  - Thu thập quy tắc, ngoại lệ, thuật ngữ và các điểm chưa thống nhất
+  - Phân biệt hoạt động hiện tại với chính sách và mục tiêu mong muốn
+  - Tìm quyết định nghiệp vụ ẩn trong bảng tính, biểu mẫu và quy trình thủ công
+  - Nhận diện tác nhân, hành động, kết quả và thông tin cần thiết
+  - Ghi lại giả định, câu hỏi mở và bằng chứng xác nhận mô hình
+  - Lặp lại quá trình học nghiệp vụ khi xuất hiện tình huống mới
+- level1: Ngôn ngữ chung
+  level2:
+  - Ngôn ngữ chung (Ubiquitous Language) trong trao đổi, mã nguồn và kiểm thử
+  - Đặt tên theo ý nghĩa nghiệp vụ thay vì cấu trúc cơ sở dữ liệu
+  - Phân biệt từ đồng nghĩa, từ đa nghĩa và khái niệm có tên gần giống nhau
+  - Diễn đạt hành vi bằng động từ và quy tắc bằng ví dụ rõ ràng
+  - Xây dựng bảng thuật ngữ gắn với ngữ cảnh và ví dụ sử dụng
+  - Đưa thuật ngữ vào tên lớp, phương thức, sự kiện và thông báo lỗi
+  - Giải quyết bất đồng ngôn ngữ giữa các nhóm
+  - Cập nhật ngôn ngữ và mã nguồn đồng thời khi hiểu biết thay đổi
+- level1: Miền và miền con
+  level2:
+  - Miền nghiệp vụ (Domain) và miền con (Subdomain)
+  - Miền con cốt lõi (Core), hỗ trợ (Supporting) và phổ dụng (Generic)
+  - Nhận diện lợi thế cạnh tranh và nơi cần đầu tư mô hình sâu
+  - Đánh giá mức độ phức tạp, tốc độ thay đổi và giá trị kinh doanh
+  - Phân biệt miền con trong không gian vấn đề với ranh giới mô hình của giải pháp
+  - Lựa chọn tự xây dựng, mua hoặc tích hợp theo đặc điểm miền con
+  - Điều chỉnh phân loại miền con khi chiến lược kinh doanh thay đổi
+- level1: Ngữ cảnh giới hạn
+  level2:
+  - 'Ngữ cảnh giới hạn (Bounded Context): ranh giới hiệu lực của một mô hình'
+  - Vì sao cùng một thuật ngữ có thể mang nghĩa khác ở các ngữ cảnh
+  - Xác định ranh giới theo ngôn ngữ, quy tắc, dữ liệu và trách nhiệm
+  - Phân biệt Bounded Context với miền con, mô-đun và dịch vụ triển khai
+  - Quan hệ giữa ranh giới mô hình và quyền sở hữu của nhóm
+  - Nhận diện ngữ cảnh quá lớn, quá nhỏ hoặc bị chồng lấn trách nhiệm
+  - Quản lý một khái niệm nghiệp vụ có nhiều mô hình biểu diễn
+  - Kiểm tra ranh giới bằng các luồng nghiệp vụ xuyên ngữ cảnh
+  - Rà soát và điều chỉnh ranh giới dựa trên bằng chứng thay đổi
+- level1: Bản đồ ngữ cảnh
+  level2:
+  - Bản đồ ngữ cảnh (Context Map) và các quan hệ phụ thuộc
+  - Thượng nguồn, hạ nguồn và quyền ảnh hưởng đến hợp đồng
+  - 'Partnership: hai nhóm phối hợp và cùng chịu trách nhiệm'
+  - 'Shared Kernel: chia sẻ phần mô hình có giới hạn'
+  - 'Customer–Supplier: thương lượng nhu cầu giữa bên cung cấp và bên dùng'
+  - 'Conformist: chấp nhận mô hình của ngữ cảnh thượng nguồn'
+  - 'Anti-Corruption Layer: bảo vệ mô hình bằng lớp chuyển đổi'
+  - 'Open Host Service và Published Language: công bố cách tích hợp'
+  - 'Separate Ways: chủ động không tích hợp khi không đem lại giá trị'
+  - 'Big Ball of Mud: nhận diện vùng thiếu ranh giới và hướng cô lập'
+  - Ghi nhận chi phí phối hợp, thay đổi hợp đồng và rủi ro giữa các nhóm
+- level1: EventStorming
+  level2:
+  - EventStorming như một cách cộng tác khám phá nghiệp vụ
+  - 'Sự kiện nghiệp vụ: diễn đạt điều đã xảy ra bằng ngôn ngữ quá khứ'
+  - Phân biệt sự kiện, yêu cầu hành động, tác nhân và chính sách phản ứng
+  - Dựng dòng thời gian và tìm các nhánh hoặc ngoại lệ
+  - Nhận diện điểm chưa rõ, xung đột và các khu vực cần tìm hiểu thêm
+  - Từ bức tranh tổng thể đến thiết kế một quy trình cụ thể
+  - Tìm gợi ý về aggregate và ngữ cảnh mà không coi sơ đồ là thiết kế cuối
+  - Chuyển kết quả buổi trao đổi thành ví dụ, thuật ngữ và giả thuyết cần kiểm chứng
+- level1: Xây dựng mô hình
+  level2:
+  - Chọn khái niệm phục vụ quyết định nghiệp vụ thay vì mô phỏng toàn bộ thực tế
+  - 'Mô hình miền và mô hình phân tích: quan hệ với mã nguồn chạy được'
+  - Biểu diễn hành vi và bất biến thay vì chỉ tập hợp thuộc tính
+  - Mô hình hóa trạng thái và các chuyển đổi hợp lệ
+  - Dùng sơ đồ, bảng quyết định và ví dụ để kiểm tra cách hiểu
+  - Xác định danh tính, giá trị và quan hệ trước khi chọn cách lưu trữ
+  - Chọn mức độ chi tiết phù hợp với từng ngữ cảnh
+  - Đối chiếu mô hình với cả luồng chuẩn và tình huống ngoại lệ
+- level1: Kiến trúc ứng dụng
+  level2:
+  - Phân biệt lớp miền, lớp ứng dụng, lớp giao tiếp và hạ tầng
+  - Kiến trúc phân lớp và nguyên tắc phụ thuộc
+  - 'Kiến trúc lục giác: cổng, bộ chuyển đổi và ranh giới với hệ thống bên ngoài'
+  - Dependency Inversion để bảo vệ mô hình miền
+  - Đặt quy tắc nghiệp vụ và điều phối ca sử dụng đúng vị trí
+  - Ngăn mô hình miền phụ thuộc trực tiếp vào HTTP, cơ sở dữ liệu và framework
+  - Tổ chức gói theo ngữ cảnh và khả năng nghiệp vụ
+  - Lựa chọn kiến trúc vừa đủ thay vì áp dụng mọi mẫu cùng lúc
+- level1: Thực thể
+  level2:
+  - 'Thực thể (Entity): danh tính liên tục qua các lần thay đổi'
+  - Phân biệt danh tính nghiệp vụ với khóa kỹ thuật của bản ghi
+  - Tạo và cấp định danh trước hoặc sau khi lưu
+  - Vòng đời, trạng thái và hành vi hợp lệ của thực thể
+  - Thiết kế phương thức theo hành động nghiệp vụ thay vì setter tùy ý
+  - Quy tắc equals và hashCode khi danh tính liên quan đến lưu trữ
+  - Phân biệt hai thực thể có cùng thuộc tính nhưng khác danh tính
+  - Tránh đưa mọi danh từ nghiệp vụ thành thực thể
+- level1: Đối tượng giá trị
+  level2:
+  - 'Đối tượng giá trị (Value Object): ý nghĩa được xác định bởi giá trị'
+  - Phân biệt Value Object với Entity và kiểu dữ liệu nguyên thủy
+  - Bất biến, tính hợp lệ và cách tạo một đối tượng giá trị
+  - So sánh bằng giá trị và cài đặt equals, hashCode
+  - Thay thế toàn bộ giá trị thay vì thay đổi từng thuộc tính bên trong
+  - Tiền tệ, số lượng, địa chỉ và khoảng giá trị trong mô hình nghiệp vụ
+  - Quy tắc làm tròn, đơn vị đo và kiểm tra tương thích khi tính toán
+  - Kết hợp nhiều đối tượng giá trị và kiểm soát tham chiếu có thể thay đổi
+  - Lựa chọn Java record hoặc lớp thông thường theo yêu cầu của mô hình
+- level1: Aggregate
+  level2:
+  - 'Aggregate: nhóm đối tượng tạo thành ranh giới nhất quán'
+  - Aggregate Root và quyền kiểm soát thay đổi bên trong
+  - Xác định bất biến cần được bảo vệ trong cùng giao dịch
+  - Thiết kế aggregate nhỏ theo nhu cầu nhất quán thực tế
+  - Truy cập đối tượng bên trong thông qua aggregate root
+  - Tham chiếu aggregate khác bằng định danh
+  - Phân biệt quan hệ đối tượng, quan hệ dữ liệu và quyền sở hữu vòng đời
+  - Cập nhật collection mà không làm lộ cấu trúc có thể sửa từ bên ngoài
+  - Trường hợp một ca sử dụng liên quan đến nhiều aggregate
+  - Nhận diện aggregate quá lớn hoặc ranh giới được chia theo bảng dữ liệu
+- level1: Bất biến và đồng thời
+  level2:
+  - Bất biến nghiệp vụ trong từng đối tượng và trong một aggregate
+  - Phân biệt kiểm tra trước thao tác với bảo vệ bất biến khi ghi
+  - Cạnh tranh cập nhật và các tình huống lost update
+  - Khóa lạc quan bằng phiên bản và xử lý xung đột
+  - 'Khóa bi quan: điều kiện sử dụng và chi phí'
+  - Kết hợp ràng buộc cơ sở dữ liệu với quy tắc trong mô hình
+  - Thử lại sau xung đột bằng cách nạp lại và đánh giá lại nghiệp vụ
+  - Phân tích ví dụ đặt chỗ, tồn kho và hạn mức khi nhiều yêu cầu đồng thời
+- level1: Dịch vụ miền
+  level2:
+  - Dịch vụ miền (Domain Service) và hành vi không thuộc tự nhiên về một đối tượng
+  - Phân biệt Domain Service với Application Service và dịch vụ hạ tầng
+  - Đặt tên dịch vụ bằng hoạt động nghiệp vụ có ý nghĩa
+  - Giữ dịch vụ không trở thành nơi gom toàn bộ logic của miền
+  - Thao tác cần nhiều thực thể hoặc aggregate và giới hạn nhất quán
+  - Chính sách nghiệp vụ được tiêm qua giao diện khi cần thay đổi cách tính
+  - Xử lý nhu cầu dữ liệu bên ngoài mà không kéo hạ tầng vào mô hình
+  - Kiểm thử dịch vụ miền bằng dữ liệu và phụ thuộc có thể kiểm soát
+- level1: Khởi tạo và vòng đời
+  level2:
+  - 'Factory: tạo đối tượng hoặc aggregate ở trạng thái hợp lệ'
+  - Lựa chọn constructor, phương thức tạo tĩnh hoặc factory riêng
+  - Phân biệt tạo mới với khôi phục đối tượng từ dữ liệu đã lưu
+  - Ẩn quy trình khởi tạo phức tạp khỏi bên sử dụng
+  - Chuyển trạng thái, kết thúc vòng đời và lưu trữ lịch sử
+  - Xóa đối tượng theo ngữ nghĩa nghiệp vụ và quan hệ sở hữu
+  - Tránh tạo trạng thái không hợp lệ rồi sửa dần bằng setter
+- level1: Repository
+  level2:
+  - 'Repository: giao diện truy xuất aggregate theo ngôn ngữ miền'
+  - Phân biệt Repository với DAO và tập hàm CRUD theo bảng
+  - Thiết kế hợp đồng tìm theo định danh và tiêu chí nghiệp vụ
+  - Trả về aggregate hoàn chỉnh theo nhu cầu bảo vệ bất biến
+  - Quyền sở hữu giao dịch và giới hạn trách nhiệm của repository
+  - Tách truy vấn phục vụ hiển thị khỏi việc nạp aggregate để thay đổi
+  - Phân trang, dữ liệu không tồn tại và chính sách lỗi
+  - Cài đặt repository trong bộ nhớ cho kiểm thử và giới hạn của cách thay thế
+  - Tránh repository cho mọi entity bên trong aggregate
+- level1: Sự kiện miền
+  level2:
+  - 'Sự kiện miền (Domain Event): sự kiện có ý nghĩa trong một ngữ cảnh'
+  - Đặt tên sự kiện theo sự việc đã xảy ra và thời điểm nghiệp vụ
+  - 'Nội dung sự kiện: định danh, dữ liệu cần thiết và tính bất biến'
+  - Ghi nhận sự kiện từ aggregate mà không phụ thuộc vào cơ chế vận chuyển
+  - Thời điểm phân phối sự kiện trước hoặc sau khi giao dịch hoàn tất
+  - Phản ứng trong cùng ngữ cảnh và ranh giới của các tác dụng phụ
+  - Phân biệt Domain Event với Integration Event
+  - Thứ tự, phiên bản và khả năng xử lý lặp theo nhu cầu thực tế
+  - Tránh dùng sự kiện để che giấu bất biến bắt buộc trong cùng giao dịch
+- level1: Chính sách và đặc tả
+  level2:
+  - 'Chính sách nghiệp vụ: quy tắc ra quyết định có tên rõ ràng'
+  - 'Specification: biểu diễn tiêu chí và kiểm tra điều kiện nghiệp vụ'
+  - Kết hợp đặc tả bằng AND, OR, NOT khi phù hợp với ngữ nghĩa
+  - Phân biệt đặc tả nghiệp vụ với tiêu chí truy vấn cơ sở dữ liệu
+  - Quy tắc thay đổi theo khách hàng, sản phẩm hoặc thời gian hiệu lực
+  - Biểu diễn lý do từ chối thay vì chỉ trả về boolean
+  - Chọn đối tượng chính sách hoặc chiến lược thay cho nhánh điều kiện rải rác
+  - Giới hạn việc xây dựng bộ máy quy tắc khi nhu cầu còn đơn giản
+- level1: Ca sử dụng
+  level2:
+  - Dịch vụ ứng dụng điều phối một mục tiêu cụ thể của người dùng
+  - Thiết kế đầu vào, kết quả và ranh giới của ca sử dụng
+  - Luồng nạp aggregate, gọi hành vi và lưu thay đổi
+  - Phân biệt kiểm tra đầu vào với xác nhận quy tắc nghiệp vụ
+  - Xác thực người dùng, phân quyền và quyết định quyền theo miền
+  - Quản lý giao dịch ở lớp ứng dụng
+  - Phân biệt lỗi nghiệp vụ, xung đột và lỗi hạ tầng
+  - Kiểm soát yêu cầu lặp bằng định danh thao tác khi cần
+  - Giữ lớp ứng dụng gọn mà vẫn thể hiện rõ trình tự điều phối
+- level1: Lưu trữ và ORM
+  level2:
+  - 'Mô hình miền và mô hình lưu trữ: khi nào dùng chung hoặc tách riêng'
+  - Ánh xạ aggregate với JPA và Hibernate trong Java
+  - Ánh xạ Value Object bằng embeddable hoặc bộ chuyển đổi
+  - Quan hệ sở hữu, cascade và orphan removal theo vòng đời nghiệp vụ
+  - Yêu cầu khởi tạo của ORM và bảo vệ trạng thái hợp lệ
+  - Lazy loading, proxy và ảnh hưởng đến equals, hashCode
+  - Phạm vi persistence context và ranh giới giao dịch
+  - N+1, kế hoạch nạp dữ liệu và chi phí của aggregate lớn
+  - Phiên bản khóa lạc quan và chuyển lỗi lưu trữ thành kết quả phù hợp
+  - Kiểm tra mô hình trước thay đổi lược đồ và dữ liệu cũ
+- level1: API và DTO
+  level2:
+  - DTO của giao tiếp khác với Entity và Value Object của miền
+  - Ánh xạ yêu cầu bên ngoài sang ý định nghiệp vụ
+  - Thiết kế API theo hành động thay vì công bố setter của mô hình
+  - Tránh trả trực tiếp toàn bộ aggregate qua JSON
+  - Ánh xạ lỗi nghiệp vụ thành phản hồi có thể hiểu và xử lý
+  - Phiên bản hợp đồng giao tiếp và thay đổi mô hình bên trong
+  - Phân biệt mô hình đọc cho giao diện với mô hình dùng để thay đổi trạng thái
+- level1: Tích hợp ngữ cảnh
+  level2:
+  - Lựa chọn tích hợp đồng bộ hoặc bất đồng bộ theo yêu cầu nghiệp vụ
+  - Chuyển đổi thuật ngữ giữa các ngữ cảnh mà không hợp nhất mô hình
+  - Thiết kế lớp chống xâm lấn để cách ly hệ thống cũ hoặc nhà cung cấp
+  - Quyền sở hữu dữ liệu và tránh truy cập trực tiếp dữ liệu nội bộ của ngữ cảnh khác
+  - Hợp đồng công bố, phiên bản và khả năng tương thích
+  - Phân biệt định danh nội bộ với định danh được trao đổi
+  - Xử lý dữ liệu tham chiếu và bản sao cục bộ của thông tin bên ngoài
+  - Quyết định thông tin nào cần đồng bộ và mức độ trễ chấp nhận được
+  - Kiểm thử hợp đồng giữa bên cung cấp và bên sử dụng
+- level1: Nhất quán liên ngữ cảnh
+  level2:
+  - Nhất quán mạnh và nhất quán cuối cùng theo yêu cầu nghiệp vụ
+  - Phân biệt bất biến cục bộ với cam kết qua nhiều ngữ cảnh
+  - Điều phối tiến trình dài hạn bằng Process Manager khi có nhu cầu
+  - 'Saga và thao tác bù: vai trò tại ranh giới nhiều giao dịch'
+  - 'Transactional Outbox: liên hệ giữa ghi dữ liệu và công bố sự kiện'
+  - Xử lý thông điệp lặp, đến muộn hoặc sai thứ tự
+  - Trạng thái trung gian và cách phản ánh cho người dùng
+  - Phục hồi và đối soát khi một phần quy trình thất bại
+  - Giới hạn cam kết nhất quán và tránh giả định giao dịch phân tán miễn phí
+- level1: CQRS và Event Sourcing
+  level2:
+  - 'CQRS: tách mô hình thay đổi trạng thái và mô hình truy vấn'
+  - Tách trách nhiệm đọc–ghi mà chưa cần tách cơ sở dữ liệu
+  - Thiết kế projection phục vụ truy vấn và chấp nhận độ trễ
+  - 'Event Sourcing: lưu chuỗi sự kiện để khôi phục trạng thái'
+  - Phân biệt Event Sourcing với Domain Event và nhật ký kiểm toán
+  - Vai trò của aggregate, phiên bản sự kiện và ảnh chụp trạng thái
+  - Chi phí thay đổi lịch sử, xây lại projection và vận hành
+  - Đánh giá hai kỹ thuật độc lập, không coi là điều kiện bắt buộc của DDD
+- level1: Thời gian và lịch sử
+  level2:
+  - Phân biệt thời điểm xử lý với thời điểm có hiệu lực nghiệp vụ
+  - Mô hình hóa khoảng thời gian và quy tắc biên đóng hoặc mở
+  - Chính sách, giá và hợp đồng có phiên bản theo thời gian
+  - Ảnh chụp thông tin tại thời điểm phát sinh giao dịch
+  - Phân biệt lịch sử nghiệp vụ với lịch sử sửa bản ghi
+  - Quy tắc hồi tố và cách điều chỉnh sự kiện hoặc giao dịch đã hoàn tất
+  - Tiêm Clock để kiểm soát thời gian trong mô hình và kiểm thử
+  - Múi giờ và lịch nghiệp vụ trong phạm vi quy tắc của miền
+- level1: Mô hình sâu
+  level2:
+  - Phát hiện khái niệm ngầm từ quy tắc và ngoại lệ lặp lại
+  - Đưa ràng buộc, quy trình và chính sách thành khái niệm rõ ràng
+  - Thử nhiều mô hình cho cùng một tập tình huống nghiệp vụ
+  - Nhận diện bước đột phá khi mô hình mới làm đơn giản nhiều quy tắc
+  - Tái cấu trúc tên gọi, quan hệ và ranh giới theo hiểu biết mới
+  - Rút gọn phần mô hình không phục vụ quyết định cần thiết
+  - Đối chiếu mô hình sâu với việc chỉ thêm nhiều lớp kỹ thuật
+  - Giữ ví dụ nghiệp vụ làm bằng chứng trong quá trình tái cấu trúc
+- level1: Thiết kế dễ thay đổi
+  level2:
+  - Giao diện thể hiện rõ ý định sử dụng theo ngôn ngữ nghiệp vụ
+  - Phân biệt truy vấn không gây tác dụng phụ với lệnh thay đổi trạng thái
+  - Tiền điều kiện, hậu điều kiện và bất biến có thể kiểm chứng
+  - Giảm phụ thuộc để các thành phần có thể được hiểu độc lập
+  - Phép toán khép kín trên Value Object khi phù hợp
+  - Tách khái niệm phức tạp thành mô hình nhỏ có quan hệ rõ ràng
+  - Mô-đun có độ gắn kết cao và ranh giới phụ thuộc minh bạch
+  - Đánh giá thiết kế bằng chi phí thay đổi một quy tắc cụ thể
+- level1: Java và Spring
+  level2:
+  - Tổ chức gói Java theo Bounded Context và ngăn phụ thuộc chéo ngoài ý muốn
+  - Định danh có kiểu riêng để tránh nhầm lẫn giữa các aggregate
+  - Đối tượng miền Java thuần và cách lắp ghép bằng Spring
+  - Cổng repository và bộ chuyển đổi Spring Data
+  - Đặt @Transactional theo ranh giới ca sử dụng đã lựa chọn
+  - Phân phối sự kiện bằng Spring với thời điểm giao dịch được xác định
+  - Phân biệt Bean Validation với bất biến cần được miền bảo vệ
+  - Kiểm soát cấu hình, thời gian và phụ thuộc bên ngoài khi khởi tạo mô hình
+- level1: Kiểm thử
+  level2:
+  - Biến ví dụ nghiệp vụ thành tiêu chí chấp nhận có thể thực thi
+  - Kiểm thử Value Object về tính hợp lệ, so sánh và tính bất biến
+  - Kiểm thử Entity và các chuyển trạng thái được phép
+  - Kiểm thử Aggregate bảo vệ bất biến qua mọi đường thay đổi
+  - Kiểm thử chính sách và dịch vụ miền bằng các trường hợp biên
+  - Kiểm thử ca sử dụng với các cổng hạ tầng được thay thế
+  - Kiểm thử repository và ánh xạ trên cơ sở dữ liệu thực phù hợp
+  - Kiểm thử giao dịch, xung đột đồng thời và yêu cầu lặp
+  - Kiểm thử sự kiện và hợp đồng tích hợp xuyên ngữ cảnh
+  - Kiểm thử kiến trúc để phát hiện phụ thuộc sai ranh giới
+  - Lựa chọn kiểm thử dựa trên thuộc tính cho các bất biến phù hợp
+- level1: Mô-đun và triển khai
+  level2:
+  - Một Bounded Context có thể tồn tại trong ứng dụng nguyên khối
+  - Thiết kế ứng dụng nguyên khối có mô-đun theo ranh giới miền
+  - Kiểm soát API nội bộ và quyền truy cập giữa các mô-đun
+  - Lựa chọn ranh giới microservice từ nhu cầu độc lập thực tế
+  - Chi phí vận hành và phối hợp khi tách triển khai
+  - Tránh hệ thống nguyên khối phân tán với phụ thuộc gọi chéo dày đặc
+  - Quản lý dữ liệu và lộ trình tách dần ngữ cảnh
+  - Rà soát quyền sở hữu của nhóm cùng ranh giới triển khai
+- level1: Chuyển đổi hệ thống
+  level2:
+  - Khảo sát mô hình hiện có và xác định khu vực nghiệp vụ cần ưu tiên
+  - Nhận diện mô hình thiếu hành vi và logic rải rác trong lớp dịch vụ
+  - Bảo vệ hành vi cũ bằng kiểm thử trước khi tái cấu trúc
+  - Trích xuất Value Object và hành vi miền theo từng bước
+  - Thiết lập ranh giới ngữ cảnh và lớp chống xâm lấn quanh hệ thống cũ
+  - Thay thế từng phần theo cách tiếp cận Strangler khi phù hợp
+  - Di chuyển lược đồ, chuyển đổi dữ liệu và kiểm tra đối soát
+  - Đo hiệu quả qua khả năng hiểu mô hình và chi phí thay đổi nghiệp vụ
+- level1: Cộng tác và tài liệu
+  level2:
+  - Duy trì đối thoại thường xuyên với chuyên gia nghiệp vụ
+  - Rà soát mô hình bằng tình huống cụ thể thay vì chỉ xem sơ đồ lớp
+  - Ghi quyết định về ranh giới, bất biến và lựa chọn nhất quán
+  - Quản lý Context Map, bảng thuật ngữ và ví dụ nghiệp vụ cùng mã nguồn
+  - Phân quyền sở hữu mô hình và cách tiếp nhận thay đổi xuyên nhóm
+  - Nhận diện khi tài liệu và cách hiểu giữa các nhóm đã lệch nhau
+  - Lập lộ trình học nghiệp vụ và cải tiến mô hình liên tục
+- level1: Lỗi thiết kế thường gặp
+  level2:
+  - Chỉ đổi tên lớp theo DDD nhưng giữ toàn bộ quy tắc ngoài mô hình
+  - Thiết kế một mô hình dùng chung cho mọi ngữ cảnh
+  - Chia Bounded Context theo bảng hoặc tầng kỹ thuật
+  - Gộp quá nhiều đối tượng vào một aggregate
+  - Cho phép sửa entity bên trong bằng repository riêng
+  - Đặt logic điều phối ứng dụng vào đối tượng miền
+  - Để JPA, JSON hoặc framework quyết định toàn bộ mô hình
+  - Áp dụng microservices, CQRS và Event Sourcing khi chưa có nhu cầu
+  - Dùng sự kiện thay cho bảo vệ bất biến bắt buộc
+  - Tạo quá nhiều lớp và khái niệm không đem lại ý nghĩa nghiệp vụ
+- level1: Thực hành tổng hợp
+  level2:
+  - Khám phá một miền bán hàng từ tình huống và quy tắc nghiệp vụ
+  - Xây dựng ngôn ngữ chung và phân loại các miền con
+  - Đề xuất Bounded Context và Context Map cho đặt hàng, kho và thanh toán
+  - Thiết kế aggregate đơn hàng cùng các Value Object và bất biến
+  - Triển khai ca sử dụng đặt hàng bằng Java với cổng repository
+  - Kiểm chứng cạnh tranh cập nhật và xung đột nghiệp vụ
+  - Thiết kế sự kiện tích hợp và phân tích trạng thái thất bại liên ngữ cảnh
+  - Tái cấu trúc mô hình khi xuất hiện quy tắc thay đổi hoặc tình huống ngoại lệ
+  - Đánh giá sản phẩm bằng ví dụ nghiệp vụ, kiểm thử và quyết định kiến trúc

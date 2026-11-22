@@ -1,0 +1,309 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Lớp và đối tượng: khái niệm, mục đích và mối liên hệ'
+  - Trạng thái, hành vi và danh tính của một đối tượng
+  - Lớp như một kiểu dữ liệu do người lập trình định nghĩa
+  - Phân biệt khai báo lớp, biến tham chiếu và thể hiện của lớp
+  - Một lớp tạo nhiều đối tượng có trạng thái độc lập
+  - Toàn cảnh trường, phương thức, hàm khởi tạo và thành viên static
+  - 'Ví dụ xuyên suốt: mô hình hóa tài khoản ngân hàng'
+  - Lộ trình học và kiến thức Java nền tảng cần có
+- level1: Khai báo lớp
+  level2:
+  - Cú pháp class và cấu trúc thân lớp
+  - Đặt tên lớp, tên tệp và quy tắc của lớp public
+  - Lớp cấp cao nhất và nhiều lớp trong một tệp nguồn
+  - Tổ chức lớp bằng package và sử dụng import
+  - Tên đơn giản, tên đầy đủ và xử lý trùng tên lớp
+  - Phân biệt thành viên lớp, hàm khởi tạo và khối khởi tạo
+  - Các từ khóa bổ nghĩa cho lớp và tổ hợp không hợp lệ
+  - Biên dịch, tạo đối tượng và chạy chương trình đầu tiên
+- level1: Trường dữ liệu
+  level2:
+  - 'Khai báo trường: kiểu dữ liệu, tên và giá trị ban đầu'
+  - Trường kiểu nguyên thủy và trường kiểu tham chiếu
+  - Trường đối tượng và dữ liệu riêng của từng thể hiện
+  - Giá trị mặc định của trường và yêu cầu khởi tạo biến cục bộ
+  - Phân biệt trường, tham số và biến cục bộ
+  - Phạm vi tên, thời gian tồn tại và hiện tượng che khuất tên
+  - Đọc và cập nhật trường bằng toán tử dấu chấm
+  - Vai trò của volatile và transient khi khai báo trường
+- level1: Phương thức
+  level2:
+  - Cấu trúc khai báo phương thức và ý nghĩa từng thành phần
+  - Phương thức đối tượng và đối tượng nhận lời gọi
+  - Chữ ký phương thức và những thành phần không thuộc chữ ký
+  - Phương thức void và phương thức trả về giá trị
+  - Luồng thực thi lời gọi, return và kết thúc bất thường
+  - Phân tách phương thức truy vấn và phương thức thay đổi trạng thái
+  - Điều kiện đầu vào, điều kiện đầu ra và tác dụng phụ
+  - Nhận diện abstract, final, synchronized và native trên phương thức
+- level1: Tham số và kết quả
+  level2:
+  - Phân biệt tham số hình thức và đối số tại lời gọi
+  - Kiểm tra kiểu, số lượng và thứ tự đối số
+  - Tham số kiểu nguyên thủy và tham số kiểu tham chiếu
+  - Giá trị trả về là dữ liệu nguyên thủy, tham chiếu hoặc null
+  - 'Tham số varargs: khai báo, truyền mảng và lời gọi không đối số'
+  - Giới hạn vị trí varargs và những lời gọi dễ gây nhầm
+  - Thứ tự đánh giá đối tượng nhận lời gọi và các đối số
+  - Thiết kế phương thức rõ nghĩa khi có nhiều tham số
+- level1: Nạp chồng
+  level2:
+  - Mục đích và điều kiện nạp chồng phương thức
+  - Phân biệt chữ ký theo số lượng, kiểu và thứ tự tham số
+  - Vì sao chỉ đổi kiểu trả về không tạo được nạp chồng
+  - Lựa chọn phương thức theo kiểu tại thời điểm biên dịch
+  - Thứ tự xét chuyển kiểu, boxing và varargs
+  - Lời gọi với null và lỗi lựa chọn phương thức không rõ ràng
+  - Phân biệt nạp chồng, ghi đè và che khuất
+  - Thiết kế tập phương thức nạp chồng dễ sử dụng
+- level1: Hàm khởi tạo
+  level2:
+  - Vai trò của hàm khởi tạo trong việc tạo trạng thái hợp lệ
+  - Cú pháp, tên và điểm khác biệt với phương thức
+  - 'Toán tử new: cấp phát, khởi tạo và nhận tham chiếu'
+  - Hàm khởi tạo mặc định và điều kiện trình biên dịch tạo tự động
+  - Hàm khởi tạo không tham số do người lập trình khai báo
+  - Hàm khởi tạo có tham số và nạp chồng hàm khởi tạo
+  - 'Chuỗi this() và super(): vị trí lời gọi trong Java 21'
+  - Kiểm tra dữ liệu và xử lý lỗi trong hàm khởi tạo
+  - Quyền truy cập hàm khởi tạo và ngăn tạo đối tượng từ bên ngoài
+  - Phương thức tạo đối tượng có tên và so sánh với hàm khởi tạo
+- level1: Từ khóa this
+  level2:
+  - this là tham chiếu tới đối tượng hiện tại
+  - Dùng this phân biệt trường và tham số trùng tên
+  - Gọi phương thức khác trên cùng đối tượng
+  - Truyền this làm đối số và trả về this
+  - Phân biệt this, this() và tên lớp
+  - Giới hạn sử dụng this trong ngữ cảnh static
+  - Truy cập đối tượng bao ngoài bằng Outer.this
+  - Rủi ro để this thoát ra khi khởi tạo chưa hoàn tất
+- level1: Tham chiếu
+  level2:
+  - Biến tham chiếu lưu gì và khác đối tượng ở điểm nào
+  - Sơ đồ tham chiếu khi khai báo, gán và tạo đối tượng
+  - Nhiều biến cùng tham chiếu một đối tượng
+  - Thay đổi trạng thái và gán lại tham chiếu
+  - Phân biệt hai đối tượng bằng toán tử == và !=
+  - null biểu thị không có đối tượng
+  - Các tình huống gây NullPointerException và cách phòng tránh
+  - 'Mảng đối tượng: tạo mảng tham chiếu và tạo từng phần tử'
+  - Kiểu khai báo của biến và lớp thực tế của đối tượng
+- level1: Truyền tham trị
+  level2:
+  - 'Java luôn truyền tham trị: mô hình bản sao giá trị đối số'
+  - Truyền giá trị nguyên thủy vào phương thức
+  - Truyền bản sao tham chiếu vào phương thức
+  - Vì sao phương thức có thể sửa trạng thái đối tượng bên ngoài
+  - Vì sao gán lại tham số không thay thế biến của bên gọi
+  - Phân tích ví dụ hoán đổi hai tham chiếu không thành công
+  - Trả về đối tượng mới để biểu diễn kết quả thay thế
+  - Theo dõi tham chiếu qua nhiều lời gọi và nhiều đối tượng
+- level1: Kiểm soát truy cập
+  level2:
+  - public, protected, truy cập trong gói và private
+  - Quyền truy cập của lớp cấp cao nhất và lớp thành viên
+  - Quyền truy cập trường, phương thức và hàm khởi tạo
+  - Phân biệt phạm vi tên và quyền truy cập
+  - Truy cập từ cùng lớp, cùng gói và khác gói
+  - Quy tắc protected qua lớp con ở gói khác
+  - Truy cập private giữa các lớp lồng trong cùng lớp bao
+  - Chọn quyền truy cập nhỏ nhất đáp ứng nhu cầu
+  - Phân biệt quyền truy cập kiểu với khả năng nhìn thấy package trong module
+- level1: Đóng gói
+  level2:
+  - Đóng gói để bảo vệ trạng thái và quy tắc hợp lệ
+  - Ẩn trường bằng private và cung cấp thao tác có ý nghĩa
+  - 'Getter và setter: mục đích, giới hạn và khi không cần'
+  - Kiểm tra dữ liệu ở điểm tạo và điểm cập nhật
+  - Ngăn trạng thái dở dang khi thao tác có thể thất bại
+  - Ngăn lộ mảng, tập hợp và đối tượng có thể thay đổi
+  - Quy ước JavaBeans và sự khác biệt với thiết kế theo hành vi
+  - Ví dụ bảo vệ số dư và lịch sử giao dịch
+- level1: Thành viên static
+  level2:
+  - Thành viên thuộc lớp và thành viên thuộc từng đối tượng
+  - Trường static và dữ liệu dùng chung giữa các thể hiện
+  - Phương thức static và lời gọi qua tên lớp
+  - Truy cập thành viên đối tượng từ ngữ cảnh static
+  - Ngữ cảnh static không có đối tượng this hiện tại
+  - Khối static và khởi tạo dữ liệu cấp lớp
+  - 'static import: tiện ích và nguy cơ giảm khả năng đọc'
+  - Thiết kế lớp tiện ích với hàm khởi tạo private
+  - Rủi ro trạng thái static có thể thay đổi và kiểm thử phụ thuộc nhau
+- level1: Từ khóa final
+  level2:
+  - 'final trên biến: chỉ gán một lần'
+  - Trường final và yêu cầu gán giá trị trên mọi nhánh khởi tạo
+  - Trường final chưa có giá trị và nơi được phép gán
+  - Tham chiếu final vẫn có thể trỏ tới đối tượng thay đổi được
+  - Hằng static final và điều kiện của hằng tại thời điểm biên dịch
+  - Phân biệt final, effectively final và bất biến
+  - final trên phương thức và lớp
+  - Khi nào nên dùng final để diễn đạt ý định thiết kế
+- level1: Thứ tự khởi tạo
+  level2:
+  - Phân biệt nạp lớp, liên kết lớp và khởi tạo lớp
+  - Những thao tác kích hoạt khởi tạo lớp
+  - Khởi tạo lớp cha trước lớp con
+  - Giá trị mặc định trước biểu thức khởi tạo trường
+  - Thứ tự trường static và khối static theo văn bản nguồn
+  - Thứ tự khởi tạo lớp cha, trường đối tượng, khối khởi tạo và thân hàm khởi tạo
+  - Chuỗi hàm khởi tạo và số lần chạy khối khởi tạo đối tượng
+  - Giới hạn tham chiếu trước trong biểu thức và khối khởi tạo
+  - Gọi phương thức ghi đè khi đối tượng chưa khởi tạo xong
+  - Lỗi khởi tạo lớp và bài thực nghiệm dự đoán thứ tự in
+- level1: Quan hệ giữa lớp
+  level2:
+  - Đối tượng chứa tham chiếu tới đối tượng khác
+  - Quan hệ sử dụng, liên kết và sở hữu đối tượng
+  - Quan hệ một-một và một-nhiều bằng trường tham chiếu
+  - Kết hợp đối tượng bằng composition và phân chia trách nhiệm
+  - Ủy quyền thao tác cho đối tượng thành phần
+  - Quan hệ hai chiều và bảo toàn tính nhất quán
+  - Tham chiếu vòng và thời gian tồn tại của các đối tượng
+  - Lựa chọn thành phần hay kế thừa cho một yêu cầu cụ thể
+- level1: Kế thừa và đa hình
+  level2:
+  - extends, lớp cha, lớp con và quan hệ kiểu con
+  - Đơn kế thừa lớp và quan hệ ngầm định với Object
+  - implements và vai trò hợp đồng của interface
+  - Thành viên được kế thừa và giới hạn của thành viên private
+  - super để gọi hàm khởi tạo và truy cập thành viên lớp cha
+  - Ghi đè phương thức và kiểm tra bằng @Override
+  - Điều phối phương thức đối tượng theo lớp thực tế
+  - Che khuất trường và phương thức static theo kiểu khai báo
+  - Ép kiểu lên, ép kiểu xuống, instanceof và ClassCastException
+  - Nhận diện lớp abstract và giới hạn khi tạo đối tượng trực tiếp
+- level1: Lớp Object
+  level2:
+  - Object là lớp gốc và các phương thức dùng chung
+  - getClass() và phân biệt lớp thực tế với kiểu khai báo
+  - Phân biệt class, đối tượng thông thường và đối tượng Class
+  - toString() để biểu diễn đối tượng khi quan sát chương trình
+  - Danh tính tham chiếu và bằng nhau theo giá trị với equals()
+  - Hợp đồng equals() và mối liên hệ với hashCode()
+  - Hệ quả của thay đổi trường dùng trong equals() và hashCode()
+  - clone(), Cloneable và giới hạn của sao chép mặc định
+  - Nhận diện wait(), notify(), notifyAll() và đối tượng làm khóa
+- level1: Lớp bất biến
+  level2:
+  - Đối tượng bất biến và lợi ích khi chia sẻ tham chiếu
+  - Phân biệt lớp final, trường final và trạng thái bất biến
+  - Thiết kế trường private final và khởi tạo đầy đủ
+  - Kiểm soát kế thừa để bảo vệ cam kết bất biến
+  - Sao chép phòng vệ đầu vào và đầu ra có thể thay đổi
+  - Bất biến nông và bất biến sâu
+  - Trả về đối tượng mới thay cho cập nhật đối tượng cũ
+  - Kiểm tra tính bất biến khi lớp chứa mảng hoặc tập hợp
+- level1: Sao chép đối tượng
+  level2:
+  - Gán tham chiếu khác tạo bản sao đối tượng
+  - Sao chép nông và chia sẻ các đối tượng thành phần
+  - Sao chép sâu và phạm vi dữ liệu cần sao chép
+  - Hàm khởi tạo sao chép và phương thức tạo bản sao có tên
+  - So sánh sao chép tường minh với Object.clone()
+  - Sao chép cấu trúc chứa tham chiếu dùng chung hoặc vòng
+  - Chọn cách sao chép theo quyền sở hữu và khả năng thay đổi
+  - Thực nghiệm sửa bản gốc, bản sao và thành phần lồng nhau
+- level1: Lớp lồng nhau
+  level2:
+  - 'Phân loại lớp lồng: static, inner, cục bộ và vô danh'
+  - Static nested class không cần đối tượng bao ngoài
+  - Inner member class gắn với một đối tượng bao ngoài
+  - Cú pháp tạo Outer.Nested và outer.new Inner
+  - Truy cập thành viên private và thành viên bao ngoài
+  - Che khuất tên và định danh bằng Outer.this
+  - 'Thành viên static trong inner class: quy tắc hiện hành từ Java 16'
+  - Chọn lớp lồng hay lớp cấp cao nhất
+  - Tham chiếu ngầm tới đối tượng bao ngoài và nguy cơ giữ bộ nhớ
+- level1: Lớp cục bộ
+  level2:
+  - Khai báo lớp có tên trong phương thức hoặc khối lệnh
+  - Phạm vi sử dụng tên của lớp cục bộ
+  - Truy cập biến cục bộ final và effectively final
+  - Phân biệt bắt giữ giá trị biến với thay đổi trạng thái đối tượng được tham chiếu
+  - Lớp cục bộ trong ngữ cảnh static và ngữ cảnh đối tượng
+  - Giới hạn từ khóa truy cập và static trên lớp cục bộ thông thường
+  - Local enum và local record được ngầm định static
+  - Khi nào lớp cục bộ giúp giữ chi tiết triển khai gần nơi dùng
+- level1: Lớp vô danh
+  level2:
+  - Khai báo và tạo đối tượng vô danh trong một biểu thức
+  - Mở rộng một lớp hoặc hiện thực một interface
+  - Truyền đối số tới hàm khởi tạo của lớp cha
+  - Khởi tạo trường và khối khởi tạo khi không có hàm khởi tạo có tên
+  - Ý nghĩa this và truy cập đối tượng bao ngoài
+  - Bắt giữ biến final và effectively final
+  - So sánh lớp vô danh với lambda ở phạm vi sử dụng và this
+  - Nhược điểm của khởi tạo bằng hai cặp ngoặc nhọn
+  - Lựa chọn lớp có tên, lớp vô danh hoặc lambda
+- level1: Enum
+  level2:
+  - Enum để mô hình hóa tập thể hiện có tên hữu hạn
+  - Khai báo hằng enum và danh tính của từng hằng
+  - Trường, phương thức và hàm khởi tạo của enum
+  - Giới hạn tạo đối tượng và kế thừa của enum
+  - Phần thân riêng cho từng hằng và hành vi khác nhau
+  - Enum hiện thực interface
+  - values(), valueOf(), name() và ordinal()
+  - So sánh bằng == và sử dụng enum trong switch
+  - Tránh dùng ordinal() làm mã dữ liệu bền vững
+- level1: Record
+  level2:
+  - Record để biểu diễn một nhóm giá trị có tên
+  - Khai báo thành phần và các thành viên được sinh tự động
+  - Accessor của record và sự khác biệt với getter JavaBeans
+  - Hàm khởi tạo chuẩn và hàm khởi tạo chuẩn rút gọn
+  - Kiểm tra, chuẩn hóa dữ liệu và sao chép phòng vệ
+  - Hàm khởi tạo bổ sung và ủy quyền tới hàm khởi tạo chuẩn
+  - Quy tắc về trường đối tượng, kế thừa và hiện thực interface
+  - equals(), hashCode(), toString() và ảnh hưởng của thành phần mảng
+  - Record chỉ bảo đảm bất biến nông
+  - Lựa chọn record hay lớp thông thường
+- level1: Lớp sealed
+  level2:
+  - Mục đích kiểm soát tập lớp con trực tiếp
+  - Khai báo sealed và danh sách permits
+  - Điều kiện suy ra danh sách lớp con khi bỏ permits
+  - Lớp con final, sealed và non-sealed
+  - Ràng buộc cùng module hoặc cùng package
+  - Kết hợp sealed với lớp abstract, record và enum
+  - So sánh hệ phân cấp đóng với lớp tự do mở rộng
+  - Khi nào sealed phù hợp để mô hình hóa các loại giá trị
+- level1: Lớp generic
+  level2:
+  - Lớp generic và mục đích tham số hóa kiểu dữ liệu
+  - Khai báo lớp Box<T>, trường và phương thức dùng T
+  - Tạo đối tượng với đối số kiểu và toán tử diamond
+  - Giới hạn kiểu với extends và nhiều ràng buộc
+  - Tham số kiểu của lớp không dùng trực tiếp trong ngữ cảnh static
+  - Phương thức generic và tham số kiểu riêng
+  - Nhận diện raw type, cảnh báo không an toàn và xóa kiểu
+  - Giới hạn tạo new T(), mảng generic và kiểm tra kiểu tại thời gian chạy
+- level1: Vòng đời đối tượng
+  level2:
+  - Từ tạo đối tượng tới sử dụng và không còn truy cập được
+  - Biến cục bộ, trường và các đường tham chiếu giữ đối tượng tồn tại
+  - Phân biệt phạm vi biến với khả năng đối tượng còn được truy cập
+  - Thu gom rác tự động và thời điểm thu gom không được bảo đảm
+  - Vì sao tham chiếu vòng không tự nó ngăn thu gom rác
+  - Rò rỉ bộ nhớ do static, bộ nhớ đệm và đăng ký không được gỡ
+  - System.gc() là yêu cầu gợi ý và không thay thế quản lý vòng đời
+  - finalize() đã bị khuyến cáo loại bỏ và không dùng để quản lý tài nguyên
+  - Đóng tài nguyên bằng AutoCloseable và try-with-resources
+- level1: Thiết kế và thực hành
+  level2:
+  - Chọn trách nhiệm của lớp trước khi chọn trường và phương thức
+  - Giữ trạng thái tối thiểu và tránh lưu dữ liệu suy ra không cần thiết
+  - Thiết kế thao tác nghiệp vụ để giữ quy tắc hợp lệ
+  - Chọn lớp có thể thay đổi, lớp bất biến, record hoặc enum
+  - Xây dựng lớp tài khoản với tạo mới, nạp tiền và rút tiền
+  - Kết hợp tài khoản, giao dịch và chủ tài khoản bằng tham chiếu
+  - Thực nghiệm tham chiếu dùng chung, truyền tham trị và sao chép
+  - Viết kiểm thử cho khởi tạo, cập nhật, trường hợp biên và lỗi đầu vào
+  - Dùng debugger quan sát this, trường, tham số và đối tượng
+  - Danh sách lỗi thường gặp và tiêu chí tự đánh giá thiết kế lớp

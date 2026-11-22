@@ -1,0 +1,3 @@
+menuLevel1: List.copyOf
+menuLevel2: NullPointerException khi nguồn hoặc phần tử danh sách là null
+status: WRITTEN

@@ -1,0 +1,2701 @@
+menu:
+- slug: code-quality-overview
+  title: Tổng quan
+  childs:
+  - slug: code-quality-overview-001
+    title: Kiểm tra chất lượng liên tục là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-overview-002
+    title: Mối liên hệ giữa chất lượng mã, rủi ro thay đổi và khả năng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-overview-003
+    title: Phân biệt Continuous Inspection, Continuous Integration và Continuous Delivery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-overview-004
+    title: Phân biệt phân tích tĩnh, kiểm thử tự động và đánh giá mã thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-overview-005
+    title: Phát hiện, chỉ số, quy tắc, báo cáo và cổng chất lượng trong cùng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-overview-006
+    title: Vì sao một lần quét mã không tạo thành quy trình kiểm tra liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-overview-007
+    title: Những giới hạn của kết luận chất lượng dựa trên công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-overview-008
+    title: Kiến thức Git, build, kiểm thử và CI cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: feedback-loop
+  title: Vòng phản hồi
+  childs:
+  - slug: feedback-loop-001
+    title: Luồng thay đổi mã từ máy lập trình viên đến nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-002
+    title: Kiểm tra trong IDE, trước commit, trong pull request và sau merge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-003
+    title: Phản hồi sớm và chi phí sửa lỗi ở từng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-004
+    title: Phân biệt kiểm tra nhanh cục bộ và xác minh đầy đủ trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-005
+    title: Kết hợp kết quả tự động với nhận xét của người đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-006
+    title: Chuyển phát hiện thành hành động sửa hoặc quyết định có lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-007
+    title: Xác nhận lại sau sửa và theo dõi tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-008
+    title: Vai trò của lập trình viên, reviewer, người quản lý quy tắc và chủ sở hữu mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-loop-009
+    title: Thiết kế vòng phản hồi ngắn, rõ trách nhiệm và có thể lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inspection-scope
+  title: Phạm vi kiểm tra
+  childs:
+  - slug: inspection-scope-001
+    title: Xác định repository, dự án, mô-đun, ngôn ngữ và nhánh cần phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-002
+    title: Phân biệt mã sản phẩm, mã kiểm thử và tài nguyên cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-003
+    title: Xử lý mã sinh tự động, mã bên thứ ba và tệp không được bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-004
+    title: Phân biệt quét toàn bộ mã và đánh giá phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-005
+    title: Kiểm tra chuẩn mã, mẫu lỗi, phụ thuộc và ranh giới kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-006
+    title: Phạm vi của phân tích bảo mật và các nguồn bằng chứng bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-007
+    title: Ranh giới giữa kiểm tra chất lượng mã và kiểm thử hành vi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-008
+    title: Loại trừ có lý do và nguy cơ làm mất phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-scope-009
+    title: Xác nhận có dữ liệu thực sự được phân tích trước khi kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-architecture
+  title: Kiến trúc hệ thống
+  childs:
+  - slug: system-architecture-001
+    title: Vai trò của bộ phân tích, scanner, bộ thu báo cáo và nền tảng tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-002
+    title: Thực thi kiểm tra tại máy cá nhân hoặc CI runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-003
+    title: Phân biệt tạo báo cáo cục bộ và gửi dữ liệu lên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-004
+    title: Luồng xử lý từ mã nguồn đến phát hiện, chỉ số và trạng thái cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-005
+    title: Phân biệt scanner hoàn tất và máy chủ xử lý kết quả hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-006
+    title: Định danh dự án, nhánh, commit và lần phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-007
+    title: Lưu kết quả, lịch sử và cấu hình để truy nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-008
+    title: Phân biệt công cụ độc lập, dịch vụ tự quản lý và dịch vụ đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-009
+    title: Giới hạn chức năng theo phiên bản hoặc gói sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evidence-sources
+  title: Nguồn bằng chứng
+  childs:
+  - slug: evidence-sources-001
+    title: Mã nguồn, bytecode và metadata cần cho phân tích Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-002
+    title: Báo cáo kiểm thử và thông tin ca kiểm thử thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-003
+    title: Dữ liệu thực thi và báo cáo độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-004
+    title: Kết quả kiểm tra chuẩn mã và định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-005
+    title: Kết quả phân tích mẫu lỗi và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-006
+    title: Kết quả kiểm thử kiến trúc và ranh giới mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-007
+    title: Kết quả quét dependency, bí mật và mã có rủi ro bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-008
+    title: Thông tin Git để xác định thay đổi và nguồn gốc dòng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-009
+    title: Phân biệt dữ liệu đo được, suy luận của công cụ và đánh giá thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-010
+    title: Gắn mọi bằng chứng với đúng phiên bản mã và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-metrics
+  title: Chỉ số chất lượng
+  childs:
+  - slug: quality-metrics-001
+    title: Phân biệt phép đo, chỉ số, xếp hạng và điều kiện cổng chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-002
+    title: Độ tin cậy, khả năng bảo trì và an toàn bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-003
+    title: Số dòng mã, số lớp, số phương thức và ảnh hưởng của quy mô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-004
+    title: Mật độ phát hiện và giới hạn khi chuẩn hóa theo số dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-005
+    title: Độ bao phủ, mã trùng lặp và độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-006
+    title: Chỉ số toàn dự án và chỉ số trên mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-007
+    title: Tổng hợp theo mô-đun mà không lấy trung bình tỷ lệ sai cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-008
+    title: Giá trị bằng 0, dữ liệu không có và chỉ số không áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-009
+    title: So sánh theo thời gian khi cách đo hoặc phạm vi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-010
+    title: Tránh xem một điểm tổng hợp là bằng chứng đầy đủ về chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: finding-categories
+  title: Phân loại phát hiện
+  childs:
+  - slug: finding-categories-001
+    title: Phân biệt lỗi tiềm ẩn, vấn đề bảo trì và vấn đề bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-002
+    title: Mức nghiêm trọng, độ tin cậy và xác suất ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-003
+    title: Ngữ cảnh sử dụng và tác động thực tế của một phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-004
+    title: Phân biệt cảnh báo tự động và kết luận lỗi đã được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-005
+    title: Phát hiện đúng, báo sai và vấn đề bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-006
+    title: Ưu tiên theo rủi ro, khả năng khai thác và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-007
+    title: Phân biệt lỗi mới, lỗi tồn đọng và lỗi tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-008
+    title: Xử lý nhãn hoặc thang phân loại khác nhau giữa công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-categories-009
+    title: Không cộng gộp cảnh báo trùng như các lỗi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rules-and-profiles
+  title: Quy tắc và hồ sơ
+  childs:
+  - slug: rules-and-profiles-001
+    title: Quy tắc phân tích gồm điều kiện phát hiện, mô tả và cách khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-002
+    title: Hồ sơ chất lượng là tập quy tắc được bật cho một phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-003
+    title: Phân biệt hồ sơ quy tắc và cổng chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-004
+    title: Chọn quy tắc theo ngôn ngữ, phiên bản và loại ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-005
+    title: Tham số quy tắc và ảnh hưởng đến kết quả phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-006
+    title: Kế thừa, tùy chỉnh và tái sử dụng cấu hình giữa dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-007
+    title: Kiểm tra quy tắc mới trước khi áp dụng diện rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-008
+    title: Đối chiếu quy tắc giữa IDE và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-and-profiles-009
+    title: Quản lý thay đổi hồ sơ để kết quả có thể giải thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gates
+  title: Cổng chất lượng
+  childs:
+  - slug: quality-gates-001
+    title: Cổng chất lượng là gì và quyết định ở thời điểm nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-002
+    title: Cấu trúc điều kiện gồm chỉ số, toán tử, ngưỡng và phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-003
+    title: Chọn điều kiện trên mã mới hoặc toàn bộ mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-004
+    title: Phân biệt cảnh báo tham khảo và điều kiện chặn tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-005
+    title: Thiết lập ngưỡng dựa trên rủi ro và dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-006
+    title: Vì sao không có một ngưỡng độ bao phủ phù hợp cho mọi dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-007
+    title: Xử lý trạng thái đang chờ, đạt, không đạt và lỗi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-008
+    title: Chờ kết quả xử lý cuối cùng trước khi kết luận cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-009
+    title: Phân biệt build thành công, scanner thành công và cổng đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-010
+    title: Chính sách khi thiếu báo cáo hoặc chỉ số không áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-011
+    title: Thay đổi cổng có kiểm soát thay vì hạ ngưỡng để vượt qua lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: new-and-legacy-code
+  title: Mã mới và mã cũ
+  childs:
+  - slug: new-and-legacy-code-001
+    title: Vì sao nên kiểm soát chất lượng phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-002
+    title: Định nghĩa mã mới theo nhánh tham chiếu, phiên bản hoặc mốc phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-003
+    title: Phân biệt mã thay đổi trong pull request và kỳ mã mới của một nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-004
+    title: Vai trò của Git history, nhánh đích và mốc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-005
+    title: Sửa mã cũ có thể đưa phần sửa vào phạm vi mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-006
+    title: Đánh giá mã mới và theo dõi sức khỏe toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-007
+    title: Ngăn vi phạm mới trong khi xử lý dần nợ tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-008
+    title: Đổi nhánh tham chiếu, đổi phiên bản và rủi ro dịch chuyển đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-009
+    title: Refactor, đổi tên tệp và khả năng nhận diện thay đổi của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: new-and-legacy-code-010
+    title: Không xem mã ngoài kỳ đánh giá là đã hết rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coverage
+  title: Độ bao phủ
+  childs:
+  - slug: coverage-001
+    title: Độ bao phủ kiểm thử đo điều gì và không chứng minh điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-002
+    title: Phân biệt line coverage, branch coverage và instruction coverage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-003
+    title: Mẫu số là phần mã có thể thực thi hoặc nhánh được công cụ nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-004
+    title: Một dòng đã chạy không có nghĩa mọi nhánh đã được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-005
+    title: Độ bao phủ trên mã mới và trên toàn dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-006
+    title: Thu thập dữ liệu bằng công cụ như JaCoCo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-007
+    title: Phân biệt dữ liệu thực thi, báo cáo XML và báo cáo HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-008
+    title: Kết hợp kiểm thử đơn vị, tích hợp và nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-009
+    title: Giới hạn do bytecode tổng hợp, debug information và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-010
+    title: Phân biệt không chạy kiểm thử, không nhập báo cáo và độ bao phủ thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-011
+    title: Bổ sung kiểm thử có khẳng định ý nghĩa thay vì chỉ tăng tỷ lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-duplication
+  title: Mã trùng lặp
+  childs:
+  - slug: code-duplication-001
+    title: Khái niệm khối trùng lặp và cách công cụ nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-duplication-002
+    title: Phân biệt dòng giống nhau, token giống nhau và ý nghĩa nghiệp vụ giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-duplication-003
+    title: Tỷ lệ trùng lặp và phạm vi mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-duplication-004
+    title: Mã trùng trên phần thay đổi và trên toàn dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-duplication-005
+    title: Ảnh hưởng của mã sinh, cấu hình lặp và dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-duplication-006
+    title: Khi nên trích xuất dùng chung và khi nên giữ độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-duplication-007
+    title: Rủi ro tạo trừu tượng sai chỉ để giảm chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-duplication-008
+    title: Xác nhận hành vi không đổi sau khi giảm mã trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: complexity
+  title: Độ phức tạp
+  childs:
+  - slug: complexity-001
+    title: Độ phức tạp chu trình và số quyết định trong luồng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-002
+    title: Độ phức tạp nhận thức và khó khăn khi đọc hiểu mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-003
+    title: Phân biệt phép đo theo phương thức, lớp và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-004
+    title: Độ sâu lồng nhau, số nhánh và trách nhiệm của phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-005
+    title: Quan hệ giữa độ phức tạp, khả năng kiểm thử và rủi ro thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-006
+    title: Chọn ngưỡng theo bối cảnh thay vì chia nhỏ cơ học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-007
+    title: Refactor điều kiện, tách trách nhiệm và làm rõ tên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-008
+    title: Đối chiếu cải thiện chỉ số với khả năng hiểu và hành vi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-debt
+  title: Nợ kỹ thuật
+  childs:
+  - slug: technical-debt-001
+    title: Nợ kỹ thuật là gì và khác gì với danh sách cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-002
+    title: Chi phí sửa ước lượng và giới hạn của mô hình công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-003
+    title: Nguyên nhân phát sinh, chi phí trì hoãn và tác động thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-004
+    title: Phân biệt nợ có chủ đích và sai sót chưa được nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-005
+    title: Ưu tiên nợ theo điểm nóng thay đổi và ảnh hưởng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-006
+    title: Kết hợp dữ liệu phát hiện với kinh nghiệm của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-007
+    title: Đặt kế hoạch trả nợ từng phần trong công việc thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-008
+    title: Theo dõi nợ mới, nợ được xử lý và nợ tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-009
+    title: Không dùng số giờ ước lượng như cam kết tiến độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: finding-remediation
+  title: Xử lý phát hiện
+  childs:
+  - slug: finding-remediation-001
+    title: Tiếp nhận cảnh báo và xác định chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-002
+    title: Đọc vị trí, đường dẫn dữ liệu và bằng chứng gây phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-003
+    title: Tái hiện hoặc xác minh vấn đề trong ngữ cảnh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-004
+    title: Phân loại cần sửa, báo sai hoặc chấp nhận có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-005
+    title: Ước lượng mức ảnh hưởng và sắp xếp ưu tiên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-006
+    title: Chọn cách khắc phục thay vì chỉ làm mất cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-007
+    title: Bổ sung kiểm thử khi vấn đề có thể tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-008
+    title: Chạy lại phân tích để xác nhận kết quả sau sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-009
+    title: Theo dõi trạng thái mở, đã xử lý và tái mở theo công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-remediation-010
+    title: Liên kết phát hiện với thay đổi mã và quyết định của người đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions-and-baselines
+  title: Ngoại lệ và đường cơ sở
+  childs:
+  - slug: exceptions-and-baselines-001
+    title: Đường cơ sở là gì và cách ghi nhận vấn đề tồn tại trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-002
+    title: Phân biệt bỏ qua tệp, tắt quy tắc và chấp nhận một phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-003
+    title: Yêu cầu lý do, chủ sở hữu và thời hạn cho ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-004
+    title: Chấp nhận rủi ro khác với xác nhận công cụ báo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-005
+    title: Giới hạn phạm vi suppress hoặc exclusion nhỏ nhất phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-006
+    title: Kiểm tra ngoại lệ hết hạn hoặc không còn tương ứng với mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-007
+    title: Quản lý đường cơ sở cùng thay đổi mã và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-008
+    title: Không tái tạo đường cơ sở tự động để che vấn đề mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-baselines-009
+    title: Giữ khả năng truy nguyên khi đổi công cụ hoặc định danh phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-design
+  title: Thiết kế pipeline
+  childs:
+  - slug: pipeline-design-001
+    title: 'Chọn sự kiện kích hoạt: commit, pull request, nhánh chính hoặc lịch kiểm tra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-002
+    title: Xác định đầu vào, đầu ra và điều kiện thành công của từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-003
+    title: Thứ tự checkout, chuẩn bị môi trường, build, test và thu báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-004
+    title: Phân biệt kiểm tra thực thi trong build và bước tổng hợp sau build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-005
+    title: Chỉ chuyển bước khi bằng chứng bắt buộc đã được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-006
+    title: Xử lý máy chủ phân tích bất đồng bộ và chờ trạng thái cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-007
+    title: Liên kết kết quả với đúng commit, nhánh và lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-008
+    title: Timeout, hủy lần chạy cũ và kiểm soát thực thi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-009
+    title: Chạy lại có thể lặp an toàn và tránh cập nhật trạng thái nhầm phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-010
+    title: Lưu báo cáo chẩn đoán khi bước kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-design-011
+    title: Tách cổng chất lượng mã khỏi các điều kiện phát hành khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-integration
+  title: Tích hợp Java
+  childs:
+  - slug: java-integration-001
+    title: Vai trò của Gradle, Maven và vòng đời xác minh dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-002
+    title: Khai báo plugin kiểm tra và dependency chỉ dành cho phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-003
+    title: Phân biệt công cụ đọc mã nguồn, công cụ đọc bytecode và công cụ cần classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-004
+    title: Cấu hình phiên bản JDK, mức ngôn ngữ và encoding phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-005
+    title: Liên kết tác vụ kiểm tra với Gradle check hoặc Maven verify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-006
+    title: Khai báo quan hệ tác vụ để báo cáo tồn tại trước khi được nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-007
+    title: Tổ chức kiểm tra nhiều mô-đun và tổng hợp báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-008
+    title: Tách phạm vi mã sản phẩm, kiểm thử và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-009
+    title: Đối chiếu đường dẫn nguồn, lớp biên dịch và báo cáo trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-010
+    title: Tái sử dụng cùng cấu hình và lệnh xác minh ở máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pull-requests-and-branches
+  title: Pull request và nhánh
+  childs:
+  - slug: pull-requests-and-branches-001
+    title: Vai trò của phân tích pull request trong quyết định tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-002
+    title: Xác định nhánh nguồn, nhánh đích và commit đang được đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-003
+    title: Phân biệt phân tích commit đầu nhánh và commit hợp nhất thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-004
+    title: Git history không đủ và sai phạm vi so sánh thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-005
+    title: Status check, commit status và phản hồi gắn vào dòng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-006
+    title: Thiết lập kiểm tra bắt buộc theo chính sách repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-007
+    title: Phân biệt kiểm tra đạt, bị bỏ qua, chưa chạy và không có kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-008
+    title: Không dùng kết quả của commit cũ để kết luận cho thay đổi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-009
+    title: Phân tích nhánh chính sau merge và phát hiện sai khác với pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-010
+    title: Đổi tên nhánh, force push và các lần chạy bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-requests-and-branches-011
+    title: Giới hạn phân tích nhánh hoặc pull request theo nền tảng và gói sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: developer-feedback
+  title: Phản hồi lập trình viên
+  childs:
+  - slug: developer-feedback-001
+    title: Đưa cảnh báo vào IDE mà vẫn giữ cấu hình tương thích CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-002
+    title: Chọn bộ kiểm tra nhanh trước khi gửi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-003
+    title: Thông báo cần chỉ rõ vấn đề, bằng chứng và hành động tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-004
+    title: Hiển thị phát hiện trên phần mã đang sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-005
+    title: Tránh lặp cảnh báo ở nhiều công cụ và nhiều kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-006
+    title: Phân biệt lỗi cần sửa ngay và thông tin để xem xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-007
+    title: Liên kết tới quy tắc, ví dụ và hướng dẫn khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-008
+    title: Giữ phản hồi ổn định khi chạy lại cùng mã và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-feedback-009
+    title: Kết hợp tự động hóa với trách nhiệm của người đánh giá mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-reports
+  title: Báo cáo chất lượng
+  childs:
+  - slug: quality-reports-001
+    title: Thiết kế báo cáo theo người đọc và quyết định cần đưa ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-002
+    title: Trạng thái hiện tại, xu hướng và phạm vi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-003
+    title: Tổng hợp mã mới và toàn bộ mã mà không đánh đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-004
+    title: Phân nhóm theo mô-đun, loại vấn đề và mức ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-005
+    title: Liên kết phát hiện với tệp, dòng mã, commit và lần phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-006
+    title: Phân biệt chất lượng mã với sức khỏe của hệ thống kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-007
+    title: Xuất báo cáo máy đọc được và định dạng tích hợp như SARIF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-008
+    title: Thời hạn lưu, lịch sử và khả năng truy xuất bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-reports-009
+    title: Tránh bảng điểm gây hiểu nhầm hoặc che mất dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: Xác định nhu cầu trước khi chọn nền tảng kiểm tra liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: So sánh công cụ đơn lẻ và nền tảng tổng hợp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: Vai trò của Checkstyle, PMD, SpotBugs, Error Prone và ArchUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Vai trò của JaCoCo trong cung cấp dữ liệu độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Vai trò của nền tảng như SonarQube trong tổng hợp và cổng chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Đánh giá ngôn ngữ, build, IDE và hệ thống quản lý mã được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Cân nhắc tự quản lý, đám mây, quyền truy cập và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Kiểm tra khả năng nhập báo cáo, quản lý ngoại lệ và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-009
+    title: Thử nghiệm trên mã đại diện trước khi áp dụng diện rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-010
+    title: Giữ chính sách chất lượng đủ độc lập để có thể đổi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-protection
+  title: Bảo vệ pipeline
+  childs:
+  - slug: pipeline-protection-001
+    title: Quản lý token phân tích và quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-002
+    title: Tách bí mật của nhánh tin cậy khỏi mã gửi từ nguồn không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-003
+    title: Nguy cơ thực thi mã pull request với quyền của nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-004
+    title: Cấp quyền đọc mã, ghi trạng thái và quản lý cấu hình đúng nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-005
+    title: Bảo vệ mã nguồn, báo cáo và dữ liệu nhạy cảm trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-006
+    title: Kiểm soát nguồn plugin, scanner và phiên bản dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-007
+    title: Cố định phiên bản công cụ và xác minh artifact khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-008
+    title: Xử lý chứng chỉ, proxy và kết nối đến máy chủ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-009
+    title: Kiểm soát ai được thay quy tắc, ngưỡng và kết luận ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-010
+    title: Tách quyền xem kết quả khỏi quyền làm thay đổi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-reliability
+  title: Độ tin cậy kết quả
+  childs:
+  - slug: result-reliability-001
+    title: Định nghĩa điều kiện để hai lần phân tích có thể so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-002
+    title: Giữ đúng mã nguồn, bytecode, báo cáo và cấu hình của cùng một lần build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-003
+    title: Kiểm tra dữ liệu đầu vào đầy đủ trước khi đánh giá cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-004
+    title: Phát hiện phân tích rỗng hoặc tập kiểm thử không được chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-005
+    title: Ảnh hưởng của phiên bản analyzer, JDK và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-006
+    title: Đường dẫn khác nhau giữa runner, container và máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-007
+    title: Git metadata thiếu và nhận diện mã mới không chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-008
+    title: Xử lý phát hiện trùng khi nhập nhiều nguồn báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-009
+    title: Kiểm tra cache hoặc artifact cũ không bị dùng nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reliability-010
+    title: Đối chứng kết quả trên ví dụ có vấn đề đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inspection-performance
+  title: Hiệu năng kiểm tra
+  childs:
+  - slug: inspection-performance-001
+    title: Đo thời gian build, kiểm thử, phân tích, truyền dữ liệu và chờ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-002
+    title: Tách bước nhanh và bước chuyên sâu theo mục đích phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-003
+    title: Chạy song song các kiểm tra độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-004
+    title: Tái sử dụng cache nhưng giữ tính đúng đắn của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-005
+    title: Phân tích tăng dần và điều kiện cần quét đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-006
+    title: Kiểm tra nhiều mô-đun mà không bỏ qua phụ thuộc xuyên mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-007
+    title: Cấu hình bộ nhớ, CPU và số tác vụ đồng thời theo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-008
+    title: Giới hạn thời gian chờ và tránh hàng đợi phân tích kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inspection-performance-009
+    title: Cân bằng tốc độ phản hồi với mức bảo đảm chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-code-adoption
+  title: Áp dụng trên mã cũ
+  childs:
+  - slug: legacy-code-adoption-001
+    title: Khảo sát chất lượng hiện tại và khả năng tạo bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-002
+    title: Chọn một dự án hoặc mô-đun thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-003
+    title: Chạy chế độ quan sát để đánh giá độ hữu ích và báo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-004
+    title: Thiết lập đường cơ sở và ngăn vấn đề mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-005
+    title: Ưu tiên nhóm quy tắc có độ tin cậy và tác động cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-006
+    title: Nâng dần điều kiện cổng khi nhóm có khả năng đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-007
+    title: Lập kế hoạch xử lý điểm nóng và nợ cũ theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-008
+    title: Đào tạo cách đọc phát hiện và giải quyết cổng không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-009
+    title: Đánh giá lại sau giai đoạn thí điểm trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-adoption-010
+    title: Giữ quá trình cải tiến minh bạch thay vì làm đẹp số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-governance
+  title: Quản trị cấu hình
+  childs:
+  - slug: configuration-governance-001
+    title: Lưu cấu hình kiểm tra trong Git khi công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-002
+    title: Phân biệt cấu hình toàn tổ chức, dự án, nhánh và lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-003
+    title: Đối chiếu thứ tự ưu tiên giữa cấu hình giao diện và tham số CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-004
+    title: Quản lý phiên bản quy tắc, ngưỡng và phạm vi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-005
+    title: Đánh giá tác động khi thay analyzer hoặc hồ sơ chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-006
+    title: Rà soát thay đổi cấu hình cùng người sở hữu chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-007
+    title: Ghi nhận lý do thay đổi và thời điểm có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-008
+    title: Phát hiện cấu hình lệch giữa IDE, CI và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-009
+    title: Quy trình khôi phục cấu hình khi thay đổi gây kết luận sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-governance-010
+    title: Chuyển công cụ mà vẫn giữ lịch sử quyết định quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: improvement-metrics
+  title: Đo lường cải tiến
+  childs:
+  - slug: improvement-metrics-001
+    title: Chọn mục tiêu cải tiến gắn với vấn đề của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-002
+    title: Theo dõi tỷ lệ phát hiện được xác nhận và tỷ lệ báo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-003
+    title: Đo thời gian nhận phản hồi và thời gian xử lý vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-004
+    title: Theo dõi vấn đề mới, vấn đề tồn đọng và lỗi tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-005
+    title: Quan sát xu hướng độ bao phủ, trùng lặp và điểm nóng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-006
+    title: Đối chiếu cảnh báo với lỗi thực tế lọt qua quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-007
+    title: Không dùng số cảnh báo hoặc số dòng mã để xếp hạng cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-008
+    title: Phân biệt tương quan của chỉ số và nguyên nhân cải thiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-metrics-009
+    title: Điều chỉnh quy trình dựa trên bằng chứng và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-diagnosis
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: incident-diagnosis-001
+    title: Build xanh nhưng bước phân tích chưa thực sự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-002
+    title: Scanner thành công nhưng máy chủ chưa tính xong cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-003
+    title: Không có độ bao phủ do sai đường dẫn hoặc thiếu báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-004
+    title: Báo cáo không khớp source hoặc bytecode của commit được quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-005
+    title: Mã mới bị nhận diện sai do nhánh đích hoặc Git history
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-006
+    title: Kết quả khác nhau giữa IDE và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-007
+    title: Cổng thất bại hàng loạt sau khi đổi hồ sơ hoặc phiên bản analyzer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-008
+    title: Phát hiện cũ tái xuất hiện sau đổi tên, refactor hoặc đổi định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-009
+    title: Status check không xuất hiện hoặc gắn nhầm commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-010
+    title: Timeout, lỗi xác thực, lỗi mạng và hàng đợi máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-011
+    title: Cổng vượt qua do bước bị bỏ qua hoặc lỗi bị nuốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnosis-012
+    title: Phân biệt lỗi hạ tầng, lỗi cấu hình và vấn đề chất lượng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Thiết kế vòng kiểm tra liên tục cho một dự án Java nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Kết hợp kiểm tra chuẩn mã, mẫu lỗi và kiểm thử tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Tạo và nhập báo cáo độ bao phủ từ JaCoCo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Thiết lập hồ sơ quy tắc và cổng chất lượng theo mục tiêu đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Tạo thay đổi có lỗi mới và theo dõi phản hồi trong pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Tái hiện thiếu báo cáo để phân biệt với độ bao phủ thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Xử lý một báo sai và ghi ngoại lệ có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Áp dụng đường cơ sở cho mã cũ rồi chặn vi phạm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Tái hiện trạng thái phân tích bất đồng bộ hoặc kết quả thuộc commit cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: So sánh hai lần phân tích và giải thích biến động chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-011
+    title: Đánh giá quy trình bằng độ tin cậy, tốc độ phản hồi và khả năng duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

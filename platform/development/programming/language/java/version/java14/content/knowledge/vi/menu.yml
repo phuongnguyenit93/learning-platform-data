@@ -1,0 +1,358 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Những cải tiến từ Java 14 còn được sử dụng trong Java hiện đại
+  - Quan hệ giữa ngôn ngữ, thư viện chuẩn, công cụ và JVM
+  - Phân biệt mốc giới thiệu Java 14 với mốc trở thành tính năng chính thức
+  - Kiến thức nền về kiểu dữ liệu, ngoại lệ, chuỗi và quản lý tài nguyên
+  - Lựa chọn JDK được hỗ trợ để học các dạng cú pháp chính thức
+  - Tra cứu hợp đồng API và phạm vi hỗ trợ theo nền tảng
+  - Kiểm chứng hành vi bằng ví dụ nhỏ và dữ liệu biên
+- level1: Switch biểu thức
+  level2:
+  - Phân biệt switch thực hiện hành động với switch tạo ra giá trị
+  - Cấu trúc biểu thức switch trong phép gán và return
+  - Các kiểu selector và hằng case thuộc phạm vi switch của Java 14
+  - Nhãn case có nhiều hằng phân tách bằng dấu phẩy
+  - Quy tắc không trùng hằng case
+  - Nhánh default và chính sách đối với giá trị ngoài dự kiến
+  - Kiểm tra độ bao phủ khi dùng enum
+  - Giá trị null, unboxing và thời điểm phát sinh lỗi
+  - Chọn biểu thức switch theo tính chất của phép phân loại
+- level1: Nhánh và yield
+  level2:
+  - Nhãn mũi tên case ... -> và một kết quả trực tiếp
+  - Khối lệnh sau mũi tên và câu lệnh yield
+  - Nhánh ném ngoại lệ thay cho trả giá trị
+  - Nhãn dấu hai chấm trong biểu thức switch
+  - Kiểm soát rơi qua nhánh khi dùng dấu hai chấm
+  - Phạm vi biến của từng khối nhánh
+  - Quy tắc mọi đường đi bình thường phải tạo kết quả
+  - Phân biệt yield, break và return
+  - Giới hạn chuyển điều khiển qua biên biểu thức switch
+  - yield như một định danh bị giới hạn theo ngữ cảnh
+- level1: Kiểu kết quả switch
+  level2:
+  - Biểu thức độc lập và biểu thức nhận kiểu từ ngữ cảnh
+  - Kiểu đích trong phép gán, lời gọi phương thức và return
+  - Kết hợp kết quả số và các phép chuyển kiểu
+  - Boxing, unboxing và kết quả tham chiếu
+  - Nhánh có null và ảnh hưởng tới kiểu suy luận
+  - var với kết quả switch và giới hạn thông tin kiểu
+  - Quan hệ giữa nhánh throw với suy luận kết quả
+  - Phép gán chắc chắn và biến được khởi tạo trong các nhánh
+  - Tái cấu trúc switch dài mà giữ nguyên thứ tự tác dụng phụ
+- level1: Nền tảng record
+  level2:
+  - Record như kiểu mô tả một tập dữ liệu có tên
+  - Từ preview Java 14 tới dạng record chính thức từ Java 16
+  - Header, thành phần và thân khai báo record
+  - Trường private final và accessor tương ứng
+  - Canonical constructor được suy ra từ header
+  - Các phương thức equals, hashCode và toString được tạo
+  - Quan hệ với java.lang.Record và tính final của lớp
+  - Giới hạn kế thừa và triển khai interface
+  - Phân biệt record với JavaBean và lớp có danh tính riêng
+  - Chọn record cho kết quả truy vấn, tham số và dữ liệu trung gian
+- level1: Khởi tạo record
+  level2:
+  - Canonical constructor tường minh
+  - Compact constructor và thời điểm gán thành phần
+  - Kiểm tra điều kiện hợp lệ của dữ liệu đầu vào
+  - Chuẩn hóa tham số trước khi hoàn tất khởi tạo
+  - Sao chép phòng vệ đối với mảng và collection có thể sửa
+  - Constructor bổ sung và ủy quyền tới canonical constructor
+  - Quy tắc mức truy cập của constructor trong dạng record chính thức
+  - Giới hạn gán trường thành phần trong compact constructor
+  - Ngoại lệ khi khởi tạo và việc giữ bất biến của đối tượng
+  - Nhà máy static cho các cách tạo có tên rõ ràng
+  - Kiểm thử tham số null, dữ liệu sai và giá trị sau chuẩn hóa
+- level1: Giá trị record
+  level2:
+  - Bất biến của tham chiếu thành phần và giới hạn bất biến sâu
+  - Hợp đồng equals theo kiểu record và từng thành phần
+  - HashCode và việc sử dụng record làm khóa Map hoặc phần tử Set
+  - Thành phần mảng và giới hạn so sánh nội dung mặc định
+  - Đối tượng thành phần thay đổi sau khi tạo record
+  - Tùy biến accessor mà giữ quan hệ nhất quán với constructor
+  - Tùy biến equals, hashCode và toString theo cùng một hợp đồng
+  - Tránh làm lộ dữ liệu nhạy cảm qua chuỗi biểu diễn
+  - Kiểm thử bản sao có cùng giá trị và dữ liệu thành phần lồng nhau
+- level1: Tổ chức record
+  level2:
+  - Record generic và ràng buộc tham số kiểu
+  - Record lồng nhau và ngữ cảnh static
+  - Record cục bộ cho dữ liệu trung gian trong phương thức
+  - Trường, phương thức và nhà máy static trong record
+  - Phương thức đối tượng bổ sung cho hành vi gắn với dữ liệu
+  - Giới hạn trường đối tượng bổ sung và khối khởi tạo
+  - Annotation trên record, thành phần và kiểu thành phần
+  - Quy tắc truyền annotation tới trường, accessor và constructor
+  - Sử dụng record với Stream và API thư viện có hỗ trợ
+- level1: Phản chiếu record
+  level2:
+  - Nhận diện record qua Class.isRecord
+  - Lấy thành phần theo thứ tự bằng getRecordComponents
+  - Tên, kiểu và accessor trong RecordComponent
+  - Kiểu generic và AnnotatedType của thành phần
+  - Annotation có mặt trực tiếp trên thành phần record
+  - Tìm canonical constructor từ dãy kiểu thành phần
+  - Phân biệt dữ liệu phản chiếu với hợp đồng công khai của thư viện
+  - Quyền truy cập khi record nằm trong mô-đun
+  - Kiểm tra thư viện ánh xạ dữ liệu hỗ trợ record chính thức
+- level1: Mẫu instanceof
+  level2:
+  - Gộp kiểm tra kiểu, chuyển kiểu và khai báo biến
+  - Từ preview Java 14 tới type pattern chính thức từ Java 16
+  - Cú pháp instanceof với kiểu và biến mẫu
+  - Hành vi khi giá trị được kiểm tra là null
+  - Kiểu tĩnh của biến mẫu sau khi khớp
+  - Quan hệ với kế thừa, interface và phép ép kiểu
+  - Giới hạn đối với kiểu generic không kiểm tra được lúc chạy
+  - Tái cấu trúc kiểm tra kiểu lặp lại
+  - Viết equals có kiểm tra kiểu ngắn gọn và đúng hợp đồng
+- level1: Phạm vi biến mẫu
+  level2:
+  - Phạm vi phụ thuộc kết quả của điều kiện
+  - Sử dụng biến mẫu trong nhánh if khớp
+  - Phủ định điều kiện và nhánh thoát sớm
+  - Phối hợp với && theo cơ chế đánh giá ngắn mạch
+  - Giới hạn sử dụng với ||
+  - Khả năng chắc chắn khớp sau return hoặc throw
+  - Xung đột tên và khai báo mẫu ở các nhánh độc lập
+  - Biến mẫu có thể gán lại theo quy tắc chính thức hiện hành
+  - Giữ điều kiện dễ đọc khi kết hợp nhiều phép kiểm tra
+- level1: Text blocks
+  level2:
+  - Chuỗi nhiều dòng và mục tiêu giảm escape thủ công
+  - Các bổ sung Java 14 được giữ trong text block chính thức từ Java 15
+  - Dấu phân cách ba dấu nháy kép
+  - Dòng mới bắt buộc sau dấu mở
+  - Vị trí dấu đóng và dòng mới cuối chuỗi
+  - Text block có cùng kiểu String với literal thông thường
+  - Nội dung chứa dấu nháy kép hoặc dấu phân cách
+  - Tạo văn bản SQL, JSON, HTML và mẫu thông điệp
+  - Kiểm tra nội dung thực bằng độ dài và từng ký tự
+- level1: Khoảng trắng văn bản
+  level2:
+  - Chuẩn hóa ký tự xuống dòng trong text block
+  - Phân biệt thụt lề trình bày với thụt lề có ý nghĩa
+  - Xác định khoảng trắng chung được loại bỏ
+  - Vai trò dòng chứa dấu đóng trong tính thụt lề
+  - Dòng trống, tab và khoảng trắng ở cuối dòng
+  - Giữ khoảng trắng cuối dòng bằng escape phù hợp
+  - Ảnh hưởng khi công cụ định dạng thay đổi vị trí dấu đóng
+  - Kiểm thử nội dung khi chuyển giữa các hệ điều hành
+  - Phân biệt chuẩn hóa văn bản với chọn bảng mã khi ghi tệp
+- level1: Escape và chuỗi
+  level2:
+  - Escape \s để biểu diễn khoảng trắng cần giữ
+  - Escape nối dòng để bỏ ký tự xuống dòng
+  - Thứ tự xử lý xuống dòng, thụt lề và escape
+  - Phân biệt text block với chuỗi thô không xử lý escape
+  - String.stripIndent trong xử lý văn bản nhiều dòng
+  - String.translateEscapes với chuỗi chứa biểu diễn escape
+  - String.formatted cho các vị trí thay thế theo định dạng
+  - Phân biệt định dạng chuỗi với nội suy biến tự động
+  - Tránh coi text block hoặc formatted là cơ chế chống chèn dữ liệu
+- level1: Chẩn đoán null
+  level2:
+  - Mục đích của thông báo NullPointerException chi tiết
+  - Xác định phép truy cập thất bại trong chuỗi biểu thức
+  - Phân biệt đối tượng null với phép lấy trường hoặc gọi phương thức
+  - Truy cập phần tử mảng, độ dài mảng và unboxing
+  - Thông tin suy ra từ bytecode và dữ liệu gỡ lỗi
+  - NPE do JVM tạo và NPE được tạo tường minh
+  - Thông báo không chỉ ra nơi giá trị null được sinh ra
+  - ShowCodeDetailsInExceptionMessages và cấu hình JVM hiện dùng
+  - Giữ stack trace cùng nguyên nhân khi ghi nhật ký
+  - Không phụ thuộc nguyên văn thông báo làm hợp đồng kiểm thử
+  - Kiểm soát thông tin nội bộ khi lỗi được đưa ra ngoài ứng dụng
+- level1: Nền tảng JFR
+  level2:
+  - Sự kiện JFR và vai trò quan sát hành vi JVM
+  - Phân biệt ghi sự kiện với tiêu thụ sự kiện liên tục
+  - Recording, repository và các khối dữ liệu trên đĩa
+  - jdk.jfr cùng jdk.jfr.consumer trong ứng dụng mô-đun
+  - Chọn loại sự kiện có liên quan tới câu hỏi cần đo
+  - Chu kỳ, ngưỡng và stack trace trong EventSettings
+  - Chi phí thu thập và dữ liệu có thể chứa thông tin nhạy cảm
+  - Đối chiếu quan sát JFR với số liệu ứng dụng
+- level1: RecordingStream
+  level2:
+  - Tạo luồng sự kiện từ JVM hiện tại
+  - Bật hoặc tắt sự kiện theo tên và lớp
+  - Thay thế tập cấu hình qua setSettings
+  - Đăng ký onEvent cho một loại hoặc mọi sự kiện
+  - Khởi chạy chặn bằng start
+  - Khởi chạy bất đồng bộ bằng startAsync
+  - Chờ kết thúc có thể ngắt hoặc có thời hạn
+  - Giới hạn dữ liệu lưu bằng setMaxAge và setMaxSize
+  - Đóng RecordingStream bằng try-with-resources
+  - Tránh kết thúc ứng dụng trước khi luồng bất đồng bộ được sử dụng
+- level1: EventStream
+  level2:
+  - Mở luồng từ repository JVM hiện tại
+  - Đọc repository được chỉ định theo đường dẫn
+  - Đọc sự kiện từ tệp ghi bằng openFile
+  - Khác biệt điểm bắt đầu mặc định của tệp và repository
+  - Đặt khoảng thời gian bằng setStartTime và setEndTime
+  - Thời điểm dữ liệu được flush và độ trễ quan sát
+  - Yêu cầu tệp, thư mục tồn tại và có quyền truy cập
+  - Xử lý nguồn dữ liệu kết thúc hoặc lỗi I/O
+  - Chỉ mở tệp và repository từ nguồn tin cậy
+- level1: Xử lý sự kiện JFR
+  level2:
+  - RecordedEvent, EventType và các trường có kiểu
+  - Đọc thời điểm bắt đầu, thời lượng và thông tin luồng
+  - Kiểm tra trường tồn tại trước khi đọc dữ liệu động
+  - Thứ tự sự kiện và tùy chọn setOrdered
+  - Tái sử dụng đối tượng sự kiện qua setReuse
+  - Chụp dữ liệu cần thiết trước khi chuyển sang luồng xử lý khác
+  - onFlush, onError, onClose và hủy đăng ký callback
+  - Tránh tác vụ chặn hoặc xử lý quá nặng trong callback
+  - Tổng hợp số liệu theo khoảng thời gian và loại sự kiện
+  - Kiểm thử thiếu sự kiện do cấu hình, ngưỡng hoặc thời điểm quan sát
+  - Theo dõi sự kiện tự định nghĩa bằng cùng cơ chế streaming
+- level1: Đóng gói ứng dụng
+  level2:
+  - Mục tiêu phân phối ứng dụng kèm runtime cần thiết
+  - Từ công cụ ươm tạo Java 14 tới jpackage chính thức từ Java 16
+  - Phân biệt app image với gói cài đặt native
+  - Đầu vào ứng dụng mô-đun và ứng dụng theo class path
+  - Kiểm tra JDK cùng công cụ đóng gói theo hệ điều hành
+  - Ràng buộc tạo gói trên nền tảng đích
+  - Phân biệt đóng gói với việc biên dịch mã Java thành mã máy
+  - Lập kế hoạch cập nhật runtime và phiên bản ứng dụng
+- level1: App image
+  level2:
+  - Tạo ảnh ứng dụng bằng --type app-image
+  - Chọn input, main JAR và main class
+  - Chọn mô-đun cùng lớp khởi chạy của ứng dụng mô-đun
+  - Metadata tên, phiên bản, nhà cung cấp và biểu tượng
+  - Đối số ứng dụng và tùy chọn JVM cho launcher
+  - Bổ sung launcher cho các điểm vào khác nhau
+  - Runtime được tạo qua jlink hoặc được cung cấp sẵn
+  - Kiểm tra mô-đun được nạp qua dịch vụ hoặc phản chiếu
+  - Cấu trúc tài nguyên, thư viện native và đường dẫn khi phân phối
+  - Chạy thử trên máy không cài sẵn JDK
+- level1: Gói cài đặt
+  level2:
+  - Chọn định dạng cài đặt được hỗ trợ trên hệ điều hành đích
+  - Tạo gói từ app image đã kiểm chứng
+  - Thư mục cài đặt, shortcut và tích hợp hệ điều hành
+  - Liên kết loại tệp với ứng dụng
+  - Tùy chọn cài theo người dùng hoặc toàn máy khi được hỗ trợ
+  - Ký gói và xác minh theo yêu cầu của nền tảng
+  - Tài nguyên tùy chỉnh cho gói cài đặt
+  - Kiểm thử cài mới, nâng cấp, gỡ và giữ dữ liệu người dùng
+  - Đường dẫn có khoảng trắng, quyền truy cập và nhật ký khởi chạy
+  - Tái tạo gói khi thư viện hoặc runtime cần bản vá
+  - Tra cứu tùy chọn jpackage theo đúng JDK đang dùng
+- level1: G1 và NUMA
+  level2:
+  - Kiến trúc bộ nhớ truy cập không đồng nhất
+  - Nút NUMA và chi phí truy cập bộ nhớ gần hoặc xa
+  - Cấp phát theo vùng của G1
+  - Mục tiêu của cấp phát nhận biết NUMA được bổ sung trong Java 14
+  - Điều kiện hệ điều hành, phần cứng và cấu hình JVM
+  - UseNUMA cùng việc kiểm tra cấu hình có hiệu lực
+  - Ảnh hưởng của luồng, giới hạn CPU và cách đặt bộ nhớ
+  - Đo thông lượng, độ trễ, thời gian dừng và phân bố cấp phát
+  - Giới hạn tối ưu khi phần cứng hoặc kiểu tải không phù hợp
+- level1: Ánh xạ NVM
+  level2:
+  - Bộ nhớ không mất dữ liệu và tệp được ánh xạ
+  - Mô-đun jdk.nio.mapmode cùng ExtendedMapMode
+  - READ_ONLY_SYNC và READ_WRITE_SYNC
+  - Điều kiện phần cứng, hệ thống tệp và hệ điều hành hỗ trợ
+  - Tạo MappedByteBuffer qua FileChannel.map
+  - force và việc đẩy dữ liệu tới bộ nhớ lưu giữ
+  - Phân biệt tính bền dữ liệu với nguyên tử và đồng bộ giữa các luồng
+  - UnsupportedOperationException khi nhà cung cấp không hỗ trợ
+  - Quản lý vòng đời kênh, vùng ánh xạ và giới hạn tài nguyên
+  - Kiểm chứng độ bền theo mô hình lỗi của môi trường đích
+- level1: Quyền Lookup
+  level2:
+  - Lookup như một đối tượng mang quyền tra cứu thành viên
+  - hasFullPrivilegeAccess với quyền PRIVATE và MODULE
+  - previousLookupClass khi chuyển Lookup qua mô-đun
+  - Kiểm tra quyền dựa trên lớp hiện tại và lớp tra cứu trước
+  - Quan hệ của in, privateLookupIn và dropLookupMode
+  - Giới hạn truy cập package không xuất hoặc không mở
+  - Ủy quyền tối thiểu cho mã được tin cậy
+  - Kiểm thử quyền trong cùng mô-đun và qua mô-đun khác
+- level1: Số học kiểm tra tràn
+  level2:
+  - Các bổ sung incrementExact của StrictMath
+  - Các bổ sung decrementExact của StrictMath
+  - Các bổ sung negateExact của StrictMath
+  - Overload int, long và biên nhỏ nhất, lớn nhất
+  - ArithmeticException thay cho kết quả cuộn vòng
+  - Quan hệ với các phép toán tương ứng trong Math
+  - Chọn phép toán có kiểm tra theo hợp đồng miền dữ liệu
+  - Kiểm thử biên và tránh làm tràn trước khi gọi phương thức
+- level1: Ghi byte tiện dụng
+  level2:
+  - PrintStream.writeBytes với toàn bộ mảng byte
+  - Phân biệt ghi byte nguyên dạng với in ký tự
+  - Quan hệ với write(byte[], int, int)
+  - Tác động của autoFlush khi ghi mảng
+  - Cờ lỗi và kiểm tra bằng checkError
+  - Chọn bảng mã tường minh trước khi tạo dữ liệu byte
+  - Quyền đóng PrintStream khi bọc một luồng dùng chung
+- level1: Annotation Serial
+  level2:
+  - Vai trò kiểm tra khai báo của java.io.Serial
+  - Đối tượng áp dụng là trường và phương thức liên quan hợp đồng tuần tự hóa
+  - Thời điểm lưu annotation và tác dụng đối với compiler
+  - Chữ ký đúng của thành viên được đánh dấu
+  - Phân biệt @Serial với việc tự động thay đổi dữ liệu lúc chạy
+  - Chẩn đoán tên hoặc chữ ký khai báo sai bằng công cụ
+  - Áp dụng khi thư viện vẫn có hợp đồng Serializable cần duy trì
+  - Giới hạn của annotation đối với an toàn dữ liệu đầu vào
+- level1: Số liệu hệ thống
+  level2:
+  - OperatingSystemMXBean mở rộng trong mô-đun jdk.management
+  - Lấy bean hệ điều hành và kiểm tra kiểu được hỗ trợ
+  - getCpuLoad cho môi trường vận hành
+  - getFreeMemorySize và getTotalMemorySize
+  - Phân biệt số liệu hệ điều hành với heap Java
+  - Khác biệt tải CPU toàn môi trường với tải của tiến trình
+  - Chu kỳ lấy mẫu và giá trị biểu thị không có số liệu
+  - Ảnh hưởng của giới hạn tài nguyên trong container
+  - Đối chiếu số liệu với JFR và công cụ hệ điều hành
+- level1: Cây cú pháp Java
+  level2:
+  - SwitchExpressionTree cho biểu thức switch
+  - YieldTree cho câu lệnh tạo kết quả nhánh
+  - Phân biệt CaseTree dạng RULE và STATEMENT
+  - Đọc phần thân và các biểu thức nhãn case
+  - TreeVisitor cùng TreeScanner cho switch expression và yield
+  - Phân tích lồng nhau mà giữ đúng ngữ cảnh điều khiển
+  - Chẩn đoán vị trí và lỗi từ compiler API được hỗ trợ
+  - Kiểm tra công cụ phân tích, định dạng và kiểm thử hiểu cú pháp mới
+- level1: Kiểm thử tương thích
+  level2:
+  - Đặt mức ngôn ngữ theo tính năng chính thức thực sự sử dụng
+  - Phân biệt khả năng biên dịch với phiên bản runtime tối thiểu
+  - Kiểm tra thư viện và công cụ hỗ trợ record cùng text block
+  - Đối chiếu kết quả trước và sau tái cấu trúc switch hoặc instanceof
+  - Kiểm thử chuỗi theo ký tự, xuống dòng và khoảng trắng
+  - Kiểm thử phần đóng gói cùng nền tảng đích
+  - Đo chi phí JFR và tác động tùy chọn JVM trên tải đại diện
+  - Tra cứu API bị deprecated hoặc loại bỏ trong JDK đích
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây phép phân loại trả giá trị bằng switch expression
+  - Kiểm thử yield, nhánh throw và kiểu kết quả hỗn hợp
+  - Mô hình dữ liệu bằng record có kiểm tra và sao chép phòng vệ
+  - Kiểm thử equals, hashCode và việc dùng record làm khóa
+  - Tái cấu trúc kiểm tra kiểu bằng mẫu instanceof
+  - Viết mẫu văn bản nhiều dòng có kiểm thử khoảng trắng
+  - Chẩn đoán NPE từ thao tác trường, mảng và unboxing
+  - Quan sát tác vụ bằng RecordingStream và sự kiện tự định nghĩa
+  - Tổng hợp số liệu từ repository hoặc tệp JFR
+  - Tạo app image rồi kiểm thử gói cài đặt trên máy đích
+  - Kiểm chứng API thư viện mới bằng dữ liệu lỗi và dữ liệu biên
+  - Đánh giá G1 NUMA hoặc ánh xạ NVM khi có môi trường phù hợp

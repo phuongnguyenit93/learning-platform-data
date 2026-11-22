@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootApplication'
+menuLevel2: '@SpringBootConfiguration trong mối liên hệ với @Configuration'
+status: WRITTEN

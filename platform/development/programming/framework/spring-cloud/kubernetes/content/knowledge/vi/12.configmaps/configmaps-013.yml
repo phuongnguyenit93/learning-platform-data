@@ -1,0 +1,3 @@
+menuLevel1: ConfigMap
+menuLevel2: Kiểm chứng giá trị nạp vào @ConfigurationProperties
+status: ''

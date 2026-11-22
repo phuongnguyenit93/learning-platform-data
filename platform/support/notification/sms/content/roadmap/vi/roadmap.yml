@@ -1,0 +1,57 @@
+roadmap:
+- id: kich-ban-su-kien
+  title: Kịch bản & sự kiện
+  purpose: Xác định lúc nào nên gửi SMS và những điều kiện phải thỏa trước khi tạo yêu cầu thông báo.
+  objectives:
+  - Phân biệt SMS giao dịch, OTP và tiếp thị
+  - Xác định trigger, người nhận và mức ưu tiên
+  - Mô tả vòng đời thông báo từ tạo đến kết quả
+- id: chuan-hoa-so-dien-thoai
+  title: Chuẩn hóa số điện thoại
+  purpose: Tạo dữ liệu người nhận hợp lệ để hạn chế lỗi định tuyến và gửi nhầm.
+  objectives:
+  - Chuẩn hóa số theo định dạng E.164
+  - Sử dụng libphonenumber để phân tích và kiểm tra
+  - Phân biệt số hợp lệ về định dạng với số có thể nhận SMS
+- id: ket-noi-sms-gateway
+  title: Kết nối SMS Gateway
+  purpose: Tích hợp ứng dụng Java với một nhà cung cấp SMS mà không khóa logic nghiệp vụ vào SDK.
+  objectives:
+  - Thiết lập API client/SDK và lưu credential an toàn
+  - Tạo yêu cầu gửi SMS qua API hoặc SDK Java
+  - Lưu message ID từ phản hồi và xử lý lỗi API
+- id: noi-dung-phan-doan
+  title: Nội dung & phân đoạn
+  purpose: Thiết kế tin nhắn ngắn, rõ ràng và kiểm soát số phân đoạn khi gửi.
+  objectives:
+  - Tạo template có biến và dữ liệu đã kiểm tra
+  - Phân biệt GSM-7 và Unicode/UCS-2
+  - Ước tính số SMS segment cho nội dung tiếng Việt
+- id: hang-doi-retry
+  title: Hàng đợi & retry
+  purpose: Giữ luồng thông báo ổn định khi lưu lượng lớn hoặc dịch vụ SMS tạm thời lỗi.
+  objectives:
+  - Đưa yêu cầu gửi vào queue/worker bất đồng bộ
+  - Phân loại lỗi tạm thời và lỗi không nên retry
+  - Thiết kế backoff, giới hạn retry và chống gửi trùng
+- id: trang-thai-webhook
+  title: Trạng thái & webhook
+  purpose: Theo dõi kết quả thực tế thay vì xem phản hồi API ban đầu là đã giao tin thành công.
+  objectives:
+  - Phân biệt accepted, sent, delivered và failed
+  - Xác thực chữ ký webhook từ nhà cung cấp
+  - Xử lý callback trùng hoặc đến không đúng thứ tự
+- id: dong-y-bao-mat
+  title: Đồng ý & bảo mật
+  purpose: Bảo vệ người nhận và hạn chế rủi ro bảo mật, quyền riêng tư và vi phạm quy định nhắn tin.
+  objectives:
+  - Lưu và kiểm tra consent/opt-out theo từng kênh
+  - Không ghi log OTP, token hoặc dữ liệu nhạy cảm
+  - Áp dụng rate limit và kiểm soát quyền gửi
+- id: giam-sat-kiem-thu
+  title: Giám sát & kiểm thử
+  purpose: Đo mức độ thành công, độ trễ và chi phí để cải thiện chất lượng thông báo.
+  objectives:
+  - Theo dõi tỷ lệ giao tin, lỗi và thời gian xử lý
+  - Kiểm thử mock gateway, webhook và retry
+  - Thiết lập cảnh báo khi lỗi hoặc hàng đợi tăng

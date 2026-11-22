@@ -1,0 +1,5 @@
+# Software Design — Structural Flyweight Pattern
+
+Flyweight là một mẫu thiết kế cấu trúc giúp giảm chi phí bộ nhớ khi ứng dụng phải tạo rất nhiều đối tượng có dữ liệu giống nhau. Thay vì sao chép dữ liệu chung vào mỗi đối tượng, Flyweight lưu phần trạng thái có thể chia sẻ (*intrinsic state*) trong các đối tượng dùng lại, còn phần thay đổi theo từng lần sử dụng (*extrinsic state*) được client quản lý và truyền vào khi cần.
+
+Module dành cho người học Java đã biết class, interface và các nguyên tắc lập trình hướng đối tượng. Bạn sẽ nhận diện dữ liệu lặp, phân tách hai loại trạng thái, hiểu vai trò Flyweight/Client/Factory, cài đặt ví dụ Java và kiểm thử việc tái sử dụng đối tượng. Phần cuối tập trung đo lợi ích bộ nhớ và nhận diện đánh đổi về cache, tính bất biến và quản lý ngữ cảnh. Sau lộ trình, bạn có thể quyết định khi nào Flyweight mang lại lợi ích thay vì làm thiết kế phức tạp không cần thiết.

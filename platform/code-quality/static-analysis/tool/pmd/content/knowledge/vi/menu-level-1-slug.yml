@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cơ chế phân tích
+  slug: analysis-mechanism
+  index: 1
+- title: Khởi tạo
+  slug: initialization
+  index: 2
+- title: Phạm vi mã nguồn
+  slug: source-scope
+  index: 3
+- title: Ruleset
+  slug: rulesets
+  index: 4
+- title: Cấu hình luật
+  slug: rule-configuration
+  index: 5
+- title: Dòng lệnh
+  slug: command-line
+  index: 6
+- title: Tích hợp Maven
+  slug: maven-integration
+  index: 7
+- title: Tích hợp Gradle
+  slug: gradle-integration
+  index: 8
+- title: Tích hợp IDE
+  slug: ide-integration
+  index: 9
+- title: Lỗi tiềm ẩn
+  slug: potential-bugs
+  index: 10
+- title: Thực hành tốt
+  slug: best-practices
+  index: 11
+- title: Phong cách và tài liệu
+  slug: style-and-documentation
+  index: 12
+- title: Thiết kế và độ phức tạp
+  slug: design-and-complexity
+  index: 13
+- title: Đồng thời
+  slug: concurrency
+  index: 14
+- title: Hiệu năng mã nguồn
+  slug: source-performance
+  index: 15
+- title: Bảo mật
+  slug: security
+  index: 16
+- title: Đọc và xử lý kết quả
+  slug: result-processing
+  index: 17
+- title: Ẩn cảnh báo
+  slug: suppressing-warnings
+  index: 18
+- title: CPD
+  slug: cpd
+  index: 19
+- title: Luật XPath
+  slug: xpath-rules
+  index: 20
+- title: Luật Java
+  slug: java-rules
+  index: 21
+- title: Kiểm thử luật
+  slug: rule-testing
+  index: 22
+- title: Báo cáo và chính sách
+  slug: reports-and-policies
+  index: 23
+- title: Tích hợp CI
+  slug: ci-integration
+  index: 24
+- title: Dự án nhiều module
+  slug: multi-module-projects
+  index: 25
+- title: Tối ưu phân tích
+  slug: analysis-optimization
+  index: 26
+- title: Nâng cấp
+  slug: upgrades
+  index: 27
+- title: Khắc phục sự cố
+  slug: troubleshooting
+  index: 28
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 29

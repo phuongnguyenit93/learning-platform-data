@@ -1,0 +1,381 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Modulith Documentation Observability là gì
+  - Khả năng quan sát giúp hiểu ứng dụng mô-đun đang chạy như thế nào
+  - Mối liên hệ giữa cấu trúc mô-đun, Actuator, metrics và traces
+  - Phân biệt tài liệu kiến trúc với bằng chứng runtime
+  - Ba trụ cột logging, metrics và tracing
+  - Phân biệt observation, meter, span và trace
+  - Giới hạn của quan sát runtime đối với tính đúng đắn nghiệp vụ
+  - Kiến thức Spring Boot Actuator, Micrometer và application module cần có
+- level1: Mô hình quan sát
+  level2:
+  - Application module và ranh giới quan sát
+  - Lời gọi bean giữa các module và loại tương tác
+  - Công bố sự kiện miền và xử lý bất đồng bộ
+  - Module entry span như điểm bắt đầu của tương tác
+  - Quan hệ giữa một trace và nhiều module
+  - Metrics tổng hợp với traces chi tiết
+  - Context truyền qua thread, executor và reactive pipeline
+  - Định danh module trong dữ liệu quan sát
+  - Luồng từ lời gọi ứng dụng đến hệ thống thu thập telemetry
+- level1: Insight starter
+  level2:
+  - Vai trò của spring-modulith-starter-insight
+  - Thành phần Actuator được kéo theo
+  - Thành phần observability được kéo theo
+  - Phạm vi runtime của starter Insight
+  - Khi nên dùng starter và khi khai báo artifact riêng
+  - Phối hợp với Spring Boot Actuator
+  - Phối hợp với OpenTelemetry hoặc Brave
+  - Phối hợp với Zipkin, OTLP và nền tảng quan sát
+  - Quản lý version bằng Spring Modulith BOM
+  - Kiểm tra dependency graph sau khi thêm starter
+- level1: Module Actuator
+  level2:
+  - Spring Modulith actuator cung cấp thông tin gì
+  - Endpoint modulith và vị trí trong Actuator
+  - Cấu hình expose endpoint modulith
+  - Đọc cấu trúc module qua HTTP
+  - Phân biệt endpoint health với endpoint modulith
+  - Quyền truy cập và bảo vệ dữ liệu kiến trúc
+  - Định dạng JSON của module actuator
+  - Ổn định hợp đồng endpoint theo phiên bản
+  - Đưa endpoint vào tài liệu vận hành
+  - Kiểm thử endpoint trong môi trường chạy thật
+- level1: Module graph
+  level2:
+  - Technical name và display name của module
+  - Base package và ý nghĩa trong dữ liệu quan sát
+  - Parent và nested module trong graph
+  - Dependencies và target module
+  - Dependency type DEFAULT
+  - Dependency type USES_COMPONENT
+  - Dependency type EVENT_LISTENER
+  - Đọc hướng phụ thuộc từ graph
+  - Vẽ sơ đồ module từ JSON endpoint
+  - Đối chiếu graph runtime với thiết kế kiến trúc
+  - Phát hiện module thiếu hoặc dependency ngoài dự kiến
+- level1: Bật quan sát
+  level2:
+  - Thêm spring-modulith-observability-core
+  - Thêm observability API khi cần tùy biến
+  - Điều kiện để component API được instrument
+  - Phạm vi tự động tạo observation
+  - Kiểm tra bean và module được phát hiện
+  - Phân biệt bật metrics với bật tracing
+  - Cấu hình môi trường local, staging và production
+  - Kiểm tra telemetry sau khi ứng dụng khởi động
+  - Tránh instrument trùng cùng một điểm vào
+  - Xác định nguồn tạo observation khi kết quả bất thường
+- level1: Module spans
+  level2:
+  - Module entry span là gì
+  - Span được tạo cho lời gọi bean
+  - Span được tạo cho event listener
+  - Module identifier trong span
+  - Module name trong span
+  - Module invocation type
+  - Module method và phương thức được thực thi
+  - Quan hệ parent-child giữa các span module
+  - Trace synchronous qua nhiều module
+  - Trace asynchronous qua application event
+  - Đọc duration và lỗi trên module span
+  - Phân biệt span module với span HTTP
+- level1: Event metrics
+  level2:
+  - Spring Modulith đăng ký metrics cho domain event
+  - Metric module.events.published
+  - Metric theo module identifier và event type
+  - Đếm tổng số lần công bố event
+  - Đếm event theo simple event type name
+  - Low-cardinality tags của event metric
+  - module.event.type và ý nghĩa phân tích
+  - module.identifier và module.name
+  - Đọc metric qua Micrometer MeterRegistry
+  - Khác biệt metric công bố với metric xử lý event
+  - Giới hạn khi event bị retry hoặc công bố nhiều lần
+- level1: Event customizer
+  level2:
+  - ModulithEventMetricsCustomizer là gì
+  - Khi nào cần thêm tag theo nội dung event
+  - Customize metric cho từng event type
+  - Chuyển thuộc tính event thành tag
+  - Chọn tag có cardinality thấp
+  - Tránh đưa user id hoặc request id vào metric
+  - Đăng ký customizer bằng Spring bean
+  - Nhiều customizer và thứ tự áp dụng
+  - Kiểm thử metric sau khi customize
+  - Đánh giá chi phí khi thêm tag nghiệp vụ
+- level1: Observation API
+  level2:
+  - Micrometer Observation trong Spring Modulith
+  - ObservationRegistry và vòng đời observation
+  - Observation context và metadata module
+  - ObservationConvention và cách đặt tên
+  - ObservationPredicate để lọc observation
+  - ObservationFilter để thay đổi context
+  - ObservationHandler và nơi nhận sự kiện lifecycle
+  - ObservationRegistryCustomizer
+  - Low-cardinality key value và high-cardinality key value
+  - Phân biệt dữ liệu đi vào metrics và traces
+- level1: Observation convention
+  level2:
+  - ModulithObservationConvention là gì
+  - Đăng ký convention như một bean
+  - Convention mặc định của Spring Modulith
+  - Delegation tới ModulithContext
+  - Tùy chỉnh tên observation
+  - Tùy chỉnh low-cardinality key values
+  - Tùy chỉnh high-cardinality key values
+  - Giữ tên observation ổn định khi nâng cấp
+  - Tránh thay đổi convention làm hỏng dashboard
+  - Kiểm tra convention với cả metrics và traces
+- level1: Cardinality
+  level2:
+  - Cardinality là gì trong telemetry
+  - Low cardinality và khả năng dùng trong metrics
+  - High cardinality và giới hạn trong metrics
+  - Vì sao user id không phù hợp làm metric tag
+  - Event type có thể tạo nhiều giá trị như thế nào
+  - Module identifier và module name thường có cardinality thấp
+  - Tag theo tenant, request và dữ liệu nghiệp vụ
+  - Chọn aggregation không làm mất thông tin quan trọng
+  - Giới hạn số series trong hệ thống metrics
+  - Kiểm tra cardinality trước khi đưa lên production
+- level1: Context propagation
+  level2:
+  - Context propagation là gì
+  - Truyền observation qua thread
+  - Truyền observation qua Reactor pipeline
+  - ThreadLocal và giới hạn mặc định
+  - spring.reactor.context-propagation
+  - '@Async và propagate-context'
+  - ContextPropagatingTaskDecorator
+  - Truyền trace context qua executor tùy chỉnh
+  - Context khi xử lý application event bất đồng bộ
+  - Mất context và trace bị tách rời
+  - Kiểm thử propagation giữa nhiều module
+- level1: Micrometer tracing
+  level2:
+  - Vai trò của Micrometer Tracing
+  - Bridge từ Observation sang tracer
+  - OpenTelemetry và OTLP
+  - OpenZipkin Brave và Zipkin
+  - Chọn tracer theo hạ tầng quan sát
+  - Span name, trace id và span id
+  - Parent span và child span
+  - Propagation qua HTTP client
+  - Propagation qua message hoặc event boundary
+  - Liên kết trace với log correlation id
+- level1: Export traces
+  level2:
+  - Cấu hình exporter cho OTLP
+  - Endpoint OTLP HTTP và gRPC
+  - Cấu hình exporter Zipkin
+  - Chọn backend lưu trữ và hiển thị trace
+  - Sampling trước khi export
+  - Batching và retry khi gửi telemetry
+  - Timeout và giới hạn exporter
+  - Không để exporter làm chậm nghiệp vụ
+  - Kiểm tra trace tới backend
+  - Xử lý mất kết nối tới hệ thống quan sát
+- level1: Sampling
+  level2:
+  - Sampling trace là gì
+  - Sampling probability và tỷ lệ thu thập
+  - Always-on, always-off và ratio sampler
+  - Sampling trong môi trường local
+  - Sampling trong staging và production
+  - Giữ trace lỗi dù tỷ lệ sampling thấp
+  - Ảnh hưởng của sampling đến điều tra sự cố
+  - Đồng nhất sampling giữa các service
+  - Chi phí lưu trữ theo tỷ lệ sampling
+  - Đánh giá trace bị thiếu do sampling
+- level1: Logging
+  level2:
+  - Liên kết log với module span
+  - TraceId và spanId trong MDC
+  - Correlation ID trong log
+  - logging.pattern.correlation
+  - Phân biệt application name với module name
+  - Log synchronous và event asynchronous
+  - Đưa module identifier vào log có kiểm soát
+  - Không ghi payload nhạy cảm vào log
+  - Đồng bộ timestamp và timezone
+  - Truy tìm từ log sang trace và metric
+- level1: Actuator và vận hành
+  level2:
+  - Đưa thông tin module vào bộ endpoint vận hành
+  - Expose endpoint theo môi trường
+  - Phân quyền endpoint modulith
+  - Giới hạn endpoint chỉ trong mạng quản trị
+  - Health indicator và module observability
+  - Readiness, liveness và telemetry backend
+  - Kiểm tra actuator sau deploy
+  - Cache hoặc snapshot graph khi cần
+  - Định tuyến qua gateway và reverse proxy
+  - Giám sát lỗi endpoint và thời gian phản hồi
+- level1: Dashboard
+  level2:
+  - Dashboard tổng quan tương tác module
+  - Dashboard số lần công bố domain event
+  - Dashboard theo module identifier
+  - Dashboard theo event type
+  - Panel duration của module entry span
+  - Panel lỗi và tỷ lệ lỗi theo module
+  - Panel trace liên quan tới request
+  - Panel chênh lệch giữa event publish và event handling
+  - Drill-down từ metric sang trace
+  - Tránh dashboard dùng tag cardinality cao
+- level1: Alerting
+  level2:
+  - Cảnh báo module span tăng duration
+  - Cảnh báo lỗi khi gọi module API
+  - Cảnh báo event publication tăng bất thường
+  - Cảnh báo event type không còn được xử lý
+  - Cảnh báo telemetry không được export
+  - Cảnh báo mất context hoặc trace đứt đoạn
+  - Cảnh báo số series metrics tăng nhanh
+  - Đặt ngưỡng theo baseline thay vì giá trị tùy ý
+  - Liên kết alert với runbook vận hành
+  - Phân biệt lỗi ứng dụng và lỗi hệ thống quan sát
+- level1: Tài liệu vận hành
+  level2:
+  - Document endpoint modulith cho người vận hành
+  - Document ý nghĩa module identifier và display name
+  - Document dependency type trong module graph
+  - Document metric name và tag chính
+  - Document module span và invocation type
+  - Document sampling và giới hạn dữ liệu
+  - Document dashboard, alert và runbook
+  - Document thay đổi telemetry khi nâng cấp
+  - Giữ tài liệu khớp cấu hình production
+  - Không xem telemetry schema là hợp đồng bất biến tuyệt đối
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử endpoint module actuator
+  - Kiểm thử JSON module graph
+  - Kiểm thử module entry observation
+  - Kiểm thử event publication metric
+  - Kiểm thử custom event metric
+  - Kiểm thử observation convention
+  - Kiểm thử observation predicate
+  - Kiểm thử context propagation
+  - Kiểm thử trace correlation
+  - Kiểm thử không tạo duplicate observation
+  - Kiểm thử bằng test registry hoặc exporter giả
+- level1: Hiệu năng
+  level2:
+  - Chi phí tạo module span
+  - Chi phí ghi event metrics
+  - Chi phí export metrics và traces
+  - Ảnh hưởng của sampling tới CPU và bộ nhớ
+  - Ảnh hưởng của cardinality tới backend metrics
+  - Batch export và backpressure
+  - Giới hạn queue telemetry
+  - Không để quan sát tạo vòng lặp nghiệp vụ
+  - Đo overhead trước và sau khi bật Insight
+  - Điều chỉnh telemetry theo tải thực tế
+- level1: Bảo mật
+  level2:
+  - Endpoint graph có thể tiết lộ cấu trúc hệ thống
+  - Phân quyền dữ liệu module
+  - Che thông tin event và payload nhạy cảm
+  - Không đưa secret vào tag hoặc span
+  - Không đưa dữ liệu cá nhân vào metric
+  - Bảo vệ kết nối tới telemetry backend
+  - Quản lý credential exporter
+  - Giới hạn quyền đọc Actuator
+  - Kiểm tra rò rỉ qua log correlation
+  - Rà soát telemetry trước khi công khai
+- level1: Nhiều module
+  level2:
+  - Quan sát tương tác giữa các module trong cùng ứng dụng
+  - Phân biệt gọi bean với lắng nghe event
+  - Trace một luồng đi qua nhiều module
+  - Đọc dependency type từ graph và span
+  - Xử lý module lồng nhau
+  - Xử lý module mở và API package
+  - Module dùng chung và tác động tới telemetry
+  - Định danh module ổn định khi refactor package
+  - Đối chiếu topology runtime với cấu trúc source
+  - Giám sát module mới sau khi thêm vào hệ thống
+- level1: Sự kiện bất đồng bộ
+  level2:
+  - Trace event publication và event listener
+  - Thời điểm tạo span cho listener
+  - Khoảng cách thời gian giữa publish và handle
+  - Event retry và ảnh hưởng đến metrics
+  - Event externalization và ranh giới trace
+  - Context propagation qua event infrastructure
+  - Event listener lỗi và trạng thái span
+  - Phân biệt event được publish với event được xử lý
+  - Đo backlog hoặc độ trễ xử lý nếu hạ tầng cung cấp
+  - Thiết kế metric không đếm sai khi retry
+- level1: Cấu hình môi trường
+  level2:
+  - Profile local cho quan sát dễ kiểm tra
+  - Profile test với registry và exporter giả
+  - Profile staging để kiểm thử backend thật
+  - Profile production với sampling phù hợp
+  - Quản lý endpoint, credential và tag môi trường
+  - Override cấu hình bằng biến môi trường
+  - Kiểm soát khác biệt giữa cấu hình và code
+  - Kiểm tra cấu hình sau khi đóng gói
+  - Giữ tên metric và span ổn định giữa môi trường
+  - Tránh bật dữ liệu debug nhạy cảm ở production
+- level1: Chẩn đoán lỗi
+  level2:
+  - Không thấy endpoint modulith
+  - Graph module thiếu dependency
+  - Không tạo module span
+  - Metric event không xuất hiện
+  - Metric xuất hiện nhiều lần do instrument trùng
+  - Trace mất parent hoặc mất correlation id
+  - Event async không nối được trace
+  - Exporter không gửi dữ liệu
+  - Backend nhận telemetry nhưng dashboard không hiển thị
+  - Cardinality tăng đột biến
+  - Actuator trả lỗi do cấu hình expose hoặc bảo mật
+  - Phân biệt lỗi code, lỗi cấu hình và lỗi backend
+- level1: Phiên bản
+  level2:
+  - Đọc ma trận tương thích Spring Boot và Spring Modulith
+  - Quản lý BOM và version module
+  - Kiểm tra thay đổi artifact Insight starter
+  - Kiểm tra thay đổi endpoint modulith
+  - Kiểm tra thay đổi JSON module graph
+  - Kiểm tra thay đổi metric name và tag
+  - Kiểm tra thay đổi observation convention
+  - Kiểm tra thay đổi Micrometer hoặc tracer bridge
+  - Chạy kiểm thử telemetry trước khi nâng cấp
+  - Cập nhật dashboard và runbook theo version
+- level1: Thiết kế thực tế
+  level2:
+  - Chọn telemetry cần thiết cho một modular monolith
+  - Xác định module API cần instrument
+  - Chọn metric tổng hợp cho domain event
+  - Chọn span cần giữ trong trace
+  - Đặt tag low-cardinality theo module
+  - Thiết kế endpoint graph cho vận hành
+  - Thiết kế dashboard theo luồng nghiệp vụ
+  - Thiết kế alert theo module và event
+  - Giữ telemetry hỗ trợ điều tra mà không tạo dữ liệu thừa
+  - Đánh giá trade-off giữa độ chi tiết và chi phí
+- level1: Thực hành tổng hợp
+  level2:
+  - Thêm Insight starter vào ứng dụng Spring Modulith
+  - Mở endpoint modulith và đọc module graph
+  - Bật module entry spans
+  - Quan sát một lời gọi bean qua hai module
+  - Quan sát một domain event bất đồng bộ
+  - Đọc module.events.published qua metrics endpoint
+  - Tùy biến tag bằng ModulithEventMetricsCustomizer
+  - Tùy biến convention bằng ModulithObservationConvention
+  - Gửi trace tới Zipkin hoặc OTLP
+  - Liên kết log, metric và trace bằng correlation id
+  - Viết test cho endpoint và telemetry
+  - Xây dashboard và runbook cho production
+  - Đánh giá solution bằng độ chính xác, bảo mật và overhead

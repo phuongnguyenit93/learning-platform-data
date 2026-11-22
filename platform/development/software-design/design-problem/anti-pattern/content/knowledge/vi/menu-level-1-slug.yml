@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Chẩn đoán thiết kế
+  slug: design-diagnostics
+  index: 1
+- title: Phân chia trách nhiệm
+  slug: responsibility-separation
+  index: 2
+- title: Phụ thuộc và liên kết
+  slug: dependencies-coupling
+  index: 3
+- title: Trừu tượng hóa
+  slug: abstraction
+  index: 4
+- title: Kế thừa và đa hình
+  slug: inheritance-polymorphism
+  index: 5
+- title: Mô hình miền
+  slug: domain-model
+  index: 6
+- title: Trạng thái và bất biến
+  slug: state-immutability
+  index: 7
+- title: Luồng xử lý
+  slug: control-flow
+  index: 8
+- title: Hợp đồng API
+  slug: api-contracts
+  index: 9
+- title: Lỗi và tài nguyên
+  slug: errors-resources
+  index: 10
+- title: Thiết kế đồng thời
+  slug: concurrency-design
+  index: 11
+- title: Truy cập dữ liệu
+  slug: data-access
+  index: 12
+- title: Kiến trúc và tầng
+  slug: layered-architecture
+  index: 13
+- title: Ranh giới dịch vụ
+  slug: service-boundaries
+  index: 14
+- title: Giao tiếp phân tán
+  slug: distributed-communication
+  index: 15
+- title: Sự kiện và thông điệp
+  slug: events-messaging
+  index: 16
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 17
+- title: Hiệu năng và cache
+  slug: performance-caching
+  index: 18
+- title: Framework và công nghệ
+  slug: frameworks-technology
+  index: 19
+- title: Lạm dụng mẫu thiết kế
+  slug: design-pattern-overuse
+  index: 20
+- title: Khả năng kiểm thử
+  slug: testability
+  index: 21
+- title: Ranh giới tin cậy
+  slug: trust-boundaries
+  index: 22
+- title: Hệ thống cũ
+  slug: legacy-systems
+  index: 23
+- title: Quyết định thiết kế
+  slug: design-decisions
+  index: 24
+- title: Cải tiến từng bước
+  slug: incremental-improvement
+  index: 25
+- title: Đánh giá và phòng ngừa
+  slug: evaluation-prevention
+  index: 26
+- title: Thực hành tình huống
+  slug: practice-scenarios
+  index: 27

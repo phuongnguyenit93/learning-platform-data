@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SUPPORT_DOCUMENT_DIAGRAM_MERMAID"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Học tạo sơ đồ từ văn bản bằng Mermaid để mô tả luồng xử lý, sequence, class, ER, state, kiến trúc và kế hoạch ngay trong Markdown. Thực hành cú pháp, bố cục, theme, xuất SVG/PNG, tích hợp tài liệu và tự động kiểm tra để sơ đồ dễ cập nhật cùng mã nguồn."
+  }
+}

@@ -1,0 +1,397 @@
+menu:
+- level1: Nền tảng độ tin cậy
+  level2:
+  - Độ tin cậy phần mềm là gì trong điều kiện và khoảng thời gian xác định
+  - Quan hệ giữa lỗi tiềm ẩn, sự cố thực thi và ảnh hưởng đến người dùng
+  - Phân biệt reliability, availability, resilience và recoverability
+  - Độ tin cậy của một thành phần và của luồng nghiệp vụ hoàn chỉnh
+  - Quan hệ giữa tính đúng chức năng và hành vi khi gặp sự cố
+  - Phân biệt reliability testing với kiểm thử tải, bảo mật và chaos engineering
+  - Những điều một thử nghiệm không gặp lỗi có thể và chưa thể chứng minh
+  - Lộ trình từ mục tiêu dịch vụ đến bằng chứng chịu lỗi và phục hồi
+- level1: Yêu cầu và rủi ro
+  level2:
+  - Chuyển nhu cầu nghiệp vụ thành yêu cầu độ tin cậy có thể kiểm chứng
+  - Xác định hành trình người dùng và chức năng thiết yếu
+  - Điều kiện vận hành, thời gian quan sát và mức tải mục tiêu
+  - Phân loại tác động khi mất dịch vụ, chậm xử lý hoặc sai dữ liệu
+  - Xác định mức suy giảm có thể chấp nhận
+  - Giới hạn thời gian phục hồi và mức mất dữ liệu được chấp nhận
+  - Ưu tiên kịch bản theo khả năng xảy ra và mức ảnh hưởng
+  - Ghi giả định, phạm vi thử nghiệm và rủi ro còn lại
+- level1: Chỉ số độ tin cậy
+  level2:
+  - SLI, SLO và phạm vi cam kết dịch vụ
+  - Đo thành công theo request, tác vụ hoặc hành trình người dùng
+  - Availability theo thời gian và theo yêu cầu khác nhau thế nào
+  - Tỷ lệ lỗi, tần suất sự cố và thời gian không phục vụ
+  - MTTF, MTBF và điều kiện diễn giải từng chỉ số
+  - Thời gian phát hiện, phản ứng, khôi phục và quy ước sử dụng MTTR
+  - RTO, RPO và kết quả thực tế quan sát trong thử nghiệm
+  - Error budget và ảnh hưởng của sự cố lên mục tiêu dịch vụ
+  - Độ trễ đuôi, dữ liệu sai và các lỗi bị che bởi tỷ lệ thành công tổng hợp
+  - Xác định cửa sổ đo, mẫu số và trường hợp bị loại trừ
+- level1: Mô hình lỗi
+  level2:
+  - Fault, error và failure trong chuỗi phát sinh sự cố
+  - Lỗi tạm thời, kéo dài, gián đoạn và lặp theo chu kỳ
+  - Lỗi hoàn toàn, lỗi một phần và thành phần phản hồi chậm
+  - Fail-stop, fail-slow và hành vi trả dữ liệu không hợp lệ
+  - Lỗi độc lập, lỗi tương quan và nguyên nhân chung
+  - Lỗi trong tiến trình, host, dependency, mạng và dữ liệu
+  - Phân biệt sự cố được phát hiện với sự cố âm thầm
+  - Xác định điểm gây lỗi cùng thời lượng, cường độ và điều kiện kích hoạt
+  - Mô hình hóa sự cố đơn lẻ trước khi kết hợp nhiều sự cố
+- level1: Kiến trúc và dependency
+  level2:
+  - Lập bản đồ thành phần, đường gọi và đường đi dữ liệu
+  - Dependency bắt buộc và dependency có thể suy giảm
+  - Điểm lỗi đơn và tài nguyên dùng chung
+  - Phạm vi lỗi theo tiến trình, host, vùng hoặc khu vực
+  - Quan hệ nối tiếp, song song và dự phòng trong luồng xử lý
+  - Ảnh hưởng của cache, queue và trạng thái được lưu
+  - Lan truyền sự cố qua chuỗi dependency
+  - Đánh giá giả định độc lập khi có nhiều bản sao
+  - Chọn ranh giới test từ thành phần đến hệ thống
+- level1: Thiết kế thí nghiệm
+  level2:
+  - Đặt giả thuyết về hành vi trước, trong và sau sự cố
+  - Xác định trạng thái ổn định bằng chỉ số có thể quan sát
+  - Thiết kế lần chạy đối chứng không có lỗi
+  - Chọn workload, dữ liệu và điều kiện môi trường đại diện
+  - Thay đổi một yếu tố trước khi kiểm tra tương tác phức tạp
+  - Quy định điều kiện đạt, không đạt và không đủ bằng chứng
+  - Xác định điểm bắt đầu đo ảnh hưởng và kết thúc phục hồi
+  - Chọn số lần lặp cùng cách ghi nhận biến động
+  - Định nghĩa điều kiện dừng, dọn lỗi và đưa môi trường về trạng thái ban đầu
+  - Lưu kế hoạch, cấu hình và mã định danh từng phiên thử nghiệm
+- level1: Môi trường và dữ liệu
+  level2:
+  - Chọn môi trường cục bộ, tích hợp, staging hoặc diễn tập được phép
+  - Giữ tương đồng về phiên bản, cấu hình và topology cần kiểm chứng
+  - Tạo dependency bằng container hoặc hạ tầng tạm thời
+  - Chuẩn bị dữ liệu có trạng thái và bất biến nghiệp vụ rõ ràng
+  - Cô lập tài nguyên và dữ liệu giữa các phiên thử nghiệm
+  - Ghi giới hạn của môi trường thu nhỏ so với hệ thống mục tiêu
+  - Kiểm tra readiness, dung lượng và khả năng quan sát trước khi bắt đầu
+  - Chụp trạng thái cần thiết để đối chiếu sau sự cố
+  - Dọn môi trường khi thử nghiệm hoàn tất, lỗi hoặc bị hủy
+- level1: Quan sát và bằng chứng
+  level2:
+  - Liên kết metric, log và trace theo cùng phiên thử nghiệm
+  - Đo kết quả tại điểm người dùng quan sát
+  - Theo dõi tỷ lệ lỗi, độ trễ, hàng đợi và mức sử dụng tài nguyên
+  - Ghi thời điểm gây lỗi, phát hiện, xử lý và phục hồi
+  - Kiểm tra cảnh báo có phản ánh đúng sự cố đang xảy ra
+  - Nhận diện request bị mất khỏi phép đo do timeout hoặc lỗi phía client
+  - Quan sát thành phần và toàn hệ thống để tìm hiệu ứng lan truyền
+  - Thu thập thread dump, heap dump hoặc log hạ tầng khi cần
+  - Giảm ảnh hưởng của công cụ quan sát lên kết quả
+  - Giữ bằng chứng cả khi công cụ gây lỗi hoặc bộ phát tải bị hỏng
+- level1: Workload và baseline
+  level2:
+  - Chọn tỷ lệ thao tác và dữ liệu theo nhu cầu sử dụng
+  - Phân biệt mức tải bình thường, cao điểm và gần giới hạn
+  - Đo baseline trước khi gây lỗi để có cơ sở so sánh
+  - Mô hình phát tải mở, đóng và ảnh hưởng đến kết quả quan sát
+  - Kiểm tra bộ phát tải không trở thành nút thắt
+  - Theo dõi goodput thay vì chỉ đếm tổng phản hồi
+  - Giữ workload tiếp tục trong giai đoạn gây lỗi và phục hồi
+  - Đối chiếu số yêu cầu đã gửi, hoàn thành, thất bại và còn chờ
+  - Ghi điều kiện tải khi kết luận khả năng chịu lỗi
+- level1: Chạy dài hạn
+  level2:
+  - Soak testing và endurance testing trong đánh giá độ ổn định
+  - Chọn thời lượng từ chu kỳ tài nguyên và hành vi cần quan sát
+  - Phát hiện memory leak, connection leak và tài nguyên không được thu hồi
+  - Theo dõi tăng trưởng hàng đợi, cache, log và dữ liệu tạm
+  - Quan sát chu kỳ GC, tác vụ định kỳ và thay đổi trạng thái
+  - Kiểm tra độ trễ hoặc tỷ lệ lỗi tăng dần theo thời gian
+  - Đối chiếu khởi động mới với tiến trình đã chạy lâu
+  - Phân biệt xu hướng suy giảm với nhiễu ngắn hạn
+  - Đánh giá khả năng trở về baseline sau khi giảm tải
+- level1: Gây lỗi có kiểm soát
+  level2:
+  - Fault injection và quan hệ với giả thuyết thí nghiệm
+  - Chọn mức gây lỗi tại lời gọi, tiến trình, container hoặc mạng
+  - Xác định phạm vi ảnh hưởng và tài nguyên được phép tác động
+  - Lỗi xác định, lỗi theo xác suất và cách giữ khả năng tái hiện
+  - Kích hoạt lỗi đúng thời điểm trong một luồng nghiệp vụ
+  - Giới hạn thời lượng, cường độ và số mục tiêu
+  - Tách lỗi dự kiến khỏi lỗi do công cụ thử nghiệm
+  - Cơ chế dừng khẩn cấp và tự gỡ điều kiện lỗi
+  - Kiểm tra môi trường sạch sau khi kết thúc thí nghiệm
+- level1: Tiến trình và khởi động lại
+  level2:
+  - Dừng mềm, dừng đột ngột và sự khác biệt về cleanup
+  - Crash trước, trong hoặc sau khi ghi trạng thái
+  - Khởi động lại tiến trình khi vẫn có request hoặc công việc đang chạy
+  - Thời gian startup, readiness và thời điểm tiếp nhận lưu lượng
+  - Khôi phục dữ liệu chưa hoàn thành sau khi khởi động
+  - Ngăn xử lý lặp khi tiến trình không biết thao tác trước đã thành công
+  - Restart loop và tác động của nhiều tiến trình cùng khởi động
+  - Xác minh tiến trình phục hồi thực sự phục vụ đúng
+  - Đối chiếu tài nguyên, khóa và dữ liệu tồn dư sau crash
+- level1: Mạng và kết nối
+  level2:
+  - Độ trễ, jitter, mất gói và giới hạn băng thông
+  - Connection reset, từ chối kết nối và kết nối treo
+  - Phân vùng mạng một chiều hoặc hai chiều
+  - DNS lỗi, kết quả cũ và thay đổi địa chỉ dịch vụ
+  - TLS handshake thất bại và chứng thư không còn hợp lệ
+  - Connection pool giữ kết nối đã hỏng
+  - Kiểm tra hành vi khi mạng chập chờn rồi ổn định trở lại
+  - Đối chiếu timeout phía client với trạng thái công việc phía server
+  - Xác minh không mất dữ liệu hoặc tạo thao tác trùng khi gửi lại
+- level1: Dependency gặp sự cố
+  level2:
+  - Dependency không sẵn sàng, phản hồi chậm hoặc lỗi từng phần
+  - Phản hồi thành công nhưng dữ liệu thiếu hoặc không hợp lệ
+  - Rate limit, quota và hành vi khi bị từ chối
+  - Chuỗi gọi nhiều tầng và lỗi lan truyền
+  - Giới hạn thời gian chờ theo từng dependency
+  - Dependency phục hồi nhưng ứng dụng chưa kết nối lại
+  - Thay đổi phiên bản hoặc cấu hình của dịch vụ phụ trợ
+  - Xác minh fallback vẫn giữ quy tắc nghiệp vụ
+  - Phân biệt lỗi dependency thật với lỗi do giả lập không đúng hợp đồng
+- level1: Tài nguyên và quá tải
+  level2:
+  - CPU bão hòa và ảnh hưởng lên thời gian phản hồi
+  - Thiếu RAM, swap và giới hạn bộ nhớ container
+  - Disk full, filesystem chỉ đọc và lỗi I/O
+  - Cạn file descriptor, socket hoặc cổng kết nối
+  - Cạn thread pool, connection pool và hàng đợi
+  - Giới hạn tài nguyên làm một phần hệ thống suy giảm
+  - Kiểm tra từ chối công việc có kiểm soát khi vượt năng lực
+  - Giảm tải và đo thời gian trở về trạng thái ổn định
+  - Xác minh quá tải không biến thành sai dữ liệu âm thầm
+- level1: JVM và ứng dụng Java
+  level2:
+  - Heap leak, native memory và RSS theo thời gian
+  - GC pause kéo dài và ảnh hưởng đến timeout hoặc heartbeat
+  - OutOfMemoryError và hành vi của tiến trình sau lỗi
+  - Thread leak, deadlock và tác vụ không kết thúc
+  - Executor queue tăng không giới hạn
+  - Connection, stream và tài nguyên không được đóng
+  - Warmup và JIT trong giai đoạn khởi động hoặc phục hồi
+  - Java Flight Recorder, GC log và thread dump phục vụ chẩn đoán
+  - Đối chiếu sức khỏe JVM với kết quả người dùng nhận được
+- level1: Timeout và retry
+  level2:
+  - Thiết kế timeout theo thao tác và toàn bộ chuỗi xử lý
+  - Phân biệt timeout kết nối, đọc và chờ tài nguyên
+  - Deadline propagation và ngân sách thời gian còn lại
+  - Retry theo loại lỗi thay vì thử lại mọi thất bại
+  - Backoff, jitter và giới hạn số lần thử
+  - Retry storm khi nhiều client cùng gặp sự cố
+  - Idempotency trước thao tác có tác dụng phụ
+  - Công việc tiếp tục chạy sau khi phía gọi đã dừng chờ
+  - Xác minh số lần gọi, tổng thời gian và trạng thái cuối cùng
+  - Đo khả năng phục hồi khi dependency hoạt động trở lại
+- level1: Cô lập và ngắt mạch
+  level2:
+  - Circuit breaker với trạng thái closed, open và half-open
+  - Ngưỡng lỗi, cửa sổ quan sát và điều kiện mở mạch
+  - Kiểm tra probe và đóng mạch khi dependency hồi phục
+  - Bulkhead để cô lập tài nguyên giữa nhóm tác vụ
+  - Rate limiting và giới hạn đồng thời
+  - Tương tác giữa retry, timeout, circuit breaker và fallback
+  - Tác động của nhiều instance có trạng thái ngắt mạch khác nhau
+  - Tránh cấu hình khiến cơ chế bảo vệ tự gây gián đoạn kéo dài
+  - Đối chiếu khả năng cô lập lỗi với dịch vụ thiết yếu còn hoạt động
+- level1: Queue và xử lý sự kiện
+  level2:
+  - Broker dừng, mất kết nối và kết nối lại
+  - Producer acknowledgment và mức bảo đảm dữ liệu được chấp nhận
+  - Consumer crash trước hoặc sau khi ghi tác dụng phụ
+  - Message trùng, đến muộn hoặc sai thứ tự
+  - Consumer lag, backlog và tốc độ tiêu thụ sau phục hồi
+  - Retry queue, dead-letter và message không xử lý được
+  - Backpressure và giới hạn khi bộ đệm gần đầy
+  - Phát lại sự kiện mà không tạo tác dụng phụ trùng
+  - Rebalance, thay đổi consumer và gián đoạn xử lý
+  - Đối chiếu số message được nhận với số nghiệp vụ hoàn tất
+- level1: Database và toàn vẹn
+  level2:
+  - Mất kết nối, database restart và transaction đang xử lý
+  - Lỗi trước commit, sau commit và phản hồi commit không rõ
+  - Rollback, khóa tồn dư và khả năng tiếp tục giao dịch mới
+  - Replica lag, đọc dữ liệu cũ và điều kiện nhất quán
+  - Xác minh dữ liệu đã xác nhận không bị mất ngoài mục tiêu cho phép
+  - Đối chiếu số lượng, checksum và bất biến nghiệp vụ
+  - Phát hiện bản ghi dở dang, trùng hoặc quan hệ bị phá vỡ
+  - Khôi phục connection pool sau khi database hoạt động lại
+  - Kiểm tra thiếu dung lượng hoặc lỗi lưu trữ trong lúc ghi
+  - Giữ bằng chứng trạng thái dữ liệu trước và sau sự cố
+- level1: Cache và trạng thái tạm
+  level2:
+  - Cache mất kết nối, bị xóa hoặc khởi động lại
+  - Cache lạnh và tải dồn lên nguồn dữ liệu
+  - Cache stampede khi nhiều yêu cầu cùng tái tạo dữ liệu
+  - Dữ liệu cũ, TTL và thời điểm có thể dùng kết quả
+  - Fallback về nguồn dữ liệu khi cache không hoạt động
+  - Session hoặc trạng thái tạm bị mất giữa chừng
+  - Thứ tự cập nhật cache và database khi có sự cố
+  - Phục hồi cache mà không giữ lại dữ liệu sai
+  - Xác minh mất cache không phá bất biến nghiệp vụ
+- level1: Nhất quán phân tán
+  level2:
+  - Thành công một phần khi một thao tác đi qua nhiều dịch vụ
+  - Transactional outbox và thời điểm sự kiện được phát
+  - Consumer deduplication và xử lý ít nhất một lần
+  - Saga, bù trừ và tình huống bước bù cũng thất bại
+  - Trạng thái không xác định sau timeout hoặc mất phản hồi
+  - Split-brain, leader cũ và thao tác từ thành phần không còn quyền
+  - Quorum hoặc replication theo mô hình hệ thống đang dùng
+  - Khôi phục sau phân vùng mạng và giải quyết xung đột
+  - Kiểm chứng bất biến cuối cùng cùng thời gian đạt nhất quán
+- level1: Chuyển đổi dự phòng
+  level2:
+  - Failover, failback và vai trò của từng quá trình
+  - Mô hình active-passive hoặc active-active cần kiểm chứng
+  - Phát hiện lỗi và thời điểm chuyển lưu lượng
+  - Leader election, health check và ngăn split-brain
+  - Request đang xử lý trong lúc chuyển đổi
+  - Đồng bộ trạng thái và độ trễ của bản sao
+  - Năng lực phần dự phòng khi phải gánh thêm tải
+  - Flapping và việc chuyển đi chuyển lại không ổn định
+  - Đo gián đoạn, lỗi, dữ liệu mất và thời gian phục hồi thực tế
+  - Trở về cấu hình bình thường mà không tạo sự cố lần hai
+- level1: Sao lưu và khôi phục
+  level2:
+  - Xác định dữ liệu, cấu hình và khóa cần có để khôi phục
+  - Kiểm tra backup có thể đọc và dùng để restore
+  - Full backup, incremental backup và chuỗi phụ thuộc
+  - Point-in-time recovery theo khả năng của hệ thống
+  - Nhất quán giữa dữ liệu được sao lưu ở nhiều thành phần
+  - Đối chiếu trạng thái phục hồi với dữ liệu đã xác nhận
+  - Đo thời gian khôi phục và khoảng dữ liệu bị mất
+  - Kiểm tra ứng dụng hoạt động sau restore thay vì chỉ xét job thành công
+  - Xử lý backup hỏng, thiếu hoặc không truy cập được
+  - Ghi lại phiên bản công cụ và điều kiện tái lập lần restore
+- level1: Khôi phục thảm họa
+  level2:
+  - Phân biệt phục hồi thành phần với khôi phục cả dịch vụ
+  - Mất host, vùng hoặc khu vực theo phạm vi kiến trúc
+  - Khôi phục hạ tầng, cấu hình và dữ liệu theo đúng dependency
+  - Khả năng truy cập backup, secret, DNS và dịch vụ danh tính
+  - Thứ tự đưa các thành phần trở lại hoạt động
+  - Đo RTO, RPO trên hành trình nghiệp vụ hoàn chỉnh
+  - Đối chiếu dữ liệu và xử lý khoảng trạng thái không chắc chắn
+  - Kiểm chứng runbook bằng thao tác có thể tái hiện
+  - Diễn tập failback và kết thúc trạng thái khẩn cấp
+- level1: Suy giảm có kiểm soát
+  level2:
+  - Phân biệt phục vụ hạn chế với mất toàn bộ dịch vụ
+  - Ưu tiên chức năng thiết yếu khi dependency gặp sự cố
+  - Fallback, dữ liệu cũ và giới hạn sử dụng theo nghiệp vụ
+  - Load shedding khi không thể nhận thêm công việc
+  - Backpressure và tín hiệu trả về cho phía gọi
+  - Chế độ chỉ đọc hoặc tạm hoãn thao tác có tác dụng phụ
+  - Thông báo trạng thái suy giảm mà không báo thành công sai
+  - Khôi phục dần lưu lượng và tránh dồn tải ngay khi dịch vụ hồi phục
+  - Kiểm tra chế độ suy giảm tự kết thúc đúng điều kiện
+- level1: Triển khai và bảo trì
+  level2:
+  - Rolling deployment, blue-green hoặc canary theo mô hình sử dụng
+  - Graceful shutdown và xử lý request đang thực hiện
+  - Readiness, liveness và ảnh hưởng đến việc điều phối lưu lượng
+  - Draining connection, queue và công việc nền
+  - Cùng tồn tại nhiều phiên bản ứng dụng trong giai đoạn chuyển tiếp
+  - Tương thích schema, cấu hình và định dạng message
+  - Rollback ứng dụng khi dữ liệu đã thay đổi
+  - Khởi động đồng loạt và áp lực lên dependency
+  - Kiểm tra thao tác bảo trì có gây mất hoặc lặp nghiệp vụ
+  - Đối chiếu mục tiêu dịch vụ trước, trong và sau triển khai
+- level1: Thời gian và cấu hình
+  level2:
+  - Clock skew giữa các thành phần và hành vi phụ thuộc timestamp
+  - Nhảy đồng hồ, thay đổi múi giờ và điều kiện hết hạn
+  - Phân biệt đồng hồ lịch với đồng hồ đo khoảng thời gian
+  - Token, chứng thư hoặc credential hết hạn trong lúc vận hành
+  - Config reload, giá trị thiếu và cấu hình không hợp lệ
+  - Feature flag thay đổi khi công việc đang xử lý
+  - Lease, heartbeat và quyết định thành phần còn hoạt động
+  - Dependency cấu hình hoặc dịch vụ danh tính tạm thời không sẵn sàng
+  - Xác minh phục hồi sau khi thời gian hoặc cấu hình được sửa
+- level1: Đồng thời và tranh chấp
+  level2:
+  - Tăng cạnh tranh tài nguyên mà vẫn giữ workload đại diện
+  - Race condition, lost update và vi phạm bất biến
+  - Khóa không được giải phóng khi tiến trình chết
+  - Deadlock, livelock và starvation
+  - Lease hoặc distributed lock hết hạn khi tác vụ chưa xong
+  - Hủy và retry đồng thời trên cùng một nghiệp vụ
+  - Giới hạn hàng đợi để tránh tích lũy vô hạn
+  - Điều phối lịch thực thi để tái hiện lỗi có kiểm soát
+  - Đối chiếu tính đúng cùng khả năng tiếp tục phục vụ sau tranh chấp
+- level1: Công cụ với Java
+  level2:
+  - JUnit để mô tả giả thuyết và điều kiện đạt
+  - Testcontainers để tạo dependency và quản lý vòng đời môi trường
+  - Toxiproxy hoặc proxy tương đương để mô phỏng lỗi kết nối
+  - WireMock để kiểm soát phản hồi chậm, lỗi và dữ liệu bất thường
+  - Công cụ phát tải duy trì workload trong thời gian gây lỗi
+  - Awaitility hoặc cơ chế polling có giới hạn để chờ phục hồi
+  - Kiểm thử cấu hình chịu lỗi của Resilience4j khi ứng dụng sử dụng
+  - Spring Boot health, readiness và shutdown trong kịch bản thử nghiệm
+  - Fixture gây lỗi cùng cleanup bảo đảm được gọi khi test thất bại
+  - Lưu cấu hình và phiên bản công cụ phục vụ tái lập
+- level1: Tự động hóa và CI
+  level2:
+  - Tách thử nghiệm nhanh theo thành phần khỏi diễn tập toàn hệ thống
+  - Chạy theo thay đổi, lịch hoặc yêu cầu có phạm vi rõ
+  - Tạo môi trường tạm và dữ liệu riêng cho từng phiên
+  - Quản lý topology, workload và fault scenario bằng cấu hình có phiên bản
+  - Điều phối các mốc baseline, gây lỗi, quan sát và phục hồi
+  - Timeout toàn phiên và cleanup khi job bị hủy
+  - Giữ log, metric và trạng thái cuối cùng như artifact
+  - Giới hạn song song để các thí nghiệm không gây nhiễu nhau
+  - Phân loại lỗi sản phẩm, môi trường và công cụ gây lỗi
+  - Đưa kịch bản đã xác minh vào bộ hồi quy độ tin cậy
+- level1: Thống kê và suy luận
+  level2:
+  - Chọn đơn vị quan sát theo request, sự cố hoặc thời gian hoạt động
+  - Phân bố thời gian đến lỗi và hàm độ tin cậy R(t)
+  - Tần suất lỗi thay đổi theo tải, tuổi tiến trình hoặc điều kiện vận hành
+  - Giả định cần kiểm tra trước khi dùng mô hình xác suất
+  - Khoảng tin cậy của ước lượng tỷ lệ lỗi hoặc thời gian phục hồi
+  - Quan sát bị kết thúc khi chưa xảy ra lỗi và dữ liệu bị kiểm duyệt
+  - Giới hạn suy luận khi một thử nghiệm không ghi nhận lỗi
+  - Phụ thuộc giữa các mẫu và sự cố có cùng nguyên nhân
+  - So sánh nhiều lần chạy với baseline trong điều kiện tương đương
+  - Phân biệt cải thiện có ý nghĩa với biến động ngẫu nhiên
+- level1: Báo cáo và đánh giá
+  level2:
+  - Tổng hợp giả thuyết, môi trường, workload và lỗi đã gây
+  - Trục thời gian từ trước sự cố đến sau phục hồi
+  - Kết quả người dùng, dữ liệu và tài nguyên trong từng giai đoạn
+  - Đối chiếu mục tiêu độ tin cậy, RTO và RPO
+  - Phân biệt phục hồi hoàn toàn với còn backlog hoặc dữ liệu cần xử lý
+  - Giải thích thử nghiệm không đạt hoặc không đủ bằng chứng
+  - Nêu giới hạn môi trường và khả năng áp dụng kết luận
+  - Liên kết metric, log, cấu hình và phiên bản phần mềm
+  - Ưu tiên hành động sửa theo tác động và mức rủi ro
+- level1: Bảo trì và cải tiến
+  level2:
+  - Chuyển sự cố thực tế thành giả thuyết và kịch bản hồi quy
+  - Phân tích nguyên nhân gốc cùng yếu tố làm sự cố lan rộng
+  - Cập nhật dependency map khi kiến trúc thay đổi
+  - Điều chỉnh kịch bản khi workload hoặc mục tiêu dịch vụ thay đổi
+  - Xác minh biện pháp sửa lỗi bằng cùng điều kiện tái hiện
+  - Nhận diện flaky test do thời gian chờ, môi trường hoặc công cụ
+  - Quản lý người phụ trách và thời hạn xử lý khoảng trống
+  - Loại bỏ kịch bản trùng nhưng vẫn giữ bằng chứng bảo vệ
+  - Theo dõi xu hướng độ tin cậy qua các phiên bản
+- level1: Thực hành tổng hợp
+  level2:
+  - Đo tác động của dependency phản hồi chậm lên một API Java
+  - Kiểm tra retry có backoff mà không tạo giao dịch trùng
+  - Gây lỗi mạng rồi xác minh circuit breaker mở và đóng lại
+  - Crash consumer tại điểm ghi dữ liệu và xác nhận message
+  - Kiểm tra database restart cùng phục hồi connection pool
+  - Chạy dài hạn để phát hiện tài nguyên tăng không giới hạn
+  - Diễn tập failover dưới workload và đối chiếu dữ liệu
+  - Restore backup rồi kiểm chứng hành trình nghiệp vụ cùng RTO, RPO
+  - Kiểm tra graceful shutdown trong lúc vẫn có công việc
+  - Bàn giao bộ thử nghiệm có giả thuyết, bằng chứng và điều kiện tái lập

@@ -1,0 +1,70 @@
+menu:
+- title: Định hướng Java 26
+  slug: java-26-overview
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: HTTP/3
+  slug: http-3
+  index: 2
+- title: Thực hành HTTP Client
+  slug: http-client-practice
+  index: 3
+- title: Pattern nguyên thủy
+  slug: primitive-patterns
+  index: 4
+- title: Hằng khởi tạo trễ
+  slug: lazy-constants
+  index: 5
+- title: Tập hợp khởi tạo trễ
+  slug: lazy-collections
+  index: 6
+- title: Đồng thời có cấu trúc
+  slug: structured-concurrency
+  index: 7
+- title: Vector API
+  slug: vector-api
+  index: 8
+- title: Định dạng PEM
+  slug: pem-format
+  index: 9
+- title: Tính toàn vẹn của final
+  slug: final-field-integrity
+  index: 10
+- title: Cải tiến G1
+  slug: g1-improvements
+  index: 11
+- title: Bộ đệm AOT
+  slug: aot-caching
+  index: 12
+- title: Vòng đời Process
+  slug: process-lifecycle
+  index: 13
+- title: JDBC 4.5
+  slug: jdbc-4-5
+  index: 14
+- title: Thời gian và định danh
+  slug: time-identifiers
+  index: 15
+- title: Unicode và văn bản
+  slug: unicode-text
+  index: 16
+- title: Mã hóa HPKE
+  slug: hpke-encryption
+  index: 17
+- title: Chính sách mật mã
+  slug: cryptographic-policies
+  index: 18
+- title: Chẩn đoán và hiệu năng
+  slug: diagnostics-performance
+  index: 19
+- title: Biên dịch và kiểm thử
+  slug: compilation-testing
+  index: 20
+- title: Nâng cấp và triển khai
+  slug: upgrades-deployment
+  index: 21
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 22

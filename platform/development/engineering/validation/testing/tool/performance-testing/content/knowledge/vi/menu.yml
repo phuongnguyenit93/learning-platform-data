@@ -1,0 +1,360 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử hiệu năng là gì và vai trò của công cụ tạo tải trong hệ thống kiểm thử
+  - Phân biệt kiểm thử chức năng, kiểm thử hiệu năng và giám sát hệ thống đang vận hành
+  - Phân biệt kiểm thử tải (load), quá tải (stress), tăng tải đột biến (spike) và chạy dài (soak)
+  - Kiểm thử dung lượng (capacity), khả năng mở rộng (scalability) và khối lượng dữ liệu (volume)
+  - Phân biệt đo vi mô (microbenchmark), kiểm thử thành phần và kiểm thử toàn hệ thống
+  - 'Kiến trúc một phép thử: bộ tạo tải, hệ thống đích, nguồn dữ liệu và bộ thu kết quả'
+  - Lộ trình thực hành từ một yêu cầu HTTP đến chiến dịch kiểm thử có thể tái lập
+- level1: Chỉ số hiệu năng
+  level2:
+  - 'Thời gian phản hồi, độ trễ và thời gian xử lý: xác định ranh giới phép đo'
+  - Thông lượng (throughput), số yêu cầu mỗi giây và số giao dịch nghiệp vụ mỗi giây
+  - Người dùng đồng thời, yêu cầu đang xử lý và số kết nối đang mở
+  - Trung vị, p90, p95, p99 và cách đọc phần đuôi phân bố độ trễ
+  - 'Histogram và chuỗi thời gian: những thông tin bị che khuất bởi giá trị trung bình'
+  - Tỷ lệ lỗi, yêu cầu hết hạn và lỗi nghiệp vụ trong phản hồi thành công ở tầng HTTP
+  - CPU, bộ nhớ, GC, luồng, kết nối và hàng đợi dưới tải
+  - Quan hệ giữa thông lượng, số tác vụ đang xử lý và thời gian đáp ứng theo định luật Little
+  - Tách thời gian DNS, kết nối TCP, TLS, chờ phản hồi và nhận dữ liệu
+  - Xác định chỉ số ở phía máy tạo tải và phía máy chủ để tránh diễn giải nhầm
+- level1: Mục tiêu kiểm thử
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành mục tiêu hiệu năng đo được
+  - Xác định phạm vi hệ thống, điểm vào và hành trình nghiệp vụ quan trọng
+  - Phân biệt SLI, SLO và SLA khi thiết lập tiêu chí chấp nhận
+  - Thiết lập ngưỡng độ trễ, thông lượng và tỷ lệ lỗi theo từng loại giao dịch
+  - Xây dựng mốc so sánh (baseline) và điều kiện phát hiện suy giảm hiệu năng
+  - Xác định thời lượng, số lần lặp và điều kiện dừng phép thử
+  - Phân biệt mục tiêu đo năng lực tối đa với mục tiêu xác nhận chất lượng phát hành
+  - 'Lập kế hoạch kiểm thử: giả thuyết, cấu hình, dữ liệu và bằng chứng cần thu'
+- level1: Mô hình tải
+  level2:
+  - Mô hình tải đóng (closed workload) và mô hình tải mở (open workload)
+  - Chọn số người dùng ảo hay tốc độ đến theo mục tiêu kiểm thử
+  - Xây dựng tỷ trọng giao dịch từ lưu lượng và hành vi sử dụng thực tế
+  - Thời gian suy nghĩ (think time), thời gian nghỉ và nhịp lặp giao dịch (pacing)
+  - Tăng tải dần, giữ tải ổn định và giảm tải có kiểm soát
+  - Tải theo bậc, tải đột biến, tải theo chu kỳ và tải kéo dài
+  - Phân bố ngẫu nhiên của thời gian đến và dữ liệu đầu vào
+  - Giới hạn tốc độ phát tải, yêu cầu bị bỏ và hàng đợi ở máy tạo tải
+  - Sai lệch do bỏ sót thời gian chờ (coordinated omission) trong phép đo độ trễ
+  - Tách giai đoạn khởi động, đo ổn định và phục hồi sau tải
+- level1: Thiết kế kịch bản
+  level2:
+  - Chuyển hành trình người dùng thành các giao dịch kiểm thử độc lập
+  - Thiết kế luồng đăng nhập, đọc dữ liệu, cập nhật và đăng xuất
+  - Tham số hóa dữ liệu và trích xuất giá trị động giữa các yêu cầu (correlation)
+  - Quản lý phiên, cookie, token và thời hạn xác thực
+  - Kiểm tra tính đúng đắn của phản hồi để tránh đo một luồng nghiệp vụ đã lỗi
+  - Tổ chức nhánh điều kiện, vòng lặp và các hành trình có trạng thái
+  - Định nghĩa ranh giới giao dịch và gắn nhãn yêu cầu phục vụ phân tích
+  - Quy định timeout, retry và backoff mà không che khuất lỗi hoặc khuếch đại tải
+  - Tách công đoạn chuẩn bị, thực thi và dọn dữ liệu khỏi khoảng thời gian đo
+  - Kiểm chứng kịch bản bằng một người dùng trước khi tăng tải
+- level1: Môi trường và dữ liệu
+  level2:
+  - Lựa chọn môi trường thử và xác định khác biệt so với môi trường vận hành
+  - Ghi nhận cấu hình máy, container, JVM, mạng và phiên bản ứng dụng
+  - Tách tài nguyên máy tạo tải khỏi hệ thống đích và bộ giám sát
+  - Chuẩn bị dữ liệu có quy mô, phân bố và mức liên kết phù hợp
+  - Phân bổ tài khoản và dữ liệu riêng để tránh xung đột giữa người dùng ảo
+  - Thiết kế tập dữ liệu dùng chung, dữ liệu duy nhất và cơ chế cấp phát
+  - Kiểm soát trạng thái cache nóng, cache lạnh và dữ liệu đã tồn tại
+  - Cố định seed ngẫu nhiên và lưu cấu hình để tái lập phép thử
+  - Quản lý bí mật xác thực và dữ liệu nhạy cảm trong kịch bản, log và báo cáo
+  - Phê duyệt hệ thống đích, giới hạn tải và cơ chế dừng khẩn cấp
+  - Dọn dữ liệu thử và đánh giá ảnh hưởng của môi trường dùng chung
+- level1: HTTP dưới tải
+  level2:
+  - Mô hình yêu cầu HTTP và ranh giới đo ở mức giao thức
+  - Tái sử dụng kết nối, keep-alive và nhóm kết nối của máy khách
+  - Đánh giá ảnh hưởng của HTTP/1.1, HTTP/2 và khả năng hỗ trợ của công cụ
+  - DNS, TLS, chứng chỉ và chi phí thiết lập kết nối
+  - Header, cookie, chuyển hướng và xác thực trong luồng kiểm thử
+  - Kiểu nội dung, kích thước payload, nén dữ liệu và truyền tệp
+  - Kiểm soát proxy, load balancer, CDN và cache trung gian
+  - Rate limiting, mã 429 và chiến lược xử lý khi vượt hạn mức
+  - Timeout kết nối, timeout đọc và hủy yêu cầu đang xử lý
+  - Phân biệt phép đo HTTP ở tầng giao thức với hiệu năng hiển thị trên trình duyệt
+- level1: Lựa chọn công cụ
+  level2:
+  - So sánh công cụ theo giao thức, mô hình tải, cách viết kịch bản và báo cáo
+  - Vai trò và phạm vi sử dụng của Apache JMeter
+  - Vai trò và phạm vi sử dụng của Gatling
+  - Vai trò và phạm vi sử dụng của k6
+  - Vai trò và phạm vi sử dụng của Java Microbenchmark Harness (JMH)
+  - Khi nào dùng wrk, wrk2, hey, Vegeta hoặc ApacheBench
+  - Lựa chọn giữa giao diện trực quan, mã nguồn kịch bản và công cụ dòng lệnh
+  - Đánh giá khả năng mở rộng, tích hợp CI/CD và chi phí vận hành công cụ
+  - Phân biệt khả năng tích hợp sẵn, phần mở rộng và dịch vụ bổ sung của từng công cụ
+- level1: JMeter cơ bản
+  level2:
+  - Cài đặt JMeter, lựa chọn JDK và kiểm tra cấu hình thực thi
+  - Cấu trúc Test Plan và tệp kịch bản JMX
+  - Thread Group và vòng đời một luồng tạo tải
+  - HTTP Request, HTTP Request Defaults và HTTP Header Manager
+  - Listener, SampleResult và những thông tin cơ bản của một lần lấy mẫu
+  - Thứ tự thực thi và phạm vi tác động của các phần tử trong Test Plan
+  - Tạo và chạy kịch bản HTTP đầu tiên với số luồng nhỏ
+  - Dùng giao diện để kiểm tra kịch bản và dùng chế độ không giao diện để phát tải
+  - Truyền tham số cấu hình từ dòng lệnh và tách cấu hình theo môi trường
+- level1: Kịch bản JMeter
+  level2:
+  - Đọc dữ liệu bằng CSV Data Set Config và lựa chọn phạm vi chia sẻ
+  - HTTP Cookie Manager và quản lý phiên người dùng
+  - Trích xuất JSON, biểu thức chính quy và dữ liệu phản hồi để liên kết yêu cầu
+  - Response Assertion, JSON Assertion và kiểm tra lỗi nghiệp vụ
+  - Constant Timer, Uniform Random Timer và mô hình thời gian chờ
+  - Loop Controller, If Controller, While Controller và Once Only Controller
+  - Transaction Controller và xác định thời gian của một giao dịch
+  - Throughput Controller và thiết kế tỷ trọng các nhánh nghiệp vụ
+  - 'JSR223 với Groovy: tiền xử lý, hậu xử lý và xử lý dữ liệu động'
+  - Phân biệt biến, thuộc tính và trạng thái chia sẻ giữa các luồng
+  - Thu và xử lý kịch bản HTTP bằng bộ ghi rồi rút gọn thành kịch bản kiểm thử
+  - Tổ chức Include Controller, Module Controller và các phần dùng lại
+- level1: JMeter nâng cao
+  level2:
+  - Cấu hình lịch chạy, thời gian tăng tải và thời lượng cho Thread Group
+  - Thiết kế tải theo tốc độ đến và kiểm tra khả năng của phần mở rộng
+  - Ghi kết quả JTL với tập trường phù hợp và hạn chế chi phí ghi log
+  - Tạo HTML Dashboard và đọc các biểu đồ phản hồi, thông lượng, lỗi
+  - Backend Listener và chuyển số liệu sang hệ thống quan sát
+  - 'Chạy tải phân tán: máy điều phối, máy thực thi và đồng bộ dữ liệu'
+  - Kiểm soát bộ nhớ heap, listener nặng và số kết nối trên máy chạy JMeter
+  - Định phiên bản plugin và kiểm chứng Test Plan trên môi trường sạch
+  - Chẩn đoán lỗi correlation, dữ liệu CSV, cookie và cạn tài nguyên máy tạo tải
+  - Tự động hóa JMeter bằng dòng lệnh trong quy trình kiểm thử
+- level1: Gatling cơ bản
+  level2:
+  - Thiết lập dự án Gatling với Java DSL và công cụ build phù hợp
+  - Simulation, Scenario, Session và cấu trúc một kịch bản Gatling
+  - Khai báo HTTP protocol, địa chỉ gốc và cấu hình dùng chung
+  - Xây dựng chuỗi yêu cầu bằng exec và gắn tên cho từng yêu cầu
+  - Checks và trích xuất dữ liệu từ phản hồi
+  - Session và truyền dữ liệu giữa các bước của người dùng ảo
+  - Phân biệt mô hình phát tải open và closed trong Gatling
+  - Chạy Simulation, truyền cấu hình môi trường và đọc báo cáo đầu tiên
+  - Phân biệt ngưỡng chấp nhận (assertions) với kiểm tra phản hồi (checks)
+- level1: Kịch bản Gatling
+  level2:
+  - Feeders với CSV, JSON và dữ liệu sinh động
+  - Lựa chọn chiến lược cấp dữ liệu và xử lý khi nguồn dữ liệu cạn
+  - Quản lý xác thực, cookie và chuỗi yêu cầu phụ thuộc
+  - pause, pace và điều khiển nhịp lặp của hành trình
+  - repeat, during và các cấu trúc lặp theo điều kiện
+  - doIf, randomSwitch và mô hình nhánh nghiệp vụ
+  - Groups và đo thời gian theo nhóm giao dịch
+  - Tổ chức chain dùng lại và tách kịch bản thành các thành phần
+  - Xử lý yêu cầu thất bại và quyết định tiếp tục hoặc kết thúc hành trình
+  - Thiết kế nhiều population với tỷ trọng và hồ sơ tải riêng
+- level1: Gatling nâng cao
+  level2:
+  - Thiết kế các giai đoạn tăng tải, giữ tải và chuyển tiếp
+  - Đặt assertions cho tỷ lệ lỗi, số yêu cầu và phân vị độ trễ
+  - Đọc báo cáo theo yêu cầu, nhóm giao dịch và thời gian
+  - Kiểm soát cấu hình kết nối, timeout và tài nguyên máy phát tải
+  - Truyền dữ liệu và cấu hình Simulation trong Maven hoặc Gradle
+  - Đánh giá phương án chạy phân tán và ranh giới giữa các hình thức triển khai
+  - Chẩn đoán check sai, dữ liệu Session thiếu và tốc độ tạo tải không đạt
+  - Tích hợp kết quả Gatling vào cổng kiểm soát chất lượng của CI/CD
+- level1: k6 cơ bản
+  level2:
+  - Cài đặt k6 và kiểm tra môi trường thực thi kịch bản
+  - Cấu trúc tệp JavaScript và vòng đời init, setup, thực thi, teardown
+  - Người dùng ảo (VU), lượt lặp và các tùy chọn chạy cơ bản
+  - Tạo yêu cầu HTTP, kiểm tra phản hồi và điều khiển thời gian nghỉ
+  - Biến môi trường và cấu hình tách biệt theo hệ thống đích
+  - Checks, thresholds và cách xác định trạng thái đạt hoặc không đạt
+  - Đọc kết quả tổng hợp từ lần chạy đầu tiên
+  - Tổ chức module kịch bản và các hàm dùng lại
+  - Nhận diện giới hạn môi trường JavaScript của k6 so với Node.js
+- level1: Kịch bản k6
+  level2:
+  - Scenarios và thiết kế nhiều luồng nghiệp vụ trong một lần chạy
+  - Lựa chọn executor theo số VU, số lượt lặp hoặc tốc độ đến
+  - constant-arrival-rate, ramping-arrival-rate và chỉ số dropped_iterations
+  - SharedArray và đọc tập dữ liệu với chi phí bộ nhớ phù hợp
+  - Correlation bằng dữ liệu JSON, cookie và giá trị động trong phản hồi
+  - Quản lý token xác thực và trạng thái riêng của người dùng ảo
+  - Tags và groups để phân loại yêu cầu và giao dịch
+  - Định nghĩa Counter, Gauge, Rate và Trend cho chỉ số riêng
+  - Thiết kế thresholds theo thẻ, nhóm giao dịch và phân vị
+  - Phối hợp setup, teardown và dữ liệu chuẩn bị cho kịch bản có trạng thái
+  - Điều khiển nhánh, vòng lặp và xử lý lỗi trong hành trình nghiệp vụ
+- level1: k6 nâng cao
+  level2:
+  - Tổ chức options và hồ sơ tải dùng lại cho nhiều môi trường
+  - Xuất số liệu và xây dựng báo cáo từ kết quả k6
+  - handleSummary và tùy biến bản tổng kết sau khi chạy
+  - Thiết lập điều kiện ngắt phép thử và mã thoát phục vụ tự động hóa
+  - Chẩn đoán thiếu VU, dropped_iterations và giới hạn tài nguyên máy tạo tải
+  - Đánh giá phương án chạy phân tán và đồng bộ cấu hình giữa các máy
+  - Lựa chọn extension hoặc bản dựng riêng khi giao thức yêu cầu
+  - Phân biệt kịch bản tầng giao thức và kịch bản trình duyệt bằng k6 browser
+  - Tích hợp k6 vào CI/CD với ngưỡng hiệu năng và lưu bằng chứng
+- level1: Công cụ dòng lệnh
+  level2:
+  - 'ApacheBench: đo HTTP đơn giản và nhận diện giới hạn mô hình thử'
+  - 'wrk: luồng, kết nối, thời lượng chạy và kịch bản Lua'
+  - 'wrk2: mô hình tốc độ phát yêu cầu và cách diễn giải độ trễ'
+  - 'hey: số yêu cầu, mức đồng thời và đọc kết quả tổng hợp'
+  - 'Vegeta: định nghĩa mục tiêu, tốc độ phát tải và báo cáo kết quả'
+  - Chuẩn hóa header, payload, kết nối và timeout khi so sánh công cụ
+  - Kiểm tra tính đúng đắn của phản hồi khi công cụ chỉ cung cấp thống kê cơ bản
+  - Nhận diện khi phép thử một endpoint không đại diện cho hành trình nghiệp vụ
+- level1: JMH cơ bản
+  level2:
+  - Phạm vi phù hợp của JMH và khác biệt với kiểm thử tải dịch vụ
+  - Thiết lập dự án JMH và chạy benchmark ngoài IDE
+  - '@Benchmark và cấu trúc một phép đo vi mô'
+  - 'BenchmarkMode: Throughput, AverageTime, SampleTime và SingleShotTime'
+  - Warmup, Measurement và Fork trong vòng đời phép đo
+  - '@State và các phạm vi Thread, Benchmark, Group'
+  - '@Setup và @TearDown theo Trial, Iteration, Invocation'
+  - '@Param để khảo sát nhiều kích thước hoặc cấu hình đầu vào'
+  - OutputTimeUnit và cách đọc điểm số, sai số trong báo cáo JMH
+  - Truyền tham số JVM và ghi lại môi trường thực thi benchmark
+- level1: JMH chuyên sâu
+  level2:
+  - Loại bỏ mã không được sử dụng (dead code elimination) và vai trò của Blackhole
+  - Gấp hằng số (constant folding) và lựa chọn đầu vào có ý nghĩa
+  - Ảnh hưởng của JIT, inlining và hồ sơ thực thi lên kết quả
+  - Tránh suy diễn chi phí từng phép toán từ vòng lặp tự viết
+  - Phân biệt đo chi phí cấp phát, chi phí tính toán và chi phí đồng bộ
+  - Benchmark nhiều luồng, @Threads và mô hình tranh chấp tài nguyên
+  - '@Group và thiết kế phép đo tương tác giữa các nhóm luồng'
+  - Sử dụng profiler để quan sát cấp phát, GC và mã được thực thi
+  - So sánh phương án triển khai với cùng dữ liệu và điều kiện đo
+  - Nhận diện kết quả không đại diện cho hiệu năng của toàn ứng dụng
+- level1: Ứng dụng Java
+  level2:
+  - Thiết kế kịch bản tải cho API Spring Boot theo giao dịch nghiệp vụ
+  - Tách thời gian khởi động JVM, JIT và giai đoạn phục vụ ổn định
+  - Đo hành vi dưới tải của ứng dụng Servlet và ứng dụng phản ứng
+  - Thiết kế phép so sánh luồng nền tảng và luồng ảo với cấu hình tương đương
+  - Đánh giá thread pool, executor, hàng đợi và giới hạn đồng thời
+  - Đánh giá connection pool cơ sở dữ liệu và thời gian chờ lấy kết nối
+  - Kiểm thử cache với tỷ lệ trúng, trượt và chiến lược làm nóng
+  - Đo tác động của tuần tự hóa JSON, kích thước phản hồi và xử lý dữ liệu
+  - Đối chiếu thông lượng với heap, cấp phát bộ nhớ và thời gian tạm dừng GC
+  - Tách kết quả endpoint đơn lẻ khỏi năng lực xử lý của luồng nghiệp vụ hoàn chỉnh
+- level1: Giao thức và hệ thống
+  level2:
+  - 'Kiểm thử gRPC: chọn công cụ, chuẩn bị schema và đo từng loại lời gọi'
+  - 'Kiểm thử WebSocket: kết nối lâu dài, tốc độ bản tin và độ trễ truyền nhận'
+  - Kiểm thử luồng dữ liệu liên tục và xác định ranh giới giao dịch
+  - 'Kiểm thử JDBC: kết nối, truy vấn, dữ liệu và phạm vi đo'
+  - 'Kiểm thử hàng đợi thông điệp: tốc độ gửi, tốc độ xử lý và độ trễ đầu cuối'
+  - Kiểm thử Kafka hoặc JMS và xác minh hỗ trợ giao thức của công cụ
+  - Kiểm thử tác vụ bất đồng bộ bằng mã theo dõi và thời điểm hoàn tất
+  - Kiểm thử hệ thống nhiều dịch vụ và phân biệt độ trễ từng chặng với toàn luồng
+  - Kiểm soát ảnh hưởng của dịch vụ bên ngoài, hạn mức và dữ liệu thử
+  - Dùng dịch vụ giả lập khi cần cô lập phép đo và ghi rõ giới hạn suy luận
+- level1: Thực thi chiến dịch
+  level2:
+  - 'Checklist trước khi chạy: kịch bản, dữ liệu, hệ thống đích và ngưỡng dừng'
+  - Chạy thử tải nhỏ để xác nhận tính đúng đắn và đường đi của số liệu
+  - Đo mốc ban đầu khi hệ thống rảnh và khi hoạt động ổn định
+  - Thực thi kiểm thử tải thường ngày và tải giờ cao điểm
+  - Tăng tải đến giới hạn và xác định điểm bão hòa
+  - Tạo đợt tăng tải đột biến và quan sát quá trình phục hồi
+  - Chạy kiểm thử dài để phát hiện rò rỉ và suy giảm tích lũy
+  - Đánh giá khả năng mở rộng khi thay đổi số bản sao hoặc tài nguyên
+  - Thực thi thử nghiệm với một yếu tố thay đổi mỗi lần
+  - Ghi nhật ký chiến dịch và xác nhận hoàn tất dọn dữ liệu
+- level1: Tải phân tán
+  level2:
+  - Xác định khi nào một máy tạo tải không còn đủ năng lực
+  - Phân bổ tải giữa các máy theo số người dùng hoặc tốc độ đến
+  - Đồng bộ thời gian, cấu hình, phiên bản công cụ và dữ liệu đầu vào
+  - Thiết kế danh tính người dùng và phân vùng dữ liệu không trùng lặp
+  - Đo CPU, bộ nhớ, mạng và giới hạn kết nối của từng máy tạo tải
+  - Triển khai máy tạo tải bằng container hoặc trên hạ tầng đám mây
+  - Kiểm soát NAT, cổng tạm thời, file descriptor và đường truyền mạng
+  - Hợp nhất kết quả theo thời gian và histogram thay vì lấy trung bình các phân vị
+  - Xử lý máy tạo tải mất kết nối, thiếu tải hoặc báo cáo thiếu dữ liệu
+- level1: Quan sát hệ thống
+  level2:
+  - Lập kế hoạch thu metrics, logs, traces và hồ sơ thực thi cho mỗi lần chạy
+  - Đồng bộ mốc thời gian và mã lần chạy giữa công cụ tải và hệ thống đích
+  - Thu thập chỉ số ứng dụng Java bằng Micrometer và Prometheus
+  - Xây dựng bảng theo dõi Grafana cho tải, độ trễ, lỗi và tài nguyên
+  - Đọc CPU, heap, non-heap, GC, số luồng và trạng thái kết nối
+  - Thu JFR và phân tích bằng Java Mission Control
+  - Sử dụng async-profiler và biểu đồ ngọn lửa (flame graph) để tìm điểm nóng
+  - Đọc thread dump khi luồng bị chặn hoặc thời gian chờ tăng cao
+  - Quan sát truy vấn chậm, khóa, I/O và độ dài hàng đợi ở hệ thống phụ thuộc
+  - Đánh giá chi phí của công cụ quan sát đối với chính phép đo
+- level1: Độ tin cậy phép đo
+  level2:
+  - Nhận diện nhiễu từ tác vụ nền, môi trường dùng chung và tài nguyên biến động
+  - Kiểm soát hiệu ứng khởi động, cache và lịch sử của các lần chạy trước
+  - Lặp phép thử và đánh giá độ biến động giữa các lần chạy
+  - Diễn giải cỡ mẫu, độ phân tán và khoảng tin cậy phù hợp với chỉ số
+  - Không loại bỏ tùy tiện ngoại lệ và các yêu cầu có độ trễ cao
+  - So sánh hai phiên bản với cùng điều kiện và thứ tự chạy hợp lý
+  - Tránh suy luận quan hệ nhân quả chỉ từ hai đường biểu đồ cùng biến động
+  - Nhận diện sai lệch do timeout, retry, yêu cầu bị bỏ và dữ liệu lấy mẫu
+  - Phân biệt thay đổi có ý nghĩa thực tế với dao động nhỏ trong số đo
+- level1: Phân tích kết quả
+  level2:
+  - Đọc số liệu theo giai đoạn tăng tải, ổn định và phục hồi
+  - Phân tích kết quả theo yêu cầu, giao dịch, nhóm người dùng và nhãn dữ liệu
+  - Đối chiếu p95, p99, thông lượng và tỷ lệ lỗi với tiêu chí chấp nhận
+  - Tìm điểm gãy trên đường quan hệ giữa tải, độ trễ và thông lượng
+  - Phân biệt hệ thống đích bão hòa với máy tạo tải không đạt mục tiêu
+  - Phân loại lỗi kết nối, timeout, lỗi HTTP và lỗi nghiệp vụ
+  - So sánh với baseline và mô tả mức suy giảm theo từng chỉ số
+  - Đánh giá ảnh hưởng của cache, dữ liệu, retry và hệ thống phụ thuộc
+  - Lập báo cáo có cấu hình, biểu đồ, giới hạn phép thử và kết luận kiểm chứng được
+  - Đề xuất phép thử tiếp theo từ bằng chứng thay vì chỉ kết luận hệ thống chậm
+- level1: Chẩn đoán sự cố
+  level2:
+  - Thông lượng không tăng dù tăng người dùng hoặc tốc độ đến
+  - Độ trễ đuôi tăng khi giá trị trung bình gần như không đổi
+  - Tỷ lệ lỗi tăng do timeout, giới hạn kết nối hoặc cạn tài nguyên
+  - CPU cao và phân biệt chi phí tính toán với cấp phát hoặc đồng bộ
+  - CPU thấp nhưng yêu cầu chậm do chờ khóa, mạng hoặc hệ thống phụ thuộc
+  - Heap tăng, GC dày và suy giảm qua nhiều giờ chạy
+  - Thread pool hoặc connection pool bão hòa và hàng đợi tích lũy
+  - Truy vấn chậm, khóa dữ liệu và điểm nghẽn cơ sở dữ liệu
+  - Kết quả dao động do mạng, hạ tầng dùng chung hoặc cấu hình thay đổi
+  - Kịch bản báo thành công nhưng không thực hiện đúng giao dịch dự kiến
+  - Khoanh vùng lỗi công cụ, lỗi kịch bản và lỗi ứng dụng bằng phép thử tối thiểu
+- level1: CI/CD
+  level2:
+  - Phân tầng kiểm thử hiệu năng nhanh, định kỳ và trước phát hành
+  - Chạy JMeter, Gatling, k6 và JMH bằng lệnh có thể tự động hóa
+  - Truyền cấu hình môi trường, tham số tải và bí mật trong pipeline
+  - Đặt cổng chất lượng dựa trên ngưỡng tuyệt đối và mức suy giảm so với baseline
+  - Kiểm soát nhiễu trước khi kết luận pipeline thất bại vì hiệu năng
+  - Đóng gói công cụ bằng container và cố định phiên bản phụ thuộc
+  - Lưu kịch bản, cấu hình, commit ứng dụng, log và báo cáo của từng lần chạy
+  - Lên lịch chạy, ngăn các đợt tải xung đột và quản lý tài nguyên thử
+  - Xuất kết quả cho hệ thống báo cáo và theo dõi xu hướng qua các lần phát hành
+  - Thiết kế cơ chế dừng, dọn dữ liệu và thu bằng chứng khi job thất bại
+- level1: Bảo trì bộ kiểm thử
+  level2:
+  - Tổ chức thư mục kịch bản, dữ liệu, cấu hình và báo cáo trong kho mã nguồn
+  - Tách thành phần dùng chung và giữ kịch bản nghiệp vụ dễ đọc
+  - Rà soát kịch bản khi API, xác thực hoặc cấu trúc dữ liệu thay đổi
+  - Định phiên bản công cụ, plugin và thư viện để tái lập kết quả
+  - Quản lý vòng đời tài khoản thử, token và tập dữ liệu
+  - Cập nhật baseline sau thay đổi đã được xác minh và phê duyệt
+  - Đặt quy ước đặt tên giao dịch, nhãn số liệu và mã lần chạy
+  - Loại bỏ kịch bản trùng lặp hoặc không còn đại diện cho hệ thống
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng cùng một hành trình HTTP bằng JMeter, Gatling và k6
+  - Thiết kế luồng đăng nhập, đọc và cập nhật với dữ liệu riêng cho từng người dùng
+  - So sánh tải đóng và tải mở trên cùng một hệ thống đích
+  - Khảo sát cache nóng và cache lạnh với bộ dữ liệu được kiểm soát
+  - Phát hiện giới hạn thread pool hoặc connection pool bằng tăng tải theo bậc
+  - Thực hiện kiểm thử dài và điều tra dấu hiệu rò rỉ bộ nhớ
+  - Xây dựng JMH benchmark cho hai cách triển khai rồi đối chiếu giới hạn suy luận
+  - Tạo chiến dịch tải phân tán và kiểm tra sức khỏe máy tạo tải
+  - Thiết lập pipeline kiểm tra suy giảm hiệu năng với baseline và báo cáo lưu trữ
+  - Hoàn thiện hồ sơ kiểm thử gồm mục tiêu, kịch bản, số liệu và kết luận có bằng chứng

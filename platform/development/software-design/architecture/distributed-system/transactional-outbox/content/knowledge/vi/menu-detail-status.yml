@@ -1,0 +1,2440 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Transactional Outbox là gì và bài toán cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Quan hệ giữa giao dịch cơ sở dữ liệu, sự kiện và bộ môi giới thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vì sao cập nhật dữ liệu và phát sự kiện dễ mất nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của bên ghi, bảng Outbox, bộ chuyển tiếp và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt bảo đảm ghi nhận sự kiện với bảo đảm xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Trường hợp nên dùng, chi phí và giới hạn của Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lộ trình từ giao dịch cục bộ đến luồng sự kiện có thể phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dual-write-problem
+  title: Bài toán ghi kép
+  childs:
+  - slug: dual-write-problem-001
+    title: Phân tích ghi cơ sở dữ liệu trước rồi mới gửi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dual-write-problem-002
+    title: Phân tích gửi thông điệp trước rồi mới ghi cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dual-write-problem-003
+    title: Phân tích gửi thông điệp khi giao dịch chưa kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dual-write-problem-004
+    title: Lập bảng sự cố theo thời điểm tiến trình dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dual-write-problem-005
+    title: Nhận diện sự kiện bị mất, sự kiện không có dữ liệu và sự kiện trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dual-write-problem-006
+    title: Vì sao thử lại đơn thuần chưa giải quyết tính nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dual-write-problem-007
+    title: Đánh giá gọi sau commit, hàng đợi trong bộ nhớ và giao dịch phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dual-write-problem-008
+    title: Xác định yêu cầu nghiệp vụ trước khi chọn cơ chế phát sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Ghi dữ liệu nghiệp vụ và bản ghi Outbox trong cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-002
+    title: Đọc sự kiện đã commit và gửi qua bộ chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-003
+    title: Tách vòng đời yêu cầu nghiệp vụ khỏi quá trình phát thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-004
+    title: Mô tả luồng thành công bằng sơ đồ trình tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-005
+    title: Mô tả luồng rollback và lỗi phát thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-006
+    title: So sánh chuyển tiếp bằng polling và đọc nhật ký giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-007
+    title: Phân chia trách nhiệm giữa ứng dụng, cơ sở dữ liệu và hạ tầng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-008
+    title: Xác định ranh giới sở hữu Outbox theo dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency-guarantees
+  title: Bảo đảm nhất quán
+  childs:
+  - slug: consistency-guarantees-001
+    title: Tính nguyên tử giữa thay đổi nghiệp vụ và ý định phát sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-002
+    title: Không phát sự kiện của giao dịch đã rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-003
+    title: Điều kiện để sự kiện đã commit cuối cùng được chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-004
+    title: Phân biệt tính an toàn với khả năng tiếp tục tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-005
+    title: Hiểu tính nhất quán sau một khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-006
+    title: Phân biệt giao ít nhất một lần với xử lý nghiệp vụ không lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-007
+    title: Giới hạn của bảo đảm đúng một lần trên toàn bộ luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-008
+    title: Phân biệt xác nhận của broker với kết quả xử lý của consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-guarantees-009
+    title: Xác định điều kiện về độ bền dữ liệu, thời gian lưu và khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-contracts
+  title: Hợp đồng sự kiện
+  childs:
+  - slug: event-contracts-001
+    title: Phân biệt sự kiện miền và sự kiện tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-002
+    title: Đặt tên sự kiện theo sự việc nghiệp vụ đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-003
+    title: Thiết kế eventId ổn định qua các lần gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-004
+    title: Xác định aggregateId, loại đối tượng và loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-005
+    title: Phân biệt thời điểm nghiệp vụ, thời điểm ghi và thời điểm phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-006
+    title: Thiết kế nội dung dữ liệu đủ để bên nhận xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-007
+    title: Lưu correlationId, causationId và thông tin truy vết cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-008
+    title: Chọn khóa phân vùng theo yêu cầu thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-009
+    title: Tránh phụ thuộc cấu trúc bảng hoặc thực thể ORM trong hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: outbox-schema
+  title: Lược đồ Outbox
+  childs:
+  - slug: outbox-schema-001
+    title: Thiết kế bảng Outbox cho ứng dụng quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-002
+    title: Chọn kiểu khóa chính và ràng buộc duy nhất của sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-003
+    title: Lưu nội dung sự kiện dưới dạng JSON hoặc dữ liệu đã mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-004
+    title: Thiết kế trạng thái, số lần thử và thời điểm thử lại cho polling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-005
+    title: Lưu thông tin nhận việc và thời hạn sở hữu khi có nhiều bộ chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-006
+    title: Thiết kế chỉ mục theo truy vấn lấy việc và lịch thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-007
+    title: Phân biệt lược đồ polling có cập nhật với Outbox chỉ thêm mới cho CDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-008
+    title: Thiết kế bản ghi xóa nghiệp vụ mà vẫn giữ đủ nội dung sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: outbox-schema-009
+    title: Đánh đổi khi gộp nhiều loại sự kiện trong một bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-transactions
+  title: Giao dịch cục bộ
+  childs:
+  - slug: local-transactions-001
+    title: Xác định cùng cơ sở dữ liệu và cùng ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-002
+    title: Thực hiện cập nhật nghiệp vụ và thêm Outbox bằng JDBC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-003
+    title: Thực hiện cập nhật nghiệp vụ và thêm Outbox bằng JPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-004
+    title: Kiểm tra rollback khi một trong hai bước ghi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-005
+    title: Phân biệt flush với commit và thời điểm dữ liệu trở nên khả kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-006
+    title: Giữ dữ liệu sự kiện tương ứng với thay đổi được commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-007
+    title: Xử lý một giao dịch tạo nhiều sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-008
+    title: Tránh tạo Outbox từ dữ liệu đọc lại sau khi đã commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-transactions-009
+    title: Phân biệt chống lặp yêu cầu nghiệp vụ với chống lặp lần phát sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Đặt @Transactional tại lớp dịch vụ điều phối thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Kiểm tra transaction manager và nguồn dữ liệu được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Nhận diện lời gọi nội bộ không đi qua proxy giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Xác định quy tắc rollback đối với các loại ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: Tránh REQUIRES_NEW tách bản ghi Outbox khỏi giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Phân biệt sự kiện trong tiến trình với sự kiện tích hợp bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Đánh giá @TransactionalEventListener theo từng giai đoạn giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Vì sao AFTER_COMMIT và @Async không tự thay thế Transactional Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Kiểm chứng cấu hình giao dịch bằng kiểm thử tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: polling-publisher
+  title: Polling Publisher
+  childs:
+  - slug: polling-publisher-001
+    title: Thiết kế vòng lặp đọc, nhận việc, phát và hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-002
+    title: Chọn sự kiện đến hạn theo trạng thái và thời điểm thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-003
+    title: Giới hạn kích thước lô và thời gian mỗi lượt xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-004
+    title: Phân biệt chu kỳ polling cố định với thời gian nghỉ thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-005
+    title: Xử lý xác nhận bất đồng bộ từ thư viện gửi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-006
+    title: Đánh đổi giữa giữ khóa khi gửi và tách giao dịch nhận việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-007
+    title: Thiết kế vòng đời NEW, PROCESSING, PUBLISHED và FAILED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-008
+    title: Khởi động lại vòng lặp mà không bỏ quên công việc đang dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polling-publisher-009
+    title: Đảm bảo tác vụ nền không làm nghẽn giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locking-processing-ownership
+  title: Khóa và quyền xử lý
+  childs:
+  - slug: locking-processing-ownership-001
+    title: Ngăn nhiều bộ chuyển tiếp nhận cùng một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-002
+    title: Dùng SELECT FOR UPDATE SKIP LOCKED trong PostgreSQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-003
+    title: Hiểu giới hạn của SKIP LOCKED đối với thứ tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-004
+    title: Nhận việc bằng cập nhật nguyên tử và kiểm tra số dòng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-005
+    title: Thiết kế thời hạn sở hữu và thu hồi việc bị bỏ dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-006
+    title: Xử lý tiến trình chậm tiếp tục chạy sau khi quyền sở hữu hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-007
+    title: Dùng mã thế hệ hoặc điều kiện sở hữu khi cập nhật kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-008
+    title: Phân biệt ngăn ghi đè trạng thái với ngăn phát trùng ra broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-processing-ownership-009
+    title: Giữ giao dịch ngắn và theo dõi tranh chấp khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: publishing-acknowledgments
+  title: Xác nhận phát tin
+  childs:
+  - slug: publishing-acknowledgments-001
+    title: Xác định thế nào là broker đã chấp nhận thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-002
+    title: Cập nhật trạng thái hoàn tất sau xác nhận gửi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-003
+    title: Phân tích cửa sổ lỗi sau khi gửi nhưng trước khi ghi nhận hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-004
+    title: Xử lý hết thời gian chờ khi chưa biết thông điệp đã được nhận hay chưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-005
+    title: Cấu hình độ bền, xác nhận và thử lại của producer theo broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-006
+    title: Hiểu phạm vi chống trùng của Kafka idempotent producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-007
+    title: Phân biệt giao dịch Kafka với giao dịch cơ sở dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-008
+    title: Giữ nguyên định danh sự kiện khi phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-acknowledgments-009
+    title: Không suy ra consumer thành công từ trạng thái PUBLISHED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cdc
+  title: CDC
+  childs:
+  - slug: cdc-001
+    title: CDC là gì và quan hệ với nhật ký giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cdc-002
+    title: Đọc thay đổi đã commit để chuyển tiếp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cdc-003
+    title: Phân biệt CDC bảng nghiệp vụ với CDC bảng Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cdc-004
+    title: Theo dõi vị trí đọc và điểm phục hồi của bộ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cdc-005
+    title: Hiểu vai trò của snapshot ban đầu và dữ liệu đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cdc-006
+    title: Phân tích độ trễ và khả năng phát lại khi bộ kết nối khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cdc-007
+    title: Xác định quyền truy cập và cấu hình nhật ký của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cdc-008
+    title: Đánh đổi độ phức tạp vận hành giữa CDC và polling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debezium
+  title: Debezium
+  childs:
+  - slug: debezium-001
+    title: Tổ chức luồng PostgreSQL, Debezium, Kafka Connect và Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-002
+    title: Thiết kế các cột id, aggregateid, aggregatetype, type và payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-003
+    title: Cấu hình Outbox Event Router để chuyển đổi bản ghi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-004
+    title: Ánh xạ khóa sự kiện, nội dung, header và topic đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-005
+    title: Chỉ áp dụng phép biến đổi cho bản ghi Outbox phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-006
+    title: Phân biệt cấu hình dữ liệu JSON với định dạng thông điệp đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-007
+    title: Giữ mô hình chỉ thêm mới và hiểu xử lý UPDATE hoặc DELETE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-008
+    title: Kiểm tra snapshot, điểm đọc và hành vi phát lại theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-009
+    title: Quản lý replication slot, lượng WAL giữ lại và độ trễ bộ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debezium-010
+    title: Xác định chiến lược dọn bảng mà không làm mất sự kiện chưa thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-ordering
+  title: Thứ tự sự kiện
+  childs:
+  - slug: event-ordering-001
+    title: Xác định cần thứ tự toàn cục hay thứ tự theo đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-002
+    title: Thiết kế số phiên bản hoặc số thứ tự theo aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-003
+    title: Phân biệt thứ tự cấp số, thời điểm tạo và thứ tự commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-004
+    title: Điều phối các giao dịch cùng thay đổi một aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-005
+    title: Giữ cùng khóa phân vùng cho chuỗi sự kiện liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-006
+    title: Ngăn nhiều bộ chuyển tiếp làm đảo thứ tự phát trong cùng chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-007
+    title: Đánh đổi thứ tự với xử lý song song và thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-008
+    title: Xử lý sự kiện đến trễ, thiếu số thứ tự hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-009
+    title: Hiểu tác động của thử lại và sự kiện lỗi lên thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deduplication
+  title: Chống xử lý trùng
+  childs:
+  - slug: deduplication-001
+    title: Phân biệt gửi trùng, giao lại và lặp yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-002
+    title: Xác định ranh giới tác động cần bảo đảm không lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-003
+    title: Thiết kế consumer có tính lũy đẳng theo eventId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-004
+    title: Ghi dấu sự kiện đã xử lý và thay đổi nghiệp vụ trong cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-005
+    title: Dùng ràng buộc duy nhất để xử lý nhiều bản sao đến đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-006
+    title: Phân biệt kiểm tra rồi ghi với thao tác có bảo vệ ở cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-007
+    title: Xác nhận thông điệp hoặc commit offset sau khi xử lý thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-008
+    title: Thiết kế Inbox và phạm vi định danh theo bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-009
+    title: Giới hạn của chống trùng trong bộ nhớ hoặc bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-010
+    title: Xử lý tác động bên ngoài bằng khóa chống lặp hoặc Outbox tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retries
+  title: Thử lại
+  childs:
+  - slug: retries-001
+    title: Phân loại lỗi tạm thời, lỗi dữ liệu và lỗi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-002
+    title: Lùi thời gian thử lại theo cấp số nhân và thêm độ ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-003
+    title: Lưu số lần thử và lịch xử lý lại qua các lần khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-004
+    title: Thiết kế giới hạn thời gian chờ và thời gian giữ quyền xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-005
+    title: Tránh nhiều tầng thử lại làm khuếch đại tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-006
+    title: Tạm dừng hoặc giảm tốc khi broker gặp sự cố kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-007
+    title: Giữ định danh và nội dung sự kiện nhất quán giữa các lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-008
+    title: Theo dõi sự kiện bị trì hoãn mà vẫn bảo toàn yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failed-events
+  title: Sự kiện lỗi
+  childs:
+  - slug: failed-events-001
+    title: Nhận diện sự kiện luôn làm quá trình phát hoặc xử lý thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failed-events-002
+    title: Phân biệt lỗi trước broker với lỗi tại consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failed-events-003
+    title: Thiết kế trạng thái cách ly và hàng đợi thư lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failed-events-004
+    title: Lưu lý do lỗi cùng thông tin đủ để điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failed-events-005
+    title: Đánh đổi bỏ qua sự kiện với dừng chuỗi cần giữ thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failed-events-006
+    title: Xây dựng quy trình sửa dữ liệu và phát lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failed-events-007
+    title: Phân biệt gửi lại cùng sự kiện với tạo một sự kiện sửa sai mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failed-events-008
+    title: Ngăn vòng lặp đưa sự kiện lỗi trở lại luồng vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-evolution
+  title: Tiến hóa hợp đồng
+  childs:
+  - slug: contract-evolution-001
+    title: Gắn phiên bản và xác định quy tắc tương thích của sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-002
+    title: Thêm trường mà vẫn hỗ trợ consumer cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-003
+    title: Đổi tên, loại bỏ trường và thay đổi ý nghĩa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-004
+    title: Chọn JSON, Avro hoặc Protobuf theo yêu cầu hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-005
+    title: Đánh giá vai trò của schema registry khi được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-006
+    title: Triển khai producer và consumer lệch phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-007
+    title: Đọc lại sự kiện cũ và chuyển đổi sang mô hình mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-008
+    title: Kiểm thử hợp đồng trước khi phát hành thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-cleanup
+  title: Dọn dữ liệu
+  childs:
+  - slug: data-cleanup-001
+    title: Xác định điều kiện an toàn để xóa hoặc lưu trữ bản ghi Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-cleanup-002
+    title: Tách thời gian lưu Outbox, thông điệp broker và dấu chống trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-cleanup-003
+    title: Dọn dữ liệu polling theo trạng thái hoàn tất và thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-cleanup-004
+    title: Dọn dữ liệu CDC theo tiến độ thu thập và phương án phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-cleanup-005
+    title: Xóa theo lô để giới hạn khóa, tải I/O và thời lượng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-cleanup-006
+    title: Đánh giá phân vùng bảng, chỉ mục và bảo trì cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-cleanup-007
+    title: Giữ đủ thông tin để điều tra và đối soát sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-cleanup-008
+    title: Ngăn lịch dọn dữ liệu làm mất khả năng phát lại cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-recovery
+  title: Khôi phục hệ thống
+  childs:
+  - slug: system-recovery-001
+    title: Khôi phục sau khi tiến trình ghi nghiệp vụ dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-recovery-002
+    title: Khôi phục bộ chuyển tiếp khi còn bản ghi đang được nhận xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-recovery-003
+    title: Khởi động lại CDC và kiểm tra điểm đọc đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-recovery-004
+    title: Xử lý mất nhật ký giao dịch hoặc vị trí đọc không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-recovery-005
+    title: Đánh giá khôi phục cơ sở dữ liệu về thời điểm trước các sự kiện đã phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-recovery-006
+    title: Đối soát dữ liệu nghiệp vụ, Outbox và kết quả bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-recovery-007
+    title: Xác định phạm vi phát lại sau sự cố và nguy cơ tác động trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-recovery-008
+    title: Lập quy trình phục hồi mà vẫn giữ thứ tự cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Đo số bản ghi chờ và tuổi của sự kiện cũ nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Phân biệt độ trễ ghi Outbox, chuyển tiếp và xử lý tại consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Theo dõi tốc độ ghi, tốc độ phát và tốc độ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Đo tỷ lệ thử lại, sự kiện lỗi và công việc quá hạn sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Theo dõi độ trễ CDC, replication slot và dung lượng nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Liên kết nhật ký và dấu vết bằng eventId cùng correlationId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Thiết kế cảnh báo dựa trên thời gian chờ và mục tiêu phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Xây dựng bảng theo dõi và hướng dẫn điều tra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Ước lượng tải ghi thêm do bảng Outbox và chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo độ trễ giao dịch nghiệp vụ khi thêm sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tối ưu truy vấn lấy việc bằng chỉ mục và giới hạn lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Cân bằng chu kỳ polling giữa độ trễ và tải cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Cân bằng số lần gửi đồng thời với giới hạn broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Xử lý sự kiện có nội dung lớn và giới hạn kích thước thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Giảm áp lực bộ nhớ khi có nhiều xác nhận gửi đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Điều tiết tốc độ khi lượng ghi vượt khả năng chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đo thông lượng ổn định và thời gian giải phóng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scaling
+  title: Mở rộng
+  childs:
+  - slug: scaling-001
+    title: Chia việc cho nhiều bộ chuyển tiếp theo lô hoặc phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-002
+    title: Giữ quyền sở hữu sự kiện khi thêm hoặc bớt tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-003
+    title: Phân vùng theo aggregate và xử lý đối tượng có tải cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-004
+    title: Thiết kế Outbox khi dữ liệu nghiệp vụ được chia nhiều cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-005
+    title: Giữ tính nguyên tử trong đúng phạm vi giao dịch của từng phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-006
+    title: Đánh giá Outbox nhúng trong tài liệu của cơ sở dữ liệu NoSQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-007
+    title: Tách dữ liệu và giới hạn tài nguyên giữa nhiều khách thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-008
+    title: Xác định giới hạn của kiến trúc khi triển khai nhiều vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Giảm dữ liệu nhạy cảm trong nội dung và header sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Phân quyền riêng cho ứng dụng, bộ chuyển tiếp và CDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Bảo vệ kết nối đến cơ sở dữ liệu và broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Quản lý thông tin xác thực bằng cấu hình bí mật phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Kiểm soát quyền truy cập topic, hàng đợi và dữ liệu cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Tránh làm lộ nội dung sự kiện trong nhật ký và công cụ giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Kiểm tra lược đồ, kích thước và nguồn dữ liệu tại bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị việc xây dựng dữ liệu sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử commit đồng thời dữ liệu nghiệp vụ và Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử rollback khi ghi nghiệp vụ hoặc ghi Outbox thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử polling với nhiều bộ chuyển tiếp trên PostgreSQL thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử broker và CDC bằng hạ tầng cô lập hoặc Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử consumer nhận cùng sự kiện nhiều lần và đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử thứ tự theo aggregate trong điều kiện cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử tương thích dữ liệu sự kiện giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử dọn dữ liệu và quy trình phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tránh dựa vào cơ sở dữ liệu giả để kết luận về khóa và giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-injection
+  title: Thử nghiệm sự cố
+  childs:
+  - slug: failure-injection-001
+    title: Dừng tiến trình trước và sau commit giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-002
+    title: Dừng bộ chuyển tiếp sau khi broker nhận nhưng trước khi ghi hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-003
+    title: Làm hết thời gian chờ khi kết quả gửi chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-004
+    title: Để quyền xử lý hết hạn khi tiến trình cũ vẫn còn chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-005
+    title: Ngắt broker rồi quan sát tồn đọng và quá trình phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-006
+    title: Dừng CDC đủ lâu để kiểm tra lượng nhật ký giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-007
+    title: Đưa sự kiện lỗi vào giữa chuỗi cần bảo toàn thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-008
+    title: Cho consumer dừng sau khi commit nghiệp vụ nhưng trước khi xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-injection-009
+    title: Đối chiếu dữ liệu cuối cùng với các điều kiện nhất quán đã đặt ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Ghim phiên bản cơ sở dữ liệu, broker, thư viện và bộ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Quản lý thay đổi lược đồ Outbox tương thích với tiến trình đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Bật luồng phát sự kiện từng bước và kiểm tra trước khi chuyển tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Ngăn polling và CDC cùng phát một tập sự kiện ngoài chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Dừng nhận việc mới và hoàn tất công việc đang dở khi tắt tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Kiểm soát phát lại khi thay cấu hình topic hoặc bộ định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Chuẩn bị giới hạn tài nguyên, giám sát và quy trình trực vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Ghi lại giả định về thứ tự, lưu giữ và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: related-patterns
+  title: Mẫu liên quan
+  childs:
+  - slug: related-patterns-001
+    title: 'Outbox và Inbox: bảo đảm ở phía phát với phía nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-002
+    title: 'Outbox và Saga: phát thông điệp cho các bước nghiệp vụ phân tán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-003
+    title: 'Outbox và CQRS: cập nhật mô hình đọc qua sự kiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-004
+    title: 'Outbox và Event Sourcing: ý định phát với nguồn lịch sử nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-005
+    title: 'Outbox và 2PC: giao dịch cục bộ với phối hợp giao dịch phân tán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-006
+    title: 'Outbox và CDC trực tiếp bảng nghiệp vụ: hợp đồng có chủ đích với thay đổi dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-007
+    title: 'Outbox và hàng đợi tác vụ: phân phối sự kiện với điều phối công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-008
+    title: 'Outbox và lời gọi đồng bộ: lựa chọn theo nhu cầu phản hồi và nhất quán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-mistakes
+  title: Lỗi thiết kế
+  childs:
+  - slug: design-mistakes-001
+    title: Ghi Outbox ở giao dịch khác với dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-002
+    title: Đánh dấu hoàn tất trước khi broker xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-003
+    title: Cho rằng @Transactional tự bao trùm cơ sở dữ liệu và broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-004
+    title: Cho rằng Kafka chống trùng producer loại bỏ mọi bản sao Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-005
+    title: Dùng thời điểm tạo hoặc khóa tăng dần để suy ra thứ tự commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-006
+    title: Cho rằng cùng khóa Kafka tự sửa thứ tự phát đã bị đảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-007
+    title: Thêm bản ghi Outbox từ listener sau commit mà không xử lý cửa sổ mất sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-008
+    title: Làm lại eventId ở mỗi lần gửi hoặc dùng sai phạm vi chống trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-009
+    title: Dọn dữ liệu quá sớm hoặc không theo dõi sự kiện bị kẹt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-010
+    title: Trộn trạng thái cập nhật của polling vào luồng CDC chỉ nhận thêm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-011
+    title: Bỏ qua tác động bên ngoài và gọi toàn bộ luồng là đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây dựng ví dụ tạo đơn hàng và ghi Outbox trong một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Triển khai bộ chuyển tiếp polling với xác nhận gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Thêm nhận việc có thời hạn và chạy nhiều bộ chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Xây dựng consumer có Inbox và ràng buộc chống xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Chuyển ví dụ sang CDC với Debezium Outbox Event Router
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Thiết kế và kiểm chứng thứ tự sự kiện theo đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Bổ sung thử lại, cách ly và phát lại sự kiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Tạo số liệu độ trễ, tồn đọng và cảnh báo cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Thực hiện các thử nghiệm dừng tiến trình tại cửa sổ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: So sánh polling với CDC bằng độ đúng, chi phí và khả năng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Tự đánh giá toàn bộ luồng theo các điều kiện nhất quán đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

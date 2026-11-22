@@ -1,0 +1,7 @@
+# Java Core – Functional Programming
+
+Lập trình hàm là cách tổ chức chương trình bằng những phép biến đổi dữ liệu có thể kết hợp và tái sử dụng, đồng thời hạn chế trạng thái thay đổi và tác dụng phụ khi phù hợp. Trong Java, phong cách này bổ sung cho lập trình hướng đối tượng: thay vì mô tả từng bước xử lý trong một vòng lặp, bạn có thể diễn đạt ý định thông qua hàm, điều kiện lọc và các chuỗi biến đổi. Hiểu tư duy hàm giúp mã dễ đọc, dễ kiểm thử và giúp bạn nhận biết lúc nào cách tiếp cận này mang lại lợi ích.
+
+Module dành cho người đã biết cú pháp Java, lớp và đối tượng, generics cơ bản cùng cách thao tác dữ liệu. Bạn sẽ đi từ **tư duy hàm** đến **giao diện hàm** như `Predicate`, `Function`, `Consumer` và `Supplier`; sau đó thực hành **lambda**, kiểu đích, biến được bắt giữ và **tham chiếu phương thức**. Khi đã nắm các đơn vị xử lý cơ bản, bạn sẽ học cách **kết hợp hàm** để tạo các thao tác nhỏ, rõ trách nhiệm và có thể dùng lại.
+
+Phần tiếp theo tập trung vào **Stream API** với `filter`, `map`, `flatMap` và cơ chế thực thi lười, rồi đến `reduce`, `collect`, `Collectors` và các điều kiện cần cân nhắc khi xử lý song song. Cuối cùng, bạn sử dụng **Optional** để biểu diễn kết quả có thể vắng mặt và luyện tập chuyển một bài toán dữ liệu thành chuỗi xử lý có tác dụng phụ được kiểm soát. Kết thúc lộ trình, bạn có thể lựa chọn giữa cách viết mệnh lệnh và phong cách hàm, giải thích hành vi của từng phép biến đổi và kiểm thử kết quả một cách có cơ sở.

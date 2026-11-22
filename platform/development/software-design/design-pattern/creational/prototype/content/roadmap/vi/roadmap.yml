@@ -1,0 +1,57 @@
+roadmap:
+- id: khi-nao-dung-prototype
+  title: Khi nào dùng Prototype
+  purpose: Nhận diện trường hợp cần tạo bản sao từ đối tượng có cấu hình sẵn mà không phụ thuộc lớp cụ thể.
+  objectives:
+  - Nêu ví dụ khởi tạo đối tượng tốn công
+  - Phân biệt tạo mới và sao chép đối tượng
+  - Xác định lợi ích và giới hạn của Prototype
+- id: prototype-contract
+  title: Prototype Contract
+  purpose: Thiết kế hợp đồng copy chung để client có thể sao chép đa hình.
+  objectives:
+  - Định nghĩa interface với phương thức copy()
+  - Viết client chỉ phụ thuộc hợp đồng
+  - Kiểm tra bản sao giữ đúng kiểu cụ thể
+- id: concrete-prototypes
+  title: Concrete Prototypes
+  purpose: Hiện thực sao chép trạng thái trong từng lớp mà vẫn bảo đảm bất biến đối tượng.
+  objectives:
+  - Tạo hai ConcretePrototype trong Java
+  - Viết copy constructor cho lớp cụ thể
+  - Sao chép đầy đủ dữ liệu lớp cha và lớp con
+- id: shallow-deep-copy
+  title: Shallow & Deep Copy
+  purpose: Phân biệt việc chia sẻ tham chiếu với sao chép độc lập các thành phần có thể thay đổi.
+  objectives:
+  - Mô phỏng shallow copy với List mutable
+  - Tạo deep copy cho đối tượng lồng nhau
+  - Thử sửa bản sao để phát hiện aliasing
+- id: cloneable-object-clone
+  title: Cloneable & Object.clone
+  purpose: Hiểu cơ chế clone sẵn có của Java và các điểm dễ gây lỗi khi dùng.
+  objectives:
+  - Giải thích vai trò marker interface Cloneable
+  - Thử Object.clone() và xử lý ngoại lệ
+  - So sánh clone() với copy constructor
+- id: prototype-registry
+  title: Prototype Registry
+  purpose: Tái sử dụng mẫu đối tượng được cấu hình trước để tạo bản sao theo khóa.
+  objectives:
+  - Lưu các mẫu trong Map theo tên
+  - Trả về bản sao thay vì đối tượng mẫu
+  - Thử đăng ký và thay đổi prototype
+- id: kiem-thu-tinh-doc-lap
+  title: Kiểm thử tính độc lập
+  purpose: Kiểm chứng bản sao đúng dữ liệu nhưng không gây tác dụng phụ lên đối tượng gốc.
+  objectives:
+  - So sánh identity và nội dung bản sao
+  - Thử thay đổi collection ở mỗi phía
+  - Nhận diện vòng tham chiếu và tài nguyên không nên copy
+- id: danh-doi-so-sanh
+  title: Đánh đổi & So sánh
+  purpose: Chọn Prototype phù hợp thay vì mặc định dùng cho mọi nhu cầu tạo đối tượng.
+  objectives:
+  - So sánh Prototype với Factory Method
+  - Đánh giá chi phí deep copy và khởi tạo
+  - Giải thích khi constructor hoặc Builder đơn giản hơn

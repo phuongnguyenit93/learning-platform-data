@@ -1,0 +1,57 @@
+roadmap:
+- id: lap-trinh-menh-lenh
+  title: Lập trình mệnh lệnh
+  purpose: Hiểu chương trình imperative là chuỗi lệnh làm thay đổi trạng thái, khác với mô tả kết quả cần có.
+  objectives:
+  - Vẽ luồng input → các lệnh → output
+  - Chỉ ra trạng thái thay đổi sau từng lệnh
+  - So sánh cách imperative với mô tả declarative
+- id: bien-phep-gan-pham-vi
+  title: Biến, phép gán & phạm vi
+  purpose: Theo dõi giá trị chương trình qua khai báo, phép gán và phạm vi tồn tại của biến.
+  objectives:
+  - Khai báo, khởi tạo và cập nhật biến Java
+  - Lập bảng trạng thái trước/sau các phép gán
+  - Phân biệt local variable với field
+- id: bieu-thuc-side-effect
+  title: Biểu thức & side effect
+  purpose: Hiểu thứ tự đánh giá và tác dụng phụ để đọc đúng hành vi của một đoạn mã.
+  objectives:
+  - Phân biệt expression, statement và block
+  - Dự đoán kết quả phép toán và toán tử gán
+  - Nhận diện side effect và tránh biểu thức khó đọc
+- id: dieu-kien-re-nhanh
+  title: Điều kiện & rẽ nhánh
+  purpose: Thay đổi luồng thực thi dựa trên điều kiện bằng cấu trúc điều khiển rõ ràng.
+  objectives:
+  - Viết if/else và switch cho quy tắc nghiệp vụ
+  - Vẽ flowchart cho các nhánh điều kiện
+  - Kiểm thử các trường hợp biên của mỗi nhánh
+- id: vong-lap-bat-bien
+  title: Vòng lặp & bất biến
+  purpose: Lặp lại thao tác có điều kiện dừng để giải quyết bài toán trên tập dữ liệu.
+  objectives:
+  - Dùng for, while và do-while đúng tình huống
+  - Theo dõi biến đếm và điều kiện dừng
+  - Phát hiện off-by-one và vòng lặp vô hạn
+- id: thu-tuc-phan-ra-cong-viec
+  title: Thủ tục & phân rã công việc
+  purpose: Tổ chức chuỗi lệnh thành phương thức nhỏ, có hợp đồng và trách nhiệm cụ thể.
+  objectives:
+  - Tách thuật toán thành các method Java
+  - Phân biệt tham số, return và void
+  - Xác định phần thay đổi trạng thái khi gọi hàm
+- id: trang-thai-du-lieu-tham-chieu
+  title: Trạng thái dữ liệu & tham chiếu
+  purpose: Áp dụng các thao tác mệnh lệnh với mảng và đối tượng mutable mà không gây side effect ngoài ý muốn.
+  objectives:
+  - Cập nhật phần tử mảng qua chỉ số và vòng lặp
+  - Giải thích khác biệt gán giá trị và gán tham chiếu
+  - Nhận diện aliasing khi nhiều biến trỏ cùng object
+- id: truy-vet-loi-kiem-thu
+  title: Truy vết, lỗi & kiểm thử
+  purpose: Đọc được trình tự chạy và kiểm chứng hành vi khi chương trình gặp lỗi hoặc đầu vào khác nhau.
+  objectives:
+  - Dry-run một thuật toán qua bảng trạng thái
+  - Dùng try/catch và phân biệt lỗi với đường đi thường
+  - Viết test cho nhánh, vòng lặp và side effect

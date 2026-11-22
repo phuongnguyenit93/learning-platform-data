@@ -1,0 +1,2470 @@
+menu:
+- slug: exception-overview
+  title: Tổng quan
+  childs:
+  - slug: exception-overview-001
+    title: Ngoại lệ là gì và vấn đề cần giải quyết
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-overview-002
+    title: Phân biệt lỗi biên dịch, thất bại khi chạy và kết quả nghiệp vụ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-overview-003
+    title: Vì sao dùng ngoại lệ thay cho mã lỗi hoặc giá trị đặc biệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-overview-004
+    title: 'Các thành phần: nơi phát sinh, nơi gọi và nơi xử lý'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-overview-005
+    title: Quan hệ giữa ngoại lệ, hợp đồng phương thức và trạng thái chương trình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-overview-006
+    title: 'Một ví dụ xuyên suốt: đọc và xử lý dữ liệu đầu vào'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-overview-007
+    title: Kiến thức tiên quyết và trình tự học đề xuất
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-overview-008
+    title: Phạm vi Java Core và cách đối chiếu phiên bản JDK
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-hierarchy
+  title: Phân cấp ngoại lệ
+  childs:
+  - slug: exception-hierarchy-001
+    title: Throwable là gốc của hệ phân cấp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-hierarchy-002
+    title: Exception và RuntimeException
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-hierarchy-003
+    title: Error và VirtualMachineError
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-hierarchy-004
+    title: 'Checked exception: quy tắc bắt hoặc khai báo'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-hierarchy-005
+    title: 'Unchecked exception: RuntimeException, Error và các lớp con'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-hierarchy-006
+    title: Phân biệt quy tắc checked với khả năng phục hồi thực tế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-hierarchy-007
+    title: Quan hệ kiểu cha, kiểu con và lựa chọn catch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-hierarchy-008
+    title: Vì sao catch Exception không bắt mọi Throwable
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-control-flow
+  title: Luồng thực thi
+  childs:
+  - slug: exception-control-flow-001
+    title: Hoàn tất bình thường và hoàn tất đột ngột
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-002
+    title: Ngoại lệ phát sinh từ mã Java, API hoặc JVM
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-003
+    title: Dừng phần biểu thức hoặc câu lệnh chưa hoàn tất
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-004
+    title: Lan truyền ngoại lệ dọc theo ngăn xếp lời gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-005
+    title: Tìm khối catch phù hợp gần nhất
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-006
+    title: Vị trí tiếp tục thực thi sau khi xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-007
+    title: Ngoại lệ chưa được bắt và việc kết thúc luồng hiện tại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-008
+    title: Giới hạn giữa ngoại lệ đồng bộ và ngoại lệ bất đồng bộ của JVM
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-control-flow-009
+    title: Giải phóng monitor khi rời synchronized do ngoại lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: throw-statement
+  title: Lệnh throw
+  childs:
+  - slug: throw-statement-001
+    title: Cú pháp throw và yêu cầu kiểu Throwable
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throw-statement-002
+    title: Tạo đối tượng ngoại lệ bằng constructor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throw-statement-003
+    title: Phân biệt tạo ngoại lệ với ném ngoại lệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throw-statement-004
+    title: Ném ngoại lệ có thông điệp và ngữ cảnh phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throw-statement-005
+    title: throw null và NullPointerException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throw-statement-006
+    title: Ném lại cùng đối tượng ngoại lệ bằng throw e
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throw-statement-007
+    title: Đường thực thi không thể tới sau throw
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throw-statement-008
+    title: Throw trong nhánh switch và luồng điều khiển có trả về giá trị
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: throws-clause
+  title: Mệnh đề throws
+  childs:
+  - slug: throws-clause-001
+    title: Cú pháp throws trên phương thức và constructor
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-002
+    title: Khai báo một hoặc nhiều kiểu ngoại lệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-003
+    title: Quan hệ giữa kiểu được khai báo và lớp con thực sự bị ném
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-004
+    title: Phân biệt throw với throws
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-005
+    title: Lan truyền checked exception qua nhiều tầng lời gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-006
+    title: Khi nào nên catch và khi nào nên tiếp tục throws
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-007
+    title: Khai báo unchecked exception và vai trò tài liệu hóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-008
+    title: Vì sao throws không có nghĩa phương thức luôn phát sinh lỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throws-clause-009
+    title: Hợp đồng ngoại lệ của main và giới hạn khi đẩy lỗi lên trên cùng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: try-catch
+  title: Try và catch
+  childs:
+  - slug: try-catch-001
+    title: Cú pháp try-catch và phạm vi được bảo vệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-002
+    title: Bắt ngoại lệ theo kiểu đối tượng thực tế
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-003
+    title: Nhiều khối catch và thứ tự từ cụ thể đến tổng quát
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-004
+    title: Khối catch đầu tiên phù hợp được thực thi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-005
+    title: Phạm vi của biến trong try và tham số catch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-006
+    title: Biến cục bộ và yêu cầu được gán giá trị chắc chắn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-007
+    title: Ngoại lệ phát sinh ngay trong khối catch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-008
+    title: Try-catch lồng nhau và ranh giới xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-009
+    title: Catch không thể tới do khối catch trước đã bao phủ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-catch-010
+    title: Quy tắc bắt checked exception mà khối try không thể ném
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-catch-rethrow
+  title: Multi-catch và rethrow
+  childs:
+  - slug: multi-catch-rethrow-001
+    title: Multi-catch từ Java 7 và cú pháp dấu |
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-rethrow-002
+    title: Khi nào nhiều loại ngoại lệ có thể dùng chung một cách xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-rethrow-003
+    title: Không đặt kiểu cha và kiểu con trong cùng multi-catch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-rethrow-004
+    title: Tham số multi-catch ngầm định final
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-rethrow-005
+    title: Giới hạn thành viên được truy cập qua tham số multi-catch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-rethrow-006
+    title: Precise rethrow và suy ra tập checked exception hẹp hơn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-rethrow-007
+    title: Ảnh hưởng của final, effectively final và việc gán lại tham số catch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-rethrow-008
+    title: So sánh multi-catch với catch kiểu cha quá rộng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: finally
+  title: Khối finally
+  childs:
+  - slug: finally-001
+    title: Cú pháp try-finally và try-catch-finally
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-002
+    title: Finally khi try hoàn tất bình thường hoặc có ngoại lệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-003
+    title: Finally khi return, break hoặc continue
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-004
+    title: Giá trị trả về được tính trước khi thực thi finally
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-005
+    title: Thay đổi đối tượng trả về khác thay đổi biến cục bộ như thế nào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-006
+    title: Return hoặc throw trong finally che mất kết quả trước đó
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-007
+    title: Ngoại lệ cleanup che mất ngoại lệ ban đầu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-008
+    title: Giới hạn thực thi finally khi JVM dừng, tiến trình bị kết thúc hoặc mã không thoát
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finally-009
+    title: Phân biệt finally, final và finalize
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: try-with-resources
+  title: Try-with-resources
+  childs:
+  - slug: try-with-resources-001
+    title: Mục đích và cú pháp try-with-resources từ Java 7
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-002
+    title: AutoCloseable và Closeable
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-003
+    title: Resource được khai báo trong try và phạm vi sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-004
+    title: Dùng resource có sẵn là final hoặc effectively final từ Java 9
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-005
+    title: Thứ tự tạo tài nguyên từ trái sang phải
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-006
+    title: Thứ tự đóng tài nguyên ngược với thứ tự tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-007
+    title: Xử lý khi việc tạo một tài nguyên thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-008
+    title: Tài nguyên null và lời gọi close tự động
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-009
+    title: Ngoại lệ từ thân try, close và nguyên tắc chọn ngoại lệ chính
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-010
+    title: Try-with-resources kết hợp catch và finally
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-011
+    title: Tài nguyên được đóng khi return hoặc thoát đột ngột
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-012
+    title: Quyền sở hữu tài nguyên và trường hợp không nên tự động đóng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: throwable-internals
+  title: Đối tượng Throwable
+  childs:
+  - slug: throwable-internals-001
+    title: Các constructor với message, cause và cấu hình nâng cao
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-002
+    title: getMessage, getLocalizedMessage và toString
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-003
+    title: Stack trace được ghi nhận tại thời điểm nào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-004
+    title: printStackTrace và cách biểu diễn đầy đủ một ngoại lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-005
+    title: getStackTrace và cấu trúc StackTraceElement
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-006
+    title: fillInStackTrace và tác động khi cập nhật dấu vết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-007
+    title: setStackTrace và giới hạn khi tự thay đổi thông tin chẩn đoán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-008
+    title: getCause, initCause và điều kiện khởi tạo nguyên nhân
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-009
+    title: addSuppressed và getSuppressed
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: throwable-internals-010
+    title: Cấu hình enableSuppression và writableStackTrace
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cause-and-suppressed
+  title: Nguyên nhân và lỗi phụ
+  childs:
+  - slug: cause-and-suppressed-001
+    title: Exception chaining và ý nghĩa của quan hệ cause
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-002
+    title: Giữ nguyên nguyên nhân khi bọc ngoại lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-003
+    title: Phân biệt ngoại lệ ngoài cùng với nguyên nhân sâu nhất
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-004
+    title: Suppressed exception và quan hệ với try-with-resources
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-005
+    title: Phân biệt cause với suppressed exception
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-006
+    title: Nhiều lần close thất bại và thứ tự lỗi phụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-007
+    title: Giới hạn với self-cause, self-suppression và giá trị null
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-008
+    title: Đọc cây ngoại lệ thay vì chỉ đọc dòng thông điệp cuối
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cause-and-suppressed-009
+    title: Giữ cả lỗi chính và lỗi cleanup khi quản lý tài nguyên thủ công
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-exceptions
+  title: Ngoại lệ tùy chỉnh
+  childs:
+  - slug: custom-exceptions-001
+    title: Khi nào cần định nghĩa loại ngoại lệ riêng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-002
+    title: Chọn extends Exception hay extends RuntimeException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-003
+    title: Đặt tên theo tình huống thất bại và mức trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-004
+    title: Constructor hỗ trợ message và cause
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-005
+    title: Thuộc tính ngữ cảnh có kiểu và tránh dữ liệu dư thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-006
+    title: Thiết kế hệ phân cấp theo cách bên gọi cần xử lý
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-007
+    title: Giữ thông tin lỗi độc lập với câu chữ của message
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-008
+    title: 'Giới hạn generic: lớp con Throwable không được có tham số kiểu'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-009
+    title: Serialization và serialVersionUID khi hợp đồng có yêu cầu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-exceptions-010
+    title: Tránh kế thừa trực tiếp Throwable hoặc Error khi không phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-inheritance
+  title: Kế thừa và hợp đồng
+  childs:
+  - slug: exception-inheritance-001
+    title: Checked exception trong phương thức ghi đè
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-002
+    title: Không mở rộng tập checked exception được phép ném
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-003
+    title: Thu hẹp hoặc bỏ khai báo checked exception
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-004
+    title: Unchecked exception khi ghi đè
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-005
+    title: Một phương thức thực thi nhiều interface có throws khác nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-006
+    title: Overload, kiểu khai báo của tham chiếu và tập ngoại lệ cần xử lý
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-007
+    title: Checked exception của constructor lớp cha
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-008
+    title: Checked exception trong instance initializer và các constructor
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-inheritance-009
+    title: Static initializer, checked exception và lỗi khởi tạo lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lambda-generic-exceptions
+  title: Lambda và generic
+  childs:
+  - slug: lambda-generic-exceptions-001
+    title: Checked exception trong lambda theo hợp đồng của kiểu hàm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-002
+    title: Method reference và tính tương thích của throws
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-003
+    title: Runnable, Callable và khác biệt về khai báo ngoại lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-004
+    title: Vì sao Function, Consumer và Supplier thông thường gây vướng với checked exception
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-005
+    title: Bắt tại lambda, chuyển đổi ngoại lệ hoặc chọn interface riêng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-006
+    title: Phương thức generic có tham số kiểu mở rộng Throwable
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-007
+    title: Giới hạn của catch đối với type parameter
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-008
+    title: Suy luận kiểu với throws và rủi ro của sneaky throw
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-generic-exceptions-009
+    title: Giữ hợp đồng rõ ràng khi kết hợp Stream và thao tác có thể thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-runtime-exceptions
+  title: Ngoại lệ runtime
+  childs:
+  - slug: common-runtime-exceptions-001
+    title: 'NullPointerException: dereference, unboxing và đầu vào null'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-002
+    title: IllegalArgumentException và IllegalStateException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-003
+    title: IndexOutOfBoundsException và ArrayIndexOutOfBoundsException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-004
+    title: NumberFormatException và chuyển đổi dữ liệu đầu vào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-005
+    title: ArithmeticException với phép toán số nguyên và các phép toán exact
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-006
+    title: Phân biệt chia số thực cho 0 với chia số nguyên cho 0
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-007
+    title: ClassCastException và ArrayStoreException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-008
+    title: NegativeArraySizeException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-009
+    title: NoSuchElementException và truy cập khi không có phần tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-010
+    title: UnsupportedOperationException và thao tác tùy chọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-011
+    title: ConcurrentModificationException và giới hạn của cơ chế fail-fast
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-runtime-exceptions-012
+    title: Objects.requireNonNull và kiểm tra điều kiện trước khi xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-exceptions
+  title: Ngoại lệ API
+  childs:
+  - slug: api-exceptions-001
+    title: IOException, FileNotFoundException và lỗi đọc ghi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-002
+    title: NoSuchFileException, AccessDeniedException và các lỗi NIO
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-003
+    title: EOFException và xử lý dữ liệu kết thúc sớm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-004
+    title: SocketException, SocketTimeoutException và lỗi mạng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-005
+    title: 'SQLException: cause, SQLState và chuỗi nextException'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-006
+    title: ParseException, DateTimeParseException và ngữ cảnh phân tích dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-007
+    title: ReflectiveOperationException và các lỗi tra cứu bằng reflection
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-008
+    title: InvocationTargetException và ngoại lệ thật của phương thức được gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-009
+    title: ClassNotFoundException khác NoClassDefFoundError
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-010
+    title: UndeclaredThrowableException khi dùng dynamic proxy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-exceptions-011
+    title: UncheckedIOException khi API không khai báo checked IOException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-and-initialization
+  title: Error và khởi tạo
+  childs:
+  - slug: error-and-initialization-001
+    title: Khi nào Error được phát sinh và phạm vi xử lý phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-002
+    title: AssertionError và câu lệnh assert
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-003
+    title: Không dùng assert thay kiểm tra đầu vào công khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-004
+    title: OutOfMemoryError và giới hạn phục hồi trong cùng tiến trình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-005
+    title: StackOverflowError và đệ quy không kiểm soát
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-006
+    title: LinkageError và các vấn đề tương thích mã đã biên dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-007
+    title: ExceptionInInitializerError khi khởi tạo static thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-008
+    title: NoClassDefFoundError trong lần sử dụng sau một lần khởi tạo thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-and-initialization-009
+    title: Vì sao bắt Throwable hoặc Error cần một ranh giới và mục đích rõ ràng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-api-design
+  title: Thiết kế API
+  childs:
+  - slug: exception-api-design-001
+    title: Định nghĩa trạng thái hợp lệ trước và sau khi phương thức thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-002
+    title: Chọn checked hay unchecked theo hợp đồng và khả năng xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-003
+    title: Dùng loại ngoại lệ cụ thể thay vì throws Exception
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-004
+    title: Phân biệt lỗi tham số, lỗi trạng thái và lỗi từ phụ thuộc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-005
+    title: Chuyển đổi ngoại lệ tại ranh giới trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-006
+    title: Giữ cause khi chuyển lỗi kỹ thuật thành lỗi có ý nghĩa với bên gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-007
+    title: Tài liệu hóa bằng @throws và điều kiện phát sinh
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-008
+    title: Chọn ngoại lệ, Optional hay kiểu kết quả có cấu trúc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-009
+    title: Không để chi tiết thư viện phụ thuộc trở thành hợp đồng công khai ngoài ý muốn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-api-design-010
+    title: Tác động tương thích khi thay đổi hợp đồng ngoại lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-safety
+  title: Bảo toàn trạng thái
+  childs:
+  - slug: exception-safety-001
+    title: Tính nguyên tử khi thất bại và nguy cơ thay đổi dở dang
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-002
+    title: Kiểm tra điều kiện trước khi thay đổi trạng thái
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-003
+    title: Tính toán trên dữ liệu tạm rồi mới công bố kết quả
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-004
+    title: Khôi phục trạng thái và giới hạn của rollback
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-005
+    title: Ngoại lệ không tự hoàn tác file, dữ liệu hay tác động bên ngoài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-006
+    title: Đóng tài nguyên và hủy đăng ký theo quyền sở hữu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-007
+    title: Lock.lock kết hợp unlock trong finally
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-008
+    title: Phân biệt giải phóng khóa synchronized với bảo đảm bất biến dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-safety-009
+    title: Xử lý lỗi cleanup mà vẫn giữ thông tin lỗi ban đầu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-exception-handling
+  title: Ngoại lệ và luồng
+  childs:
+  - slug: thread-exception-handling-001
+    title: Ngoại lệ chỉ lan truyền trong ngăn xếp của luồng đang thực thi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-002
+    title: Try-catch ở luồng tạo không tự bắt lỗi ở luồng con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-003
+    title: Thread.UncaughtExceptionHandler
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-004
+    title: Handler riêng, ThreadGroup và handler mặc định
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-005
+    title: Khác biệt giữa Executor.execute và submit khi tác vụ thất bại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-006
+    title: Future.get và ExecutionException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-007
+    title: Tách lỗi của tác vụ khỏi lỗi ở luồng đang chờ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-008
+    title: TimeoutException và CancellationException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-009
+    title: Lỗi trong tác vụ định kỳ và ảnh hưởng tới các lần chạy tiếp theo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-exception-handling-010
+    title: Chuyển thông tin thất bại qua ranh giới luồng bằng kết quả có quản lý
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interruption-and-cancellation
+  title: Ngắt và hủy
+  childs:
+  - slug: interruption-and-cancellation-001
+    title: InterruptedException là tín hiệu gì
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-002
+    title: Quan hệ giữa interrupt flag và phương thức chờ có thể bị ngắt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-003
+    title: Phân biệt Thread.interrupted với isInterrupted
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-004
+    title: Lan truyền InterruptedException khi hợp đồng cho phép
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-005
+    title: Khôi phục interrupt flag khi không thể tiếp tục lan truyền
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-006
+    title: Dừng xử lý và cleanup sau khi nhận tín hiệu ngắt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-007
+    title: Vì sao không nên nuốt InterruptedException rồi tiếp tục như bình thường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-008
+    title: Phân biệt ngắt luồng, hủy Future và kết thúc cưỡng bức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruption-and-cancellation-009
+    title: Giới hạn của timeout và cancellation đối với tác vụ bên dưới
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: completable-future-exceptions
+  title: CompletableFuture
+  childs:
+  - slug: completable-future-exceptions-001
+    title: Hoàn tất bình thường và hoàn tất bằng ngoại lệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-002
+    title: completeExceptionally và failedFuture
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-003
+    title: get ném ExecutionException, join thường ném CompletionException
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-004
+    title: Truy nguyên nhân qua lớp bọc của tác vụ bất đồng bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-005
+    title: 'exceptionally: phục hồi bằng một kết quả'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-006
+    title: 'handle: chuyển đổi cả kết quả thành công và thất bại'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-007
+    title: 'whenComplete: quan sát kết quả và các lỗi phát sinh khi quan sát'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-008
+    title: Lan truyền lỗi qua các stage phụ thuộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-009
+    title: allOf, anyOf và giới hạn khi cần thu thập mọi thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-010
+    title: orTimeout, completeOnTimeout và việc tác vụ có thực sự dừng hay không
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completable-future-exceptions-011
+    title: CancellationException và giới hạn mayInterruptIfRunning
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-diagnostics-and-logging
+  title: Chẩn đoán và ghi log
+  childs:
+  - slug: exception-diagnostics-and-logging-001
+    title: Đọc stack trace từ loại lỗi và điểm phát sinh
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-002
+    title: Đọc Caused by, Suppressed và các frame được rút gọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-003
+    title: Tìm frame thuộc mã ứng dụng và đối chiếu dòng nguồn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-004
+    title: Thông điệp NullPointerException chi tiết trong JDK hiện đại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-005
+    title: Ghi cả đối tượng ngoại lệ thay vì chỉ ghi getMessage
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-006
+    title: Thêm ngữ cảnh thao tác và định danh có ích cho điều tra
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-007
+    title: Chọn tầng chịu trách nhiệm ghi log để tránh lặp cùng một lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-008
+    title: Tránh ghi thông tin bí mật hoặc dữ liệu cá nhân vào message và log
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-009
+    title: Phân biệt thông tin chẩn đoán nội bộ với thông báo dành cho người dùng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-010
+    title: Dùng debugger với exception breakpoint cho lỗi đã bắt hoặc chưa bắt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-diagnostics-and-logging-011
+    title: Đối chiếu bytecode, phiên bản thư viện và mã nguồn khi trace không khớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-performance
+  title: Hiệu năng
+  childs:
+  - slug: exception-performance-001
+    title: Chi phí tạo Throwable và thu thập stack trace
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-performance-002
+    title: Phân biệt chi phí tạo, ném, bắt và ghi log ngoại lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-performance-003
+    title: Không dùng ngoại lệ cho nhánh điều khiển thường xuyên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-performance-004
+    title: Không tạo message tốn kém khi chưa cần phát sinh lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-performance-005
+    title: Stack trace bị lược bỏ và tối ưu phụ thuộc JVM
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-performance-006
+    title: Đánh đổi khi tắt writableStackTrace hoặc tái sử dụng đối tượng ngoại lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-performance-007
+    title: Rủi ro khi dùng chung ngoại lệ có thông tin nguyên nhân hoặc lỗi phụ thay đổi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-performance-008
+    title: Đo bằng benchmark có tình huống lỗi và tần suất thực tế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-handling-pitfalls
+  title: Sai lầm thường gặp
+  childs:
+  - slug: exception-handling-pitfalls-001
+    title: Catch rỗng và nuốt mất tín hiệu thất bại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-002
+    title: Bắt Exception hoặc Throwable quá rộng ở mọi tầng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-003
+    title: Vừa ghi log vừa ném lại ở nhiều tầng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-004
+    title: Ném ngoại lệ mới nhưng làm mất cause
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-005
+    title: Return trong finally hoặc lỗi cleanup che lỗi chính
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-006
+    title: Đóng tài nguyên thủ công thiếu nhánh thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-007
+    title: Dùng ngoại lệ để che việc kiểm tra điều kiện đơn giản
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-008
+    title: Trả null hoặc giá trị mặc định sau lỗi mà hợp đồng không nói rõ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-009
+    title: Thử lại mọi ngoại lệ mà không xét tính tạm thời và tác động lặp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-010
+    title: Để exception message trở thành định dạng dữ liệu mà mã khác phải phân tích
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-pitfalls-011
+    title: Bắt lỗi do sai lập trình rồi tiếp tục với trạng thái không hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-testing
+  title: Kiểm thử
+  childs:
+  - slug: exception-testing-001
+    title: Kiểm thử đường thành công và đường thất bại theo hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-002
+    title: Khẳng định đúng loại ngoại lệ thay vì chỉ khẳng định có lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-003
+    title: Kiểm tra message, thuộc tính ngữ cảnh và cause khi phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-004
+    title: Kiểm tra suppressed exception và thứ tự đóng tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-005
+    title: Kiểm tra trạng thái đối tượng sau khi phương thức thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-006
+    title: Tạo fake resource để mô phỏng lỗi khởi tạo hoặc close
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-007
+    title: Kiểm thử finally không che lỗi và không thay đổi kết quả ngoài ý muốn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-008
+    title: Kiểm thử ngoại lệ qua Future và CompletableFuture
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-009
+    title: Kiểm thử ngắt bằng phối hợp luồng xác định thay vì chỉ sleep
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-testing-010
+    title: Phân biệt lỗi của mã đang kiểm thử với lỗi trong phần chuẩn bị dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-handling-practice
+  title: Thực hành
+  childs:
+  - slug: exception-handling-practice-001
+    title: Xây dựng quy trình đọc file có kiểm tra dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-002
+    title: So sánh xử lý tại chỗ với lan truyền bằng throws
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-003
+    title: Chuyển nhiều khối catch giống nhau thành multi-catch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-004
+    title: Tái cấu trúc cleanup thủ công sang try-with-resources
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-005
+    title: Tạo ngoại lệ nghiệp vụ có cause và dữ liệu ngữ cảnh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-006
+    title: Tái hiện lỗi chính kèm nhiều suppressed exception
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-007
+    title: Thiết kế API giữ trạng thái hợp lệ khi có lỗi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-008
+    title: Xử lý lỗi và ngắt trong tác vụ ExecutorService
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-009
+    title: So sánh phục hồi lỗi bằng exceptionally, handle và whenComplete
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-handling-practice-010
+    title: Hoàn thiện ví dụ tích hợp với kiểm thử các tình huống thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exception-reference
+  title: Tra cứu
+  childs:
+  - slug: exception-reference-001
+    title: Bảng phân biệt throw, throws, catch và finally
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-reference-002
+    title: Bảng checked, unchecked, Exception và Error
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-reference-003
+    title: Bảng kết quả của try, catch, finally và try-with-resources
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-reference-004
+    title: Bảng phân biệt cause, suppressed và stack trace
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-reference-005
+    title: Bảng chọn cách xử lý lỗi theo ranh giới API hoặc luồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exception-reference-006
+    title: Tra cứu JLS, Throwable Javadoc và hợp đồng ngoại lệ của từng API
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

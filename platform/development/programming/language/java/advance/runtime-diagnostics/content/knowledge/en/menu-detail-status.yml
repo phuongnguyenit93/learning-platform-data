@@ -1,0 +1,1876 @@
+menu:
+- slug: runtime-diagnostics-model
+  title: 1. Mô hình chẩn đoán
+  childs:
+  - slug: runtime-diagnostics-model-001
+    title: 1.1 Chẩn đoán lúc chạy là gì và khác gì với sửa lỗi từ mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-diagnostics-model-002
+    title: 1.2 Quan hệ giữa ứng dụng, JVM, JDK, hệ điều hành và tài nguyên máy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-diagnostics-model-003
+    title: 1.3 Phân biệt lỗi chức năng, độ trễ, thông lượng, treo, thiếu bộ nhớ và JVM crash
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-diagnostics-model-004
+    title: 1.4 Bản đồ log, chỉ số, stack trace, thread dump, heap dump và bản ghi JFR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-diagnostics-model-005
+    title: 1.5 Từ triệu chứng đến giả thuyết, bằng chứng và nguyên nhân gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-diagnostics-model-006
+    title: 1.6 Phân biệt quan sát, profiling, debugging và thay đổi cấu hình đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-diagnostics-model-007
+    title: 1.7 Chọn công cụ theo câu hỏi cần trả lời và mức ảnh hưởng cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-diagnostics-model-008
+    title: 1.8 Phạm vi API chuẩn Java 21, công cụ HotSpot và khả năng thay đổi theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-measurement
+  title: 2. Phương pháp đo
+  childs:
+  - slug: diagnostic-measurement-001
+    title: 2.1 Xác định tình huống tái hiện, tải đầu vào và tiêu chí hoàn thành chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-measurement-002
+    title: 2.2 Lập mốc so sánh ở trạng thái bình thường và ghi lại điều kiện đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-measurement-003
+    title: 2.3 Phân biệt thời gian thực trôi qua, CPU time và thời gian chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-measurement-004
+    title: 2.4 Chỉ số tức thời, bộ đếm tích lũy, tốc độ thay đổi và phân bố độ trễ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-measurement-005
+    title: 2.5 Chọn khoảng lấy mẫu, thời lượng quan sát và cửa sổ xảy ra sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-measurement-006
+    title: 2.6 Đồng bộ timestamp, múi giờ và uptime khi ghép nhiều nguồn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-measurement-007
+    title: 2.7 Nhận diện sai lệch do khởi động, JIT, GC, lấy mẫu và chính công cụ quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-measurement-008
+    title: 2.8 Kiểm chứng một thay đổi dưới cùng tải và ghi rõ giới hạn của kết luận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-environment
+  title: 3. Tiến trình và môi trường
+  childs:
+  - slug: process-environment-001
+    title: 3.1 Nhận diện đúng JVM bằng PID, lệnh khởi chạy, thời điểm bắt đầu và người sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-environment-002
+    title: 3.2 Dùng jcmd, jps và ProcessHandle để khám phá tiến trình; hiểu giới hạn thông tin trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-environment-003
+    title: 3.3 Thu thập phiên bản, nhà cung cấp JDK, kiến trúc và đối số JVM thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-environment-004
+    title: 3.4 VM.command_line, VM.flags, VM.system_properties và VM.info
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-environment-005
+    title: 3.5 Classpath, module path, thư viện native và cấu hình môi trường liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-environment-006
+    title: 3.6 Phân biệt PID của container với PID trên máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-environment-007
+    title: 3.7 Đối chiếu giới hạn CPU, bộ nhớ và tài nguyên nhìn thấy từ JVM với môi trường triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-environment-008
+    title: 3.8 Phân biệt thông tin có sẵn với thông tin nhạy cảm cần loại bỏ trước khi chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jcmd-diagnostics
+  title: 4. Công cụ jcmd
+  childs:
+  - slug: jcmd-diagnostics-001
+    title: 4.1 Mô hình gửi diagnostic command tới một JVM đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcmd-diagnostics-002
+    title: 4.2 Điều kiện cùng máy, quyền người dùng và khả năng attach
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcmd-diagnostics-003
+    title: 4.3 Khám phá lệnh bằng help và đọc cú pháp, tùy chọn, mức Impact của từng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcmd-diagnostics-004
+    title: 4.4 Nhóm lệnh thông tin VM, luồng, heap, compiler, JFR và native memory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcmd-diagnostics-005
+    title: 4.5 Chọn đường dẫn đầu ra theo ngữ cảnh của JVM đích và kiểm tra dung lượng còn lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcmd-diagnostics-006
+    title: 4.6 Phân biệt lệnh quan sát với lệnh có thể gây GC, dump hoặc thay đổi trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcmd-diagnostics-007
+    title: 4.7 Xử lý sai PID, tiến trình đã thoát, attach bị vô hiệu và công cụ không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcmd-diagnostics-008
+    title: 4.8 Vai trò bổ sung và trạng thái experimental của jstack, jmap, jinfo hoặc jstat
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-and-stack-traces
+  title: 5. Nhật ký và stack trace
+  childs:
+  - slug: logging-and-stack-traces-001
+    title: 5.1 Phân biệt nhật ký ứng dụng với JVM Unified Logging
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-002
+    title: 5.2 Ghi mức log, thread, thời gian và mã tương quan đủ để lần theo một thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-003
+    title: 5.3 java.util.logging với Logger, Handler, Formatter và cấu hình mức ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-004
+    title: 5.4 Đọc exception, cause chain, suppressed exception và stack frame
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-005
+    title: 5.5 Thu thập lỗi không được bắt qua UncaughtExceptionHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-006
+    title: 5.6 StackWalker và việc lấy ngăn xếp có mục đích trong mã chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-007
+    title: 5.7 Cú pháp -Xlog với tag, level, decorator, file và xoay vòng nhật ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-008
+    title: 5.8 Khám phá tag khả dụng và đổi cấu hình ghi bằng VM.log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-stack-traces-009
+    title: 5.9 Kiểm soát khối lượng log, dữ liệu bí mật và tác động của việc ghi đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-management-beans
+  title: 6. MXBeans
+  childs:
+  - slug: jvm-management-beans-001
+    title: 6.1 ManagementFactory, platform MXBean và ranh giới giữa API chuẩn với phần mở rộng HotSpot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-002
+    title: 6.2 RuntimeMXBean cho uptime, thông tin VM và đối số đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-003
+    title: 6.3 MemoryMXBean, MemoryPoolMXBean và ý nghĩa used, committed, max, init
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-004
+    title: 6.4 GarbageCollectorMXBean cho số lần, thời gian GC và giới hạn của số liệu tổng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-005
+    title: 6.5 ThreadMXBean cho số platform thread, CPU time, contention và phát hiện deadlock
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-006
+    title: 6.6 Kiểm tra khả năng hỗ trợ, trạng thái bật và giá trị không khả dụng của chỉ số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-007
+    title: 6.7 OperatingSystemMXBean cho tải CPU, thời gian CPU và bộ nhớ của môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-008
+    title: 6.8 BufferPoolMXBean và ClassLoadingMXBean cho bộ đệm ngoài heap hoặc lớp được nạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-009
+    title: 6.9 Memory threshold notification và cách tránh xử lý nặng ngay trong callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-management-beans-010
+    title: 6.10 HotSpotDiagnosticMXBean cho heap dump và VM option có thể quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-monitoring
+  title: 7. JMX
+  childs:
+  - slug: jmx-monitoring-001
+    title: 7.1 MBeanServer, ObjectName, attribute, operation và notification
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-monitoring-002
+    title: 7.2 Truy cập MXBean trực tiếp, qua MBeanServerConnection hoặc proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-monitoring-003
+    title: 7.3 JConsole để xem biểu đồ, thuộc tính và thao tác quản lý JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-monitoring-004
+    title: 7.4 Kết nối JMX cục bộ qua management agent và vai trò của Attach API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-monitoring-005
+    title: 7.5 Kết nối từ xa qua JMX connector, RMI registry và cấu hình cổng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-monitoring-006
+    title: 7.6 Xác thực, TLS và phân quyền đọc hoặc điều khiển trên kênh quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-monitoring-007
+    title: 7.7 Xuất MBean cho chỉ số riêng của ứng dụng với kiểu dữ liệu phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-monitoring-008
+    title: 7.8 Quản lý kết nối, tần suất truy vấn và giới hạn cardinality của dữ liệu giám sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-dumps
+  title: 8. Thread dump
+  childs:
+  - slug: thread-dumps-001
+    title: 8.1 Thread dump cung cấp ảnh chụp gì và những gì không thể suy ra từ một ảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-002
+    title: 8.2 Lấy stack bằng Thread.print, jstack hoặc cơ chế tín hiệu được hệ điều hành hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-003
+    title: 8.3 Đọc tên thread, Java thread id, native id, trạng thái và các stack frame
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-004
+    title: 8.4 Phân biệt RUNNABLE, BLOCKED, WAITING và TIMED_WAITING
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-005
+    title: 8.5 Đọc monitor đang giữ, khóa đang chờ và ownable synchronizer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-006
+    title: 8.6 Thu nhiều thread dump cách nhau một khoảng để xác định tiến triển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-007
+    title: 8.7 Đối chiếu native thread id với số liệu CPU của hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-008
+    title: 8.8 Phân biệt thread đang đợi công việc bình thường với thread đang chặn xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-dumps-009
+    title: 8.9 Nhận diện giới hạn của thread dump truyền thống đối với virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deadlocks-and-contention
+  title: 9. Treo và tranh chấp
+  childs:
+  - slug: deadlocks-and-contention-001
+    title: 9.1 Phân biệt deadlock, livelock, starvation và thao tác chờ quá lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-002
+    title: 9.2 Lần theo chuỗi chủ sở hữu khóa và dựng vòng chờ từ thread dump
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-003
+    title: 9.3 findMonitorDeadlockedThreads, findDeadlockedThreads và phạm vi platform thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-004
+    title: 9.4 Chẩn đoán synchronized, ReentrantLock, Condition, Object.wait và LockSupport.park
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-005
+    title: 9.5 Phân biệt tranh chấp monitor với việc chờ I/O hoặc chờ kết quả Future
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-006
+    title: 9.6 Thread pool bão hòa, hàng đợi tăng và tác vụ phụ thuộc lẫn nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-007
+    title: 9.7 Đối chiếu số tác vụ đang chạy, đã hoàn thành, bị từ chối và độ dài hàng đợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-008
+    title: 9.8 Kết hợp thread dump với JFR JavaMonitorEnter, JavaMonitorWait và ThreadPark
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-and-contention-009
+    title: 9.9 Kiểm chứng tiến triển sau sửa lỗi bằng số thao tác hoàn thành và thời gian chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-thread-diagnostics
+  title: 10. Virtual thread
+  childs:
+  - slug: virtual-thread-diagnostics-001
+    title: 10.1 Quan hệ giữa virtual thread, carrier thread và platform thread trong Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-thread-diagnostics-002
+    title: 10.2 Vì sao số platform thread không đại diện cho tổng số virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-thread-diagnostics-003
+    title: 10.3 Lấy thread dump có virtual thread bằng Thread.dump_to_file với plain hoặc JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-thread-diagnostics-004
+    title: 10.4 Giới hạn ThreadMXBean và các công cụ chỉ quan sát platform thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-thread-diagnostics-005
+    title: 10.5 Chẩn đoán pinning trên Java 21 bằng JFR và jdk.tracePinnedThreads
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-thread-diagnostics-006
+    title: 10.6 Quan sát VirtualThreadPinned, VirtualThreadSubmitFailed và cấu hình event liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-thread-diagnostics-007
+    title: 10.7 Phân biệt thiếu carrier, tài nguyên bên ngoài bão hòa và tác vụ tốn CPU
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-thread-diagnostics-008
+    title: 10.8 Đối chiếu hành vi và công cụ theo phiên bản JDK khi phân tích virtual thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: heap-and-garbage-collection
+  title: 11. Heap và GC
+  childs:
+  - slug: heap-and-garbage-collection-001
+    title: 11.1 Phân biệt heap, non-heap, bộ nhớ tiến trình và giới hạn -Xmx
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-002
+    title: 11.2 Đọc đồ thị heap theo thời gian và lượng dữ liệu còn sống sau chu kỳ thu gom
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-003
+    title: 11.3 Allocation rate, thời gian sống đối tượng và áp lực lên bộ thu gom
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-004
+    title: 11.4 Đọc GC log theo collector đang dùng thay vì áp một mô hình vùng nhớ cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-005
+    title: 11.5 Phân biệt tần suất GC, tổng thời gian GC, pause time và thời gian tới safepoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-006
+    title: 11.6 Dùng GC.heap_info, MXBeans và jstat để đối chiếu tình trạng heap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-007
+    title: 11.7 Giới hạn cột số liệu và định dạng experimental của jstat khi tự động hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-008
+    title: 11.8 Phân biệt heap tăng do tải, giữ dữ liệu hợp lệ và giữ tham chiếu ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-and-garbage-collection-009
+    title: 11.9 Xác định bằng chứng cần có trước khi thay heap size hoặc tham số GC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: heap-dump-leak-analysis
+  title: 12. Heap dump và rò rỉ
+  childs:
+  - slug: heap-dump-leak-analysis-001
+    title: 12.1 Heap dump lưu dữ liệu gì và khác gì với class histogram hoặc bản ghi cấp phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-002
+    title: 12.2 Thu GC.class_histogram và hiểu số đối tượng, tổng byte theo lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-003
+    title: 12.3 Thu HPROF bằng GC.heap_dump hoặc HotSpotDiagnosticMXBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-004
+    title: 12.4 HeapDumpOnOutOfMemoryError, HeapDumpPath và giới hạn của thu dump tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-005
+    title: 12.5 Phân biệt đối tượng còn sống với toàn bộ đối tượng được ghi và khả năng kích hoạt GC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-006
+    title: 12.6 Lập kế hoạch thời gian dừng, dung lượng đĩa và quyền truy cập file dump
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-007
+    title: 12.7 GC root, chuỗi tham chiếu và cách đối tượng bị giữ lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-008
+    title: 12.8 Phân biệt shallow size với retained size và vai trò của dominator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-009
+    title: 12.9 So sánh bằng chứng qua thời gian thay vì kết luận rò rỉ từ một histogram
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-010
+    title: 12.10 Nhận diện collection, cache, listener, ThreadLocal hoặc class loader giữ dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-dump-leak-analysis-011
+    title: 12.11 Phân loại OutOfMemoryError theo thông báo và vùng tài nguyên thực sự cạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-memory-diagnostics
+  title: 13. Bộ nhớ native
+  childs:
+  - slug: native-memory-diagnostics-001
+    title: 13.1 Phân biệt không gian địa chỉ reserved, bộ nhớ committed và RSS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-002
+    title: '13.2 Nguồn bộ nhớ ngoài heap: thread stack, metaspace, code cache, direct buffer và thư viện native'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-003
+    title: 13.3 Bật NativeMemoryTracking từ lúc khởi động với summary hoặc detail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-004
+    title: 13.4 Dùng VM.native_memory để đọc báo cáo theo nhóm sử dụng bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-005
+    title: 13.5 Thiết lập baseline rồi đọc summary.diff hoặc detail.diff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-006
+    title: '13.6 Giới hạn NMT: phạm vi HotSpot và các cấp phát native không được theo dõi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-007
+    title: 13.7 Đối chiếu NMT với BufferPoolMXBean, số thread và số liệu hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-008
+    title: 13.8 Chẩn đoán metaspace tăng, số lớp hoặc class loader tăng và khả năng unload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-009
+    title: 13.9 Phân biệt lỗi tạo native thread, cấp phát trực tiếp thất bại và heap Java đầy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-memory-diagnostics-010
+    title: 13.10 Chi phí NMT, dữ liệu cần giữ và giới hạn bật lại sau khi đã tắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jfr-recording
+  title: 14. Thu bản ghi JFR
+  childs:
+  - slug: jfr-recording-001
+    title: 14.1 JFR ghi sự kiện gì và quan hệ giữa event, timestamp, duration và stack trace
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-002
+    title: 14.2 Phân biệt bản ghi liên tục với bản ghi có thời lượng cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-003
+    title: 14.3 Khởi chạy bằng -XX:StartFlightRecording hoặc JFR.start trên JVM đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-004
+    title: 14.4 JFR.check, JFR.dump, JFR.stop và quản lý nhiều recording
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-005
+    title: 14.5 Chọn default.jfc, profile.jfc hoặc cấu hình sự kiện riêng theo câu hỏi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-006
+    title: 14.6 Điều chỉnh enabled, threshold, period và stackTrace của event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-007
+    title: 14.7 Quản lý duration, maxage, maxsize, repository và dump khi tiến trình thoát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-008
+    title: 14.8 Hiểu dữ liệu có thể bị thiếu do chưa bật event, ngưỡng hoặc mất dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-009
+    title: 14.9 Đánh giá chi phí ghi, dung lượng và quyền truy cập vào file .jfr
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-recording-010
+    title: 14.10 Khôi phục các chunk hoàn chỉnh khi cần phân tích sau sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jfr-analysis
+  title: 15. Phân tích JFR
+  childs:
+  - slug: jfr-analysis-001
+    title: 15.1 JDK Mission Control là công cụ riêng để mở và phân tích bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-002
+    title: 15.2 Đọc jfr summary và metadata trước khi chọn nhóm sự kiện cần xem
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-003
+    title: 15.3 Dùng jfr print với bộ lọc event, category, stack depth và đầu ra JSON hoặc XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-004
+    title: 15.4 Dùng jfr view khi phiên bản công cụ hỗ trợ để xem dữ liệu tổng hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-005
+    title: 15.5 Khoanh cửa sổ thời gian xảy ra triệu chứng rồi đối chiếu nhiều nhóm event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-006
+    title: 15.6 Phân tích execution sample, cây lời gọi và tỷ trọng mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-007
+    title: 15.7 Phân tích allocation sample, GC, heap summary và OldObjectSample
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-008
+    title: 15.8 Phân tích khóa, trạng thái thread, thao tác file hoặc socket và ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-009
+    title: 15.9 Đối chiếu kết quả phân tích tự động với bằng chứng và ngữ cảnh tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-analysis-010
+    title: 15.10 Giới hạn của lấy mẫu và ngưỡng event; tương quan thời gian không tự chứng minh quan hệ nhân quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jfr-java-api
+  title: 16. JFR trong mã Java
+  childs:
+  - slug: jfr-java-api-001
+    title: 16.1 Điều khiển Recording và Configuration qua API jdk.jfr
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-002
+    title: 16.2 Vòng đời tạo, cấu hình, start, stop, dump và close của Recording
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-003
+    title: 16.3 Tạo custom event bằng cách kế thừa Event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-004
+    title: 16.4 Name, Label, Category, Description và annotation mô tả đơn vị dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-005
+    title: 16.5 begin, end, commit, isEnabled và shouldCommit trong đường xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-006
+    title: 16.6 Ghi mã tương quan, kết quả và độ trễ nghiệp vụ với dữ liệu giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-007
+    title: 16.7 Đọc file qua RecordingFile và truy cập trường của RecordedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-008
+    title: 16.8 RecordingStream với đăng ký callback, start hoặc startAsync và close
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-009
+    title: 16.9 Phân biệt xử lý event trực tiếp với đọc file; độ trễ và chi phí của consumer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-java-api-010
+    title: 16.10 Thiết kế consumer không làm nghẽn hệ thống và quản lý thay đổi schema event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cpu-and-jit-class-diagnostics
+  title: 17. CPU, JIT và lớp
+  childs:
+  - slug: cpu-and-jit-class-diagnostics-001
+    title: 17.1 Phân biệt CPU cao của tiến trình, một thread, GC hoặc compiler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-002
+    title: 17.2 Kết hợp số liệu CPU, nhiều stack snapshot và JFR execution sample
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-003
+    title: 17.3 Nhận diện vòng lặp tốn CPU, thuật toán đắt và công việc lặp ngoài dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-004
+    title: 17.4 Phân biệt thời gian riêng của phương thức với chi phí qua các lời gọi con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-005
+    title: 17.5 Khởi động nóng, tiered compilation và ảnh hưởng tới kết quả profiling
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-006
+    title: 17.6 Compiler.queue, Compiler.codecache và sự kiện biên dịch trong JFR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-007
+    title: 17.7 Nhận diện code cache đầy hoặc hoạt động biên dịch bất thường trước khi đổi tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-008
+    title: 17.8 ClassLoadingMXBean, VM.classloader_stats và log class load hoặc unload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-009
+    title: 17.9 Liên hệ lớp sinh động, class loader giữ lâu với metaspace
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-jit-class-diagnostics-010
+    title: 17.10 Phân biệt thay đổi do JIT hoặc tải với bằng chứng của một lỗi hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-and-latency-diagnostics
+  title: 18. I/O và độ trễ
+  childs:
+  - slug: io-and-latency-diagnostics-001
+    title: 18.1 Phân biệt ứng dụng chậm vì tính toán với chậm vì chờ tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-002
+    title: 18.2 JFR FileRead, FileWrite, SocketRead và SocketWrite theo thời lượng hoặc kích thước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-003
+    title: 18.3 Đối chiếu thread đang ở native I/O với cấu hình timeout và tiến triển dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-004
+    title: 18.4 Phân biệt thời gian xử lý tác vụ với thời gian chờ trong hàng đợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-005
+    title: 18.5 Thu thời điểm nhận, bắt đầu, kết thúc và kết quả bằng log hoặc custom event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-006
+    title: 18.6 Đối chiếu số request đang xử lý, pool, hàng đợi và tài nguyên phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-007
+    title: 18.7 Phân tích độ trễ tăng đồng thời với GC, safepoint, khóa hoặc I/O
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-008
+    title: 18.8 Phạm vi JVM quan sát được và bằng chứng cần lấy thêm từ hệ điều hành hoặc dịch vụ ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-latency-diagnostics-009
+    title: 18.9 Kiểm chứng thay đổi bằng phân bố độ trễ và số thao tác thành công dưới cùng tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-debugging
+  title: 19. Debugging
+  childs:
+  - slug: java-debugging-001
+    title: 19.1 Khi nào cần debugger để kiểm tra trạng thái mà log hoặc profiler chưa giải thích được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-debugging-002
+    title: 19.2 Vai trò của JDWP, JDI và jdb trong kiến trúc debugging Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-debugging-003
+    title: 19.3 Khởi động ứng dụng với -agentlib:jdwp và hiểu server, suspend, address
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-debugging-004
+    title: 19.4 Attach hoặc launch bằng jdb và quản lý vòng đời phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-debugging-005
+    title: 19.5 Breakpoint, stepping, stack frame, biến cục bộ và điều kiện có debug information
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-debugging-006
+    title: 19.6 Điều tra exception tại nơi phát sinh và phân biệt exception đã được xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-debugging-007
+    title: 19.7 Ảnh hưởng của suspend, breakpoint và đánh giá biểu thức tới thread hoặc khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-debugging-008
+    title: 19.8 Bảo vệ cổng debug và giới hạn sử dụng debugger trên tiến trình đang phục vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crash-forensics
+  title: 20. Crash và phân tích sau lỗi
+  childs:
+  - slug: crash-forensics-001
+    title: 20.1 Phân biệt exception Java, OutOfMemoryError, StackOverflowError và fatal VM error
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-002
+    title: 20.2 Thu hs_err_pid log với -XX:ErrorFile và giữ dữ liệu ngay sau sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-003
+    title: 20.3 Đọc header lỗi, problematic frame, current thread và danh sách thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-004
+    title: 20.4 Đối chiếu heap, thread, VM flags, hệ điều hành và tài nguyên tại thời điểm crash
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-005
+    title: 20.5 Phân biệt dấu hiệu lỗi trong native library, JVM hoặc mã được JIT biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-006
+    title: 20.6 Core dump, executable và yêu cầu tương thích JDK hoặc kiến trúc khi phân tích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-007
+    title: 20.7 Vai trò của jhsdb jstack, jmap, jinfo và clhsdb đối với core hoặc JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-008
+    title: 20.8 Ảnh hưởng nghiêm trọng khi jhsdb attach trực tiếp vào tiến trình sống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-009
+    title: 20.9 Phân biệt JVM tự ghi lỗi với tiến trình bị hệ điều hành chấm dứt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-forensics-010
+    title: 20.10 Lập gói bằng chứng tối thiểu và tình huống tái hiện cho việc điều tra tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-diagnostic-collection
+  title: 21. Thu thập khi vận hành
+  childs:
+  - slug: production-diagnostic-collection-001
+    title: 21.1 Thiết kế bộ dữ liệu nền gồm thông tin VM, GC log và JFR theo ngân sách tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-002
+    title: 21.2 Lập thứ tự thu thập theo triệu chứng và thời gian còn lại trước khi sự cố biến mất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-003
+    title: 21.3 Ưu tiên bằng chứng ít ảnh hưởng rồi đánh giá nhu cầu dump hoặc cấu hình chi tiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-004
+    title: 21.4 Đặt điều kiện dừng, dung lượng tối đa và thời hạn giữ file chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-005
+    title: 21.5 Quản lý truy cập heap dump, JFR, command line, system property và cổng quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-006
+    title: 21.6 Đặt tên file kèm PID, thời gian, phiên bản ứng dụng và hành động đã thực hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-007
+    title: 21.7 Xử lý giới hạn quyền attach, filesystem chỉ đọc hoặc môi trường thiếu công cụ JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-008
+    title: 21.8 Tránh làm mất bằng chứng khi restart và ghi rõ các tác động do lệnh chẩn đoán tạo ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-diagnostic-collection-009
+    title: 21.9 Xác nhận phục hồi, so sánh với mốc bình thường và lưu kết luận có căn cứ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-practice-scenarios
+  title: 22. Thực hành tổng hợp
+  childs:
+  - slug: diagnostic-practice-scenarios-001
+    title: 22.1 Tạo ứng dụng mẫu với tên thread, chỉ số cơ bản và custom JFR event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-002
+    title: 22.2 Chẩn đoán vòng lặp tốn CPU bằng jcmd, thread dump và JFR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-003
+    title: 22.3 Tái hiện deadlock rồi dựng vòng chờ từ nhiều nguồn bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-004
+    title: 22.4 Tái hiện pool bão hòa và tách thời gian chờ hàng đợi khỏi thời gian chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-005
+    title: 22.5 Tái hiện giữ tham chiếu trong collection và lần theo GC root trong heap dump
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-006
+    title: 22.6 So sánh bộ nhớ tiến trình, heap, NMT và direct buffer trong một tình huống tăng bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-007
+    title: 22.7 Thu và phân tích GC log cùng JFR trong một giai đoạn cấp phát mạnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-008
+    title: 22.8 Điều tra pinning của virtual thread trong môi trường Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-009
+    title: 22.9 Đọc một fatal error log mẫu và phân loại bằng chứng cần bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-practice-scenarios-010
+    title: 22.10 Viết báo cáo triệu chứng, giả thuyết, bằng chứng, thay đổi và kết quả kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

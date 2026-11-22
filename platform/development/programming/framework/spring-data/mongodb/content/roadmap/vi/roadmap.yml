@@ -1,0 +1,57 @@
+roadmap:
+- id: ket-noi-cau-hinh
+  title: Kết nối & cấu hình
+  purpose: Thiết lập nền tảng truy cập MongoDB từ ứng dụng Spring để thực hành các thao tác dữ liệu.
+  objectives:
+  - Cấu hình MongoClient và database
+  - Phân biệt MongoTemplate với Repository
+  - Kiểm tra kết nối bằng truy vấn đơn giản
+- id: document-mapping
+  title: Document Mapping
+  purpose: Hiểu cách ánh xạ Java object sang tài liệu BSON và tổ chức dữ liệu nhúng.
+  objectives:
+  - Sử dụng @Document, @Id và @Field
+  - So sánh dữ liệu nhúng với tham chiếu
+  - Kiểm tra chuyển đổi kiểu qua converter
+- id: mongo-repositories
+  title: Mongo Repositories
+  purpose: Xây dựng lớp truy cập dữ liệu khai báo với các thao tác CRUD và truy vấn theo tên phương thức.
+  objectives:
+  - Tạo MongoRepository cho entity
+  - Viết derived query và @Query
+  - Thử phân trang và sắp xếp kết quả
+- id: mongotemplate-crud
+  title: MongoTemplate & CRUD
+  purpose: Thực hiện truy vấn và cập nhật linh hoạt khi repository method không đủ biểu đạt.
+  objectives:
+  - Dùng Query và Criteria lọc document
+  - So sánh insert, save và update
+  - Thực hiện xóa và cập nhật có điều kiện
+- id: aggregation-pipeline
+  title: Aggregation Pipeline
+  purpose: Tổng hợp dữ liệu trên MongoDB bằng chuỗi thao tác xử lý tại server.
+  objectives:
+  - Xây dựng pipeline match/project/group
+  - Sắp xếp và giới hạn kết quả
+  - Ánh xạ đầu ra Aggregation sang DTO
+- id: index-hieu-nang
+  title: Index & hiệu năng
+  purpose: Hiểu vai trò của index và thiết kế truy vấn để giảm chi phí đọc dữ liệu.
+  objectives:
+  - Khai báo @Indexed và @CompoundIndex
+  - Tạo và kiểm tra index được áp dụng
+  - Đọc explain để đánh giá truy vấn
+- id: transaction-nhat-quan
+  title: Transaction & nhất quán
+  purpose: Quản lý thay đổi dữ liệu có điều kiện và nhận biết giới hạn giao dịch MongoDB.
+  objectives:
+  - Cấu hình MongoTransactionManager phù hợp
+  - Thử commit và rollback đa document
+  - Sử dụng @Version để tránh ghi đè
+- id: reactive-kiem-thu
+  title: Reactive & kiểm thử
+  purpose: Phân biệt đường truy cập bất đồng bộ và xác minh các thao tác MongoDB bằng kiểm thử thực tế.
+  objectives:
+  - Dùng ReactiveMongoTemplate và Flux/Mono
+  - So sánh reactive với blocking driver
+  - Kiểm thử repository và xử lý lỗi

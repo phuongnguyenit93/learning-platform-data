@@ -1,0 +1,6052 @@
+menu:
+- slug: introduction
+  title: Nhập môn
+  childs:
+  - slug: introduction-001
+    title: Spring Batch giải quyết bài toán xử lý dữ liệu nào?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-002
+    title: Batch processing khác xử lý request trực tuyến ra sao?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-003
+    title: Job, Step và flow thực thi trong Spring Batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-004
+    title: Dữ liệu đầu vào, xử lý và đầu ra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-005
+    title: Đặc điểm của một batch job đáng tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-006
+    title: Định danh lần chạy và khả năng khởi động lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-007
+    title: Transaction, checkpoint và trạng thái tiến độ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-008
+    title: Khi dùng chunk processing và khi dùng tasklet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-009
+    title: Vai trò của metadata repository
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-010
+    title: Các thành phần sẽ gặp trong một ứng dụng Spring Batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introduction-011
+    title: Lộ trình từ job đơn giản đến pipeline production
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: job
+  title: Job
+  childs:
+  - slug: job-001
+    title: Job biểu diễn một quy trình batch như thế nào?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-002
+    title: JobInstance và nhận diện một logical job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-003
+    title: JobExecution đại diện cho một lần chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-004
+    title: JobParameters tham gia xác định instance
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-005
+    title: Job chưa chạy, đang chạy, hoàn tất và thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-006
+    title: Job có thể chạy lại hay không?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-007
+    title: Job với một step và nhiều step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-008
+    title: Job flow tuần tự và flow có điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-009
+    title: Job name và job registry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-010
+    title: Job restart từ execution thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-011
+    title: Job kết thúc với COMPLETED hoặc FAILED
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-012
+    title: JobExecution metadata cần được lưu ở đâu?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-013
+    title: Phân biệt job definition với job execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: step
+  title: Step
+  childs:
+  - slug: step-001
+    title: Step là đơn vị xử lý trong Job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-002
+    title: StepExecution và trạng thái thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-003
+    title: Step contribution và số lượng đọc, ghi, bỏ qua
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-004
+    title: TaskletStep và chunk-oriented step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-005
+    title: Step bắt đầu, đang chạy, hoàn tất và thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-006
+    title: Step có thể restart từ checkpoint nào?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-007
+    title: StepExecutionContext lưu trạng thái gì?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-008
+    title: Step name phải ổn định như thế nào?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-009
+    title: Một job có nhiều step phụ thuộc nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-010
+    title: Step flow và điều kiện chuyển tiếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: step-011
+    title: Giới hạn của việc nhồi quá nhiều logic vào một step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: job-repository
+  title: JobRepository
+  childs:
+  - slug: job-repository-001
+    title: JobRepository lưu metadata batch như thế nào?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-002
+    title: JobInstance, JobExecution và StepExecution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-003
+    title: ExecutionContext của job và step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-004
+    title: Schema repository và bảng metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-005
+    title: Transaction khi cập nhật batch metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-006
+    title: JobRepository trong môi trường single instance
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-007
+    title: JobRepository dùng database ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-008
+    title: Isolation khi khởi động cùng job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-009
+    title: Chọn database và datasource cho metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-010
+    title: Lỗi metadata không nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-011
+    title: Dọn metadata cũ và retention
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-repository-012
+    title: Không coi metadata repository là dữ liệu nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: job-launcher
+  title: JobLauncher
+  childs:
+  - slug: job-launcher-001
+    title: JobLauncher khởi chạy JobExecution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-002
+    title: Khởi chạy đồng bộ và bất đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-003
+    title: JobLauncher với TaskExecutor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-004
+    title: JobParameters khi launch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-005
+    title: Job đã hoàn tất và hành vi launch lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-006
+    title: Job đang chạy và duplicate launch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-007
+    title: Launch exception và lỗi validation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-008
+    title: Theo dõi kết quả từ job launcher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-009
+    title: Không giữ request thread cho job dài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-010
+    title: Quyền gọi job launcher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-launcher-011
+    title: Kiểm thử launcher với job test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: job-parameters
+  title: JobParameters
+  childs:
+  - slug: job-parameters-001
+    title: JobParameters xác định JobInstance
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-002
+    title: String, Long, Double và Date parameter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-003
+    title: Parameter identifying và non-identifying
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-004
+    title: Tham số đầu vào từ command line
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-005
+    title: Tham số mặc định và tính xác định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-006
+    title: Parameter converter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-007
+    title: Parameter validation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-008
+    title: Thời gian hiện tại làm parameter có ổn định không?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-009
+    title: Tránh tạo instance mới ngoài ý muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-010
+    title: JobParametersIncrementer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-011
+    title: Hiển thị parameters trong metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-parameters-012
+    title: Bảo vệ secret không lưu trực tiếp vào metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chunk-processing
+  title: Chunk processing
+  childs:
+  - slug: chunk-processing-001
+    title: Chunk-oriented processing là gì?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-002
+    title: ItemReader, ItemProcessor và ItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-003
+    title: Commit interval và kích thước chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-004
+    title: Đọc, xử lý và ghi trong một transaction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-005
+    title: Checkpoint sau mỗi chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-006
+    title: Chunk rỗng và kết thúc input
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-007
+    title: Chunk có ít item hơn commit interval
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-008
+    title: Lỗi giữa chunk và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-009
+    title: Chunk size ảnh hưởng throughput và memory
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-010
+    title: Tách input, transformation và output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-011
+    title: Khi chunk processing phù hợp hơn tasklet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chunk-processing-012
+    title: Đảm bảo reader, processor và writer cùng hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: item-reader
+  title: ItemReader
+  childs:
+  - slug: item-reader-001
+    title: ItemReader đọc một item mỗi lần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-002
+    title: read trả null để báo hết input
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-003
+    title: Reader state và current item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-004
+    title: Reader restartable và save state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-005
+    title: open, update và close trong ItemStream
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-006
+    title: Reader từ file, database và resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-007
+    title: Reader xử lý input rỗng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-008
+    title: Reader lỗi giữa chừng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-009
+    title: Reader không được bỏ qua item ngoài ý muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-010
+    title: Reader thread safety
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-011
+    title: Đọc theo thứ tự và ý nghĩa của order
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-reader-012
+    title: Kiểm thử reader với input biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: item-processor
+  title: ItemProcessor
+  childs:
+  - slug: item-processor-001
+    title: ItemProcessor biến đổi hoặc kiểm tra item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-002
+    title: Processor trả null để filter item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-003
+    title: Processor ném exception khi item sai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-004
+    title: Processor stateless và stateful
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-005
+    title: Chain nhiều processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-006
+    title: Validate trước khi transform
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-007
+    title: Mapping input model sang output model
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-008
+    title: Không để processor thực hiện side effect khó retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-009
+    title: Processor idempotent
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-010
+    title: Processor dùng service ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-011
+    title: Kiểm thử processor với item hợp lệ và không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-processor-012
+    title: Phân biệt filter với skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: item-writer
+  title: ItemWriter
+  childs:
+  - slug: item-writer-001
+    title: ItemWriter ghi một chunk item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-002
+    title: Write nhận danh sách item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-003
+    title: Write transaction và commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-004
+    title: Writer ghi file, database hoặc message
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-005
+    title: Writer xử lý partial failure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-006
+    title: Writer idempotency khi retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-007
+    title: Writer flush và close resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-008
+    title: Writer thứ tự item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-009
+    title: Writer không được sửa input sau khi nhận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-010
+    title: Writer lỗi và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-011
+    title: Writer restart state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: item-writer-012
+    title: Kiểm thử writer với chunk rỗng và nhiều item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tasklet
+  title: Tasklet
+  childs:
+  - slug: tasklet-001
+    title: Tasklet thực hiện một tác vụ trong Step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-002
+    title: RepeatStatus.FINISHED và CONTINUABLE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-003
+    title: Tasklet cho thao tác một lần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-004
+    title: Tasklet đọc ExecutionContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-005
+    title: Tasklet transaction boundary
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-006
+    title: Tasklet xử lý file hoặc gọi thủ tục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-007
+    title: Tasklet idempotency khi restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-008
+    title: Tasklet ném exception
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-009
+    title: Tasklet cleanup sau xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-010
+    title: Khi tasklet đơn giản hơn chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-011
+    title: Không đưa pipeline item vào tasklet quá lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tasklet-012
+    title: Kiểm thử tasklet với step contribution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions
+  title: Transactions
+  childs:
+  - slug: transactions-001
+    title: Transaction boundary của chunk step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-002
+    title: Transaction bắt đầu và commit ở đâu?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-003
+    title: Rollback khi reader, processor hoặc writer lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-004
+    title: Transaction propagation trong service được gọi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-005
+    title: Transaction manager cho database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-006
+    title: Transaction metadata và business data
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-007
+    title: Writer nhiều resource và giới hạn atomicity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-008
+    title: Isolation level của batch transaction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-009
+    title: Deadlock và retry transaction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-010
+    title: Transaction timeout
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-011
+    title: Không mở transaction kéo dài qua toàn bộ job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-012
+    title: Kiểm thử commit và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: commit-policy
+  title: Commit policy
+  childs:
+  - slug: commit-policy-001
+    title: Commit interval và số item mỗi transaction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-002
+    title: CompletionPolicy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-003
+    title: Commit theo kích thước dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-004
+    title: Commit theo thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-005
+    title: Chunk completion khi reader kết thúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-006
+    title: Trade-off giữa commit nhỏ và commit lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-007
+    title: Commit nhỏ giảm rollback scope
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-008
+    title: Commit lớn giảm transaction overhead
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-009
+    title: Memory của item trong một chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-010
+    title: Commit policy và restart checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commit-policy-011
+    title: Chọn policy theo latency, throughput và độ tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-context
+  title: ExecutionContext
+  childs:
+  - slug: execution-context-001
+    title: ExecutionContext lưu trạng thái restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-002
+    title: JobExecutionContext và StepExecutionContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-003
+    title: Key ổn định cho reader state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-004
+    title: Serialize context vào repository
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-005
+    title: Cập nhật context trước commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-006
+    title: State không serialize được
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-007
+    title: Context quá lớn và chi phí metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-008
+    title: Không lưu dữ liệu nhạy cảm tùy ý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-009
+    title: Context khi step thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-010
+    title: Context khi job restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-011
+    title: Phân biệt context với job parameters
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-context-012
+    title: Kiểm tra state sau một lần chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: listeners
+  title: Listeners
+  childs:
+  - slug: listeners-001
+    title: JobExecutionListener trước và sau job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-002
+    title: StepExecutionListener trước và sau step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-003
+    title: ChunkListener trước và sau chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-004
+    title: ItemReadListener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-005
+    title: ItemProcessListener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-006
+    title: ItemWriteListener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-007
+    title: SkipListener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-008
+    title: RetryListener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-009
+    title: Listener order
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-010
+    title: Listener không được che lỗi chính
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-011
+    title: Dùng listener cho metric và audit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-012
+    title: Listener và transaction callback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: listeners-013
+    title: Kiểm thử listener với execution status
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: flow
+  title: Flow
+  childs:
+  - slug: flow-001
+    title: Sequential flow giữa các step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-002
+    title: Start, next và end
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-003
+    title: Conditional transition theo ExitStatus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-004
+    title: BatchStatus và ExitStatus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-005
+    title: Flow không có nhánh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-006
+    title: Flow có điều kiện thành công
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-007
+    title: Flow có điều kiện thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-008
+    title: Skip step và stop job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-009
+    title: Decider quyết định bước tiếp theo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-010
+    title: JobExecutionDecider và trạng thái quyết định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-011
+    title: Restart flow sau step thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flow-012
+    title: Không tạo flow khó theo dõi từ quá nhiều nhánh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: job-step
+  title: JobStep
+  childs:
+  - slug: job-step-001
+    title: JobStep chạy một Job con trong một Step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-002
+    title: Parent job và child job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-003
+    title: JobParameters truyền vào job con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-004
+    title: JobStep execution context
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-005
+    title: Transaction boundary của JobStep
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-006
+    title: Restart job con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-007
+    title: Phân biệt JobStep với flow lồng nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-008
+    title: Theo dõi status của job con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-009
+    title: Lỗi job con ảnh hưởng parent thế nào?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-010
+    title: Dùng JobStep cho quy trình độc lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-step-011
+    title: Kiểm thử parent và child job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: partitioning
+  title: Partitioning
+  childs:
+  - slug: partitioning-001
+    title: Partitioning chia dữ liệu thành nhiều step execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-002
+    title: Partitioner tạo ExecutionContext cho từng partition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-003
+    title: Partition name và step execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-004
+    title: Partition handler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-005
+    title: Worker step xử lý partition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-006
+    title: Master step điều phối partition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-007
+    title: Range partitioning
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-008
+    title: Key partitioning
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-009
+    title: Restart partition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-010
+    title: Partition context và metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-011
+    title: Phân biệt partitioning với chunk processing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-012
+    title: Giới hạn partitioning trong module core
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: parallel-flow
+  title: Parallel flow
+  childs:
+  - slug: parallel-flow-001
+    title: Chạy nhiều flow song song trong một job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-002
+    title: Flow split và join
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-003
+    title: Executor cho parallel flow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-004
+    title: Đồng bộ khi các flow hoàn tất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-005
+    title: Lỗi một flow ảnh hưởng job thế nào?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-006
+    title: Tài nguyên dùng chung giữa các flow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-007
+    title: Thứ tự kết quả của parallel flow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-008
+    title: ExecutionContext trong flow song song
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-009
+    title: Deadlock khi flow chia sẻ resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-010
+    title: Kiểm thử parallel flow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-flow-011
+    title: Khi dùng scaling module thay vì core flow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: skip
+  title: Skip
+  childs:
+  - slug: skip-001
+    title: Skip item không xử lý được
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-002
+    title: Skip limit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-003
+    title: SkipPolicy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-004
+    title: Skippable exception
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-005
+    title: Skip trong read, process và write
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-006
+    title: SkipListener ghi nhận item bị bỏ qua
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-007
+    title: Skip item và rollback chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-008
+    title: Giới hạn skip để không che lỗi hàng loạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-009
+    title: Skip với output có thể gây thiếu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-010
+    title: Skip count trong StepExecution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-011
+    title: Skip khi restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: skip-012
+    title: Kiểm thử skip allowed và skip limit exceeded
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: retry
+  title: Retry
+  childs:
+  - slug: retry-001
+    title: Retry item bị lỗi tạm thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-002
+    title: RetryPolicy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-003
+    title: Retryable exception
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-004
+    title: Retry limit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-005
+    title: BackoffPolicy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-006
+    title: Retry trong read, process và write
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-007
+    title: Retry state và item identity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-008
+    title: Retry listener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-009
+    title: Retry cùng transaction rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-010
+    title: Retry không an toàn với side effect
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-011
+    title: Recovery sau retry hết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-012
+    title: Phân biệt retry với skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fault-tolerance
+  title: Fault tolerance
+  childs:
+  - slug: fault-tolerance-001
+    title: FaultTolerantStepBuilder
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-002
+    title: Kết hợp skip và retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-003
+    title: Exception classifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-004
+    title: Skip limit và retry limit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-005
+    title: No rollback exception
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-006
+    title: Phân loại rollback cho fault-tolerant step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-007
+    title: Transactional reader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-008
+    title: Non-transactional reader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-009
+    title: Fault-tolerant chunk và checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-010
+    title: Xử lý lỗi khi writer ghi một phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-011
+    title: Đảm bảo dữ liệu không bị nhân đôi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-tolerance-012
+    title: Kiểm thử nhiều loại lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: rollback
+  title: Rollback
+  childs:
+  - slug: rollback-001
+    title: Rollback chunk khi processor ném exception
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-002
+    title: Rollback khi writer thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-003
+    title: Item đã đọc trước rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-004
+    title: Reader transactional queue
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-005
+    title: NoRollbackExceptionClasses
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-006
+    title: Chính sách rollback cho step có classifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-007
+    title: Rollback và retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-008
+    title: Rollback và skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-009
+    title: Rollback side effect ngoài database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-010
+    title: Cleanup sau rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-011
+    title: Kiểm tra trạng thái metadata sau rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: restart
+  title: Restart
+  childs:
+  - slug: restart-001
+    title: Restartable job là gì?
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-002
+    title: Điều kiện job có thể restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-003
+    title: Restart từ step thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-004
+    title: Restart từ chunk checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-005
+    title: Restart với reader state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-006
+    title: Restart với writer state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-007
+    title: Restart sau process bị kill
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-008
+    title: JobInstance không restart được khi COMPLETED
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-009
+    title: startLimit của step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-010
+    title: allowStartIfComplete
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-011
+    title: JobParameters mới và instance mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: restart-012
+    title: Thiết kế restart không tạo duplicate output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: job-execution-status
+  title: Job execution status
+  childs:
+  - slug: job-execution-status-001
+    title: BatchStatus của JobExecution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-002
+    title: ExitStatus của StepExecution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-003
+    title: Exit code cho scheduler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-004
+    title: Custom ExitStatus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-005
+    title: Status khi skip vẫn hoàn tất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-006
+    title: Status khi retry recovery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-007
+    title: Status khi job dừng có chủ đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-008
+    title: Status khi operator stop job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-009
+    title: Mapping status sang monitoring
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-010
+    title: Không dùng message status thay cho BatchStatus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: job-execution-status-011
+    title: Kiểm thử trạng thái cuối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scope
+  title: Scope
+  childs:
+  - slug: scope-001
+    title: JobScope và step scope
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-002
+    title: Late binding từ JobParameters
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-003
+    title: Late binding từ ExecutionContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-004
+    title: Bean scoped theo job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-005
+    title: Bean scoped theo step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-006
+    title: Proxy của scoped bean
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-007
+    title: Reader hoặc writer cần step scope
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-008
+    title: Scope khi test job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-009
+    title: Scope trong multi-thread execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-010
+    title: Lỗi bean ngoài scope
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-011
+    title: Không dùng scoped bean cho state toàn cục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: parameter-injection
+  title: Parameter injection
+  childs:
+  - slug: parameter-injection-001
+    title: '@Value từ jobParameters'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-002
+    title: '@Value từ jobExecutionContext'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-003
+    title: '@Value từ stepExecutionContext'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-004
+    title: Tên key và kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-005
+    title: Late binding expression
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-006
+    title: Parameter không tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-007
+    title: Default parameter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-008
+    title: Validation trước khi tạo step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-009
+    title: Truyền parameter vào reader và writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-010
+    title: Không ghép chuỗi expression quá phức tạp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameter-injection-011
+    title: Kiểm thử parameter binding
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-management
+  title: Resource management
+  childs:
+  - slug: resource-management-001
+    title: Mở file input và output trong reader, writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-002
+    title: ItemStream open và close
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-003
+    title: Đóng resource khi job thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-004
+    title: Tệp tạm và cleanup
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-005
+    title: Resource từ classpath và filesystem
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-006
+    title: Encoding file
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-007
+    title: File lock và file đang được sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-008
+    title: Tên output theo job instance
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-009
+    title: Không ghi đè output của lần chạy trước
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-010
+    title: Quyền filesystem
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-011
+    title: Kiểm thử resource leak
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: flat-file
+  title: Flat file
+  childs:
+  - slug: flat-file-001
+    title: FlatFileItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-002
+    title: LineMapper và FieldSetMapper
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-003
+    title: DelimitedLineTokenizer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-004
+    title: FixedLengthTokenizer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-005
+    title: FieldSet và kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-006
+    title: BeanWrapperFieldSetMapper
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-007
+    title: LineCallbackHandler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-008
+    title: RecordSeparatorPolicy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-009
+    title: Header và footer callback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-010
+    title: Bỏ qua dòng header
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-011
+    title: Tệp có dòng lỗi và skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-012
+    title: Encoding và newline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-013
+    title: FlatFileItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-014
+    title: LineAggregator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-015
+    title: HeaderCallback và FooterCallback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flat-file-016
+    title: Append hay overwrite output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database
+  title: Database
+  childs:
+  - slug: database-001
+    title: JdbcCursorItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-002
+    title: JdbcPagingItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-003
+    title: RowMapper và mapper domain
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-004
+    title: Paging query và sort key
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-005
+    title: Cursor transaction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-006
+    title: Page size và fetch size
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-007
+    title: JdbcBatchItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-008
+    title: ItemPreparedStatementSetter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-009
+    title: SqlParameterSourceProvider
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-010
+    title: DataSourceTransactionManager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-011
+    title: Nhiều datasource trong batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-012
+    title: Restart reader database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-013
+    title: Đọc và ghi cùng database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: xml
+  title: XML
+  childs:
+  - slug: xml-001
+    title: StaxEventItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-002
+    title: JAXB hoặc marshaller trong XML processing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-003
+    title: Fragment root và item boundary
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-004
+    title: Resource XML lớn và streaming
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-005
+    title: Validation XML schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-006
+    title: Namespace và mapping
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-007
+    title: Restart vị trí trong XML
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-008
+    title: StaxEventItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-009
+    title: Root tag và fragment
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-010
+    title: Marshaller trong writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-011
+    title: Encoding XML
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-012
+    title: XML lỗi giữa chừng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: xml-013
+    title: Kiểm thử XML reader và writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: json
+  title: JSON
+  childs:
+  - slug: json-001
+    title: JsonItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-002
+    title: JsonObject và Jackson mapping
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-003
+    title: JSON array lớn và streaming
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-004
+    title: JsonItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-005
+    title: Root array và item separator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-006
+    title: ObjectMapper configuration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-007
+    title: Unknown field và schema evolution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-008
+    title: Null field và default mapping
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-009
+    title: Encoding JSON
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-010
+    title: Restart JSON reader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-011
+    title: Lỗi parse JSON và skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-012
+    title: Kiểm thử JSON input và output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: custom-components
+  title: Custom components
+  childs:
+  - slug: custom-components-001
+    title: Tự viết ItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-002
+    title: Tự viết ItemProcessor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-003
+    title: Tự viết ItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-004
+    title: Implement ItemStream cho component có state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-005
+    title: Save state bằng ExecutionContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-006
+    title: Open và close resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-007
+    title: Xử lý null và end of input
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-008
+    title: Thread safety của custom component
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-009
+    title: Exception contract
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-010
+    title: Idempotency của custom writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-011
+    title: Kiểm thử custom component độc lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-components-012
+    title: Đăng ký component trong step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: composite
+  title: Composite
+  childs:
+  - slug: composite-001
+    title: CompositeItemProcessor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-002
+    title: Chain processor theo thứ tự
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-003
+    title: Processor trả null giữa chain
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-004
+    title: CompositeItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-005
+    title: Ghi cùng item đến nhiều writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-006
+    title: Thứ tự writer và lỗi một writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-007
+    title: Processor composite chọn theo classifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-008
+    title: Writer composite chọn theo classifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-009
+    title: Route item theo loại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-010
+    title: Output nhất quán giữa nhiều writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-011
+    title: Rollback composite operation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composite-012
+    title: Kiểm thử từng nhánh composite
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: classifier
+  title: Classifier
+  childs:
+  - slug: classifier-001
+    title: Classifier xác định processor hoặc writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-002
+    title: Phân loại theo payload type
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-003
+    title: Phân loại theo field hoặc business state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-004
+    title: ClassifierCompositeItemProcessor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-005
+    title: ClassifierCompositeItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-006
+    title: Default classifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-007
+    title: Item không khớp classifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-008
+    title: Classifier có state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-009
+    title: Classifier và deterministic routing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-010
+    title: Lỗi phân loại và skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: classifier-011
+    title: Kiểm thử mọi nhánh classifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multi-resource
+  title: Multi-resource
+  childs:
+  - slug: multi-resource-001
+    title: MultiResourceItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-002
+    title: Đọc nhiều file theo thứ tự resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-003
+    title: Comparator cho resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-004
+    title: Lưu resource hiện tại trong checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-005
+    title: File mới xuất hiện khi job chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-006
+    title: MultiResourceItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-007
+    title: Phân chia output theo số item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-008
+    title: Tên file suffix
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-009
+    title: Restart với nhiều output file
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-010
+    title: Resource bị thiếu hoặc đổi tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-011
+    title: Quản lý output cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-resource-012
+    title: Kiểm thử danh sách resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jdbc-processing
+  title: Jdbc processing
+  childs:
+  - slug: jdbc-processing-001
+    title: Đọc theo cursor và transaction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-002
+    title: Đọc theo page và sort ổn định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-003
+    title: Paging khi dữ liệu thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-004
+    title: Parameter trong query
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-005
+    title: RowMapper bất biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-006
+    title: Batch update writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-007
+    title: Generated key và output mapping
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-008
+    title: Deadlock khi đọc ghi cùng bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-009
+    title: Isolation level và repeatable read
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-010
+    title: Restart sau khi commit database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-011
+    title: Skip duplicate key
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-processing-012
+    title: Kiểm thử database reader writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jpa-processing
+  title: JPA processing
+  childs:
+  - slug: jpa-processing-001
+    title: JpaPagingItemReader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-002
+    title: EntityManager và persistence context
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-003
+    title: Clear persistence context theo chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-004
+    title: Flush trước commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-005
+    title: Lazy relation trong processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-006
+    title: JpaItemWriter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-007
+    title: Transaction manager cho JPA
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-008
+    title: Optimistic locking
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-009
+    title: N+1 query trong processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-010
+    title: Restart với database item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-011
+    title: Entity state sau rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jpa-processing-012
+    title: Kiểm thử JPA batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: message-processing
+  title: Message processing
+  childs:
+  - slug: message-processing-001
+    title: ItemReader đọc message từ queue
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-002
+    title: ItemWriter gửi message
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-003
+    title: Transaction với broker
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-004
+    title: Acknowledgement theo chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-005
+    title: Redelivery và duplicate item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-006
+    title: Message key và correlation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-007
+    title: Retry message processing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-008
+    title: Dead-letter message
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-009
+    title: Serialization payload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-010
+    title: Batch commit và broker commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-011
+    title: Không mất message khi writer lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-processing-012
+    title: Kiểm thử message reader writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: processor-patterns
+  title: Processor patterns
+  childs:
+  - slug: processor-patterns-001
+    title: Validation processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-002
+    title: Filtering processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-003
+    title: Mapping processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-004
+    title: Enrichment processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-005
+    title: Composite processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-006
+    title: Classifier processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-007
+    title: Caching processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-008
+    title: Processor gọi remote service
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-009
+    title: Processor timeout
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-010
+    title: Processor retry và idempotency
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-011
+    title: Processor side effect và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processor-patterns-012
+    title: Kiểm thử processor chain
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: output-consistency
+  title: Output consistency
+  childs:
+  - slug: output-consistency-001
+    title: Output được tạo một lần hay nhiều lần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-002
+    title: File output và restart safety
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-003
+    title: Database output và unique constraint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-004
+    title: Message output và duplicate delivery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-005
+    title: Transactional writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-006
+    title: Write-ahead hoặc outbox output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-007
+    title: Atomic rename file
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-008
+    title: Temporary output và commit marker
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-009
+    title: Kiểm tra output sau job complete
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-010
+    title: Dọn output sau job failed
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: output-consistency-011
+    title: Đối chiếu input, skipped và output counts
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: batch-testing
+  title: Testing batch
+  childs:
+  - slug: batch-testing-001
+    title: JobLauncherTestUtils
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-002
+    title: JobRepositoryTestUtils
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-003
+    title: Chạy job test với JobParameters
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-004
+    title: JobScopeTestUtils
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-005
+    title: Kiểm thử job instance
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-006
+    title: Kiểm thử step riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-007
+    title: MetaDataInstanceFactory
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-008
+    title: Assert JobExecution status
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-009
+    title: Assert StepExecution counts
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-010
+    title: Assert ExecutionContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-011
+    title: Kiểm thử restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-012
+    title: Kiểm thử skip và retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-013
+    title: Kiểm thử listener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-testing-014
+    title: Kiểm thử input output resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: test-data
+  title: Test data
+  childs:
+  - slug: test-data-001
+    title: Tạo JobParameters ổn định trong test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-002
+    title: Database test schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-003
+    title: Dữ liệu file test nhỏ và rõ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-004
+    title: Dữ liệu lỗi cho skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-005
+    title: Dữ liệu lỗi cho retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-006
+    title: Dữ liệu để kiểm tra restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-007
+    title: Dữ liệu duplicate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-008
+    title: Dữ liệu rỗng và giới hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-009
+    title: Dọn metadata sau test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-010
+    title: Dọn output file sau test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-data-011
+    title: Không để test phụ thuộc thời gian thật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: test-infrastructure
+  title: Test infrastructure
+  childs:
+  - slug: test-infrastructure-001
+    title: JobRepository dành cho test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-002
+    title: Embedded database cho metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-003
+    title: Transaction manager trong test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-004
+    title: TestExecutionListener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-005
+    title: Spring TestContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-006
+    title: Context cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-007
+    title: Test profile
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-008
+    title: Mock external service
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-009
+    title: Clock và thời gian kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-010
+    title: Executor test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-011
+    title: Chạy test song song an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: test-infrastructure-012
+    title: Phân biệt unit test và batch integration test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-control
+  title: Execution control
+  childs:
+  - slug: execution-control-001
+    title: Start job từ command line
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-002
+    title: Start job từ scheduler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-003
+    title: Stop job đang chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-004
+    title: Abandon job execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-005
+    title: Operator restart job failed
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-006
+    title: JobOperator và thao tác điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-007
+    title: JobExplorer đọc metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-008
+    title: JobRegistry tìm job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-009
+    title: Duplicate launch protection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-010
+    title: Graceful stop tại checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-control-011
+    title: Không kill process giữa critical write
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scheduling
+  title: Scheduling
+  childs:
+  - slug: scheduling-001
+    title: Lịch chạy batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-002
+    title: JobParameters từ scheduler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-003
+    title: Prevent overlapping execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-004
+    title: Lock khi nhiều scheduler instance
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-005
+    title: Misfire và missed schedule
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-006
+    title: Chạy lại sau failure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-007
+    title: Dependency giữa các job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-008
+    title: Job completion signal
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-009
+    title: Time zone của schedule
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-010
+    title: Run window và deadline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-011
+    title: Audit lần launch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monitoring
+  title: Monitoring
+  childs:
+  - slug: monitoring-001
+    title: Đếm read, write, filter và skip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-002
+    title: Theo dõi commit count
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-003
+    title: Theo dõi retry count
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-004
+    title: Theo dõi thời gian mỗi chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-005
+    title: Theo dõi step duration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-006
+    title: Theo dõi job duration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-007
+    title: Tỷ lệ failure theo job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-008
+    title: Metadata cho audit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-009
+    title: Log job instance và execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-010
+    title: Correlation với request hoặc scheduler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-011
+    title: Alert job không tiến triển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-012
+    title: Dashboard batch operational
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: logging
+  title: Logging
+  childs:
+  - slug: logging-001
+    title: Log ở job listener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-002
+    title: Log ở step listener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-003
+    title: Log item lỗi an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-004
+    title: Không log toàn bộ dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-005
+    title: Gắn job execution ID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-006
+    title: Gắn step execution ID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-007
+    title: Gắn chunk hoặc item key
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-008
+    title: Structured log cho batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-009
+    title: Log retry và recovery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-010
+    title: Log restart point
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-011
+    title: Giảm log trên job lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-012
+    title: Đối chiếu log với metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance
+  title: Performance
+  childs:
+  - slug: performance-001
+    title: Throughput theo chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-002
+    title: Latency của reader processor writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-003
+    title: Commit interval tuning
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-004
+    title: Fetch size và page size
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-005
+    title: Batch update size
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-006
+    title: Memory của chunk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-007
+    title: CPU trong processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-008
+    title: I/O của reader và writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-009
+    title: Connection pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-010
+    title: GC và object allocation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-011
+    title: Tối ưu mà không phá restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-012
+    title: Benchmark dữ liệu đại diện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: failure-recovery
+  title: Failure recovery
+  childs:
+  - slug: failure-recovery-001
+    title: Failure ở reader
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-002
+    title: Failure ở processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-003
+    title: Failure ở writer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-004
+    title: Failure khi commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-005
+    title: Failure khi cập nhật metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-006
+    title: Process bị kill
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-007
+    title: Database mất kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-008
+    title: File system đầy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-009
+    title: Remote service timeout
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-010
+    title: Dữ liệu lỗi hàng loạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-011
+    title: Recovery bằng retry hoặc restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-recovery-012
+    title: Runbook xử lý failure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-quality
+  title: Data quality
+  childs:
+  - slug: data-quality-001
+    title: Validate đầu vào trước batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-002
+    title: Quarantine item lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-003
+    title: Skip và báo cáo rejected item
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-004
+    title: Đối chiếu tổng input và output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-005
+    title: Reconciliation sau job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-006
+    title: Duplicate detection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-007
+    title: Missing record detection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-008
+    title: Data type và format validation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-009
+    title: Schema version của input
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-010
+    title: Business rule trong processor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-011
+    title: Báo cáo chất lượng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-012
+    title: Không biến skip thành mất dữ liệu im lặng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security
+  title: Security
+  childs:
+  - slug: security-001
+    title: Secret trong JobParameters
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-002
+    title: Không ghi credential vào ExecutionContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-003
+    title: Quyền đọc input resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-004
+    title: Quyền ghi output resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-005
+    title: Database credential
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-006
+    title: Mã hóa file nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-007
+    title: Mask dữ liệu trong log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-008
+    title: Phân quyền launch và stop job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-009
+    title: Audit operator action
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-010
+    title: Validate input tránh injection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-011
+    title: Bảo vệ metadata repository
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Dùng thời gian hiện tại để luôn tạo JobInstance mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-002
+    title: Chạy lại job COMPLETED như restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-003
+    title: Không lưu reader state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-004
+    title: Reader không restartable nhưng job cần restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-005
+    title: Writer tạo duplicate output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-006
+    title: Skip quá rộng che lỗi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-007
+    title: Retry lỗi vĩnh viễn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-008
+    title: Chunk quá lớn gây thiếu bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-009
+    title: Chunk quá nhỏ làm throughput thấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-010
+    title: Gọi remote service trong transaction dài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-011
+    title: Không dọn file tạm sau failure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-012
+    title: Test chỉ kiểm tra exit code
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-013
+    title: Không kiểm tra ExecutionContext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-decisions
+  title: Quyết định thiết kế
+  childs:
+  - slug: design-decisions-001
+    title: Chọn chunk hay tasklet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-002
+    title: Chọn reader database hay file
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-003
+    title: Chọn cursor hay paging
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-004
+    title: Chọn skip hay fail fast
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-005
+    title: Chọn retry hay restart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-006
+    title: Chọn metadata database hay cơ chế khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-007
+    title: Chọn synchronous hay asynchronous launch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-008
+    title: Chọn một job lớn hay nhiều job nhỏ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-009
+    title: Chọn output transaction hay outbox
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-010
+    title: Đánh đổi throughput với khả năng phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-decisions-011
+    title: Ghi giả thiết và giới hạn của job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practice-project
+  title: Dự án thực hành
+  childs:
+  - slug: practice-project-001
+    title: Tạo job đọc file CSV và ghi database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-002
+    title: Thêm processor validate và map dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-003
+    title: Cấu hình JobRepository và JobLauncher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-004
+    title: Thiết kế JobParameters định danh lần chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-005
+    title: Thêm chunk transaction và checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-006
+    title: Xử lý skip dữ liệu lỗi với báo cáo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-007
+    title: Thêm retry lỗi tạm thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-008
+    title: Kiểm tra restart sau khi process bị dừng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-009
+    title: Tạo job flow nhiều step
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-010
+    title: Thêm listener và metric
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-011
+    title: Viết unit và integration test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-012
+    title: Đưa job vào scheduler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-project-013
+    title: Tạo runbook cho failure và recovery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

@@ -1,0 +1,7 @@
+# Spring AI MCP
+
+Model Context Protocol (MCP) là giao thức giúp ứng dụng AI kết nối với công cụ và nguồn thông tin bên ngoài theo một hợp đồng thống nhất. Trong hệ sinh thái Spring, Spring AI MCP cung cấp các starter và API để xây dựng MCP Server công bố Tools, Resources, Prompts hoặc MCP Client tiêu thụ những khả năng đó. Khác với việc gọi REST API thông thường, MCP định nghĩa cách khám phá và sử dụng khả năng phục vụ tác vụ của mô hình; nó không tự bảo đảm tính an toàn hay độ tin cậy của mọi công cụ được công bố.
+
+Module phù hợp với người đã biết Java, Spring Boot, HTTP/JSON và những khái niệm cơ bản về Spring AI. Lộ trình bắt đầu từ mô hình host–client–server, sau đó chọn MCP starter và transport STDIO hoặc Streamable HTTP theo ngữ cảnh triển khai. Người học sẽ tạo server có tool bằng annotation, công bố resource và prompt, cấu hình MCP client kết nối nhiều server và đưa công cụ vào ChatClient thông qua ToolCallback. Các mốc cuối tập trung vào xác thực, phân quyền theo thao tác, phạm vi dữ liệu của người dùng và kiểm thử các trường hợp kết nối, schema, timeout hoặc lỗi khi gọi tool.
+
+Sau khi hoàn thành, bạn có thể xây dựng một MCP Server tối giản bằng Spring Boot, tạo MCP Client truy cập tool/resource/prompt, kiểm tra kết quả gọi tool và nhận diện rủi ro khi triển khai nhiều người dùng. Cần bảo vệ endpoint HTTP trước khi đưa ra mạng, không coi session MCP dùng chung là ranh giới phân tách người dùng và kiểm tra tính tương thích giữa phiên bản giao thức, Spring AI và MCP Java SDK trước khi phát hành.

@@ -1,0 +1,3499 @@
+menu:
+- slug: resource-server-overview
+  title: Tổng quan Resource Server
+  childs:
+  - slug: resource-server-overview-001
+    title: Máy chủ tài nguyên (Resource Server) là gì và bảo vệ API như thế nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-002
+    title: Chủ tài nguyên, client, authorization server và resource server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-003
+    title: Hành trình một yêu cầu từ access token đến quyết định cho phép truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-004
+    title: Xác thực token và phân quyền đối với tài nguyên là hai bước khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-005
+    title: Resource Server khác OAuth2 Client và Authorization Server ở trách nhiệm nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-006
+    title: JWT, opaque token và lựa chọn cách xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-007
+    title: Servlet, WebFlux và các thành phần tương ứng trong Spring Security
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-008
+    title: Ranh giới tin cậy giữa nhà phát hành token, API và dịch vụ phía sau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-server-overview-009
+    title: Lộ trình từ API có bảo vệ đến xác minh, phân quyền và kiểm thử đầy đủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: oauth-and-oidc
+  title: OAuth 2.0 và OIDC
+  childs:
+  - slug: oauth-and-oidc-001
+    title: OAuth 2.0 ủy quyền truy cập và OIDC bổ sung lớp danh tính
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-002
+    title: Access token, refresh token, authorization code và ID token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-003
+    title: Đối tượng nhận và mục đích sử dụng của từng loại token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-004
+    title: ID token phục vụ OIDC Client và không thay access token để gọi API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-005
+    title: Scope openid và các scope profile, email không tự trở thành quyền nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-006
+    title: Đăng nhập OIDC khác với xác thực một yêu cầu Bearer tại Resource Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-007
+    title: Luồng authorization code và client credentials nhìn từ API nhận token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-008
+    title: Resource Server không tự cấp mới hoặc làm mới token của client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-009
+    title: OIDC Discovery, OAuth metadata và thông tin khóa của nhà phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-010
+    title: UserInfo endpoint và lý do không mặc định cần gọi cho mỗi yêu cầu API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oauth-and-oidc-011
+    title: Hợp đồng giữa client, nhà phát hành và API về audience, quyền, danh tính
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bearer-tokens
+  title: Bearer token
+  childs:
+  - slug: bearer-tokens-001
+    title: 'Ngữ nghĩa Bearer: quyền sử dụng gắn với việc nắm giữ token'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-002
+    title: 'Authorization: Bearer và cấu trúc yêu cầu HTTP có token'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-003
+    title: BearerTokenResolver và DefaultBearerTokenResolver trong Servlet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-004
+    title: Nguồn token mặc định và tùy chỉnh tên header theo hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-005
+    title: Token trong header, query hoặc form và phạm vi hỗ trợ, rủi ro khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-006
+    title: Yêu cầu có nhiều token, token rỗng và cú pháp không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-007
+    title: Không có token khác với có token nhưng không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-008
+    title: HTTPS, proxy và bảo vệ token trên đường truyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-009
+    title: 'Token là dữ liệu nhạy cảm: tránh URL, log và thông báo lỗi'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-010
+    title: Bearer token không tự chứng minh bên gọi đang giữ một khóa riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-tokens-011
+    title: Phân biệt thông tin xác thực đầu vào với danh tính sau khi xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jwt-and-jose
+  title: JWT và JOSE
+  childs:
+  - slug: jwt-and-jose-001
+    title: JWT là tập claims được biểu diễn theo một định dạng token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-002
+    title: JWS compact, ba thành phần và mã hóa biểu diễn base64url
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-003
+    title: JOSE header, payload và chữ ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-004
+    title: 'JWS và JWE: ký, mã hóa và phạm vi hỗ trợ của decoder'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-005
+    title: Chữ ký bảo vệ toàn vẹn nhưng không che nội dung claims
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-006
+    title: alg, kid, typ và vai trò khác nhau của từng trường header
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-007
+    title: Khóa đối xứng, khóa bất đối xứng và phân biệt khóa ký với khóa xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-008
+    title: JWK, JWKS và biểu diễn khóa công khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-009
+    title: Registered claims, public claims và claims riêng của hệ thống
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-010
+    title: NumericDate, kiểu dữ liệu JSON và chuyển đổi sang kiểu Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-and-jose-011
+    title: Đọc nội dung token để chẩn đoán không đồng nghĩa đã xác minh token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: access-token-contracts
+  title: Hợp đồng access token
+  childs:
+  - slug: access-token-contracts-001
+    title: Xác định API nhận token, nhà phát hành được tin cậy và mục đích truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-002
+    title: iss, sub, aud, exp, nbf, iat, jti và ý nghĩa trong hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-003
+    title: Audience của API khác client_id của ứng dụng gọi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-004
+    title: Subject đại diện người dùng hay ứng dụng tùy loại token và nhà phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-005
+    title: Scope, roles, permissions và quy tắc cấp quyền do hệ thống quy định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-006
+    title: azp, client_id và dữ liệu bổ sung cần diễn giải theo hồ sơ token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-007
+    title: Định danh tenant và ràng buộc với tài nguyên được truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-008
+    title: Claims bắt buộc, claims tùy chọn và xử lý thiếu hoặc sai kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-009
+    title: RFC 9068, typ at+jwt và hồ sơ JWT access token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-010
+    title: Thiết kế kiểm tra phân biệt access token với token có mục đích khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-token-contracts-011
+    title: Quản lý thay đổi claims và giữ tương thích giữa nhà phát hành với API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bootstrap-configuration
+  title: Khởi tạo và cấu hình
+  childs:
+  - slug: bootstrap-configuration-001
+    title: Chọn bộ phiên bản JDK, Spring Boot và Spring Security tương thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-002
+    title: Phụ thuộc Resource Server, JOSE và kiểm thử bảo mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-003
+    title: Khởi tạo ứng dụng Servlet hoặc WebFlux theo mục tiêu thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-004
+    title: Cấu hình JWT bằng issuer-uri, jwk-set-uri hoặc khóa được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-005
+    title: Cấu hình opaque token bằng introspection endpoint và thông tin xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-006
+    title: Spring Boot tự tạo filter chain, decoder hoặc introspector khi nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-007
+    title: Bean tùy chỉnh, cấu hình DSL và thứ tự ghi đè cấu hình tự động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-008
+    title: Tách URL, audience, thông tin xác thực theo môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-009
+    title: Quản lý bí mật cho introspection và tránh đưa vào mã nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bootstrap-configuration-010
+    title: Xác nhận một yêu cầu công khai và một yêu cầu được bảo vệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-processing-chain
+  title: Chuỗi xử lý Servlet
+  childs:
+  - slug: servlet-processing-chain-001
+    title: SecurityFilterChain và vị trí xử lý Bearer token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-002
+    title: BearerTokenAuthenticationFilter và lấy token từ yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-003
+    title: BearerTokenAuthenticationToken trước khi được xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-004
+    title: AuthenticationManager, ProviderManager và lựa chọn provider
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-005
+    title: JwtAuthenticationProvider và OpaqueTokenAuthenticationProvider
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-006
+    title: Decoder hoặc introspector chuyển token thành dữ liệu đã được xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-007
+    title: Chuyển dữ liệu token thành Authentication và GrantedAuthority
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-008
+    title: SecurityContextHolder và phạm vi danh tính trong một yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-009
+    title: ExceptionTranslationFilter, entry point và access denied handler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-010
+    title: Đường đi khi không có token, token sai hoặc quyền không đủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-processing-chain-011
+    title: Giữ logic xác thực trong cơ chế Resource Server thay vì viết filter JWT song song
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jwt-decode-and-verify
+  title: Giải mã và xác minh JWT
+  childs:
+  - slug: jwt-decode-and-verify-001
+    title: JwtDecoder và sự khác nhau giữa phân tích cú pháp với xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-002
+    title: NimbusJwtDecoder và các nguồn cung cấp khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-003
+    title: JwtDecoders.fromIssuerLocation và cấu hình dựa trên issuer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-004
+    title: Xác minh chữ ký trước khi sử dụng claims để quyết định quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-005
+    title: Danh sách thuật toán được phép và ghép đúng loại khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-006
+    title: Khóa công khai cố định và yêu cầu luân chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-007
+    title: Khóa đối xứng và ranh giới tin cậy khi bên xác minh cũng giữ bí mật ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-008
+    title: Token không chữ ký, sai chữ ký hoặc không đúng định dạng mong đợi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-009
+    title: Xử lý typ và hồ sơ token theo khả năng của phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-010
+    title: JwtValidators và cấu hình chuỗi kiểm tra sau xác minh chữ ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-011
+    title: Thay decoder mặc định mà vẫn giữ các kiểm tra cần thiết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwt-decode-and-verify-012
+    title: JWE hoặc bộ xử lý token khác và nhu cầu kiểm chứng hỗ trợ tường minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: issuer-and-discovery
+  title: Issuer và discovery
+  childs:
+  - slug: issuer-and-discovery-001
+    title: Issuer là định danh nhà phát hành và là một phần của gốc tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-002
+    title: issuer-uri và kiểm tra claim iss theo giá trị đã cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-003
+    title: OIDC Provider Configuration và OAuth Authorization Server Metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-004
+    title: Discovery tìm jwks_uri như thế nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-005
+    title: Cấu hình trực tiếp jwk-set-uri và vẫn kiểm tra issuer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-006
+    title: Khởi tạo sớm, khởi tạo khi nhận yêu cầu và khác biệt theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-007
+    title: Authorization Server tạm ngừng và ảnh hưởng đến khởi động, xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-008
+    title: URL bên trong, URL công bố và issuer khi triển khai sau proxy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-009
+    title: Giới hạn endpoint tin cậy và tránh discovery theo dữ liệu chưa xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-and-discovery-010
+    title: Kiểm chứng metadata, HTTPS và chứng chỉ trong từng môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jwk-key-lifecycle
+  title: JWK và vòng đời khóa
+  childs:
+  - slug: jwk-key-lifecycle-001
+    title: JWK Set, loại khóa, mục đích dùng khóa và thuật toán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-002
+    title: kid giúp chọn khóa nhưng không tự tạo ra sự tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-003
+    title: Tải JWKS qua HTTPS và kiểm tra nguồn đã được cho phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-004
+    title: Bộ nhớ đệm JWKS, thời gian sống và làm mới dữ liệu khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-005
+    title: Token có kid mới trong giai đoạn luân chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-006
+    title: Thời gian chồng lấn khóa cũ, khóa mới và token chưa hết hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-007
+    title: Khóa bị gỡ, khóa bị lộ và giới hạn của cache đang giữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-008
+    title: Timeout, lỗi mạng, thử lại và giới hạn tải khi tra khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-009
+    title: Tùy chỉnh HTTP client và cache theo khả năng của decoder
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-010
+    title: jku, x5u hoặc khóa đính kèm không phải nguồn được tự động tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-011
+    title: Nhiều nút API, cache riêng và hành vi khi khóa thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwk-key-lifecycle-012
+    title: Kiểm thử luân chuyển, khóa không khớp và nguồn JWKS bị gián đoạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: claim-validation
+  title: Kiểm tra claims
+  childs:
+  - slug: claim-validation-001
+    title: Kiểm tra exp, nbf và lựa chọn độ lệch đồng hồ cho phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-002
+    title: iat, tuổi token và các chính sách bổ sung theo hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-003
+    title: JwtIssuerValidator và kiểm tra đúng nhà phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-004
+    title: Audience của API và kiểm tra danh sách aud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-005
+    title: Kiểu dữ liệu, giá trị rỗng, claims thiếu và token bị từ chối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-006
+    title: JwtTimestampValidator và kiểm thử tại các mốc thời gian biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-007
+    title: OAuth2TokenValidator, JwtClaimValidator và quy tắc tùy chỉnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-008
+    title: DelegatingOAuth2TokenValidator và hợp thành các kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-009
+    title: Giữ validator mặc định khi thêm yêu cầu mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-010
+    title: Kiểm tra RFC 9068 theo phạm vi hỗ trợ của phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-011
+    title: Ràng buộc tenant, client hoặc loại token khi hợp đồng yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: claim-validation-012
+    title: Không dùng kiểm tra claims thay cho xác minh chữ ký hoặc nguồn token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: principal-identity
+  title: Principal và danh tính
+  childs:
+  - slug: principal-identity-001
+    title: Jwt, JwtAuthenticationToken và dữ liệu danh tính sau xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-002
+    title: Authentication.getName và lựa chọn claim làm tên principal
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-003
+    title: '@AuthenticationPrincipal Jwt và truy cập claims trong controller'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-004
+    title: JwtAuthenticationConverter và chuyển token thành Authentication
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-005
+    title: Subject cần được định danh trong phạm vi issuer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-006
+    title: Không dùng email hoặc tên hiển thị làm định danh ổn định khi chưa có hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-007
+    title: Ánh xạ danh tính ngoài sang tài khoản nội bộ khi nghiệp vụ cần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-008
+    title: MappedJwtClaimSetConverter và chuyển kiểu, điều chỉnh claims
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-009
+    title: Phân biệt chuẩn hóa dữ liệu với tạo thêm quyền không có căn cứ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: principal-identity-010
+    title: Giữ dữ liệu token nhạy cảm ngoài phản hồi API và nhật ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scopes-and-authorities
+  title: Scope và authorities
+  childs:
+  - slug: scopes-and-authorities-001
+    title: Scope trong OAuth và GrantedAuthority trong Spring Security
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-002
+    title: Claims scope, scp và các dạng dữ liệu từ nhà phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-003
+    title: Quy ước SCOPE_ và kiểm tra authority tương ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-004
+    title: hasAuthority, hasRole và tiền tố ROLE_
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-005
+    title: JwtGrantedAuthoritiesConverter và tùy chỉnh nguồn claims
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-006
+    title: Đổi tiền tố, phân tách giá trị và chuẩn hóa tên quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-007
+    title: Roles, permissions lồng trong token và converter theo hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-008
+    title: Kết hợp nhiều nguồn authority mà không nhân đôi hoặc nâng quyền ngoài ý muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-009
+    title: Scope chỉ là một phần của điều kiện truy cập tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-010
+    title: Quyền được chụp tại thời điểm phát token và thay đổi quyền sau đó
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scopes-and-authorities-011
+    title: Kiểm thử ánh xạ quyền với token thiếu scope, nhiều scope và scope không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-authorization
+  title: Phân quyền HTTP
+  childs:
+  - slug: http-authorization-001
+    title: authorizeHttpRequests và chính sách cho từng nhóm endpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-002
+    title: requestMatchers theo đường dẫn, phương thức và nhu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-003
+    title: Endpoint công khai, endpoint cần xác thực và endpoint cần quyền cụ thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-004
+    title: Thứ tự khớp quy tắc và quy tắc mặc định cho các yêu cầu còn lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-005
+    title: Phân biệt GET, POST, PUT, DELETE khi gán quyền truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-006
+    title: Authenticated không đồng nghĩa đủ scope hoặc được sở hữu tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-007
+    title: Nhiều SecurityFilterChain, securityMatcher và thứ tự @Order
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-008
+    title: Đường đi không thuộc chuỗi bảo mật và cách kiểm tra độ bao phủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-009
+    title: permitAll không tự vô hiệu hóa bước xử lý token được gửi đến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-010
+    title: Endpoint giám sát, tài liệu API và cấu hình quyền theo môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-authorization-011
+    title: Kiểm tra cả đường đi được phép lẫn đường đi phải bị từ chối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: business-protection
+  title: Bảo vệ nghiệp vụ
+  childs:
+  - slug: business-protection-001
+    title: Phân quyền lớp dịch vụ để bảo vệ hành vi vượt ra ngoài controller
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-002
+    title: '@EnableMethodSecurity và các cơ chế phân quyền phương thức'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-003
+    title: '@PreAuthorize, authority và dữ liệu đầu vào của lời gọi'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-004
+    title: Kiểm tra chủ sở hữu, tenant và quan hệ với tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-005
+    title: Phân biệt quyền thao tác với quyền truy cập một đối tượng cụ thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-006
+    title: AuthorizationManager hoặc thành phần quyết định quyền tùy chỉnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-007
+    title: '@PostAuthorize và giới hạn đối với tác dụng phụ đã xảy ra'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-008
+    title: Lọc dữ liệu theo quyền và tránh trả dư tài nguyên trước khi kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-009
+    title: Proxy, lời gọi nội bộ và trường hợp annotation không được áp dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-010
+    title: Tách chính sách nghiệp vụ khỏi tên claim riêng của một nhà phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-protection-011
+    title: Kiểm thử ranh giới tenant, chủ sở hữu và đường gọi trực tiếp vào dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: opaque-token
+  title: Opaque token
+  childs:
+  - slug: opaque-token-001
+    title: Opaque token và xác minh thông qua introspection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-002
+    title: Định dạng token không quyết định bắt buộc phải xác minh cục bộ hay từ xa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-003
+    title: RFC 7662, introspection request và metadata phản hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-004
+    title: introspection-uri, client-id, client-secret và xác thực Resource Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-005
+    title: OpaqueTokenIntrospector và SpringOpaqueTokenIntrospector theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-006
+    title: OpaqueTokenAuthenticationProvider và BearerTokenAuthentication
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-007
+    title: Thuộc tính active và xử lý token không còn hiệu lực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-008
+    title: OAuth2AuthenticatedPrincipal, attributes, name và authorities
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-009
+    title: Ánh xạ scope từ phản hồi introspection sang quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-010
+    title: active=true không thay thế ràng buộc audience và phân quyền của API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-011
+    title: Độ trễ, tính sẵn sàng và khả năng phản ánh thu hồi token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: opaque-token-012
+    title: Phân biệt lỗi token với lỗi thông tin xác thực introspection hoặc lỗi mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: introspection-customization
+  title: Tùy chỉnh introspection
+  childs:
+  - slug: introspection-customization-001
+    title: Bọc OpaqueTokenIntrospector để thêm kiểm tra theo hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-002
+    title: Kiểm tra audience, issuer hoặc loại token khi metadata có yêu cầu tương ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-003
+    title: Chuẩn hóa principal và ánh xạ roles, permissions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-004
+    title: Xử lý phản hồi thiếu trường, sai kiểu hoặc trạng thái không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-005
+    title: HTTP client, kết nối, timeout và quản lý tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-006
+    title: Thông tin xác thực introspection và luân chuyển bí mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-007
+    title: Cache kết quả hợp lệ, thời hạn token và cửa sổ chậm thu hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-008
+    title: Cache kết quả không hợp lệ và giới hạn tài nguyên trước đầu vào tùy ý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-009
+    title: Thử lại có giới hạn, quá tải và chính sách lỗi không bỏ qua xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: introspection-customization-010
+    title: Kiểm thử phần tùy chỉnh độc lập với phản hồi của nhà cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bearer-error-handling
+  title: Lỗi và phản hồi Bearer
+  childs:
+  - slug: bearer-error-handling-001
+    title: Yêu cầu thiếu token, token sai định dạng và token bị từ chối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-002
+    title: Phân biệt HTTP 400, 401 và 403 trong luồng Bearer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-003
+    title: WWW-Authenticate và challenge theo RFC 6750
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-004
+    title: invalid_request, invalid_token và insufficient_scope
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-005
+    title: BearerTokenAuthenticationEntryPoint và phản hồi khi chưa xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-006
+    title: BearerTokenAccessDeniedHandler và phản hồi thiếu quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-007
+    title: AuthenticationException, AccessDeniedException và ranh giới xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-008
+    title: Phối hợp nội dung lỗi JSON với header, mã trạng thái đúng ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-009
+    title: Không chuyển lỗi xác thực API thành trang đăng nhập HTML ngoài dự kiến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-010
+    title: Giới hạn chi tiết lỗi để không làm lộ token, khóa hoặc cấu hình nội bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bearer-error-handling-011
+    title: Kiểm thử phản hồi từ filter thay vì chỉ kiểm thử ngoại lệ trong controller
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: web-security-state
+  title: Trạng thái và bảo vệ web
+  childs:
+  - slug: web-security-state-001
+    title: API xác thực Bearer theo từng yêu cầu và lựa chọn quản lý phiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-002
+    title: SessionCreationPolicy.STATELESS và các thành phần có thể tạo trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-003
+    title: SecurityContextRepository và trách nhiệm lưu, khôi phục danh tính
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-004
+    title: Phối hợp Resource Server với đăng nhập trình duyệt trong nhiều filter chain
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-005
+    title: CSRF dựa trên cách trình duyệt gửi thông tin xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-006
+    title: CORS, preflight và xử lý trước bước yêu cầu token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-007
+    title: Allowed origins, headers, methods và credentials theo client thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-008
+    title: Cookie chứa token, header chứa token và sự khác nhau về rủi ro
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-009
+    title: Request cache, redirect và các hành vi không phù hợp với API máy gọi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-security-state-010
+    title: Kiểm thử API không tạo phiên hoặc tái sử dụng danh tính ngoài chính sách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: web-flux-architecture
+  title: Kiến trúc WebFlux
+  childs:
+  - slug: web-flux-architecture-001
+    title: SecurityWebFilterChain và cấu hình qua ServerHttpSecurity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-002
+    title: AuthenticationWebFilter và chuỗi xác thực phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-003
+    title: ServerBearerTokenAuthenticationConverter và nguồn token đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-004
+    title: ReactiveAuthenticationManager cho JWT hoặc opaque token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-005
+    title: ReactiveSecurityContextHolder và danh tính trong Reactor Context
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-006
+    title: SecurityContext trong chuỗi phản ứng khác với ThreadLocal của Servlet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-007
+    title: authorizeExchange và quy tắc phân quyền cho HTTP exchange
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-008
+    title: Phân quyền phương thức phản ứng theo cơ chế phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-009
+    title: Không đưa decoder, introspector hoặc tra cứu người dùng có chặn vào luồng sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-010
+    title: Lỗi xác thực, từ chối truy cập và handler tương ứng phía server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-architecture-011
+    title: Thời điểm đăng ký, hủy và truyền ngữ cảnh trong chuỗi xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: web-flux-jwt
+  title: JWT trong WebFlux
+  childs:
+  - slug: web-flux-jwt-001
+    title: ReactiveJwtDecoder và NimbusReactiveJwtDecoder
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-002
+    title: Cấu hình issuer-uri, jwk-set-uri và khóa được tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-003
+    title: Khám phá metadata, tải JWKS và yêu cầu kết nối ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-004
+    title: Kiểm tra chữ ký, issuer, audience và mốc thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-005
+    title: OAuth2TokenValidator và giữ nguyên kiểm tra nền tảng khi tùy chỉnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-006
+    title: ReactiveJwtAuthenticationConverter và ánh xạ authorities
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-007
+    title: ReactiveJwtAuthenticationConverterAdapter và giới hạn của converter đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-008
+    title: Ánh xạ principal có tra cứu phản ứng khi nghiệp vụ cần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-009
+    title: Tùy chỉnh WebClient, timeout và cache theo API của phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-flux-jwt-010
+    title: Kiểm thử token không hợp lệ mà vẫn đi qua decoder phản ứng thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reactive-introspection
+  title: Introspection phản ứng
+  childs:
+  - slug: reactive-introspection-001
+    title: ReactiveOpaqueTokenIntrospector và hợp đồng kết quả Mono
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-002
+    title: SpringReactiveOpaqueTokenIntrospector và cấu hình theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-003
+    title: Thông tin xác thực tới introspection endpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-004
+    title: Kiểm tra active, metadata và ánh xạ scope
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-005
+    title: OAuth2AuthenticatedPrincipal trong BearerTokenAuthentication
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-006
+    title: Tùy chỉnh introspector bằng phép hợp thành phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-007
+    title: WebClient, timeout, hủy yêu cầu và giới hạn số kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-008
+    title: Cache phản ứng và tránh gọi đồng thời lặp lại cùng một công việc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-009
+    title: Phân biệt lỗi từ xa, token không hiệu lực và chính sách từ chối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-introspection-010
+    title: Kiểm thử không chặn và truyền ngữ cảnh xác thực đến lớp xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multi-tenancy
+  title: Nhiều tenant
+  childs:
+  - slug: multi-tenancy-001
+    title: Tenant, issuer và chiến lược xác minh token có thể khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-002
+    title: AuthenticationManagerResolver trong ứng dụng Servlet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-003
+    title: JwtIssuerAuthenticationManagerResolver và tập issuer được tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-004
+    title: Đọc claim chưa xác minh chỉ để chọn chiến lược, không để cấp quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-005
+    title: Ràng buộc issuer đã chọn với kết quả xác minh cuối cùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-006
+    title: Xác định tenant qua host hoặc đường dẫn và đối chiếu với token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-007
+    title: Quản lý decoder, khóa, cache và cấu hình theo từng tenant
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-008
+    title: Không discovery tùy ý từ URL hoặc issuer do token cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-009
+    title: JwtIssuerReactiveAuthenticationManagerResolver trong WebFlux
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-010
+    title: Thêm, thu hồi tenant và vòng đời cấu hình được tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-011
+    title: Truyền tenant đã được xác minh xuống truy vấn và dịch vụ phía sau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-tenancy-012
+    title: Kiểm thử token hợp lệ nhưng thuộc tenant khác với tài nguyên yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multiple-authentication-mechanisms
+  title: Nhiều cơ chế xác thực
+  childs:
+  - slug: multiple-authentication-mechanisms-001
+    title: Hỗ trợ JWT và opaque token trong một Resource Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-002
+    title: Chọn AuthenticationManager dựa trên yêu cầu và cấu hình được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-003
+    title: Không suy ra mức tin cậy chỉ từ hình dạng hoặc số dấu chấm của token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-004
+    title: Tách endpoint, issuer hoặc tenant để chọn chiến lược rõ ràng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-005
+    title: Lỗi ở một chiến lược không tự trở thành lý do thử mọi nguồn tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-006
+    title: Phối hợp nhiều provider và tránh chồng lấn phạm vi xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-007
+    title: Nhiều filter chain cho API, trình duyệt và các endpoint riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-008
+    title: Xung đột giữa cookie phiên, HTTP Basic, Bearer và cơ chế khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-009
+    title: Tùy chỉnh token resolver mà vẫn giữ kiểm tra đầu vào thống nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-authentication-mechanisms-010
+    title: Ma trận kiểm thử loại token, nguồn tin cậy, endpoint và kết quả mong đợi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: issuer-integration
+  title: Tích hợp nhà phát hành
+  childs:
+  - slug: issuer-integration-001
+    title: Đọc metadata và hợp đồng access token của nhà phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-002
+    title: Chuẩn hóa scope, roles, principal giữa các nhà cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-003
+    title: Client dành cho người dùng và client máy gọi có thể nhận claims khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-004
+    title: Cấu hình audience cho API thay vì chỉ dùng client_id của ứng dụng giao diện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-005
+    title: Không dùng ID token hoặc UserInfo như bước thay thế xác minh access token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-006
+    title: Nhà phát hành không có discovery và lựa chọn cấu hình tường minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-007
+    title: Introspection, JWKS và các khả năng cần kiểm chứng ở từng môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-008
+    title: Định danh người dùng theo issuer, subject và ánh xạ tài khoản nội bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: issuer-integration-009
+    title: Bộ token mẫu đã được kiểm soát để kiểm tra tương thích khi nhà phát hành thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: token-lifecycle-revocation
+  title: Vòng đời và thu hồi
+  childs:
+  - slug: token-lifecycle-revocation-001
+    title: Thời điểm phát hành, bắt đầu có hiệu lực và hết hạn của access token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-002
+    title: Token tự chứa và giới hạn thu hồi tức thời khi xác minh cục bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-003
+    title: Introspection, trạng thái active và độ trễ phản ánh thu hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-004
+    title: Cache kết quả xác minh làm thay đổi cửa sổ chấp nhận token như thế nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-005
+    title: Đăng xuất ở client không tự làm mọi access token đã phát hành mất hiệu lực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-006
+    title: Khóa tài khoản, thay đổi quyền và token còn sống
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-007
+    title: Token ngắn hạn, danh sách thu hồi và đánh đổi trạng thái của Resource Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-008
+    title: Refresh token thuộc trách nhiệm client và authorization server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-009
+    title: Resource Server trả lỗi để client xử lý gia hạn theo giao thức phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-lifecycle-revocation-010
+    title: Kiểm thử token cũ sau thu hồi, đổi quyền hoặc thay khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: proof-of-possession-tokens
+  title: Token ràng buộc khóa
+  childs:
+  - slug: proof-of-possession-tokens-001
+    title: Bearer token và token ràng buộc bên gửi có mô hình bảo vệ khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-002
+    title: DPoP theo RFC 9449 và phạm vi hỗ trợ của từng phiên bản Spring Security
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-003
+    title: Authorization scheme DPoP và header chứa DPoP proof
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-004
+    title: DPoP proof khác access token và được ký bằng khóa của client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-005
+    title: cnf, jkt và kiểm tra khóa trong proof khớp liên kết của access token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-006
+    title: ath và đối chiếu proof với đúng access token được trình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-007
+    title: htm, htu và liên kết proof với phương thức, địa chỉ yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-008
+    title: iat, jti, nonce và kiểm soát phát lại theo cơ chế được triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-009
+    title: Cấu hình xử lý DPoP trong Servlet và kiểm chứng giới hạn ở các stack khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-010
+    title: mTLS-bound token và việc đối chiếu token với chứng chỉ kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-011
+    title: Xác thực TLS không tự thay thế kiểm tra liên kết chứng chỉ với token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proof-of-possession-tokens-012
+    title: Kiểm thử proof bị thay đổi, phát lại, sai khóa hoặc sai yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: token-relay
+  title: Chuyển tiếp token
+  childs:
+  - slug: token-relay-001
+    title: Resource Server gọi dịch vụ khác có thể đồng thời đóng vai trò OAuth2 Client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-002
+    title: Chuyển tiếp token hiện có khác với lấy token mới hoặc làm mới token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-003
+    title: Đích nhận phải được phép và thuộc audience phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-004
+    title: ServletBearerExchangeFilterFunction và hỗ trợ WebClient trong Servlet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-005
+    title: ServerBearerExchangeFilterFunction và truyền token trong WebFlux
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-006
+    title: Ngữ cảnh xác thực khi chuyển sang tác vụ khác hoặc chuỗi bất đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-007
+    title: Không chuyển token tùy ý sang URL do người dùng cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-008
+    title: Khi cần token riêng cho dịch vụ đích hoặc cơ chế token exchange
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: token-relay-009
+    title: Thông tin tương quan, phạm vi quyền và kiểm chứng lời gọi phía sau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-testing
+  title: Kiểm thử Servlet
+  childs:
+  - slug: servlet-testing-001
+    title: MockMvc với Spring Security filter chain thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-002
+    title: jwt() và tạo Jwt, claims, authorities cho kiểm thử phân quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-003
+    title: opaqueToken() và mô phỏng principal của token được introspect
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-004
+    title: '@WithMockUser không mô phỏng đầy đủ principal Resource Server'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-005
+    title: Kiểm tra scope, role, phương thức HTTP và quyền truy cập tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-006
+    title: Kiểm thử thiếu token, token sai cú pháp và phản hồi WWW-Authenticate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-007
+    title: Mock JwtDecoder hoặc OpaqueTokenIntrospector để kiểm tra luồng filter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-008
+    title: Kiểm thử JwtAuthenticationConverter và validator riêng theo hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-009
+    title: jwt() không chứng minh chữ ký, discovery hoặc tải JWKS đã được kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-010
+    title: Kiểm tra nhiều filter chain và endpoint permitAll có gửi token sai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-testing-011
+    title: Kiểm thử method security, lời gọi qua proxy và quyền sở hữu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: webflux-testing
+  title: Kiểm thử WebFlux
+  childs:
+  - slug: webflux-testing-001
+    title: WebTestClient với SecurityWebFilterChain
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-002
+    title: mockJwt() và tùy chỉnh claims, authorities
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-003
+    title: mockOpaqueToken() và dữ liệu OAuth2AuthenticatedPrincipal
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-004
+    title: Kiểm tra Reactor Context và principal tại lớp xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-005
+    title: StepVerifier cho validator, converter và introspector phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-006
+    title: Mock ReactiveJwtDecoder và ReactiveOpaqueTokenIntrospector
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-007
+    title: Kiểm tra 401, 403, challenge và phản hồi lỗi API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-008
+    title: Kiểm thử multi-tenant và lựa chọn reactive authentication manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-009
+    title: Kiểm tra timeout, hủy và thao tác có chặn ngoài dự kiến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-testing-010
+    title: Phân biệt mock danh tính với kiểm chứng token thực tế qua toàn bộ chuỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-verification
+  title: Kiểm chứng tích hợp
+  childs:
+  - slug: integration-verification-001
+    title: Tạo bộ khóa kiểm thử và token có chữ ký với claims được kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-002
+    title: Máy chủ JWKS, metadata, introspection thử nghiệm và vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-003
+    title: Token đúng, sai chữ ký, sai issuer, sai audience và sai loại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-004
+    title: Token hết hạn, chưa có hiệu lực và ranh giới clock skew
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-005
+    title: Từ chối ID token hoặc token dành cho API khác theo hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-006
+    title: Luân chuyển khóa, kid mới, khóa cũ và JWKS không truy cập được
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-007
+    title: Introspection active=false, thiếu metadata và lỗi thông tin xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-008
+    title: Cache introspection và thời gian phản ánh token bị thu hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-009
+    title: Nhiều tenant với token hợp lệ nhưng không thuộc tài nguyên được gọi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-010
+    title: Ma trận xác thực, scope, chủ sở hữu và phương thức HTTP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-011
+    title: DPoP hoặc ràng buộc khóa khi phiên bản và cấu hình có hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-verification-012
+    title: Lỗi mạng, timeout và kiểm chứng không có đường đi bỏ qua xác minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-operations
+  title: Hiệu năng và vận hành
+  childs:
+  - slug: performance-operations-001
+    title: Chi phí xác minh JWT cục bộ và gọi introspection từ xa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-002
+    title: Độ trễ, thông lượng và thời gian xử lý xác thực trong một yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-003
+    title: Cache JWKS, cache introspection và các mục tiêu khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-004
+    title: Nhóm kết nối, timeout và giới hạn lời gọi đến nhà phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-005
+    title: Tải tăng khi gặp kid mới, nhiều issuer hoặc token ngẫu nhiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-006
+    title: Khởi động đồng thời nhiều nút và dồn tải discovery, JWKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-007
+    title: Giới hạn số tenant, số decoder và dữ liệu cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-008
+    title: Metric xác thực thành công, token bị từ chối và lỗi hạ tầng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-009
+    title: Log, trace tương quan và che token, secrets, claims nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-010
+    title: Phân biệt lỗi chữ ký, claims, quyền với lỗi kết nối hoặc cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-011
+    title: Diễn tập nhà phát hành ngừng hoạt động và xác định phụ thuộc còn cần thiết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-operations-012
+    title: Kiểm tra đồng hồ, DNS, TLS, proxy và cấu hình môi trường khi có sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: secure-deployment
+  title: Triển khai an toàn
+  childs:
+  - slug: secure-deployment-001
+    title: Mô hình đe dọa và các ranh giới tin cậy của API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-002
+    title: Danh sách issuer, audience, thuật toán và nguồn khóa được tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-003
+    title: Ngăn nhầm thuật toán, nhầm loại token và dùng token cho sai tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-004
+    title: Không tin header do gateway hoặc proxy chuyển tiếp nếu chưa bảo vệ nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-005
+    title: Kiểm soát đường gọi trực tiếp và xác minh tại ranh giới API được thiết kế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-006
+    title: Bảo vệ thông tin xác thực introspection và quy trình luân chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-007
+    title: Phân phối khóa xác minh, tránh đưa khóa ký bất đối xứng vào Resource Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-008
+    title: Giới hạn kích thước token, header và chi phí xử lý đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-009
+    title: Cô lập tenant và kiểm tra quyền đối với dữ liệu nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-010
+    title: Chính sách khi discovery, JWKS hoặc introspection không hoạt động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-deployment-011
+    title: Rà soát endpoint công khai và xác nhận không có chuỗi bảo mật bị bỏ sót
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: upgrade-migration
+  title: Nâng cấp và di chuyển
+  childs:
+  - slug: upgrade-migration-001
+    title: Đối chiếu bộ phiên bản Boot, Security, JOSE và thư viện HTTP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-002
+    title: Cấu hình SecurityFilterChain thay cho mẫu cấu hình cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-003
+    title: Lambda DSL, phương thức bị thay thế và thay đổi theo dòng phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-004
+    title: Thay đổi decoder, introspector và các lớp triển khai mặc định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-005
+    title: Khác biệt giữa cấu hình Bean tường minh và cấu hình tự động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-006
+    title: Chuyển servlet javax sang jakarta đúng phạm vi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-007
+    title: Kiểm tra thay đổi mặc định về thuật toán, typ và validator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-008
+    title: Tùy chỉnh principal, authority converter và hành vi phân quyền khi nâng cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-009
+    title: Khả năng DPoP, RFC 9068 và các tính năng phụ thuộc phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upgrade-migration-010
+    title: Giữ bộ token, khóa, phản hồi lỗi và ca kiểm thử từ chối làm mốc so sánh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practical-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practical-exercises-001
+    title: Bảo vệ API tra cứu dữ liệu bằng JWT từ một issuer tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-002
+    title: Thiết lập audience và chứng minh API từ chối token dành cho nơi khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-003
+    title: Ánh xạ scope, role rồi bảo vệ thao tác đọc, sửa theo phương thức HTTP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-004
+    title: Kiểm tra chủ sở hữu và tenant ở lớp nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-005
+    title: Thay xác minh JWT cục bộ bằng introspection và so sánh hành vi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-006
+    title: Tạo bản WebFlux có chính sách tương đương bản Servlet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-007
+    title: Hỗ trợ hai issuer được phê duyệt và kiểm tra cách ly dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-008
+    title: Luân chuyển khóa trong môi trường thử nghiệm khi token cũ vẫn còn hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-009
+    title: Kiểm chứng 400, 401, 403 và header WWW-Authenticate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-010
+    title: Viết kiểm thử mock danh tính và kiểm thử chữ ký, introspection thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-011
+    title: Thử nghiệm thu hồi token, lỗi nhà phát hành và các chính sách cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-exercises-012
+    title: Chuyển tiếp token đến dịch vụ được phép rồi kiểm tra audience, phạm vi quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

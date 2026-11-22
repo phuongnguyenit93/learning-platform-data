@@ -1,0 +1,3 @@
+menuLevel1: Phục hồi khi lỗi
+menuLevel2: Retry với backoff, jitter và giới hạn số lần thử
+status: WRITTEN

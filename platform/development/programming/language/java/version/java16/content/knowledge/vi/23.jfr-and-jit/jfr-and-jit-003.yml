@@ -1,0 +1,3 @@
+menuLevel1: JFR và JIT
+menuLevel2: Tạo bản ghi JFR bằng StartFlightRecording hoặc jcmd JFR.start
+status: ""

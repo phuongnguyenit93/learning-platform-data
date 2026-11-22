@@ -1,0 +1,3 @@
+menuLevel1: Security
+menuLevel2: Không expose ApplicationContext toàn bộ cho expression
+status: WRITTEN

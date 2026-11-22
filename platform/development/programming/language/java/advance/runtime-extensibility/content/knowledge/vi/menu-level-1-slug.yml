@@ -1,0 +1,73 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overview
+  index: 0
+- title: Hợp đồng mở rộng
+  slug: extension-contracts
+  index: 1
+- title: Đóng gói plugin
+  slug: plugin-packaging
+  index: 2
+- title: SPI trên classpath
+  slug: classpath-spi
+  index: 3
+- title: Khám phá provider
+  slug: provider-discovery
+  index: 4
+- title: Lựa chọn provider
+  slug: provider-selection
+  index: 5
+- title: Nền tảng nạp lớp
+  slug: classloading-fundamentals
+  index: 6
+- title: Cô lập phụ thuộc
+  slug: dependency-isolation
+  index: 7
+- title: Tài nguyên và ngữ cảnh
+  slug: resources-and-context
+  index: 8
+- title: SPI với JPMS
+  slug: spi-with-jpms
+  index: 9
+- title: Phân giải module
+  slug: module-resolution
+  index: 10
+- title: ModuleLayer
+  slug: module-layer
+  index: 11
+- title: Biên dịch lúc chạy
+  slug: runtime-compilation
+  index: 12
+- title: Biên dịch trong bộ nhớ
+  slug: in-memory-compilation
+  index: 13
+- title: Kịch bản nhúng
+  slug: embedded-scripting
+  index: 14
+- title: Giao tiếp kịch bản
+  slug: scripting-interfaces
+  index: 15
+- title: JShell nhúng
+  slug: embedded-jshell
+  index: 16
+- title: Vòng đời plugin
+  slug: plugin-lifecycle
+  index: 17
+- title: Thay thế plugin
+  slug: plugin-replacement
+  index: 18
+- title: Tương thích API
+  slug: api-compatibility
+  index: 19
+- title: Ranh giới tin cậy
+  slug: trust-boundaries
+  index: 20
+- title: Chẩn đoán và hiệu năng
+  slug: diagnostics-and-performance
+  index: 21
+- title: Kiểm thử và triển khai
+  slug: testing-and-deployment
+  index: 22
+- title: Bài thực hành
+  slug: hands-on-exercises
+  index: 23

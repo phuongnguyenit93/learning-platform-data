@@ -1,0 +1,7 @@
+# Software Design Design Pattern Behavioral Observer
+
+Observer là mẫu thiết kế hành vi giúp một đối tượng phát thông báo đến nhiều đối tượng khác khi trạng thái hoặc sự kiện quan trọng thay đổi. Thay vì để các lớp gọi trực tiếp từng nơi nhận thông tin, Observer tạo cơ chế đăng ký và hủy đăng ký, từ đó giảm phụ thuộc và cho phép mở rộng phản ứng với sự kiện mà không sửa phần logic phát sự kiện.
+
+Module phù hợp với lập trình viên Java đã nắm interface, class và nguyên tắc thiết kế hướng đối tượng. Bạn sẽ học cách nhận diện nhu cầu, phân vai Subject/Observer, quản lý subscriber, phát thông báo và truyền ngữ cảnh theo cách push hoặc pull. Sau khi tự cài đặt ví dụ trạng thái đơn hàng, lộ trình mở rộng sang xử lý vòng đời listener, lỗi callback, kiểm thử và ứng dụng tương tự trong JavaBeans hoặc Spring. Lưu ý `java.util.Observer` và `java.util.Observable` đã deprecated từ Java 9; với mã Java mới, nên ưu tiên interface tự thiết kế hoặc API phù hợp mục đích.
+
+Hãy thử tạo một OrderSubject với hai observer: gửi thông báo và ghi nhật ký. Đăng ký cả hai, cập nhật trạng thái, rồi hủy một observer để xác nhận chỉ listener còn đăng ký được gọi. Kết thúc module, bạn có thể giải thích sơ đồ Observer, tự triển khai mẫu này và biết khi nào nên chọn cơ chế sự kiện khác.

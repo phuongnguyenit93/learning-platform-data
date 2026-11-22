@@ -1,0 +1,2080 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Memento là gì và vị trí trong nhóm mẫu thiết kế hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Bài toán ghi nhớ và khôi phục trạng thái của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa trạng thái hiện tại, bản chụp và lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vì sao khôi phục trạng thái cần bảo toàn tính đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Ba vai trò Originator, Memento và Caretaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Trường hợp sử dụng, lợi ích và chi phí của Memento
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lộ trình từ bản chụp đơn lẻ đến cơ chế undo và redo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-problem
+  title: Bài toán thiết kế
+  childs:
+  - slug: design-problem-001
+    title: Nhận diện trạng thái cần khôi phục trong một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-problem-002
+    title: Phân biệt dữ liệu nghiệp vụ, dữ liệu dẫn xuất và tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-problem-003
+    title: Phân tích cách lưu trạng thái bằng các trường công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-problem-004
+    title: Phân tích cách để bên ngoài tự đọc và gán lại dữ liệu nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-problem-005
+    title: Xác định ranh giới trách nhiệm giữa đối tượng và nơi lưu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-problem-006
+    title: Lựa chọn mức khôi phục theo nhu cầu của người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-problem-007
+    title: Thiết lập tiêu chí đúng cho chức năng ghi nhớ và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-participants
+  title: Thành phần
+  childs:
+  - slug: pattern-participants-001
+    title: 'Originator: sở hữu trạng thái và tạo bản chụp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-participants-002
+    title: 'Memento: lưu thông tin cần thiết để phục hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-participants-003
+    title: 'Caretaker: quản lý bản chụp và quyết định thời điểm sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-participants-004
+    title: 'Bên sử dụng: điều phối thao tác thay đổi và phục hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-participants-005
+    title: Giao diện hẹp cho Caretaker và quyền truy cập của Originator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-participants-006
+    title: Quan hệ sở hữu và vòng đời giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-participants-007
+    title: Mô tả cấu trúc Memento bằng sơ đồ lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-participants-008
+    title: Phân biệt vai trò trong mẫu với số lượng lớp triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operation-mechanism
+  title: Cơ chế hoạt động
+  childs:
+  - slug: operation-mechanism-001
+    title: Tạo bản chụp tại một thời điểm xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-mechanism-002
+    title: Thay đổi trạng thái sau khi đã tạo bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-mechanism-003
+    title: Lưu và lựa chọn bản chụp cần khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-mechanism-004
+    title: Để Originator tự khôi phục dữ liệu từ Memento
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-mechanism-005
+    title: Mô tả luồng tạo, lưu và phục hồi bằng sơ đồ trình tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-mechanism-006
+    title: Phân biệt chụp trước thao tác và chụp sau thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-mechanism-007
+    title: Xác định dữ liệu thuộc bản chụp và dữ liệu thuộc lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-mechanism-008
+    title: Giới hạn của việc khôi phục bộ nhớ đối với tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-design
+  title: Thiết kế Java
+  childs:
+  - slug: java-design-001
+    title: Xây dựng Originator với các thao tác nghiệp vụ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-002
+    title: Thiết kế phương thức tạo bản chụp và khôi phục bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-003
+    title: Triển khai Memento bằng lớp lồng static có phạm vi truy cập phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-004
+    title: Dùng giao diện chỉ đánh dấu để Caretaker giữ Memento
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-005
+    title: Thiết kế Caretaker với kiểu dữ liệu và trách nhiệm riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-006
+    title: Lựa chọn lớp thông thường hoặc record để biểu diễn dữ liệu chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-007
+    title: Kiểm tra kiểu và nguồn gốc Memento trước khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-008
+    title: Tách ví dụ Java thuần khỏi giao diện người dùng và nơi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-design-009
+    title: Tổ chức ví dụ chạy được với Java 21
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encapsulation
+  title: Đóng gói
+  childs:
+  - slug: encapsulation-001
+    title: Giới hạn dữ liệu mà Caretaker được phép quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-002
+    title: Giữ quyền diễn giải và khôi phục bản chụp ở Originator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-003
+    title: Phân biệt thông tin mô tả công khai với trạng thái nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-004
+    title: Tránh getter và setter làm lộ toàn bộ dữ liệu của Memento
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-005
+    title: Kiểm soát hàm tạo để ngăn tạo bản chụp tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-006
+    title: Phân biệt kiểm soát truy cập của Java với ranh giới bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-007
+    title: Cân nhắc đánh đổi đóng gói khi dùng DTO hoặc định dạng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: immutability
+  title: Tính bất biến
+  childs:
+  - slug: immutability-001
+    title: Vì sao bản chụp phải giữ nguyên sau khi được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-002
+    title: Phân biệt biến final với đối tượng bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-003
+    title: Hiểu tính bất biến nông của record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-004
+    title: Bảo vệ thành phần có thể thay đổi trong hàm tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-005
+    title: Ngăn dữ liệu bị sửa qua giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-006
+    title: Phân biệt tập hợp không sửa được với bản sao độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-007
+    title: Định nghĩa so sánh trạng thái cho bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-008
+    title: Nhận diện rủi ro equals và hashCode khi thành phần còn thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-copying
+  title: Sao chép dữ liệu
+  childs:
+  - slug: data-copying-001
+    title: Phân biệt sao chép nông và sao chép sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-002
+    title: Xử lý String, kiểu nguyên thủy và các kiểu bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-003
+    title: Sao chép mảng, danh sách, tập hợp và bản đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-004
+    title: Sao chép phần tử có thể thay đổi bên trong tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-005
+    title: Xử lý đối tượng lồng nhau và đồ thị có chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-006
+    title: Bảo toàn quan hệ dùng chung khi nhiều trường tham chiếu một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-007
+    title: Phân biệt bản sao trạng thái với bản sao định danh đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-008
+    title: Đánh giá copy constructor, hàm ánh xạ và Object.clone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-copying-009
+    title: Kiểm tra tính độc lập ở cả chiều tạo và chiều khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistent-restoration
+  title: Phục hồi nhất quán
+  childs:
+  - slug: consistent-restoration-001
+    title: Xác định các điều kiện luôn phải đúng của Originator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistent-restoration-002
+    title: Phục hồi đồng thời những trường có quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistent-restoration-003
+    title: Kiểm tra tính hợp lệ trước khi thay đổi trạng thái hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistent-restoration-004
+    title: Khôi phục trên đối tượng hiện có hoặc tạo đối tượng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistent-restoration-005
+    title: Giữ định danh đối tượng khi bên ngoài còn giữ tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistent-restoration-006
+    title: Tính lại dữ liệu dẫn xuất và làm mới bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistent-restoration-007
+    title: Xử lý tham chiếu đến đối tượng không còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistent-restoration-008
+    title: Xác định chính sách thông báo thay đổi sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: history-management
+  title: Quản lý lịch sử
+  childs:
+  - slug: history-management-001
+    title: Lựa chọn ngăn xếp hoặc danh sách có con trỏ lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-002
+    title: Xác định trạng thái ban đầu và vị trí hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-003
+    title: Phân biệt mã bản chụp, số thứ tự và thời điểm tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-004
+    title: Tạo điểm lưu thủ công và điểm lưu tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-005
+    title: Không tạo mục lịch sử cho thao tác không làm thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-006
+    title: Giới hạn lịch sử theo số lượng hoặc dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-007
+    title: Loại bỏ bản chụp cũ và giải phóng tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-008
+    title: Tách lịch sử theo đối tượng, tài liệu hoặc phiên làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-management-009
+    title: Xác định cách xóa lịch sử khi đóng hoặc thay đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: undo-and-redo
+  title: Undo và Redo
+  childs:
+  - slug: undo-and-redo-001
+    title: Phân biệt quay về bản chụp với hoàn tác một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-002
+    title: Thiết kế hai ngăn xếp undo và redo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-003
+    title: Thiết kế danh sách lịch sử với con trỏ hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-004
+    title: Lưu trạng thái cần thiết trước khi thực hiện undo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-005
+    title: Khôi phục trạng thái khi thực hiện redo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-006
+    title: Xóa nhánh redo khi phát sinh thay đổi mới trong lịch sử tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-007
+    title: Xử lý biên đầu và cuối lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-008
+    title: Đồng bộ khả năng canUndo và canRedo với trạng thái thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-009
+    title: Nhóm nhiều thay đổi thành một thao tác hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: undo-and-redo-010
+    title: Mô phỏng chuỗi sửa, undo, redo và sửa mới bằng bảng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: history-variants
+  title: Biến thể lịch sử
+  childs:
+  - slug: history-variants-001
+    title: Phân biệt lịch sử tuyến tính và lịch sử phân nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-variants-002
+    title: Biểu diễn quan hệ cha con giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-variants-003
+    title: Chọn nhánh và phục hồi một mốc được đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-variants-004
+    title: Lưu toàn bộ trạng thái hoặc lưu phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-variants-005
+    title: Kết hợp bản chụp đầy đủ với chuỗi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-variants-006
+    title: Đánh đổi độ phức tạp khi hỗ trợ phục hồi có chọn lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-variants-007
+    title: Xác định trường hợp cần biến thể và trường hợp nên giữ lịch sử đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-pattern-integration
+  title: Kết hợp Command
+  childs:
+  - slug: command-pattern-integration-001
+    title: Phân biệt lưu trạng thái với biểu diễn yêu cầu thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-pattern-integration-002
+    title: Để Command giữ Memento trước khi thay đổi Originator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-pattern-integration-003
+    title: Dùng Memento khi khó xây dựng phép toán đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-pattern-integration-004
+    title: Lựa chọn thực thi lại lệnh hoặc khôi phục trạng thái sau thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-pattern-integration-005
+    title: Xử lý redo của thao tác phụ thuộc thời gian, ngẫu nhiên hoặc dữ liệu ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-pattern-integration-006
+    title: Quản lý một lệnh tác động đến nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-pattern-integration-007
+    title: Gộp các lệnh và thống nhất ranh giới hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-pattern-integration-008
+    title: Phân chia trách nhiệm giữa Command, Memento và nơi quản lý lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-editor-example
+  title: Ví dụ soạn thảo
+  childs:
+  - slug: text-editor-example-001
+    title: Xác định trạng thái văn bản, con trỏ và vùng chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-002
+    title: Triển khai thao tác nhập, xóa và thay thế nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-003
+    title: Tạo bản chụp đóng gói của trình soạn thảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-004
+    title: Lưu lịch sử trước hoặc sau thay đổi theo quy ước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-005
+    title: Thực hiện undo và redo với nhiều thao tác liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-006
+    title: Kiểm tra sửa mới sau khi undo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-007
+    title: Gộp các lần gõ thành một thao tác có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-008
+    title: Phân biệt điểm lưu tài liệu với vị trí hiện tại trong lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-editor-example-009
+    title: Minh chứng hành vi bằng ví dụ chạy và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphics-editor-example
+  title: Ví dụ đồ họa
+  childs:
+  - slug: graphics-editor-example-001
+    title: Xác định trạng thái hình vẽ, vị trí, kích thước và thứ tự lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphics-editor-example-002
+    title: Chụp một hình hoặc toàn bộ vùng vẽ theo ranh giới thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphics-editor-example-003
+    title: Sao chép tập hợp các hình và thuộc tính có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphics-editor-example-004
+    title: Khôi phục thao tác thêm, xóa và di chuyển hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphics-editor-example-005
+    title: Bảo toàn liên kết và định danh giữa các đối tượng đồ họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphics-editor-example-006
+    title: Nhóm chuỗi kéo thả thành một lần hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphics-editor-example-007
+    title: Đánh giá chi phí của bản chụp khi số lượng hình tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-swing
+  title: Java Swing
+  childs:
+  - slug: java-swing-001
+    title: Vai trò của UndoableEdit và AbstractUndoableEdit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-swing-002
+    title: 'StateEditable: khai báo cách lưu và khôi phục trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-swing-003
+    title: 'StateEdit: lưu trạng thái trước và sau một lần chỉnh sửa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-swing-004
+    title: Kết thúc StateEdit bằng end và hiểu việc loại dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-swing-005
+    title: 'UndoManager: quản lý danh sách chỉnh sửa và vị trí undo hoặc redo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-swing-006
+    title: 'CompoundEdit: nhóm các chỉnh sửa thành một đơn vị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-swing-007
+    title: Kết nối UndoableEditListener với mô hình tài liệu Swing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-swing-008
+    title: Phân biệt bảo đảm của UndoManager với an toàn luồng của đối tượng được chỉnh sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-storage
+  title: Lưu trữ
+  childs:
+  - slug: state-storage-001
+    title: Phân biệt Memento trong bộ nhớ với lưu trạng thái bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-002
+    title: Tách nơi lưu bản chụp khỏi logic của Originator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-003
+    title: Thiết kế dữ liệu lưu trữ và thông tin mô tả cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-004
+    title: Đánh giá định dạng JSON, nhị phân và Java Serialization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-005
+    title: Kiểm soát tham chiếu ngoài và dữ liệu không thể tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-006
+    title: Ghi bản chụp hoàn chỉnh trước khi công bố có thể sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-007
+    title: Phát hiện dữ liệu thiếu, hỏng hoặc không đọc được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-008
+    title: Nạp bản chụp và kiểm tra trước khi khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-storage-009
+    title: Xác định chính sách lưu giữ, xóa và dọn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-compatibility
+  title: Tương thích phiên bản
+  childs:
+  - slug: version-compatibility-001
+    title: Gắn phiên bản lược đồ cho dữ liệu bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-002
+    title: Phân biệt phiên bản dữ liệu với số thứ tự lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-003
+    title: Xử lý thêm, đổi tên và loại bỏ trường trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-004
+    title: Chuyển đổi bản chụp cũ sang mô hình hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-005
+    title: Kiểm tra thay đổi điều kiện hợp lệ và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-006
+    title: Từ chối bản chụp không tương thích bằng lỗi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-007
+    title: Kiểm thử khả năng đọc và phục hồi qua các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency
+  title: Đồng thời
+  childs:
+  - slug: concurrency-001
+    title: Nhận diện bản chụp không nhất quán khi đối tượng bị sửa đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-002
+    title: Đồng bộ quá trình chụp và thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-003
+    title: Giữ phục hồi và cập nhật con trỏ lịch sử trong cùng ranh giới nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-004
+    title: Phát hiện dữ liệu mới hơn bằng số phiên bản hoặc dấu hiệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-005
+    title: Lựa chọn khóa, kiểm tra phiên bản hoặc một luồng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-006
+    title: Tách lịch sử của nhiều người dùng hoặc phiên làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-007
+    title: Phân biệt bản chụp cục bộ với cơ chế cộng tác chỉnh sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-008
+    title: Kiểm tra nguy cơ khóa chéo khi một thao tác chụp nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-handling
+  title: Xử lý thất bại
+  childs:
+  - slug: failure-handling-001
+    title: Xử lý lỗi tạo bản chụp trước khi thao tác nghiệp vụ diễn ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-handling-002
+    title: Xử lý thao tác thay đổi thất bại sau khi đã chụp trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-handling-003
+    title: Giữ trạng thái hiện tại khi dữ liệu phục hồi không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-handling-004
+    title: Không di chuyển con trỏ lịch sử khi phục hồi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-handling-005
+    title: Tránh trạng thái nửa cũ nửa mới khi có ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-handling-006
+    title: Xử lý thông báo hoặc tác vụ phụ thất bại sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-handling-007
+    title: Thiết kế thông báo lỗi và khả năng thử lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Ước lượng chi phí theo kích thước trạng thái và độ dài lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo thời gian tạo, lưu và khôi phục bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Đánh giá cấp phát bộ nhớ và áp lực thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chỉ chụp phần trạng thái cần thiết cho yêu cầu phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Chia sẻ cấu trúc bất biến để giảm sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Áp dụng sao chép khi ghi và cấu trúc dữ liệu bền vững khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Đánh đổi giữa bản chụp đầy đủ, phần chênh lệch và mốc định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Gộp thay đổi, bỏ bản chụp trùng và giới hạn lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đo đạc trước khi chọn giải pháp tối ưu phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sensitive-data
+  title: Dữ liệu nhạy cảm
+  childs:
+  - slug: sensitive-data-001
+    title: Nhận diện dữ liệu nhạy cảm được giữ trong lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-002
+    title: Giảm dữ liệu chụp theo đúng nhu cầu phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-003
+    title: Kiểm soát quyền tạo, đọc và khôi phục bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-004
+    title: Tránh làm lộ trạng thái qua nhật ký và toString
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-005
+    title: Bảo vệ bản chụp lưu ngoài tiến trình và kiểm tra nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-006
+    title: Hiểu giới hạn xóa dữ liệu khi bản chụp hoặc bản sao vẫn còn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm tra chuỗi tạo bản chụp, thay đổi và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Đối chiếu trạng thái phục hồi với trạng thái gốc theo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm tra thay đổi Originator không làm đổi Memento
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra phục hồi không tạo tham chiếu dùng chung ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm tra danh sách lồng nhau, mảng và đối tượng có quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra undo và redo tại các biên lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm tra sửa mới sau undo và loại nhánh redo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm tra giới hạn lịch sử và vòng đời nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm tra sai nguồn gốc, sai phiên bản và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm tra ngoại lệ không làm hỏng trạng thái hoặc lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra chuỗi thao tác sinh tự động và tình huống truy cập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: related-patterns
+  title: Mẫu liên quan
+  childs:
+  - slug: related-patterns-001
+    title: 'Memento và Command: bản chụp trạng thái với yêu cầu thực thi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-002
+    title: 'Memento và Prototype: phục hồi trạng thái với sao chép đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-003
+    title: 'Memento và State: ghi nhớ dữ liệu với thay đổi hành vi theo trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-004
+    title: 'Memento và Observer: phục hồi trạng thái với thông báo thay đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-005
+    title: 'Memento và Serialization: mẫu trách nhiệm với cơ chế mã hóa dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-006
+    title: 'Memento và Event Sourcing: bản chụp với tái dựng từ sự kiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-007
+    title: 'Memento và bản sao lưu: phạm vi đối tượng với phục hồi dữ liệu hệ thống'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-008
+    title: 'Memento và giao dịch: giới hạn của phục hồi bộ nhớ so với rollback'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-009
+    title: 'Memento và thao tác bù: xử lý tác động đã xảy ra bên ngoài'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-pitfalls
+  title: Lỗi thiết kế
+  childs:
+  - slug: design-pitfalls-001
+    title: Lưu tham chiếu đến trạng thái đang thay đổi thay vì bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-002
+    title: Cho rằng final, record hoặc List.copyOf luôn tạo bất biến sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-003
+    title: Để Caretaker trực tiếp sửa dữ liệu nội bộ của Originator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-004
+    title: Chụp thiếu trường hoặc không tính lại dữ liệu dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-005
+    title: Khôi phục bản chụp của đối tượng hoặc phiên làm việc khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-006
+    title: Làm mất redo hoặc giữ redo sai sau thao tác mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-007
+    title: Không thống nhất thời điểm chụp và quy ước lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-008
+    title: Tạo vòng lặp khi phục hồi phát sinh thêm mục lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-009
+    title: Giữ lịch sử vô hạn và vô tình giữ sống tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-010
+    title: Dùng Memento như giải pháp tự động đảo ngược mọi tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-applications
+  title: Áp dụng thực tế
+  childs:
+  - slug: practical-applications-001
+    title: Đánh giá nhu cầu phục hồi và tính phù hợp của Memento
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-applications-002
+    title: Chọn trạng thái, ranh giới đối tượng và độ hạt của bản chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-applications-003
+    title: Lựa chọn lịch sử đơn giản trước khi thêm biến thể nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-applications-004
+    title: Tách mô hình nghiệp vụ, điều phối thao tác và nơi giữ lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-applications-005
+    title: Refactor từ cơ chế sao lưu thủ công sang trách nhiệm rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-applications-006
+    title: Đánh giá phương án không dùng Memento khi phép toán đảo ngược đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-applications-007
+    title: Ghi lại giới hạn phục hồi và quyết định thiết kế trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xây dựng Memento tối thiểu cho một đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Hoàn thiện trình soạn thảo có undo và redo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Sửa lỗi bản chụp bị thay đổi do tham chiếu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Mở rộng ví dụ với tập hợp đối tượng có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Thêm giới hạn lịch sử và gộp các thao tác liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Kết hợp Command với Memento cho một thao tác nhiều bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Lưu và nạp bản chụp có phiên bản lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Thử nghiệm lỗi phục hồi và kiểm tra tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: So sánh chi phí bản chụp đầy đủ với một phương án tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Tự đánh giá đóng gói, tính đúng, độ phức tạp và giới hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

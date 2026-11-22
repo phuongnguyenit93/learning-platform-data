@@ -1,0 +1,276 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Tiêm phụ thuộc (Dependency Injection) là gì và bài toán nó giải quyết
+  - Phụ thuộc, đối tượng sử dụng và đối tượng cung cấp trong một ví dụ xuyên suốt
+  - Vì sao tự tạo mọi phụ thuộc bên trong lớp gây khó thay đổi và kiểm thử
+  - Tách việc xây dựng đồ thị đối tượng khỏi việc thực hiện nghiệp vụ
+  - Vai trò của nơi lắp ghép, đối tượng nhận và phụ thuộc được truyền vào
+  - DI là kỹ thuật thiết kế và có thể thực hiện không cần framework
+  - Lợi ích, chi phí và giới hạn của việc áp dụng DI
+  - Kiến thức nền và lộ trình học từ tham chiếu đối tượng tới lắp ghép ứng dụng
+- level1: Mô hình phụ thuộc
+  level2:
+  - Phụ thuộc giữa các kiểu trong mã nguồn và giữa các đối tượng lúc chạy
+  - Phụ thuộc trực tiếp, gián tiếp và đường truyền qua nhiều lớp
+  - Phụ thuộc được khai báo rõ so với phụ thuộc ẩn
+  - Phụ thuộc nghiệp vụ, hạ tầng và cấu hình
+  - Phân biệt dịch vụ cộng tác với dữ liệu đầu vào của một lần gọi
+  - Quan hệ sở hữu, sử dụng chung và chuyển giao tham chiếu đối tượng
+  - Phụ thuộc vào lớp cụ thể và phụ thuộc vào hợp đồng
+  - Biến toàn cục, thành viên static và trạng thái dùng chung
+  - Vẽ đồ thị phụ thuộc để xác định nơi tạo và nơi sử dụng đối tượng
+- level1: Nguyên lý liên quan
+  level2:
+  - Đảo ngược điều khiển (IoC) và quan hệ với DI
+  - Nguyên lý đảo ngược phụ thuộc (DIP) và điểm khác biệt với DI
+  - Giảm liên kết (coupling) và tăng gắn kết trách nhiệm (cohesion)
+  - Tách trách nhiệm nghiệp vụ khỏi trách nhiệm khởi tạo
+  - Kết hợp đối tượng thay cho kế thừa khi thay đổi thành phần cộng tác
+  - Đa hình và khả năng thay thế thành phần qua hợp đồng
+  - Phân biệt DI với Service Locator và việc chủ động tìm phụ thuộc
+  - Phân biệt DI, Factory, Strategy và cơ chế callback
+  - Vì sao dùng interface hoặc annotation chưa đủ để chứng minh thiết kế tốt
+- level1: Các cách truyền phụ thuộc
+  level2:
+  - Truyền phụ thuộc qua constructor (constructor injection)
+  - Truyền phụ thuộc qua setter hoặc thuộc tính
+  - Truyền phụ thuộc qua tham số của phương thức
+  - Gán trực tiếp vào field và ảnh hưởng đến tính tường minh
+  - Interface injection và hợp đồng dành cho thao tác cung cấp phụ thuộc
+  - So sánh theo tính bắt buộc, tính bất biến và thời điểm sử dụng
+  - Phân biệt phương thức nhận đối tượng được tạo sẵn với phương thức tự lấy phụ thuộc
+  - Phối hợp nhiều cách truyền trong cùng một lớp
+  - Chọn cách truyền theo vòng đời và phạm vi sử dụng thực tế
+- level1: Thiết kế constructor
+  level2:
+  - Khai báo đầy đủ phụ thuộc cần để đối tượng hoạt động hợp lệ
+  - Phụ thuộc bắt buộc, kiểm tra null và điều kiện bất biến
+  - Lưu phụ thuộc bằng trường final trong thiết kế Java phù hợp
+  - Phân biệt kiểm tra đầu vào với thực hiện kết nối hoặc nghiệp vụ khi khởi tạo
+  - Độ lớn constructor như tín hiệu cần xem lại trách nhiệm lớp
+  - Nhiều constructor và nguy cơ tạo đối tượng ở trạng thái không đầy đủ
+  - Giữ constructor dễ sử dụng trong cả mã ứng dụng và kiểm thử
+  - Phụ thuộc tùy chọn và lựa chọn giá trị mặc định có chủ đích
+  - Tránh tạo phụ thuộc mặc định ngầm bên trong constructor
+- level1: Hợp đồng phụ thuộc
+  level2:
+  - Thiết kế interface từ nhu cầu của đối tượng sử dụng
+  - Phạm vi hợp đồng, trách nhiệm và các bảo đảm hành vi
+  - Quyền sở hữu abstraction giữa lớp nghiệp vụ và lớp hạ tầng
+  - Khi nào phụ thuộc vào lớp cụ thể vẫn là lựa chọn hợp lý
+  - Interface quá rộng, chia nhỏ hợp đồng và tránh lộ chi tiết triển khai
+  - Kiểu dữ liệu, lỗi và ngoại lệ đi qua ranh giới phụ thuộc
+  - Tính thay thế giữa các triển khai và giới hạn của kiểm tra kiểu
+  - Đồng bộ, bất đồng bộ và các yêu cầu về thời gian trong hợp đồng
+  - Tránh tạo interface máy móc cho mọi lớp
+- level1: DI thủ công
+  level2:
+  - Lắp ghép ứng dụng Java bằng constructor và đối tượng thông thường
+  - Chọn triển khai cụ thể tại điểm khởi động ứng dụng
+  - Tạo phụ thuộc dùng chung và truyền đúng cùng một instance
+  - Xây dựng chuỗi đối tượng từ thành phần nền tới dịch vụ cấp cao
+  - Tách lớp nghiệp vụ khỏi lớp cấu hình lắp ghép
+  - Thay thế triển khai theo môi trường mà không sửa mã nghiệp vụ
+  - Quản lý việc khởi tạo và kết thúc tài nguyên trong lắp ghép thủ công
+  - Kiểm tra một đồ thị nhỏ mà không khởi động framework
+  - Nhận diện giới hạn khi mã lắp ghép lớn và cần được tổ chức lại
+- level1: Điểm lắp ghép
+  level2:
+  - Điểm lắp ghép (Composition Root) và vị trí trong kiến trúc ứng dụng
+  - Ứng dụng CLI, web, xử lý nền và điểm vào tương ứng
+  - Giữ việc chọn lớp cụ thể gần ranh giới khởi động
+  - Phân tách cấu hình theo module mà vẫn có nơi điều phối rõ ràng
+  - Không truyền container hoặc nơi lắp ghép xuống lớp nghiệp vụ
+  - Đưa adapter hạ tầng vào các cổng giao tiếp của nghiệp vụ
+  - Lắp ghép thư viện dùng lại thông qua API cấu hình tường minh
+  - Kiểm tra cấu hình và đồ thị trước khi nhận công việc
+  - Phân biệt tạo đối tượng với khởi động các hoạt động có tác dụng phụ
+  - Giữ đường đi từ điểm vào tới các phụ thuộc có thể truy vết
+- level1: Đồ thị đối tượng
+  level2:
+  - Nút, cạnh, điểm gốc và danh tính instance trong đồ thị đối tượng
+  - Thứ tự xây dựng phụ thuộc và điều kiện hoàn tất khởi tạo
+  - Một phụ thuộc được dùng chung so với nhiều bản thể độc lập
+  - Đồ thị theo ứng dụng, yêu cầu, tác vụ và phiên làm việc
+  - Phụ thuộc vòng ở cấp kiểu và ở cấp instance
+  - Phát hiện vòng như dấu hiệu cần xem lại ranh giới trách nhiệm
+  - Phá vòng bằng tách trách nhiệm hoặc thay đổi hướng phối hợp
+  - Giới hạn của setter, lazy và provider khi chỉ dùng để che vòng
+  - Trình bày và kiểm chứng đồ thị thực tế sau khi thay đổi lắp ghép
+- level1: Vòng đời và phạm vi
+  level2:
+  - Vòng đời đối tượng và phạm vi tồn tại (scope) của một instance
+  - Dùng chung toàn ứng dụng, theo yêu cầu và tạo mới mỗi lần phân giải
+  - Khác biệt giữa scope singleton của container và mẫu Singleton
+  - Thời điểm tạo sớm, tạo muộn và hệ quả đối với phát hiện lỗi
+  - Phụ thuộc bị giữ sống lâu hơn dự kiến (captive dependency)
+  - Đối tượng sống lâu giữ tham chiếu đến trạng thái của yêu cầu ngắn hạn
+  - Lựa chọn scope theo trạng thái, khả năng chia sẻ và quyền sở hữu
+  - Phân biệt tạo mới phụ thuộc với thay đổi trạng thái trên instance dùng chung
+  - Tính nhất quán của danh tính đối tượng trong một đơn vị công việc
+  - Kiểm chứng vòng đời khi ứng dụng khởi động, phục vụ và kết thúc
+- level1: Sở hữu tài nguyên
+  level2:
+  - Ai tạo, ai sử dụng và ai chịu trách nhiệm đóng tài nguyên
+  - Đối tượng được truyền từ bên ngoài và giới hạn quyền sở hữu
+  - Kết nối, thread pool và client mạng trong đồ thị phụ thuộc
+  - AutoCloseable và tổ chức đóng tài nguyên trong Java
+  - Thứ tự giải phóng theo quan hệ phụ thuộc
+  - Dọn dẹp khi khởi tạo một phần đồ thị thất bại
+  - Tránh đóng hai lần hoặc sử dụng tài nguyên đã đóng
+  - Tài nguyên dùng chung và tài nguyên thuộc một yêu cầu
+  - Rò rỉ tài nguyên khi factory hoặc provider tạo instance ngoài quản lý
+- level1: Factory và Provider
+  level2:
+  - Khi nào cần trì hoãn hoặc lặp lại việc tạo phụ thuộc
+  - Phân biệt truyền đối tượng với truyền khả năng tạo đối tượng
+  - Factory có kiểu rõ ràng cho nhu cầu nghiệp vụ cụ thể
+  - Kết hợp phụ thuộc cố định với dữ liệu chỉ biết lúc chạy
+  - Provider, Supplier và ngữ nghĩa tạo mới hoặc trả về instance dùng chung
+  - Lazy initialization và thời điểm lỗi được bộc lộ
+  - Quyền sở hữu và đóng instance do factory tạo ra
+  - Tránh biến provider tổng quát thành Service Locator ẩn
+  - Kiểm thử số lần tạo, danh tính và vòng đời của đối tượng trả về
+  - Giới hạn sự lan truyền của factory ra ngoài nơi thực sự cần
+- level1: Lựa chọn thành phần
+  level2:
+  - Một hợp đồng có nhiều triển khai và nơi quyết định lựa chọn
+  - Chọn triển khai theo cấu hình khởi động
+  - Chọn chiến lược theo dữ liệu của từng yêu cầu
+  - Tên, qualifier và khóa định danh của thành phần
+  - Truyền danh sách, tập hợp hoặc bảng tra các chiến lược
+  - Quy định thứ tự và hành vi khi thiếu hoặc trùng thành phần
+  - Triển khai mặc định và điều kiện thay thế
+  - Kiểu generic và khó khăn phân biệt các phụ thuộc tương tự
+  - Giữ quy tắc lựa chọn nghiệp vụ tách khỏi chi tiết đăng ký container
+- level1: Bộ chứa DI
+  level2:
+  - Container là gì và phần công việc được tự động hóa
+  - Đăng ký thành phần, mô tả phụ thuộc và phân giải đối tượng
+  - Đăng ký tường minh so với khám phá tự động
+  - Phân giải theo kiểu, tên, qualifier và thông tin bổ sung
+  - Quản lý scope, khởi tạo và kết thúc vòng đời
+  - Kiểm tra đồ thị, thành phần thiếu và đăng ký không rõ ràng
+  - Reflection, sinh mã và các đánh đổi trong cơ chế lắp ghép
+  - Proxy và khác biệt giữa tham chiếu được nhận với đối tượng đích
+  - Giới hạn của container đối với đối tượng tự tạo ngoài phạm vi quản lý
+  - Tiêu chí cần container và trường hợp DI thủ công đã đủ
+- level1: Cấu hình lắp ghép
+  level2:
+  - Phân biệt cấu hình giá trị với đăng ký đối tượng phụ thuộc
+  - Đối tượng cấu hình có kiểu và kiểm tra tính hợp lệ
+  - Tách cấu hình theo môi trường mà giữ nguyên hợp đồng nghiệp vụ
+  - Cấu hình điều kiện, tính năng tùy chọn và tính rõ ràng của đồ thị
+  - Giá trị mặc định, độ ưu tiên nguồn cấu hình và khả năng truy vết
+  - Bảo vệ thông tin bí mật trong đối tượng cấu hình và thông báo lỗi
+  - Cấu hình bất biến so với cấu hình được cập nhật lúc chạy
+  - Xác minh cấu hình trước khi sử dụng tài nguyên bên ngoài
+  - Giảm số tổ hợp cấu hình và kiểm thử các biến thể được hỗ trợ
+- level1: DI trong framework
+  level2:
+  - Ánh xạ DI thủ công sang cơ chế đăng ký và phân giải của framework
+  - Constructor injection và cấu hình thành phần trong Spring
+  - Phân biệt annotation khám phá thành phần với thiết kế hợp đồng phụ thuộc
+  - Vai trò của cấu hình Java, phương thức tạo đối tượng và đăng ký tường minh
+  - Jakarta CDI và Guice như các ví dụ về mô hình container
+  - Phân biệt quy tắc chung của DI với hành vi riêng của từng framework
+  - Đối tượng do framework quản lý và đối tượng do mã ứng dụng tự tạo
+  - Tác động của proxy, scope và callback vòng đời tới cách dùng phụ thuộc
+  - Giữ nghiệp vụ có thể kiểm thử và tái sử dụng ngoài container
+- level1: Kiểm thử
+  level2:
+  - Tạo đối tượng cần kiểm thử bằng cách truyền phụ thuộc trực tiếp
+  - Phân biệt dummy, stub, fake, spy và mock theo mục đích
+  - Chọn phụ thuộc thật hoặc đối tượng thay thế theo phạm vi kiểm thử
+  - Kiểm tra kết quả hành vi và tránh ràng buộc quá mức vào tương tác nội bộ
+  - Truyền clock, nguồn sinh số hoặc bộ lập lịch để kiểm soát tính không xác định
+  - Kiểm tra lỗi, timeout và trường hợp phụ thuộc không sẵn sàng
+  - Kiểm thử hợp đồng để xác minh khả năng thay thế triển khai
+  - Kiểm thử lắp ghép để phát hiện đăng ký thiếu hoặc sai lựa chọn
+  - Kiểm thử scope, danh tính và giải phóng tài nguyên
+  - Tách unit test khỏi kiểm thử tích hợp có khởi động container
+  - Giữ dữ liệu và trạng thái phụ thuộc độc lập giữa các lần kiểm thử
+- level1: Kỹ thuật kết hợp
+  level2:
+  - DI với Strategy để thay thuật toán hoặc chính sách
+  - DI với Adapter để cô lập dịch vụ bên ngoài
+  - DI với Decorator để thêm hành vi qua cùng một hợp đồng
+  - Lắp ghép chuỗi trách nhiệm và quy định thứ tự xử lý
+  - DI với Composite để xây dựng cấu trúc đối tượng kết hợp
+  - Cổng và bộ chuyển đổi trong kiến trúc phân tách nghiệp vụ, hạ tầng
+  - Phân biệt gắn hành vi bằng decorator với cơ chế proxy của framework
+  - Tránh đưa hạ tầng logging, cache hoặc retry làm lộ chi tiết không cần thiết
+  - Lựa chọn kỹ thuật theo vấn đề thay vì kết hợp nhiều mẫu một cách máy móc
+- level1: Đồng thời và bất đồng bộ
+  level2:
+  - DI không tự bảo đảm an toàn luồng cho đối tượng được chia sẻ
+  - Phụ thuộc bất biến và phụ thuộc chứa trạng thái thay đổi
+  - Không giữ dữ liệu người dùng trong thành phần dùng chung toàn ứng dụng
+  - Phạm vi yêu cầu và dữ liệu ngữ cảnh khi chuyển sang tác vụ nền
+  - Vòng đời phụ thuộc khi công việc tiếp tục sau khi yêu cầu kết thúc
+  - Truyền ngữ cảnh tường minh và giới hạn của trạng thái theo luồng
+  - Quản lý executor, scheduler và hủy công việc
+  - Giữ tài nguyên sống đủ lâu nhưng đóng đúng lúc khi xử lý bất đồng bộ
+  - Kiểm thử rò rỉ trạng thái giữa các yêu cầu và tác vụ đồng thời
+- level1: Refactor sang DI
+  level2:
+  - Nhận diện nơi gọi new, biến static và truy cập toàn cục gây khó kiểm thử
+  - Chọn ranh giới thay đổi và bổ sung kiểm thử bảo vệ hành vi hiện có
+  - Đưa phụ thuộc ra constructor bằng các bước nhỏ
+  - Di chuyển việc lựa chọn triển khai tới điểm lắp ghép
+  - Tách dữ liệu của lần gọi khỏi phụ thuộc sống cùng đối tượng
+  - Thay Service Locator bằng các phụ thuộc có kiểu rõ ràng
+  - Tách lớp có quá nhiều phụ thuộc theo trách nhiệm thực tế
+  - Giữ tương thích API trong quá trình chuyển đổi
+  - Chuyển vòng đời và quyền đóng tài nguyên mà không làm thay đổi hành vi
+  - Đánh giá sau refactor bằng khả năng đọc, thay thế và kiểm thử
+- level1: Lỗi thiết kế
+  level2:
+  - Field injection làm phụ thuộc bắt buộc không thể hiện qua API khởi tạo
+  - Constructor quá nhiều tham số và lớp gánh quá nhiều trách nhiệm
+  - Đối tượng tự tạo phụ thuộc bên trong dù đã có cơ chế DI
+  - Service Locator, container toàn cục và phụ thuộc ẩn
+  - Phụ thuộc vòng được che bằng lazy hoặc setter nhưng chưa giải quyết thiết kế
+  - Đối tượng sống lâu giữ trạng thái của yêu cầu sống ngắn
+  - Truyền một túi phụ thuộc tổng quát để che giấu nhu cầu thực sự
+  - Tạo interface hoặc factory không có nhu cầu thay thế hay quản lý vòng đời
+  - Đưa annotation và API container vào quá sâu trong nghiệp vụ
+  - Khởi tạo với tác dụng phụ khó kiểm soát hoặc làm rò rỉ this
+  - Cho rằng dùng DI tự động làm hệ thống tuân thủ mọi nguyên lý thiết kế
+- level1: Đánh đổi thiết kế
+  level2:
+  - Tính tường minh, khả năng điều hướng và chi phí lắp ghép
+  - Giảm phụ thuộc vào triển khai nhưng không loại bỏ quan hệ nghiệp vụ
+  - DI thủ công so với container theo quy mô và năng lực nhóm
+  - Khả năng kiểm tra lúc biên dịch so với lỗi cấu hình lúc chạy
+  - Chi phí khởi động, bộ nhớ và cơ chế tạo đối tượng
+  - Cân bằng khả năng mở rộng với tránh khái quát hóa sớm
+  - Không cần tiêm mọi giá trị, đối tượng dữ liệu hoặc thao tác tạo cục bộ
+  - Đánh giá thiết kế qua tình huống thay đổi và kiểm thử cụ thể
+  - Checklist lựa chọn hợp đồng, nơi lắp ghép, scope và quyền sở hữu
+- level1: Thực hành
+  level2:
+  - Chuyển một dịch vụ tự tạo repository sang constructor injection
+  - Lắp ghép cùng nghiệp vụ với hai adapter hạ tầng bằng Java thuần
+  - Vẽ và đối chiếu đồ thị đối tượng với mã lắp ghép
+  - Thiết kế unit test bằng fake mà không khởi động framework
+  - Truyền clock để kiểm thử quy tắc phụ thuộc thời gian
+  - Lắp ghép decorator và danh sách chiến lược với thứ tự rõ ràng
+  - Tạo factory kết hợp phụ thuộc cố định với dữ liệu lúc chạy
+  - Phát hiện và sửa lỗi phụ thuộc sống ngắn bị giữ bởi đối tượng sống lâu
+  - Refactor phụ thuộc vòng bằng cách tách trách nhiệm
+  - Kiểm thử đóng tài nguyên khi khởi tạo hoặc xử lý thất bại
+  - So sánh cùng một thiết kế khi dùng DI thủ công và container
+- level1: Chẩn đoán DI
+  level2:
+  - Không phân giải được phụ thuộc do chưa đăng ký hoặc sai hợp đồng
+  - Nhiều triển khai cùng khớp và cấu hình lựa chọn không rõ ràng
+  - Đối tượng được tạo trực tiếp nên không có phụ thuộc do container cung cấp
+  - Scope không tồn tại hoặc đã kết thúc khi đối tượng được sử dụng
+  - Instance bị chia sẻ ngoài ý muốn hoặc bị tạo mới quá nhiều
+  - Lỗi khởi tạo muộn chỉ xuất hiện khi xử lý yêu cầu đầu tiên
+  - Proxy và kiểu thực tế gây khác biệt so với kỳ vọng
+  - Kiểm thử vượt qua nhưng cấu hình lắp ghép ứng dụng bị thiếu
+  - Rò rỉ tài nguyên hoặc trạng thái do quản lý vòng đời sai
+  - Quy trình truy vết từ yêu cầu phân giải tới đăng ký, đồ thị và vòng đời

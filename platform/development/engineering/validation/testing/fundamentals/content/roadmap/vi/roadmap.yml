@@ -1,0 +1,64 @@
+roadmap:
+- id: muc-dich-cua-kiem-thu
+  title: Mục đích của kiểm thử
+  purpose: Hiểu vì sao kiểm thử là hoạt động cần thiết để đánh giá sản phẩm và giảm rủi ro.
+  objectives:
+  - Nêu được các mục tiêu chính của kiểm thử phần mềm
+  - Phân biệt kiểm thử với việc chứng minh phần mềm không có lỗi
+  - Giải thích vai trò của kiểm thử đối với chất lượng và sự tin cậy
+- id: loi-khuyet-tat-va-that-bai
+  title: Lỗi, khuyết tật và thất bại
+  purpose: Nắm thuật ngữ cốt lõi để mô tả nguyên nhân và biểu hiện của vấn đề phần mềm.
+  objectives:
+  - Phân biệt error, defect và failure qua ví dụ
+  - Giải thích mối liên hệ giữa khuyết tật và thất bại quan sát được
+  - Phân biệt hoạt động testing với debugging
+- id: nguyen-ly-kiem-thu
+  title: Nguyên lý kiểm thử
+  purpose: Xây dựng tư duy kiểm thử thực tế và nhận biết giới hạn của việc kiểm thử.
+  objectives:
+  - Giải thích vì sao kiểm thử chỉ chỉ ra sự hiện diện của lỗi
+  - Nêu được tác động của kiểm thử sớm và kiểm thử phụ thuộc ngữ cảnh
+  - Nhận biết nghịch lý thuốc trừ sâu và sự tập trung khuyết tật
+- id: xac-minh-va-tham-dinh
+  title: Xác minh và thẩm định
+  purpose: Hiểu các cách đánh giá tính đúng đắn và mức đáp ứng nhu cầu của sản phẩm.
+  objectives:
+  - Phân biệt verification và validation
+  - Phân biệt kiểm thử tĩnh với kiểm thử động
+  - Nêu ví dụ review tài liệu và thực thi phần mềm để tìm lỗi
+- id: kiem-thu-trong-vong-doi
+  title: Kiểm thử trong vòng đời
+  purpose: Nhận biết cách hoạt động kiểm thử diễn ra xuyên suốt quá trình phát triển phần mềm.
+  objectives:
+  - Mô tả các hoạt động lập kế hoạch, phân tích, thiết kế, thực thi và kết thúc kiểm thử
+  - Giải thích lợi ích của việc kiểm thử sớm trong SDLC
+  - Nhận diện trách nhiệm phối hợp của developer và tester
+- id: test-basis-va-test-case
+  title: Test Basis và Test Case
+  purpose: Biết cách chuyển yêu cầu thành điều kiện, trường hợp và kết quả mong đợi để kiểm thử.
+  objectives:
+  - Phân biệt test basis, test condition và test case
+  - Xác định input, bước thực hiện và expected result của test case
+  - Giải thích vai trò của test oracle và test data
+- id: muc-do-va-loai-kiem-thu
+  title: Mức độ và loại kiểm thử
+  purpose: Có bức tranh tổng quát về phạm vi và mục đích của các hoạt động kiểm thử.
+  objectives:
+  - Phân biệt các mức unit, integration, system và acceptance
+  - Nhận diện kiểm thử chức năng và phi chức năng
+  - Phân biệt kiểm thử hồi quy với kiểm thử xác nhận sửa lỗi
+- id: bang-chung-va-bao-loi
+  title: Bằng chứng và báo lỗi
+  purpose: Biết lưu giữ kết quả và trình bày các vấn đề phát hiện một cách có thể tái hiện.
+  objectives:
+  - Ghi lại actual result và so sánh với expected result
+  - Mô tả defect report với bước tái hiện và mức ảnh hưởng
+  - Giải thích ý nghĩa của test result và traceability
+- id: rui-ro-va-tu-dong-hoa
+  title: Rủi ro và tự động hóa
+  purpose: Nhận biết các yếu tố ảnh hưởng đến ưu tiên kiểm thử và vai trò của công cụ hỗ trợ.
+  objectives:
+  - Phân biệt mức độ ưu tiên kiểm thử theo rủi ro
+  - Nêu lợi ích và giới hạn của test automation
+  - Giải thích vai trò của kiểm thử tự động trong CI

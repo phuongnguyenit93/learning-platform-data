@@ -1,0 +1,106 @@
+menu:
+- title: Bản đồ Web Flow
+  slug: web-flow-overview
+  index: 0
+- title: Nền tảng và phiên bản
+  slug: platform-and-versions
+  index: 1
+- title: Kiến trúc thực thi
+  slug: execution-architecture
+  index: 2
+- title: Cấu hình hệ thống
+  slug: system-configuration
+  index: 3
+- title: Flow đầu tiên
+  slug: first-flow
+  index: 4
+- title: Vòng đời thực thi
+  slug: execution-lifecycle
+  index: 5
+- title: View-state
+  slug: view-state
+  index: 6
+- title: Event và transition
+  slug: events-and-transitions
+  index: 7
+- title: Action-state
+  slug: action-states
+  index: 8
+- title: Rẽ nhánh và kết thúc
+  slug: branching-and-termination
+  index: 9
+- title: Dữ liệu và scope
+  slug: data-and-scopes
+  index: 10
+- title: Biểu thức
+  slug: expressions
+  index: 11
+- title: Ánh xạ dữ liệu
+  slug: data-binding
+  index: 12
+- title: Liên kết biểu mẫu
+  slug: form-binding
+  index: 13
+- title: Chuyển đổi và định dạng
+  slug: conversion-and-formatting
+  index: 14
+- title: Kiểm tra dữ liệu
+  slug: validation
+  index: 15
+- title: Thông báo và ngôn ngữ
+  slug: messages-and-i18n
+  index: 16
+- title: Tích hợp Spring MVC
+  slug: spring-mvc-integration
+  index: 17
+- title: URL và điều hướng
+  slug: urls-and-navigation
+  index: 18
+- title: Subflow và tái sử dụng
+  slug: subflows-and-reuse
+  index: 19
+- title: Kế thừa định nghĩa
+  slug: definition-inheritance
+  index: 20
+- title: Lưu trữ execution
+  slug: execution-storage
+  index: 21
+- title: Lịch sử trình duyệt
+  slug: browser-history
+  index: 22
+- title: Dữ liệu và giao dịch
+  slug: data-and-transactions
+  index: 23
+- title: Bảo vệ flow
+  slug: flow-security
+  index: 24
+- title: Tích hợp JSF
+  slug: jsf-integration
+  index: 25
+- title: Ajax và phân mảnh
+  slug: ajax-and-fragments
+  index: 26
+- title: Ngoại lệ và phục hồi
+  slug: exceptions-and-recovery
+  index: 27
+- title: Listener và mở rộng
+  slug: listeners-and-extensions
+  index: 28
+- title: Kiểm thử flow
+  slug: flow-testing
+  index: 29
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 30
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 31
+- title: Hiệu năng và vận hành
+  slug: performance-and-operations
+  index: 32
+- title: Nâng cấp ứng dụng cũ
+  slug: legacy-application-upgrade
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

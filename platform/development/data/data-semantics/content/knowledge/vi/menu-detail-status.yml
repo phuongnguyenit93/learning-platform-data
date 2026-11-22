@@ -1,0 +1,2551 @@
+menu:
+- slug: semantics-overview
+  title: Nền tảng
+  childs:
+  - slug: semantics-overview-001
+    title: Ngữ nghĩa dữ liệu (data semantics) là gì và vì sao cùng một giá trị có thể mang nhiều ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-overview-002
+    title: Phân biệt dữ liệu, thông tin, biểu diễn và ý nghĩa trong ngữ cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-overview-003
+    title: Phân biệt cú pháp hợp lệ, cấu trúc phù hợp và ý nghĩa đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-overview-004
+    title: 'Đơn vị ý nghĩa: giá trị, thuộc tính, bản ghi, quan hệ và tập dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-overview-005
+    title: Vai trò của ngữ cảnh nghiệp vụ, thời gian, nguồn và người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-overview-006
+    title: Phân biệt ngữ nghĩa dữ liệu với mô hình hóa, chất lượng và hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-overview-007
+    title: 'Ví dụ xuyên suốt: khách hàng, đơn hàng, thanh toán và các cách hiểu sai'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantics-overview-008
+    title: Lộ trình từ định nghĩa thuật ngữ đến biểu diễn, xử lý và kiểm chứng ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-and-terminology
+  title: Ngữ cảnh và thuật ngữ
+  childs:
+  - slug: context-and-terminology-001
+    title: Xác định câu hỏi nghiệp vụ trước khi đặt tên trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-002
+    title: Định nghĩa thuật ngữ bằng ý nghĩa, phạm vi áp dụng và ví dụ phản chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-003
+    title: Từ đồng nghĩa, từ đa nghĩa và những tên trường dễ gây hiểu nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-004
+    title: Phân biệt người dùng, tài khoản, khách hàng và chủ thể thanh toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-005
+    title: Ngữ cảnh giới hạn (bounded context) và cùng một thuật ngữ trong nhiều miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-006
+    title: Tách nghĩa nghiệp vụ khỏi tên bảng, tên cột và tên lớp triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-007
+    title: Xây dựng bảng thuật ngữ dùng chung và chỉ định người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-008
+    title: Quản lý từ viết tắt, tên thay thế và bản dịch thuật ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-terminology-009
+    title: Phát hiện giả định ngầm trong tên gọi như active, total, latest và valid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: meaning-models
+  title: Mô hình ý nghĩa
+  childs:
+  - slug: meaning-models-001
+    title: Khái niệm, thuộc tính, quan hệ và quy tắc tạo nên ý nghĩa của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-002
+    title: Phân biệt thực thể (entity), đối tượng giá trị (value object) và sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-003
+    title: Phân biệt giá trị gốc, giá trị suy ra và giá trị được tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-004
+    title: Ý nghĩa của miền giá trị và giới hạn của kiểu dữ liệu kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-005
+    title: 'Độ hạt (grain): một bản ghi đại diện cho điều gì'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-006
+    title: Phân biệt ảnh chụp trạng thái, lịch sử thay đổi và sự kiện xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-007
+    title: Tính bắt buộc, tính duy nhất và số lượng liên kết theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-008
+    title: Thể hiện giả định, giới hạn và ngoại lệ của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: meaning-models-009
+    title: Nhận diện mất thông tin khi nhiều khái niệm bị gộp vào cùng một trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identifiers
+  title: Định danh
+  childs:
+  - slug: identifiers-001
+    title: Phân biệt định danh (identity), tên hiển thị và giá trị thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-002
+    title: 'Phạm vi duy nhất: trong bảng, trong miền, trong tổ chức hay toàn hệ thống'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-003
+    title: Khóa tự nhiên, khóa thay thế và tính ổn định của định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-004
+    title: Định danh bên ngoài, định danh nội bộ và bảng đối chiếu giữa nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-005
+    title: Không gian tên và định danh ghép để tránh nhầm chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-006
+    title: Số có số 0 ở đầu và lý do mã định danh không nhất thiết là số học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-007
+    title: Ý nghĩa của UUID và giới hạn khi suy luận nghiệp vụ từ một định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-008
+    title: Hợp nhất, tách và thay thế định danh khi chủ thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-009
+    title: Phân biệt hai bản ghi trùng lặp với hai chủ thể khác nhau có thuộc tính giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-010
+    title: Tham chiếu tới chủ thể hiện tại hoặc tới một phiên bản lịch sử cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: value-domains
+  title: Miền giá trị
+  childs:
+  - slug: value-domains-001
+    title: Phân loại dữ liệu theo ý nghĩa thay vì chỉ theo kiểu chuỗi hoặc kiểu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-002
+    title: Thang đo phân loại, thứ bậc, khoảng và tỷ lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-003
+    title: Phép toán nào có ý nghĩa với từng loại thang đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-004
+    title: 'Mã, nhãn và mô tả: giá trị lưu trữ khác với nội dung hiển thị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-005
+    title: Giá trị rời rạc, liên tục và các giả định khi biểu diễn trên máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-006
+    title: Miền đóng, miền mở và khả năng xuất hiện giá trị mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-007
+    title: Giá trị hợp lệ về cấu trúc nhưng vô nghĩa trong một miền cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-008
+    title: Kiểu mang ý nghĩa như CustomerId, Quantity, Money và EmailAddress
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-domains-009
+    title: Tránh dùng chung String hoặc số nguyên cho những khái niệm không thể thay thế nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: missing-values
+  title: Giá trị thiếu
+  childs:
+  - slug: missing-values-001
+    title: Phân biệt không biết, chưa thu thập, không áp dụng và chưa được xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-002
+    title: Phân biệt dữ liệu bị che, bị xóa và không đủ quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-003
+    title: Trường vắng mặt, null, chuỗi rỗng, tập hợp rỗng và khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-004
+    title: Giá trị 0 hoặc false không mặc nhiên có nghĩa là thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-005
+    title: Giá trị đánh dấu như -1, N/A và ngày giả cùng nguy cơ gây hiểu sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-006
+    title: Giá trị mặc định và việc mất dấu khác biệt giữa người dùng nhập với hệ thống tự gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-007
+    title: Biểu diễn giá trị tùy chọn bằng Optional và giới hạn của từng vị trí sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-008
+    title: Logic ba giá trị trong SQL và tác động của NULL lên lọc hoặc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-009
+    title: Truyền giá trị thiếu qua phép tính, phép nối và tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-values-010
+    title: Thiết kế lý do thiếu dữ liệu và quy tắc chuyển đổi giữa các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-values
+  title: Giá trị trong Java
+  childs:
+  - slug: java-values-001
+    title: Kiểu nguyên thủy, kiểu tham chiếu và ý nghĩa của giá trị khởi tạo mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-002
+    title: Kiểu bao và nguy cơ mất ý nghĩa khi tự mở hộp giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-003
+    title: Đối tượng bất biến và khả năng giữ ổn định ý nghĩa sau khi khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-004
+    title: Thiết kế đối tượng giá trị để chỉ biểu diễn trạng thái có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-005
+    title: Java record và giới hạn của tính bất biến khi thành phần chứa đối tượng có thể sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-006
+    title: Sao chép phòng vệ cho tập hợp, mảng và đối tượng thời gian kiểu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-007
+    title: Phân biệt cùng tham chiếu, cùng giá trị và cùng chủ thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-008
+    title: Tách cách biểu diễn trong DTO khỏi ý nghĩa trong mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-values-009
+    title: Giới hạn của annotation và tên kiểu khi quy tắc miền chưa được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equality-and-ordering
+  title: Bằng nhau và sắp thứ tự
+  childs:
+  - slug: equality-and-ordering-001
+    title: 'Ba câu hỏi khác nhau: cùng đối tượng, cùng giá trị và tương đương theo nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-002
+    title: Phân biệt == và equals với các kiểu dữ liệu Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-003
+    title: Hợp đồng equals và hashCode khi biểu diễn giá trị hoặc thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-004
+    title: Định danh chưa được gán, kế thừa và những khó khăn khi so sánh thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-005
+    title: Thuộc tính có thể sửa và rủi ro khi dùng đối tượng làm khóa HashMap hoặc phần tử HashSet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-006
+    title: Comparable, Comparator và tiêu chí thứ tự có ý nghĩa trong miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-007
+    title: Tính nhất quán giữa so sánh thứ tự và equals trong cấu trúc tập hợp có sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-008
+    title: So sánh khi có giá trị thiếu, nhiều tiêu chí hoặc mức ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-009
+    title: Quan hệ tương đương, tính bắc cầu và nguy cơ dùng sai số làm định nghĩa equals
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equality-and-ordering-010
+    title: Kiểm chứng hành vi với HashSet, TreeSet, HashMap và TreeMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numbers-and-precision
+  title: Số và độ chính xác
+  childs:
+  - slug: numbers-and-precision-001
+    title: Số đếm, đại lượng đo và mã số có ngữ nghĩa khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-002
+    title: Miền biểu diễn, tràn số và mất thông tin khi thu hẹp kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-003
+    title: Số dấu phẩy động nhị phân và sự khác nhau giữa giá trị toán học với giá trị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-004
+    title: Sai số tuyệt đối, sai số tương đối và lựa chọn tiêu chí gần bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-005
+    title: NaN, vô cực và số 0 có dấu trong tính toán hoặc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-006
+    title: 'BigDecimal: giá trị số, độ chính xác và thang số'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-007
+    title: BigDecimal.equals và compareTo thể hiện hai tiêu chí bằng nhau khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-008
+    title: Tạo BigDecimal từ văn bản, số nguyên hoặc double và tác động đến giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-009
+    title: Làm tròn, thời điểm làm tròn và ý nghĩa của RoundingMode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-010
+    title: Phép chia, giá trị không biểu diễn chính xác và chính sách chấp nhận sai số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-precision-011
+    title: Giữ dấu vết số gốc khi định dạng hoặc làm tròn để hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: units-and-currencies
+  title: Đơn vị và tiền tệ
+  childs:
+  - slug: units-and-currencies-001
+    title: Đại lượng, đơn vị và kích thước vật lý trong mô tả dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-002
+    title: Giá trị kèm đơn vị và nguy cơ cộng hoặc so sánh khác đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-003
+    title: Chuyển đổi đơn vị theo tỷ lệ và theo điểm gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-004
+    title: Phân biệt số lượng, tỷ lệ, phần trăm và điểm phần trăm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-005
+    title: Tiền tệ là giá trị gắn mã tiền và quy tắc làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-006
+    title: Đơn giá, tổng tiền, thuế, giảm giá và thời điểm tính từng đại lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-007
+    title: Quy đổi tiền theo nguồn tỷ giá, thời điểm và loại tỷ giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-008
+    title: Phân bổ phần dư làm tròn khi chia tiền cho nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-009
+    title: Đơn vị nhỏ nhất dùng trong giao dịch và giới hạn của giả định luôn có hai chữ số thập phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: units-and-currencies-010
+    title: Biểu diễn kiểu Money hoặc Quantity để ngăn phép toán không có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-and-unicode
+  title: Văn bản và Unicode
+  childs:
+  - slug: text-and-unicode-001
+    title: Chuỗi dùng làm nội dung, mã kỹ thuật, tên gọi và định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-002
+    title: Byte, đơn vị mã UTF-16, điểm mã Unicode và ký tự người dùng nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-003
+    title: Độ dài chuỗi Java và lựa chọn cách đếm theo yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-004
+    title: Các dạng chuẩn hóa Unicode và hiện tượng nhìn giống nhưng lưu trữ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-005
+    title: Chữ hoa thường, dấu tiếng Việt và tiêu chí so sánh theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-006
+    title: Khoảng trắng, ký tự không nhìn thấy và nguy cơ thay đổi ý nghĩa khi cắt bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-007
+    title: So sánh chuỗi theo mã ký tự và đối chiếu theo ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-008
+    title: Sắp xếp và tìm kiếm bằng Collator với phạm vi sử dụng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-009
+    title: Chuẩn hóa tên người, địa chỉ và những thông tin không được tự ý lược bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-010
+    title: Phân biệt mã hóa ký tự, giải mã và chuẩn hóa nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-011
+    title: Định nghĩa dạng biểu diễn chuẩn cho mã kỹ thuật mà không áp đặt lên mọi văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-semantics
+  title: Thời gian
+  childs:
+  - slug: time-semantics-001
+    title: Phân biệt thời điểm, ngày lịch, giờ địa phương và khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-002
+    title: Chọn Instant, LocalDate, LocalTime, LocalDateTime, OffsetDateTime hoặc ZonedDateTime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-003
+    title: Múi giờ vùng, độ lệch UTC và lý do hai khái niệm không thể thay thế hoàn toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-004
+    title: Giờ địa phương bị thiếu hoặc lặp lại khi chuyển giờ theo mùa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-005
+    title: Ý nghĩa của thời điểm xảy ra, thời điểm ghi nhận và thời điểm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-006
+    title: Dữ liệu epoch theo giây hoặc mili giây và nguy cơ nhầm đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-007
+    title: Độ chính xác thời gian và mất thông tin khi đổi hệ thống hoặc định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-008
+    title: Duration và Period cho hai cách hiểu khác nhau về khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-009
+    title: Ngày sinh, ngày giao dịch và lịch làm việc không mặc nhiên là thời điểm UTC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-010
+    title: So sánh cùng thời điểm với so sánh cùng biểu diễn địa phương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-semantics-011
+    title: Clock và việc tách thời gian hiện tại khỏi quy tắc có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ranges-and-validity
+  title: Khoảng và hiệu lực
+  childs:
+  - slug: ranges-and-validity-001
+    title: Khoảng có biên đóng, biên mở và quy ước nửa mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-002
+    title: Ý nghĩa của cận thiếu, khoảng rỗng và khoảng không có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-003
+    title: Quan hệ giao nhau, chứa nhau, liền kề và có khoảng trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-004
+    title: Hiệu lực từ ngày, đến ngày và quy tắc tại đúng ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-005
+    title: Thời gian hiệu lực nghiệp vụ và thời gian hệ thống biết thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-006
+    title: Dữ liệu hai chiều thời gian và câu hỏi đúng tại thời điểm nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-007
+    title: Giá, địa chỉ hoặc trạng thái có hiệu lực theo từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-008
+    title: Điều chỉnh hồi tố và giữ lịch sử thông tin đã từng được tin là đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ranges-and-validity-009
+    title: Truy vấn dữ liệu hiện tại, dữ liệu tại một thời điểm và lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: codes-and-states
+  title: Mã và trạng thái
+  childs:
+  - slug: codes-and-states-001
+    title: Phân biệt mã ổn định, tên hiển thị và mô tả có thể dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-002
+    title: Enum Java cho miền giá trị đóng và giới hạn khi dữ liệu đến từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-003
+    title: Giá trị chưa nhận diện và chính sách giữ nguyên thay vì đánh mất mã gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-004
+    title: Nguy cơ dùng ordinal hoặc nhãn hiển thị làm giá trị trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-005
+    title: Mã danh mục, phiên bản danh mục và thời gian có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-006
+    title: Trạng thái, cờ boolean và nguy cơ tạo những tổ hợp không có nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-007
+    title: Trạng thái hiện tại khác với sự kiện đã dẫn tới trạng thái đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-008
+    title: Chuyển trạng thái hợp lệ và ý nghĩa của trạng thái kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-009
+    title: Ngừng sử dụng, đổi tên và thay thế mã mà vẫn hiểu được dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codes-and-states-010
+    title: Quan hệ giữa trạng thái nghiệp vụ và trạng thái kỹ thuật xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections-and-relations
+  title: Tập hợp và quan hệ
+  childs:
+  - slug: collections-and-relations-001
+    title: Ý nghĩa của danh sách, tập hợp, đa tập và ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-002
+    title: Thứ tự có ý nghĩa nghiệp vụ hay chỉ do cách lưu trữ tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-003
+    title: Phần tử trùng, định nghĩa trùng và điều kiện được loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-004
+    title: Tập hợp rỗng khác với tập hợp chưa được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-005
+    title: Quan hệ một với một, một với nhiều và nhiều với nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-006
+    title: Quan hệ có hướng, quan hệ đối xứng và ý nghĩa của vai trò hai đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-007
+    title: Thứ tự ưu tiên và thứ tự ổn định khi các phần tử có cùng tiêu chí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-008
+    title: Ảnh chụp quan hệ tại một thời điểm và quan hệ thay đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-relations-009
+    title: Tính toàn vẹn tham chiếu và giới hạn của việc chỉ kiểm tra mã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-operations
+  title: Phép toán dữ liệu
+  childs:
+  - slug: data-operations-001
+    title: Lọc dữ liệu theo điều kiện và tác động của giá trị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-002
+    title: Phép chiếu, đổi tên và bỏ trường có thể làm mất ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-003
+    title: Phép nối theo khóa và điều kiện để hai khóa thực sự chỉ cùng một chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-004
+    title: Nối một với nhiều và nguy cơ nhân bản đại lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-005
+    title: Hợp, giao, hiệu và chính sách giữ phần tử trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-006
+    title: Phân nhóm theo giá trị gốc, giá trị chuẩn hóa hoặc khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-007
+    title: Sắp xếp không đủ tiêu chí và kết quả chọn bản ghi đầu tiên không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-008
+    title: Ý nghĩa của distinct theo toàn bản ghi hoặc theo khóa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-009
+    title: Phân trang trên dữ liệu thay đổi và giới hạn khi suy luận tính đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-operations-010
+    title: Phân biệt phép biến đổi giữ nguyên ý nghĩa với phép biến đổi cố ý thay đổi thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: events-and-changes
+  title: Sự kiện và thay đổi
+  childs:
+  - slug: events-and-changes-001
+    title: Sự kiện như một phát biểu về việc đã xảy ra trong quá khứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-002
+    title: Phân biệt lệnh, sự kiện, ảnh chụp trạng thái và thông báo kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-003
+    title: Định danh sự kiện, định danh chủ thể và định danh lần thử xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-004
+    title: Sự kiện đến trễ, đến sai thứ tự và ngữ nghĩa của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-005
+    title: Bản sao thông điệp khác với hai sự kiện nghiệp vụ xảy ra giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-006
+    title: Tính lặp lại không đổi kết quả (idempotency) và tiêu chí nhận diện cùng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-007
+    title: Thời gian sự kiện, thời gian nhận và quy tắc chọn cửa sổ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-008
+    title: Sự kiện sửa sai, thu hồi hoặc bù trừ so với sửa trực tiếp lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-009
+    title: Ý nghĩa của xóa mềm, xóa cứng, bản ghi đánh dấu xóa và sự kiện xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-changes-010
+    title: Giới hạn suy luận quan hệ nhân quả từ thứ tự nhận hoặc dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: updates-and-merging
+  title: Cập nhật và hợp nhất
+  childs:
+  - slug: updates-and-merging-001
+    title: Thay thế toàn bộ, cập nhật một phần và bổ sung dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-002
+    title: Trường bị bỏ qua, trường được gán null và yêu cầu xóa giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-003
+    title: Giá trị hiện tại, giá trị cũ và ngữ cảnh cần có để hiểu một bản cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-004
+    title: Chính sách chọn nguồn ưu tiên khi nhiều hệ thống đưa ra giá trị khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-005
+    title: Giá trị mới nhất theo thời gian nào và những trường hợp đồng hồ không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-006
+    title: Hợp nhất tập hợp theo thêm, xóa, ghi đè hoặc thay thế hoàn toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-007
+    title: Tính giao hoán, kết hợp và lặp lại của quy tắc hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-008
+    title: Phân biệt sửa lỗi dữ liệu, thay đổi nghiệp vụ và chuyển đổi cách biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: updates-and-merging-009
+    title: Giữ lịch sử quyết định hợp nhất và khả năng giải thích kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexes-and-aggregates
+  title: Chỉ số và tổng hợp
+  childs:
+  - slug: indexes-and-aggregates-001
+    title: Định nghĩa chỉ số bằng câu hỏi nghiệp vụ, công thức, phạm vi và đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-002
+    title: Độ hạt của dữ liệu đầu vào và độ hạt của kết quả tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-003
+    title: Phân biệt số bản ghi, số chủ thể và số lần phát sinh nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-004
+    title: COUNT, SUM và AVG khi có null hoặc không có bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-005
+    title: Tổng, trung bình, trung bình có trọng số và nguy cơ lấy trung bình của các trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-006
+    title: Đại lượng cộng được, cộng được theo một số chiều và không cộng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-007
+    title: Tỷ lệ với tử số, mẫu số và tập đối tượng phải được định nghĩa nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-008
+    title: Cửa sổ thời gian, múi giờ, ngày nghiệp vụ và dữ liệu đến trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-009
+    title: Phân biệt số dư tại thời điểm với dòng phát sinh trong giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-010
+    title: Trùng lặp, phép nối và bộ lọc có thể làm sai chỉ số mà dữ liệu nguồn vẫn đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-aggregates-011
+    title: Giá trị chính xác, xấp xỉ và cách công bố giới hạn của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provenance-and-trust
+  title: Nguồn gốc và độ tin cậy
+  childs:
+  - slug: provenance-and-trust-001
+    title: Phân biệt dữ liệu được khai báo, được đo, được suy ra và được dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-002
+    title: Nguồn ghi nhận, phương pháp thu thập và điều kiện quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-003
+    title: Nguồn có thẩm quyền và tiêu chí chọn khi nhiều nguồn mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-004
+    title: Dòng dõi dữ liệu (lineage) qua các bước biến đổi và tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-005
+    title: Giá trị, đơn vị, sai số đo và khoảng bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-006
+    title: Độ tin cậy của nguồn khác với xác suất đúng của một phát biểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-007
+    title: Độ mới dữ liệu và mốc thời gian dùng để đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-008
+    title: Thông tin chưa xác minh và trạng thái xác minh thay đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provenance-and-trust-009
+    title: Giới hạn suy luận khi thiếu nguồn gốc hoặc phương pháp tạo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-exchange
+  title: Trao đổi giữa hệ thống
+  childs:
+  - slug: system-exchange-001
+    title: Cùng kiểu và cùng tên trường chưa đảm bảo cùng ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-002
+    title: Đối chiếu khái niệm giữa các ngữ cảnh trước khi ánh xạ thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-003
+    title: Ánh xạ một với một, nhiều với một và các trường hợp mất thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-004
+    title: Chuyển đổi mã, đơn vị, múi giờ và giá trị thiếu giữa nguồn với đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-005
+    title: Lớp chuyển đổi bảo vệ mô hình miền khỏi cách hiểu của hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-006
+    title: Tài liệu hóa giả định, giá trị không biểu diễn được và trường hợp phải từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-007
+    title: Kiểm tra đi rồi về và giới hạn khi phép chuyển đổi không thể đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-008
+    title: Tuần tự hóa và giải tuần tự hóa có thể làm mất thang số, kiểu hoặc độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-009
+    title: Ý nghĩa của null, số lớn và ngày giờ khi trao đổi JSON giữa Java với hệ thống khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-exchange-010
+    title: Đồng bộ dữ liệu tham chiếu để các bên cùng hiểu mã và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vocabulary-and-graphs
+  title: Từ vựng và đồ thị
+  childs:
+  - slug: vocabulary-and-graphs-001
+    title: Từ vựng có kiểm soát, bảng phân loại và hệ thống khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-002
+    title: Quan hệ rộng hơn, hẹp hơn, liên quan và tương đương giữa khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-003
+    title: Bản thể (ontology) và phạm vi sử dụng trong mô tả tri thức miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-004
+    title: Phát biểu dưới dạng chủ thể, quan hệ và đối tượng trong RDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-005
+    title: IRI, định danh tài nguyên và phân biệt tài nguyên với nhãn văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-006
+    title: Kiểu dữ liệu, thẻ ngôn ngữ và giá trị văn bản trong đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-007
+    title: RDFS, OWL và ý nghĩa của mô tả lớp, thuộc tính hoặc suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-008
+    title: Giả định thế giới mở và lý do chưa có phát biểu không đồng nghĩa với sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-009
+    title: Phân biệt suy luận ngữ nghĩa với kiểm tra ràng buộc bằng SHACL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-010
+    title: Vai trò của lớp ngữ nghĩa trong thống nhất khái niệm và chỉ số phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vocabulary-and-graphs-011
+    title: Khi nào bảng thuật ngữ đủ dùng và khi nào cần đồ thị tri thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantic-specifications
+  title: Đặc tả ngữ nghĩa
+  childs:
+  - slug: semantic-specifications-001
+    title: Viết định nghĩa trường gồm ý nghĩa, đơn vị, phạm vi và nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-002
+    title: Đặc tả giá trị thiếu, mặc định, độ chính xác và thời điểm hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-003
+    title: Tài liệu hóa quan hệ, độ hạt và điều kiện áp dụng của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-004
+    title: Dùng ví dụ đúng, phản ví dụ và trường hợp ranh giới để loại bỏ cách hiểu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-005
+    title: Đưa ngữ nghĩa vào mô tả lược đồ và hợp đồng mà không chỉ dựa vào tên trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-006
+    title: Liên kết thuật ngữ nghiệp vụ với kiểu Java, cột dữ liệu và trường trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-007
+    title: Tách quy tắc định nghĩa ý nghĩa khỏi quy tắc đảm bảo chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-008
+    title: Quản lý câu hỏi chưa thống nhất và ghi lại quyết định về cách hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-specifications-009
+    title: Danh sách thông tin tối thiểu để người dùng mới đọc đúng một tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantic-evolution
+  title: Tiến hóa ngữ nghĩa
+  childs:
+  - slug: semantic-evolution-001
+    title: Thay đổi cách biểu diễn khác với thay đổi ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-002
+    title: Đổi đơn vị, đổi mẫu số, đổi múi giờ và các thay đổi khó phát hiện qua lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-003
+    title: Mở rộng danh mục, đổi định nghĩa trạng thái và ảnh hưởng đến dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-004
+    title: Phiên bản định nghĩa nghiệp vụ và thời điểm bắt đầu áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-005
+    title: Giữ khả năng so sánh chỉ số trước và sau khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-006
+    title: Chuyển đổi dữ liệu cũ, tính lại dữ liệu suy ra và đánh dấu kết quả theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-007
+    title: Triển khai song song hai cách hiểu để đối chiếu trước khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-008
+    title: Đánh giá bên sử dụng bị ảnh hưởng và công bố hướng dẫn chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-evolution-009
+    title: Nhận diện độ lệch ngữ nghĩa giữa tài liệu, mã nguồn và dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantic-verification
+  title: Kiểm chứng ý nghĩa
+  childs:
+  - slug: semantic-verification-001
+    title: Biến định nghĩa nghiệp vụ thành ví dụ có thể kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-002
+    title: Kiểm thử bất biến của đối tượng giá trị và các tổ hợp không có nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-003
+    title: Kiểm thử equals, hashCode, thứ tự và hành vi trong tập hợp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-004
+    title: Kiểm thử chuyển đổi đơn vị, tiền tệ, làm tròn và bảo toàn độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-005
+    title: Kiểm thử null, dữ liệu vắng mặt, giá trị mặc định và yêu cầu xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-006
+    title: Kiểm thử Unicode, ngôn ngữ, múi giờ và ranh giới thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-007
+    title: Kiểm thử tính chất của chuẩn hóa, chuyển đổi đi rồi về và hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-008
+    title: Kiểm thử chỉ số trên dữ liệu nhỏ có kết quả tính tay và có bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-009
+    title: Đối chiếu cùng một khái niệm qua API, sự kiện, lưu trữ và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-010
+    title: Kiểm tra hồi quy khi thay đổi định nghĩa hoặc chuyển đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-verification-011
+    title: Kết hợp rà soát cùng chuyên gia nghiệp vụ với bằng chứng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantic-governance
+  title: Quản trị ngữ nghĩa
+  childs:
+  - slug: semantic-governance-001
+    title: Phân công người sở hữu khái niệm, dữ liệu và định nghĩa chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-002
+    title: Quy trình đề xuất, rà soát và phê duyệt thuật ngữ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-003
+    title: Tra cứu định nghĩa, nguồn gốc và phạm vi sử dụng trong danh mục dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-004
+    title: Theo dõi cách hiểu khác nhau giữa các nhóm và xử lý xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-005
+    title: Phân loại dữ liệu cá nhân, dữ liệu suy ra và dữ liệu có thể tái nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-006
+    title: Ý nghĩa của ẩn danh, dùng mã thay thế và che dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-007
+    title: Gắn mục đích sử dụng, phạm vi cho phép và thời hạn lưu với dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-008
+    title: Kiểm soát thay đổi ngữ nghĩa trong quy trình phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-governance-009
+    title: Nhận diện sự cố dữ liệu do sai ý nghĩa và lưu lại quyết định khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Cùng một trường chứa nhiều loại ý nghĩa tùy bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Đặt tên đúng nhưng đơn vị, múi giờ hoặc độ hạt không được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Dùng số 0, chuỗi rỗng hoặc giá trị mặc định để che dữ liệu chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Dùng chung mô hình cho nhiều ngữ cảnh có cách hiểu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: So sánh giá trị đã định dạng hoặc làm tròn thay cho giá trị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Loại trùng trước khi xác định thế nào là cùng một sự kiện hoặc chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Cộng chỉ số khác đơn vị, khác tiền tệ hoặc khác kỳ hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Đổi ý nghĩa trường nhưng giữ nguyên tên và phiên bản hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Tự sửa dữ liệu để hợp lệ mà làm mất thông tin gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-010
+    title: Cho rằng qua được kiểm tra cấu trúc thì dữ liệu đã được hiểu đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-semantics-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-semantics-practice-001
+    title: Lập bảng thuật ngữ cho khách hàng, đơn hàng, thanh toán và doanh thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-002
+    title: Xác định định danh, độ hạt và phạm vi hiệu lực của từng loại bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-003
+    title: Thiết kế kiểu Java cho CustomerId, Money, Quantity và khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-004
+    title: Biểu diễn dữ liệu chưa biết, chưa cung cấp và yêu cầu xóa trong cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-005
+    title: Chuẩn hóa văn bản với quy tắc riêng cho tên hiển thị và mã kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-006
+    title: Chuyển đổi dữ liệu nhiều nguồn có đơn vị, múi giờ và mã danh mục khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-007
+    title: Thiết kế sự kiện thanh toán với chính sách trùng lặp và sửa sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-008
+    title: Tính doanh thu và số khách hàng với định nghĩa chỉ số có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-009
+    title: Nâng cấp định nghĩa chỉ số và đối chiếu kết quả trước với sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-010
+    title: Xây dựng bộ kiểm thử ngữ nghĩa và tài liệu giải thích các quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-semantics-practice-011
+    title: Rà soát toàn bộ luồng dữ liệu bằng danh sách kiểm tra bảo toàn ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

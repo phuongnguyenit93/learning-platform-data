@@ -1,0 +1,3 @@
+menuLevel1: ThreadLocalRandom
+menuLevel2: Giảm tranh chấp khi nhiều luồng cần số ngẫu nhiên
+status: WRITTEN

@@ -1,0 +1,103 @@
+menu:
+  - title: "Tổng quan"
+    slug: concepts-and-architecture
+    index: 0
+  - title: "Tư duy trạng thái"
+    slug: state-from-events
+    index: 1
+  - title: "Phạm vi áp dụng"
+    slug: adoption-and-scope
+    index: 2
+  - title: "Mô hình miền"
+    slug: domain-modeling
+    index: 3
+  - title: "Thiết kế sự kiện"
+    slug: event-design
+    index: 4
+  - title: "Định danh và thời gian"
+    slug: identity-and-time
+    index: 5
+  - title: "Xử lý command"
+    slug: command-processing
+    index: 6
+  - title: "Aggregate và bất biến"
+    slug: aggregates-and-invariants
+    index: 7
+  - title: "Thiết kế event store"
+    slug: event-store-design
+    index: 8
+  - title: "Lưu trữ và chỉ mục"
+    slug: storage-and-indexing
+    index: 9
+  - title: "Giao dịch và độ bền"
+    slug: transactions-and-durability
+    index: 10
+  - title: "Đồng thời và xung đột"
+    slug: concurrency-and-conflicts
+    index: 11
+  - title: "Thứ tự và phân phối"
+    slug: ordering-and-delivery
+    index: 12
+  - title: "Công bố sự kiện"
+    slug: event-publishing
+    index: 13
+  - title: "Subscription và checkpoint"
+    slug: subscriptions-and-checkpoints
+    index: 14
+  - title: "Projection"
+    slug: projections
+    index: 15
+  - title: "CQRS và truy vấn"
+    slug: cqrs-and-queries
+    index: 16
+  - title: "Nhất quán và trải nghiệm"
+    slug: consistency-and-user-experience
+    index: 17
+  - title: "Replay"
+    slug: event-replay
+    index: 18
+  - title: "Snapshot"
+    slug: snapshots
+    index: 19
+  - title: "Tiến hóa schema"
+    slug: schema-evolution
+    index: 20
+  - title: "Quy trình nhiều aggregate"
+    slug: cross-aggregate-workflows
+    index: 21
+  - title: "Tích hợp hệ thống"
+    slug: system-integration
+    index: 22
+  - title: "Kiểm thử"
+    slug: testing-strategies
+    index: 23
+  - title: "Hiệu năng và mở rộng"
+    slug: performance-and-scaling
+    index: 24
+  - title: "Bảo mật và riêng tư"
+    slug: security-and-privacy
+    index: 25
+  - title: "Quan sát vận hành"
+    slug: operational-observability
+    index: 26
+  - title: "Khả dụng và khôi phục"
+    slug: availability-and-recovery
+    index: 27
+  - title: "Vòng đời dữ liệu"
+    slug: data-lifecycle
+    index: 28
+  - title: "Chuyển đổi hệ thống"
+    slug: system-migration
+    index: 29
+  - title: "Lựa chọn triển khai"
+    slug: implementation-choices
+    index: 30
+  - title: "Lỗi thiết kế thường gặp"
+    slug: design-antipatterns
+    index: 31
+  - title: "Bài thực hành"
+    slug: hands-on-exercises
+    index: 32
+  - title: "Rà soát thiết kế"
+    slug: design-review-checklist
+    index: 33

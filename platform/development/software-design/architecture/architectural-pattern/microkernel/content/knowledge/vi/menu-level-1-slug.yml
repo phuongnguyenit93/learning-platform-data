@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Bối cảnh áp dụng
+  slug: adoption-context
+  index: 1
+- title: Thành phần kiến trúc
+  slug: architecture-components
+  index: 2
+- title: Ranh giới lõi
+  slug: core-boundaries
+  index: 3
+- title: Điểm mở rộng
+  slug: extension-points
+  index: 4
+- title: Hợp đồng plugin
+  slug: plugin-contracts
+  index: 5
+- title: Danh mục plugin
+  slug: plugin-registry
+  index: 6
+- title: Phụ thuộc plugin
+  slug: plugin-dependencies
+  index: 7
+- title: Vòng đời plugin
+  slug: plugin-lifecycle
+  index: 8
+- title: Nạp và cô lập
+  slug: loading-and-isolation
+  index: 9
+- title: Luồng thực thi
+  slug: execution-flow
+  index: 10
+- title: Cấu hình plugin
+  slug: plugin-configuration
+  index: 11
+- title: Dữ liệu và giao dịch
+  slug: data-and-transactions
+  index: 12
+- title: Phiên bản và tương thích
+  slug: versioning-and-compatibility
+  index: 13
+- title: Bảo mật plugin
+  slug: plugin-security
+  index: 14
+- title: Độ tin cậy
+  slug: reliability
+  index: 15
+- title: Hiệu năng
+  slug: performance
+  index: 16
+- title: Kiểm thử
+  slug: testing
+  index: 17
+- title: Quan sát và vận hành
+  slug: observability-and-operations
+  index: 18
+- title: Đóng gói và phát hành
+  slug: packaging-and-releases
+  index: 19
+- title: Quản trị mở rộng
+  slug: extension-governance
+  index: 20
+- title: Triển khai Java
+  slug: java-implementation
+  index: 21
+- title: Hệ sinh thái plugin
+  slug: plugin-ecosystem
+  index: 22
+- title: Quan hệ kiến trúc
+  slug: architectural-relationships
+  index: 23
+- title: Chuyển đổi kiến trúc
+  slug: architecture-migration
+  index: 24
+- title: Sai lầm thiết kế
+  slug: design-mistakes
+  index: 25
+- title: Bài tập và tình huống
+  slug: exercises-and-scenarios
+  index: 26

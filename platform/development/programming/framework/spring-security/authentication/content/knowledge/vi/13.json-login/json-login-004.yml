@@ -1,0 +1,3 @@
+menuLevel1: Đăng nhập JSON
+menuLevel2: Xác thực qua AuthenticationManager thay vì tự so sánh mật khẩu trong Controller
+status: WRITTEN

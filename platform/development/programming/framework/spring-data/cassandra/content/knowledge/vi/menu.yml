@@ -1,0 +1,473 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data Cassandra là gì và giải quyết bài toán truy cập dữ liệu nào
+  - Vị trí của Spring Data, Spring Boot và Java Driver trong ứng dụng
+  - Cơ sở dữ liệu cột rộng và cách nhìn dữ liệu qua bảng CQL
+  - 'Các thuật ngữ nền tảng: keyspace, partition, clustering và replica'
+  - Thiết kế dữ liệu theo truy vấn và tác động đến API ứng dụng
+  - 'Repository, CassandraTemplate và CqlTemplate: vai trò và quan hệ'
+  - Mô hình đồng bộ, bất đồng bộ và phản ứng
+  - Khác biệt với JPA về ánh xạ, quan hệ, vòng đời entity và giao dịch
+  - 'Ví dụ xuyên suốt: lưu sự kiện thiết bị theo thời gian'
+  - Phạm vi kiến thức, điều kiện đầu vào và thứ tự học
+- level1: Kiến trúc Cassandra
+  level2:
+  - Cluster, node, datacenter và rack
+  - Token, partitioner và cách phân phối dữ liệu
+  - Coordinator và đường đi của yêu cầu đọc hoặc ghi
+  - Replication factor và chiến lược sao chép theo datacenter
+  - Commit log, memtable, SSTable và các giai đoạn ghi
+  - Bloom filter, bộ nhớ đệm và các thành phần đường đọc
+  - Gossip, phát hiện node lỗi và thay đổi topology
+  - Hint, read repair và anti-entropy repair
+  - Compaction, tombstone và vòng đời dữ liệu đã xóa
+  - Ranh giới kiến thức ứng dụng cần nắm và quản trị cụm chuyên sâu
+- level1: Thiết kế theo truy vấn
+  level2:
+  - Liệt kê mẫu đọc, điều kiện lọc và yêu cầu sắp xếp
+  - Thiết kế một hoặc nhiều bảng phục vụ từng mẫu truy vấn
+  - Phi chuẩn hóa dữ liệu và lưu lặp có chủ đích
+  - Chọn dữ liệu cần ghi cùng nhau và đọc cùng nhau
+  - Ước lượng kích thước, tốc độ tăng và số hàng của partition
+  - Đánh đổi giữa số partition cần đọc và lượng dữ liệu trong mỗi partition
+  - Xác định ràng buộc truy vấn trước khi tạo repository
+  - Truy vấn không phù hợp và thời điểm cần bảng truy cập khác
+  - Đồng bộ các bản sao dữ liệu ở nhiều bảng
+  - Đánh giá thay đổi nghiệp vụ khi thêm một mẫu truy vấn mới
+- level1: Khóa và phân vùng
+  level2:
+  - Primary key gồm partition key và clustering columns
+  - Partition key đơn và partition key ghép
+  - Thứ tự clustering và phạm vi sắp xếp trong partition
+  - Ràng buộc tiền tố clustering khi lọc theo khoảng
+  - Static column và dữ liệu dùng chung trong một partition
+  - Khóa có độ phân biệt thấp và nguy cơ partition nóng
+  - Chia nhóm theo thời gian để giới hạn kích thước partition
+  - Thêm shard vào khóa và chi phí đọc nhiều partition
+  - Khóa nghiệp vụ, UUID và timeuuid theo nhu cầu định danh
+  - Khóa bất biến, đổi khóa và chuyển dữ liệu sang partition khác
+  - Đánh giá phân bố dữ liệu với tải và dữ liệu mẫu đại diện
+- level1: Môi trường
+  level2:
+  - Chọn bộ phiên bản Java, Spring Boot, Spring Data, Driver và Cassandra tương thích
+  - Quản lý phụ thuộc qua Spring Boot và Gradle
+  - Khởi tạo Cassandra bằng Docker cho môi trường học tập
+  - Tạo keyspace với chiến lược sao chép phù hợp môi trường
+  - Tạo bảng và nạp dữ liệu thử bằng cqlsh
+  - Địa chỉ kết nối, cổng và local datacenter
+  - Tài khoản ứng dụng, quyền truy cập và thông tin xác thực
+  - Kiểm tra node sẵn sàng trước khi ứng dụng bắt đầu
+  - Phân biệt cấu hình một node với cụm nhiều node
+  - Tổ chức cấu hình phát triển, kiểm thử và triển khai
+- level1: Cấu hình kết nối
+  level2:
+  - Spring Boot starter cho truy cập Cassandra đồng bộ và phản ứng
+  - Cấu hình nhóm thuộc tính spring.cassandra
+  - Contact points, local datacenter, keyspace và thông tin xác thực
+  - CqlSession và vòng đời tài nguyên kết nối
+  - Cấu hình Java với AbstractCassandraConfiguration
+  - SessionFactory, CassandraMappingContext và MappingCassandraConverter
+  - Phạm vi quét entity và kích hoạt repository
+  - Tùy chỉnh DriverConfigLoader và cấu hình Java Driver
+  - Execution profile, thời gian chờ và tùy chọn truy vấn
+  - TLS, truststore và xác minh chứng chỉ
+  - Nhiều keyspace, nhiều session và phân biệt các bean
+  - Đóng session theo vòng đời Spring ApplicationContext
+- level1: Quản lý lược đồ
+  level2:
+  - Keyspace, bảng, cột và các ràng buộc primary key
+  - Tạo bảng từ metadata ánh xạ của entity
+  - SchemaAction.NONE, CREATE và CREATE_IF_NOT_EXISTS
+  - RECREATE, RECREATE_DROP_UNUSED và phạm vi dữ liệu bị xóa
+  - Giới hạn của tạo lược đồ tự động khi bảng đã tồn tại
+  - Khởi tạo keyspace và chạy tập lệnh CQL
+  - Thứ tự tạo UDT, bảng và chỉ mục
+  - Schema agreement và thời điểm ứng dụng có thể dùng lược đồ mới
+  - Quản lý thay đổi lược đồ riêng cho môi trường production
+  - Kiểm tra lược đồ thực tế so với mô hình ứng dụng
+- level1: Ánh xạ entity
+  level2:
+  - '@Table và ánh xạ tên bảng'
+  - '@PrimaryKey cho định danh đơn hoặc đối tượng khóa'
+  - '@PrimaryKeyClass và lớp khóa ghép'
+  - '@PrimaryKeyColumn: loại khóa, thứ tự và hướng sắp xếp'
+  - equals, hashCode và tính bất biến của đối tượng khóa
+  - '@Column, tên có phân biệt hoa thường và CqlIdentifier'
+  - '@Transient và @ReadOnlyProperty'
+  - '@Embedded và làm phẳng đối tượng thành các cột'
+  - Constructor, @PersistenceCreator và entity bất biến
+  - Java record và điều kiện ánh xạ trong bộ phiên bản sử dụng
+  - MapId và truy cập entity có nhiều thành phần khóa
+  - Dữ liệu chưa có, giá trị null và giới hạn của thuộc tính nguyên thủy
+- level1: Kiểu dữ liệu
+  level2:
+  - Ánh xạ kiểu số, boolean, văn bản và dữ liệu nhị phân
+  - UUID, timeuuid và các kiểu định danh
+  - date, time, timestamp, duration và kiểu thời gian Java
+  - list, set, map và lựa chọn cấu trúc phù hợp
+  - Giới hạn kích thước và chi phí cập nhật collection
+  - User-defined type với @UserDefinedType
+  - Tuple với @Tuple và @Element
+  - Frozen và non-frozen trong UDT hoặc collection
+  - '@CassandraType và điều khiển kiểu CQL tường minh'
+  - Enum, kiểu giá trị nghiệp vụ và biểu diễn lưu trữ
+  - Kiểu vector và điều kiện hỗ trợ theo phiên bản Server, Driver và Spring Data
+  - Độ chính xác số, múi giờ và tương thích dữ liệu khi chuyển đổi
+- level1: Chuyển đổi kiểu
+  level2:
+  - Cơ chế ánh xạ của MappingCassandraConverter
+  - Phân biệt Spring Converter với TypeCodec của Java Driver
+  - CassandraCustomConversions và đăng ký bộ chuyển đổi
+  - '@ReadingConverter và @WritingConverter'
+  - Chuyển đổi kiểu giá trị nghiệp vụ sang kiểu CQL
+  - Chuyển đổi Row, UdtValue và TupleValue
+  - CodecRegistry và ánh xạ kiểu tại lớp Driver
+  - Ảnh hưởng của chuyển đổi đến điều kiện truy vấn
+  - Giá trị null, lỗi chuyển đổi và dữ liệu phiên bản cũ
+  - Kiểm chứng ánh xạ hai chiều mà không mất thông tin
+- level1: Repository
+  level2:
+  - Định nghĩa CassandraRepository với entity và kiểu khóa
+  - Repository proxy, dependency injection và ranh giới trách nhiệm
+  - save, insert và ngữ nghĩa upsert của Cassandra
+  - findById, existsById và truy cập bằng đủ thành phần khóa
+  - findAll, count và nguy cơ quét dữ liệu rộng
+  - 'Đọc và ghi nhiều entity: vòng đời thao tác và phạm vi bảo đảm'
+  - deleteById, delete và điều kiện khóa cần thiết
+  - Optional, danh sách và kết quả không tồn tại
+  - Nhận biết entity mới bằng khóa, @Version hoặc Persistable
+  - Repository fragment và cài đặt hành vi riêng
+  - Giới hạn của Repository và tiêu chí sử dụng Template
+- level1: CassandraTemplate
+  level2:
+  - CassandraTemplate và giao diện CassandraOperations
+  - insert, update, delete và select theo entity
+  - selectOneById và truy cập bằng khóa ghép
+  - Query, Criteria và dựng điều kiện theo khóa
+  - Update và các phép gán, tăng, giảm hoặc sửa collection
+  - InsertOptions, UpdateOptions, DeleteOptions và QueryOptions
+  - Ghi giá trị null, bỏ qua giá trị và cập nhật một phần
+  - FluentCassandraOperations và chọn thao tác theo kiểu entity
+  - Chỉ định bảng đích và kiểu kết quả ánh xạ
+  - Lấy WriteResult và kiểm tra thao tác có được áp dụng
+  - slice, stream và xử lý tập kết quả theo từng phần
+  - Kết hợp Template với CqlTemplate hoặc Java Driver khi cần
+- level1: CQL và CqlTemplate
+  level2:
+  - CQL và khác biệt với ngôn ngữ truy vấn quan hệ
+  - SELECT, INSERT, UPDATE và DELETE theo khóa
+  - Điều kiện partition key và khoảng clustering hợp lệ
+  - ORDER BY, LIMIT và PER PARTITION LIMIT
+  - IN, CONTAINS và các ràng buộc theo kiểu dữ liệu hoặc chỉ mục
+  - CqlTemplate và giao diện CqlOperations
+  - Truy vấn bằng CQL tường minh hoặc Statement
+  - RowMapper, ResultSetExtractor và trích xuất kết quả
+  - Thực hiện câu lệnh cập nhật và đọc kết quả điều kiện
+  - Dùng chung CqlSession do Spring quản lý
+  - Giới hạn JOIN, lọc tùy ý và tổng hợp trên tập dữ liệu rộng
+- level1: Prepared statement
+  level2:
+  - SimpleStatement, PreparedStatement và BoundStatement
+  - Gắn tham số thay vì ghép dữ liệu trực tiếp vào CQL
+  - Tái sử dụng prepared statement theo vòng đời session
+  - Chuẩn bị câu lệnh qua CqlTemplate, CassandraTemplate và Repository
+  - Phân biệt giá trị null với tham số UNSET
+  - Tên bảng, tên cột và giới hạn của tham số truy vấn
+  - Execution profile cho từng nhóm truy vấn
+  - Fetch size, consistency, timeout và tính lũy đẳng của statement
+  - Định tuyến theo token và điều kiện Driver có đủ thông tin khóa
+  - Giới hạn số dạng câu lệnh và chi phí chuẩn bị quá nhiều truy vấn
+- level1: Truy vấn dẫn xuất
+  level2:
+  - Tạo điều kiện CQL từ tên phương thức repository
+  - Tra cứu bằng partition key đơn và ghép
+  - Điều kiện clustering theo thứ tự khóa đã thiết kế
+  - So sánh khoảng bằng GreaterThan, LessThan và Between
+  - IN, CONTAINS và phạm vi từ khóa được hỗ trợ
+  - Sắp xếp bằng OrderBy hoặc Sort trong giới hạn Cassandra
+  - First, Top và giới hạn số kết quả
+  - Kiểu trả về một entity, Optional, List, Stream và Slice
+  - QueryOptions trong phương thức truy vấn
+  - '@Consistency cho mức nhất quán của phương thức'
+  - '@AllowFiltering và chi phí cần đánh giá trước khi sử dụng'
+  - Kiểm tra CQL thực tế và xử lý truy vấn không hợp lệ theo mô hình khóa
+- level1: Truy vấn @Query
+  level2:
+  - Khai báo CQL tường minh trên phương thức repository
+  - Gắn tham số theo vị trí và tên theo cú pháp được hỗ trợ
+  - Sử dụng SpEL trong phạm vi phiên bản hỗ trợ
+  - Chọn cột, đặt bí danh và ánh xạ kết quả
+  - Truy vấn INSERT, UPDATE và DELETE theo ngữ nghĩa Cassandra
+  - Truyền QueryOptions cùng truy vấn khai báo
+  - USING TTL và USING TIMESTAMP trong câu lệnh ghi
+  - IF EXISTS, IF NOT EXISTS và kết quả điều kiện
+  - Tham số collection, IN và giới hạn kích thước đầu vào
+  - Kiểm soát tên bảng hoặc cột động bằng danh sách cho phép
+  - Kiểm thử truy vấn với khóa ghép, dữ liệu thiếu và tập kết quả rỗng
+- level1: Chiếu và phân trang
+  level2:
+  - Projection theo interface, DTO và chọn cột cần đọc
+  - Ánh xạ kết quả truy vấn về kiểu khác entity
+  - Giá trị mặc định khi một số cột không được chọn
+  - Fetch size và lượng dữ liệu được lấy trong một lần
+  - PagingState và cơ chế đọc tiếp về phía trước
+  - Slice và CassandraPageRequest
+  - Lấy trang đầu rồi tiếp tục qua nextPageable
+  - Giới hạn của Page, tổng số trang và truy cập trang ngẫu nhiên
+  - Paging state gắn với câu lệnh, tham số và điều kiện truy vấn
+  - Thiết kế API cursor và bảo vệ token phân trang
+  - Đọc theo khoảng clustering và giữ vị trí bằng khóa nghiệp vụ
+  - CassandraScrollPosition và điều kiện phiên bản hỗ trợ scrolling
+  - Giải phóng tài nguyên khi sử dụng Stream hoặc dừng đọc sớm
+- level1: Chỉ mục và mở rộng
+  level2:
+  - Truy vấn theo khóa và vai trò của chỉ mục bổ sung
+  - Chỉ mục thứ cấp truyền thống và mẫu truy cập phù hợp
+  - '@Indexed và quản lý chỉ mục từ metadata ánh xạ'
+  - Độ phân biệt giá trị, kích thước kết quả và chi phí truy vấn
+  - SASI và phạm vi hỗ trợ theo phiên bản sử dụng
+  - Storage-Attached Indexing và điều kiện tương thích
+  - Materialized view và so sánh với bảng truy cập do ứng dụng duy trì
+  - Tìm kiếm vector, truy vấn ANN và yêu cầu phiên bản
+  - Phạm vi annotation và API tìm kiếm nâng cao của Spring Data
+  - Triển khai chỉ mục, chờ sẵn sàng và quan sát ảnh hưởng lên tải
+  - Tiêu chí tạo bảng mới thay vì dựa vào chỉ mục hoặc ALLOW FILTERING
+- level1: Tính nhất quán
+  level2:
+  - Replication factor và consistency level của thao tác
+  - ONE, QUORUM, ALL và các mức nhất quán theo datacenter
+  - LOCAL_ONE, LOCAL_QUORUM và vai trò local datacenter
+  - Kết hợp mức đọc và ghi theo yêu cầu quan sát dữ liệu
+  - Nhất quán cuối cùng và các điều kiện của việc đọc sau ghi
+  - Cấu hình consistency qua annotation, QueryOptions và Driver profile
+  - Serial consistency và phân biệt với mức nhất quán thông thường
+  - Đánh đổi giữa độ mới, độ trễ và khả năng đáp ứng khi node lỗi
+  - Đọc từ replica, sửa khác biệt và ảnh hưởng của repair
+  - Kiểm thử mức nhất quán trên cụm nhiều node
+  - Giới hạn của việc suy ra tính tuần tự chỉ từ phép tính quorum
+- level1: Timestamp và xung đột
+  level2:
+  - Write timestamp và cơ chế chọn giá trị khi có cập nhật cạnh tranh
+  - Phân biệt cột kiểu timestamp với timestamp của thao tác ghi
+  - Nguồn tạo timestamp từ Driver hoặc coordinator
+  - Đơn vị thời gian và nguy cơ nhầm mili giây với micro giây
+  - Ảnh hưởng của lệch đồng hồ giữa các nơi ghi dữ liệu
+  - Last-write-wins và giới hạn khi diễn giải thứ tự nghiệp vụ
+  - USING TIMESTAMP và các tùy chọn ghi của Spring Data
+  - Thử lại cùng một thao tác và giữ ngữ nghĩa cập nhật
+  - Ghi cùng timestamp, xóa dữ liệu và trường hợp xung đột
+  - Khi nào cần LWT hoặc mô hình sự kiện thay vì dựa vào timestamp
+- level1: TTL và tombstone
+  level2:
+  - TTL của giá trị cột và default_time_to_live của bảng
+  - Cấu hình thời hạn bằng InsertOptions, UpdateOptions hoặc CQL
+  - Thay đổi TTL khi ghi lại một phần dữ liệu
+  - Đọc TTL và WRITETIME để kiểm tra metadata
+  - Xóa cột, xóa hàng, giá trị null và sự hình thành tombstone
+  - Giá trị UNSET và ý nghĩa giữ nguyên dữ liệu hiện có
+  - Dữ liệu hết hạn, compaction và thời điểm thu hồi dung lượng
+  - gc_grace_seconds, repair và nguy cơ dữ liệu bị xóa xuất hiện trở lại
+  - Truy vấn qua nhiều tombstone và dấu hiệu suy giảm hiệu năng
+  - Thiết kế lưu giữ dữ liệu theo cửa sổ thời gian
+  - Kiểm thử TTL và xóa dữ liệu theo phạm vi cột hoặc partition
+- level1: LWT và khóa lạc quan
+  level2:
+  - Lightweight transaction và cập nhật có điều kiện
+  - IF NOT EXISTS, IF EXISTS và điều kiện trên giá trị hiện tại
+  - Kết quả applied và dữ liệu hiện có khi điều kiện không khớp
+  - Lựa chọn consistency và serial consistency cho LWT
+  - Ánh xạ @Version và cơ chế tăng phiên bản
+  - Nhận biết entity mới với phiên bản và Persistable
+  - OptimisticLockingFailureException khi ghi từ phiên bản cũ
+  - Đọc lại, tính lại và thử lại khi có xung đột
+  - Phạm vi @Version cho thao tác một entity và giới hạn với batch
+  - Chi phí đồng thuận và mức tranh chấp trên cùng partition
+  - Thiết kế giữ chỗ hoặc đăng ký duy nhất theo khóa
+  - Phân biệt LWT, batch và giao dịch quan hệ nhiều thao tác
+- level1: Batch
+  level2:
+  - Mục đích của CQL BATCH và ranh giới bảo đảm
+  - Logged batch, unlogged batch và counter batch
+  - Thay đổi trong một partition và thay đổi qua nhiều partition
+  - Tính nguyên tử của việc ghi và phạm vi cô lập quan sát
+  - CassandraBatchOperations và batchOps của Template
+  - Thêm insert, update, delete rồi thực hiện batch
+  - Timestamp của batch và thứ tự quan sát các thay đổi
+  - Giới hạn kích thước, số statement và thời gian chờ
+  - Batch lỗi, kết quả chưa xác định và khả năng thử lại
+  - So sánh batch với nhiều yêu cầu bất đồng bộ có giới hạn
+  - Cập nhật bảng phi chuẩn hóa và các ràng buộc cần kiểm chứng
+- level1: Bộ đếm
+  level2:
+  - Kiểu counter và mục đích lưu số đếm phân tán
+  - Thiết kế bảng counter và giới hạn kiểu cột
+  - Tăng, giảm counter bằng CQL hoặc Update
+  - Ngữ nghĩa của thao tác tăng so với gán một giá trị
+  - Tính không lũy đẳng khi thử lại cập nhật counter
+  - Counter batch và giới hạn phối hợp với thao tác thông thường
+  - Giới hạn về TTL, timestamp và cập nhật có điều kiện
+  - Xóa, tạo lại và vòng đời của dữ liệu counter
+  - Chọn mô hình sự kiện để tổng hợp khi cần kiểm soát trùng lặp
+  - Kiểm thử yêu cầu lặp, lỗi mạng và số đếm sau phục hồi
+- level1: Truy cập bất đồng bộ
+  level2:
+  - AsyncCassandraTemplate và AsyncCqlTemplate
+  - CompletableFuture trong các thao tác ánh xạ entity
+  - CompletionStage và AsyncResultSet tại lớp Java Driver
+  - Phối hợp tác vụ bằng thenCompose và thenCombine
+  - Đọc tiếp các trang kết quả bất đồng bộ
+  - Giới hạn số yêu cầu đang thực hiện
+  - Luồng chạy callback và cô lập công việc chặn hoặc tốn CPU
+  - Lỗi, thời gian chờ và hủy tác vụ
+  - Phân biệt truy cập bất đồng bộ thực với bọc lời gọi chặn bằng @Async
+  - Chuyển giữa CompletableFuture và Reactor tại ranh giới rõ ràng
+- level1: Truy cập phản ứng
+  level2:
+  - ReactiveCassandraRepository và ReactiveCassandraTemplate
+  - ReactiveCqlTemplate cho CQL cấp thấp
+  - Mono, Flux và thời điểm thao tác được thực hiện
+  - CRUD, truy vấn dẫn xuất và @Query với kiểu trả về phản ứng
+  - Phối hợp ghi bằng flatMap hoặc concatMap theo yêu cầu thứ tự
+  - Giới hạn đồng thời, prefetch và nhu cầu nhận dữ liệu
+  - Đọc theo trang và tránh gom toàn bộ kết quả vào bộ nhớ
+  - Truyền lỗi, phục hồi và chính sách thử lại có điều kiện
+  - Hủy đăng ký và giới hạn khả năng hủy tác vụ đang gửi
+  - LWT, batch và phạm vi nguyên tử trong chuỗi phản ứng
+  - Giữ ngữ cảnh auditing và mã theo dõi yêu cầu
+  - Tích hợp WebFlux và kiểm tra đường đi không chặn
+- level1: Dữ liệu thời gian
+  level2:
+  - Mẫu truy vấn sự kiện theo thiết bị, người dùng hoặc tenant
+  - Chọn timestamp và timeuuid theo thứ tự đọc cần bảo đảm
+  - Partition theo khoảng thời gian và shard
+  - Ước lượng kích thước nhóm dữ liệu theo tốc độ ghi
+  - Đọc nhiều nhóm thời gian và hợp nhất kết quả có giới hạn
+  - Sự kiện đến muộn, dữ liệu gửi lại và phát hiện trùng lặp
+  - TTL theo chính sách lưu giữ và dữ liệu có tuổi khác nhau
+  - Tổng hợp trước theo cửa sổ phục vụ truy vấn thống kê
+  - Quan hệ giữa mẫu ghi, TTL và chiến lược compaction theo thời gian
+  - Thiết kế lịch sử trạng thái và góc nhìn hiện tại ở bảng riêng
+  - Kiểm thử phân bố tải, thay đổi múi giờ và ranh giới ngày
+- level1: Vòng đời và auditing
+  level2:
+  - Các giai đoạn đọc, chuyển đổi entity và tạo statement
+  - ApplicationEvent và EntityCallback trong vòng đời lưu trữ
+  - BeforeConvertCallback và BeforeSaveCallback
+  - Thay đổi entity trước chuyển đổi và điều chỉnh statement trước ghi
+  - Thứ tự callback và giữ logic dễ kiểm thử
+  - '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+  - '@EnableCassandraAuditing và AuditorAware'
+  - Nhận biết tạo mới bằng @Version hoặc Persistable
+  - '@EnableReactiveCassandraAuditing và ReactiveAuditorAware'
+  - Kiểm soát nguồn thời gian và người thao tác
+  - Các đường ghi CQL trực tiếp cần kiểm tra phạm vi auditing
+  - Tách sự kiện nghiệp vụ khỏi sự kiện ánh xạ dữ liệu
+- level1: Thiết kế ứng dụng
+  level2:
+  - Phân chia Controller, Service, Repository và lớp chuyển đổi DTO
+  - Thiết kế API phù hợp các mẫu truy vấn và cursor
+  - Ranh giới aggregate và ràng buộc trong một partition
+  - Cập nhật nhiều bảng phi chuẩn hóa và xử lý sai lệch
+  - Tính lũy đẳng, khóa chống trùng và xử lý yêu cầu gửi lại
+  - Xóa mềm, TTL và điều kiện dữ liệu còn hiệu lực
+  - Tenant trong partition key và kiểm tra quyền truy cập
+  - Repository fragment sử dụng Template hoặc Driver
+  - Phối hợp Cassandra với hàng đợi hoặc hệ lưu trữ khác
+  - Ranh giới của @Transactional và lựa chọn cơ chế bảo đảm dữ liệu
+  - Tách phép tính nghiệp vụ khỏi tác dụng phụ lưu trữ
+- level1: Xử lý lỗi
+  level2:
+  - Hệ thống ngoại lệ Spring Data và ngoại lệ gốc từ Driver
+  - Truy vấn không hợp lệ theo khóa, chỉ mục hoặc kiểu dữ liệu
+  - Lỗi ánh xạ, chuyển đổi và lược đồ không khớp
+  - Lỗi xác thực, phân quyền, DNS và TLS
+  - Unavailable, read timeout, write timeout và lỗi quá tải
+  - Node lỗi, kết nối gián đoạn và kết quả ghi chưa xác định
+  - Phân loại thao tác có thể thử lại theo tính lũy đẳng
+  - Retry policy của Driver và retry tại lớp ứng dụng
+  - Speculative execution và nguy cơ lặp thao tác ghi
+  - Giới hạn số lần thử, thời gian chờ tăng dần và ngân sách yêu cầu
+  - Xử lý xung đột LWT hoặc @Version theo nghiệp vụ
+  - Thu thập ngữ cảnh lỗi và chuyển thành phản hồi API phù hợp
+- level1: Kiểm thử
+  level2:
+  - Phân lớp kiểm thử nghiệp vụ, ánh xạ và tích hợp Cassandra
+  - Giới hạn của mock khi kiểm tra CQL và mô hình partition
+  - '@DataCassandraTest và phạm vi cấu hình được nạp'
+  - CassandraContainer với Testcontainers
+  - Cung cấp cấu hình kết nối động và chờ node sẵn sàng
+  - Khởi tạo keyspace, bảng, UDT và chỉ mục cho bài kiểm thử
+  - Kiểm thử khóa ghép, static column và kiểu dữ liệu lồng nhau
+  - Kiểm thử truy vấn dẫn xuất, @Query và điều kiện không hợp lệ
+  - Kiểm thử paging state qua nhiều trang và dữ liệu rỗng
+  - Kiểm thử TTL, timestamp, null và UNSET
+  - Kiểm thử xung đột LWT, @Version và kết quả applied
+  - Kiểm thử CompletableFuture và chuỗi phản ứng bằng StepVerifier
+  - Phân biệt bằng chứng một node với kiểm thử nhất quán trên cụm nhiều node
+  - Cô lập dữ liệu, khả năng chạy lại và dọn dẹp đúng phạm vi
+- level1: Hiệu năng
+  level2:
+  - Xác định mục tiêu độ trễ, thông lượng và mức sử dụng tài nguyên
+  - Đo riêng thao tác theo partition key và truy vấn qua chỉ mục
+  - Phát hiện partition lớn, khóa nóng và phân bố lệch
+  - Giảm số cột đọc, lượng dữ liệu truyền và số partition truy cập
+  - Điều chỉnh fetch size, giới hạn kết quả và đọc tiếp có kiểm soát
+  - Tái sử dụng prepared statement và kiểm tra thông tin định tuyến
+  - Giới hạn đồng thời bằng cơ chế điều tiết yêu cầu
+  - Đánh giá chi phí LWT, batch qua nhiều partition và mức nhất quán
+  - Ảnh hưởng của tombstone, collection lớn và dữ liệu hết hạn
+  - Đo với mô hình dữ liệu, topology và phân bố tải đại diện
+  - Đối chiếu tối ưu bằng số đo và kiểm tra tính đúng đắn
+- level1: Quan sát và vận hành
+  level2:
+  - Trạng thái session, node và mức sẵn sàng của ứng dụng
+  - Đo độ trễ, lỗi, số yêu cầu đang chờ và mức sử dụng kết nối
+  - Request tracking, truy vết truy vấn và log chẩn đoán
+  - Cảnh báo truy vấn rộng, tombstone và partition lớn
+  - Quan sát heap, GC, compaction và áp lực lưu trữ
+  - Hành vi ứng dụng khi node rời cụm hoặc mất datacenter
+  - Khôi phục kết nối, thay đổi topology và làm mới metadata
+  - Ảnh hưởng của repair, backup và khôi phục tới ứng dụng
+  - Quản lý schema agreement trong triển khai nhiều instance
+  - Dừng ứng dụng có kiểm soát và đóng session
+  - Giới hạn chi phí tracing và dữ liệu nhạy cảm trong log
+- level1: Bảo mật
+  level2:
+  - Xác thực kết nối và quản lý vai trò Cassandra
+  - Phân quyền theo keyspace, bảng và thao tác cần thiết
+  - Tách tài khoản ứng dụng, kiểm thử và di trú lược đồ
+  - Lưu thông tin xác thực và chứng chỉ trong cấu hình bí mật
+  - TLS cho kết nối ứng dụng và xác minh chứng chỉ
+  - Gắn tham số CQL và kiểm soát định danh động
+  - Tenant trong khóa và phòng tránh truy cập chéo dữ liệu
+  - Bảo vệ paging token và ràng buộc với truy vấn gốc
+  - Giới hạn dữ liệu cá nhân trong kết quả, sự kiện và log
+  - Chính sách xóa, TTL và dữ liệu còn trong bản sao lưu
+- level1: Tiến hóa và di trú
+  level2:
+  - Thêm, bỏ hoặc đổi ý nghĩa cột và tác động tới mã ánh xạ
+  - Tiến hóa UDT, collection và bộ chuyển đổi dữ liệu
+  - Đổi primary key bằng bảng mới và quy trình di chuyển dữ liệu
+  - Thay đổi mẫu truy vấn và tạo bảng truy cập mới
+  - Ghi nhiều biểu diễn và xử lý cập nhật trong giai đoạn chuyển đổi
+  - Backfill theo token range hoặc partition với giới hạn tải
+  - Tiến độ, khả năng chạy lại và kiểm tra dữ liệu đã chuyển
+  - Triển khai lược đồ tương thích với nhiều phiên bản ứng dụng
+  - Nâng Spring Boot, Spring Data, Java Driver và Cassandra theo ma trận tương thích
+  - Nhận diện ví dụ Driver hoặc API bất đồng bộ thuộc thế hệ cũ
+  - Sao lưu, xác minh kết quả và phương án khôi phục khi chuyển đổi lỗi
+- level1: Bài thực hành
+  level2:
+  - Thiết kế bảng sự kiện theo thiết bị và nhóm thời gian từ mẫu truy vấn
+  - Ánh xạ khóa ghép, static column, UDT và collection
+  - Xây dựng CRUD bằng Repository và CassandraTemplate
+  - Triển khai truy vấn CQL tham số hóa qua @Query hoặc CqlTemplate
+  - Thiết kế API cursor bằng Slice và paging state
+  - Quan sát TTL, WRITETIME và cập nhật null hoặc UNSET
+  - Mô phỏng hai yêu cầu giữ chỗ cạnh tranh bằng LWT
+  - Kiểm thử @Version với dữ liệu đã bị cập nhật
+  - So sánh batch một partition với ghi bất đồng bộ có giới hạn
+  - Xây dựng luồng WebFlux đọc và ghi sự kiện Cassandra
+  - Chạy bộ kiểm thử Testcontainers và đo tải theo mẫu truy cập
+  - Di trú dữ liệu sang bảng khóa mới và kiểm tra tính đầy đủ

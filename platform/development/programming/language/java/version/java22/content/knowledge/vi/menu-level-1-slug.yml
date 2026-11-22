@@ -1,0 +1,46 @@
+menu:
+  - title: "Lộ trình Java 22"
+    slug: feature-roadmap
+    index: 0
+  - title: "Biến và mẫu không tên"
+    slug: unnamed-variables-and-patterns
+    index: 1
+  - title: "Bộ nhớ ngoại lai"
+    slug: foreign-memory
+    index: 2
+  - title: "Gọi hàm native"
+    slug: native-function-calls
+    index: 3
+  - title: "Stream Gatherers"
+    slug: stream-gatherers
+    index: 4
+  - title: "Gatherer tùy biến"
+    slug: custom-gatherers
+    index: 5
+  - title: "Class File API"
+    slug: class-file-api
+    index: 6
+  - title: "Chạy nguồn nhiều tệp"
+    slug: multi-file-source-launcher
+    index: 7
+  - title: "G1 và ghim vùng nhớ"
+    slug: g1-region-pinning
+    index: 8
+  - title: "Hàm tạo linh hoạt"
+    slug: flexible-constructor-bodies
+    index: 9
+  - title: "Tệp nguồn gọn"
+    slug: compact-source-files
+    index: 10
+  - title: "Scoped Value"
+    slug: scoped-values
+    index: 11
+  - title: "Đồng thời có cấu trúc"
+    slug: structured-concurrency
+    index: 12
+  - title: "Vector API"
+    slug: vector-api
+    index: 13
+  - title: "Vận dụng và nâng cấp"
+    slug: practice-and-migration
+    index: 14

@@ -1,0 +1,50 @@
+roadmap:
+- id: khai-niem-cot-loi
+  title: Khái niệm cốt lõi
+  purpose: Hiểu hai chiều serialization/deserialization và vai trò của chúng khi lưu trữ, truyền dữ liệu.
+  objectives:
+  - Giải thích serialization và deserialization.
+  - Mô tả luồng object → text/bytes → object.
+  - Phân biệt dữ liệu logic với dạng biểu diễn.
+- id: dinh-dang-du-lieu
+  title: Định dạng dữ liệu
+  purpose: Nhận diện những cách biểu diễn dữ liệu thường gặp và lựa chọn theo nhu cầu trao đổi.
+  objectives:
+  - Phân biệt JSON, XML, CSV và định dạng nhị phân.
+  - So sánh tính dễ đọc, kích thước và khả năng mở rộng.
+  - Chọn định dạng phù hợp cho một tình huống.
+- id: kieu-du-lieu-ma-hoa
+  title: Kiểu dữ liệu & mã hóa
+  purpose: Giữ đúng ý nghĩa dữ liệu khi chuyển đổi giữa biểu diễn trong chương trình và payload.
+  objectives:
+  - Ánh xạ số, chuỗi, boolean, null, danh sách và object.
+  - Xử lý Unicode, thời gian và độ chính xác số.
+  - Phân biệt mã hóa ký tự với serialization.
+- id: cau-truc-schema
+  title: Cấu trúc & schema
+  purpose: Mô tả cấu trúc payload rõ ràng để các bên có thể tạo, đọc và kiểm tra dữ liệu nhất quán.
+  objectives:
+  - Biểu diễn dữ liệu lồng nhau và danh sách.
+  - Xác định trường bắt buộc, tùy chọn và mặc định.
+  - Kiểm tra dữ liệu dựa trên schema đơn giản.
+- id: tuong-thich-phien-ban
+  title: Tương thích phiên bản
+  purpose: Giảm lỗi khi schema hoặc cách biểu diễn dữ liệu thay đổi qua các phiên bản.
+  objectives:
+  - Phân biệt thay đổi tương thích và phá vỡ tương thích.
+  - Xử lý trường mới, trường thiếu và trường không nhận biết.
+  - Lập nguyên tắc tiến hóa schema.
+- id: an-toan-xu-ly-loi
+  title: An toàn & xử lý lỗi
+  purpose: Nhận biết rủi ro khi deserialization đầu vào không tin cậy và giới hạn việc phân tích payload.
+  objectives:
+  - Phân biệt lỗi cú pháp, kiểu dữ liệu và schema.
+  - Giới hạn kích thước, độ sâu và tài nguyên xử lý.
+  - Nhận diện nguy cơ deserialization không an toàn.
+- id: kiem-thu-hieu-nang
+  title: Kiểm thử & hiệu năng
+  purpose: Xác minh tính toàn vẹn dữ liệu và đánh giá chi phí của quá trình chuyển đổi.
+  objectives:
+  - Thiết kế kiểm thử round-trip và trường hợp biên.
+  - Phát hiện mất dữ liệu, đổi kiểu hoặc sai lệch giá trị.
+  - So sánh dung lượng payload và thời gian xử lý.

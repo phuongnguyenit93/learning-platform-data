@@ -1,0 +1,294 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Quốc tế hóa (i18n) và bản địa hóa (l10n) là gì
+  - Vì sao bản địa hóa không chỉ là dịch chuỗi
+  - Quan hệ giữa ngôn ngữ, khu vực, locale và tài nguyên dịch
+  - Phân biệt locale, bộ mã ký tự, múi giờ và hệ lịch
+  - Dữ liệu trung lập với locale và cách trình bày cho người dùng
+  - Các nhóm API Java Core phục vụ bản địa hóa
+  - Ranh giới giữa xử lý dữ liệu, tài nguyên và giao diện
+  - Kiến thức nền và trình tự học localization
+- level1: Mô hình Locale
+  level2:
+  - Locale là định danh yêu cầu quy ước văn hóa
+  - Thành phần language, script, region và variant
+  - Thẻ ngôn ngữ BCP 47 và dấu phân cách
+  - Phân biệt ngôn ngữ giống nhau ở các khu vực khác nhau
+  - Vai trò chữ viết trong các locale có cùng ngôn ngữ
+  - Locale.ROOT và dữ liệu không phụ thuộc ngôn ngữ
+  - Locale không tự chứa toàn bộ dữ liệu định dạng
+  - Vì sao tạo được Locale không có nghĩa mọi dịch vụ đều hỗ trợ
+- level1: Tạo và đọc Locale
+  level2:
+  - Locale.of và các hằng locale có sẵn
+  - Locale.forLanguageTag và chuyển ngược bằng toLanguageTag
+  - Locale.Builder và kiểm tra tính hợp lệ của cú pháp
+  - Phân biệt kiểm tra cú pháp với xác minh mã ngôn ngữ hoặc khu vực
+  - Đọc language, country, script, variant và extension
+  - Tên hiển thị bằng getDisplayName và locale dùng để hiển thị tên
+  - Unicode locale extension cho lịch, hệ chữ số và quy ước khác
+  - equals, stripExtensions và giới hạn dùng toString làm định dạng lưu trữ
+- level1: Chọn locale
+  level2:
+  - Danh sách locale được ứng dụng hỗ trợ
+  - Thứ tự ưu tiên giữa lựa chọn người dùng và cấu hình mặc định
+  - Locale.LanguageRange và trọng số ưu tiên
+  - Phân tích danh sách ưu tiên ngôn ngữ bằng LanguageRange.parse
+  - Locale.filter, filterTags, lookup và lookupTag
+  - Phân biệt lọc nhiều kết quả với chọn một kết quả phù hợp
+  - Xử lý không có locale khớp bằng chính sách tường minh
+  - Phân biệt chọn locale ứng dụng với cơ chế dự phòng ResourceBundle
+- level1: Locale mặc định
+  level2:
+  - Locale.getDefault và giá trị khởi tạo từ môi trường chạy
+  - Hai nhóm Locale.Category.DISPLAY và FORMAT
+  - Locale.setDefault và phạm vi ảnh hưởng toàn tiến trình
+  - Vì sao không đổi locale mặc định theo từng người dùng
+  - Truyền locale tường minh tới từng thao tác định dạng
+  - Ảnh hưởng của thời điểm tạo formatter và bộ nhớ đệm
+  - Rủi ro khác kết quả giữa máy phát triển, kiểm thử và máy chủ
+  - Khôi phục locale mặc định khi kiểm thử thay đổi cấu hình chung
+- level1: ResourceBundle
+  level2:
+  - Tách văn bản khỏi mã nguồn bằng khóa tài nguyên
+  - Base name, package và quy tắc đặt tên bundle
+  - Tạo bundle gốc và các bản dịch theo locale
+  - ResourceBundle.getBundle và locale được yêu cầu
+  - getString, getObject, getStringArray và kiểu tài nguyên
+  - containsKey, keySet và việc truy cập tài nguyên cha
+  - PropertyResourceBundle so với ListResourceBundle
+  - getLocale để xác định bundle thực sự được nạp
+- level1: Chuỗi dự phòng
+  level2:
+  - Danh sách ứng viên theo language, script, region và variant
+  - Quan hệ tài nguyên con với bundle cha
+  - Phân biệt tìm bundle phù hợp với tìm khóa trong chuỗi cha
+  - Vai trò của locale mặc định và bundle gốc khi không có bản khớp
+  - Thứ tự tìm bundle dạng lớp và dạng properties
+  - MissingResourceException khi thiếu bundle hoặc thiếu khóa
+  - Định nghĩa chính sách dự phòng không phụ thuộc môi trường
+  - Các trường hợp đặc biệt của tên locale và cách kiểm tra chuỗi ứng viên
+- level1: Tệp tài nguyên
+  level2:
+  - 'Cú pháp .properties: khóa, giá trị, chú thích và dòng tiếp nối'
+  - Ký tự escape, Unicode escape và dấu phân cách trong khóa
+  - UTF-8 của PropertyResourceBundle và cơ chế đọc lại ISO-8859-1
+  - java.util.PropertyResourceBundle.encoding và thời điểm có hiệu lực
+  - Phân biệt Properties.load(InputStream) với PropertyResourceBundle
+  - Chọn Reader với charset tường minh khi cần kiểm soát mã hóa
+  - Tổ chức khóa ổn định và chú thích ngữ cảnh cho người dịch
+  - Phát hiện khóa trùng, khóa thiếu, khóa thừa và khoảng trắng ngoài ý muốn
+- level1: MessageFormat
+  level2:
+  - Vì sao cần định dạng toàn câu thay cho nối các mảnh văn bản
+  - Mẫu thông điệp và đối số theo chỉ số {0}, {1}
+  - Đảo thứ tự đối số theo cấu trúc câu của từng ngôn ngữ
+  - Các kiểu number, date, time và choice của MessageFormat
+  - Quy tắc dấu nháy đơn, ngoặc nhọn và escape trong mẫu
+  - Locale của MessageFormat và các formatter thành phần
+  - Đặt formatter riêng cho đối số và giới hạn với các kiểu java.time
+  - Phân biệt MessageFormat với String.format và Formatter
+  - Đối số thiếu, giá trị null, parse và giới hạn đảo ngược thông điệp
+- level1: Số nhiều và ngữ pháp
+  level2:
+  - Vì sao không ghép hậu tố số nhiều theo một quy tắc chung
+  - ChoiceFormat và lựa chọn thông điệp theo khoảng số
+  - Biên bao gồm, biên loại trừ và các nhánh choice
+  - Kết hợp ChoiceFormat với MessageFormat
+  - Thông điệp lồng nhau và các lớp escape cần phân biệt
+  - Giới hạn của ChoiceFormat với quy tắc số nhiều và giới tính ngữ pháp
+  - Tách mẫu câu đầy đủ và cung cấp ngữ cảnh cho bản dịch
+  - Nhận diện khi yêu cầu ngôn ngữ vượt khả năng API Java Core
+- level1: Định dạng số
+  level2:
+  - NumberFormat cho số thông thường và số nguyên
+  - Định dạng phần trăm và quan hệ với giá trị gốc
+  - CompactNumberFormat với dạng ngắn hoặc dài
+  - Dấu thập phân, phân nhóm và hệ chữ số theo locale
+  - Số chữ số phần nguyên, phần lẻ và tác động làm tròn
+  - Định dạng BigInteger, BigDecimal và giới hạn chuyển đổi qua double
+  - Phân biệt chuỗi hiển thị với biểu diễn số để lưu trữ hoặc trao đổi
+  - Định dạng có vị trí trường bằng FieldPosition và AttributedCharacterIterator
+- level1: DecimalFormat
+  level2:
+  - Mẫu định dạng và vai trò của DecimalFormatSymbols
+  - 'Ký hiệu 0, #, dấu thập phân và dấu phân nhóm'
+  - Mẫu số dương, số âm, phần tiền tố và hậu tố
+  - Phần trăm, phần nghìn và hệ số nhân
+  - Ký hiệu khoa học và giới hạn biểu diễn
+  - Mẫu chuẩn so với mẫu được bản địa hóa
+  - RoundingMode và kiểm soát số chữ số
+  - setParseBigDecimal và bảo toàn độ chính xác khi phân tích số
+  - Giới hạn ép kiểu từ NumberFormat sang DecimalFormat
+- level1: Tiền tệ
+  level2:
+  - Currency, mã tiền tệ và locale hiển thị
+  - Ký hiệu, tên hiển thị và số chữ số phần lẻ mặc định
+  - NumberFormat.getCurrencyInstance và setCurrency
+  - Phân biệt đơn vị tiền tệ với quy ước trình bày theo locale
+  - Vì sao đổi ký hiệu hoặc mã tiền không thực hiện quy đổi giá trị
+  - Tách giá trị BigDecimal, mã tiền và quy tắc làm tròn
+  - Khoảng trắng, vị trí ký hiệu và định dạng âm theo dữ liệu locale
+  - Giới hạn suy ra tiền tệ chỉ từ ngôn ngữ hoặc khu vực
+- level1: Phân tích đầu vào
+  level2:
+  - Phân biệt format, parse và kiểm tra dữ liệu hợp lệ
+  - NumberFormat.parse có thể chỉ đọc phần đầu của chuỗi
+  - ParsePosition, vị trí kết thúc và vị trí lỗi
+  - Kiểm tra toàn bộ đầu vào thay vì chấp nhận phần dư
+  - Dấu phân nhóm, khoảng trắng và chữ số Unicode
+  - Thông báo lỗi theo locale nhưng giữ mã lỗi ổn định
+  - Giới hạn của việc định dạng rồi phân tích để khôi phục dữ liệu gốc
+  - Quy ước máy đọc được cho tệp, API và dữ liệu lưu trữ
+- level1: Ngày giờ bản địa
+  level2:
+  - DateTimeFormatter với locale tường minh
+  - ofLocalizedDate, ofLocalizedTime và ofLocalizedDateTime
+  - 'FormatStyle: FULL, LONG, MEDIUM và SHORT'
+  - ofPattern và khác biệt với mẫu tự chọn theo locale
+  - ofLocalizedPattern và mẫu yêu cầu trường
+  - withLocale so với localizedBy
+  - withZone, withChronology và withDecimalStyle
+  - Tên tháng, tên ngày, kỳ trong ngày và TextStyle
+  - Tính bất biến và an toàn đa luồng của DateTimeFormatter
+- level1: Mẫu và lịch
+  level2:
+  - Phân biệt u, y và Y trong mẫu năm
+  - Phân biệt M với L và dạng tên tháng độc lập
+  - Định dạng 12 giờ, 24 giờ và ký hiệu kỳ trong ngày
+  - 'WeekFields: ngày đầu tuần và số ngày tối thiểu của tuần đầu'
+  - Năm theo tuần ở ranh giới cuối năm
+  - Chronology và các hệ lịch được Java hỗ trợ
+  - Locale không thay thế ZoneId hoặc tự xác định múi giờ người dùng
+  - ResolverStyle.STRICT, SMART, LENIENT và phân tích ngày hợp lệ
+- level1: API ngày giờ cũ
+  level2:
+  - DateFormat và các factory theo locale
+  - SimpleDateFormat và DateFormatSymbols
+  - Calendar, TimeZone và các giá trị mặc định
+  - Phân biệt mẫu SimpleDateFormat với DateTimeFormatter
+  - setLenient và ParsePosition khi phân tích ngày
+  - Vì sao không chia sẻ SimpleDateFormat tùy ý giữa nhiều luồng
+  - Chuyển đổi giữa Date, Instant và kiểu java.time
+  - Di chuyển mã bản địa hóa từ API cũ sang java.time
+- level1: Unicode và ký tự
+  level2:
+  - Unicode, code point, UTF-16 code unit và ký tự người dùng nhìn thấy
+  - char không luôn biểu diễn trọn một ký tự
+  - Surrogate pair và ký tự ngoài BMP
+  - length, codePointCount, codePoints và chỉ số UTF-16
+  - Dấu kết hợp, tiếng Việt và các cách biểu diễn tương đương
+  - Chữ số, chữ cái và thuộc tính Unicode qua Character
+  - Phân biệt không gian Unicode với bộ mã bên ngoài
+  - Giới hạn cắt hoặc đảo chuỗi theo chỉ số char
+- level1: Chuẩn hóa Unicode
+  level2:
+  - Chuẩn hóa là gì và khác với dịch hoặc phiên âm
+  - Normalizer với NFC, NFD, NFKC và NFKD
+  - Tương đương chính tắc so với tương đương tương thích
+  - Normalizer.isNormalized và chọn chính sách chuẩn hóa
+  - Ảnh hưởng đến so sánh, tìm kiếm và khóa dữ liệu
+  - Vì sao loại bỏ dấu không phải bước chuẩn hóa trung lập
+  - Giữ dữ liệu gốc khi phép biến đổi làm mất thông tin
+- level1: Chữ hoa và thường
+  level2:
+  - String.toLowerCase và toUpperCase với locale tường minh
+  - Khác biệt chữ I trong tiếng Thổ Nhĩ Kỳ
+  - Phép đổi hoa–thường có thể đổi độ dài chuỗi
+  - Locale.ROOT cho định danh kỹ thuật khi phù hợp
+  - Giới hạn của equalsIgnoreCase và so sánh không phân biệt hoa–thường
+  - Phân biệt chữ hiển thị, khóa tìm kiếm và mã định danh
+  - Không áp dụng cùng một chính sách cho mọi trường dữ liệu
+- level1: So sánh ngôn ngữ
+  level2:
+  - Vì sao String.compareTo không tương đương thứ tự từ điển địa phương
+  - Collator.getInstance theo locale
+  - Các mức PRIMARY, SECONDARY, TERTIARY và IDENTICAL
+  - Phân biệt hoa–thường, dấu và quy tắc ngôn ngữ
+  - Chế độ phân rã của Collator và quan hệ với chuẩn hóa
+  - CollationKey khi cần so sánh lặp lại
+  - RuleBasedCollator và quy tắc sắp xếp tùy chỉnh
+  - Comparator không nhất quán với equals trong TreeSet hoặc TreeMap
+- level1: Ranh giới văn bản
+  level2:
+  - BreakIterator cho ký tự, từ, câu và vị trí ngắt dòng
+  - first, next, previous và BreakIterator.DONE
+  - following, preceding, isBoundary và chỉ số UTF-16
+  - Cụm ký tự hiển thị, dấu kết hợp và chuỗi emoji
+  - Vì sao dấu cách không đủ để tách từ cho mọi ngôn ngữ
+  - Phân biệt ranh giới từ với các đoạn dấu câu hoặc khoảng trắng
+  - Ngắt dòng ngôn ngữ so với bố trí theo chiều rộng giao diện
+  - StringCharacterIterator và giới hạn khi dùng cho mã lập trình
+- level1: Chiều chữ và hiển thị
+  level2:
+  - Thứ tự logic so với thứ tự hiển thị trong văn bản hai chiều
+  - java.text.Bidi và hướng cơ sở
+  - Các đoạn chữ có hướng khác nhau và mức nhúng
+  - Trộn chữ trái–phải, phải–trái, số và dấu câu
+  - Giới hạn xử lý Bidi khi giao diện đã có bộ bố trí văn bản
+  - Phông chữ, glyph và vì sao mã hóa đúng chưa bảo đảm hiển thị đúng
+  - Nhận diện vai trò NumericShaper và cơ chế nhập văn bản của Java SE
+  - Độ dài bản dịch, xuống dòng và trách nhiệm của lớp giao diện
+- level1: Charset và I/O
+  level2:
+  - Charset, StandardCharsets và lựa chọn UTF-8 tường minh
+  - Phân biệt encode với decode
+  - InputStreamReader, OutputStreamWriter và API Files
+  - Charset mặc định và thay đổi từ JDK 18
+  - CharsetDecoder, CharsetEncoder và CodingErrorAction
+  - MalformedInputException, ký tự thay thế và mất dữ liệu
+  - BOM, console, terminal và nguồn gốc chữ bị lỗi mã hóa
+  - Kiểm tra chuỗi qua ranh giới tệp, tài nguyên và đầu ra
+- level1: Dữ liệu locale JDK
+  level2:
+  - CLDR và vai trò cung cấp quy ước bản địa hóa
+  - Locale.getAvailableLocales so với locale hỗ trợ của từng dịch vụ
+  - java.locale.providers và thứ tự nhà cung cấp
+  - Khác biệt nhà cung cấp và dữ liệu giữa các phiên bản JDK
+  - Thay đổi tên, ký hiệu, dấu phân nhóm hoặc khoảng trắng sau nâng cấp
+  - Giới hạn phụ thuộc quy ước của hệ điều hành
+  - jdk.localedata và tập dữ liệu trong runtime tùy chỉnh
+  - jlink --include-locales và kiểm tra dữ liệu còn lại
+- level1: Đóng gói và mở rộng
+  level2:
+  - Đặt resource bundle đúng đường dẫn khi đóng gói JAR
+  - Class loader và phạm vi tìm tài nguyên
+  - Bộ nhớ đệm ResourceBundle và clearCache
+  - 'ResourceBundle.Control: ứng viên, định dạng và thời gian sống'
+  - Giới hạn ResourceBundle.Control trong named module
+  - ResourceBundleProvider cho tài nguyên trong hệ mô-đun
+  - LocaleServiceProvider và các SPI cho tên hoặc định dạng
+  - Đăng ký dịch vụ, cấu hình lúc khởi động và xác minh khả năng hỗ trợ
+- level1: Thiết kế ứng dụng
+  level2:
+  - Tách dữ liệu nghiệp vụ khỏi văn bản hiển thị
+  - Truyền locale và ZoneId qua ngữ cảnh xử lý tường minh
+  - Tổ chức dịch vụ lấy thông điệp và định dạng
+  - Quản lý khóa, phiên bản tài nguyên và hợp đồng tham số
+  - Giữ nguyên câu hoàn chỉnh để người dịch thay đổi trật tự
+  - Giữ mã lỗi, tên trường kỹ thuật và định dạng máy ổn định
+  - Quản lý formatter khả biến và bộ nhớ đệm theo locale
+  - Đổi ngôn ngữ khi đang chạy và làm mới dữ liệu đã định dạng
+- level1: Kiểm thử và lỗi
+  level2:
+  - 'Ma trận locale: vi-VN, en-US, de-DE, tr-TR và ngôn ngữ phải–trái'
+  - Kiểm thử khóa tài nguyên và tham số mẫu giữa các bản dịch
+  - Kiểm thử chuỗi dự phòng, thiếu bundle và thiếu khóa
+  - Kiểm thử dấu nháy đơn, ngoặc nhọn và mẫu MessageFormat
+  - Kiểm thử số thập phân, phần trăm, tiền tệ và phân tích toàn chuỗi
+  - Kiểm thử ranh giới năm–tuần, lịch và múi giờ
+  - Kiểm thử dấu kết hợp, emoji và biến đổi hoa–thường
+  - Kiểm thử nhiều luồng với formatter và locale khác nhau
+  - Đối chiếu thay đổi đầu ra khi nâng JDK, CLDR hoặc runtime image
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng chương trình dòng lệnh đổi ngôn ngữ bằng ResourceBundle
+  - Chọn locale từ danh sách ưu tiên và danh sách được hỗ trợ
+  - Tạo thông điệp có tham số và nhánh số lượng
+  - Hiển thị cùng dữ liệu số, tiền tệ, ngày giờ ở nhiều locale
+  - Phân tích dữ liệu nhập theo locale với kiểm tra toàn chuỗi
+  - Sắp xếp tên tiếng Việt bằng Collator
+  - Cắt văn bản theo cụm ký tự bằng BreakIterator
+  - Đóng gói JAR hoặc runtime image và kiểm tra tài nguyên bản dịch
+  - Lập bảng chọn API và tự đánh giá các lỗi bản địa hóa thường gặp

@@ -1,0 +1,3 @@
+menuLevel1: Enum
+menuLevel2: Enum có thân riêng trên hằng và khác biệt getClass với getDeclaringClass
+status: WRITTEN

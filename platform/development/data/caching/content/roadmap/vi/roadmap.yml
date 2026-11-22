@@ -1,0 +1,57 @@
+roadmap:
+- id: nen-tang-caching
+  title: Nền tảng Caching
+  purpose: Hiểu tác dụng và chi phí của cache khi giảm thời gian truy cập dữ liệu.
+  objectives:
+  - Giải thích cache hit, miss và độ trễ.
+  - Phân biệt dữ liệu gốc và bản sao trong cache.
+  - Chọn tình huống có lợi hoặc không nên cache.
+- id: vi-tri-cache-key
+  title: Vị trí & Cache Key
+  purpose: Thiết kế tầng cache và danh tính dữ liệu để tránh trả sai kết quả.
+  objectives:
+  - So sánh in-memory và distributed cache.
+  - Thiết kế cache key theo tham số và phạm vi người dùng.
+  - Nhận diện rủi ro key collision và dữ liệu nhạy cảm.
+- id: chien-luoc-doc-ghi
+  title: Chiến lược đọc/ghi
+  purpose: Chọn luồng truy cập dữ liệu phù hợp với yêu cầu nhất quán và hiệu năng.
+  objectives:
+  - Mô tả cache-aside và read-through.
+  - So sánh write-through với write-behind.
+  - Vẽ luồng đọc miss và ghi cập nhật dữ liệu.
+- id: ttl-eviction
+  title: TTL & Eviction
+  purpose: Kiểm soát vòng đời dữ liệu cache trong giới hạn bộ nhớ.
+  objectives:
+  - Đặt TTL theo mức chấp nhận dữ liệu cũ.
+  - Phân biệt expiration và eviction.
+  - Giải thích LRU, LFU và giới hạn dung lượng.
+- id: nhat-quan-invalidation
+  title: Nhất quán & Invalidation
+  purpose: Giảm nguy cơ trả dữ liệu lỗi thời khi dữ liệu nguồn thay đổi.
+  objectives:
+  - Xác định lúc cần xóa hoặc làm mới cache.
+  - Phân biệt invalidate và cập nhật trực tiếp.
+  - Kiểm thử dữ liệu sau các thao tác ghi.
+- id: dong-thoi-su-co
+  title: Đồng thời & sự cố
+  purpose: Giữ hệ thống ổn định khi cache miss hàng loạt hoặc cache gặp lỗi.
+  objectives:
+  - Nhận diện cache stampede và hot key.
+  - Áp dụng khóa đồng bộ hoặc TTL jitter khi phù hợp.
+  - Thiết kế đường fallback khi cache không sẵn sàng.
+- id: cong-cu-java
+  title: Công cụ Java
+  purpose: Triển khai caching trong ứng dụng Java với giải pháp phù hợp.
+  objectives:
+  - Tạo cache trong tiến trình bằng Caffeine.
+  - Áp dụng Spring Cache cho phương thức đọc.
+  - Nêu khi nào chọn Redis cho cache chia sẻ.
+- id: do-luong-kiem-thu
+  title: Đo lường & kiểm thử
+  purpose: Xác minh cache cải thiện hệ thống và hoạt động đúng khi dữ liệu thay đổi.
+  objectives:
+  - Đo hit rate, miss rate và latency trước/sau cache.
+  - Kiểm thử hết hạn, eviction và invalidation.
+  - Kiểm tra cache outage và tính đúng của dữ liệu.

@@ -1,0 +1,7 @@
+# Software Design Design Principle Composition Over Inheritance
+
+**Composition Over Inheritance** là nguyên tắc thiết kế phần mềm ưu tiên kết hợp các đối tượng có trách nhiệm rõ ràng thay vì dùng kế thừa chỉ để tái sử dụng mã. Kế thừa phù hợp khi tồn tại quan hệ *is-a* và lớp con thực sự thay thế được lớp cha; composition phù hợp khi một đối tượng *has-a* hoặc sử dụng năng lực của đối tượng khác. Tư duy này giúp giảm phụ thuộc, tránh hệ phân cấp lớp cồng kềnh và làm hành vi dễ thay đổi hơn.
+
+Lộ trình gồm **8 mốc**: phân biệt is-a/has-a, nhận diện rủi ro kế thừa, thực hành composition và delegation, thiết kế qua interface, lắp ghép hoặc thay implementation, áp dụng Strategy/Decorator/Bridge, refactor từ inheritance sang delegation và đánh giá các đánh đổi bằng kiểm thử. Người học sẽ xây dựng các ví dụ Java nhỏ và quan sát tác động khi thêm tính năng hoặc thay thế thành phần.
+
+Học phần phù hợp với người đã biết class, interface và OOP cơ bản. Sau khi hoàn thành, bạn có thể quyết định khi nào nên sử dụng quan hệ kế thừa hoặc composition, thiết kế đối tượng có thể thay thế collaborator, kiểm thử hành vi độc lập và chuyển một hierarchy thiếu linh hoạt sang cấu trúc dễ duy trì hơn mà vẫn bảo toàn chức năng.

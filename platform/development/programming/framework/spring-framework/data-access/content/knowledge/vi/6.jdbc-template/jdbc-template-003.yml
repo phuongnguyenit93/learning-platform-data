@@ -1,0 +1,3 @@
+menuLevel1: JdbcTemplate
+menuLevel2: JdbcTemplate an toàn khi dùng chung sau cấu hình nhưng callback vẫn cần thiết kế đúng
+status: WRITTEN

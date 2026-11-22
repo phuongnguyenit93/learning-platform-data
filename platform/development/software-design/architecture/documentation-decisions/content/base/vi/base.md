@@ -1,0 +1,7 @@
+# Software Design Architecture Documentation Decisions
+
+Architecture Decision Documentation là cách ghi lại các lựa chọn quan trọng định hình cấu trúc và chất lượng của hệ thống phần mềm. Một Architecture Decision Record (ADR) ngắn gọn giúp người đọc hiểu **vì sao** nhóm chọn một phương án, trong bối cảnh và với các ràng buộc nào, cũng như những hệ quả phải chấp nhận. Tập hợp ADR tạo thành decision log, hỗ trợ trao đổi giữa các thành viên và tránh tranh luận lại những quyết định đã có cơ sở.
+
+Module phù hợp với người đã biết các thành phần kiến trúc phần mềm, API, phụ thuộc giữa module và yêu cầu phi chức năng cơ bản. Lộ trình bắt đầu bằng cách nhận diện quyết định có ảnh hưởng đáng kể, mô tả context và decision drivers, so sánh phương án cùng trade-offs, rồi viết ADR với các phần Title, Status, Context, Decision và Consequences. Tiếp đó, bạn sẽ học quy trình review, quản lý trạng thái và lưu ADR bằng Markdown trong repository hoặc wiki, có liên kết đến sơ đồ và mã nguồn.
+
+Kết thúc module, bạn có thể soạn một ADR đủ ngắn để dễ đọc nhưng đủ lý do để truy vết, tổ chức decision log và kiểm tra tính nhất quán của thay đổi thiết kế với quyết định đã chấp nhận. Khi bối cảnh thay đổi, nên tạo ADR mới để thay thế và liên kết ADR cũ thay vì âm thầm xóa lịch sử; chỉ tài liệu hóa những quyết định thực sự quan trọng để tránh tạo thêm gánh nặng.

@@ -1,0 +1,388 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Chất lượng dữ liệu là gì và vì sao phải phù hợp mục đích sử dụng
+  - Dữ liệu kém chất lượng ảnh hưởng thế nào đến nghiệp vụ và hệ thống
+  - Vòng đời chất lượng từ thu thập đến khai thác dữ liệu
+  - Các chiều chất lượng và mối quan hệ giữa chúng
+  - Phân biệt tính hợp lệ, tính chính xác và tính đầy đủ
+  - Phân biệt chất lượng dữ liệu, ngữ nghĩa dữ liệu và hợp đồng dữ liệu
+  - 'Đơn vị đánh giá: trường, bản ghi, thực thể và tập dữ liệu'
+  - Chất lượng tại nguồn và chất lượng sau biến đổi
+  - Phát hiện, ngăn ngừa và khắc phục lỗi dữ liệu
+  - Các thuật ngữ cốt lõi và trình tự học Data Quality
+- level1: Ngữ cảnh đánh giá
+  level2:
+  - Xác định người sử dụng dữ liệu và quyết định cần hỗ trợ
+  - Chuyển yêu cầu nghiệp vụ thành tiêu chí chất lượng có thể kiểm chứng
+  - Xác định phạm vi, mức chi tiết và khóa nghiệp vụ của dữ liệu
+  - Xác định dữ liệu trọng yếu và mức độ ảnh hưởng khi sai
+  - Lựa chọn nguồn đối chiếu và dữ liệu tham chiếu đáng tin cậy
+  - Xác định khoảng thời gian và thời điểm đánh giá
+  - Phân nhóm đánh giá theo nguồn, sản phẩm và khu vực
+  - Phân biệt lỗi dữ liệu, ngoại lệ nghiệp vụ và trường hợp chưa xác định
+  - Thiết lập mức chấp nhận theo rủi ro và mục đích sử dụng
+  - Lập danh mục vấn đề và kế hoạch đánh giá ban đầu
+- level1: Khảo sát dữ liệu
+  level2:
+  - Lập hồ sơ dữ liệu (data profiling) và câu hỏi cần trả lời
+  - Khảo sát cấu trúc, kiểu dữ liệu và quy ước biểu diễn
+  - Thống kê số dòng, số giá trị khác nhau và tỷ lệ thiếu
+  - Phân tích miền giá trị, tần suất và các giá trị phổ biến
+  - Khảo sát độ dài, mẫu ký tự và khả năng chuyển đổi kiểu
+  - Khảo sát giá trị nhỏ nhất, lớn nhất và các phân vị
+  - Phát hiện khóa ứng viên và phụ thuộc giữa các cột
+  - Khảo sát quan hệ liên bảng và bản ghi không có đối tượng tham chiếu
+  - Đối chiếu hồ sơ theo phân vùng và nhóm nghiệp vụ
+  - Lấy mẫu dữ liệu và giới hạn của kết luận từ mẫu
+  - Xây dựng đường cơ sở (baseline) cho tập dữ liệu
+  - Lập báo cáo khám phá và ưu tiên vấn đề cần xác minh
+- level1: Mô hình đo lường
+  level2:
+  - Thiết kế chỉ số từ mục tiêu và chiều chất lượng
+  - Xác định tử số, mẫu số và tập bản ghi đủ điều kiện
+  - Phân biệt tỷ lệ bản ghi lỗi và tỷ lệ lần kiểm tra thất bại
+  - Biểu diễn kết quả đạt, không đạt và không đủ dữ liệu đánh giá
+  - Đo theo ảnh chụp, phân vùng và cửa sổ thời gian
+  - Tổng hợp chỉ số theo cột, bảng và quy trình dữ liệu
+  - Phân tích chỉ số theo nhóm để tránh che khuất lỗi cục bộ
+  - Lựa chọn ngưỡng tuyệt đối, ngưỡng tương đối và ngưỡng động
+  - Đặt mục tiêu mức dịch vụ (SLO) cho chất lượng dữ liệu
+  - Đánh giá độ tin cậy, độ bao phủ và chi phí của phép đo
+  - Lưu lịch sử chỉ số để so sánh các lần đánh giá
+- level1: Quy tắc chất lượng
+  level2:
+  - Chuyển tiêu chí nghiệp vụ thành quy tắc kiểm tra
+  - Phân loại quy tắc theo trường, bản ghi, tập dữ liệu và quan hệ
+  - Thiết kế điều kiện áp dụng và các ngoại lệ có căn cứ
+  - Tách lỗi cấu trúc, lỗi biểu diễn và lỗi nghiệp vụ
+  - Xác định mức nghiêm trọng và hành động khi quy tắc thất bại
+  - Thiết kế kết quả kiểm tra gồm mã quy tắc, bằng chứng và phạm vi lỗi
+  - Quản lý quy tắc có tham số và dữ liệu tham chiếu
+  - Xử lý giá trị thiếu và trạng thái không xác định trong quy tắc
+  - Phát hiện quy tắc trùng lặp, mâu thuẫn và không còn phù hợp
+  - Đánh giá báo sai và bỏ sót của quy tắc
+  - Phiên bản hóa quy tắc và truy vết thay đổi kết quả
+  - Thiết kế cửa kiểm soát chất lượng (quality gate)
+- level1: Tính đầy đủ
+  level2:
+  - Phân biệt thiếu giá trị, thiếu bản ghi và thiếu phạm vi dữ liệu
+  - Phân biệt null, chuỗi rỗng, khoảng trắng và giá trị thay thế
+  - Xác định trường bắt buộc theo điều kiện nghiệp vụ
+  - Đo mức đầy đủ ở cấp trường và cấp bản ghi
+  - Đo độ bao phủ theo thời gian, nguồn và nhóm đối tượng
+  - Phát hiện phân vùng thiếu và khoảng trống trong chuỗi thời gian
+  - Nhận diện dữ liệu thiếu có hệ thống qua phân tích theo nhóm
+  - Đối chiếu số lượng mong đợi với số lượng thực nhận
+  - Đánh giá ảnh hưởng của dữ liệu thiếu tới phép tổng hợp
+  - Lựa chọn giữ thiếu, bổ sung hoặc loại bỏ dữ liệu có căn cứ
+- level1: Tính hợp lệ
+  level2:
+  - Kiểm tra kiểu dữ liệu và khả năng chuyển đổi an toàn
+  - Kiểm tra miền giá trị, khoảng giá trị và tập mã cho phép
+  - Kiểm tra mẫu ký tự và giới hạn của biểu thức chính quy
+  - Kiểm tra độ dài theo ký tự, mã Unicode và byte
+  - Kiểm tra ngày giờ, múi giờ và lịch hợp lệ
+  - Kiểm tra số, độ chính xác thập phân và quy tắc làm tròn
+  - Kiểm tra đơn vị đo, tiền tệ và tỷ lệ biểu diễn
+  - Kiểm tra quan hệ điều kiện giữa các trường trong một bản ghi
+  - Kiểm tra trạng thái và chuyển trạng thái nghiệp vụ hợp lệ
+  - Phân biệt dữ liệu đọc được và dữ liệu được nghiệp vụ chấp nhận
+  - Quản lý ngoại lệ hợp lệ mà không nới lỏng toàn bộ quy tắc
+- level1: Tính chính xác
+  level2:
+  - Xác định sự thật tham chiếu và giới hạn của việc xác minh
+  - Đối chiếu với nguồn chuẩn có thẩm quyền
+  - Đánh giá độ mới và độ tin cậy của dữ liệu tham chiếu
+  - Đối soát tổng tiền, số lượng và chỉ tiêu nghiệp vụ
+  - Kiểm tra độ chính xác qua mẫu được xác minh thủ công
+  - Đo sai số tuyệt đối, sai số tương đối và mức dung sai
+  - Nhận diện lỗi nhập liệu, lỗi đo lường và lỗi chuyển đổi
+  - Xử lý xung đột giữa nhiều nguồn cùng mô tả một đối tượng
+  - Phân biệt dữ liệu bất thường với dữ liệu sai thực tế
+  - Biểu diễn kết quả chưa xác minh được tính chính xác
+- level1: Tính nhất quán
+  level2:
+  - Nhất quán giữa các trường trong cùng một bản ghi
+  - Nhất quán giữa bản ghi chi tiết và dữ liệu tổng hợp
+  - Nhất quán giữa các bảng, hệ thống và bản sao dữ liệu
+  - Nhất quán về mã định danh và cách biểu diễn đối tượng
+  - Nhất quán về đơn vị đo, tiền tệ và múi giờ
+  - Nhất quán theo thời gian và trình tự sự kiện nghiệp vụ
+  - Đối chiếu dữ liệu khi các nguồn cập nhật lệch thời điểm
+  - Phân biệt mâu thuẫn dữ liệu với độ trễ đồng bộ được chấp nhận
+  - Thiết kế quy tắc đối soát và lưu bằng chứng chênh lệch
+  - Giải quyết xung đột dựa trên nguồn ưu tiên và lịch sử thay đổi
+- level1: Tính duy nhất
+  level2:
+  - Xác định đối tượng cần duy nhất và phạm vi áp dụng
+  - Phân biệt khóa kỹ thuật và khóa nghiệp vụ
+  - Kiểm tra trùng lặp toàn bộ bản ghi và trùng lặp theo khóa
+  - Kiểm tra tính duy nhất theo khóa ghép và phân vùng
+  - Xử lý khóa thiếu, khóa tái sử dụng và khóa thay đổi theo thời gian
+  - Phân biệt bản ghi trùng với nhiều sự kiện hợp lệ của cùng thực thể
+  - Đo tỷ lệ trùng và số nhóm bản ghi trùng
+  - Nhận diện trùng do gửi lại, đọc lại và nạp dữ liệu chồng lấn
+  - Lựa chọn bản ghi đại diện theo quy tắc xác định
+  - Ngăn ngừa trùng lặp bằng ràng buộc và tính lũy đẳng
+- level1: Tính kịp thời
+  level2:
+  - Phân biệt thời điểm phát sinh, tiếp nhận và xử lý dữ liệu
+  - Phân biệt độ trễ, độ mới và tần suất cập nhật
+  - Xác định thời hạn sẵn sàng theo nhu cầu nghiệp vụ
+  - Đo độ trễ đầu cuối và độ trễ từng công đoạn
+  - Đo độ mới theo bảng, phân vùng và nhóm dữ liệu
+  - Phát hiện dữ liệu đến muộn, thiếu kỳ và ngừng cập nhật
+  - Xử lý múi giờ, lệch đồng hồ và dấu thời gian không đáng tin cậy
+  - Phân biệt dữ liệu đến muộn và dữ liệu phát sinh muộn
+  - Đánh giá dữ liệu sửa đổi sau khi kỳ báo cáo đã đóng
+  - Thiết lập ngưỡng kịp thời theo lịch làm việc và chu kỳ nguồn
+  - Theo dõi khả năng đáp ứng thời hạn qua lịch sử vận hành
+- level1: Toàn vẹn liên kết
+  level2:
+  - Kiểm tra khóa chính, khóa ngoại và quan hệ tham chiếu
+  - Phát hiện bản ghi mồ côi và liên kết bị thiếu
+  - Kiểm tra số lượng quan hệ một-một, một-nhiều và nhiều-nhiều
+  - Kiểm tra phụ thuộc hàm và tổ hợp giá trị không nhất quán
+  - Kiểm tra quan hệ cha-con, vòng lặp và độ sâu phân cấp
+  - Kiểm tra khoảng hiệu lực và tham chiếu đúng phiên bản
+  - Kiểm tra khoảng thời gian chồng lấn và khoảng trống hiệu lực
+  - Xử lý tham chiếu đến đối tượng chưa được nạp
+  - Đánh giá ảnh hưởng của xóa, gộp và đổi khóa đối tượng
+  - Đối chiếu ràng buộc cơ sở dữ liệu với kiểm tra chất lượng bên ngoài
+- level1: Chuẩn hóa dữ liệu
+  level2:
+  - Thiết kế chuỗi làm sạch có thứ tự và có thể kiểm chứng
+  - Chuẩn hóa khoảng trắng, ký tự điều khiển và ký tự vô hình
+  - Chuẩn hóa Unicode và bảo toàn ý nghĩa văn bản
+  - Chuẩn hóa chữ hoa, chữ thường và quy tắc theo ngôn ngữ
+  - Chuẩn hóa số, dấu phân cách và định dạng theo địa phương
+  - Chuẩn hóa ngày giờ, múi giờ và độ chính xác thời gian
+  - Chuẩn hóa đơn vị đo, tiền tệ và quy tắc chuyển đổi
+  - Chuẩn hóa tập mã và ánh xạ giá trị đồng nghĩa
+  - Chuẩn hóa địa chỉ, số điện thoại và định danh theo ngữ cảnh
+  - Xử lý giá trị thiếu và giá trị thay thế trong bước làm sạch
+  - Kiểm tra tính lũy đẳng, khả năng mất thông tin và lỗi phát sinh
+  - Giữ dữ liệu gốc và truy vết từng phép biến đổi
+- level1: Đối sánh thực thể
+  level2:
+  - Phân biệt phát hiện trùng bản ghi và đối sánh thực thể
+  - Lựa chọn thuộc tính và chuẩn bị dữ liệu đối sánh
+  - Đối sánh chính xác theo khóa và tổ hợp thuộc tính
+  - Đối sánh gần đúng cho tên và chuỗi văn bản
+  - Kết hợp nhiều tín hiệu thành điểm đối sánh
+  - Thu hẹp cặp ứng viên để giảm chi phí so sánh
+  - Xử lý thuộc tính thiếu, xung đột và thay đổi theo thời gian
+  - Đặt ngưỡng tự động ghép, tự động tách và cần xét duyệt
+  - Đánh giá độ chính xác và độ bao phủ của kết quả đối sánh
+  - Gom nhóm thực thể và xử lý liên kết gián tiếp gây ghép sai
+  - Chọn giá trị đại diện khi hợp nhất bản ghi
+  - Lưu lịch sử hợp nhất và hỗ trợ tách lại khi phát hiện sai
+- level1: Dữ liệu bất thường
+  level2:
+  - Phân biệt ngoại lệ thống kê, ngoại lệ nghiệp vụ và lỗi dữ liệu
+  - Phát hiện bất thường bằng giới hạn nghiệp vụ
+  - Phát hiện bất thường bằng phân vị và khoảng tứ phân vị
+  - Sử dụng điểm chuẩn hóa và độ lệch tuyệt đối trung vị
+  - Phát hiện bất thường theo nhóm đối tượng tương đồng
+  - Phát hiện bất thường trong chuỗi thời gian
+  - Xử lý mùa vụ, xu hướng và nhóm dữ liệu có ít quan sát
+  - Nhận diện bất thường từ tổ hợp nhiều thuộc tính
+  - Đánh giá báo sai, bỏ sót và mức độ ảnh hưởng
+  - Quyết định cảnh báo, cách ly hay giữ lại dữ liệu bất thường
+- level1: Phân bố và biến động
+  level2:
+  - Phân tích phân bố số, phân bố phân loại và độ lệch phân bố
+  - Theo dõi biến động số lượng và tỷ lệ dữ liệu thiếu
+  - Theo dõi thay đổi phân vị, độ phân tán và tần suất giá trị
+  - Phát hiện giá trị mới, giá trị biến mất và thay đổi độ đa dạng
+  - So sánh phân bố giữa nguồn, thời kỳ và nhóm nghiệp vụ
+  - Phát hiện dịch chuyển dữ liệu (data drift) so với đường cơ sở
+  - Phân biệt biến động nghiệp vụ hợp lệ và sự cố chất lượng
+  - Đánh giá ảnh hưởng của cỡ mẫu và cách lấy mẫu
+  - Kiểm tra độ đại diện và sai lệch do thu thập dữ liệu
+  - Chọn cửa sổ so sánh và cập nhật đường cơ sở có kiểm soát
+  - Tránh kết luận sai từ chỉ số tổng hợp và thay đổi cơ cấu nhóm
+- level1: Chấm điểm chất lượng
+  level2:
+  - Xây dựng bảng điểm theo chiều chất lượng và nhu cầu sử dụng
+  - Chuẩn hóa chỉ số trước khi tổng hợp điểm
+  - Lựa chọn trọng số theo độ trọng yếu của dữ liệu
+  - Tránh tính trùng lỗi giữa nhiều quy tắc
+  - Xử lý chỉ số thiếu, không áp dụng và chưa đủ dữ liệu
+  - Thiết kế điều kiện bắt buộc vượt lên trên điểm trung bình
+  - So sánh điểm giữa các kỳ khi tập quy tắc thay đổi
+  - Công bố điểm cùng độ bao phủ và bằng chứng lỗi
+  - Phân tích độ nhạy của điểm với ngưỡng và trọng số
+  - Đánh giá mức sẵn sàng sử dụng thay vì chỉ tối ưu điểm số
+- level1: Xử lý dữ liệu lỗi
+  level2:
+  - Thiết kế chính sách chấp nhận, cảnh báo, từ chối và cách ly
+  - Tách lỗi cấp bản ghi khỏi lỗi làm dừng cả tập dữ liệu
+  - Lưu dữ liệu lỗi cùng nguyên nhân và nguồn phát sinh
+  - Thiết kế vùng cách ly và hàng đợi xử lý lỗi
+  - Phân loại lỗi có thể tự sửa và lỗi cần nghiệp vụ xác minh
+  - Bổ sung giá trị thiếu và đánh giá rủi ro sai lệch
+  - Sửa dữ liệu tại nguồn và đồng bộ xuống các hệ thống sử dụng
+  - Xử lý lại dữ liệu sau khi sửa quy tắc hoặc dữ liệu tham chiếu
+  - Nạp bù dữ liệu (backfill) và đối soát sau sửa chữa
+  - Bảo đảm tính lũy đẳng và không tạo thêm bản ghi trùng
+  - Lưu vết chỉnh sửa và hỗ trợ khôi phục khi sửa sai
+  - Xác nhận chất lượng sau xử lý và đóng vòng phản hồi
+- level1: Kiểm soát theo lô
+  level2:
+  - Đặt điểm kiểm tra tại tiếp nhận, vùng tạm và đầu ra dữ liệu
+  - Kiểm tra tệp, cấu trúc và dấu hiệu lô nạp không đầy đủ
+  - Đối soát số dòng, tổng kiểm soát và phân vùng dữ liệu
+  - Kiểm tra dữ liệu trước và sau các phép biến đổi
+  - Theo dõi dữ liệu bị mất hoặc nhân lên khi nối và tổng hợp
+  - Kiểm soát nạp tăng dần và ranh giới giữa các lần nạp
+  - Phát hiện thay đổi cấu trúc và thay đổi ý nghĩa dữ liệu nguồn
+  - Thiết kế ghi kết quả đồng bộ với trạng thái kiểm tra chất lượng
+  - Xử lý lô thất bại, chạy lại và nạp lại từng phân vùng
+  - Xác minh tính đầy đủ sau khi chạy lại hoặc nạp bù
+  - Lưu bằng chứng chất lượng cho từng phiên thực thi
+- level1: Kiểm soát luồng
+  level2:
+  - Đặc điểm kiểm tra chất lượng trên dữ liệu liên tục
+  - Kiểm tra chất lượng theo sự kiện và theo cửa sổ thời gian
+  - Xử lý thời gian sự kiện, thời gian xử lý và mốc chờ dữ liệu
+  - Đánh giá dữ liệu đến muộn và sự kiện không đúng thứ tự
+  - Khử trùng khi sự kiện được giao lại hoặc phát lại
+  - Quản lý trạng thái kiểm tra và thời gian lưu trạng thái
+  - Đối chiếu với dữ liệu tham chiếu thay đổi trong quá trình xử lý
+  - Phân biệt chỉ số tạm thời và kết quả đã hoàn tất cửa sổ
+  - Chuyển sự kiện lỗi sang luồng cách ly có đủ bằng chứng
+  - Xử lý áp lực ngược và suy giảm khả năng kiểm tra
+  - Khôi phục trạng thái và kiểm tra sau khi khởi động lại
+  - Đối soát giữa kết quả luồng và kết quả xử lý theo lô
+- level1: Dữ liệu phân cấp
+  level2:
+  - Kiểm tra tài liệu JSON và cấu trúc lồng nhau
+  - Phân biệt thuộc tính vắng mặt, giá trị null và mảng rỗng
+  - Kiểm tra kiểu phần tử và cấu trúc không đồng nhất trong mảng
+  - Kiểm tra trường bắt buộc theo loại tài liệu
+  - Kiểm tra định danh và quan hệ giữa các phần tử lồng nhau
+  - Kiểm tra số lượng phần tử, mức lồng và giới hạn kích thước
+  - Theo dõi mất dữ liệu và nhân bản khi trải phẳng cấu trúc
+  - Xử lý trường mới, trường không nhận diện và nhiều phiên bản
+  - Đo chỉ số khi một tài liệu chứa nhiều đối tượng cần đánh giá
+  - Ghi vị trí lỗi theo đường dẫn trường và phần tử
+- level1: Kiểm thử chất lượng
+  level2:
+  - Phân biệt kiểm thử quy tắc và đánh giá dữ liệu thực tế
+  - Thiết kế bộ dữ liệu mẫu có kết quả mong đợi rõ ràng
+  - Kiểm thử biên, giá trị thiếu và tổ hợp điều kiện nghiệp vụ
+  - Kiểm thử quy tắc bằng thuộc tính và bất biến dữ liệu
+  - Kiểm thử phép biến đổi qua quan hệ đầu vào và đầu ra
+  - Kiểm thử tích hợp với nguồn, nơi lưu và dữ liệu tham chiếu
+  - Kiểm thử hồi quy bằng ảnh chụp dữ liệu đã kiểm chứng
+  - Kiểm thử lỗi cấu trúc và thay đổi phiên bản dữ liệu
+  - Kiểm thử dữ liệu đến muộn, trùng lặp và chạy lại
+  - Kiểm thử báo sai, bỏ sót và tính ổn định của ngưỡng
+  - Tạo dữ liệu giả lập có lỗi nhưng không làm lộ dữ liệu nhạy cảm
+  - Tích hợp kiểm tra chất lượng vào quy trình CI/CD
+- level1: Giám sát chất lượng
+  level2:
+  - Phân biệt kiểm thử chất lượng và quan sát dữ liệu vận hành
+  - Thu thập chỉ số, nhật ký và bằng chứng kiểm tra
+  - Thiết kế bảng theo dõi theo tập dữ liệu và người chịu trách nhiệm
+  - Theo dõi độ mới, số lượng, phân bố và tỷ lệ lỗi
+  - Phân biệt dữ liệu đạt chất lượng với phép kiểm tra chưa chạy
+  - Phát hiện lỗi của chính hệ thống kiểm tra chất lượng
+  - Thiết lập cảnh báo theo mức nghiêm trọng và phạm vi ảnh hưởng
+  - Gom nhóm, chống lặp và hạn chế cảnh báo không hữu ích
+  - Điều chỉnh cảnh báo theo mùa vụ và lịch cập nhật
+  - Liên kết cảnh báo với nguồn gốc và các hệ thống sử dụng dữ liệu
+  - Theo dõi thời gian phát hiện, xác nhận và khắc phục vấn đề
+- level1: Điều tra nguyên nhân
+  level2:
+  - Xác nhận sự cố và đánh giá tác động nghiệp vụ
+  - Khoanh vùng thời điểm bắt đầu suy giảm chất lượng
+  - So sánh bản ghi lỗi và bản ghi đạt theo cùng ngữ cảnh
+  - Truy vết nguồn gốc dữ liệu (data lineage) qua các công đoạn
+  - Đối chiếu thay đổi mã, cấu hình, cấu trúc và dữ liệu tham chiếu
+  - Phân biệt lỗi nguồn, lỗi truyền nhận và lỗi biến đổi
+  - Dựng lại điều kiện gây lỗi bằng dữ liệu và phiên bản đã lưu
+  - Xác định nguyên nhân gốc và yếu tố làm lỗi lan rộng
+  - Ước lượng phạm vi dữ liệu và báo cáo cần sửa
+  - Lập hồ sơ sự cố và biện pháp ngăn tái diễn
+- level1: Quản trị chất lượng
+  level2:
+  - Phân công chủ sở hữu, người quản lý và người sử dụng dữ liệu
+  - Quản lý thuật ngữ, định nghĩa chỉ số và nguồn chuẩn
+  - Quản lý danh mục dữ liệu trọng yếu và quy tắc liên quan
+  - Thiết kế quy trình đề xuất, duyệt và ngừng áp dụng quy tắc
+  - Quản lý ngoại lệ chất lượng có thời hạn và người chịu trách nhiệm
+  - Thiết lập thỏa thuận chất lượng giữa bên cung cấp và bên sử dụng
+  - Theo dõi tồn đọng vấn đề và ưu tiên theo ảnh hưởng
+  - Lưu bằng chứng đánh giá, quyết định và lịch sử thay đổi
+  - Bảo vệ dữ liệu nhạy cảm trong mẫu lỗi, báo cáo và nhật ký
+  - Quản lý quyền truy cập và thời hạn lưu dữ liệu cách ly
+  - Đánh giá trách nhiệm khi chia sẻ dữ liệu cho nhiều hệ thống
+- level1: Hiệu năng và quy mô
+  level2:
+  - Ước lượng chi phí đọc, tính toán và lưu kết quả kiểm tra
+  - Lựa chọn kiểm tra toàn bộ, lấy mẫu hoặc kiểm tra tăng dần
+  - Đẩy phép kiểm tra xuống nơi lưu trữ dữ liệu
+  - Kết hợp nhiều chỉ số trong cùng một lượt quét
+  - Tận dụng phân vùng, chỉ mục và điều kiện lọc
+  - Xử lý độ lệch phân vùng và nhóm khóa có quá nhiều bản ghi
+  - Tối ưu kiểm tra duy nhất và đối sánh trên tập lớn
+  - Sử dụng phép tính gần đúng và công bố giới hạn sai số
+  - Quản lý bộ nhớ khi kiểm tra và lưu mẫu lỗi
+  - Đặt giới hạn thời gian, tài nguyên và hành vi khi kiểm tra quá hạn
+  - Đo hiệu năng bằng dữ liệu đại diện cho khối lượng thực tế
+- level1: Triển khai với SQL
+  level2:
+  - Kiểm tra giá trị thiếu và logic ba giá trị với NULL
+  - Đo tỷ lệ đạt bằng biểu thức điều kiện và phép tổng hợp
+  - Phát hiện trùng lặp theo khóa bằng GROUP BY và HAVING
+  - Chọn bản ghi đại diện bằng hàm cửa sổ
+  - Phát hiện bản ghi mồ côi bằng NOT EXISTS và phép nối
+  - Đối soát tổng giữa bảng chi tiết và bảng tổng hợp
+  - Kiểm tra khoảng hiệu lực và trình tự sự kiện bằng hàm cửa sổ
+  - Đo độ mới và phát hiện khoảng trống theo thời gian
+  - So sánh dữ liệu trước và sau phép nối để phát hiện nhân dòng
+  - Lưu kết quả kiểm tra và mẫu lỗi có thể truy vết
+  - Kiểm chứng khác biệt về NULL, so sánh chuỗi và thời gian giữa hệ quản trị
+- level1: Triển khai với Java
+  level2:
+  - Thiết kế mô hình kết quả kiểm tra và ngữ cảnh đánh giá
+  - Tách quy tắc, bộ thực thi và chính sách xử lý lỗi
+  - Phân biệt lỗi chuyển đổi kiểu với lỗi chất lượng nghiệp vụ
+  - Xử lý giá trị thiếu mà không làm mất nguyên nhân
+  - Chuẩn hóa Unicode và văn bản với Normalizer và Locale
+  - Kiểm tra độ chính xác số và dung sai với BigDecimal
+  - Kiểm tra thời gian với java.time và Clock có thể thay thế
+  - Phát hiện trùng lặp bằng khóa nghiệp vụ bất biến
+  - Tổng hợp chỉ số theo nhóm và kiểm soát bộ nhớ
+  - Đọc dữ liệu bằng JDBC theo lô và quản lý tài nguyên
+  - Thiết kế xử lý song song không làm sai lệch kết quả kiểm tra
+  - Kiểm thử quy tắc và bộ thực thi bằng JUnit
+- level1: Vận hành và cải tiến
+  level2:
+  - Triển khai quy tắc mới ở chế độ quan sát trước khi chặn dữ liệu
+  - Đánh giá tác động và hiệu chỉnh ngưỡng bằng dữ liệu lịch sử
+  - Đưa cửa kiểm soát vào vận hành theo mức độ rủi ro
+  - Phân biệt lỗi dữ liệu với lỗi hạ tầng thực thi kiểm tra
+  - Thiết kế hướng dẫn xử lý cho từng nhóm cảnh báo
+  - Lập kế hoạch nạp bù và xác minh sau sự cố
+  - Quản lý thay đổi quy tắc mà vẫn so sánh được chỉ số
+  - Theo dõi chi phí lỗi, chi phí kiểm tra và hiệu quả sửa chữa
+  - Rà soát quy tắc ít giá trị và bổ sung khoảng trống kiểm soát
+  - Dùng phản hồi từ bên sử dụng để cải thiện chất lượng tại nguồn
+- level1: Thực hành tổng hợp
+  level2:
+  - Khảo sát tập dữ liệu khách hàng, đơn hàng và thanh toán có lỗi
+  - Xác định khóa nghiệp vụ, dữ liệu trọng yếu và mục tiêu chất lượng
+  - Lập hồ sơ dữ liệu và danh sách vấn đề theo mức ảnh hưởng
+  - Xây dựng bộ quy tắc cho các chiều chất lượng chính
+  - Đối soát đơn hàng, thanh toán và hoàn tiền
+  - Chuẩn hóa và đối sánh hồ sơ khách hàng trùng lặp
+  - Thiết kế luồng cách ly, sửa lỗi và xử lý lại
+  - Kiểm tra dữ liệu đến muộn và tính lũy đẳng khi chạy lại
+  - Xây dựng báo cáo chất lượng kèm bằng chứng truy vết
+  - Kiểm thử hồi quy và đánh giá hiệu năng bộ kiểm tra
+  - Mô phỏng sự cố, điều tra nguyên nhân và xác minh khắc phục
+  - Đánh giá sản phẩm theo yêu cầu nghiệp vụ và kế hoạch cải tiến

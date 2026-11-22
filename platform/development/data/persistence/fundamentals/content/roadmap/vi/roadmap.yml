@@ -1,0 +1,57 @@
+roadmap:
+- id: du-lieu-ben-vung
+  title: Dữ liệu bền vững
+  purpose: Hiểu điều gì giúp trạng thái ứng dụng tồn tại sau khi chương trình kết thúc.
+  objectives:
+  - Phân biệt dữ liệu tạm và dữ liệu lưu bền
+  - Mô tả đường đi ghi và đọc lại dữ liệu
+  - Nêu yêu cầu về độ bền dữ liệu
+- id: chon-kho-luu-tru
+  title: Chọn kho lưu trữ
+  purpose: Biết chọn loại kho phù hợp với cấu trúc dữ liệu và cách sử dụng.
+  objectives:
+  - So sánh tệp, cơ sở dữ liệu quan hệ và NoSQL
+  - Xác định nhu cầu truy vấn, dung lượng, tính nhất quán
+  - Đề xuất kho lưu trữ cho một bài toán
+- id: cau-truc-rang-buoc
+  title: Cấu trúc & ràng buộc
+  purpose: Đảm bảo dữ liệu có định danh rõ ràng và giữ được tính toàn vẹn.
+  objectives:
+  - Thiết kế khóa định danh của bản ghi
+  - Mô tả schema và các ràng buộc cơ bản
+  - Phát hiện dữ liệu trùng hoặc tham chiếu sai
+- id: crud-truy-van
+  title: CRUD & truy vấn
+  purpose: Thực hiện các thao tác dữ liệu phổ biến với ngữ nghĩa rõ ràng.
+  objectives:
+  - Giải thích Create, Read, Update, Delete
+  - Phân biệt thêm mới, cập nhật và xóa
+  - Thiết kế tìm kiếm và phân trang cơ bản
+- id: giao-dich-dong-thoi
+  title: Giao dịch & đồng thời
+  purpose: Giữ trạng thái nhất quán khi có nhiều thao tác hoặc lỗi giữa chừng.
+  objectives:
+  - Giải thích ACID, commit và rollback
+  - Minh họa lỗi cập nhật đồng thời
+  - Xác định cách phát hiện xung đột ghi
+- id: do-ben-phuc-hoi
+  title: Độ bền & phục hồi
+  purpose: Hiểu cách giới hạn mất mát dữ liệu và khôi phục sau sự cố.
+  objectives:
+  - Phân biệt snapshot, log và backup
+  - Giải thích rủi ro mất dữ liệu khi hệ thống dừng đột ngột
+  - Nêu các bước kiểm tra và phục hồi từ bản sao
+- id: hieu-nang-truy-cap
+  title: Hiệu năng truy cập
+  purpose: Hiểu chi phí lưu và đọc để lựa chọn tối ưu hợp lý.
+  objectives:
+  - Đo độ trễ đọc và ghi
+  - Giải thích tác dụng và chi phí của chỉ mục
+  - So sánh truy cập từng bản ghi với xử lý theo lô
+- id: tang-truy-cap-kiem-thu
+  title: Tầng truy cập & kiểm thử
+  purpose: Tổ chức điểm truy cập dữ liệu tách khỏi nghiệp vụ và xác minh hoạt động đúng.
+  objectives:
+  - Phân biệt trách nhiệm của DAO và Repository
+  - Xử lý ngoại lệ và vòng đời tài nguyên
+  - Kiểm thử luồng tạo, đọc, cập nhật và xóa

@@ -1,0 +1,365 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Azure Translator Document Translation là gì và giải quyết bài toán nào
+  - 'Các thuật ngữ nền tảng: tài liệu nguồn, bản dịch, tác vụ và ngôn ngữ đích'
+  - Vai trò của ứng dụng Java, Translator và kho lưu trữ trong hệ thống dịch
+  - Phân biệt dịch văn bản, dịch tài liệu, OCR và nhận dạng cấu trúc tài liệu
+  - Dịch máy giữ định dạng đến đâu và vì sao vẫn cần kiểm định kết quả
+  - 'Những tình huống phù hợp: dịch tài liệu nội bộ, hướng dẫn và hồ sơ đa ngôn ngữ'
+  - Điều kiện đầu vào và giới hạn của tài liệu được mã hóa hoặc hạn chế truy cập
+  - Kiến thức cần có về Java, HTTP, tệp nhị phân và Azure
+  - Trình tự học từ dịch một tệp đến hệ thống dịch theo lô
+- level1: Luồng xử lý
+  level2:
+  - 'Luồng dịch một tệp: gửi nội dung và nhận trực tiếp tệp kết quả'
+  - 'Luồng dịch theo lô: tải lên Storage, gửi tác vụ, theo dõi và tải bản dịch'
+  - Tiêu chí chọn dịch một tệp hoặc dịch theo lô theo dung lượng và thời gian chờ
+  - Phân biệt tác vụ bất đồng bộ trên Azure với lời gọi bất đồng bộ trong SDK Java
+  - Vòng đời tài liệu nguồn, bản dịch và dữ liệu tạm
+  - Ranh giới trách nhiệm giữa ứng dụng và dịch vụ Azure
+  - 'Dòng dữ liệu và hai lớp quyền: gọi Translator và truy cập Blob Storage'
+  - Định danh yêu cầu nghiệp vụ, tác vụ Azure và từng tài liệu
+- level1: Thiết lập Azure
+  level2:
+  - Chuẩn bị subscription, resource group và quyền tạo tài nguyên
+  - Chọn loại tài nguyên Translator phù hợp với khả năng cần sử dụng
+  - Chọn khu vực triển khai và kiểm tra khả năng cung cấp dịch vụ
+  - Chọn gói dịch vụ có hỗ trợ Document Translation
+  - Tạo Translator resource và xác minh triển khai
+  - Lấy custom domain endpoint và phân biệt với endpoint dịch văn bản
+  - Xác định API version và các thành phần của URL yêu cầu
+  - Tạo Storage account và các container cho luồng dịch theo lô
+  - Thiết lập môi trường thử nghiệm tách biệt và dữ liệu mẫu
+  - Kiểm tra kết nối ban đầu bằng curl trước khi tích hợp Java
+- level1: SDK Java
+  level2:
+  - Thêm azure-ai-translation-document vào dự án Java 21
+  - Quản lý phiên bản thư viện Azure bằng BOM và kiểm tra tương thích
+  - Thêm azure-identity và azure-storage-blob theo nhu cầu
+  - Đọc endpoint, thông tin xác thực và cấu hình từ biến môi trường
+  - Tạo DocumentTranslationClient và SingleDocumentTranslationClient
+  - Tạo DocumentTranslationAsyncClient và SingleDocumentTranslationAsyncClient
+  - Chọn client phù hợp với chế độ dịch và mô hình thực thi của ứng dụng
+  - Cấu hình HTTP client, proxy, kết nối và thời gian chờ
+  - Tái sử dụng client và quản lý tài nguyên khi đọc ghi tệp
+  - Sử dụng Java HttpClient khi SDK chưa hỗ trợ khả năng REST cần dùng
+  - Đọc tài liệu API và đối chiếu model Java với schema REST
+- level1: Xác thực Translator
+  level2:
+  - Xác thực bằng API key và AzureKeyCredential
+  - Cấu hình header khóa và khu vực khi gọi REST API
+  - Phân biệt khóa tài nguyên, access token và SAS token
+  - Xác thực bằng TokenCredential theo hỗ trợ của SDK và API version
+  - Cấu hình DefaultAzureCredential cho môi trường phát triển
+  - Sử dụng danh tính ứng dụng hoặc managed identity khi triển khai Azure
+  - Phân biệt danh tính của ứng dụng với danh tính của Translator resource
+  - Kiểm tra vai trò RBAC cần thiết cho luồng xác thực đã chọn
+  - Luân phiên khóa và quản lý bí mật bằng Azure Key Vault
+  - Chẩn đoán lỗi thông tin xác thực, tenant và quyền gọi dịch vụ
+- level1: Blob Storage
+  level2:
+  - Khái niệm storage account, container, blob và tiền tố đường dẫn
+  - Tổ chức container nguồn, đích và glossary
+  - Tải tài liệu nguồn lên bằng Azure Storage SDK for Java
+  - Chọn URL container hoặc URL một blob theo phạm vi dịch
+  - Đặt tên blob có Unicode, khoảng trắng và ký tự cần mã hóa
+  - Tổ chức đầu ra riêng theo tác vụ và ngôn ngữ để tránh trùng tên
+  - Đọc metadata và kiểm tra tệp tải lên trước khi gửi dịch
+  - Tải bản dịch bằng luồng dữ liệu và lưu tệp an toàn
+  - Quản lý thời hạn lưu trữ và dọn tệp nguồn, đích, tạm
+  - Giới hạn của Azurite khi thử nghiệm luồng Translator truy cập Storage
+- level1: Quyền Storage
+  level2:
+  - 'Hai cơ chế cấp quyền Storage: SAS và managed identity của Translator'
+  - Cấu trúc SAS URL, phạm vi tài nguyên và thời hạn hiệu lực
+  - Cấp quyền SAS phù hợp cho nguồn, đích và glossary
+  - Tạo SAS cho container hoặc blob bằng công cụ Azure và SDK Java
+  - Lựa chọn user delegation SAS khi phù hợp với cấu hình hệ thống
+  - Xử lý lệch đồng hồ và SAS hết hạn trong lúc tác vụ còn chạy
+  - Bật system-assigned managed identity trên Translator resource
+  - Gán vai trò dữ liệu Blob tại phạm vi cần thiết và kiểm tra hiệu lực
+  - Đối chiếu điều kiện khu vực và giới hạn managed identity hiện hành
+  - Gửi URL không kèm SAS khi đã chọn cơ chế managed identity
+  - Phân biệt lỗi quyền Storage với lỗi mạng và lỗi xác thực Translator
+- level1: Tệp và ngôn ngữ
+  level2:
+  - Tra cứu định dạng tài liệu được hỗ trợ bằng API discovery
+  - Đối chiếu phần mở rộng, MIME type và nội dung thực tế của tệp
+  - Khác biệt về định dạng giữa dịch một tệp và dịch theo lô
+  - Kiểm tra dung lượng, số tệp và số ngôn ngữ trước khi gửi
+  - Tra cứu ngôn ngữ và mã ngôn ngữ theo tính năng đang dùng
+  - Chỉ định ngôn ngữ nguồn hoặc để dịch vụ tự phát hiện
+  - Xử lý tài liệu chứa nhiều ngôn ngữ và câu trộn ngôn ngữ
+  - Chuẩn bị tài liệu tiếng Việt có dấu và kiểm tra Unicode
+  - Xử lý tài liệu hỏng, tệp rỗng và tài liệu bị bảo vệ
+  - Đối chiếu định dạng đầu ra khi dịch tệp Office đời cũ
+  - Kiểm tra tính năng theo API version thay vì chỉ dựa vào phần mở rộng
+- level1: Dịch một tệp
+  level2:
+  - Cấu trúc endpoint document:translate và các tham số truy vấn
+  - Tạo yêu cầu multipart/form-data chứa document
+  - Thiết lập targetLanguage, sourceLanguage và MIME type
+  - Dịch tệp bằng SingleDocumentTranslationClient
+  - Dịch tệp bằng SingleDocumentTranslationAsyncClient
+  - Gọi REST API dịch một tệp bằng Java HttpClient
+  - Đính kèm glossary trực tiếp vào multipart request
+  - Đọc phản hồi nhị phân và lưu đúng định dạng bản dịch
+  - Phân biệt phản hồi tệp thành công với phản hồi lỗi JSON
+  - Quản lý thời gian chờ và đóng luồng khi truyền tài liệu
+  - Kiểm tra tính toàn vẹn của tệp kết quả trước khi trả cho người dùng
+- level1: Dịch theo lô
+  level2:
+  - Cấu trúc endpoint batches và request JSON inputs
+  - Khai báo sourceUrl, targets và ngôn ngữ đích
+  - Chọn storageType File hoặc Folder theo đầu vào
+  - Lọc tập tài liệu bằng prefix và suffix
+  - Dịch một nguồn sang nhiều ngôn ngữ với các đích riêng
+  - Gửi nhiều bộ nguồn và đích trong một yêu cầu
+  - Tạo yêu cầu dịch theo lô bằng model của SDK Java
+  - Khởi chạy bằng beginTranslation và đọc kết quả ban đầu
+  - Gửi tác vụ bằng REST và lấy operation-location từ phản hồi 202
+  - Lưu jobId trước khi thực hiện các bước theo dõi tiếp theo
+  - Kiểm tra xung đột tên tệp đầu ra trước khi tạo tác vụ
+  - Chụp danh sách đầu vào để đối soát kết quả từng tài liệu
+- level1: Theo dõi và hủy
+  level2:
+  - Trạng thái tác vụ từ NotStarted, Running đến trạng thái kết thúc
+  - Phân biệt trạng thái toàn tác vụ với trạng thái từng tài liệu
+  - Theo dõi bằng SyncPoller hoặc PollerFlux của SDK Java
+  - Chủ động lấy trạng thái bằng REST API theo jobId
+  - Lấy danh sách tài liệu và chi tiết một documentId
+  - Đọc số tài liệu thành công, thất bại và thông tin lỗi
+  - Phân trang, lọc và sắp xếp khi truy vấn nhiều tác vụ hoặc tài liệu
+  - Lập lịch polling có giới hạn và dừng khi đã đạt trạng thái kết thúc
+  - Khôi phục việc theo dõi sau khi ứng dụng khởi động lại
+  - Hủy tác vụ đang chờ hoặc đang chạy và theo dõi kết quả hủy
+  - Xử lý cuộc đua giữa yêu cầu hủy và tài liệu vừa dịch xong
+  - Thu hồi kết quả đã hoàn tất và đối soát chi phí khi hủy
+- level1: Glossary
+  level2:
+  - Glossary là gì và khi nào cần kiểm soát thuật ngữ
+  - Phân biệt glossary với bộ nhớ dịch và mô hình dịch tùy chỉnh
+  - Tra cứu định dạng glossary được hỗ trợ
+  - Soạn tệp TSV, CSV hoặc XLIFF theo cấu trúc yêu cầu
+  - Chuẩn hóa cặp ngôn ngữ nguồn và đích cho thuật ngữ
+  - Kiểm tra encoding, ký tự phân cách và thuật ngữ trùng hoặc xung đột
+  - Quy tắc khớp chữ hoa chữ thường và ngữ cảnh cả câu
+  - Giữ nguyên tên sản phẩm bằng cặp thuật ngữ nguồn và đích giống nhau
+  - Tải glossary lên Storage và cấp quyền truy cập cho dịch theo lô
+  - Truyền glossary trong SDK và REST theo từng chế độ dịch
+  - Quản lý phiên bản glossary để tái hiện bản dịch
+  - Kiểm chứng thuật ngữ và chẩn đoán trường hợp glossary không được áp dụng
+- level1: Tùy biến mô hình
+  level2:
+  - Phân biệt mô hình NMT mặc định, Custom Translator và LLM
+  - Điều kiện để sử dụng mô hình Custom Translator trong dịch tài liệu
+  - Truyền category ID và kiểm tra cặp ngôn ngữ của mô hình tùy chỉnh
+  - Quyết định allowFallback khi mô hình tùy chỉnh không sẵn sàng
+  - Phạm vi hỗ trợ LLM và trạng thái Public Preview theo API version
+  - Chuẩn bị Foundry resource và model deployment cho luồng LLM
+  - Chọn deploymentName và kiểm tra khả năng hỗ trợ của REST hoặc SDK
+  - Đối chiếu chất lượng, thời gian xử lý và cách tính phí giữa các mô hình
+  - Kiểm tra tương thích giữa mô hình, glossary và tính năng tài liệu
+  - Thiết kế thử nghiệm so sánh mô hình trên cùng tập tài liệu
+- level1: PDF và OCR
+  level2:
+  - Phân biệt PDF có lớp văn bản với PDF quét và PDF hỗn hợp
+  - Vai trò của OCR trong quá trình dịch PDF
+  - Chuẩn bị PDF quét có độ phân giải và chiều xoay phù hợp
+  - Đánh giá thứ tự đọc, bố cục nhiều cột và bảng trong PDF
+  - Kiểm tra font, dấu tiếng Việt và phần văn bản bị cắt sau dịch
+  - Dịch PDF theo lô và thu hồi tệp kết quả
+  - Khả năng tích hợp Document Intelligence theo phiên bản và điều kiện hỗ trợ
+  - Xử lý PDF có mật khẩu, hạn chế sao chép hoặc cấu trúc lỗi
+  - Đối chiếu nội dung giữa PDF nguồn, văn bản OCR và bản dịch
+  - Xây dựng bộ tiêu chí nghiệm thu PDF theo nội dung và bố cục
+- level1: Office và ảnh
+  level2:
+  - Dịch Word và kiểm tra tiêu đề, bảng, đầu trang, cuối trang
+  - Dịch PowerPoint và kiểm tra bố cục, hộp chữ, độ dài văn bản
+  - Dịch Excel và đối chiếu ô chữ, công thức, số và định dạng
+  - Kiểm tra hyperlink, chú thích và nội dung nhúng theo hỗ trợ thực tế
+  - Dịch định dạng Office đời cũ và xử lý thay đổi phần mở rộng đầu ra
+  - Đối chiếu khả năng dịch các định dạng OpenDocument
+  - Phân biệt văn bản trong tài liệu với chữ nằm trong ảnh nhúng
+  - Bật translateTextWithinImage cho DOCX và PPTX khi API hỗ trợ
+  - Dịch ảnh độc lập và kiểm tra định dạng, dung lượng được hỗ trợ
+  - Kiểm tra chữ sau dịch, nền ảnh và sai lệch vị trí hiển thị
+  - Kiểm định kết quả bằng ứng dụng đọc tài liệu phù hợp
+- level1: Tệp có cấu trúc
+  level2:
+  - Dịch TXT và kiểm tra encoding, xuống dòng, ký tự đặc biệt
+  - Dịch HTML và kiểm tra thẻ, thuộc tính, liên kết và nội dung hiển thị
+  - Dịch Markdown theo khả năng hỗ trợ của từng chế độ
+  - Kiểm tra code fence, inline code, URL và anchor trong Markdown sau dịch
+  - Dịch CSV hoặc TSV và đối chiếu dấu phân cách, số cột, số hàng
+  - Dịch XLIFF và kiểm tra đơn vị dịch, thẻ nội tuyến, placeholder
+  - Dịch MHTML hoặc MSG và kiểm tra giới hạn định dạng tương ứng
+  - Xác minh trường dữ liệu, biểu thức và mã nguồn cần giữ nguyên
+  - Thiết kế bước chuyển đổi cho định dạng ngoài danh sách hỗ trợ
+  - Đối soát cấu trúc tự động trước và sau khi dịch
+- level1: Chất lượng bản dịch
+  level2:
+  - Xác định tiêu chí đúng nghĩa, đủ nội dung và nhất quán thuật ngữ
+  - Đánh giá thuật ngữ kỹ thuật theo ngữ cảnh của tài liệu
+  - Kiểm tra tên riêng, số liệu, đơn vị, ngày giờ và phủ định
+  - Phát hiện đoạn bị bỏ sót, còn nguyên ngôn ngữ nguồn hoặc lặp nội dung
+  - Kiểm tra placeholder, biến mẫu và chuỗi được yêu cầu giữ nguyên
+  - Đối chiếu độ dài bản dịch với không gian hiển thị
+  - Kiểm tra ngôn ngữ phải sang trái và bố cục hai chiều khi có nhu cầu
+  - Xây dựng tập tham chiếu và đánh giá thủ công theo tiêu chí thống nhất
+  - Sử dụng BLEU hoặc chrF đúng phạm vi và hiểu giới hạn chỉ số
+  - Phân loại lỗi nội dung, OCR, định dạng và cấu hình dịch
+  - Thiết kế quy trình duyệt và hiệu đính trước khi phát hành bản dịch
+- level1: Tích hợp Spring Boot
+  level2:
+  - Tách cấu hình, client Azure và dịch vụ nghiệp vụ dịch tài liệu
+  - Khai báo ConfigurationProperties và kiểm tra cấu hình lúc khởi động
+  - Đăng ký client Azure dưới dạng bean tái sử dụng
+  - Tiếp nhận MultipartFile và kiểm tra dữ liệu trước khi gọi dịch
+  - Thiết kế API dịch một tệp và trả kết quả tải xuống
+  - Thiết lập Content-Type, Content-Disposition và tên tệp Unicode
+  - Thiết kế API tạo tác vụ dịch theo lô trả mã tác vụ
+  - Thiết kế API xem trạng thái, hủy và tải bản dịch
+  - Ánh xạ DTO nghiệp vụ với model SDK hoặc request REST
+  - Chuyển lỗi Azure thành phản hồi nhất quán cho phía gọi
+  - Quản lý tệp tạm và giới hạn tài nguyên của yêu cầu tải lên
+  - Chọn Spring MVC hoặc WebFlux phù hợp với client và luồng truyền tệp
+- level1: Quản lý tác vụ
+  level2:
+  - Thiết kế bản ghi lưu yêu cầu dịch, chủ sở hữu và jobId Azure
+  - Lưu danh sách tài liệu, ngôn ngữ, glossary và cấu hình mô hình
+  - Ánh xạ trạng thái nghiệp vụ với trạng thái dịch vụ Azure
+  - Chống gửi trùng bằng mã yêu cầu và ràng buộc dữ liệu
+  - Xử lý tình huống Azure đã nhận tác vụ nhưng ứng dụng chưa lưu jobId
+  - Dùng checksum cùng cấu hình dịch để nhận diện yêu cầu tương đương
+  - Tách tiến trình tiếp nhận khỏi tiến trình theo dõi khi cần mở rộng
+  - Điều phối worker và khóa cập nhật để tránh theo dõi hoặc xử lý trùng
+  - Khôi phục tác vụ dang dở sau sự cố ứng dụng
+  - Quản lý kết quả thành công một phần và yêu cầu dịch lại
+  - Tách quyền sở hữu tác vụ và đầu ra giữa nhiều người dùng
+- level1: Xử lý lỗi
+  level2:
+  - Đọc mã lỗi HTTP, mã lỗi dịch vụ và thông tin innerError
+  - Xử lý yêu cầu sai, định dạng không hỗ trợ và tham số ngôn ngữ không hợp lệ
+  - Chẩn đoán 401 hoặc 403 ở Translator và Blob Storage
+  - Xử lý đường dẫn nguồn, tác vụ hoặc tài liệu không tồn tại
+  - Chẩn đoán tệp đích trùng tên và xung đột kết quả cũ
+  - Xử lý lỗi 429 và tôn trọng Retry-After khi được trả về
+  - Chọn retry có backoff và jitter cho lỗi tạm thời
+  - Phân biệt timeout kết nối, timeout đọc và thời gian xử lý tác vụ
+  - Tránh retry mù yêu cầu tạo tác vụ sau khi mất phản hồi
+  - Dịch lại có chọn lọc các tài liệu thất bại
+  - Sử dụng circuit breaker và giới hạn số tác vụ đang xử lý khi cần
+  - Xây dựng hướng dẫn xử lý sự cố dựa trên bằng chứng và mã yêu cầu
+- level1: Hiệu năng và giới hạn
+  level2:
+  - Đọc giới hạn hiện hành theo chế độ dịch và gói dịch vụ
+  - Phân biệt dung lượng tệp, dung lượng lô và lượng ký tự xử lý
+  - Chia lô theo số tệp, tổng dung lượng và ngôn ngữ đích
+  - Chọn mức song song theo quota và năng lực ứng dụng
+  - Tối ưu chu kỳ polling theo thời gian xử lý thực tế
+  - Truyền tệp bằng stream và giới hạn bộ nhớ khi tải lên hoặc tải xuống
+  - Cấu hình connection pool và thời gian chờ theo đặc điểm tài liệu
+  - Đo riêng thời gian tải lên, dịch, theo dõi và tải xuống
+  - Đặt ngưỡng tệp tạm, dung lượng đĩa và số yêu cầu đồng thời
+  - Đánh giá tải với tệp lớn, nhiều tài liệu nhỏ và nhiều ngôn ngữ
+- level1: Chi phí
+  level2:
+  - Phân biệt cách tính phí ký tự, ảnh và token theo chế độ hoặc mô hình
+  - Ước lượng khối lượng dịch theo tập tài liệu và số ngôn ngữ đích
+  - Đối chiếu chi phí Translator với Storage, truyền dữ liệu và tài nguyên phụ trợ
+  - Hiểu phần kết quả đã xử lý khi tác vụ bị hủy
+  - Đánh giá ảnh hưởng của dịch lại và gửi trùng đến chi phí
+  - Lựa chọn gói dịch vụ theo tài liệu giá và nhu cầu thực tế
+  - Thiết lập ngân sách, cảnh báo và giới hạn sử dụng trong ứng dụng
+  - Đối soát chi phí theo người dùng, tác vụ và ngôn ngữ
+  - Dọn dữ liệu theo thời hạn để kiểm soát chi phí lưu trữ
+- level1: Bảo mật và mạng
+  level2:
+  - Phân loại tài liệu và xác định dữ liệu được phép gửi đến dịch vụ
+  - Chọn vị trí xử lý dữ liệu và kiểm tra cam kết lưu trú theo tài nguyên
+  - Giới hạn quyền của ứng dụng, Translator và từng container
+  - Bảo vệ API key, access token, SAS URL và đường dẫn đầu ra
+  - Ẩn nội dung nhạy cảm và chuỗi truy vấn SAS khỏi log
+  - Giới hạn kích thước tải lên và kiểm tra tên tệp, đường dẫn
+  - Kiểm soát URL Storage để ngăn yêu cầu tới đích ngoài phạm vi cho phép
+  - Kiểm tra quyền tải bản dịch và thời hạn của liên kết chia sẻ
+  - Cấu hình firewall Storage và kiểm tra truy cập từ Translator
+  - Đánh giá Private Endpoint, DNS và ngoại lệ mạng theo khả năng dịch vụ
+  - Thiết lập mã hóa, chính sách lưu giữ và quy trình xóa tài liệu
+  - Đánh giá quyền truy cập và vị trí xử lý riêng cho luồng LLM Preview
+- level1: Giám sát
+  level2:
+  - Thiết kế log có cấu trúc với mã yêu cầu ứng dụng, jobId và documentId
+  - Liên kết log tải lên, gửi dịch, polling và tải xuống
+  - Đo số tác vụ, tỷ lệ thành công và thời gian xử lý
+  - Theo dõi lỗi theo định dạng, ngôn ngữ, mô hình và mã lỗi
+  - Theo dõi số lần retry, throttling và độ dài hàng chờ ứng dụng
+  - Quan sát tiêu thụ bộ nhớ, dung lượng tạm và kết nối HTTP
+  - Tích hợp Micrometer hoặc OpenTelemetry theo môi trường triển khai
+  - Khai thác Azure Monitor và chẩn đoán tài nguyên theo khả năng hỗ trợ
+  - Đặt cảnh báo cho tác vụ treo, lỗi quyền và chi phí tăng bất thường
+  - Xây dựng bảng theo dõi tiến độ và hướng dẫn vận hành
+- level1: Kiểm thử
+  level2:
+  - Thiết kế bộ tài liệu mẫu theo định dạng, ngôn ngữ và dung lượng
+  - Unit test kiểm tra đầu vào và ánh xạ request mà không gọi Azure
+  - Kiểm thử multipart và phản hồi nhị phân bằng HTTP stub
+  - Kiểm thử polling qua các chuỗi trạng thái thành công, lỗi và hủy
+  - Mô phỏng 429, lỗi 5xx, timeout và mất phản hồi khi tạo tác vụ
+  - Kiểm thử chống gửi trùng và khôi phục sau khởi động lại
+  - Kiểm thử tích hợp Blob Storage với dữ liệu dùng riêng
+  - Kiểm thử Translator trên tài nguyên Azure thử nghiệm có giới hạn chi phí
+  - Phân biệt phạm vi kiểm thử Azurite và kiểm thử dịch vụ Azure thật
+  - Đối chiếu cấu trúc tệp và thuật ngữ bằng tập tham chiếu
+  - Kiểm thử phân quyền giữa người dùng và che bí mật trong log
+  - Thiết kế kiểm thử hồi quy theo tiêu chí thay vì khớp nguyên văn mọi bản dịch
+- level1: Triển khai
+  level2:
+  - Tách cấu hình phát triển, kiểm thử và môi trường vận hành
+  - Đóng gói ứng dụng Java và chuẩn bị thư mục tạm có giới hạn
+  - Cấp danh tính và bí mật cho ứng dụng khi triển khai
+  - Cấu hình kết nối tới Translator và Storage từ môi trường chạy
+  - Chạy tiến trình theo dõi bền vững cho tác vụ kéo dài
+  - Giới hạn tải và điều chỉnh tài nguyên khi triển khai nhiều instance
+  - Thực hiện graceful shutdown mà vẫn giữ khả năng khôi phục tác vụ
+  - Kiểm tra readiness của ứng dụng mà không gửi dịch phát sinh chi phí
+  - Thiết lập quy trình dọn dữ liệu và đối soát tác vụ định kỳ
+  - Chuẩn bị kiểm tra sau triển khai và phương án quay lui
+- level1: Container Translator
+  level2:
+  - Phạm vi Translator container so với dịch vụ Document Translation trên cloud
+  - Điều kiện đăng ký, giấy phép và yêu cầu tài nguyên của container
+  - Chuẩn bị Docker image và các mô hình ngôn ngữ cần dùng
+  - Cấu hình billing endpoint, thông tin xác thực và dữ liệu gắn vào container
+  - Gọi API dịch tài liệu của container từ Java
+  - Đối chiếu định dạng, tính năng và endpoint được hỗ trợ
+  - Phân biệt chạy container tại chỗ với chế độ disconnected được cấp quyền
+  - Kiểm tra vận hành, cập nhật image và giới hạn của phương án container
+- level1: Phiên bản và nâng cấp
+  level2:
+  - Phân biệt phiên bản REST API, phiên bản SDK và trạng thái GA hoặc Preview
+  - Đối chiếu API cũ với họ endpoint document của API 2026-03-01
+  - Lập bảng tính năng theo phiên bản, khu vực và mô hình
+  - Xác định khoảng trống SDK trước khi dùng khả năng REST mới
+  - Nâng cấp dependency và kiểm tra thay đổi model, phương thức, ngoại lệ
+  - Kiểm thử hợp đồng request, response và trạng thái sau nâng cấp
+  - Đánh giá hồi quy bản dịch, bố cục và glossary trên cùng dữ liệu
+  - Triển khai từng phần và giữ cấu hình để quay lui
+  - Cập nhật tài liệu tích hợp khi giới hạn hoặc khả năng dịch vụ thay đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Dịch một tệp DOCX Việt–Anh bằng SDK Java và kiểm tra bản dịch
+  - Dịch tệp bằng REST multipart và trả kết quả qua Spring Boot
+  - Dịch một tập tài liệu sang nhiều ngôn ngữ bằng Blob Storage
+  - Áp dụng glossary để chuẩn hóa thuật ngữ trong tài liệu kỹ thuật
+  - Dịch Markdown và kiểm tra mã nguồn, liên kết, anchor sau dịch
+  - Dịch PDF quét và đối chiếu kết quả OCR với bố cục bản dịch
+  - Dịch chữ trong ảnh Office khi phiên bản API hỗ trợ
+  - Chuyển luồng SAS sang managed identity và kiểm chứng quyền Storage
+  - Khôi phục việc theo dõi sau khi ứng dụng dừng giữa tác vụ
+  - Mô phỏng thất bại một phần, hủy và dịch lại có chọn lọc
+  - So sánh mô hình mặc định với mô hình tùy chỉnh hoặc LLM đủ điều kiện
+  - Hoàn thiện hệ thống dịch với tiêu chí chất lượng, chi phí và vận hành

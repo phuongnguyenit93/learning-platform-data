@@ -1,0 +1,118 @@
+menu:
+- title: Tổng quan
+  slug: maven-overview
+  index: 0
+- title: Cài đặt và Wrapper
+  slug: installation-and-wrapper
+  index: 1
+- title: Dự án đầu tiên
+  slug: first-project
+  index: 2
+- title: Cấu trúc dự án
+  slug: project-structure
+  index: 3
+- title: POM và tọa độ
+  slug: pom-and-coordinates
+  index: 4
+- title: Dòng lệnh
+  slug: command-line
+  index: 5
+- title: Vòng đời
+  slug: lifecycle
+  index: 6
+- title: Kế thừa POM
+  slug: pom-inheritance
+  index: 7
+- title: Thuộc tính và mô hình
+  slug: properties-and-model
+  index: 8
+- title: Settings
+  slug: settings
+  index: 9
+- title: Profile
+  slug: profiles
+  index: 10
+- title: Khai báo phụ thuộc
+  slug: dependency-declarations
+  index: 11
+- title: Scope và classpath
+  slug: scopes-and-classpath
+  index: 12
+- title: Phân giải phiên bản
+  slug: version-resolution
+  index: 13
+- title: BOM và quản lý chung
+  slug: bom-and-central-management
+  index: 14
+- title: Kho và metadata
+  slug: repositories-and-metadata
+  index: 15
+- title: Plugin và goal
+  slug: plugins-and-goals
+  index: 16
+- title: Cấu hình plugin
+  slug: plugin-configuration
+  index: 17
+- title: Biên dịch và JDK
+  slug: compilation-and-jdk
+  index: 18
+- title: Tài nguyên và sinh mã
+  slug: resources-and-code-generation
+  index: 19
+- title: Kiểm thử đơn vị
+  slug: unit-testing
+  index: 20
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 21
+- title: JAR và manifest
+  slug: jar-and-manifest
+  index: 22
+- title: Shade và Assembly
+  slug: shade-and-assembly
+  index: 23
+- title: WAR và Spring Boot
+  slug: war-and-spring-boot
+  index: 24
+- title: Reactor nhiều mô-đun
+  slug: multi-module-reactor
+  index: 25
+- title: Quản lý phiên bản
+  slug: version-management
+  index: 26
+- title: Cổng chất lượng
+  slug: quality-gates
+  index: 27
+- title: Tài liệu và Site
+  slug: documentation-and-site
+  index: 28
+- title: Install và Deploy
+  slug: install-and-deploy
+  index: 29
+- title: Quy trình phát hành
+  slug: release-process
+  index: 30
+- title: Build tái lập
+  slug: reproducible-builds
+  index: 31
+- title: An toàn phụ thuộc
+  slug: dependency-security
+  index: 32
+- title: IDE và CI
+  slug: ide-and-ci
+  index: 33
+- title: Hiệu năng
+  slug: performance
+  index: 34
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 35
+- title: Mở rộng Maven
+  slug: maven-extensions
+  index: 36
+- title: Nâng cấp Maven
+  slug: maven-upgrades
+  index: 37
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 38

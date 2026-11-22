@@ -1,0 +1,43 @@
+roadmap:
+- id: nen-tang-coding-standards
+  title: Nền tảng Coding Standards
+  purpose: Hiểu vì sao dự án Java cần bộ quy ước mã thống nhất, dễ áp dụng và kiểm chứng.
+  objectives:
+  - Giải thích lợi ích của quy ước chung khi đọc và review mã.
+  - Phân biệt quy tắc bắt buộc với khuyến nghị tùy ngữ cảnh.
+- id: quy-tac-dat-ten
+  title: Quy tắc đặt tên
+  purpose: Đặt tên nhất quán để thể hiện đúng vai trò của các thành phần Java.
+  objectives:
+  - Đặt tên package, class, method và biến theo quy ước Java.
+  - Nhận biết tên mơ hồ hoặc gây hiểu nhầm.
+- id: cau-truc-tep-java
+  title: Cấu trúc tệp Java
+  purpose: Tổ chức mã nguồn để người đọc dễ định vị các khai báo và phụ thuộc.
+  objectives:
+  - Sắp xếp package, import và khai báo lớp hợp lý.
+  - Kiểm tra thứ tự thành viên và tránh import không cần thiết.
+- id: dinh-dang-ma
+  title: Định dạng mã
+  purpose: Duy trì cách trình bày dễ đọc và nhất quán giữa các thành viên.
+  objectives:
+  - Áp dụng quy ước thụt lề, khoảng trắng và xuống dòng.
+  - Nhận biết lỗi bố cục khi đọc hoặc review mã.
+- id: viet-ma-de-hieu
+  title: Viết mã dễ hiểu
+  purpose: Sử dụng quy tắc viết mã để giảm độ khó khi bảo trì và sửa đổi.
+  objectives:
+  - Đặt tên phương thức và biến theo ý định sử dụng.
+  - Chia đoạn mã dài thành phần có trách nhiệm rõ ràng.
+- id: comment-javadoc
+  title: Comment & Javadoc
+  purpose: Viết chú thích hữu ích và tài liệu API có thể duy trì.
+  objectives:
+  - Phân biệt comment giải thích lý do với mô tả mã hiển nhiên.
+  - Viết Javadoc phù hợp cho API public.
+- id: quy-uoc-nhom-kiem-tra
+  title: Quy ước nhóm & kiểm tra
+  purpose: Chuyển nguyên tắc thành bộ quy tắc thống nhất được kiểm tra thường xuyên.
+  objectives:
+  - Thiết lập quy ước nhóm và tiêu chí review ngắn gọn.
+  - Sử dụng EditorConfig hoặc Checkstyle để phát hiện vi phạm.

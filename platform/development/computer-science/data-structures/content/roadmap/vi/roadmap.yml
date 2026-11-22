@@ -1,0 +1,57 @@
+roadmap:
+- id: adt-do-phuc-tap
+  title: ADT & độ phức tạp
+  purpose: Nắm khái niệm kiểu dữ liệu trừu tượng và chi phí của các thao tác để có cơ sở so sánh.
+  objectives:
+  - Phân biệt ADT với cách cài đặt
+  - Liệt kê thao tác truy cập, chèn, xóa
+  - Đọc Big-O thời gian và bộ nhớ
+- id: mang-danh-sach-lien-ket
+  title: Mảng & danh sách liên kết
+  purpose: Hiểu hai cách tổ chức dãy phần tử và tác động của chúng đến truy cập, cập nhật và lưu trữ.
+  objectives:
+  - Phân biệt mảng tĩnh, mảng động và linked list
+  - So sánh truy cập theo chỉ số với duyệt nút
+  - Giải thích chi phí chèn, xóa và cấp phát
+- id: stack-queue
+  title: Stack & Queue
+  purpose: Nắm cấu trúc xử lý phần tử theo thứ tự LIFO và FIFO, cùng các phép toán cốt lõi.
+  objectives:
+  - Thực hiện push/pop và enqueue/dequeue
+  - Phân biệt stack, queue và deque
+  - Chọn cấu trúc cho luồng xử lý đơn giản
+- id: hash-table-set
+  title: Hash Table & Set
+  purpose: Hiểu cách ánh xạ khóa vào vùng lưu trữ để hỗ trợ tra cứu nhanh và quản lý phần tử duy nhất.
+  objectives:
+  - Giải thích hàm băm và xử lý va chạm
+  - Phân biệt map với set
+  - Nhận diện chi phí trung bình và trường hợp xấu
+- id: cay-tim-kiem-trie
+  title: Cây tìm kiếm & Trie
+  purpose: Hiểu biểu diễn dữ liệu phân cấp và tổ chức khóa để phục vụ tìm kiếm có thứ tự hoặc theo tiền tố.
+  objectives:
+  - Mô tả cây nhị phân và tính chất BST
+  - Phân biệt cây cân bằng với cây lệch
+  - Giải thích cách trie lưu tiền tố chuỗi
+- id: heap-priority-queue
+  title: Heap & Priority Queue
+  purpose: Hiểu cấu trúc duy trì phần tử ưu tiên mà không cần sắp xếp toàn bộ dữ liệu.
+  objectives:
+  - Nhận diện tính chất min-heap và max-heap
+  - Thực hiện insert, peek và extract
+  - So sánh heap với danh sách đã sắp xếp
+- id: do-thi-union-find
+  title: Đồ thị & Union-Find
+  purpose: Nắm cách lưu quan hệ giữa các đối tượng và quản lý các nhóm liên thông.
+  objectives:
+  - Phân biệt danh sách kề với ma trận kề
+  - Biểu diễn đồ thị có hướng và vô hướng
+  - Giải thích find/union và nén đường đi
+- id: lua-chon-cau-truc
+  title: Lựa chọn cấu trúc
+  purpose: Biết chọn và phối hợp cấu trúc dữ liệu theo thao tác thường dùng, giới hạn bộ nhớ và đặc điểm dữ liệu.
+  objectives:
+  - So sánh chi phí các thao tác phổ biến
+  - Chọn cấu trúc cho ít nhất ba tình huống
+  - Giải thích đánh đổi về thời gian và bộ nhớ

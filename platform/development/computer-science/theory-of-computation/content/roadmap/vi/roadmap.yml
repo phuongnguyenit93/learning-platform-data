@@ -1,0 +1,57 @@
+roadmap:
+- id: ngon-ngu-hinh-thuc
+  title: Ngôn ngữ hình thức
+  purpose: Nắm cách mô tả tập chuỗi làm nền tảng cho các mô hình tính toán.
+  objectives:
+  - Phân biệt ký hiệu, chuỗi và ngôn ngữ
+  - Thực hiện hợp, nối và sao Kleene
+  - Biểu diễn ngôn ngữ bằng tập hợp
+- id: dfa-nfa
+  title: DFA & NFA
+  purpose: Hiểu cách máy trạng thái hữu hạn nhận dạng các ngôn ngữ chính quy.
+  objectives:
+  - Thiết kế DFA/NFA cho ngôn ngữ mẫu
+  - Chuyển NFA thành DFA tương đương
+  - Kiểm tra một chuỗi có được chấp nhận
+- id: bieu-thuc-chinh-quy
+  title: Biểu thức chính quy
+  purpose: Liên hệ cách mô tả mẫu chuỗi với ôtômát hữu hạn và giới hạn của chúng.
+  objectives:
+  - Viết biểu thức chính quy cơ bản
+  - Chuyển đổi regex và ôtômát
+  - Dùng pumping lemma chứng minh không chính quy
+- id: ngu-phap-phi-ngu-canh
+  title: Ngữ pháp phi ngữ cảnh
+  purpose: Mô hình hóa cấu trúc lồng nhau bằng ngữ pháp và ngôn ngữ phi ngữ cảnh.
+  objectives:
+  - Viết CFG sinh một ngôn ngữ
+  - Lập dẫn xuất và cây phân tích
+  - Nhận diện ngữ pháp nhập nhằng
+- id: otomat-ngan-xep
+  title: Ôtômát ngăn xếp
+  purpose: Hiểu vai trò của bộ nhớ dạng ngăn xếp khi nhận dạng ngôn ngữ phi ngữ cảnh.
+  objectives:
+  - Mô tả trạng thái và phép chuyển PDA
+  - Thiết kế PDA cho ngoặc cân bằng
+  - Giải thích quan hệ giữa PDA và CFG
+- id: may-turing
+  title: Máy Turing
+  purpose: Tiếp cận mô hình tính toán tổng quát để mô tả thuật toán và khả năng tính được.
+  objectives:
+  - Mô tả cấu hình và bước chuyển TM
+  - Thiết kế máy Turing đơn giản
+  - So sánh sức biểu đạt với DFA/PDA
+- id: kha-quyet-bat-kha-quyet
+  title: Khả quyết & bất khả quyết
+  purpose: Nhận biết những bài toán có thuật toán giải và những giới hạn không thể vượt qua.
+  objectives:
+  - Phân biệt decidable và recognizable
+  - Giải thích bài toán dừng
+  - Dùng quy giảm để chứng minh bất khả quyết
+- id: p-np-np-day-du
+  title: P, NP & NP-đầy đủ
+  purpose: Đánh giá mức độ giải hiệu quả của bài toán bằng độ phức tạp và quy giảm.
+  objectives:
+  - Phân biệt các lớp P, NP, NP-đầy đủ
+  - Mô tả phép quy giảm đa thức
+  - Giải thích ý nghĩa câu hỏi P so với NP

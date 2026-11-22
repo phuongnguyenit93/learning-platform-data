@@ -1,0 +1,3 @@
+menuLevel1: 11. Heap và GC
+menuLevel2: 11.6 Dùng GC.heap_info, MXBeans và jstat để đối chiếu tình trạng heap
+status: WRITTEN

@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-chat-luong
+  title: Mục tiêu chất lượng
+  purpose: Làm rõ kết quả cần bảo đảm, ưu tiên kinh doanh và các giới hạn nguồn lực để chọn hướng kiểm thử phù hợp.
+  objectives:
+  - Xác định mục tiêu chất lượng và đối tượng sử dụng
+  - Liệt kê ràng buộc thời gian, nhân lực và hệ thống
+  - Thống nhất kỳ vọng chất lượng với các bên liên quan
+- id: rui-ro-uu-tien
+  title: Rủi ro & ưu tiên
+  purpose: Phân bổ nỗ lực kiểm thử theo tác động và khả năng xảy ra lỗi ở các phần quan trọng.
+  objectives:
+  - Nhận diện luồng nghiệp vụ và thành phần rủi ro cao
+  - Ước lượng tác động, xác suất và mức ưu tiên
+  - Điều chỉnh trọng tâm kiểm thử khi rủi ro thay đổi
+- id: pham-vi-cap-do
+  title: Phạm vi & cấp độ
+  purpose: Chọn phạm vi, cấp độ và loại kiểm thử để đạt độ tin cậy cần thiết với chi phí hợp lý.
+  objectives:
+  - Phân định nội dung cần kiểm thử và phần ngoài phạm vi
+  - Chọn unit, integration, system hoặc acceptance thích hợp
+  - Bao quát yêu cầu chức năng và phi chức năng theo rủi ro
+- id: phuong-phap-tiep-can
+  title: Phương pháp tiếp cận
+  purpose: Kết hợp kiểm thử sớm, kỹ thuật tĩnh, động và khám phá theo mục đích từng tình huống.
+  objectives:
+  - Quyết định khi nào dùng kiểm thử dựa trên kịch bản
+  - Xác định chỗ cần exploratory testing và review
+  - Phân bổ kiểm thử theo từng giai đoạn phát triển
+- id: moi-truong-du-lieu
+  title: Môi trường & dữ liệu
+  purpose: Tổ chức điều kiện và dữ liệu thử nghiệm để bảo đảm tính đại diện, an toàn và khả năng lặp lại.
+  objectives:
+  - Xác định môi trường, dependency và cấu hình cần thiết
+  - Lập kế hoạch dữ liệu, cô lập và làm sạch trạng thái
+  - Quy định cách tái tạo lỗi và bảo vệ dữ liệu nhạy cảm
+- id: tu-dong-hoa-ci
+  title: Tự động hóa & CI
+  purpose: Lựa chọn bài kiểm thử có giá trị tự động hóa để tạo phản hồi nhanh và ổn định.
+  objectives:
+  - Cân đối unit, integration và end-to-end theo hệ thống
+  - Ưu tiên bài chạy nhanh, đáng tin cậy trong CI
+  - Xác định trách nhiệm bảo trì và xử lý flaky test
+- id: thuc-thi-chat-luong
+  title: Thực thi & chất lượng
+  purpose: Đặt tiêu chí bắt đầu, kết thúc và xử lý lỗi để ra quyết định phát hành có căn cứ.
+  objectives:
+  - Xác định entry/exit criteria và mức lỗi chấp nhận
+  - Phân loại defect, rerun và regression theo mức độ
+  - Đánh giá bằng chứng kiểm thử trước khi release
+- id: do-luong-cai-tien
+  title: Đo lường & cải tiến
+  purpose: Theo dõi hiệu quả chiến lược để điều chỉnh phạm vi, công cụ và nguồn lực qua từng vòng phát triển.
+  objectives:
+  - Theo dõi tiến độ, độ bao phủ và lỗi lọt sản phẩm
+  - Phân tích thời gian phản hồi và kiểm thử không ổn định
+  - Rà soát rủi ro, kết quả và cập nhật chiến lược

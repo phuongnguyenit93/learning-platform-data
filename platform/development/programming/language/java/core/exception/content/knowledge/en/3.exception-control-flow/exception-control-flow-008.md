@@ -1,0 +1,326 @@
+# The Boundary Between Synchronous and Asynchronous JVM Exceptions
+
+When we say a Java exception is *synchronous* or *asynchronous* **in the Java Virtual Machine (JVM) sense**, we are referring to **when and why the exception can be thrown in the current execution thread**. This is a classification of the *exception-generation mechanism*, not a classification of how multithreaded programs are written, asynchronous APIs, or checked/unchecked exceptions.
+
+In Java SE 21, the Java Language Specification (JLS) §11.1.2–§11.1.3 and the Java Virtual Machine Specification (JVMS) §2.10 define this boundary:
+
+- **Synchronous exceptions** are tied to a specific action of the executing thread, at a point where the specification allows that action to throw an exception. Examples: integer division by zero, out-of-bounds array index access, executing a `throw` statement, or encountering an error during class linking.
+- **Asynchronous JVM exceptions** may arise at a point not directly tied to a specific operation in application code, due to an internal JVM error or a severe resource limitation. According to Java SE 21, this kind of asynchronous exception belongs to the `VirtualMachineError` hierarchy; its occurrence is very rare, and the JVM is permitted to delay it for a small but bounded amount of execution.
+- **Both are still *precise* Java exceptions**: when control transfers to an exception handler, all visible effects must be consistent with a single throw point along the execution path.
+
+A common source of confusion: a task running via `CompletableFuture.supplyAsync(...)` that throws `IllegalStateException` **does not thereby become a "JVM asynchronous exception"**. That is a regular exception thrown in the thread executing the task; the task's failed result is merely passed to another thread through an asynchronous API.
+
+## 1. What does "synchronous" mean here?
+
+According to JLS §11.1.2, there are four groups of causes for an exception to be thrown:
+
+| Cause | Example | How to understand it |
+| --- | --- | --- |
+| A `throw` statement | `throw new IllegalArgumentException("bad input");` | The program explicitly throws an exception at the executed statement. |
+| An enabled `assert` statement whose condition is false | `assert value > 0;`, when run with `-ea` and the condition is false | The JVM throws `AssertionError` upon executing the `assert` statement. If assertions are disabled, the condition is not evaluated. |
+| The JVM detects an abnormal condition **synchronously** | `x / zero` for integer division with a zero denominator; `array[index]` out of bounds; loading/linking errors | The error occurs at an operation capable of producing an exception as defined by the language or the JVM. Resource limits can also be detected synchronously. |
+| The JVM generates an **asynchronous** exception | An internal error or JVM resource limit detected outside a point tied to a specific operation | A rare case; according to Java SE 21, the exception type is a subclass of `VirtualMachineError`. |
+
+In the first row, `throw` is an explicit action of Java code. The third row covers exceptions detected by the JVM while executing code; they **do not mean** that the JVM can throw them on its own at any arbitrary moment. For example, `ArithmeticException` from integer division by zero is tied to that specific division operation.
+
+A system failure may cause an I/O operation to fail and the API to throw `IOException` at the point where the operation is performed. The fact that an I/O device operates outside the JVM does not by itself turn `IOException` into an asynchronous exception under the JLS. Likewise, an error when reading the result of `Future.get()` does not by itself belong to the JVM asynchronous exception category.
+
+**Synchronous does not mean checked; asynchronous does not mean unchecked "because it runs on another thread."** Checked/unchecked is a classification based on the exception class hierarchy and compile-time `catch`/`throws` rules, separate from when an exception is raised. In Java SE 21, asynchronous JVM exceptions belong to `VirtualMachineError` (under `Error`, unchecked), yet most other unchecked exceptions such as `NullPointerException` still occur synchronously.
+
+## 2. Specification boundary: what the JVM is permitted to do
+
+### Synchronous exceptions are constrained by their throw site
+
+JLS §11.1.2 specifies that synchronous exceptions cannot be thrown at arbitrary locations. They are raised where evaluating an expression or executing a statement can produce that outcome according to the specification.
+
+Example:
+
+```java
+int[] items = {4, 8};
+int value = items[2]; // ArrayIndexOutOfBoundsException at the invalid access
+```
+
+This is an illustration inside a method body. Accessing `items[2]` is the operation that triggers the error; one should not imagine this error "dropping in from outside" while some unrelated instruction is running.
+
+An exception can be thrown directly via `throw` or generated by the JVM when executing the corresponding opcode. At the bytecode level, the `athrow` instruction throws an object of type `Throwable`; however, **not every synchronous exception requires an explicit `athrow` instruction in source code**.
+
+Loading, linking, and initialization errors (such as certain `LinkageError`s) can occur when the JVM must perform the corresponding activity. Those errors still follow the throw-site rules defined for the associated action.
+
+### Asynchronous exceptions are not tied to a specific source operation
+
+JLS §11.1.3 defines an asynchronous exception as an exception **that may occur at any point** in the execution of a program, when the JVM encounters an internal error or resource limitation that prevents it from maintaining Java semantics. Under the Java SE 21 specification, the thrown exception class belongs to the `VirtualMachineError` hierarchy.
+
+The phrase "may occur at any point" must be understood accurately:
+
+1. It does not mean the JVM is forced to throw the error immediately at any source instruction chosen by the application.
+2. The specification **permits a small but bounded amount of execution** before throwing an asynchronous exception. The specific detection mechanism and check points are implementation details.
+3. The JVM may insert check points suited to optimized code. The specification mentions checking at control-transfer instructions as an **implementation example**, not a guarantee that all JVMs check only at those instructions.
+4. Even though detection timing is more flexible, the exception must still preserve **the precision of observable state** at the point where control is transferred.
+
+Exceptions of this kind are very rare; programs should not be built on the assumption that they will occur predictably, can be triggered at a fixed line of code, or are always recoverable.
+
+## 3. `VirtualMachineError`: the same error class can have two occurrence mechanisms
+
+`VirtualMachineError` is a subclass of `Error`, used for situations where the JVM is broken or has run out of resources to continue executing properly. Common subclasses to know include `OutOfMemoryError`, `StackOverflowError`, `InternalError`, and `UnknownError`.
+
+**Do not conclude from the class name alone that a specific exception is definitely asynchronous.** JLS §11.1.3 explicitly notes:
+
+- `StackOverflowError` can be thrown **synchronously** when executing a method call that overflows the stack; it can also occur **asynchronously** in connection with executing a `native` method or JVM resource limits.
+- `OutOfMemoryError` can occur **synchronously** during object creation, array creation, class initialization, boxing, etc.; it can also occur **asynchronously**.
+- Internal JVM errors or resource limit cases are handled under the rules of `VirtualMachineError`. Information such as the class name or message **does not necessarily pinpoint the exact moment the error was detected**.
+
+Example of appropriate reasoning:
+
+```text
+new int[veryLargeLength]
+  └─ may fail during array allocation
+     └─ OutOfMemoryError (synchronous case at the allocation operation)
+
+A severe JVM resource limit is detected outside a point
+tied to the current source operation
+  └─ the JVM may throw an asynchronous VirtualMachineError subclass
+```
+
+The diagram above only illustrates the two mechanisms; **it is not a recipe for forcing the JVM out of memory**. Heap levels, heap dumps, GC activity, and error warning details vary by JVM and configuration. Trying to manufacture an `OutOfMemoryError` or `StackOverflowError` to "test async exceptions" does not prove the asynchronous mechanism and can destabilize the process.
+
+## 4. The *precise exception* rule applies to both types
+
+JLS §11.3 states that **all exceptions, both synchronous and asynchronous, are precise**. At the point where control is transferred:
+
+- The effects of statements and expressions completed **before the throw point** must be reflected as having occurred.
+- Statements, expressions, or parts of them located **after the throw point** must not produce observable effects as if they had been executed.
+- The JVM may perform speculative execution for performance optimization, but it must prevent out-of-order speculative effects from appearing in the program state guaranteed by the language.
+
+This rule concerns the consistency of **the execution path and observable state at the throw point**. It does not promise that the entire process will never terminate abruptly, that all external I/O effects can be undone, or that the program can catch and recover from every `VirtualMachineError`.
+
+In a `try-catch`, if an exception is thrown, the remaining parts on the normal path of `try` are skipped; control transfers to the nearest matching handler in the current calling context. Java does not resume immediately at the operation that caused the error after `catch` executes.
+
+### Java 17+ example: observing the throw point and exception propagation
+
+Save as `ExceptionBoundaryDemo.java`:
+
+```java
+public class ExceptionBoundaryDemo {
+    static int divideByZero() {
+        System.out.println("inside: before division");
+        int denominator = 0;
+        int result = 12 / denominator;
+        System.out.println("inside: after division");
+        return result;
+    }
+
+    public static void main(String[] args) {
+        try {
+            try {
+                System.out.println("caller: before call");
+                divideByZero();
+                System.out.println("caller: after call");
+            } finally {
+                System.out.println("finally: cleanup");
+            }
+        } catch (ArithmeticException ex) {
+            System.out.println("caught: " + ex.getClass().getSimpleName());
+        }
+        System.out.println("caller: continue");
+    }
+}
+```
+
+Run with JDK 17 or later:
+
+```bash
+javac -encoding UTF-8 ExceptionBoundaryDemo.java
+java ExceptionBoundaryDemo
+```
+
+Deterministic output:
+
+```text
+caller: before call
+inside: before division
+finally: cleanup
+caught: ArithmeticException
+caller: continue
+```
+
+What to observe: the division `12 / denominator` with `denominator = 0` causes the JVM to throw `ArithmeticException` **synchronously at the division**. Neither `inside: after division` nor `caller: after call` is printed. The `finally` block runs during exception propagation; `catch` matches the type and allows `main` to continue.
+
+This is an example of **a synchronous exception and the precision of control transfer**. You cannot simply change the statement above to `throw new OutOfMemoryError(...)` and call it a demonstration of an asynchronous exception: an explicit `throw` statement is always a program-determined throw point.
+
+## 5. "Asynchronous" in programming libraries does not mean "JVM asynchronous exception"
+
+The same word *asynchronous* is used for two different concepts:
+
+| Situation | Is it a JVM asynchronous exception under JLS §11.1.3? | Explanation |
+| --- | --- | --- |
+| `CompletableFuture.supplyAsync(...)` runs a function that executes `throw` | **No**, merely because the task runs asynchronously. | The `throw` statement is in the thread executing the task; the API records the task's failed outcome. |
+| `future.join()` observes a failed task | **No**, merely because `join` throws `CompletionException`. | The `join` call reports the stored failure; the original cause is typically in `getCause()`. |
+| `Future.get()` throws `ExecutionException` because a task failed | **No**, merely because the task ran on another thread. | The error is wrapped and reported at the result-retrieval operation. |
+| Another thread calls `interrupt()` on a thread that is in `sleep()` | **No**. | The thread interruption mechanism affects the interrupt status and APIs with their own response rules. |
+| `Thread.sleep()` throws `InterruptedException` | **No**, in the JVM asynchronous exception sense. | The exception is thrown according to the contract of `sleep` when an interrupt signal is present. |
+| The JVM detects an internal resource error and throws `VirtualMachineError` at a point not tied to a specific source operation | **Possibly**. | This is the situation that falls under the JLS definition of asynchronous. |
+
+This remains true whether the program uses platform threads, virtual threads, `ExecutorService`, callbacks, or reactive pipelines: **the task-orchestration model does not determine the classification of the exception-throwing mechanism**.
+
+### Java 17+ example: a failed asynchronous task
+
+Save as `FutureFailureDemo.java`:
+
+```java
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+public class FutureFailureDemo {
+    public static void main(String[] args) {
+        CompletableFuture<Integer> task = CompletableFuture.supplyAsync(() -> {
+            throw new IllegalStateException("worker failed");
+        });
+
+        try {
+            task.join();
+        } catch (CompletionException ex) {
+            Throwable original = ex.getCause();
+            System.out.println("wrapper=" + ex.getClass().getSimpleName());
+            System.out.println("cause=" + original.getClass().getSimpleName());
+            System.out.println("message=" + original.getMessage());
+        }
+    }
+}
+```
+
+```bash
+javac -encoding UTF-8 FutureFailureDemo.java
+java FutureFailureDemo
+```
+
+Output:
+
+```text
+wrapper=CompletionException
+cause=IllegalStateException
+message=worker failed
+```
+
+`CompletableFuture.supplyAsync` submits the task to the default executor; the example prints only from the main thread after `join()` observes task completion, so **the output order is deterministic**. `IllegalStateException` originates from an ordinary `throw` statement inside the task. `CompletionException` is how the API propagates failure information to the `join` caller, not a sign that the JVM just threw an asynchronous exception under the JLS.
+
+If `get()` is used instead of `join()`, the program must handle the checked-exception contract of `get()` (notably `InterruptedException` and `ExecutionException`). This is still an API interaction mechanism, and does not change the definition of JVM asynchronous errors.
+
+## 6. `Thread.interrupt()`: a cooperative request, not "throwing an exception anywhere"
+
+`interrupt()` sends an interruption signal to the target thread. The exact effect depends on the thread's state and the API being executed:
+
+- If the thread is in `sleep`, `wait`, or `join` according to the standard API, an `InterruptedException` may be thrown from **the waiting operation itself**; the interrupt status is cleared when the exception is thrown in those cases.
+- If the thread is performing pure Java computation without checking its status, `interrupt()` does not automatically throw `InterruptedException` at an arbitrary computation line. The interrupt flag can be observed via `isInterrupted()`, or the thread can cooperatively terminate.
+- Other I/O APIs and concurrency libraries have their own response contracts: closing a channel, returning early, throwing a different exception type, or not reacting immediately. Read the Javadoc of the specific operation.
+
+Save as `InterruptBoundaryDemo.java`:
+
+```java
+public class InterruptBoundaryDemo {
+    public static void main(String[] args) {
+        Thread.currentThread().interrupt();
+
+        try {
+            Thread.sleep(10);
+            System.out.println("sleep completed");
+        } catch (InterruptedException ex) {
+            System.out.println("caught=" + ex.getClass().getSimpleName());
+            System.out.println("flag after catch="
+                    + Thread.currentThread().isInterrupted());
+
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("flag restored="
+                + Thread.currentThread().isInterrupted());
+    }
+}
+```
+
+```bash
+javac -encoding UTF-8 InterruptBoundaryDemo.java
+java InterruptBoundaryDemo
+```
+
+Output:
+
+```text
+caught=InterruptedException
+flag after catch=false
+flag restored=true
+```
+
+The example calls `interrupt()` on the current thread **before** executing `sleep()`, so there is no dependency on scheduling order between two threads. By the contract of `Thread.sleep`, when the thread is already interrupted, `sleep` throws `InterruptedException` and clears the interrupt status; `catch` restores the flag so callers know a cancellation request occurred. This is a common pattern when a method cannot declare `throws InterruptedException`, though real code must still decide whether to stop the current work.
+
+Do not use `interrupt()` as a way to "try generating an asynchronous JVM exception." Interruption is a coordination/cancellation mechanism with its own Java API contract.
+
+## 7. Historical limits of `Thread.stop()`
+
+Older JVM documentation used to describe `Thread.stop()` as being able to cause `ThreadDeath` in another thread, a case of asynchronous exception throwing. **Do not apply that historical behavior as a practice in Java SE 21**:
+
+- `Thread.stop()` has long been deprecated because it could cause a thread to exit with inconsistent data state and release monitors unexpectedly.
+- In JDK 21, the `Thread.stop()` API always throws `UnsupportedOperationException` **in the calling thread**, instead of stopping the target thread with `ThreadDeath`. The Javadoc marks this method as deprecated for removal.
+- Task cancellation should rely on program-managed cancellation state, `interrupt()`, or cancellation mechanisms on `Future`/executors with appropriate contracts.
+
+Therefore, **do not use `Thread.stop()` in demos, tests, or production code** to create asynchronous exceptions. If you read very old JVM documentation, check the version carefully before applying its examples. Use the JLS/JVMS for the same Java version when verifying claims about this rare case.
+
+## 8. Once an exception is thrown, how does the JVM handle it?
+
+Whether raised synchronously or asynchronously, once an exception object exists, throwing and propagation follow the standard handling system:
+
+1. **Find the nearest `catch` that can handle the exception type.** A `catch (Exception ex)` will not catch `VirtualMachineError` because the `Error` branch does not extend `Exception`.
+2. **Abruptly complete open statements and calls.** Steps on the normal path after the throw point do not continue automatically.
+3. **Execute matching `finally` blocks during stack unwinding** if execution flow still allows it; if `finally` itself throws another exception, the new reason may replace the old one.
+4. **Release monitors** when a `synchronized` block or synchronized call completes abruptly. Releasing a monitor does not mean prior data changes are automatically rolled back.
+5. **If there is no matching `catch`**, the uncaught exception leads to thread termination according to Java's uncaught exception handling mechanism.
+
+There is an important practical limitation: a severe resource error may leave the JVM without enough resources to write logs, allocate new objects, or execute the intended recovery path. If the entire process is forcibly terminated by the operating system, that is not normal Java exception throwing; there is no guarantee that `finally` or an uncaught exception handler will execute.
+
+Although `catch (Throwable ex)` can catch a `VirtualMachineError` if the error is thrown by the JVM and reaches `catch`, **you should not catch all `Throwable`s and assume the program is safe enough to continue**. The most appropriate handling choice is usually to record the incident via monitoring mechanisms and let service/process-level recovery handle it, depending on system requirements.
+
+## 9. Relation to JVM optimizations and error observation
+
+The JLS permits a small, bounded delay when raising asynchronous exceptions to leave room for JIT optimizations. If every operation had to be treated as a point where an error could be injected instantaneously, many valid code transformations would be restricted. With deferred detection permitted, the code generator can place check points appropriately while still respecting language semantics and observability bounds.
+
+However, **do not treat implementation concepts such as safepoints, polling, or bytecode sequences as invariant guarantees across all JVMs**. Those details depend on the JVM version and implementation. What developers can rely on are the specification's guarantees regarding the reasons for throwing, the permitted delay bounds, and precision when control actually transfers.
+
+To analyze real-world logs:
+
+- Look for **the exception type, cause chain, suppressed exceptions, and stack trace**. Do not infer sync vs. async solely from the name `OutOfMemoryError`.
+- Identify which operation was being performed: array/object allocation, deep method calls, class loading, waiting on I/O, retrieving a `Future` result, or running a callback.
+- For resource errors, check metrics, heap/GC logs, and system resource limit configurations. A stack trace is not always enough to reveal the root cause.
+- Distinguish a **failure inside an asynchronous task** recorded by an API from a **JVM asynchronous error** under the JLS. The fixes are completely different.
+
+## 10. Self-check questions
+
+**1.** Is `new int[n]` throwing `OutOfMemoryError` during allocation necessarily a JVM asynchronous exception?  
+**No.** This can be a **synchronous** resource error at the specified allocation operation. `OutOfMemoryError` can also occur asynchronously under other conditions.
+
+**2.** Is a `CompletableFuture` failing on another thread a JVM asynchronous exception?  
+**No.** "Async" describes how the task is executed. The exception thrown inside the task follows the normal mechanism of that thread; the API provides a way to observe the failed result from the calling thread.
+
+**3.** Does `interrupt()` guarantee that the target thread immediately throws `InterruptedException` at any statement?  
+**No.** The thread receives the interrupt signal, and each API responds according to its own contract. Operations like `sleep` can throw the exception at specific waiting points.
+
+**4.** Are all `VirtualMachineError`s asynchronous?  
+**No.** `StackOverflowError` and `OutOfMemoryError` can occur either synchronously or asynchronously.
+
+**5.** Can a JVM asynchronous exception be thrown while ignoring program state consistency?  
+**No.** Both synchronous and asynchronous exceptions are precise under JLS §11.3, even though the throw point of the asynchronous kind has permitted flexibility and delay.
+
+**6.** Can catching `Throwable` guarantee that the program recovers from every JVM error?  
+**No.** Catching the exception object does not guarantee that resources, state, or the process itself remain capable of recovery. The process may also terminate without going through Java's exception-throwing mechanism.
+
+**7.** In Java SE 21, should `Thread.stop()` be used to try throwing `ThreadDeath` asynchronously?  
+**No.** `Thread.stop()` in JDK 21 always throws `UnsupportedOperationException` and is not a supported task-cancellation mechanism.
+
+## Standard references
+
+- [JLS Java SE 21 — §11.1.2 The Causes of Exceptions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-11.html#jls-11.1.2).
+- [JLS Java SE 21 — §11.1.3 Asynchronous Exceptions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-11.html#jls-11.1.3).
+- [JLS Java SE 21 — §11.3 Run-Time Handling of an Exception, precise exceptions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-11.html#jls-11.3).
+- [JVMS Java SE 21 — §2.10 Exceptions](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-2.html#jvms-2.10).
+- [JDK 21 — `Thread.stop()`, `Thread.interrupt()`, and `Thread.sleep()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html).
+- [JDK 21 — `CompletableFuture`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CompletableFuture.html).
+
+**Key takeaway:** The JVM's synchronous/asynchronous classification is based on **the relationship between the throw point and the executing action**, not on whether an API name contains "async." Synchronous exceptions are tied to specification-defined points; asynchronous JVM exceptions are rare cases belonging to `VirtualMachineError` and may be detected with a small, bounded delay. Both must still obey the *precise* exception rule when control is transferred.

@@ -1,0 +1,57 @@
+roadmap:
+- id: chat-luong-theo-ngu-canh
+  title: Chất lượng theo ngữ cảnh
+  purpose: Hiểu chất lượng dữ liệu được xác định theo mục đích sử dụng và nhu cầu người dùng.
+  objectives:
+  - Nêu tác động của dữ liệu sai đến quyết định
+  - Xác định người dùng và yêu cầu chất lượng
+  - Phân biệt lỗi dữ liệu với yêu cầu nghiệp vụ
+- id: cac-chieu-chat-luong
+  title: Các chiều chất lượng
+  purpose: Nhận diện các thuộc tính quan trọng để đánh giá mức độ đáng tin cậy của dữ liệu.
+  objectives:
+  - Phân biệt độ chính xác, đầy đủ, nhất quán
+  - Giải thích tính hợp lệ, duy nhất và kịp thời
+  - Chọn chiều chất lượng phù hợp với bộ dữ liệu
+- id: khao-sat-profiling
+  title: Khảo sát & profiling
+  purpose: Đánh giá hiện trạng dữ liệu trước khi đặt quy tắc kiểm soát.
+  objectives:
+  - Đo tỷ lệ thiếu, trùng và phân bố giá trị
+  - Tìm ngoại lệ và mẫu dữ liệu bất thường
+  - Lập báo cáo profiling ngắn gọn
+- id: chi-so-nguong
+  title: Chỉ số & ngưỡng
+  purpose: Chuyển yêu cầu chất lượng thành tiêu chí có thể đo và theo dõi.
+  objectives:
+  - Định nghĩa metric và cách tính tỷ lệ lỗi
+  - Đặt ngưỡng đạt và cảnh báo theo ngữ cảnh
+  - Xác định cách theo dõi xu hướng chất lượng
+- id: kiem-tra-tu-dong
+  title: Kiểm tra tự động
+  purpose: Phát hiện dữ liệu không đạt yêu cầu tại thời điểm tiếp nhận và xử lý.
+  objectives:
+  - Viết kiểm tra null, miền giá trị và tính duy nhất
+  - Kiểm tra tính nhất quán giữa trường và nguồn
+  - Tổng hợp kết quả pass/fail có thể truy vết
+- id: lam-sach-xu-ly-loi
+  title: Làm sạch & xử lý lỗi
+  purpose: Giảm sai lệch dữ liệu mà vẫn giữ khả năng kiểm tra lại các thay đổi.
+  objectives:
+  - Chuẩn hóa định dạng và giá trị
+  - Phát hiện, xử lý trùng lặp có kiểm soát
+  - Phân loại bản ghi sửa được và cần cách ly
+- id: giam-sat-canh-bao
+  title: Giám sát & cảnh báo
+  purpose: Phát hiện suy giảm chất lượng dữ liệu khi pipeline vận hành.
+  objectives:
+  - Theo dõi freshness, tỷ lệ lỗi và số bản ghi
+  - Phát hiện biến động vượt ngưỡng
+  - Thiết kế cảnh báo kèm bối cảnh sự cố
+- id: truy-nguyen-cai-tien
+  title: Truy nguyên & cải tiến
+  purpose: Xử lý nguyên nhân gốc và cải thiện chất lượng dữ liệu qua từng chu kỳ.
+  objectives:
+  - Truy vết nguồn và bước xử lý gây lỗi
+  - Đề xuất biện pháp khắc phục và phòng ngừa
+  - Đo lại chất lượng sau khi sửa

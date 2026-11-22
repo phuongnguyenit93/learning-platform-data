@@ -1,0 +1,427 @@
+menu:
+- level1: Bức tranh unit test
+  level2:
+  - Unit test là gì và vấn đề mà kiểm thử đơn vị giải quyết
+  - 'Mô hình tư duy: đơn vị, đầu vào, phụ thuộc, hành vi và kết quả'
+  - Vai trò của unit test trong vòng phản hồi khi phát triển
+  - Kiểm chứng hành vi nghiệp vụ thay vì chỉ thực hiện các dòng mã
+  - Lợi ích về phát hiện lỗi, tài liệu hành vi và khả năng sửa đổi
+  - Quan hệ giữa unit test, kiểm thử tích hợp và kiểm thử E2E
+  - Một phép kiểm thử có giá trị cần những bằng chứng nào
+  - Giới hạn của unit test đối với cấu hình và kết nối hệ thống thật
+  - Lộ trình từ phép kiểm thử đầu tiên đến bộ kiểm thử có thể bảo trì
+- level1: Ranh giới đơn vị
+  level2:
+  - Đơn vị kiểm thử có thể là hàm, lớp hoặc một nhóm thành phần gắn kết
+  - Xác định đối tượng đang kiểm thử (system under test) và các phụ thuộc liên quan
+  - Ranh giới hành vi và sự khác nhau với ranh giới tệp mã nguồn
+  - Kiểm thử cô lập (solitary) và kết hợp đối tượng thật (sociable)
+  - Phụ thuộc nội bộ đơn giản và phụ thuộc tài nguyên bên ngoài
+  - Phân biệt cô lập trạng thái với thay mọi đối tượng bằng mock
+  - Unit test không được định nghĩa chỉ bằng công cụ hoặc annotation
+  - Chi phí thực thi, độ ổn định và phạm vi kiểm chứng là các góc nhìn khác nhau
+  - Nhận diện phép kiểm thử đã mở rộng sang tích hợp
+  - Chọn nơi bổ sung bằng chứng khi unit test dùng thành phần thay thế
+- level1: Hành vi và ca kiểm thử
+  level2:
+  - Từ yêu cầu hoặc hợp đồng đến hành vi quan sát được
+  - Tiền điều kiện, thao tác, kết quả và hậu điều kiện
+  - Chọn tình huống thông thường, biên và không hợp lệ
+  - Phân vùng đầu vào và xác định đại diện có lý do
+  - Quy tắc kết hợp nhiều điều kiện và bảng tình huống
+  - Trạng thái trước sau và các chuyển đổi được phép
+  - Xác định kết quả mong đợi độc lập với cách cài đặt
+  - Một mục tiêu hành vi với số assertion phù hợp
+  - Đặt tên ca theo điều kiện và kết quả cần giữ ổn định
+  - Ghi lại giả định hoặc điểm chưa rõ trước khi khẳng định kết quả đúng
+- level1: Bộ công cụ Java
+  level2:
+  - Vai trò của framework, test engine, bộ chạy và thư viện assertion
+  - JUnit Platform và JUnit Jupiter trong hệ sinh thái kiểm thử Java
+  - Nhận diện khác biệt về API giữa JUnit Jupiter và JUnit 4
+  - Chọn phiên bản công cụ tương thích với JDK của dự án
+  - Khai báo thư viện kiểm thử trong Maven hoặc Gradle
+  - Tổ chức src/test/java và src/test/resources
+  - Chạy một ca, một lớp hoặc cả bộ kiểm thử qua IDE và dòng lệnh
+  - Tách mã kiểm thử khỏi artifact ứng dụng
+  - Đọc kết quả lần chạy đầu và kiểm tra ca thực sự được phát hiện
+- level1: JUnit cơ bản
+  level2:
+  - Tạo lớp kiểm thử và phương thức @Test
+  - Khởi tạo đối tượng Java trực tiếp trong phép kiểm thử
+  - Cấu trúc Arrange–Act–Assert
+  - Diễn đạt Given–When–Then theo hành vi
+  - Quy tắc khai báo và khả năng truy cập lớp, phương thức kiểm thử
+  - Đọc kết quả đạt, thất bại và stack trace
+  - Dùng @DisplayName để diễn đạt tình huống
+  - Phân biệt lỗi assertion với ngoại lệ ngoài dự kiến
+  - Assumption và trạng thái aborted khi điều kiện chạy không phù hợp
+  - '@Disabled và cách ghi nhận lý do ca chưa được thực hiện'
+- level1: Fixture và vòng đời
+  level2:
+  - Fixture là gì và phần chuẩn bị tối thiểu cho một ca
+  - '@BeforeEach và @AfterEach cho thiết lập, dọn dẹp từng ca'
+  - '@BeforeAll và @AfterAll cho tài nguyên dùng ở cấp lớp'
+  - PER_METHOD và vòng đời đối tượng kiểm thử mặc định
+  - PER_CLASS và trách nhiệm quản lý trạng thái dùng chung
+  - Khởi tạo tại chỗ so với gom mọi thứ vào phương thức setup
+  - Rò rỉ trạng thái qua trường static, singleton hoặc bộ nhớ đệm
+  - Dọn tài nguyên khi ca thất bại giữa chừng
+  - Fixture bất biến và fixture có thể thay đổi
+  - Quan hệ giữa vòng đời, kiểm thử lồng nhau và chạy tham số
+  - Tránh phụ thuộc thứ tự chạy để đạt kết quả đúng
+- level1: Assertion nền tảng
+  level2:
+  - Assertion và căn cứ quyết định hành vi đúng hoặc sai
+  - assertEquals, assertSame và sự khác nhau giữa giá trị với định danh
+  - assertTrue, assertFalse và thông điệp lỗi có ý nghĩa
+  - assertNull, assertNotNull và ý nghĩa của trạng thái không có dữ liệu
+  - assertArrayEquals và assertIterableEquals
+  - So sánh số thực với sai số được xác định theo yêu cầu
+  - assertAll để kiểm chứng các khía cạnh liên quan của một kết quả
+  - Thông điệp thất bại và mô tả giá trị mong đợi, thực tế
+  - Phân biệt assertion của framework với từ khóa assert trong Java
+  - Tránh assertion luôn đúng hoặc chỉ kiểm tra kết quả khác null
+- level1: Ngoại lệ và timeout
+  level2:
+  - Kiểm chứng hành vi từ chối đầu vào hoặc trạng thái không hợp lệ
+  - assertThrows và việc chấp nhận kiểu ngoại lệ con
+  - assertThrowsExactly khi hợp đồng yêu cầu đúng kiểu cụ thể
+  - Kiểm tra thông điệp, mã lỗi hoặc nguyên nhân khi chúng thuộc hợp đồng
+  - Giới hạn đoạn mã có thể ném ngoại lệ để tránh bắt nhầm lỗi
+  - assertDoesNotThrow và phần hành vi vẫn cần kiểm chứng thêm
+  - assertTimeout và giới hạn thời gian hoàn thành
+  - assertTimeoutPreemptively và ảnh hưởng khi thực thi trên luồng khác
+  - Phân biệt timeout bảo vệ lượt chạy với phép đo hiệu năng đáng tin cậy
+- level1: Assertion với AssertJ
+  level2:
+  - assertThat và cách diễn đạt điều kiện bằng API nối tiếp
+  - Assertion cho chuỗi, số, Optional và các kiểu thời gian
+  - Kiểm tra nội dung và thứ tự của collection
+  - extracting, filteredOn và kiểm chứng thuộc tính cần quan sát
+  - So sánh đối tượng theo equals hoặc recursive comparison
+  - Comparator tùy chỉnh và chỉ bỏ qua những trường có lý do
+  - Assertion cho ngoại lệ bằng assertThatThrownBy
+  - Soft assertions và bước thu thập đầy đủ thất bại
+  - Viết assertion riêng cho khái niệm nghiệp vụ được dùng nhiều lần
+  - Giữ thông điệp chẩn đoán rõ khi dữ liệu có cấu trúc phức tạp
+- level1: Kiểm thử tham số
+  level2:
+  - Khi nào nhiều dữ liệu cùng kiểm chứng một hành vi
+  - '@ParameterizedTest và cấu hình nguồn đối số'
+  - '@ValueSource cho các giá trị đơn giản'
+  - '@NullSource, @EmptySource và @NullAndEmptySource'
+  - '@EnumSource và chọn các giá trị enum liên quan'
+  - '@CsvSource cho bảng tình huống nhỏ'
+  - '@CsvFileSource cho tập dữ liệu tách khỏi mã kiểm thử'
+  - '@MethodSource và cấu trúc Arguments'
+  - Chuyển đổi hoặc tổng hợp đối số thành kiểu nghiệp vụ
+  - Đặt tên từng lần chạy để đọc được tình huống thất bại
+  - Vòng đời fixture và tính độc lập giữa các lần chạy
+  - Chọn ca riêng hoặc kiểm thử tham số khi các tình huống khác mục tiêu
+- level1: Tổ chức với JUnit
+  level2:
+  - '@Nested để nhóm hành vi theo trạng thái hoặc điều kiện'
+  - '@Tag để lựa chọn tập kiểm thử theo mục đích'
+  - Annotation tổng hợp và tái sử dụng quy ước
+  - '@RepeatedTest và giới hạn của việc lặp để tìm lỗi không ổn định'
+  - Dynamic tests với @TestFactory và thời điểm sinh ca
+  - Phân biệt vòng đời dynamic test với phương thức @Test thông thường
+  - junit-platform.properties và cấu hình nhất quán giữa các bộ chạy
+  - 'Thứ tự thực thi: công cụ chẩn đoán và nguy cơ tạo phụ thuộc'
+  - Chạy song song, tài nguyên chia sẻ và các ràng buộc cần khai báo
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Chọn dữ liệu nhỏ để làm nổi bật quy tắc nghiệp vụ
+  - Giá trị hợp lệ, không hợp lệ, rỗng, null và cực trị
+  - Test Data Builder để tạo đối tượng có giá trị mặc định hợp lệ
+  - Object Mother và giới hạn của bộ dữ liệu mẫu dùng chung
+  - Dữ liệu bất biến và việc sao chép đối tượng có trạng thái
+  - Tách dữ liệu thể hiện điều kiện khỏi các trường không liên quan
+  - Đặt tên hằng số giúp giải thích ý nghĩa thay vì che giấu giá trị
+  - Kiểm soát dữ liệu sinh ngẫu nhiên và lưu đầu vào gây lỗi
+  - Chuỗi, Unicode, locale và dữ liệu cần đa dạng hóa
+  - Tránh dùng dữ liệu nhạy cảm hoặc phụ thuộc bản sao dữ liệu vận hành
+- level1: Thiết kế dễ kiểm thử
+  level2:
+  - Khả năng kiểm soát đầu vào và quan sát đầu ra
+  - Tiêm phụ thuộc qua constructor và khởi tạo object graph tường minh
+  - Tách tính toán nghiệp vụ khỏi I/O
+  - Đưa thời gian, nguồn ngẫu nhiên và cấu hình thành phụ thuộc rõ ràng
+  - Giảm công việc có tác dụng phụ trong constructor
+  - Phân chia trách nhiệm khi một fixture quá khó khởi tạo
+  - Điểm thay thế phụ thuộc và giới hạn cần giữ ở API
+  - Kiểm chứng hành vi công khai thay vì mở quyền truy cập tùy tiện
+  - Phản hồi từ ca khó viết đến cải tiến thiết kế có kiểm soát
+- level1: Thành phần thay thế
+  level2:
+  - Test double và mục đích thay một phụ thuộc trong phép kiểm thử
+  - Dummy cho đầu vào không tham gia hành vi cần kiểm chứng
+  - Stub cho các phản hồi đã chuẩn bị
+  - Fake với cách triển khai đơn giản phục vụ kiểm thử
+  - Spy để ghi nhận tương tác và mock để kiểm chứng kỳ vọng
+  - Kiểm chứng đầu ra hoặc trạng thái so với kiểm chứng tương tác
+  - Lựa chọn đối tượng thật, fake hay mock theo tình huống
+  - Độ trung thực của thành phần thay thế và hợp đồng thật
+  - Tránh mô phỏng chính phần nghiệp vụ mà ca cần kiểm chứng
+  - Bằng chứng tích hợp còn thiếu khi thay phụ thuộc bên ngoài
+- level1: Mockito cơ bản
+  level2:
+  - Vai trò của Mockito trong một phép kiểm thử đơn vị
+  - Thêm mockito-core và phần tích hợp JUnit Jupiter phù hợp
+  - Tạo mock bằng mock hoặc @Mock
+  - MockitoExtension và quá trình khởi tạo trường mock
+  - Khởi tạo đối tượng đang kiểm thử bằng constructor rõ ràng
+  - '@InjectMocks và giới hạn so với một bộ chứa tiêm phụ thuộc'
+  - Giá trị mặc định của phương thức chưa được stubbing
+  - Mock maker, instrumentation và tương thích với JDK
+  - Phân biệt mock của Mockito với bean được thay trong Spring ApplicationContext
+- level1: Stubbing
+  level2:
+  - when–thenReturn để chuẩn bị giá trị trả về
+  - thenThrow để mô phỏng lỗi từ phụ thuộc
+  - doThrow và cấu hình hành vi cho phương thức void
+  - doReturn và tình huống cần tránh gọi phương thức thật khi stubbing
+  - thenAnswer để phản hồi dựa trên đối số
+  - Chuỗi phản hồi cho nhiều lần gọi và khi nào thực sự cần
+  - Phân biệt chuẩn bị phụ thuộc với assertion của phép kiểm thử
+  - Strict stubbing và việc phát hiện cấu hình không được sử dụng
+  - Lệch đối số giữa stubbing với lần gọi thực tế
+  - Giới hạn phạm vi dùng lenient và tránh setup chung quá nhiều
+- level1: Matcher và Captor
+  level2:
+  - So khớp đối số bằng equals và ý nghĩa của kiểu giá trị
+  - eq, same, any và lựa chọn mức kiểm tra phù hợp
+  - Null, kiểu nguyên thủy và các matcher có ràng buộc kiểu
+  - Quy tắc dùng matcher đồng bộ trong cùng một lần gọi
+  - argThat cho điều kiện về cấu trúc đối số
+  - ArgumentCaptor để quan sát dữ liệu được gửi sang phụ thuộc
+  - getValue, getAllValues và tình huống có nhiều lần gọi
+  - Chọn matcher cho chuẩn bị phản hồi và captor cho kiểm chứng
+  - Đối số có thể bị sửa sau khi gọi và giới hạn của việc giữ tham chiếu
+  - Tránh matcher quá rộng khiến ca bỏ sót giá trị sai
+- level1: Kiểm chứng tương tác
+  level2:
+  - verify và các tác dụng phụ có ý nghĩa cần được bảo vệ
+  - times, never, atLeast và mức ràng buộc của số lần gọi
+  - Kiểm chứng không gọi phụ thuộc trong nhánh bị từ chối
+  - InOrder khi thứ tự tương tác thuộc hợp đồng hành vi
+  - verifyNoInteractions và phạm vi đối tượng cần quan sát
+  - verifyNoMoreInteractions và nguy cơ ràng buộc quá chặt cách cài đặt
+  - Kết hợp kết quả đầu ra với tương tác để giải thích hành vi
+  - Tránh verify lại mọi lời gọi đã stubbing mà không có mục tiêu
+  - Phân biệt kiểm chứng thao tác được yêu cầu với tác dụng thật đã xảy ra
+- level1: Spy và mock đặc biệt
+  level2:
+  - Spy trên đối tượng thật và phạm vi partial mocking
+  - Nguy cơ phương thức thật chạy trong khi chuẩn bị spy
+  - Dùng doReturn hoặc doThrow cho tình huống spy phù hợp
+  - Mock static và yêu cầu thu hồi phạm vi thay thế sau phép kiểm thử
+  - Mock constructor và các giả định gắn với cách khởi tạo
+  - Giới hạn phụ thuộc vào luồng của các phạm vi mock đặc biệt
+  - Lựa chọn điểm tiêm phụ thuộc thay cho can thiệp static khi có thể
+  - Nhận diện rủi ro khi dùng deep stubs để mô phỏng chuỗi đối tượng
+  - Chi phí bảo trì của việc mock chi tiết nội bộ hoặc kiểu thư viện
+- level1: Hàm thuần và phép tính
+  level2:
+  - Kiểm thử hàm thuần bằng bảng đầu vào và kết quả
+  - Quy tắc tính toán nhiều nhánh và các ranh giới
+  - Giá trị âm, không, cực trị và nguy cơ tràn số
+  - Số thực, NaN, vô cực và điều kiện so sánh
+  - 'BigDecimal: giá trị, scale và quy tắc làm tròn'
+  - Đơn vị đo và các chuyển đổi cần bảo vệ
+  - Bất biến của phép tính và quan hệ giữa nhiều đầu vào
+  - Kiểm chứng không thay đổi đầu vào khi hợp đồng yêu cầu
+  - Chọn kết quả mẫu độc lập để tránh lặp lại thuật toán sản phẩm
+- level1: Chuỗi và tập hợp
+  level2:
+  - Chuỗi rỗng, khoảng trắng và null theo hợp đồng
+  - Unicode, ký tự kết hợp và giả định về độ dài
+  - Chuẩn hóa, phân biệt hoa thường và ảnh hưởng của locale
+  - Collection rỗng, một phần tử và nhiều phần tử
+  - Thứ tự, phần tử trùng và khác biệt giữa List, Set, Map
+  - Lọc, ánh xạ, sắp xếp và kết quả tại các ranh giới
+  - Optional và các nhánh có hoặc không có giá trị
+  - Iterator, Stream và những thao tác chỉ thực hiện một lần
+  - Đối tượng mutable, sao chép phòng vệ và rò rỉ tham chiếu
+- level1: Trạng thái và nghiệp vụ
+  level2:
+  - Kiểm thử đối tượng có trạng thái qua hành vi công khai
+  - Trạng thái ban đầu và các bất biến sau khởi tạo
+  - Chuyển trạng thái hợp lệ và chuyển trạng thái bị từ chối
+  - Chuỗi hành động và tác động của lịch sử sử dụng
+  - Value object, entity và ý nghĩa của bằng nhau
+  - Hợp đồng equals, hashCode và các trường hợp cần bảo vệ
+  - Tính bất biến, record và giá trị có thành phần mutable
+  - Quy tắc nghiệp vụ liên quan nhiều đối tượng trong cùng một đơn vị
+  - Tránh kiểm tra getter hoặc setter thuần túy chỉ để tăng độ bao phủ
+- level1: Dịch vụ điều phối
+  level2:
+  - Khởi tạo lớp service như đối tượng Java thông thường
+  - Phân biệt phần ra quyết định với phần gọi tài nguyên ngoài
+  - Phụ thuộc trả về dữ liệu, không có dữ liệu hoặc báo lỗi
+  - Kiểm chứng dữ liệu được gửi qua repository hoặc cổng dịch vụ
+  - Từ chối thao tác trước khi phát sinh tác dụng phụ
+  - Phối hợp nhiều phụ thuộc và trường hợp một bước thất bại
+  - Kiểm chứng chính sách retry hoặc fallback bằng phụ thuộc có thể điều khiển
+  - Kiểm chứng sự kiện được yêu cầu phát và nội dung của sự kiện
+  - Giới hạn của mock repository đối với truy vấn hoặc giao dịch thật
+  - Ranh giới bằng chứng của unit test với các cơ chế proxy và annotation Spring
+- level1: Thời gian và ngẫu nhiên
+  level2:
+  - Vì sao gọi đồng hồ thật khiến kết quả phụ thuộc thời điểm
+  - java.time.Clock và đồng hồ cố định trong phép kiểm thử
+  - Ranh giới ngày, tháng, năm và mốc hết hạn
+  - Múi giờ, chuyển giờ mùa hè và loại thời gian đang sử dụng
+  - Điều khiển thời gian tiến lên thay vì đợi thời gian thật trôi
+  - Tiêm nguồn ngẫu nhiên và kiểm chứng quy tắc thay vì một mẫu tình cờ
+  - Seed, đầu vào thất bại và khả năng chạy lại
+  - Kiểm soát UUID hoặc mã định danh được sinh bên ngoài logic
+  - Tách trạng thái môi trường khỏi kết quả mong đợi
+- level1: I/O và cấu hình
+  level2:
+  - Tách phân tích hoặc biến đổi dữ liệu khỏi việc đọc ghi
+  - Kiểm thử parser và formatter bằng dữ liệu trong bộ nhớ
+  - Dùng cổng trừu tượng cho tệp, mạng và dịch vụ ngoài
+  - Chuẩn bị lỗi I/O hoặc phản hồi không hợp lệ bằng thành phần thay thế
+  - '@TempDir và lựa chọn phạm vi khi cần kiểm tra tệp thực'
+  - Thu hồi tài nguyên, stream và tệp tạm sau thất bại
+  - Truyền cấu hình tường minh thay vì đọc biến toàn cục ở khắp nơi
+  - Khôi phục system property hoặc trạng thái môi trường đã thay đổi
+  - Xác định phần cần kiểm thử tích hợp khi phải chứng minh kết nối thật
+- level1: Bất đồng bộ và đồng thời
+  level2:
+  - Xác định hành vi bất đồng bộ cần quan sát và điều kiện hoàn thành
+  - Kiểm thử CompletableFuture ở nhánh thành công và thất bại
+  - Kiểm chứng hủy tác vụ và việc lan truyền lỗi khi thuộc hợp đồng
+  - Tiêm Executor hoặc bộ lập lịch có thể điều khiển
+  - Điều khiển thứ tự công việc thay vì phụ thuộc Thread.sleep
+  - Latch, barrier và giới hạn thời gian chờ khi cần phối hợp luồng
+  - Trạng thái chia sẻ và nhiễu giữa các phép kiểm thử
+  - Tách việc kiểm chứng thuật toán khỏi việc tạo tranh chấp thực
+  - Giới hạn của một lịch thực thi đối với kết luận về mọi race condition
+  - Dọn executor, tác vụ đang chạy và tài nguyên liên quan
+- level1: Kiểm thử thuộc tính
+  level2:
+  - Phân biệt kiểm thử theo ví dụ với property-based testing
+  - Chọn bất biến hoặc quan hệ có ý nghĩa nghiệp vụ
+  - Generator và tập giá trị hợp lệ cần sinh
+  - Giá trị biên và phân bố dữ liệu của bộ sinh
+  - Giới thiệu jqwik và tích hợp với bộ chạy phù hợp
+  - Shrinking để thu nhỏ đầu vào gây thất bại
+  - Seed và lưu trường hợp lỗi thành ca hồi quy
+  - Round-trip, idempotence và các quan hệ cần diễn giải đúng
+  - Giới hạn của thuộc tính quá yếu hoặc giả định lọc bỏ phần lớn dữ liệu
+- level1: TDD và phản hồi thiết kế
+  level2:
+  - TDD và chu kỳ Red–Green–Refactor
+  - Viết một ca thất bại đúng lý do trước khi hoàn thiện hành vi
+  - Chọn bước tiến nhỏ và mục tiêu hành vi tiếp theo
+  - Viết phần cài đặt vừa đủ rồi cải tiến khi có bằng chứng
+  - Phân biệt refactor với thay đổi hợp đồng hành vi
+  - Dùng độ khó của fixture hoặc mock để xem lại trách nhiệm thiết kế
+  - Kiểm thử từ phía sử dụng API và làm rõ nhu cầu của bên gọi
+  - Phân biệt TDD với viết ca kiểm thử sau khi hoàn thành mã
+  - Giới hạn của TDD và vai trò của bằng chứng ở phạm vi lớn hơn
+- level1: Độ bao phủ
+  level2:
+  - Độ bao phủ dòng, câu lệnh và nhánh đo điều gì
+  - Quan hệ giữa chạy qua mã và kiểm chứng hành vi
+  - JaCoCo và cách đọc báo cáo cho một đơn vị
+  - Nhánh không chạy, mã không thể tới và giả định cần rà soát
+  - Bao phủ quy tắc nghiệp vụ so với bao phủ cấu trúc mã
+  - Ưu tiên phần thay đổi hoặc vùng rủi ro thay vì tăng số ca cơ học
+  - Ngưỡng bao phủ và cách quản lý ngoại lệ có lý do
+  - Báo cáo khoảng trống kiểm chứng mà tỷ lệ tổng có thể che khuất
+- level1: Mutation testing
+  level2:
+  - Mutation testing và việc thay đổi mã có kiểm soát để đánh giá phép kiểm thử
+  - Mutant bị phát hiện, còn sống và không có ca chạy qua
+  - Vì sao độ bao phủ cao vẫn có thể bỏ sót thay đổi sai
+  - Dùng PIT với tập lớp và tập kiểm thử được chọn
+  - Phân tích mutant sống để tìm ca thiếu hoặc assertion yếu
+  - Mutant tương đương và giới hạn của mutation score
+  - Chi phí thực thi, timeout và cách thu hẹp phạm vi chạy
+  - Dùng kết quả để cải tiến kiểm chứng thay vì chỉ theo đuổi phần trăm
+- level1: Mã nguồn có sẵn
+  level2:
+  - Bổ sung unit test khi chưa có tài liệu hành vi đầy đủ
+  - Characterization test và việc ghi nhận hành vi hiện tại
+  - Phân biệt hành vi đang tồn tại với hành vi được yêu cầu
+  - Tìm điểm thay thế phụ thuộc mà không đổi logic ngoài dự kiến
+  - Tách logic khỏi static, singleton hoặc truy cập tài nguyên trực tiếp
+  - Thay đổi từng bước với bằng chứng trước và sau
+  - Ưu tiên vùng sắp sửa đổi hoặc có lịch sử lỗi
+  - Thu hẹp dần phạm vi sau khi đã tạo được lưới kiểm chứng ban đầu
+  - Giới hạn của reflection và partial mock trong xử lý mã khó kiểm thử
+- level1: Khả năng bảo trì
+  level2:
+  - Ca kiểm thử như tài liệu hành vi có thể thực thi
+  - Tên rõ ràng, dữ liệu nhỏ và cấu trúc nhất quán
+  - Tránh kiểm tra chi tiết cài đặt dễ thay đổi khi refactor
+  - Tránh helper che khuất điều kiện hoặc kết quả mong đợi
+  - Loại bỏ logic lặp lại có rủi ro mà vẫn giữ ca dễ đọc
+  - Một ca có nhiều lý do thất bại và cách thu hẹp mục tiêu
+  - Tránh sao chép thuật toán sản phẩm vào phần tính kết quả mong đợi
+  - Quản lý fake dùng chung để không lệch hợp đồng thật
+  - Rà soát ca lỗi thời, trùng mục tiêu hoặc không còn cung cấp bằng chứng
+  - Thay đổi mã kiểm thử cùng thay đổi yêu cầu và thiết kế
+- level1: Độ ổn định
+  level2:
+  - Flaky unit test và các nguồn không xác định thường gặp
+  - Thời gian thật, ngẫu nhiên và phụ thuộc môi trường
+  - Trạng thái static hoặc singleton rò rỉ giữa các ca
+  - Khác biệt khi chạy riêng, chạy cả bộ hoặc chạy song song
+  - Thay đổi thứ tự để phát hiện phụ thuộc ngầm
+  - Giữ đầu vào, seed và thông tin chẩn đoán khi lỗi xảy ra
+  - Phân biệt lỗi sản phẩm, lỗi phép kiểm thử và lỗi bộ chạy
+  - Chạy lại thành công và phần nguyên nhân vẫn cần giải thích
+  - Xử lý hoặc cách ly có theo dõi khi ca chưa đủ tin cậy
+- level1: Mở rộng JUnit
+  level2:
+  - Khi nào cần extension thay cho helper hoặc fixture thông thường
+  - Đăng ký extension bằng @ExtendWith
+  - Callback trước sau phép kiểm thử và phạm vi tài nguyên
+  - ParameterResolver cho phụ thuộc phục vụ kiểm thử
+  - Quản lý dữ liệu trong ExtensionContext theo vòng đời phù hợp
+  - Annotation tổng hợp để chia sẻ quy ước có giới hạn
+  - Phối hợp nhiều extension và kiểm tra thứ tự hoạt động
+  - Kiểm chứng chính extension và tránh ẩn logic quan trọng của ca
+- level1: Build và CI
+  level2:
+  - Chạy unit test trong Maven Surefire hoặc Gradle Test
+  - Bộ chọn tên, package, tag và khả năng phát hiện ca
+  - Tách lượt chạy đơn vị khỏi các lượt chạy cần hạ tầng
+  - Đồng bộ JDK, phiên bản thư viện và cấu hình IDE với CI
+  - Fork JVM, chạy song song và giới hạn tài nguyên
+  - XML report, stack trace và đầu ra giúp chẩn đoán trên CI
+  - Kiểm tra số ca thực thi và các ca bị bỏ qua
+  - Tích hợp độ bao phủ hoặc mutation theo chi phí phản hồi
+  - Giữ chuỗi build thất bại khi bằng chứng kiểm chứng không đạt
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc assertion thất bại từ giá trị expected và actual
+  - Tìm đúng dòng nguyên nhân trong stack trace
+  - Không tìm thấy ca kiểm thử do engine, annotation hoặc bộ chọn
+  - NullPointerException từ mock chưa khởi tạo hoặc stubbing không khớp
+  - InvalidUseOfMatchersException và sai cách kết hợp matcher
+  - UnnecessaryStubbingException và fixture chuẩn bị thừa
+  - Wanted but not invoked và ranh giới tương tác đang kiểm chứng
+  - Lỗi spy do phương thức thật chạy ngoài dự kiến
+  - Vấn đề mock maker hoặc instrumentation sau khi đổi JDK
+  - Ca chỉ lỗi trên CI do môi trường, thứ tự hoặc thời điểm
+  - Tái hiện tối thiểu và kiểm tra giả thuyết trước khi nới lỏng assertion
+- level1: Thực hành tổng hợp
+  level2:
+  - Kiểm thử bộ tính phí thuần bằng bảng tình huống và giá trị biên
+  - Kiểm thử value object với bất biến và quy tắc bằng nhau
+  - Kiểm thử máy trạng thái nhỏ qua chuỗi hành động
+  - Tham số hóa các trường hợp kiểm tra dữ liệu đầu vào
+  - Kiểm thử service với repository thay thế và các nhánh không có dữ liệu
+  - Dùng captor để kiểm chứng nội dung sự kiện được yêu cầu phát
+  - Kiểm thử mốc hết hạn bằng Clock có thể điều khiển
+  - Tạo một ca không ổn định rồi loại bỏ phụ thuộc thời gian hoặc trạng thái
+  - Tìm assertion yếu bằng một thay đổi mã hoặc mutant sống
+  - Bổ sung characterization test trước khi tách logic của lớp cũ
+  - Xây dựng phép kiểm thử thuộc tính và lưu đầu vào gây lỗi
+  - Đánh giá ranh giới, độ tin cậy và khoảng trống cần kiểm thử tích hợp

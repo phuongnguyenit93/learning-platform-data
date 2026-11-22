@@ -1,0 +1,57 @@
+roadmap:
+- id: hop-dong-mo-rong
+  title: Hợp đồng mở rộng
+  purpose: Thiết kế ranh giới giữa ứng dụng chủ và phần mở rộng có thể thay thế.
+  objectives:
+  - Xác định điểm mở rộng bằng interface hoặc lớp trừu tượng.
+  - Tách API chung khỏi cách triển khai của plugin.
+  - Mô tả quy tắc tương thích và xử lý khi không có plugin.
+- id: kham-pha-dich-vu
+  title: Khám phá dịch vụ
+  purpose: Tìm và chọn phần triển khai bằng cơ chế SPI của Java.
+  objectives:
+  - Đăng ký provider qua META-INF/services hoặc uses/provides.
+  - Nạp và lựa chọn provider bằng ServiceLoader.
+  - Xử lý provider lỗi và phân biệt reload cache với thay thế mã đã nạp.
+- id: nap-va-co-lap-lop
+  title: Nạp và cô lập lớp
+  purpose: Kiểm soát nơi tìm mã và ngăn xung đột giữa các phần mở rộng.
+  objectives:
+  - Thiết kế quan hệ class loader cho API chung và plugin.
+  - Giải thích cùng tên lớp nhưng khác class loader.
+  - Kiểm tra phụ thuộc trùng và đóng URLClassLoader đúng vòng đời.
+- id: lop-module
+  title: Lớp module
+  purpose: Tổ chức phần mở rộng theo đồ thị module có ranh giới rõ ràng.
+  objectives:
+  - Giải quyết module bằng ModuleFinder và Configuration.
+  - Tạo ModuleLayer và khám phá dịch vụ trong layer.
+  - Phân biệt khả năng đọc module, exports và opens.
+- id: bien-dich-luc-chay
+  title: Biên dịch lúc chạy
+  purpose: Chuyển mã nguồn Java thành phần mở rộng trong tiến trình.
+  objectives:
+  - Kiểm tra khả năng có JavaCompiler qua ToolProvider.
+  - Biên dịch mã và thu thập thông báo lỗi có vị trí.
+  - Nạp kết quả với class loader và hợp đồng API phù hợp.
+- id: nhung-kich-ban
+  title: Nhúng kịch bản
+  purpose: Cho phép thay đổi quy tắc bằng ngôn ngữ kịch bản khi có engine phù hợp.
+  objectives:
+  - Khám phá ScriptEngine và xử lý trường hợp không có engine.
+  - Truyền dữ liệu qua Bindings và nhận kết quả thực thi.
+  - Xác định giới hạn tin cậy trước khi cho chạy kịch bản.
+- id: vong-doi-plugin
+  title: Vòng đời plugin
+  purpose: Quản lý khởi tạo, dừng và thay thế phần mở rộng mà không bỏ sót tài nguyên.
+  objectives:
+  - Thiết kế thao tác start/stop và dừng tác vụ đang chạy.
+  - Thu hồi tham chiếu, luồng và tài nguyên do plugin tạo.
+  - Giải thích vì sao đóng class loader không bảo đảm lớp được gỡ ngay.
+- id: kiem-chung-he-mo-rong
+  title: Kiểm chứng hệ mở rộng
+  purpose: Xác nhận tính tương thích và kiểm soát lỗi khi tích hợp nhiều plugin.
+  objectives:
+  - Kiểm thử thiếu provider, phụ thuộc xung đột và phiên bản API khác nhau.
+  - Khoanh vùng lỗi plugin để bảo vệ ứng dụng chủ.
+  - Chọn tiến trình riêng khi cần cô lập mã không tin cậy.

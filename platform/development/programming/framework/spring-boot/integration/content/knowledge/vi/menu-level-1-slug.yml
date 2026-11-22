@@ -1,0 +1,133 @@
+menu:
+- title: Tổng quan tích hợp
+  slug: integration-overview
+  index: 0
+- title: Cấu hình kết nối
+  slug: connection-configuration
+  index: 1
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 2
+- title: Lựa chọn HTTP client
+  slug: http-client-selection
+  index: 3
+- title: HTTP đồng bộ
+  slug: synchronous-http
+  index: 4
+- title: WebClient
+  slug: web-client
+  index: 5
+- title: HTTP interface
+  slug: http-interfaces
+  index: 6
+- title: SOAP và XML
+  slug: soap-and-xml
+  index: 7
+- title: RSocket
+  slug: rsocket
+  index: 8
+- title: Kết nối SQL
+  slug: sql-connectivity
+  index: 9
+- title: JDBC và jOOQ
+  slug: jdbc-and-jooq
+  index: 10
+- title: JPA và Hibernate
+  slug: jpa-and-hibernate
+  index: 11
+- title: Dữ liệu reactive
+  slug: reactive-data
+  index: 12
+- title: Khởi tạo và migration
+  slug: initialization-and-migration
+  index: 13
+- title: Redis
+  slug: redis
+  index: 14
+- title: MongoDB
+  slug: mongodb
+  index: 15
+- title: Các kho NoSQL khác
+  slug: other-nosql-stores
+  index: 16
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 17
+- title: Giao dịch tích hợp
+  slug: integration-transactions
+  index: 18
+- title: Nền tảng nhắn tin
+  slug: messaging-platforms
+  index: 19
+- title: RabbitMQ và AMQP
+  slug: rabbitmq-amqp
+  index: 20
+- title: Apache Kafka
+  slug: apache-kafka
+  index: 21
+- title: JMS
+  slug: jms
+  index: 22
+- title: Apache Pulsar
+  slug: apache-pulsar
+  index: 23
+- title: Spring Integration
+  slug: spring-integration
+  index: 24
+- title: Định tuyến và biến đổi
+  slug: routing-and-transformation
+  index: 25
+- title: Adapter tích hợp
+  slug: integration-adapters
+  index: 26
+- title: Lỗi và trạng thái flow
+  slug: flow-errors-and-state
+  index: 27
+- title: Tác vụ bất đồng bộ
+  slug: async-tasks
+  index: 28
+- title: Quartz
+  slug: quartz
+  index: 29
+- title: Spring Batch
+  slug: spring-batch
+  index: 30
+- title: Email
+  slug: email
+  index: 31
+- title: LDAP và thư mục
+  slug: ldap-and-directories
+  index: 32
+- title: Bảo mật kết nối
+  slug: connection-security
+  index: 33
+- title: Phục hồi khi lỗi
+  slug: failure-recovery
+  index: 34
+- title: Nhất quán và chống trùng
+  slug: consistency-and-deduplication
+  index: 35
+- title: Thư viện bổ sung
+  slug: supplementary-libraries
+  index: 36
+- title: Dịch vụ phát triển
+  slug: development-services
+  index: 37
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 38
+- title: Hợp đồng và lỗi biên
+  slug: contracts-and-edge-cases
+  index: 39
+- title: Quan sát tích hợp
+  slug: integration-observability
+  index: 40
+- title: Vận hành tích hợp
+  slug: integration-operations
+  index: 41
+- title: Gỡ lỗi và nâng cấp
+  slug: troubleshooting-upgrades
+  index: 42
+- title: Thực hành tổng hợp
+  slug: integration-practice
+  index: 43

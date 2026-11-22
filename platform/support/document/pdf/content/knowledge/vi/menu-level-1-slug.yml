@@ -1,0 +1,136 @@
+menu:
+- title: Tổng quan PDF
+  slug: overview
+  index: 0
+- title: Quy trình xử lý
+  slug: document-processing-workflow
+  index: 1
+- title: Công cụ Java
+  slug: java-pdf-libraries
+  index: 2
+- title: Khởi tạo PDFBox
+  slug: pdfbox-setup
+  index: 3
+- title: Cấu trúc PDF
+  slug: pdf-structure
+  index: 4
+- title: Trang và tọa độ
+  slug: pages-and-coordinates
+  index: 5
+- title: Font và Unicode
+  slug: fonts-and-unicode
+  index: 6
+- title: Văn bản
+  slug: text-handling
+  index: 7
+- title: Bố cục
+  slug: page-layout
+  index: 8
+- title: Bảng dữ liệu
+  slug: data-tables
+  index: 9
+- title: Hình ảnh
+  slug: images
+  index: 10
+- title: Đồ họa
+  slug: vector-graphics
+  index: 11
+- title: Điều hướng
+  slug: navigation
+  index: 12
+- title: Tạo PDF với iText
+  slug: itext-pdf-generation
+  index: 13
+- title: Tạo PDF với OpenPDF
+  slug: openpdf-pdf-generation
+  index: 14
+- title: HTML sang PDF
+  slug: html-to-pdf
+  index: 15
+- title: Markdown sang PDF
+  slug: markdown-to-pdf
+  index: 16
+- title: XML sang PDF
+  slug: xml-to-pdf
+  index: 17
+- title: Mẫu tài liệu
+  slug: document-templates
+  index: 18
+- title: Ghép và tách
+  slug: merge-and-split
+  index: 19
+- title: Sửa và đóng dấu
+  slug: editing-and-stamping
+  index: 20
+- title: Trích xuất văn bản
+  slug: text-extraction
+  index: 21
+- title: Trích xuất dữ liệu
+  slug: data-extraction
+  index: 22
+- title: Kết xuất và in
+  slug: rendering-and-printing
+  index: 23
+- title: OCR
+  slug: ocr
+  index: 24
+- title: Biểu mẫu
+  slug: forms
+  index: 25
+- title: Chú thích
+  slug: annotations
+  index: 26
+- title: Metadata và tệp đính kèm
+  slug: metadata-and-attachments
+  index: 27
+- title: Mã hóa PDF
+  slug: pdf-encryption
+  index: 28
+- title: Chữ ký số
+  slug: digital-signatures
+  index: 29
+- title: Xác minh chữ ký
+  slug: signature-verification
+  index: 30
+- title: Che xóa dữ liệu
+  slug: data-redaction
+  index: 31
+- title: Khả năng truy cập
+  slug: accessibility
+  index: 32
+- title: Lưu trữ PDF/A
+  slug: pdfa-archival
+  index: 33
+- title: In ấn PDF/X
+  slug: pdfx-print-production
+  index: 34
+- title: Tối ưu tệp
+  slug: file-optimization
+  index: 35
+- title: Thiết kế dịch vụ
+  slug: service-design
+  index: 36
+- title: Spring Boot
+  slug: spring-boot-integration
+  index: 37
+- title: Xử lý hàng loạt
+  slug: batch-processing
+  index: 38
+- title: An toàn đầu vào
+  slug: input-security
+  index: 39
+- title: Hiệu năng
+  slug: performance
+  index: 40
+- title: Kiểm thử
+  slug: testing
+  index: 41
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 42
+- title: Vận hành
+  slug: operations
+  index: 43
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 44

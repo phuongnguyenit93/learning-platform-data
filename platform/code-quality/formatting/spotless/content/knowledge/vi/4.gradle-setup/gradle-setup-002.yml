@@ -1,0 +1,3 @@
+menuLevel1: Thiết lập Spotless cho Gradle
+menuLevel2: Khai báo plugin Spotless bằng Kotlin DSL trong build.gradle.kts
+status: ""

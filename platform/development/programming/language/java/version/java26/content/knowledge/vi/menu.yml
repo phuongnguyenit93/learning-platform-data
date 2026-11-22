@@ -1,0 +1,276 @@
+menu:
+- level1: Định hướng Java 26
+  level2:
+  - Java 26 và các nhóm thay đổi ngôn ngữ, API, JVM, công cụ
+  - Phân biệt tính năng chính thức, preview và incubator
+  - Bản đồ tính năng Java 26 còn áp dụng trong JDK hiện hành
+  - Quan hệ giữa lazy constant, final và tối ưu của JVM
+  - Quan hệ giữa virtual thread, ScopedValue và tác vụ có cấu trúc
+  - Quan hệ giữa thu gom rác, khởi động và bộ đệm AOT
+  - Ranh giới ví dụ Java 26 và phần cập nhật API preview trên Java 27
+  - Cách đọc đặc tả, API Docs và ghi chú tương thích
+- level1: Môi trường thực hành
+  level2:
+  - Kiểm tra JDK của terminal, IDE, build và kiểm thử
+  - Chọn --release theo đúng ngôn ngữ và API đích
+  - Biên dịch, chạy preview bằng cùng phiên bản JDK
+  - Tách cấu hình Java 26 khỏi ví dụ preview Java 27
+  - Bật module jdk.incubator.vector khi biên dịch và chạy
+  - Cố định phiên bản dependency, plugin và annotation processor
+  - Tổ chức ví dụ, tài nguyên, dữ liệu mẫu và lệnh chạy
+  - Ghi lại môi trường, phần cứng và tiêu chí đánh giá
+- level1: HTTP/3
+  level2:
+  - HTTP/3 là API chính thức từ Java 26
+  - QUIC, UDP, TLS và quan hệ với HTTP/3
+  - So sánh luồng truyền HTTP/1.1, HTTP/2 và HTTP/3
+  - Chọn HttpClient.Version.HTTP_3 ở client hoặc request
+  - HTTP/3 không tự được chọn khi dùng cấu hình mặc định
+  - Điều kiện HTTPS và khả năng hỗ trợ của máy chủ
+  - HttpOption.H3_DISCOVERY và HttpRequest.Builder.setOption
+  - Chế độ khám phá HTTP/3 và chính sách dùng giao thức thay thế
+  - Giới hạn HTTP/3 qua proxy của triển khai JDK
+  - Kiểm tra giao thức thực tế bằng HttpResponse.version
+  - Phân biệt không hỗ trợ giao thức, lỗi TLS và lỗi kết nối
+- level1: Thực hành HTTP Client
+  level2:
+  - Tái sử dụng HttpClient và quản lý connection pool
+  - send đồng bộ và sendAsync với CompletableFuture
+  - Thời gian chờ kết nối, yêu cầu và xử lý hủy
+  - BodyHandler phù hợp với văn bản, tệp và dữ liệu truyền luồng
+  - Đọc hết, đóng hoặc hủy body để giải phóng tài nguyên
+  - Vòng đời HttpClient và kết thúc các yêu cầu còn chạy
+  - Tải một vùng tệp bằng BodyPublishers.ofFileChannel
+  - Offset, length và quyền sở hữu FileChannel
+  - Kiểm thử HTTP/3 với máy chủ thực sự hỗ trợ
+  - So sánh độ trễ, thông lượng và hành vi khi mất kết nối
+- level1: Pattern nguyên thủy
+  level2:
+  - Java 26 preview lần 4; Java 27 tiếp tục preview lần 5
+  - Phần thực hành dùng đặc tả preview Java 27 hiện hành
+  - Bài toán chuyển đổi số có kiểm tra độ chính xác
+  - Type pattern với kiểu nguyên thủy
+  - instanceof và phép chuyển đổi biểu diễn chính xác
+  - Pattern nguyên thủy trong record pattern
+  - switch với selector nguyên thủy và các nhãn tương thích
+  - Điều kiện when và phạm vi biến pattern
+  - Tính chi phối và các chuyển đổi luôn chính xác
+  - Tính đầy đủ, boxing, unboxing và null
+  - Kiểm thử giá trị biên, NaN, vô cực và số không có dấu
+- level1: Hằng khởi tạo trễ
+  level2:
+  - Lazy Constants preview lần 2 ở Java 26, lần 3 ở Java 27
+  - Phần thực hành dùng hợp đồng LazyConstant preview Java 27 hiện hành
+  - Bài toán khởi tạo sớm, khởi tạo lười và tham chiếu không đổi
+  - Tạo bằng LazyConstant.of và truy cập bằng get
+  - Hàm cung cấp giá trị và luồng thực hiện khởi tạo
+  - Khởi tạo nguyên tử và công bố dữ liệu an toàn giữa các luồng
+  - Phân biệt hằng giữ tham chiếu với đối tượng bất biến sâu
+  - Trạng thái lỗi, null và đệ quy theo đặc tả Java 27
+  - Giữ tham chiếu mạnh và giới hạn vòng đời dữ liệu
+  - Quan hệ static final, constant folding và tối ưu truy cập
+  - Tránh chu trình khởi tạo và công việc có thể chặn vô hạn
+  - Kiểm thử truy cập cạnh tranh, lỗi và số lần tính giá trị
+- level1: Tập hợp khởi tạo trễ
+  level2:
+  - List.ofLazy và Map.ofLazy trong nhóm API lazy constant preview
+  - Phần thực hành dùng API preview Java 27 hiện hành
+  - Xác định trước kích thước danh sách hoặc tập khóa
+  - Tính giá trị theo chỉ số hoặc theo khóa khi được truy cập
+  - Phân biệt tạo phần tử lười với pipeline Stream
+  - Khả năng không cho phép sửa đổi và bất biến của phần tử
+  - Chi phí giữ dữ liệu sau khi giá trị đã được tính
+  - Kiểm thử thứ tự truy cập, ngoại lệ và truy cập đồng thời
+- level1: Đồng thời có cấu trúc
+  level2:
+  - Structured Concurrency preview lần 6 ở Java 26, lần 7 ở Java 27
+  - Phần thực hành dùng hợp đồng StructuredTaskScope preview Java 27
+  - Bài toán quản lý vòng đời nhóm tác vụ liên quan
+  - Mở scope trong try-with-resources
+  - fork tác vụ, join và đọc kết quả theo chính sách
+  - Chủ sở hữu scope và giới hạn thao tác từ luồng khác
+  - Joiner để gom kết quả hoặc chọn kết quả thành công
+  - Thất bại một phần và cách chuyển lỗi cho công việc cha
+  - Thời gian chờ, hủy hợp tác và interruption
+  - Đóng scope và bảo đảm các tác vụ con đã kết thúc
+  - Kế thừa ngữ cảnh ScopedValue và quan hệ với virtual thread
+  - Kiểm thử hủy, tác vụ không phản hồi và rò rỉ công việc
+- level1: Vector API
+  level2:
+  - Vector API incubator lần 11 ở Java 26, lần 12 ở Java 27
+  - Phần thực hành dùng module và API incubator Java 27
+  - SIMD, lane và quan hệ với phép tính vô hướng
+  - VectorSpecies, VectorShape và kiểu phần tử
+  - Chọn species thích hợp trên phần cứng đích
+  - Nạp dữ liệu từ mảng và ghi kết quả
+  - Phép toán trên lane, so sánh và VectorMask
+  - Xử lý phần đuôi bằng mặt nạ hoặc vòng lặp vô hướng
+  - Phép giảm, đổi kiểu và sai số số thực
+  - JIT, đường thực thi vô hướng và giới hạn phần cứng
+  - Đo sau khi làm nóng, kiểm tra kết quả và chi phí bộ nhớ
+- level1: Định dạng PEM
+  level2:
+  - PEM Encodings preview lần 2 ở Java 26, lần 3 ở Java 27
+  - Phần thực hành dùng API PEM preview Java 27 hiện hành
+  - Quan hệ giữa PEM, Base64 và biểu diễn nhị phân DER
+  - Phân biệt khóa công khai, khóa riêng, chứng thư và danh sách thu hồi
+  - Tạo PEMEncoder và mã hóa đối tượng được hỗ trợ
+  - Tạo PEMDecoder và giải mã theo kiểu dữ liệu đích
+  - Nhãn PEM, nhiều khối dữ liệu và đầu vào không hợp lệ
+  - Khóa riêng được bảo vệ bằng mật khẩu và quản lý dữ liệu nhạy cảm
+  - Giới hạn provider và thuật toán được hỗ trợ
+  - Giải mã định dạng khác với kiểm tra độ tin cậy chứng thư
+  - Kiểm thử mã hóa, giải mã và trao đổi với công cụ độc lập
+  - Đóng tài nguyên đọc, ghi và tránh ghi khóa riêng vào log
+- level1: Tính toàn vẹn của final
+  level2:
+  - Vai trò final trong thiết kế dữ liệu và tối ưu JVM
+  - Cảnh báo sửa final bằng deep reflection từ Java 26
+  - Chế độ mặc định warn trên Java 26 và phạm vi cảnh báo
+  - Phân biệt đọc reflection, mở package và quyền sửa final
+  - Giới hạn với static final, record và hidden class
+  - Nhận diện framework hoặc thư viện còn sửa trường final
+  - Constructor, factory và cách thiết kế tránh sửa sau khởi tạo
+  - --enable-final-field-mutation và phạm vi module được cấp quyền
+  - --illegal-final-field-mutation cho kiểm tra, chẩn đoán theo JDK đích
+  - Phân biệt cảnh báo hiện tại với hạn chế dự kiến trong bản sau
+  - Kiểm thử với chế độ deny để phát hiện phụ thuộc
+  - Lập kế hoạch nâng thư viện và thu hẹp quyền tích hợp bắt buộc
+- level1: Cải tiến G1
+  level2:
+  - Bài toán đồng bộ giữa luồng ứng dụng và luồng GC
+  - Region, tham chiếu chéo vùng và vai trò card table
+  - Write barrier và chi phí cập nhật tham chiếu
+  - Hai card table trong cải tiến JEP 522 của Java 26
+  - Giảm đồng bộ hóa để cải thiện thông lượng
+  - Phân biệt thay đổi bên trong GC với hợp đồng API Java
+  - Ảnh hưởng của kiểu tải, tần suất ghi và dung lượng heap
+  - Đối chiếu GC log, CPU và thời gian dừng
+  - So sánh trước, sau trên cùng tải thay vì giả định mức tăng cố định
+  - Chọn cấu hình heap và mục tiêu độ trễ có căn cứ
+- level1: Bộ đệm AOT
+  level2:
+  - AOT cache và bài toán thời gian khởi động, làm nóng
+  - Java 26 cho phép bộ đệm đối tượng AOT dùng với mọi GC
+  - Biểu diễn đối tượng trung lập với bộ thu gom rác
+  - Quan hệ giữa CDS, lớp đã liên kết và đối tượng được lưu
+  - 'Ba giai đoạn: huấn luyện, tạo bộ đệm và chạy sử dụng'
+  - Chọn tải huấn luyện đại diện cho ứng dụng
+  - Tạo bộ đệm bằng -XX:AOTCacheOutput
+  - Sử dụng bộ đệm bằng -XX:AOTCache
+  - Kiểm tra bộ đệm được dùng qua -Xlog:aot
+  - Phân biệt độc lập GC với phụ thuộc ứng dụng, JDK, OS và CPU
+  - Tạo lại khi mã, dependency hoặc môi trường không còn tương thích
+  - Đo khởi động, làm nóng, dung lượng và hành vi khi không dùng được cache
+- level1: Vòng đời Process
+  level2:
+  - Process triển khai AutoCloseable và Closeable từ Java 26
+  - Tạo tiến trình bằng ProcessBuilder và xác định chủ sở hữu
+  - try-with-resources cho Process và các luồng dữ liệu
+  - Process.close đóng luồng và chờ tiến trình kết thúc
+  - Đọc dữ liệu cần giữ trước khi đóng
+  - waitFor, exitValue và xử lý mã kết thúc
+  - Tránh đầy bộ đệm stdout, stderr gây chặn lẫn nhau
+  - Thời gian chờ, interruption và chính sách dừng tiến trình
+  - Ngoại lệ khi đóng luồng và suppressed exceptions
+  - Kiểm thử đường thành công, lỗi và thu hồi tài nguyên
+- level1: JDBC 4.5
+  level2:
+  - Phạm vi cập nhật JDBC 4.5 trong Java 26
+  - JDBCType.JSON, JDBCType.DECFLOAT và khả năng của driver
+  - Truyền, nhận kiểu dữ liệu với cơ sở dữ liệu hỗ trợ
+  - Array, Blob, Clob, NClob và SQLXML hỗ trợ AutoCloseable
+  - Quan hệ close, free và vòng đời tài nguyên JDBC
+  - try-with-resources cùng thứ tự đóng Connection, Statement và ResultSet
+  - Connection.enquoteIdentifier và isSimpleIdentifier
+  - Phân biệt định danh SQL với giá trị tham số PreparedStatement
+  - Tương thích default method với các driver hiện có
+  - Kiểm thử driver, metadata, giao dịch và giải phóng tài nguyên
+- level1: Thời gian và định danh
+  level2:
+  - Instant.plusSaturating và bài toán vượt giới hạn thời gian
+  - Hành vi bão hòa tại Instant.MIN, Instant.MAX
+  - Phân biệt plusSaturating với phép cộng báo lỗi khi vượt miền
+  - Duration.MIN, Duration.MAX và giá trị biên
+  - Tính, so sánh và kiểm thử khoảng thời gian âm
+  - Tạo UUIDv7 bằng UUID.ofEpochMillis
+  - Phần thời gian, tính duy nhất và mục đích dùng UUIDv7
+  - Giới hạn giả định về thứ tự và độ chính xác đồng hồ
+  - Comparator.min, max và hợp đồng thứ tự
+  - Kiểm thử giá trị bằng nhau, null theo comparator và quy tắc miền
+- level1: Unicode và văn bản
+  level2:
+  - Hỗ trợ Unicode 17.0 trong Java 26
+  - Code point, UTF-16 code unit và ký tự người dùng nhìn thấy
+  - Tra thuộc tính ký tự bằng Character
+  - Chuẩn hóa văn bản bằng Normalizer
+  - Biểu thức chính quy và cụm ký tự grapheme
+  - Xử lý văn bản hai chiều với Bidi khi có nhu cầu
+  - NumberFormat.setStrict và việc phân tích dấu âm theo locale
+  - Kiểm thử dữ liệu đa ngôn ngữ, ký tự kết hợp và ký tự mới
+- level1: Mã hóa HPKE
+  level2:
+  - HPKE trong Cipher của Java 26 và bài toán trao đổi dữ liệu mã hóa
+  - Quan hệ KEM, KDF và AEAD
+  - HPKEParameterSpec và lựa chọn bộ thuật toán
+  - Khóa người nhận, vật liệu đóng gói và phía giải mã
+  - Các chế độ HPKE và tham số tương ứng
+  - Dữ liệu ngữ cảnh và dữ liệu xác thực bổ sung
+  - Phát hiện bản mã bị thay đổi hoặc tham số không khớp
+  - Quản lý khóa, provider và tính tương thích
+  - Kiểm thử trao đổi hai chiều, lỗi xác thực và dữ liệu biên
+- level1: Chính sách mật mã
+  level2:
+  - Thuộc tính jdk.crypto.disabledAlgorithms của Java 26
+  - Phạm vi dịch vụ JCA, JCE và ảnh hưởng của provider
+  - Phân biệt hạn chế thuật toán tổng quát, TLS và chứng thư
+  - Chữ ký JAR với ML-DSA được hỗ trợ từ Java 26
+  - Ký và xác minh bằng jarsigner hoặc JarSigner API
+  - Chuỗi chứng thư, dấu thời gian và độ tin cậy người ký
+  - Xử lý mật khẩu an toàn khi dùng keytool và jarsigner
+  - Kiểm thử khả năng đọc, xác minh trên môi trường đích
+- level1: Chẩn đoán và hiệu năng
+  level2:
+  - Thiết lập tải đo, đường cơ sở và điều kiện tái hiện
+  - MemoryMXBean.getTotalGcCpuTime và thời gian CPU dành cho GC
+  - Phân biệt CPU tích lũy, độ trễ GC và thời gian thực
+  - jcmd, JFR và phân tích CPU, cấp phát, I/O, khóa
+  - Thông tin chủ sở hữu park blocker trong thread dump
+  - Virtual thread chờ khởi tạo lớp và hành vi unmount trên Java 26
+  - Đo G1, AOT và HTTP/3 theo các mục tiêu riêng
+  - Kiểm tra sai số, biến động và chi phí công cụ quan sát
+  - Giới hạn dữ liệu nhạy cảm trong log và bản ghi
+- level1: Biên dịch và kiểm thử
+  level2:
+  - Build sạch với JDK và dependency đã cố định
+  - Cấu hình annotation processor tường minh
+  - Biên dịch ví dụ Java 26 chính thức riêng với preview Java 27
+  - Kiểm thử hợp đồng API và các trường hợp lỗi
+  - Kiểm thử đồng thời, giới hạn tài nguyên và đóng đúng vòng đời
+  - Kiểm tra Javadoc, mã ví dụ và tính đúng của liên kết
+  - Ma trận hệ điều hành, CPU, locale và phiên bản driver
+  - Tiêu chí nghiệm thu chức năng, hiệu năng và tương thích
+- level1: Nâng cấp và triển khai
+  level2:
+  - Kiểm kê runtime, thư viện, plugin và cấu hình JVM
+  - Đọc thay đổi tương thích trước khi chuyển lên Java 26
+  - Phát hiện API đã bị bỏ và thay bằng API công khai còn hỗ trợ
+  - Rà soát deep reflection và phụ thuộc vào sửa final
+  - Đối chiếu hợp đồng preview trước khi chuyển từ Java 26 sang 27
+  - Không tái sử dụng class file preview của phiên bản JDK khác
+  - Kiểm tra JDBC, giao thức mạng và chính sách thuật toán
+  - Tạo lại AOT cache cho ứng dụng và môi trường đích
+  - Đóng gói runtime, triển khai từng bước và theo dõi kết quả
+  - Kế hoạch quay lui dựa trên dữ liệu, cấu hình và phiên bản đã kiểm chứng
+- level1: Thực hành tổng hợp
+  level2:
+  - Gọi dịch vụ HTTP/3, kiểm chứng giao thức và đường dùng giao thức thay thế
+  - Khởi tạo thành phần đắt bằng LazyConstant preview Java 27
+  - Thử nhóm tác vụ có thời gian chờ trên API preview Java 27
+  - Thử pattern nguyên thủy và Vector bằng cấu hình Java 27 phù hợp
+  - Trao đổi đối tượng mật mã qua PEM preview Java 27
+  - Quản lý Process, FileChannel và tài nguyên JDBC
+  - Tạo định danh UUIDv7, tính hạn chót bằng plusSaturating
+  - Phát hiện sửa final và sửa thiết kế hoặc dependency
+  - Đo G1 và khởi động với AOT cache trên Java 26
+  - Bộ kiểm thử lỗi, tài nguyên, bảo mật và báo cáo nghiệm thu

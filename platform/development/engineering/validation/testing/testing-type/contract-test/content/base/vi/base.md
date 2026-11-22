@@ -1,0 +1,7 @@
+# Validation Testing Type – Contract Test
+
+Contract Test (kiểm thử hợp đồng) xác minh rằng các thành phần trao đổi dữ liệu với nhau theo thỏa thuận chung, đặc biệt giữa consumer và provider của API hoặc hệ thống messaging. Nó giúp phát hiện sớm thay đổi không tương thích trong request, response, schema hoặc thông điệp, trước khi các thành phần được triển khai chung. Phạm vi kiểm thử tập trung vào giao diện giao tiếp và những kỳ vọng cần thiết, thay vì kiểm tra toàn bộ luồng nghiệp vụ của ứng dụng.
+
+Lộ trình bắt đầu từ vai trò, ranh giới và các dạng hợp đồng, rồi đi qua đặc tả OpenAPI/schema, consumer-driven contract testing và provider verification. Tiếp theo là quản lý thay đổi, khả năng tương thích giữa các phiên bản, hợp đồng message bất đồng bộ và đưa xác minh hợp đồng vào CI. Những công cụ như Pact hoặc Spring Cloud Contract là ví dụ để thực hành và không thay thế tư duy thiết kế hợp đồng rõ ràng.
+
+Module phù hợp với developer, QA và tester đã có kiến thức cơ bản về API, HTTP và kiểm thử tự động. Sau khi hoàn thành, bạn có thể xác định điểm giao tiếp cần bảo vệ, viết các kiểm thử cho kỳ vọng của consumer, xác minh provider, đánh giá breaking change và sử dụng kết quả kiểm thử hợp đồng để hỗ trợ quyết định phát hành.

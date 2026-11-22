@@ -1,0 +1,466 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử HTTP là gì và những hành vi nào có thể quan sát từ phía máy khách
+  - Phân biệt HTTP testing, API testing, kiểm thử tích hợp và kiểm thử đầu cuối
+  - Vai trò của yêu cầu, phản hồi và điều kiện kiểm chứng trong một ca kiểm thử
+  - Kiểm thử không mở máy chủ và kiểm thử qua kết nối mạng thật
+  - Mối quan hệ giữa máy khách kiểm thử, ứng dụng, dịch vụ phụ thuộc và dữ liệu
+  - Phạm vi kiểm thử chức năng HTTP so với kiểm thử hợp đồng, bảo mật và hiệu năng
+  - Bản đồ công cụ HTTP trong hệ sinh thái Java và Spring
+  - Kiến thức nền và lộ trình từ yêu cầu đầu tiên đến bộ kiểm thử tự động
+- level1: Giao thức HTTP
+  level2:
+  - 'Cấu trúc URI: scheme, host, port, path, query và fragment'
+  - 'Cấu trúc thông điệp HTTP: phương thức, trường header, mã trạng thái và nội dung'
+  - Ngữ nghĩa GET, HEAD, POST, PUT, PATCH, DELETE và OPTIONS
+  - 'Tính an toàn và tính lũy đẳng của phương thức: ý nghĩa đối với kiểm thử'
+  - Phân loại mã trạng thái 1xx, 2xx, 3xx, 4xx và 5xx
+  - Phân biệt trạng thái HTTP với mã kết quả nghiệp vụ trong nội dung
+  - Đặc điểm không lưu trạng thái của HTTP và cách ứng dụng duy trì phiên
+  - Vai trò của máy chủ gốc, reverse proxy, gateway và bộ nhớ đệm
+  - Ảnh hưởng của HTTP/1.1, HTTP/2 và khả năng hỗ trợ giao thức của công cụ
+  - Phân biệt kiểm chứng ngữ nghĩa HTTP với kiểm tra chi tiết kết nối trên đường truyền
+- level1: Thiết kế ca kiểm thử
+  level2:
+  - Xác định đầu vào, tiền điều kiện, kết quả mong đợi và hậu điều kiện
+  - Xây ma trận phương thức, đường dẫn, danh tính, dữ liệu và loại nội dung
+  - Thiết kế ca hợp lệ, ca biên, ca không hợp lệ và ca thiếu điều kiện
+  - Chọn điều kiện kiểm chứng từ yêu cầu nghiệp vụ và hợp đồng API
+  - Kiểm chứng trạng thái tài nguyên sau yêu cầu thay vì chỉ kiểm tra mã 200
+  - Phân biệt kỳ vọng theo chuẩn HTTP với quy ước riêng của từng API
+  - Giữ mỗi ca độc lập và mô tả rõ các kịch bản cần nhiều yêu cầu
+  - Chuẩn bị dữ liệu tối thiểu để xác định chính xác nguyên nhân thất bại
+  - Đặt tên ca kiểm thử theo hành vi, điều kiện và kết quả mong đợi
+  - Chọn mức kiểm thử có thể phát hiện lỗi với chi phí thực thi phù hợp
+- level1: Lựa chọn công cụ
+  level2:
+  - So sánh curl, Java HttpClient và DSL chuyên kiểm thử như REST Assured
+  - Khi nào chọn MockMvc cho ứng dụng Spring MVC
+  - Khi nào chọn WebTestClient cho WebFlux hoặc máy chủ HTTP thật
+  - Vai trò Postman khi khám phá API và tổ chức collection
+  - Vai trò Postman CLI và khả năng tương thích của bộ collection dùng Newman
+  - Vai trò Karate khi mô tả kịch bản HTTP bằng DSL
+  - Vai trò SoapUI khi cần kiểm thử dịch vụ SOAP qua HTTP
+  - Đánh giá JDK, phiên bản Spring, định dạng dữ liệu và yêu cầu báo cáo
+  - Phân biệt công cụ gửi HTTP với mock server và thư viện assertion
+- level1: Môi trường và dữ liệu
+  level2:
+  - Cấu hình base URL, cổng và đường dẫn gốc theo môi trường
+  - Tách thông tin xác thực kiểm thử khỏi mã nguồn và dữ liệu production
+  - Khởi động ứng dụng và xác nhận sẵn sàng trước khi gửi yêu cầu
+  - Chọn dữ liệu cố định hoặc dữ liệu sinh mới có thể tái hiện
+  - Cấp mã định danh riêng cho từng ca và từng lượt chạy song song
+  - Chuẩn bị và thu hồi tài nguyên mà không phụ thuộc thứ tự test
+  - Cố định đồng hồ, múi giờ và seed khi kết quả phụ thuộc thời gian hoặc ngẫu nhiên
+  - Quản lý dịch vụ phụ thuộc thật hoặc thay thế theo mục tiêu kiểm thử
+  - Phân biệt giao dịch của luồng kiểm thử với giao dịch của máy chủ nhận HTTP
+  - Xác nhận đích kiểm thử và cấu hình thực tế trước khi chạy bộ có thay đổi dữ liệu
+- level1: Tạo yêu cầu
+  level2:
+  - Ghép base URL, base path và đường dẫn tài nguyên đúng cách
+  - Truyền path parameter và xử lý ký tự cần mã hóa
+  - Truyền query parameter đơn, nhiều giá trị và giá trị rỗng
+  - Phân biệt không truyền tham số, truyền chuỗi rỗng và truyền giá trị null
+  - Gửi JSON bằng chuỗi, tệp, Map hoặc đối tượng Java
+  - Gửi biểu mẫu application/x-www-form-urlencoded
+  - Gửi multipart/form-data với tệp và trường văn bản
+  - Gửi dữ liệu nhị phân hoặc nội dung thô với kiểu nội dung phù hợp
+  - Kiểm thử Unicode, dấu cách, ký tự dành riêng và lỗi mã hóa URL
+  - Kiểm tra đường dẫn không tồn tại, dấu gạch chéo cuối và phương thức không được hỗ trợ
+- level1: Header và nội dung
+  level2:
+  - Phân biệt Content-Type của nội dung gửi với Accept của phản hồi mong muốn
+  - Kiểm thử thương lượng kiểu nội dung và phản hồi khi không đáp ứng được
+  - Kiểm thử charset và mã hóa ký tự theo kiểu dữ liệu
+  - Kiểm thử Accept-Language và ngôn ngữ phản hồi theo hợp đồng
+  - Phân biệt Content-Encoding với định dạng dữ liệu sau giải nén
+  - Tên header không phân biệt hoa thường và quy tắc riêng của từng giá trị
+  - Đọc header nhiều giá trị và tránh gộp sai Set-Cookie
+  - Kiểm tra header bắt buộc, header tùy chọn và giá trị không hợp lệ
+  - Phân biệt Host, forwarded headers và địa chỉ công khai qua proxy
+  - Kiểm chứng metadata nội dung mà không phụ thuộc thứ tự header
+- level1: Kiểm chứng phản hồi
+  level2:
+  - Kiểm tra mã trạng thái chính xác theo từng tình huống
+  - Kiểm tra Content-Type và các header mang ý nghĩa nghiệp vụ
+  - Phân biệt phản hồi không có nội dung với chuỗi rỗng, null hoặc đối tượng rỗng
+  - Kiểm chứng nội dung của phản hồi HEAD, 204 và 304 theo ngữ nghĩa HTTP
+  - Kiểm tra giá trị, kiểu dữ liệu và các quan hệ giữa trường
+  - Kiểm chứng schema cùng với giá trị và quy tắc nghiệp vụ
+  - Trích xuất mã định danh hoặc liên kết để kiểm tra trạng thái tiếp theo
+  - Xử lý trường thay đổi theo thời gian và dữ liệu được máy chủ tự sinh
+  - Tạo thông báo thất bại có kỳ vọng, thực tế và vị trí dữ liệu sai
+  - Phân biệt đo thời gian một phản hồi với đánh giá hiệu năng hệ thống
+- level1: Dữ liệu JSON
+  level2:
+  - Phân biệt object, array, string, number, boolean và null
+  - Kiểm chứng sự tồn tại của trường và phân biệt trường thiếu với trường null
+  - Kiểm tra đối tượng lồng nhau và các phần tử trong mảng
+  - Kiểm tra số lượng, tính duy nhất và phần tử thuộc tập kết quả
+  - Phân biệt so sánh mảng có thứ tự với so sánh không phụ thuộc thứ tự
+  - Kiểm chứng số thập phân và tránh sai lệch kiểu số của thư viện đọc JSON
+  - Kiểm tra ngày giờ, UUID, enum và các giá trị có định dạng
+  - Kiểm chứng trường tùy chọn, trường bổ sung và khả năng tương thích dữ liệu
+  - Phân biệt các phương ngữ đường dẫn JSON và tránh chuyển biểu thức máy móc giữa công cụ
+  - Kiểm chứng JSON Schema theo phiên bản schema mà công cụ hỗ trợ
+  - Ánh xạ JSON sang đối tượng Java và kiểm chứng khi cấu trúc không khớp
+- level1: XML và dữ liệu khác
+  level2:
+  - Kiểm chứng cấu trúc XML bằng XPath và nhận diện namespace
+  - So sánh XML theo cấu trúc thay vì chuỗi văn bản nguyên trạng
+  - Kiểm tra thuộc tính, phần tử lặp, phần tử thiếu và nội dung rỗng
+  - Kiểm chứng XSD theo nhu cầu và giới hạn của xác thực schema
+  - 'Kiểm thử SOAP qua HTTP: envelope, header và phân biệt SOAP Fault với lỗi truyền tải'
+  - Kiểm thử văn bản, HTML và dữ liệu nhị phân bằng tiêu chí phù hợp
+  - 'Kiểm thử GraphQL qua HTTP: tách trạng thái truyền tải khỏi data và errors'
+  - Phân biệt nội dung bị lỗi cú pháp với nội dung hợp lệ nhưng sai nghiệp vụ
+- level1: Xác thực
+  level2:
+  - Phân biệt xác thực danh tính với phân quyền truy cập
+  - Gửi thông tin xác thực Basic qua kết nối HTTPS
+  - Gửi API key đúng vị trí header hoặc query theo hợp đồng
+  - Gửi Bearer token và quản lý token theo phạm vi từng lượt kiểm thử
+  - Chuẩn bị token OAuth 2.0 bằng luồng được hệ thống hỗ trợ
+  - Phân biệt kiểm thử với JWT thật và mô phỏng danh tính trong kiểm thử Spring
+  - Kiểm thử thiếu token, token sai định dạng, hết hạn hoặc không hợp lệ
+  - Kiểm thử thông tin xác thực sai và nội dung WWW-Authenticate khi áp dụng
+  - Cấp mới token có kiểm soát để tránh làm sai ý nghĩa ca kiểm thử hết hạn
+  - Che Authorization, API key và thông tin nhạy cảm trong log hoặc báo cáo
+- level1: Phân quyền
+  level2:
+  - Xây ma trận vai trò, phạm vi quyền, tài nguyên và hành động
+  - Kiểm thử người dùng chưa xác thực và người dùng thiếu quyền
+  - Phân biệt phản hồi 401 và 403 theo cơ chế bảo vệ được công bố
+  - Kiểm thử quyền sở hữu tài nguyên bằng hai danh tính độc lập
+  - Kiểm thử ranh giới dữ liệu giữa tổ chức hoặc tenant
+  - Kiểm thử quyền ở cấp trường và dữ liệu không được phép xuất hiện
+  - Kiểm tra yêu cầu bị từ chối không tạo tác dụng phụ ngoài ý muốn
+  - Đối chiếu kiểm thử phân quyền không qua mạng với luồng xác thực HTTP thật
+- level1: Cookie và phiên
+  level2:
+  - Nhận Set-Cookie và gửi Cookie trong các yêu cầu tiếp theo
+  - Quản lý cookie jar riêng cho từng người dùng hoặc kịch bản
+  - Kiểm thử thuộc tính Domain, Path, Secure, HttpOnly và thời hạn cookie
+  - Kiểm tra SameSite và phân biệt khả năng quan sát header với hành vi trình duyệt
+  - Kiểm thử đăng nhập, sử dụng phiên và đăng xuất
+  - Kiểm thử phiên hết hạn, phiên không hợp lệ và phiên bị thu hồi
+  - Kiểm thử thay đổi mã phiên và tránh dùng lại cookie giữa các ca
+  - Phân biệt phiên HTTP phía máy chủ với cơ chế token không lưu phiên
+- level1: Lỗi và đầu vào xấu
+  level2:
+  - Kiểm thử JSON hoặc XML sai cú pháp
+  - Kiểm thử trường bắt buộc bị thiếu, rỗng hoặc sai kiểu
+  - Kiểm thử giới hạn độ dài, khoảng giá trị và tổ hợp dữ liệu không hợp lệ
+  - Kiểm thử Content-Type không hỗ trợ và Accept không đáp ứng được
+  - Phân biệt tài nguyên không tồn tại với xung đột trạng thái tài nguyên
+  - Kiểm thử giới hạn kích thước yêu cầu và số lượng tham số
+  - Kiểm chứng cấu trúc lỗi, mã lỗi và vị trí trường gây lỗi
+  - Kiểm chứng application/problem+json khi API áp dụng chuẩn Problem Details
+  - Kiểm tra phản hồi lỗi không làm lộ stack trace hoặc thông tin nhạy cảm
+  - Kiểm thử lỗi dịch vụ phụ thuộc và phân biệt với lỗi kết nối từ máy khách
+  - Kiểm tra dữ liệu không bị ghi một phần khi yêu cầu thất bại
+- level1: Vòng đời tài nguyên
+  level2:
+  - 'Kiểm thử tạo tài nguyên: mã trạng thái, Location và mã định danh'
+  - Đọc lại tài nguyên vừa tạo và đối chiếu dữ liệu đã lưu
+  - Kiểm thử thay thế toàn phần bằng PUT theo hợp đồng API
+  - Kiểm thử cập nhật một phần bằng PATCH và định dạng bản vá được hỗ trợ
+  - Kiểm thử xóa tài nguyên và trạng thái ở các yêu cầu tiếp theo
+  - Kiểm thử yêu cầu lặp với các phương thức có tính lũy đẳng
+  - Kiểm thử chống tạo trùng bằng khóa lũy đẳng khi API có hỗ trợ
+  - Kiểm thử cập nhật đồng thời và phát hiện mất dữ liệu do ghi đè
+  - Tách kiểm chứng hành vi công khai khỏi việc phụ thuộc trực tiếp cấu trúc cơ sở dữ liệu
+- level1: Truy vấn và phân trang
+  level2:
+  - Kiểm thử điều kiện lọc riêng lẻ và tổ hợp nhiều điều kiện
+  - Kiểm thử sắp xếp tăng, giảm và thứ tự ổn định khi giá trị trùng
+  - Kiểm thử phân trang theo số trang, độ lệch hoặc con trỏ
+  - Kiểm tra giới hạn trang, trang rỗng và tham số vượt phạm vi
+  - Kiểm chứng tổng số phần tử và liên kết trang tiếp theo theo hợp đồng
+  - Kiểm tra không thiếu hoặc trùng dữ liệu giữa các trang với tập dữ liệu kiểm soát
+  - Kiểm thử từ khóa Unicode, ký tự đặc biệt và phân biệt hoa thường theo yêu cầu
+  - Kiểm tra trường tìm kiếm, trường sắp xếp và toán tử không được hỗ trợ
+  - Kiểm thử danh sách lớn có giới hạn mà không biến thành bài đo tải
+- level1: Truyền tệp
+  level2:
+  - Chuẩn bị multipart với tên trường, tên tệp và loại nội dung
+  - Tải lên một tệp, nhiều tệp và tệp kèm metadata
+  - Kiểm thử tệp rỗng, tệp vượt giới hạn và loại tệp bị từ chối
+  - Kiểm thử tên tệp Unicode và ký tự đặc biệt theo quy ước ứng dụng
+  - Đối chiếu metadata và nội dung sau khi tải lên
+  - Tải xuống và kiểm chứng Content-Type cùng Content-Disposition
+  - Kiểm chứng kích thước, checksum và tính toàn vẹn dữ liệu nhị phân
+  - Đọc nội dung theo luồng để tránh nạp toàn bộ tệp lớn vào bộ nhớ
+  - Kiểm thử Range và phản hồi một phần khi máy chủ hỗ trợ
+  - Dọn tệp tạm và dữ liệu phía máy chủ sau khi kiểm thử thất bại
+- level1: Điều kiện và cache
+  level2:
+  - Kiểm tra Cache-Control, Expires và Vary theo hợp đồng phản hồi
+  - Kiểm thử ETag và If-None-Match với tài nguyên không thay đổi
+  - Kiểm thử Last-Modified và If-Modified-Since khi được hỗ trợ
+  - Kiểm chứng phản hồi 304 và phân biệt với phản hồi thành công có nội dung
+  - Kiểm thử If-Match cho cập nhật có điều kiện và phát hiện phiên bản cũ
+  - Phân biệt phản hồi 412 với xung đột nghiệp vụ theo thiết kế API
+  - Kiểm tra tài nguyên thay đổi làm thay đổi bộ xác thực cache phù hợp
+  - Kiểm thử dữ liệu cá nhân không bị dùng chung sai giữa các danh tính
+  - Phân biệt header chỉ dẫn cache với hành vi của cache trung gian thật
+- level1: Chuyển hướng
+  level2:
+  - Kiểm chứng mã chuyển hướng và giá trị Location trước khi tự động đi theo
+  - Phân biệt 301, 302, 303, 307 và 308 về ngữ nghĩa phương thức
+  - Kiểm thử URL tương đối và URL tuyệt đối trong Location
+  - Kiểm soát số lần chuyển hướng và phát hiện vòng lặp
+  - Theo dõi thay đổi phương thức và nội dung gửi qua chuỗi chuyển hướng
+  - Kiểm soát Authorization và cookie khi chuyển sang origin khác
+  - Kiểm thử chuyển HTTP sang HTTPS và đường dẫn công khai sau reverse proxy
+  - Tránh kết luận sai do máy khách tự động che phản hồi trung gian
+- level1: Bất đồng bộ
+  level2:
+  - Kiểm thử 202 Accepted và thông tin theo dõi tác vụ theo hợp đồng
+  - Thăm dò trạng thái có thời hạn thay cho sleep cố định
+  - Kiểm chứng chuyển trạng thái chờ, đang xử lý, thành công và thất bại
+  - Kiểm thử phản hồi tạm thời khi dữ liệu chưa nhất quán ngay lập tức
+  - Giới hạn số lần thăm dò, khoảng nghỉ và tổng thời gian chờ
+  - Kiểm thử webhook hoặc callback bằng endpoint nhận có kiểm soát
+  - Liên kết callback với đúng yêu cầu bằng mã định danh tương quan
+  - Kiểm thử giao lại callback và chống xử lý trùng khi hệ thống hỗ trợ
+  - Dọn tác vụ và dữ liệu ngay cả khi kịch bản hết thời hạn
+- level1: Luồng dữ liệu
+  level2:
+  - Phân biệt phản hồi hữu hạn với kết nối truyền dữ liệu liên tục
+  - Kiểm thử Server-Sent Events theo loại nội dung, event, id và data
+  - Kiểm thử chuỗi JSON theo dòng và cách tách từng bản ghi
+  - Đặt điều kiện kết thúc hữu hạn cho kiểm thử stream
+  - Kiểm chứng thứ tự, dữ liệu và sự kiện lỗi của luồng
+  - Hủy subscription hoặc đóng kết nối để tránh treo bộ kiểm thử
+  - Kiểm thử mất kết nối và kết nối lại theo khả năng giao thức
+  - Giới hạn MockMvc khi cần quan sát dữ liệu thực sự truyền trên mạng
+  - Phân biệt kiểm thử HTTP handshake với kiểm thử thông điệp WebSocket
+- level1: Mạng và TLS
+  level2:
+  - Phân biệt lỗi DNS, lỗi kết nối, lỗi TLS và phản hồi lỗi HTTP
+  - Cấu hình connect timeout, read timeout và thời hạn tổng theo từng công cụ
+  - Kiểm thử máy chủ trả lời chậm hoặc không hoàn tất nội dung trong môi trường kiểm soát
+  - Quản lý truststore và chứng chỉ kiểm thử cho HTTPS
+  - Kiểm tra chứng chỉ sai hostname, không được tin cậy hoặc hết hạn
+  - Kiểm thử chứng chỉ máy khách khi dịch vụ sử dụng mTLS
+  - Cấu hình proxy và phân biệt đường đi mạng trong máy cá nhân, container với CI
+  - Đánh giá chính sách retry theo phương thức và khả năng gây tác dụng phụ
+  - Kiểm thử giới hạn tần suất, phản hồi 429 và Retry-After theo hợp đồng
+  - Giải phóng kết nối và tài nguyên khi hết thời hạn hoặc hủy yêu cầu
+- level1: curl
+  level2:
+  - Gửi GET, POST và các phương thức khác bằng curl
+  - Truyền query, header, JSON và dữ liệu từ tệp
+  - Gửi biểu mẫu và tệp multipart bằng các tùy chọn phù hợp
+  - Thu riêng mã trạng thái, header và nội dung phản hồi
+  - Dùng --fail-with-body và kiểm tra mã thoát trong script
+  - Phân biệt -I với việc gửi phương thức HEAD bằng tùy chọn -X
+  - Kiểm soát chuyển hướng, cookie và thời hạn yêu cầu
+  - Chẩn đoán kết nối bằng verbose hoặc trace và che thông tin bí mật
+  - Kiểm tra chứng chỉ bằng CA phù hợp thay cho bỏ xác minh TLS
+  - Xử lý dấu nháy, xuống dòng và curl.exe khi chạy từ PowerShell
+- level1: Java HttpClient
+  level2:
+  - Tạo HttpClient và HttpRequest với URI, header và BodyPublisher
+  - Gửi đồng bộ bằng send và kiểm chứng HttpResponse
+  - Chọn BodyHandler cho chuỗi, byte, tệp hoặc luồng dữ liệu
+  - Gửi JSON và ánh xạ dữ liệu bằng thư viện phù hợp
+  - Cấu hình redirect, proxy, authenticator và cookie handler
+  - Phân biệt timeout kết nối với timeout của yêu cầu
+  - Gửi bất đồng bộ bằng sendAsync và chờ kết quả có giới hạn
+  - Xử lý ngoại lệ mạng, InterruptedException và hủy CompletableFuture
+  - Tái sử dụng client, đóng stream và quản lý vòng đời tài nguyên trong Java 21
+  - Đóng gói mã gửi yêu cầu thành trợ giúp kiểm thử nhưng giữ rõ kỳ vọng từng ca
+- level1: REST Assured
+  level2:
+  - Khai báo REST Assured, JUnit và các static import cần thiết
+  - Viết kiểm thử đầu tiên theo given–when–then
+  - Cấu hình base URI, port, base path và request specification
+  - Gửi path parameter, query parameter, header và cookie
+  - Gửi body bằng chuỗi, Map hoặc đối tượng Java
+  - Kiểm chứng statusCode, header và body bằng Hamcrest matcher
+  - Trích xuất Response, mã định danh và dữ liệu cho bước tiếp theo
+  - Đọc JSON bằng JsonPath và phân biệt cú pháp của REST Assured với công cụ khác
+  - Đọc XML bằng XmlPath và xử lý namespace
+  - Gửi multipart và kiểm tra dữ liệu nhị phân
+  - Cấu hình object mapper và xử lý sai khác kiểu số
+  - Sử dụng module JSON Schema Validator và chọn schema tương thích
+- level1: Tái sử dụng REST Assured
+  level2:
+  - Xây RequestSpecification và ResponseSpecification theo phạm vi dùng chung
+  - Trộn specification với kỳ vọng riêng và kiểm tra thứ tự cấu hình
+  - Tách cấu hình xác thực, session và cookie theo từng kịch bản
+  - Viết Filter để thêm mã tương quan và thu bằng chứng yêu cầu
+  - Chỉ log khi kiểm chứng thất bại và che header nhạy cảm
+  - Cấu hình parser khi Content-Type của phản hồi không như mong đợi
+  - Điều khiển redirect, proxy và SSL theo môi trường kiểm thử
+  - Tránh trạng thái static dùng chung khi các ca chạy song song
+  - Tích hợp REST Assured với MockMvc và phân biệt với kết nối HTTP thật
+  - Thiết kế lớp trợ giúp theo nghiệp vụ mà không giấu yêu cầu hoặc điều kiện kiểm chứng
+- level1: MockMvc
+  level2:
+  - MockMvc kiểm thử Spring MVC qua DispatcherServlet như thế nào
+  - Phân biệt standaloneSetup với webAppContextSetup
+  - Gửi yêu cầu bằng MockMvcRequestBuilders và perform
+  - Kiểm tra status, header, content, jsonPath và xpath
+  - Kiểm thử request mapping, chuyển đổi kiểu và ràng buộc dữ liệu đầu vào
+  - Kiểm thử message converter, serialization và deserialization
+  - Kiểm thử @ControllerAdvice và ánh xạ ngoại lệ thành phản hồi lỗi
+  - Kiểm thử filter, interceptor và cấu hình liên quan đến HTTP
+  - Kiểm thử multipart và dữ liệu biểu mẫu
+  - Quản lý MockHttpSession và cookie qua nhiều yêu cầu
+  - Kiểm thử Servlet async bằng asyncStarted và asyncDispatch
+  - Phân biệt kiểm chứng phản hồi HTTP với model hoặc view phía máy chủ
+  - Những lỗi cổng, TLS, socket và máy chủ nhúng mà MockMvc không thể chứng minh
+- level1: WebTestClient
+  level2:
+  - Phân biệt bindToController, bindToApplicationContext và bindToServer
+  - Kiểm thử router function với bindToRouterFunction
+  - Gửi yêu cầu bằng URI, header, body và exchange
+  - Kiểm chứng expectStatus, expectHeader, expectCookie và expectBody
+  - Kiểm tra body JSON bằng jsonPath hoặc ánh xạ sang kiểu Java
+  - Kiểm chứng danh sách và phản hồi không có nội dung
+  - Dùng expectAll để thu nhiều lỗi kiểm chứng độc lập
+  - Lấy ExchangeResult để phân tích và dùng dữ liệu cho bước sau
+  - Kiểm thử Flux hoặc SSE bằng returnResult và StepVerifier có điểm kết thúc
+  - Cấu hình response timeout và giới hạn bộ nhớ đọc nội dung
+  - Kiểm thử Spring MVC bằng MockMvcWebTestClient khi phù hợp
+  - Phân biệt cấu hình không qua mạng với hành vi trên máy chủ thật
+- level1: Spring Boot
+  level2:
+  - Chọn @WebMvcTest, @WebFluxTest hoặc @SpringBootTest theo mục tiêu
+  - Dùng @AutoConfigureMockMvc và giữ đúng các thành phần cần kiểm thử
+  - Dùng @AutoConfigureWebTestClient theo loại ứng dụng và môi trường test
+  - Chạy máy chủ nhúng bằng webEnvironment=RANDOM_PORT
+  - Lấy cổng động và cấu hình máy khách HTTP đúng thời điểm
+  - Sử dụng TestRestTemplate trong kiểm thử máy chủ thật khi phù hợp
+  - Tích hợp cấu hình dịch vụ phụ thuộc mà không viết cứng địa chỉ
+  - Kiểm thử Spring Security bằng hỗ trợ test và đối chiếu luồng HTTP thật
+  - Hiểu phạm vi rollback khi yêu cầu được xử lý trên luồng máy chủ
+  - Giảm chi phí khởi tạo ApplicationContext mà vẫn giữ các ca độc lập
+  - Kiểm tra tương thích API kiểm thử với phiên bản Spring và Spring Boot của dự án
+- level1: Postman
+  level2:
+  - Tạo request và tổ chức collection, folder theo hành vi API
+  - Cấu hình phương thức, URL, params, headers, body và authorization
+  - Quản lý biến cục bộ, collection, environment, global và dữ liệu chạy
+  - Kiểm tra phạm vi biến và tránh dùng nhầm giá trị từ môi trường khác
+  - Viết kiểm chứng phản hồi bằng pm.test và pm.expect
+  - Đọc dữ liệu JSON, header, cookie và mã trạng thái trong script
+  - Dùng script trước yêu cầu để tạo dữ liệu hoặc chuẩn bị xác thực
+  - Lưu giá trị từ phản hồi để liên kết các bước trong kịch bản
+  - Phạm vi và thứ tự script ở cấp collection, folder và request
+  - Chạy dữ liệu nhiều hàng bằng Collection Runner
+  - Đọc Postman Console để chẩn đoán yêu cầu thực sự được gửi
+  - Quản lý dữ liệu bí mật và kiểm soát nội dung được lưu hoặc chia sẻ
+- level1: Chạy collection
+  level2:
+  - Chạy collection bằng Postman CLI từ tệp hoặc nguồn đã cấu hình
+  - Truyền environment, biến và dữ liệu chạy từ CSV hoặc JSON
+  - Lọc folder hoặc kịch bản và kiểm tra tập yêu cầu thực sự chạy
+  - Cấu hình số vòng lặp, thời hạn và điều kiện dừng khi thất bại
+  - Giữ mã thoát để bước CI phản ánh đúng kết quả kiểm chứng
+  - Xuất báo cáo và kiểm tra reporter hỗ trợ định dạng collection đang dùng
+  - Kiểm tra tương thích collection v2.1, v3 và khả năng thực thi theo phiên bản công cụ
+  - Đánh giá chuyển bộ kiểm thử dùng Newman sang Postman CLI
+  - Phân biệt chạy tệp cục bộ với chạy có liên kết và gửi kết quả lên dịch vụ
+  - Tách thông tin xác thực CLI khỏi token của API đang được kiểm thử
+- level1: Karate
+  level2:
+  - Vai trò Karate trong kiểm thử API và điều kiện phiên bản Java hỗ trợ
+  - Cấu trúc Feature, Background, Scenario và kịch bản gọi HTTP
+  - Khai báo url, path, param, header, request, method và status
+  - Kiểm chứng JSON hoặc XML bằng match và các bộ so khớp phù hợp
+  - Dùng biến, biểu thức và cấu hình theo môi trường
+  - Chạy nhiều bộ dữ liệu bằng Scenario Outline và Examples
+  - Tái sử dụng kịch bản chuẩn bị bằng cách gọi feature
+  - Trích xuất dữ liệu và liên kết các yêu cầu trong cùng kịch bản
+  - Chạy bằng JUnit hoặc CLI và quản lý tag, báo cáo theo phiên bản
+  - Giới hạn phạm vi HTTP khi Karate còn hỗ trợ UI, mock và kiểm thử hiệu năng
+- level1: Tích hợp kiểm thử
+  level2:
+  - Tổ chức test theo tài nguyên, hành vi và ranh giới hệ thống
+  - Tham số hóa nhiều đầu vào nhưng giữ tên từng tình huống rõ ràng
+  - Tách kiểm thử nhanh không qua mạng với kiểm thử máy chủ thật
+  - Tách cấu hình máy khách khỏi dữ liệu nghiệp vụ của ca kiểm thử
+  - Dùng mock server cho dịch vụ bên ngoài khi mục tiêu cần kiểm soát phản hồi
+  - Phân biệt kiểm thử mã HTTP client với kiểm thử endpoint của ứng dụng
+  - Kiểm chứng hợp đồng OpenAPI hoặc schema và giữ riêng kiểm chứng nghiệp vụ
+  - Chạy song song với tài khoản, cookie, token và dữ liệu độc lập
+  - Chọn tag, group hoặc tác vụ build cho smoke, hồi quy và kiểm thử tích hợp
+  - Dọn tài nguyên ở đường thành công, thất bại và hết thời hạn
+- level1: Bảo mật và trình duyệt
+  level2:
+  - Kiểm thử CORS bằng Origin và yêu cầu OPTIONS preflight
+  - Kiểm chứng Access-Control-Allow-Origin, Allow-Credentials và các header được công bố
+  - Phân biệt phản hồi CORS đúng header với cơ chế chặn của trình duyệt
+  - Kiểm thử CSRF token trong luồng dùng cookie hoặc phiên
+  - Phân biệt cơ chế CSRF với xác thực và phân quyền
+  - Kiểm tra header bảo vệ theo yêu cầu ứng dụng mà không áp đặt cho mọi loại API
+  - Kiểm thử giới hạn tần suất và tài nguyên trong phạm vi môi trường cho phép
+  - Kiểm tra lỗi không lộ thông tin xác thực, dữ liệu cá nhân hoặc chi tiết hạ tầng
+  - Nhận diện giới hạn của máy khách HTTP khi cần chứng minh chính sách cookie của trình duyệt
+  - Ranh giới giữa kiểm thử HTTP chức năng với đánh giá bảo mật chuyên sâu
+- level1: Báo cáo và CI
+  level2:
+  - Chạy bộ HTTP test bằng Gradle hoặc Maven và giữ đúng trạng thái thất bại
+  - Thiết lập readiness check trước tác vụ kiểm thử trong CI
+  - Truyền base URL, chứng chỉ và thông tin xác thực theo môi trường
+  - Lưu báo cáo JUnit XML, HTML hoặc báo cáo gốc của công cụ khi được hỗ trợ
+  - Gắn mã định danh test, lượt chạy và yêu cầu để liên kết log
+  - Thu yêu cầu và phản hồi khi lỗi nhưng che thông tin nhạy cảm
+  - Ghi nhận thời điểm, dữ liệu đầu vào và phiên bản ứng dụng cần tái hiện
+  - Giới hạn retry để không che lỗi nghiệp vụ hoặc tạo dữ liệu trùng
+  - Chạy song song có giới hạn và tránh gây quá tải môi trường kiểm thử
+  - Lưu bằng chứng khi job thất bại hoặc bị hủy và thu hồi tài nguyên
+  - Phân biệt test bị bỏ qua, không được chọn, không gửi yêu cầu và thực sự thành công
+- level1: Chẩn đoán sự cố
+  level2:
+  - Base URL, base path hoặc cổng sai dẫn đến phản hồi khác mong đợi
+  - Yêu cầu trả HTML hoặc trang đăng nhập thay vì JSON
+  - Mã hóa query hoặc path hai lần làm máy chủ hiểu sai đầu vào
+  - Content-Type, Accept hoặc charset không khớp
+  - Token sai phạm vi, hết hạn hoặc bị dùng lẫn giữa các ca
+  - Cookie không được gửi do domain, path hoặc chính sách máy khách
+  - Chuyển hướng tự động che mất phản hồi cần kiểm chứng
+  - JSON path sai phương ngữ hoặc so sánh kiểu số không phù hợp
+  - MockMvc thành công nhưng yêu cầu trên máy chủ thật thất bại
+  - Kiểm thử bất đồng bộ chập chờn do dữ liệu chưa sẵn sàng
+  - Lỗi TLS, proxy, DNS hoặc kết nối khác nhau giữa máy cá nhân với CI
+  - Test treo do stream không kết thúc hoặc kết nối chưa được giải phóng
+  - Test chỉ thất bại khi chạy toàn bộ do dữ liệu, phiên hoặc cấu hình dùng chung
+- level1: Bảo trì bộ kiểm thử
+  level2:
+  - Giữ kỳ vọng đủ chặt để phát hiện sai nhưng tránh phụ thuộc chi tiết không cam kết
+  - Tránh snapshot toàn phản hồi chứa mã định danh, thời gian hoặc thứ tự không ổn định
+  - Tái sử dụng cấu hình hợp lý mà không giấu đường dẫn, dữ liệu và kỳ vọng
+  - Giữ thư viện kiểm thử cùng schema và dữ liệu mẫu trong phạm vi phiên bản phù hợp
+  - Rà soát các ca vô hiệu hóa, retry kéo dài và dữ liệu còn sót
+  - Review thay đổi API dựa trên hành vi quan sát được và hợp đồng đã công bố
+  - Giảm ca trùng lặp giữa nhiều công cụ nhưng giữ các mức kiểm thử cần thiết
+  - Đánh giá chất lượng bằng khả năng phát hiện lỗi, chẩn đoán và tái hiện
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây bộ kiểm thử tạo, đọc, cập nhật và xóa tài nguyên bằng REST Assured
+  - Kiểm thử ma trận dữ liệu hợp lệ, biên và lỗi kiểm tra đầu vào
+  - Kiểm thử quyền sở hữu cùng tài nguyên bằng hai tài khoản độc lập
+  - Kiểm thử đăng nhập, cookie, đăng xuất và phiên hết hạn
+  - Kiểm thử upload, download và đối chiếu tính toàn vẹn tệp
+  - Kiểm thử ETag, yêu cầu có điều kiện và cập nhật với phiên bản cũ
+  - Kiểm thử tác vụ 202 bằng polling có thời hạn
+  - Kiểm thử SSE có điều kiện kết thúc và thu hồi kết nối
+  - So sánh MockMvc với kiểm thử cùng endpoint trên cổng ngẫu nhiên
+  - Chuyển chuỗi thao tác Postman thành collection chạy tự động trên CI
+  - Tái hiện lỗi bằng curl rồi bổ sung kiểm thử hồi quy trong Java
+  - Hoàn thiện bộ test chạy song song với dữ liệu độc lập và báo cáo có thể chẩn đoán
+- level1: Tra cứu
+  level2:
+  - Bảng chọn công cụ theo kiểm thử không qua mạng, máy chủ thật và collection
+  - Bảng phương thức HTTP, tính an toàn, tính lũy đẳng và điểm cần kiểm chứng
+  - Bảng mã trạng thái và trường hợp phản hồi không có nội dung
+  - Bảng đối chiếu gửi yêu cầu và kiểm chứng giữa REST Assured, MockMvc với WebTestClient
+  - Danh sách kiểm tra xác thực, phiên, redirect, cache và dữ liệu nhạy cảm
+  - Danh sách kiểm tra khi HTTP test thành công cục bộ nhưng thất bại trong CI
+  - Cách tra tài liệu đúng phiên bản và xác nhận giới hạn của công cụ

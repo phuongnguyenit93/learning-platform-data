@@ -1,0 +1,100 @@
+menu:
+- title: Định hướng
+  slug: orientation
+  index: 0
+- title: Luồng gọi công cụ
+  slug: tool-call-flow
+  index: 1
+- title: Thiết lập dự án
+  slug: project-setup
+  index: 2
+- title: Công cụ đầu tiên
+  slug: first-tool
+  index: 3
+- title: '@Tool và @ToolParam'
+  slug: tool-toolparam
+  index: 4
+- title: Schema đầu vào
+  slug: input-schema
+  index: 5
+- title: MethodToolCallback
+  slug: methodtoolcallback
+  index: 6
+- title: FunctionToolCallback
+  slug: functiontoolcallback
+  index: 7
+- title: ToolCallback tùy chỉnh
+  slug: custom-toolcallback
+  index: 8
+- title: Đăng ký công cụ
+  slug: tool-registration
+  index: 9
+- title: Phân giải động
+  slug: dynamic-resolution
+  index: 10
+- title: ToolContext
+  slug: toolcontext
+  index: 11
+- title: Vòng lặp tự động
+  slug: automatic-loop
+  index: 12
+- title: Tự điều phối
+  slug: manual-orchestration
+  index: 13
+- title: Giới hạn thực thi
+  slug: execution-limits
+  index: 14
+- title: Kết quả công cụ
+  slug: tool-results
+  index: 15
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 16
+- title: Streaming và đồng thời
+  slug: streaming-concurrency
+  index: 17
+- title: Lịch sử hội thoại
+  slug: conversation-history
+  index: 18
+- title: Bảo mật
+  slug: security
+  index: 19
+- title: Tác động nghiệp vụ
+  slug: business-impact
+  index: 20
+- title: Tích hợp dịch vụ
+  slug: service-integration
+  index: 21
+- title: Danh mục công cụ lớn
+  slug: large-tool-catalog
+  index: 22
+- title: Mở rộng advisor
+  slug: advisor-extensions
+  index: 23
+- title: Quan sát
+  slug: observability
+  index: 24
+- title: Kiểm thử
+  slug: testing
+  index: 25
+- title: Đánh giá chất lượng
+  slug: quality-evaluation
+  index: 26
+- title: Khác biệt mô hình
+  slug: model-differences
+  index: 27
+- title: Hiệu năng và chi phí
+  slug: performance-cost
+  index: 28
+- title: Vận hành
+  slug: operations
+  index: 29
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 30
+- title: Nâng cấp
+  slug: upgrades
+  index: 31
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 32

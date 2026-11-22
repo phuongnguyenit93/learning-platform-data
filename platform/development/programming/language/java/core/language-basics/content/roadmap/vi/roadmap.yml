@@ -1,0 +1,62 @@
+roadmap:
+- id: chuong-trinh-java-dau-tien
+  title: Chương trình Java đầu tiên
+  purpose: Hiểu đường đi từ mã nguồn đến chương trình chạy và cấu trúc tối thiểu cần có.
+  objectives:
+  - Phân biệt JDK, JVM và bytecode
+  - Biên dịch và chạy chương trình có main
+  - Nhận diện câu lệnh, khối lệnh và chú thích
+- id: bien-va-kieu-du-lieu
+  title: Biến và kiểu dữ liệu
+  purpose: Biểu diễn dữ liệu bằng kiểu phù hợp và kiểm soát phạm vi sử dụng biến.
+  objectives:
+  - Khai báo và khởi tạo biến
+  - Phân biệt kiểu nguyên thủy và kiểu tham chiếu
+  - Sử dụng literal, final và var
+  - Xác định phạm vi biến
+- id: chuyen-doi-kieu
+  title: Chuyển đổi kiểu
+  purpose: Hiểu khi nào Java chuyển đổi kiểu tự động và khi nào cần chuyển đổi tường minh.
+  objectives:
+  - Phân biệt mở rộng và thu hẹp kiểu
+  - Nhận biết mất dữ liệu khi ép kiểu
+  - Giải thích boxing và unboxing
+- id: toan-tu-va-bieu-thuc
+  title: Toán tử và biểu thức
+  purpose: Đọc và viết biểu thức để tính toán, so sánh và kết hợp điều kiện.
+  objectives:
+  - Sử dụng toán tử số học, so sánh và logic
+  - Áp dụng độ ưu tiên và dấu ngoặc
+  - Giải thích đánh giá ngắn mạch
+  - Phân biệt phép gán và phép so sánh
+- id: re-nhanh
+  title: Rẽ nhánh
+  purpose: Chọn luồng thực thi theo điều kiện hoặc giá trị đầu vào.
+  objectives:
+  - Sử dụng if và else
+  - Phân biệt câu lệnh switch và biểu thức switch
+  - Chọn nhánh mặc định và kết quả trả về
+- id: vong-lap
+  title: Vòng lặp
+  purpose: Lặp lại thao tác có điều kiện dừng rõ ràng.
+  objectives:
+  - Sử dụng for, while và do-while
+  - Duyệt dữ liệu bằng enhanced for
+  - Điều khiển vòng lặp bằng break và continue
+  - Nhận biết lỗi lệch chỉ số và vòng lặp vô hạn
+- id: mang-va-phuong-thuc
+  title: Mảng và phương thức
+  purpose: Tổ chức dữ liệu đơn giản và chia bài toán thành các thao tác có thể tái sử dụng.
+  objectives:
+  - Tạo và truy cập mảng theo chỉ số
+  - Duyệt mảng một chiều và nhiều chiều
+  - Khai báo phương thức, tham số và giá trị trả về
+  - Giải thích truyền tham trị
+- id: thuc-hanh-tong-hop
+  title: Thực hành tổng hợp
+  purpose: Kết hợp cú pháp cơ bản để giải bài toán nhỏ và tìm lỗi có hệ thống.
+  objectives:
+  - Đọc đầu vào và in kết quả
+  - Kết hợp phương thức, mảng và luồng điều khiển
+  - Phân biệt lỗi biên dịch, lỗi chạy và lỗi logic
+  - Kiểm tra các trường hợp biên

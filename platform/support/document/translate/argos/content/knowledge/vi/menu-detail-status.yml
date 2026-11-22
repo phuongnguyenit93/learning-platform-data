@@ -1,0 +1,1933 @@
+menu:
+- slug: argos-overview
+  title: Tổng quan Argos
+  childs:
+  - slug: argos-overview-001
+    title: Argos Translate là gì và giải quyết nhu cầu dịch ngoại tuyến nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argos-overview-002
+    title: Vai trò của Argos trong quy trình dịch tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argos-overview-003
+    title: 'Các khái niệm: bộ máy dịch, mô hình, cặp ngôn ngữ và đoạn văn bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argos-overview-004
+    title: Mối liên hệ giữa thư viện Python, CLI và giao diện đồ họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argos-overview-005
+    title: Mối liên hệ giữa Argos Translate và LibreTranslate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argos-overview-006
+    title: Luồng dữ liệu từ ứng dụng Java đến bộ máy Argos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argos-overview-007
+    title: Khả năng, giới hạn và điều kiện để dịch hoàn toàn ngoại tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: argos-overview-008
+    title: Lộ trình học và sản phẩm dịch tài liệu cần xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: machine-translation-basics
+  title: Nền tảng dịch máy
+  childs:
+  - slug: machine-translation-basics-001
+    title: Nguyên lý dịch máy nơ-ron và vai trò của dữ liệu huấn luyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-translation-basics-002
+    title: Vai trò của OpenNMT, CTranslate2 và mô hình đã chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-translation-basics-003
+    title: Tách từ thành token bằng SentencePiece
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-translation-basics-004
+    title: Phân tách câu và vai trò của Stanza hoặc spaCy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-translation-basics-005
+    title: Quan hệ giữa câu, đoạn văn và ngữ cảnh bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-translation-basics-006
+    title: Phân biệt số ký tự, số từ và số token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-translation-basics-007
+    title: Ảnh hưởng của lĩnh vực, thuật ngữ và dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-translation-basics-008
+    title: Ranh giới giữa dịch tự động, hiệu đính và bảo toàn định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-environment
+  title: Môi trường chạy
+  childs:
+  - slug: runtime-environment-001
+    title: Kiểm tra tương thích phiên bản Python, hệ điều hành và kiến trúc máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-environment-002
+    title: Tạo môi trường ảo và cài đặt argostranslate bằng pip
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-environment-003
+    title: Cố định phiên bản thư viện và các phụ thuộc để tái lập môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-environment-004
+    title: Kiểm tra CTranslate2, SentencePiece và bộ tách câu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-environment-005
+    title: Chuẩn bị Python và đường dẫn thực thi cho ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-environment-006
+    title: Cài đặt và kiểm tra trên Windows, Linux và macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-environment-007
+    title: Kiểm tra CPU và điều kiện sử dụng GPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-environment-008
+    title: Dịch thử một câu và xác minh môi trường hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-repository
+  title: Kho mô hình
+  childs:
+  - slug: model-repository-001
+    title: Phân biệt danh mục mô hình trực tuyến và mô hình đã cài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-002
+    title: Cấu trúc gói .argosmodel và thông tin mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-003
+    title: Mã ngôn ngữ nguồn, đích và tính có hướng của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-004
+    title: Cập nhật chỉ mục bằng update_package_index()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-005
+    title: Tra cứu gói bằng get_available_packages() và lọc cặp ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-006
+    title: Kiểm tra phiên bản, phụ thuộc và yêu cầu tương thích của gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-007
+    title: Kiểm tra thực tế khả năng hỗ trợ tiếng Việt và từng chiều dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-008
+    title: Lựa chọn mô hình theo miền nội dung và tài nguyên máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-repository-009
+    title: Ranh giới giữa sử dụng mô hình có sẵn và huấn luyện mô hình riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-lifecycle
+  title: Vòng đời mô hình
+  childs:
+  - slug: model-lifecycle-001
+    title: Tải gói bằng AvailablePackage.download()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-lifecycle-002
+    title: Cài mô hình từ tệp bằng install_from_path()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-lifecycle-003
+    title: Liệt kê mô hình đã cài và kiểm tra thư mục lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-lifecycle-004
+    title: Chuẩn bị mô hình và tài nguyên tách câu cho máy không có mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-lifecycle-005
+    title: Tách bước tải, cài mô hình khỏi bước phục vụ yêu cầu dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-lifecycle-006
+    title: Quản lý phiên bản mô hình, nâng cấp và quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-lifecycle-007
+    title: Gỡ mô hình và đánh giá ảnh hưởng đến các tuyến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-lifecycle-008
+    title: Kiểm tra nguồn gói, tính toàn vẹn và phục hồi sau cài đặt lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-line-tools
+  title: Công cụ dòng lệnh
+  childs:
+  - slug: command-line-tools-001
+    title: Vai trò của argospm và argos-translate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-tools-002
+    title: Quản lý chỉ mục và tìm mô hình với argospm update, search
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-tools-003
+    title: Cài, liệt kê và gỡ mô hình với argospm install, list, remove
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-tools-004
+    title: Chọn ngôn ngữ nguồn và đích khi gọi argos-translate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-tools-005
+    title: Dịch văn bản qua tham số và luồng nhập chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-tools-006
+    title: Xử lý UTF-8, dấu tiếng Việt và ký tự đặc biệt trong CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-tools-007
+    title: Phân biệt kết quả, thông báo lỗi và mã thoát của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-tools-008
+    title: Tự động hóa dịch thử và kiểm tra mô hình bằng CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: python-api
+  title: API Python
+  childs:
+  - slug: python-api-001
+    title: Phân chia trách nhiệm của argostranslate.package và argostranslate.translate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-002
+    title: Dịch cơ bản bằng translate(text, from_code, to_code)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-003
+    title: Tra cứu ngôn ngữ đã cài bằng get_installed_languages()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-004
+    title: Lấy đối tượng dịch bằng Language.get_translation()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-005
+    title: Sử dụng đối tượng Translation cho nhiều đoạn văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-006
+    title: Khởi tạo và tái sử dụng bộ máy dịch trong tiến trình sống lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-007
+    title: Xử lý đầu vào rỗng, cùng ngôn ngữ và cặp ngôn ngữ không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-008
+    title: Thiết kế hàm bao dịch văn bản với đầu vào và kết quả rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: python-api-009
+    title: Phân biệt API lõi Argos với chức năng do lớp tích hợp bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: language-pairs-routing
+  title: Ngôn ngữ và tuyến dịch
+  childs:
+  - slug: language-pairs-routing-001
+    title: Kiểm tra ngôn ngữ đã cài và chiều dịch thực sự khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-pairs-routing-002
+    title: Dịch trực tiếp và dịch qua ngôn ngữ trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-pairs-routing-003
+    title: Cơ chế tự nối các cặp mô hình để tạo tuyến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-pairs-routing-004
+    title: Ảnh hưởng của dịch trung gian đến độ trễ và chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-pairs-routing-005
+    title: Đối chiếu kết quả trực tiếp và kết quả qua ngôn ngữ trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-pairs-routing-006
+    title: Xác định ngôn ngữ nguồn rõ ràng và bổ sung bộ nhận diện khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-pairs-routing-007
+    title: Xử lý tài liệu đa ngôn ngữ ở cấp đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: language-pairs-routing-008
+    title: Quy định cách xử lý khi không có tuyến dịch phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-processing
+  title: Xử lý văn bản
+  childs:
+  - slug: text-processing-001
+    title: Đọc và ghi văn bản UTF-8 có dấu tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-002
+    title: Chuẩn hóa Unicode, ký tự điều khiển và dấu xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-003
+    title: Giữ ranh giới đoạn văn và chủ đích xuống dòng của tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-004
+    title: Chia văn bản dài theo câu và giới hạn phù hợp với mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-005
+    title: Xử lý câu quá dài, chữ viết tắt, dấu câu và danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-006
+    title: Bảo vệ URL, địa chỉ email, mã định danh và tên riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-007
+    title: Đánh dấu phần không dịch và kiểm tra khôi phục ký hiệu thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-008
+    title: Ghép kết quả theo đúng thứ tự mà không mất hoặc lặp đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-processing-009
+    title: Xử lý khoảng trắng, số liệu, đơn vị đo và ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-translation-workflow
+  title: Luồng dịch tài liệu
+  childs:
+  - slug: document-translation-workflow-001
+    title: Phân tách bước đọc tệp, trích xuất, dịch và dựng lại tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-002
+    title: Mô hình hóa khối văn bản và định danh ổn định cho từng đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-003
+    title: Xác định phần cần dịch và phần phải giữ nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-004
+    title: Giữ liên hệ giữa đoạn nguồn, bản dịch và vị trí trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-005
+    title: Lưu kết quả trung gian để tiếp tục công việc bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-006
+    title: Xử lý một đoạn lỗi mà vẫn theo dõi được trạng thái toàn tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-007
+    title: Phát hiện tài liệu thay đổi trước khi tái sử dụng kết quả cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-008
+    title: Ghi tệp đầu ra an toàn và tránh ghi đè tài liệu nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-translation-workflow-009
+    title: Xây dựng báo cáo phần đã dịch, bỏ qua, lỗi và cần hiệu đính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: markdown-translation
+  title: Dịch Markdown
+  childs:
+  - slug: markdown-translation-001
+    title: Phân tích Markdown thành cây cú pháp trước khi dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-002
+    title: Dịch tiêu đề, đoạn văn, danh sách và trích dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-003
+    title: Dịch nội dung bảng và bảo toàn cú pháp phân cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-004
+    title: Giữ nguyên khối mã, mã nội tuyến và tên API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-005
+    title: Dịch nhãn liên kết và văn bản thay thế của ảnh, giữ nguyên đích URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-006
+    title: Bảo toàn liên kết tham chiếu, chú thích và cú pháp mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-007
+    title: Chọn trường được dịch trong phần siêu dữ liệu đầu tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-008
+    title: Giữ ID mục và kiểm tra liên kết nội bộ khi tiêu đề thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-009
+    title: Xử lý HTML nhúng và nội dung đánh dấu không dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-010
+    title: Dựng lại Markdown và so sánh cấu trúc trước, sau khi dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: markdown-translation-011
+    title: Tổ chức tài liệu VI/EN và cập nhật bản dịch theo thay đổi nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: html-translation
+  title: Dịch HTML
+  childs:
+  - slug: html-translation-001
+    title: Vai trò của thư viện translate-html trong hệ sinh thái Argos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-translation-002
+    title: Cài translatehtml và gọi dịch trên tài liệu HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-translation-003
+    title: Lựa chọn nút văn bản và giữ nguyên cây DOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-translation-004
+    title: Xử lý nội dung nội tuyến để hạn chế mất ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-translation-005
+    title: Quy định phần script, style, code, pre và phần không dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-translation-006
+    title: Lựa chọn thuộc tính cần dịch như alt, title và placeholder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-translation-007
+    title: Bảo toàn URL, thuộc tính kỹ thuật và ký tự HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-translation-008
+    title: Kiểm tra HTML hợp lệ và làm sạch nội dung trước khi hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-formats
+  title: Định dạng tài liệu
+  childs:
+  - slug: document-formats-001
+    title: Vai trò và phạm vi của thư viện argos-translate-files
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-002
+    title: Kiểm tra định dạng được hỗ trợ theo phiên bản đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-003
+    title: Dịch tệp TXT và bảo toàn mã hóa, dòng, đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-004
+    title: Xử lý DOCX và kiểm tra đoạn văn, bảng, định dạng ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-005
+    title: Xử lý ODT, ODP, PPTX và EPUB theo khả năng của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-006
+    title: Đánh giá giới hạn bảo toàn bố cục và kiểm tra tệp sau dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-007
+    title: Thiết kế bộ trích xuất riêng cho JSON, YAML và tệp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-008
+    title: Giữ nguyên khóa, biến nội suy và quy tắc thông điệp trong tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-formats-009
+    title: Xử lý PDF hoặc ảnh qua bước trích xuất, OCR và dựng lại bên ngoài Argos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-connectivity
+  title: Kết nối Java
+  childs:
+  - slug: java-connectivity-001
+    title: Lựa chọn gọi tiến trình Python hoặc dịch vụ HTTP nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-002
+    title: Thiết kế TranslationClient và đối tượng yêu cầu, kết quả độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-003
+    title: Gọi Python bằng ProcessBuilder với danh sách tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-004
+    title: Truyền văn bản qua stdin và trả kết quả JSON qua stdout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-005
+    title: Đọc stdout, stderr đồng thời để tránh nghẽn tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-006
+    title: Thiết lập UTF-8 và xử lý đường dẫn có khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-007
+    title: Áp dụng thời gian chờ, hủy và thu hồi tiến trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-008
+    title: Thiết kế dịch vụ Python dùng Argos và tái sử dụng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-009
+    title: Gọi dịch vụ nội bộ bằng Java HttpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-010
+    title: Ánh xạ lỗi Python hoặc HTTP sang lỗi nghiệp vụ trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-connectivity-011
+    title: Phân biệt dịch vụ tự xây với LibreTranslate và phần tích hợp thuộc phạm vi module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Tách lớp cấu hình, bộ kết nối Argos và dịch vụ dịch tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Ràng buộc cấu hình đường dẫn Python, thư mục mô hình và địa chỉ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Lựa chọn bộ kết nối qua cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Quản lý khởi tạo, làm nóng và đóng tài nguyên theo vòng đời ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Kiểm tra đầu vào và giới hạn kích thước văn bản hoặc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Thực thi tác vụ dịch dài bên ngoài luồng xử lý yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Trả trạng thái, kết quả và lỗi nhất quán cho bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Tạo kiểm tra sức khỏe tiến trình và khả năng dịch của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Tách API minh họa tùy chọn khỏi chức năng dịch cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Phân loại lỗi đầu vào, thiếu mô hình, tiến trình và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Thiết lập thời gian chờ theo đoạn và toàn tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Chỉ thử lại lỗi tạm thời với giới hạn và thời gian chờ tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Giới hạn tác vụ đồng thời và tạo sức ép ngược khi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Ngắt gọi dịch vụ đang lỗi bằng circuit breaker khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Giữ thứ tự kết quả khi các đoạn hoàn tất khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Thiết kế yêu cầu lặp lại không tạo kết quả hoặc tệp trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Hủy tác vụ, dọn tài nguyên và tiếp tục từ kết quả trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Quy định trả lỗi, kết quả một phần hoặc chuyển sang xử lý thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Phân biệt thời gian khởi động, tải mô hình và thời gian dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo độ trễ, thông lượng, bộ nhớ và dung lượng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tái sử dụng tiến trình và làm nóng các cặp ngôn ngữ cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chọn số tiến trình, luồng và mức song song theo tài nguyên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Đánh giá CPU, GPU và ARGOS_DEVICE_TYPE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Điều chỉnh kích thước đoạn và cân bằng ngữ cảnh với thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Thiết kế bộ nhớ đệm theo văn bản, ngôn ngữ, phiên bản mô hình và quy tắc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Giới hạn dung lượng bộ nhớ đệm và tránh dùng kết quả sai phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: So sánh hiệu năng dịch trực tiếp và dịch qua ngôn ngữ trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: translation-quality
+  title: Chất lượng bản dịch
+  childs:
+  - slug: translation-quality-001
+    title: Xác định tiêu chí đúng nghĩa, đầy đủ, tự nhiên và nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-002
+    title: Xây dựng bộ mẫu đối chiếu theo ngôn ngữ và lĩnh vực tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-003
+    title: Phát hiện bỏ sót, lặp đoạn, sai ngôn ngữ và văn bản không được dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-004
+    title: Đánh giá thuật ngữ, tên riêng, chữ viết tắt và cách xưng hô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-005
+    title: Phát hiện thay đổi nguy hiểm ở số liệu, phủ định và điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-006
+    title: Xây dựng bảng thuật ngữ ở lớp xử lý ngoài và đánh giá giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-007
+    title: So sánh các mô hình bằng cùng bộ dữ liệu và quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-008
+    title: Sử dụng BLEU hoặc chrF cùng đánh giá thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: translation-quality-009
+    title: Tổ chức hiệu đính và ghi nhận trường hợp cần con người quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị cho phân đoạn, đánh dấu bảo vệ và ghép kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Giả lập TranslationClient để kiểm thử Java độc lập với Python
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử tích hợp Python, Argos và một mô hình cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử hợp đồng JSON giữa ứng dụng Java và tiến trình hoặc dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử tiếng Việt, emoji, Unicode và văn bản đa ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử bảo toàn mã nguồn, URL, biến nội suy và cấu trúc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử thiếu mô hình, tiến trình lỗi, quá hạn và hủy tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử hồi quy bản dịch khi nâng phiên bản thư viện hoặc mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử tải và chạy không có mạng sau khi chuẩn bị đủ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử khả năng mở và hiển thị tài liệu đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Đóng gói dịch vụ Python và ứng dụng Java với phiên bản cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Chuẩn bị mô hình, tài nguyên tách câu và phụ thuộc trong giai đoạn dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Cấu hình ARGOS_PACKAGE_INDEX và kho mô hình nội bộ khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Cấu hình ARGOS_PACKAGES_DIR và quyền truy cập thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Đóng gói container, lưu mô hình ngoài ảnh và quản lý dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Triển khai ở máy có mạng và môi trường cách ly mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Thiết lập giới hạn CPU, RAM, GPU và số tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Ghi nhật ký và số đo vận hành mà không lộ văn bản tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Nâng cấp từng đợt, kiểm tra khả năng dịch và quay lui phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-010
+    title: Sao lưu cấu hình, danh mục mô hình và kết quả tác vụ cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-safety
+  title: An toàn dữ liệu
+  childs:
+  - slug: data-safety-001
+    title: Xác minh dữ liệu và tài nguyên nào còn có thể phát sinh truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-002
+    title: Bảo vệ văn bản nhạy cảm trong nhật ký, tệp tạm và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-003
+    title: Giới hạn truy cập dịch vụ HTTP nội bộ và xác thực bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-004
+    title: Ngăn chèn lệnh khi Java gọi tiến trình Python
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-005
+    title: Kiểm tra loại tệp, kích thước, đường dẫn và tài liệu nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-006
+    title: Chỉ cài mô hình từ nguồn tin cậy và kiểm soát chuỗi cung ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-007
+    title: Thiết lập quyền tối thiểu và thời hạn lưu, xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-008
+    title: Kiểm tra giấy phép thư viện, mô hình và quyền sử dụng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-diagnostics
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: error-diagnostics-001
+    title: Không tìm thấy Python, module argostranslate hoặc lệnh CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-002
+    title: Lỗi cài phụ thuộc, thư viện native hoặc không khớp kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-003
+    title: Cập nhật chỉ mục hoặc tải mô hình thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-004
+    title: Đã cài mô hình nhưng tiến trình không nhìn thấy thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-005
+    title: Không tìm thấy ngôn ngữ, sai chiều dịch hoặc thiếu tuyến trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-006
+    title: Thiếu tài nguyên tách câu khi chạy không có mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-007
+    title: Lỗi mã hóa, mất dấu tiếng Việt hoặc sai ký tự xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-008
+    title: Tiến trình bị treo do luồng nhập xuất hoặc thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-009
+    title: Khởi động chậm, hết bộ nhớ hoặc GPU không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-010
+    title: Bản dịch sai thuật ngữ, thiếu ngữ cảnh hoặc không đúng ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-011
+    title: Hỏng cấu trúc Markdown, HTML hoặc bố cục tài liệu sau dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-012
+    title: Thu thập thông tin phiên bản và tái hiện lỗi bằng ví dụ tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Thiết lập một cặp ngôn ngữ và dịch ngoại tuyến bằng Python, CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xây dựng bộ kết nối Java gọi Python với giao thức JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Xây dựng dịch vụ Argos nội bộ và gọi từ Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Dịch Markdown kỹ thuật và kiểm tra giữ nguyên mã nguồn, liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Dịch HTML hoặc DOCX và đánh giá cấu trúc đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Dịch hàng loạt với bộ nhớ đệm, giới hạn song song và tiếp tục tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Đối chiếu dịch trực tiếp, dịch trung gian và hiệu đính thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Đóng gói bộ dịch tài liệu chạy được trong môi trường không có mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

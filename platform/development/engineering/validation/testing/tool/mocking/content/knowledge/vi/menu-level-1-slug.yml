@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Các loại test double
+  slug: test-double-types
+  index: 1
+- title: Thiết kế dễ kiểm thử
+  slug: testable-design
+  index: 2
+- title: Công cụ và môi trường
+  slug: tools-environment
+  index: 3
+- title: Bài kiểm thử đầu tiên
+  slug: first-test
+  index: 4
+- title: Khởi tạo mock
+  slug: mock-creation
+  index: 5
+- title: Hành vi mặc định
+  slug: default-behavior
+  index: 6
+- title: Khai báo giá trị trả về
+  slug: return-value-stubbing
+  index: 7
+- title: Ngoại lệ và phương thức void
+  slug: exceptions-void-methods
+  index: 8
+- title: Đối sánh tham số
+  slug: argument-matchers
+  index: 9
+- title: Kiểm chứng tương tác
+  slug: interaction-verification
+  index: 10
+- title: Thứ tự lời gọi
+  slug: invocation-order
+  index: 11
+- title: Thu thập tham số
+  slug: argument-captors
+  index: 12
+- title: Answer tùy biến
+  slug: custom-answers
+  index: 13
+- title: Spy và mock một phần
+  slug: spies-partial-mocks
+  index: 14
+- title: Đặc điểm kiểu Java
+  slug: java-type-considerations
+  index: 15
+- title: Static và khởi tạo
+  slug: static-construction-mocking
+  index: 16
+- title: Vòng đời và độ nghiêm ngặt
+  slug: lifecycle-strictness
+  index: 17
+- title: Kết hợp JUnit
+  slug: junit-integration
+  index: 18
+- title: Kết hợp Spring
+  slug: spring-integration
+  index: 19
+- title: Kiểm thử nghiệp vụ
+  slug: business-logic-testing
+  index: 20
+- title: Phụ thuộc bên ngoài
+  slug: external-dependencies
+  index: 21
+- title: Bất đồng bộ và đa luồng
+  slug: asynchronous-multithreaded
+  index: 22
+- title: Cấu hình nâng cao
+  slug: advanced-configuration
+  index: 23
+- title: EasyMock
+  slug: easymock
+  index: 24
+- title: Công cụ khác và mã cũ
+  slug: legacy-alternatives
+  index: 25
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 26
+- title: Chất lượng bài kiểm thử
+  slug: test-quality
+  index: 27
+- title: Tái cấu trúc và bảo trì
+  slug: refactoring-maintenance
+  index: 28
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 29

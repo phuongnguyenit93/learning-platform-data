@@ -1,0 +1,3 @@
+menuLevel1: Luồng với JNI
+menuLevel2: MonitorEnter, MonitorExit và nguy cơ bế tắc khi gọi lại Java đang giữ khóa
+status: WRITTEN

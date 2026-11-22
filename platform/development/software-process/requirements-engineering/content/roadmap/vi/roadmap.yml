@@ -1,0 +1,64 @@
+roadmap:
+- id: re-scope-system-context
+  title: RE, Scope & System Context
+  purpose: Hiểu mục đích kỹ nghệ yêu cầu và xác định ranh giới vấn đề cần giải quyết.
+  objectives:
+  - Phân biệt nhu cầu, yêu cầu và giải pháp triển khai.
+  - Viết problem statement và mục tiêu dự án.
+  - Vẽ system context với tác nhân, hệ thống bên ngoài.
+- id: stakeholders-business-goals
+  title: Stakeholders & Business Goals
+  purpose: Xác định người liên quan, lợi ích và mục tiêu cần đáp ứng trước khi thiết kế chức năng.
+  objectives:
+  - Liệt kê user, sponsor, operator và stakeholder chịu ảnh hưởng.
+  - Lập ma trận vai trò, mức ảnh hưởng và nhu cầu.
+  - Liên kết nhu cầu với mục tiêu kinh doanh đo được.
+- id: requirements-elicitation
+  title: Requirements Elicitation
+  purpose: Thu thập nhu cầu từ nhiều nguồn thay vì dựa vào giả định của nhóm phát triển.
+  objectives:
+  - Chọn interview, workshop, observation hoặc khảo sát.
+  - Soạn câu hỏi mở và ghi nhận nguồn/điều kiện sử dụng.
+  - Phân biệt yêu cầu đã xác nhận với giả định cần kiểm chứng.
+- id: analysis-conflict-resolution
+  title: Analysis & Conflict Resolution
+  purpose: Làm rõ tính đầy đủ, khả thi và giải quyết mâu thuẫn giữa những nhu cầu.
+  objectives:
+  - Phát hiện yêu cầu mơ hồ, trùng lặp hoặc xung đột.
+  - So sánh lựa chọn theo giá trị, rủi ro và ràng buộc.
+  - Ghi quyết định, người phê duyệt và vấn đề còn mở.
+- id: use-cases-requirement-models
+  title: Use Cases & Requirement Models
+  purpose: Diễn đạt hành vi và tương tác của hệ thống bằng mô hình dễ thảo luận.
+  objectives:
+  - Vẽ use-case diagram và mô tả main/alternate flow.
+  - Dùng activity hoặc state diagram cho quy trình quan trọng.
+  - Kiểm tra tính nhất quán giữa mô hình và yêu cầu văn bản.
+- id: specification-user-stories
+  title: Specification & User Stories
+  purpose: Viết yêu cầu rõ ràng, kiểm chứng được và phù hợp cách phát triển của nhóm.
+  objectives:
+  - Phân biệt SRS có cấu trúc với backlog/user story.
+  - Viết yêu cầu có ID, nguồn, điều kiện và kết quả mong đợi.
+  - Bổ sung acceptance criteria dạng tình huống cụ thể.
+- id: quality-nonfunctional-requirements
+  title: Quality & Nonfunctional Requirements
+  purpose: Đưa thuộc tính chất lượng và ràng buộc thành điều kiện có thể đo lường.
+  objectives:
+  - Phân loại performance, security, availability và usability.
+  - Viết ngưỡng đo được cho latency, tải hoặc độ sẵn sàng.
+  - Liên hệ thuộc tính chất lượng với ISO/IEC 25010.
+- id: validation-acceptance
+  title: Validation & Acceptance
+  purpose: Xác nhận yêu cầu phản ánh đúng nhu cầu và đủ rõ để kiểm thử.
+  objectives:
+  - Tổ chức review hoặc prototype walkthrough cùng stakeholder.
+  - Viết test scenario từ acceptance criteria và edge cases.
+  - Phân biệt validation nhu cầu với verification đặc tả.
+- id: prioritization-traceability-change
+  title: Prioritization, Traceability & Change
+  purpose: Quản lý giá trị, phụ thuộc và thay đổi yêu cầu xuyên suốt vòng đời sản phẩm.
+  objectives:
+  - Ưu tiên backlog theo giá trị, rủi ro và phụ thuộc.
+  - Liên kết requirement ID với design, test và release.
+  - Đánh giá impact của change request và cập nhật baseline.

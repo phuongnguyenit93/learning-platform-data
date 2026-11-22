@@ -1,0 +1,7 @@
+# Software Process Methodology Lifecycle Models
+
+Software Development Life Cycle (SDLC) mô tả các hoạt động cần quản lý để tạo ra, triển khai, vận hành, bảo trì và cuối cùng ngừng sử dụng phần mềm. Mô hình vòng đời giúp sắp xếp những hoạt động này theo các giai đoạn, vòng lặp hoặc các đợt bàn giao phù hợp với mức độ ổn định yêu cầu, rủi ro và cách làm việc của nhóm. Các mô hình không thay thế kỹ thuật viết mã hay kiểm thử; chúng giúp đội dự án biết khi nào cần ra quyết định, kiểm chứng và lấy phản hồi.
+
+Module dành cho người đã quen các khái niệm yêu cầu, thiết kế, phát triển và kiểm thử phần mềm. Lộ trình bắt đầu từ SDLC và Waterfall, sau đó xem V-Model như cách liên kết các bước phát triển với verification/validation; tiếp theo là iterative, incremental, Spiral dựa trên rủi ro và prototyping/RAD. Phần cuối giới thiệu cách tiếp cận thích ứng, phân phối liên tục và phương pháp so sánh, kết hợp mô hình. V-Model thường mô tả giai đoạn phát triển, không bao quát toàn bộ vận hành và ngừng dùng của vòng đời sản phẩm.
+
+Sau khi hoàn thành, bạn có thể phác họa luồng công việc của từng mô hình, phân biệt iteration với increment, đánh giá vai trò của phản hồi và quản trị rủi ro, rồi lựa chọn hoặc kết hợp cách tiếp cận cho một dự án cụ thể. Không có mô hình nào phù hợp với mọi tình huống: việc lựa chọn cần xét quy mô, yêu cầu kiểm soát, sự sẵn có của stakeholder, chi phí thay đổi và tần suất bàn giao.

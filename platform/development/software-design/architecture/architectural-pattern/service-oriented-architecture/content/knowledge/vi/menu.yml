@@ -1,0 +1,426 @@
+menu:
+- level1: Tổng quan SOA
+  level2:
+  - SOA là gì và kiến trúc hướng dịch vụ giải quyết vấn đề nào
+  - Từ tích hợp từng cặp đến tổ chức hệ thống theo dịch vụ
+  - Dịch vụ, khả năng nghiệp vụ và hợp đồng dịch vụ
+  - Bên cung cấp, bên sử dụng và bên trung gian dịch vụ
+  - Thông điệp, điểm cuối và tương tác giữa các dịch vụ
+  - Bản đồ thành phần và luồng yêu cầu trong một hệ thống SOA
+  - SOA ở cấp tổ chức và kiến trúc bên trong một dịch vụ
+  - SOA với kiến trúc phân lớp, ứng dụng nguyên khối và mô-đun
+  - 'SOA với microservices: điểm chung, khác biệt và phạm vi áp dụng'
+  - Khi nên dùng SOA và khi chi phí tích hợp vượt lợi ích
+  - Lộ trình học và thuật ngữ cốt lõi của SOA
+- level1: Nền tảng phân tán
+  level2:
+  - Lời gọi nội bộ và lời gọi qua mạng khác nhau như thế nào
+  - Độ trễ, băng thông và chi phí tuần tự hóa dữ liệu
+  - Lỗi từng phần và giới hạn của việc suy luận từ mất kết nối
+  - Thời hạn chờ, thời hạn tổng và trạng thái kết quả chưa xác định
+  - Giao tiếp đồng bộ và bất đồng bộ
+  - Phân biệt chấp nhận yêu cầu với hoàn tất nghiệp vụ
+  - Mất, trùng lặp và đảo thứ tự thông điệp
+  - Tính nhất quán và tính sẵn sàng khi mạng bị phân hoạch
+  - Thời gian, đồng hồ và thứ tự sự kiện trong hệ thống phân tán
+  - Ranh giới tin cậy và sự phụ thuộc giữa các hệ thống
+- level1: Nguyên lý dịch vụ
+  level2:
+  - Hợp đồng chuẩn hóa và sự độc lập của bên sử dụng
+  - Liên kết lỏng và những phụ thuộc vẫn tồn tại
+  - Trừu tượng hóa dịch vụ và che giấu chi tiết triển khai
+  - Khả năng tái sử dụng và giới hạn của tái sử dụng
+  - Quyền tự chủ của dịch vụ và quyền kiểm soát tài nguyên
+  - Giảm trạng thái hội thoại và quản lý trạng thái nghiệp vụ
+  - Khả năng khám phá và diễn đạt ý nghĩa dịch vụ
+  - Khả năng kết hợp dịch vụ thành quy trình lớn hơn
+  - Tính kết dính và mức độ liên kết giữa các dịch vụ
+  - Tính tương tác giữa nền tảng, ngôn ngữ và nhà cung cấp
+  - Cân bằng các nguyên lý thay vì áp dụng máy móc
+- level1: Phân tích nghiệp vụ
+  level2:
+  - Xác định mục tiêu kinh doanh và phạm vi sáng kiến SOA
+  - Lập bản đồ khả năng nghiệp vụ của tổ chức
+  - Phân rã quy trình nghiệp vụ và tìm điểm tương tác
+  - Nhận diện tác nhân, hệ thống hiện hữu và bên sở hữu dữ liệu
+  - Phân biệt khả năng nghiệp vụ với chức năng kỹ thuật
+  - Xây dựng từ vựng chung và làm rõ ý nghĩa dữ liệu
+  - Xác định sự kiện nghiệp vụ và các mốc thay đổi trạng thái
+  - Thu thập yêu cầu chất lượng và ràng buộc tích hợp
+  - Phân tích yêu cầu pháp lý, tổ chức và hệ thống kế thừa
+  - Chọn quy trình thí điểm và tiêu chí thành công
+- level1: Ranh giới dịch vụ
+  level2:
+  - Chuyển khả năng nghiệp vụ thành ứng viên dịch vụ
+  - Thiết kế từ trên xuống, từ dưới lên và kết hợp hai hướng
+  - Chọn độ hạt của dịch vụ và thao tác
+  - Phân biệt ranh giới dịch vụ với bảng dữ liệu và thực thể
+  - Sử dụng ngữ cảnh giới hạn để làm rõ ranh giới ngữ nghĩa
+  - Xác định chủ sở hữu và trách nhiệm của từng dịch vụ
+  - Đặt ranh giới theo dữ liệu, giao dịch và nhịp thay đổi
+  - Nhận diện giao tiếp quá nhiều và dịch vụ phụ thuộc vòng
+  - Phân tích ảnh hưởng của chia nhỏ hoặc gộp dịch vụ
+  - Kiểm chứng ranh giới bằng kịch bản nghiệp vụ
+  - Ghi nhận quyết định ranh giới và các đánh đổi
+- level1: Danh mục dịch vụ
+  level2:
+  - Danh mục dịch vụ và mô hình dịch vụ ở cấp tổ chức
+  - Dịch vụ nghiệp vụ và dịch vụ kỹ thuật dùng chung
+  - Dịch vụ thực thể, dịch vụ tác vụ và dịch vụ tiện ích
+  - Dịch vụ nguyên tử và dịch vụ kết hợp
+  - Dịch vụ quy trình và vai trò điều phối
+  - Phân biệt dịch vụ công khai với thành phần nội bộ
+  - Xác định phạm vi dùng chung giữa các miền nghiệp vụ
+  - Định danh, đặt tên và phân nhóm dịch vụ
+  - Lập bản đồ phụ thuộc giữa bên cung cấp và bên sử dụng
+  - Tránh danh mục trùng lặp và lớp dịch vụ không cần thiết
+- level1: Hợp đồng dịch vụ
+  level2:
+  - 'Các phần của hợp đồng: chức năng, dữ liệu, lỗi và chất lượng'
+  - Thiết kế theo hợp đồng trước hay theo triển khai trước
+  - Đặt tên thao tác theo ý nghĩa nghiệp vụ
+  - Định nghĩa đầu vào, đầu ra và điều kiện hợp lệ
+  - Tiền điều kiện, hậu điều kiện và bất biến nghiệp vụ
+  - Ngữ nghĩa của truy vấn, lệnh và thông báo sự kiện
+  - Cam kết về tính lũy đẳng và khả năng thử lại
+  - Mô hình lỗi nghiệp vụ và lỗi kỹ thuật
+  - Phân biệt kết quả đồng bộ với trạng thái tác vụ dài
+  - Định nghĩa giới hạn sử dụng, thời hạn chờ và kích thước dữ liệu
+  - Tài liệu hợp đồng và ví dụ tương tác
+  - Đánh giá hợp đồng từ góc nhìn bên sử dụng
+- level1: Mô hình thông điệp
+  level2:
+  - Cấu trúc bao thông điệp, phần đầu và phần dữ liệu
+  - Phân biệt mô hình dữ liệu truyền tải với mô hình nội bộ
+  - XML, JSON và lựa chọn định dạng trao đổi
+  - Lược đồ XSD và JSON Schema trong kiểm tra dữ liệu
+  - Trường bắt buộc, tùy chọn, giá trị rỗng và giá trị mặc định
+  - Định danh nghiệp vụ và định danh thông điệp
+  - Mã liên kết, mã nguyên nhân và ngữ cảnh truy vết
+  - Biểu diễn thời gian, múi giờ, tiền tệ và đơn vị đo
+  - Mô hình dữ liệu chuẩn dùng chung và chi phí quản trị
+  - Ánh xạ dữ liệu giữa các ngữ cảnh khác nhau
+  - Tệp đính kèm, dữ liệu lớn và tham chiếu ngoài thông điệp
+  - Phân loại dữ liệu nhạy cảm và giảm dữ liệu truyền đi
+- level1: SOAP và WS-*
+  level2:
+  - SOAP trong SOA và các trường hợp tích hợp doanh nghiệp
+  - Cấu trúc SOAP Envelope, Header, Body và Fault
+  - SOAP 1.1 và SOAP 1.2 trong tương thích tích hợp
+  - 'WSDL: kiểu dữ liệu, thông điệp, thao tác, binding và endpoint'
+  - 'WSDL 1.1 và WSDL 2.0: nhận diện hợp đồng đang sử dụng'
+  - XML Namespace, QName và quản lý lược đồ XSD
+  - Document/Literal, RPC và khả năng tương tác
+  - SOAP Fault và thiết kế lỗi theo hợp đồng
+  - WS-Addressing và định danh tương tác
+  - WS-Policy và công bố yêu cầu của điểm cuối
+  - WS-Security trong bảo vệ thông điệp
+  - WS-ReliableMessaging và giới hạn bảo đảm truyền nhận
+  - MTOM/XOP cho dữ liệu nhị phân
+  - Giới hạn của bộ tiêu chuẩn WS-* và lựa chọn mức hỗ trợ
+- level1: REST và HTTP
+  level2:
+  - 'SOA với REST: phân biệt kiến trúc hướng dịch vụ và phong cách giao tiếp'
+  - Mô hình tài nguyên và thiết kế URI
+  - Ngữ nghĩa HTTP method và tính lũy đẳng
+  - Mã trạng thái HTTP và mô hình phản hồi lỗi
+  - Biểu diễn tài nguyên, Content-Type và thương lượng nội dung
+  - Phân trang, lọc và sắp xếp trên hợp đồng truy vấn
+  - Bộ nhớ đệm HTTP, ETag và yêu cầu có điều kiện
+  - Xử lý cập nhật đồng thời bằng kiểm soát phiên bản
+  - Tác vụ dài với phản hồi chấp nhận và điểm cuối trạng thái
+  - OpenAPI và tài liệu hợp đồng HTTP
+  - Khi chọn SOAP, REST hoặc nhắn tin cho một tương tác
+- level1: Nhắn tin bất đồng bộ
+  level2:
+  - Hàng đợi, chủ đề và vai trò của môi giới thông điệp
+  - Mô hình điểm tới điểm và xuất bản–đăng ký
+  - Lệnh, sự kiện và tài liệu trong giao tiếp bất đồng bộ
+  - Xác nhận gửi, xác nhận nhận và thời điểm xử lý thành công
+  - At-most-once, at-least-once và phạm vi của exactly-once
+  - Khóa thông điệp, phân vùng và bảo toàn thứ tự
+  - Nhóm bên tiêu thụ và xử lý song song
+  - Tương quan yêu cầu–phản hồi qua thông điệp
+  - Thông điệp lỗi, hàng đợi lỗi và xử lý thông điệp độc hại
+  - Lưu giữ, phát lại và hết hạn thông điệp
+  - Điều tiết luồng và xử lý bên tiêu thụ chậm
+  - AsyncAPI và mô tả hợp đồng bất đồng bộ
+- level1: Tích hợp hệ thống
+  level2:
+  - Tích hợp qua tệp, cơ sở dữ liệu, lời gọi từ xa và thông điệp
+  - Mô hình hub-and-spoke và mô hình tích hợp từng cặp
+  - Bộ chuyển đổi giao thức và bộ kết nối hệ thống
+  - Lớp chống xâm lấn cho hệ thống kế thừa
+  - Chuyển đổi định dạng và ánh xạ ngữ nghĩa dữ liệu
+  - Kiểm tra, chuẩn hóa và làm giàu thông điệp
+  - Tích hợp hệ thống có sẵn mà không làm lộ mô hình nội bộ
+  - Tích hợp đối tác bên ngoài và ranh giới doanh nghiệp
+  - Trao đổi theo lô và xử lý gần thời gian thực
+  - Thiết kế luồng lỗi và đối soát cho quá trình tích hợp
+  - Quản lý phụ thuộc vào sản phẩm và nhà cung cấp tích hợp
+- level1: ESB và trung gian
+  level2:
+  - ESB là gì và vai trò trung gian trong SOA
+  - Định tuyến, chuyển đổi và điều phối trên ESB
+  - Định tuyến theo nội dung, quy tắc và danh sách người nhận
+  - Chuỗi xử lý và bộ lọc thông điệp
+  - Tách thông điệp, gom kết quả và điều kiện hoàn tất
+  - Kênh thông điệp không hợp lệ và kênh thông điệp lỗi
+  - Thực thi chính sách và bảo vệ điểm cuối tập trung
+  - Phân biệt ESB, API Gateway và môi giới thông điệp
+  - Phân biệt ESB với service mesh theo phạm vi trách nhiệm
+  - Nguy cơ ESB trở thành điểm nghẽn và điểm lỗi đơn
+  - Giới hạn logic nghiệp vụ trên lớp trung gian
+  - Khi dùng ESB tập trung, tích hợp phân tán hoặc kết hợp
+- level1: Phối hợp dịch vụ
+  level2:
+  - Orchestration và choreography trong quy trình liên dịch vụ
+  - Phân biệt bộ điều phối với dịch vụ nghiệp vụ
+  - Kết hợp dịch vụ tuần tự, song song và theo điều kiện
+  - Quản lý trạng thái và tính bền vững của quy trình
+  - Tương quan thông điệp với phiên bản quy trình đang chạy
+  - Quy trình kéo dài và tác vụ có con người tham gia
+  - BPMN và ranh giới giữa mô hình với khả năng thực thi
+  - BPEL trong hệ sinh thái điều phối dịch vụ SOAP
+  - Xử lý hết hạn, hủy bỏ và tiếp tục quy trình
+  - Bù trừ khi quy trình hoàn tất một phần
+  - Nâng cấp quy trình khi còn phiên bản đang chạy
+  - Tránh bộ điều phối toàn năng và vòng lặp sự kiện
+- level1: Dữ liệu dịch vụ
+  level2:
+  - Quyền sở hữu dữ liệu và nguồn dữ liệu có thẩm quyền
+  - Cơ sở dữ liệu dùng chung và dữ liệu do dịch vụ quản lý
+  - Đồng bộ dữ liệu tham chiếu giữa các hệ thống
+  - Sao chép dữ liệu và độ trễ hội tụ
+  - Truy vấn qua nhiều dịch vụ và kết hợp kết quả
+  - Phân biệt dữ liệu nguồn với mô hình đọc dẫn xuất
+  - Quản lý dữ liệu chủ và danh tính thực thể liên hệ thống
+  - Theo dõi thay đổi dữ liệu và tích hợp dựa trên CDC
+  - Giải quyết xung đột và chính sách cập nhật
+  - Đối soát, sửa dữ liệu và phục hồi sau lỗi tích hợp
+  - Vòng đời, lưu giữ và xóa dữ liệu phân tán
+- level1: Giao dịch phân tán
+  level2:
+  - Giao dịch cục bộ và giới hạn khi vượt ranh giới dịch vụ
+  - Bất biến nghiệp vụ và yêu cầu nhất quán thực sự
+  - Two-Phase Commit và vai trò của bộ điều phối giao dịch
+  - XA và JTA trong hệ sinh thái Java
+  - WS-Coordination, WS-AtomicTransaction và WS-BusinessActivity
+  - Chi phí khóa, lỗi bộ điều phối và giới hạn tính sẵn sàng
+  - Saga và chuỗi giao dịch cục bộ
+  - Thiết kế thao tác bù trừ theo ý nghĩa nghiệp vụ
+  - Transactional Outbox cho thay đổi dữ liệu và phát thông điệp
+  - Inbox và xử lý thông điệp trùng lặp
+  - Giữ chỗ tài nguyên, xác nhận và giải phóng
+  - Trạng thái trung gian và trải nghiệm người sử dụng
+  - Lựa chọn 2PC, Saga hoặc đối soát theo yêu cầu hệ thống
+- level1: Khả năng phục hồi
+  level2:
+  - Lập ngân sách thời gian cho chuỗi lời gọi dịch vụ
+  - Timeout và truyền thời hạn tổng qua các tầng
+  - Retry với backoff, jitter và giới hạn số lần
+  - Phân loại lỗi được phép thử lại
+  - Khóa lũy đẳng và lưu kết quả xử lý
+  - Circuit Breaker và phục hồi kết nối tới dịch vụ lỗi
+  - Bulkhead và cô lập tài nguyên
+  - Giới hạn đồng thời, hàng đợi hữu hạn và từ chối tải
+  - Rate limiting, quota và bảo vệ bên cung cấp
+  - Fallback và giới hạn của dữ liệu thay thế
+  - Tránh retry storm và khuếch đại tải giữa nhiều tầng
+  - Phục hồi sau khởi động lại và xử lý đang dở
+  - Thiết kế kịch bản suy giảm chức năng có kiểm soát
+- level1: Bảo mật dịch vụ
+  level2:
+  - Mô hình đe dọa và ranh giới tin cậy trong SOA
+  - Xác thực, phân quyền và danh tính dịch vụ
+  - TLS và mTLS cho bảo mật đường truyền
+  - OAuth 2.0, OpenID Connect và phạm vi sử dụng
+  - JWT, token tham chiếu và kiểm tra hiệu lực
+  - SAML và liên kết danh tính trong tích hợp doanh nghiệp
+  - WS-Security với chữ ký và mã hóa thông điệp
+  - Bảo vệ đường truyền và bảo vệ thông điệp đầu cuối
+  - Truyền danh tính người dùng và kiểm soát quyền ủy nhiệm
+  - Chống phát lại và kiểm soát thời hạn thông điệp
+  - Kiểm tra XML/JSON và phòng ngừa XXE, XML bomb
+  - Quản lý bí mật, chứng chỉ và vòng đời khóa
+  - Kiểm soát dữ liệu nhạy cảm trong log và thông điệp
+  - Nhật ký kiểm toán và truy vết hành động liên dịch vụ
+- level1: Quản trị SOA
+  level2:
+  - Quản trị SOA và mối quan hệ với vận hành hệ thống
+  - Quản trị lúc thiết kế và lúc chạy
+  - Vai trò chủ sở hữu dịch vụ, dữ liệu và nền tảng
+  - Vòng đời từ đề xuất đến ngừng cung cấp dịch vụ
+  - Tiêu chuẩn hợp đồng, đặt tên và mô hình lỗi
+  - Chính sách bảo mật, tương thích và tuân thủ
+  - Đánh giá kiến trúc và cơ chế xử lý ngoại lệ
+  - SLA, SLO, SLI và trách nhiệm giữa các bên
+  - Quản lý bên sử dụng và cam kết hỗ trợ
+  - Đo mức tái sử dụng, chất lượng và giá trị nghiệp vụ
+  - Quản trị liên kết và tránh bộ phận phê duyệt thành điểm nghẽn
+  - Tài liệu quyết định kiến trúc và khả năng kiểm chứng
+- level1: Khám phá dịch vụ
+  level2:
+  - Phân biệt danh bạ dịch vụ với sổ đăng ký điểm cuối
+  - Đăng ký, tìm kiếm và phân loại khả năng dịch vụ
+  - UDDI trong kiến trúc SOA và vai trò lịch sử
+  - Metadata hợp đồng, chính sách, chủ sở hữu và phụ thuộc
+  - Khám phá lúc thiết kế và khám phá lúc chạy
+  - Điểm cuối logic và địa chỉ triển khai theo môi trường
+  - Phân giải qua cấu hình, DNS và service registry
+  - Kiểm tra sức khỏe và loại bỏ điểm cuối không khả dụng
+  - Lựa chọn điểm cuối và cân bằng tải
+  - Tính sẵn sàng, bộ nhớ đệm và bảo mật của cơ chế khám phá
+- level1: Tiến hóa hợp đồng
+  level2:
+  - Tương thích cú pháp và tương thích ngữ nghĩa
+  - Thay đổi phá vỡ và thay đổi có thể tương thích
+  - Tiến hóa XML Schema và hợp đồng SOAP
+  - Tiến hóa hợp đồng JSON và HTTP API
+  - Tiến hóa lược đồ sự kiện và dữ liệu đã lưu giữ
+  - Trường mới, giá trị enum mới và hành vi của bên đọc
+  - Chiến lược đánh phiên bản theo namespace, URI và metadata
+  - Chạy song song nhiều phiên bản dịch vụ
+  - Kiểm kê bên sử dụng trước khi thay đổi hợp đồng
+  - Thông báo ngừng hỗ trợ và lộ trình chuyển đổi
+  - Chuyển đổi hợp đồng bằng bộ chuyển đổi trung gian
+  - Kiểm chứng tương thích trước khi phát hành
+- level1: Kiểm thử dịch vụ
+  level2:
+  - Chiến lược kiểm thử theo ranh giới dịch vụ và tích hợp
+  - Kiểm thử đơn vị cho nghiệp vụ và ánh xạ dữ liệu
+  - Kiểm thử hợp đồng của bên cung cấp
+  - Kiểm thử hợp đồng do bên sử dụng định nghĩa
+  - Kiểm tra tính hợp lệ theo XSD, OpenAPI và lược đồ sự kiện
+  - Kiểm thử tích hợp với cơ sở dữ liệu và môi giới thông điệp
+  - Giả lập dịch vụ ngoài và kiểm soát kịch bản lỗi
+  - Kiểm thử luồng nghiệp vụ xuyên nhiều dịch vụ
+  - Kiểm thử timeout, retry, lũy đẳng và thông điệp trùng
+  - Kiểm thử thứ tự, phát lại và tương thích thông điệp
+  - Kiểm thử tải, độ bền và khả năng phục hồi
+  - Kiểm thử bảo mật và thực thi chính sách
+  - Quản lý dữ liệu kiểm thử và môi trường độc lập
+- level1: Quan sát hệ thống
+  level2:
+  - Log, số đo và truy vết trong tương tác liên dịch vụ
+  - Truyền ngữ cảnh truy vết qua HTTP, SOAP và thông điệp
+  - Mã liên kết nghiệp vụ và mã truy vết kỹ thuật
+  - Log có cấu trúc và tìm nguyên nhân theo chuỗi tương tác
+  - Đo độ trễ, lưu lượng, lỗi và mức bão hòa tài nguyên
+  - Theo dõi hàng đợi, độ trễ tiêu thụ và thông điệp lỗi
+  - Theo dõi trạng thái quy trình và giao dịch kéo dài
+  - Chỉ số nghiệp vụ và phát hiện tích hợp thất bại âm thầm
+  - Thiết kế cảnh báo theo SLO và ảnh hưởng người dùng
+  - Dashboard theo dịch vụ, luồng tích hợp và quy trình
+  - Lấy mẫu truy vết, chi phí lưu trữ và bảo vệ dữ liệu
+  - Runbook và điều tra sự cố xuyên hệ thống
+- level1: Triển khai và vận hành
+  level2:
+  - Đơn vị triển khai và mức độ độc lập giữa các dịch vụ
+  - Quản lý cấu hình và điểm cuối theo môi trường
+  - Đóng gói trên máy ảo, container và nền tảng điều phối
+  - Pipeline CI/CD cho dịch vụ, hợp đồng và luồng tích hợp
+  - Phát hành lần lượt, blue-green và canary
+  - Phối hợp thay đổi hợp đồng, mã và lược đồ dữ liệu
+  - Kiểm tra sống, sẵn sàng và khả năng tiếp nhận lưu lượng
+  - Dừng có kiểm soát và xử lý thông điệp đang thực hiện
+  - Tính sẵn sàng cao cho ESB, broker và bộ điều phối
+  - Sao lưu, khôi phục thảm họa, RPO và RTO
+  - Phục hồi luồng tích hợp sau gián đoạn
+  - Quản lý sự cố, lịch thay đổi và trách nhiệm trực vận hành
+- level1: Hiệu năng và dung lượng
+  level2:
+  - Đặt mục tiêu hiệu năng theo luồng nghiệp vụ
+  - Phân tích độ trễ cộng dồn và lời gọi nối tiếp
+  - Giảm giao tiếp vụn bằng thao tác đúng độ hạt
+  - Gọi song song, gom yêu cầu và giới hạn mức đồng thời
+  - Connection pool, thread pool và giới hạn tài nguyên
+  - Chi phí XML, JSON, nén và dữ liệu đính kèm
+  - Bộ nhớ đệm ở bên sử dụng, trung gian và bên cung cấp
+  - Khóa bộ nhớ đệm, thời hạn lưu và mất hiệu lực dữ liệu
+  - Ước lượng thông lượng bằng thời gian xử lý và mức đồng thời
+  - Lập kế hoạch dung lượng cho hàng đợi và thời gian xử lý tồn đọng
+  - Đo nút thắt và tránh tối ưu cục bộ làm chậm toàn luồng
+- level1: Dịch vụ Java
+  level2:
+  - Tổ chức một dịch vụ Java theo hợp đồng và nghiệp vụ
+  - Tách lớp giao tiếp khỏi miền nghiệp vụ và hạ tầng
+  - DTO, ánh xạ và kiểm tra dữ liệu đầu vào
+  - Xây dựng HTTP API với Spring Boot và Spring MVC
+  - Mô hình lỗi thống nhất trong dịch vụ Spring
+  - Xây dựng dịch vụ SOAP với Spring Web Services
+  - Tạo và sử dụng hợp đồng WSDL/XSD với công cụ Java
+  - JAXB và vai trò của Jakarta XML Binding
+  - Gọi dịch vụ SOAP và HTTP từ ứng dụng Java
+  - Thư viện web service ngoài JDK 21 và quản lý phụ thuộc
+  - Giới hạn giao dịch cục bộ của @Transactional
+  - Cấu hình bảo mật, lũy đẳng và truy vết cho dịch vụ mẫu
+- level1: Tích hợp trên Java
+  level2:
+  - Tổ chức luồng tích hợp với Spring Integration
+  - Message, Channel, Endpoint và Gateway trong Spring Integration
+  - Thiết kế route tích hợp với Apache Camel
+  - Consumer, Producer, Component và xử lý lỗi trong Camel
+  - Chọn Spring Integration hoặc Apache Camel theo nhu cầu
+  - JMS và Jakarta Messaging trong tích hợp doanh nghiệp
+  - Gửi và nhận thông điệp với Spring JMS
+  - AMQP và RabbitMQ trong luồng lệnh và thông báo
+  - Kafka trong luồng sự kiện có lưu giữ và phát lại
+  - Thực hiện Outbox, Inbox và chống xử lý trùng trên Java
+  - Áp dụng timeout, retry và Circuit Breaker với thư viện Java
+  - Kiểm thử tích hợp bằng Testcontainers và dịch vụ giả lập
+- level1: Đánh giá kiến trúc
+  level2:
+  - Chuyển yêu cầu chất lượng thành kịch bản đánh giá
+  - Lập sơ đồ ngữ cảnh, dịch vụ và luồng tích hợp
+  - Phân tích điểm lỗi đơn và vùng ảnh hưởng sự cố
+  - Đánh giá liên kết lúc thiết kế, triển khai và vận hành
+  - Đánh giá độ tự chủ và quyền sở hữu dữ liệu
+  - Đánh giá khả năng thay đổi bằng kịch bản tiến hóa
+  - Lập ma trận lựa chọn giao thức và cách phối hợp
+  - So sánh chi phí nền tảng, tổ chức và vận hành
+  - Ghi nhận rủi ro, quyết định và tiêu chí kiểm chứng
+  - Checklist rà soát trước khi đưa hệ thống SOA vào vận hành
+- level1: Sai lầm thiết kế
+  level2:
+  - Tách mỗi bảng dữ liệu thành một dịch vụ CRUD
+  - Dịch vụ quá nhỏ, gọi vụn và phụ thuộc dây chuyền
+  - Dịch vụ quá lớn hoặc dùng chung vượt ranh giới nghiệp vụ
+  - Chia dịch vụ nhưng vẫn triển khai như một khối ràng buộc
+  - Chia sẻ cơ sở dữ liệu mà không có quyền sở hữu rõ ràng
+  - Đưa toàn bộ nghiệp vụ vào ESB hoặc bộ điều phối
+  - Chuẩn hóa một mô hình dữ liệu cho mọi ngữ cảnh
+  - Che giấu lời gọi mạng như lời gọi hàm không có chi phí
+  - Thử lại không giới hạn và giả định không có thông điệp trùng
+  - Áp dụng giao dịch phân tán cho mọi quy trình
+  - Quản trị quá tập trung hoặc không quản trị
+  - Lạm dụng sản phẩm nền tảng thay cho thiết kế dịch vụ
+- level1: Hiện đại hóa SOA
+  level2:
+  - Kiểm kê dịch vụ, hợp đồng và phụ thuộc của hệ thống hiện hữu
+  - Xác định vấn đề cần cải thiện trước khi chọn kiến trúc mới
+  - Bao bọc hệ thống kế thừa bằng hợp đồng ổn định
+  - Strangler Fig và chuyển đổi từng phần theo khả năng nghiệp vụ
+  - Tách dần logic nghiệp vụ khỏi ESB tập trung
+  - Kết hợp SOAP, HTTP và sự kiện trong giai đoạn chuyển tiếp
+  - Chuyển dữ liệu, đối soát và xác nhận nguồn có thẩm quyền
+  - Chạy song song, chuyển lưu lượng và quay lui an toàn
+  - SOA kết hợp microservices theo ranh giới phù hợp
+  - Đo kết quả hiện đại hóa bằng chất lượng và giá trị nghiệp vụ
+- level1: Thực hành SOA
+  level2:
+  - Đề bài tích hợp đặt hàng, tồn kho, thanh toán và vận chuyển
+  - Phân tích khả năng nghiệp vụ và lập danh mục dịch vụ
+  - Thiết kế ranh giới, hợp đồng và quyền sở hữu dữ liệu
+  - Xây dựng dịch vụ danh mục qua SOAP với WSDL/XSD
+  - Xây dựng dịch vụ đặt hàng qua HTTP với hợp đồng rõ ràng
+  - Tích hợp dịch vụ kế thừa bằng bộ chuyển đổi
+  - Kết hợp phản hồi đồng bộ với sự kiện xử lý bất đồng bộ
+  - Điều phối đơn hàng bằng Saga và thao tác bù trừ
+  - Áp dụng Outbox, Inbox và khóa lũy đẳng
+  - Mô phỏng mất kết nối, thông điệp trùng và xử lý chậm
+  - Bảo vệ danh tính dịch vụ và dữ liệu nhạy cảm
+  - Kiểm thử hợp đồng, tích hợp và toàn bộ quy trình
+  - Thiết lập truy vết, chỉ số và cảnh báo nghiệp vụ
+  - Lập phương án phát hành và phục hồi sau sự cố
+  - Đánh giá kiến trúc, trình bày đánh đổi và hướng cải tiến

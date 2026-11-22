@@ -1,0 +1,329 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Hệ phân tán là gì và một hệ thống được phân tán ở những khía cạnh nào
+  - Phân biệt xử lý đồng thời, song song và phân tán
+  - 'Ví dụ mở đầu: từ một ứng dụng đến nhiều tiến trình cùng phục vụ yêu cầu'
+  - 'Vì sao cần phân tán: năng lực xử lý, độ sẵn sàng và vị trí dữ liệu'
+  - 'Chi phí của phân tán: mạng, phối hợp, vận hành và trạng thái không chắc chắn'
+  - Phân biệt hệ phân tán với kiến trúc microservices
+  - Khi nào ứng dụng nguyên khối và giải pháp đơn giản vẫn phù hợp
+  - Bản đồ thuật ngữ và thứ tự học các nền tảng hệ phân tán
+- level1: Ranh giới hệ thống
+  level2:
+  - Xác định nút, tiến trình, dịch vụ, máy chủ và thành phần phụ thuộc
+  - Vẽ ranh giới tiến trình, mạng, lưu trữ và quyền sở hữu dữ liệu
+  - Phân biệt lời gọi trong bộ nhớ với lời gọi qua mạng
+  - So sánh mở rộng theo chiều dọc và chiều ngang
+  - Phân biệt thành phần giữ trạng thái và thành phần không giữ trạng thái
+  - Xác định ranh giới giao dịch và bất biến nghiệp vụ
+  - Nhận diện phụ thuộc ẩn và nguy cơ nguyên khối phân tán
+  - Mô tả một luồng yêu cầu từ đầu vào đến các hệ thống phụ thuộc
+- level1: Mô hình hệ thống
+  level2:
+  - Giả định về nút, kênh truyền và môi trường thực thi
+  - Phân biệt mô hình đồng bộ, bất đồng bộ và đồng bộ từng phần
+  - Mô hình lỗi dừng, lỗi khôi phục và lỗi hành vi tùy ý
+  - Phân biệt lỗi nút, lỗi mạng và lỗi ứng dụng
+  - 'Tính an toàn (safety): điều không được phép xảy ra'
+  - 'Tính tiến triển (liveness): điều cuối cùng phải xảy ra'
+  - Tách bảo đảm của thuật toán khỏi giả định để bảo đảm đó có hiệu lực
+  - Đánh giá điều gì có thể quan sát và điều gì chỉ có thể suy đoán
+- level1: Giao tiếp mạng
+  level2:
+  - Luồng yêu cầu–phản hồi và các điểm có thể xảy ra lỗi
+  - Độ trễ, thông lượng, băng thông và chi phí thiết lập kết nối
+  - Phân biệt HTTP, RPC và truyền thông điệp theo cách tương tác
+  - Phân biệt giao tiếp bất đồng bộ với I/O không chặn trong ứng dụng
+  - Tuần tự hóa dữ liệu và hợp đồng giữa hai tiến trình
+  - Ảnh hưởng của DNS, kết nối và hàng đợi đến thời gian phản hồi
+  - Giới hạn bảo đảm của một kết nối tin cậy đối với kết quả nghiệp vụ
+  - Xử lý mất, trùng, trễ và đảo thứ tự thông điệp ở cấp hệ thống
+  - Không coi timeout hoặc mất kết nối là bằng chứng thao tác chưa thực hiện
+- level1: Thời gian và thứ tự
+  level2:
+  - Vì sao không thể mặc định mọi nút có cùng một đồng hồ
+  - Phân biệt thời gian thực tế và đồng hồ đơn điệu để đo khoảng thời gian
+  - Độ lệch, tốc độ trôi và ảnh hưởng của đồng bộ thời gian
+  - Quan hệ xảy ra trước (happens-before) và tính nhân quả
+  - Đồng hồ Lamport và giới hạn khi suy ra quan hệ nhân quả
+  - Đồng hồ vector và cách nhận diện các sự kiện đồng thời
+  - Phân biệt thứ tự toàn cục, thứ tự cục bộ và thứ tự theo từng khóa
+  - Phân biệt thời điểm phát sinh sự kiện với thời điểm hệ thống xử lý
+  - Rủi ro khi dùng dấu thời gian để phân xử cập nhật hoặc sinh mã định danh
+- level1: Lỗi từng phần
+  level2:
+  - Lỗi từng phần là gì và vì sao hệ thống khó biết trạng thái thực
+  - Phân biệt thao tác thất bại, thao tác thành công và kết quả chưa xác định
+  - Tiến trình dừng, tạm ngưng dài và tiếp tục chạy với thông tin cũ
+  - Phân vùng mạng, kết nối bất đối xứng và thông điệp đến muộn
+  - Phát hiện lỗi bằng heartbeat và giới hạn của việc suy đoán
+  - Phân biệt lỗi tạm thời với lỗi kéo dài để chọn cách xử lý
+  - Ảnh hưởng của lỗi tương quan trong cùng máy, vùng hoặc thành phần dùng chung
+  - Chuỗi lỗi lan truyền và hiệu ứng phụ thuộc dây chuyền
+  - Lập dòng thời gian để phân tích một tình huống lỗi cụ thể
+- level1: Nhất quán dữ liệu
+  level2:
+  - Tính nhất quán quan sát được và cách xây dựng lịch sử đọc–ghi
+  - Phân biệt nhất quán dữ liệu, độ bền và tính cô lập giao dịch
+  - Tính tuyến tính hóa (linearizability) và quan hệ với thời gian thực
+  - Tính nhất quán tuần tự (sequential consistency)
+  - Tính nhất quán nhân quả (causal consistency)
+  - Tính nhất quán cuối cùng (eventual consistency) và điều kiện hội tụ
+  - 'Các bảo đảm phiên: đọc được dữ liệu vừa ghi và đọc đơn điệu'
+  - Phân biệt tính tuần tự hóa giao dịch với tính tuyến tính hóa thao tác
+  - Nhận diện đọc cũ, cập nhật bị mất và xung đột ghi
+  - Chọn mức nhất quán từ bất biến và trải nghiệm nghiệp vụ
+- level1: CAP và đánh đổi
+  level2:
+  - Bài toán phân vùng mạng và phạm vi định lý CAP
+  - Hiểu consistency và availability theo nghĩa của CAP
+  - Phân tích lựa chọn khi liên lạc giữa các nhóm nút bị gián đoạn
+  - Vì sao cách nói chọn hai trong ba dễ dẫn đến hiểu sai
+  - Phân biệt tính sẵn sàng theo CAP với chỉ số sẵn sàng vận hành
+  - Nhìn đánh đổi độ trễ và nhất quán qua góc nhìn PACELC
+  - Chọn bảo đảm theo từng thao tác thay vì gắn nhãn tuyệt đối cho cả hệ thống
+  - Mô tả hệ quả nghiệp vụ khi ưu tiên tiếp tục phục vụ hoặc từ chối thao tác
+- level1: Sao chép dữ liệu
+  level2:
+  - Sao chép là gì và khác gì với sao lưu
+  - So sánh mô hình một nút ghi chính, nhiều nút ghi và không có nút ghi chính
+  - Sao chép đồng bộ và bất đồng bộ
+  - Độ trễ sao chép và hiện tượng đọc chưa thấy dữ liệu vừa ghi
+  - Điều kiện giao nhau của quorum và các giả định cần đi kèm
+  - Chuyển vai trò nút chính và nguy cơ hai nút cùng nhận ghi
+  - Phát hiện xung đột và lựa chọn quy tắc hòa giải
+  - Giới hạn của chiến lược ghi sau cùng thắng khi đồng hồ không đồng nhất
+  - Khôi phục bản sao tụt lại và kiểm chứng dữ liệu sau chuyển đổi
+- level1: Phân mảnh dữ liệu
+  level2:
+  - Phân mảnh dữ liệu là gì và khác gì với tạo nhiều bản sao
+  - So sánh phân mảnh theo khoảng, theo hàm băm và theo danh mục
+  - Chọn khóa phân mảnh theo kiểu truy cập và phân bố dữ liệu
+  - Điểm nóng do khóa phổ biến hoặc phân bố không đều
+  - Định tuyến yêu cầu đến phân mảnh sở hữu dữ liệu
+  - Di chuyển dữ liệu và cân bằng lại khi thêm hoặc bớt nút
+  - Băm nhất quán và vai trò của nút ảo ở mức khái niệm
+  - Giới hạn của truy vấn, ràng buộc và giao dịch đi qua nhiều phân mảnh
+- level1: Đồng thuận
+  level2:
+  - Vì sao nhiều nút cần thống nhất một quyết định hoặc một lịch sử
+  - Phân biệt đồng thuận với bỏ phiếu đơn giản và sao chép dữ liệu
+  - Vai trò của quorum trong việc giữ các quyết định không mâu thuẫn
+  - Tách yêu cầu an toàn khỏi khả năng tiếp tục tiến triển
+  - Hiểu kết quả bất khả thi FLP trong đúng giả định của mô hình
+  - Vai trò của nút lãnh đạo, nhiệm kỳ và bầu lại lãnh đạo
+  - Tổng quan Raft qua nhật ký sao chép và việc cam kết mục nhật ký
+  - Phân biệt bầu lãnh đạo thành công với dữ liệu đã được cam kết an toàn
+  - Chi phí và giới hạn khi đặt quá nhiều thao tác trên đường đồng thuận
+- level1: Khóa và phối hợp
+  level2:
+  - Khóa phân tán giải quyết bài toán gì và không thay thế bất biến nào
+  - Phân biệt khóa, quyền thuê có thời hạn (lease) và bầu lãnh đạo
+  - Vì sao nút giữ khóa có thể tiếp tục chạy sau khi quyền thuê hết hạn
+  - 'Fencing token: từ chối thao tác của chủ khóa cũ tại tài nguyên đích'
+  - Thiết kế tác vụ định kỳ để nhiều bản sao không gây tác dụng phụ trùng
+  - Phối hợp bằng cập nhật có điều kiện và phiên bản dữ liệu
+  - Phân biệt hết hạn quyền sở hữu với xác nhận tác vụ đã dừng
+  - Ưu tiên giảm nhu cầu phối hợp trước khi thêm một dịch vụ khóa
+- level1: Giao dịch phân tán
+  level2:
+  - Phạm vi của ACID khi thao tác chỉ thuộc một cơ sở dữ liệu
+  - Vì sao ghép nhiều giao dịch cục bộ chưa tạo thành giao dịch toàn cục
+  - 'Hai pha cam kết (2PC): chuẩn bị, cam kết và vai trò điều phối'
+  - Rủi ro chờ đợi và xử lý khi thành phần lỗi trong 2PC
+  - Nhất quán cuối cùng trong quy trình có nhiều bước
+  - Tổng quan Saga và phân biệt bù trừ nghiệp vụ với rollback cơ sở dữ liệu
+  - 'Khoảng hở giữa ghi dữ liệu và phát sự kiện: động lực của Transactional Outbox'
+  - Chọn ranh giới nghiệp vụ để giảm bất biến trải qua nhiều dịch vụ
+  - Xác định trạng thái trung gian, thất bại và cách đối soát
+- level1: Thông điệp và sự kiện
+  level2:
+  - Phân biệt lệnh, sự kiện và yêu cầu–phản hồi
+  - Mô hình hàng đợi, phát–đăng ký và nhật ký sự kiện
+  - Vai trò của xác nhận nhận thông điệp và thời điểm ghi nhận kết quả
+  - Phân biệt at-most-once, at-least-once và phạm vi bảo đảm exactly-once
+  - Tách bảo đảm truyền thông điệp khỏi hiệu ứng nghiệp vụ đúng một lần
+  - Thứ tự thông điệp theo phân vùng, khóa hoặc người phát
+  - Xử lý thông điệp đến trễ, trùng và sai thứ tự
+  - Định danh thông điệp, khóa tương quan và nguồn gốc sự kiện
+  - Quản lý lỗi xử lý bằng thử lại, hàng đợi lỗi và đối soát
+  - Phát lại sự kiện và điều kiện để việc xử lý lại an toàn
+- level1: Xử lý lặp an toàn
+  level2:
+  - Tính lũy đẳng (idempotency) là gì và khác gì với loại bỏ bản tin trùng
+  - Nhận diện thao tác tự nhiên đã lũy đẳng và thao tác cần cơ chế bổ sung
+  - Thiết kế khóa lũy đẳng theo người gọi và ý định nghiệp vụ
+  - Ràng buộc khóa với nội dung yêu cầu để phát hiện dùng lại sai
+  - Lưu trạng thái xử lý và kết quả khi có nhiều yêu cầu đồng thời
+  - Đảm bảo tính nguyên tử giữa ghi nhận chống trùng và thay đổi nghiệp vụ
+  - Xử lý tiến trình lỗi trước, trong và sau khi thực hiện tác dụng phụ
+  - Quy định thời gian lưu khóa và rủi ro của yêu cầu đến sau khi khóa hết hạn
+  - Phân biệt tính lũy đẳng của API với tính lũy đẳng toàn bộ quy trình
+- level1: Khả năng phục hồi
+  level2:
+  - Đặt timeout theo từng thành phần và thời hạn chung của yêu cầu
+  - Truyền ngân sách thời gian còn lại qua chuỗi lời gọi
+  - Chỉ thử lại khi lỗi phù hợp và thao tác có thể lặp an toàn
+  - Giãn khoảng thử lại theo cấp số nhân và thêm độ lệch ngẫu nhiên
+  - Giới hạn số lần thử và tránh nhiều tầng cùng thử lại
+  - Bộ ngắt mạch (circuit breaker) và các trạng thái vận hành
+  - Cô lập tài nguyên (bulkhead) để giới hạn phạm vi ảnh hưởng của lỗi
+  - Thiết kế phương án giảm chức năng hoặc dự phòng có ý nghĩa nghiệp vụ
+  - Phân biệt hủy ở bên gọi với xác nhận xử lý ở bên nhận đã dừng
+  - Kiểm chứng phục hồi khi thành phần phụ thuộc hoạt động trở lại
+- level1: Điều tiết tải
+  level2:
+  - Vì sao hàng đợi dài làm độ trễ và mức dùng tài nguyên tăng
+  - Áp lực ngược (backpressure) giữa nơi phát và nơi xử lý
+  - Giới hạn số tác vụ đồng thời và kích thước hàng đợi
+  - Phân biệt giới hạn tốc độ, giới hạn đồng thời và từ chối tải
+  - Chọn phạm vi hạn mức theo người dùng, tài khoản hoặc toàn hệ thống
+  - Phân biệt hạn mức cục bộ trên từng nút với hạn mức dùng chung
+  - Ngăn bão thử lại và lượng yêu cầu dồn vào thời điểm phục hồi
+  - Ưu tiên và giảm tải theo mức quan trọng của thao tác nghiệp vụ
+- level1: Bộ nhớ đệm
+  level2:
+  - Khi nào bộ nhớ đệm giảm tải và khi nào tạo thêm vấn đề nhất quán
+  - So sánh cache-aside, read-through và write-through ở mức hành vi
+  - Quyền sở hữu dữ liệu gốc và cách xử lý dữ liệu đệm cũ
+  - Thiết kế khóa, thời hạn và phạm vi chia sẻ dữ liệu đệm
+  - Ngăn nhiều yêu cầu đồng thời cùng tái tạo một giá trị hết hạn
+  - Xử lý kết quả không tồn tại và tránh lưu lỗi tạm thời như dữ liệu hợp lệ
+  - Ảnh hưởng của bộ nhớ đệm cục bộ so với bộ nhớ đệm dùng chung
+  - Thiết kế khi bộ nhớ đệm lỗi để tránh làm sập nguồn dữ liệu gốc
+- level1: Tìm và định tuyến
+  level2:
+  - Tra cứu dịch vụ qua DNS hoặc danh bạ dịch vụ
+  - Phân biệt đăng ký dịch vụ với xác minh dịch vụ đủ khả năng phục vụ
+  - Cân bằng tải ở phía gọi và ở thành phần trung gian
+  - So sánh định tuyến theo vòng, ngẫu nhiên và mức tải quan sát
+  - Ảnh hưởng của kết nối giữ lâu và phiên gắn với một nút
+  - Vai trò của cổng API, proxy và giới hạn trách nhiệm
+  - Loại nút lỗi khỏi tuyến phục vụ và xử lý dữ liệu tra cứu đã cũ
+  - Tránh điểm lỗi đơn và phụ thuộc vòng trong hạ tầng định tuyến
+- level1: Tính sẵn sàng
+  level2:
+  - Xác định đơn vị phục vụ và cách đo mức sẵn sàng
+  - Điểm lỗi đơn và miền lỗi theo tiến trình, máy, vùng hoặc khu vực
+  - Dự phòng thành phần nhưng vẫn có thể dùng chung một nguyên nhân lỗi
+  - So sánh hoạt động–dự phòng và nhiều nút cùng hoạt động
+  - Chuyển đổi dự phòng và giới hạn mất dữ liệu khi có sao chép bất đồng bộ
+  - Phân biệt sống, sẵn sàng nhận tải và đủ khả năng hoàn thành nghiệp vụ
+  - Đánh đổi khi triển khai nhiều vùng hoặc nhiều khu vực
+  - Thiết kế kiểm tra sức khỏe để không gây lỗi dây chuyền
+- level1: Khôi phục dữ liệu
+  level2:
+  - Phân biệt độ bền, sao chép, sao lưu và khả năng khôi phục
+  - Xác định mục tiêu điểm khôi phục (RPO) và thời gian khôi phục (RTO)
+  - Lỗi xóa nhầm hoặc hỏng dữ liệu có thể lan sang các bản sao
+  - Thiết kế lịch sao lưu và phạm vi dữ liệu cần phục hồi nhất quán
+  - Khôi phục theo thời điểm và các giả định về nhật ký thay đổi
+  - Đối soát để phát hiện dữ liệu thiếu hoặc khác nhau giữa thành phần
+  - Thử khôi phục định kỳ thay vì chỉ kiểm tra việc tạo bản sao lưu
+  - Ghi nhận quy trình xử lý sự cố dữ liệu và tiêu chí xác nhận phục hồi
+- level1: Bảo mật hệ thống
+  level2:
+  - Xác định danh tính dịch vụ và ranh giới tin cậy
+  - Phân biệt xác thực, phân quyền và mã hóa đường truyền
+  - Kiểm tra quyền ở ranh giới dữ liệu thay vì chỉ tại cổng vào
+  - Quản lý bí mật và luân chuyển thông tin xác thực giữa dịch vụ
+  - Giới hạn quyền truy cập thông điệp, dữ liệu và chức năng quản trị
+  - Tránh đưa dữ liệu nhạy cảm vào log, dấu vết hoặc nội dung sự kiện
+  - Thiết kế chống phát lại khi giao thức và bài toán yêu cầu
+  - Phân tích tác động của thành phần bị xâm nhập trong mô hình lỗi đã chọn
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Phân biệt log, chỉ số đo và dấu vết phân tán
+  - Truyền mã tương quan và ngữ cảnh truy vết qua HTTP và thông điệp
+  - Đọc sơ đồ truy vết để tìm thành phần gây chậm hoặc phát sinh lỗi
+  - Đo tỷ lệ lỗi, lưu lượng, độ trễ và mức bão hòa tài nguyên
+  - Phân biệt giá trị trung bình với các phân vị độ trễ cao
+  - Theo dõi độ trễ sao chép, độ trễ hàng đợi và số lần thử lại
+  - Xác định SLI, SLO và ngân sách lỗi theo hành trình nghiệp vụ
+  - Kiểm soát số lượng nhãn và chi phí thu thập dữ liệu quan sát
+  - Tái dựng dòng thời gian khi log đến muộn hoặc đồng hồ lệch
+  - Viết phân tích sự cố dựa trên bằng chứng và điều kiện hệ thống
+- level1: Hiệu năng và dung lượng
+  level2:
+  - Mô hình hóa lưu lượng yêu cầu, dữ liệu và tăng trưởng theo thời gian
+  - Phân biệt điểm nghẽn CPU, bộ nhớ, lưu trữ, mạng và thành phần phụ thuộc
+  - Quan hệ giữa thông lượng, số tác vụ đang xử lý và thời gian đáp ứng
+  - Sử dụng định luật Little trong đúng điều kiện đo và mô hình hàng đợi
+  - Ảnh hưởng của chuỗi gọi nối tiếp và yêu cầu phân nhánh tới nhiều nút
+  - Độ trễ đuôi và xác suất gặp một thành phần chậm
+  - Chi phí tuần tự hóa, kết nối và truyền dữ liệu giữa các thành phần
+  - Đánh giá giới hạn mở rộng khi còn phần việc tuần tự hoặc phải phối hợp
+  - Đo tải gần thực tế và chừa dung lượng cho tình huống một phần hệ thống lỗi
+- level1: Triển khai và phiên bản
+  level2:
+  - Vì sao nhiều phiên bản dịch vụ có thể cùng tồn tại khi triển khai
+  - Thiết kế thay đổi API và sự kiện tương thích ngược
+  - Phân biệt trường không có, giá trị mặc định và giá trị không hợp lệ
+  - Thay đổi lược đồ theo các bước mở rộng, chuyển đổi và thu hẹp
+  - Triển khai cuốn chiếu và xử lý yêu cầu còn đang chạy
+  - Khởi động, sẵn sàng nhận tải và dừng ứng dụng có kiểm soát
+  - Dùng cờ tính năng và triển khai từng phần để giới hạn ảnh hưởng
+  - Giới hạn của quay lại mã cũ khi dữ liệu hoặc hợp đồng đã thay đổi
+- level1: Kiểm thử phân tán
+  level2:
+  - Tách kiểm thử logic cục bộ khỏi kiểm thử tương tác qua mạng
+  - Kiểm thử hợp đồng và tương thích giữa các phiên bản
+  - Tiêm lỗi timeout, mất kết nối và phản hồi đến muộn
+  - Kiểm thử thông điệp trùng, mất thứ tự và phát lại
+  - Kiểm thử lỗi tiến trình tại các điểm trước hoặc sau tác dụng phụ
+  - Kiểm tra bất biến qua lịch sử thao tác và trạng thái sau phục hồi
+  - Mô phỏng đồng hồ hoặc lịch chạy để tái hiện lỗi khó lặp lại
+  - Kiểm thử tải khi hệ thống suy giảm và khi phục hồi
+  - Thiết kế thử nghiệm hỗn loạn có giả thuyết, giới hạn ảnh hưởng và điều kiện dừng
+  - Phân biệt kiểm thử thành công với bằng chứng đầy đủ cho bảo đảm phân tán
+- level1: Java và Spring
+  level2:
+  - Mô hình thử nghiệm với hai ứng dụng Java giao tiếp qua HTTP
+  - Cấu hình timeout kết nối, timeout phản hồi và ngân sách yêu cầu
+  - Thiết kế API xử lý lặp an toàn với lưu trữ và giao dịch cục bộ
+  - Minh họa cập nhật có điều kiện và khóa lạc quan bằng phiên bản
+  - Tiếp nhận thông điệp với ghi nhận xử lý và quản lý lỗi tường minh
+  - Truyền mã tương quan qua ứng dụng Spring và tác vụ bất đồng bộ
+  - Quan sát giới hạn kết nối, luồng xử lý và hàng đợi của ứng dụng
+  - Dùng môi trường thử nghiệm cô lập để tái hiện lỗi cơ sở dữ liệu và dịch vụ phụ thuộc
+  - Đối chiếu hành vi mã Java với bảo đảm của giao thức và hệ thống lưu trữ
+- level1: Tình huống thiết kế
+  level2:
+  - Phân tích đặt hàng khi lưu đơn thành công nhưng phản hồi bị mất
+  - Phân tích đọc dữ liệu vừa cập nhật qua bản sao chậm
+  - Phân tích giữ hàng tồn kho khi nhiều yêu cầu cùng tranh chấp
+  - Phân tích phát sự kiện sau giao dịch và khoảng hở ghi kép
+  - Phân tích xử lý thông điệp nhiều lần nhưng chỉ tạo một hiệu ứng nghiệp vụ
+  - Phân tích tác vụ giữ khóa tiếp tục chạy sau khi quyền thuê hết hạn
+  - Phân tích bão thử lại khi dịch vụ phụ thuộc đang quá tải
+  - Phân tích truy cập khóa dữ liệu nóng và giới hạn phân mảnh
+  - Chọn bảo đảm và ghi nhận đánh đổi dựa trên bất biến của từng bài toán
+- level1: Sai lầm thường gặp
+  level2:
+  - Cho rằng mạng luôn tin cậy và độ trễ gần như bằng không
+  - Đồng nhất thêm nhiều bản sao với loại bỏ mọi điểm lỗi đơn
+  - Coi timeout là xác nhận chắc chắn thao tác chưa xảy ra
+  - Thử lại mọi lỗi mà không xét tác dụng phụ và ngân sách tải
+  - Khẳng định exactly-once mà không nêu phạm vi bảo đảm
+  - Dùng khóa phân tán như bảo đảm tuyệt đối dù chủ khóa có thể tiếp tục chạy
+  - Gắn nhãn CAP cho cả sản phẩm rồi bỏ qua hành vi từng thao tác
+  - Dùng dấu thời gian giữa các máy như một thứ tự toàn cục tuyệt đối
+  - Chuyển mọi giao tiếp sang bất đồng bộ nhưng bỏ qua trạng thái trung gian
+  - Chọn công nghệ trước khi xác định bất biến, mô hình lỗi và yêu cầu vận hành
+  - Phân tán quá sớm khiến độ phức tạp lớn hơn lợi ích nhận được
+- level1: Thực hành
+  level2:
+  - 'Bài tập nhập môn: vẽ ranh giới và luồng yêu cầu của một hệ thống nhiều tiến trình'
+  - 'Bài tập mô hình lỗi: phân loại các kết quả có thể xảy ra khi mất phản hồi'
+  - 'Bài tập thời gian: lập quan hệ nhân quả từ lịch sử trao đổi thông điệp'
+  - 'Bài tập nhất quán: nhận diện bảo đảm bị vi phạm từ lịch sử đọc–ghi'
+  - 'Bài tập CAP: mô tả hành vi hai nhóm nút khi mất liên lạc'
+  - 'Bài tập sao chép: quan sát đọc cũ và chuyển đổi nút chính trong môi trường thử nghiệm'
+  - 'Bài tập lũy đẳng: xử lý yêu cầu đồng thời, thử lại và lỗi giữa chừng'
+  - 'Bài tập phục hồi: kết hợp timeout, thử lại có giới hạn và cô lập tài nguyên'
+  - 'Bài tập thông điệp: xử lý trùng, sai thứ tự và phát lại'
+  - 'Bài tập kiểm thử: tiêm lỗi rồi kiểm tra bất biến nghiệp vụ'
+  - 'Bài tập tổng hợp: thiết kế luồng đặt hàng có trạng thái, bằng chứng và kế hoạch khôi phục rõ ràng'
+  - Tiêu chí tự đánh giá bảo đảm, giới hạn, chi phí và khả năng vận hành
+  - Câu hỏi ôn tập và tình huống giải thích đánh đổi của một thiết kế phân tán

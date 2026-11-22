@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-reactive
+  title: Tư duy Reactive
+  purpose: Hiểu cách mô hình hóa luồng dữ liệu và tín hiệu theo thời gian thay vì chờ tuần tự từng kết quả.
+  objectives:
+  - Phân biệt reactive, imperative và event-driven
+  - Giải thích asynchronous không đồng nghĩa đa luồng
+  - Vẽ luồng nguồn–biến đổi–người nhận dữ liệu
+- id: reactive-streams-contract
+  title: Reactive Streams Contract
+  purpose: Nắm hợp đồng phối hợp giữa bên phát và bên nhận, bao gồm tín hiệu kết thúc và nhu cầu tiêu thụ.
+  objectives:
+  - Phân biệt Publisher, Subscriber và Subscription
+  - Diễn giải onNext, onError và onComplete
+  - Thực hành yêu cầu dữ liệu bằng request(n)
+- id: mono-flux-operators
+  title: Mono, Flux & Operators
+  purpose: Tạo và kết hợp các chuỗi phản ứng bằng những phép biến đổi có thể tái sử dụng.
+  objectives:
+  - Phân biệt Mono 0–1 với Flux 0–N phần tử
+  - Viết pipeline map, filter và flatMap
+  - Quan sát thời điểm subscribe kích hoạt xử lý
+- id: demand-backpressure
+  title: Demand & Backpressure
+  purpose: Giữ nguồn phát không làm quá tải phía tiêu thụ khi tốc độ xử lý khác nhau.
+  objectives:
+  - Mô phỏng producer nhanh và consumer chậm
+  - Giới hạn demand bằng BaseSubscriber
+  - So sánh buffer, drop và lỗi khi quá tải
+- id: schedulers-blocking
+  title: Schedulers & Blocking
+  purpose: Điều khiển nơi công việc được chạy và tránh chặn luồng xử lý non-blocking.
+  objectives:
+  - Phân biệt publishOn với subscribeOn
+  - Đưa tác vụ blocking sang boundedElastic
+  - Nhận diện tác hại của block() trong event loop
+- id: cold-hot-sharing
+  title: Cold, Hot & Sharing
+  purpose: Chọn cách tạo và chia sẻ dữ liệu phù hợp với số lượng subscriber và vòng đời nguồn phát.
+  objectives:
+  - Thử hai lần subscribe lên cold publisher
+  - Dùng share hoặc replay cho luồng dùng chung
+  - Quan sát dữ liệu mỗi subscriber nhận được
+- id: errors-lifecycle
+  title: Errors & Lifecycle
+  purpose: Xử lý thất bại và hủy đăng ký một cách rõ ràng để hạn chế rò rỉ tài nguyên.
+  objectives:
+  - Thử onErrorResume và timeout có giới hạn
+  - Phân biệt complete, error và cancel
+  - Giải thích rủi ro retry tác vụ có side effect
+- id: testing-integration
+  title: Testing & Integration
+  purpose: Kiểm chứng hành vi reactive trước khi áp dụng vào giao tiếp dịch vụ hoặc hệ thống thực tế.
+  objectives:
+  - Kiểm thử tín hiệu với StepVerifier
+  - Thử WebFlux endpoint trả Mono hoặc Flux
+  - So sánh trade-off với cách xử lý đồng bộ

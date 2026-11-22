@@ -1,0 +1,3820 @@
+menu:
+- slug: xml-overview
+  title: Tổng quan XML
+  childs:
+  - slug: xml-overview-001
+    title: XML là gì, giải quyết vấn đề nào và được dùng ở đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-002
+    title: Tài liệu, phần tử, thuộc tính và cây XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-003
+    title: Từ dữ liệu nghiệp vụ đến tài liệu XML đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-004
+    title: XML hướng dữ liệu và XML hướng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-005
+    title: Phân biệt XML, HTML, JSON và YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-006
+    title: Quan hệ giữa XML, Namespace, XSD, XPath và XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-007
+    title: 'Các hướng xử lý trong Java: cây DOM, sự kiện SAX, luồng StAX và ánh xạ đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-008
+    title: Điều kiện đầu vào, kiến thức Java cần có và lộ trình thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-overview-009
+    title: Phạm vi xử lý tài liệu XML và ranh giới với SOAP, SVG, Office Open XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-syntax
+  title: Cú pháp XML
+  childs:
+  - slug: xml-syntax-001
+    title: 'Khai báo XML: version, encoding và standalone'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-002
+    title: Phần tử gốc và quy tắc một gốc cho mỗi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-003
+    title: Thẻ mở, thẻ đóng và phần tử tự đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-004
+    title: Quy tắc tên, phân biệt hoa thường và lồng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-005
+    title: 'Thuộc tính: dấu nháy, tên duy nhất và giá trị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-006
+    title: Văn bản, phần tử con và nội dung hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-007
+    title: Chú thích và các giới hạn cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-008
+    title: Chỉ thị xử lý và khai báo xml-stylesheet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-009
+    title: Ký tự dành riêng và các thực thể dựng sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-010
+    title: Tham chiếu ký tự theo mã thập phân và thập lục phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-011
+    title: 'CDATA: mục đích, giới hạn và quan hệ với văn bản thường'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-syntax-012
+    title: 'Well-formed và valid: hai mức hợp lệ khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: character-encoding
+  title: Mã hóa ký tự
+  childs:
+  - slug: character-encoding-001
+    title: Byte, ký tự Unicode và khai báo encoding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-002
+    title: UTF-8, UTF-16 và dấu BOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-003
+    title: Phát hiện encoding khi đọc XML từ luồng byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-004
+    title: 'InputStream và Reader: ai chịu trách nhiệm giải mã'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-005
+    title: Ghi XML tiếng Việt, dấu kết hợp và ký tự ngoài BMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-006
+    title: Ký tự hợp lệ, ký tự điều khiển và lỗi ký tự cấm trong XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-007
+    title: Khoảng trắng, xuống dòng và chuẩn hóa giá trị thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-008
+    title: xml:space và yêu cầu giữ nguyên khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-009
+    title: Phân biệt phần tử thiếu, phần tử rỗng và văn bản chỉ có khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-010
+    title: Nhận diện và sửa lỗi khai báo encoding không khớp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-encoding-011
+    title: 'XML 1.0 và XML 1.1: khác biệt và điều kiện tương thích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: namespaces
+  title: Namespace
+  childs:
+  - slug: namespaces-001
+    title: Vấn đề trùng tên và vai trò của XML Namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-002
+    title: Khai báo xmlns, prefix và phạm vi hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-003
+    title: 'Tên đầy đủ: namespace URI và local name'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-004
+    title: Namespace mặc định cho phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-005
+    title: Vì sao thuộc tính không tự nhận namespace mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-006
+    title: Ghi đè và đặt lại namespace trong phần tử con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-007
+    title: Namespace URI là định danh, không mặc định là địa chỉ tải tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-008
+    title: Prefix khác nhau nhưng cùng namespace URI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-009
+    title: Các prefix dành riêng xml và xmlns
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-010
+    title: QName trong tên nút và trong giá trị dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-011
+    title: Namespace của XML Schema và xsi:schemaLocation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-012
+    title: Thiết kế namespace ổn định khi tích hợp nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-design
+  title: Thiết kế tài liệu
+  childs:
+  - slug: document-design-001
+    title: Chọn phần tử hay thuộc tính cho từng loại thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-002
+    title: Mô hình danh sách, phần tử lặp và phần tử bao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-003
+    title: Biểu diễn cấu trúc lồng nhau và quan hệ tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-004
+    title: Phân biệt giá trị thiếu, rỗng, mặc định và xsi:nil
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-005
+    title: Biểu diễn số, boolean, ngày giờ, múi giờ và dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-006
+    title: Thứ tự phần tử và yêu cầu ổn định của hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-007
+    title: Đặt tên, ghi đơn vị đo và mô tả ý nghĩa trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-008
+    title: Tách dữ liệu nghiệp vụ khỏi dữ liệu trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-009
+    title: Nội dung hỗn hợp (mixed content) cho tài liệu có văn bản và đánh dấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-010
+    title: Thiết kế khả năng mở rộng và vùng dữ liệu bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-design-011
+    title: Phiên bản tài liệu và tương thích khi thêm, đổi hoặc bỏ trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dtd-entities
+  title: DTD và thực thể
+  childs:
+  - slug: dtd-entities-001
+    title: DTD là gì và khi nào cần đọc định dạng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-002
+    title: DOCTYPE, internal subset và external subset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-003
+    title: Khai báo ELEMENT, EMPTY, ANY và nội dung hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-004
+    title: 'Mô hình nội dung: thứ tự, lựa chọn và số lần xuất hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-005
+    title: Khai báo ATTLIST, kiểu thuộc tính và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-006
+    title: ID, IDREF, IDREFS và ràng buộc tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-007
+    title: General entity, parameter entity và tham chiếu entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-008
+    title: Entity nội bộ, entity ngoài và quan hệ với standalone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-009
+    title: Notation và unparsed entity ở mức nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-010
+    title: Giới hạn của DTD với kiểu dữ liệu và namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dtd-entities-011
+    title: Rủi ro của DOCTYPE và nguyên tắc chỉ bật DTD khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xsd-basics
+  title: XSD cơ bản
+  childs:
+  - slug: xsd-basics-001
+    title: Vai trò của XML Schema và cấu trúc tệp .xsd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-002
+    title: xs:schema, targetNamespace và namespace của tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-003
+    title: Khai báo phần tử toàn cục và phần tử cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-004
+    title: Kiểu đơn giản, kiểu phức hợp và kiểu dữ liệu dựng sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-005
+    title: xs:sequence, xs:choice và xs:all
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-006
+    title: minOccurs, maxOccurs và phần tử lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-007
+    title: Khai báo thuộc tính, use, default và fixed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-008
+    title: 'Restriction: enumeration, pattern, length và khoảng giá trị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-009
+    title: Kiểu số, boolean, ngày giờ và các dạng biểu diễn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-010
+    title: nillable và xsi:nil so với phần tử thiếu hoặc rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-011
+    title: elementFormDefault và attributeFormDefault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-012
+    title: Chú thích schema với xs:annotation và xs:documentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-basics-013
+    title: Đọc thông báo lỗi khi tài liệu không khớp XSD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xsd-advanced
+  title: XSD nâng cao
+  childs:
+  - slug: xsd-advanced-001
+    title: Đặt tên kiểu và tái sử dụng bằng type, ref, group, attributeGroup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-002
+    title: Kế thừa kiểu bằng extension và restriction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-003
+    title: simpleContent, complexContent và mixed content
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-004
+    title: List và union cho kiểu dữ liệu đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-005
+    title: 'xs:include và xs:import: tái sử dụng cùng hoặc khác namespace'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-006
+    title: xs:key, xs:unique và xs:keyref
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-007
+    title: Kiểu trừu tượng, substitutionGroup và xsi:type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-008
+    title: xs:any, xs:anyAttribute và processContents
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-009
+    title: Thiết kế nhiều tệp schema và xử lý đường dẫn tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-010
+    title: Đánh giá tương thích XSD khi thay đổi hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-011
+    title: XSD 1.0, XSD 1.1 và khả năng hỗ trợ của bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-012
+    title: Phân biệt ràng buộc XSD với quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-advanced-013
+    title: Giới thiệu Schematron và lựa chọn khi XSD chưa đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-xml-jaxp
+  title: Java XML và JAXP
+  childs:
+  - slug: java-xml-jaxp-001
+    title: Bản đồ API trong module java.xml của JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-002
+    title: JAXP, SPI và cơ chế chọn bộ xử lý XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-003
+    title: Các factory cho DOM, SAX, StAX, XPath, XSD và XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-004
+    title: Chọn DOM, SAX hay StAX theo kích thước và cách truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-005
+    title: 'Source và Result: Stream, DOM, SAX và StAX'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-006
+    title: Đọc tài nguyên từ tệp, classpath, URL và luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-007
+    title: systemId, URI cơ sở và phân giải đường dẫn tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-008
+    title: Phân biệt feature, attribute và property của từng factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-009
+    title: Cấu hình an toàn trước khi tạo parser hoặc transformer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-010
+    title: Ngoại lệ XML và cách lưu thông tin dòng, cột, nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-011
+    title: Quyền sở hữu luồng, đóng tài nguyên và xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-012
+    title: Phân biệt javax.xml của JDK với jakarta.xml.bind
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-xml-jaxp-013
+    title: Cấu hình thư viện bổ sung trong dự án Java 21
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dom-basics
+  title: DOM cơ bản
+  childs:
+  - slug: dom-basics-001
+    title: DocumentBuilderFactory, DocumentBuilder và tạo Document
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-002
+    title: Bật nhận biết namespace trước khi parse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-003
+    title: Document, Node, Element, Attr và Text
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-004
+    title: Quan hệ cha, con, anh em và duyệt cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-005
+    title: NodeList, NamedNodeMap và đặc điểm tập nút động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-006
+    title: Đọc tên nút, localName, namespaceURI và prefix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-007
+    title: Đọc thuộc tính có hoặc không có namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-008
+    title: getTextContent và khác biệt với đọc từng Text node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-009
+    title: Tìm phần tử bằng tag name và bằng namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-010
+    title: Whitespace, comment và CDATA trong cây DOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-011
+    title: ErrorHandler và xử lý lỗi parse có vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-basics-012
+    title: Thực hành đọc tài liệu XML lồng nhau bằng DOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dom-editing
+  title: Chỉnh sửa DOM
+  childs:
+  - slug: dom-editing-001
+    title: Tạo Document mới và phần tử gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-002
+    title: Tạo phần tử, thuộc tính và nội dung văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-003
+    title: createElementNS và setAttributeNS cho tài liệu có namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-004
+    title: Thêm, chèn, thay thế và xóa nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-005
+    title: importNode, adoptNode và sao chép giữa các Document
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-006
+    title: cloneNode và phạm vi sao chép sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-007
+    title: normalize và xử lý các Text node liền kề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-008
+    title: Duyệt và chỉnh sửa an toàn khi NodeList thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-009
+    title: Giữ đúng thứ tự phần tử khi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-010
+    title: Xuất DOM bằng Transformer và các thuộc tính đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-011
+    title: Giới hạn bảo toàn prefix, CDATA, khoảng trắng và định dạng gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dom-editing-012
+    title: Thực hành cập nhật hàng loạt rồi ghi tài liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: support-document-xml-sax
+  title: SAX
+  childs:
+  - slug: support-document-xml-sax-001
+    title: 'Mô hình push: parser phát sự kiện cho trình xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-002
+    title: SAXParserFactory, SAXParser, XMLReader và DefaultHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-003
+    title: startDocument, endDocument, startElement và endElement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-004
+    title: characters có thể chia văn bản thành nhiều lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-005
+    title: Tích lũy text theo độ sâu và xử lý phần tử lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-006
+    title: Đọc Attributes, namespace URI, localName và qName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-007
+    title: Theo dõi ngữ cảnh bằng stack và tạo đối tượng từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-008
+    title: startPrefixMapping và endPrefixMapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-009
+    title: Locator, ErrorHandler và thông báo lỗi có vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-010
+    title: LexicalHandler cho CDATA, comment và giới hạn hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-011
+    title: EntityResolver và kiểm soát tài nguyên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-012
+    title: Dừng sớm, bỏ qua nhánh và xử lý lỗi từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-document-xml-sax-013
+    title: Thực hành thống kê tệp XML lớn mà không dựng toàn bộ cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stax-reading
+  title: StAX đọc
+  childs:
+  - slug: stax-reading-001
+    title: Mô hình pull và so sánh với SAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-002
+    title: XMLInputFactory và cấu hình trước khi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-003
+    title: 'XMLStreamReader: con trỏ và vòng lặp sự kiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-004
+    title: START_ELEMENT, END_ELEMENT, CHARACTERS và END_DOCUMENT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-005
+    title: Đọc thuộc tính và namespace tại phần tử hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-006
+    title: getElementText, nextTag và các điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-007
+    title: Coalescing, CDATA và việc phân mảnh nội dung văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-008
+    title: XMLEventReader và đối tượng XMLEvent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-009
+    title: Bỏ qua nhánh, đọc một bản ghi và giữ đúng vị trí con trỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-010
+    title: Location, XMLStreamException và lỗi dữ liệu giữa luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-011
+    title: DTD, entity và các thuộc tính bảo mật của StAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-012
+    title: Đóng reader, đóng luồng và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-reading-013
+    title: Thực hành đọc tuần tự danh sách bản ghi lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stax-writing
+  title: StAX ghi
+  childs:
+  - slug: stax-writing-001
+    title: XMLOutputFactory và XMLStreamWriter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-002
+    title: Ghi khai báo, phần tử, thuộc tính và kết thúc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-003
+    title: writeCharacters và việc escape ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-004
+    title: Ghi namespace mặc định, prefix và thuộc tính có namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-005
+    title: Namespace repairing và kiểm soát kết quả đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-006
+    title: Ghi comment, CDATA và processing instruction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-007
+    title: XMLEventWriter và XMLEventFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-008
+    title: Sao chép và lọc sự kiện từ reader sang writer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-009
+    title: Flush, đóng writer và hoàn tất XML khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-010
+    title: Định dạng thụt lề mà không làm sai mixed content
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stax-writing-011
+    title: Thực hành xuất XML từng bản ghi với bộ nhớ giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xpath-basics
+  title: XPath cơ bản
+  childs:
+  - slug: xpath-basics-001
+    title: Mô hình cây XPath, nút ngữ cảnh và đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-002
+    title: Đường dẫn tuyệt đối, tương đối, dấu / và //
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-003
+    title: Chọn phần tử, thuộc tính, text() và node()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-004
+    title: Ký tự đại diện (wildcard) và kiểm tra tên nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-005
+    title: Điều kiện lọc (predicate) theo giá trị thuộc tính và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-006
+    title: position(), last() và ý nghĩa vị trí trong tập nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-007
+    title: Các trục child, parent, ancestor, descendant và sibling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-008
+    title: Toán tử số học, so sánh, logic và hợp tập nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-009
+    title: 'Các hàm chuỗi: contains, starts-with, normalize-space và substring'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-010
+    title: Các hàm count, sum, number, string và boolean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-011
+    title: Chuyển kiểu trong XPath 1.0 và các kết quả dễ nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-012
+    title: Namespace trong biểu thức XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-basics-013
+    title: Phạm vi XPath 1.0 và nhu cầu dùng bộ xử lý phiên bản mới hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xpath-java
+  title: XPath trong Java
+  childs:
+  - slug: xpath-java-001
+    title: XPathFactory, XPath và biên dịch XPathExpression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-002
+    title: Đánh giá biểu thức trên Document hoặc nút con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-003
+    title: XPathConstants và kiểu kết quả chuỗi, số, boolean, nút, tập nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-004
+    title: XPathEvaluationResult và các API đánh giá có kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-005
+    title: NamespaceContext cho tài liệu có namespace mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-006
+    title: XPathVariableResolver thay cho ghép trực tiếp dữ liệu vào biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-007
+    title: XPathFunctionResolver và kiểm soát hàm mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-008
+    title: Xử lý không có kết quả, nhiều kết quả và giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-009
+    title: Biên dịch lại, tái sử dụng và giới hạn chia sẻ giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-010
+    title: XPath injection và cách tách biểu thức khỏi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-011
+    title: Đánh giá chi phí truy vấn trên cây lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xpath-java-012
+    title: Thực hành trích xuất dữ liệu XML bằng XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xslt-basics
+  title: XSLT cơ bản
+  childs:
+  - slug: xslt-basics-001
+    title: Stylesheet, cây nguồn và cây kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-002
+    title: xsl:stylesheet, version và namespace XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-003
+    title: xsl:template, match và quy tắc template dựng sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-004
+    title: xsl:apply-templates và khác biệt với xsl:for-each
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-005
+    title: xsl:value-of, xsl:text và literal result element
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-006
+    title: xsl:if, xsl:choose và xsl:sort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-007
+    title: Variable, parameter, scope và tính bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-008
+    title: Named template, xsl:call-template và mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-009
+    title: xsl:copy, xsl:copy-of và phép biến đổi đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-010
+    title: xsl:element, xsl:attribute và tên tạo động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-011
+    title: Namespace trong pattern, XPath và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-012
+    title: xsl:include, xsl:import và độ ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-013
+    title: xsl:output, xsl:strip-space và xsl:preserve-space
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-basics-014
+    title: Giới hạn XSLT 1.0 và điều kiện chọn bộ xử lý XSLT khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xslt-java
+  title: XSLT trong Java
+  childs:
+  - slug: xslt-java-001
+    title: TransformerFactory, Transformer và Templates
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-002
+    title: Biên dịch stylesheet và tái sử dụng Templates
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-003
+    title: Truyền tham số bằng setParameter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-004
+    title: Biến đổi giữa StreamSource, DOMSource, SAXSource và StAXSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-005
+    title: Xuất XML, HTML hoặc văn bản qua Result
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-006
+    title: 'OutputKeys: encoding, indent, method và khai báo XML'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-007
+    title: URIResolver và URI cơ sở cho include, import, document()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-008
+    title: ErrorListener và phân loại warning, error, fatalError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-009
+    title: SAXTransformerFactory và chuỗi xử lý sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-010
+    title: Kiểm soát tài nguyên ngoài và hàm mở rộng XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-011
+    title: Tách Transformer theo lần xử lý và quản lý đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xslt-java-012
+    title: Thực hành XML sang HTML và chuẩn hóa XML theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-validation-java
+  title: Xác thực trong Java
+  childs:
+  - slug: xml-validation-java-001
+    title: SchemaFactory, Schema và Validator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-002
+    title: Biên dịch XSD từ tệp, classpath và nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-003
+    title: Xác thực StreamSource, DOMSource, SAXSource và StAXSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-004
+    title: Chọn schema chủ động thay vì tin schemaLocation của đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-005
+    title: LSResourceResolver cho schema include và import
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-006
+    title: ErrorHandler và thu thập nhiều lỗi có dòng, cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-007
+    title: Lưu đệm Schema, vòng đời Validator và xử lý đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-008
+    title: Kiểm soát ACCESS_EXTERNAL_DTD và ACCESS_EXTERNAL_SCHEMA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-009
+    title: ValidatorHandler và xác thực trong pipeline SAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-010
+    title: Kết hợp xác thực cấu trúc với kiểm tra nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-validation-java-011
+    title: Thực hành báo cáo lỗi XSD dễ hiểu cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jaxb-basics
+  title: JAXB cơ bản
+  childs:
+  - slug: jaxb-basics-001
+    title: Ánh xạ XML và đối tượng Java bằng Jakarta XML Binding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-002
+    title: API, bộ triển khai và khai báo thư viện trong Java 21
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-003
+    title: JAXBContext, Marshaller và Unmarshaller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-004
+    title: '@XmlRootElement, @XmlType và @XmlAccessorType'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-005
+    title: '@XmlElement, @XmlAttribute và @XmlValue'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-006
+    title: Ánh xạ đối tượng lồng nhau và tập hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-007
+    title: '@XmlElementWrapper và phần tử bao danh sách'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-008
+    title: Kiểm soát thứ tự phần tử bằng propOrder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-009
+    title: Namespace cấp package với @XmlSchema và package-info.java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-010
+    title: Phần tử thiếu, giá trị rỗng, required và nillable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-011
+    title: JAXBElement, QName và kiểu không có @XmlRootElement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-012
+    title: Cấu hình encoding, formatted output và fragment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-basics-013
+    title: Thực hành đọc và ghi đơn hàng bằng JAXB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jaxb-advanced
+  title: JAXB nâng cao
+  childs:
+  - slug: jaxb-advanced-001
+    title: XmlAdapter cho ngày giờ, tiền tệ và kiểu tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-002
+    title: Ánh xạ enum, byte[] và dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-003
+    title: Đa hình với @XmlSeeAlso, @XmlElements và xsi:type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-004
+    title: '@XmlAnyElement, @XmlAnyAttribute và dữ liệu mở rộng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-005
+    title: '@XmlMixed và mô hình nội dung hỗn hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-006
+    title: '@XmlID, @XmlIDREF và đồ thị đối tượng có tham chiếu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-007
+    title: Hàm gọi lại, bộ lắng nghe và ValidationEventHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-008
+    title: Gắn Schema khi marshal và unmarshal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-009
+    title: Unmarshal một phần tài liệu qua StAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-010
+    title: Tái sử dụng JAXBContext và quản lý Marshaller, Unmarshaller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-011
+    title: Cấp nguồn đã cấu hình an toàn cho JAXB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-012
+    title: Di chuyển javax.xml.bind sang jakarta.xml.bind
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaxb-advanced-013
+    title: Nhận diện giới hạn ánh xạ và tránh làm mất dữ liệu XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xsd-code-generation
+  title: Sinh mã từ XSD
+  childs:
+  - slug: xsd-code-generation-001
+    title: 'Schema-first và code-first: chọn nguồn hợp đồng chuẩn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-002
+    title: Sinh lớp Java từ XSD bằng công cụ XJC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-003
+    title: 'Cấu trúc mã sinh: ObjectFactory, JAXBElement và package-info'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-004
+    title: Cấu hình package, tên lớp và tệp ánh xạ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-005
+    title: Ánh xạ kiểu schema sang Java và tùy biến kiểu ngày giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-006
+    title: Xử lý nhiều namespace và bộ schema phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-007
+    title: Sinh XSD từ mô hình Java và kiểm tra kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-008
+    title: Tích hợp sinh mã vào Gradle với thư mục mã nguồn được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-009
+    title: Tái sinh mã, không sửa tay và quản lý mã mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xsd-code-generation-010
+    title: Kiểm tra khác biệt khi schema hoặc công cụ sinh mã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jackson-xml
+  title: Jackson XML
+  childs:
+  - slug: jackson-xml-001
+    title: XmlMapper và vai trò của Jackson dataformat XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-002
+    title: Đọc ghi POJO và mô hình cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-003
+    title: '@JacksonXmlRootElement và @JacksonXmlProperty'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-004
+    title: '@JacksonXmlElementWrapper cho danh sách có hoặc không có wrapper'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-005
+    title: Thuộc tính, phần tử và văn bản với @JacksonXmlText
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-006
+    title: Namespace, localName và giới hạn kiểm soát tiền tố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-007
+    title: Kiểu ngày giờ, enum, null và cấu hình module bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-008
+    title: Phần tử lạ, dữ liệu thiếu và quy tắc chấp nhận đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-009
+    title: Giới hạn mixed content và mô hình cây khi so với XML gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-010
+    title: Cấu hình XMLInputFactory an toàn cho XmlMapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-011
+    title: Lựa chọn Jackson XML hay JAXB theo hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-xml-012
+    title: Kiểm thử vòng đọc ghi và phát hiện mất thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-io
+  title: Đọc ghi tài nguyên
+  childs:
+  - slug: resource-io-001
+    title: Files, Path và tổ chức tệp XML đầu vào, đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-002
+    title: Đọc tài nguyên classpath khi chạy từ IDE và JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-003
+    title: InputStream, Reader, OutputStream và Writer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-004
+    title: Try-with-resources và ranh giới đóng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-005
+    title: systemId, xml:base và tài nguyên tham chiếu tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-006
+    title: Ghi qua tệp tạm rồi thay thế để tránh đầu ra dở dang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-007
+    title: Xử lý tệp trống, tệp hỏng và lỗi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-008
+    title: Giới hạn dung lượng đầu vào và kích thước sau giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-009
+    title: Đọc XML từ HTTP với thời gian chờ và kiểm tra nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-010
+    title: Giữ nguyên byte gốc khi yêu cầu lưu trữ hoặc kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-io-011
+    title: Thiết kế thông báo lỗi có đường dẫn và vị trí tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-transformation
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-transformation-001
+    title: XML sang đối tượng miền và đối tượng truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-002
+    title: Ánh xạ kiểu số, ngày giờ, timezone và đơn vị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-003
+    title: 'XML sang JSON: thuộc tính, danh sách, namespace và mixed content'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-004
+    title: JSON sang XML và nhu cầu quy định phần tử gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-005
+    title: 'XML sang CSV: làm phẳng cấu trúc và xử lý phần tử lặp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-006
+    title: Nhập dữ liệu XML vào cơ sở dữ liệu theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-007
+    title: Xuất dữ liệu phân trang ra XML bằng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-008
+    title: Gộp tài liệu có namespace và tách tài liệu theo bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-009
+    title: Chuyển đổi phiên bản XML theo hợp đồng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-010
+    title: Kiểm tra dữ liệu thất thoát và tính tương đương sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-security
+  title: Bảo mật XML
+  childs:
+  - slug: xml-security-001
+    title: Ranh giới tin cậy của tài liệu, schema và stylesheet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-002
+    title: 'XXE: truy cập tệp, truy cập mạng và SSRF'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-003
+    title: Entity expansion, XML bomb và tiêu thụ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-004
+    title: 'FEATURE_SECURE_PROCESSING: tác dụng và giới hạn theo API'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-005
+    title: Cấu hình DOM và SAX khi không cần DOCTYPE hoặc entity ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-006
+    title: SUPPORT_DTD và IS_SUPPORTING_EXTERNAL_ENTITIES trong StAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-007
+    title: Giới hạn ACCESS_EXTERNAL_DTD, SCHEMA và STYLESHEET theo API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-008
+    title: Vô hiệu hóa hoặc kiểm soát XInclude và resolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-009
+    title: Giới hạn độ sâu, số entity, kích thước text và tổng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-010
+    title: Kiểm soát include, import, document() và hàm mở rộng XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-011
+    title: Chống XPath injection bằng biến và biểu thức cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-012
+    title: Ngăn đường dẫn vượt thư mục và URL không được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-013
+    title: Xác minh cấu hình có hiệu lực và dừng an toàn khi không hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-014
+    title: Bảo vệ log khỏi dữ liệu nhạy cảm và nội dung đầu vào quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-security-015
+    title: Kiểm thử bảo mật bằng tài nguyên giả lập, không gọi mạng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-catalog-resolution
+  title: Catalog và phân giải
+  childs:
+  - slug: xml-catalog-resolution-001
+    title: Khi nào XML cần phân giải tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-002
+    title: Public identifier, system identifier và URI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-003
+    title: XML Catalog và ánh xạ tài nguyên về bản cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-004
+    title: CatalogManager, CatalogFeatures và CatalogResolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-005
+    title: EntityResolver cho SAX và DOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-006
+    title: LSResourceResolver cho XML Schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-007
+    title: URIResolver cho XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-008
+    title: XMLResolver cho StAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-009
+    title: Chính sách từ chối mặc định và danh sách tài nguyên được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-010
+    title: Đóng gói schema, DTD và stylesheet để chạy ngoại tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-catalog-resolution-011
+    title: Kiểm thử thiếu tài nguyên, vòng tham chiếu và lỗi phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-signatures
+  title: Chữ ký XML
+  childs:
+  - slug: xml-signatures-001
+    title: Toàn vẹn, xác thực và phạm vi của XML Digital Signature
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-002
+    title: Canonicalization và khác biệt với pretty-print
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-003
+    title: Reference, DigestMethod, SignatureMethod và SignedInfo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-004
+    title: Chữ ký enveloped, enveloping và detached
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-005
+    title: XMLSignatureFactory, DOMSignContext và DOMValidateContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-006
+    title: Tạo chữ ký với khóa và chứng thư thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-007
+    title: Xác minh chữ ký và xác định chính xác dữ liệu được ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-008
+    title: ID, URI tham chiếu và nguy cơ signature wrapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-009
+    title: Ảnh hưởng của namespace và khoảng trắng tới chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-010
+    title: Secure validation, thuật toán và chính sách tin cậy khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-011
+    title: Ranh giới giữa XML Signature, XML Encryption và bảo mật truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-performance
+  title: Hiệu năng XML
+  childs:
+  - slug: xml-performance-001
+    title: Đánh giá theo dung lượng, độ sâu và kiểu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-002
+    title: Chi phí bộ nhớ của DOM so với SAX và StAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-003
+    title: Thiết kế xử lý tuần tự với trạng thái tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-004
+    title: Tránh sao chép qua String và parse lặp không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-005
+    title: Lưu đệm Schema, Templates và JAXBContext theo hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-006
+    title: Vòng đời parser và đối tượng không an toàn khi chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-007
+    title: Tối ưu XPath, chọn nút ngữ cảnh và hạn chế quét toàn cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-008
+    title: Xuất theo luồng, bộ đệm và kích thước lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-009
+    title: Giới hạn song song và điều tiết tốc độ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-010
+    title: Đo thời gian, cấp phát bộ nhớ và GC trên dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-011
+    title: Benchmark có khởi động JVM và kiểm tra kết quả tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-performance-012
+    title: Cân bằng tối ưu hóa với xác thực và bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-testing
+  title: Kiểm thử XML
+  childs:
+  - slug: xml-testing-001
+    title: 'Bộ dữ liệu thử: hợp lệ, sai cú pháp, sai schema và biên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-002
+    title: So sánh chuỗi với so sánh cấu trúc XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-003
+    title: 'XMLUnit: xác định khác biệt, namespace và NodeMatcher'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-004
+    title: Quy định ý nghĩa của thứ tự, khoảng trắng và phần tử rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-005
+    title: Kiểm tra kết quả bằng XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-006
+    title: Kiểm thử XSD với trường thiếu, sai kiểu và giá trị giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-007
+    title: Kiểm thử JAXB và Jackson XML theo vòng đọc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-008
+    title: Kiểm thử XSLT với tệp kết quả mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-009
+    title: Kiểm thử streaming trên nhiều kích thước và ranh giới sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-010
+    title: Kiểm thử encoding, BOM, Unicode và mixed content
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-011
+    title: Kiểm thử chặn XXE, entity expansion và tài nguyên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-012
+    title: Kiểm thử tệp tạm, đóng tài nguyên và đầu ra dở dang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-013
+    title: Kiểm thử tương thích khi schema hoặc dependency thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-testing-014
+    title: Tổ chức tệp dữ liệu mẫu XML, XSD, XSLT và báo cáo lỗi trong JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-spring-boot
+  title: XML với Spring Boot
+  childs:
+  - slug: xml-spring-boot-001
+    title: Vai trò của XML trong dịch vụ Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-002
+    title: HTTP Content-Type, Accept và charset cho XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-003
+    title: Đọc ghi XML bằng HttpMessageConverter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-004
+    title: Jackson XML và JAXB trong quá trình chuyển đổi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-005
+    title: Thiết kế DTO riêng cho hợp đồng XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-006
+    title: Kiểm tra cú pháp, XSD và nghiệp vụ tại biên hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-007
+    title: Ánh xạ lỗi XML sang phản hồi có vị trí và nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-008
+    title: Tải lên và tải xuống tệp XML với giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-009
+    title: Xử lý dữ liệu lớn bằng luồng và ranh giới bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-010
+    title: 'Khách HTTP nhận XML: thương lượng kiểu nội dung và xử lý lỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-011
+    title: Cấu hình parser an toàn trong các thành phần tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-012
+    title: Kiểm thử tích hợp XML bằng MockMvc và máy chủ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-spring-boot-013
+    title: Ranh giới với Spring configuration XML và Spring Web Services
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-processing-design
+  title: Thiết kế xử lý XML
+  childs:
+  - slug: xml-processing-design-001
+    title: Pipeline nhận nguồn, parse, validate, ánh xạ, xử lý và xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-002
+    title: Tách hợp đồng XML khỏi mô hình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-003
+    title: Đóng gói cấu hình factory và chính sách bảo mật dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-004
+    title: Lựa chọn API bằng tiêu chí thay vì phụ thuộc chi tiết parser
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-005
+    title: Quản lý phiên bản schema, stylesheet và dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-006
+    title: Báo cáo lỗi theo giai đoạn, bản ghi, dòng và cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-007
+    title: Chấp nhận hoặc từ chối một phần dữ liệu theo chính sách rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-008
+    title: Tính lặp an toàn khi nhập lại tệp và xử lý trùng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-009
+    title: Giao dịch cơ sở dữ liệu và phục hồi lỗi giữa các lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-010
+    title: Log, chỉ số xử lý và truy vết mà không lộ nội dung nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-processing-design-011
+    title: Đóng gói cấu hình để hành vi giống nhau giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Content is not allowed in prolog và dữ liệu trước phần tử gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Lỗi thẻ không đóng, thuộc tính trùng và ký tự chưa escape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Invalid byte sequence và encoding không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Prefix chưa khai báo và localName bằng null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: XPath không tìm thấy nút do namespace mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: getTextContent lấy quá nhiều dữ liệu và mất ranh giới phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: SAX hoặc StAX chia nhỏ text và đọc lệch con trỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Không tải được XSD, DTD hoặc XSLT do URI cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: JAXB thiếu root element, runtime hoặc xung đột javax và jakarta
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Jackson XML đọc sai danh sách hoặc mất mixed content
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Schema báo lỗi thứ tự, namespace, nillable hoặc kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Đầu ra khác khoảng trắng, prefix hoặc khai báo XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Hỏng dữ liệu do chia sẻ parser, Validator hay Transformer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Tăng bộ nhớ bất thường và kết nối mạng ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Đọc và giải thích một tài liệu XML có namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Thiết kế XML và XSD cho danh mục sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Đọc, tìm và cập nhật cấu hình bằng DOM và XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Thống kê bản ghi bằng SAX và đối chiếu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Nhập tệp giao dịch lớn bằng StAX với bộ nhớ giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Xuất báo cáo XML bằng StAX và kiểm tra XSD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Ánh xạ đơn hàng bằng JAXB với kiểu ngày giờ tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Sinh mô hình Java từ bộ XSD nhiều namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Biến đổi XML sang HTML và chuyển đổi phiên bản bằng XSLT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Chuyển XML sang JSON theo quy tắc bảo toàn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: Chạy xử lý ngoại tuyến bằng Catalog và resolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-012
+    title: Bảo vệ pipeline trước XXE và lỗi tiêu thụ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-013
+    title: Ký, xác minh và kiểm thử sửa đổi tài liệu XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-014
+    title: Tích hợp nhập xuất XML vào Spring Boot và kiểm thử hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-015
+    title: So sánh DOM, SAX, StAX trên cùng tập dữ liệu thực nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,7 @@
+# Spring Security - Liên kết danh tính
+
+Liên kết danh tính (identity federation) cho phép ứng dụng sử dụng kết quả xác thực từ một nhà cung cấp danh tính (Identity Provider, IdP) đã được thiết lập quan hệ tin cậy. Nhờ đó, người dùng có thể truy cập nhiều ứng dụng bằng danh tính được quản lý tập trung. Đăng nhập một lần (SSO) là một trải nghiệm có thể đạt được từ cách tổ chức này; ứng dụng vẫn cần quyết định quyền truy cập của người đã đăng nhập.
+
+Module dành cho người đã biết HTTP, Spring Boot và các khái niệm xác thực, phân quyền trong Spring Security. Phạm vi tập trung vào ứng dụng tiếp nhận danh tính qua OpenID Connect (OIDC) hoặc SAML 2.0: thiết lập quan hệ tin cậy, tích hợp IdP, phối hợp nhiều nhà cung cấp, ánh xạ danh tính và quyền nội bộ, quản lý phiên và đăng xuất. Với OIDC, ứng dụng là bên dựa vào kết quả xác thực (Relying Party, RP); với SAML, ứng dụng là bên cung cấp dịch vụ (Service Provider, SP). Khi thực hành, cần đối chiếu tài liệu với phiên bản Spring Security và khả năng của IdP đang sử dụng.
+
+Lộ trình bắt đầu từ bức tranh liên kết danh tính và thông tin thiết lập quan hệ tin cậy, rồi thực hành đăng nhập qua OIDC và SAML 2.0. Tiếp đó, bạn xử lý nhiều nhà cung cấp, liên kết tài khoản và ánh xạ quyền, tìm hiểu phiên cùng đăng xuất phối hợp, cuối cùng kiểm chứng các tình huống đúng và sai khi tích hợp. Tư duy xuyên suốt là xác định ai đưa ra khẳng định danh tính, khẳng định đó dành cho ứng dụng nào và ứng dụng dựa vào bằng chứng gì để chấp nhận.

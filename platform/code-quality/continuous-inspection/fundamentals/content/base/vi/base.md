@@ -1,0 +1,7 @@
+# Code Quality Continuous Inspection Fundamentals — Nền tảng kiểm tra liên tục
+
+Continuous Inspection là cách đưa hoạt động phân tích và đánh giá chất lượng mã vào quy trình phát triển lặp lại, thường gắn với commit, build, nhánh hoặc pull request. Mỗi lần mã thay đổi, nhóm có thêm tín hiệu về khả năng bảo trì, độ tin cậy, bảo mật và những vấn đề mới xuất hiện. Tư duy cốt lõi là phát hiện sớm, phản hồi rõ ràng và cải thiện mã dần qua từng thay đổi, thay vì chỉ kiểm tra trước khi phát hành.
+
+Module này dành cho người đã biết Java, Git và các bước build/CI cơ bản. Bạn sẽ học cách một lượt kiểm tra tạo ra issues và metrics, vai trò của rules, quality profiles, quality gates, cũng như cách hiểu coverage, duplication và complexity. Phần phân biệt *new code* với toàn bộ mã nguồn giúp đặt ưu tiên thực tế khi dự án đã có nợ kỹ thuật. Các số đo và cảnh báo cần được đọc trong ngữ cảnh; chúng không thay thế kiểm thử, đánh giá thủ công hay phán đoán kỹ thuật.
+
+Cuối lộ trình, người học thực hành sàng lọc cảnh báo, sửa hoặc giải trình trường hợp nhiễu, chạy lại phân tích và sử dụng kết quả để cải tiến quy trình. Sau module, bạn có thể mô tả vòng phản hồi Continuous Inspection, đọc báo cáo cơ bản và đề xuất tiêu chí kiểm soát chất lượng phù hợp cho pipeline CI.

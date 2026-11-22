@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-spring-data-jdbc
+  title: Tổng quan Spring Data JDBC
+  purpose: Hiểu vai trò của Spring Data JDBC và mô hình truy cập dữ liệu quan hệ theo hướng aggregate, có khác biệt với JPA.
+  objectives:
+  - Phân biệt JDBC, JdbcTemplate, Spring Data JDBC và JPA
+  - Cấu hình dependency, DataSource và SQL schema
+  - Giải thích khi nào nên dùng Spring Data JDBC
+- id: aggregate-ranh-gioi-du-lieu
+  title: Aggregate & ranh giới dữ liệu
+  purpose: Thiết kế aggregate root theo DDD để quản lý tính nhất quán và vòng đời dữ liệu trong một đơn vị lưu trữ.
+  objectives:
+  - Xác định aggregate root và các entity thành viên
+  - Phân biệt quan hệ nội bộ với tham chiếu giữa aggregate
+  - Giải thích tính nhất quán khi lưu toàn aggregate
+- id: anh-xa-entity-bang
+  title: Ánh xạ entity & bảng
+  purpose: Hiểu quy tắc ánh xạ object vào bảng, khóa và cột, bao gồm các kiểu thuộc tính và quan hệ đơn giản.
+  objectives:
+  - Sử dụng @Table, @Id, @Column và @Embedded
+  - Ánh xạ collection bằng @MappedCollection
+  - Dùng AggregateReference cho liên kết ngoài aggregate
+- id: repository-vong-doi-crud
+  title: Repository & vòng đời CRUD
+  purpose: Thực hiện các thao tác truy xuất và cập nhật aggregate qua repository, hiểu rõ ngữ nghĩa insert/update.
+  objectives:
+  - Tạo repository từ CrudRepository
+  - Thử save, findById, findAll và deleteById
+  - Phân tích ID generation và hành vi save aggregate
+- id: truy-van-tuy-bien-sql
+  title: Truy vấn & tùy biến SQL
+  purpose: Viết truy vấn theo nhu cầu nghiệp vụ, biết giới hạn query derivation và thời điểm cần SQL tường minh.
+  objectives:
+  - Tạo finder method theo tên thuộc tính hỗ trợ
+  - Sử dụng @Query với tham số đặt tên
+  - Phân biệt derived query với truy vấn SQL tùy chỉnh
+- id: giao-dich-khoa-lac-quan
+  title: Giao dịch & khóa lạc quan
+  purpose: Giữ các thay đổi dữ liệu nhất quán và nhận diện xung đột khi nhiều yêu cầu cập nhật đồng thời.
+  objectives:
+  - Xác định ranh giới @Transactional ở tầng service
+  - Sử dụng @Version và xử lý optimistic lock
+  - Thử tình huống rollback khi cập nhật thất bại
+- id: callbacks-auditing
+  title: Callbacks & auditing
+  purpose: Tùy biến dữ liệu trước hoặc sau các giai đoạn lưu trữ và lưu vết các thời điểm thay đổi.
+  objectives:
+  - Phân biệt entity callbacks với lifecycle events
+  - Ghi nhận created/modified bằng JDBC auditing
+  - Giải thích rủi ro của side effect trong callback
+- id: kiem-thu-van-hanh-sql
+  title: Kiểm thử & vận hành SQL
+  purpose: Đảm bảo mapping và giao dịch hoạt động đúng trên database thật, đồng thời theo dõi chi phí câu lệnh phát sinh.
+  objectives:
+  - Kiểm thử repository với database thử nghiệm
+  - Kiểm tra schema bằng migration SQL
+  - Quan sát câu lệnh SQL và đánh giá chi phí truy vấn

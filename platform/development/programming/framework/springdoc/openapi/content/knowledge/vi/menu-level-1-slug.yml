@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phiên bản và phụ thuộc
+  slug: versions-and-dependencies
+  index: 1
+- title: HTTP và hợp đồng API
+  slug: http-and-api-contracts
+  index: 2
+- title: Khởi động và vòng đời
+  slug: bootstrap-lifecycle
+  index: 3
+- title: Cấu trúc OpenAPI
+  slug: openapi-structure
+  index: 4
+- title: Mô tả operation
+  slug: operation-descriptions
+  index: 5
+- title: Tham số đầu vào
+  slug: input-parameters
+  index: 6
+- title: Nội dung yêu cầu
+  slug: request-bodies
+  index: 7
+- title: Schema cơ bản
+  slug: basic-schemas
+  index: 8
+- title: Schema nâng cao
+  slug: advanced-schemas
+  index: 9
+- title: Jackson và Validation
+  slug: jackson-and-validation
+  index: 10
+- title: Phản hồi và lỗi
+  slug: responses-and-errors
+  index: 11
+- title: Ví dụ và liên kết
+  slug: examples-and-links
+  index: 12
+- title: Phân trang và truy vấn
+  slug: pagination-and-queries
+  index: 13
+- title: Nhóm tài liệu
+  slug: document-groups
+  index: 14
+- title: Tùy biến lập trình
+  slug: programmatic-customization
+  index: 15
+- title: Swagger UI
+  slug: swagger-ui
+  index: 16
+- title: Mô tả bảo mật
+  slug: security-description
+  index: 17
+- title: OAuth2 và OIDC
+  slug: oauth2-and-oidc
+  index: 18
+- title: Bảo vệ tài liệu
+  slug: documentation-protection
+  index: 19
+- title: WebFlux và route hàm
+  slug: web-flux-and-functional-routes
+  index: 20
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 21
+- title: Proxy và đường dẫn
+  slug: proxy-and-paths
+  index: 22
+- title: Cấu hình và vận hành
+  slug: configuration-and-operations
+  index: 23
+- title: OpenAPI theo phiên bản
+  slug: open-api-versions
+  index: 24
+- title: Xuất đặc tả và CI
+  slug: specification-export-and-ci
+  index: 25
+- title: Kiểm thử hợp đồng
+  slug: contract-testing
+  index: 26
+- title: Tương thích và phân phối
+  slug: compatibility-and-distribution
+  index: 27
+- title: Hiệu năng và native image
+  slug: performance-and-native-image
+  index: 28
+- title: Tích hợp mở rộng
+  slug: extension-integration
+  index: 29
+- title: Di chuyển và nâng cấp
+  slug: migration-and-upgrades
+  index: 30
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 31
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 32

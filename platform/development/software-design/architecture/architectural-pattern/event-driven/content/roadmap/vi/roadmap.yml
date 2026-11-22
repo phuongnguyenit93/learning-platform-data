@@ -1,0 +1,57 @@
+roadmap:
+- id: eda-ranh-gioi-he-thong
+  title: EDA & Ranh giới hệ thống
+  purpose: Hiểu cách các thành phần phản ứng với sự kiện để giảm phụ thuộc trực tiếp giữa dịch vụ.
+  objectives:
+  - Xác định producer, event broker/router và consumer
+  - Phân biệt event đã xảy ra với command yêu cầu hành động
+  - Đánh giá khi nào dùng event-driven thay vì request-response
+- id: domain-events-contracts
+  title: Domain Events & Contracts
+  purpose: Thiết kế sự kiện diễn đạt sự thật nghiệp vụ và có thể phát triển độc lập giữa các dịch vụ.
+  objectives:
+  - Đặt tên event theo trạng thái đã xảy ra
+  - Định nghĩa event ID, type, timestamp, payload và correlation ID
+  - Chọn chiến lược versioning/schema compatibility
+- id: pub-sub-event-streams
+  title: Pub/Sub & Event Streams
+  purpose: Lựa chọn kênh phân phối theo nhu cầu fan-out, lưu giữ sự kiện và xử lý lại.
+  objectives:
+  - Phân biệt queue, publish-subscribe và event stream
+  - Mô tả topic, subscription và consumer group
+  - Giải thích khả năng retention và replay của stream
+- id: routing-ordering-scale
+  title: Routing, Ordering & Scale
+  purpose: Phân phối sự kiện đúng nơi và duy trì hiệu năng khi nhiều consumer hoạt động đồng thời.
+  objectives:
+  - Thiết kế routing theo event type hoặc filter
+  - Chọn partition key theo yêu cầu ordering
+  - Nhận diện consumer lag, backpressure và scaling
+- id: reliable-event-publishing
+  title: Reliable Event Publishing
+  purpose: Ngăn tình trạng dữ liệu đã commit nhưng sự kiện bị bỏ sót khi phát qua broker.
+  objectives:
+  - Giải thích rủi ro dual write giữa database và broker
+  - Mô tả transactional outbox và relay publisher
+  - Nhận diện khả năng xuất hiện event trùng sau retry
+- id: consumer-failure-handling
+  title: Consumer & Failure Handling
+  purpose: Xử lý sự kiện lặp hoặc không hợp lệ mà không tạo tác dụng phụ sai trong nghiệp vụ.
+  objectives:
+  - Phân biệt at-most-once với at-least-once delivery
+  - Thiết kế idempotency/deduplication theo event ID
+  - Áp dụng retry, dead-letter queue và poison-message handling
+- id: consistency-saga
+  title: Consistency & Saga
+  purpose: Phối hợp nhiều dịch vụ trong điều kiện eventual consistency mà không giả định một giao dịch ACID chung.
+  objectives:
+  - Giải thích độ trễ đồng bộ trạng thái giữa các dịch vụ
+  - So sánh choreography và orchestration trong Saga
+  - Thiết kế bước bù trừ cho tình huống xử lý thất bại
+- id: observability-testing
+  title: Observability & Testing
+  purpose: Kiểm chứng luồng sự kiện từ đầu đến cuối và phát hiện điểm nghẽn trong vận hành.
+  objectives:
+  - Liên kết logs, traces bằng correlation ID
+  - Giám sát delivery failures, retry, DLQ và consumer lag
+  - Kiểm thử duplicate, out-of-order, replay và schema evolution

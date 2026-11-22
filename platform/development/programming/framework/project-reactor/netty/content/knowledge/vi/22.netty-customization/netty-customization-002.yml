@@ -1,0 +1,3 @@
+menuLevel1: Tùy biến Netty
+menuLevel2: Dùng doOnChannelInit hoặc doOnConnected để bổ sung handler
+status: ''

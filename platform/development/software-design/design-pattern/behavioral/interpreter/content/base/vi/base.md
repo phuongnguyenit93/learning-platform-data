@@ -1,0 +1,5 @@
+# Software Design — Behavioral Interpreter Pattern
+
+Interpreter là mẫu thiết kế hành vi dùng để biểu diễn các quy tắc của một ngôn ngữ nhỏ thành những đối tượng biểu thức và đánh giá các câu lệnh theo các quy tắc đó. Mỗi biểu thức thực hiện một phần ý nghĩa của ngữ pháp; những biểu thức phức hợp có thể chứa các biểu thức con để tạo thành cây cú pháp trừu tượng (AST). Cách tiếp cận này hữu ích khi ứng dụng thường xuyên xử lý các công thức, bộ lọc hoặc quy tắc miền có cú pháp tương đối đơn giản và ổn định.
+
+Module phù hợp với người đã nắm Java, interface, đệ quy và lập trình hướng đối tượng. Bạn sẽ xác định một ngữ pháp nhỏ, thiết kế giao diện Expression, cài đặt Terminal/Nonterminal Expression, sử dụng Context và Client, rồi xây dựng AST và viết kiểm thử. Phần cuối giúp phân biệt phân tích cú pháp với đánh giá biểu thức và nhận diện giới hạn: số lượng lớp cùng chi phí xử lý có thể tăng nhanh nếu ngữ pháp phức tạp. Kết thúc lộ trình, bạn có thể triển khai Interpreter cho một bài toán nhỏ và cân nhắc khi nên thay bằng thư viện parser hoặc cách giải đơn giản hơn.

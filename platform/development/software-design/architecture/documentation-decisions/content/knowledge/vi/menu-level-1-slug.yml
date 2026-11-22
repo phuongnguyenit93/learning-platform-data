@@ -1,0 +1,73 @@
+menu:
+  - title: "Tổng quan ADR"
+    slug: adr-overview
+    index: 0
+  - title: "Phạm vi quyết định"
+    slug: decision-scope
+    index: 1
+  - title: "Bối cảnh và động lực"
+    slug: context-and-drivers
+    index: 2
+  - title: "Bằng chứng và bất định"
+    slug: evidence-and-uncertainty
+    index: 3
+  - title: "Phương án lựa chọn"
+    slug: decision-options
+    index: 4
+  - title: "Phân tích đánh đổi"
+    slug: trade-off-analysis
+    index: 5
+  - title: "Quyết định và lập luận"
+    slug: decision-and-rationale
+    index: 6
+  - title: "Hệ quả và rủi ro"
+    slug: consequences-and-risks
+    index: 7
+  - title: "Cấu trúc bản ghi"
+    slug: record-structure
+    index: 8
+  - title: "Mẫu và quy ước"
+    slug: templates-and-conventions
+    index: 9
+  - title: "Kỹ thuật viết ADR"
+    slug: adr-writing-techniques
+    index: 10
+  - title: "Đề xuất và thảo luận"
+    slug: proposals-and-discussion
+    index: 11
+  - title: "Review ADR"
+    slug: adr-review
+    index: 12
+  - title: "Phê duyệt và trách nhiệm"
+    slug: approval-and-responsibilities
+    index: 13
+  - title: "Trạng thái và vòng đời"
+    slug: status-and-lifecycle
+    index: 14
+  - title: "Thay đổi và thay thế"
+    slug: changes-and-supersession
+    index: 15
+  - title: "Tổ chức repository"
+    slug: repository-organization
+    index: 16
+  - title: "Liên kết và truy vết"
+    slug: links-and-traceability
+    index: 17
+  - title: "Git và pull request"
+    slug: git-and-pull-requests
+    index: 18
+  - title: "Triển khai và kiểm chứng"
+    slug: implementation-and-validation
+    index: 19
+  - title: "Bảo trì kho ADR"
+    slug: adr-repository-maintenance
+    index: 20
+  - title: "Cộng tác và áp dụng"
+    slug: collaboration-and-adoption
+    index: 21
+  - title: "Bảo mật và tuân thủ"
+    slug: security-and-compliance
+    index: 22
+  - title: "Thực hành ADR"
+    slug: adr-practice
+    index: 23

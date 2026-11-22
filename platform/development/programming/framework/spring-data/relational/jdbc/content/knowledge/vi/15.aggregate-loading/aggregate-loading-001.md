@@ -1,0 +1,855 @@
+# Luồng đọc aggregate root và các entity thuộc quyền sở hữu
+
+Trong **Spring Data Relational JDBC**, aggregate root là điểm truy cập của một aggregate. Khi ứng dụng đọc một root bằng repository, Spring Data JDBC khôi phục trạng thái của root cùng các đối tượng được sở hữu bên trong ranh giới aggregate. Hiểu luồng đọc này giúp thiết kế đúng quan hệ giữa root, entity con và value object, đồng thời dự đoán được dữ liệu nào được nạp, những câu SQL nào có thể phát sinh và chi phí của một lần đọc.
+
+Điểm quan trọng của Spring Data JDBC là mô hình **không dựa trên persistence context và lazy-loading proxy kiểu JPA**. Khi một aggregate được đọc, các thành phần thuộc aggregate được tải theo cơ chế mapping của Spring Data JDBC. Một tham chiếu đến aggregate độc lập chỉ mang ID; framework không tự tải toàn bộ aggregate được tham chiếu.
+
+Bài học tập trung vào luồng đọc của aggregate root và các entity thuộc quyền sở hữu: từ repository đến SQL, cách ánh xạ collection và object nhúng, quy tắc sở hữu, trường hợp dữ liệu rỗng, chi phí truy vấn và cách chọn truy vấn đọc phù hợp.
+
+## 1. Aggregate root là điểm bắt đầu của luồng đọc
+
+Một aggregate gồm root và các thành phần thuộc quyền sở hữu của root. Root kiểm soát những thay đổi cần duy trì invariant của aggregate.
+
+Ví dụ đơn hàng:
+
+~~~text
+PurchaseOrder aggregate
+  PurchaseOrder (ROOT)
+    id
+    orderNumber
+    status
+    shippingAddress: ShippingAddress
+    lines: List<OrderLine>
+      OrderLine
+        productCode
+        quantity
+        unitPrice
+~~~
+
+Trong mô hình này:
+
+- `PurchaseOrder` là aggregate root.
+- `ShippingAddress` là value object thuộc đơn hàng.
+- `OrderLine` là thành phần con được sở hữu bởi đơn hàng.
+- Các dòng hàng và địa chỉ giao hàng không có vòng đời độc lập với đơn hàng trong ví dụ.
+
+Khi gọi:
+
+~~~java
+PurchaseOrder order = orderRepository.findById(orderId)
+        .orElseThrow();
+~~~
+
+Ứng dụng yêu cầu đọc aggregate thông qua root. Kết quả là object `PurchaseOrder` cùng các thành phần thuộc aggregate được ánh xạ theo metadata đã khai báo. Code gọi không cần tự tìm từng dòng hàng bằng một repository riêng.
+
+### 1.1. Root không phải chỉ là một hàng dữ liệu
+
+Trong database, root thường được lưu ở một bảng chính, còn collection con ở bảng riêng. Nhưng aggregate là khái niệm miền, không phải một bảng.
+
+~~~text
+Database
+
+purchase_order
+  id | order_number | status | shipping_city
+
+order_line
+  purchase_order_id | line_position | product_code | quantity
+  1001              | 0             | BOOK-A       | 2
+  1001              | 1             | PEN-B        | 4
+
+                 |
+                 | Spring Data JDBC mapping
+                 v
+
+PurchaseOrder(id=1001)
+  shippingAddress = ...
+  lines = [OrderLine(...), OrderLine(...)]
+~~~
+
+Một lần đọc aggregate có thể cần nhiều câu SQL để khôi phục object graph. Điều quan trọng là toàn bộ dữ liệu được trả về dưới dạng một aggregate với root làm điểm truy cập.
+
+### 1.2. Vì sao truy cập qua root?
+
+Nếu code bên ngoài tự tải và sửa từng `OrderLine`, nó có thể bỏ qua quy tắc của đơn hàng như:
+
+- Không thêm dòng khi đơn đã xác nhận.
+- Tổng tiền phải được tính lại khi số lượng thay đổi.
+- Không xóa dòng cuối cùng nếu đơn bắt buộc phải có ít nhất một dòng.
+
+Đọc và thay đổi qua root giúp mô hình giữ trách nhiệm nhất quán. Repository của aggregate thường được khai báo cho root:
+
+~~~java
+public interface PurchaseOrderRepository
+        extends CrudRepository<PurchaseOrder, Long> {
+}
+~~~
+
+Ứng dụng dùng repository để lấy aggregate, rồi gọi hành vi trên root.
+
+## 2. Luồng đọc tổng quát trong Spring Data JDBC
+
+Ở mức khái niệm, quá trình đọc aggregate diễn ra như sau:
+
+~~~text
+Application service
+       |
+       v
+PurchaseOrderRepository.findById(id)
+       |
+       v
+Spring Data JDBC repository infrastructure
+       |
+       v
+DataAccessStrategy / JDBC mapping
+       |
+       +---- SELECT root row from purchase_order
+       |
+       +---- SELECT owned collection rows from order_line
+       |
+       +---- map embedded values from root row
+       |
+       v
+Materialize PurchaseOrder aggregate
+       |
+       v
+Return complete mapped aggregate to caller
+~~~
+
+Các bước chính:
+
+1. Repository nhận ID của root.
+2. Spring Data JDBC tạo và thực thi câu SQL đọc hàng root theo ID.
+3. Các thuộc tính nằm trong cùng hàng, chẳng hạn scalar và value object nhúng, được ánh xạ từ row đó.
+4. Với collection hoặc entity con nằm ở bảng riêng, framework thực hiện các thao tác đọc cần thiết để lấy thành phần thuộc root.
+5. Framework dựng object con và gắn vào root theo mapping metadata.
+6. Repository trả aggregate cho caller.
+
+Số câu SQL và hình dạng SQL cụ thể phụ thuộc cấu trúc aggregate, kiểu mapping, dialect và phiên bản framework. Không nên giả định một lần `findById` luôn chỉ phát ra một câu SQL.
+
+## 3. Mapping root và entity con bằng `@MappedCollection`
+
+Một collection entity con thường được lưu trong bảng riêng. Khóa ngoại của bảng con trỏ về ID của aggregate root.
+
+Ví dụ schema:
+
+~~~sql
+CREATE TABLE purchase_order (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_number VARCHAR(40) NOT NULL UNIQUE,
+    status VARCHAR(24) NOT NULL
+);
+
+CREATE TABLE order_line (
+    purchase_order_id BIGINT NOT NULL,
+    line_position INTEGER NOT NULL,
+    product_code VARCHAR(80) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price_minor_units BIGINT NOT NULL,
+    PRIMARY KEY (purchase_order_id, line_position),
+    FOREIGN KEY (purchase_order_id)
+        REFERENCES purchase_order(id)
+);
+~~~
+
+Entity con:
+
+~~~java
+public class OrderLine {
+    private String productCode;
+    private int quantity;
+    private long unitPriceMinorUnits;
+
+    public OrderLine(
+            String productCode,
+            int quantity,
+            long unitPriceMinorUnits
+    ) {
+        if (productCode == null || productCode.isBlank()) {
+            throw new IllegalArgumentException("Mã sản phẩm không hợp lệ");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Số lượng phải dương");
+        }
+        if (unitPriceMinorUnits < 0) {
+            throw new IllegalArgumentException("Đơn giá không được âm");
+        }
+        this.productCode = productCode;
+        this.quantity = quantity;
+        this.unitPriceMinorUnits = unitPriceMinorUnits;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public long getUnitPriceMinorUnits() {
+        return unitPriceMinorUnits;
+    }
+}
+~~~
+
+Aggregate root:
+
+~~~java
+import java.util.List;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.MappedCollection;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("purchase_order")
+public class PurchaseOrder {
+
+    @Id
+    private Long id;
+
+    private String orderNumber;
+
+    private String status;
+
+    @MappedCollection(
+            idColumn = "purchase_order_id",
+            keyColumn = "line_position"
+    )
+    private List<OrderLine> lines;
+
+    public PurchaseOrder(
+            Long id,
+            String orderNumber,
+            String status,
+            List<OrderLine> lines
+    ) {
+        this.id = id;
+        this.orderNumber = orderNumber;
+        this.status = status;
+        this.lines = lines == null ? List.of() : List.copyOf(lines);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getOrderNumber() {
+        return orderNumber;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public List<OrderLine> getLines() {
+        return lines;
+    }
+}
+~~~
+
+`@MappedCollection` mô tả collection thuộc aggregate root:
+
+- `idColumn` chỉ ra cột ở bảng con lưu ID của root.
+- `keyColumn` có thể lưu vị trí của phần tử khi collection cần giữ thứ tự, chẳng hạn `List`.
+- Spring Data JDBC dùng thông tin này để đọc các dòng con liên quan đến root và dựng collection.
+
+Tên cột cần khớp schema. Với collection kiểu Set hoặc cấu trúc không cần thứ tự, lựa chọn key column và quy tắc khóa của bảng con cần được thiết kế phù hợp.
+
+Ví dụ trên minh họa mapping và constructor; một ứng dụng thực tế cần bảo đảm constructor binding và naming strategy phù hợp với schema. Các quy tắc nghiệp vụ như trạng thái đơn và tính tổng tiền có thể được bổ sung vào root.
+
+### 3.1. Foreign key xác định quyền sở hữu ở mức lưu trữ
+
+`order_line.purchase_order_id` liên kết dòng hàng với root. Cột này không phải ID của một aggregate độc lập; nó thể hiện dòng hàng thuộc đơn hàng nào.
+
+Khi đọc `PurchaseOrder` có ID 1001, framework cần lấy các hàng `order_line` có `purchase_order_id = 1001`. Dòng hàng của đơn khác không được đưa vào aggregate hiện tại.
+
+### 3.2. List và thứ tự phần tử
+
+Nếu nghiệp vụ cần thứ tự dòng hàng, dùng `List` và khai báo `keyColumn` để lưu vị trí. Nếu không có cột vị trí, database không tự bảo đảm thứ tự kết quả truy vấn.
+
+Không dựa vào thứ tự vật lý của hàng trong bảng. SQL chỉ bảo đảm thứ tự khi có `ORDER BY` phù hợp; metadata mapping của collection cần hỗ trợ khôi phục thứ tự mong muốn.
+
+## 4. Object nhúng được đọc từ cùng hàng
+
+Value object không nhất thiết có bảng riêng. Ví dụ địa chỉ giao hàng được chụp tại thời điểm đặt đơn:
+
+~~~java
+public record ShippingAddress(
+        String recipient,
+        String street,
+        String city,
+        String postalCode
+) {
+}
+~~~
+
+Schema có thể chứa các cột:
+
+~~~sql
+ALTER TABLE purchase_order
+    ADD COLUMN shipping_recipient VARCHAR(160),
+    ADD COLUMN shipping_street VARCHAR(200),
+    ADD COLUMN shipping_city VARCHAR(100),
+    ADD COLUMN shipping_postal_code VARCHAR(20);
+~~~
+
+Ánh xạ trong root:
+
+~~~java
+@Embedded(prefix = "shipping_")
+private ShippingAddress shippingAddress;
+~~~
+
+Với `@Embedded`, các thành phần của value object được đọc từ cùng row root. Framework không cần truy vấn bảng địa chỉ riêng chỉ để dựng `ShippingAddress`.
+
+Phân biệt:
+
+| Thành phần | Vị trí lưu thường gặp | Cách đọc |
+| --- | --- | --- |
+| Scalar property của root | Cột trong bảng root | Đọc từ row root |
+| Value object `@Embedded` | Nhiều cột trong bảng root | Dựng object từ row root |
+| Collection `@MappedCollection` | Bảng child | Đọc các row liên quan bằng khóa root |
+| Aggregate khác được tham chiếu bằng ID | Cột ID tham chiếu | Chỉ lấy ID; muốn có dữ liệu phải truy vấn riêng |
+
+Không dùng `@Embedded` để biểu diễn một aggregate có vòng đời độc lập. Một object có nhiều field không vì thế trở thành aggregate riêng; phải xét danh tính và quy tắc nghiệp vụ.
+
+## 5. Entity con được tải cùng root, không phải lazy proxy
+
+Spring Data JDBC không dùng persistence context và lazy-loading proxy như Hibernate/JPA. Các thành phần được mapping là một phần của aggregate được tải theo luồng đọc aggregate.
+
+Ví dụ:
+
+~~~java
+PurchaseOrder order = repository.findById(1001L)
+        .orElseThrow();
+
+List<OrderLine> lines = order.getLines();
+~~~
+
+Caller có thể truy cập collection đã được ánh xạ. Không có proxy collection chờ đến khi gọi `getLines()` mới truy vấn database.
+
+Điều này có các hệ quả:
+
+- Không có cấu hình fetch type `LAZY` kiểu JPA cho collection aggregate.
+- Không cần giữ session mở chỉ để truy cập child proxy sau đó.
+- Chi phí đọc aggregate cần được xem xét ngay tại thời điểm repository load root.
+- Aggregate quá lớn có thể làm một lần đọc root trở nên đắt.
+- Việc gọi getter không tự tạo truy vấn bổ sung.
+
+### 5.1. Không nhầm với tham chiếu aggregate khác
+
+Ví dụ root có:
+
+~~~java
+AggregateReference<Customer, Long> customer;
+List<OrderLine> lines;
+~~~
+
+Khi đọc đơn hàng:
+
+- `lines` là collection thuộc quyền sở hữu của đơn; framework tải nó như một phần aggregate.
+- `customer` chỉ là tham chiếu ID đến aggregate Customer; framework không tự tải toàn bộ Customer.
+
+Sự khác biệt:
+
+~~~text
+findById(PurchaseOrder)
+        |
+        +-- root row --------------------> loaded
+        |
+        +-- embedded ShippingAddress ---> mapped from root row
+        |
+        +-- owned OrderLine collection --> loaded as aggregate part
+        |
+        +-- AggregateReference<Customer> -> ID only
+                                           |
+                                           +-- explicit customerRepository.findById(...)
+                                               needed to load Customer
+~~~
+
+Đây là quy tắc cốt lõi để phân biệt ownership với reference. Nếu Customer được nhúng như một object graph trực tiếp, mô hình có thể vô tình coi nó là thành phần của aggregate đơn hàng.
+
+## 6. Luồng đọc cụ thể từ repository
+
+Giả sử:
+
+~~~java
+PurchaseOrder order = orderRepository.findById(1001L)
+        .orElseThrow(() -> new OrderNotFoundException(1001L));
+~~~
+
+Về mặt dữ liệu, framework cần:
+
+**Bước 1 — Đọc root**
+
+~~~sql
+SELECT id, order_number, status,
+       shipping_recipient, shipping_street,
+       shipping_city, shipping_postal_code
+FROM purchase_order
+WHERE id = ?;
+~~~
+
+**Bước 2 — Đọc collection con**
+
+~~~sql
+SELECT purchase_order_id, line_position,
+       product_code, quantity, unit_price_minor_units
+FROM order_line
+WHERE purchase_order_id = ?
+ORDER BY line_position;
+~~~
+
+SQL ở trên minh họa ý tưởng. Câu lệnh thực tế phụ thuộc dialect, naming strategy và cách Spring Data JDBC triển khai mapping trong release đang dùng. Framework có thể dùng các truy vấn khác nhau để nạp các đường collection; không nên đóng đinh số câu SQL chỉ từ ví dụ này.
+
+**Bước 3 — Materialize object**
+
+~~~text
+Root row
+  -> PurchaseOrder
+  -> ShippingAddress (embedded)
+
+Child rows
+  -> OrderLine objects
+  -> List<OrderLine>
+
+Combine
+  -> PurchaseOrder aggregate
+~~~
+
+**Bước 4 — Trả về caller**
+
+Khi repository trả kết quả, các thành phần thuộc aggregate đã được khôi phục theo mapping. Nếu root ID không tồn tại, `findById` trả `Optional.empty()`; không có aggregate để dựng.
+
+### 6.1. Đọc bằng query method
+
+Một query method có thể tìm root theo thuộc tính:
+
+~~~java
+Optional<PurchaseOrder> findByOrderNumber(String orderNumber);
+~~~
+
+Kết quả vẫn là aggregate root. Spring Data JDBC cần ánh xạ root và các thành phần thuộc aggregate theo mapping của repository. Không nên suy luận rằng query theo thuộc tính khác ID sẽ chỉ trả một row phẳng mà không liên quan đến aggregate.
+
+Nếu method có thể tìm nhiều root:
+
+~~~java
+List<PurchaseOrder> findByStatus(String status);
+~~~
+
+Kiểu trả về collection diễn đạt nhiều aggregate. Chi phí tải aggregate phụ thuộc số root và cấu trúc owned collections. Với màn hình danh sách lớn, cân nhắc projection/read query thay vì tải đầy đủ mọi aggregate nếu UI chỉ cần vài trường.
+
+## 7. Không tìm thấy root và collection rỗng
+
+Hai trường hợp cần phân biệt:
+
+**Root không tồn tại**
+
+~~~java
+Optional<PurchaseOrder> result = repository.findById(9999L);
+~~~
+
+Nếu không có row trong `purchase_order`, kết quả là `Optional.empty()`.
+
+**Root tồn tại nhưng không có child**
+
+~~~java
+PurchaseOrder order = repository.findById(1001L)
+        .orElseThrow();
+
+order.getLines().isEmpty(); // true nếu đơn chưa có dòng hàng
+~~~
+
+Root vẫn tồn tại; collection được khôi phục thành tập rỗng theo mapping/khởi tạo của model. Không nên nhầm việc không có child với việc không có root.
+
+| Tình huống | Ý nghĩa | Kết quả thường thấy |
+| --- | --- | --- |
+| Không có root row | Aggregate không tồn tại | Optional rỗng |
+| Có root, không có child row | Aggregate tồn tại nhưng collection rỗng | Root có collection rỗng |
+| Có root, một số child row | Aggregate có thành phần tương ứng | Collection chứa các child đã đọc |
+| Database lỗi khi đọc child | Không thể hoàn thành việc tải aggregate | Exception truy cập dữ liệu |
+
+Không chuyển lỗi đọc child thành collection rỗng. Nếu query child thất bại vì mất kết nối hoặc lỗi SQL, ứng dụng phải biết aggregate không được tải thành công.
+
+## 8. Tải nhiều aggregate root
+
+Một phương thức như:
+
+~~~java
+Iterable<PurchaseOrder> orders = orderRepository.findAll();
+~~~
+
+trả về các aggregate root. Khi mapping các root, những thành phần thuộc aggregate cũng cần được khôi phục theo cơ chế Spring Data JDBC.
+
+Điều này khác với việc chỉ đọc một bảng root bằng SQL tùy chỉnh. Khi tải nhiều aggregate, cần quan tâm tổng số root, số child, kích thước collection và số đường mapping.
+
+Ví dụ:
+
+~~~text
+findAll()
+  |
+  +-- PurchaseOrder #1001
+  |      +-- 2 OrderLine
+  |
+  +-- PurchaseOrder #1002
+  |      +-- 5 OrderLine
+  |
+  +-- PurchaseOrder #1003
+         +-- 0 OrderLine
+~~~
+
+Nếu có hàng nghìn đơn, việc materialize tất cả root cùng child collections có thể tiêu tốn nhiều bộ nhớ và thời gian. `findAll()` không phải lựa chọn phù hợp cho mọi màn hình hoặc batch job.
+
+### 8.1. Phân trang aggregate
+
+Khi cần danh sách root theo từng trang, có thể dùng repository paging/query phù hợp hoặc viết query chuyên biệt để giới hạn root trước khi nạp dữ liệu. Cần xác nhận cách paging tương tác với aggregate mapping trong phiên bản Spring Data JDBC đang dùng.
+
+Không phân trang child rows một cách tùy tiện nếu nghiệp vụ yêu cầu root luôn được khôi phục đầy đủ. Một aggregate bị cắt mất child có thể không còn biểu diễn trạng thái miền hợp lệ.
+
+### 8.2. Batch xử lý
+
+Đối với job cần xử lý nhiều root:
+
+- Chọn batch size vừa với bộ nhớ.
+- Dùng điều kiện phân trang ổn định, thường dựa trên khóa tăng dần hoặc cursor key.
+- Tránh tải toàn bộ bảng rồi mới lọc trong Java.
+- Đo kích thước aggregate và số SQL phát sinh.
+- Cân nhắc query projection nếu job chỉ cần một phần dữ liệu.
+
+Nếu job phải thay đổi aggregate, đọc root qua repository và lưu qua repository để giữ đúng mapping và invariant.
+
+## 9. Chi phí đọc aggregate và hiệu năng
+
+Một aggregate root có thể sở hữu nhiều collection. Mỗi đường collection có thể cần một truy vấn bổ sung. Do đó, chi phí đọc không chỉ phụ thuộc số root mà còn phụ thuộc cấu trúc aggregate.
+
+Ví dụ:
+
+~~~text
+PurchaseOrder
+  lines
+  adjustments
+  notes
+  shipmentPackages
+~~~
+
+Một lần đọc root có thể cần nạp nhiều tập con. Khi root có collection lồng nhau, số thao tác đọc và lượng dữ liệu có thể tăng theo độ sâu/cấu trúc mapping.
+
+### 9.1. Aggregate quá lớn
+
+Dấu hiệu aggregate có thể quá lớn:
+
+- Một root chứa hàng nghìn child.
+- Hầu hết use case chỉ cần một phần nhỏ collection.
+- Mỗi lần đọc root đều kéo theo dữ liệu không cần cho thao tác.
+- Một thay đổi nhỏ khiến việc đọc/lưu cả graph trở nên đắt.
+- Các phần dữ liệu có vòng đời hoặc tần suất thay đổi độc lập.
+
+Giải pháp không phải thêm lazy loading kiểu JPA vào Spring Data JDBC. Hãy xem lại ranh giới aggregate:
+
+- Thành phần nào thật sự phải nhất quán cùng root?
+- Thành phần nào có thể trở thành aggregate riêng?
+- Có thể lưu snapshot hoặc reference ID không?
+- Màn hình đọc có thể dùng projection riêng không?
+
+### 9.2. Không tách aggregate chỉ vì muốn giảm một câu SQL
+
+Aggregate boundary phải xuất phát từ invariant và vòng đời. Tách child ra thành root độc lập chỉ vì collection lớn có thể khiến quy tắc nghiệp vụ cần transaction xuyên nhiều root, làm hệ thống khó nhất quán hơn.
+
+Nếu dữ liệu con luôn phải được thay đổi cùng root và cần bảo vệ bằng một transaction, giữ nó trong aggregate có thể là lựa chọn đúng dù việc đọc tốn nhiều query. Khi đó, tối ưu SQL/index và giảm kích thước dữ liệu mỗi lần đọc là hướng phù hợp.
+
+### 9.3. Index cho foreign key của collection
+
+Ví dụ query child theo root:
+
+~~~sql
+SELECT *
+FROM order_line
+WHERE purchase_order_id = ?;
+~~~
+
+Index trên cột foreign key có thể giúp database tìm các child nhanh hơn:
+
+~~~sql
+CREATE INDEX idx_order_line_purchase_order
+    ON order_line(purchase_order_id);
+~~~
+
+Nếu primary key của bảng child bắt đầu bằng `(purchase_order_id, line_position)`, index primary key có thể đã hỗ trợ truy vấn theo tiền tố `purchase_order_id` tùy database. Kiểm tra execution plan trước khi thêm index trùng lặp.
+
+### 9.4. Đo đúng chi phí
+
+Quan sát:
+
+- Số câu SQL trên một lần tải root.
+- Thời gian truy vấn root và child.
+- Số row được đọc.
+- Kích thước object graph được tạo.
+- Thời gian mapping và allocation trong JVM.
+- Thời gian chờ connection pool.
+- Số aggregate được tải trong mỗi request.
+
+SQL logging hữu ích khi phát triển nhưng có thể tạo lượng log lớn và lộ dữ liệu; chỉ bật ở môi trường phù hợp và kiểm soát tham số nhạy cảm.
+
+## 10. Đọc aggregate khác với đọc projection
+
+Repository aggregate phục vụ mô hình ghi và các hành vi cần đầy đủ trạng thái aggregate. Nhưng một màn hình có thể chỉ cần:
+
+- Mã đơn.
+- Trạng thái.
+- Tên khách hàng.
+- Tổng tiền.
+
+Nếu chỉ cần bốn trường đó, tải toàn bộ `PurchaseOrder` và mọi `OrderLine` có thể lãng phí.
+
+Có thể dùng truy vấn projection/read model:
+
+~~~sql
+SELECT
+    po.id AS order_id,
+    po.order_number,
+    po.status,
+    c.name AS customer_name
+FROM purchase_order po
+JOIN customer c ON c.id = po.customer_id
+WHERE po.status = ?
+ORDER BY po.id DESC;
+~~~
+
+Kết quả có thể ánh xạ vào DTO:
+
+~~~java
+public record OrderListItem(
+        Long orderId,
+        String orderNumber,
+        String status,
+        String customerName
+) {
+}
+~~~
+
+Projection là kết quả đọc phục vụ một nhu cầu cụ thể; nó không phải aggregate đầy đủ và không nên dùng làm đối tượng để gọi hành vi nghiệp vụ rồi lưu như root.
+
+### 10.1. Không nhầm projection với aggregate mapping
+
+Một câu SQL tùy chỉnh trả về vài cột không nhất thiết khôi phục đầy đủ collection child. Nếu method trả DTO/projection, caller chỉ nên dựa vào những field mà query cung cấp.
+
+Nếu custom query trả về aggregate root, cần xác minh mapping behavior của query method trong release đang dùng và kiểm thử các collection thuộc aggregate. Không mặc định một câu SQL tự viết sẽ tự động nạp mọi child như đường đọc repository chuẩn.
+
+### 10.2. CQRS ở mức vừa đủ
+
+Có thể duy trì:
+
+- Repository aggregate cho lệnh thay đổi và use case cần invariant.
+- Projection/query riêng cho màn hình danh sách, báo cáo hoặc tìm kiếm.
+
+Không cần xây một hệ CQRS phân tán phức tạp chỉ vì một màn hình cần join. Một read query rõ ràng có thể đủ.
+
+## 11. Tham chiếu aggregate khác không được tải cùng root
+
+Giả sử:
+
+~~~java
+@Table("purchase_order")
+public class PurchaseOrder {
+
+    @Id
+    private Long id;
+
+    private AggregateReference<Customer, Long> customer;
+
+    @MappedCollection(idColumn = "purchase_order_id")
+    private List<OrderLine> lines;
+}
+~~~
+
+Khi đọc:
+
+- `lines` thuộc aggregate nên được tải.
+- `customer` chỉ chứa ID tham chiếu nên không được tự động tải thành `Customer`.
+
+Muốn hiển thị tên khách hàng:
+
+~~~java
+PurchaseOrder order = orderRepository.findById(orderId)
+        .orElseThrow();
+
+Customer customer = customerRepository.findById(
+        order.getCustomer().getId()
+).orElseThrow();
+~~~
+
+Đối với danh sách nhiều đơn, tránh gọi customer repository trong vòng lặp nếu có thể tạo một truy vấn theo tập ID hoặc projection join.
+
+Đây là ranh giới quan trọng:
+
+| Quan hệ | Được tải khi đọc root? | Lý do |
+| --- | --- | --- |
+| Scalar property | Có | Cột thuộc bảng root |
+| `@Embedded` value object | Có | Thành phần của cùng row |
+| `@MappedCollection` child | Có | Thành phần thuộc aggregate |
+| `AggregateReference` | Chỉ ID tham chiếu | Aggregate đích có vòng đời riêng |
+| Một root độc lập được nhúng trực tiếp vào graph | Không nên thiết kế theo cách này | Làm mờ ranh giới sở hữu |
+
+## 12. Transaction trong luồng đọc aggregate
+
+Một lần tải aggregate thường gồm đọc root và đọc các thành phần child. Nếu ứng dụng cần một snapshot nhất quán trong khi có cập nhật đồng thời, transaction và isolation level của database có vai trò.
+
+Ví dụ:
+
+~~~java
+@Transactional(readOnly = true)
+public PurchaseOrder getOrder(Long id) {
+    return orderRepository.findById(id)
+            .orElseThrow(() -> new OrderNotFoundException(id));
+}
+~~~
+
+Transaction read-only thể hiện ý định chỉ đọc và có thể cung cấp hint cho transaction manager/database. Cách bảo đảm snapshot nhất quán phụ thuộc isolation level và database; không nên giả định mọi transaction read-only đều tự động dùng snapshot isolation.
+
+### 12.1. Vì sao một aggregate có nhiều query cần chú ý isolation?
+
+Giả sử luồng đọc:
+
+1. Đọc root order.
+2. Đọc collection lines.
+
+Nếu một transaction khác thay đổi dòng hàng giữa hai bước, mức isolation yếu có thể cho phép lần đọc nhìn thấy dữ liệu ở các thời điểm khác nhau. Tùy database/isolation level, ứng dụng có thể đọc được trạng thái nhất quán hoặc gặp các hiện tượng đọc không lặp lại/phantom phù hợp với isolation đã chọn.
+
+Với use case cần snapshot nhất quán nghiêm ngặt, xác định isolation phù hợp và kiểm tra trên database mục tiêu. Đừng tự suy luận từ việc repository trả một object rằng tất cả SQL chắc chắn chạy dưới cùng snapshot nếu transaction boundary không được thiết lập.
+
+### 12.2. Không giữ transaction lâu hơn cần thiết
+
+Sau khi aggregate đã được đọc và chuyển thành DTO/response, tránh giữ transaction mở trong lúc:
+
+- Chờ người dùng.
+- Gọi API bên ngoài chậm.
+- Tạo file lớn.
+- Gửi email hoặc message đồng bộ lâu.
+
+Transaction dài có thể giữ connection và snapshot/lock lâu hơn cần thiết, ảnh hưởng pool và database.
+
+## 13. Constructor và materialization của aggregate
+
+Spring Data JDBC phải dựng object từ dữ liệu đã đọc. Với class mutable, framework có thể tạo instance rồi gán các property theo cơ chế mapping. Với class immutable hoặc Java record, framework sử dụng constructor phù hợp.
+
+Ví dụ record root:
+
+~~~java
+@Table("purchase_order")
+public record PurchaseOrder(
+        @Id Long id,
+        String orderNumber,
+        String status,
+        @MappedCollection(idColumn = "purchase_order_id")
+        List<OrderLine> lines
+) {
+    public PurchaseOrder {
+        lines = lines == null ? List.of() : List.copyOf(lines);
+    }
+}
+~~~
+
+Record có canonical constructor tương ứng component, thuận tiện cho việc khôi phục object immutable. Tuy nhiên, kiểu collection và child mapping phải tương thích với phiên bản Spring Data JDBC; constructor phải nhận đúng các thuộc tính được ánh xạ.
+
+Không thêm tham số constructor bắt buộc cho dữ liệu không lưu (ví dụ một ghi chú giao diện transient) rồi mong framework tự nạp nó. Dữ liệu không được ánh xạ cần được tính/gán ở bước khác hoặc đưa vào DTO.
+
+### 13.1. Collection rỗng và bất biến
+
+Khi constructor chuyển collection null thành `List.of()` và sao chép bằng `List.copyOf`, code miền có thể làm việc với collection không null và không cho caller sửa trực tiếp.
+
+Đây là quyết định của model Java; schema vẫn có thể không có child row. Một collection rỗng không có nghĩa root không tồn tại.
+
+### 13.2. Entity child và constructor
+
+Child class cũng cần constructor/property mapping phù hợp với các cột của bảng con. Với child immutable, constructor cần nhận dữ liệu persistent. Các giá trị keyColumn hoặc foreign key phục vụ mapping có thể được framework xử lý theo metadata; không tự thêm chúng vào domain model nếu chúng không cần thiết cho nghiệp vụ.
+
+Khi dùng class có nhiều constructor, có thể cần đánh dấu constructor persistence bằng `@PersistenceCreator`. Đảm bảo tên tham số constructor có metadata phù hợp, ví dụ biên dịch với `-parameters` khi cần.
+
+## 14. Khi nào nên tải đầy đủ aggregate?
+
+Đọc đầy đủ aggregate phù hợp khi use case:
+
+- Cần thực thi hành vi miền phụ thuộc nhiều thành phần bên trong root.
+- Cần kiểm tra invariant trước khi cập nhật.
+- Cần tính toán từ toàn bộ child collection.
+- Cần thay đổi một phần aggregate và lưu root theo đúng quy tắc sở hữu.
+- Cần tạo snapshot đầy đủ cho một nghiệp vụ quan trọng.
+
+Ví dụ xác nhận đơn hàng cần kiểm tra có dòng hàng, tổng tiền và trạng thái. Đọc root cùng các dòng hàng là hợp lý.
+
+Không nhất thiết tải đầy đủ aggregate khi use case chỉ:
+
+- Hiển thị một nhãn trạng thái.
+- Đếm số đơn theo trạng thái.
+- Tìm kiếm theo mã đơn.
+- Tạo danh sách ID.
+- Báo cáo chỉ cần một số cột.
+
+Trong các trường hợp này, query projection hoặc aggregate function có thể phù hợp hơn.
+
+## 15. Các lỗi thường gặp
+
+| Sai lầm | Hệ quả | Cách xử lý |
+| --- | --- | --- |
+| Nghĩ findById chỉ đọc đúng một row | Bỏ qua chi phí đọc child collections | Quan sát SQL và cấu trúc aggregate |
+| Mong child collection lazy-load khi gọi getter | Không phù hợp mô hình Spring Data JDBC | Thiết kế aggregate vừa đủ và dùng projection cho read |
+| Nhúng aggregate root khác vào root hiện tại | Mờ ownership và có thể tạo mapping ngoài ý muốn | Dùng ID/AggregateReference |
+| Dùng @MappedCollection cho aggregate độc lập | Biến quan hệ tham chiếu thành quan hệ sở hữu | Chỉ dùng cho child thuộc aggregate |
+| Nghĩ @Embedded tạo bảng riêng | Sai schema và dự đoán sai số query | Hiểu embedded là các cột trong cùng row |
+| Root có hàng nhưng collection rỗng bị xem là không tồn tại | Xử lý sai nghiệp vụ | Phân biệt Optional root và empty child collection |
+| Dùng findAll cho hàng nghìn aggregate lớn | Tốn bộ nhớ và query | Phân trang/batch hoặc projection |
+| Dựa vào thứ tự vật lý của child rows | Kết quả có thể không ổn định | Dùng keyColumn/order mapping và ORDER BY phù hợp |
+| Chỉ test root fields | Bỏ sót lỗi mapping collection | Integration test với child rows |
+| Không có index trên foreign key child | Truy vấn child theo root có thể chậm | Kiểm tra execution plan và index |
+| Dùng custom projection rồi kỳ vọng có đủ child | DTO không chứa toàn bộ aggregate | Chỉ dùng field query trả về; tải aggregate riêng nếu cần |
+| Nghĩ read-only transaction luôn là snapshot | Isolation thực tế phụ thuộc database/config | Chọn isolation level phù hợp và kiểm thử |
+
+## 16. Tình huống thực hành
+
+### Tình huống A — Đọc đơn để xác nhận
+
+Một đơn hàng có trạng thái, địa chỉ giao và nhiều dòng hàng. Use case cần kiểm tra tất cả dòng trước khi xác nhận.
+
+**Thiết kế:** đọc `PurchaseOrder` qua repository root. Các `OrderLine` thuộc aggregate được tải theo mapping. Gọi hành vi `confirm()` trên root, sau đó lưu aggregate. Không tải Customer trừ khi quy tắc xác nhận cần trạng thái khách hàng.
+
+### Tình huống B — Hiển thị danh sách đơn
+
+Màn hình chỉ cần mã đơn, trạng thái và tên khách hàng; không cần dòng hàng.
+
+**Thiết kế:** dùng projection SQL join bảng đơn và khách hàng. Không tải đầy đủ aggregate cùng tất cả child collections cho một màn hình danh sách.
+
+### Tình huống C — Đơn chưa có dòng hàng
+
+Repository tìm thấy root nhưng bảng `order_line` không có hàng tương ứng.
+
+**Kết quả:** aggregate tồn tại với collection rỗng. Use case xác nhận có thể từ chối theo invariant “đơn phải có ít nhất một dòng”.
+
+### Tình huống D — Một đơn có hàng nghìn dòng
+
+Một lần `findById` kéo theo collection rất lớn, khiến request chậm và tốn heap.
+
+**Hướng xử lý:** xem lại aggregate boundary và nhu cầu nghiệp vụ. Nếu các dòng phải nhất quán cùng root, tối ưu truy vấn/index và cân nhắc phân trang ở read model. Nếu chúng có vòng đời độc lập, cân nhắc tách aggregate với quy trình nhất quán rõ ràng.
+
+### Tình huống E — Customer được tham chiếu
+
+Order chứa `AggregateReference<Customer, Long>` và danh sách OrderLine.
+
+**Kết quả:** OrderLine được tải cùng aggregate; Customer chỉ có ID. Khi cần tên khách hàng, service thực hiện lookup riêng hoặc dùng projection join.
+
+## 17. Quy trình thiết kế và kiểm tra luồng đọc
+
+Khi thêm một thuộc tính hoặc collection vào aggregate:
+
+1. **Xác định ownership:** nó là scalar, embedded value, child collection hay aggregate reference?
+2. **Thiết kế schema:** cột root, cột foreign key, key column, constraint và index có khớp mapping không?
+3. **Chọn mapping:** dùng `@Embedded` cho value object cùng row; dùng `@MappedCollection` cho child thuộc aggregate; dùng ID/`AggregateReference` cho root độc lập.
+4. **Xác định kích thước:** số child tối đa và số collection có thể ảnh hưởng thời gian tải ra sao?
+5. **Chọn API đọc:** tải aggregate đầy đủ khi cần invariant; dùng projection cho màn hình đọc một phần.
+6. **Xác định transaction:** nếu cần snapshot nhất quán qua nhiều câu SQL, chọn transaction/isolation phù hợp.
+7. **Kiểm tra SQL:** quan sát truy vấn root và child, index và số row thực tế.
+8. **Integration test:** root có child, root không có child, root không tồn tại, child mapping sai, aggregate tham chiếu root khác và các trường hợp tải nhiều root.
+
+## Ghi nhớ
+
+Trong Spring Data JDBC, **đọc aggregate bắt đầu từ aggregate root**. Framework ánh xạ các thuộc tính scalar và value object nhúng từ row root, đồng thời tải các entity/collection thuộc quyền sở hữu của root theo mapping. Các thành phần này không chờ lazy loading kiểu JPA; vì vậy kích thước aggregate và chi phí truy vấn cần được tính ngay khi thiết kế.
+
+Một aggregate root khác được tham chiếu bằng ID hoặc `AggregateReference` không tự động được tải. Khi cần dữ liệu của nó, ứng dụng chủ động gọi repository hoặc dùng query projection. Giữ đúng ranh giới này giúp luồng đọc dễ dự đoán, aggregate không bị phình và các truy vấn phục vụ màn hình có thể được tối ưu riêng.

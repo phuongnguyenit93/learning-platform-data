@@ -1,0 +1,283 @@
+menu:
+- level1: Định hướng Java 17
+  level2:
+  - 'Java SE, OpenJDK, JDK và JVM: vai trò và mối liên hệ'
+  - Java 17 trong lộ trình học sau Java 8 và Java 11
+  - Phân biệt tính năng mới của Java 17 với tính năng được kế thừa
+  - Quan hệ giữa sealed, record và pattern matching
+  - Phân biệt tính năng chính thức, preview và incubator
+  - 'Phạm vi ví dụ: API chính thức còn áp dụng, không dùng API thử nghiệm cũ'
+  - Cách tra đặc tả ngôn ngữ, API Docs và ghi chú phát hành
+  - Trình tự học, kiến thức nền và tiêu chí hoàn thành
+- level1: Môi trường thực hành
+  level2:
+  - Chọn bản phân phối JDK 17 và cập nhật bản vá được hỗ trợ
+  - Cài JDK đúng hệ điều hành và kiến trúc CPU
+  - Thiết lập JAVA_HOME, PATH và kiểm tra java, javac
+  - Đồng bộ JDK của IDE, terminal, công cụ build và kiểm thử
+  - Tạo dự án nhỏ, biên dịch và chạy bằng dòng lệnh
+  - Đặt mức ngôn ngữ và API đích bằng javac --release 17
+  - Tổ chức mã nguồn, tài nguyên và ví dụ có thể chạy lại
+  - Phân biệt lỗi biên dịch, liên kết và lỗi khi chạy
+- level1: Sealed cơ bản
+  level2:
+  - Bài toán giới hạn các kiểu con trong một miền dữ liệu
+  - So sánh phân cấp mở, final và sealed
+  - Khai báo sealed class, sealed interface và permits
+  - Quy tắc kiểu con trực tiếp và quan hệ extends, implements
+  - Điều kiện cùng named module hoặc cùng package trong unnamed module
+  - Suy luận permits khi các kiểu con nằm cùng tệp nguồn
+  - Vai trò final, sealed và non-sealed ở lớp con
+  - Điều kiện tiếp tục phân cấp đối với interface con
+  - Phân biệt phạm vi truy cập với quyền kế thừa
+  - Lỗi biên dịch thường gặp và ví dụ đối chiếu
+- level1: Thiết kế với sealed
+  level2:
+  - Mô hình kết quả thành công, thất bại và các biến thể hợp lệ
+  - Kết hợp sealed interface với record
+  - Đặt hành vi ở kiểu con hoặc xử lý bằng instanceof
+  - Ảnh hưởng của non-sealed đến ranh giới mở rộng
+  - Sealed và generics trong mô hình miền
+  - Phép ép kiểu, các kiểu không thể giao nhau và kiểm tra của trình biên dịch
+  - Giữ bất biến miền dữ liệu và kiểm tra đầu vào
+  - Thay đổi danh sách kiểu con và ảnh hưởng tới mã sử dụng
+  - Kiểm thử đủ các biến thể cùng trường hợp null
+  - Khi nên dùng enum, sealed hoặc thành phần kết hợp
+- level1: Record
+  level2:
+  - Mục đích của record và mối liên hệ với lớp mang dữ liệu
+  - Record component, trường private final và accessor
+  - Canonical constructor và compact constructor
+  - Kiểm tra, chuẩn hóa tham số trong constructor
+  - Constructor bổ sung và quy tắc gọi canonical constructor
+  - equals, hashCode và toString được sinh tự động
+  - Giới hạn bất biến nông và sao chép phòng vệ
+  - Record có kiểu tổng quát và triển khai interface
+  - Record cục bộ, record lồng nhau và ngữ cảnh static
+  - Giới hạn kế thừa, trường đối tượng và khối khởi tạo
+  - Annotation trên component và các thành viên liên quan
+  - Chọn record hay class cho DTO và mô hình miền
+- level1: Pattern instanceof
+  level2:
+  - Bài toán kiểm tra kiểu rồi ép kiểu lặp lại
+  - Type pattern và biến pattern trong instanceof
+  - Phạm vi biến dựa trên luồng điều khiển
+  - Kết hợp && và quy tắc đánh giá ngắn mạch
+  - Phủ định điều kiện và thoát sớm
+  - Điều kiện dùng biến sau if và lỗi với ||
+  - Null, kiểu không tương thích và trường hợp không khớp
+  - Gán lại biến pattern và giới hạn phạm vi
+  - Thay chuỗi ép kiểu trong xử lý dữ liệu bằng pattern
+  - Phân biệt instanceof chính thức với pattern switch preview của Java 17
+- level1: Switch expression
+  level2:
+  - Phân biệt switch statement và switch expression
+  - Nhãn mũi tên và nhãn dấu hai chấm
+  - Nhiều hằng trong một nhãn case
+  - Khối lệnh, yield và kiểu của giá trị kết quả
+  - Nhánh ném ngoại lệ trong switch expression
+  - Tính đầy đủ, default và switch trên enum
+  - Quy tắc không rơi nhánh của dạng mũi tên
+  - Null và các kiểu selector được hỗ trợ chính thức trên Java 17
+  - Chuyển chuỗi if hoặc switch cũ sang biểu thức rõ ràng
+  - 'Giới hạn Java 17: không coi pattern switch preview là cú pháp chính thức'
+- level1: Text block
+  level2:
+  - Bài toán chuỗi nhiều dòng trong mã nguồn
+  - Dấu mở, dấu đóng và dòng mới đầu tiên
+  - Loại bỏ thụt lề ngẫu nhiên và vị trí dấu đóng
+  - Dòng trống, khoảng trắng cuối dòng và ký tự xuống dòng
+  - Escape \s và nối dòng bằng dấu gạch chéo ngược
+  - Dấu nháy, dấu gạch chéo và nội dung có ba dấu nháy
+  - Chuỗi tạo ra sau xử lý và cách kiểm tra ký tự
+  - formatted để chèn giá trị và giới hạn khi tạo SQL
+  - stripIndent, translateEscapes và quan hệ với text block
+  - Tổ chức mẫu JSON, SQL và HTML dễ đọc
+  - Giữ dữ liệu đầu vào an toàn bằng tham số hóa thay vì ghép chuỗi
+- level1: Số thực
+  level2:
+  - Ngữ nghĩa số thực luôn nghiêm ngặt từ Java 17
+  - float, double và làm tròn theo biểu diễn nhị phân
+  - Giới hạn độ chính xác khi cộng, nhân và chia
+  - NaN, vô cực và số không có dấu
+  - Tràn, hụt và giá trị dưới chuẩn
+  - Phân biệt ==, equals và thứ tự so sánh của số thực
+  - Math, StrictMath và yêu cầu tái hiện kết quả
+  - Chọn BigDecimal khi cần số thập phân chính xác
+  - Kiểm thử phép tính ở biên và tránh giả định tính kết hợp
+- level1: Sinh số giả ngẫu nhiên
+  level2:
+  - Vai trò của seed, trạng thái và thuật toán PRNG
+  - RandomGenerator như hợp đồng chung từ Java 17
+  - Tạo bộ sinh bằng RandomGenerator.of và RandomGeneratorFactory
+  - Liệt kê, tra thuộc tính và chọn thuật toán phù hợp
+  - Các họ thuật toán LXM, Xoshiro và Xoroshiro
+  - Sinh số có giới hạn và kiểm tra miền giá trị
+  - Luồng ints, longs, doubles và giới hạn số phần tử
+  - Phân biệt bộ sinh splittable, jumpable và leapable
+  - Chia bộ sinh cho các tác vụ song song
+  - Tránh dùng chung bộ sinh không an toàn giữa nhiều luồng
+  - Tái hiện thí nghiệm bằng thuật toán, seed và thứ tự gọi
+  - Phân biệt PRNG mô phỏng với SecureRandom cho mục đích bảo mật
+- level1: Dữ liệu hệ mười sáu
+  level2:
+  - Vai trò của HexFormat trong xử lý byte và văn bản
+  - Tạo HexFormat mặc định, chữ hoa hoặc chữ thường
+  - formatHex và parseHex cho byte array
+  - Dấu phân cách, tiền tố và hậu tố
+  - Định dạng giá trị nguyên bằng toHexDigits
+  - Chuyển ký tự hex và phát hiện đầu vào không hợp lệ
+  - Giới hạn đoạn dữ liệu và kiểm tra độ dài
+  - Hex, Base64, mã hóa ký tự và mã hóa bảo mật là các việc khác nhau
+  - Hiển thị mã băm và dữ liệu nhị phân phục vụ chẩn đoán
+- level1: Nguồn thời gian
+  level2:
+  - InstantSource và bài toán phụ thuộc giờ hệ thống
+  - Quan hệ giữa InstantSource, Clock và múi giờ
+  - Tạo nguồn thời gian system, fixed, offset và tick
+  - Truyền nguồn thời gian vào đối tượng thay vì gọi thời gian trực tiếp
+  - Kiểm thử thời điểm hết hạn bằng nguồn fixed
+  - Phân biệt Instant, LocalDateTime và ZonedDateTime
+  - Tính Duration và xử lý mốc thời gian ở biên
+  - Đo thời gian trôi qua bằng System.nanoTime
+  - Chuyển Instant sang thời gian địa phương với ZoneId rõ ràng
+- level1: Collection và Stream
+  level2:
+  - Collection factory và dữ liệu không cho phép sửa đổi
+  - List.copyOf, Set.copyOf, Map.copyOf và giới hạn sao chép nông
+  - Stream.toList từ Java 16 và danh sách không cho phép sửa đổi
+  - Phân biệt Stream.toList với Collectors.toList
+  - Biến đổi một phần tử thành nhiều phần tử bằng mapMulti
+  - Record cục bộ để biểu diễn kết quả trung gian
+  - Đánh giá lười, một lần sử dụng và tác dụng phụ trong pipeline
+  - Nhận biết stream gắn tài nguyên và đóng đúng vòng đời
+  - Lựa chọn xử lý tuần tự hay song song dựa trên phép đo
+- level1: Tệp và mã hóa ký tự
+  level2:
+  - Path và Files trong thao tác tệp trên Java 17
+  - Đọc, ghi văn bản bằng readString và writeString
+  - Chọn Charset rõ ràng cho dữ liệu trao đổi
+  - Charset mặc định trên Java 17 và khác biệt giữa môi trường
+  - Console.charset và mã hóa thực tế của console
+  - Đọc dòng bằng Files.lines, duyệt cây thư mục bằng Files.walk
+  - Đóng stream tài nguyên bằng try-with-resources
+  - So sánh nội dung hai tệp bằng Files.mismatch
+  - Đường dẫn, liên kết tượng trưng và kiểm tra quyền truy cập
+- level1: Kết nối mạng
+  level2:
+  - HttpClient chính thức và hỗ trợ HTTP/1.1, HTTP/2 trên Java 17
+  - Tạo HttpRequest và chọn BodyPublisher, BodyHandler
+  - send đồng bộ và sendAsync với CompletableFuture
+  - Thời gian chờ kết nối, thời gian chờ yêu cầu và xử lý lỗi
+  - Trạng thái HTTP, header và dữ liệu phản hồi
+  - HTTPS, SSLContext và xác minh chứng thư máy chủ
+  - Quản lý luồng đọc phản hồi theo vòng đời tài nguyên
+  - DatagramSocket.joinGroup, leaveGroup và NetworkInterface
+  - Giới hạn mạng, DNS và kiểm thử với dịch vụ cục bộ
+- level1: Module và đóng gói mạnh
+  level2:
+  - Named module, unnamed module và automatic module
+  - module-info.java, requires và quan hệ đọc module
+  - exports cho API công khai và opens cho reflection
+  - Đóng gói mạnh JDK internals từ Java 17
+  - Phân biệt IllegalAccessError và InaccessibleObjectException
+  - Phát hiện phụ thuộc nội bộ bằng jdeps --jdk-internals
+  - Thay API nội bộ bằng API công khai còn được hỗ trợ
+  - Giới hạn phạm vi --add-exports và --add-opens khi tích hợp bắt buộc
+  - Module path, classpath và xung đột package
+  - Kiểm thử thư viện reflection trong môi trường module thực tế
+- level1: Reflection và truy cập
+  level2:
+  - Class.isSealed và Class.getPermittedSubclasses
+  - Class.isRecord và Class.getRecordComponents
+  - Truy cập thành viên công khai theo ranh giới module
+  - canAccess, trySetAccessible và xử lý truy cập bị từ chối
+  - MethodHandles.Lookup và quyền của đối tượng lookup
+  - privateLookupIn và điều kiện đọc, mở package
+  - Hidden class cho mã sinh động bằng Lookup.defineHiddenClass
+  - Vòng đời, khả năng tìm theo tên và mục đích của hidden class
+  - Giữ hợp đồng API, không phụ thuộc cấu trúc nội bộ của JDK
+- level1: Lọc giải tuần tự hóa
+  level2:
+  - Nguy cơ khi đọc dữ liệu đối tượng không đáng tin cậy
+  - ObjectInputFilter và vai trò giới hạn đồ thị đối tượng
+  - Trạng thái ALLOWED, REJECTED và UNDECIDED
+  - Giới hạn lớp, độ sâu, số tham chiếu, số byte và kích thước mảng
+  - Filter theo pattern và filter viết bằng mã
+  - Filter toàn JVM và filter cho từng ObjectInputStream
+  - Filter factory theo ngữ cảnh từ Java 17
+  - ObjectInputFilter.Config.setSerialFilterFactory và thời điểm cấu hình
+  - Kết hợp chính sách bằng ObjectInputFilter.merge
+  - Từ chối lớp chưa quyết định bằng rejectUndecidedClass
+  - 'Giới hạn của filter: không thay thế kiểm tra nội dung dữ liệu'
+  - Kiểm thử từ chối, tài nguyên quá mức và chính sách theo ngữ cảnh
+- level1: JVM và bộ nhớ
+  level2:
+  - Heap, stack, metaspace và bộ nhớ ngoài heap
+  - Cấp phát đối tượng, khả năng truy cập và thu gom rác
+  - G1 với các vùng heap và mục tiêu độ trễ
+  - Chọn Serial, Parallel hoặc G1 theo đặc điểm ứng dụng
+  - Thông lượng, độ trễ và dung lượng bộ nhớ
+  - Đặt giới hạn heap phù hợp môi trường triển khai
+  - JIT, làm nóng và ảnh hưởng tới phép đo
+  - Phân biệt rò rỉ heap, metaspace và bộ nhớ native
+  - Đo trên tải thực tế trước khi thay tham số JVM
+- level1: Chẩn đoán và JFR
+  level2:
+  - Tái hiện sự cố và thu thập thông tin JDK, hệ điều hành, tải
+  - jcmd để tra tiến trình và khả năng chẩn đoán
+  - Thread dump để phân tích chờ, khóa và deadlock
+  - Heap histogram, heap dump và chi phí thu thập
+  - Native Memory Tracking để theo dõi bộ nhớ native
+  - Bắt đầu, lưu và dừng bản ghi JFR
+  - Phân tích CPU, cấp phát, GC, I/O và khóa trong JFR
+  - Đọc dữ liệu ghi bằng công cụ jfr và JDK Mission Control
+  - Unified Logging với tag, mức ghi và tệp luân phiên
+  - Chọn mức quan sát phù hợp, bảo vệ dữ liệu nhạy cảm trong bản ghi
+- level1: Biên dịch và tài liệu
+  level2:
+  - javac --release 17 và giới hạn API đích
+  - Class file, bytecode và kiểm tra bằng javap
+  - Phân biệt tương thích mã nguồn, nhị phân và hành vi
+  - Cảnh báo javac, -Xlint và xử lý cảnh báo có căn cứ
+  - Annotation processor và phụ thuộc lúc biên dịch
+  - Javadoc cho record, sealed và hợp đồng API
+  - '@since, --since và --since-label trong tài liệu API'
+  - Doclint và sửa lỗi liên kết, mô tả tham số
+  - Build lặp lại được với JDK và công cụ đã cố định
+- level1: Đóng gói và nền tảng
+  level2:
+  - Đóng gói JAR và khai báo lớp khởi chạy
+  - Phân tích module cần thiết bằng jdeps
+  - Tạo runtime riêng bằng jlink
+  - Service provider và giới hạn phụ thuộc động khi tạo runtime
+  - Tạo app-image, bộ cài bằng jpackage
+  - Quan hệ giữa JAR, runtime image và gói cài đặt
+  - JDK macOS/AArch64 và thư viện native cùng kiến trúc
+  - Pipeline Metal trên macOS và kiểm thử Java 2D
+  - Build gói theo nền tảng đích và kiểm thử trên máy sạch
+  - Cập nhật runtime được phân phối cùng ứng dụng
+- level1: Nâng cấp lên Java 17
+  level2:
+  - Kiểm kê mã nguồn, dependency, plugin và môi trường chạy
+  - Chạy thử ứng dụng trước khi đồng thời sửa nhiều thành phần
+  - Nâng công cụ build và thư viện lên bản hỗ trợ JDK 17
+  - Rà soát reflection, bytecode generation và annotation processor
+  - Phát hiện API nội bộ, API bị bỏ và tùy chọn JVM không còn hợp lệ
+  - Chuyển sang API công khai thay cho cách truy cập nội bộ
+  - Kiểm thử mã hóa ký tự, số thực, múi giờ và dữ liệu đầu vào
+  - Đối chiếu chứng thư, giao thức và cấu hình bảo mật hiện hành
+  - So sánh kết quả chức năng, tải, GC và mức dùng bộ nhớ
+  - Kế hoạch triển khai từng bước, quan sát và quay lui
+- level1: Thực hành tổng hợp
+  level2:
+  - Mô hình giao dịch với sealed interface và các record
+  - Kiểm tra, chuẩn hóa dữ liệu tại constructor
+  - Xử lý biến thể bằng instanceof và switch expression phù hợp Java 17
+  - Mô phỏng có thể tái hiện bằng RandomGenerator
+  - Đọc dữ liệu văn bản, chuyển byte sang hex và ghi kết quả
+  - Truyền InstantSource để kiểm thử quy tắc hết hạn
+  - Gọi dịch vụ HTTP/2 và xử lý lỗi, thời gian chờ
+  - Kiểm chứng ranh giới module và reflection
+  - Đóng gói ứng dụng rồi quan sát bằng JFR
+  - Bộ kiểm thử biên, dữ liệu không hợp lệ và tiêu chí nghiệm thu

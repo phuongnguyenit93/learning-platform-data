@@ -1,0 +1,3490 @@
+menu:
+- slug: direction
+  title: Định hướng
+  childs:
+  - slug: direction-001
+    title: Bộ nhớ đệm (cache) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-002
+    title: Luồng dữ liệu giữa bên gọi, cache và nguồn dữ liệu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-003
+    title: Phân biệt cache với kho lưu trữ chính, bộ đệm và bản sao dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-004
+    title: 'Các thuật ngữ: khóa, giá trị, mục cache, trúng và trượt cache'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-005
+    title: 'Vòng đời một mục cache: nạp, đọc, cập nhật, hết hạn và loại bỏ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-006
+    title: Vì sao cache luôn tạo thêm một bài toán đồng bộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-007
+    title: Phân biệt hiệu năng, độ mới dữ liệu và tính sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-008
+    title: Những trường hợp nên dùng cache và những trường hợp nên tránh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-009
+    title: Bản đồ các loại cache trong ứng dụng và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direction-010
+    title: Lộ trình học từ cache đơn giản đến hệ thống nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-scope
+  title: Phạm vi dữ liệu
+  childs:
+  - slug: data-scope-001
+    title: Xác định nút thắt trước khi quyết định thêm cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-002
+    title: Nhận diện dữ liệu thường xuyên được đọc và ít thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-003
+    title: Đánh giá độ lệch truy cập và tập dữ liệu được đọc nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-004
+    title: Xác định mức chấp nhận dữ liệu cũ theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-005
+    title: 'Chọn đơn vị lưu: đối tượng, kết quả truy vấn, trang hay tập hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-006
+    title: So sánh cache kết quả tính toán với cache dữ liệu truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-007
+    title: Chọn phạm vi theo yêu cầu, phiên, tiến trình hay toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-008
+    title: Phân biệt dữ liệu dùng chung với dữ liệu riêng của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-009
+    title: Đánh giá giá trị của cache theo chi phí tái tạo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-010
+    title: Xác định chủ sở hữu, nguồn chuẩn và trách nhiệm đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-011
+    title: Đặt mục tiêu độ trễ, tải nguồn và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keys-and-values
+  title: Khóa và giá trị
+  childs:
+  - slug: keys-and-values-001
+    title: Thiết kế khóa ổn định từ danh tính và tham số truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-002
+    title: Chuẩn hóa thứ tự tham số, kiểu dữ liệu và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-003
+    title: Đưa ngôn ngữ, múi giờ và ngữ cảnh truy cập vào khóa khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-004
+    title: Tách không gian khóa theo ứng dụng, môi trường và miền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-005
+    title: Phân tách khóa theo đơn vị thuê và người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-006
+    title: Quản lý khóa theo phiên bản lược đồ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-007
+    title: Lựa chọn khóa trực tiếp hoặc khóa băm và xử lý nguy cơ va chạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-008
+    title: Phân biệt cache miss, giá trị null, dữ liệu rỗng và lỗi tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-009
+    title: Lựa chọn cấu trúc và định dạng tuần tự hóa giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-010
+    title: Giới hạn kích thước khóa, giá trị và số lượng mục cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-011
+    title: Tránh đối tượng có thể bị thay đổi sau khi đưa vào cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-012
+    title: Lưu dấu thời gian và phiên bản nguồn khi cần kiểm tra độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-values-013
+    title: Thiết kế tương thích khi thay đổi cấu trúc giá trị cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lookup-and-loading
+  title: Tra cứu và nạp
+  childs:
+  - slug: lookup-and-loading-001
+    title: Luồng đọc theo chiến lược cache-aside
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-002
+    title: Luồng đọc theo chiến lược read-through
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-003
+    title: Trình tự kiểm tra cache, tải nguồn và lưu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-004
+    title: Phân biệt tra cứu đồng bộ với nạp dữ liệu bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-005
+    title: Nạp theo từng khóa và nạp hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-006
+    title: Gộp yêu cầu tải trùng khóa trong cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-007
+    title: Lựa chọn nạp lười hoặc nạp trước theo nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-008
+    title: Xử lý khóa không tồn tại bằng cache kết quả âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-009
+    title: Giới hạn thời gian sống cho kết quả âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-010
+    title: Phân biệt không tìm thấy dữ liệu với lỗi tạm thời của nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-011
+    title: Thiết kế đường đi khi bỏ qua cache hoặc buộc đọc nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-and-loading-012
+    title: So sánh các chiến lược đọc theo độ trễ và độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: write-strategies
+  title: Chiến lược ghi
+  childs:
+  - slug: write-strategies-001
+    title: Cập nhật nguồn rồi vô hiệu hóa cache trong cache-aside
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-002
+    title: Chiến lược write-through và trách nhiệm ghi đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-003
+    title: Chiến lược write-behind và hàng đợi ghi trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-004
+    title: Chiến lược write-around cho dữ liệu ít được đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-005
+    title: Lựa chọn cập nhật giá trị hay xóa mục cache sau khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-006
+    title: So sánh thứ tự ghi nguồn và ghi cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-007
+    title: Xử lý ghi thành công ở nguồn nhưng thất bại ở cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-008
+    title: Phân biệt xác nhận ghi cache với bảo đảm dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-009
+    title: Bảo toàn thứ tự và tính lũy đẳng khi ghi trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-010
+    title: Gộp nhiều lần ghi và đánh đổi khả năng mất cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-011
+    title: Quyết định chiến lược theo yêu cầu nhất quán và độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-strategies-012
+    title: Thiết kế cơ chế đối soát khi nguồn và cache lệch nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ttl-and-expiration
+  title: TTL và hết hạn
+  childs:
+  - slug: ttl-and-expiration-001
+    title: Thời gian sống (TTL) và giới hạn tuổi của một mục cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-002
+    title: Phân biệt hết hạn sau khi ghi với hết hạn sau khi truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-003
+    title: Phân biệt hết hạn logic với thời điểm thu hồi bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-004
+    title: Thiết kế thời hạn cố định và thời hạn theo từng mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-005
+    title: Chọn TTL từ yêu cầu nghiệp vụ và tần suất thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-006
+    title: Tác động của việc gia hạn TTL khi đọc hoặc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-007
+    title: Phân biệt thời hạn làm mới mềm với thời hạn hết hiệu lực cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-008
+    title: Thêm độ ngẫu nhiên vào TTL để tránh hết hạn đồng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-009
+    title: Xử lý ranh giới thời gian, sai lệch đồng hồ và đơn vị TTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-010
+    title: Quy định việc phục vụ dữ liệu cũ sau thời điểm hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-011
+    title: Đánh giá đánh đổi giữa TTL ngắn, tỷ lệ trúng và tải nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-and-expiration-012
+    title: Kiểm tra trường hợp mục cache không có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-and-eviction
+  title: Dung lượng và loại bỏ
+  childs:
+  - slug: capacity-and-eviction-001
+    title: Phân biệt hết hạn với loại bỏ do thiếu dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-002
+    title: Giới hạn cache theo số mục, dung lượng hoặc trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-003
+    title: Chính sách loại bỏ mục ít được dùng gần đây (LRU)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-004
+    title: Chính sách loại bỏ mục ít được dùng thường xuyên (LFU)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-005
+    title: Chính sách theo thứ tự vào và chọn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-006
+    title: Kết hợp độ mới truy cập với tần suất sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-007
+    title: Chính sách tiếp nhận dữ liệu và chống ô nhiễm cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-008
+    title: Tác động của việc quét một lần qua tập dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-009
+    title: Ước lượng kích thước đối tượng và chi phí siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-010
+    title: Xử lý mục có kích thước vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-011
+    title: Phân bổ dung lượng giữa các nhóm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-eviction-012
+    title: Theo dõi và điều chỉnh chính sách theo tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: invalidation
+  title: Vô hiệu hóa
+  childs:
+  - slug: invalidation-001
+    title: Xác định thời điểm một kết quả cache không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-002
+    title: Vô hiệu hóa theo khóa và theo nhóm khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-003
+    title: Vô hiệu hóa toàn vùng cache và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-004
+    title: Theo dõi quan hệ giữa bản ghi nguồn và kết quả dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-005
+    title: Vô hiệu hóa danh sách, trang và kết quả tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-006
+    title: Dùng phiên bản không gian khóa để thay thế một thế hệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-007
+    title: Vô hiệu hóa theo sự kiện thay đổi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-008
+    title: Nhận thay đổi từ nguồn dữ liệu qua CDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-009
+    title: Thiết kế sự kiện vô hiệu hóa có thể xử lý lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-010
+    title: Xử lý sự kiện trễ, mất sự kiện và sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-011
+    title: Kết hợp vô hiệu hóa chủ động với TTL dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-012
+    title: Dọn khóa không còn được tham chiếu sau đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalidation-013
+    title: Xác định giới hạn của cách xóa cache hai lần có trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Nhất quán mạnh và nhất quán cuối cùng trong thiết kế cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Xác định cửa sổ dữ liệu cũ theo từng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Yêu cầu đọc thấy dữ liệu vừa ghi của chính người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Yêu cầu đọc không quay lại một phiên bản cũ hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Cuộc đua giữa tải nguồn và vô hiệu hóa cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Cuộc đua giữa hai lần cập nhật cùng một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Dùng phiên bản dữ liệu để chặn ghi đè bằng kết quả cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Dùng dấu xóa để ngăn dữ liệu đã xóa xuất hiện trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-009
+    title: Ảnh hưởng của nguồn đọc là bản sao có độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-010
+    title: Đánh giá giới hạn của TTL đối với bảo đảm nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-011
+    title: Xử lý dữ liệu liên quan nằm ở nhiều khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-012
+    title: Lựa chọn đọc trực tiếp nguồn cho quyết định cần tính đúng đắn cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Ranh giới giao dịch cơ sở dữ liệu và thao tác cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-002
+    title: Vì sao giao dịch ở nguồn không tự bao trùm cache ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-003
+    title: Nguy cơ công bố dữ liệu vào cache trước khi commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-004
+    title: Vô hiệu hóa hoặc cập nhật cache sau commit thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-005
+    title: Xử lý rollback và dữ liệu cache được tạo trong giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-006
+    title: Giao dịch dài và thời điểm đọc dữ liệu từ cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-007
+    title: Phát sự kiện sau commit và giới hạn khi tiến trình dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-008
+    title: Mẫu transactional outbox cho sự kiện đồng bộ cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-009
+    title: Xử lý lặp, thử lại và đối soát khi cập nhật sau commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-010
+    title: Kiểm tra hành vi cache theo mức cô lập của nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency
+  title: Đồng thời
+  childs:
+  - slug: concurrency-001
+    title: Phân biệt an toàn luồng với tính nguyên tử của cả luồng nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-002
+    title: Vì sao kiểm tra rồi ghi có thể thực hiện nhiều lần tải nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-003
+    title: Khóa theo khóa dữ liệu và khóa toàn bộ cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-004
+    title: Gộp tác vụ đang nạp bằng cơ chế single-flight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-005
+    title: Chia sẻ kết quả hoặc lỗi tải giữa các yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-006
+    title: Hủy yêu cầu, giới hạn chờ và dọn tác vụ nạp đang treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-007
+    title: Cập nhật có điều kiện và so sánh phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-008
+    title: Ngăn tác vụ nạp cũ ghi kết quả sau khi đã vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-009
+    title: 'Dùng khóa phân tán: quyền sở hữu, thời hạn thuê và giải phóng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-010
+    title: Vì sao khóa hết hạn không tự ngăn một bên ghi đã lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-011
+    title: Vai trò của fencing token khi tài nguyên đích hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-012
+    title: Giảm phạm vi khóa và tránh khóa chéo nhiều khóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-stampede-protection
+  title: Chống dồn tải
+  childs:
+  - slug: cache-stampede-protection-001
+    title: Hiện tượng nhiều yêu cầu cùng tải lại một khóa (cache stampede)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-002
+    title: Hiện tượng nhiều khóa hết hạn gây quá tải nguồn (cache avalanche)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-003
+    title: Truy vấn liên tục các khóa không tồn tại (cache penetration)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-004
+    title: Điểm nóng truy cập vào một khóa (hot key)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-005
+    title: Kết hợp single-flight với giới hạn số tác vụ tải nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-006
+    title: Phân tán thời điểm hết hạn bằng TTL ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-007
+    title: Làm mới sớm theo xác suất hoặc mức độ phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-008
+    title: Phục vụ bản cũ trong khi làm mới khi nghiệp vụ cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-009
+    title: Cache kết quả âm và lọc khóa không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-010
+    title: Dùng Bloom filter và hiểu giới hạn dương tính giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-011
+    title: Giới hạn tốc độ và số yêu cầu đồng thời tới nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-stampede-protection-012
+    title: Thiết kế thử lại có giãn cách và tránh khuếch đại tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-refresh
+  title: Làm mới dữ liệu
+  childs:
+  - slug: data-refresh-001
+    title: Phân biệt refresh, reload, preload và warm-up
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-002
+    title: Làm mới theo lịch và làm mới theo lượt truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-003
+    title: Tách thời điểm bắt đầu làm mới khỏi thời điểm hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-004
+    title: Nạp trước tập khóa phổ biến khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-005
+    title: Làm nóng có chọn lọc sau triển khai hoặc đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-006
+    title: Giới hạn tốc độ và dung lượng khi nạp trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-007
+    title: Ngăn nhiều tiến trình cùng làm nóng một tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-008
+    title: Giữ bản cũ hay bỏ mục cache khi làm mới thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-009
+    title: Ngăn kết quả làm mới cũ ghi đè phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-refresh-010
+    title: Đánh giá hiệu quả làm nóng bằng tỷ lệ sử dụng dữ liệu đã nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multilevel-caching
+  title: Cache nhiều tầng
+  childs:
+  - slug: multilevel-caching-001
+    title: Mô hình L1 trong tiến trình, L2 dùng chung và nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-002
+    title: Thiết kế đường đọc khi từng tầng trúng hoặc trượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-003
+    title: Chọn dữ liệu đặt ở mỗi tầng theo kích thước và tần suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-004
+    title: Phối hợp TTL giữa các tầng và giới hạn dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-005
+    title: Lan truyền vô hiệu hóa từ tầng dùng chung tới L1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-006
+    title: Xử lý tiến trình bỏ lỡ sự kiện vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-007
+    title: Tính nhất quán khi một yêu cầu đi qua nhiều phiên bản cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-008
+    title: Thiết kế tầng cache gần ứng dụng (near cache)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-009
+    title: Dùng phiên bản hoặc kiểm tra độ mới khi đọc tầng L1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-010
+    title: Đo tỷ lệ trúng riêng từng tầng và tỷ lệ trúng tổng thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multilevel-caching-011
+    title: Đánh giá chi phí và độ phức tạp trước khi thêm một tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-caching
+  title: Cache phân tán
+  childs:
+  - slug: distributed-caching-001
+    title: So sánh cache trong tiến trình với cache từ xa dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-002
+    title: Phân biệt phân mảnh dữ liệu với nhân bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-003
+    title: Phân phối khóa bằng hàm băm và băm nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-004
+    title: Tác động của thêm nút, bớt nút và tái cân bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-005
+    title: Ảnh hưởng của độ trễ mạng và số lượt trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-006
+    title: Lựa chọn vị trí cache theo vùng và trung tâm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-007
+    title: Nhân bản, chuyển đổi nút và khả năng mất dữ liệu cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-008
+    title: Đánh đổi nhất quán và tính sẵn sàng khi phân vùng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-009
+    title: Giới hạn thao tác nguyên tử theo nút hoặc phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-010
+    title: Thiết kế đọc hàng loạt khi khóa nằm ở nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-011
+    title: Tránh khóa quá lớn và điểm nóng trên một phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-caching-012
+    title: Xác định hành vi ứng dụng khi cụm cache thay đổi cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-cost
+  title: Hiệu năng và chi phí
+  childs:
+  - slug: performance-and-cost-001
+    title: Tính tỷ lệ trúng, tỷ lệ trượt và tỷ lệ tránh truy cập nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-002
+    title: Ước lượng độ trễ trung bình từ chi phí trúng và trượt cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-003
+    title: Phân tích độ trễ đuôi thay vì chỉ nhìn giá trị trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-004
+    title: Đo chi phí tuần tự hóa, nén và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-005
+    title: So sánh một lần đọc lớn với nhiều lần đọc nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-006
+    title: Phân biệt gộp lệnh, xử lý song song và tính nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-007
+    title: Định cỡ bộ nhớ theo tập dữ liệu hoạt động và phần dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-008
+    title: Định cỡ năng lực nguồn khi cache lạnh hoặc mất toàn bộ cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-009
+    title: Đo ảnh hưởng của cache đến bộ gom rác và CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-010
+    title: So sánh chi phí vận hành cache với lợi ích giảm tải nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-cost-011
+    title: Xác định ngưỡng mà cache làm hệ thống chậm hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-cache
+  title: Cache trong JVM
+  childs:
+  - slug: jvm-cache-001
+    title: Dùng Map để minh họa cache đơn giản và các giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-002
+    title: ConcurrentHashMap và những bảo đảm không bao gồm TTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-003
+    title: Thiết kế giới hạn dung lượng và dọn mục hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-004
+    title: Chi phí đối tượng trên heap và áp lực thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-005
+    title: Tham chiếu mạnh, yếu và mềm trong quản lý cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-006
+    title: Chia sẻ cache giữa các luồng trong một tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-007
+    title: Vì sao nhiều bản sao ứng dụng có cache cục bộ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-008
+    title: Tránh lộ tham chiếu đối tượng có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-009
+    title: Đồng bộ hóa bộ nạp và xử lý lỗi tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-010
+    title: Quản lý vòng đời bộ lập lịch và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-cache-011
+    title: Lựa chọn thư viện cache thay vì tự xây cơ chế phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caffeine
+  title: Caffeine
+  childs:
+  - slug: caffeine-001
+    title: Vai trò của Caffeine và phạm vi cache cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-002
+    title: Khởi tạo Cache và thao tác get, put, invalidate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-003
+    title: Nạp theo nhu cầu bằng LoadingCache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-004
+    title: Nạp bất đồng bộ bằng AsyncCache và AsyncLoadingCache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-005
+    title: Giới hạn theo maximumSize và maximumWeight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-006
+    title: Cấu hình expireAfterWrite, expireAfterAccess và thời hạn tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-007
+    title: Làm mới bằng refreshAfterWrite và quan hệ với hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-008
+    title: Gộp tải cho cùng khóa và giới hạn khi có nhiều JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-009
+    title: Theo dõi thống kê, thông báo loại bỏ và lỗi bộ nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-010
+    title: Quản lý executor và tài nguyên của tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-011
+    title: Kiểm thử thời gian bằng Ticker thay vì chờ thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-012
+    title: Đánh giá lựa chọn cấu hình theo đặc tính dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redis-caching
+  title: Redis cho cache
+  childs:
+  - slug: redis-caching-001
+    title: Vai trò Redis trong kiến trúc cache từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-002
+    title: Lựa chọn kiểu dữ liệu Redis cho một mục cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-003
+    title: Ghi giá trị kèm TTL trong một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-004
+    title: Đọc, xóa và kiểm tra thời hạn của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-005
+    title: Phân biệt giá trị không tồn tại với giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-006
+    title: Thiết kế không gian khóa và định dạng tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-007
+    title: Sử dụng kết nối, pool kết nối và giới hạn thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-008
+    title: Gộp lệnh bằng pipelining và nhận diện giới hạn nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-009
+    title: Thao tác có điều kiện, giao dịch Redis và Lua script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-010
+    title: Quản lý bộ nhớ với maxmemory và chính sách loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-011
+    title: Phân biệt loại bỏ khóa, hết hạn khóa và lỗi thiếu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-caching-012
+    title: Giới hạn thao tác quét hoặc xóa hàng loạt trên môi trường thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-redis
+  title: Redis phân tán
+  childs:
+  - slug: distributed-redis-001
+    title: Nhân bản Redis và độ trễ khi đọc từ bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-002
+    title: Vai trò Redis Sentinel trong phát hiện lỗi và chuyển đổi nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-003
+    title: Phân mảnh bằng Redis Cluster và ánh xạ hash slot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-004
+    title: Hash tag và các thao tác cần khóa cùng slot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-005
+    title: Ảnh hưởng của chuyển đổi nút đến kết nối và tác vụ đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-006
+    title: Vai trò của RDB, AOF khi Redis chỉ dùng làm cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-007
+    title: Tác động của khởi động lại, phục hồi và đồng bộ bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-008
+    title: Client-side caching và theo dõi vô hiệu hóa khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-009
+    title: Giới hạn của Pub/Sub và thông báo sự kiện khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-010
+    title: Thiết kế khóa phân tán trên Redis và giới hạn bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-011
+    title: Phát hiện hot key, big key và mất cân bằng phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-redis-012
+    title: Đánh giá nhu cầu cụm Redis so với cache cục bộ hoặc Memcached
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-cache
+  title: Spring Cache
+  childs:
+  - slug: spring-cache-001
+    title: Vai trò lớp trừu tượng Spring Cache và thư viện cung cấp cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-002
+    title: CacheManager, Cache và cách ánh xạ tên vùng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-003
+    title: Dùng @Cacheable để lưu kết quả phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-004
+    title: Dùng @CachePut khi phương thức vẫn phải được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-005
+    title: Dùng @CacheEvict để xóa mục hoặc toàn vùng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-006
+    title: Kết hợp nhiều thao tác bằng @Caching
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-007
+    title: Thiết kế khóa bằng key, SpEL và KeyGenerator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-008
+    title: Phân biệt điều kiện condition với unless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-009
+    title: Dùng sync và kiểm tra khả năng hỗ trợ của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-010
+    title: Giới hạn proxy, self-invocation và lời gọi nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-011
+    title: Hành vi khi phương thức trả null hoặc phát sinh ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cache-012
+    title: Các khả năng TTL và loại bỏ phụ thuộc thư viện cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Cấu hình cache theo môi trường trong Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Tích hợp CaffeineCacheManager cho cache cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Tích hợp RedisCacheManager cho cache dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Thiết kế nhiều CacheManager và lựa chọn bằng CacheResolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Cấu hình TTL, tiền tố khóa và serializer theo vùng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Phối hợp cache với ranh giới @Transactional
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Xử lý lỗi qua CacheErrorHandler theo yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: 'Phương thức bất đồng bộ và phản ứng: xác minh hỗ trợ theo phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Kiểm soát kích thước, kết nối và luồng thực thi của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Đặt logic cache ở ranh giới dịch vụ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Tách cấu hình hạ tầng cache khỏi quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-012
+    title: Kiểm chứng hành vi tích hợp bằng ứng dụng nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-caching
+  title: Cache HTTP
+  childs:
+  - slug: http-caching-001
+    title: Phân biệt cache dữ liệu ứng dụng với cache phản hồi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-002
+    title: Cache phía trình duyệt, proxy dùng chung và CDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-003
+    title: Điều khiển khả năng lưu và độ mới bằng Cache-Control
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-004
+    title: Phân biệt no-cache, no-store, private và public
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-005
+    title: Vai trò max-age, s-maxage, Age và Expires
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-006
+    title: Xác thực lại bằng ETag và If-None-Match
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-007
+    title: Xác thực lại bằng Last-Modified và If-Modified-Since
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-008
+    title: Phản hồi 304 và tái sử dụng biểu diễn đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-009
+    title: Vary và thiết kế khóa theo các biến thể phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-010
+    title: Cache phản hồi có xác thực và dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-011
+    title: Phục vụ dữ liệu cũ với stale-while-revalidate và stale-if-error
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-012
+    title: Vô hiệu hóa nội dung CDN và đổi phiên bản tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-013
+    title: Tránh xung đột giữa TTL HTTP và TTL cache trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-caching
+  title: Cache truy vấn
+  childs:
+  - slug: query-caching-001
+    title: Phân biệt cache ở ứng dụng với bộ đệm bên trong cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-002
+    title: Cache thực thể theo danh tính và cache kết quả truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-003
+    title: Thiết kế khóa cho bộ lọc, sắp xếp và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-004
+    title: Vô hiệu hóa kết quả truy vấn khi dữ liệu thành viên thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-005
+    title: Cache số lượng, tổng hợp và dữ liệu dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-006
+    title: Đánh đổi giữa lưu toàn bộ đối tượng với lưu danh sách ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-007
+    title: Cache cấp một của ORM và phạm vi ngữ cảnh lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-008
+    title: Cache cấp hai của ORM và phối hợp nhiều phiên làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-009
+    title: Cache truy vấn ORM và quan hệ với cache thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-010
+    title: Rủi ro khi cache thực thể có quan hệ tải lười
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-011
+    title: Xử lý cập nhật dữ liệu ngoài ứng dụng hoặc ngoài ORM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-caching-012
+    title: Nhận diện khi tối ưu truy vấn và chỉ mục có lợi hơn thêm cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-design
+  title: Thiết kế nghiệp vụ
+  childs:
+  - slug: domain-design-001
+    title: Cache danh mục tham chiếu và dữ liệu cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-002
+    title: Cache hồ sơ người dùng có phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-003
+    title: Cache trang danh sách và kết quả tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-004
+    title: Cache dữ liệu tổng hợp cho báo cáo và bảng theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-005
+    title: Cache kết quả tính toán nặng có đầu vào xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-006
+    title: Cache kết quả gọi dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-007
+    title: Xử lý độ mới của giá, khuyến mãi và tồn kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-008
+    title: Cache quyền truy cập và yêu cầu thu hồi quyền kịp thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-009
+    title: Chọn dữ liệu được phép cũ trong từng luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-010
+    title: Giữ quyết định giao dịch quan trọng tại nguồn có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-011
+    title: Lập ma trận khóa, TTL, vô hiệu hóa và đường dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-design-012
+    title: Chọn cache cục bộ, Redis, HTTP hoặc kết hợp theo tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fault-tolerance
+  title: Khả năng chịu lỗi
+  childs:
+  - slug: fault-tolerance-001
+    title: Phân biệt lỗi cache với cache miss thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-002
+    title: Chọn tiếp tục qua nguồn hoặc từ chối khi cache lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-003
+    title: Đặt giới hạn thời gian chờ cho kết nối và thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-004
+    title: Ngắt mạch bằng circuit breaker khi cache liên tục lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-005
+    title: Cô lập tài nguyên bằng bulkhead và giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-006
+    title: Thử lại có giới hạn và kiểm tra tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-007
+    title: Phục vụ bản cũ khi lỗi với giới hạn nghiệp vụ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-008
+    title: Tránh dồn toàn bộ tải sang nguồn khi cache ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-009
+    title: Xử lý dữ liệu cache hỏng hoặc không giải mã được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-010
+    title: Xử lý cache mất một phần dữ liệu hoặc bị xóa toàn bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-011
+    title: Khôi phục dần và làm nóng có kiểm soát sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-012
+    title: Lập phương án vận hành khi cả cache và nguồn đều chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân loại dữ liệu nhạy cảm trước khi đưa vào cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Không đưa bí mật và dữ liệu cá nhân không cần thiết vào khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Ngăn đọc chéo người dùng và chéo đơn vị thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Kiểm tra quyền truy cập ở ranh giới sử dụng dữ liệu cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Xóa dữ liệu cache khi thu hồi quyền hoặc xóa dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Bảo vệ kết nối bằng xác thực, phân quyền và mã hóa truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Giảm rủi ro giải tuần tự hóa dữ liệu không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Ngăn đầu vào tạo số lượng khóa không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Nhận diện đầu độc cache (cache poisoning)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Rủi ro cache HTTP dùng chung với phản hồi cá nhân hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Che dữ liệu nhạy cảm trong log, trace và trang quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-012
+    title: Quản lý quyền xóa cache và nhật ký thao tác vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Theo dõi hit, miss, load, eviction và expiration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Phân biệt tỷ lệ trúng theo yêu cầu với tỷ lệ trúng theo dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Đo độ trễ đọc, ghi, nạp và làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Theo dõi lỗi, timeout và số yêu cầu đi theo đường dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Đo độ mới dữ liệu và số lần phát hiện sai phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Theo dõi bộ nhớ, kết nối và hàng đợi tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Quan sát điểm nóng theo vùng cache hoặc nhóm khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Tránh gắn nhãn từng khóa gây số lượng chuỗi đo quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Liên kết trace giữa ứng dụng, cache và nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Thiết lập cảnh báo theo tác động tới người dùng và tải nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-011
+    title: Xây bảng theo dõi cho trạng thái bình thường, cache lạnh và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đường trúng cache, trượt cache và tải thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử khóa theo tham số, quyền và đơn vị thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử TTL bằng đồng hồ điều khiển được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử loại bỏ khi chạm giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử vô hiệu hóa sau ghi, xóa và rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử cuộc đua nạp dữ liệu với cập nhật nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử gộp tải và giới hạn đồng thời cho cùng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử nhiều tiến trình với cache dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử tuần tự hóa và tương thích giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tích hợp Redis bằng môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Đo tải với phân bố truy cập và kích thước dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Thử nghiệm lỗi mạng, chuyển đổi nút và mất cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Đối chiếu dữ liệu từ cache với nguồn mà không tăng tải quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Tách cấu hình dung lượng, TTL và kết nối theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Quản lý vòng đời vùng cache và quy ước đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Triển khai từng phần khi lược đồ giá trị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Phối hợp phiên bản cũ và mới trong cùng thời gian triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Lập phương án quay lui khi khóa hoặc serializer thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Làm nóng có kiểm soát trước khi tăng lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Xóa theo nhóm khóa thay vì xóa toàn bộ theo thói quen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Xác định thẩm quyền và quy trình thao tác xóa cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Nâng cấp hạ tầng và thư viện cache có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-010
+    title: Lập kế hoạch dung lượng và xử lý tăng trưởng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-011
+    title: Viết hướng dẫn xử lý cache lỗi, điểm nóng và dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-012
+    title: Đánh giá định kỳ vùng cache không còn mang lại lợi ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-pitfalls
+  title: Lỗi thiết kế
+  childs:
+  - slug: design-pitfalls-001
+    title: Dùng cache để che truy vấn chậm chưa được đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-002
+    title: Xem tỷ lệ trúng cao là bằng chứng hệ thống luôn nhanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-003
+    title: Đặt TTL giống nhau cho mọi loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-004
+    title: Không giới hạn dung lượng hoặc số lượng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-005
+    title: Thiếu ngữ cảnh trong khóa làm trả nhầm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-006
+    title: Cache trực tiếp đối tượng có thể thay đổi hoặc thực thể ORM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-007
+    title: Giữ lỗi tạm thời quá lâu bằng cache kết quả âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-008
+    title: Giả định xóa cache sau ghi sẽ loại bỏ mọi cuộc đua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-009
+    title: Dùng khóa phân tán như bảo đảm tuyệt đối cho tính đúng đắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-010
+    title: Xóa toàn bộ cache gây dồn tải vào nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-011
+    title: Cache dữ liệu bắt buộc mới mà thiếu cơ chế kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-012
+    title: Thêm nhiều tầng cache khi chưa giải quyết đồng bộ và quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây cache có giới hạn cho danh mục tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: So sánh cache-aside cục bộ với cache Redis dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Thiết kế khóa cho tìm kiếm, sắp xếp và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thử nghiệm TTL, làm mới và dữ liệu cũ được phép phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tái hiện rồi xử lý cuộc đua nạp dữ liệu sau vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Gộp yêu cầu đồng thời và kiểm chứng giảm tải nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Phối hợp giao dịch nguồn với sự kiện vô hiệu hóa sau commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Triển khai cache L1 và L2 có giới hạn độ cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Thiết kế HTTP cache an toàn cho phản hồi cá nhân hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Mô phỏng Redis lỗi và bảo vệ cơ sở dữ liệu khỏi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Thử triển khai hai phiên bản với lược đồ cache khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Hoàn thiện hồ sơ thiết kế, kiểm thử tải và hướng dẫn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

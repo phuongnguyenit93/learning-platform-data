@@ -1,0 +1,2638 @@
+menu:
+- slug: scope-and-foundations
+  title: Phạm vi và nền tảng
+  childs:
+  - slug: scope-and-foundations-001
+    title: 'Các thay đổi bền vững từ Java 18: UTF-8, Simple Web Server, Javadoc snippet, resolver SPI và reflection'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-002
+    title: Phân biệt API có từ trước với thay đổi được đưa vào Java 18, đặc biệt là MethodHandle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-003
+    title: Đọc JEP, đặc tả Java SE và tài liệu JDK để xác định hợp đồng, chi tiết triển khai và giới hạn phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-004
+    title: Chọn JDK hiện đại còn được hỗ trợ để thực hành các kiến thức của module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-005
+    title: Xác minh java, javac, javadoc và jwebserver thuộc cùng bộ JDK bằng đường dẫn và thông tin phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-006
+    title: Phân biệt phiên bản công cụ biên dịch, mức --release và hành vi của JVM chạy chương trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-007
+    title: Kiểm tra module java.base và jdk.httpserver trên JDK đầy đủ hoặc runtime image tùy biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-008
+    title: Tổ chức ví dụ tối thiểu với đầu vào, kết quả mong đợi, ngoại lệ và thông tin môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-009
+    title: Phân loại kết quả quan sát theo bảo đảm API, đặc tính hệ điều hành và hành vi riêng của bản JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scope-and-foundations-010
+    title: Giới hạn nội dung ở API còn áp dụng; nhận diện tài liệu preview, incubator và cơ chế nội bộ cũ để tránh dùng sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: utf-8-default-charset
+  title: UTF-8 mặc định
+  childs:
+  - slug: utf-8-default-charset-001
+    title: JEP 400 và ý nghĩa của UTF-8 mặc định đối với tính di động của ứng dụng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-002
+    title: Phân biệt byte, ký tự, code point và code unit khi đọc hoặc ghi tiếng Việt và emoji
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-003
+    title: Phân biệt biểu diễn của String trong Java với charset dùng tại ranh giới nhập xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-004
+    title: Charset.defaultCharset() và các API thực sự sử dụng charset mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-005
+    title: StandardCharsets.UTF_8 và lý do khai báo charset rõ ràng trong hợp đồng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-006
+    title: Đọc file.encoding và native.encoding để phân biệt lựa chọn của JVM với mã hóa môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-007
+    title: 'Giá trị UTF-8 và COMPAT của file.encoding: cấu hình khởi động được hỗ trợ và giới hạn sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-008
+    title: Vì sao System.setProperty sau khi JVM khởi động không bảo đảm thay đổi charset mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-009
+    title: native.encoding là thông tin môi trường và không phải công tắc đổi mã hóa của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-010
+    title: Console.charset(), System.console() và trường hợp chương trình không gắn với console
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-011
+    title: Phân biệt charset của System.in, System.out, System.err và charset mặc định khi làm việc với terminal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-012
+    title: Đối chiếu stdout.encoding và stderr.encoding với tài liệu của đúng JDK đang dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-013
+    title: Ảnh hưởng của terminal, IDE, chuyển hướng và pipe đến đường đi của dữ liệu văn bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-014
+    title: Charset.forName(), tên chuẩn, bí danh và lỗi UnsupportedCharsetException
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-015
+    title: UTF-8 mặc định không tự chuyển đổi dữ liệu hoặc tệp đã lưu bằng charset khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: utf-8-default-charset-016
+    title: 'BOM, ký tự thay thế và mojibake: các dấu hiệu giúp định vị lỗi mã hóa'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: text-encoding-apis
+  title: API văn bản
+  childs:
+  - slug: text-encoding-apis-001
+    title: 'String.getBytes() và new String(byte[]): nhận diện phụ thuộc vào charset mặc định'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-002
+    title: 'String.getBytes(Charset) và new String(byte[], Charset): định nghĩa rõ hai chiều chuyển đổi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-003
+    title: 'InputStreamReader và OutputStreamWriter: lựa chọn constructor có charset cho luồng byte'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-004
+    title: 'FileReader và FileWriter: khai báo charset, chế độ append và trách nhiệm đóng tài nguyên'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-005
+    title: 'BufferedReader và BufferedWriter: lớp đệm không quyết định lại charset của luồng bên dưới'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-006
+    title: 'Files.readString() và Files.writeString(): UTF-8 đã là hợp đồng của overload không truyền charset'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-007
+    title: Files.newBufferedReader(), Files.newBufferedWriter() và overload charset tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-008
+    title: 'Files.readAllLines() và Files.lines(): chọn charset và đóng Stream đọc tệp đúng vòng đời'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-009
+    title: 'Scanner: xác định charset ở nơi tiếp nhận byte và phân biệt lỗi mã hóa với lỗi token hoặc locale'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-010
+    title: 'PrintStream và PrintWriter: constructor charset, flush và kiểm tra lỗi xuất dữ liệu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-011
+    title: 'ByteArrayOutputStream.toString(): lựa chọn overload để tránh giải mã ngầm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-012
+    title: 'Properties.load(InputStream) và store(OutputStream): hợp đồng ISO-8859-1 vẫn cần được hiểu đúng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-013
+    title: 'Properties.load(Reader) và store(Writer): kiểm soát charset qua Reader và Writer'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-014
+    title: 'ResourceBundle và PropertyResourceBundle: đối chiếu quy tắc đọc tệp properties riêng của API'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-015
+    title: 'CharsetDecoder và CodingErrorAction.REPORT: phát hiện byte không hợp lệ thay vì thay thế âm thầm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-016
+    title: 'CharsetEncoder: xử lý ký tự không biểu diễn được và surrogate không hợp lệ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-017
+    title: Giải mã từng phần khi ký tự UTF-8 bị chia giữa các buffer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: text-encoding-apis-018
+    title: Biên dịch mã nguồn tiếng Việt với javac -encoding UTF-8 và phân biệt mã hóa nguồn với mã hóa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: encoding-verification
+  title: Kiểm chứng mã hóa
+  childs:
+  - slug: encoding-verification-001
+    title: Lập bản đồ ranh giới byte và ký tự trong tệp, tài nguyên classpath, tiến trình con và phản hồi HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-002
+    title: Tạo bộ dữ liệu kiểm chứng gồm ASCII, tiếng Việt, emoji, ký tự tổ hợp và dòng rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-003
+    title: Kiểm tra round-trip bằng cả chuỗi và byte để phát hiện mất dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-004
+    title: Dùng giá trị byte và mã Unicode làm bằng chứng khi terminal hiển thị sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-005
+    title: Phân biệt lỗi đọc sai charset, ghi sai charset và mã hóa lặp hai lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-006
+    title: Kiểm thử UTF-8 hợp lệ, byte bị cắt, BOM và chuỗi đầu vào không thể giải mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-007
+    title: Xác nhận khác biệt giữa API thay thế ký tự lỗi và API báo ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-008
+    title: Kiểm chứng đọc ghi khi file.encoding khác charset đã khai báo trong API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-009
+    title: Chạy tiến trình JVM riêng để so sánh cấu hình charset khởi động một cách độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-010
+    title: Kiểm tra đầu ra trực tiếp, chuyển hướng ra tệp và truyền qua pipe trên Windows hoặc Linux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-011
+    title: Đồng bộ UTF-8 giữa mã nguồn, tài nguyên, IDE và cấu hình build của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-012
+    title: Chuyển đổi tệp đầu vào có charset được xác định rõ sang UTF-8 và xác minh byte đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-013
+    title: Xác định charset từ hợp đồng hoặc metadata thay vì suy đoán chỉ từ hình thức hiển thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-014
+    title: Kiểm tra dữ liệu tiếng Việt qua HTTP bằng Content-Type, charset và nội dung byte
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-015
+    title: Thiết kế kiểm thử hồi quy mã hóa chạy ổn định trên máy cá nhân và CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encoding-verification-016
+    title: Thực hành xây dựng bộ đọc ghi văn bản UTF-8 có kiểm tra lỗi và thông báo chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jwebserver-cli
+  title: Lệnh jwebserver
+  childs:
+  - slug: jwebserver-cli-001
+    title: Simple Web Server dùng cho phát triển, thử nghiệm và gỡ lỗi tài nguyên tĩnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-002
+    title: Khởi chạy bằng jwebserver hoặc java -m jdk.httpserver và kiểm tra trợ giúp của đúng JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-003
+    title: Mặc định thư mục hiện tại, cổng 8000 và địa chỉ loopback khi khởi động máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-004
+    title: Chọn thư mục phục vụ bằng -d hoặc --directory, xử lý đường dẫn chứa khoảng trắng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-005
+    title: Chọn cổng bằng -p hoặc --port và chẩn đoán lỗi cổng đã được sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-006
+    title: Chọn địa chỉ bằng -b hoặc --bind-address và phân biệt IPv4 với IPv6 loopback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-007
+    title: Tác động của bind mọi giao diện đến khả năng truy cập từ mạng và phạm vi dữ liệu được chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-008
+    title: Điều chỉnh mức log none, info và verbose bằng -o hoặc --output
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-009
+    title: Đọc thông báo khởi động để xác nhận địa chỉ, cổng và đường dẫn tuyệt đối được phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-010
+    title: Ánh xạ URI đến tệp và thư mục trong cây tài nguyên tĩnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-011
+    title: Tệp index, chuyển hướng đường dẫn thư mục và danh sách nội dung khi thiếu index
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-012
+    title: Hành vi với tệp ẩn, symbolic link và yêu cầu vượt ra ngoài thư mục gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-013
+    title: 'GET và HEAD: kiểm tra status, header và sự khác biệt về response body'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-014
+    title: 'Phương thức HTTP không hỗ trợ: kiểm chứng 405 hoặc 501 theo lớp xử lý của máy chủ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-015
+    title: MIME type tự nhận diện, kiểu mặc định và giới hạn khi không có khai báo charset phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-016
+    title: Giới hạn HTTP/1.1, nội dung tĩnh và việc lựa chọn công cụ khác khi cần HTTPS hoặc xử lý ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-017
+    title: Dùng trình duyệt, curl hoặc curl.exe để kiểm tra 200, 404, HEAD và tên tệp có ký tự Unicode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jwebserver-cli-018
+    title: Dừng máy chủ, giải phóng cổng và thực hành xem trước tài liệu HTML hoặc fixture cục bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: simple-file-server-api
+  title: API SimpleFileServer
+  childs:
+  - slug: simple-file-server-api-001
+    title: Module jdk.httpserver và các API công khai trong com.sun.net.httpserver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-002
+    title: 'Ba thành phần của SimpleFileServer: HttpServer, HttpHandler và Filter'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-003
+    title: 'createFileServer(): khởi tạo máy chủ và gọi start() tường minh'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-004
+    title: Điều kiện rootDirectory phải tuyệt đối, tồn tại, là thư mục và đọc được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-005
+    title: 'InetSocketAddress: chọn loopback tường minh và tránh vô tình bind mọi giao diện'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-006
+    title: Dùng cổng 0 rồi đọc địa chỉ thực tế để tránh xung đột trong kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-007
+    title: 'OutputLevel.NONE, INFO và VERBOSE: cân bằng quan sát với dữ liệu xuất hiện trong log'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-008
+    title: 'createFileHandler(): tái sử dụng trình phục vụ tệp trong một HttpServer tự cấu hình'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-009
+    title: 'HttpContext và tiền tố đường dẫn: kiểm chứng cách URI được ánh xạ khi gắn file handler'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-010
+    title: 'createOutputFilter(): xuất log UTF-8 đến OutputStream và quản lý vòng đời luồng đích'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-011
+    title: 'HttpHandlers.handleOrElse(): phối hợp điều kiện request với file handler và handler tùy biến'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-012
+    title: Tách route kiểm tra trạng thái khỏi route phục vụ tài nguyên tĩnh trong ví dụ phát triển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-013
+    title: Quản lý request body, response body và đóng HttpExchange trong handler tự viết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-014
+    title: Thiết lập Executor trước khi start() và quản lý việc dừng các luồng do ứng dụng sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-015
+    title: 'stop(delay): dừng máy chủ có kiểm soát và dọn tài nguyên khi kiểm thử kết thúc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-016
+    title: Kiểm chứng IllegalArgumentException, NullPointerException và lỗi nhập xuất lúc tạo máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-017
+    title: Dùng HttpClient kiểm tra header, status và byte phản hồi mà không phụ thuộc trình duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-file-server-api-018
+    title: Thực hành dựng máy chủ fixture độc lập với thư mục tạm, cổng động và cleanup xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: javadoc-snippets
+  title: Javadoc snippet
+  childs:
+  - slug: javadoc-snippets-001
+    title: JEP 413 và vai trò của đoạn mã minh họa trong hợp đồng tài liệu API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-002
+    title: Lựa chọn @snippet cho ví dụ nhiều dòng và @code cho định danh hoặc biểu thức ngắn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-003
+    title: 'Cú pháp inline snippet: thuộc tính, dấu hai chấm, nội dung và dấu đóng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-004
+    title: Quy tắc cân bằng dấu ngoặc nhọn trong nội dung inline snippet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-005
+    title: Giới hạn của chuỗi kết thúc comment và Unicode escape trong comment chứa snippet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-006
+    title: Xử lý thụt lề và khoảng trắng ngẫu nhiên để đoạn mã hiển thị đúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-007
+    title: 'Thuộc tính lang: nhận diện Java, properties và giới hạn hỗ trợ markup theo ngôn ngữ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-008
+    title: Thuộc tính id và cách nhận diện snippet trong HTML được sinh ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-009
+    title: Thuộc tính có hoặc không có dấu nháy và giới hạn escape trong giá trị thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-010
+    title: 'External snippet với file: tách ví dụ khỏi comment tài liệu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-011
+    title: 'External snippet với class: tham chiếu tệp nguồn Java theo tên lớp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-012
+    title: Thư mục snippet-files theo package và phân biệt với thư mục doc-files
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-013
+    title: Cấu hình --snippet-path khi ví dụ được đặt trong cây nguồn độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: javadoc-snippets-014
+    title: Chọn inline, external hoặc hybrid theo kích thước ví dụ và khả năng kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: snippet-markup-and-regions
+  title: Markup và region
+  childs:
+  - slug: snippet-markup-and-regions-001
+    title: Markup comment trong snippet và phần nội dung được loại khỏi đầu ra hiển thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-002
+    title: '@highlight: làm nổi bật cả dòng hoặc phần văn bản được chọn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-003
+    title: Thuộc tính type của @highlight và lựa chọn kiểu nhấn mạnh phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-004
+    title: Chọn văn bản bằng substring và phân biệt với chọn bằng regex
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-005
+    title: Kiểm chứng regex khi tên biến là một phần của định danh khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-006
+    title: '@link: nối phần mã minh họa đến lớp, field, constructor hoặc method đích'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-007
+    title: Tham chiếu method overload trong target của @link và kiểm tra liên kết được phân giải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-008
+    title: '@replace: thay đổi văn bản trình bày mà vẫn giữ mã nguồn có thể biên dịch'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-009
+    title: Placeholder, dấu ba chấm và ranh giới giữa mã chạy thật với mã được hiển thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-010
+    title: Dấu hai chấm ở cuối markup comment để áp dụng markup cho dòng tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-011
+    title: '@start, @end và thuộc tính region để chọn một phần tệp nguồn bên ngoài'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-012
+    title: Region có tên và không tên khi áp dụng markup cho nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-013
+    title: 'Region lồng nhau hoặc chồng lấn: đặt tên và xác định điểm kết thúc rõ ràng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-014
+    title: Kết hợp region được trích xuất với markup highlight, link và replace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-015
+    title: Dùng nhiều region trong một tệp ví dụ mà vẫn giữ từng đoạn có ngữ cảnh đầy đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-016
+    title: Chẩn đoán region thiếu, sai tên, thiếu @end và giới hạn của markup cuối dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: snippet-markup-and-regions-017
+    title: 'Hybrid snippet: quy tắc đối chiếu nội dung inline với nội dung external sau xử lý markup'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: documentation-verification
+  title: Kiểm chứng tài liệu
+  childs:
+  - slug: documentation-verification-001
+    title: Tổ chức lớp ví dụ có thể biên dịch và trích đúng region vào tài liệu API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-002
+    title: Phân biệt javadoc kiểm tra cú pháp snippet với việc biên dịch hoặc chạy mã minh họa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-003
+    title: Biên dịch ví dụ external bằng javac để phát hiện import, kiểu và lời gọi API sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-004
+    title: Chạy ví dụ như kiểm thử để xác nhận kết quả, ngoại lệ và tài nguyên được đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-005
+    title: Kiểm tra snippet properties có thể được nạp bằng đúng API và charset được mô tả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-006
+    title: Cấu hình -encoding, -docencoding và -charset khi tạo tài liệu có tiếng Việt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-007
+    title: Cấu hình classpath hoặc module path cho ví dụ và liên kết API trong tài liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-008
+    title: Dùng doclint, mức cảnh báo và mã thoát của javadoc để phát hiện lỗi tài liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-009
+    title: Chẩn đoán tệp snippet không tìm thấy theo package, working directory và --snippet-path
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-010
+    title: Kiểm tra HTML thực tế để xác nhận thụt lề, ký tự đặc biệt, highlight và liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-011
+    title: Đối chiếu nội dung sao chép từ snippet với nội dung hiển thị và ý định của @replace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-012
+    title: Đưa biên dịch ví dụ, chạy kiểm thử và tạo Javadoc vào quy trình CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-013
+    title: Giữ ví dụ đồng bộ với API khi đổi tên method, chữ ký hoặc hành vi ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-verification-014
+    title: Thực hành tài liệu hóa bộ đọc UTF-8 và máy chủ fixture bằng snippet được kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inetaddress-contracts
+  title: Hợp đồng InetAddress
+  childs:
+  - slug: inetaddress-contracts-001
+    title: Phân giải hostname trong Java và vai trò của resolver hệ điều hành hoặc provider tùy biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-002
+    title: Phân biệt tra cứu tên, kết nối TCP, xác thực TLS và khả năng truy cập dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-003
+    title: 'InetAddress.getByName() và getAllByName(): kết quả một địa chỉ hoặc toàn bộ địa chỉ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-004
+    title: Địa chỉ IPv4, IPv6 và thứ tự địa chỉ ảnh hưởng thế nào đến bên gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-005
+    title: 'IP literal và hostname: các đường đi có thể không cần gọi resolver provider'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-006
+    title: 'InetAddress.getByAddress(): tạo đối tượng từ byte địa chỉ mà không tra cứu tên'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-007
+    title: 'getHostAddress(), getHostName() và getCanonicalHostName(): biểu diễn địa chỉ và tra cứu ngược'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-008
+    title: 'getLocalHost() và getLoopbackAddress(): phân biệt cấu hình hostname với địa chỉ loopback'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-009
+    title: 'UnknownHostException: phân biệt lỗi phân giải với lỗi xảy ra sau khi đã có địa chỉ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-010
+    title: Cache kết quả thành công và thất bại trong InetAddress
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-011
+    title: 'networkaddress.cache.ttl và networkaddress.cache.negative.ttl: đọc hợp đồng trên JDK đang dùng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-012
+    title: 'Security property và system property: cấu hình cache đúng cơ chế và trước lần sử dụng đầu tiên'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-013
+    title: 'java.net.preferIPv4Stack và java.net.preferIPv6Addresses: ảnh hưởng cần kiểm chứng theo JDK'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-014
+    title: Tên miền đổi địa chỉ, vòng đời JVM và tác động của cache đến khả năng quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inetaddress-contracts-015
+    title: Quan sát thời gian phân giải và ngoại lệ mà không suy diễn mọi lần gọi đều tạo truy vấn DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resolver-spi
+  title: Resolver SPI
+  childs:
+  - slug: resolver-spi-001
+    title: JEP 418 và ba thành phần InetAddressResolver, InetAddressResolverProvider, Configuration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-002
+    title: 'lookupByName(host, policy): hợp đồng trả Stream địa chỉ và báo UnknownHostException'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-003
+    title: 'lookupByAddress(byte[]): tra cứu ngược với độ dài 4 hoặc 16 byte và network byte order'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-004
+    title: 'LookupPolicy.characteristics(): đọc bitmask yêu cầu họ địa chỉ và thứ tự kết quả'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-005
+    title: 'LookupPolicy.of(): tổ hợp IPV4, IPV6, IPV4_FIRST và IPV6_FIRST hợp lệ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-006
+    title: Lọc đúng họ địa chỉ và giữ thứ tự yêu cầu khi trả kết quả tra cứu thuận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-007
+    title: Kiểm tra null, độ dài địa chỉ không hợp lệ và trường hợp không có kết quả phân giải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-008
+    title: Triển khai provider với constructor không tham số, get(Configuration) và name()
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-009
+    title: 'Configuration.builtinResolver(): ủy quyền đến resolver tích hợp mà không gọi lặp InetAddress'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-010
+    title: 'Configuration.lookupLocalHostName(): đọc hostname cục bộ và xác định khi nào cần dùng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-011
+    title: Giữ constructor và get(Configuration) đơn giản để tránh vòng lặp class loading hoặc deadlock
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-012
+    title: Đăng ký provider trên classpath bằng META-INF/services và đóng gói đúng tên lớp triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-013
+    title: Đăng ký provider trong named module bằng provides ... with và kiểm tra module được resolve
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-014
+    title: 'ServiceLoader và system class loader: phạm vi provider được InetAddress phát hiện'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-015
+    title: 'Thời điểm cài resolver toàn JVM: sau khởi tạo VM và khi phát sinh tra cứu đầu tiên'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-016
+    title: 'Nhiều provider cùng tồn tại: thứ tự phát hiện phụ thuộc triển khai và cách tránh lựa chọn mơ hồ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-017
+    title: 'Không có provider và provider khởi tạo lỗi: phân biệt dùng resolver tích hợp với lỗi được truyền ra'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-018
+    title: Thiết kế resolver an toàn khi nhiều luồng gọi đồng thời và quản lý trạng thái dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-spi-019
+    title: 'Phạm vi SPI đồng bộ: trách nhiệm timeout của provider và giới hạn đối với thư viện có resolver riêng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resolver-verification
+  title: Kiểm chứng resolver
+  childs:
+  - slug: resolver-verification-001
+    title: Dựng bảng ánh xạ hostname và IP xác định để kiểm thử không phụ thuộc DNS công cộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-002
+    title: 'Kiểm thử trực tiếp resolver và kiểm thử tích hợp qua InetAddress: hai phạm vi cần tách biệt'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-003
+    title: Chạy JVM con riêng cho từng cấu hình provider để cô lập trạng thái resolver toàn tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-004
+    title: Chứng minh provider đã được nạp bằng dấu hiệu khởi tạo và bộ đếm lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-005
+    title: Kiểm tra file service thực sự có trong JAR và provider được nhìn thấy qua system class loader
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-006
+    title: Kiểm chứng đường triển khai classpath và named module bằng cùng bộ dữ liệu địa chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-007
+    title: Kiểm thử ma trận IPv4, IPv6, thứ tự ưu tiên và LookupPolicy không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-008
+    title: Kiểm thử tra cứu ngược thành công, không có hostname và địa chỉ byte sai độ dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-009
+    title: Kiểm chứng IP literal và getByAddress() để tránh kết luận sai rằng provider bị bỏ qua
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-010
+    title: Đo số lần provider được gọi khi cache thành công hoặc cache thất bại đang có hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-011
+    title: Thiết lập TTL trong môi trường kiểm thử riêng mà không phụ thuộc thao tác xóa cache nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-012
+    title: Kiểm chứng lỗi trong constructor hoặc get(Configuration) được truyền tới bên kích hoạt tra cứu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-013
+    title: Thiết kế fallback tường minh bằng builtinResolver và kiểm tra không tạo vòng đệ quy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-014
+    title: Kiểm thử gọi song song, dữ liệu dùng chung và giới hạn thời gian đáp ứng của resolver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-015
+    title: Quan sát hành vi tra cứu với Socket hoặc HttpClient trên đúng JDK và cấu hình đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-016
+    title: Giữ nguyên hostname khi kết nối HTTPS để bảo toàn Host, SNI và xác minh chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resolver-verification-017
+    title: Thực hành provider ánh xạ tên cho fixture cục bộ với báo cáo kết quả theo từng JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reflection-contracts
+  title: Hợp đồng reflection
+  childs:
+  - slug: reflection-contracts-001
+    title: 'Class, Method, Constructor và Field: metadata cần thiết cho lời gọi động'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-002
+    title: 'getMethod() và getDeclaredMethod(): phạm vi public, kế thừa và member khai báo trực tiếp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-003
+    title: 'getMethods() và getDeclaredMethods(): xử lý tập kết quả mà không phụ thuộc thứ tự'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-004
+    title: Tra cứu method overload bằng kiểu tham số chính xác thay vì kiểu runtime của giá trị đối số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-005
+    title: Type erasure, bridge method và synthetic method khi nhận diện chữ ký thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-006
+    title: getParameterTypes(), getReturnType(), getDeclaringClass() và isVarArgs() để mô tả lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-007
+    title: 'Method.invoke(): truyền receiver cho method instance và quy tắc của method static'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-008
+    title: 'Method.invoke() với override: virtual dispatch vẫn chọn triển khai theo receiver'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-009
+    title: Boxing, unboxing và primitive widening được phép khi gọi qua reflection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-010
+    title: Primitive narrowing, đối số sai số lượng hoặc sai kiểu và IllegalArgumentException
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-011
+    title: Phân biệt Object[] của Method.invoke() với một tham số đích có kiểu mảng hoặc varargs
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-012
+    title: Kết quả primitive được boxing và kết quả null của method trả void
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-013
+    title: 'InvocationTargetException và getCause(): tách lỗi nghiệp vụ của đích khỏi lỗi lời gọi reflection'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-014
+    title: 'Null receiver, lỗi truy cập và lỗi khởi tạo lớp: xác định đúng giai đoạn thất bại'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-015
+    title: 'getDeclaredConstructor() và Constructor.newInstance(): chữ ký, đối số và ngoại lệ được bọc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-016
+    title: 'Field.get(), Field.set() và accessor primitive: receiver, giá trị và giới hạn chuyển đổi kiểu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-017
+    title: 'Field final, static final và field của record: đối chiếu giới hạn ghi theo hợp đồng JDK hiện hành'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-contracts-018
+    title: Thiết kế bảng kiểm chứng Method, Constructor và Field với đầu vào hợp lệ cùng các ca biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reflection-access-control
+  title: Quyền reflection
+  childs:
+  - slug: reflection-access-control-001
+    title: AccessibleObject và thời điểm kiểm tra quyền khi sử dụng Method, Constructor hoặc Field
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-002
+    title: Phân biệt tìm được metadata với được phép gọi hoặc truy cập member
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-003
+    title: 'canAccess(receiver): kiểm tra khả năng truy cập và quy tắc receiver cho static hoặc instance'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-004
+    title: 'trySetAccessible(): xử lý kết quả boolean khi xin quyền truy cập sâu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-005
+    title: setAccessible(true) và InaccessibleObjectException khi ranh giới module không cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-006
+    title: Public member trong public class và vai trò của package được export
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-007
+    title: 'exports và opens: phân biệt quyền dùng API công khai với quyền reflection vào member không public'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-008
+    title: Named module, unnamed module và cấu hình package mở có chủ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-009
+    title: requires, khả năng đọc module và quy tắc giả định readability riêng của core reflection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-010
+    title: Qualified opens trong module-info.java để giới hạn bên được reflection truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-011
+    title: --add-opens theo đúng module và package khi cần cấu hình tích hợp được xác định rõ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-012
+    title: Phân biệt --add-exports với --add-opens khi chẩn đoán lỗi truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-013
+    title: Private member trong cùng nest và trường hợp kiểm tra quyền khác giữa các lớp gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-014
+    title: Xác minh quyền với các fixture cùng module, khác module, package export và package mở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-access-control-015
+    title: Thiết kế thư viện dùng API công khai trước, thông báo rõ member và module gây lỗi truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reflection-performance
+  title: Reflection và hiệu năng
+  childs:
+  - slug: reflection-performance-001
+    title: 'JEP 416: Method, Constructor và Field được triển khai dựa trên cơ chế method handle'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-002
+    title: Phân biệt thay đổi triển khai reflection với hợp đồng API công khai được duy trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-003
+    title: So sánh lời gọi trực tiếp, Method.invoke() và MethodHandle theo kiểu dữ liệu, kiểm tra quyền và ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-004
+    title: Tách chi phí tìm metadata, kiểm tra quyền, tạo adapter và thực thi đích khi đánh giá hiệu năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-005
+    title: Ảnh hưởng của vị trí lưu Method, Constructor hoặc Field đến khả năng tối ưu của JIT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-006
+    title: Member lưu trong static final và giới hạn khi suy rộng kết quả tối ưu sang mọi ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-007
+    title: Cache metadata theo Class và chữ ký để tránh tra cứu lặp trong đường chạy thường xuyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-008
+    title: ClassValue và vòng đời class loader khi thiết kế cache reflection cho thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-009
+    title: Benchmark một đích cố định và nhiều đích thay đổi để phản ánh cách ứng dụng thực sự gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-010
+    title: Warmup, nhiều JVM fork, loại bỏ kết quả không dùng và ảnh hưởng của constant folding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-011
+    title: Tách phép đo cold start, steady state, allocation và độ trễ thay vì chỉ ghi một con số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-012
+    title: Ghi nhận bản JDK, JVM flag, phần cứng và dữ liệu đầu vào để benchmark có thể tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-performance-013
+    title: Thực hành đánh giá cache và lựa chọn reflection hoặc MethodHandle bằng bằng chứng trên JDK đang dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: method-handles
+  title: MethodHandle
+  childs:
+  - slug: method-handles-001
+    title: MethodHandle là tham chiếu thực thi có kiểu và mối liên hệ với cơ chế reflection từ Java 18
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-002
+    title: 'MethodType.methodType(): khai báo kiểu trả về và thứ tự kiểu tham số'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-003
+    title: 'MethodHandle.type(): đọc chữ ký thực tế trước khi gọi hoặc tạo adapter'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-004
+    title: 'MethodHandles.lookup() và findStatic(): tạo handle đến method static có chữ ký xác định'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-005
+    title: 'findVirtual(): receiver là tham số đầu tiên và lời gọi vẫn có virtual dispatch'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-006
+    title: 'findConstructor(): kiểu void trong yêu cầu tra cứu và kiểu đối tượng trong handle được trả về'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-007
+    title: 'findGetter(), findSetter(), findStaticGetter() và findStaticSetter(): đọc ghi field bằng handle'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-008
+    title: 'invokeExact(): chữ ký tại vị trí gọi phải khớp chính xác với MethodType'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-009
+    title: Kiểu tĩnh của đối số và phép ép kiểu kết quả quyết định descriptor của invokeExact()
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-010
+    title: 'Primitive, wrapper và Object: nhận diện khác biệt dù giá trị dữ liệu trông giống nhau'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-011
+    title: 'Bỏ qua kết quả trả về hoặc dùng var: kiểm chứng WrongMethodTypeException tại vị trí gọi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-012
+    title: Đối số null với kiểu tĩnh xác định và trường hợp receiver null
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-013
+    title: 'invoke(): chuyển đổi kiểu theo quy tắc asType khi chữ ký gọi chưa khớp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-014
+    title: 'asType(): tạo adapter tường minh, chuyển đổi reference, boxing, unboxing và primitive widening'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-015
+    title: 'WrongMethodTypeException, ClassCastException và NullPointerException: phân biệt lỗi cấu trúc với lỗi giá trị'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-016
+    title: 'invokeWithArguments(): giao diện đối số động, boxing và chi phí chuyển đổi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-017
+    title: Ngoại lệ do method đích ném qua handle và khác biệt với InvocationTargetException
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-018
+    title: Handle immutable và việc chia sẻ giữa nhiều luồng không làm receiver hoặc dữ liệu tự an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handles-019
+    title: Thực hành ma trận lời gọi static, virtual, constructor và field với kiểm tra kiểu lẫn kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: method-handle-lookup-and-adapters
+  title: Lookup và adapter
+  childs:
+  - slug: method-handle-lookup-and-adapters-001
+    title: 'Lookup như năng lực truy cập: lookupClass(), lookupModes() và thời điểm kiểm tra quyền'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-002
+    title: 'publicLookup() và lookup() trong thư viện: lớp tạo Lookup quyết định phạm vi quyền'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-003
+    title: 'Lookup.in() và dropLookupMode(): thu hẹp ngữ cảnh hoặc quyền truy cập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-004
+    title: 'privateLookupIn(): điều kiện readability, opens và quyền của Lookup gốc khi đi qua module'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-005
+    title: 'unreflect() và unreflectConstructor(): chuyển metadata reflection thành handle có quyền phù hợp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-006
+    title: 'unreflectGetter() và unreflectSetter(): kiểm chứng quyền cùng giới hạn của field final'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-007
+    title: 'findSpecial() và unreflectSpecial(): lời gọi đặc biệt khác với virtual dispatch'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-008
+    title: 'IllegalAccessException và NoSuchMethodException: phân biệt quyền, chữ ký và member không tồn tại'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-009
+    title: 'Handle đã tạo và Lookup có quyền cao: giới hạn phạm vi chia sẻ trong thiết kế thư viện'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-010
+    title: 'bindTo() và insertArguments(): cố định receiver hoặc tham số theo đúng vị trí và kiểu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-011
+    title: 'dropArguments() và permuteArguments(): bổ sung hoặc sắp xếp lại chữ ký mà vẫn kiểm soát MethodType'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-012
+    title: 'filterArguments() và filterReturnValue(): ghép bước chuyển đổi đầu vào hoặc đầu ra'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-013
+    title: 'guardWithTest(): chọn nhánh thực thi và kiểm tra tương thích kiểu giữa test và các nhánh'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-014
+    title: 'asSpreader(): chuyển đối số mảng thành các tham số của handle đích'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-015
+    title: 'asCollector(): gom tham số vào mảng và kiểm tra số lượng phần tử'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-016
+    title: 'asVarargsCollector() và asFixedArity(): kiểm soát hành vi varargs thay vì suy đoán như lời gọi Java thường'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-017
+    title: Kiểm tra handle.type() sau từng bước adapter để định vị lỗi ghép chữ ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-018
+    title: Cache handle và adapter theo Class, chữ ký, quyền truy cập và vòng đời class loader
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-019
+    title: Thực hành bộ gọi động nhỏ với public API, receiver được bind và chuyển đổi tham số tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-handle-lookup-and-adapters-020
+    title: So sánh cùng một ca biên giữa reflection, handle chính xác và handle có adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây dựng kho fixture UTF-8 với tiếng Việt, emoji, byte lỗi và kết quả kiểm chứng round-trip
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-002
+    title: Phục vụ fixture và Javadoc qua loopback bằng SimpleFileServer với cổng động và log có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-003
+    title: Viết snippet cho ví dụ API thành công và ngoại lệ rồi xác minh bằng biên dịch cùng kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-004
+    title: Tích hợp resolver provider ánh xạ hostname thử nghiệm đến fixture và kiểm tra trong JVM riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-005
+    title: Xác minh hostname, địa chỉ kết nối và nội dung HTTP theo từng bước để định vị lỗi liên thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-006
+    title: Tạo cặp fixture named module để so sánh quyền reflection và privateLookupIn()
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-007
+    title: Đối chiếu một thao tác qua lời gọi trực tiếp, Method.invoke() và MethodHandle bằng cùng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-008
+    title: Chạy ma trận kiểm chứng trên các JDK hiện đại đã chọn và ghi rõ hành vi phụ thuộc phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-009
+    title: Chuẩn hóa báo cáo gồm môi trường, cấu hình, đầu vào, kỳ vọng, kết quả và bằng chứng byte hoặc ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-010
+    title: Hoàn thiện ví dụ ứng dụng với cleanup xác định, tài liệu được kiểm thử và tiêu chí nghiệm thu có thể tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

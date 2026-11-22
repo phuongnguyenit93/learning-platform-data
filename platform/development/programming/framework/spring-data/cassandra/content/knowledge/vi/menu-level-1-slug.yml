@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc Cassandra
+  slug: cassandra-architecture
+  index: 1
+- title: Thiết kế theo truy vấn
+  slug: query-driven-design
+  index: 2
+- title: Khóa và phân vùng
+  slug: partition-keys
+  index: 3
+- title: Môi trường
+  slug: environment
+  index: 4
+- title: Cấu hình kết nối
+  slug: connection-configuration
+  index: 5
+- title: Quản lý lược đồ
+  slug: schema-management
+  index: 6
+- title: Ánh xạ entity
+  slug: entity-mapping
+  index: 7
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 8
+- title: Chuyển đổi kiểu
+  slug: type-conversion
+  index: 9
+- title: Repository
+  slug: repository
+  index: 10
+- title: CassandraTemplate
+  slug: cassandra-template
+  index: 11
+- title: CQL và CqlTemplate
+  slug: cql-template
+  index: 12
+- title: Prepared statement
+  slug: prepared-statements
+  index: 13
+- title: Truy vấn dẫn xuất
+  slug: derived-queries
+  index: 14
+- title: Truy vấn @Query
+  slug: annotation-queries
+  index: 15
+- title: Chiếu và phân trang
+  slug: projections-pagination
+  index: 16
+- title: Chỉ mục và mở rộng
+  slug: indexes-extensions
+  index: 17
+- title: Tính nhất quán
+  slug: consistency
+  index: 18
+- title: Timestamp và xung đột
+  slug: timestamps-conflicts
+  index: 19
+- title: TTL và tombstone
+  slug: ttl-tombstones
+  index: 20
+- title: LWT và khóa lạc quan
+  slug: lwt-optimistic-locking
+  index: 21
+- title: Batch
+  slug: batch
+  index: 22
+- title: Bộ đếm
+  slug: counters
+  index: 23
+- title: Truy cập bất đồng bộ
+  slug: asynchronous-access
+  index: 24
+- title: Truy cập phản ứng
+  slug: reactive-access
+  index: 25
+- title: Dữ liệu thời gian
+  slug: time-series-data
+  index: 26
+- title: Vòng đời và auditing
+  slug: entity-lifecycle-auditing
+  index: 27
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 28
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 29
+- title: Kiểm thử
+  slug: testing
+  index: 30
+- title: Hiệu năng
+  slug: performance
+  index: 31
+- title: Quan sát và vận hành
+  slug: observability-operations
+  index: 32
+- title: Bảo mật
+  slug: security
+  index: 33
+- title: Tiến hóa và di trú
+  slug: evolution-migration
+  index: 34
+- title: Bài thực hành
+  slug: practice
+  index: 35

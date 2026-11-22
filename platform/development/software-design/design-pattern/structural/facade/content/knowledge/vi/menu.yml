@@ -1,0 +1,277 @@
+menu:
+- level1: Tổng quan Facade
+  level2:
+  - Mẫu mặt tiền (Facade) là gì và mục đích đơn giản hóa việc dùng phân hệ
+  - Vị trí của Facade trong nhóm mẫu thiết kế cấu trúc (Structural Patterns)
+  - Phân hệ (subsystem) là gì và vì sao có thể khó sử dụng trực tiếp
+  - Phân biệt giao diện sử dụng đơn giản với chức năng bên trong bị cắt giảm
+  - Mối liên hệ giữa Facade, bên sử dụng và các thành phần phân hệ
+  - Những tình huống phù hợp để cân nhắc Facade
+  - Những tình huống chưa cần thêm Facade
+  - Lợi ích kỳ vọng và giới hạn của một lớp truy cập đơn giản
+  - Bản đồ thuật ngữ và lộ trình học từ cấu trúc đến kiểm chứng
+- level1: Vấn đề cần giải quyết
+  level2:
+  - Nhận diện bên sử dụng phải hiểu quá nhiều lớp và thao tác cấp thấp
+  - Phân tích trình tự khởi tạo và gọi nhiều thành phần phân hệ
+  - Nhận diện mã điều phối bị sao chép ở nhiều bên sử dụng
+  - Đánh giá ảnh hưởng khi chi tiết phân hệ thay đổi
+  - Phân biệt độ phức tạp của chức năng với độ khó của giao diện sử dụng
+  - Xác định trường hợp sử dụng phổ biến cần một điểm truy cập rõ ràng
+  - So sánh gọi trực tiếp phân hệ với gọi qua một thao tác cấp cao
+  - Đặt mục tiêu đơn giản hóa theo nhu cầu thực tế thay vì thêm tầng cho đủ mẫu
+- level1: Vai trò và cấu trúc
+  level2:
+  - Vai trò của bên sử dụng (Client) trong mẫu Facade
+  - Trách nhiệm của lớp Facade đối với giao diện cấp cao
+  - Trách nhiệm của các lớp phân hệ trong thực hiện chức năng
+  - Quan hệ tham chiếu và ủy quyền giữa Facade với phân hệ
+  - Vì sao phân hệ không cần phụ thuộc ngược vào Facade để hoạt động
+  - Phân biệt lớp Facade cụ thể với giao diện trừu tượng tùy chọn
+  - Đọc sơ đồ lớp và hướng phụ thuộc của một thiết kế Facade
+  - Phân biệt cấu trúc mẫu với quy tắc đặt tên lớp
+  - Nhận diện một thiết kế có ý định Facade dù tên lớp không chứa Facade
+- level1: Luồng tương tác
+  level2:
+  - Theo dõi một yêu cầu từ Client qua Facade tới các thành phần phân hệ
+  - Thiết lập thứ tự gọi dựa trên yêu cầu của thao tác cấp cao
+  - Truyền dữ liệu và ghép kết quả giữa các bước xử lý
+  - Xác định nơi kiểm tra điều kiện đầu vào của hợp đồng Facade
+  - Phân biệt xử lý thành công, dừng giữa chừng và hoàn tất một phần
+  - Theo dõi đường trả kết quả hoặc báo lỗi tới bên sử dụng
+  - Đọc sơ đồ trình tự để kiểm tra trách nhiệm của từng đối tượng
+  - So sánh mức hiểu biết mà Client cần có trước và sau khi thêm Facade
+- level1: Ví dụ triển khai
+  level2:
+  - Xây dựng ví dụ chuyển đổi tài liệu với các thành phần đọc, chuyển đổi và lưu
+  - Quan sát mã bên sử dụng khi phải gọi trực tiếp từng thành phần
+  - Xác định thao tác cấp cao theo nhu cầu chuyển đổi tài liệu
+  - Thiết kế lớp Facade và hợp đồng đầu vào, đầu ra ban đầu
+  - Kết nối các thành phần phân hệ bằng kết hợp đối tượng
+  - Triển khai điều phối mà vẫn giữ xử lý chuyên môn trong phân hệ
+  - Chuyển bên sử dụng sang gọi qua Facade
+  - Bổ sung nhánh lỗi và thu hồi tài nguyên của ví dụ
+  - Kiểm thử kết quả và đối chiếu hành vi trước, sau thay đổi
+  - Đánh giá ví dụ có thực sự giảm kiến thức cấp thấp mà Client phải biết
+- level1: Ranh giới phân hệ
+  level2:
+  - Xác định phạm vi phân hệ mà Facade đại diện
+  - Chọn mức trừu tượng phù hợp giữa thao tác cấp cao và chi tiết kỹ thuật
+  - Phân biệt ranh giới phân hệ với một lớp, một thư viện hoặc một tầng
+  - Quyết định phần nào cần được che khỏi giao diện sử dụng thông thường
+  - Giữ khả năng truy cập chức năng nâng cao khi có nhu cầu chính đáng
+  - Phân biệt đơn giản hóa truy cập với cấm mọi truy cập trực tiếp vào phân hệ
+  - Sử dụng phạm vi truy cập và ranh giới mô-đun khi cần bảo vệ chi tiết
+  - Nhận diện ranh giới quá rộng gom nhiều phân hệ không liên quan
+  - Kiểm chứng ranh giới bằng các trường hợp sử dụng cụ thể
+- level1: Thiết kế giao diện
+  level2:
+  - Đặt tên thao tác theo ý định của bên sử dụng
+  - Chọn tập thao tác đủ cho các nhu cầu phổ biến
+  - Phân biệt một điểm truy cập thống nhất với bắt buộc chỉ có một phương thức
+  - Thiết kế tham số phù hợp mức trừu tượng của Facade
+  - Sử dụng đối tượng yêu cầu khi giúp diễn đạt hợp đồng rõ ràng
+  - Chọn giá trị mặc định mà không che giấu quyết định quan trọng
+  - Phân biệt thao tác tiện lợi với khả năng cấu hình chuyên sâu
+  - Giữ giao diện gắn kết thay vì sao chép toàn bộ API cấp thấp
+  - Đánh giá khả năng khám phá và sử dụng sai của hợp đồng
+  - Kiểm chứng giao diện từ mã của một bên sử dụng thực tế
+- level1: Trách nhiệm và điều phối
+  level2:
+  - Giữ Facade tập trung vào cung cấp cách dùng phân hệ đơn giản hơn
+  - Phân biệt điều phối thao tác với cài đặt thuật toán của phân hệ
+  - Xác định nơi đặt quy tắc nghiệp vụ và bất biến dữ liệu
+  - Tránh sao chép logic đã thuộc trách nhiệm của thành phần bên dưới
+  - Đánh giá kiểm tra đầu vào nào thuộc hợp đồng cấp cao
+  - Phân biệt Facade với lớp xử lý mọi yêu cầu của hệ thống
+  - Nhận diện thao tác phối hợp quá nhiều trách nhiệm không liên quan
+  - Tách phần điều phối phức tạp khi đã có trách nhiệm độc lập rõ ràng
+  - Giữ một luồng nhiều bước dễ hiểu mà không chia nhỏ cơ học
+- level1: Dữ liệu và hợp đồng
+  level2:
+  - Xác định dữ liệu tối thiểu mà bên sử dụng cần cung cấp
+  - Chọn kiểu kết quả có ý nghĩa với thao tác cấp cao
+  - Phân biệt trả đối tượng phân hệ với trả mô hình dữ liệu riêng
+  - Nhận diện việc làm lộ kiểu nội bộ gây phụ thuộc ngoài ý muốn
+  - Ánh xạ dữ liệu tại ranh giới mà không thêm chuyển đổi dư thừa
+  - Ghi rõ điều kiện đầu vào, đầu ra và tác dụng phụ
+  - Biểu diễn kết quả vắng mặt, hoàn tất một phần và trạng thái không hợp lệ
+  - Giữ ngữ nghĩa nhất quán khi nhiều thành phần dùng khái niệm khác nhau
+  - Đánh giá chi phí sao chép và quyền sở hữu dữ liệu trả về
+- level1: Khởi tạo và vòng đời
+  level2:
+  - Phân biệt Facade tự tạo phân hệ với nhận đối tượng từ bên ngoài
+  - Sử dụng truyền phụ thuộc để làm rõ cộng tác viên của Facade
+  - Xác định nơi kết nối và cấu hình các thành phần
+  - Phân biệt vòng đời của Facade với vòng đời của tài nguyên phân hệ
+  - Lựa chọn chia sẻ hay tạo mới đối tượng theo nhu cầu sử dụng
+  - Giữ quyền sở hữu rõ ràng đối với thành phần do Facade tạo
+  - Kiểm chứng thứ tự khởi tạo và điều kiện sẵn sàng
+  - Tránh biến Facade thành nơi tra cứu phụ thuộc toàn cục
+  - Vì sao Facade không bắt buộc phải triển khai dưới dạng Singleton
+- level1: Lỗi và kết quả
+  level2:
+  - Xác định các lỗi mà một thao tác cấp cao có thể gặp
+  - Phân biệt chuyển tiếp lỗi gốc với chuyển sang lỗi theo hợp đồng Facade
+  - Giữ nguyên nhân và ngữ cảnh cần thiết khi ánh xạ ngoại lệ
+  - Tránh nuốt lỗi hoặc trả thành công khi một bước bắt buộc thất bại
+  - Biểu diễn kết quả hoàn tất một phần theo yêu cầu sử dụng
+  - Thiết kế đường dọn dẹp khi lỗi xuất hiện giữa các bước
+  - Đánh giá khả năng thử lại dựa trên tác dụng phụ của thao tác
+  - Giữ thông báo lỗi hữu ích mà không lộ dữ liệu nhạy cảm
+  - Kiểm chứng các đường lỗi có thể xảy ra từ từng thành phần phân hệ
+  - Giữ hợp đồng báo lỗi ổn định khi thay thế thành phần bên trong
+- level1: Tài nguyên và giao dịch
+  level2:
+  - Xác định nơi mở, sử dụng và đóng tài nguyên của một thao tác
+  - Thu hồi tài nguyên khi thành công, thất bại hoặc bị hủy
+  - Phân biệt tập hợp nhiều lời gọi với một giao dịch có tính nguyên tử
+  - Chọn ranh giới giao dịch theo yêu cầu nhất quán và cơ chế thực tế
+  - Đánh giá dữ liệu đã thay đổi khi một bước sau đó thất bại
+  - Thiết kế thao tác bù đắp khi hệ thống cần và có khả năng hỗ trợ
+  - Tránh giả định Facade tự bảo đảm quay lui cho mọi thành phần
+  - Kiểm chứng quyền sở hữu tài nguyên khi Client vẫn dùng trực tiếp phân hệ
+  - Đánh giá chi phí giữ tài nguyên trong một thao tác điều phối dài
+- level1: Trạng thái và đồng thời
+  level2:
+  - Phân biệt Facade không giữ trạng thái với Facade theo phiên hoặc quy trình
+  - Xác định trạng thái thuộc một lần gọi và trạng thái được chia sẻ
+  - Tránh giữ dữ liệu tạm của yêu cầu trong đối tượng dùng chung
+  - Đánh giá tính an toàn luồng của các thành phần phân hệ
+  - Phân biệt Facade không có trạng thái với toàn bộ luồng thực thi an toàn đồng thời
+  - Quản lý thứ tự thao tác khi phân hệ có vòng đời hoặc trạng thái riêng
+  - Đánh giá khả năng gọi lại và xử lý lặp của thao tác cấp cao
+  - Kiểm chứng nhiều bên sử dụng cùng một Facade hoặc phân hệ
+  - Giữ cơ chế đồng bộ đúng nơi thay vì khóa mọi thao tác theo thói quen
+- level1: Nhiều Facade và phân tầng
+  level2:
+  - Cung cấp các Facade khác nhau cho những nhóm nhu cầu riêng
+  - Phân biệt nhiều giao diện gắn kết với một Facade chứa mọi thao tác
+  - Tổ chức Facade theo chức năng hoặc phạm vi phân hệ
+  - Sử dụng Facade ở ranh giới tầng khi giúp giảm kiến thức cần biết
+  - Đánh giá Facade gọi Facade trong một kiến trúc nhiều tầng
+  - Kiểm soát phụ thuộc vòng và chuỗi chuyển tiếp khó theo dõi
+  - Giữ trách nhiệm của mỗi lớp truy cập cấp cao có ý nghĩa độc lập
+  - Nhận diện lúc cần gộp hoặc loại bỏ một tầng Facade
+  - Kiểm chứng quyền truy cập nâng cao mà không phá mục đích đơn giản hóa
+- level1: Liên hệ nguyên tắc
+  level2:
+  - Giảm mức phụ thuộc của Client vào chi tiết phân hệ
+  - Duy trì tính gắn kết của giao diện cấp cao
+  - Liên hệ nguyên tắc một trách nhiệm với phạm vi Facade
+  - Áp dụng phân tách giao diện theo nhu cầu của các bên sử dụng
+  - Đảo chiều phụ thuộc khi cần thay thế phân hệ hoặc hỗ trợ kiểm thử
+  - Liên hệ che giấu thông tin với việc ổn định điểm truy cập
+  - Ưu tiên kết hợp đối tượng khi Facade ủy quyền cho các thành phần
+  - Liên hệ nguyên tắc biết ít về cộng tác viên với cách Client sử dụng Facade
+  - Đánh giá sự đánh đổi thay vì coi Facade là cách tự động đạt mọi nguyên tắc
+- level1: Phân biệt mẫu liên quan
+  level2:
+  - Phân biệt Facade và Adapter theo mục đích đơn giản hóa hoặc chuyển đổi giao diện
+  - Phân biệt Facade và Proxy theo vai trò truy cập và đại diện đối tượng
+  - Phân biệt Facade và Decorator theo cách thêm hành vi
+  - Phân biệt Facade và Mediator theo quan hệ cộng tác giữa các thành phần
+  - Phân biệt Facade và Abstract Factory theo sử dụng hoặc tạo đối tượng
+  - Phân biệt Facade với một lớp dịch vụ ứng dụng theo trách nhiệm thực tế
+  - Phân biệt Facade với Front Controller trong tiếp nhận và phân phối yêu cầu
+  - Phân biệt Facade với API Gateway ở ranh giới hệ thống
+  - Nhận diện một thành phần có thể đồng thời đảm nhiệm nhiều vai trò
+  - Kết hợp Facade với Adapter khi tích hợp một phân hệ có giao diện khác
+  - Tránh nhận diện mẫu chỉ dựa vào sơ đồ lớp hoặc tên gọi
+- level1: Tích hợp hệ thống cũ
+  level2:
+  - Đặt điểm truy cập ổn định trước phân hệ có giao diện khó dùng
+  - Gom các chuỗi gọi lặp lại từ bên sử dụng hiện có
+  - Che chi tiết thư viện bên ngoài bằng hợp đồng phù hợp nhu cầu
+  - Đánh giá mức cần thiết của chuyển đổi mô hình và thuật ngữ
+  - Phân biệt dùng Facade với trách nhiệm của lớp chống lan truyền mô hình bên ngoài
+  - Chuyển từng nhóm bên sử dụng mà không yêu cầu thay thế toàn hệ thống
+  - Giữ chức năng nâng cao chưa được bao phủ qua đường truy cập rõ ràng
+  - Thay thế dần thành phần bên dưới và kiểm chứng tính tương thích
+  - Quản lý phạm vi bảo trì khi Facade phải hỗ trợ nhiều phiên bản phân hệ
+- level1: Ranh giới từ xa
+  level2:
+  - Phân biệt Facade trong tiến trình với điểm truy cập qua mạng
+  - Đánh giá chi phí độ trễ khi một thao tác cấp cao gọi nhiều dịch vụ
+  - Giảm trao đổi quá chi tiết mà vẫn giữ hợp đồng có ý nghĩa
+  - Xử lý thời gian chờ (timeout), hủy yêu cầu và giới hạn thời gian toàn thao tác
+  - Đánh giá việc thử lại theo khả năng xử lý lặp và tác dụng phụ thực tế
+  - Phân biệt giao dịch cục bộ với phối hợp thay đổi trên nhiều hệ thống
+  - Theo dõi yêu cầu xuyên các bước bằng ngữ cảnh tương quan
+  - Giữ bảo mật và phân quyền theo ranh giới tin cậy thực tế
+  - Tránh biến bài toán Facade đơn giản thành yêu cầu phân tán không cần thiết
+- level1: Kiểm thử Facade
+  level2:
+  - Xác định hợp đồng cấp cao và hành vi quan sát được cần kiểm chứng
+  - Kiểm thử đơn vị cho phần điều phối có ý nghĩa
+  - Kiểm tra tham số và quan hệ thứ tự khi chúng thuộc yêu cầu
+  - Tránh khóa kiểm thử vào mọi lời gọi nội bộ không thuộc hợp đồng
+  - Sử dụng đối tượng thay thế cho phụ thuộc khó kiểm soát
+  - Kiểm thử tích hợp với các thành phần phân hệ thực
+  - Kiểm chứng kết quả tương đương trước và sau khi thêm Facade
+  - Bao phủ lỗi từng bước, hoàn tất một phần và dọn dẹp tài nguyên
+  - Kiểm thử trạng thái và truy cập đồng thời khi thiết kế có yêu cầu
+  - Kiểm chứng hợp đồng khi thay một phiên bản phân hệ
+  - Đánh giá việc dùng Facade có giúp mã bên sử dụng dễ hiểu và dễ kiểm thử hơn
+- level1: Lợi ích và chi phí
+  level2:
+  - Đánh giá mức giảm kiến thức mà bên sử dụng cần biết
+  - Xác định phần phụ thuộc được chuyển từ Client vào Facade
+  - Phân biệt giảm ảnh hưởng thay đổi với xóa bỏ mọi phụ thuộc
+  - Đánh giá độ ổn định của giao diện trước thay đổi phân hệ
+  - Cân nhắc chi phí duy trì thêm lớp và ánh xạ dữ liệu
+  - Phân tích nguy cơ hạn chế tính linh hoạt của chức năng nâng cao
+  - Đánh giá chi phí hiệu năng theo đường chạy và cơ chế gọi thực tế
+  - Nhận diện điểm truy cập tập trung đang trở thành điểm nghẽn thiết kế
+  - Quyết định giữ, tách hoặc bỏ Facade theo giá trị sử dụng
+- level1: Sai lầm thường gặp
+  level2:
+  - Biến Facade thành lớp trung tâm chứa toàn bộ logic hệ thống
+  - Sao chép nguyên API cấp thấp mà không đơn giản hóa cách sử dụng
+  - Thêm lớp chỉ chuyển tiếp một lời gọi mà chưa tạo giá trị rõ ràng
+  - Đưa thuật toán chuyên môn của phân hệ vào lớp điều phối
+  - Để lộ kiểu nội bộ làm bên sử dụng vẫn phụ thuộc sâu vào phân hệ
+  - Dùng Singleton hoặc trạng thái toàn cục như yêu cầu mặc định của mẫu
+  - Tạo nhiều tầng Facade chuyển tiếp nhưng không có trách nhiệm riêng
+  - Nuốt lỗi để giao diện trông đơn giản hơn
+  - Giả định một thao tác cấp cao luôn nguyên tử hoặc tự có cơ chế quay lui
+  - Xem Facade như ranh giới bảo mật mà không có kiểm soát tương ứng
+  - Cấm mọi truy cập nâng cao dù hợp đồng cấp cao chưa đáp ứng nhu cầu
+  - Áp dụng Facade cho phân hệ đã dễ dùng mà không có vấn đề cần giải quyết
+- level1: Quy trình tái cấu trúc
+  level2:
+  - Khảo sát mã Client và các chuỗi gọi phân hệ đang lặp lại
+  - Chọn một trường hợp sử dụng có phạm vi và lợi ích rõ ràng
+  - Ghi nhận hành vi, tác dụng phụ và ngoại lệ hiện tại
+  - Thiết lập kiểm thử bảo vệ trước khi di chuyển điều phối
+  - Tạo giao diện cấp cao và kết nối các phụ thuộc cần thiết
+  - Di chuyển từng luồng sử dụng sang Facade theo bước nhỏ
+  - Giữ đường tương thích trong giai đoạn các bên sử dụng chưa chuyển hết
+  - Kiểm chứng các đường thành công, lỗi và thu hồi tài nguyên
+  - Rà soát phụ thuộc còn bị làm lộ qua dữ liệu hoặc kiểu trả về
+  - Đánh giá lợi ích thực tế và dừng khi mục tiêu đơn giản hóa đã đạt
+- level1: Tiến hóa và tương thích
+  level2:
+  - Thay đổi cài đặt phân hệ trong khi giữ hợp đồng Facade ổn định
+  - Phân biệt thay đổi nội bộ với thay đổi hành vi mà bên sử dụng quan sát được
+  - Bổ sung thao tác mới theo nhu cầu mà không mở rộng trách nhiệm tùy tiện
+  - Quản lý cấu hình và giá trị mặc định khi phân hệ phát triển
+  - Duy trì ngữ nghĩa lỗi, kết quả và tác dụng phụ qua các phiên bản
+  - Loại bỏ thao tác cũ bằng lộ trình chuyển đổi rõ ràng
+  - Tách Facade khi các nhóm nhu cầu phát triển theo hướng độc lập
+  - Cập nhật tài liệu và kiểm thử hợp đồng theo trách nhiệm hiện tại
+  - Nhận diện lúc phân hệ đã đơn giản hơn và không còn cần tầng truy cập cũ
+- level1: Tình huống và thực hành
+  level2:
+  - Thiết kế Facade khởi động và dừng một hệ thống nhiều thiết bị
+  - Thiết kế Facade chuyển đổi tài liệu qua nhiều thành phần kỹ thuật
+  - Đơn giản hóa việc sử dụng thư viện có nhiều bước cấu hình
+  - Tạo giao diện truy xuất và tổng hợp dữ liệu cho một nhu cầu cụ thể
+  - Đánh giá một luồng đặt hàng để phân biệt Facade với điều phối nghiệp vụ
+  - So sánh phương án dùng Adapter và Facade cho cùng một thư viện bên ngoài
+  - Xử lý lỗi giữa chừng và xác minh tài nguyên được thu hồi
+  - Thay một thành phần phân hệ mà không đổi mã Client
+  - Tách một Facade quá rộng thành các giao diện có mục đích rõ
+  - Rà soát ví dụ có tên Facade nhưng chỉ là lớp chuyển tiếp dư thừa
+  - Lập sơ đồ lớp, sơ đồ trình tự và hợp đồng cho một thiết kế
+  - Giải thích quyết định có hoặc không dùng Facade bằng vấn đề, lợi ích và đánh đổi

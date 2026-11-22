@@ -1,0 +1,64 @@
+menu:
+- title: Thinking in OOP
+  slug: oop-basic
+  index: 0
+- title: Classes
+  slug: class
+  index: 1
+- title: Objects
+  slug: object
+  index: 2
+- title: Object Lifecycle
+  slug: lifecycle
+  index: 3
+- title: Encapsulation
+  slug: encapsulation
+  index: 4
+- title: Abstraction
+  slug: abstraction
+  index: 5
+- title: Interfaces
+  slug: interface
+  index: 6
+- title: Inheritance
+  slug: inheritance
+  index: 7
+- title: Subtyping
+  slug: subtyping
+  index: 8
+- title: Polymorphism
+  slug: polymorphism
+  index: 9
+- title: Composition
+  slug: composition
+  index: 10
+- title: Relationships
+  slug: relationships
+  index: 11
+- title: Class Design
+  slug: class-design
+  index: 12
+- title: Modeling
+  slug: modeling
+  index: 13
+- title: SOLID
+  slug: solid
+  index: 14
+- title: Design Patterns
+  slug: design-patterns
+  index: 15
+- title: Language Mechanics
+  slug: language-mechanics
+  index: 16
+- title: Design Pitfalls
+  slug: design-pitfalls
+  index: 17
+- title: Testing
+  slug: testing
+  index: 18
+- title: Refactoring
+  slug: refactoring
+  index: 19
+- title: Practice
+  slug: practice
+  index: 20

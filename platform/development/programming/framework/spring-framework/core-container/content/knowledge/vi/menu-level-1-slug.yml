@@ -1,0 +1,58 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Ứng dụng đầu tiên
+  slug: first-application
+  index: 1
+- title: Định nghĩa bean
+  slug: bean-definition
+  index: 2
+- title: Tiêm phụ thuộc
+  slug: dependency-injection
+  index: 3
+- title: '@Autowired'
+  slug: autowired
+  index: 4
+- title: Chọn ứng viên
+  slug: candidate-selection
+  index: 5
+- title: Phụ thuộc linh hoạt
+  slug: flexible-dependencies
+  index: 6
+- title: Quét thành phần
+  slug: component-scanning
+  index: 7
+- title: Cấu hình Java
+  slug: java-configuration
+  index: 8
+- title: Ghép cấu hình
+  slug: configuration-composition
+  index: 9
+- title: Cấu hình XML
+  slug: xml-configuration
+  index: 10
+- title: Thời điểm tạo bean
+  slug: bean-creation-timing
+  index: 11
+- title: Phạm vi bean
+  slug: bean-scopes
+  index: 12
+- title: Phụ thuộc khác phạm vi
+  slug: cross-scope-dependencies
+  index: 13
+- title: Vòng đời bean
+  slug: bean-lifecycle
+  index: 14
+- title: Vòng đời context
+  slug: context-lifecycle
+  index: 15
+- title: Callback Aware
+  slug: aware-callbacks
+  index: 16
+- title: FactoryBean
+  slug: factory-bean
+  index: 17
+- title: Mở rộng định nghĩa
+  slug: definition-extension
+  index: 18

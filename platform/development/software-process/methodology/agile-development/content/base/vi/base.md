@@ -1,0 +1,7 @@
+# Software Process Methodology Agile Development
+
+**Agile Development** là cách phát triển phần mềm dựa trên cộng tác, phản hồi sớm, giao giá trị theo từng phần và thích nghi khi hiểu biết hoặc nhu cầu thay đổi. Agile bắt nguồn từ bốn giá trị và mười hai nguyên tắc trong Agile Manifesto; đây không phải tên một quy trình cố định hay đồng nghĩa với việc chỉ tổ chức các buổi họp Scrum. Các nhóm có thể dùng Scrum, Kanban và những thực hành kỹ thuật khác để hiện thực hóa tư duy Agile tùy bối cảnh, đồng thời vẫn duy trì chất lượng và nhịp làm việc bền vững.
+
+Lộ trình gồm **8 mốc**: nền tảng tư duy Agile; quản lý giá trị và product backlog; phát triển lặp và tăng trưởng theo increment; Scrum; Kanban và quản lý flow; các thực hành kỹ thuật như TDD, CI và refactoring; cộng tác với stakeholder; cuối cùng là đo lường và cải tiến. Người học thực hành chia một yêu cầu thành các user story có tiêu chí chấp nhận, mô phỏng một chu kỳ giao sản phẩm, trực quan hóa công việc và tổ chức buổi phản hồi để điều chỉnh kế hoạch.
+
+Học phần phù hợp với developer, QA, business analyst, product owner và thành viên nhóm phần mềm đã biết các bước phát triển và kiểm thử cơ bản. Sau khi hoàn thành, bạn có thể giải thích các nguyên tắc Agile, lựa chọn cách tổ chức công việc phù hợp, giao increment có thể kiểm chứng, kết hợp phản hồi cùng thực hành kỹ thuật và đề xuất cải tiến dựa trên kết quả thực tế thay vì hình thức quy trình.

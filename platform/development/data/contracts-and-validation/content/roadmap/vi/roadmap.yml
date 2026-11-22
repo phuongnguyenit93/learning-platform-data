@@ -1,0 +1,57 @@
+roadmap:
+- id: pham-vi-trach-nhiem
+  title: Phạm vi & trách nhiệm
+  purpose: Làm rõ giao ước dữ liệu giữa bên cung cấp và bên sử dụng.
+  objectives:
+  - Xác định producer/consumer và phạm vi dữ liệu.
+  - Thống nhất owner, mục đích và SLA cơ bản.
+  - Ghi tiêu chí chấp nhận dữ liệu.
+- id: cau-truc-hop-dong
+  title: Cấu trúc hợp đồng
+  purpose: Mô tả schema và ngữ nghĩa bằng đặc tả có thể đọc bằng máy.
+  objectives:
+  - Khai báo tên trường, kiểu dữ liệu, required.
+  - Ghi định nghĩa, khóa và ví dụ hợp lệ.
+  - Phác thảo hợp đồng YAML/JSON.
+- id: quy-tac-validation
+  title: Quy tắc validation
+  purpose: Diễn đạt điều kiện để nhận biết dữ liệu hợp lệ.
+  objectives:
+  - Xây quy tắc type, format và phạm vi giá trị.
+  - Kiểm tra null, unique và quan hệ logic.
+  - Phân biệt lỗi schema và lỗi nghiệp vụ.
+- id: thuc-thi-validation
+  title: Thực thi validation
+  purpose: Kiểm tra dữ liệu ở điểm tiếp nhận và các bước xử lý.
+  objectives:
+  - Validate dữ liệu đầu vào và đầu ra.
+  - Phân loại lỗi; từ chối hoặc cách ly bản ghi.
+  - Trả thông báo lỗi rõ trường và nguyên nhân.
+- id: version-tuong-thich
+  title: Version & tương thích
+  purpose: Đổi schema có kiểm soát để các consumer tiếp tục hoạt động.
+  objectives:
+  - Phân biệt backward, forward và full.
+  - Kiểm tra thay đổi thêm, sửa, xóa trường.
+  - Quy định version và kế hoạch migration.
+- id: kiem-thu-hop-dong
+  title: Kiểm thử hợp đồng
+  purpose: Phát hiện vi phạm trước khi tích hợp và phát hành.
+  objectives:
+  - Viết ca kiểm thử dữ liệu hợp lệ và sai.
+  - Kiểm tra producer đáp ứng contract.
+  - Mô phỏng thay đổi làm hỏng consumer.
+- id: tu-dong-hoa-ci-cd
+  title: Tự động hóa CI/CD
+  purpose: Đặt kiểm tra hợp đồng làm cổng chất lượng trong quy trình giao hàng.
+  objectives:
+  - Tự động lint schema và chạy contract test.
+  - Chặn release nếu có breaking change.
+  - Lưu và kiểm soát phiên bản hợp đồng.
+- id: giam-sat-xu-ly
+  title: Giám sát & xử lý
+  purpose: Phát hiện lỗi và theo dõi chất lượng hợp đồng khi vận hành.
+  objectives:
+  - Theo dõi lỗi validation và schema drift.
+  - Đánh giá SLA, độ đầy đủ, độ mới.
+  - Thiết lập cảnh báo và quy trình phản hồi.

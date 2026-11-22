@@ -1,0 +1,51 @@
+roadmap:
+- id: stream-gatherers
+  title: Stream Gatherers
+  purpose: Mở rộng pipeline bằng thao tác trung gian theo nhu cầu.
+  objectives:
+  - Dùng windowFixed, windowSliding, scan, fold và mapConcurrent
+  - Kết hợp gatherer bằng andThen
+  - Viết gatherer với trạng thái và điều kiện dừng rõ ràng
+- id: class-file-api
+  title: Class-File API
+  purpose: Phân tích và biến đổi bytecode bằng API chuẩn.
+  objectives:
+  - Đọc class file qua ClassFile và ClassModel
+  - Tạo hoặc biến đổi class file rồi kiểm tra tính hợp lệ
+- id: luong-ao-va-khoa
+  title: Luồng ảo và khóa
+  purpose: Dùng synchronized với khả năng mở rộng tốt hơn.
+  objectives:
+  - Giải thích cơ chế nhả carrier khi luồng ảo chờ trong synchronized
+  - Đo tác vụ I/O và phân biệt pinning với tranh chấp khóa
+- id: aot-cache
+  title: AOT cache
+  purpose: Giảm công việc nạp và liên kết lớp khi khởi động.
+  objectives:
+  - Thực hiện chạy huấn luyện và tạo cache phù hợp
+  - So sánh thời gian khởi động khi có và không có cache
+- id: bo-nho-va-gc
+  title: Bộ nhớ và GC
+  purpose: Đánh giá cải tiến runtime bằng số liệu thực tế.
+  objectives:
+  - Nhận biết ZGC chỉ còn chế độ phân thế hệ
+  - Đo CPU, độ trễ và throughput khi dùng G1 hoặc ZGC
+- id: mat-ma-hau-luong-tu
+  title: Mật mã hậu lượng tử
+  purpose: Sử dụng thuật toán chuẩn cho đóng gói khóa và chữ ký.
+  objectives:
+  - Phân biệt nhiệm vụ của ML-KEM và ML-DSA
+  - Thử đóng gói khóa bằng KEM với ML-KEM
+  - Tạo và kiểm tra chữ ký bằng Signature với ML-DSA
+- id: truy-cap-native
+  title: Truy cập native
+  purpose: Quản lý tương tác với mã và bộ nhớ ngoài JVM rõ ràng.
+  objectives:
+  - Phân tích cảnh báo JNI/FFM và cấp quyền theo mô-đun
+  - Dùng VarHandle hoặc FFM thay truy cập bộ nhớ qua API nội bộ
+- id: lien-ket-runtime
+  title: Liên kết runtime
+  purpose: Tạo môi trường chạy gọn theo các mô-đun cần dùng.
+  objectives:
+  - Tạo runtime image bằng jlink và kiểm tra mô-đun phụ thuộc
+  - Kiểm tra khả năng liên kết không cần JMOD của bản JDK đang dùng

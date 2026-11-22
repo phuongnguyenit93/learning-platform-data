@@ -1,0 +1,3 @@
+menuLevel1: Double-checked locking
+menuLevel2: Dùng biến cục bộ để giảm số lần đọc volatile và giữ mã dễ kiểm tra
+status: ""

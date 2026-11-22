@@ -1,0 +1,139 @@
+menu:
+- title: Tổng quan scaling
+  slug: scaling-overview
+  index: 0
+- title: Phân tích nhu cầu
+  slug: demand-analysis
+  index: 1
+- title: Mô hình đồng thời
+  slug: concurrency-models
+  index: 2
+- title: Step nhiều luồng
+  slug: multi-threaded-step
+  index: 3
+- title: An toàn luồng
+  slug: thread-safety
+  index: 4
+- title: Parallel Steps
+  slug: parallel-steps
+  index: 5
+- title: Local Chunking
+  slug: local-chunking
+  index: 6
+- title: Partitioning
+  slug: partitioning
+  index: 7
+- title: Partitioner
+  slug: partitioner
+  index: 8
+- title: PartitionStep
+  slug: partition-step
+  index: 9
+- title: TaskExecutorPartitionHandler
+  slug: task-executor-partition-handler
+  index: 10
+- title: Step scope
+  slug: step-scope
+  index: 11
+- title: Remote Chunking
+  slug: remote-chunking
+  index: 12
+- title: Middleware remote chunking
+  slug: remote-chunking-middleware
+  index: 13
+- title: Remote Step
+  slug: remote-step
+  index: 14
+- title: Spring Batch Integration
+  slug: batch-integration
+  index: 15
+- title: Thông điệp phân tán
+  slug: distributed-messaging
+  index: 16
+- title: Thiết kế worker
+  slug: worker-design
+  index: 17
+- title: Chia dữ liệu
+  slug: data-partitioning
+  index: 18
+- title: Transaction boundary
+  slug: transaction-boundaries
+  index: 19
+- title: Restartability
+  slug: restartability
+  index: 20
+- title: JobRepository
+  slug: job-repository
+  index: 21
+- title: ExecutionContext
+  slug: execution-context
+  index: 22
+- title: Idempotency
+  slug: idempotency
+  index: 23
+- title: Retry
+  slug: retry
+  index: 24
+- title: Skip và recovery
+  slug: skip-and-recovery
+  index: 25
+- title: Failover
+  slug: failover
+  index: 26
+- title: Resource pool
+  slug: resource-pools
+  index: 27
+- title: Database scaling
+  slug: database-scaling
+  index: 28
+- title: File scaling
+  slug: file-scaling
+  index: 29
+- title: Thông lượng
+  slug: throughput
+  index: 30
+- title: Backpressure
+  slug: backpressure
+  index: 31
+- title: Ordering
+  slug: ordering
+  index: 32
+- title: Scheduling
+  slug: scheduling
+  index: 33
+- title: Metrics
+  slug: metrics
+  index: 34
+- title: Observability
+  slug: observability
+  index: 35
+- title: Testing concurrency
+  slug: concurrency-testing
+  index: 36
+- title: Performance testing
+  slug: performance-testing
+  index: 37
+- title: Tối ưu cấu hình
+  slug: configuration-tuning
+  index: 38
+- title: Triển khai
+  slug: deployment
+  index: 39
+- title: Bảo mật
+  slug: security
+  index: 40
+- title: Vận hành
+  slug: operations
+  index: 41
+- title: Tương thích phiên bản
+  slug: version-compatibility
+  index: 42
+- title: Anti-pattern
+  slug: anti-patterns
+  index: 43
+- title: Ma trận lựa chọn
+  slug: scaling-decision-matrix
+  index: 44
+- title: Checklist production
+  slug: production-checklist
+  index: 45

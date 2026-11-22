@@ -1,0 +1,49 @@
+roadmap:
+- id: gateway-kien-truc
+  title: Gateway & Kiến trúc
+  purpose: Hiểu vai trò API Gateway ở ranh giới microservice và luồng xử lý request/response.
+  objectives:
+  - '- Phân biệt gateway, reverse proxy và backend service.'
+  - '- Mô tả Route, Predicate, Filter và pre/post filter chain.'
+- id: starter-cau-hinh-route
+  title: Starter & Cấu hình Route
+  purpose: Khởi tạo ứng dụng Gateway đúng biến thể và khai báo tuyến đến dịch vụ đích.
+  objectives:
+  - '- Chọn Server WebFlux hoặc Web MVC theo hệ sinh thái.'
+  - '- Tạo route với id, uri và cấu hình YAML hoặc Java DSL.'
+- id: route-predicates
+  title: Route Predicates
+  purpose: Định tuyến có điều kiện theo thuộc tính HTTP request để phục vụ nhiều API.
+  objectives:
+  - '- Thực hành Path, Method, Host và Header predicates.'
+  - '- Kiểm tra route match, thứ tự và trường hợp không khớp.'
+- id: gatewayfilter-rewrite
+  title: GatewayFilter & Rewrite
+  purpose: Điều chỉnh request/response trước và sau khi chuyển tiếp mà không sửa backend.
+  objectives:
+  - '- Sử dụng RewritePath, StripPrefix và header filters.'
+  - '- Phân biệt GatewayFilter theo route và GlobalFilter.'
+- id: service-discovery-lb
+  title: Service Discovery & LB
+  purpose: Chuyển tiếp request đến các phiên bản dịch vụ đang hoạt động mà không cố định địa chỉ.
+  objectives:
+  - '- Cấu hình DiscoveryClient Route Locator khi có registry.'
+  - '- Dùng lb://service-name với Spring Cloud LoadBalancer.'
+- id: resilience-rate-limit
+  title: Resilience & Rate Limit
+  purpose: Bảo vệ backend khỏi lỗi dây chuyền và lưu lượng vượt khả năng xử lý.
+  objectives:
+  - '- Cấu hình CircuitBreaker và fallback phù hợp.'
+  - '- Thử RequestRateLimiter, KeyResolver và HTTP 429.'
+- id: authentication-edge-security
+  title: Authentication & Edge Security
+  purpose: Áp dụng xác thực tại cổng vào nhưng vẫn giữ kiểm soát quyền ở các service nghiệp vụ.
+  objectives:
+  - '- Kiểm tra JWT/OAuth2 qua Spring Security cho tuyến yêu cầu bảo vệ.'
+  - '- Giới hạn route quản trị, headers tin cậy và endpoint công khai.'
+- id: actuator-metrics-tests
+  title: Actuator, Metrics & Tests
+  purpose: Quan sát vận hành và xác minh cả tuyến thành công lẫn tình huống lỗi.
+  objectives:
+  - '- Kiểm tra routes, filters, metrics qua Actuator an toàn.'
+  - '- Test routing, rewrite, auth, fallback và rate limit.'

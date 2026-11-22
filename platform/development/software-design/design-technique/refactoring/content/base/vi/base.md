@@ -1,0 +1,7 @@
+# Software Design Design Technique Refactoring
+
+Refactoring là kỹ thuật cải thiện cấu trúc bên trong của phần mềm mà không chủ đích thay đổi hành vi quan sát được. Với Java, refactoring giúp mã dễ đọc, dễ kiểm thử và dễ mở rộng hơn thông qua những bước nhỏ như đổi tên, tách phương thức, đơn giản hóa điều kiện hay phân chia lại trách nhiệm giữa các lớp. Đây không phải là cách gọi khác của việc thêm tính năng, sửa lỗi nghiệp vụ hoặc chỉ định dạng mã nguồn.
+
+Module dành cho người đã biết Java hướng đối tượng, Git và kiểm thử cơ bản. Lộ trình bắt đầu từ nhận diện code smell và chọn phạm vi cần cải thiện; tiếp theo là xây dựng mạng lưới kiểm thử bảo vệ hành vi trước khi dùng Rename, Extract Method/Variable, guard clauses, Extract Class hay Move Method. Các mốc cuối đi vào encapsulation, giữ ổn định public API, dùng tính năng refactoring của IDE và tìm hiểu công cụ tự động hóa như OpenRewrite.
+
+Sau khi hoàn thành, bạn có thể chọn kỹ thuật phù hợp với một vấn đề thiết kế, thực hiện thay đổi theo các bước nhỏ, kiểm tra diff và chạy test để giảm rủi ro hồi quy. Nguyên tắc xuyên suốt là bảo toàn hành vi, cải thiện thiết kế có mục đích và không lạm dụng refactoring khi chưa có giá trị thực tế.

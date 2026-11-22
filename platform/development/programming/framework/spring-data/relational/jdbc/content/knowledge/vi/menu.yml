@@ -1,0 +1,410 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data JDBC là gì và giải quyết vấn đề lưu trữ dữ liệu nào?
+  - Vai trò của Spring Data Relational, Spring Data Commons và Spring Data JDBC
+  - 'Bản đồ khái niệm: entity, value object, aggregate, repository và bảng dữ liệu'
+  - Luồng xử lý từ lời gọi repository đến SQL và đối tượng trả về
+  - So sánh JDBC thuần, Spring JDBC, Spring Data JDBC, JPA và R2DBC
+  - 'Triết lý đơn giản: không persistence context, dirty checking hay lazy loading'
+  - Khi nào nên chọn Spring Data JDBC và khi nào nên chọn giải pháp khác
+  - Lộ trình học và mô hình đơn hàng dùng xuyên suốt tài liệu
+- level1: Kiến thức nền
+  level2:
+  - 'Ôn SQL: SELECT, JOIN, GROUP BY, INSERT, UPDATE và DELETE'
+  - Khóa chính, khóa ngoại, ràng buộc duy nhất và toàn vẹn tham chiếu
+  - Connection, PreparedStatement, ResultSet và JDBC driver
+  - DataSource, connection pool và chi phí truy cập cơ sở dữ liệu
+  - Vai trò của JdbcTemplate và NamedParameterJdbcTemplate
+  - Ôn Spring IoC, cấu hình bean, proxy và quản lý giao dịch
+- level1: Khởi tạo
+  level2:
+  - Chọn tổ hợp Java, Spring Boot, Spring Data và JDBC driver tương thích
+  - Khai báo spring-boot-starter-data-jdbc và quản lý dependency bằng BOM
+  - Cấu hình spring.datasource cho môi trường phát triển và kiểm thử
+  - Chuẩn bị PostgreSQL hoặc MySQL và dữ liệu mẫu
+  - Khởi tạo schema bằng SQL script và kiểm soát thứ tự nạp dữ liệu
+  - Tạo aggregate root và repository đầu tiên
+  - Thực hiện vòng CRUD đầu tiên và quan sát SQL
+  - Phân chia cấu hình theo profile và giữ bí mật kết nối ngoài mã nguồn
+- level1: Cấu hình và kiến trúc
+  level2:
+  - Auto-configuration của Spring Boot cho Spring Data JDBC
+  - Kích hoạt repository bằng @EnableJdbcRepositories và giới hạn vùng quét
+  - Cấu hình thủ công bằng AbstractJdbcConfiguration
+  - Trách nhiệm của JdbcMappingContext, JdbcConverter và DataAccessStrategy
+  - Quan hệ giữa SimpleJdbcRepository, JdbcAggregateOperations và JDBC
+  - Đăng ký NamedParameterJdbcOperations và transaction manager
+  - Phối hợp nhiều Spring Data module và tránh nhận diện repository sai
+- level1: Thiết kế aggregate
+  level2:
+  - Thực thể, đối tượng giá trị và tính bất biến của mô hình nghiệp vụ
+  - Aggregate và aggregate root trong thiết kế hướng miền
+  - Xác định ranh giới aggregate từ quy tắc nghiệp vụ và tính nhất quán
+  - Phân biệt quan hệ sở hữu bên trong aggregate và tham chiếu giữa các aggregate
+  - Thiết kế Order và OrderItem như một đơn vị lưu trữ
+  - Thiết kế repository cho aggregate root thay vì cho mọi bảng
+  - Đặt quy tắc nghiệp vụ ở mô hình và điều phối ở tầng dịch vụ
+  - Tránh aggregate quá lớn, tham chiếu vòng và đồ thị đối tượng tùy ý
+  - Từ yêu cầu nghiệp vụ đến sơ đồ aggregate và schema quan hệ
+- level1: Ánh xạ cơ bản
+  level2:
+  - Quy ước ánh xạ tên lớp, thuộc tính, bảng và cột
+  - Sử dụng đúng annotation Spring Data thay cho annotation JPA
+  - Định nghĩa bảng và schema bằng @Table
+  - Định nghĩa cột và khóa chính bằng @Column, @Id
+  - Loại trừ dữ liệu không lưu bằng @Transient
+  - Tùy chỉnh NamingStrategy cho schema có sẵn
+  - Quoting, chữ hoa chữ thường và tên trùng từ khóa SQL
+  - Đối chiếu metadata ánh xạ với DDL và câu SQL thực tế
+- level1: Kiểu dữ liệu
+  level2:
+  - Ánh xạ kiểu nguyên thủy, kiểu bao và giá trị SQL NULL
+  - Chuỗi, Unicode, độ dài cột và dữ liệu rỗng
+  - BigDecimal, precision và scale cho dữ liệu tiền tệ
+  - Enum, tên enum và tính tương thích khi đổi tên
+  - LocalDate, LocalTime, LocalDateTime và quy ước múi giờ
+  - UUID và sự khác biệt biểu diễn giữa các JDBC driver
+  - Mảng, dữ liệu nhị phân và giới hạn hỗ trợ theo cơ sở dữ liệu
+  - 'JSON và kiểu đặc thù: lựa chọn converter cùng kiểu cột phù hợp'
+- level1: Khởi tạo đối tượng
+  level2:
+  - Spring Data tạo đối tượng từ hàng dữ liệu như thế nào?
+  - Lựa chọn constructor và factory bằng @PersistenceCreator
+  - Tên tham số constructor và tùy chọn biên dịch -parameters
+  - Ánh xạ field, constructor, setter và phương thức wither
+  - Thiết kế entity bất biến và Java record
+  - Nhận lại ID và version trên đối tượng được trả về sau save
+  - Ảnh hưởng của kế thừa, thuộc tính bị che khuất và Lombok đến ánh xạ
+  - Nullability và lỗi không dựng được đối tượng từ ResultSet
+- level1: Khóa và trạng thái
+  level2:
+  - Vai trò của định danh trong aggregate root và entity con
+  - Phát hiện đối tượng mới từ @Id và @Version
+  - Phân biệt ID null, giá trị 0 và ID đã được gán
+  - ID tự tăng, generated keys và giá trị trả về sau insert
+  - Tự cấp UUID hoặc mã nghiệp vụ và nguy cơ save chọn nhầm update
+  - Điều khiển isNew bằng Persistable
+  - Chọn thời điểm cấp ID bằng callback và kiểm tra quyết định insert/update
+  - Khóa nghiệp vụ, khóa thay thế và ràng buộc duy nhất
+  - Giới hạn khóa ghép và chiến lược tương thích theo phiên bản
+- level1: Đối tượng nhúng
+  level2:
+  - Phân biệt đối tượng nhúng cùng bảng và entity ở bảng riêng
+  - Mô hình hóa địa chỉ hoặc số tiền bằng value object
+  - Ánh xạ @Embedded và tùy chọn prefix
+  - Quy tắc USE_NULL, USE_EMPTY, @Embedded.Nullable và @Embedded.Empty
+  - Nhúng nhiều thuộc tính cùng kiểu mà không trùng tên cột
+  - Xử lý null toàn bộ, null một phần và đối tượng nhúng lồng nhau
+  - Lưu ý đối tượng nhúng chứa collection và lựa chọn ranh giới aggregate
+- level1: Quan hệ nội bộ
+  level2:
+  - Ánh xạ quan hệ một-một có sở hữu trong aggregate
+  - Ánh xạ Set cho tập entity con
+  - Ánh xạ List và lưu vị trí phần tử
+  - Ánh xạ Map với khóa đơn giản và entity làm giá trị
+  - Cấu hình @MappedCollection với idColumn và keyColumn
+  - Cột tham chiếu ngược và quan hệ khóa ngoại trên bảng con
+  - Entity con có ID và không có ID
+  - Quan hệ sở hữu nhiều tầng và thứ tự thao tác trên bảng
+  - Thêm, thay thế, bỏ phần tử con và vòng đời dữ liệu tương ứng
+  - Phân biệt cơ chế xóa con của Spring Data JDBC và ON DELETE CASCADE
+- level1: Tham chiếu aggregate
+  level2:
+  - Tham chiếu bằng ID thay vì nhúng toàn bộ aggregate khác
+  - Sử dụng AggregateReference để biểu diễn tham chiếu có kiểu
+  - Mô hình hóa quan hệ nhiều-một giữa Order và Customer
+  - Mô hình hóa nhiều-nhiều bằng aggregate liên kết hoặc bảng nối phù hợp
+  - Tải dữ liệu liên quan tường minh qua repository hoặc truy vấn đọc
+  - Giữ toàn vẹn khóa ngoại khi aggregate được sửa hoặc xóa
+  - Ranh giới giao dịch và lựa chọn nhất quán giữa nhiều aggregate
+- level1: Repository CRUD
+  level2:
+  - Khai báo Repository, CrudRepository và ListCrudRepository
+  - Kết hợp giao diện CRUD với PagingAndSortingRepository
+  - Thiết kế giao diện cơ sở bằng @NoRepositoryBean
+  - 'save và saveAll: kết quả trả về cùng phạm vi thao tác'
+  - findById, findAll và findAllById
+  - existsById và count trong kiểm tra dữ liệu
+  - delete, deleteById, deleteAllById và deleteAll
+  - Optional, tập rỗng và quy ước kết quả không tồn tại
+  - Chọn tập phương thức được công khai và tránh repository quá rộng
+- level1: Cơ chế ghi
+  level2:
+  - Luồng insert aggregate root rồi ghi entity con
+  - Luồng cập nhật aggregate theo mô hình lưu toàn bộ trạng thái
+  - Vì sao cập nhật có thể xóa và chèn lại các hàng con?
+  - Thứ tự lệnh SQL và tác động của ràng buộc khóa ngoại
+  - Phân biệt save với merge và dirty checking của JPA
+  - Nguy cơ mất dữ liệu khi save aggregate chỉ được tải một phần
+  - '@ReadOnlyProperty cho dữ liệu chỉ đọc từ cơ sở dữ liệu'
+  - '@InsertOnlyProperty và phạm vi hỗ trợ trên aggregate root'
+  - Tải lại dữ liệu được trigger hoặc giá trị mặc định sinh ra
+  - Phân biệt saveAll với JDBC batch và đánh giá chi phí ghi
+- level1: Tải aggregate
+  level2:
+  - Luồng đọc aggregate root và các entity thuộc quyền sở hữu
+  - Số lượt truy vấn khi đọc một aggregate hoặc một danh sách
+  - Đối tượng đã tải và vòng đời tách rời khỏi kết nối
+  - 'Single Query Loading: mục tiêu và cách kích hoạt'
+  - Giới hạn Single Query Loading theo phiên bản, dialect và cấu trúc aggregate
+  - Trường hợp quay về cách tải thông thường và cách xác minh bằng SQL
+  - Đánh đổi giữa tải đầy đủ aggregate và mô hình đọc chuyên biệt
+- level1: Truy vấn suy diễn
+  level2:
+  - Cấu trúc tên phương thức và cơ chế sinh truy vấn
+  - Truy vấn bằng thuộc tính trực tiếp của aggregate root
+  - Kết hợp And, Or và cách hiểu độ ưu tiên điều kiện
+  - So sánh Equals, Not, LessThan, GreaterThan và Between
+  - Điều kiện IsNull, IsNotNull, True và False
+  - In, NotIn và xử lý tập tham số rỗng
+  - Like, StartingWith, EndingWith và Containing
+  - OrderBy, First, Top và giới hạn kết quả theo phiên bản
+  - find, count, exists và delete theo điều kiện
+  - Phạm vi từ khóa được JDBC hỗ trợ và giới hạn truy cập quan hệ lồng nhau
+  - Nhận diện lỗi tên thuộc tính hoặc tên phương thức khi khởi động
+- level1: SQL tùy chỉnh
+  level2:
+  - Khai báo @Query bằng SQL của cơ sở dữ liệu
+  - Liên kết tham số có tên bằng @Param và thông tin tên tham số
+  - Named query và tệp META-INF/jdbc-named-queries.properties
+  - Chọn cột, alias và dữ liệu bắt buộc để ánh xạ kết quả
+  - JOIN, truy vấn con, tổng hợp và window function trong SQL tự viết
+  - Truy vấn entity có thành phần con và kiểm tra SQL tải bổ sung
+  - SpEL và EvaluationContextExtension trong phạm vi được hỗ trợ
+  - Phân biệt tham số giá trị với tên bảng, tên cột và cấu trúc SQL
+  - Giới hạn phân trang, Sort và Limit với truy vấn SQL khai báo
+  - Chọn truy vấn suy diễn, @Query hoặc triển khai tùy chỉnh theo bài toán
+- level1: Phân trang và kết quả
+  level2:
+  - Phân biệt List, Iterable, Optional và kết quả đơn
+  - Phân trang bằng Pageable và PageRequest
+  - Page, truy vấn count và tổng số kết quả
+  - Slice và cách xác định còn trang tiếp theo
+  - Sort nhiều cột và thứ tự ổn định khi trùng giá trị
+  - Phân trang SQL tự viết bằng limit/offset theo dialect
+  - Keyset pagination bằng truy vấn tùy chỉnh cho dữ liệu lớn
+  - Stream kết quả và đóng tài nguyên bằng try-with-resources
+  - Lựa chọn fetch size, giới hạn kết quả và phạm vi giao dịch khi đọc
+- level1: Projection và DTO
+  level2:
+  - Tách mô hình đọc khỏi aggregate dùng cho cập nhật
+  - Projection interface đóng và các thuộc tính được chọn
+  - Projection mở, biểu thức và chi phí xử lý
+  - DTO constructor và Java record cho kết quả truy vấn
+  - Projection động và phạm vi hỗ trợ của phương thức
+  - Alias cột, tên tham số và kiểu dữ liệu trên projection
+  - RowMapper tùy chỉnh cho kết quả JOIN và báo cáo
+  - ResultSetExtractor và gom nhiều hàng thành một kết quả
+  - Tránh dùng projection hoặc aggregate thiếu cột làm đầu vào save
+- level1: Truy vấn ghi trực tiếp
+  level2:
+  - Kết hợp @Modifying với @Query cho UPDATE và DELETE
+  - Kiểu trả về và số hàng bị ảnh hưởng
+  - Đặt ranh giới giao dịch cho phương thức sửa dữ liệu
+  - Khác biệt giữa xóa suy diễn, xóa qua CRUD và SQL DELETE trực tiếp
+  - Callback, auditing và optimistic locking khi bỏ qua quy trình lưu aggregate
+  - Cập nhật nguyên tử một cột bằng điều kiện SQL
+  - Đảm bảo toàn vẹn dữ liệu con khi xóa trực tiếp
+  - Thiết kế xóa mềm bằng SQL tùy chỉnh và điều kiện đọc nhất quán
+- level1: Aggregate Template
+  level2:
+  - Khi nào dùng JdbcAggregateTemplate thay cho repository?
+  - Lập trình với giao diện JdbcAggregateOperations
+  - Phân biệt save, insert và update tường minh
+  - Thao tác insertAll, updateAll và saveAll
+  - Tìm, đếm, kiểm tra tồn tại và xóa aggregate bằng template
+  - Kết hợp Query, Sort và Pageable với template
+  - Quản lý giao dịch, callback và sự kiện khi gọi template
+  - Chọn template hay JDBC trực tiếp cho thao tác ngoài mô hình aggregate
+- level1: Truy vấn động
+  level2:
+  - Biểu diễn bộ lọc bằng Query và Criteria
+  - Điều kiện so sánh, khoảng giá trị, IN và NULL
+  - Nhóm điều kiện AND/OR theo yêu cầu tìm kiếm
+  - Thêm bộ lọc tùy chọn mà không nối chuỗi giá trị SQL
+  - Chọn cột, sắp xếp, giới hạn và phân trang trong Query
+  - count và exists từ cùng một bộ điều kiện
+  - Giới hạn Criteria với JOIN và quan hệ trong aggregate
+  - Phân biệt Criteria của Spring Data Relational với JPA Criteria, Specification và Querydsl
+  - Thiết kế bộ lọc hợp lệ và kiểm soát tên trường do người dùng cung cấp
+- level1: Repository mở rộng
+  level2:
+  - Thiết kế repository fragment và lớp triển khai
+  - Quy ước đặt tên, phát hiện triển khai và thứ tự ghép fragment
+  - Tái sử dụng fragment giữa nhiều repository
+  - Kết hợp JdbcAggregateOperations với NamedParameterJdbcTemplate
+  - Viết truy vấn JOIN và lệnh ghi đặc thù trong fragment
+  - Đưa JdbcClient hoặc thư viện SQL khác vào đúng ranh giới trách nhiệm
+  - Tùy chỉnh lớp repository cơ sở khi có nhu cầu dùng chung
+  - Giữ đồng bộ quy tắc mapping và giao dịch giữa mã sinh tự động và SQL tự viết
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Khi nào cần converter thay vì đối tượng nhúng?
+  - Viết @ReadingConverter và @WritingConverter
+  - Đăng ký converter qua userConverters hoặc JdbcCustomConversions
+  - Phân biệt kiểu đơn giản, kiểu miền và hướng chuyển đổi
+  - Ánh xạ mã giá trị, enum đặc thù và kiểu định danh riêng
+  - JdbcValue và khai báo JDBCType tường minh
+  - Chuyển đổi JSON, UUID hoặc kiểu đặc thù của driver
+  - Giới hạn một thuộc tính–một giá trị và dữ liệu nhiều cột
+  - Kiểm thử đọc–ghi đối xứng, null và tương thích dữ liệu cũ
+- level1: Giao dịch
+  level2:
+  - Vì sao thao tác nhiều bảng của một aggregate cần giao dịch?
+  - Giao dịch mặc định của phương thức CRUD và phương thức truy vấn khai báo
+  - Chọn ranh giới @Transactional ở tầng dịch vụ
+  - Phối hợp nhiều repository trong cùng một giao dịch
+  - JdbcTransactionManager, DataSourceTransactionManager và kết nối dùng chung
+  - Rollback, checked exception và rollbackFor
+  - 'Propagation: REQUIRED, REQUIRES_NEW và NESTED'
+  - Isolation, readOnly, timeout và giới hạn phụ thuộc driver
+  - Proxy, self-invocation và nguyên nhân @Transactional không có hiệu lực
+  - Quản lý giao dịch lập trình bằng TransactionTemplate
+  - Giao dịch khi trộn repository, template và JDBC trực tiếp
+- level1: Kiểm soát đồng thời
+  level2:
+  - Lost update và hai người dùng cùng sửa một aggregate
+  - Optimistic locking bằng @Version trên aggregate root
+  - Giá trị version lúc thêm mới, cập nhật và xóa
+  - Xử lý OptimisticLockingFailureException và chính sách thử lại
+  - Khóa bi quan bằng @Lock và các LockMode được hỗ trợ
+  - Giới hạn @Lock với @Query và lựa chọn khóa bằng SQL
+  - Thời gian giữ khóa, deadlock và thứ tự truy cập dữ liệu
+  - Cập nhật có điều kiện và kiểm tra số hàng thay đổi
+  - Idempotency và ràng buộc duy nhất cho yêu cầu ghi lặp
+- level1: Vòng đời và sự kiện
+  level2:
+  - Các giai đoạn chuyển đổi, lưu, đọc và xóa aggregate
+  - BeforeConvertCallback và thời điểm quyết định insert/update
+  - BeforeSaveCallback, AfterSaveCallback và AggregateChange
+  - AfterConvertCallback cho dữ liệu dẫn xuất sau khi tải
+  - BeforeDeleteCallback và AfterDeleteCallback
+  - Phân biệt EntityCallback với ApplicationEvent và thứ tự thực thi
+  - Phạm vi callback trên aggregate root và xử lý thành phần con
+  - Callback với entity bất biến và thứ tự ưu tiên
+  - '@DomainEvents và @AfterDomainEventPublication'
+  - '@TransactionalEventListener, xử lý sau commit và độ tin cậy của sự kiện'
+  - Giới hạn callback khi dùng RowMapper hoặc SQL ghi tùy chỉnh
+- level1: Auditing
+  level2:
+  - Mục đích và ranh giới của thông tin tạo/sửa dữ liệu
+  - Kích hoạt auditing bằng @EnableJdbcAuditing
+  - '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+  - Cung cấp người thao tác bằng AuditorAware
+  - Điều khiển thời gian bằng DateTimeProvider và quy ước múi giờ
+  - Auditing với entity bất biến, đối tượng mới và nhiều nguồn ghi
+  - Phân biệt auditing mặc định với lịch sử thay đổi đầy đủ
+  - Kiểm thử thời gian và người thao tác một cách xác định
+- level1: Schema và migration
+  level2:
+  - Thiết kế DDL từ aggregate và ánh xạ collection
+  - Đặt khóa ngoại, chỉ mục, unique và check constraint
+  - Phân biệt SQL initialization với migration có phiên bản
+  - Quản lý thay đổi schema bằng Flyway hoặc Liquibase
+  - Sinh Liquibase change set bằng LiquibaseChangeSetWriter
+  - 'Giới hạn sinh chênh lệch schema: đổi tên và chuyển đổi dữ liệu'
+  - Kiểm soát schema cũ, giá trị mặc định và backfill dữ liệu
+  - Triển khai thay đổi schema tương thích nhiều phiên bản ứng dụng
+- level1: Dialect và kết nối
+  level2:
+  - Vai trò của Dialect trong SQL sinh tự động và khả năng cơ sở dữ liệu
+  - Phát hiện dialect từ metadata của kết nối
+  - Khác biệt quoting, limit/offset, generated keys và kiểu dữ liệu
+  - Tùy chỉnh hoặc đăng ký dialect theo SPI của phiên bản
+  - 'Cấu hình pool: kích thước, thời gian chờ và vòng đời kết nối'
+  - 'Nhiều DataSource: tách repository, template và transaction manager'
+  - Định tuyến tenant hoặc nguồn đọc/ghi và ranh giới nhất quán
+  - Kiểm chứng tính tương thích trên H2, PostgreSQL và MySQL
+- level1: Tích hợp MyBatis
+  level2:
+  - Khi nào cần phối hợp Spring Data JDBC với MyBatis?
+  - Cấu hình MyBatisJdbcConfiguration và SqlSessionFactory
+  - Quy ước namespace, statement và MyBatisContext
+  - Ủy quyền từng bước CRUD và xử lý generated keys
+  - Ánh xạ kết quả và xử lý quan hệ bằng statement tùy chỉnh
+  - Dùng chung DataSource, giao dịch và kiểm thử tính nhất quán
+  - Đánh đổi giữa khả năng tùy biến SQL và chi phí bảo trì
+- level1: Tính năng theo phiên bản
+  level2:
+  - Đọc release train, release notes và ma trận tương thích Spring Boot
+  - Đối chiếu API đang dùng với tài liệu đúng phiên bản
+  - Hỗ trợ sequence, @Sequence và dialect trong phiên bản có tính năng
+  - Khóa ghép bằng @Id kết hợp @Embedded trong phiên bản hỗ trợ
+  - 'Upsert bằng JdbcAggregateTemplate: yêu cầu dialect và giới hạn version'
+  - 'AOT và native image: cấu hình, tối ưu repository và giới hạn'
+  - Nhận diện tính năng thử nghiệm và kiểm chứng trước khi đưa vào tài liệu
+  - Lập kiểm thử hồi quy khi nâng phiên bản Spring Data hoặc driver
+- level1: Hiệu năng
+  level2:
+  - Đo số câu SQL, số lượt kết nối, thời gian và dung lượng kết quả
+  - Nhận diện truy vấn lặp khi tải danh sách aggregate
+  - Đo chi phí xóa–chèn lại entity con trong aggregate lớn
+  - Chọn projection, SQL JOIN hoặc Single Query Loading theo số đo
+  - Đọc execution plan và thiết kế chỉ mục theo điều kiện truy vấn
+  - Tối ưu count query và phân trang sâu
+  - Phân biệt saveAll, batch insert và batch update qua JDBC trực tiếp
+  - Xử lý dữ liệu lớn theo lô và giữ giao dịch có kích thước phù hợp
+  - Bộ nhớ, fetch size và thời gian giữ connection khi streaming
+  - Cache ở tầng ứng dụng và chiến lược vô hiệu hóa khi ghi
+- level1: Kiểm thử
+  level2:
+  - Chọn unit test, repository test và integration test theo mục tiêu
+  - Kiểm thử quy tắc aggregate không cần cơ sở dữ liệu
+  - Cấu hình @DataJdbcTest và phạm vi bean được nạp
+  - Phân biệt @DataJdbcTest, @JdbcTest và @SpringBootTest
+  - Testcontainers và cơ sở dữ liệu cùng loại với môi trường triển khai
+  - '@AutoConfigureTestDatabase và kiểm soát thay thế DataSource'
+  - Dữ liệu kiểm thử bằng migration, @Sql và fixture
+  - Kiểm thử mapping, embedded, collection, converter và ID
+  - Kiểm thử truy vấn suy diễn, @Query, projection và phân trang
+  - Kiểm thử rollback giữa các bảng và nhiều repository
+  - Kiểm thử optimistic locking, khóa bi quan và xung đột đồng thời
+  - Kiểm thử callback, auditing và SQL ghi trực tiếp
+  - Đo truy vấn và phát hiện hồi quy hiệu năng
+  - Phân biệt rollback trong test với hành vi sau commit thực tế
+- level1: Lỗi và chẩn đoán
+  level2:
+  - Phân loại DataAccessException và exception được dịch từ JDBC
+  - Không tìm thấy repository, quét sai package hoặc trùng bean
+  - Không nhận diện dialect và lỗi mở kết nối lúc khởi động
+  - Sai tên bảng/cột, quoting và schema search path
+  - Lỗi constructor, alias cột, null và kiểu dữ liệu
+  - save chọn sai insert/update hoặc không lấy được generated key
+  - Vi phạm khóa ngoại, unique constraint và dữ liệu con ngoài dự kiến
+  - Kết quả đơn trả nhiều hàng hoặc truy vấn không có kết quả
+  - Giao dịch không rollback, kết nối cạn và truy vấn bị treo
+  - Phân biệt lỗi cú pháp SQL, lỗi mapping và xung đột đồng thời
+  - Quy trình tái hiện lỗi tối thiểu bằng SQL log và integration test
+- level1: Vận hành và bảo mật
+  level2:
+  - Bật SQL log, bind log và bảo vệ dữ liệu nhạy cảm
+  - Quan sát connection pool, truy vấn chậm và lỗi cơ sở dữ liệu
+  - Đặt timeout cho kết nối, truy vấn và giao dịch
+  - Bind tham số để phòng SQL injection và kiểm soát SQL động
+  - Cấp quyền tài khoản cơ sở dữ liệu theo nhu cầu tối thiểu
+  - Quản lý thông tin đăng nhập, TLS và cấu hình theo môi trường
+  - Retry lỗi tạm thời với thao tác an toàn và ranh giới giao dịch rõ ràng
+  - Giới hạn auditing, log và sự kiện đối với yêu cầu truy vết nghiệp vụ
+- level1: Chuyển đổi ứng dụng
+  level2:
+  - Chuyển từ JdbcTemplate sang repository theo từng ca sử dụng
+  - 'Chuyển từ JPA: thay đổi tư duy về aggregate và vòng đời đối tượng'
+  - Thay annotation JPA bằng metadata Spring Data JDBC phù hợp
+  - Thiết kế lại quan hệ hai chiều, cascade và lazy loading
+  - Thay dirty checking, flush và entity manager bằng thao tác ghi tường minh
+  - Giữ mô hình đọc phức tạp bằng SQL hoặc thư viện chuyên dụng
+  - Tiếp nhận schema có sẵn mà không thay đổi dữ liệu ngoài ý muốn
+  - So sánh hành vi, SQL và hiệu năng trước và sau chuyển đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân tích bài toán quản lý đơn hàng và xác định ranh giới aggregate
+  - Xây schema Order, OrderItem và Customer cùng migration
+  - Triển khai repository, converter và quy tắc nghiệp vụ
+  - Tạo bộ lọc đơn hàng, phân trang và projection báo cáo
+  - Thực nghiệm lưu entity con và quan sát SQL thực tế
+  - Mô phỏng hai giao dịch cập nhật cùng đơn hàng
+  - Bổ sung auditing và sự kiện sau commit
+  - Kiểm thử với Testcontainers và đo chi phí truy vấn
+  - Đánh giá thiết kế, xử lý lỗi và tiêu chí sẵn sàng triển khai
+  - 'Bài tập mở rộng: xóa mềm, nhiều nguồn dữ liệu và nhập dữ liệu theo lô'

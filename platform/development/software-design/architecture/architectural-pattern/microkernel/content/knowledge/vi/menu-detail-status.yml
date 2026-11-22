@@ -1,0 +1,2161 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiến trúc vi nhân (Microkernel) là gì và mô hình lõi kết hợp phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Bài toán biến thể chức năng và nhu cầu mở rộng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các thuật ngữ nền tảng: lõi, hệ chủ, plugin, điểm mở rộng và hợp đồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Quan hệ giữa chức năng dùng chung và chức năng có thể thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Luồng minh họa từ yêu cầu người dùng đến lõi và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt Microkernel ở cấp ứng dụng với vi nhân hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt kiến trúc Microkernel với cơ chế cài thêm plugin đơn lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình đọc tài liệu và kiến thức nền cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adoption-context
+  title: Bối cảnh áp dụng
+  childs:
+  - slug: adoption-context-001
+    title: Nhận diện phần ổn định và những trục biến đổi của nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-context-002
+    title: Ứng dụng có nhiều dòng sản phẩm hoặc bộ tính năng theo khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-context-003
+    title: Công cụ phát triển, bộ xử lý tài liệu và nền tảng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-context-004
+    title: Mở rộng do nhóm nội bộ phát triển và mở rộng từ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-context-005
+    title: Lợi ích về khả năng thay thế, kiểm thử và phát triển độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-context-006
+    title: Đánh đổi về độ phức tạp hợp đồng, vận hành và quản lý phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-context-007
+    title: Những trường hợp giải pháp mô-đun thông thường đã đáp ứng đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-context-008
+    title: Tiêu chí lựa chọn dựa trên nhu cầu mở rộng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-components
+  title: Thành phần kiến trúc
+  childs:
+  - slug: architecture-components-001
+    title: Lõi hệ thống (core system) và tập năng lực tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-components-002
+    title: Hệ chủ (host application) và trách nhiệm điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-components-003
+    title: Plugin và đơn vị đóng gói chức năng mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-components-004
+    title: Điểm mở rộng (extension point) và nơi plugin tham gia xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-components-005
+    title: Danh mục plugin (plugin registry) và thông tin khả năng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-components-006
+    title: Hợp đồng API/SPI dùng chung giữa lõi và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-components-007
+    title: Bộ quản lý plugin và quan hệ với bộ nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-components-008
+    title: Sơ đồ thành phần, chiều phụ thuộc và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-boundaries
+  title: Ranh giới lõi
+  childs:
+  - slug: core-boundaries-001
+    title: Xác định trách nhiệm lõi theo mục tiêu sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-boundaries-002
+    title: Tách chính sách điều phối khỏi cách thực hiện của từng plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-boundaries-003
+    title: Những dịch vụ nền tảng lõi có thể cung cấp cho plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-boundaries-004
+    title: Ngăn chức năng riêng của khách hàng tích tụ trong lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-boundaries-005
+    title: Duy trì lõi hoạt động khi không có plugin tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-boundaries-006
+    title: Plugin bắt buộc và giới hạn của khái niệm lõi tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-boundaries-007
+    title: Áp dụng đảo ngược phụ thuộc tại ranh giới lõi và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-boundaries-008
+    title: Tổ chức gói và mô-đun để bảo vệ phần triển khai nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extension-points
+  title: Điểm mở rộng
+  childs:
+  - slug: extension-points-001
+    title: Khảo sát nhu cầu thay đổi để xác định điểm mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-002
+    title: Điểm mở rộng theo thao tác, định dạng và chính sách nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-003
+    title: Lựa chọn một triển khai hoặc kết hợp nhiều triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-004
+    title: Mô hình thay thế, chuỗi xử lý và phát thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-005
+    title: Điểm móc vòng đời (hook) và giới hạn quyền can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-006
+    title: Độ hạt của điểm mở rộng và chi phí chia quá nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-007
+    title: Quy tắc thứ tự, ưu tiên và xử lý xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-008
+    title: Khả năng kiểm tra điều kiện hỗ trợ trước khi gọi plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-009
+    title: Nguyên tắc bổ sung điểm mở rộng mà vẫn giữ lõi ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-contracts
+  title: Hợp đồng plugin
+  childs:
+  - slug: plugin-contracts-001
+    title: Phân biệt API cho bên sử dụng với SPI cho bên triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-002
+    title: Thiết kế giao diện nhỏ, rõ trách nhiệm và dễ kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-003
+    title: Mô hình yêu cầu, kết quả và đối tượng truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-004
+    title: Quy ước lỗi, trạng thái xử lý và kết quả không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-005
+    title: Ngữ nghĩa thao tác và những điều hợp đồng phải cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-006
+    title: Hợp đồng đồng bộ, bất đồng bộ và hủy tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-007
+    title: Yêu cầu an toàn luồng và khả năng tái sử dụng phiên plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-008
+    title: Giới hạn đối tượng, tài nguyên và dịch vụ truyền qua ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-contracts-009
+    title: Tài liệu hợp đồng, ví dụ tối thiểu và bộ tiêu chí tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-registry
+  title: Danh mục plugin
+  childs:
+  - slug: plugin-registry-001
+    title: Định danh plugin và định danh khả năng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-registry-002
+    title: 'Tệp mô tả plugin: phiên bản, điểm vào và yêu cầu hệ chủ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-registry-003
+    title: Tìm kiếm plugin từ cấu hình, classpath hoặc thư mục cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-registry-004
+    title: Đăng ký tường minh và khám phá tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-registry-005
+    title: Xác thực mô tả trước khi đưa plugin vào danh mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-registry-006
+    title: Giải quyết định danh trùng và nhiều nhà cung cấp cùng khả năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-registry-007
+    title: Phân biệt plugin đã cài, đã nạp và sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-registry-008
+    title: Tra cứu triển khai và công bố danh mục một cách nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-dependencies
+  title: Phụ thuộc plugin
+  childs:
+  - slug: plugin-dependencies-001
+    title: Phân biệt phụ thuộc vào lõi, hợp đồng và plugin khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-dependencies-002
+    title: Mô tả phụ thuộc bắt buộc, tùy chọn và khoảng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-dependencies-003
+    title: Dựng đồ thị phụ thuộc và tính thứ tự khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-dependencies-004
+    title: Phát hiện phụ thuộc thiếu, không tương thích và chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-dependencies-005
+    title: Trao đổi qua khả năng hoặc hợp đồng thay vì lớp triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-dependencies-006
+    title: Xung đột phiên bản thư viện dùng chung giữa các plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-dependencies-007
+    title: Ảnh hưởng dây chuyền khi tắt hoặc nâng cấp plugin phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-dependencies-008
+    title: Giới hạn liên kết chéo để bảo toàn khả năng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-lifecycle
+  title: Vòng đời plugin
+  childs:
+  - slug: plugin-lifecycle-001
+    title: Thiết kế các trạng thái từ phát hiện đến dừng và gỡ bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-002
+    title: Khởi tạo plugin và cấp ngữ cảnh hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-003
+    title: Kiểm tra sẵn sàng trước khi cho phép nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-004
+    title: Kích hoạt, vô hiệu hóa và dừng nhận yêu cầu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-005
+    title: Hoàn tất hoặc hủy công việc đang chạy khi dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-006
+    title: Thu hồi luồng, kết nối, tệp và tài nguyên được đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-007
+    title: Xử lý khởi động thất bại và khôi phục trạng thái nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-008
+    title: Điều kiện hỗ trợ nạp lại hoặc thay thế khi đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-009
+    title: Thiết kế thao tác vòng đời lặp lại an toàn và kiểm soát đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loading-and-isolation
+  title: Nạp và cô lập
+  childs:
+  - slug: loading-and-isolation-001
+    title: Plugin cùng tiến trình và plugin ngoài tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-002
+    title: Nạp tĩnh khi khởi động và nạp động trong thời gian chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-003
+    title: Cô lập không gian tên và phụ thuộc thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-004
+    title: Mô hình ClassLoader riêng và quy tắc ủy quyền trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-005
+    title: Định danh kiểu tại ranh giới nhiều ClassLoader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-006
+    title: Cô lập lỗi chức năng, lỗi tiến trình và mức độ bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-007
+    title: Giao tiếp qua IPC/RPC khi chọn plugin ngoài tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-008
+    title: Chi phí triển khai và độ trễ của các mức cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loading-and-isolation-009
+    title: Giới hạn dỡ nạp, tham chiếu còn giữ và rò rỉ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-flow
+  title: Luồng thực thi
+  childs:
+  - slug: execution-flow-001
+    title: Tiếp nhận yêu cầu và xác định khả năng cần thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-002
+    title: Chọn plugin theo định dạng, ngữ cảnh và tiêu chí hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-003
+    title: Truyền ngữ cảnh yêu cầu mà không lộ chi tiết hệ chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-004
+    title: Thực thi một plugin, chuỗi plugin hoặc nhiều plugin độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-005
+    title: Quy tắc tổng hợp kết quả và dừng sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-006
+    title: Quyền sở hữu luồng, bộ thực thi và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-007
+    title: Thời hạn xử lý, tín hiệu hủy và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-008
+    title: Giữ xử lý xác định khi có nhiều plugin cùng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-configuration
+  title: Cấu hình plugin
+  childs:
+  - slug: plugin-configuration-001
+    title: Tách cấu hình hệ chủ, cấu hình plugin và cấu hình từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-configuration-002
+    title: Khai báo lược đồ, giá trị mặc định và kiểm tra cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-configuration-003
+    title: Bật tắt tính năng và lựa chọn plugin theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-configuration-004
+    title: Cấu hình theo khách hàng hoặc đơn vị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-configuration-005
+    title: Phát hiện xung đột khi nhiều cấu hình cùng có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-configuration-006
+    title: Cấp bí mật qua dịch vụ có kiểm soát của hệ chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-configuration-007
+    title: Điều kiện cập nhật cấu hình mà không khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-configuration-008
+    title: Theo dõi phiên bản cấu hình và khả năng tái hiện hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-transactions
+  title: Dữ liệu và giao dịch
+  childs:
+  - slug: data-and-transactions-001
+    title: Quyền sở hữu dữ liệu giữa lõi và từng plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-002
+    title: Lựa chọn lưu trữ dùng chung hoặc kho dữ liệu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-003
+    title: Truy cập dữ liệu qua hợp đồng thay vì sửa trực tiếp bảng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-004
+    title: Quản lý trạng thái plugin và vòng đời phiên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-005
+    title: Ranh giới giao dịch khi lõi và plugin cùng cập nhật dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-006
+    title: Nhất quán dữ liệu khi plugin hoạt động ngoài tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-007
+    title: Khôi phục hoặc bù trừ khi chuỗi xử lý thất bại một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-008
+    title: Thay đổi lược đồ dữ liệu và điều kiện quay lui phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-009
+    title: Sao lưu, di chuyển và xử lý dữ liệu khi gỡ plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versioning-and-compatibility
+  title: Phiên bản và tương thích
+  childs:
+  - slug: versioning-and-compatibility-001
+    title: Quản lý riêng phiên bản hệ chủ, hợp đồng và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-002
+    title: Tương thích mã nguồn, nhị phân và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-003
+    title: Nhận diện thay đổi phá vỡ hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-004
+    title: Tiến hóa yêu cầu, kết quả và mô tả khả năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-005
+    title: Thương lượng phiên bản hoặc khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-006
+    title: Ma trận tương thích và chính sách các phiên bản được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-007
+    title: Ngừng hỗ trợ API theo giai đoạn và hướng dẫn chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-008
+    title: Chạy song song nhiều phiên bản khi có nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-compatibility-009
+    title: Quay lui plugin và kiểm tra tương thích với dữ liệu hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-security
+  title: Bảo mật plugin
+  childs:
+  - slug: plugin-security-001
+    title: Mô hình đe dọa với plugin nội bộ và bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-002
+    title: Ranh giới tin cậy của mã thực thi trong cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-003
+    title: Kiểm tra nguồn gốc, chữ ký và tính toàn vẹn gói plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-004
+    title: Xác thực nhà phát hành và quy trình phê duyệt plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-005
+    title: Cấp quyền tối thiểu cho tệp, mạng, dữ liệu và dịch vụ hệ chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-006
+    title: Cô lập tiến trình hoặc hệ điều hành với mã không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-007
+    title: Kiểm tra dữ liệu đầu vào và đầu ra qua hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-008
+    title: Quản lý bí mật, dữ liệu nhạy cảm và nhật ký truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-security-009
+    title: Kiểm soát phụ thuộc, lỗ hổng và thu hồi plugin có vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Phân loại lỗi hợp đồng, lỗi plugin và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Giới hạn thời gian xử lý theo khả năng của cơ chế thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Giới hạn tài nguyên và số yêu cầu đồng thời cho plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Cô lập tài nguyên để hạn chế lỗi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Tạm ngắt gọi plugin lỗi và điều kiện cho phép phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Chọn chức năng dự phòng và suy giảm tính năng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Thử lại và tính lặp an toàn khi thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Khôi phục sau plugin treo, dừng đột ngột hoặc mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Xác định ngân sách độ trễ tại ranh giới lõi và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo chi phí khám phá, nạp và khởi tạo plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Chi phí tra cứu, điều phối và chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Bộ nhớ đệm kết quả lựa chọn plugin và điều kiện vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Khởi tạo lười và đánh đổi với thời gian đáp ứng đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Kiểm soát đồng thời, hàng đợi và áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Đánh giá chi phí tuần tự hóa khi plugin ngoài tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đo hiệu năng theo plugin và xử lý nút thắt có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử lõi bằng plugin giả và dữ liệu tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử độc lập từng plugin theo hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Bộ kiểm thử tuân thủ dùng chung cho nhà phát triển plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử khám phá, đăng ký và chọn đúng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử đồ thị phụ thuộc và thứ tự vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử ma trận phiên bản hệ chủ và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử lỗi khởi tạo, ngoại lệ, treo và kết quả sai hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử an toàn luồng, hủy tác vụ và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử bảo mật và ranh giới cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử luồng đầu cuối với các tổ hợp plugin đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-and-operations-001
+    title: Gắn định danh plugin và phiên bản vào nhật ký xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-002
+    title: Theo dõi trạng thái cài đặt, kích hoạt và mức sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-003
+    title: Chỉ số độ trễ, lỗi, lưu lượng và tài nguyên theo plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-004
+    title: Liên kết dấu vết yêu cầu từ lõi qua các plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-005
+    title: Phân biệt lỗi lõi, lỗi cấu hình và lỗi plugin khi chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-006
+    title: Hiển thị đồ thị phụ thuộc và lý do plugin không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-007
+    title: Cảnh báo, cô lập và khôi phục plugin theo quy trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-008
+    title: Lập hồ sơ plugin đang chạy để tái hiện sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packaging-and-releases
+  title: Đóng gói và phát hành
+  childs:
+  - slug: packaging-and-releases-001
+    title: Cấu trúc gói plugin và các tài nguyên đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-002
+    title: Tách gói hợp đồng khỏi gói triển khai lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-003
+    title: Kho phân phối plugin và kiểm tra nguồn tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-004
+    title: Quy trình cài đặt, nâng cấp, gỡ bỏ và kiểm tra toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-005
+    title: Pipeline xây dựng và kiểm tra plugin trước phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-006
+    title: Kiểm soát thay đổi đồng bộ giữa hệ chủ và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-007
+    title: Phát hành thăm dò và bật dần plugin theo nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-008
+    title: Quay lui phiên bản và quản lý thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-releases-009
+    title: Danh mục thành phần, giấy phép và nguồn gốc gói phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extension-governance
+  title: Quản trị mở rộng
+  childs:
+  - slug: extension-governance-001
+    title: Phân công nhóm sở hữu lõi, hợp đồng và từng plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-governance-002
+    title: Quy trình đề xuất và xét duyệt điểm mở rộng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-governance-003
+    title: Bộ công cụ phát triển, mẫu plugin và tài liệu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-governance-004
+    title: Tiêu chí chấp nhận plugin vào hệ sinh thái sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-governance-005
+    title: Chính sách hỗ trợ, bảo trì và kết thúc vòng đời plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-governance-006
+    title: Quản lý biến thể sản phẩm mà vẫn kiểm soát tổ hợp tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-governance-007
+    title: Ghi quyết định kiến trúc và đánh giá chi phí phát triển dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-implementation
+  title: Triển khai Java
+  childs:
+  - slug: java-implementation-001
+    title: Tách mô-đun hợp đồng, lõi, hệ chủ và plugin trong dự án Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-002
+    title: Thiết kế SPI cho ví dụ xử lý nhiều định dạng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-003
+    title: Xây dựng lõi điều phối và hai plugin thay thế độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-004
+    title: Đăng ký tường minh để kiểm chứng thiết kế trước khi nạp động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-005
+    title: Khám phá nhà cung cấp bằng ServiceLoader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-006
+    title: Đóng gói plugin thành JAR và quản lý tài nguyên đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-007
+    title: Nạp JAR bằng ClassLoader riêng khi thực sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-008
+    title: Chia sẻ đúng kiểu hợp đồng để tránh lỗi ép kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-009
+    title: Kết nối plugin với vùng chứa phụ thuộc như Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-010
+    title: Quản lý tài nguyên plugin khi đóng hệ chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-011
+    title: Kiểm thử thêm plugin mà không sửa luồng xử lý lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-ecosystem
+  title: Hệ sinh thái plugin
+  childs:
+  - slug: plugin-ecosystem-001
+    title: So sánh nhu cầu tự xây cơ chế plugin với dùng framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-ecosystem-002
+    title: ServiceLoader trong bài toán khám phá nhà cung cấp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-ecosystem-003
+    title: PF4J trong bài toán quản lý plugin cho ứng dụng JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-ecosystem-004
+    title: OSGi trong bài toán mô-đun, dịch vụ và vòng đời động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-ecosystem-005
+    title: Eclipse trong nghiên cứu điểm mở rộng và hệ sinh thái plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-ecosystem-006
+    title: Đánh giá framework theo cô lập, vòng đời và tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-ecosystem-007
+    title: Lập bằng chứng thử nghiệm trước khi chọn công nghệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-relationships
+  title: Quan hệ kiến trúc
+  childs:
+  - slug: architectural-relationships-001
+    title: 'Microkernel và kiến trúc phân lớp: điểm mở rộng trong các lớp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-002
+    title: 'Microkernel và khối đơn thể mô-đun: ranh giới chức năng và khả năng cài thêm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-003
+    title: 'Microkernel và vi dịch vụ: khác biệt về đơn vị triển khai và cô lập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-004
+    title: Microkernel với Hexagonal hoặc Clean Architecture tại ranh giới hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-005
+    title: Microkernel với Pipes and Filters trong chuỗi biến đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-006
+    title: Microkernel với kiến trúc hướng sự kiện khi mở rộng bằng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-007
+    title: Strategy, Adapter và Factory trong phần triển khai cơ chế plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-008
+    title: Đảo ngược phụ thuộc và tiêm phụ thuộc trong hệ chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-009
+    title: Tránh đồng nhất một design pattern với toàn bộ kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-migration
+  title: Chuyển đổi kiến trúc
+  childs:
+  - slug: architecture-migration-001
+    title: Khảo sát hệ thống hiện có và lập bản đồ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-002
+    title: Chọn một trục biến đổi làm điểm mở rộng thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-003
+    title: Tách hợp đồng và bọc triển khai cũ bằng adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-004
+    title: Đưa cơ chế lựa chọn plugin vào một luồng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-005
+    title: Di chuyển cấu hình, dữ liệu và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-006
+    title: Chạy đối chiếu hành vi cũ và mới trước khi chuyển hẳn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-007
+    title: Mở rộng từng bước dựa trên kết quả đo và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-008
+    title: Điều kiện dừng chuyển đổi hoặc quay lại giải pháp đơn giản hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-mistakes
+  title: Sai lầm thiết kế
+  childs:
+  - slug: design-mistakes-001
+    title: Lõi phình to và điểm mở rộng chỉ mang tính hình thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-002
+    title: Plugin phụ thuộc lớp nội bộ của hệ chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-003
+    title: Plugin gọi chéo tạo mạng phụ thuộc khó thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-004
+    title: Hợp đồng quá rộng hoặc rò rỉ chi tiết lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-005
+    title: Chọn plugin theo thứ tự khám phá không được bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-006
+    title: Lạm dụng trạng thái toàn cục và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-007
+    title: Cho rằng ClassLoader hoặc interface tự bảo đảm cách ly bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-008
+    title: Cố hỗ trợ nạp nóng khi chưa giải quyết vòng đời và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-009
+    title: Thêm cơ chế plugin khi chưa có nhu cầu biến đổi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exercises-and-scenarios
+  title: Bài tập và tình huống
+  childs:
+  - slug: exercises-and-scenarios-001
+    title: Thiết kế bộ chuyển đổi tài liệu với nhiều định dạng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-002
+    title: Mở rộng bộ kiểm tra quy tắc theo từng khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-003
+    title: Thiết kế bộ kết nối nguồn dữ liệu bằng hợp đồng plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-004
+    title: Thêm plugin mới và chứng minh lõi không cần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-005
+    title: Mô phỏng phụ thuộc thiếu, trùng định danh và phiên bản không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-006
+    title: Xử lý plugin lỗi hoặc treo và kiểm tra khả năng suy giảm tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-007
+    title: Nâng cấp plugin có trạng thái và diễn tập quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-008
+    title: So sánh phương án cùng tiến trình và ngoài tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-009
+    title: Xây dựng sơ đồ, quyết định kiến trúc và kế hoạch kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-and-scenarios-010
+    title: Danh sách kiểm tra thiết kế và tiêu chí nghiệm thu hệ thống Microkernel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

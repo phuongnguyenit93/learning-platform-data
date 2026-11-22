@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khám phá nghiệp vụ
+  slug: domain-discovery
+  index: 1
+- title: Ngôn ngữ chung
+  slug: ubiquitous-language
+  index: 2
+- title: Miền và miền con
+  slug: domains-subdomains
+  index: 3
+- title: Ngữ cảnh giới hạn
+  slug: bounded-contexts
+  index: 4
+- title: Bản đồ ngữ cảnh
+  slug: context-mapping
+  index: 5
+- title: EventStorming
+  slug: eventstorming
+  index: 6
+- title: Xây dựng mô hình
+  slug: model-building
+  index: 7
+- title: Kiến trúc ứng dụng
+  slug: application-architecture
+  index: 8
+- title: Thực thể
+  slug: entities
+  index: 9
+- title: Đối tượng giá trị
+  slug: value-objects
+  index: 10
+- title: Aggregate
+  slug: aggregates
+  index: 11
+- title: Bất biến và đồng thời
+  slug: invariants-concurrency
+  index: 12
+- title: Dịch vụ miền
+  slug: domain-services
+  index: 13
+- title: Khởi tạo và vòng đời
+  slug: creation-lifecycle
+  index: 14
+- title: Repository
+  slug: repositories
+  index: 15
+- title: Sự kiện miền
+  slug: domain-events
+  index: 16
+- title: Chính sách và đặc tả
+  slug: policies-specifications
+  index: 17
+- title: Ca sử dụng
+  slug: use-cases
+  index: 18
+- title: Lưu trữ và ORM
+  slug: persistence-orm
+  index: 19
+- title: API và DTO
+  slug: api-dto
+  index: 20
+- title: Tích hợp ngữ cảnh
+  slug: context-integration
+  index: 21
+- title: Nhất quán liên ngữ cảnh
+  slug: cross-context-consistency
+  index: 22
+- title: CQRS và Event Sourcing
+  slug: cqrs-event-sourcing
+  index: 23
+- title: Thời gian và lịch sử
+  slug: time-history
+  index: 24
+- title: Mô hình sâu
+  slug: deep-domain-models
+  index: 25
+- title: Thiết kế dễ thay đổi
+  slug: evolvable-design
+  index: 26
+- title: Java và Spring
+  slug: java-spring
+  index: 27
+- title: Kiểm thử
+  slug: testing
+  index: 28
+- title: Mô-đun và triển khai
+  slug: modularization-deployment
+  index: 29
+- title: Chuyển đổi hệ thống
+  slug: system-migration
+  index: 30
+- title: Cộng tác và tài liệu
+  slug: collaboration-documentation
+  index: 31
+- title: Lỗi thiết kế thường gặp
+  slug: common-design-mistakes
+  index: 32
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 33

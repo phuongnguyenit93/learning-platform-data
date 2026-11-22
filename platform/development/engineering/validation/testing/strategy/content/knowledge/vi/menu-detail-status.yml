@@ -1,0 +1,2950 @@
+menu:
+- slug: testing-overview
+  title: Tổng quan
+  childs:
+  - slug: testing-overview-001
+    title: Chiến lược kiểm thử là gì và những quyết định cần định hướng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-002
+    title: Vai trò của kiểm thử trong cung cấp thông tin về chất lượng và rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-003
+    title: Quan hệ giữa nhu cầu người dùng, yêu cầu kỹ thuật và bằng chứng kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-004
+    title: Phân biệt kiểm chứng kỹ thuật (verification) và xác nhận nhu cầu sử dụng (validation)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-005
+    title: Phân biệt chiến lược, cách tiếp cận, kế hoạch và ca kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-006
+    title: Chiến lược ở cấp tổ chức, sản phẩm, dự án và từng phạm vi kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-007
+    title: 'Các thành phần cốt lõi: mục tiêu, phạm vi, phương pháp, nguồn lực và tiêu chí'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-008
+    title: Chi phí phát hiện lỗi, tốc độ phản hồi và chi phí duy trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-009
+    title: Giới hạn của kiểm thử và cách trình bày mức độ tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-010
+    title: Lộ trình xây dựng chiến lược từ bối cảnh đến quyết định phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-context
+  title: Bối cảnh sản phẩm
+  childs:
+  - slug: product-context-001
+    title: Xác định người dùng, mục tiêu kinh doanh và hành trình quan trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-002
+    title: Nhận diện miền nghiệp vụ và hậu quả khi sản phẩm hoạt động sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-003
+    title: Phân tích kiến trúc, luồng dữ liệu và các điểm tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-004
+    title: Đánh giá vòng đời sản phẩm, mức độ trưởng thành và tốc độ thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-005
+    title: Xác định mô hình phát triển và nhịp phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-006
+    title: Đánh giá kỹ năng nhóm, công cụ hiện có và nợ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-007
+    title: Ghi nhận yêu cầu hợp đồng, kiểm toán và ràng buộc dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-008
+    title: Phân tích dịch vụ bên ngoài và thành phần do nhóm khác sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-context-009
+    title: Xác định giả định, giới hạn và thông tin còn thiếu trước khi chọn phương án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-objectives
+  title: Mục tiêu chất lượng
+  childs:
+  - slug: quality-objectives-001
+    title: Chuyển nhu cầu kinh doanh thành mục tiêu chất lượng có thể kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-002
+    title: Phân biệt mục tiêu kiểm thử với mục tiêu sửa lỗi hoặc cải tiến sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-003
+    title: Định nghĩa mục tiêu cụ thể, đo được và phù hợp thời hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-004
+    title: Xác định kết quả nghiệp vụ đúng và mức dịch vụ cần đáp ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-005
+    title: Phân biệt mức chất lượng mong muốn với ngưỡng chấp nhận tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-006
+    title: Ưu tiên các thuộc tính chất lượng khi có đánh đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-007
+    title: Thống nhất nguồn xác nhận kết quả mong đợi và người giải thích yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-008
+    title: Gắn mục tiêu với bằng chứng, cách đo và điều kiện đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-009
+    title: Rà soát lại mục tiêu khi người dùng, rủi ro hoặc kiến trúc thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-scope
+  title: Phạm vi kiểm thử
+  childs:
+  - slug: testing-scope-001
+    title: 'Xác định đối tượng kiểm thử: mã, dịch vụ, dữ liệu, cấu hình và sản phẩm triển khai'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-002
+    title: Vẽ ranh giới hệ thống và các thành phần thuộc phạm vi trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-003
+    title: Lựa chọn chức năng, luồng nghiệp vụ và thuộc tính chất lượng cần kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-004
+    title: Xác định phiên bản, nền tảng, trình duyệt và cấu hình cần hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-005
+    title: Phân biệt phạm vi của một thay đổi với phạm vi hồi quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-006
+    title: Ghi rõ phần ngoài phạm vi cùng lý do và tác động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-007
+    title: Xác định thành phần kiểm tra trực tiếp và thành phần chỉ kiểm chứng qua hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-008
+    title: Quản lý giả định về dịch vụ bên ngoài và hệ thống dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-009
+    title: Liên kết phạm vi với yêu cầu, rủi ro và giới hạn nguồn lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-010
+    title: Rà soát khoảng trống hoặc trùng lặp giữa các nhóm phụ trách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: risks
+  title: Rủi ro
+  childs:
+  - slug: risks-001
+    title: Phân biệt rủi ro chất lượng sản phẩm với rủi ro thực hiện dự án
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-002
+    title: Nhận diện rủi ro từ người dùng, nghiệp vụ, kiến trúc và lịch sử sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-003
+    title: Đánh giá khả năng xảy ra và mức tác động theo thang phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-004
+    title: Ghi nhận độ bất định và giới hạn của việc chấm điểm rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-005
+    title: Xây danh mục rủi ro và xác định người phụ trách theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-006
+    title: Chọn độ sâu kiểm thử theo mức rủi ro và khả năng phát hiện lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-007
+    title: Phân bổ nguồn lực vào vùng quan trọng hoặc thay đổi nhiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-008
+    title: Phân biệt giảm thiểu bằng kiểm thử với biện pháp thiết kế, vận hành và phòng ngừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-009
+    title: Theo dõi rủi ro còn lại sau khi thực hiện các hoạt động kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-010
+    title: Cập nhật đánh giá khi có bằng chứng mới hoặc thay đổi phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-011
+    title: Trình bày phần rủi ro được chấp nhận và người có thẩm quyền quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: approach
+  title: Cách tiếp cận
+  childs:
+  - slug: approach-001
+    title: Lựa chọn cách tiếp cận từ mục tiêu, rủi ro và bối cảnh thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-002
+    title: Kiểm thử dựa trên yêu cầu và tiêu chí chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-003
+    title: Kiểm thử dựa trên rủi ro và lịch sử lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-004
+    title: Kiểm thử dựa trên mô hình trạng thái, quy tắc hoặc luồng nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-005
+    title: Kiểm thử dựa trên kinh nghiệm và giả thuyết về lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-006
+    title: Sử dụng danh sách kiểm tra hoặc quy trình theo nhu cầu chứng minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-007
+    title: Kết hợp đặc tả sẵn với khám phá trong quá trình thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-008
+    title: Phối hợp kiểm thử tĩnh, kiểm thử động và phản hồi từ vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-009
+    title: So sánh các phương án theo hiệu quả phát hiện lỗi và chi phí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-010
+    title: Ghi lại lý do lựa chọn và điều kiện cần xem xét lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-allocation
+  title: Phân bổ kiểm thử
+  childs:
+  - slug: testing-allocation-001
+    title: Phân biệt cấp độ kiểm thử, loại kiểm thử và kỹ thuật thiết kế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-002
+    title: Phân bổ mục tiêu giữa đơn vị, tích hợp, hệ thống và chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-003
+    title: Vị trí của E2E trong danh mục kiểm chứng hành trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-004
+    title: Sử dụng mô hình kim tự tháp kiểm thử để thảo luận phân bổ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-005
+    title: Sử dụng testing quadrants để nhìn các mục tiêu và hoạt động bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-006
+    title: Điều chỉnh mô hình theo kiến trúc thay vì áp tỷ lệ ca cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-007
+    title: Phối hợp kiểm tra hộp đen, hộp trắng và thông tin nội bộ bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-008
+    title: Giảm kiểm tra trùng mục tiêu giữa nhiều tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-009
+    title: Nhận diện rủi ro chưa được một tầng nào chịu trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-allocation-010
+    title: Đánh đổi giữa cô lập, độ giống thực tế, tốc độ và khả năng chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: development-lifecycle
+  title: Vòng đời phát triển
+  childs:
+  - slug: development-lifecycle-001
+    title: Thiết kế hoạt động kiểm thử trong mô hình tuần tự, lặp và gia tăng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-002
+    title: Đưa phân tích rủi ro và tiêu chí chấp nhận vào giai đoạn làm rõ yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-003
+    title: Thực hiện kiểm tra sớm với yêu cầu, thiết kế và mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-004
+    title: Vị trí của TDD, BDD và ATDD trong chiến lược phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-005
+    title: Phối hợp kiểm thử trong nhóm Agile và chu trình DevOps
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-006
+    title: Chọn thời điểm đánh giá bảo mật, hiệu năng và độ tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-007
+    title: Phản hồi từ production và vai trò của kiểm chứng sau triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-008
+    title: Tích hợp hoạt động kiểm thử vào định nghĩa hoàn thành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-lifecycle-009
+    title: Điều chỉnh chiến lược theo nhịp phát hành và thay đổi của sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-testing
+  title: Kiểm thử tĩnh
+  childs:
+  - slug: static-testing-001
+    title: Lựa chọn sản phẩm công việc cần rà soát trước khi thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-testing-002
+    title: Rà soát yêu cầu, tiêu chí chấp nhận và thiết kế theo rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-testing-003
+    title: Phối hợp rà soát mã với phân tích tĩnh tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-testing-004
+    title: Phân biệt kiểm tra quy ước, dấu hiệu lỗi và vấn đề kiến trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-testing-005
+    title: Xác định mức bắt buộc và cách xử lý cảnh báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-testing-006
+    title: Phân công người rà soát và mức độc lập cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-testing-007
+    title: Theo dõi kết quả rà soát và chuyển vấn đề thành hành động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-testing-008
+    title: Đánh giá giới hạn của phân tích tĩnh so với kiểm chứng khi chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unit-and-integration
+  title: Đơn vị và tích hợp
+  childs:
+  - slug: unit-and-integration-001
+    title: Xác định đơn vị hành vi và ranh giới cần cô lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-002
+    title: Đưa quy tắc nghiệp vụ chi tiết vào tầng kiểm tra phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-003
+    title: Lựa chọn kiểm chứng trạng thái hoặc tương tác theo rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-004
+    title: Chọn mock, stub, fake hoặc thành phần phụ thuộc thật theo mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-005
+    title: Phân biệt tích hợp giữa thành phần và tích hợp giữa hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-006
+    title: Kiểm tra giao tiếp với cơ sở dữ liệu, bộ nhớ đệm và hàng đợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-007
+    title: Lựa chọn container, trình mô phỏng hoặc môi trường dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-008
+    title: Đánh giá sai lệch giữa thành phần thay thế với môi trường thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-009
+    title: Phân công trách nhiệm kiểm tra lỗi tại từng điểm tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unit-and-integration-010
+    title: Đặt ngân sách thời gian và tiêu chí độc lập cho từng nhóm kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-and-contracts
+  title: API và hợp đồng
+  childs:
+  - slug: api-and-contracts-001
+    title: Xác định hợp đồng tại ranh giới dịch vụ và đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-002
+    title: Chọn phạm vi kiểm tra schema, ngữ nghĩa và lỗi của API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-003
+    title: Phối hợp kiểm thử từ phía cung cấp với phía sử dụng hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-004
+    title: Đánh giá thay đổi tương thích và thay đổi phá vỡ hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-005
+    title: Lựa chọn kiểm thử hợp đồng hướng người tiêu thụ khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-006
+    title: Kiểm tra hợp đồng của message và sự kiện bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-007
+    title: Xác định bằng chứng còn cần từ tích hợp thật hoặc luồng đầu cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-008
+    title: Quản lý phiên bản hợp đồng và phối hợp lịch phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-009
+    title: Chia sẻ trách nhiệm khi dịch vụ hoặc nhóm khác thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-and-e2e
+  title: Hệ thống và E2E
+  childs:
+  - slug: system-and-e2e-001
+    title: Xác định mục tiêu kiểm thử toàn hệ thống và hành trình đầu cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-002
+    title: Chọn luồng cốt lõi từ góc nhìn người dùng hoặc tác nhân bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-003
+    title: Lựa chọn điểm bắt đầu và kết quả kết thúc có thể quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-004
+    title: Chọn kiểm chứng qua UI, API hoặc phối hợp các giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-005
+    title: Xác định thành phần thật và phần được mô phỏng trong từng môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-006
+    title: Kiểm tra hành trình có xác thực, dữ liệu và tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-007
+    title: Lập phạm vi cho luồng bất đồng bộ hoặc đi qua nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-008
+    title: Giới hạn số ca theo giá trị phát hiện lỗi và khả năng duy trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-009
+    title: Đánh giá độ ổn định và chi phí môi trường của nhóm kiểm thử rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-and-e2e-010
+    title: Ghi rõ giới hạn kết luận của luồng đã được kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-acceptance
+  title: Chấp nhận sản phẩm
+  childs:
+  - slug: product-acceptance-001
+    title: Xác định người đại diện nhu cầu sử dụng và quyền chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-002
+    title: Thống nhất tiêu chí chấp nhận trước khi phát triển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-003
+    title: Liên kết ví dụ nghiệp vụ với hành vi có thể quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-004
+    title: Phân biệt chấp nhận của người dùng với hoàn tất kiểm tra kỹ thuật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-005
+    title: Lựa chọn hoạt động UAT phù hợp với người dùng và môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-006
+    title: Kiểm tra mức sẵn sàng vận hành cùng nhóm phụ trách hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-007
+    title: Lập lịch tham gia của bên liên quan và xử lý phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-008
+    title: Đánh giá tiêu chí chưa rõ hoặc chưa có bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-acceptance-009
+    title: Ghi nhận chấp nhận có điều kiện và các hành động còn lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: non-functional-testing
+  title: Phi chức năng
+  childs:
+  - slug: non-functional-testing-001
+    title: Chuyển mục tiêu tốc độ và công suất thành phạm vi kiểm thử hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-002
+    title: Chọn mô hình tải và dữ liệu phù hợp với nhu cầu sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-003
+    title: Xác định phạm vi kiểm tra bảo mật từ tài sản và mối đe dọa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-004
+    title: Lựa chọn bằng chứng về chịu lỗi, phục hồi và độ sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-005
+    title: Kiểm tra sao lưu, khôi phục và mục tiêu phục hồi theo yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-006
+    title: Lập ma trận tương thích giữa nền tảng, phiên bản và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-007
+    title: Kết hợp đánh giá khả năng sử dụng với người dùng đại diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-008
+    title: Xác định yêu cầu và phạm vi kiểm tra khả năng truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-009
+    title: Đánh giá khả năng bảo trì, triển khai và quan sát hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-010
+    title: Phân bổ môi trường và chuyên môn cho các kiểm tra chuyên sâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-testing-011
+    title: Xác định ngưỡng và điều kiện đo riêng cho từng thuộc tính chất lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coverage-design
+  title: Thiết kế bao phủ
+  childs:
+  - slug: coverage-design-001
+    title: Liên kết yêu cầu, rủi ro, điều kiện kiểm thử và bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-002
+    title: Xác định tiêu chí bao phủ theo chức năng, luồng và trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-003
+    title: Chọn phân vùng tương đương và giá trị biên theo loại dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-004
+    title: Chọn bảng quyết định hoặc mô hình trạng thái cho quy tắc nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-005
+    title: Chọn tổ hợp cấu hình theo rủi ro và tương tác cần kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-006
+    title: Lựa chọn tiêu chí cấu trúc mã phù hợp với mức độ quan trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-007
+    title: Đánh giá chất lượng bộ kiểm thử bằng kiểm thử đột biến (mutation testing) khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-008
+    title: Sử dụng lỗi lịch sử để bổ sung điều kiện kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-009
+    title: Xác định nguồn xác nhận kết quả mong đợi cho dữ liệu khó dự đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-010
+    title: Nhận diện giới hạn của số ca, tỷ lệ thành công và độ bao phủ mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-design-011
+    title: Rà soát vùng chưa bao phủ và lý do chấp nhận khoảng trống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: manual-and-exploratory
+  title: Thủ công và khám phá
+  childs:
+  - slug: manual-and-exploratory-001
+    title: Xác định công việc cần nhận định của con người
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-002
+    title: Lập mục tiêu và phạm vi phiên kiểm thử khám phá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-003
+    title: Kết hợp kiến thức người dùng, rủi ro và kinh nghiệm lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-004
+    title: Phân bổ thời gian khám phá trong vòng lặp phát triển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-005
+    title: Ghi chép giả thuyết, thao tác, bằng chứng và phát hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-006
+    title: Lựa chọn cặp phối hợp giữa phát triển, kiểm thử và nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-007
+    title: Chuyển phát hiện có giá trị thành hồi quy phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-008
+    title: Đánh giá mức bao phủ khám phá và thông tin còn thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-exploratory-009
+    title: Cân đối kiểm thử có kịch bản với khám phá theo tình huống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-automation
+  title: Tự động hóa
+  childs:
+  - slug: test-automation-001
+    title: Xác định mục tiêu tự động hóa và vấn đề cần cải thiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-002
+    title: Lựa chọn ca theo tần suất chạy, độ ổn định và giá trị phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-003
+    title: Phân tích chi phí xây dựng, vận hành và bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-004
+    title: Chọn tầng tự động hóa phù hợp với hành vi cần kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-005
+    title: Đánh giá công cụ theo khả năng tích hợp, kỹ năng và vòng đời hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-006
+    title: Thử nghiệm nhỏ trước khi mở rộng phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-007
+    title: Thiết kế mã kiểm thử, dữ liệu và các lớp hỗ trợ có thể duy trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-008
+    title: Đặt yêu cầu về tính xác định, độc lập và khả năng chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-009
+    title: Quản lý kiểm thử thiếu ổn định (flaky test) và chính sách chạy lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-010
+    title: Xác định người sở hữu và ngân sách bảo trì bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-automation-011
+    title: Đo hiệu quả tự động hóa bằng phản hồi và lỗi được phát hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testability
+  title: Khả năng kiểm thử
+  childs:
+  - slug: testability-001
+    title: Đánh giá khả năng điều khiển đầu vào và quan sát kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-002
+    title: Thiết kế điểm giao tiếp giúp kiểm tra hành vi độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-003
+    title: Tách phụ thuộc để kiểm soát thời gian, ngẫu nhiên và dịch vụ ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-004
+    title: Bổ sung log, chỉ số và định danh tương quan phục vụ chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-005
+    title: Xác định cơ chế chuẩn bị và đặt lại trạng thái kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-006
+    title: Thiết kế healthcheck và điều kiện sẵn sàng của môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-007
+    title: Kiểm soát phạm vi và quyền của giao diện hỗ trợ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-008
+    title: Đưa yêu cầu về khả năng kiểm thử vào thiết kế và rà soát kiến trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-009
+    title: Ưu tiên cải tiến sản phẩm khi chi phí kiểm tra xuất phát từ thiết kế khó quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Xác định loại dữ liệu và trạng thái cần cho từng mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Chọn dữ liệu tổng hợp, dữ liệu mẫu hoặc dữ liệu đã khử nhận dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: Thiết kế dữ liệu cho trường hợp biên, lỗi và khối lượng lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: Quản lý tài khoản, vai trò, vùng khách hàng (tenant) và quan hệ giữa các thực thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Cô lập dữ liệu giữa ca, nhóm thực thi và môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Thiết kế tạo mới, đặt lại, dọn dẹp và thời hạn tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Kiểm soát thời gian, locale và yếu tố ngẫu nhiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Quản lý phiên bản dữ liệu cùng schema và ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-009
+    title: Xác định quyền truy cập, trách nhiệm quản lý và giới hạn chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-010
+    title: Đánh giá độ đại diện và các sai lệch của dữ liệu được chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-environment
+  title: Môi trường kiểm thử
+  childs:
+  - slug: test-environment-001
+    title: Xác định môi trường cần cho từng cấp độ và loại kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-002
+    title: Chọn môi trường riêng, dùng chung hoặc tạm theo lần chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-003
+    title: Đánh giá mức tương đồng cần thiết với production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-004
+    title: Cố định phiên bản ứng dụng, công cụ, thành phần phụ thuộc và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-005
+    title: Lựa chọn dịch vụ thật, sandbox hoặc mô phỏng theo mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-006
+    title: Quản lý mạng, chứng chỉ, bí mật và quyền truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-007
+    title: Thiết kế cấp phát, kiểm tra sẵn sàng và thu hồi môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-008
+    title: Phân bổ năng lực cho kiểm thử tải hoặc chạy đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-009
+    title: Theo dõi sai lệch cấu hình và sự cố hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-010
+    title: Xác định giới hạn bằng chứng do điều kiện môi trường khác thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-011
+    title: Lập phương án dự phòng khi môi trường hoặc dịch vụ bên ngoài không sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: regression-testing
+  title: Hồi quy
+  childs:
+  - slug: regression-testing-001
+    title: Phân biệt kiểm thử xác nhận bản sửa với kiểm thử hồi quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-002
+    title: Phân tích ảnh hưởng từ thay đổi mã, cấu hình, dữ liệu và thành phần phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-003
+    title: Xây bộ smoke, hồi quy cốt lõi và hồi quy mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-004
+    title: Ưu tiên ca theo rủi ro, vùng thay đổi và lịch sử lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-005
+    title: Lựa chọn bộ kiểm thử theo tác động và kiểm tra giới hạn của lựa chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-006
+    title: Lập lịch chạy thường xuyên và chạy đầy đủ định kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-007
+    title: Thêm hồi quy cho lỗi thực tế ở tầng phát hiện phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-008
+    title: Loại bỏ ca trùng mục tiêu hoặc không còn tương ứng với sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-009
+    title: Quản lý thời gian chạy và dữ liệu cho bộ kiểm thử tăng dần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-010
+    title: Xác định phần hồi quy chưa chạy và rủi ro còn lại của bản phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-integration-and-delivery
+  title: CI/CD
+  childs:
+  - slug: continuous-integration-and-delivery-001
+    title: Phân bổ kiểm tra theo thời điểm commit, pull request, tích hợp và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-002
+    title: Đặt các kiểm tra phản hồi nhanh vào giai đoạn sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-003
+    title: Chạy kiểm tra rộng trên sản phẩm đã đóng gói và triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-004
+    title: Thiết kế ma trận môi trường và giới hạn số tổ hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-005
+    title: Tách lỗi sản phẩm, lỗi kiểm thử và lỗi hạ tầng trong kết quả pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-006
+    title: Chạy song song hoặc chia bộ kiểm thử theo ngân sách tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-007
+    title: Quản lý artifact, log, báo cáo và truy vết phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-008
+    title: Thiết kế cách xử lý timeout, hủy và dọn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-009
+    title: Xác định trách nhiệm khôi phục pipeline khi kiểm tra thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-integration-and-delivery-010
+    title: Đối chiếu điều kiện chạy cục bộ với môi trường CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-criteria
+  title: Tiêu chí chất lượng
+  childs:
+  - slug: quality-criteria-001
+    title: Định nghĩa điều kiện bắt đầu cho từng hoạt động kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-002
+    title: Xác định tiêu chí hoàn tất gắn với mục tiêu và rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-003
+    title: Đặt ngưỡng chấp nhận lỗi theo tác động và khả năng khắc phục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-004
+    title: Đặt ngưỡng hiệu năng, độ tin cậy và bảo mật theo bối cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-005
+    title: Quy định bằng chứng bắt buộc và điều kiện đo hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-006
+    title: Thiết kế điểm chặn chất lượng (quality gate) với kết quả rõ ràng và người chịu trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-007
+    title: Phân biệt tiêu chí chưa đạt với dữ liệu đánh giá chưa có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-008
+    title: Quản lý ngoại lệ có thời hạn và biện pháp giảm thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-009
+    title: Xác định quyền chấp nhận rủi ro và quyền quyết định phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-criteria-010
+    title: Rà soát tiêu chí khi mục tiêu hoặc điều kiện sản phẩm thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources
+  title: Nguồn lực
+  childs:
+  - slug: resources-001
+    title: Phân rã công việc theo phân tích, chuẩn bị, thực thi và bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-002
+    title: Ước lượng theo kinh nghiệm, công việc tương tự và tham vấn nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-003
+    title: Sử dụng ước lượng ba điểm khi cần thể hiện độ bất định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-004
+    title: Tính thời gian cho dữ liệu, môi trường, điều tra và sửa bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-005
+    title: Phân biệt công sức thực hiện với thời gian chờ theo lịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-006
+    title: Xác định kỹ năng chuyên sâu và khả năng đáp ứng của nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-007
+    title: Lập ngân sách công cụ, hạ tầng và dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-008
+    title: Dành năng lực cho kiểm tra lại, hồi quy và thay đổi đột xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-009
+    title: Điều chỉnh phạm vi theo nguồn lực và công khai rủi ro phát sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responsibilities
+  title: Trách nhiệm
+  childs:
+  - slug: responsibilities-001
+    title: Xác định trách nhiệm của phát triển, kiểm thử, nghiệp vụ và vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-002
+    title: Thống nhất người sở hữu từng nhóm bằng chứng và bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-003
+    title: Chọn mức độc lập kiểm thử phù hợp với rủi ro sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-004
+    title: Phối hợp với bảo mật, hiệu năng, trải nghiệm và bên thứ ba
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-005
+    title: Xây ma trận trách nhiệm và cơ chế bàn giao rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-006
+    title: Thiết kế kênh phản hồi nhanh khi yêu cầu hoặc kết quả chưa rõ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-007
+    title: Chia sẻ kiến thức và giảm phụ thuộc vào một cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-008
+    title: Thống nhất quyền phê duyệt thay đổi chiến lược và chấp nhận ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-009
+    title: Đánh giá năng lực nhóm và kế hoạch phát triển kỹ năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: defects-and-incidents
+  title: Lỗi và sự cố
+  childs:
+  - slug: defects-and-incidents-001
+    title: Thống nhất quy trình ghi nhận, phân loại và xử lý lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-002
+    title: Phân biệt mức nghiêm trọng với mức ưu tiên sửa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-003
+    title: Xác định dữ liệu cần có để tái hiện và đánh giá tác động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-004
+    title: Tổ chức đánh giá lỗi với các bên có quyền quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-005
+    title: Liên kết lỗi với yêu cầu, rủi ro, bản build và bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-006
+    title: Đặt tiêu chí kiểm tra lại và đóng lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-007
+    title: Xử lý lỗi không ổn định hoặc chỉ xuất hiện trong môi trường thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-008
+    title: Chuyển sự cố production thành thông tin điều chỉnh chiến lược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-009
+    title: Phân tích nguyên nhân lọt lỗi và hành động phòng ngừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-incidents-010
+    title: Quản lý lỗi tồn đọng và rủi ro được chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement
+  title: Đo lường
+  childs:
+  - slug: measurement-001
+    title: Chọn chỉ số từ mục tiêu và câu hỏi cần trả lời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-002
+    title: Theo dõi bao phủ yêu cầu, rủi ro và hành trình quan trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-003
+    title: Đo thời gian có phản hồi và độ tin cậy của kết quả kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-004
+    title: Theo dõi tỷ lệ thiếu ổn định và chi phí chạy lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-005
+    title: Đánh giá lỗi được phát hiện sớm và lỗi lọt ra production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-006
+    title: Đo thời gian điều tra, sửa lỗi và khôi phục pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-007
+    title: Đánh giá công sức bảo trì và chi phí hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-008
+    title: Phân biệt tiến độ thực hiện với bằng chứng về chất lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-009
+    title: Đọc xu hướng theo phiên bản và ghi rõ điều kiện so sánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-010
+    title: Nhận diện chỉ số dễ bị tối ưu sai hoặc thiếu ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-011
+    title: Trình bày độ bất định, khoảng trống và giới hạn suy luận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-and-operations
+  title: Phát hành và vận hành
+  childs:
+  - slug: release-and-operations-001
+    title: Tổng hợp bằng chứng kiểm thử cho bản phát hành cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-002
+    title: Đối chiếu tiêu chí chất lượng và các ngoại lệ còn hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-003
+    title: Trình bày rủi ro còn lại cùng phương án giảm thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-004
+    title: Xác minh migration, cấu hình và khả năng tương thích khi triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-005
+    title: Lựa chọn smoke sau triển khai và kiểm tra mức sẵn sàng vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-006
+    title: Phối hợp triển khai từng phần, canary hoặc cờ tính năng (feature flag) theo khả năng hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-007
+    title: Xác định tín hiệu dừng, quay lui hoặc khôi phục theo kế hoạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-008
+    title: Phân biệt kiểm thử sau triển khai với giám sát liên tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-009
+    title: Thu nhận phản hồi người dùng và dữ liệu sự cố để bổ sung bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-and-operations-010
+    title: Liên kết quyết định phát hành với người chịu trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strategy-documentation
+  title: Tài liệu chiến lược
+  childs:
+  - slug: strategy-documentation-001
+    title: Chọn mức tài liệu phù hợp với nhóm, rủi ro và yêu cầu chứng minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-002
+    title: Mô tả bối cảnh, mục tiêu, phạm vi và giả định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-003
+    title: Ghi danh mục rủi ro và lý do chọn cách tiếp cận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-004
+    title: Thể hiện phân bổ cấp độ, loại kiểm thử và kỹ thuật chính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-005
+    title: Mô tả dữ liệu, môi trường, công cụ và trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-006
+    title: Ghi lịch phản hồi, nguồn lực, tiêu chí và cách báo cáo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-007
+    title: Liên kết chiến lược với kế hoạch và bằng chứng thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-008
+    title: Ghi quyết định, phương án bị loại và điều kiện xem xét lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-009
+    title: Quản lý phiên bản, người rà soát và lịch cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-documentation-010
+    title: Đánh giá tính nhất quán và khả năng thực hiện của tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-management
+  title: Quản lý thay đổi
+  childs:
+  - slug: change-management-001
+    title: Xác định sự kiện cần xem xét lại chiến lược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-002
+    title: Đánh giá tác động khi yêu cầu, kiến trúc hoặc thành phần phụ thuộc thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-003
+    title: Cập nhật rủi ro và phân bổ kiểm thử theo bằng chứng mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-004
+    title: Sử dụng hồi cứu để phát hiện điểm nghẽn và vùng lọt lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-005
+    title: Ưu tiên cải tiến theo tác động và công sức thực hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-006
+    title: Thử nghiệm thay đổi ở phạm vi nhỏ với tiêu chí đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-007
+    title: Đo hiệu quả trước và sau trong điều kiện so sánh phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-008
+    title: Quản lý nợ kiểm thử và kế hoạch xử lý dài hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-009
+    title: Duy trì chiến lược phù hợp với sản phẩm đang vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-architecture
+  title: Kiến trúc đặc thù
+  childs:
+  - slug: specialized-architecture-001
+    title: Thiết kế chiến lược cho thư viện Java có nhiều bên sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-002
+    title: Thiết kế chiến lược cho ứng dụng Spring Boot nguyên khối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-003
+    title: Phân bổ bằng chứng cho hệ thống microservices và nhiều nhóm phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-004
+    title: Kiểm chứng hệ thống hướng sự kiện với kết quả nhất quán sau một khoảng thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-005
+    title: Ưu tiên kiểm thử khi cải tiến hệ thống cũ thiếu bộ hồi quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-006
+    title: Kiểm thử chuyển đổi schema, dữ liệu và phiên bản ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-007
+    title: Điều chỉnh chiến lược cho hệ thống nhiều tenant và nhiều cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-008
+    title: Chọn ma trận cho sản phẩm web hoặc di động có nhiều môi trường sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-009
+    title: Xác định bằng chứng cho nền tảng đám mây với thành phần do nhà cung cấp quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-architecture-010
+    title: Điều chỉnh mức kiểm chứng cho chức năng có hậu quả sai sót nghiêm trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Phân tích bối cảnh và xác định mục tiêu chất lượng cho một sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Lập danh mục rủi ro cùng mức ưu tiên và người theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Xác định phạm vi, phần loại trừ và giả định cần kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Chọn cách tiếp cận và phân bổ mục tiêu giữa các tầng kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Thiết kế chiến lược cho chức năng mới có nhiều điểm tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Lập phương án dữ liệu, môi trường và dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Xây lịch phản hồi và điểm chặn chất lượng cho một pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Ước lượng nguồn lực với giới hạn thời gian được giao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Đánh giá chiến lược đang phụ thuộc quá nhiều vào E2E hoặc kiểm thử thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Phân tích một sự cố lọt lỗi và đề xuất thay đổi có bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Soạn tài liệu chiến lược ngắn gọn với các quyết định có lý do
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Rà soát chiến lược với góc nhìn nghiệp vụ, phát triển và vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-013
+    title: Trình bày quyết định phát hành khi bằng chứng hoặc nguồn lực chưa đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

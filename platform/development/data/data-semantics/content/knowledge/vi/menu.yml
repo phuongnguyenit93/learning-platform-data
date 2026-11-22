@@ -1,0 +1,331 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Ngữ nghĩa dữ liệu (data semantics) là gì và vì sao cùng một giá trị có thể mang nhiều ý nghĩa
+  - Phân biệt dữ liệu, thông tin, biểu diễn và ý nghĩa trong ngữ cảnh sử dụng
+  - Phân biệt cú pháp hợp lệ, cấu trúc phù hợp và ý nghĩa đúng
+  - 'Đơn vị ý nghĩa: giá trị, thuộc tính, bản ghi, quan hệ và tập dữ liệu'
+  - Vai trò của ngữ cảnh nghiệp vụ, thời gian, nguồn và người sử dụng
+  - Phân biệt ngữ nghĩa dữ liệu với mô hình hóa, chất lượng và hợp đồng dữ liệu
+  - 'Ví dụ xuyên suốt: khách hàng, đơn hàng, thanh toán và các cách hiểu sai'
+  - Lộ trình từ định nghĩa thuật ngữ đến biểu diễn, xử lý và kiểm chứng ý nghĩa
+- level1: Ngữ cảnh và thuật ngữ
+  level2:
+  - Xác định câu hỏi nghiệp vụ trước khi đặt tên trường dữ liệu
+  - Định nghĩa thuật ngữ bằng ý nghĩa, phạm vi áp dụng và ví dụ phản chứng
+  - Từ đồng nghĩa, từ đa nghĩa và những tên trường dễ gây hiểu nhầm
+  - Phân biệt người dùng, tài khoản, khách hàng và chủ thể thanh toán
+  - Ngữ cảnh giới hạn (bounded context) và cùng một thuật ngữ trong nhiều miền
+  - Tách nghĩa nghiệp vụ khỏi tên bảng, tên cột và tên lớp triển khai
+  - Xây dựng bảng thuật ngữ dùng chung và chỉ định người chịu trách nhiệm
+  - Quản lý từ viết tắt, tên thay thế và bản dịch thuật ngữ
+  - Phát hiện giả định ngầm trong tên gọi như active, total, latest và valid
+- level1: Mô hình ý nghĩa
+  level2:
+  - Khái niệm, thuộc tính, quan hệ và quy tắc tạo nên ý nghĩa của dữ liệu
+  - Phân biệt thực thể (entity), đối tượng giá trị (value object) và sự kiện
+  - Phân biệt giá trị gốc, giá trị suy ra và giá trị được tổng hợp
+  - Ý nghĩa của miền giá trị và giới hạn của kiểu dữ liệu kỹ thuật
+  - 'Độ hạt (grain): một bản ghi đại diện cho điều gì'
+  - Phân biệt ảnh chụp trạng thái, lịch sử thay đổi và sự kiện xảy ra
+  - Tính bắt buộc, tính duy nhất và số lượng liên kết theo ngữ cảnh
+  - Thể hiện giả định, giới hạn và ngoại lệ của mô hình
+  - Nhận diện mất thông tin khi nhiều khái niệm bị gộp vào cùng một trường
+- level1: Định danh
+  level2:
+  - Phân biệt định danh (identity), tên hiển thị và giá trị thuộc tính
+  - 'Phạm vi duy nhất: trong bảng, trong miền, trong tổ chức hay toàn hệ thống'
+  - Khóa tự nhiên, khóa thay thế và tính ổn định của định danh
+  - Định danh bên ngoài, định danh nội bộ và bảng đối chiếu giữa nguồn
+  - Không gian tên và định danh ghép để tránh nhầm chủ thể
+  - Số có số 0 ở đầu và lý do mã định danh không nhất thiết là số học
+  - Ý nghĩa của UUID và giới hạn khi suy luận nghiệp vụ từ một định danh
+  - Hợp nhất, tách và thay thế định danh khi chủ thể thay đổi
+  - Phân biệt hai bản ghi trùng lặp với hai chủ thể khác nhau có thuộc tính giống nhau
+  - Tham chiếu tới chủ thể hiện tại hoặc tới một phiên bản lịch sử cụ thể
+- level1: Miền giá trị
+  level2:
+  - Phân loại dữ liệu theo ý nghĩa thay vì chỉ theo kiểu chuỗi hoặc kiểu số
+  - Thang đo phân loại, thứ bậc, khoảng và tỷ lệ
+  - Phép toán nào có ý nghĩa với từng loại thang đo
+  - 'Mã, nhãn và mô tả: giá trị lưu trữ khác với nội dung hiển thị'
+  - Giá trị rời rạc, liên tục và các giả định khi biểu diễn trên máy tính
+  - Miền đóng, miền mở và khả năng xuất hiện giá trị mới
+  - Giá trị hợp lệ về cấu trúc nhưng vô nghĩa trong một miền cụ thể
+  - Kiểu mang ý nghĩa như CustomerId, Quantity, Money và EmailAddress
+  - Tránh dùng chung String hoặc số nguyên cho những khái niệm không thể thay thế nhau
+- level1: Giá trị thiếu
+  level2:
+  - Phân biệt không biết, chưa thu thập, không áp dụng và chưa được xác định
+  - Phân biệt dữ liệu bị che, bị xóa và không đủ quyền truy cập
+  - Trường vắng mặt, null, chuỗi rỗng, tập hợp rỗng và khoảng trắng
+  - Giá trị 0 hoặc false không mặc nhiên có nghĩa là thiếu dữ liệu
+  - Giá trị đánh dấu như -1, N/A và ngày giả cùng nguy cơ gây hiểu sai
+  - Giá trị mặc định và việc mất dấu khác biệt giữa người dùng nhập với hệ thống tự gán
+  - Biểu diễn giá trị tùy chọn bằng Optional và giới hạn của từng vị trí sử dụng
+  - Logic ba giá trị trong SQL và tác động của NULL lên lọc hoặc so sánh
+  - Truyền giá trị thiếu qua phép tính, phép nối và tổng hợp
+  - Thiết kế lý do thiếu dữ liệu và quy tắc chuyển đổi giữa các hệ thống
+- level1: Giá trị trong Java
+  level2:
+  - Kiểu nguyên thủy, kiểu tham chiếu và ý nghĩa của giá trị khởi tạo mặc định
+  - Kiểu bao và nguy cơ mất ý nghĩa khi tự mở hộp giá trị null
+  - Đối tượng bất biến và khả năng giữ ổn định ý nghĩa sau khi khởi tạo
+  - Thiết kế đối tượng giá trị để chỉ biểu diễn trạng thái có ý nghĩa
+  - Java record và giới hạn của tính bất biến khi thành phần chứa đối tượng có thể sửa
+  - Sao chép phòng vệ cho tập hợp, mảng và đối tượng thời gian kiểu cũ
+  - Phân biệt cùng tham chiếu, cùng giá trị và cùng chủ thể nghiệp vụ
+  - Tách cách biểu diễn trong DTO khỏi ý nghĩa trong mô hình miền
+  - Giới hạn của annotation và tên kiểu khi quy tắc miền chưa được thực thi
+- level1: Bằng nhau và sắp thứ tự
+  level2:
+  - 'Ba câu hỏi khác nhau: cùng đối tượng, cùng giá trị và tương đương theo nghiệp vụ'
+  - Phân biệt == và equals với các kiểu dữ liệu Java
+  - Hợp đồng equals và hashCode khi biểu diễn giá trị hoặc thực thể
+  - Định danh chưa được gán, kế thừa và những khó khăn khi so sánh thực thể
+  - Thuộc tính có thể sửa và rủi ro khi dùng đối tượng làm khóa HashMap hoặc phần tử HashSet
+  - Comparable, Comparator và tiêu chí thứ tự có ý nghĩa trong miền
+  - Tính nhất quán giữa so sánh thứ tự và equals trong cấu trúc tập hợp có sắp xếp
+  - So sánh khi có giá trị thiếu, nhiều tiêu chí hoặc mức ưu tiên
+  - Quan hệ tương đương, tính bắc cầu và nguy cơ dùng sai số làm định nghĩa equals
+  - Kiểm chứng hành vi với HashSet, TreeSet, HashMap và TreeMap
+- level1: Số và độ chính xác
+  level2:
+  - Số đếm, đại lượng đo và mã số có ngữ nghĩa khác nhau
+  - Miền biểu diễn, tràn số và mất thông tin khi thu hẹp kiểu
+  - Số dấu phẩy động nhị phân và sự khác nhau giữa giá trị toán học với giá trị lưu trữ
+  - Sai số tuyệt đối, sai số tương đối và lựa chọn tiêu chí gần bằng
+  - NaN, vô cực và số 0 có dấu trong tính toán hoặc so sánh
+  - 'BigDecimal: giá trị số, độ chính xác và thang số'
+  - BigDecimal.equals và compareTo thể hiện hai tiêu chí bằng nhau khác nhau
+  - Tạo BigDecimal từ văn bản, số nguyên hoặc double và tác động đến giá trị
+  - Làm tròn, thời điểm làm tròn và ý nghĩa của RoundingMode
+  - Phép chia, giá trị không biểu diễn chính xác và chính sách chấp nhận sai số
+  - Giữ dấu vết số gốc khi định dạng hoặc làm tròn để hiển thị
+- level1: Đơn vị và tiền tệ
+  level2:
+  - Đại lượng, đơn vị và kích thước vật lý trong mô tả dữ liệu
+  - Giá trị kèm đơn vị và nguy cơ cộng hoặc so sánh khác đơn vị
+  - Chuyển đổi đơn vị theo tỷ lệ và theo điểm gốc
+  - Phân biệt số lượng, tỷ lệ, phần trăm và điểm phần trăm
+  - Tiền tệ là giá trị gắn mã tiền và quy tắc làm tròn
+  - Đơn giá, tổng tiền, thuế, giảm giá và thời điểm tính từng đại lượng
+  - Quy đổi tiền theo nguồn tỷ giá, thời điểm và loại tỷ giá
+  - Phân bổ phần dư làm tròn khi chia tiền cho nhiều dòng
+  - Đơn vị nhỏ nhất dùng trong giao dịch và giới hạn của giả định luôn có hai chữ số thập phân
+  - Biểu diễn kiểu Money hoặc Quantity để ngăn phép toán không có ý nghĩa
+- level1: Văn bản và Unicode
+  level2:
+  - Chuỗi dùng làm nội dung, mã kỹ thuật, tên gọi và định danh
+  - Byte, đơn vị mã UTF-16, điểm mã Unicode và ký tự người dùng nhìn thấy
+  - Độ dài chuỗi Java và lựa chọn cách đếm theo yêu cầu nghiệp vụ
+  - Các dạng chuẩn hóa Unicode và hiện tượng nhìn giống nhưng lưu trữ khác nhau
+  - Chữ hoa thường, dấu tiếng Việt và tiêu chí so sánh theo ngữ cảnh
+  - Khoảng trắng, ký tự không nhìn thấy và nguy cơ thay đổi ý nghĩa khi cắt bỏ
+  - So sánh chuỗi theo mã ký tự và đối chiếu theo ngôn ngữ
+  - Sắp xếp và tìm kiếm bằng Collator với phạm vi sử dụng rõ ràng
+  - Chuẩn hóa tên người, địa chỉ và những thông tin không được tự ý lược bỏ
+  - Phân biệt mã hóa ký tự, giải mã và chuẩn hóa nội dung
+  - Định nghĩa dạng biểu diễn chuẩn cho mã kỹ thuật mà không áp đặt lên mọi văn bản
+- level1: Thời gian
+  level2:
+  - Phân biệt thời điểm, ngày lịch, giờ địa phương và khoảng thời gian
+  - Chọn Instant, LocalDate, LocalTime, LocalDateTime, OffsetDateTime hoặc ZonedDateTime
+  - Múi giờ vùng, độ lệch UTC và lý do hai khái niệm không thể thay thế hoàn toàn
+  - Giờ địa phương bị thiếu hoặc lặp lại khi chuyển giờ theo mùa
+  - Ý nghĩa của thời điểm xảy ra, thời điểm ghi nhận và thời điểm xử lý
+  - Dữ liệu epoch theo giây hoặc mili giây và nguy cơ nhầm đơn vị
+  - Độ chính xác thời gian và mất thông tin khi đổi hệ thống hoặc định dạng
+  - Duration và Period cho hai cách hiểu khác nhau về khoảng thời gian
+  - Ngày sinh, ngày giao dịch và lịch làm việc không mặc nhiên là thời điểm UTC
+  - So sánh cùng thời điểm với so sánh cùng biểu diễn địa phương
+  - Clock và việc tách thời gian hiện tại khỏi quy tắc có thể tái hiện
+- level1: Khoảng và hiệu lực
+  level2:
+  - Khoảng có biên đóng, biên mở và quy ước nửa mở
+  - Ý nghĩa của cận thiếu, khoảng rỗng và khoảng không có giới hạn
+  - Quan hệ giao nhau, chứa nhau, liền kề và có khoảng trống
+  - Hiệu lực từ ngày, đến ngày và quy tắc tại đúng ranh giới
+  - Thời gian hiệu lực nghiệp vụ và thời gian hệ thống biết thông tin
+  - Dữ liệu hai chiều thời gian và câu hỏi đúng tại thời điểm nào
+  - Giá, địa chỉ hoặc trạng thái có hiệu lực theo từng giai đoạn
+  - Điều chỉnh hồi tố và giữ lịch sử thông tin đã từng được tin là đúng
+  - Truy vấn dữ liệu hiện tại, dữ liệu tại một thời điểm và lịch sử thay đổi
+- level1: Mã và trạng thái
+  level2:
+  - Phân biệt mã ổn định, tên hiển thị và mô tả có thể dịch
+  - Enum Java cho miền giá trị đóng và giới hạn khi dữ liệu đến từ bên ngoài
+  - Giá trị chưa nhận diện và chính sách giữ nguyên thay vì đánh mất mã gốc
+  - Nguy cơ dùng ordinal hoặc nhãn hiển thị làm giá trị trao đổi
+  - Mã danh mục, phiên bản danh mục và thời gian có hiệu lực
+  - Trạng thái, cờ boolean và nguy cơ tạo những tổ hợp không có nghĩa
+  - Trạng thái hiện tại khác với sự kiện đã dẫn tới trạng thái đó
+  - Chuyển trạng thái hợp lệ và ý nghĩa của trạng thái kết thúc
+  - Ngừng sử dụng, đổi tên và thay thế mã mà vẫn hiểu được dữ liệu cũ
+  - Quan hệ giữa trạng thái nghiệp vụ và trạng thái kỹ thuật xử lý
+- level1: Tập hợp và quan hệ
+  level2:
+  - Ý nghĩa của danh sách, tập hợp, đa tập và ánh xạ
+  - Thứ tự có ý nghĩa nghiệp vụ hay chỉ do cách lưu trữ tạo ra
+  - Phần tử trùng, định nghĩa trùng và điều kiện được loại bỏ
+  - Tập hợp rỗng khác với tập hợp chưa được cung cấp
+  - Quan hệ một với một, một với nhiều và nhiều với nhiều
+  - Quan hệ có hướng, quan hệ đối xứng và ý nghĩa của vai trò hai đầu
+  - Thứ tự ưu tiên và thứ tự ổn định khi các phần tử có cùng tiêu chí
+  - Ảnh chụp quan hệ tại một thời điểm và quan hệ thay đổi theo thời gian
+  - Tính toàn vẹn tham chiếu và giới hạn của việc chỉ kiểm tra mã tồn tại
+- level1: Phép toán dữ liệu
+  level2:
+  - Lọc dữ liệu theo điều kiện và tác động của giá trị thiếu
+  - Phép chiếu, đổi tên và bỏ trường có thể làm mất ngữ cảnh
+  - Phép nối theo khóa và điều kiện để hai khóa thực sự chỉ cùng một chủ thể
+  - Nối một với nhiều và nguy cơ nhân bản đại lượng
+  - Hợp, giao, hiệu và chính sách giữ phần tử trùng
+  - Phân nhóm theo giá trị gốc, giá trị chuẩn hóa hoặc khoảng
+  - Sắp xếp không đủ tiêu chí và kết quả chọn bản ghi đầu tiên không ổn định
+  - Ý nghĩa của distinct theo toàn bản ghi hoặc theo khóa nghiệp vụ
+  - Phân trang trên dữ liệu thay đổi và giới hạn khi suy luận tính đầy đủ
+  - Phân biệt phép biến đổi giữ nguyên ý nghĩa với phép biến đổi cố ý thay đổi thông tin
+- level1: Sự kiện và thay đổi
+  level2:
+  - Sự kiện như một phát biểu về việc đã xảy ra trong quá khứ
+  - Phân biệt lệnh, sự kiện, ảnh chụp trạng thái và thông báo kỹ thuật
+  - Định danh sự kiện, định danh chủ thể và định danh lần thử xử lý
+  - Sự kiện đến trễ, đến sai thứ tự và ngữ nghĩa của phiên bản
+  - Bản sao thông điệp khác với hai sự kiện nghiệp vụ xảy ra giống nhau
+  - Tính lặp lại không đổi kết quả (idempotency) và tiêu chí nhận diện cùng thao tác
+  - Thời gian sự kiện, thời gian nhận và quy tắc chọn cửa sổ xử lý
+  - Sự kiện sửa sai, thu hồi hoặc bù trừ so với sửa trực tiếp lịch sử
+  - Ý nghĩa của xóa mềm, xóa cứng, bản ghi đánh dấu xóa và sự kiện xóa
+  - Giới hạn suy luận quan hệ nhân quả từ thứ tự nhận hoặc dấu thời gian
+- level1: Cập nhật và hợp nhất
+  level2:
+  - Thay thế toàn bộ, cập nhật một phần và bổ sung dữ liệu
+  - Trường bị bỏ qua, trường được gán null và yêu cầu xóa giá trị
+  - Giá trị hiện tại, giá trị cũ và ngữ cảnh cần có để hiểu một bản cập nhật
+  - Chính sách chọn nguồn ưu tiên khi nhiều hệ thống đưa ra giá trị khác nhau
+  - Giá trị mới nhất theo thời gian nào và những trường hợp đồng hồ không đáng tin cậy
+  - Hợp nhất tập hợp theo thêm, xóa, ghi đè hoặc thay thế hoàn toàn
+  - Tính giao hoán, kết hợp và lặp lại của quy tắc hợp nhất
+  - Phân biệt sửa lỗi dữ liệu, thay đổi nghiệp vụ và chuyển đổi cách biểu diễn
+  - Giữ lịch sử quyết định hợp nhất và khả năng giải thích kết quả
+- level1: Chỉ số và tổng hợp
+  level2:
+  - Định nghĩa chỉ số bằng câu hỏi nghiệp vụ, công thức, phạm vi và đơn vị
+  - Độ hạt của dữ liệu đầu vào và độ hạt của kết quả tổng hợp
+  - Phân biệt số bản ghi, số chủ thể và số lần phát sinh nghiệp vụ
+  - COUNT, SUM và AVG khi có null hoặc không có bản ghi
+  - Tổng, trung bình, trung bình có trọng số và nguy cơ lấy trung bình của các trung bình
+  - Đại lượng cộng được, cộng được theo một số chiều và không cộng được
+  - Tỷ lệ với tử số, mẫu số và tập đối tượng phải được định nghĩa nhất quán
+  - Cửa sổ thời gian, múi giờ, ngày nghiệp vụ và dữ liệu đến trễ
+  - Phân biệt số dư tại thời điểm với dòng phát sinh trong giai đoạn
+  - Trùng lặp, phép nối và bộ lọc có thể làm sai chỉ số mà dữ liệu nguồn vẫn đúng
+  - Giá trị chính xác, xấp xỉ và cách công bố giới hạn của kết quả
+- level1: Nguồn gốc và độ tin cậy
+  level2:
+  - Phân biệt dữ liệu được khai báo, được đo, được suy ra và được dự đoán
+  - Nguồn ghi nhận, phương pháp thu thập và điều kiện quan sát
+  - Nguồn có thẩm quyền và tiêu chí chọn khi nhiều nguồn mâu thuẫn
+  - Dòng dõi dữ liệu (lineage) qua các bước biến đổi và tổng hợp
+  - Giá trị, đơn vị, sai số đo và khoảng bất định
+  - Độ tin cậy của nguồn khác với xác suất đúng của một phát biểu
+  - Độ mới dữ liệu và mốc thời gian dùng để đánh giá
+  - Thông tin chưa xác minh và trạng thái xác minh thay đổi theo thời gian
+  - Giới hạn suy luận khi thiếu nguồn gốc hoặc phương pháp tạo dữ liệu
+- level1: Trao đổi giữa hệ thống
+  level2:
+  - Cùng kiểu và cùng tên trường chưa đảm bảo cùng ý nghĩa
+  - Đối chiếu khái niệm giữa các ngữ cảnh trước khi ánh xạ thuộc tính
+  - Ánh xạ một với một, nhiều với một và các trường hợp mất thông tin
+  - Chuyển đổi mã, đơn vị, múi giờ và giá trị thiếu giữa nguồn với đích
+  - Lớp chuyển đổi bảo vệ mô hình miền khỏi cách hiểu của hệ thống bên ngoài
+  - Tài liệu hóa giả định, giá trị không biểu diễn được và trường hợp phải từ chối
+  - Kiểm tra đi rồi về và giới hạn khi phép chuyển đổi không thể đảo ngược
+  - Tuần tự hóa và giải tuần tự hóa có thể làm mất thang số, kiểu hoặc độ chính xác
+  - Ý nghĩa của null, số lớn và ngày giờ khi trao đổi JSON giữa Java với hệ thống khác
+  - Đồng bộ dữ liệu tham chiếu để các bên cùng hiểu mã và phiên bản
+- level1: Từ vựng và đồ thị
+  level2:
+  - Từ vựng có kiểm soát, bảng phân loại và hệ thống khái niệm
+  - Quan hệ rộng hơn, hẹp hơn, liên quan và tương đương giữa khái niệm
+  - Bản thể (ontology) và phạm vi sử dụng trong mô tả tri thức miền
+  - Phát biểu dưới dạng chủ thể, quan hệ và đối tượng trong RDF
+  - IRI, định danh tài nguyên và phân biệt tài nguyên với nhãn văn bản
+  - Kiểu dữ liệu, thẻ ngôn ngữ và giá trị văn bản trong đồ thị
+  - RDFS, OWL và ý nghĩa của mô tả lớp, thuộc tính hoặc suy luận
+  - Giả định thế giới mở và lý do chưa có phát biểu không đồng nghĩa với sai
+  - Phân biệt suy luận ngữ nghĩa với kiểm tra ràng buộc bằng SHACL
+  - Vai trò của lớp ngữ nghĩa trong thống nhất khái niệm và chỉ số phân tích
+  - Khi nào bảng thuật ngữ đủ dùng và khi nào cần đồ thị tri thức
+- level1: Đặc tả ngữ nghĩa
+  level2:
+  - Viết định nghĩa trường gồm ý nghĩa, đơn vị, phạm vi và nguồn
+  - Đặc tả giá trị thiếu, mặc định, độ chính xác và thời điểm hiệu lực
+  - Tài liệu hóa quan hệ, độ hạt và điều kiện áp dụng của dữ liệu
+  - Dùng ví dụ đúng, phản ví dụ và trường hợp ranh giới để loại bỏ cách hiểu khác nhau
+  - Đưa ngữ nghĩa vào mô tả lược đồ và hợp đồng mà không chỉ dựa vào tên trường
+  - Liên kết thuật ngữ nghiệp vụ với kiểu Java, cột dữ liệu và trường trao đổi
+  - Tách quy tắc định nghĩa ý nghĩa khỏi quy tắc đảm bảo chất lượng
+  - Quản lý câu hỏi chưa thống nhất và ghi lại quyết định về cách hiểu
+  - Danh sách thông tin tối thiểu để người dùng mới đọc đúng một tập dữ liệu
+- level1: Tiến hóa ngữ nghĩa
+  level2:
+  - Thay đổi cách biểu diễn khác với thay đổi ý nghĩa
+  - Đổi đơn vị, đổi mẫu số, đổi múi giờ và các thay đổi khó phát hiện qua lược đồ
+  - Mở rộng danh mục, đổi định nghĩa trạng thái và ảnh hưởng đến dữ liệu lịch sử
+  - Phiên bản định nghĩa nghiệp vụ và thời điểm bắt đầu áp dụng
+  - Giữ khả năng so sánh chỉ số trước và sau khi thay đổi
+  - Chuyển đổi dữ liệu cũ, tính lại dữ liệu suy ra và đánh dấu kết quả theo phiên bản
+  - Triển khai song song hai cách hiểu để đối chiếu trước khi chuyển đổi
+  - Đánh giá bên sử dụng bị ảnh hưởng và công bố hướng dẫn chuyển đổi
+  - Nhận diện độ lệch ngữ nghĩa giữa tài liệu, mã nguồn và dữ liệu thực tế
+- level1: Kiểm chứng ý nghĩa
+  level2:
+  - Biến định nghĩa nghiệp vụ thành ví dụ có thể kiểm thử
+  - Kiểm thử bất biến của đối tượng giá trị và các tổ hợp không có nghĩa
+  - Kiểm thử equals, hashCode, thứ tự và hành vi trong tập hợp Java
+  - Kiểm thử chuyển đổi đơn vị, tiền tệ, làm tròn và bảo toàn độ chính xác
+  - Kiểm thử null, dữ liệu vắng mặt, giá trị mặc định và yêu cầu xóa
+  - Kiểm thử Unicode, ngôn ngữ, múi giờ và ranh giới thời gian
+  - Kiểm thử tính chất của chuẩn hóa, chuyển đổi đi rồi về và hợp nhất
+  - Kiểm thử chỉ số trên dữ liệu nhỏ có kết quả tính tay và có bản ghi trùng
+  - Đối chiếu cùng một khái niệm qua API, sự kiện, lưu trữ và báo cáo
+  - Kiểm tra hồi quy khi thay đổi định nghĩa hoặc chuyển đổi phiên bản
+  - Kết hợp rà soát cùng chuyên gia nghiệp vụ với bằng chứng thực thi
+- level1: Quản trị ngữ nghĩa
+  level2:
+  - Phân công người sở hữu khái niệm, dữ liệu và định nghĩa chỉ số
+  - Quy trình đề xuất, rà soát và phê duyệt thuật ngữ mới
+  - Tra cứu định nghĩa, nguồn gốc và phạm vi sử dụng trong danh mục dữ liệu
+  - Theo dõi cách hiểu khác nhau giữa các nhóm và xử lý xung đột
+  - Phân loại dữ liệu cá nhân, dữ liệu suy ra và dữ liệu có thể tái nhận diện
+  - Ý nghĩa của ẩn danh, dùng mã thay thế và che dữ liệu
+  - Gắn mục đích sử dụng, phạm vi cho phép và thời hạn lưu với dữ liệu
+  - Kiểm soát thay đổi ngữ nghĩa trong quy trình phát hành
+  - Nhận diện sự cố dữ liệu do sai ý nghĩa và lưu lại quyết định khắc phục
+- level1: Lỗi thường gặp
+  level2:
+  - Cùng một trường chứa nhiều loại ý nghĩa tùy bản ghi
+  - Đặt tên đúng nhưng đơn vị, múi giờ hoặc độ hạt không được công bố
+  - Dùng số 0, chuỗi rỗng hoặc giá trị mặc định để che dữ liệu chưa biết
+  - Dùng chung mô hình cho nhiều ngữ cảnh có cách hiểu khác nhau
+  - So sánh giá trị đã định dạng hoặc làm tròn thay cho giá trị nghiệp vụ
+  - Loại trùng trước khi xác định thế nào là cùng một sự kiện hoặc chủ thể
+  - Cộng chỉ số khác đơn vị, khác tiền tệ hoặc khác kỳ hiệu lực
+  - Đổi ý nghĩa trường nhưng giữ nguyên tên và phiên bản hợp đồng
+  - Tự sửa dữ liệu để hợp lệ mà làm mất thông tin gốc
+  - Cho rằng qua được kiểm tra cấu trúc thì dữ liệu đã được hiểu đúng
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập bảng thuật ngữ cho khách hàng, đơn hàng, thanh toán và doanh thu
+  - Xác định định danh, độ hạt và phạm vi hiệu lực của từng loại bản ghi
+  - Thiết kế kiểu Java cho CustomerId, Money, Quantity và khoảng thời gian
+  - Biểu diễn dữ liệu chưa biết, chưa cung cấp và yêu cầu xóa trong cập nhật
+  - Chuẩn hóa văn bản với quy tắc riêng cho tên hiển thị và mã kỹ thuật
+  - Chuyển đổi dữ liệu nhiều nguồn có đơn vị, múi giờ và mã danh mục khác nhau
+  - Thiết kế sự kiện thanh toán với chính sách trùng lặp và sửa sai
+  - Tính doanh thu và số khách hàng với định nghĩa chỉ số có thể kiểm chứng
+  - Nâng cấp định nghĩa chỉ số và đối chiếu kết quả trước với sau thay đổi
+  - Xây dựng bộ kiểm thử ngữ nghĩa và tài liệu giải thích các quyết định
+  - Rà soát toàn bộ luồng dữ liệu bằng danh sách kiểm tra bảo toàn ý nghĩa

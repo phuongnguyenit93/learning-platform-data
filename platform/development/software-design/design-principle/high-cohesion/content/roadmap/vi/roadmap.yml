@@ -1,0 +1,57 @@
+roadmap:
+- id: high-cohesion-la-gi
+  title: High Cohesion là gì?
+  purpose: Hiểu nguyên tắc gom các trách nhiệm liên quan chặt chẽ vào cùng một đơn vị thiết kế.
+  objectives:
+  - Giải thích High và Low Cohesion bằng ví dụ.
+  - Xác định mục đích chính của một lớp.
+  - Phân biệt mức gắn kết với số lượng dòng mã.
+- id: ranh-gioi-trach-nhiem
+  title: Ranh giới trách nhiệm
+  purpose: Nhóm các hành vi thay đổi vì cùng một lý do vào lớp hoặc module phù hợp.
+  objectives:
+  - Liệt kê trách nhiệm của lớp Java mẫu.
+  - Nhóm hành vi theo một mục đích nghiệp vụ.
+  - Liên hệ High Cohesion với nguyên tắc SRP.
+- id: du-lieu-gan-voi-hanh-vi
+  title: Dữ liệu gắn với hành vi
+  purpose: Đặt phương thức gần trạng thái mà nó quản lý để tăng tính nhất quán và đóng gói.
+  objectives:
+  - Chỉ ra field được mỗi method sử dụng.
+  - Đưa logic xử lý về đối tượng sở hữu dữ liệu.
+  - Thiết kế API bảo vệ invariant của đối tượng.
+- id: nhan-dien-low-cohesion
+  title: Nhận diện Low Cohesion
+  purpose: Phát hiện lớp đang ôm nhiều nhiệm vụ không liên quan và khó thay đổi an toàn.
+  objectives:
+  - Nhận diện Large Class và Divergent Change.
+  - Giải thích dấu hiệu Feature Envy.
+  - Phác thảo cách tách nhóm hành vi bị trộn.
+- id: refactor-extract-class
+  title: Refactor Extract Class
+  purpose: Tách nhóm dữ liệu và hành vi liên quan thành lớp có trách nhiệm rõ ràng.
+  objectives:
+  - Tách một nhóm field/method sang lớp mới.
+  - Giữ giao tiếp giữa hai lớp đơn giản.
+  - Kiểm tra hành vi trước và sau refactor.
+- id: refactor-move-method
+  title: Refactor Move Method
+  purpose: Đưa phương thức về lớp sử dụng nhiều dữ liệu của nó hơn để tăng gắn kết.
+  objectives:
+  - Phát hiện method dùng nhiều dữ liệu lớp khác.
+  - Thực hiện Move Method cho ví dụ Java.
+  - Đánh giá số phụ thuộc giữa các lớp sau khi chuyển.
+- id: cohesion-coupling
+  title: Cohesion & Coupling
+  purpose: Cân bằng trách nhiệm nội bộ rõ ràng với ít phụ thuộc không cần thiết giữa các lớp.
+  objectives:
+  - Phân biệt High Cohesion với Low Coupling.
+  - Chọn interface khi cần tách phụ thuộc.
+  - Tránh chia lớp vụn gây quá nhiều điều phối.
+- id: kiem-thu-review
+  title: Kiểm thử & Review
+  purpose: Đánh giá thiết kế theo mức dễ hiểu, dễ thay đổi và khả năng giữ nguyên hành vi.
+  objectives:
+  - Viết unit test cho trách nhiệm chính của lớp.
+  - Kiểm tra tác động khi thêm một yêu cầu mới.
+  - Giải thích quyết định refactor bằng sơ đồ lớp.

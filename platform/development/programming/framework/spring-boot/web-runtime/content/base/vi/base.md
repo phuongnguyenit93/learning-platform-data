@@ -1,0 +1,7 @@
+# Spring Boot - Web Runtime
+
+Web runtime là tập hợp thành phần tiếp nhận kết nối HTTP, đưa yêu cầu đến mã ứng dụng và gửi phản hồi về bên gọi. Trong Spring Boot, máy chủ nhúng, ngữ cảnh ứng dụng và web framework phối hợp để thực hiện công việc này. Module giúp bạn hình dung rõ vai trò của từng thành phần và hiểu vì sao cùng một API có thể hoạt động khác nhau khi đổi mô hình xử lý hoặc cấu hình máy chủ.
+
+Nội dung dành cho người đã biết Java, HTTP và cách tạo ứng dụng Spring Boot cơ bản. Phạm vi gồm hai mô hình Servlet/Spring MVC và Reactive/Spring WebFlux, đường đi của yêu cầu, cách sử dụng luồng, chuyển đổi dữ liệu HTTP, kết nối qua proxy, phiên, giới hạn tài nguyên và dừng an toàn. Các ví dụ API đóng vai trò thí nghiệm để quan sát runtime; nội dung nghiệp vụ, truy cập cơ sở dữ liệu và bảo mật chuyên sâu được học ở các module tương ứng. Khi thực hành, hãy chọn tài liệu đúng phiên bản Spring Boot, Spring Framework và máy chủ của dự án.
+
+Lộ trình bắt đầu từ bức tranh tổng thể và cách khởi động máy chủ nhúng, tiếp đến đường đi của yêu cầu và cơ chế xử lý đồng thời. Sau đó, bạn kiểm soát dữ liệu HTTP cùng phản hồi lỗi, cấu hình kết nối và phiên, đặt giới hạn và dừng ứng dụng an toàn, rồi kiểm chứng bằng máy chủ thật. Ở mỗi chặng, hãy xác định yêu cầu đang được xử lý tại đâu, tài nguyên nào đang được sử dụng và bằng chứng nào xác nhận cấu hình đã có hiệu lực.

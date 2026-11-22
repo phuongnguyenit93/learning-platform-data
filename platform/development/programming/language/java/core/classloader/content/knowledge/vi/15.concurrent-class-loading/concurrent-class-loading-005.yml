@@ -1,0 +1,3 @@
+menuLevel1: Nạp đồng thời
+menuLevel2: Tránh race condition giữa findLoadedClass và defineClass
+status: WRITTEN

@@ -1,0 +1,343 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phân tích tĩnh là gì và bài toán suy luận về chương trình mà không chạy chương trình đích
+  - Vai trò trong phát hiện lỗi, kiểm tra hợp đồng và duy trì chất lượng mã
+  - Phân biệt mã nguồn, hành vi có thể xảy ra và hành vi đã quan sát
+  - Từ đoạn mã đến mô hình, luật kiểm tra và kết quả chẩn đoán
+  - Phân tích tĩnh bổ trợ trình biên dịch, kiểm thử và rà soát mã như thế nào
+  - Cảnh báo, vi phạm quy ước và lỗi thực tế khác nhau ra sao
+  - Giới hạn của kết quả không có cảnh báo
+  - Kiến thức nền về biến, kiểu, phương thức, nhánh và vòng lặp
+  - Lộ trình học từ ví dụ Java nhỏ đến đánh giá kết quả trong dự án
+- level1: Phân loại
+  level2:
+  - Phân tích tĩnh, phân tích động và phương pháp kết hợp
+  - Kiểm tra văn bản, token, cú pháp và ngữ nghĩa
+  - Phân tích mã nguồn, bytecode và biểu diễn trung gian
+  - Luật cục bộ và luật cần suy luận qua nhiều vị trí
+  - Phân tích trong một phương thức và liên phương thức
+  - Phát hiện mẫu lỗi, kiểm chứng thuộc tính và hỗ trợ tối ưu trình biên dịch
+  - Kiểm tra phong cách, tính đúng, hiệu năng, bảo mật và kiến trúc
+  - Phân biệt phân tích mã với phát hiện mã trùng và kiểm tra dependency
+  - Phạm vi bổ trợ của assertion, kiểm thử, fuzzing và kiểm chứng hình thức
+- level1: Biểu diễn chương trình
+  level2:
+  - Từ ký tự đến token và vai trò của lexer
+  - Cú pháp ngôn ngữ, parser và lỗi phân tích cú pháp
+  - Cây cú pháp cụ thể và cây cú pháp trừu tượng (AST)
+  - Nút biểu thức, câu lệnh, khai báo và quan hệ cha–con
+  - Bảng ký hiệu, phạm vi biến và phân giải tên
+  - Phân biệt biến cùng tên ở các phạm vi khác nhau
+  - Biểu diễn trung gian (IR) và mục đích chuẩn hóa thao tác
+  - Bytecode Java và ánh xạ về vị trí mã nguồn
+  - Đồ thị lời gọi, đồ thị luồng điều khiển và đồ thị luồng dữ liệu
+  - Thông tin được giữ hoặc mất khi chuyển giữa các biểu diễn
+  - Duyệt cây, chọn mẫu nút và truy vấn cấu trúc mã ở mức khái niệm
+- level1: Kiểu và ngữ nghĩa
+  level2:
+  - Phân biệt cú pháp hợp lệ và hành vi đúng theo yêu cầu
+  - Kiểu khai báo, kiểu biểu thức và kiểu đối tượng khi chạy
+  - Phân giải overload, generic và lời gọi đa hình
+  - Vai trò của ký hiệu và kiểu khi so sánh hai lời gọi API
+  - Phép chuyển kiểu, boxing, unboxing và tác động đến kết quả
+  - Trạng thái chương trình và ngữ nghĩa của phép gán
+  - Thứ tự đánh giá, tác dụng phụ và ngoại lệ
+  - Ngữ nghĩa số nguyên Java khác với số nguyên toán học
+  - Phân biệt hành vi do ngôn ngữ quy định và giả định từ framework
+  - Tại sao kiểm tra bằng tên hoặc biểu thức chính quy có thể không đủ
+- level1: Luồng điều khiển
+  level2:
+  - Đồ thị luồng điều khiển (CFG), nút, cạnh, điểm vào và điểm ra
+  - Khối cơ bản và chuỗi lệnh không phân nhánh
+  - Biểu diễn if, switch và toán tử điều kiện
+  - Biểu diễn vòng lặp, cạnh quay lại, break và continue
+  - Đường đi qua return, throw, catch và finally
+  - Điểm rẽ nhánh, điểm hợp nhất và khả năng đi tới một nút
+  - Phân biệt mã không thể đi tới và đường đi không khả thi
+  - Điều kiện ngắn mạch và các cạnh điều khiển bị ảnh hưởng
+  - Quan hệ thống trị (dominance) và ý nghĩa đối với suy luận
+  - Vẽ CFG cho một phương thức Java rồi đối chiếu với mã nguồn
+- level1: Luồng dữ liệu
+  level2:
+  - Phân tích luồng dữ liệu là gì và quan hệ với CFG
+  - Sự kiện khai báo, gán, đọc và sử dụng giá trị
+  - Định nghĩa có thể tới điểm sử dụng (reaching definitions)
+  - Chuỗi định nghĩa–sử dụng (def-use) và lần gán bị ghi đè
+  - Biến còn cần dùng (liveness) và giá trị không bao giờ được đọc
+  - Lan truyền hằng và tập giá trị có thể xuất hiện
+  - Kiểm tra khởi tạo biến và khác biệt với quy tắc trình biên dịch Java
+  - Phân tích tiến, phân tích lùi và lựa chọn theo câu hỏi cần trả lời
+  - Thông tin có thể đúng (may) và chắc chắn đúng (must)
+  - Trạng thái IN, OUT và hàm chuyển trạng thái của câu lệnh
+  - Phép hợp nhất tại nhánh và lượng thông tin bị mất
+  - Theo dõi dữ liệu qua ví dụ gán, rẽ nhánh và vòng lặp
+- level1: Diễn giải trừu tượng
+  level2:
+  - Vì sao phải xấp xỉ tập trạng thái cụ thể của chương trình
+  - Miền cụ thể, miền trừu tượng và quan hệ giữa chúng
+  - 'Trừu tượng hóa giá trị bằng dấu: âm, không, dương'
+  - Trừu tượng hóa khoảng giá trị và thông tin null
+  - Thứ tự bộ phận và dàn thông tin (lattice) ở mức trực quan
+  - Phần tử đỉnh, phần tử đáy và ý nghĩa tùy miền phân tích
+  - Phép join, meet và cách kết hợp thông tin
+  - Hàm chuyển trừu tượng cho phép gán, phép toán và điều kiện
+  - Xấp xỉ bảo thủ và quan hệ với tập hành vi có thể xảy ra
+  - Đánh đổi giữa miền biểu diễn đơn giản và miền giữ quan hệ giữa biến
+  - Kiểm tra ví dụ mà phép trừu tượng hóa làm xuất hiện trạng thái không thực
+- level1: Điểm cố định
+  level2:
+  - Vì sao vòng lặp buộc kết quả phân tích phải được cập nhật lặp lại
+  - Điểm cố định là gì trong hệ phương trình luồng dữ liệu
+  - Khởi tạo trạng thái và điều kiện biên của bài toán phân tích
+  - Tính đơn điệu và điều kiện hội tụ trong miền phù hợp
+  - Thuật toán danh sách công việc (worklist) ở mức cơ bản
+  - Cập nhật nút bị ảnh hưởng thay vì tính lại mọi nút
+  - Mở rộng (widening) để hỗ trợ hội tụ trên miền có chuỗi tăng vô hạn
+  - Thu hẹp (narrowing) và khôi phục độ chính xác khi phù hợp
+  - Phân biệt đạt điểm cố định với mô tả chính xác mọi lần chạy
+  - Mô phỏng vài vòng cập nhật trên CFG nhỏ
+- level1: Thực thi ký hiệu
+  level2:
+  - Giá trị ký hiệu thay cho một đầu vào cụ thể
+  - Trạng thái ký hiệu và điều kiện đường đi
+  - Tách trạng thái khi gặp nhánh và tích lũy ràng buộc
+  - Kiểm tra đường đi khả thi bằng bộ giải ràng buộc
+  - Kết quả thỏa mãn, không thỏa mãn hoặc chưa xác định
+  - Phản ví dụ và đầu vào có thể dùng để tái hiện
+  - Bùng nổ số đường đi khi có nhiều nhánh hoặc vòng lặp
+  - Giới hạn thời gian, độ sâu và ảnh hưởng đến khả năng phát hiện
+  - Quan hệ giữa thực thi ký hiệu, luồng dữ liệu và diễn giải trừu tượng
+  - Phân biệt đầu vào được suy ra với lỗi đã được xác nhận bằng thực thi
+- level1: Liên phương thức
+  level2:
+  - Phân biệt thông tin trong phương thức và thông tin đi qua lời gọi
+  - Đồ thị lời gọi và các đích có thể được thực thi
+  - Truyền dữ liệu qua đối số, giá trị trả về và ngoại lệ
+  - 'Tóm tắt phương thức: điều kiện đầu vào, kết quả và tác dụng phụ'
+  - Nội tuyến phân tích và sử dụng bản tóm tắt
+  - Lời gọi đa hình, callback, lambda và phương thức được ghi đè
+  - Đệ quy và việc tính kết quả trên chu trình lời gọi
+  - Phân tích từng phần, liên module và toàn chương trình
+  - Thư viện không có mã nguồn và mô hình hành vi thay thế
+  - Giới hạn của reflection, nạp lớp động và lời gọi qua mã native
+- level1: Bộ nhớ và alias
+  level2:
+  - Biến tham chiếu, đối tượng và vị trí bộ nhớ trong mô hình Java
+  - Hai tham chiếu có thể cùng trỏ đến một đối tượng (alias)
+  - Phân tích points-to và tập đối tượng trừu tượng
+  - Ảnh hưởng của thay đổi đối tượng qua một tham chiếu khác
+  - Phân biệt trường đối tượng, phần tử mảng và trạng thái static
+  - Gộp đối tượng theo vị trí cấp phát và thông tin bị mất
+  - Cập nhật mạnh, cập nhật yếu và điều kiện sử dụng
+  - Đối tượng thoát khỏi phạm vi và tác động lên suy luận
+  - Quyền sở hữu, vòng đời tài nguyên và giới hạn khi có alias
+  - Ví dụ cảnh báo sai hoặc bỏ sót do mô hình bộ nhớ thiếu chính xác
+- level1: Độ nhạy phân tích
+  level2:
+  - Độ nhạy theo thứ tự lệnh (flow sensitivity)
+  - Độ nhạy theo đường đi (path sensitivity)
+  - Độ nhạy theo ngữ cảnh gọi (context sensitivity)
+  - Độ nhạy theo trường (field sensitivity)
+  - Độ nhạy theo đối tượng (object sensitivity) ở mức khái niệm
+  - Phân tích có hoặc không giữ quan hệ giữa các biến
+  - Ví dụ cùng đoạn mã nhưng các mô hình cho kết quả khác nhau
+  - Độ chính xác tăng cùng chi phí thời gian và bộ nhớ
+  - Giới hạn phạm vi, độ sâu và số trạng thái của phân tích thực tế
+  - Lựa chọn mức chi tiết theo câu hỏi và rủi ro cần kiểm tra
+- level1: Bảo đảm và giới hạn
+  level2:
+  - Xác định thuộc tính, phạm vi và giả định trước khi nói về tính đúng
+  - Soundness và completeness đối với bài toán phát hiện vi phạm đã xác định
+  - Phân biệt xấp xỉ thừa và xấp xỉ thiếu tập hành vi
+  - Vì sao phân tích tổng quát phải chấp nhận xấp xỉ hoặc giới hạn
+  - Khái niệm bất khả quyết và ý nghĩa thực tế đối với lập trình viên
+  - Không có cảnh báo, không tìm thấy lỗi và chứng minh an toàn khác nhau ra sao
+  - Timeout, bỏ qua tệp và lỗi phân tích không phải là kết quả sạch
+  - Giới hạn do mô hình ngôn ngữ, thư viện và môi trường chạy
+  - Phân biệt bảo đảm của một luật với bảo đảm cho toàn hệ thống
+  - Đọc và diễn giải đúng phạm vi bảo đảm mà công cụ công bố
+- level1: Hợp đồng và annotation
+  level2:
+  - Hợp đồng API, điều kiện trước, điều kiện sau và bất biến
+  - Biểu diễn khả năng null ở tham số, trường và giá trị trả về
+  - Hợp đồng dùng kết quả trả về và đóng tài nguyên
+  - Hợp đồng bất biến, quyền truy cập và đồng bộ
+  - Vai trò của annotation trong bổ sung ý định mà mã không thể hiện rõ
+  - Phân biệt annotation được công cụ hỗ trợ và annotation chỉ mang tính tài liệu
+  - Kế thừa, override và tính tương thích hợp đồng
+  - Mô hình thư viện và hợp đồng cho dependency không có mã nguồn
+  - Phân biệt giả định, kiểm tra tĩnh và kiểm tra bắt buộc khi chạy
+  - Rủi ro của annotation sai và cách kiểm chứng hợp đồng
+- level1: Luật và mẫu lỗi
+  level2:
+  - Phân biệt luật, bộ phát hiện, mẫu lỗi và phiên bản triển khai
+  - Mẫu cú pháp đáng ngờ và mẫu cần thông tin kiểu
+  - Mẫu cần theo dõi dữ liệu hoặc trạng thái qua nhiều lệnh
+  - Null dereference, điều kiện sai và sử dụng giá trị không hợp lệ
+  - Rò rỉ tài nguyên, trạng thái vòng đời và thao tác sai thứ tự
+  - Vi phạm hợp đồng equals, hashCode, comparator và collection
+  - Lỗi đồng thời và giới hạn mô hình khóa, bộ nhớ
+  - Phân biệt lỗi tính đúng, mùi mã, vi phạm quy ước và phép đo thiết kế
+  - Ranh giới với luật kiến trúc, phân tích dependency và phát hiện mã trùng
+  - Đọc ví dụ vi phạm, ví dụ hợp lệ và điều kiện áp dụng của một luật
+- level1: Dữ liệu không tin cậy
+  level2:
+  - Theo dõi dữ liệu bị ảnh hưởng từ nguồn không tin cậy (taint analysis)
+  - Điểm nguồn, điểm sử dụng nhạy cảm và đường truyền dữ liệu
+  - Phân biệt luồng giữ nguyên giá trị với lan truyền ảnh hưởng sau biến đổi
+  - Kiểm tra đầu vào, làm sạch và mã hóa đầu ra theo ngữ cảnh
+  - Vai trò của mô hình thư viện trong nhận diện luồng dữ liệu
+  - Đường đi từ tham số HTTP đến truy vấn hoặc thao tác hệ thống
+  - Luồng dữ liệu tường minh và giới hạn với ảnh hưởng qua điều khiển
+  - Vì sao có đường truyền đáng ngờ chưa đủ để kết luận khả năng khai thác
+  - Giới hạn của phân tích mã so với cấu hình, dependency và điều kiện triển khai
+- level1: Phạm vi phân tích
+  level2:
+  - Xác định nguồn, module, source set và artifact cần kiểm tra
+  - Phân biệt mã ứng dụng, mã test, mã sinh và thư viện ngoài
+  - Vai trò của JDK, phiên bản ngôn ngữ và tùy chọn trình biên dịch
+  - Classpath, module path, dependency và thông tin kiểu bị thiếu
+  - Mã nguồn và bytecode phải tương ứng với cùng phiên bản
+  - Điểm vào và giả định về thành phần có thể được gọi
+  - Phạm vi liên tệp, liên module và ranh giới thư viện
+  - Đường dẫn loại trừ và nguy cơ bỏ sót mã quan trọng
+  - Xác minh tệp, lớp và luật thực sự được phân tích
+  - Lưu môi trường, cấu hình và commit để tái lập kết quả
+- level1: Đọc và xác minh kết quả
+  level2:
+  - 'Cấu trúc kết quả: luật, thông báo, vị trí và mức phân loại'
+  - Đọc đường đi dữ liệu, chuỗi lời gọi và các vị trí liên quan
+  - Phân biệt severity, priority, confidence và rank theo từng công cụ
+  - Liên hệ cảnh báo với hợp đồng API hoặc yêu cầu nghiệp vụ
+  - Lần theo điều kiện nhánh và các giả định của công cụ
+  - Phân biệt phản ví dụ thực sự khả thi và đường đi do mô hình xấp xỉ
+  - Tạo ví dụ tái hiện tối thiểu và bổ sung ca kiểm thử
+  - Chọn sửa nguyên nhân, điều chỉnh mô hình hoặc ngoại lệ có chứng cứ
+  - Biên dịch, kiểm thử và chạy lại phân tích sau khi sửa
+  - Ghi nhận kết luận cùng bằng chứng đủ để người khác kiểm tra
+- level1: Cảnh báo sai và bỏ sót
+  level2:
+  - Cảnh báo đúng, cảnh báo sai và lỗi không được phát hiện
+  - Nguyên nhân cảnh báo sai từ hợp nhất nhánh và đường đi không khả thi
+  - Nguyên nhân cảnh báo sai từ thiếu kiểu, hợp đồng hoặc mô hình thư viện
+  - Nguyên nhân bỏ sót từ phạm vi, giới hạn độ sâu và luật không được bật
+  - Ảnh hưởng của reflection, mã sinh và hành vi framework
+  - Khác biệt giữa cảnh báo sai và vi phạm thật được dự án chấp thuận
+  - Lỗi chỉ xuất hiện ở một cấu hình hoặc một môi trường
+  - Kiểm tra bộ mẫu có nhãn trước khi thay ngưỡng toàn dự án
+  - Tạo hồi quy cho cả cảnh báo sai và lỗi từng bị bỏ sót
+  - Đánh giá hậu quả của tắt luật, loại tệp hoặc giảm phạm vi phân tích
+- level1: Chính sách và ngoại lệ
+  level2:
+  - Chọn luật theo mục tiêu chất lượng và ngữ cảnh dự án
+  - Tách cấu hình cho mã chính, mã test và mã sinh khi có lý do
+  - Điều chỉnh property, ngưỡng và mức cảnh báo
+  - Phân biệt tắt luật, lọc báo cáo, loại nguồn và suppression tại vị trí
+  - Ẩn cảnh báo (suppression) tại vị trí với phạm vi nhỏ và đúng luật
+  - Ghi lý do, bằng chứng, người chịu trách nhiệm và điều kiện xem xét lại
+  - Phân biệt suppression, baseline và chấp thuận rủi ro
+  - Nguy cơ ngoại lệ quá rộng che mất vi phạm mới
+  - Phát hiện suppression dư thừa hoặc không còn đúng sau refactor
+  - Quản lý cấu hình có phiên bản và rà soát thay đổi chính sách
+  - Kiểm chứng cả trường hợp được loại và trường hợp vẫn phải bị phát hiện
+- level1: Công cụ Java
+  level2:
+  - Lựa chọn công cụ theo thuộc tính cần kiểm tra và loại đầu vào
+  - Checkstyle và kiểm tra quy ước trên mã nguồn Java
+  - PMD và luật cấu trúc, ngữ nghĩa theo khả năng từng luật
+  - SpotBugs và tìm mẫu lỗi trên bytecode
+  - Error Prone và kiểm tra trong quá trình biên dịch javac
+  - ArchUnit và kiểm chứng quy tắc kiến trúc từ cấu trúc bytecode
+  - CodeQL, Infer và ví dụ phân tích luồng dữ liệu, liên phương thức
+  - CPD và ranh giới giữa mã trùng với tương đương về hành vi
+  - Phối hợp công cụ để bổ sung phạm vi và giảm chẩn đoán trùng
+  - Đối chiếu khả năng, phiên bản và giới hạn trước khi áp dụng thực tế
+- level1: Báo cáo và CI
+  level2:
+  - Đặt phân tích vào IDE, quá trình build và pipeline CI
+  - Chọn thời điểm trước hoặc sau biên dịch theo yêu cầu đầu vào
+  - Phân biệt chế độ chỉ báo cáo và cổng chất lượng chặn build
+  - Thiết kế điều kiện chặn theo rủi ro và vi phạm mới
+  - Xử lý riêng lỗi công cụ, phân tích không đầy đủ và vi phạm luật
+  - Lưu báo cáo khi tác vụ kiểm tra thất bại
+  - Định dạng text, XML, HTML, JSON và khả năng hỗ trợ của từng công cụ
+  - Vai trò của SARIF trong trao đổi kết quả phân tích
+  - Định danh luật, vị trí nguồn và liên kết kết quả với đúng commit
+  - So sánh kết quả giữa các lần chạy mà không đếm trùng
+  - Chứng minh cổng chất lượng thực sự hoạt động bằng vi phạm có kiểm soát
+  - Giữ lệnh chạy lại và bằng chứng dễ đọc cho người phát triển
+- level1: Tối ưu phân tích
+  level2:
+  - Chi phí của số tệp, số luật, đồ thị và miền trạng thái
+  - Phân biệt phân tích cục bộ, toàn phạm vi và theo thay đổi
+  - Tái sử dụng bản tóm tắt phương thức và kết quả của phần không đổi
+  - Phụ thuộc giữa các phần khiến một thay đổi ảnh hưởng phạm vi rộng hơn
+  - Cache và điều kiện vô hiệu hóa khi nguồn, dependency hoặc cấu hình đổi
+  - Phân biệt cache tính toán với baseline bỏ qua vi phạm
+  - Giới hạn thời gian, bộ nhớ và xử lý tác vụ bị dừng
+  - Phân tích song song và kiểm soát chi phí tài nguyên tổng
+  - Đo hiệu năng bộ phân tích mà vẫn xác minh độ đầy đủ của lần chạy
+  - Chạy đối chứng toàn phạm vi khi nghi ngờ kết quả tăng dần
+- level1: Thiết kế và kiểm thử luật
+  level2:
+  - Chuyển yêu cầu chất lượng thành thuộc tính kiểm tra cụ thể
+  - Xác định điều kiện vi phạm và các trường hợp hợp lệ gần giống
+  - Chọn văn bản, AST, kiểu, CFG hay luồng dữ liệu đủ để kiểm tra
+  - Thiết kế thông báo, vị trí và bằng chứng đường đi hữu ích
+  - Tạo mẫu dương tính, âm tính và trường hợp biên
+  - Kiểm tra kiểu trùng tên, overload, generic, kế thừa và alias
+  - Kiểm thử property, suppression và phiên bản ngôn ngữ
+  - Kiểm tra giới hạn suy luận và mô hình thư viện
+  - Phân biệt phát hiện lỗi với khả năng tự động sinh bản sửa
+  - Đánh giá bản sửa về kiểu, ngoại lệ, tác dụng phụ và số lần đánh giá
+  - Thêm hồi quy, đo chi phí và tài liệu hóa giả định của luật
+- level1: Đánh giá và chọn công cụ
+  level2:
+  - Lập bộ mẫu có nhãn và xác định tiêu chí đúng sai
+  - Precision, recall và ý nghĩa của tỷ lệ cảnh báo hữu ích
+  - Phân biệt độ bao phủ tệp, độ bao phủ luật và tỷ lệ phát hiện lỗi
+  - Giới hạn khi chưa biết đầy đủ các lỗi thực tế trong dự án
+  - So sánh công cụ trên cùng nguồn, cấu hình và loại vấn đề
+  - Đánh giá chất lượng thông báo, đường đi và khả năng tái hiện
+  - Đo thời gian phản hồi, bộ nhớ và công sức xác minh
+  - Đánh giá tích hợp build, JDK, mã sinh và khả năng mở rộng
+  - Tránh suy ra chất lượng chỉ từ tổng số cảnh báo hoặc điểm tổng hợp
+  - Thử nghiệm trên phạm vi nhỏ rồi đánh giá bằng dữ liệu có ngữ cảnh
+- level1: Áp dụng dự án cũ
+  level2:
+  - Khảo sát cách build, phạm vi mã và các quy tắc đang được sử dụng
+  - Chọn nhóm luật có ích trước khi tăng độ bao phủ
+  - Phân loại kết quả ban đầu và xác lập tồn đọng được rà soát
+  - Dùng baseline hoặc cơ chế đối chiếu phù hợp với công cụ
+  - Chặn vi phạm mới và lập kế hoạch giảm nợ theo rủi ro
+  - Đặt trách nhiệm xử lý, sửa cấu hình và chấp thuận ngoại lệ
+  - Tách thay đổi hàng loạt, bản sửa tự động và thay đổi hành vi
+  - Rà soát chính sách khi nâng công cụ, JDK hoặc framework
+  - Theo dõi xu hướng cùng nguyên nhân thay đổi để tránh tối ưu số liệu
+  - Tài liệu hóa quyết định và điều kiện xem xét lại cấu hình
+- level1: Khắc phục sự cố
+  level2:
+  - Không có kết quả do đầu vào rỗng hoặc luật chưa được bật
+  - Kết quả không đầy đủ do lỗi parse, thiếu dependency hoặc phiên bản không hỗ trợ
+  - Mã nguồn và bytecode cũ gây vị trí hoặc kết luận sai
+  - Khác biệt giữa IDE, máy cá nhân và CI
+  - Đường dẫn, encoding và mã sinh bị nhận diện khác nhau
+  - Cache cũ, baseline rộng hoặc suppression làm che kết quả
+  - Timeout, hết bộ nhớ và phân tích bị bỏ qua một phần
+  - Luật thay đổi tên, mặc định hoặc cách đối sánh sau nâng cấp
+  - Thu thập log, danh sách nguồn và cấu hình hiệu lực
+  - Tạo ví dụ tối thiểu và xác định lỗi thuộc mã, mô hình hay bộ phân tích
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân loại một tập ví dụ thành lỗi cú pháp, lỗi kiểu, lỗi hành vi và vi phạm quy ước
+  - Vẽ AST giản lược, bảng ký hiệu và CFG cho phương thức Java nhỏ
+  - Theo dõi reaching definitions, liveness và hằng qua nhánh, vòng lặp
+  - Mô phỏng phân tích null hoặc dấu bằng miền trừu tượng đơn giản
+  - Tính vài vòng worklist đến điểm cố định trên CFG
+  - Viết điều kiện đường đi và kiểm tra một phản ví dụ
+  - So sánh kết quả khi có alias, lời gọi phương thức hoặc thiếu mô hình thư viện
+  - Đọc cùng một đoạn mã bằng hai công cụ có đầu vào hoặc mục tiêu khác nhau
+  - Phân loại cảnh báo, sửa nguyên nhân và thêm kiểm thử hồi quy
+  - Tạo ngoại lệ hẹp, baseline đã rà soát và cổng chất lượng có kiểm chứng
+  - Lập báo cáo giới hạn, độ chính xác và bằng chứng của lần phân tích

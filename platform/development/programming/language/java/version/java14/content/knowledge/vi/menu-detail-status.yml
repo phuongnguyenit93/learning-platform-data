@@ -1,0 +1,2734 @@
+menu:
+- slug: java-14-overview
+  title: Định hướng
+  childs:
+  - slug: java-14-overview-001
+    title: Những cải tiến từ Java 14 còn được sử dụng trong Java hiện đại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-14-overview-002
+    title: Quan hệ giữa ngôn ngữ, thư viện chuẩn, công cụ và JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-14-overview-003
+    title: Phân biệt mốc giới thiệu Java 14 với mốc trở thành tính năng chính thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-14-overview-004
+    title: Kiến thức nền về kiểu dữ liệu, ngoại lệ, chuỗi và quản lý tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-14-overview-005
+    title: Lựa chọn JDK được hỗ trợ để học các dạng cú pháp chính thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-14-overview-006
+    title: Tra cứu hợp đồng API và phạm vi hỗ trợ theo nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-14-overview-007
+    title: Kiểm chứng hành vi bằng ví dụ nhỏ và dữ liệu biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: switch-expressions
+  title: Switch biểu thức
+  childs:
+  - slug: switch-expressions-001
+    title: Phân biệt switch thực hiện hành động với switch tạo ra giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-002
+    title: Cấu trúc biểu thức switch trong phép gán và return
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-003
+    title: Các kiểu selector và hằng case thuộc phạm vi switch của Java 14
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-004
+    title: Nhãn case có nhiều hằng phân tách bằng dấu phẩy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-005
+    title: Quy tắc không trùng hằng case
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-006
+    title: Nhánh default và chính sách đối với giá trị ngoài dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-007
+    title: Kiểm tra độ bao phủ khi dùng enum
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-008
+    title: Giá trị null, unboxing và thời điểm phát sinh lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-expressions-009
+    title: Chọn biểu thức switch theo tính chất của phép phân loại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: switch-branches-and-yield
+  title: Nhánh và yield
+  childs:
+  - slug: switch-branches-and-yield-001
+    title: Nhãn mũi tên case ... -> và một kết quả trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-002
+    title: Khối lệnh sau mũi tên và câu lệnh yield
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-003
+    title: Nhánh ném ngoại lệ thay cho trả giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-004
+    title: Nhãn dấu hai chấm trong biểu thức switch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-005
+    title: Kiểm soát rơi qua nhánh khi dùng dấu hai chấm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-006
+    title: Phạm vi biến của từng khối nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-007
+    title: Quy tắc mọi đường đi bình thường phải tạo kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-008
+    title: Phân biệt yield, break và return
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-009
+    title: Giới hạn chuyển điều khiển qua biên biểu thức switch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-branches-and-yield-010
+    title: yield như một định danh bị giới hạn theo ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: switch-result-types
+  title: Kiểu kết quả switch
+  childs:
+  - slug: switch-result-types-001
+    title: Biểu thức độc lập và biểu thức nhận kiểu từ ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-002
+    title: Kiểu đích trong phép gán, lời gọi phương thức và return
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-003
+    title: Kết hợp kết quả số và các phép chuyển kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-004
+    title: Boxing, unboxing và kết quả tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-005
+    title: Nhánh có null và ảnh hưởng tới kiểu suy luận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-006
+    title: var với kết quả switch và giới hạn thông tin kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-007
+    title: Quan hệ giữa nhánh throw với suy luận kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-008
+    title: Phép gán chắc chắn và biến được khởi tạo trong các nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switch-result-types-009
+    title: Tái cấu trúc switch dài mà giữ nguyên thứ tự tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-fundamentals
+  title: Nền tảng record
+  childs:
+  - slug: record-fundamentals-001
+    title: Record như kiểu mô tả một tập dữ liệu có tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-002
+    title: Từ preview Java 14 tới dạng record chính thức từ Java 16
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-003
+    title: Header, thành phần và thân khai báo record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-004
+    title: Trường private final và accessor tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-005
+    title: Canonical constructor được suy ra từ header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-006
+    title: Các phương thức equals, hashCode và toString được tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-007
+    title: Quan hệ với java.lang.Record và tính final của lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-008
+    title: Giới hạn kế thừa và triển khai interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-009
+    title: Phân biệt record với JavaBean và lớp có danh tính riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-fundamentals-010
+    title: Chọn record cho kết quả truy vấn, tham số và dữ liệu trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-construction
+  title: Khởi tạo record
+  childs:
+  - slug: record-construction-001
+    title: Canonical constructor tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-002
+    title: Compact constructor và thời điểm gán thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-003
+    title: Kiểm tra điều kiện hợp lệ của dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-004
+    title: Chuẩn hóa tham số trước khi hoàn tất khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-005
+    title: Sao chép phòng vệ đối với mảng và collection có thể sửa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-006
+    title: Constructor bổ sung và ủy quyền tới canonical constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-007
+    title: Quy tắc mức truy cập của constructor trong dạng record chính thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-008
+    title: Giới hạn gán trường thành phần trong compact constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-009
+    title: Ngoại lệ khi khởi tạo và việc giữ bất biến của đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-010
+    title: Nhà máy static cho các cách tạo có tên rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-construction-011
+    title: Kiểm thử tham số null, dữ liệu sai và giá trị sau chuẩn hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-values
+  title: Giá trị record
+  childs:
+  - slug: record-values-001
+    title: Bất biến của tham chiếu thành phần và giới hạn bất biến sâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-002
+    title: Hợp đồng equals theo kiểu record và từng thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-003
+    title: HashCode và việc sử dụng record làm khóa Map hoặc phần tử Set
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-004
+    title: Thành phần mảng và giới hạn so sánh nội dung mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-005
+    title: Đối tượng thành phần thay đổi sau khi tạo record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-006
+    title: Tùy biến accessor mà giữ quan hệ nhất quán với constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-007
+    title: Tùy biến equals, hashCode và toString theo cùng một hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-008
+    title: Tránh làm lộ dữ liệu nhạy cảm qua chuỗi biểu diễn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-values-009
+    title: Kiểm thử bản sao có cùng giá trị và dữ liệu thành phần lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-organization
+  title: Tổ chức record
+  childs:
+  - slug: record-organization-001
+    title: Record generic và ràng buộc tham số kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-002
+    title: Record lồng nhau và ngữ cảnh static
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-003
+    title: Record cục bộ cho dữ liệu trung gian trong phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-004
+    title: Trường, phương thức và nhà máy static trong record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-005
+    title: Phương thức đối tượng bổ sung cho hành vi gắn với dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-006
+    title: Giới hạn trường đối tượng bổ sung và khối khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-007
+    title: Annotation trên record, thành phần và kiểu thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-008
+    title: Quy tắc truyền annotation tới trường, accessor và constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-organization-009
+    title: Sử dụng record với Stream và API thư viện có hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-reflection
+  title: Phản chiếu record
+  childs:
+  - slug: record-reflection-001
+    title: Nhận diện record qua Class.isRecord
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-002
+    title: Lấy thành phần theo thứ tự bằng getRecordComponents
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-003
+    title: Tên, kiểu và accessor trong RecordComponent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-004
+    title: Kiểu generic và AnnotatedType của thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-005
+    title: Annotation có mặt trực tiếp trên thành phần record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-006
+    title: Tìm canonical constructor từ dãy kiểu thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-007
+    title: Phân biệt dữ liệu phản chiếu với hợp đồng công khai của thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-008
+    title: Quyền truy cập khi record nằm trong mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-reflection-009
+    title: Kiểm tra thư viện ánh xạ dữ liệu hỗ trợ record chính thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-matching-instanceof
+  title: Mẫu instanceof
+  childs:
+  - slug: pattern-matching-instanceof-001
+    title: Gộp kiểm tra kiểu, chuyển kiểu và khai báo biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-002
+    title: Từ preview Java 14 tới type pattern chính thức từ Java 16
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-003
+    title: Cú pháp instanceof với kiểu và biến mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-004
+    title: Hành vi khi giá trị được kiểm tra là null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-005
+    title: Kiểu tĩnh của biến mẫu sau khi khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-006
+    title: Quan hệ với kế thừa, interface và phép ép kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-007
+    title: Giới hạn đối với kiểu generic không kiểm tra được lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-008
+    title: Tái cấu trúc kiểm tra kiểu lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-matching-instanceof-009
+    title: Viết equals có kiểm tra kiểu ngắn gọn và đúng hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-variable-scope
+  title: Phạm vi biến mẫu
+  childs:
+  - slug: pattern-variable-scope-001
+    title: Phạm vi phụ thuộc kết quả của điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-002
+    title: Sử dụng biến mẫu trong nhánh if khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-003
+    title: Phủ định điều kiện và nhánh thoát sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-004
+    title: Phối hợp với && theo cơ chế đánh giá ngắn mạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-005
+    title: Giới hạn sử dụng với ||
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-006
+    title: Khả năng chắc chắn khớp sau return hoặc throw
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-007
+    title: Xung đột tên và khai báo mẫu ở các nhánh độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-008
+    title: Biến mẫu có thể gán lại theo quy tắc chính thức hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-variable-scope-009
+    title: Giữ điều kiện dễ đọc khi kết hợp nhiều phép kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-blocks
+  title: Text blocks
+  childs:
+  - slug: text-blocks-001
+    title: Chuỗi nhiều dòng và mục tiêu giảm escape thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-002
+    title: Các bổ sung Java 14 được giữ trong text block chính thức từ Java 15
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-003
+    title: Dấu phân cách ba dấu nháy kép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-004
+    title: Dòng mới bắt buộc sau dấu mở
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-005
+    title: Vị trí dấu đóng và dòng mới cuối chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-006
+    title: Text block có cùng kiểu String với literal thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-007
+    title: Nội dung chứa dấu nháy kép hoặc dấu phân cách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-008
+    title: Tạo văn bản SQL, JSON, HTML và mẫu thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-009
+    title: Kiểm tra nội dung thực bằng độ dài và từng ký tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-whitespace
+  title: Khoảng trắng văn bản
+  childs:
+  - slug: text-whitespace-001
+    title: Chuẩn hóa ký tự xuống dòng trong text block
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-002
+    title: Phân biệt thụt lề trình bày với thụt lề có ý nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-003
+    title: Xác định khoảng trắng chung được loại bỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-004
+    title: Vai trò dòng chứa dấu đóng trong tính thụt lề
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-005
+    title: Dòng trống, tab và khoảng trắng ở cuối dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-006
+    title: Giữ khoảng trắng cuối dòng bằng escape phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-007
+    title: Ảnh hưởng khi công cụ định dạng thay đổi vị trí dấu đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-008
+    title: Kiểm thử nội dung khi chuyển giữa các hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-whitespace-009
+    title: Phân biệt chuẩn hóa văn bản với chọn bảng mã khi ghi tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: escapes-and-strings
+  title: Escape và chuỗi
+  childs:
+  - slug: escapes-and-strings-001
+    title: Escape \s để biểu diễn khoảng trắng cần giữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-002
+    title: Escape nối dòng để bỏ ký tự xuống dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-003
+    title: Thứ tự xử lý xuống dòng, thụt lề và escape
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-004
+    title: Phân biệt text block với chuỗi thô không xử lý escape
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-005
+    title: String.stripIndent trong xử lý văn bản nhiều dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-006
+    title: String.translateEscapes với chuỗi chứa biểu diễn escape
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-007
+    title: String.formatted cho các vị trí thay thế theo định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-008
+    title: Phân biệt định dạng chuỗi với nội suy biến tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: escapes-and-strings-009
+    title: Tránh coi text block hoặc formatted là cơ chế chống chèn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: null-diagnostics
+  title: Chẩn đoán null
+  childs:
+  - slug: null-diagnostics-001
+    title: Mục đích của thông báo NullPointerException chi tiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-002
+    title: Xác định phép truy cập thất bại trong chuỗi biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-003
+    title: Phân biệt đối tượng null với phép lấy trường hoặc gọi phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-004
+    title: Truy cập phần tử mảng, độ dài mảng và unboxing
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-005
+    title: Thông tin suy ra từ bytecode và dữ liệu gỡ lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-006
+    title: NPE do JVM tạo và NPE được tạo tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-007
+    title: Thông báo không chỉ ra nơi giá trị null được sinh ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-008
+    title: ShowCodeDetailsInExceptionMessages và cấu hình JVM hiện dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-009
+    title: Giữ stack trace cùng nguyên nhân khi ghi nhật ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-010
+    title: Không phụ thuộc nguyên văn thông báo làm hợp đồng kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-diagnostics-011
+    title: Kiểm soát thông tin nội bộ khi lỗi được đưa ra ngoài ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jfr-fundamentals
+  title: Nền tảng JFR
+  childs:
+  - slug: jfr-fundamentals-001
+    title: Sự kiện JFR và vai trò quan sát hành vi JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-fundamentals-002
+    title: Phân biệt ghi sự kiện với tiêu thụ sự kiện liên tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-fundamentals-003
+    title: Recording, repository và các khối dữ liệu trên đĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-fundamentals-004
+    title: jdk.jfr cùng jdk.jfr.consumer trong ứng dụng mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-fundamentals-005
+    title: Chọn loại sự kiện có liên quan tới câu hỏi cần đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-fundamentals-006
+    title: Chu kỳ, ngưỡng và stack trace trong EventSettings
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-fundamentals-007
+    title: Chi phí thu thập và dữ liệu có thể chứa thông tin nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-fundamentals-008
+    title: Đối chiếu quan sát JFR với số liệu ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recording-stream
+  title: RecordingStream
+  childs:
+  - slug: recording-stream-001
+    title: Tạo luồng sự kiện từ JVM hiện tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-002
+    title: Bật hoặc tắt sự kiện theo tên và lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-003
+    title: Thay thế tập cấu hình qua setSettings
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-004
+    title: Đăng ký onEvent cho một loại hoặc mọi sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-005
+    title: Khởi chạy chặn bằng start
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-006
+    title: Khởi chạy bất đồng bộ bằng startAsync
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-007
+    title: Chờ kết thúc có thể ngắt hoặc có thời hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-008
+    title: Giới hạn dữ liệu lưu bằng setMaxAge và setMaxSize
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-009
+    title: Đóng RecordingStream bằng try-with-resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-stream-010
+    title: Tránh kết thúc ứng dụng trước khi luồng bất đồng bộ được sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-stream
+  title: EventStream
+  childs:
+  - slug: event-stream-001
+    title: Mở luồng từ repository JVM hiện tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-002
+    title: Đọc repository được chỉ định theo đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-003
+    title: Đọc sự kiện từ tệp ghi bằng openFile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-004
+    title: Khác biệt điểm bắt đầu mặc định của tệp và repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-005
+    title: Đặt khoảng thời gian bằng setStartTime và setEndTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-006
+    title: Thời điểm dữ liệu được flush và độ trễ quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-007
+    title: Yêu cầu tệp, thư mục tồn tại và có quyền truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-008
+    title: Xử lý nguồn dữ liệu kết thúc hoặc lỗi I/O
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-stream-009
+    title: Chỉ mở tệp và repository từ nguồn tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jfr-event-processing
+  title: Xử lý sự kiện JFR
+  childs:
+  - slug: jfr-event-processing-001
+    title: RecordedEvent, EventType và các trường có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-002
+    title: Đọc thời điểm bắt đầu, thời lượng và thông tin luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-003
+    title: Kiểm tra trường tồn tại trước khi đọc dữ liệu động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-004
+    title: Thứ tự sự kiện và tùy chọn setOrdered
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-005
+    title: Tái sử dụng đối tượng sự kiện qua setReuse
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-006
+    title: Chụp dữ liệu cần thiết trước khi chuyển sang luồng xử lý khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-007
+    title: onFlush, onError, onClose và hủy đăng ký callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-008
+    title: Tránh tác vụ chặn hoặc xử lý quá nặng trong callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-009
+    title: Tổng hợp số liệu theo khoảng thời gian và loại sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-010
+    title: Kiểm thử thiếu sự kiện do cấu hình, ngưỡng hoặc thời điểm quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-event-processing-011
+    title: Theo dõi sự kiện tự định nghĩa bằng cùng cơ chế streaming
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-packaging
+  title: Đóng gói ứng dụng
+  childs:
+  - slug: application-packaging-001
+    title: Mục tiêu phân phối ứng dụng kèm runtime cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-002
+    title: Từ công cụ ươm tạo Java 14 tới jpackage chính thức từ Java 16
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-003
+    title: Phân biệt app image với gói cài đặt native
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-004
+    title: Đầu vào ứng dụng mô-đun và ứng dụng theo class path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-005
+    title: Kiểm tra JDK cùng công cụ đóng gói theo hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-006
+    title: Ràng buộc tạo gói trên nền tảng đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-007
+    title: Phân biệt đóng gói với việc biên dịch mã Java thành mã máy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-008
+    title: Lập kế hoạch cập nhật runtime và phiên bản ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-image
+  title: App image
+  childs:
+  - slug: app-image-001
+    title: Tạo ảnh ứng dụng bằng --type app-image
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-002
+    title: Chọn input, main JAR và main class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-003
+    title: Chọn mô-đun cùng lớp khởi chạy của ứng dụng mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-004
+    title: Metadata tên, phiên bản, nhà cung cấp và biểu tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-005
+    title: Đối số ứng dụng và tùy chọn JVM cho launcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-006
+    title: Bổ sung launcher cho các điểm vào khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-007
+    title: Runtime được tạo qua jlink hoặc được cung cấp sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-008
+    title: Kiểm tra mô-đun được nạp qua dịch vụ hoặc phản chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-009
+    title: Cấu trúc tài nguyên, thư viện native và đường dẫn khi phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-image-010
+    title: Chạy thử trên máy không cài sẵn JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-packages
+  title: Gói cài đặt
+  childs:
+  - slug: installation-packages-001
+    title: Chọn định dạng cài đặt được hỗ trợ trên hệ điều hành đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-002
+    title: Tạo gói từ app image đã kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-003
+    title: Thư mục cài đặt, shortcut và tích hợp hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-004
+    title: Liên kết loại tệp với ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-005
+    title: Tùy chọn cài theo người dùng hoặc toàn máy khi được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-006
+    title: Ký gói và xác minh theo yêu cầu của nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-007
+    title: Tài nguyên tùy chỉnh cho gói cài đặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-008
+    title: Kiểm thử cài mới, nâng cấp, gỡ và giữ dữ liệu người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-009
+    title: Đường dẫn có khoảng trắng, quyền truy cập và nhật ký khởi chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-010
+    title: Tái tạo gói khi thư viện hoặc runtime cần bản vá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-packages-011
+    title: Tra cứu tùy chọn jpackage theo đúng JDK đang dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: g1-and-numa
+  title: G1 và NUMA
+  childs:
+  - slug: g1-and-numa-001
+    title: Kiến trúc bộ nhớ truy cập không đồng nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-002
+    title: Nút NUMA và chi phí truy cập bộ nhớ gần hoặc xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-003
+    title: Cấp phát theo vùng của G1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-004
+    title: Mục tiêu của cấp phát nhận biết NUMA được bổ sung trong Java 14
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-005
+    title: Điều kiện hệ điều hành, phần cứng và cấu hình JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-006
+    title: UseNUMA cùng việc kiểm tra cấu hình có hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-007
+    title: Ảnh hưởng của luồng, giới hạn CPU và cách đặt bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-008
+    title: Đo thông lượng, độ trễ, thời gian dừng và phân bố cấp phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-and-numa-009
+    title: Giới hạn tối ưu khi phần cứng hoặc kiểu tải không phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nvm-mapping
+  title: Ánh xạ NVM
+  childs:
+  - slug: nvm-mapping-001
+    title: Bộ nhớ không mất dữ liệu và tệp được ánh xạ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-002
+    title: Mô-đun jdk.nio.mapmode cùng ExtendedMapMode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-003
+    title: READ_ONLY_SYNC và READ_WRITE_SYNC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-004
+    title: Điều kiện phần cứng, hệ thống tệp và hệ điều hành hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-005
+    title: Tạo MappedByteBuffer qua FileChannel.map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-006
+    title: force và việc đẩy dữ liệu tới bộ nhớ lưu giữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-007
+    title: Phân biệt tính bền dữ liệu với nguyên tử và đồng bộ giữa các luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-008
+    title: UnsupportedOperationException khi nhà cung cấp không hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-009
+    title: Quản lý vòng đời kênh, vùng ánh xạ và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nvm-mapping-010
+    title: Kiểm chứng độ bền theo mô hình lỗi của môi trường đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lookup-privileges
+  title: Quyền Lookup
+  childs:
+  - slug: lookup-privileges-001
+    title: Lookup như một đối tượng mang quyền tra cứu thành viên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-privileges-002
+    title: hasFullPrivilegeAccess với quyền PRIVATE và MODULE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-privileges-003
+    title: previousLookupClass khi chuyển Lookup qua mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-privileges-004
+    title: Kiểm tra quyền dựa trên lớp hiện tại và lớp tra cứu trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-privileges-005
+    title: Quan hệ của in, privateLookupIn và dropLookupMode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-privileges-006
+    title: Giới hạn truy cập package không xuất hoặc không mở
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-privileges-007
+    title: Ủy quyền tối thiểu cho mã được tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-privileges-008
+    title: Kiểm thử quyền trong cùng mô-đun và qua mô-đun khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: checked-arithmetic
+  title: Số học kiểm tra tràn
+  childs:
+  - slug: checked-arithmetic-001
+    title: Các bổ sung incrementExact của StrictMath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checked-arithmetic-002
+    title: Các bổ sung decrementExact của StrictMath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checked-arithmetic-003
+    title: Các bổ sung negateExact của StrictMath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checked-arithmetic-004
+    title: Overload int, long và biên nhỏ nhất, lớn nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checked-arithmetic-005
+    title: ArithmeticException thay cho kết quả cuộn vòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checked-arithmetic-006
+    title: Quan hệ với các phép toán tương ứng trong Math
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checked-arithmetic-007
+    title: Chọn phép toán có kiểm tra theo hợp đồng miền dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: checked-arithmetic-008
+    title: Kiểm thử biên và tránh làm tràn trước khi gọi phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: convenient-byte-writing
+  title: Ghi byte tiện dụng
+  childs:
+  - slug: convenient-byte-writing-001
+    title: PrintStream.writeBytes với toàn bộ mảng byte
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convenient-byte-writing-002
+    title: Phân biệt ghi byte nguyên dạng với in ký tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convenient-byte-writing-003
+    title: Quan hệ với write(byte[], int, int)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convenient-byte-writing-004
+    title: Tác động của autoFlush khi ghi mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convenient-byte-writing-005
+    title: Cờ lỗi và kiểm tra bằng checkError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convenient-byte-writing-006
+    title: Chọn bảng mã tường minh trước khi tạo dữ liệu byte
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: convenient-byte-writing-007
+    title: Quyền đóng PrintStream khi bọc một luồng dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serial-annotation
+  title: Annotation Serial
+  childs:
+  - slug: serial-annotation-001
+    title: Vai trò kiểm tra khai báo của java.io.Serial
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serial-annotation-002
+    title: Đối tượng áp dụng là trường và phương thức liên quan hợp đồng tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serial-annotation-003
+    title: Thời điểm lưu annotation và tác dụng đối với compiler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serial-annotation-004
+    title: Chữ ký đúng của thành viên được đánh dấu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serial-annotation-005
+    title: Phân biệt @Serial với việc tự động thay đổi dữ liệu lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serial-annotation-006
+    title: Chẩn đoán tên hoặc chữ ký khai báo sai bằng công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serial-annotation-007
+    title: Áp dụng khi thư viện vẫn có hợp đồng Serializable cần duy trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serial-annotation-008
+    title: Giới hạn của annotation đối với an toàn dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-metrics
+  title: Số liệu hệ thống
+  childs:
+  - slug: system-metrics-001
+    title: OperatingSystemMXBean mở rộng trong mô-đun jdk.management
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-002
+    title: Lấy bean hệ điều hành và kiểm tra kiểu được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-003
+    title: getCpuLoad cho môi trường vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-004
+    title: getFreeMemorySize và getTotalMemorySize
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-005
+    title: Phân biệt số liệu hệ điều hành với heap Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-006
+    title: Khác biệt tải CPU toàn môi trường với tải của tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-007
+    title: Chu kỳ lấy mẫu và giá trị biểu thị không có số liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-008
+    title: Ảnh hưởng của giới hạn tài nguyên trong container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-metrics-009
+    title: Đối chiếu số liệu với JFR và công cụ hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-syntax-tree
+  title: Cây cú pháp Java
+  childs:
+  - slug: java-syntax-tree-001
+    title: SwitchExpressionTree cho biểu thức switch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-syntax-tree-002
+    title: YieldTree cho câu lệnh tạo kết quả nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-syntax-tree-003
+    title: Phân biệt CaseTree dạng RULE và STATEMENT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-syntax-tree-004
+    title: Đọc phần thân và các biểu thức nhãn case
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-syntax-tree-005
+    title: TreeVisitor cùng TreeScanner cho switch expression và yield
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-syntax-tree-006
+    title: Phân tích lồng nhau mà giữ đúng ngữ cảnh điều khiển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-syntax-tree-007
+    title: Chẩn đoán vị trí và lỗi từ compiler API được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-syntax-tree-008
+    title: Kiểm tra công cụ phân tích, định dạng và kiểm thử hiểu cú pháp mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-testing
+  title: Kiểm thử tương thích
+  childs:
+  - slug: compatibility-testing-001
+    title: Đặt mức ngôn ngữ theo tính năng chính thức thực sự sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-testing-002
+    title: Phân biệt khả năng biên dịch với phiên bản runtime tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-testing-003
+    title: Kiểm tra thư viện và công cụ hỗ trợ record cùng text block
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-testing-004
+    title: Đối chiếu kết quả trước và sau tái cấu trúc switch hoặc instanceof
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-testing-005
+    title: Kiểm thử chuỗi theo ký tự, xuống dòng và khoảng trắng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-testing-006
+    title: Kiểm thử phần đóng gói cùng nền tảng đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-testing-007
+    title: Đo chi phí JFR và tác động tùy chọn JVM trên tải đại diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-testing-008
+    title: Tra cứu API bị deprecated hoặc loại bỏ trong JDK đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercise
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercise-001
+    title: Xây phép phân loại trả giá trị bằng switch expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-002
+    title: Kiểm thử yield, nhánh throw và kiểu kết quả hỗn hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-003
+    title: Mô hình dữ liệu bằng record có kiểm tra và sao chép phòng vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-004
+    title: Kiểm thử equals, hashCode và việc dùng record làm khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-005
+    title: Tái cấu trúc kiểm tra kiểu bằng mẫu instanceof
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-006
+    title: Viết mẫu văn bản nhiều dòng có kiểm thử khoảng trắng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-007
+    title: Chẩn đoán NPE từ thao tác trường, mảng và unboxing
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-008
+    title: Quan sát tác vụ bằng RecordingStream và sự kiện tự định nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-009
+    title: Tổng hợp số liệu từ repository hoặc tệp JFR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-010
+    title: Tạo app image rồi kiểm thử gói cài đặt trên máy đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-011
+    title: Kiểm chứng API thư viện mới bằng dữ liệu lỗi và dữ liệu biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-012
+    title: Đánh giá G1 NUMA hoặc ánh xạ NVM khi có môi trường phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

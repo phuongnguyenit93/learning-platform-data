@@ -1,0 +1,64 @@
+roadmap:
+- id: tong-quan-apache-ant
+  title: Tổng quan Apache Ant
+  purpose: Hiểu vai trò và đặc trưng của Ant trong tự động hóa build.
+  objectives:
+  - Nêu được chức năng chính của Apache Ant
+  - Phân biệt Ant với trình biên dịch Java
+  - Giải thích cách Ant sử dụng buildfile để điều khiển quy trình
+- id: cau-truc-build-xml
+  title: Cấu trúc build.xml
+  purpose: Nắm cấu trúc XML dùng để khai báo một dự án Ant.
+  objectives:
+  - Nhận diện thẻ project và các thuộc tính name, default, basedir
+  - Xác định target mặc định và vị trí build.xml
+  - Tạo được buildfile tối thiểu hợp lệ
+- id: target-va-task
+  title: Target và Task
+  purpose: Hiểu cách Ant chia công việc thành các target và task liên kết.
+  objectives:
+  - Phân biệt target với task trong Ant
+  - Khai báo và đọc quan hệ depends giữa các target
+  - Mô tả thứ tự thực thi và vai trò của target mặc định
+- id: property-va-tham-so
+  title: Property và tham số
+  purpose: Biết cách cấu hình giá trị dùng chung và tùy chỉnh build theo môi trường.
+  objectives:
+  - Khai báo và tham chiếu property bằng cú pháp ${...}
+  - Nêu được nguồn property từ tệp và dòng lệnh
+  - Nhận biết tính chất không ghi đè của property thông thường
+- id: fileset-va-classpath
+  title: FileSet và Classpath
+  purpose: Biết chọn tài nguyên và cấu hình đường dẫn cho các tác vụ.
+  objectives:
+  - Dùng include và exclude để chọn nhóm tệp
+  - Phân biệt fileset với path trong cấu hình Ant
+  - Tổ chức classpath cho tác vụ biên dịch hoặc kiểm thử
+- id: bien-dich-va-dong-goi
+  title: Biên dịch và đóng gói
+  purpose: Thực hành chuỗi build cơ bản cho ứng dụng Java.
+  objectives:
+  - Dùng javac để biên dịch mã nguồn Java
+  - Dùng mkdir, copy hoặc delete để chuẩn bị thư mục build
+  - Dùng jar để đóng gói kết quả biên dịch
+- id: kiem-thu-va-bao-loi
+  title: Kiểm thử và báo lỗi
+  purpose: Đưa bước kiểm thử vào pipeline build và quan sát kết quả thực thi.
+  objectives:
+  - Tổ chức target test phụ thuộc vào target compile
+  - Nhận biết tác vụ kiểm thử như junit và yêu cầu thư viện bổ sung
+  - Đọc log để phân biệt build thành công và lỗi
+- id: dependency-voi-ivy
+  title: Dependency với Ivy
+  purpose: Hiểu giải pháp bổ sung để Ant tự động quản lý thư viện ngoài.
+  objectives:
+  - Giải thích vì sao Ant thường kết hợp Apache Ivy
+  - Nhận diện ivy.xml và thao tác resolve, retrieve
+  - Nêu được lợi ích của quản lý phiên bản và dependency bắc cầu
+- id: tai-su-dung-va-ci
+  title: Tái sử dụng và CI
+  purpose: Biết tổ chức buildfile có thể bảo trì và chạy trong môi trường tự động.
+  objectives:
+  - Tái sử dụng quy tắc bằng import hoặc macrodef
+  - Chạy target cụ thể bằng lệnh ant và tùy chọn verbose
+  - Mô tả cách tích hợp build Ant vào pipeline CI

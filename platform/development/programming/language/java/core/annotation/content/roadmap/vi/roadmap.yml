@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-annotation
+  title: Tổng quan annotation
+  purpose: Hiểu chú thích (annotation) là siêu dữ liệu và cách công cụ khai thác nó.
+  objectives:
+  - Giải thích vai trò siêu dữ liệu
+  - Phân biệt annotation với chú thích mã nguồn
+  - Nhận biết annotation cần bên xử lý để tạo tác dụng
+- id: annotation-co-san
+  title: Annotation có sẵn
+  purpose: Dùng các annotation chuẩn để thể hiện ý định và phát hiện lỗi khi biên dịch.
+  objectives:
+  - Dùng @Override và @Deprecated đúng chỗ
+  - Giới hạn phạm vi @SuppressWarnings
+  - Nhận biết mục đích của @FunctionalInterface và @SafeVarargs
+- id: tu-dinh-nghia-annotation
+  title: Tự định nghĩa annotation
+  purpose: Tạo annotation có các phần tử và giá trị mặc định phù hợp.
+  objectives:
+  - Khai báo kiểu bằng @interface
+  - Chọn kiểu dữ liệu hợp lệ cho phần tử
+  - Dùng giá trị mặc định và cú pháp value
+- id: vi-tri-va-vong-doi
+  title: Vị trí và vòng đời
+  purpose: Kiểm soát nơi áp dụng và thời điểm annotation còn tồn tại.
+  objectives:
+  - Chọn @Target phù hợp
+  - Phân biệt SOURCE, CLASS và RUNTIME
+  - Phân biệt chú thích khai báo với TYPE_USE
+- id: lap-va-ke-thua
+  title: Lặp và kế thừa
+  purpose: Hiểu quy tắc lặp, kế thừa và công khai annotation trong tài liệu.
+  objectives:
+  - Tạo annotation lặp với @Repeatable
+  - Giải thích giới hạn kế thừa của @Inherited
+  - Dùng @Documented khi cần đưa vào Javadoc
+- id: doc-luc-chay
+  title: Đọc lúc chạy
+  purpose: Khai thác annotation bằng phản chiếu (reflection) khi chương trình chạy.
+  objectives:
+  - Đọc annotation RUNTIME trên lớp và phương thức
+  - Phân biệt annotation khai báo trực tiếp với được kế thừa
+  - Đọc annotation lặp bằng getAnnotationsByType
+- id: xu-ly-khi-bien-dich
+  title: Xử lý khi biên dịch
+  purpose: Hiểu cách trình xử lý annotation kiểm tra mã và sinh tệp trong quá trình biên dịch.
+  objectives:
+  - Nhận biết vai trò của annotation processor
+  - Mô tả các vòng xử lý và mã được sinh
+  - Phân biệt xử lý khi biên dịch với phản chiếu lúc chạy
+- id: thuc-hanh-tong-hop
+  title: Thực hành tổng hợp
+  purpose: Kết nối khai báo, cấu hình và xử lý annotation trong một bài tập nhỏ.
+  objectives:
+  - Tạo annotation đánh dấu quy tắc kiểm tra
+  - Viết bộ đọc và kiểm tra bằng reflection
+  - Kiểm thử vị trí sai, thiếu RUNTIME và annotation vắng mặt

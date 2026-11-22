@@ -1,0 +1,436 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Shell là gì và khi nào nên xây ứng dụng dòng lệnh
+  - CLI, terminal, shell của hệ điều hành và ứng dụng Spring Shell
+  - Vòng lặp đọc–phân tích–thực thi–hiển thị trong một REPL
+  - Lệnh, lệnh con, tùy chọn, đối số và ngữ cảnh phiên
+  - Dấu nhắc (prompt), phiên tương tác và chương trình chạy một lệnh
+  - Vai trò của Spring IoC, Spring Boot và JLine
+  - Đối chiếu CLI với REST API, tác vụ batch và giao diện web
+  - Phân tách giao diện lệnh khỏi nghiệp vụ được thực thi
+  - Những tính năng framework hỗ trợ và phần ứng dụng phải tự thiết kế
+  - Lộ trình học từ lệnh đầu tiên đến công cụ có thể phân phối và kiểm thử
+- level1: Phiên bản và kiến trúc
+  level2:
+  - Chọn nhánh Spring Shell theo khả năng tương thích của Spring Boot và Java
+  - Đọc tài liệu, Javadoc và ghi chú phát hành đúng phiên bản
+  - Các thế hệ annotation legacy, mô hình 3.x và mô hình 4.x
+  - Các môđun lõi, tích hợp terminal, cấu hình tự động và kiểm thử
+  - CommandRegistration và CommandCatalog trong kiến trúc 3.x
+  - Command, CommandRegistry và AbstractCommand trong kiến trúc 4.x
+  - Tách lõi khỏi Spring Boot và JLine trong Spring Shell 4.x
+  - Console của JDK so với terminal có tính năng JLine
+  - Phụ thuộc trực tiếp, starter và BOM của hệ sinh thái Spring Shell
+  - Nhận diện API đã bỏ hoặc đổi package khi đọc ví dụ cũ
+  - Chọn một mô hình khai báo nhất quán cho từng phần của ứng dụng
+- level1: Khởi tạo ứng dụng
+  level2:
+  - Tạo ứng dụng Spring hoặc Spring Boot phù hợp phiên bản mục tiêu
+  - Khai báo phụ thuộc bằng Maven hoặc Gradle
+  - Chọn starter và môđun terminal theo nhu cầu thực tế
+  - Tổ chức package để lớp khai báo lệnh được nhận diện
+  - Viết và chạy lệnh chào đầu tiên
+  - Kiểm tra lệnh trong trợ giúp trước khi kiểm tra nghiệp vụ
+  - Cấu hình chế độ tương tác tường minh theo mặc định của phiên bản
+  - Chạy từ IDE so với chạy bằng terminal thực
+  - Tách tham số cấu hình Spring Boot khỏi tham số lệnh
+  - Dừng ứng dụng và xác nhận tài nguyên được giải phóng
+- level1: Luồng thực thi
+  level2:
+  - Từ dòng người dùng nhập đến các token của parser
+  - Tra cứu lệnh trong catalog hoặc registry tương ứng phiên bản
+  - Phân giải lệnh nhiều từ và lệnh con
+  - Liên kết tùy chọn và đối số với tham số thực thi
+  - Chuyển đổi kiểu và kiểm tra tính hợp lệ trước khi gọi nghiệp vụ
+  - Kiểm tra khả dụng và trạng thái của lệnh
+  - Gọi phương thức xử lý rồi chuyển kết quả thành nội dung hiển thị
+  - Luồng xử lý lỗi và ánh xạ sang trạng thái kết thúc
+  - Vai trò của runner đối với vòng đời toàn bộ phiên
+  - Điểm mở rộng cần phân biệt với logic riêng của một lệnh
+  - Theo dõi một lần gọi hoàn chỉnh để hiểu thứ tự xử lý
+- level1: Khai báo bằng annotation
+  level2:
+  - Khai báo legacy 3.x bằng @ShellComponent, @ShellMethod và @ShellOption
+  - Tên lệnh, mô tả, nhóm và tên thay thế trong mô hình legacy
+  - Mô hình @Command và @Option trong Spring Shell 3.x
+  - Đăng ký mục tiêu bằng @EnableCommand hoặc @CommandScan trong 3.x
+  - Thiết lập dùng chung trên @Command ở cấp lớp trong 3.x
+  - Annotation @Command trên phương thức của Spring bean trong 4.x
+  - Khác biệt thuộc tính command của 3.x với name của 4.x
+  - Cơ chế khám phá lệnh tự động trong ứng dụng Spring Boot 4.x
+  - Vai trò của @EnableCommand khi dùng Spring Shell 4.x không kèm Boot
+  - '@Argument và @Arguments cho đối số vị trí ở 4.x'
+  - '@CommandGroup và tiền tố nhóm trong 4.x'
+  - Kiểu trả về, phương thức void và cách quan sát đầu ra
+  - Phạm vi sử dụng của annotation cũ khi nâng lên Spring Shell 4.x
+- level1: Đăng ký bằng mã
+  level2:
+  - Khi nào mô hình lập trình phù hợp hơn annotation
+  - CommandRegistration.builder và bean đăng ký lệnh trong 3.x
+  - BuilderSupplier và tùy biến builder dùng chung ở 3.x
+  - Khai báo tên, mô tả, tùy chọn và đích thực thi bằng builder 3.x
+  - CommandCatalog và vòng đời thêm hoặc gỡ lệnh ở 3.x
+  - Command.builder và bean Command trong 4.x
+  - AbstractCommand và đích thực thi trả về ExitStatus trong 4.x
+  - CommandRegistry và đăng ký lệnh động trong 4.x
+  - Đọc tham số từ ngữ cảnh của một lệnh khai báo bằng mã
+  - Tùy biến completion, availability và lỗi theo mô hình phiên bản
+  - Tránh đăng ký trùng tên từ nhiều nguồn cấu hình
+  - Kiểm tra danh sách lệnh hiệu lực sau cấu hình Spring
+- level1: Tổ chức lệnh
+  level2:
+  - Đặt tên lệnh theo hành động và tài nguyên
+  - Lệnh nhiều từ, tiền tố và cấu trúc lệnh con
+  - Phân biệt nhóm trong trợ giúp với cây lệnh thực thi
+  - Bí danh lệnh và điều kiện hỗ trợ của API đang dùng
+  - Nhóm theo lớp hoặc package trong mô hình 3.x
+  - Nhóm bằng @CommandGroup trong mô hình 4.x
+  - Chia lớp lệnh theo miền nghiệp vụ và khả năng tái sử dụng
+  - Giữ tên, tùy chọn và kiểu kết quả ổn định cho bên gọi script
+  - Ẩn lệnh khỏi trợ giúp theo khả năng của phiên bản
+  - Phân biệt ẩn lệnh, gỡ đăng ký và không cho phép thực thi
+  - Quy tắc xử lý tên trùng hoặc tiền tố gây nhập nhằng
+- level1: Cú pháp dòng lệnh
+  level2:
+  - Phân biệt chuỗi gốc với danh sách đối số đã qua shell hệ điều hành
+  - Khoảng trắng, dấu nháy và giá trị chứa nhiều từ
+  - Escape ký tự đặc biệt và đường dẫn chứa khoảng trắng
+  - Tùy chọn dài và tùy chọn ngắn
+  - Các dạng --key=value và --key value theo parser đang dùng
+  - Thứ tự giữa tên lệnh, lệnh con, tùy chọn và đối số
+  - Giá trị bắt đầu bằng dấu gạch nối và số âm
+  - Giới hạn gộp tùy chọn ngắn theo từng phiên bản
+  - Phân biệt toán tử pipe, chuyển hướng của hệ điều hành với cú pháp Spring Shell
+  - Đầu vào nhiều dòng và điều kiện tiếp tục dòng khi terminal hỗ trợ
+  - Thông báo khi thiếu giá trị, thiếu đối số hoặc gặp tùy chọn lạ
+  - CommandParser và điểm tùy biến quy tắc phân tích trong 4.x
+  - Kiểm chứng cú pháp trên Windows, Bash hoặc môi trường đích thực tế
+- level1: Tùy chọn và đối số
+  level2:
+  - Tùy chọn có tên khác với đối số vị trí
+  - Khai báo tên ngắn, tên dài và mô tả
+  - Giá trị bắt buộc, tùy chọn và giá trị mặc định
+  - Phân biệt không truyền, truyền chuỗi rỗng và truyền giá trị null
+  - ShellOption.NULL và quy ước legacy 3.x
+  - Vị trí đối số trong mô hình option của 3.x
+  - '@Argument với chỉ số vị trí trong 4.x'
+  - '@Arguments, tập giá trị còn lại và giới hạn arity trong 4.x'
+  - Arity của option nhiều giá trị trong mô hình 3.x
+  - Boolean dạng cờ ở mô hình cũ và giá trị tường minh ở parser 4.x
+  - Mảng, Collection và cách phân tách nhiều giá trị
+  - Xử lý truyền lặp một tùy chọn theo quy tắc của parser
+  - Giới hạn số tên ngắn hoặc tên dài theo phiên bản
+  - Nhãn giá trị trong trợ giúp và các thay đổi ở 4.x
+  - Phân biệt mặc định của framework với mặc định nghiệp vụ
+- level1: Chuyển đổi kiểu
+  level2:
+  - Từ token chuỗi đến kiểu tham số của lệnh
+  - Kiểu số, Boolean, enum và quy tắc biểu diễn
+  - Đường dẫn, URL, UUID và các kiểu cần đối chiếu khả năng chuyển đổi
+  - Ngày giờ, định dạng và múi giờ cần công bố
+  - Chuyển đổi phần tử của mảng hoặc Collection
+  - Spring ConversionService và phạm vi tích hợp theo phiên bản
+  - Đăng ký converter cho kiểu miền khi mô hình thực thi hỗ trợ
+  - Chuyển đổi thủ công trong phương thức xử lý khi cần hợp đồng rõ ràng
+  - Phân biệt lỗi cú pháp, lỗi chuyển kiểu và lỗi miền giá trị
+  - Chuẩn hóa đầu vào khác với âm thầm thay đổi ý nghĩa dữ liệu
+  - Thông báo lỗi chuyển đổi kèm tên tùy chọn và ví dụ hợp lệ
+- level1: Kiểm tra đầu vào
+  level2:
+  - Bean Validation và điều kiện kích hoạt kiểm tra tham số
+  - '@NotNull, @NotBlank, @Size và dữ liệu bắt buộc'
+  - '@Min, @Max, @Pattern và giới hạn miền giá trị'
+  - Chuỗi rỗng, chuỗi trắng và tùy chọn không xuất hiện
+  - Ràng buộc chéo giữa nhiều tùy chọn
+  - Điều kiện loại trừ nhau hoặc phải đi cùng nhau do ứng dụng thiết kế
+  - Kiểm tra tồn tại, quyền truy cập và loại của đường dẫn
+  - Phân biệt validation đầu vào với kiểm tra nghiệp vụ
+  - Kiểm tra trước tác dụng phụ để tránh trạng thái cập nhật một phần
+  - Thông báo lỗi dễ sửa mà không làm lộ thông tin nhạy cảm
+  - Kiểm thử ràng buộc ở đúng mô hình annotation hoặc builder đang dùng
+- level1: Trạng thái và khả dụng
+  level2:
+  - Trạng thái phiên dùng chung giữa các lệnh
+  - Availability như điều kiện một lệnh có ý nghĩa ở thời điểm hiện tại
+  - Thông báo lý do khi lệnh chưa khả dụng
+  - '@ShellMethodAvailability trong mô hình legacy 3.x'
+  - Availability của command annotation hoặc builder trong 3.x
+  - AvailabilityProvider và thuộc tính availabilityProvider trong 4.x
+  - Các trạng thái kết nối, đăng nhập, chọn môi trường hoặc chọn tài nguyên
+  - Cập nhật và xóa trạng thái sau khi lệnh thành công hoặc thất bại
+  - Vòng đời bean và giới hạn của việc lưu trạng thái trong đối tượng lệnh
+  - Availability không thay thế kiểm tra quyền truy cập nghiệp vụ
+  - Kiểm tra trạng thái lại ngay trước thao tác quan trọng
+- level1: Ngữ cảnh và nhập xuất
+  level2:
+  - CommandContext và thông tin một lần thực thi
+  - Đọc tùy chọn đã phân tích và dữ liệu ngữ cảnh đúng phiên bản
+  - Đọc đầu vào bổ sung bằng API của terminal
+  - InputReader và đọc mật khẩu qua ngữ cảnh trong 4.x
+  - Hành vi khi không có terminal hoặc đầu vào đã kết thúc
+  - Trả về kết quả từ phương thức xử lý so với ghi đầu ra trực tiếp
+  - PrintWriter từ CommandContext trong mô hình 4.x
+  - Flush, bộ đệm và thời điểm dữ liệu xuất hiện
+  - Phân biệt stdout, stderr và đầu ra phục vụ tương tác
+  - Dọn tài nguyên nhập xuất mà lệnh thực sự sở hữu
+  - Thiết kế lớp xuất dữ liệu để có thể kiểm thử độc lập với terminal
+- level1: Tự hoàn thành
+  level2:
+  - Gợi ý tên lệnh, lệnh con và tùy chọn khi nhấn Tab
+  - Phân biệt hoàn thành trong JLine với hoàn thành của shell hệ điều hành
+  - CompletionContext và CompletionProposal theo API phiên bản
+  - ValueProvider gắn với @ShellOption trong mô hình legacy 3.x
+  - CompletionResolver hoặc cấu hình completion bằng builder trong 3.x
+  - Cấu hình gợi ý giá trị cho mô hình annotation 3.x
+  - CompletionProvider ở phạm vi command trong 4.x
+  - FileNameCompletionProvider, EnumCompletionProvider và bộ gộp trong 4.x
+  - Gợi ý dựa trên các tùy chọn khác và trạng thái phiên
+  - Phân biệt gợi ý đầu vào với kiểm tra giá trị hợp lệ
+  - Giới hạn thời gian, số kết quả và dữ liệu nhạy cảm trong gợi ý
+  - Kiểm tra hỗ trợ của lệnh sinh completion theo phiên bản
+- level1: Trợ giúp và lệnh có sẵn
+  level2:
+  - Lệnh help và cách khám phá nhóm lệnh
+  - Trợ giúp một lệnh với cú pháp, tham số và ví dụ
+  - Hỗ trợ --help hoặc -h theo mô hình và phiên bản
+  - Mô tả ngắn, trợ giúp chi tiết và nhãn tham số
+  - Hiển thị mặc định, tham số bắt buộc và lý do chưa khả dụng
+  - Lệnh clear, exit và version trong môi trường tương ứng
+  - Lịch sử nhập lệnh và khả năng lưu hoặc tìm lại theo terminal
+  - Lệnh script và phạm vi thực thi tệp lệnh
+  - stacktrace trong nhánh cũ so với debug mode ở 4.x
+  - Thay đổi của lệnh completion tích hợp khi chuyển sang 4.x
+  - Tắt hoặc thay lệnh có sẵn bằng cơ chế được phiên bản hỗ trợ
+  - Giữ trợ giúp và ví dụ đồng bộ với hợp đồng thực thi
+- level1: Chế độ thực thi
+  level2:
+  - Tương tác trong REPL và thực thi một lần rồi kết thúc
+  - Phân biệt cách chọn runner ở 3.x và 4.x
+  - InteractiveShellRunner, NonInteractiveShellRunner và ScriptShellRunner ở 3.x
+  - Thuộc tính bật từng runner và thay đổi mặc định từ 3.3
+  - ShellApplicationRunner và chuyển đối số khởi động trong mô hình 3.x
+  - SystemShellRunner, JLineShellRunner và NonInteractiveShellRunner ở 4.x
+  - Chọn một runner thực thi và chế độ ngay khi khởi động ở 4.x
+  - Cấu hình spring.shell.interactive.enabled theo đúng thế hệ
+  - InteractionMode ở nhánh cũ và phạm vi API đã bỏ ở 4.x
+  - Khả năng đọc từ console khi chạy trong IDE, pipeline hoặc container
+  - Kết thúc phiên, EOF và đóng ApplicationContext
+  - Phím ngắt lệnh, hủy chờ đầu vào và thoát tiến trình
+  - Phân biệt lệnh kết thúc nhưng ứng dụng vẫn chạy với tiến trình đã dừng
+- level1: Script và tự động hóa
+  level2:
+  - Tệp script Spring Shell và giới hạn ngôn ngữ lệnh của nó
+  - Gọi script bằng cú pháp của phiên bản đang sử dụng
+  - Đường dẫn tệp, thư mục làm việc và mã hóa văn bản
+  - Thứ tự thực thi các dòng và quy tắc chú thích
+  - Trạng thái được chia sẻ giữa các lệnh trong cùng phiên script
+  - Xác định chính sách dừng hoặc tiếp tục sau lỗi
+  - Tránh chờ prompt tương tác trong chế độ tự động
+  - Truyền cấu hình và dữ liệu đầu vào một cách có thể tái hiện
+  - Dùng mã thoát để phối hợp với shell hệ điều hành hoặc CI
+  - Đầu ra JSON hoặc CSV do ứng dụng thiết kế cho máy đọc
+  - Tách log, màu sắc và thông báo tiến trình khỏi luồng dữ liệu
+  - Tính lặp lại an toàn khi chạy lại một script
+- level1: Kết quả và mã thoát
+  level2:
+  - Phân biệt kết quả nghiệp vụ, nội dung hiển thị và mã thoát tiến trình
+  - Quy ước thành công, lỗi đầu vào và lỗi thực thi
+  - Ngoại lệ được báo về terminal và cơ chế xử lý mặc định
+  - CommandExceptionResolver và CommandHandlingResult ở mô hình 3.x
+  - Ánh xạ exit code và @ExceptionResolver trong nhánh 3.x
+  - ExitStatus và ExitStatusExceptionMapper trong mô hình 4.x
+  - Gắn bộ ánh xạ lỗi bằng annotation hoặc builder đúng phiên bản
+  - Phạm vi xử lý lỗi chung với xử lý riêng cho một command
+  - Phân biệt lỗi không tìm thấy lệnh với lỗi trong phương thức xử lý
+  - Nội dung dành cho người dùng khác chi tiết phục vụ chẩn đoán
+  - Kiểm chứng mã thoát ở cấp tiến trình khi chạy không tương tác
+  - Không báo thành công khi cập nhật thất bại hoặc mới hoàn thành một phần
+- level1: Giao diện terminal
+  level2:
+  - Prompt và thông tin ngữ cảnh nên hiển thị
+  - Tùy biến prompt bằng điểm mở rộng của phiên bản
+  - Màu ANSI và khả năng hỗ trợ của terminal
+  - Theme, style và tài nguyên hiển thị theo từng nhánh
+  - Unicode, độ rộng ký tự và văn bản tiếng Việt
+  - Kích thước terminal, xuống dòng và bố trí thích ứng
+  - Lịch sử lệnh, phím tắt và chỉnh sửa dòng với JLine
+  - Console JDK cơ bản so với các khả năng cần môđun JLine
+  - Thông báo tiến trình và cập nhật màn hình có kiểm soát
+  - Khôi phục trạng thái terminal khi lỗi hoặc bị ngắt
+  - Chế độ văn bản thuần khi đầu ra được chuyển hướng
+  - Kiểm tra giao diện trên terminal thật thay vì chỉ cửa sổ chạy IDE
+- level1: Bảng và định dạng
+  level2:
+  - Khi nào dùng bảng văn bản cho kết quả CLI
+  - Mô hình dữ liệu bảng từ mảng, danh sách hoặc thuộc tính đối tượng
+  - Tiêu đề cột, căn lề, độ rộng và đường viền
+  - Xử lý ô trống, nội dung nhiều dòng và chuỗi quá dài
+  - Chia dòng, cắt gọn hoặc phân trang theo quyết định của ứng dụng
+  - TableBuilder và bộ kết xuất trong môđun bảng tương ứng phiên bản
+  - Thay đổi package bảng khi tích hợp vào JLine ở 4.x
+  - Giá trị số, ngày giờ và quy ước định dạng nhất quán
+  - Tách bảng dễ đọc khỏi định dạng xuất dữ liệu có cấu trúc
+  - Giới hạn số dòng để không làm terminal hoặc bộ kiểm thử quá tải
+- level1: Thành phần tương tác 3.x
+  level2:
+  - Phạm vi phiên bản của Flow Components trong nhánh 3.x
+  - Vòng đời nhập liệu, ngữ cảnh và hiển thị của một thành phần
+  - StringInput cho chuỗi và giá trị mặc định
+  - PathInput cho đường dẫn và điều kiện hợp lệ
+  - PathSearch cho trải nghiệm tìm kiếm đường dẫn
+  - ConfirmationInput cho lựa chọn xác nhận
+  - SingleItemSelector cho một lựa chọn
+  - MultiItemSelector cho nhiều lựa chọn
+  - Ẩn đầu vào nhạy cảm bằng khả năng thành phần được hỗ trợ
+  - Tùy biến thông báo, nhãn và trạng thái cuối cùng
+  - Thoát hoặc hủy một thành phần mà không làm sai trạng thái ứng dụng
+  - Phương án cho chạy tự động khi không có khả năng tương tác
+- level1: ComponentFlow 3.x
+  level2:
+  - Khi nào cần ghép nhiều bước nhập liệu thành một luồng
+  - ComponentFlow.Builder và tạo cấu hình cho từng lần chạy
+  - Định danh bước và truyền kết quả giữa các thành phần
+  - Thứ tự thực thi mặc định của các bước
+  - Rẽ nhánh theo dữ liệu đã nhập bằng hàm next
+  - Điều kiện dừng luồng và bước đích không hợp lệ
+  - ComponentFlowResult và chuyển dữ liệu về lớp nghiệp vụ
+  - Kiểm tra đầy đủ dữ liệu trước khi áp dụng thay đổi
+  - Tách thu thập dữ liệu, xác nhận và thực thi nghiệp vụ
+  - Kiểm thử các nhánh, hủy thao tác và giá trị mặc định
+- level1: Terminal UI 3.x
+  level2:
+  - Phạm vi của TerminalUI và khác biệt với dòng lệnh tuần tự
+  - AppView và tổ chức cây view
+  - BoxView, GridView và bố trí nội dung
+  - InputView, ListView và lựa chọn dữ liệu
+  - ButtonView, MenuView và MenuBarView
+  - DialogView và tương tác có ngữ cảnh
+  - ProgressView, StatusBarView và trạng thái tác vụ
+  - EventLoop và luồng xử lý sự kiện
+  - Xử lý phím, focus và sự kiện chuột khi được hỗ trợ
+  - Vẽ lại, kích thước terminal và cập nhật dữ liệu view
+  - Đóng giao diện, khôi phục terminal và giải phóng tài nguyên
+  - Đối chiếu khả năng hỗ trợ trước khi chuyển giao diện sang thế hệ mới
+- level1: Tích hợp Spring
+  level2:
+  - Tiêm service và cấu hình vào lớp khai báo lệnh
+  - Giữ command mỏng và chuyển nghiệp vụ về service
+  - Gọi bean có proxy để giữ các cơ chế như transaction hoạt động
+  - Ranh giới transaction cho một lệnh hoặc một nhóm bản ghi
+  - Kết nối cơ sở dữ liệu và đóng tài nguyên sau khi xử lý
+  - Gọi HTTP API với timeout và cách báo lỗi phù hợp CLI
+  - Chọn môi trường đích bằng cấu hình có thể kiểm chứng
+  - Xử lý tác vụ dài, tiến độ và yêu cầu hủy
+  - Phân biệt thực thi đồng bộ với đẩy việc sang tác vụ nền
+  - Quản lý trạng thái khi nhiều tác vụ dùng chung bean
+  - Tái sử dụng cùng service cho CLI, batch hoặc REST khi ứng dụng cần
+  - Kiểm tra điều kiện Spring Security nếu service nghiệp vụ được bảo vệ
+- level1: Bảo mật và an toàn
+  level2:
+  - Quyền chạy tiến trình khác với quyền thực hiện nghiệp vụ
+  - Kiểm tra phân quyền tại lớp thực thi có thẩm quyền
+  - Giới hạn của command availability và lệnh bị ẩn
+  - Tránh đưa mật khẩu hoặc token vào đối số lộ qua lịch sử và danh sách tiến trình
+  - Đọc dữ liệu nhạy cảm bằng đầu vào được che khi terminal hỗ trợ
+  - Kiểm soát lưu lịch sử và nội dung log
+  - Không ghép dữ liệu người dùng thành lệnh shell hệ điều hành
+  - Kiểm tra đường dẫn đầu vào và phạm vi tệp được phép tác động
+  - Chế độ xem trước, xác nhận và ghi nhận tác vụ có ảnh hưởng lớn
+  - Tính lặp lại an toàn và khôi phục sau lỗi cập nhật một phần
+  - Xử lý ký tự điều khiển terminal trong dữ liệu không đáng tin
+  - Giới hạn quyền của tài khoản và cấu hình dùng để chạy công cụ
+- level1: Kiểm thử
+  level2:
+  - Phân tầng kiểm thử parser, command, service và tiến trình
+  - Unit test nghiệp vụ mà không khởi động terminal
+  - Kiểm tra đăng ký và danh sách command hiệu lực
+  - Vai trò của môđun spring-shell-test và cấu hình kiểm thử tương ứng
+  - '@ShellTest cùng phạm vi context trong từng thế hệ'
+  - ShellTestClient và ShellAssertions để tương tác và kiểm tra đầu ra
+  - Phiên interactive hoặc non-interactive qua API kiểm thử 3.x
+  - sendCommand và ShellScreen trong API kiểm thử 4.x
+  - Mô phỏng dữ liệu nhập hoặc mật khẩu bằng khả năng của phiên bản
+  - Kiểm tra tùy chọn thiếu, kiểu sai và ràng buộc chéo
+  - Kiểm tra availability, trạng thái phiên và đường đi sau lỗi
+  - Kiểm chứng exit code ở cấp tiến trình
+  - Chờ có điều kiện thay vì phụ thuộc khoảng dừng cố định
+  - Chuẩn hóa màu ANSI, kích thước màn hình và dữ liệu biến động
+  - Đóng phiên, dọn context và tránh kiểm thử bị treo chờ đầu vào
+- level1: Đóng gói và phân phối
+  level2:
+  - Tạo executable JAR phù hợp cấu hình Spring Boot
+  - Chạy bằng java -jar và truyền đối số có khoảng trắng
+  - Phân biệt tham số JVM với tham số của ứng dụng hoặc command
+  - Wrapper script cho Windows, Linux và macOS
+  - Mã hóa văn bản, đường dẫn và quyền thực thi trên các nền tảng
+  - Phân phối cùng tệp cấu hình, ví dụ và tài liệu trợ giúp
+  - Chạy trong container có hoặc không cấp terminal tương tác
+  - Tự động hóa trong CI và môi trường không có TTY
+  - Đánh giá thời gian khởi động, bộ nhớ và trải nghiệm gọi một lệnh
+  - GraalVM native image và giới hạn của nhánh Spring Shell mục tiêu
+  - Kiểm tra khả năng native của đăng ký bằng annotation hoặc bằng mã
+  - Tài nguyên, reflection và thành phần JLine cần đối chiếu khi đóng gói native
+  - Kiểm thử lại cú pháp, nhập xuất và mã thoát trên gói phân phối thực tế
+- level1: Cấu hình và vận hành
+  level2:
+  - Tổ chức thuộc tính Spring Shell trong cấu hình ứng dụng
+  - Profile, biến môi trường và ưu tiên nguồn cấu hình
+  - Kiểm tra thuộc tính runner, debug và lệnh có sẵn theo phiên bản
+  - Tách log kỹ thuật khỏi dữ liệu đầu ra dành cho người dùng
+  - Giảm banner hoặc log khởi động khi cần đầu ra máy đọc
+  - Quy ước mức chi tiết thông báo và chế độ debug
+  - Ghi nhận tên lệnh, thời lượng và kết quả nhưng che dữ liệu nhạy cảm
+  - Tệp lịch sử, thư mục làm việc và vị trí cấu hình người dùng
+  - Quản lý timeout cho kết nối, truy vấn và tác vụ dài
+  - Đóng context, kết nối và executor khi kết thúc
+  - Phát hiện luồng nền khiến tiến trình không thoát
+  - Theo dõi phiên bản ứng dụng và khả năng tái hiện một lần chạy
+- level1: Di chuyển và nâng cấp
+  level2:
+  - Lập danh sách command, cú pháp, kết quả và mã thoát cần bảo toàn
+  - Đọc hướng dẫn nâng cấp theo từng nhánh trung gian
+  - Nâng phụ thuộc Spring Framework, Spring Boot và Java đồng bộ
+  - Chuyển annotation legacy sang mô hình được phiên bản mới hỗ trợ
+  - Đổi package và thuộc tính @Command từ 3.x sang 4.x
+  - Thay nhóm lệnh ở cấp lớp bằng cơ chế tương ứng trong 4.x
+  - Chuyển CommandRegistration và CommandCatalog sang Command và CommandRegistry
+  - Đối chiếu tùy chọn, đối số, arity và quy tắc Boolean sau khi đổi parser
+  - Chuyển completion, availability và ánh xạ lỗi sang API mới
+  - Kiểm tra runner, mặc định tương tác và API InteractionMode đã thay đổi
+  - Đối chiếu trợ giúp, lịch sử, stacktrace và completion tích hợp
+  - Chuyển API kiểm thử và kiểm tra lại hỗ trợ native
+  - Đánh giá phương án thay thế cho các thành phần UI không được nhánh mới hỗ trợ
+  - Chạy bộ kiểm thử hợp đồng CLI trên các script sử dụng thực tế
+- level1: Chẩn đoán sự cố
+  level2:
+  - Ứng dụng khởi động rồi thoát do chế độ hoặc mặc định runner
+  - Lệnh không được khám phá do package, bean hoặc thiếu cấu hình đăng ký
+  - Trùng command, tiền tố hoặc nhóm gây nhập nhằng
+  - Dùng annotation đúng tên nhưng sai package hoặc thế hệ
+  - Tùy chọn không nhận giá trị do nháy, escape, arity hoặc tên khai báo
+  - Boolean được phân tích khác hành vi mong đợi của phiên bản cũ
+  - Converter hoặc validation không được áp dụng
+  - Completion không hoạt động vì runner không dùng JLine
+  - Không đọc được console khi chạy trong IDE hoặc môi trường không có TTY
+  - Bảng, Unicode hoặc màu sắc hiển thị sai
+  - Log chen vào đầu ra làm hỏng JSON hoặc CSV
+  - Script dừng, tiếp tục hoặc trả mã thoát khác dự kiến
+  - Tiến trình treo do chờ đầu vào, luồng nền hoặc tài nguyên chưa đóng
+  - NoSuchMethodError hoặc ClassNotFoundException do xung đột phụ thuộc
+  - Thu hẹp lỗi bằng phiên bản, cấu hình hiệu lực và ca tái hiện tối thiểu
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây CLI chào hỏi với tùy chọn, đối số và trợ giúp rõ ràng
+  - Xây nhóm lệnh quản lý tài nguyên dùng chung service
+  - Bổ sung converter và validation cho kiểu dữ liệu miền
+  - Mô phỏng kết nối rồi thay đổi availability theo trạng thái phiên
+  - Gợi ý giá trị phụ thuộc ngữ cảnh mà không thay thế validation
+  - Nhập nhiều bước bằng ComponentFlow trên nhánh hỗ trợ
+  - Hiển thị bảng kết quả có thể thích ứng độ rộng terminal
+  - Cung cấp cả đầu ra cho người đọc và đầu ra cho script
+  - Chạy không tương tác với mã thoát nhất quán
+  - Xử lý lỗi nghiệp vụ, hủy thao tác và cập nhật một phần
+  - Viết kiểm thử cho cùng hợp đồng lệnh trên mô hình đang sử dụng
+  - Đóng gói và chạy trên terminal thật cùng môi trường CI
+  - Bài tập tổng hợp từ đặc tả CLI đến công cụ có tài liệu và kiểm thử

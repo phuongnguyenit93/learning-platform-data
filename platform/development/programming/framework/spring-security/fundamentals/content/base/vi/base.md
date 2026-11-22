@@ -1,0 +1,7 @@
+# Spring Security - Fundamentals
+
+Spring Security cung cấp nền tảng để ứng dụng xác thực danh tính, quyết định quyền truy cập và phối hợp các cơ chế bảo vệ trước những hình thức tấn công phổ biến. Module này giúp bạn hình thành một bức tranh thống nhất: tài nguyên nào cần bảo vệ, ai đang yêu cầu truy cập, bằng chứng nhận diện có đáng tin cậy hay không và chính sách nào quyết định kết quả.
+
+Module dành cho người đã có kiến thức Java, Spring và HTTP cơ bản, muốn bắt đầu học Spring Security theo một trình tự rõ ràng. Bạn sẽ làm quen với chủ thể (principal), thông tin xác thực (credentials), Authentication, quyền được cấp (GrantedAuthority) và ngữ cảnh bảo mật (SecurityContext); đồng thời hiểu quan hệ giữa xác thực, phân quyền, phiên đăng nhập và bảo vệ tương tác web. Các mô hình Servlet và Reactive được giới thiệu để định vị cách tích hợp và lựa chọn hướng học tiếp.
+
+Lộ trình đi từ tư duy bảo mật và quan sát một ứng dụng được tích hợp Spring Security đến cơ chế xác thực, quyết định truy cập và vòng đời danh tính. Sau đó, bạn tìm hiểu vai trò của CSRF, CORS và các tiêu đề HTTP bảo mật, rồi kiểm chứng bằng những tình huống truy cập cụ thể. Kết quả cần đạt là giải thích được các thành phần phối hợp ra sao và có nền tảng để học sâu về xác thực, phân quyền, Servlet, Reactive hoặc OAuth2/OIDC.

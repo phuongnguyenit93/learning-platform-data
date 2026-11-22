@@ -1,0 +1,3 @@
+menuLevel1: Dependency injection
+menuLevel2: Khi Singleton gây phụ thuộc ẩn, khó kiểm thử hoặc sai phạm vi thì ưu tiên DI
+status: ""

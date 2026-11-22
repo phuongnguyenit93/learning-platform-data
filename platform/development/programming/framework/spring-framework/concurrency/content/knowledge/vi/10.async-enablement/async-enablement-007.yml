@@ -1,0 +1,3 @@
+menuLevel1: Bật @Async
+menuLevel2: Cơ chế tìm TaskExecutor hoặc bean taskExecutor khi không cấu hình tường minh
+status: WRITTEN

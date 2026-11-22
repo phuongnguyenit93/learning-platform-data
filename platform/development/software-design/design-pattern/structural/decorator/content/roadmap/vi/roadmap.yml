@@ -1,0 +1,50 @@
+roadmap:
+- id: boi-canh-y-dinh
+  title: Bối cảnh & ý định
+  purpose: Hiểu Decorator giải quyết nhu cầu bổ sung trách nhiệm cho từng đối tượng mà không tạo quá nhiều lớp con.
+  objectives:
+  - Nhận diện tình huống cần mở rộng hành vi linh hoạt.
+  - Giải thích ưu điểm composition so với kế thừa nhiều nhánh.
+  - Phân biệt Decorator với sửa trực tiếp lớp hiện có.
+- id: component-lop-loi
+  title: Component & lớp lõi
+  purpose: Xác lập hợp đồng chung để đối tượng gốc và các lớp bọc dùng được thay thế cho nhau.
+  objectives:
+  - Định nghĩa interface Component và ConcreteComponent.
+  - Xác định hành vi cốt lõi cần giữ ổn định.
+  - Vẽ sơ đồ phụ thuộc từ client đến Component.
+- id: decorator-uy-quyen
+  title: Decorator & ủy quyền
+  purpose: Thiết kế wrapper giữ tham chiếu tới Component và chuyển tiếp lời gọi một cách nhất quán.
+  objectives:
+  - Tạo Decorator triển khai cùng interface Component.
+  - Lưu wrapped component và ủy quyền phương thức.
+  - Kiểm tra lớp bọc vẫn giữ hợp đồng của Component.
+- id: concrete-decorator
+  title: Concrete Decorator
+  purpose: Thêm trách nhiệm cụ thể trước hoặc sau hành vi của đối tượng được bọc.
+  objectives:
+  - Viết decorator bổ sung logging hoặc validation.
+  - Đặt lời gọi delegate đúng thứ tự cần thiết.
+  - Giữ mỗi decorator tập trung vào một trách nhiệm.
+- id: ket-hop-thu-tu-boc
+  title: Kết hợp & thứ tự bọc
+  purpose: Tạo nhiều tổ hợp hành vi ở runtime và nhận diện ảnh hưởng của thứ tự xếp lớp.
+  objectives:
+  - Ghép nhiều decorator quanh cùng một đối tượng.
+  - So sánh kết quả khi thay đổi thứ tự wrapper.
+  - Theo dõi luồng lời gọi qua các lớp bọc.
+- id: ung-dung-java
+  title: Ứng dụng Java
+  purpose: Liên hệ mẫu thiết kế với API thực tế để nhận diện và áp dụng Decorator đúng chỗ.
+  objectives:
+  - Phân tích FilterInputStream và BufferedInputStream.
+  - Triển khai ví dụ Java bằng interface và composition.
+  - Phân biệt Decorator với Adapter và Proxy qua mục tiêu sử dụng.
+- id: kiem-thu-danh-doi
+  title: Kiểm thử & đánh đổi
+  purpose: Đánh giá tính đúng đắn và chi phí của nhiều lớp wrapper trước khi áp dụng.
+  objectives:
+  - Viết test cho component riêng lẻ và từng decorator.
+  - Kiểm thử các tổ hợp và thứ tự xử lý quan trọng.
+  - Nhận diện wrapper lồng sâu, khó debug và phụ thuộc thứ tự.

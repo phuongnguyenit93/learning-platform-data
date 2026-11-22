@@ -1,0 +1,294 @@
+menu:
+- level1: Bức tranh mạng
+  level2:
+  - Lập trình mạng giải quyết bài toán trao đổi dữ liệu giữa các tiến trình như thế nào
+  - Mô hình máy khách–máy chủ và vai trò của giao thức ứng dụng
+  - Phân biệt địa chỉ IP, cổng, điểm cuối, kết nối và thông điệp
+  - 'Đường đi dữ liệu: ứng dụng → Java API → hệ điều hành → mạng → tiến trình đích'
+  - TCP, UDP, HTTP, TLS và WebSocket nằm ở những lớp nào
+  - So sánh I/O chặn, không chặn và bất đồng bộ
+  - 'Bản đồ API: java.net, java.nio.channels, java.net.http, JSSE và jdk.httpserver'
+  - 'Kiến thức nền cần dùng: luồng byte, bộ đệm, charset, ngoại lệ và xử lý đồng thời'
+  - Đọc hợp đồng API theo phiên bản JDK và phân biệt hành vi phụ thuộc nền tảng
+- level1: Địa chỉ và DNS
+  level2:
+  - IPv4, IPv6 và cách biểu diễn địa chỉ bằng InetAddress
+  - Địa chỉ loopback, wildcard, riêng, link-local và multicast
+  - getByName, getAllByName và một tên máy có nhiều địa chỉ
+  - Tạo địa chỉ từ byte hoặc IP literal mà không nhầm với phân giải tên
+  - Phân giải thuận, phân giải ngược và chi phí của việc lấy tên máy
+  - Bộ nhớ đệm kết quả DNS thành công, thất bại và dữ liệu hết hạn
+  - 'InetSocketAddress: địa chỉ đã phân giải, chưa phân giải và cổng tự cấp'
+  - NetworkInterface, nhiều card mạng và phạm vi của địa chỉ IPv6
+  - Giới hạn của getLocalHost và isReachable khi đánh giá khả năng kết nối
+  - InetAddressResolverProvider và cơ chế thay thế bộ phân giải theo phiên bản hỗ trợ
+- level1: URI và URL
+  level2:
+  - Phân biệt định danh tài nguyên URI với khả năng truy cập tài nguyên qua URL
+  - Cấu trúc scheme, authority, host, port, path, query và fragment
+  - URI tuyệt đối, tương đối, phân cấp và opaque
+  - Phân tích, tạo URI theo thành phần và xử lý URISyntaxException
+  - resolve, relativize và normalize trong ghép đường dẫn tài nguyên
+  - Percent-encoding, Unicode và sự khác nhau giữa thành phần thô với đã giải mã
+  - URLEncoder và URLDecoder phục vụ dữ liệu biểu mẫu, không phải mọi thành phần URL
+  - IDN và chuyển tên miền quốc tế sang biểu diễn ASCII
+  - Chuyển URI sang URL; hàm tạo URL cũ và hướng sử dụng theo phiên bản
+  - So sánh URI, URL và nguy cơ phân giải tên ngoài ý muốn khi so sánh URL
+  - Kiểm tra scheme, máy đích, cổng và đường dẫn trước khi mở kết nối
+- level1: TCP với Socket
+  level2:
+  - TCP cung cấp luồng byte có thứ tự; giới hạn của bảo đảm vận chuyển
+  - Tạo Socket, bind địa chỉ cục bộ và connect đến điểm cuối từ xa
+  - Kết nối đến tên máy nhiều địa chỉ và phân biệt lỗi DNS với lỗi kết nối
+  - Đặt thời hạn kết nối bằng connect và thời hạn đọc bằng SO_TIMEOUT
+  - Đọc InputStream, ghi OutputStream và nhận biết kết thúc luồng
+  - Đọc chưa đủ dữ liệu, chờ vô hạn và ý nghĩa của giá trị -1
+  - flush ở bộ đệm ứng dụng khác với xác nhận từ ứng dụng phía bên kia
+  - shutdownInput, shutdownOutput và đóng một chiều của kết nối
+  - Đóng Socket, đóng stream và quản lý tài nguyên bằng try-with-resources
+  - SO_KEEPALIVE, TCP_NODELAY, SO_LINGER và bộ đệm gửi/nhận
+  - Kiểm tra supportedOptions và các khác biệt giữa JDK, hệ điều hành
+  - Phân biệt trạng thái isConnected, isClosed với khả năng trao đổi dữ liệu hiện tại
+- level1: Thông điệp trên TCP
+  level2:
+  - Vì sao một lần write không tương ứng với một lần read
+  - Xác định ranh giới thông điệp bằng độ dài cố định, ký tự phân cách hoặc tiền tố độ dài
+  - Thiết kế phần đầu, loại thông điệp, độ dài và phiên bản giao thức
+  - Đọc đủ số byte cần thiết và giữ lại phần dữ liệu của thông điệp tiếp theo
+  - Mã hóa UTF-8 và xử lý ký tự bị chia giữa nhiều lần đọc
+  - Byte order và truyền số nguyên bằng DataInputStream hoặc ByteBuffer
+  - Giới hạn kích thước thông điệp trước khi cấp phát bộ nhớ
+  - Phân biệt gửi thành công ở tầng vận chuyển với xử lý thành công ở tầng ứng dụng
+  - Mã yêu cầu, phản hồi và phát hiện thông điệp trùng khi thử lại
+  - Nhận diện tình huống hai phía cùng chờ đọc và quy định thứ tự trao đổi
+- level1: Máy chủ TCP
+  level2:
+  - 'ServerSocket: bind địa chỉ, lắng nghe và accept kết nối'
+  - Cổng 0, địa chỉ bind và cách công bố địa chỉ đã được cấp
+  - Backlog và giới hạn hàng đợi kết nối phụ thuộc hệ điều hành
+  - Tách socket lắng nghe khỏi socket phục vụ từng máy khách
+  - Mô hình xử lý tuần tự và ảnh hưởng của một máy khách chậm
+  - Luồng cho mỗi kết nối, nhóm luồng và luồng ảo
+  - Giới hạn kết nối đang hoạt động và tách công việc CPU khỏi chờ I/O
+  - Đồng bộ dữ liệu dùng chung mà không khóa toàn bộ đường đọc/ghi
+  - Ngừng accept, hoàn thành yêu cầu đang chạy và đóng máy chủ có thứ tự
+  - Kiểm thử nhiều kết nối đồng thời và dọn tài nguyên khi xử lý thất bại
+- level1: UDP
+  level2:
+  - DatagramSocket và DatagramPacket trong trao đổi không hướng kết nối
+  - Bind, gửi và nhận datagram kèm địa chỉ nguồn hoặc đích
+  - Ranh giới datagram khác với luồng byte TCP
+  - Buffer nhận quá nhỏ, dữ liệu bị cắt và độ dài gói nhận thực tế
+  - Tái sử dụng DatagramPacket và thiết lập lại vùng nhận đúng cách
+  - connect của UDP xác định đối tác nhưng không tạo phiên TCP
+  - Mất gói, trùng gói, đảo thứ tự và giới hạn của báo lỗi phía gửi
+  - Thời hạn nhận, số thứ tự và thử lại do ứng dụng tự thiết kế
+  - Kích thước datagram, phân mảnh IP và lựa chọn tải phù hợp
+  - Broadcast, SO_BROADCAST và giới hạn do cấu hình mạng
+- level1: Multicast
+  level2:
+  - Multicast khác với unicast và broadcast về cách chọn bên nhận
+  - MulticastSocket và tham gia nhóm bằng địa chỉ cùng NetworkInterface
+  - Chọn card mạng khi máy có nhiều giao diện
+  - Phạm vi IPv4, IPv6 và số chặng bằng multicast TTL
+  - Điều khiển multicast loopback và ngữ nghĩa của tùy chọn liên quan
+  - Rời nhóm, đóng socket và quản lý nhiều nhóm
+  - DatagramChannel, MembershipKey và lọc nguồn khi nền tảng hỗ trợ
+  - Kiểm chứng multicast trong mạng cục bộ và phân biệt lỗi ứng dụng với hạ tầng
+- level1: Buffer và channel
+  level2:
+  - 'ByteBuffer: capacity, position, limit và vùng byte còn lại'
+  - Chu kỳ put → flip → write và read → flip → xử lý → compact
+  - Giữ dữ liệu chưa xử lý khi thông điệp đi qua nhiều lần đọc
+  - Heap buffer, direct buffer và chi phí cấp phát, tái sử dụng
+  - CharsetDecoder và CharsetEncoder khi chuyển đổi dữ liệu tăng dần
+  - SocketChannel, ServerSocketChannel và chế độ blocking mặc định
+  - connect, finishConnect và trạng thái kết nối chưa hoàn tất
+  - Đọc hoặc ghi một phần; phân biệt kết quả 0 với kết thúc luồng
+  - Scattering read, gathering write và gom phần đầu với nội dung
+  - 'DatagramChannel: gửi/nhận, kết nối UDP và tương tác với ByteBuffer'
+  - Unix domain socket qua StandardProtocolFamily.UNIX và UnixDomainSocketAddress
+  - Đường dẫn socket cục bộ, quyền truy cập và việc dọn tệp sau khi đóng
+- level1: Selector
+  level2:
+  - Selector giải quyết bài toán theo dõi nhiều kết nối như thế nào
+  - Đưa channel sang non-blocking và đăng ký SelectionKey
+  - Interest set, ready set và các cờ OP_ACCEPT, OP_CONNECT, OP_READ, OP_WRITE
+  - select, selectNow, select có thời hạn và cơ chế wakeup
+  - Duyệt selected-key set và loại khóa đã xử lý
+  - Xử lý readiness như tín hiệu cần kiểm tra lại bằng thao tác I/O
+  - Lưu trạng thái giao thức và buffer riêng cho từng kết nối
+  - Chỉ đăng ký OP_WRITE khi còn dữ liệu chờ gửi để tránh vòng lặp tốn CPU
+  - Giới hạn hàng đợi ghi và điều tiết bên đọc khi bên nhận chậm
+  - Hủy key, xử lý EOF và đóng kết nối khi xảy ra lỗi
+  - Phối hợp event loop với nhóm xử lý mà không chặn luồng selector
+- level1: I/O bất đồng bộ
+  level2:
+  - Phân biệt sẵn sàng I/O của Selector với hoàn tất I/O bất đồng bộ
+  - AsynchronousServerSocketChannel và AsynchronousSocketChannel
+  - Nhận kết quả qua Future hoặc CompletionHandler
+  - AsynchronousChannelGroup, bộ thực thi và vòng đời nhóm
+  - Nối tiếp accept, read, xử lý và write mà không làm mất trạng thái
+  - 'Một thao tác đọc và một thao tác ghi đang chờ: giới hạn thực thi đồng thời'
+  - Quyền sử dụng ByteBuffer trong thời gian thao tác chưa hoàn tất
+  - Thời hạn, hủy thao tác và trạng thái channel sau khi có lỗi
+  - Đóng channel, xử lý callback thất bại và kết thúc nhóm có thứ tự
+- level1: TLS
+  level2:
+  - TLS bảo vệ bí mật, toàn vẹn và xác thực bên giao tiếp
+  - Handshake, chứng chỉ, chuỗi tin cậy và phiên TLS
+  - SSLContext, SSLSocketFactory, SSLSocket và SSLServerSocket
+  - KeyManager, TrustManager, keystore và truststore có trách nhiệm khác nhau
+  - Xác thực tên máy bằng endpoint identification khi dùng socket TLS trực tiếp
+  - 'Thiết lập SSLParameters: phiên bản giao thức, cipher suite, SNI và ALPN'
+  - Xác thực hai chiều bằng chứng chỉ máy khách (mTLS)
+  - SSLEngine tách xử lý TLS khỏi cơ chế truyền dữ liệu
+  - Chu trình wrap, unwrap, NEED_TASK và xử lý thiếu dữ liệu hoặc thiếu vùng đệm
+  - Đóng TLS có thứ tự và phân biệt lỗi handshake với lỗi I/O ứng dụng
+  - DTLS ở mức tổng quan và giới hạn của việc áp dụng TLS cho datagram
+  - Chẩn đoán chứng chỉ, tên máy và thuật toán mà vẫn giữ bước xác minh
+- level1: Nền tảng HTTP
+  level2:
+  - HTTP bổ sung mô hình yêu cầu–phản hồi lên cơ chế vận chuyển
+  - Method, URI đích, header, mã trạng thái và body
+  - GET, HEAD, POST, PUT, DELETE và ý nghĩa an toàn, lũy đẳng
+  - Nhóm mã 2xx, 3xx, 4xx, 5xx và phân biệt với lỗi kết nối
+  - Content-Type, charset, Content-Length và biểu diễn dữ liệu
+  - 'HTTP/1.1: tái sử dụng kết nối và ranh giới nội dung'
+  - 'HTTP/2: luồng đồng thời trên kết nối và điều tiết truyền dữ liệu'
+  - 'HTTP/3: QUIC, vận chuyển qua UDP và điều kiện hỗ trợ'
+  - HTTPS, origin, chuyển hướng và thông tin xác thực
+  - Cache-Control, ETag, Last-Modified và yêu cầu có điều kiện
+- level1: HttpClient
+  level2:
+  - HttpClient, HttpRequest và HttpResponse trong module java.net.http
+  - Tạo client có thể dùng lại và chia sẻ tài nguyên kết nối
+  - Builder có thể thay đổi và đối tượng client, request sau khi build
+  - Tạo GET, POST, PUT và method tùy chọn với header đúng
+  - connectTimeout của client và timeout của từng yêu cầu
+  - Phiên bản HTTP mong muốn khác với phiên bản phản hồi thực tế
+  - Đàm phán HTTP/2, nâng cấp giao thức và khả năng quay về HTTP/1.1
+  - 'HTTP/3 từ JDK 26: phiên bản, HttpOption và cơ chế khám phá'
+  - Ảnh hưởng của HTTPS, proxy và SSLContext đến việc dùng HTTP/3
+  - Gửi đồng bộ bằng send và diễn giải statusCode, headers, body
+  - Chính sách chuyển hướng NEVER, NORMAL, ALWAYS và chuỗi phản hồi trước
+  - close, shutdown, shutdownNow, awaitTermination và khác biệt theo phiên bản
+- level1: Nội dung HTTP
+  level2:
+  - BodyPublisher, BodyHandler và BodySubscriber nằm ở đâu trong trao đổi
+  - Gửi String, byte array, file hoặc InputStream bằng BodyPublishers
+  - Body có thể phát lại và điều kiện để gửi lại sau xác thực hoặc chuyển hướng
+  - Nhận nội dung bằng ofString, ofByteArray, ofFile và discarding
+  - Nhận dạng luồng bằng ofInputStream, ofLines hoặc ofPublisher
+  - Thời điểm nhận HttpResponse khác với thời điểm đọc xong toàn bộ body
+  - Đọc hết, đóng hoặc hủy body dạng luồng để giải phóng tài nguyên
+  - Flow.Publisher, Flow.Subscriber và nhu cầu nhận dữ liệu (backpressure)
+  - Chọn BodyHandler theo status và header thay vì mặc định nhận mọi body
+  - Giới hạn dung lượng phản hồi và tránh gom nội dung không giới hạn vào heap
+  - 'Mã hóa biểu mẫu, JSON và multipart: ranh giới giữa HTTP API với bộ mã hóa dữ liệu'
+  - 'Tải file an toàn: tên file, đường dẫn đích và xử lý nội dung tải chưa hoàn tất'
+- level1: HTTP bất đồng bộ
+  level2:
+  - sendAsync trả CompletableFuture và mô tả việc trao đổi đang diễn ra
+  - thenApply, thenCompose và ghép các bước phụ thuộc
+  - Phối hợp nhiều yêu cầu độc lập bằng allOf mà vẫn giữ kết quả từng yêu cầu
+  - handle, exceptionally và phân biệt lỗi gốc với CompletionException
+  - Chọn executor cho công việc tiếp nối và tránh chặn luồng xử lý I/O
+  - Giới hạn số yêu cầu đồng thời thay vì tạo không giới hạn future
+  - Hủy yêu cầu, ngắt send đồng bộ và khả năng máy chủ đã xử lý yêu cầu
+  - Thời hạn chờ kết quả của future khác với hủy trao đổi mạng
+  - Hoàn thành future khi body dạng luồng còn mở và trách nhiệm của bên sử dụng
+  - Đóng client sau khi các yêu cầu và nội dung đang truyền được xử lý
+- level1: Proxy và phiên HTTP
+  level2:
+  - Proxy HTTP, proxy SOCKS và kết nối trực tiếp có vai trò khác nhau
+  - ProxySelector, lựa chọn theo URI và xử lý connectFailed
+  - Thuộc tính proxy toàn hệ thống và cấu hình riêng từng HttpClient
+  - Đường hầm CONNECT khi truy cập HTTPS qua proxy
+  - Authenticator và PasswordAuthentication cho máy chủ hoặc proxy
+  - Phân biệt xác thực HTTP, token ứng dụng và xác thực chứng chỉ TLS
+  - CookieHandler, CookieManager, CookieStore và chính sách nhận cookie
+  - Domain, Path, Secure và thời hạn sống của cookie
+  - Giữ trạng thái phiên có chủ đích giữa các yêu cầu và cách cô lập người dùng
+  - Chuyển hướng sang máy đích khác và giới hạn chia sẻ thông tin xác thực
+- level1: WebSocket
+  level2:
+  - WebSocket dùng cho trao đổi hai chiều kéo dài trong trường hợp nào
+  - ws, wss, opening handshake và vai trò của HttpClient
+  - WebSocket.Builder, subprotocol và kết nối bất đồng bộ
+  - Gửi văn bản, nhị phân, ping, pong và nhận kết quả hoàn tất gửi
+  - WebSocket.Listener với onOpen, onText, onBinary, onClose, onError
+  - Cờ last và việc một thông điệp được giao qua nhiều lần gọi
+  - request(n) điều tiết số lần gọi nhận, không phải số thông điệp hoàn chỉnh
+  - Chuỗi gửi đúng thứ tự và giới hạn thao tác đang chờ
+  - Quyền sử dụng CharSequence và ByteBuffer trước khi gửi hoàn tất
+  - Ping/pong, phát hiện kết nối im lặng và giới hạn của heartbeat
+  - sendClose, hai chiều input/output và abort khi không thể đóng có thứ tự
+  - Giới hạn kích thước thông điệp, nối lại và phục hồi trạng thái phiên
+  - Ranh giới API WebSocket client trong JDK và việc xây dựng WebSocket server
+- level1: URLConnection
+  level2:
+  - URL.openConnection, protocol handler và vòng đời trước/sau connect
+  - Đặt timeout, request property và hướng vào/ra trước khi kết nối
+  - Đọc metadata và stream của tài nguyên với đóng tài nguyên rõ ràng
+  - 'HttpURLConnection: method, mã trạng thái và error stream'
+  - Fixed-length, chunked streaming và giới hạn gửi lại nội dung
+  - Chuyển hướng, HTTP keep-alive và ý nghĩa của disconnect
+  - HttpsURLConnection với SSLSocketFactory và xác minh tên máy
+  - ResponseCache, CookieHandler và các cấu hình chia sẻ toàn tiến trình
+  - So sánh API cũ với HttpClient khi đọc hoặc chuyển đổi mã hiện có
+- level1: HTTP server của JDK
+  level2:
+  - Module jdk.httpserver và khả năng của HttpServer, HttpsServer
+  - Tạo server, bind địa chỉ và đăng ký HttpContext
+  - Quy tắc khớp tiền tố đường dẫn và phân biệt chữ hoa/chữ thường
+  - HttpHandler và HttpExchange trong một yêu cầu
+  - Đọc method, URI, header và request body
+  - Gửi mã trạng thái, header, độ dài và response body
+  - Đóng exchange, xử lý lỗi và tránh để máy khách chờ phản hồi mãi
+  - Filter, Authenticator và tách xử lý dùng chung
+  - Cấu hình executor, giới hạn xử lý và stop có thời gian chờ
+  - HttpsConfigurator, SSLContext và bài thử HTTPS cục bộ
+  - SimpleFileServer và jwebserver cho nhu cầu phục vụ file thử nghiệm
+  - Đánh giá giới hạn API trước khi chọn máy chủ cho một ứng dụng
+- level1: Độ tin cậy
+  level2:
+  - Phân loại lỗi DNS, bind, connect, route, read, TLS và lỗi giao thức
+  - Ngân sách thời gian cho toàn yêu cầu, từng thao tác và thời gian nhàn rỗi
+  - Thử lại có giới hạn với khoảng chờ tăng dần và độ lệch ngẫu nhiên
+  - Tính lũy đẳng, mã yêu cầu và kết quả chưa xác định sau mất kết nối
+  - Giới hạn số kết nối, số yêu cầu và bộ nhớ đệm đang sử dụng
+  - Bên nhận chậm, hàng đợi ghi và điều tiết tốc độ ở tầng ứng dụng
+  - Đóng tài nguyên khi lỗi xảy ra giữa chừng và khôi phục cờ ngắt phù hợp
+  - Keep-alive TCP, tái sử dụng HTTP và heartbeat ứng dụng có mục đích khác nhau
+  - Ngừng nhận công việc, chờ công việc đang chạy và kết thúc có thứ tự
+  - Kiểm tra đầu vào, đích truy cập, chuyển hướng và giới hạn kích thước dữ liệu
+  - Chọn socket, selector, luồng ảo hoặc client HTTP theo đặc điểm tải
+- level1: Cấu hình và quan sát
+  level2:
+  - 'Networking properties: phạm vi toàn tiến trình và thời điểm thuộc tính được đọc'
+  - Ưu tiên IPv4, IPv6 và ảnh hưởng đến chọn địa chỉ
+  - Thuộc tính cache DNS khác với system property thông thường
+  - Đọc địa chỉ local/remote, thời gian từng giai đoạn và số byte truyền
+  - Gắn mã tương quan để nối dấu vết máy khách với máy chủ
+  - Nhận diện UnknownHostException, BindException, ConnectException và SocketTimeoutException
+  - Nhận diện EOF, connection reset, broken pipe và lỗi do đóng channel
+  - Log của HTTP client, debug JSSE và che dữ liệu xác thực khi chẩn đoán
+  - Đối chiếu chỉ số ứng dụng với trạng thái socket và giới hạn hệ điều hành
+  - Đánh giá hiệu năng bằng thông lượng, phân vị độ trễ, CPU và dung lượng bộ nhớ
+- level1: Thực nghiệm mạng
+  level2:
+  - Khảo sát DNS, nhiều địa chỉ và card mạng trên môi trường đang chạy
+  - Tạo TCP echo client/server trên loopback với cổng do hệ điều hành cấp
+  - Chia một thông điệp qua nhiều lần ghi và ghép nhiều thông điệp trong một lần ghi
+  - Tạo máy khách gửi chậm để kiểm chứng timeout và giới hạn tài nguyên
+  - So sánh xử lý TCP bằng nhóm luồng, luồng ảo và Selector
+  - Gửi UDP với buffer nhỏ để quan sát cắt dữ liệu và ranh giới datagram
+  - Thử multicast với card mạng được chọn rõ và dọn membership
+  - Tạo HTTP server cục bộ trả mã lỗi, chuyển hướng và nội dung dạng luồng
+  - Kiểm thử HttpClient đồng bộ, bất đồng bộ, cookie và hủy yêu cầu
+  - Kiểm tra tên máy và truststore bằng cặp HTTPS client/server thử nghiệm
+  - Kiểm chứng phân mảnh thông điệp và điều tiết nhận trong WebSocket client
+  - Kiểm thử lỗi giữa chừng, đóng có thứ tự và không để rò socket hoặc luồng
+  - Lập bảng tương thích JDK, giao thức và API cho ví dụ có thể tái lập
+  - Ghi kết luận từ dữ liệu đo và phân biệt bằng chứng với suy đoán

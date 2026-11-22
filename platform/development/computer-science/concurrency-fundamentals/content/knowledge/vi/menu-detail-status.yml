@@ -1,0 +1,3304 @@
+menu:
+- slug: concurrency-overview
+  title: Tổng quan đồng thời
+  childs:
+  - slug: concurrency-overview-001
+    title: Đồng thời (concurrency) là gì và vì sao chương trình cần nhiều hoạt động cùng tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-002
+    title: 'Đồng thời, song song và bất đồng bộ: phân biệt mục tiêu với cơ chế'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-003
+    title: Từ luồng xử lý tuần tự đến nhiều hoạt động có thể chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-004
+    title: 'Những nguồn đồng thời: nhiều lõi, ngắt, I/O, sự kiện và nhiều bên yêu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-005
+    title: 'Lợi ích và chi phí: độ phản hồi, thông lượng, tài nguyên và độ phức tạp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-006
+    title: 'Bản đồ khái niệm: thực thi, chia sẻ trạng thái, phối hợp và vòng đời'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-007
+    title: 'Bộ nhớ dùng chung và truyền thông điệp: hai cách tổ chức nền tảng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-008
+    title: Phạm vi trong một tiến trình, giữa các tiến trình và ranh giới với hệ phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-overview-009
+    title: Cách học bằng dòng thời gian, trạng thái, bất biến và lịch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-models
+  title: Mô hình thực thi
+  childs:
+  - slug: execution-models-001
+    title: Chương trình, tiến trình, luồng và tác vụ là những đơn vị khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-002
+    title: Luồng hệ điều hành, luồng do môi trường thực thi quản lý và ánh xạ thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-003
+    title: Lõi vật lý, lõi logic và tài nguyên xử lý được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-004
+    title: Trạng thái chạy, sẵn sàng, chờ và các nguyên nhân chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-005
+    title: Lập lịch có quyền ngắt và lập lịch hợp tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-006
+    title: Chuyển ngữ cảnh, di chuyển luồng giữa các lõi và chi phí liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-007
+    title: Tác vụ dùng nhiều CPU và tác vụ chủ yếu chờ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-008
+    title: Thực thi xen kẽ trên một lõi và thực thi song song trên nhiều lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-009
+    title: Số luồng, số tác vụ và số hoạt động I/O đang chờ không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-models-010
+    title: Tiến trình độc lập, miền lỗi và chi phí giao tiếp giữa các đơn vị thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-and-sharing
+  title: Trạng thái và chia sẻ
+  childs:
+  - slug: state-and-sharing-001
+    title: Trạng thái cục bộ, trạng thái dùng chung và vòng đời dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-002
+    title: Khả năng truy cập chung và cách dữ liệu trở thành dữ liệu được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-003
+    title: Bí danh, đồ thị đối tượng và thay đổi qua nhiều tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-004
+    title: Giá trị bất biến, đối tượng bất biến và bất biến sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-005
+    title: Quyền sở hữu dữ liệu, chuyển quyền sở hữu và trách nhiệm cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-006
+    title: Giới hạn dữ liệu trong một luồng hoặc một tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-007
+    title: Trạng thái theo luồng và rủi ro khi tái sử dụng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-008
+    title: Bất biến dữ liệu và phạm vi thao tác cần duy trì bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-009
+    title: 'Chia sẻ tài nguyên ngoài bộ nhớ: tệp, socket, kết nối và thiết bị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-sharing-010
+    title: An toàn luồng (thread safety) của đối tượng và giới hạn của từng bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-ordering
+  title: Thứ tự sự kiện
+  childs:
+  - slug: event-ordering-001
+    title: Sự kiện, hành động đọc, hành động ghi và lịch sử thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-002
+    title: Thứ tự trong một đơn vị thực thi và thứ tự giữa các đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-003
+    title: Mô hình xen kẽ và tập các lịch thực thi có thể xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-004
+    title: Thứ tự từng phần và những sự kiện không được sắp thứ tự với nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-005
+    title: Quan hệ xảy ra trước (happens-before) và sự truyền dẫn của quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-006
+    title: Thứ tự đồng bộ và điều kiện thiết lập quan hệ giữa các bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-007
+    title: Quan hệ nhân quả và sự khác nhau với thứ tự quan sát theo đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-008
+    title: Điểm bắt đầu, điểm kết thúc và các thao tác có khoảng thực hiện chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-009
+    title: Vẽ dòng thời gian để giải thích kết quả hợp lệ hoặc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-ordering-010
+    title: Giới hạn của mô hình xen kẽ khi có sắp xếp lại và mô hình bộ nhớ yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: correctness-and-progress
+  title: Độ đúng và tiến triển
+  childs:
+  - slug: correctness-and-progress-001
+    title: Đặc tả tuần tự của đối tượng trước khi xét sử dụng đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-002
+    title: 'Thuộc tính an toàn (safety): những trạng thái xấu không được xuất hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-003
+    title: 'Thuộc tính sống (liveness): công việc cần có khả năng tiến triển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-004
+    title: Tính kết thúc, khả năng đáp ứng và các giả định về môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-005
+    title: Bất biến toàn cục và trách nhiệm của từng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-006
+    title: Tính nguyên tử của thao tác và cảm nhận về một bước không thể chia cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-007
+    title: Tính tuyến tính hóa (linearizability) và tôn trọng thứ tự thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-008
+    title: Nhất quán tuần tự (sequential consistency) và khác biệt với tuyến tính hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-009
+    title: Tính tuần tự hóa (serializability) và phạm vi của lịch giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-010
+    title: An toàn của từng thành phần và điều kiện để hợp thành an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-progress-011
+    title: Tách lập luận độ đúng khỏi các giả định về công bằng và hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: race-conditions
+  title: Điều kiện tranh chấp
+  childs:
+  - slug: race-conditions-001
+    title: Điều kiện tranh chấp (race condition) và sự phụ thuộc vào thời điểm thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-002
+    title: Tranh chấp dữ liệu (data race) theo mô hình bộ nhớ của ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-003
+    title: Phân biệt data race với lỗi logic dù mọi truy cập riêng lẻ đã được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-004
+    title: Mất cập nhật trong thao tác đọc, sửa rồi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-005
+    title: Lỗi kiểm tra rồi hành động khi trạng thái thay đổi giữa hai bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-006
+    title: Quan sát dữ liệu nhiều trường ở trạng thái không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-007
+    title: Công bố đối tượng chưa khởi tạo xong và tham chiếu thoát quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-008
+    title: 'Tranh chấp vòng đời: sử dụng tài nguyên đồng thời với đóng hoặc thu hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-009
+    title: Vì sao thêm độ trễ hoặc đổi mức ưu tiên không sửa được lỗi tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: race-conditions-010
+    title: Tái dựng lịch thực thi tối thiểu để giải thích nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-models
+  title: Mô hình bộ nhớ
+  childs:
+  - slug: memory-models-001
+    title: Mô hình bộ nhớ xác định những giá trị đọc nào được phép quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-002
+    title: Tính nguyên tử, tính hiển thị và thứ tự thực hiện là ba bảo đảm khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-003
+    title: Thứ tự mã nguồn, tối ưu của trình biên dịch và thực hiện của bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-004
+    title: Nhất quán cache (coherence) và nhất quán bộ nhớ (consistency)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-005
+    title: Giả định nhất quán tuần tự và giới hạn khi áp dụng cho máy thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-006
+    title: Đọc, ghi thông thường và các truy cập dùng cho đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-007
+    title: Ngữ nghĩa acquire, release và truyền dữ liệu qua điểm đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-008
+    title: Truy cập relaxed và những bảo đảm không được tự suy diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-009
+    title: Thứ tự seq_cst và phạm vi bảo đảm giữa các thao tác nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-010
+    title: Hàng rào bộ nhớ và điều kiện kết hợp với các truy cập liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-011
+    title: Công bố an toàn và quan sát dữ liệu đã được khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-012
+    title: Bài kiểm tra nhỏ (litmus test) cho các mẫu đọc, ghi và chuyển thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-models-013
+    title: Đối chiếu mô hình phần cứng với mô hình ngôn ngữ và hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: atomic-operations
+  title: Thao tác nguyên tử
+  childs:
+  - slug: atomic-operations-001
+    title: Đơn vị nguyên tử phụ thuộc kiểu dữ liệu, căn chỉnh và hợp đồng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-002
+    title: Đọc nguyên tử, ghi nguyên tử và thao tác đọc, sửa, ghi nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-003
+    title: Exchange, fetch-add và các phép cập nhật không tách rời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-004
+    title: So sánh rồi đổi (compare-and-swap, CAS) và điểm quyết định thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-005
+    title: Vòng lặp CAS, đọc lại trạng thái và thử lại khi có cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-006
+    title: CAS mạnh, CAS yếu và khả năng thất bại giả (spurious failure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-007
+    title: Lựa chọn thứ tự bộ nhớ cho thao tác nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-008
+    title: Biến nguyên tử riêng lẻ và bất biến liên quan đến nhiều biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-009
+    title: Cập nhật giá trị và công bố đối tượng qua cùng một cơ chế nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-010
+    title: Chi phí tranh chấp và sự lưu chuyển quyền sở hữu dòng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-011
+    title: Giới hạn của từ khóa volatile và các khác biệt giữa ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomic-operations-012
+    title: Thao tác nguyên tử không tự bảo đảm thuật toán không khóa hoặc không có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locks-and-exclusion
+  title: Khóa và loại trừ
+  childs:
+  - slug: locks-and-exclusion-001
+    title: Vùng tới hạn và mục tiêu loại trừ tương hỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-002
+    title: Mutex, quyền sở hữu khóa và trách nhiệm giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-003
+    title: Lấy khóa, giải phóng khóa và quan hệ đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-004
+    title: Khóa không tái nhập, khóa tái nhập và quản lý mức lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-005
+    title: Spinlock, ngủ chờ và lựa chọn theo thời gian giữ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-006
+    title: Lấy khóa có chờ, thử lấy khóa và lấy khóa có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-007
+    title: Phạm vi khóa, độ hạt khóa và cách phân hoạch dữ liệu được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-008
+    title: Giữ bất biến khi có lỗi, ngoại lệ hoặc đường thoát sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-009
+    title: Thực hiện I/O, lời gọi ngoài hoặc callback trong vùng giữ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-010
+    title: Khóa nhiều tài nguyên và thiết lập thứ tự lấy khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-011
+    title: An toàn của thao tác riêng lẻ và tính nguyên tử của chuỗi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-exclusion-012
+    title: Chi phí khóa, tranh chấp và tránh suy luận dựa trên tên gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: condition-variables
+  title: Biến điều kiện
+  childs:
+  - slug: condition-variables-001
+    title: Chờ một điều kiện trạng thái khác với chờ một khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-002
+    title: Biến điều kiện, khóa liên quan và vị từ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-003
+    title: Nhả khóa rồi ngủ chờ như một bước phối hợp nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-004
+    title: Đánh thức, lấy lại khóa và kiểm tra điều kiện trước khi tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-005
+    title: Thức dậy giả và lý do phải kiểm tra điều kiện bằng vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-006
+    title: Thông báo bị bỏ lỡ khi kiểm tra và chuyển sang chờ không đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-007
+    title: Thông báo một bên chờ, thông báo tất cả và hiện tượng đánh thức dồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-008
+    title: Nhiều vị từ chờ và lựa chọn tách các hàng đợi điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-009
+    title: Ngữ nghĩa monitor kiểu Hoare, kiểu Mesa và thời điểm chuyển quyền thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-010
+    title: Chờ có thời hạn, hủy chờ và dọn dẹp trạng thái liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: condition-variables-011
+    title: Xây dựng giao thức chờ hoàn chỉnh thay vì chỉ ghép wait với notify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semaphores
+  title: Semaphore
+  childs:
+  - slug: semaphores-001
+    title: Semaphore đếm, số giấy phép và giới hạn truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-002
+    title: Semaphore nhị phân và sự khác nhau với mutex có quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-003
+    title: Lấy giấy phép, trả giấy phép và các bất biến về số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-004
+    title: Khởi tạo số giấy phép theo trạng thái thật của tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-005
+    title: Đồng bộ thứ tự giữa hai hoạt động bằng semaphore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-006
+    title: Giới hạn số công việc đồng thời và phân biệt với giới hạn tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-007
+    title: Rò rỉ giấy phép, trả thừa và xử lý lỗi sau khi đã lấy giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-008
+    title: Công bằng, chờ có thời hạn và hủy yêu cầu đang đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semaphores-009
+    title: Phối hợp semaphore với khóa mà không tạo chu trình chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronization-barriers
+  title: Rào đồng bộ
+  childs:
+  - slug: synchronization-barriers-001
+    title: Rào đồng bộ (barrier) và các pha xử lý phải chờ nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-barriers-002
+    title: Bộ đếm chờ hoàn tất (latch) và điều kiện sử dụng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-barriers-003
+    title: Rào tái sử dụng, thế hệ rào và tách các vòng đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-barriers-004
+    title: Đăng ký, rút bên tham gia và số lượng thành viên thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-barriers-005
+    title: Hành động tại điểm kết thúc pha và công bố kết quả cho pha sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-barriers-006
+    title: Một bên lỗi hoặc bị hủy và nguy cơ các bên khác chờ mãi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-barriers-007
+    title: Rào bị hỏng, thời hạn chờ và chính sách phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-barriers-008
+    title: Phân biệt rào thuật toán với hàng rào thứ tự bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deadlock
+  title: Deadlock
+  childs:
+  - slug: deadlock-001
+    title: Deadlock là gì và vì sao các bên không thể tự tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-002
+    title: 'Bốn điều kiện cần: loại trừ, giữ rồi chờ, không thu hồi và chờ vòng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-003
+    title: Đồ thị cấp phát tài nguyên, đồ thị chờ và giới hạn kết luận từ chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-004
+    title: Deadlock do lấy nhiều khóa theo thứ tự không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-005
+    title: Tự deadlock do tái nhập hoặc gọi ngược vào thành phần đang giữ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-006
+    title: Chờ kết quả của tác vụ phụ trong bộ thực thi đã hết khả năng thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-007
+    title: Deadlock giữa khóa, hàng đợi, giấy phép và các tài nguyên khác loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-008
+    title: Phòng ngừa bằng thứ tự tài nguyên và giảm quan hệ giữ rồi chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-009
+    title: Tránh deadlock bằng kiểm tra trạng thái an toàn và ý tưởng thuật toán Banker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-010
+    title: Phát hiện, chọn bên bị hủy và khôi phục sau deadlock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-011
+    title: Thử lấy khóa, thời hạn chờ và nguy cơ chuyển từ deadlock sang livelock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlock-012
+    title: Thu thập bằng chứng về chuỗi chờ trước khi kết luận hệ thống bị deadlock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fairness-and-priority
+  title: Công bằng và ưu tiên
+  childs:
+  - slug: fairness-and-priority-001
+    title: 'Starvation: hệ thống vẫn chạy nhưng một bên không được phục vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-002
+    title: 'Livelock: các bên liên tục hoạt động mà công việc không tiến lên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-003
+    title: Công bằng yếu, công bằng mạnh và giả định đối với lịch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-004
+    title: Khóa công bằng, thứ tự hàng đợi và giới hạn bảo đảm của bộ lập lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-005
+    title: Đảo ngược ưu tiên và ảnh hưởng của bên giữ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-006
+    title: Kế thừa ưu tiên, trần ưu tiên và các điều kiện áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-007
+    title: Đoàn chờ khóa (lock convoy) và tác động của bên giữ khóa chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-008
+    title: Đánh thức dồn (thundering herd) và tranh giành cùng một điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-009
+    title: Lùi thời gian thử lại, độ lệch ngẫu nhiên và nguy cơ cùng nhịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fairness-and-priority-010
+    title: Đánh đổi giữa công bằng, thông lượng và độ trễ phần đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-safety
+  title: An toàn bằng thiết kế
+  childs:
+  - slug: design-safety-001
+    title: Loại bỏ chia sẻ khi bài toán không cần cùng cập nhật một trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-002
+    title: Thiết kế dữ liệu bất biến và công bố phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-003
+    title: Giới hạn quyền truy cập theo luồng, tác vụ hoặc miền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-004
+    title: Chuyển quyền sở hữu thay cho chia sẻ quyền sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-005
+    title: Một bên ghi, nhiều bên gửi yêu cầu và tuần tự hóa cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-006
+    title: Phân vùng dữ liệu, chia khóa và giới hạn phạm vi cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-007
+    title: Ảnh chụp nhất quán và copy-on-write
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-008
+    title: Đóng gói trạng thái cùng cơ chế đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-009
+    title: Tránh tham chiếu thoát, bộ sưu tập khả biến và callback làm lộ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-010
+    title: Kiểm tra lại trạng thái khi dùng đồng bộ lạc quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-safety-011
+    title: Kết hợp nhiều đối tượng an toàn luồng mà vẫn duy trì bất biến liên đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-queues
+  title: Hàng đợi đồng thời
+  childs:
+  - slug: concurrent-queues-001
+    title: Hàng đợi công việc và tách tốc độ bên tạo với bên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-002
+    title: Hàng đợi có giới hạn, không giới hạn và giới hạn bộ nhớ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-003
+    title: Đưa vào, lấy ra, thử thao tác và chờ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-004
+    title: Thứ tự FIFO và sự khác nhau giữa thứ tự lấy việc với thứ tự hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-005
+    title: Một bên tạo, một bên nhận; nhiều bên tạo, nhiều bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-006
+    title: Bộ đệm vòng và quản lý chỉ số khi nhiều bên cùng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-007
+    title: Áp lực ngược khi hàng đợi đầy và các chính sách tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-008
+    title: Đóng hàng đợi, đánh dấu kết thúc và hoàn tất công việc còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-009
+    title: Thời điểm công bố phần tử và chuyển quyền sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-010
+    title: Tính tuyến tính hóa, số lượng phần tử và kết quả kiểm tra trạng thái tức thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-011
+    title: Lựa chọn hàng đợi theo mô hình cạnh tranh và bảo đảm cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-passing
+  title: Truyền thông điệp
+  childs:
+  - slug: message-passing-001
+    title: Thông điệp, kênh, bên gửi, bên nhận và quyền sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-002
+    title: Truyền tham chiếu, sao chép dữ liệu và chuyển quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-003
+    title: Kênh không bộ đệm, có bộ đệm và điểm gặp nhau (rendezvous)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-004
+    title: Gửi, nhận có chờ và gửi, nhận không chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-005
+    title: Thứ tự gửi, thứ tự nhận và phạm vi bảo đảm của một kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-006
+    title: Lựa chọn giữa nhiều kênh và xử lý kênh đã sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-007
+    title: Đóng kênh, hết dữ liệu, lỗi bên gửi và lỗi bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-008
+    title: Giới hạn dung lượng, áp lực ngược và đường lan truyền quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-009
+    title: Yêu cầu, phản hồi và nhận diện kết quả tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-passing-010
+    title: Chuyển từ chia sẻ bộ nhớ sang truyền thông điệp mà vẫn tránh deadlock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: actors-and-csp
+  title: Actor và CSP
+  childs:
+  - slug: actors-and-csp-001
+    title: 'Mô hình actor: định danh, hộp thư và trạng thái riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-002
+    title: Xử lý thông điệp tuần tự trong actor và các hoạt động có thể chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-003
+    title: Thứ tự hộp thư và những thứ tự không được tự giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-004
+    title: Actor bị chặn, hộp thư tăng trưởng và chính sách quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-005
+    title: Giám sát, khởi động lại và trách nhiệm đối với trạng thái chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-006
+    title: 'Mô hình CSP: các tiến trình phối hợp qua kênh giao tiếp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-007
+    title: Điểm gặp nhau, lựa chọn giao tiếp và thành phần có thể hợp thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-008
+    title: So sánh định danh actor với kênh giao tiếp của CSP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-009
+    title: Giao thức thông điệp, trạng thái hợp lệ và xử lý thông điệp sai pha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actors-and-csp-010
+    title: Trạng thái riêng không tự loại bỏ lỗi giao thức hoặc lỗi vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tasks-and-executors
+  title: Tác vụ và bộ thực thi
+  childs:
+  - slug: tasks-and-executors-001
+    title: Tách định nghĩa công việc khỏi luồng thực hiện công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-002
+    title: Bộ thực thi, bộ lập lịch tác vụ và nhóm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-003
+    title: Số tác vụ đang chờ, đang chạy và khả năng tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-004
+    title: Nhóm luồng cố định, mở rộng và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-005
+    title: Tác vụ dùng CPU, tác vụ chờ I/O và lựa chọn năng lực thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-006
+    title: Hàng đợi trung tâm, hàng đợi cục bộ và đánh cắp công việc (work stealing)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-007
+    title: Fork-join, tách bài toán và chi phí của tác vụ quá nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-008
+    title: Tác vụ con phụ thuộc tác vụ cha và nguy cơ chặn cả nhóm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-009
+    title: Từ chối công việc, thực hiện tại bên gửi và tác động đến độ phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-010
+    title: Ngữ cảnh tác vụ, dữ liệu theo luồng và rò rỉ giữa các công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-011
+    title: Lỗi trong tác vụ, quan sát lỗi và trách nhiệm của bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tasks-and-executors-012
+    title: Ngừng nhận việc, chờ hoàn tất và đóng bộ thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-and-events
+  title: Bất đồng bộ và sự kiện
+  childs:
+  - slug: async-and-events-001
+    title: Đồng bộ, bất đồng bộ, chặn và không chặn là các trục phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-002
+    title: Mô hình bắt đầu công việc rồi nhận thông báo hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-003
+    title: Callback, phần tiếp diễn và chuyển đổi luồng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-004
+    title: Vòng lặp sự kiện, hàng đợi sự kiện và quy tắc xử lý tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-005
+    title: Thông báo sẵn sàng I/O và thông báo hoàn tất I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-006
+    title: Đưa công việc chặn ra khỏi luồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-007
+    title: Coroutine, trạng thái tạm dừng và khôi phục thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-008
+    title: Điểm await và khả năng trạng thái thay đổi trước khi tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-009
+    title: Bất đồng bộ một luồng vẫn có thể gặp điều kiện tranh chấp logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-010
+    title: Gọi lại có thể tái nhập, hoàn tất ngay và những giả định dễ sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-011
+    title: Chuỗi bất đồng bộ, ngữ cảnh thực thi và đường truyền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-events-012
+    title: Giới hạn số yêu cầu đang chờ để tránh tích tụ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: futures-and-composition
+  title: Future và hợp thành
+  childs:
+  - slug: futures-and-composition-001
+    title: Future, promise và một kết quả chưa có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-002
+    title: Trạng thái chờ, hoàn tất thành công, thất bại và bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-003
+    title: Chờ lấy kết quả và sự khác nhau với đăng ký phần tiếp diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-004
+    title: Biến đổi kết quả, nối công việc phụ thuộc và tránh Future lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-005
+    title: Khởi chạy nhiều công việc độc lập và kết hợp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-006
+    title: Đợi tất cả, lấy kết quả đầu tiên và chọn thành công đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-007
+    title: Lỗi trong một nhánh và chính sách đối với các nhánh còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-008
+    title: Ngữ cảnh chạy phần tiếp diễn và nguy cơ dùng nhầm nhóm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-009
+    title: Thời hạn chờ kết quả không đồng nghĩa tác vụ nền đã dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-010
+    title: Quan sát ngoại lệ và tránh thất bại bị bỏ quên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: futures-and-composition-011
+    title: Giới hạn song song khi hợp thành một tập công việc lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-and-cancellation
+  title: Vòng đời và hủy
+  childs:
+  - slug: lifecycle-and-cancellation-001
+    title: Quyền sở hữu tác vụ và trách nhiệm chờ kết quả hoặc thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-002
+    title: Đồng thời có cấu trúc (structured concurrency) và phạm vi sống của tác vụ con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-003
+    title: Quan hệ cha, con và truyền lỗi qua cây tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-004
+    title: Hủy hợp tác, tín hiệu hủy và điểm kiểm tra hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-005
+    title: Yêu cầu ngắt hoặc hủy không đồng nghĩa công việc đã chấm dứt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-006
+    title: Hạn chót toàn bộ, thời hạn từng giai đoạn và ngân sách thời gian còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-007
+    title: Đồng hồ đơn điệu và đo thời gian chờ đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-008
+    title: Dừng nhận công việc, hoàn tất phần đang xử lý và tắt có trật tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-009
+    title: Giải phóng khóa, giấy phép, kết nối khi có hủy hoặc ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-010
+    title: Tranh chấp giữa hoàn tất, hủy và công bố kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-011
+    title: Vùng dọn dẹp cần bảo vệ và giới hạn thời gian dành cho thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-012
+    title: Tác vụ tách rời, rò rỉ tác vụ và công việc chạy ngoài vòng đời bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cancellation-013
+    title: Hủy chuỗi công việc mà vẫn giữ bất biến và tính nhất quán của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coordination-patterns
+  title: Mẫu phối hợp
+  childs:
+  - slug: coordination-patterns-001
+    title: Bên tạo, bên xử lý và bộ đệm có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-002
+    title: Nhiều bên đọc, một bên ghi và các chính sách ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-003
+    title: Bữa ăn của các triết gia và tổ chức lấy nhiều tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-004
+    title: Điểm gặp nhau giữa hai bên và trao đổi dữ liệu theo pha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-005
+    title: Pipeline nhiều giai đoạn và lan truyền áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-006
+    title: Fan-out, fan-in và giới hạn mức đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-007
+    title: Map-reduce, chia dữ liệu và hợp nhất kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-008
+    title: Khởi tạo lười, thực hiện một lần và xử lý lần khởi tạo thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-009
+    title: Gộp yêu cầu trùng đang xử lý (single-flight)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-010
+    title: Giới hạn đồng thời, giới hạn tốc độ và phân bổ ngân sách tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-011
+    title: Thử lại có giới hạn, tính lũy đẳng và tránh khuếch đại tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-patterns-012
+    title: Xác định bất biến, điểm đồng bộ và chính sách kết thúc cho từng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-collections
+  title: Bộ sưu tập đồng thời
+  childs:
+  - slug: concurrent-collections-001
+    title: Giao diện bộ sưu tập và phạm vi bảo đảm khi được dùng đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-002
+    title: Bao bọc bằng một khóa, chia khóa và cấu trúc chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-003
+    title: Ánh xạ đồng thời và cập nhật kết hợp theo từng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-004
+    title: Tính nguyên tử của thêm nếu chưa có, thay thế có điều kiện và tính toán giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-005
+    title: Vì sao kiểm tra kích thước rồi cập nhật vẫn có thể sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-006
+    title: Iterator có khóa, ảnh chụp và nhất quán yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-007
+    title: Duyệt trong khi cập nhật và quy tắc về dữ liệu có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-008
+    title: Copy-on-write và đánh đổi khi tải đọc lớn hơn tải ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-009
+    title: Nhiều khóa, nhiều bộ sưu tập và giao dịch vượt ngoài bảo đảm từng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-collections-010
+    title: Chọn cấu trúc dựa trên hợp đồng quan sát thay vì chỉ dựa vào tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lock-free-progress
+  title: Tiến triển không khóa
+  childs:
+  - slug: lock-free-progress-001
+    title: Thuật toán có chờ khóa và các mức bảo đảm tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-002
+    title: 'Obstruction-free: tiến triển khi được thực hiện riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-003
+    title: 'Lock-free: tiến triển toàn hệ thống và khả năng một bên phải thử lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-004
+    title: 'Wait-free: hoàn tất mỗi thao tác trong số bước hữu hạn bị chặn trên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-005
+    title: Phân biệt API không chặn luồng với bảo đảm lock-free
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-006
+    title: Điểm tuyến tính hóa trong thuật toán sử dụng CAS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-007
+    title: Thử lại, giúp hoàn tất công việc của bên khác và cập nhật theo nhiều giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-008
+    title: Ngăn xếp dùng CAS và cấu trúc của lập luận độ đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-009
+    title: Hàng đợi không khóa và công bố liên kết giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-010
+    title: Vấn đề ABA và vì sao giá trị bằng nhau có thể che giấu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-011
+    title: Gắn phiên bản, đánh dấu trạng thái và giới hạn khi bộ đếm quay vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lock-free-progress-012
+    title: Khi khóa đơn giản phù hợp hơn một thuật toán không khóa phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-reclamation
+  title: Thu hồi bộ nhớ
+  childs:
+  - slug: memory-reclamation-001
+    title: Xóa nút khỏi cấu trúc khác với việc không còn bên nào tham chiếu nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-002
+    title: Sử dụng sau giải phóng và tranh chấp giữa đọc với thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-003
+    title: Thu gom rác làm thay đổi những rủi ro nào và không loại bỏ lỗi logic nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-004
+    title: Đếm tham chiếu và đồng bộ khi lấy hoặc bỏ quyền giữ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-005
+    title: Hazard pointer và công bố những nút đang được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-006
+    title: Thu hồi theo epoch và chờ các bên đọc vượt qua giai đoạn cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-007
+    title: Trạng thái yên lặng, khoảng ân hạn và ý tưởng read-copy-update (RCU)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-008
+    title: Bên đọc bị trì hoãn và nguy cơ bộ nhớ chờ thu hồi tăng lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-009
+    title: Kết hợp thu hồi an toàn với xử lý ABA và bảo đảm tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-transactions
+  title: Giao dịch bộ nhớ
+  childs:
+  - slug: memory-transactions-001
+    title: Gom nhiều thao tác bộ nhớ thành một đơn vị giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-002
+    title: Giao dịch phần mềm (STM) và giao dịch phần cứng (HTM) ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-003
+    title: Theo dõi tập đọc, tập ghi và phát hiện xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-004
+    title: Thực hiện lạc quan, xác nhận, commit và hủy giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-005
+    title: Tính cô lập, tính nguyên tử và quan sát trạng thái trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-006
+    title: Thử lại giao dịch và giới hạn đối với I/O hoặc tác dụng phụ không thể hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-007
+    title: Hợp thành giao dịch, giao dịch lồng nhau và những lựa chọn ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-008
+    title: Xung đột cao, giao dịch quá lớn và đường thực thi dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-transactions-009
+    title: Phân biệt giao dịch bộ nhớ với độ bền của giao dịch cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-scaling
+  title: Hiệu năng và mở rộng
+  childs:
+  - slug: performance-and-scaling-001
+    title: Độ trễ, thông lượng, mức sử dụng và số tác vụ đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-002
+    title: Phần tuần tự, chi phí phối hợp và giới hạn tăng tốc theo Amdahl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-003
+    title: Cạnh tranh khóa và tỷ lệ giữa thời gian giữ khóa với thời gian làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-004
+    title: Chi phí nguyên tử, cache coherence và di chuyển dòng cache giữa các lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-005
+    title: Chia sẻ giả (false sharing), bố trí dữ liệu và căn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-006
+    title: Tính cục bộ, NUMA và chi phí truy cập bộ nhớ từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-007
+    title: Độ hạt công việc, chia lô và chi phí gửi, nhận tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-008
+    title: Đánh cắp công việc, cân bằng tải và tác vụ có thời gian không đồng đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-009
+    title: Phân vùng dữ liệu, bộ đếm phân tán và đánh đổi độ mới của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-010
+    title: Hàng đợi, định luật Little và độ trễ tăng khi gần bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-011
+    title: Vượt mức luồng thực thi và ảnh hưởng của chuyển ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-012
+    title: Đo chuẩn với tải đại diện, làm nóng và nhiều mức cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scaling-013
+    title: Đánh đổi giữa công bằng, bộ nhớ, hiệu năng và độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interface-design
+  title: Thiết kế giao diện
+  childs:
+  - slug: interface-design-001
+    title: Công bố hợp đồng an toàn luồng và trách nhiệm của bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-002
+    title: Xác định thao tác nguyên tử, thao tác phối hợp và trạng thái được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-003
+    title: Ẩn khóa nội bộ và tránh để bên ngoài phá vỡ thứ tự đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-004
+    title: Chọn API đồng bộ hoặc bất đồng bộ theo nhu cầu chờ và vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-005
+    title: Mô tả quyền sở hữu dữ liệu đầu vào, đầu ra và dữ liệu được giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-006
+    title: Quy định ngữ cảnh chạy callback và khả năng gọi lại tái nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-007
+    title: Hợp đồng lỗi, hủy, timeout và tác dụng phụ đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-008
+    title: Tính lũy đẳng của đóng tài nguyên và hành vi khi đóng đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-009
+    title: Giới hạn số yêu cầu, chính sách quá tải và khả năng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-010
+    title: Thiết kế thành phần có thể hợp thành mà không giữ khóa qua lời gọi ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-testing
+  title: Kiểm thử đồng thời
+  childs:
+  - slug: concurrency-testing-001
+    title: Vì sao một lần chạy đúng không chứng minh chương trình đồng thời đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-002
+    title: Đặc tả kết quả hợp lệ và kiểm tra bất biến qua nhiều lịch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-003
+    title: Điều khiển điểm gặp bằng latch, barrier hoặc công cụ lập lịch thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-004
+    title: Tránh phụ thuộc sleep để tạo thứ tự thực thi trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-005
+    title: Stress test, thay đổi số luồng, số lõi và mức cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-006
+    title: Chèn lỗi, gây timeout, hủy tác vụ và kiểm tra thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-007
+    title: Công cụ phát hiện data race và giới hạn về độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-008
+    title: Ghi lịch sử lời gọi, phản hồi và kiểm tra tính tuyến tính hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-009
+    title: So sánh với mô hình tuần tự bằng kiểm thử theo thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-010
+    title: Thu hẹp lịch thực thi hoặc dữ liệu gây lỗi thành ví dụ tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-011
+    title: Kiểm thử tiến triển với hạn chót và nêu rõ giả định của phép kiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-testing-012
+    title: Kiểm thử hồi quy cho lỗi hiếm mà vẫn giữ khả năng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observation-and-diagnostics
+  title: Quan sát và chẩn đoán
+  childs:
+  - slug: observation-and-diagnostics-001
+    title: Phân biệt treo, chậm, quá tải và hệ thống không có công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-002
+    title: Ảnh chụp trạng thái luồng và đọc stack của bên chạy, bên chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-003
+    title: Đồ thị chờ khóa, chuỗi phụ thuộc và bằng chứng deadlock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-004
+    title: Độ dài hàng đợi, tác vụ đang chạy, tác vụ bị từ chối và giấy phép còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-005
+    title: Thời gian giữ khóa, thời gian chờ khóa và bên gây nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-006
+    title: Hồ sơ dùng CPU, hồ sơ chờ và chi phí lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-007
+    title: Theo dõi tác vụ qua phần tiếp diễn và các luồng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-008
+    title: Nhật ký đa luồng, thứ tự ghi và giới hạn suy luận từ dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-009
+    title: Ảnh hưởng của công cụ quan sát đến thời điểm và khả năng tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observation-and-diagnostics-010
+    title: Quy trình đặt giả thuyết, thu bằng chứng và xác nhận nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-checking
+  title: Kiểm chứng mô hình
+  childs:
+  - slug: model-checking-001
+    title: Mô tả giao thức đồng thời bằng trạng thái, hành động và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-002
+    title: Duyệt các lịch thực thi và kiểm tra thuộc tính an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-003
+    title: Biểu diễn thuộc tính sống và nêu rõ giả định công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-004
+    title: Không gian trạng thái và hiện tượng bùng nổ số tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-005
+    title: Giảm mô hình, giới hạn số bên tham gia và kiểm tra trong miền hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-006
+    title: Tận dụng thứ tự từng phần để tránh duyệt lịch tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-007
+    title: Đọc vết phản ví dụ và ánh xạ về mã hoặc giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-008
+    title: Liên hệ điểm tuyến tính hóa với mô hình trừu tượng tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-checking-009
+    title: Giới hạn của mô hình và khoảng cách giữa mô hình với cài đặt thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-practice
+  title: Thực hành nền tảng
+  childs:
+  - slug: platform-practice-001
+    title: Vẽ lịch xen kẽ tạo ra mất cập nhật trong bộ đếm dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-002
+    title: So sánh khóa, thao tác nguyên tử và chia dữ liệu trong cùng một bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-003
+    title: Xây dựng bộ đệm có giới hạn với bất biến rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-004
+    title: Tạo và sửa lỗi thông báo bị bỏ lỡ hoặc kiểm tra điều kiện chờ sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-005
+    title: Tái hiện deadlock, ghi đồ thị chờ và sửa thứ tự lấy khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-006
+    title: Khảo sát starvation, livelock và ảnh hưởng của chính sách công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-007
+    title: Xây dựng pipeline có áp lực ngược, truyền lỗi và đóng có trật tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-008
+    title: Thử nghiệm Future, timeout và tác vụ vẫn chạy sau khi bên gọi ngừng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-009
+    title: Thiết kế cây tác vụ với hủy hợp tác và thu dọn khi một nhánh thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-010
+    title: Kiểm tra công bố dữ liệu bằng các litmus test theo mô hình bộ nhớ đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-011
+    title: Lần vết CAS, điểm tuyến tính hóa và một tình huống ABA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-012
+    title: Đo tranh chấp khóa, chia sẻ giả và giới hạn tăng tốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-practice-013
+    title: Hoàn thiện thành phần đồng thời với hợp đồng, kiểm thử và bằng chứng tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,2359 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiểm thử đột biến (mutation testing) là gì?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao kiểm thử vẫn bỏ sót lỗi khi độ bao phủ mã cao?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Đột biến, phiên bản đột biến và toán tử đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phát hiện mutant, mutant sống và vai trò của phép khẳng định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Mối liên hệ với kiểm thử đơn vị và kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt độ bao phủ dòng, độ bao phủ nhánh và độ bao phủ đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiểm thử đột biến, phân tích tĩnh, fuzzing và kiểm thử dựa trên thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Những loại lỗi mutation testing có thể giúp phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Giới hạn của mutation testing và ý nghĩa của điểm số cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Kiến thức đầu vào và trình tự học với một ví dụ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mutation-testing-mechanism
+  title: Cơ chế hoạt động
+  childs:
+  - slug: mutation-testing-mechanism-001
+    title: Quy trình từ bộ kiểm thử gốc đến báo cáo đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-002
+    title: Điều kiện bộ kiểm thử gốc phải chạy thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-003
+    title: Tạo đột biến trên mã nguồn và trên bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-004
+    title: Đột biến bậc một và đột biến bậc cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-005
+    title: Điều kiện để đột biến được thực thi, gây khác biệt và được quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-006
+    title: Phân biệt kiểm thử đột biến yếu và kiểm thử đột biến mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-007
+    title: Cách PIT thu thập độ bao phủ theo từng ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-008
+    title: Cách PIT lựa chọn và ưu tiên ca kiểm thử cho từng mutant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-009
+    title: Vai trò của tiến trình JVM riêng và bộ nạp lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-010
+    title: Nguyên nhân một dòng Java sinh ra nhiều mutant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-mechanism-011
+    title: Ảnh hưởng của trình biên dịch đến vị trí và hình thức đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-selection
+  title: Công cụ và lựa chọn
+  childs:
+  - slug: tools-and-selection-001
+    title: PIT trong hệ sinh thái kiểm thử Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-selection-002
+    title: Vai trò của PIT core, plugin hệ thống build và plugin kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-selection-003
+    title: Phân biệt PIT với JaCoCo và công cụ phân tích chất lượng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-selection-004
+    title: Họ công cụ Stryker cho JavaScript, TypeScript, C# và Scala
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-selection-005
+    title: Tiêu chí lựa chọn theo ngôn ngữ, framework và quy mô dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-selection-006
+    title: Kiểm tra tương thích JDK, PIT, Gradle hoặc Maven và JUnit Platform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-selection-007
+    title: Phân biệt tính năng PIT nguồn mở và phần mở rộng của Arcmutate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-selection-008
+    title: Chi phí vận hành, giấy phép và khả năng bảo trì công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pit-with-gradle
+  title: PIT với Gradle
+  childs:
+  - slug: pit-with-gradle-001
+    title: Chuẩn bị dự án Java và bộ kiểm thử JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-002
+    title: Khai báo plugin info.solidsoft.pitest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-003
+    title: Chọn phiên bản PIT và pitest-junit5-plugin tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-004
+    title: Cấu hình tối thiểu trong build.gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-005
+    title: Cấu hình tương ứng trong build.gradle.kts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-006
+    title: Biên dịch mã và chạy tác vụ pitest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-007
+    title: Chọn lớp cần đột biến và ca kiểm thử bằng targetClasses, targetTests
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-008
+    title: Xuất báo cáo HTML và XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-009
+    title: Thiết lập thư mục báo cáo và timestampedReports
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-010
+    title: Truyền thuộc tính hệ thống và tham số JVM cho tiến trình PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-gradle-011
+    title: Đối chiếu lần chạy kiểm thử thông thường với lần chạy PIT đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pit-with-maven
+  title: PIT với Maven
+  childs:
+  - slug: pit-with-maven-001
+    title: Khai báo pitest-maven trong pom.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-002
+    title: Đặt pitest-junit5-plugin đúng phạm vi phụ thuộc plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-003
+    title: Chạy test-compile và goal mutationCoverage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-004
+    title: Cấu hình targetClasses, targetTests và mutators
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-005
+    title: Tách cấu hình mutation testing bằng Maven profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-006
+    title: Truyền thuộc tính từ dòng lệnh và kiểm tra cấu hình có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-007
+    title: Cấu hình vị trí báo cáo và định dạng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-008
+    title: Gắn goal vào vòng đời build theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-with-maven-009
+    title: Đối chiếu cấu hình tương đương giữa Maven và Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-scope
+  title: Phạm vi phân tích
+  childs:
+  - slug: analysis-scope-001
+    title: Xác định mã nghiệp vụ cần ưu tiên kiểm thử đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-002
+    title: Quy tắc mẫu glob cho package, lớp và lớp lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-003
+    title: Phân biệt targetClasses, targetTests, excludedClasses và excludedTestClasses
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-004
+    title: Giới hạn phương thức bằng excludedMethods
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-005
+    title: Chọn source set chứa mã và source set chứa kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-006
+    title: Phân biệt đường dẫn mã có thể đột biến với classpath chạy kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-007
+    title: Xử lý mã được sinh tự động, Lombok, record và phương thức tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-008
+    title: Đánh giá việc loại trừ DTO, cấu hình, mã ghi log và mã hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-009
+    title: Sử dụng features theo khả năng của phiên bản PIT đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-010
+    title: Nhận diện phạm vi rỗng và cấu hình failWhenNoMutations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-scope-011
+    title: Ghi nhận lý do loại trừ để giữ ý nghĩa của báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-mutation-operators
+  title: Toán tử cơ bản
+  childs:
+  - slug: basic-mutation-operators-001
+    title: Toán tử đột biến và cách đọc thay đổi tương ứng trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-002
+    title: 'CONDITIONALS_BOUNDARY: thay đổi điều kiện tại biên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-003
+    title: 'NEGATE_CONDITIONALS: đảo kết quả điều kiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-004
+    title: 'MATH: thay thế phép toán số học và thao tác bit'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-005
+    title: 'INCREMENTS: thay đổi phép tăng giảm biến cục bộ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-006
+    title: 'INVERT_NEGS: loại bỏ phép đổi dấu giá trị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-007
+    title: 'VOID_METHOD_CALLS: loại bỏ lời gọi phương thức void'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-008
+    title: 'TRUE_RETURNS và FALSE_RETURNS: thay đổi giá trị boolean trả về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-009
+    title: 'NULL_RETURNS và EMPTY_RETURNS: thay đổi giá trị tham chiếu trả về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-010
+    title: 'PRIMITIVE_RETURNS: thay đổi giá trị nguyên thủy trả về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mutation-operators-011
+    title: Lựa chọn dữ liệu kiểm thử để phân biệt mã gốc với từng toán tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extended-mutation-operators
+  title: Toán tử mở rộng
+  childs:
+  - slug: extended-mutation-operators-001
+    title: Nhóm DEFAULTS, STRONGER và ALL theo phiên bản PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-002
+    title: 'REMOVE_CONDITIONALS: buộc một nhánh điều kiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-003
+    title: 'INLINE_CONSTS: thay đổi hằng số tại vị trí sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-004
+    title: 'NON_VOID_METHOD_CALLS: loại bỏ lời gọi có giá trị trả về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-005
+    title: 'CONSTRUCTOR_CALLS: thay đổi việc tạo đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-006
+    title: 'REMOVE_INCREMENTS: loại bỏ phép tăng giảm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-007
+    title: Đột biến switch và giới hạn của toán tử thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-008
+    title: Các họ toán tử mở rộng cho số học, quan hệ và thao tác bit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-009
+    title: Giới hạn đột biến đối với BigDecimal, BigInteger và thư viện bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-010
+    title: Đánh đổi giữa số toán tử, tín hiệu hữu ích và chi phí chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-mutation-operators-011
+    title: Đối chiếu tập toán tử trước khi so sánh kết quả giữa các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reports-and-metrics
+  title: Báo cáo và chỉ số
+  childs:
+  - slug: reports-and-metrics-001
+    title: Cấu trúc báo cáo theo dự án, package, lớp và dòng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-002
+    title: Đọc vị trí đột biến, mô tả thay đổi và ca kiểm thử phát hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-003
+    title: Ý nghĩa trạng thái KILLED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-004
+    title: Phân biệt SURVIVED và NO_COVERAGE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-005
+    title: Ý nghĩa TIMED_OUT và nguy cơ vòng lặp không kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-006
+    title: Phân biệt NON_VIABLE, MEMORY_ERROR và RUN_ERROR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-007
+    title: Độ bao phủ dòng trong phạm vi mã được PIT phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-008
+    title: Độ bao phủ đột biến và cách xác định mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-009
+    title: Test strength và khác biệt với độ bao phủ đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-010
+    title: Ảnh hưởng của trạng thái lỗi, timeout và số mẫu nhỏ đến chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-011
+    title: Đọc mutations.xml để truy vết và xử lý kết quả tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-metrics-012
+    title: So sánh báo cáo khi phạm vi, cấu hình và môi trường tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: surviving-mutant-analysis
+  title: Phân tích mutant sống
+  childs:
+  - slug: surviving-mutant-analysis-001
+    title: Quy trình phân loại một mutant chưa được phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-002
+    title: Đối chiếu hành vi gốc, hành vi đột biến và yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-003
+    title: Thiếu dữ liệu chạm biên hoặc thiếu một nhánh điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-004
+    title: Mã được thực thi nhưng kết quả chưa được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-005
+    title: Khẳng định quá yếu, kiểm tra sai đối tượng hoặc sai thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-006
+    title: Khác biệt bị che khuất trước khi đến kết quả quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-007
+    title: Đột biến làm mất tác dụng phụ nhưng kiểm thử chỉ xét giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-008
+    title: Thiết lập mock khiến logic thực tế không được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-009
+    title: Phân biệt lỗi kiểm thử, mã dư thừa và yêu cầu chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-010
+    title: Tái hiện mutant bằng một thay đổi thủ công có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: surviving-mutant-analysis-011
+    title: Ưu tiên xử lý mutant theo rủi ro và xác minh lại sau khi bổ sung kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equivalent-mutants
+  title: Mutant tương đương
+  childs:
+  - slug: equivalent-mutants-001
+    title: Mutant tương đương là gì và vì sao khó nhận diện?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-002
+    title: Phân biệt mutant tương đương với mutant khó phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-003
+    title: Phân biệt tương đương trong miền đầu vào với giả định đầu vào chưa được bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-004
+    title: Ví dụ tương đương do bất biến và điều kiện đã được ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-005
+    title: Đường chạy không thể đạt tới và mã không còn giá trị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-006
+    title: Mutant trùng lặp và quan hệ bao hàm khả năng phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-007
+    title: Khả năng tự lọc của công cụ và phần cần con người đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-008
+    title: Lập luận và bằng chứng khi chấp nhận một mutant sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-009
+    title: Chọn refactor, bổ sung kiểm thử hay loại trừ có giải thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalent-mutants-010
+    title: Giới hạn của việc suy ra khả năng phát hiện lỗi thật từ mutation score
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-design
+  title: Thiết kế kiểm thử
+  childs:
+  - slug: test-design-001
+    title: Thiết kế kiểm thử theo hành vi và hợp đồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-002
+    title: Chọn phép khẳng định có thể phát hiện thay đổi quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-003
+    title: Phân vùng tương đương và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-004
+    title: Bảng quyết định cho nhiều điều kiện kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-005
+    title: Kiểm thử tham số hóa với JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-006
+    title: Kiểm tra ngoại lệ, thông tin lỗi và tác dụng phụ khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-007
+    title: Kiểm tra đầy đủ giá trị trả về và trạng thái sau thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-008
+    title: Đánh giá tương tác với phụ thuộc khi đó là một phần của hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-009
+    title: Dùng kiểm thử dựa trên thuộc tính để tìm dữ liệu phân biệt mutant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-010
+    title: Dùng quan hệ biến hình khi khó xác định kết quả cho từng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-011
+    title: Tránh sao chép thuật toán cần kiểm thử vào phần tính kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-012
+    title: Giữ kiểm thử dễ đọc và tránh phụ thuộc chi tiết cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-scenarios
+  title: Tình huống Java
+  childs:
+  - slug: java-scenarios-001
+    title: Giá trị biên của phép so sánh và quy tắc khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-002
+    title: Phép tính số nguyên, chia dư và tràn số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-003
+    title: Số thực, sai số cho phép và các giá trị đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-004
+    title: Chuỗi rỗng, khoảng trắng, null và quy tắc chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-005
+    title: Collection rỗng, phần tử trùng lặp và thứ tự kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-006
+    title: Optional, giá trị mặc định và nhánh không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-007
+    title: Stream, lambda và khả năng quan sát kết quả xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-008
+    title: equals, hashCode và tính nhất quán của đối tượng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-009
+    title: Comparator, trường hợp bằng nhau và thứ tự sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-010
+    title: Ngày giờ, múi giờ và ranh giới thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-011
+    title: Vòng lặp, điều kiện dừng và số lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-scenarios-012
+    title: Máy trạng thái và tác dụng phụ của từng lần chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mockito-and-dependencies
+  title: Mockito và phụ thuộc
+  childs:
+  - slug: mockito-and-dependencies-001
+    title: Vai trò của mock, stub và fake khi phân tích đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-002
+    title: Giữ lớp đang kiểm thử là đối tượng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-003
+    title: Dữ liệu stub cần phù hợp với tình huống nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-004
+    title: Khẳng định kết quả nghiệp vụ bên cạnh verify tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-005
+    title: ArgumentCaptor và kiểm tra dữ liệu truyền tới phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-006
+    title: Nhận diện matcher quá rộng và dữ liệu trả về làm che khuất lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-007
+    title: Kiểm tra tương tác bị mất, bị thừa hoặc sai số lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-008
+    title: Xác minh hành vi khi phụ thuộc ném ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-009
+    title: Đánh đổi khi dùng spy, mock static và mock constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockito-and-dependencies-010
+    title: Giới hạn phụ thuộc Mockito inline, Java agent và phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Chọn logic nghiệp vụ phù hợp để bắt đầu trong ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Ưu tiên kiểm thử service không khởi động ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Phân biệt kiểm thử đơn vị, kiểm thử lát cắt và kiểm thử toàn ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Đánh giá chi phí chạy @SpringBootTest dưới PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: MockMvc và WebTestClient trong phạm vi mã được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Proxy, AOP, giao dịch và sự khác biệt với lời gọi đối tượng trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Cấu hình profile, thuộc tính ứng dụng và biến môi trường cho PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Kiểm thử repository với cơ sở dữ liệu có trạng thái được cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Testcontainers và chi phí khởi tạo tài nguyên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-010
+    title: Giới hạn đột biến đối với Bean Validation, annotation và truy vấn khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-011
+    title: Tách kiểm thử logic Java khỏi kiểm thử hành vi do framework thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stability
+  title: Tính ổn định
+  childs:
+  - slug: stability-001
+    title: Nhận diện kiểm thử chập chờn trước khi đánh giá mutant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-002
+    title: Phụ thuộc thứ tự chạy và trạng thái static dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-003
+    title: Vòng đời khởi tạo, dọn dẹp và bộ nhớ đệm giữa các kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-004
+    title: Cô lập thời gian bằng Clock và nguồn sinh số ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-005
+    title: Cô lập tệp, cổng mạng, biến môi trường và thuộc tính hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-006
+    title: Dữ liệu cơ sở dữ liệu và tài nguyên dùng chung giữa các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-007
+    title: Kiểm thử bất đồng bộ và thời điểm quan sát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-008
+    title: Phân biệt timeout do đột biến với timeout do máy chạy quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-009
+    title: Đối chiếu locale, múi giờ và khác biệt giữa máy cá nhân với CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-010
+    title: Xác minh tính lặp lại trước khi kết luận mutant đã được phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo thời gian bộ kiểm thử gốc và từng giai đoạn PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Ước lượng chi phí theo số mutant và tốc độ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Thu hẹp phạm vi theo lớp, package và rủi ro thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chọn số threads phù hợp với CPU và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Phân biệt tham số JVM của tiến trình điều phối và tiến trình kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Điều chỉnh timeoutFactor và timeoutConstant có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Loại kiểm thử chậm khỏi một lượt phân tích có phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Giảm chi phí khởi tạo fixture và tài nguyên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Giới hạn số mutant và ghi nhận phần độ bao phủ bị đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Đánh giá mức tăng tốc cùng độ tin cậy của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incremental-analysis
+  title: Phân tích gia tăng
+  childs:
+  - slug: incremental-analysis-001
+    title: Phân tích gia tăng (incremental analysis) và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-002
+    title: Lưu kết quả lịch sử và điều kiện tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-003
+    title: Cấu hình withHistory trong Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-004
+    title: Cấu hình tệp lịch sử đầu vào và đầu ra theo hệ thống build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-005
+    title: Ảnh hưởng của thay đổi mã, kiểm thử và phụ thuộc đến lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-006
+    title: Vô hiệu hóa lịch sử khi đổi phiên bản hoặc tập toán tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-007
+    title: Quản lý khóa cache và tệp lịch sử trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-008
+    title: Phân biệt lịch sử PIT với phân tích chỉ phần mã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-009
+    title: Giới hạn của việc chọn lớp từ Git diff và ảnh hưởng xuyên lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-analysis-010
+    title: Chạy toàn bộ định kỳ để đối chiếu kết quả gia tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-projects
+  title: Dự án đa module
+  childs:
+  - slug: multi-module-projects-001
+    title: Xác định module sở hữu mã và module sở hữu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-002
+    title: Áp dụng cấu hình dùng chung và tùy chỉnh riêng từng module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-003
+    title: Chạy PIT cho một module hoặc một nhóm module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-004
+    title: Thiết lập source set và đường dẫn mã cần đột biến trong Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-005
+    title: Kiểm thử mã thuộc module phụ thuộc và additionalMutableCodePaths
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-006
+    title: Cross-module trong Maven và điều kiện hỗ trợ của phiên bản PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-007
+    title: Classpath chứa JAR và nguy cơ dùng sai bản mã đã biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-008
+    title: Tránh phân tích trùng một lớp ở nhiều module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-009
+    title: Tổng hợp báo cáo và kiểm tra mẫu số trước khi gộp chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-010
+    title: Chọn cổng chất lượng theo module thay vì che lấp bằng điểm toàn dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-and-quality-gates
+  title: CI và cổng chất lượng
+  childs:
+  - slug: ci-and-quality-gates-001
+    title: Tách lượt kiểm thử thường và lượt kiểm thử đột biến trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-002
+    title: Thiết kế job PIT trên GitHub Actions hoặc Jenkins
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-003
+    title: Chạy theo pull request, lịch định kỳ và thay đổi rủi ro cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-004
+    title: Ghim phiên bản JDK, công cụ build và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-005
+    title: Thiết lập mutationThreshold và coverageThreshold
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-006
+    title: Ngưỡng test strength theo khả năng của phiên bản đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-007
+    title: Khác biệt giữa ngưỡng tối thiểu và chính sách không giảm chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-008
+    title: Thiết lập mốc ban đầu cho mã cũ và yêu cầu với mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-009
+    title: Lưu báo cáo HTML, XML, cấu hình và định danh commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-010
+    title: Cache phụ thuộc, lịch sử phân tích và giới hạn thời gian job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-011
+    title: Phân biệt thất bại cổng chất lượng với lỗi hạ tầng chạy PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-012
+    title: Quy trình duyệt ngoại lệ, trách nhiệm xử lý và thời hạn xem xét lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Không tìm thấy lớp cần đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Không tìm thấy kiểm thử hoặc JUnit engine không được nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Bộ kiểm thử gốc thành công nhưng kiểm tra ban đầu của PIT thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Tất cả mutant ở trạng thái NO_COVERAGE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Số mutant bằng không hoặc thấp bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Lỗi NoSuchMethodError do lệch phiên bản JUnit Platform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Lỗi bytecode không được hỗ trợ khi đổi phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Lỗi classpath và tên đường dẫn dài trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Tiến trình kiểm thử thoát bất thường hoặc thiếu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Quá nhiều TIMED_OUT, NON_VIABLE hoặc RUN_ERROR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Báo cáo không hiển thị mã nguồn hoặc ánh xạ sai dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Xung đột agent đo độ bao phủ, instrumentation hoặc mocking
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Kết quả khác nhau giữa hai máy hoặc hai lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Thu thập log chi tiết và tạo ví dụ tối thiểu để tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pit-extensions
+  title: Mở rộng PIT
+  childs:
+  - slug: pit-extensions-001
+    title: Kiến trúc plugin và các điểm mở rộng của PIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-extensions-002
+    title: Plugin hỗ trợ framework kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-extensions-003
+    title: Plugin bổ sung toán tử và bộ máy đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-extensions-004
+    title: Bộ lọc giảm mutant không hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-extensions-005
+    title: Mở rộng định dạng báo cáo và tích hợp công cụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-extensions-006
+    title: Quản lý classpath và đóng gói plugin mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-extensions-007
+    title: Kiểm thử tính đúng đắn và tương thích của phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pit-extensions-008
+    title: Tiêu chí chọn cấu hình sẵn có hoặc tự phát triển plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Thiết lập bộ kiểm thử có độ bao phủ dòng cao nhưng khẳng định yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Phát hiện sai lệch điều kiện biên trong bộ kiểm tra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Cải thiện kiểm thử phép tính giảm giá và làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Phát hiện lời gọi gửi thông báo bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Kiểm thử luật chuyển trạng thái đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Phân tích trường hợp mutant sống có lập luận tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Đo tác động của kiểm thử tham số hóa lên tập mutant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Tối ưu thời gian PIT trên một dự án nhiều package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Tích hợp báo cáo và cổng chất lượng vào một pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Lập hồ sơ trước và sau gồm cấu hình, mutant, kiểm thử và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: real-world-adoption
+  title: Áp dụng thực tế
+  childs:
+  - slug: real-world-adoption-001
+    title: Chọn phạm vi thí điểm theo rủi ro nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-002
+    title: Đánh giá mức sẵn sàng của bộ kiểm thử và thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-003
+    title: Lập danh sách mutant sống cần xử lý theo mức ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-004
+    title: Đưa phân tích mutant vào quá trình review và refactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-005
+    title: Đánh giá lợi ích qua lỗi phát hiện, chi phí chạy và chi phí bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-006
+    title: Tránh tối ưu điểm số bằng loại trừ mã hoặc kiểm thử thiếu ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-007
+    title: Đánh giá kiểm thử do AI sinh bằng yêu cầu nghiệp vụ và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-008
+    title: Theo dõi xu hướng khi quy mô mã và tập toán tử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-009
+    title: Cập nhật công cụ và xác minh lại mốc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-adoption-010
+    title: Checklist hoàn thành và kế hoạch duy trì mutation testing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

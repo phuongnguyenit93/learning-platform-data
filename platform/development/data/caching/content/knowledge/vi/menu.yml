@@ -1,0 +1,442 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Bộ nhớ đệm (cache) là gì và giải quyết vấn đề nào
+  - Luồng dữ liệu giữa bên gọi, cache và nguồn dữ liệu chuẩn
+  - Phân biệt cache với kho lưu trữ chính, bộ đệm và bản sao dữ liệu
+  - 'Các thuật ngữ: khóa, giá trị, mục cache, trúng và trượt cache'
+  - 'Vòng đời một mục cache: nạp, đọc, cập nhật, hết hạn và loại bỏ'
+  - Vì sao cache luôn tạo thêm một bài toán đồng bộ dữ liệu
+  - Phân biệt hiệu năng, độ mới dữ liệu và tính sẵn sàng
+  - Những trường hợp nên dùng cache và những trường hợp nên tránh
+  - Bản đồ các loại cache trong ứng dụng và hạ tầng
+  - Lộ trình học từ cache đơn giản đến hệ thống nhiều tầng
+- level1: Phạm vi dữ liệu
+  level2:
+  - Xác định nút thắt trước khi quyết định thêm cache
+  - Nhận diện dữ liệu thường xuyên được đọc và ít thay đổi
+  - Đánh giá độ lệch truy cập và tập dữ liệu được đọc nhiều
+  - Xác định mức chấp nhận dữ liệu cũ theo nghiệp vụ
+  - 'Chọn đơn vị lưu: đối tượng, kết quả truy vấn, trang hay tập hợp'
+  - So sánh cache kết quả tính toán với cache dữ liệu truy xuất
+  - Chọn phạm vi theo yêu cầu, phiên, tiến trình hay toàn hệ thống
+  - Phân biệt dữ liệu dùng chung với dữ liệu riêng của người dùng
+  - Đánh giá giá trị của cache theo chi phí tái tạo dữ liệu
+  - Xác định chủ sở hữu, nguồn chuẩn và trách nhiệm đồng bộ
+  - Đặt mục tiêu độ trễ, tải nguồn và giới hạn tài nguyên
+- level1: Khóa và giá trị
+  level2:
+  - Thiết kế khóa ổn định từ danh tính và tham số truy vấn
+  - Chuẩn hóa thứ tự tham số, kiểu dữ liệu và giá trị mặc định
+  - Đưa ngôn ngữ, múi giờ và ngữ cảnh truy cập vào khóa khi cần
+  - Tách không gian khóa theo ứng dụng, môi trường và miền dữ liệu
+  - Phân tách khóa theo đơn vị thuê và người dùng
+  - Quản lý khóa theo phiên bản lược đồ dữ liệu
+  - Lựa chọn khóa trực tiếp hoặc khóa băm và xử lý nguy cơ va chạm
+  - Phân biệt cache miss, giá trị null, dữ liệu rỗng và lỗi tải
+  - Lựa chọn cấu trúc và định dạng tuần tự hóa giá trị
+  - Giới hạn kích thước khóa, giá trị và số lượng mục cache
+  - Tránh đối tượng có thể bị thay đổi sau khi đưa vào cache
+  - Lưu dấu thời gian và phiên bản nguồn khi cần kiểm tra độ mới
+  - Thiết kế tương thích khi thay đổi cấu trúc giá trị cache
+- level1: Tra cứu và nạp
+  level2:
+  - Luồng đọc theo chiến lược cache-aside
+  - Luồng đọc theo chiến lược read-through
+  - Trình tự kiểm tra cache, tải nguồn và lưu kết quả
+  - Phân biệt tra cứu đồng bộ với nạp dữ liệu bất đồng bộ
+  - Nạp theo từng khóa và nạp hàng loạt
+  - Gộp yêu cầu tải trùng khóa trong cùng tiến trình
+  - Lựa chọn nạp lười hoặc nạp trước theo nhu cầu sử dụng
+  - Xử lý khóa không tồn tại bằng cache kết quả âm
+  - Giới hạn thời gian sống cho kết quả âm
+  - Phân biệt không tìm thấy dữ liệu với lỗi tạm thời của nguồn
+  - Thiết kế đường đi khi bỏ qua cache hoặc buộc đọc nguồn
+  - So sánh các chiến lược đọc theo độ trễ và độ phức tạp
+- level1: Chiến lược ghi
+  level2:
+  - Cập nhật nguồn rồi vô hiệu hóa cache trong cache-aside
+  - Chiến lược write-through và trách nhiệm ghi đồng bộ
+  - Chiến lược write-behind và hàng đợi ghi trì hoãn
+  - Chiến lược write-around cho dữ liệu ít được đọc lại
+  - Lựa chọn cập nhật giá trị hay xóa mục cache sau khi ghi
+  - So sánh thứ tự ghi nguồn và ghi cache
+  - Xử lý ghi thành công ở nguồn nhưng thất bại ở cache
+  - Phân biệt xác nhận ghi cache với bảo đảm dữ liệu bền vững
+  - Bảo toàn thứ tự và tính lũy đẳng khi ghi trì hoãn
+  - Gộp nhiều lần ghi và đánh đổi khả năng mất cập nhật
+  - Quyết định chiến lược theo yêu cầu nhất quán và độ bền
+  - Thiết kế cơ chế đối soát khi nguồn và cache lệch nhau
+- level1: TTL và hết hạn
+  level2:
+  - Thời gian sống (TTL) và giới hạn tuổi của một mục cache
+  - Phân biệt hết hạn sau khi ghi với hết hạn sau khi truy cập
+  - Phân biệt hết hạn logic với thời điểm thu hồi bộ nhớ
+  - Thiết kế thời hạn cố định và thời hạn theo từng mục
+  - Chọn TTL từ yêu cầu nghiệp vụ và tần suất thay đổi
+  - Tác động của việc gia hạn TTL khi đọc hoặc cập nhật
+  - Phân biệt thời hạn làm mới mềm với thời hạn hết hiệu lực cứng
+  - Thêm độ ngẫu nhiên vào TTL để tránh hết hạn đồng loạt
+  - Xử lý ranh giới thời gian, sai lệch đồng hồ và đơn vị TTL
+  - Quy định việc phục vụ dữ liệu cũ sau thời điểm hết hạn
+  - Đánh giá đánh đổi giữa TTL ngắn, tỷ lệ trúng và tải nguồn
+  - Kiểm tra trường hợp mục cache không có thời hạn
+- level1: Dung lượng và loại bỏ
+  level2:
+  - Phân biệt hết hạn với loại bỏ do thiếu dung lượng
+  - Giới hạn cache theo số mục, dung lượng hoặc trọng số
+  - Chính sách loại bỏ mục ít được dùng gần đây (LRU)
+  - Chính sách loại bỏ mục ít được dùng thường xuyên (LFU)
+  - Chính sách theo thứ tự vào và chọn ngẫu nhiên
+  - Kết hợp độ mới truy cập với tần suất sử dụng
+  - Chính sách tiếp nhận dữ liệu và chống ô nhiễm cache
+  - Tác động của việc quét một lần qua tập dữ liệu lớn
+  - Ước lượng kích thước đối tượng và chi phí siêu dữ liệu
+  - Xử lý mục có kích thước vượt giới hạn
+  - Phân bổ dung lượng giữa các nhóm dữ liệu
+  - Theo dõi và điều chỉnh chính sách theo tải thực tế
+- level1: Vô hiệu hóa
+  level2:
+  - Xác định thời điểm một kết quả cache không còn hợp lệ
+  - Vô hiệu hóa theo khóa và theo nhóm khóa
+  - Vô hiệu hóa toàn vùng cache và phạm vi ảnh hưởng
+  - Theo dõi quan hệ giữa bản ghi nguồn và kết quả dẫn xuất
+  - Vô hiệu hóa danh sách, trang và kết quả tìm kiếm
+  - Dùng phiên bản không gian khóa để thay thế một thế hệ dữ liệu
+  - Vô hiệu hóa theo sự kiện thay đổi nghiệp vụ
+  - Nhận thay đổi từ nguồn dữ liệu qua CDC
+  - Thiết kế sự kiện vô hiệu hóa có thể xử lý lặp
+  - Xử lý sự kiện trễ, mất sự kiện và sai thứ tự
+  - Kết hợp vô hiệu hóa chủ động với TTL dự phòng
+  - Dọn khóa không còn được tham chiếu sau đổi phiên bản
+  - Xác định giới hạn của cách xóa cache hai lần có trì hoãn
+- level1: Nhất quán dữ liệu
+  level2:
+  - Nhất quán mạnh và nhất quán cuối cùng trong thiết kế cache
+  - Xác định cửa sổ dữ liệu cũ theo từng nghiệp vụ
+  - Yêu cầu đọc thấy dữ liệu vừa ghi của chính người dùng
+  - Yêu cầu đọc không quay lại một phiên bản cũ hơn
+  - Cuộc đua giữa tải nguồn và vô hiệu hóa cache
+  - Cuộc đua giữa hai lần cập nhật cùng một khóa
+  - Dùng phiên bản dữ liệu để chặn ghi đè bằng kết quả cũ
+  - Dùng dấu xóa để ngăn dữ liệu đã xóa xuất hiện trở lại
+  - Ảnh hưởng của nguồn đọc là bản sao có độ trễ
+  - Đánh giá giới hạn của TTL đối với bảo đảm nhất quán
+  - Xử lý dữ liệu liên quan nằm ở nhiều khóa
+  - Lựa chọn đọc trực tiếp nguồn cho quyết định cần tính đúng đắn cao
+- level1: Giao dịch
+  level2:
+  - Ranh giới giao dịch cơ sở dữ liệu và thao tác cache
+  - Vì sao giao dịch ở nguồn không tự bao trùm cache ngoài
+  - Nguy cơ công bố dữ liệu vào cache trước khi commit
+  - Vô hiệu hóa hoặc cập nhật cache sau commit thành công
+  - Xử lý rollback và dữ liệu cache được tạo trong giao dịch
+  - Giao dịch dài và thời điểm đọc dữ liệu từ cache
+  - Phát sự kiện sau commit và giới hạn khi tiến trình dừng
+  - Mẫu transactional outbox cho sự kiện đồng bộ cache
+  - Xử lý lặp, thử lại và đối soát khi cập nhật sau commit
+  - Kiểm tra hành vi cache theo mức cô lập của nguồn dữ liệu
+- level1: Đồng thời
+  level2:
+  - Phân biệt an toàn luồng với tính nguyên tử của cả luồng nạp
+  - Vì sao kiểm tra rồi ghi có thể thực hiện nhiều lần tải nguồn
+  - Khóa theo khóa dữ liệu và khóa toàn bộ cache
+  - Gộp tác vụ đang nạp bằng cơ chế single-flight
+  - Chia sẻ kết quả hoặc lỗi tải giữa các yêu cầu đồng thời
+  - Hủy yêu cầu, giới hạn chờ và dọn tác vụ nạp đang treo
+  - Cập nhật có điều kiện và so sánh phiên bản
+  - Ngăn tác vụ nạp cũ ghi kết quả sau khi đã vô hiệu hóa
+  - 'Dùng khóa phân tán: quyền sở hữu, thời hạn thuê và giải phóng'
+  - Vì sao khóa hết hạn không tự ngăn một bên ghi đã lỗi thời
+  - Vai trò của fencing token khi tài nguyên đích hỗ trợ
+  - Giảm phạm vi khóa và tránh khóa chéo nhiều khóa dữ liệu
+- level1: Chống dồn tải
+  level2:
+  - Hiện tượng nhiều yêu cầu cùng tải lại một khóa (cache stampede)
+  - Hiện tượng nhiều khóa hết hạn gây quá tải nguồn (cache avalanche)
+  - Truy vấn liên tục các khóa không tồn tại (cache penetration)
+  - Điểm nóng truy cập vào một khóa (hot key)
+  - Kết hợp single-flight với giới hạn số tác vụ tải nguồn
+  - Phân tán thời điểm hết hạn bằng TTL ngẫu nhiên
+  - Làm mới sớm theo xác suất hoặc mức độ phổ biến
+  - Phục vụ bản cũ trong khi làm mới khi nghiệp vụ cho phép
+  - Cache kết quả âm và lọc khóa không hợp lệ
+  - Dùng Bloom filter và hiểu giới hạn dương tính giả
+  - Giới hạn tốc độ và số yêu cầu đồng thời tới nguồn
+  - Thiết kế thử lại có giãn cách và tránh khuếch đại tải
+- level1: Làm mới dữ liệu
+  level2:
+  - Phân biệt refresh, reload, preload và warm-up
+  - Làm mới theo lịch và làm mới theo lượt truy cập
+  - Tách thời điểm bắt đầu làm mới khỏi thời điểm hết hạn
+  - Nạp trước tập khóa phổ biến khi khởi động
+  - Làm nóng có chọn lọc sau triển khai hoặc đổi phiên bản
+  - Giới hạn tốc độ và dung lượng khi nạp trước
+  - Ngăn nhiều tiến trình cùng làm nóng một tập dữ liệu
+  - Giữ bản cũ hay bỏ mục cache khi làm mới thất bại
+  - Ngăn kết quả làm mới cũ ghi đè phiên bản mới
+  - Đánh giá hiệu quả làm nóng bằng tỷ lệ sử dụng dữ liệu đã nạp
+- level1: Cache nhiều tầng
+  level2:
+  - Mô hình L1 trong tiến trình, L2 dùng chung và nguồn dữ liệu
+  - Thiết kế đường đọc khi từng tầng trúng hoặc trượt
+  - Chọn dữ liệu đặt ở mỗi tầng theo kích thước và tần suất
+  - Phối hợp TTL giữa các tầng và giới hạn dữ liệu cũ
+  - Lan truyền vô hiệu hóa từ tầng dùng chung tới L1
+  - Xử lý tiến trình bỏ lỡ sự kiện vô hiệu hóa
+  - Tính nhất quán khi một yêu cầu đi qua nhiều phiên bản cache
+  - Thiết kế tầng cache gần ứng dụng (near cache)
+  - Dùng phiên bản hoặc kiểm tra độ mới khi đọc tầng L1
+  - Đo tỷ lệ trúng riêng từng tầng và tỷ lệ trúng tổng thể
+  - Đánh giá chi phí và độ phức tạp trước khi thêm một tầng
+- level1: Cache phân tán
+  level2:
+  - So sánh cache trong tiến trình với cache từ xa dùng chung
+  - Phân biệt phân mảnh dữ liệu với nhân bản dữ liệu
+  - Phân phối khóa bằng hàm băm và băm nhất quán
+  - Tác động của thêm nút, bớt nút và tái cân bằng
+  - Ảnh hưởng của độ trễ mạng và số lượt trao đổi
+  - Lựa chọn vị trí cache theo vùng và trung tâm dữ liệu
+  - Nhân bản, chuyển đổi nút và khả năng mất dữ liệu cache
+  - Đánh đổi nhất quán và tính sẵn sàng khi phân vùng mạng
+  - Giới hạn thao tác nguyên tử theo nút hoặc phân mảnh
+  - Thiết kế đọc hàng loạt khi khóa nằm ở nhiều nút
+  - Tránh khóa quá lớn và điểm nóng trên một phân mảnh
+  - Xác định hành vi ứng dụng khi cụm cache thay đổi cấu trúc
+- level1: Hiệu năng và chi phí
+  level2:
+  - Tính tỷ lệ trúng, tỷ lệ trượt và tỷ lệ tránh truy cập nguồn
+  - Ước lượng độ trễ trung bình từ chi phí trúng và trượt cache
+  - Phân tích độ trễ đuôi thay vì chỉ nhìn giá trị trung bình
+  - Đo chi phí tuần tự hóa, nén và truyền dữ liệu
+  - So sánh một lần đọc lớn với nhiều lần đọc nhỏ
+  - Phân biệt gộp lệnh, xử lý song song và tính nguyên tử
+  - Định cỡ bộ nhớ theo tập dữ liệu hoạt động và phần dự phòng
+  - Định cỡ năng lực nguồn khi cache lạnh hoặc mất toàn bộ cache
+  - Đo ảnh hưởng của cache đến bộ gom rác và CPU
+  - So sánh chi phí vận hành cache với lợi ích giảm tải nguồn
+  - Xác định ngưỡng mà cache làm hệ thống chậm hơn
+- level1: Cache trong JVM
+  level2:
+  - Dùng Map để minh họa cache đơn giản và các giới hạn
+  - ConcurrentHashMap và những bảo đảm không bao gồm TTL
+  - Thiết kế giới hạn dung lượng và dọn mục hết hạn
+  - Chi phí đối tượng trên heap và áp lực thu gom rác
+  - Tham chiếu mạnh, yếu và mềm trong quản lý cache
+  - Chia sẻ cache giữa các luồng trong một tiến trình
+  - Vì sao nhiều bản sao ứng dụng có cache cục bộ khác nhau
+  - Tránh lộ tham chiếu đối tượng có thể thay đổi
+  - Đồng bộ hóa bộ nạp và xử lý lỗi tính toán
+  - Quản lý vòng đời bộ lập lịch và tác vụ nền
+  - Lựa chọn thư viện cache thay vì tự xây cơ chế phức tạp
+- level1: Caffeine
+  level2:
+  - Vai trò của Caffeine và phạm vi cache cục bộ
+  - Khởi tạo Cache và thao tác get, put, invalidate
+  - Nạp theo nhu cầu bằng LoadingCache
+  - Nạp bất đồng bộ bằng AsyncCache và AsyncLoadingCache
+  - Giới hạn theo maximumSize và maximumWeight
+  - Cấu hình expireAfterWrite, expireAfterAccess và thời hạn tùy biến
+  - Làm mới bằng refreshAfterWrite và quan hệ với hết hạn
+  - Gộp tải cho cùng khóa và giới hạn khi có nhiều JVM
+  - Theo dõi thống kê, thông báo loại bỏ và lỗi bộ nạp
+  - Quản lý executor và tài nguyên của tác vụ bất đồng bộ
+  - Kiểm thử thời gian bằng Ticker thay vì chờ thực
+  - Đánh giá lựa chọn cấu hình theo đặc tính dữ liệu
+- level1: Redis cho cache
+  level2:
+  - Vai trò Redis trong kiến trúc cache từ xa
+  - Lựa chọn kiểu dữ liệu Redis cho một mục cache
+  - Ghi giá trị kèm TTL trong một thao tác
+  - Đọc, xóa và kiểm tra thời hạn của khóa
+  - Phân biệt giá trị không tồn tại với giá trị rỗng
+  - Thiết kế không gian khóa và định dạng tuần tự hóa
+  - Sử dụng kết nối, pool kết nối và giới hạn thời gian chờ
+  - Gộp lệnh bằng pipelining và nhận diện giới hạn nguyên tử
+  - Thao tác có điều kiện, giao dịch Redis và Lua script
+  - Quản lý bộ nhớ với maxmemory và chính sách loại bỏ
+  - Phân biệt loại bỏ khóa, hết hạn khóa và lỗi thiếu bộ nhớ
+  - Giới hạn thao tác quét hoặc xóa hàng loạt trên môi trường thật
+- level1: Redis phân tán
+  level2:
+  - Nhân bản Redis và độ trễ khi đọc từ bản sao
+  - Vai trò Redis Sentinel trong phát hiện lỗi và chuyển đổi nút
+  - Phân mảnh bằng Redis Cluster và ánh xạ hash slot
+  - Hash tag và các thao tác cần khóa cùng slot
+  - Ảnh hưởng của chuyển đổi nút đến kết nối và tác vụ đang chạy
+  - Vai trò của RDB, AOF khi Redis chỉ dùng làm cache
+  - Tác động của khởi động lại, phục hồi và đồng bộ bản sao
+  - Client-side caching và theo dõi vô hiệu hóa khóa
+  - Giới hạn của Pub/Sub và thông báo sự kiện khóa
+  - Thiết kế khóa phân tán trên Redis và giới hạn bảo đảm
+  - Phát hiện hot key, big key và mất cân bằng phân mảnh
+  - Đánh giá nhu cầu cụm Redis so với cache cục bộ hoặc Memcached
+- level1: Spring Cache
+  level2:
+  - Vai trò lớp trừu tượng Spring Cache và thư viện cung cấp cache
+  - CacheManager, Cache và cách ánh xạ tên vùng cache
+  - Dùng @Cacheable để lưu kết quả phương thức
+  - Dùng @CachePut khi phương thức vẫn phải được thực thi
+  - Dùng @CacheEvict để xóa mục hoặc toàn vùng cache
+  - Kết hợp nhiều thao tác bằng @Caching
+  - Thiết kế khóa bằng key, SpEL và KeyGenerator
+  - Phân biệt điều kiện condition với unless
+  - Dùng sync và kiểm tra khả năng hỗ trợ của thư viện
+  - Giới hạn proxy, self-invocation và lời gọi nội bộ
+  - Hành vi khi phương thức trả null hoặc phát sinh ngoại lệ
+  - Các khả năng TTL và loại bỏ phụ thuộc thư viện cache
+- level1: Tích hợp Spring
+  level2:
+  - Cấu hình cache theo môi trường trong Spring Boot
+  - Tích hợp CaffeineCacheManager cho cache cục bộ
+  - Tích hợp RedisCacheManager cho cache dùng chung
+  - Thiết kế nhiều CacheManager và lựa chọn bằng CacheResolver
+  - Cấu hình TTL, tiền tố khóa và serializer theo vùng cache
+  - Phối hợp cache với ranh giới @Transactional
+  - Xử lý lỗi qua CacheErrorHandler theo yêu cầu nghiệp vụ
+  - 'Phương thức bất đồng bộ và phản ứng: xác minh hỗ trợ theo phiên bản'
+  - Kiểm soát kích thước, kết nối và luồng thực thi của thư viện
+  - Đặt logic cache ở ranh giới dịch vụ phù hợp
+  - Tách cấu hình hạ tầng cache khỏi quy tắc nghiệp vụ
+  - Kiểm chứng hành vi tích hợp bằng ứng dụng nhiều tiến trình
+- level1: Cache HTTP
+  level2:
+  - Phân biệt cache dữ liệu ứng dụng với cache phản hồi HTTP
+  - Cache phía trình duyệt, proxy dùng chung và CDN
+  - Điều khiển khả năng lưu và độ mới bằng Cache-Control
+  - Phân biệt no-cache, no-store, private và public
+  - Vai trò max-age, s-maxage, Age và Expires
+  - Xác thực lại bằng ETag và If-None-Match
+  - Xác thực lại bằng Last-Modified và If-Modified-Since
+  - Phản hồi 304 và tái sử dụng biểu diễn đã lưu
+  - Vary và thiết kế khóa theo các biến thể phản hồi
+  - Cache phản hồi có xác thực và dữ liệu cá nhân
+  - Phục vụ dữ liệu cũ với stale-while-revalidate và stale-if-error
+  - Vô hiệu hóa nội dung CDN và đổi phiên bản tài nguyên
+  - Tránh xung đột giữa TTL HTTP và TTL cache trong ứng dụng
+- level1: Cache truy vấn
+  level2:
+  - Phân biệt cache ở ứng dụng với bộ đệm bên trong cơ sở dữ liệu
+  - Cache thực thể theo danh tính và cache kết quả truy vấn
+  - Thiết kế khóa cho bộ lọc, sắp xếp và phân trang
+  - Vô hiệu hóa kết quả truy vấn khi dữ liệu thành viên thay đổi
+  - Cache số lượng, tổng hợp và dữ liệu dẫn xuất
+  - Đánh đổi giữa lưu toàn bộ đối tượng với lưu danh sách ID
+  - Cache cấp một của ORM và phạm vi ngữ cảnh lưu trữ
+  - Cache cấp hai của ORM và phối hợp nhiều phiên làm việc
+  - Cache truy vấn ORM và quan hệ với cache thực thể
+  - Rủi ro khi cache thực thể có quan hệ tải lười
+  - Xử lý cập nhật dữ liệu ngoài ứng dụng hoặc ngoài ORM
+  - Nhận diện khi tối ưu truy vấn và chỉ mục có lợi hơn thêm cache
+- level1: Thiết kế nghiệp vụ
+  level2:
+  - Cache danh mục tham chiếu và dữ liệu cấu hình
+  - Cache hồ sơ người dùng có phân quyền
+  - Cache trang danh sách và kết quả tìm kiếm
+  - Cache dữ liệu tổng hợp cho báo cáo và bảng theo dõi
+  - Cache kết quả tính toán nặng có đầu vào xác định
+  - Cache kết quả gọi dịch vụ bên ngoài
+  - Xử lý độ mới của giá, khuyến mãi và tồn kho
+  - Cache quyền truy cập và yêu cầu thu hồi quyền kịp thời
+  - Chọn dữ liệu được phép cũ trong từng luồng nghiệp vụ
+  - Giữ quyết định giao dịch quan trọng tại nguồn có thẩm quyền
+  - Lập ma trận khóa, TTL, vô hiệu hóa và đường dự phòng
+  - Chọn cache cục bộ, Redis, HTTP hoặc kết hợp theo tình huống
+- level1: Khả năng chịu lỗi
+  level2:
+  - Phân biệt lỗi cache với cache miss thông thường
+  - Chọn tiếp tục qua nguồn hoặc từ chối khi cache lỗi
+  - Đặt giới hạn thời gian chờ cho kết nối và thao tác
+  - Ngắt mạch bằng circuit breaker khi cache liên tục lỗi
+  - Cô lập tài nguyên bằng bulkhead và giới hạn đồng thời
+  - Thử lại có giới hạn và kiểm tra tính lũy đẳng
+  - Phục vụ bản cũ khi lỗi với giới hạn nghiệp vụ rõ ràng
+  - Tránh dồn toàn bộ tải sang nguồn khi cache ngừng hoạt động
+  - Xử lý dữ liệu cache hỏng hoặc không giải mã được
+  - Xử lý cache mất một phần dữ liệu hoặc bị xóa toàn bộ
+  - Khôi phục dần và làm nóng có kiểm soát sau sự cố
+  - Lập phương án vận hành khi cả cache và nguồn đều chậm
+- level1: Bảo mật
+  level2:
+  - Phân loại dữ liệu nhạy cảm trước khi đưa vào cache
+  - Không đưa bí mật và dữ liệu cá nhân không cần thiết vào khóa
+  - Ngăn đọc chéo người dùng và chéo đơn vị thuê
+  - Kiểm tra quyền truy cập ở ranh giới sử dụng dữ liệu cache
+  - Xóa dữ liệu cache khi thu hồi quyền hoặc xóa dữ liệu cá nhân
+  - Bảo vệ kết nối bằng xác thực, phân quyền và mã hóa truyền tải
+  - Giảm rủi ro giải tuần tự hóa dữ liệu không tin cậy
+  - Ngăn đầu vào tạo số lượng khóa không kiểm soát
+  - Nhận diện đầu độc cache (cache poisoning)
+  - Rủi ro cache HTTP dùng chung với phản hồi cá nhân hóa
+  - Che dữ liệu nhạy cảm trong log, trace và trang quản trị
+  - Quản lý quyền xóa cache và nhật ký thao tác vận hành
+- level1: Quan sát hệ thống
+  level2:
+  - Theo dõi hit, miss, load, eviction và expiration
+  - Phân biệt tỷ lệ trúng theo yêu cầu với tỷ lệ trúng theo dung lượng
+  - Đo độ trễ đọc, ghi, nạp và làm mới
+  - Theo dõi lỗi, timeout và số yêu cầu đi theo đường dự phòng
+  - Đo độ mới dữ liệu và số lần phát hiện sai phiên bản
+  - Theo dõi bộ nhớ, kết nối và hàng đợi tác vụ
+  - Quan sát điểm nóng theo vùng cache hoặc nhóm khóa
+  - Tránh gắn nhãn từng khóa gây số lượng chuỗi đo quá lớn
+  - Liên kết trace giữa ứng dụng, cache và nguồn
+  - Thiết lập cảnh báo theo tác động tới người dùng và tải nguồn
+  - Xây bảng theo dõi cho trạng thái bình thường, cache lạnh và sự cố
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đường trúng cache, trượt cache và tải thất bại
+  - Kiểm thử khóa theo tham số, quyền và đơn vị thuê
+  - Kiểm thử TTL bằng đồng hồ điều khiển được
+  - Kiểm thử loại bỏ khi chạm giới hạn dung lượng
+  - Kiểm thử vô hiệu hóa sau ghi, xóa và rollback
+  - Kiểm thử cuộc đua nạp dữ liệu với cập nhật nguồn
+  - Kiểm thử gộp tải và giới hạn đồng thời cho cùng khóa
+  - Kiểm thử nhiều tiến trình với cache dùng chung
+  - Kiểm thử tuần tự hóa và tương thích giữa các phiên bản
+  - Kiểm thử tích hợp Redis bằng môi trường cô lập
+  - Đo tải với phân bố truy cập và kích thước dữ liệu thực tế
+  - Thử nghiệm lỗi mạng, chuyển đổi nút và mất cache
+  - Đối chiếu dữ liệu từ cache với nguồn mà không tăng tải quá mức
+- level1: Vận hành
+  level2:
+  - Tách cấu hình dung lượng, TTL và kết nối theo môi trường
+  - Quản lý vòng đời vùng cache và quy ước đặt tên
+  - Triển khai từng phần khi lược đồ giá trị thay đổi
+  - Phối hợp phiên bản cũ và mới trong cùng thời gian triển khai
+  - Lập phương án quay lui khi khóa hoặc serializer thay đổi
+  - Làm nóng có kiểm soát trước khi tăng lưu lượng
+  - Xóa theo nhóm khóa thay vì xóa toàn bộ theo thói quen
+  - Xác định thẩm quyền và quy trình thao tác xóa cache
+  - Nâng cấp hạ tầng và thư viện cache có kiểm chứng
+  - Lập kế hoạch dung lượng và xử lý tăng trưởng dữ liệu
+  - Viết hướng dẫn xử lý cache lỗi, điểm nóng và dữ liệu cũ
+  - Đánh giá định kỳ vùng cache không còn mang lại lợi ích
+- level1: Lỗi thiết kế
+  level2:
+  - Dùng cache để che truy vấn chậm chưa được đo đạc
+  - Xem tỷ lệ trúng cao là bằng chứng hệ thống luôn nhanh
+  - Đặt TTL giống nhau cho mọi loại dữ liệu
+  - Không giới hạn dung lượng hoặc số lượng khóa
+  - Thiếu ngữ cảnh trong khóa làm trả nhầm dữ liệu
+  - Cache trực tiếp đối tượng có thể thay đổi hoặc thực thể ORM
+  - Giữ lỗi tạm thời quá lâu bằng cache kết quả âm
+  - Giả định xóa cache sau ghi sẽ loại bỏ mọi cuộc đua
+  - Dùng khóa phân tán như bảo đảm tuyệt đối cho tính đúng đắn
+  - Xóa toàn bộ cache gây dồn tải vào nguồn
+  - Cache dữ liệu bắt buộc mới mà thiếu cơ chế kiểm chứng
+  - Thêm nhiều tầng cache khi chưa giải quyết đồng bộ và quan sát
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây cache có giới hạn cho danh mục tham chiếu
+  - So sánh cache-aside cục bộ với cache Redis dùng chung
+  - Thiết kế khóa cho tìm kiếm, sắp xếp và phân trang
+  - Thử nghiệm TTL, làm mới và dữ liệu cũ được phép phục vụ
+  - Tái hiện rồi xử lý cuộc đua nạp dữ liệu sau vô hiệu hóa
+  - Gộp yêu cầu đồng thời và kiểm chứng giảm tải nguồn
+  - Phối hợp giao dịch nguồn với sự kiện vô hiệu hóa sau commit
+  - Triển khai cache L1 và L2 có giới hạn độ cũ
+  - Thiết kế HTTP cache an toàn cho phản hồi cá nhân hóa
+  - Mô phỏng Redis lỗi và bảo vệ cơ sở dữ liệu khỏi quá tải
+  - Thử triển khai hai phiên bản với lược đồ cache khác nhau
+  - Hoàn thiện hồ sơ thiết kế, kiểm thử tải và hướng dẫn vận hành

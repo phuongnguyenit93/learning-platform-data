@@ -1,0 +1,317 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Mô phỏng dịch vụ (service stubbing) là gì và giải quyết vấn đề nào
+  - Sơ đồ tương tác giữa ứng dụng, dịch vụ phụ thuộc và máy chủ stub
+  - 'Các thuật ngữ nền tảng: stub, mapping, matcher, fixture và scenario'
+  - Phân biệt stub, mock, fake, spy và giả lập dịch vụ (service virtualization)
+  - Phân biệt thay thế đối tượng trong tiến trình và mô phỏng qua giao thức
+  - Tính độc lập, khả năng tái lập và giới hạn của môi trường mô phỏng
+  - 'Ví dụ đầu tiên: thay dịch vụ tra cứu sản phẩm bằng phản hồi kiểm soát được'
+  - Trình tự học từ một phản hồi tĩnh đến kịch bản tích hợp nhiều dịch vụ
+- level1: Chiến lược kiểm thử
+  level2:
+  - Xác định ranh giới hệ thống cần kiểm thử và phần phụ thuộc được thay thế
+  - Vai trò của stub trong kiểm thử thành phần, tích hợp và đầu cuối
+  - Chọn dịch vụ thật, sandbox hay stub theo mục tiêu kiểm thử
+  - Phân biệt kiểm tra kết quả đầu ra và xác minh tương tác với dịch vụ
+  - Thiết kế ma trận kịch bản thành công, thất bại, biên và khôi phục
+  - Cân bằng mức chân thực, tốc độ chạy và chi phí bảo trì
+  - Vì sao stub chạy đúng chưa chứng minh tương thích với nhà cung cấp
+  - Kết hợp kiểm thử hợp đồng và kiểm thử với dịch vụ thật theo rủi ro
+- level1: Nền tảng HTTP
+  level2:
+  - Cấu trúc yêu cầu và phản hồi HTTP cần mô phỏng
+  - Phương thức HTTP và ý nghĩa của tính an toàn, tính lũy đẳng
+  - Đường dẫn, tham số truy vấn, mã hóa URL và dấu gạch chéo cuối
+  - Header, cookie, Content-Type và thương lượng nội dung
+  - Mã trạng thái, phản hồi không có nội dung và chuyển hướng
+  - JSON, XML, dữ liệu biểu mẫu, multipart và dữ liệu nhị phân
+  - Thời hạn chờ, kết nối, TLS và các lớp lỗi phía máy khách
+  - Phân trang, bộ nhớ đệm HTTP và yêu cầu có điều kiện
+- level1: Lựa chọn công cụ
+  level2:
+  - Tiêu chí chọn công cụ theo giao thức, kịch bản và cách triển khai
+  - Tổng quan WireMock, MockServer, Hoverfly và Microcks
+  - Phân biệt công cụ nguồn mở, phần mở rộng và dịch vụ thương mại
+  - Mô hình nhúng trong kiểm thử, tiến trình độc lập và container
+  - So sánh khai báo bằng Java DSL, JSON và đặc tả API
+  - Khi nào dùng MockWebServer hoặc bộ chặn HTTP phía máy khách
+  - Kiểm tra khả năng tương thích JDK, thư viện HTTP và phiên bản công cụ
+  - Xây dựng bài thử nhỏ để đánh giá công cụ trên cùng một kịch bản
+- level1: WireMock căn bản
+  level2:
+  - Thiết lập WireMock cho dự án Java và kiểm thử kết nối đầu tiên
+  - Khởi chạy, dừng và lấy địa chỉ WireMockServer
+  - Tạo mapping GET đơn giản bằng Java DSL
+  - Khai báo mapping bằng JSON và tổ chức thư mục mappings, __files
+  - Chạy WireMock độc lập và gọi thử bằng curl
+  - Quản lý mapping qua Admin API
+  - Nhận diện yêu cầu không khớp và phản hồi mặc định
+  - Ưu tiên mapping khi nhiều quy tắc cùng phù hợp
+  - Phân biệt xóa mapping, xóa nhật ký và đặt lại trạng thái
+- level1: Ghép yêu cầu
+  level2:
+  - Thiết kế điều kiện ghép (request matching) vừa đủ chặt
+  - Ghép phương thức, toàn URL và riêng đường dẫn
+  - Ghép đường dẫn bằng mẫu, biểu thức chính quy và biến đường dẫn
+  - Ghép tham số truy vấn và giá trị xuất hiện nhiều lần
+  - Ghép header, cookie, thông tin xác thực và điều kiện vắng mặt
+  - Ghép chuỗi chính xác, chuỗi con và biểu thức chính quy
+  - So sánh JSON theo cấu trúc thay vì chuỗi ký tự
+  - Lọc JSON bằng JSONPath và xử lý trường tùy chọn
+  - So sánh XML và lựa chọn nút bằng XPath
+  - Ghép dữ liệu biểu mẫu, multipart và nội dung nhị phân
+  - Kết hợp điều kiện, phủ định và xử lý mapping chồng lấn
+  - Kiểm thử riêng bộ ghép với dữ liệu gần đúng và không hợp lệ
+- level1: Tạo phản hồi
+  level2:
+  - Chọn mã trạng thái phù hợp với ngữ nghĩa API
+  - Tạo nội dung JSON, XML và văn bản tĩnh
+  - Đọc nội dung phản hồi từ file fixture
+  - Thiết lập header, cookie và kiểu nội dung phản hồi
+  - Trả dữ liệu nhị phân, file tải xuống và nội dung mã hóa
+  - Mô phỏng phân trang, lọc và sắp xếp kết quả
+  - Mô phỏng chuyển hướng và chuỗi chuyển hướng
+  - Mô phỏng ETag, Last-Modified và phản hồi có điều kiện
+  - Thiết kế phản hồi lỗi với mã lỗi và thông tin chẩn đoán nhất quán
+- level1: Phản hồi động
+  level2:
+  - Khi nào cần mẫu phản hồi (response templating)
+  - Bật và giới hạn phạm vi áp dụng mẫu trong WireMock
+  - Lấy đường dẫn, truy vấn, header và nội dung yêu cầu làm dữ liệu
+  - Sử dụng Handlebars với điều kiện, vòng lặp và giá trị mặc định
+  - Trích xuất dữ liệu JSON và dựng phản hồi theo đầu vào
+  - Tạo mã định danh, ngày giờ và dữ liệu biến thiên có kiểm soát
+  - Giữ đúng kiểu dữ liệu, mã hóa ký tự và cấu trúc JSON
+  - Giới hạn logic trong mẫu để tránh xây lại toàn bộ dịch vụ
+- level1: Xác minh tương tác
+  level2:
+  - Nhật ký yêu cầu và sự kiện phục vụ phản hồi trong WireMock
+  - Xác minh một yêu cầu đã được gửi với đúng dữ liệu
+  - Kiểm tra số lần gọi chính xác, tối thiểu và tối đa
+  - Xác minh không phát sinh lời gọi ngoài dự kiến
+  - Phát hiện yêu cầu không khớp và mapping chưa được sử dụng
+  - Đối chiếu thứ tự tương tác và giới hạn của việc dựa vào thời gian
+  - Chờ tương tác bất đồng bộ bằng điều kiện có giới hạn
+  - Tách lỗi của ứng dụng khỏi lỗi khai báo stub khi assertion thất bại
+  - Quản lý dung lượng và vòng đời nhật ký yêu cầu
+- level1: Kịch bản trạng thái
+  level2:
+  - Phân biệt phản hồi không trạng thái và kịch bản có trạng thái
+  - Mô hình hóa trạng thái ban đầu và điều kiện chuyển trạng thái
+  - Khai báo scenario của WireMock theo chuỗi yêu cầu
+  - Mô phỏng tạo, đọc, cập nhật và xóa tài nguyên
+  - Mô phỏng tác vụ đang xử lý rồi hoàn tất khi thăm dò
+  - Mô phỏng hết hạn phiên và làm mới thông tin xác thực
+  - Đặt lại scenario giữa các phép thử
+  - Xử lý nhiều người dùng và rủi ro dùng chung trạng thái
+  - Giới hạn scenario dựng sẵn và lựa chọn mô hình trạng thái mở rộng
+- level1: Mô phỏng sự cố
+  level2:
+  - Phân biệt lỗi nghiệp vụ, lỗi HTTP và lỗi truyền tải
+  - Mô phỏng 400, 401, 403, 404 và dữ liệu yêu cầu không hợp lệ
+  - Mô phỏng 409, 429 và tín hiệu Retry-After
+  - Mô phỏng 500, 502, 503 và 504
+  - Tạo độ trễ cố định và độ trễ theo phân bố
+  - Truyền phản hồi chậm theo từng phần để thử thời hạn đọc
+  - Mô phỏng phản hồi rỗng, dữ liệu hỏng và kết nối bị ngắt
+  - Mô phỏng lỗi DNS và từ chối kết nối bằng hạ tầng phù hợp
+  - Thiết kế chuỗi lỗi tạm thời rồi thành công
+  - Kiểm soát tính ngẫu nhiên và ghi lại điều kiện tái hiện lỗi
+- level1: Khả năng phục hồi
+  level2:
+  - Kiểm thử thời hạn kết nối, thời hạn đọc và hạn chót toàn thao tác
+  - Kiểm thử số lần thử lại và các lỗi được phép thử lại
+  - Kiểm tra khoảng chờ tăng dần và độ biến thiên khi thử lại
+  - Xác minh ứng dụng tôn trọng Retry-After
+  - Ngăn gửi trùng thao tác bằng khóa lũy đẳng
+  - Kiểm thử trạng thái đóng, mở và thăm dò của circuit breaker
+  - Kiểm thử phương án dự phòng khi dịch vụ phụ thuộc ngừng hoạt động
+  - Kiểm thử giới hạn đồng thời và cách ly tài nguyên
+  - Phát hiện vòng lặp thử lại và khuếch đại lưu lượng giữa các lớp
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Thiết kế fixture tối thiểu nhưng thể hiện đúng quy tắc nghiệp vụ
+  - Tổ chức dữ liệu chuẩn, dữ liệu biên và dữ liệu không hợp lệ
+  - Biểu diễn trường thiếu, null, chuỗi rỗng và danh sách rỗng
+  - Xử lý Unicode, múi giờ, số thập phân và dữ liệu định dạng vùng
+  - Tạo dữ liệu theo tham số với khả năng tái lập
+  - Quản lý mã định danh và dữ liệu liên quan giữa nhiều endpoint
+  - Loại bỏ dữ liệu cá nhân và bí mật khỏi fixture
+  - Tránh liên kết vòng giữa dữ liệu stub và giá trị assertion
+- level1: Proxy và ghi phát lại
+  level2:
+  - Mô hình proxy chuyển tiếp và chuyển hướng địa chỉ dịch vụ
+  - Ghi lưu lượng từ dịch vụ thật để tạo bộ tương tác mẫu
+  - Phát lại tương tác khi không còn kết nối tới dịch vụ thật
+  - Lựa chọn trường cần giữ và trường cần bỏ khỏi điều kiện ghép
+  - Chuẩn hóa thời gian, mã định danh và giá trị thay đổi giữa các lần chạy
+  - Che thông tin xác thực và làm sạch dữ liệu trước khi lưu
+  - Kết hợp mapping chủ động với chuyển tiếp yêu cầu không khớp
+  - Ngăn kiểm thử vô tình gọi dịch vụ thật trong chế độ phát lại
+  - Rà soát và cập nhật bản ghi khi API thay đổi
+- level1: HTTPS và xác thực
+  level2:
+  - Khởi chạy stub qua HTTPS và quản lý chứng chỉ kiểm thử
+  - Thiết lập truststore cho Java HTTP client
+  - Kiểm thử tên máy chủ và chuỗi tin cậy của chứng chỉ
+  - Mô phỏng xác thực hai chiều mTLS khi công cụ hỗ trợ
+  - Mô phỏng API key, Basic và Bearer token ở mức giao thức
+  - Mô phỏng endpoint cấp token, hết hạn token và làm mới token
+  - Phân biệt kiểm thử luồng xác thực và kiểm thử mật mã thực tế
+  - Bảo vệ Admin API, giới hạn cổng mở và che bí mật trong nhật ký
+- level1: Java và JUnit
+  level2:
+  - Thiết kế một phép thử Arrange–Act–Assert với dịch vụ stub
+  - Sử dụng @WireMockTest và WireMockRuntimeInfo
+  - Cấu hình WireMockExtension bằng chương trình
+  - Lựa chọn vòng đời theo lớp và theo phương thức kiểm thử
+  - Truyền cổng động vào cấu hình HTTP client
+  - Gọi stub bằng java.net.http.HttpClient
+  - Kiểm thử theo tham số trên nhiều phản hồi và mã trạng thái
+  - Cô lập server, mapping và trạng thái khi JUnit chạy song song
+  - Đóng tài nguyên và lưu bằng chứng khi phép thử thất bại
+- level1: Spring Boot
+  level2:
+  - Thay địa chỉ dịch vụ phụ thuộc bằng cấu hình của môi trường test
+  - Cấp địa chỉ stub trước khi Spring ApplicationContext khởi tạo
+  - Tích hợp WireMock với @SpringBootTest
+  - Kiểm thử lớp gọi ra ngoài bằng RestTemplate và WebClient
+  - Phân biệt server stub với MockRestServiceServer
+  - Quản lý nhiều stub bằng tên cấu hình độc lập
+  - Đặt lại dữ liệu khi tái sử dụng ApplicationContext
+  - Xử lý xung đột dependency, Jetty và cấu hình khởi động
+- level1: Docker và Testcontainers
+  level2:
+  - Đóng gói mapping và fixture trong container
+  - Khởi chạy WireMock bằng Docker và Docker Compose
+  - Khởi chạy stub bằng Testcontainers trong JUnit
+  - Phân biệt cổng container, cổng máy chủ và địa chỉ ứng dụng sử dụng
+  - Kết nối ứng dụng và stub qua mạng container
+  - Đợi stub sẵn sàng trước khi chạy kiểm thử
+  - Nạp tài nguyên bằng bind mount, sao chép file hoặc image riêng
+  - Thu nhật ký và dọn container khi kiểm thử kết thúc
+- level1: MockServer
+  level2:
+  - Mô hình expectation, matcher và action trong MockServer
+  - Khởi chạy MockServer và kết nối bằng Java client
+  - Tạo expectation cho phản hồi tĩnh và dữ liệu lỗi
+  - Quản lý priority, times và timeToLive
+  - Lựa chọn phản hồi động bằng template hoặc callback
+  - Xác minh số lần gọi và chuỗi tương tác
+  - Truy xuất yêu cầu, clear và reset đúng phạm vi
+  - Dùng proxy và ghi phát lại để xây bộ expectation
+  - Chuyển cùng một kịch bản giữa WireMock và MockServer
+- level1: Hoverfly
+  level2:
+  - Mô hình proxy và dữ liệu simulation của Hoverfly
+  - Khởi chạy Hoverfly và định tuyến HTTP client qua proxy
+  - Ghi tương tác bằng Capture mode
+  - Phát lại tương tác bằng Simulate mode
+  - Lựa chọn Spy, Diff, Synthesize và Modify mode theo mục tiêu
+  - Điều chỉnh điều kiện ghép và nội dung simulation
+  - Mô phỏng độ trễ và xử lý dữ liệu HTTPS
+  - Tích hợp Hoverfly vào kiểm thử Java và cô lập từng lần chạy
+- level1: Stub theo đặc tả
+  level2:
+  - Vai trò của OpenAPI và ví dụ phản hồi trong việc tạo stub
+  - Tạo nhiều ví dụ cho thành công, lỗi và trường hợp biên
+  - Mô phỏng REST API bằng Microcks
+  - Lựa chọn phản hồi theo yêu cầu và quy tắc dispatch
+  - Kiểm tra dữ liệu mẫu theo schema và ràng buộc API
+  - Quản lý nhiều phiên bản đặc tả và bộ stub tương ứng
+  - Phân biệt sinh stub từ đặc tả và xác minh hợp đồng của nhà cung cấp
+  - Đối chiếu stub với dịch vụ thật để phát hiện sai lệch
+- level1: Giao thức mở rộng
+  level2:
+  - Mô phỏng SOAP với WSDL, XML namespace và SOAP Fault
+  - Mô phỏng GraphQL theo operation, variables, data và errors
+  - Mô phỏng gRPC theo Protobuf và mã trạng thái
+  - Phân biệt gRPC đơn phản hồi với luồng dữ liệu
+  - Mô phỏng WebSocket theo phiên kết nối và thông điệp
+  - Mô phỏng Server-Sent Events và dữ liệu HTTP truyền theo luồng
+  - Mô phỏng sự kiện theo AsyncAPI bằng công cụ phù hợp
+  - Xác định khi nào cần broker hoặc máy chủ giao thức thật
+- level1: Webhook và bất đồng bộ
+  level2:
+  - Phân biệt phản hồi HTTP trực tiếp, callback và webhook
+  - Cấu hình webhook khi một yêu cầu khớp stub
+  - Truyền mã tương quan từ yêu cầu sang callback
+  - Mô phỏng webhook trễ, lặp lại và đến sai thứ tự
+  - Mô phỏng quá trình tiếp nhận, thăm dò và hoàn tất tác vụ
+  - Kiểm thử chữ ký webhook bằng bí mật kiểm thử
+  - Chờ callback theo điều kiện thay vì thời gian ngủ cố định
+  - Thu hồi callback đang chờ và cô lập phép thử tiếp theo
+- level1: Nhiều dịch vụ phụ thuộc
+  level2:
+  - Vẽ sơ đồ phụ thuộc và xác định từng điểm thay thế
+  - Khởi chạy nhiều stub có địa chỉ và vòng đời độc lập
+  - Phối hợp fixture giữa đơn hàng, thanh toán và tồn kho
+  - Mô phỏng thành công một phần và giao dịch bù trừ
+  - Mô phỏng kết quả tổng hợp khi một phụ thuộc chậm hoặc lỗi
+  - Cô lập kịch bản theo tenant, người dùng và mã tương quan
+  - Ngăn xung đột mapping giữa nhiều nhóm dùng chung môi trường
+  - Chọn điểm kết thúc mô phỏng để tránh dựng lại cả hệ thống
+- level1: Chạy trong CI
+  level2:
+  - Tổ chức tác vụ build cho bộ kiểm thử sử dụng stub
+  - Ghim phiên bản thư viện, image và bộ fixture
+  - Khởi tạo, kiểm tra sẵn sàng và hủy môi trường theo từng job
+  - Chạy song song với cổng động và không gian dữ liệu riêng
+  - Chặn kết nối ra ngoài khi bộ kiểm thử yêu cầu chạy độc lập
+  - Định cấu hình thời hạn toàn job và xử lý treo tiến trình
+  - Lưu yêu cầu không khớp, nhật ký và báo cáo kiểm thử làm bằng chứng
+  - Tái hiện lỗi CI trên máy phát triển bằng cùng kịch bản
+  - Kiểm thử tương thích khi nâng cấp công cụ hoặc dependency
+- level1: Quan sát và gỡ lỗi
+  level2:
+  - Đọc nhật ký yêu cầu, phản hồi và mapping được chọn
+  - Phân tích near miss để tìm điều kiện ghép không phù hợp
+  - Chẩn đoán sai cổng, sai base URL và ứng dụng gọi nhầm dịch vụ
+  - Chẩn đoán lỗi query, header, body và mã hóa ký tự
+  - Chẩn đoán mapping ưu tiên sai và trạng thái scenario bị rò rỉ
+  - Chẩn đoán lỗi TLS, proxy và mạng container
+  - Phân biệt stub chưa sẵn sàng với lỗi thời hạn của ứng dụng
+  - Theo dõi mã tương quan xuyên qua ứng dụng và stub
+  - Rút gọn kịch bản lỗi thành phép thử tái hiện tối thiểu
+- level1: Hiệu năng và giới hạn
+  level2:
+  - Đo chi phí độ trễ do stub bổ sung vào phép thử
+  - Đánh giá số kết nối đồng thời và giới hạn tài nguyên
+  - Tác động của nhật ký yêu cầu và fixture lớn lên bộ nhớ
+  - Tối ưu số lượng mapping, biểu thức chính quy và template
+  - Mô phỏng tốc độ phụ thuộc mà không để stub thành nút thắt
+  - Phân biệt kiểm thử tải ứng dụng với đánh giá hiệu năng dịch vụ thật
+  - Nhận diện giới hạn về mạng, giao thức và tính chân thực của mô phỏng
+- level1: Mở rộng WireMock
+  level2:
+  - Khi nào cấu hình và template không còn đáp ứng kịch bản
+  - Viết bộ ghép yêu cầu tùy chỉnh
+  - Viết bộ biến đổi phản hồi tùy chỉnh
+  - Bổ sung template helper và dữ liệu cho mô hình template
+  - Theo dõi tương tác bằng ServeEventListener
+  - Đóng gói và đăng ký extension ở dạng nhúng hoặc độc lập
+  - Kiểm thử extension và quản lý tương thích phiên bản
+  - Giữ extension độc lập với logic nghiệp vụ của ứng dụng
+- level1: Bảo trì bộ stub
+  level2:
+  - Tổ chức mapping theo dịch vụ, năng lực và kịch bản
+  - Đặt tên fixture và gắn metadata để truy nguyên mục đích
+  - Rà soát mapping trùng, quá rộng hoặc không còn được sử dụng
+  - Kiểm tra schema và cú pháp tài nguyên trong bước build
+  - Quản lý thay đổi hợp đồng và phiên bản bộ stub
+  - Phát hiện stub lỗi thời bằng kiểm tra định kỳ với nguồn tin cậy
+  - Chia sẻ fixture có kiểm soát mà không ràng buộc các nhóm
+  - Đánh giá chi phí bảo trì và tiêu chí loại bỏ một stub
+- level1: Thực hành tích hợp
+  level2:
+  - Bài thực hành tra cứu sản phẩm với phản hồi tĩnh và dữ liệu biên
+  - Bài thực hành tìm kiếm có phân trang và phản hồi theo đầu vào
+  - Bài thực hành thanh toán có khóa lũy đẳng và thử lại
+  - Bài thực hành tác vụ bất đồng bộ với polling và webhook
+  - Bài thực hành khách hàng Java xử lý lỗi HTTPS và token hết hạn
+  - Bài thực hành tổng hợp dữ liệu từ nhiều dịch vụ với phương án dự phòng
+  - Bài thực hành ghi phát lại API và làm sạch dữ liệu nhạy cảm
+  - Bài thực hành chạy song song trong CI và điều tra phép thử chập chờn
+  - 'Tiêu chí nghiệm thu: kết quả, tương tác, tính cô lập và khả năng tái lập'

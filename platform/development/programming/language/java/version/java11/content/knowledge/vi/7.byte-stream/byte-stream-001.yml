@@ -1,0 +1,3 @@
+menuLevel1: Byte stream
+menuLevel2: InputStream.readNBytes(int) và giới hạn lượng dữ liệu cần đọc
+status: WRITTEN

@@ -1,0 +1,57 @@
+roadmap:
+- id: nen-tang-elasticsearch
+  title: Nền tảng Elasticsearch
+  purpose: Hiểu cách tìm kiếm dựa trên index và document khác với truy vấn dữ liệu quan hệ.
+  objectives:
+  - Phân biệt index, document, field và inverted index.
+  - Giải thích khác nhau giữa full-text search và exact match.
+  - Nhận biết cơ chế near-real-time và refresh.
+- id: cau-hinh-ket-noi
+  title: Cấu hình kết nối
+  purpose: Kết nối Spring Boot với Elasticsearch bằng client tương thích và cấu hình môi trường an toàn.
+  objectives:
+  - Cấu hình dependency Spring Data Elasticsearch và endpoint.
+  - Thiết lập xác thực, TLS và timeout kết nối.
+  - Kiểm tra phiên bản Spring Data và Elasticsearch tương thích.
+- id: entity-mapping
+  title: Entity & mapping
+  purpose: Định nghĩa document Java và kiểu trường phù hợp với cách tìm kiếm dự kiến.
+  objectives:
+  - Ánh xạ entity bằng @Document, @Id và @Field.
+  - Phân biệt Text, Keyword, Date và Nested.
+  - Giải thích vai trò analyzer và custom converter.
+- id: index-thao-tac-du-lieu
+  title: Index & thao tác dữ liệu
+  purpose: Quản lý index và thực hiện các thao tác lưu, đọc, cập nhật, xóa document.
+  objectives:
+  - Dùng IndexOperations để tạo index và mapping.
+  - Thực hiện save, get và delete bằng API Spring Data.
+  - Nhận diện khác biệt giữa cập nhật document và cập nhật mapping.
+- id: repository-query-method
+  title: Repository & query method
+  purpose: Dùng abstraction Repository để giảm mã truy cập dữ liệu và triển khai truy vấn cơ bản.
+  objectives:
+  - Tạo ElasticsearchRepository cho entity.
+  - Viết query method dẫn xuất từ tên phương thức.
+  - Sử dụng @Query khi cần truy vấn được khai báo.
+- id: search-voi-operations
+  title: Search với Operations
+  purpose: Tạo truy vấn tìm kiếm linh hoạt và phân biệt điều kiện lọc với mức độ liên quan.
+  objectives:
+  - Dùng ElasticsearchOperations và Query phù hợp.
+  - Kết hợp CriteriaQuery hoặc NativeQuery theo nhu cầu.
+  - Giải thích match, term, filter và relevance score.
+- id: ket-qua-phan-trang
+  title: Kết quả & phân trang
+  purpose: Trả dữ liệu tìm kiếm dễ sử dụng và kiểm soát lượng kết quả truy vấn.
+  objectives:
+  - Đọc SearchHit và SearchHits, score và metadata.
+  - Dùng Pageable và sort với tập kết quả.
+  - Nhận biết giới hạn deep pagination và dữ liệu lớn.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Đảm bảo kết quả tìm kiếm đúng, nhất quán và có thể giám sát trong môi trường thực tế.
+  objectives:
+  - Viết integration test với Elasticsearch thử nghiệm.
+  - Kiểm tra mapping, analyzer và kết quả khi refresh.
+  - Theo dõi latency, bulk indexing và lỗi client.

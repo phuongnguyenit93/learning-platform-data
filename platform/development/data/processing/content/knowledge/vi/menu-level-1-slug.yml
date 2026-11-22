@@ -1,0 +1,109 @@
+menu:
+- title: Định hướng
+  slug: orientation
+  index: 0
+- title: Hợp đồng xử lý
+  slug: processing-contracts
+  index: 1
+- title: Mô hình dữ liệu
+  slug: data-models
+  index: 2
+- title: Thiết kế luồng
+  slug: flow-design
+  index: 3
+- title: Đọc dữ liệu
+  slug: data-reading
+  index: 4
+- title: Chuẩn hóa dữ liệu
+  slug: data-normalization
+  index: 5
+- title: Biến đổi dữ liệu
+  slug: data-transformation
+  index: 6
+- title: Lọc và định tuyến
+  slug: filtering-and-routing
+  index: 7
+- title: Sắp xếp và lựa chọn
+  slug: sorting-and-selection
+  index: 8
+- title: Khử trùng lặp
+  slug: deduplication
+  index: 9
+- title: Nhóm và tổng hợp
+  slug: grouping-and-aggregation
+  index: 10
+- title: Ghép và làm giàu
+  slug: joining-and-enrichment
+  index: 11
+- title: Số và thời gian
+  slug: numbers-and-time
+  index: 12
+- title: Trạng thái xử lý
+  slug: processing-state
+  index: 13
+- title: Xử lý tăng dần
+  slug: incremental-processing
+  index: 14
+- title: Thuật toán và tài nguyên
+  slug: algorithms-and-resources
+  index: 15
+- title: Xử lý theo lô
+  slug: batch-processing
+  index: 16
+- title: Luồng sự kiện
+  slug: event-streams
+  index: 17
+- title: Thời gian và cửa sổ
+  slug: time-and-windows
+  index: 18
+- title: Đồng thời và song song
+  slug: concurrency-and-parallelism
+  index: 19
+- title: Điều tiết tải
+  slug: load-regulation
+  index: 20
+- title: Xử lý phân tán
+  slug: distributed-processing
+  index: 21
+- title: Bảo đảm kết quả
+  slug: result-guarantees
+  index: 22
+- title: Lỗi và khôi phục
+  slug: errors-and-recovery
+  index: 23
+- title: Công bố đầu ra
+  slug: output-publication
+  index: 24
+- title: Collections trong Java
+  slug: java-collections
+  index: 25
+- title: Java Stream
+  slug: java-streams
+  index: 26
+- title: Collector
+  slug: collectors
+  index: 27
+- title: Java bất đồng bộ
+  slug: java-async
+  index: 28
+- title: Công cụ xử lý
+  slug: processing-tools
+  index: 29
+- title: Chất lượng và truy vết
+  slug: quality-and-lineage
+  index: 30
+- title: Kiểm thử
+  slug: testing
+  index: 31
+- title: Hiệu năng
+  slug: performance
+  index: 32
+- title: Bảo mật
+  slug: security
+  index: 33
+- title: Quan sát và vận hành
+  slug: operations-and-observability
+  index: 34
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 35

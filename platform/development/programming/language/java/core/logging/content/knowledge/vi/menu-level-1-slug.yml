@@ -1,0 +1,136 @@
+menu:
+- title: Tổng quan Java Logging
+  slug: logging-overview
+  index: 0
+- title: Mục tiêu của logging
+  slug: logging-goals
+  index: 1
+- title: Kiến trúc logging
+  slug: logging-architecture
+  index: 2
+- title: Logger
+  slug: logger
+  index: 3
+- title: Log level
+  slug: log-levels
+  index: 4
+- title: Log message
+  slug: log-messages
+  index: 5
+- title: Exception logging
+  slug: exception-logging
+  index: 6
+- title: Java Util Logging
+  slug: java-util-logging
+  index: 7
+- title: SLF4J
+  slug: slf4j
+  index: 8
+- title: Logback
+  slug: logback
+  index: 9
+- title: Log4j2
+  slug: log4j2
+  index: 10
+- title: Facade và backend
+  slug: logging-facade-backend
+  index: 11
+- title: Appender và handler
+  slug: appenders-handlers
+  index: 12
+- title: Formatter và layout
+  slug: formatters-layouts
+  index: 13
+- title: Console logging
+  slug: console-logging
+  index: 14
+- title: File logging
+  slug: file-logging
+  index: 15
+- title: Log rotation
+  slug: log-rotation
+  index: 16
+- title: Structured logging
+  slug: structured-logging
+  index: 17
+- title: JSON logging
+  slug: json-logging
+  index: 18
+- title: Logging context
+  slug: logging-context
+  index: 19
+- title: MDC
+  slug: mdc
+  index: 20
+- title: Correlation ID
+  slug: correlation-id
+  index: 21
+- title: Trace context
+  slug: trace-context
+  index: 22
+- title: Logging trong thread
+  slug: thread-logging
+  index: 23
+- title: Logging bất đồng bộ
+  slug: async-logging
+  index: 24
+- title: Cấu hình logging
+  slug: logging-configuration
+  index: 25
+- title: Môi trường chạy
+  slug: runtime-environments
+  index: 26
+- title: Filtering
+  slug: log-filtering
+  index: 27
+- title: Routing và phân loại
+  slug: log-routing-classification
+  index: 28
+- title: Hiệu năng logging
+  slug: logging-performance
+  index: 29
+- title: Độ tin cậy logging
+  slug: logging-reliability
+  index: 30
+- title: Bảo mật logging
+  slug: logging-security
+  index: 31
+- title: Quyền riêng tư
+  slug: logging-privacy
+  index: 32
+- title: Audit logging
+  slug: audit-logging
+  index: 33
+- title: Logging trong ứng dụng web
+  slug: web-application-logging
+  index: 34
+- title: Logging trong ứng dụng message
+  slug: messaging-application-logging
+  index: 35
+- title: Logging và exception
+  slug: logging-exceptions
+  index: 36
+- title: Testing logging
+  slug: logging-testing
+  index: 37
+- title: Observability
+  slug: observability
+  index: 38
+- title: Thu thập và vận chuyển
+  slug: log-collection-transport
+  index: 39
+- title: Vận hành production
+  slug: production-operations
+  index: 40
+- title: Anti-pattern logging
+  slug: logging-anti-patterns
+  index: 41
+- title: Thiết kế chiến lược log
+  slug: logging-strategy-design
+  index: 42
+- title: Dự án thực hành
+  slug: logging-exercises
+  index: 43
+- title: Tổng kết Java Logging
+  slug: logging-summary
+  index: 44

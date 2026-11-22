@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan Java 21
+  slug: overview
+  index: 0
+- title: Môi trường và toolchain
+  slug: toolchains
+  index: 1
+- title: Mô hình dữ liệu
+  slug: data-modeling
+  index: 2
+- title: Record Patterns
+  slug: record-patterns
+  index: 3
+- title: Generics và patterns
+  slug: generic-patterns
+  index: 4
+- title: Pattern switch
+  slug: pattern-switch
+  index: 5
+- title: Tính đầy đủ của switch
+  slug: switch-exhaustiveness
+  index: 6
+- title: Sequenced Collections
+  slug: sequenced-collections
+  index: 7
+- title: SequencedSet
+  slug: sequenced-set
+  index: 8
+- title: SequencedMap
+  slug: sequenced-map
+  index: 9
+- title: Views và tính bất biến
+  slug: collection-views
+  index: 10
+- title: Virtual Threads
+  slug: virtual-threads
+  index: 11
+- title: Thread API
+  slug: thread-api
+  index: 12
+- title: Executor và tác vụ
+  slug: task-execution
+  index: 13
+- title: Blocking I/O
+  slug: blocking-io
+  index: 14
+- title: Đồng bộ và pinning
+  slug: synchronization-pinning
+  index: 15
+- title: Context và ThreadLocal
+  slug: thread-context
+  index: 16
+- title: Giới hạn đồng thời
+  slug: concurrency-limits
+  index: 17
+- title: HttpClient
+  slug: http-client
+  index: 18
+- title: Chuỗi và Unicode
+  slug: strings-unicode
+  index: 19
+- title: Toán học và tiện ích
+  slug: math-utilities
+  index: 20
+- title: KEM
+  slug: key-encapsulation
+  index: 21
+- title: Generational ZGC
+  slug: generational-zgc
+  index: 22
+- title: Quan sát runtime
+  slug: runtime-observability
+  index: 23
+- title: Agent và instrumentation
+  slug: instrumentation-agents
+  index: 24
+- title: Kiểm thử Java 21
+  slug: testing
+  index: 25
+- title: Đo lường hiệu năng
+  slug: performance-measurement
+  index: 26
+- title: Nâng cấp lên Java 21
+  slug: migration
+  index: 27
+- title: Build và CI
+  slug: build-ci
+  index: 28
+- title: Triển khai production
+  slug: production-deployment
+  index: 29
+- title: Thực hành tổng hợp
+  slug: practical-labs
+  index: 30

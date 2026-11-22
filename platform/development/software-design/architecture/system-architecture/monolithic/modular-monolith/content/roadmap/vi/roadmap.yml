@@ -1,0 +1,49 @@
+roadmap:
+- id: monolith-vs-modular-monolith
+  title: Monolith vs Modular Monolith
+  purpose: Phân biệt một ứng dụng triển khai thống nhất với cách tổ chức module và đánh giá khi nào cần phân tán.
+  objectives:
+  - '- So sánh monolith, modular monolith và microservices về deploy, giao tiếp và vận hành.'
+  - '- Xác định lợi ích và giới hạn của một tiến trình triển khai chung.'
+- id: domain-module-boundaries
+  title: Domain & Module Boundaries
+  purpose: Chia hệ thống theo năng lực nghiệp vụ để giảm liên kết và tăng quyền tự chủ của từng module.
+  objectives:
+  - '- Vẽ các module theo business capability hoặc bounded context.'
+  - '- Xác định trách nhiệm, dữ liệu và phụ thuộc của từng module.'
+- id: package-by-feature-api
+  title: Package by Feature & API
+  purpose: Thể hiện ranh giới rõ ràng ngay trong mã Java thay vì chỉ chia lớp kỹ thuật.
+  objectives:
+  - '- Tạo package theo tính năng với API công khai và implementation nội bộ.'
+  - '- Ngăn truy cập nội bộ chéo và phụ thuộc vòng giữa các module.'
+- id: data-ownership-transactions
+  title: Data Ownership & Transactions
+  purpose: Đảm bảo mỗi module kiểm soát dữ liệu và quy tắc nghiệp vụ dù dùng chung một database.
+  objectives:
+  - '- Phân quyền sở hữu bảng/entity và repository cho từng module.'
+  - '- Thiết kế transaction nhất quán, tránh truy vấn trực tiếp dữ liệu module khác.'
+- id: module-contracts-events
+  title: Module Contracts & Events
+  purpose: Giao tiếp qua hợp đồng ổn định thay vì phụ thuộc vào cấu trúc thực thi nội bộ.
+  objectives:
+  - '- Dùng API đồng bộ khi cần kết quả ngay và event cho thông báo thay đổi.'
+  - '- Định nghĩa event payload, lỗi xử lý và cơ chế retry khi bất đồng bộ.'
+- id: spring-modulith-verification
+  title: Spring Modulith & Verification
+  purpose: Tận dụng kiểm tra kiến trúc để bảo vệ ranh giới module khi mã nguồn phát triển.
+  objectives:
+  - '- Tạo module Spring Boot và khai báo named interface nếu cần.'
+  - '- Chạy ApplicationModules.verify() để phát hiện vòng phụ thuộc và truy cập sai.'
+- id: module-tests-architecture-docs
+  title: Module Tests & Architecture Docs
+  purpose: Kiểm chứng module độc lập và duy trì sơ đồ phụ thuộc sát mã nguồn.
+  objectives:
+  - '- Viết @ApplicationModuleTest cho một module với dependency phù hợp.'
+  - '- Tạo sơ đồ module và canvas bằng Spring Modulith Documenter.'
+- id: deployment-insights-evolution
+  title: Deployment, Insights & Evolution
+  purpose: Vận hành một ứng dụng thống nhất, theo dõi module và chỉ tách dịch vụ khi có nhu cầu rõ.
+  objectives:
+  - '- Đo startup, latency, lỗi và interaction giữa các module.'
+  - '- Lập tiêu chí tách microservice dựa trên scale, tổ chức và chi phí vận hành.'

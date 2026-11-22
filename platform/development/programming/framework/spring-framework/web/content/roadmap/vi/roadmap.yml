@@ -1,0 +1,70 @@
+roadmap:
+- id: nen-tang-http-va-web
+  title: Nền tảng HTTP và web
+  purpose: Hiểu mô hình giao tiếp web trước khi chọn cách xử lý bằng Spring.
+  objectives:
+  - Xác định nền tảng Java và Spring IoC cần có.
+  - Giải thích yêu cầu, phản hồi, HTTP method và mã trạng thái.
+  - Phân biệt Servlet/MVC với WebFlux và các nhu cầu phù hợp.
+- id: luong-xu-ly-mvc
+  title: Luồng xử lý MVC
+  purpose: Hiểu cách một yêu cầu đi qua hạ tầng Spring MVC tới thành phần xử lý.
+  objectives:
+  - Cấu hình WebApplicationContext và đăng ký DispatcherServlet.
+  - Giải thích HandlerMapping, HandlerAdapter và ViewResolver.
+  - Theo dõi luồng yêu cầu qua container, filter và controller.
+- id: thiet-ke-endpoint
+  title: Thiết kế endpoint
+  purpose: Xây dựng điểm truy cập HTTP có trách nhiệm và hợp đồng rõ ràng.
+  objectives:
+  - Ánh xạ đường dẫn, HTTP method và kiểu nội dung.
+  - Phân biệt @Controller với @RestController.
+  - Tách xử lý HTTP khỏi nghiệp vụ và phụ thuộc.
+- id: du-lieu-dau-vao
+  title: Dữ liệu đầu vào
+  purpose: Chuyển dữ liệu HTTP thành đầu vào có kiểu và được kiểm tra đúng.
+  objectives:
+  - Liên kết đường dẫn, tham số truy vấn, header và body.
+  - Chọn chuyển đổi kiểu và HttpMessageConverter phù hợp.
+  - Kiểm tra dữ liệu bằng Bean Validation và xử lý lỗi binding.
+  - Giới hạn trường được binding theo hợp đồng đầu vào.
+- id: phan-hoi-va-loi
+  title: Phản hồi và lỗi
+  purpose: Trả kết quả và thông tin lỗi nhất quán với hợp đồng HTTP.
+  objectives:
+  - Chọn mã trạng thái, header và ResponseEntity.
+  - Giải thích content negotiation và JSON serialization.
+  - Chuẩn hóa lỗi qua @ExceptionHandler, @ControllerAdvice và ProblemDetail.
+  - Phân biệt trả view, redirect và nội dung HTTP.
+- id: mo-rong-ung-dung-web
+  title: Mở rộng ứng dụng web
+  purpose: Hoàn thiện các chức năng web dùng chung theo nhu cầu ứng dụng.
+  objectives:
+  - Phân biệt Filter và HandlerInterceptor.
+  - Quản lý multipart, tài nguyên tĩnh và cấu hình CORS.
+  - Xử lý cookie/session và HTTP caching theo yêu cầu.
+  - Xác định ranh giới xác thực, phân quyền và Spring Security.
+- id: mo-hinh-webflux
+  title: Mô hình WebFlux
+  purpose: Hiểu mô hình phản ứng và chọn nó khi phù hợp với chuỗi I/O của ứng dụng.
+  objectives:
+  - Giải thích Mono/Flux, event loop và backpressure.
+  - Đọc luồng xử lý qua DispatcherHandler.
+  - Chọn annotated controller hoặc functional endpoint.
+  - Giữ chuỗi xử lý không chặn; kiểm soát lỗi và hủy đăng ký.
+- id: tich-hop-va-thoi-gian-thuc
+  title: Tích hợp và thời gian thực
+  purpose: Giao tiếp HTTP với dịch vụ khác và chọn cơ chế cập nhật dữ liệu liên tục.
+  objectives:
+  - Chọn RestClient, WebClient hoặc HTTP Service Client.
+  - Thiết lập timeout, xử lý lỗi và giới hạn kết nối.
+  - Phân biệt xử lý bất đồng bộ MVC, SSE và WebSocket/STOMP.
+  - Chọn mô hình kết nối theo chiều giao tiếp và nhu cầu ứng dụng.
+- id: kiem-chung-ung-dung
+  title: Kiểm chứng ứng dụng
+  purpose: Xác nhận hành vi web thực tế và nhận diện vấn đề khi đưa ứng dụng vào chạy.
+  objectives:
+  - Kiểm thử mapping, validation, lỗi và hợp đồng HTTP.
+  - Dùng MockMvc hoặc WebTestClient đúng mô hình.
+  - Phân biệt mô phỏng với HTTP qua máy chủ thật.
+  - Quan sát độ trễ, lỗi và tài nguyên khi triển khai.

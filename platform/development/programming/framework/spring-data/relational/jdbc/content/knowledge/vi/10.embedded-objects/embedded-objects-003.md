@@ -1,0 +1,831 @@
+# Ánh xạ @Embedded và tùy chọn prefix
+
+Trong **Spring Data Relational JDBC**, một object Java không nhất thiết phải tương ứng với một bảng riêng. Có những object chỉ mô tả một nhóm thuộc tính có ý nghĩa cùng nhau, chẳng hạn địa chỉ thanh toán, địa chỉ giao hàng, thông tin liên hệ hoặc khoảng thời gian hiệu lực. Ta có thể nhúng các thuộc tính đó vào cùng hàng của aggregate root bằng annotation **`@Embedded`**.
+
+`@Embedded` giúp Spring Data JDBC ánh xạ các thuộc tính của object con thành những cột của bảng đang chứa object cha. Thuộc tính **`prefix`** cho phép thêm tiền tố vào tên các cột được ánh xạ, rất hữu ích khi một bảng có nhiều object nhúng cùng kiểu hoặc có nguy cơ trùng tên cột.
+
+Ví dụ, một đơn hàng có hai địa chỉ:
+
+```text
+PurchaseOrder
+  id
+  orderNumber
+  billingAddress
+    street
+    city
+    postalCode
+  shippingAddress
+    street
+    city
+    postalCode
+```
+
+Có thể lưu trong **một bảng** với các cột:
+
+```text
+purchase_orders
+  id
+  order_number
+  billing_street
+  billing_city
+  billing_postal_code
+  shipping_street
+  shipping_city
+  shipping_postal_code
+```
+
+Ta không cần tạo bảng `addresses` và khóa ngoại chỉ để lưu hai nhóm giá trị này. Đây là ý nghĩa quan trọng của *embedded object*: object được giữ trong mô hình domain, còn các trường của nó được trải phẳng (*flatten*) vào hàng của bảng chứa.
+
+## 1. Embedded object là gì?
+
+Một embedded object thường là **value object**: nhóm thuộc tính mô tả một giá trị trong ngữ cảnh của đối tượng sở hữu nó. Ví dụ:
+
+- `Address` mô tả địa chỉ, gồm đường, thành phố, mã bưu chính.
+- `Money` mô tả một số tiền và đơn vị tiền tệ.
+- `ContactInfo` mô tả email và số điện thoại.
+- `Dimensions` mô tả chiều dài, rộng và cao.
+
+Các thuộc tính này thường không có vòng đời độc lập với aggregate root. Nếu đơn hàng bị xóa, địa chỉ thanh toán được lưu trực tiếp trong hàng đơn hàng cũng biến mất cùng hàng đó.
+
+### 1.1. Embedded khác quan hệ entity và khóa ngoại
+
+**Embedded: các cột nằm cùng bảng**
+
+```text
+purchase_orders
++----+-------------+----------------+-------------+
+| id | order_no    | billing_street | billing_city|
++----+-------------+----------------+-------------+
+| 42 | ORD-0042    | 12 Nguyen Hue  | Ho Chi Minh |
++----+-------------+----------------+-------------+
+```
+
+**Quan hệ riêng: bảng con và khóa ngoại**
+
+```text
+purchase_orders                 addresses
++----+-------------+-----------+   +----+---------------+-------------+
+| id | order_no    | address_id|   | id | street        | city        |
++----+-------------+-----------+   +----+---------------+-------------+
+| 42 | ORD-0042    | 9         |   | 9  | 12 Nguyen Hue | Ho Chi Minh |
++----+-------------+-----------+   +----+---------------+-------------+
+```
+
+| Tiêu chí | `@Embedded` | Entity/bảng riêng |
+|---|---|---|
+| Vị trí lưu | Các cột trong bảng chứa | Hàng trong bảng khác |
+| Định danh độc lập | Thường không | Thường có khóa chính |
+| Truy vấn | Đọc cùng hàng, không cần JOIN chỉ để lấy object nhúng | Có thể cần JOIN hoặc truy vấn riêng |
+| Vòng đời | Thường thuộc về object cha | Có thể tồn tại độc lập hoặc được tham chiếu từ nhiều nơi |
+| Phù hợp | Value object, nhóm thuộc tính thuộc aggregate | Entity có identity/lifecycle riêng, được nhiều đối tượng tham chiếu |
+
+Không nên chọn `@Embedded` chỉ vì muốn giảm số bảng. Nếu địa chỉ là một đối tượng có ID riêng, được nhiều đơn hàng dùng chung, có lịch sử thay đổi hoặc được quản lý độc lập, mô hình bảng riêng có thể hợp lý hơn.
+
+## 2. Ví dụ cơ bản với @Embedded
+
+Giả sử ứng dụng bán hàng có `PurchaseOrder` và `Address`. Địa chỉ được lưu như một phần của đơn hàng.
+
+### 2.1. Khai báo value object
+
+```java
+public record Address(
+    String street,
+    String city,
+    String postalCode
+) {}
+```
+
+`Address` là một record Java, không cần `@Id` vì nó không có định danh độc lập trong ví dụ. Nó cũng không cần một bảng riêng.
+
+### 2.2. Nhúng vào aggregate root
+
+```java
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Embedded;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("purchase_orders")
+public record PurchaseOrder(
+    @Id Long id,
+    String orderNumber,
+
+    @Embedded(prefix = "billing_")
+    Address billingAddress
+) {}
+```
+
+`@Embedded` đánh dấu `billingAddress` là một object nhúng. Prefix `billing_` được ghép vào tên các cột được ánh xạ từ thuộc tính bên trong `Address`.
+
+Với naming strategy phổ biến của Spring Data Relational:
+
+| Property Java | Tên cột được ánh xạ |
+|---|---|
+| `billingAddress.street` | `billing_street` |
+| `billingAddress.city` | `billing_city` |
+| `billingAddress.postalCode` | `billing_postal_code` |
+
+Prefix là chuỗi được cung cấp trực tiếp; nếu muốn có dấu gạch dưới phân tách, hãy đưa dấu gạch dưới vào giá trị prefix như `"billing_"`. Không giả định framework tự chèn dấu phân cách theo ý muốn của bạn.
+
+### 2.3. Schema SQL tương ứng
+
+```sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_number VARCHAR(40) NOT NULL,
+    billing_street VARCHAR(200),
+    billing_city VARCHAR(100),
+    billing_postal_code VARCHAR(20)
+);
+```
+
+Không có bảng `addresses` trong schema này. Các cột `billing_street`, `billing_city` và `billing_postal_code` thuộc bảng `purchase_orders`.
+
+Một lần lưu:
+
+```java
+PurchaseOrder order = new PurchaseOrder(
+    null,
+    "ORD-0042",
+    new Address(
+        "12 Nguyen Hue",
+        "Ho Chi Minh City",
+        "700000"
+    )
+);
+
+PurchaseOrder saved = repository.save(order);
+```
+
+Về mặt SQL, thao tác có thể tương ứng với một INSERT vào bảng gốc:
+
+```sql
+INSERT INTO purchase_orders (
+    order_number,
+    billing_street,
+    billing_city,
+    billing_postal_code
+)
+VALUES (?, ?, ?, ?);
+```
+
+Câu SQL thực tế phụ thuộc dialect, chiến lược sinh ID, mapping và phiên bản. Điều cần hiểu là các trường của embedded object được ghi vào các cột của **cùng hàng**.
+
+## 3. Prefix dùng để làm gì?
+
+Prefix có hai lợi ích phổ biến:
+
+1. Tránh trùng tên cột giữa thuộc tính của object cha và object nhúng.
+2. Cho phép nhúng nhiều thuộc tính cùng kiểu vào một bảng mà tên cột vẫn phân biệt rõ.
+
+### 3.1. Tránh xung đột tên cột
+
+Giả sử đơn hàng có một thuộc tính `city` riêng để biểu diễn thành phố nơi tạo đơn, đồng thời có `billingAddress.city`.
+
+Nếu không có prefix, cả hai property có thể cùng muốn ánh xạ tới cột `city`. Cấu trúc đó gây xung đột và không diễn đạt rõ ý nghĩa.
+
+Dùng prefix:
+
+```java
+@Table("purchase_orders")
+public record PurchaseOrder(
+    @Id Long id,
+    String orderNumber,
+    String city,
+
+    @Embedded(prefix = "billing_")
+    Address billingAddress
+) {}
+```
+
+Schema:
+
+```sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_number VARCHAR(40) NOT NULL,
+    city VARCHAR(100),
+    billing_street VARCHAR(200),
+    billing_city VARCHAR(100),
+    billing_postal_code VARCHAR(20)
+);
+```
+
+Bây giờ:
+
+- `city` là thành phố gắn trực tiếp với đơn hàng.
+- `billing_city` là thành phố trong địa chỉ thanh toán.
+
+Tên cột thể hiện đúng ngữ cảnh và không còn va chạm.
+
+### 3.2. Nhúng hai object cùng kiểu Address
+
+Một đơn hàng có thể có địa chỉ thanh toán và địa chỉ giao hàng:
+
+```java
+@Table("purchase_orders")
+public record PurchaseOrder(
+    @Id Long id,
+    String orderNumber,
+
+    @Embedded(prefix = "billing_")
+    Address billingAddress,
+
+    @Embedded(prefix = "shipping_")
+    Address shippingAddress
+) {}
+```
+
+Schema tương ứng:
+
+```sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_number VARCHAR(40) NOT NULL,
+
+    billing_street VARCHAR(200),
+    billing_city VARCHAR(100),
+    billing_postal_code VARCHAR(20),
+
+    shipping_street VARCHAR(200),
+    shipping_city VARCHAR(100),
+    shipping_postal_code VARCHAR(20)
+);
+```
+
+Hai thuộc tính dùng chung một kiểu Java `Address` nhưng được lưu vào hai nhóm cột khác nhau.
+
+| Property Java | Cột SQL |
+|---|---|
+| `billingAddress.street` | `billing_street` |
+| `billingAddress.city` | `billing_city` |
+| `billingAddress.postalCode` | `billing_postal_code` |
+| `shippingAddress.street` | `shipping_street` |
+| `shippingAddress.city` | `shipping_city` |
+| `shippingAddress.postalCode` | `shipping_postal_code` |
+
+Không cần tạo hai kiểu `BillingAddress` và `ShippingAddress` chỉ vì tên cột khác nhau. Prefix cho phép tái sử dụng cùng value object trong nhiều ngữ cảnh.
+
+### 3.3. Prefix cũng giúp đọc schema dễ hơn
+
+Một bảng có thể chứa nhiều nhóm thuộc tính nhúng:
+
+```text
+purchase_orders
+├── id
+├── order_number
+├── billing_street
+├── billing_city
+├── billing_postal_code
+├── shipping_street
+├── shipping_city
+├── shipping_postal_code
+├── contact_email
+└── contact_phone
+```
+
+Nhìn tên cột, người đọc dễ nhận ra nhóm dữ liệu thuộc billing, shipping hay contact. Đây là một lợi ích thiết kế schema, ngoài việc tránh trùng tên.
+
+## 4. Tùy chọn prefix và tên cột thực tế
+
+Thuộc tính `prefix` của `@Embedded` là tiền tố dùng khi ánh xạ các cột của object nhúng. Nó không phải tên bảng và không tạo quan hệ mới.
+
+Ví dụ:
+
+```java
+@Embedded(prefix = "shipping_")
+Address shippingAddress
+```
+
+Nếu `Address` có các property `street`, `city`, `postalCode`, các tên cột theo naming strategy phổ biến sẽ là:
+
+```text
+shipping_street
+shipping_city
+shipping_postal_code
+```
+
+### 4.1. Chọn prefix rõ nghĩa
+
+| Ngữ cảnh | Prefix gợi ý |
+|---|---|
+| Địa chỉ thanh toán | `billing_` |
+| Địa chỉ giao hàng | `shipping_` |
+| Địa chỉ liên hệ | `contact_` |
+| Người nhận | `recipient_` |
+| Khoảng thời gian | `validity_` |
+| Tọa độ giao hàng | `location_` |
+
+Tên prefix nên ngắn, nhất quán và thể hiện đúng ý nghĩa nghiệp vụ. Tránh các prefix chung chung như `a_` hoặc `obj2_` vì người đọc schema khó hiểu.
+
+### 4.2. Prefix rỗng
+
+Nếu chỉ nhúng một object và không có nguy cơ xung đột, có thể dùng prefix mặc định:
+
+```java
+@Embedded
+Address address
+```
+
+Khi đó các cột thường được ánh xạ thành `street`, `city` và `postal_code` theo naming strategy.
+
+Tuy nhiên, nếu bảng có property cùng tên hoặc sau này có thêm một object cùng kiểu, prefix tường minh sẽ giúp schema ổn định và dễ đọc hơn. Việc đổi prefix sau khi dữ liệu đã được lưu là một thay đổi schema cần migration.
+
+### 4.3. Kết hợp với @Column
+
+Khi tên cột cần chỉ định tường minh, có thể dùng `@Column` trên property của embedded type:
+
+```java
+import org.springframework.data.relational.core.mapping.Column;
+
+public record Address(
+    @Column("street_name") String street,
+    @Column("city_name") String city,
+    String postalCode
+) {}
+```
+
+Với embedded field có prefix:
+
+```java
+@Embedded(prefix = "billing_")
+Address billingAddress
+```
+
+Mục tiêu mapping là các cột mang ngữ cảnh billing, ví dụ `billing_street_name` và `billing_city_name`, cùng cột postal code theo quy ước mapping. Khi dùng đồng thời prefix và tên cột tùy chỉnh, hãy xác nhận tên cột thực tế theo phiên bản và naming strategy dự án, rồi khai báo DDL tương ứng. Không để annotation và migration mô tả hai schema khác nhau.
+
+## 5. Embedded object rỗng và tùy chọn onEmpty
+
+Một câu hỏi quan trọng: nếu tất cả các cột của embedded object đều là `NULL`, Spring Data JDBC nên dựng property thành `null` hay tạo một object với các thuộc tính null?
+
+Ví dụ hàng:
+
+```text
+id = 42
+order_number = ORD-0042
+billing_street = NULL
+billing_city = NULL
+billing_postal_code = NULL
+```
+
+Có hai cách hiểu:
+
+- Không có địa chỉ thanh toán: `billingAddress == null`.
+- Có object địa chỉ nhưng tất cả các trường đều trống: `billingAddress != null`, các property bên trong đều null.
+
+Spring Data Relational cung cấp tùy chọn `onEmpty` của `@Embedded` để lựa chọn cách xử lý khi **toàn bộ cột của embedded object đều null**.
+
+### 5.1. USE_NULL
+
+```java
+import static org.springframework.data.relational.core.mapping.Embedded.OnEmpty.USE_NULL;
+
+@Embedded(prefix = "billing_", onEmpty = USE_NULL)
+Address billingAddress
+```
+
+Với `USE_NULL`, khi tất cả cột được ánh xạ từ embedded object đều null, property được khôi phục thành `null`.
+
+Cách này phù hợp khi object thực sự là tùy chọn: đơn hàng chưa có địa chỉ thanh toán thì `billingAddress` không tồn tại.
+
+### 5.2. USE_EMPTY
+
+```java
+import static org.springframework.data.relational.core.mapping.Embedded.OnEmpty.USE_EMPTY;
+
+@Embedded(prefix = "billing_", onEmpty = USE_EMPTY)
+Address billingAddress
+```
+
+Với `USE_EMPTY`, khi toàn bộ cột đều null, Spring Data JDBC tạo embedded object rỗng theo mapping thay vì đặt property thành null.
+
+Cách này phù hợp khi domain muốn luôn có một object giá trị, ngay cả khi các thuộc tính của nó chưa được điền.
+
+### 5.3. Chọn ngữ nghĩa theo domain
+
+| Tình trạng các cột | `USE_NULL` | `USE_EMPTY` |
+|---|---|---|
+| Tất cả đều NULL | Property là `null` | Property là object rỗng |
+| Có ít nhất một giá trị khác NULL | Tạo object và map các trường | Tạo object và map các trường |
+| Object đầu vào là null khi ghi | Các cột nhúng được ghi theo trạng thái null | Các cột nhúng được ghi theo trạng thái null; khi đọc, `onEmpty` quyết định cách dựng object |
+
+`onEmpty` quan trọng nhất ở **chiều đọc dữ liệu**: database lưu các cột, không có cột riêng để phân biệt “object null” và “object tồn tại nhưng mọi property đều null”. Nếu cả hai trạng thái đều được lưu thành cùng một tập cột NULL, lựa chọn `onEmpty` quyết định cách tái tạo object.
+
+### 5.4. Một số lưu ý về null
+
+- Nếu embedded object có một trường có giá trị và những trường khác null, đó vẫn là object có dữ liệu; `onEmpty` không biến nó thành null chỉ vì một vài cột null.
+- Nếu tất cả cột nhúng đều null, `onEmpty` mới quyết định kết quả.
+- Dùng kiểu wrapper như `Integer`, `Long` thay cho primitive nếu một thuộc tính nhúng cần biểu diễn SQL NULL.
+- Nếu schema đặt `NOT NULL` cho mọi cột embedded, trạng thái tất cả NULL không thể tồn tại qua INSERT/UPDATE thông thường. Hãy đảm bảo nullability của DDL phù hợp với mô hình object.
+- `USE_EMPTY` không thay thế validation nghiệp vụ. Một object được tạo rỗng vẫn có thể không hợp lệ để thanh toán hoặc giao hàng.
+
+## 6. Ví dụ đầy đủ: BillingAddress và ShippingAddress
+
+Ta xây dựng một aggregate đơn hàng có hai địa chỉ nhúng. Mục tiêu là thấy rõ Java object, annotation, schema và repository khớp nhau.
+
+### 6.1. Value object
+
+```java
+public record Address(
+    String street,
+    String city,
+    String postalCode
+) {}
+```
+
+Đây là một value object đơn giản, không có ID độc lập.
+
+### 6.2. Aggregate root
+
+```java
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Embedded;
+import org.springframework.data.relational.core.mapping.Table;
+
+import static org.springframework.data.relational.core.mapping.Embedded.OnEmpty.USE_NULL;
+
+@Table("purchase_orders")
+public record PurchaseOrder(
+    @Id Long id,
+    String orderNumber,
+
+    @Embedded(prefix = "billing_", onEmpty = USE_NULL)
+    Address billingAddress,
+
+    @Embedded(prefix = "shipping_", onEmpty = USE_NULL)
+    Address shippingAddress
+) {}
+```
+
+`billingAddress` và `shippingAddress` cùng dùng kiểu `Address`, nhưng mỗi thuộc tính có prefix riêng.
+
+### 6.3. Schema
+
+```sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_number VARCHAR(40) NOT NULL,
+
+    billing_street VARCHAR(200),
+    billing_city VARCHAR(100),
+    billing_postal_code VARCHAR(20),
+
+    shipping_street VARCHAR(200),
+    shipping_city VARCHAR(100),
+    shipping_postal_code VARCHAR(20)
+);
+```
+
+Các cột địa chỉ để nullable vì đơn hàng có thể chưa có một trong hai địa chỉ. Nếu nghiệp vụ yêu cầu địa chỉ bắt buộc trước khi xác nhận, service có thể kiểm tra điều kiện đó ở bước xác nhận đơn; hoặc schema có thể được thiết kế với constraint phù hợp nếu mọi trạng thái hàng đều phải có địa chỉ.
+
+### 6.4. Repository
+
+```java
+import org.springframework.data.repository.CrudRepository;
+
+public interface PurchaseOrderRepository
+        extends CrudRepository<PurchaseOrder, Long> {
+}
+```
+
+### 6.5. Tạo đơn hàng
+
+```java
+Address billing = new Address(
+    "12 Nguyen Hue",
+    "Ho Chi Minh City",
+    "700000"
+);
+
+Address shipping = new Address(
+    "25 Le Loi",
+    "Ho Chi Minh City",
+    "700000"
+);
+
+PurchaseOrder order = new PurchaseOrder(
+    null,
+    "ORD-0042",
+    billing,
+    shipping
+);
+
+PurchaseOrder saved = repository.save(order);
+```
+
+Một hàng SQL có thể được chèn với các cột:
+
+```sql
+INSERT INTO purchase_orders (
+    order_number,
+    billing_street,
+    billing_city,
+    billing_postal_code,
+    shipping_street,
+    shipping_city,
+    shipping_postal_code
+)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+```
+
+Không cần INSERT vào bảng `addresses` bởi vì schema không có bảng đó.
+
+### 6.6. Đọc lại
+
+```java
+PurchaseOrder loaded = repository.findById(saved.id())
+    .orElseThrow();
+
+System.out.println(loaded.billingAddress().city());
+System.out.println(loaded.shippingAddress().street());
+```
+
+Spring Data JDBC đọc các cột của hàng `purchase_orders` rồi dựng hai object `Address` theo mapping. Prefix giúp xác định cột nào thuộc địa chỉ billing và cột nào thuộc địa chỉ shipping.
+
+## 7. Một embedded object có thể chứa kiểu dữ liệu nào?
+
+Các property của embedded type được ánh xạ theo các quy tắc mapping thông thường của Spring Data Relational. Chúng có thể là các kiểu đơn giản mà JDBC converter hỗ trợ, ví dụ:
+
+```java
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public record PaymentTerms(
+    Integer dueInDays,
+    LocalDate dueDate,
+    BigDecimal creditLimit,
+    String note
+) {}
+```
+
+Nhúng vào aggregate:
+
+```java
+@Table("purchase_orders")
+public record PurchaseOrder(
+    @Id Long id,
+    String orderNumber,
+
+    @Embedded(prefix = "terms_")
+    PaymentTerms paymentTerms
+) {}
+```
+
+Schema minh họa:
+
+```sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_number VARCHAR(40) NOT NULL,
+    terms_due_in_days INTEGER,
+    terms_due_date DATE,
+    terms_credit_limit NUMERIC(19, 2),
+    terms_note VARCHAR(500)
+);
+```
+
+`PaymentTerms` vẫn không có bảng riêng. Các trường được trải phẳng vào bảng đơn hàng với prefix `terms_`.
+
+### 7.1. Embedded không phải nơi để đặt quan hệ tùy ý
+
+Nếu một property bên trong embedded object lại là một entity có ID và bảng riêng, cần xem xét kỹ mô hình quan hệ và các quy tắc aggregate của Spring Data JDBC. `@Embedded` nhằm mô tả các thuộc tính nằm cùng hàng, không phải cách tổng quát để nhúng mọi graph object vào một bảng.
+
+Hãy giữ embedded object đơn giản, có ý nghĩa như một giá trị, và chỉ chứa các property phù hợp với việc ánh xạ thành cột của hàng sở hữu.
+
+## 8. Truy vấn các cột của embedded object
+
+Vì các thuộc tính nhúng được lưu thành cột thông thường, có thể truy vấn bằng SQL theo tên cột đã ánh xạ.
+
+Ví dụ tìm đơn hàng theo thành phố giao hàng:
+
+```sql
+SELECT id, order_number,
+       billing_city, shipping_city
+FROM purchase_orders
+WHERE shipping_city = 'Ho Chi Minh City'
+ORDER BY id;
+```
+
+Nếu dùng repository query khai báo SQL:
+
+```java
+import java.util.List;
+import org.springframework.data.jdbc.repository.query.Query;
+import org.springframework.data.repository.CrudRepository;
+
+public interface PurchaseOrderRepository
+        extends CrudRepository<PurchaseOrder, Long> {
+
+    @Query("""
+        SELECT id, order_number,
+               billing_street, billing_city, billing_postal_code,
+               shipping_street, shipping_city, shipping_postal_code
+        FROM purchase_orders
+        WHERE shipping_city = :city
+        ORDER BY id
+        """)
+    List<PurchaseOrder> findByShippingCity(String city);
+}
+```
+
+Khi mapping kết quả thành `PurchaseOrder`, query phải trả đủ các cột cần thiết để dựng aggregate theo mapping. Nếu bỏ các cột embedded khỏi SELECT, việc dựng object có thể thiếu dữ liệu hoặc không đáp ứng cấu trúc entity mong đợi.
+
+### 8.1. Derived query và property path
+
+Trong các trường hợp phù hợp, Spring Data có thể phân tích property path để tạo query theo thuộc tính lồng. Ví dụ về ý tưởng:
+
+```java
+List<PurchaseOrder> findByBillingAddress_City(String city);
+```
+
+Tên phương thức dùng property path `billingAddress.city`. Cú pháp phân tách property path cần tuân thủ quy tắc parser của Spring Data; nếu tên property có thể gây mơ hồ, dùng cú pháp underscore tường minh hoặc `@Query` để câu truy vấn rõ ràng. Kiểm tra khả năng phân tích của phiên bản đang dùng thay vì tự giả định mọi nested path đều được hỗ trợ giống nhau ở mọi repository/query type.
+
+## 9. Embedded và schema migration
+
+Annotation `@Embedded` mô tả mapping Java; nó không thay thế việc quản lý schema. Khi thay đổi prefix, tên property hoặc cấu trúc embedded type, các cột trong database phải được cập nhật tương ứng.
+
+Ví dụ ban đầu:
+
+```java
+@Embedded(prefix = "billing_")
+Address billingAddress
+```
+
+Cột:
+
+```text
+billing_street
+billing_city
+billing_postal_code
+```
+
+Sau đó đổi prefix thành `invoice_address_`:
+
+```java
+@Embedded(prefix = "invoice_address_")
+Address billingAddress
+```
+
+Mapping mới tìm các cột:
+
+```text
+invoice_address_street
+invoice_address_city
+invoice_address_postal_code
+```
+
+Nếu database vẫn chỉ có các cột cũ, truy vấn/lưu dữ liệu có thể thất bại hoặc mapping không hoạt động như mong đợi. Cần migration tương ứng:
+
+```sql
+ALTER TABLE purchase_orders
+    RENAME COLUMN billing_street TO invoice_address_street;
+
+ALTER TABLE purchase_orders
+    RENAME COLUMN billing_city TO invoice_address_city;
+
+ALTER TABLE purchase_orders
+    RENAME COLUMN billing_postal_code TO invoice_address_postal_code;
+```
+
+Trong môi trường có dữ liệu production, việc đổi tên cột cần kế hoạch tương thích với các phiên bản ứng dụng đang chạy, migration rollback và dữ liệu cũ. Không đổi prefix chỉ để làm đẹp tên nếu không có lý do nghiệp vụ hoặc schema.
+
+### 9.1. Thêm một property mới vào embedded type
+
+Thêm `countryCode`:
+
+```java
+public record Address(
+    String street,
+    String city,
+    String postalCode,
+    String countryCode
+) {}
+```
+
+Schema cần thêm cột:
+
+```sql
+ALTER TABLE purchase_orders
+    ADD COLUMN billing_country_code VARCHAR(2),
+    ADD COLUMN shipping_country_code VARCHAR(2);
+```
+
+Nếu cột mới bắt buộc, phải xem dữ liệu hiện tại và cách backfill trước khi đặt `NOT NULL`. Việc thêm property vào Java mà không cập nhật schema sẽ khiến mapping không khớp.
+
+### 9.2. Đổi từ embedded sang bảng riêng
+
+Nếu một địa chỉ cần identity và vòng đời riêng, chuyển từ embedded sang entity bảng riêng là một thay đổi domain/schema đáng kể:
+
+- Tạo bảng địa chỉ.
+- Xác định khóa ngoại và cardinality.
+- Di chuyển dữ liệu từ các cột prefix sang bảng mới.
+- Thay đổi mapping Java và repository/service.
+- Cập nhật truy vấn, migration và kiểm thử tích hợp.
+
+Không nên thực hiện thay đổi này bằng cách chỉ xóa `@Embedded` và thêm `@Table`; phải thiết kế lại aggregate boundary và đường di chuyển dữ liệu.
+
+## 10. Giới hạn và lưu ý thiết kế
+
+### 10.1. Embedded không có ID riêng
+
+Một `Address` nhúng không có identity database độc lập trong mô hình này. Không dùng `@Id` để biến object đó thành entity độc lập nếu mục tiêu là giữ nó như value object nằm trong cùng hàng.
+
+### 10.2. Không tạo JOIN khi đọc embedded object
+
+Vì các cột đã nằm trong hàng của bảng cha, đọc `PurchaseOrder` có thể lấy dữ liệu địa chỉ trong cùng SELECT. Điều này khác với quan hệ giữa hai bảng cần truy vấn thêm hoặc JOIN.
+
+### 10.3. Nhiều cột làm bảng rộng hơn
+
+Nếu nhúng nhiều object có nhiều thuộc tính, bảng có thể rất rộng. Đó không tự động là vấn đề, nhưng cần cân nhắc:
+
+- Có thường xuyên đọc toàn bộ các thuộc tính này cùng aggregate không?
+- Chúng có cùng vòng đời với aggregate root không?
+- Có nhiều cột nullable vì object thường không tồn tại không?
+- Có cần tìm kiếm/index theo một số thuộc tính nhúng không?
+- Có cần chia sẻ object giữa nhiều aggregate không?
+
+Nếu nhiều object có vòng đời độc lập hoặc ít khi được đọc cùng nhau, bảng riêng có thể phù hợp hơn.
+
+### 10.4. Nullability phải thống nhất
+
+Nếu `billingAddress` có thể null, các cột billing cần cho phép null. Nếu object bắt buộc, cần đảm bảo dữ liệu hợp lệ trước khi ghi và có thể dùng constraint ở database nếu schema có thể biểu đạt quy tắc đó.
+
+Đối với `USE_EMPTY`, hãy hiểu rằng object rỗng vẫn có thể được dựng khi các cột đều null. Không dùng primitive cho property mà cần giữ trạng thái SQL NULL, bởi primitive Java không có giá trị null.
+
+### 10.5. Prefix là một phần của contract mapping
+
+Prefix được sử dụng khi đọc và ghi. Thay đổi prefix giống như đổi tên cột, vì vậy cần được quản lý cùng migration, raw SQL, index và các truy vấn khác. Đừng để tên cột trong code, schema và query tự phát triển độc lập.
+
+## 11. Các lỗi thường gặp
+
+| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+|---|---|---|
+| Không tìm thấy cột khi đọc aggregate | Prefix trong annotation không khớp DDL | Đối chiếu tên cột sau naming strategy |
+| Hai property muốn dùng cùng một cột | Không có prefix hoặc prefix chưa đủ phân biệt | Đặt prefix riêng cho mỗi embedded property |
+| Object nhúng đọc thành null | Tất cả cột của object đều NULL và `onEmpty` chọn `USE_NULL` | Kiểm tra dữ liệu, chọn semantics phù hợp |
+| Object rỗng được tạo ngoài mong muốn | `onEmpty = USE_EMPTY` | Chọn `USE_NULL` nếu trạng thái không có dữ liệu phải là null |
+| INSERT/UPDATE bị lỗi NOT NULL | Object null nhưng cột embedded bị khai báo NOT NULL | Đồng bộ nullability của schema và domain |
+| Thêm property nhưng SQL báo thiếu cột | Chưa chạy migration | Thêm/đổi cột qua schema migration |
+| Query tùy chỉnh không map được object | SELECT thiếu các cột embedded cần thiết hoặc alias sai | Trả đủ cột theo mapping |
+| Muốn tái sử dụng một địa chỉ cho nhiều đơn nhưng phải cập nhật đồng bộ | Đang mô hình hóa dữ liệu chia sẻ bằng embedded | Cân nhắc entity/bảng riêng với identity |
+| Đổi prefix làm ứng dụng cũ không tương thích | Code và schema migration không triển khai đồng bộ | Dùng kế hoạch migration tương thích |
+| Giá trị NULL bị chuyển thành 0 | Code tự gán default khi mapping/khởi tạo | Phân biệt NULL, 0 và object rỗng |
+
+## 12. Thực hành tổng hợp
+
+Dựa trên mô hình `PurchaseOrder` có hai địa chỉ:
+
+**Bài 1.** Viết annotation để nhúng `billingAddress` với prefix `billing_` và `shippingAddress` với prefix `shipping_`.
+
+```java
+@Embedded(prefix = "billing_")
+Address billingAddress,
+
+@Embedded(prefix = "shipping_")
+Address shippingAddress
+```
+
+**Bài 2.** Với `Address(String street, String city, String postalCode)`, liệt kê các cột tương ứng với `shippingAddress`.
+
+Đáp án:
+
+- `shipping_street`
+- `shipping_city`
+- `shipping_postal_code`
+
+**Bài 3.** Nếu cả ba cột billing đều NULL, điều gì xảy ra với property khi dùng `onEmpty = USE_NULL` và `onEmpty = USE_EMPTY`?
+
+Đáp án: `USE_NULL` tạo property `null`; `USE_EMPTY` tạo object embedded rỗng theo mapping.
+
+**Bài 4.** Vì sao không tạo bảng `addresses` cho ví dụ đơn hàng có hai địa chỉ?
+
+Đáp án: Trong mô hình này, địa chỉ chỉ là value object thuộc đơn hàng, không có identity hay vòng đời độc lập. Các trường được lưu trong cùng hàng `purchase_orders`.
+
+**Bài 5.** Một bảng đã có cột `city` của đơn hàng và thêm `Address.city`. Vì sao cần prefix?
+
+Đáp án: Nếu cả hai cùng ánh xạ vào `city` thì xung đột tên cột. Prefix tạo tên phân biệt như `billing_city`.
+
+**Bài 6.** Nếu đổi prefix từ `billing_` sang `invoice_` nhưng không migration database, điều gì có thể xảy ra?
+
+Đáp án: Mapping mới sẽ tìm các cột `invoice_*`, trong khi database chỉ có `billing_*`. Các thao tác đọc/ghi có thể thất bại vì schema không khớp.
+
+**Bài 7.** Nếu một địa chỉ được nhiều đơn hàng dùng chung và có lịch sử thay đổi độc lập, có nên tiếp tục nhúng không?
+
+Đáp án: Cần xem xét chuyển sang bảng/entity riêng có ID và quan hệ rõ ràng. Embedded phù hợp với value object thuộc vòng đời aggregate, không phải dữ liệu chia sẻ có lifecycle riêng.
+
+## 13. Ghi nhớ
+
+- **`@Embedded`** ánh xạ các property của object con thành các cột trong cùng hàng của bảng chứa.
+- **`prefix`** thêm chuỗi tiền tố vào tên cột được ánh xạ; tự đặt dấu phân cách như `"billing_"` để tên cột dễ đọc.
+- Nhiều embedded object cùng kiểu có thể dùng prefix khác nhau để tái sử dụng value object mà không trùng cột.
+- **`onEmpty`** quyết định cách dựng object khi toàn bộ cột embedded đều NULL: `USE_NULL` hoặc `USE_EMPTY`.
+- Embedded object thường không có ID và vòng đời độc lập; nó là một phần của aggregate/value object.
+- Schema migration phải giữ đồng bộ với annotation, naming strategy và câu SQL tùy chỉnh.
+- Embedded không tạo bảng con, khóa ngoại hay JOIN chỉ để đọc các thuộc tính nhúng.
+
+### Tài liệu tham khảo
+
+- [Spring Data Relational — Object Mapping Fundamentals](https://docs.spring.io/spring-data/relational/reference/object-mapping.html)
+- [Spring Data JDBC — Mapping](https://docs.spring.io/spring-data/relational/reference/jdbc/mapping.html)
+- [Spring Data Relational — Embedded Entities](https://docs.spring.io/spring-data/relational/reference/object-mapping.html#mapping-embedded-entities)
+
+Khi triển khai, đối chiếu JavaDoc và reference của đúng phiên bản Spring Data Relational trong dự án, đặc biệt với tùy chọn `onEmpty`, naming strategy và custom conversions.

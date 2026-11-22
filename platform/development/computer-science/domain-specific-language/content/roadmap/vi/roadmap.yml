@@ -1,0 +1,49 @@
+roadmap:
+- id: dsl-bai-toan-mien
+  title: DSL & Bài toán miền
+  purpose: Hiểu vì sao ngôn ngữ chuyên biệt giúp biểu diễn một lớp bài toán rõ hơn mã tổng quát.
+  objectives:
+  - Định nghĩa DSL và phân biệt với general-purpose language.
+  - Nêu ví dụ SQL, regex hoặc cú pháp quy tắc nghiệp vụ.
+- id: internal-external-dsl
+  title: Internal & External DSL
+  purpose: Lựa chọn cách biểu diễn dựa trên cú pháp, người dùng và chi phí công cụ.
+  objectives:
+  - Phân biệt embedded/fluent API với ngôn ngữ có parser riêng.
+  - So sánh lợi ích và giới hạn của hai cách tiếp cận.
+- id: mo-hinh-mien-cu-phap
+  title: Mô hình miền & Cú pháp
+  purpose: Xác định khái niệm nghiệp vụ trước khi viết cú pháp DSL.
+  objectives:
+  - Liệt kê các khái niệm, ràng buộc và thao tác của miền.
+  - Viết 2–3 ví dụ DSL tối thiểu dễ đọc.
+- id: grammar-lexer-parser
+  title: Grammar, Lexer & Parser
+  purpose: Biến văn bản DSL thành cấu trúc có thể xử lý một cách chính xác.
+  objectives:
+  - Mô tả token, grammar và parse tree.
+  - Viết grammar đơn giản và tạo parser bằng ANTLR.
+- id: ast-semantic-validation
+  title: AST & Semantic Validation
+  purpose: Tách cấu trúc cú pháp khỏi ý nghĩa và phát hiện lỗi quy tắc miền.
+  objectives:
+  - Xây AST hoặc domain model từ parse tree.
+  - Kiểm tra tên tham chiếu, kiểu và ràng buộc nghiệp vụ.
+- id: interpreter-codegen
+  title: Interpreter & Codegen
+  purpose: Thực thi mô tả DSL bằng diễn giải hoặc biến đổi sang mã đích.
+  objectives:
+  - Tạo interpreter cho vài câu lệnh DSL.
+  - So sánh diễn giải trực tiếp với sinh mã Java.
+- id: tooling-ide-support
+  title: Tooling & IDE Support
+  purpose: Cải thiện trải nghiệm soạn DSL và chất lượng phản hồi lỗi.
+  objectives:
+  - Thiết kế thông báo lỗi có vị trí và gợi ý sửa.
+  - Nhận biết hỗ trợ editor, autocomplete và validation của Xtext/MPS.
+- id: testing-evolution
+  title: Testing & Evolution
+  purpose: Duy trì DSL ổn định khi mở rộng tính năng và thay đổi ngữ nghĩa.
+  objectives:
+  - Kiểm thử cú pháp hợp lệ, sai cú pháp và kết quả thực thi.
+  - Lập kế hoạch versioning, tương thích và migration DSL.

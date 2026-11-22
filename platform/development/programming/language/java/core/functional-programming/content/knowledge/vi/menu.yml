@@ -1,0 +1,323 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Lập trình hàm là gì và giải quyết vấn đề nào
+  - Từ mô tả từng bước tới mô tả phép biến đổi dữ liệu
+  - Mối liên hệ giữa hàm, dữ liệu, lambda và Stream
+  - Kết hợp phong cách hàm với hướng đối tượng trong Java
+  - Java hỗ trợ lập trình theo phong cách hàm qua những cơ chế nào
+  - Phân biệt dùng lambda với thiết kế có tính chất hàm
+  - 'Ví dụ xuyên suốt: lọc, biến đổi và tổng hợp đơn hàng'
+  - Lộ trình học và kiến thức nền tảng cần có
+- level1: Nguyên lý cốt lõi
+  level2:
+  - Hàm thuần và điều kiện cùng đầu vào cho cùng đầu ra
+  - Tác dụng phụ và phụ thuộc vào trạng thái bên ngoài
+  - Tính minh bạch tham chiếu và khả năng thay biểu thức bằng giá trị
+  - Dữ liệu bất biến và hạn chế thay đổi trạng thái dùng chung
+  - 'Hàm bậc cao: nhận hàm hoặc trả về hàm'
+  - Đánh giá ngay và đánh giá trì hoãn
+  - Kết hợp các phép biến đổi nhỏ thành quy trình lớn
+  - Đệ quy và giới hạn tối ưu lời gọi đuôi trong Java
+- level1: Functional interface
+  level2:
+  - Functional interface và phương thức trừu tượng duy nhất
+  - '@FunctionalInterface: annotation tùy chọn để diễn đạt và kiểm tra ý định'
+  - Phương thức default, static và private không làm tăng số phương thức trừu tượng
+  - Phương thức tương ứng với phương thức public của Object
+  - Kế thừa interface và những chữ ký được hợp nhất
+  - Kiểu tham số, kiểu kết quả và mệnh đề throws của phương thức hàm
+  - Interface generic và giới hạn của phương thức hàm generic khi dùng lambda
+  - Nhận diện Runnable, Callable và Comparator
+  - Tạo functional interface riêng khi cần hợp đồng nghiệp vụ rõ nghĩa
+  - Vì sao sealed interface không thể làm kiểu đích cho lambda
+- level1: java.util.function
+  level2:
+  - Function<T,R> cho phép biến đổi một đầu vào thành kết quả
+  - Predicate<T> cho điều kiện đúng hoặc sai
+  - Consumer<T> cho thao tác không trả về kết quả
+  - Supplier<T> cho thao tác cung cấp giá trị không nhận đối số
+  - UnaryOperator<T> và BinaryOperator<T>
+  - BiFunction, BiPredicate và BiConsumer
+  - IntFunction, ToIntFunction và phân biệt chiều chuyển đổi kiểu
+  - Các biến thể primitive cho int, long, double và boolean
+  - ObjIntConsumer và phối hợp đối tượng với kiểu nguyên thủy
+  - Chọn interface theo số đối số, kiểu kết quả và ý nghĩa thao tác
+- level1: Cú pháp lambda
+  level2:
+  - Cấu trúc tham số, dấu -> và phần thân
+  - Lambda không tham số, một tham số và nhiều tham số
+  - Thân biểu thức và thân khối lệnh
+  - Quy tắc return và đường đi trả về giá trị
+  - Khai báo kiểu tham số tường minh hoặc để suy luận
+  - Dùng var trong tham số lambda và yêu cầu nhất quán
+  - Lambda trả về void và biểu thức có thể dùng như câu lệnh
+  - Viết lambda ngắn, đặt tên tham số rõ nghĩa và tách thân quá dài
+- level1: Phạm vi và bắt giữ
+  level2:
+  - Phạm vi tên của tham số và biến cục bộ trong lambda
+  - Giới hạn khai báo trùng tên với biến bao ngoài
+  - Bắt giữ biến cục bộ final và effectively final
+  - Phân biệt gán lại biến với thay đổi đối tượng được tham chiếu
+  - Truy cập trường đối tượng và trường static từ lambda
+  - Ý nghĩa this và super trong lambda
+  - So sánh phạm vi và this với lớp vô danh
+  - Rủi ro bắt giữ đối tượng lớn hoặc trạng thái có thể thay đổi
+- level1: Kiểu đích và suy luận
+  level2:
+  - Lambda cần kiểu đích là functional interface
+  - Ngữ cảnh gán, truyền đối số, trả về và ép kiểu
+  - Kiểm tra tương thích tham số và kiểu kết quả
+  - Vì sao var không thể tự suy ra kiểu của lambda đứng riêng
+  - Suy luận generic khi truyền lambda vào phương thức
+  - Wildcard ? super và ? extends trong API nhận hàm
+  - Nạp chồng phương thức nhận lambda và lời gọi không rõ ràng
+  - Dùng kiểu tham số hoặc ép kiểu tường minh để giải quyết suy luận
+  - Không dựa vào lớp triển khai hoặc danh tính tham chiếu của lambda
+- level1: Tham chiếu phương thức
+  level2:
+  - Method reference và quan hệ tương đương với lambda
+  - Tham chiếu phương thức static bằng Type::method
+  - Tham chiếu phương thức trên đối tượng đã có
+  - Tham chiếu phương thức đối tượng qua tên kiểu
+  - Đối tượng nhận lời gọi trở thành tham số đầu tiên của kiểu hàm
+  - Tham chiếu hàm khởi tạo bằng Type::new
+  - Tham chiếu hàm tạo mảng bằng Type[]::new
+  - Chọn phương thức nạp chồng theo kiểu đích
+  - Thời điểm đánh giá đối tượng nhận lời gọi và nguy cơ null
+  - Khi nào method reference làm mã dễ đọc hơn
+- level1: Kết hợp hàm
+  level2:
+  - Function.compose() và Function.andThen()
+  - Theo dõi thứ tự thực thi và kiểu trung gian khi kết hợp
+  - Function.identity() và vai trò hàm đồng nhất
+  - Predicate.and(), or(), negate() và đánh giá ngắn mạch
+  - Predicate.not() và Predicate.isEqual()
+  - Consumer.andThen() và ảnh hưởng khi thao tác trước ném ngoại lệ
+  - Currying và áp dụng trước một phần đối số bằng lambda
+  - Xây dựng và kiểm tra quy trình biến đổi có thể tái sử dụng
+- level1: API nhận hành vi
+  level2:
+  - Truyền quy tắc nghiệp vụ qua Predicate hoặc Function
+  - Trả về Supplier hoặc Function từ phương thức
+  - Collection.removeIf(), List.replaceAll() và Collection.forEach()
+  - Comparator.comparing(), thenComparing() và đảo thứ tự
+  - Comparator.comparingInt() và xử lý giá trị null
+  - Map.computeIfAbsent(), compute() và merge()
+  - Supplier để trì hoãn tạo giá trị hoặc thông báo
+  - Nhận diện Function và Consumer trong CompletableFuture
+  - Thay lớp chiến lược đơn giản bằng lambda khi hợp đồng phù hợp
+- level1: Ngoại lệ
+  level2:
+  - Checked exception phải tương thích với throws của kiểu đích
+  - Vì sao Function và Consumer không khai báo checked exception
+  - Bắt và xử lý ngoại lệ bên trong lambda
+  - Bọc ngoại lệ và giữ nguyên nguyên nhân
+  - Functional interface riêng có throws khi thật sự cần
+  - Chọn dừng toàn bộ hay biểu diễn kết quả thành công, thất bại cho từng phần tử
+  - Không nuốt ngoại lệ để làm cho quy trình Stream tiếp tục
+  - Giữ phần đọc ghi và tác dụng phụ ở ranh giới dễ kiểm soát
+- level1: Optional
+  level2:
+  - Optional biểu diễn có hoặc không có kết quả
+  - empty(), of() và ofNullable()
+  - map(), flatMap() và filter() trên Optional
+  - Phân biệt hàm map trả về null với flatMap trả về null
+  - orElse() đánh giá đối số ngay và orElseGet() gọi Supplier khi cần
+  - or(), orElseThrow() và lựa chọn xử lý khi không có giá trị
+  - ifPresent() và ifPresentOrElse()
+  - Optional.stream() để phối hợp với Stream
+  - Tránh get() không kiểm tra và Optional có giá trị null
+  - Vai trò chính của Optional ở giá trị trả về và giới hạn khi lạm dụng
+- level1: Mô hình Stream
+  level2:
+  - Stream là dòng xử lý dữ liệu và không phải cấu trúc lưu trữ
+  - Nguồn dữ liệu, phép biến đổi trung gian và thao tác kết thúc
+  - Phân biệt Stream, Collection, Iterator và luồng nhập xuất
+  - Đánh giá trì hoãn của thao tác trung gian
+  - Một pipeline chỉ được tiêu thụ một lần
+  - Stream tuần tự và Stream song song
+  - Thứ tự gặp phần tử và thứ tự thực thi thao tác
+  - Đọc một pipeline theo kiểu dữ liệu ở từng bước
+- level1: Tạo Stream
+  level2:
+  - Tạo từ Collection.stream() và parallelStream()
+  - Stream.of(), empty() và ofNullable()
+  - Arrays.stream() với mảng đối tượng hoặc mảng nguyên thủy
+  - Stream.generate() với Supplier
+  - Stream.iterate() có hoặc không có điều kiện dừng
+  - Stream.builder() và Stream.concat()
+  - Nguồn từ tệp, dòng văn bản và các API JDK khác
+  - Giới hạn nguồn vô hạn để pipeline có thể kết thúc
+  - Đóng Stream giữ tài nguyên bằng try-with-resources
+- level1: Lọc và chọn phần tử
+  level2:
+  - filter() và thiết kế Predicate không thay đổi nguồn
+  - distinct() và ảnh hưởng của equals(), hashCode()
+  - limit() và skip()
+  - takeWhile() và dropWhile() trên nguồn có thứ tự
+  - Phân biệt filter() với takeWhile()
+  - Kết hợp điều kiện lọc bằng Predicate
+  - Xử lý phần tử null trước khi truy cập thuộc tính
+  - Thứ tự đặt thao tác lọc và giới hạn làm thay đổi kết quả
+- level1: Biến đổi dữ liệu
+  level2:
+  - map() và phép biến đổi một-một
+  - flatMap() và làm phẳng dữ liệu lồng nhau
+  - Phân biệt map() tạo Stream lồng với flatMap()
+  - mapMulti() cho phép biến đổi không, một hoặc nhiều phần tử
+  - mapToInt(), mapToLong() và mapToDouble()
+  - Tạo đối tượng kết quả thay cho sửa đối tượng đầu vào
+  - Kết hợp Optional và Stream mà không gọi get() tùy tiện
+  - Chọn vòng lặp khi phép biến đổi có nhiều nhánh khó đọc
+- level1: Sắp xếp và quan sát
+  level2:
+  - sorted() theo thứ tự tự nhiên hoặc Comparator
+  - Sắp xếp theo nhiều khóa và xử lý khóa null
+  - Tính ổn định của sorted() trên Stream có thứ tự
+  - Phân biệt sắp xếp đầu vào với sắp xếp kết quả
+  - peek() để quan sát khi gỡ lỗi
+  - Vì sao peek() không phù hợp cho thao tác nghiệp vụ bắt buộc
+  - Chi phí giữ trạng thái của sorted() và distinct()
+  - Ảnh hưởng của vị trí sorted(), limit() và distinct()
+- level1: Thao tác kết thúc
+  level2:
+  - forEach() và forEachOrdered()
+  - count() và những trường hợp không cần duyệt từng phần tử
+  - findFirst() và findAny()
+  - anyMatch(), allMatch() và noneMatch()
+  - Kết quả của các phép kiểm tra khi Stream rỗng
+  - min(), max() và Comparator
+  - toArray() với mảng có kiểu cụ thể
+  - toList(), collect() và reduce() phục vụ các kiểu kết quả khác nhau
+  - Thao tác ngắn mạch và phần tử có thể không được xử lý
+- level1: Stream nguyên thủy
+  level2:
+  - IntStream, LongStream và DoubleStream
+  - range() và rangeClosed()
+  - sum(), average(), min(), max() và summaryStatistics()
+  - OptionalInt, OptionalLong và OptionalDouble
+  - boxed(), mapToObj() và chuyển đổi giữa các Stream nguyên thủy
+  - Tránh boxing không cần thiết trong phép tính số
+  - Tràn số nguyên và sai số số thực trong phép tổng hợp
+  - Chọn BigDecimal cho yêu cầu tính toán thập phân chính xác
+- level1: Rút gọn bằng reduce
+  level2:
+  - Phép rút gọn kết hợp nhiều phần tử thành một kết quả
+  - reduce() không có giá trị khởi đầu và kết quả Optional
+  - Phần tử đơn vị và reduce() có giá trị khởi đầu
+  - Tính kết hợp của phép toán và vì sao phép trừ thường không phù hợp
+  - 'reduce() ba tham số: identity, accumulator và combiner'
+  - Yêu cầu tương thích giữa accumulator và combiner
+  - Tại sao giá trị đơn vị sai làm kết quả song song sai
+  - Không dùng đối tượng tích lũy có thể thay đổi chung trong reduce()
+  - Chọn reduce() hay collect() theo bản chất kết quả
+- level1: Thu thập kết quả
+  level2:
+  - collect() và phép rút gọn với vùng tích lũy có thể thay đổi
+  - Stream.toList() trả về danh sách không cho sửa cấu trúc
+  - Collectors.toList() không cam kết kiểu triển khai hoặc khả năng sửa
+  - toCollection() để chọn loại Collection tường minh
+  - toSet(), toUnmodifiableList() và toUnmodifiableSet()
+  - joining() để ghép chuỗi với dấu phân cách
+  - toMap() với hàm tạo khóa và giá trị
+  - Khóa trùng, hàm gộp và lựa chọn loại Map
+  - toUnmodifiableMap() và yêu cầu về dữ liệu null
+  - Phân biệt tập hợp không cho sửa với bất biến sâu
+- level1: Nhóm và phân vùng
+  level2:
+  - groupingBy() theo một thuộc tính
+  - Nhóm nhiều tầng và cấu trúc Map lồng nhau
+  - Chọn loại Map để kiểm soát thứ tự khóa
+  - partitioningBy() chia dữ liệu theo Predicate
+  - Phân biệt partitioningBy() với groupingBy() theo boolean
+  - Đếm, tính tổng và tìm phần tử đại diện theo nhóm
+  - Thiết kế khóa nhóm ổn định và xử lý khóa thiếu
+  - Đọc kiểu kết quả của các collector kết hợp
+- level1: Collector kết hợp
+  level2:
+  - counting(), summingInt() và averagingDouble()
+  - summarizingInt(), summarizingLong() và summarizingDouble()
+  - mapping() để biến đổi trong từng nhóm
+  - flatMapping() để làm phẳng trong từng nhóm
+  - filtering() phía sau groupingBy() khác lọc toàn pipeline
+  - reducing(), minBy() và maxBy() phía sau collector khác
+  - collectingAndThen() để hoàn thiện kết quả
+  - teeing() để kết hợp hai phép tổng hợp
+  - Kết hợp collector đủ rõ ràng và tránh cấu trúc lồng quá sâu
+- level1: Collector tùy chỉnh
+  level2:
+  - Collector<T,A,R> và vai trò của ba kiểu dữ liệu
+  - Supplier tạo vùng tích lũy mới
+  - Accumulator thêm phần tử vào vùng tích lũy
+  - Combiner gộp các vùng tích lũy độc lập
+  - Finisher chuyển vùng tích lũy thành kết quả
+  - Collector.of() và xây dựng collector đơn giản
+  - IDENTITY_FINISH, UNORDERED và CONCURRENT
+  - Luật phần tử đơn vị, tính kết hợp và tính tương đương kết quả
+  - Kiểm tra collector với nguồn rỗng, chia nhóm và thực thi song song
+- level1: Cơ chế thực thi
+  level2:
+  - Pipeline được xây dựng trước và thực thi khi có thao tác kết thúc
+  - Các bước có thể được phối hợp trong một lần duyệt
+  - Xử lý từng phần tử thay vì chạy từng bước trên toàn bộ tập
+  - Thao tác không giữ trạng thái và thao tác phải giữ trạng thái
+  - Ngắn mạch không bảo đảm mọi pipeline trên nguồn vô hạn đều kết thúc
+  - Vì sao thiếu thao tác kết thúc làm lambda không được gọi
+  - Pipeline không có tác dụng phụ bắt buộc khi JDK tối ưu bỏ bước
+  - Tạo Stream mới từ nguồn hoặc Supplier để xử lý nhiều lần
+- level1: Trạng thái và tác dụng phụ
+  level2:
+  - Yêu cầu không can thiệp vào nguồn dữ liệu đang duyệt
+  - Phân biệt hàm không giữ trạng thái với thao tác Stream có giữ trạng thái
+  - Thay đổi biến bên ngoài làm kết quả phụ thuộc thứ tự
+  - Rủi ro thêm kết quả vào ArrayList từ forEach() song song
+  - Dùng collect() thay cho bộ tích lũy bên ngoài
+  - Không dùng AtomicInteger chỉ để lách quy tắc effectively final
+  - Tính bất biến của đối tượng kết quả và đối tượng đầu vào
+  - Tách việc biến đổi dữ liệu khỏi gửi thông báo, ghi tệp hoặc cập nhật hệ thống
+- level1: Xử lý song song
+  level2:
+  - parallelStream(), parallel() và sequential()
+  - Chế độ cuối cùng áp dụng cho toàn pipeline
+  - Chia nguồn, xử lý từng phần và gộp kết quả
+  - Tính kết hợp, không can thiệp nguồn và không giữ trạng thái dùng chung
+  - Thứ tự gặp phần tử khác thứ tự thực thi lambda
+  - findAny(), forEach() và các kết quả không quyết định thứ tự
+  - forEachOrdered() và chi phí duy trì thứ tự
+  - groupingByConcurrent(), toConcurrentMap() và yêu cầu collector đồng thời
+  - Chi phí tách, gộp, boxing và thao tác chặn nhập xuất
+  - Đo kiểm trước khi chọn song song cho bài toán cụ thể
+- level1: Nguồn tùy chỉnh
+  level2:
+  - Spliterator và vai trò duyệt hoặc phân chia nguồn
+  - tryAdvance(), forEachRemaining() và trySplit()
+  - estimateSize() và kích thước chính xác khi được biết
+  - ORDERED, SIZED, SUBSIZED, SORTED và DISTINCT
+  - IMMUTABLE, CONCURRENT và NONNULL
+  - Tạo Stream bằng StreamSupport
+  - Thiết kế nguồn hữu hạn, nguồn trì hoãn và trách nhiệm đóng tài nguyên
+  - Khi nào dùng nguồn tùy chỉnh thay cho nguồn JDK có sẵn
+- level1: Thiết kế theo hàm
+  level2:
+  - Xây dựng phần tính toán thuần và giữ tác dụng phụ ở ranh giới
+  - Chia nghiệp vụ thành các hàm nhỏ có đầu vào và đầu ra rõ ràng
+  - Dùng đối tượng bất biến để truyền kết quả giữa các bước
+  - Truyền hành vi thay cho tạo nhiều lớp chỉ khác một thao tác
+  - Kết hợp quy tắc kiểm tra bằng Predicate có tên
+  - Cân nhắc lưu kết quả hàm và điều kiện để không làm sai hành vi
+  - Không thay mọi vòng lặp bằng Stream khi luồng điều khiển cần rõ ràng
+  - Giữ tên miền nghiệp vụ dễ hiểu khi dùng generic và hàm bậc cao
+  - Cân bằng độ ngắn, khả năng đọc và chi phí xử lý
+- level1: Kiểm thử và thực hành
+  level2:
+  - Kiểm thử hàm thuần bằng bảng đầu vào và đầu ra
+  - Kiểm tra nguồn rỗng, một phần tử, null và dữ liệu trùng
+  - Kiểm tra tính kết hợp và phần tử đơn vị của phép rút gọn
+  - So sánh kết quả tuần tự với song song khi hợp đồng cho phép
+  - Tách thân lambda phức tạp thành phương thức để kiểm thử
+  - Thực hành quy trình lọc, chuẩn hóa và tính tổng đơn hàng
+  - Thực hành nhóm dữ liệu và tạo báo cáo với collector
+  - Thực hành Optional cho chuỗi thao tác có thể thiếu dữ liệu
+  - Thực hành sửa pipeline dùng trạng thái bên ngoài hoặc reduce() sai
+  - Đo hiệu năng đúng cách và tổng hợp tiêu chí chọn API

@@ -1,0 +1,3 @@
+menuLevel1: Redis
+menuLevel2: RedisConnectionFactory, RedisTemplate và StringRedisTemplate
+status: WRITTEN

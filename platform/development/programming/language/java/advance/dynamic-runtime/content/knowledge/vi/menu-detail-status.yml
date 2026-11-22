@@ -1,0 +1,1516 @@
+menu:
+- slug: dynamic-runtime-overview
+  title: 1. Tổng quan
+  childs:
+  - slug: dynamic-runtime-overview-001
+    title: 1.1 Cơ chế động lúc chạy là gì và giải quyết những bài toán nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-runtime-overview-002
+    title: 1.2 Phân biệt kiểu tĩnh, phân phối động của OOP và lời gọi được quyết định lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-runtime-overview-003
+    title: 1.3 Quan hệ giữa khám phá siêu dữ liệu, tìm thành phần, liên kết và thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-runtime-overview-004
+    title: 1.4 Bản đồ Class, reflection, MethodHandle, VarHandle, Proxy và CallSite
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-runtime-overview-005
+    title: 1.5 Phân biệt sử dụng mã đã biên dịch với tạo, biên dịch và định nghĩa mã mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-runtime-overview-006
+    title: 1.6 Các đánh đổi về an toàn kiểu, đóng gói, hiệu năng và khả năng bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-runtime-overview-007
+    title: 1.7 Kiến thức nền và môi trường thực hành với các API chuẩn Java 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-types
+  title: 2. Kiểu lúc chạy
+  childs:
+  - slug: runtime-types-001
+    title: 2.1 Lấy Class qua class literal, getClass và Class.forName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-002
+    title: 2.2 Kiểu nguyên thủy, void, mảng, interface, enum và record trong mô hình Class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-003
+    title: '2.3 Tên nhị phân, tên chuẩn và descriptor: chọn đúng dạng tên cho từng API'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-004
+    title: 2.4 Nhận diện lớp thành viên, lớp cục bộ, lớp vô danh và lớp ẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-005
+    title: 2.5 Định danh kiểu theo tên và bộ nạp lớp; vì sao cùng tên vẫn khác kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-006
+    title: 2.6 Kiểm tra isInstance, isAssignableFrom, cast và asSubclass
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-007
+    title: 2.7 Khám phá lớp cha, interface, nestmate và các lớp con được phép của sealed type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-008
+    title: 2.8 Phân biệt nạp lớp, liên kết và khởi tạo; kiểm soát khởi tạo qua Class.forName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reflection
+  title: 3. Reflection
+  childs:
+  - slug: reflection-001
+    title: 3.1 Phân biệt getMethods, getFields, getConstructors với các biến thể getDeclared
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-002
+    title: 3.2 Không phụ thuộc thứ tự member do reflection trả về; sắp xếp tường minh theo chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-003
+    title: 3.3 Tìm phương thức theo tên và kiểu tham số; giới hạn của việc chọn overload lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-004
+    title: 3.4 Tạo đối tượng bằng Constructor.newInstance và xử lý constructor không tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-005
+    title: 3.5 Gọi phương thức static hoặc instance bằng Method.invoke
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-006
+    title: 3.6 Phân phối phương thức ghi đè khi gọi Method của lớp cha trên đối tượng lớp con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-007
+    title: 3.7 Truyền tham số primitive, boxing, unboxing, widening và giá trị null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-008
+    title: 3.8 Xử lý varargs và phân biệt một đối số mảng với nhiều đối số phản chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-009
+    title: 3.9 Đọc, ghi field và phân biệt field static, instance, final
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-010
+    title: 3.10 Tạo và thao tác mảng chưa biết kiểu thành phần bằng java.lang.reflect.Array
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reflection-011
+    title: 3.11 Phân biệt lỗi tìm kiếm, lỗi đối số, lỗi truy cập và InvocationTargetException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata
+  title: 4. Siêu dữ liệu
+  childs:
+  - slug: metadata-001
+    title: 4.1 Đọc modifier, AccessFlag và thành phần synthetic do trình biên dịch tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-002
+    title: 4.2 Nhận diện bridge method và tránh xử lý trùng phương thức generic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-003
+    title: 4.3 Khám phá Parameter, tên tham số và tác động của tùy chọn javac -parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-004
+    title: 4.4 Đọc kiểu generic khai báo qua Type, ParameterizedType và TypeVariable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-005
+    title: 4.5 Xử lý WildcardType, GenericArrayType và giới hạn của type erasure
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-006
+    title: 4.6 Đọc annotation lúc chạy, annotation lặp và các quy tắc kế thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-007
+    title: 4.7 Phân biệt annotation trên khai báo với AnnotatedType trên cách dùng kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-008
+    title: 4.8 Khám phá RecordComponent và liên hệ với accessor, constructor của record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control
+  title: 5. Quyền truy cập
+  childs:
+  - slug: access-control-001
+    title: 5.1 Phân biệt nhìn thấy một thành phần với được phép sử dụng thành phần đó
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-002
+    title: 5.2 Kiểm tra public, protected, package-private và private trong lời gọi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-003
+    title: 5.3 Đối chiếu exports, opens, module có tên và unnamed module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-004
+    title: 5.4 Khác biệt về kiểm tra module readability giữa reflection và MethodHandles.Lookup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-005
+    title: 5.5 Sử dụng canAccess, trySetAccessible và setAccessible theo kết quả truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-006
+    title: 5.6 Chẩn đoán IllegalAccessException và InaccessibleObjectException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-007
+    title: 5.7 Giới hạn ghi static final, field của record và field của hidden class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-008
+    title: 5.8 Vai trò và phạm vi của --add-exports, --add-opens trong thực nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-009
+    title: 5.9 Thiết kế API công khai và mở quyền có chủ đích khi xây dựng thư viện động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: methodtype-and-lookup
+  title: 6. MethodType và Lookup
+  childs:
+  - slug: methodtype-and-lookup-001
+    title: 6.1 MethodHandle là tham chiếu thực thi có kiểu; phân biệt với Method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-002
+    title: 6.2 Mô tả tham số, kiểu trả về và receiver bằng MethodType
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-003
+    title: 6.3 Tạo, so sánh và biến đổi MethodType; phân biệt void với Void
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-004
+    title: 6.4 Đọc và dựng JVM method descriptor với ngữ cảnh bộ nạp lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-005
+    title: 6.5 lookup, publicLookup và các chế độ quyền của Lookup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-006
+    title: 6.6 findVirtual, findStatic, findSpecial và findConstructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-007
+    title: 6.7 Tạo getter, setter và chuyển Method hoặc Constructor sang handle bằng unreflect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-008
+    title: 6.8 Đổi ngữ cảnh bằng Lookup.in, dropLookupMode và privateLookupIn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methodtype-and-lookup-009
+    title: 6.9 Thời điểm kiểm tra quyền và trách nhiệm khi chia sẻ Lookup hoặc handle riêng tư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-handle-invocation
+  title: 7. Gọi method handle
+  childs:
+  - slug: method-handle-invocation-001
+    title: 7.1 Chữ ký đa hình và descriptor mà trình biên dịch ghi tại nơi gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-002
+    title: '7.2 invokeExact: khớp chính xác cả kiểu đối số và kiểu kết quả'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-003
+    title: '7.3 invoke: thích nghi kiểu theo quy tắc asType'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-004
+    title: 7.4 Ảnh hưởng của kiểu biến, phép cast kết quả, null và câu lệnh bỏ kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-005
+    title: 7.5 Phân biệt WrongMethodTypeException, ClassCastException và lỗi unboxing null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-006
+    title: 7.6 invokeWithArguments và cái giá của đường gọi dùng Object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-007
+    title: 7.7 Gắn receiver hoặc đối số tham chiếu bằng bindTo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-008
+    title: 7.8 asSpreader, asCollector, asVarargsCollector và asFixedArity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-invocation-009
+    title: 7.9 Ngoại lệ Throwable từ đích gọi và khác biệt với cơ chế bọc của reflection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-handle-combinators
+  title: 8. Kết hợp lời gọi
+  childs:
+  - slug: method-handle-combinators-001
+    title: 8.1 Tạo handle nền bằng constant, identity, empty và throwException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-002
+    title: 8.2 Gắn đối số cố định bằng insertArguments và thêm đối số bị bỏ qua bằng dropArguments
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-003
+    title: 8.3 Đổi thứ tự, lặp hoặc bỏ vị trí đối số bằng permuteArguments
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-004
+    title: 8.4 Biến đổi đầu vào bằng filterArguments và đầu ra bằng filterReturnValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-005
+    title: 8.5 Phân biệt collectArguments với foldArguments qua luồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-006
+    title: 8.6 Chọn nhánh bằng guardWithTest và đồng nhất kiểu của hai nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-007
+    title: 8.7 Bọc xử lý lỗi bằng catchException và dọn dẹp bằng tryFinally
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-008
+    title: 8.8 Mô tả vòng lặp bằng loop, countedLoop và iteratedLoop
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-combinators-009
+    title: 8.9 Xây chuỗi xử lý có kiểu và kiểm tra MethodType sau từng phép kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: varhandle
+  title: 9. VarHandle
+  childs:
+  - slug: varhandle-001
+    title: 9.1 Vai trò của VarHandle và khác biệt với Field hoặc MethodHandle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-002
+    title: 9.2 Tạo handle cho field static, instance và phần tử mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-003
+    title: 9.3 Tạo góc nhìn byte[] hoặc ByteBuffer bằng VarHandle và chọn byte order
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-004
+    title: 9.4 Kiểu biến, kiểu tọa độ và accessModeType của từng thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-005
+    title: 9.5 Đọc, ghi plain, opaque, acquire, release và volatile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-006
+    title: 9.6 compareAndSet, compareAndExchange và các thao tác cập nhật nguyên tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-007
+    title: 9.7 weakCompareAndSet, thất bại giả và điều kiện lặp lại thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-008
+    title: 9.8 Kiểm tra isAccessModeSupported và giới hạn của biến chỉ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-009
+    title: 9.9 withInvokeExactBehavior, withInvokeBehavior và chuyển sang MethodHandle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: varhandle-010
+    title: 9.10 Quan hệ với Java Memory Model, memory fence và rủi ro trộn nhiều chế độ truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-proxies
+  title: 10. Proxy động
+  childs:
+  - slug: dynamic-proxies-001
+    title: 10.1 Mô hình interface, proxy instance, InvocationHandler và đối tượng được ủy quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-002
+    title: 10.2 Tạo proxy bằng Proxy.newProxyInstance và lựa chọn bộ nạp lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-003
+    title: 10.3 Điều kiện về interface công khai, không công khai, sealed và khả năng nhìn thấy kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-004
+    title: 10.4 Đọc Method, receiver proxy và args; xử lý lời gọi không đối số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-005
+    title: 10.5 Ủy quyền lời gọi đúng đối tượng và tránh đệ quy vô hạn qua proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-006
+    title: 10.6 Chuẩn hóa kiểu trả về, giá trị primitive, void và null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-007
+    title: 10.7 Giải bọc InvocationTargetException và xử lý UndeclaredThrowableException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-008
+    title: 10.8 Thiết kế hành vi equals, hashCode và toString cho proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-009
+    title: 10.9 Gọi phương thức mặc định qua InvocationHandler.invokeDefault
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-010
+    title: 10.10 Phương thức trùng giữa nhiều interface, thứ tự interface và giới hạn throws
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-proxies-011
+    title: 10.11 Package, module động của lớp proxy và cách nhận diện proxy qua API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: invokedynamic
+  title: 11. invokedynamic
+  childs:
+  - slug: invokedynamic-001
+    title: 11.1 Mục đích của invokedynamic và khác biệt với invokevirtual hoặc invokeinterface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-002
+    title: 11.2 Cấu trúc constant pool, tên điểm gọi, method descriptor và BootstrapMethods
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-003
+    title: 11.3 Hợp đồng bootstrap method với Lookup, tên, MethodType và đối số tĩnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-004
+    title: 11.4 Phân biệt đối số truyền cho bootstrap với đối số của lời gọi thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-005
+    title: 11.5 Vòng đời từ điểm gọi chưa liên kết tới CallSite đã được chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-006
+    title: 11.6 Kiểm tra kiểu target và quan hệ giữa CallSite với chỉ thị invokedynamic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-007
+    title: '11.7 Bootstrap có thể được thực thi cạnh tranh: thiết kế tác dụng phụ an toàn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-008
+    title: 11.8 BootstrapMethodError, lỗi liên kết và hành vi khi thử sử dụng lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invokedynamic-009
+    title: '11.9 Giới hạn của mã nguồn Java: gọi bootstrap trực tiếp và kiểm tra bytecode thật'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: callsite
+  title: 12. CallSite
+  childs:
+  - slug: callsite-001
+    title: 12.1 CallSite là nơi giữ target và được ràng buộc bởi một MethodType
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-002
+    title: 12.2 ConstantCallSite và đích gọi cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-003
+    title: 12.3 MutableCallSite, setTarget và khả năng quan sát thay đổi giữa các luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-004
+    title: 12.4 VolatileCallSite và ngữ nghĩa công bố target mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-005
+    title: 12.5 Phân biệt getTarget với dynamicInvoker khi target có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-006
+    title: 12.6 Sử dụng MutableCallSite.syncAll và phối hợp các luồng cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-007
+    title: 12.7 SwitchPoint, guardWithTest và việc vô hiệu hóa một chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-008
+    title: 12.8 Bộ nhớ đệm tại điểm gọi, kiểm tra kiểu receiver và nhánh liên kết lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callsite-009
+    title: 12.9 Phân biệt thay target với liên kết lại chỉ thị invokedynamic đã hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lambdas-and-string-concat
+  title: 13. Lambda và nối chuỗi
+  childs:
+  - slug: lambdas-and-string-concat-001
+    title: 13.1 Từ lambda hoặc method reference tới đối tượng thực hiện functional interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambdas-and-string-concat-002
+    title: 13.2 Ba giai đoạn liên kết, giữ biến được bắt và thực thi của LambdaMetafactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambdas-and-string-concat-003
+    title: 13.3 Phân biệt factoryType, interfaceMethodType, implementation và dynamicMethodType
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambdas-and-string-concat-004
+    title: 13.4 Ràng buộc direct method handle, kiểu tham số và kiểu trả về của metafactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambdas-and-string-concat-005
+    title: 13.5 altMetafactory với bridge, marker interface và yêu cầu tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambdas-and-string-concat-006
+    title: 13.6 Thích nghi handle sang interface bằng MethodHandleProxies và giới hạn áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambdas-and-string-concat-007
+    title: 13.7 StringConcatFactory, recipe và đối số hằng trong phép nối chuỗi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambdas-and-string-concat-008
+    title: 13.8 Quan sát javap và tách hợp đồng ngôn ngữ khỏi chi tiết do javac sinh ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-constants
+  title: 14. Hằng động
+  childs:
+  - slug: dynamic-constants-001
+    title: 14.1 CONSTANT_Dynamic và khác biệt với điểm gọi invokedynamic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-constants-002
+    title: 14.2 Hợp đồng bootstrap hằng với Lookup, tên và Class của giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-constants-003
+    title: 14.3 Phân giải bằng ldc, lưu giá trị đã chọn và xử lý lỗi phân giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-constants-004
+    title: 14.4 ConstantBootstraps cho null, enum, static final và VarHandle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-constants-005
+    title: 14.5 ConstantDesc, ClassDesc, MethodTypeDesc và MethodHandleDesc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-constants-006
+    title: 14.6 Mô tả bằng DynamicConstantDesc và phân giải theo quyền của Lookup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-constants-007
+    title: 14.7 Phân biệt descriptor danh nghĩa với đối tượng Class hoặc handle đang tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-definition
+  title: 15. Định nghĩa lớp
+  childs:
+  - slug: class-definition-001
+    title: 15.1 Chuỗi tạo bytecode hợp lệ, định nghĩa lớp, khởi tạo và gọi mã mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-002
+    title: 15.2 Lookup.defineClass và quan hệ với package, bộ nạp lớp, module của lookup class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-003
+    title: 15.3 defineHiddenClass và khác biệt với lớp có tên có thể tìm bằng Class.forName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-004
+    title: 15.4 Quyền full-privilege Lookup và kiểm soát cờ initialize
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-005
+    title: 15.5 NESTMATE, STRONG và quan hệ vòng đời với bộ nạp lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-006
+    title: 15.6 defineHiddenClassWithClassData và truy xuất dữ liệu lớp bằng MethodHandles
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-007
+    title: 15.7 Truy cập thành phần lớp ẩn bằng Lookup trả về và MethodHandle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-008
+    title: 15.8 Định nghĩa trùng tên, sai phiên bản class file, VerifyError và LinkageError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-definition-009
+    title: 15.9 Phân biệt định nghĩa lớp mới với thay thế bytecode của lớp đã được nạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-compilation
+  title: 16. Biên dịch lúc chạy
+  childs:
+  - slug: runtime-compilation-001
+    title: 16.1 Khi nào cần JavaCompiler thay cho reflection hoặc tạo proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-002
+    title: 16.2 Tìm compiler bằng ToolProvider và xử lý môi trường thiếu jdk.compiler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-003
+    title: 16.3 Biểu diễn mã nguồn bằng JavaFileObject và SimpleJavaFileObject
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-004
+    title: 16.4 Cấu hình CompilationTask, class path, module path, --release và annotation processing
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-005
+    title: 16.5 Thu thập Diagnostic, vị trí lỗi và trạng thái biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-006
+    title: 16.6 Quản lý file qua StandardJavaFileManager và ForwardingJavaFileManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-007
+    title: 16.7 Nhận bytecode trong bộ nhớ rồi định nghĩa lớp theo ngữ cảnh thích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-008
+    title: 16.8 Quản lý nhiều lớp được sinh, tài nguyên file manager và phiên bản mã biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embedding-scenarios
+  title: 17. Kịch bản nhúng
+  childs:
+  - slug: embedding-scenarios-001
+    title: 17.1 Vai trò của javax.script và quan hệ giữa API với script engine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedding-scenarios-002
+    title: 17.2 Khám phá engine qua ScriptEngineManager và xử lý kết quả không tìm thấy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedding-scenarios-003
+    title: 17.3 eval từ String hoặc Reader và xử lý ScriptException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedding-scenarios-004
+    title: 17.4 Truyền dữ liệu Java qua Bindings, ScriptContext và các phạm vi biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedding-scenarios-005
+    title: 17.5 Kiểm tra khả năng Compilable, tái sử dụng CompiledScript
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedding-scenarios-006
+    title: 17.6 Kiểm tra khả năng Invocable, gọi hàm và ánh xạ sang interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedding-scenarios-007
+    title: '17.7 Nashorn đã bị loại khỏi JDK: khai báo rõ engine ngoài khi xây ví dụ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedding-scenarios-008
+    title: 17.8 Kiểm soát đối tượng Java được cung cấp và giới hạn dùng chung engine giữa các luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynalink
+  title: 18. Dynalink
+  childs:
+  - slug: dynalink-001
+    title: 18.1 Vai trò của jdk.dynalink trong bộ thực thi ngôn ngữ động trên JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynalink-002
+    title: 18.2 Mô tả Operation, namespace, tên thao tác và CallSiteDescriptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynalink-003
+    title: 18.3 Tạo DynamicLinker từ DynamicLinkerFactory và tích hợp vào bootstrap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynalink-004
+    title: 18.4 RelinkableCallSite, SimpleRelinkableCallSite và ChainedCallSite
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynalink-005
+    title: '18.5 GuardedInvocation: ghép handle thực thi, guard và điều kiện vô hiệu hóa'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynalink-006
+    title: 18.6 GuardingDynamicLinker, LinkRequest và LinkerServices cho mô hình đối tượng riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynalink-007
+    title: 18.7 Thao tác trên đối tượng Java, chuyển đổi kiểu và lỗi NoSuchDynamicMethodException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-and-performance
+  title: 19. Thiết kế và hiệu năng
+  childs:
+  - slug: design-and-performance-001
+    title: 19.1 Chọn lời gọi trực tiếp, functional interface, reflection, handle hoặc proxy theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-performance-002
+    title: 19.2 Tách giai đoạn khám phá và kiểm tra khỏi đường thực thi lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-performance-003
+    title: 19.3 Thiết kế bộ phân phối động với chữ ký, chuyển đổi kiểu và lỗi có quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-performance-004
+    title: 19.4 Khóa bộ nhớ đệm theo Class và chữ ký; tránh nhầm kiểu cùng tên từ loader khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-performance-005
+    title: 19.5 Sử dụng ClassValue và nhận diện tham chiếu giữ lớp hoặc bộ nạp lớp sống lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-performance-006
+    title: 19.6 Công bố bộ nhớ đệm an toàn và kiểm soát cập nhật target khi chạy đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,202 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bộ nhớ đệm (cache) là gì và bài toán giảm xử lý lặp
+  - Phân biệt cache với buffer, cơ sở dữ liệu và HTTP cache
+  - Truy cập trúng cache (hit), trượt cache (miss) và dữ liệu cũ
+  - Vì sao Spring Cache là lớp trừu tượng chứ không phải kho lưu trữ
+  - Mối liên hệ giữa lời gọi phương thức, khóa và kết quả được lưu
+  - Tiêu chí chọn phương thức phù hợp để lưu kết quả
+  - Đánh đổi giữa tốc độ, bộ nhớ và độ mới của dữ liệu
+  - Kiến thức nền và trình tự học Spring Cache
+- level1: Kiến trúc
+  level2:
+  - Cache và hợp đồng thao tác trên từng vùng dữ liệu
+  - CacheManager và việc tìm hoặc tạo cache theo tên
+  - CacheResolver và lựa chọn cache cho từng thao tác
+  - KeyGenerator và ánh xạ lời gọi thành khóa
+  - CacheInterceptor, metadata annotation và luồng xử lý lời gọi
+  - Nhà cung cấp cache và bộ chuyển đổi sang Spring Cache
+  - Phân biệt cấu hình ứng dụng với cấu hình riêng của kho cache
+- level1: Thiết lập
+  level2:
+  - Các thư viện Spring cần thiết và phụ thuộc nhà cung cấp
+  - Khai báo bean CacheManager trong Java configuration
+  - Bật xử lý annotation bằng @EnableCaching
+  - Đặt cấu hình cache trong đúng ApplicationContext
+  - Định nghĩa tên cache tường minh hoặc tạo động
+  - Kiểm tra bean nghiệp vụ được Spring quản lý
+  - Phân biệt cấu hình Spring Framework với tự động cấu hình của Spring Boot
+  - Xây dựng ví dụ tối thiểu chứng minh cache đã hoạt động
+- level1: '@Cacheable'
+  level2:
+  - Khai báo cacheNames, value và quan hệ alias
+  - Áp dụng annotation ở cấp lớp hoặc từng phương thức
+  - Luồng xử lý khi cache có hoặc không có khóa
+  - Trả kết quả từ cache và bỏ qua thân phương thức
+  - Thời điểm lưu kết quả sau lời gọi thành công
+  - Phương thức có tham số và phương thức không tham số
+  - Ảnh hưởng khi thân phương thức có tác dụng phụ
+  - Giới hạn dùng nhiều cacheNames như một hệ cache nhiều tầng
+  - Kiểm chứng hành vi bằng số lần thực thi phương thức
+- level1: Thiết kế khóa
+  level2:
+  - SimpleKeyGenerator với không có, một hoặc nhiều đối số
+  - Trường hợp đối số null, đối số mảng và khóa tổng hợp
+  - Hợp đồng equals–hashCode của khóa
+  - Vì sao tên phương thức không tự nằm trong khóa mặc định
+  - Nguy cơ va chạm giữa nhiều phương thức dùng chung vùng cache
+  - Chọn đầy đủ tham số thực sự làm thay đổi kết quả
+  - Khóa theo người dùng, tổ chức hoặc phạm vi dữ liệu
+  - Khóa bất biến, biểu diễn ổn định và giới hạn kích thước
+  - Viết KeyGenerator dùng chung và đăng ký bean
+- level1: Biểu thức SpEL
+  level2:
+  - Dùng key để chọn đối số hoặc thuộc tính của đối số
+  - 'Truy cập #p0, #a0 và tên tham số'
+  - Thông tin tên tham số và tùy chọn biên dịch -parameters
+  - 'Truy cập #root.methodName, targetClass, args và caches'
+  - 'Dùng giá trị trả về qua #result ở những ngữ cảnh cho phép'
+  - Xử lý đối tượng null trong biểu thức
+  - Phân biệt key với keyGenerator và lỗi khi khai báo cả hai
+  - Kiểm thử biểu thức để tránh khóa thiếu thành phần hoặc sai kiểu
+- level1: Điều kiện lưu
+  level2:
+  - condition và kiểm tra trước khi áp dụng cache
+  - unless và từ chối lưu sau khi có kết quả
+  - Phân biệt điều kiện bỏ qua cache với điều kiện nghiệp vụ
+  - Không lưu kết quả null bằng biểu thức phù hợp
+  - 'Optional: lưu giá trị bên trong hoặc biểu diễn rỗng'
+  - '#result của Optional và toán tử điều hướng an toàn'
+  - Giới hạn kết hợp điều kiện với chế độ sync
+- level1: '@CachePut'
+  level2:
+  - Luôn thực thi phương thức và cập nhật kết quả vào cache
+  - Phân biệt @CachePut với @Cacheable
+  - Chọn khóa theo đối số hoặc kết quả trả về
+  - Giữ thống nhất khóa giữa đọc và cập nhật
+  - Điều kiện cập nhật và thời điểm có kết quả
+  - Hành vi khi phương thức phát sinh ngoại lệ
+  - Rủi ro kết hợp @CachePut và @Cacheable trên cùng phương thức
+- level1: '@CacheEvict'
+  level2:
+  - Xóa một khóa khi dữ liệu nguồn thay đổi
+  - allEntries và xóa toàn bộ vùng cache
+  - beforeInvocation=false và xóa sau lời gọi thành công
+  - beforeInvocation=true và xóa trước khi phương thức chạy
+  - Thời điểm xóa khi phương thức phát sinh ngoại lệ
+  - Khóa dựa trên kết quả chỉ khả dụng ở thời điểm phù hợp
+  - Phương thức void làm tác nhân xóa cache
+  - Xóa các bản sao dữ liệu liên quan ở nhiều khóa
+  - Phân biệt xóa chủ động với tự hết hạn tại kho lưu trữ
+- level1: Cấu hình chung
+  level2:
+  - '@CacheConfig và các giá trị mặc định ở cấp lớp'
+  - '@CacheConfig không tự kích hoạt thao tác cache'
+  - Thứ tự ưu tiên giữa cấu hình toàn cục, lớp và phương thức
+  - '@Caching để nhóm nhiều thao tác trên một phương thức'
+  - Điều kiện và khóa riêng cho từng thao tác được nhóm
+  - Annotation tổng hợp tùy chỉnh cho quy ước dùng chung
+  - CachingConfigurer cho manager, resolver, key generator và error handler
+- level1: Chọn vùng cache
+  level2:
+  - Chọn CacheManager bằng tên bean trên thao tác
+  - Nhiều CacheManager trong cùng ApplicationContext
+  - CacheResolver tùy chỉnh theo đối số hoặc ngữ cảnh
+  - Phân biệt cacheManager với cacheResolver và ràng buộc loại trừ
+  - Xử lý tên cache không tồn tại hoặc không được cấp phát
+  - SimpleCacheManager với danh sách cache có sẵn
+  - CompositeCacheManager và thứ tự tìm kiếm
+  - NoOpCacheManager khi cần chủ động bỏ qua lưu trữ
+- level1: Cơ chế proxy
+  level2:
+  - Chế độ proxy và lời gọi đi qua bean Spring
+  - Tự gọi trong cùng đối tượng và vì sao annotation bị bỏ qua
+  - JDK proxy, proxy dựa trên lớp và proxyTargetClass
+  - Phạm vi truy cập phương thức và giới hạn final hoặc private
+  - Annotation trên giao diện so với lớp cài đặt
+  - Giới hạn sử dụng cache trong constructor hoặc @PostConstruct
+  - Thứ tự cache advice so với các advice khác
+  - Chế độ AspectJ và điều kiện dệt mã
+- level1: Đồng thời
+  level2:
+  - Nhiều luồng cùng trượt một khóa và tính toán lặp
+  - '@Cacheable(sync=true) và hợp đồng hỗ trợ của nhà cung cấp'
+  - Giới hạn một cache, không unless và không ghép thao tác khi sync
+  - Phân biệt an toàn đa luồng của kho với tính nguyên tử của chuỗi thao tác
+  - Phạm vi đồng bộ trong một tiến trình so với nhiều máy
+  - Tranh chấp giữa đọc, cập nhật và xóa
+  - Cache bị dồn tải khi khóa phổ biến hết hạn
+  - Thiết kế xử lý để việc tính toán lặp không gây sai nghiệp vụ
+- level1: Dữ liệu và vòng đời
+  level2:
+  - Lưu theo tham chiếu so với lưu bản sao giá trị
+  - Rủi ro sửa đối tượng khả biến sau khi lấy từ cache
+  - Chọn DTO hoặc dữ liệu bất biến để lưu
+  - Chính sách null và cơ chế thích nghi giá trị của nhà cung cấp
+  - Cache kết quả không tồn tại và hệ quả khi dữ liệu được tạo sau đó
+  - TTL, TTI và chính sách loại bỏ thuộc cấu hình kho cache
+  - Vì sao annotation Spring Cache không khai báo TTL chuẩn
+  - Hết hạn khác với làm mới dữ liệu
+  - Giới hạn dung lượng, số khóa và dữ liệu lưu quá lâu
+- level1: API lập trình
+  level2:
+  - Lấy cache qua CacheManager.getCache
+  - Cache.get và phân biệt không có khóa với giá trị null
+  - Cache.ValueWrapper và biến thể get có kiểu
+  - get với Callable để nạp dữ liệu khi thiếu
+  - put và putIfAbsent
+  - evict so với evictIfPresent
+  - clear so với invalidate
+  - Thao tác có thể trì hoãn và kỳ vọng hiệu lực tức thời
+  - getNativeCache và giới hạn phụ thuộc vào nhà cung cấp
+- level1: Cache trong bộ nhớ
+  level2:
+  - ConcurrentMapCache và ConcurrentMapCacheManager
+  - Thiết lập tên cache tĩnh hoặc chế độ tạo động
+  - Hỗ trợ null và lưu theo tham chiếu mặc định
+  - Tùy chọn lưu theo giá trị và yêu cầu tuần tự hóa
+  - SimpleCacheManager với ConcurrentMapCache được khai báo sẵn
+  - Giới hạn TTL và dung lượng của cài đặt ConcurrentMap cơ bản
+  - Chọn cache đơn giản cho kiểm thử và môi trường phù hợp
+- level1: Tích hợp Caffeine
+  level2:
+  - CaffeineCache và CaffeineCacheManager
+  - Khai báo cấu hình bằng builder hoặc chuỗi đặc tả
+  - Giới hạn kích thước hoặc trọng lượng dữ liệu
+  - Thiết lập hết hạn theo lần ghi hoặc lần truy cập
+  - Phân biệt hết hạn với nạp và làm mới giá trị
+  - Chính sách null khi dùng bộ chuyển đổi Spring
+  - Đăng ký cache tùy chỉnh với cấu hình riêng
+  - Chế độ cache bất đồng bộ và setAsyncCacheMode
+- level1: JCache
+  level2:
+  - JSR-107, nhà cung cấp và JCacheCacheManager
+  - Phân biệt javax.cache.Cache với org.springframework.cache.Cache
+  - Dùng annotation Spring trên kho tuân thủ JCache
+  - '@CacheResult, @CachePut, @CacheRemove và @CacheRemoveAll'
+  - Ánh xạ tham số khóa và giá trị bằng annotation JCache
+  - Khác biệt về ngoại lệ được lưu và thời điểm xóa
+  - Cấu hình chuẩn so với mở rộng riêng của nhà cung cấp
+  - Nhận diện khi cần Spring Cache hay hợp đồng JCache
+- level1: Giao dịch
+  level2:
+  - Vì sao hoàn tất phương thức chưa đồng nghĩa commit thành công
+  - Rủi ro cache dữ liệu sau đó bị rollback
+  - TransactionAwareCacheManagerProxy
+  - TransactionAwareCacheDecorator và thao tác sau commit
+  - Giới hạn của putIfAbsent và các thao tác cần hiệu lực tức thời
+  - Thứ tự cache advice với transaction advice
+  - Giao dịch cơ sở dữ liệu không tự làm cache phân tán nguyên tử
+  - Kiểm thử cập nhật, xóa và rollback theo ranh giới giao dịch
+- level1: Bất đồng bộ
+  level2:
+  - Hỗ trợ CompletableFuture và kiểu reactive từ Spring 6.1
+  - Lưu giá trị do CompletableFuture hoàn tất
+  - 'Mono: lưu giá trị được phát thay vì giữ Publisher làm dữ liệu'
+  - 'Flux: thu thập toàn bộ kết quả thành danh sách trước khi lưu'
+  - Giới hạn với luồng vô hạn hoặc lượng kết quả lớn
+  - Yêu cầu kho hỗ trợ truy xuất bằng CompletableFuture
+  - Cache.retrieve và các dạng biểu diễn hit, miss, null
+  - Thời điểm @CachePut và @CacheEvict theo kết quả bất đồng bộ
+  - Giới hạn nhiều cacheNames và chế độ sync với truy xuất bất đồng bộ

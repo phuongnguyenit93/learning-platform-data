@@ -1,0 +1,3 @@
+menuLevel1: Khai báo phụ thuộc
+menuLevel2: Dùng dependency:list, dependency:tree và dependency:build-classpath
+status: WRITTEN

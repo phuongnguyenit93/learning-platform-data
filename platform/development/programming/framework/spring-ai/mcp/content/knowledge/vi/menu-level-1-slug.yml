@@ -1,0 +1,73 @@
+menu:
+  - title: Tổng quan và kiến trúc Spring AI MCP
+    slug: spring-ai-mcp-architecture
+    index: 0
+  - title: Hợp đồng giao thức và tương thích phiên bản
+    slug: protocol-contract-version-compatibility
+    index: 1
+  - title: Chuẩn bị môi trường và cấu hình dự án
+    slug: project-setup-and-configuration
+    index: 2
+  - title: Lựa chọn transport và mô hình thực thi
+    slug: transports-and-execution-models
+    index: 3
+  - title: Xây dựng MCP Server đầu tiên qua STDIO
+    slug: stdio-mcp-server
+    index: 4
+  - title: Triển khai MCP Server qua HTTP
+    slug: http-mcp-server
+    index: 5
+  - title: Thiết kế hợp đồng công cụ và JSON Schema
+    slug: tool-contracts-and-json-schema
+    index: 6
+  - title: Hiện thực và đăng ký công cụ phía server
+    slug: server-tool-implementation
+    index: 7
+  - title: Cung cấp và quản lý MCP Resources
+    slug: mcp-resources
+    index: 8
+  - title: Cung cấp MCP Prompts và gợi ý tham số
+    slug: mcp-prompts-and-completion
+    index: 9
+  - title: Xây dựng MCP Client và quản lý vòng đời
+    slug: mcp-client-lifecycle
+    index: 10
+  - title: Tích hợp công cụ MCP với Spring AI ChatClient
+    slug: chat-client-tool-integration
+    index: 11
+  - title: Đưa resources và prompts vào ngữ cảnh hội thoại
+    slug: resources-and-prompts-in-chat-context
+    index: 12
+  - title: Kết nối nhiều server và quản lý danh mục công cụ
+    slug: multi-server-tool-catalogs
+    index: 13
+  - title: Request context và tính năng MCP tùy chọn
+    slug: request-context-and-optional-features
+    index: 14
+  - title: Xác thực và bảo vệ kết nối MCP
+    slug: mcp-authentication-connection-security
+    index: 15
+  - title: Phân quyền công cụ và kiểm soát hành động
+    slug: tool-authorization-and-action-control
+    index: 16
+  - title: An toàn dữ liệu và phòng chống lạm dụng công cụ
+    slug: data-safety-and-tool-abuse-prevention
+    index: 17
+  - title: Xử lý lỗi và tăng độ tin cậy khi gọi công cụ
+    slug: tool-errors-and-resilience
+    index: 18
+  - title: Kiểm thử đơn vị và hợp đồng MCP
+    slug: mcp-unit-and-contract-testing
+    index: 19
+  - title: Kiểm thử tích hợp và các tình huống lỗi
+    slug: integration-and-failure-testing
+    index: 20
+  - title: Quan sát hệ thống và tối ưu hiệu năng
+    slug: observability-and-performance
+    index: 21
+  - title: Triển khai, vận hành và nâng cấp
+    slug: deployment-operations-and-upgrades
+    index: 22
+  - title: Thực hành tổng hợp trợ lý nghiệp vụ dùng MCP
+    slug: business-assistant-capstone
+    index: 23

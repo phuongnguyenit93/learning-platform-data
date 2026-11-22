@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "VALIDATION_TESTING_TYPE_PERFORMANCE_TEST"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Rèn kỹ năng kiểm thử hiệu năng qua chỉ số độ trễ p95/p99, thông lượng, tài nguyên và độ ổn định dưới các mô hình tải khác nhau. Học dùng JMeter, Gatling và k6, kết hợp metrics/JFR để tìm nút thắt, so sánh kết quả và kiểm chứng hiệu quả tối ưu trước khi phát hành."
+  }
+}

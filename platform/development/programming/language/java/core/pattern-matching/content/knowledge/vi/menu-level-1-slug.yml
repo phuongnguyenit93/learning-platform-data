@@ -1,0 +1,115 @@
+menu:
+- title: Nhập môn pattern matching
+  slug: pattern-matching-overview
+  index: 0
+- title: Cú pháp pattern
+  slug: pattern-syntax
+  index: 1
+- title: instanceof cơ bản
+  slug: instanceof-pattern
+  index: 2
+- title: Flow scoping
+  slug: flow-scoping
+  index: 3
+- title: Pattern variable
+  slug: pattern-variables
+  index: 4
+- title: Null và tương thích kiểu
+  slug: null-type-compatibility
+  index: 5
+- title: Generic và reifiable types
+  slug: reifiable-types
+  index: 6
+- title: Switch pattern
+  slug: switch-patterns
+  index: 7
+- title: Case label
+  slug: case-labels
+  index: 8
+- title: Guard when
+  slug: guard-when
+  index: 9
+- title: Exhaustive switch
+  slug: exhaustive-switch
+  index: 10
+- title: Dominance
+  slug: pattern-dominance
+  index: 11
+- title: Sealed hierarchy
+  slug: sealed-hierarchy
+  index: 12
+- title: Enum và constant
+  slug: enum-constants
+  index: 13
+- title: Record patterns
+  slug: record-patterns
+  index: 14
+- title: Nested record patterns
+  slug: nested-record-patterns
+  index: 15
+- title: Generic record patterns
+  slug: generic-record-patterns
+  index: 16
+- title: Deconstruction
+  slug: pattern-deconstruction
+  index: 17
+- title: Kết hợp patterns
+  slug: pattern-composition
+  index: 18
+- title: Pattern trong biểu thức
+  slug: expression-patterns
+  index: 19
+- title: Pattern trong statement
+  slug: statement-patterns
+  index: 20
+- title: Compiler và type checking
+  slug: compiler-type-checking
+  index: 21
+- title: Refactor legacy cast
+  slug: legacy-cast-refactoring
+  index: 22
+- title: Thiết kế domain model
+  slug: domain-model-design
+  index: 23
+- title: Tính dễ đọc
+  slug: readability
+  index: 24
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 25
+- title: Exception và null
+  slug: exception-null-handling
+  index: 26
+- title: Kiểm thử
+  slug: pattern-testing
+  index: 27
+- title: Debugging
+  slug: pattern-debugging
+  index: 28
+- title: Hiệu năng
+  slug: pattern-performance
+  index: 29
+- title: Tương thích Java
+  slug: java-compatibility
+  index: 30
+- title: Build và tooling
+  slug: build-tooling
+  index: 31
+- title: API và tài liệu
+  slug: api-documentation
+  index: 32
+- title: Case study hình học
+  slug: geometry-case-study
+  index: 33
+- title: Case study command
+  slug: command-case-study
+  index: 34
+- title: Case study record
+  slug: record-case-study
+  index: 35
+- title: Thực hành tổng hợp
+  slug: pattern-exercises
+  index: 36
+- title: Checklist pattern
+  slug: pattern-checklist
+  index: 37

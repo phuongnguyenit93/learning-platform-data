@@ -1,0 +1,385 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Quy tắc kiến trúc là gì và vì sao cần kiểm tra tự động
+  - Phân biệt kiến trúc mong muốn, cấu trúc thực tế và sai lệch kiến trúc
+  - Mối liên hệ giữa chất lượng mã, khả năng bảo trì và ranh giới mô-đun
+  - Phân biệt quy tắc kiến trúc, định dạng mã và mẫu lỗi lập trình
+  - Lớp, gói, mô-đun, tầng và thành phần trong mô hình kiểm tra
+  - Kiểm thử kiến trúc như một phần của bộ kiểm thử tự động
+  - Những điều phân tích tĩnh chứng minh được và không chứng minh được
+  - Kiến thức Java, bytecode, kiểm thử và đồ thị cần chuẩn bị
+- level1: Mô hình phụ thuộc
+  level2:
+  - Biểu diễn lớp, gói và mô-đun bằng đồ thị có hướng
+  - Phụ thuộc qua kế thừa, interface và khai báo kiểu
+  - Phụ thuộc qua trường, tham số, kiểu trả về và ngoại lệ
+  - Phụ thuộc qua lời gọi phương thức và truy cập trường
+  - Annotation, generic và các thông tin hiện diện trong bytecode
+  - Phân biệt phụ thuộc trực tiếp và đường đi phụ thuộc gián tiếp
+  - Phân biệt hướng phụ thuộc mã nguồn và luồng gọi lúc chạy
+  - Ranh giới phân tích và tác động của lớp nằm ngoài phạm vi
+  - Phân biệt đồ thị phụ thuộc mã với dependency khai báo trong build
+  - Nhận biết ghép nối chặt, phụ thuộc vòng và điểm hội tụ phụ thuộc
+- level1: Đặc tả quy tắc
+  level2:
+  - Chuyển quyết định kiến trúc thành ràng buộc có thể kiểm tra
+  - Xác định đối tượng áp dụng, điều kiện và phạm vi loại trừ
+  - Mô tả quan hệ được phép và quan hệ bị cấm
+  - Lựa chọn danh sách cho phép hoặc danh sách cấm
+  - Định nghĩa API công khai, phần nội bộ và chủ sở hữu mô-đun
+  - Viết ví dụ tuân thủ và ví dụ vi phạm trước khi cài đặt
+  - Phân biệt quy tắc cấu trúc, quy tắc phụ thuộc và quy tắc ngữ nghĩa
+  - Gắn lý do nghiệp vụ, quyết định kiến trúc và mức ưu tiên
+  - Tránh quy tắc mơ hồ, tuyệt đối hóa hoặc chỉ phản ánh sở thích
+- level1: Lựa chọn công cụ
+  level2:
+  - So sánh phân tích mã nguồn, AST và bytecode
+  - ArchUnit cho kiểm thử quan hệ giữa các thành phần Java
+  - jdeps để khảo sát phụ thuộc lớp, gói và mô-đun
+  - JPMS để cưỡng chế khả năng đọc mô-đun và truy cập gói
+  - Spring Modulith để xác minh mô-đun nghiệp vụ trong ứng dụng Spring
+  - Vai trò bổ sung của Checkstyle, PMD, Error Prone và nền tảng kiểm tra liên tục
+  - Khi cần phân tích đồ thị build hoặc dữ liệu lúc chạy
+  - Tiêu chí lựa chọn theo độ chính xác, phạm vi, chi phí và khả năng tích hợp
+- level1: Thiết lập ArchUnit
+  level2:
+  - 'Cấu trúc thư viện ArchUnit: Core, Lang và Library'
+  - Thêm dependency kiểm thử trong Gradle hoặc Maven
+  - Chọn artifact tích hợp JUnit tương thích phiên bản
+  - Viết kiểm thử đầu tiên bằng ClassFileImporter và ArchRule
+  - Tổ chức kiểm thử bằng @AnalyzeClasses và @ArchTest
+  - Phân biệt kiểm thử Java thông thường và ArchUnit TestEngine
+  - Cấu hình JUnit Platform để phát hiện và thực thi quy tắc
+  - Tổ chức package kiểm thử và tên quy tắc dễ nhận diện
+  - Đọc lỗi đầu tiên và xác nhận quy tắc đã được thực thi
+- level1: Phạm vi phân tích
+  level2:
+  - Nhập lớp theo package bằng ClassFileImporter
+  - Nhập lớp theo vị trí, thư mục biên dịch hoặc JAR
+  - '@AnalyzeClasses và lựa chọn package theo lớp đại diện'
+  - Loại trừ mã kiểm thử bằng ImportOption
+  - Xử lý mã sinh tự động, thư viện và thư mục đầu ra
+  - Classpath thiếu, lớp tham chiếu chưa được nhập và cơ chế phân giải
+  - Phân biệt lớp được chọn để kiểm tra và lớp cần phân giải metadata
+  - Ảnh hưởng của source set, test fixture và nhiều mô-đun build
+  - Loại bỏ bytecode cũ trước khi đối chiếu cấu trúc mới
+  - Kiểm tra phạm vi rỗng để tránh bộ quy tắc vượt qua vô nghĩa
+- level1: Cú pháp quy tắc
+  level2:
+  - Cấu trúc chọn đối tượng, lọc điều kiện và khẳng định
+  - classes, noClasses và ý nghĩa của mệnh đề phủ định
+  - that, should và cách diễn giải quy tắc thành câu
+  - Kết hợp and, or và kiểm soát nhóm điều kiện
+  - Phân biệt DescribedPredicate và ArchCondition
+  - Quy tắc cho lớp, trường, phương thức, constructor và code unit
+  - Kiểm tra bằng check hoặc lấy kết quả qua evaluate
+  - Đặt mô tả bằng as và bổ sung lý do bằng because
+  - Priority và cách sử dụng trong báo cáo hoặc cổng kiểm tra
+  - Quy tắc trên tập rỗng và cấu hình failOnEmptyShould
+- level1: Phụ thuộc gói
+  level2:
+  - Định nghĩa ranh giới theo package và mẫu khớp package
+  - Ý nghĩa của dấu chấm kép và phần khớp nhiều cấp
+  - Cấm phụ thuộc từ gói miền vào gói hạ tầng
+  - Chỉ cho phép một nhóm gói phụ thuộc vào các gói xác định
+  - Phân biệt dependOnClassesThat và accessClassesThat
+  - Kiểm tra phụ thuộc đi ra và thành phần được phép truy cập vào
+  - Ngăn gói dùng chung trở thành nơi chứa phụ thuộc tùy tiện
+  - Kiểm tra đường dẫn phụ thuộc gián tiếp khi yêu cầu cần đến
+  - Phát hiện mô-đun mới chưa được phân loại trong quy tắc
+  - Tránh mẫu package quá rộng, quá hẹp hoặc khớp nhầm tên
+- level1: Truy cập lớp
+  level2:
+  - Kiểm tra quan hệ giữa từng lớp hoặc nhóm lớp
+  - Giới hạn truy cập lớp triển khai qua interface được công khai
+  - Kiểm tra kế thừa, implement và quan hệ kiểu
+  - Giới hạn lớp được phép gọi constructor của thành phần
+  - Cấm lời gọi tới API vượt qua ranh giới đã chọn
+  - Kiểm tra truy cập trường và ngăn phụ thuộc vào chi tiết nội bộ
+  - Phân biệt lớp khai báo thành viên và lớp đích của lời gọi
+  - Xử lý phương thức kế thừa và metadata cần phân giải
+  - Chọn kiểm tra quan hệ cụ thể thay vì cấm mọi phụ thuộc
+- level1: Thành viên và API
+  level2:
+  - Quy tắc cho trường, phương thức và constructor
+  - Kiểm soát public, protected và package-private tại ranh giới
+  - Ngăn API công khai trả về kiểu nội bộ hoặc kiểu hạ tầng
+  - Kiểm tra tham số, kiểu trả về và ngoại lệ trong chữ ký
+  - Kiểm tra generic trong hợp đồng API theo khả năng phân tích
+  - Giới hạn trạng thái static và quyền sửa trường theo thiết kế
+  - Kiểm soát constructor và cách tạo đối tượng qua factory
+  - Quy tắc cho annotation trên lớp hoặc thành viên
+  - Phân biệt hình dạng API với tính đúng đắn của hành vi lúc chạy
+- level1: Quy ước cấu trúc
+  level2:
+  - Đặt tên lớp và gói để thể hiện vai trò kiến trúc
+  - Đối chiếu hậu tố tên lớp với package hoặc annotation
+  - Kiểm tra vị trí Controller, Service, Repository và Adapter
+  - Giới hạn quy tắc đặt tên trong phạm vi có ý nghĩa kiến trúc
+  - Tổ chức theo tính năng và tổ chức theo tầng
+  - Phân biệt quy tắc vị trí mã với quy tắc hướng phụ thuộc
+  - Xử lý lớp lồng nhau, lớp ẩn danh và thành viên tổng hợp
+  - Annotation tự định nghĩa để đánh dấu vai trò thành phần
+  - Tránh suy luận trách nhiệm chỉ từ tên lớp
+- level1: Kiến trúc phân tầng
+  level2:
+  - Xác định trách nhiệm của tầng giao diện, ứng dụng, miền và hạ tầng
+  - Thiết kế ma trận phụ thuộc giữa các tầng
+  - Khai báo tầng bằng layeredArchitecture
+  - Kiểm soát toàn bộ phụ thuộc hoặc chỉ phụ thuộc giữa các tầng
+  - Phân biệt quy tắc truy cập vào tầng và phụ thuộc đi ra khỏi tầng
+  - Tầng tùy chọn và cách xử lý lớp không thuộc tầng nào
+  - Ngăn Controller truy cập trực tiếp tầng lưu trữ khi hợp đồng yêu cầu
+  - Xử lý thành phần cấu hình và điểm lắp ghép ứng dụng
+  - Thư viện dùng chung và ngoại lệ có phạm vi rõ ràng
+  - Tránh gán một mô hình phân tầng cho mọi loại mô-đun
+- level1: Kiến trúc hướng lõi
+  level2:
+  - Nguyên tắc phụ thuộc hướng về chính sách nghiệp vụ
+  - Phân biệt kiến trúc lục giác, Onion và Clean Architecture
+  - Port đầu vào, port đầu ra và adapter tương ứng
+  - Vị trí interface và đảo ngược phụ thuộc
+  - Giữ lõi nghiệp vụ độc lập với web, lưu trữ và thư viện triển khai
+  - Kiểm tra Onion Architecture bằng thư viện ArchUnit
+  - Kiểm tra các adapter không phụ thuộc trực tiếp lẫn nhau
+  - Vai trò của composition root và cấu hình tiêm phụ thuộc
+  - Ngăn DTO giao thức và Entity lưu trữ xuyên vào lõi trái hợp đồng
+  - Phân biệt phụ thuộc mã nguồn với hướng gọi giữa port và adapter
+  - Lựa chọn mức ràng buộc phù hợp thay vì áp dụng máy móc
+- level1: Mô-đun nghiệp vụ
+  level2:
+  - Xác định mô-đun theo năng lực nghiệp vụ và trách nhiệm
+  - Package API và package nội bộ của từng mô-đun
+  - Chỉ cho phép truy cập qua hợp đồng công khai
+  - Quy định danh sách mô-đun được phép phụ thuộc
+  - Phân biệt mô-đun nghiệp vụ, Gradle project và mô-đun JPMS
+  - Chia sẻ kiểu dữ liệu và giới hạn shared kernel
+  - Giao tiếp qua sự kiện và phụ thuộc vào hợp đồng sự kiện
+  - Kiểm tra mô-đun bằng ArchModules khi phiên bản hỗ trợ
+  - Giữ ranh giới khi thêm tính năng và khi tách mô-đun
+  - Nhận biết mô-đun quá nhỏ hoặc phụ thuộc chéo quá nhiều
+- level1: Phát hiện chu trình
+  level2:
+  - Chu trình phụ thuộc là gì và ảnh hưởng đến khả năng thay đổi
+  - Phân biệt chu trình ở mức lớp, package và mô-đun
+  - Chia mã thành slices theo mẫu package
+  - Kiểm tra beFreeOfCycles với các lát cắt đã chọn
+  - Phân biệt không có chu trình và không được phụ thuộc nhau
+  - Tùy chỉnh cách gán lớp vào slice khi cấu trúc không đồng nhất
+  - Đọc đường đi chu trình và tìm cạnh phụ thuộc cần xử lý
+  - Chu trình bị che khuất bởi phạm vi nhập lớp không đầy đủ
+  - Giới hạn số chu trình báo cáo và chi phí phát hiện
+  - Phá chu trình bằng đổi trách nhiệm, interface hoặc sự kiện
+- level1: Spring và JPA
+  level2:
+  - Chuyển vai trò Spring thành tiêu chí chọn lớp trong quy tắc
+  - Kiểm tra Controller, Service và Repository đúng ranh giới
+  - Kiểm soát phụ thuộc framework trong mô hình miền theo quyết định thiết kế
+  - Quy tắc tiêm phụ thuộc qua constructor và phạm vi áp dụng
+  - Giới hạn truy cập EntityManager, JDBC hoặc Repository
+  - Ngăn Entity lưu trữ xuất hiện trong hợp đồng web khi yêu cầu tách biệt
+  - Quy ước ranh giới giao dịch và vị trí @Transactional
+  - Giới hạn kiểm chứng lời gọi nội bộ, proxy và annotation giao dịch
+  - Cấu hình Spring, bean được chọn lúc chạy và điểm mù phân tích tĩnh
+  - Kiểm thử kiến trúc mà không cần khởi động ApplicationContext
+- level1: Thư viện và nền tảng
+  level2:
+  - Kiểm soát package được phép sử dụng thư viện bên ngoài
+  - Ngăn phụ thuộc vào JDK internal API
+  - Giới hạn logging, HTTP client và truy cập tệp ở tầng phù hợp
+  - Đóng gói thư viện đặc thù sau interface hoặc adapter
+  - Kiểm soát việc tạo thread và truy cập đồng hồ theo kiến trúc
+  - GeneralCodingRules và lựa chọn quy tắc có liên quan
+  - Ngăn nhiều cách truy cập dữ liệu ngoài hợp đồng đã chọn
+  - Phân biệt quy tắc sử dụng thư viện với quét lỗ hổng dependency
+  - Đánh giá trường hợp ngoại lệ thay vì cấm toàn cục
+- level1: Quy tắc tùy biến
+  level2:
+  - Khi DSL có sẵn chưa diễn đạt được khái niệm kiến trúc
+  - Tạo DescribedPredicate cho vai trò nghiệp vụ hoặc nhóm lớp
+  - Tạo ArchCondition và mô tả điều kiện cần thỏa mãn
+  - Duyệt JavaClass, JavaMethod, JavaField và Dependency
+  - Phát hiện vi phạm qua ConditionEvents và SimpleConditionEvent
+  - Kết hợp predicate, condition và thông tin mô tả
+  - Khởi tạo, thu thập và kết thúc đánh giá khi quy tắc xét nhiều đối tượng
+  - Phân tích đường đi phụ thuộc hoặc quan hệ xuyên nhiều lớp
+  - Đóng gói thư viện quy tắc dùng chung và tham số hóa phạm vi
+  - Giữ quy tắc xác định, dễ kiểm thử và không phụ thuộc môi trường
+- level1: Kiểm thử quy tắc
+  level2:
+  - Vì sao quy tắc kiến trúc cũng có thể chứa lỗi
+  - Tạo lớp mẫu tuân thủ và lớp mẫu cố tình vi phạm
+  - Kiểm tra một vi phạm cụ thể thay vì chỉ xác nhận có lỗi
+  - Kiểm thử mẫu package, điều kiện phủ định và tổ hợp and, or
+  - Kiểm thử lớp nằm ngoài phạm vi hoặc không có lớp nào được chọn
+  - Kiểm thử generic, kế thừa, annotation và lớp lồng nhau
+  - Đánh giá false positive và false negative bằng ví dụ đối chứng
+  - Thêm trường hợp hồi quy khi phát hiện quy tắc bỏ sót
+  - Kiểm tra việc bổ sung một mô-đun mới không làm mất phạm vi bảo vệ
+  - Giữ lớp mẫu tách biệt khỏi mã ứng dụng và phạm vi nhập thông thường
+- level1: Báo cáo vi phạm
+  level2:
+  - Đọc tên quy tắc, mô tả, đối tượng và vị trí vi phạm
+  - Phân biệt vi phạm kiến trúc và lỗi của hạ tầng kiểm thử
+  - EvaluationResult, FailureReport và xử lý kết quả theo API
+  - Truy ngược từ lời gọi hoặc chữ ký đến cạnh phụ thuộc gây lỗi
+  - Nhóm vi phạm theo quy tắc, mô-đun và nguyên nhân
+  - Viết thông báo có lý do, bằng chứng và hướng sửa khả thi
+  - Ưu tiên xử lý theo ảnh hưởng thay vì chỉ theo số lượng
+  - Ánh xạ Priority vào cách báo cáo và quyết định build của nhóm
+  - Lưu kết quả đủ để so sánh mà không phụ thuộc thứ tự đầu ra
+- level1: Ngoại lệ có kiểm soát
+  level2:
+  - Phân biệt ngoại lệ có chủ đích, báo sai và vi phạm cần sửa
+  - Loại trừ bằng predicate hoặc API bỏ qua có phạm vi cụ thể
+  - archunit_ignore_patterns.txt và giới hạn khi bỏ qua theo thông báo
+  - Vì sao @SuppressWarnings không mặc nhiên tắt mọi quy tắc ArchUnit
+  - Ghi rõ lý do, chủ sở hữu và điều kiện hết hạn ngoại lệ
+  - Không dùng wildcard rộng để che vi phạm chưa được phân tích
+  - Kiểm tra ngoại lệ không còn cần thiết sau khi refactor
+  - Theo dõi số ngoại lệ và ngăn danh sách bỏ qua tăng vô hạn
+  - Tách ngoại lệ cho mã sinh tự động khỏi mã do nhóm bảo trì
+- level1: Triển khai trên mã cũ
+  level2:
+  - Khảo sát cấu trúc hiện tại trước khi áp dụng cổng kiểm tra
+  - Xác định ranh giới đích từ quyết định kiến trúc đã được thống nhất
+  - Phân loại vi phạm hiện có theo nguyên nhân và mức ảnh hưởng
+  - Thiết lập đường cơ sở để chặn vi phạm mới
+  - FreezingArchRule và cơ chế lưu các vi phạm đã được chấp nhận
+  - Cấu hình violation store và quản lý dữ liệu đường cơ sở trong Git
+  - Kiểm soát quyền tạo mới hoặc cập nhật đường cơ sở trong CI
+  - Nhận diện lỗi do đổi tên lớp, dịch chuyển dòng và thay mô tả quy tắc
+  - Giảm dần nợ kiến trúc bằng nguyên tắc không tăng vi phạm
+  - Không tái tạo đường cơ sở tự động để biến build lỗi thành thành công
+- level1: Gradle và Maven
+  level2:
+  - Tổ chức architecture test trong source set hoặc test suite riêng
+  - Thiết lập dependency kiểm thử và engine đúng phạm vi
+  - Chạy kiểm thử kiến trúc trong test hoặc giai đoạn xác minh riêng
+  - Liên kết tác vụ kiểm tra với check của Gradle
+  - Phối hợp Maven Surefire hoặc Failsafe theo loại bộ kiểm thử
+  - Biên dịch các mô-đun cần thiết trước khi nhập bytecode
+  - Phân biệt dependency khai báo và lớp thực sự xuất hiện trong classpath
+  - Phân phối bộ quy tắc dùng chung qua test fixture hoặc thư viện kiểm thử
+  - Tách kiểm tra cục bộ một mô-đun và kiểm tra ranh giới toàn hệ thống
+  - Kiểm tra phát hiện test và ngăn tác vụ thành công với số quy tắc bằng 0
+- level1: CI và cổng kiểm tra
+  level2:
+  - Chọn thời điểm chạy quy tắc trong pull request và nhánh chính
+  - Cổng kiểm tra cho vi phạm mới và chiến lược triển khai từng bước
+  - Thất bại build khi vi phạm hợp đồng đã được thống nhất
+  - Công bố báo cáo dễ truy ngược về mã gây lỗi
+  - Bảo đảm CI dùng đúng commit, bytecode và tập mô-đun
+  - Giới hạn kiểm tra theo thay đổi nhưng vẫn xét phụ thuộc xuyên mô-đun
+  - Không bỏ qua quy tắc chỉ vì mã vi phạm nằm ở tệp không đổi
+  - Quản lý artifact, cache và kết quả giữa các lần chạy
+  - Tách lỗi tải dependency hoặc hạ tầng khỏi lỗi kiến trúc
+  - Phân quyền thay đổi quy tắc, ngoại lệ và đường cơ sở
+- level1: JPMS và jdeps
+  level2:
+  - Phân biệt package-private, public và package được exports
+  - requires, requires transitive và hướng đọc mô-đun
+  - exports, opens và khác biệt truy cập thông thường với reflection
+  - uses, provides và quan hệ qua ServiceLoader
+  - Phân biệt named module, automatic module và unnamed module
+  - Khảo sát phụ thuộc bằng jdeps ở mức lớp, gói và mô-đun
+  - Phân tích API công khai, JDK internal API và dependency bị thiếu
+  - Đọc classpath, module path và multi-release JAR đúng mục tiêu
+  - Xuất đồ thị DOT và đối chiếu với ranh giới kiến trúc
+  - Phối hợp cưỡng chế bằng trình biên dịch với kiểm thử ArchUnit
+  - Giới hạn của --add-exports, --add-opens và các ngoại lệ đóng gói
+- level1: Spring Modulith
+  level2:
+  - Mô hình application module và quy ước package trong Spring Modulith
+  - Xác định mô-đun bằng ApplicationModules
+  - Kiểm tra cấu trúc bằng verify
+  - Ngăn chu trình giữa các mô-đun nghiệp vụ
+  - Ngăn tham chiếu tới package nội bộ của mô-đun khác
+  - '@ApplicationModule và allowedDependencies'
+  - Named interface để công khai một phần hợp đồng
+  - Open module và đánh đổi khi nới ranh giới nội bộ
+  - Thu thập hoặc lọc vi phạm qua API theo phiên bản
+  - Tích hợp quy tắc DDD hoặc kiến trúc từ jMolecules khi có nhu cầu
+  - Phân biệt kiểm tra mô-đun tĩnh và kiểm thử hành vi tích hợp
+- level1: Sơ đồ và hợp đồng
+  level2:
+  - Vai trò của sơ đồ kiến trúc khi định nghĩa quan hệ được phép
+  - Chuyển PlantUML component diagram thành quy tắc ArchUnit
+  - Ánh xạ component trong sơ đồ sang package
+  - Kiểm soát phạm vi dependency được đưa vào đối chiếu
+  - Lớp không thuộc component và rủi ro bị bỏ sót
+  - Đối chiếu đồ thị thực tế với sơ đồ được phê duyệt
+  - Phân biệt sơ đồ dùng để kiểm tra và sơ đồ sinh từ hiện trạng
+  - Liên kết quy tắc với quyết định kiến trúc được ghi nhận
+  - Cập nhật đồng bộ sơ đồ, quy tắc và mã khi thay đổi thiết kế
+- level1: Chỉ số kiến trúc
+  level2:
+  - Vai trò của phép đo trong nhận diện khu vực cần xem xét
+  - Phụ thuộc đi vào và đi ra của một thành phần
+  - Coupling, cohesion và cách chọn đơn vị đo
+  - Instability, abstractness và khoảng cách theo mô hình đo phù hợp
+  - Phân tích thành phần phụ thuộc mạnh và chu trình
+  - Software architecture metrics trong thư viện ArchUnit
+  - Ảnh hưởng của phạm vi nhập lớp và mã sinh đến kết quả
+  - Theo dõi xu hướng thay đổi thay vì tuyệt đối hóa một ngưỡng
+  - Phân biệt chỉ số cảnh báo và ràng buộc đủ cơ sở để chặn build
+- level1: Hiệu năng phân tích
+  level2:
+  - Đo thời gian nhập bytecode và thời gian đánh giá quy tắc
+  - Tái sử dụng JavaClasses và cơ chế cache của tích hợp JUnit
+  - Giới hạn phạm vi mà vẫn giữ đủ bằng chứng phụ thuộc
+  - Cấu hình phân giải lớp tham chiếu theo nhu cầu quy tắc
+  - Chi phí kiểm tra chu trình và truy vấn đồ thị tùy biến
+  - Tránh quét lại toàn bộ lớp trong từng condition
+  - Quản lý bộ nhớ khi phân tích nhiều JAR hoặc mô-đun lớn
+  - Chạy song song và tránh trạng thái mutable dùng chung
+  - Cân bằng phản hồi nhanh tại máy cá nhân và xác minh đầy đủ trong CI
+- level1: Giới hạn và sai lệch
+  level2:
+  - Bytecode khác mã nguồn và ảnh hưởng của bước biên dịch
+  - Reflection, tên lớp dạng chuỗi và quan hệ không thể suy ra đầy đủ
+  - Spring proxy, tiêm phụ thuộc và cấu hình lựa chọn lúc chạy
+  - Annotation có retention khác nhau và metadata không còn trong bytecode
+  - Generic, bridge method, lambda và thành viên do trình biên dịch tạo
+  - Mã sinh tự động, Lombok và công cụ biến đổi bytecode
+  - Classpath thiếu hoặc bytecode cũ gây kết luận không chính xác
+  - Giao tiếp HTTP, messaging và phụ thuộc xuyên tiến trình
+  - Quy tắc cấu trúc không chứng minh tính đúng đắn nghiệp vụ
+  - Kết hợp kiểm thử tích hợp, quan sát lúc chạy và đánh giá thiết kế
+- level1: Quản trị quy tắc
+  level2:
+  - Chọn chủ sở hữu và phạm vi trách nhiệm cho từng nhóm quy tắc
+  - Rà soát quy tắc như mã sản phẩm
+  - Quản lý phiên bản thư viện quy tắc dùng chung
+  - Đánh giá tác động khi thêm hoặc siết chặt một ràng buộc
+  - Nâng cấp ArchUnit, JUnit và JDK có kiểm tra hồi quy
+  - Tài liệu hóa ví dụ tuân thủ, vi phạm và cách khắc phục
+  - Quy trình thay đổi hợp đồng kiến trúc có chủ đích
+  - Loại bỏ quy tắc lỗi thời và ngoại lệ không còn phù hợp
+  - Đo mức hữu ích qua sai lệch phát hiện được và chi phí bảo trì
+- level1: Refactor kiến trúc
+  level2:
+  - Đọc bằng chứng vi phạm trước khi lựa chọn cách sửa
+  - Chuyển trách nhiệm thay vì chỉ đổi tên package
+  - Tách interface để đảo chiều phụ thuộc phù hợp
+  - Đưa kiểu dữ liệu về mô-đun sở hữu đúng trách nhiệm
+  - Tách DTO, mô hình miền và Entity lưu trữ khi hợp đồng yêu cầu
+  - Giảm shared package và phân biệt dùng chung có chủ đích
+  - Phá chu trình bằng tách mô-đun hoặc giao tiếp qua hợp đồng
+  - Thực hiện từng bước nhỏ với kiểm thử hành vi và kiến trúc
+  - Xác minh cấu trúc mới không tạo đường phụ thuộc thay thế
+  - Cập nhật đường cơ sở chỉ sau khi đối chiếu vi phạm đã được xử lý
+- level1: Thực hành tổng hợp
+  level2:
+  - Viết hợp đồng kiến trúc cho ứng dụng Java có nhiều tầng
+  - Tái hiện Controller truy cập sai tầng và quan sát quy tắc thất bại
+  - Bảo vệ lõi nghiệp vụ khỏi phụ thuộc Spring hoặc thư viện hạ tầng
+  - Tạo mô-đun API, internal và kiểm tra truy cập trái phép
+  - Tạo chu trình giữa tính năng rồi refactor để loại bỏ
+  - Viết condition tùy biến và bộ lớp mẫu kiểm thử chính quy tắc
+  - Áp dụng FreezingArchRule cho mã cũ và chặn vi phạm mới
+  - Đối chiếu phụ thuộc bằng ArchUnit, jdeps và JPMS
+  - Xác minh modular monolith bằng Spring Modulith
+  - Tích hợp bộ quy tắc vào Gradle hoặc Maven và CI
+  - Đánh giá kết quả bằng phạm vi bảo vệ, độ chính xác và chi phí duy trì

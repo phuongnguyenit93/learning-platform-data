@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Chiến lược kiểm thử
+  slug: testing-strategies
+  index: 1
+- title: Nền tảng HTTP
+  slug: http-foundations
+  index: 2
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 3
+- title: WireMock căn bản
+  slug: wiremock-basics
+  index: 4
+- title: Ghép yêu cầu
+  slug: request-matching
+  index: 5
+- title: Tạo phản hồi
+  slug: response-stubbing
+  index: 6
+- title: Phản hồi động
+  slug: dynamic-responses
+  index: 7
+- title: Xác minh tương tác
+  slug: interaction-verification
+  index: 8
+- title: Kịch bản trạng thái
+  slug: stateful-scenarios
+  index: 9
+- title: Mô phỏng sự cố
+  slug: failure-simulation
+  index: 10
+- title: Khả năng phục hồi
+  slug: resilience-testing
+  index: 11
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 12
+- title: Proxy và ghi phát lại
+  slug: proxy-record-replay
+  index: 13
+- title: HTTPS và xác thực
+  slug: https-authentication
+  index: 14
+- title: Java và JUnit
+  slug: java-junit
+  index: 15
+- title: Spring Boot
+  slug: spring-boot
+  index: 16
+- title: Docker và Testcontainers
+  slug: docker-va-testcontainers
+  index: 17
+- title: MockServer
+  slug: mockserver
+  index: 18
+- title: Hoverfly
+  slug: hoverfly
+  index: 19
+- title: Stub theo đặc tả
+  slug: specification-driven-stubs
+  index: 20
+- title: Giao thức mở rộng
+  slug: protocol-extensions
+  index: 21
+- title: Webhook và bất đồng bộ
+  slug: webhooks-asynchrony
+  index: 22
+- title: Nhiều dịch vụ phụ thuộc
+  slug: multiple-dependent-services
+  index: 23
+- title: Chạy trong CI
+  slug: ci-execution
+  index: 24
+- title: Quan sát và gỡ lỗi
+  slug: observability-debugging
+  index: 25
+- title: Hiệu năng và giới hạn
+  slug: performance-limits
+  index: 26
+- title: Mở rộng WireMock
+  slug: extending-wiremock
+  index: 27
+- title: Bảo trì bộ stub
+  slug: stub-maintenance
+  index: 28
+- title: Thực hành tích hợp
+  slug: integration-practice
+  index: 29

@@ -1,0 +1,130 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng đồ thị
+  slug: graph-database-fundamentals
+  index: 1
+- title: Cypher cơ bản
+  slug: basic-cypher
+  index: 2
+- title: Khởi tạo
+  slug: setup
+  index: 3
+- title: Cấu hình và kiến trúc
+  slug: configuration-architecture
+  index: 4
+- title: Thiết kế mô hình
+  slug: model-design
+  index: 5
+- title: Ánh xạ node
+  slug: node-mapping
+  index: 6
+- title: Định danh
+  slug: identity
+  index: 7
+- title: Thuộc tính và kiểu
+  slug: properties-and-types
+  index: 8
+- title: Khởi tạo đối tượng
+  slug: object-instantiation
+  index: 9
+- title: Ánh xạ quan hệ
+  slug: relationship-mapping
+  index: 10
+- title: Thuộc tính quan hệ
+  slug: relationship-properties
+  index: 11
+- title: Ánh xạ nâng cao
+  slug: advanced-mapping
+  index: 12
+- title: Đọc và ghi đồ thị
+  slug: graph-reading-and-writing
+  index: 13
+- title: Repository CRUD
+  slug: repository-crud
+  index: 14
+- title: Truy vấn suy diễn
+  slug: derived-queries
+  index: 15
+- title: Cypher tùy chỉnh
+  slug: custom-cypher
+  index: 16
+- title: Ánh xạ kết quả
+  slug: result-mapping
+  index: 17
+- title: Projection và DTO
+  slug: projection-dto
+  index: 18
+- title: Phân trang và kết quả
+  slug: pagination-results
+  index: 19
+- title: Query by Example
+  slug: query-by-example
+  index: 20
+- title: Cypher-DSL
+  slug: cypher-dsl
+  index: 21
+- title: Neo4jTemplate
+  slug: neo4j-template
+  index: 22
+- title: Neo4jClient
+  slug: neo4jclient
+  index: 23
+- title: Repository mở rộng
+  slug: repository-customization
+  index: 24
+- title: Chuyển đổi dữ liệu
+  slug: data-conversion
+  index: 25
+- title: Giao dịch đồng bộ
+  slug: synchronous-transactions
+  index: 26
+- title: Kiểm soát đồng thời
+  slug: concurrency-control
+  index: 27
+- title: Truy cập reactive
+  slug: reactive-access
+  index: 28
+- title: Giao dịch reactive
+  slug: reactive-transactions
+  index: 29
+- title: Callback và sự kiện
+  slug: callbacks-and-events
+  index: 30
+- title: Auditing
+  slug: auditing
+  index: 31
+- title: Schema và chỉ mục
+  slug: schema-and-indexes
+  index: 32
+- title: Migration dữ liệu
+  slug: data-migration
+  index: 33
+- title: Cluster và bookmark
+  slug: clusters-and-bookmarks
+  index: 34
+- title: Nhiều database
+  slug: multiple-databases
+  index: 35
+- title: Truy vấn chuyên biệt
+  slug: specialized-queries
+  index: 36
+- title: Hiệu năng
+  slug: performance
+  index: 37
+- title: Kiểm thử
+  slug: testing
+  index: 38
+- title: Lỗi và chẩn đoán
+  slug: errors-diagnostics
+  index: 39
+- title: Bảo mật và vận hành
+  slug: security-operations
+  index: 40
+- title: Chuyển đổi và nâng cấp
+  slug: migrations-and-upgrades
+  index: 41
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 42

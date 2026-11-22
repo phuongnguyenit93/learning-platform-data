@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng vector
+  slug: vector-fundamentals
+  index: 1
+- title: Thiết lập
+  slug: setup
+  index: 2
+- title: EmbeddingModel
+  slug: embeddingmodel
+  index: 3
+- title: Nhà cung cấp
+  slug: providers
+  index: 4
+- title: Document
+  slug: document
+  index: 5
+- title: Đọc dữ liệu
+  slug: data-loading
+  index: 6
+- title: Chia đoạn
+  slug: document-chunking
+  index: 7
+- title: Luồng nhập liệu
+  slug: ingestion-pipeline
+  index: 8
+- title: VectorStore
+  slug: vectorstore
+  index: 9
+- title: Truy vấn tương đồng
+  slug: similarity-search
+  index: 10
+- title: Lọc metadata
+  slug: metadata-filtering
+  index: 11
+- title: SimpleVectorStore
+  slug: simplevectorstore
+  index: 12
+- title: PGvector
+  slug: pgvector
+  index: 13
+- title: Redis
+  slug: redis
+  index: 14
+- title: Qdrant và Milvus
+  slug: qdrant-milvus
+  index: 15
+- title: Kho vector khác
+  slug: other-vector-stores
+  index: 16
+- title: Chỉ mục vector
+  slug: vector-indexes
+  index: 17
+- title: Chất lượng truy xuất
+  slug: retrieval-quality
+  index: 18
+- title: Truy xuất nâng cao
+  slug: advanced-retrieval
+  index: 19
+- title: Vòng đời dữ liệu
+  slug: data-lifecycle
+  index: 20
+- title: Hiệu năng
+  slug: performance
+  index: 21
+- title: Độ tin cậy
+  slug: reliability
+  index: 22
+- title: Bảo mật
+  slug: security
+  index: 23
+- title: Quan sát hệ thống
+  slug: observability
+  index: 24
+- title: Kiểm thử
+  slug: testing
+  index: 25
+- title: Mở rộng
+  slug: scaling
+  index: 26
+- title: Thực hành
+  slug: hands-on-practice
+  index: 27

@@ -1,0 +1,519 @@
+menu:
+- level1: Tổng quan ứng dụng sự kiện
+  level2:
+  - Application Event là gì
+  - Bài toán mà event giải quyết
+  - Event-driven trong ứng dụng
+  - Producer và consumer
+  - Event và command
+  - Event và message
+  - Event và state
+  - Luồng xử lý cơ bản
+  - Lợi ích của event
+  - Giới hạn của event
+- level1: Spring Modulith
+  level2:
+  - Mục tiêu của Spring Modulith
+  - Application module là gì
+  - Event trong modular monolith
+  - Tự động phát hiện module
+  - Ranh giới kiến trúc
+  - Tích hợp với Spring Boot
+  - Các thành phần liên quan
+  - Vai trò của event catalog
+  - Lộ trình học module
+- level1: Kiến trúc theo module
+  level2:
+  - Từ package đến module
+  - Tách trách nhiệm theo module
+  - API công khai của module
+  - Giao tiếp qua event
+  - Giảm phụ thuộc trực tiếp
+  - Luồng nghiệp vụ xuyên module
+  - Module sở hữu dữ liệu
+  - Module sở hữu hành vi
+  - Cấu trúc package gợi ý
+  - Đánh giá độ kết dính
+- level1: Ranh giới module
+  level2:
+  - Xác định boundary
+  - Dependency giữa module
+  - Allowed dependency
+  - Named interface
+  - Package nội bộ
+  - Package được phép truy cập
+  - Phụ thuộc một chiều
+  - Phụ thuộc vòng
+  - Vi phạm boundary
+  - Kiểm tra ranh giới
+- level1: Mô hình sự kiện
+  level2:
+  - Tên và ý nghĩa event
+  - Sự kiện nghiệp vụ
+  - Sự kiện ứng dụng
+  - Sự kiện miền
+  - Sự kiện tích hợp
+  - Event xảy ra trong quá khứ
+  - Payload của event
+  - Metadata của event
+  - Thời điểm phát sinh
+  - Nguồn phát sinh
+  - Mục tiêu của event
+- level1: Thiết kế event
+  level2:
+  - Đặt tên event
+  - Thiết kế payload
+  - Event giàu dữ liệu
+  - Event tối thiểu
+  - Immutable event
+  - Định danh event
+  - Correlation identifier
+  - Causation identifier
+  - Timestamp và timezone
+  - Dữ liệu nhạy cảm
+  - Quy tắc mở rộng event
+- level1: Hợp đồng sự kiện
+  level2:
+  - Event contract là gì
+  - Người phát hành hợp đồng
+  - Người tiêu thụ hợp đồng
+  - Schema của event
+  - Ý nghĩa trường dữ liệu
+  - Trạng thái bắt buộc
+  - Trạng thái tùy chọn
+  - Cam kết tương thích
+  - Tài liệu hóa contract
+  - Kiểm thử contract
+- level1: Event nội bộ và tích hợp
+  level2:
+  - Event trong cùng module
+  - Event giữa các module
+  - Event ra ngoài ứng dụng
+  - Internal event
+  - External event
+  - Domain event và integration event
+  - Chọn phạm vi phát hành
+  - Ẩn chi tiết triển khai
+  - Biên giới tin cậy
+  - Chiến lược chuyển tiếp
+- level1: Chu kỳ phát hành
+  level2:
+  - Tạo event
+  - Publish event
+  - Nhận event
+  - Xử lý event
+  - Hoàn tất xử lý
+  - Thất bại khi xử lý
+  - Đánh dấu publication
+  - Theo dõi trạng thái
+  - Kết thúc vòng đời
+  - Các điểm có thể mất event
+- level1: Listener và subscriber
+  level2:
+  - ApplicationListener
+  - '@EventListener'
+  - '@ApplicationModuleListener'
+  - Đăng ký listener
+  - Một event nhiều listener
+  - Một listener nhiều event
+  - Điều kiện trên listener
+  - Listener theo package
+  - Phạm vi bean listener
+  - Đặt tên handler
+  - Tách listener khỏi service
+- level1: Điều phối handler
+  level2:
+  - Thứ tự xử lý handler
+  - Độ ưu tiên listener
+  - Phụ thuộc giữa handler
+  - Handler độc lập
+  - Một handler một trách nhiệm
+  - Chuỗi xử lý event
+  - Fan-out event
+  - Fan-in event
+  - Tránh điều phối ẩn
+- level1: Đồng bộ và bất đồng bộ
+  level2:
+  - Xử lý synchronous
+  - Xử lý asynchronous
+  - '@Async cho event'
+  - Executor cho listener
+  - Thread context
+  - Context propagation
+  - Khi nào dùng đồng bộ
+  - Khi nào dùng bất đồng bộ
+  - Đánh đổi độ trễ
+  - Đánh đổi độ nhất quán
+- level1: Giao dịch và event
+  level2:
+  - Event trong transaction
+  - Thời điểm publish
+  - Commit và rollback
+  - Event trước khi commit
+  - Event sau khi commit
+  - Event sau khi rollback
+  - Transaction boundary
+  - Propagation
+  - Isolation
+  - Tính nguyên tử
+  - Nhất quán giao dịch
+- level1: Transactional listener
+  level2:
+  - '@TransactionalEventListener'
+  - Pha BEFORE_COMMIT
+  - Pha AFTER_COMMIT
+  - Pha AFTER_ROLLBACK
+  - Pha AFTER_COMPLETION
+  - Không có transaction
+  - fallbackExecution
+  - Listener và transaction mới
+  - Lỗi sau commit
+  - Kiểm thử theo transaction
+- level1: Đảm bảo tin cậy
+  level2:
+  - At-most-once
+  - At-least-once
+  - Exactly-once và giới hạn
+  - Mất event
+  - Trùng event
+  - Xử lý không theo thứ tự
+  - Event bị trì hoãn
+  - Điểm xác nhận
+  - Bằng chứng xử lý
+  - Mục tiêu tin cậy
+- level1: Publication Registry
+  level2:
+  - Vai trò Event Publication Registry
+  - Bản ghi publication
+  - Trạng thái hoàn tất
+  - Publication thất bại
+  - Truy vấn publication chưa xong
+  - Đánh dấu event hoàn tất
+  - Repository của publication
+  - Tích hợp với transaction
+  - Theo dõi từng listener
+  - Vòng đời bản ghi
+- level1: Outbox và lưu trữ
+  level2:
+  - Outbox pattern
+  - Bảng outbox
+  - Ghi event cùng transaction
+  - Đọc event từ outbox
+  - Xóa hoặc lưu lịch sử
+  - Khóa và cạnh tranh
+  - Lưu trữ publication
+  - Chọn database
+  - Đảm bảo atomic write
+- level1: Thử lại và bù trừ
+  level2:
+  - Retry event
+  - Backoff
+  - Giới hạn số lần thử
+  - Resubmission
+  - Dead-letter event
+  - Bù trừ nghiệp vụ
+  - Đánh dấu lỗi vĩnh viễn
+  - Xử lý thủ công
+  - Replay có kiểm soát
+  - Audit lần thử
+- level1: Externalization
+  level2:
+  - Event externalization là gì
+  - '@Externalized'
+  - Công khai event ra ngoài
+  - Chọn event được externalize
+  - Tên đích của event
+  - Externalization và boundary
+  - Event nội bộ không phát tán
+  - Chuyển event sang bên ngoài
+  - Xác định consumer bên ngoài
+  - Tắt hoặc thay đổi externalization
+- level1: Định tuyến sự kiện
+  level2:
+  - Event destination
+  - Routing key
+  - Topic và queue
+  - Consumer group
+  - Partition key
+  - Định tuyến theo loại event
+  - Định tuyến theo tenant
+  - Định tuyến theo module
+  - Định tuyến lỗi
+  - Kiểm tra đường đi event
+- level1: Serialization
+  level2:
+  - Vì sao cần serialization
+  - EventSerializer
+  - JSON event
+  - Kiểu dữ liệu trong payload
+  - Ngày giờ và số thập phân
+  - Polymorphic event
+  - Header và metadata
+  - Schema evolution
+  - Lỗi serialize
+  - Lỗi deserialize
+- level1: Broker và adapter
+  level2:
+  - Vai trò message broker
+  - Adapter với broker
+  - Producer adapter
+  - Consumer adapter
+  - Acknowledgement
+  - Delivery semantics
+  - Connection failure
+  - Backpressure
+  - Khả năng quan sát adapter
+  - Chọn broker phù hợp
+- level1: Kafka integration
+  level2:
+  - Event và Kafka topic
+  - Producer record
+  - Consumer group của Kafka
+  - Partition ordering
+  - Offset và acknowledgement
+  - Retry topic
+  - Dead-letter topic
+  - Kafka schema
+- level1: RabbitMQ và AMQP
+  level2:
+  - Event và AMQP
+  - Exchange
+  - Queue
+  - Binding và routing key
+  - Acknowledgement của AMQP
+  - Prefetch
+  - Dead-letter exchange
+  - Retry với RabbitMQ
+- level1: Projection và read model
+  level2:
+  - Projection từ event
+  - Read model
+  - Materialized view
+  - Cập nhật projection
+  - Projection bất đồng bộ
+  - Rebuild projection
+  - Checkpoint projection
+  - Độ trễ dữ liệu
+  - Đối soát projection
+  - Projection theo module
+- level1: Saga và process manager
+  level2:
+  - Saga là gì
+  - Process manager là gì
+  - Chuỗi event nghiệp vụ
+  - Trạng thái saga
+  - Command tiếp theo
+  - Tác vụ bù trừ
+  - Timeout saga
+  - Saga thất bại
+  - Theo dõi correlation
+  - Kiểm thử saga
+- level1: Nhất quán dữ liệu
+  level2:
+  - Strong consistency
+  - Eventual consistency
+  - Consistency boundary
+  - Đọc dữ liệu cũ
+  - Độ trễ đồng bộ
+  - Đối soát giữa module
+  - Invariant liên module
+  - Thiết kế retry an toàn
+  - Thông báo trạng thái tạm thời
+- level1: Idempotency
+  level2:
+  - Idempotent handler
+  - Khóa chống xử lý trùng
+  - Event identifier
+  - Deduplication store
+  - Upsert an toàn
+  - Kiểm tra trạng thái trước xử lý
+  - Idempotency theo consumer
+  - Idempotency theo nghiệp vụ
+  - Xử lý retry không gây tác dụng kép
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi handler
+  - Lỗi tạm thời
+  - Lỗi dữ liệu
+  - Lỗi cấu hình
+  - Lỗi phụ thuộc ngoài
+  - Bắt và ghi nhận exception
+  - Không nuốt lỗi
+  - Cô lập listener lỗi
+  - Chính sách tiếp tục xử lý
+  - Thông báo vận hành
+- level1: Bảo mật event
+  level2:
+  - Dữ liệu nhạy cảm trong event
+  - Ẩn thông tin cá nhân
+  - Phân quyền publish
+  - Phân quyền consume
+  - Xác thực event
+  - Toàn vẹn message
+  - Mã hóa khi truyền
+  - Mã hóa khi lưu
+  - Audit truy cập
+  - Retention và xóa dữ liệu
+- level1: Quan sát event
+  level2:
+  - Log event lifecycle
+  - Correlation ID trong log
+  - Trace producer-consumer
+  - Metric số lượng event
+  - Metric độ trễ handler
+  - Metric lỗi và retry
+  - Theo dõi publication
+  - Dashboard vận hành
+  - Alert event bị kẹt
+  - Kiểm tra health
+- level1: Hiệu năng event
+  level2:
+  - Độ trễ publish
+  - Thông lượng event
+  - Chi phí serialization
+  - Kích thước payload
+  - Tải của listener
+  - Executor và thread pool
+  - Batch processing
+  - Giới hạn tốc độ (backpressure)
+  - Tối ưu truy vấn registry
+  - Đo đạc bằng profiling
+- level1: Kiểm thử event
+  level2:
+  - Kiểm thử event payload
+  - Kiểm thử publish
+  - Kiểm thử listener
+  - Kiểm thử nhiều listener
+  - Kiểm thử thứ tự
+  - Kiểm thử retry
+  - Kiểm thử idempotency
+  - Kiểm thử transaction
+  - Kiểm thử externalization
+  - Kiểm thử lỗi
+- level1: Kiểm thử module
+  level2:
+  - ApplicationModuleTest
+  - Giới hạn phạm vi test
+  - Bootstrap module
+  - Test dependency
+  - Test module boundary
+  - Test event contract
+  - Test listener trong module
+  - Cô lập database
+  - Test với application context
+  - Đọc kết quả module test
+- level1: Scenario testing
+  level2:
+  - Scenario API
+  - Given event
+  - When kích hoạt hành động
+  - Expect event
+  - Expect trạng thái
+  - Chờ xử lý bất đồng bộ
+  - Kiểm tra publication
+  - Kiểm tra event sequence
+  - Timeout trong scenario
+  - Diễn giải test failure
+- level1: Testing broker
+  level2:
+  - Broker thật và broker giả
+  - Testcontainers cho broker
+  - Kiểm thử topic
+  - Kiểm thử queue
+  - Kiểm thử acknowledgement
+  - Kiểm thử retry route
+  - Kiểm thử dead-letter
+  - Dọn dữ liệu sau test
+- level1: Phiên bản event
+  level2:
+  - Vì sao event cần version
+  - Version trong tên event
+  - Version trong payload
+  - Consumer cũ
+  - Consumer mới
+  - Tương thích tiến
+  - Tương thích lùi
+  - Thay đổi bắt buộc
+  - Thay đổi tùy chọn
+  - Kế hoạch bỏ version cũ
+- level1: Di trú event
+  level2:
+  - Di trú schema
+  - Di trú dữ liệu lịch sử
+  - Chuyển đổi event giữa phiên bản
+  - Dual publish
+  - Dual consume
+  - Replay sau di trú
+  - Đối soát trước và sau
+  - Rollback di trú
+  - Cắt chuyển consumer
+  - Kết thúc giai đoạn chuyển tiếp
+- level1: Tài liệu event
+  level2:
+  - Event catalog
+  - Danh mục producer
+  - Danh mục consumer
+  - Sơ đồ event flow
+  - Mô tả payload
+  - Mô tả timing
+  - Mô tả lỗi
+  - Ví dụ event
+  - Quy ước đặt tên
+  - Tài liệu vận hành
+- level1: Vận hành production
+  level2:
+  - Cấu hình registry
+  - Cấu hình broker
+  - Quản lý credential
+  - Mở rộng consumer
+  - Xử lý backlog
+  - Replay event production
+  - Purge bản ghi cũ
+  - Runbook sự cố
+  - Triển khai không gián đoạn
+  - Kiểm tra sau phát hành
+- level1: Anti-pattern event
+  level2:
+  - Event cho mọi thao tác
+  - Event mang quá nhiều dữ liệu
+  - Event phụ thuộc entity
+  - Listener chứa quá nhiều trách nhiệm
+  - Ẩn luồng nghiệp vụ
+  - Phụ thuộc vòng qua event
+  - Retry không giới hạn
+  - Không có idempotency
+  - Không có quan sát
+  - Lạm dụng broker
+- level1: Thiết kế quyết định
+  level2:
+  - Có nên dùng event không
+  - Chọn event nội bộ
+  - Chọn event bên ngoài
+  - Chọn đồng bộ hay async
+  - Chọn registry
+  - Chọn outbox
+  - Chọn broker
+  - Chọn mức đảm bảo
+  - Chọn chiến lược retry
+  - Ghi lại quyết định
+- level1: Dự án thực hành
+  level2:
+  - Chọn miền nghiệp vụ
+  - Tách các application module
+  - Định nghĩa event contract
+  - Tạo producer
+  - Tạo listener
+  - Thêm transaction boundary
+  - Lưu publication
+  - Thêm retry và idempotency
+  - Externalize một event
+  - Viết module test
+  - Đo lường và vận hành
+- level1: Tổng kết ứng dụng sự kiện
+  level2:
+  - Bản đồ khái niệm
+  - Luồng từ producer đến consumer
+  - Checklist thiết kế event
+  - Checklist độ tin cậy
+  - Checklist kiểm thử
+  - Bước học tiếp theo

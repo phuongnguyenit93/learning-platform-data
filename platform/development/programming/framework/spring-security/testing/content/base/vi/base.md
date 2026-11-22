@@ -1,0 +1,7 @@
+# Spring Security Testing
+
+Spring Security Testing tập trung vào cách kiểm chứng các cơ chế xác thực, phân quyền và bảo vệ HTTP được cấu hình bằng Spring Security. Việc có bộ lọc hoặc annotation bảo mật trong mã nguồn chưa đủ để chứng minh ứng dụng thực sự chặn các truy cập không hợp lệ. Bài học hướng tới lập trình viên Java/Spring và người kiểm thử cần viết test tái lập được cho cả trường hợp được phép lẫn trường hợp bị từ chối, từ endpoint tới phương thức nghiệp vụ.
+
+Lộ trình bắt đầu bằng `spring-security-test`, cấu hình test context và kết nối security filter chain với MockMvc. Người học tạo danh tính giả lập qua `@WithMockUser`, `@WithAnonymousUser` hoặc SecurityContext tùy biến; sau đó kiểm tra HTTP authorization, vai trò và quyền hạn, cũng như các quy tắc method security như `@PreAuthorize`. Phần tiếp theo luyện kiểm thử CSRF và luồng đăng nhập, rồi mô phỏng OAuth2/OIDC/JWT để đánh giá logic truy cập dựa trên claims, scopes và authorities.
+
+Với ứng dụng WebFlux, người học sử dụng `WebTestClient` cùng tiện ích kiểm thử reactive của Spring Security. Cuối lộ trình, các trường hợp sai quyền, thiếu xác thực, token không phù hợp và cấu hình security bị thay đổi được đưa vào bộ kiểm thử hồi quy. Các tiện ích mock giúp cô lập logic ủy quyền; khi cần kiểm chứng chữ ký, thời hạn hoặc issuer của token, phải bổ sung integration test dùng thành phần xác minh token thật.

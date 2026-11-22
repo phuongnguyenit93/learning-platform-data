@@ -1,0 +1,2119 @@
+menu:
+- slug: java23-orientation
+  title: Định hướng Java 23
+  childs:
+  - slug: java23-orientation-001
+    title: Vai trò của Java 23 trong tiến trình phát triển Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java23-orientation-002
+    title: 'Các nhóm thay đổi: ngôn ngữ, thư viện, JVM và công cụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java23-orientation-003
+    title: Phân biệt tính năng chính thức, preview và incubator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java23-orientation-004
+    title: Bản đồ tính năng Java 23 còn áp dụng và phiên bản hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java23-orientation-005
+    title: Java 23 là mốc kiến thức; ví dụ dùng JDK mới hơn phải ghi rõ phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java23-orientation-006
+    title: Quan hệ giữa Stream, Gatherer, ScopedValue và tác vụ đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java23-orientation-007
+    title: Quan hệ giữa class file, trình biên dịch và mã sinh động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java23-orientation-008
+    title: Cách đọc đặc tả, API Docs và ghi chú tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Kiểm tra JDK của terminal, IDE, công cụ build và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-002
+    title: Tách cấu hình ví dụ Java 23 khỏi ví dụ Java 24, 25 hoặc 27
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-003
+    title: Chọn --release phù hợp với ngôn ngữ và API đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-004
+    title: Điều kiện biên dịch, chạy preview trên cùng phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-005
+    title: Phân biệt --enable-preview với --add-modules cho incubator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-006
+    title: Tổ chức mã nguồn, tài nguyên, dữ liệu mẫu và lệnh chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-007
+    title: Quản lý phiên bản dependency và annotation processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-008
+    title: Ghi lại môi trường để tái hiện kết quả và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: javadoc-markdown
+  title: Javadoc Markdown
+  childs:
+  - slug: javadoc-markdown-001
+    title: Markdown documentation comments chính thức từ Java 23
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-002
+    title: Cú pháp /// và vị trí gắn comment với khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-003
+    title: Dòng trống có /// và ranh giới kết thúc comment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-004
+    title: Loại bỏ thụt lề chung và giữ khoảng trắng có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-005
+    title: Tiêu đề, đoạn văn, danh sách và bảng đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-006
+    title: Code span, fenced code block và nội dung chứa comment Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-007
+    title: Liên kết tới kiểu, trường, phương thức, package và module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-008
+    title: Phân biệt liên kết Markdown thường với tham chiếu phần tử Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-009
+    title: Kết hợp Markdown với @param, @return, @throws và inline tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-010
+    title: Quan hệ giữa Markdown, HTML và comment Javadoc truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-011
+    title: Tài liệu bổ sung trong doc-files và liên kết giữa các trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: javadoc-markdown-012
+    title: Sinh HTML và kiểm tra bố cục, liên kết, khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-quality
+  title: Chất lượng tài liệu
+  childs:
+  - slug: documentation-quality-001
+    title: Viết mô tả hợp đồng API, đầu vào, đầu ra và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-quality-002
+    title: Đặt comment trước annotation và khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-quality-003
+    title: Phát hiện comment sai vị trí bằng -Xlint:dangling-doc-comments
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-quality-004
+    title: Doclint và kiểm tra tham chiếu không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-quality-005
+    title: Ví dụ mã ngắn, có phiên bản JDK và điều kiện chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-quality-006
+    title: Kiểm tra snippet bằng biên dịch hoặc kiểm thử riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-quality-007
+    title: Ghi @since và trạng thái API chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-quality-008
+    title: Kiểm tra tài liệu được sinh trong quy trình build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-imports
+  title: Import module
+  childs:
+  - slug: module-imports-001
+    title: 'Trạng thái: preview đầu tiên ở Java 23, chính thức từ Java 25'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-002
+    title: Phần thực hành dùng cú pháp chính thức của Java 25 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-003
+    title: Bài toán nhiều package được export từ cùng module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-004
+    title: Cú pháp import module và phạm vi tên được nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-005
+    title: Phân biệt import module, import package và import static
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-006
+    title: Quan hệ với requires và tính đọc được của module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-007
+    title: Ảnh hưởng của requires transitive đến tập kiểu được nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-008
+    title: Dùng trong mã thuộc unnamed module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-009
+    title: Xung đột tên kiểu và cách chọn import rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-imports-010
+    title: 'Quy tắc export: import không mở quyền truy cập nội bộ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compact-source-programs
+  title: Chương trình gọn
+  childs:
+  - slug: compact-source-programs-001
+    title: Java 23 preview lần 3; hình thức chính thức là compact source file từ Java 25
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-002
+    title: Phần thực hành dùng compact source file và instance main của Java 25 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-003
+    title: Bài toán chương trình nhỏ và đường chuyển sang lớp có tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-004
+    title: Trường, phương thức và lớp được khai báo ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-005
+    title: Instance main có hoặc không có tham số String[]
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-006
+    title: Quy tắc chọn main và tạo đối tượng khi khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-007
+    title: Chạy tệp nguồn trực tiếp và biên dịch thành class file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-008
+    title: Nhập tự động các kiểu công khai được export bởi java.base
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-009
+    title: Nhập, xuất cơ bản bằng java.lang.IO của Java 25
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-010
+    title: Giới hạn package, constructor và tham chiếu lớp ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compact-source-programs-011
+    title: Tách mã thành lớp, package và module khi chương trình lớn lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flexible-constructors
+  title: Constructor linh hoạt
+  childs:
+  - slug: flexible-constructors-001
+    title: 'Trạng thái: preview lần 2 ở Java 23, chính thức từ Java 25'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-002
+    title: Phần thực hành dùng quy tắc chính thức của Java 25 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-003
+    title: Bài toán kiểm tra tham số trước super hoặc this
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-004
+    title: Phần lệnh trước và sau lời gọi constructor tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-005
+    title: Ngữ cảnh khởi tạo sớm và giới hạn dùng đối tượng đang tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-006
+    title: Khởi tạo trường trước super theo các trường hợp được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-007
+    title: Biến cục bộ, tham số và kiểm tra đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-008
+    title: Constructor nối chuỗi qua this và thứ tự khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-009
+    title: Tránh để this thoát ra ngoài khi đối tượng chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-constructors-010
+    title: Lỗi biên dịch và kiểm thử trạng thái khi constructor thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: primitive-patterns
+  title: Pattern nguyên thủy
+  childs:
+  - slug: primitive-patterns-001
+    title: 'Trạng thái: preview đầu tiên ở Java 23, preview lần 5 ở Java 27'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-002
+    title: Phần thực hành dùng đặc tả preview Java 27 và ghi rõ tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-003
+    title: Bài toán kiểm tra chuyển đổi số trước khi ép kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-004
+    title: Type pattern với các kiểu nguyên thủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-005
+    title: instanceof giữa các kiểu số và tính biểu diễn chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-006
+    title: Pattern nguyên thủy trong record pattern
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-007
+    title: switch với selector nguyên thủy và nhãn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-008
+    title: Điều kiện when, thứ tự nhánh và tính chi phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-009
+    title: Tính đầy đủ và các chuyển đổi luôn chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-010
+    title: Boxing, unboxing và trường hợp null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: primitive-patterns-011
+    title: Kiểm thử biên số nguyên, số thực, NaN và vô cực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: built-in-gatherers
+  title: Gatherer có sẵn
+  childs:
+  - slug: built-in-gatherers-001
+    title: 'Trạng thái: preview lần 2 ở Java 23, chính thức từ Java 24'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-002
+    title: Phần thực hành dùng API Gatherer chính thức của Java 24 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-003
+    title: Bài toán phép biến đổi trung gian có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-004
+    title: Stream.gather và vị trí trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-005
+    title: Chia nhóm bằng Gatherers.windowFixed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-006
+    title: Cửa sổ trượt bằng Gatherers.windowSliding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-007
+    title: Tích lũy kết quả bằng Gatherers.fold
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-008
+    title: Sinh các giá trị tích lũy bằng Gatherers.scan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-009
+    title: 'Gatherers.mapConcurrent: mức song song, thứ tự và lỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-010
+    title: So sánh Gatherer với map, flatMap và Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-011
+    title: Luồng rỗng, nhóm cuối và thao tác kết thúc sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: built-in-gatherers-012
+    title: Đo bộ nhớ và hiệu năng trên dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-gatherers
+  title: Gatherer tùy biến
+  childs:
+  - slug: custom-gatherers-001
+    title: Mô hình đầu vào, trạng thái và đầu ra của Gatherer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-002
+    title: Initializer tạo trạng thái riêng cho mỗi phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-003
+    title: Integrator xử lý phần tử và đẩy kết quả xuống dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-004
+    title: Downstream.push, tín hiệu từ chối và dừng sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-005
+    title: Finisher xử lý dữ liệu còn lại khi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-006
+    title: Combiner và điều kiện kết hợp trạng thái song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-007
+    title: Tạo Gatherer tuần tự hoặc có khả năng kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-008
+    title: Thành phần không giữ trạng thái và tránh tác dụng phụ dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-009
+    title: Ghép các Gatherer bằng andThen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-010
+    title: Ví dụ khử trùng lặp liên tiếp hoặc gom nhóm theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-gatherers-011
+    title: Kiểm thử tương đương tuần tự, song song và kết thúc sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scoped-value
+  title: Scoped Value
+  childs:
+  - slug: scoped-value-001
+    title: 'Trạng thái: preview lần 3 ở Java 23, chính thức từ Java 25'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-002
+    title: Phần thực hành dùng ScopedValue chính thức của Java 25 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-003
+    title: Bài toán truyền ngữ cảnh xuyên qua chuỗi lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-004
+    title: Tạo khóa bằng ScopedValue.newInstance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-005
+    title: Ràng buộc giá trị trong phạm vi bằng where, run và call
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-006
+    title: Đọc bằng get và xử lý khi chưa có ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-007
+    title: Phạm vi động, ràng buộc lồng nhau và khôi phục giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-008
+    title: Ràng buộc không đổi khác với đối tượng bất biến sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-009
+    title: Vòng đời ngữ cảnh và xử lý ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-010
+    title: Quan hệ với virtual thread và kế thừa ngữ cảnh có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-011
+    title: Chọn ScopedValue, tham số tường minh hoặc ThreadLocal theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoped-value-012
+    title: Giữ dữ liệu ngữ cảnh nhỏ, rõ chủ sở hữu và dễ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-concurrency
+  title: Đồng thời có cấu trúc
+  childs:
+  - slug: structured-concurrency-001
+    title: 'Trạng thái: preview lần 3 ở Java 23, preview lần 7 ở Java 27'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-002
+    title: Phần thực hành dùng API preview Java 27, không dùng chữ ký API Java 23 cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-003
+    title: Bài toán tác vụ con tồn tại lâu hơn công việc cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-004
+    title: Mở StructuredTaskScope trong try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-005
+    title: fork tác vụ, join và đọc kết quả theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-006
+    title: Chủ sở hữu scope và giới hạn gọi fork, join, close
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-007
+    title: Joiner và chính sách xử lý kết quả, lỗi của nhóm tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-008
+    title: Giới hạn thời gian chờ và phân biệt nguyên nhân thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-009
+    title: Hủy hợp tác, interruption và tác vụ không phản hồi hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-010
+    title: Đóng scope và bảo đảm kết thúc các tác vụ con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-011
+    title: Quan hệ với ScopedValue và virtual thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-concurrency-012
+    title: Kiểm thử thất bại một phần, hủy và rò rỉ tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vector-api
+  title: Vector API
+  childs:
+  - slug: vector-api-001
+    title: 'Trạng thái: incubator lần 8 ở Java 23, lần 12 ở Java 27'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-002
+    title: Phần thực hành dùng API incubator Java 27 với module jdk.incubator.vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-003
+    title: Bài toán SIMD và quan hệ với phép tính vô hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-004
+    title: Lane, kiểu phần tử, VectorSpecies và VectorShape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-005
+    title: Chọn species phù hợp với nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-006
+    title: Nạp dữ liệu từ mảng và ghi kết quả về mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-007
+    title: Phép toán trên lane, so sánh và VectorMask
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-008
+    title: Xử lý phần đuôi bằng mặt nạ hoặc vòng lặp vô hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-009
+    title: Phép giảm và chuyển đổi kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-010
+    title: Giới hạn phần cứng, JIT và đường thực thi vô hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-011
+    title: So sánh kết quả số thực và đánh giá chi phí bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-api-012
+    title: Đo hiệu năng sau khi làm nóng trên phần cứng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-file-reading
+  title: Đọc class file
+  childs:
+  - slug: class-file-reading-001
+    title: 'Trạng thái: preview lần 2 ở Java 23, chính thức từ Java 24'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-002
+    title: Phần thực hành dùng java.lang.classfile chính thức của Java 24 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-003
+    title: Bài toán phân tích bytecode bằng API đi cùng JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-004
+    title: Quan hệ giữa class file, constant pool, descriptor và instruction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-005
+    title: ClassFile.of, parse và ClassModel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-006
+    title: Duyệt field, method, attribute và CodeModel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-007
+    title: Kiểu mô hình bất biến và cách duyệt phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-008
+    title: Đọc tên, chữ ký và các tham chiếu phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-009
+    title: Xử lý dữ liệu đầu vào sai hoặc phiên bản không hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-reading-010
+    title: Đối chiếu kết quả với javap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-file-transformations
+  title: Biến đổi class file
+  childs:
+  - slug: class-file-transformations-001
+    title: ClassBuilder, MethodBuilder và CodeBuilder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-002
+    title: Tạo lớp, phương thức và mã lệnh đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-003
+    title: ClassTransform và giữ lại phần tử không cần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-004
+    title: MethodTransform, CodeTransform và phạm vi biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-005
+    title: Nhãn, nhánh, biến cục bộ và luồng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-006
+    title: Constant pool, stack map và các hỗ trợ tự động của API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-007
+    title: Chọn phiên bản class file đích tương thích môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-008
+    title: Kiểm tra class file bằng ClassFile.verify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-009
+    title: Nạp và chạy kết quả trong môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformations-010
+    title: Giới hạn biến đổi đối với framework và công cụ sinh bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-safety
+  title: Bộ nhớ an toàn
+  childs:
+  - slug: memory-safety-001
+    title: Java 23 thúc đẩy thay truy cập bộ nhớ nội bộ bằng API công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-002
+    title: Phân biệt truy cập trường, mảng và bộ nhớ ngoài heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-003
+    title: Chọn VarHandle cho truy cập biến có quy tắc bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-004
+    title: Truy cập thông thường, volatile, acquire và release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-005
+    title: Thao tác nguyên tử và điều kiện hỗ trợ từng access mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-006
+    title: MemorySegment và Arena của FFM chính thức từ Java 22
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-007
+    title: Phạm vi, giới hạn vùng nhớ và vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-008
+    title: Arena confined, shared và quyền truy cập từ các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-009
+    title: ValueLayout, kích thước và căn chỉnh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-010
+    title: Khác biệt truy cập nguyên tử trên heap buffer và vùng nhớ căn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-011
+    title: Rà soát dependency dùng API nội bộ và chọn bản thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-safety-012
+    title: Kiểm thử vượt biên, dùng sau đóng và truy cập sai luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generational-zgc
+  title: ZGC phân thế hệ
+  childs:
+  - slug: generational-zgc-001
+    title: Java 23 chuyển chế độ mặc định của ZGC sang phân thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-002
+    title: Không đồng nhất ZGC mặc định phân thế hệ với bộ GC mặc định của JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-003
+    title: Đối tượng sống ngắn, sống lâu và lợi ích của phân thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-004
+    title: Thu gom đồng thời và mục tiêu giảm thời gian dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-005
+    title: Load barrier, store barrier và chi phí lên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-006
+    title: Chọn ZGC bằng -XX:+UseZGC theo JDK hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-007
+    title: Giới hạn heap và khoảng trống phục vụ thu gom đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-008
+    title: Đọc GC log và đánh giá độ trễ, thông lượng, bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-009
+    title: So sánh ZGC với G1 trên cùng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-010
+    title: 'Cấu hình hiện hành: không dựa vào chế độ không phân thế hệ đã bị bỏ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generational-zgc-011
+    title: Kiểm thử tải đỉnh và kiểm chứng kết quả sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-processing
+  title: Annotation processing
+  childs:
+  - slug: annotation-processing-001
+    title: 'Thay đổi từ Java 23: xử lý annotation cần cấu hình hoặc yêu cầu tường minh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-002
+    title: Phân biệt annotation runtime với annotation processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-003
+    title: Chọn processor cụ thể và đường dẫn processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-004
+    title: Vai trò -processor, --processor-path và --processor-module-path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-005
+    title: Phân biệt -proc:none, -proc:only và -proc:full
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-006
+    title: Không dựa vào tự phát hiện processor trên classpath mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-007
+    title: Cấu hình tương ứng trong công cụ build và IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-008
+    title: Tách dependency biên dịch khỏi dependency processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-009
+    title: Kiểm tra mã được sinh, vòng xử lý và lỗi processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-processing-010
+    title: Cố định phiên bản processor và kiểm chứng build sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: utility-apis
+  title: API tiện ích
+  childs:
+  - slug: utility-apis-001
+    title: Instant.until(Instant) trả về Duration từ Java 23
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-002
+    title: Khoảng thời gian âm, bằng không và giới hạn biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-003
+    title: Console.format, printf, readLine và readPassword với Locale tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-004
+    title: Xử lý trường hợp không có console và bảo vệ dữ liệu nhập nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-005
+    title: WatchService, hàng đợi sự kiện và OVERFLOW
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-006
+    title: jdk.nio.file.WatchService.maxEventsPerPoll và giới hạn bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-007
+    title: Đồng bộ lại trạng thái thư mục sau OVERFLOW
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-008
+    title: Không coi WatchService là nhật ký sự kiện bảo đảm đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: utility-apis-009
+    title: Kiểm thử khác biệt hệ điều hành, locale và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics-security
+  title: Chẩn đoán và bảo mật
+  childs:
+  - slug: diagnostics-security-001
+    title: jcmd, JFR và phép đo có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-002
+    title: Theo dõi CPU, cấp phát, GC và các tác vụ chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-003
+    title: Chẩn đoán khai báo serialization sai bằng JFR khi phải tương thích dữ liệu sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-004
+    title: Đọc javap -verify để bổ sung thông tin kiểm tra class file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-005
+    title: JAXP và cấu hình XML chặt chẽ cho dữ liệu không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-006
+    title: Giới hạn truy cập tài nguyên ngoài khi xử lý XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-007
+    title: Kiểm thử tương thích trước khi áp dụng cấu hình bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-008
+    title: Thông tin luồng, thời gian trong java.security.debug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-security-009
+    title: Thu thập đủ bằng chứng và tránh lộ bí mật trong bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-deployment
+  title: Nâng cấp và triển khai
+  childs:
+  - slug: upgrades-deployment-001
+    title: Kiểm kê dependency, công cụ build và cấu hình JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-002
+    title: 'Ma trận phiên bản: mã Java 23, API chính thức 24, 25 và preview 27'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-003
+    title: Biên dịch lại ví dụ preview khi chuyển phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-004
+    title: Thay API preview cũ bằng hợp đồng API hiện hành đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-005
+    title: Phát hiện API nội bộ và chuyển sang API công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-006
+    title: Kiểm tra cấu hình annotation processor sau nâng JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-007
+    title: Rà soát tham số GC và các tùy chọn JVM không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-008
+    title: Kiểm thử tương thích mã nguồn, nhị phân và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-009
+    title: Đóng gói runtime theo JDK đích bằng jlink, jpackage khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-deployment-010
+    title: Triển khai từng bước, quan sát và chuẩn bị quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Viết và sinh tài liệu API bằng Javadoc Markdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: Tạo chương trình nhỏ rồi chuyển thành lớp, package rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Kiểm tra constructor và mô hình dữ liệu bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: Xử lý luồng dữ liệu bằng Gatherer trên JDK 24 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: Truyền ngữ cảnh bằng ScopedValue trên JDK 25 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Thử nhóm tác vụ có hủy trên API preview JDK 27
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: Thử Vector trên API incubator JDK 27 và so với bản vô hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Phân tích, biến đổi rồi kiểm tra class file bằng API JDK 24 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Kiểm chứng VarHandle, Arena và giới hạn truy cập bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Đánh giá ZGC, build sạch và nghiệm thu theo ma trận phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

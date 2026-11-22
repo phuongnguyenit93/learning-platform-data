@@ -1,0 +1,70 @@
+menu:
+- title: Tổng quan Argos
+  slug: argos-overview
+  index: 0
+- title: Nền tảng dịch máy
+  slug: machine-translation-basics
+  index: 1
+- title: Môi trường chạy
+  slug: runtime-environment
+  index: 2
+- title: Kho mô hình
+  slug: model-repository
+  index: 3
+- title: Vòng đời mô hình
+  slug: model-lifecycle
+  index: 4
+- title: Công cụ dòng lệnh
+  slug: command-line-tools
+  index: 5
+- title: API Python
+  slug: python-api
+  index: 6
+- title: Ngôn ngữ và tuyến dịch
+  slug: language-pairs-routing
+  index: 7
+- title: Xử lý văn bản
+  slug: text-processing
+  index: 8
+- title: Luồng dịch tài liệu
+  slug: document-translation-workflow
+  index: 9
+- title: Dịch Markdown
+  slug: markdown-translation
+  index: 10
+- title: Dịch HTML
+  slug: html-translation
+  index: 11
+- title: Định dạng tài liệu
+  slug: document-formats
+  index: 12
+- title: Kết nối Java
+  slug: java-connectivity
+  index: 13
+- title: Tích hợp Spring Boot
+  slug: spring-boot-integration
+  index: 14
+- title: Độ tin cậy
+  slug: reliability
+  index: 15
+- title: Hiệu năng
+  slug: performance
+  index: 16
+- title: Chất lượng bản dịch
+  slug: translation-quality
+  index: 17
+- title: Kiểm thử
+  slug: testing
+  index: 18
+- title: Triển khai
+  slug: deployment
+  index: 19
+- title: An toàn dữ liệu
+  slug: data-safety
+  index: 20
+- title: Chẩn đoán lỗi
+  slug: error-diagnostics
+  index: 21
+- title: Thực hành
+  slug: hands-on-practice
+  index: 22

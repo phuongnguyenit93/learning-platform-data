@@ -1,0 +1,560 @@
+menu:
+- level1: Tổng quan scaling
+  level2:
+  - Vì sao cần mở rộng Spring Batch
+  - Đo baseline trước khi tối ưu
+  - Single-process và multi-process
+  - Single-threaded so với multi-threaded
+  - Độ phức tạp của các mô hình song song
+  - Giới hạn của tốc độ đọc và ghi
+  - Chi phí phối hợp giữa các worker
+  - Nguyên tắc chọn giải pháp đơn giản trước
+- level1: Phân tích nhu cầu
+  level2:
+  - Xác định bottleneck của Job
+  - Phân biệt CPU-bound và IO-bound
+  - Đo thời gian đọc xử lý ghi
+  - Đo kích thước dữ liệu và tốc độ tăng
+  - Xác định SLA và cửa sổ chạy batch
+  - Kiểm tra khả năng chia nhỏ dữ liệu
+  - Ước lượng thông lượng mục tiêu
+  - Đánh giá yêu cầu restart và idempotency
+  - Phân tích giới hạn tài nguyên dùng chung
+- level1: Mô hình đồng thời
+  level2:
+  - TaskExecutor trong Spring Batch
+  - Parallel flow trong một Job
+  - Multi-threaded Step
+  - Local chunking trong một JVM
+  - Partitioning Step
+  - Remote chunking qua middleware
+  - Remote Step giữa các tiến trình
+  - Đặc điểm single-process nhiều luồng
+  - Đặc điểm multi-process nhiều máy
+- level1: Step nhiều luồng
+  level2:
+  - Thêm TaskExecutor vào Step
+  - Chunk được xử lý đồng thời như thế nào
+  - Reader vẫn đọc tuần tự trong mô hình cơ bản
+  - Writer tuần tự và giới hạn thông lượng
+  - ItemProcessor chạy trên nhiều thread
+  - SimpleAsyncTaskExecutor và lựa chọn thực tế
+  - ThreadPoolTaskExecutor cho tải ổn định
+  - Giới hạn concurrency bằng pool size
+  - Đánh giá multi-threaded step cho workload
+- level1: An toàn luồng
+  level2:
+  - Thread-safe ItemProcessor
+  - Stateful processor và đồng bộ hóa
+  - Reader không an toàn khi dùng nhiều thread
+  - Writer không an toàn khi dùng nhiều thread
+  - Thread-bound transaction trong worker
+  - Propagation transaction trên worker thread
+  - Shared mutable state trong Job
+  - Local variables và dữ liệu theo item
+  - Kiểm tra thread safety của thư viện ngoài
+  - Scope bean khi nhiều thread cùng chạy
+- level1: Parallel Steps
+  level2:
+  - Split flow trong một Job
+  - Chạy hai flow độc lập song song
+  - TaskExecutor cho split flow
+  - Đợi tất cả flow hoàn tất
+  - Tổng hợp exit status của các flow
+  - Step tiếp theo sau split
+  - Phụ thuộc dữ liệu giữa các flow
+  - Đặt tên flow và step rõ ràng
+  - Xử lý lỗi của một nhánh song song
+  - Giới hạn số nhánh chạy đồng thời
+- level1: Local Chunking
+  level2:
+  - Ý tưởng local chunking
+  - ChunkTaskExecutorItemWriter
+  - ChunkProcessor cho worker cục bộ
+  - Mỗi thread nhận một chunk riêng
+  - Transaction của chunk processor
+  - Retry và skip không tự động trong writer
+  - Lifecycle của TaskExecutor
+  - Rollback khi chunk worker thất bại
+  - Aggregation kết quả chunk
+  - Local chunking so với multi-threaded step
+  - Sample local chunking và cách kiểm thử
+- level1: Partitioning
+  level2:
+  - PartitionStep và vai trò manager
+  - Worker step giống nhau theo partition
+  - Partitioning cục bộ bằng thread
+  - Partitioning từ xa bằng service
+  - PartitionHandler trong kiến trúc
+  - StepExecutionSplitter trong kiến trúc
+  - gridSize và số partition
+  - Worker execution trong JobRepository
+  - Chỉ chạy lại partition thất bại
+  - Partitioning cho workload IO-intensive
+- level1: Partitioner
+  level2:
+  - Trách nhiệm của Partitioner
+  - Map tên partition sang ExecutionContext
+  - Partition key duy nhất
+  - Chia theo khoảng khóa chính
+  - Chia theo file hoặc thư mục
+  - Chia theo dòng dữ liệu
+  - Chia theo tenant hoặc vùng nghiệp vụ
+  - Ý nghĩa của gridSize trong partition()
+  - PartitionNameProvider khi restart
+  - Tránh tạo partition quá nhỏ
+  - Đảm bảo phân vùng không chồng lấn
+- level1: PartitionStep
+  level2:
+  - StepBuilder.partition với Java config
+  - Manager step và worker step
+  - Step name của partition worker
+  - Alias tên step bằng name
+  - Đăng ký handler cho partition
+  - TaskExecutorPartitionHandler mặc định
+  - gridSize kiểm soát lượng request
+  - Tổng hợp BatchStatus từ worker
+  - ExitStatus của từng partition
+  - Late binding input từ ExecutionContext
+- level1: TaskExecutorPartitionHandler
+  level2:
+  - Cấu hình TaskExecutorPartitionHandler
+  - Liên kết taskExecutor với worker step
+  - Liên kết step delegate
+  - Grid size so với pool size
+  - Grid size lớn hơn số thread
+  - Partition handler chạy local
+  - Proxy step cho remote invocation
+  - Partition handler cho thao tác file lớn
+  - Giới hạn queue của executor
+  - Xử lý worker timeout
+- level1: Step scope
+  level2:
+  - Vì sao cần step scope khi partition
+  - Bean stateful theo từng StepExecution
+  - '@StepScope cho reader partition'
+  - '@StepScope cho processor partition'
+  - '@StepScope cho writer partition'
+  - Late binding bằng ExecutionContext
+  - Placeholder input.fileName
+  - Tránh dùng singleton mutable state
+  - Cross-talk giữa worker instance
+  - Kiểm thử scope trong partition
+- level1: Remote Chunking
+  level2:
+  - Manager và remote workers
+  - Manager đọc item rồi gửi chunk
+  - Worker xử lý ChunkProcessor
+  - Thay ItemWriter bằng message writer
+  - Phân phối động chunk đến worker
+  - Load balancing qua eager consumers
+  - Điều kiện workload phù hợp remote chunking
+  - Manager bottleneck khi đọc quá chậm
+  - Đảm bảo worker dùng thành phần chuẩn
+  - Remote chunking so với partitioning
+- level1: Middleware remote chunking
+  level2:
+  - Middleware vận chuyển chunk message
+  - Durable delivery cho chunk
+  - Single consumer cho mỗi message
+  - JMS làm kênh remote chunking
+  - Message channel và broker
+  - Serializer payload của chunk
+  - Correlation giữa chunk request và reply
+  - Backlog của middleware
+  - Redelivery chunk khi worker lỗi
+  - Dead-letter chunk message
+  - Đảm bảo thứ tự nếu nghiệp vụ yêu cầu
+- level1: Remote Step
+  level2:
+  - RemoteStep trong Spring Batch 6
+  - MessagingTemplate gửi StepExecution request
+  - Remote step name và worker step name
+  - StepExecutionRequestHandler ở worker
+  - Spring Integration flow cho worker
+  - Remote step so với remote chunking
+  - Remote step so với partitioning
+  - Triển khai manager và worker độc lập
+  - Xử lý response của remote worker
+  - Tương thích phiên bản khi dùng RemoteStep
+- level1: Spring Batch Integration
+  level2:
+  - Vai trò module spring-batch-integration
+  - MessageChannelPartitionHandler
+  - Remote chunking qua Spring Integration
+  - Message-driven worker step
+  - StepExecutionRequestHandler
+  - JobLaunchingGateway và integration flow
+  - Channel adapter cho batch request
+  - Correlation header của batch message
+  - Retry message delivery
+  - Kiểm thử tích hợp Batch và Integration
+- level1: Thông điệp phân tán
+  level2:
+  - StepExecution request message
+  - StepExecution reply message
+  - Chunk request message
+  - Chunk response và acknowledgement
+  - Correlation ID của request
+  - Reply channel của worker
+  - Header chứa job và step identity
+  - Serialization ExecutionContext
+  - Version hóa message contract
+  - Không gửi dữ liệu nhạy cảm trong message
+- level1: Thiết kế worker
+  level2:
+  - Worker stateless theo partition
+  - Worker nhận input qua ExecutionContext
+  - Worker nhận chunk qua middleware
+  - Worker chỉ xử lý phạm vi được giao
+  - Worker commit độc lập theo transaction
+  - Worker timeout và heartbeat
+  - Worker restart sau process crash
+  - Worker concurrency và resource pool
+  - Worker logging theo partition name
+  - Worker health và readiness
+- level1: Chia dữ liệu
+  level2:
+  - Chia theo primary key range
+  - Chia theo hash bucket
+  - Chia theo thời gian
+  - Chia theo file hoặc object
+  - Chia theo tenant
+  - Chia theo partition vật lý
+  - Chia đều theo kích thước dữ liệu
+  - Xử lý dữ liệu mới phát sinh
+  - Snapshot phạm vi dữ liệu
+  - Tránh bỏ sót bản ghi ở biên
+  - Kiểm chứng coverage của partition
+- level1: Transaction boundary
+  level2:
+  - Transaction của chunk local
+  - Transaction trong worker thread
+  - Transaction của partition worker
+  - Transaction của remote chunk worker
+  - Commit độc lập và tính nhất quán
+  - Không giữ transaction qua network call
+  - Transaction manager theo resource
+  - Rollback và retry cùng partition
+  - Phối hợp transaction với JobRepository
+  - Outbox khi cần phát message bền vững
+- level1: Restartability
+  level2:
+  - Restart Job sau khi thất bại
+  - Restart chỉ partition lỗi
+  - Restart remote worker
+  - Restart remote chunk
+  - ExecutionContext và checkpoint
+  - JobInstance và JobExecution
+  - StepExecution status khi restart
+  - Không tạo JobInstance mới ngoài ý muốn
+  - Phân biệt restart và rerun
+  - Kiểm chứng restart trong môi trường phân tán
+- level1: JobRepository
+  level2:
+  - Metadata của JobRepository
+  - StepExecution cho từng partition
+  - Commit interval và checkpoint
+  - Optimistic locking metadata
+  - Concurrent update trên JobRepository
+  - Database schema cho batch metadata
+  - Transaction isolation của repository
+  - Connection pool cho metadata
+  - Lock contention trong job lớn
+  - Giám sát thời gian ghi metadata
+- level1: ExecutionContext
+  level2:
+  - ExecutionContext của Job
+  - ExecutionContext của Step
+  - ExecutionContext theo partition
+  - Đặt input key cho worker
+  - Persist state giữa các chunk
+  - Serial hóa giá trị context
+  - Khả năng tương thích context khi nâng cấp
+  - Không lưu object quá lớn
+  - Không ghi credential vào context
+  - Kiểm tra context sau restart
+- level1: Idempotency
+  level2:
+  - Idempotent ItemProcessor
+  - Idempotent ItemWriter
+  - Process indicator pattern
+  - Đánh dấu bản ghi đã xử lý
+  - Unique key chống ghi trùng
+  - Deduplication message
+  - Replay chunk an toàn
+  - Retry operation không tạo side effect kép
+  - Idempotency key theo partition
+  - Kiểm thử duplicate delivery
+- level1: Retry
+  level2:
+  - Retry lỗi tạm thời trong worker
+  - Retry remote call
+  - Retry deadlock database
+  - Retry limit cho từng item
+  - Retry limit cho chunk
+  - Backoff giữa các lần thử
+  - Phân biệt retryable và non-retryable
+  - Retry cùng transaction hay transaction mới
+  - Retry sau network timeout
+  - Giới hạn retry tránh bão request
+- level1: Skip và recovery
+  level2:
+  - Skip item lỗi trong chunk
+  - Skip policy theo exception
+  - Skip limit và giới hạn an toàn
+  - Skip listener ghi nhận item
+  - Recoverer sau khi retry hết lượt
+  - Dead-letter record
+  - Quarantine dữ liệu lỗi
+  - Đối soát item bị skip
+  - Không skip lỗi hạ tầng tùy tiện
+  - Khôi phục partition thất bại
+- level1: Failover
+  level2:
+  - Process crash của worker
+  - Node mất kết nối middleware
+  - Manager crash giữa lúc phân phối
+  - Broker restart và redelivery
+  - Database failover
+  - Duplicate execution sau failover
+  - Timeout và phát hiện worker chết
+  - Reassign công việc chưa hoàn tất
+  - Checkpoint trước khi mất node
+  - Runbook khôi phục sự cố phân tán
+- level1: Resource pool
+  level2:
+  - DataSource pool theo số worker
+  - Connection pool của middleware
+  - Thread pool và worker count
+  - HTTP client connection pool
+  - File descriptor limit
+  - CPU và memory limit
+  - Queue capacity của executor
+  - Giới hạn connection đến hệ thống ngoài
+  - Pool exhaustion và backpressure
+  - Đồng bộ các giới hạn tài nguyên
+- level1: Database scaling
+  level2:
+  - Parallel read từ database
+  - Partition theo primary key
+  - Partition theo range thời gian
+  - Connection pool khi nhiều worker
+  - Lock contention khi ghi
+  - Batch insert và batch update
+  - Index phục vụ phân vùng
+  - Isolation level cho workload song song
+  - Deadlock khi cập nhật đồng thời
+  - Database replica và giới hạn consistency
+  - Đo throughput database
+- level1: File scaling
+  level2:
+  - Partition theo thư mục
+  - Partition theo file
+  - File ownership giữa worker
+  - Lock file khi nhiều process
+  - Atomic move sau khi xử lý
+  - Process indicator cho file
+  - Shared filesystem và latency
+  - Đọc file lớn theo chunk
+  - Object storage và remote worker
+  - Tránh hai worker xử lý cùng file
+  - Đối soát file đầu vào đầu ra
+- level1: Thông lượng
+  level2:
+  - Chunk size và throughput
+  - Commit interval ảnh hưởng hiệu năng
+  - Read rate so với process rate
+  - Write rate và flush cost
+  - Warm-up và thời gian khởi động
+  - Latency của từng bước
+  - Throughput ổn định theo thời gian
+  - Peak load và burst
+  - Queue depth như chỉ báo bottleneck
+  - Đánh đổi latency với throughput
+- level1: Backpressure
+  level2:
+  - Vì sao cần giới hạn tốc độ phát
+  - Bounded queue cho worker
+  - Producer nhanh hơn consumer
+  - Consumer chậm và backlog
+  - Giới hạn in-flight chunk
+  - Pause khi downstream quá tải
+  - Adaptive concurrency
+  - Reject hoặc delay request mới
+  - Không dùng queue vô hạn
+  - Đo thời gian chờ trong queue
+- level1: Ordering
+  level2:
+  - Ordering trong một partition
+  - Ordering giữa các partition
+  - Partition key ổn định
+  - Writer yêu cầu thứ tự
+  - Sequence number trong message
+  - Resequencing ở worker
+  - Eventual order trong remote chunking
+  - Parallel steps không có thứ tự mặc định
+  - Đảm bảo thứ tự khi merge output
+  - Kiểm thử out-of-order completion
+- level1: Scheduling
+  level2:
+  - Lịch chạy Job theo cửa sổ batch
+  - Không chồng lấn hai JobExecution
+  - JobOperator và điều khiển runtime
+  - Launcher cho Job phân tán
+  - Chờ resource sẵn sàng trước khi chạy
+  - Graceful stop trước thời hạn
+  - Restart sau cửa sổ chạy
+  - Backfill dữ liệu theo ngày
+  - Priority giữa nhiều Job
+  - Điều phối worker theo lịch
+- level1: Metrics
+  level2:
+  - Job duration và step duration
+  - Read count và write count
+  - Skip count và retry count
+  - Commit count và rollback count
+  - Partition completion time
+  - Worker throughput
+  - Queue depth và message lag
+  - CPU memory và thread utilization
+  - Database connection usage
+  - Micrometer metrics cho Spring Batch
+  - Baseline và regression threshold
+- level1: Observability
+  level2:
+  - Log theo JobExecution ID
+  - Log theo StepExecution ID
+  - Log theo partition name
+  - Trace manager worker interaction
+  - Correlation ID trong distributed flow
+  - Dashboard tiến độ partition
+  - Alert worker không phản hồi
+  - Alert backlog tăng liên tục
+  - Audit restart và operator action
+  - Ẩn dữ liệu nghiệp vụ nhạy cảm
+- level1: Testing concurrency
+  level2:
+  - Test multi-threaded step
+  - Test parallel flow
+  - Test local partitioning
+  - Test remote partitioning
+  - Test remote chunking
+  - Test duplicate message
+  - Test worker restart
+  - Test transaction rollback
+  - Test retry backoff
+  - Test concurrent metadata update
+  - Test ordering và race condition
+- level1: Performance testing
+  level2:
+  - Load test với dữ liệu thực tế
+  - Stress test số worker
+  - Benchmark chunk size
+  - Benchmark gridSize
+  - Benchmark queue capacity
+  - Test throughput khi database chậm
+  - Test middleware latency
+  - Test network interruption
+  - Test resource exhaustion
+  - Test soak dài giờ
+  - Đọc kết quả bằng percentile latency
+- level1: Tối ưu cấu hình
+  level2:
+  - Chọn pool size theo CPU
+  - Chọn pool size theo IO
+  - Điều chỉnh chunk size
+  - Điều chỉnh gridSize
+  - Điều chỉnh commit interval
+  - Điều chỉnh fetch size
+  - Điều chỉnh queue capacity
+  - Điều chỉnh batch insert size
+  - Điều chỉnh retry backoff
+  - Tránh tối ưu dựa trên một benchmark
+- level1: Triển khai
+  level2:
+  - Manager và worker cùng một ứng dụng
+  - Manager và worker tách deployment
+  - Scale worker theo replica
+  - Container resource request limit
+  - Service discovery cho remote worker
+  - Rolling deployment không làm mất job
+  - Compatibility giữa manager và worker
+  - Version hóa schema message
+  - Blue-green cho batch worker
+  - Shutdown graceful trong container
+- level1: Bảo mật
+  level2:
+  - Credential của database worker
+  - Credential middleware và broker
+  - TLS giữa manager và worker
+  - Mutual TLS cho remote execution
+  - Secret rotation không dừng Job
+  - Phân quyền JobRepository
+  - Không ghi token vào log
+  - Không gửi PII trong chunk message
+  - Network policy giữa các thành phần
+  - Audit quyền operator
+- level1: Vận hành
+  level2:
+  - Start stop pause resume Job
+  - Kiểm tra JobExecution đang chạy
+  - Xem partition đang pending
+  - Xem worker đang lỗi
+  - Xử lý stuck execution
+  - Replay dead-letter message
+  - Rerun partition có kiểm soát
+  - Đối soát đầu vào đầu ra
+  - Runbook khi Job chậm
+  - Runbook khi metadata bị lock
+  - Postmortem sau sự cố
+- level1: Tương thích phiên bản
+  level2:
+  - API scaling thay đổi theo Spring Batch
+  - RemoteStep phụ thuộc phiên bản
+  - Spring Batch Integration tương thích
+  - Schema message giữa các phiên bản
+  - ExecutionContext khi nâng cấp
+  - JobRepository migration
+  - Thay đổi retry implementation
+  - Thay đổi transaction behavior
+  - Kiểm thử nâng cấp manager trước worker
+  - Chiến lược rollback phiên bản
+- level1: Anti-pattern
+  level2:
+  - Thêm thread mà không đo bottleneck
+  - Chia partition chồng lấn
+  - Dùng reader stateful giữa các thread
+  - Dùng queue vô hạn
+  - Không giới hạn retry
+  - Giữ transaction qua network
+  - Ghi log toàn bộ payload lớn
+  - Scale worker vượt giới hạn database
+  - Rely vào thứ tự hoàn tất ngẫu nhiên
+  - Restart bằng cách tạo JobInstance mới
+- level1: Ma trận lựa chọn
+  level2:
+  - Khi nào dùng multi-threaded Step
+  - Khi nào dùng parallel Steps
+  - Khi nào dùng local chunking
+  - Khi nào dùng local partitioning
+  - Khi nào dùng remote chunking
+  - Khi nào dùng remote partitioning
+  - Khi nào dùng RemoteStep
+  - Chọn theo CPU hay IO
+  - Chọn theo độ tin cậy middleware
+  - Chọn theo yêu cầu restart
+  - Chọn theo khả năng vận hành
+- level1: Checklist production
+  level2:
+  - Đã đo baseline trước scaling
+  - Đã kiểm tra thread safety
+  - Đã kiểm tra idempotency
+  - Đã kiểm tra partition coverage
+  - Đã kiểm tra restartability
+  - Đã kiểm tra retry và recovery
+  - Đã kiểm tra resource pool
+  - Đã thiết lập metrics và alert
+  - Đã thử network và node failure
+  - Đã có runbook vận hành
+  - Đã xác nhận SLA và throughput

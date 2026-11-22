@@ -1,0 +1,3 @@
+menuLevel1: RedisTemplate
+menuLevel2: Dùng SessionCallback để giữ các thao tác trong cùng phiên kết nối
+status: WRITTEN

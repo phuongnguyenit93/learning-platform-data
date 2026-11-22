@@ -1,0 +1,3 @@
+menuLevel1: Kiểu ứng dụng
+menuLevel2: Chọn kiểu tường minh bằng setWebApplicationType hoặc spring.main.web-application-type
+status: WRITTEN

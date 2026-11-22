@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan ngành
+  slug: computing-overview
+  index: 0
+- title: Tư duy tính toán
+  slug: computational-thinking
+  index: 1
+- title: Bài toán và đặc tả
+  slug: problems-and-specifications
+  index: 2
+- title: Thông tin và biểu diễn
+  slug: information-and-representation
+  index: 3
+- title: Logic và suy luận
+  slug: logic-and-reasoning
+  index: 4
+- title: Toán học cốt lõi
+  slug: core-mathematics
+  index: 5
+- title: Mô hình tính toán
+  slug: computational-models
+  index: 6
+- title: Nền tảng thuật toán
+  slug: algorithm-foundations
+  index: 7
+- title: Thiết kế thuật toán
+  slug: algorithm-design
+  index: 8
+- title: Độ đúng chương trình
+  slug: program-correctness
+  index: 9
+- title: Phân tích chi phí
+  slug: cost-analysis
+  index: 10
+- title: Mô hình dữ liệu
+  slug: data-models
+  index: 11
+- title: Cấu trúc dữ liệu
+  slug: data-structures
+  index: 12
+- title: Nền tảng lập trình
+  slug: programming-foundations
+  index: 13
+- title: Hàm và mô-đun
+  slug: functions-and-modules
+  index: 14
+- title: Ngôn ngữ lập trình
+  slug: programming-languages
+  index: 15
+- title: Phong cách lập trình
+  slug: programming-styles
+  index: 16
+- title: Chương trình và bộ nhớ
+  slug: programs-and-memory
+  index: 17
+- title: Máy tính và thực thi
+  slug: computers-and-execution
+  index: 18
+- title: Hệ điều hành
+  slug: operating-systems
+  index: 19
+- title: Đồng thời và song song
+  slug: concurrency-and-parallelism
+  index: 20
+- title: Mạng và Internet
+  slug: networks-and-internet
+  index: 21
+- title: Dữ liệu bền vững
+  slug: persistent-data
+  index: 22
+- title: Hệ thống phân tán
+  slug: distributed-systems
+  index: 23
+- title: An toàn thông tin
+  slug: information-security
+  index: 24
+- title: Phát triển phần mềm
+  slug: software-development
+  index: 25
+- title: Kiểm thử và gỡ lỗi
+  slug: testing-and-debugging
+  index: 26
+- title: Hiệu năng và tin cậy
+  slug: performance-and-reliability
+  index: 27
+- title: Công cụ và môi trường
+  slug: tools-and-environments
+  index: 28
+- title: Tương tác người và máy
+  slug: human-computer-interaction
+  index: 29
+- title: Trí tuệ nhân tạo
+  slug: artificial-intelligence
+  index: 30
+- title: Trách nhiệm nghề nghiệp
+  slug: professional-responsibility
+  index: 31
+- title: Thực hành nền tảng
+  slug: fundamentals-practice
+  index: 32

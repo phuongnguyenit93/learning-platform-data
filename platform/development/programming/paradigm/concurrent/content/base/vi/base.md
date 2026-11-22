@@ -1,0 +1,5 @@
+# Programming Paradigm — Concurrent Programming
+
+Lập trình đồng thời (concurrent programming) tổ chức một chương trình thành nhiều tác vụ có thể tiến triển xen kẽ, dù chúng không nhất thiết chạy cùng lúc trên nhiều lõi CPU. Cách tổ chức này hữu ích với hệ thống phục vụ nhiều yêu cầu, xử lý I/O và pipeline dữ liệu. Cần phân biệt **concurrency** với **parallelism**, cũng như hiểu rằng sự thay đổi thứ tự thực thi có thể dẫn đến race condition, lỗi quan sát bộ nhớ hoặc tác vụ không bao giờ hoàn tất.
+
+Module dành cho người đã biết lập trình căn bản, hàm, cấu trúc dữ liệu và xử lý lỗi. Bạn sẽ tìm hiểu task, thread và cơ chế lập lịch; thực hành với trạng thái dùng chung, lock, atomic và nguyên tắc happens-before; sau đó tiếp cận message passing, queue/channel, Future và async/await. Lộ trình còn bao gồm timeout, cancellation, backpressure, deadlock và các bài kiểm thử stress để phát hiện lỗi khó tái hiện. Kết thúc module, bạn có thể chọn mô hình đồng thời phù hợp với tác vụ CPU-bound hoặc I/O-bound, phối hợp tác vụ an toàn và đo hiệu quả thực tế thay vì chỉ tăng số luồng.

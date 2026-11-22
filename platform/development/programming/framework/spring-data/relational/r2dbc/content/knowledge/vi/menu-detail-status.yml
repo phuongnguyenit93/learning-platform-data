@@ -1,0 +1,3199 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data R2DBC là gì và giải quyết bài toán nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-002
+    title: Từ yêu cầu lưu trữ đến luồng truy cập dữ liệu phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-003
+    title: Phân biệt Spring Data Relational, Spring Data R2DBC và Spring R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-004
+    title: Phân biệt R2DBC, JDBC và JPA/Hibernate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-005
+    title: Các thành phần chính và mối liên hệ trong một ứng dụng R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-006
+    title: Khi nào nên dùng R2DBC và khi nào nên cân nhắc JDBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-007
+    title: 'Giới hạn phạm vi: R2DBC không cung cấp đầy đủ cơ chế ORM'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-008
+    title: Lộ trình học và các kiến thức cần chuẩn bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fundamentals
+  title: Kiến thức nền
+  childs:
+  - slug: fundamentals-001
+    title: SQL, khóa chính, khóa ngoại và ràng buộc dữ liệu cần biết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-002
+    title: Giao dịch, mức cô lập và truy cập đồng thời trong cơ sở dữ liệu quan hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-003
+    title: Reactive Streams và vai trò Publisher, Subscriber, Subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-004
+    title: Mono và Flux khi biểu diễn kết quả truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-005
+    title: Luồng lạnh, đăng ký thực thi và tính trì hoãn của truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-006
+    title: Điều tiết nhu cầu dữ liệu (backpressure) và giới hạn ở tầng cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-007
+    title: Luồng xử lý không chặn và tác hại của thao tác chặn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fundamentals-008
+    title: Reactor Context và sự khác biệt với ThreadLocal
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Đường đi từ Repository đến trình điều khiển và cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-002
+    title: R2DBC SPI và trách nhiệm của trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-003
+    title: ConnectionFactory, Connection, Statement và Result
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-004
+    title: Vai trò của DatabaseClient trong Spring R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-005
+    title: Vai trò của R2dbcEntityTemplate và R2dbcEntityOperations
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-006
+    title: Vai trò của Repository và cơ chế tạo triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-007
+    title: RelationalMappingContext, R2dbcConverter và chiến lược truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-008
+    title: Dialect và ranh giới giữa chức năng chung với khả năng riêng của cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: setup
+  title: Khởi tạo
+  childs:
+  - slug: setup-001
+    title: Chọn phiên bản Spring Boot, Spring Data và trình điều khiển tương thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-002
+    title: Khai báo dependency bằng Gradle hoặc Maven
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-003
+    title: Cấu hình kết nối tối thiểu trong application.yml
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-004
+    title: Khởi tạo ứng dụng bằng cơ chế tự cấu hình của Spring Boot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-005
+    title: Cấu hình thủ công và vai trò của AbstractR2dbcConfiguration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-006
+    title: Tổ chức các lớp cấu hình, thực thể, Repository và dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-007
+    title: Chuẩn bị cơ sở dữ liệu phát triển bằng Docker Compose
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: setup-008
+    title: Kiểm tra kết nối bằng một truy vấn phản ứng đơn giản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: connections
+  title: Kết nối
+  childs:
+  - slug: connections-001
+    title: Định dạng R2DBC URL và các thuộc tính ConnectionFactoryOptions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-002
+    title: Phân biệt URL R2DBC với URL JDBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-003
+    title: Cấu hình máy chủ, cổng, tên cơ sở dữ liệu và thông tin xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-004
+    title: Cấu hình TLS và các tùy chọn riêng của trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-005
+    title: Khám phá trình điều khiển và tạo ConnectionFactory
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-006
+    title: Mở, sử dụng và giải phóng kết nối theo vòng đời luồng phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-007
+    title: Thiết lập thời gian chờ kết nối và thời gian chờ thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-008
+    title: Phân biệt nhiều lần đăng ký với việc tái sử dụng một kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connections-009
+    title: Kiểm tra cấu hình theo môi trường và xử lý lỗi kết nối ban đầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: connection-pool
+  title: Pool kết nối
+  childs:
+  - slug: connection-pool-001
+    title: Vai trò của r2dbc-pool và điều kiện cần sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connection-pool-002
+    title: Cấu hình kích thước ban đầu và số kết nối tối đa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connection-pool-003
+    title: Thời gian chờ lấy kết nối và chính sách tạo kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connection-pool-004
+    title: Thời gian nhàn rỗi, tuổi thọ và thu hồi kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connection-pool-005
+    title: Xác thực kết nối và xử lý kết nối hỏng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connection-pool-006
+    title: Quan hệ giữa mức đồng thời của luồng và giới hạn pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connection-pool-007
+    title: Nhận diện cạn pool, rò rỉ kết nối và truy vấn giữ kết nối lâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connection-pool-008
+    title: Tính ngân sách kết nối khi ứng dụng có nhiều bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-model
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-model-001
+    title: Thiết kế thực thể lưu trữ và phân biệt với mô hình API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-002
+    title: Khái niệm aggregate trong Spring Data Relational và phạm vi hỗ trợ của R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-003
+    title: Chọn ranh giới aggregate và trách nhiệm của dịch vụ ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-004
+    title: Biểu diễn quan hệ bằng định danh thay vì giả định quản lý đồ thị đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-005
+    title: Thiết kế khóa ngoại, ràng buộc duy nhất và các bất biến dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-006
+    title: Thiết kế dữ liệu có thể rỗng và giá trị mặc định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-007
+    title: Thực thể khả biến, bất biến và Java record
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-008
+    title: Phân biệt thực thể, đối tượng giá trị, DTO và kết quả tổng hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-model-009
+    title: Thiết kế mô hình phù hợp với mẫu truy vấn thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: mapping
+  title: Ánh xạ
+  childs:
+  - slug: mapping-001
+    title: Quy ước mặc định khi ánh xạ lớp Java sang bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-002
+    title: Ánh xạ bảng và schema bằng @Table
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-003
+    title: Ánh xạ thuộc tính sang cột bằng @Column
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-004
+    title: Nhận diện khóa chính bằng @Id
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-005
+    title: Bỏ qua thuộc tính không lưu trữ bằng @Transient
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-006
+    title: Quy tắc chọn constructor và khởi tạo thực thể từ kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-007
+    title: Ánh xạ thuộc tính bất biến và cập nhật bản sao thực thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-008
+    title: Ánh xạ đối tượng lồng nhau và giới hạn theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-009
+    title: Chiến lược đặt tên và xử lý định danh có dấu ngoặc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-010
+    title: Ánh xạ kế thừa và giới hạn so với JPA
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mapping-011
+    title: Phân biệt giá trị mặc định trong Java với giá trị mặc định của cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity
+  title: Định danh
+  childs:
+  - slug: identity-001
+    title: Vai trò của định danh trong insert, update và save
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-002
+    title: Cơ chế mặc định xác định thực thể mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-003
+    title: Ảnh hưởng của kiểu nguyên thủy, kiểu bao và giá trị null đến định danh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-004
+    title: Nhận khóa do cơ sở dữ liệu sinh sau khi insert
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-005
+    title: Tự cấp UUID hoặc định danh trước khi lưu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-006
+    title: Điều khiển trạng thái mới bằng Persistable
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-007
+    title: Quan hệ giữa thuộc tính @Version và việc xác định thực thể mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-008
+    title: 'Khóa ghép: kiểm tra hỗ trợ theo phiên bản và lựa chọn mô hình thay thế'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-009
+    title: Phân biệt thực thể được truyền vào với thực thể được trả về sau khi lưu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: type-conversion
+  title: Chuyển đổi kiểu
+  childs:
+  - slug: type-conversion-001
+    title: Các kiểu dữ liệu Java và kiểu cột được hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-002
+    title: Chuyển đổi chiều đọc và chiều ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-003
+    title: Đăng ký converter tùy chỉnh bằng R2dbcCustomConversions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-004
+    title: Ánh xạ enum theo tên, mã nghiệp vụ hoặc kiểu riêng của cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-005
+    title: Ánh xạ UUID, giá trị tiền tệ và kiểu số chính xác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-006
+    title: Ánh xạ ngày giờ, múi giờ và độ chính xác thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-007
+    title: Ánh xạ JSON, mảng và kiểu dữ liệu đặc thù trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-008
+    title: Xử lý dữ liệu nhị phân, Blob, Clob và vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-conversion-009
+    title: Kiểm tra chuyển đổi hai chiều, dữ liệu null và lỗi không tương thích kiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: entity-operations
+  title: Thao tác thực thể
+  childs:
+  - slug: entity-operations-001
+    title: Khởi tạo và sử dụng R2dbcEntityTemplate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-002
+    title: Insert thực thể và nhận kết quả sau khi lưu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-003
+    title: Select một thực thể, nhiều thực thể và trường hợp không có kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-004
+    title: Update thực thể và xử lý bản ghi không tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-005
+    title: Delete theo thực thể hoặc điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-006
+    title: Phân biệt save của Repository với insert và update của Template
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-007
+    title: Truy vấn exists, count và lựa chọn phép toán phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-008
+    title: Chọn bảng đích và kiểu kết quả cho từng thao tác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-009
+    title: Sử dụng giao diện thao tác theo từng bước để biểu đạt truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-operations-010
+    title: Phân biệt thay đổi thực thể trong bộ nhớ với ghi thay đổi xuống cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dynamic-queries
+  title: Truy vấn động
+  childs:
+  - slug: dynamic-queries-001
+    title: Xây dựng Query, Criteria và Update
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-002
+    title: Kết hợp điều kiện AND, OR và nhóm điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-003
+    title: Điều kiện so sánh, tập giá trị và khoảng giá trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-004
+    title: Điều kiện null, chuỗi rỗng và tìm kiếm theo mẫu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-005
+    title: Tạo điều kiện từ bộ lọc tùy chọn mà không mở rộng truy vấn ngoài ý muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-006
+    title: Chọn cột, sắp xếp và giới hạn kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-007
+    title: Cập nhật chọn lọc một số cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-008
+    title: Xóa theo điều kiện và kiểm soát phạm vi tác động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamic-queries-009
+    title: Lựa chọn giữa truy vấn động của Template và SQL tự viết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repository
+  title: Repository
+  childs:
+  - slug: repository-001
+    title: Khai báo ReactiveCrudRepository và R2dbcRepository
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-002
+    title: Quét Repository và liên kết với hạ tầng R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-003
+    title: Kiểu trả về Mono, Flux và hợp đồng không có kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-004
+    title: Các thao tác CRUD và ý nghĩa kết quả trả về
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-005
+    title: saveAll, deleteAll và các giới hạn khi xử lý nhiều bản ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-006
+    title: Suy diễn truy vấn từ tên phương thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-007
+    title: Kết hợp điều kiện, sắp xếp tĩnh và giới hạn từ tên phương thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-008
+    title: Query by Example và cấu hình ExampleMatcher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-009
+    title: Giới hạn của Query by Example và lựa chọn truy vấn khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-010
+    title: Mở rộng Repository bằng fragment và triển khai tùy chỉnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: declared-queries
+  title: Truy vấn khai báo
+  childs:
+  - slug: declared-queries-001
+    title: Khai báo SQL bằng @Query
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-002
+    title: Tham số có tên, tham số theo vị trí và ký hiệu bind của trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-003
+    title: Liên kết tham số bằng @Param
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-004
+    title: Biểu thức SpEL trong truy vấn và ranh giới dữ liệu đáng tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-005
+    title: Ánh xạ tên cột, bí danh và thuộc tính kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-006
+    title: Truy vấn cập nhật hoặc xóa bằng @Modifying
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-007
+    title: Kiểu trả về và số hàng bị tác động của truy vấn thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-008
+    title: Phân biệt truy vấn cập nhật trực tiếp với lưu thực thể qua vòng đời ánh xạ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-009
+    title: Truy vấn IN, tập tham số rỗng và giới hạn số tham số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-010
+    title: Truy vấn tổng hợp, GROUP BY và dữ liệu thống kê
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: declared-queries-011
+    title: Tổ chức SQL phức tạp và kiểm tra khả năng di chuyển giữa hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: query-results
+  title: Kết quả truy vấn
+  childs:
+  - slug: query-results-001
+    title: Chọn thực thể đầy đủ hay chỉ các cột cần dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-002
+    title: Phép chiếu dựa trên interface và điều kiện hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-003
+    title: Phép chiếu dựa trên DTO hoặc Java record
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-004
+    title: Phép chiếu động và lựa chọn kiểu kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-005
+    title: Ánh xạ kết quả join hoặc tổng hợp vào mô hình đọc riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-006
+    title: Phân biệt cột bị bỏ qua, giá trị null và thuộc tính không được ánh xạ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-007
+    title: Giữ đúng hợp đồng một kết quả và xử lý nhiều kết quả ngoài dự kiến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-008
+    title: Tổ chức mô hình đọc khi truy vấn không tương ứng với một bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-results-009
+    title: Đánh giá tác động của phép chiếu đến SQL và chi phí ánh xạ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-relationships
+  title: Quan hệ dữ liệu
+  childs:
+  - slug: data-relationships-001
+    title: Biểu diễn quan hệ một-một bằng khóa ngoại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-002
+    title: Đọc và ghi quan hệ một-nhiều một cách tường minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-003
+    title: Mô hình bảng liên kết cho quan hệ nhiều-nhiều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-004
+    title: Truy vấn join và ghép kết quả thành cấu trúc dữ liệu mong muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-005
+    title: Phân biệt join ở SQL với kết hợp nhiều Publisher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-006
+    title: Nhận diện và xử lý truy vấn N+1
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-007
+    title: Đọc tập định danh rồi truy vấn theo nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-008
+    title: Thứ tự ghi, xóa và trách nhiệm duy trì ràng buộc tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-009
+    title: Không giả định lazy loading, cascade hoặc dirty checking như JPA
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-relationships-010
+    title: Chọn mô hình đọc riêng khi đồ thị dữ liệu quá phức tạp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pagination
+  title: Phân trang
+  childs:
+  - slug: pagination-001
+    title: Sắp xếp ổn định và thêm khóa phân biệt khi giá trị trùng nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-002
+    title: Truy vấn theo Pageable, Sort và giới hạn của từng API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-003
+    title: Phân trang offset và chi phí khi vị trí bắt đầu lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-004
+    title: Phân trang theo khóa tiếp nối và điều kiện áp dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-005
+    title: Tách truy vấn lấy dữ liệu với truy vấn đếm tổng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-006
+    title: Thiết kế kết quả phân trang khi không cần tổng số bản ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-007
+    title: Bảo đảm tính nhất quán giữa trang dữ liệu và tổng đếm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-008
+    title: Phân trang với bộ lọc động, join và truy vấn tổng hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pagination-009
+    title: Xử lý thay đổi dữ liệu trong lúc người dùng duyệt nhiều trang
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: direct-sql
+  title: SQL trực tiếp
+  childs:
+  - slug: direct-sql-001
+    title: Tạo truy vấn bằng DatabaseClient.sql
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-002
+    title: Bind tham số có giá trị và bindNull
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-003
+    title: Đọc Row, RowMetadata và ánh xạ kết quả thủ công
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-004
+    title: Phân biệt one, first, all và kết quả rỗng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-005
+    title: Nhận số hàng thay đổi bằng rowsUpdated
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-006
+    title: Yêu cầu cột được sinh từ thao tác ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-007
+    title: Tùy chỉnh Statement và các tùy chọn được trình điều khiển hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-008
+    title: Sử dụng inConnection và inConnectionMany khi cần truy cập Connection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-009
+    title: Phân biệt trách nhiệm của DatabaseClient với R2dbcEntityTemplate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: direct-sql-010
+    title: Sử dụng R2DBC SPI trực tiếp và nghĩa vụ quản lý kết quả, tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: batch-writes
+  title: Ghi nhiều bản ghi
+  childs:
+  - slug: batch-writes-001
+    title: Phân biệt saveAll với thao tác SQL theo lô
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-002
+    title: Nhiều bộ tham số trên Statement và giới hạn trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-003
+    title: Batch ở R2DBC SPI và khác biệt với Statement có bind
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-004
+    title: SQL chèn nhiều hàng và giới hạn của từng hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-005
+    title: Chia dữ liệu thành nhóm theo số hàng hoặc số tham số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-006
+    title: Kiểm soát thứ tự ghi và mức đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-007
+    title: Nhận định danh sinh ra và xử lý lỗi của từng nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-008
+    title: Chọn giao dịch cho toàn bộ dữ liệu hay từng nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-writes-009
+    title: Upsert bằng SQL đặc thù và kiểm tra tính lũy đẳng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: ReactiveTransactionManager và vai trò của R2dbcTransactionManager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-002
+    title: Cấu hình TransactionalOperator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-003
+    title: Khai báo @Transactional trên phương thức trả về Publisher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-004
+    title: Thời điểm bắt đầu, commit và rollback theo đăng ký thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-005
+    title: Liên kết kết nối giao dịch qua Reactor Context
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-006
+    title: Ranh giới giao dịch qua proxy và vấn đề tự gọi phương thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-007
+    title: Quy tắc rollback theo loại lỗi và cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-008
+    title: Propagation, mức cô lập và giới hạn trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-009
+    title: Savepoint, giao dịch lồng nhau và kiểm tra khả năng hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-010
+    title: Hủy đăng ký, thời gian chờ và tác động đến giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-011
+    title: Tránh tác vụ song song không phù hợp trên cùng kết nối giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-012
+    title: Phân biệt giao dịch R2DBC với giao dịch JDBC trong cùng ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: consistency-data
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: consistency-data-001
+    title: Các hiện tượng mất cập nhật, đọc không lặp lại và đọc bóng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-002
+    title: Chọn mức cô lập theo bất biến nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-003
+    title: Khóa lạc quan bằng @Version
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-004
+    title: Xử lý xung đột phiên bản khi cập nhật hoặc xóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-005
+    title: Kiểm soát đồng thời bằng điều kiện cập nhật và số hàng bị tác động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-006
+    title: Khóa bi quan bằng SQL và phạm vi hỗ trợ của cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-007
+    title: Ràng buộc duy nhất làm chốt bảo vệ khi nhiều yêu cầu cùng ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-008
+    title: Thiết kế thao tác lũy đẳng để chịu được yêu cầu lặp lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-009
+    title: Giới hạn giao dịch cục bộ khi liên quan nhiều tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-data-010
+    title: Outbox và bù trừ khi cần phối hợp cơ sở dữ liệu với hệ thống khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-flow
+  title: Luồng thực thi
+  childs:
+  - slug: execution-flow-001
+    title: Dùng map, flatMap và concatMap quanh thao tác truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-002
+    title: Dùng then, thenMany và delayUntil để diễn đạt quan hệ phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-003
+    title: Dùng switchIfEmpty và defer cho nhánh dữ liệu không tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-004
+    title: Lựa chọn mức đồng thời để bảo vệ pool kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-005
+    title: Tránh subscribe thủ công bên trong tầng Repository và dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-006
+    title: Tránh block, toFuture().get và các thao tác chặn trên luồng xử lý sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-007
+    title: Tách tác vụ chặn không thể tránh và đánh giá lại ranh giới giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-008
+    title: Ảnh hưởng của cache, share và đăng ký nhiều lần đến truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-009
+    title: Giữ thứ tự kết quả khi kết hợp nhiều thao tác bất đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-010
+    title: Xử lý hủy đăng ký và giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-011
+    title: Không dùng null để biểu diễn một phần tử trong luồng phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Phân loại lỗi kết nối, cú pháp, ánh xạ và ràng buộc dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-002
+    title: Cơ chế chuyển lỗi sang hệ phân cấp DataAccessException
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-003
+    title: Phân biệt không có dữ liệu với truy vấn thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-004
+    title: Sử dụng onErrorMap và onErrorResume theo ý nghĩa nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-005
+    title: Retry có giới hạn, khoảng lùi và điều kiện lỗi được phép thử lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-006
+    title: Đặt retry đúng phạm vi để tạo giao dịch mới khi cần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-007
+    title: Nguy cơ ghi trùng khi mất kết nối sau khi cơ sở dữ liệu đã ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-008
+    title: Kết hợp thời gian chờ ở ứng dụng, pool và cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-handling-009
+    title: Giữ nguyên nguyên nhân lỗi và tránh ghi log thông tin nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: entity-lifecycle
+  title: Vòng đời thực thể
+  childs:
+  - slug: entity-lifecycle-001
+    title: Các giai đoạn chuyển đổi, lưu và đọc thực thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-lifecycle-002
+    title: EntityCallback đồng bộ và callback phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-lifecycle-003
+    title: Chuẩn bị dữ liệu trước chuyển đổi bằng BeforeConvertCallback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-lifecycle-004
+    title: Can thiệp dữ liệu trước khi lưu và kiểm soát thứ tự callback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-lifecycle-005
+    title: Xử lý thực thể sau đọc hoặc sau lưu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-lifecycle-006
+    title: Trả về thực thể mới trong callback khi mô hình bất biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-lifecycle-007
+    title: Phạm vi callback với Repository, Template và SQL trực tiếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entity-lifecycle-008
+    title: Tránh tác dụng phụ, truy vấn lặp và phụ thuộc vòng trong callback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: auditing
+  title: Auditing
+  childs:
+  - slug: auditing-001
+    title: Bật auditing phản ứng bằng @EnableR2dbcAuditing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-002
+    title: Ánh xạ thời điểm tạo và cập nhật dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-003
+    title: Ánh xạ người tạo và người cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-004
+    title: Cung cấp người dùng hiện tại bằng ReactiveAuditorAware
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-005
+    title: Lấy danh tính từ ngữ cảnh bảo mật phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-006
+    title: Chọn nguồn thời gian, múi giờ và kiểm thử thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-007
+    title: Phân biệt trường auditing với nhật ký thay đổi nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-008
+    title: Giới hạn auditing khi cập nhật trực tiếp bằng SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: schema
+  title: Schema
+  childs:
+  - slug: schema-001
+    title: Tạo schema ban đầu cho môi trường phát triển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-002
+    title: Spring Boot SQL initialization và thứ tự khởi tạo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-003
+    title: Quản lý phiên bản schema bằng Flyway hoặc Liquibase
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-004
+    title: Tách kết nối JDBC cho công cụ migration khi cần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-005
+    title: Phối hợp migration với khởi động ứng dụng R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-006
+    title: Thiết kế bảng, chỉ mục và ràng buộc phù hợp truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-007
+    title: Mặc định, cột được sinh và tác động đến ánh xạ thực thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-008
+    title: Thay đổi schema tương thích khi nhiều phiên bản ứng dụng cùng chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-009
+    title: Chuẩn bị dữ liệu mẫu và tách biệt dữ liệu kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multiple-databases
+  title: Nhiều cơ sở dữ liệu
+  childs:
+  - slug: multiple-databases-001
+    title: Khai báo nhiều ConnectionFactory và đặt tên bean rõ ràng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-002
+    title: Gắn từng nhóm Repository với đúng R2dbcEntityOperations
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-003
+    title: Tách Template, DatabaseClient và bộ ánh xạ khi cần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-004
+    title: Chọn đúng transaction manager cho từng nguồn dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-005
+    title: Định tuyến kết nối dựa trên Reactor Context
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-006
+    title: Phân biệt nhiều cơ sở dữ liệu với nhiều schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-007
+    title: Thiết kế đa khách thuê và bảo vệ ranh giới dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-008
+    title: Tách truy vấn đọc và ghi với lưu ý về độ trễ bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multiple-databases-009
+    title: Giới hạn giao dịch khi định tuyến hoặc truy cập nhiều nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database-dialect-differences
+  title: Khác biệt hệ quản trị
+  childs:
+  - slug: database-dialect-differences-001
+    title: Đánh giá mức hỗ trợ R2DBC của hệ quản trị và trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-002
+    title: 'PostgreSQL: định danh sinh tự động, JSON và mảng'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-003
+    title: 'MySQL/MariaDB: trình điều khiển, khóa sinh và khác biệt cú pháp'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-004
+    title: 'SQL Server: phân trang, kiểu dữ liệu và kết quả sinh ra'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-005
+    title: 'H2: lợi ích thử nghiệm và khác biệt với cơ sở dữ liệu thật'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-006
+    title: Kiểm tra đặc tính Oracle và các trình điều khiển khác trước khi sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-007
+    title: Khác biệt ký hiệu bind, dấu ngoặc định danh và từ khóa dành riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-008
+    title: Khác biệt về khóa ghép, upsert, batch và savepoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-dialect-differences-009
+    title: Lập kiểm thử tương thích thay vì giả định cùng một SQL chạy mọi nơi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: webflux-integration
+  title: Tích hợp WebFlux
+  childs:
+  - slug: webflux-integration-001
+    title: Luồng yêu cầu HTTP từ Controller qua dịch vụ đến Repository
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-002
+    title: Thiết kế DTO, kiểm tra đầu vào và chuyển đổi sang mô hình lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-003
+    title: Chọn Mono hoặc Flux theo hợp đồng API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-004
+    title: Biểu diễn không tìm thấy dữ liệu và xung đột cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-005
+    title: Đặt ranh giới giao dịch ở tầng dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-006
+    title: Truyền danh tính, mã theo dõi và khách thuê qua Reactor Context
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-007
+    title: Phân biệt streaming HTTP với streaming kết quả cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-008
+    title: Nguy cơ giữ kết nối lâu khi phía nhận tiêu thụ dữ liệu chậm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webflux-integration-009
+    title: Phối hợp lời gọi HTTP hoặc sự kiện ngoài với thao tác lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân biệt kiểm thử đơn vị với kiểm thử tích hợp truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-002
+    title: Kiểm tra kết quả, hoàn thành và lỗi bằng StepVerifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-003
+    title: Dùng TestPublisher hoặc mock ở đúng ranh giới cần kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-004
+    title: Kiểm thử Repository bằng @DataR2dbcTest
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-005
+    title: Dùng Testcontainers với đúng hệ quản trị mục tiêu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-006
+    title: Cung cấp thuộc tính kết nối động cho môi trường kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-007
+    title: Khởi tạo schema và dữ liệu kiểm thử có thể lặp lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-008
+    title: Kiểm thử rollback mà không giả định cơ chế giao dịch của JDBC test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-009
+    title: Kiểm thử mapping, converter, callback và auditing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-010
+    title: Kiểm thử xung đột đồng thời, khóa lạc quan và tính lũy đẳng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-011
+    title: Kiểm thử thời gian chờ, retry, hủy đăng ký và giải phóng kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-012
+    title: Kiểm thử API với WebTestClient và cơ sở dữ liệu thật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Xác định độ trễ, thông lượng và số kết nối làm mục tiêu đo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-002
+    title: Đọc kế hoạch thực thi SQL và lựa chọn chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-003
+    title: Giảm số truy vấn, số cột và số bản ghi phải truyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-004
+    title: Phân tích N+1, truy vấn đếm và phân trang offset sâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-005
+    title: Tối ưu mức đồng thời cùng kích thước pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-006
+    title: Điều chỉnh kích thước lấy dữ liệu khi trình điều khiển hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-007
+    title: Tránh gom toàn bộ Flux lớn vào bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-008
+    title: Đánh giá thời gian giữ giao dịch và kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-009
+    title: So sánh ghi từng hàng, ghi theo nhóm và SQL nhiều hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-010
+    title: Thiết kế cache cùng chiến lược vô hiệu hóa dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-011
+    title: Đo tải thực tế và tránh suy luận rằng không chặn luôn nhanh hơn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability
+  title: Quan sát
+  childs:
+  - slug: observability-001
+    title: Ghi log SQL và tham số theo môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-002
+    title: 'Quan sát pool: kết nối đang dùng, nhàn rỗi và yêu cầu chờ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-003
+    title: Đo thời gian truy vấn, thời gian chờ pool và thời gian giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-004
+    title: Tích hợp Micrometer và công cụ quan sát tương thích phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-005
+    title: Liên kết dấu vết HTTP với thao tác truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-006
+    title: Truyền mã theo dõi qua ngữ cảnh phản ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-007
+    title: Phân biệt health check, readiness và khả năng phục vụ tải thật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-008
+    title: Thiết kế cảnh báo lỗi, cạn pool và truy vấn chậm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Bind tham số để bảo vệ giá trị đầu vào khỏi SQL injection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-002
+    title: Kiểm soát tên bảng, tên cột và hướng sắp xếp động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-003
+    title: Quản lý thông tin xác thực bằng cấu hình và kho bí mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-004
+    title: Phân quyền tài khoản cơ sở dữ liệu theo nhu cầu tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-005
+    title: Bảo vệ dữ liệu trên đường truyền bằng TLS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-006
+    title: Kiểm soát quyền truy cập bản ghi và ranh giới khách thuê
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-007
+    title: Che dữ liệu nhạy cảm trong log SQL và dấu vết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-008
+    title: Giới hạn kích thước truy vấn, số bản ghi và thời gian xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Tách cấu hình phát triển, kiểm thử và production
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-002
+    title: Phối hợp khởi động ứng dụng, migration và kiểm tra sẵn sàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-003
+    title: Tính giới hạn pool theo tài nguyên và số bản sao ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-004
+    title: Đóng ứng dụng có kiểm soát và chờ thao tác đang thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-005
+    title: Xử lý cơ sở dữ liệu khởi động lại hoặc chuyển vai trò
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-006
+    title: Kiểm soát thời gian chờ xuyên suốt HTTP, pool và truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-007
+    title: Phối hợp thay đổi schema với phát hành liên tục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-008
+    title: Kiểm tra cấu hình TLS, múi giờ và encoding khi triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration
+  title: Chuyển đổi
+  childs:
+  - slug: migration-001
+    title: Đánh giá ứng dụng JDBC/JPA trước khi chuyển sang R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-002
+    title: Thay thế giả định ORM bằng truy vấn và ranh giới ghi tường minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-003
+    title: Chuyển hợp đồng dịch vụ từ giá trị trực tiếp sang Publisher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-004
+    title: Phân tách giao dịch và tài nguyên khi JDBC cùng tồn tại với R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-005
+    title: Di chuyển từng chức năng và kiểm chứng hành vi tương đương
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-006
+    title: Đọc release notes và đối chiếu ma trận tương thích trước khi nâng cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-007
+    title: Kiểm tra thay đổi ở Spring Data Relational, Spring R2DBC và trình điều khiển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-008
+    title: Lập bộ kiểm thử hồi quy cho SQL, mapping, giao dịch và hiệu năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xây dựng chức năng quản lý dữ liệu từ schema đến API WebFlux
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-002
+    title: Triển khai bộ lọc động, sắp xếp và phân trang ổn định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-003
+    title: Đọc quan hệ nhiều bảng bằng mô hình kết quả riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-004
+    title: Xây dựng thao tác chuyển tiền với giao dịch và bất biến dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-005
+    title: Xử lý cập nhật đồng thời bằng @Version và phản hồi xung đột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-006
+    title: Nhập dữ liệu theo nhóm với giới hạn đồng thời và chính sách lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-007
+    title: Bổ sung auditing, phân quyền bản ghi và bảo vệ thông tin nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-008
+    title: Viết kiểm thử tích hợp bằng Testcontainers và StepVerifier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-009
+    title: Đo tải, xác định điểm nghẽn và đánh giá lựa chọn R2DBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Không tìm thấy trình điều khiển hoặc không tạo được ConnectionFactory
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-002
+    title: Sai bean, sai nhóm Repository hoặc sai transaction manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-003
+    title: Lỗi bind tham số, cú pháp SQL và định danh có dấu ngoặc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-004
+    title: Lỗi chuyển đổi kiểu, constructor và thuộc tính không được ánh xạ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-005
+    title: save thực hiện insert hoặc update khác dự kiến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-006
+    title: Truy vấn không chạy hoặc chạy nhiều lần do cách đăng ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-007
+    title: Giao dịch không có hiệu lực do proxy, context hoặc ranh giới luồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-008
+    title: Xung đột phiên bản, vi phạm ràng buộc và số hàng cập nhật bằng không
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-009
+    title: Cạn pool, kết nối bị giữ lâu và lỗi khi hủy luồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-010
+    title: Kết quả kiểm thử H2 khác cơ sở dữ liệu production
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: diagnostics-011
+    title: Checklist kiểm chứng cấu hình, SQL và luồng thực thi trước khi kết luận lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

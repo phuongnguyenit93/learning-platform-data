@@ -1,0 +1,13 @@
+references:
+  - title: "Spring Modulith — Documenting Application Modules"
+    url: "https://docs.spring.io/spring-modulith/reference/documentation.html"
+    description: "Tài liệu chính thức về Documenter, sơ đồ C4/UML, Module Canvas và tài liệu tổng hợp."
+  - title: "Spring Modulith — Production-ready Features"
+    url: "https://docs.spring.io/spring-modulith/reference/production-ready.html"
+    description: "Hướng dẫn Actuator, Insight starter, tracing, spans và metric sự kiện."
+  - title: "Spring Modulith — Fundamentals"
+    url: "https://docs.spring.io/spring-modulith/reference/fundamentals.html"
+    description: "Giải thích ApplicationModules, ranh giới module, API công khai và phụ thuộc."
+  - title: "Spring Boot — Observability"
+    url: "https://docs.spring.io/spring-boot/reference/actuator/observability.html"
+    description: "Tài liệu Micrometer Observation, metrics, traces và cấu hình xuất tín hiệu."

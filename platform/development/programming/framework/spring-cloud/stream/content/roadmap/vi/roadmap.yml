@@ -1,0 +1,57 @@
+roadmap:
+- id: event-driven-binder
+  title: Event-driven & Binder
+  purpose: Hiểu cách Spring Cloud Stream nối các dịch vụ qua broker mà không gắn chặt logic nghiệp vụ vào một hệ thống messaging.
+  objectives:
+  - Phân biệt event, message và message-driven application
+  - Giải thích vai trò destination, binding và binder
+  - Nhận diện các tình huống pub/sub và xử lý bất đồng bộ
+- id: functional-programming-model
+  title: Functional Programming Model
+  purpose: Xây dựng nguồn phát, bộ xử lý và bộ nhận sự kiện bằng các functional bean của Spring.
+  objectives:
+  - Định nghĩa Supplier, Function và Consumer dưới dạng @Bean
+  - Chọn function bằng spring.cloud.function.definition
+  - Nhận diện tên binding theo quy ước -in-0 và -out-0
+- id: kafka-rabbitmq-bindings
+  title: Kafka, RabbitMQ & Bindings
+  purpose: Kết nối ứng dụng với message broker và cấu hình tuyến dữ liệu một cách tường minh.
+  objectives:
+  - Thêm đúng starter/binder cho Kafka hoặc RabbitMQ
+  - Cấu hình destination, binder và consumer group
+  - Phân biệt thuộc tính binding chung và riêng từng broker
+- id: payload-header-streambridge
+  title: Payload, Header & StreamBridge
+  purpose: Thiết kế hợp đồng trao đổi message để ứng dụng gửi và nhận dữ liệu đúng cấu trúc.
+  objectives:
+  - Sử dụng payload, Message headers và contentType
+  - Phân biệt message conversion với native serialization
+  - Gửi thông điệp từ nguồn ngoài bằng StreamBridge
+- id: consumer-groups-partitioning
+  title: Consumer Groups & Partitioning
+  purpose: Phân phối tải xử lý giữa các instance trong khi giữ các thông điệp liên quan trên cùng partition khi cần.
+  objectives:
+  - Phân biệt pub/sub giữa nhóm và competing consumers trong nhóm
+  - Chọn partition key, partition count và concurrency
+  - Đánh giá ordering, rebalancing và khả năng mở rộng
+- id: retry-dlq-idempotency
+  title: Retry, DLQ & Idempotency
+  purpose: Chủ động xử lý lỗi hoặc thông điệp lặp lại để tránh mất dữ liệu và tác dụng phụ không mong muốn.
+  objectives:
+  - Cấu hình retry và giới hạn số lần xử lý lại
+  - Dùng dead-letter queue/topic theo đặc điểm binder
+  - Thiết kế consumer idempotent và xử lý poison message
+- id: test-binder-integration-tests
+  title: Test Binder & Integration Tests
+  purpose: Xác minh luồng dữ liệu mà không cần broker thật, sau đó kiểm tra tương tác trong môi trường tích hợp.
+  objectives:
+  - Dùng @EnableTestBinder và spring-cloud-stream-test-binder
+  - Gửi và nhận message bằng InputDestination/OutputDestination
+  - Thử payload, lỗi, group và binder thật khi cần
+- id: observability-van-hanh
+  title: Observability & Vận hành
+  purpose: Đo lường khả năng xử lý sự kiện và phát hiện bottleneck hoặc message thất bại sau triển khai.
+  objectives:
+  - Thu thập metrics, logs và traces bằng Micrometer
+  - Theo dõi consumer lag, throughput và lỗi/DLQ theo broker
+  - Thiết lập health checks, cảnh báo và kế hoạch mở rộng

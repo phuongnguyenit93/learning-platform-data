@@ -1,0 +1,97 @@
+menu:
+- title: Bản đồ bảo vệ
+  slug: protection-overview
+  index: 0
+- title: Nền tảng trình duyệt
+  slug: browser-foundations
+  index: 1
+- title: Kiến trúc áp dụng
+  slug: applied-security-architecture
+  index: 2
+- title: Cấu hình và phiên bản
+  slug: configuration-and-versions
+  index: 3
+- title: Cơ chế CSRF
+  slug: csrf-mechanism
+  index: 4
+- title: CSRF trên Servlet
+  slug: servlet-csrf
+  index: 5
+- title: CSRF và biểu mẫu
+  slug: csrf-and-forms
+  index: 6
+- title: CSRF cho SPA và API
+  slug: csrf-for-spa-and-api
+  index: 7
+- title: CSRF trên Reactive
+  slug: reactive-csrf
+  index: 8
+- title: Phạm vi kiểm tra CSRF
+  slug: csrf-scope
+  index: 9
+- title: CORS
+  slug: cors
+  index: 10
+- title: Kiến trúc HTTP header
+  slug: http-header-architecture
+  index: 11
+- title: Bộ nhớ đệm và MIME
+  slug: caching-and-mime
+  index: 12
+- title: Chống nhúng trang
+  slug: clickjacking-protection
+  index: 13
+- title: Chính sách nội dung CSP
+  slug: content-security-policy
+  index: 14
+- title: Quyền và cô lập trình duyệt
+  slug: browser-permissions-and-isolation
+  index: 15
+- title: HTTPS và HSTS
+  slug: https-and-hsts
+  index: 16
+- title: Proxy và nguồn gốc
+  slug: proxy-and-origins
+  index: 17
+- title: Firewall trên Servlet
+  slug: servlet-firewall
+  index: 18
+- title: Firewall trên Reactive
+  slug: reactive-firewall
+  index: 19
+- title: Session và cookie
+  slug: sessions-and-cookies
+  index: 20
+- title: Đăng nhập và đăng xuất
+  slug: login-and-logout
+  index: 21
+- title: WebSocket và STOMP
+  slug: websocket-and-stomp
+  index: 22
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 23
+- title: Ranh giới bảo vệ
+  slug: protection-boundaries
+  index: 24
+- title: Kiểm thử Servlet
+  slug: servlet-testing
+  index: 25
+- title: Kiểm thử Reactive
+  slug: reactive-testing
+  index: 26
+- title: Kiểm thử trình duyệt
+  slug: browser-testing
+  index: 27
+- title: Chẩn đoán lỗi
+  slug: error-diagnostics
+  index: 28
+- title: Vận hành và giám sát
+  slug: operations-and-monitoring
+  index: 29
+- title: Nâng cấp và tương thích
+  slug: upgrades-and-compatibility
+  index: 30
+- title: Thực hành tổng hợp
+  slug: integrated-protection-practice
+  index: 31

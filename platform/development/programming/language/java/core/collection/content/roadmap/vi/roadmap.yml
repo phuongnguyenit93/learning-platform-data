@@ -1,0 +1,65 @@
+roadmap:
+- id: tong-quan-collections
+  title: Tổng quan Collections
+  purpose: Hiểu cách Java tổ chức nhiều đối tượng bằng các giao diện và lớp triển khai chuẩn.
+  objectives:
+  - Phân biệt Collection, Collections và Map
+  - Nhận biết List, Set, Queue, Deque và Map
+  - Dùng kiểu tổng quát để bảo đảm an toàn kiểu
+- id: thao-tac-va-duyet
+  title: Thao tác và duyệt
+  purpose: Thực hiện thao tác cơ bản và duyệt phần tử đúng quy tắc.
+  objectives:
+  - Thêm, tìm, xóa và kiểm tra kích thước
+  - Duyệt bằng for-each và Iterator
+  - Xóa khi duyệt bằng thao tác phù hợp
+- id: danh-sach-list
+  title: Danh sách List
+  purpose: Quản lý dãy phần tử có thứ tự và cho phép trùng lặp.
+  objectives:
+  - Truy cập và cập nhật theo chỉ số
+  - So sánh ArrayList với LinkedList
+  - Nhận biết quan hệ giữa subList và danh sách gốc
+- id: tap-hop-set
+  title: Tập hợp Set
+  purpose: Quản lý phần tử không trùng và chọn cách duy trì thứ tự.
+  objectives:
+  - So sánh HashSet, LinkedHashSet và TreeSet
+  - Áp dụng đúng equals, hashCode và phép so sánh
+  - Thực hiện hợp, giao và hiệu tập hợp
+- id: anh-xa-map
+  title: Ánh xạ Map
+  purpose: Tổ chức dữ liệu theo khóa để tra cứu và cập nhật giá trị.
+  objectives:
+  - So sánh HashMap, LinkedHashMap và TreeMap
+  - Duyệt keySet, values và entrySet
+  - Dùng getOrDefault, compute và merge
+- id: hang-doi-va-deque
+  title: Hàng đợi và Deque
+  purpose: Chọn cấu trúc cho xử lý theo hàng đợi, ngăn xếp hoặc độ ưu tiên.
+  objectives:
+  - Dùng offer, poll và peek
+  - Dùng ArrayDeque cho FIFO và LIFO
+  - Phân biệt thứ tự ưu tiên với thứ tự duyệt PriorityQueue
+- id: thu-tu-va-thuat-toan
+  title: Thứ tự và thuật toán
+  purpose: Kiểm soát thứ tự và áp dụng thuật toán chuẩn trên tập hợp.
+  objectives:
+  - Phân biệt Comparable với Comparator
+  - Sắp xếp và tìm kiếm với tiền điều kiện phù hợp
+  - Nhận biết SequencedCollection, SequencedSet và SequencedMap của Java 21
+- id: kha-nang-thay-doi
+  title: Khả năng thay đổi
+  purpose: Phân biệt bản sao, khung nhìn và tập hợp không cho sửa để tránh thay đổi ngoài ý muốn.
+  objectives:
+  - Phân biệt List.of, copyOf và unmodifiableList
+  - Nhận biết danh sách kích thước cố định từ Arrays.asList
+  - Phân biệt không cho sửa cấu trúc với phần tử bất biến
+- id: lua-chon-va-thuc-hanh
+  title: Lựa chọn và thực hành
+  purpose: Chọn cấu trúc theo yêu cầu dữ liệu, chi phí thao tác và cách truy cập.
+  objectives:
+  - So sánh chi phí tra cứu, thêm và xóa
+  - Nhận biết nhu cầu dùng tập hợp an toàn luồng
+  - Giải bài tập thống kê, khử trùng và xếp hàng
+  - Kiểm thử phần tử null, khóa thay đổi và thứ tự kết quả

@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Công cụ lập luận
+  slug: reasoning-tools
+  index: 1
+- title: Xâu và ngôn ngữ
+  slug: strings-and-languages
+  index: 2
+- title: Văn phạm hình thức
+  slug: formal-grammars
+  index: 3
+- title: Ôtômát hữu hạn
+  slug: finite-automata
+  index: 4
+- title: Bất định hữu hạn
+  slug: nondeterministic-finite-automata
+  index: 5
+- title: Biểu thức chính quy
+  slug: regular-expressions
+  index: 6
+- title: Ngôn ngữ chính quy
+  slug: regular-languages
+  index: 7
+- title: DFA tối thiểu
+  slug: minimal-dfa
+  index: 8
+- title: Mô hình hữu hạn ứng dụng
+  slug: finite-models-in-practice
+  index: 9
+- title: Văn phạm phi ngữ cảnh
+  slug: context-free-grammars
+  index: 10
+- title: Dạng chuẩn và phân tích
+  slug: normal-forms-and-parsing
+  index: 11
+- title: Ôtômát ngăn xếp
+  slug: pushdown-automata
+  index: 12
+- title: Ngôn ngữ phi ngữ cảnh
+  slug: context-free-languages
+  index: 13
+- title: Máy Turing
+  slug: turing-machines
+  index: 14
+- title: Các mô hình tính toán
+  slug: computation-models
+  index: 15
+- title: Khả năng quyết định
+  slug: decidability
+  index: 16
+- title: Bất khả quyết
+  slug: undecidability
+  index: 17
+- title: Quy dẫn tính được
+  slug: computable-reductions
+  index: 18
+- title: Định lý và giới hạn
+  slug: theorems-and-limits
+  index: 19
+- title: Đo độ phức tạp
+  slug: complexity-measures
+  index: 20
+- title: P, NP và chứng chỉ
+  slug: p-np-and-certificates
+  index: 21
+- title: NP đầy đủ
+  slug: np-completeness
+  index: 22
+- title: Độ phức tạp không gian
+  slug: space-complexity
+  index: 23
+- title: Phân cấp độ phức tạp
+  slug: complexity-hierarchy
+  index: 24
+- title: Tính toán ngẫu nhiên
+  slug: randomized-computation
+  index: 25
+- title: Chủ đề nâng cao
+  slug: advanced-topics
+  index: 26
+- title: Thực hành và tổng hợp
+  slug: integrated-practice
+  index: 27

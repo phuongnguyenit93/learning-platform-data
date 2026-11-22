@@ -1,0 +1,7 @@
+# Spring Session
+
+Spring Session là dự án trong hệ sinh thái Spring giúp quản lý phiên làm việc (session) bằng các kho lưu trữ độc lập với bộ nhớ của từng máy chủ ứng dụng. Trong hệ thống web, session thường giữ trạng thái liên quan đến người dùng giữa các request. Khi ứng dụng được triển khai trên nhiều instance, việc lưu session tập trung bằng Redis hoặc cơ sở dữ liệu quan hệ giúp các instance truy cập cùng trạng thái một cách nhất quán.
+
+Module **Spring Session** bắt đầu từ khái niệm HTTP session, session ID và kiến trúc `SessionRepository`, rồi hướng dẫn tích hợp với Spring Boot, Redis và JDBC. Người học tiếp tục tìm hiểu cách xử lý session cookie, timeout, hủy session, kết nối với Spring Security để quản lý phiên đăng nhập và giới hạn phiên đồng thời. Phần cuối giới thiệu lưu trữ session trong môi trường phân tán, điểm khác biệt giữa Servlet và WebFlux, hỗ trợ WebSocket cùng cách kiểm thử và vận hành.
+
+Nội dung dành cho lập trình viên Java/Spring đã biết HTTP, cookie và cấu hình Spring Boot cơ bản. Hoàn thành lộ trình, bạn có thể chọn cơ chế lưu session phù hợp, cấu hình một ứng dụng dùng Spring Session, kiểm tra quá trình hết hạn hoặc hủy phiên và nhận diện các vấn đề thường gặp khi triển khai nhiều instance.

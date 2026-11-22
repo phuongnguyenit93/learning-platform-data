@@ -1,0 +1,297 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Hợp đồng của đối tượng là gì và vì sao mã gọi cần dựa vào hợp đồng
+  - Object là lớp gốc và các phương thức dùng chung
+  - Phân biệt danh tính, giá trị và thứ tự của đối tượng
+  - Mối liên hệ giữa equals(), hashCode(), compareTo() và Comparator
+  - Vai trò của toString(), getClass() và clone()
+  - Phân biệt yêu cầu bắt buộc, quy ước và chi tiết triển khai
+  - Hậu quả khi một lớp phá vỡ hợp đồng trong thư viện chuẩn
+  - Lộ trình học và ví dụ xuyên suốt với đối tượng giá trị
+- level1: Danh tính đối tượng
+  level2:
+  - Biến tham chiếu khác với đối tượng được tham chiếu
+  - Toán tử == và != trên tham chiếu
+  - Hai đối tượng độc lập có thể biểu diễn cùng giá trị
+  - Phép gán tham chiếu không tạo đối tượng mới
+  - Object.equals() mặc định dựa trên danh tính
+  - System.identityHashCode() bỏ qua hashCode() được ghi đè
+  - Identity hash code có thể trùng và không phải địa chỉ bộ nhớ
+  - Phân biệt danh tính trong bộ nhớ với mã định danh nghiệp vụ
+- level1: Hợp đồng equals
+  level2:
+  - equals() định nghĩa quan hệ tương đương trên tham chiếu khác null
+  - 'Tính phản xạ: đối tượng bằng chính nó'
+  - Tính đối xứng khi đổi vị trí hai đối tượng
+  - Tính bắc cầu giữa ba đối tượng
+  - Tính nhất quán khi dữ liệu dùng để so sánh không thay đổi
+  - So sánh với null phải trả về false
+  - Phân biệt x.equals(null) với gọi equals() trên tham chiếu null
+  - Chia các đối tượng thành những nhóm có cùng giá trị theo hợp đồng
+- level1: Cài đặt equals
+  level2:
+  - Chữ ký public boolean equals(Object) và kiểm tra bằng @Override
+  - Vì sao equals(MyType) là nạp chồng thay vì ghi đè
+  - Kiểm tra cùng tham chiếu trước khi so sánh trường
+  - Kiểm tra null và kiểu đối tượng trước khi đọc dữ liệu
+  - So sánh trường nguyên thủy và trường tham chiếu
+  - Dùng Objects.equals() cho trường có thể null
+  - Kết hợp nhiều trường theo định nghĩa bằng nhau đã chọn
+  - Không thay đổi trạng thái hoặc phụ thuộc thời gian trong equals()
+  - Tránh so sánh qua toString() hoặc hashCode()
+  - Giữ equals() dễ hiểu, không gây tác dụng phụ và không ném lỗi cho dữ liệu thông thường
+- level1: Chọn quan hệ bằng nhau
+  level2:
+  - Đối tượng giá trị và đối tượng có danh tính nghiệp vụ
+  - Chọn trường thực sự quyết định giá trị của đối tượng
+  - Phân biệt dữ liệu cốt lõi với dữ liệu suy ra hoặc dữ liệu ghi nhớ tạm
+  - Mã định danh chưa được gán và rủi ro thay đổi quan hệ bằng nhau
+  - Chuẩn hóa dữ liệu trước khi so sánh
+  - So sánh không phân biệt hoa thường và quy tắc nghiệp vụ tường minh
+  - Vì sao so sánh số thực bằng một ngưỡng sai số có thể mất tính bắc cầu
+  - Tách phép so khớp gần đúng khỏi equals() khi không tạo quan hệ tương đương
+- level1: Equals và kế thừa
+  level2:
+  - Mở rộng lớp có equals() và nguy cơ mất đối xứng
+  - Thêm trường giá trị ở lớp con và nguy cơ mất bắc cầu
+  - Kiểm tra kiểu bằng instanceof hoặc getClass()
+  - Ảnh hưởng của lựa chọn kiểm tra kiểu tới quan hệ lớp cha, lớp con
+  - Gọi super.equals() và những điều việc đó không tự bảo đảm
+  - Lớp final hoặc phương thức equals() final để giới hạn thay đổi hợp đồng
+  - Dùng composition khi mở rộng giá trị qua kế thừa làm hợp đồng khó giữ
+  - 'Mẫu canEqual(): mục đích, điều kiện phối hợp và giới hạn'
+  - Kiểm tra các cặp và bộ ba đối tượng ở nhiều mức kế thừa
+- level1: Hợp đồng hashCode
+  level2:
+  - hashCode() trả về int để hỗ trợ cấu trúc dữ liệu băm
+  - Hai đối tượng equals() phải có cùng hash code
+  - Cùng hash code không suy ra equals()
+  - Đối tượng không bằng nhau vẫn được phép trùng hash code
+  - Tính ổn định trong một lần chạy khi thông tin dùng trong equals() không đổi
+  - Không có yêu cầu giữ cùng hash code giữa các lần chạy chương trình
+  - Vì sao ghi đè equals() thường phải ghi đè hashCode() cùng lúc
+  - Hash code hằng có thể đúng hợp đồng nhưng phân bố kém
+  - Không dùng hashCode() làm mã định danh duy nhất hoặc mã bảo mật
+- level1: Cài đặt hashCode
+  level2:
+  - Chọn dữ liệu băm phù hợp với quan hệ equals()
+  - Không đưa dữ liệu làm phân biệt hai đối tượng đang được coi là bằng nhau
+  - Kết hợp hash của nhiều trường
+  - Dùng phương thức hashCode() của các lớp bao cho kiểu nguyên thủy
+  - Trường null và Objects.hashCode()
+  - Objects.hash() cho nhiều trường và khác biệt với hashCode() của một trường
+  - Dùng Arrays.hashCode() hoặc deepHashCode() theo cách so sánh mảng
+  - Cân nhắc boxing, mảng varargs và chi phí trên đường chạy thường xuyên
+  - Chỉ lưu sẵn hash code khi trạng thái và cơ chế đồng bộ cho phép
+- level1: Cấu trúc dữ liệu băm
+  level2:
+  - HashMap và HashSet phối hợp hashCode() với equals()
+  - Phân biệt băm để định hướng tìm kiếm với xác nhận bằng nhau
+  - Thêm hai đối tượng bằng nhau vào HashSet
+  - Dùng đối tượng mới nhưng bằng nhau để tìm khóa trong HashMap
+  - Khóa trùng và giá trị thay thế khi gọi Map.put()
+  - Va chạm hash không tự nó làm mất tính đúng đắn
+  - Lỗi khi chỉ ghi đè equals() hoặc chỉ thiết kế hash không tương thích
+  - Phân biệt hợp đồng API với cách tổ chức nội bộ của bảng băm
+- level1: Trạng thái thay đổi
+  level2:
+  - Ảnh hưởng của thay đổi trường tham gia equals() hoặc hashCode()
+  - Vì sao một khóa có thể không tìm lại được sau khi thay đổi
+  - Thay đổi phần tử trong HashSet và khả năng xuất hiện giá trị trùng
+  - Ưu tiên khóa bất biến
+  - Trường final không bảo đảm đối tượng thành phần bất biến
+  - Sao chép phòng vệ để bảo vệ trường mảng hoặc tập hợp
+  - Loại bỏ rồi thêm lại dữ liệu khi nghiệp vụ thật sự cần đổi khóa
+  - Tránh so sánh trạng thái đang bị thay đổi đồng thời mà không có chính sách nhất quán
+- level1: Các kiểu chuẩn
+  level2:
+  - String.equals() so sánh nội dung và không phụ thuộc danh tính
+  - Lớp bao số nguyên khác kiểu không mặc nhiên bằng nhau
+  - 'Float và Double: NaN, +0.0 và -0.0'
+  - Phân biệt == trên số thực với equals() của lớp bao
+  - BigDecimal.equals() xét cả giá trị và scale
+  - BigDecimal.compareTo() có thể bằng 0 khi equals() là false
+  - Enum giữ danh tính từng hằng và không cho ghi đè equals() hoặc hashCode()
+  - Đối tượng giá trị của java.time và yêu cầu đọc đúng hợp đồng từng kiểu
+  - Không suy rộng quy tắc của một lớp chuẩn cho mọi lớp khác
+- level1: Mảng và cấu trúc lồng
+  level2:
+  - equals() và hashCode() của mảng mặc định dựa trên danh tính
+  - Arrays.equals() và Arrays.hashCode() cho mảng một chiều
+  - Arrays.deepEquals() và Arrays.deepHashCode() cho mảng lồng
+  - Objects.deepEquals() và cách xử lý hai đối số
+  - Mảng nguyên thủy khác mảng lớp bao
+  - Chọn so sánh theo thứ tự hay theo tập giá trị trước khi viết mã
+  - Trường mảng trong lớp tự viết và yêu cầu đồng bộ equals() với hashCode()
+  - Giới hạn khi cấu trúc có tham chiếu vòng
+  - Kiểm tra null, mảng rỗng và phần tử mảng null
+- level1: Giá trị của Collection
+  level2:
+  - List.equals() xét phần tử theo thứ tự
+  - Set.equals() xét cùng các phần tử và không theo thứ tự duyệt
+  - Map.equals() xét cùng các ánh xạ khóa, giá trị
+  - Hash code của List, Set và Map theo hợp đồng tương ứng
+  - Quan hệ bằng nhau có thể áp dụng giữa các lớp triển khai cùng hợp đồng
+  - Tập hợp lồng nhau phụ thuộc equals() của từng phần tử
+  - Phần tử mảng trong Collection vẫn dùng quan hệ bằng nhau của mảng
+  - Tập hợp không cho sửa cấu trúc không đồng nghĩa với bất biến sâu
+- level1: Hợp đồng record
+  level2:
+  - equals(), hashCode() và toString() được sinh từ các thành phần
+  - equals() yêu cầu cùng lớp record và các thành phần tương ứng bằng nhau
+  - So sánh thành phần float hoặc double theo quy tắc lớp bao
+  - Thành phần tham chiếu dùng quan hệ bằng nhau của chính kiểu thành phần
+  - Thành phần mảng không tự động được so sánh sâu
+  - Record chỉ bất biến nông và vẫn có thể chứa dữ liệu thay đổi được
+  - Bất biến sao chép qua accessor và hàm khởi tạo chuẩn
+  - Tùy biến accessor, chuẩn hóa hoặc sao chép phòng vệ phải giữ hợp đồng record
+  - Không dựa vào thuật toán hash hoặc định dạng toString() được sinh như một giao thức cố định
+- level1: Thứ tự tự nhiên
+  level2:
+  - Comparable<T> và ý nghĩa của thứ tự tự nhiên
+  - compareTo() trả về dấu âm, bằng không hoặc dấu dương
+  - Quy tắc đảo dấu khi đổi vị trí hai đối tượng
+  - Tính bắc cầu của quan hệ thứ tự
+  - Hai giá trị compareTo() bằng 0 phải được so sánh nhất quán với giá trị thứ ba
+  - Khuyến nghị nhất quán giữa compareTo() bằng 0 và equals()
+  - So sánh với null và kiểu không tương thích
+  - Không dùng phép trừ dễ tràn số để cài đặt compareTo()
+  - Viết tài liệu khi thứ tự tự nhiên cố ý không nhất quán với equals()
+- level1: Comparator
+  level2:
+  - Comparator<T> định nghĩa thứ tự bên ngoài lớp
+  - Hợp đồng dấu, bắc cầu và các nhóm có kết quả so sánh bằng 0
+  - comparing() và các biến thể comparingInt(), comparingLong(), comparingDouble()
+  - thenComparing() để tạo thứ tự theo nhiều khóa
+  - reversed() và vị trí áp dụng trong chuỗi so sánh
+  - nullsFirst() và nullsLast()
+  - Chọn quy tắc so sánh chuỗi theo yêu cầu nghiệp vụ
+  - Phân biệt Comparator dùng cho hiển thị với quan hệ bằng nhau của đối tượng
+  - Trạng thái thay đổi trong Comparator làm kết quả sắp xếp không ổn định
+  - Comparator.equals() khác với việc compare() trả về 0 cho hai phần tử
+- level1: Tập hợp có thứ tự
+  level2:
+  - TreeSet và TreeMap dùng phép so sánh để nhận diện khóa tương đương
+  - Hai đối tượng equals() false nhưng Comparator trả về 0
+  - Hai đối tượng equals() true nhưng Comparator phân biệt
+  - Khác biệt kết quả giữa HashSet với TreeSet
+  - Ví dụ BigDecimal có scale khác nhau
+  - Comparator không nhất quán với equals() và hợp đồng Set hoặc Map
+  - Thay đổi trường sắp xếp khi đối tượng đang nằm trong cây
+  - Phân biệt loại phần tử trùng với giữ tất cả phần tử rồi sắp xếp
+- level1: Tiện ích Objects
+  level2:
+  - Objects.equals() xử lý null và ủy quyền tới equals()
+  - Objects.deepEquals() khác Objects.equals() ở đối số mảng
+  - Objects.hashCode() cho một đối tượng
+  - Objects.hash() cho nhiều giá trị và tình huống truyền mảng
+  - Objects.toString() với giá trị mặc định khi null
+  - requireNonNull() và thông báo lỗi tường minh
+  - requireNonNullElse() với requireNonNullElseGet()
+  - Objects.compare() với Comparator được cung cấp
+  - Tiện ích không sửa được một equals() hoặc Comparator đã vi phạm hợp đồng
+- level1: Biểu diễn toString
+  level2:
+  - Vai trò của toString() trong quan sát và chẩn đoán
+  - Dạng mặc định tên lớp, ký hiệu @ và hash code dạng thập lục phân
+  - Vì sao phần sau @ không được hiểu là địa chỉ bộ nhớ
+  - Thiết kế chuỗi ngắn gọn, có tên trường và đủ thông tin
+  - Không đưa mật khẩu, token hoặc dữ liệu nhạy cảm vào biểu diễn
+  - Phân biệt toString() với tuần tự hóa và định dạng trao đổi ổn định
+  - Không dùng toString() để quyết định equals() hoặc hashCode()
+  - Tránh đệ quy vô hạn trong quan hệ tham chiếu hai chiều
+  - Tránh tính toán nặng hoặc tác dụng phụ khi tạo biểu diễn
+  - Arrays.toString(), deepToString() và biểu diễn thành phần lồng
+- level1: Lớp thực tế
+  level2:
+  - getClass() trả về đối tượng Class của lớp thực tế
+  - Phân biệt kiểu khai báo với lớp thực tế
+  - getClass() là final và không thể ghi đè
+  - Class literal Type.class và so sánh với getClass()
+  - So sánh chính xác lớp khác với kiểm tra khả năng là một kiểu con
+  - Cùng tên lớp không bảo đảm cùng lớp khi có class loader khác nhau
+  - Vai trò của getClass() trong equals(), clone() và chẩn đoán
+- level1: Hợp đồng clone
+  level2:
+  - clone() tạo bản sao và ý nghĩa sao chép phụ thuộc lớp
+  - Object.clone() có quyền truy cập protected
+  - Cloneable là marker interface và không tự khai báo phương thức clone()
+  - CloneNotSupportedException khi Object.clone() không được phép
+  - super.clone() sao chép nông các trường
+  - Hàm khởi tạo thông thường không được chạy bởi Object.clone()
+  - Quy ước bản sao khác tham chiếu, cùng lớp và thường cùng giá trị
+  - Phân biệt quy ước sao chép với các bảo đảm tuyệt đối của API
+  - Ghi đè clone() public và dùng kiểu trả về cụ thể
+  - Mảng hỗ trợ clone() và mảng nhiều chiều vẫn chia sẻ mảng con
+- level1: Sao chép và độc lập
+  level2:
+  - Sao chép nông khác với sao chép sâu
+  - Trường trỏ tới đối tượng bất biến có thể chia sẻ an toàn
+  - Sao chép thành phần có thể thay đổi khi cần độc lập
+  - Tham chiếu dùng chung và chu trình trong đồ thị đối tượng
+  - Trường final và giới hạn của cách bổ sung sao chép sau super.clone()
+  - Hàm khởi tạo sao chép và phương thức tạo bản sao có tên
+  - Chọn phạm vi sao chép theo quyền sở hữu dữ liệu
+  - Kiểm tra thay đổi bản sao có ảnh hưởng bản gốc hay không
+  - Không xem serialize rồi deserialize là cách sao chép mặc định cho mọi lớp
+- level1: So sánh theo danh tính
+  level2:
+  - Khi bài toán cần phân biệt từng thể hiện dù giá trị bằng nhau
+  - IdentityHashMap dùng == cho cả khóa và giá trị thay vì equals()
+  - Dùng danh tính khi duyệt và theo dõi đồ thị đối tượng
+  - Phân biệt identity hash code với mã duy nhất
+  - Không thay HashMap bằng IdentityHashMap nếu nghiệp vụ cần bằng nhau theo giá trị
+  - IdentityHashMap cố ý khác hợp đồng Map thông thường ở quan hệ so sánh
+  - Đối tượng value-based và lý do không dựa vào danh tính thể hiện
+- level1: Monitor của Object
+  level2:
+  - Mỗi đối tượng có monitor phục vụ cơ chế đồng bộ
+  - wait(), notify() và notifyAll() là phương thức final
+  - Điều kiện sở hữu monitor và IllegalMonitorStateException
+  - wait() nhả monitor của đối tượng đang chờ và phải giành lại trước khi trả về
+  - Thức dậy không bảo đảm điều kiện đã đúng
+  - Dùng vòng while kiểm tra điều kiện trước và sau khi chờ
+  - notify() không chuyển khóa ngay cho luồng được đánh thức
+  - Xử lý InterruptedException và thời hạn chờ theo hợp đồng
+- level1: Vòng đời và tài nguyên
+  level2:
+  - finalize() trong Object đã bị đánh dấu deprecated for removal
+  - Không bảo đảm thời điểm hoặc việc finalizer sẽ được chạy
+  - Phân biệt final, finally và finalize()
+  - Không dùng finalizer làm cơ chế bắt buộc để giải phóng tài nguyên
+  - AutoCloseable và try-with-resources cho đóng tài nguyên tường minh
+  - Nhận diện Cleaner như cơ chế hỗ trợ có giới hạn
+- level1: Thiết kế hợp đồng
+  level2:
+  - Xác định ý nghĩa bằng nhau trước khi sinh mã
+  - Giữ equals(), hashCode() và thứ tự so sánh cùng một mô hình nghiệp vụ
+  - Chọn thành phần bất biến cho đối tượng giá trị và khóa
+  - Quy định tường minh cách xử lý null, chuẩn hóa và dữ liệu suy ra
+  - Tài liệu hóa trường tham gia so sánh và những ngoại lệ có chủ ý
+  - Đánh giá ảnh hưởng khi thêm trường hoặc thay đổi phiên bản lớp
+  - Rà soát mã được IDE sinh thay vì coi là tự động đúng
+  - Không để định dạng chẩn đoán hoặc thuật toán băm trở thành giao thức ngoài ý muốn
+- level1: Kiểm chứng hợp đồng
+  level2:
+  - Tạo các đối tượng cùng tham chiếu, cùng giá trị và khác giá trị
+  - Kiểm thử tính phản xạ, đối xứng và bắc cầu của equals()
+  - Kiểm thử nhất quán, null và đối tượng khác kiểu
+  - Kiểm thử equals() true luôn kéo theo hashCode() bằng nhau
+  - Không viết kiểm thử đòi mọi đối tượng khác nhau phải có hash code khác
+  - Kiểm thử bộ ba cho compareTo() và Comparator
+  - Kiểm thử tra cứu bằng đối tượng bằng nhau trong HashMap và HashSet
+  - Kiểm thử null, NaN, +0.0, -0.0, mảng và cấu trúc lồng
+  - Kiểm thử kế thừa, thay đổi trạng thái và độc lập sau sao chép
+  - Phân biệt kiểm thử tính đúng với đánh giá phân bố hoặc hiệu năng băm
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng đối tượng tọa độ bất biến với equals(), hashCode() và toString()
+  - Xây dựng khóa nghiệp vụ có nhiều trường
+  - Sửa lớp có equals(MyType) nhưng chưa ghi đè equals(Object)
+  - Thực nghiệm va chạm hash với các đối tượng không bằng nhau
+  - Tái hiện lỗi thay đổi khóa sau khi đưa vào HashMap
+  - So sánh HashSet và TreeSet với BigDecimal hoặc Comparator theo một khóa
+  - Thiết kế lớp chứa mảng và kiểm tra sao chép phòng vệ
+  - Rà soát một hệ lớp kế thừa làm mất tính đối xứng
+  - Tổng hợp danh sách câu hỏi trước khi công bố một lớp có hợp đồng giá trị

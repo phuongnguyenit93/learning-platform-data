@@ -1,0 +1,365 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - LDAP là gì và vì sao phù hợp với dữ liệu phân cấp
+  - Directory service, entry, attribute và object class liên hệ với nhau
+  - Spring LDAP giải quyết những khó khăn nào của JNDI
+  - Vai trò của ContextSource, LdapTemplate và mô hình mapping
+  - Phân biệt LDAP với cơ sở dữ liệu quan hệ và hệ thống xác thực
+  - Đọc dữ liệu thư mục, thay đổi dữ liệu và tìm kiếm dữ liệu
+  - Ranh giới giữa Spring LDAP core, Spring Data LDAP và Spring Security LDAP
+  - Lộ trình học từ DN và filter đến vận hành hệ thống thư mục
+- level1: LDAP nền tảng
+  level2:
+  - Directory Information Tree (DIT) và cấu trúc dạng cây
+  - Entry, Distinguished Name (DN) và Relative Distinguished Name (RDN)
+  - Attribute, attribute value và multi-valued attribute
+  - Object class và các thuộc tính bắt buộc hoặc tùy chọn
+  - Schema, syntax, matching rule và quy tắc hợp lệ dữ liệu
+  - Root DSE, naming context và base DN
+  - Leaf entry, container entry và các nhánh trong DIT
+  - Alias, referral và khác biệt giữa dữ liệu cục bộ với dữ liệu được trỏ tới
+- level1: DN và Name
+  level2:
+  - Cấu trúc DN nhiều thành phần và thứ tự RDN
+  - Escaping ký tự đặc biệt trong DN
+  - Phân biệt dấu phẩy phân cách RDN với ký tự trong giá trị
+  - Case, khoảng trắng và quy tắc so sánh DN
+  - LdapName và Rdn trong Java
+  - Tạo DN bằng builder thay vì nối chuỗi thủ công
+  - DN tương đối so với base context
+  - Đổi tên entry và thay đổi RDN
+  - Kiểm tra DN trước khi bind, lookup hoặc delete
+- level1: Attribute và schema
+  level2:
+  - Attribute đơn trị và đa trị
+  - Attribute bắt buộc theo object class
+  - Attribute binary và xử lý dữ liệu byte
+  - Attribute operational và attribute nghiệp vụ
+  - Attribute alias, display name và định danh chuẩn
+  - Schema violation khi thêm hoặc sửa entry
+  - Case-insensitive attribute name và matching rule
+  - Chọn danh sách attribute cần đọc để giảm dữ liệu trả về
+  - Đối chiếu schema LDAP với mô hình Java
+- level1: Filter LDAP
+  level2:
+  - Search filter và cú pháp biểu thức LDAP
+  - Equality, presence và substring filter
+  - AND, OR và NOT filter
+  - Greater-than-or-equal và less-than-or-equal filter
+  - Escaping giá trị người dùng trong filter
+  - Wildcard, substring và chi phí tìm kiếm
+  - Filter trên attribute đa trị
+  - Phân biệt filter với điều kiện Java sau khi đọc dữ liệu
+  - Không ghép chuỗi filter từ dữ liệu chưa được encode
+- level1: Search scope
+  level2:
+  - Base object search và tìm chính entry làm base
+  - One-level search và các con trực tiếp
+  - Subtree search và toàn bộ nhánh bên dưới
+  - Search base tương đối với context source
+  - SearchControls và việc chọn scope
+  - Giới hạn số kết quả và thời gian tìm kiếm
+  - Chọn attribute trả về trong search
+  - Phân biệt giới hạn phía client với giới hạn server
+  - Đánh giá phạm vi tìm kiếm trước khi chạy trên DIT lớn
+- level1: JNDI và Spring
+  level2:
+  - DirContext, InitialDirContext và giao diện JNDI
+  - Vì sao API JNDI khó dùng trực tiếp trong ứng dụng
+  - ContextSource tạo và quản lý kết nối LDAP
+  - LdapContextSource và cấu hình URL, base, user, password
+  - BaseLdapPathContextSource và thao tác theo base path
+  - ObjectFactory và chuyển đổi đối tượng directory
+  - Exception của JNDI và hệ thống exception của Spring LDAP
+  - Đóng context đúng cách và vòng đời tài nguyên
+  - Tách cấu hình directory khỏi logic nghiệp vụ
+- level1: Cấu hình ContextSource
+  level2:
+  - URL server, base DN và base package
+  - Bind DN, bind password và xác thực khi tạo context
+  - Anonymous bind và điều kiện được phép sử dụng
+  - Default context factory và class path cần thiết
+  - ContextSource proxy và lazy context
+  - Nhiều LDAP server và failover
+  - Read-only context với context dùng để thay đổi dữ liệu
+  - Externalized configuration và secret management
+  - Kiểm tra kết nối và cấu hình sai ngay khi khởi động
+- level1: LdapTemplate
+  level2:
+  - Vai trò của LdapTemplate trong Spring LDAP
+  - Lookup entry bằng DN
+  - Search entry bằng query hoặc filter
+  - Bind, rebind và unbind
+  - Rename entry và thay đổi DN
+  - Modify attributes với ModificationItem
+  - List child context và đọc tên entry
+  - Authenticate và compare attribute
+  - Callback API khi cần quyền kiểm soát thấp hơn
+  - Chọn operation phù hợp với hợp đồng nghiệp vụ
+- level1: Query builder
+  level2:
+  - LdapQuery và cách mô tả một truy vấn
+  - LdapQueryBuilder với base, scope và attributes
+  - where, and, or và nhóm điều kiện
+  - Criteria cho equality và matching
+  - like, is, gte và lte
+  - Filter tùy biến bằng hardcoded filter
+  - Query builder và escaping giá trị
+  - Đối chiếu query builder với filter chuỗi
+  - Đọc query đã dựng để kiểm tra phạm vi và điều kiện
+- level1: Mapping kết quả
+  level2:
+  - ContextMapper và ánh xạ entry sang domain object
+  - AttributesMapper và ánh xạ Attributes
+  - NameClassPairMapper và kết quả search
+  - DirContextOperations và DirContextAdapter
+  - AbstractContextMapper và template method
+  - Đọc DN cùng attribute khi mapping
+  - Xử lý attribute thiếu và attribute đa trị
+  - Mapping binary attribute và giá trị null
+  - Tách mapping thư mục khỏi quy tắc nghiệp vụ
+- level1: DirContextAdapter
+  level2:
+  - DirContextAdapter giữ DN và attribute thay đổi
+  - getStringAttribute và đọc giá trị đơn
+  - getStringAttributes và đọc giá trị đa trị
+  - setAttributeValue và setAttributeValues
+  - addAttributeValue, removeAttributeValue và replaceAttributeValue
+  - ModificationItem sinh ra từ thay đổi trên adapter
+  - Giữ attribute chưa thay đổi trong update
+  - Phân biệt adapter mapping với DTO mapping
+  - Kiểm thử trạng thái adapter trước khi commit thay đổi
+- level1: Bind và tạo entry
+  level2:
+  - Chuẩn bị DN mới và object class
+  - Bind entry bằng Attributes
+  - Bind entry bằng DirContextAdapter
+  - Thêm attribute bắt buộc trước khi bind
+  - Bind entry con sau khi tạo container
+  - Entry đã tồn tại và lỗi NameAlreadyBoundException
+  - Generated attribute và server-side default
+  - Kiểm tra dữ liệu trước khi tạo entry
+  - Idempotent create và xử lý retry
+- level1: Modify và delete
+  level2:
+  - ModifyAttributes và ba loại thay đổi cơ bản
+  - ADD_ATTRIBUTE, REPLACE_ATTRIBUTE và REMOVE_ATTRIBUTE
+  - Thay đổi attribute đa trị mà không xóa giá trị khác
+  - Xóa entry lá và xóa nhánh có entry con
+  - Delete subtree và giới hạn của LDAP server
+  - Xử lý entry không tồn tại
+  - Điều kiện trước khi cập nhật hoặc xóa
+  - Đọc lại entry sau thay đổi để xác nhận
+  - Đảm bảo thao tác thất bại không để trạng thái nửa chừng
+- level1: Rename và move
+  level2:
+  - Rename entry bằng RDN mới
+  - Giữ hay bỏ old RDN value
+  - Move entry sang parent DN khác
+  - Phân biệt rename với update attribute
+  - Thay đổi parent và quyền yêu cầu
+  - DN có multi-valued RDN
+  - Ảnh hưởng của referral và server capability
+  - Kiểm tra conflict khi DN đích đã tồn tại
+  - Thiết kế API đổi tên an toàn và có thể truy vết
+- level1: Search nâng cao
+  level2:
+  - SearchControls và các tham số quan trọng
+  - Search result iteration và callback handler
+  - Streaming kết quả lớn thay vì gom toàn bộ vào list
+  - Paged results control để phân trang LDAP
+  - Sort control và sắp xếp phía server
+  - Virtual list view và yêu cầu hỗ trợ của server
+  - Count limit, time limit và size limit
+  - Search continuation, referral và partial result
+  - Chọn chiến lược search theo kích thước DIT
+- level1: Phân trang và sorting
+  level2:
+  - PagedResultsDirContextProcessor và cookie phân trang
+  - Giữ cookie đúng trong toàn bộ lượt phân trang
+  - Page size và giới hạn thực tế của server
+  - Không dùng offset kiểu SQL cho LDAP subtree
+  - SortControlDirContextProcessor và sort key
+  - Matching rule khi sort attribute
+  - Không bảo đảm thứ tự nếu server không hỗ trợ sort
+  - Đọc trạng thái cuối phân trang và dọn cookie
+  - Kiểm thử thiếu, trùng hoặc thay đổi entry giữa các trang
+- level1: Resolver và accessor
+  level2:
+  - PropertyAccessor trong quá trình mapping hoặc evaluation
+  - DirContextAdapter làm nguồn property
+  - MethodResolver khi cần gọi logic tùy biến
+  - NameAwareAttributeMapper và DN-aware mapping
+  - Custom ContextMapper cho domain model
+  - Đăng ký resolver vào nơi sử dụng phù hợp
+  - Giới hạn quyền đọc hoặc ghi của accessor
+  - Phân biệt accessor của Spring LDAP với accessor của SpEL
+  - Kiểm thử resolver khi attribute thiếu hoặc sai kiểu
+- level1: ODM
+  level2:
+  - Object Directory Mapping (ODM) là gì
+  - '@Entry và object classes của domain object'
+  - '@Id và DN của đối tượng'
+  - '@Attribute và tên attribute LDAP'
+  - '@DnAttribute và thành phần DN'
+  - '@Transient và thuộc tính không lưu trong directory'
+  - '@Transient annotation với dữ liệu dẫn xuất'
+  - Mapping list, set và attribute đa trị
+  - Giới hạn của ODM so với mapping thủ công
+- level1: ODM operations
+  level2:
+  - Đọc object bằng LdapTemplate và ODM mapping
+  - Search domain object bằng LdapQuery
+  - Create object và bind entry
+  - Update object và phát hiện thay đổi attribute
+  - Delete object và kiểm tra DN
+  - Chuyển đổi giữa object model và directory model
+  - Xử lý object class khi domain type có kế thừa
+  - Domain object thiếu attribute bắt buộc
+  - Kiểm thử vòng đời object qua directory
+- level1: Repository
+  level2:
+  - Spring Data LDAP repository và quan hệ với Spring LDAP core
+  - CrudRepository cho entity LDAP
+  - Quy ước method query của repository
+  - Find theo attribute và giới hạn truy vấn dẫn xuất
+  - Custom repository khi query method không đủ
+  - Phân trang repository và giới hạn server
+  - Transaction boundary trong repository operation
+  - Không che giấu phạm vi search trong abstraction repository
+  - Khi nên dùng LdapTemplate thay vì repository
+- level1: Authentication
+  level2:
+  - LDAP bind authentication là gì
+  - User DN pattern và tìm DN trước khi bind
+  - Search user bằng filter an toàn
+  - Password compare và khác biệt với bind
+  - Anonymous search trước xác thực và rủi ro
+  - Bind DN quản trị với quyền tìm kiếm
+  - Xử lý mật khẩu không được ghi log
+  - Phân biệt authentication với authorization
+  - Tích hợp Spring LDAP với Spring Security LDAP
+- level1: TLS và bảo mật kết nối
+  level2:
+  - LDAP không mã hóa và nguy cơ truyền thông tin
+  - LDAPS và StartTLS
+  - Truststore, certificate chain và hostname verification
+  - Cấu hình TLS trong ContextSource
+  - Xác minh chứng thư khi kết nối server
+  - External TLS authentication strategy
+  - Không tắt kiểm tra certificate để sửa lỗi tạm thời
+  - Luân phiên certificate và secret
+  - Kiểm thử kết nối TLS trên môi trường gần production
+- level1: Pooling
+  level2:
+  - Vì sao LDAP context pooling cải thiện chi phí kết nối
+  - PoolingContextSource và vòng đời context
+  - Pool size, idle context và validation
+  - Context không thể tái sử dụng sau thao tác bất thường
+  - Pooling với authentication theo user
+  - Rủi ro giữ thông tin xác thực trong pool
+  - Không đưa context đã bị đóng trở lại pool
+  - Đo hiệu quả pooling trước và sau cấu hình
+  - Xử lý leak và cạn pool khi tải cao
+- level1: Transaction
+  level2:
+  - Khả năng giao dịch của LDAP khác với database transaction
+  - ContextSourceTransactionManager và transaction boundary
+  - Thao tác LDAP tham gia cùng một transaction
+  - Rollback khi nhiều thay đổi trong cùng nghiệp vụ
+  - Compensating transaction khi server không hỗ trợ rollback đầy đủ
+  - Transaction synchronization với Spring
+  - Giới hạn nhất quán giữa nhiều LDAP server
+  - Không hứa hẹn atomicity ngoài capability của directory
+  - Kiểm thử lỗi giữa chuỗi bind, modify và delete
+- level1: Exception
+  level2:
+  - NamingException và các nhóm lỗi LDAP phổ biến
+  - DataAccessException trong Spring LDAP
+  - AuthenticationException, InvalidDataAccessApiUsageException và lỗi bind
+  - NameNotFoundException và entry không tồn tại
+  - NameAlreadyBoundException và conflict khi tạo
+  - AttributeInUseException và vi phạm schema
+  - CommunicationException, timeout và lỗi mạng
+  - PartialResultException, referral và kết quả không đầy đủ
+  - Giữ DN, filter và operation context khi ghi log lỗi
+- level1: Validation
+  level2:
+  - Kiểm tra DN và attribute trước khi gọi server
+  - Kiểm tra object class và attribute bắt buộc
+  - Validation dữ liệu nghiệp vụ với schema validation
+  - Phân biệt lỗi input với lỗi directory
+  - Không dùng filter để thay thế validation toàn diện
+  - Kiểm tra giá trị multi-valued và giới hạn kích thước
+  - Kiểm tra encoding và dữ liệu binary
+  - Trả lỗi theo hợp đồng API mà không lộ cấu hình LDAP
+  - Kiểm thử dữ liệu biên và ký tự đặc biệt
+- level1: Testing
+  level2:
+  - Kiểm thử mapping không cần server thật
+  - Kiểm thử LdapTemplate với context source giả lập
+  - Embedded LDAP server cho integration test
+  - UnboundID hoặc server test tương thích LDAP
+  - Seed DIT và dữ liệu test theo từng kịch bản
+  - Kiểm thử search scope, filter và DN
+  - Kiểm thử bind, modify, rename và delete
+  - Kiểm thử authentication và quyền truy cập
+  - Kiểm thử TLS, timeout, referral và lỗi mạng
+  - Dọn dữ liệu test và cô lập test song song
+- level1: Debugging
+  level2:
+  - Đọc DN, base DN và search scope khi truy vấn sai
+  - Log filter đã encode nhưng không ghi dữ liệu nhạy cảm
+  - Khoanh vùng lỗi ở ContextSource, template hay mapper
+  - Kiểm tra attribute trả về khác với attribute được yêu cầu
+  - Phân tích lỗi schema bằng object class và server log
+  - Chẩn đoán entry không tìm thấy do base hoặc scope
+  - Chẩn đoán filter đúng cú pháp nhưng sai logic
+  - Phân biệt lỗi mapping với lỗi search
+  - Tạo DIT nhỏ để tái hiện lỗi có thể kiểm chứng
+- level1: Hiệu năng
+  level2:
+  - Chi phí bind, search và tạo context
+  - Chọn base DN và filter có tính chọn lọc
+  - Giảm attribute trả về không cần thiết
+  - Giới hạn kết quả và phân trang dữ liệu lớn
+  - Connection pooling và reuse context
+  - Mapping callback so với gom toàn bộ kết quả
+  - Index attribute ở LDAP server và ảnh hưởng truy vấn
+  - Đo độ trễ, throughput và tỷ lệ lỗi
+  - Không tối ưu bằng cách bỏ kiểm tra bảo mật hoặc correctness
+- level1: Vận hành
+  level2:
+  - Health check kết nối LDAP và kiểm tra quyền tối thiểu
+  - Timeout connect, read và response
+  - Retry có điều kiện với lỗi mạng tạm thời
+  - Backoff và giới hạn tải lên directory server
+  - Metrics cho search, bind, modify và pool
+  - Trace request qua service và LDAP operation
+  - Redaction DN, filter và credential trong log
+  - Certificate rotation và thay đổi bind password
+  - Runbook cho lỗi LDAP unavailable hoặc schema mismatch
+- level1: Thiết kế ứng dụng
+  level2:
+  - Tách LDAP gateway khỏi domain service
+  - Chọn aggregate và ranh giới dữ liệu khi dùng directory
+  - Chuyển đổi DN và attribute ở một lớp rõ ràng
+  - Không rò rỉ NamingException ra API nghiệp vụ
+  - Thiết kế idempotent command cho bind và modify
+  - Kiểm soát cache dữ liệu thư mục và thời gian hết hạn
+  - Đồng bộ dữ liệu LDAP với hệ thống khác
+  - Xử lý eventual consistency và thay đổi ngoài ứng dụng
+  - Ghi rõ capability của LDAP server trong hợp đồng tích hợp
+- level1: Thực hành tổng hợp
+  level2:
+  - Cấu hình ContextSource với base DN và bind account
+  - Tìm user bằng LdapQueryBuilder và ánh xạ domain object
+  - Tạo entry với object class và attribute bắt buộc
+  - Cập nhật attribute đa trị bằng DirContextAdapter
+  - Đổi tên và di chuyển entry an toàn
+  - Phân trang search subtree với server control
+  - Áp dụng ODM và repository cho một mô hình danh bạ
+  - Kiểm thử integration bằng LDAP server cô lập
+  - Thêm TLS, pooling, timeout và metrics
+  - 'Hồ sơ hoàn chỉnh: mô hình DIT, truy vấn, bảo mật, kiểm thử và vận hành'

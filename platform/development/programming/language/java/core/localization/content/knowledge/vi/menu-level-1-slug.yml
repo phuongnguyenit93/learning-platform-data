@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: localization-overview
+  index: 0
+- title: Mô hình Locale
+  slug: locale-model
+  index: 1
+- title: Tạo và đọc Locale
+  slug: locale-creation
+  index: 2
+- title: Chọn locale
+  slug: locale-selection
+  index: 3
+- title: Locale mặc định
+  slug: default-locale
+  index: 4
+- title: ResourceBundle
+  slug: resource-bundles
+  index: 5
+- title: Chuỗi dự phòng
+  slug: fallback-chains
+  index: 6
+- title: Tệp tài nguyên
+  slug: resource-files
+  index: 7
+- title: MessageFormat
+  slug: message-format
+  index: 8
+- title: Số nhiều và ngữ pháp
+  slug: plural-grammar
+  index: 9
+- title: Định dạng số
+  slug: number-formatting
+  index: 10
+- title: DecimalFormat
+  slug: decimal-format
+  index: 11
+- title: Tiền tệ
+  slug: currency-formatting
+  index: 12
+- title: Phân tích đầu vào
+  slug: input-parsing
+  index: 13
+- title: Ngày giờ bản địa
+  slug: localized-date-time
+  index: 14
+- title: Mẫu và lịch
+  slug: patterns-calendars
+  index: 15
+- title: API ngày giờ cũ
+  slug: legacy-date-time-api
+  index: 16
+- title: Unicode và ký tự
+  slug: unicode-characters
+  index: 17
+- title: Chuẩn hóa Unicode
+  slug: unicode-normalization
+  index: 18
+- title: Chữ hoa và thường
+  slug: case-conversion
+  index: 19
+- title: So sánh ngôn ngữ
+  slug: language-comparison
+  index: 20
+- title: Ranh giới văn bản
+  slug: text-boundaries
+  index: 21
+- title: Chiều chữ và hiển thị
+  slug: text-direction-display
+  index: 22
+- title: Charset và I/O
+  slug: charset-io
+  index: 23
+- title: Dữ liệu locale JDK
+  slug: jdk-locale-data
+  index: 24
+- title: Đóng gói và mở rộng
+  slug: localization-packaging
+  index: 25
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 26
+- title: Kiểm thử và lỗi
+  slug: localization-testing
+  index: 27
+- title: Thực hành tổng hợp
+  slug: localization-exercises
+  index: 28

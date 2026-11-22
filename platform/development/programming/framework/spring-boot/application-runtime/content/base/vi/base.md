@@ -1,0 +1,7 @@
+# Spring Boot - Application Runtime
+
+Vòng đời thực thi của ứng dụng Spring Boot bắt đầu khi tiến trình Java chạy, đi qua quá trình tạo ngữ cảnh Spring, thực hiện công việc và kết thúc bằng việc dừng các thành phần, giải phóng tài nguyên. Module này dành cho người đã biết Java, bean và tiêm phụ thuộc trong Spring cùng cách chạy một ứng dụng Boot cơ bản. Mục tiêu là hiểu vì sao ứng dụng đã khởi động nhưng chưa sẵn sàng, vì sao một công việc chạy quá sớm hoặc vì sao tiến trình chưa thoát.
+
+Tư duy nền tảng là phân biệt các phạm vi trách nhiệm. SpringApplication điều phối khởi động; ApplicationContext quản lý bean và tài nguyên; các callback, sự kiện và runner cho phép tham gia vào những thời điểm khác nhau. Bộ thực thi và bộ lập lịch quản lý công việc nền, còn trạng thái hoạt động (liveness) và sẵn sàng phục vụ (readiness) diễn tả khả năng vận hành. Đóng ngữ cảnh, dừng thành phần và kết thúc tiến trình là những thao tác có quan hệ nhưng cần được quan sát riêng.
+
+Lộ trình đi từ mô hình vòng đời và điều phối khởi động đến vòng đời bean, sự kiện, runner và tác vụ nền. Người học tiếp tục thực hành trạng thái sẵn sàng, dừng có kiểm soát, mã thoát và chẩn đoán bằng số liệu khởi động cùng kiểm thử. Phạm vi theo Spring Boot 3.3 và JDK 21; các ví dụ tập trung vòng đời ứng dụng, với graceful shutdown được xem xét khi có máy chủ web. Kết quả cần đạt là chọn đúng điểm mở rộng và chứng minh ứng dụng khởi động, nhận việc, dừng và thu hồi tài nguyên theo chủ đích.

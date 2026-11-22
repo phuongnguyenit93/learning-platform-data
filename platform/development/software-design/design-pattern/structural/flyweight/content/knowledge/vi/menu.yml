@@ -1,0 +1,260 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Flyweight là gì và thuộc nhóm mẫu thiết kế nào
+  - Bài toán nhiều đối tượng có dữ liệu lặp lại
+  - Mục tiêu giảm chi phí bộ nhớ bằng chia sẻ dữ liệu
+  - Phân biệt một đối tượng nghiệp vụ với phần biểu diễn có thể dùng chung
+  - Trạng thái nội tại và trạng thái ngoại tại là gì
+  - Vai trò của đối tượng dùng chung, ngữ cảnh và nơi cung cấp đối tượng
+  - Lợi ích, chi phí và điều kiện áp dụng Flyweight
+  - Lộ trình từ mô hình chưa chia sẻ đến triển khai và đo lường
+- level1: Bài toán bộ nhớ
+  level2:
+  - Nhận diện dữ liệu giống nhau trong số lượng lớn đối tượng
+  - Phân biệt dữ liệu lặp với đối tượng thực sự có thể chia sẻ
+  - Phân tích chi phí của đối tượng, tham chiếu và dữ liệu thành phần
+  - Ảnh hưởng của số lượng đối tượng đến cấp phát và thu gom rác
+  - Lập mô hình ban đầu cho ký tự, kiểu hiển thị hoặc đối tượng đồ họa
+  - Xác định phần dữ liệu lớn nhưng ít biến đổi
+  - Đánh giá tỷ lệ giữa số lần sử dụng và số cấu hình phân biệt
+  - Nhận diện trường hợp chi phí quản lý lớn hơn phần bộ nhớ tiết kiệm
+- level1: Phân tách trạng thái
+  level2:
+  - Trạng thái nội tại (intrinsic state) độc lập với một lần sử dụng
+  - Trạng thái ngoại tại (extrinsic state) phụ thuộc ngữ cảnh sử dụng
+  - Phân loại từng trường dữ liệu trước khi thiết kế Flyweight
+  - Tách vị trí, mã định danh và dữ liệu riêng của mỗi lần xuất hiện
+  - Giữ thuộc tính dùng chung trong đối tượng Flyweight
+  - Truyền ngữ cảnh vào thao tác thay vì lưu ngược trong đối tượng dùng chung
+  - Lựa chọn lưu ngữ cảnh hay tính lại khi cần
+  - Nhận diện trạng thái chỉ giống nhau tạm thời
+  - Xử lý thuộc tính phụ thuộc vào phiên bản hoặc môi trường
+  - Kiểm tra tính đầy đủ của dữ liệu sau khi tách trạng thái
+- level1: Cấu trúc mẫu
+  level2:
+  - Vai trò của giao diện Flyweight
+  - Vai trò của ConcreteFlyweight và dữ liệu được chia sẻ
+  - Vai trò của Flyweight Factory và kho quản lý đối tượng
+  - Vai trò của bên sử dụng và đối tượng giữ ngữ cảnh
+  - Trường hợp có đối tượng không chia sẻ (Unshared Flyweight)
+  - Quan hệ giữa đối tượng ngữ cảnh và đối tượng dùng chung
+  - Đọc sơ đồ lớp và sơ đồ tương tác của Flyweight
+  - Lựa chọn dùng giao diện hoặc lớp cụ thể theo nhu cầu
+  - Phân biệt thành phần cốt lõi với lớp hỗ trợ của ví dụ
+- level1: Luồng hoạt động
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành khóa tra cứu
+  - Tìm đối tượng đã có trong kho chia sẻ
+  - Tạo và đưa đối tượng mới vào kho khi chưa có
+  - Cung cấp cùng đối tượng cho các ngữ cảnh tương đương
+  - Thực hiện hành vi với trạng thái nội tại và ngữ cảnh được truyền vào
+  - Giữ dữ liệu riêng của từng lần sử dụng ở bên ngoài
+  - Xử lý lỗi tạo đối tượng mà không giữ mục dữ liệu chưa hoàn chỉnh
+  - Theo dõi vòng đời từ lúc tạo đến khi không còn sử dụng
+- level1: Thiết kế khóa
+  level2:
+  - Xác định thuộc tính quyết định hai yêu cầu có thể dùng chung
+  - Thiết kế khóa tổng hợp theo đầy đủ trạng thái nội tại
+  - Giữ khóa bất biến trong suốt thời gian nằm trong kho
+  - Thiết lập quan hệ equals và hashCode nhất quán
+  - Phân biệt trùng mã băm với tương đương về ngữ nghĩa
+  - Chuẩn hóa dữ liệu đầu vào mà không làm mất khác biệt nghiệp vụ
+  - Đưa phiên bản, không gian tên hoặc phạm vi dữ liệu vào khóa khi cần
+  - Xử lý giá trị thiếu, giá trị mặc định và dữ liệu không hợp lệ
+  - Tránh khóa chứa tham chiếu lớn hoặc thông tin nhạy cảm không cần thiết
+  - Kiểm thử khóa thiếu trường và khóa phân biệt quá mức
+- level1: Bất biến và đóng gói
+  level2:
+  - Vì sao trạng thái dùng chung cần được bảo vệ khỏi thay đổi ngoài ý muốn
+  - Thiết kế đối tượng bất biến cho phần trạng thái nội tại
+  - Phân biệt trường final với dữ liệu bất biến toàn phần
+  - Ngăn bên sử dụng sửa tập hợp và đối tượng con
+  - Sao chép phòng vệ tại ranh giới cần thiết
+  - Không lưu ngữ cảnh của lần gọi vào đối tượng Flyweight
+  - Tránh trả về tham chiếu có thể sửa dữ liệu dùng chung
+  - Tạo phiên bản đối tượng mới khi giá trị nội tại cần thay đổi
+  - Đánh giá hệ quả khi thiết kế buộc phải có dữ liệu dùng chung khả biến
+- level1: Đối tượng ngữ cảnh
+  level2:
+  - Biểu diễn mỗi lần xuất hiện bằng tham chiếu Flyweight và dữ liệu riêng
+  - Phân biệt danh tính ngữ cảnh với danh tính đối tượng được chia sẻ
+  - Quản lý tọa độ, chủ sở hữu và trạng thái tương tác riêng biệt
+  - Truyền đủ ngữ cảnh để hành vi không dựa vào biến toàn cục
+  - Cho phép nhiều ngữ cảnh độc lập sử dụng cùng một Flyweight
+  - Tính chi phí bộ nhớ của lớp bao và tham chiếu dùng chung
+  - Tránh tách quá nhiều đối tượng nhỏ làm tăng chi phí biểu diễn
+  - Chọn cấu trúc tập hợp phù hợp để lưu nhiều ngữ cảnh
+  - Kiểm tra sao chép ngữ cảnh mà không sao chép lại dữ liệu dùng chung
+- level1: Factory và kho chia sẻ
+  level2:
+  - Đóng gói thao tác tìm hoặc tạo trong một điểm truy cập rõ ràng
+  - Lựa chọn kho ánh xạ từ khóa đến đối tượng Flyweight
+  - Phân biệt tạo sẵn với tạo khi có nhu cầu
+  - Chọn phạm vi kho theo ứng dụng, phiên làm việc hoặc tác vụ
+  - Tránh biến mọi kho chia sẻ thành trạng thái static toàn cục
+  - Kiểm soát quyền truy cập để bên sử dụng không phá tính nhất quán
+  - Giữ quá trình tạo đối tượng hoàn chỉnh trước khi công bố
+  - Xử lý lỗi, hủy yêu cầu và tạo lại sau thất bại
+  - Quan sát số khóa, số đối tượng và tỷ lệ tái sử dụng
+  - Tách chính sách lưu giữ khỏi logic nghiệp vụ của Flyweight
+- level1: Triển khai Java
+  level2:
+  - Xây dựng ví dụ chưa áp dụng Flyweight làm mốc so sánh
+  - Tạo kiểu dữ liệu bất biến chứa trạng thái nội tại
+  - Biểu diễn khóa tổng hợp bằng lớp giá trị hoặc record phù hợp
+  - Kiểm tra thành phần khả biến bên trong record
+  - Tạo lớp ngữ cảnh giữ dữ liệu ngoại tại
+  - Cài đặt factory với Map cho trường hợp một luồng
+  - Tổ chức thao tác nhận ngữ cảnh làm tham số
+  - Đưa việc lấy đối tượng dùng chung vào luồng tạo ngữ cảnh
+  - Kiểm chứng nhiều ngữ cảnh nhận cùng tham chiếu khi khóa tương đương
+  - Giữ khác biệt giữa phép so sánh tham chiếu và phép so sánh giá trị
+  - Đối chiếu kết quả nghiệp vụ trước và sau khi áp dụng
+  - Giới hạn phạm vi lớp, hàm tạo và dữ liệu được công khai
+- level1: Thực thi đồng thời
+  level2:
+  - Nhận diện cạnh tranh khi nhiều luồng cùng yêu cầu một khóa
+  - Vì sao chuỗi kiểm tra rồi tạo có thể sinh nhiều đối tượng
+  - Thiết kế thao tác lấy hoặc tạo có tính nguyên tử
+  - Sử dụng ConcurrentHashMap phù hợp cho factory nhiều luồng
+  - Phân biệt an toàn của kho với an toàn của đối tượng bên trong
+  - Công bố đối tượng đã khởi tạo đầy đủ cho các luồng khác
+  - Giữ ngữ cảnh khả biến độc lập giữa các luồng
+  - Tránh thao tác tạo quá chậm hoặc phụ thuộc vòng trong đường đồng bộ
+  - Xác định yêu cầu về một đại diện duy nhất khi có tạo lại hoặc loại bỏ
+  - Kiểm thử truy cập đồng thời và kết quả quan sát được
+- level1: Vòng đời bộ nhớ
+  level2:
+  - Chọn thời gian tồn tại của kho và đối tượng dùng chung
+  - Ảnh hưởng của tham chiếu mạnh đến khả năng thu hồi bộ nhớ
+  - Kho tăng không giới hạn khi số khóa phân biệt liên tục tăng
+  - Đặt giới hạn dung lượng và chính sách loại bỏ khi phù hợp
+  - Đánh giá việc tạo lại đối tượng sau khi bị loại khỏi kho
+  - Phân biệt tham chiếu mạnh, yếu và mềm trong chính sách lưu giữ
+  - Sử dụng tham chiếu yếu cho giá trị và xử lý mục dữ liệu hết hiệu lực
+  - Phân biệt WeakHashMap với kho giữ giá trị bằng tham chiếu yếu
+  - Tránh khóa hoặc tham chiếu phụ vô tình giữ đối tượng còn sống
+  - Giới hạn của tham chiếu mềm khi cần kiểm soát bộ nhớ có thể dự đoán
+  - Tách quản lý tài nguyên cần đóng khỏi kỳ vọng thu gom rác
+  - Dọn kho theo phạm vi và tránh rò rỉ giữa các phiên làm việc
+- level1: Mô hình chi phí
+  level2:
+  - Xác định số lần sử dụng, số trạng thái phân biệt và kích thước dữ liệu
+  - Ước lượng bộ nhớ của mô hình tạo bản sao riêng
+  - Ước lượng bộ nhớ của dữ liệu dùng chung và các ngữ cảnh
+  - Tính thêm chi phí khóa, bảng ánh xạ và đối tượng quản lý
+  - Xác định điểm mà lợi ích chia sẻ vượt chi phí bổ sung
+  - Đánh giá tác động của tỷ lệ trúng kho và số khóa phân biệt
+  - Cân bằng bộ nhớ với chi phí băm, so sánh và tra cứu
+  - Đánh giá chi phí chuyển trạng thái ngoại tại thành tham số
+  - Nhận diện khi dữ liệu quá nhỏ hoặc quá ít lặp để có lợi
+  - Đặt giả thuyết đo lường trước khi kết luận Flyweight hiệu quả
+- level1: Đo lường hiệu quả
+  level2:
+  - Chuẩn bị hai phiên bản có cùng kết quả và khối lượng công việc
+  - Tạo dữ liệu đại diện cho số lượng đối tượng và mức độ lặp
+  - Phân biệt kích thước nông với bộ nhớ được giữ bởi đồ thị đối tượng
+  - Tránh đếm nhiều lần cùng một đối tượng được chia sẻ
+  - Sử dụng công cụ phân tích bố cục đối tượng như JOL khi cần
+  - Quan sát cấp phát, heap và hoạt động thu gom rác bằng công cụ JVM phù hợp
+  - Đo hiệu năng bằng JMH với khởi động làm nóng và kết quả không bị tối ưu bỏ
+  - Tách chi phí tạo kho ban đầu khỏi chi phí sử dụng ổn định
+  - So sánh nhiều mức số khóa phân biệt và nhiều mức đồng thời
+  - Ghi lại môi trường đo và trình bày giới hạn của kết quả
+  - Xác minh giảm bộ nhớ không làm suy giảm thời gian đáp ứng quá mức
+- level1: Tình huống áp dụng
+  level2:
+  - Chia sẻ kiểu cây hoặc mô hình trong hệ thống hiển thị nhiều đối tượng
+  - Chia sẻ thông tin kiểu chữ giữa nhiều lần xuất hiện ký tự
+  - Phân biệt nội dung ký tự, thông tin kiểu và vị trí hiển thị
+  - Chia sẻ siêu dữ liệu biểu tượng, hình ảnh hoặc tài nguyên hiển thị
+  - Biểu diễn nhiều phần tử bản đồ có thuộc tính loại lặp lại
+  - Chia sẻ mô tả kiểu token trong xử lý văn bản
+  - Đánh giá danh mục giá trị bất biến có nhiều nơi sử dụng
+  - Phân tích String.intern như ví dụ chuẩn hóa đối tượng theo giá trị
+  - Nhận diện phần không thể dùng chung trong mỗi tình huống
+  - Đánh giá nhu cầu thực tế trước khi chọn mẫu cho một hệ thống
+- level1: Tính đúng và phạm vi
+  level2:
+  - Xác định điều kiện hai ngữ cảnh được phép dùng chung dữ liệu
+  - Giữ danh tính nghiệp vụ tách khỏi danh tính bộ nhớ
+  - Không dùng so sánh tham chiếu để thay thế hợp đồng so sánh giá trị
+  - Bảo vệ ranh giới giữa người dùng, bên thuê và miền dữ liệu
+  - Đưa thay đổi phiên bản vào cơ chế lựa chọn đối tượng phù hợp
+  - Giữ kết quả sau khi ghi, đọc và tái tạo dữ liệu
+  - Xác định yêu cầu chia sẻ trong một tiến trình và giữa nhiều tiến trình
+  - Không dựa vào địa chỉ đối tượng như một định danh lưu trữ bền vững
+  - Kiểm tra việc thay thế kho không làm đổi hợp đồng của bên sử dụng
+- level1: Phân biệt các cách chia sẻ
+  level2:
+  - Flyweight và bộ nhớ đệm khác nhau về mục tiêu thiết kế nào
+  - Flyweight và Object Pool khác nhau về cách sử dụng đối tượng
+  - Flyweight và Singleton khác nhau về số đại diện và phạm vi
+  - Flyweight và Prototype khác nhau giữa chia sẻ và sao chép
+  - Mối quan hệ giữa Flyweight và chuẩn hóa giá trị bằng interning
+  - Phân biệt Flyweight với khử trùng lặp dữ liệu ở mức lưu trữ
+  - Phân biệt chia sẻ đối tượng với tối ưu hóa nội bộ của môi trường chạy
+  - Nhận diện đối tượng không trạng thái có thể tái sử dụng nhưng chưa cần Flyweight
+  - Chọn giải pháp theo mục tiêu bộ nhớ, vòng đời và hợp đồng danh tính
+- level1: Kết hợp mẫu
+  level2:
+  - Dùng factory để tập trung việc tạo và chia sẻ Flyweight
+  - Kết hợp Composite với phần tử dùng chung và nút giữ ngữ cảnh riêng
+  - Giữ dữ liệu cấu trúc cây ở ngoài thành phần lá được chia sẻ
+  - Đánh giá chia sẻ Strategy hoặc State bất biến khi có nhu cầu phù hợp
+  - Tách lớp chuyển đổi cho bên sử dụng cần giữ giao diện cũ
+  - Phân biệt kết hợp mẫu có ích với thêm lớp không cần thiết
+  - Kiểm tra quyền sở hữu và vòng đời khi nhiều mẫu cùng tham gia
+- level1: Áp dụng vào mã hiện hữu
+  level2:
+  - Đo đường cơ sở và xác định vùng cấp phát gây chi phí
+  - Khoanh vùng các cấu hình lặp lại có cùng ý nghĩa
+  - Tách trạng thái nội tại và ngoại tại theo từng bước
+  - Đưa dữ liệu dùng chung vào kiểu bất biến
+  - Thiết kế khóa và factory trước khi chuyển toàn bộ nơi tạo
+  - Chuyển một nhóm bên sử dụng sang cách lấy đối tượng dùng chung
+  - Giữ hợp đồng và danh tính của các đối tượng nghiệp vụ hiện hữu
+  - Kiểm thử hồi quy và so sánh kết quả trước khi mở rộng
+  - Đo lại chi phí, dọn cách tạo cũ và đánh giá khả năng quay lui
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử cùng khóa trả về cùng đại diện trong phạm vi đã cam kết
+  - Kiểm thử khóa khác ý nghĩa không bị dùng chung sai
+  - Kiểm thử dữ liệu nội tại không bị thay đổi từ bên sử dụng
+  - Kiểm thử ngữ cảnh riêng của đối tượng này không ảnh hưởng đối tượng khác
+  - Kiểm thử hành vi tương đương với phiên bản chưa dùng Flyweight
+  - Kiểm thử khóa tổng hợp, chuẩn hóa và giá trị đầu vào không hợp lệ
+  - Kiểm thử truy cập đồng thời khi kho chưa có đối tượng
+  - Kiểm thử lỗi khởi tạo và việc yêu cầu lại sau lỗi
+  - Kiểm thử loại bỏ, dọn kho và tạo lại theo chính sách vòng đời
+  - Tách kiểm chứng chức năng khỏi phép đo hiệu năng và bộ nhớ
+  - Tránh kiểm thử phụ thuộc vào thời điểm thu gom rác không xác định
+- level1: Sai lầm thường gặp
+  level2:
+  - Chia sẻ đối tượng có trạng thái khả biến mà không bảo vệ
+  - Đưa tọa độ hoặc dữ liệu riêng vào đối tượng dùng chung
+  - Thiếu thuộc tính trong khóa dẫn đến dùng sai dữ liệu
+  - Tạo khóa quá chi tiết khiến gần như không có tái sử dụng
+  - Dùng kho static không giới hạn và giữ dữ liệu suốt vòng đời ứng dụng
+  - Cho rằng dùng ConcurrentHashMap tự làm mọi dữ liệu an toàn
+  - Dựa vào tham chiếu yếu mà không xử lý khóa và mục dữ liệu còn sót
+  - Đồng nhất mọi cache hoặc mọi đối tượng dùng lại với Flyweight
+  - Thay danh tính nghiệp vụ bằng danh tính tham chiếu
+  - Bỏ qua chi phí của ngữ cảnh, khóa và bảng ánh xạ
+  - Kết luận tiết kiệm từ số đối tượng mà chưa đo toàn bộ bộ nhớ
+  - Áp dụng mẫu khi độ lặp thấp hoặc dữ liệu dùng chung quá nhỏ
+- level1: Bài thực hành
+  level2:
+  - Xây dựng mô hình nhiều đối tượng có dữ liệu lặp làm mốc ban đầu
+  - Phân loại từng trường thành dữ liệu nội tại và ngoại tại
+  - Thiết kế khóa giá trị và bộ kiểm thử tính tương đương
+  - Cài đặt Flyweight bất biến, factory và đối tượng ngữ cảnh
+  - Kiểm chứng chia sẻ tham chiếu và tính độc lập của từng ngữ cảnh
+  - Mô phỏng lỗi khóa thiếu trường rồi bổ sung kiểm thử bảo vệ
+  - Mở rộng factory cho nhiều luồng và kiểm tra điều kiện cạnh tranh
+  - Thử các phạm vi kho và chính sách lưu giữ phù hợp
+  - Đo bộ nhớ, cấp phát và thời gian xử lý trước và sau thay đổi
+  - So sánh kết quả khi số cấu hình phân biệt tăng gần bằng số lần sử dụng
+  - Phân tích trường hợp không có lợi và quyết định bỏ mẫu
+  - Hoàn thiện sơ đồ, mã minh họa và báo cáo đánh đổi

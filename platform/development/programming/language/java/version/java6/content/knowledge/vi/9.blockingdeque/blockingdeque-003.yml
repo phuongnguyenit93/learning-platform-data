@@ -1,0 +1,3 @@
+menuLevel1: BlockingDeque
+menuLevel2: putFirst, putLast và chờ khi hàng đợi đầy
+status: WRITTEN

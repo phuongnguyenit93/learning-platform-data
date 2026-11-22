@@ -1,0 +1,273 @@
+menu:
+- level1: Mô hình Mobile Push
+  level2:
+  - Thông báo đẩy trên di động là gì và những bài toán phù hợp
+  - Phân biệt push từ xa, thông báo cục bộ và thông báo trong ứng dụng
+  - Máy chủ, nhà cung cấp, hệ điều hành và ứng dụng phối hợp như thế nào
+  - Hành trình từ sự kiện nghiệp vụ đến thao tác mở thông báo
+  - Phân biệt chấp nhận gửi, đến thiết bị, hiển thị, mở và đọc
+  - Giới hạn bảo đảm giao nhận khi mạng, pin hoặc quyền hệ thống thay đổi
+  - So sánh Mobile Push với Web Push, SMS và kết nối thời gian thực
+  - Kiến thức nền và lộ trình tích hợp từ một thiết bị đến hệ thống thực tế
+- level1: Kiến trúc phân phối
+  level2:
+  - Vai trò của FCM trên Android và quan hệ giữa FCM với APNs trên iOS
+  - Chọn gửi qua FCM hoặc tích hợp trực tiếp APNs
+  - Tách sự kiện nghiệp vụ, nội dung thông báo và tác vụ phân phối
+  - Lưu thông báo trong hộp thư ứng dụng và dùng push để báo có cập nhật
+  - Thiết kế lớp chuyển tiếp (adapter) cho từng nhà cung cấp
+  - Phân biệt dữ liệu chung với tùy chọn riêng Android và iOS
+  - Hỗ trợ thiết bị không có Google Play services và nhà cung cấp bổ sung
+  - Xác định trách nhiệm giữa nhóm máy chủ, ứng dụng di động và vận hành
+- level1: Dự án và môi trường
+  level2:
+  - Chuẩn bị ứng dụng Android, ứng dụng iOS và dự án Firebase tương ứng
+  - Package name, Bundle ID, App ID và các định danh cấu hình
+  - Đăng ký ứng dụng với Firebase và quản lý tệp cấu hình phía máy khách
+  - Bật khả năng Push Notifications và cấu hình ký ứng dụng Apple
+  - Cấu hình thông tin xác thực APNs khi chuyển tiếp qua FCM
+  - Phân biệt môi trường phát triển, kiểm thử và sản xuất
+  - Tách dự án, thông tin xác thực và dữ liệu đăng ký giữa các môi trường
+  - Lập bảng tương thích phiên bản SDK, hệ điều hành và tính năng push
+- level1: Quyền và tùy chọn
+  level2:
+  - Phân biệt quyền hiển thị thông báo với đăng ký nhận thông điệp
+  - Quyền POST_NOTIFICATIONS và ảnh hưởng của phiên bản SDK đích trên Android
+  - Xin quyền bằng UNUserNotificationCenter trên iOS
+  - Quyền tạm thời (provisional authorization) và trạng thái cấp quyền trên iOS
+  - Chọn thời điểm xin quyền và giải thích giá trị thông báo cho người dùng
+  - Xử lý từ chối quyền, thay đổi cài đặt và thu hồi quyền
+  - Tùy chọn nhận theo nhóm thông báo và theo tài khoản
+  - Khung giờ yên lặng, múi giờ và giới hạn tần suất làm phiền
+  - Đồng bộ tùy chọn giữa thiết bị và máy chủ khi người dùng đổi cài đặt
+- level1: Định danh và đăng ký
+  level2:
+  - Phân biệt Firebase Installation ID, FCM registration token và APNs device token
+  - Phân biệt định danh bản cài đặt với tài khoản và mã thiết bị phần cứng
+  - Lấy và cập nhật đăng ký FCM theo phiên bản SDK máy khách
+  - Nhận APNs device token và liên kết với đăng ký FCM trên iOS
+  - Thiết kế dữ liệu đăng ký theo ứng dụng, nền tảng, môi trường và loại định danh
+  - Đăng ký hoặc cập nhật từ ứng dụng qua API có xác thực
+  - Liên kết một tài khoản với nhiều bản cài đặt và nhiều thiết bị
+  - Gỡ liên kết tài khoản khi đăng xuất hoặc đổi người dùng trên thiết bị chung
+  - Theo dõi thời điểm hoạt động và dọn đăng ký không còn sử dụng
+  - Cập nhật đăng ký an toàn khi phản hồi lỗi cũ đến sau một lần làm mới
+- level1: Hợp đồng nội dung
+  level2:
+  - Thiết kế mã thông báo, loại sự kiện và phiên bản dữ liệu
+  - Tiêu đề, nội dung, dữ liệu tùy chỉnh và ý nghĩa từng thành phần
+  - Phân biệt notification, data và thông điệp kết hợp trong FCM
+  - Kiểu giá trị, khóa dành riêng và mã hóa dữ liệu tùy chỉnh
+  - Giới hạn kích thước tính theo byte và ảnh hưởng của Unicode
+  - Dùng định danh tài nguyên để ứng dụng lấy dữ liệu mới sau khi nhận
+  - Thiết kế nội dung thay thế khi ứng dụng cũ chưa hiểu phiên bản mới
+  - Bản địa hóa bằng mẫu phía máy chủ hoặc khóa tài nguyên trên thiết bị
+  - Giảm dữ liệu riêng tư trong nội dung và phần xem trước trên màn hình khóa
+- level1: FCM HTTP v1
+  level2:
+  - Cấu trúc messages:send và quan hệ với Firebase project
+  - Xác thực bằng OAuth 2.0 và Application Default Credentials
+  - Quyền của danh tính máy chủ và phạm vi tài nguyên được gửi
+  - Chọn đích là FID, registration token, topic hoặc condition theo hỗ trợ
+  - Khối nội dung chung và cấu hình riêng cho từng nền tảng
+  - AndroidConfig và cấu hình gửi Android theo phiên bản giao diện
+  - ApnsConfig, aps và header APNs khi gửi iOS qua FCM
+  - Chế độ kiểm tra hợp lệ và giới hạn của kết quả validate-only
+  - Đọc message ID, phản hồi lỗi và nhận diện giao diện FCM cũ cần chuyển đổi
+- level1: Firebase Admin Java
+  level2:
+  - Chọn phiên bản Firebase Admin SDK tương thích với Java và tính năng cần dùng
+  - Khởi tạo FirebaseApp và FirebaseMessaging trong ứng dụng Java
+  - Nạp thông tin xác thực từ môi trường và quản lý vòng đời ứng dụng Firebase
+  - Tạo Message, Notification và dữ liệu tùy chỉnh bằng builder
+  - Gửi đến FID hoặc registration token theo khả năng của SDK
+  - Cấu hình AndroidConfig, ApnsConfig và Aps cho từng đích
+  - Gửi bất đồng bộ và xử lý kết quả mà không chặn luồng yêu cầu
+  - Sử dụng sendEach và sendEachForMulticast theo giới hạn từng phiên bản
+  - Đối chiếu BatchResponse, SendResponse với đúng đích trong lô
+  - Quản lý nhiều dự án Firebase và giải phóng tài nguyên khi ứng dụng dừng
+- level1: APNs trực tiếp
+  level2:
+  - Kiến trúc nhà cung cấp APNs và kết nối HTTP/2 qua TLS
+  - Chọn endpoint sandbox hoặc production đúng với đăng ký thiết bị
+  - Xác thực bằng khóa .p8, Key ID và Team ID
+  - Tạo JWT, gia hạn thông tin xác thực và kiểm soát sai lệch đồng hồ
+  - Lựa chọn xác thực bằng chứng chỉ khi cấu hình yêu cầu
+  - Tạo JSON với aps và dữ liệu riêng của ứng dụng
+  - apns-topic, Bundle ID và phạm vi sử dụng của từng loại push
+  - Chọn apns-push-type, apns-priority, apns-expiration và apns-collapse-id
+  - Gửi từ Java bằng kết nối HTTP/2 có tái sử dụng và giới hạn tài nguyên
+  - Đọc apns-id, mã trạng thái, reason và phản hồi đăng ký không còn hiệu lực
+- level1: Nhận trên Android
+  level2:
+  - Tích hợp SDK FCM, manifest và dịch vụ nhận thông điệp
+  - 'Vòng đời ứng dụng: đang mở, chạy nền, bị kết thúc và bị buộc dừng'
+  - Định tuyến notification và data với AndroidConfig truyền thống
+  - FirebaseMessagingService, onMessageReceived và thời gian xử lý giới hạn
+  - Đăng ký, làm mới định danh và cập nhật lại máy chủ
+  - NotificationChannel, mức quan trọng và lựa chọn của người dùng
+  - Phân biệt mức ưu tiên gửi FCM với mức quan trọng của kênh hiển thị
+  - Doze, giới hạn chạy nền và ảnh hưởng đến dữ liệu không khẩn cấp
+  - Chuyển công việc dài sang WorkManager và tránh giữ callback nhận
+  - onDeletedMessages và khôi phục trạng thái khi thông điệp chờ bị loại
+- level1: Nhận trên iOS
+  level2:
+  - Đăng ký remote notification và xử lý kết quả cấp APNs token
+  - Tích hợp Firebase Messaging và ánh xạ APNs token khi dùng FCM
+  - Xử lý khi ứng dụng đang mở bằng UNUserNotificationCenterDelegate
+  - Phân biệt hiển thị cảnh báo với đánh thức ứng dụng để đồng bộ nền
+  - content-available, background mode và giới hạn của thông báo im lặng
+  - Ứng dụng bị buộc đóng, tiết kiệm pin và những điều kiện ảnh hưởng giao nhận
+  - mutable-content và Notification Service Extension để chỉnh nội dung
+  - Badge, âm thanh, thread-id và nhóm thông báo trên iOS
+  - Phân biệt push thông thường với VoIP, Live Activities và quyền chuyên biệt
+- level1: Đích gửi
+  level2:
+  - Gửi cho một bản cài đặt, một tài khoản hoặc toàn bộ thiết bị hợp lệ
+  - Chọn thiết bị gần đây và xử lý người dùng có nhiều phiên
+  - Topic FCM và mô hình đăng ký theo nhóm quan tâm
+  - Quản lý đăng ký, hủy đăng ký và khôi phục topic sau khi đổi định danh
+  - Condition trên topic và giới hạn phạm vi biểu thức
+  - Phân đoạn đối tượng theo điều kiện nghiệp vụ tại máy chủ
+  - Kiểm tra quyền và dữ liệu nhạy cảm khi sử dụng nhóm hoặc topic
+  - Chốt danh sách người nhận và kiểm tra lại điều kiện tại thời điểm gửi
+- level1: Chính sách giao nhận
+  level2:
+  - Thời hạn sống (TTL) của FCM và thời điểm hết hạn của APNs
+  - Chọn thời hạn theo giá trị nghiệp vụ và tình huống thiết bị ngoại tuyến
+  - Gộp thông điệp chờ bằng collapse key hoặc apns-collapse-id
+  - Phân biệt gộp thông điệp, thay thông báo hiển thị và chống xử lý trùng
+  - Chọn mức ưu tiên theo phiên bản giao diện và loại thông báo
+  - Thiết bị ngoại tuyến, giới hạn lưu chờ và khả năng bị loại thông điệp
+  - Thứ tự đến không cố định và xử lý thông báo đến muộn
+  - Chính sách đọc một thiết bị và đồng bộ trạng thái trên các thiết bị khác
+  - Giới hạn cam kết giao nhận của thông báo im lặng và thông báo hiển thị
+  - Kết hợp truy vấn trạng thái để bù khoảng trống khi push không tới
+- level1: Tương tác thông báo
+  level2:
+  - Mở đúng màn hình bằng deep link và định danh tài nguyên
+  - Android App Links, iOS Universal Links và hợp đồng đường dẫn
+  - Xử lý thao tác mở khi ứng dụng đang chạy hoặc khởi động mới
+  - Kiểm tra đăng nhập và quyền truy cập trước khi hiển thị dữ liệu đích
+  - Nút hành động, category và kết quả tương tác gửi về máy chủ
+  - Ảnh, biểu tượng, âm thanh và nội dung hiển thị đa phương tiện
+  - Nhóm thông báo, thay thế, hủy và quản lý số đếm chưa đọc
+  - Ngăn mở lặp hoặc thực hiện lại nghiệp vụ khi người dùng tương tác nhiều lần
+- level1: Java và Spring
+  level2:
+  - Tách dịch vụ nghiệp vụ, chính sách gửi và adapter nhà cung cấp
+  - Thiết kế DTO thông báo độc lập với lớp của Firebase hoặc APNs
+  - Ánh xạ nội dung chung sang cấu hình riêng Android và iOS
+  - Xây dựng API quản lý đăng ký và tùy chọn nhận có xác thực
+  - Xác định đích gửi từ tài khoản thay vì tin dữ liệu người nhận do máy khách chọn
+  - Quản lý cấu hình, bí mật và danh tính máy chủ theo môi trường
+  - Phân loại kết quả gửi thành trạng thái có ý nghĩa nghiệp vụ
+  - Quản lý Executor, kết nối HTTP và tác vụ bất đồng bộ dùng chung
+  - Thiết kế điểm mở rộng cho nhà cung cấp mới và kiểm thử adapter độc lập
+- level1: Hàng đợi và lịch gửi
+  level2:
+  - Phát yêu cầu thông báo sau khi giao dịch nghiệp vụ hoàn tất
+  - Outbox và tách việc lưu sự kiện khỏi lời gọi nhà cung cấp
+  - Lưu tác vụ, người nhận, thời hạn và trạng thái xử lý bền vững
+  - Chia tác vụ thành lô và phân phối cho tiến trình xử lý (worker)
+  - Lập lịch theo múi giờ và đánh giá lại khung giờ yên lặng
+  - Hủy hoặc cập nhật tác vụ khi thông tin nghiệp vụ thay đổi
+  - Khôi phục sau khi worker dừng và tránh nhiều worker cùng xử lý một tác vụ
+  - Kiểm tra lại đăng ký, tùy chọn nhận và thời hạn ngay trước khi gửi
+  - Giữ trạng thái từng đích khi một tác vụ gửi thành công một phần
+- level1: Xử lý lỗi
+  level2:
+  - Phân biệt lỗi xác thực, cấu hình, dữ liệu và giới hạn nhà cung cấp
+  - Phân loại lỗi tạm thời với lỗi không nên thử lại
+  - Xử lý UNREGISTERED và phản hồi APNs về đăng ký hết hiệu lực
+  - Phân biệt INVALID_ARGUMENT do dữ liệu sai với đăng ký không hợp lệ
+  - Lỗi sai dự án, package name, Bundle ID hoặc môi trường APNs
+  - Xử lý quota, HTTP 429, lỗi 5xx và hướng dẫn Retry-After
+  - Thử lại với khoảng chờ tăng dần, độ lệch ngẫu nhiên và số lần giới hạn
+  - Timeout sau khi nhà cung cấp đã tiếp nhận và nguy cơ gửi trùng
+  - Dừng thử lại khi hết hạn, cách ly lỗi và phát lại có kiểm soát
+- level1: Chống trùng và đồng bộ
+  level2:
+  - Định danh nghiệp vụ ổn định cho một thông báo
+  - Tính lũy đẳng của thao tác tạo tác vụ và xử lý tại worker
+  - Loại bỏ thông báo trùng trên ứng dụng theo notification ID
+  - Phiên bản tài nguyên và xử lý cập nhật đến sai thứ tự
+  - Đồng bộ hộp thư và trạng thái chưa đọc từ nguồn dữ liệu chuẩn
+  - Xác nhận đã nhận, đã mở hoặc đã đọc bằng sự kiện do ứng dụng báo lại
+  - Giới hạn của bằng chứng do thiết bị báo và thời điểm xác nhận
+  - Đối soát dữ liệu sau cài đặt lại, đổi thiết bị hoặc mất kết nối dài
+- level1: Bảo mật
+  level2:
+  - Bảo vệ tài khoản dịch vụ, khóa APNs và thông tin xác thực nhà cung cấp
+  - Dùng danh tính máy chủ với quyền tối thiểu và luân chuyển bí mật
+  - Xác thực quyền sở hữu đăng ký trước khi liên kết với tài khoản
+  - Cách ly đăng ký, tác vụ và dữ liệu giữa các khách hàng thuê dịch vụ
+  - Ngăn lạm dụng API gửi và truy cập trái phép danh sách người nhận
+  - Giảm dữ liệu nhạy cảm qua nhà cung cấp và màn hình khóa
+  - Phân biệt mã hóa đường truyền với mã hóa nội dung đầu cuối
+  - Kiểm tra deep link, URL ảnh và dữ liệu tùy chỉnh trước khi sử dụng
+  - Ẩn định danh đăng ký trong nhật ký và kiểm soát thời hạn lưu dữ liệu
+- level1: Giới hạn và hiệu năng
+  level2:
+  - Phân biệt quota dự án, giới hạn thiết bị, topic và kết nối
+  - Chia lô theo giới hạn API hoặc SDK và kích thước thực tế của yêu cầu
+  - Điều tiết tốc độ theo nhà cung cấp và từng nhóm người nhận
+  - Giới hạn công việc đồng thời, hàng đợi và bộ nhớ dùng cho gửi
+  - Tái sử dụng kết nối và tránh khởi tạo SDK cho từng thông báo
+  - Phân tán lịch gửi để tránh dồn lưu lượng vào cùng thời điểm
+  - Cô lập nhà cung cấp lỗi và giảm tải khi có làn sóng thử lại
+  - Lập kế hoạch năng lực theo số đích, độ trễ và chi phí vận hành
+- level1: Đo lường và quan sát
+  level2:
+  - Xây dựng mô hình trạng thái từ tạo tác vụ đến mở hoặc đọc
+  - Đo số yêu cầu, tỷ lệ nhà cung cấp chấp nhận và tỷ lệ lỗi
+  - Đo thời gian chờ hàng đợi, độ trễ gửi và thời gian hết hạn
+  - Theo dõi đăng ký hoạt động, đăng ký lỗi và tỷ lệ thay đổi định danh
+  - Liên kết notification ID, mã tác vụ và message ID của nhà cung cấp
+  - Đọc số liệu phân phối FCM, dữ liệu xuất và giới hạn độ bao phủ
+  - Sử dụng công cụ trạng thái APNs theo khả năng hỗ trợ
+  - Phân biệt số đo máy chủ với bằng chứng hiển thị hoặc thao tác trên thiết bị
+  - Cảnh báo lỗi cấu hình, quota, hàng đợi tăng và suy giảm khả năng giao nhận
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử mẫu nội dung, bản địa hóa và ánh xạ cấu hình nền tảng
+  - Kiểm thử kích thước UTF-8, khóa dành riêng và giá trị dữ liệu
+  - Kiểm thử adapter bằng phản hồi giả lập của FCM hoặc APNs
+  - Sử dụng validate-only hoặc dry-run và hiểu phần chưa được kiểm chứng
+  - Kiểm thử trên thiết bị thật với ứng dụng, môi trường và đăng ký phù hợp
+  - Ma trận trạng thái ứng dụng, buộc dừng, mất mạng và từ chối quyền
+  - Kiểm thử làm mới đăng ký, đổi tài khoản và nhiều thiết bị
+  - Kiểm thử deep link, hành động, badge, âm thanh và nội dung đa phương tiện
+  - Kiểm thử timeout, lỗi từng đích, retry, trùng lặp và tác vụ hết hạn
+  - Kiểm thử tải, khôi phục worker và cô lập dữ liệu giữa các môi trường
+- level1: Chẩn đoán lỗi
+  level2:
+  - Nhà cung cấp chấp nhận nhưng thiết bị không nhận hoặc không hiển thị
+  - Sai dự án Firebase, định danh ứng dụng hoặc thông tin xác thực APNs
+  - Nhầm FID, FCM registration token và APNs device token
+  - Thông báo Android không hiện do quyền, kênh hoặc cách xử lý nội dung
+  - Thông báo iOS không hiện do quyền, môi trường hoặc cấu hình ứng dụng
+  - Dữ liệu nền đến chậm do thời hạn, ưu tiên và chính sách hệ điều hành
+  - Nhận trùng do tự hiển thị đồng thời với cơ chế hiển thị của hệ thống
+  - Thông báo mở sai màn hình hoặc còn dữ liệu của tài khoản trước
+  - Quy trình truy vết từ sự kiện nghiệp vụ đến nhật ký thiết bị
+- level1: Tiến hóa và vận hành
+  level2:
+  - Chuyển từ registration token sang đăng ký theo FID có kiểm soát
+  - AndroidConfigV2 ở giai đoạn preview và kiểm tra hỗ trợ của từng SDK
+  - Phân biệt RemoteNotification với BackgroundSync trong AndroidConfigV2
+  - Hàm nhận sự kiện mới, nội dung dự phòng và tương thích ứng dụng Android cũ
+  - Đánh giá tác động khi nhà cung cấp đổi API, quota hoặc chính sách giao nhận
+  - Theo dõi thời hạn khóa, chứng chỉ, chuỗi tin cậy và phiên bản thư viện
+  - Triển khai thay đổi máy chủ và ứng dụng theo từng nhóm thiết bị
+  - Chuẩn bị hướng dẫn xử lý sự cố và quay lui cấu hình gửi
+- level1: Thực hành tổng hợp
+  level2:
+  - Gửi thông báo cá nhân từ Java đến thiết bị Android kiểm thử
+  - Gửi thông báo iOS qua FCM và đối chiếu cấu hình APNs
+  - Tích hợp APNs trực tiếp và so sánh kết quả với đường gửi qua FCM
+  - Thông báo trạng thái đơn hàng với deep link và dữ liệu lấy từ máy chủ
+  - Tùy chọn nhận, khung giờ yên lặng và tài khoản có nhiều thiết bị
+  - Outbox, hàng đợi và gửi lại an toàn khi kết quả không rõ
+  - Hộp thư ứng dụng với chống trùng và đồng bộ trạng thái đã đọc
+  - Đánh giá toàn luồng qua ma trận thiết bị, bảo mật và số đo vận hành

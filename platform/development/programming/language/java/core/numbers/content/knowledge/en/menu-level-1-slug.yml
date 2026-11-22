@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiểu số nguyên
+  slug: integer-types
+  index: 1
+- title: Literal và cơ số
+  slug: numeric-literals
+  index: 2
+- title: Số học nguyên
+  slug: integer-arithmetic
+  index: 3
+- title: Tràn và kiểm tra biên
+  slug: integer-overflow
+  index: 4
+- title: Bit và số không dấu
+  slug: bits-and-unsigned
+  index: 5
+- title: Chuyển kiểu
+  slug: numeric-conversions
+  index: 6
+- title: Nâng kiểu biểu thức
+  slug: numeric-promotion
+  index: 7
+- title: Biểu diễn dấu phẩy động
+  slug: floating-point-representation
+  index: 8
+- title: Phép toán dấu phẩy động
+  slug: floating-point-arithmetic
+  index: 9
+- title: So sánh số thực
+  slug: floating-point-comparison
+  index: 10
+- title: Sai số và ổn định
+  slug: numerical-error-and-stability
+  index: 11
+- title: Number và wrapper
+  slug: number-and-wrappers
+  index: 12
+- title: Boxing và unboxing
+  slug: boxing-and-unboxing
+  index: 13
+- title: Phân tích số nguyên
+  slug: integer-parsing
+  index: 14
+- title: Phân tích số thực
+  slug: floating-point-parsing
+  index: 15
+- title: Biểu diễn và định dạng
+  slug: numeric-formatting
+  index: 16
+- title: Math và StrictMath
+  slug: math-and-strict-math
+  index: 17
+- title: BigInteger
+  slug: big-integer
+  index: 18
+- title: Mô hình BigDecimal
+  slug: big-decimal-model
+  index: 19
+- title: Phép toán BigDecimal
+  slug: big-decimal-arithmetic
+  index: 20
+- title: Precision và làm tròn
+  slug: precision-and-rounding
+  index: 21
+- title: So sánh BigDecimal
+  slug: big-decimal-comparison
+  index: 22
+- title: Chuyển đổi BigDecimal
+  slug: big-decimal-conversions
+  index: 23
+- title: Số ngẫu nhiên
+  slug: random-numbers
+  index: 24
+- title: Tổng hợp số
+  slug: numeric-aggregation
+  index: 25
+- title: Số và đồng thời
+  slug: concurrent-numbers
+  index: 26
+- title: Thiết kế dữ liệu số
+  slug: numeric-data-design
+  index: 27
+- title: Hiệu năng
+  slug: numeric-performance
+  index: 28
+- title: Kiểm thử và chẩn đoán
+  slug: numeric-testing-and-diagnostics
+  index: 29
+- title: Sai lầm thường gặp
+  slug: common-numeric-mistakes
+  index: 30
+- title: Thực hành
+  slug: numeric-practice
+  index: 31
+- title: Tra cứu
+  slug: numeric-reference
+  index: 32

@@ -1,0 +1,3688 @@
+menu:
+- slug: telegram-notifications
+  title: Tổng quan thông báo Telegram
+  childs:
+  - slug: telegram-notifications-001
+    title: Telegram đóng vai trò gì trong hệ thống thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-002
+    title: Thông báo giao dịch, cảnh báo vận hành và bản tin định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-003
+    title: Vì sao dùng bot thay cho thao tác gửi thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-004
+    title: Người dùng, bot, cuộc trò chuyện và máy chủ ứng dụng liên hệ thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-005
+    title: Hành trình từ sự kiện nghiệp vụ đến thông báo trên Telegram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-006
+    title: Phân biệt gửi thông báo một chiều với xây dựng chatbot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-007
+    title: 'Telegram, email, SMS và thông báo đẩy: lựa chọn theo nhu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-008
+    title: Giới hạn khi Telegram là kênh liên lạc phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-009
+    title: Phân biệt API chấp nhận gửi, người nhận phản hồi và người nhận đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegram-notifications-010
+    title: Lộ trình học và kiến thức HTTP, JSON, Java cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bot-api-fundamentals
+  title: Nền tảng Bot API
+  childs:
+  - slug: bot-api-fundamentals-001
+    title: Bot API là gì và khác Telegram Client API, MTProto như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-002
+    title: Bot token và cách Telegram nhận diện bot gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-003
+    title: Cấu trúc địa chỉ HTTPS và tên phương thức Bot API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-004
+    title: Gửi tham số bằng JSON, biểu mẫu và multipart/form-data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-005
+    title: Cấu trúc phản hồi với ok, result, description và error_code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-006
+    title: ResponseParameters và dữ liệu hướng dẫn xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-007
+    title: Phân biệt yêu cầu gửi ra với cập nhật (update) nhận vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-008
+    title: Quan hệ giữa User, Chat, Message và Update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-009
+    title: 'BotFather, Bot API và ứng dụng máy chủ: trách nhiệm từng bên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-010
+    title: Đọc tài liệu theo phương thức và theo dõi thay đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-api-fundamentals-011
+    title: Bot API trên hạ tầng Telegram và Local Bot API Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bot-setup
+  title: Khởi tạo bot
+  childs:
+  - slug: bot-setup-001
+    title: Tạo bot qua BotFather và lựa chọn tên, username
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-002
+    title: Nhận token và lưu bằng cấu hình bí mật của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-003
+    title: Kiểm tra danh tính bot bằng getMe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-004
+    title: Thiết lập tên hiển thị, mô tả và thông tin giới thiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-005
+    title: Khai báo danh sách lệnh và gợi ý sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-006
+    title: Phạm vi lệnh theo cuộc trò chuyện và ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-007
+    title: Privacy mode và ảnh hưởng tới cập nhật nhận từ nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-008
+    title: Tách bot thực hành, kiểm thử và môi trường thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-009
+    title: Bắt đầu cuộc trò chuyện với bot bằng /start
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-010
+    title: Thêm bot vào nhóm hoặc kênh với quyền cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bot-setup-011
+    title: Thu hồi, thay token và kiểm chứng ứng dụng dùng token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recipient-identities
+  title: Đích nhận và định danh
+  childs:
+  - slug: recipient-identities-001
+    title: Phân biệt user ID, chat ID, message ID và update ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-002
+    title: Cuộc trò chuyện riêng, nhóm, siêu nhóm và kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-003
+    title: Vì sao username hoặc số điện thoại không thay thế mọi chat ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-004
+    title: Lấy chat ID từ cập nhật do người dùng chủ động tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-005
+    title: Dùng @username cho đích công khai khi phương thức hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-006
+    title: Lưu ID bằng Long hoặc chuỗi để tránh tràn số và mất độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-007
+    title: Phạm vi duy nhất của message_id trong một cuộc trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-008
+    title: getChat và thông tin cần kiểm chứng trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-009
+    title: Đích nhận theo chủ đề với message_thread_id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-010
+    title: Mô hình đích nhận mở rộng và tham số phụ thuộc loại cuộc trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-011
+    title: Nhóm chuyển thành siêu nhóm và thay đổi chat ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-012
+    title: Ánh xạ tài khoản nghiệp vụ với đích Telegram đã xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-013
+    title: Đích bị chặn, bị xóa hoặc bot bị gỡ khỏi cuộc trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-notifications
+  title: Gửi thông báo văn bản
+  childs:
+  - slug: text-notifications-001
+    title: sendMessage và tập tham số tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-002
+    title: Tạo nội dung UTF-8 với tiếng Việt, emoji và xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-003
+    title: Gửi tới người dùng riêng, nhóm và kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-004
+    title: Kết quả Message và việc lưu chat_id, message_id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-005
+    title: disable_notification và lựa chọn gửi không phát âm thanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-006
+    title: protect_content và giới hạn bảo vệ nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-007
+    title: LinkPreviewOptions và điều khiển bản xem trước liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-008
+    title: ReplyParameters và gửi thông báo trả lời một tin có trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-009
+    title: Kiểm tra độ dài trước khi gửi và chia nội dung vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-010
+    title: Thời gian chờ HTTP và kết quả gửi chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-011
+    title: Chuẩn hóa kết quả gửi để nghiệp vụ không phụ thuộc phản hồi thô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-notifications-012
+    title: Gửi tin thử có kiểm soát tới đích kiểm thử đã đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-formatting
+  title: Định dạng nội dung
+  childs:
+  - slug: message-formatting-001
+    title: Văn bản thuần, HTML, MarkdownV2 và tiêu chí lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-002
+    title: parse_mode và khác biệt với định dạng Markdown trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-003
+    title: Các thẻ HTML được Telegram hỗ trợ và cách lồng hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-004
+    title: Escape ký tự đặc biệt trong HTML từ dữ liệu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-005
+    title: Escape MarkdownV2 theo từng ngữ cảnh văn bản, mã và liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-006
+    title: In đậm, in nghiêng, gạch chân, trích dẫn và khối mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-007
+    title: Liên kết có nhãn và phòng tránh chèn URL không mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-008
+    title: MessageEntity và định dạng không dựa vào parse_mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-009
+    title: Offset, length theo UTF-16 và vấn đề emoji, ký tự ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-010
+    title: Chia thông điệp mà không cắt hỏng entity hoặc cấu trúc định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-011
+    title: Giới hạn của bảng Markdown và cách trình bày dữ liệu thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-012
+    title: Kiểm thử nội dung có dấu, ký tự đặc biệt và liên kết dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-formatting-013
+    title: Xử lý lỗi cannot parse entities và lựa chọn văn bản dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-templates
+  title: Mẫu thông báo
+  childs:
+  - slug: notification-templates-001
+    title: Tách mẫu nội dung khỏi mã điều phối gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-002
+    title: Cấu trúc thông báo gồm tiêu đề, mức độ, nội dung và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-003
+    title: Biến mẫu bắt buộc, tùy chọn và giá trị mặc định có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-004
+    title: Kiểm tra dữ liệu và escape tại đúng lớp kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-005
+    title: Mẫu cho xác nhận giao dịch, thay đổi trạng thái và cảnh báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-006
+    title: Mẫu tổng hợp nhiều sự kiện thành bản tin ngắn gọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-007
+    title: Cá nhân hóa theo người nhận, ngôn ngữ và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-008
+    title: Định dạng thời gian, tiền tệ, số lượng và mã tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-009
+    title: Phiên bản mẫu và khả năng tái hiện nội dung đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-010
+    title: Tạo liên kết tới trang nghiệp vụ với thông tin ngữ cảnh tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-011
+    title: Rút gọn nội dung, đính kèm báo cáo và tránh lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-multimedia
+  title: Tệp và nội dung đa phương tiện
+  childs:
+  - slug: files-multimedia-001
+    title: sendPhoto, sendDocument và lựa chọn cách gửi báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-002
+    title: Tải tệp trực tiếp bằng multipart/form-data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-003
+    title: Gửi media bằng URL công khai và điều kiện Telegram truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-004
+    title: Gửi lại media bằng file_id và giới hạn phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-005
+    title: Phân biệt file_id với file_unique_id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-006
+    title: Caption, caption_entities và giới hạn độ dài chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-007
+    title: sendMediaGroup và quan hệ giữa các tin trong một album
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-008
+    title: Gửi âm thanh, video và lựa chọn định dạng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-009
+    title: Đặt tên tệp, MIME type và kiểm chứng nội dung tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-010
+    title: getFile và tải tệp phục vụ tương tác thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-011
+    title: Giới hạn tệp theo phương thức và hạ tầng Bot API đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-012
+    title: Truyền tệp dạng luồng để kiểm soát bộ nhớ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-013
+    title: URL tải tệp chứa token và cách ngăn rò rỉ qua nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-multimedia-014
+    title: Phương án thay thế bằng liên kết tải có thời hạn khi tệp quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sent-message-management
+  title: Quản lý tin đã gửi
+  childs:
+  - slug: sent-message-management-001
+    title: Lưu tham chiếu Message để cập nhật thông báo về sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-002
+    title: editMessageText cho trạng thái nghiệp vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-003
+    title: editMessageCaption và cập nhật chú thích media
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-004
+    title: editMessageMedia và điều kiện thay đổi nội dung đa phương tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-005
+    title: editMessageReplyMarkup để cập nhật hoặc vô hiệu hóa nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-006
+    title: Phân biệt sửa một thông báo với gửi thêm thông báo mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-007
+    title: Xử lý message is not modified theo kết quả mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-008
+    title: deleteMessage và điều kiện quyền, thời hạn của từng trường hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-009
+    title: Ghim, bỏ ghim thông báo quan trọng và quyền cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-010
+    title: forwardMessage, copyMessage và khác biệt về nguồn hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-011
+    title: Giới hạn thao tác với nội dung được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sent-message-management-012
+    title: Vòng đời thông báo đang xử lý, hoàn tất và hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: buttons-responses
+  title: Nút và phản hồi
+  childs:
+  - slug: buttons-responses-001
+    title: InlineKeyboardMarkup và các nút gắn với thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-002
+    title: Nút mở URL và nút gửi callback_data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-003
+    title: Giới hạn callback_data theo byte và cách tạo khóa tham chiếu ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-004
+    title: CallbackQuery và quan hệ với người bấm, tin nhắn, cuộc trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-005
+    title: answerCallbackQuery và kết thúc trạng thái chờ trên giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-006
+    title: Phân biệt phản hồi callback với chỉnh sửa nội dung thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-007
+    title: Xác thực người bấm có quyền thực hiện hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-008
+    title: Nút xác nhận đã tiếp nhận, đồng ý hoặc từ chối nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-009
+    title: Chống bấm lặp và xử lý hai người hành động đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-010
+    title: Nút hết hạn, tin đã xóa và thông tin tham chiếu không còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-011
+    title: ReplyKeyboardMarkup, ForceReply và ranh giới dùng cho đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buttons-responses-012
+    title: Xóa bàn phím hoặc vô hiệu hóa hành động sau khi hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: update-model
+  title: Mô hình cập nhật
+  childs:
+  - slug: update-model-001
+    title: Các loại Update phục vụ hệ thống thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-002
+    title: Message, edited_message, channel_post và callback_query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-003
+    title: my_chat_member và thay đổi trạng thái bot trong cuộc trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-004
+    title: allowed_updates và chỉ đăng ký dữ liệu thực sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-005
+    title: update_id và định danh để phát hiện cập nhật trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-006
+    title: Field tùy chọn, dữ liệu thiếu và khả năng bổ sung trường mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-007
+    title: Phân biệt Chat.id, User.id và chủ thể thực hiện hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-008
+    title: MessageEntity cho lệnh bot và cách đọc tham số lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-009
+    title: Cập nhật đến trùng, đến lệch thứ tự và xử lý theo từng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-010
+    title: Thời gian Telegram giữ cập nhật và ảnh hưởng khi ứng dụng ngừng lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: update-model-011
+    title: Chuyển Update thành sự kiện nội bộ đã được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: long-polling
+  title: Nhận bằng long polling
+  childs:
+  - slug: long-polling-001
+    title: getUpdates và cơ chế chờ phản hồi dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-002
+    title: offset, limit, timeout và ý nghĩa xác nhận cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-003
+    title: Lưu tiến độ nhận sau khi dữ liệu đã được tiếp nhận an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-004
+    title: Khởi động lại tiến trình và tránh mất hoặc xử lý lại sai cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-005
+    title: Phân biệt timeout polling với timeout của HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-006
+    title: Xử lý mảng cập nhật rỗng và vòng lặp nhận không gây tải thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-007
+    title: Backoff khi lỗi mạng, lỗi máy chủ và bị giới hạn tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-008
+    title: Chỉ định một tiến trình polling chủ động cho cùng bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-009
+    title: Xung đột khi có webhook hoặc nhiều tiến trình getUpdates
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-010
+    title: Phân phối cập nhật từ poller sang hàng đợi xử lý nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-011
+    title: Dừng poller an toàn và lưu tiến độ cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-polling-012
+    title: Khi nào long polling phù hợp cho phát triển và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webhook-receivers
+  title: Nhận bằng webhook
+  childs:
+  - slug: webhook-receivers-001
+    title: Webhook Telegram là gì và luồng HTTPS POST vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-002
+    title: setWebhook và đăng ký địa chỉ công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-003
+    title: Chứng chỉ TLS, cổng và điều kiện truy cập theo tài liệu hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-004
+    title: secret_token và header X-Telegram-Bot-Api-Secret-Token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-005
+    title: Kiểm tra bí mật trước khi xử lý JSON đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-006
+    title: Phản hồi HTTP thành công sau khi tiếp nhận cập nhật an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-007
+    title: Telegram gửi lại webhook khi phản hồi không thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-008
+    title: Tách việc tiếp nhận nhanh khỏi tác vụ nghiệp vụ tốn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-009
+    title: max_connections và kiểm soát số kết nối gửi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-010
+    title: allowed_updates, drop_pending_updates và nguy cơ bỏ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-011
+    title: getWebhookInfo và chẩn đoán cập nhật đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-012
+    title: deleteWebhook và chuyển đổi giữa webhook với polling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-013
+    title: Reverse proxy, đường dẫn webhook và cấu hình chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-014
+    title: Triển khai nhiều phiên bản ứng dụng mà không đăng ký webhook tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-receivers-015
+    title: Xác minh trùng cập nhật ngay cả khi webhook dùng HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-subscriptions
+  title: Đăng ký nhận thông báo
+  childs:
+  - slug: notification-subscriptions-001
+    title: Lệnh /start và điều kiện bot có thể gửi tới người dùng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-002
+    title: Deep link để bắt đầu quy trình liên kết tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-003
+    title: Mã liên kết một lần với thời hạn và kiểm tra chống dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-004
+    title: Xác minh người đăng ký trong hệ thống nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-005
+    title: Lệnh /subscribe, /unsubscribe và mô hình đăng ký rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-006
+    title: Chọn chủ đề, mức độ thông báo và tần suất nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-007
+    title: Lệnh /status, /help và phản hồi khi tham số không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-008
+    title: Lưu ngôn ngữ, múi giờ và khoảng thời gian không muốn bị làm phiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-009
+    title: Xử lý người dùng chặn bot hoặc bỏ chặn bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-010
+    title: Ngừng gửi tới đích đã hủy đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-011
+    title: Liên kết lại khi người dùng thay đích nhận hoặc tài khoản nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-subscriptions-012
+    title: Tách dữ liệu đăng ký khỏi token và cấu hình bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: groups-channels-topics
+  title: Nhóm, kênh và chủ đề
+  childs:
+  - slug: groups-channels-topics-001
+    title: Thông báo trong nhóm khác gửi tới người dùng riêng như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-002
+    title: Thêm bot vào nhóm và kiểm tra quyền gửi nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-003
+    title: Thêm bot vào kênh với quyền đăng bài phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-004
+    title: getChatMember và kiểm tra trạng thái thành viên, quản trị viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-005
+    title: Privacy mode ảnh hưởng dữ liệu đầu vào nhưng không thay thế phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-006
+    title: Chủ đề diễn đàn và định tuyến bằng message_thread_id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-007
+    title: Thiết kế ánh xạ cảnh báo theo nhóm, kênh và chủ đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-008
+    title: Xử lý chủ đề đóng, bị xóa hoặc đích không còn khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-009
+    title: Migration của nhóm và cập nhật migrate_to_chat_id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-010
+    title: Bot bị hạn chế quyền, bị gỡ hoặc mất quyền quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-011
+    title: Thông báo sửa, xóa, ghim và các quyền tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: groups-channels-topics-012
+    title: Tránh gửi nhầm dữ liệu giữa nhóm công khai và nhóm nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-http-integration
+  title: Tích hợp HTTP trong Java
+  childs:
+  - slug: java-http-integration-001
+    title: Thiết kế TelegramClient với ranh giới gọi Bot API rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-002
+    title: Gọi Bot API bằng java.net.http.HttpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-003
+    title: Mô hình request, response và ánh xạ JSON bằng Jackson
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-004
+    title: Ánh xạ trường snake_case và kiểu dữ liệu ID an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-005
+    title: Xử lý field tùy chọn và trường JSON mới chưa được biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-006
+    title: Tách lỗi kết nối, lỗi HTTP và phản hồi ok=false
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-007
+    title: Cấu hình connect timeout, request timeout và hủy yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-008
+    title: Kết nối tái sử dụng và giới hạn yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-009
+    title: Gửi multipart với tệp lớn và đóng tài nguyên đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-010
+    title: Nhận kết quả bất đồng bộ và quản lý executor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-011
+    title: Che token trong URL, exception và log HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-integration-012
+    title: Kiểm thử HTTP client bằng máy chủ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-sdk
+  title: Sử dụng SDK Java
+  childs:
+  - slug: java-sdk-001
+    title: Khi nào chọn SDK thay cho tự viết HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-002
+    title: Đánh giá mức hỗ trợ Bot API và tình trạng duy trì thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-003
+    title: Quản lý phiên bản phụ thuộc bằng Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-004
+    title: Khởi tạo client gửi tin và cấu hình token từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-005
+    title: Xây dựng đối tượng yêu cầu và ánh xạ kết quả SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-006
+    title: Tích hợp polling hoặc webhook theo khả năng thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-007
+    title: Giữ mã nghiệp vụ độc lập với kiểu dữ liệu riêng của SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-008
+    title: Tìm đường gọi trực tiếp khi SDK chưa hỗ trợ tham số mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-009
+    title: Kiểm tra cơ chế timeout, retry và nhật ký mặc định của SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sdk-010
+    title: Nâng phiên bản SDK cùng kiểm thử hồi quy hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Tổ chức cấu hình Telegram bằng @ConfigurationProperties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Kiểm tra cấu hình thiếu hoặc sai trước khi kích hoạt tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Tạo TelegramClient bean và cấu hình HTTP client dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Lựa chọn RestClient hoặc WebClient theo mô hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Xây dựng NotificationService và adapter Telegram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Tạo REST controller tiếp nhận webhook với kiểu Update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Kiểm tra webhook secret trước bước điều phối xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Quản lý vòng đời poller bằng cơ chế vòng đời của Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Tách nhận cập nhật, xử lý lệnh và gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: '@Async, executor và giới hạn tác vụ nền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Cấu hình theo profile, biến môi trường và secret store
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-012
+    title: Đóng tài nguyên, ngừng nhận việc và chờ gửi đang dở khi shutdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-013
+    title: Kiểm thử cấu hình và controller mà không gọi Telegram thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-service-design
+  title: Kiến trúc dịch vụ thông báo
+  childs:
+  - slug: notification-service-design-001
+    title: Tách sự kiện nghiệp vụ khỏi phương thức gửi Telegram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-002
+    title: Mô hình yêu cầu thông báo độc lập với kênh gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-003
+    title: Cổng giao tiếp và adapter cho Telegram, email, SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-004
+    title: Quy trình chọn người nhận, kiểm tra đăng ký và kết xuất mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-005
+    title: Gửi trực tiếp trong request và đánh đổi với gửi qua hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-006
+    title: Phân tách thành phần tạo thông báo với worker thực hiện gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-007
+    title: Transactional outbox cho sự kiện phát sinh cùng giao dịch dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-008
+    title: Phân tuyến theo bot, tenant, nhóm cảnh báo và đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-009
+    title: Cấu hình kênh dự phòng và điều kiện chuyển kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-010
+    title: Tránh gửi lặp đa kênh khi kết quả Telegram còn chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-011
+    title: Phân chia trách nhiệm lưu trữ, điều tiết tốc độ và thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-service-design-012
+    title: Thiết kế ranh giới để thay Telegram mà không đổi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-state
+  title: Lưu trữ và trạng thái
+  childs:
+  - slug: storage-state-001
+    title: Mô hình bot, đích nhận, đăng ký và tùy chọn nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-002
+    title: Mô hình thông báo nghiệp vụ khác từng lần thử gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-003
+    title: Trạng thái chờ, đang xử lý, thành công, thử lại, thất bại, hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-004
+    title: Lưu chat_id, message_id và phiên bản nội dung đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-005
+    title: Lưu mã lỗi, số lần thử và thời điểm có thể thử tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-006
+    title: Khóa nghiệp vụ và ràng buộc chống tạo bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-007
+    title: Nhận quyền xử lý bằng khóa, lease hoặc cập nhật có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-008
+    title: Thu hồi công việc khi worker dừng giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-009
+    title: Checkpoint cho polling và kho tiếp nhận webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-010
+    title: Thời gian lưu lịch sử gửi và dọn dữ liệu theo nhu cầu truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-011
+    title: Phân biệt trạng thái gửi thành công với xác nhận nghiệp vụ của người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-state-012
+    title: Nhật ký thay đổi cấu hình và hành động quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-retries
+  title: Lỗi và thử lại
+  childs:
+  - slug: errors-retries-001
+    title: Phân loại lỗi cấu hình, nội dung, quyền truy cập và lỗi tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-002
+    title: Phân biệt HTTP status với error_code trong phản hồi Bot API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-003
+    title: 400 Bad Request và kiểm tra tham số, định dạng, đích gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-004
+    title: 401 Unauthorized và quy trình xử lý token không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-005
+    title: 403 Forbidden và cập nhật tình trạng đích không thể nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-006
+    title: 409 Conflict trong quá trình nhận cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-007
+    title: 429 Too Many Requests và đọc retry_after
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-008
+    title: Lỗi 5xx, kết nối bị đóng và thời gian chờ quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-009
+    title: migrate_to_chat_id và cập nhật đích trước khi thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-010
+    title: Backoff tăng dần, jitter và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-011
+    title: Giới hạn thời gian sống thông báo để không gửi tin đã lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-012
+    title: Circuit breaker và tránh dồn lỗi sang ứng dụng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-013
+    title: Queue cách ly hoặc kho lỗi cho thông báo không thể xử lý tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-014
+    title: Phân loại lỗi bằng cấu trúc dữ liệu thay vì chỉ so khớp description
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-retries-015
+    title: Phát lại có kiểm soát sau khi sửa nguyên nhân lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deduplication-ordering
+  title: Chống trùng và bảo toàn thứ tự
+  childs:
+  - slug: deduplication-ordering-001
+    title: Phân biệt cập nhật trùng, yêu cầu nghiệp vụ trùng và tin đã gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-002
+    title: Idempotency key cho việc tiếp nhận yêu cầu thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-003
+    title: Chống xử lý lặp Update bằng bot ID kết hợp update_id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-004
+    title: Giao dịch inbox và cập nhật nghiệp vụ trước khi xác nhận đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-005
+    title: Cửa sổ lỗi khi Telegram đã nhận tin nhưng ứng dụng chưa lưu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-006
+    title: Giới hạn bảo đảm gửi đúng một lần của phương thức đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-007
+    title: Đánh dấu đang xử lý và điều kiện worker khác được nhận lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-008
+    title: Giữ thứ tự theo đích nhận hoặc thực thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-009
+    title: Retry làm đảo thứ tự và cách chặn tin trạng thái cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-010
+    title: Chống bấm nút nhiều lần với ràng buộc nghiệp vụ lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-011
+    title: Gửi nhiều phần và lưu tiến độ riêng cho từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-ordering-012
+    title: Xử lý cảnh báo hết hiệu lực khi tác vụ phục hồi sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rate-limits
+  title: Giới hạn tốc độ
+  childs:
+  - slug: rate-limits-001
+    title: Giới hạn theo bot, cuộc trò chuyện và nhóm khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-002
+    title: Tra cứu hạn mức hiện hành thay vì cố định giả định vào mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-003
+    title: Bộ điều tiết tốc độ (rate limiter) và hàng đợi chờ gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-004
+    title: Token bucket, leaky bucket và lựa chọn thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-005
+    title: Phối hợp hạn mức toàn bot với hạn mức từng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-006
+    title: Tôn trọng retry_after mà không giữ luồng ngủ quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-007
+    title: Phân phối hạn mức nhất quán giữa nhiều worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-008
+    title: Giới hạn yêu cầu HTTP đồng thời khác giới hạn số tin mỗi giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-009
+    title: Chia sẻ công bằng giữa tenant và tránh một đích chiếm hết lượt gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-010
+    title: Áp lực ngược (backpressure) khi tốc độ tạo tin vượt khả năng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-011
+    title: Ước lượng thời gian hoàn tất chiến dịch từ hạn mức thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-012
+    title: Paid broadcasts, điều kiện sử dụng và kiểm soát ngân sách nếu áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-013
+    title: Đo tỷ lệ 429 và điều chỉnh cấu hình theo số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scheduling-priorities
+  title: Lập lịch và mức ưu tiên
+  childs:
+  - slug: scheduling-priorities-001
+    title: Gửi ngay, hẹn giờ và bản tin định kỳ trong hệ thống ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-002
+    title: Lưu thời điểm gửi theo UTC và hiển thị theo múi giờ người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-003
+    title: Lịch theo giờ địa phương và thay đổi giờ mùa hè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-004
+    title: Quy tắc giờ yên lặng và ngoại lệ cho cảnh báo khẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-005
+    title: Ưu tiên cảnh báo khẩn mà không làm thông báo thường bị bỏ đói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-006
+    title: Gộp sự kiện theo cửa sổ thời gian để giảm số tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-007
+    title: Cooldown và chống bão cảnh báo cùng nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-008
+    title: Hủy hoặc thay thế thông báo còn đang chờ gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-009
+    title: Thông báo hết hạn khi trạng thái nghiệp vụ đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-010
+    title: Khôi phục lịch sau khi ứng dụng khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-011
+    title: Khóa thực thi và tránh nhiều scheduler tạo cùng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-priorities-012
+    title: Giới hạn số việc được quét, nhận và xử lý mỗi đợt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bulk-sending
+  title: Gửi hàng loạt
+  childs:
+  - slug: bulk-sending-001
+    title: Tách chiến dịch gửi với danh sách đích và từng lần giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-002
+    title: Chụp danh sách người nhận và xử lý thay đổi đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-003
+    title: Phân trang hoặc chia lô để không nạp toàn bộ dữ liệu vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-004
+    title: Cá nhân hóa nội dung và kiểm tra mẫu trước khi mở chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-005
+    title: Phối hợp gửi hàng loạt với giới hạn tốc độ từng bot, từng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-006
+    title: Checkpoint và tiếp tục chiến dịch sau khi worker dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-007
+    title: Theo dõi thành công, thất bại tạm thời và đích không còn nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-008
+    title: Một đích lỗi không làm dừng toàn bộ chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-009
+    title: Tạm dừng, hủy và tiếp tục chiến dịch có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-010
+    title: Ngừng gửi khi người nhận vừa hủy đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-011
+    title: Thử trước trên tập đích kiểm thử và mở rộng theo từng đợt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-012
+    title: Báo cáo kết quả gửi khác báo cáo lượt đọc thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-privacy
+  title: Bảo mật và quyền riêng tư
+  childs:
+  - slug: security-privacy-001
+    title: Bot token là thông tin bí mật và phạm vi quyền đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-002
+    title: Lưu token ngoài repository, ảnh chụp, tài liệu và nội dung thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-003
+    title: Che token trong URL, nhật ký, tracing và công cụ giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-004
+    title: Luân phiên token khi nghi ngờ bị lộ và kiểm chứng thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-005
+    title: Bảo vệ webhook bằng TLS, secret header và giới hạn dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-006
+    title: Không coi webhook secret là chữ ký mật mã của nội dung yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-007
+    title: Xác minh quyền người dùng trước thao tác nghiệp vụ qua bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-008
+    title: Chống giả mạo callback_data, dùng lại mã liên kết và liên kết hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-009
+    title: Kiểm soát URL đính kèm để giảm rủi ro SSRF khi ứng dụng tải nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-010
+    title: Kiểm tra tệp nhận vào và giới hạn dung lượng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-011
+    title: Tách quyền truy cập dữ liệu giữa tenant, nhóm và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-012
+    title: Giới hạn dữ liệu nhạy cảm gửi sang nền tảng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-013
+    title: Đăng ký nhận, hủy nhận và minh bạch mục đích sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-014
+    title: Phân biệt thông báo qua bot với trò chuyện được mã hóa đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-015
+    title: Quy trình xóa dữ liệu và ngăn tin thử gửi nhầm tới người dùng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Unit test mẫu nội dung và chính sách chọn người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử escape HTML, MarkdownV2, emoji và giới hạn UTF-16
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử JSON có trường mới, field thiếu và ID lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Giả lập Bot API để kiểm thử thành công và ok=false
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử 429 với retry_after và không gửi lại quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử 5xx, timeout và kết quả gửi chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử migration chat ID và đích bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử webhook secret đúng, sai và thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử Update trùng, lệch thứ tự và worker khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử polling offset và chuyển polling sang webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử outbox, quyền nhận việc và lưu trạng thái nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử callback trùng, hết hạn và sai người thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử lịch gửi với đồng hồ giả và nhiều múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm thử tải, giới hạn đồng thời và khôi phục chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: Kiểm thử tích hợp có đích riêng và ngăn gửi nhầm môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Định nghĩa chỉ số tiếp nhận, chờ gửi và hoàn tất thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Đo độ trễ từ sự kiện nghiệp vụ tới kết quả gọi Telegram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Theo dõi độ dài hàng đợi và tuổi công việc cũ nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Tỷ lệ thành công, thử lại, lỗi vĩnh viễn và đích mất hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Đếm lỗi 429, thời gian chờ retry_after và mức sử dụng hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Webhook pending updates và lỗi do Telegram ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Tiến độ polling, lần nhận cuối và phát hiện poller ngừng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Gắn notification ID, attempt ID và update ID vào log có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Tracing qua nghiệp vụ, outbox, worker và HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Bảo vệ token, nội dung tin và ID nhạy cảm trong telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-011
+    title: Cảnh báo theo mức ảnh hưởng và tránh báo lỗi bằng chính kênh đang hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-012
+    title: Dashboard phục vụ đối chiếu một thông báo từ lúc tạo đến khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-scaling
+  title: Triển khai và mở rộng
+  childs:
+  - slug: deployment-scaling-001
+    title: Chuẩn bị cấu hình, secret và đích nhận cho từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-002
+    title: Lựa chọn polling hoặc webhook theo hạ tầng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-003
+    title: Webhook sau reverse proxy với tên miền và TLS hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-004
+    title: Giữ đúng một poller chủ động khi triển khai nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-005
+    title: Mở rộng worker gửi độc lập với thành phần nhận cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-006
+    title: Kho dữ liệu và hàng đợi bền vững thay cho bộ nhớ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-007
+    title: Rate limiter dùng chung khi nhiều bản sao cùng gửi qua một bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-008
+    title: Triển khai cuốn chiếu và tránh tranh chấp đăng ký webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-009
+    title: Readiness, liveness và phân biệt sức khỏe ứng dụng với Telegram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-010
+    title: Graceful shutdown cho HTTP request, poller và công việc đang gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-011
+    title: Giới hạn tài nguyên, pool kết nối và khả năng chịu tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-012
+    title: 'Local Bot API Server: tiêu chí lựa chọn và chi phí vận hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-scaling-013
+    title: Kiểm tra sau triển khai bằng luồng thông báo có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-changes
+  title: Vận hành và thay đổi
+  childs:
+  - slug: operations-changes-001
+    title: Runbook cho token bị lộ, webhook hỏng và Telegram gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-002
+    title: Tạm dừng gửi khẩn cấp theo bot, tenant hoặc chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-003
+    title: Kiểm tra getMe, getWebhookInfo và thông tin đích khi chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-004
+    title: Thay token, cấu hình đích và quyền bot theo quy trình có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-005
+    title: Sao lưu dữ liệu đăng ký, trạng thái gửi và lịch định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-006
+    title: Khôi phục từ checkpoint mà không phát lại hàng loạt thiếu kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-007
+    title: Dọn lịch sử gửi, tệp tạm và các bản ghi đích không còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-008
+    title: Theo dõi thay đổi Bot API, SDK và cơ chế tương thích JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-009
+    title: Nâng phiên bản thư viện với thử nghiệm từng đợt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-010
+    title: Quản lý ngân sách khi sử dụng khả năng gửi có tính phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-011
+    title: Diễn tập gián đoạn, khôi phục dịch vụ và đo thời gian phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Bot không gửi được vì người dùng chưa bắt đầu hoặc đã chặn bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chat not found do sai định danh, thiếu quyền hoặc đích không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Bot gửi được tin riêng nhưng không đăng được vào kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Lỗi định dạng entity do escape sai hoặc cắt chuỗi không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Gửi nhầm chủ đề hoặc thất bại vì message_thread_id không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Không nhận Update do allowed_updates hoặc privacy mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Polling trả lặp dữ liệu do offset không được lưu đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: 409 Conflict do nhiều poller hoặc webhook vẫn còn đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Webhook có pending updates do TLS, proxy hoặc ứng dụng trả lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Callback hiện trạng thái chờ do chưa answerCallbackQuery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Tin bị trùng sau timeout, retry hoặc worker mất quyền xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Chiến dịch gửi chậm do hạn mức và phân phối công việc không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Báo cáo quá lớn hoặc tải tệp thất bại vì URL không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Log hoặc exception vô tình lộ token trong địa chỉ API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Ứng dụng đánh dấu thành công sai khi chỉ kiểm tra HTTP status
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Tạo bot thực hành và gửi thông báo văn bản từ ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xây mẫu HTML và MarkdownV2 với dữ liệu tiếng Việt bất kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Gửi báo cáo dưới dạng tệp và tái sử dụng file_id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Liên kết tài khoản bằng /start và mã một lần có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Xây chức năng đăng ký, tùy chọn chủ đề và hủy nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Gửi cảnh báo vào nhóm, kênh và chủ đề đã cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Xây quy trình tiếp nhận cảnh báo bằng nút có kiểm tra quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Tích hợp webhook Spring Boot với xác thực và chống Update trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Thử nghiệm polling với checkpoint và phục hồi sau khi dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Xây worker gửi từ outbox với retry, rate limit và kho lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Xây chiến dịch gửi có checkpoint, tạm dừng và tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Lập lịch bản tin theo múi giờ và gộp cảnh báo cùng nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Giả lập Telegram gián đoạn và kiểm chứng trạng thái gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-014
+    title: Hoàn thiện dashboard, runbook và bộ kiểm thử tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

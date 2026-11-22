@@ -1,0 +1,51 @@
+roadmap:
+- id: tu-duy-ve-danh-tinh
+  title: Tư duy về danh tính
+  purpose: Hiểu xác thực giải quyết vấn đề gì và cách kết quả xác thực được dùng trong ứng dụng.
+  objectives:
+  - Phân biệt xác thực danh tính với phân quyền truy cập.
+  - Giải thích chủ thể (principal), thông tin chứng minh danh tính (credentials) và quyền hạn (authorities).
+- id: bo-may-xac-thuc
+  title: Bộ máy xác thực
+  purpose: Nắm cách Spring Security kiểm tra danh tính qua các thành phần có trách nhiệm riêng.
+  objectives:
+  - Lần theo Authentication từ yêu cầu đầu vào đến kết quả đã xác thực.
+  - Phân biệt AuthenticationManager, ProviderManager và AuthenticationProvider.
+- id: nguoi-dung-va-mat-khau
+  title: Người dùng và mật khẩu
+  purpose: Kết nối dữ liệu tài khoản với việc kiểm tra mật khẩu an toàn.
+  objectives:
+  - Phối hợp UserDetailsService, UserDetails và DaoAuthenticationProvider; kiểm tra trạng thái tài khoản.
+  - Dùng PasswordEncoder để băm và đối chiếu mật khẩu; giải thích định dạng của DelegatingPasswordEncoder.
+- id: co-che-dang-nhap
+  title: Cơ chế đăng nhập
+  purpose: Hiểu cách ứng dụng tiếp nhận thông tin xác thực và phản hồi cho người dùng.
+  objectives:
+  - So sánh luồng đăng nhập biểu mẫu với HTTP Basic; xác định vai trò của HTTPS.
+  - Lần theo bộ lọc, AuthenticationEntryPoint và bộ xử lý kết quả đăng nhập.
+- id: ngu-canh-bao-mat
+  title: Ngữ cảnh bảo mật
+  purpose: Phân biệt kết quả xác thực đang được sử dụng với cách lưu kết quả cho yêu cầu tiếp theo.
+  objectives:
+  - Đọc danh tính qua SecurityContext và SecurityContextHolder trong ứng dụng Servlet.
+  - Giải thích vai trò của SecurityContextRepository và việc lưu tường minh khi tự xử lý đăng nhập.
+- id: phien-va-vong-doi-dang-nhap
+  title: Phiên và vòng đời đăng nhập
+  purpose: Quản lý thời gian tồn tại của danh tính từ khi đăng nhập đến khi kết thúc sử dụng.
+  objectives:
+  - So sánh duy trì danh tính bằng phiên với xác thực lại từng yêu cầu.
+  - Kiểm tra bảo vệ chống cố định phiên và giới hạn phiên đồng thời.
+  - Phân biệt phiên với remember-me; kiểm tra dọn ngữ cảnh, phiên và cookie khi đăng xuất.
+- id: tuy-bien-xac-thuc
+  title: Tùy biến xác thực
+  purpose: Mở rộng điểm kiểm tra danh tính khi cơ chế có sẵn chưa đáp ứng yêu cầu.
+  objectives:
+  - Thiết kế Authentication và AuthenticationProvider phù hợp, triển khai supports và authenticate đúng hợp đồng.
+  - Tích hợp vào luồng đăng nhập, xử lý lỗi và tránh tự đặt trạng thái đã xác thực trước khi kiểm chứng.
+- id: kiem-thu-va-chan-doan
+  title: Kiểm thử và chẩn đoán
+  purpose: Chứng minh luồng xác thực hoạt động đúng và tìm được nguyên nhân khi thất bại.
+  objectives:
+  - Kiểm thử đăng nhập đúng, sai mật khẩu, tài khoản bị khóa và đăng xuất bằng MockMvc.
+  - Phân biệt mô phỏng người dùng với kiểm thử thực sự đi qua bộ máy xác thực.
+  - Theo dõi AuthenticationEventPublisher và sự kiện xác thực; ghi nhật ký không chứa mật khẩu.

@@ -1,0 +1,3 @@
+menuLevel1: Công bố endpoint
+menuLevel2: Bật hoặc tắt từng endpoint bằng management.endpoint.<id>.enabled
+status: WRITTEN

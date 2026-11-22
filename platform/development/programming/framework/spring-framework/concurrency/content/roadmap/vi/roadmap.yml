@@ -1,0 +1,57 @@
+roadmap:
+- id: nen-tang-dong-thoi
+  title: Nền tảng đồng thời
+  purpose: Hiểu cách nhiều tác vụ cùng thực thi trong ứng dụng Spring và vai trò của luồng gọi, luồng xử lý.
+  objectives:
+  - Phân biệt đồng bộ, bất đồng bộ và song song
+  - Nhận diện tác vụ, luồng và bộ thực thi
+  - Theo dõi luồng xử lý qua một lời gọi bất đồng bộ
+- id: an-toan-trang-thai
+  title: An toàn trạng thái
+  purpose: Giữ dữ liệu nhất quán khi nhiều luồng cùng truy cập các bean và đối tượng dùng chung.
+  objectives:
+  - Giải thích vì sao bean singleton không tự bảo đảm an toàn luồng
+  - Nhận diện tranh chấp dữ liệu và thao tác cần tính nguyên tử
+  - Chọn trạng thái bất biến, dữ liệu riêng hoặc cơ chế đồng bộ phù hợp
+- id: taskexecutor
+  title: TaskExecutor
+  purpose: Đưa tác vụ vào bộ thực thi do Spring quản lý và giới hạn tài nguyên theo đặc điểm tải.
+  objectives:
+  - Cấu hình ThreadPoolTaskExecutor và lựa chọn cách thực thi phù hợp
+  - Giải thích quan hệ giữa kích thước nhóm luồng và sức chứa hàng đợi
+  - Xử lý tác vụ bị từ chối khi bộ thực thi quá tải
+- id: async
+  title: '@Async'
+  purpose: Thực thi phương thức bất đồng bộ qua cơ chế proxy của Spring và nhận kết quả theo hợp đồng rõ ràng.
+  objectives:
+  - Bật @EnableAsync và chỉ định executor cho @Async
+  - Giải thích giới hạn khi phương thức trong cùng bean tự gọi nhau
+  - Sử dụng Future và kết hợp kết quả bằng CompletableFuture
+- id: ngu-canh-thuc-thi
+  title: Ngữ cảnh thực thi
+  purpose: Kiểm soát thông tin cần mang sang luồng xử lý và xác định ranh giới giao dịch khi chạy bất đồng bộ.
+  objectives:
+  - Nhận diện dữ liệu ThreadLocal không tự đi theo tác vụ sang luồng khác
+  - Dùng TaskDecorator để thiết lập và dọn ngữ cảnh cần truyền
+  - Giải thích vì sao giao dịch gắn với luồng không tự truyền sang tác vụ mới
+- id: lap-lich-tac-vu
+  title: Lập lịch tác vụ
+  purpose: Kích hoạt công việc theo thời điểm hoặc chu kỳ bằng hạ tầng lập lịch của Spring.
+  objectives:
+  - Cấu hình TaskScheduler và bật @EnableScheduling
+  - Phân biệt fixedRate, fixedDelay và cron có múi giờ
+  - Nhận diện nguy cơ chạy chồng hoặc chạy trùng khi có nhiều lịch và nhiều thể hiện ứng dụng
+- id: loi-va-vong-doi
+  title: Lỗi và vòng đời
+  purpose: Làm cho tác vụ có đường xử lý lỗi và kết thúc có kiểm soát khi hết hạn hoặc ứng dụng dừng.
+  objectives:
+  - Xử lý lỗi qua Future và AsyncUncaughtExceptionHandler cho phương thức void
+  - Phân biệt hết thời gian chờ với việc tác vụ thật sự đã dừng
+  - Cấu hình chính sách dừng executor và chờ các tác vụ đang chạy
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Kiểm chứng hành vi đồng thời và quan sát tài nguyên để điều chỉnh cấu hình bằng bằng chứng.
+  objectives:
+  - Viết kiểm thử tác vụ bằng cơ chế phối hợp xác định thay vì chỉ ngủ chờ
+  - Kiểm tra lỗi, quá tải, lịch chạy và dừng ứng dụng
+  - Theo dõi luồng hoạt động, hàng đợi, thời gian xử lý và tác vụ bị từ chối

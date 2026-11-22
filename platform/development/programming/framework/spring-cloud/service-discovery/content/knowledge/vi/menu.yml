@@ -1,0 +1,287 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Khám phá dịch vụ là gì và giải quyết bài toán nào
+  - Vì sao địa chỉ cố định không phù hợp với dịch vụ co giãn
+  - 'Các khái niệm: dịch vụ, phiên bản chạy, sổ đăng ký và bên gọi'
+  - Luồng tổng thể từ đăng ký đến khám phá và gọi dịch vụ
+  - Vị trí của Service Discovery trong hệ sinh thái Spring Cloud
+  - Phân biệt khám phá dịch vụ, cân bằng tải, Gateway và cấu hình tập trung
+  - Khi nào cần sổ đăng ký và khi nào có thể dùng DNS
+  - Kiến thức nền và trình tự học trong module
+- level1: Kiến trúc khám phá
+  level2:
+  - Khám phá phía máy khách và phía máy chủ
+  - Tự đăng ký và đăng ký thông qua thành phần trung gian
+  - Sổ đăng ký tập trung và sổ đăng ký phân tán
+  - Đường điều khiển đăng ký và đường truyền yêu cầu nghiệp vụ
+  - Truy vấn định kỳ, theo dõi thay đổi và lưu đệm danh sách
+  - 'Cơ chế phát hiện lỗi: nhịp báo sống, kiểm tra sức khỏe và phiên kết nối'
+  - Độ trễ lan truyền thay đổi và tính nhất quán cuối cùng
+  - Vai trò của DNS, bộ định tuyến và service mesh trong khám phá
+  - So sánh Eureka, Consul và Zookeeper theo yêu cầu hệ thống
+- level1: Chuẩn bị môi trường
+  level2:
+  - Chọn Spring Boot, Spring Cloud Release Train và JDK tương thích
+  - Quản lý phiên bản thư viện bằng Spring Cloud BOM
+  - Chọn starter khám phá và đọc cây phụ thuộc Gradle hoặc Maven
+  - Chuẩn bị ứng dụng cung cấp dịch vụ và ứng dụng gọi dịch vụ
+  - Cấu hình application.yml, profile và biến môi trường
+  - Thiết lập Spring Boot Actuator cho các thí nghiệm khám phá
+  - Chạy sổ đăng ký và nhiều phiên bản dịch vụ bằng Docker Compose
+  - Kiểm tra tự cấu hình và cô lập từng nhà cung cấp khám phá
+- level1: DiscoveryClient
+  level2:
+  - Hợp đồng DiscoveryClient và cách lấy danh sách dịch vụ
+  - Lấy các ServiceInstance bằng getInstances(serviceId)
+  - Đọc serviceId, instanceId, host, port, URI và metadata
+  - ReactiveDiscoveryClient và cách xử lý kết quả bất đồng bộ
+  - Bật hoặc tắt khám phá kiểu blocking và reactive
+  - Vai trò của @EnableDiscoveryClient và điều kiện tự cấu hình
+  - 'Nhiều DiscoveryClient: thứ tự ưu tiên và hành vi tổng hợp'
+  - Danh sách rỗng, dịch vụ không tồn tại và lỗi truy vấn
+  - Phân biệt DiscoveryClient của Spring Cloud và EurekaClient của Netflix
+  - Giới hạn của hợp đồng chung và đặc điểm riêng của từng nhà cung cấp
+- level1: ServiceRegistry
+  level2:
+  - Hợp đồng ServiceRegistry và đối tượng Registration
+  - Đăng ký, hủy đăng ký, đọc và cập nhật trạng thái
+  - Tự động đăng ký trong vòng đời ứng dụng Spring Boot
+  - Tắt tự đăng ký nhưng vẫn giữ chức năng khám phá
+  - Sự kiện trước và sau khi đăng ký phiên bản dịch vụ
+  - Dùng đúng kiểu Registration cho Eureka, Consul và Zookeeper
+  - Điều khiển trạng thái qua Actuator serviceregistry
+  - Phân biệt tắt đăng ký, tắt truy vấn và tắt toàn bộ khám phá
+  - Trạng thái được hỗ trợ và giới hạn chuyển đổi giữa các sổ đăng ký
+- level1: Định danh và metadata
+  level2:
+  - Tên dịch vụ logic và quy ước spring.application.name
+  - Phân biệt tên dịch vụ, mã phiên bản chạy và phiên bản phần mềm
+  - Tạo instanceId duy nhất khi chạy nhiều bản sao
+  - Chọn hostname hoặc địa chỉ IP được công bố
+  - Công bố đúng cổng, giao thức và đường dẫn dịch vụ
+  - Thiết kế metadata cho môi trường, vùng và phiên bản phần mềm
+  - Phạm vi tên dịch vụ giữa môi trường và nhóm triển khai
+  - Giới hạn kích thước metadata và những dữ liệu không nên công bố
+- level1: Eureka Server
+  level2:
+  - Vai trò của Eureka Server và cấu trúc thông tin đăng ký
+  - Khởi tạo máy chủ bằng starter và @EnableEurekaServer
+  - Thiết lập Eureka độc lập với profile riêng
+  - Cấu hình register-with-eureka và fetch-registry trên máy chủ
+  - Đọc Dashboard và kiểm tra ứng dụng cùng các instance
+  - Quan sát đăng ký và trạng thái qua Eureka REST API
+  - Đường dẫn /eureka/, context path và địa chỉ mà client truy cập
+  - Khởi động, làm nóng sổ đăng ký và giới hạn của một máy chủ
+- level1: Eureka Client
+  level2:
+  - Thêm starter Eureka Client và cấu hình tên dịch vụ
+  - Kết nối máy chủ qua serviceUrl.defaultZone
+  - Chữ hoa, chữ thường và ánh xạ cấu hình defaultZone
+  - Chạy nhiều instance của cùng một dịch vụ
+  - Cấu hình instanceId, hostname và prefer-ip-address
+  - Công bố trang trạng thái, địa chỉ sức khỏe và cổng HTTPS
+  - Chỉ đăng ký, chỉ truy vấn hoặc thực hiện cả hai vai trò
+  - Đồng bộ trạng thái Actuator với Eureka healthcheck
+  - Thời điểm an toàn để sử dụng EurekaClient trong vòng đời Spring
+  - Các tùy chọn kết nối HTTP của Eureka Client theo phiên bản
+- level1: Cơ chế Eureka
+  level2:
+  - Chu trình đăng ký, gia hạn thuê và hủy đăng ký
+  - Thời hạn thuê và khoảng cách giữa các nhịp báo sống
+  - Loại bỏ bản đăng ký hết hạn và độ trễ phát hiện instance chết
+  - Tải đầy đủ và cập nhật chênh lệch danh sách đăng ký
+  - Bộ đệm phía máy chủ, bộ đệm phía client và đường truyền thay đổi
+  - Vì sao dịch vụ vừa đăng ký chưa được bên gọi nhìn thấy
+  - 'Self-preservation: mục đích, ngưỡng kích hoạt và ảnh hưởng'
+  - Phân biệt instance UP, DOWN, STARTING và OUT_OF_SERVICE
+  - Điều chỉnh chu kỳ cập nhật trong thử nghiệm và đánh đổi vận hành
+  - Khởi động lại Eureka và quá trình tái lập sổ đăng ký
+- level1: Cụm Eureka
+  level2:
+  - Mô hình sao chép ngang hàng và quan hệ giữa các máy chủ
+  - Cấu hình nhiều Eureka peer bằng các profile riêng
+  - Đăng ký chéo giữa peer và đồng bộ dữ liệu ban đầu
+  - Cấu hình nhiều địa chỉ Eureka phía client
+  - Chuyển sang máy chủ khác khi một peer mất kết nối
+  - Thiết kế vùng, khu vực và metadata về vị trí triển khai
+  - Khám phá ưu tiên cùng vùng và phạm vi của cơ chế cân bằng tải
+  - Phân vùng mạng, dữ liệu lệch giữa peer và quá trình hội tụ
+- level1: Consul Discovery
+  level2:
+  - Kiến trúc Consul agent, client agent và server agent
+  - Vai trò của gossip, Raft và quorum trong cụm Consul
+  - Khởi tạo Consul cục bộ và giới hạn của chế độ phát triển
+  - Kết nối Spring Cloud Consul Discovery tới Consul agent
+  - Đăng ký service-name, instance-id, địa chỉ và cổng
+  - Khai báo tags, metadata và vị trí vùng triển khai
+  - Truy vấn dịch vụ qua Spring DiscoveryClient
+  - Phân biệt Consul Catalog API, Health API và DNS
+  - Catalog Watch và cách ứng dụng nhận biết thay đổi
+  - Tách cấu hình Consul Discovery khỏi Consul Config
+- level1: Sức khỏe với Consul
+  level2:
+  - Kiểm tra HTTP tới Actuator health và trạng thái passing, warning, critical
+  - Cấu hình đường dẫn, chu kỳ và thời gian chờ kiểm tra sức khỏe
+  - Địa chỉ mà Consul agent truy cập khác địa chỉ bên gọi sử dụng
+  - Xử lý cổng quản trị riêng và dịch vụ quản trị đăng ký kèm
+  - Kiểm tra bằng TTL và cơ chế heartbeat của ứng dụng
+  - Lọc các instance đạt kiểm tra sức khỏe khi truy vấn
+  - Hủy đăng ký instance lỗi kéo dài và xử lý bản ghi còn sót
+  - Đánh đổi giữa HTTP check, TTL heartbeat và mức tải kiểm tra
+- level1: Zookeeper Discovery
+  level2:
+  - Vai trò của Zookeeper và Curator trong khám phá dịch vụ
+  - Znode, nút tạm thời và cấu trúc đường dẫn đăng ký
+  - Phiên kết nối, thời hạn phiên và vòng đời nút tạm thời
+  - Khởi tạo cụm Zookeeper và cấu hình connect-string
+  - Đăng ký ứng dụng bằng Spring Cloud Zookeeper Discovery
+  - Thiết lập tên dịch vụ, instanceId, địa chỉ và thư mục gốc
+  - Truy vấn ServiceInstance và đọc payload của bản đăng ký
+  - Theo dõi thay đổi, lưu đệm và tái kết nối với Curator
+  - Phân biệt mất kết nối tạm thời và hết hạn phiên
+  - Trạng thái kết nối Zookeeper khác trạng thái sức khỏe nghiệp vụ
+  - Giới hạn sử dụng Zookeeper cho khám phá và phạm vi quản lý dependency
+- level1: Khám phá tĩnh
+  level2:
+  - Vai trò và điều kiện sử dụng SimpleDiscoveryClient
+  - Khai báo nhiều instance bằng thuộc tính simple.instances
+  - Ánh xạ URI, giao thức và thông tin ServiceInstance
+  - Khám phá tĩnh không tự đăng ký hoặc tự phát hiện instance chết
+  - Tách danh sách dịch vụ theo profile và môi trường
+  - Dùng khám phá tĩnh cho kiểm thử và hệ thống quy mô nhỏ
+- level1: Tích hợp gọi dịch vụ
+  level2:
+  - Từ serviceId đến danh sách instance rồi đến một yêu cầu HTTP
+  - Ranh giới giữa khám phá và chọn instance bằng Spring Cloud LoadBalancer
+  - ServiceInstanceListSupplier và nguồn danh sách từ DiscoveryClient
+  - Gọi tên dịch vụ bằng RestClient hoặc RestTemplate với @LoadBalanced
+  - Gọi tên dịch vụ bằng WebClient và bộ lọc cân bằng tải
+  - OpenFeign dùng tên dịch vụ và sự khác biệt với URL cố định
+  - Tích hợp Gateway với lb:// và giới hạn của tự tạo route từ discovery
+  - Dùng metadata để lọc instance theo vùng hoặc phiên bản
+  - Xử lý không có instance mà không che giấu lỗi nghiệp vụ
+  - Phân biệt bộ đệm khám phá, bộ đệm cân bằng tải và kết nối HTTP
+- level1: Khám phá trên Kubernetes
+  level2:
+  - Khám phá bằng Kubernetes Service và DNS
+  - Service, Pod và các endpoint trong mô hình khám phá
+  - So sánh DNS với Spring Cloud Kubernetes DiscoveryClient
+  - Các lựa chọn client Kubernetes và phạm vi sử dụng
+  - Giới hạn khám phá theo namespace, nhãn và cổng dịch vụ
+  - Trạng thái readiness và danh sách endpoint sẵn sàng
+  - ServiceAccount và quyền đọc tài nguyên phục vụ khám phá
+  - Khi nào cần kết hợp Kubernetes với sổ đăng ký ngoài cụm
+- level1: Mạng và triển khai
+  level2:
+  - Địa chỉ lắng nghe, địa chỉ công bố và khả năng định tuyến
+  - Localhost trên máy chủ, trong container và trong mạng riêng
+  - Hostname, DNS nội bộ và mạng Docker Compose
+  - Cổng trong container, cổng công bố và ánh xạ NAT
+  - Dịch vụ nhiều giao diện mạng và lựa chọn InetUtils
+  - Reverse proxy, TLS termination và địa chỉ được công bố
+  - Khởi động theo mức sẵn sàng thay vì chỉ theo thứ tự tiến trình
+  - Triển khai trên máy ảo, container và môi trường lai
+  - Kiểm tra đường mạng riêng cho đăng ký, kiểm tra sức khỏe và gọi dịch vụ
+- level1: Vòng đời dịch vụ
+  level2:
+  - Phân biệt tiến trình sống, ứng dụng sẵn sàng và khả năng phục vụ
+  - Thứ tự khởi tạo ứng dụng, đăng ký và nhận lưu lượng
+  - Làm nóng ứng dụng trước khi công bố trạng thái phục vụ
+  - Liên hệ giữa liveness, readiness và health check của sổ đăng ký
+  - Chuyển trạng thái ngừng nhận yêu cầu trước khi bảo trì
+  - Rút lưu lượng, chờ yêu cầu đang chạy và tắt ứng dụng êm
+  - Tắt tiến trình đột ngột và thời gian loại bỏ đăng ký
+  - Rolling update, blue-green và thời gian chồng lấn các instance
+  - Mở rộng hoặc thu hẹp số bản sao và xác minh quá trình hội tụ
+- level1: Nhất quán và phục hồi
+  level2:
+  - Đánh đổi giữa độ mới danh sách, tính sẵn sàng và chi phí đồng bộ
+  - Phân vùng mạng ảnh hưởng đến đăng ký và truy vấn như thế nào
+  - Sổ đăng ký mất kết nối nhưng bộ đệm client vẫn còn
+  - Khởi động mới khi sổ đăng ký không truy cập được
+  - Phân biệt danh sách rỗng, dữ liệu cũ và lỗi kết nối
+  - Giới hạn thời gian chờ, thử lại và giãn cách khi kết nối sổ đăng ký
+  - Tránh đồng loạt đăng ký hoặc truy vấn lại sau sự cố
+  - Ranh giới phối hợp với Circuit Breaker và chính sách gọi lại
+  - Đặt tiêu chí phục hồi và kiểm chứng bằng thí nghiệm gây lỗi
+- level1: Bảo mật
+  level2:
+  - Mô hình đe dọa và ranh giới tin cậy của sổ đăng ký
+  - Ngăn đăng ký giả và công bố địa chỉ dịch vụ độc hại
+  - Bảo vệ Eureka bằng Spring Security và HTTP Basic
+  - Phạm vi CSRF cho Eureka API và bảo vệ các đường dẫn còn lại
+  - TLS, mTLS, chứng thư và truststore khi kết nối sổ đăng ký
+  - Consul ACL token và quyền tối thiểu cho đăng ký hoặc truy vấn
+  - Zookeeper ACL, xác thực và bảo vệ đường dẫn đăng ký
+  - Quản lý thông tin xác thực bằng cấu hình bí mật bên ngoài
+  - Giới hạn mạng và quyền truy cập Dashboard, API cùng Actuator
+  - Tránh lộ thông tin xác thực trong URL, log và metadata
+- level1: Quan sát hệ thống
+  level2:
+  - DiscoveryClientHealthIndicator và health tổng hợp của khám phá
+  - Giảm chi phí getServices trong kiểm tra sức khỏe bằng probe
+  - Theo dõi số instance và biến động đăng ký theo dịch vụ
+  - Đo lỗi đăng ký, lỗi truy vấn và độ trễ kết nối sổ đăng ký
+  - Theo dõi nhịp báo sống, kiểm tra sức khỏe và dữ liệu quá hạn
+  - Đọc log tự cấu hình, đăng ký và tái kết nối có ngữ cảnh
+  - Liên kết log với serviceId, instanceId và vùng triển khai
+  - Thiết kế cảnh báo mất toàn bộ instance và cảnh báo lỗi lan rộng
+- level1: Hiệu năng
+  level2:
+  - Ước lượng tải theo số dịch vụ, instance và chu kỳ cập nhật
+  - Chi phí truy vấn toàn bộ danh mục và giới hạn phạm vi khám phá
+  - Tối ưu bộ đệm và đánh đổi với độ trễ lan truyền
+  - Chi phí tải đầy đủ, cập nhật chênh lệch và theo dõi thay đổi
+  - Điều chỉnh kết nối HTTP, timeout và tài nguyên client
+  - Tác động của metadata lớn và thay đổi instance liên tục
+  - Đo tải khi khởi động đồng loạt và phục hồi cả cụm
+  - Lập kế hoạch dung lượng, độ sẵn sàng và nâng cấp sổ đăng ký
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị với DiscoveryClient giả lập
+  - Kiểm thử hợp đồng ServiceInstance và dữ liệu metadata
+  - Dùng SimpleDiscoveryClient để kiểm thử ứng dụng gọi dịch vụ
+  - Kiểm thử đăng ký thực với Eureka, Consul hoặc Zookeeper
+  - Dùng Testcontainers và cổng động cho môi trường kiểm thử cô lập
+  - Chờ điều kiện hội tụ thay vì đặt thời gian ngủ cố định
+  - Kiểm thử nhiều instance, đổi trạng thái và hủy đăng ký
+  - Kiểm thử mất sổ đăng ký, mất peer và instance chết đột ngột
+  - Kiểm thử đường mạng, chứng thư và quyền truy cập bị từ chối
+  - Dọn tài nguyên và ngăn dữ liệu kiểm thử lẫn giữa các lần chạy
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Ứng dụng không đăng ký: kiểm tra starter, profile và tự cấu hình'
+  - Sai tên dịch vụ hoặc trùng instanceId giữa các bản sao
+  - Eureka không kết nối do sai defaultZone hoặc đường dẫn /eureka/
+  - Dịch vụ xuất hiện trên Dashboard nhưng bên gọi không truy cập được
+  - Danh sách instance rỗng dù sổ đăng ký còn dữ liệu
+  - Instance đã tắt nhưng vẫn xuất hiện trong kết quả khám phá
+  - Eureka bật self-preservation hoặc liên tục lỗi gia hạn
+  - Consul báo critical do sai đường dẫn, cổng hoặc quyền health check
+  - Zookeeper mất session, lỗi đường dẫn hoặc quyền truy cập
+  - Lỗi tên miền, NAT, TLS, xác thực và đồng bộ thời gian
+  - Xung đột nhiều DiscoveryClient hoặc không tương thích phiên bản
+  - Quy trình thu thập bằng chứng và khoanh vùng từng chặng
+- level1: Mở rộng và chuyển đổi
+  level2:
+  - Khi nào cần một DiscoveryClient tùy chỉnh
+  - Triển khai hợp đồng truy vấn và ánh xạ ServiceInstance
+  - Thiết kế thứ tự và kết hợp với các client có sẵn
+  - Mở rộng đăng ký với ServiceRegistry khi thật sự cần
+  - Chuyển từ địa chỉ cố định hoặc SimpleDiscoveryClient sang registry
+  - Chuyển giữa Eureka, Consul và Zookeeper qua lớp trừu tượng chung
+  - Chạy song song hai nguồn khám phá và kiểm soát trùng lặp
+  - Nhận diện cấu hình Ribbon, @EnableEurekaClient và hướng dẫn cũ
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng Eureka và hai dịch vụ để quan sát đầy đủ chu trình khám phá
+  - Chạy nhiều instance và chứng minh bên gọi dùng tên dịch vụ
+  - Đo thời gian từ đăng ký mới đến khi bên gọi nhìn thấy
+  - So sánh tắt ứng dụng êm với buộc dừng tiến trình
+  - Gây lỗi một Eureka peer và xác minh client tiếp tục khám phá
+  - Dựng Consul để so sánh HTTP check với TTL heartbeat
+  - Dựng Zookeeper và quan sát mất kết nối cùng hết hạn phiên
+  - Thực hiện rolling update và kiểm tra instance ngừng nhận lưu lượng
+  - Bảo vệ sổ đăng ký và kiểm thử đăng ký trái phép
+  - Thiết kế phương án khám phá cho hệ thống giả định và giải thích đánh đổi

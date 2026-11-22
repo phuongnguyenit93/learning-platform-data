@@ -1,0 +1,3 @@
+menuLevel1: Lỗi thiết kế
+menuLevel2: Thêm bản ghi Outbox từ listener sau commit mà không xử lý cửa sổ mất sự kiện
+status: ''

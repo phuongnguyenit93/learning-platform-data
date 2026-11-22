@@ -1,0 +1,2026 @@
+menu:
+- slug: generics-overview
+  title: Tổng quan
+  childs:
+  - slug: generics-overview-001
+    title: Generics là gì và bài toán tái sử dụng mã an toàn kiểu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-overview-002
+    title: Vì sao dùng Object và ép kiểu dễ để lỗi đến lúc chạy
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-overview-003
+    title: Quan hệ giữa kiểm tra kiểu lúc biên dịch và dữ liệu lúc chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-overview-004
+    title: Tham số kiểu, đối số kiểu, biến kiểu và kiểu tham số hóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-overview-005
+    title: Generics kết hợp với lớp, giao diện, phương thức và collection
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-overview-006
+    title: Phân biệt tính tổng quát về kiểu với kế thừa và đa hình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-overview-007
+    title: Lợi ích, giới hạn và trường hợp không cần generics
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-overview-008
+    title: Kiến thức nền và trình tự học generics trong Java Core
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generics-syntax
+  title: Cú pháp cơ bản
+  childs:
+  - slug: generics-syntax-001
+    title: Khai báo một hoặc nhiều tham số kiểu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-syntax-002
+    title: Quy ước tên T, E, K, V và cách đặt tên có nghĩa
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-syntax-003
+    title: Truyền đối số kiểu và tạo đối tượng kiểu tham số hóa
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-syntax-004
+    title: Toán tử diamond <> và khác biệt với raw type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-syntax-005
+    title: Kiểu tham số hóa lồng nhau như Map<K,List<V>>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-syntax-006
+    title: 'Chỉ dùng kiểu tham chiếu: primitive, kiểu bao và autoboxing'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-syntax-007
+    title: Giá trị null, giới hạn thao tác trên T và kiểu Object mặc định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-syntax-008
+    title: Đọc chữ ký generic và theo dõi nơi ràng buộc từng biến kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-classes-interfaces
+  title: Lớp và giao diện
+  childs:
+  - slug: generic-classes-interfaces-001
+    title: Thiết kế lớp lưu giữ giá trị Box<T>
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-interfaces-002
+    title: Dùng T cho trường, tham số, giá trị trả về và constructor
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-interfaces-003
+    title: Thiết kế lớp nhiều tham số kiểu với Pair<K,V>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-interfaces-004
+    title: Khai báo giao diện generic và hợp đồng theo kiểu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-interfaces-005
+    title: Triển khai giao diện bằng đối số kiểu cụ thể
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-interfaces-006
+    title: Triển khai giao diện bằng tham số kiểu của lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-interfaces-007
+    title: Record generic và các thành phần được tham số hóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-interfaces-008
+    title: Phân biệt kiểu khai báo generic với từng cách sử dụng kiểu đó
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-methods
+  title: Phương thức generic
+  childs:
+  - slug: generic-methods-001
+    title: Khai báo <T> trước kiểu trả về
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-methods-002
+    title: Phương thức generic trong lớp generic hoặc lớp thông thường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-methods-003
+    title: Phân biệt phương thức có tham số kiểu riêng với phương thức dùng T của lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-methods-004
+    title: Quan hệ kiểu giữa nhiều đối số và giá trị trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-methods-005
+    title: Phương thức generic static và các hàm tiện ích
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-methods-006
+    title: Truyền đối số kiểu tường minh khi gọi phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-methods-007
+    title: Constructor generic và phân biệt với constructor của lớp generic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-methods-008
+    title: Thiết kế phương thức tạo đối tượng không phụ thuộc ép kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-parameter-scope
+  title: Phạm vi biến kiểu
+  childs:
+  - slug: type-parameter-scope-001
+    title: Phạm vi tham số kiểu của lớp, giao diện và phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-parameter-scope-002
+    title: Che khuất tên kiểu và vì sao nên tránh dùng lại tên T
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-parameter-scope-003
+    title: Giới hạn dùng T của lớp trong trường và phương thức static
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-parameter-scope-004
+    title: Phương thức static khai báo tham số kiểu riêng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-parameter-scope-005
+    title: Lớp thành viên bên trong và tham số kiểu của lớp bao
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-parameter-scope-006
+    title: Lớp lồng static và tham số kiểu độc lập
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-parameter-scope-007
+    title: Thành viên static dùng chung giữa các kiểu tham số hóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-inheritance
+  title: Kế thừa generic
+  childs:
+  - slug: generic-inheritance-001
+    title: Kế thừa lớp generic với đối số kiểu cố định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-inheritance-002
+    title: Kế thừa và chuyển tiếp tham số kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-inheritance-003
+    title: Thêm tham số kiểu mới ở lớp con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-inheritance-004
+    title: Quan hệ giữa lớp generic và giao diện generic
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-inheritance-005
+    title: Vì sao một lớp không thể kế thừa cùng giao diện với hai đối số kiểu khác nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-inheritance-006
+    title: Kiểu thành viên được thay thế thế nào qua các mức kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-inheritance-007
+    title: Kiểu trả về hiệp biến và hợp đồng phương thức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-inheritance-008
+    title: Generic với lớp abstract, lớp final và hệ phân cấp sealed
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-type-bounds
+  title: Giới hạn kiểu
+  childs:
+  - slug: generic-type-bounds-001
+    title: Giới hạn trên <T extends U> và các thao tác được phép trên T
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-bounds-002
+    title: Giới hạn bằng lớp hoặc giao diện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-bounds-003
+    title: Nhiều giới hạn với <T extends A & B>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-bounds-004
+    title: Quy tắc lớp đứng trước và các giới hạn phải tương thích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-bounds-005
+    title: Giới hạn tham chiếu đến tham số kiểu khác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-bounds-006
+    title: Kiểu giao và ý nghĩa đối với truy cập thành viên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-bounds-007
+    title: <T extends Number> không cung cấp toán tử số học trên T
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-bounds-008
+    title: Giới hạn Throwable trong throws của phương thức generic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-type-relations
+  title: Quan hệ kiểu
+  childs:
+  - slug: generic-type-relations-001
+    title: Kiểu con của đối số không tự tạo quan hệ kiểu con cho generic
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-relations-002
+    title: Vì sao List<Integer> không phải List<Number>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-relations-003
+    title: List<Integer>, Collection<Integer> và quan hệ theo khai báo kế thừa
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-relations-004
+    title: Tính bất biến của generic và tính hiệp biến của mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-relations-005
+    title: Lỗi kiểu mà tính bất biến giúp ngăn chặn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-relations-006
+    title: Phân biệt List<Object>, List<?> và raw List
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-relations-007
+    title: Quan hệ kiểu giữa các wildcard có giới hạn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-relations-008
+    title: Tách quan hệ kiểu con khỏi phép ép kiểu và chuyển đổi không kiểm tra
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unbounded-wildcard
+  title: Wildcard không giới hạn
+  childs:
+  - slug: unbounded-wildcard-001
+    title: Dấu ? biểu diễn một kiểu chưa biết
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unbounded-wildcard-002
+    title: List<?> khác với danh sách chứa Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unbounded-wildcard-003
+    title: Đọc giá trị từ wildcard không giới hạn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unbounded-wildcard-004
+    title: Giới hạn thêm và thay phần tử qua List<?>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unbounded-wildcard-005
+    title: Vì sao vẫn có thể clear hoặc remove trên một số List<?>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unbounded-wildcard-006
+    title: Mỗi wildcard có thể đại diện cho một kiểu khác nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unbounded-wildcard-007
+    title: Các vị trí cú pháp không cho phép wildcard
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upper-bounded-wildcards
+  title: Wildcard extends
+  childs:
+  - slug: upper-bounded-wildcards-001
+    title: Ý nghĩa của ? extends T
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upper-bounded-wildcards-002
+    title: Nhận List<T> và danh sách của các kiểu con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upper-bounded-wildcards-003
+    title: Đọc phần tử theo giới hạn trên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upper-bounded-wildcards-004
+    title: Vì sao không thể thêm một giá trị T tùy ý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upper-bounded-wildcards-005
+    title: Giới hạn thêm null không có nghĩa collection phải chấp nhận null
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upper-bounded-wildcards-006
+    title: Wildcard extends không biến đối tượng nguồn thành bất biến
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upper-bounded-wildcards-007
+    title: Áp dụng cho đầu vào cung cấp dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lower-bounded-wildcards
+  title: Wildcard super
+  childs:
+  - slug: lower-bounded-wildcards-001
+    title: Ý nghĩa của ? super T
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounded-wildcards-002
+    title: Nhận collection của T hoặc kiểu cha của T
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounded-wildcards-003
+    title: Thêm T và các đối tượng kiểu con của T
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounded-wildcards-004
+    title: Vì sao giá trị đọc ra chỉ được bảo đảm là Object
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounded-wildcards-005
+    title: Phân biệt giới hạn dưới của wildcard với giới hạn của tham số kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounded-wildcards-006
+    title: Quan hệ giữa ? super Integer và ? super Number
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounded-wildcards-007
+    title: Áp dụng cho đầu ra nhận dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pecs
+  title: Quy tắc PECS
+  childs:
+  - slug: pecs-001
+    title: Nguồn cung cấp dùng extends, đích nhận dữ liệu dùng super
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pecs-002
+    title: Xác định vai trò đọc–ghi của từng tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pecs-003
+    title: Thiết kế hàm sao chép từ List<? extends T> sang List<? super T>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pecs-004
+    title: Khi cùng tham số vừa cung cấp vừa nhận dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pecs-005
+    title: Khi dùng wildcard và khi phải đặt tên tham số kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pecs-006
+    title: Ràng buộc nhiều đầu vào cùng chia sẻ một kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pecs-007
+    title: Giới hạn khi trả về wildcard từ API
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pecs-008
+    title: Đọc chữ ký Collections.copy, addAll và Comparator
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: wildcard-capture
+  title: Bắt giữ wildcard
+  childs:
+  - slug: wildcard-capture-001
+    title: Phép chuyển đổi bắt giữ (capture conversion) giải quyết vấn đề gì
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wildcard-capture-002
+    title: Đọc thông báo CAP#1 và capture of ?
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wildcard-capture-003
+    title: Đặt tên kiểu chưa biết bằng phương thức hỗ trợ generic
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wildcard-capture-004
+    title: Hoán đổi phần tử của List<?> bằng phương thức hỗ trợ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wildcard-capture-005
+    title: Vì sao hai wildcard giống cách viết vẫn có thể là hai kiểu khác nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wildcard-capture-006
+    title: Giới hạn trên và dưới của kiểu được bắt giữ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wildcard-capture-007
+    title: Wildcard lồng nhau và giới hạn của phép bắt giữ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wildcard-capture-008
+    title: Phân biệt giải quyết lỗi bằng capture với ép kiểu không kiểm tra
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-inference
+  title: Suy luận kiểu
+  childs:
+  - slug: type-inference-001
+    title: Suy luận đối số kiểu từ tham số của lời gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-002
+    title: Kiểu đích và ảnh hưởng của ngữ cảnh gán hoặc truyền đối số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-003
+    title: Diamond và suy luận khi khởi tạo đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-004
+    title: Truyền đối số kiểu tường minh để làm rõ lời gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-005
+    title: Suy luận với nhiều đối số có các kiểu khác nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-006
+    title: Giới hạn trên, giới hạn dưới và kiểu cha chung phù hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-007
+    title: Poly expression, lời gọi lồng nhau và giới hạn lan truyền kiểu đích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-008
+    title: var với diamond và trường hợp suy luận thành Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-inference-009
+    title: Đọc và xử lý thông báo inference variable has incompatible bounds
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recursive-type-bounds
+  title: Giới hạn đệ quy
+  childs:
+  - slug: recursive-type-bounds-001
+    title: Giới hạn tham chiếu chính nó và mô hình F-bounded polymorphism
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-type-bounds-002
+    title: <T extends Comparable<T>> trong thuật toán so sánh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-type-bounds-003
+    title: Vì sao thường cần Comparable<? super T>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-type-bounds-004
+    title: Enum<E extends Enum<E>> và quan hệ với kiểu enum cụ thể
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-type-bounds-005
+    title: Mẫu tự tham chiếu trong builder có kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-type-bounds-006
+    title: 'Giới hạn của kiểu tự tham chiếu: không tự bảo đảm mọi lớp con'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-type-bounds-007
+    title: Khi giới hạn đệ quy làm API khó dùng và cách đơn giản hóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-erasure
+  title: Xóa kiểu
+  childs:
+  - slug: type-erasure-001
+    title: Xóa kiểu (type erasure) là gì và lý do tương thích
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-erasure-002
+    title: Xóa tham số không có giới hạn về Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-erasure-003
+    title: Xóa tham số có giới hạn về giới hạn đứng đầu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-erasure-004
+    title: Xóa kiểu trong chữ ký phương thức và kiểu mảng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-erasure-005
+    title: Phép ép kiểu được trình biên dịch chèn vào khi đọc dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-erasure-006
+    title: Vì sao Box<String> và Box<Integer> dùng cùng lớp lúc chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-erasure-007
+    title: Phân biệt xóa kiểu với tạo lớp chuyên biệt cho từng đối số kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-erasure-008
+    title: Thông tin chữ ký generic còn lưu trong class file
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-overrides-and-bridges
+  title: Ghi đè và cầu nối
+  childs:
+  - slug: generic-overrides-and-bridges-001
+    title: Thay thế tham số kiểu khi ghi đè phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-overrides-and-bridges-002
+    title: Chữ ký sau xóa kiểu và khái niệm subsignature
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-overrides-and-bridges-003
+    title: Phương thức cầu nối (bridge method) bảo toàn đa hình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-overrides-and-bridges-004
+    title: Đối chiếu mã Java với bytecode bằng javap
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-overrides-and-bridges-005
+    title: Nhận diện phương thức bridge và synthetic qua reflection
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-overrides-and-bridges-006
+    title: Xung đột tên (name clash) do cùng chữ ký sau xóa kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-overrides-and-bridges-007
+    title: Vì sao không thể overload chỉ bằng List<String> và List<Integer>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-overrides-and-bridges-008
+    title: Ảnh hưởng của bridge đến dấu vết lỗi ép kiểu lúc chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: raw-types-and-legacy-interop
+  title: Kiểu thô
+  childs:
+  - slug: raw-types-and-legacy-interop-001
+    title: Kiểu thô (raw type) là gì và vai trò trong mã trước generics
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: raw-types-and-legacy-interop-002
+    title: Phân biệt raw type với kiểu thông thường không có tham số kiểu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: raw-types-and-legacy-interop-003
+    title: Chuyển từ kiểu tham số hóa sang raw type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: raw-types-and-legacy-interop-004
+    title: Chuyển từ raw type về kiểu tham số hóa và cảnh báo unchecked
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: raw-types-and-legacy-interop-005
+    title: Kiểu của thành viên khi được truy cập qua raw type
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: raw-types-and-legacy-interop-006
+    title: Nguy cơ trộn dữ liệu sai kiểu và lỗi xuất hiện muộn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: raw-types-and-legacy-interop-007
+    title: Raw type ở lớp bên trong và giới hạn kiểu tham số hóa một phần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: raw-types-and-legacy-interop-008
+    title: Di chuyển API cũ sang generics theo từng ranh giới
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-types
+  title: Kiểu lúc chạy
+  childs:
+  - slug: runtime-types-001
+    title: Kiểu có đầy đủ thông tin lúc chạy (reifiable type) là gì
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-002
+    title: Phân loại kiểu thông thường, raw type, wildcard không giới hạn và kiểu mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-003
+    title: Vì sao List<String> không có đủ thông tin kiểu lúc chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-004
+    title: 'Class literal: String.class, List.class và giới hạn của List<String>.class'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-005
+    title: instanceof với List<?> và các trường hợp kiểu tham số hóa hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-006
+    title: Phân biệt kiểm tra kiểu tổng thể với xác minh kiểu của mọi phần tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-007
+    title: Giới hạn của mẫu kiểu và ép kiểu sau xóa kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-types-008
+    title: Không suy ra đối số kiểu tùy ý từ getClass() của đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-arrays
+  title: Mảng generic
+  childs:
+  - slug: generic-arrays-001
+    title: Đối chiếu mảng kiểm tra kiểu lúc chạy với generic kiểm tra lúc biên dịch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-arrays-002
+    title: Vì sao không thể trực tiếp tạo new T[]
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-arrays-003
+    title: Vì sao không thể trực tiếp tạo new List<String>[]
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-arrays-004
+    title: Khác biệt giữa khai báo biến mảng generic và biểu thức tạo mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-arrays-005
+    title: Trường hợp mảng với List<?> có thể tạo hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-arrays-006
+    title: Dùng Collection<T> thay cho mảng khi phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-arrays-007
+    title: Tạo mảng bằng IntFunction<T[]> hoặc thông tin Class
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-arrays-008
+    title: Giới hạn và cách khoanh vùng phép ép kiểu khi lưu trữ bằng Object[]
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-varargs
+  title: Varargs generic
+  childs:
+  - slug: generic-varargs-001
+    title: Ô nhiễm kiểu trong heap (heap pollution) và biến có kiểu tham số hóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-varargs-002
+    title: Varargs generic được biểu diễn bằng mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-varargs-003
+    title: Cảnh báo tại nơi khai báo và nơi gọi phương thức varargs
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-varargs-004
+    title: Rủi ro ghi qua tham chiếu mảng kiểu cha
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-varargs-005
+    title: Rủi ro làm lộ mảng varargs ra bên ngoài
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-varargs-006
+    title: '@SafeVarargs và những phương thức hoặc constructor được phép dùng'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-varargs-007
+    title: '@SafeVarargs là cam kết an toàn, không sửa thân phương thức'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-varargs-008
+    title: Phân biệt cảnh báo unchecked, rawtypes và varargs
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generics-language-limits
+  title: Giới hạn ngôn ngữ
+  childs:
+  - slug: generics-language-limits-001
+    title: Không khởi tạo new T() và cách truyền Supplier<T>
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-002
+    title: Không dùng primitive làm đối số kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-003
+    title: Không dùng tham số kiểu của lớp trong ngữ cảnh static
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-004
+    title: Không khai báo lớp generic kế thừa Throwable
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-005
+    title: Phân biệt kiểu trong catch với tham số kiểu được dùng trong throws
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-006
+    title: Enum và kiểu annotation không được khai báo tham số kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-007
+    title: Không cung cấp giá trị mặc định cho tham số kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-008
+    title: Các giới hạn overload, instanceof và tạo mảng liên quan xóa kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-language-limits-009
+    title: Phân biệt giới hạn ngôn ngữ với giới hạn của một API cụ thể
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lambda-standard-apis
+  title: Lambda và API chuẩn
+  childs:
+  - slug: lambda-standard-apis-001
+    title: Supplier<T>, Consumer<T>, Predicate<T> và Function<T,R>
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-standard-apis-002
+    title: Phương thức của API nhận ? super T hoặc ? extends R
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-standard-apis-003
+    title: Generic với Comparator và phép nối tiêu chí
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-standard-apis-004
+    title: Suy luận kiểu của lambda và tham chiếu phương thức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-standard-apis-005
+    title: Phương thức generic và lựa chọn phương thức overload
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-standard-apis-006
+    title: Giới hạn dùng lambda cho hợp đồng phương thức tự khai báo generic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-standard-apis-007
+    title: Đọc chữ ký map, flatMap và collect trong Stream
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lambda-standard-apis-008
+    title: Generic trong Optional và quan hệ kiểu khi biến đổi dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-type-reflection
+  title: Phản chiếu kiểu
+  childs:
+  - slug: generic-type-reflection-001
+    title: Class<T> như thông tin kiểu được truyền tường minh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-002
+    title: Class.cast, Class.isInstance và Class.asSubclass
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-003
+    title: Phân biệt java.lang.reflect.Type với Class<?>
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-004
+    title: 'ParameterizedType: raw type, owner type và actual type arguments'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-005
+    title: 'TypeVariable: nơi khai báo và các giới hạn'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-006
+    title: WildcardType và GenericArrayType
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-007
+    title: Đọc getGenericSuperclass, getGenericInterfaces và chữ ký thành viên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-008
+    title: Lưu kiểu lồng nhau qua lớp con và mẫu type token
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-type-reflection-009
+    title: Giới hạn phục hồi T chưa được ràng buộc và chi phí xử lý siêu dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-api-design
+  title: Thiết kế API
+  childs:
+  - slug: generic-api-design-001
+    title: Chọn tham số kiểu ở cấp lớp hay cấp phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-002
+    title: Đặt tên và viết tài liệu cho quan hệ giữa các kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-003
+    title: Dùng kiểu chính xác khi cần giữ quan hệ đọc–ghi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-004
+    title: Dùng wildcard cho đầu vào linh hoạt theo PECS
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-005
+    title: Tránh tham số kiểu chỉ xuất hiện một lần mà không tạo quan hệ cần thiết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-006
+    title: Thiết kế kho lưu trữ nhiều kiểu với Class<T> làm khóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-007
+    title: Khoanh vùng cast không kiểm tra và nêu bất biến bảo đảm an toàn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-008
+    title: Ảnh hưởng của đổi giới hạn và thứ tự giới hạn đến tương thích nhị phân
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-api-design-009
+    title: Cân bằng tính linh hoạt, độ dễ hiểu và khả năng suy luận kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generics-testing-and-diagnostics
+  title: Kiểm thử và lỗi
+  childs:
+  - slug: generics-testing-and-diagnostics-001
+    title: Viết mẫu mã phải biên dịch và mẫu mã phải bị từ chối
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-testing-and-diagnostics-002
+    title: Bật javac -Xlint:unchecked, -Xlint:rawtypes và -Xlint:varargs
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-testing-and-diagnostics-003
+    title: Đọc lỗi incompatible types, capture và incompatible bounds
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-testing-and-diagnostics-004
+    title: Kiểm thử ranh giới raw type, reflection và ép kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-testing-and-diagnostics-005
+    title: Kiểm thử heap pollution và thời điểm phát sinh ClassCastException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-testing-and-diagnostics-006
+    title: Đối chiếu chữ ký generic, chữ ký đã xóa và bridge trong class file
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-testing-and-diagnostics-007
+    title: Giới hạn @SuppressWarnings và yêu cầu giải thích tính an toàn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-testing-and-diagnostics-008
+    title: Chi phí boxing và vì sao generics không tự chuyên biệt hóa mã cho primitive
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generics-integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: generics-integrated-practice-001
+    title: Xây dựng Box<T>, Pair<K,V> và giao diện lưu trữ generic
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-002
+    title: Viết hàm chọn phần tử lớn nhất với giới hạn Comparable
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-003
+    title: Thiết kế hàm sao chép đúng PECS
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-004
+    title: Sửa lỗi wildcard bằng phương thức bắt giữ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-005
+    title: So sánh suy luận với diamond, var và đối số kiểu tường minh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-006
+    title: Tái hiện raw type và heap pollution rồi sửa tại nguồn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-007
+    title: Quan sát type erasure và bridge bằng javap
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-008
+    title: Xây dựng kho nhiều kiểu và type token cho cấu trúc lồng nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-integrated-practice-009
+    title: Lập bảng lựa chọn T, ?, extends, super và tự đánh giá tình huống
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,3 @@
+menuLevel1: Generational Shenandoah
+menuLevel2: Bật -XX:+UseShenandoahGC và -XX:ShenandoahGCMode=generational khi bản phân phối hỗ trợ
+status: ""

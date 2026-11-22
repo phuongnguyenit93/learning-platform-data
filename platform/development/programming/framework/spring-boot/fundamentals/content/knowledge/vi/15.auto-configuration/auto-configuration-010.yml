@@ -1,0 +1,3 @@
+menuLevel1: Auto-configuration
+menuLevel2: Loại auto-configuration bằng annotation hoặc spring.autoconfigure.exclude
+status: WRITTEN

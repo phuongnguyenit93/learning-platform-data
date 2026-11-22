@@ -1,0 +1,311 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Môi trường kiểm thử là gì và vì sao kết quả phụ thuộc vào môi trường
+  - 'Các thành phần: ứng dụng, dịch vụ phụ thuộc, cấu hình, dữ liệu và tài nguyên'
+  - Quan hệ giữa môi trường phát triển, kiểm thử, staging và production
+  - Phân biệt môi trường kiểm thử với framework kiểm thử, mock và stub
+  - Phạm vi môi trường cho kiểm thử đơn vị, tích hợp và đầu cuối
+  - Cô lập, khả năng tái tạo và mức độ tương đồng với production
+  - Nhận diện lỗi ứng dụng, lỗi dữ liệu và lỗi hạ tầng kiểm thử
+  - Luồng chuẩn bị, xác minh sẵn sàng, chạy kiểm thử và thu hồi môi trường
+  - Kiến thức Java, JDBC, mạng và Docker cần chuẩn bị
+- level1: Thiết kế môi trường
+  level2:
+  - Lập danh sách dịch vụ phụ thuộc và hợp đồng kết nối của ứng dụng
+  - Xác định phiên bản, cấu hình và dữ liệu tối thiểu cho từng kịch bản
+  - Chọn môi trường nhúng, container cục bộ hay dịch vụ từ xa
+  - Chọn tài nguyên riêng cho từng ca, lớp kiểm thử hoặc bộ kiểm thử
+  - Phân biệt môi trường dùng chung và môi trường tạm thời dùng xong bỏ
+  - Thiết kế trình tự khởi tạo theo quan hệ phụ thuộc
+  - Xác định chủ thể tạo, quản lý và dọn dẹp từng tài nguyên
+  - Đặt tiêu chí chấp nhận cho độ cô lập, thời gian chuẩn bị và chi phí
+  - Xây dựng hợp đồng cấu hình để cùng một bộ kiểm thử chạy ở nhiều nơi
+- level1: Lựa chọn công cụ
+  level2:
+  - 'Bản đồ công cụ: H2, Testcontainers, Docker Compose và dịch vụ CI'
+  - So sánh cơ sở dữ liệu nhúng với cơ sở dữ liệu thật chạy trong container
+  - So sánh khai báo container bằng Java với mô tả dịch vụ bằng Compose
+  - Khi nào dùng bộ giả lập dịch vụ và khi nào cần dịch vụ thật
+  - Phân biệt dịch vụ dùng cho kiểm thử với bộ giả lập hành vi HTTP
+  - Đánh giá dịch vụ CI có sẵn, môi trường từ xa và môi trường Kubernetes tạm
+  - Kiểm tra điều kiện vận hành, giấy phép và tài nguyên trước khi chọn công cụ
+  - Chọn phiên bản thư viện, container image và Java tương thích
+- level1: Nền tảng container
+  level2:
+  - Container image, container, registry và Docker daemon
+  - Quan hệ giữa tiến trình Java, Docker client và máy chạy container
+  - Kiểm tra Docker hoạt động và quyền truy cập daemon
+  - Phân biệt cổng trong container và cổng được công bố ra máy chủ
+  - Phân biệt mạng container, volume, bind mount và hệ thống tệp tạm
+  - Tag, digest và tính ổn định của container image
+  - Khác biệt Linux, Windows, WSL2 và macOS khi chạy container kiểm thử
+  - Kiến trúc amd64, arm64 và rủi ro khi phải giả lập kiến trúc
+  - Điều kiện hỗ trợ và giới hạn khi dùng Docker runtime thay thế
+- level1: Bắt đầu Testcontainers
+  level2:
+  - Vai trò của Testcontainers trong việc cấp phát dịch vụ cho Java
+  - Quản lý phiên bản bằng BOM và khai báo dependency trong phạm vi test
+  - Phân biệt thư viện lõi, tích hợp JUnit và module dịch vụ
+  - Tạo container đầu tiên bằng GenericContainer và DockerImageName
+  - Khởi động container và lấy thông tin kết nối sau khi khởi động
+  - Kết nối bằng thư viện Java và kiểm tra dịch vụ ở mức tối thiểu
+  - Quản lý start, stop và đóng tài nguyên bằng try-with-resources
+  - Đọc kết quả kiểm thử và xác nhận tài nguyên đã được thu hồi
+  - Cấu hình Testcontainers theo máy cá nhân và môi trường thực thi
+- level1: Cấu hình container
+  level2:
+  - Khai báo biến môi trường, lệnh khởi động và tham số dịch vụ
+  - Công bố cổng bằng withExposedPorts mà không cố định cổng máy chủ
+  - Chọn module có sẵn hay GenericContainer cho một dịch vụ
+  - Sử dụng image thay thế và kiểm tra tương thích với module
+  - Xây dựng image riêng từ Dockerfile và quản lý ngữ cảnh build
+  - Sao chép cấu hình ban đầu vào container trước khi chạy
+  - Thực thi lệnh bằng execInContainer và kiểm tra mã thoát
+  - Tách cấu hình tái sử dụng khỏi dữ liệu riêng của từng kịch bản
+  - Giới hạn tài nguyên và điều chỉnh thông số container có kiểm soát
+- level1: Sẵn sàng và vòng đời
+  level2:
+  - Phân biệt container đã chạy với dịch vụ đã sẵn sàng nhận yêu cầu
+  - Phân biệt startup check strategy với wait strategy
+  - Chờ cổng lắng nghe và giới hạn của kiểm tra TCP
+  - Chờ HTTP theo trạng thái, nội dung phản hồi và TLS
+  - Chờ log, Docker healthcheck hoặc lệnh kiểm tra dịch vụ
+  - Kết hợp điều kiện chờ cho dịch vụ có nhiều giai đoạn khởi tạo
+  - Đặt thời hạn khởi động phù hợp và phân tích nguyên nhân hết hạn
+  - Chạy tác vụ khởi tạo một lần bằng one-shot container
+  - Điều phối dịch vụ phụ thuộc bằng dependsOn và điều kiện sẵn sàng
+  - Chọn vòng đời theo ca, lớp và toàn bộ tiến trình kiểm thử
+  - Vai trò của Ryuk và dọn dẹp khi kiểm thử thất bại hoặc bị ngắt
+  - Xử lý khởi tạo dở dang và thu hồi tài nguyên theo thứ tự ngược
+- level1: Mạng và kết nối
+  level2:
+  - Sử dụng getHost và getMappedPort để tạo địa chỉ kết nối động
+  - Phân biệt địa chỉ dành cho Java trên máy chủ và ứng dụng trong container
+  - Tạo mạng riêng bằng Network và đặt network alias
+  - Kết nối nhiều container bằng tên dịch vụ và cổng nội bộ
+  - Cho container truy cập dịch vụ trên máy chủ bằng exposeHostPorts
+  - Vì sao localhost thay đổi ý nghĩa giữa máy chủ và container
+  - Xử lý Docker daemon từ xa và địa chỉ truy cập trong CI
+  - Chẩn đoán DNS, connection refused và sai ánh xạ cổng
+  - Cấu hình proxy, đường ra mạng và phụ thuộc vào Internet
+  - Dọn mạng sau kiểm thử và tránh trùng tên giữa các lần chạy
+- level1: Tệp và lưu trữ
+  level2:
+  - Sao chép tệp từ classpath hoặc máy chủ bằng MountableFile
+  - Chọn sao chép tệp, bind mount, volume hay tmpfs
+  - Giới hạn của bind mount khi Docker daemon chạy trên máy khác
+  - Phân quyền tệp, user của container và chế độ chỉ đọc
+  - Khác biệt đường dẫn, ký tự xuống dòng và quyền thực thi giữa hệ điều hành
+  - Khởi tạo thư mục làm việc và dữ liệu tệp cho từng kịch bản
+  - Thu hồi tệp đầu ra và bằng chứng chẩn đoán trước khi xóa container
+  - Quản lý vòng đời volume để dữ liệu cũ không lọt sang lần chạy mới
+- level1: Cơ sở dữ liệu nhúng
+  level2:
+  - Mô hình cơ sở dữ liệu trong bộ nhớ, trong tệp và chạy dạng server
+  - Khởi tạo H2 bằng JDBC và phân biệt cơ sở dữ liệu có tên với không tên
+  - Vòng đời kết nối H2 và tác động của DB_CLOSE_DELAY
+  - Quản lý schema, script khởi tạo và trạng thái sau mỗi lần kiểm thử
+  - Chế độ tương thích H2 và giới hạn khi mô phỏng hệ quản trị khác
+  - Khác biệt kiểu dữ liệu, SQL dialect, định danh và giá trị mặc định
+  - Khác biệt transaction, khóa và ràng buộc cần kiểm tra trên hệ quản trị thật
+  - Vai trò của HSQLDB và Derby trong môi trường Java nhúng
+  - Nhận diện kiểm thử đạt trên H2 nhưng sai trên cơ sở dữ liệu production
+  - Tiêu chí chuyển từ cơ sở dữ liệu nhúng sang container
+- level1: Cơ sở dữ liệu container
+  level2:
+  - Khởi tạo PostgreSQLContainer và cấp phát database, user, password
+  - Khởi tạo MySQL hoặc MariaDB theo hệ quản trị đích
+  - Chọn phiên bản image và tham số hệ quản trị tương ứng production
+  - Lấy JDBC URL, thông tin xác thực và tạo DataSource
+  - 'Khởi tạo cơ sở dữ liệu qua JDBC URL dạng jdbc:tc:'
+  - Sử dụng TC_INITSCRIPT và TC_INITFUNCTION đúng thời điểm
+  - Vòng đời container JDBC khi đóng kết nối và ý nghĩa của TC_DAEMON
+  - Cấp phát nhiều database hoặc schema cho các kịch bản độc lập
+  - Cấu hình múi giờ, encoding và collation của cơ sở dữ liệu
+  - Chuẩn bị môi trường JDBC và R2DBC theo cơ chế kết nối của ứng dụng
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Phân biệt schema migration, dữ liệu nền và dữ liệu riêng của ca kiểm thử
+  - Chạy Flyway hoặc Liquibase trên cơ sở dữ liệu mới cấp phát
+  - Xác định thứ tự migration, nạp dữ liệu và khởi động ứng dụng
+  - Thiết kế dữ liệu mẫu tối thiểu có kết quả xác định
+  - Lựa chọn rollback, truncate, xóa theo khóa hay tạo lại database
+  - Giới hạn của rollback khi ứng dụng dùng luồng khác hoặc gọi qua HTTP
+  - Dọn dữ liệu có khóa ngoại, sequence và bộ đếm tự tăng
+  - Cô lập dữ liệu giữa kiểm thử đồng bộ và tác vụ bất đồng bộ
+  - Ẩn danh hóa dữ liệu và tránh sử dụng bản sao dữ liệu thật không kiểm soát
+  - Kiểm tra khả năng chạy lại dữ liệu khởi tạo mà không nhân bản trạng thái
+- level1: NoSQL và bộ nhớ đệm
+  level2:
+  - Chuẩn bị MongoDB bằng container và lấy chuỗi kết nối
+  - Vai trò của replica set khi chuẩn bị môi trường transaction MongoDB
+  - Cô lập database, collection, index và dữ liệu MongoDB giữa các ca
+  - Khởi tạo Redis bằng container và cấu hình Java client
+  - Cô lập key bằng tiền tố riêng và quản lý TTL trong môi trường kiểm thử
+  - Xử lý xác thực, cấu hình và dọn dữ liệu Redis
+  - Chuẩn bị Elasticsearch hoặc OpenSearch và chờ khả năng phục vụ truy vấn
+  - Lựa chọn phiên bản, tài nguyên và phạm vi tính năng cho dịch vụ NoSQL
+- level1: Hàng đợi và sự kiện
+  level2:
+  - Chuẩn bị Kafka bằng module Testcontainers phù hợp phiên bản
+  - Lấy bootstrap servers và phân biệt listener nội bộ với listener bên ngoài
+  - Tạo topic và cô lập consumer group theo lần chạy
+  - Khởi tạo RabbitMQ và lấy thông tin kết nối AMQP
+  - Chuẩn bị exchange, queue và binding trước khi chạy ứng dụng
+  - Cô lập topic, queue, subscription và thông điệp tồn dư
+  - Xác nhận broker và consumer sẵn sàng trước khi phát dữ liệu
+  - Dọn dữ liệu sau khi tác vụ tiêu thụ bất đồng bộ kết thúc
+  - Giới hạn của broker một nút khi so với cụm production
+- level1: Dịch vụ giả lập
+  level2:
+  - Phân biệt dịch vụ thật, dịch vụ tương thích giao thức và bộ giả lập
+  - Chuẩn bị LocalStack cho phạm vi dịch vụ AWS cần kiểm thử
+  - Cấu hình endpoint, region và thông tin xác thực dành riêng cho bộ giả lập
+  - Tạo bucket hoặc queue và cô lập tài nguyên theo từng lần chạy
+  - Chuẩn bị MinIO cho giao tiếp S3 và xác định giới hạn tương thích
+  - Chuẩn bị Keycloak với realm, client và tài khoản kiểm thử
+  - Dùng máy chủ thư thử nghiệm như Mailpit để tiếp nhận email
+  - Chạy dịch vụ HTTP giả lập trong môi trường mà không mở rộng sang thiết kế stub
+  - Xác định tính năng cần xác minh bổ sung bằng dịch vụ thật
+  - Quản lý phiên bản, quyền truy cập và điều kiện sử dụng bộ giả lập
+- level1: Docker Compose
+  level2:
+  - Khi nào một môi trường nhiều dịch vụ nên được mô tả bằng Compose
+  - Tách cấu hình Compose kiểm thử khỏi cấu hình phát triển
+  - Khai báo service, network, volume và biến môi trường cần thiết
+  - Chọn ComposeContainer theo phiên bản Testcontainers và Compose được hỗ trợ
+  - Phân biệt ComposeContainer với DockerComposeContainer trong dự án cũ
+  - Công bố dịch vụ và lấy địa chỉ bằng getServiceHost, getServicePort
+  - Cấu hình điều kiện sẵn sàng và thời hạn cho từng dịch vụ
+  - Phân biệt Compose cục bộ với Compose chạy trong container
+  - Quản lý đường dẫn build, tệp cấu hình và thông tin đăng nhập registry
+  - Cô lập tên dự án, dọn volume và thu hồi toàn bộ môi trường Compose
+- level1: JUnit 5 và Gradle
+  level2:
+  - Tích hợp @Testcontainers và @Container với vòng đời JUnit Jupiter
+  - Phân biệt container trường static với container trường instance
+  - Chuẩn bị dữ liệu trong @BeforeEach sau khi hạ tầng sẵn sàng
+  - Tránh trộn cơ chế quản lý vòng đời thủ công và JUnit extension
+  - Thiết kế cấu hình container dùng chung bằng lớp hỗ trợ hoặc extension
+  - Tách bộ kiểm thử cần hạ tầng bằng tag và Gradle task
+  - Quản lý test source set, dependency và tài nguyên cấu hình
+  - Truyền cấu hình môi trường vào tiến trình kiểm thử của Gradle
+  - Chọn thất bại rõ ràng hay bỏ qua có chủ đích khi thiếu container runtime
+  - Giới hạn hỗ trợ chạy song song của Testcontainers JUnit extension
+- level1: Spring Boot
+  level2:
+  - Tách application-test và @ActiveProfiles khỏi cấu hình production
+  - Đăng ký địa chỉ container bằng @DynamicPropertySource
+  - Sử dụng @ServiceConnection với spring-boot-testcontainers
+  - Chọn kết nối dịch vụ tự động hay thuộc tính động theo loại dịch vụ
+  - Quản lý container bằng @TestConfiguration và @Bean
+  - Phân biệt vòng đời container do Spring quản lý với JUnit quản lý
+  - Chuẩn bị @DataJpaTest và kiểm soát việc thay thế DataSource
+  - Chuẩn bị @SpringBootTest với cổng HTTP ngẫu nhiên
+  - Ảnh hưởng của ApplicationContext cache tới địa chỉ và vòng đời container
+  - Dùng @DirtiesContext có chủ đích và nhận diện container bị dừng quá sớm
+  - Chuẩn bị kết nối JDBC, Redis hoặc broker cho cùng một ứng dụng
+  - Phân biệt hỗ trợ Docker Compose của Spring Boot với ComposeContainer
+- level1: Tính xác định
+  level2:
+  - Kiểm soát múi giờ, locale, charset và cấu hình JVM
+  - Cấp Clock cho ứng dụng để kiểm soát thời điểm trong kiểm thử
+  - Phân biệt thời gian của ứng dụng với đồng hồ trong dịch vụ bên ngoài
+  - Cố định giá trị khởi tạo (seed) khi sinh dữ liệu ngẫu nhiên
+  - Cấp thư mục riêng bằng @TempDir và dọn tệp sau kiểm thử
+  - Sử dụng cổng động và tránh tài nguyên có tên cố định
+  - Phục hồi system property và trạng thái toàn cục sau từng phạm vi
+  - Chờ điều kiện với thời hạn thay vì dùng sleep cố định
+  - Ngăn phụ thuộc vào thứ tự chạy và trạng thái còn lại từ lần trước
+- level1: Cô lập song song
+  level2:
+  - Phân biệt chạy song song theo ca, lớp, Gradle fork và CI job
+  - Chọn mức cô lập container phù hợp với mức song song
+  - Tách database, schema, key, topic và thư mục bằng định danh lần chạy
+  - Tránh xung đột cổng, tên container và tài nguyên dùng chung
+  - Quản lý kết nối và dữ liệu khi nhiều kiểm thử dùng cùng dịch vụ
+  - Đồng bộ khởi tạo một lần và tránh đóng container khi ca khác còn dùng
+  - Phân biệt khởi động nhiều container đồng thời với chạy kiểm thử song song
+  - Giới hạn số tác vụ theo CPU, RAM và khả năng chịu tải của dịch vụ
+  - Xác minh tính độc lập bằng chạy riêng, đổi thứ tự và lặp lại bộ kiểm thử
+- level1: Mô phỏng sự cố
+  level2:
+  - Phạm vi mô phỏng lỗi hạ tầng và quan hệ với kiểm thử khả năng phục hồi
+  - Đặt Toxiproxy giữa ứng dụng và dịch vụ phụ thuộc
+  - Gây trễ mạng, giới hạn băng thông và ngắt kết nối có kiểm soát
+  - Phân biệt thời hạn kết nối, thời hạn đọc và thời hạn chờ môi trường
+  - Dừng hoặc khởi động lại dịch vụ sau giai đoạn sẵn sàng
+  - Phục hồi proxy, kết nối và trạng thái sau mỗi kịch bản lỗi
+  - Ghi lại tham số gây lỗi để tái tạo đúng tình huống
+  - Giới hạn của mô phỏng cục bộ so với sự cố hệ phân tán thật
+- level1: Tối ưu tài nguyên
+  level2:
+  - Đo riêng thời gian tải image, khởi động, nạp dữ liệu và chạy kiểm thử
+  - Cân bằng khởi động lại dịch vụ với chi phí dọn dữ liệu
+  - Dùng chung container trong một lần chạy và trách nhiệm làm sạch trạng thái
+  - Phân biệt singleton container với tái sử dụng container giữa nhiều lần chạy
+  - Tính thử nghiệm của reusable containers và điều kiện bật có chủ đích
+  - Giới hạn dọn dẹp, mạng và tính phù hợp với CI của reusable containers
+  - Tải trước image, sử dụng registry mirror và kiểm soát cache
+  - Khởi động song song các dịch vụ độc lập trong giới hạn tài nguyên
+  - Phát hiện thiếu RAM, hết dung lượng đĩa và rò rỉ tài nguyên
+- level1: Môi trường CI
+  level2:
+  - Xác minh container runtime và quyền truy cập trước khi chạy kiểm thử
+  - So sánh service container của CI với container do Testcontainers cấp phát
+  - Chạy kiểm thử trên máy thực thi CI trực tiếp
+  - 'Chạy kiểm thử trong container: dùng Docker socket hoặc Docker-in-Docker'
+  - Khác biệt đường dẫn mount và địa chỉ mạng giữa các mô hình CI
+  - Cấu hình máy thực thi GitHub Actions hoặc GitLab CI cho môi trường container
+  - Quản lý tải image, registry riêng và giới hạn truy cập registry
+  - Tách namespace tài nguyên giữa job song song và lần chạy lại
+  - Thu thập log, cấu hình đã che thông tin bí mật và báo cáo khi thất bại
+  - Thu hồi tài nguyên khi job bị hủy hoặc vượt thời hạn
+  - Quản lý ma trận phiên bản dịch vụ và tái tạo lỗi CI trên máy cá nhân
+- level1: Bảo mật môi trường
+  level2:
+  - Tách tài khoản, thông tin xác thực và endpoint kiểm thử khỏi production
+  - Chặn cấu hình nhầm tới dịch vụ hoặc dữ liệu production
+  - Cấp quyền tối thiểu cho tài khoản dịch vụ kiểm thử
+  - Truyền thông tin bí mật qua cấu hình và che khỏi log, báo cáo
+  - Giới hạn cổng công bố và tránh để dịch vụ kiểm thử truy cập công khai
+  - Nhận diện quyền của Docker socket và rủi ro container đặc quyền
+  - Chuẩn bị chứng chỉ TLS kiểm thử và cấu hình truststore riêng
+  - Không vô hiệu hóa xác minh TLS để che lỗi cấu hình môi trường
+  - Kiểm soát nguồn image, phiên bản và dữ liệu nhạy cảm trong volume
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Thu log container bằng log consumer và gắn định danh lần chạy
+  - Phân tích log theo giai đoạn tải image, khởi động và kết nối
+  - Chẩn đoán không tìm thấy Docker runtime hoặc thiếu quyền daemon
+  - Chẩn đoán lỗi tải image, registry authentication và sai kiến trúc
+  - Chẩn đoán wait strategy hết hạn dù container đang chạy
+  - Chẩn đoán sai host, port, DNS và cấu hình TLS
+  - Chẩn đoán lỗi migration, dữ liệu nền và trạng thái còn sót
+  - Chẩn đoán container dừng sớm do vòng đời JUnit hoặc Spring
+  - Chẩn đoán lỗi chập chờn do bất đồng bộ, thứ tự chạy và tranh chấp
+  - Thu thập bằng chứng trước cleanup mà không để môi trường tồn tại vô hạn
+  - Tái hiện thất bại với cùng image, cấu hình, dữ liệu và seed
+- level1: Chuẩn hóa môi trường
+  level2:
+  - Đóng gói cấu hình môi trường thành thành phần hỗ trợ kiểm thử
+  - Tách cấu hình dịch vụ dùng chung khỏi dữ liệu nghiệp vụ của từng ca
+  - Tài liệu hóa yêu cầu runtime, bước khởi tạo và cách dọn dẹp
+  - Quản lý phiên bản image và rà soát khi nâng thư viện Testcontainers
+  - Kiểm tra sai khác cấu hình giữa máy cá nhân, CI và production
+  - Loại bỏ cổng cố định, sleep cố định và phụ thuộc môi trường ẩn
+  - Tránh trộn môi trường phát triển lâu dài với môi trường kiểm thử độc lập
+  - Đánh giá khả năng tái tạo trên máy sạch và khi không có cache
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng môi trường Java và PostgreSQL với dữ liệu sạch cho từng ca
+  - Đối chiếu kết quả chạy H2 và PostgreSQL trên cùng nhóm kịch bản SQL
+  - Dựng Spring Boot với PostgreSQL và Redis bằng cấu hình kết nối động
+  - Dựng môi trường Kafka hoặc RabbitMQ với tài nguyên thông điệp độc lập
+  - Dựng ứng dụng nhiều dịch vụ bằng Docker Compose và kiểm tra sẵn sàng
+  - Chuẩn bị bộ giả lập lưu trữ đối tượng và xác minh endpoint kiểm thử
+  - Mô phỏng lỗi mạng qua Toxiproxy và phục hồi môi trường sau kiểm thử
+  - Chạy hai bộ kiểm thử đồng thời và chứng minh dữ liệu không giao thoa
+  - Đưa môi trường lên CI và tái hiện một thất bại từ bằng chứng đã lưu
+  - Đánh giá môi trường bằng độ cô lập, khả năng tái tạo và khả năng dọn dẹp

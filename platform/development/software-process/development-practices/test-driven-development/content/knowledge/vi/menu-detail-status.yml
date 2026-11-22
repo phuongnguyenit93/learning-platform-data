@@ -1,0 +1,2071 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Phát triển hướng kiểm thử (TDD) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao kiểm thử trước có thể dẫn dắt thiết kế và tạo phản hồi sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Chu trình Đỏ–Xanh–Tái cấu trúc và vai trò của danh sách kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt TDD, viết kiểm thử trước và viết kiểm thử sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa TDD, kiểm thử tự động và phòng ngừa lỗi hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt TDD với BDD và ATDD về mục đích và phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: TDD trong phát triển linh hoạt và thiết kế tiến hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lợi ích, chi phí, điều kiện áp dụng và lộ trình học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-foundations
+  title: Nền tảng kiểm thử
+  childs:
+  - slug: testing-foundations-001
+    title: Hành vi quan sát được và đơn vị hành vi cần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-foundations-002
+    title: Phân biệt kiểm thử đơn vị, tích hợp, hợp đồng và đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-foundations-003
+    title: Thời điểm viết kiểm thử khác với cấp độ kiểm thử như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-foundations-004
+    title: Phần mềm đang được kiểm thử, dữ liệu vào và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-foundations-005
+    title: Nguồn xác định kết quả đúng (test oracle) và giới hạn của ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-foundations-006
+    title: Đặc điểm của kiểm thử nhanh, độc lập, lặp lại được và tự xác định kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-foundations-007
+    title: Một ca kiểm thử phát hiện thay đổi sai như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-foundations-008
+    title: Phân biệt lỗi trong chương trình, trong kiểm thử và trong môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-tools
+  title: Công cụ thực hành
+  childs:
+  - slug: practical-tools-001
+    title: Chuẩn bị dự án Java với JDK và thư viện kiểm thử tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-tools-002
+    title: Tổ chức mã sản phẩm và mã kiểm thử trong Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-tools-003
+    title: Chạy kiểm thử bằng IDE, dòng lệnh và bộ chạy tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-tools-004
+    title: Viết ca kiểm thử đầu tiên bằng JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-tools-005
+    title: Thiết lập dữ liệu và dọn tài nguyên theo vòng đời kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-tools-006
+    title: Dùng assertion của JUnit hoặc thư viện như AssertJ theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-tools-007
+    title: Dùng kiểm thử tham số hóa để biểu diễn nhiều ví dụ cùng một quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-tools-008
+    title: Đọc báo cáo thất bại và rút ngắn thời gian chạy vòng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-analysis
+  title: Phân tích hành vi
+  childs:
+  - slug: behavior-analysis-001
+    title: Chuyển yêu cầu thành các hành vi có thể quan sát và kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-analysis-002
+    title: Làm rõ tiền điều kiện, hành động và hậu điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-analysis-003
+    title: Chọn ví dụ cụ thể để phát hiện quy tắc còn mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-analysis-004
+    title: Phân loại trường hợp bình thường, trường hợp biên và đầu vào không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-analysis-005
+    title: Xác định quy tắc bất biến và các chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-analysis-006
+    title: Làm rõ hành vi khi phụ thuộc thất bại hoặc dữ liệu không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-analysis-007
+    title: Thiết kế cách sử dụng API từ góc nhìn người gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-analysis-008
+    title: Ghi nhận câu hỏi chưa có lời giải thay vì tự suy diễn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-list
+  title: Danh sách kiểm thử
+  childs:
+  - slug: test-list-001
+    title: Lập danh sách các biến thể hành vi trước khi bắt đầu vòng TDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-list-002
+    title: Phân biệt danh sách ý tưởng với việc viết sẵn toàn bộ ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-list-003
+    title: Chọn ca đầu tiên đủ nhỏ để mở đường cho thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-list-004
+    title: Sắp xếp các ca để từng bước loại bỏ giả định chưa đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-list-005
+    title: Chia hành vi lớn thành những bước có thể kiểm chứng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-list-006
+    title: Bổ sung ca mới khi phát hiện quy tắc hoặc rủi ro trong lúc lập trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-list-007
+    title: Theo dõi hành vi đã có và hành vi còn thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-list-008
+    title: Xác định điểm kết thúc một phiên làm việc và hành vi tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: red-step
+  title: Bước Đỏ
+  childs:
+  - slug: red-step-001
+    title: Viết đúng một ca kiểm thử cho hành vi chưa có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: red-step-002
+    title: Tạo tên kiểm thử thể hiện điều kiện và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: red-step-003
+    title: Viết cách gọi API và assertion trước phần triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: red-step-004
+    title: Phân biệt lỗi biên dịch có chủ đích với thất bại kiểm tra hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: red-step-005
+    title: Xác nhận kiểm thử thất bại vì đúng hành vi đang thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: red-step-006
+    title: Xử lý trường hợp ca mới chạy thành công ngay từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: red-step-007
+    title: Giữ nguyên yêu cầu đúng thay vì nới assertion để tránh thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: red-step-008
+    title: Giảm phạm vi ca kiểm thử khi chưa xác định được bước triển khai tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: green-step
+  title: Bước Xanh
+  childs:
+  - slug: green-step-001
+    title: Viết phần triển khai nhỏ nhất đủ đáp ứng ca mới và các ca trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: green-step-002
+    title: Tạm dùng giá trị cụ thể khi phù hợp với bước tiến hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: green-step-003
+    title: Phân biệt kỹ thuật Fake It trong TDD với đối tượng fake dùng khi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: green-step-004
+    title: Dùng phép đối chiếu nhiều ví dụ (triangulation) để đi đến quy tắc tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: green-step-005
+    title: Chọn triển khai trực tiếp khi lời giải đã rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: green-step-006
+    title: Tránh thêm hành vi hoặc lớp trừu tượng chưa có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: green-step-007
+    title: Chạy các kiểm thử liên quan và xử lý lỗi hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: green-step-008
+    title: Ghi thêm ý tưởng cần làm vào danh sách thay vì mở rộng bước Xanh tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring
+  title: Tái cấu trúc
+  childs:
+  - slug: refactoring-001
+    title: Phân biệt thay đổi cấu trúc bên trong với bổ sung hoặc sửa hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-002
+    title: Đánh giá nhu cầu tái cấu trúc khi bộ kiểm thử đang xanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-003
+    title: Nhận diện lặp mã, tên khó hiểu và trách nhiệm bị trộn lẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-004
+    title: Đổi tên, tách hàm và di chuyển trách nhiệm bằng các bước nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-005
+    title: Tái cấu trúc cả mã sản phẩm lẫn mã kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-006
+    title: Chọn thời điểm khái quát hóa từ các ví dụ đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-007
+    title: Giữ bộ kiểm thử chạy được sau từng bước thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-008
+    title: Xử lý kiểm thử vỡ do bám vào cấu trúc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-009
+    title: Dừng tái cấu trúc khi mã đã đủ rõ cho hành vi tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-driven-design
+  title: Thiết kế qua kiểm thử
+  childs:
+  - slug: test-driven-design-001
+    title: Kiểm thử trước giúp làm rõ giao diện sử dụng như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-002
+    title: Lắng nghe khó khăn khi viết kiểm thử để nhận diện vấn đề thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-003
+    title: Phân tách trách nhiệm và tăng tính gắn kết của một thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-004
+    title: Giảm phụ thuộc và truyền các thành phần cộng tác từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-005
+    title: Tách phần tính toán thuần khỏi thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-006
+    title: Chọn biểu diễn trạng thái và dữ liệu giúp duy trì quy tắc bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-007
+    title: Cân bằng thiết kế tiến hóa với quyết định kiến trúc cần có sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-008
+    title: Giữ API phục vụ nghiệp vụ thay vì mở chi tiết chỉ để kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-driven-design-009
+    title: Vai trò của TDD và giới hạn đối với việc tạo ra thiết kế tốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-structure
+  title: Cấu trúc kiểm thử
+  childs:
+  - slug: test-structure-001
+    title: Tổ chức ca kiểm thử theo Chuẩn bị–Thực hiện–Kiểm tra (AAA)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-002
+    title: Dùng Cho trước–Khi–Thì để diễn đạt tình huống khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-003
+    title: Giữ một hành vi rõ ràng dù cần nhiều assertion liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-004
+    title: Tách các tình huống độc lập để lỗi dễ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-005
+    title: Đặt tên và nhóm kiểm thử theo hành vi thay vì tên hàm nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-006
+    title: Giới hạn việc dùng chung dữ liệu thiết lập giữa các ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-007
+    title: Thiết kế helper kiểm thử ngắn và giữ điều kiện quan trọng dễ nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-008
+    title: Giữ kiểm thử như ví dụ sử dụng có thể đọc và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertions
+  title: Assertion
+  childs:
+  - slug: assertions-001
+    title: Chọn kết quả quan sát được phù hợp với mục đích kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-002
+    title: Kiểm tra giá trị, trạng thái và tác dụng phụ qua ranh giới công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-003
+    title: Kiểm tra ngoại lệ với kiểu lỗi và thông tin thực sự thuộc hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-004
+    title: So sánh tập hợp khi thứ tự có hoặc không mang ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-005
+    title: So sánh số thực, tiền tệ và quy tắc làm tròn theo miền bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-006
+    title: Tạo kết quả mong đợi độc lập với thuật toán đang được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-007
+    title: Thiết kế thông báo thất bại giúp xác định nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-008
+    title: Phát hiện assertion yếu, điều kiện quá rộng và kiểm thử luôn xanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Chọn dữ liệu nhỏ nhất làm nổi bật quy tắc đang xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Áp dụng phân lớp tương đương và giá trị biên vào danh sách kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: Biểu diễn trường hợp rỗng, thiếu, trùng và không hợp lệ theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: Dùng dữ liệu minh họa có ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Xây bộ dựng dữ liệu kiểm thử mà không che mất điều kiện quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Tham số hóa các ví dụ và giữ từng trường hợp dễ nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Tránh dữ liệu dùng chung có thể thay đổi và phụ thuộc thứ tự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Quản lý tệp mẫu và dữ liệu nhạy cảm khi cần kiểm thử thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-doubles
+  title: Đối tượng thay thế
+  childs:
+  - slug: test-doubles-001
+    title: Đối tượng thay thế (test double) là gì và khi nào cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-002
+    title: Phân biệt dummy, stub, fake, spy và mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-003
+    title: Dùng stub để điều khiển phản hồi của phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-004
+    title: Dùng fake để mô phỏng chức năng có triển khai đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-005
+    title: Dùng spy hoặc mock để kiểm tra tương tác có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-006
+    title: Chọn đối tượng thật khi việc dùng thật đơn giản và ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-007
+    title: Tự viết đối tượng thay thế hoặc dùng Mockito theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-008
+    title: Tránh giả định thuật ngữ của mọi thư viện thay thế đều giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-009
+    title: Kiểm tra tính tương thích giữa đối tượng thay thế với thành phần thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tdd-styles
+  title: Phong cách TDD
+  childs:
+  - slug: tdd-styles-001
+    title: Phân biệt xác minh trạng thái với xác minh tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tdd-styles-002
+    title: Phong cách cổ điển và phong cách dựa nhiều vào mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tdd-styles-003
+    title: Kiểm thử một thành phần riêng lẻ hoặc cùng các đối tượng cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tdd-styles-004
+    title: Cách tiếp cận từ trong ra ngoài đối với logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tdd-styles-005
+    title: Cách tiếp cận từ ngoài vào trong từ một hành vi người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tdd-styles-006
+    title: Vòng kiểm thử chấp nhận bên ngoài và vòng TDD nhỏ bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tdd-styles-007
+    title: Chọn phong cách theo độ phức tạp, phụ thuộc và nhu cầu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tdd-styles-008
+    title: Tránh biến lựa chọn phong cách thành quy tắc áp dụng cứng cho mọi bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-boundaries
+  title: Ranh giới kiến trúc
+  childs:
+  - slug: architectural-boundaries-001
+    title: Nhận diện ranh giới giữa miền nghiệp vụ, ứng dụng và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-boundaries-002
+    title: Dẫn dắt thiết kế cổng và bộ chuyển đổi từ nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-boundaries-003
+    title: Kiểm thử quy tắc nghiệp vụ mà không khởi động toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-boundaries-004
+    title: Giữ giao tiếp cơ sở dữ liệu, mạng và giao diện ở ranh giới rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-boundaries-005
+    title: Dùng hợp đồng chung để kiểm chứng các triển khai của cùng một cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-boundaries-006
+    title: Kiểm chứng sự nối ghép giữa các thành phần ngoài bộ kiểm thử đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-boundaries-007
+    title: Tránh tạo quá nhiều interface hoặc lớp gián tiếp chỉ vì đang viết kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-logic
+  title: Logic nghiệp vụ
+  childs:
+  - slug: business-logic-001
+    title: Dùng TDD để phát triển phép tính và quy tắc giá theo từng ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-002
+    title: Dùng TDD với giá trị miền và quy tắc bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-003
+    title: Dẫn dắt điều kiện hợp lệ và thông báo lỗi từ hợp đồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-004
+    title: Kiểm thử chuyển trạng thái và các thao tác bị cấm trong từng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-005
+    title: Phân tích quy tắc chồng lấn và thứ tự ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-006
+    title: Phát triển bộ phân tích hoặc chuyển đổi dữ liệu bằng ví dụ nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-007
+    title: Làm rõ hành vi lặp lại an toàn và tác dụng phụ cần xảy ra đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-008
+    title: Kiểm thử hồi quy khi quy tắc nghiệp vụ được bổ sung hoặc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: determinism
+  title: Tính xác định
+  childs:
+  - slug: determinism-001
+    title: Nhận diện thời gian, số ngẫu nhiên và môi trường như nguồn bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-002
+    title: Truyền Clock để kiểm soát thời điểm và khoảng thời gian trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-003
+    title: Kiểm soát bộ sinh số ngẫu nhiên và lưu thông tin tái lập lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-004
+    title: Cô lập múi giờ, ngôn ngữ và cấu hình môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-005
+    title: Quản lý tệp, thư mục tạm và tài nguyên riêng cho từng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-006
+    title: Tách trạng thái toàn cục và dữ liệu dùng chung có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-007
+    title: Phân biệt logic nghiệp vụ phụ thuộc thời gian với việc chờ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-008
+    title: Phát hiện và tái lập kiểm thử lúc thành công lúc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-persistence
+  title: Lưu trữ dữ liệu
+  childs:
+  - slug: data-persistence-001
+    title: Phát triển ca sử dụng với cổng lưu trữ và triển khai giả trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-002
+    title: Xác định hợp đồng lưu, tìm, cập nhật và xóa từ hành vi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-003
+    title: Kiểm chứng bộ chuyển đổi bằng cơ sở dữ liệu thật trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-004
+    title: Dùng Testcontainers khi cần môi trường cơ sở dữ liệu tái lập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-005
+    title: Phát triển kiểm thử cho ràng buộc dữ liệu và ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-006
+    title: Kiểm tra giao dịch, hoàn tác và tính nhất quán theo hành vi mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-007
+    title: Nhận diện khác biệt giữa cơ sở dữ liệu giả với hệ thống vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-008
+    title: Dọn dữ liệu và phân tách vòng kiểm thử nhanh với vòng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-communication
+  title: Giao tiếp bên ngoài
+  childs:
+  - slug: external-communication-001
+    title: Phát triển client hoặc bộ chuyển đổi từ hợp đồng giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communication-002
+    title: Dùng máy chủ giả để điều khiển phản hồi HTTP và lỗi truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communication-003
+    title: Kiểm thử yêu cầu gửi đi, nội dung phản hồi và ánh xạ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communication-004
+    title: Phân biệt hành vi của ứng dụng với chi tiết của thư viện mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communication-005
+    title: Kiểm thử thời hạn chờ, thử lại và tác dụng phụ lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communication-006
+    title: Kiểm chứng hợp đồng để giảm sai lệch giữa giả lập và dịch vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communication-007
+    title: Phát triển thành phần gửi thông điệp với kiểm tra nội dung và đích gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communication-008
+    title: Chọn số ít luồng đầu cuối để xác nhận sự phối hợp toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-processing
+  title: Xử lý bất đồng bộ
+  childs:
+  - slug: async-processing-001
+    title: Tách hành vi cần kiểm tra khỏi cơ chế lập lịch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-002
+    title: Kiểm soát executor, scheduler hoặc đồng hồ thử nghiệm khi có thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-003
+    title: Chờ theo điều kiện với thời hạn thay vì chờ cố định theo phỏng đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-004
+    title: Kiểm tra hoàn thành, thất bại và hủy của tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-005
+    title: Dẫn dắt hành vi khi phản hồi đến trễ hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-006
+    title: Kiểm thử cơ chế thử lại, trì hoãn và giới hạn số lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-007
+    title: Phát triển kiểm thử cho chia sẻ trạng thái và cạnh tranh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-processing-008
+    title: Giới hạn của kiểm thử ví dụ đối với việc phát hiện mọi cách xen kẽ luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: existing-code
+  title: Mã nguồn có sẵn
+  childs:
+  - slug: existing-code-001
+    title: Khó khăn khi áp dụng TDD cho mã chưa có kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-002
+    title: Chọn điểm thay đổi nhỏ và xác định hành vi cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-003
+    title: Viết kiểm thử mô tả hành vi hiện tại (characterization test)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-004
+    title: Phân biệt hành vi đang tồn tại với hành vi đúng theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-005
+    title: Tạo điểm tách phụ thuộc (seam) bằng thay đổi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-006
+    title: Dùng đầu ra mẫu cho hành vi phức tạp và quản lý rủi ro chấp nhận sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-007
+    title: Sửa lỗi bằng ca tái hiện thất bại trước khi thay đổi mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-008
+    title: Từng bước rút logic ra khỏi mã khó kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-009
+    title: Giữ phạm vi thay đổi nhỏ thay vì viết lại toàn bộ để dễ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-suite-assessment
+  title: Đánh giá bộ kiểm thử
+  childs:
+  - slug: test-suite-assessment-001
+    title: Đánh giá khả năng phát hiện sai lệch hành vi thay vì chỉ đếm số ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-assessment-002
+    title: Phân biệt độ bao phủ dòng, nhánh và mức bao phủ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-assessment-003
+    title: Vì sao độ bao phủ cao chưa chứng minh assertion đủ mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-assessment-004
+    title: Kiểm thử đột biến (mutation testing) và cách đọc biến thể còn sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-assessment-005
+    title: Dùng PIT để đánh giá bộ kiểm thử Java trong phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-assessment-006
+    title: Phân biệt biến thể tương đương với khoảng trống kiểm thử thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-assessment-007
+    title: Đo tốc độ, tính ổn định và chi phí bảo trì của bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-assessment-008
+    title: Rà soát ca trùng, ca không còn giá trị và nguyên nhân kiểm thử dễ vỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: supporting-techniques
+  title: Kỹ thuật bổ trợ
+  childs:
+  - slug: supporting-techniques-001
+    title: Kết hợp kiểm thử theo ví dụ với kiểm thử dựa trên thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-techniques-002
+    title: Chuyển quy tắc bất biến thành thuộc tính có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-techniques-003
+    title: Sinh dữ liệu, thu nhỏ đầu vào lỗi và lưu ví dụ hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-techniques-004
+    title: Dùng kiểm thử biến hình khi khó xác định trực tiếp kết quả đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-techniques-005
+    title: Thử nghiệm khảo sát kỹ thuật (spike) khi chưa hiểu công nghệ hoặc giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-techniques-006
+    title: Quay lại chu trình TDD sau khi khảo sát thay vì giữ nguyên mã thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supporting-techniques-007
+    title: Phối hợp TDD với kiểm thử khám phá, hiệu năng và bảo mật theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-organization
+  title: Tổ chức dự án
+  childs:
+  - slug: project-organization-001
+    title: Tổ chức bộ kiểm thử theo thành phần, hành vi và ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-organization-002
+    title: Tách ca chạy nhanh với kiểm thử phụ thuộc hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-organization-003
+    title: Chạy kiểm thử thường xuyên trong quá trình phát triển và trên CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-organization-004
+    title: Thiết kế các bước kiểm tra để nhận phản hồi sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-organization-005
+    title: Cô lập dữ liệu và tài nguyên trước khi chạy kiểm thử song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-organization-006
+    title: Xử lý kiểm thử không ổn định có trách nhiệm và theo dõi việc sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-organization-007
+    title: Giữ nhánh chính có bộ kiểm thử đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-organization-008
+    title: Quản lý thay đổi yêu cầu cùng thay đổi mã và ví dụ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-collaboration
+  title: Cộng tác nhóm
+  childs:
+  - slug: team-collaboration-001
+    title: Luyện TDD theo cặp và luân phiên viết kiểm thử với triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-002
+    title: Rà soát mã kiểm thử như một phần của rà soát thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-003
+    title: Thống nhất quy ước vừa đủ về tên, dữ liệu và tổ chức kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-004
+    title: Làm rõ yêu cầu với chuyên gia nghiệp vụ qua các ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-005
+    title: Ghi lại phiên Đỏ–Xanh–Tái cấu trúc để phản tư cách chọn bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-006
+    title: Đưa TDD vào nhóm bằng phạm vi thử nghiệm nhỏ và hướng dẫn tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-007
+    title: Đánh giá lợi ích qua tốc độ phản hồi, lỗi hồi quy và khả năng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-008
+    title: Tránh đo mức thực hành TDD bằng tỷ lệ bao phủ hoặc số kiểm thử đơn thuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mistakes-limitations
+  title: Sai lầm và giới hạn
+  childs:
+  - slug: mistakes-limitations-001
+    title: Viết sẵn toàn bộ kiểm thử hoặc toàn bộ triển khai rồi mới quay lại chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-002
+    title: Bỏ qua xác nhận bước Đỏ và không biết kiểm thử có thể phát hiện lỗi hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-003
+    title: Sao chép thuật toán triển khai vào phần tính kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-004
+    title: Lạm dụng mock và kiểm tra các tương tác không thuộc hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-005
+    title: Kiểm thử từng hàm riêng tư thay vì hành vi qua ranh giới phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-006
+    title: Tạo lớp trừu tượng quá sớm hoặc tái cấu trúc vượt nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-007
+    title: Chạy quá nhiều kiểm thử chậm trong từng vòng phản hồi nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-008
+    title: Nhầm kiểm thử xanh với yêu cầu đầy đủ hoặc phần mềm không còn lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-009
+    title: Giới hạn của TDD với trải nghiệm người dùng, thuộc tính hệ thống và yêu cầu chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mistakes-limitations-010
+    title: Cân nhắc chi phí và lựa chọn cách kiểm chứng phù hợp với thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Luyện vòng TDD đầu tiên với quy tắc tính toán hoặc chuyển đổi đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Phát triển bộ tính giá có điều kiện biên, ưu tiên và quy tắc làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Phát triển giá trị miền và máy trạng thái bằng chuỗi ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Phát triển ca sử dụng có kho lưu trữ và thành phần gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Tái hiện một lỗi, sửa bằng TDD và giữ lại kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Tạo đường kiểm thử cho mã cũ rồi cải tiến thiết kế từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Bổ sung kiểm thử tích hợp để kiểm chứng một bộ chuyển đổi thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Dùng thuộc tính và đột biến để tìm khoảng trống của bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Đánh giá quyết định thiết kế, thứ tự kiểm thử và bài học từ toàn bộ phiên TDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

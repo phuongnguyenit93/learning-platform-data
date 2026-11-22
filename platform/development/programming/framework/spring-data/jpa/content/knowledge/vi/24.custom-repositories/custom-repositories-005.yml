@@ -1,0 +1,3 @@
+menuLevel1: Repository tùy biến
+menuLevel2: Tiêm EntityManager bằng @PersistenceContext
+status: WRITTEN

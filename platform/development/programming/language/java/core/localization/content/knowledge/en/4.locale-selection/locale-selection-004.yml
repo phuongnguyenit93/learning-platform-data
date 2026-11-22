@@ -1,0 +1,3 @@
+menuLevel1: Chọn locale
+menuLevel2: Phân tích danh sách ưu tiên ngôn ngữ bằng LanguageRange.parse
+status: WRITTEN

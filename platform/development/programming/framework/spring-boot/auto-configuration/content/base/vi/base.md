@@ -1,0 +1,7 @@
+# Spring Boot - Auto-configuration
+
+Cấu hình tự động (auto-configuration) giúp Spring Boot cung cấp các thành phần mặc định dựa trên thư viện, thuộc tính và bean hiện có trong ứng dụng. Chẳng hạn, việc bổ sung một thư viện có thể làm xuất hiện cấu hình phù hợp, còn khai báo bean riêng có thể khiến một lựa chọn mặc định nhường chỗ. Module này giúp bạn giải thích các quyết định đó bằng điều kiện cụ thể, từ đó hiểu vì sao ứng dụng được cấu hình theo cách đang quan sát.
+
+Module dành cho người đã nắm kiến thức Spring Boot nền tảng, bean, tiêm phụ thuộc và cấu hình thuộc tính. Bạn sẽ phân biệt starter, quét thành phần và cấu hình tự động; lần theo quá trình tìm ứng viên, đánh giá điều kiện và đăng ký bean; đồng thời học cách đọc báo cáo, tùy chỉnh cấu hình và xây dựng thư viện dùng lại. Nội dung và tài liệu tham khảo định hướng theo Spring Boot 3.3, với @AutoConfiguration và cơ chế đăng ký qua AutoConfiguration.imports.
+
+Lộ trình đi từ mô hình tổng thể đến luồng chọn cấu hình, các nhóm điều kiện và quan hệ giữa bean mặc định với thứ tự đăng ký. Sau đó, bạn dùng báo cáo điều kiện để chẩn đoán, lựa chọn cách tùy chỉnh, tự xây cấu hình tự động và kiểm thử trong nhiều ngữ cảnh. Mục tiêu là dự đoán được khi nào một cấu hình được áp dụng, giải thích được nguyên nhân khi kết quả khác dự kiến và tạo ra cấu hình có điều kiện rõ ràng, kiểm chứng được, tôn trọng lựa chọn của ứng dụng sử dụng.

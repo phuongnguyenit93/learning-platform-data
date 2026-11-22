@@ -1,0 +1,57 @@
+roadmap:
+- id: pham-vi-chuc-nang
+  title: Phạm vi chức năng
+  purpose: Làm rõ hành vi hệ thống cần kiểm chứng so với yêu cầu và quy tắc nghiệp vụ.
+  objectives:
+  - Phân biệt kiểm thử chức năng với kiểm thử phi chức năng.
+  - Xác định chức năng, đầu vào và đầu ra cần kiểm tra.
+  - Chọn phạm vi phù hợp ở cấp thành phần, API hoặc giao diện.
+- id: yeu-cau-tieu-chi
+  title: Yêu cầu & Tiêu chí
+  purpose: Biến đặc tả và acceptance criteria thành mục tiêu kiểm thử có thể đánh giá.
+  objectives:
+  - Trích xuất quy tắc và điều kiện từ user story hoặc đặc tả.
+  - Xác định kết quả mong đợi cho từng hành vi.
+  - Liên kết yêu cầu với test case để nhận biết khoảng trống.
+- id: thiet-ke-test-case
+  title: Thiết kế Test Case
+  purpose: Tạo bộ ca kiểm thử gọn mà vẫn bao phủ các tình huống quan trọng.
+  objectives:
+  - Áp dụng phân lớp tương đương và giá trị biên.
+  - Dùng bảng quyết định hoặc chuyển trạng thái khi phù hợp.
+  - Viết ca dương, ca âm và các trường hợp ngoại lệ.
+- id: du-lieu-tien-dieu-kien
+  title: Dữ liệu & Tiền điều kiện
+  purpose: Chuẩn bị trạng thái ban đầu đáng tin cậy để tái hiện kết quả kiểm thử.
+  objectives:
+  - Xác định test data hợp lệ và không hợp lệ.
+  - Mô tả precondition, setup và cleanup cho từng ca.
+  - Tách dữ liệu thử khỏi dữ liệu thật, tránh phụ thuộc ca khác.
+- id: thuc-thi-ui-api
+  title: Thực thi UI & API
+  purpose: Kiểm tra hành vi quan sát được qua các điểm truy cập phù hợp với yêu cầu.
+  objectives:
+  - Thực hiện luồng chức năng qua UI khi cần xác minh tương tác.
+  - Gửi request và kiểm tra response ở lớp API.
+  - Lưu bước thực hiện và kết quả thực tế để tái hiện.
+- id: doi-chieu-ket-qua
+  title: Đối chiếu Kết quả
+  purpose: Đưa ra kết luận pass/fail dựa trên bằng chứng và kỳ vọng rõ ràng.
+  objectives:
+  - Đối chiếu nội dung hiển thị, status hoặc response.
+  - Kiểm tra thay đổi trạng thái và quy tắc nghiệp vụ.
+  - Phân biệt lỗi sản phẩm với lỗi thiết lập hoặc test script.
+- id: defect-regression
+  title: Defect & Regression
+  purpose: Theo dõi sai lệch, xác minh sửa lỗi và phòng ngừa lỗi tái xuất hiện.
+  objectives:
+  - Báo lỗi kèm bước tái hiện, expected và actual.
+  - Retest đúng tình huống sau khi sửa lỗi.
+  - Chọn bộ regression theo chức năng và mức độ rủi ro.
+- id: automation-bao-cao
+  title: Automation & Báo cáo
+  purpose: Tự động hóa các tình huống phù hợp và cung cấp kết quả dễ theo dõi.
+  objectives:
+  - Ưu tiên tự động hóa ca lặp lại, ổn định và quan trọng.
+  - Giữ assertions rõ ràng, tránh chờ cố định gây flaky test.
+  - Đọc báo cáo pass/fail, coverage yêu cầu và lỗi còn mở.

@@ -1,0 +1,3 @@
+menuLevel1: Xử lý command
+menuLevel2: Tách command handler điều phối khỏi logic quyết định của aggregate
+status: ""

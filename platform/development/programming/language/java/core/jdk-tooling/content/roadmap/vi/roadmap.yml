@@ -1,0 +1,49 @@
+roadmap:
+- id: moi-truong-jdk
+  title: Môi trường JDK
+  purpose: Thiết lập bộ công cụ Java và biết đúng phiên bản đang dùng.
+  objectives:
+  - '- Phân biệt JDK, JVM và các lệnh trong JDK.'
+  - '- Kiểm tra java -version, javac -version và JAVA_HOME/PATH.'
+- id: bien-dich-voi-javac
+  title: Biên dịch với javac
+  purpose: Tự chuyển Java source sang bytecode và kiểm soát tùy chọn biên dịch.
+  objectives:
+  - '- Biên dịch file Java bằng javac với -d và --class-path.'
+  - '- Dùng --release để chọn API/ngôn ngữ tương thích.'
+- id: chay-voi-java
+  title: Chạy với java
+  purpose: Thực thi đúng class hoặc ứng dụng JAR bằng Java launcher.
+  objectives:
+  - '- Chạy main class với java và classpath.'
+  - '- Phân biệt java -jar, tham số chương trình và JVM options.'
+- id: thu-nhanh-bang-jshell
+  title: Thử nhanh bằng JShell
+  purpose: Khám phá cú pháp và API Java mà không cần tạo cả dự án.
+  objectives:
+  - '- Đánh giá biểu thức, khai báo biến và phương thức trong jshell.'
+  - '- Dùng /help, /vars và /save để quản lý phiên thử.'
+- id: jar-javadoc
+  title: JAR & Javadoc
+  purpose: Đóng gói chương trình và tạo tài liệu API từ source.
+  objectives:
+  - '- Dùng jar để tạo, liệt kê và kiểm tra nội dung archive.'
+  - '- Sinh tài liệu HTML bằng javadoc cho API mẫu.'
+- id: phan-tich-ma-phu-thuoc
+  title: Phân tích mã & phụ thuộc
+  purpose: Kiểm tra bytecode và module dependency để hiểu cấu trúc chương trình.
+  objectives:
+  - '- Đọc thông tin class/bytecode bằng javap.'
+  - '- Dùng jdeps phân tích phụ thuộc của JAR/module.'
+- id: runtime-bo-cai
+  title: Runtime & bộ cài
+  purpose: Tạo bản phân phối đi kèm runtime phù hợp ứng dụng.
+  objectives:
+  - '- Dùng jlink tạo custom runtime từ module cần thiết.'
+  - '- Dùng jpackage tạo app image hoặc installer theo hệ điều hành.'
+- id: chan-doan-jvm
+  title: Chẩn đoán JVM
+  purpose: Sử dụng công cụ JDK để quan sát và xử lý sự cố ứng dụng đang chạy.
+  objectives:
+  - '- Xác định tiến trình Java bằng jps hoặc jcmd.'
+  - '- Dùng jcmd thu thread dump và ghi Java Flight Recorder.'

@@ -1,0 +1,1522 @@
+menu:
+- slug: jvm-overview
+  title: Bức tranh JVM
+  childs:
+  - slug: jvm-overview-001
+    title: JVM là gì và vì sao Java cần một máy thực thi trung gian
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-002
+    title: Phân biệt ngôn ngữ Java, Java SE, JVM, JDK và môi trường chạy
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-003
+    title: 'Đường đi của chương trình: mã nguồn → javac → class → JVM → mã máy'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-004
+    title: Bytecode độc lập nền tảng và những giới hạn của tính khả chuyển
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-005
+    title: Phân biệt đặc tả JVMS, dự án OpenJDK và cách triển khai HotSpot
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-006
+    title: Vai trò của bộ nạp lớp, bộ thực thi, bộ nhớ và bộ thu gom rác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-007
+    title: Các ngôn ngữ khác trên JVM và hợp đồng chung của tệp class
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-008
+    title: Cách đọc tài liệu theo phiên bản JDK và tách quy tắc khỏi chi tiết triển khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-lifecycle
+  title: Vòng đời JVM
+  childs:
+  - slug: jvm-lifecycle-001
+    title: Từ lệnh java đến tiến trình JVM và điểm vào chương trình
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-lifecycle-002
+    title: 'Chạy lớp, JAR, module và tệp nguồn: khác nhau ở cách khởi động'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-lifecycle-003
+    title: Phân biệt tham số JVM, thuộc tính hệ thống và đối số của ứng dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-lifecycle-004
+    title: Khởi động, khởi tạo lớp đầu tiên và gọi main theo phiên bản Java
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-lifecycle-005
+    title: Các luồng của ứng dụng và các luồng nội bộ của JVM
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-lifecycle-006
+    title: 'Khi main kết thúc: luồng không daemon và điều kiện JVM thoát'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-lifecycle-007
+    title: Shutdown hook, System.exit và Runtime.halt trong quá trình kết thúc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-lifecycle-008
+    title: Khác biệt giữa kết thúc bình thường, ngoại lệ không được bắt và JVM bị dừng cưỡng bức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-data-types
+  title: Kiểu dữ liệu JVM
+  childs:
+  - slug: jvm-data-types-001
+    title: Kiểu nguyên thủy và kiểu tham chiếu trong mô hình thực thi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-data-types-002
+    title: Kiểu int dùng cho nhiều phép toán trên byte, short, char và boolean
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-data-types-003
+    title: long, double và cách sử dụng hai vị trí trong biến cục bộ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-data-types-004
+    title: Giá trị null, kiểu lớp, kiểu giao diện và kiểu mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-data-types-005
+    title: Số nguyên tràn, phép chuyển kiểu và ngữ nghĩa phép toán bytecode
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-data-types-006
+    title: 'Số thực IEEE 754: NaN, vô cực, số không có dấu và tính nhất quán'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-data-types-007
+    title: Kiểu returnAddress và lý do cần nhận diện bytecode lịch sử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-data-types-008
+    title: 'Giá trị Java, tham chiếu JVM và địa chỉ vật lý: những khái niệm cần phân biệt'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-file-format
+  title: Tệp class
+  childs:
+  - slug: class-file-format-001
+    title: 'Cấu trúc ClassFile: magic number, major version và minor version'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-002
+    title: Tương thích phiên bản class và giới hạn của cờ --enable-preview
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-003
+    title: Tên nhị phân, tên nội bộ và descriptor của trường, phương thức, mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-004
+    title: 'Constant pool: hằng số, tên kiểu và tham chiếu ký hiệu'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-005
+    title: Access flags, lớp cha, giao diện, trường và phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-006
+    title: 'Thuộc tính Code: max_stack, max_locals, mã lệnh và bảng xử lý ngoại lệ'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-007
+    title: StackMapTable và thông tin kiểu phục vụ xác minh bytecode
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-008
+    title: LineNumberTable, LocalVariableTable và giới hạn khi khôi phục mã nguồn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-009
+    title: 'Signature, annotation, synthetic và bridge: dữ liệu bổ sung ngoài descriptor'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-010
+    title: Thuộc tính cho module, nestmate, record và sealed class
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-011
+    title: Giới hạn kích thước phương thức, constant pool và các ràng buộc định dạng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-format-012
+    title: Đọc javap -c -v -s -l để nối cấu trúc class với mã Java
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bytecode-instructions
+  title: Lệnh bytecode
+  childs:
+  - slug: bytecode-instructions-001
+    title: 'Máy dựa trên ngăn xếp: opcode, toán hạng và bộ đếm lệnh'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-002
+    title: Nạp hằng số và chuyển dữ liệu giữa biến cục bộ với operand stack
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-003
+    title: Nhóm lệnh số học, bit, so sánh và chuyển kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-004
+    title: Nhóm lệnh pop, dup, swap và ràng buộc kích thước giá trị
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-005
+    title: Nhánh điều kiện, goto, vòng lặp và địa chỉ đích
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-006
+    title: tableswitch và lookupswitch trong biểu diễn switch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-007
+    title: new, newarray, anewarray và multianewarray khi tạo dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-008
+    title: getfield, putfield, getstatic và putstatic khi truy cập trường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-009
+    title: checkcast, instanceof, arraylength và kiểm tra khi truy cập mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bytecode-instructions-010
+    title: Đọc bytecode biểu thức, vòng lặp và phép gán để dự đoán thứ tự thực thi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stack-frames-and-calls
+  title: Frame và lời gọi
+  childs:
+  - slug: stack-frames-and-calls-001
+    title: 'Mỗi lời gọi tạo frame: biến cục bộ, operand stack và liên kết động'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-002
+    title: Truyền đối số, vị trí this và lưu giá trị trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-003
+    title: invokestatic, invokespecial, invokevirtual và invokeinterface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-004
+    title: Phân giải phương thức và chọn phương thức theo kiểu thực của đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-005
+    title: invokedynamic, BootstrapMethods và liên kết điểm gọi động
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-006
+    title: '<init> và <clinit>: phương thức đặc biệt có vai trò khác nhau'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-007
+    title: return và các biến thể khi lời gọi hoàn thành bình thường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-008
+    title: athrow, bảng xử lý ngoại lệ và tháo frame khi lời gọi thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stack-frames-and-calls-009
+    title: Ánh xạ lambda và nối chuỗi xuống bytecode theo phiên bản trình biên dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-loading-and-identity
+  title: Nạp và định danh lớp
+  childs:
+  - slug: class-loading-and-identity-001
+    title: Nạp lớp là gì và vì sao JVM không nạp toàn bộ chương trình ngay từ đầu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-and-identity-002
+    title: Bootstrap, platform, application class loader và cơ chế ủy quyền
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-and-identity-003
+    title: Định danh lớp bằng tên nhị phân kết hợp bộ nạp định nghĩa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-and-identity-004
+    title: Bộ nạp khởi xướng, bộ nạp định nghĩa và ràng buộc giữa các bộ nạp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-and-identity-005
+    title: Class path, module path và ảnh hưởng của module đến truy cập lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-and-identity-006
+    title: Class object, lớp mảng và cách JVM tạo biểu diễn kiểu khi chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-and-identity-007
+    title: Nạp lớp theo yêu cầu qua Class.forName và ClassLoader.loadClass
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loading-and-identity-008
+    title: Khi nào lớp có thể được dỡ bỏ và liên hệ với vòng đời class loader
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linking-and-initialization
+  title: Liên kết và khởi tạo
+  childs:
+  - slug: linking-and-initialization-001
+    title: Phân biệt nạp, liên kết và khởi tạo trong vòng đời một lớp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-002
+    title: 'Verification: kiểm tra định dạng, luồng điều khiển và an toàn kiểu'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-003
+    title: Giới hạn của bytecode verifier so với tính đúng đắn của ứng dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-004
+    title: 'Preparation: tạo trường static và thiết lập giá trị mặc định'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-005
+    title: 'Resolution: chuyển tham chiếu ký hiệu thành liên kết dùng khi chạy'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-006
+    title: Phân giải sớm, phân giải muộn và thời điểm lỗi liên kết xuất hiện
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-007
+    title: Các thao tác kích hoạt khởi tạo và các trường hợp chỉ nạp lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-008
+    title: Hằng số biên dịch, class literal và truy cập trường khai báo ở lớp cha
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-009
+    title: Thứ tự khởi tạo lớp cha, giao diện liên quan và thành viên static
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-010
+    title: Khóa khởi tạo lớp, khởi tạo đệ quy và nguy cơ chờ lẫn nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-011
+    title: 'Lỗi khởi tạo: ExceptionInInitializerError và trạng thái lớp lỗi'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linking-and-initialization-012
+    title: Dự đoán kết quả bằng dấu vết nạp lớp và thứ tự chạy static initializer
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-runtime-memory-areas
+  title: Các vùng bộ nhớ
+  childs:
+  - slug: jvm-runtime-memory-areas-001
+    title: Bộ nhớ riêng của luồng và bộ nhớ dùng chung trong đặc tả JVM
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-002
+    title: Thanh ghi pc và JVM stack trong quá trình thực thi một luồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-003
+    title: Heap lưu đối tượng và mảng; phân biệt đối tượng với biến tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-004
+    title: Method area và run-time constant pool trong mô hình trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-005
+    title: Native method stack và ranh giới lời gọi mã native
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-006
+    title: HotSpot Metaspace, compressed class space và sự khác biệt với PermGen lịch sử
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-007
+    title: Code cache lưu mã máy do JVM tạo ra
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-008
+    title: 'Bộ nhớ ngoài heap: direct buffer, thư viện native và cấu trúc nội bộ'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-runtime-memory-areas-009
+    title: Phân biệt bộ nhớ đã dùng, đã cam kết, đã dành trước và bộ nhớ tiến trình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hotspot-objects
+  title: Đối tượng trong HotSpot
+  childs:
+  - slug: hotspot-objects-001
+    title: 'Chuỗi tạo đối tượng: cấp phát, giá trị mặc định và chạy constructor'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-002
+    title: Cấp phát nhanh bằng con trỏ và vùng cấp phát riêng của luồng (TLAB)
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-003
+    title: Đầu đối tượng, dữ liệu trường, căn chỉnh và phần đệm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-004
+    title: Bố trí đối tượng và mảng là chi tiết triển khai, không phải cam kết của Java
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-005
+    title: Compressed oops và compressed class pointers trong JVM 64-bit
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-006
+    title: Tham chiếu được cập nhật khi GC di chuyển đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-007
+    title: Compact Strings, string interning và string deduplication có mục đích khác nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-008
+    title: Tuổi thọ đối tượng, khả năng truy cập và giới hạn suy luận từ phạm vi biến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-objects-009
+    title: Đánh giá chi phí của nhiều đối tượng nhỏ và cấu trúc dữ liệu giữ tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-reachability
+  title: Khả năng truy cập
+  childs:
+  - slug: object-reachability-001
+    title: GC xác định đối tượng còn truy cập được từ gốc như thế nào
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-002
+    title: Đồ thị tham chiếu, đối tượng không còn truy cập được và tham chiếu vòng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-003
+    title: Vì sao gán null hoặc ra khỏi phạm vi biến không bảo đảm thu gom ngay
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-004
+    title: Tham chiếu mạnh, mềm, yếu và ảo trong java.lang.ref
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-005
+    title: ReferenceQueue và thời điểm thông báo đối tượng đã được xử lý tham chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-006
+    title: Rò rỉ bộ nhớ Java khi đối tượng vẫn được giữ bởi cache, listener hoặc ThreadLocal
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-007
+    title: GC thu hồi bộ nhớ khác với đóng file, socket và tài nguyên bên ngoài
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-008
+    title: Finalization, tình trạng deprecation và lựa chọn try-with-resources hoặc Cleaner
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-reachability-009
+    title: System.gc là yêu cầu gợi ý và những giới hạn khi dùng nó để kiểm chứng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: garbage-collection-mechanics
+  title: Cơ chế thu gom rác
+  childs:
+  - slug: garbage-collection-mechanics-001
+    title: 'Đánh dấu, quét, sao chép và nén: các cách xác định và thu hồi vùng nhớ'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-002
+    title: Phân mảnh bộ nhớ và đánh đổi giữa di chuyển đối tượng với chi phí cập nhật tham chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-003
+    title: 'Giả thuyết thế hệ: đối tượng sống ngắn, già hóa và chuyển thế hệ'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-004
+    title: Eden, survivor và old trong mô hình bộ thu gom theo thế hệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-005
+    title: Thu gom nối tiếp, song song và đồng thời với ứng dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-006
+    title: Stop-the-world và safepoint; phân biệt thời gian GC với tổng thời gian dừng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-007
+    title: Write barrier, card table và remembered set khi theo dõi tham chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-008
+    title: Tốc độ cấp phát, lượng dữ liệu còn sống và khoảng trống cần cho GC
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-mechanics-009
+    title: Thông lượng, độ trễ, CPU và dung lượng bộ nhớ trong bài toán lựa chọn GC
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: garbage-collectors
+  title: Các bộ thu gom
+  childs:
+  - slug: garbage-collectors-001
+    title: 'Serial GC: cơ chế đơn giản và các môi trường ít tài nguyên'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-002
+    title: 'Parallel GC: thu gom song song hướng đến thông lượng'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-003
+    title: 'G1: heap chia vùng và lựa chọn tập vùng cần thu hồi'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-004
+    title: 'Chu kỳ G1: young collection, concurrent marking và mixed collection'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-005
+    title: Đối tượng humongous, evacuation failure và Full GC trong G1
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-006
+    title: 'ZGC: thu gom đồng thời hướng đến thời gian dừng thấp'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-007
+    title: Generational ZGC và thay đổi chế độ, tùy chọn giữa các phiên bản JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-008
+    title: Tính sẵn có của bộ thu gom phụ thuộc bản phân phối, phiên bản và nền tảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-009
+    title: So sánh GC bằng cùng tải, giới hạn tài nguyên và mục tiêu độ trễ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-010
+    title: Mục tiêu pause time là mục tiêu tối ưu, không phải cam kết thời gian thực
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interpretation-and-jit
+  title: Thông dịch và JIT
+  childs:
+  - slug: interpretation-and-jit-001
+    title: Thông dịch bytecode và biên dịch lúc chạy (JIT) giải quyết vấn đề gì
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-002
+    title: Đường đi từ phương thức ít chạy đến đoạn mã nóng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-003
+    title: Thu thập hồ sơ thực thi từ số lần gọi, vòng lặp và kiểu đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-004
+    title: Biên dịch phân tầng trong HotSpot và vai trò của C1, C2
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-005
+    title: Biên dịch phương thức và thay thế khi đang chạy vòng lặp (OSR)
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-006
+    title: Warm-up, trạng thái ổn định và khác biệt giữa thời gian khởi động với hiệu năng đỉnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-007
+    title: Giả định tối ưu, deoptimization và biên dịch lại khi giả định không còn đúng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-008
+    title: Code cache, luồng biên dịch và chi phí tài nguyên của JIT
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-and-jit-009
+    title: Đối chiếu chế độ -Xint với thực thi kết hợp trong thí nghiệm có kiểm soát
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hot-spot-optimizations
+  title: Tối ưu HotSpot
+  childs:
+  - slug: hot-spot-optimizations-001
+    title: Chèn thân phương thức (inlining) và mở rộng phạm vi phân tích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-002
+    title: Khử lời gọi ảo dựa trên thông tin kiểu và giới hạn của giả định
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-003
+    title: Gấp hằng, loại mã không cần thiết và tác động đến phép đo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-004
+    title: Tối ưu vòng lặp và loại kiểm tra dư thừa trong điều kiện phù hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-005
+    title: Phân tích đối tượng thoát (escape analysis) và thay thế bằng giá trị thành phần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-006
+    title: Phân biệt loại bỏ cấp phát với giả định đối tượng luôn được chuyển lên stack
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-007
+    title: Loại bỏ khóa không cần thiết khi đối tượng không được chia sẻ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-008
+    title: Intrinsic và phụ thuộc vào kiến trúc CPU, JDK, cách triển khai
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-spot-optimizations-009
+    title: Vì sao thay đổi mã nguồn nhỏ có thể làm kết quả hiệu năng thay đổi lớn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-threads-and-synchronization
+  title: Luồng và đồng bộ
+  childs:
+  - slug: jvm-threads-and-synchronization-001
+    title: Luồng Java, luồng nền tảng và luồng ảo trong mô hình thực thi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-002
+    title: Ngăn xếp của luồng ảo và giới hạn của sơ đồ mỗi luồng có một native stack
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-003
+    title: Monitor của đối tượng và tính tái nhập của synchronized
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-004
+    title: monitorenter, monitorexit và phương thức có cờ ACC_SYNCHRONIZED
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-005
+    title: wait, notify, notifyAll và quan hệ giữa wait set với quyền giữ monitor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-006
+    title: Java Memory Model khác với sơ đồ heap, stack và bộ nhớ vật lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-007
+    title: Tính nguyên tử, khả năng nhìn thấy và thứ tự thao tác giữa các luồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-008
+    title: Quan hệ happens-before qua khóa, volatile, start và join
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-009
+    title: Quy tắc trường final, hoàn thành khởi tạo và công bố đối tượng an toàn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-010
+    title: Sắp xếp lại thao tác, data race và những bảo đảm mà sleep không cung cấp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-threads-and-synchronization-011
+    title: Phân biệt deadlock, chờ khóa và JVM đang thực hiện công việc nền
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fast-startup
+  title: Khởi động nhanh
+  childs:
+  - slug: fast-startup-001
+    title: Phân tách chi phí tạo tiến trình, nạp lớp, khởi tạo và warm-up
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-startup-002
+    title: Class Data Sharing (CDS) chia sẻ dữ liệu lớp như thế nào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-startup-003
+    title: AppCDS, archive tĩnh và archive động
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-startup-004
+    title: Tạo và xác nhận sử dụng CDS archive bằng log nạp lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-startup-005
+    title: 'AOT cache của HotSpot: học từ lần chạy thử, tạo cache và dùng lại theo phiên bản hỗ trợ'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-startup-006
+    title: Điều kiện tương thích của archive hoặc cache với JDK, ứng dụng và môi trường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-startup-007
+    title: Phân biệt AOT cache của JVM với biên dịch thành chương trình native
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fast-startup-008
+    title: Đo thời gian sẵn sàng và dung lượng bộ nhớ để đánh giá lợi ích khởi động
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-configuration
+  title: Cấu hình tài nguyên
+  childs:
+  - slug: resource-configuration-001
+    title: Nhận diện đúng JDK, nhà cung cấp, phiên bản VM và kiến trúc đang chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-002
+    title: Tùy chọn chuẩn, -X, -XX và cách xác nhận cờ được hỗ trợ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-003
+    title: '-Xms và -Xmx: dung lượng heap ban đầu, tối đa và chi phí đánh đổi'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-004
+    title: -Xss, số luồng và ngân sách bộ nhớ ngoài heap
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-configuration-005
+    title: Giới hạn Metaspace, direct memory và code cache theo nhu cầu quan sát
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: nen-tang-thread
+  title: Nền tảng & Thread
+  purpose: Nắm cách Java tổ chức công việc đồng thời và quản lý vòng đời luồng.
+  objectives:
+  - Phân biệt concurrency, parallelism và tác vụ CPU-bound/I/O-bound.
+  - Tạo tác vụ bằng Thread, Runnable và Callable.
+  - Giải thích trạng thái thread, join, sleep và interrupt.
+- id: jmm-shared-state
+  title: JMM & Shared State
+  purpose: Hiểu vì sao dữ liệu chia sẻ có thể sai lệch khi nhiều luồng cùng truy cập.
+  objectives:
+  - Giải thích atomicity, visibility, ordering và happens-before.
+  - Nhận diện race condition và thao tác read-modify-write.
+  - Sử dụng volatile đúng phạm vi.
+- id: dong-bo-locks
+  title: Đồng bộ & Locks
+  purpose: Bảo vệ vùng dữ liệu quan trọng và kiểm soát tranh chấp giữa các luồng.
+  objectives:
+  - Sử dụng synchronized, monitor và ReentrantLock.
+  - So sánh lock, volatile và biến atomic.
+  - Nhận diện deadlock và giảm lock contention.
+- id: phoi-hop-huy
+  title: Phối hợp & Hủy
+  purpose: Điều phối các luồng chờ điều kiện và kết thúc tác vụ có kiểm soát.
+  objectives:
+  - Phối hợp bằng wait/notify và Condition.
+  - Áp dụng interrupt, timeout và cancellation.
+  - Thiết kế shutdown an toàn cho tác vụ đang chạy.
+- id: executor-fork-join
+  title: Executor & Fork/Join
+  purpose: Quản lý tác vụ qua bộ thực thi và xử lý công việc theo chiến lược chia để trị.
+  objectives:
+  - Dùng ExecutorService, Future và thread pool.
+  - Quản lý hàng đợi, lỗi, timeout và shutdown.
+  - Sử dụng ForkJoinPool cho tác vụ phân rã.
+- id: utilities-collections
+  title: Utilities & Collections
+  purpose: Dùng công cụ đồng thời cấp cao để giảm mã khóa thủ công.
+  objectives:
+  - Chọn ConcurrentHashMap, BlockingQueue, CopyOnWriteArrayList.
+  - Sử dụng Semaphore, CountDownLatch và Phaser.
+  - Đánh giá tính an toàn luồng và chi phí hiệu năng.
+- id: async-virtual-threads
+  title: Async & Virtual Threads
+  purpose: Xây dựng luồng xử lý bất đồng bộ và xử lý nhiều tác vụ blocking hiệu quả.
+  objectives:
+  - Kết hợp CompletableFuture và xử lý lỗi bất đồng bộ.
+  - Tạo virtual threads và phân biệt platform threads.
+  - Chọn mô hình thực thi phù hợp với workload.
+- id: kiem-thu-chan-doan
+  title: Kiểm thử & Chẩn đoán
+  purpose: Phát hiện lỗi concurrency khó tái hiện và đánh giá hiệu năng hệ thống.
+  objectives:
+  - Viết kiểm thử concurrency với phối hợp luồng xác định.
+  - Đọc thread dump để nhận diện deadlock và contention.
+  - Đo throughput, latency và tìm điểm nghẽn.

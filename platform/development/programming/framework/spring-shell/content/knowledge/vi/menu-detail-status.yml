@@ -1,0 +1,3451 @@
+menu:
+- slug: shell-overview
+  title: Tổng quan
+  childs:
+  - slug: shell-overview-001
+    title: Spring Shell là gì và khi nào nên xây ứng dụng dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-002
+    title: CLI, terminal, shell của hệ điều hành và ứng dụng Spring Shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-003
+    title: Vòng lặp đọc–phân tích–thực thi–hiển thị trong một REPL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-004
+    title: Lệnh, lệnh con, tùy chọn, đối số và ngữ cảnh phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-005
+    title: Dấu nhắc (prompt), phiên tương tác và chương trình chạy một lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-006
+    title: Vai trò của Spring IoC, Spring Boot và JLine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-007
+    title: Đối chiếu CLI với REST API, tác vụ batch và giao diện web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-008
+    title: Phân tách giao diện lệnh khỏi nghiệp vụ được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-009
+    title: Những tính năng framework hỗ trợ và phần ứng dụng phải tự thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-overview-010
+    title: Lộ trình học từ lệnh đầu tiên đến công cụ có thể phân phối và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-architecture
+  title: Phiên bản và kiến trúc
+  childs:
+  - slug: versions-and-architecture-001
+    title: Chọn nhánh Spring Shell theo khả năng tương thích của Spring Boot và Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-002
+    title: Đọc tài liệu, Javadoc và ghi chú phát hành đúng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-003
+    title: Các thế hệ annotation legacy, mô hình 3.x và mô hình 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-004
+    title: Các môđun lõi, tích hợp terminal, cấu hình tự động và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-005
+    title: CommandRegistration và CommandCatalog trong kiến trúc 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-006
+    title: Command, CommandRegistry và AbstractCommand trong kiến trúc 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-007
+    title: Tách lõi khỏi Spring Boot và JLine trong Spring Shell 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-008
+    title: Console của JDK so với terminal có tính năng JLine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-009
+    title: Phụ thuộc trực tiếp, starter và BOM của hệ sinh thái Spring Shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-010
+    title: Nhận diện API đã bỏ hoặc đổi package khi đọc ví dụ cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-architecture-011
+    title: Chọn một mô hình khai báo nhất quán cho từng phần của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-initialization
+  title: Khởi tạo ứng dụng
+  childs:
+  - slug: application-initialization-001
+    title: Tạo ứng dụng Spring hoặc Spring Boot phù hợp phiên bản mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-002
+    title: Khai báo phụ thuộc bằng Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-003
+    title: Chọn starter và môđun terminal theo nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-004
+    title: Tổ chức package để lớp khai báo lệnh được nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-005
+    title: Viết và chạy lệnh chào đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-006
+    title: Kiểm tra lệnh trong trợ giúp trước khi kiểm tra nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-007
+    title: Cấu hình chế độ tương tác tường minh theo mặc định của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-008
+    title: Chạy từ IDE so với chạy bằng terminal thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-009
+    title: Tách tham số cấu hình Spring Boot khỏi tham số lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-initialization-010
+    title: Dừng ứng dụng và xác nhận tài nguyên được giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-flow
+  title: Luồng thực thi
+  childs:
+  - slug: execution-flow-001
+    title: Từ dòng người dùng nhập đến các token của parser
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-002
+    title: Tra cứu lệnh trong catalog hoặc registry tương ứng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-003
+    title: Phân giải lệnh nhiều từ và lệnh con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-004
+    title: Liên kết tùy chọn và đối số với tham số thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-005
+    title: Chuyển đổi kiểu và kiểm tra tính hợp lệ trước khi gọi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-006
+    title: Kiểm tra khả dụng và trạng thái của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-007
+    title: Gọi phương thức xử lý rồi chuyển kết quả thành nội dung hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-008
+    title: Luồng xử lý lỗi và ánh xạ sang trạng thái kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-009
+    title: Vai trò của runner đối với vòng đời toàn bộ phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-010
+    title: Điểm mở rộng cần phân biệt với logic riêng của một lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-011
+    title: Theo dõi một lần gọi hoàn chỉnh để hiểu thứ tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-declarations
+  title: Khai báo bằng annotation
+  childs:
+  - slug: annotation-declarations-001
+    title: Khai báo legacy 3.x bằng @ShellComponent, @ShellMethod và @ShellOption
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-002
+    title: Tên lệnh, mô tả, nhóm và tên thay thế trong mô hình legacy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-003
+    title: Mô hình @Command và @Option trong Spring Shell 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-004
+    title: Đăng ký mục tiêu bằng @EnableCommand hoặc @CommandScan trong 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-005
+    title: Thiết lập dùng chung trên @Command ở cấp lớp trong 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-006
+    title: Annotation @Command trên phương thức của Spring bean trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-007
+    title: Khác biệt thuộc tính command của 3.x với name của 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-008
+    title: Cơ chế khám phá lệnh tự động trong ứng dụng Spring Boot 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-009
+    title: Vai trò của @EnableCommand khi dùng Spring Shell 4.x không kèm Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-010
+    title: '@Argument và @Arguments cho đối số vị trí ở 4.x'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-011
+    title: '@CommandGroup và tiền tố nhóm trong 4.x'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-012
+    title: Kiểu trả về, phương thức void và cách quan sát đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-declarations-013
+    title: Phạm vi sử dụng của annotation cũ khi nâng lên Spring Shell 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-registration
+  title: Đăng ký bằng mã
+  childs:
+  - slug: code-registration-001
+    title: Khi nào mô hình lập trình phù hợp hơn annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-002
+    title: CommandRegistration.builder và bean đăng ký lệnh trong 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-003
+    title: BuilderSupplier và tùy biến builder dùng chung ở 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-004
+    title: Khai báo tên, mô tả, tùy chọn và đích thực thi bằng builder 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-005
+    title: CommandCatalog và vòng đời thêm hoặc gỡ lệnh ở 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-006
+    title: Command.builder và bean Command trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-007
+    title: AbstractCommand và đích thực thi trả về ExitStatus trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-008
+    title: CommandRegistry và đăng ký lệnh động trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-009
+    title: Đọc tham số từ ngữ cảnh của một lệnh khai báo bằng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-010
+    title: Tùy biến completion, availability và lỗi theo mô hình phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-011
+    title: Tránh đăng ký trùng tên từ nhiều nguồn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-registration-012
+    title: Kiểm tra danh sách lệnh hiệu lực sau cấu hình Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-organization
+  title: Tổ chức lệnh
+  childs:
+  - slug: command-organization-001
+    title: Đặt tên lệnh theo hành động và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-002
+    title: Lệnh nhiều từ, tiền tố và cấu trúc lệnh con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-003
+    title: Phân biệt nhóm trong trợ giúp với cây lệnh thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-004
+    title: Bí danh lệnh và điều kiện hỗ trợ của API đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-005
+    title: Nhóm theo lớp hoặc package trong mô hình 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-006
+    title: Nhóm bằng @CommandGroup trong mô hình 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-007
+    title: Chia lớp lệnh theo miền nghiệp vụ và khả năng tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-008
+    title: Giữ tên, tùy chọn và kiểu kết quả ổn định cho bên gọi script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-009
+    title: Ẩn lệnh khỏi trợ giúp theo khả năng của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-010
+    title: Phân biệt ẩn lệnh, gỡ đăng ký và không cho phép thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-organization-011
+    title: Quy tắc xử lý tên trùng hoặc tiền tố gây nhập nhằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-line-syntax
+  title: Cú pháp dòng lệnh
+  childs:
+  - slug: command-line-syntax-001
+    title: Phân biệt chuỗi gốc với danh sách đối số đã qua shell hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-002
+    title: Khoảng trắng, dấu nháy và giá trị chứa nhiều từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-003
+    title: Escape ký tự đặc biệt và đường dẫn chứa khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-004
+    title: Tùy chọn dài và tùy chọn ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-005
+    title: Các dạng --key=value và --key value theo parser đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-006
+    title: Thứ tự giữa tên lệnh, lệnh con, tùy chọn và đối số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-007
+    title: Giá trị bắt đầu bằng dấu gạch nối và số âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-008
+    title: Giới hạn gộp tùy chọn ngắn theo từng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-009
+    title: Phân biệt toán tử pipe, chuyển hướng của hệ điều hành với cú pháp Spring Shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-010
+    title: Đầu vào nhiều dòng và điều kiện tiếp tục dòng khi terminal hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-011
+    title: Thông báo khi thiếu giá trị, thiếu đối số hoặc gặp tùy chọn lạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-012
+    title: CommandParser và điểm tùy biến quy tắc phân tích trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-syntax-013
+    title: Kiểm chứng cú pháp trên Windows, Bash hoặc môi trường đích thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: options-and-arguments
+  title: Tùy chọn và đối số
+  childs:
+  - slug: options-and-arguments-001
+    title: Tùy chọn có tên khác với đối số vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-002
+    title: Khai báo tên ngắn, tên dài và mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-003
+    title: Giá trị bắt buộc, tùy chọn và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-004
+    title: Phân biệt không truyền, truyền chuỗi rỗng và truyền giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-005
+    title: ShellOption.NULL và quy ước legacy 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-006
+    title: Vị trí đối số trong mô hình option của 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-007
+    title: '@Argument với chỉ số vị trí trong 4.x'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-008
+    title: '@Arguments, tập giá trị còn lại và giới hạn arity trong 4.x'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-009
+    title: Arity của option nhiều giá trị trong mô hình 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-010
+    title: Boolean dạng cờ ở mô hình cũ và giá trị tường minh ở parser 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-011
+    title: Mảng, Collection và cách phân tách nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-012
+    title: Xử lý truyền lặp một tùy chọn theo quy tắc của parser
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-013
+    title: Giới hạn số tên ngắn hoặc tên dài theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-014
+    title: Nhãn giá trị trong trợ giúp và các thay đổi ở 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: options-and-arguments-015
+    title: Phân biệt mặc định của framework với mặc định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-conversion
+  title: Chuyển đổi kiểu
+  childs:
+  - slug: type-conversion-001
+    title: Từ token chuỗi đến kiểu tham số của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-002
+    title: Kiểu số, Boolean, enum và quy tắc biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-003
+    title: Đường dẫn, URL, UUID và các kiểu cần đối chiếu khả năng chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-004
+    title: Ngày giờ, định dạng và múi giờ cần công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-005
+    title: Chuyển đổi phần tử của mảng hoặc Collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-006
+    title: Spring ConversionService và phạm vi tích hợp theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-007
+    title: Đăng ký converter cho kiểu miền khi mô hình thực thi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-008
+    title: Chuyển đổi thủ công trong phương thức xử lý khi cần hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-009
+    title: Phân biệt lỗi cú pháp, lỗi chuyển kiểu và lỗi miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-010
+    title: Chuẩn hóa đầu vào khác với âm thầm thay đổi ý nghĩa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-011
+    title: Thông báo lỗi chuyển đổi kèm tên tùy chọn và ví dụ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-validation
+  title: Kiểm tra đầu vào
+  childs:
+  - slug: input-validation-001
+    title: Bean Validation và điều kiện kích hoạt kiểm tra tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-002
+    title: '@NotNull, @NotBlank, @Size và dữ liệu bắt buộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-003
+    title: '@Min, @Max, @Pattern và giới hạn miền giá trị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-004
+    title: Chuỗi rỗng, chuỗi trắng và tùy chọn không xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-005
+    title: Ràng buộc chéo giữa nhiều tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-006
+    title: Điều kiện loại trừ nhau hoặc phải đi cùng nhau do ứng dụng thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-007
+    title: Kiểm tra tồn tại, quyền truy cập và loại của đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-008
+    title: Phân biệt validation đầu vào với kiểm tra nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-009
+    title: Kiểm tra trước tác dụng phụ để tránh trạng thái cập nhật một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-010
+    title: Thông báo lỗi dễ sửa mà không làm lộ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-011
+    title: Kiểm thử ràng buộc ở đúng mô hình annotation hoặc builder đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-and-availability
+  title: Trạng thái và khả dụng
+  childs:
+  - slug: state-and-availability-001
+    title: Trạng thái phiên dùng chung giữa các lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-002
+    title: Availability như điều kiện một lệnh có ý nghĩa ở thời điểm hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-003
+    title: Thông báo lý do khi lệnh chưa khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-004
+    title: '@ShellMethodAvailability trong mô hình legacy 3.x'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-005
+    title: Availability của command annotation hoặc builder trong 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-006
+    title: AvailabilityProvider và thuộc tính availabilityProvider trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-007
+    title: Các trạng thái kết nối, đăng nhập, chọn môi trường hoặc chọn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-008
+    title: Cập nhật và xóa trạng thái sau khi lệnh thành công hoặc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-009
+    title: Vòng đời bean và giới hạn của việc lưu trạng thái trong đối tượng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-010
+    title: Availability không thay thế kiểm tra quyền truy cập nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-availability-011
+    title: Kiểm tra trạng thái lại ngay trước thao tác quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-and-io
+  title: Ngữ cảnh và nhập xuất
+  childs:
+  - slug: context-and-io-001
+    title: CommandContext và thông tin một lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-002
+    title: Đọc tùy chọn đã phân tích và dữ liệu ngữ cảnh đúng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-003
+    title: Đọc đầu vào bổ sung bằng API của terminal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-004
+    title: InputReader và đọc mật khẩu qua ngữ cảnh trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-005
+    title: Hành vi khi không có terminal hoặc đầu vào đã kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-006
+    title: Trả về kết quả từ phương thức xử lý so với ghi đầu ra trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-007
+    title: PrintWriter từ CommandContext trong mô hình 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-008
+    title: Flush, bộ đệm và thời điểm dữ liệu xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-009
+    title: Phân biệt stdout, stderr và đầu ra phục vụ tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-010
+    title: Dọn tài nguyên nhập xuất mà lệnh thực sự sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-io-011
+    title: Thiết kế lớp xuất dữ liệu để có thể kiểm thử độc lập với terminal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: autocompletion
+  title: Tự hoàn thành
+  childs:
+  - slug: autocompletion-001
+    title: Gợi ý tên lệnh, lệnh con và tùy chọn khi nhấn Tab
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-002
+    title: Phân biệt hoàn thành trong JLine với hoàn thành của shell hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-003
+    title: CompletionContext và CompletionProposal theo API phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-004
+    title: ValueProvider gắn với @ShellOption trong mô hình legacy 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-005
+    title: CompletionResolver hoặc cấu hình completion bằng builder trong 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-006
+    title: Cấu hình gợi ý giá trị cho mô hình annotation 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-007
+    title: CompletionProvider ở phạm vi command trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-008
+    title: FileNameCompletionProvider, EnumCompletionProvider và bộ gộp trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-009
+    title: Gợi ý dựa trên các tùy chọn khác và trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-010
+    title: Phân biệt gợi ý đầu vào với kiểm tra giá trị hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-011
+    title: Giới hạn thời gian, số kết quả và dữ liệu nhạy cảm trong gợi ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autocompletion-012
+    title: Kiểm tra hỗ trợ của lệnh sinh completion theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: help-and-commands
+  title: Trợ giúp và lệnh có sẵn
+  childs:
+  - slug: help-and-commands-001
+    title: Lệnh help và cách khám phá nhóm lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-002
+    title: Trợ giúp một lệnh với cú pháp, tham số và ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-003
+    title: Hỗ trợ --help hoặc -h theo mô hình và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-004
+    title: Mô tả ngắn, trợ giúp chi tiết và nhãn tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-005
+    title: Hiển thị mặc định, tham số bắt buộc và lý do chưa khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-006
+    title: Lệnh clear, exit và version trong môi trường tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-007
+    title: Lịch sử nhập lệnh và khả năng lưu hoặc tìm lại theo terminal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-008
+    title: Lệnh script và phạm vi thực thi tệp lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-009
+    title: stacktrace trong nhánh cũ so với debug mode ở 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-010
+    title: Thay đổi của lệnh completion tích hợp khi chuyển sang 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-011
+    title: Tắt hoặc thay lệnh có sẵn bằng cơ chế được phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: help-and-commands-012
+    title: Giữ trợ giúp và ví dụ đồng bộ với hợp đồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-modes
+  title: Chế độ thực thi
+  childs:
+  - slug: execution-modes-001
+    title: Tương tác trong REPL và thực thi một lần rồi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-002
+    title: Phân biệt cách chọn runner ở 3.x và 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-003
+    title: InteractiveShellRunner, NonInteractiveShellRunner và ScriptShellRunner ở 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-004
+    title: Thuộc tính bật từng runner và thay đổi mặc định từ 3.3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-005
+    title: ShellApplicationRunner và chuyển đối số khởi động trong mô hình 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-006
+    title: SystemShellRunner, JLineShellRunner và NonInteractiveShellRunner ở 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-007
+    title: Chọn một runner thực thi và chế độ ngay khi khởi động ở 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-008
+    title: Cấu hình spring.shell.interactive.enabled theo đúng thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-009
+    title: InteractionMode ở nhánh cũ và phạm vi API đã bỏ ở 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-010
+    title: Khả năng đọc từ console khi chạy trong IDE, pipeline hoặc container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-011
+    title: Kết thúc phiên, EOF và đóng ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-012
+    title: Phím ngắt lệnh, hủy chờ đầu vào và thoát tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-013
+    title: Phân biệt lệnh kết thúc nhưng ứng dụng vẫn chạy với tiến trình đã dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scripting-and-automation
+  title: Script và tự động hóa
+  childs:
+  - slug: scripting-and-automation-001
+    title: Tệp script Spring Shell và giới hạn ngôn ngữ lệnh của nó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-002
+    title: Gọi script bằng cú pháp của phiên bản đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-003
+    title: Đường dẫn tệp, thư mục làm việc và mã hóa văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-004
+    title: Thứ tự thực thi các dòng và quy tắc chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-005
+    title: Trạng thái được chia sẻ giữa các lệnh trong cùng phiên script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-006
+    title: Xác định chính sách dừng hoặc tiếp tục sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-007
+    title: Tránh chờ prompt tương tác trong chế độ tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-008
+    title: Truyền cấu hình và dữ liệu đầu vào một cách có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-009
+    title: Dùng mã thoát để phối hợp với shell hệ điều hành hoặc CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-010
+    title: Đầu ra JSON hoặc CSV do ứng dụng thiết kế cho máy đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-011
+    title: Tách log, màu sắc và thông báo tiến trình khỏi luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-and-automation-012
+    title: Tính lặp lại an toàn khi chạy lại một script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: results-and-exit-codes
+  title: Kết quả và mã thoát
+  childs:
+  - slug: results-and-exit-codes-001
+    title: Phân biệt kết quả nghiệp vụ, nội dung hiển thị và mã thoát tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-002
+    title: Quy ước thành công, lỗi đầu vào và lỗi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-003
+    title: Ngoại lệ được báo về terminal và cơ chế xử lý mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-004
+    title: CommandExceptionResolver và CommandHandlingResult ở mô hình 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-005
+    title: Ánh xạ exit code và @ExceptionResolver trong nhánh 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-006
+    title: ExitStatus và ExitStatusExceptionMapper trong mô hình 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-007
+    title: Gắn bộ ánh xạ lỗi bằng annotation hoặc builder đúng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-008
+    title: Phạm vi xử lý lỗi chung với xử lý riêng cho một command
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-009
+    title: Phân biệt lỗi không tìm thấy lệnh với lỗi trong phương thức xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-010
+    title: Nội dung dành cho người dùng khác chi tiết phục vụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-011
+    title: Kiểm chứng mã thoát ở cấp tiến trình khi chạy không tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-exit-codes-012
+    title: Không báo thành công khi cập nhật thất bại hoặc mới hoàn thành một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: terminal-interface
+  title: Giao diện terminal
+  childs:
+  - slug: terminal-interface-001
+    title: Prompt và thông tin ngữ cảnh nên hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-002
+    title: Tùy biến prompt bằng điểm mở rộng của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-003
+    title: Màu ANSI và khả năng hỗ trợ của terminal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-004
+    title: Theme, style và tài nguyên hiển thị theo từng nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-005
+    title: Unicode, độ rộng ký tự và văn bản tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-006
+    title: Kích thước terminal, xuống dòng và bố trí thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-007
+    title: Lịch sử lệnh, phím tắt và chỉnh sửa dòng với JLine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-008
+    title: Console JDK cơ bản so với các khả năng cần môđun JLine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-009
+    title: Thông báo tiến trình và cập nhật màn hình có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-010
+    title: Khôi phục trạng thái terminal khi lỗi hoặc bị ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-011
+    title: Chế độ văn bản thuần khi đầu ra được chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-interface-012
+    title: Kiểm tra giao diện trên terminal thật thay vì chỉ cửa sổ chạy IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tables-and-formatting
+  title: Bảng và định dạng
+  childs:
+  - slug: tables-and-formatting-001
+    title: Khi nào dùng bảng văn bản cho kết quả CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-002
+    title: Mô hình dữ liệu bảng từ mảng, danh sách hoặc thuộc tính đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-003
+    title: Tiêu đề cột, căn lề, độ rộng và đường viền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-004
+    title: Xử lý ô trống, nội dung nhiều dòng và chuỗi quá dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-005
+    title: Chia dòng, cắt gọn hoặc phân trang theo quyết định của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-006
+    title: TableBuilder và bộ kết xuất trong môđun bảng tương ứng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-007
+    title: Thay đổi package bảng khi tích hợp vào JLine ở 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-008
+    title: Giá trị số, ngày giờ và quy ước định dạng nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-009
+    title: Tách bảng dễ đọc khỏi định dạng xuất dữ liệu có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-formatting-010
+    title: Giới hạn số dòng để không làm terminal hoặc bộ kiểm thử quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interactive-components
+  title: Thành phần tương tác 3.x
+  childs:
+  - slug: interactive-components-001
+    title: Phạm vi phiên bản của Flow Components trong nhánh 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-002
+    title: Vòng đời nhập liệu, ngữ cảnh và hiển thị của một thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-003
+    title: StringInput cho chuỗi và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-004
+    title: PathInput cho đường dẫn và điều kiện hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-005
+    title: PathSearch cho trải nghiệm tìm kiếm đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-006
+    title: ConfirmationInput cho lựa chọn xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-007
+    title: SingleItemSelector cho một lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-008
+    title: MultiItemSelector cho nhiều lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-009
+    title: Ẩn đầu vào nhạy cảm bằng khả năng thành phần được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-010
+    title: Tùy biến thông báo, nhãn và trạng thái cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-011
+    title: Thoát hoặc hủy một thành phần mà không làm sai trạng thái ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-components-012
+    title: Phương án cho chạy tự động khi không có khả năng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: component-flow
+  title: ComponentFlow 3.x
+  childs:
+  - slug: component-flow-001
+    title: Khi nào cần ghép nhiều bước nhập liệu thành một luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-002
+    title: ComponentFlow.Builder và tạo cấu hình cho từng lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-003
+    title: Định danh bước và truyền kết quả giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-004
+    title: Thứ tự thực thi mặc định của các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-005
+    title: Rẽ nhánh theo dữ liệu đã nhập bằng hàm next
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-006
+    title: Điều kiện dừng luồng và bước đích không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-007
+    title: ComponentFlowResult và chuyển dữ liệu về lớp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-008
+    title: Kiểm tra đầy đủ dữ liệu trước khi áp dụng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-009
+    title: Tách thu thập dữ liệu, xác nhận và thực thi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-flow-010
+    title: Kiểm thử các nhánh, hủy thao tác và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: terminal-ui
+  title: Terminal UI 3.x
+  childs:
+  - slug: terminal-ui-001
+    title: Phạm vi của TerminalUI và khác biệt với dòng lệnh tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-002
+    title: AppView và tổ chức cây view
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-003
+    title: BoxView, GridView và bố trí nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-004
+    title: InputView, ListView và lựa chọn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-005
+    title: ButtonView, MenuView và MenuBarView
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-006
+    title: DialogView và tương tác có ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-007
+    title: ProgressView, StatusBarView và trạng thái tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-008
+    title: EventLoop và luồng xử lý sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-009
+    title: Xử lý phím, focus và sự kiện chuột khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-010
+    title: Vẽ lại, kích thước terminal và cập nhật dữ liệu view
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-011
+    title: Đóng giao diện, khôi phục terminal và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terminal-ui-012
+    title: Đối chiếu khả năng hỗ trợ trước khi chuyển giao diện sang thế hệ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Tiêm service và cấu hình vào lớp khai báo lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Giữ command mỏng và chuyển nghiệp vụ về service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Gọi bean có proxy để giữ các cơ chế như transaction hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Ranh giới transaction cho một lệnh hoặc một nhóm bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Kết nối cơ sở dữ liệu và đóng tài nguyên sau khi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Gọi HTTP API với timeout và cách báo lỗi phù hợp CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Chọn môi trường đích bằng cấu hình có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Xử lý tác vụ dài, tiến độ và yêu cầu hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Phân biệt thực thi đồng bộ với đẩy việc sang tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Quản lý trạng thái khi nhiều tác vụ dùng chung bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Tái sử dụng cùng service cho CLI, batch hoặc REST khi ứng dụng cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-012
+    title: Kiểm tra điều kiện Spring Security nếu service nghiệp vụ được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-and-safety
+  title: Bảo mật và an toàn
+  childs:
+  - slug: security-and-safety-001
+    title: Quyền chạy tiến trình khác với quyền thực hiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-002
+    title: Kiểm tra phân quyền tại lớp thực thi có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-003
+    title: Giới hạn của command availability và lệnh bị ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-004
+    title: Tránh đưa mật khẩu hoặc token vào đối số lộ qua lịch sử và danh sách tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-005
+    title: Đọc dữ liệu nhạy cảm bằng đầu vào được che khi terminal hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-006
+    title: Kiểm soát lưu lịch sử và nội dung log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-007
+    title: Không ghép dữ liệu người dùng thành lệnh shell hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-008
+    title: Kiểm tra đường dẫn đầu vào và phạm vi tệp được phép tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-009
+    title: Chế độ xem trước, xác nhận và ghi nhận tác vụ có ảnh hưởng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-010
+    title: Tính lặp lại an toàn và khôi phục sau lỗi cập nhật một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-011
+    title: Xử lý ký tự điều khiển terminal trong dữ liệu không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-safety-012
+    title: Giới hạn quyền của tài khoản và cấu hình dùng để chạy công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân tầng kiểm thử parser, command, service và tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Unit test nghiệp vụ mà không khởi động terminal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm tra đăng ký và danh sách command hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Vai trò của môđun spring-shell-test và cấu hình kiểm thử tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: '@ShellTest cùng phạm vi context trong từng thế hệ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: ShellTestClient và ShellAssertions để tương tác và kiểm tra đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Phiên interactive hoặc non-interactive qua API kiểm thử 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: sendCommand và ShellScreen trong API kiểm thử 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Mô phỏng dữ liệu nhập hoặc mật khẩu bằng khả năng của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm tra tùy chọn thiếu, kiểu sai và ràng buộc chéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra availability, trạng thái phiên và đường đi sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm chứng exit code ở cấp tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Chờ có điều kiện thay vì phụ thuộc khoảng dừng cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Chuẩn hóa màu ANSI, kích thước màn hình và dữ liệu biến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: Đóng phiên, dọn context và tránh kiểm thử bị treo chờ đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packaging-and-distribution
+  title: Đóng gói và phân phối
+  childs:
+  - slug: packaging-and-distribution-001
+    title: Tạo executable JAR phù hợp cấu hình Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-002
+    title: Chạy bằng java -jar và truyền đối số có khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-003
+    title: Phân biệt tham số JVM với tham số của ứng dụng hoặc command
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-004
+    title: Wrapper script cho Windows, Linux và macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-005
+    title: Mã hóa văn bản, đường dẫn và quyền thực thi trên các nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-006
+    title: Phân phối cùng tệp cấu hình, ví dụ và tài liệu trợ giúp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-007
+    title: Chạy trong container có hoặc không cấp terminal tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-008
+    title: Tự động hóa trong CI và môi trường không có TTY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-009
+    title: Đánh giá thời gian khởi động, bộ nhớ và trải nghiệm gọi một lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-010
+    title: GraalVM native image và giới hạn của nhánh Spring Shell mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-011
+    title: Kiểm tra khả năng native của đăng ký bằng annotation hoặc bằng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-012
+    title: Tài nguyên, reflection và thành phần JLine cần đối chiếu khi đóng gói native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-013
+    title: Kiểm thử lại cú pháp, nhập xuất và mã thoát trên gói phân phối thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-and-operations
+  title: Cấu hình và vận hành
+  childs:
+  - slug: configuration-and-operations-001
+    title: Tổ chức thuộc tính Spring Shell trong cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-002
+    title: Profile, biến môi trường và ưu tiên nguồn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-003
+    title: Kiểm tra thuộc tính runner, debug và lệnh có sẵn theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-004
+    title: Tách log kỹ thuật khỏi dữ liệu đầu ra dành cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-005
+    title: Giảm banner hoặc log khởi động khi cần đầu ra máy đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-006
+    title: Quy ước mức chi tiết thông báo và chế độ debug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-007
+    title: Ghi nhận tên lệnh, thời lượng và kết quả nhưng che dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-008
+    title: Tệp lịch sử, thư mục làm việc và vị trí cấu hình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-009
+    title: Quản lý timeout cho kết nối, truy vấn và tác vụ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-010
+    title: Đóng context, kết nối và executor khi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-011
+    title: Phát hiện luồng nền khiến tiến trình không thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-012
+    title: Theo dõi phiên bản ứng dụng và khả năng tái hiện một lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-and-upgrades
+  title: Di chuyển và nâng cấp
+  childs:
+  - slug: migration-and-upgrades-001
+    title: Lập danh sách command, cú pháp, kết quả và mã thoát cần bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-002
+    title: Đọc hướng dẫn nâng cấp theo từng nhánh trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-003
+    title: Nâng phụ thuộc Spring Framework, Spring Boot và Java đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-004
+    title: Chuyển annotation legacy sang mô hình được phiên bản mới hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-005
+    title: Đổi package và thuộc tính @Command từ 3.x sang 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-006
+    title: Thay nhóm lệnh ở cấp lớp bằng cơ chế tương ứng trong 4.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-007
+    title: Chuyển CommandRegistration và CommandCatalog sang Command và CommandRegistry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-008
+    title: Đối chiếu tùy chọn, đối số, arity và quy tắc Boolean sau khi đổi parser
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-009
+    title: Chuyển completion, availability và ánh xạ lỗi sang API mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-010
+    title: Kiểm tra runner, mặc định tương tác và API InteractionMode đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-011
+    title: Đối chiếu trợ giúp, lịch sử, stacktrace và completion tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-012
+    title: Chuyển API kiểm thử và kiểm tra lại hỗ trợ native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-013
+    title: Đánh giá phương án thay thế cho các thành phần UI không được nhánh mới hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-014
+    title: Chạy bộ kiểm thử hợp đồng CLI trên các script sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Ứng dụng khởi động rồi thoát do chế độ hoặc mặc định runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Lệnh không được khám phá do package, bean hoặc thiếu cấu hình đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Trùng command, tiền tố hoặc nhóm gây nhập nhằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Dùng annotation đúng tên nhưng sai package hoặc thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Tùy chọn không nhận giá trị do nháy, escape, arity hoặc tên khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Boolean được phân tích khác hành vi mong đợi của phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Converter hoặc validation không được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Completion không hoạt động vì runner không dùng JLine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Không đọc được console khi chạy trong IDE hoặc môi trường không có TTY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Bảng, Unicode hoặc màu sắc hiển thị sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Log chen vào đầu ra làm hỏng JSON hoặc CSV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Script dừng, tiếp tục hoặc trả mã thoát khác dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Tiến trình treo do chờ đầu vào, luồng nền hoặc tài nguyên chưa đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: NoSuchMethodError hoặc ClassNotFoundException do xung đột phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Thu hẹp lỗi bằng phiên bản, cấu hình hiệu lực và ca tái hiện tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-shell-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-shell-practice-001
+    title: Xây CLI chào hỏi với tùy chọn, đối số và trợ giúp rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-002
+    title: Xây nhóm lệnh quản lý tài nguyên dùng chung service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-003
+    title: Bổ sung converter và validation cho kiểu dữ liệu miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-004
+    title: Mô phỏng kết nối rồi thay đổi availability theo trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-005
+    title: Gợi ý giá trị phụ thuộc ngữ cảnh mà không thay thế validation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-006
+    title: Nhập nhiều bước bằng ComponentFlow trên nhánh hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-007
+    title: Hiển thị bảng kết quả có thể thích ứng độ rộng terminal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-008
+    title: Cung cấp cả đầu ra cho người đọc và đầu ra cho script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-009
+    title: Chạy không tương tác với mã thoát nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-010
+    title: Xử lý lỗi nghiệp vụ, hủy thao tác và cập nhật một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-011
+    title: Viết kiểm thử cho cùng hợp đồng lệnh trên mô hình đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-012
+    title: Đóng gói và chạy trên terminal thật cùng môi trường CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-shell-practice-013
+    title: Bài tập tổng hợp từ đặc tả CLI đến công cụ có tài liệu và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-bao-ve-web
+  title: Mô hình bảo vệ Web
+  purpose: Hiểu cách Spring Security phối hợp lớp filter và cơ chế phòng vệ để bảo vệ request HTTP.
+  objectives:
+  - Nhận diện rủi ro từ request giả mạo, nội dung độc hại và kết nối không an toàn.
+  - Xác định vị trí SecurityFilterChain trong luồng xử lý.
+  - Phân biệt phòng vệ Web với xác thực và phân quyền.
+- id: csrf-protection
+  title: CSRF Protection
+  purpose: Ngăn yêu cầu thay đổi trạng thái bị giả mạo khi trình duyệt tự gửi thông tin đăng nhập.
+  objectives:
+  - Giải thích CSRF và cơ chế kiểm tra CSRF token.
+  - Cấu hình xử lý token cho form và ứng dụng JavaScript phù hợp.
+  - Kiểm thử request có, thiếu hoặc sai CSRF token.
+- id: cors-same-origin
+  title: CORS & Same-Origin
+  purpose: Giới hạn truy cập tài nguyên khác nguồn theo nhu cầu ứng dụng chạy trên trình duyệt.
+  objectives:
+  - Phân biệt CORS với CSRF và quyền truy cập API.
+  - Cấu hình origins, methods, headers và credentials có chủ đích.
+  - Xử lý preflight request đúng thứ tự filter.
+- id: security-headers
+  title: Security Headers
+  purpose: Giảm rủi ro tấn công trình duyệt thông qua các HTTP response headers thích hợp.
+  objectives:
+  - Nhận diện các header bảo vệ mặc định của Spring Security.
+  - Cấu hình CSP, X-Frame-Options và X-Content-Type-Options khi cần.
+  - Kiểm tra tác động header đối với tài nguyên và giao diện.
+- id: https-transport-security
+  title: HTTPS & Transport Security
+  purpose: Bảo vệ dữ liệu truyền qua mạng và giảm nguy cơ truy cập bằng kết nối không mã hóa.
+  objectives:
+  - Thiết lập chuyển hướng HTTP sang HTTPS ở lớp ứng dụng phù hợp.
+  - Hiểu vai trò TLS, HSTS và reverse proxy.
+  - Kiểm tra hành vi redirect và header trên kết nối HTTPS.
+- id: session-protection
+  title: Session Protection
+  purpose: Hạn chế chiếm đoạt hoặc tái sử dụng phiên đăng nhập trong ứng dụng có session.
+  objectives:
+  - Giải thích session fixation và thay đổi session ID sau login.
+  - Xử lý timeout, invalid session, logout và giới hạn phiên.
+  - Đánh giá cấu hình cookie Secure, HttpOnly và SameSite.
+- id: http-firewall
+  title: HTTP Firewall
+  purpose: Chặn request bất thường có khả năng vượt qua kiểm tra đường dẫn hoặc phương thức.
+  objectives:
+  - Hiểu vai trò StrictHttpFirewall và request normalization.
+  - Nhận diện URL encoding và HTTP method đáng ngờ.
+  - Giữ chính sách mặc định an toàn, chỉ nới lỏng có lý do.
+- id: kiem-thu-hardening
+  title: Kiểm thử & Hardening
+  purpose: Xác minh các lớp bảo vệ hoạt động đúng và duy trì cấu hình an toàn theo thay đổi.
+  objectives:
+  - Viết MockMvc tests cho CSRF và HTTP security headers.
+  - Kiểm tra tình huống cross-origin, session và request bất thường.
+  - Rà soát cấu hình theo nguyên tắc giảm bề mặt tấn công.

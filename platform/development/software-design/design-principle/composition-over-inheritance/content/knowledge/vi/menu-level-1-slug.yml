@@ -1,0 +1,64 @@
+menu:
+  - title: Nền tảng của nguyên tắc composition over inheritance
+    slug: composition-over-inheritance-foundations
+    index: 0
+  - title: Phân biệt quan hệ is-a, has-a và uses-a
+    slug: object-relationship-semantics
+    index: 1
+  - title: Hợp đồng kế thừa và khả năng thay thế trong Java
+    slug: inheritance-contracts-substitutability
+    index: 2
+  - title: Nhận diện rủi ro của hệ phân cấp kế thừa
+    slug: inheritance-hierarchy-risks
+    index: 3
+  - title: Cơ chế composition, delegation và forwarding trong Java
+    slug: composition-and-delegation-mechanics
+    index: 4
+  - title: Thiết kế interface làm hợp đồng cho đối tượng cộng tác
+    slug: collaborator-interface-design
+    index: 5
+  - title: Trạng thái, quyền sở hữu và vòng đời của thành phần
+    slug: component-state-ownership-and-lifecycle
+    index: 6
+  - title: Khởi tạo và lắp ghép đồ thị đối tượng
+    slug: object-graph-assembly
+    index: 7
+  - title: 'Strategy: thay thế thuật toán qua composition'
+    slug: strategy-pattern
+    index: 8
+  - title: 'Decorator: kết hợp trách nhiệm quanh một hợp đồng'
+    slug: decorator-pattern
+    index: 9
+  - title: 'Bridge: tách hai chiều biến thiên độc lập'
+    slug: bridge-pattern
+    index: 10
+  - title: Chọn và phối hợp các mẫu thiết kế dựa trên composition
+    slug: composition-pattern-choice-integration
+    index: 11
+  - title: Quy trình tái cấu trúc từ kế thừa sang composition
+    slug: inheritance-to-composition-refactoring
+    index: 12
+  - title: 'Thực hành Java: bộ sưu tập có theo dõi số phần tử thêm'
+    slug: instrumented-set-workshop
+    index: 13
+  - title: 'Thực hành Java: chính sách định giá bằng Strategy'
+    slug: pricing-strategy-workshop
+    index: 14
+  - title: 'Thực hành Java: bộ gửi thông báo với Decorator'
+    slug: notification-decorator-workshop
+    index: 15
+  - title: 'Thực hành Java: hệ thống báo cáo bằng Bridge'
+    slug: reporting-bridge-workshop
+    index: 16
+  - title: Kiểm thử hợp đồng và tương tác giữa các thành phần
+    slug: collaboration-contract-testing
+    index: 17
+  - title: Thiết kế API và khả năng tiến hóa của hệ thống composition
+    slug: composition-api-evolution
+    index: 18
+  - title: Hiệu năng, đồng thời và khả năng vận hành
+    slug: performance-concurrency-operability
+    index: 19
+  - title: Khi nên giữ kế thừa và cách đánh giá thiết kế cuối cùng
+    slug: inheritance-tradeoffs-and-design-review
+    index: 20

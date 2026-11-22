@@ -1,0 +1,370 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiến trúc hướng sự kiện (Event-Driven Architecture) là gì
+  - Vấn đề của các chuỗi gọi đồng bộ giữa nhiều thành phần
+  - Vai trò của sự kiện trong phối hợp nghiệp vụ và tích hợp hệ thống
+  - Luồng xử lý từ sự kiện phát sinh đến kết quả nghiệp vụ
+  - Quan hệ với kiến trúc phân lớp, nguyên khối mô-đun và microservices
+  - Phân biệt hướng sự kiện, bất đồng bộ và xử lý song song
+  - Lợi ích về khả năng mở rộng, phản hồi và phát triển độc lập
+  - Chi phí về tính nhất quán, độ phức tạp và khả năng chẩn đoán
+  - Trường hợp phù hợp và trường hợp nên giữ luồng đồng bộ
+  - Kiến thức nền và lộ trình đọc tài liệu
+- level1: Khái niệm cốt lõi
+  level2:
+  - Sự kiện là sự thật nghiệp vụ đã xảy ra
+  - Phân biệt sự kiện, lệnh (command) và truy vấn (query)
+  - Phân biệt sự kiện nghiệp vụ và thông điệp vận chuyển
+  - Bên phát, bên nhận và trình xử lý sự kiện
+  - Kênh truyền, bộ định tuyến và hệ thống trung gian
+  - 'Vòng đời sự kiện: tạo, công bố, tiếp nhận và xử lý'
+  - Phản hồi kỹ thuật và kết quả nghiệp vụ
+  - Trạng thái xử lý và tác động phụ
+  - Tách phụ thuộc về địa chỉ, thời gian và mô hình dữ liệu
+  - Các đánh đổi còn tồn tại sau khi tách phụ thuộc
+- level1: Phong cách kiến trúc
+  level2:
+  - Mô hình môi giới sự kiện (broker topology)
+  - Mô hình điều phối trung tâm (mediator topology)
+  - Phối hợp phân tán (choreography) và điều phối (orchestration)
+  - Thông báo sự kiện (event notification)
+  - Truyền trạng thái qua sự kiện (event-carried state transfer)
+  - Cộng tác giữa các thành phần qua sự kiện
+  - Kiến trúc kết hợp luồng đồng bộ và luồng hướng sự kiện
+  - Đối chiếu các phong cách theo mức phụ thuộc và khả năng quan sát
+  - Chọn phong cách theo quy mô và yêu cầu nghiệp vụ
+- level1: Ranh giới nghiệp vụ
+  level2:
+  - Khám phá sự kiện từ quy trình và kết quả nghiệp vụ
+  - Lập bản đồ luồng nghiệp vụ bằng Event Storming
+  - Đặt tên sự kiện bằng ngôn ngữ nghiệp vụ và thì quá khứ
+  - Xác định ranh giới ngữ cảnh (bounded context) và quyền sở hữu dữ liệu
+  - Sự kiện miền (domain event) và sự kiện tích hợp (integration event)
+  - Ranh giới đối tượng kết tụ (aggregate) và điều kiện luôn phải đúng
+  - Chuyển sự kiện nội bộ thành hợp đồng công khai
+  - Phân rã sự kiện quá lớn và tránh sự kiện quá vụn
+  - Phân biệt sự kiện nghiệp vụ với thay đổi kỹ thuật của cơ sở dữ liệu
+  - Trách nhiệm của nhóm sở hữu và nhóm sử dụng sự kiện
+- level1: Mô hình truyền tin
+  level2:
+  - Hàng đợi điểm tới điểm (point-to-point queue)
+  - Công bố và đăng ký nhận (publish/subscribe)
+  - Nhóm bên nhận cạnh tranh (competing consumers)
+  - Luồng sự kiện có lưu giữ (event stream)
+  - Phân biệt bản ghi lưu bền, vị trí đọc và xác nhận xử lý
+  - Đăng ký bền vững và hành vi khi bên nhận tạm ngừng
+  - Định tuyến theo chủ đề, khóa và nội dung
+  - Phát tới nhiều bên nhận (fan-out) và tổng hợp kết quả (fan-in)
+  - Yêu cầu và phản hồi bất đồng bộ (request/reply)
+  - Lựa chọn hàng đợi, chủ đề và luồng theo yêu cầu xử lý
+- level1: Cấu trúc sự kiện
+  level2:
+  - Phân tách phần bao (envelope), siêu dữ liệu và dữ liệu nghiệp vụ
+  - Định danh sự kiện và quy tắc duy nhất
+  - Loại sự kiện, nguồn phát và đối tượng nghiệp vụ
+  - Thời điểm phát sinh và thời điểm công bố
+  - Khóa nghiệp vụ, khóa phân vùng và phạm vi thứ tự
+  - Định danh tương quan (correlation ID) và nguyên nhân (causation ID)
+  - Ngữ cảnh truy vết xuyên thành phần
+  - Phiên bản lược đồ và loại nội dung
+  - Chọn dữ liệu chênh lệch, ảnh chụp trạng thái hoặc tham chiếu
+  - Giới hạn kích thước và xử lý dữ liệu lớn
+  - Chuẩn hóa phần bao bằng CloudEvents
+  - Tối thiểu hóa dữ liệu nhạy cảm trong hợp đồng
+- level1: Hợp đồng và phiên bản
+  level2:
+  - Hợp đồng ngữ nghĩa và hợp đồng cấu trúc
+  - Lược đồ và định dạng tuần tự hóa dữ liệu
+  - JSON, Avro và Protocol Buffers trong trao đổi sự kiện
+  - Kiểm tra hợp lệ ở bên phát và bên nhận
+  - Tương thích ngược, tương thích xuôi và tương thích đầy đủ
+  - Thêm, đổi tên, xóa trường và xử lý giá trị mặc định
+  - Thay đổi ý nghĩa nghiệp vụ dù cấu trúc không đổi
+  - Quản lý lược đồ bằng kho đăng ký (schema registry)
+  - Đồng tồn tại nhiều phiên bản khi triển khai lệch thời điểm
+  - Ngừng hỗ trợ hợp đồng và kế hoạch chuyển đổi bên nhận
+  - Tài liệu hóa kênh và thông điệp bằng AsyncAPI
+  - Kiểm soát quyền sở hữu và phê duyệt thay đổi hợp đồng
+- level1: Thiết kế luồng
+  level2:
+  - Biểu diễn luồng sự kiện bằng sơ đồ thành phần và sơ đồ trình tự
+  - Xác định điểm bắt đầu, kết quả và điều kiện kết thúc
+  - Phân biệt sự kiện hoàn tất với sự kiện tiến độ
+  - Chọn điểm giao tiếp đồng bộ trong quy trình bất đồng bộ
+  - Thiết kế bộ xử lý độc lập và ranh giới tác động phụ
+  - Quản lý trạng thái của quy trình kéo dài
+  - Tương quan yêu cầu, kết quả và thời hạn chờ
+  - Phát hiện vòng lặp sự kiện và chuỗi phụ thuộc ẩn
+  - Kiểm soát mức lan truyền khi một hành động tạo nhiều sự kiện
+  - Thiết kế phản hồi cho người dùng khi kết quả chưa hoàn tất
+- level1: Phát sự kiện
+  level2:
+  - Xác định thời điểm tạo và công bố sự kiện
+  - Tạo định danh trước lần thử công bố đầu tiên
+  - Lựa chọn kênh, khóa định tuyến và khóa phân vùng
+  - Công bố đồng bộ và công bố bất đồng bộ
+  - Bộ đệm, gộp lô và giới hạn tài nguyên bên phát
+  - Xác nhận công bố và yêu cầu lưu bền
+  - Phân biệt lỗi công bố rõ ràng và kết quả công bố chưa xác định
+  - Thử lại ở bên phát và nguy cơ phát trùng
+  - Kiểm soát tốc độ khi hệ thống truyền tin quá tải
+  - Đóng bên phát an toàn và xử lý dữ liệu chưa gửi
+- level1: Tiêu thụ sự kiện
+  level2:
+  - Đăng ký nhận và vòng lặp tiếp nhận thông điệp
+  - Nhóm bên nhận, phân công phân vùng và phân phối công việc
+  - Tiền nạp (prefetch), số thông điệp đang xử lý và áp lực bộ nhớ
+  - Giải mã, kiểm tra hợp đồng và phân loại sự kiện
+  - Xác nhận nhận tin, xác nhận xử lý và lưu vị trí đọc
+  - Thời hạn giữ quyền xử lý và khả năng giao lại thông điệp
+  - Xử lý đồng thời và ranh giới an toàn của trình xử lý
+  - Quản lý giao dịch dữ liệu bên nhận
+  - Tái cân bằng và chuyển quyền xử lý khi thành viên thay đổi
+  - Dừng an toàn và hoàn tất công việc đang chạy
+  - Cô lập bên nhận chậm để hạn chế ảnh hưởng lan truyền
+- level1: Ngữ nghĩa giao nhận
+  level2:
+  - Giao tối đa một lần (at-most-once)
+  - Giao ít nhất một lần (at-least-once)
+  - Phạm vi bảo đảm xử lý đúng một lần (exactly-once)
+  - Phân biệt giao nhận, thực thi bộ xử lý và tác động nghiệp vụ
+  - Các điểm lỗi trước và sau khi ghi dữ liệu hoặc xác nhận
+  - Mất phản hồi dù bên kia đã hoàn tất thao tác
+  - Quan hệ giữa độ bền dữ liệu, sao chép và khả năng mất tin
+  - Đánh giá bảo đảm xuyên suốt từ nguồn phát đến hệ thống đích
+  - Lựa chọn ngữ nghĩa theo chi phí mất tin và xử lý lặp
+- level1: Thứ tự và thời gian
+  level2:
+  - Thứ tự toàn cục và thứ tự trong từng phân vùng
+  - Chọn khóa phân vùng theo thực thể nghiệp vụ
+  - Quan hệ giữa số phân vùng, mức song song và thứ tự
+  - Số thứ tự, phiên bản thực thể và phát hiện khoảng trống
+  - Sự kiện đến sai thứ tự và sự kiện đến muộn
+  - Thời gian sự kiện, thời gian tiếp nhận và thời gian xử lý
+  - Sai lệch đồng hồ và giới hạn suy luận từ dấu thời gian
+  - Cửa sổ xử lý và mốc tiến độ (watermark)
+  - Thứ tự nhân quả giữa các sự kiện liên quan
+  - Thay đổi phân vùng hoặc số bên nhận mà vẫn bảo vệ yêu cầu thứ tự
+- level1: Xử lý trùng lặp
+  level2:
+  - Tính lũy đẳng (idempotency) trong xử lý sự kiện
+  - Phân biệt bản giao lặp với hai hành động nghiệp vụ hợp lệ
+  - Chọn khóa lũy đẳng theo sự kiện và nghiệp vụ
+  - Lưu dấu đã xử lý bằng mẫu Inbox
+  - Ghi dấu xử lý và thay đổi dữ liệu trong cùng giao dịch
+  - Ràng buộc duy nhất và tranh chấp khi xử lý đồng thời
+  - Thời hạn giữ khóa và ảnh hưởng của việc phát lại
+  - Lũy đẳng cho tác động phụ qua API hoặc hệ thống bên ngoài
+  - Khôi phục khi một phần tác động phụ đã thành công
+  - Kiểm chứng tính lũy đẳng bằng các điểm lỗi có chủ đích
+- level1: Nhất quán dữ liệu
+  level2:
+  - Nhất quán tức thời và nhất quán cuối cùng
+  - Xác định dữ liệu chuẩn và quyền cập nhật
+  - Xây dựng mô hình đọc (projection) từ sự kiện
+  - Độ trễ mô hình đọc và trải nghiệm sau thao tác ghi
+  - Giữ quan hệ nhân quả khi cập nhật qua nhiều thành phần
+  - Xung đột cập nhật và kiểm soát phiên bản
+  - Xử lý thiếu sự kiện, dữ liệu lệch và sửa chữa mô hình đọc
+  - Đối soát định kỳ giữa nguồn dữ liệu và bên nhận
+  - Định nghĩa giới hạn chấp nhận được của độ trễ nhất quán
+- level1: Giao dịch và Outbox
+  level2:
+  - Vấn đề ghi kép (dual write) giữa dữ liệu và hệ thống truyền tin
+  - Ranh giới giao dịch cục bộ và giao dịch phân tán
+  - Mẫu Transactional Outbox
+  - Lưu dữ liệu nghiệp vụ và bản ghi Outbox nguyên tử
+  - Chuyển tiếp Outbox bằng cơ chế thăm dò
+  - Chuyển tiếp Outbox bằng thu nhận thay đổi dữ liệu (CDC)
+  - Lỗi giữa gửi thành công và đánh dấu đã gửi
+  - Bảo toàn định danh và thứ tự khi chuyển tiếp
+  - Dọn dữ liệu Outbox và theo dõi độ trễ chuyển tiếp
+  - Kết hợp Outbox với Inbox để bảo vệ luồng nghiệp vụ
+  - Lựa chọn Outbox, CDC và giao dịch của hệ thống truyền tin
+- level1: Saga và bù trừ
+  level2:
+  - Vấn đề giao dịch nghiệp vụ qua nhiều thành phần
+  - Saga dưới dạng chuỗi giao dịch cục bộ
+  - Saga phối hợp phân tán và Saga điều phối
+  - Mô hình trạng thái và lưu tiến độ Saga
+  - Thiết kế hành động bù trừ theo ý nghĩa nghiệp vụ
+  - Phân biệt bù trừ và hoàn tác giao dịch cơ sở dữ liệu
+  - Thời hạn chờ, sự kiện muộn và kết quả chưa xác định
+  - Xử lý lặp, thực thi bù trừ lặp và khôi phục sau sự cố
+  - Xung đột giữa các Saga và điểm không thể đảo ngược
+  - Xử lý bù trừ thất bại và chuyển sang can thiệp thủ công
+  - Tiêu chí chọn Saga thay cho một giao dịch cục bộ
+- level1: Lỗi và phục hồi
+  level2:
+  - Phân loại lỗi tạm thời, lỗi vĩnh viễn và lỗi nghiệp vụ
+  - Thử lại có giới hạn, giãn cách lũy tiến và độ lệch ngẫu nhiên
+  - Hàng đợi thử lại và ảnh hưởng tới thứ tự
+  - Thông điệp gây lỗi lặp (poison message)
+  - Hàng đợi lỗi (dead-letter queue) và thông tin chẩn đoán
+  - Quy trình kiểm tra, sửa nguyên nhân và đưa tin trở lại xử lý
+  - Thời hạn xử lý, hết hạn thông điệp và dữ liệu không còn giá trị
+  - Ngắt mạch (circuit breaker) và cô lập tài nguyên (bulkhead)
+  - Áp lực ngược (backpressure) và giới hạn tiếp nhận
+  - Bão thử lại, hàng tồn đọng và suy giảm dây chuyền
+  - Khôi phục sau gián đoạn kết nối hoặc ngừng hệ thống trung gian
+  - Quyền hạn và nhật ký cho thao tác phục hồi thủ công
+- level1: Lưu giữ và phát lại
+  level2:
+  - Mục tiêu lưu giữ sự kiện và chính sách hết hạn
+  - Phân biệt nhật ký sự kiện, hàng đợi và kho kiểm toán
+  - Phát lại sự kiện để sửa lỗi và xây dựng lại mô hình đọc
+  - Chọn điểm bắt đầu, phạm vi và tốc độ phát lại
+  - Tách tác động phụ khỏi luồng xây dựng lại dữ liệu
+  - Xử lý phiên bản hợp đồng cũ khi đọc lịch sử
+  - Bảo vệ thứ tự và tính lũy đẳng trong quá trình phát lại
+  - Phát lại song song với luồng đang vận hành
+  - Đối chiếu kết quả và chuyển sang mô hình đọc mới
+  - Tác động của xóa dữ liệu và giới hạn lưu giữ tới khả năng khôi phục
+- level1: Mở rộng và hiệu năng
+  level2:
+  - Ước lượng lưu lượng, kích thước sự kiện và số bên nhận
+  - Đo thông lượng, độ trễ xử lý và tuổi của hàng tồn đọng
+  - Phân vùng và mở rộng ngang bên nhận
+  - Khóa nóng, phân bố lệch và tái phân phối tải
+  - Đánh đổi giữa gộp lô, thông lượng và độ trễ
+  - Tác động của tuần tự hóa, nén và kích thước dữ liệu
+  - Giới hạn kết nối, bộ nhớ và công việc đồng thời
+  - Đoạn nghẽn ở cơ sở dữ liệu và hệ thống phụ thuộc
+  - Tự mở rộng theo độ trễ tiêu thụ và tốc độ tăng tồn đọng
+  - Kiểm thử tải ổn định, tải tăng đột biến và tải kéo dài
+- level1: Quan sát hệ thống
+  level2:
+  - Truy vết phân tán qua chuỗi sự kiện bất đồng bộ
+  - Truyền ngữ cảnh truy vết và liên kết nhiều nguyên nhân
+  - Nhật ký có cấu trúc với định danh sự kiện và tương quan
+  - Chỉ số bên phát, hệ thống truyền tin và bên nhận
+  - Theo dõi độ trễ tiêu thụ, tuổi thông điệp và tiến độ nghiệp vụ
+  - Đo thử lại, tin trùng, lỗi hợp đồng và hàng đợi lỗi
+  - Mục tiêu dịch vụ (SLO) cho kết quả nghiệp vụ xuyên suốt
+  - Cảnh báo theo triệu chứng và ngưỡng tồn đọng
+  - Bảng theo dõi luồng và khả năng tìm một giao dịch cụ thể
+  - Giới hạn dữ liệu nhạy cảm và độ đa dạng nhãn chỉ số
+- level1: Bảo mật
+  level2:
+  - Mô hình đe dọa cho luồng sự kiện
+  - Xác thực bên phát, bên nhận và dịch vụ trung gian
+  - Phân quyền tối thiểu theo kênh và thao tác
+  - Mã hóa khi truyền và khi lưu trữ
+  - Kiểm tra nguồn gốc, tính toàn vẹn và hợp đồng đầu vào
+  - Bảo vệ trước giả mạo sự kiện và phát lại trái phép
+  - Phân tách dữ liệu và quyền truy cập giữa các khách hàng
+  - Quản lý bí mật, chứng chỉ và xoay vòng thông tin truy cập
+  - Kiểm soát dữ liệu cá nhân trong bản sao và lịch sử sự kiện
+  - Kiểm toán thao tác quản trị và truy cập dữ liệu
+- level1: Kiểm thử
+  level2:
+  - Chiến lược kiểm thử theo ranh giới và rủi ro của luồng
+  - Kiểm thử đơn vị cho chuyển trạng thái và bộ xử lý
+  - Kiểm thử hợp đồng giữa bên phát và bên nhận
+  - Kiểm thử tích hợp với hệ thống truyền tin và cơ sở dữ liệu
+  - Kiểm thử xuyên suốt luồng bất đồng bộ
+  - Chờ theo điều kiện và thời hạn thay cho thời gian ngủ cố định
+  - Kịch bản tin trùng, sai thứ tự, đến muộn và thất lạc
+  - Chèn lỗi tại ranh giới giao dịch và xác nhận
+  - Kiểm thử Outbox, Inbox, Saga và bù trừ
+  - Kiểm thử tương thích khi triển khai nhiều phiên bản
+  - Kiểm thử phát lại và đối soát tính đúng đắn
+  - Kiểm thử hỗn loạn và tiêu chí phục hồi sau sự cố
+- level1: Triển khai và vận hành
+  level2:
+  - Quản lý kênh, phân vùng và chính sách bằng cấu hình có phiên bản
+  - Thứ tự triển khai bên phát, hợp đồng và bên nhận
+  - Triển khai cuốn chiếu và dừng xử lý an toàn
+  - Chuyển đổi kênh hoặc hợp đồng khi hệ thống đang chạy
+  - Giám sát dung lượng lưu trữ và chính sách lưu giữ
+  - Khả dụng cao, miền lỗi và cơ chế sao chép
+  - Sao lưu, khôi phục và mục tiêu mất dữ liệu hoặc thời gian phục hồi
+  - Quy trình xử lý bên nhận bị kẹt và tồn đọng kéo dài
+  - Quy trình xử lý sự cố hợp đồng và phát nhầm sự kiện
+  - Kế hoạch quay lui khi dữ liệu hoặc hợp đồng đã thay đổi
+  - Phân công trực vận hành và trách nhiệm xử lý sự cố
+- level1: Lựa chọn công nghệ
+  level2:
+  - Tách yêu cầu kiến trúc khỏi tính năng của sản phẩm
+  - Tiêu chí chọn môi giới thông điệp hoặc nền tảng luồng sự kiện
+  - Đối chiếu Apache Kafka, RabbitMQ và dịch vụ truyền tin được quản lý
+  - So sánh lưu bền, thứ tự, định tuyến và mô hình tiêu thụ
+  - Khả năng giao dịch, chống trùng và phạm vi bảo đảm của từng nền tảng
+  - Khả năng tích hợp, quan sát và quản lý lược đồ
+  - Tự vận hành và dùng dịch vụ được quản lý
+  - Chi phí hạ tầng, lưu trữ, băng thông và đội ngũ
+  - Thiết kế thử nghiệm để kiểm chứng lựa chọn
+  - Ghi nhận quyết định và đánh đổi bằng Architecture Decision Record
+- level1: Mẫu liên quan
+  level2:
+  - Phân biệt kiến trúc hướng sự kiện và Event Sourcing
+  - Kết hợp với CQRS và giới hạn cần thiết của mô hình đọc riêng
+  - Quan hệ với Domain-Driven Design và Hexagonal Architecture
+  - Phân biệt xử lý sự kiện nghiệp vụ và xử lý luồng dữ liệu
+  - Thu nhận thay đổi dữ liệu cho tích hợp và giới hạn ngữ nghĩa
+  - Cổng tích hợp, bộ chuyển đổi và lớp bảo vệ mô hình miền
+  - Mẫu định tuyến, lọc, chuyển đổi và tổng hợp thông điệp
+  - Phân biệt luồng sự kiện và quy trình công việc (workflow)
+  - Ranh giới với tác vụ nền và xử lý theo lô
+  - Khi các mẫu liên quan cần tài liệu hoặc mô-đun riêng
+- level1: Sai lầm thường gặp
+  level2:
+  - Dùng sự kiện để che giấu một lệnh gửi tới bên nhận duy nhất
+  - Tạo chuỗi gọi đồng bộ ẩn sau hình thức bất đồng bộ
+  - Sự kiện chỉ mang định danh khiến bên nhận phải gọi ngược liên tục
+  - Đưa mô hình dữ liệu nội bộ vào hợp đồng tích hợp
+  - Tin rằng hệ thống truyền tin tự bảo đảm mọi tác động đúng một lần
+  - Thử lại vô hạn và coi hàng đợi lỗi là nơi bỏ quên thông điệp
+  - Giả định thứ tự toàn cục hoặc đồng hồ luôn chính xác
+  - Phát quá nhiều sự kiện kỹ thuật không có ý nghĩa nghiệp vụ
+  - Thiếu quyền sở hữu, tài liệu và khả năng truy tìm luồng
+  - Chọn hướng sự kiện khi chi phí vượt giá trị mang lại
+- level1: Chuyển đổi kiến trúc
+  level2:
+  - Đánh giá hiện trạng và chọn luồng thí điểm
+  - Xác định kết quả, ràng buộc và thước đo thành công
+  - Tách ranh giới nghiệp vụ trước khi thêm hệ thống truyền tin
+  - Đưa sự kiện vào hệ thống nguyên khối theo từng bước
+  - Chuyển luồng đồng bộ sang bất đồng bộ có kiểm soát
+  - Chuyển dữ liệu ban đầu và xác định điểm bắt đầu nhận sự kiện
+  - Chạy song song, đối chiếu và ngăn tác động nghiệp vụ lặp
+  - Chuyển lưu lượng, theo dõi và phương án quay lui
+  - Loại bỏ luồng cũ và kết thúc giai đoạn tương thích
+  - Đánh giá lại độ phức tạp và giá trị sau chuyển đổi
+- level1: Minh họa đặt hàng
+  level2:
+  - Yêu cầu đặt hàng, tồn kho, thanh toán và giao vận
+  - Phân tích ranh giới và xác định nguồn dữ liệu chuẩn
+  - Danh mục sự kiện, lệnh và hợp đồng của luồng đặt hàng
+  - Luồng thành công từ tạo đơn đến hoàn tất
+  - Thiết kế Saga và các bước bù trừ
+  - Áp dụng Outbox và Inbox tại ranh giới dữ liệu
+  - Xử lý thanh toán trùng, hết hàng và phản hồi muộn
+  - Bảo vệ thứ tự cập nhật trạng thái của cùng một đơn
+  - Theo dõi đơn đang xử lý và thông báo kết quả cho người dùng
+  - Kiểm thử các điểm lỗi và đối soát trạng thái cuối
+- level1: Thực hành
+  level2:
+  - Xây dựng luồng sự kiện tối giản trong cùng tiến trình
+  - Thay kênh nội bộ bằng hệ thống truyền tin có lưu bền
+  - Thiết kế và kiểm tra hợp đồng sự kiện đầu tiên
+  - Thêm bên nhận độc lập mà không sửa luồng phát
+  - Mô phỏng giao lặp và bổ sung xử lý lũy đẳng
+  - Mô phỏng lỗi ghi kép và áp dụng Transactional Outbox
+  - Thêm thử lại, hàng đợi lỗi và thao tác phục hồi
+  - Xây dựng lại mô hình đọc bằng phát lại sự kiện
+  - Bổ sung truy vết, chỉ số và cảnh báo luồng
+  - Đo hiệu năng và giải thích đánh đổi của phương án thiết kế
+- level1: Đánh giá thiết kế
+  level2:
+  - Kiểm tra sự phù hợp giữa yêu cầu và phong cách kiến trúc
+  - Kiểm tra ranh giới nghiệp vụ và quyền sở hữu sự kiện
+  - Kiểm tra hợp đồng, phiên bản và kế hoạch tương thích
+  - Kiểm tra giao nhận, thứ tự, lũy đẳng và tính nhất quán
+  - Kiểm tra phục hồi, phát lại và xử lý bù trừ
+  - Kiểm tra bảo mật, quan sát và khả năng vận hành
+  - Kiểm tra năng lực xử lý và chi phí thực tế
+  - Câu hỏi phản biện theo các tình huống lỗi
+  - Tiêu chí nghiệm thu và bằng chứng kiểm chứng thiết kế
+  - Tổng hợp quyết định và các đánh đổi còn chấp nhận

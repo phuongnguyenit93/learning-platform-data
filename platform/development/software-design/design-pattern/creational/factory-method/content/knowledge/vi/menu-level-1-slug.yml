@@ -1,0 +1,73 @@
+menu:
+  - title: "Tổng quan"
+    slug: pattern-overview
+    index: 0
+  - title: "Bài toán khởi tạo"
+    slug: object-creation-problem
+    index: 1
+  - title: "Thành phần của mẫu"
+    slug: pattern-participants
+    index: 2
+  - title: "Luồng hoạt động"
+    slug: creation-workflow
+    index: 3
+  - title: "Hợp đồng sản phẩm"
+    slug: product-contract
+    index: 4
+  - title: "Thiết kế Creator"
+    slug: creator-design
+    index: 5
+  - title: "Triển khai Java"
+    slug: java-implementation
+    index: 6
+  - title: "Mở rộng sản phẩm"
+    slug: product-extensions
+    index: 7
+  - title: "Biến thể triển khai"
+    slug: implementation-variants
+    index: 8
+  - title: "Cấu hình và tích hợp"
+    slug: configuration-and-integration
+    index: 9
+  - title: "Lỗi và hợp đồng"
+    slug: error-handling-contracts
+    index: 10
+  - title: "Vòng đời tài nguyên"
+    slug: resource-lifecycle
+    index: 11
+  - title: "Kiểu và generics"
+    slug: types-and-generics
+    index: 12
+  - title: "Đồng thời và hiệu năng"
+    slug: concurrency-and-performance
+    index: 13
+  - title: "Kiểm thử đơn vị"
+    slug: unit-testing
+    index: 14
+  - title: "Kiểm thử mở rộng"
+    slug: extension-testing
+    index: 15
+  - title: "Tái cấu trúc"
+    slug: refactoring-creation-logic
+    index: 16
+  - title: "Nguyên lý thiết kế"
+    slug: design-principles
+    index: 17
+  - title: "So sánh các factory"
+    slug: factory-comparisons
+    index: 18
+  - title: "Phối hợp các mẫu"
+    slug: pattern-combinations
+    index: 19
+  - title: "Tình huống ứng dụng"
+    slug: application-scenarios
+    index: 20
+  - title: "Sai lầm thường gặp"
+    slug: common-pitfalls
+    index: 21
+  - title: "Bài tập thực hành"
+    slug: practice-exercises
+    index: 22
+  - title: "Đánh giá thiết kế"
+    slug: design-review
+    index: 23

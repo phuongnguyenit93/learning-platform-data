@@ -1,0 +1,640 @@
+# Xây schema Order, OrderItem và Customer cùng migration
+
+Một ứng dụng bán hàng thường cần lưu khách hàng, đơn hàng và các dòng hàng trong đơn. Khi dùng Spring Data JDBC, cần thiết kế cả **schema quan hệ** lẫn **ranh giới aggregate** trước khi viết repository.
+
+Trong ví dụ này:
+
+- `Customer` là một aggregate root độc lập.
+- `PurchaseOrder` là một aggregate root khác và lưu ID khách hàng dưới dạng reference.
+- `OrderItem` là entity con thuộc vòng đời của một đơn hàng.
+
+Schema sẽ có ba bảng `customer`, `purchase_order` và `order_item`. Migration Flyway phiên bản đầu tạo bảng, primary key, foreign key, unique constraint, check constraint và index. Sau đó, entity Java dùng `AggregateReference` để tham chiếu khách hàng và `@MappedCollection` để ánh xạ danh sách dòng hàng.
+
+Bài học đi từ yêu cầu nghiệp vụ đến sơ đồ quan hệ, DDL, mapping Java, repository/service và quy trình quản lý migration.
+
+## 1. Xác định dữ liệu và ranh giới aggregate
+
+Trước khi viết DDL, cần trả lời hai câu hỏi:
+
+1. Bản ghi nào có identity và vòng đời riêng?
+2. Những dữ liệu nào chỉ tồn tại bên trong một aggregate?
+
+### Customer
+
+Khách hàng có thể tồn tại độc lập với từng đơn hàng. Một khách hàng có thể đặt nhiều đơn hàng, và việc lưu đơn hàng không nên tạo lại hoặc xóa khách hàng.
+
+Vì vậy, `Customer` là aggregate root riêng.
+
+### PurchaseOrder
+
+Đơn hàng có identity và trạng thái riêng. Nó tham chiếu đến một khách hàng nhưng không sở hữu vòng đời của khách hàng.
+
+`PurchaseOrder` là aggregate root. Nó lưu customer ID dưới dạng reference.
+
+### OrderItem
+
+Dòng hàng chỉ có ý nghĩa trong phạm vi một đơn hàng. Nó được thêm, sửa hoặc xóa cùng với đơn hàng và không được các aggregate khác tham chiếu trực tiếp.
+
+`OrderItem` là entity con của `PurchaseOrder`.
+
+Sơ đồ quan hệ:
+
+~~~mermaid
+erDiagram
+    CUSTOMER ||--o{ PURCHASE_ORDER : places
+    PURCHASE_ORDER ||--|{ ORDER_ITEM : contains
+
+    CUSTOMER {
+        bigint id PK
+        varchar email UK
+        varchar full_name
+        timestamptz created_at
+    }
+
+    PURCHASE_ORDER {
+        bigint id PK
+        varchar order_number UK
+        bigint customer_id FK
+        varchar status
+        timestamptz created_at
+        bigint version
+    }
+
+    ORDER_ITEM {
+        bigint order_id PK,FK
+        integer line_no PK
+        varchar sku
+        integer quantity
+        numeric unit_price
+    }
+~~~
+
+Một Customer có thể có nhiều PurchaseOrder. Một PurchaseOrder có một hoặc nhiều OrderItem theo quy tắc nghiệp vụ của ví dụ.
+
+### Vì sao không nhúng Customer vào PurchaseOrder?
+
+Nếu khai báo một object Customer trực tiếp bên trong PurchaseOrder như entity được tham chiếu, Spring Data JDBC có thể xem Customer là thành phần thuộc aggregate của đơn hàng. Điều đó không phù hợp khi nhiều đơn hàng cùng tham chiếu một khách hàng.
+
+Dùng `AggregateReference<Customer, Long>` để biểu diễn ID của aggregate khác. Khi lưu PurchaseOrder, Spring Data JDBC lưu giá trị customer ID vào cột `customer_id`; nó không lưu hoặc xóa aggregate Customer theo vòng đời của đơn hàng.
+
+## 2. Quy tắc dữ liệu cần bảo vệ
+
+Schema mẫu áp dụng các quy tắc sau:
+
+| Quy tắc | Cách bảo vệ |
+| --- | --- |
+| Mỗi khách hàng có ID duy nhất | Primary key trên `customer.id` |
+| Email khách hàng không trùng | Unique constraint trên `customer.email` |
+| Mỗi đơn hàng có mã duy nhất | Unique constraint trên `purchase_order.order_number` |
+| Mỗi đơn hàng phải thuộc một khách hàng tồn tại | Foreign key `purchase_order.customer_id` |
+| Mỗi dòng hàng thuộc một đơn hàng tồn tại | Foreign key `order_item.order_id` |
+| Một SKU chỉ xuất hiện một lần trong một đơn hàng | Unique constraint `(order_id, sku)` |
+| Số lượng phải lớn hơn 0 | Check constraint `quantity > 0` |
+| Đơn giá không âm | Check constraint `unit_price >= 0` |
+| Trạng thái đơn hàng thuộc tập giá trị cho phép | Check constraint trên `status` |
+
+Unique `(order_id, sku)` là một quyết định nghiệp vụ cho ví dụ này. Nếu hệ thống cho phép cùng SKU xuất hiện nhiều lần trong một đơn hàng, hãy bỏ constraint đó hoặc chọn một khóa duy nhất khác phù hợp.
+
+### Hành vi khi xóa
+
+Không nên cho phép xóa Customer khi vẫn còn đơn hàng tham chiếu đến khách hàng. Foreign key sẽ chặn thao tác đó. Ứng dụng có thể dùng soft delete hoặc một quy trình lưu trữ/ẩn khách hàng thay vì xóa vật lý.
+
+OrderItem thuộc aggregate PurchaseOrder. Spring Data JDBC tự quản lý các dòng hàng khi lưu/xóa root. DDL có thể dùng foreign key thông thường; không cần dựa vào cascade delete để mô phỏng vòng đời aggregate.
+
+## 3. Viết migration V1 cho PostgreSQL
+
+Ví dụ này dùng PostgreSQL để minh họa cú pháp identity và timestamp. Nếu dự án dùng MySQL, Oracle hoặc SQL Server, hãy viết DDL theo dialect của database đó; không giả định một file SQL luôn chạy trên mọi vendor.
+
+Với Flyway, đặt file migration tại:
+
+~~~text
+src/main/resources/db/migration/V1__create_customer_order_schema.sql
+~~~
+
+Nội dung:
+
+~~~sql
+CREATE TABLE customer (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY,
+    email VARCHAR(320) NOT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_customer PRIMARY KEY (id),
+    CONSTRAINT uq_customer_email UNIQUE (email)
+);
+
+CREATE TABLE purchase_order (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY,
+    order_number VARCHAR(40) NOT NULL,
+    customer_id BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version BIGINT NOT NULL DEFAULT 0,
+
+    CONSTRAINT pk_purchase_order PRIMARY KEY (id),
+    CONSTRAINT uq_purchase_order_number UNIQUE (order_number),
+    CONSTRAINT fk_purchase_order_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customer(id)
+        ON DELETE RESTRICT,
+    CONSTRAINT ck_purchase_order_status
+        CHECK (status IN ('NEW', 'PAID', 'CANCELLED'))
+);
+
+CREATE TABLE order_item (
+    order_id BIGINT NOT NULL,
+    line_no INTEGER NOT NULL,
+    sku VARCHAR(80) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price NUMERIC(12, 2) NOT NULL,
+
+    CONSTRAINT pk_order_item
+        PRIMARY KEY (order_id, line_no),
+    CONSTRAINT fk_order_item_order
+        FOREIGN KEY (order_id)
+        REFERENCES purchase_order(id)
+        ON DELETE RESTRICT,
+    CONSTRAINT uq_order_item_sku
+        UNIQUE (order_id, sku),
+    CONSTRAINT ck_order_item_quantity
+        CHECK (quantity > 0),
+    CONSTRAINT ck_order_item_unit_price
+        CHECK (unit_price >= 0)
+);
+
+CREATE INDEX idx_purchase_order_customer_created
+    ON purchase_order(customer_id, created_at DESC);
+
+CREATE INDEX idx_order_item_sku
+    ON order_item(sku);
+~~~
+
+### Giải thích các lựa chọn schema
+
+**Customer**
+
+- `id` là identity primary key.
+- `email` có unique constraint để không có hai khách hàng dùng cùng email.
+- `created_at` có default timestamp để database điền thời điểm tạo nếu câu INSERT không cung cấp giá trị.
+
+**PurchaseOrder**
+
+- `order_number` là mã nghiệp vụ, có unique constraint riêng với primary key.
+- `customer_id` là foreign key bắt buộc. `ON DELETE RESTRICT` ngăn xóa Customer đang có đơn hàng.
+- `status` có check constraint để chỉ chấp nhận các trạng thái được định nghĩa.
+- `version` dành cho optimistic locking bằng `@Version` trong entity.
+- Index trên `(customer_id, created_at)` hỗ trợ truy vấn đơn hàng của một khách hàng theo thời gian.
+
+**OrderItem**
+
+- Không cần ID đơn lẻ trong ví dụ này. Cặp `(order_id, line_no)` định danh dòng hàng trong đơn.
+- `line_no` là key column tương ứng vị trí của phần tử trong List.
+- Unique `(order_id, sku)` biểu diễn quy tắc một SKU chỉ xuất hiện một lần trong một đơn hàng.
+- Check constraint bảo đảm quantity dương và unit price không âm.
+- Index trên `sku` hữu ích nếu hệ thống tìm kiếm các đơn hàng theo SKU trên toàn bảng.
+
+Không nên thêm index theo thói quen. Hãy dựa trên query thực tế và execution plan; mỗi index tăng chi phí ghi và dung lượng lưu trữ.
+
+## 4. Cấu hình Flyway và quy tắc migration
+
+Spring Boot có thể tự chạy Flyway migration khi ứng dụng khởi động nếu Flyway nằm trên classpath và DataSource được cấu hình.
+
+Ví dụ cấu hình:
+
+~~~properties
+spring.flyway.enabled=true
+spring.flyway.locations=classpath:db/migration
+~~~
+
+Ứng dụng vẫn cần cấu hình kết nối database, ví dụ URL, username và password qua biến môi trường hoặc cấu hình bảo mật phù hợp.
+
+Với Gradle, dependency chính có thể gồm Spring Data JDBC, Flyway và JDBC driver của database:
+
+~~~groovy
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
+    implementation("org.flywaydb:flyway-core")
+    runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
+}
+~~~
+
+Module database của Flyway phụ thuộc phiên bản Flyway đang dùng. Hãy kiểm tra dependency tương ứng với phiên bản được Spring Boot BOM quản lý.
+
+### Quy tắc version migration
+
+- Migration đã chạy trên môi trường chia sẻ cần được xem là bất biến.
+- Khi cần đổi schema, tạo migration tiếp theo như `V2__add_order_note.sql` thay vì sửa file V1 đã áp dụng.
+- Mỗi migration nên thực hiện một thay đổi schema có thể giải thích và triển khai theo thứ tự.
+- Kiểm thử migration từ schema rỗng và từ phiên bản schema gần nhất đang chạy ở production.
+- Không chạy đồng thời Flyway và một cơ chế tự tạo schema khác cho cùng một database trong production.
+
+Ví dụ migration V2 thêm ghi chú vào đơn hàng:
+
+~~~sql
+ALTER TABLE purchase_order
+ADD COLUMN note VARCHAR(500);
+~~~
+
+Flyway lưu lịch sử migration đã chạy trong bảng metadata của nó. Khi ứng dụng khởi động, Flyway so sánh lịch sử với các file migration và chỉ áp dụng những migration chưa chạy.
+
+Nếu dự án dùng Liquibase thay cho Flyway, hãy mô tả cùng schema bằng changelog và changeset. Chọn một công cụ quản lý schema làm nguồn sự thật cho môi trường triển khai.
+
+## 5. Mapping Customer thành aggregate root
+
+Entity `Customer` ánh xạ bảng `customer`. Dùng record để thể hiện value object bất biến:
+
+~~~java
+import java.time.Instant;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("customer")
+public record Customer(
+    @Id Long id,
+    String email,
+    @Column("full_name") String fullName,
+    @Column("created_at") Instant createdAt
+) {
+}
+~~~
+
+Repository:
+
+~~~java
+import org.springframework.data.repository.CrudRepository;
+
+public interface CustomerRepository
+        extends CrudRepository<Customer, Long> {
+}
+~~~
+
+Customer có repository riêng vì nó là aggregate root độc lập. Đơn hàng lưu ID của Customer, không chứa object Customer lồng bên trong.
+
+## 6. Mapping PurchaseOrder và OrderItem
+
+Enum trạng thái:
+
+~~~java
+public enum OrderStatus {
+    NEW,
+    PAID,
+    CANCELLED
+}
+~~~
+
+Entity con `OrderItem`:
+
+~~~java
+import java.math.BigDecimal;
+
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("order_item")
+public record OrderItem(
+    String sku,
+    int quantity,
+    @Column("unit_price") BigDecimal unitPrice
+) {
+}
+~~~
+
+Aggregate root `PurchaseOrder`:
+
+~~~java
+import java.time.Instant;
+import java.util.List;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.jdbc.core.mapping.AggregateReference;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.MappedCollection;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("purchase_order")
+public record PurchaseOrder(
+
+    @Id
+    Long id,
+
+    @Column("order_number")
+    String orderNumber,
+
+    @Column("customer_id")
+    AggregateReference<Customer, Long> customer,
+
+    OrderStatus status,
+
+    @Column("created_at")
+    Instant createdAt,
+
+    @Version
+    Long version,
+
+    @MappedCollection(
+        idColumn = "order_id",
+        keyColumn = "line_no"
+    )
+    List<OrderItem> items
+) {
+}
+~~~
+
+Điểm quan trọng trong mapping:
+
+- `@Id Long id` ánh xạ primary key của bảng đơn hàng.
+- `AggregateReference<Customer, Long> customer` lưu ID của aggregate Customer vào cột `customer_id`.
+- `@Version Long version` bật optimistic locking; giá trị null đánh dấu aggregate mới.
+- `@MappedCollection` ánh xạ danh sách OrderItem vào bảng `order_item`.
+- `idColumn = "order_id"` là back-reference tới root.
+- `keyColumn = "line_no"` lưu index của từng phần tử trong List.
+
+`OrderItem` không có repository riêng trong ví dụ này. Muốn thêm, sửa hoặc xóa dòng hàng, hãy thao tác qua `PurchaseOrder` để giữ ranh giới aggregate.
+
+### Ý nghĩa của keyColumn với List
+
+Khi dùng List, key column lưu vị trí phần tử. Nếu xóa hoặc sắp xếp lại phần tử, vị trí có thể thay đổi và Spring Data JDBC có thể ghi lại các child rows theo trạng thái mới.
+
+Nếu nghiệp vụ cần một số dòng hàng ổn định do người dùng cấp, có thể dùng Map với key là line number hoặc thiết kế một child identifier phù hợp thay vì coi index List là mã nghiệp vụ.
+
+### Vì sao dùng AggregateReference?
+
+`AggregateReference<Customer, Long>` thể hiện Customer là aggregate khác. Khi lưu PurchaseOrder, Spring Data JDBC chỉ ghi customer ID. Nó không insert lại Customer và cũng không xóa Customer khi đơn hàng bị xóa.
+
+Đây là cách phù hợp với quan hệ nhiều đơn hàng cùng tham chiếu một khách hàng.
+
+## 7. Repository cho hai aggregate root
+
+Repository Customer:
+
+~~~java
+public interface CustomerRepository
+        extends CrudRepository<Customer, Long> {
+}
+~~~
+
+Repository PurchaseOrder:
+
+~~~java
+public interface PurchaseOrderRepository
+        extends CrudRepository<PurchaseOrder, Long> {
+}
+~~~
+
+Không cần tạo `OrderItemRepository` cho entity con của PurchaseOrder trong mô hình này. Một repository cho mỗi aggregate root là cách tổ chức phù hợp với Spring Data JDBC.
+
+## 8. Tạo Customer và PurchaseOrder trong service
+
+Service kiểm tra Customer tồn tại, tạo reference và lưu aggregate đơn hàng:
+
+~~~java
+import java.time.Instant;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jdbc.core.mapping.AggregateReference;
+
+@Service
+public class OrderApplicationService {
+
+    private final CustomerRepository customers;
+    private final PurchaseOrderRepository orders;
+
+    public OrderApplicationService(
+            CustomerRepository customers,
+            PurchaseOrderRepository orders) {
+        this.customers = customers;
+        this.orders = orders;
+    }
+
+    @Transactional
+    public PurchaseOrder placeOrder(
+            Long customerId,
+            String orderNumber,
+            List<OrderItem> items) {
+
+        Customer customer = customers.findById(customerId)
+            .orElseThrow(() ->
+                new CustomerNotFoundException(customerId)
+            );
+
+        PurchaseOrder order = new PurchaseOrder(
+            null,
+            orderNumber,
+            AggregateReference.to(customer.id()),
+            OrderStatus.NEW,
+            Instant.now(),
+            null,
+            List.copyOf(items)
+        );
+
+        return orders.save(order);
+    }
+}
+~~~
+
+Spring Data JDBC insert root trước, lấy ID được database sinh, sau đó insert các dòng hàng với back-reference tương ứng. Property version null cho biết aggregate mới; sau insert version được khởi tạo.
+
+Service đặt `@Transactional` để toàn bộ thao tác thuộc cùng transaction. Nếu insert dòng hàng thất bại do check hoặc unique constraint, transaction rollback và không để lại một đơn hàng chỉ có một phần dữ liệu.
+
+### Tạo khách hàng
+
+Có thể tạo khách hàng qua service riêng:
+
+~~~java
+@Transactional
+public Customer registerCustomer(String email, String fullName) {
+    Customer customer = new Customer(
+        null,
+        email,
+        fullName,
+        Instant.now()
+    );
+
+    return customers.save(customer);
+}
+~~~
+
+Nếu email đã tồn tại, unique constraint `uq_customer_email` sẽ bảo vệ database. Service có thể kiểm tra định dạng email và chuyển lỗi constraint thành lỗi nghiệp vụ phù hợp.
+
+## 9. Kiểm thử schema và mapping
+
+Một integration test nên xác nhận migration đã tạo schema và Spring Data JDBC có thể lưu/đọc toàn bộ aggregate.
+
+Ví dụ dùng full Spring Boot context để Flyway chạy migration khi khởi động:
+
+~~~java
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jdbc.core.mapping.AggregateReference;
+
+@SpringBootTest
+@Transactional
+class OrderSchemaIntegrationTest {
+
+    @Autowired
+    CustomerRepository customers;
+
+    @Autowired
+    PurchaseOrderRepository orders;
+
+    @Test
+    void persistsCustomerOrderAndItems() {
+        Customer customer = customers.save(
+            new Customer(
+                null,
+                "alice@example.com",
+                "Alice",
+                Instant.now()
+            )
+        );
+
+        PurchaseOrder saved = orders.save(
+            new PurchaseOrder(
+                null,
+                "ORD-2026-0001",
+                AggregateReference.to(customer.id()),
+                OrderStatus.NEW,
+                Instant.now(),
+                null,
+                List.of(
+                    new OrderItem(
+                        "BOOK-01",
+                        2,
+                        new BigDecimal("12.50")
+                    ),
+                    new OrderItem(
+                        "PEN-02",
+                        3,
+                        new BigDecimal("1.75")
+                    )
+                )
+            )
+        );
+
+        PurchaseOrder loaded = orders.findById(saved.id())
+            .orElseThrow();
+
+        assertThat(loaded.items()).hasSize(2);
+        assertThat(loaded.customer().getId()).isEqualTo(customer.id());
+    }
+}
+~~~
+
+Ví dụ giả định test datasource đã kết nối database có thể chạy migration V1. Transaction test được rollback sau mỗi test, nên dữ liệu thử không tồn tại sau khi test kết thúc.
+
+### Kiểm tra constraint
+
+Có thể bổ sung test để xác nhận:
+
+- Lưu hai Customer có cùng email bị từ chối.
+- Lưu hai PurchaseOrder có cùng order number bị từ chối.
+- Lưu OrderItem có quantity bằng 0 bị check constraint từ chối.
+- Insert PurchaseOrder với customer ID không tồn tại bị foreign key từ chối nếu thao tác đi trực tiếp xuống repository/JDBC.
+- Delete Customer còn được PurchaseOrder tham chiếu bị database chặn.
+
+Khi test unique/FK trực tiếp, có thể dùng `JdbcTemplate` để bỏ qua validation ở service và kiểm tra chính constraint của database.
+
+### Dùng database production-like
+
+Nếu production dùng PostgreSQL, nên chạy integration test quan trọng trên PostgreSQL bằng Testcontainers hoặc database test chuyên dụng. H2 có thể không phản ánh chính xác kiểu dữ liệu, cú pháp DDL, locking và constraint của PostgreSQL.
+
+Khi test dùng container, bảo đảm Spring Data kết nối đúng container và Flyway chạy trên database đó. Nếu test slice mặc định thay DataSource bằng embedded database, cấu hình `@AutoConfigureTestDatabase(replace = Replace.NONE)` để giữ datasource test đã cung cấp.
+
+## 10. Những lỗi thường gặp khi xây schema và migration
+
+| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| --- | --- | --- |
+| Không tìm thấy bảng khi repository chạy | Migration chưa chạy hoặc file đặt sai thư mục | Kiểm tra Flyway locations và lịch sử migration |
+| Không insert được PurchaseOrder | Customer ID không tồn tại hoặc sai tên cột FK | Kiểm tra Customer trước khi tạo reference và đối chiếu `customer_id` |
+| Không insert được OrderItem | `order_id` hoặc `line_no` không khớp mapping | Đồng bộ `@MappedCollection` với DDL |
+| Email hoặc order number bị duplicate | Unique constraint bị vi phạm | Kiểm tra giá trị nghiệp vụ và chuyển lỗi phù hợp |
+| Không thể xóa Customer | Đơn hàng vẫn tham chiếu đến khách hàng | Dùng soft delete hoặc xử lý đơn hàng theo chính sách |
+| Save Order làm mất OrderItem | Object truyền vào thiếu danh sách item | Load aggregate đầy đủ rồi thay đổi qua root |
+| Dòng hàng bị ghi lại khi chỉ đổi status | Spring Data JDBC đồng bộ lại toàn bộ child collection | Giữ aggregate hợp lý; cân nhắc SQL update cho thao tác cột đơn |
+| Enum status không ghi được | Giá trị enum không khớp check constraint | Đồng bộ enum Java và tập giá trị trong migration |
+| Timestamp bị null | Entity không gán giá trị và INSERT gửi null thay vì dùng default | Gán `Instant` ở ứng dụng hoặc dùng cơ chế callback/default phù hợp |
+| Migration checksum mismatch | Sửa file migration đã chạy | Tạo migration mới thay vì sửa migration cũ |
+| Test pass trên H2 nhưng fail trên PostgreSQL | Khác biệt dialect hoặc kiểu dữ liệu | Chạy test trên database mục tiêu |
+
+## 11. Thứ tự triển khai một thay đổi schema mới
+
+Khi bổ sung trường hoặc constraint cho Order, OrderItem hay Customer:
+
+1. Xác định quy tắc nghiệp vụ mới và bảng/cột liên quan.
+2. Viết migration mới, ví dụ `V2__add_order_note.sql`.
+3. Nếu cột mới bắt buộc, cân nhắc thêm nullable/default trước rồi backfill dữ liệu cũ.
+4. Cập nhật entity Java và repository mapping.
+5. Cập nhật service để cung cấp giá trị mới.
+6. Viết integration test trên database mục tiêu.
+7. Chạy migration từ schema cũ và xác nhận dữ liệu hiện có vẫn hợp lệ.
+8. Triển khai theo thứ tự tương thích nếu nhiều phiên bản ứng dụng chạy đồng thời.
+
+Ví dụ migration V2 thêm ghi chú vào đơn hàng:
+
+~~~sql
+ALTER TABLE purchase_order
+ADD COLUMN note VARCHAR(500);
+~~~
+
+Sau khi ứng dụng đã ghi được note cho mọi đơn hàng, nếu nghiệp vụ yêu cầu bắt buộc, có thể tạo migration sau để backfill dữ liệu và thêm `NOT NULL`.
+
+Không nên thêm ngay một cột NOT NULL không có default vào bảng đang chứa dữ liệu nếu migration không cung cấp giá trị cho các hàng hiện có.
+
+## 12. Bài tập tự thực hành
+
+### Bài 1 — Tạo migration V1
+
+Viết file `V1__create_customer_order_schema.sql` tạo ba bảng Customer, PurchaseOrder và OrderItem cùng primary key, foreign key, unique và check constraint.
+
+### Bài 2 — Mapping Customer
+
+Tạo entity `Customer` và `CustomerRepository`. Lưu khách hàng và kiểm tra email unique bằng integration test.
+
+### Bài 3 — Mapping PurchaseOrder
+
+Tạo entity `PurchaseOrder` có `AggregateReference<Customer, Long>`. Lưu đơn hàng tham chiếu tới khách hàng đã tồn tại.
+
+### Bài 4 — Mapping OrderItem
+
+Dùng `@MappedCollection(idColumn = "order_id", keyColumn = "line_no")` để lưu List OrderItem. Kiểm tra thứ tự dòng hàng được giữ theo key column.
+
+### Bài 5 — Kiểm tra foreign key
+
+Thử tạo PurchaseOrder với customer ID không tồn tại bằng JDBC trực tiếp. Xác nhận database từ chối insert.
+
+### Bài 6 — Kiểm tra unique constraint
+
+Tạo hai khách hàng có cùng email hoặc hai đơn hàng có cùng order number. Xác nhận unique constraint ngăn dữ liệu trùng.
+
+### Bài 7 — Thay đổi aggregate
+
+Lưu một đơn hàng có hai dòng hàng, load lại, thay đổi status và save. Xác nhận các dòng hàng vẫn còn. Sau đó xóa một item khỏi collection và xác nhận trạng thái cuối cùng của bảng con.
+
+### Bài 8 — Migration V2
+
+Thêm cột note vào purchase_order bằng migration V2. Chạy ứng dụng từ schema V1 và xác nhận Flyway áp dụng V2 đúng thứ tự.
+
+## 13. Tài liệu tham khảo chính thức
+
+- [Spring Data Relational — Mapping](https://docs.spring.io/spring-data/relational/reference/jdbc/mapping.html): cách ánh xạ entity, `@MappedCollection`, `AggregateReference` và back-reference.
+- [Spring Data Relational — Domain Driven Design and Relational Databases](https://docs.spring.io/spring-data/relational/reference/jdbc/domain-driven-design.html): ranh giới aggregate và cách biểu diễn tham chiếu giữa các aggregate.
+- [Spring Data Relational — Persisting Entities](https://docs.spring.io/spring-data/relational/reference/jdbc/entity-persistence.html): cách Spring Data JDBC lưu aggregate root và entity con.
+- [Spring Boot — Database Initialization](https://docs.spring.io/spring-boot/how-to/data-initialization.html): cách cấu hình Flyway/Liquibase và thứ tự khởi tạo schema.
+- [Flyway — Versioned Migrations](https://documentation.red-gate.com/flyway/flyway-concepts/migrations/versioned-migrations): cách đặt tên, version và quản lý migration đã áp dụng.
+
+Schema mẫu tách Customer và PurchaseOrder thành hai aggregate root, còn OrderItem nằm trong aggregate PurchaseOrder. Migration tạo primary key, foreign key, unique và check constraint để database bảo vệ invariant. Khi triển khai, hãy giữ mapping Java khớp với tên cột trong migration, tham chiếu Customer bằng ID, và quản lý OrderItem qua PurchaseOrder để Spring Data JDBC duy trì đúng vòng đời dữ liệu con.

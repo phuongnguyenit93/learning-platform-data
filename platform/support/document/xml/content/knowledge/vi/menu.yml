@@ -1,0 +1,482 @@
+menu:
+- level1: Tổng quan XML
+  level2:
+  - XML là gì, giải quyết vấn đề nào và được dùng ở đâu
+  - Tài liệu, phần tử, thuộc tính và cây XML
+  - Từ dữ liệu nghiệp vụ đến tài liệu XML đầu tiên
+  - XML hướng dữ liệu và XML hướng tài liệu
+  - Phân biệt XML, HTML, JSON và YAML
+  - Quan hệ giữa XML, Namespace, XSD, XPath và XSLT
+  - 'Các hướng xử lý trong Java: cây DOM, sự kiện SAX, luồng StAX và ánh xạ đối tượng'
+  - Điều kiện đầu vào, kiến thức Java cần có và lộ trình thực hành
+  - Phạm vi xử lý tài liệu XML và ranh giới với SOAP, SVG, Office Open XML
+- level1: Cú pháp XML
+  level2:
+  - 'Khai báo XML: version, encoding và standalone'
+  - Phần tử gốc và quy tắc một gốc cho mỗi tài liệu
+  - Thẻ mở, thẻ đóng và phần tử tự đóng
+  - Quy tắc tên, phân biệt hoa thường và lồng phần tử
+  - 'Thuộc tính: dấu nháy, tên duy nhất và giá trị'
+  - Văn bản, phần tử con và nội dung hỗn hợp
+  - Chú thích và các giới hạn cú pháp
+  - Chỉ thị xử lý và khai báo xml-stylesheet
+  - Ký tự dành riêng và các thực thể dựng sẵn
+  - Tham chiếu ký tự theo mã thập phân và thập lục phân
+  - 'CDATA: mục đích, giới hạn và quan hệ với văn bản thường'
+  - 'Well-formed và valid: hai mức hợp lệ khác nhau'
+- level1: Mã hóa ký tự
+  level2:
+  - Byte, ký tự Unicode và khai báo encoding
+  - UTF-8, UTF-16 và dấu BOM
+  - Phát hiện encoding khi đọc XML từ luồng byte
+  - 'InputStream và Reader: ai chịu trách nhiệm giải mã'
+  - Ghi XML tiếng Việt, dấu kết hợp và ký tự ngoài BMP
+  - Ký tự hợp lệ, ký tự điều khiển và lỗi ký tự cấm trong XML
+  - Khoảng trắng, xuống dòng và chuẩn hóa giá trị thuộc tính
+  - xml:space và yêu cầu giữ nguyên khoảng trắng
+  - Phân biệt phần tử thiếu, phần tử rỗng và văn bản chỉ có khoảng trắng
+  - Nhận diện và sửa lỗi khai báo encoding không khớp dữ liệu
+  - 'XML 1.0 và XML 1.1: khác biệt và điều kiện tương thích'
+- level1: Namespace
+  level2:
+  - Vấn đề trùng tên và vai trò của XML Namespace
+  - Khai báo xmlns, prefix và phạm vi hiệu lực
+  - 'Tên đầy đủ: namespace URI và local name'
+  - Namespace mặc định cho phần tử
+  - Vì sao thuộc tính không tự nhận namespace mặc định
+  - Ghi đè và đặt lại namespace trong phần tử con
+  - Namespace URI là định danh, không mặc định là địa chỉ tải tài liệu
+  - Prefix khác nhau nhưng cùng namespace URI
+  - Các prefix dành riêng xml và xmlns
+  - QName trong tên nút và trong giá trị dữ liệu
+  - Namespace của XML Schema và xsi:schemaLocation
+  - Thiết kế namespace ổn định khi tích hợp nhiều hệ thống
+- level1: Thiết kế tài liệu
+  level2:
+  - Chọn phần tử hay thuộc tính cho từng loại thông tin
+  - Mô hình danh sách, phần tử lặp và phần tử bao
+  - Biểu diễn cấu trúc lồng nhau và quan hệ tham chiếu
+  - Phân biệt giá trị thiếu, rỗng, mặc định và xsi:nil
+  - Biểu diễn số, boolean, ngày giờ, múi giờ và dữ liệu nhị phân
+  - Thứ tự phần tử và yêu cầu ổn định của hợp đồng dữ liệu
+  - Đặt tên, ghi đơn vị đo và mô tả ý nghĩa trường
+  - Tách dữ liệu nghiệp vụ khỏi dữ liệu trình bày
+  - Nội dung hỗn hợp (mixed content) cho tài liệu có văn bản và đánh dấu
+  - Thiết kế khả năng mở rộng và vùng dữ liệu bổ sung
+  - Phiên bản tài liệu và tương thích khi thêm, đổi hoặc bỏ trường
+- level1: DTD và thực thể
+  level2:
+  - DTD là gì và khi nào cần đọc định dạng cũ
+  - DOCTYPE, internal subset và external subset
+  - Khai báo ELEMENT, EMPTY, ANY và nội dung hỗn hợp
+  - 'Mô hình nội dung: thứ tự, lựa chọn và số lần xuất hiện'
+  - Khai báo ATTLIST, kiểu thuộc tính và giá trị mặc định
+  - ID, IDREF, IDREFS và ràng buộc tham chiếu
+  - General entity, parameter entity và tham chiếu entity
+  - Entity nội bộ, entity ngoài và quan hệ với standalone
+  - Notation và unparsed entity ở mức nhận diện
+  - Giới hạn của DTD với kiểu dữ liệu và namespace
+  - Rủi ro của DOCTYPE và nguyên tắc chỉ bật DTD khi có nhu cầu
+- level1: XSD cơ bản
+  level2:
+  - Vai trò của XML Schema và cấu trúc tệp .xsd
+  - xs:schema, targetNamespace và namespace của tài liệu
+  - Khai báo phần tử toàn cục và phần tử cục bộ
+  - Kiểu đơn giản, kiểu phức hợp và kiểu dữ liệu dựng sẵn
+  - xs:sequence, xs:choice và xs:all
+  - minOccurs, maxOccurs và phần tử lặp
+  - Khai báo thuộc tính, use, default và fixed
+  - 'Restriction: enumeration, pattern, length và khoảng giá trị'
+  - Kiểu số, boolean, ngày giờ và các dạng biểu diễn hợp lệ
+  - nillable và xsi:nil so với phần tử thiếu hoặc rỗng
+  - elementFormDefault và attributeFormDefault
+  - Chú thích schema với xs:annotation và xs:documentation
+  - Đọc thông báo lỗi khi tài liệu không khớp XSD
+- level1: XSD nâng cao
+  level2:
+  - Đặt tên kiểu và tái sử dụng bằng type, ref, group, attributeGroup
+  - Kế thừa kiểu bằng extension và restriction
+  - simpleContent, complexContent và mixed content
+  - List và union cho kiểu dữ liệu đơn giản
+  - 'xs:include và xs:import: tái sử dụng cùng hoặc khác namespace'
+  - xs:key, xs:unique và xs:keyref
+  - Kiểu trừu tượng, substitutionGroup và xsi:type
+  - xs:any, xs:anyAttribute và processContents
+  - Thiết kế nhiều tệp schema và xử lý đường dẫn tương đối
+  - Đánh giá tương thích XSD khi thay đổi hợp đồng
+  - XSD 1.0, XSD 1.1 và khả năng hỗ trợ của bộ xử lý
+  - Phân biệt ràng buộc XSD với quy tắc nghiệp vụ
+  - Giới thiệu Schematron và lựa chọn khi XSD chưa đủ
+- level1: Java XML và JAXP
+  level2:
+  - Bản đồ API trong module java.xml của JDK
+  - JAXP, SPI và cơ chế chọn bộ xử lý XML
+  - Các factory cho DOM, SAX, StAX, XPath, XSD và XSLT
+  - Chọn DOM, SAX hay StAX theo kích thước và cách truy cập dữ liệu
+  - 'Source và Result: Stream, DOM, SAX và StAX'
+  - Đọc tài nguyên từ tệp, classpath, URL và luồng
+  - systemId, URI cơ sở và phân giải đường dẫn tương đối
+  - Phân biệt feature, attribute và property của từng factory
+  - Cấu hình an toàn trước khi tạo parser hoặc transformer
+  - Ngoại lệ XML và cách lưu thông tin dòng, cột, nguồn
+  - Quyền sở hữu luồng, đóng tài nguyên và xử lý lỗi
+  - Phân biệt javax.xml của JDK với jakarta.xml.bind
+  - Cấu hình thư viện bổ sung trong dự án Java 21
+- level1: DOM cơ bản
+  level2:
+  - DocumentBuilderFactory, DocumentBuilder và tạo Document
+  - Bật nhận biết namespace trước khi parse
+  - Document, Node, Element, Attr và Text
+  - Quan hệ cha, con, anh em và duyệt cây
+  - NodeList, NamedNodeMap và đặc điểm tập nút động
+  - Đọc tên nút, localName, namespaceURI và prefix
+  - Đọc thuộc tính có hoặc không có namespace
+  - getTextContent và khác biệt với đọc từng Text node
+  - Tìm phần tử bằng tag name và bằng namespace
+  - Whitespace, comment và CDATA trong cây DOM
+  - ErrorHandler và xử lý lỗi parse có vị trí
+  - Thực hành đọc tài liệu XML lồng nhau bằng DOM
+- level1: Chỉnh sửa DOM
+  level2:
+  - Tạo Document mới và phần tử gốc
+  - Tạo phần tử, thuộc tính và nội dung văn bản
+  - createElementNS và setAttributeNS cho tài liệu có namespace
+  - Thêm, chèn, thay thế và xóa nút
+  - importNode, adoptNode và sao chép giữa các Document
+  - cloneNode và phạm vi sao chép sâu
+  - normalize và xử lý các Text node liền kề
+  - Duyệt và chỉnh sửa an toàn khi NodeList thay đổi
+  - Giữ đúng thứ tự phần tử khi cập nhật
+  - Xuất DOM bằng Transformer và các thuộc tính đầu ra
+  - Giới hạn bảo toàn prefix, CDATA, khoảng trắng và định dạng gốc
+  - Thực hành cập nhật hàng loạt rồi ghi tài liệu mới
+- level1: SAX
+  level2:
+  - 'Mô hình push: parser phát sự kiện cho trình xử lý'
+  - SAXParserFactory, SAXParser, XMLReader và DefaultHandler
+  - startDocument, endDocument, startElement và endElement
+  - characters có thể chia văn bản thành nhiều lần gọi
+  - Tích lũy text theo độ sâu và xử lý phần tử lồng nhau
+  - Đọc Attributes, namespace URI, localName và qName
+  - Theo dõi ngữ cảnh bằng stack và tạo đối tượng từng bản ghi
+  - startPrefixMapping và endPrefixMapping
+  - Locator, ErrorHandler và thông báo lỗi có vị trí
+  - LexicalHandler cho CDATA, comment và giới hạn hỗ trợ
+  - EntityResolver và kiểm soát tài nguyên ngoài
+  - Dừng sớm, bỏ qua nhánh và xử lý lỗi từng bản ghi
+  - Thực hành thống kê tệp XML lớn mà không dựng toàn bộ cây
+- level1: StAX đọc
+  level2:
+  - Mô hình pull và so sánh với SAX
+  - XMLInputFactory và cấu hình trước khi đọc
+  - 'XMLStreamReader: con trỏ và vòng lặp sự kiện'
+  - START_ELEMENT, END_ELEMENT, CHARACTERS và END_DOCUMENT
+  - Đọc thuộc tính và namespace tại phần tử hiện tại
+  - getElementText, nextTag và các điều kiện sử dụng
+  - Coalescing, CDATA và việc phân mảnh nội dung văn bản
+  - XMLEventReader và đối tượng XMLEvent
+  - Bỏ qua nhánh, đọc một bản ghi và giữ đúng vị trí con trỏ
+  - Location, XMLStreamException và lỗi dữ liệu giữa luồng
+  - DTD, entity và các thuộc tính bảo mật của StAX
+  - Đóng reader, đóng luồng và giới hạn tài nguyên
+  - Thực hành đọc tuần tự danh sách bản ghi lớn
+- level1: StAX ghi
+  level2:
+  - XMLOutputFactory và XMLStreamWriter
+  - Ghi khai báo, phần tử, thuộc tính và kết thúc tài liệu
+  - writeCharacters và việc escape ký tự
+  - Ghi namespace mặc định, prefix và thuộc tính có namespace
+  - Namespace repairing và kiểm soát kết quả đầu ra
+  - Ghi comment, CDATA và processing instruction
+  - XMLEventWriter và XMLEventFactory
+  - Sao chép và lọc sự kiện từ reader sang writer
+  - Flush, đóng writer và hoàn tất XML khi có lỗi
+  - Định dạng thụt lề mà không làm sai mixed content
+  - Thực hành xuất XML từng bản ghi với bộ nhớ giới hạn
+- level1: XPath cơ bản
+  level2:
+  - Mô hình cây XPath, nút ngữ cảnh và đường dẫn
+  - Đường dẫn tuyệt đối, tương đối, dấu / và //
+  - Chọn phần tử, thuộc tính, text() và node()
+  - Ký tự đại diện (wildcard) và kiểm tra tên nút
+  - Điều kiện lọc (predicate) theo giá trị thuộc tính và nội dung
+  - position(), last() và ý nghĩa vị trí trong tập nút
+  - Các trục child, parent, ancestor, descendant và sibling
+  - Toán tử số học, so sánh, logic và hợp tập nút
+  - 'Các hàm chuỗi: contains, starts-with, normalize-space và substring'
+  - Các hàm count, sum, number, string và boolean
+  - Chuyển kiểu trong XPath 1.0 và các kết quả dễ nhầm
+  - Namespace trong biểu thức XPath
+  - Phạm vi XPath 1.0 và nhu cầu dùng bộ xử lý phiên bản mới hơn
+- level1: XPath trong Java
+  level2:
+  - XPathFactory, XPath và biên dịch XPathExpression
+  - Đánh giá biểu thức trên Document hoặc nút con
+  - XPathConstants và kiểu kết quả chuỗi, số, boolean, nút, tập nút
+  - XPathEvaluationResult và các API đánh giá có kiểu
+  - NamespaceContext cho tài liệu có namespace mặc định
+  - XPathVariableResolver thay cho ghép trực tiếp dữ liệu vào biểu thức
+  - XPathFunctionResolver và kiểm soát hàm mở rộng
+  - Xử lý không có kết quả, nhiều kết quả và giá trị rỗng
+  - Biên dịch lại, tái sử dụng và giới hạn chia sẻ giữa các luồng
+  - XPath injection và cách tách biểu thức khỏi dữ liệu
+  - Đánh giá chi phí truy vấn trên cây lớn
+  - Thực hành trích xuất dữ liệu XML bằng XPath
+- level1: XSLT cơ bản
+  level2:
+  - Stylesheet, cây nguồn và cây kết quả
+  - xsl:stylesheet, version và namespace XSLT
+  - xsl:template, match và quy tắc template dựng sẵn
+  - xsl:apply-templates và khác biệt với xsl:for-each
+  - xsl:value-of, xsl:text và literal result element
+  - xsl:if, xsl:choose và xsl:sort
+  - Variable, parameter, scope và tính bất biến
+  - Named template, xsl:call-template và mode
+  - xsl:copy, xsl:copy-of và phép biến đổi đồng nhất
+  - xsl:element, xsl:attribute và tên tạo động
+  - Namespace trong pattern, XPath và kết quả
+  - xsl:include, xsl:import và độ ưu tiên
+  - xsl:output, xsl:strip-space và xsl:preserve-space
+  - Giới hạn XSLT 1.0 và điều kiện chọn bộ xử lý XSLT khác
+- level1: XSLT trong Java
+  level2:
+  - TransformerFactory, Transformer và Templates
+  - Biên dịch stylesheet và tái sử dụng Templates
+  - Truyền tham số bằng setParameter
+  - Biến đổi giữa StreamSource, DOMSource, SAXSource và StAXSource
+  - Xuất XML, HTML hoặc văn bản qua Result
+  - 'OutputKeys: encoding, indent, method và khai báo XML'
+  - URIResolver và URI cơ sở cho include, import, document()
+  - ErrorListener và phân loại warning, error, fatalError
+  - SAXTransformerFactory và chuỗi xử lý sự kiện
+  - Kiểm soát tài nguyên ngoài và hàm mở rộng XSLT
+  - Tách Transformer theo lần xử lý và quản lý đồng thời
+  - Thực hành XML sang HTML và chuẩn hóa XML theo phiên bản
+- level1: Xác thực trong Java
+  level2:
+  - SchemaFactory, Schema và Validator
+  - Biên dịch XSD từ tệp, classpath và nhiều nguồn
+  - Xác thực StreamSource, DOMSource, SAXSource và StAXSource
+  - Chọn schema chủ động thay vì tin schemaLocation của đầu vào
+  - LSResourceResolver cho schema include và import
+  - ErrorHandler và thu thập nhiều lỗi có dòng, cột
+  - Lưu đệm Schema, vòng đời Validator và xử lý đồng thời
+  - Kiểm soát ACCESS_EXTERNAL_DTD và ACCESS_EXTERNAL_SCHEMA
+  - ValidatorHandler và xác thực trong pipeline SAX
+  - Kết hợp xác thực cấu trúc với kiểm tra nghiệp vụ
+  - Thực hành báo cáo lỗi XSD dễ hiểu cho người dùng
+- level1: JAXB cơ bản
+  level2:
+  - Ánh xạ XML và đối tượng Java bằng Jakarta XML Binding
+  - API, bộ triển khai và khai báo thư viện trong Java 21
+  - JAXBContext, Marshaller và Unmarshaller
+  - '@XmlRootElement, @XmlType và @XmlAccessorType'
+  - '@XmlElement, @XmlAttribute và @XmlValue'
+  - Ánh xạ đối tượng lồng nhau và tập hợp dữ liệu
+  - '@XmlElementWrapper và phần tử bao danh sách'
+  - Kiểm soát thứ tự phần tử bằng propOrder
+  - Namespace cấp package với @XmlSchema và package-info.java
+  - Phần tử thiếu, giá trị rỗng, required và nillable
+  - JAXBElement, QName và kiểu không có @XmlRootElement
+  - Cấu hình encoding, formatted output và fragment
+  - Thực hành đọc và ghi đơn hàng bằng JAXB
+- level1: JAXB nâng cao
+  level2:
+  - XmlAdapter cho ngày giờ, tiền tệ và kiểu tùy chỉnh
+  - Ánh xạ enum, byte[] và dữ liệu nhị phân
+  - Đa hình với @XmlSeeAlso, @XmlElements và xsi:type
+  - '@XmlAnyElement, @XmlAnyAttribute và dữ liệu mở rộng'
+  - '@XmlMixed và mô hình nội dung hỗn hợp'
+  - '@XmlID, @XmlIDREF và đồ thị đối tượng có tham chiếu'
+  - Hàm gọi lại, bộ lắng nghe và ValidationEventHandler
+  - Gắn Schema khi marshal và unmarshal
+  - Unmarshal một phần tài liệu qua StAX
+  - Tái sử dụng JAXBContext và quản lý Marshaller, Unmarshaller
+  - Cấp nguồn đã cấu hình an toàn cho JAXB
+  - Di chuyển javax.xml.bind sang jakarta.xml.bind
+  - Nhận diện giới hạn ánh xạ và tránh làm mất dữ liệu XML
+- level1: Sinh mã từ XSD
+  level2:
+  - 'Schema-first và code-first: chọn nguồn hợp đồng chuẩn'
+  - Sinh lớp Java từ XSD bằng công cụ XJC
+  - 'Cấu trúc mã sinh: ObjectFactory, JAXBElement và package-info'
+  - Cấu hình package, tên lớp và tệp ánh xạ ngoài
+  - Ánh xạ kiểu schema sang Java và tùy biến kiểu ngày giờ
+  - Xử lý nhiều namespace và bộ schema phụ thuộc
+  - Sinh XSD từ mô hình Java và kiểm tra kết quả
+  - Tích hợp sinh mã vào Gradle với thư mục mã nguồn được sinh
+  - Tái sinh mã, không sửa tay và quản lý mã mở rộng
+  - Kiểm tra khác biệt khi schema hoặc công cụ sinh mã thay đổi
+- level1: Jackson XML
+  level2:
+  - XmlMapper và vai trò của Jackson dataformat XML
+  - Đọc ghi POJO và mô hình cây
+  - '@JacksonXmlRootElement và @JacksonXmlProperty'
+  - '@JacksonXmlElementWrapper cho danh sách có hoặc không có wrapper'
+  - Thuộc tính, phần tử và văn bản với @JacksonXmlText
+  - Namespace, localName và giới hạn kiểm soát tiền tố
+  - Kiểu ngày giờ, enum, null và cấu hình module bổ sung
+  - Phần tử lạ, dữ liệu thiếu và quy tắc chấp nhận đầu vào
+  - Giới hạn mixed content và mô hình cây khi so với XML gốc
+  - Cấu hình XMLInputFactory an toàn cho XmlMapper
+  - Lựa chọn Jackson XML hay JAXB theo hợp đồng dữ liệu
+  - Kiểm thử vòng đọc ghi và phát hiện mất thông tin
+- level1: Đọc ghi tài nguyên
+  level2:
+  - Files, Path và tổ chức tệp XML đầu vào, đầu ra
+  - Đọc tài nguyên classpath khi chạy từ IDE và JAR
+  - InputStream, Reader, OutputStream và Writer
+  - Try-with-resources và ranh giới đóng luồng
+  - systemId, xml:base và tài nguyên tham chiếu tương đối
+  - Ghi qua tệp tạm rồi thay thế để tránh đầu ra dở dang
+  - Xử lý tệp trống, tệp hỏng và lỗi quyền truy cập
+  - Giới hạn dung lượng đầu vào và kích thước sau giải nén
+  - Đọc XML từ HTTP với thời gian chờ và kiểm tra nguồn
+  - Giữ nguyên byte gốc khi yêu cầu lưu trữ hoặc kiểm chứng
+  - Thiết kế thông báo lỗi có đường dẫn và vị trí tài liệu
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - XML sang đối tượng miền và đối tượng truyền dữ liệu
+  - Ánh xạ kiểu số, ngày giờ, timezone và đơn vị đo
+  - 'XML sang JSON: thuộc tính, danh sách, namespace và mixed content'
+  - JSON sang XML và nhu cầu quy định phần tử gốc
+  - 'XML sang CSV: làm phẳng cấu trúc và xử lý phần tử lặp'
+  - Nhập dữ liệu XML vào cơ sở dữ liệu theo lô
+  - Xuất dữ liệu phân trang ra XML bằng luồng
+  - Gộp tài liệu có namespace và tách tài liệu theo bản ghi
+  - Chuyển đổi phiên bản XML theo hợp đồng đích
+  - Kiểm tra dữ liệu thất thoát và tính tương đương sau chuyển đổi
+- level1: Bảo mật XML
+  level2:
+  - Ranh giới tin cậy của tài liệu, schema và stylesheet
+  - 'XXE: truy cập tệp, truy cập mạng và SSRF'
+  - Entity expansion, XML bomb và tiêu thụ tài nguyên
+  - 'FEATURE_SECURE_PROCESSING: tác dụng và giới hạn theo API'
+  - Cấu hình DOM và SAX khi không cần DOCTYPE hoặc entity ngoài
+  - SUPPORT_DTD và IS_SUPPORTING_EXTERNAL_ENTITIES trong StAX
+  - Giới hạn ACCESS_EXTERNAL_DTD, SCHEMA và STYLESHEET theo API
+  - Vô hiệu hóa hoặc kiểm soát XInclude và resolver
+  - Giới hạn độ sâu, số entity, kích thước text và tổng dữ liệu
+  - Kiểm soát include, import, document() và hàm mở rộng XSLT
+  - Chống XPath injection bằng biến và biểu thức cố định
+  - Ngăn đường dẫn vượt thư mục và URL không được phép
+  - Xác minh cấu hình có hiệu lực và dừng an toàn khi không hỗ trợ
+  - Bảo vệ log khỏi dữ liệu nhạy cảm và nội dung đầu vào quá lớn
+  - Kiểm thử bảo mật bằng tài nguyên giả lập, không gọi mạng thật
+- level1: Catalog và phân giải
+  level2:
+  - Khi nào XML cần phân giải tài nguyên bên ngoài
+  - Public identifier, system identifier và URI
+  - XML Catalog và ánh xạ tài nguyên về bản cục bộ
+  - CatalogManager, CatalogFeatures và CatalogResolver
+  - EntityResolver cho SAX và DOM
+  - LSResourceResolver cho XML Schema
+  - URIResolver cho XSLT
+  - XMLResolver cho StAX
+  - Chính sách từ chối mặc định và danh sách tài nguyên được phép
+  - Đóng gói schema, DTD và stylesheet để chạy ngoại tuyến
+  - Kiểm thử thiếu tài nguyên, vòng tham chiếu và lỗi phân giải
+- level1: Chữ ký XML
+  level2:
+  - Toàn vẹn, xác thực và phạm vi của XML Digital Signature
+  - Canonicalization và khác biệt với pretty-print
+  - Reference, DigestMethod, SignatureMethod và SignedInfo
+  - Chữ ký enveloped, enveloping và detached
+  - XMLSignatureFactory, DOMSignContext và DOMValidateContext
+  - Tạo chữ ký với khóa và chứng thư thử nghiệm
+  - Xác minh chữ ký và xác định chính xác dữ liệu được ký
+  - ID, URI tham chiếu và nguy cơ signature wrapping
+  - Ảnh hưởng của namespace và khoảng trắng tới chữ ký
+  - Secure validation, thuật toán và chính sách tin cậy khóa
+  - Ranh giới giữa XML Signature, XML Encryption và bảo mật truyền tải
+- level1: Hiệu năng XML
+  level2:
+  - Đánh giá theo dung lượng, độ sâu và kiểu truy cập
+  - Chi phí bộ nhớ của DOM so với SAX và StAX
+  - Thiết kế xử lý tuần tự với trạng thái tối thiểu
+  - Tránh sao chép qua String và parse lặp không cần thiết
+  - Lưu đệm Schema, Templates và JAXBContext theo hợp đồng API
+  - Vòng đời parser và đối tượng không an toàn khi chia sẻ
+  - Tối ưu XPath, chọn nút ngữ cảnh và hạn chế quét toàn cây
+  - Xuất theo luồng, bộ đệm và kích thước lô
+  - Giới hạn song song và điều tiết tốc độ xử lý
+  - Đo thời gian, cấp phát bộ nhớ và GC trên dữ liệu đại diện
+  - Benchmark có khởi động JVM và kiểm tra kết quả tương đương
+  - Cân bằng tối ưu hóa với xác thực và bảo mật
+- level1: Kiểm thử XML
+  level2:
+  - 'Bộ dữ liệu thử: hợp lệ, sai cú pháp, sai schema và biên'
+  - So sánh chuỗi với so sánh cấu trúc XML
+  - 'XMLUnit: xác định khác biệt, namespace và NodeMatcher'
+  - Quy định ý nghĩa của thứ tự, khoảng trắng và phần tử rỗng
+  - Kiểm tra kết quả bằng XPath
+  - Kiểm thử XSD với trường thiếu, sai kiểu và giá trị giới hạn
+  - Kiểm thử JAXB và Jackson XML theo vòng đọc ghi
+  - Kiểm thử XSLT với tệp kết quả mẫu
+  - Kiểm thử streaming trên nhiều kích thước và ranh giới sự kiện
+  - Kiểm thử encoding, BOM, Unicode và mixed content
+  - Kiểm thử chặn XXE, entity expansion và tài nguyên ngoài
+  - Kiểm thử tệp tạm, đóng tài nguyên và đầu ra dở dang
+  - Kiểm thử tương thích khi schema hoặc dependency thay đổi
+  - Tổ chức tệp dữ liệu mẫu XML, XSD, XSLT và báo cáo lỗi trong JUnit
+- level1: XML với Spring Boot
+  level2:
+  - Vai trò của XML trong dịch vụ Spring Boot
+  - HTTP Content-Type, Accept và charset cho XML
+  - Đọc ghi XML bằng HttpMessageConverter
+  - Jackson XML và JAXB trong quá trình chuyển đổi HTTP
+  - Thiết kế DTO riêng cho hợp đồng XML
+  - Kiểm tra cú pháp, XSD và nghiệp vụ tại biên hệ thống
+  - Ánh xạ lỗi XML sang phản hồi có vị trí và nguyên nhân
+  - Tải lên và tải xuống tệp XML với giới hạn dung lượng
+  - Xử lý dữ liệu lớn bằng luồng và ranh giới bộ đệm
+  - 'Khách HTTP nhận XML: thương lượng kiểu nội dung và xử lý lỗi'
+  - Cấu hình parser an toàn trong các thành phần tích hợp
+  - Kiểm thử tích hợp XML bằng MockMvc và máy chủ giả lập
+  - Ranh giới với Spring configuration XML và Spring Web Services
+- level1: Thiết kế xử lý XML
+  level2:
+  - Pipeline nhận nguồn, parse, validate, ánh xạ, xử lý và xuất
+  - Tách hợp đồng XML khỏi mô hình nghiệp vụ
+  - Đóng gói cấu hình factory và chính sách bảo mật dùng chung
+  - Lựa chọn API bằng tiêu chí thay vì phụ thuộc chi tiết parser
+  - Quản lý phiên bản schema, stylesheet và dữ liệu mẫu
+  - Báo cáo lỗi theo giai đoạn, bản ghi, dòng và cột
+  - Chấp nhận hoặc từ chối một phần dữ liệu theo chính sách rõ ràng
+  - Tính lặp an toàn khi nhập lại tệp và xử lý trùng bản ghi
+  - Giao dịch cơ sở dữ liệu và phục hồi lỗi giữa các lô
+  - Log, chỉ số xử lý và truy vết mà không lộ nội dung nhạy cảm
+  - Đóng gói cấu hình để hành vi giống nhau giữa các môi trường
+- level1: Chẩn đoán lỗi
+  level2:
+  - Content is not allowed in prolog và dữ liệu trước phần tử gốc
+  - Lỗi thẻ không đóng, thuộc tính trùng và ký tự chưa escape
+  - Invalid byte sequence và encoding không khớp
+  - Prefix chưa khai báo và localName bằng null
+  - XPath không tìm thấy nút do namespace mặc định
+  - getTextContent lấy quá nhiều dữ liệu và mất ranh giới phần tử
+  - SAX hoặc StAX chia nhỏ text và đọc lệch con trỏ
+  - Không tải được XSD, DTD hoặc XSLT do URI cơ sở
+  - JAXB thiếu root element, runtime hoặc xung đột javax và jakarta
+  - Jackson XML đọc sai danh sách hoặc mất mixed content
+  - Schema báo lỗi thứ tự, namespace, nillable hoặc kiểu dữ liệu
+  - Đầu ra khác khoảng trắng, prefix hoặc khai báo XML
+  - Hỏng dữ liệu do chia sẻ parser, Validator hay Transformer
+  - Tăng bộ nhớ bất thường và kết nối mạng ngoài dự kiến
+- level1: Thực hành tổng hợp
+  level2:
+  - Đọc và giải thích một tài liệu XML có namespace
+  - Thiết kế XML và XSD cho danh mục sản phẩm
+  - Đọc, tìm và cập nhật cấu hình bằng DOM và XPath
+  - Thống kê bản ghi bằng SAX và đối chiếu kết quả
+  - Nhập tệp giao dịch lớn bằng StAX với bộ nhớ giới hạn
+  - Xuất báo cáo XML bằng StAX và kiểm tra XSD
+  - Ánh xạ đơn hàng bằng JAXB với kiểu ngày giờ tùy chỉnh
+  - Sinh mô hình Java từ bộ XSD nhiều namespace
+  - Biến đổi XML sang HTML và chuyển đổi phiên bản bằng XSLT
+  - Chuyển XML sang JSON theo quy tắc bảo toàn dữ liệu
+  - Chạy xử lý ngoại tuyến bằng Catalog và resolver
+  - Bảo vệ pipeline trước XXE và lỗi tiêu thụ tài nguyên
+  - Ký, xác minh và kiểm thử sửa đổi tài liệu XML
+  - Tích hợp nhập xuất XML vào Spring Boot và kiểm thử hợp đồng
+  - So sánh DOM, SAX, StAX trên cùng tập dữ liệu thực nghiệm

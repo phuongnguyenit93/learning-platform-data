@@ -1,0 +1,85 @@
+menu:
+- title: Mô hình tổng quan
+  slug: overview
+  index: 0
+- title: Tên và bytecode
+  slug: names-and-bytecode
+  index: 1
+- title: Vòng đời lớp
+  slug: class-lifecycle
+  index: 2
+- title: Khởi tạo lớp
+  slug: class-initialization
+  index: 3
+- title: Loader tích hợp
+  slug: built-in-class-loaders
+  index: 4
+- title: Cơ chế ủy quyền
+  slug: parent-delegation
+  index: 5
+- title: Định danh kiểu
+  slug: type-identity
+  index: 6
+- title: API nạp lớp
+  slug: class-loading-api
+  index: 7
+- title: Đường dẫn tìm kiếm
+  slug: classpath-and-module-path
+  index: 8
+- title: Tài nguyên
+  slug: resource-loading
+  index: 9
+- title: Loader ngữ cảnh
+  slug: context-class-loader
+  index: 10
+- title: URLClassLoader
+  slug: url-class-loader
+  index: 11
+- title: Loader tùy chỉnh
+  slug: custom-class-loader
+  index: 12
+- title: Chính sách nạp
+  slug: loading-policies
+  index: 13
+- title: Nạp đồng thời
+  slug: concurrent-class-loading
+  index: 14
+- title: Package và nguồn mã
+  slug: packages-and-code-sources
+  index: 15
+- title: Module và layer
+  slug: modules-and-layers
+  index: 16
+- title: Nạp dịch vụ
+  slug: service-loading
+  index: 17
+- title: Kiến trúc plugin
+  slug: plugin-architecture
+  index: 18
+- title: Định nghĩa lớp động
+  slug: dynamic-class-definition
+  index: 19
+- title: Dỡ lớp và bộ nhớ
+  slug: class-unloading-and-memory
+  index: 20
+- title: Ranh giới bảo mật
+  slug: security-boundaries
+  index: 21
+- title: Lỗi thường gặp
+  slug: common-class-loading-errors
+  index: 22
+- title: Chẩn đoán
+  slug: class-loading-diagnostics
+  index: 23
+- title: Hiệu năng
+  slug: class-loading-performance
+  index: 24
+- title: Kiểm chứng hành vi
+  slug: class-loading-verification
+  index: 25
+- title: Thực hành
+  slug: class-loading-exercises
+  index: 26
+- title: Tra cứu
+  slug: reference-tables
+  index: 27

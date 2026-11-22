@@ -1,0 +1,1806 @@
+quiz:
+- groupID: 1
+  groupName: 'OOP Fundamentals, Classes, Objects, and Identity'
+  questions:
+  - question: 'How does OOP primarily help manage complexity?'
+    readmeRelated:
+      anchorList:
+      - oop-basic-001
+      - oop-basic-006
+      - class-design-001
+      - class-design-002
+      - modeling-003
+      - design-pitfalls-001
+      - oop-basic-002
+    answers:
+    - id: A
+      answer: 'Assign responsibilities to objects that combine state with related behavior'
+      explanation: 'Correct: assigning responsibilities to objects with related data and behavior limits the scope of changes and reduces coupling.'
+    - id: B
+      answer: 'Concentrate processing in services and let objects hold only their own state'
+      explanation: 'Incorrect: moving behavior into services and leaving objects as data holders can create an Anemic Domain Model, rather than realizing the main benefits of OOP.'
+    - id: C
+      answer: 'Separate processing functions from data and coordinate them through a shared type table'
+      explanation: 'Incorrect: completely separating functions from data and using a type table for dispatch resembles procedural design and lacks encapsulation.'
+    - id: D
+      answer: 'Place data in shared structures and select behavior through conditional branches'
+      explanation: 'Incorrect: shared data combined with conditional dispatch means changing one type can affect many locations.'
+    correctAnswerId: A
+  - question: 'Which statement correctly distinguishes classes from objects?'
+    readmeRelated:
+      anchorList:
+      - oop-basic-002
+      - oop-basic-003
+      - class-002
+      - object-001
+      - modeling-006
+    answers:
+    - id: A
+      answer: 'A class describes stored data; an object defines only processing methods'
+      explanation: 'Incorrect: a class declares both data and behavior; methods are not a concept exclusive to objects.'
+    - id: B
+      answer: 'A class determines runtime identity; an object is merely a name for that type'
+      explanation: 'Incorrect: runtime identity belongs to an object instance, not to the class definition for every instance.'
+    - id: C
+      answer: 'A class is a prototype object from which other objects inherit and are copied'
+      explanation: 'Incorrect: Java does not normally construct objects by copying a class prototype object.'
+    - id: D
+      answer: 'A class defines a type; an object is an instance with concrete state'
+      explanation: 'Correct: a class describes a type and its members; an object is a concrete instance of that type at runtime.'
+    correctAnswerId: D
+  - question: 'If two separately created objects have identical values in all fields, what is definitely true?'
+    readmeRelated:
+      anchorList:
+      - object-001
+      - object-004
+      - modeling-006
+      - practice-005
+    answers:
+    - id: A
+      answer: 'Objects with equal fields are automatically equal under Object.equals'
+      explanation: 'Incorrect: Object.equals uses identity by default; field-based equality requires a suitably defined equals contract.'
+    - id: B
+      answer: 'Objects with equal fields have the same identity when compared with =='
+      explanation: 'Incorrect: for separately created objects, == checks whether references point to the same object, not whether fields match.'
+    - id: C
+      answer: 'The JVM automatically merges objects with equal fields, just like interned Strings'
+      explanation: 'Incorrect: String interning does not cause the JVM to merge all objects with identical fields.'
+    - id: D
+      answer: 'The objects may be equal by value but have different runtime identities'
+      explanation: 'Correct: equality of field contents does not mean two references point to the same object.'
+    correctAnswerId: D
+  - question: 'What is the key distinction between an Entity and a Value Object?'
+    readmeRelated:
+      anchorList:
+      - object-004
+      - class-design-006
+      - modeling-002
+      - practice-005
+    answers:
+    - id: A
+      answer: 'An Entity is tracked by its business identity; a Value Object is primarily defined by its value'
+      explanation: 'Correct: an entity retains its business identity through changes; a value object is typically compared by its value contents.'
+    - id: B
+      answer: 'An Entity only stores data; only a Value Object can define behavior'
+      explanation: 'Incorrect: both entities and value objects can contain behavior that maintains their invariants.'
+    - id: C
+      answer: 'An Entity must be immutable after creation; a Value Object allows state changes'
+      explanation: 'Incorrect: an entity may change state, while a value object is usually designed to be immutable to preserve value semantics.'
+    - id: D
+      answer: 'An Entity is compared primarily by value; a Value Object needs a persistent identity'
+      explanation: 'Incorrect: this reverses the concepts: an entity is not identified only by all its fields, while a value object generally does not need an ID.'
+    correctAnswerId: A
+  - question: 'What indicates that a class has low cohesion?'
+    readmeRelated:
+      anchorList:
+      - class-design-002
+      - modeling-004
+      - solid-002
+      - design-pitfalls-001
+    answers:
+    - id: A
+      answer: 'Its methods protect the same invariant through different processing branches'
+      explanation: 'Incorrect: methods that protect the same invariant generally reflect related internal responsibilities, not scattered ones.'
+    - id: B
+      answer: 'Its methods support one workflow but depend on many collaborators'
+      explanation: 'Incorrect: having many collaborators alone does not imply low cohesion if they all serve one coherent business process.'
+    - id: C
+      answer: 'Its methods use many data types but serve a single responsibility'
+      explanation: 'Incorrect: the number of data types used does not determine cohesion; assess whether methods serve the same purpose.'
+    - id: D
+      answer: 'Its methods handle unrelated responsibilities and change for different reasons'
+      explanation: 'Correct: a class lacks cohesion when it has multiple unrelated reasons to change, even if each method works correctly.'
+    correctAnswerId: D
+- groupID: 2
+  groupName: 'Object Lifecycles, Initialization, and Immutability'
+  questions:
+  - question: 'How does a static field differ from an instance field in Java?'
+    readmeRelated:
+      anchorList:
+      - class-003
+      - design-pitfalls-008
+    answers:
+    - id: A
+      answer: 'A static field exists per method call; an instance field belongs to the class loader'
+      explanation: 'Incorrect: static fields belong to a class, not to individual method calls.'
+    - id: B
+      answer: 'A static field belongs to the class; an instance field belongs to each specific instance'
+      explanation: 'Correct: static fields hold class-level state for a class loader, while each instance has its own instance fields.'
+    - id: C
+      answer: 'A static field is copied into every object; an instance field has only one shared copy'
+      explanation: 'Incorrect: this reverses the relationship: static fields are not automatically copied per object, and instance fields are not shared class-level copies.'
+    - id: D
+      answer: 'A static field belongs to each thread; an instance field is shared across threads'
+      explanation: 'Incorrect: a static field is not implicitly a ThreadLocal, and instances are not automatically shared by every thread.'
+    correctAnswerId: B
+  - question: 'What is an advantage of a static factory method over a constructor?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-005
+      - design-patterns-002
+    answers:
+    - id: A
+      answer: 'It always reuses the same instance instead of allocating a new object'
+      explanation: 'Incorrect: a factory may allocate a new instance, return an existing one, or cache instances, depending on its design; reuse is not guaranteed.'
+    - id: B
+      answer: 'It lets subclasses change object creation without declaring a method'
+      explanation: 'Incorrect: a factory does not automatically allow subclasses to customize creation without a suitable extension point or implementation.'
+    - id: C
+      answer: 'It can have a meaningful creation name and return an appropriate subtype'
+      explanation: 'Correct: a named factory conveys the meaning of creation and can return a subtype compatible with its declared return type.'
+    - id: D
+      answer: 'It always bypasses constructors and requires no input validation'
+      explanation: 'Incorrect: a static factory can still invoke constructors and must validate parameters when constraints require it.'
+    correctAnswerId: C
+  - question: 'How should an object be initialized when its invariants must be preserved?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-002
+      - encapsulation-002
+      - testing-002
+    answers:
+    - id: A
+      answer: 'Create an invalid temporary object and validate it on first use'
+      explanation: 'Incorrect: allowing an invalid object to exist until its first use risks exposing invalid state.'
+    - id: B
+      answer: 'Validate within the constructor or factory before returning the object'
+      explanation: 'Correct: the constructor or factory must reject invalid states before the object reaches its callers.'
+    - id: C
+      answer: 'Let setters restore invariants before the object reaches persistence'
+      explanation: 'Incorrect: later setter calls cannot guarantee invariants if the object has already been observed or persisted.'
+    - id: D
+      answer: 'Only check invariants in the controller before passing the object into the domain'
+      explanation: 'Incorrect: controller-only checks miss objects created by batches, tests, or other services.'
+    correctAnswerId: B
+  - question: 'Why can calling an overridden method from a superclass constructor be dangerous?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-004
+      - lifecycle-009
+      - inheritance-006
+      - testing-002
+    answers:
+    - id: A
+      answer: 'An overridden method cannot access subclass state during object initialization'
+      explanation: 'Incorrect: an override can access subclass fields while they still have default or uninitialized values; that is precisely the risk.'
+    - id: B
+      answer: 'The override may execute before subclass fields have been fully initialized'
+      explanation: 'Correct: virtual dispatch can invoke a subclass override before subclass initialization finishes.'
+    - id: C
+      answer: 'The subclass constructor always finishes before the superclass constructor starts'
+      explanation: 'Incorrect: in Java, the superclass constructor executes before the subclass constructor body, not the reverse.'
+    - id: D
+      answer: 'A superclass constructor can only call the superclass implementation'
+      explanation: 'Incorrect: a superclass constructor can call an instance method overridden by the subclass; dispatch is not restricted to the superclass version.'
+    correctAnswerId: B
+  - question: 'Why is a private final List<String> insufficient to make an object deeply immutable?'
+    readmeRelated:
+      anchorList:
+      - class-006
+      - object-005
+      - encapsulation-007
+    answers:
+    - id: A
+      answer: 'Final fixes the reference but does not prevent changes to a mutable List or its elements'
+      explanation: 'Correct: final prevents reassigning the reference; it does not make the contents of the referenced List immutable.'
+    - id: B
+      answer: 'Final freezes the List structure and every object referenced by it'
+      explanation: 'Incorrect: final on a List variable does not freeze the elements or structure of a mutable List.'
+    - id: C
+      answer: 'Final prevents outside callers from changing a List even if they share its mutable reference'
+      explanation: 'Incorrect: another holder of the same mutable reference can still modify the List contents.'
+    - id: D
+      answer: 'Final copies the List contents each time a getter returns the reference'
+      explanation: 'Incorrect: a getter does not automatically deep-copy a collection because the field is final.'
+    correctAnswerId: A
+  - question: 'What is a limitation of List.copyOf(list)?'
+    readmeRelated:
+      anchorList:
+      - object-005
+      - object-006
+      - encapsulation-007
+    answers:
+    - id: A
+      answer: 'It turns mutable elements into immutable copies'
+      explanation: 'Incorrect: mutable elements can still change state; copyOf does not make them immutable.'
+    - id: B
+      answer: 'It keeps the original list synchronized with all future updates'
+      explanation: 'Incorrect: List.copyOf provides a structural snapshot; later changes to the original List do not propagate to the copy.'
+    - id: C
+      answer: 'It does not deep-copy mutable elements inside the list'
+      explanation: 'Correct: List.copyOf creates a list that cannot be modified through its API, but it does not deep-clone each element.'
+    - id: D
+      answer: 'It always returns a modifiable ArrayList'
+      explanation: 'Incorrect: copyOf returns a List that rejects modification operations, not a mutable ArrayList.'
+    correctAnswerId: C
+  - question: 'Which mechanism should be used to close files and database connections?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-008
+      - composition-007
+    answers:
+    - id: A
+      answer: 'Call close or use try-with-resources at the appropriate time according to ownership'
+      explanation: 'Correct: close and try-with-resources release resources deterministically according to their lifecycles and ownership.'
+    - id: B
+      answer: 'Set the reference to null after use so the system closes the connection automatically'
+      explanation: 'Incorrect: setting a reference to null does not call close or guarantee the release of external resources.'
+    - id: C
+      answer: 'Let the garbage collector release resources once the object has no remaining references'
+      explanation: 'Incorrect: GC manages memory and does not guarantee timely closing of files or connections.'
+    - id: D
+      answer: 'Use a finalizer or cleaner as the primary close mechanism after each operation'
+      explanation: 'Incorrect: finalizers and cleaners have no reliable execution time and should not be the primary closing mechanism.'
+    correctAnswerId: A
+- groupID: 3
+  groupName: 'Encapsulation, Invariants, and State Control'
+  questions:
+  - question: 'What does encapsulation actually protect?'
+    readmeRelated:
+      anchorList:
+      - encapsulation-001
+      - encapsulation-002
+      - encapsulation-008
+      - testing-003
+    answers:
+    - id: A
+      answer: 'It restricts a class to interface calls and prohibits public methods'
+      explanation: 'Incorrect: classes may expose public methods; encapsulation does not prohibit access except through interfaces.'
+    - id: B
+      answer: 'It protects invariants and internal representations through controlled operations'
+      explanation: 'Correct: encapsulation controls the API to preserve invariants and hide the internal representation of state.'
+    - id: C
+      answer: 'It hides every field and then provides getters and setters without validation'
+      explanation: 'Incorrect: unchecked getters and setters merely expose fields under method names and do not protect invariants.'
+    - id: D
+      answer: 'It guarantees that each object remains unchanged throughout its lifecycle'
+      explanation: 'Incorrect: encapsulation still allows valid state changes through controlled behavior.'
+    correctAnswerId: B
+  - question: 'Why can public setters for individual fields break cross-field invariants?'
+    readmeRelated:
+      anchorList:
+      - encapsulation-002
+      - encapsulation-004
+      - design-pitfalls-002
+      - testing-003
+    answers:
+    - id: A
+      answer: 'Validating each field in its setter guarantees all cross-field invariants'
+      explanation: 'Incorrect: validating fields individually is insufficient when invariants depend on relationships among fields.'
+    - id: B
+      answer: 'Independent setters can create invalid intermediate states between updates'
+      explanation: 'Correct: separate setters may produce intermediate states that violate constraints spanning multiple fields.'
+    - id: C
+      answer: 'Keeping setters in the same class makes the JVM synchronize all related updates automatically'
+      explanation: 'Incorrect: being in one class does not make the JVM automatically lock or synchronize consecutive setter calls.'
+    - id: D
+      answer: 'Independent setters automatically make all updates part of a transaction'
+      explanation: 'Incorrect: multiple independent setter calls do not automatically form a transaction or atomic operation.'
+    correctAnswerId: B
+  - question: 'What is the distinction between an invariant and input validation?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-002
+      - encapsulation-002
+      - encapsulation-005
+      - testing-003
+    answers:
+    - id: A
+      answer: 'Validation maintains object state for its entire lifetime; invariants only check request data'
+      explanation: 'Incorrect: validation does not automatically maintain invariants after each change; these serve different purposes.'
+    - id: B
+      answer: 'Validation and invariants apply only when a constructor first runs'
+      explanation: 'Incorrect: invariants must be maintained during state-changing operations, not just in constructors.'
+    - id: C
+      answer: 'Validation checks inputs; an invariant must hold throughout the object''s lifecycle'
+      explanation: 'Correct: validation determines whether an input is acceptable; an invariant is a condition that must remain true throughout the object''s lifecycle.'
+    - id: D
+      answer: 'Validation checks stored database data; invariants only check API parameter formats'
+      explanation: 'Incorrect: validation is not limited to databases, and invariants are not merely API parameter formatting rules.'
+    correctAnswerId: C
+  - question: 'What is the risk of a getter directly returning an internal ArrayList?'
+    readmeRelated:
+      anchorList:
+      - object-007
+      - encapsulation-006
+      - refactoring-005
+      - encapsulation-007
+    answers:
+    - id: A
+      answer: 'Callers can modify the internal List without going through the object''s validated operations'
+      explanation: 'Correct: exposing the internal List lets callers change state without invoking methods that preserve the object''s invariants.'
+    - id: B
+      answer: 'Callers can only modify elements, and List invariants are still checked by setters'
+      explanation: 'Incorrect: object setters are not invoked when a caller modifies the elements or structure of the returned List.'
+    - id: C
+      answer: 'Returning the List automatically converts the Collection to read-only at runtime'
+      explanation: 'Incorrect: Java does not automatically convert a mutable ArrayList to read-only simply because its return type is Collection.'
+    - id: D
+      answer: 'Returning the List causes every caller operation to create a defensive copy'
+      explanation: 'Incorrect: returning a reference directly does not automatically create a defensive copy on the caller''s side.'
+    correctAnswerId: A
+  - question: 'How should an Order protect its transition from DRAFT to PAID?'
+    readmeRelated:
+      anchorList:
+      - encapsulation-008
+      - encapsulation-009
+      - modeling-008
+      - testing-003
+      - practice-002
+    answers:
+    - id: A
+      answer: 'A client should call setStatus(PAID) after checking conditions outside the domain'
+      explanation: 'Incorrect: checking conditions in a client before calling a setter still allows other callers to violate the Order contract.'
+    - id: B
+      answer: 'The controller should check the state and directly assign the Order status'
+      explanation: 'Incorrect: direct status assignment in a controller moves state-transition rules out of the domain and may bypass invariants.'
+    - id: C
+      answer: 'The repository should write PAID directly without considering the Order state'
+      explanation: 'Incorrect: writing PAID directly in the repository bypasses the entity''s state-transition rules.'
+    - id: D
+      answer: 'Order.pay() should validate conditions and then transition the state to PAID'
+      explanation: 'Correct: the domain method pay() combines condition checks with the state transition inside Order itself.'
+    correctAnswerId: D
+  - question: 'What is a symptom of an Anemic Domain Model?'
+    readmeRelated:
+      anchorList:
+      - encapsulation-008
+      - class-design-007
+      - design-pitfalls-003
+      - refactoring-004
+    answers:
+    - id: A
+      answer: 'Objects coordinate their own behavior and protect invariants through domain methods'
+      explanation: 'Incorrect: objects with domain behavior that preserve invariants characterize a behavior-rich domain model.'
+    - id: B
+      answer: 'Objects mainly hold data while business rules reside in external services'
+      explanation: 'Correct: an Anemic Domain Model moves business rules outside objects that primarily hold data and accessors.'
+    - id: C
+      answer: 'Objects maintain rules within aggregates and delegate only I/O to repositories'
+      explanation: 'Incorrect: aggregates maintaining their own rules while delegating persistence to repositories are not necessarily anemic.'
+    - id: D
+      answer: 'Objects use Value Objects to represent immutable domain concepts'
+      explanation: 'Incorrect: using Value Objects for immutable values is a domain-modeling technique and does not establish an anemic model.'
+    correctAnswerId: B
+  - question: 'What can happen if a HashMap key changes a field used by hashCode after put?'
+    readmeRelated:
+      anchorList:
+      - object-004
+      - language-mechanics-006
+      - design-pitfalls-009
+      - testing-001
+    answers:
+    - id: A
+      answer: 'Map.get may fail to find the key because its hashCode changed after put'
+      explanation: 'Correct: changing a field used in hashCode can make get search a different bucket from the one holding the key.'
+    - id: B
+      answer: 'HashMap automatically moves the key to a new bucket when its properties change'
+      explanation: 'Incorrect: HashMap does not track mutations to automatically rehash keys already stored in the map.'
+    - id: C
+      answer: 'HashMap must deep-copy every key, so modifying the original object has no effect'
+      explanation: 'Incorrect: HashMap holds key references and does not require deep-copying keys during put.'
+    - id: D
+      answer: 'HashMap immediately removes a key whenever a field affecting hashCode changes'
+      explanation: 'Incorrect: Map does not automatically remove a key because an internal field changes.'
+    correctAnswerId: A
+  - question: 'Does an immutable object guarantee atomicity of an entire multithreaded workflow?'
+    readmeRelated:
+      anchorList:
+      - object-005
+      - object-007
+      - design-pitfalls-008
+      - testing-003
+    answers:
+    - id: A
+      answer: 'Immutability automatically makes every reference to the object volatile'
+      explanation: 'Incorrect: object immutability does not automatically add volatile semantics to reference variables.'
+    - id: B
+      answer: 'Immutability helps share state safely, but multi-step operations still require coordination'
+      explanation: 'Correct: immutable state is easier to share, but workflows requiring multiple coordinated operations can still have races and interleavings.'
+    - id: C
+      answer: 'Immutability guarantees that reads and writes across multiple objects cannot interleave'
+      explanation: 'Incorrect: multi-step workflows involving reads and writes can still interleave across threads.'
+    - id: D
+      answer: 'Immutability makes every operation involving multiple objects atomic automatically'
+      explanation: 'Incorrect: immutability of individual objects does not make an entire sequence across objects atomic.'
+    correctAnswerId: B
+- groupID: 4
+  groupName: 'Abstraction, Interfaces, and API Contracts'
+  questions:
+  - question: 'How does abstraction help clients?'
+    readmeRelated:
+      anchorList:
+      - abstraction-003
+      - interface-001
+      - interface-003
+      - solid-006
+    answers:
+    - id: A
+      answer: 'Clients inherit implementations to access all internal fields directly'
+      explanation: 'Incorrect: inheriting implementations to read internal fields directly increases coupling to implementation details.'
+    - id: B
+      answer: 'Clients use runtime type checks instead of relying on shared contractual behavior'
+      explanation: 'Incorrect: scattered runtime type checks create dependencies on subtypes rather than using the contract.'
+    - id: C
+      answer: 'Clients receive the complete object graph and decide every processing step themselves'
+      explanation: 'Incorrect: exposing the entire object graph makes clients aware of more details than necessary.'
+    - id: D
+      answer: 'Clients work through contracts and depend less on implementation details'
+      explanation: 'Correct: abstraction lets clients depend on stable contracts rather than internal layouts and processing.'
+    correctAnswerId: D
+  - question: 'What is a method precondition?'
+    readmeRelated:
+      anchorList:
+      - abstraction-004
+      - language-mechanics-008
+      - testing-001
+    answers:
+    - id: A
+      answer: 'A condition the caller must satisfy before an operation is executed'
+      explanation: 'Correct: a precondition specifies a requirement that must hold when an operation is called.'
+    - id: B
+      answer: 'A condition that must hold for the object throughout its entire lifetime'
+      explanation: 'Incorrect: a condition maintained throughout an object''s lifetime is an invariant, not an operation''s precondition.'
+    - id: C
+      answer: 'A condition the method guarantees after running even if the caller did not satisfy it beforehand'
+      explanation: 'Incorrect: a precondition is not a promise that a method creates a valid state after being called with invalid input.'
+    - id: D
+      answer: 'A condition the result must satisfy after the operation completes normally'
+      explanation: 'Incorrect: a condition that holds after a method finishes is a postcondition, not a precondition.'
+    correctAnswerId: A
+  - question: 'When is an interface generally more appropriate than an abstract class?'
+    readmeRelated:
+      anchorList:
+      - abstraction-005
+      - interface-005
+      - polymorphism-002
+      - composition-004
+    answers:
+    - id: A
+      answer: 'When a class must inherit only one fixed set of implementations'
+      explanation: 'Incorrect: restricting a class to one inherited implementation is not the purpose of an interface that separates roles.'
+    - id: B
+      answer: 'When all subclasses need shared instance state and a constructor'
+      explanation: 'Incorrect: an abstract class is usually more suitable than an interface for sharing instance state and construction logic.'
+    - id: C
+      answer: 'When classes from different inheritance branches implement the same role'
+      explanation: 'Correct: an interface fits when classes from different hierarchies fulfill the same role or contract.'
+    - id: D
+      answer: 'When subclasses must share a skeleton algorithm with multiple hooks'
+      explanation: 'Incorrect: a skeleton algorithm with inherited hooks is characteristic of Template Method and abstract classes.'
+    correctAnswerId: C
+  - question: 'What indicates a violation of the Interface Segregation Principle?'
+    readmeRelated:
+      anchorList:
+      - interface-006
+      - polymorphism-008
+      - solid-005
+      - design-pitfalls-006
+    answers:
+    - id: A
+      answer: 'An interface has many implementations but clients use only the parts they need'
+      explanation: 'Incorrect: multiple implementations and clients depending on appropriately small contracts do not themselves establish an ISP violation.'
+    - id: B
+      answer: 'An interface uses generics to define the same operation for different data types'
+      explanation: 'Incorrect: generics express type-safe operations; they do not determine whether an interface has too many responsibilities.'
+    - id: C
+      answer: 'An interface separates small roles so clients depend only on relevant contracts'
+      explanation: 'Incorrect: small role-specific interfaces are often exactly how ISP is satisfied.'
+    - id: D
+      answer: 'Clients must depend on unused methods and classes must support unnecessary operations'
+      explanation: 'Correct: ISP is violated when clients depend on methods they do not use and implementations must pretend to support unnecessary operations.'
+    correctAnswerId: D
+  - question: 'What happens if a class implements two interfaces with conflicting default methods of the same signature?'
+    readmeRelated:
+      anchorList:
+      - interface-007
+      - inheritance-008
+      - polymorphism-006
+    answers:
+    - id: A
+      answer: 'Runtime selects a default method based on the variable''s reference type'
+      explanation: 'Incorrect: the reference type at runtime does not resolve competing default methods.'
+    - id: B
+      answer: 'The class may inherit both default implementations without resolving the conflict'
+      explanation: 'Incorrect: Java produces a compilation error unless the class explicitly resolves the conflicting default methods.'
+    - id: C
+      answer: 'The class must override the method to resolve the conflicting defaults'
+      explanation: 'Correct: the class must override the method to disambiguate two default methods when neither takes precedence.'
+    - id: D
+      answer: 'The compiler picks the default from the first interface in the implements list'
+      explanation: 'Incorrect: the order of interface names in implements does not determine which conflicting default method wins.'
+    correctAnswerId: C
+  - question: 'What is a symptom of a leaky abstraction?'
+    readmeRelated:
+      anchorList:
+      - abstraction-008
+      - interface-009
+      - class-design-004
+    answers:
+    - id: A
+      answer: 'Clients configure a persistence adapter at the application''s composition root'
+      explanation: 'Incorrect: selecting adapters at the composition root keeps clients from needing to know persistence details directly.'
+    - id: B
+      answer: 'Clients receive domain view models without persistence-layer entities'
+      explanation: 'Incorrect: view models that exclude persistence entities usually reduce the exposure of ORM details.'
+    - id: C
+      answer: 'Clients receive only domain exceptions translated according to the application contract'
+      explanation: 'Incorrect: translating storage errors into domain exceptions appropriately hides persistence details.'
+    - id: D
+      answer: 'Clients must handle SQLException or lazy loading from the persistence layer'
+      explanation: 'Correct: leaking SQLException or lazy-loading behavior through a business API makes clients depend on persistence implementation details.'
+    correctAnswerId: D
+- groupID: 5
+  groupName: 'Inheritance, Subtyping, and Polymorphism'
+  questions:
+  - question: 'Does inheriting an implementation automatically prove a valid is-a relationship?'
+    readmeRelated:
+      anchorList:
+      - subtyping-001
+      - subtyping-002
+      - solid-004
+      - design-pitfalls-004
+      - testing-005
+    answers:
+    - id: A
+      answer: 'The extends relationship automatically preserves every base-class precondition'
+      explanation: 'Incorrect: the compiler checks the types used with extends, not every precondition or behavior.'
+    - id: B
+      answer: 'Using extends proves all observable results are compatible'
+      explanation: 'Incorrect: inheritance syntax cannot prove that every observable result is compatible between the base and subtype.'
+    - id: C
+      answer: 'A subclass is substitutable as long as it has enough public methods, regardless of behavior contracts'
+      explanation: 'Incorrect: having the required public methods does not guarantee the base class''s semantic contracts, postconditions, or invariants.'
+    - id: D
+      answer: 'The subclass must also be behaviorally substitutable for its superclass'
+      explanation: 'Correct: extends does not prove LSP; subclass behavior must still satisfy the expectations of clients using the base type.'
+    correctAnswerId: D
+  - question: 'What is the risk of strengthening a precondition in a subclass?'
+    readmeRelated:
+      anchorList:
+      - abstraction-004
+      - subtyping-007
+      - solid-004
+      - testing-005
+    answers:
+    - id: A
+      answer: 'Clients automatically change their calling conditions based on the runtime object type'
+      explanation: 'Incorrect: clients written against the base type need not know the actual subtype and do not automatically adjust preconditions.'
+    - id: B
+      answer: 'The subclass accepts more valid inputs, so clients are unaffected'
+      explanation: 'Incorrect: stronger preconditions narrow the accepted input set rather than expand it.'
+    - id: C
+      answer: 'A call valid for the base class may be rejected by the subclass because of stricter conditions'
+      explanation: 'Correct: strengthening preconditions can cause a subtype to reject calls valid under the base contract, violating substitutability.'
+    - id: D
+      answer: 'Weakening a precondition automatically weakens the postconditions accordingly'
+      explanation: 'Incorrect: weakening preconditions does not automatically weaken postconditions; these are separate contract obligations.'
+    correctAnswerId: C
+  - question: 'What indicates that a subclass breaks its superclass contract?'
+    readmeRelated:
+      anchorList:
+      - subtyping-007
+      - solid-004
+      - design-pitfalls-004
+      - testing-005
+    answers:
+    - id: A
+      answer: 'The subclass returns a valid subtype when overriding a superclass method'
+      explanation: 'Incorrect: a valid covariant return does not remove behavior promised by the contract.'
+    - id: B
+      answer: 'The subclass rejects an operation promised by the base type by throwing UnsupportedOperationException'
+      explanation: 'Correct: throwing UnsupportedOperationException for an operation the base type promises shows that the subclass is not substitutable.'
+    - id: C
+      answer: 'The subclass adds a method supporting a new operation outside the superclass contract'
+      explanation: 'Incorrect: adding methods does not affect obligations to support operations already promised by the base class.'
+    - id: D
+      answer: 'The subclass constructor requires its own configuration before an object can be created'
+      explanation: 'Incorrect: a specialized constructor can be valid if the resulting object still satisfies the base contract.'
+    correctAnswerId: B
+  - question: 'How is runtime polymorphism implemented in Java?'
+    readmeRelated:
+      anchorList:
+      - inheritance-004
+      - subtyping-004
+      - polymorphism-003
+      - polymorphism-004
+    answers:
+    - id: A
+      answer: 'Calls to overridden instance methods are dispatched based on the actual object type'
+      explanation: 'Correct: overridden instance methods use virtual dispatch according to the receiver''s actual class.'
+    - id: B
+      answer: 'Overloads are always chosen using the runtime types of arguments'
+      explanation: 'Incorrect: overload resolution occurs at compile time using static types, not runtime argument types.'
+    - id: C
+      answer: 'Static methods dispatch based on the runtime object type, just like instance methods'
+      explanation: 'Incorrect: static methods do not use virtual dispatch; hiding is resolved by reference type or static qualification.'
+    - id: D
+      answer: 'Constructors are dynamically chosen based on the reference holding the created object'
+      explanation: 'Incorrect: constructor selection happens during object creation, not through polymorphic dispatch on a reference.'
+    correctAnswerId: A
+  - question: 'Given overloads foo(Object) and foo(String), which is called when an argument is declared Object but holds a String?'
+    readmeRelated:
+      anchorList:
+      - subtyping-004
+      - polymorphism-003
+      - polymorphism-005
+      - language-mechanics-004
+    answers:
+    - id: A
+      answer: 'Both foo(Object) and foo(String) are invoked in order of specificity'
+      explanation: 'Incorrect: one overloaded call selects a single applicable signature; it does not invoke both versions automatically.'
+    - id: B
+      answer: 'foo(String), because the JVM selects overloads based on the contained String object'
+      explanation: 'Incorrect: a String runtime type does not change the overload selected by the compiler for a variable declared Object.'
+    - id: C
+      answer: 'foo(Object), because overload resolution uses the argument''s declared Object type'
+      explanation: 'Correct: when a variable is declared Object, the compiler selects foo(Object) even if it holds a String at runtime.'
+    - id: D
+      answer: 'The call is ambiguous because the compiler cannot determine the argument''s declared type'
+      explanation: 'Incorrect: the variable''s Object type is known at compile time, so foo(Object) is unambiguous.'
+    correctAnswerId: C
+  - question: 'How is a static method with the same signature in a subclass handled?'
+    readmeRelated:
+      anchorList:
+      - class-003
+      - inheritance-007
+      - polymorphism-006
+    answers:
+    - id: A
+      answer: 'The compiler makes the subclass static method abstract to resolve it'
+      explanation: 'Incorrect: the compiler does not automatically turn a subclass static method into an abstract method.'
+    - id: B
+      answer: 'It is method hiding, selected by reference type rather than virtual dispatch'
+      explanation: 'Correct: a static method with the same signature hides the other method; selection depends on the reference type or static call.'
+    - id: C
+      answer: 'It is instance overriding, dispatched by the actual runtime object type'
+      explanation: 'Incorrect: static methods do not override virtually like instance methods, so the runtime object does not determine the call.'
+    - id: D
+      answer: 'The two static methods are merged automatically into one shared method'
+      explanation: 'Incorrect: each class has its own static method; they are not automatically combined into one implementation.'
+    correctAnswerId: B
+  - question: 'Can a private superclass method be overridden through virtual dispatch?'
+    readmeRelated:
+      anchorList:
+      - inheritance-007
+      - polymorphism-006
+      - polymorphism-007
+    answers:
+    - id: A
+      answer: 'Yes; adding @Override to a subclass method makes the private method overridable'
+      explanation: 'Incorrect: @Override cannot make a private superclass method eligible for overriding.'
+    - id: B
+      answer: 'Yes; the JVM dispatches private methods according to the subclass object type'
+      explanation: 'Incorrect: private methods are invoked in their declaring context and are not virtually dispatched to subclass versions.'
+    - id: C
+      answer: 'Yes; any same-named subclass method always overrides, regardless of the original visibility'
+      explanation: 'Incorrect: matching names are insufficient; a private superclass method does not participate in valid overriding.'
+    - id: D
+      answer: 'No; private superclass methods do not participate in virtual dispatch'
+      explanation: 'Correct: private superclass methods are not inherited as overridable virtual methods.'
+    correctAnswerId: D
+  - question: 'What does a covariant return type mean when overriding?'
+    readmeRelated:
+      anchorList:
+      - inheritance-004
+      - subtyping-007
+      - polymorphism-005
+    answers:
+    - id: A
+      answer: 'An overriding method can return a compatible subtype of the declared reference return type'
+      explanation: 'Correct: overriding can narrow the reference return type to a subtype under covariant return rules.'
+    - id: B
+      answer: 'The override can return any primitive type if the method name matches'
+      explanation: 'Incorrect: changing the return type to an arbitrary primitive violates Java overriding rules.'
+    - id: C
+      answer: 'The override can return a broader supertype than the original method'
+      explanation: 'Incorrect: a broader return type can violate the type promised to clients.'
+    - id: D
+      answer: 'The override must change the return type to Object to maintain polymorphism'
+      explanation: 'Incorrect: there is no requirement to return Object; covariance permits a narrower type.'
+    correctAnswerId: A
+  - question: 'Why can inheriting merely to reuse a few methods be dangerous?'
+    readmeRelated:
+      anchorList:
+      - inheritance-010
+      - subtyping-001
+      - composition-004
+      - design-pitfalls-004
+      - refactoring-007
+    answers:
+    - id: A
+      answer: 'The subclass automatically isolates superclass changes, making contracts less affected'
+      explanation: 'Incorrect: changes to the superclass can affect inherited subclass behavior; isolation is not automatic.'
+    - id: B
+      answer: 'The subclass becomes coupled to the superclass implementation and may violate is-a semantics'
+      explanation: 'Correct: borrowing methods through inheritance couples the subclass to its superclass and may falsely imply an is-a relationship.'
+    - id: C
+      answer: 'Inheritance is always faster than composition when reusing only a few methods'
+      explanation: 'Incorrect: inheritance does not inherently outperform composition; consider measurement and design.'
+    - id: D
+      answer: 'The subclass reduces coupling because all dependencies move to the superclass'
+      explanation: 'Incorrect: moving dependencies into a superclass often increases coupling rather than reducing it.'
+    correctAnswerId: B
+  - question: 'When clients repeatedly branch with instanceof to select subtype-specific behavior, what is an appropriate direction?'
+    readmeRelated:
+      anchorList:
+      - polymorphism-009
+      - design-patterns-008
+      - design-pitfalls-005
+      - refactoring-006
+    answers:
+    - id: A
+      answer: 'Move the behavior into subtypes or a Strategy so clients invoke a common contract'
+      explanation: 'Correct: placing behavior in subtypes or strategies lets clients call a contract instead of classifying types themselves.'
+    - id: B
+      answer: 'Replace instanceof with string comparisons on class names'
+      explanation: 'Incorrect: comparing class-name strings still depends on subtypes and breaks easily when names change.'
+    - id: C
+      answer: 'Copy instanceof branches into every client for local handling'
+      explanation: 'Incorrect: duplicating instanceof across clients scatters subtype logic and makes extension difficult.'
+    - id: D
+      answer: 'Move every instanceof branch to one utility while clients remain dependent on types'
+      explanation: 'Incorrect: a utility may reduce duplication but does not eliminate type coupling if clients still make subtype decisions.'
+    correctAnswerId: A
+  - question: 'When can instanceof be acceptable?'
+    readmeRelated:
+      anchorList:
+      - subtyping-006
+      - polymorphism-009
+      - design-pitfalls-005
+    answers:
+    - id: A
+      answer: 'In every business client to select all behavior based on object type'
+      explanation: 'Incorrect: scattering instanceof through clients hard-codes behavior and reduces the benefits of polymorphism.'
+    - id: B
+      answer: 'At data boundaries or for a closed set of types, when checks are deliberate and centralized'
+      explanation: 'Correct: type checks can be appropriate at data boundaries or for closed type sets when managed centrally.'
+    - id: C
+      answer: 'Only when the class is final, regardless of its usage context'
+      explanation: 'Incorrect: final is neither necessary nor sufficient for instanceof to be appropriate.'
+    - id: D
+      answer: 'Wherever there is an interface, because instanceof is equivalent to virtual dispatch'
+      explanation: 'Incorrect: instanceof performs a type check; it is not equivalent to invoking a virtual method through an interface.'
+    correctAnswerId: B
+- groupID: 6
+  groupName: 'Composition, Delegation, and Object Relationships'
+  questions:
+  - question: 'How does composition make a design more flexible than inheritance?'
+    readmeRelated:
+      anchorList:
+      - inheritance-010
+      - composition-001
+      - composition-004
+      - composition-005
+      - refactoring-007
+    answers:
+    - id: A
+      answer: 'It lets a class modify superclass implementations whenever a new variation is needed'
+      explanation: 'Incorrect: composition does not require modifying superclass implementations to introduce new variations.'
+    - id: B
+      answer: 'It forces every collaborator to inherit the same superclass to reuse shared state'
+      explanation: 'Incorrect: collaborators need not share a superclass as long as they satisfy suitable interfaces or contracts.'
+    - id: C
+      answer: 'It converts all collaborator behavior into directly invoked static methods'
+      explanation: 'Incorrect: turning behavior into static methods removes the ability to replace a collaborator with another instance.'
+    - id: D
+      answer: 'It replaces collaborators through contracts without binding to a parent-class implementation'
+      explanation: 'Correct: composition selects and replaces collaborating objects through contracts without being tied to superclass implementations.'
+    correctAnswerId: D
+  - question: 'What does delegation mean?'
+    readmeRelated:
+      anchorList:
+      - oop-basic-004
+      - composition-003
+      - modeling-003
+    answers:
+    - id: A
+      answer: 'An object creates a subclass at runtime to replace most existing behavior'
+      explanation: 'Incorrect: creating a runtime subclass to replace behavior is a different mechanism from forwarding work to a dependency.'
+    - id: B
+      answer: 'An object transfers all ownership of state to a static utility class'
+      explanation: 'Incorrect: moving state to a static utility is not the same as delegating behavior to a collaborator with a contract.'
+    - id: C
+      answer: 'An object assigns an appropriate part of its work to a collaborator through a method call'
+      explanation: 'Correct: delegation means an object hands off part of the processing to a suitable collaborating object.'
+    - id: D
+      answer: 'An object asks its parent class to execute every overridden method again'
+      explanation: 'Incorrect: invoking parent methods is inheritance-based reuse, not delegation in its basic sense.'
+    correctAnswerId: C
+  - question: 'What does UML composition primarily express?'
+    readmeRelated:
+      anchorList:
+      - composition-007
+      - relationships-003
+      - modeling-005
+    answers:
+    - id: A
+      answer: 'Strong ownership and a logical lifecycle relationship between a whole and its parts'
+      explanation: 'Correct: UML composition expresses strong ownership and the logical lifecycle of parts relative to their whole.'
+    - id: B
+      answer: 'Parts are allocated and garbage-collected at the same time as the whole'
+      explanation: 'Incorrect: logical lifecycles do not require the JVM to allocate and reclaim both objects simultaneously.'
+    - id: C
+      answer: 'Loose references between independently existing parts and the whole'
+      explanation: 'Incorrect: parts that exist completely independently with only loose references are generally closer to aggregation or association.'
+    - id: D
+      answer: 'A subtype relationship between the whole and its concrete component classes'
+      explanation: 'Incorrect: composition is a whole?part relationship, not subtyping or class inheritance.'
+    correctAnswerId: A
+  - question: 'What common problem arises with bidirectional Parent-Child relationships?'
+    readmeRelated:
+      anchorList:
+      - relationships-006
+      - modeling-006
+      - testing-010
+    answers:
+    - id: A
+      answer: 'Both sides synchronize automatically because the objects reference each other'
+      explanation: 'Incorrect: two-way references do not make Java automatically update fields at the opposite end.'
+    - id: B
+      answer: 'The two sides may become inconsistent if code updates only one direction'
+      explanation: 'Correct: both ends of an association can become inconsistent if only the parent or child is updated.'
+    - id: C
+      answer: 'The JVM checks the integrity of every bidirectional relationship when fields are written'
+      explanation: 'Incorrect: the JVM does not automatically enforce business-object association integrity when writing fields.'
+    - id: D
+      answer: 'Both sides must use a List to guarantee data synchronization'
+      explanation: 'Incorrect: List is only a collection and does not automatically synchronize both sides of an association.'
+    correctAnswerId: B
+  - question: 'What problem do cyclic dependencies between modules commonly cause?'
+    readmeRelated:
+      anchorList:
+      - relationships-007
+      - design-pitfalls-007
+      - solid-006
+    answers:
+    - id: A
+      answer: 'Dependency cycles simplify configuration by giving modules a shared lifecycle'
+      explanation: 'Incorrect: dependency cycles usually complicate lifecycles rather than inherently simplify configuration.'
+    - id: B
+      answer: 'They make dependency direction, initialization, and isolated module testing difficult'
+      explanation: 'Correct: dependency cycles interfere with managing dependency direction, module initialization, and independent tests.'
+    - id: C
+      answer: 'Dependency cycles only cause compile errors and do not affect independent testing'
+      explanation: 'Incorrect: even when code compiles, cycles can still affect integration and the ability to test modules independently.'
+    - id: D
+      answer: 'Dependency cycles require all modules to use the same transaction manager'
+      explanation: 'Incorrect: a code dependency cycle does not require modules to share a transaction manager.'
+    correctAnswerId: B
+  - question: 'What design risk does the chain order.getCustomer().getAddress().getCountry() create?'
+    readmeRelated:
+      anchorList:
+      - composition-003
+      - class-design-009
+      - design-pitfalls-007
+    answers:
+    - id: A
+      answer: 'Multiple getter levels protect clients from structural changes'
+      explanation: 'Incorrect: traversing many getter layers propagates changes in deep structures to clients instead of protecting them.'
+    - id: B
+      answer: 'Clients cannot call chained getters when an object uses encapsulation'
+      explanation: 'Incorrect: encapsulation does not prohibit chained getter calls; the risk is excessive structural dependency.'
+    - id: C
+      answer: 'Each getter may copy an object, automatically increasing allocations'
+      explanation: 'Incorrect: getter calls do not inherently create new objects for each dot in an expression.'
+    - id: D
+      answer: 'Clients know too much about the object graph and break when internal structures change'
+      explanation: 'Correct: chains of getters across layers couple clients to the structure of an internal object graph.'
+    correctAnswerId: D
+- groupID: 7
+  groupName: 'SOLID, Cohesion, Coupling, and Responsibility Design'
+  questions:
+  - question: 'How does Dependency Injection differ from DIP?'
+    readmeRelated:
+      anchorList:
+      - composition-006
+      - solid-007
+      - solid-006
+    answers:
+    - id: A
+      answer: 'DI is the principle of using interfaces only; DIP is a framework that automatically injects objects'
+      explanation: 'Incorrect: DI is not a principle requiring interfaces only, and DIP is not an object-injection framework.'
+    - id: B
+      answer: 'DI automatically guarantees module boundaries; DIP only determines object lifecycles'
+      explanation: 'Incorrect: injecting dependencies does not by itself enforce module boundaries, and DIP is not an object lifecycle principle.'
+    - id: C
+      answer: 'DI is a technique for supplying dependencies; DIP directs dependencies toward abstractions'
+      explanation: 'Correct: DI is a technique for providing dependencies; DIP is the principle that policies should depend on abstractions rather than implementation details.'
+    - id: D
+      answer: 'DI is a Spring mechanism; DIP is a Spring bean-configuration annotation'
+      explanation: 'Incorrect: DI is not exclusive to Spring, and DIP is not an annotation for configuring beans.'
+    correctAnswerId: C
+  - question: 'How should the Single Responsibility Principle be interpreted?'
+    readmeRelated:
+      anchorList:
+      - class-design-001
+      - class-design-002
+      - solid-002
+    answers:
+    - id: A
+      answer: 'A class should have one coherent reason to change related to its responsibility'
+      explanation: 'Correct: SRP concerns one coherent reason to change based on responsibility, not a count of class members.'
+    - id: B
+      answer: 'A class must contain only one public method to retain a single responsibility'
+      explanation: 'Incorrect: multiple methods can implement one responsibility; one method is not an SRP criterion.'
+    - id: C
+      answer: 'A class may contain only one state field to keep its responsibility independent'
+      explanation: 'Incorrect: field count does not determine responsibilities or which actors may require changes to the class.'
+    - id: D
+      answer: 'A class must access exactly one table to avoid multiple sources of change'
+      explanation: 'Incorrect: accessing several tables may serve one responsibility, and one table may support many responsibilities.'
+    correctAnswerId: A
+  - question: 'How does the Open/Closed Principle apply when genuine variations exist?'
+    readmeRelated:
+      anchorList:
+      - polymorphism-009
+      - solid-003
+      - design-patterns-008
+      - refactoring-006
+    answers:
+    - id: A
+      answer: 'Expose public fields so clients can change behavior through external state'
+      explanation: 'Incorrect: allowing clients to modify public fields exposes representations, rather than providing controlled extension points.'
+    - id: B
+      answer: 'Extend behavior through appropriate contracts while minimizing changes to stable core logic'
+      explanation: 'Correct: OCP encourages extension through appropriate contracts instead of repeatedly changing stable core logic.'
+    - id: C
+      answer: 'Duplicate core logic in several classes and modify each copy for different variants'
+      explanation: 'Incorrect: duplicating core logic creates versions that can diverge and increases maintenance costs.'
+    - id: D
+      answer: 'Add another conditional branch to the core for every new variation'
+      explanation: 'Incorrect: adding a branch to the same core for every variation forces repeated edits and reduces closure against modification.'
+    correctAnswerId: B
+  - question: 'What does the Dependency Inversion Principle primarily require?'
+    readmeRelated:
+      anchorList:
+      - interface-003
+      - class-design-004
+      - solid-006
+    answers:
+    - id: A
+      answer: 'High-level policies call concrete adapters, while adapters know nothing about policies'
+      explanation: 'Incorrect: making policies import concrete adapters reverses the dependency direction intended by DIP.'
+    - id: B
+      answer: 'High-level policies depend on abstractions, and detailed implementations fulfill those contracts'
+      explanation: 'Correct: DIP makes high-level policies depend on abstractions while low-level adapters implement their contracts.'
+    - id: C
+      answer: 'High-level policies must use an IoC container to instantiate every dependency'
+      explanation: 'Incorrect: an IoC container is a construction technique, not a replacement for dependency inversion.'
+    - id: D
+      answer: 'High-level policies rely on framework annotations instead of contracts'
+      explanation: 'Incorrect: framework annotations are implementation details, not independent contracts for policies.'
+    correctAnswerId: B
+  - question: 'Is an interface with only one implementation necessarily redundant?'
+    readmeRelated:
+      anchorList:
+      - abstraction-007
+      - interface-003
+      - polymorphism-002
+      - solid-008
+      - testing-007
+    answers:
+    - id: A
+      answer: 'Not necessarily; consider the boundary, contract, and realistic substitution needs'
+      explanation: 'Correct: a single-implementation interface can still be useful when it establishes a meaningful boundary and substitution contract.'
+    - id: B
+      answer: 'No; every class must have an interface to satisfy DIP'
+      explanation: 'Incorrect: DIP does not require an interface for every class; abstractions belong at useful boundaries.'
+    - id: C
+      answer: 'Yes; an interface only matters when two classes already implement it'
+      explanation: 'Incorrect: an interface does not require at least two implementations when first designed.'
+    - id: D
+      answer: 'Yes; one implementation proves its contract has no design value'
+      explanation: 'Incorrect: implementation count alone does not prove that a contract lacks value.'
+    correctAnswerId: A
+  - question: 'What should be considered if applying SOLID creates many unhelpful layers?'
+    readmeRelated:
+      anchorList:
+      - oop-basic-008
+      - abstraction-007
+      - solid-008
+      - design-patterns-013
+      - refactoring-008
+    answers:
+    - id: A
+      answer: 'Keep splitting layers until each method has its own interface'
+      explanation: 'Incorrect: one interface per method often complicates a design without adding substitutability.'
+    - id: B
+      answer: 'Add factories and adapters around every class for consistency'
+      explanation: 'Incorrect: creating factories and adapters around every class can add ceremony and indirection without benefits.'
+    - id: C
+      answer: 'Choose whether to split layers by counting implemented design patterns'
+      explanation: 'Incorrect: pattern counts do not directly indicate the need for abstraction or design quality.'
+    - id: D
+      answer: 'Apply KISS and YAGNI and examine real changes before adding abstractions'
+      explanation: 'Correct: KISS and YAGNI encourage assessing actual change needs before introducing abstraction layers.'
+    correctAnswerId: D
+  - question: 'How do cohesion and coupling differ?'
+    readmeRelated:
+      anchorList:
+      - class-design-002
+      - class-design-003
+      - modeling-004
+      - solid-002
+    answers:
+    - id: A
+      answer: 'Cohesion measures dependencies between modules; coupling measures responsibilities within a class'
+      explanation: 'Incorrect: this reverses the definitions of cohesion and coupling.'
+    - id: B
+      answer: 'Cohesion increases as a class depends on more unrelated services'
+      explanation: 'Incorrect: more service dependencies usually increase coupling and do not prove stronger internal cohesion.'
+    - id: C
+      answer: 'Coupling mainly measures duplicated logic inside a class'
+      explanation: 'Incorrect: duplicated logic is a duplication problem; coupling concerns dependencies between software units.'
+    - id: D
+      answer: 'Cohesion measures how closely related internal responsibilities are; coupling measures dependencies between units'
+      explanation: 'Correct: cohesion indicates how closely members within a unit belong together, while coupling indicates how strongly units depend on one another.'
+    correctAnswerId: D
+  - question: 'Pricing logic is duplicated in Order, Invoice, and Report. How should it be improved?'
+    readmeRelated:
+      anchorList:
+      - class-design-001
+      - class-design-007
+      - modeling-003
+      - design-patterns-008
+      - testing-009
+      - refactoring-004
+    answers:
+    - id: A
+      answer: 'Extract only numeric constants and retain a separate calculation in each location'
+      explanation: 'Incorrect: extracting constants does not eliminate duplicated fee calculations, which may diverge across classes.'
+    - id: B
+      answer: 'Move the calculation to a controller so all callers can invoke that API directly'
+      explanation: 'Incorrect: a controller handles use cases and should not become the owner of shared fee rules.'
+    - id: C
+      answer: 'Consolidate the fee rule into a shared policy and test it at each use site'
+      explanation: 'Correct: a shared pricing policy provides one source of truth and can be tested where it is used.'
+    - id: D
+      answer: 'Keep the formula in every location and synchronize copies through periodic manual reviews'
+      explanation: 'Incorrect: multiple copies of the formula can still drift despite manual reviews.'
+    correctAnswerId: C
+  - question: 'What indicates a God Class?'
+    readmeRelated:
+      anchorList:
+      - class-design-002
+      - solid-002
+      - design-pitfalls-001
+      - refactoring-003
+    answers:
+    - id: A
+      answer: 'A class has many methods, all supporting one business responsibility'
+      explanation: 'Incorrect: many methods serving one responsibility do not by themselves make a God Class.'
+    - id: B
+      answer: 'A class manages multiple unrelated concerns and has many reasons to change'
+      explanation: 'Correct: a God Class carries multiple concerns and changes in response to different actors or requirements.'
+    - id: C
+      answer: 'A class uses many interface-based collaborators for a single use case'
+      explanation: 'Incorrect: many collaborators can be appropriate when they consistently support one use case.'
+    - id: D
+      answer: 'A class has many private fields but clearly maintains their shared invariants'
+      explanation: 'Incorrect: many fields may be necessary to protect a coherent business invariant.'
+    correctAnswerId: B
+- groupID: 8
+  groupName: 'Design Patterns and Choosing Solutions'
+  questions:
+  - question: 'What need does the Strategy Pattern address?'
+    readmeRelated:
+      anchorList:
+      - polymorphism-001
+      - polymorphism-009
+      - composition-005
+      - design-patterns-008
+      - refactoring-006
+    answers:
+    - id: A
+      answer: 'It fixes an algorithm skeleton in a superclass and overrides individual steps'
+      explanation: 'Incorrect: an algorithm skeleton with inherited overridable steps describes Template Method.'
+    - id: B
+      answer: 'It wraps an interface to control access to the same domain object'
+      explanation: 'Incorrect: wrapping an object to control access is a typical Proxy purpose.'
+    - id: C
+      answer: 'It replaces algorithms or policies through contracts and composition'
+      explanation: 'Correct: Strategy encapsulates interchangeable algorithms or policies behind a common contract.'
+    - id: D
+      answer: 'It translates an incompatible SDK interface into the application''s interface'
+      explanation: 'Incorrect: translating an incompatible SDK interface is the role of Adapter, not Strategy.'
+    correctAnswerId: C
+  - question: 'How do Factory Method and Abstract Factory differ?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-005
+      - design-patterns-002
+    answers:
+    - id: A
+      answer: 'Factory Method only returns singletons; Abstract Factory creates just one product'
+      explanation: 'Incorrect: Factory Method is not restricted to singletons, and Abstract Factory may create an entire family of products.'
+    - id: B
+      answer: 'Factory Method creates product families; Abstract Factory only replaces individual creation methods'
+      explanation: 'Incorrect: this reverses the main purposes of these two creational patterns.'
+    - id: C
+      answer: 'Factory Method requires composition; Abstract Factory requires static fields'
+      explanation: 'Incorrect: neither pattern is constrained to use only composition or static fields, respectively.'
+    - id: D
+      answer: 'Factory Method offers an extension point for creating a product; Abstract Factory creates families of related products'
+      explanation: 'Correct: Factory Method offers extensible product creation, while Abstract Factory creates groups of related products.'
+    correctAnswerId: D
+  - question: 'When is Builder most useful?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-005
+      - design-patterns-003
+      - testing-002
+    answers:
+    - id: A
+      answer: 'When many required or optional parameters must form a valid object readably'
+      explanation: 'Correct: Builder helps when numerous options and constraints require a clear, readable object construction process.'
+    - id: B
+      answer: 'When an already built object must become mutable so callers can change fields freely'
+      explanation: 'Incorrect: Builder aims to construct valid state, not primarily to make an object mutable after creation.'
+    - id: C
+      answer: 'When a simple object has two fields and no data constraints'
+      explanation: 'Incorrect: a very simple object does not inherently need Builder; a constructor or factory may suffice.'
+    - id: D
+      answer: 'When replacing every constructor with a runtime reflection framework'
+      explanation: 'Incorrect: Builder is not a reflection framework intended to replace all Java constructors.'
+    correctAnswerId: A
+  - question: 'What is the Adapter Pattern used for?'
+    readmeRelated:
+      anchorList:
+      - abstraction-008
+      - composition-003
+      - design-patterns-005
+    answers:
+    - id: A
+      answer: 'Wrapping an object to add logging while retaining its contract'
+      explanation: 'Incorrect: preserving the interface to add logging is more characteristic of Decorator than Adapter.'
+    - id: B
+      answer: 'Representing an object to control access, lazy loading, or remote invocation'
+      explanation: 'Incorrect: controlling access, laziness, and remote calls through a representative are Proxy responsibilities.'
+    - id: C
+      answer: 'Translating a dependency''s different contract into the interface required by the client'
+      explanation: 'Correct: Adapter converts a dependency interface into the contract the client expects.'
+    - id: D
+      answer: 'Providing a simple high-level API over multiple underlying subsystems'
+      explanation: 'Incorrect: simplifying access to multiple subsystems through a high-level API is the purpose of Facade.'
+    correctAnswerId: C
+  - question: 'What problem does the Facade Pattern solve?'
+    readmeRelated:
+      anchorList:
+      - composition-003
+      - design-patterns-007
+    answers:
+    - id: A
+      answer: 'It provides a simpler high-level API for a complex subsystem'
+      explanation: 'Correct: Facade provides a simplified entry point to multiple components inside a subsystem.'
+    - id: B
+      answer: 'It translates an incompatible SDK contract into the interface used by the client'
+      explanation: 'Incorrect: converting an SDK interface into the client''s interface is Adapter, not typically Facade.'
+    - id: C
+      answer: 'It encapsulates multiple algorithms so callers can swap them through one contract'
+      explanation: 'Incorrect: replacing algorithms through a contract is Strategy, not a high-level subsystem API.'
+    - id: D
+      answer: 'It wraps an object with the same contract to control access as a proxy'
+      explanation: 'Incorrect: controlling access through a representative object is Proxy, not Facade.'
+    correctAnswerId: A
+  - question: 'How do Decorator and Proxy differ in purpose?'
+    readmeRelated:
+      anchorList:
+      - composition-003
+      - design-patterns-006
+    answers:
+    - id: A
+      answer: 'Decorator translates interfaces; Proxy is used only to add logging'
+      explanation: 'Incorrect: Decorator usually preserves the contract, and Proxy is not limited to adding logging.'
+    - id: B
+      answer: 'Decorator represents remote access; Proxy always changes the client contract'
+      explanation: 'Incorrect: remote proxies belong to Proxy, while Decorator does not primarily change the client interface.'
+    - id: C
+      answer: 'Decorator adds behavior; Proxy represents an object and controls access to it'
+      explanation: 'Correct: Decorator adds behavior while wrapping an object; Proxy stands in for an object to control or mediate access.'
+    - id: D
+      answer: 'Decorator creates object families; Proxy changes the order of an algorithm in a superclass'
+      explanation: 'Incorrect: Abstract Factory creates product families, and rearranging algorithm steps does not define Proxy.'
+    correctAnswerId: C
+  - question: 'What must Observer handle to avoid listener leaks?'
+    readmeRelated:
+      anchorList:
+      - lifecycle-006
+      - design-patterns-010
+      - testing-010
+    answers:
+    - id: A
+      answer: 'Manage subscriptions and unsubscribe or close them at the appropriate lifecycle point'
+      explanation: 'Correct: subscriptions must be released or canceled with their lifecycles so unused listeners are not kept alive.'
+    - id: B
+      answer: 'Use weak references alone to manage all callbacks and their state'
+      explanation: 'Incorrect: weak references may help but do not replace all unsubscribe or lifecycle management.'
+    - id: C
+      answer: 'Emit events asynchronously so unused listeners are removed automatically'
+      explanation: 'Incorrect: asynchronous dispatch only changes how events are delivered; it does not unregister listeners.'
+    - id: D
+      answer: 'Store listeners in a static collection without unregistering them'
+      explanation: 'Incorrect: static collections can retain listeners indefinitely and cause memory leaks without unregistration.'
+    correctAnswerId: A
+  - question: 'What mechanism does Template Method typically use?'
+    readmeRelated:
+      anchorList:
+      - inheritance-003
+      - polymorphism-004
+      - design-patterns-011
+    answers:
+    - id: A
+      answer: 'A superclass defines the algorithm skeleton, and subclasses override steps or hooks'
+      explanation: 'Correct: Template Method defines a skeleton in the superclass and lets subclasses override supported hooks.'
+    - id: B
+      answer: 'Clients send requests as Commands and handlers choose processing steps'
+      explanation: 'Incorrect: Command encapsulates requests rather than providing a superclass-controlled sequence of overridden steps.'
+    - id: C
+      answer: 'A factory selects a product type and constructs the entire method workflow'
+      explanation: 'Incorrect: a factory selects how products are created; it does not define a shared processing algorithm template.'
+    - id: D
+      answer: 'A class coordinates independent algorithms using an injected Strategy'
+      explanation: 'Incorrect: replacing whole algorithms through collaborators is composition-based Strategy, not an inheritance-based fixed skeleton.'
+    correctAnswerId: A
+  - question: 'Is a Singleton automatically thread-safe?'
+    readmeRelated:
+      anchorList:
+      - design-patterns-004
+      - design-pitfalls-008
+      - testing-003
+    answers:
+    - id: A
+      answer: 'Yes; static initialization locks all methods after creating the instance'
+      explanation: 'Incorrect: static initialization safely creates the instance but does not automatically lock later method calls.'
+    - id: B
+      answer: 'Yes; having one instance means every thread instantly reads the same value'
+      explanation: 'Incorrect: a single instance does not guarantee visibility, ordering, or coordination between threads.'
+    - id: C
+      answer: 'No; shared mutable state still requires synchronization or careful ownership design'
+      explanation: 'Correct: a Singleton does not automatically make operations on shared mutable state atomic or thread-safe.'
+    - id: D
+      answer: 'Yes; a private constructor makes all operations on state atomic'
+      explanation: 'Incorrect: a private constructor restricts creation, not synchronization of state-changing methods.'
+    correctAnswerId: C
+  - question: 'For what purpose is the Command Pattern useful?'
+    readmeRelated:
+      anchorList:
+      - design-patterns-012
+    answers:
+    - id: A
+      answer: 'Encapsulating requests as objects for queues, scheduling, or undo/redo'
+      explanation: 'Correct: Command packages a request as an object for queues, scheduling, logging, or undo/redo under a contract.'
+    - id: B
+      answer: 'Automatically guaranteeing that all commands commit transactions synchronously'
+      explanation: 'Incorrect: Command itself does not guarantee transaction commits or database synchronization.'
+    - id: C
+      answer: 'Creating objects with a factory and sharing them among callers as singletons'
+      explanation: 'Incorrect: factories and singletons concern object creation and sharing, not the definition of request encapsulation.'
+    - id: D
+      answer: 'Encapsulating interchangeable algorithms through Strategy implementations'
+      explanation: 'Incorrect: Strategy encapsulates interchangeable algorithms; Command models a request to be executed.'
+    correctAnswerId: A
+- groupID: 9
+  groupName: 'Domain Modeling and Application Boundaries'
+  questions:
+  - question: 'When is a Domain Service appropriate?'
+    readmeRelated:
+      anchorList:
+      - class-design-006
+      - modeling-003
+      - solid-002
+    answers:
+    - id: A
+      answer: 'When a controller needs to convert HTTP requests into commands and response DTOs'
+      explanation: 'Incorrect: converting HTTP requests and responses belongs to an interface layer, controller, or mapper.'
+    - id: B
+      answer: 'When a rule only validates the format of external request data'
+      explanation: 'Incorrect: request-format checks are generally boundary validation, not a Domain Service responsibility.'
+    - id: C
+      answer: 'When a domain rule does not clearly belong to a single entity or value object'
+      explanation: 'Correct: a Domain Service suits domain rules that do not naturally belong to one entity or value object.'
+    - id: D
+      answer: 'When an operation only coordinates repositories and transactions for a use case'
+      explanation: 'Incorrect: coordinating repositories and use-case transactions is typically an Application Service responsibility.'
+    correctAnswerId: C
+  - question: 'Why should business rules not all reside in controllers?'
+    readmeRelated:
+      anchorList:
+      - encapsulation-008
+      - class-design-004
+      - class-design-007
+      - modeling-001
+    answers:
+    - id: A
+      answer: 'The JVM always invokes controllers after repositories, leaving no chance to validate'
+      explanation: 'Incorrect: the JVM does not require repositories to run before controllers; that is not how layer coordination works.'
+    - id: B
+      answer: 'Controllers cannot invoke domain methods in lower layers'
+      explanation: 'Incorrect: controllers can call domain methods; the issue is that they should not own all the business rules.'
+    - id: C
+      answer: 'Controllers run on only one thread and therefore cannot execute business logic'
+      explanation: 'Incorrect: controllers can serve many concurrent requests; this is not the main reason for separating business rules.'
+    - id: D
+      answer: 'Other consumers may bypass or duplicate rules when those rules exist only in controllers'
+      explanation: 'Correct: batch jobs and message consumers can bypass controllers, causing controller-only rules to be skipped or duplicated.'
+    correctAnswerId: D
+  - question: 'How should responsibilities be divided between Application Services and domain objects?'
+    readmeRelated:
+      anchorList:
+      - object-009
+      - class-design-004
+      - class-design-007
+      - modeling-003
+      - testing-010
+    answers:
+    - id: A
+      answer: 'Application Services handle entity internals, while the domain directly manages transactions'
+      explanation: 'Incorrect: transactions are usually coordinated at application boundaries; entities do not invoke controllers to manage transactions.'
+    - id: B
+      answer: 'Application Services maintain all invariants, while the domain only creates HTTP responses'
+      explanation: 'Incorrect: the domain must protect its invariants and should not be responsible for building HTTP responses.'
+    - id: C
+      answer: 'Application Services provide DTOs, while the domain calls controllers to return JSON'
+      explanation: 'Incorrect: the domain should not depend back on controllers or handle the HTTP layer''s JSON.'
+    - id: D
+      answer: 'Application Services orchestrate use cases, while domain objects maintain behavior and invariants'
+      explanation: 'Correct: Application Services coordinate use cases; domain objects own business behavior and invariants.'
+    correctAnswerId: D
+  - question: 'Why separate persistence models from domain models?'
+    readmeRelated:
+      anchorList:
+      - abstraction-008
+      - class-design-004
+      - modeling-009
+      - solid-006
+    answers:
+    - id: A
+      answer: 'To isolate the domain from DB/ORM constraints through mappers or persistence adapters'
+      explanation: 'Correct: mappers and adapters prevent the domain model from being directly dictated by ORM requirements or database schemas.'
+    - id: B
+      answer: 'To eliminate the domain''s responsibility for maintaining object invariants'
+      explanation: 'Incorrect: the domain must still protect invariants; separating models does not make it an empty data structure.'
+    - id: C
+      answer: 'To require each layer to maintain a separate database'
+      explanation: 'Incorrect: separate models do not require separate databases; both can represent the same underlying data.'
+    - id: D
+      answer: 'To require every domain entity to inherit directly from a JPA entity'
+      explanation: 'Incorrect: domain entities need not be JPA entities; the purpose is to reduce persistence coupling.'
+    correctAnswerId: A
+  - question: 'Is a DTO for simple CRUD necessarily a bad design?'
+    readmeRelated:
+      anchorList:
+      - oop-basic-008
+      - abstraction-007
+      - class-design-007
+      - design-patterns-013
+    answers:
+    - id: A
+      answer: 'Yes; every CRUD operation requires an aggregate root with many invariants'
+      explanation: 'Incorrect: simple CRUD does not inherently require an aggregate root with many invariants.'
+    - id: B
+      answer: 'No; DTOs should eventually replace all domain entities entirely'
+      explanation: 'Incorrect: DTOs do not fully replace domain entities when complex business rules emerge.'
+    - id: C
+      answer: 'Yes; every DTO must contain all domain behavior before it is used'
+      explanation: 'Incorrect: a DTO transports data and need not contain all domain behavior.'
+    - id: D
+      answer: 'No; simple data models can suit CRUD with few business rules'
+      explanation: 'Correct: when CRUD involves few rules, DTOs or simple data models can be appropriate.'
+    correctAnswerId: D
+  - question: 'How should lost updates be prevented when two requests write the same record?'
+    readmeRelated:
+      anchorList:
+      - design-pitfalls-008
+      - testing-003
+      - practice-010
+    answers:
+    - id: A
+      answer: 'Use optimistic versioning or a checked conditional update within a transaction'
+      explanation: 'Correct: version checks or conditional updates within transactions help detect conflicting writes from concurrent updates.'
+    - id: B
+      answer: 'Use synchronized in a controller on one node without locking other nodes'
+      explanation: 'Incorrect: synchronized on one node does not protect requests executing on other nodes in a distributed system.'
+    - id: C
+      answer: 'Put status in a static field and sync it back to the database after each request'
+      explanation: 'Incorrect: static fields do not make database record updates safe or consistent.'
+    - id: D
+      answer: 'Only use @Transactional with default isolation and no version checks'
+      explanation: 'Incorrect: @Transactional with default isolation does not always prevent lost updates without checking write conditions.'
+    correctAnswerId: A
+- groupID: 10
+  groupName: 'Testing and Test Doubles'
+  questions:
+  - question: 'What should be used to test multiple implementations of an interface against the same contract?'
+    readmeRelated:
+      anchorList:
+      - abstraction-004
+      - interface-008
+      - testing-004
+      - testing-005
+    answers:
+    - id: A
+      answer: 'Check only type signatures instead of running behavioral tests'
+      explanation: 'Incorrect: type signatures verify only API shape, not semantics or error behavior.'
+    - id: B
+      answer: 'Run the same contract tests against every implementation, including success and failure cases'
+      explanation: 'Correct: shared contract tests check both success and failure behavior for every implementation to verify substitutability.'
+    - id: C
+      answer: 'Unit-test only the first implementation and assume all other classes comply'
+      explanation: 'Incorrect: testing one implementation does not prove that the others uphold the same contract.'
+    - id: D
+      answer: 'Use a separate mock for each implementation and skip failure scenarios'
+      explanation: 'Incorrect: class-specific mocks can obscure whether each real implementation satisfies the common contract.'
+    correctAnswerId: B
+  - question: 'How do stubs and mocks differ in their testing purposes?'
+    readmeRelated:
+      anchorList:
+      - testing-006
+    answers:
+    - id: A
+      answer: 'Stubs verify calls, while mocks mainly provide fixed data to continue execution'
+      explanation: 'Incorrect: this reverses the typical roles of stubs and mocks.'
+    - id: B
+      answer: 'Stubs implement full business logic, while mocks always store data in memory'
+      explanation: 'Incorrect: fakes often provide working implementations such as in-memory repositories; mocks do not inherently store data.'
+    - id: C
+      answer: 'Stubs replace real databases, while mocks only work with HTTP network requests'
+      explanation: 'Incorrect: stubs and mocks are not restricted to databases or HTTP; they are techniques for replacing dependencies.'
+    - id: D
+      answer: 'Stubs return predetermined data, while mocks verify expected object interactions'
+      explanation: 'Correct: stubs supply predetermined responses; mocks typically verify that expected interactions occurred.'
+    correctAnswerId: D
+  - question: 'What is a fake in testing?'
+    readmeRelated:
+      anchorList:
+      - testing-006
+      - testing-007
+    answers:
+    - id: A
+      answer: 'An object that records call counts to assert a caller''s internal interactions'
+      explanation: 'Incorrect: recording calls for interaction assertions is typically the role of mocks or spies.'
+    - id: B
+      answer: 'An object that only returns fixed values without simulating storage behavior'
+      explanation: 'Incorrect: returning fixed data without functional storage behavior is closer to a stub than a fake.'
+    - id: C
+      answer: 'A simplified but working implementation, such as an in-memory repository'
+      explanation: 'Correct: a fake has a simplified functional implementation, such as an in-memory repository.'
+    - id: D
+      answer: 'An object that wraps a real object, records calls, and forwards execution'
+      explanation: 'Incorrect: wrapping a real object and recording invocations is characteristic of a spy, not a typical fake.'
+    correctAnswerId: C
+  - question: 'Why are tests of public behavior usually more resilient than tests of private details?'
+    readmeRelated:
+      anchorList:
+      - testing-001
+      - testing-008
+      - refactoring-009
+    answers:
+    - id: A
+      answer: 'They depend on internal field names to control details outside the contract'
+      explanation: 'Incorrect: internal field names are not user-facing contracts, so changes can make detailed tests obsolete.'
+    - id: B
+      answer: 'They rely on mocking each collaborator instead of verifying public results'
+      explanation: 'Incorrect: mocking collaborators does not replace assertions about the system''s public outcomes.'
+    - id: C
+      answer: 'They focus on observable contracts and are less likely to break when implementations change'
+      explanation: 'Correct: testing public behavior locks in contracts while allowing internal refactoring without unnecessary failures.'
+    - id: D
+      answer: 'They depend on private method call order to ensure refactoring preserves structure'
+      explanation: 'Incorrect: tests tied to private call order break when implementation changes even if public behavior remains unchanged.'
+    correctAnswerId: C
+  - question: 'What is a common consequence of overmocking?'
+    readmeRelated:
+      anchorList:
+      - testing-008
+      - refactoring-009
+      - testing-010
+    answers:
+    - id: A
+      answer: 'Tests validate public results across equivalent implementations'
+      explanation: 'Incorrect: checking public contracts on multiple implementations is not a symptom of overmocking.'
+    - id: B
+      answer: 'Tests depend too heavily on internal call order and counts even when behavior is unchanged'
+      explanation: 'Correct: overmocking makes tests depend on internal invocation counts and order rather than behavioral outcomes.'
+    - id: C
+      answer: 'Tests use a fake repository that implements a real contract across scenarios'
+      explanation: 'Incorrect: a fake repository that honors its contract can make tests stable; that does not imply excessive mocking.'
+    - id: D
+      answer: 'Tests verify input/output behavior without depending on helper method names'
+      explanation: 'Incorrect: checking inputs and outputs rather than internal methods usually reduces implementation coupling.'
+    correctAnswerId: B
+  - question: 'What should be done before refactoring an untested legacy class?'
+    readmeRelated:
+      anchorList:
+      - testing-009
+      - refactoring-009
+      - practice-006
+    answers:
+    - id: A
+      answer: 'Only run the compiler and ignore previously working edge cases'
+      explanation: 'Incorrect: successful compilation does not prove that existing behavior and edge cases are still correct.'
+    - id: B
+      answer: 'Restructure the class first and infer its old results from the new code'
+      explanation: 'Incorrect: changing code first and guessing at prior behavior can miss edge cases and regressions.'
+    - id: C
+      answer: 'Write characterization or regression tests to capture behavior before changes'
+      explanation: 'Correct: characterization tests record current behavior before refactoring so unintended changes can be detected.'
+    - id: D
+      answer: 'Mock every private method and delete the old logic once the tests pass'
+      explanation: 'Incorrect: mocking private methods and removing logic does not ensure that observable results remain equivalent.'
+    correctAnswerId: C
+- groupID: 11
+  groupName: 'Code Smells, Refactoring, and API Compatibility'
+  questions:
+  - question: 'Which refactoring direction does Feature Envy suggest?'
+    readmeRelated:
+      anchorList:
+      - class-design-009
+      - modeling-003
+      - refactoring-004
+    answers:
+    - id: A
+      answer: 'Add getters to the queried object so the external method can continue processing'
+      explanation: 'Incorrect: adding getters only lets the external method access deeper data and often perpetuates Feature Envy.'
+    - id: B
+      answer: 'Move related fields to a utility while keeping the processing logic in the caller'
+      explanation: 'Incorrect: moving fields to a utility but keeping logic in the caller does not place behavior with the object that owns it.'
+    - id: C
+      answer: 'Make the method static so it no longer needs a reference to an object'
+      explanation: 'Incorrect: making a method static does not fix its excessive dependence on another object''s data.'
+    - id: D
+      answer: 'Consider Move Method to the object that owns the main information and responsibility'
+      explanation: 'Correct: Feature Envy suggests placing behavior near the data and actual responsibility, often using Move Method.'
+    correctAnswerId: D
+  - question: 'How can Data Clumps be addressed?'
+    readmeRelated:
+      anchorList:
+      - class-design-006
+      - modeling-002
+      - refactoring-003
+      - practice-005
+    answers:
+    - id: A
+      answer: 'Group meaningful related data into a parameter object or value object'
+      explanation: 'Correct: repeated parameter groups that represent one concept can be combined into a parameter object or value object.'
+    - id: B
+      answer: 'Rename similar parameters in each method to reduce repeated wording'
+      explanation: 'Incorrect: renaming parameters does not eliminate their tendency to appear and change together.'
+    - id: C
+      answer: 'Repeat the same parameter list everywhere so interfaces remain independent'
+      explanation: 'Incorrect: repeating parameter groups across interfaces preserves Data Clumps and raises change costs.'
+    - id: D
+      answer: 'Turn each parameter into a separate service and inject it into callers'
+      explanation: 'Incorrect: converting every parameter into a service usually complicates dependencies without addressing related data groups.'
+    correctAnswerId: A
+  - question: 'Should every layer that only forwards calls be removed?'
+    readmeRelated:
+      anchorList:
+      - solid-008
+      - design-patterns-013
+      - refactoring-008
+    answers:
+    - id: A
+      answer: 'Keep every intermediate layer to preserve call direction, even without responsibility'
+      explanation: 'Incorrect: retaining layers solely for structure creates empty indirection and makes requests harder to trace.'
+    - id: B
+      answer: 'Remove redundant layers but retain real boundaries for transactions, mapping, or authorization'
+      explanation: 'Correct: eliminate layers that add nothing while retaining boundaries responsible for transactions, mapping, or authorization.'
+    - id: C
+      answer: 'Convert redundant layers into interfaces and keep the same call chain'
+      explanation: 'Incorrect: introducing interfaces without changing the forwarding chain does not create meaningful responsibilities.'
+    - id: D
+      answer: 'Remove all forwarding layers, including those enforcing transactions and access rights'
+      explanation: 'Incorrect: removing transaction or authorization boundaries can lose business guarantees and security controls.'
+    correctAnswerId: B
+  - question: 'How can a public API with many callers be changed safely?'
+    readmeRelated:
+      anchorList:
+      - abstraction-003
+      - testing-009
+      - refactoring-009
+    answers:
+    - id: A
+      answer: 'Keep compatibility adapters where needed, migrate callers incrementally, and verify contracts'
+      explanation: 'Correct: compatibility adapters, deprecation, and staged migration prevent abruptly breaking client contracts.'
+    - id: B
+      answer: 'Change the public signature immediately and require every caller to fix build failures at once'
+      explanation: 'Incorrect: immediate public signature changes can break consumers not yet updated or deployed independently.'
+    - id: C
+      answer: 'Keep both APIs forever without a sunset plan for obsolete versions'
+      explanation: 'Incorrect: maintaining old code indefinitely without a sunset plan accumulates technical debt.'
+    - id: D
+      answer: 'Change the return type to Object to avoid compatibility tests between callers'
+      explanation: 'Incorrect: changing the return type to Object loses type safety and does not replace contract or integration tests.'
+    correctAnswerId: A
+- groupID: 12
+  groupName: 'Shared Mutable State, Object Contracts, and Review'
+  questions:
+  - question: 'What risks arise when mutable objects are shared across multiple threads?'
+    readmeRelated:
+      anchorList:
+      - object-007
+      - design-patterns-004
+      - design-pitfalls-008
+      - testing-003
+    answers:
+    - id: A
+      answer: 'Sharing a reference makes every field write automatically atomic'
+      explanation: 'Incorrect: sharing a reference does not make a read-modify-write sequence atomic.'
+    - id: B
+      answer: 'Each thread automatically gets an independent copy, avoiding races on the same object'
+      explanation: 'Incorrect: threads do not automatically make independent copies of objects they reference.'
+    - id: C
+      answer: 'The JVM automatically applies volatile to all fields used by multiple threads'
+      explanation: 'Incorrect: the JVM does not implicitly add volatile to fields simply because an object is used by multiple threads.'
+    - id: D
+      answer: 'Lost updates or stale reads can occur without synchronization and memory visibility guarantees'
+      explanation: 'Correct: uncoordinated shared mutable state can lead to lost updates or stale reads across threads.'
+    correctAnswerId: D
+  - question: 'What does volatile mean in Java?'
+    readmeRelated:
+      anchorList:
+      - design-patterns-004
+      - design-pitfalls-008
+      - testing-003
+    answers:
+    - id: A
+      answer: 'It makes a List or Map thread-safe when its reference is declared volatile'
+      explanation: 'Incorrect: a volatile reference does not automatically make operations within a List or Map thread-safe.'
+    - id: B
+      answer: 'It improves visibility and ordering but does not make read-modify-write atomic'
+      explanation: 'Correct: volatile provides certain visibility and ordering guarantees, but count++ still consists of multiple operations.'
+    - id: C
+      answer: 'It replaces locks and transactions for all multi-field operation sequences'
+      explanation: 'Incorrect: volatile on one field does not replace locks or transactions for invariants spanning multiple fields.'
+    - id: D
+      answer: 'It makes count++ atomic when the field is declared volatile'
+      explanation: 'Incorrect: count++ remains a read-modify-write sequence and does not become atomic solely through volatile.'
+    correctAnswerId: B
+  - question: 'What can happen when an object in a HashSet changes a field used by equals/hashCode?'
+    readmeRelated:
+      anchorList:
+      - object-004
+      - language-mechanics-006
+      - design-pitfalls-009
+      - testing-001
+    answers:
+    - id: A
+      answer: 'HashSet immediately rejects any field change after the object has been added'
+      explanation: 'Incorrect: HashSet does not prevent changes to element fields; keeping a key stable is a design responsibility.'
+    - id: B
+      answer: 'HashSet deep-copies every element before storage to prevent later mutation'
+      explanation: 'Incorrect: Set does not deep-copy an object on add; it retains a reference to the element.'
+    - id: C
+      answer: 'HashSet.contains may fail because the hash bucket no longer matches the new value'
+      explanation: 'Correct: changing a field used by equals/hashCode may cause contains to search a new bucket and miss the previously stored element.'
+    - id: D
+      answer: 'HashSet automatically moves the object to a new bucket whenever a key field changes'
+      explanation: 'Incorrect: HashSet does not automatically rehash elements when state affecting hashCode changes.'
+    correctAnswerId: C
+  - question: 'What are the risks of equals in an inheritance hierarchy?'
+    readmeRelated:
+      anchorList:
+      - object-004
+      - language-mechanics-006
+      - testing-001
+      - testing-005
+    answers:
+    - id: A
+      answer: 'Hierarchy equals methods only compare object addresses, so asymmetry cannot occur'
+      explanation: 'Incorrect: equals can be overridden for value comparisons; hierarchies do not always use reference identity only.'
+    - id: B
+      answer: 'Symmetry or transitivity can be violated when base and subtype equality definitions differ'
+      explanation: 'Correct: inconsistently designed equals methods across base and subtype classes can break symmetry or transitivity.'
+    - id: C
+      answer: 'Every subtype inherits the same equals implementation, ensuring symmetry and transitivity'
+      explanation: 'Incorrect: subtypes do not automatically preserve the equals contract when they override it or add fields inconsistently.'
+    - id: D
+      answer: 'Overriding equals only affects performance, not equivalence relationships'
+      explanation: 'Incorrect: equals affects the semantics of equivalence and collections, not merely performance.'
+    correctAnswerId: B
+  - question: 'What should toString account for in a bidirectional object graph?'
+    readmeRelated:
+      anchorList:
+      - object-003
+      - relationships-006
+      - language-mechanics-007
+      - testing-001
+    answers:
+    - id: A
+      answer: 'Logging only object IDs automatically detects every cycle during toString'
+      explanation: 'Incorrect: logging IDs may avoid graph traversal but does not automatically detect every cycle in toString.'
+    - id: B
+      answer: 'Avoid recursion through cyclic links, leaking sensitive data, and expensive rendering'
+      explanation: 'Correct: toString on a bidirectional graph must avoid recursive cycles, sensitive-data exposure, and high rendering costs.'
+    - id: C
+      answer: 'Call equals on every node before joining strings to prevent cycles automatically'
+      explanation: 'Incorrect: calling equals does not automatically detect or prevent recursion when toString traverses a graph.'
+    - id: D
+      answer: 'Print the entire object graph to expose all state, including internal passwords'
+      explanation: 'Incorrect: printing passwords or entire graphs can leak information and produce excessively large logs.'
+    correctAnswerId: B
+  - question: 'How should escape analysis in Java be understood?'
+    readmeRelated:
+      anchorList:
+      - oop-basic-008
+      - lifecycle-001
+    answers:
+    - id: A
+      answer: 'The JIT always eliminates small allocations before GC can observe the objects'
+      explanation: 'Incorrect: the JIT cannot and need not eliminate every small allocation; optimization depends on runtime conditions.'
+    - id: B
+      answer: 'Every final field makes an allocation disappear without further JIT analysis'
+      explanation: 'Incorrect: final fields do not inherently eliminate allocations; this depends on JIT optimizations and execution paths.'
+    - id: C
+      answer: 'Every non-escaping object is guaranteed to be stack-allocated in Java'
+      explanation: 'Incorrect: a non-escaping object is not guaranteed to be stack-allocated; the JIT may use scalar replacement instead.'
+    - id: D
+      answer: 'The JIT may eliminate allocations for non-escaping objects, but this is not guaranteed'
+      explanation: 'Correct: escape analysis may allow the JIT to eliminate allocations, but this is not a Java language guarantee.'
+    correctAnswerId: D
+  - question: 'How should you determine whether many small objects are slowing down a system?'
+    readmeRelated:
+      anchorList:
+      - oop-basic-008
+      - lifecycle-007
+      - refactoring-001
+    answers:
+    - id: A
+      answer: 'Make every field static to reduce memory and observe performance after deployment'
+      explanation: 'Incorrect: making fields static can increase coupling and races and does not demonstrate useful resource savings.'
+    - id: B
+      answer: 'Remove all Value Objects to reduce allocations without benchmarking'
+      explanation: 'Incorrect: removing Value Objects before measuring can damage the domain model without addressing the bottleneck.'
+    - id: C
+      answer: 'Use profilers, JFR, and benchmarks to measure allocations, GC, and latency before optimizing'
+      explanation: 'Correct: allocations, GC, and latency should be measured with JFR, profilers, or benchmarks before deciding to optimize.'
+    - id: D
+      answer: 'Convert all small objects to singletons first, then measure the system'
+      explanation: 'Incorrect: making every object a singleton changes ownership and can introduce dangerous shared mutable state.'
+    correctAnswerId: C
+  - question: 'What should be prioritized during an OOP code review?'
+    readmeRelated:
+      anchorList:
+      - encapsulation-002
+      - class-design-001
+      - class-design-002
+      - class-design-003
+      - modeling-009
+      - solid-008
+      - testing-001
+      - refactoring-009
+    answers:
+    - id: A
+      answer: 'Check whether enough GoF patterns have been applied to each class and package'
+      explanation: 'Incorrect: the count of GoF patterns does not indicate how well each class fits its actual problem.'
+    - id: B
+      answer: 'Check whether interfaces outnumber classes to prove abstraction is sufficient'
+      explanation: 'Incorrect: having more interfaces than classes does not establish high-quality abstraction or low coupling.'
+    - id: C
+      answer: 'Check whether responsibilities, invariants, dependencies, and testability are appropriate'
+      explanation: 'Correct: OOP reviews should assess responsibilities, invariants, dependencies, testability, and likely change needs.'
+    - id: D
+      answer: 'Check that every method has one return and every file is under a line limit'
+      explanation: 'Incorrect: return counts and file-length limits do not by themselves reflect contracts or maintainability.'
+    correctAnswerId: C

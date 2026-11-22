@@ -1,0 +1,57 @@
+roadmap:
+- id: spring-ai-kien-truc
+  title: Spring AI & Kiến trúc
+  purpose: Hiểu cách Spring AI chuẩn hóa việc gọi mô hình AI và vị trí của các API nền tảng trong ứng dụng Java.
+  objectives:
+  - Phân biệt ChatModel, ChatClient và EmbeddingModel
+  - Vẽ luồng ứng dụng–provider–model–response
+  - Nêu giới hạn của đầu ra sinh bởi AI
+- id: spring-boot-provider
+  title: Spring Boot & Provider
+  purpose: Tạo ứng dụng mẫu và cấu hình provider phù hợp với phiên bản Spring AI đang sử dụng.
+  objectives:
+  - Chọn Spring Boot và Spring AI BOM tương thích
+  - Cấu hình dependency và model provider
+  - Đọc API key từ biến môi trường thay vì mã nguồn
+- id: chatmodel-response
+  title: ChatModel & Response
+  purpose: Thực hành API cấp thấp để hiểu dữ liệu đầu vào, phản hồi và thông tin sử dụng mô hình.
+  objectives:
+  - Gọi ChatModel với một Prompt đơn giản
+  - Đọc content, metadata và usage nếu có
+  - Phân biệt model options với nội dung prompt
+- id: chatclient-fluent-api
+  title: ChatClient Fluent API
+  purpose: Sử dụng API fluent để viết luồng hội thoại ngắn gọn và có thể tái sử dụng.
+  objectives:
+  - Tạo ChatClient từ ChatModel hoặc builder
+  - Gọi prompt().user().call().content()
+  - So sánh response text và ChatResponse đầy đủ
+- id: prompts-templates
+  title: Prompts & Templates
+  purpose: Thiết kế chỉ dẫn và dữ liệu đầu vào rõ ràng, tránh ghép chuỗi tùy tiện khi tái sử dụng.
+  objectives:
+  - Phân biệt system và user messages
+  - Dùng PromptTemplate với biến được truyền rõ ràng
+  - Thử temperature và quan sát thay đổi phản hồi
+- id: structured-streaming
+  title: Structured & Streaming
+  purpose: 'Chọn cách lấy kết quả tương thích với nhu cầu ứng dụng: văn bản, Java object hoặc luồng.'
+  objectives:
+  - Ánh xạ phản hồi sang Java record bằng entity()
+  - Kiểm tra dữ liệu khi chuyển đổi cấu trúc thất bại
+  - Thử stream() và xử lý từng phần nội dung
+- id: tools-advisors-embeddings
+  title: Tools, Advisors & Embeddings
+  purpose: Nhận diện các điểm mở rộng cốt lõi trước khi học chuyên sâu tool calling, RAG hay memory.
+  objectives:
+  - Thêm tool an toàn bằng @Tool trong ví dụ thử
+  - Giải thích Advisor can thiệp vào request và response
+  - Gọi EmbeddingModel để quan sát vector đầu ra
+- id: testing-observability
+  title: Testing & Observability
+  purpose: Đánh giá đầu ra không tất định, độ trễ và rủi ro dữ liệu trước khi đưa ứng dụng vào vận hành.
+  objectives:
+  - Kiểm thử ràng buộc format với các input cố định
+  - Theo dõi latency, lỗi và token usage nếu hỗ trợ
+  - Không ghi API key hoặc dữ liệu nhạy cảm vào log

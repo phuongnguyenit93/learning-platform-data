@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-fcm-apns
+  title: Tổng quan FCM & APNs
+  purpose: Hiểu luồng gửi push từ backend qua dịch vụ nền tảng tới ứng dụng di động và những giới hạn giao nhận.
+  objectives:
+  - Phân biệt push notification với thông báo nội bộ app
+  - Mô tả vai trò backend, FCM, APNs và thiết bị
+  - Giải thích vì sao push không bảo đảm đến tức thì
+- id: thiet-lap-dich-vu-push
+  title: Thiết lập dịch vụ Push
+  purpose: Kết nối ứng dụng Android/iOS với hạ tầng gửi push và kiểm tra đường đi thông báo.
+  objectives:
+  - Khởi tạo cấu hình FCM và liên kết APNs cho iOS
+  - Thiết lập quyền gửi từ backend an toàn
+  - Gửi thử thông báo tới một thiết bị kiểm thử
+- id: quyen-nhan-trai-nghiem
+  title: Quyền nhận & trải nghiệm
+  purpose: Xin quyền hiển thị thông báo hợp lý và tôn trọng lựa chọn của người dùng.
+  objectives:
+  - Yêu cầu quyền notification đúng ngữ cảnh
+  - Cấu hình notification channel trên Android
+  - Xử lý tình huống người dùng từ chối hoặc tắt thông báo
+- id: dinh-danh-quan-ly-thiet-bi
+  title: Định danh & quản lý thiết bị
+  purpose: Gắn đúng định danh đăng ký push với người dùng và cập nhật khi ứng dụng thay đổi.
+  objectives:
+  - Lưu định danh FCM hoặc token APNs kèm thời điểm cập nhật
+  - Liên kết một người dùng với nhiều thiết bị
+  - Loại bỏ đăng ký không còn hợp lệ sau lỗi gửi
+- id: payload-xu-ly-trong-app
+  title: Payload & xử lý trong app
+  purpose: Tạo nội dung nhỏ gọn, đúng định dạng nền tảng và xử lý phản hồi khi người dùng mở thông báo.
+  objectives:
+  - Phân biệt notification message và data message
+  - Xử lý foreground, background và thao tác nhấn
+  - Thêm deep link và dữ liệu tùy chỉnh có kiểm soát
+- id: nham-dich-gui-tu-backend
+  title: Nhắm đích & gửi từ backend
+  purpose: Tổ chức gửi thông báo theo thiết bị hoặc nhóm và tránh gửi sai đối tượng.
+  objectives:
+  - Gửi qua FCM HTTP v1 hoặc Admin SDK
+  - Phân biệt gửi theo thiết bị, topic và điều kiện
+  - Áp dụng opt-in và quy tắc phân nhóm người nhận
+- id: do-tin-cay-bao-mat
+  title: Độ tin cậy & bảo mật
+  purpose: Hạn chế gửi trùng, mất kiểm soát và lộ dữ liệu trong quá trình phân phối.
+  objectives:
+  - Điều chỉnh TTL, priority và collapse theo loại sự kiện
+  - Áp dụng retry có backoff và xử lý lỗi API
+  - Không đưa thông tin nhạy cảm vào payload hiển thị
+- id: quan-sat-kiem-thu
+  title: Quan sát & kiểm thử
+  purpose: Đo lường quá trình gửi, tìm lỗi và kiểm tra hành vi trên nhiều trạng thái thiết bị.
+  objectives:
+  - Theo dõi request ID, lỗi gửi và số lượng giao nhận
+  - Kiểm thử offline, quyền bị tắt và token hết hạn
+  - Phân biệt API chấp nhận gửi với thiết bị thực nhận

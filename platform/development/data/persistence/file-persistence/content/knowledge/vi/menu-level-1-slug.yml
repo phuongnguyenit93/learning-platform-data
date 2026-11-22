@@ -1,0 +1,94 @@
+menu:
+- title: Nền tảng
+  slug: foundation
+  index: 0
+- title: Hệ thống tệp
+  slug: file-systems
+  index: 1
+- title: Mô hình lưu trữ
+  slug: storage-models
+  index: 2
+- title: Đường dẫn và định danh
+  slug: paths-and-identifiers
+  index: 3
+- title: API tệp trong Java
+  slug: java-file-apis
+  index: 4
+- title: Luồng và bảng mã
+  slug: streams-and-charsets
+  index: 5
+- title: Truy cập theo vị trí
+  slug: positional-access
+  index: 6
+- title: Định dạng và bản ghi
+  slug: formats-and-records
+  index: 7
+- title: Tổ chức thư mục
+  slug: directory-organization
+  index: 8
+- title: Ghi thay thế an toàn
+  slug: safe-replace-writes
+  index: 9
+- title: Độ bền dữ liệu
+  slug: data-durability
+  index: 10
+- title: Đồng thời trong tiến trình
+  slug: in-process-concurrency
+  index: 11
+- title: Khóa giữa tiến trình
+  slug: interprocess-locking
+  index: 12
+- title: Nhật ký nối tiếp
+  slug: append-only-logs
+  index: 13
+- title: Chỉ mục và tra cứu
+  slug: indexes-and-lookup
+  index: 14
+- title: Bản chụp và hợp nhất
+  slug: snapshots-and-merging
+  index: 15
+- title: Giao dịch nhiều tệp
+  slug: multi-file-transactions
+  index: 16
+- title: Khôi phục sau sự cố
+  slug: crash-recovery
+  index: 17
+- title: Toàn vẹn dữ liệu
+  slug: data-integrity
+  index: 18
+- title: Phiên bản dữ liệu
+  slug: data-versioning
+  index: 19
+- title: Tệp ánh xạ bộ nhớ
+  slug: memory-mapped-files
+  index: 20
+- title: Hiệu năng và quy mô
+  slug: performance-and-scale
+  index: 21
+- title: Bảo mật lưu trữ
+  slug: storage-security
+  index: 22
+- title: Vòng đời và dọn dẹp
+  slug: lifecycle-and-cleanup
+  index: 23
+- title: Sao lưu và phục hồi
+  slug: backup-and-restore
+  index: 24
+- title: Kiểm thử độ tin cậy
+  slug: reliability-testing
+  index: 25
+- title: Theo dõi vận hành
+  slug: operational-monitoring
+  index: 26
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 27
+- title: Triển khai đa môi trường
+  slug: multi-environment-deployment
+  index: 28
+- title: Repository trên tệp
+  slug: file-repository
+  index: 29
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 30

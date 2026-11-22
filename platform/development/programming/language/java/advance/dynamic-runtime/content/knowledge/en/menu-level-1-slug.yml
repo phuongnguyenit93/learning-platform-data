@@ -1,0 +1,58 @@
+menu:
+- title: 1. Tổng quan
+  slug: dynamic-runtime-overview
+  index: 0
+- title: 2. Kiểu lúc chạy
+  slug: runtime-types
+  index: 1
+- title: 3. Reflection
+  slug: reflection
+  index: 2
+- title: 4. Siêu dữ liệu
+  slug: metadata
+  index: 3
+- title: 5. Quyền truy cập
+  slug: access-control
+  index: 4
+- title: 6. MethodType và Lookup
+  slug: methodtype-and-lookup
+  index: 5
+- title: 7. Gọi method handle
+  slug: method-handle-invocation
+  index: 6
+- title: 8. Kết hợp lời gọi
+  slug: method-handle-combinators
+  index: 7
+- title: 9. VarHandle
+  slug: varhandle
+  index: 8
+- title: 10. Proxy động
+  slug: dynamic-proxies
+  index: 9
+- title: 11. invokedynamic
+  slug: invokedynamic
+  index: 10
+- title: 12. CallSite
+  slug: callsite
+  index: 11
+- title: 13. Lambda và nối chuỗi
+  slug: lambdas-and-string-concat
+  index: 12
+- title: 14. Hằng động
+  slug: dynamic-constants
+  index: 13
+- title: 15. Định nghĩa lớp
+  slug: class-definition
+  index: 14
+- title: 16. Biên dịch lúc chạy
+  slug: runtime-compilation
+  index: 15
+- title: 17. Kịch bản nhúng
+  slug: embedding-scenarios
+  index: 16
+- title: 18. Dynalink
+  slug: dynalink
+  index: 17
+- title: 19. Thiết kế và hiệu năng
+  slug: design-and-performance
+  index: 18

@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-kien-truc-phan-mem
+  title: Tư duy kiến trúc phần mềm
+  purpose: Nhìn hệ thống qua các quyết định cấu trúc quan trọng và các ràng buộc lâu dài.
+  objectives:
+  - Phân biệt kiến trúc, thiết kế chi tiết và mã nguồn.
+  - Nêu vai trò của architect và các bên liên quan.
+  - Nhận diện quyết định có tác động lớn, khó thay đổi.
+- id: yeu-cau-boi-canh-he-thong
+  title: Yêu cầu & bối cảnh hệ thống
+  purpose: Đặt quyết định kiến trúc trên mục tiêu nghiệp vụ, ranh giới và giới hạn thực tế.
+  objectives:
+  - Xác định stakeholder và mục tiêu nghiệp vụ chính.
+  - Phân loại functional requirement và constraint.
+  - Vẽ ranh giới hệ thống, tác nhân và hệ thống ngoài.
+- id: thuoc-tinh-chat-luong
+  title: Thuộc tính chất lượng
+  purpose: Chuyển yêu cầu phi chức năng thành tiêu chí đo để dẫn hướng thiết kế.
+  objectives:
+  - Phân biệt performance, reliability, security, maintainability.
+  - Viết kịch bản chất lượng với stimulus và response đo được.
+  - Ưu tiên các thuộc tính có xung đột theo bối cảnh.
+- id: phan-ra-ranh-gioi-module
+  title: Phân rã & ranh giới module
+  purpose: Tổ chức các thành phần theo trách nhiệm rõ ràng để kiểm soát phụ thuộc và thay đổi.
+  objectives:
+  - Tách module/component theo năng lực và trách nhiệm.
+  - Áp dụng high cohesion, low coupling và encapsulation.
+  - Xác định interface, dữ liệu sở hữu và luồng phụ thuộc.
+- id: views-so-do-kien-truc
+  title: Views & sơ đồ kiến trúc
+  purpose: Diễn đạt hệ thống ở mức chi tiết phù hợp với từng người đọc và mục tiêu trao đổi.
+  objectives:
+  - Vẽ C4 System Context và Container diagram cơ bản.
+  - Phân biệt structural, runtime và deployment view.
+  - Ghi rõ trách nhiệm, giao tiếp và giả định trên sơ đồ.
+- id: nguyen-tac-architectural-styles
+  title: Nguyên tắc & architectural styles
+  purpose: So sánh các lựa chọn cấu trúc theo nhu cầu thay vì chọn pattern theo trào lưu.
+  objectives:
+  - Nhận diện layered, modular monolith, microservices và event-driven.
+  - Giải thích separation of concerns và dependency direction.
+  - Chỉ ra chi phí về triển khai, dữ liệu và vận hành của từng lựa chọn.
+- id: adr-danh-doi-thiet-ke
+  title: ADR & đánh đổi thiết kế
+  purpose: Ghi lại bối cảnh, phương án và hệ quả để quyết định kiến trúc có thể được kiểm tra lại.
+  objectives:
+  - Lập Architecture Decision Record (ADR) ngắn gọn.
+  - So sánh hai phương án theo quality goals và constraints.
+  - Xác định trade-off, giả định và rủi ro cần xác minh.
+- id: danh-gia-tien-hoa-kien-truc
+  title: Đánh giá & tiến hóa kiến trúc
+  purpose: Kiểm chứng quyết định với kịch bản thực tế và cập nhật kiến trúc khi yêu cầu đổi.
+  objectives:
+  - Review kiến trúc bằng quality scenarios và rủi ro.
+  - Xác định metrics, test và prototype để kiểm chứng giả định.
+  - Cập nhật sơ đồ, ADR và kế hoạch cải tiến theo thay đổi.

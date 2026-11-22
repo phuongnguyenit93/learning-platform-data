@@ -1,0 +1,2362 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Môi trường thực thi ứng dụng (application runtime) là gì và quản lý những gì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt tiến trình JVM, ứng dụng Spring Boot, ApplicationContext và bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ vòng đời: khởi động, sẵn sàng, hoạt động và dừng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của Spring Boot so với vòng đời container của Spring Framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt ứng dụng chạy một lần với dịch vụ hoạt động lâu dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mối liên hệ với cấu hình ngoài, tự cấu hình, máy chủ web và Actuator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức Java 21, IoC và Spring Boot 3.3 cần chuẩn bị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học qua ứng dụng mẫu và bằng chứng quan sát lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-launch
+  title: Khởi chạy ứng dụng
+  childs:
+  - slug: application-launch-001
+    title: Từ phương thức main đến SpringApplication.run
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-002
+    title: Vai trò của lớp nguồn chính và @SpringBootApplication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-003
+    title: Dùng phương thức run tĩnh và đối tượng SpringApplication tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-004
+    title: Giá trị trả về ConfigurableApplicationContext và thời điểm run hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-005
+    title: Khởi chạy từ IDE, Gradle bootRun và tệp JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-006
+    title: Phân biệt tham số JVM, tham số công cụ dựng và đối số ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-007
+    title: Ảnh hưởng của classpath, thư mục làm việc và ResourceLoader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-008
+    title: Dùng SpringApplicationBuilder để biểu diễn quá trình khởi chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-009
+    title: Chạy nhiều context trong một JVM và trách nhiệm đóng từng context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-launch-010
+    title: Tạo ứng dụng dòng lệnh không cần mở máy chủ web
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-application-setup
+  title: Thiết lập SpringApplication
+  childs:
+  - slug: spring-application-setup-001
+    title: Thiết lập trước run và giới hạn thay đổi khi ứng dụng đã khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-002
+    title: Nhóm thuộc tính spring.main.* và thời điểm được áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-003
+    title: Cung cấp nguồn bean bổ sung bằng addPrimarySources và setSources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-004
+    title: Thiết lập mặc định và profile bổ sung qua SpringApplication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-005
+    title: Đăng ký initializer và listener trước khi khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-006
+    title: Tùy chỉnh banner bằng banner.txt, Banner và Banner.Mode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-007
+    title: Thông tin khởi động và spring.main.log-startup-info
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-008
+    title: Chế độ headless và khi ứng dụng cần tương tác đồ họa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-009
+    title: Chính sách ghi đè định nghĩa bean và phụ thuộc vòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-application-setup-010
+    title: Thiết lập shutdown hook và ApplicationContextFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-type
+  title: Kiểu ứng dụng
+  childs:
+  - slug: application-type-001
+    title: 'Ba kiểu WebApplicationType: NONE, SERVLET và REACTIVE'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-type-002
+    title: Cách Spring Boot suy luận kiểu ứng dụng từ classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-type-003
+    title: Trường hợp đồng thời có Spring MVC và Spring WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-type-004
+    title: Chọn kiểu tường minh bằng setWebApplicationType hoặc spring.main.web-application-type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-type-005
+    title: Đối chiếu các loại ApplicationContext tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-type-006
+    title: Quan hệ giữa web context, WebServerFactory và máy chủ nhúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-type-007
+    title: Phân biệt máy chủ khởi động thành công với toàn ứng dụng sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-type-008
+    title: Ranh giới giữa vòng đời ứng dụng với xử lý yêu cầu Servlet hoặc Reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-sequence
+  title: Chuỗi khởi động
+  childs:
+  - slug: startup-sequence-001
+    title: Đọc SpringApplication.run như một chuỗi giai đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-002
+    title: Chuẩn bị bootstrap context và thông báo bắt đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-003
+    title: Chuẩn bị ApplicationArguments, Environment và profile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-004
+    title: Khởi tạo logging sớm và hiển thị banner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-005
+    title: Tạo context và áp dụng các initializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-006
+    title: Nạp nguồn định nghĩa bean trước khi refresh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-007
+    title: Refresh context và hoàn tất khởi tạo các thành phần cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-008
+    title: Thông báo started, thực thi runner và thông báo ready
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-009
+    title: Các nhánh thất bại và dọn dẹp khi chuỗi khởi động bị gián đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-sequence-010
+    title: Phân biệt thời gian tiến trình JVM với thời gian khởi động ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-refresh
+  title: Context và refresh
+  childs:
+  - slug: context-refresh-001
+    title: ApplicationContext cung cấp gì ngoài BeanFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-002
+    title: Phân biệt tạo context, đăng ký định nghĩa bean và refresh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-003
+    title: Xử lý BeanDefinitionRegistryPostProcessor và BeanFactoryPostProcessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-004
+    title: Đăng ký BeanPostProcessor trước khi tạo bean thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-005
+    title: Khởi tạo singleton không trì hoãn và hoàn tất refresh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-006
+    title: Vai trò của LifecycleProcessor trong refresh và đóng context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-007
+    title: Trạng thái active, running và closed của context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-008
+    title: Giới hạn refresh lại một context đã sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-009
+    title: 'Context cha con: khả năng nhìn thấy bean và phạm vi sở hữu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-refresh-010
+    title: Thiết kế phân cấp bằng SpringApplicationBuilder.parent, child và sibling
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extension-points
+  title: Điểm mở rộng
+  childs:
+  - slug: extension-points-001
+    title: Chọn điểm mở rộng theo tài nguyên đang có ở từng giai đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-002
+    title: ApplicationContextInitializer và thao tác trước refresh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-003
+    title: Đăng ký initializer bằng API hoặc META-INF/spring.factories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-004
+    title: EnvironmentPostProcessor và quan hệ với chuẩn bị Environment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-005
+    title: SpringApplicationRunListener và các callback của quá trình run
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-006
+    title: Đăng ký RunListener, yêu cầu constructor và thứ tự thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-007
+    title: Phân biệt RunListener với ApplicationListener và runner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-008
+    title: BootstrapRegistry và ConfigurableBootstrapContext trước khi có bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-009
+    title: Đăng ký đối tượng khởi tạo sớm qua BootstrapRegistryInitializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-010
+    title: BootstrapContextClosedEvent và chuyển giao sang ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-011
+    title: Phân biệt đăng ký điểm mở rộng qua spring.factories với khai báo auto-configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-points-012
+    title: Giữ điểm mở rộng gọn, có thể kiểm thử và tránh phụ thuộc bean quá sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-lifecycle
+  title: Vòng đời bean
+  childs:
+  - slug: bean-lifecycle-001
+    title: Từ định nghĩa bean đến đối tượng đã sẵn sàng sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-002
+    title: Constructor, tiêm phụ thuộc và các callback Aware
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-003
+    title: Thứ tự @PostConstruct, InitializingBean và initMethod
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-004
+    title: BeanPostProcessor, proxy và thời điểm tham chiếu bean hoàn chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-005
+    title: SmartInitializingSingleton sau khi tạo singleton không trì hoãn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-006
+    title: Phân biệt bean hoàn tất khởi tạo với ứng dụng hoàn tất khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-007
+    title: '@DependsOn và lý do @Order không quyết định thứ tự tạo mọi bean'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-008
+    title: Chọn callback bean hay runner cho công việc khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-009
+    title: Thứ tự @PreDestroy, DisposableBean và destroyMethod
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-lifecycle-010
+    title: Giới hạn tự hủy đối với bean prototype và tài nguyên tạo ngoài container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-events
+  title: Sự kiện ứng dụng
+  childs:
+  - slug: application-events-001
+    title: Bản đồ sự kiện SpringApplication theo tiến trình khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-002
+    title: ApplicationStartingEvent trước khi có Environment và context hoàn chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-003
+    title: ApplicationEnvironmentPreparedEvent khi Environment đã được chuẩn bị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-004
+    title: ApplicationContextInitializedEvent sau khi áp dụng initializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-005
+    title: ApplicationPreparedEvent sau khi nạp định nghĩa bean và trước refresh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-006
+    title: ContextRefreshedEvent trong vòng đời Spring Framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-007
+    title: WebServerInitializedEvent và các biến thể Servlet hoặc Reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-008
+    title: ApplicationStartedEvent trước khi gọi các runner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-009
+    title: AvailabilityChangeEvent chuyển trạng thái liveness sau started
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-010
+    title: ApplicationReadyEvent sau khi các runner đã hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-011
+    title: AvailabilityChangeEvent chuyển trạng thái readiness sau ready
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-012
+    title: ApplicationFailedEvent và trường hợp chưa có context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-events-013
+    title: ContextClosedEvent và phân biệt với các sự kiện khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-listeners
+  title: Listener
+  childs:
+  - slug: event-listeners-001
+    title: Viết ApplicationListener với kiểu sự kiện cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-002
+    title: Dùng @EventListener cho listener được quản lý như bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-003
+    title: Đăng ký listener sớm bằng SpringApplication.addListeners
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-004
+    title: Đăng ký listener qua SpringApplicationBuilder hoặc spring.factories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-005
+    title: Vì sao listener dạng bean không nhận được mọi sự kiện rất sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-006
+    title: Điều phối listener bằng Ordered và @Order
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-007
+    title: Mặc định thực thi đồng bộ và ảnh hưởng của listener chạy lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-008
+    title: Xử lý ngoại lệ từ listener trong lúc khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-009
+    title: Giới hạn chuyển listener sang bất đồng bộ khi cần bảo đảm thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-010
+    title: Sự kiện truyền từ context con lên cha và cách lọc đúng context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-listeners-011
+    title: Tránh đăng ký trùng listener và tạo tác dụng phụ lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-runners
+  title: Runner
+  childs:
+  - slug: application-runners-001
+    title: Vai trò của ApplicationRunner và CommandLineRunner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-002
+    title: Thời điểm runner chạy so với refresh, started và ready
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-003
+    title: Chọn ApplicationArguments hay mảng String[]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-004
+    title: Đăng ký runner bằng @Component hoặc phương thức @Bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-005
+    title: Điều phối nhiều runner với Ordered và @Order
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-006
+    title: Thứ tự chung khi đồng thời có hai loại runner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-007
+    title: Ứng xử khi runner ném ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-008
+    title: Runner chạy lâu, thời hạn khởi động và readiness
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-009
+    title: Công việc bất đồng bộ do runner tạo không tự được chờ đến khi hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-010
+    title: Thiết kế khởi tạo dữ liệu hoặc làm nóng bộ nhớ đệm có thể chạy lại an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-runners-011
+    title: Phân biệt khởi tạo một lần mỗi tiến trình với công việc chỉ được chạy một lần toàn hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-arguments
+  title: Đối số ứng dụng
+  childs:
+  - slug: application-arguments-001
+    title: Cấu trúc ApplicationArguments và DefaultApplicationArguments
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-arguments-002
+    title: Phân biệt đối số tùy chọn với đối số không có tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-arguments-003
+    title: Đọc tên tùy chọn, sự tồn tại và danh sách giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-arguments-004
+    title: Xử lý tùy chọn lặp lại hoặc không kèm giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-arguments-005
+    title: Đọc đối số gốc bằng getSourceArgs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-arguments-006
+    title: Quan hệ giữa đối số --key=value với thuộc tính trong Environment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-arguments-007
+    title: Tắt nguồn cấu hình dòng lệnh mà vẫn sử dụng ApplicationArguments
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-arguments-008
+    title: Kiểm tra đầu vào, thông báo cách dùng và tránh ghi bí mật ra log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: readiness-state
+  title: Trạng thái sẵn sàng
+  childs:
+  - slug: readiness-state-001
+    title: Phân biệt liveness, readiness và khả năng mở cổng mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-002
+    title: LivenessState.CORRECT và BROKEN phản ánh trạng thái nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-003
+    title: ReadinessState.ACCEPTING_TRAFFIC và REFUSING_TRAFFIC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-004
+    title: Đọc trạng thái hiện tại qua ApplicationAvailability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-005
+    title: Quan sát thay đổi qua AvailabilityChangeEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-006
+    title: Chủ động phát sự kiện thay đổi trạng thái ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-007
+    title: Mối liên hệ giữa runner và mốc sẵn sàng nhận công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-008
+    title: Phân biệt công bố readiness với việc tự động chặn yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-009
+    title: Lý do lỗi dịch vụ bên ngoài không nên mặc nhiên làm liveness thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-010
+    title: Liên hệ với startup probe, liveness probe và readiness probe
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readiness-state-011
+    title: Ranh giới giữa trạng thái vòng đời với các health group của Actuator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lazy-initialization
+  title: Khởi tạo lười
+  childs:
+  - slug: lazy-initialization-001
+    title: Khởi tạo lười là gì và thay đổi thời điểm tạo bean như thế nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lazy-initialization-002
+    title: Bật spring.main.lazy-initialization hoặc setLazyInitialization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lazy-initialization-003
+    title: Chọn ngoại lệ bằng @Lazy(false)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lazy-initialization-004
+    title: Phân biệt khởi tạo lười toàn ứng dụng với @Lazy ở một phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lazy-initialization-005
+    title: Lỗi cấu hình bị dời sang lần sử dụng đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lazy-initialization-006
+    title: Ảnh hưởng đến yêu cầu đầu tiên, làm nóng và readiness
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lazy-initialization-007
+    title: Đánh giá thời gian khởi động cùng mức sử dụng bộ nhớ thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lazy-initialization-008
+    title: Đo và kiểm thử trước khi áp dụng khởi tạo lười trong vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: smart-lifecycle
+  title: SmartLifecycle
+  childs:
+  - slug: smart-lifecycle-001
+    title: Phân biệt khởi tạo bean với bắt đầu hoạt động của thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-002
+    title: 'Hợp đồng Lifecycle: start, stop và isRunning'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-003
+    title: SmartLifecycle và cơ chế tự khởi động khi refresh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-004
+    title: isAutoStartup và thành phần cần khởi động tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-005
+    title: getPhase và thứ tự khởi động từ phase thấp đến cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-006
+    title: Thứ tự dừng ngược lại và quan hệ phụ thuộc depends-on
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-007
+    title: Giới hạn bảo đảm thứ tự giữa các thành phần cùng phase
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-008
+    title: Dừng bất đồng bộ bằng stop(Runnable) và nghĩa vụ gọi callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-009
+    title: Thời hạn dừng từng giai đoạn của DefaultLifecycleProcessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-010
+    title: Tương tác giữa SmartLifecycle, khởi tạo lười và đóng context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smart-lifecycle-011
+    title: Thiết kế start hoặc stop an toàn khi được gọi lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: task-execution
+  title: Luồng và tác vụ
+  childs:
+  - slug: task-execution-001
+    title: Luồng main, luồng máy chủ và luồng tác vụ trong vòng đời ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-002
+    title: Luồng daemon, non-daemon và điều kiện JVM tiếp tục tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-003
+    title: Sử dụng TaskExecutor hoặc TaskScheduler do Spring quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-004
+    title: Liên hệ @Async và @Scheduled với tài nguyên thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-005
+    title: Phân biệt tác vụ đã được gửi với tác vụ đã hoàn thành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-006
+    title: Quản lý hàng đợi, giới hạn đồng thời và lỗi trong tác vụ nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-007
+    title: Truyền ngắt luồng và thiết kế tác vụ có thể hủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-008
+    title: Dừng nhận việc mới và chờ tác vụ đang chạy khi đóng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-009
+    title: Tránh tạo executor không có cơ chế thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-execution-010
+    title: Ranh giới giữa quản lý vòng đời với thiết kế xử lý đồng thời chuyên sâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-threads
+  title: Luồng ảo
+  childs:
+  - slug: virtual-threads-001
+    title: Luồng ảo trong Java 21 và phạm vi Spring Boot hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-002
+    title: Bật spring.threads.virtual.enabled
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-003
+    title: Thành phần dùng executor hoặc scheduler khi bật luồng ảo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-004
+    title: Phân biệt bật hỗ trợ Boot với tự chuyển mọi tác vụ trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-005
+    title: Ảnh hưởng đến các thiết lập kích thước nhóm luồng truyền thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-006
+    title: Luồng ảo là daemon và nguy cơ ứng dụng nền kết thúc sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-007
+    title: Giữ JVM hoạt động bằng spring.main.keep-alive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-008
+    title: Nhận diện luồng ảo bị ghim và đo hành vi trên JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-009
+    title: Kiểm tra khả năng dừng, giải phóng tài nguyên và giới hạn hệ thống bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-resources
+  title: Tài nguyên ứng dụng
+  childs:
+  - slug: application-resources-001
+    title: Xác định chủ sở hữu và thời hạn sống của từng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-002
+    title: Đăng ký client, connection pool và executor như tài nguyên do container quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-003
+    title: AutoCloseable và suy luận phương thức hủy của @Bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-004
+    title: Phân biệt tài nguyên dùng chung với tài nguyên thuộc một context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-005
+    title: Tránh đóng tài nguyên khi thành phần phụ thuộc còn hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-006
+    title: Giải phóng tài nguyên khi khởi tạo mới hoàn tất một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-007
+    title: Phát hiện rò rỉ luồng, kết nối, tệp và classloader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-008
+    title: Thiết kế đóng tài nguyên nhiều lần an toàn và có thời hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-shutdown
+  title: Dừng ứng dụng
+  childs:
+  - slug: application-shutdown-001
+    title: 'Các đường dừng: close, shutdown hook, tín hiệu hệ điều hành và lỗi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-002
+    title: ConfigurableApplicationContext.close và SpringApplicationShutdownHook
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-003
+    title: Trình tự thông báo đóng, dừng Lifecycle và hủy singleton
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-004
+    title: Phân biệt context.stop với context.close
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-005
+    title: Dừng có kiểm soát (graceful shutdown) và dừng ngay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-006
+    title: Bật server.shutdown=graceful trong Spring Boot 3.3
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-007
+    title: spring.lifecycle.timeout-per-shutdown-phase và giới hạn thời gian dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-008
+    title: Ứng xử với yêu cầu đang xử lý và yêu cầu mới ở mức vòng đời máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-009
+    title: Phối hợp thời gian dừng của ứng dụng với Docker hoặc nền tảng triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-010
+    title: SIGTERM, Ctrl+C và giới hạn cleanup khi tiến trình bị buộc kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-011
+    title: Khác biệt giữa nút Stop của IDE với tín hiệu dừng có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-shutdown-012
+    title: Chẩn đoán hook bị kẹt, tác vụ không kết thúc và callback dừng bị bỏ quên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exit-codes
+  title: Mã thoát
+  childs:
+  - slug: exit-codes-001
+    title: Mã thoát tiến trình và ý nghĩa với shell hoặc bộ điều phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-002
+    title: SpringApplication.exit và giá trị mã thoát trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-003
+    title: Phân biệt đóng context với gọi System.exit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-004
+    title: Triển khai ExitCodeGenerator cho ứng dụng dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-005
+    title: Ngoại lệ cung cấp mã thoát và ExitCodeExceptionMapper
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-006
+    title: Nhiều nguồn mã thoát và thứ tự lựa chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-007
+    title: Quan sát mã thoát bằng ExitCodeEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-008
+    title: 'Thiết kế tác vụ chạy một lần: thành công, lỗi đầu vào và lỗi thực thi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exit-codes-009
+    title: Trả mã thoát sau khi hoàn tất dọn dẹp tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-failure
+  title: Lỗi khởi động
+  childs:
+  - slug: startup-failure-001
+    title: Phân loại lỗi trước khi có context, trong refresh và trong runner
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-002
+    title: Đọc chuỗi nguyên nhân thay vì chỉ thông báo ngoài cùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-003
+    title: Phân biệt thiếu bean, xung đột bean, phụ thuộc vòng và lỗi khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-004
+    title: Lỗi cấu hình bắt buộc, kiểm tra hợp lệ và dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-005
+    title: ApplicationFailedEvent và giới hạn những tài nguyên còn dùng được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-006
+    title: FailureAnalyzer, FailureAnalysis và mô tả hành động khắc phục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-007
+    title: Viết AbstractFailureAnalyzer và đăng ký qua spring.factories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-008
+    title: Vai trò của FailureAnalysisReporter trong trình bày kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-009
+    title: Dùng --debug và báo cáo điều kiện để hỗ trợ truy vết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-010
+    title: Giải phóng tài nguyên và trả mã lỗi khi khởi động thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-failure-011
+    title: Phân biệt dừng sớm có chủ đích với thử lại vô hạn trong lúc khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-metrics
+  title: Đo khởi động
+  childs:
+  - slug: startup-metrics-001
+    title: Phân biệt thời gian dựng, thời gian JVM, refresh và thời gian đến ready
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-002
+    title: ApplicationStartup và các StartupStep
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-003
+    title: Gắn BufferingApplicationStartup vào SpringApplication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-004
+    title: Đọc các bước, thẻ và quan hệ cha con trong dữ liệu khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-005
+    title: Giới hạn bộ đệm và vòng đời dữ liệu đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-006
+    title: FlightRecorderApplicationStartup và kết hợp với Java Flight Recorder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-007
+    title: Quan sát cấp phát bộ nhớ, nạp lớp và GC trong quá trình khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-008
+    title: Đối chiếu thời gian tạo bean, runner và listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-009
+    title: Liên hệ dữ liệu đo với Actuator startup khi có cấu hình phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-metrics-010
+    title: Đánh giá khởi động nguội, khởi động lại và lần sử dụng đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: devtools
+  title: Devtools
+  childs:
+  - slug: devtools-001
+    title: Vai trò của spring-boot-devtools trong vòng lặp phát triển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-002
+    title: Phân biệt restart, tải lại tài nguyên và khởi động lại JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-003
+    title: Classloader cơ sở và classloader restart
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-004
+    title: Điều kiện phát hiện thay đổi classpath và nhu cầu biên dịch lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-005
+    title: Loại trừ đường dẫn, thêm đường dẫn theo dõi và dùng trigger file
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-006
+    title: Quan hệ giữa Devtools restart với shutdown hook và dọn dẹp tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-007
+    title: Chẩn đoán lỗi classloader trong dự án nhiều module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-008
+    title: Thay đổi mặc định khi phát triển và tác động đến đo thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devtools-009
+    title: Giới hạn Devtools ở môi trường phát triển và hành vi với ứng dụng đóng gói
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-testing
+  title: Kiểm thử vòng đời
+  childs:
+  - slug: lifecycle-testing-001
+    title: Chọn kiểm thử thành phần, context hoặc tiến trình thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-002
+    title: Kiểm thử runner bằng ApplicationArguments và phụ thuộc giả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-003
+    title: Kiểm thử initializer hoặc listener không cần chạy toàn ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-004
+    title: Dùng ApplicationContextRunner và hiểu các mốc SpringApplication không được thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-005
+    title: Kiểm thử run thực tế bằng SpringApplication với WebApplicationType.NONE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-006
+    title: '@SpringBootTest và việc main không mặc nhiên được thực thi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-007
+    title: Chọn useMainMethod khi cần kiểm chứng thiết lập trong main
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-008
+    title: Thu thập sự kiện để kiểm chứng thứ tự và trạng thái availability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-009
+    title: Kiểm thử khởi động thất bại và FailureAnalyzer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-010
+    title: Kiểm thử close, SmartLifecycle và callback giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-011
+    title: Kiểm thử mã thoát bằng tiến trình con thay vì dừng JVM của bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-012
+    title: Dùng timeout và tín hiệu hoàn thành thay cho chờ cố định trong kiểm thử bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-013
+    title: Cô lập context, luồng và hook để các lần kiểm thử không ảnh hưởng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây ứng dụng NONE ghi lại các mốc khởi động bằng thời gian tương đối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: So sánh cùng một chương trình ở kiểu NONE, SERVLET và REACTIVE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Gắn initializer, listener và runner để đối chiếu thứ tự quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thiết kế runner làm nóng dữ liệu trước khi công bố readiness
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Mô phỏng runner lỗi và tạo FailureAnalyzer cho lỗi khởi động riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Xây thành phần nền bằng SmartLifecycle với hai phase phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thử luồng ảo và quan sát tác dụng của spring.main.keep-alive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Mô phỏng công việc đang chạy rồi thực hiện dừng có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Tạo ứng dụng dòng lệnh có mã thoát và kiểm thử bằng tiến trình con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Đo BufferingApplicationStartup rồi xác định giai đoạn khởi động chậm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Kiểm tra rò rỉ tài nguyên qua nhiều lần mở và đóng context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Lập bảng chọn điểm mở rộng theo thời điểm, phụ thuộc và yêu cầu hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootTest'
+menuLevel2: webEnvironment MOCK, NONE, RANDOM_PORT và DEFINED_PORT
+status: WRITTEN

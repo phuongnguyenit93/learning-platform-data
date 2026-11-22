@@ -1,0 +1,3 @@
+menuLevel1: ReadWriteLock
+menuLevel2: ReentrantReadWriteLock và khả năng đọc đồng thời
+status: WRITTEN

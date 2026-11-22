@@ -1,0 +1,73 @@
+menu:
+- title: Định hướng Java 17
+  slug: java-17-orientation
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: Sealed cơ bản
+  slug: sealed-types-basics
+  index: 2
+- title: Thiết kế với sealed
+  slug: sealed-type-design
+  index: 3
+- title: Record
+  slug: record
+  index: 4
+- title: Pattern instanceof
+  slug: pattern-instanceof
+  index: 5
+- title: Switch expression
+  slug: switch-expression
+  index: 6
+- title: Text block
+  slug: text-block
+  index: 7
+- title: Số thực
+  slug: floating-point-math
+  index: 8
+- title: Sinh số giả ngẫu nhiên
+  slug: random-number-generators
+  index: 9
+- title: Dữ liệu hệ mười sáu
+  slug: hexadecimal-formatting
+  index: 10
+- title: Nguồn thời gian
+  slug: time-sources
+  index: 11
+- title: Collection và Stream
+  slug: collections-streams
+  index: 12
+- title: Tệp và mã hóa ký tự
+  slug: file-io-charsets
+  index: 13
+- title: Kết nối mạng
+  slug: networking
+  index: 14
+- title: Module và đóng gói mạnh
+  slug: modules-strong-encapsulation
+  index: 15
+- title: Reflection và truy cập
+  slug: reflection-access
+  index: 16
+- title: Lọc giải tuần tự hóa
+  slug: deserialization-filters
+  index: 17
+- title: JVM và bộ nhớ
+  slug: jvm-memory
+  index: 18
+- title: Chẩn đoán và JFR
+  slug: jfr-diagnostics
+  index: 19
+- title: Biên dịch và tài liệu
+  slug: compilation-documentation
+  index: 20
+- title: Đóng gói và nền tảng
+  slug: packaging-platforms
+  index: 21
+- title: Nâng cấp lên Java 17
+  slug: migrating-to-java-17
+  index: 22
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 23

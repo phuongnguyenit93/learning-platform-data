@@ -1,0 +1,70 @@
+roadmap:
+- id: chien-luoc-kiem-thu
+  title: Chiến lược kiểm thử
+  purpose: Chọn đúng cấp kiểm thử và hành vi cần chứng minh cho ứng dụng Spring.
+  objectives:
+  - Xác định nền tảng Java, JUnit và Spring IoC cần có.
+  - Phân biệt kiểm thử đơn vị, tích hợp và đầu-cuối.
+  - Chọn tình huống thành công, biên và thất bại cần kiểm chứng.
+- id: kiem-thu-don-vi
+  title: Kiểm thử đơn vị
+  purpose: Kiểm chứng logic của từng thành phần mà không cần khởi tạo Spring context.
+  objectives:
+  - Viết kiểm thử JUnit cho POJO qua constructor injection.
+  - Dùng fake/mock và Spring mock utilities phù hợp.
+  - Khẳng định kết quả, ngoại lệ và tương tác cần thiết.
+- id: thiet-lap-testcontext
+  title: Thiết lập TestContext
+  purpose: Kết nối bộ kiểm thử với Spring để kiểm chứng các bean trong cấu hình có kiểm soát.
+  objectives:
+  - Khởi tạo context bằng @SpringJUnitConfig hoặc SpringExtension.
+  - Tiêm bean và tách profile, thuộc tính kiểm thử.
+  - Thay bean có chủ đích bằng @TestBean hoặc @MockitoBean.
+  - Giải thích vòng đời TestContext và listener.
+- id: co-lap-trang-thai
+  title: Cô lập trạng thái
+  purpose: Giữ các bài kiểm thử độc lập trong khi tái sử dụng ApplicationContext hợp lý.
+  objectives:
+  - Hiểu khóa cache và tái sử dụng ApplicationContext.
+  - Tách trạng thái thay đổi giữa các bài kiểm thử.
+  - Dùng @DirtiesContext khi context thực sự bị thay đổi.
+  - Kiểm soát dữ liệu dùng chung khi chạy song song.
+- id: du-lieu-va-giao-dich
+  title: Dữ liệu và giao dịch
+  purpose: Kiểm chứng dữ liệu thực và ranh giới giao dịch mà không tạo kết quả kiểm thử sai lệch.
+  objectives:
+  - Chuẩn bị và dọn dữ liệu bằng @Sql.
+  - Kiểm chứng giao dịch do test quản lý và mặc định rollback.
+  - Phân biệt kiểm thử commit thực với rollback sau test.
+  - Nhận diện sai lệch do flush, tải lười hoặc thao tác ngoài giao dịch.
+- id: kiem-thu-http
+  title: Kiểm thử HTTP
+  purpose: Kiểm chứng hợp đồng HTTP bằng công cụ phù hợp với mô hình web của ứng dụng.
+  objectives:
+  - Chọn MockMvc, WebTestClient hoặc RestTestClient theo mô hình ứng dụng.
+  - Phân biệt mô phỏng trong tiến trình với HTTP qua máy chủ thật.
+  - Kiểm tra mã trạng thái, header, nội dung và lỗi.
+  - Kiểm chứng xử lý bất đồng bộ hoặc streaming khi có.
+- id: kiem-thu-http-client
+  title: Kiểm thử HTTP client
+  purpose: Kiểm chứng tương tác HTTP đi ra mà không phụ thuộc dịch vụ bên ngoài đang hoạt động.
+  objectives:
+  - Thiết lập MockRestServiceServer cho RestClient/RestTemplate.
+  - Đối chiếu yêu cầu gửi đi và phản hồi được xử lý.
+  - Chọn máy chủ HTTP giả lập cho WebClient hoặc hành vi mạng.
+- id: su-kien-va-bat-dong-bo
+  title: Sự kiện và bất đồng bộ
+  purpose: Kiểm chứng sự kiện ứng dụng và kết quả xử lý bất đồng bộ một cách xác định.
+  objectives:
+  - Ghi nhận sự kiện bằng @RecordApplicationEvents.
+  - Đối chiếu loại sự kiện và dữ liệu được phát ra.
+  - Chờ kết quả có giới hạn thay vì sleep cố định.
+  - Kiểm chứng lỗi và hủy tác vụ theo hợp đồng.
+- id: bo-kiem-thu-tin-cay
+  title: Bộ kiểm thử tin cậy
+  purpose: Đưa bộ kiểm thử vào quy trình build với kết quả ổn định và dễ chẩn đoán.
+  objectives:
+  - Thiết kế test độc lập thứ tự và có thể tái lập.
+  - Phân loại kiểm thử đơn vị, tích hợp và chạy trong build.
+  - Chẩn đoán lỗi cấu hình, cache, giao dịch và test chập chờn.
+  - Chọn kiểm chứng đầu-cuối theo rủi ro của ứng dụng.

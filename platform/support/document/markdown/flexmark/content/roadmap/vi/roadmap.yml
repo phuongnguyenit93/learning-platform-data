@@ -1,0 +1,57 @@
+roadmap:
+- id: markdown-commonmark
+  title: Markdown & CommonMark
+  purpose: Hiểu cú pháp Markdown, tiêu chuẩn CommonMark và vai trò của flexmark-java trong xử lý tài liệu bằng Java.
+  objectives:
+  - Viết heading, list, link và code block cơ bản
+  - Phân biệt Markdown nguồn với HTML đầu ra
+  - Mô tả luồng parse → AST → render
+- id: thiet-lap-flexmark-java
+  title: Thiết lập flexmark-java
+  purpose: Chuẩn bị dependency và chương trình Java tối thiểu để kiểm tra quy trình chuyển Markdown thành HTML.
+  objectives:
+  - Thêm flexmark và module mở rộng phù hợp vào build
+  - Tạo Parser và HtmlRenderer qua builder
+  - Chạy ví dụ chuyển đổi Markdown đơn giản
+- id: parser-cau-truc-ast
+  title: Parser & cấu trúc AST
+  purpose: Làm việc với cây cú pháp để hiểu các thành phần tài liệu thay vì thao tác bằng thay thế chuỗi.
+  objectives:
+  - Gọi Parser.parse() tạo Document
+  - Phân biệt node block và inline
+  - Quan sát node, con và vị trí nguồn
+- id: html-rendering
+  title: HTML Rendering
+  purpose: Chuyển AST thành HTML theo cấu hình renderer, hiểu sự khác biệt giữa diễn giải cú pháp và hiển thị.
+  objectives:
+  - Dùng HtmlRenderer.render() tạo HTML
+  - Kiểm tra heading, list, link và fenced code
+  - Tùy chỉnh thiết lập renderer cho yêu cầu hiển thị
+- id: options-extensions
+  title: Options & Extensions
+  purpose: Kích hoạt cú pháp mở rộng có chủ đích mà không làm lệch cách diễn giải tài liệu cơ bản.
+  objectives:
+  - Cấu hình MutableDataSet và Parser.EXTENSIONS
+  - Bật TablesExtension và StrikethroughExtension
+  - Kiểm chứng đầu ra có và không có extension
+- id: ast-visitor-tuy-bien
+  title: AST Visitor & tùy biến
+  purpose: Trích xuất hoặc xử lý nội dung có cấu trúc thông qua node visitor, đồng thời hiểu các điểm mở rộng.
+  objectives:
+  - Duyệt AST bằng NodeVisitor hoặc VisitHandler
+  - Thu thập heading hoặc link từ node phù hợp
+  - Phân biệt visitor với extension parser/renderer
+- id: markdown-formatter
+  title: Markdown Formatter
+  purpose: Chuẩn hóa nguồn Markdown qua Formatter mà vẫn bảo toàn nội dung và cấu trúc tài liệu.
+  objectives:
+  - Dùng Formatter để render AST về Markdown
+  - Thiết lập kiểu list, khoảng trắng và xuống dòng
+  - So sánh bản gốc với kết quả chuẩn hóa
+- id: tich-hop-kiem-thu-an-toan
+  title: Tích hợp, kiểm thử & an toàn
+  purpose: Xây dựng chức năng xử lý Markdown đủ tin cậy cho tài liệu thực tế và kiểm soát nội dung không đáng tin.
+  objectives:
+  - Kiểm thử cú pháp cơ bản và cú pháp mở rộng
+  - Đánh giá raw HTML và đường dẫn từ nguồn không tin cậy
+  - Áp dụng sanitization phù hợp trước khi hiển thị HTML

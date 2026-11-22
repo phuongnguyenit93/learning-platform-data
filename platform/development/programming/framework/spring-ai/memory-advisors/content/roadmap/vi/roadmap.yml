@@ -1,0 +1,57 @@
+roadmap:
+- id: memory-advisor-pipeline
+  title: Memory & Advisor Pipeline
+  purpose: Hiểu vai trò của ChatMemory và Advisor khi bổ sung ngữ cảnh hội thoại cho một mô hình vốn không có trạng thái.
+  objectives:
+  - Phân biệt chat memory với bản ghi chat history đầy đủ
+  - Vẽ luồng ChatClient → Advisor → ChatModel
+  - Giải thích ChatMemory và ChatMemoryRepository
+- id: messagechatmemoryadvisor
+  title: MessageChatMemoryAdvisor
+  purpose: Cấu hình advisor để tự động đọc và đưa các tin nhắn gần đây vào yêu cầu gửi mô hình.
+  objectives:
+  - Khởi tạo MessageChatMemoryAdvisor bằng ChatMemory
+  - Đăng ký qua ChatClient.defaultAdvisors(...)
+  - Thử hai lượt hỏi đáp dùng cùng conversation ID
+- id: conversation-id-co-lap
+  title: Conversation ID & cô lập
+  purpose: Ràng buộc ngữ cảnh vào đúng hội thoại và không để lịch sử của người dùng này lẫn sang người khác.
+  objectives:
+  - Truyền ChatMemory.CONVERSATION_ID mỗi request
+  - Tạo ID riêng cho từng cuộc hội thoại và chủ sở hữu
+  - Kiểm thử hai ID khác nhau không dùng chung memory
+- id: message-window-vong-doi
+  title: Message Window & vòng đời
+  purpose: Giới hạn lượng ngữ cảnh nạp lại để cân bằng chi phí, độ liên quan và độ dài prompt.
+  objectives:
+  - Cấu hình MessageWindowChatMemory.maxMessages
+  - Quan sát loại bỏ turn cũ khi vượt cửa sổ
+  - Phân biệt clear memory và lưu lịch sử lâu dài
+- id: repository-luu-ben
+  title: Repository & lưu bền
+  purpose: Chọn nơi lưu để memory tồn tại qua restart và hiểu giới hạn của từng backend.
+  objectives:
+  - So sánh InMemory với JDBC hoặc Redis repository
+  - Cấu hình schema, kết nối và khôi phục hội thoại
+  - Kiểm tra hạn chế lưu tool-call messages của backend
+- id: vectorstorechatmemoryadvisor
+  title: VectorStoreChatMemoryAdvisor
+  purpose: Truy xuất ký ức liên quan theo ngữ nghĩa khi không thể đưa toàn bộ lượt chat vào prompt.
+  objectives:
+  - Phân biệt message window với semantic memory
+  - Cấu hình VectorStoreChatMemoryAdvisor và vector store
+  - Đánh giá relevance cùng ranh giới dữ liệu người dùng
+- id: advisor-chain-streaming
+  title: Advisor Chain & Streaming
+  purpose: Hiểu thứ tự các advisor ảnh hưởng đến prompt và kết quả khi kết hợp memory với RAG hoặc logging.
+  objectives:
+  - Kiểm tra getOrder và thứ tự chạy advisor
+  - So sánh call với stream khi sử dụng memory
+  - Theo dõi prompt/context mà không ghi lộ dữ liệu
+- id: kiem-thu-bao-ve-du-lieu
+  title: Kiểm thử & bảo vệ dữ liệu
+  purpose: Xác thực memory chỉ nhớ đúng phiên, có thể xóa khi yêu cầu và vận hành được trong production.
+  objectives:
+  - Test recall, tách biệt hội thoại và hành vi restart
+  - Thiết kế retention, xóa dữ liệu và giới hạn truy cập
+  - Theo dõi latency, token và traces của advisor

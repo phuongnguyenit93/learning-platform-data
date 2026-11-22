@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring Guru — Bridge Pattern"
+    url: "https://refactoring.guru/design-patterns/bridge"
+    description: "Ý định, bài toán bùng nổ lớp kế thừa, cấu trúc Abstraction/Implementation, cách áp dụng và đánh đổi của Bridge."
+  - title: "Refactoring Guru — Bridge in Java"
+    url: "https://refactoring.guru/design-patterns/bridge/java/example"
+    description: "Ví dụ Java tách remote control và device thành hai hệ phân cấp qua interface và composition."
+  - title: "SourceMaking — Bridge Design Pattern"
+    url: "https://sourcemaking.com/design_patterns/bridge"
+    description: "Định nghĩa, sơ đồ lớp, các bước áp dụng, ưu điểm và so sánh Bridge với Adapter, Strategy, State."
+  - title: "Java Design Patterns — Bridge"
+    url: "https://java-design-patterns.com/patterns/bridge/"
+    description: "Ví dụ triển khai Java, nguyên tắc hai chiều độc lập, các trường hợp sử dụng và giới hạn của Bridge."

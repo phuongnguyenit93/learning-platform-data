@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-cau-hinh-tu-dong
+  title: Tư duy cấu hình tự động
+  purpose: Hiểu vì sao Spring Boot có thể cung cấp cấu hình mặc định và khi nào cơ chế này hữu ích.
+  objectives:
+  - Phân biệt starter, quét thành phần và cấu hình tự động.
+  - Liên hệ thư viện hiện có, thuộc tính và bean với cấu hình được áp dụng.
+  - Mô tả nguyên tắc ứng dụng có thể thay thế các lựa chọn mặc định.
+- id: luong-chon-cau-hinh
+  title: Luồng chọn cấu hình
+  purpose: Theo dõi cách lớp cấu hình trở thành ứng viên được Spring Boot xem xét.
+  objectives:
+  - Nối @SpringBootApplication, @EnableAutoConfiguration và AutoConfigurationImportSelector.
+  - Nhận diện vai trò của tệp AutoConfiguration.imports.
+  - Phân biệt được tìm thấy, bị loại trừ và thỏa điều kiện áp dụng.
+- id: dieu-kien-kich-hoat
+  title: Điều kiện kích hoạt
+  purpose: Đọc và dự đoán khi nào cấu hình hoặc bean đủ điều kiện tham gia ứng dụng.
+  objectives:
+  - Áp dụng điều kiện theo lớp, tài nguyên và loại ứng dụng web.
+  - Kiểm tra @ConditionalOnProperty với havingValue và matchIfMissing.
+  - Phân biệt điều kiện đặt trên lớp cấu hình với điều kiện trên phương thức @Bean.
+- id: bean-mac-dinh-va-thu-tu
+  title: Bean mặc định và thứ tự
+  purpose: Giải thích cách các cấu hình phối hợp mà vẫn tôn trọng bean của ứng dụng.
+  objectives:
+  - So sánh @ConditionalOnBean và @ConditionalOnMissingBean.
+  - Liên hệ kiểu trả về của @Bean với khả năng nhận diện bean.
+  - Phân biệt thứ tự đăng ký cấu hình với thứ tự khởi tạo bean.
+- id: chan-doan-bang-bao-cao
+  title: Chẩn đoán bằng báo cáo
+  purpose: Dùng bằng chứng để giải thích cấu hình có hoặc không được áp dụng.
+  objectives:
+  - Đọc báo cáo điều kiện khi bật --debug.
+  - Đối chiếu điều kiện khớp, không khớp và cấu hình bị loại trừ.
+  - Quan sát báo cáo qua Actuator conditions khi điểm truy cập đã được bật và cho phép truy cập.
+- id: tuy-chinh-co-chu-dich
+  title: Tùy chỉnh có chủ đích
+  purpose: Chọn cách thay đổi cấu hình phù hợp thay vì can thiệp tùy tiện vào cơ chế mặc định.
+  objectives:
+  - Phân biệt đổi thuộc tính, dùng điểm tùy biến và khai báo bean riêng.
+  - Quan sát cấu hình mặc định nhường chỗ khi đã có bean phù hợp.
+  - Loại trừ cấu hình bằng exclude hoặc spring.autoconfigure.exclude khi cần.
+- id: tu-xay-cau-hinh-tu-dong
+  title: Tự xây cấu hình tự động
+  purpose: Đóng gói cấu hình có điều kiện để nhiều ứng dụng có thể dùng lại.
+  objectives:
+  - Viết @AutoConfiguration và đăng ký trong AutoConfiguration.imports.
+  - Thiết kế điều kiện, thuộc tính và bean mặc định có thể thay thế.
+  - Tổ chức thư viện cấu hình cùng starter, tránh đưa cấu hình tự động vào vùng quét thành phần.
+- id: kiem-thu-va-tich-hop
+  title: Kiểm thử và tích hợp
+  purpose: Chứng minh cấu hình hoạt động đúng trong cả trường hợp được bật và không được bật.
+  objectives:
+  - Dùng ApplicationContextRunner với thuộc tính và bean do người dùng cung cấp.
+  - Mô phỏng thiếu thư viện bằng FilteredClassLoader và kiểm tra ngữ cảnh web phù hợp.
+  - Kiểm chứng ứng dụng tiêu thụ JAR tự tìm được cấu hình và thay thế được bean mặc định.

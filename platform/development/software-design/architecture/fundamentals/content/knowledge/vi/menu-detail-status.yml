@@ -1,0 +1,3409 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Thiết kế phần mềm và kiến trúc phần mềm là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vấn đề mà kiến trúc cần giải quyết trong một hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa yêu cầu, cấu trúc, hành vi và môi trường vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt kiến trúc hệ thống, kiến trúc ứng dụng và thiết kế chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa kiến trúc, thiết kế đối tượng và mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt thành phần, mô-đun, dịch vụ và đơn vị triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến trúc được thể hiện qua quyết định và hành vi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lợi ích và chi phí của việc đầu tư vào thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Vai trò của lập trình viên, kiến trúc sư và các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Thuật ngữ nền tảng và thứ tự tiếp cận tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-thinking
+  title: Tư duy kiến trúc
+  childs:
+  - slug: architectural-thinking-001
+    title: Bắt đầu từ vấn đề và bối cảnh thay vì công nghệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-002
+    title: Tư duy hệ thống và ảnh hưởng vượt ra ngoài một thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-003
+    title: Phân biệt mục tiêu, giả định, ràng buộc và phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-004
+    title: Đánh đổi giữa các thuộc tính chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-005
+    title: Phân biệt quyết định dễ đảo ngược và quyết định tốn kém để thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-006
+    title: Thiết kế vừa đủ và thời điểm trì hoãn quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-007
+    title: Xử lý điều chưa biết bằng giả thuyết và thực nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-008
+    title: Đánh giá phương án theo bằng chứng và mức độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-thinking-009
+    title: Nhận diện thiên kiến, kinh nghiệm cũ và giải pháp theo trào lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-context
+  title: Bối cảnh hệ thống
+  childs:
+  - slug: system-context-001
+    title: Xác định vấn đề nghiệp vụ và giá trị cần tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-002
+    title: Xác định người dùng và các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-003
+    title: Ranh giới hệ thống và phạm vi trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-004
+    title: Tác nhân, hệ thống bên ngoài và điểm tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-005
+    title: Luồng nghiệp vụ quan trọng và hành trình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-006
+    title: Quyền sở hữu dữ liệu và trách nhiệm giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-007
+    title: Ràng buộc pháp lý, tổ chức và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-008
+    title: Ràng buộc của hệ thống hiện có và phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-009
+    title: Phân biệt phạm vi thực hiện và phần chưa thuộc phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-context-010
+    title: Ghi nhận giả định và điều kiện làm thay đổi thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-requirements
+  title: Yêu cầu kiến trúc
+  childs:
+  - slug: architectural-requirements-001
+    title: Phân biệt yêu cầu chức năng, yêu cầu chất lượng và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-002
+    title: Nhận diện yêu cầu có ảnh hưởng lớn tới kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-003
+    title: Chuyển mục tiêu mơ hồ thành tiêu chí có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-004
+    title: Mô tả ca sử dụng và luồng nghiệp vụ trọng yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-005
+    title: Kịch bản chất lượng với kích thích, bối cảnh và phản hồi đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-006
+    title: Ước lượng quy mô người dùng, dữ liệu và lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-007
+    title: Xác định mức quan trọng và ưu tiên yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-008
+    title: Phân tích yêu cầu xung đột và cách thương lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-009
+    title: Phân biệt nhu cầu hiện tại và dự báo tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-010
+    title: Truy vết yêu cầu tới quyết định và bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-requirements-011
+    title: Quản lý thay đổi yêu cầu trong vòng đời hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-attributes
+  title: Thuộc tính chất lượng
+  childs:
+  - slug: quality-attributes-001
+    title: Tính đúng đắn chức năng và chất lượng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-002
+    title: Khả năng sửa đổi, bảo trì và mở rộng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-003
+    title: Khả năng kiểm thử và chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-004
+    title: Hiệu năng, thông lượng và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-005
+    title: Khả năng mở rộng theo tải và quy mô dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-006
+    title: Tính sẵn sàng, độ tin cậy và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-007
+    title: Bảo mật và quyền riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-008
+    title: Khả năng sử dụng và khả năng tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-009
+    title: Khả năng tương tác, tương thích và di chuyển môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-010
+    title: Khả năng triển khai và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-011
+    title: Chi phí tài nguyên và hiệu quả sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-attributes-012
+    title: Đánh đổi chất lượng theo từng kịch bản cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: abstraction-decomposition
+  title: Trừu tượng và phân rã
+  childs:
+  - slug: abstraction-decomposition-001
+    title: Trừu tượng hóa và lựa chọn mức chi tiết phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-002
+    title: Đóng gói và che giấu thông tin có khả năng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-003
+    title: Phân tách mối quan tâm (separation of concerns)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-004
+    title: Phân rã theo nghiệp vụ và phân rã theo kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-005
+    title: Phân biệt phân rã cấu trúc và phân rã hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-006
+    title: Thiết kế từ trên xuống và khám phá từ dưới lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-007
+    title: Xác định trách nhiệm và thành phần cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-008
+    title: Giữ khái niệm nhất quán giữa các mức trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-009
+    title: Nhận diện trừu tượng rò rỉ và ranh giới giả tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-decomposition-010
+    title: Đánh giá độ phức tạp do trừu tượng hóa tạo thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modules-boundaries
+  title: Mô-đun và ranh giới
+  childs:
+  - slug: modules-boundaries-001
+    title: Mô-đun là đơn vị tổ chức trách nhiệm và che giấu thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-002
+    title: Phân biệt mô-đun logic và đơn vị triển khai vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-003
+    title: Xác định ranh giới theo khả năng thay đổi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-004
+    title: Giao diện công khai và chi tiết triển khai nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-005
+    title: Quyền sở hữu dữ liệu và hành vi trong mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-006
+    title: Hợp đồng giữa các mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-007
+    title: Mức hạt của thành phần và chi phí chia nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-008
+    title: Tổ chức theo tính năng và theo lớp kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-009
+    title: Kiểm soát truy cập và ngăn sử dụng chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-boundaries-010
+    title: Đánh giá một ranh giới bằng các kịch bản thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cohesion-dependencies
+  title: Gắn kết và phụ thuộc
+  childs:
+  - slug: cohesion-dependencies-001
+    title: Độ gắn kết (cohesion) và ý nghĩa của một trách nhiệm thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-002
+    title: Mức liên kết (coupling) và chi phí thay đổi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-003
+    title: Phụ thuộc ở mã nguồn, dữ liệu, thời gian và lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-004
+    title: Phân biệt phụ thuộc có chủ đích và phụ thuộc ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-005
+    title: Đồ thị phụ thuộc và hướng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-006
+    title: Phụ thuộc vòng và tác động tới xây dựng hoặc kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-007
+    title: Tính ổn định của giao diện và phụ thuộc vào phần dễ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-008
+    title: Liên kết qua dữ liệu dùng chung và mô hình dữ liệu nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-009
+    title: Liên kết về thời gian trong chuỗi gọi đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-010
+    title: Chỉ số phụ thuộc và giới hạn của việc đánh giá bằng số đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-dependencies-011
+    title: Cải thiện gắn kết và phụ thuộc mà không chia nhỏ máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-principles
+  title: Nguyên tắc thiết kế
+  childs:
+  - slug: design-principles-001
+    title: Trách nhiệm đơn nhất (Single Responsibility Principle)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-002
+    title: Đóng với sửa đổi và mở với mở rộng (Open/Closed Principle)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-003
+    title: Khả năng thay thế kiểu con (Liskov Substitution Principle)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-004
+    title: Phân tách giao diện (Interface Segregation Principle)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-005
+    title: Đảo ngược phụ thuộc (Dependency Inversion Principle)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-006
+    title: Phân biệt đảo ngược điều khiển và tiêm phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-007
+    title: Ưu tiên kết hợp đối tượng khi quan hệ kế thừa không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-008
+    title: DRY và sự khác biệt giữa lặp mã với lặp tri thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-009
+    title: KISS và lựa chọn thiết kế dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-010
+    title: YAGNI và tránh xây dựng cho nhu cầu chưa được chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-011
+    title: Thiết kế theo hợp đồng và bảo vệ điều kiện bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-principles-012
+    title: Áp dụng nguyên tắc theo bối cảnh thay vì như luật tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-model
+  title: Mô hình miền
+  childs:
+  - slug: domain-model-001
+    title: Mô hình miền và ngôn ngữ chung với người làm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-002
+    title: Phân biệt dữ liệu nghiệp vụ và cấu trúc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-003
+    title: Thực thể, đối tượng giá trị và hành vi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-004
+    title: Điều kiện bất biến và ranh giới bảo vệ tính đúng đắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-005
+    title: Đối tượng kết tụ (aggregate) và trách nhiệm cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-006
+    title: Dịch vụ nghiệp vụ và dịch vụ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-007
+    title: Ranh giới ngữ cảnh (bounded context)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-008
+    title: Quan hệ và chuyển đổi mô hình giữa các ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-009
+    title: Mô hình phong phú và mô hình chỉ chứa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-010
+    title: Giới hạn áp dụng mô hình miền phức tạp cho bài toán đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contracts-communication
+  title: Hợp đồng và giao tiếp
+  childs:
+  - slug: contracts-communication-001
+    title: Hợp đồng về cấu trúc, ý nghĩa và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-002
+    title: Giao diện trong tiến trình và giao diện qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-003
+    title: Giao tiếp đồng bộ và giao tiếp bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-004
+    title: Phân biệt lệnh, truy vấn, sự kiện và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-005
+    title: Thiết kế dữ liệu nhập, dữ liệu trả về và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-006
+    title: Điều kiện trước, điều kiện sau và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-007
+    title: Liên kết về thời gian và khả năng giao lại thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-008
+    title: Tính lũy đẳng và thao tác lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-009
+    title: Phiên bản hợp đồng và khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-010
+    title: Ẩn mô hình nội bộ sau ranh giới chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-011
+    title: Lựa chọn HTTP, RPC hoặc truyền tin theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-communication-012
+    title: Tài liệu và kiểm thử hợp đồng giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-lifecycle
+  title: Trạng thái và vòng đời
+  childs:
+  - slug: state-lifecycle-001
+    title: Phân biệt hệ thống có trạng thái và không lưu trạng thái cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-002
+    title: Trạng thái nghiệp vụ, trạng thái phiên và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-003
+    title: Chọn vị trí lưu và thành phần sở hữu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-004
+    title: Trạng thái khả biến và dữ liệu bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-005
+    title: Ranh giới nhất quán khi cập nhật trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-006
+    title: Vòng đời đối tượng, yêu cầu, phiên và tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-007
+    title: Quản lý kết nối, bộ nhớ và tài nguyên có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-008
+    title: Bộ nhớ đệm và quan hệ với nguồn dữ liệu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-009
+    title: Cách ly trạng thái giữa người dùng hoặc khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-lifecycle-010
+    title: Khởi tạo, dừng an toàn và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-async
+  title: Đồng thời và bất đồng bộ
+  childs:
+  - slug: concurrency-async-001
+    title: Phân biệt tính đồng thời, song song và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-002
+    title: Luồng thực thi, tiến trình và vòng lặp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-003
+    title: Tranh chấp dữ liệu và vùng tới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-004
+    title: Khóa, bế tắc và chi phí phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-005
+    title: Kiểm soát cập nhật bằng khóa lạc quan hoặc khóa bi quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-006
+    title: Cô lập dữ liệu và mô hình sở hữu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-007
+    title: Tác vụ chặn và tác vụ không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-008
+    title: Giới hạn công việc đang xử lý và áp lực ngược (backpressure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-009
+    title: Thời hạn chờ, hủy công việc và hoàn tất dở dang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-async-010
+    title: Đánh giá tác động của đồng thời tới tính đúng đắn và hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-structure
+  title: Cấu trúc hệ thống
+  childs:
+  - slug: system-structure-001
+    title: Phân biệt cấu trúc logic và cấu trúc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-002
+    title: Ứng dụng một tiến trình và hệ thống nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-003
+    title: Kiến trúc nguyên khối (monolithic architecture)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-004
+    title: Nguyên khối mô-đun (modular monolith)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-005
+    title: Kiến trúc máy khách–máy chủ (client–server)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-006
+    title: Phân biệt lớp logic (layer) và tầng triển khai (tier)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-007
+    title: Kiến trúc hướng dịch vụ (SOA)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-008
+    title: Kiến trúc microservices và chi phí phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-009
+    title: Hệ thống kết hợp nhiều kiểu tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-structure-010
+    title: Chọn cấu trúc theo ranh giới nghiệp vụ và thuộc tính chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-patterns
+  title: Mẫu kiến trúc
+  childs:
+  - slug: architectural-patterns-001
+    title: Phân biệt kiểu kiến trúc, mẫu kiến trúc và chiến thuật chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-002
+    title: Kiến trúc phân lớp (Layered Architecture)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-003
+    title: Mẫu Model–View–Controller và phạm vi giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-004
+    title: Kiến trúc cổng và bộ chuyển đổi (Hexagonal Architecture)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-005
+    title: Onion Architecture và Clean Architecture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-006
+    title: Kiến trúc hướng sự kiện (Event-Driven Architecture)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-007
+    title: Mẫu đường ống và bộ lọc (Pipes and Filters)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-008
+    title: Kiến trúc lõi mở rộng (Microkernel Architecture)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-009
+    title: Tách mô hình đọc và ghi bằng CQRS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-010
+    title: Lưu trạng thái từ chuỗi sự kiện bằng Event Sourcing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-011
+    title: Phân biệt hướng sự kiện và Event Sourcing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-012
+    title: Kết hợp mẫu ở các mức khác nhau mà không tạo mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-patterns-013
+    title: Chọn mẫu theo vấn đề và ghi nhận hệ quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-patterns
+  title: Mẫu thiết kế
+  childs:
+  - slug: design-patterns-001
+    title: Mẫu thiết kế và vai trò của ngôn ngữ giải pháp dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-002
+    title: Cấu trúc mô tả vấn đề, bối cảnh, giải pháp và hệ quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-003
+    title: Các nhóm khởi tạo, cấu trúc và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-004
+    title: Factory và quản lý cách tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-005
+    title: Strategy và tách phần hành vi có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-006
+    title: Adapter, Facade và bảo vệ ranh giới tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-007
+    title: Observer và phối hợp khi trạng thái thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-008
+    title: Phân biệt mẫu thiết kế với nguyên tắc và thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-009
+    title: Tránh áp dụng mẫu chỉ để tăng số lớp hoặc độ trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-storage
+  title: Dữ liệu và lưu trữ
+  childs:
+  - slug: data-storage-001
+    title: Nguồn dữ liệu chuẩn và quyền sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-002
+    title: Mô hình khái niệm, mô hình logic và mô hình vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-003
+    title: Chọn cách lưu trữ theo truy vấn và ràng buộc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-004
+    title: Cơ sở dữ liệu quan hệ và các nhóm lưu trữ phi quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-005
+    title: Toàn vẹn dữ liệu và kiểm soát cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-006
+    title: Tách mô hình nghiệp vụ khỏi mô hình lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-007
+    title: Sao chép dữ liệu, dữ liệu dẫn xuất và mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-008
+    title: Bộ nhớ đệm và chiến lược làm mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-009
+    title: Tiến hóa lược đồ và chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-010
+    title: Vòng đời dữ liệu, lưu giữ và xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-systems
+  title: Hệ phân tán căn bản
+  childs:
+  - slug: distributed-systems-001
+    title: Ranh giới mạng làm thay đổi giả định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-002
+    title: Độ trễ, băng thông và chi phí giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-003
+    title: Lỗi cục bộ và lỗi từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-004
+    title: Phân biệt thất bại thật sự và phản hồi chưa nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-005
+    title: Phân hoạch mạng và sự gián đoạn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-006
+    title: Đồng hồ, dấu thời gian và quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-007
+    title: Thông điệp bị mất, lặp hoặc đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-008
+    title: Khám phá dịch vụ và thay đổi vị trí thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-009
+    title: Sao chép, phân vùng và phối hợp giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-010
+    title: Phạm vi của CAP khi xảy ra phân hoạch mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-011
+    title: Chi phí vận hành và chẩn đoán của hệ thống phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency-transactions
+  title: Nhất quán và giao dịch
+  childs:
+  - slug: consistency-transactions-001
+    title: Ranh giới giao dịch và ý nghĩa của ACID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-002
+    title: Mức cô lập và các dạng xung đột truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-003
+    title: Nhất quán mạnh và nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-004
+    title: Phân biệt tính nhất quán dữ liệu với chữ C trong ACID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-005
+    title: Yêu cầu đọc sau ghi và trải nghiệm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-006
+    title: Giao dịch cục bộ và giao dịch phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-007
+    title: Vấn đề ghi kép giữa dữ liệu và hệ thống truyền tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-008
+    title: Transactional Outbox và luồng chuyển tiếp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-009
+    title: Saga và hành động bù trừ theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-010
+    title: Kết hợp tính lũy đẳng, thử lại và đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-transactions-011
+    title: Chọn mức nhất quán theo điều kiện nghiệp vụ cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Phân biệt lỗi, hỏng hóc và gián đoạn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Điểm lỗi đơn và miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Dự phòng, sao chép và chuyển đổi khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Thời hạn chờ và phân bổ thời gian xuyên chuỗi gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Thử lại có giới hạn, giãn cách và độ lệch ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Ngắt mạch và cô lập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Giảm chức năng có kiểm soát khi phụ thuộc không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Giới hạn tải và phòng tránh lỗi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Sao lưu, khôi phục và kiểm chứng bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-010
+    title: Mục tiêu thời gian phục hồi và mức mất dữ liệu chấp nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-011
+    title: Thiết kế và diễn tập kịch bản phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-scalability
+  title: Hiệu năng và mở rộng
+  childs:
+  - slug: performance-scalability-001
+    title: Phân biệt thời gian đáp ứng, thông lượng và mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-002
+    title: Phân vị độ trễ và hiện tượng chậm ở phần đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-003
+    title: Ước lượng tải, tăng trưởng và dung lượng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-004
+    title: Nhận diện điểm nghẽn bằng đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-005
+    title: Mở rộng dọc và mở rộng ngang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-006
+    title: Cân bằng tải và giới hạn của thành phần có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-007
+    title: Phân vùng dữ liệu và điểm nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-008
+    title: Bộ nhớ đệm và đánh đổi độ mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-009
+    title: Gộp lô, xử lý bất đồng bộ và quản lý hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-010
+    title: Giới hạn tài nguyên, quá tải và áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-011
+    title: Kiểm thử tải và đánh đổi giữa hiệu năng với chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Tài sản cần bảo vệ và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Mô hình đe dọa và các đường tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Xác thực danh tính và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Đặc quyền tối thiểu và phân tách trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Bảo vệ nhiều lớp và mặc định an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Kiểm tra đầu vào và bảo vệ đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Mã hóa khi truyền và khi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Quản lý bí mật, khóa và chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Quyền riêng tư và tối thiểu hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Kiểm toán hành động quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Rủi ro từ thư viện, thành phần và chuỗi cung ứng phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-infrastructure
+  title: Triển khai và hạ tầng
+  childs:
+  - slug: deployment-infrastructure-001
+    title: Ánh xạ thành phần logic sang đơn vị triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-002
+    title: Tiến trình, máy ảo, container và dịch vụ được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-003
+    title: Phân biệt quyết định kiến trúc và lựa chọn công cụ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-004
+    title: Môi trường phát triển, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-005
+    title: Quản lý cấu hình, bí mật và khác biệt môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-006
+    title: Biên mạng, điểm vào và kết nối giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-007
+    title: Tự động hóa xây dựng, kiểm thử và phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-008
+    title: Triển khai cuốn chiếu, triển khai thăm dò và chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-009
+    title: Tương thích giữa các phiên bản trong giai đoạn triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-infrastructure-010
+    title: Quay lui mã nguồn, cấu hình và thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-operations-001
+    title: Phân biệt khả năng quan sát và hoạt động giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-002
+    title: Nhật ký, chỉ số và truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-003
+    title: Định danh tương quan xuyên các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-004
+    title: Chỉ số dịch vụ (SLI) và mục tiêu dịch vụ (SLO)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-005
+    title: Ngân sách lỗi và quyết định thay đổi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-006
+    title: Theo dõi kết quả nghiệp vụ cùng chỉ số kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-007
+    title: Cảnh báo có thể hành động và hạn chế nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-008
+    title: Quy trình vận hành và hướng dẫn xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-009
+    title: Khởi động, kiểm tra sức khỏe và dừng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-010
+    title: Phân tích sự cố và cập nhật giả định kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-011
+    title: Chi phí và quyền riêng tư của dữ liệu quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modeling
+  title: Mô hình hóa
+  childs:
+  - slug: modeling-001
+    title: Mục đích mô hình và đối tượng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-002
+    title: Phân biệt góc nhìn (view) và quy tắc mô tả góc nhìn (viewpoint)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-003
+    title: Chọn mức trừu tượng và phạm vi của từng sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-004
+    title: 'C4: bối cảnh hệ thống'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-005
+    title: 'C4: các khối ứng dụng và kho dữ liệu ở mức container'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-006
+    title: 'C4: thành phần và mức chi tiết mã nguồn khi cần'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-007
+    title: Sơ đồ UML cho cấu trúc và quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-008
+    title: Sơ đồ trình tự cho tương tác lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-009
+    title: Sơ đồ trạng thái cho vòng đời nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-010
+    title: Sơ đồ triển khai và ánh xạ sang hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-011
+    title: Biểu diễn ranh giới tin cậy, dữ liệu và miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-012
+    title: Giữ mô hình nhất quán với mã nguồn và môi trường thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-decisions
+  title: Tài liệu và quyết định
+  childs:
+  - slug: documentation-decisions-001
+    title: Xác định tài liệu cần thiết theo người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-002
+    title: Tóm tắt mục tiêu, bối cảnh và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-003
+    title: Mô tả cấu trúc, hành vi và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-004
+    title: Ghi nhận quyết định bằng Architecture Decision Record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-005
+    title: Nêu phương án được chọn, phương án thay thế và hệ quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-006
+    title: Phân biệt quyết định đã chốt và giả định cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-007
+    title: Truy vết quyết định tới yêu cầu và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-008
+    title: Quản lý phiên bản, người sở hữu và thời điểm rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-009
+    title: Ghi nhận quyết định được thay thế và lý do thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-decisions-010
+    title: Ngăn tài liệu lỗi thời và tránh mô tả trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-evaluation
+  title: Đánh giá kiến trúc
+  childs:
+  - slug: architecture-evaluation-001
+    title: Đánh giá theo kịch bản thay vì cảm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-002
+    title: Xác định rủi ro và giả định có ảnh hưởng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-003
+    title: Đánh giá thuộc tính chất lượng qua các phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-004
+    title: Phân tích điểm nhạy cảm và điểm đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-005
+    title: Ưu tiên thử nghiệm cho điều chưa chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-006
+    title: Phân biệt nguyên mẫu, thử nghiệm khả thi và sản phẩm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-007
+    title: Thiết kế phép đo và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-008
+    title: Phản biện thiết kế với các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-009
+    title: Giới hạn của số liệu, sơ đồ và kết quả thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evaluation-010
+    title: Kết luận dựa trên bằng chứng và ghi nhận rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-verification
+  title: Kiểm thử và kiểm chứng
+  childs:
+  - slug: testing-verification-001
+    title: Phân biệt tính đúng đắn nghiệp vụ và tính phù hợp kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-002
+    title: Kiểm thử đơn vị tại ranh giới trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-003
+    title: Kiểm thử tích hợp với dữ liệu và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-004
+    title: Kiểm thử hợp đồng giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-005
+    title: Kiểm thử xuyên suốt cho luồng nghiệp vụ trọng yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-006
+    title: Kiểm tra phụ thuộc, phân lớp và quy tắc kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-007
+    title: Kiểm chứng hiệu năng, bảo mật và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-008
+    title: Chèn lỗi để kiểm tra các giả định vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-009
+    title: Hàm kiểm chứng kiến trúc (fitness function)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-verification-010
+    title: Tích hợp bằng chứng kiểm chứng vào quy trình phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-evolution
+  title: Tiến hóa kiến trúc
+  childs:
+  - slug: architecture-evolution-001
+    title: Kiến trúc thay đổi theo nghiệp vụ, tải và tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-002
+    title: Phân biệt tái cấu trúc mã và thay đổi ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-003
+    title: Xác định kiến trúc hiện tại, mục tiêu và trạng thái chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-004
+    title: Lập kế hoạch chuyển đổi theo từng bước có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-005
+    title: Thay thế dần bằng mẫu Strangler Fig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-006
+    title: Lớp bảo vệ mô hình (Anti-Corruption Layer) khi tích hợp hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-007
+    title: Chuyển đổi hợp đồng theo cách mở rộng rồi thu hẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-008
+    title: Chuyển dữ liệu và chạy song song có đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-009
+    title: Quản lý tương thích trong thời gian chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-010
+    title: Phương án quay lui và điều kiện dừng chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-evolution-011
+    title: Đo giá trị sau chuyển đổi và xóa cấu trúc cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-debt
+  title: Nợ kỹ thuật
+  childs:
+  - slug: technical-debt-001
+    title: Nợ kỹ thuật và chi phí thay đổi tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-002
+    title: Phân biệt nợ chủ động, nợ vô ý và thiết kế lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-003
+    title: Nợ kiến trúc tại ranh giới, dữ liệu và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-004
+    title: Dấu hiệu suy giảm cấu trúc và thay đổi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-005
+    title: Ghi nhận khoản nợ với tác động và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-006
+    title: Ưu tiên xử lý theo rủi ro và giá trị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-007
+    title: Cân bằng tiến độ giao hàng và sức khỏe hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-008
+    title: Giảm nợ qua công việc phát triển hằng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-009
+    title: Đo kết quả cải tiến thay vì chỉ đếm việc tái cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-collaboration
+  title: Tổ chức và cộng tác
+  childs:
+  - slug: team-collaboration-001
+    title: Quan hệ giữa cấu trúc tổ chức và cấu trúc hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-002
+    title: Định luật Conway và giới hạn khi vận dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-003
+    title: Quyền sở hữu thành phần và trách nhiệm xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-004
+    title: Phân quyền quyết định theo phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-005
+    title: Phối hợp giữa nghiệp vụ, phát triển, bảo mật và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-006
+    title: Đánh giá thiết kế như hoạt động cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-007
+    title: Nguyên tắc chung và ngoại lệ có lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-008
+    title: Chia sẻ tri thức và giảm phụ thuộc vào một cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-009
+    title: Điều chỉnh ranh giới nhóm khi kiến trúc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technology-costs
+  title: Công nghệ và chi phí
+  childs:
+  - slug: technology-costs-001
+    title: Tách nhu cầu kiến trúc khỏi tên sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-002
+    title: Lựa chọn tự xây dựng, mua hoặc dùng dịch vụ có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-003
+    title: Đánh giá mức phù hợp, độ trưởng thành và khả năng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-004
+    title: Đánh giá năng lực đội ngũ và trải nghiệm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-005
+    title: Chi phí phát triển, vận hành và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-006
+    title: Chi phí chuyển đổi, di chuyển dữ liệu và thay thế công nghệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-007
+    title: Phụ thuộc nhà cung cấp và tính khả chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-008
+    title: Rủi ro từ thành phần không còn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-009
+    title: Thử nghiệm lựa chọn trên tải và kịch bản đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-costs-010
+    title: Ghi nhận căn cứ lựa chọn và thời điểm cần đánh giá lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Đồng nhất kiến trúc với sơ đồ hoặc bộ công nghệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Thiết kế trước khi làm rõ vấn đề và yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Chọn microservices hoặc công nghệ mới theo trào lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Chia nhỏ thành phần nhưng giữ nguyên phụ thuộc chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Trừu tượng hóa quá sớm và thiết kế cho quy mô giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Áp dụng nguyên tắc hoặc mẫu như quy tắc tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Bỏ qua trạng thái, dữ liệu và ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Chỉ đánh giá luồng thành công mà bỏ qua các dạng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Tối ưu hiệu năng trước khi có số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Tách quyết định thiết kế khỏi khả năng triển khai và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-example
+  title: Minh họa xuyên suốt
+  childs:
+  - slug: end-to-end-example-001
+    title: Đề bài quản lý đơn hàng và các giả định ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-002
+    title: Xác định bối cảnh, tác nhân và luồng nghiệp vụ chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-003
+    title: Ưu tiên yêu cầu và kịch bản chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-004
+    title: Phân rã trách nhiệm và xác định ranh giới mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-005
+    title: Thiết kế hợp đồng và quyền sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-006
+    title: Thiết kế luồng đặt hàng và ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-007
+    title: Chọn cấu trúc triển khai ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-008
+    title: Phân tích lỗi, bảo mật và giới hạn tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-009
+    title: So sánh các phương án và ghi quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-010
+    title: Kiểm chứng giả định bằng nguyên mẫu hoặc kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-example-011
+    title: Điều chỉnh kiến trúc khi yêu cầu và quy mô thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-self-assessment
+  title: Thực hành và tự đánh giá
+  childs:
+  - slug: practice-self-assessment-001
+    title: Phân biệt quyết định kiến trúc và chi tiết triển khai từ ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-002
+    title: Vẽ sơ đồ bối cảnh cho một hệ thống quen thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-003
+    title: Viết kịch bản chất lượng có tiêu chí đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-004
+    title: Phân rã mô-đun và phản biện hướng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-005
+    title: Thiết kế hợp đồng cho một ranh giới tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-006
+    title: So sánh hai phương án theo cùng tập yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-007
+    title: Viết một bản ghi quyết định kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-008
+    title: Thiết kế phép thử cho giả định rủi ro nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-009
+    title: Lập kế hoạch cải tiến từng bước cho hệ thống hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-self-assessment-010
+    title: Tự đánh giá tính nhất quán giữa yêu cầu, quyết định và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

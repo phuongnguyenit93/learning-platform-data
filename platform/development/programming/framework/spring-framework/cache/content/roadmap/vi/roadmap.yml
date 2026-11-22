@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-cache
+  title: Tổng quan cache
+  purpose: Hiểu vì sao dùng bộ nhớ đệm và vai trò của Spring Cache trong ứng dụng.
+  objectives:
+  - Giải thích truy cập trúng cache (hit), trượt cache (miss) và dữ liệu cũ
+  - Phân biệt Spring Cache với kho lưu trữ cache
+  - Nhận diện phương thức phù hợp để lưu kết quả
+- id: kich-hoat-cache
+  title: Kích hoạt cache
+  purpose: Thiết lập cơ chế cache cho các bean Spring với một kho lưu trữ cụ thể.
+  objectives:
+  - Khai báo CacheManager và bật @EnableCaching
+  - Phân biệt Cache, CacheManager và nhà cung cấp
+  - Cấu hình tên các vùng cache
+- id: luu-ket-qua
+  title: Lưu kết quả
+  purpose: Dùng @Cacheable để tái sử dụng kết quả và bỏ qua xử lý lặp lại.
+  objectives:
+  - Áp dụng @Cacheable cho phương thức phù hợp
+  - Mô tả luồng đọc cache khi có hoặc thiếu dữ liệu
+  - Kiểm tra số lần phương thức thực sự được chạy
+- id: khoa-va-dieu-kien
+  title: Khóa và điều kiện
+  purpose: Xác định đúng kết quả nào được dùng lại cho từng lời gọi.
+  objectives:
+  - Thiết kế khóa bằng SpEL hoặc KeyGenerator
+  - Phân biệt condition với unless
+  - Xử lý kết quả null theo khả năng của kho cache
+- id: cap-nhat-va-xoa
+  title: Cập nhật và xóa
+  purpose: Giữ dữ liệu cache phù hợp khi dữ liệu nguồn thay đổi.
+  objectives:
+  - Phân biệt @CachePut với @Cacheable
+  - Dùng @CacheEvict cho một khóa hoặc toàn vùng
+  - Kết hợp thao tác bằng @Caching
+- id: co-che-thuc-thi
+  title: Cơ chế thực thi
+  purpose: Giải thích cách Spring chặn lời gọi và các trường hợp cache không được áp dụng.
+  objectives:
+  - Nhận biết proxy và giới hạn tự gọi trong cùng bean
+  - Xác định thời điểm xóa trước hoặc sau lời gọi
+  - Phân biệt hoàn tất phương thức với xác nhận giao dịch (commit)
+- id: het-han-va-dong-thoi
+  title: Hết hạn và đồng thời
+  purpose: Giới hạn dữ liệu cũ và tránh tính lại đồng thời vượt mức cần thiết.
+  objectives:
+  - Cấu hình thời gian sống (TTL) và giới hạn dung lượng tại kho cache
+  - Giải thích sync=true và hỗ trợ của nhà cung cấp
+  - Xác định phạm vi đồng bộ của kho cache
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Chứng minh cache đúng hành vi và theo dõi hiệu quả trong tình huống thực tế.
+  objectives:
+  - Kiểm thử hit, miss, cập nhật và xóa cache
+  - Đo tỷ lệ hit, độ trễ và dung lượng
+  - Kiểm tra xử lý lỗi khi kho cache không sẵn sàng

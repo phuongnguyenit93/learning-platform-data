@@ -1,0 +1,464 @@
+menu:
+- level1: Tổng quan thông báo Telegram
+  level2:
+  - Telegram đóng vai trò gì trong hệ thống thông báo
+  - Thông báo giao dịch, cảnh báo vận hành và bản tin định kỳ
+  - Vì sao dùng bot thay cho thao tác gửi thủ công
+  - Người dùng, bot, cuộc trò chuyện và máy chủ ứng dụng liên hệ thế nào
+  - Hành trình từ sự kiện nghiệp vụ đến thông báo trên Telegram
+  - Phân biệt gửi thông báo một chiều với xây dựng chatbot
+  - 'Telegram, email, SMS và thông báo đẩy: lựa chọn theo nhu cầu'
+  - Giới hạn khi Telegram là kênh liên lạc phụ thuộc bên ngoài
+  - Phân biệt API chấp nhận gửi, người nhận phản hồi và người nhận đã đọc
+  - Lộ trình học và kiến thức HTTP, JSON, Java cần chuẩn bị
+- level1: Nền tảng Bot API
+  level2:
+  - Bot API là gì và khác Telegram Client API, MTProto như thế nào
+  - Bot token và cách Telegram nhận diện bot gọi API
+  - Cấu trúc địa chỉ HTTPS và tên phương thức Bot API
+  - Gửi tham số bằng JSON, biểu mẫu và multipart/form-data
+  - Cấu trúc phản hồi với ok, result, description và error_code
+  - ResponseParameters và dữ liệu hướng dẫn xử lý lỗi
+  - Phân biệt yêu cầu gửi ra với cập nhật (update) nhận vào
+  - Quan hệ giữa User, Chat, Message và Update
+  - 'BotFather, Bot API và ứng dụng máy chủ: trách nhiệm từng bên'
+  - Đọc tài liệu theo phương thức và theo dõi thay đổi phiên bản
+  - Bot API trên hạ tầng Telegram và Local Bot API Server
+- level1: Khởi tạo bot
+  level2:
+  - Tạo bot qua BotFather và lựa chọn tên, username
+  - Nhận token và lưu bằng cấu hình bí mật của ứng dụng
+  - Kiểm tra danh tính bot bằng getMe
+  - Thiết lập tên hiển thị, mô tả và thông tin giới thiệu
+  - Khai báo danh sách lệnh và gợi ý sử dụng
+  - Phạm vi lệnh theo cuộc trò chuyện và ngôn ngữ
+  - Privacy mode và ảnh hưởng tới cập nhật nhận từ nhóm
+  - Tách bot thực hành, kiểm thử và môi trường thật
+  - Bắt đầu cuộc trò chuyện với bot bằng /start
+  - Thêm bot vào nhóm hoặc kênh với quyền cần thiết
+  - Thu hồi, thay token và kiểm chứng ứng dụng dùng token mới
+- level1: Đích nhận và định danh
+  level2:
+  - Phân biệt user ID, chat ID, message ID và update ID
+  - Cuộc trò chuyện riêng, nhóm, siêu nhóm và kênh
+  - Vì sao username hoặc số điện thoại không thay thế mọi chat ID
+  - Lấy chat ID từ cập nhật do người dùng chủ động tạo
+  - Dùng @username cho đích công khai khi phương thức hỗ trợ
+  - Lưu ID bằng Long hoặc chuỗi để tránh tràn số và mất độ chính xác
+  - Phạm vi duy nhất của message_id trong một cuộc trò chuyện
+  - getChat và thông tin cần kiểm chứng trước khi gửi
+  - Đích nhận theo chủ đề với message_thread_id
+  - Mô hình đích nhận mở rộng và tham số phụ thuộc loại cuộc trò chuyện
+  - Nhóm chuyển thành siêu nhóm và thay đổi chat ID
+  - Ánh xạ tài khoản nghiệp vụ với đích Telegram đã xác minh
+  - Đích bị chặn, bị xóa hoặc bot bị gỡ khỏi cuộc trò chuyện
+- level1: Gửi thông báo văn bản
+  level2:
+  - sendMessage và tập tham số tối thiểu
+  - Tạo nội dung UTF-8 với tiếng Việt, emoji và xuống dòng
+  - Gửi tới người dùng riêng, nhóm và kênh
+  - Kết quả Message và việc lưu chat_id, message_id
+  - disable_notification và lựa chọn gửi không phát âm thanh
+  - protect_content và giới hạn bảo vệ nội dung
+  - LinkPreviewOptions và điều khiển bản xem trước liên kết
+  - ReplyParameters và gửi thông báo trả lời một tin có trước
+  - Kiểm tra độ dài trước khi gửi và chia nội dung vượt giới hạn
+  - Thời gian chờ HTTP và kết quả gửi chưa xác định
+  - Chuẩn hóa kết quả gửi để nghiệp vụ không phụ thuộc phản hồi thô
+  - Gửi tin thử có kiểm soát tới đích kiểm thử đã đăng ký
+- level1: Định dạng nội dung
+  level2:
+  - Văn bản thuần, HTML, MarkdownV2 và tiêu chí lựa chọn
+  - parse_mode và khác biệt với định dạng Markdown trong tài liệu
+  - Các thẻ HTML được Telegram hỗ trợ và cách lồng hợp lệ
+  - Escape ký tự đặc biệt trong HTML từ dữ liệu người dùng
+  - Escape MarkdownV2 theo từng ngữ cảnh văn bản, mã và liên kết
+  - In đậm, in nghiêng, gạch chân, trích dẫn và khối mã
+  - Liên kết có nhãn và phòng tránh chèn URL không mong muốn
+  - MessageEntity và định dạng không dựa vào parse_mode
+  - Offset, length theo UTF-16 và vấn đề emoji, ký tự ghép
+  - Chia thông điệp mà không cắt hỏng entity hoặc cấu trúc định dạng
+  - Giới hạn của bảng Markdown và cách trình bày dữ liệu thay thế
+  - Kiểm thử nội dung có dấu, ký tự đặc biệt và liên kết dài
+  - Xử lý lỗi cannot parse entities và lựa chọn văn bản dự phòng
+- level1: Mẫu thông báo
+  level2:
+  - Tách mẫu nội dung khỏi mã điều phối gửi
+  - Cấu trúc thông báo gồm tiêu đề, mức độ, nội dung và hành động
+  - Biến mẫu bắt buộc, tùy chọn và giá trị mặc định có chủ đích
+  - Kiểm tra dữ liệu và escape tại đúng lớp kết xuất
+  - Mẫu cho xác nhận giao dịch, thay đổi trạng thái và cảnh báo lỗi
+  - Mẫu tổng hợp nhiều sự kiện thành bản tin ngắn gọn
+  - Cá nhân hóa theo người nhận, ngôn ngữ và múi giờ
+  - Định dạng thời gian, tiền tệ, số lượng và mã tham chiếu
+  - Phiên bản mẫu và khả năng tái hiện nội dung đã gửi
+  - Tạo liên kết tới trang nghiệp vụ với thông tin ngữ cảnh tối thiểu
+  - Rút gọn nội dung, đính kèm báo cáo và tránh lộ dữ liệu nhạy cảm
+- level1: Tệp và nội dung đa phương tiện
+  level2:
+  - sendPhoto, sendDocument và lựa chọn cách gửi báo cáo
+  - Tải tệp trực tiếp bằng multipart/form-data
+  - Gửi media bằng URL công khai và điều kiện Telegram truy cập được
+  - Gửi lại media bằng file_id và giới hạn phạm vi sử dụng
+  - Phân biệt file_id với file_unique_id
+  - Caption, caption_entities và giới hạn độ dài chú thích
+  - sendMediaGroup và quan hệ giữa các tin trong một album
+  - Gửi âm thanh, video và lựa chọn định dạng phù hợp
+  - Đặt tên tệp, MIME type và kiểm chứng nội dung tải lên
+  - getFile và tải tệp phục vụ tương tác thông báo
+  - Giới hạn tệp theo phương thức và hạ tầng Bot API đang dùng
+  - Truyền tệp dạng luồng để kiểm soát bộ nhớ Java
+  - URL tải tệp chứa token và cách ngăn rò rỉ qua nhật ký
+  - Phương án thay thế bằng liên kết tải có thời hạn khi tệp quá lớn
+- level1: Quản lý tin đã gửi
+  level2:
+  - Lưu tham chiếu Message để cập nhật thông báo về sau
+  - editMessageText cho trạng thái nghiệp vụ thay đổi
+  - editMessageCaption và cập nhật chú thích media
+  - editMessageMedia và điều kiện thay đổi nội dung đa phương tiện
+  - editMessageReplyMarkup để cập nhật hoặc vô hiệu hóa nút
+  - Phân biệt sửa một thông báo với gửi thêm thông báo mới
+  - Xử lý message is not modified theo kết quả mong muốn
+  - deleteMessage và điều kiện quyền, thời hạn của từng trường hợp
+  - Ghim, bỏ ghim thông báo quan trọng và quyền cần có
+  - forwardMessage, copyMessage và khác biệt về nguồn hiển thị
+  - Giới hạn thao tác với nội dung được bảo vệ
+  - Vòng đời thông báo đang xử lý, hoàn tất và hết hiệu lực
+- level1: Nút và phản hồi
+  level2:
+  - InlineKeyboardMarkup và các nút gắn với thông báo
+  - Nút mở URL và nút gửi callback_data
+  - Giới hạn callback_data theo byte và cách tạo khóa tham chiếu ngắn
+  - CallbackQuery và quan hệ với người bấm, tin nhắn, cuộc trò chuyện
+  - answerCallbackQuery và kết thúc trạng thái chờ trên giao diện
+  - Phân biệt phản hồi callback với chỉnh sửa nội dung thông báo
+  - Xác thực người bấm có quyền thực hiện hành động
+  - Nút xác nhận đã tiếp nhận, đồng ý hoặc từ chối nghiệp vụ
+  - Chống bấm lặp và xử lý hai người hành động đồng thời
+  - Nút hết hạn, tin đã xóa và thông tin tham chiếu không còn tồn tại
+  - ReplyKeyboardMarkup, ForceReply và ranh giới dùng cho đăng ký
+  - Xóa bàn phím hoặc vô hiệu hóa hành động sau khi hoàn tất
+- level1: Mô hình cập nhật
+  level2:
+  - Các loại Update phục vụ hệ thống thông báo
+  - Message, edited_message, channel_post và callback_query
+  - my_chat_member và thay đổi trạng thái bot trong cuộc trò chuyện
+  - allowed_updates và chỉ đăng ký dữ liệu thực sự cần
+  - update_id và định danh để phát hiện cập nhật trùng
+  - Field tùy chọn, dữ liệu thiếu và khả năng bổ sung trường mới
+  - Phân biệt Chat.id, User.id và chủ thể thực hiện hành động
+  - MessageEntity cho lệnh bot và cách đọc tham số lệnh
+  - Cập nhật đến trùng, đến lệch thứ tự và xử lý theo từng đích
+  - Thời gian Telegram giữ cập nhật và ảnh hưởng khi ứng dụng ngừng lâu
+  - Chuyển Update thành sự kiện nội bộ đã được kiểm tra
+- level1: Nhận bằng long polling
+  level2:
+  - getUpdates và cơ chế chờ phản hồi dài
+  - offset, limit, timeout và ý nghĩa xác nhận cập nhật
+  - Lưu tiến độ nhận sau khi dữ liệu đã được tiếp nhận an toàn
+  - Khởi động lại tiến trình và tránh mất hoặc xử lý lại sai cập nhật
+  - Phân biệt timeout polling với timeout của HTTP client
+  - Xử lý mảng cập nhật rỗng và vòng lặp nhận không gây tải thừa
+  - Backoff khi lỗi mạng, lỗi máy chủ và bị giới hạn tốc độ
+  - Chỉ định một tiến trình polling chủ động cho cùng bot
+  - Xung đột khi có webhook hoặc nhiều tiến trình getUpdates
+  - Phân phối cập nhật từ poller sang hàng đợi xử lý nội bộ
+  - Dừng poller an toàn và lưu tiến độ cuối cùng
+  - Khi nào long polling phù hợp cho phát triển và vận hành
+- level1: Nhận bằng webhook
+  level2:
+  - Webhook Telegram là gì và luồng HTTPS POST vào ứng dụng
+  - setWebhook và đăng ký địa chỉ công khai
+  - Chứng chỉ TLS, cổng và điều kiện truy cập theo tài liệu hiện hành
+  - secret_token và header X-Telegram-Bot-Api-Secret-Token
+  - Kiểm tra bí mật trước khi xử lý JSON đầu vào
+  - Phản hồi HTTP thành công sau khi tiếp nhận cập nhật an toàn
+  - Telegram gửi lại webhook khi phản hồi không thành công
+  - Tách việc tiếp nhận nhanh khỏi tác vụ nghiệp vụ tốn thời gian
+  - max_connections và kiểm soát số kết nối gửi cập nhật
+  - allowed_updates, drop_pending_updates và nguy cơ bỏ dữ liệu
+  - getWebhookInfo và chẩn đoán cập nhật đang chờ
+  - deleteWebhook và chuyển đổi giữa webhook với polling
+  - Reverse proxy, đường dẫn webhook và cấu hình chuyển tiếp
+  - Triển khai nhiều phiên bản ứng dụng mà không đăng ký webhook tranh chấp
+  - Xác minh trùng cập nhật ngay cả khi webhook dùng HTTPS
+- level1: Đăng ký nhận thông báo
+  level2:
+  - Lệnh /start và điều kiện bot có thể gửi tới người dùng riêng
+  - Deep link để bắt đầu quy trình liên kết tài khoản
+  - Mã liên kết một lần với thời hạn và kiểm tra chống dùng lại
+  - Xác minh người đăng ký trong hệ thống nghiệp vụ
+  - Lệnh /subscribe, /unsubscribe và mô hình đăng ký rõ ràng
+  - Chọn chủ đề, mức độ thông báo và tần suất nhận
+  - Lệnh /status, /help và phản hồi khi tham số không hợp lệ
+  - Lưu ngôn ngữ, múi giờ và khoảng thời gian không muốn bị làm phiền
+  - Xử lý người dùng chặn bot hoặc bỏ chặn bot
+  - Ngừng gửi tới đích đã hủy đăng ký
+  - Liên kết lại khi người dùng thay đích nhận hoặc tài khoản nghiệp vụ
+  - Tách dữ liệu đăng ký khỏi token và cấu hình bot
+- level1: Nhóm, kênh và chủ đề
+  level2:
+  - Thông báo trong nhóm khác gửi tới người dùng riêng như thế nào
+  - Thêm bot vào nhóm và kiểm tra quyền gửi nội dung
+  - Thêm bot vào kênh với quyền đăng bài phù hợp
+  - getChatMember và kiểm tra trạng thái thành viên, quản trị viên
+  - Privacy mode ảnh hưởng dữ liệu đầu vào nhưng không thay thế phân quyền
+  - Chủ đề diễn đàn và định tuyến bằng message_thread_id
+  - Thiết kế ánh xạ cảnh báo theo nhóm, kênh và chủ đề
+  - Xử lý chủ đề đóng, bị xóa hoặc đích không còn khả dụng
+  - Migration của nhóm và cập nhật migrate_to_chat_id
+  - Bot bị hạn chế quyền, bị gỡ hoặc mất quyền quản trị
+  - Thông báo sửa, xóa, ghim và các quyền tương ứng
+  - Tránh gửi nhầm dữ liệu giữa nhóm công khai và nhóm nội bộ
+- level1: Tích hợp HTTP trong Java
+  level2:
+  - Thiết kế TelegramClient với ranh giới gọi Bot API rõ ràng
+  - Gọi Bot API bằng java.net.http.HttpClient
+  - Mô hình request, response và ánh xạ JSON bằng Jackson
+  - Ánh xạ trường snake_case và kiểu dữ liệu ID an toàn
+  - Xử lý field tùy chọn và trường JSON mới chưa được biết
+  - Tách lỗi kết nối, lỗi HTTP và phản hồi ok=false
+  - Cấu hình connect timeout, request timeout và hủy yêu cầu
+  - Kết nối tái sử dụng và giới hạn yêu cầu đồng thời
+  - Gửi multipart với tệp lớn và đóng tài nguyên đúng cách
+  - Nhận kết quả bất đồng bộ và quản lý executor
+  - Che token trong URL, exception và log HTTP
+  - Kiểm thử HTTP client bằng máy chủ giả lập
+- level1: Sử dụng SDK Java
+  level2:
+  - Khi nào chọn SDK thay cho tự viết HTTP client
+  - Đánh giá mức hỗ trợ Bot API và tình trạng duy trì thư viện
+  - Quản lý phiên bản phụ thuộc bằng Gradle hoặc Maven
+  - Khởi tạo client gửi tin và cấu hình token từ bên ngoài
+  - Xây dựng đối tượng yêu cầu và ánh xạ kết quả SDK
+  - Tích hợp polling hoặc webhook theo khả năng thư viện
+  - Giữ mã nghiệp vụ độc lập với kiểu dữ liệu riêng của SDK
+  - Tìm đường gọi trực tiếp khi SDK chưa hỗ trợ tham số mới
+  - Kiểm tra cơ chế timeout, retry và nhật ký mặc định của SDK
+  - Nâng phiên bản SDK cùng kiểm thử hồi quy hợp đồng dữ liệu
+- level1: Tích hợp Spring Boot
+  level2:
+  - Tổ chức cấu hình Telegram bằng @ConfigurationProperties
+  - Kiểm tra cấu hình thiếu hoặc sai trước khi kích hoạt tích hợp
+  - Tạo TelegramClient bean và cấu hình HTTP client dùng chung
+  - Lựa chọn RestClient hoặc WebClient theo mô hình ứng dụng
+  - Xây dựng NotificationService và adapter Telegram
+  - Tạo REST controller tiếp nhận webhook với kiểu Update
+  - Kiểm tra webhook secret trước bước điều phối xử lý
+  - Quản lý vòng đời poller bằng cơ chế vòng đời của Spring
+  - Tách nhận cập nhật, xử lý lệnh và gửi thông báo
+  - '@Async, executor và giới hạn tác vụ nền'
+  - Cấu hình theo profile, biến môi trường và secret store
+  - Đóng tài nguyên, ngừng nhận việc và chờ gửi đang dở khi shutdown
+  - Kiểm thử cấu hình và controller mà không gọi Telegram thật
+- level1: Kiến trúc dịch vụ thông báo
+  level2:
+  - Tách sự kiện nghiệp vụ khỏi phương thức gửi Telegram
+  - Mô hình yêu cầu thông báo độc lập với kênh gửi
+  - Cổng giao tiếp và adapter cho Telegram, email, SMS
+  - Quy trình chọn người nhận, kiểm tra đăng ký và kết xuất mẫu
+  - Gửi trực tiếp trong request và đánh đổi với gửi qua hàng đợi
+  - Phân tách thành phần tạo thông báo với worker thực hiện gửi
+  - Transactional outbox cho sự kiện phát sinh cùng giao dịch dữ liệu
+  - Phân tuyến theo bot, tenant, nhóm cảnh báo và đích nhận
+  - Cấu hình kênh dự phòng và điều kiện chuyển kênh
+  - Tránh gửi lặp đa kênh khi kết quả Telegram còn chưa xác định
+  - Phân chia trách nhiệm lưu trữ, điều tiết tốc độ và thử lại
+  - Thiết kế ranh giới để thay Telegram mà không đổi nghiệp vụ
+- level1: Lưu trữ và trạng thái
+  level2:
+  - Mô hình bot, đích nhận, đăng ký và tùy chọn nhận
+  - Mô hình thông báo nghiệp vụ khác từng lần thử gửi
+  - Trạng thái chờ, đang xử lý, thành công, thử lại, thất bại, hủy
+  - Lưu chat_id, message_id và phiên bản nội dung đã gửi
+  - Lưu mã lỗi, số lần thử và thời điểm có thể thử tiếp
+  - Khóa nghiệp vụ và ràng buộc chống tạo bản ghi trùng
+  - Nhận quyền xử lý bằng khóa, lease hoặc cập nhật có điều kiện
+  - Thu hồi công việc khi worker dừng giữa chừng
+  - Checkpoint cho polling và kho tiếp nhận webhook
+  - Thời gian lưu lịch sử gửi và dọn dữ liệu theo nhu cầu truy vết
+  - Phân biệt trạng thái gửi thành công với xác nhận nghiệp vụ của người nhận
+  - Nhật ký thay đổi cấu hình và hành động quản trị
+- level1: Lỗi và thử lại
+  level2:
+  - Phân loại lỗi cấu hình, nội dung, quyền truy cập và lỗi tạm thời
+  - Phân biệt HTTP status với error_code trong phản hồi Bot API
+  - 400 Bad Request và kiểm tra tham số, định dạng, đích gửi
+  - 401 Unauthorized và quy trình xử lý token không hợp lệ
+  - 403 Forbidden và cập nhật tình trạng đích không thể nhận
+  - 409 Conflict trong quá trình nhận cập nhật
+  - 429 Too Many Requests và đọc retry_after
+  - Lỗi 5xx, kết nối bị đóng và thời gian chờ quá hạn
+  - migrate_to_chat_id và cập nhật đích trước khi thử lại
+  - Backoff tăng dần, jitter và giới hạn số lần thử
+  - Giới hạn thời gian sống thông báo để không gửi tin đã lỗi thời
+  - Circuit breaker và tránh dồn lỗi sang ứng dụng nghiệp vụ
+  - Queue cách ly hoặc kho lỗi cho thông báo không thể xử lý tự động
+  - Phân loại lỗi bằng cấu trúc dữ liệu thay vì chỉ so khớp description
+  - Phát lại có kiểm soát sau khi sửa nguyên nhân lỗi
+- level1: Chống trùng và bảo toàn thứ tự
+  level2:
+  - Phân biệt cập nhật trùng, yêu cầu nghiệp vụ trùng và tin đã gửi trùng
+  - Idempotency key cho việc tiếp nhận yêu cầu thông báo
+  - Chống xử lý lặp Update bằng bot ID kết hợp update_id
+  - Giao dịch inbox và cập nhật nghiệp vụ trước khi xác nhận đầu vào
+  - Cửa sổ lỗi khi Telegram đã nhận tin nhưng ứng dụng chưa lưu kết quả
+  - Giới hạn bảo đảm gửi đúng một lần của phương thức đang sử dụng
+  - Đánh dấu đang xử lý và điều kiện worker khác được nhận lại
+  - Giữ thứ tự theo đích nhận hoặc thực thể nghiệp vụ
+  - Retry làm đảo thứ tự và cách chặn tin trạng thái cũ
+  - Chống bấm nút nhiều lần với ràng buộc nghiệp vụ lũy đẳng
+  - Gửi nhiều phần và lưu tiến độ riêng cho từng phần
+  - Xử lý cảnh báo hết hiệu lực khi tác vụ phục hồi sau sự cố
+- level1: Giới hạn tốc độ
+  level2:
+  - Giới hạn theo bot, cuộc trò chuyện và nhóm khác nhau thế nào
+  - Tra cứu hạn mức hiện hành thay vì cố định giả định vào mã
+  - Bộ điều tiết tốc độ (rate limiter) và hàng đợi chờ gửi
+  - Token bucket, leaky bucket và lựa chọn thuật toán
+  - Phối hợp hạn mức toàn bot với hạn mức từng đích
+  - Tôn trọng retry_after mà không giữ luồng ngủ quá lâu
+  - Phân phối hạn mức nhất quán giữa nhiều worker
+  - Giới hạn yêu cầu HTTP đồng thời khác giới hạn số tin mỗi giây
+  - Chia sẻ công bằng giữa tenant và tránh một đích chiếm hết lượt gửi
+  - Áp lực ngược (backpressure) khi tốc độ tạo tin vượt khả năng gửi
+  - Ước lượng thời gian hoàn tất chiến dịch từ hạn mức thực tế
+  - Paid broadcasts, điều kiện sử dụng và kiểm soát ngân sách nếu áp dụng
+  - Đo tỷ lệ 429 và điều chỉnh cấu hình theo số liệu
+- level1: Lập lịch và mức ưu tiên
+  level2:
+  - Gửi ngay, hẹn giờ và bản tin định kỳ trong hệ thống ứng dụng
+  - Lưu thời điểm gửi theo UTC và hiển thị theo múi giờ người nhận
+  - Lịch theo giờ địa phương và thay đổi giờ mùa hè
+  - Quy tắc giờ yên lặng và ngoại lệ cho cảnh báo khẩn
+  - Ưu tiên cảnh báo khẩn mà không làm thông báo thường bị bỏ đói
+  - Gộp sự kiện theo cửa sổ thời gian để giảm số tin
+  - Cooldown và chống bão cảnh báo cùng nguyên nhân
+  - Hủy hoặc thay thế thông báo còn đang chờ gửi
+  - Thông báo hết hạn khi trạng thái nghiệp vụ đã thay đổi
+  - Khôi phục lịch sau khi ứng dụng khởi động lại
+  - Khóa thực thi và tránh nhiều scheduler tạo cùng công việc
+  - Giới hạn số việc được quét, nhận và xử lý mỗi đợt
+- level1: Gửi hàng loạt
+  level2:
+  - Tách chiến dịch gửi với danh sách đích và từng lần giao
+  - Chụp danh sách người nhận và xử lý thay đổi đăng ký
+  - Phân trang hoặc chia lô để không nạp toàn bộ dữ liệu vào bộ nhớ
+  - Cá nhân hóa nội dung và kiểm tra mẫu trước khi mở chiến dịch
+  - Phối hợp gửi hàng loạt với giới hạn tốc độ từng bot, từng đích
+  - Checkpoint và tiếp tục chiến dịch sau khi worker dừng
+  - Theo dõi thành công, thất bại tạm thời và đích không còn nhận
+  - Một đích lỗi không làm dừng toàn bộ chiến dịch
+  - Tạm dừng, hủy và tiếp tục chiến dịch có kiểm soát
+  - Ngừng gửi khi người nhận vừa hủy đăng ký
+  - Thử trước trên tập đích kiểm thử và mở rộng theo từng đợt
+  - Báo cáo kết quả gửi khác báo cáo lượt đọc thực tế
+- level1: Bảo mật và quyền riêng tư
+  level2:
+  - Bot token là thông tin bí mật và phạm vi quyền đi kèm
+  - Lưu token ngoài repository, ảnh chụp, tài liệu và nội dung thông báo
+  - Che token trong URL, nhật ký, tracing và công cụ giám sát
+  - Luân phiên token khi nghi ngờ bị lộ và kiểm chứng thu hồi
+  - Bảo vệ webhook bằng TLS, secret header và giới hạn dữ liệu đầu vào
+  - Không coi webhook secret là chữ ký mật mã của nội dung yêu cầu
+  - Xác minh quyền người dùng trước thao tác nghiệp vụ qua bot
+  - Chống giả mạo callback_data, dùng lại mã liên kết và liên kết hết hạn
+  - Kiểm soát URL đính kèm để giảm rủi ro SSRF khi ứng dụng tải nội dung
+  - Kiểm tra tệp nhận vào và giới hạn dung lượng xử lý
+  - Tách quyền truy cập dữ liệu giữa tenant, nhóm và môi trường
+  - Giới hạn dữ liệu nhạy cảm gửi sang nền tảng bên ngoài
+  - Đăng ký nhận, hủy nhận và minh bạch mục đích sử dụng dữ liệu
+  - Phân biệt thông báo qua bot với trò chuyện được mã hóa đầu cuối
+  - Quy trình xóa dữ liệu và ngăn tin thử gửi nhầm tới người dùng thật
+- level1: Kiểm thử
+  level2:
+  - Unit test mẫu nội dung và chính sách chọn người nhận
+  - Kiểm thử escape HTML, MarkdownV2, emoji và giới hạn UTF-16
+  - Kiểm thử JSON có trường mới, field thiếu và ID lớn
+  - Giả lập Bot API để kiểm thử thành công và ok=false
+  - Kiểm thử 429 với retry_after và không gửi lại quá sớm
+  - Kiểm thử 5xx, timeout và kết quả gửi chưa xác định
+  - Kiểm thử migration chat ID và đích bị chặn
+  - Kiểm thử webhook secret đúng, sai và thiếu
+  - Kiểm thử Update trùng, lệch thứ tự và worker khởi động lại
+  - Kiểm thử polling offset và chuyển polling sang webhook
+  - Kiểm thử outbox, quyền nhận việc và lưu trạng thái nguyên tử
+  - Kiểm thử callback trùng, hết hạn và sai người thao tác
+  - Kiểm thử lịch gửi với đồng hồ giả và nhiều múi giờ
+  - Kiểm thử tải, giới hạn đồng thời và khôi phục chiến dịch
+  - Kiểm thử tích hợp có đích riêng và ngăn gửi nhầm môi trường
+- level1: Quan sát hệ thống
+  level2:
+  - Định nghĩa chỉ số tiếp nhận, chờ gửi và hoàn tất thông báo
+  - Đo độ trễ từ sự kiện nghiệp vụ tới kết quả gọi Telegram
+  - Theo dõi độ dài hàng đợi và tuổi công việc cũ nhất
+  - Tỷ lệ thành công, thử lại, lỗi vĩnh viễn và đích mất hiệu lực
+  - Đếm lỗi 429, thời gian chờ retry_after và mức sử dụng hạn mức
+  - Webhook pending updates và lỗi do Telegram ghi nhận
+  - Tiến độ polling, lần nhận cuối và phát hiện poller ngừng chạy
+  - Gắn notification ID, attempt ID và update ID vào log có cấu trúc
+  - Tracing qua nghiệp vụ, outbox, worker và HTTP client
+  - Bảo vệ token, nội dung tin và ID nhạy cảm trong telemetry
+  - Cảnh báo theo mức ảnh hưởng và tránh báo lỗi bằng chính kênh đang hỏng
+  - Dashboard phục vụ đối chiếu một thông báo từ lúc tạo đến khi gửi
+- level1: Triển khai và mở rộng
+  level2:
+  - Chuẩn bị cấu hình, secret và đích nhận cho từng môi trường
+  - Lựa chọn polling hoặc webhook theo hạ tầng triển khai
+  - Webhook sau reverse proxy với tên miền và TLS hợp lệ
+  - Giữ đúng một poller chủ động khi triển khai nhiều bản sao
+  - Mở rộng worker gửi độc lập với thành phần nhận cập nhật
+  - Kho dữ liệu và hàng đợi bền vững thay cho bộ nhớ tiến trình
+  - Rate limiter dùng chung khi nhiều bản sao cùng gửi qua một bot
+  - Triển khai cuốn chiếu và tránh tranh chấp đăng ký webhook
+  - Readiness, liveness và phân biệt sức khỏe ứng dụng với Telegram
+  - Graceful shutdown cho HTTP request, poller và công việc đang gửi
+  - Giới hạn tài nguyên, pool kết nối và khả năng chịu tải
+  - 'Local Bot API Server: tiêu chí lựa chọn và chi phí vận hành'
+  - Kiểm tra sau triển khai bằng luồng thông báo có kiểm soát
+- level1: Vận hành và thay đổi
+  level2:
+  - Runbook cho token bị lộ, webhook hỏng và Telegram gián đoạn
+  - Tạm dừng gửi khẩn cấp theo bot, tenant hoặc chiến dịch
+  - Kiểm tra getMe, getWebhookInfo và thông tin đích khi chẩn đoán
+  - Thay token, cấu hình đích và quyền bot theo quy trình có kiểm chứng
+  - Sao lưu dữ liệu đăng ký, trạng thái gửi và lịch định kỳ
+  - Khôi phục từ checkpoint mà không phát lại hàng loạt thiếu kiểm soát
+  - Dọn lịch sử gửi, tệp tạm và các bản ghi đích không còn hiệu lực
+  - Theo dõi thay đổi Bot API, SDK và cơ chế tương thích JSON
+  - Nâng phiên bản thư viện với thử nghiệm từng đợt
+  - Quản lý ngân sách khi sử dụng khả năng gửi có tính phí
+  - Diễn tập gián đoạn, khôi phục dịch vụ và đo thời gian phục hồi
+- level1: Chẩn đoán sự cố
+  level2:
+  - Bot không gửi được vì người dùng chưa bắt đầu hoặc đã chặn bot
+  - Chat not found do sai định danh, thiếu quyền hoặc đích không phù hợp
+  - Bot gửi được tin riêng nhưng không đăng được vào kênh
+  - Lỗi định dạng entity do escape sai hoặc cắt chuỗi không đúng
+  - Gửi nhầm chủ đề hoặc thất bại vì message_thread_id không còn hợp lệ
+  - Không nhận Update do allowed_updates hoặc privacy mode
+  - Polling trả lặp dữ liệu do offset không được lưu đúng
+  - 409 Conflict do nhiều poller hoặc webhook vẫn còn đăng ký
+  - Webhook có pending updates do TLS, proxy hoặc ứng dụng trả lỗi
+  - Callback hiện trạng thái chờ do chưa answerCallbackQuery
+  - Tin bị trùng sau timeout, retry hoặc worker mất quyền xử lý
+  - Chiến dịch gửi chậm do hạn mức và phân phối công việc không đều
+  - Báo cáo quá lớn hoặc tải tệp thất bại vì URL không truy cập được
+  - Log hoặc exception vô tình lộ token trong địa chỉ API
+  - Ứng dụng đánh dấu thành công sai khi chỉ kiểm tra HTTP status
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo bot thực hành và gửi thông báo văn bản từ ứng dụng Java
+  - Xây mẫu HTML và MarkdownV2 với dữ liệu tiếng Việt bất kỳ
+  - Gửi báo cáo dưới dạng tệp và tái sử dụng file_id
+  - Liên kết tài khoản bằng /start và mã một lần có thời hạn
+  - Xây chức năng đăng ký, tùy chọn chủ đề và hủy nhận
+  - Gửi cảnh báo vào nhóm, kênh và chủ đề đã cấu hình
+  - Xây quy trình tiếp nhận cảnh báo bằng nút có kiểm tra quyền
+  - Tích hợp webhook Spring Boot với xác thực và chống Update trùng
+  - Thử nghiệm polling với checkpoint và phục hồi sau khi dừng
+  - Xây worker gửi từ outbox với retry, rate limit và kho lỗi
+  - Xây chiến dịch gửi có checkpoint, tạm dừng và tiếp tục
+  - Lập lịch bản tin theo múi giờ và gộp cảnh báo cùng nguyên nhân
+  - Giả lập Telegram gián đoạn và kiểm chứng trạng thái gửi
+  - Hoàn thiện dashboard, runbook và bộ kiểm thử tích hợp

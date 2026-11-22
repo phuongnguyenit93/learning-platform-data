@@ -1,0 +1,3 @@
+menuLevel1: MethodHandle
+menuLevel2: 'Bỏ qua kết quả trả về hoặc dùng var: kiểm chứng WrongMethodTypeException tại vị trí gọi'
+status: ""

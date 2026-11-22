@@ -1,0 +1,200 @@
+menu:
+- level1: Bức tranh JVM
+  level2:
+  - JVM là gì và vì sao Java cần một máy thực thi trung gian
+  - Phân biệt ngôn ngữ Java, Java SE, JVM, JDK và môi trường chạy
+  - 'Đường đi của chương trình: mã nguồn → javac → class → JVM → mã máy'
+  - Bytecode độc lập nền tảng và những giới hạn của tính khả chuyển
+  - Phân biệt đặc tả JVMS, dự án OpenJDK và cách triển khai HotSpot
+  - Vai trò của bộ nạp lớp, bộ thực thi, bộ nhớ và bộ thu gom rác
+  - Các ngôn ngữ khác trên JVM và hợp đồng chung của tệp class
+  - Cách đọc tài liệu theo phiên bản JDK và tách quy tắc khỏi chi tiết triển khai
+- level1: Vòng đời JVM
+  level2:
+  - Từ lệnh java đến tiến trình JVM và điểm vào chương trình
+  - 'Chạy lớp, JAR, module và tệp nguồn: khác nhau ở cách khởi động'
+  - Phân biệt tham số JVM, thuộc tính hệ thống và đối số của ứng dụng
+  - Khởi động, khởi tạo lớp đầu tiên và gọi main theo phiên bản Java
+  - Các luồng của ứng dụng và các luồng nội bộ của JVM
+  - 'Khi main kết thúc: luồng không daemon và điều kiện JVM thoát'
+  - Shutdown hook, System.exit và Runtime.halt trong quá trình kết thúc
+  - Khác biệt giữa kết thúc bình thường, ngoại lệ không được bắt và JVM bị dừng cưỡng bức
+- level1: Kiểu dữ liệu JVM
+  level2:
+  - Kiểu nguyên thủy và kiểu tham chiếu trong mô hình thực thi
+  - Kiểu int dùng cho nhiều phép toán trên byte, short, char và boolean
+  - long, double và cách sử dụng hai vị trí trong biến cục bộ
+  - Giá trị null, kiểu lớp, kiểu giao diện và kiểu mảng
+  - Số nguyên tràn, phép chuyển kiểu và ngữ nghĩa phép toán bytecode
+  - 'Số thực IEEE 754: NaN, vô cực, số không có dấu và tính nhất quán'
+  - Kiểu returnAddress và lý do cần nhận diện bytecode lịch sử
+  - 'Giá trị Java, tham chiếu JVM và địa chỉ vật lý: những khái niệm cần phân biệt'
+- level1: Tệp class
+  level2:
+  - 'Cấu trúc ClassFile: magic number, major version và minor version'
+  - Tương thích phiên bản class và giới hạn của cờ --enable-preview
+  - Tên nhị phân, tên nội bộ và descriptor của trường, phương thức, mảng
+  - 'Constant pool: hằng số, tên kiểu và tham chiếu ký hiệu'
+  - Access flags, lớp cha, giao diện, trường và phương thức
+  - 'Thuộc tính Code: max_stack, max_locals, mã lệnh và bảng xử lý ngoại lệ'
+  - StackMapTable và thông tin kiểu phục vụ xác minh bytecode
+  - LineNumberTable, LocalVariableTable và giới hạn khi khôi phục mã nguồn
+  - 'Signature, annotation, synthetic và bridge: dữ liệu bổ sung ngoài descriptor'
+  - Thuộc tính cho module, nestmate, record và sealed class
+  - Giới hạn kích thước phương thức, constant pool và các ràng buộc định dạng
+  - Đọc javap -c -v -s -l để nối cấu trúc class với mã Java
+- level1: Lệnh bytecode
+  level2:
+  - 'Máy dựa trên ngăn xếp: opcode, toán hạng và bộ đếm lệnh'
+  - Nạp hằng số và chuyển dữ liệu giữa biến cục bộ với operand stack
+  - Nhóm lệnh số học, bit, so sánh và chuyển kiểu
+  - Nhóm lệnh pop, dup, swap và ràng buộc kích thước giá trị
+  - Nhánh điều kiện, goto, vòng lặp và địa chỉ đích
+  - tableswitch và lookupswitch trong biểu diễn switch
+  - new, newarray, anewarray và multianewarray khi tạo dữ liệu
+  - getfield, putfield, getstatic và putstatic khi truy cập trường
+  - checkcast, instanceof, arraylength và kiểm tra khi truy cập mảng
+  - Đọc bytecode biểu thức, vòng lặp và phép gán để dự đoán thứ tự thực thi
+- level1: Frame và lời gọi
+  level2:
+  - 'Mỗi lời gọi tạo frame: biến cục bộ, operand stack và liên kết động'
+  - Truyền đối số, vị trí this và lưu giá trị trả về
+  - invokestatic, invokespecial, invokevirtual và invokeinterface
+  - Phân giải phương thức và chọn phương thức theo kiểu thực của đối tượng
+  - invokedynamic, BootstrapMethods và liên kết điểm gọi động
+  - '<init> và <clinit>: phương thức đặc biệt có vai trò khác nhau'
+  - return và các biến thể khi lời gọi hoàn thành bình thường
+  - athrow, bảng xử lý ngoại lệ và tháo frame khi lời gọi thất bại
+  - Ánh xạ lambda và nối chuỗi xuống bytecode theo phiên bản trình biên dịch
+- level1: Nạp và định danh lớp
+  level2:
+  - Nạp lớp là gì và vì sao JVM không nạp toàn bộ chương trình ngay từ đầu
+  - Bootstrap, platform, application class loader và cơ chế ủy quyền
+  - Định danh lớp bằng tên nhị phân kết hợp bộ nạp định nghĩa
+  - Bộ nạp khởi xướng, bộ nạp định nghĩa và ràng buộc giữa các bộ nạp
+  - Class path, module path và ảnh hưởng của module đến truy cập lớp
+  - Class object, lớp mảng và cách JVM tạo biểu diễn kiểu khi chạy
+  - Nạp lớp theo yêu cầu qua Class.forName và ClassLoader.loadClass
+  - Khi nào lớp có thể được dỡ bỏ và liên hệ với vòng đời class loader
+- level1: Liên kết và khởi tạo
+  level2:
+  - Phân biệt nạp, liên kết và khởi tạo trong vòng đời một lớp
+  - 'Verification: kiểm tra định dạng, luồng điều khiển và an toàn kiểu'
+  - Giới hạn của bytecode verifier so với tính đúng đắn của ứng dụng
+  - 'Preparation: tạo trường static và thiết lập giá trị mặc định'
+  - 'Resolution: chuyển tham chiếu ký hiệu thành liên kết dùng khi chạy'
+  - Phân giải sớm, phân giải muộn và thời điểm lỗi liên kết xuất hiện
+  - Các thao tác kích hoạt khởi tạo và các trường hợp chỉ nạp lớp
+  - Hằng số biên dịch, class literal và truy cập trường khai báo ở lớp cha
+  - Thứ tự khởi tạo lớp cha, giao diện liên quan và thành viên static
+  - Khóa khởi tạo lớp, khởi tạo đệ quy và nguy cơ chờ lẫn nhau
+  - 'Lỗi khởi tạo: ExceptionInInitializerError và trạng thái lớp lỗi'
+  - Dự đoán kết quả bằng dấu vết nạp lớp và thứ tự chạy static initializer
+- level1: Các vùng bộ nhớ
+  level2:
+  - Bộ nhớ riêng của luồng và bộ nhớ dùng chung trong đặc tả JVM
+  - Thanh ghi pc và JVM stack trong quá trình thực thi một luồng
+  - Heap lưu đối tượng và mảng; phân biệt đối tượng với biến tham chiếu
+  - Method area và run-time constant pool trong mô hình trừu tượng
+  - Native method stack và ranh giới lời gọi mã native
+  - HotSpot Metaspace, compressed class space và sự khác biệt với PermGen lịch sử
+  - Code cache lưu mã máy do JVM tạo ra
+  - 'Bộ nhớ ngoài heap: direct buffer, thư viện native và cấu trúc nội bộ'
+  - Phân biệt bộ nhớ đã dùng, đã cam kết, đã dành trước và bộ nhớ tiến trình
+- level1: Đối tượng trong HotSpot
+  level2:
+  - 'Chuỗi tạo đối tượng: cấp phát, giá trị mặc định và chạy constructor'
+  - Cấp phát nhanh bằng con trỏ và vùng cấp phát riêng của luồng (TLAB)
+  - Đầu đối tượng, dữ liệu trường, căn chỉnh và phần đệm
+  - Bố trí đối tượng và mảng là chi tiết triển khai, không phải cam kết của Java
+  - Compressed oops và compressed class pointers trong JVM 64-bit
+  - Tham chiếu được cập nhật khi GC di chuyển đối tượng
+  - Compact Strings, string interning và string deduplication có mục đích khác nhau
+  - Tuổi thọ đối tượng, khả năng truy cập và giới hạn suy luận từ phạm vi biến
+  - Đánh giá chi phí của nhiều đối tượng nhỏ và cấu trúc dữ liệu giữ tham chiếu
+- level1: Khả năng truy cập
+  level2:
+  - GC xác định đối tượng còn truy cập được từ gốc như thế nào
+  - Đồ thị tham chiếu, đối tượng không còn truy cập được và tham chiếu vòng
+  - Vì sao gán null hoặc ra khỏi phạm vi biến không bảo đảm thu gom ngay
+  - Tham chiếu mạnh, mềm, yếu và ảo trong java.lang.ref
+  - ReferenceQueue và thời điểm thông báo đối tượng đã được xử lý tham chiếu
+  - Rò rỉ bộ nhớ Java khi đối tượng vẫn được giữ bởi cache, listener hoặc ThreadLocal
+  - GC thu hồi bộ nhớ khác với đóng file, socket và tài nguyên bên ngoài
+  - Finalization, tình trạng deprecation và lựa chọn try-with-resources hoặc Cleaner
+  - System.gc là yêu cầu gợi ý và những giới hạn khi dùng nó để kiểm chứng
+- level1: Cơ chế thu gom rác
+  level2:
+  - 'Đánh dấu, quét, sao chép và nén: các cách xác định và thu hồi vùng nhớ'
+  - Phân mảnh bộ nhớ và đánh đổi giữa di chuyển đối tượng với chi phí cập nhật tham chiếu
+  - 'Giả thuyết thế hệ: đối tượng sống ngắn, già hóa và chuyển thế hệ'
+  - Eden, survivor và old trong mô hình bộ thu gom theo thế hệ
+  - Thu gom nối tiếp, song song và đồng thời với ứng dụng
+  - Stop-the-world và safepoint; phân biệt thời gian GC với tổng thời gian dừng
+  - Write barrier, card table và remembered set khi theo dõi tham chiếu
+  - Tốc độ cấp phát, lượng dữ liệu còn sống và khoảng trống cần cho GC
+  - Thông lượng, độ trễ, CPU và dung lượng bộ nhớ trong bài toán lựa chọn GC
+- level1: Các bộ thu gom
+  level2:
+  - 'Serial GC: cơ chế đơn giản và các môi trường ít tài nguyên'
+  - 'Parallel GC: thu gom song song hướng đến thông lượng'
+  - 'G1: heap chia vùng và lựa chọn tập vùng cần thu hồi'
+  - 'Chu kỳ G1: young collection, concurrent marking và mixed collection'
+  - Đối tượng humongous, evacuation failure và Full GC trong G1
+  - 'ZGC: thu gom đồng thời hướng đến thời gian dừng thấp'
+  - Generational ZGC và thay đổi chế độ, tùy chọn giữa các phiên bản JDK
+  - Tính sẵn có của bộ thu gom phụ thuộc bản phân phối, phiên bản và nền tảng
+  - So sánh GC bằng cùng tải, giới hạn tài nguyên và mục tiêu độ trễ
+  - Mục tiêu pause time là mục tiêu tối ưu, không phải cam kết thời gian thực
+- level1: Thông dịch và JIT
+  level2:
+  - Thông dịch bytecode và biên dịch lúc chạy (JIT) giải quyết vấn đề gì
+  - Đường đi từ phương thức ít chạy đến đoạn mã nóng
+  - Thu thập hồ sơ thực thi từ số lần gọi, vòng lặp và kiểu đối tượng
+  - Biên dịch phân tầng trong HotSpot và vai trò của C1, C2
+  - Biên dịch phương thức và thay thế khi đang chạy vòng lặp (OSR)
+  - Warm-up, trạng thái ổn định và khác biệt giữa thời gian khởi động với hiệu năng đỉnh
+  - Giả định tối ưu, deoptimization và biên dịch lại khi giả định không còn đúng
+  - Code cache, luồng biên dịch và chi phí tài nguyên của JIT
+  - Đối chiếu chế độ -Xint với thực thi kết hợp trong thí nghiệm có kiểm soát
+- level1: Tối ưu HotSpot
+  level2:
+  - Chèn thân phương thức (inlining) và mở rộng phạm vi phân tích
+  - Khử lời gọi ảo dựa trên thông tin kiểu và giới hạn của giả định
+  - Gấp hằng, loại mã không cần thiết và tác động đến phép đo
+  - Tối ưu vòng lặp và loại kiểm tra dư thừa trong điều kiện phù hợp
+  - Phân tích đối tượng thoát (escape analysis) và thay thế bằng giá trị thành phần
+  - Phân biệt loại bỏ cấp phát với giả định đối tượng luôn được chuyển lên stack
+  - Loại bỏ khóa không cần thiết khi đối tượng không được chia sẻ
+  - Intrinsic và phụ thuộc vào kiến trúc CPU, JDK, cách triển khai
+  - Vì sao thay đổi mã nguồn nhỏ có thể làm kết quả hiệu năng thay đổi lớn
+- level1: Luồng và đồng bộ
+  level2:
+  - Luồng Java, luồng nền tảng và luồng ảo trong mô hình thực thi
+  - Ngăn xếp của luồng ảo và giới hạn của sơ đồ mỗi luồng có một native stack
+  - Monitor của đối tượng và tính tái nhập của synchronized
+  - monitorenter, monitorexit và phương thức có cờ ACC_SYNCHRONIZED
+  - wait, notify, notifyAll và quan hệ giữa wait set với quyền giữ monitor
+  - Java Memory Model khác với sơ đồ heap, stack và bộ nhớ vật lý
+  - Tính nguyên tử, khả năng nhìn thấy và thứ tự thao tác giữa các luồng
+  - Quan hệ happens-before qua khóa, volatile, start và join
+  - Quy tắc trường final, hoàn thành khởi tạo và công bố đối tượng an toàn
+  - Sắp xếp lại thao tác, data race và những bảo đảm mà sleep không cung cấp
+  - Phân biệt deadlock, chờ khóa và JVM đang thực hiện công việc nền
+- level1: Khởi động nhanh
+  level2:
+  - Phân tách chi phí tạo tiến trình, nạp lớp, khởi tạo và warm-up
+  - Class Data Sharing (CDS) chia sẻ dữ liệu lớp như thế nào
+  - AppCDS, archive tĩnh và archive động
+  - Tạo và xác nhận sử dụng CDS archive bằng log nạp lớp
+  - 'AOT cache của HotSpot: học từ lần chạy thử, tạo cache và dùng lại theo phiên bản hỗ trợ'
+  - Điều kiện tương thích của archive hoặc cache với JDK, ứng dụng và môi trường
+  - Phân biệt AOT cache của JVM với biên dịch thành chương trình native
+  - Đo thời gian sẵn sàng và dung lượng bộ nhớ để đánh giá lợi ích khởi động
+- level1: Cấu hình tài nguyên
+  level2:
+  - Nhận diện đúng JDK, nhà cung cấp, phiên bản VM và kiến trúc đang chạy
+  - Tùy chọn chuẩn, -X, -XX và cách xác nhận cờ được hỗ trợ
+  - '-Xms và -Xmx: dung lượng heap ban đầu, tối đa và chi phí đánh đổi'
+  - -Xss, số luồng và ngân sách bộ nhớ ngoài heap
+  - Giới hạn Metaspace, direct memory và code cache theo nhu cầu quan sát

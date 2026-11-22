@@ -1,0 +1,3 @@
+menuLevel1: Enum
+menuLevel2: Enum.valueOf với Class của enum
+status: WRITTEN

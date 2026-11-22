@@ -1,0 +1,3 @@
+menuLevel1: Selector
+menuLevel2: Chỉ đăng ký OP_WRITE khi còn dữ liệu chờ gửi để tránh vòng lặp tốn CPU
+status: WRITTEN

@@ -1,0 +1,3 @@
+menuLevel1: Singleton
+menuLevel2: So sánh Singleton với vòng đời đối tượng do dependency injection quản lý
+status: ""

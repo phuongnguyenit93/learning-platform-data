@@ -1,0 +1,3 @@
+menuLevel1: Giới hạn kiểu
+menuLevel2: Giới hạn trên <T extends U> và các thao tác được phép trên T
+status: WRITTEN

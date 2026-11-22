@@ -1,0 +1,395 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Những năng lực của Java 6 vẫn dùng trong lập trình Java hiện đại
+  - Mối liên hệ giữa cấu trúc dữ liệu, công cụ biên dịch và tích hợp hệ thống
+  - Phân biệt hợp đồng API với chi tiết triển khai của từng JDK
+  - Đọc Javadoc hiện hành và đối chiếu thông tin Since
+  - Thực hành trên JDK được hỗ trợ với các API có nguồn gốc từ Java 6
+  - Lựa chọn API theo nhu cầu và kiểm chứng giới hạn sử dụng
+- level1: Chuỗi và mã hóa
+  level2:
+  - String.isEmpty và phân biệt chuỗi rỗng với giá trị null
+  - Phân biệt độ dài bằng không với nội dung toàn khoảng trắng
+  - Constructor String nhận Charset
+  - String.getBytes với Charset tường minh
+  - Biên giới giữa byte, ký tự và dữ liệu văn bản
+  - Tránh phụ thuộc charset mặc định khi trao đổi dữ liệu
+  - Kiểm thử chuỗi tiếng Việt, ký tự bổ sung và dữ liệu rỗng
+- level1: Số thực
+  level2:
+  - Math.copySign và bảo toàn dấu của giá trị
+  - Math.getExponent và số mũ không thiên lệch
+  - Math.scalb và nhân với lũy thừa của hai
+  - Math.nextAfter và giá trị biểu diễn liền kề
+  - Math.nextUp và giới hạn sai số theo độ chính xác
+  - NaN, vô cực và số không có dấu
+  - Math, StrictMath và nhu cầu kết quả tái lập
+  - Kiểm thử tràn, hụt số và các giá trị biên
+- level1: Deque
+  level2:
+  - Hàng đợi hai đầu và quan hệ Queue, Deque
+  - Thêm đầu, thêm cuối và thứ tự xử lý
+  - Nhóm thao tác ném ngoại lệ khi không thực hiện được
+  - Nhóm offer, poll, peek và kết quả đặc biệt
+  - Dùng Deque cho FIFO và LIFO
+  - push, pop và biểu diễn ngăn xếp
+  - descendingIterator và duyệt theo hướng ngược
+  - Quy tắc phần tử null và ý nghĩa của giá trị trả về
+  - Chọn interface theo hành vi cần cung cấp cho nơi sử dụng
+- level1: ArrayDeque
+  level2:
+  - Cấu trúc mảng mở rộng và hiệu quả thao tác hai đầu
+  - Dung lượng ban đầu và quá trình mở rộng
+  - Giới hạn không chứa null
+  - Độ phức tạp của thêm, lấy, tìm kiếm và xóa theo giá trị
+  - Iterator fail-fast và giới hạn phát hiện sửa đổi
+  - Tại sao ArrayDeque không bảo đảm an toàn khi dùng chung giữa nhiều luồng
+  - Chọn ArrayDeque cho ngăn xếp và hàng đợi trong một luồng
+  - Ứng dụng duyệt cây, xử lý biểu thức và lịch sử thao tác
+  - Kiểm thử rỗng, nhiều lần mở rộng và thứ tự phần tử
+- level1: NavigableSet
+  level2:
+  - Tập hợp có thứ tự và nhu cầu tìm phần tử gần nhất
+  - lower, floor, ceiling và higher
+  - first, last, pollFirst và pollLast
+  - subSet, headSet, tailSet và cờ bao gồm biên
+  - descendingSet và descendingIterator
+  - TreeSet triển khai NavigableSet
+  - Comparator, equals và tính nhất quán của thứ tự
+  - View liên kết với tập hợp gốc và giới hạn phần tử trong khoảng
+  - Ứng dụng tra cứu ngưỡng, khoảng và lịch biểu
+- level1: NavigableMap
+  level2:
+  - Ánh xạ có thứ tự khóa và các truy vấn điều hướng
+  - lowerEntry, floorEntry, ceilingEntry và higherEntry
+  - Các biến thể truy vấn trả về key
+  - firstEntry, lastEntry và các thao tác poll
+  - subMap, headMap, tailMap và cờ giới hạn
+  - descendingMap và navigableKeySet
+  - TreeMap, Comparator và lựa chọn khóa
+  - Entry snapshot và giới hạn thay đổi giá trị
+  - View theo khoảng và cập nhật dữ liệu qua view
+  - Kiểm thử khóa biên, khoảng rỗng và thứ tự đảo
+- level1: Skip list đồng thời
+  level2:
+  - ConcurrentNavigableMap và kết hợp sắp xếp với truy cập đồng thời
+  - ConcurrentSkipListMap và ConcurrentSkipListSet
+  - Skip list ở mức khái niệm và chi phí thao tác
+  - putIfAbsent, remove có điều kiện và replace có điều kiện
+  - Iterator nhất quán yếu khi dữ liệu đang thay đổi
+  - Giới hạn null và hợp đồng comparator
+  - Truy vấn khoảng trong lúc có cập nhật đồng thời
+  - Thao tác riêng lẻ nguyên tử và chuỗi nhiều bước chưa tự nguyên tử
+  - So sánh với map đồng thời không cần thứ tự khóa
+  - Kiểm thử tính đúng đắn và khả năng mở rộng theo số luồng
+- level1: BlockingDeque
+  level2:
+  - BlockingDeque và nhu cầu phối hợp producer-consumer
+  - LinkedBlockingDeque có giới hạn dung lượng
+  - putFirst, putLast và chờ khi hàng đợi đầy
+  - takeFirst, takeLast và chờ khi hàng đợi rỗng
+  - offer, poll có thời hạn và kiểm soát thời gian chờ
+  - InterruptedException và hủy tác vụ hợp tác
+  - Backpressure và lựa chọn dung lượng hữu hạn
+  - Bảo đảm nhìn thấy dữ liệu khi chuyển phần tử giữa các luồng
+  - Kết thúc pipeline khi không có thao tác đóng hàng đợi
+  - Kiểm thử quá tải, timeout và ngắt khi chờ
+- level1: Sao chép mảng
+  level2:
+  - Arrays.copyOf và thay đổi độ dài mảng
+  - Arrays.copyOfRange và khoảng chỉ số đầu gồm, cuối không gồm
+  - Giá trị đệm khi mảng kết quả dài hơn dữ liệu nguồn
+  - Sao chép mảng primitive và mảng tham chiếu
+  - Sao chép nông và đối tượng phần tử vẫn được chia sẻ
+  - Kiểu mảng runtime và nguy cơ lỗi kiểu
+  - Sao chép phòng vệ ở biên constructor, accessor và phương thức
+  - So sánh mục đích với System.arraycopy
+  - Kiểm thử chỉ số sai, mảng rỗng và nguồn null
+- level1: Tiện ích tập hợp
+  level2:
+  - Collections.newSetFromMap và bộ nhớ đệm Boolean phía dưới
+  - Điều kiện map ban đầu phải rỗng
+  - Tạo tập hợp dùng so sánh danh tính khi nghiệp vụ yêu cầu
+  - Không truy cập trực tiếp backing map sau khi tạo Set
+  - Collections.asLifoQueue và view hàng đợi theo LIFO
+  - Quan hệ thay đổi giữa queue view với Deque gốc
+  - AbstractMap.SimpleEntry và cập nhật value
+  - SimpleImmutableEntry và giới hạn của bất biến nông
+  - Hợp đồng equals, hashCode của Map.Entry
+  - Kiểm thử aliasing và các view dùng chung dữ liệu
+- level1: ServiceLoader
+  level2:
+  - SPI và tách hợp đồng dịch vụ khỏi nhà cung cấp
+  - Định nghĩa kiểu dịch vụ và implementation
+  - Đăng ký nhà cung cấp trên classpath bằng META-INF/services
+  - ServiceLoader.load và ClassLoader dùng để khám phá
+  - Nạp lười khi duyệt nhà cung cấp
+  - Bộ nhớ đệm và ServiceLoader.reload
+  - ServiceConfigurationError và chẩn đoán cấu hình lỗi
+  - Nhiều provider và chính sách lựa chọn của ứng dụng
+  - Phạm vi class loader và vòng đời nhà cung cấp
+  - Tích hợp cơ chế SPI gốc với cấu trúc module của dự án hiện đại
+  - Kiểm thử provider bị thiếu, cấu hình trùng và constructor thất bại
+- level1: Compiler API
+  level2:
+  - JSR 199 và nhu cầu biên dịch Java từ chương trình
+  - ToolProvider.getSystemJavaCompiler và môi trường có compiler
+  - JavaCompiler.CompilationTask và kết quả biên dịch
+  - StandardJavaFileManager và các JavaFileObject
+  - DiagnosticCollector và thông tin lỗi, cảnh báo
+  - Cấu hình encoding, classpath và vị trí đầu ra
+  - Giới hạn phiên bản ngôn ngữ theo compiler đang sử dụng
+  - Tái sử dụng file manager và đóng tài nguyên
+  - Tách biên dịch khỏi bước nạp, thực thi lớp
+  - Giới hạn tin cậy khi đầu vào biên dịch do bên ngoài cung cấp
+- level1: Biên dịch trong bộ nhớ
+  level2:
+  - SimpleJavaFileObject và biểu diễn mã nguồn bằng chuỗi
+  - ForwardingJavaFileManager và chặn đầu ra class
+  - Quản lý tên lớp, URI và nhiều đơn vị biên dịch
+  - Thu bytecode và nạp bằng ClassLoader thích hợp
+  - Dependency của mã sinh và khả năng nhìn thấy kiểu
+  - Chẩn đoán lỗi theo tên tệp, dòng và cột
+  - Vòng đời ClassLoader và tránh giữ lớp không còn dùng
+  - Kiểm thử biên dịch thành công, thất bại và thiếu dependency
+- level1: Annotation processing
+  level2:
+  - JSR 269 và sinh, kiểm tra mã ở thời điểm biên dịch
+  - Phân biệt processor với reflection runtime
+  - Processor, AbstractProcessor và vòng đời xử lý
+  - Khai báo annotation type, option và source version được hỗ trợ
+  - RoundEnvironment và các vòng xử lý
+  - ProcessingEnvironment, Elements và Types
+  - Messager và thông báo gắn vào phần tử nguồn
+  - Filer và sinh mã, class hoặc tài nguyên
+  - Đăng ký processor và bật xử lý tường minh trong build hiện đại
+  - -processor, -processorpath, -proc và -A
+  - Xung đột tệp sinh, vòng cuối và tính lặp lại của kết quả
+  - Kiểm thử processor bằng Java Compiler API
+- level1: Mô hình khai báo
+  level2:
+  - javax.lang.model và mô hình chương trình trong compiler
+  - Element, TypeElement, ExecutableElement và VariableElement
+  - TypeMirror, DeclaredType, TypeVariable và WildcardType
+  - Phân biệt phần tử khai báo với kiểu của phần tử
+  - Elements và tra cứu cấu trúc khai báo
+  - Types và kiểm tra quan hệ gán, kiểu con, xóa kiểu
+  - AnnotationMirror và AnnotationValue
+  - Visitor và duyệt mô hình theo loại phần tử
+  - Giới hạn truy cập thân phương thức qua mô hình khai báo
+  - Tương thích processor khi compiler bổ sung loại phần tử mới
+- level1: Console
+  level2:
+  - System.console và truy cập thiết bị nhập xuất tương tác
+  - Trường hợp console không tồn tại và chiến lược thay thế
+  - readLine và nhập chuỗi có lời nhắc
+  - readPassword và tránh hiển thị mật khẩu
+  - char[] và quản lý vòng đời dữ liệu nhạy cảm
+  - Console.reader, writer, format và flush
+  - Phân biệt ứng dụng terminal với tiến trình được chuyển hướng I/O
+  - IOException có nguyên nhân và bảo toàn thông tin lỗi
+  - Kiểm thử EOF, dữ liệu rỗng và thao tác bị gián đoạn
+- level1: Unicode
+  level2:
+  - Chuẩn hóa văn bản bằng java.text.Normalizer
+  - NFC, NFD, NFKC và NFKD
+  - Kiểm tra isNormalized và thực hiện normalize
+  - Ký tự dựng sẵn, ký tự tổ hợp và văn bản tiếng Việt
+  - Chuẩn hóa trước tìm kiếm, so sánh hoặc lưu khóa
+  - Khác biệt giữa chuẩn hóa Unicode với đổi hoa, thường
+  - Ảnh hưởng của compatibility normalization đến ý nghĩa văn bản
+  - Kiểm thử nhiều cách biểu diễn cùng nội dung
+  - Giới hạn chuẩn hóa đối với bảo mật tên và ký tự dễ nhầm
+- level1: ResourceBundle
+  level2:
+  - ResourceBundle.Control và tùy biến tải tài nguyên
+  - Định dạng bundle và danh sách locale ứng viên
+  - Fallback và lựa chọn locale mặc định
+  - Thời gian lưu, needsReload và quản lý bộ nhớ đệm
+  - Tạo bundle từ nguồn tùy biến
+  - Vòng đời ClassLoader và phạm vi cache
+  - Tích hợp với ứng dụng classpath hiện đại
+  - Giới hạn Control khi dùng named module và lựa chọn cơ chế provider phù hợp
+  - Kiểm thử thiếu bundle, fallback và thay đổi tài nguyên
+- level1: Locale SPI
+  level2:
+  - LocaleServiceProvider và bổ sung dữ liệu bản địa hóa
+  - NumberFormatProvider và định dạng số, tiền tệ, phần trăm
+  - DecimalFormatSymbolsProvider và bộ ký hiệu định dạng số
+  - LocaleNameProvider và tên hiển thị ngôn ngữ, quốc gia
+  - Đăng ký provider qua cơ chế SPI
+  - Locale được hỗ trợ và lựa chọn fallback
+  - Phạm vi nguồn dữ liệu theo cấu hình JDK hiện hành
+  - Kiểm thử tính nhất quán của số và tên hiển thị
+  - Phân biệt cơ chế mở rộng với dữ liệu locale thay đổi theo phiên bản
+- level1: JDBC kết nối
+  level2:
+  - JDBC 4.0 và các hợp đồng tiếp tục được dùng trong driver hiện đại
+  - Tự phát hiện java.sql.Driver bằng cơ chế service provider
+  - DriverManager, DataSource và nơi quản lý cấu hình kết nối
+  - Connection.isValid và kiểm tra tình trạng kết nối
+  - Client info, setClientInfo và getClientInfo
+  - SQLClientInfoException và thuộc tính cấu hình không được chấp nhận
+  - Wrapper.isWrapperFor và unwrap
+  - Truy cập API mở rộng của driver qua wrapper đúng kiểu
+  - DatabaseMetaData và phát hiện khả năng hỗ trợ
+  - Connection pool, proxy và phân biệt kết nối logic với kết nối vật lý
+- level1: JDBC dữ liệu
+  level2:
+  - NCHAR, NVARCHAR, LONGNVARCHAR và NClob
+  - setNString, getNString và dữ liệu Unicode
+  - National character stream và truyền dữ liệu văn bản lớn
+  - Tạo Blob, Clob, NClob từ Connection
+  - Đọc ghi LOB qua stream và giải phóng bằng free
+  - Các overload stream không bắt buộc truyền độ dài
+  - RowId và kiểm tra RowIdLifetime của cơ sở dữ liệu
+  - Array, Struct và kiểu dữ liệu có cấu trúc
+  - NULL SQL, Java null và quy tắc của driver
+  - Kiểm thử Unicode, dữ liệu lớn và khả năng hỗ trợ của DBMS
+- level1: SQLXML
+  level2:
+  - SQLXML và ánh xạ cột XML
+  - Connection.createSQLXML và vòng đời đối tượng
+  - PreparedStatement.setSQLXML và ResultSet.getSQLXML
+  - getString, setString và xử lý dữ liệu vừa bộ nhớ
+  - Reader, Writer, stream và thứ tự đóng tài nguyên
+  - getSource, setResult và tích hợp JAXP
+  - Kết hợp SQLXML với StAX để xử lý dữ liệu lớn
+  - free, ranh giới giao dịch và tránh dùng sau khi giải phóng
+  - SQLFeatureNotSupportedException và giới hạn driver
+  - Kiểm thử XML không hợp lệ, null và dữ liệu chưa ghi hoàn tất
+- level1: Ngoại lệ JDBC
+  level2:
+  - SQLTransientException, SQLNonTransientException và SQLRecoverableException
+  - SQLTimeoutException và phân biệt lỗi kết nối với lỗi truy vấn
+  - SQLIntegrityConstraintViolationException và lỗi dữ liệu
+  - SQLSyntaxErrorException và SQLInvalidAuthorizationSpecException
+  - SQLTransactionRollbackException và thất bại giao dịch
+  - Duyệt SQLException, SQLState, mã nhà cung cấp và chuỗi nguyên nhân
+  - Phân loại retry theo lỗi và tính lặp an toàn của giao dịch
+  - Phân biệt phục hồi kết nối với chạy lại một câu lệnh
+  - StatementEventListener và sự kiện PreparedStatement trong pool
+  - Bảo toàn nguyên nhân lỗi khi chuyển sang ngoại lệ của ứng dụng
+- level1: StAX cơ bản
+  level2:
+  - JSR 173 và xử lý XML theo mô hình pull
+  - XMLInputFactory và tạo XMLStreamReader
+  - Vòng lặp sự kiện start, text, end và kết thúc tài liệu
+  - Namespace, QName và phân biệt local name với prefix
+  - Đọc attribute và nội dung văn bản
+  - next, nextTag, getElementText và điều kiện hợp lệ
+  - XMLStreamException và thông tin vị trí lỗi
+  - Đóng reader cùng nguồn I/O
+  - Lựa chọn StAX khi cần bộ nhớ giới hạn và đọc tuần tự
+- level1: StAX nâng cao
+  level2:
+  - XMLEventReader và mô hình đối tượng sự kiện
+  - StreamFilter, EventFilter và lọc dữ liệu
+  - XMLResolver và chính sách tài nguyên bên ngoài
+  - XMLOutputFactory, XMLStreamWriter và XMLEventWriter
+  - Ghi namespace, attribute và nội dung được escape
+  - StAXSource, StAXResult và tích hợp JAXP
+  - Xử lý tệp lớn theo từng bản ghi
+  - Tắt DTD hoặc thực thể ngoài khi không cần
+  - Giới hạn dữ liệu đầu vào và kiểm thử XML độc hại
+  - Đánh giá bộ nhớ, tốc độ và vòng đời tài nguyên
+- level1: Chữ ký XML
+  level2:
+  - XML Digital Signature API và tính toàn vẹn dữ liệu XML
+  - XMLSignatureFactory, SignedInfo và Reference
+  - Canonicalization, transform và tác động lên dữ liệu được ký
+  - DOMSignContext và DOMValidateContext
+  - KeyInfo, lựa chọn khóa và nguồn tin cậy
+  - Enveloped, enveloping và detached signature
+  - Lựa chọn thuật toán được chấp nhận trên JDK hiện đại
+  - Secure validation và giới hạn tham chiếu ngoài
+  - Phân biệt chữ ký hợp lệ với chứng chỉ đáng tin và nội dung đúng nghiệp vụ
+  - Kiểm thử sửa đổi nội dung, sai khóa và tham chiếu không mong muốn
+- level1: HTTP server gọn
+  level2:
+  - HttpServer và module jdk.httpserver hiện hành
+  - HttpHandler, HttpExchange và context định tuyến
+  - Đọc method, URI, header và body
+  - Gửi status, header và body đúng thứ tự
+  - Executor và xử lý yêu cầu đồng thời
+  - Filter và tách logic dùng chung
+  - Authenticator và quản lý danh tính theo nhu cầu
+  - HttpsServer, HttpsConfigurator và SSLContext
+  - Đóng stream, giới hạn nội dung và dừng server
+  - Ứng dụng máy chủ kiểm thử, webhook cục bộ và công cụ nội bộ
+  - Giới hạn phạm vi trước khi chọn framework cho yêu cầu phức tạp
+- level1: Cookie và mạng
+  level2:
+  - CookieManager và tách chính sách chấp nhận khỏi lưu trữ
+  - HttpCookie, domain, path, secure và thời hạn
+  - CookiePolicy, CookieStore và kho lưu tùy biến
+  - CookieHandler và tích hợp với HTTP client hiện đại
+  - Phạm vi phiên và tránh chia sẻ cookie sai người dùng
+  - NetworkInterface và danh sách bộ điều hợp mạng
+  - InterfaceAddress, broadcast và độ dài tiền tố
+  - MTU, địa chỉ phần cứng và trạng thái giao diện
+  - Kiểm thử nhiều card mạng, thiếu địa chỉ và nền tảng không hỗ trợ
+- level1: Cấu hình TLS
+  level2:
+  - SSLParameters và gom cấu hình cho một endpoint
+  - Protocol, cipher suite và yêu cầu xác thực phía khách
+  - Áp dụng SSLParameters cho SSLSocket, SSLEngine
+  - SSLContext.getDefault và SSLContext.setDefault
+  - Tác động toàn tiến trình khi đổi SSLContext mặc định
+  - Timeout đọc của SSLSocket và quản lý kết nối
+  - Trust manager, key manager và vai trò cấu hình chứng chỉ
+  - Chọn giao thức, thuật toán theo chính sách hiện hành
+  - Kiểm thử handshake, truststore và hostname theo công cụ đang dùng
+- level1: MXBean
+  level2:
+  - MXBean tùy biến và dữ liệu quản trị không phụ thuộc lớp phía khách
+  - Quy tắc nhận diện interface MXBean
+  - Ánh xạ kiểu Java sang Open Types
+  - CompositeData, TabularData và cấu trúc kết quả
+  - Đăng ký với MBeanServer và đặt ObjectName
+  - JMX.newMXBeanProxy và gọi qua proxy
+  - Descriptor, DescriptorKey và metadata mở rộng
+  - Wildcard trong giá trị khóa ObjectName
+  - Notification và quan sát thay đổi trạng thái
+  - Thiết kế chỉ số, thao tác quản trị và giới hạn truy cập phù hợp
+- level1: Theo dõi luồng
+  level2:
+  - ThreadMXBean và theo dõi platform thread
+  - LockInfo, MonitorInfo và thông tin khóa
+  - dumpAllThreads với monitor, synchronizer
+  - getLockedMonitors, getLockedSynchronizers và stack tương ứng
+  - findDeadlockedThreads và phát hiện vòng chờ
+  - Phân biệt monitor với ownable synchronizer
+  - Kiểm tra khả năng hỗ trợ trước khi yêu cầu dữ liệu
+  - Giới hạn ThreadMXBean đối với loại thread của JDK hiện đại
+  - Chẩn đoán trạng thái bị chặn thay vì suy luận từ một ảnh chụp
+  - Kiểm thử deadlock có kiểm soát và tổng hợp bằng chứng
+- level1: Instrumentation
+  level2:
+  - Java agent và API Instrumentation trong công cụ quan sát hiện hành
+  - Khai báo khả năng agent qua manifest
+  - ClassFileTransformer và biến đổi bytecode
+  - retransformClasses và khác biệt với redefineClasses
+  - isModifiableClass và kiểm tra khả năng JVM
+  - Transformer hỗ trợ retransformation và quy tắc gọi lại
+  - appendToBootstrapClassLoaderSearch, appendToSystemClassLoaderSearch
+  - Native method prefix và phạm vi sử dụng của công cụ
+  - Giới hạn sửa cấu trúc lớp và tương tác nhiều transformer
+  - Cấu hình agent tường minh theo chính sách của JDK hiện đại
+  - Kiểm thử biến đổi, gỡ biến đổi và khả năng đọc class file
+- level1: Thực hành
+  level2:
+  - Thiết kế hàng đợi và ngăn xếp bằng ArrayDeque
+  - Tra cứu ngưỡng, khoảng dữ liệu với NavigableSet, NavigableMap
+  - Pipeline có backpressure bằng LinkedBlockingDeque
+  - Chỉ mục có thứ tự và cập nhật đồng thời bằng ConcurrentSkipListMap
+  - Hệ mở rộng nhiều provider bằng ServiceLoader
+  - Biên dịch mã sinh trong bộ nhớ và báo lỗi theo vị trí
+  - Annotation processor kiểm tra bất biến, sinh mã và tài nguyên
+  - Chuẩn hóa văn bản tiếng Việt và kiểm thử locale provider
+  - Ứng dụng JDBC dùng Unicode, SQLXML và phân loại ngoại lệ
+  - Xử lý XML lớn bằng StAX với giới hạn tài nguyên
+  - Máy chủ kiểm thử HTTP và quản lý cookie theo phiên
+  - Quan sát chỉ số bằng MXBean và phân tích khóa bằng ThreadMXBean
+  - Kiểm thử tổng hợp trên JDK được hỗ trợ hiện hành

@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SOFTWARE_DESIGN_DESIGN_PRINCIPLE_HIGH_COHESION"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hiểu nguyên tắc High Cohesion và cách gom dữ liệu, hành vi theo trách nhiệm thống nhất ở hàm, lớp, module hoặc dịch vụ. Học phát hiện thiết kế gắn kết thấp, tách trách nhiệm, Move Method, Extract Class và đánh giá ảnh hưởng tới kiểm thử, bảo trì."
+  }
+}

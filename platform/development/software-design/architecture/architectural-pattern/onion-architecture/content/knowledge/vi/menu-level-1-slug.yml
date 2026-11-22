@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan Onion
+  slug: onion-architecture-overview
+  index: 0
+- title: Các vòng kiến trúc
+  slug: architecture-rings
+  index: 1
+- title: Chiều phụ thuộc
+  slug: dependency-direction
+  index: 2
+- title: Nền tảng thiết kế
+  slug: design-foundations
+  index: 3
+- title: Mô hình miền
+  slug: domain-model
+  index: 4
+- title: Dịch vụ miền
+  slug: domain-services
+  index: 5
+- title: Dịch vụ ứng dụng
+  slug: application-services
+  index: 6
+- title: Hợp đồng biên
+  slug: boundary-contracts
+  index: 7
+- title: Repository
+  slug: repository
+  index: 8
+- title: Hạ tầng lưu trữ
+  slug: persistence-infrastructure
+  index: 9
+- title: Giao dịch và nhất quán
+  slug: transactions-consistency
+  index: 10
+- title: Giao diện ứng dụng
+  slug: application-interfaces
+  index: 11
+- title: Ánh xạ dữ liệu
+  slug: data-mapping
+  index: 12
+- title: Tích hợp bên ngoài
+  slug: external-integrations
+  index: 13
+- title: Sự kiện
+  slug: domain-events
+  index: 14
+- title: Lỗi và kết quả
+  slug: errors-results
+  index: 15
+- title: Ghép nối thành phần
+  slug: component-composition
+  index: 16
+- title: Tổ chức mã Java
+  slug: java-code-organization
+  index: 17
+- title: Spring Boot
+  slug: spring-boot
+  index: 18
+- title: Bảo mật và kỹ thuật chung
+  slug: security-crosscutting-concerns
+  index: 19
+- title: Kiểm thử
+  slug: testing
+  index: 20
+- title: Kiểm chứng kiến trúc
+  slug: architecture-validation
+  index: 21
+- title: Hiệu năng
+  slug: performance
+  index: 22
+- title: So sánh kiến trúc
+  slug: architecture-comparison
+  index: 23
+- title: Cải tiến mã hiện hữu
+  slug: legacy-code-refactoring
+  index: 24
+- title: Sai lầm thiết kế
+  slug: design-mistakes
+  index: 25
+- title: Thực hành Onion
+  slug: onion-practice
+  index: 26

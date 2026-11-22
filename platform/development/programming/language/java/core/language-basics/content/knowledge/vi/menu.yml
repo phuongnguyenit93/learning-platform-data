@@ -1,0 +1,354 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Ngôn ngữ Java là gì và dùng để diễn đạt bài toán như thế nào
+  - Mối liên hệ giữa mã nguồn, trình biên dịch, bytecode và JVM
+  - Phân biệt Java, Java SE, JDK và môi trường chạy
+  - Dữ liệu, biểu thức, câu lệnh và luồng thực thi
+  - Kiểu dữ liệu tĩnh và những lỗi được phát hiện khi biên dịch
+  - Từ đầu vào tới xử lý và đầu ra của một chương trình
+  - Phân biệt cú pháp đúng với kết quả nghiệp vụ đúng
+  - Lộ trình học và chương trình ví dụ xuyên suốt
+- level1: Công cụ và thực thi
+  level2:
+  - Kiểm tra phiên bản java và javac
+  - Tạo tệp nguồn và biên dịch bằng javac
+  - Chạy lớp bằng java và phân biệt tên lớp với tên tệp
+  - Thư mục làm việc, thư mục đầu ra và classpath
+  - Chạy chương trình một tệp nguồn
+  - Thử biểu thức, biến và phương thức với JShell
+  - Phân biệt tham số JVM với đối số chương trình
+  - Nhận diện lỗi không tìm thấy lớp và không tương thích phiên bản
+- level1: Cấu trúc chương trình
+  level2:
+  - Tệp nguồn, lớp và phương thức trong chương trình tối thiểu
+  - Vai trò của public static void main(String[] args)
+  - Quy tắc tên tệp với lớp public
+  - Dấu ngoặc nhọn, dấu chấm phẩy và khối lệnh
+  - Khai báo khác với câu lệnh thực thi
+  - Câu lệnh biểu thức và câu lệnh rỗng
+  - Cách chương trình bắt đầu, gọi phương thức và kết thúc
+  - Thụt lề để thể hiện cấu trúc và tránh hiểu nhầm phạm vi
+- level1: Từ vựng Java
+  level2:
+  - 'Token: tên định danh, từ khóa, literal, toán tử và dấu phân cách'
+  - Quy tắc tên định danh và phân biệt chữ hoa, chữ thường
+  - Từ khóa dành riêng và từ khóa theo ngữ cảnh
+  - Phân biệt true, false, null với từ khóa
+  - Giới hạn của tên _, const và goto
+  - Khoảng trắng, xuống dòng và phân tách token
+  - Chú thích một dòng, nhiều dòng và chú thích tài liệu
+  - Unicode trong mã nguồn và xử lý Unicode escape trước phân tích token
+- level1: Literal
+  level2:
+  - Literal số nguyên thập phân, nhị phân, bát phân và thập lục phân
+  - Hậu tố L và kiểu mặc định của literal số nguyên
+  - Literal số thực, ký hiệu số mũ và hậu tố F hoặc D
+  - Dấu gạch dưới trong literal số và vị trí không hợp lệ
+  - Literal boolean
+  - Literal ký tự và literal chuỗi
+  - Escape sequence cho xuống dòng, dấu nháy và dấu gạch chéo ngược
+  - 'Text block: cú pháp mở đóng và xử lý thụt lề'
+  - Literal null và những nơi không thể gán null
+- level1: Biến và hằng
+  level2:
+  - Khai báo biến, khởi tạo và phép gán
+  - Kiểu khai báo quyết định giá trị biến có thể giữ
+  - Phân biệt biến cục bộ, tham số và trường
+  - Yêu cầu gán giá trị trước khi đọc biến cục bộ
+  - Giá trị mặc định của trường và phần tử mảng
+  - Khai báo nhiều biến và những cách viết dễ gây nhầm
+  - final trên biến và quy tắc chỉ gán một lần
+  - Hằng tại thời điểm biên dịch và hằng static final
+  - Quy ước đặt tên biến, tham số và hằng
+  - Tham chiếu final không đổi nhưng đối tượng vẫn có thể thay đổi
+- level1: Kiểu nguyên thủy
+  level2:
+  - Toàn cảnh tám kiểu nguyên thủy trong Java
+  - 'byte, short, int và long: độ rộng và miền giá trị'
+  - Số nguyên có dấu và biểu diễn bù hai
+  - char là đơn vị mã UTF-16 không dấu
+  - float và double theo mô hình dấu phẩy động nhị phân
+  - boolean chỉ có true và false
+  - Phân biệt kiểu nguyên thủy với kiểu tham chiếu
+  - Chọn kiểu theo miền dữ liệu và yêu cầu tính toán
+  - Giới hạn giá trị với MIN_VALUE, MAX_VALUE và SIZE
+  - Nhận diện vấn đề tràn số và độ chính xác trước khi viết phép tính
+- level1: Ký tự và chuỗi
+  level2:
+  - Phân biệt char, String và mảng char
+  - Đơn vị mã UTF-16, code point và ký tự ngoài BMP
+  - String là đối tượng bất biến
+  - Nối chuỗi bằng + và chuyển giá trị thành văn bản
+  - Ảnh hưởng của thứ tự phép + khi trộn số với chuỗi
+  - length(), charAt() và substring()
+  - So sánh nội dung bằng equals() thay cho ==
+  - Phân biệt chuỗi rỗng, chuỗi trắng và null
+  - Giới thiệu StringBuilder khi cần ghép chuỗi lặp lại
+  - Chọn encoding tường minh khi chuyển giữa văn bản và byte
+- level1: Tham chiếu và null
+  level2:
+  - Biến tham chiếu và đối tượng mà biến tham chiếu tới
+  - Khai báo biến không đồng nghĩa với tạo đối tượng
+  - new tạo đối tượng và trả về tham chiếu
+  - Gán tham chiếu làm nhiều biến cùng dùng một đối tượng
+  - Thay đổi trạng thái khác với gán lại biến tham chiếu
+  - == trên tham chiếu kiểm tra cùng đối tượng
+  - null biểu thị không tham chiếu tới đối tượng
+  - Nhận diện NullPointerException và đặt kiểm tra tại điểm phù hợp
+- level1: Chuyển đổi kiểu
+  level2:
+  - Chuyển đổi ngầm định và ép kiểu tường minh
+  - Mở rộng và thu hẹp kiểu nguyên thủy
+  - Mở rộng số nguyên sang số thực vẫn có thể mất độ chính xác
+  - Thu hẹp số nguyên và phần bit bị loại bỏ
+  - Chuyển số thực sang số nguyên và cắt phần thập phân
+  - Unary numeric promotion và binary numeric promotion
+  - Vì sao phép cộng byte hoặc short thường cho kết quả int
+  - Chuyển đổi trong phép gán, lời gọi phương thức và biểu thức
+  - Phép gán hằng nằm trong miền giá trị của byte, short hoặc char
+  - Ép kiểu tham chiếu, instanceof và ClassCastException
+- level1: Lớp bao nguyên thủy
+  level2:
+  - Integer, Long, Double, Boolean và các lớp bao khác
+  - Boxing, unboxing và autoboxing
+  - Unboxing tham chiếu null gây NullPointerException
+  - Phân biệt so sánh tham chiếu lớp bao với so sánh giá trị
+  - Bộ đệm đối tượng lớp bao và vì sao không dựa vào ==
+  - parseInt(), parseDouble(), valueOf() và kiểu kết quả
+  - NumberFormatException khi chuỗi không hợp lệ
+  - Chọn kiểu nguyên thủy hay lớp bao theo yêu cầu dữ liệu
+- level1: Suy luận với var
+  level2:
+  - var suy luận kiểu biến cục bộ từ biểu thức khởi tạo
+  - var giữ nguyên kiểm tra kiểu tĩnh
+  - Những vị trí được phép dùng var
+  - Vì sao var cần giá trị khởi tạo
+  - Không suy ra kiểu từ null hoặc danh sách khởi tạo mảng đứng riêng
+  - Không dùng var cho trường hoặc kiểu trả về phương thức
+  - Kiểu suy ra từ literal và các phép tính số
+  - Chọn var khi kiểu vẫn rõ ràng với người đọc
+- level1: Biểu thức
+  level2:
+  - Biểu thức tạo ra giá trị và có kiểu tại thời điểm biên dịch
+  - Toán hạng, toán tử và biểu thức lồng nhau
+  - Độ ưu tiên và tính kết hợp của toán tử
+  - Dùng dấu ngoặc để làm rõ ý định
+  - Phân biệt thứ tự nhóm biểu thức với thứ tự đánh giá
+  - Đánh giá toán hạng và đối số từ trái sang phải
+  - Tác dụng phụ trong biểu thức và nguy cơ khó dự đoán
+  - Kết thúc bình thường hoặc đột ngột do ngoại lệ
+- level1: Số học
+  level2:
+  - Cộng, trừ, nhân, chia và phép lấy phần dư
+  - Chia số nguyên và cắt phần thập phân về phía không
+  - Ép kiểu trước phép chia để nhận kết quả số thực
+  - Dấu của phần dư với toán hạng âm
+  - Chia số nguyên cho không gây ArithmeticException
+  - Tràn số nguyên không tự động ném ngoại lệ
+  - NaN, vô cực và số không có dấu trong phép tính số thực
+  - Sai số nhị phân khi tính với float hoặc double
+  - Giới thiệu Math cho trị tuyệt đối, lũy thừa và làm tròn
+  - Giới thiệu phép toán exact và BigDecimal khi yêu cầu vượt khả năng kiểu cơ bản
+- level1: Gán và toán tử một ngôi
+  level2:
+  - Phép gán = và giá trị của biểu thức gán
+  - Gán liên tiếp và lý do nên hạn chế
+  - Phép gán kết hợp +=, -=, *=, /= và %=
+  - Chuyển kiểu ngầm định trong phép gán kết hợp
+  - Tăng giảm tiền tố và hậu tố
+  - Phân biệt giá trị biểu thức với giá trị biến sau ++ hoặc --
+  - Toán tử dấu +, dấu - và phủ định !
+  - Tránh nhiều phép tăng giảm trên cùng biến trong một biểu thức
+- level1: So sánh
+  level2:
+  - Toán tử <, <=, > và >= cho giá trị số
+  - == và != trên kiểu nguyên thủy
+  - So sánh boolean và giới hạn dùng toán tử quan hệ
+  - Phân biệt so sánh giá trị với so sánh tham chiếu
+  - NaN và những kết quả so sánh khác trực giác
+  - So sánh số thực bằng sai số phù hợp yêu cầu
+  - Không viết chuỗi so sánh kiểu toán học như 0 < x < 10
+  - Xây dựng điều kiện kiểm tra miền giá trị rõ ràng
+- level1: Logic và điều kiện
+  level2:
+  - '&&, || và ! trong biểu thức boolean'
+  - Đánh giá ngắn mạch và những biểu thức không được chạy
+  - Dùng ngắn mạch để kiểm tra null và giới hạn mảng
+  - '&, | và ^ khi áp dụng lên boolean'
+  - Phân biệt && với & và || với |
+  - Định luật De Morgan và đơn giản hóa điều kiện
+  - 'Toán tử ba ngôi ?: và chỉ đánh giá nhánh được chọn'
+  - Kiểu kết quả của biểu thức điều kiện và chuyển kiểu có thể xảy ra
+  - Tránh lồng quá nhiều toán tử ba ngôi
+- level1: Toán tử bit
+  level2:
+  - Biểu diễn bit của số nguyên có dấu
+  - AND, OR, XOR và NOT theo từng bit
+  - Dịch trái <<
+  - Dịch phải có dấu >> và không dấu >>>
+  - Quy tắc giới hạn số bit dịch theo kiểu toán hạng
+  - Numeric promotion khi thao tác trên byte, short hoặc char
+  - Mặt nạ bit để đọc, bật, tắt và đảo cờ
+  - Phân biệt phép tính theo bit với điều kiện boolean
+- level1: Rẽ nhánh if
+  level2:
+  - Cú pháp if, else và chuỗi else if
+  - Điều kiện phải có kiểu boolean hoặc Boolean được unboxing
+  - Khối lệnh và rủi ro bỏ dấu ngoặc nhọn
+  - else gắn với if gần nhất chưa có else
+  - Phân biệt nhiều if độc lập với một chuỗi loại trừ
+  - Điều kiện biên và thứ tự xét các nhánh
+  - Guard clause để giảm mức lồng nhau
+  - Kiểm tra từng nhánh bằng bảng trường hợp đầu vào
+- level1: Switch
+  level2:
+  - Switch statement và các kiểu dữ liệu lựa chọn được hỗ trợ
+  - Nhãn case, default và nhãn trùng lặp
+  - Dạng dấu hai chấm và cơ chế rơi tiếp xuống nhánh sau
+  - break để kết thúc switch statement
+  - Dạng mũi tên -> và phạm vi của khối nhánh
+  - Switch expression trả về một giá trị
+  - yield trong khối nhánh của switch expression
+  - Yêu cầu bao phủ các trường hợp và chọn kiểu kết quả
+  - Xử lý null trong switch và phân biệt với default
+  - Chọn if hoặc switch theo bản chất điều kiện
+- level1: Mẫu kiểm tra kiểu
+  level2:
+  - instanceof kiểm tra kiểu và kết quả khi đối tượng là null
+  - Type pattern kết hợp kiểm tra kiểu và khai báo biến
+  - Phạm vi biến mẫu phụ thuộc luồng điều kiện
+  - Kết hợp instanceof pattern với && hoặc guard clause
+  - Pattern matching cho switch trong Java 21
+  - Điều kiện bảo vệ when và thứ tự nhãn mẫu
+  - Mẫu bao phủ, nhãn không thể được chọn và yêu cầu đầy đủ
+  - Nhận diện record pattern để tách dữ liệu của record
+  - Phân biệt tính năng chính thức với cú pháp preview theo phiên bản
+- level1: Vòng lặp
+  level2:
+  - while kiểm tra điều kiện trước mỗi lần lặp
+  - do-while thực thi thân ít nhất một lần
+  - for với phần khởi tạo, điều kiện và cập nhật
+  - Vòng đời biến đếm trong for
+  - Vòng lặp vô hạn và điều kiện bảo đảm kết thúc
+  - Lặp lồng nhau và theo dõi từng biến đếm
+  - Lỗi lệch một đơn vị tại biên vòng lặp
+  - Mẫu tích lũy tổng, đếm và tìm giá trị lớn nhất
+  - Duy trì điều kiện bất biến đơn giản qua mỗi lần lặp
+  - Chọn while, do-while hoặc for theo bài toán
+- level1: Duyệt và chuyển luồng
+  level2:
+  - Enhanced for để duyệt mảng hoặc Iterable
+  - Biến vòng lặp là bản sao giá trị phần tử
+  - Gán lại biến enhanced for không thay phần tử mảng
+  - Thay đổi đối tượng được tham chiếu qua biến vòng lặp
+  - break và continue không nhãn
+  - break và continue có nhãn trong vòng lặp lồng
+  - return kết thúc phương thức đang chạy
+  - Phân biệt break, continue, return và yield
+  - Nhận diện câu lệnh không thể tới và ảnh hưởng tới biên dịch
+- level1: Mảng một chiều
+  level2:
+  - Mảng là đối tượng chứa số phần tử cố định cùng kiểu thành phần
+  - Khai báo biến mảng và tạo mảng bằng new
+  - Khởi tạo mảng bằng danh sách giá trị
+  - Chỉ số bắt đầu từ 0 và trường length
+  - Giá trị mặc định của phần tử nguyên thủy và tham chiếu
+  - Mảng rỗng khác tham chiếu mảng null
+  - Đọc, cập nhật và duyệt phần tử
+  - ArrayIndexOutOfBoundsException và NegativeArraySizeException
+  - Gán mảng chỉ sao chép tham chiếu
+  - Giới thiệu Arrays.toString(), Arrays.equals() và Arrays.copyOf()
+- level1: Mảng nhiều chiều
+  level2:
+  - Mảng nhiều chiều là mảng chứa tham chiếu tới mảng con
+  - Tạo ma trận chữ nhật và mảng có hàng dài khác nhau
+  - Khởi tạo từng mảng con và hàng chưa được tạo
+  - Lấy số hàng và độ dài của từng hàng
+  - Duyệt bằng chỉ số hoặc enhanced for lồng nhau
+  - Sao chép nông và chia sẻ các mảng con
+  - Arrays.deepToString() và Arrays.deepEquals()
+  - Mảng tham chiếu hiệp biến và nguy cơ ArrayStoreException
+  - Phân biệt int[] với Integer[] và khả năng gán qua Object
+- level1: Phương thức
+  level2:
+  - 'Khai báo phương thức: tên, tham số, kiểu trả về và thân'
+  - Định nghĩa phương thức khác với gọi phương thức
+  - Phân biệt tham số hình thức và đối số
+  - Phương thức static cho các chương trình nhập môn
+  - return với giá trị và return trong phương thức void
+  - Truyền tham trị cho kiểu nguyên thủy và tham chiếu
+  - Thay đổi nội dung mảng khác với gán lại tham số mảng
+  - Nạp chồng phương thức và những thành phần tạo chữ ký
+  - Varargs và mối quan hệ với mảng
+  - Đệ quy, trường hợp dừng và nguy cơ StackOverflowError
+  - Tách bài toán thành các phương thức có trách nhiệm rõ ràng
+- level1: Phạm vi và khởi tạo
+  level2:
+  - Phạm vi tên trong khối, vòng lặp và phương thức
+  - Thời gian tồn tại của biến khác phạm vi sử dụng tên
+  - Biến cục bộ trùng tên trong khối lồng và các khai báo không hợp lệ
+  - Tham số hoặc biến cục bộ che khuất trường
+  - Dùng this hoặc tên lớp để chỉ rõ trường bị che khuất
+  - Kiểm tra biến đã được gán trên mọi nhánh trước khi sử dụng
+  - final có thể được gán trong các nhánh loại trừ nhau
+  - Giữ phạm vi biến nhỏ và khai báo gần nơi sử dụng
+- level1: Lớp và đối tượng
+  level2:
+  - Lớp mô tả kiểu và đối tượng là thể hiện cụ thể
+  - Trường biểu diễn dữ liệu và phương thức biểu diễn hành vi
+  - Tạo đối tượng và gọi phương thức bằng dấu chấm
+  - Hàm khởi tạo thiết lập giá trị ban đầu
+  - this biểu thị đối tượng hiện tại
+  - Phân biệt thành viên static với thành viên đối tượng
+  - Nhận diện public, private và truy cập trong gói
+  - Giới thiệu enum, record và interface ở mức đọc hiểu cú pháp
+  - Từ chương trình chỉ có main tới chương trình có nhiều lớp
+  - Đọc cú pháp generic như List<String> và ý nghĩa kiểm tra kiểu
+  - Nhận diện lambda và tham chiếu phương thức trong lời gọi API
+  - Nhận diện annotation @Override và @Deprecated
+- level1: Package và import
+  level2:
+  - Package tổ chức tên kiểu và tránh trùng tên
+  - Khai báo package và cấu trúc thư mục tương ứng
+  - Tên đơn giản và tên đầy đủ của lớp
+  - Import một kiểu và import theo yêu cầu bằng dấu *
+  - Static import cho thành viên static
+  - java.lang được import ngầm định
+  - Import không tự động bao gồm package con
+  - Xử lý hai lớp trùng tên và giới hạn của import
+  - Phân biệt package, classpath và module ở mức định hướng
+- level1: Lỗi và ngoại lệ
+  level2:
+  - Lỗi biên dịch, lỗi khi chạy và lỗi logic
+  - Đọc thông báo javac và sửa từ lỗi gốc
+  - Đọc stack trace và tìm vị trí phát sinh lỗi
+  - try-catch để xử lý tình huống có thể thất bại
+  - throw để báo lỗi và throws để khai báo khả năng phát sinh
+  - Nhận diện checked exception và unchecked exception
+  - finally và giới thiệu try-with-resources
+  - assert để kiểm tra giả định nội bộ và bật bằng -ea
+  - Không dùng assert thay kiểm tra dữ liệu đầu vào bắt buộc
+- level1: Nhập xuất cơ bản
+  level2:
+  - System.out.print(), println() và printf()
+  - Định dạng số, chuỗi, xuống dòng và ký hiệu % trong printf()
+  - System.err cho thông báo chẩn đoán
+  - Đọc đối số chương trình từ String[] args
+  - Đọc dữ liệu console bằng Scanner
+  - Phân biệt next(), nextInt() và nextLine()
+  - Xử lý phần xuống dòng còn lại sau khi đọc số
+  - Kiểm tra đầu vào và chuyển chuỗi thành số
+  - Locale, dấu phân cách thập phân và trách nhiệm đóng nguồn nhập
+- level1: Thực hành và chất lượng
+  level2:
+  - Phân tích bài toán thành dữ liệu vào, xử lý và kết quả
+  - Viết mã giả và bảng theo dõi trước khi lập trình
+  - Đặt tên rõ nghĩa, thụt lề và tránh số không giải thích
+  - Chú thích lý do và viết tài liệu cho phương thức khi cần
+  - Gỡ lỗi bằng breakpoint, chạy từng bước và xem giá trị biến
+  - Kiểm tra trường hợp rỗng, biên, số âm, dữ liệu sai và giá trị lớn
+  - Thực hành chương trình tính tiền với điều kiện và vòng lặp
+  - Thực hành thống kê mảng và tách thành phương thức
+  - Thực hành menu console với kiểm tra đầu vào
+  - Tổng hợp lỗi thường gặp và tiêu chí tự đánh giá nền tảng

@@ -1,0 +1,7 @@
+# Engineering Validation Testing Tool Test Environment
+
+Test Environment là tập hợp cấu hình, dữ liệu, dịch vụ phụ thuộc và công cụ giúp chạy kiểm thử trong điều kiện có thể dự đoán. Một môi trường test tốt cần tách biệt với production, tái lập được trên máy lập trình viên và hệ thống CI, không dùng chung trạng thái dễ gây nhiễu và cung cấp đủ thông tin để điều tra lỗi. Trong ứng dụng Java, Docker Compose và Testcontainers thường được dùng để khởi tạo database, message broker hoặc những dịch vụ cần cho integration test.
+
+Module phù hợp với người đã biết Java, JUnit, kiến thức Docker cơ bản và sự khác nhau giữa unit test với integration test. Lộ trình bắt đầu từ việc xác định phạm vi, cấu hình riêng cho test và cách dựng dependency thật hoặc HTTP stub; sau đó dùng Testcontainers với JUnit, thiết lập readiness, network và mapped port. Người học tiếp tục chuẩn bị schema, fixture và cơ chế reset dữ liệu, rồi đưa bộ test vào CI với kiểm soát chạy song song, đọc log, thu test report và dọn tài nguyên.
+
+Sau khi hoàn thành, bạn có thể dựng một môi trường test nhỏ chạy lặp lại từ đầu, kết nối ứng dụng với dịch vụ được khởi tạo tự động, kiểm tra rằng test độc lập về dữ liệu và tìm nguyên nhân khi pipeline thất bại. Khi dọn môi trường, chỉ xóa tài nguyên test đã xác định; không chạy lệnh xóa volume hoặc database trên hệ thống thật. Các môi trường dùng chung có thể hữu ích trong một số tình huống nhưng phải kiểm soát state và quyền truy cập riêng.

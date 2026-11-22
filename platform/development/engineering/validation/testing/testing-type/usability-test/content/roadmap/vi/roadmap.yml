@@ -1,0 +1,57 @@
+roadmap:
+- id: nen-tang-usability-test
+  title: Nền tảng Usability Test
+  purpose: Hiểu kiểm thử tính dễ sử dụng đánh giá khả năng người dùng thực hiện nhiệm vụ trong bối cảnh thực tế.
+  objectives:
+  - Phân biệt usability với kiểm thử chức năng và accessibility.
+  - Nhận diện hiệu quả, hiệu suất và mức độ hài lòng.
+  - Chọn hành vi người dùng cần quan sát.
+- id: muc-tieu-va-ke-hoach
+  title: Mục tiêu và Kế hoạch
+  purpose: Xác định câu hỏi nghiên cứu và cách tổ chức buổi thử nghiệm phù hợp với giai đoạn sản phẩm.
+  objectives:
+  - Viết mục tiêu và câu hỏi nghiên cứu rõ ràng.
+  - Chọn qualitative hoặc quantitative test theo mục đích.
+  - Lập phạm vi, lịch chạy và tiêu chí hoàn thành.
+- id: tuyen-nguoi-tham-gia
+  title: Tuyển người tham gia
+  purpose: Thu thập phản hồi từ những người đại diện cho nhóm người dùng mục tiêu.
+  objectives:
+  - Xác định chân dung và tiêu chí tuyển chọn.
+  - Chọn số lượng phù hợp với mục tiêu nghiên cứu.
+  - Chuẩn bị lời mời, đồng ý tham gia và bảo mật dữ liệu.
+- id: thiet-ke-tac-vu
+  title: Thiết kế Tác vụ
+  purpose: Tạo tình huống thực tế để quan sát được cách người dùng hoàn thành mục tiêu.
+  objectives:
+  - Viết task scenario cụ thể, không tiết lộ thao tác.
+  - Xác định điều kiện bắt đầu và tiêu chí thành công.
+  - Chuẩn bị prototype, dữ liệu và kịch bản điều phối.
+- id: dieu-phoi-phien-thu-nghiem
+  title: Điều phối Phiên thử nghiệm
+  purpose: Thu được hành vi tự nhiên của người dùng qua phiên trực tiếp hoặc từ xa.
+  objectives:
+  - Giới thiệu phiên test và hướng dẫn cách tham gia.
+  - Quan sát, đặt câu hỏi trung lập, tránh gợi ý.
+  - Ghi nhận thao tác, trở ngại và phản hồi tự phát.
+- id: do-luong-va-ghi-nhan
+  title: Đo lường và Ghi nhận
+  purpose: Kết hợp bằng chứng quan sát với các chỉ số thích hợp để đánh giá tính dễ sử dụng.
+  objectives:
+  - Ghi task success, time on task và lỗi thao tác.
+  - Thu phản hồi về mức dễ dùng, mức hài lòng.
+  - Phân biệt dữ liệu hành vi với ý kiến chủ quan.
+- id: phan-tich-va-bao-cao
+  title: Phân tích và Báo cáo
+  purpose: Chuyển dữ liệu phiên test thành vấn đề thiết kế có bằng chứng và mức ưu tiên rõ ràng.
+  objectives:
+  - Tổng hợp các mẫu lỗi lặp lại từ nhiều phiên.
+  - Phân loại mức nghiêm trọng và tác động người dùng.
+  - Viết báo cáo phát hiện, minh chứng và đề xuất cải thiện.
+- id: kiem-chung-cai-tien
+  title: Kiểm chứng Cải tiến
+  purpose: Đánh giá liệu thay đổi thiết kế có thực sự cải thiện khả năng hoàn thành nhiệm vụ.
+  objectives:
+  - Đề xuất thay đổi giao diện theo vấn đề đã phát hiện.
+  - Chạy lại task sau chỉnh sửa để so sánh.
+  - Phối hợp đánh giá accessibility khi phù hợp.

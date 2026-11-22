@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Hiểu nghiệp vụ
+  slug: domain-understanding
+  index: 1
+- title: Phạm vi mô hình
+  slug: model-scope
+  index: 2
+- title: Ngôn ngữ nghiệp vụ
+  slug: ubiquitous-language
+  index: 3
+- title: Khám phá nghiệp vụ
+  slug: domain-discovery
+  index: 4
+- title: Kịch bản sử dụng
+  slug: use-cases
+  index: 5
+- title: Khái niệm nghiệp vụ
+  slug: domain-concepts
+  index: 6
+- title: Định danh
+  slug: identity
+  index: 7
+- title: Đối tượng giá trị
+  slug: value-objects
+  index: 8
+- title: Thuộc tính và dữ liệu
+  slug: attributes-and-data
+  index: 9
+- title: Quan hệ
+  slug: relationships
+  index: 10
+- title: Hành vi và trách nhiệm
+  slug: behavior-and-responsibilities
+  index: 11
+- title: Quy tắc và bất biến
+  slug: rules-and-invariants
+  index: 12
+- title: Trạng thái và vòng đời
+  slug: state-and-lifecycle
+  index: 13
+- title: Thời gian nghiệp vụ
+  slug: business-time
+  index: 14
+- title: Tiền và số lượng
+  slug: money-and-quantities
+  index: 15
+- title: Sự kiện nghiệp vụ
+  slug: domain-events
+  index: 16
+- title: Ranh giới và sở hữu
+  slug: boundaries-and-ownership
+  index: 17
+- title: Biểu diễn mô hình
+  slug: model-representation
+  index: 18
+- title: Từ mô hình đến Java
+  slug: models-to-java
+  index: 19
+- title: Phân tách mô hình
+  slug: model-decomposition
+  index: 20
+- title: Lưu trữ
+  slug: storage-store
+  index: 21
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 22
+- title: Lỗi nghiệp vụ
+  slug: business-errors
+  index: 23
+- title: Kiểm chứng mô hình
+  slug: model-validation
+  index: 24
+- title: Thay đổi mô hình
+  slug: model-evolution
+  index: 25
+- title: Lựa chọn thiết kế
+  slug: design-decisions
+  index: 26
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 27
+- title: Tài liệu mô hình
+  slug: model-documentation
+  index: 28
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 29

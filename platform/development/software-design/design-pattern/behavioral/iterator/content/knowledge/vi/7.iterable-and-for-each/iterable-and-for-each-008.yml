@@ -1,0 +1,3 @@
+menuLevel1: Iterable<T>, vòng lặp for-each và tái sử dụng lượt duyệt
+menuLevel2: Iterable.forEach() và lựa chọn giữa callback với điều khiển con trỏ
+status: ""

@@ -1,0 +1,7 @@
+# Project Reactor Testing
+
+**Project Reactor Testing** tập trung vào cách kiểm chứng những luồng bất đồng bộ được biểu diễn bằng `Mono` và `Flux`. Không giống kiểm thử trả về giá trị đồng bộ, bài kiểm thử reactive cần quan sát các tín hiệu `onNext`, `onError`, `onComplete`, hành vi `Subscription` và đôi khi cả thời gian hay nhu cầu dữ liệu (*backpressure*). Module `reactor-test` cung cấp `StepVerifier`, `TestPublisher` và `PublisherProbe` để diễn đạt các kỳ vọng này thành bài kiểm thử có thể tái lập.
+
+Lộ trình gồm tám mốc: nền tảng tín hiệu và cấu hình `reactor-test`; `StepVerifier` cho luồng thành công; xử lý luồng rỗng, lỗi và hủy; kiểm thử demand/backpressure; virtual time cho các toán tử thời gian; xác nhận Reactor `Context` và hậu điều kiện; điều khiển tín hiệu với `TestPublisher`; cuối cùng là `PublisherProbe` cùng thói quen kiểm thử ổn định. Người học cần nhớ kiểm thử `Publisher` phải thực sự kích hoạt subscription và các kịch bản dùng virtual time nên xây dựng luồng một cách lazy trong `Supplier`.
+
+Module dành cho lập trình viên Java đã biết Reactive Streams, `Mono`, `Flux` và JUnit cơ bản. Sau khi hoàn thành, bạn có thể viết bài kiểm thử không cần `Thread.sleep` cho delay hoặc timeout, mô phỏng lỗi, xác nhận luồng dự phòng được sử dụng, kiểm tra request/cancellation và xây dựng bộ test reactive có thông báo lỗi dễ phân tích.

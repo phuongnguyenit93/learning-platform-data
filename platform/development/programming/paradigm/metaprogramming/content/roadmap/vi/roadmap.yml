@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-metaprogramming
+  title: Tư duy Metaprogramming
+  purpose: Hiểu chương trình có thể phân tích hoặc tạo ra mã khác và phân biệt các cơ chế theo thời điểm hoạt động.
+  objectives:
+  - Giải thích code as data và meta-level
+  - Phân biệt xử lý lúc biên dịch với lúc chạy
+  - Nêu ví dụ reflection, macro và code generation
+- id: cau-truc-ma-ast
+  title: Cấu trúc mã & AST
+  purpose: Nhìn mã nguồn dưới dạng cấu trúc có thể duyệt, phân tích và biến đổi một cách có quy tắc.
+  objectives:
+  - Phân biệt văn bản nguồn với cây cú pháp trừu tượng (AST)
+  - Nhận diện declaration, expression và statement node
+  - Đọc mô hình AST từ compiler API của Java
+- id: reflection-introspection
+  title: Reflection & Introspection
+  purpose: Khám phá cấu trúc lớp và thao tác có kiểm soát với thành phần chương trình tại runtime.
+  objectives:
+  - Liệt kê field, method và constructor bằng Reflection
+  - Đọc kiểu và gọi method qua API phản chiếu
+  - Nhận diện giới hạn encapsulation và module access
+- id: annotations-metadata
+  title: Annotations & Metadata
+  purpose: Gắn thông tin khai báo vào chương trình để các công cụ xử lý mà không trộn lẫn quy tắc vào mã nghiệp vụ.
+  objectives:
+  - Định nghĩa custom annotation với @Target và @Retention
+  - Phân biệt SOURCE, CLASS và RUNTIME retention
+  - Đọc metadata annotation qua Reflection
+- id: annotation-processing
+  title: Annotation Processing
+  purpose: Phân tích phần tử mã ở compile time và tạo thêm nguồn theo quy tắc khai báo.
+  objectives:
+  - Tạo Processor và đăng ký với javac
+  - Đọc Element, TypeMirror và annotation metadata
+  - Sinh file bằng Filer và báo lỗi bằng Messager
+- id: sinh-ma-tich-hop-build
+  title: Sinh mã & Tích hợp Build
+  purpose: Tạo mã có thể biên dịch, tái lập và bảo trì trong quy trình build tự động.
+  objectives:
+  - Phân biệt template-based generation với AST-based generation
+  - Tích hợp bước generation vào build/compile
+  - Kiểm tra tên tệp, package và thay đổi mã sinh ra
+- id: dynamic-proxy-bytecode
+  title: Dynamic Proxy & Bytecode
+  purpose: Hiểu cách can thiệp lời gọi và cấu trúc class ở runtime khi reflection thông thường chưa đủ.
+  objectives:
+  - Tạo interface-based proxy với InvocationHandler
+  - Mô tả đọc hoặc biến đổi class file qua Class-File API
+  - Giải thích giới hạn và rủi ro của instrumentation
+- id: an-toan-kiem-thu-ma-sinh
+  title: An toàn & Kiểm thử mã sinh
+  purpose: Đánh giá độ đúng, hiệu năng và rủi ro của cơ chế tự tạo hoặc biến đổi chương trình.
+  objectives:
+  - Thử compile và kiểm tra behavior của mã được sinh
+  - Đánh giá chi phí Reflection và lỗi tại runtime
+  - Giới hạn quyền truy cập và tránh sinh mã từ input không tin cậy

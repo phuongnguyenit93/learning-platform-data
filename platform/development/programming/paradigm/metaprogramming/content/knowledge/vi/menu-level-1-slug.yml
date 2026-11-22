@@ -1,0 +1,91 @@
+menu:
+- title: Nhập môn
+  slug: introduction
+  index: 0
+- title: Cơ chế và phân loại
+  slug: mechanisms-and-types
+  index: 1
+- title: Biểu diễn chương trình
+  slug: program-representation
+  index: 2
+- title: Ngữ nghĩa và thời điểm
+  slug: semantics-and-timing
+  index: 3
+- title: Siêu dữ liệu và phản chiếu
+  slug: metadata-and-reflection
+  index: 4
+- title: Sinh mã nguồn
+  slug: source-code-generation
+  index: 5
+- title: Macro
+  slug: macros
+  index: 6
+- title: Lập trình nhiều giai đoạn
+  slug: multi-stage-programming
+  index: 7
+- title: Ngôn ngữ chuyên biệt
+  slug: domain-specific-languages
+  index: 8
+- title: Lập trình ở mức kiểu
+  slug: type-level-programming
+  index: 9
+- title: Annotations Java
+  slug: java-annotations
+  index: 10
+- title: Reflection Java
+  slug: java-reflection
+  index: 11
+- title: MethodHandle và VarHandle
+  slug: methodhandles-and-varhandles
+  index: 12
+- title: Proxy động
+  slug: dynamic-proxies
+  index: 13
+- title: Annotation Processing
+  slug: annotation-processing
+  index: 14
+- title: Biên dịch động Java
+  slug: dynamic-java-compilation
+  index: 15
+- title: Biến đổi bytecode
+  slug: bytecode-transformation
+  index: 16
+- title: Class Loader và Agent
+  slug: classloaders-and-agents
+  index: 17
+- title: Đối chiếu ngôn ngữ
+  slug: language-comparison
+  index: 18
+- title: Ứng dụng thực tế
+  slug: real-world-applications
+  index: 19
+- title: Kiến trúc giải pháp
+  slug: solution-architecture
+  index: 20
+- title: Tích hợp build
+  slug: build-integration
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Gỡ lỗi và quan sát
+  slug: debugging-and-observability
+  index: 23
+- title: Bảo mật
+  slug: security
+  index: 24
+- title: Hiệu năng
+  slug: performance
+  index: 25
+- title: Tương thích
+  slug: compatibility
+  index: 26
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 27
+- title: Dự án thực hành
+  slug: hands-on-project
+  index: 28
+- title: Lựa chọn giải pháp
+  slug: solution-selection
+  index: 29

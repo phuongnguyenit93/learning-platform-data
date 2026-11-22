@@ -1,0 +1,3 @@
+menuLevel1: Phân quyền HTTP
+menuLevel2: Kết hợp điều kiện bằng AuthorizationManagers.allOf và anyOf
+status: WRITTEN

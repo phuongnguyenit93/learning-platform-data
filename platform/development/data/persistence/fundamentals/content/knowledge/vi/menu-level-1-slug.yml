@@ -1,0 +1,85 @@
+menu:
+- title: Định hướng
+  slug: data-persistence-overview
+  index: 0
+- title: Vòng đời dữ liệu
+  slug: data-lifecycle
+  index: 1
+- title: Yêu cầu lưu trữ
+  slug: storage-requirements
+  index: 2
+- title: Biểu diễn dữ liệu
+  slug: data-representation
+  index: 3
+- title: Mô hình lưu trữ
+  slug: storage-models
+  index: 4
+- title: Định danh và quan hệ
+  slug: identity-and-relationships
+  index: 5
+- title: Lược đồ và ràng buộc
+  slug: schemas-and-constraints
+  index: 6
+- title: Thao tác dữ liệu
+  slug: data-operations
+  index: 7
+- title: Truy vấn và phân trang
+  slug: querying-and-pagination
+  index: 8
+- title: Chỉ mục
+  slug: indexes
+  index: 9
+- title: Giao dịch
+  slug: transactions
+  index: 10
+- title: Tính cô lập
+  slug: isolation
+  index: 11
+- title: Kiểm soát đồng thời
+  slug: concurrency-control
+  index: 12
+- title: Độ bền dữ liệu
+  slug: data-durability
+  index: 13
+- title: Kết nối và tài nguyên
+  slug: connections-and-resources
+  index: 14
+- title: Lỗi và thử lại
+  slug: errors-and-retries
+  index: 15
+- title: Ranh giới ứng dụng
+  slug: application-boundaries
+  index: 16
+- title: Hệ sinh thái Java
+  slug: java-ecosystem
+  index: 17
+- title: Nhất quán và cache
+  slug: consistency-and-caching
+  index: 18
+- title: Nền tảng phân tán
+  slug: distributed-platforms
+  index: 19
+- title: Tiến hóa dữ liệu
+  slug: data-evolution
+  index: 20
+- title: Hiệu năng
+  slug: persistence-performance
+  index: 21
+- title: An toàn dữ liệu
+  slug: data-safety
+  index: 22
+- title: Sao lưu và khôi phục
+  slug: backup-and-recovery
+  index: 23
+- title: Kiểm thử lưu trữ
+  slug: persistence-testing
+  index: 24
+- title: Quan sát và vận hành
+  slug: observability-and-operations
+  index: 25
+- title: Lỗi thiết kế
+  slug: persistence-design-pitfalls
+  index: 26
+- title: Thực hành tổng hợp
+  slug: integrated-persistence-practice
+  index: 27

@@ -1,0 +1,435 @@
+menu:
+- level1: Tổng quan Spring-WS
+  level2:
+  - Spring Web Services là gì và giải quyết bài toán tích hợp SOAP như thế nào
+  - Thông điệp, hợp đồng, endpoint và máy khách trong một lần trao đổi
+  - Phân biệt Spring-WS với Spring MVC, REST và WebSocket
+  - 'Spring-WS, JAX-WS và Apache CXF: mô hình lập trình và ranh giới trách nhiệm'
+  - Thiết kế từ hợp đồng (contract-first) và thiết kế từ mã (contract-last)
+  - Vì sao mô hình đối tượng Java không ánh xạ hoàn toàn sang XML
+  - Mối liên hệ giữa XML, XSD, WSDL, SOAP và các chuẩn WS-*
+  - Khi nào SOAP phù hợp và những đánh đổi về độ phức tạp, hiệu năng
+  - Kiến thức tiên quyết và lộ trình từ hợp đồng đến dịch vụ được kiểm chứng
+- level1: Nền tảng XML
+  level2:
+  - Tài liệu XML, phần tử, thuộc tính, nội dung văn bản và tính hợp lệ cú pháp
+  - Namespace, URI, prefix và tên đầy đủ QName
+  - Namespace mặc định và sự khác nhau giữa tên phần tử với tên thuộc tính
+  - Khai báo XML, bảng mã và xử lý ký tự đặc biệt
+  - Không có phần tử, phần tử rỗng và giá trị xsi:nil
+  - Thứ tự phần tử, nội dung trộn và những khác biệt có ý nghĩa trong hợp đồng
+  - DOM, SAX, StAX và lựa chọn cách xử lý XML
+  - XPath, ngữ cảnh namespace và lựa chọn nút dữ liệu
+  - XSLT, biến đổi cấu trúc và ranh giới với ánh xạ đối tượng
+  - So sánh XML theo ngữ nghĩa thay vì so sánh chuỗi prefix và khoảng trắng
+- level1: Giao thức SOAP
+  level2:
+  - SOAP Envelope, Header, Body và vai trò của từng thành phần
+  - 'SOAP 1.1 và SOAP 1.2: namespace, kiểu nội dung và cách biểu diễn lỗi'
+  - Payload ứng dụng và phong bì SOAP là hai lớp khác nhau
+  - Header ứng dụng, header WS-* và HTTP header
+  - mustUnderstand, actor, role và trách nhiệm xử lý header
+  - SOAPAction trong SOAP 1.1 và tham số action trong SOAP 1.2
+  - Trao đổi yêu cầu, phản hồi và thông điệp một chiều
+  - SOAP qua HTTP và sự độc lập giữa thông điệp với phương tiện truyền tải
+  - SOAP Fault, mã trạng thái HTTP và lỗi kết nối
+  - Document/literal, RPC và ý nghĩa của kiểu liên kết trong WSDL
+  - Đọc một yêu cầu, phản hồi SOAP hoàn chỉnh từ dữ liệu truyền thực tế
+- level1: Thiết kế hợp đồng
+  level2:
+  - Xác định các thao tác nghiệp vụ và ranh giới dịch vụ
+  - Thiết kế thông điệp yêu cầu, phản hồi trước khi viết endpoint
+  - Hợp đồng dữ liệu và hợp đồng dịch vụ bổ sung cho nhau
+  - 'Document/literal wrapped và bare: cấu trúc thông điệp và lựa chọn'
+  - Tách mô hình trao đổi khỏi thực thể lưu trữ và mô hình nội bộ
+  - Đặt tên namespace, phần tử và thao tác có tính ổn định
+  - Quy định trường bắt buộc, giá trị thiếu và ngữ nghĩa mặc định
+  - Thiết kế lỗi nghiệp vụ thành hợp đồng có cấu trúc
+  - Định nghĩa giới hạn dữ liệu, kích thước thông điệp và yêu cầu bảo mật
+  - Kiểm tra hợp đồng bằng ví dụ hợp lệ, không hợp lệ và phản hồi lỗi
+- level1: Thiết kế XSD
+  level2:
+  - xs:schema, targetNamespace và elementFormDefault
+  - Phần tử toàn cục, kiểu có tên và phạm vi tái sử dụng
+  - simpleType, complexType và thuộc tính của cấu trúc dữ liệu
+  - sequence, choice, all và ràng buộc thứ tự phần tử
+  - minOccurs, maxOccurs và mô hình hóa danh sách
+  - optional, nillable, default, fixed và sự khác biệt khi nhận dữ liệu
+  - Ràng buộc kiểu bằng enumeration, pattern, độ dài và miền giá trị
+  - Kiểu số, decimal, ngày giờ, múi giờ và ánh xạ phù hợp
+  - xs:include, xs:import và phân chia schema theo namespace
+  - Kiểu mở rộng, kiểu hạn chế và đánh đổi khi dùng kế thừa trong schema
+  - xs:any, điểm mở rộng và giới hạn của khả năng tiến hóa hợp đồng
+  - Phát hiện schema không hợp lệ và giải quyết tham chiếu giữa các tệp
+  - Thiết kế schema theo khả năng tương tác của các nền tảng khác nhau
+- level1: Đọc và công bố WSDL
+  level2:
+  - 'WSDL 1.1: types, message, portType, binding và service'
+  - Operation, input, output, fault và liên hệ với các phần tử XSD
+  - SOAP binding, transport, action và địa chỉ dịch vụ
+  - Tách giao diện trừu tượng khỏi cấu hình địa chỉ triển khai
+  - WSDL tĩnh và WSDL được tạo từ XSD
+  - SimpleWsdl11Definition và sử dụng hợp đồng đã được phê duyệt
+  - DefaultWsdl11Definition và quy ước nhận diện yêu cầu, phản hồi
+  - Công bố XSD qua XsdSchema và tập hợp nhiều schema
+  - Tên bean, URL WSDL và đường dẫn tài nguyên schema
+  - Biến đổi địa chỉ WSDL sau reverse proxy và cấu hình đường dẫn bên ngoài
+  - Kiểm chứng WSDL tải được cùng toàn bộ XSD được import
+- level1: Khởi tạo dự án
+  level2:
+  - Chọn bộ phiên bản JDK, Spring Framework, Spring Boot và Spring-WS tương thích
+  - Thành phần phụ thuộc cho máy chủ, máy khách, OXM, bảo mật và kiểm thử
+  - Khởi tạo bằng Spring Boot hoặc cấu hình Spring độc lập
+  - Tổ chức thư mục hợp đồng, mã được sinh, endpoint, dịch vụ và client
+  - Quản lý phụ thuộc SAAJ, JAXB và triển khai Jakarta XML cần thiết
+  - Cấu hình Maven hoặc Gradle để sinh mã trong vòng đời build
+  - Tách cấu hình theo môi trường và quản lý URL dịch vụ
+  - Đóng gói WSDL, XSD và tài nguyên ánh xạ vào ứng dụng
+  - Kiểm tra khởi động và thực hiện một trao đổi SOAP tối thiểu
+- level1: Sinh mã JAXB
+  level2:
+  - Vai trò của JAXB và công cụ XJC trong thiết kế contract-first
+  - Sinh lớp Java từ XSD và quản lý mã đầu ra được tạo tự động
+  - Lấy mô hình dữ liệu từ phần schema trong WSDL
+  - Binding tùy chỉnh, tên package và xử lý xung đột tên
+  - XmlRootElement, XmlType, XmlElement và mô tả cấu trúc XML
+  - ObjectFactory, JAXBElement và phần tử toàn cục
+  - Danh sách, kiểu liệt kê, kiểu số và dữ liệu ngày giờ trong lớp được sinh
+  - Điều chỉnh ánh xạ bằng adapter mà không sửa trực tiếp mã được sinh
+  - Tái sinh mã có thể lặp lại và kiểm tra thay đổi hợp đồng
+  - Phân biệt lớp dữ liệu JAXB với proxy dịch vụ JAX-WS
+- level1: Marshalling và OXM
+  level2:
+  - Marshalling, unmarshalling và vai trò của Spring OXM
+  - Marshaller, Unmarshaller và tách cơ chế ánh xạ khỏi client, endpoint
+  - Cấu hình Jaxb2Marshaller bằng context path hoặc lớp được liên kết
+  - Chọn phạm vi quét và tránh thiếu lớp trong JAXB context
+  - Ánh xạ phần tử gốc, JAXBElement và namespace
+  - Giá trị null, phần tử thiếu và trường có giá trị mặc định
+  - Ngày giờ, decimal, dữ liệu nhị phân và adapter tùy chỉnh
+  - Validation khi ánh xạ và phân loại lỗi chuyển đổi XML
+  - Vòng đời bộ ánh xạ, sử dụng đồng thời và các phụ thuộc có trạng thái
+  - Kiểm tra chuyển đổi hai chiều bằng bộ dữ liệu biên của hợp đồng
+- level1: Kiến trúc xử lý
+  level2:
+  - Luồng yêu cầu từ phương tiện truyền tải đến endpoint rồi phản hồi
+  - WebServiceMessage và SoapMessage trong mô hình thông điệp
+  - WebServiceMessageFactory, SoapMessageFactory và trách nhiệm tạo thông điệp
+  - SaajSoapMessageFactory và mô hình SOAP dựa trên SAAJ
+  - Lựa chọn Axiom và streaming theo khả năng hỗ trợ của phiên bản
+  - MessageDispatcher và các chiến lược tìm, gọi endpoint
+  - EndpointMapping, EndpointAdapter và EndpointExceptionResolver
+  - MessageContext, thông điệp yêu cầu, phản hồi và thuộc tính xử lý
+  - Ranh giới giữa transport, giao thức SOAP và nghiệp vụ ứng dụng
+- level1: Cấu hình máy chủ
+  level2:
+  - Đăng ký MessageDispatcherServlet và xác định URL tiếp nhận SOAP
+  - ApplicationContext của servlet và ngữ cảnh ứng dụng cha
+  - Kích hoạt cấu hình bằng @EnableWs
+  - Tùy chỉnh cấu hình qua WsConfigurer
+  - WsConfigurationSupport và trường hợp cần kiểm soát cấu hình sâu
+  - Cấu hình bằng Java và cấu hình XML trong hệ thống hiện hữu
+  - Phối hợp cấu hình Spring Boot tự động với các bean do ứng dụng khai báo
+  - Công bố WSDL, XSD và cấu hình biến đổi địa chỉ
+  - Dùng chung ứng dụng với Spring MVC và tránh xung đột servlet mapping
+  - Chọn phiên bản SOAP của message factory và kiểm tra Content-Type tương ứng
+- level1: Xây dựng endpoint
+  level2:
+  - '@Endpoint và trách nhiệm chuyển đổi thông điệp sang lời gọi nghiệp vụ'
+  - '@RequestPayload, @ResponsePayload và chữ ký phương thức xử lý'
+  - Nhận đối tượng JAXB hoặc dữ liệu XML trực tiếp
+  - Trả đối tượng JAXB, Source hoặc phần tử XML được hỗ trợ
+  - Phương thức không có payload phản hồi và ý nghĩa của kiểu trả về void
+  - Tiêm dịch vụ nghiệp vụ và giữ endpoint gọn, dễ kiểm thử
+  - Endpoint singleton, dữ liệu theo yêu cầu và an toàn luồng
+  - Nhận tham số bổ sung từ header hoặc MessageContext
+  - '@XPathParam và khai báo namespace cho biểu thức XPath'
+  - MethodArgumentResolver và MethodReturnValueHandler tùy chỉnh
+  - Ranh giới giao dịch nghiệp vụ và thời điểm tạo phản hồi
+  - Lỗi không tìm thấy bộ thích nghi cho chữ ký phương thức
+- level1: Định tuyến thông điệp
+  level2:
+  - Định tuyến theo nội dung khác với định tuyến theo URL HTTP
+  - '@PayloadRoot, namespace và localPart của phần tử gốc'
+  - PayloadRootAnnotationMethodEndpointMapping và điều kiện khớp
+  - '@SoapAction và SoapActionAnnotationMethodEndpointMapping'
+  - Thứ tự EndpointMapping và cách xử lý nhiều cơ chế cùng tồn tại
+  - Không có endpoint phù hợp, cấu hình trùng và chẩn đoán định tuyến
+  - Prefix khác nhau nhưng cùng QName và những lỗi namespace thường gặp
+  - Định tuyến nhiều phiên bản hợp đồng trong cùng ứng dụng
+  - Phân biệt khóa định tuyến với bằng chứng xác thực hoặc phân quyền
+- level1: Xử lý XML trực tiếp
+  level2:
+  - Source, Result và các dạng dữ liệu XML được Spring-WS sử dụng
+  - DOMSource, StreamSource, StAXSource và đặc điểm truy cập dữ liệu
+  - Đọc, tạo payload bằng DOM và quản lý namespace
+  - XPathExpression, XPathOperations và truy xuất dữ liệu có namespace
+  - Xử lý phần tử thiếu, nhiều kết quả và chuyển kiểu giá trị XPath
+  - Biến đổi bằng Transformer và quản lý vòng đời thành phần không an toàn luồng
+  - Áp dụng XSLT cho chuyển đổi dữ liệu giữa các định dạng hợp đồng
+  - Đọc theo luồng, đọc nhiều lần và ảnh hưởng của payload caching
+  - Chọn JAXB hay XML trực tiếp theo kích thước và độ linh hoạt cần thiết
+- level1: Header và ngữ cảnh
+  level2:
+  - SOAP header nghiệp vụ và dữ liệu định tuyến, bảo mật
+  - Tạo, đọc SoapHeader và SoapHeaderElement
+  - Ánh xạ header vào phương thức bằng @SoapHeader
+  - QName của header, namespace và quy tắc tìm đúng phần tử
+  - Xử lý mustUnderstand qua SoapEndpointInterceptor
+  - MessageContext và dữ liệu cần chia sẻ trong một lần xử lý
+  - TransportContext và truy cập thông tin phương tiện truyền tải khi cần
+  - Định danh yêu cầu, thông tin tương quan và truyền qua nhiều hệ thống
+  - Giới hạn tin cậy của dữ liệu header do bên gửi cung cấp
+  - Giữ dữ liệu từng yêu cầu ngoài trạng thái dùng chung của bean singleton
+- level1: Kiểm tra dữ liệu
+  level2:
+  - XML đúng cú pháp, đúng XSD và đúng quy tắc nghiệp vụ là các mức khác nhau
+  - PayloadValidatingInterceptor và cấu hình schema kiểm tra
+  - Kiểm tra yêu cầu, phản hồi và lựa chọn phạm vi áp dụng
+  - Tập hợp nhiều schema và giải quyết import, include
+  - Lỗi namespace, thứ tự, kiểu dữ liệu và số lần xuất hiện phần tử
+  - Lỗi validation, SOAP Fault và nội dung phản hồi có thể công bố
+  - Kiểm tra quy tắc liên trường và điều kiện nghiệp vụ sau khi đọc XML
+  - Validation trong OXM và tránh xử lý lặp không cần thiết
+  - Thứ tự kiểm tra dữ liệu, xác minh bảo mật và thực hiện nghiệp vụ
+  - Kiểm thử cả dữ liệu biên, dữ liệu sai và phản hồi vi phạm hợp đồng
+- level1: Interceptor
+  level2:
+  - EndpointInterceptor và vị trí trước, sau lời gọi endpoint
+  - handleRequest, handleResponse, handleFault và afterCompletion
+  - Thứ tự chuỗi interceptor và hành vi khi ngừng xử lý
+  - Đăng ký interceptor qua WsConfigurer và cấu hình XML
+  - SmartEndpointInterceptor và giới hạn phạm vi theo endpoint
+  - PayloadLoggingInterceptor và ghi nội dung payload
+  - SoapEnvelopeLoggingInterceptor và ghi phong bì SOAP
+  - PayloadTransformingInterceptor và chuyển đổi hợp đồng bằng XSLT
+  - ClientInterceptor và chuỗi xử lý ở phía máy khách
+  - Thu hồi tài nguyên, xử lý lỗi và dữ liệu theo yêu cầu trong interceptor
+  - Ảnh hưởng của interceptor đến streaming, chữ ký và dữ liệu nhạy cảm
+- level1: SOAP Fault
+  level2:
+  - Cấu trúc SOAP Fault trong SOAP 1.1 và SOAP 1.2
+  - Client, Server, Sender, Receiver và phân loại nguyên nhân lỗi
+  - Fault code, reason, detail, actor, role và subcode
+  - Lỗi hợp đồng, lỗi nghiệp vụ, lỗi kỹ thuật và lỗi bảo mật
+  - EndpointExceptionResolver và ranh giới xử lý ngoại lệ của endpoint
+  - SimpleSoapExceptionResolver và kiểm soát thông tin được công bố
+  - SoapFaultMappingExceptionResolver và ánh xạ lớp ngoại lệ
+  - '@SoapFault và SoapFaultAnnotationExceptionResolver'
+  - Tạo phần detail có cấu trúc theo schema nghiệp vụ
+  - Tùy chỉnh resolver và thứ tự áp dụng khi có nhiều resolver
+  - SOAP Fault, mã HTTP và cách máy khách phân loại phản hồi
+  - Che thông tin nội bộ và kiểm chứng lỗi theo hợp đồng
+- level1: Máy khách Spring-WS
+  level2:
+  - WebServiceTemplate và vòng đời một lời gọi SOAP đồng bộ
+  - Cấu hình URI mặc định và lựa chọn đích cho từng lời gọi
+  - Cấu hình message factory, message sender và bộ ánh xạ OXM
+  - marshalSendAndReceive và trao đổi đối tượng JAXB
+  - Gửi Source, nhận Result và xử lý XML không qua mô hình JAXB
+  - WebServiceMessageCallback và tùy chỉnh thông điệp trước khi gửi
+  - SoapActionCallback và cấu hình action của lời gọi
+  - WebServiceMessageExtractor và đọc phản hồi khi kết nối còn mở
+  - WebServiceGatewaySupport và đóng gói client theo nghiệp vụ
+  - Tái sử dụng WebServiceTemplate sau cấu hình và điều kiện an toàn luồng
+  - SoapFaultClientException, lỗi truyền tải và lỗi chuyển đổi dữ liệu
+  - Gọi một chiều, phản hồi rỗng và kiểm tra ngữ nghĩa của từng API
+- level1: HTTP và kết nối
+  level2:
+  - WebServiceMessageSender, WebServiceConnection và lựa chọn transport
+  - HttpUrlConnectionMessageSender cho trao đổi HTTP cơ bản
+  - HttpComponents5MessageSender và cấu hình Apache HttpClient 5
+  - JdkHttpClientMessageSender và kiểm tra khả năng hỗ trợ theo phiên bản
+  - Nhóm kết nối, giới hạn theo đích và thời gian chờ lấy kết nối
+  - Thời hạn kết nối, đọc phản hồi và ngân sách thời gian toàn lời gọi
+  - HTTPS, xác minh chứng chỉ và xác minh tên máy chủ
+  - Xác thực HTTP, proxy và cấu hình thông tin truy cập
+  - Content-Type, charset, SOAPAction và các header do transport quản lý
+  - Lỗi Content-Length hoặc Transfer-Encoding khi phối hợp các thư viện HTTP
+  - Giải phóng kết nối, phản hồi lỗi và tái sử dụng kết nối
+  - Timeout, thử lại, tính lũy đẳng và nguy cơ lặp tác dụng nghiệp vụ
+- level1: WS-Addressing
+  level2:
+  - WS-Addressing bổ sung địa chỉ và thông tin tương quan cho SOAP
+  - Action, To, MessageID, ReplyTo, FaultTo và RelatesTo
+  - Phân biệt WS-Addressing Action với SOAPAction của transport
+  - AnnotationActionEndpointMapping và định tuyến bằng @Action
+  - '@Address và điều kiện liên quan đến địa chỉ nhận'
+  - ActionCallback và thiết lập header ở phía máy khách
+  - Phiên bản WS-Addressing và yêu cầu tương thích giữa hai phía
+  - Phản hồi cùng kênh, phản hồi khác kênh và phạm vi hỗ trợ theo phiên bản
+  - Kiểm soát đích ReplyTo, FaultTo do bên gửi thông điệp cung cấp
+  - Phân biệt WS-Addressing với giao nhận tin cậy và điều phối giao dịch
+- level1: Tệp đính kèm
+  level2:
+  - Dữ liệu nhị phân trong XML và chi phí biểu diễn base64
+  - SOAP with Attachments, MTOM, XOP và các mục đích khác nhau
+  - MIME multipart, Content-ID và liên kết dữ liệu với payload
+  - MimeMessage, Attachment và truy cập tệp đính kèm
+  - Jaxb2Marshaller, mtomEnabled và ánh xạ dữ liệu nhị phân
+  - DataHandler, DataSource và các kiểu Jakarta Activation
+  - Cấu hình message factory hỗ trợ tệp đính kèm theo phiên bản
+  - Giới hạn kích thước, bộ đệm, tệp tạm và vòng đời luồng dữ liệu
+  - Loại nội dung, tên tệp và kiểm tra dữ liệu nhận được
+  - Kiểm chứng tương thích MTOM giữa máy chủ và máy khách
+- level1: Bảo vệ xử lý XML
+  level2:
+  - Ranh giới tin cậy từ byte nhận được đến mô hình dữ liệu ứng dụng
+  - DTD, external entity và điều kiện dẫn đến XXE
+  - Ngăn phân giải tài nguyên ngoài tại parser, marshaller và transformer
+  - Giới hạn độ sâu, số phần tử, độ dài và mở rộng thực thể
+  - Schema import, XSLT import và truy cập tài nguyên ngoài không được kiểm soát
+  - Dùng schema tin cậy, phân giải cục bộ và kiểm soát tài nguyên hợp đồng
+  - Tránh ghép XPath hoặc XSLT từ dữ liệu không đáng tin
+  - Giới hạn kích thước SOAP, multipart và dữ liệu sau giải nén
+  - Xác minh cấu hình bảo vệ trên đúng implementation đang sử dụng
+  - Kiểm thử parser từ chối dữ liệu nguy hiểm mà không lộ nội dung hệ thống
+- level1: WS-Security
+  level2:
+  - Bảo mật tầng truyền tải và bảo mật thông điệp bảo vệ những phạm vi nào
+  - WS-Security header, token, timestamp, chữ ký và mã hóa
+  - Wss4jSecurityInterceptor và tích hợp Apache WSS4J
+  - validationActions, securementActions và thứ tự thực hiện hành động
+  - UsernameToken, PasswordText, PasswordDigest và giới hạn bảo vệ mật khẩu
+  - CallbackHandler và lấy thông tin xác thực từ nguồn được quản lý
+  - Timestamp, độ lệch đồng hồ, nonce và phát hiện phát lại
+  - Xác minh chữ ký, chuỗi tin cậy và phần thông điệp thực sự được ký
+  - Ký thông điệp gửi đi và lựa chọn các phần phải được bảo vệ
+  - Mã hóa, giải mã, thứ tự ký và mã hóa giữa hai phía
+  - Yêu cầu bảo mật bắt buộc, header bị thiếu và tránh đường đi bỏ qua xác minh
+  - Phạm vi interceptor bảo mật phải nhất quán với cơ chế định tuyến
+  - Lỗi xác minh, SOAP Fault và bảo vệ phản hồi theo khả năng hỗ trợ
+- level1: Chứng chỉ và khóa
+  level2:
+  - Keystore, truststore, khóa riêng và chứng chỉ công khai
+  - Định dạng lưu khóa, alias và lựa chọn khóa theo mục đích
+  - CryptoFactoryBean và cấu hình Crypto cho WSS4J
+  - Kiểm tra chuỗi chứng chỉ, thời hạn và mục đích sử dụng khóa
+  - Khóa ký, khóa mã hóa và mối quan hệ giữa bên gửi với bên nhận
+  - Quản lý mật khẩu kho khóa và tách bí mật khỏi mã nguồn
+  - Luân chuyển chứng chỉ, giai đoạn chuyển tiếp và khôi phục cấu hình
+  - Phân biệt chứng chỉ dùng cho TLS với chứng chỉ bảo vệ thông điệp
+  - Kiểm thử chứng chỉ hết hạn, không tin cậy và thiếu khóa phù hợp
+- level1: Tích hợp Spring Security
+  level2:
+  - SecurityFilterChain ở tầng HTTP và interceptor ở tầng SOAP
+  - Xác thực HTTP Basic, TLS phía máy khách và WS-Security UsernameToken
+  - UserDetailsService và callback xác minh danh tính cho WS-Security
+  - Khác biệt giữa xác minh token với cơ chế lưu mật khẩu của ứng dụng
+  - Kiểm chứng Authentication, SecurityContext và đường truyền danh tính
+  - Phân quyền theo thao tác nghiệp vụ và bảo vệ lớp dịch vụ
+  - Không dùng header nghiệp vụ chưa xác thực làm nguồn cấp quyền
+  - Bảo vệ URL SOAP, WSDL, XSD và các tài nguyên quản trị theo mục đích
+  - CSRF, yêu cầu SOAP POST và thiết kế ngoại lệ có phạm vi phù hợp
+  - Phân biệt HTTP 401, HTTP 403 với SOAP Fault bảo mật
+- level1: Truyền tải mở rộng
+  level2:
+  - Tách xử lý SOAP khỏi HTTP và kiểm tra transport được phiên bản hỗ trợ
+  - Gửi, nhận SOAP qua JMS và cấu hình bên nghe thông điệp
+  - BytesMessage, TextMessage và yêu cầu tương thích giữa hai phía
+  - JMSReplyTo, correlation và ghép yêu cầu với phản hồi
+  - Thông điệp một chiều, phản hồi và giới hạn thời gian chờ
+  - Xác nhận JMS, giao dịch cục bộ và giới hạn đối với nghiệp vụ từ xa
+  - Tổng quan transport email, XMPP và nhu cầu tích hợp chuyên biệt
+  - HTTP server nhúng và lựa chọn môi trường triển khai phù hợp
+  - Kiểm soát đích phản hồi khác kênh và các kết nối do thông điệp kích hoạt
+- level1: Tương thích hợp đồng
+  level2:
+  - Tương thích cấu trúc, tương thích ngữ nghĩa và tương thích mã đã được sinh
+  - Thêm phần tử tùy chọn và kiểm chứng hành vi của client cũ
+  - Thay đổi kiểu, thứ tự, số lần xuất hiện và trường bắt buộc
+  - Giá trị enum mới và giới hạn của mô hình JAXB được sinh trước đó
+  - Chiến lược version theo namespace, endpoint hoặc hợp đồng công bố
+  - Hỗ trợ song song hợp đồng cũ, mới và định tuyến rõ ràng
+  - Chuyển đổi bằng XSLT và xác định giới hạn chuyển đổi hai chiều
+  - Quản lý WSDL tĩnh, XSD dùng chung và bộ tạo tác hợp đồng
+  - WS-I Basic Profile và kiểm chứng khả năng tương tác ngoài Java
+  - Quy trình thông báo thay đổi, ngừng hỗ trợ và kiểm tra client phụ thuộc
+- level1: Kiểm thử máy chủ
+  level2:
+  - Kiểm thử nghiệp vụ thuần và kiểm thử endpoint là các phạm vi khác nhau
+  - MockWebServiceClient và tạo client từ ApplicationContext
+  - RequestCreator, RequestCreators và tạo yêu cầu từ payload hoặc envelope
+  - ResponseMatcher, ResponseMatchers và khai báo phản hồi mong đợi
+  - So khớp XML, XPath và namespace trong dữ liệu phản hồi
+  - Kiểm tra payload đúng XSD và các trường hợp không hợp lệ
+  - Kiểm tra header, mustUnderstand và các loại SOAP Fault
+  - Kiểm tra interceptor, mapping và hợp đồng chữ ký endpoint
+  - Kiểm thử xác thực, phân quyền và đường đi bị từ chối
+  - Lát cắt kiểm thử Spring Boot và cấu hình theo phiên bản đang dùng
+  - Giới hạn của mock khi chưa đi qua HTTP server và bộ lọc thật
+- level1: Kiểm thử máy khách
+  level2:
+  - MockWebServiceServer và gắn với WebServiceTemplate cần kiểm thử
+  - RequestMatcher, RequestMatchers và kiểm tra thông điệp được gửi
+  - So khớp payload, namespace, header và action của lời gọi
+  - ResponseCreator, ResponseCreators và tạo phản hồi mô phỏng
+  - Mô phỏng SOAP Fault, lỗi truyền tải và nội dung không đọc được
+  - Kiểm tra marshalling, unmarshalling và ánh xạ lỗi về nghiệp vụ
+  - Kiểm tra callback, interceptor và thông tin tương quan
+  - Thứ tự kỳ vọng, xác nhận lời gọi đã diễn ra và phát hiện thiếu lời gọi
+  - Tạo matcher, response tùy chỉnh cho quy tắc hợp đồng riêng
+  - Kiểm thử logic thử lại và bảo đảm không lặp tác dụng nghiệp vụ
+  - Những lỗi timeout, TLS, proxy cần kiểm thử thêm qua transport thật
+- level1: Kiểm thử tích hợp
+  level2:
+  - Khởi động máy chủ và client với HTTP transport thực tế
+  - Kiểm tra URL WSDL, XSD import và địa chỉ dịch vụ sau triển khai
+  - Ma trận SOAP 1.1, SOAP 1.2, Content-Type và action
+  - Kiểm tra HTTP status, SOAP Fault và phản hồi không phải XML
+  - Trao đổi MTOM và xác nhận toàn vẹn dữ liệu nhị phân
+  - Kiểm chứng chữ ký, mã hóa, UsernameToken và timestamp giữa hai phía
+  - Kiểm tra từ chối thông điệp sai bảo mật trước khi chạy nghiệp vụ
+  - Tương tác với client ngoài Java và các khác biệt trong mã được sinh
+  - Mô phỏng kết nối chậm, lỗi giữa chừng và giới hạn kích thước
+  - Kiểm thử hợp đồng cũ, mới bằng bộ thông điệp đã được lưu làm mẫu
+- level1: Hiệu năng và vận hành
+  level2:
+  - 'Đo độ trễ theo từng lớp: transport, XML, bảo mật và nghiệp vụ'
+  - Kích thước payload, JAXB, DOM và mức sử dụng bộ nhớ
+  - Streaming, payload caching và các thao tác làm tiêu thụ luồng dữ liệu
+  - Chi phí validation, biến đổi XSLT, ký và mã hóa
+  - Tái sử dụng cấu hình client, JAXB context và nhóm kết nối
+  - Giới hạn luồng servlet, số kết nối và số yêu cầu đang xử lý
+  - Timeout theo giai đoạn và chính sách thử lại có kiểm soát
+  - Đánh đổi giữa base64, MTOM và lưu tệp tạm
+  - Giới hạn tải, áp lực tài nguyên và bảo vệ dịch vụ phụ thuộc
+  - Reverse proxy, cân bằng tải và địa chỉ WSDL công bố bên ngoài
+  - Tắt có trật tự, thu hồi kết nối và xử lý yêu cầu chưa hoàn tất
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Log, metric, trace và thông tin cần để theo dõi một lời gọi SOAP
+  - Message tracing của Spring-WS ở phía máy chủ và máy khách
+  - Phân biệt ghi payload với ghi toàn bộ SOAP envelope
+  - Che dữ liệu cá nhân, token, thông tin xác thực và nội dung nhạy cảm
+  - 'Không tìm thấy endpoint: kiểm tra URL, QName, mapping và action'
+  - 'Lỗi JAXB: phần tử không mong đợi, thiếu context và khác namespace'
+  - 'Lỗi adapter: chữ ký phương thức và kiểu tham số không được hỗ trợ'
+  - Lỗi SOAP version, Content-Type, charset và nội dung HTML từ proxy
+  - 'Lỗi WS-Security: đồng hồ, khóa, chứng chỉ và phần dữ liệu được bảo vệ'
+  - Lỗi cạn kết nối, timeout và yêu cầu chờ không được giải phóng
+  - Định danh tương quan và quy trình thu bằng chứng mà không làm lộ bí mật
+- level1: Nâng cấp và di chuyển
+  level2:
+  - Đọc ma trận tương thích trước khi thay đổi JDK, Boot, Spring-WS hoặc WSS4J
+  - Chuyển javax sang jakarta cho JAXB, SAAJ và Activation đúng phạm vi
+  - Những package Java SE như javax.xml.transform vẫn giữ tên cũ
+  - Đối chiếu mã được sinh, plugin sinh mã và implementation XML khi nâng cấp
+  - Tên starter, cấu hình tự động và hỗ trợ kiểm thử khác nhau giữa các dòng Boot
+  - Chuyển thư viện HTTP, cấu hình timeout và nhóm kết nối
+  - Cấu hình WsConfigurer, API bị thay thế và khác biệt chữ ký mở rộng
+  - Kiểm tra khả năng hỗ trợ của message factory và transport đang dùng
+  - Giữ WSDL, XSD, payload mẫu và kiểm thử tương thích làm mốc xác nhận
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế XSD, WSDL cho dịch vụ tra cứu và tạo lịch hẹn
+  - Sinh lớp JAXB và hiện thực endpoint dựa trên hợp đồng
+  - Công bố WSDL, XSD rồi tạo client gọi dịch vụ qua HTTP
+  - Bổ sung header tương quan và kiểm chứng định tuyến
+  - Xây dựng validation và SOAP Fault nghiệp vụ có detail theo schema
+  - Bảo vệ một thao tác bằng WS-Security và phân quyền ở lớp dịch vụ
+  - Trao đổi tệp đính kèm bằng MTOM và kiểm tra giới hạn dữ liệu
+  - Viết kiểm thử mock cho máy chủ, máy khách và kiểm thử transport thực tế
+  - Thêm phiên bản hợp đồng mới và kiểm chứng client cũ vẫn hoạt động
+  - Đo tác động của kích thước payload, kết nối và bảo mật lên hiệu năng
+  - Triển khai sau reverse proxy và chẩn đoán một lỗi kết nối hoặc hợp đồng

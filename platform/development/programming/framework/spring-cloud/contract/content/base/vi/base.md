@@ -1,0 +1,7 @@
+# Spring Cloud Contract
+
+**Spring Cloud Contract** là bộ công cụ kiểm thử hợp đồng giữa các dịch vụ, giúp cả bên cung cấp (*producer*) và bên sử dụng (*consumer*) thống nhất hành vi giao tiếp qua HTTP hoặc thông điệp. Thay vì phải khởi động toàn bộ hệ thống cho mỗi lần kiểm tra, nhóm có thể mô tả request, response và message bằng contract rồi dùng công cụ sinh kiểm thử phía producer và stub phía consumer. Cách làm này hỗ trợ phát hiện thay đổi API không tương thích sớm, nhưng không thay thế kiểm thử nghiệp vụ tổng thể hay end-to-end.
+
+Lộ trình gồm **8 mốc**: tư duy contract testing và consumer-driven contracts; thiết lập Verifier; khai báo HTTP contract với Groovy/YAML; matchers và dữ liệu động; chạy generated tests ở producer; tạo và phát hành stub artifacts; dùng Stub Runner kiểm thử consumer; cuối cùng là messaging contract và tích hợp CI. Người học thực hành với hai ứng dụng Spring Boot nhỏ, kiểm tra cả hành vi server thật lẫn client gọi stub có phiên bản.
+
+Học phần phù hợp với Java/backend developer và QA engineer đã biết Spring Boot, REST, JSON, JUnit cùng Maven hoặc Gradle. Sau khi hoàn thành, bạn có thể viết contract đủ rõ và ổn định, cấu hình kiểm thử tự động hai phía, phân phối stub để phát triển độc lập, và xử lý thay đổi hợp đồng một cách có kiểm chứng trong quy trình phát hành.

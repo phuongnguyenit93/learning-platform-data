@@ -1,0 +1,94 @@
+menu:
+- title: Định hướng
+  slug: java-11-overview
+  index: 0
+- title: var trong lambda
+  slug: var-in-lambdas
+  index: 1
+- title: Chương trình một tệp
+  slug: single-file-programs
+  index: 2
+- title: Chuỗi Unicode
+  slug: unicode-strings
+  index: 3
+- title: Tiện ích dữ liệu
+  slug: data-utilities
+  index: 4
+- title: Tệp văn bản
+  slug: text-files
+  index: 5
+- title: Byte stream
+  slug: byte-stream
+  index: 6
+- title: Buffer và nén
+  slug: buffers-and-compression
+  index: 7
+- title: Selector callback
+  slug: selector-callback
+  index: 8
+- title: HTTP Client
+  slug: http-client
+  index: 9
+- title: HTTP Request
+  slug: http-request
+  index: 10
+- title: Request body
+  slug: request-body
+  index: 11
+- title: HTTP Response
+  slug: http-response
+  index: 12
+- title: Body streaming
+  slug: body-streaming
+  index: 13
+- title: HTTP bất đồng bộ
+  slug: asynchronous-http
+  index: 14
+- title: Cấu hình HTTP
+  slug: http-configuration
+  index: 15
+- title: WebSocket
+  slug: web-socket
+  index: 16
+- title: TLS 1.3
+  slug: tls-1-3
+  index: 17
+- title: XDH
+  slug: xdh
+  index: 18
+- title: ChaCha20
+  slug: cha-cha20
+  index: 19
+- title: Nest-based access
+  slug: nest-based-access
+  index: 20
+- title: Hằng số động
+  slug: dynamic-constants
+  index: 21
+- title: Flight Recorder
+  slug: flight-recorder
+  index: 22
+- title: JFR API
+  slug: jfr-api
+  index: 23
+- title: Đọc bản ghi JFR
+  slug: reading-jfr-recordings
+  index: 24
+- title: Heap profiling
+  slug: heap-profiling
+  index: 25
+- title: GC độ trễ thấp
+  slug: low-latency-garbage-collection
+  index: 26
+- title: Epsilon và phép đo
+  slug: epsilon-gc-and-benchmarks
+  index: 27
+- title: Kiểm chứng API
+  slug: api-verification
+  index: 28
+- title: Kiểm thử và tối ưu
+  slug: testing-and-optimization
+  index: 29
+- title: Thực hành
+  slug: hands-on-exercises
+  index: 30

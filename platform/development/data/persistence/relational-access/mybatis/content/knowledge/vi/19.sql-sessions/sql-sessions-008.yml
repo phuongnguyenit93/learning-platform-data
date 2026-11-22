@@ -1,0 +1,3 @@
+menuLevel1: SqlSession
+menuLevel2: Giới hạn chia sẻ SqlSession độc lập giữa các luồng
+status: ''

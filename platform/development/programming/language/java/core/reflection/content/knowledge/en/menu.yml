@@ -1,0 +1,385 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Reflection là gì và vấn đề cần giải quyết
+  - Phân biệt thông tin kiểu lúc biên dịch và lúc chạy
+  - Quan sát metadata khác thực thi hoặc thay đổi đối tượng
+  - Vai trò của Class và java.lang.reflect
+  - Quan hệ giữa reflection, kế thừa, generic và annotation
+  - Khi nào nên dùng reflection và khi nào gọi trực tiếp
+  - 'Một ví dụ xuyên suốt: khám phá và sử dụng một kiểu chưa biết trước'
+  - Kiến thức tiên quyết, phạm vi Java Core và trình tự học đề xuất
+- level1: Đối tượng Class
+  level2:
+  - Lấy Class bằng class literal
+  - Lấy kiểu thực tế bằng Object.getClass
+  - Class.forName với tên nhị phân
+  - Class.forName(name, initialize, loader)
+  - Nạp lớp khác khởi tạo lớp như thế nào
+  - Class<T>, Class<?> và giới hạn kiểm tra kiểu
+  - Class đại diện cho primitive, void, mảng, interface, enum và record
+  - Vì sao int.class khác Integer.class
+  - Không tạo Class bằng constructor thông thường
+  - Phân biệt đối tượng Class với instance của kiểu được mô tả
+- level1: Tên và định danh kiểu
+  level2:
+  - getName, getSimpleName, getCanonicalName và getTypeName
+  - Tên nhị phân của lớp thành viên, lớp cục bộ và lớp vô danh
+  - Tên mảng, component type và descriptorString
+  - Trường hợp tên chuẩn không tồn tại
+  - getClassLoader và ý nghĩa kết quả null
+  - Tên lớp giống nhau nhưng khác defining loader
+  - getPackage, getPackageName và getModule
+  - Nhận diện isPrimitive, isArray, isInterface và isAnnotation
+  - Class.isInstance khác instanceof với kiểu biết trước
+  - isAssignableFrom, cast và asSubclass
+- level1: Quan hệ kiểu
+  level2:
+  - getSuperclass và các trường hợp trả về null
+  - getInterfaces trả về các interface trực tiếp
+  - Duyệt toàn bộ chuỗi lớp cha
+  - Duyệt đồ thị interface và tránh lặp
+  - Phân biệt quan hệ khai báo với kiểu thực tế của đối tượng
+  - Kiểu mảng với Object, Cloneable và Serializable
+  - Primitive và wrapper không có quan hệ kế thừa thay cho boxing
+  - Chọn kiểu khai báo hoặc kiểu thực tế khi khám phá thành viên
+- level1: Tra cứu thành viên
+  level2:
+  - Member, Field, Method, Constructor và Executable
+  - getField, getMethod, getConstructor
+  - getDeclaredField, getDeclaredMethod, getDeclaredConstructor
+  - Public member kế thừa khác member được khai báo tại chính lớp
+  - Tra cứu một thành viên và liệt kê nhiều thành viên
+  - Tên, kiểu tham số và điều kiện khớp chính xác khi tra cứu
+  - Vì sao getMethod không tự giải overload như trình biên dịch
+  - Primitive parameter type khác wrapper parameter type
+  - Tra cứu theo kiểu sau type erasure
+  - Thứ tự thành viên được trả về không phải thứ tự khai báo được bảo đảm
+  - Xây dựng chính sách tìm kiếm xuyên phân cấp một cách tường minh
+- level1: Modifier và cờ
+  level2:
+  - getModifiers và cách giải mã bằng Modifier
+  - public, protected, private và package-private
+  - static, final, abstract, synchronized, native và strictfp
+  - Phân biệt modifier có ý nghĩa trên lớp, field hoặc executable
+  - volatile, transient và thành viên dữ liệu
+  - isSynthetic và cấu trúc do trình biên dịch sinh
+  - Bridge method và isBridge
+  - AccessFlag, accessFlags và khác biệt theo phiên bản JDK
+  - Không suy ra toàn bộ cú pháp nguồn từ cờ trong class file
+- level1: Quyền truy cập
+  level2:
+  - Tra cứu thấy thành viên không đồng nghĩa được quyền sử dụng
+  - Kiểm tra truy cập Java khi get, set, invoke hoặc newInstance
+  - AccessibleObject và trạng thái bỏ qua kiểm tra truy cập
+  - canAccess và đối tượng đích phù hợp
+  - setAccessible khác trySetAccessible
+  - Ý nghĩa thực sự của isAccessible và lý do API này lỗi thời
+  - Package, lớp khai báo và thành viên public trong kiểu không public
+  - Nestmate và quyền truy cập private giữa các lớp liên quan
+  - Không xem setAccessible là bảo đảm sửa được mọi field
+- level1: Module và đóng gói
+  level2:
+  - JPMS và strong encapsulation
+  - Readability, exports và opens
+  - Public reflection khác deep reflection
+  - Điều kiện truy cập khi caller và lớp đích ở cùng module
+  - Named module, unnamed module và open module
+  - Module.isExported, isOpen và kiểm tra ngữ cảnh truy cập
+  - InaccessibleObjectException và nguyên nhân không thể mở truy cập
+  - Phân biệt --add-exports với --add-opens
+  - Giới hạn của --illegal-access trong Java hiện đại
+  - Thiết kế API công khai thay vì phụ thuộc nội bộ JDK
+- level1: Field
+  level2:
+  - Tên, declaring class, raw type và generic type
+  - getFields khác getDeclaredFields khi có kế thừa
+  - Field hiding và nhiều field trùng tên trong phân cấp
+  - Đọc field instance bằng đối tượng đúng kiểu
+  - Đọc field static và đối số đích bị bỏ qua
+  - Field.get trả primitive dưới dạng wrapper
+  - Các phương thức getInt, getLong, getDouble và chuyển đổi được phép
+  - Field.set với kiểu tham chiếu hoặc primitive
+  - Các phương thức setInt, setLong và giới hạn widening
+  - Giá trị null với field tham chiếu và primitive
+  - Truy cập static field có thể kích hoạt khởi tạo lớp
+  - Field volatile và phân biệt thao tác đọc ghi với cập nhật nguyên tử
+- level1: Field final
+  level2:
+  - Phân biệt đọc field final với thay đổi field final
+  - Điều kiện giới hạn khi Field.set gặp final
+  - Static final là field không thể sửa bằng cơ chế mở truy cập thông thường
+  - Final field trong record và hidden class
+  - Giá trị hằng có thể đã được nhúng vào mã sử dụng
+  - Không xem sửa field là thay thế constructor và bất biến đối tượng
+  - Ảnh hưởng tới khả năng quan sát, tối ưu và hành vi phụ thuộc phiên bản
+  - Chọn constructor, factory hoặc API cập nhật được thiết kế sẵn
+- level1: Method
+  level2:
+  - 'Method metadata: tên, lớp khai báo và kiểu trả về'
+  - Kiểu tham số, kiểu throws và các biến thể generic
+  - getMethods khác getDeclaredMethods
+  - Overload và chữ ký cần dùng để tìm phương thức
+  - invoke với receiver và mảng đối số
+  - Gọi phương thức static bằng receiver null
+  - Liên kết động khi Method của lớp cha được gọi trên lớp con
+  - Phân biệt gọi virtual với mong muốn gọi riêng triển khai super
+  - Primitive return được boxing và void trả về null
+  - Phương thức abstract, default và phương thức interface
+  - Method.invoke không tự chờ Future hoặc CompletionStage trả về
+  - Không nhầm Method object với kết quả gọi phương thức
+- level1: Constructor
+  level2:
+  - Constructor<T> và constructor không được kế thừa
+  - Tra cứu constructor public hoặc declared
+  - newInstance với danh sách đối số đúng kiểu
+  - Constructor mặc định khác constructor không tham số được khai báo tường minh
+  - Constructor private và điều kiện truy cập
+  - Không khởi tạo abstract class hoặc interface bằng constructor thông thường
+  - Constructor của non-static inner class và tham số đối tượng bao ngoài
+  - Tham số ngầm định hoặc synthetic của constructor
+  - Constructor ném ngoại lệ và lớp bọc InvocationTargetException
+  - Vì sao không dùng Class.newInstance đã lỗi thời
+  - Khởi tạo lớp và lỗi xảy ra trước hoặc trong constructor
+- level1: Đối số và chuyển đổi
+  level2:
+  - Phân biệt quy tắc tra cứu với quy tắc chuyển đổi khi gọi
+  - Unboxing và widening primitive trong invoke hoặc newInstance
+  - Vì sao narrowing hoặc đổi String thành số không được tự thực hiện
+  - Chuyển tham chiếu theo quan hệ assignability
+  - Số lượng đối số và IllegalArgumentException
+  - Receiver null khi gọi phương thức instance
+  - Varargs của phương thức đích được biểu diễn bằng một tham số mảng
+  - Varargs Object... của API reflection và cách truyền một mảng như một đối số
+  - Phân biệt không có đối số với một đối số null
+  - Chuyển đổi giá trị trả về và ClassCastException ở mã gọi
+  - Mảng primitive không thay thế mảng wrapper
+- level1: Tham số executable
+  level2:
+  - Executable dùng chung cho Method và Constructor
+  - getParameters và Parameter
+  - getParameterTypes khác getGenericParameterTypes
+  - Tên tham số và tùy chọn biên dịch -parameters
+  - isNamePresent và tên tổng hợp arg0, arg1
+  - isImplicit, isSynthetic và isVarArgs
+  - Modifier của tham số và giới hạn metadata có sẵn
+  - Annotation trên từng tham số
+  - getAnnotatedParameterTypes và getAnnotatedReceiverType
+  - Không dùng tên tham số như hợp đồng ổn định khi build không bảo đảm metadata
+- level1: Mô hình generic
+  level2:
+  - Class khác Type
+  - ParameterizedType và actual type arguments
+  - Raw type, owner type và kiểu lồng có generic
+  - TypeVariable và GenericDeclaration
+  - getBounds và nhiều giới hạn kiểu
+  - WildcardType với upper bound và lower bound
+  - GenericArrayType khác Class của mảng cụ thể
+  - getGenericSuperclass và getGenericInterfaces
+  - getGenericType, getGenericReturnType và getGenericExceptionTypes
+  - Đọc tên kiểu bằng getTypeName thay vì ép mọi Type sang Class
+  - Phân biệt metadata generic trong khai báo với thông tin bị xóa lúc chạy
+- level1: Phân giải generic
+  level2:
+  - Type erasure và giới hạn nhìn thấy kiểu List<String> của một instance
+  - Thông tin kiểu từ lớp con có superclass được tham số hóa
+  - Ánh xạ TypeVariable sang kiểu cụ thể qua nhiều tầng kế thừa
+  - Thay thế kiểu lồng trong ParameterizedType
+  - Xử lý wildcard, generic array và owner type
+  - Biến kiểu của phương thức khác biến kiểu của lớp
+  - Giới hạn kiểu chưa được ràng buộc và trường hợp raw type
+  - Mẫu type token và anonymous subclass
+  - Không suy ra kiểu phần tử chỉ bằng việc xem các phần tử đang có
+  - Tránh đệ quy vô hạn khi giới hạn kiểu tự tham chiếu
+- level1: Annotation runtime
+  level2:
+  - AnnotatedElement và các đối tượng hỗ trợ annotation
+  - Retention SOURCE, CLASS, RUNTIME và giới hạn quan sát
+  - getAnnotation, getDeclaredAnnotation và isAnnotationPresent
+  - getAnnotations khác getDeclaredAnnotations
+  - '@Inherited chỉ áp dụng theo các quy tắc kế thừa annotation của lớp'
+  - Annotation trên interface hoặc phương thức không tự truyền như annotation lớp
+  - Repeatable annotation và container annotation
+  - getAnnotationsByType khác getDeclaredAnnotationsByType
+  - Đọc giá trị phần tử annotation qua phương thức của annotation type
+  - Method.getDefaultValue cho phần tử có giá trị mặc định
+  - equals, hashCode và annotationType của annotation
+  - Annotation không tự thực thi validation hay hành vi nghiệp vụ
+- level1: Annotation trên kiểu
+  level2:
+  - Phân biệt declaration annotation với type-use annotation
+  - AnnotatedType và kiểu nền bên dưới
+  - AnnotatedParameterizedType và annotation trên đối số kiểu
+  - AnnotatedArrayType và annotation ở các chiều mảng
+  - AnnotatedWildcardType và annotation trên bound
+  - AnnotatedTypeVariable và các bound có annotation
+  - getAnnotatedReturnType, getAnnotatedExceptionTypes và receiver type
+  - Annotation trên superclass và interface được khai báo
+  - Xây dựng trình duyệt cây kiểu mà vẫn giữ vị trí annotation
+- level1: Mảng động
+  level2:
+  - Array.newInstance với component type biết lúc chạy
+  - Tạo mảng nhiều chiều và ý nghĩa của danh sách kích thước
+  - Array.getLength và kiểm tra isArray
+  - Array.get, Array.set và các biến thể primitive
+  - Boxing khi đọc mảng primitive bằng Array.get
+  - Điều kiện widening và lỗi sai kiểu khi gán phần tử
+  - getComponentType cho từng tầng mảng
+  - ArrayIndexOutOfBoundsException, NegativeArraySizeException và đầu vào không phải mảng
+  - Mảng generic, erasure và giới hạn tạo T[]
+  - Không ép int[] thành Object[]
+- level1: Kiểu lồng và nest
+  level2:
+  - getClasses khác getDeclaredClasses
+  - getDeclaringClass khác getEnclosingClass
+  - getEnclosingMethod và getEnclosingConstructor
+  - isMemberClass, isLocalClass và isAnonymousClass
+  - Static nested class khác non-static inner class
+  - getNestHost, getNestMembers và isNestmateOf
+  - Tham số hoặc field tổng hợp để giữ ngữ cảnh bao ngoài
+  - Tên và cấu trúc do compiler sinh không phải hợp đồng ứng dụng
+  - Hidden class, isHidden và giới hạn khám phá bằng Class.forName
+- level1: Enum
+  level2:
+  - isEnum và getEnumConstants
+  - Thứ tự hằng enum và trường hợp API trả về null
+  - Field.isEnumConstant
+  - Enum.valueOf với Class của enum
+  - Enum có thân riêng trên hằng và khác biệt getClass với getDeclaringClass
+  - Không tạo thêm hằng enum bằng Constructor.newInstance
+  - Đọc method và field do compiler bổ sung mà không phụ thuộc tên nội bộ
+- level1: Record
+  level2:
+  - isRecord và getRecordComponents
+  - 'RecordComponent: tên, kiểu, generic type và accessor'
+  - Thứ tự component và canonical constructor
+  - Khởi tạo record qua constructor thay vì sửa field final
+  - Component annotation khác annotation trên field, accessor hoặc parameter
+  - Annotation được truyền sang các khai báo liên quan theo @Target
+  - Accessor được khai báo tường minh và metadata thực tế
+  - RecordComponent.getAnnotatedType và kiểu thành phần có annotation
+  - Thiết kế công cụ ánh xạ hỗ trợ record và lớp thông thường
+- level1: Sealed và phân cấp
+  level2:
+  - isSealed và getPermittedSubclasses
+  - Các lớp hoặc interface con trực tiếp được phép
+  - Phân biệt metadata permits với mọi kiểu con đang tồn tại
+  - Trường hợp không sealed và kết quả API tương ứng
+  - Phân cấp kết hợp sealed, non-sealed, final, enum và record
+  - Phân biệt đọc metadata, nạp lớp và kích hoạt khởi tạo
+  - Giới hạn dùng danh sách permits để quyết định toàn bộ cách khởi tạo
+- level1: Dynamic proxy
+  level2:
+  - Proxy và InvocationHandler
+  - Tạo proxy bằng newProxyInstance
+  - Chọn class loader nhìn thấy đúng các interface
+  - Điều kiện interface public, non-public, hidden hoặc sealed
+  - Gọi proxy được chuyển thành InvocationHandler.invoke
+  - Method, proxy instance và args trong handler
+  - equals, hashCode, toString và hợp đồng cần định nghĩa
+  - Kiểu trả về, unboxing và giới hạn của giá trị null
+  - Checked exception và UndeclaredThrowableException
+  - Gọi default method bằng InvocationHandler.invokeDefault
+  - Tránh gọi lại chính proxy gây đệ quy vô hạn
+  - Nhiều interface có phương thức trùng chữ ký
+  - Proxy.isProxyClass, getInvocationHandler và giới hạn phụ thuộc tên lớp proxy
+  - Proxy interface khác cơ chế tạo lớp con bằng thư viện sinh bytecode
+- level1: MethodHandle và VarHandle
+  level2:
+  - Phân biệt core reflection với java.lang.invoke
+  - MethodHandles.Lookup và quyền truy cập được kiểm tra khi tạo handle
+  - findVirtual, findStatic, findConstructor và findSpecial
+  - unreflect Method, Constructor hoặc Field
+  - MethodType và kiểm tra chữ ký
+  - invoke, invokeExact và khác biệt chuyển đổi đối số
+  - privateLookupIn và điều kiện mở truy cập theo module
+  - VarHandle cho field hoặc phần tử mảng
+  - Access mode thường, volatile, acquire-release và atomic
+  - Khi nào chọn Method, MethodHandle hoặc VarHandle
+  - Không mặc định một cơ chế luôn nhanh hơn cơ chế còn lại
+- level1: Ngoại lệ và chẩn đoán
+  level2:
+  - ClassNotFoundException và NoClassDefFoundError
+  - NoSuchFieldException và NoSuchMethodException
+  - IllegalAccessException khác InaccessibleObjectException
+  - IllegalArgumentException do receiver hoặc đối số không hợp lệ
+  - InstantiationException và kiểu không thể khởi tạo
+  - InvocationTargetException và cách giữ nguyên cause
+  - ExceptionInInitializerError khi thao tác kích hoạt khởi tạo lớp
+  - GenericSignatureFormatError, TypeNotPresentException và MalformedParameterizedTypeException
+  - MalformedParametersException và metadata tham số không hợp lệ
+  - AnnotationTypeMismatchException và IncompleteAnnotationException
+  - Phân biệt lỗi ở công cụ reflection với lỗi trong mã đích
+  - Ghi ngữ cảnh lớp, loader, module và chữ ký khi điều tra
+- level1: Thiết kế công cụ
+  level2:
+  - Tách khám phá metadata khỏi thực thi thao tác
+  - Định nghĩa chính sách field, property hoặc accessor cần dùng
+  - Không mặc định mọi field đều là dữ liệu nghiệp vụ
+  - Lọc static, synthetic, bridge và thành viên không phù hợp
+  - Xử lý field trùng tên hoặc method ghi đè theo chính sách nhất quán
+  - Sắp xếp metadata để đầu ra có thứ tự ổn định
+  - Xác thực kiểu và khả năng truy cập trước khi chạy hàng loạt
+  - Ánh xạ giá trị đầu vào theo quy tắc chuyển đổi tường minh
+  - JavaBeans Introspector và khác biệt với duyệt field trực tiếp
+  - Quét classpath khác khám phá một Class đã biết
+  - Giữ constructor, setter và bất biến đối tượng làm ranh giới thiết kế
+- level1: Cache và hiệu năng
+  level2:
+  - Chi phí tra cứu metadata khác chi phí invoke
+  - Cache Field, Method và Constructor theo ngữ cảnh phù hợp
+  - Khóa cache cần xét Class và định danh loader
+  - ClassValue cho dữ liệu liên kết với từng Class
+  - Cache giữ Class có thể giữ cả class loader
+  - Tránh cache toàn JVM không có chính sách vòng đời
+  - An toàn nhiều luồng khi công bố hoặc sử dụng metadata đã cache
+  - Không chia sẻ khả năng truy cập private ngoài phạm vi cần thiết
+  - Benchmark với warmup, lời gọi trực tiếp và workload thực tế
+  - Chi tiết triển khai reflection có thể thay đổi giữa các phiên bản JDK
+- level1: Giới hạn và lựa chọn
+  level2:
+  - Reflection không khôi phục đầy đủ mã nguồn hoặc thân phương thức
+  - Tên biến cục bộ và thông tin debug không phải API core reflection thông thường
+  - Generic bị xóa và metadata phụ thuộc nội dung class file
+  - Không có API core reflection tự liệt kê mọi lớp trong classpath
+  - Đổi tên, obfuscation và thay đổi nội bộ có thể làm hỏng liên kết theo chuỗi
+  - Kiểm tra quyền và giới hạn dữ liệu đầu vào chọn lớp hoặc phương thức
+  - Phân biệt reflection runtime với annotation processing lúc biên dịch
+  - So sánh với interface, Strategy, ServiceLoader và code generation
+  - Không dùng reflection chỉ để tránh thiết kế API rõ ràng
+  - Đối chiếu hành vi khi dùng runtime hạn chế reflection hoặc biên dịch trước
+- level1: Kiểm thử
+  level2:
+  - Fixture có public, protected, package-private và private member
+  - Kiểm thử declared member khác inherited member
+  - Kiểm thử tra cứu primitive, wrapper, overload và generic erasure
+  - Kiểm thử invoke với null, varargs, mảng và sai kiểu
+  - Kiểm thử lỗi mã đích được giữ qua InvocationTargetException
+  - Kiểm thử runtime annotation, repeatable và type-use annotation
+  - Kiểm thử non-static inner class, enum, record và sealed type
+  - Kiểm thử quyền truy cập trong cùng và khác module
+  - Kiểm thử metadata có và không có -parameters
+  - Kiểm thử hai loader định nghĩa lớp cùng tên
+  - Kiểm thử cache không giữ plugin đã hết vòng đời
+- level1: Thực hành
+  level2:
+  - Xây dựng trình in cấu trúc một Class theo thứ tự ổn định
+  - Viết công cụ gọi phương thức từ một hợp đồng đã xác thực
+  - Tạo factory từ constructor có kiểu và thông báo lỗi rõ ràng
+  - Đọc object graph có kiểm soát vòng tham chiếu
+  - Xây dựng bộ ánh xạ dữ liệu nhỏ qua accessor hoặc record component
+  - Xây dựng bộ kiểm tra annotation runtime đơn giản
+  - Phân giải generic của một lớp con qua nhiều tầng kế thừa
+  - Tạo proxy ghi thời gian xử lý và giữ nguyên ngoại lệ mã đích
+  - So sánh gọi trực tiếp, Method.invoke và MethodHandle
+  - Hoàn thiện ví dụ module hóa cùng bộ kiểm thử quyền truy cập
+- level1: Tra cứu
+  level2:
+  - Bảng getX và getDeclaredX
+  - Bảng Class, Member, Executable, Field, Method và Constructor
+  - Bảng chuyển đổi được phép khi get, set, invoke hoặc newInstance
+  - Bảng Class, Type, AnnotatedType và các loại generic
+  - Bảng annotation trực tiếp, gián tiếp và được kế thừa
+  - Bảng quyền truy cập theo modifier, package, nest và module
+  - Bảng ngoại lệ reflection và thông tin cần kiểm tra
+  - Tra cứu Javadoc và quy tắc ngôn ngữ theo từng thao tác

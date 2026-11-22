@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Chọn sản phẩm
+  slug: product-selection
+  index: 1
+- title: Tài khoản và kênh
+  slug: accounts-and-channels
+  index: 2
+- title: Ứng dụng và quyền
+  slug: apps-and-permissions
+  index: 3
+- title: Kakao Login
+  slug: kakao-login
+  index: 4
+- title: Vòng đời token
+  slug: token-lifecycle
+  index: 5
+- title: Định danh người nhận
+  slug: recipient-identities
+  index: 6
+- title: Mẫu Talk Message
+  slug: talk-message-templates
+  index: 7
+- title: Gửi cho bản thân
+  slug: self-messaging
+  index: 8
+- title: Gửi cho bạn bè
+  slug: friend-messaging
+  index: 9
+- title: Kakao Talk Share
+  slug: kakao-talk-share
+  index: 10
+- title: Channel và liên kết
+  slug: channel-linking
+  index: 11
+- title: Alimtalk
+  slug: alimtalk
+  index: 12
+- title: Mẫu Alimtalk
+  slug: alimtalk-templates
+  index: 13
+- title: Brand Message
+  slug: brand-messages
+  index: 14
+- title: Tích hợp nhà cung cấp
+  slug: provider-integration
+  index: 15
+- title: Java và Spring Boot
+  slug: java-and-spring-boot
+  index: 16
+- title: Thiết kế dịch vụ
+  slug: service-design
+  index: 17
+- title: Vòng đời thông báo
+  slug: notification-lifecycle
+  index: 18
+- title: Hàng đợi và chống trùng
+  slug: queues-and-deduplication
+  index: 19
+- title: Kết quả và callback
+  slug: results-and-callbacks
+  index: 20
+- title: Hạn mức và thử lại
+  slug: rate-limits-and-retries
+  index: 21
+- title: Nội dung và ngôn ngữ
+  slug: content-and-localization
+  index: 22
+- title: Bảo mật
+  slug: security
+  index: 23
+- title: Chính sách người nhận
+  slug: recipient-policies
+  index: 24
+- title: Kiểm thử
+  slug: testing
+  index: 25
+- title: Quan sát và chi phí
+  slug: observability-and-costs
+  index: 26
+- title: Triển khai và vận hành
+  slug: deployment-and-operations
+  index: 27
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 28
+- title: Thay đổi và chuyển đổi
+  slug: changes-and-migration
+  index: 29
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 30

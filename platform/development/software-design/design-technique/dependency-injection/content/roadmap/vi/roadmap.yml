@@ -1,0 +1,57 @@
+roadmap:
+- id: nhan-dien-phu-thuoc
+  title: Nhận diện phụ thuộc
+  purpose: Nhìn rõ khi một lớp tự tạo đối tượng cộng tác khiến mã khó thay thế và kiểm thử.
+  objectives:
+  - Xác định dependency giữa các lớp
+  - Phát hiện kết nối chặt do gọi new trực tiếp
+  - Vẽ sơ đồ phụ thuộc trước khi áp dụng DI
+- id: ioc-dependency-injection
+  title: IoC & Dependency Injection
+  purpose: Hiểu cách chuyển trách nhiệm tạo và cung cấp dependency ra bên ngoài lớp sử dụng.
+  objectives:
+  - Giải thích nguyên lý Inversion of Control
+  - Phân biệt DI với Dependency Inversion Principle
+  - So sánh DI và Service Locator
+- id: constructor-setter-injection
+  title: Constructor & Setter Injection
+  purpose: Chọn hình thức truyền dependency phù hợp với ràng buộc bắt buộc hay tùy chọn.
+  objectives:
+  - Viết constructor injection cho dependency bắt buộc
+  - Nhận diện trường hợp phù hợp với setter injection
+  - Giữ trạng thái hợp lệ và dependency dễ quan sát
+- id: abstraction-hop-dong
+  title: Abstraction & hợp đồng
+  purpose: Giảm liên kết với triển khai cụ thể bằng hợp đồng ổn định và có ý nghĩa.
+  objectives:
+  - Khai báo interface cho một điểm thay thế thực sự
+  - Thay implementation mà không sửa lớp sử dụng
+  - Tránh trừu tượng hóa không cần thiết
+- id: composition-root
+  title: Composition Root
+  purpose: Tập trung việc khởi tạo và nối các đối tượng tại ranh giới ứng dụng.
+  objectives:
+  - Xây dựng object graph từ điểm khởi động
+  - Tách phần cấu hình khỏi logic nghiệp vụ
+  - Chọn implementation theo môi trường chạy
+- id: di-container-cau-hinh
+  title: DI Container & cấu hình
+  purpose: Sử dụng framework để đăng ký, tìm và lắp ghép dependency có kiểm soát.
+  objectives:
+  - Đăng ký binding hoặc bean với Spring/Guice
+  - Giải quyết nhiều implementation bằng qualifier
+  - Chẩn đoán binding thiếu hoặc mơ hồ
+- id: scope-vong-doi
+  title: Scope & vòng đời
+  purpose: Đảm bảo dependency có thời gian sống tương thích và tránh liên kết vòng khó bảo trì.
+  objectives:
+  - Phân biệt singleton, prototype và request scope
+  - Nhận diện scope mismatch và trạng thái dùng chung
+  - Phát hiện, loại bỏ circular dependency
+- id: kiem-thu-thuc-hanh-tot
+  title: Kiểm thử & thực hành tốt
+  purpose: Đánh giá lợi ích DI qua kiểm thử đơn vị và tránh để container chi phối thiết kế.
+  objectives:
+  - Thay dependency bằng fake hoặc mock trong unit test
+  - Viết test không cần khởi động DI container
+  - Nhận diện field injection, Service Locator và over-injection

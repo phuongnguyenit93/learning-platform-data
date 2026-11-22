@@ -1,0 +1,274 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Cloud Task là gì và bài toán tác vụ hữu hạn
+  - Tiến trình ngắn hạn và dịch vụ chạy liên tục
+  - Tác vụ, ứng dụng và một lần thực thi
+  - Quan hệ giữa Spring Boot, Spring Cloud Task và Spring Batch
+  - Phân biệt Spring Cloud Task với @Scheduled, @Async và TaskExecutor
+  - Vai trò của kho thực thi, bộ khởi chạy và bộ điều phối
+  - 'Trường hợp sử dụng: nhập dữ liệu, báo cáo và bảo trì'
+  - Giới hạn chức năng và tiêu chí lựa chọn giải pháp
+- level1: Môi trường
+  level2:
+  - Kiến thức nền về Spring Boot, JDBC và giao dịch
+  - Chọn phiên bản Java, Spring Boot và Spring Cloud tương thích
+  - Quản lý phụ thuộc bằng Spring Cloud BOM với Maven hoặc Gradle
+  - Các thành phần spring-cloud-starter-task và spring-cloud-task-batch
+  - Chuẩn bị H2 cho học tập và cơ sở dữ liệu bền vững
+  - Tổ chức dự án và cấu hình theo môi trường
+- level1: Task đầu tiên
+  level2:
+  - Tạo ứng dụng Spring Boot có Spring Cloud Task
+  - Điều kiện tự cấu hình và vai trò của @EnableTask theo phiên bản
+  - Viết tác vụ Hello World bằng ApplicationRunner
+  - Đặt tên ứng dụng và tên tác vụ
+  - Chạy từ IDE, Maven hoặc Gradle
+  - Đóng gói JAR và khởi chạy bằng java -jar
+  - Đọc nhật ký và kiểm tra bản ghi thực thi đầu tiên
+- level1: Luồng xử lý
+  level2:
+  - CommandLineRunner và ApplicationRunner
+  - Đọc tham số có tên và không có tên bằng ApplicationArguments
+  - Phân biệt tham số nghiệp vụ với thuộc tính cấu hình Spring Boot
+  - Kiểm tra và chuyển đổi tham số đầu vào
+  - Sắp xếp nhiều bộ chạy bằng Ordered và @Order
+  - Tách bộ chạy khỏi dịch vụ nghiệp vụ
+  - Chờ công việc bất đồng bộ hoàn tất trước khi trả về
+  - Đóng tệp, kết nối và tài nguyên sau xử lý
+- level1: Vòng đời
+  level2:
+  - Trình tự khởi tạo ApplicationContext và bắt đầu tác vụ
+  - Vai trò của TaskLifecycleListener và SmartLifecycle
+  - Thời điểm tạo và cập nhật TaskExecution
+  - Thực thi nhiều bộ chạy trong cùng một lần chạy ứng dụng
+  - Kết thúc bình thường và lỗi không được xử lý
+  - Lỗi khởi tạo ApplicationContext và giới hạn ghi nhận thực thi
+  - Đóng ngữ cảnh bằng spring.cloud.task.closecontextEnabled
+  - Tín hiệu dừng, luồng nền và giới hạn hoàn tất khi JVM bị ngắt
+- level1: Dữ liệu thực thi
+  level2:
+  - Mô hình TaskExecution và định danh executionId
+  - Tên tác vụ và TaskNameResolver
+  - startTime, endTime và thời lượng thực thi
+  - exitCode chưa có giá trị và kết quả khi hoàn tất
+  - Phân biệt exitMessage và errorMessage
+  - Lưu tham số khởi chạy trong TaskExecution
+  - Tạo trước executionId và sử dụng spring.cloud.task.executionid
+  - Liên kết hệ thống ngoài bằng externalExecutionId
+  - Quan hệ cha con bằng parentExecutionId
+- level1: Kho và schema
+  level2:
+  - Trách nhiệm ghi của TaskRepository và đọc của TaskExplorer
+  - SimpleTaskRepository, SimpleTaskExplorer và các thành phần truy cập dữ liệu
+  - Kho trong bộ nhớ và lưu trữ JDBC theo cấu hình
+  - Chọn DataSource cho dữ liệu thực thi
+  - Cấu trúc TASK_EXECUTION và TASK_EXECUTION_PARAMS
+  - Định danh tự tăng, sequence và khác biệt giữa các cơ sở dữ liệu
+  - Khởi tạo schema bằng spring.cloud.task.initialize-enabled
+  - Tùy chỉnh tablePrefix và tên schema
+  - Quản lý DDL bằng Flyway hoặc Liquibase
+  - Tra cứu lịch sử, phân trang và chính sách lưu giữ dữ liệu
+- level1: Cấu hình mở rộng
+  level2:
+  - Nhóm thuộc tính spring.cloud.task và phạm vi tác dụng
+  - Thứ tự ưu tiên cấu hình, biến môi trường và tham số dòng lệnh
+  - TaskConfigurer và DefaultTaskConfigurer
+  - Tùy chỉnh TaskRepository và TaskExplorer
+  - Chọn PlatformTransactionManager cho kho thực thi
+  - Tách DataSource nghiệp vụ và DataSource của Task
+  - Tùy chỉnh cách xác định tên tác vụ
+  - Tắt tự cấu hình Spring Cloud Task có chủ đích
+- level1: Listener
+  level2:
+  - TaskExecutionListener và các điểm mở rộng vòng đời
+  - onTaskStartup, onTaskEnd và onTaskFailed
+  - Đăng ký listener bằng bean và bằng annotation
+  - '@BeforeTask, @AfterTask và @FailedTask'
+  - Đọc TaskExecution và Throwable trong listener
+  - Ghi exitMessage và thứ tự ưu tiên cập nhật
+  - Thứ tự listener và tác động khi listener ném ngoại lệ
+  - Giữ listener gọn, xử lý lỗi và tránh tác dụng phụ lặp
+- level1: Kết quả và mã thoát
+  level2:
+  - Phân biệt kết quả nghiệp vụ, mã thoát Task và mã thoát tiến trình
+  - Quy ước thành công, thất bại và lỗi không được xử lý
+  - Ánh xạ ngoại lệ bằng ExitCodeExceptionMapper
+  - Cung cấp mã thoát qua ExitCodeGenerator
+  - Vai trò của ExitCodeEvent và SpringApplication.exit
+  - Trả mã thoát từ hàm main ra hệ điều hành
+  - Thông điệp hoàn tất, thông điệp lỗi và giới hạn độ dài
+  - Kiểm chứng mã thoát khi chạy JAR và container
+- level1: Khóa và đồng thời
+  level2:
+  - Nhiều lần thực thi cùng tên và nguy cơ chạy chồng
+  - Bật spring.cloud.task.single-instance-enabled
+  - Phụ thuộc Spring Integration và kho khóa JDBC
+  - Phạm vi bảo vệ theo tên tác vụ và cơ sở dữ liệu dùng chung
+  - Chu kỳ kiểm tra và thời gian sống của khóa
+  - Kết quả khi một bản sao khác đang giữ khóa
+  - Khóa hết hạn, tiến trình chết và tình huống tranh chấp
+  - Phân biệt khóa thực thi với chống xử lý trùng dữ liệu
+- level1: Chạy lại an toàn
+  level2:
+  - Chạy lại Task và tiếp tục Spring Batch Job
+  - Thiết kế xử lý lặp an toàn bằng khóa nghiệp vụ
+  - Ranh giới giao dịch giữa kho Task và dữ liệu nghiệp vụ
+  - Ngoại lệ bị bắt và nguy cơ ghi nhận thành công sai
+  - Thử lại có giới hạn và khoảng chờ tăng dần
+  - Xử lý hoàn tất một phần và lưu điểm tiếp tục ở tầng nghiệp vụ
+  - Mất kết nối hoặc JVM bị dừng giữa lúc cập nhật
+  - Đối soát lịch sử thực thi với kết quả thực tế
+- level1: Spring Batch
+  level2:
+  - Job, Step, JobInstance và JobExecution trong ứng dụng Task
+  - Tự cấu hình tích hợp spring-cloud-task-batch
+  - Liên kết TaskExecution với JobExecution qua TaskBatchExecutionListener
+  - Bảng liên kết TASK_TASK_BATCH và truy vết hai chiều
+  - Chọn Job và truyền JobParameters
+  - Chạy nhiều Job trong cùng một Task
+  - Tùy chỉnh phạm vi gắn TaskBatchExecutionListener
+  - Phân biệt BatchStatus, ExitStatus và mã thoát Task
+  - spring.cloud.task.batch.fail-on-job-failure
+  - Thứ tự bộ chạy Job, chạy lại Job và tham số định danh
+- level1: Job một bước
+  level2:
+  - Phạm vi của spring-cloud-starter-single-step-batch-job
+  - Cấu hình tên Job, tên Step và kích thước chunk
+  - Kiểu dữ liệu Map<String, Object> và tính tương thích đầu vào đầu ra
+  - Đọc CSV và tệp độ rộng cố định
+  - Đọc dữ liệu bằng JDBC, AMQP hoặc Kafka
+  - Ghi dữ liệu bằng các ItemWriter được hỗ trợ
+  - Bổ sung ItemProcessor và thay thế bean tự cấu hình
+  - Giới hạn cấu hình và đối chiếu starter theo phiên bản
+- level1: Phân vùng từ xa
+  level2:
+  - Bài toán chia dữ liệu và mô hình quản lý công việc với tiến trình con
+  - Phân biệt remote partitioning và remote chunking
+  - DeployerPartitionHandler và Spring Cloud Deployer trong nhánh hỗ trợ
+  - DeployerStepExecutionHandler và thực thi Step ở tiến trình con
+  - Chia phân vùng bằng Partitioner và ExecutionContext
+  - Kho Job và kho Task dùng chung giữa các tiến trình
+  - Truyền tham số, cấu hình và định danh cha con
+  - Giới hạn số tiến trình con, chu kỳ kiểm tra và thời gian chờ
+  - Khởi chạy phân vùng bất đồng bộ và đóng bộ thực thi
+  - Xử lý phân vùng lỗi, chạy lại và tương thích phiên bản
+- level1: Sự kiện
+  level2:
+  - Tích hợp Spring Cloud Stream và lựa chọn binder
+  - Phát TaskExecution khi bắt đầu và kết thúc
+  - Cấu hình đích nhận task-events
+  - Bật tắt sự kiện Task bằng spring.cloud.task.events.enabled
+  - Sự kiện Job và Step của Spring Batch
+  - Sự kiện chunk, đọc, xử lý, ghi và bỏ qua phần tử
+  - Đổi đích nhận và bật tắt từng loại sự kiện Batch
+  - Thứ tự listener phát sự kiện
+  - Nội dung thông điệp, định danh thực thi và tương thích dữ liệu
+  - Lỗi gửi, trùng thông điệp và giới hạn bảo đảm giao nhận
+- level1: Khởi chạy
+  level2:
+  - Phân biệt chạy nghiệp vụ trong JVM với khởi tạo một tiến trình Task
+  - TaskLauncher của Spring Cloud Deployer và nền tảng triển khai
+  - Cấu trúc TaskLaunchRequest trong nhánh API hỗ trợ
+  - Truyền URI ứng dụng, tham số, cấu hình môi trường và triển khai
+  - TaskLauncherSink và khởi chạy theo thông điệp trong nhánh hỗ trợ
+  - Xác nhận yêu cầu khởi chạy và theo dõi kết quả hoàn tất
+  - Kiểm soát URI ứng dụng, yêu cầu trùng và giới hạn khởi chạy
+- level1: Data Flow
+  level2:
+  - Vai trò tùy chọn của Spring Cloud Data Flow
+  - Đăng ký ứng dụng Task và tạo định nghĩa tác vụ
+  - Khởi chạy với tham số và thuộc tính triển khai
+  - Phân biệt Task definition, TaskExecution và trạng thái nền tảng
+  - Tra cứu lịch sử, nhật ký và Job liên quan
+  - 'Composed Task Runner: chạy tuần tự và song song'
+  - Điều kiện chuyển nhánh, lỗi thành phần và chạy lại
+  - Quan hệ thực thi cha con trong luồng tác vụ
+  - Kho dữ liệu dùng chung, quyền truy cập và tương thích phiên bản
+- level1: Lịch chạy
+  level2:
+  - Phân biệt thư viện Task và hệ thống lập lịch bên ngoài
+  - Khởi chạy JAR bằng cron hoặc bộ lập lịch hệ điều hành
+  - Tích hợp bộ lập lịch qua Data Flow khi nền tảng hỗ trợ
+  - Kubernetes CronJob và tham số của mỗi lần chạy
+  - Múi giờ, lịch bị lỡ và chính sách chạy bù
+  - Chính sách chạy chồng, thử lại và giới hạn thời gian
+  - Định danh cửa sổ dữ liệu và tránh xử lý trùng theo lịch
+- level1: Triển khai
+  level2:
+  - Đóng gói JAR, Dockerfile và Cloud Native Buildpacks
+  - Lựa chọn ứng dụng không có máy chủ web
+  - Truyền cấu hình, tham số và thông tin kết nối cơ sở dữ liệu
+  - Docker entrypoint, tín hiệu dừng và mã thoát container
+  - Chạy bằng Kubernetes Job
+  - restartPolicy, backoffLimit và activeDeadlineSeconds
+  - Tài nguyên CPU, bộ nhớ và vùng lưu trữ tạm
+  - ConfigMap, Secret và tài khoản dịch vụ
+  - Thu gom Job đã hoàn tất và bảo toàn lịch sử thực thi
+  - Đối chiếu trạng thái Pod, Job và TaskExecution
+- level1: Quan sát
+  level2:
+  - Nhật ký có cấu trúc và liên kết bằng executionId
+  - Theo dõi thời lượng, tỷ lệ lỗi và tác vụ quá hạn
+  - Micrometer Observation và các phụ thuộc cần thiết
+  - Quan sát ApplicationRunner và CommandLineRunner
+  - Các phép đo spring.cloud.task và spring.cloud.task.runner
+  - Phân biệt số đo đang hoạt động và số đo khi hoàn tất
+  - Truy vết phân tán và truyền ngữ cảnh sang hệ thống ngoài
+  - Xuất số đo, hoàn tất gửi dữ liệu và vòng đời tiến trình ngắn
+  - Thiết kế nhãn số đo và cảnh báo theo lần chạy
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị dịch vụ nghiệp vụ độc lập với bộ chạy
+  - Kiểm thử phân tích và kiểm tra tham số
+  - Kiểm thử tích hợp vòng đời Task bằng Spring Boot
+  - Giữ ApplicationContext phù hợp khi chạy kiểm thử
+  - Xác minh TaskExecution và tham số qua TaskExplorer
+  - Kiểm thử mã thoát bằng tiến trình JAR độc lập
+  - Kiểm thử listener và ngoại lệ tại từng giai đoạn
+  - Kiểm thử JDBC và schema với Testcontainers
+  - Kiểm thử tranh chấp khóa và xử lý lặp
+  - Kiểm thử tích hợp Batch, sự kiện và lỗi hạ tầng
+- level1: Bảo mật
+  level2:
+  - Bảo vệ thông tin bí mật khỏi tham số được lưu và nhật ký
+  - Quản lý thông tin kết nối qua Secret hoặc dịch vụ bí mật
+  - Phân quyền cơ sở dữ liệu cho chạy Task và quản lý schema
+  - Giới hạn quyền khởi chạy và lựa chọn ứng dụng được phép
+  - Kiểm tra tệp, đường dẫn và dữ liệu đầu vào
+  - Bảo vệ broker, kho artifact và kênh kết nối
+  - Quyền truy cập lịch sử thực thi và chính sách lưu dữ liệu
+- level1: Tối ưu và nâng cấp
+  level2:
+  - Đo chi phí khởi động JVM và ApplicationContext
+  - Giảm phụ thuộc và tự cấu hình không cần thiết
+  - Tối ưu kết nối JDBC cho tác vụ chạy ngắn
+  - Lựa chọn kích thước dữ liệu, chunk và mức song song
+  - Đánh giá Spring AOT và GraalVM Native Image
+  - Cấu hình khóa một phiên bản thực thi khi biên dịch native
+  - Đối chiếu BOM, API và thuộc tính giữa các phiên bản
+  - Thay đổi schema, DDL và kế hoạch chuyển đổi dữ liệu
+  - Xác minh hành vi tích hợp Batch, Stream và Deployer sau nâng cấp
+- level1: Chẩn đoán
+  level2:
+  - Không có bản ghi TaskExecution sau khi ứng dụng khởi động lỗi
+  - Tác vụ chạy xong nhưng tiến trình không kết thúc
+  - Kho H2 mất dữ liệu sau khi tiến trình dừng
+  - Thiếu bảng, sai tablePrefix hoặc sai DataSource
+  - TaskExecution thiếu endTime sau khi JVM bị ngắt
+  - Job Batch thất bại nhưng mã thoát Task vẫn thành công
+  - Lỗi tác vụ cùng tên đang chạy và xử lý khóa còn hiệu lực
+  - Listener ném ngoại lệ hoặc thông điệp kết thúc bị ghi đè
+  - Không phát sự kiện hoặc cấu hình binder không khớp phiên bản
+  - Tham số sai, phân vùng quá hạn và trạng thái nền tảng lệch kho Task
+- level1: Thực hành
+  level2:
+  - Task kiểm tra tham số và ghi nhận kết quả hoàn tất
+  - Nhập tệp CSV với PostgreSQL và lịch sử thực thi bền vững
+  - Tạo báo cáo theo ngày với xử lý lặp an toàn
+  - Thử nghiệm mã thoát, ngoại lệ và listener
+  - Chạy hai tiến trình để kiểm chứng khóa một lần thực thi
+  - Tích hợp Job Batch lỗi rồi khởi chạy lại có kiểm soát
+  - Phát sự kiện thực thi qua broker
+  - Triển khai Kubernetes Job hoặc CronJob và quan sát kết quả
+  - Xây dựng luồng Data Flow có điều kiện và đối soát các lần chạy

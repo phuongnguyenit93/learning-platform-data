@@ -1,0 +1,94 @@
+menu:
+  - title: "Tổng quan Java 24"
+    slug: release-overview
+    index: 0
+  - title: "Môi trường JDK 24"
+    slug: jdk-setup
+    index: 1
+  - title: "Cờ tính năng và tương thích"
+    slug: feature-flags-and-compatibility
+    index: 2
+  - title: "Tệp nguồn đơn giản"
+    slug: simple-source-files
+    index: 3
+  - title: "Import module"
+    slug: module-imports
+    index: 4
+  - title: "Pattern với kiểu nguyên thủy"
+    slug: primitive-patterns
+    index: 5
+  - title: "Thân constructor linh hoạt"
+    slug: flexible-constructor-bodies
+    index: 6
+  - title: "Stream Gatherers"
+    slug: stream-gatherers
+    index: 7
+  - title: "Class-File API"
+    slug: class-file-api
+    index: 8
+  - title: "Virtual thread và synchronized"
+    slug: virtual-threads-and-synchronization
+    index: 9
+  - title: "Structured Concurrency"
+    slug: structured-concurrency
+    index: 10
+  - title: "Scoped Values"
+    slug: scoped-values
+    index: 11
+  - title: "Vector API"
+    slug: vector-api
+    index: 12
+  - title: "Nạp và liên kết lớp AOT"
+    slug: aot-class-loading-and-linking
+    index: 13
+  - title: "Liên kết runtime image"
+    slug: runtime-image-linking
+    index: 14
+  - title: "Object header nhỏ gọn"
+    slug: compact-object-headers
+    index: 15
+  - title: "Tối ưu barrier của G1"
+    slug: g1-late-barrier-expansion
+    index: 16
+  - title: "Generational Shenandoah"
+    slug: generational-shenandoah
+    index: 17
+  - title: "ZGC chỉ còn generational"
+    slug: generational-only-zgc
+    index: 18
+  - title: "Key Derivation Function API"
+    slug: key-derivation-function-api
+    index: 19
+  - title: "Trao đổi khóa ML-KEM"
+    slug: ml-kem-key-encapsulation
+    index: 20
+  - title: "Chữ ký số ML-DSA"
+    slug: ml-dsa-digital-signatures
+    index: 21
+  - title: "Quyền truy cập native"
+    slug: native-access
+    index: 22
+  - title: "Cảnh báo sun.misc.Unsafe"
+    slug: unsafe-memory-access-warnings
+    index: 23
+  - title: "Security Manager bị vô hiệu hóa"
+    slug: security-manager-disabled
+    index: 24
+  - title: "Thay đổi nền tảng 32-bit"
+    slug: x86-32-bit-port-changes
+    index: 25
+  - title: "Bổ sung thư viện chuẩn"
+    slug: standard-library-additions
+    index: 26
+  - title: "Cấu hình bảo mật JDK 24"
+    slug: security-configuration
+    index: 27
+  - title: "Công cụ và quan sát runtime"
+    slug: runtime-tools-and-observability
+    index: 28
+  - title: "Nâng cấp ứng dụng lên Java 24"
+    slug: application-migration
+    index: 29
+  - title: "Thực hành tổng hợp Java 24"
+    slug: integrated-exercises
+    index: 30

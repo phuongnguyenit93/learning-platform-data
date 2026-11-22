@@ -1,0 +1,3 @@
+menuLevel1: Checker tùy chỉnh
+menuLevel2: Đăng ký ServiceLoader bằng @AutoService(BugChecker.class)
+status: ''

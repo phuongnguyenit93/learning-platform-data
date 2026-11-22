@@ -1,0 +1,7 @@
+# Spring Boot - Native Image
+
+GraalVM Native Image cho phép biên dịch ứng dụng Spring Boot thành tệp thực thi gốc dành cho một hệ điều hành và kiến trúc CPU cụ thể. Cách triển khai này hướng đến giảm thời gian khởi động và mức dùng bộ nhớ trong những tình huống phù hợp. Module dành cho người đã biết Java, Spring Boot và Gradle cơ bản, muốn tự xây dựng, kiểm chứng và đánh giá một ứng dụng native thay vì chỉ dựa vào kết quả chạy JAR trên JVM.
+
+Tư duy nền tảng là xác định việc nào được thực hiện khi dựng và việc nào còn diễn ra khi chạy. Spring xử lý trước thời điểm chạy (Spring AOT) để chuẩn bị cách tạo bean và các thông tin hỗ trợ; GraalVM tiếp tục phân tích, biên dịch thành mã máy. Giả định thế giới đóng (closed-world) khiến khả năng thay đổi tập bean và sử dụng các đặc tính động cần được xem xét từ sớm. Các khai báo hỗ trợ (runtime hints), metadata về truy cập động và thời điểm khởi tạo lớp là những khái niệm giúp giải thích khác biệt giữa JVM và native.
+
+Lộ trình đi từ mô hình Native Image và Spring AOT đến chuẩn bị công cụ, biên dịch trực tiếp hoặc đóng gói bằng Buildpacks. Người học sau đó bổ sung metadata, kiểm thử qua nhiều chế độ và chẩn đoán lỗi trước khi đo đạc trên cùng tải. Phạm vi thực hành theo Spring Boot 3.3 và JDK 21; lựa chọn bộ công cụ phải tương thích. Kết quả cuối cùng là biết triển khai đúng nền tảng đích và quyết định dựa trên cả hành vi ứng dụng, hiệu năng lẫn chi phí dựng.

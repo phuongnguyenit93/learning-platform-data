@@ -1,0 +1,3 @@
+menuLevel1: Runtime.Version
+menuLevel2: Runtime.version() và phiên bản JVM đang chạy
+status: WRITTEN

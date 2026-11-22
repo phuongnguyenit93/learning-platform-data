@@ -1,0 +1,3 @@
+menuLevel1: Thiết kế event store
+menuLevel2: Bảo đảm ghi nguyên tử toàn bộ nhóm sự kiện của một command trong một stream
+status: ""

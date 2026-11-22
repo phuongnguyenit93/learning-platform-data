@@ -1,0 +1,57 @@
+roadmap:
+- id: kham-pha-domain
+  title: Khám phá Domain
+  purpose: Tìm hiểu bài toán thực tế cùng chuyên gia nghiệp vụ trước khi quyết định cấu trúc mã.
+  objectives:
+  - Nhận diện domain và các quy tắc nghiệp vụ
+  - Phân tích use case và tình huống ngoại lệ
+  - Thu thập khái niệm từ domain experts
+- id: ubiquitous-language
+  title: Ubiquitous Language
+  purpose: Thống nhất ngôn ngữ để tài liệu, trao đổi và mã nguồn diễn đạt cùng một ý nghĩa.
+  objectives:
+  - Lập glossary các thuật ngữ nghiệp vụ
+  - Loại bỏ tên mơ hồ hoặc trùng nghĩa
+  - Dùng cùng thuật ngữ trong code và ví dụ
+- id: subdomain-core-domain
+  title: Subdomain & Core Domain
+  purpose: Phân loại các năng lực kinh doanh để tập trung công sức thiết kế vào nơi tạo giá trị.
+  objectives:
+  - Phân biệt core, supporting và generic subdomain
+  - Xác định năng lực tạo lợi thế cạnh tranh
+  - Ưu tiên mô hình hóa cho phần nghiệp vụ phức tạp
+- id: bounded-context
+  title: Bounded Context
+  purpose: Giới hạn phạm vi hiệu lực của từng mô hình và tránh áp một mô hình chung lên mọi bộ phận.
+  objectives:
+  - Xác định ranh giới và trách nhiệm của context
+  - Nhận diện cùng thuật ngữ nhưng khác ý nghĩa
+  - Phân biệt bounded context với microservice
+- id: context-map-tich-hop
+  title: Context Map & Tích hợp
+  purpose: Thiết kế mối quan hệ giữa các bounded context mà vẫn bảo vệ ngôn ngữ và quy tắc riêng.
+  objectives:
+  - Vẽ context map và xác định upstream/downstream
+  - Phân biệt shared kernel, customer-supplier và ACL
+  - Xác định hợp đồng trao đổi giữa các context
+- id: entity-value-object
+  title: Entity & Value Object
+  purpose: Diễn đạt dữ liệu và hành vi của domain bằng các đối tượng đúng tính chất nghiệp vụ.
+  objectives:
+  - Phân biệt entity theo identity và value object theo giá trị
+  - Đưa behavior và invariant vào domain model
+  - Thiết kế value object bất biến khi phù hợp
+- id: aggregate-repository
+  title: Aggregate & Repository
+  purpose: Giữ tính nhất quán trong một ranh giới giao dịch rõ ràng và tách domain khỏi lưu trữ.
+  objectives:
+  - Chọn aggregate root theo business invariants
+  - Chỉ thay đổi aggregate qua hành vi của root
+  - Dùng repository để truy xuất và lưu aggregate
+- id: domain-events-tien-hoa
+  title: Domain Events & Tiến hóa
+  purpose: Kết nối các thay đổi nghiệp vụ có kiểm soát và cải tiến mô hình qua phản hồi thực tế.
+  objectives:
+  - Mô hình hóa sự kiện đã xảy ra bằng domain event
+  - Tách use case orchestration khỏi domain logic
+  - Kiểm thử invariant và điều chỉnh model với chuyên gia

@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: reflection-overview
+  index: 0
+- title: Đối tượng Class
+  slug: class-objects
+  index: 1
+- title: Tên và định danh kiểu
+  slug: type-names-identity
+  index: 2
+- title: Quan hệ kiểu
+  slug: type-relationships
+  index: 3
+- title: Tra cứu thành viên
+  slug: member-lookup
+  index: 4
+- title: Modifier và cờ
+  slug: modifiers-flags
+  index: 5
+- title: Quyền truy cập
+  slug: access-control
+  index: 6
+- title: Module và đóng gói
+  slug: module-encapsulation
+  index: 7
+- title: Field
+  slug: fields
+  index: 8
+- title: Field final
+  slug: final-fields
+  index: 9
+- title: Method
+  slug: methods
+  index: 10
+- title: Constructor
+  slug: constructors
+  index: 11
+- title: Đối số và chuyển đổi
+  slug: argument-conversions
+  index: 12
+- title: Tham số executable
+  slug: executable-parameters
+  index: 13
+- title: Mô hình generic
+  slug: generic-type-model
+  index: 14
+- title: Phân giải generic
+  slug: generic-type-resolution
+  index: 15
+- title: Annotation runtime
+  slug: runtime-annotations
+  index: 16
+- title: Annotation trên kiểu
+  slug: type-use-annotations
+  index: 17
+- title: Mảng động
+  slug: dynamic-arrays
+  index: 18
+- title: Kiểu lồng và nest
+  slug: nested-types-nestmates
+  index: 19
+- title: Enum
+  slug: enum-types
+  index: 20
+- title: Record
+  slug: record-types
+  index: 21
+- title: Sealed và phân cấp
+  slug: sealed-hierarchies
+  index: 22
+- title: Dynamic proxy
+  slug: dynamic-proxies
+  index: 23
+- title: MethodHandle và VarHandle
+  slug: method-handles-var-handles
+  index: 24
+- title: Ngoại lệ và chẩn đoán
+  slug: exceptions-diagnostics
+  index: 25
+- title: Thiết kế công cụ
+  slug: tooling-design
+  index: 26
+- title: Cache và hiệu năng
+  slug: caching-performance
+  index: 27
+- title: Giới hạn và lựa chọn
+  slug: limitations-alternatives
+  index: 28
+- title: Kiểm thử
+  slug: reflection-testing
+  index: 29
+- title: Thực hành
+  slug: reflection-practice
+  index: 30
+- title: Tra cứu
+  slug: reflection-reference
+  index: 31

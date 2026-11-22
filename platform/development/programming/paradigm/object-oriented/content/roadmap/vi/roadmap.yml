@@ -1,0 +1,49 @@
+roadmap:
+- id: tu-duy-oop
+  title: Tư duy OOP
+  purpose: Hiểu cách mô hình hóa bài toán bằng các đối tượng tương tác.
+  objectives:
+  - Nhận diện đối tượng và trách nhiệm.
+  - Mô tả tương tác giữa các đối tượng.
+- id: lop-va-doi-tuong
+  title: Lớp và đối tượng
+  purpose: Nắm mối quan hệ giữa khuôn mẫu và đối tượng cụ thể.
+  objectives:
+  - Phân biệt lớp với đối tượng.
+  - Xác định trạng thái và hành vi.
+- id: dong-goi
+  title: Đóng gói
+  purpose: Bảo vệ trạng thái và cung cấp cách sử dụng đối tượng rõ ràng.
+  objectives:
+  - Ẩn chi tiết bên trong.
+  - Kiểm soát việc đọc và thay đổi trạng thái.
+- id: truu-tuong
+  title: Trừu tượng
+  purpose: Biểu diễn điều cần sử dụng mà không phụ thuộc chi tiết thực hiện.
+  objectives:
+  - Chọn đặc điểm thiết yếu.
+  - Phân biệt giao diện sử dụng với cách thực hiện.
+- id: ke-thua-va-ket-hop
+  title: Kế thừa và kết hợp
+  purpose: Hiểu cách tạo quan hệ giữa các lớp và ghép các đối tượng.
+  objectives:
+  - Phân biệt quan hệ “là một” và “có một”.
+  - Chọn kế thừa hoặc kết hợp phù hợp.
+- id: da-hinh
+  title: Đa hình
+  purpose: Cho phép cùng một thao tác có cách thực hiện khác nhau.
+  objectives:
+  - Nhận biết các cách thực hiện chung một giao diện.
+  - Sử dụng đối tượng thông qua kiểu trừu tượng.
+- id: thiet-ke-doi-tuong
+  title: Thiết kế đối tượng
+  purpose: Phân chia trách nhiệm để thiết kế dễ hiểu và dễ thay đổi.
+  objectives:
+  - Giao trách nhiệm phù hợp cho từng đối tượng.
+  - Giảm phụ thuộc giữa các đối tượng.
+- id: thuc-hanh-tong-hop
+  title: Thực hành tổng hợp
+  purpose: Vận dụng các khái niệm vào một bài toán nhỏ.
+  objectives:
+  - Xây dựng mô hình và hiện thực hóa đối tượng.
+  - Kiểm tra hành vi và cải thiện thiết kế.

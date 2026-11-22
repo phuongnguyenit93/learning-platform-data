@@ -1,0 +1,103 @@
+menu:
+- title: Bức tranh kiểm thử
+  slug: testing-overview
+  index: 0
+- title: Thiết kế bài kiểm thử
+  slug: test-design
+  index: 1
+- title: JUnit Jupiter
+  slug: junit-jupiter
+  index: 2
+- title: Kiểm thử đơn vị
+  slug: unit-testing
+  index: 3
+- title: Mock, Stub và Spy
+  slug: mocks-stubs-spies
+  index: 4
+- title: Tiện ích Spring Test
+  slug: spring-test-utilities
+  index: 5
+- title: TestContext Framework
+  slug: testcontext-framework
+  index: 6
+- title: Cấu hình ApplicationContext
+  slug: applicationcontext-configuration
+  index: 7
+- title: Profile và thuộc tính
+  slug: profiles-properties
+  index: 8
+- title: Cache và vòng đời context
+  slug: context-caching-lifecycle
+  index: 9
+- title: Tiêm phụ thuộc kiểm thử
+  slug: test-dependency-injection
+  index: 10
+- title: Thay bean trong kiểm thử
+  slug: test-bean-replacement
+  index: 11
+- title: Annotation dùng lại
+  slug: reusable-annotations
+  index: 12
+- title: Giao dịch kiểm thử
+  slug: transactional-testing
+  index: 13
+- title: SQL và dữ liệu
+  slug: sql-test-data
+  index: 14
+- title: Kiểm thử tầng dữ liệu
+  slug: data-layer-testing
+  index: 15
+- title: Sự kiện ứng dụng
+  slug: application-events
+  index: 16
+- title: WebApplicationContext
+  slug: webapplicationcontext
+  index: 17
+- title: Thiết lập MockMvc
+  slug: mockmvc-setup
+  index: 18
+- title: Gửi yêu cầu MockMvc
+  slug: mockmvc-requests
+  index: 19
+- title: Xác nhận kết quả MVC
+  slug: mvc-assertions
+  index: 20
+- title: MVC lỗi và bất đồng bộ
+  slug: mvc-error-async-tests
+  index: 21
+- title: MockMvcTester
+  slug: mockmvctester
+  index: 22
+- title: Thiết lập WebTestClient
+  slug: webtestclient-setup
+  index: 23
+- title: Xác nhận HTTP phản ứng
+  slug: reactive-http-assertions
+  index: 24
+- title: RestTestClient
+  slug: resttestclient
+  index: 25
+- title: Kiểm thử HTTP client
+  slug: http-client-testing
+  index: 26
+- title: Bất đồng bộ và song song
+  slug: asynchronous-parallel-tests
+  index: 27
+- title: Hạ tầng kiểm thử
+  slug: test-infrastructure
+  index: 28
+- title: Công cụ và phạm vi
+  slug: tools-test-scope
+  index: 29
+- title: Mở rộng và AOT
+  slug: extensions-aot
+  index: 30
+- title: Chất lượng và CI
+  slug: ci-test-quality
+  index: 31
+- title: Chẩn đoán kiểm thử
+  slug: test-troubleshooting
+  index: 32
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 33

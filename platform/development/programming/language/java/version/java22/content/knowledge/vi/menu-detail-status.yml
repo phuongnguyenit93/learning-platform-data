@@ -1,0 +1,1486 @@
+menu:
+- slug: feature-roadmap
+  title: Lộ trình Java 22
+  childs:
+  - slug: feature-roadmap-001
+    title: 'Phạm vi học: các tính năng trong Java 22 còn hữu ích với Java hiện đại'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-roadmap-002
+    title: Phân biệt tính năng chính thức, preview và mô-đun incubator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-roadmap-003
+    title: Vai trò của Java 22 trong lịch sử phát triển và lựa chọn JDK còn được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-roadmap-004
+    title: 'Các tính năng chính thức của Java 22: FFM, biến không tên, chạy nguồn nhiều tệp và G1 region pinning'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-roadmap-005
+    title: 'Stream Gatherers và Class File API: từ preview trong Java 22 đến chính thức từ JDK 24'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-roadmap-006
+    title: 'Scoped Value, hàm tạo linh hoạt và tệp nguồn gọn: đối chiếu với phiên bản chính thức từ JDK 25'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-roadmap-007
+    title: 'Structured Concurrency và Vector API: học theo trạng thái cùng API của JDK đang sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-roadmap-008
+    title: Đọc JEP và tài liệu API theo phiên bản để tránh sao chép cú pháp preview đã thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: unnamed-variables-and-patterns
+  title: Biến và mẫu không tên
+  childs:
+  - slug: unnamed-variables-and-patterns-001
+    title: 'JEP 456: mục đích và phạm vi sử dụng dấu gạch dưới làm biến hoặc mẫu không tên'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-002
+    title: Phân biệt biến không tên, mẫu không tên và biến mẫu có tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-003
+    title: Khai báo biến cục bộ không tên và yêu cầu về biểu thức khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-004
+    title: Dùng biến không tên trong vòng lặp khi chỉ cần tác dụng phụ hoặc số lần lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-005
+    title: Bỏ qua tham số lambda không sử dụng mà vẫn giữ rõ hợp đồng hàm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-006
+    title: Bỏ qua đối tượng ngoại lệ trong catch khi thông tin ngoại lệ không cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-007
+    title: Quản lý tài nguyên bằng try-with-resources khi không cần dùng tên tài nguyên trong thân khối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-008
+    title: Dùng mẫu không tên để bỏ qua thành phần của record pattern lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-009
+    title: Dùng biến mẫu không tên trong switch và instanceof khi chỉ cần kiểm tra kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-010
+    title: Tính bao phủ, thứ tự nhánh và xử lý null khi kết hợp mẫu không tên với switch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-011
+    title: Phạm vi hợp lệ của dấu gạch dưới, khai báo lặp lại và lỗi khi cố đọc biến không tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unnamed-variables-and-patterns-012
+    title: Refactor mã bằng biến không tên mà vẫn giữ rõ ý định và xử lý lỗi có ích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: foreign-memory
+  title: Bộ nhớ ngoại lai
+  childs:
+  - slug: foreign-memory-001
+    title: JEP 454 và mô hình chính thức của Foreign Function & Memory API trong java.lang.foreign
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-002
+    title: 'MemorySegment: vùng nhớ trên heap, ngoài heap, kích thước và địa chỉ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-003
+    title: 'Arena.ofConfined, Arena.ofShared, Arena.ofAuto và Arena.global: quyền sở hữu và vòng đời'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-004
+    title: Cấp phát vùng nhớ bằng Arena và giải phóng xác định bằng try-with-resources
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-005
+    title: Đọc ghi dữ liệu bằng ValueLayout với kiểu dữ liệu, byte order và căn chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-006
+    title: MemoryLayout, StructLayout và SequenceLayout để mô tả cấu trúc dữ liệu native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-007
+    title: Padding, offset và alignment khi ánh xạ cấu trúc C sang Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-008
+    title: Layout path và VarHandle để truy cập thành phần trong cấu trúc lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-009
+    title: Cắt lát, sao chép, điền dữ liệu và chuyển đổi giữa MemorySegment, mảng và ByteBuffer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-010
+    title: Ánh xạ tệp vào bộ nhớ với FileChannel và Arena
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-011
+    title: An toàn biên, an toàn vòng đời và giới hạn truy cập theo luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foreign-memory-012
+    title: Con trỏ, vùng nhớ kích thước không xác định và trách nhiệm khi dùng reinterpret
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: native-function-calls
+  title: Gọi hàm native
+  childs:
+  - slug: native-function-calls-001
+    title: Quy trình gọi thư viện C bằng Linker, SymbolLookup và FunctionDescriptor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-002
+    title: Tìm symbol trong thư viện nạp theo đường dẫn, thư viện của class loader và thư viện nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-003
+    title: Mô tả tham số cùng giá trị trả về theo ABI của nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-004
+    title: Tạo downcall handle và gọi hàm native qua MethodHandle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-005
+    title: Truyền số nguyên, số thực, con trỏ và cấu trúc giữa Java với C
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-006
+    title: Mã hóa chuỗi, ký tự kết thúc và quản lý buffer khi giao tiếp với mã native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-007
+    title: Nhận kết quả trong vùng nhớ do bên gọi cấp phát và xác định trách nhiệm giải phóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-008
+    title: Tạo upcall stub để thư viện native gọi ngược vào Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-009
+    title: Vòng đời callback, truy cập đa luồng và ngăn ngoại lệ thoát qua biên native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-010
+    title: Hàm có số đối số biến đổi và lựa chọn Linker phù hợp với chữ ký native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-011
+    title: Thu thập trạng thái lời gọi như errno và diễn giải quy ước báo lỗi của thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-012
+    title: Cấu hình quyền native access cho classpath hoặc named module theo JDK triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-function-calls-013
+    title: Kiểm tra tính di động, đóng gói thư viện và lựa chọn FFM cho từng phần tích hợp JNI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: stream-gatherers
+  title: Stream Gatherers
+  childs:
+  - slug: stream-gatherers-001
+    title: JEP 461 và lộ trình tới API chính thức của Stream Gatherers trong JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-002
+    title: Stream.gather và khác biệt giữa Gatherer, Collector cùng các phép map hoặc flatMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-003
+    title: Mô hình biến đổi trung gian không trạng thái và có trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-004
+    title: Gatherers.windowFixed để chia luồng thành các cửa sổ không chồng lấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-005
+    title: Gatherers.windowSliding để xử lý cửa sổ trượt và dữ liệu liên tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-006
+    title: Gatherers.fold để tích lũy và phát kết quả khi hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-007
+    title: Gatherers.scan để tạo dãy kết quả tích lũy theo từng phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-008
+    title: Gatherers.mapConcurrent và giới hạn số tác vụ đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-009
+    title: Thứ tự kết quả, ngoại lệ và chi phí khi ánh xạ đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-010
+    title: Kết hợp gatherer với filter, map, limit và các terminal operation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-011
+    title: Đánh giá bộ nhớ cùng khả năng dừng sớm khi xử lý luồng lớn hoặc vô hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-012
+    title: Chuyển ví dụ preview Java 22 sang API Gatherers chính thức trên JDK mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: custom-gatherers
+  title: Gatherer tùy biến
+  childs:
+  - slug: custom-gatherers-001
+    title: Các tham số kiểu đầu vào, trạng thái và đầu ra của Gatherer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-002
+    title: Initializer, integrator, combiner và finisher trong vòng đời xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-003
+    title: Phát không, một hoặc nhiều phần tử đầu ra qua Downstream.push
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-004
+    title: Tín hiệu dừng từ integrator và xử lý downstream từ chối nhận thêm dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-005
+    title: Thiết kế gatherer tuần tự bằng Gatherer.ofSequential
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-006
+    title: Thiết kế gatherer có thể chạy song song và ghép trạng thái đúng thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-007
+    title: Ghép nhiều gatherer bằng andThen và phân định trách nhiệm từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-008
+    title: Xử lý phần dữ liệu còn lại trong finisher khi nguồn kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-009
+    title: Kiểm chứng nguồn rỗng, cửa sổ chưa đủ, dừng sớm, ngoại lệ và thực thi song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-010
+    title: Bài tập gom lô, loại trùng liên tiếp và tổng hợp sự kiện theo cửa sổ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: class-file-api
+  title: Class File API
+  childs:
+  - slug: class-file-api-001
+    title: JEP 457 và lộ trình tới Class File API chính thức trong JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-002
+    title: Vai trò của java.lang.classfile trong phân tích, sinh và biến đổi bytecode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-003
+    title: Đọc byte class thành ClassModel và duyệt cấu trúc theo mô hình phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-004
+    title: Khảo sát FieldModel, MethodModel, CodeModel và các thuộc tính của class file
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-005
+    title: Sinh lớp, trường và phương thức bằng builder với mô tả kiểu hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-006
+    title: Đọc cùng tạo lệnh bytecode, label, nhánh rẽ và vùng xử lý ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-007
+    title: Constant pool, mô tả hằng và các tham chiếu ký hiệu trong bytecode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-008
+    title: Biến đổi lớp hoặc phương thức bằng transform và bảo toàn phần tử không sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-009
+    title: Chèn logging hoặc đo thời gian vào bytecode và giữ nguyên hành vi phương thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-010
+    title: Stack map, kiểm tra hợp lệ bytecode và xử lý lỗi khi nạp lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-011
+    title: Phiên bản class file, thuộc tính mới và giới hạn tương thích giữa các JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-012
+    title: Đối chiếu API chính thức với ví dụ preview Java 22 và thư viện bytecode đang sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-013
+    title: Bài tập thống kê phương thức, sinh lớp đơn giản và kiểm tra lớp sau biến đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multi-file-source-launcher
+  title: Chạy nguồn nhiều tệp
+  childs:
+  - slug: multi-file-source-launcher-001
+    title: 'JEP 458: thực thi chương trình nhiều tệp Java trực tiếp bằng source launcher'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-002
+    title: Chọn tệp chứa điểm vào và chạy chương trình bằng lệnh java với tệp nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-003
+    title: Cách launcher tìm và biên dịch các tệp nguồn được chương trình tham chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-004
+    title: Package, thư mục gốc nguồn và cách tổ chức các tệp phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-005
+    title: Đối số chương trình, tùy chọn JVM và lựa chọn phiên bản ngôn ngữ bằng --source
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-006
+    title: Kết hợp mã nguồn với thư viện trên classpath và nhận diện xung đột lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-007
+    title: Giới hạn khi làm việc với module, annotation processor và quy trình biên dịch phức tạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-008
+    title: Chẩn đoán lỗi thiếu nguồn, sai package, không tìm thấy lớp và lỗi biên dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-009
+    title: Tổ chức tiện ích dòng lệnh cùng ví dụ học tập gồm nhiều tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-file-source-launcher-010
+    title: Khi nào dùng source launcher và khi nào chuyển sang quy trình build đầy đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: g1-region-pinning
+  title: G1 và ghim vùng nhớ
+  childs:
+  - slug: g1-region-pinning-001
+    title: 'JEP 423: G1 region pinning và vấn đề khi mã native giữ vùng nhớ heap'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-002
+    title: JNI critical region qua GetPrimitiveArrayCritical và GetStringCritical
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-003
+    title: Cách G1 giữ nguyên vùng bị ghim trong khi vẫn thu gom các vùng khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-004
+    title: Ảnh hưởng tới độ trễ, thông lượng và hành vi khi cấp phát bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-005
+    title: Giới hạn của region pinning khi số vùng bị ghim hoặc thời gian ghim tăng cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-006
+    title: Phân biệt ghim vùng nhớ của GC với ghim carrier thread của virtual thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-007
+    title: Quan sát hành vi GC bằng unified logging, JFR và tải có lời gọi native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-008
+    title: Thiết kế JNI critical section ngắn và giải phóng tài nguyên đúng thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-region-pinning-009
+    title: Đo hiệu quả trên JDK triển khai với tải thực tế trước khi điều chỉnh cấu hình G1
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: flexible-constructor-bodies
+  title: Hàm tạo linh hoạt
+  childs:
+  - slug: flexible-constructor-bodies-001
+    title: Từ JEP 447 trong Java 22 tới Flexible Constructor Bodies chính thức từ JDK 25
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-002
+    title: Tổ chức phần xử lý trước và sau lời gọi constructor super hoặc this
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-003
+    title: Kiểm tra tham số và chuẩn hóa dữ liệu trước khi gọi constructor của lớp cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-004
+    title: Dùng biến cục bộ cùng phép tính dùng chung để chuẩn bị đối số constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-005
+    title: Ngữ cảnh khởi tạo sớm và các giới hạn truy cập this, super cùng phương thức instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-006
+    title: Các phép gán trường được cho phép trước lời gọi constructor theo quy tắc hiện hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-007
+    title: Thứ tự khởi tạo trường, instance initializer và chuỗi constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-008
+    title: Ngoại lệ, tác dụng phụ và tránh làm lộ đối tượng đang khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-009
+    title: Chuyển mã kiểm tra đầu vào sang cú pháp chính thức và kiểm tra lỗi biên dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compact-source-files
+  title: Tệp nguồn gọn
+  childs:
+  - slug: compact-source-files-001
+    title: Từ JEP 463 trong Java 22 tới Compact Source Files chính thức từ JDK 25
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-002
+    title: Viết chương trình nhỏ với instance main và giảm phần khai báo lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-003
+    title: Các dạng phương thức main được hỗ trợ và quy tắc lựa chọn điểm vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-004
+    title: Khai báo trường, phương thức hỗ trợ và khởi tạo đối tượng trong tệp nguồn gọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-005
+    title: Các import ngầm định và sử dụng lớp java.lang.IO trên JDK hỗ trợ bản chính thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-006
+    title: Đọc đầu vào, xuất kết quả và xử lý lỗi cho chương trình dòng lệnh nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-007
+    title: Chạy tệp nguồn gọn và phân biệt với cơ chế chạy chương trình nhiều tệp của JEP 458
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-008
+    title: Giới hạn về package, tên lớp và khả năng mở rộng của tệp nguồn gọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-source-files-009
+    title: Chuyển chương trình sang lớp có tên cùng cấu trúc dự án khi quy mô tăng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scoped-values
+  title: Scoped Value
+  childs:
+  - slug: scoped-values-001
+    title: Từ JEP 464 trong Java 22 tới Scoped Values chính thức từ JDK 25
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-002
+    title: Truyền ngữ cảnh bất biến theo phạm vi động và đối chiếu với ThreadLocal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-003
+    title: Tạo khóa ScopedValue và quy định quyền truy cập khóa trong ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-004
+    title: Ràng buộc giá trị bằng ScopedValue.where và thực thi trong phạm vi run hoặc call
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-005
+    title: Đọc giá trị, kiểm tra ràng buộc và xử lý khi khóa chưa có giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-006
+    title: Phạm vi lồng nhau, che khuất ràng buộc và khôi phục ngữ cảnh khi thoát phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-007
+    title: Truyền ngữ cảnh theo cơ chế kế thừa được hỗ trợ bởi StructuredTaskScope của JDK sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-008
+    title: Tách biệt phạm vi ràng buộc với tính an toàn luồng của đối tượng được tham chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-009
+    title: Ứng dụng cho request ID, thông tin người dùng và cấu hình theo yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-010
+    title: Chuyển ví dụ preview hoặc ngữ cảnh ThreadLocal phù hợp sang API ScopedValue chính thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: structured-concurrency
+  title: Đồng thời có cấu trúc
+  childs:
+  - slug: structured-concurrency-001
+    title: JEP 462 trong Java 22 và lộ trình Structured Concurrency trên các JDK tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-002
+    title: Quan hệ cha con, vòng đời tác vụ và nguyên tắc kết thúc tác vụ trong phạm vi sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-003
+    title: StructuredTaskScope theo API preview của đúng JDK đang dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-004
+    title: Khởi chạy tác vụ con, chờ hoàn tất và truy xuất kết quả theo hợp đồng của scope
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-005
+    title: Chiến lược chờ mọi kết quả, thất bại sớm và lấy kết quả thành công phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-006
+    title: Lan truyền lỗi, hủy tác vụ còn lại và xử lý interruption đúng cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-007
+    title: Timeout, thời hạn xử lý và đóng scope khi tác vụ con chưa kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-008
+    title: Kết hợp virtual thread với tác vụ I/O và giới hạn tài nguyên bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-009
+    title: Kết hợp ScopedValue để truyền ngữ cảnh trong cây tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-010
+    title: Kiểm tra tình huống thành công, thất bại từng phần, timeout và rò rỉ tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-011
+    title: Chuyển ví dụ Java 22 sang JDK mục tiêu và quản lý yêu cầu --enable-preview
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vector-api
+  title: Vector API
+  childs:
+  - slug: vector-api-001
+    title: JEP 460 trong Java 22 và trạng thái incubator cần kiểm tra ở JDK triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-002
+    title: Mô hình SIMD, lane, vector và các bài toán phù hợp với xử lý dữ liệu song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-003
+    title: Kích hoạt mô-đun jdk.incubator.vector bằng --add-modules
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-004
+    title: VectorSpecies, số lane và lựa chọn species phù hợp với nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-005
+    title: Nạp, tính toán và ghi dữ liệu bằng các kiểu vector số nguyên hoặc số thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-006
+    title: VectorMask và xử lý phần đuôi khi độ dài dữ liệu không chia hết cho số lane
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-007
+    title: Phép toán số học, so sánh, lựa chọn phần tử và kết hợp mask
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-008
+    title: Reduction, chuyển kiểu và sắp xếp lại lane theo yêu cầu thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-009
+    title: Khác biệt kết quả dấu phẩy động và yêu cầu về sai số khi vector hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-010
+    title: Đánh giá hỗ trợ phần cứng, biên dịch JIT và đường thực thi dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-011
+    title: Bài tập tính tích vô hướng, lọc dữ liệu và so sánh hiệu năng với vòng lặp vô hướng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practice-and-migration
+  title: Vận dụng và nâng cấp
+  childs:
+  - slug: practice-and-migration-001
+    title: 'Lập bảng tính năng theo JDK: nguồn gốc Java 22, trạng thái hiện tại và tùy chọn chạy'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-002
+    title: Đồng bộ JDK của IDE, javac, java và công cụ build cho từng bài thực hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-003
+    title: Quy tắc biên dịch và chạy preview trong cùng phiên bản JDK; phân biệt với incubator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-004
+    title: Chọn --release phù hợp và hiểu giới hạn khi gọi API chỉ có ở JDK mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-005
+    title: 'Bài tập FFM: đọc cấu trúc nhị phân và gọi một hàm trong thư viện native'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-006
+    title: 'Bài tập Gatherers: xử lý dữ liệu theo cửa sổ với bộ nhớ có giới hạn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-007
+    title: 'Bài tập Class File API: phân tích phương thức và xác minh bytecode sau biến đổi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-008
+    title: 'Bài tập ngữ cảnh yêu cầu: ScopedValue và cây tác vụ trên JDK hỗ trợ tương ứng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-009
+    title: Đo hiệu năng với JMH, kiểm soát warmup và phân tích GC thay vì suy luận từ cú pháp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-010
+    title: Chuyển khỏi JDK 22 sang JDK được hỗ trợ, thay API preview bằng bản chính thức khi có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-migration-011
+    title: Rà soát tương thích, cấu hình native access và tài liệu triển khai trước khi sử dụng thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

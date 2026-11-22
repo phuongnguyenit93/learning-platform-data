@@ -1,0 +1,57 @@
+roadmap:
+- id: buc-tranh-lien-ket-danh-tinh
+  title: Bức tranh liên kết danh tính
+  purpose: Hiểu vì sao ứng dụng chấp nhận danh tính do một hệ thống khác xác thực.
+  objectives:
+  - Phân biệt liên kết danh tính (federation), đăng nhập một lần (SSO) và phân quyền.
+  - 'Nhận diện nhà cung cấp danh tính (IdP) và ứng dụng tin cậy: SP trong SAML, RP trong OIDC.'
+  - So sánh vai trò của SAML 2.0 và OIDC trong đăng nhập liên kết.
+- id: thiet-lap-quan-he-tin-cay
+  title: Thiết lập quan hệ tin cậy
+  purpose: Xác định bên được tin cậy và thông tin cần trao đổi trước khi cho phép đăng nhập.
+  objectives:
+  - Đối chiếu issuer của OIDC và entity ID của SAML với cấu hình đã duyệt.
+  - Đọc discovery OIDC hoặc metadata SAML để nhận diện endpoint và khóa xác minh.
+  - Giải thích việc bảo vệ, cập nhật khóa và chứng thư của các bên.
+- id: tich-hop-nha-cung-cap-oidc
+  title: Tích hợp nhà cung cấp OIDC
+  purpose: Áp dụng OIDC vào đăng nhập liên kết cho ứng dụng Spring Security.
+  objectives:
+  - Cấu hình ClientRegistration, issuer-uri và redirect URI cho nhà cung cấp.
+  - Theo dõi luồng đăng nhập bằng oauth2Login và nhận OidcUser.
+  - Phân biệt danh tính trong ID Token với quyền truy cập tài nguyên bằng Access Token.
+- id: tich-hop-saml-2-0
+  title: Tích hợp SAML 2.0
+  purpose: Cho ứng dụng đóng vai trò Service Provider và tiếp nhận kết quả xác thực từ IdP.
+  objectives:
+  - Mô tả AuthnRequest, Response, Assertion và endpoint ACS.
+  - Cấu hình RelyingPartyRegistration, metadata và saml2Login.
+  - Giải thích việc xác minh chữ ký, bên phát hành, bên nhận và thời hạn assertion.
+- id: nhieu-nha-cung-cap-danh-tinh
+  title: Nhiều nhà cung cấp danh tính
+  purpose: Tổ chức lựa chọn và cấu hình IdP mà vẫn giữ riêng từng quan hệ tin cậy.
+  objectives:
+  - Đăng ký nhiều nhà cung cấp và chọn đúng registration cho luồng đăng nhập.
+  - Phân biệt kết nối trực tiếp với mô hình qua bộ trung gian danh tính (identity broker).
+  - Ngăn dùng nhầm cấu hình tin cậy giữa các nhà cung cấp hoặc tổ chức.
+- id: danh-tinh-va-quyen-noi-bo
+  title: Danh tính và quyền nội bộ
+  purpose: Chuyển danh tính bên ngoài thành người dùng và quyền phù hợp với ứng dụng.
+  objectives:
+  - Dùng cặp issuer/sub trong OIDC hoặc định danh SAML ổn định theo thỏa thuận với IdP.
+  - Ánh xạ claim hoặc thuộc tính tin cậy thành hồ sơ và GrantedAuthority.
+  - Thiết kế liên kết tài khoản có xác minh; tránh tự gộp chỉ vì trùng email.
+- id: phien-va-dang-xuat-lien-ket
+  title: Phiên và đăng xuất liên kết
+  purpose: Hiểu vòng đời phiên tại ứng dụng và tại nhà cung cấp danh tính.
+  objectives:
+  - Phân biệt phiên cục bộ với phiên SSO tại IdP.
+  - So sánh đăng xuất cục bộ, OIDC RP-Initiated Logout và SAML Single Logout.
+  - Kiểm chứng hành vi khi phiên hết hạn hoặc một bên không hỗ trợ đăng xuất phối hợp.
+- id: kiem-chung-va-van-hanh-an-toan
+  title: Kiểm chứng và vận hành an toàn
+  purpose: Chứng minh quan hệ tin cậy hoạt động đúng và nhận diện lỗi tích hợp.
+  objectives:
+  - Kiểm thử đăng nhập, ánh xạ quyền và đăng xuất với IdP thật.
+  - Kiểm thử sai issuer/audience, chữ ký, thời hạn và phản hồi không khớp yêu cầu.
+  - Rà soát chống phát lại, thay khóa và log chẩn đoán không lộ dữ liệu danh tính.

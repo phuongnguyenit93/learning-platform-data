@@ -1,0 +1,1936 @@
+menu:
+- slug: spotless-overview
+  title: Tổng quan về Spotless và chuẩn định dạng trong dự án Java
+  childs:
+  - slug: spotless-overview-001
+    title: Spotless là gì và vị trí trong quy trình bảo đảm chất lượng mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-overview-002
+    title: Những vấn đề do định dạng không nhất quán gây ra khi làm việc nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-overview-003
+    title: Phân biệt Spotless với formatter engine, Checkstyle, PMD và SpotBugs
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-overview-004
+    title: Phạm vi kiểm tra định dạng và giới hạn đối với tính đúng đắn của chương trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-overview-005
+    title: Chọn Gradle hoặc Maven để đưa chuẩn định dạng vào bản dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-overview-006
+    title: Xác lập nguồn cấu hình chung cho lập trình viên, IDE và CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-overview-007
+    title: Tiêu chí hoàn thành việc áp dụng Spotless cho một dự án Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: environment-and-versions
+  title: Chuẩn bị môi trường và lựa chọn phiên bản
+  childs:
+  - slug: environment-and-versions-001
+    title: Kiểm tra cấu trúc dự án, công cụ build và các thư mục mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-and-versions-002
+    title: Phân biệt JDK chạy Gradle hoặc Maven với Java toolchain và mức ngôn ngữ nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-and-versions-003
+    title: Đối chiếu tương thích giữa Spotless, formatter engine, JDK và công cụ build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-and-versions-004
+    title: Sử dụng Gradle Wrapper hoặc Maven Wrapper để thống nhất lệnh thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-and-versions-005
+    title: Ghim riêng phiên bản plugin Spotless và phiên bản formatter engine
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-and-versions-006
+    title: Chuẩn bị kho tải plugin, formatter và cấu hình truy cập qua proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-and-versions-007
+    title: Kiểm tra quyền thực thi wrapper, đường dẫn có khoảng trắng và shell trên Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-and-versions-008
+    title: Ghi nhận trạng thái Git trước lần áp dụng định dạng đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: formatting-workflow
+  title: Cơ chế hoạt động và vòng lặp kiểm tra, áp dụng
+  childs:
+  - slug: formatting-workflow-001
+    title: Mô hình format, tập file đích và chuỗi FormatterStep
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-workflow-002
+    title: Tác động của thứ tự các bước lên kết quả định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-workflow-003
+    title: Phân biệt thao tác check và apply cùng tác động lên file nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-workflow-004
+    title: Đọc thông báo vi phạm, đường dẫn file và diff do Spotless cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-workflow-005
+    title: Quy trình check, apply, xem diff và check lại trước khi commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-workflow-006
+    title: Tính xác định khi chạy cùng cấu hình trên các máy khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-workflow-007
+    title: Tính lũy đẳng và cách nhận biết formatter làm thay đổi file qua nhiều lần chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-workflow-008
+    title: Phân biệt lỗi phong cách, lỗi cấu hình và lỗi thực thi formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gradle-setup
+  title: Thiết lập Spotless cho Gradle
+  childs:
+  - slug: gradle-setup-001
+    title: Khai báo plugin com.diffplug.spotless trong build.gradle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-002
+    title: Khai báo plugin Spotless bằng Kotlin DSL trong build.gradle.kts
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-003
+    title: Cấu hình khối spotless và java với một formatter tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-004
+    title: Chạy spotlessCheck và spotlessApply qua Gradle Wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-005
+    title: Chạy riêng spotlessJavaCheck và spotlessJavaApply cho mã Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-006
+    title: Kiểm tra quan hệ giữa spotlessCheck, check và build khi áp dụng plugin Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-007
+    title: Quản lý phiên bản plugin bằng pluginManagement hoặc version catalog
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-008
+    title: Đặt cấu hình formatter ở đúng project và giải quyết đường dẫn file cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-009
+    title: Dùng tasks và thông tin chẩn đoán Gradle để xác nhận plugin đã được áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-setup-010
+    title: Hiểu tác động của enforceCheck trước khi thay đổi liên kết kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: maven-setup
+  title: Thiết lập Spotless cho Maven
+  childs:
+  - slug: maven-setup-001
+    title: Khai báo com.diffplug.spotless:spotless-maven-plugin trong pom.xml
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-002
+    title: Cấu hình khối java và formatter tối thiểu bằng XML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-003
+    title: Chạy spotless:check và spotless:apply qua Maven Wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-004
+    title: Khai báo execution của goal check để tham gia lifecycle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-005
+    title: Hiểu phase mặc định verify của goal check và chọn phase phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-006
+    title: Phân biệt khai báo trong plugins với quản lý mặc định qua pluginManagement
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-007
+    title: Quản lý phiên bản Spotless và formatter bằng properties
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-008
+    title: Phân biệt configuration ở cấp plugin với configuration của từng execution
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-009
+    title: Xác nhận cấu hình thực tế bằng effective-pom và log Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-setup-010
+    title: Tác động của profile và tham số skip đối với việc thực thi kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-formatter-selection-configuration
+  title: Lựa chọn và cấu hình Java formatter
+  childs:
+  - slug: java-formatter-selection-configuration-001
+    title: So sánh google-java-format, Eclipse JDT và Palantir Java Format theo nhu cầu nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-002
+    title: Cấu hình googleJavaFormat trong Gradle và Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-003
+    title: Lựa chọn Google Style hoặc AOSP Style khi formatter hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-004
+    title: Đối chiếu tùy chọn xuống dòng và giới hạn độ dài dòng theo phiên bản formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-005
+    title: Cấu hình Eclipse JDT từ file XML được quản lý trong repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-006
+    title: Xuất profile Eclipse và kiểm tra tính tương thích với phiên bản JDT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-007
+    title: Cấu hình palantirJavaFormat và kiểm chứng kết quả trên mã mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-008
+    title: Đánh giá khả năng xử lý phiên bản Java và cú pháp mới của từng engine
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-009
+    title: Chọn một formatter chính cho mỗi tập file và tránh các quy tắc đối nghịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-formatter-selection-configuration-010
+    title: Phân biệt thay đổi định dạng với refactor mã nguồn bằng Cleanthat
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-import-management
+  title: Quản lý import và thứ tự các bước Java
+  childs:
+  - slug: java-import-management-001
+    title: Cấu hình importOrder theo các nhóm package của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-002
+    title: Sắp xếp static import tách biệt với import thông thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-003
+    title: Xử lý nhóm import chưa được khai báo trong quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-004
+    title: Dùng file thứ tự import được xuất từ Eclipse
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-005
+    title: Loại bỏ import không sử dụng bằng removeUnusedImports
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-006
+    title: Xác lập chính sách wildcard import và khả năng hỗ trợ của phiên bản Spotless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-007
+    title: Phân biệt cấm wildcard import với tự động mở rộng wildcard import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-008
+    title: Kiểm tra tương tác giữa formatter engine và quy tắc sắp xếp import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-009
+    title: Chọn thứ tự formatter, importOrder và removeUnusedImports bằng kết quả thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-import-management-010
+    title: Đồng bộ chính sách import giữa Spotless và chức năng optimize imports của IDE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: file-targeting-and-exclusions
+  title: Xác định phạm vi file và loại trừ
+  childs:
+  - slug: file-targeting-and-exclusions-001
+    title: Hiểu phạm vi Java mặc định của plugin Gradle và plugin Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-002
+    title: Chỉ định target và targetExclude trong Gradle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-003
+    title: Khai báo includes và excludes cho Java trong Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-004
+    title: Bổ sung source set kiểm thử tích hợp và thư mục Java tùy chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-005
+    title: Loại trừ mã được sinh, thư mục build và target khỏi phạm vi định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-006
+    title: Bảo vệ mã bên thứ ba, file mẫu chuẩn và dữ liệu kiểm thử nhạy với khoảng trắng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-007
+    title: Phân biệt glob trong cấu hình phạm vi với regex của tham số spotlessFiles
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-008
+    title: Giới hạn một lần chạy Gradle bằng thuộc tính -PspotlessFiles
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-009
+    title: Giới hạn một lần chạy Maven bằng thuộc tính -DspotlessFiles
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-targeting-and-exclusions-010
+    title: Kiểm chứng đường dẫn tuyệt đối, dấu phân cách và cách quote mẫu file trong shell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: whitespace-encoding-and-line-endings
+  title: Khoảng trắng, mã hóa và ký tự kết thúc dòng
+  childs:
+  - slug: whitespace-encoding-and-line-endings-001
+    title: Cấu hình encoding thống nhất và bảo toàn tiếng Việt trong mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-encoding-and-line-endings-002
+    title: Nhận biết UTF-8, BOM và lỗi đọc file sai bảng mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-encoding-and-line-endings-003
+    title: Loại bỏ khoảng trắng cuối dòng bằng trimTrailingWhitespace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-encoding-and-line-endings-004
+    title: Bổ sung ký tự xuống dòng cuối file bằng endWithNewline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-encoding-and-line-endings-005
+    title: Thống nhất tab và space theo formatter cùng quy ước của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-encoding-and-line-endings-006
+    title: Phân biệt LF, CRLF và ảnh hưởng khi cộng tác giữa Windows với Linux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-encoding-and-line-endings-007
+    title: Phối hợp lineEndings với .gitattributes và thiết lập Git trên máy cá nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: whitespace-encoding-and-line-endings-008
+    title: Giới hạn vai trò của .editorconfig theo công cụ và formatter đang sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-syntax-comments-and-javadoc
+  title: Định dạng cấu trúc Java, chú thích và Javadoc
+  childs:
+  - slug: java-syntax-comments-and-javadoc-001
+    title: Kiểm tra bố cục package, import, khai báo lớp và thành viên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-syntax-comments-and-javadoc-002
+    title: Quan sát cách formatter xuống dòng cho lời gọi hàm và biểu thức dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-syntax-comments-and-javadoc-003
+    title: Định dạng generic, lambda, stream chain và annotation trên mã mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-syntax-comments-and-javadoc-004
+    title: Đánh giá hỗ trợ record, sealed class, switch expression và cú pháp Java mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-syntax-comments-and-javadoc-005
+    title: Kiểm tra hành vi đối với text block và chuỗi nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-syntax-comments-and-javadoc-006
+    title: Cấu hình việc định dạng Javadoc theo khả năng của formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-syntax-comments-and-javadoc-007
+    title: Cân nhắc formatAnnotations và thứ tự với formatter Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-syntax-comments-and-javadoc-008
+    title: Bảo vệ nội dung chú thích và ví dụ tài liệu trước các bước thay thế văn bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: license-headers
+  title: Quản lý license header
+  childs:
+  - slug: license-headers-001
+    title: Thêm licenseHeader hoặc licenseHeaderFile trong cấu hình Gradle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: license-headers-002
+    title: Khai báo licenseHeader bằng nội dung hoặc file trong Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: license-headers-003
+    title: Quản lý mẫu header dùng chung và đường dẫn theo từng module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: license-headers-004
+    title: Hiểu biến năm bản quyền và chính sách cập nhật năm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: license-headers-005
+    title: Chọn điểm chèn header phù hợp với cấu trúc file Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: license-headers-006
+    title: Xử lý package-info.java, module-info.java và file có header hiện hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: license-headers-007
+    title: Kiểm tra tương tác giữa header, formatter và file được sinh tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: supporting-file-formatting
+  title: Định dạng file hỗ trợ trong dự án Java
+  childs:
+  - slug: supporting-file-formatting-001
+    title: Tạo format riêng cho file văn bản ngoài mã Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-file-formatting-002
+    title: Giới hạn các bước khoảng trắng cho .gitignore và .gitattributes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-file-formatting-003
+    title: Lựa chọn formatter phù hợp cho build.gradle và build.gradle.kts
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-file-formatting-004
+    title: Cấu hình định dạng pom.xml và đánh giá tác động của sắp xếp phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-file-formatting-005
+    title: Chỉ bổ sung JSON, YAML hoặc Markdown khi đã chọn engine tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-file-formatting-006
+    title: Tránh hai khối format cùng quản lý một tập file bằng quy tắc xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: supporting-file-formatting-007
+    title: Kiểm tra dependency bổ sung và thời gian chạy khi mở rộng loại file
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: formatting-exceptions-and-custom-steps
+  title: Ngoại lệ định dạng và bước tùy chỉnh
+  childs:
+  - slug: formatting-exceptions-and-custom-steps-001
+    title: Xác định trường hợp cần ngoại lệ cùng phạm vi nhỏ nhất có thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-002
+    title: Bật toggleOffOn và dùng cặp spotless:off, spotless:on
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-003
+    title: Phân biệt marker của Spotless với marker riêng của formatter engine
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-004
+    title: Kiểm tra vùng tắt định dạng và cách đặt marker đầy đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-005
+    title: Dùng replace hoặc replaceRegex cho phép biến đổi văn bản đã được giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-006
+    title: Tạo custom step trong Gradle và xác định đầu vào, đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-007
+    title: Đánh giá tác động của custom step đến tính lũy đẳng và cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-008
+    title: Phân biệt loại trừ file, bỏ qua lỗi formatter và bỏ qua kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-exceptions-and-custom-steps-009
+    title: Quản lý lý do, người phụ trách và thời hạn rà soát từng ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gradle-multi-module-configuration
+  title: Chia sẻ cấu hình trong dự án Gradle nhiều module
+  childs:
+  - slug: gradle-multi-module-configuration-001
+    title: Phân biệt cấu hình root project và cấu hình subproject
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-multi-module-configuration-002
+    title: Áp dụng Spotless có chọn lọc cho các module chứa mã Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-multi-module-configuration-003
+    title: Tổ chức convention plugin để tái sử dụng chuẩn định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-multi-module-configuration-004
+    title: Quản lý formatter profile và import order tại một vị trí chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-multi-module-configuration-005
+    title: Giải quyết đường dẫn từ root project và project hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-multi-module-configuration-006
+    title: Chạy task của một subproject và điều phối kiểm tra nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-multi-module-configuration-007
+    title: Cho phép ngoại lệ module mà vẫn giữ phần cấu hình cốt lõi thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-multi-module-configuration-008
+    title: Kiểm tra tương thích của cách chia sẻ cấu hình với configuration cache và isolated projects
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: maven-multi-module-configuration
+  title: Kế thừa cấu hình trong dự án Maven nhiều module
+  childs:
+  - slug: maven-multi-module-configuration-001
+    title: Phân biệt parent POM với aggregator POM trong reactor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-multi-module-configuration-002
+    title: Đặt phiên bản và cấu hình chuẩn tại parent POM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-multi-module-configuration-003
+    title: Kích hoạt plugin ở module con khi cấu hình nằm trong pluginManagement
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-multi-module-configuration-004
+    title: Kiểm soát kế thừa executions và configuration qua các cấp POM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-multi-module-configuration-005
+    title: Quản lý đường dẫn formatter profile và license header khi chạy từ thư mục khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-multi-module-configuration-006
+    title: Chạy Spotless cho toàn reactor hoặc chọn module bằng -pl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-multi-module-configuration-007
+    title: Xử lý module đóng gói pom và module không chứa mã Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-multi-module-configuration-008
+    title: Đóng gói tài nguyên cấu hình chung khi nhiều repository cần cùng tiêu chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ide-integration
+  title: Đồng bộ Spotless với IDE
+  childs:
+  - slug: ide-integration-001
+    title: Chọn cấu hình build làm chuẩn tham chiếu cho thao tác định dạng trong IDE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-002
+    title: Thiết lập IntelliJ IDEA để chạy task hoặc goal Spotless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-003
+    title: Phối hợp formatter tích hợp trong IntelliJ với engine đã chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-004
+    title: Đồng bộ Eclipse formatter profile và import order với cấu hình build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-005
+    title: Thiết lập tác vụ định dạng Java trong Visual Studio Code
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-006
+    title: Thống nhất JDK và phiên bản công cụ khi IDE khác môi trường dòng lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-007
+    title: Thiết kế format on save và optimize imports để tránh định dạng qua lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-008
+    title: Kiểm tra mã sau khi dùng code generation, quick fix hoặc refactor của IDE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ide-integration-009
+    title: Hướng dẫn lập trình viên mới kiểm tra cấu hình IDE bằng lệnh check
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: git-hooks-and-code-review
+  title: Quy trình Git, hook và review thay đổi
+  childs:
+  - slug: git-hooks-and-code-review-001
+    title: Tách thay đổi định dạng hàng loạt khỏi thay đổi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-hooks-and-code-review-002
+    title: Xem diff để xác nhận phạm vi file và nội dung bị thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-hooks-and-code-review-003
+    title: Lựa chọn kiểm tra ở pre-commit hoặc pre-push theo quy trình nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-hooks-and-code-review-004
+    title: Hiểu hành vi của hook Spotless được cài đặt bởi từng plugin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-hooks-and-code-review-005
+    title: Xử lý file chỉ stage một phần khi hook có thể gọi apply
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-hooks-and-code-review-006
+    title: Tránh hook sửa âm thầm các thay đổi chưa được đưa vào commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-hooks-and-code-review-007
+    title: Phối hợp định dạng với rebase, merge và giải quyết xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-hooks-and-code-review-008
+    title: Dùng quy ước review để chuyển thảo luận phong cách thành cấu hình có thể kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-formatting-checks
+  title: Tích hợp CI và cổng kiểm tra định dạng
+  childs:
+  - slug: ci-formatting-checks-001
+    title: Thiết kế job CI chạy check và thất bại khi có vi phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-002
+    title: Gọi Gradle Wrapper với spotlessCheck trong pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-003
+    title: Gọi Maven Wrapper với spotless:check hoặc lifecycle đã gắn execution
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-004
+    title: Xây dựng quy trình kiểm tra Spotless trên GitHub Actions
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-005
+    title: Áp dụng cùng nguyên tắc cho GitLab CI hoặc Jenkins
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-006
+    title: Đồng bộ JDK, phiên bản formatter và file cấu hình giữa máy cá nhân với runner
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-007
+    title: Chuẩn bị checkout và Git reference khi pipeline sử dụng ratchetFrom
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-008
+    title: Cache dependency của công cụ build mà vẫn phản ánh thay đổi cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-009
+    title: Cung cấp log, diff và lệnh apply để người phát triển tự sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-formatting-checks-010
+    title: Kiểm chứng job kiểm tra bằng một thay đổi định dạng sai có chủ ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: legacy-code-adoption
+  title: Triển khai dần trên mã nguồn hiện hữu
+  childs:
+  - slug: legacy-code-adoption-001
+    title: Khảo sát số file vi phạm và ước lượng phạm vi diff ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-adoption-002
+    title: Chọn định dạng toàn bộ một lần hoặc áp dụng dần theo thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-adoption-003
+    title: Cấu hình ratchetFrom cho Gradle và Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-adoption-004
+    title: Lựa chọn mốc nhánh từ xa hoặc tag thay cho mốc dễ dịch chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-adoption-005
+    title: Hiểu ratchet giới hạn theo file thay đổi, không chỉ theo dòng sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-adoption-006
+    title: Xử lý shallow clone, thiếu reference và cập nhật mốc so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-adoption-007
+    title: Phối hợp rollout giữa các nhánh phát triển đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-code-adoption-008
+    title: Đặt tiêu chí kết thúc giai đoạn áp dụng dần và mở rộng kiểm tra toàn bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-reproducibility
+  title: Hiệu năng và khả năng tái lập kết quả
+  childs:
+  - slug: performance-and-reproducibility-001
+    title: Phân biệt chi phí tải formatter, khởi động công cụ build và xử lý file
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-reproducibility-002
+    title: Tận dụng up-to-date checking và build cache của Gradle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-reproducibility-003
+    title: Hiểu incremental up-to-date checking và index của plugin Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-reproducibility-004
+    title: Đo tác động của clean, thay đổi cấu hình và nâng phiên bản engine
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-reproducibility-005
+    title: Thu hẹp target hợp lý trước khi thêm cơ chế tối ưu khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-reproducibility-006
+    title: Kiểm tra đầu vào của custom step để tránh cache sai hoặc mất hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-reproducibility-007
+    title: Chuẩn bị dependency cho môi trường offline và kho nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-reproducibility-008
+    title: So sánh kết quả trên checkout sạch và môi trường CI độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spotless-troubleshooting
+  title: Chẩn đoán và xử lý lỗi Spotless
+  childs:
+  - slug: spotless-troubleshooting-001
+    title: Phân loại build thất bại do vi phạm định dạng hay formatter không thực thi được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-002
+    title: Xử lý lỗi không tìm thấy plugin, task Gradle hoặc goal Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-003
+    title: Tìm nguyên nhân check thành công nhưng không có file nào được kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-004
+    title: Chẩn đoán vi phạm còn tồn tại sau khi đã chạy apply
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-005
+    title: Tìm nguồn xung đột khi IDE và Spotless liên tục sửa lại cùng một file
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-006
+    title: Xử lý lỗi parser không hỗ trợ cú pháp hoặc mức ngôn ngữ Java hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-007
+    title: Chẩn đoán lỗi JDK runtime, truy cập module và dependency của formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-008
+    title: Xử lý lỗi tải artifact, proxy, chứng chỉ và kho formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-009
+    title: Tìm nguyên nhân diff toàn file do encoding, BOM hoặc line ending
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-010
+    title: Chẩn đoán lỗi license header và sai đường dẫn profile trong nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-011
+    title: Xử lý lỗi thiếu Git reference khi dùng ratchetFrom trên CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spotless-troubleshooting-012
+    title: Thu nhỏ file tái hiện và cô lập formatter step gây thay đổi không ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: formatting-maintenance-and-upgrades
+  title: Bảo trì và nâng cấp chuẩn định dạng
+  childs:
+  - slug: formatting-maintenance-and-upgrades-001
+    title: Theo dõi changelog của Spotless và formatter engine trước khi nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-maintenance-and-upgrades-002
+    title: Thử phiên bản mới trên tập mã đại diện cho cú pháp Java của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-maintenance-and-upgrades-003
+    title: So sánh diff trước và sau khi nâng cấp plugin hoặc formatter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-maintenance-and-upgrades-004
+    title: Kiểm tra lại check, apply và tính lũy đẳng sau thay đổi cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-maintenance-and-upgrades-005
+    title: Đánh giá cấu hình kế thừa, cache và IDE khi thay chuẩn dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-maintenance-and-upgrades-006
+    title: Lập kế hoạch phát hành cấu hình và cập nhật đồng bộ các repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-maintenance-and-upgrades-007
+    title: Thiết lập người phụ trách cùng quy trình chấp nhận thay đổi phong cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: formatting-maintenance-and-upgrades-008
+    title: Chuẩn bị cách khôi phục cấu hình và phiên bản khi nâng cấp gây vấn đề
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gradle-integration-workshop
+  title: Thực hành tích hợp Spotless với Gradle
+  childs:
+  - slug: gradle-integration-workshop-001
+    title: Khởi tạo bài tập Java có mã sai định dạng, import thừa và thiếu newline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-integration-workshop-002
+    title: Thiết lập Spotless bằng Groovy DSL và chuyển cấu hình tương đương sang Kotlin DSL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-integration-workshop-003
+    title: Chọn formatter, quy tắc import và phạm vi main, test
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-integration-workshop-004
+    title: Chạy check để thu bằng chứng lỗi, apply để sửa và xem diff
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-integration-workshop-005
+    title: Loại trừ mã được sinh rồi xác nhận file đó không bị thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-integration-workshop-006
+    title: Chia sẻ cấu hình qua convention plugin cho hai module Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-integration-workshop-007
+    title: Kết nối IDE và job CI với cùng task kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gradle-integration-workshop-008
+    title: Nghiệm thu bằng check thành công và lần apply tiếp theo không tạo diff
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: maven-integration-workshop
+  title: Thực hành tích hợp Spotless với Maven
+  childs:
+  - slug: maven-integration-workshop-001
+    title: Chuẩn bị bài tập Maven chứa mã Java và cấu hình định dạng chưa thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-integration-workshop-002
+    title: Khai báo plugin, phiên bản formatter và quy tắc import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-integration-workshop-003
+    title: Gắn goal check vào lifecycle rồi xác nhận bằng Maven verify
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-integration-workshop-004
+    title: Thử includes, excludes và giới hạn file bằng spotlessFiles
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-integration-workshop-005
+    title: Tổ chức parent POM và module con cùng dùng một formatter profile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-integration-workshop-006
+    title: Tái hiện lỗi JDK hoặc Git reference và áp dụng quy trình chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-integration-workshop-007
+    title: Kết hợp IDE, hook và pipeline kiểm tra cho dự án Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: maven-integration-workshop-008
+    title: Nghiệm thu bằng apply, check, verify và đối chiếu diff trên checkout sạch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

@@ -1,0 +1,297 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Markdown là gì và vai trò trong việc viết tài liệu
+  - Flexmark là gì và quan hệ với Markdown, CommonMark, GFM
+  - Luồng xử lý từ văn bản Markdown qua cây cú pháp đến HTML
+  - Phân biệt cú pháp khối, cú pháp nội dòng và phần mở rộng
+  - Giới hạn của Markdown, Flexmark và công cụ hiển thị
+  - Cách đọc, chạy và đối chiếu ví dụ trong module
+- level1: Thiết lập
+  level2:
+  - Chọn bộ thư viện flexmark và quản lý phiên bản phụ thuộc
+  - Khai báo phụ thuộc bằng Gradle hoặc Maven
+  - Chuẩn bị văn bản UTF-8 và quy ước xuống dòng
+  - Ví dụ đầu tiên với Parser và HtmlRenderer
+  - Tổ chức cấu hình dùng chung cho bộ phân tích và bộ kết xuất
+  - Đọc tệp Markdown và ghi kết quả HTML
+  - Phân biệt cấu hình thư viện với cấu hình trình xem tài liệu
+- level1: Bố cục tài liệu
+  level2:
+  - Xác định người đọc, mục đích và phạm vi tài liệu
+  - Sắp xếp tiêu đề, phần mở đầu, nội dung và tài liệu tham khảo
+  - Chia chương, mục và đoạn theo một luồng đọc rõ ràng
+  - Chọn tên mục ngắn, nhất quán và dễ tìm kiếm
+  - Viết hướng dẫn có điều kiện đầu vào, thao tác và kết quả
+  - Phân biệt hướng dẫn bắt đầu, giải thích, chỉ dẫn và tra cứu
+  - Thiết kế một tài liệu mẫu có thể tái sử dụng
+- level1: Văn bản
+  level2:
+  - Tạo đoạn văn và phân tách đoạn bằng dòng trống
+  - Phân biệt xuống dòng mềm và xuống dòng cứng
+  - Tạo xuống dòng cứng bằng dấu cách cuối dòng hoặc dấu gạch chéo ngược
+  - Ảnh hưởng của khoảng trắng và tab đến việc phân tích cú pháp
+  - Hiển thị ký tự đặc biệt bằng cơ chế escape
+  - Sử dụng thực thể ký tự và Unicode trong tài liệu
+  - Viết đường dẫn có dấu gạch chéo ngược và ký tự dễ nhầm
+  - Tránh lỗi mất khoảng trắng khi sao chép hoặc định dạng lại
+- level1: Tiêu đề
+  level2:
+  - 'Viết tiêu đề ATX bằng dấu #'
+  - Viết tiêu đề Setext và phân biệt với đường phân cách
+  - Tổ chức phân cấp tiêu đề và tránh nhảy cấp
+  - Đặt tiêu đề dễ hiểu và tránh trùng tên trong cùng tài liệu
+  - Quan hệ giữa tiêu đề, định danh và liên kết đến một mục
+  - Kiểm tra tiêu đề có dấu, dấu câu và nội dung định dạng
+- level1: Định dạng nội dòng
+  level2:
+  - Viết chữ nghiêng bằng dấu * hoặc dấu _
+  - Viết chữ đậm và kết hợp chữ đậm với chữ nghiêng
+  - Quy tắc ranh giới dấu phân cách và dấu gạch dưới trong từ
+  - Tạo mã nội dòng bằng dấu backtick
+  - Hiển thị dấu backtick bên trong mã nội dòng
+  - Phân biệt văn bản có định dạng với nội dung mã nguyên văn
+  - Kết hợp định dạng với liên kết mà vẫn giữ khả năng đọc
+- level1: Danh sách
+  level2:
+  - Viết danh sách không thứ tự bằng -, + hoặc *
+  - Viết danh sách có thứ tự và chọn số bắt đầu
+  - Phân biệt danh sách gọn với danh sách có đoạn cách
+  - Tạo danh sách lồng nhau bằng thụt lề phù hợp
+  - Đặt nhiều đoạn văn trong một mục danh sách
+  - Chèn khối mã, hình ảnh và trích dẫn vào mục danh sách
+  - Tiếp tục danh sách sau một khối nội dung
+  - Chẩn đoán lỗi thụt lề làm danh sách bị tách hoặc biến thành mã
+- level1: Trích dẫn
+  level2:
+  - Tạo khối trích dẫn bằng dấu >
+  - Viết trích dẫn nhiều đoạn và nhiều dòng
+  - Lồng trích dẫn và phối hợp với danh sách
+  - Đặt khối mã hoặc liên kết trong trích dẫn
+  - Phân biệt trích dẫn với khối cảnh báo của phần mở rộng
+  - Ghi nguồn trích dẫn và giữ ranh giới nội dung rõ ràng
+- level1: Khối mã
+  level2:
+  - Tạo khối mã bằng hàng rào backtick hoặc dấu ngã
+  - Tạo khối mã bằng thụt lề và nhận biết giới hạn
+  - Gắn nhãn ngôn ngữ bằng chuỗi thông tin của khối mã
+  - Chọn độ dài hàng rào khi ví dụ chứa chính dấu hàng rào
+  - Giữ nguyên khoảng trắng và ký tự đặc biệt trong mã
+  - Đặt khối mã bên trong danh sách và trích dẫn
+  - Phân biệt Flexmark sinh HTML với công cụ tô màu cú pháp
+  - Viết ví dụ Java, cấu hình và lệnh có thể sao chép chính xác
+- level1: Liên kết
+  level2:
+  - Tạo liên kết nội dòng với địa chỉ và tiêu đề tùy chọn
+  - Tạo liên kết tham chiếu dạng đầy đủ, nhãn rỗng và chỉ có nhãn
+  - Tổ chức khai báo tham chiếu và xử lý nhãn trùng nhau
+  - Viết địa chỉ có khoảng trắng, dấu ngoặc hoặc ký tự cần mã hóa
+  - Phân biệt URL tuyệt đối, URL tương đối và liên kết nội bộ
+  - Liên kết đến một mục trong cùng tệp hoặc tệp khác
+  - Tạo liên kết tự động theo cú pháp lõi
+  - Nhận biết khác biệt giữa liên kết tự động lõi và phần mở rộng
+  - Kiểm tra văn bản liên kết, đích đến và khả năng truy cập
+- level1: Hình ảnh
+  level2:
+  - Chèn hình ảnh với văn bản thay thế và tiêu đề tùy chọn
+  - Sử dụng hình ảnh theo kiểu tham chiếu
+  - Quản lý đường dẫn hình ảnh tương đối theo vị trí tài liệu
+  - Biến hình ảnh thành một liên kết
+  - Viết văn bản thay thế có ý nghĩa cho người đọc
+  - Phân biệt cú pháp ảnh với điều chỉnh kích thước bằng HTML hoặc phần mở rộng
+  - Xử lý ảnh thiếu, ảnh từ xa và đường dẫn khác môi trường
+- level1: Bảng
+  level2:
+  - Bật TablesExtension và nhận biết bảng ngoài cú pháp lõi
+  - Tạo hàng tiêu đề, hàng phân cách và các hàng dữ liệu
+  - Căn trái, căn giữa và căn phải trong bảng
+  - Hiển thị dấu | trong nội dung ô
+  - Kết hợp mã nội dòng, liên kết và định dạng trong ô
+  - Hiểu giới hạn với ô nhiều dòng, ô gộp và nội dung khối
+  - Xử lý số cột không khớp và bảng có dữ liệu khuyết
+  - Chọn bảng hay danh sách theo độ dài và khả năng đọc
+- level1: Tác vụ
+  level2:
+  - Bật TaskListExtension cho danh sách kiểm tra
+  - Viết mục chưa hoàn thành và đã hoàn thành
+  - Lồng mục tác vụ với danh sách thường
+  - Phân biệt trạng thái được viết trong nguồn với tương tác trên HTML
+  - Kiểm tra checkbox, nhãn và cách hiển thị trong trình xem
+  - Dùng danh sách tác vụ cho quy trình và tiêu chí hoàn tất
+- level1: Cú pháp bổ sung
+  level2:
+  - Tạo đường phân cách và tránh nhầm với tiêu đề hoặc danh sách
+  - Bật phần mở rộng gạch xóa và sử dụng cặp dấu ~~
+  - Bật phần mở rộng nhận diện liên kết từ văn bản
+  - Sử dụng dấu ngoặc kép và dấu câu kiểu chữ qua phần mở rộng
+  - Sử dụng emoji và kiểm tra tài nguyên hiển thị
+  - Đánh giá ảnh hưởng của cú pháp bổ sung đến tính tương thích
+- level1: Chú thích
+  level2:
+  - Bật FootnoteExtension và viết lời gọi chú thích
+  - Khai báo nội dung chú thích và liên kết với nhãn
+  - Viết chú thích nhiều đoạn hoặc chứa định dạng
+  - Tái sử dụng chú thích và kiểm tra thứ tự hiển thị
+  - Xử lý chú thích thiếu định nghĩa hoặc trùng nhãn
+  - Phân biệt chú thích cuối trang với liên kết tham chiếu
+  - Kiểm tra liên kết đi tới và quay lại trong HTML
+- level1: Định nghĩa
+  level2:
+  - Bật DefinitionExtension để viết danh sách định nghĩa
+  - Tổ chức thuật ngữ với một hoặc nhiều phần giải nghĩa
+  - Viết phần giải nghĩa nhiều đoạn và có nội dung lồng nhau
+  - Bật AbbreviationExtension và khai báo từ viết tắt
+  - Kiểm tra phạm vi nhận diện từ viết tắt trong văn bản
+  - Xây dựng bảng thuật ngữ nhất quán cho tài liệu dài
+- level1: HTML nhúng
+  level2:
+  - Phân biệt HTML nội dòng với khối HTML
+  - Nhận biết ảnh hưởng của dòng trống và ranh giới khối HTML
+  - Kết hợp Markdown với HTML và kiểm tra vùng còn được phân tích
+  - Chọn HTML khi cần cấu trúc vượt khả năng cú pháp Markdown
+  - Phân biệt giữ nguyên, escape và loại bỏ HTML nhúng
+  - Kiểm tra tính tương thích khi trình xem hạn chế HTML
+  - Giữ nội dung nguồn dễ đọc khi sử dụng HTML bổ sung
+- level1: Thuộc tính
+  level2:
+  - Bật AttributesExtension và nhận biết cú pháp thuộc tính
+  - Gắn id, class và thuộc tính cho phần tử được hỗ trợ
+  - Phân biệt thuộc tính dành cho nội dòng và dành cho khối
+  - Phối hợp thuộc tính với hình ảnh, liên kết và tiêu đề
+  - Xử lý định danh trùng và quy ước đặt tên
+  - Phân biệt gắn class trong HTML với định nghĩa CSS
+  - Kiểm soát các thuộc tính nguy hiểm từ nguồn không tin cậy
+- level1: Mục lục
+  level2:
+  - Chọn TocExtension hoặc SimTocExtension theo cách tạo mục lục
+  - Đặt mục lục vào vị trí phù hợp trong tài liệu
+  - Chọn phạm vi cấp tiêu đề xuất hiện trong mục lục
+  - Phân biệt mục lục tạo khi kết xuất với mục lục được ghi vào nguồn
+  - Phối hợp mục lục với AnchorLinkExtension và định danh tiêu đề
+  - Kiểm tra liên kết với tiêu đề trùng, tiếng Việt và dấu câu
+  - Giữ mục lục chính xác khi đổi tên hoặc chuyển vị trí chương
+- level1: Khối cảnh báo
+  level2:
+  - Bật AdmonitionExtension để viết khối lưu ý và cảnh báo
+  - Tổ chức tiêu đề và nội dung bên trong khối cảnh báo
+  - Phân biệt loại cảnh báo với ý nghĩa mà tài liệu muốn truyền đạt
+  - Lồng danh sách, liên kết và khối mã trong cảnh báo
+  - Chuẩn bị CSS cần thiết để khối cảnh báo hiển thị đúng
+  - Kiểm tra cách đọc thay thế trên môi trường không hỗ trợ phần mở rộng
+- level1: Siêu dữ liệu
+  level2:
+  - Bật YamlFrontMatterExtension và đặt khối front matter
+  - Phân biệt siêu dữ liệu đầu tệp với nội dung tài liệu
+  - Trích xuất siêu dữ liệu để dùng trong quy trình xuất bản
+  - Quy định các trường như tiêu đề, tác giả, nhãn và mô tả
+  - Phân biệt việc nhận diện front matter với kiểm định dữ liệu YAML
+  - Xử lý trường thiếu và giữ nguyên nội dung Markdown phía sau
+- level1: Công thức và sơ đồ
+  level2:
+  - Phân biệt biểu diễn công thức trong nguồn với kết xuất công thức
+  - Xác định cú pháp toán theo phần mở rộng và môi trường đích
+  - Phối hợp HTML đầu ra với bộ hiển thị công thức
+  - Viết sơ đồ Mermaid trong khối mã có nhãn
+  - Phân biệt khối mã Mermaid với sơ đồ đã được dựng hình
+  - Chọn hình ảnh thay thế khi môi trường không hỗ trợ sơ đồ
+  - Kiểm tra tài nguyên, escape và độ tin cậy của nội dung nhúng
+- level1: Hồ sơ cú pháp
+  level2:
+  - Chọn hồ sơ ParserEmulationProfile theo nguồn tài liệu
+  - Phân biệt hỗ trợ GFM với khả năng hiển thị đầy đủ trên GitHub
+  - Đăng ký các phần mở rộng cần thiết cho một hồ sơ tài liệu
+  - Đồng bộ phần mở rộng giữa Parser, HtmlRenderer và Formatter
+  - Nhận biết xung đột cú pháp khi bật nhiều phần mở rộng
+  - Cố định quy ước cú pháp cho cả nhóm biên soạn
+  - Lập bảng khả năng hỗ trợ của các môi trường xuất bản
+  - Kiểm tra tác động khi đổi hồ sơ hoặc nâng phiên bản Flexmark
+- level1: Phân tích cú pháp
+  level2:
+  - Tạo Parser bằng builder và tập tùy chọn DataHolder
+  - Quản lý tùy chọn với MutableDataSet và cấu hình ổn định
+  - Phân tích chuỗi Markdown thành nút Document
+  - Phân biệt kết quả cây cú pháp với HTML đầu ra
+  - Theo dõi ranh giới đoạn, danh sách và khối mã khi phân tích
+  - Kiểm tra văn bản lỗi cú pháp và cách diễn giải thực tế
+  - Tổ chức cấu hình theo từng loại tài liệu
+  - Phân biệt cấu hình bộ phân tích với tùy chọn bộ kết xuất
+- level1: Cây cú pháp
+  level2:
+  - Nhận diện Document, Heading, Paragraph, Text và các nút liên quan
+  - Đọc quan hệ cha, con và anh em trong cây nút
+  - Duyệt cây bằng NodeVisitor và VisitHandler
+  - Trích xuất tiêu đề, liên kết và hình ảnh từ tài liệu
+  - Truy vết nút về đoạn văn bản nguồn
+  - Biến đổi cây nút trước khi kết xuất
+  - Giữ cấu trúc hợp lệ khi thêm, chuyển hoặc xóa nút
+  - Phân biệt lấy văn bản thuần với lấy nguyên cú pháp Markdown
+- level1: Kết xuất HTML
+  level2:
+  - Tạo HtmlRenderer và kết xuất Document
+  - Chọn kết xuất đoạn HTML hay xây dựng trang HTML hoàn chỉnh
+  - Điều khiển cách hiển thị xuống dòng và các phần tử được hỗ trợ
+  - Kết xuất liên kết, hình ảnh và URL theo môi trường đích
+  - Tùy chỉnh thuộc tính đầu ra bằng AttributeProvider
+  - Tùy chỉnh cách giải quyết liên kết bằng LinkResolver
+  - Chuẩn bị CSS, tô màu mã và tài nguyên phía trình xem
+  - Kiểm tra ngữ nghĩa HTML và khả năng truy cập của kết quả
+- level1: Định dạng nguồn
+  level2:
+  - Tạo Formatter để xuất lại Markdown từ cây cú pháp
+  - Phân biệt định dạng nguồn Markdown với kết xuất HTML
+  - Chuẩn hóa khoảng cách, thụt lề và danh sách
+  - Định dạng lại bảng và khai báo tham chiếu
+  - Kiểm tra phần mở rộng có hỗ trợ Formatter tương ứng
+  - Đánh giá thay đổi sau vòng đọc, định dạng và đọc lại
+  - Giữ nguyên ý nghĩa tài liệu khi nguồn được chuẩn hóa
+  - Kiểm tra tính ổn định khi định dạng lặp nhiều lần
+- level1: Mở rộng Flexmark
+  level2:
+  - Xác định khi nào cấu hình có sẵn chưa đáp ứng yêu cầu
+  - Thiết kế cú pháp tùy chỉnh và quy tắc ranh giới
+  - Phân biệt mở rộng bộ phân tích, cây nút và bộ kết xuất
+  - Biểu diễn cú pháp mới bằng loại nút riêng
+  - Kết xuất nút tùy chỉnh bằng NodeRenderer
+  - Bổ sung khả năng định dạng nguồn cho cú pháp tùy chỉnh
+  - Kiểm tra xung đột với cú pháp lõi và phần mở rộng đang dùng
+  - Thiết kế cách hiển thị thay thế cho môi trường không hỗ trợ
+- level1: An toàn
+  level2:
+  - Phân loại nguồn Markdown tin cậy và không tin cậy
+  - Nhận diện nguy cơ XSS qua HTML, URL và thuộc tính
+  - Phân biệt escape HTML với làm sạch HTML đầu ra
+  - Kiểm soát giao thức URL và liên kết nguy hiểm
+  - Xử lý hình ảnh từ xa và nguy cơ lộ thông tin người xem
+  - Giới hạn kích thước đầu vào và độ phức tạp tài liệu
+  - Kiểm soát đường dẫn khi ứng dụng đọc tài nguyên cục bộ
+  - Áp dụng chính sách bảo mật của trang hiển thị tài liệu
+- level1: Kiểm tra chất lượng
+  level2:
+  - Lập bộ mẫu cho cú pháp lõi và các phần mở rộng đã bật
+  - Kiểm tra cây cú pháp và HTML bằng JUnit
+  - So sánh kết quả mong đợi với nguồn chuẩn và hồ sơ cú pháp
+  - Kiểm tra liên kết hỏng, ảnh thiếu và định danh trùng
+  - Kiểm tra phân cấp tiêu đề, văn bản thay thế và văn bản liên kết
+  - Đối chiếu hiển thị trên môi trường xuất bản thực tế
+  - Kiểm tra hồi quy khi đổi cấu hình hoặc nâng thư viện
+  - Đo thời gian và bộ nhớ với tài liệu đại diện
+- level1: Quản lý tài liệu
+  level2:
+  - Tổ chức thư mục tài liệu, hình ảnh và tệp dùng chung
+  - Đặt tên tệp và thiết kế đường dẫn liên kết bền vững
+  - Tách tài liệu dài và giữ điều hướng giữa các phần
+  - Quản lý biến thể ngôn ngữ và liên kết giữa bản dịch
+  - Quy định cách viết ví dụ, lưu ý và tài liệu tham khảo
+  - Rà soát thay đổi Markdown bằng Git và quy trình đánh giá
+  - Quản lý phiên bản tài liệu cùng phiên bản phần mềm
+- level1: Thực hành tổng hợp
+  level2:
+  - Viết README có giới thiệu, cài đặt, ví dụ và mục lục
+  - Viết hướng dẫn thao tác với danh sách, khối mã và cảnh báo
+  - Viết tài liệu tham chiếu có bảng, liên kết và thuật ngữ
+  - Xây dựng chương trình Java chuyển Markdown thành HTML
+  - Kết hợp front matter, cây cú pháp và siêu dữ liệu trang
+  - Tự động kiểm tra và kết xuất tài liệu trong quy trình build
+  - Đóng gói tài nguyên và xuất bản bộ tài liệu tĩnh
+  - Chuyển một tài liệu khác hồ sơ sang cấu hình Flexmark đã chọn
+  - Chẩn đoán tài liệu hiển thị sai và hoàn thiện danh sách kiểm tra

@@ -1,0 +1,3 @@
+menuLevel1: List.copyOf
+menuLevel2: So sánh hợp đồng với new ArrayList và Collections.unmodifiableList
+status: WRITTEN

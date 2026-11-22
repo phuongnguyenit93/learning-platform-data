@@ -1,0 +1,528 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data Commons là gì và vì sao các mô-đun Spring Data cần nó?
+  - Vai trò của Commons trong hệ sinh thái Spring Data
+  - 'Bản đồ khái niệm: entity, aggregate, repository, query method và mapping'
+  - Luồng xử lý từ giao diện repository đến triển khai truy cập dữ liệu
+  - Phân biệt hợp đồng dùng chung với hành vi do từng store triển khai
+  - Quan hệ giữa Commons, Spring Framework, Spring Boot và các store module
+  - Lựa chọn API dùng chung mà vẫn giữ đúng ranh giới nghiệp vụ
+  - Lộ trình học và ví dụ khách hàng–sản phẩm–đơn hàng xuyên suốt tài liệu
+- level1: Phụ thuộc và phiên bản
+  level2:
+  - Artifact spring-data-commons và cách được kéo vào qua starter
+  - Release train, Spring Data BOM và dependency management của Spring Boot
+  - Chọn Java, Spring Framework, Commons và store module tương thích
+  - Kiểm tra dependency tree và phát hiện lệch phiên bản
+  - Phạm vi sử dụng Commons trực tiếp trong thư viện hoặc ứng dụng
+  - Phân biệt tài liệu, API hiện hành và API của phiên bản đang dùng
+  - Quản lý dependency tùy chọn cho reactive, Querydsl, web và Kotlin
+- level1: Khởi tạo thực hành
+  level2:
+  - Chọn một store hỗ trợ để thực thi ví dụ API dùng chung
+  - Chuẩn bị mô hình miền, dữ liệu và cấu hình tối thiểu
+  - Khai báo repository đầu tiên và lấy bean từ Spring
+  - Thực hiện vòng lưu–đọc–sửa–xóa
+  - Quan sát phần hành vi chung và phần truy vấn do store tạo ra
+  - Thiết kế ví dụ độc lập với chi tiết cấu hình cơ sở dữ liệu
+  - Tổ chức project mẫu và kiểm thử tích hợp
+- level1: Giao diện repository
+  level2:
+  - Repository<T, ID> và vai trò marker interface
+  - Chọn kiểu miền và kiểu ID chính xác
+  - Khai báo bằng @RepositoryDefinition
+  - Chỉ công khai các phương thức cần cho nghiệp vụ
+  - Giao diện cơ sở generic và @NoRepositoryBean
+  - CrudRepository và ListCrudRepository
+  - PagingAndSortingRepository và ListPagingAndSortingRepository
+  - Kết hợp CRUD với sorting sau thay đổi hệ phân cấp từ Spring Data 3.0
+  - Giao diện đặc thù store như JpaRepository hoặc MongoRepository
+  - Phân biệt mở rộng hợp đồng repository với kế thừa lớp triển khai
+- level1: Hợp đồng CRUD
+  level2:
+  - save và ý nghĩa kiểu trả về <S extends T>
+  - saveAll, collection đầu vào và đối tượng được trả về
+  - findById, Optional và kết quả không tồn tại
+  - findAll, findAllById và giới hạn bảo đảm thứ tự
+  - existsById, count và chi phí kiểm tra trước khi ghi
+  - delete, deleteById, deleteAllById và deleteAll
+  - Null đầu vào, dữ liệu thiếu và exception theo hợp đồng
+  - Phát hiện entity mới, version và khả năng optimistic locking
+  - Phân biệt hợp đồng CRUD với cơ chế insert/update/merge của từng store
+  - Thao tác hàng loạt, giao dịch và hiệu năng cần kiểm chứng theo store
+- level1: Kích hoạt repository
+  level2:
+  - Quét package và nhận diện giao diện repository
+  - Annotation @Enable...Repositories của từng store module
+  - Auto-configuration trong Spring Boot
+  - basePackages, basePackageClasses và bộ lọc quét
+  - Bean name, repository trùng tên và phạm vi cấu hình
+  - XML namespace khi duy trì hệ thống cấu hình cũ
+  - Tạo repository ngoài ApplicationContext bằng factory phù hợp
+  - Kiểm chứng repository bean đã được đăng ký đúng store
+- level1: Nhiều store
+  level2:
+  - Chế độ cấu hình repository nghiêm ngặt khi có nhiều mô-đun Spring Data
+  - Phân loại repository theo giao diện cơ sở đặc thù store
+  - Phân loại theo annotation của kiểu miền
+  - Tách package để giới hạn quét repository
+  - Mô hình miền có annotation của nhiều store và sự mơ hồ
+  - Chọn template, factory và transaction manager đúng mô-đun
+  - Đánh giá tính di động của API khi chuyển store
+  - Kiểm thử cùng một ca sử dụng trên các store được chọn
+- level1: Proxy và thành phần
+  level2:
+  - Repository proxy được tạo như thế nào?
+  - Vai trò của RepositoryFactorySupport và factory đặc thù store
+  - Phân biệt phương thức cơ sở, query method, default method và fragment
+  - RepositoryComposition và tập RepositoryFragment
+  - Thứ tự điều phối khi nhiều thành phần cùng có một phương thức
+  - Metadata của repository, entity và kiểu kết quả
+  - Interceptor, exception translation và các lớp tích hợp Spring
+  - Đọc stack trace để nhận diện bước đang xử lý lời gọi repository
+  - Ranh giới giữa API mở rộng được hỗ trợ và chi tiết triển khai nội bộ
+- level1: Chiến lược truy vấn
+  level2:
+  - Query method và cách repository quyết định triển khai
+  - CREATE, USE_DECLARED_QUERY và CREATE_IF_NOT_FOUND
+  - Truy vấn suy diễn, truy vấn có annotation và named query
+  - Phạm vi @Query, ngôn ngữ truy vấn và cú pháp bind theo store
+  - QueryMethod, RepositoryQuery và vai trò của QueryLookupStrategy
+  - Tham số nghiệp vụ và tham số đặc biệt như Pageable hoặc Sort
+  - Bind theo tên, theo vị trí và annotation @Param
+  - Thời điểm phát hiện phương thức không hợp lệ hoặc thiếu truy vấn
+  - Chọn truy vấn khai báo hay fragment khi yêu cầu vượt khả năng suy diễn
+- level1: Suy diễn tên phương thức
+  level2:
+  - Tách phần chủ thể và điều kiện tại từ khóa By
+  - find, read, get, query, search và stream theo hỗ trợ
+  - count, exists, delete và remove
+  - PropertyPath và truy cập thuộc tính lồng nhau
+  - Quy tắc tách camel case, dấu gạch dưới và tên thuộc tính mơ hồ
+  - And, Or và giới hạn diễn đạt nhóm điều kiện
+  - So sánh, khoảng giá trị, chuỗi, tập hợp và null theo store
+  - Distinct, IgnoreCase và AllIgnoreCase
+  - OrderBy, First, Top và giới hạn kết quả
+  - Phương thức dành riêng như findById luôn nhắm tới định danh
+  - PartTree và cách kiểm tra tên phương thức trước khi quy lỗi cho cơ sở dữ liệu
+  - Đối chiếu từ khóa Commons với danh sách được store thực sự triển khai
+- level1: Kiểu kết quả truy vấn
+  level2:
+  - Kết quả đơn, Optional và trường hợp nhiều kết quả
+  - Collection, List, Iterable và Iterator
+  - Page, Slice và Window theo khả năng của store
+  - Stream và Streamable
+  - Kiểu wrapper tùy chỉnh và thư viện collection được hỗ trợ
+  - Giá trị scalar, projection và kết quả không có entity
+  - CompletableFuture với @Async trong phạm vi được hỗ trợ
+  - Mono, Flux và các kiểu reactive tương ứng
+  - Xây hợp đồng kết quả rõ ràng cho trường hợp rỗng hoặc lỗi
+- level1: Null và nullability
+  level2:
+  - Phân biệt không có kết quả, giá trị null và collection rỗng
+  - Optional cho kết quả đơn và thiết kế API sử dụng Optional
+  - Ràng buộc null của tham số và kiểu trả về
+  - '@NonNullApi, @NonNull và @Nullable ở các phiên bản Spring Data 3.x'
+  - JSpecify với @NullMarked, @Nullable và @NullUnmarked từ dòng phiên bản hỗ trợ
+  - Phạm vi package, type use và kế thừa annotation
+  - Kiểm tra lúc biên dịch, hỗ trợ IDE và kiểm tra runtime
+  - Nullability của phần tử collection hoặc array
+  - Tương tác với Kotlin và kiểm thử dữ liệu thiếu
+- level1: Sắp xếp
+  level2:
+  - Sort, Sort.Order và Sort.Direction
+  - Thứ tự nhiều thuộc tính và cách kết hợp Sort
+  - ignoreCase, nullHandling và mức hỗ trợ của store
+  - Sort.unsorted và lựa chọn giá trị mặc định
+  - Sắp xếp có kiểu với TypedSort hoặc TypedPropertyPath theo phiên bản
+  - Sắp xếp tĩnh trong tên phương thức và sắp xếp động
+  - Thứ tự ổn định khi nhiều bản ghi cùng giá trị
+  - Kiểm soát tên trường sắp xếp từ đầu vào ngoài ứng dụng
+  - Đánh giá index và chi phí sắp xếp trên store thực tế
+- level1: Phân trang
+  level2:
+  - Pageable và PageRequest với chỉ số trang bắt đầu từ 0
+  - page size, offset và thứ tự sắp xếp
+  - Page, Slice và chi phí biết tổng số kết quả
+  - totalElements, totalPages, hasNext và thông tin điều hướng
+  - PageImpl, SliceImpl và trường hợp tự tạo kết quả
+  - map để đổi nội dung mà giữ metadata phân trang
+  - Page.empty, trang cuối, trang vượt phạm vi và dữ liệu thay đổi giữa các lần đọc
+  - Pageable.unpaged và biến thể có Sort theo phiên bản
+  - Giới hạn và sự kết hợp hợp lệ của Pageable, Sort và Limit
+  - Tính count từ cùng bộ lọc và các tối ưu phụ thuộc triển khai
+  - Thiết kế hợp đồng phân trang cho ứng dụng mà không che chi phí truy vấn
+- level1: Scrolling
+  level2:
+  - Window và ScrollPosition để duyệt dữ liệu theo từng phần
+  - OffsetScrollPosition và ý nghĩa vị trí bắt đầu
+  - Sự khác nhau giữa ScrollPosition.offset() và offset(0)
+  - KeysetScrollPosition và bộ khóa tiếp tục truy vấn
+  - Thứ tự ổn định, khóa phân biệt và chiều duyệt
+  - Thuộc tính sắp xếp, giá trị null và dữ liệu cần trong projection
+  - Lấy vị trí tiếp theo bằng Window.positionAt
+  - WindowIterator và vòng lặp qua nhiều cửa sổ
+  - Limit động hoặc giới hạn First/Top trong phạm vi hỗ trợ
+  - Giới hạn từng store, từng loại query và từng phiên bản
+  - Đánh giá scrolling so với phân trang offset trên tập dữ liệu lớn
+- level1: Luồng và wrapper
+  level2:
+  - Stream<T>, xử lý lười và tài nguyên cơ sở dữ liệu
+  - Đóng Stream bằng try-with-resources
+  - Ranh giới giao dịch khi tiêu thụ stream
+  - Streamable để kết hợp, lọc và chuyển đổi tập kết quả
+  - Wrapper miền nhận Streamable và quy tắc được framework nhận diện
+  - Vavr hoặc các collection khác theo khả năng hỗ trợ
+  - Phân biệt Java Stream, bất đồng bộ với @Async và Reactive Streams
+  - Giới hạn bộ nhớ khi biến kết quả dạng luồng thành collection
+- level1: Projection interface
+  level2:
+  - Khi nào trả projection thay cho entity đầy đủ?
+  - Projection đóng và các accessor khớp thuộc tính
+  - Projection mở bằng @Value và SpEL
+  - Default method cho giá trị dẫn xuất đơn giản
+  - Projection lồng nhau và phạm vi dữ liệu liên quan
+  - Optional và các wrapper null trong accessor
+  - Proxy projection và quá trình ánh xạ giá trị
+  - Giới hạn tối ưu truy vấn của projection mở
+  - Vì sao đổi kiểu trả về của phương thức CRUD cơ sở không tự tạo projection?
+  - Kiểm chứng dữ liệu thực sự được tải ở store
+- level1: DTO và projection động
+  level2:
+  - DTO dựa trên constructor và tên tham số
+  - Java record cho mô hình đọc bất biến
+  - Chọn constructor bằng @PersistenceCreator khi cần
+  - Projection động qua tham số Class<T>
+  - Phân biệt kiểu kết quả projection với kiểu trong hệ kế thừa của entity
+  - Tên thuộc tính, alias và mapping kết quả theo store
+  - Collection và Page của projection
+  - Tách dữ liệu đọc khỏi đầu vào ghi để tránh lưu entity thiếu dữ liệu
+  - Lựa chọn entity, interface projection hoặc DTO theo ca sử dụng
+- level1: Query by Example
+  level2:
+  - Đối tượng mẫu, Example và ExampleMatcher
+  - matchingAll, matchingAny và cách kết hợp điều kiện
+  - withIncludeNullValues, withIgnoreNullValues và trường cần bỏ qua
+  - Ảnh hưởng của kiểu nguyên thủy lên điều kiện mẫu
+  - Khớp chuỗi, ignoreCase và tùy chỉnh từng thuộc tính
+  - Biến đổi giá trị trước khi đối sánh
+  - QueryByExampleExecutor với tìm, đếm và kiểm tra tồn tại
+  - Sắp xếp, phân trang và projection trong phạm vi hỗ trợ
+  - Giới hạn nhóm điều kiện, quan hệ, collection và thuộc tính lồng nhau
+  - Phân biệt đối tượng mẫu của truy vấn với entity được phép ghi
+  - Đối chiếu ý nghĩa ExampleMatcher với hành vi của store
+- level1: Fluent query
+  level2:
+  - FluentQuery và cách điều khiển truy vấn qua hàm callback
+  - FetchableFluentQuery cho API đồng bộ
+  - sortBy, limit, as và project
+  - first, one, all, count và exists
+  - page, slice, scroll và stream theo phiên bản hỗ trợ
+  - Kiểu kết quả Optional so với biến thể trả giá trị trực tiếp
+  - ReactiveFluentQuery và các phép kết thúc tương ứng
+  - Thời điểm thực thi trong callback và giới hạn tái sử dụng đối tượng truy vấn
+  - Tái sử dụng mô hình lọc mà giữ rõ phạm vi store
+- level1: Tích hợp Querydsl
+  level2:
+  - Predicate có kiểu và các lớp Q-type
+  - QuerydslPredicateExecutor và mô-đun triển khai tương ứng
+  - Tìm một hoặc nhiều kết quả, đếm và kiểm tra tồn tại
+  - Kết hợp Predicate với Sort và Pageable
+  - QSort và biểu thức sắp xếp Querydsl trong phạm vi hỗ trợ
+  - Quản lý dependency, annotation processor và Q-type sinh tự động
+  - Đối chiếu phiên bản Querydsl cùng nhánh thư viện tương thích
+  - Giới hạn Querydsl extension so với API truy vấn đầy đủ của store
+  - So sánh Querydsl, QBE và query method theo nhu cầu bộ lọc
+- level1: Repository fragment
+  level2:
+  - Khai báo giao diện fragment và lớp triển khai
+  - Quy ước hậu tố Impl và phạm vi phát hiện
+  - Ghép nhiều fragment vào một repository
+  - Tái sử dụng fragment generic cho nhiều kiểu miền
+  - Thứ tự ưu tiên và xử lý phương thức trùng chữ ký
+  - Ghi đè hành vi phương thức cơ sở có chủ đích
+  - Tiêm phụ thuộc (dependency injection) và vòng đời bean fragment
+  - Triển khai thủ công và xử lý trường hợp tên bean mơ hồ
+  - Đóng gói fragment dùng chung ngoài package quét theo phiên bản hỗ trợ
+  - RepositoryMethodContext và RepositoryMetadataAccess trong phiên bản có tính năng
+  - Phân biệt mô hình fragment với kiểu triển khai duy nhất theo tên repository cũ
+- level1: Factory và metadata
+  level2:
+  - Khi nào cần tùy chỉnh factory thay vì thêm fragment?
+  - RepositoryMetadata và RepositoryInformation
+  - EntityInformation và thông tin kiểu miền, ID, trạng thái mới
+  - RepositoryFactoryBeanSupport và tích hợp FactoryBean của Spring
+  - RepositoryFactorySupport và lớp triển khai do store cung cấp
+  - Thay lớp repository cơ sở qua cấu hình của store
+  - RepositoryFactoryCustomizer và hook mở rộng theo phiên bản
+  - Repositories để tra repository theo kiểu miền
+  - RepositoryInvoker và điều phối lời gọi từ hạ tầng
+  - Chi phí exposeMetadata và giới hạn sử dụng metadata trong lời gọi
+- level1: Metadata ánh xạ
+  level2:
+  - MappingContext và tập kiểu miền được quản lý
+  - PersistentEntity và metadata của một kiểu miền
+  - PersistentProperty, Association và mối quan hệ thuộc tính
+  - IdentifierAccessor và cách đọc định danh
+  - PersistentPropertyAccessor cho truy cập thuộc tính
+  - PropertyPath so với PersistentPropertyPath
+  - TypeInformation, generic, collection và map
+  - '@Id, @Version, @Transient, @Persistent và annotation chung'
+  - '@AccessType, @ReadOnlyProperty và ý nghĩa được store áp dụng'
+  - Ranh giới giữa mapping của Commons với mapping do ORM bên ngoài quản lý
+- level1: Khởi tạo và gán thuộc tính
+  level2:
+  - Hai giai đoạn dựng đối tượng và gán giá trị từ dữ liệu
+  - Quy tắc chọn constructor hoặc static factory
+  - '@PersistenceCreator và xử lý nhiều constructor'
+  - Tên tham số, @ConstructorProperties và tùy chọn -parameters
+  - Java record và canonical constructor
+  - Entity bất biến, phương thức wither và bản sao có ID
+  - Truy cập field, accessor và thuộc tính dẫn xuất
+  - Kế thừa, thuộc tính bị che khuất và xung đột kiểu
+  - Điều kiện dùng bộ khởi tạo/accessor sinh tự động và fallback reflection
+  - Nullability, giá trị mặc định và dữ liệu không đủ để dựng entity
+  - Kiểm thử mô hình miền trước khi tối ưu cơ chế ánh xạ
+- level1: Phát hiện trạng thái
+  level2:
+  - Phân biệt entity mới với entity đã được lưu
+  - Chiến lược kiểm tra thuộc tính @Id
+  - Vai trò của @Version trong nhận diện trạng thái mới
+  - Kiểu nguyên thủy, kiểu bao và giá trị null hoặc 0
+  - Persistable<T> và isNew
+  - ID tự gán, ID do cơ sở dữ liệu sinh và thứ tự gán giá trị
+  - Đánh dấu thuộc tính hỗ trợ isNew bằng @Transient khi cần
+  - PersistentEntity, IsNewStrategy và triển khai đặc thù store
+  - Ảnh hưởng đến save, auditing và optimistic locking
+  - Kiểm chứng hành vi insert/update/merge ở mô-đun đang dùng
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - ConversionService, Converter và vai trò của CustomConversions
+  - '@ReadingConverter và @WritingConverter'
+  - Phân biệt chiều chuyển đổi khi cả hai kiểu đều là kiểu đơn giản
+  - SimpleTypeHolder và kiểu dữ liệu bản địa của store
+  - Đăng ký converter qua cơ chế cấu hình của store
+  - Chuyển đổi value object, enum, tiền tệ và kiểu ID riêng
+  - Ngày giờ, múi giờ và converter JSR-310
+  - Chuyển đổi theo kiểu hoặc theo thuộc tính trong phạm vi hỗ trợ
+  - PropertyValueConverter và ngữ cảnh chuyển đổi theo phiên bản
+  - Kiểm thử đối xứng đọc–ghi và tương thích dữ liệu cũ
+- level1: Biểu thức giá trị
+  level2:
+  - Value expression, SpEL và property placeholder
+  - Biểu thức đơn hoặc kết hợp literal, placeholder và SpEL
+  - Environment, bean và ngữ cảnh đánh giá
+  - Biểu thức trong annotation mapping và phạm vi store hỗ trợ
+  - Biểu thức trong truy vấn khai báo và cú pháp bind riêng từng store
+  - EvaluationContextExtension và dữ liệu mở rộng cho biểu thức
+  - Phân biệt biểu thức cấu hình tin cậy với giá trị do người dùng nhập
+  - Cache, thời điểm đánh giá và chi phí thực thi
+  - Kiểm thử expression khi thiếu property, bean hoặc tham số
+  - Thay đổi API đánh giá biểu thức giữa các phiên bản
+- level1: Vòng đời và callback
+  level2:
+  - EntityCallback và các điểm can thiệp vào vòng đời entity
+  - EntityCallbacks và ReactiveEntityCallbacks
+  - Chọn callback trước/sau chuyển đổi hoặc lưu theo store
+  - Kiểu generic xác định loại entity được xử lý
+  - Ordered, @Order và thứ tự callback
+  - Callback với đối tượng bất biến và giá trị trả về
+  - Phân biệt callback đồng bộ với reactive
+  - Phân biệt EntityCallback với lifecycle ApplicationEvent
+  - Phạm vi thao tác repository/template có kích hoạt callback
+  - Giới hạn khi ghi trực tiếp, cập nhật hàng loạt hoặc dùng driver
+- level1: Auditing
+  level2:
+  - Thông tin ai tạo/sửa và thời điểm tạo/sửa entity
+  - '@CreatedBy, @LastModifiedBy, @CreatedDate và @LastModifiedDate'
+  - Auditable và lựa chọn annotation hoặc interface
+  - AuditorAware và giá trị người thao tác
+  - DateTimeProvider và thời gian kiểm thử xác định
+  - ReactiveAuditorAware và dữ liệu trong Reactor Context
+  - Liên hệ giữa isNew, ID, version và thông tin tạo mới
+  - Kích hoạt auditing bằng cơ chế riêng của từng store
+  - Đối tượng nhúng, entity bất biến và giới hạn ánh xạ metadata
+  - Giới hạn auditing khi bỏ qua quy trình lưu entity
+  - Phân biệt dấu vết lần sửa gần nhất với lịch sử thay đổi đầy đủ
+- level1: Sự kiện aggregate
+  level2:
+  - Vai trò của sự kiện miền trong mô hình aggregate
+  - '@DomainEvents và phương thức cung cấp sự kiện'
+  - '@AfterDomainEventPublication và dọn danh sách sau phát hành'
+  - AbstractAggregateRoot và đăng ký sự kiện
+  - Phương thức repository có truyền aggregate để phát sự kiện
+  - Vì sao deleteById không có cùng điều kiện phát sự kiện?
+  - Phân biệt sự kiện miền, lifecycle event và callback
+  - ApplicationListener, @EventListener và xử lý sự kiện
+  - '@TransactionalEventListener và thời điểm sau commit'
+  - Sự kiện lặp, rollback và giới hạn độ tin cậy của bộ nhớ ứng dụng
+  - Ranh giới giữa phát sự kiện cục bộ với outbox hoặc broker bên ngoài
+- level1: Repository reactive
+  level2:
+  - Reactive Streams, Publisher, Mono và Flux
+  - ReactiveCrudRepository và ReactiveSortingRepository
+  - RxJava3CrudRepository và RxJava3SortingRepository theo mô-đun hỗ trợ
+  - Tách hợp đồng reactive khỏi khả năng I/O không chặn của driver
+  - Thời điểm thực thi khi subscription bắt đầu
+  - Tham số Publisher và kiểu kết quả rỗng
+  - Giới hạn Page, count, Sort và Pageable theo triển khai
+  - Backpressure, hủy đăng ký và quản lý tài nguyên
+  - Kết hợp callback và auditing reactive
+  - Ranh giới Reactor Context, bảo mật và giao dịch do store cung cấp
+  - Tránh block hoặc subscribe thủ công làm mất phạm vi điều phối
+- level1: Kotlin và coroutine
+  level2:
+  - Phạm vi dùng Kotlin bên cạnh mô hình Java trong Spring Data
+  - Nullability Kotlin và metadata phản chiếu
+  - Data class, constructor mặc định và giá trị tham số thiếu
+  - Extension function và ánh xạ generic có kiểu
+  - CoroutineCrudRepository và CoroutineSortingRepository
+  - suspend, Flow và chuyển đổi từ Mono hoặc Flux
+  - Ngữ cảnh coroutine, hủy tác vụ và tích hợp với reactive store
+  - Dependency tùy chọn và giới hạn tính năng theo mô-đun
+  - Kiểm thử tương thích khi cùng dùng entity Java và Kotlin
+- level1: Tham số web
+  level2:
+  - Kích hoạt @EnableSpringDataWebSupport
+  - PageableHandlerMethodArgumentResolver và SortHandlerMethodArgumentResolver
+  - page, size, sort và quy ước tham số HTTP
+  - '@PageableDefault, @SortDefault và giá trị dự phòng'
+  - Giới hạn page size, quy ước chỉ số trang và tham số không hợp lệ
+  - Nhiều Pageable hoặc Sort với @Qualifier
+  - Tùy chỉnh argument resolver và chính sách của ứng dụng
+  - DomainClassConverter để chuyển ID thành entity
+  - Điều kiện repository hỗ trợ và xử lý ID không tồn tại
+  - Kiểm soát quyền truy cập và chi phí tải entity trong bước bind
+  - Phân biệt web support với việc xuất repository thành REST API
+- level1: Biểu diễn kết quả web
+  level2:
+  - Thiết kế JSON phân trang ổn định cho client
+  - Giới hạn tương thích khi tuần tự hóa trực tiếp PageImpl
+  - org.springframework.data.web.PagedModel
+  - pageSerializationMode = VIA_DTO theo phiên bản hỗ trợ
+  - Phân biệt PagedModel của Spring Data với PagedModel của Spring HATEOAS
+  - PagedResourcesAssembler cho Page
+  - SlicedResourcesAssembler và SlicedModel cho Slice theo hỗ trợ
+  - Liên kết điều hướng, URI hiện tại và tham số phân trang
+  - DTO đầu ra để kiểm soát trường dữ liệu và hợp đồng API
+  - Kiểm thử serialization với phiên bản Jackson tương thích
+- level1: Bộ lọc và payload web
+  level2:
+  - QuerydslPredicateArgumentResolver và @QuerydslPredicate
+  - QuerydslBindings và điều kiện bind mặc định
+  - QuerydslBinderCustomizer cho quy tắc theo repository
+  - Giới hạn thuộc tính được lọc và loại trường nhạy cảm
+  - Chuyển đổi kiểu, nhiều giá trị và điều kiện không hợp lệ
+  - Projection đầu vào với @ProjectedPayload
+  - JSONPath, XPath và dependency tùy chọn cho binding
+  - Xác thực payload và tách đối tượng đầu vào khỏi entity lưu trữ
+  - Kiểm thử giới hạn bộ lọc, phạm vi trường và hợp đồng dữ liệu
+- level1: Kiểu dữ liệu dùng chung
+  level2:
+  - Range, cận đóng/mở và khoảng không giới hạn
+  - Kết hợp Range với giá trị thời gian, số hoặc điều kiện truy vấn
+  - Point, Box, Circle và Polygon trong mô hình không gian
+  - Distance, Metric và quy ước đơn vị
+  - GeoResult, GeoResults và kiểu kết quả do store hỗ trợ
+  - Vector và biểu diễn embedding trong phiên bản có tính năng
+  - SearchResult, SearchResults và kết quả gắn điểm
+  - Score, Similarity và ScoringFunction theo phiên bản
+  - Ý nghĩa điểm cao/thấp và sự chuẩn hóa phụ thuộc hàm chấm điểm
+  - Ranh giới giữa kiểu giá trị dùng chung và engine tìm kiếm của store
+  - Serialization, chuyển đổi đơn vị và tương thích dữ liệu đầu vào
+- level1: Khởi tạo dữ liệu
+  level2:
+  - Repository populator và mục đích nạp dữ liệu mẫu
+  - Nạp JSON qua Jackson hoặc XML qua Spring OXM
+  - Kiểu miền trong dữ liệu mẫu và lựa chọn repository tương ứng
+  - Dependency tùy chọn, cấu hình resource và vòng đời khởi tạo
+  - Giới hạn dùng populator cho migration hoặc dữ liệu production
+  - Thiết kế fixture có thể nạp lại và tránh trùng ID
+  - Quản lý thứ tự dữ liệu liên quan theo yêu cầu store
+  - Đánh giá lựa chọn populator, tác vụ ứng dụng hoặc công cụ migration
+- level1: Ranh giới giao dịch
+  level2:
+  - Hợp đồng repository và cấu hình giao dịch do từng store cung cấp
+  - Chọn đơn vị công việc ở tầng dịch vụ
+  - Phối hợp repository, fragment và template trong cùng giao dịch
+  - CRUD, query method và phương thức tùy chỉnh có thể khác cấu hình
+  - Proxy, self-invocation và phạm vi interceptor
+  - Stream, callback, auditing và thời điểm truy cập tài nguyên
+  - Giao dịch reactive dựa vào ngữ cảnh thay vì giả định gắn với luồng
+  - Optimistic locking, retry và yêu cầu idempotency theo store
+  - Giới hạn của API Commons khi thao tác nhiều hệ thống dữ liệu
+- level1: Kiểm thử
+  level2:
+  - Chọn unit test cho logic ứng dụng và integration test cho hành vi repository
+  - Vì sao mock repository không xác minh query derivation hoặc mapping?
+  - Chọn test slice và Testcontainers phù hợp với store mẫu
+  - Kiểm thử hợp đồng CRUD, ID và kiểu trả về
+  - Kiểm thử tên phương thức, từ khóa và đường dẫn thuộc tính
+  - Kiểm thử Page, Slice, Sort, Limit và trường hợp kết quả rỗng
+  - Kiểm thử offset/keyset scrolling với giá trị trùng hoặc null
+  - Kiểm thử projection, constructor và dữ liệu không được tải
+  - Kiểm thử QBE, Querydsl và bộ lọc nhiều điều kiện
+  - Kiểm thử fragment, xung đột phương thức và repository đa store
+  - Kiểm thử converter, callback, auditing và sự kiện
+  - Kiểm thử reactive/coroutine với điều kiện hoàn thành hoặc hủy
+  - Kiểm thử tham số web, JSON phân trang và giới hạn đầu vào
+  - Kiểm thử hồi quy cùng bộ ca sử dụng trên các phiên bản hoặc store mục tiêu
+  - Cô lập fixture, làm sạch dữ liệu và kiểm chứng trạng thái sau commit
+- level1: Hiệu năng
+  level2:
+  - Phân biệt chi phí abstraction với chi phí truy vấn của store
+  - Số lượt truy cập, số bản ghi và dung lượng dữ liệu thực tế
+  - Page với count, Slice và Window theo nhu cầu client
+  - Projection đóng, projection mở và giới hạn tối ưu
+  - Tránh findAll hoặc chuyển toàn bộ stream thành collection ngoài nhu cầu
+  - Chi phí mapping, converter và callback
+  - Chi phí metadata của lời gọi repository và phạm vi bật exposeMetadata
+  - Giới hạn truy vấn lặp do quan hệ hoặc projection theo store
+  - Đo thời gian khởi tạo repository, parser và metadata
+  - Chọn index hoặc tối ưu câu truy vấn tại đúng mô-đun lưu trữ
+  - Đánh giá hiệu năng bằng phép đo tái lập và dữ liệu đại diện
+- level1: Lỗi và chẩn đoán
+  level2:
+  - Repository bean không được tạo hoặc bị quét sai package
+  - Không xác định được store trong chế độ nhiều mô-đun
+  - Repository cơ sở thiếu @NoRepositoryBean
+  - Không xác định được kiểu miền hoặc kiểu ID của generic
+  - PropertyReferenceException và tên phương thức bị phân tích sai
+  - QueryCreationException hoặc query lookup không tìm thấy triển khai
+  - Kiểu trả về, tham số đặc biệt hoặc từ khóa không được store hỗ trợ
+  - Constructor, accessor, nullability hoặc converter không khớp dữ liệu
+  - Fragment không được nạp, tên Impl sai hoặc phương thức trùng
+  - Callback, auditing hoặc sự kiện không chạy ở thao tác đang dùng
+  - Stream bị đóng sớm hoặc reactive mất phạm vi ngữ cảnh
+  - Page, count, Sort hoặc ScrollPosition trả dữ liệu sai kỳ vọng
+  - Khác biệt JSON phân trang hoặc binding HTTP sau nâng phiên bản
+  - Quy trình tái hiện tối thiểu và đọc stack trace qua các lớp hạ tầng
+- level1: Phiên bản và AOT
+  level2:
+  - Theo dõi release train và thay đổi hợp đồng Commons
+  - Chuyển giao diện CRUD/sorting cũ sang hệ phân cấp hiện hành
+  - Đối chiếu nullability 3.x với JSpecify ở dòng 4.x
+  - Chuyển API sắp xếp có kiểu khi TypedSort bị thay thế ở phiên bản mới
+  - Thay đổi API query, fragment metadata và value expression
+  - Thay đổi Jackson, PagedModel và định dạng web
+  - Managed types, reflection hint và các yêu cầu khi dùng native image
+  - AOT repository, generated accessor và phạm vi store hỗ trợ
+  - Giới hạn của dynamic projection, proxy, Querydsl hoặc Kotlin trong môi trường AOT
+  - Kiểm thử nâng cấp dependency cùng với dữ liệu và truy vấn thực tế
+  - Tài liệu hóa ma trận tính năng theo phiên bản và store
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế mô hình khách hàng–sản phẩm–đơn hàng và hợp đồng repository
+  - Chọn một store thực thi để xác minh các abstraction dùng chung
+  - Triển khai CRUD chọn lọc và giao diện cơ sở
+  - Xây query method cùng bộ lọc QBE hoặc Querydsl
+  - Thêm Sort, Page, Slice và scrolling theo hỗ trợ
+  - Tạo projection đóng, DTO và projection động
+  - Viết fragment dùng chung và kiểm tra thứ tự điều phối
+  - Thiết kế entity bất biến, converter và phát hiện trạng thái mới
+  - Bổ sung callback, auditing và sự kiện sau commit
+  - Cung cấp tham số web và JSON phân trang ổn định
+  - Kiểm thử hợp đồng, dữ liệu biên, reactive và hiệu năng
+  - Đối chiếu một ca sử dụng tương đương trên store khác
+  - Rà soát ranh giới Commons/store và kế hoạch nâng phiên bản

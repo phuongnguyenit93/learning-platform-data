@@ -1,0 +1,50 @@
+roadmap:
+- id: cu-phap-ngu-nghia
+  title: Cú pháp & ngữ nghĩa
+  purpose: Hiểu sự khác nhau giữa cách viết chương trình và ý nghĩa thực thi của nó.
+  objectives:
+  - Nhận diện token, grammar và AST
+  - Phân biệt cú pháp với ngữ nghĩa
+  - Giải thích hành vi đoạn mã đơn giản
+- id: ten-pham-vi
+  title: Tên & phạm vi
+  purpose: Giải thích cách tên được liên kết với giá trị và được tìm thấy trong chương trình.
+  objectives:
+  - Phân biệt khai báo, gán và liên kết tên
+  - So sánh lexical scope với dynamic scope
+  - Xác định biến truy cập được trong hàm lồng nhau
+- id: kieu-du-lieu-he-kieu
+  title: Kiểu dữ liệu & hệ kiểu
+  purpose: Hiểu cách ngôn ngữ biểu diễn giá trị và phát hiện lỗi kiểu.
+  objectives:
+  - Phân biệt kiểu nguyên thủy và kiểu cấu trúc
+  - So sánh static typing với dynamic typing
+  - Nhận biết suy luận kiểu và ép kiểu
+- id: bieu-thuc-dieu-khien
+  title: Biểu thức & điều khiển
+  purpose: Nắm quy tắc đánh giá biểu thức và lựa chọn luồng thực thi.
+  objectives:
+  - Xác định thứ tự đánh giá và tác dụng phụ
+  - Giải thích điều kiện, vòng lặp và pattern matching
+  - So sánh eager evaluation với lazy evaluation
+- id: ham-truu-tuong-hoa
+  title: Hàm & trừu tượng hóa
+  purpose: Hiểu cách tái sử dụng hành vi và che giấu chi tiết triển khai.
+  objectives:
+  - Phân biệt truyền tham trị và truyền tham chiếu
+  - Giải thích hàm bậc cao và closure
+  - Nhận biết module, interface và đóng gói
+- id: bo-nho-thuc-thi
+  title: Bộ nhớ & thực thi
+  purpose: Liên hệ khái niệm ngôn ngữ với việc chạy chương trình và quản lý tài nguyên.
+  objectives:
+  - So sánh stack, heap và vòng đời dữ liệu
+  - Giải thích quản lý bộ nhớ thủ công và GC
+  - Phân biệt compiler, interpreter và VM
+- id: mo-hinh-lap-trinh
+  title: Mô hình lập trình
+  purpose: Nhận diện các cách tổ chức chương trình và đánh đổi thiết kế ngôn ngữ.
+  objectives:
+  - So sánh imperative, OOP, functional và logic
+  - Phân biệt mutation với immutable data
+  - Chọn mô hình phù hợp cho tình huống cụ thể

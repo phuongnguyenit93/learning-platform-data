@@ -1,0 +1,67 @@
+menu:
+  - title: "Tổng quan"
+    slug: builder-fundamentals
+    index: 0
+  - title: "Bài toán khởi tạo"
+    slug: construction-challenges
+    index: 1
+  - title: "Cấu trúc GoF"
+    slug: gof-structure
+    index: 2
+  - title: "Quy trình GoF"
+    slug: gof-construction-process
+    index: 3
+  - title: "Thực hành GoF"
+    slug: gof-report-example
+    index: 4
+  - title: "Fluent builder"
+    slug: fluent-builder
+    index: 5
+  - title: "Dữ liệu và tùy chọn"
+    slug: fields-and-options
+    index: 6
+  - title: "Kiểm tra trạng thái"
+    slug: state-validation
+    index: 7
+  - title: "Tính bất biến"
+    slug: immutability
+    index: 8
+  - title: "Đối tượng phức hợp"
+    slug: nested-object-construction
+    index: 9
+  - title: "Vòng đời builder"
+    slug: builder-lifecycle
+    index: 10
+  - title: "Step builder"
+    slug: step-builder
+    index: 11
+  - title: "Kế thừa và generic"
+    slug: inheritance-and-generics
+    index: 12
+  - title: "So sánh constructor"
+    slug: constructor-comparison
+    index: 13
+  - title: "So sánh factory"
+    slug: factory-comparison
+    index: 14
+  - title: "Kết hợp mẫu"
+    slug: pattern-combinations
+    index: 15
+  - title: "Java và thư viện"
+    slug: java-and-libraries
+    index: 16
+  - title: "Thiết kế API"
+    slug: builder-api-design
+    index: 17
+  - title: "Kiểm thử"
+    slug: builder-testing
+    index: 18
+  - title: "Hiệu năng"
+    slug: construction-performance
+    index: 19
+  - title: "Lạm dụng và lỗi"
+    slug: misuse-and-pitfalls
+    index: 20
+  - title: "Thực hành tổng hợp"
+    slug: hands-on-exercises
+    index: 21

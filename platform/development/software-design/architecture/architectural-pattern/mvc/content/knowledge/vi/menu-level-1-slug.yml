@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cấu trúc và quan hệ
+  slug: structure-and-relationships
+  index: 1
+- title: Model
+  slug: model
+  index: 2
+- title: View
+  slug: view
+  index: 3
+- title: Controller
+  slug: controller
+  index: 4
+- title: Luồng tương tác
+  slug: interaction-flow
+  index: 5
+- title: MVC tương tác
+  slug: interactive-mvc
+  index: 6
+- title: MVC trên web
+  slug: web-mvc
+  index: 7
+- title: Tổ chức mã
+  slug: code-organization
+  index: 8
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 9
+- title: Biểu mẫu và kiểm tra
+  slug: forms-and-validation
+  index: 10
+- title: Trạng thái và vòng đời
+  slug: state-and-lifecycle
+  index: 11
+- title: Dịch vụ và lưu trữ
+  slug: services-and-persistence
+  index: 12
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 13
+- title: Bảo mật
+  slug: security
+  index: 14
+- title: Hiệu năng
+  slug: performance
+  index: 15
+- title: Kiểm thử
+  slug: testing
+  index: 16
+- title: Quan sát và vận hành
+  slug: observability-and-operations
+  index: 17
+- title: MVC và kiến trúc
+  slug: mvc-and-architecture
+  index: 18
+- title: Mẫu giao diện liên quan
+  slug: related-ui-patterns
+  index: 19
+- title: Ánh xạ nền tảng
+  slug: platform-mapping
+  index: 20
+- title: Sai lầm thường gặp
+  slug: common-pitfalls
+  index: 21
+- title: Cải tiến thiết kế
+  slug: design-improvements
+  index: 22
+- title: Minh họa quản lý sách
+  slug: book-management-example
+  index: 23
+- title: Thực hành
+  slug: hands-on-exercise
+  index: 24
+- title: Đánh giá thiết kế
+  slug: design-review
+  index: 25

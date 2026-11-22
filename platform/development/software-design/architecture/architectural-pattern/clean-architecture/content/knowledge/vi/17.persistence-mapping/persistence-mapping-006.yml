@@ -1,0 +1,3 @@
+menuLevel1: Ánh xạ lưu trữ
+menuLevel2: Thiết kế projection và truy vấn để hạn chế N+1 mà không làm lộ ORM vào use case
+status: ""

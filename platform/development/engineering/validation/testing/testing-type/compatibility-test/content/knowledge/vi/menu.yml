@@ -1,0 +1,390 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử tương thích là gì và những vấn đề cần phát hiện
+  - 'Mô hình tư duy: sản phẩm, phiên bản, môi trường, đối tác và hành vi'
+  - Vì sao chức năng đúng trên một cấu hình vẫn có thể lỗi ở cấu hình khác
+  - Mục tiêu duy trì hành vi khi thay nền tảng hoặc thành phần
+  - Khả năng cùng tồn tại và khả năng trao đổi, sử dụng thông tin
+  - Quan hệ với kiểm thử chức năng, hợp đồng, hồi quy và tích hợp
+  - Phân biệt tương thích với tính khả chuyển hoặc khả năng thích nghi
+  - Giới hạn của kết luận khi chỉ kiểm tra một vài tổ hợp
+  - Lộ trình từ cam kết hỗ trợ đến bằng chứng tương thích
+- level1: Các dạng tương thích
+  level2:
+  - 'Tương thích ngược: thành phần mới làm việc với bên hoặc dữ liệu cũ'
+  - 'Tương thích xuôi: thành phần cũ tiếp nhận thay đổi từ bên mới'
+  - Xác định hướng cũ–mới theo vai trò bên gửi, bên nhận hoặc bên sử dụng
+  - Tương thích hai chiều và các điều kiện bổ sung cần kiểm tra
+  - Tương thích mã nguồn khi biên dịch lại
+  - Tương thích nhị phân khi dùng lại chương trình đã biên dịch
+  - Tương thích hành vi và ngữ nghĩa của kết quả
+  - Tương thích định dạng dữ liệu và giao thức trao đổi
+  - Khả năng tương tác giữa các hệ thống có cách triển khai khác nhau
+  - Khả năng cùng tồn tại trong môi trường chia sẻ tài nguyên
+  - Phân biệt thay đổi phá vỡ hợp đồng với thay đổi ngoài phạm vi cam kết
+- level1: Phạm vi hỗ trợ
+  level2:
+  - 'Xác định đối tượng: thư viện, ứng dụng, dịch vụ hoặc sản phẩm đầu cuối'
+  - Xác định bên cung cấp, bên tiêu thụ và các điểm tiếp xúc
+  - Danh mục hệ điều hành, runtime, thiết bị và phiên bản được cam kết
+  - Mức hỗ trợ đầy đủ, có điều kiện và không thuộc phạm vi
+  - Phiên bản tối thiểu, phiên bản mục tiêu và cửa sổ hỗ trợ
+  - Hành vi cần giữ ổn định so với thay đổi đã được chấp thuận
+  - Giả định về cấu hình hoặc cách sử dụng phải được ghi rõ
+  - Ranh giới kiểm chứng của đội phát triển và các đối tác bên ngoài
+  - Tiêu chí loại bỏ một nền tảng hoặc phiên bản khỏi phạm vi hỗ trợ
+- level1: Ma trận tương thích
+  level2:
+  - 'Các chiều biến thiên: sản phẩm, runtime, nền tảng và phụ thuộc'
+  - Xây ma trận phiên bản của bên cung cấp và bên tiêu thụ
+  - Phân biệt tổ hợp hợp lệ, không hợp lệ và chưa được kiểm chứng
+  - Ràng buộc giữa các chiều để tránh tạo tổ hợp không thể tồn tại
+  - Cấu hình đại diện và cấu hình chuẩn để đối chiếu
+  - Tổ hợp tối thiểu được hỗ trợ và tổ hợp phổ biến
+  - Các chiều liên quan chặt cần được kiểm tra cùng nhau
+  - Liên kết từng tổ hợp với ca kiểm thử và bằng chứng thực thi
+  - Ghi nhận phiên bản đầy đủ thay vì nhãn chung như latest
+  - Phân biệt ma trận hỗ trợ công bố với ma trận thực tế đã chạy
+- level1: Ưu tiên theo rủi ro
+  level2:
+  - Thu thập dữ liệu sử dụng để chọn cấu hình quan trọng
+  - Ảnh hưởng nghiệp vụ khi một nhóm môi trường không hoạt động
+  - Rủi ro từ nâng cấp runtime, thư viện hoặc định dạng trao đổi
+  - Ưu tiên ranh giới phiên bản và các bước chuyển lớn
+  - Chọn đại diện theo nhóm nền tảng có đặc điểm chung
+  - Pairwise và giới hạn khi lỗi cần tương tác nhiều hơn hai chiều
+  - Kết hợp cấu hình phổ biến với cấu hình có rủi ro đặc thù
+  - Phần chưa kiểm chứng và cách trình bày rủi ro còn lại
+- level1: Tiêu chí và căn cứ
+  level2:
+  - Từ cam kết hỗ trợ đến hành vi có thể quan sát
+  - Định nghĩa kết quả đạt cho mỗi dạng tương thích
+  - Hợp đồng API, đặc tả định dạng và quy tắc nghiệp vụ làm căn cứ
+  - Đối chiếu với bản chuẩn và giới hạn của kết quả tham chiếu
+  - Phân biệt sai khác được phép với sai khác phá vỡ yêu cầu
+  - Đánh giá mất dữ liệu, thay đổi ý nghĩa hoặc làm tròn khi trao đổi
+  - Tiêu chí từ chối rõ ràng đối với cấu hình không được hỗ trợ
+  - Thống nhất mức sai lệch chấp nhận được trước khi thực thi
+  - Truy vết từ yêu cầu tương thích đến kết luận kiểm chứng
+- level1: Môi trường kiểm chứng
+  level2:
+  - Lập danh mục runtime, phần mềm hệ thống và cấu hình có hiệu lực
+  - Cố định artifact đang kiểm thử và ghi checksum
+  - Chuẩn bị môi trường sạch hoặc có thể khôi phục
+  - 'Ghi nhận trạng thái nền: locale, múi giờ, encoding và quyền'
+  - Container, máy ảo và máy thật cung cấp những loại bằng chứng nào
+  - Phân biệt giả lập thiết bị với kiểm tra trên thiết bị thật
+  - Giữ một thay đổi có chủ đích khi so sánh hai môi trường
+  - Phát hiện sai lệch cấu hình giữa mô tả ma trận và môi trường chạy
+  - Thu thập log, cấu hình và dữ liệu để tái hiện
+- level1: Hệ điều hành
+  level2:
+  - Đường dẫn, dấu phân cách và thư mục làm việc
+  - Phân biệt hoa thường của tên tệp và tác động đến truy cập tài nguyên
+  - Quyền tệp, quyền thực thi và tài khoản chạy ứng dụng
+  - Kết thúc dòng, shell và cách xử lý tham số dòng lệnh
+  - Tên tệp, Unicode và ký tự đặc biệt trên từng hệ thống
+  - Khóa tệp, đổi tên, xóa tệp và các giả định về hệ thống tệp
+  - Tệp tạm, thư mục người dùng và vị trí cấu hình
+  - Biến môi trường, dịch vụ hệ thống và quá trình khởi động
+  - Kiểm chứng cùng artifact trên các hệ điều hành được cam kết
+- level1: Kiến trúc và phần cứng
+  level2:
+  - Kiến trúc CPU và các thành phần phụ thuộc mã máy
+  - x86-64, ARM64 và lựa chọn artifact đúng nền tảng
+  - Giới hạn bộ nhớ hoặc tài nguyên ảnh hưởng khả năng hoạt động
+  - Khác biệt độ rộng dữ liệu và giả định trong mã native
+  - Thiết bị hoặc trình điều khiển ngoài mà sản phẩm cần
+  - Ảnh hưởng của instruction set hoặc thư viện hệ thống bắt buộc
+  - Phân biệt chạy được qua giả lập với hỗ trợ trực tiếp kiến trúc
+  - Thiết kế ca cho từng tổ hợp kiến trúc thực sự được phát hành
+- level1: JDK và JVM
+  level2:
+  - Phân biệt JDK biên dịch, JDK chạy công cụ build và JVM thực thi
+  - Ma trận phiên bản Java được hỗ trợ cho cùng một ứng dụng
+  - Phiên bản class file và lỗi UnsupportedClassVersionError
+  - javac --release và phạm vi API, bytecode được nhắm tới
+  - Chạy artifact cũ trên runtime mới trước khi biên dịch lại
+  - Thư viện hoặc công cụ chưa hỗ trợ JDK mục tiêu
+  - API bị loại bỏ, API nội bộ và cảnh báo cần rà soát
+  - jdeps, jdeprscan và giới hạn của phân tích tĩnh
+  - Reflection, đóng gói module và quyền truy cập thay đổi
+  - Tham số JVM không còn được chấp nhận hoặc đổi ý nghĩa
+  - Nhà cung cấp JVM và các giả định đặc thù của ứng dụng
+  - Hành vi runtime cần kiểm chứng bên cạnh việc khởi động thành công
+- level1: API thư viện Java
+  level2:
+  - Xác định API công khai mà bên sử dụng phụ thuộc
+  - Biên dịch mã sử dụng cũ với thư viện mới để kiểm tra mã nguồn
+  - Chạy binary sử dụng cũ với thư viện mới mà không biên dịch lại
+  - Thêm, xóa hoặc thay đổi chữ ký phương thức và constructor
+  - Thay đổi mức truy cập, lớp cha hoặc interface
+  - Overload, override và khác biệt giữa lựa chọn khi biên dịch với khi chạy
+  - Generic, type erasure và các giả định ở điểm sử dụng
+  - Enum, record và tác động của thay đổi thành phần công khai
+  - Hằng số được đưa vào mã bên sử dụng tại thời điểm biên dịch
+  - NoSuchMethodError, NoSuchFieldError và IllegalAccessError
+  - So sánh API bằng công cụ như japicmp hoặc Revapi
+  - Kiểm chứng hành vi ngay cả khi kiểm tra nhị phân không phát hiện phá vỡ
+- level1: Phụ thuộc và phiên bản
+  level2:
+  - Đồ thị phụ thuộc thực tế và phiên bản được phân giải
+  - Xung đột giữa phiên bản trực tiếp với phụ thuộc bắc cầu
+  - Bộ thư viện cần đồng bộ qua BOM hoặc nền tảng phiên bản
+  - Phân biệt phạm vi biên dịch, kiểm thử và thực thi
+  - Lớp trùng, package trùng và thứ tự classpath
+  - ClassLoader, plugin và các vùng nạp lớp khác nhau
+  - Giới hạn của cam kết phiên bản ngữ nghĩa khi chọn bản nâng cấp
+  - Kiểm chứng phiên bản phụ thuộc thấp nhất và phiên bản mục tiêu
+  - Giữ lại đồ thị phụ thuộc và checksum để tái hiện
+  - Phân biệt tương thích từng cặp với tương thích của toàn bộ tổ hợp
+- level1: Đóng gói và phân phối
+  level2:
+  - Cùng mã nguồn nhưng artifact khác nhau có thể tạo kết quả khác nhau
+  - JAR, WAR và các yêu cầu của môi trường chạy
+  - Manifest, điểm khởi chạy và cách cung cấp thư viện
+  - Fat JAR, shading và tài nguyên bị trùng khi đóng gói
+  - Multi-release JAR và phần cài đặt được chọn theo runtime
+  - JPMS, module path và classpath trong các cách khởi động
+  - Runtime image rút gọn và module hệ thống bị thiếu
+  - Container image theo kiến trúc và thư viện hệ thống nền
+  - Kiểm thử sản phẩm đã đóng gói thay vì chỉ chạy từ IDE
+- level1: Framework và máy chủ
+  level2:
+  - Ma trận JDK, framework, máy chủ ứng dụng và thư viện nền
+  - Giới hạn của tương thích Java SE đối với một framework cụ thể
+  - Chuyển đổi namespace javax và jakarta theo API liên quan
+  - Phiên bản Servlet và hợp đồng của môi trường triển khai
+  - Thay đổi cấu hình hoặc giá trị mặc định sau nâng cấp framework
+  - Reflection, proxy, agent và các cơ chế can thiệp lúc chạy
+  - Plugin hoặc extension có vòng đời nâng cấp riêng
+  - Kiểm tra khởi động, nạp cấu hình và luồng nghiệp vụ đại diện
+  - Phân biệt lỗi tích hợp cấu hình với lỗi nghiệp vụ của phiên bản mới
+- level1: Mã native và ABI
+  level2:
+  - JNI hoặc thư viện native làm thay đổi giả định chạy đa nền tảng
+  - Tên thư viện, vị trí tìm kiếm và quy tắc nạp
+  - ABI, kiến trúc CPU và phiên bản thư viện hệ thống
+  - glibc, musl và khác biệt của môi trường Linux
+  - Phụ thuộc native bắc cầu và thư viện còn thiếu
+  - Kiểm chứng kiểu dữ liệu, encoding và quản lý tài nguyên qua biên native
+  - UnsatisfiedLinkError và các dấu hiệu sai tổ hợp
+  - Giới hạn của container khi kiểm chứng phụ thuộc vào kernel hoặc phần cứng
+- level1: Cơ sở dữ liệu và JDBC
+  level2:
+  - Ma trận ứng dụng, JDBC driver và máy chủ cơ sở dữ liệu
+  - Hợp đồng JDBC so với hành vi đặc thù của từng hệ quản trị
+  - Kiểu dữ liệu số, chuỗi, thời gian và giá trị null
+  - SQL dialect và giới hạn của truy vấn được sinh bởi ORM
+  - Collation, phân biệt hoa thường và thứ tự kết quả
+  - Tự sinh khóa, sequence và cách đọc khóa trả về
+  - Transaction isolation, auto-commit và các giả định nghiệp vụ
+  - Timezone giữa ứng dụng, driver và máy chủ
+  - Cơ chế xác thực hoặc TLS trong kết nối các phiên bản khác nhau
+  - Giới hạn của cơ sở dữ liệu giả lập so với hệ quản trị mục tiêu
+  - Lưu phiên bản driver và cấu hình kết nối cùng kết quả kiểm thử
+- level1: Tiến hóa lược đồ
+  level2:
+  - Ứng dụng cũ, ứng dụng mới và các phiên bản schema cùng tồn tại
+  - Thêm cột, giá trị mặc định và khả năng đọc của mã cũ
+  - Đổi tên, xóa cột hoặc đổi kiểu dữ liệu
+  - Ràng buộc mới và dữ liệu cũ không còn phù hợp
+  - Expand–contract và thứ tự triển khai thay đổi
+  - Backfill và ý nghĩa của dữ liệu trong giai đoạn chuyển tiếp
+  - Kiểm chứng đọc, ghi bằng các phiên bản ứng dụng khác nhau
+  - Khả năng quay lại ứng dụng cũ sau khi dữ liệu đã được ghi mới
+  - Kiểm tra bảo toàn dữ liệu thay vì chỉ xác nhận migration chạy xong
+  - Phân biệt tương thích lược đồ với tính đúng của toàn bộ nghiệp vụ
+- level1: API và giao diện ngoài
+  level2:
+  - Ma trận client cũ, client mới, server cũ và server mới
+  - Đường dẫn, phương thức, tham số và header thuộc hợp đồng
+  - Thêm trường tùy chọn và hành vi của client không biết trường đó
+  - Xóa trường, đổi tên hoặc đổi kiểu dữ liệu
+  - Phân biệt trường không có mặt, null và giá trị mặc định
+  - Enum mở rộng và client có danh sách giá trị cố định
+  - Mã trạng thái, cấu trúc lỗi và ngữ nghĩa thông báo
+  - Phân trang, sắp xếp hoặc thay đổi giá trị mặc định
+  - Versioning và thời gian hỗ trợ đồng thời nhiều giao diện
+  - Consumer-driven contract và giới hạn của kiểm chứng hợp đồng
+  - Kiểm tra SDK được sinh tự động cùng client đã phát hành
+  - Thay đổi hình thức vẫn đọc được nhưng khác ý nghĩa nghiệp vụ
+- level1: Định dạng và tuần tự hóa
+  level2:
+  - Ma trận bên ghi và bên đọc theo phiên bản định dạng
+  - JSON, XML, CSV và những giả định về cấu trúc dữ liệu
+  - Encoding, BOM và ký tự không nằm trong tập dữ liệu thông thường
+  - Số lớn, độ chính xác thập phân và mất dữ liệu khi chuyển đổi
+  - Quy tắc đọc trường lạ, trường thiếu và giá trị mặc định
+  - 'Protobuf: số hiệu trường, giá trị enum và dữ liệu chưa biết'
+  - Phân biệt quy tắc tương thích Protobuf nhị phân với ProtoJSON
+  - 'Avro: writer schema, reader schema và phân giải lược đồ'
+  - Java serialization và hợp đồng của đối tượng đã được lưu
+  - Tệp mẫu từ phiên bản cũ (golden files) và ca đọc ghi chéo
+  - Đối chiếu ngữ nghĩa thay vì chỉ so sánh chuỗi byte khi định dạng cho phép khác biểu diễn
+- level1: Thông điệp và sự kiện
+  level2:
+  - Producer, consumer và broker có thể nâng cấp độc lập
+  - Ma trận phiên bản thông điệp với các bên tiêu thụ
+  - Sự kiện cũ còn trong hàng đợi hoặc kho lưu trữ
+  - Consumer mới đọc lại dữ liệu lịch sử
+  - Consumer cũ nhận sự kiện do producer mới phát
+  - Thay đổi schema so với thay đổi ý nghĩa của sự kiện
+  - Metadata, content type và cách xác định phiên bản payload
+  - Tái phát sự kiện hoặc retry qua giai đoạn chuyển phiên bản
+  - Kiểm chứng adapter chuyển đổi mà không làm mất thông tin
+  - Giới hạn của schema validation đối với hành vi xử lý của consumer
+- level1: Giao thức và hạ tầng
+  level2:
+  - Phiên bản HTTP, TLS và khả năng thương lượng giữa các bên
+  - Tập giao thức hoặc thuật toán được hỗ trợ theo chính sách an toàn
+  - Chứng chỉ, truststore và cơ chế xác thực của các runtime
+  - Proxy, reverse proxy và thay đổi header trên đường truyền
+  - Content negotiation, nén dữ liệu và charset
+  - WebSocket hoặc giao thức kết nối lâu dài qua các phiên bản
+  - Timeout, redirect và giới hạn kích thước yêu cầu giữa các thành phần
+  - Phân biệt lỗi bắt tay hoặc thương lượng với lỗi nội dung nghiệp vụ
+  - Kiểm chứng đường truyền đại diện cho môi trường được cam kết
+- level1: Nhiều phiên bản cùng chạy
+  level2:
+  - Triển khai nhiều phiên bản (mixed-version deployment) và cửa sổ cần cùng hoạt động
+  - Thứ tự nâng cấp bên cung cấp và bên tiêu thụ
+  - Rolling upgrade và các cặp phiên bản xuất hiện trong giai đoạn chuyển tiếp
+  - Session, cache và dữ liệu tạm do bản cũ hoặc bản mới tạo
+  - Giao tiếp hai chiều giữa các nút ở phiên bản khác nhau
+  - Cờ tính năng (feature flag) và điều kiện bật hành vi sau khi đủ thành phần hỗ trợ
+  - Đọc dữ liệu mới trước khi toàn bộ hệ thống được nâng cấp
+  - Quay lại phiên bản ứng dụng trước (rollback) khi lược đồ hoặc dữ liệu đã thay đổi
+  - Chuyển đổi không đồng thời và các lỗi chỉ xảy ra trong cửa sổ nâng cấp
+  - Tiêu chí kết thúc giai đoạn hỗ trợ phối hợp phiên bản
+- level1: Trình duyệt
+  level2:
+  - Ma trận trình duyệt, phiên bản và hệ điều hành
+  - Engine trình duyệt và khác biệt với tên sản phẩm thương mại
+  - HTML, CSS, JavaScript và Web API cần đối chiếu hỗ trợ
+  - MDN Baseline và giới hạn của thông tin hỗ trợ tính năng
+  - Feature detection và hành vi dự phòng khi thiếu khả năng
+  - Cookie, storage, cache và khác biệt chính sách trình duyệt
+  - Hiển thị, font, biểu mẫu và tương tác trên các cấu hình
+  - Kiểm chứng luồng nghiệp vụ thay vì chỉ so ảnh chụp giao diện
+  - Playwright với Chromium, Firefox, WebKit và các kênh được hỗ trợ
+  - Giới hạn của WebKit thử nghiệm so với Safari thật trên nền tảng đích
+  - Chọn phiên bản trình duyệt theo chính sách hỗ trợ đã thống nhất
+- level1: Thiết bị và giao diện
+  level2:
+  - Kích thước viewport, mật độ điểm ảnh và khả năng hiển thị
+  - Touch, chuột, bàn phím và các cách nhập liệu
+  - Hướng màn hình, vùng hiển thị an toàn và bố cục thích ứng
+  - Trình duyệt di động, WebView và ứng dụng nhúng
+  - Khác biệt hệ điều hành thiết bị với cấu hình giả lập trình duyệt
+  - Quyền truy cập camera, vị trí hoặc tài nguyên thiết bị khi ứng dụng cần
+  - Giả lập, máy ảo và thiết bị thật trong ma trận bằng chứng
+  - Kiểm chứng hành trình quan trọng trên thiết bị được cam kết
+  - Phân biệt tương thích thiết bị với đánh giá khả dụng hoặc khả năng tiếp cận đầy đủ
+- level1: Ngôn ngữ và vùng miền
+  level2:
+  - Locale và những giá trị mặc định phụ thuộc môi trường
+  - UTF-8, charset mặc định và dữ liệu tạo từ phiên bản cũ
+  - Unicode normalization và so sánh chuỗi qua các nền tảng
+  - Định dạng số, dấu thập phân và dấu phân nhóm
+  - Ngày giờ, lịch, múi giờ và dữ liệu timezone
+  - Sắp xếp hoặc so khớp văn bản theo collation
+  - Font, ký tự ngoài ASCII và văn bản nhiều ngôn ngữ
+  - Văn bản phải sang trái và thay đổi độ dài nội dung
+  - Nhập, xuất và đọc lại cùng dữ liệu giữa các locale
+  - Phân biệt dữ liệu trao đổi chuẩn hóa với biểu diễn dành cho người dùng
+- level1: Cùng tồn tại
+  level2:
+  - Hai ứng dụng hoạt động trong cùng môi trường mà không gây cản trở ngoài cam kết
+  - Xung đột cổng mạng, tên dịch vụ và địa chỉ tài nguyên
+  - Thư mục cài đặt, tệp cấu hình và biến môi trường dùng chung
+  - Thư viện dùng chung, runtime dùng chung và ảnh hưởng của việc cập nhật
+  - CPU, bộ nhớ, file descriptor và tài nguyên có giới hạn
+  - Dữ liệu tạm, cache, khóa tệp và tên tài nguyên trùng
+  - Khởi động, dừng hoặc gỡ một ứng dụng ảnh hưởng ứng dụng còn lại
+  - Quyền truy cập và ranh giới tài khoản của các tiến trình
+  - Phân biệt kiểm chứng cùng tồn tại với bài đo hiệu năng chuyên sâu
+- level1: Cài đặt và nâng cấp
+  level2:
+  - Điều kiện nền tảng và phụ thuộc trước khi cài
+  - Cài mới, nâng cấp tại chỗ và cài song song
+  - Phát hiện phiên bản hoặc cấu hình không được hỗ trợ
+  - Giữ lại cấu hình và dữ liệu người dùng khi thay phiên bản
+  - Đổi định dạng cấu hình và khả năng đọc cấu hình cũ
+  - Ứng dụng mới dùng dữ liệu cũ sau nâng cấp
+  - Khả năng hạ phiên bản và các điều kiện giới hạn
+  - Gỡ cài đặt mà không phá thành phần hoặc dữ liệu dùng chung
+  - Khôi phục trạng thái sau nâng cấp gián đoạn
+  - Phân biệt cài thành công với các luồng nghiệp vụ đã hoạt động
+- level1: Thiết kế ca kiểm thử
+  level2:
+  - Gắn mỗi ca với yêu cầu, tổ hợp và hướng tương thích
+  - Tái sử dụng hành vi cốt lõi với tham số môi trường khác nhau
+  - Ca đối chiếu giữa phiên bản chuẩn và phiên bản cần đánh giá
+  - Ca biên tại phiên bản tối thiểu hoặc mốc thay đổi hợp đồng
+  - Đọc ghi chéo dữ liệu giữa các phiên bản
+  - Cùng thực thi nhiều phiên bản trong một kịch bản chuyển tiếp
+  - Ca phủ định cho tổ hợp bị từ chối theo thiết kế
+  - Pairwise, tổ hợp nhiều chiều và trường hợp cần chỉ định tường minh
+  - Giảm dữ liệu về mức đủ tái hiện mà vẫn giữ đặc điểm gây lỗi
+  - Xác định hậu điều kiện về dữ liệu, cấu hình và tài nguyên
+- level1: Tự động hóa và CI
+  level2:
+  - Biểu diễn ma trận môi trường dưới dạng cấu hình có phiên bản
+  - Phân biệt lượt kiểm chứng nhanh với lượt phủ ma trận rộng
+  - Chạy cùng artifact trên nhiều runtime hoặc nền tảng
+  - Biên dịch client cũ và chạy lại binary cũ trong kiểm tra thư viện
+  - Golden files, contract tests và ca nghiệp vụ cho dữ liệu chéo phiên bản
+  - Playwright projects hoặc bộ chạy tương đương cho ma trận trình duyệt
+  - Chuẩn bị dịch vụ phụ thuộc đúng phiên bản cho từng lượt chạy
+  - Cô lập dữ liệu và tài nguyên khi ma trận chạy song song
+  - Giữ image digest, phiên bản công cụ và báo cáo cùng artifact
+  - Phân biệt lỗi hạ tầng, ca bị bỏ qua và thất bại tương thích
+  - Giới hạn của tự động hóa đối với các cấu hình cần thiết bị hoặc thao tác thật
+- level1: Chẩn đoán sai khác
+  level2:
+  - Xác định lỗi ở tải artifact, khởi động, liên kết hay hành vi nghiệp vụ
+  - Thu hẹp tổ hợp bằng cách thay đổi một chiều có kiểm soát
+  - So sánh phiên bản thực tế với phiên bản đã ghi trong ma trận
+  - Lỗi bytecode, liên kết lớp hoặc thư viện native
+  - Lỗi payload đọc được nhưng giá trị bị mất hoặc đổi nghĩa
+  - Khác biệt encoding, timezone, locale hoặc collation
+  - Khác biệt theo trình duyệt, thiết bị hoặc chế độ giả lập
+  - Log, stack trace, ảnh chụp và dữ liệu tối thiểu giúp tái hiện
+  - Phân biệt regression của sản phẩm với thay đổi ngoài cam kết hỗ trợ
+  - Tránh coi chạy lại thành công là bằng chứng đã giải quyết nguyên nhân
+- level1: Báo cáo và kết luận
+  level2:
+  - Trình bày kết quả theo tổ hợp và yêu cầu đã kiểm chứng
+  - Phân biệt đạt, không đạt, bị chặn và chưa chạy
+  - Đính kèm cấu hình thực tế, artifact và bằng chứng tái hiện
+  - Đánh giá ảnh hưởng theo nhóm người dùng hoặc đối tác
+  - Ghi nhận giới hạn, ngoại lệ và biện pháp giảm tác động
+  - Chấp nhận có điều kiện và người sở hữu quyết định
+  - Cập nhật danh mục hỗ trợ theo bằng chứng đã có
+  - Không suy diễn kết quả của một tổ hợp cho toàn bộ ma trận
+- level1: Duy trì cam kết hỗ trợ
+  level2:
+  - Theo dõi vòng đời nền tảng và thay đổi ở các bên phụ thuộc
+  - Bổ sung ca khi có phiên bản hoặc tổ hợp hỗ trợ mới
+  - Giữ dữ liệu mẫu, binary client cũ và tài liệu môi trường cần thiết
+  - Loại bỏ ca khi một cam kết hỗ trợ đã được kết thúc tường minh
+  - Deprecation và kế hoạch chuyển đổi cho bên sử dụng
+  - Đánh giá lại ma trận sau thay đổi kiến trúc hoặc thói quen sử dụng
+  - Phản hồi sự cố thực tế vào ưu tiên kiểm chứng
+  - Phân biệt phát hiện khả năng không tương thích với quyết định nâng cấp sản phẩm
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập ma trận hỗ trợ cho một thư viện hoặc dịch vụ Java
+  - Kiểm tra mã nguồn client cũ với API thư viện mới
+  - Chạy binary client cũ với thư viện mới và phân tích lỗi liên kết
+  - Chạy một artifact trên các JDK đã chọn và đối chiếu hành vi
+  - Kiểm thử JSON hoặc Protobuf giữa bên gửi và bên nhận khác phiên bản
+  - Đọc golden files cũ bằng bộ đọc mới và kiểm tra bảo toàn ý nghĩa
+  - Kiểm chứng ứng dụng cũ, mới cùng dùng một lược đồ đang chuyển tiếp
+  - Chạy luồng web đại diện trên nhiều engine và một thiết bị thật
+  - Tái hiện sai khác do đường dẫn, encoding hoặc múi giờ
+  - Kiểm tra hai ứng dụng cùng hoạt động mà không xung đột tài nguyên
+  - Mô phỏng nâng cấp từng phần và đánh giá điều kiện quay lại phiên bản trước
+  - Viết kết luận hỗ trợ cùng phạm vi chưa có bằng chứng

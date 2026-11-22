@@ -1,0 +1,7 @@
+# Spring Security - Authorization
+
+Phân quyền (authorization) quyết định một chủ thể có được thực hiện một hành động trên tài nguyên cụ thể hay không. Đăng nhập thành công mới xác nhận danh tính; ứng dụng còn phải đối chiếu quyền được cấp, chính sách nghiệp vụ và điều kiện của tài nguyên trước khi cho phép truy cập. Module này giúp bạn biến những yêu cầu như “chỉ quản trị viên được sửa cấu hình” hoặc “người dùng chỉ được xem hồ sơ của mình” thành các quy tắc có thể giải thích và kiểm chứng.
+
+Module dành cho người đã nắm kiến thức Spring Security nền tảng, Authentication và cách ứng dụng tiếp nhận yêu cầu. Phạm vi gồm quyền được cấp (GrantedAuthority), vai trò, chính sách theo thuộc tính, phân quyền yêu cầu HTTP, bảo vệ phương thức và kiểm tra quyền trên từng đối tượng nghiệp vụ. Bạn sẽ nối các quy tắc này với AuthorizationManager, đồng thời nhận diện cách áp dụng trong Servlet và Reactive. Tư duy xuyên suốt là xác định rõ chủ thể, hành động, tài nguyên và điều kiện, với quyền tối thiểu cần thiết và quy tắc dự phòng an toàn.
+
+Lộ trình bắt đầu bằng mô hình chính sách và cách biểu diễn quyền, sau đó đi vào yêu cầu web, phương thức và đối tượng nghiệp vụ. Khi hiểu các điểm kiểm soát, bạn tiếp tục đóng gói quyết định truy cập thành thành phần tái sử dụng, áp dụng cho luồng Reactive và kiểm thử cả trường hợp được phép lẫn bị từ chối. Mục tiêu là xây dựng một hệ thống phân quyền nhất quán, phát hiện được đường truy cập bỏ sót và giải thích được vì sao từng quyết định được đưa ra.

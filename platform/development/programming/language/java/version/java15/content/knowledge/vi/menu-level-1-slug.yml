@@ -1,0 +1,88 @@
+menu:
+- title: Định hướng
+  slug: java-15-overview
+  index: 0
+- title: Cú pháp text block
+  slug: text-block-syntax
+  index: 1
+- title: Khoảng trắng
+  slug: whitespace-handling
+  index: 2
+- title: Escape trong text block
+  slug: text-block-escapes
+  index: 3
+- title: API chuỗi
+  slug: string-apis
+  index: 4
+- title: Ứng dụng văn bản
+  slug: text-processing-applications
+  index: 5
+- title: API tiện ích
+  slug: utility-apis
+  index: 6
+- title: Unicode và văn bản
+  slug: unicode-and-text
+  index: 7
+- title: Hidden class
+  slug: hidden-class
+  index: 8
+- title: Định nghĩa lớp ẩn
+  slug: hidden-class-definition
+  index: 9
+- title: Truy cập và nest
+  slug: access-and-nestmates
+  index: 10
+- title: Vòng đời lớp ẩn
+  slug: hidden-class-lifecycle
+  index: 11
+- title: Khởi tạo và sinh mã
+  slug: initialization-and-code-generation
+  index: 12
+- title: EdDSA
+  slug: ed-dsa
+  index: 13
+- title: Khóa EdEC
+  slug: edec-keys
+  index: 14
+- title: Ký và xác minh
+  slug: signing-and-verification
+  index: 15
+- title: Tham số EdDSA
+  slug: eddsa-parameters
+  index: 16
+- title: Tích hợp chữ ký
+  slug: signature-integration
+  index: 17
+- title: UDP và datagram
+  slug: udp-and-datagrams
+  index: 18
+- title: Điều khiển UDP
+  slug: udp-controls
+  index: 19
+- title: Protocol family
+  slug: protocol-family
+  index: 20
+- title: GC độ trễ thấp
+  slug: low-latency-garbage-collection
+  index: 21
+- title: ZGC
+  slug: zgc
+  index: 22
+- title: Shenandoah
+  slug: shenandoah
+  index: 23
+- title: Đo lường GC
+  slug: gc-measurement
+  index: 24
+- title: Chẩn đoán lỗi
+  slug: error-diagnostics
+  index: 25
+- title: Tương thích và build
+  slug: compatibility-and-builds
+  index: 26
+- title: Kiểm thử
+  slug: testing
+  index: 27
+- title: Thực hành
+  slug: hands-on-exercise
+  index: 28

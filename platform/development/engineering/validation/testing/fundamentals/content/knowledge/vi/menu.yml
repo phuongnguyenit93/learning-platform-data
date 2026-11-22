@@ -1,0 +1,342 @@
+menu:
+- level1: Bức tranh kiểm thử
+  level2:
+  - Kiểm thử phần mềm là gì và vì sao phần mềm cần được kiểm chứng
+  - Từ nhu cầu người dùng đến hành vi thực tế của sản phẩm
+  - 'Mô hình tư duy: đối tượng, điều kiện, thao tác, quan sát và kết luận'
+  - Các mục tiêu của kiểm thử trong phát triển và vận hành
+  - Phân biệt thực hiện kiểm thử với chỉ chạy chương trình
+  - Kiểm thử cung cấp bằng chứng gì cho người ra quyết định
+  - Mối liên hệ giữa yêu cầu, mã nguồn, kiểm thử và sản phẩm bàn giao
+  - Những giới hạn của một tập ca kiểm thử hữu hạn
+  - Lộ trình học từ thuật ngữ đến tự xây dựng một phép kiểm thử
+- level1: Chất lượng và rủi ro
+  level2:
+  - Chất lượng phần mềm nhìn từ người dùng, nghiệp vụ và đội phát triển
+  - Chức năng đúng và các đặc tính chất lượng ngoài chức năng
+  - Phân biệt đảm bảo chất lượng, kiểm soát chất lượng và kiểm thử
+  - 'Rủi ro sản phẩm: khả năng xảy ra và mức độ tác động'
+  - Rủi ro dự án và sự khác nhau với rủi ro của sản phẩm
+  - Liên hệ vùng rủi ro với mục tiêu và phạm vi kiểm thử
+  - Chi phí phát hiện lỗi, sửa lỗi và phòng ngừa lỗi
+  - Rủi ro còn lại sau kiểm thử và cách trình bày sự không chắc chắn
+- level1: Sai sót và khiếm khuyết
+  level2:
+  - Phân biệt sai sót của con người (error), khiếm khuyết (defect) và hành vi sai (failure)
+  - Nguyên nhân gốc và chuỗi dẫn từ sai sót đến lỗi quan sát được
+  - Khiếm khuyết trong yêu cầu, thiết kế, mã nguồn và cấu hình
+  - Vì sao một khiếm khuyết có thể chưa biểu hiện trong mọi lần chạy
+  - Dữ liệu, trạng thái và môi trường kích hoạt hành vi sai
+  - Phân biệt lỗi sản phẩm với lỗi trong mã hoặc dữ liệu kiểm thử
+  - Phân biệt kiểm thử, chẩn đoán nguyên nhân và sửa lỗi
+  - Vai trò của kiểm thử xác nhận sửa lỗi và phòng ngừa tái diễn
+- level1: Xác minh và xác nhận
+  level2:
+  - 'Xác minh (verification): đối chiếu sản phẩm với đặc tả'
+  - 'Xác nhận đáp ứng nhu cầu (validation): đối chiếu với mục đích sử dụng'
+  - Một chức năng đúng đặc tả nhưng chưa giải quyết nhu cầu người dùng
+  - Bằng chứng cho sự phù hợp kỹ thuật và bằng chứng cho giá trị sử dụng
+  - Vai trò của các bên liên quan trong xác nhận kết quả
+  - Quan hệ giữa kiểm thử chấp nhận và mục tiêu validation
+  - Phân biệt validation sản phẩm với kiểm tra hợp lệ dữ liệu đầu vào
+  - Kết hợp xác minh và xác nhận trong cùng vòng phản hồi
+- level1: Nguyên tắc kiểm thử
+  level2:
+  - Kiểm thử cho thấy sự hiện diện của khiếm khuyết và giới hạn của kết luận không có lỗi
+  - Vì sao không thể kiểm thử vét cạn mọi tổ hợp trong đa số hệ thống
+  - Phát hiện và phản hồi sớm trong vòng đời phát triển
+  - Sự tập trung của khiếm khuyết và cách quan sát các vùng có vấn đề
+  - Vì sao bộ kiểm thử cần được cập nhật khi sản phẩm và hiểu biết thay đổi
+  - Thiết kế kiểm thử theo bối cảnh và mục đích sử dụng
+  - Sản phẩm ít lỗi nhưng không đáp ứng nhu cầu vẫn chưa đạt mục tiêu
+  - Vận dụng các nguyên tắc khi chọn và diễn giải một ca kiểm thử
+- level1: Đối tượng và căn cứ
+  level2:
+  - 'Đối tượng kiểm thử: hàm, thành phần, dịch vụ, hệ thống hoặc sản phẩm'
+  - Xác định ranh giới hệ thống đang được kiểm thử
+  - 'Căn cứ kiểm thử (test basis): yêu cầu, hợp đồng, mô hình và tài liệu'
+  - Phân biệt điều kiện kiểm thử, ca kiểm thử và thủ tục kiểm thử
+  - Đầu vào, đầu ra, trạng thái và các tác dụng phụ cần quan sát
+  - Phụ thuộc bên trong, hệ thống bên ngoài và điểm tiếp xúc
+  - Nhận diện giả định chưa được xác minh trong căn cứ kiểm thử
+  - Xác định nội dung thuộc phạm vi và ngoài phạm vi kiểm thử
+- level1: Yêu cầu và tiêu chí
+  level2:
+  - Đọc yêu cầu dưới góc nhìn hành vi có thể kiểm chứng
+  - Nhận diện yêu cầu mơ hồ, thiếu điều kiện hoặc mâu thuẫn
+  - Ví dụ cụ thể giúp thống nhất cách hiểu yêu cầu
+  - Tiêu chí chấp nhận và quan hệ với kết quả mong đợi
+  - Tiền điều kiện, hậu điều kiện và quy tắc nghiệp vụ
+  - Luồng thông thường, luồng thay thế và tình huống không hợp lệ
+  - Yêu cầu chất lượng cần có điều kiện đo hoặc quan sát rõ ràng
+  - Phân biệt tiêu chí chấp nhận tính năng với tiêu chí kết thúc kiểm thử
+  - Truy vết từ yêu cầu đến điều kiện kiểm thử và bằng chứng
+  - Làm rõ yêu cầu trước khi tự suy đoán kết quả đúng
+- level1: Quy trình kiểm thử
+  level2:
+  - Tổng quan các hoạt động và đầu ra trong một quy trình kiểm thử
+  - Lập kế hoạch theo mục tiêu, phạm vi và nguồn lực
+  - Theo dõi, đối chiếu tiến độ và điều chỉnh hoạt động kiểm thử
+  - Phân tích căn cứ để xác định điều gì cần kiểm tra
+  - Thiết kế ca kiểm thử và xác định kết quả mong đợi
+  - Chuẩn bị dữ liệu, thủ tục, công cụ và môi trường
+  - Thực thi, ghi nhận kết quả và thu thập bằng chứng
+  - Phân tích sai khác, báo cáo vấn đề và trao đổi kết luận
+  - Hoàn tất kiểm thử, lưu đầu ra và ghi nhận bài học
+  - Các hoạt động có thể lặp lại hoặc diễn ra song song theo bối cảnh
+- level1: Vai trò và phối hợp
+  level2:
+  - Trách nhiệm kiểm thử của lập trình viên, tester và các bên nghiệp vụ
+  - Chất lượng là trách nhiệm chung của đội phát triển
+  - 'Tính độc lập trong kiểm thử: lợi ích và giới hạn'
+  - Tư duy phản biện, đặt câu hỏi và nhận diện thiên kiến xác nhận
+  - Trao đổi khiếm khuyết dựa trên bằng chứng và hành vi sản phẩm
+  - Phối hợp làm rõ yêu cầu trước khi viết mã và ca kiểm thử
+  - Chia sẻ hiểu biết về rủi ro, phạm vi và giới hạn kiểm chứng
+  - Phản hồi từ người dùng và vận hành trong vòng cải tiến
+- level1: Kiểm thử trong SDLC
+  level2:
+  - Quan hệ giữa hoạt động phát triển và hoạt động kiểm thử
+  - Kiểm thử trong mô hình tuần tự và mô hình chữ V
+  - Kiểm thử trong phát triển lặp và gia tăng
+  - Kiểm thử trong Agile và vai trò của vòng phản hồi ngắn
+  - Dịch chuyển phản hồi sớm (shift left) và những việc có thể làm trước khi chạy mã
+  - Học từ vận hành và phản hồi sau triển khai
+  - Phân biệt kiểm thử trước phát hành với quan sát hệ thống đang chạy
+  - 'TDD, ATDD và BDD: mục đích và mối liên hệ ở mức nền tảng'
+  - Chu kỳ viết mã, nhận phản hồi và cải tiến thiết kế
+- level1: Kiểm thử tĩnh và động
+  level2:
+  - 'Kiểm thử tĩnh và kiểm thử động: khác nhau ở việc thực thi đối tượng'
+  - Rà soát yêu cầu, thiết kế, mã nguồn và ca kiểm thử
+  - Những loại vấn đề có thể phát hiện trước khi chạy chương trình
+  - Rà soát không chính thức, walkthrough, technical review và inspection
+  - Chuẩn bị, đọc độc lập, trao đổi và theo dõi kết quả rà soát
+  - Phân tích tĩnh bằng công cụ và giới hạn của quy tắc tự động
+  - Kiểm thử động và quan sát hành vi dưới điều kiện cụ thể
+  - Kết hợp bằng chứng tĩnh với bằng chứng thực thi
+  - Phân biệt kiểm tra cú pháp, cảnh báo công cụ và kết luận về nhu cầu
+- level1: Cấp độ và phạm vi
+  level2:
+  - Cấp độ kiểm thử, phạm vi kiểm thử và mục tiêu cần phân biệt
+  - Kiểm thử thành phần (unit/component testing) và ranh giới đơn vị
+  - Kiểm thử tích hợp thành phần và các tương tác nội bộ
+  - Kiểm thử hệ thống đối với hành vi của một sản phẩm hoàn chỉnh
+  - Kiểm thử tích hợp hệ thống và các hệ thống bên ngoài
+  - Kiểm thử chấp nhận từ góc nhìn các bên sử dụng
+  - Kiểm thử E2E theo một hành trình xuyên suốt
+  - Phân biệt phạm vi chức năng với kích thước tài nguyên của phép kiểm thử
+  - Điều kiện đầu vào, đối tượng và môi trường thay đổi theo cấp độ
+  - Kết hợp các cấp độ để bổ sung bằng chứng cho cùng một yêu cầu
+  - Không đồng nhất mọi kiểm thử qua HTTP hoặc cơ sở dữ liệu với một cấp độ cố định
+- level1: Các loại kiểm thử
+  level2:
+  - Loại kiểm thử và sự khác nhau với cấp độ kiểm thử
+  - 'Kiểm thử chức năng: hành vi và quy tắc nghiệp vụ'
+  - 'Kiểm thử phi chức năng: các đặc tính chất lượng cần đánh giá'
+  - Kiểm thử hiệu năng và các câu hỏi về tốc độ, tải, tài nguyên
+  - Kiểm thử độ tin cậy và khả năng duy trì hoặc khôi phục hoạt động
+  - Kiểm thử an toàn bảo mật và các hành vi truy cập cần bảo vệ
+  - Kiểm thử khả dụng và khả năng tiếp cận của người dùng
+  - Kiểm thử tương thích giữa môi trường, phiên bản hoặc nền tảng
+  - Kiểm thử hợp đồng giữa bên cung cấp và bên sử dụng
+  - Một kịch bản có thể cung cấp bằng chứng cho nhiều đặc tính
+  - Giới hạn của việc suy kết luận chất lượng này từ loại kiểm thử khác
+- level1: Mục đích các lượt chạy
+  level2:
+  - Kiểm thử xác nhận sửa lỗi và kiểm thử hồi quy
+  - Phân tích thay đổi để nhận diện phần có thể bị ảnh hưởng
+  - Kiểm thử smoke và kiểm tra nhanh khả năng dùng được của bản build
+  - Thống nhất cách hiểu sanity testing trong từng đội
+  - Kiểm chứng tính năng mới và kiểm chứng hành vi cần giữ nguyên
+  - Kiểm thử bảo trì khi cấu hình, môi trường hoặc thư viện thay đổi
+  - Chạy lại một ca kiểm thử và ý nghĩa của điều kiện tái hiện
+  - Vì sao một bộ hồi quy cũ cần được bổ sung và rà soát
+- level1: Ca kiểm thử và bộ kiểm
+  level2:
+  - Ca kiểm thử là một phép kiểm chứng có mục tiêu rõ ràng
+  - Tên, định danh và khả năng truy vết của ca kiểm thử
+  - Tiền điều kiện và trạng thái ban đầu cần thiết
+  - Dữ liệu đầu vào và các thao tác thực hiện
+  - Kết quả mong đợi, kết quả thực tế và căn cứ so sánh
+  - Hậu điều kiện và việc kiểm tra tác dụng phụ
+  - Ca kiểm thử trừu tượng so với ca đã có dữ liệu cụ thể
+  - Thủ tục kiểm thử, kịch bản và bộ kiểm thử
+  - Nhóm các ca theo mục tiêu, phạm vi hoặc đặc tính
+  - Độ chi tiết vừa đủ để người khác hiểu và tái hiện
+- level1: Căn cứ đánh giá
+  level2:
+  - 'Test oracle: dựa vào đâu để quyết định kết quả đúng hay sai'
+  - Đặc tả, ví dụ đã duyệt và quy tắc nghiệp vụ làm căn cứ
+  - Mô hình tham chiếu hoặc phép tính độc lập với mã đang kiểm thử
+  - Ý kiến chuyên môn và phản hồi người dùng khi đặc tả chưa đầy đủ
+  - So sánh kết quả với phiên bản trước và giới hạn của cách làm này
+  - Kiểm tra thuộc tính bất biến khi khó liệt kê mọi đầu ra cụ thể
+  - Phân biệt không biết kết quả đúng với sản phẩm đã có lỗi
+  - Tránh sao chép chính thuật toán đang kiểm thử để tạo kết quả mong đợi
+  - Tín hiệu báo lỗi sai và lỗi thật bị bộ kiểm thử bỏ sót
+  - Bằng chứng đủ cho một kết luận và những điều chưa được quan sát
+- level1: Tư duy thiết kế ca
+  level2:
+  - Thiết kế từ hành vi bên ngoài, cấu trúc mã và kinh nghiệm
+  - Phân vùng tương đương để chọn đại diện đầu vào
+  - Giá trị biên và các điểm dễ sai ở ranh giới
+  - Bảng quyết định cho các quy tắc kết hợp nhiều điều kiện
+  - Mô hình trạng thái và các chuyển đổi được phép hoặc bị cấm
+  - Kiểm tra luồng sử dụng thông thường, ngoại lệ và khôi phục
+  - 'Câu lệnh, nhánh và đường đi: các góc nhìn về cấu trúc mã'
+  - Phỏng đoán lỗi từ kinh nghiệm và lịch sử sản phẩm
+  - 'Kiểm thử khám phá: kết hợp học, thiết kế và thực thi'
+  - Checklist và câu hỏi định hướng theo vùng rủi ro
+  - Giới hạn số ca bằng đại diện có lý do thay vì chọn dữ liệu tùy tiện
+  - Nhận diện những tổ hợp chưa được kiểm chứng
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Vai trò của dữ liệu trong việc kích hoạt và quan sát hành vi
+  - Dữ liệu hợp lệ, không hợp lệ, thiếu và dư thừa
+  - Giá trị rỗng, null, cực trị và các ranh giới kiểu dữ liệu
+  - Quan hệ giữa nhiều trường dữ liệu và ràng buộc nghiệp vụ
+  - Dữ liệu cho trạng thái có sẵn và chuỗi thao tác
+  - Tạo dữ liệu tổng hợp thay vì phụ thuộc bản sao dữ liệu thật
+  - Che giấu dữ liệu nhạy cảm và giới hạn quyền truy cập
+  - Dữ liệu cố định, dữ liệu sinh tự động và khả năng tái hiện
+  - Tách dữ liệu của từng phép kiểm thử và chuẩn bị khả năng dọn dẹp
+  - Lưu seed hoặc đầu vào gây lỗi để chạy lại
+- level1: Môi trường và cô lập
+  level2:
+  - 'Thành phần của môi trường kiểm thử: phần mềm, cấu hình và tài nguyên'
+  - Khác biệt giữa môi trường phát triển, kiểm thử và vận hành
+  - Chọn mức tương đồng cần thiết theo mục tiêu phép kiểm thử
+  - Thiết lập trạng thái ban đầu và khôi phục sau khi thực hiện
+  - Tài nguyên dùng chung và nguy cơ phụ thuộc thứ tự chạy
+  - Cô lập tệp, dữ liệu, cổng mạng và tài khoản kiểm thử
+  - Phụ thuộc mạng, dịch vụ ngoài và những điều nằm ngoài quyền kiểm soát
+  - Môi trường sẵn sàng so với sản phẩm đạt yêu cầu
+  - Phân biệt thất bại do hạ tầng với sai khác hành vi cần kiểm tra
+  - Ghi lại cấu hình để người khác tái hiện kết quả
+- level1: Thành phần thay thế
+  level2:
+  - Test double là gì và vì sao đôi khi cần thay phụ thuộc thật
+  - 'Dummy: đối tượng chỉ để hoàn thiện đầu vào'
+  - 'Stub: cung cấp phản hồi đã chuẩn bị'
+  - 'Fake: cách triển khai đơn giản phục vụ kiểm thử'
+  - 'Spy và mock: quan sát hoặc kiểm chứng tương tác'
+  - Kiểm chứng trạng thái so với kiểm chứng tương tác
+  - Lựa chọn phụ thuộc thật hoặc thành phần thay thế theo mục tiêu
+  - Rủi ro mô phỏng khác hợp đồng thật hoặc ràng buộc quá chặt vào cách cài đặt
+  - Xác định bằng chứng còn thiếu khi phép kiểm thử dùng thành phần thay thế
+- level1: Assertion và quan sát
+  level2:
+  - Assertion là gì và quan hệ với kết quả mong đợi
+  - Phân biệt chạy qua một đoạn mã với kiểm chứng hành vi của nó
+  - So sánh giá trị, tập hợp và cấu trúc dữ liệu theo ý nghĩa
+  - Kiểm chứng ngoại lệ dự kiến và nội dung lỗi cần quan sát
+  - Kiểm chứng trạng thái, tác dụng phụ và tương tác có ý nghĩa
+  - Sai số cho giá trị số và điều kiện so sánh thời gian
+  - Assertion đủ rõ để chỉ ra hành vi sai khi thất bại
+  - Phân biệt assertion của framework với từ khóa assert trong Java
+  - Assumption và điều kiện khiến ca kiểm thử chưa thể tiếp tục
+  - Tránh phép kiểm thử không có kết luận hoặc luôn thành công
+- level1: Cấu trúc phép kiểm thử
+  level2:
+  - Arrange–Act–Assert và cách tách chuẩn bị, thực hiện, kiểm chứng
+  - Given–When–Then và diễn đạt tình huống theo hành vi
+  - Một mục tiêu kiểm chứng với số assertion phù hợp
+  - Tên phép kiểm thử thể hiện điều kiện và kết quả mong đợi
+  - Fixture, bước thiết lập và bước dọn dẹp
+  - Phép kiểm thử độc lập với thứ tự và kết quả của ca khác
+  - Tham số hóa các trường hợp có cùng cấu trúc hành vi
+  - Hàm hỗ trợ và cân bằng tái sử dụng với khả năng đọc
+  - Tránh logic điều kiện phức tạp che khuất điều đang kiểm chứng
+  - Phân biệt hành vi công khai với chi tiết cài đặt có thể thay đổi
+- level1: Thủ công và tự động
+  level2:
+  - Kiểm thử thủ công và kiểm thử tự động hỗ trợ các mục tiêu khác nhau
+  - Phân biệt tự động thực hiện thao tác với tự động đưa ra kết luận
+  - Những tình huống lặp lại có lợi khi tự động hóa
+  - Vai trò của con người trong khám phá, học và đánh giá trải nghiệm
+  - Chi phí xây dựng, vận hành và bảo trì phép kiểm thử tự động
+  - Khả năng tái sử dụng dữ liệu, môi trường và bằng chứng
+  - Vì sao tự động hóa không biến một ca thiết kế sai thành ca có giá trị
+  - Chọn mức tự động hóa dựa trên rủi ro và khả năng quan sát
+- level1: Khả năng kiểm thử
+  level2:
+  - Khả năng kiểm thử (testability) và liên hệ với thiết kế phần mềm
+  - Khả năng kiểm soát đầu vào, thời gian và trạng thái
+  - Khả năng quan sát kết quả, tác dụng phụ và lỗi
+  - Phụ thuộc tường minh giúp xác định ranh giới phép kiểm thử
+  - Tách tính toán nghiệp vụ khỏi I/O và tài nguyên bên ngoài
+  - Điểm thay thế phụ thuộc và giới hạn của việc chỉ dùng mock
+  - Thiết kế cho hành vi rõ ràng mà không mở lộ chi tiết nội bộ tùy tiện
+  - Phản hồi từ phép kiểm thử khó viết đến việc xem lại thiết kế
+- level1: Độ ổn định và tin cậy
+  level2:
+  - Tính xác định và khả năng lặp lại của phép kiểm thử
+  - 'Flaky test: kết quả thay đổi khi các điều kiện liên quan chưa được kiểm soát'
+  - Đồng hồ, múi giờ, locale và dữ liệu phụ thuộc thời điểm
+  - Ngẫu nhiên, seed và lưu đầu vào gây lỗi
+  - Trạng thái dùng chung và phụ thuộc thứ tự thực thi
+  - Luồng, tác vụ bất đồng bộ và giả định sai về thời điểm hoàn thành
+  - Mạng, tài nguyên ngoài và giới hạn của chờ cố định
+  - Chạy lại thành công không tự giải thích được nguyên nhân thất bại trước
+  - Tách chẩn đoán độ không ổn định của phép kiểm thử khỏi chẩn đoán lỗi sản phẩm
+- level1: Kết quả và báo lỗi
+  level2:
+  - Phân biệt đạt, không đạt, bị chặn và chưa thực hiện
+  - Skipped hoặc aborted không cung cấp cùng bằng chứng với ca đã đạt
+  - Đối chiếu kết quả thực tế với kết quả mong đợi và các giả định
+  - Phân biệt assertion thất bại, lỗi thiết lập và sự cố công cụ
+  - Ghi nhận bước tái hiện, dữ liệu, phiên bản và môi trường
+  - Tiêu đề báo lỗi mô tả hành vi quan sát được
+  - Kết quả mong đợi, kết quả thực tế và bằng chứng đi kèm
+  - Mức nghiêm trọng và độ ưu tiên xử lý là hai góc nhìn khác nhau
+  - Vòng đời một báo lỗi và việc xác nhận sau khi sửa
+  - Trao đổi trường hợp không tái hiện được hoặc yêu cầu chưa thống nhất
+  - Phân biệt kết luận đã có bằng chứng với giả thuyết về nguyên nhân
+- level1: Độ bao phủ và số liệu
+  level2:
+  - Độ bao phủ cần được gắn với đối tượng hoặc tiêu chí cụ thể
+  - Bao phủ yêu cầu, quy tắc nghiệp vụ và vùng rủi ro
+  - Bao phủ câu lệnh và bao phủ nhánh
+  - Vì sao chạy qua mã không đồng nghĩa với kiểm chứng đúng hành vi
+  - Tỷ lệ ca đạt và giới hạn khi diễn giải kết quả
+  - Lỗi còn lọt, thời gian phản hồi và độ ổn định của bộ kiểm thử
+  - Mutation testing như một cách tìm hiểu sức phát hiện lỗi của phép kiểm thử
+  - Truy vết các yêu cầu chưa có bằng chứng hoặc chưa được thực hiện
+  - Tránh dùng số ca, số assertion hoặc phần trăm bao phủ làm mục tiêu duy nhất
+  - Báo cáo điều đã kiểm chứng cùng điều còn chưa biết
+- level1: Cân bằng phạm vi
+  level2:
+  - Ưu tiên tình huống theo tác động, xác suất và phần thay đổi
+  - Phản hồi nhanh so với độ trung thực của môi trường thực thi
+  - Kim tự tháp kiểm thử như một mô hình tham khảo
+  - Vì sao không áp dụng một tỷ lệ unit, integration và E2E cố định cho mọi hệ thống
+  - Điểm mù khi chỉ có phép kiểm thử rất nhỏ hoặc chỉ có E2E
+  - Kết hợp phạm vi để phát hiện lỗi và định vị nguyên nhân
+  - Phân biệt ưu tiên ca kiểm thử với khẳng định phần còn lại an toàn
+  - Tiêu chí bắt đầu, tiêu chí kết thúc và quyết định chấp nhận rủi ro
+  - Khi nào cần học sâu thêm về chiến lược, thiết kế hoặc loại kiểm thử chuyên biệt
+- level1: Công cụ và tích hợp
+  level2:
+  - Phân biệt framework kiểm thử, bộ chạy, thư viện assertion và công cụ báo cáo
+  - Từ một phép kiểm chứng Java nhỏ đến phép kiểm thử dùng JUnit
+  - Vai trò của công cụ build trong biên dịch và thực thi kiểm thử
+  - Phát hiện ca kiểm thử và nguy cơ build xanh khi không chạy ca nào
+  - Tích hợp phép kiểm thử vào phản hồi khi thay đổi mã nguồn
+  - Log, stack trace và báo cáo giúp tái hiện hoặc định vị vấn đề
+  - Quản lý phiên bản mã kiểm thử cùng mã sản phẩm
+  - Vai trò của IDE, CI và môi trường chạy trong việc diễn giải kết quả
+  - Giới hạn của công cụ khi yêu cầu, oracle hoặc phạm vi đã sai
+- level1: Thực hành tổng hợp
+  level2:
+  - Từ yêu cầu tính phí đơn giản đến tiêu chí chấp nhận có thể kiểm chứng
+  - Tìm điều kiện còn thiếu hoặc mâu thuẫn trong một đặc tả
+  - Phân biệt sai sót, khiếm khuyết và hành vi sai qua một ví dụ
+  - Thiết kế các ca đại diện cho dữ liệu thông thường, biên và không hợp lệ
+  - Xác định kết quả đúng bằng căn cứ độc lập với cách cài đặt
+  - Tổ chức phép kiểm thử theo Arrange–Act–Assert
+  - So sánh kiểm thử dùng phụ thuộc thật với thành phần thay thế
+  - Tạo tình huống báo lỗi sai hoặc bỏ sót lỗi để xem lại assertion
+  - Viết báo lỗi có thể tái hiện và xác nhận sau khi sửa
+  - Đọc báo cáo ca đạt, ca bị bỏ qua và phần chưa có bằng chứng
+  - Giải thích phạm vi, rủi ro còn lại và giới hạn của bộ kiểm thử đã xây

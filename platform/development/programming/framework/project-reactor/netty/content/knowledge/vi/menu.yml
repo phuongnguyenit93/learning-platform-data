@@ -1,0 +1,307 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Reactor Netty là gì và giải quyết bài toán vào ra mạng nào
+  - Quan hệ giữa Reactive Streams, Reactor Core, Netty và Reactor Netty
+  - Phân biệt vào ra không chặn, thực thi bất đồng bộ và xử lý song song
+  - Vai trò của Mono, Flux và cơ chế điều tiết theo nhu cầu trong luồng mạng
+  - 'Bản đồ thành phần: client, server, connection, channel và event loop'
+  - Các giao thức được hỗ trợ và tiêu chí chọn HTTP, WebSocket, TCP hoặc UDP
+  - Ranh giới giữa Reactor Netty với WebFlux, WebClient và Netty thuần
+  - Kiến thức tiên quyết và lộ trình từ kết nối đơn giản đến vận hành
+- level1: Nền tảng mạng
+  level2:
+  - Địa chỉ IP, tên miền, cổng và điểm cuối kết nối
+  - TCP truyền luồng byte và UDP truyền gói dữ liệu khác nhau thế nào
+  - Kết nối, yêu cầu, phản hồi và luồng logic là những đơn vị khác nhau
+  - Thiết lập kết nối, đóng kết nối và đóng một chiều trong TCP
+  - Phân biệt TCP keepalive, HTTP keep-alive và nhịp kiểm tra ở tầng ứng dụng
+  - Vai trò của DNS, proxy, bộ cân bằng tải và NAT trên đường truyền
+  - Vì sao một lần gửi không tương ứng một lần nhận
+- level1: Thiết lập
+  level2:
+  - Chọn phiên bản Reactor Netty tương thích với Reactor Core, Netty và JDK
+  - Quản lý phụ thuộc bằng Reactor BOM hoặc cơ chế quản lý của Spring Boot
+  - Phân biệt reactor-netty-core, reactor-netty-http và các phụ thuộc giao thức
+  - Khởi tạo dự án Maven hoặc Gradle và bật nhật ký phục vụ học tập
+  - Viết chương trình HTTP client và server tối thiểu
+  - Phân biệt cấu hình bất biến với tài nguyên thực thi được chia sẻ
+  - Khởi tạo sớm tài nguyên bằng warmup và phân biệt với mở kết nối thực
+- level1: Mô hình thực thi
+  level2:
+  - Event loop là gì và một luồng phục vụ nhiều kết nối như thế nào
+  - Quan hệ giữa EventLoopGroup, Channel và vòng đời xử lý sự kiện
+  - Vị trí thực thi của callback mạng và toán tử Reactor
+  - Hậu quả của block, ngủ hoặc gọi thư viện chặn trên event loop
+  - Chuyển công việc chặn sang Scheduler phù hợp mà vẫn giữ chuỗi xử lý
+  - Ảnh hưởng của publishOn, subscribeOn và mức đồng thời đến luồng mạng
+  - Giữ thứ tự dữ liệu khi xử lý bất đồng bộ hoặc chạy song song
+  - Khi nào được chờ đồng bộ ở điểm khởi động hoặc biên kiểm thử
+- level1: Vòng đời kết nối
+  level2:
+  - Phân biệt cấu hình client hoặc server với việc bind, connect và subscribe
+  - bind và connect bất đồng bộ so với bindNow và connectNow
+  - Connection, DisposableServer và các tín hiệu đóng kết nối
+  - NettyInbound, NettyOutbound và hợp đồng của hàm handle
+  - Kết hợp đọc, xử lý và ghi thành một Publisher hoàn chỉnh
+  - Callback vòng đời và ConnectionObserver dùng để theo dõi trạng thái
+  - Hủy đăng ký, hoàn thành và lỗi ảnh hưởng đến kết nối như thế nào
+  - Tránh subscribe lồng nhau và tách tác vụ khỏi vòng đời yêu cầu
+  - Đóng kết nối và giải phóng tài nguyên trong cả đường thành công lẫn thất bại
+- level1: Bộ đệm dữ liệu
+  level2:
+  - ByteBuf, ByteBufFlux và ByteBufMono trong luồng nhận dữ liệu
+  - Bộ nhớ heap, bộ nhớ trực tiếp và bộ cấp phát có tái sử dụng
+  - Đếm tham chiếu và trách nhiệm giữ hoặc giải phóng ByteBuf
+  - Cơ chế giải phóng tự động của Reactor Netty và giới hạn sử dụng bộ đệm
+  - Chuyển bộ đệm sang chuỗi hoặc mảng byte với bộ mã ký tự phù hợp
+  - Phân biệt sao chép dữ liệu với slice, duplicate và retain
+  - Giữ bộ đệm an toàn khi chuyển luồng hoặc lưu ngoài callback
+  - Gom dữ liệu bằng aggregate và kiểm soát dung lượng bộ nhớ
+  - Phát hiện rò rỉ bộ đệm và lỗi IllegalReferenceCountException
+- level1: Điều tiết dữ liệu
+  level2:
+  - Nhu cầu request của Reactive Streams tác động đến việc đọc dữ liệu mạng
+  - Phân biệt bộ đệm ứng dụng, bộ đệm socket và điều khiển luồng giao thức
+  - Điều tiết tốc độ đọc khi bên xử lý hoặc bên nhận chậm
+  - Giới hạn số tác vụ đang chạy, hàng đợi và lượng dữ liệu chờ
+  - Ảnh hưởng của prefetch, flatMap và concatMap đến thứ tự và bộ nhớ
+  - Giới hạn khi đăng ký nhiều lần vào cùng luồng inbound
+  - Truyền dữ liệu liên tục và điều khiển ghi, flush theo từng nhóm
+  - Phản ứng khi hủy luồng giữa chừng và dọn dữ liệu chưa được xử lý
+  - Giới hạn của cơ chế điều tiết cục bộ đối với UDP và bên gửi từ xa
+- level1: TCP Server
+  level2:
+  - Tạo TcpServer và chọn địa chỉ, cổng lắng nghe
+  - Đọc và ghi bằng NettyInbound, NettyOutbound trong hàm handle
+  - Xây máy chủ phản hồi lại dữ liệu để quan sát luồng byte
+  - Quản lý trạng thái riêng của từng kết nối
+  - Cấu hình ChannelOption cho kênh lắng nghe và kênh con
+  - Theo dõi kết nối mới, kết nối đóng và lỗi xử lý
+  - Phát hiện kết nối không hoạt động và dọn phiên bỏ dở
+- level1: TCP Client
+  level2:
+  - Tạo TcpClient và thiết lập kết nối đến máy chủ
+  - Gửi dữ liệu rồi đọc phản hồi theo vòng đời giao thức ứng dụng
+  - Giữ kết nối dài hạn và trao đổi nhiều thông điệp
+  - Xử lý máy chủ từ chối, ngắt kết nối hoặc đóng một chiều
+  - Thiết kế kết nối lại có giãn cách và khôi phục trạng thái phiên
+  - ConnectionProvider với TCP và giới hạn tái sử dụng khác HTTP
+  - Đóng client có chủ đích và tránh vòng lặp kết nối lại ngoài kiểm soát
+- level1: Định khung TCP
+  level2:
+  - Vấn đề thông điệp bị chia nhỏ hoặc gộp trong luồng TCP
+  - Định khung theo độ dài cố định
+  - Định khung theo dấu phân cách hoặc ký tự xuống dòng
+  - Định khung bằng trường độ dài và LengthFieldBasedFrameDecoder
+  - Xây bộ mã hóa và giải mã cho giao thức nhị phân
+  - Giới hạn kích thước khung và xử lý dữ liệu đầu vào chưa hoàn chỉnh
+  - Ghép yêu cầu với phản hồi bằng định danh tương quan
+  - Kiểm tra thông điệp lỗi, nhiều khung liên tiếp và ranh giới bộ đệm
+- level1: UDP
+  level2:
+  - Thiết lập UdpServer và UdpClient
+  - Đọc DatagramPacket cùng địa chỉ người gửi và người nhận
+  - Gửi phản hồi đúng điểm cuối và bảo toàn ranh giới gói
+  - Ý nghĩa của connect đối với socket UDP
+  - Giới hạn kích thước gói, MTU và nguy cơ phân mảnh
+  - Xử lý mất gói, gói trùng và sai thứ tự ở tầng ứng dụng
+  - Cấu hình broadcast hoặc multicast khi hệ điều hành và transport hỗ trợ
+  - Thiết kế bộ thu UDP chịu tải mà không giả định giao nhận tin cậy
+- level1: HTTP Server
+  level2:
+  - Khởi tạo HttpServer, bind địa chỉ và quản lý vòng đời
+  - Định tuyến theo phương thức, đường dẫn và thứ tự đăng ký
+  - Đọc URI, tham số đường dẫn, chuỗi truy vấn và header
+  - Xây phản hồi với mã trạng thái, header, cookie và kiểu nội dung
+  - Phân biệt gửi header với hoàn tất nội dung phản hồi
+  - Xử lý tuyến không khớp và lỗi phát sinh trước hoặc sau khi gửi header
+  - Phục vụ tệp và tài nguyên tĩnh trong giới hạn đường dẫn cho phép
+  - Cấu hình giới hạn kết nối và phạm vi hỗ trợ theo phiên bản
+- level1: Ngữ nghĩa HTTP
+  level2:
+  - Content-Length, truyền theo từng phần và ranh giới nội dung HTTP/1.1
+  - Kết nối HTTP/1.1 được tái sử dụng trong điều kiện nào
+  - Đọc hết hoặc bỏ nội dung đúng cách trước khi tái sử dụng kết nối
+  - Yêu cầu HEAD và các phản hồi không có nội dung
+  - Mã trạng thái 4xx, 5xx khác lỗi truyền tải như thế nào
+  - Xử lý chuyển hướng và giới hạn chuyển tiếp header nhạy cảm
+  - Nén, giải nén và ảnh hưởng đến kích thước dữ liệu thực nhận
+  - Cookie và header truyền tải khác trạng thái phiên của ứng dụng
+  - Giới hạn bộ giải mã đối với dòng yêu cầu, header và từng phần nội dung
+- level1: HTTP Client
+  level2:
+  - Tạo HttpClient và cấu hình địa chỉ cơ sở hoặc URI đầy đủ
+  - Gửi GET, POST và các phương thức HTTP khác
+  - Thiết lập header, cookie và nội dung yêu cầu
+  - Chọn response, responseSingle hoặc responseContent theo cách dùng dữ liệu
+  - Quản lý vòng đời response body trong callback và sau khi callback kết thúc
+  - Xây chính sách xử lý mã trạng thái ở tầng ứng dụng
+  - Theo dõi các giai đoạn gửi yêu cầu, nhận phản hồi và lỗi
+  - Cơ chế thử lại do ngắt kết nối và điều kiện tắt hành vi này
+  - Hủy yêu cầu đang chạy và ảnh hưởng đến việc tái sử dụng kết nối
+- level1: Truyền nội dung
+  level2:
+  - Nhận và gửi nội dung dạng luồng thay vì gom toàn bộ vào bộ nhớ
+  - Truyền tệp lớn và điều kiện áp dụng kỹ thuật giảm sao chép
+  - Gửi biểu mẫu URL-encoded và multipart từ HTTP client
+  - Nhận multipart, quản lý tệp tạm và giới hạn tải lên
+  - Xử lý JSON theo từng phần và ranh giới trách nhiệm của bộ mã hóa ứng dụng
+  - Truyền sự kiện một chiều bằng Server-Sent Events
+  - Điều chỉnh nhịp flush cho dữ liệu phát liên tục
+  - Phát hiện bên nhận ngắt kết nối và dừng nguồn dữ liệu kịp thời
+- level1: Pool kết nối
+  level2:
+  - Vai trò của ConnectionProvider và phạm vi pool theo đích kết nối
+  - Phân biệt kết nối mới, kết nối đang dùng, kết nối rảnh và yêu cầu chờ
+  - Cấu hình maxConnections theo mức đồng thời và tài nguyên thực tế
+  - Giới hạn hàng đợi và thời gian chờ lấy kết nối
+  - maxIdleTime, maxLifeTime và cơ chế loại bỏ kết nối cũ
+  - Chọn chiến lược cấp phát FIFO hoặc LIFO
+  - Đối chiếu thời hạn kết nối rảnh với máy chủ, proxy và bộ cân bằng tải
+  - Ảnh hưởng của nội dung chưa được tiêu thụ đến khả năng trả kết nối
+  - Khác biệt giữa pool kết nối HTTP/1.1 với pool luồng HTTP/2
+  - Khi nào cần kết nối riêng và cách đóng ConnectionProvider do ứng dụng sở hữu
+- level1: Thời hạn chờ
+  level2:
+  - Phân biệt ngân sách thời gian toàn yêu cầu với thời hạn từng giai đoạn
+  - Thời hạn chờ phân giải tên miền và lấy kết nối từ pool
+  - Cấu hình thời hạn thiết lập kết nối TCP
+  - Thời hạn TLS handshake và đóng phiên TLS
+  - Ý nghĩa của responseTimeout và khoảng chờ giữa các lần đọc
+  - ReadTimeoutHandler, WriteTimeoutHandler và giới hạn khi gắn vào kênh dùng lại
+  - Toán tử timeout của Reactor khác cấu hình timeout ở tầng mạng
+  - Thời hạn đọc yêu cầu và thời gian kết nối rảnh phía HTTP server
+  - Xử lý hủy, đóng kết nối và thu hồi tài nguyên sau khi hết hạn
+- level1: DNS và proxy
+  level2:
+  - Phân giải tên miền bất đồng bộ và cấu hình resolver
+  - Bộ nhớ đệm DNS, TTL và thay đổi địa chỉ dịch vụ
+  - Lựa chọn địa chỉ IPv4, IPv6 và xử lý lỗi phân giải
+  - Phân biệt phân giải tên miền tại client với tại proxy
+  - Cấu hình HTTP CONNECT hoặc SOCKS proxy theo khả năng hỗ trợ
+  - Xác thực proxy, danh sách đích bỏ qua và thời hạn kết nối proxy
+  - Chẩn đoán lỗi DNS, định tuyến và kết nối qua nhiều tầng trung gian
+- level1: TLS
+  level2:
+  - Vai trò của TLS trong xác thực đối tác và mã hóa đường truyền
+  - Cấu hình secure cho client và server bằng SslContext
+  - Chuỗi chứng thư, trust store và kiểm tra tên máy chủ
+  - Xác thực hai chiều bằng chứng thư client
+  - Server Name Indication và phục vụ nhiều tên miền
+  - ALPN và thương lượng giao thức HTTP/2
+  - Lựa chọn nhà cung cấp TLS, giao thức và bộ mã hóa phù hợp
+  - Chẩn đoán lỗi handshake, chứng thư hết hạn và chuỗi tin cậy
+  - Quản lý chứng thư trong môi trường phát triển và vận hành
+- level1: HTTP/2 và HTTP/3
+  level2:
+  - Khác biệt giữa kết nối vật lý và nhiều luồng HTTP đồng thời
+  - Chọn HTTP/1.1, H2 hoặc H2C và hiểu cơ chế nâng cấp
+  - Cấu hình HTTP/2 qua TLS và kết nối không mã hóa khi phù hợp
+  - Điều khiển luồng, giới hạn số luồng và tác động đến tài nguyên
+  - Xử lý đóng luồng, GOAWAY và duy trì kết nối HTTP/2
+  - Quan sát pool luồng thay vì chỉ đếm số kết nối
+  - HTTP/3, QUIC và các điều kiện về phiên bản, thư viện native, nền tảng
+  - Đối chiếu tính năng, đường truyền và phương án tương thích khi đổi giao thức
+- level1: WebSocket
+  level2:
+  - Phân biệt WebSocket với HTTP thông thường và Server-Sent Events
+  - Thiết lập nâng cấp WebSocket ở server và kết nối từ client
+  - Gửi, nhận khung văn bản, khung nhị phân và thông điệp phân mảnh
+  - Cấu hình giới hạn khung, ghép thông điệp và giao thức con
+  - Ping, pong và phát hiện kết nối không còn hoạt động
+  - Điều tiết dữ liệu khi hai phía có tốc độ xử lý khác nhau
+  - Đóng phiên với mã trạng thái và xử lý mất kết nối bất ngờ
+  - Thiết kế kết nối lại, xác thực và khôi phục đăng ký ở tầng ứng dụng
+- level1: Tùy biến Netty
+  level2:
+  - ChannelPipeline và thứ tự xử lý sự kiện inbound, outbound
+  - Dùng doOnChannelInit hoặc doOnConnected để bổ sung handler
+  - Chọn addHandlerFirst, addHandlerLast và vị trí tương đối với bộ mã hóa
+  - Phân biệt handler dùng chung an toàn với trạng thái riêng theo kết nối
+  - Tích hợp bộ giải mã, giám sát trạng thái rảnh và giới hạn ghi
+  - Lan truyền lỗi, hoàn thành ghi và quy tắc sở hữu ByteBuf trong handler
+  - Giới hạn tùy biến pipeline với kết nối tái sử dụng và kênh con HTTP/2
+- level1: Quản lý tài nguyên
+  level2:
+  - Tài nguyên mặc định dùng chung trong HttpResources và TcpResources
+  - Tạo LoopResources riêng và gắn bằng runOn
+  - Lựa chọn transport NIO hoặc native phù hợp hệ điều hành
+  - Unix domain socket và điều kiện hỗ trợ theo transport
+  - Phân quyền sở hữu event loop, pool kết nối và client
+  - Thiết kế khởi động, dừng nhận việc và chờ tác vụ đang chạy
+  - dispose, disposeLater và thời gian chờ giải phóng tài nguyên
+  - Hậu quả của việc đóng tài nguyên chung khi các thành phần khác vẫn sử dụng
+- level1: Quan sát hệ thống
+  level2:
+  - Phân biệt access log, wiretap, metrics và distributed tracing
+  - Cấu hình wiretap cùng định dạng ghi dữ liệu phù hợp
+  - Access log phía server và thông tin cần để truy vết một yêu cầu
+  - Theo dõi thời gian DNS, kết nối, TLS, gửi và nhận dữ liệu
+  - Quan sát kết nối đang dùng, kết nối rảnh và hàng đợi lấy kết nối
+  - Theo dõi bộ nhớ ByteBuf, tác vụ event loop và dấu hiệu nghẽn
+  - Chuẩn hóa nhãn URI để giới hạn số lượng giá trị đo lường
+  - Truyền ngữ cảnh quan sát giữa Reactor Context và callback Netty
+  - Che thông tin xác thực, cookie và nội dung nhạy cảm khi ghi nhật ký
+- level1: Hiệu năng
+  level2:
+  - Đặt mục tiêu thông lượng, độ trễ p95, p99 và giới hạn tài nguyên
+  - Đo riêng chi phí khởi động, làm nóng và xử lý ổn định
+  - Điều chỉnh số luồng event loop theo tải và tài nguyên thực có
+  - Cân bằng số kết nối, mức đồng thời và kích thước hàng đợi
+  - Ảnh hưởng của bộ đệm, gom nội dung và sao chép dữ liệu
+  - Đánh đổi giữa nén, TLS, flush và kích thước dữ liệu gửi
+  - Giới hạn file descriptor, bộ nhớ trực tiếp và cổng tạm của hệ điều hành
+  - Đánh giá bên nhận chậm, tải đột biến và hiệu ứng nghẽn dây chuyền
+- level1: Xử lý sự cố
+  level2:
+  - Phân loại lỗi DNS, kết nối, TLS, giao thức và xử lý ứng dụng
+  - Chẩn đoán PrematureCloseException và phản hồi bị đóng chưa hoàn tất
+  - Phân biệt hết thời gian lấy kết nối với hết thời gian kết nối hoặc phản hồi
+  - Chẩn đoán connection reset, broken pipe và đóng bởi trung gian
+  - Phát hiện event loop bị chặn hoặc hàng đợi tác vụ tăng
+  - Chẩn đoán nội dung bị tiêu thụ nhiều lần hoặc thiếu dữ liệu
+  - Theo dõi bộ nhớ trực tiếp tăng và xác định rò rỉ ByteBuf
+  - Thiết kế retry có giới hạn theo tính lặp lại an toàn của yêu cầu
+  - Quy trình thu thập bằng chứng từ nhật ký, chỉ số và kiểm tra đường truyền
+- level1: Bảo mật
+  level2:
+  - Kiểm tra chứng thư và tên máy chủ thay vì bỏ xác minh TLS
+  - Giới hạn kích thước header, nội dung, khung và thời gian đọc
+  - Kiểm soát URL đích, chuyển hướng và proxy để hạn chế SSRF
+  - Chỉ tin cậy Forwarded hoặc X-Forwarded-* từ trung gian đã xác minh
+  - Giới hạn kết nối, mức đồng thời và tốc độ theo khả năng ứng dụng
+  - Kiểm soát nguồn gốc và thông tin xác thực khi nâng cấp WebSocket
+  - Ngăn truy cập ngoài thư mục khi phục vụ tệp hoặc nhận tải lên
+  - Rà soát phụ thuộc Netty, Reactor Netty và các thư viện native khi nâng cấp
+- level1: Tích hợp Spring
+  level2:
+  - Vai trò của Reactor Netty khi làm HTTP server cho Spring WebFlux
+  - Dùng ReactorClientHttpConnector để cấu hình transport cho WebClient
+  - Tách xử lý HTTP của WebClient khỏi cấu hình mạng của HttpClient
+  - Quản lý tài nguyên cùng vòng đời Spring bằng ReactorResourceFactory
+  - Tùy biến máy chủ Netty do Spring Boot quản lý qua điểm mở rộng phù hợp
+  - Phân biệt thuộc tính do Spring Boot quản lý với cấu hình API trực tiếp
+  - Tránh tạo pool, event loop hoặc server mới cho từng yêu cầu
+  - Tổ chức cấu hình theo môi trường và kiểm tra lại tương thích phiên bản
+- level1: Kiểm thử
+  level2:
+  - Chọn kiểm thử đơn vị, tích hợp giao thức và kiểm thử tải theo mục tiêu
+  - Khởi động server với cổng ngẫu nhiên và đóng tài nguyên sau mỗi bộ kiểm thử
+  - Dùng StepVerifier để xác minh tín hiệu hoàn thành, lỗi và hủy
+  - Kiểm tra nội dung theo từng phần thay vì giả định ranh giới gói mạng
+  - Mô phỏng bên gửi chậm, bên nhận chậm và kết nối bị đóng giữa chừng
+  - Kiểm thử timeout, pool bão hòa và chính sách retry bằng điều kiện có kiểm soát
+  - Kiểm thử TLS, proxy, HTTP/2 và WebSocket trong môi trường phù hợp
+  - Kiểm tra rò rỉ bộ đệm, luồng và kết nối sau khi kết thúc
+  - Phân biệt thời gian ảo của Reactor với hoạt động mạng thực
+- level1: Thực hành
+  level2:
+  - Xây cặp TCP client–server có định khung thông điệp và định danh tương quan
+  - Xây bộ thu UDP và thống kê mất gói, gói trùng, sai thứ tự
+  - Xây HTTP server cùng client truyền tệp lớn với giới hạn bộ nhớ
+  - Xây luồng Server-Sent Events xử lý bên nhận ngắt kết nối
+  - Xây phiên WebSocket có nhịp kiểm tra và quản lý vòng đời
+  - Thử nghiệm pool bão hòa, thời hạn chờ và bên nhận chậm
+  - So sánh HTTP/1.1 với HTTP/2 trên cùng kịch bản tải
+  - Hoàn thiện bảng chỉ số, quy trình chẩn đoán và kế hoạch dừng hệ thống

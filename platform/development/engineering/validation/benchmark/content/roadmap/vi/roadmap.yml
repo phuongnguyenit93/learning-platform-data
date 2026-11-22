@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-pham-vi
+  title: Mục tiêu & phạm vi
+  purpose: Xác định cần đo điều gì và dùng kết quả benchmark để quyết định vấn đề nào.
+  objectives:
+  - Phân biệt benchmark với kiểm thử chức năng
+  - 'Chọn đối tượng đo: đoạn mã, API hoặc hệ thống'
+  - Nêu câu hỏi và phạm vi đo rõ ràng
+- id: chi-so-nguong
+  title: Chỉ số & ngưỡng
+  purpose: Chọn thước đo sát mục tiêu và xác lập tiêu chí chấp nhận trước khi chạy.
+  objectives:
+  - Chọn latency, throughput và error rate phù hợp
+  - Theo dõi CPU, bộ nhớ hoặc GC khi cần
+  - Đặt ngưỡng định lượng có thể kiểm tra
+- id: workload-du-lieu
+  title: Workload & dữ liệu
+  purpose: Mô phỏng tình huống sử dụng đại diện để kết quả có ý nghĩa thực tế.
+  objectives:
+  - Thiết kế lưu lượng và mức đồng thời
+  - Chuẩn bị dữ liệu đầu vào tái lập được
+  - Phân biệt tải ổn định, tăng dần và đột biến
+- id: moi-truong-baseline
+  title: Môi trường & baseline
+  purpose: Kiểm soát các yếu tố gây nhiễu và thiết lập mốc so sánh công bằng.
+  objectives:
+  - Cố định phiên bản, tài nguyên và cấu hình
+  - Kiểm soát cache, tải nền và trạng thái hệ thống
+  - Lưu baseline kèm điều kiện đo
+- id: thiet-ke-cong-cu
+  title: Thiết kế & công cụ
+  purpose: Chọn kỹ thuật và công cụ đúng với cấp độ benchmark cần kiểm chứng.
+  objectives:
+  - Phân biệt microbenchmark với load benchmark
+  - Sử dụng JMH cho phép đo trên JVM khi phù hợp
+  - Chọn k6 hoặc JMeter cho kịch bản tải API
+- id: thuc-thi-benchmark
+  title: Thực thi benchmark
+  purpose: Thu thập phép đo đủ lặp lại để tránh đánh giá theo một lần chạy đơn lẻ.
+  objectives:
+  - Thiết lập warmup, thời lượng và số lần lặp
+  - Chạy kịch bản với điều kiện nhất quán
+  - Lưu kết quả thô cùng thông tin lỗi
+- id: phan-tich-so-sanh
+  title: Phân tích & so sánh
+  purpose: Đọc kết quả theo phân bố và kiểm tra sự khác biệt so với baseline.
+  objectives:
+  - Phân tích median, p95/p99 và độ biến thiên
+  - So sánh trong cùng điều kiện đo
+  - Nhận diện nhiễu và suy giảm cần điều tra
+- id: bao-cao-tu-dong-hoa
+  title: Báo cáo & tự động hóa
+  purpose: Biến số liệu thành quyết định cải tiến và theo dõi hồi quy qua các lần thay đổi.
+  objectives:
+  - Trình bày phương pháp, kết quả và giới hạn
+  - Lưu script và cấu hình để tái lập
+  - Tích hợp ngưỡng phù hợp vào CI khi ổn định

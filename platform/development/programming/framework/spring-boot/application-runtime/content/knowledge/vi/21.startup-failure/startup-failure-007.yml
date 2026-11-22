@@ -1,0 +1,3 @@
+menuLevel1: Lỗi khởi động
+menuLevel2: Viết AbstractFailureAnalyzer và đăng ký qua spring.factories
+status: WRITTEN

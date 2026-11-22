@@ -1,0 +1,3001 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Mục tiêu của Clean Architecture và những vấn đề về khả năng thay đổi mà nó giải quyết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-002
+    title: Chính sách nghiệp vụ và chi tiết kỹ thuật trong một hệ thống phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-003
+    title: Mô hình các vòng tròn và ý nghĩa của khoảng cách tới lõi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-004
+    title: 'Bốn nhóm trách nhiệm: Entity, Use Case, Interface Adapter và Framework'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-005
+    title: Độc lập với giao diện người dùng, cơ sở dữ liệu, framework và dịch vụ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-006
+    title: Khả năng kiểm thử nghiệp vụ mà không khởi động hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-007
+    title: Tình huống phù hợp, chi phí ban đầu và giới hạn của Clean Architecture
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-008
+    title: Hiểu kiến trúc qua luồng xử lý một yêu cầu đặt hàng xuyên các ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: foundational-principles
+  title: Nguyên lý nền tảng
+  childs:
+  - slug: foundational-principles-001
+    title: Separation of Concerns và phân chia trách nhiệm theo lý do thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-principles-002
+    title: Đóng gói các quy tắc ổn định và cô lập những chi tiết dễ biến động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-principles-003
+    title: Cohesion, coupling và tác động của chúng tới ranh giới module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-principles-004
+    title: Dependency Inversion Principle trong quan hệ giữa chính sách và cơ chế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-principles-005
+    title: Phân biệt Dependency Inversion, Dependency Injection và IoC Container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-principles-006
+    title: Single Responsibility và Interface Segregation khi thiết kế boundary
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-principles-007
+    title: Nguyên tắc kiến trúc thể hiện ý định nghiệp vụ qua tên và cấu trúc mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-principles-008
+    title: Tránh trừu tượng hóa suy đoán và chỉ tạo ranh giới có giá trị thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependency-rule
+  title: Dependency Rule
+  childs:
+  - slug: dependency-rule-001
+    title: Quy tắc phụ thuộc mã nguồn luôn hướng về các chính sách phía trong
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-rule-002
+    title: Phân biệt hướng gọi lúc chạy với hướng phụ thuộc tại thời điểm biên dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-rule-003
+    title: Các dạng phụ thuộc qua import, kiểu dữ liệu, kế thừa, annotation và cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-rule-004
+    title: Đảo chiều lời gọi ra ngoài bằng interface do phía chính sách sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-rule-005
+    title: Cho adapter triển khai port mà không để use case biết lớp triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-rule-006
+    title: Nhận diện phụ thuộc bắc cầu và chu trình giữa package hoặc module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-rule-007
+    title: Giữ kiểu dữ liệu của framework và cơ sở dữ liệu ngoài hợp đồng của lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-rule-008
+    title: Đọc và kiểm tra sơ đồ phụ thuộc với ví dụ đúng và sai Dependency Rule
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: policies-and-layers
+  title: Chính sách và tầng
+  childs:
+  - slug: policies-and-layers-001
+    title: Phân biệt quy tắc nghiệp vụ cấp doanh nghiệp với quy tắc riêng của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-layers-002
+    title: Trách nhiệm và mức độ ổn định của tầng domain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-layers-003
+    title: Trách nhiệm điều phối và thực hiện mục tiêu người dùng của tầng application
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-layers-004
+    title: Trách nhiệm chuyển đổi dữ liệu và giao thức của tầng interface adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-layers-005
+    title: Trách nhiệm cung cấp cơ chế kỹ thuật của tầng infrastructure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-layers-006
+    title: Phân biệt tầng logic, module mã nguồn và đơn vị triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-layers-007
+    title: Điều chỉnh số tầng theo nhu cầu thay vì sao chép cứng bốn thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-layers-008
+    title: Lập bảng sở hữu trách nhiệm để tránh logic bị đặt sai tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architectural-boundaries
+  title: Ranh giới kiến trúc
+  childs:
+  - slug: architectural-boundaries-001
+    title: Xác định ranh giới theo chính sách, quyền sở hữu và lý do thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-boundaries-002
+    title: Thiết kế port theo nhu cầu nghiệp vụ của bên sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-boundaries-003
+    title: Chọn interface, lời gọi hàm hoặc message phù hợp cho từng ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-boundaries-004
+    title: Giữ hợp đồng nhỏ, có ý nghĩa và không phản chiếu toàn bộ API của nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-boundaries-005
+    title: Định nghĩa điều kiện đầu vào, kết quả, lỗi và bảo đảm của một boundary
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-boundaries-006
+    title: Kiểm soát dữ liệu đi qua biên để tránh chia sẻ chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-boundaries-007
+    title: Phân biệt ranh giới kiến trúc trong tiến trình với ranh giới mạng và triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-boundaries-008
+    title: Cân bằng mức cô lập, số lớp trung gian và chi phí chuyển đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: business-analysis
+  title: Phân tích nghiệp vụ
+  childs:
+  - slug: business-analysis-001
+    title: Thu thập mục tiêu người dùng, tác nhân và kịch bản nghiệp vụ chủ đạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-analysis-002
+    title: Xây dựng ngôn ngữ thống nhất cho khái niệm và hành động của miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-analysis-003
+    title: Tách yêu cầu nghiệp vụ khỏi lựa chọn giao diện, lưu trữ và framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-analysis-004
+    title: Tìm quy tắc bất biến, trạng thái hợp lệ và các chuyển đổi được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-analysis-005
+    title: Phân loại quy tắc thuộc entity, domain service hoặc use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-analysis-006
+    title: Xác định dữ liệu cần đọc, dữ liệu cần ghi và hệ thống cần tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-analysis-007
+    title: Xác định ranh giới nhất quán và những thất bại có thể xảy ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-analysis-008
+    title: Chuyển kịch bản nghiệp vụ thành danh sách use case và tiêu chí chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: entities
+  title: Entity
+  childs:
+  - slug: entities-001
+    title: Vai trò của entity trong việc bảo vệ quy tắc nghiệp vụ cốt lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entities-002
+    title: Danh tính, vòng đời và sự khác biệt giữa entity miền với entity ORM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entities-003
+    title: Thiết kế hành vi nghiệp vụ thay cho tập hợp getter và setter công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entities-004
+    title: Bảo vệ invariant khi khởi tạo và khi thay đổi trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entities-005
+    title: Mô hình hóa trạng thái và chuyển trạng thái bằng hành vi có tên rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entities-006
+    title: Kết hợp entity thành aggregate khi cần bảo vệ tính nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entities-007
+    title: Kiểm soát quan hệ, collection và tính khả biến để tránh sửa trạng thái ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entities-008
+    title: Giữ entity độc lập với HTTP, cơ sở dữ liệu và vòng đời của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: value-objects
+  title: Value Object
+  childs:
+  - slug: value-objects-001
+    title: Phân biệt Value Object với entity dựa trên giá trị và danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-objects-002
+    title: Mô hình hóa tiền tệ, địa chỉ, mã định danh và khoảng thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-objects-003
+    title: Kiểm tra tính hợp lệ tại thời điểm tạo để tránh trạng thái không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-objects-004
+    title: Thiết kế tính bất biến, equality và hashCode nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-objects-005
+    title: Đóng gói phép toán nghiệp vụ thay vì truyền kiểu nguyên thủy khắp hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-objects-006
+    title: Sử dụng record trong Java và những giới hạn về tính bất biến sâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-objects-007
+    title: Chuyển đổi Value Object tại biên API và lưu trữ mà không làm lộ chi tiết miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-objects-008
+    title: Lựa chọn mức độ sử dụng Value Object theo độ phức tạp thực tế của nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-services
+  title: Dịch vụ miền
+  childs:
+  - slug: domain-services-001
+    title: Nhận diện quy tắc nghiệp vụ không thuộc tự nhiên về một entity
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-services-002
+    title: Phân biệt domain service với application service và dịch vụ hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-services-003
+    title: Thiết kế policy và specification cho quy tắc tính giá, hạn mức và điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-services-004
+    title: Ưu tiên hàm tính toán thuần khi quy tắc chỉ phụ thuộc dữ liệu đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-services-005
+    title: Biểu diễn chiến lược nghiệp vụ có nhiều biến thể bằng hợp đồng phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-services-006
+    title: Cung cấp thời gian, định danh và dữ liệu bên ngoài qua abstraction khi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-services-007
+    title: Tránh domain service khổng lồ và tránh đẩy mọi hành vi ra khỏi entity
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-services-008
+    title: Kiểm soát phụ thuộc giữa quy tắc miền và các module nghiệp vụ liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: use-cases
+  title: Use case
+  childs:
+  - slug: use-cases-001
+    title: Đặt tên use case theo mục tiêu nghiệp vụ và kết quả mà tác nhân cần đạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-cases-002
+    title: Thiết kế input, output, tiền điều kiện, hậu điều kiện và luồng thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-cases-003
+    title: Điều phối tải dữ liệu, gọi hành vi miền và lưu kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-cases-004
+    title: Tách orchestration của ứng dụng khỏi phép tính và invariant của domain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-cases-005
+    title: Xác định kích thước use case và chia nhỏ theo trách nhiệm có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-cases-006
+    title: Biểu diễn lệnh và truy vấn; áp dụng CQRS khi lợi ích đủ rõ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-cases-007
+    title: Quản lý thất bại từng bước và tránh tạo hiệu ứng phụ trước khi kiểm tra điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-cases-008
+    title: Thiết kế use case có thể được gọi từ HTTP, CLI, tác vụ nền hoặc kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: input-and-output-ports
+  title: Input và Output Port
+  childs:
+  - slug: input-and-output-ports-001
+    title: Input port như hợp đồng thực thi một khả năng của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-and-output-ports-002
+    title: Output port cho lưu trữ, thanh toán, thông báo và các nhu cầu ra ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-and-output-ports-003
+    title: Quyền sở hữu interface và vị trí đặt port theo chính sách sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-and-output-ports-004
+    title: Thiết kế tham số và kết quả theo ý nghĩa nghiệp vụ thay vì API hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-and-output-ports-005
+    title: Phân biệt output port gọi dịch vụ ngoài với output boundary dành cho presenter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-and-output-ports-006
+    title: Lựa chọn trả kết quả trực tiếp hoặc gọi output boundary theo nhu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-and-output-ports-007
+    title: Mô tả lỗi và bảo đảm của port để adapter có thể được thay thế an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-and-output-ports-008
+    title: Tránh interface sao chép máy móc từng lớp và port chung phục vụ mọi use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dtos-and-boundary-data
+  title: DTO và dữ liệu biên
+  childs:
+  - slug: dtos-and-boundary-data-001
+    title: Phân biệt request DTO, use case input, output model và domain model
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dtos-and-boundary-data-002
+    title: Chỉ truyền dữ liệu cần thiết qua biên và tránh cấu trúc phụ thuộc tầng ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dtos-and-boundary-data-003
+    title: Lựa chọn kiểu nguyên thủy, record và cấu trúc dữ liệu đơn giản cho hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dtos-and-boundary-data-004
+    title: Không để HTTP request, ORM proxy hoặc SDK response đi vào lõi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dtos-and-boundary-data-005
+    title: Xác định vị trí ánh xạ giữa DTO, Value Object, entity và view model
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dtos-and-boundary-data-006
+    title: Xử lý giá trị thiếu, giá trị mặc định, enum và dữ liệu không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dtos-and-boundary-data-007
+    title: Ngăn rò rỉ thông tin nhạy cảm và tránh cho khách hàng sửa trường nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dtos-and-boundary-data-008
+    title: Tiến hóa hợp đồng dữ liệu và đánh giá chi phí của việc sao chép model
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interface-adapters
+  title: Interface Adapter
+  childs:
+  - slug: interface-adapters-001
+    title: Vai trò chuyển đổi giữa thế giới bên ngoài và hợp đồng của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-adapters-002
+    title: Phân biệt inbound adapter với outbound adapter theo hướng tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-adapters-003
+    title: Phân chia controller, presenter, persistence adapter và integration adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-adapters-004
+    title: Giữ chuyển đổi giao thức và định dạng dữ liệu ngoài logic nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-adapters-005
+    title: Thiết kế adapter có thể thay thế mà vẫn giữ nguyên hợp đồng port
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-adapters-006
+    title: Đặt mapper và translator tại phía biết các model cần chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-adapters-007
+    title: Phân biệt adapter thực thi hợp đồng với facade che giấu hệ thống con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-adapters-008
+    title: Nhận diện adapter chứa quá nhiều nghiệp vụ hoặc phụ thuộc ngược vào nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: controllers
+  title: Controller
+  childs:
+  - slug: controllers-001
+    title: Tiếp nhận yêu cầu và chuyển dữ liệu giao thức thành input của use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: controllers-002
+    title: Tách binding, parsing và kiểm tra định dạng khỏi quyết định nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: controllers-003
+    title: Đưa danh tính tác nhân và ngữ cảnh cần thiết vào hợp đồng ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: controllers-004
+    title: Gọi input port qua constructor injection thay vì tạo trực tiếp dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: controllers-005
+    title: Chuyển kết quả và lỗi ứng dụng sang mã trạng thái hoặc phản hồi giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: controllers-006
+    title: Giữ controller mỏng nhưng vẫn sở hữu trách nhiệm của tầng giao tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: controllers-007
+    title: Tái sử dụng cùng use case qua REST controller, CLI và message consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: controllers-008
+    title: Kiểm thử controller độc lập bằng hợp đồng input và output quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: presenters
+  title: Presenter
+  childs:
+  - slug: presenters-001
+    title: Vai trò của presenter trong việc biến kết quả ứng dụng thành dữ liệu hiển thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presenters-002
+    title: Phân biệt output model với view model và response DTO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presenters-003
+    title: Triển khai output boundary mà không để use case phụ thuộc giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presenters-004
+    title: Định dạng thời gian, tiền tệ, nhãn và thông báo theo ngữ cảnh hiển thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presenters-005
+    title: Biểu diễn thành công, lỗi và kết quả rỗng nhất quán cho người sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presenters-006
+    title: Lựa chọn presenter riêng hoặc ánh xạ trực tiếp cho API đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presenters-007
+    title: Tránh lưu trạng thái phản hồi dùng chung gây rò rỉ dữ liệu giữa các yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presenters-008
+    title: Kiểm thử ánh xạ trình bày và thay đổi giao diện mà không sửa use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repositories-and-gateways
+  title: Repository và Gateway
+  childs:
+  - slug: repositories-and-gateways-001
+    title: Repository như abstraction truy cập đối tượng miền và gateway như cổng tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-gateways-002
+    title: Định nghĩa hợp đồng theo nhu cầu use case hoặc domain thay vì theo bảng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-gateways-003
+    title: Đặt interface tại phía sử dụng và implementation tại adapter hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-gateways-004
+    title: Chọn ranh giới repository theo aggregate và yêu cầu nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-gateways-005
+    title: Thiết kế truy vấn, phân trang và sắp xếp bằng kiểu dữ liệu độc lập framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-gateways-006
+    title: Phân biệt nhu cầu đọc projection với nhu cầu tải mô hình miền để thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-gateways-007
+    title: Biểu diễn không tìm thấy, xung đột và lỗi truy cập mà không lộ exception của driver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-gateways-008
+    title: Tránh generic repository quá rộng và tránh sao chép toàn bộ API của ORM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: persistence-mapping
+  title: Ánh xạ lưu trữ
+  childs:
+  - slug: persistence-mapping-001
+    title: Tách domain entity, persistence model và schema dữ liệu theo nhu cầu cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-mapping-002
+    title: Ánh xạ danh tính, Value Object, quan hệ và trạng thái vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-mapping-003
+    title: Khôi phục entity từ dữ liệu lưu trữ mà vẫn bảo vệ tính hợp lệ của miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-mapping-004
+    title: Xử lý lazy loading và tránh phụ thuộc vào phiên ORM trong domain hoặc presenter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-mapping-005
+    title: Kiểm soát cascade, dirty checking và thời điểm phát sinh thao tác ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-mapping-006
+    title: Thiết kế projection và truy vấn để hạn chế N+1 mà không làm lộ ORM vào use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-mapping-007
+    title: Quản lý thay đổi schema và tính tương thích của adapter lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-mapping-008
+    title: Đánh giá đánh đổi giữa model lưu trữ riêng và tái sử dụng model có annotation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Xác định ranh giới giao dịch từ một mục tiêu nghiệp vụ và invariant cần bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-002
+    title: Phân biệt quyết định về tính nguyên tử với cơ chế transaction của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-003
+    title: Triển khai unit of work hoặc transaction port khi ứng dụng cần điều khiển giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-004
+    title: Dùng decorator hoặc cấu hình ngoài để bao use case bằng transaction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-005
+    title: Giữ cùng ngữ cảnh giao dịch cho các adapter tham gia một đơn vị công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-006
+    title: Xử lý cạnh tranh bằng optimistic locking, version và kiểm tra xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-007
+    title: Thiết kế rollback và tránh coi tác động lên dịch vụ ngoài là có thể rollback cục bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-008
+    title: Kiểm thử tình huống ghi thất bại, cập nhật đồng thời và vi phạm tính nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: frameworks-and-infrastructure
+  title: Framework và hạ tầng
+  childs:
+  - slug: frameworks-and-infrastructure-001
+    title: Xem framework, driver, ORM và SDK như cơ chế hỗ trợ ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frameworks-and-infrastructure-002
+    title: Giữ annotation và base class của framework ngoài lõi khi mục tiêu là cô lập chặt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frameworks-and-infrastructure-003
+    title: Đóng gói client HTTP, truy cập tệp, hàng đợi và kết nối dữ liệu trong adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frameworks-and-infrastructure-004
+    title: Tách cấu hình môi trường, thông tin xác thực và connection pool khỏi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frameworks-and-infrastructure-005
+    title: Bọc thư viện bên thứ ba theo khả năng cần dùng thay vì toàn bộ bề mặt API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frameworks-and-infrastructure-006
+    title: Quản lý tài nguyên và vòng đời kết nối tại tầng chịu trách nhiệm kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frameworks-and-infrastructure-007
+    title: Chọn mức cô lập phù hợp khi dùng Spring Boot, JPA hoặc framework tương tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frameworks-and-infrastructure-008
+    title: Đánh giá tác động khi nâng cấp framework và thay đổi nhà cung cấp hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: composition-root
+  title: Composition Root
+  childs:
+  - slug: composition-root-001
+    title: Composition root như nơi ghép nối các implementation thành ứng dụng chạy được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-root-002
+    title: Vị trí của bootstrap module và quyền phụ thuộc vào các thành phần phía ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-root-003
+    title: Lắp ghép thủ công bằng constructor để làm rõ đồ thị đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-root-004
+    title: Cấu hình Dependency Injection Container mà không đưa container vào use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-root-005
+    title: Bind port với adapter và giải quyết nhiều implementation bằng cấu hình rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-root-006
+    title: Quản lý scope, thread safety và vòng đời của các dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-root-007
+    title: Chọn adapter theo môi trường và thay bằng fake trong kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composition-root-008
+    title: Tránh service locator, global state và việc tạo dependency rải rác trong lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-code-organization
+  title: Tổ chức mã Java
+  childs:
+  - slug: java-code-organization-001
+    title: Tổ chức package theo tính năng nghiệp vụ kết hợp ranh giới trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-organization-002
+    title: Thiết kế module domain, application, adapter và bootstrap theo quy mô hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-organization-003
+    title: Khai báo quan hệ phụ thuộc một chiều trong cấu hình build nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-organization-004
+    title: Dùng visibility và API công khai tối thiểu để bảo vệ chi tiết nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-organization-005
+    title: Đặt tên interface, interactor, DTO, mapper và adapter nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-organization-006
+    title: Tách thư viện dùng chung và tránh biến shared module thành nơi chứa mọi thứ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-organization-007
+    title: Quản lý dependency Java, annotation processor và mã sinh để tránh rò rỉ vào lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-organization-008
+    title: Tổ chức mã kiểm thử tương ứng với use case, adapter và ranh giới module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: apis-and-user-interfaces
+  title: API và giao diện
+  childs:
+  - slug: apis-and-user-interfaces-001
+    title: Thiết kế API từ nhu cầu khách hàng và ánh xạ vào khả năng của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: apis-and-user-interfaces-002
+    title: Phân biệt endpoint theo tài nguyên với use case theo mục tiêu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: apis-and-user-interfaces-003
+    title: Giữ mã HTTP, header, cookie và session trong adapter giao tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: apis-and-user-interfaces-004
+    title: Thiết kế phân trang, lọc và sắp xếp không làm lộ kiểu dữ liệu framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: apis-and-user-interfaces-005
+    title: Hỗ trợ REST, GraphQL, CLI hoặc giao diện khác qua các inbound adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: apis-and-user-interfaces-006
+    title: Tiến hóa phiên bản API mà không bắt buộc đổi model nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: apis-and-user-interfaces-007
+    title: Xử lý upload, download và streaming qua hợp đồng phù hợp với yêu cầu tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: apis-and-user-interfaces-008
+    title: Xác minh việc thay giao diện không làm thay đổi quy tắc và kết quả nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: validation
+  title: Validation
+  childs:
+  - slug: validation-001
+    title: Phân loại kiểm tra cú pháp, điều kiện ứng dụng và invariant của domain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: validation-002
+    title: Kiểm tra định dạng, dữ liệu bắt buộc và giới hạn kích thước tại adapter đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: validation-003
+    title: Kiểm tra điều kiện thực thi và quyền truy cập tài nguyên tại use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: validation-004
+    title: Giữ quy tắc luôn đúng trong entity và Value Object dù đầu vào đến từ đâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: validation-005
+    title: Xử lý quy tắc cần truy vấn dữ liệu như tính duy nhất và hạn mức tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: validation-006
+    title: Nhận diện khoảng đua giữa bước kiểm tra và bước ghi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: validation-007
+    title: Biểu diễn nhiều lỗi đầu vào và quyết định dừng sớm theo trải nghiệm sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: validation-008
+    title: Tránh lệch quy tắc khi lặp validation ở giao diện, ứng dụng và cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-and-exceptions
+  title: Lỗi và ngoại lệ
+  childs:
+  - slug: errors-and-exceptions-001
+    title: Phân biệt lỗi nghiệp vụ dự kiến, lỗi kỹ thuật và lỗi lập trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-exceptions-002
+    title: Thiết kế kết quả có kiểu, mã lỗi ổn định hoặc exception theo từng nhu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-exceptions-003
+    title: Dịch lỗi hạ tầng thành ý nghĩa mà hợp đồng port đã cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-exceptions-004
+    title: Chuyển lỗi ứng dụng thành phản hồi HTTP, CLI hoặc message tại adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-exceptions-005
+    title: Giữ thông báo người dùng, bản địa hóa và chi tiết debug đúng ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-exceptions-006
+    title: Xác định trách nhiệm bắt lỗi, bổ sung ngữ cảnh và truyền lỗi qua các tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-exceptions-007
+    title: Phân loại lỗi có thể thử lại và xử lý thất bại một phần của luồng nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-exceptions-008
+    title: Tránh nuốt lỗi, log trùng lặp và để exception của framework trở thành API của lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân biệt xác thực tại biên với phân quyền theo chính sách nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-002
+    title: Biểu diễn actor, quyền và tenant bằng dữ liệu ứng dụng cần biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-003
+    title: Giữ token, security context và chi tiết thư viện bảo mật ngoài use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-004
+    title: Đặt kiểm tra quyền đối với tài nguyên tại nơi có đủ ngữ cảnh nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-005
+    title: Bảo đảm cùng chính sách phân quyền khi use case được gọi từ nhiều adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-006
+    title: Cô lập tenant và ngăn truy cập chéo dữ liệu tại hợp đồng ứng dụng và adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-007
+    title: Áp dụng nguyên tắc dữ liệu tối thiểu trong DTO, log và kết quả trả ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-008
+    title: Kiểm thử truy cập bị từ chối, giả mạo danh tính và hành động vượt quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: external-integrations
+  title: Tích hợp bên ngoài
+  childs:
+  - slug: external-integrations-001
+    title: Thiết kế gateway theo nhu cầu thanh toán, email hoặc tra cứu của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-integrations-002
+    title: Chuyển model và lỗi của nhà cung cấp thành hợp đồng nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-integrations-003
+    title: Dùng anti-corruption layer khi ngôn ngữ hoặc mô hình bên ngoài khác biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-integrations-004
+    title: Đặt timeout, retry, circuit breaker và giới hạn tốc độ ở cơ chế tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-integrations-005
+    title: Phối hợp chính sách thử lại với tính idempotent và chi phí nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-integrations-006
+    title: Tiếp nhận webhook qua inbound adapter và xác minh tính hợp lệ tại biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-integrations-007
+    title: Kiểm thử hợp đồng và phản ứng trước thay đổi API của nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-integrations-008
+    title: Thay thế nhà cung cấp bằng adapter khác và đánh giá giới hạn tương đương hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: events-and-long-running-workflows
+  title: Sự kiện và luồng dài
+  childs:
+  - slug: events-and-long-running-workflows-001
+    title: Phân biệt domain event, application event và integration event theo phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-long-running-workflows-002
+    title: Ghi nhận sự kiện miền mà không để entity biết message broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-long-running-workflows-003
+    title: Xác định thời điểm phát sự kiện trước hoặc sau commit và hệ quả thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-long-running-workflows-004
+    title: Sử dụng outbox khi cần gắn thay đổi dữ liệu với việc công bố sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-long-running-workflows-005
+    title: Thiết kế consumer adapter gọi use case thay vì chứa toàn bộ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-long-running-workflows-006
+    title: Xử lý message trùng lặp, sai thứ tự và bảo đảm idempotency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-long-running-workflows-007
+    title: Điều phối luồng dài bằng process manager hoặc saga khi có nhiều bước độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-long-running-workflows-008
+    title: Thiết kế hành động bù trừ và theo dõi trạng thái nhất quán cuối cùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: caching-and-performance
+  title: Cache và hiệu năng
+  childs:
+  - slug: caching-and-performance-001
+    title: Đo độ trễ và chi phí tại ranh giới trước khi thêm cơ chế tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-performance-002
+    title: Đặt cache trong adapter hoặc decorator khi cache là chi tiết kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-performance-003
+    title: Phân biệt tăng tốc truy cập với yêu cầu nghiệp vụ về độ mới dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-performance-004
+    title: Thiết kế khóa cache, thời hạn sống và invalidation theo hợp đồng ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-performance-005
+    title: Tối ưu projection, truy vấn theo lô và phân trang mà vẫn giữ ranh giới rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-performance-006
+    title: Kiểm soát số lần gọi gateway và tránh adapter gây N+1 qua mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-performance-007
+    title: Đánh giá chi phí mapping, allocation và số lớp trung gian bằng số liệu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-performance-008
+    title: Kiểm thử hiệu năng cùng tính đúng đắn khi cache lỗi hoặc dữ liệu bị cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-testing
+  title: Kiểm thử miền
+  childs:
+  - slug: domain-testing-001
+    title: Kiểm thử entity và Value Object bằng đối tượng thuần không khởi động framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-testing-002
+    title: Chuyển invariant và quy tắc chuyển trạng thái thành ca kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-testing-003
+    title: Kiểm thử domain service và policy với dữ liệu biên có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-testing-004
+    title: Cố định thời gian và nguồn sinh định danh để có kết quả xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-testing-005
+    title: Sử dụng kiểm thử theo bảng hoặc thuộc tính cho quy tắc tính toán phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-testing-006
+    title: Thiết kế test data builder theo ngôn ngữ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-testing-007
+    title: Kiểm tra trạng thái và hành vi quan sát được thay vì chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-testing-008
+    title: Giữ bộ kiểm thử miền nhanh, cô lập và không phụ thuộc dữ liệu môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: use-case-testing
+  title: Kiểm thử use case
+  childs:
+  - slug: use-case-testing-001
+    title: Kiểm thử use case thông qua input port và kết quả nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-case-testing-002
+    title: Thay output port bằng fake, stub hoặc mock theo mục tiêu xác minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-case-testing-003
+    title: Bao phủ luồng thành công, điều kiện bị từ chối và dữ liệu không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-case-testing-004
+    title: Mô phỏng lỗi gateway, xung đột ghi và thất bại sau một bước xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-case-testing-005
+    title: Xác minh hiệu ứng phụ cần có và các thao tác không được xảy ra khi thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-case-testing-006
+    title: Kiểm thử tương tác với output boundary hoặc kết quả trả về trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-case-testing-007
+    title: Tránh mock quá nhiều và tránh gắn kiểm thử với thứ tự gọi không có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: use-case-testing-008
+    title: Xác định giới hạn của fake so với giao dịch và cạnh tranh trong hạ tầng thật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: adapter-testing
+  title: Kiểm thử adapter
+  childs:
+  - slug: adapter-testing-001
+    title: Kiểm thử hợp đồng chung mà mọi implementation của một port phải đáp ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-testing-002
+    title: Kiểm thử mapping giữa dữ liệu bên ngoài và model ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-testing-003
+    title: Kiểm thử persistence adapter với cơ sở dữ liệu phù hợp môi trường thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-testing-004
+    title: Kiểm thử transaction, optimistic locking và lỗi ràng buộc dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-testing-005
+    title: Kiểm thử HTTP adapter, mã trạng thái, validation và chuyển đổi lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-testing-006
+    title: Kiểm thử integration adapter trước timeout, phản hồi lỗi và dữ liệu không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-testing-007
+    title: Kiểm thử bootstrap và cấu hình Dependency Injection để phát hiện thiếu binding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-testing-008
+    title: Chọn số ca end-to-end cần thiết cho các hành trình nghiệp vụ quan trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-testing
+  title: Kiểm thử kiến trúc
+  childs:
+  - slug: architecture-testing-001
+    title: Chuyển Dependency Rule thành các ràng buộc có thể kiểm tra tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-testing-002
+    title: Dùng ArchUnit để cấm import từ domain và application sang adapter hoặc framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-testing-003
+    title: Phát hiện chu trình giữa package, module và nhóm tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-testing-004
+    title: Kiểm tra vị trí port, implementation và các API được phép công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-testing-005
+    title: Kiểm soát phụ thuộc bắc cầu trong đồ thị build nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-testing-006
+    title: Phát hiện kiểu dữ liệu hạ tầng xuất hiện trong chữ ký của lõi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-testing-007
+    title: Đưa fitness function kiến trúc vào quy trình CI với thông báo vi phạm rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-testing-008
+    title: Quản lý ngoại lệ và nợ kiến trúc mà không làm vô hiệu hóa toàn bộ quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Phân biệt quan sát kỹ thuật với audit có ý nghĩa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-002
+    title: Đặt logging, metric và tracing tại adapter hoặc decorator thích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-003
+    title: Truyền correlation ID và ngữ cảnh tác nhân mà không phụ thuộc kiểu của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-004
+    title: Đo kết quả use case, thời gian xử lý và lỗi qua các ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-005
+    title: Thiết kế audit port khi việc lưu vết là yêu cầu của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-006
+    title: Giữ dữ liệu nhạy cảm ngoài log và bảo đảm ngữ cảnh hữu ích cho chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-007
+    title: Theo dõi lỗi tích hợp, độ trễ và trạng thái của luồng xử lý bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-008
+    title: Tránh để mã quan sát lấn át quy tắc nghiệp vụ hoặc thay đổi kết quả use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-comparisons
+  title: Đối chiếu kiến trúc
+  childs:
+  - slug: architecture-comparisons-001
+    title: So sánh Clean Architecture với kiến trúc phân tầng truyền thống theo hướng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-comparisons-002
+    title: Đối chiếu Hexagonal Architecture qua khái niệm port và adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-comparisons-003
+    title: Đối chiếu Onion Architecture qua lõi miền và các vòng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-comparisons-004
+    title: Phân biệt Clean Architecture với MVC và cách phối hợp ở tầng giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-comparisons-005
+    title: Kết hợp Domain-Driven Design khi nghiệp vụ cần mô hình miền phong phú
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-comparisons-006
+    title: Kết hợp CQRS mà không mặc định tách cơ sở dữ liệu hoặc dùng event sourcing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-comparisons-007
+    title: Áp dụng trong modular monolith và trong từng dịch vụ của microservices
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-comparisons-008
+    title: Đánh giá sự tương thích với vertical slice và kiến trúc hướng tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-tradeoffs
+  title: Đánh đổi thiết kế
+  childs:
+  - slug: design-tradeoffs-001
+    title: Cân bằng tốc độ triển khai ban đầu với chi phí thay đổi về sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-002
+    title: Lựa chọn mức cô lập cho ứng dụng CRUD đơn giản và miền nghiệp vụ phức tạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-003
+    title: Đánh giá lợi ích của port so với chi phí interface và lớp trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-004
+    title: Cân nhắc model riêng cho mỗi biên và chi phí duy trì mapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-005
+    title: Chọn abstraction ổn định mà không thiết kế trước mọi khả năng thay nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-006
+    title: Đánh giá tính thực dụng của annotation framework trong lõi và ghi nhận hệ quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-007
+    title: Tránh áp dụng đồng loạt DDD, CQRS hoặc microservices khi yêu cầu chưa cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-008
+    title: Ghi quyết định kiến trúc cùng bối cảnh, lựa chọn thay thế và điều kiện xem xét lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: detecting-architecture-violations
+  title: Nhận diện vi phạm
+  childs:
+  - slug: detecting-architecture-violations-001
+    title: Entity chỉ chứa dữ liệu trong khi controller hoặc service nắm mọi quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: detecting-architecture-violations-002
+    title: Use case phụ thuộc ORM repository, HTTP client hoặc security context cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: detecting-architecture-violations-003
+    title: DTO, persistence model và domain entity bị dùng chung qua mọi ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: detecting-architecture-violations-004
+    title: Port quá tổng quát hoặc interface sao chép nguyên API của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: detecting-architecture-violations-005
+    title: Mapper chứa quyết định nghiệp vụ và adapter gọi chéo bỏ qua use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: detecting-architecture-violations-006
+    title: Composition root bị thay bằng service locator hoặc singleton dùng toàn cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: detecting-architecture-violations-007
+    title: Package mang tên Clean Architecture nhưng đồ thị phụ thuộc vẫn hướng ra ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: detecting-architecture-violations-008
+    title: Kiểm thử phụ thuộc framework nặng dù chỉ cần xác minh một quy tắc nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: incremental-refactoring
+  title: Tái cấu trúc từng bước
+  childs:
+  - slug: incremental-refactoring-001
+    title: Khảo sát luồng thay đổi, đồ thị phụ thuộc và các điểm đau trong mã hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incremental-refactoring-002
+    title: Dùng characterization test để ghi nhận hành vi trước khi tách ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incremental-refactoring-003
+    title: Chọn một use case đại diện và xác định phạm vi chuyển đổi nhỏ có thể hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incremental-refactoring-004
+    title: Tách nghiệp vụ khỏi controller và service phụ thuộc framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incremental-refactoring-005
+    title: Trích xuất port, bọc dependency cũ bằng adapter và ghép nối tại composition root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incremental-refactoring-006
+    title: Tách model và transaction từng bước khi đã có kiểm thử bảo vệ hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incremental-refactoring-007
+    title: Duy trì khả năng tương thích và kiểm soát giai đoạn mã cũ cùng tồn tại với mã mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incremental-refactoring-008
+    title: Đo kết quả, siết quy tắc phụ thuộc và mở rộng tái cấu trúc theo giá trị mang lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practical-case-study
+  title: Thực hành tình huống
+  childs:
+  - slug: practical-case-study-001
+    title: Thiết kế hệ thống đặt hàng từ yêu cầu nghiệp vụ tới sơ đồ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-case-study-002
+    title: Xây dựng entity đơn hàng, Value Object tiền tệ và quy tắc chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-case-study-003
+    title: Triển khai use case tạo đơn với input port, repository port và payment gateway
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-case-study-004
+    title: Tạo REST controller, presenter và persistence adapter cho cùng một use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-case-study-005
+    title: Lắp ghép ứng dụng tại composition root với adapter thật và adapter trong bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-case-study-006
+    title: Xử lý thanh toán thất bại, yêu cầu trùng lặp và cập nhật cạnh tranh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-case-study-007
+    title: Thêm CLI hoặc thay nhà cung cấp thanh toán rồi kiểm tra phạm vi mã cần đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-case-study-008
+    title: Hoàn thiện kiểm thử miền, use case, adapter và Dependency Rule cho bài thực hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extension-and-evolution
+  title: Mở rộng và tiến hóa
+  childs:
+  - slug: extension-and-evolution-001
+    title: Thêm use case mới mà vẫn giữ quyền sở hữu quy tắc và hợp đồng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-evolution-002
+    title: Tiến hóa input port, output port và adapter với thay đổi có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-evolution-003
+    title: Tách module nghiệp vụ dựa trên độ kết dính và phụ thuộc thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-evolution-004
+    title: Định nghĩa API nội bộ để ngăn module truy cập trực tiếp dữ liệu của nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-evolution-005
+    title: Chia sẻ domain concept có chọn lọc và tránh shared kernel phình to
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-evolution-006
+    title: Đánh giá việc tách dịch vụ qua yêu cầu triển khai và nhất quán dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-evolution-007
+    title: Thay công nghệ lưu trữ hoặc giao thức tích hợp bằng kế hoạch chuyển đổi cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-evolution-008
+    title: Theo dõi độ lan truyền của thay đổi và điều chỉnh ranh giới khi nghiệp vụ phát triển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-review
+  title: Review kiến trúc
+  childs:
+  - slug: architecture-review-001
+    title: Kiểm tra cấu trúc mã có thể hiện được mục tiêu và ngôn ngữ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-review-002
+    title: Kiểm tra entity và use case có thể chạy độc lập với framework và cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-review-003
+    title: Kiểm tra hướng phụ thuộc, quyền sở hữu port và khả năng phát hiện vi phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-review-004
+    title: Kiểm tra boundary, DTO và adapter có che giấu được chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-review-005
+    title: Kiểm tra composition root, giao dịch, phân quyền và lỗi có trách nhiệm rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-review-006
+    title: Kiểm tra mức bao phủ hành vi và hợp đồng bằng các lớp kiểm thử phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-review-007
+    title: Đánh giá một yêu cầu thay đổi cụ thể để xác định số thành phần bị tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-review-008
+    title: Tổng hợp quyết định, nợ kiến trúc và tiêu chí hoàn thành việc áp dụng Clean Architecture
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

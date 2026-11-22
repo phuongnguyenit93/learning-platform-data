@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-agile
+  title: Tư duy Agile
+  purpose: Hiểu giá trị và nguyên tắc Agile trước khi chọn một framework hay bộ công cụ cụ thể.
+  objectives:
+  - Nêu bốn cặp giá trị trong Agile Manifesto
+  - Giải thích giao phần mềm sớm và đón nhận thay đổi
+  - Phân biệt Agile mindset với quy trình họp hằng ngày
+- id: gia-tri-backlog
+  title: Giá trị & Backlog
+  purpose: Chuyển nhu cầu người dùng thành công việc nhỏ, ưu tiên theo giá trị và kết quả cần đạt.
+  objectives:
+  - Viết user story nêu rõ người dùng và lợi ích
+  - Tạo acceptance criteria quan sát được
+  - Sắp xếp backlog theo mục tiêu và phản hồi
+- id: iterative-incremental
+  title: Iterative & Incremental
+  purpose: Giao các phần mềm sử dụng được thường xuyên để kiểm chứng giả định và thích nghi.
+  objectives:
+  - Phân biệt iteration với product increment
+  - Chia tính năng lớn thành các phần có thể demo
+  - Định nghĩa tiêu chí Done cho một increment
+- id: scrum-framework
+  title: Scrum Framework
+  purpose: Áp dụng Scrum đúng trọng tâm với trách nhiệm, sự kiện và artifact minh bạch.
+  objectives:
+  - Phân biệt Product Owner, Scrum Master, Developers
+  - Mô tả Sprint Planning, Daily Scrum, Review và Retrospective
+  - Liên kết Product Goal, Sprint Goal và Definition of Done
+- id: kanban-flow
+  title: Kanban & Flow
+  purpose: Quản lý dòng công việc liên tục và giảm công việc dở dang để tăng khả năng dự đoán.
+  objectives:
+  - Vẽ Kanban board thể hiện workflow thực tế
+  - Thiết lập giới hạn WIP và chính sách kéo việc
+  - Đo cycle time, throughput và work item age
+- id: engineering-practices
+  title: Engineering Practices
+  purpose: Duy trì chất lượng kỹ thuật để mỗi thay đổi nhỏ vẫn có thể kiểm thử và phát hành.
+  objectives:
+  - Thử TDD theo vòng Red–Green–Refactor
+  - Thiết lập build và test tự động trong CI
+  - Thực hành refactoring không đổi hành vi
+- id: collaboration-feedback
+  title: Collaboration & Feedback
+  purpose: Tổ chức cộng tác liên chức năng và học từ phản hồi người dùng trong mỗi chu kỳ.
+  objectives:
+  - Mời stakeholder phản hồi bản demo hoạt động
+  - Điều chỉnh backlog theo thông tin mới
+  - Ghi nhận rủi ro và phụ thuộc giữa các vai trò
+- id: do-luong-cai-tien
+  title: Đo lường & Cải tiến
+  purpose: Đánh giá cách làm dựa trên giá trị, chất lượng và dòng công việc thay vì chỉ đếm hoạt động.
+  objectives:
+  - Rà soát increment và độ trễ giao hàng
+  - Tổ chức retrospective với hành động cụ thể
+  - Chọn Scrum, Kanban hoặc cách kết hợp theo bối cảnh

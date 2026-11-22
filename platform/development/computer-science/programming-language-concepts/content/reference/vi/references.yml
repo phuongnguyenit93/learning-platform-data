@@ -1,0 +1,13 @@
+references:
+  - title: "Programming Languages: Application and Interpretation (PLAI)"
+    url: "https://www.plai.org/"
+    description: "Giáo trình miễn phí về thiết kế ngôn ngữ, trình thông dịch, ngữ nghĩa và hệ kiểu."
+  - title: "Crafting Interpreters"
+    url: "https://craftinginterpreters.com/"
+    description: "Sách thực hành về parser, phạm vi, closure, bytecode, máy ảo và quản lý bộ nhớ."
+  - title: "MIT OpenCourseWare 6.821: Programming Languages"
+    url: "https://ocw.mit.edu/courses/6-821-programming-languages-fall-2002/"
+    description: "Học liệu về ngữ nghĩa, hệ kiểu, module và các mô hình lập trình."
+  - title: "Software Foundations: Programming Language Foundations"
+    url: "https://softwarefoundations.cis.upenn.edu/plf-current/index.html"
+    description: "Tài liệu nâng cao về ngữ nghĩa hình thức, hệ kiểu và chứng minh chương trình."

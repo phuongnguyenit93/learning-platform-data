@@ -1,0 +1,3 @@
+menuLevel1: Field final
+menuLevel2: Static final là field không thể sửa bằng cơ chế mở truy cập thông thường
+status: WRITTEN

@@ -1,0 +1,57 @@
+roadmap:
+- id: job-step-fundamentals
+  title: Job & Step Fundamentals
+  purpose: Nắm mô hình thực thi và các thành phần cốt lõi trong Spring Batch.
+  objectives:
+  - Phân biệt Job, Step và JobInstance.
+  - Giải thích JobExecution và StepExecution.
+  - Phác thảo một Job gồm nhiều Step.
+- id: job-config-parameters
+  title: Job Config & Parameters
+  purpose: Cấu hình quy trình batch có đầu vào và thứ tự xử lý rõ ràng.
+  objectives:
+  - Tạo Job và Step bằng builder.
+  - Truyền JobParameters khi chạy Job.
+  - Điều khiển thứ tự Step và trạng thái kết thúc.
+- id: tasklet-step
+  title: Tasklet Step
+  purpose: Thực hiện công việc đơn lẻ như dọn dẹp hoặc khởi tạo tài nguyên.
+  objectives:
+  - Tạo Tasklet và trả RepeatStatus.
+  - Khai báo Step chạy Tasklet.
+  - Phân biệt Tasklet và chunk-oriented Step.
+- id: chunk-processing
+  title: Chunk Processing
+  purpose: Hiểu chu trình xử lý nhiều item theo nhóm và ranh giới giao dịch.
+  objectives:
+  - Mô tả read-process-write theo chunk.
+  - Cấu hình chunk size và transaction manager.
+  - Quan sát commit và rollback theo chunk.
+- id: itemreader
+  title: ItemReader
+  purpose: Đọc dữ liệu tuần tự từ nguồn phù hợp với bài toán batch.
+  objectives:
+  - Sử dụng ItemReader với file hoặc database.
+  - Nhận biết tín hiệu kết thúc khi read trả null.
+  - Kiểm tra dữ liệu đọc, lỗi parse và trạng thái đọc.
+- id: itemprocessor-writer
+  title: ItemProcessor & Writer
+  purpose: Biến đổi và ghi dữ liệu đầu ra trong một chu trình batch.
+  objectives:
+  - Triển khai ItemProcessor để chuyển đổi hoặc lọc item.
+  - Chọn ItemWriter phù hợp với đích.
+  - Kết nối Reader, Processor và Writer trong Step.
+- id: retry-skip-rollback
+  title: Retry, Skip & Rollback
+  purpose: Xử lý bản ghi lỗi có kiểm soát mà vẫn bảo đảm dữ liệu đúng.
+  objectives:
+  - Phân biệt retry, skip và fail.
+  - Thiết lập skip/retry limit cho lỗi phù hợp.
+  - Kiểm tra rollback và tránh tác dụng phụ lặp.
+- id: executioncontext-restart
+  title: ExecutionContext & Restart
+  purpose: Lưu trạng thái và tiếp tục Job an toàn sau khi xử lý gián đoạn.
+  objectives:
+  - Giải thích vai trò JobRepository và ExecutionContext.
+  - Thiết kế reader/writer hỗ trợ restart.
+  - Thử chạy lỗi rồi khởi động lại và đối soát kết quả.

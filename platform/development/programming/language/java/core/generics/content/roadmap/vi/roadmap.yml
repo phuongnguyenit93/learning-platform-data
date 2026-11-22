@@ -1,0 +1,59 @@
+roadmap:
+- id: tong-quan-generics
+  title: Tổng quan generics
+  purpose: Hiểu kiểu tổng quát giúp tái sử dụng mã và phát hiện sai kiểu khi biên dịch.
+  objectives:
+  - Giải thích vấn đề khi dùng Object và ép kiểu
+  - Phân biệt tham số kiểu với đối số kiểu
+  - Nhận biết lợi ích an toàn kiểu
+- id: lop-va-giao-dien-tong-quat
+  title: Lớp và giao diện tổng quát
+  purpose: Xây dựng cấu trúc dùng lại được với một hoặc nhiều tham số kiểu.
+  objectives:
+  - Khai báo lớp và giao diện với <T>
+  - Dùng nhiều tham số kiểu như <K, V>
+  - Khởi tạo bằng cú pháp diamond <>
+- id: phuong-thuc-va-suy-luan-kieu
+  title: Phương thức và suy luận kiểu
+  purpose: Viết phương thức tổng quát và hiểu cách trình biên dịch chọn đối số kiểu.
+  objectives:
+  - Khai báo <T> trước kiểu trả về
+  - Phân biệt tham số kiểu của lớp và phương thức
+  - Đọc và điều chỉnh kết quả suy luận kiểu
+- id: gioi-han-tham-so-kieu
+  title: Giới hạn tham số kiểu
+  purpose: Ràng buộc tham số kiểu để sử dụng các hành vi cần thiết.
+  objectives:
+  - Dùng T extends Number
+  - Khai báo nhiều giới hạn với &
+  - Đọc ràng buộc tự tham chiếu như Comparable<T>
+- id: ke-thua-va-quan-he-kieu
+  title: Kế thừa và quan hệ kiểu
+  purpose: Hiểu quan hệ giữa các kiểu tổng quát để tránh phép gán sai.
+  objectives:
+  - Giải thích vì sao List<Integer> không là List<Number>
+  - Triển khai và kế thừa kiểu tổng quát
+  - Phân biệt quan hệ kiểu của generics với mảng
+- id: wildcard-va-pecs
+  title: Wildcard và PECS
+  purpose: Chọn ký tự đại diện theo nhu cầu đọc hoặc ghi dữ liệu.
+  objectives:
+  - Phân biệt ?, ? extends T và ? super T
+  - Áp dụng PECS cho nguồn và đích dữ liệu
+  - Phân biệt wildcard với tham số kiểu có tên
+  - Nhận biết lỗi bắt giữ wildcard và cách dùng hàm hỗ trợ
+- id: xoa-kieu-va-gioi-han
+  title: Xóa kiểu và giới hạn
+  purpose: Hiểu cách generics được biên dịch và các giới hạn liên quan lúc chạy.
+  objectives:
+  - Giải thích xóa kiểu và phương thức cầu nối
+  - Nhận biết giới hạn new T(), mảng và thành viên static
+  - Phát hiện quá tải trùng chữ ký sau xóa kiểu
+- id: canh-bao-va-thuc-hanh
+  title: Cảnh báo và thực hành
+  purpose: Thiết kế API tổng quát an toàn và xử lý cảnh báo dựa trên nguyên nhân.
+  objectives:
+  - Tránh raw type và ép kiểu unchecked tùy tiện
+  - Nhận biết ô nhiễm heap khi kết hợp varargs
+  - Dùng @SafeVarargs khi đáp ứng điều kiện an toàn
+  - Viết và kiểm thử hàm sao chép dùng PECS

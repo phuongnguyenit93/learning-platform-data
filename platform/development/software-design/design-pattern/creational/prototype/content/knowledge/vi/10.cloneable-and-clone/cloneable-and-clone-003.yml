@@ -1,0 +1,3 @@
+menuLevel1: Cloneable và clone()
+menuLevel2: Hành vi shallow copy của Object.clone và trách nhiệm xử lý field mutable
+status: ""

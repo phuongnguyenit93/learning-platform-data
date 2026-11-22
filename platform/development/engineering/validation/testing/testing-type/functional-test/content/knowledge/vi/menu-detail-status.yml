@@ -1,0 +1,2884 @@
+menu:
+- slug: functional-overview
+  title: Tổng quan chức năng
+  childs:
+  - slug: functional-overview-001
+    title: Kiểm thử chức năng là gì và câu hỏi về hành vi mà nó trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-002
+    title: Tính đầy đủ, tính đúng và mức phù hợp với nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-003
+    title: Đầu vào, trạng thái, hành động, đầu ra và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-004
+    title: Phân biệt kiểm thử chức năng với hiệu năng, bảo mật và khả năng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-005
+    title: Phân biệt loại kiểm thử với cấp độ unit, integration, system và acceptance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-006
+    title: Kiểm thử dựa trên đặc tả và giới hạn khi yêu cầu chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-007
+    title: Kiểm thử thủ công và tự động cùng bảo vệ hành vi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-overview-008
+    title: Lộ trình từ yêu cầu nghiệp vụ đến bằng chứng chức năng hoạt động đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-and-scope
+  title: Yêu cầu và phạm vi
+  childs:
+  - slug: requirements-and-scope-001
+    title: Xác định yêu cầu chức năng từ đặc tả, user story và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-002
+    title: Chuyển acceptance criteria thành điều kiện có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-003
+    title: Phân biệt hành vi bắt buộc với giả định của người thiết kế test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-004
+    title: Xác định người dùng, vai trò và ngữ cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-005
+    title: Tách điều kiện trước, điều kiện sau và bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-006
+    title: Nhận diện yêu cầu thiếu, mâu thuẫn hoặc không thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-007
+    title: Xác định ranh giới chức năng và các dependency liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-008
+    title: Giới hạn phạm vi cùng những tình huống cần làm rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-scope-009
+    title: Ưu tiên chức năng theo tác động và rủi ro sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: results-and-invariants
+  title: Kết quả và bất biến
+  childs:
+  - slug: results-and-invariants-001
+    title: Nguồn xác định kết quả mong đợi và oracle kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-002
+    title: Đối chiếu giá trị trả về với trạng thái hệ thống sau thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-003
+    title: Kiểm tra bản ghi, sự kiện, tệp hoặc thông báo được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-004
+    title: Kiểm tra tác dụng phụ không xuất hiện khi thao tác bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-005
+    title: Bất biến dữ liệu phải giữ qua nhiều bước xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-006
+    title: Oracle độc lập và nguy cơ sao chép lỗi của mã sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-007
+    title: Kết quả có nhiều giá trị hợp lệ hoặc không bảo đảm thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-008
+    title: Độ chính xác, sai số và quy tắc chấp nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-invariants-009
+    title: Phân biệt sai kết quả, thiếu kết quả và hành vi chưa được đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-level-selection
+  title: Lựa chọn mức kiểm thử
+  childs:
+  - slug: test-level-selection-001
+    title: Kiểm tra quy tắc thuần túy ở mức đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-002
+    title: Kiểm tra tương tác giữa thành phần ở mức tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-003
+    title: Kiểm tra khả năng sản phẩm ở mức hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-004
+    title: Kiểm tra tiêu chí chấp nhận từ góc nhìn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-005
+    title: Cùng một hành vi có thể được kiểm chứng ở nhiều mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-006
+    title: Chọn điểm vào và điểm quan sát phù hợp với lỗi cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-007
+    title: Phân biệt test chức năng qua API với test qua giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-008
+    title: Cân bằng độ bao phủ hành vi, tốc độ và khả năng chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-level-selection-009
+    title: Tránh tạo test E2E cho mọi quy tắc có thể kiểm tra ở mức hẹp hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenario-design
+  title: Thiết kế tình huống
+  childs:
+  - slug: scenario-design-001
+    title: Phân lớp đầu vào hợp lệ và không hợp lệ cho từng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-002
+    title: Chọn giá trị biên theo quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-003
+    title: Bảng quyết định cho nhiều điều kiện kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-004
+    title: Chuyển trạng thái cho vòng đời đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-005
+    title: Luồng chính, luồng thay thế và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-006
+    title: Trường hợp không có dữ liệu, dữ liệu trùng và thao tác lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-007
+    title: Kết hợp tham số theo rủi ro thay vì thử mọi tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-008
+    title: Test có tham số cho các ví dụ cùng một hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-design-009
+    title: Ghi lý do tồn tại của từng tình huống và khoảng trống còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Tạo dữ liệu tối thiểu thể hiện rõ điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Phân biệt dữ liệu tham chiếu, dữ liệu đầu vào và dữ liệu đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: Quan hệ giữa các bản ghi và điều kiện khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: Dữ liệu rỗng, thiếu, sai định dạng và không còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Giá trị duy nhất, khóa trùng và dữ liệu có lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Dữ liệu theo người dùng, vai trò và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Sinh dữ liệu có thể tái hiện và lưu trường hợp gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Cô lập dữ liệu giữa các test và các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-009
+    title: Dọn dữ liệu mà không làm mất bằng chứng cần điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-validation
+  title: Kiểm tra đầu vào
+  childs:
+  - slug: input-validation-001
+    title: Trường bắt buộc, trường tùy chọn và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-002
+    title: Phân biệt null, thiếu trường, chuỗi rỗng và khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-003
+    title: Kiểu dữ liệu, định dạng, miền giá trị và giới hạn độ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-004
+    title: Ràng buộc liên trường và phụ thuộc có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-005
+    title: Chuẩn hóa, cắt khoảng trắng và chuyển đổi chữ hoa, chữ thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-006
+    title: Unicode, ký tự kết hợp và dữ liệu nhiều ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-007
+    title: Đối chiếu validation ở giao diện và phía server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-008
+    title: Thứ tự báo lỗi khi nhiều trường không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-009
+    title: Xác minh request bị từ chối không làm thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-rules
+  title: Quy tắc nghiệp vụ
+  childs:
+  - slug: business-rules-001
+    title: Xác định quy tắc, thứ tự áp dụng và trường hợp ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-002
+    title: Kiểm tra chính sách giá, phí, ưu đãi hoặc điều kiện được hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-003
+    title: Quy tắc có hiệu lực theo thời gian, khu vực hoặc nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-004
+    title: Xử lý nhiều quy tắc cùng áp dụng hoặc mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-005
+    title: Giới hạn số lượng, hạn mức và điều kiện đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-006
+    title: Đối chiếu công thức với ví dụ nghiệp vụ đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-007
+    title: Kiểm tra dữ liệu thay đổi giữa lúc hiển thị và lúc xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-008
+    title: Xác minh quy tắc được áp dụng nhất quán ở nhiều điểm vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-009
+    title: Giữ bằng chứng cho quyết định nghiệp vụ tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-and-workflow
+  title: Trạng thái và quy trình
+  childs:
+  - slug: state-and-workflow-001
+    title: Mô hình hóa trạng thái và sự kiện của đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-002
+    title: Chuyển trạng thái hợp lệ cùng điều kiện đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-003
+    title: Từ chối thao tác không hợp lệ tại từng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-004
+    title: Luồng phê duyệt nhiều bước và nhiều vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-005
+    title: Hủy, hoàn tác, mở lại và tiếp tục công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-006
+    title: Trạng thái kết thúc và thao tác sau khi đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-007
+    title: Kiểm tra thứ tự bước cùng tác dụng phụ của mỗi mốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-008
+    title: Gián đoạn rồi quay lại với trạng thái đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-workflow-009
+    title: Lịch sử thay đổi và khả năng truy vết người thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crud-and-persistence
+  title: CRUD và lưu trữ
+  childs:
+  - slug: crud-and-persistence-001
+    title: Tạo mới với giá trị mặc định và định danh được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-002
+    title: Đọc dữ liệu đang tồn tại, không tồn tại hoặc đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-003
+    title: Cập nhật toàn phần, cập nhật một phần và trường không được sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-004
+    title: Xóa mềm, xóa cứng và quy tắc khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-005
+    title: Quan hệ cha con, cascade và ràng buộc tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-006
+    title: Constraint về duy nhất, bắt buộc và toàn vẹn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-007
+    title: Kiểm tra dữ liệu sau khi tải lại từ nguồn lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-008
+    title: Phân biệt không tìm thấy dữ liệu với không được phép truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-persistence-009
+    title: Đối chiếu trạng thái hiển thị với trạng thái đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-and-integrity
+  title: Giao dịch và toàn vẹn
+  childs:
+  - slug: transactions-and-integrity-001
+    title: Tính nguyên tử của một thao tác gồm nhiều thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-002
+    title: Commit khi thành công và rollback khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-003
+    title: Lỗi giữa chừng sau khi đã cập nhật một phần dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-004
+    title: Bất biến về tổng số lượng, số dư hoặc quan hệ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-005
+    title: Xung đột phiên bản và cập nhật dữ liệu đã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-006
+    title: Tác dụng phụ bên ngoài không được rollback cùng database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-007
+    title: Thời điểm công bố sự kiện hoặc thông báo sau giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-008
+    title: Kiểm tra nghiệp vụ không chỉ dựa vào trạng thái trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-integrity-009
+    title: Xác minh trạng thái cuối cùng sau khi thử lại hoặc bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-and-lists
+  title: Tìm kiếm và danh sách
+  childs:
+  - slug: search-and-lists-001
+    title: Tìm chính xác, gần đúng và các điều kiện được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-002
+    title: Kết hợp bộ lọc và xử lý giá trị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-003
+    title: Phân biệt chữ hoa, dấu tiếng Việt và quy tắc chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-004
+    title: Sắp xếp tăng giảm, nhiều khóa và thứ tự khi bằng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-005
+    title: Phân trang theo số trang, offset hoặc cursor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-006
+    title: Trang rỗng, trang cuối, vượt phạm vi và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-007
+    title: Tổng số kết quả và tính nhất quán với dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-008
+    title: Ảnh hưởng của dữ liệu thay đổi trong lúc duyệt danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-009
+    title: Giữ điều kiện quyền truy cập khi tìm kiếm hoặc lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-lists-010
+    title: Đồng bộ kết quả khi có chỉ mục tìm kiếm hoặc cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: calculations-and-money
+  title: Tính toán và tiền tệ
+  childs:
+  - slug: calculations-and-money-001
+    title: Đối chiếu phép tính với công thức và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-002
+    title: Làm tròn, số chữ số thập phân và thời điểm làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-003
+    title: Số âm, số không, giá trị cực lớn và giới hạn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-004
+    title: Đơn vị đo, quy đổi và sự nhất quán giữa các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-005
+    title: Đơn vị tiền tệ và quy tắc hiển thị số tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-006
+    title: Cộng dồn chi tiết với tổng hợp hóa đơn hoặc báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-007
+    title: Phân bổ giảm giá, phụ phí và phần dư sau làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-008
+    title: Kiểm tra bất biến số lượng hoặc số tiền sau cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: calculations-and-money-009
+    title: Tách dữ liệu tỷ giá đầu vào khỏi việc truy cập giá trị bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time-and-localization
+  title: Ngày giờ và bản địa hóa
+  childs:
+  - slug: date-time-and-localization-001
+    title: Ngày hiệu lực, ngày hết hạn và điều kiện tại đúng thời điểm biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-002
+    title: Phân biệt thời điểm tuyệt đối, ngày lịch và thời lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-003
+    title: Múi giờ người dùng, múi giờ lưu trữ và chuyển đổi hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-004
+    title: Năm nhuận, cuối tháng và thay đổi giờ theo mùa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-005
+    title: Định dạng ngày, số và tiền tệ theo locale
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-006
+    title: Ngôn ngữ của nhãn, thông báo và nội dung được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-007
+    title: Fallback khi thiếu bản dịch hoặc locale không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-008
+    title: Sắp xếp, tìm kiếm và nhập liệu với nội dung nhiều ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-localization-009
+    title: Kiểm soát Clock trong test thay vì phụ thuộc thời gian hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: login-and-sessions
+  title: Đăng nhập và phiên
+  childs:
+  - slug: login-and-sessions-001
+    title: Đăng nhập thành công và thông tin đăng nhập không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-002
+    title: Tài khoản chưa kích hoạt, bị khóa hoặc đã ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-003
+    title: Đăng ký, xác nhận tài khoản và xử lý thông tin trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-004
+    title: Đổi mật khẩu, đặt lại mật khẩu và liên kết hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-005
+    title: Phiên mới, phiên hết hạn và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-006
+    title: Gia hạn token và trạng thái khi việc gia hạn thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-007
+    title: Đăng nhập nhiều thiết bị theo chính sách sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-008
+    title: Giữ hoặc xóa ngữ cảnh người dùng sau thay đổi phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-sessions-009
+    title: Phân biệt kiểm tra hành vi xác thực với đánh giá bảo mật chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: permissions-and-data-scope
+  title: Quyền và phạm vi dữ liệu
+  childs:
+  - slug: permissions-and-data-scope-001
+    title: Ma trận vai trò, hành động và loại tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-002
+    title: Quyền xem, tạo, sửa, xóa và phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-003
+    title: Phân quyền theo người sở hữu hoặc trạng thái đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-004
+    title: Ranh giới tenant, tổ chức và nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-005
+    title: Thay đổi quyền trong khi người dùng đang có phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-006
+    title: Kiểm tra quyền ở server dù giao diện đã ẩn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-007
+    title: Quyền đối với trường dữ liệu, tệp và kết quả xuất báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-008
+    title: Đối chiếu dữ liệu trả về khi người dùng đổi vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-data-scope-009
+    title: Xác minh thao tác bị từ chối không tạo tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-interfaces
+  title: Giao diện người dùng
+  childs:
+  - slug: user-interfaces-001
+    title: Biểu mẫu nhập liệu và thông báo validation theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-002
+    title: Nút, liên kết và điều kiện bật tắt thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-003
+    title: Điều hướng, tham số URL và trạng thái trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-004
+    title: Hiển thị dữ liệu rỗng, đang tải, lỗi và thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-005
+    title: Giữ dữ liệu nhập khi validation hoặc lời gọi server thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-006
+    title: Ngăn thao tác gửi lặp theo hành vi đã được quy định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-007
+    title: Hủy chỉnh sửa, rời trang và xác nhận thay đổi chưa lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-008
+    title: Đối chiếu dữ liệu sau refresh, quay lại hoặc mở phiên mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interfaces-009
+    title: Phân biệt chức năng đúng với mức dễ sử dụng hoặc tính thẩm mỹ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-and-responses
+  title: API và phản hồi
+  childs:
+  - slug: api-and-responses-001
+    title: Method, route, query parameter và path variable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-002
+    title: Request body, header, content type và encoding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-003
+    title: Status code cùng cấu trúc kết quả theo từng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-004
+    title: Trường bắt buộc, tùy chọn, chỉ đọc và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-005
+    title: Validation, lỗi nghiệp vụ và tài nguyên không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-006
+    title: Pagination, filtering và sorting theo hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-007
+    title: Nhất quán giữa giá trị phản hồi và thay đổi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-008
+    title: Kiểm tra cùng chức năng qua API và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-009
+    title: Phân biệt phản hồi chấp nhận xử lý với hoàn thành nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-responses-010
+    title: Đối chiếu hợp đồng dữ liệu mà không thay thế kiểm tra hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-integration
+  title: Tích hợp bên ngoài
+  childs:
+  - slug: external-integration-001
+    title: Xác định chức năng phụ thuộc dịch vụ, database hoặc nhà cung cấp ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-002
+    title: Ánh xạ request, response và ý nghĩa dữ liệu giữa các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-003
+    title: Dependency trả thành công, lỗi nghiệp vụ hoặc dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-004
+    title: Xử lý không tìm thấy kết quả và phản hồi thiếu trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-005
+    title: Timeout, mất kết nối và chính sách xử lý phía sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-006
+    title: Đối chiếu kết quả khi dùng giả lập và dependency thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-007
+    title: Môi trường sandbox và giới hạn những điều nó kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-008
+    title: Thay đổi hợp đồng hoặc phiên bản dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integration-009
+    title: Xác minh fallback không làm sai kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: events-and-async
+  title: Sự kiện và bất đồng bộ
+  childs:
+  - slug: events-and-async-001
+    title: Chức năng tạo công việc nền hoặc phát sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-002
+    title: Phân biệt đã tiếp nhận với đã xử lý thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-003
+    title: Kiểm tra nội dung sự kiện và tác dụng phụ tại consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-004
+    title: Chờ kết quả bằng điều kiện quan sát có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-005
+    title: Message trùng, đến muộn hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-006
+    title: Retry, dead-letter và trạng thái công việc không hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-007
+    title: Nhất quán cuối cùng giữa dữ liệu và màn hình hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-008
+    title: Hủy công việc và hành vi của xử lý đang diễn ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-and-async-009
+    title: Đối chiếu trạng thái cuối cùng sau khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: duplicates-and-concurrency
+  title: Trùng lặp và đồng thời
+  childs:
+  - slug: duplicates-and-concurrency-001
+    title: Yêu cầu lặp có chủ đích và yêu cầu trùng do gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-002
+    title: Idempotency key và phạm vi nhận diện cùng một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-003
+    title: Hai người cùng cập nhật hoặc cùng xử lý một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-004
+    title: Tranh chấp tồn kho, hạn mức hoặc tài nguyên giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-005
+    title: Xung đột phiên bản và thông báo dữ liệu đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-006
+    title: Kiểm tra không tạo trùng bản ghi, giao dịch hoặc thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-007
+    title: Tính nguyên tử của kiểm tra điều kiện rồi thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-008
+    title: Nhiều kết quả hợp lệ nhưng vẫn phải giữ bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicates-and-concurrency-009
+    title: Điều phối các bước trong test để tái hiện xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-import-export
+  title: Tệp và nhập xuất
+  childs:
+  - slug: files-and-import-export-001
+    title: Tải lên tệp đúng loại, kích thước và cấu trúc được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-002
+    title: Tệp rỗng, tệp hỏng và nội dung không khớp định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-003
+    title: Import theo bản ghi với dữ liệu hợp lệ, lỗi và trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-004
+    title: Chính sách dừng toàn bộ hoặc chấp nhận một phần dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-005
+    title: Mapping cột, encoding và quy tắc chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-006
+    title: Xuất dữ liệu theo điều kiện lọc và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-007
+    title: Đối chiếu số bản ghi, tổng giá trị và nội dung tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-008
+    title: Tên tệp, metadata và khả năng tải lại kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-import-export-009
+    title: Xử lý hủy, lỗi giữa chừng và dọn dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reports-and-aggregation
+  title: Báo cáo và tổng hợp
+  childs:
+  - slug: reports-and-aggregation-001
+    title: Xác định nguồn dữ liệu và thời điểm chốt số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-002
+    title: Tổng hợp, nhóm và phân loại theo quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-003
+    title: Bộ lọc, khoảng ngày và ranh giới bao gồm hoặc loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-004
+    title: Đối chiếu số chi tiết với tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-005
+    title: Dữ liệu rỗng, bị thiếu, bị trùng hoặc cập nhật muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-006
+    title: Tính nhất quán giữa báo cáo trên màn hình và bản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-007
+    title: Quyền xem chi tiết, tổng hợp và dữ liệu của tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-008
+    title: Phân biệt sai số liệu với dữ liệu chưa được cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-aggregation-009
+    title: Giữ khả năng truy vết kết quả về dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: background-and-scheduled-tasks
+  title: Tác vụ nền và theo lịch
+  childs:
+  - slug: background-and-scheduled-tasks-001
+    title: Điều kiện kích hoạt và đối tượng cần được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-002
+    title: Lịch chạy, múi giờ và quy tắc tại thời điểm biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-003
+    title: Trạng thái chờ, đang chạy, hoàn tất, lỗi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-004
+    title: Xử lý batch, checkpoint và tiếp tục công việc dở dang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-005
+    title: Quy tắc retry hoặc bỏ qua bản ghi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-006
+    title: Chạy lại cùng tác vụ mà không tạo tác dụng phụ ngoài yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-007
+    title: Ngăn hai lần chạy tranh chấp cùng phạm vi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-008
+    title: Đối chiếu số mục thành công, thất bại và chưa xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-and-scheduled-tasks-009
+    title: Quan sát kết quả nghiệp vụ thay vì chỉ kiểm tra job đã chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notifications-and-communication
+  title: Thông báo và liên lạc
+  childs:
+  - slug: notifications-and-communication-001
+    title: Sự kiện nào phải gửi hoặc không được gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-002
+    title: Chọn đúng người nhận, kênh và ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-003
+    title: Nội dung, biến mẫu, liên kết và dữ liệu hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-004
+    title: Gửi ngay, gửi theo lịch và gửi bản tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-005
+    title: Tùy chọn nhận thông báo và thay đổi tùy chọn người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-006
+    title: Ngăn gửi trùng khi retry hoặc xử lý lại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-007
+    title: Lỗi gửi và trạng thái được phản ánh cho nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-008
+    title: Phân biệt yêu cầu gửi được chấp nhận với giao thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-and-communication-009
+    title: Giả lập kênh gửi để kiểm tra nội dung và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-and-variants
+  title: Cấu hình và biến thể
+  childs:
+  - slug: configuration-and-variants-001
+    title: Chức năng bật hoặc tắt theo cấu hình và feature flag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-002
+    title: Giá trị mặc định khi không có cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-003
+    title: Cấu hình không hợp lệ, thiếu hoặc xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-004
+    title: Biến thể theo gói dịch vụ, vai trò hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-005
+    title: Thay đổi cấu hình và thời điểm có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-006
+    title: Kiểm tra hành vi cũ và mới trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-007
+    title: Giữ trạng thái nghiệp vụ khi bật tắt tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-008
+    title: Chọn tổ hợp cấu hình có rủi ro thay vì nhân toàn bộ ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-variants-009
+    title: Dọn nhánh hành vi và test khi biến thể không còn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: errors-and-recovery-001
+    title: Phân biệt lỗi validation, lỗi nghiệp vụ và lỗi kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-002
+    title: Thông báo lỗi, mã lỗi và thông tin hướng dẫn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-003
+    title: Không để dữ liệu hoặc trạng thái bị thay đổi một phần ngoài chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-004
+    title: Thao tác thất bại rồi được thực hiện lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-005
+    title: Hủy, hoàn tác và bù trừ theo quy tắc sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-006
+    title: Dependency phục hồi và khả năng hoàn thành công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-007
+    title: Người dùng tiếp tục sau mất kết nối hoặc phiên bị hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-008
+    title: Giữ lịch sử và kết quả của thao tác thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-009
+    title: Đối chiếu trạng thái sau phục hồi với bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: acceptance-and-examples
+  title: Chấp nhận và ví dụ
+  childs:
+  - slug: acceptance-and-examples-001
+    title: Thiết kế ví dụ chức năng cùng người hiểu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-002
+    title: Given, When, Then cho một hành vi có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-003
+    title: Ví dụ thường gặp, ngoại lệ và phản chứng của quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-004
+    title: Scenario outline cho các biến thể cùng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-005
+    title: Phân biệt acceptance criteria với các bước thao tác chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-006
+    title: UAT với vai trò, dữ liệu và quy trình sử dụng đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-007
+    title: Giải quyết khác biệt giữa đặc tả và mong đợi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-008
+    title: Ghi nhận điều kiện chấp nhận, phần chưa xác minh và quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-examples-009
+    title: Giữ ví dụ nghiệp vụ nhất quán khi sản phẩm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-automation
+  title: Tự động hóa với Java
+  childs:
+  - slug: java-automation-001
+    title: Ánh xạ test case chức năng sang cấu trúc Arrange, Act, Assert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-002
+    title: JUnit cho quy tắc, ví dụ có tham số và hành vi ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-003
+    title: Assertion cho giá trị trả về, trạng thái và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-004
+    title: Test double để kiểm soát điều kiện mà vẫn giữ mục tiêu chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-005
+    title: Spring Test và MockMvc hoặc WebTestClient theo ranh giới cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-006
+    title: Testcontainers khi cần xác minh hành vi với hạ tầng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-007
+    title: API client và công cụ kiểm thử giao diện cho luồng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-008
+    title: Tiêm Clock, cố định seed và tạo dữ liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-009
+    title: Tách mã hỗ trợ khỏi điều kiện đánh giá đúng sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-automation-010
+    title: Giữ tên test và thông báo lỗi thể hiện ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-suites-and-regression
+  title: Bộ test và hồi quy
+  childs:
+  - slug: test-suites-and-regression-001
+    title: Nhóm test theo chức năng, rủi ro và mức kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-002
+    title: Bộ smoke xác nhận các khả năng sản phẩm thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-003
+    title: Bộ regression bảo vệ hành vi đã được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-004
+    title: Phân biệt xác nhận bản sửa lỗi với kiểm tra hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-005
+    title: Chọn phạm vi theo thành phần và nghiệp vụ bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-006
+    title: Bổ sung tình huống từ lỗi đã phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-007
+    title: Phân bố test giữa mức đơn vị, tích hợp và hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-008
+    title: Xác định phần phải chạy trước phát hành và phần chạy theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suites-and-regression-009
+    title: Tránh bỏ sót chức năng khi lựa chọn test theo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-and-evidence
+  title: Thực thi và bằng chứng
+  childs:
+  - slug: execution-and-evidence-001
+    title: Xác minh bản build, cấu hình, môi trường và dữ liệu trước khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-002
+    title: Thực thi thủ công hoặc tự động theo cùng kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-003
+    title: Phân biệt pass, fail, blocked, skipped và chưa thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-004
+    title: Thu thập request, response, trạng thái dữ liệu và bằng chứng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-005
+    title: Liên kết test run với phiên bản, test case và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-006
+    title: Phân loại lỗi chức năng, lỗi test và lỗi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-007
+    title: Tái hiện thất bại bằng điều kiện đã ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-008
+    title: Báo cáo kết quả thực tế cùng phần chưa được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-and-evidence-009
+    title: Xử lý kết quả không ổn định trước khi kết luận về chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coverage-and-quality
+  title: Bao phủ và chất lượng
+  childs:
+  - slug: coverage-and-quality-001
+    title: Liên kết yêu cầu, quy tắc, tình huống và kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-002
+    title: Đối chiếu chức năng đã đặc tả với chức năng có test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-003
+    title: Bao phủ vai trò, trạng thái, dữ liệu và đường xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-004
+    title: Phân biệt độ bao phủ mã với độ bao phủ hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-005
+    title: Đánh giá oracle và assertion có đủ sức phát hiện sai kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-006
+    title: Rà soát tình huống trùng, thiếu hoặc không còn ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-007
+    title: Ưu tiên khoảng trống theo mức ảnh hưởng và khả năng xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-008
+    title: Đánh giá lỗi lọt qua để cải thiện bộ test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-quality-009
+    title: Ghi rủi ro còn lại thay vì suy luận chất lượng chỉ từ tỷ lệ pass
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-maintenance
+  title: Bảo trì kiểm thử
+  childs:
+  - slug: test-maintenance-001
+    title: Cập nhật test khi yêu cầu hoặc quy tắc nghiệp vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-002
+    title: Phân biệt kỳ vọng cần sửa với lỗi sản phẩm cần khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-003
+    title: Quản lý phiên bản dữ liệu, fixture và ví dụ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-004
+    title: Giảm phụ thuộc vào chi tiết triển khai hoặc giao diện dễ đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-005
+    title: Sửa test thất thường từ nguyên nhân thay vì tăng retry tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-006
+    title: Xóa hoặc gộp test mà vẫn giữ khả năng bảo vệ hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-007
+    title: Rà soát test disabled và test bị cách ly lâu ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-008
+    title: Ghi người phụ trách và lý do thay đổi kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-maintenance-009
+    title: Giữ tài liệu chức năng, mã test và bằng chứng nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Thiết kế bộ test cho đăng ký, đăng nhập và vòng đời phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Kiểm chứng chính sách giá bằng bảng quyết định và ví dụ biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Kiểm tra vòng đời đơn hàng với phê duyệt, hủy và hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Xác minh CRUD cùng ràng buộc dữ liệu và rollback khi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Kiểm tra tìm kiếm, phân trang và phạm vi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Đối chiếu chức năng qua API, giao diện và dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Tái hiện yêu cầu trùng hoặc hai người cùng cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Kiểm tra import một phần dữ liệu cùng báo cáo bản ghi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Xác minh tác vụ bất đồng bộ và thông báo không bị tạo trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: Bàn giao bộ regression có truy vết và kết quả mong đợi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

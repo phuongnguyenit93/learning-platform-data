@@ -1,0 +1,415 @@
+menu:
+- level1: Tổng quan ngành
+  level2:
+  - 'Khoa học máy tính nghiên cứu điều gì: thông tin, tính toán và hệ thống'
+  - Phân biệt khoa học máy tính, lập trình, công nghệ thông tin và kỹ nghệ phần mềm
+  - Từ bài toán thực tế đến mô hình, thuật toán, chương trình và kết quả
+  - Mối liên hệ giữa toán học, thuật toán, ngôn ngữ và hệ thống máy tính
+  - 'Các lớp trừu tượng: phần cứng, hệ điều hành, nền tảng thực thi và ứng dụng'
+  - 'Các hướng ứng dụng: xử lý dữ liệu, đồ họa, trí tuệ nhân tạo và hệ nhúng'
+  - Nền tảng chung, kiến thức tiên quyết và các hướng học chuyên sâu
+  - Cách học bằng mô hình, ví dụ, phản ví dụ, thí nghiệm và giải thích kết quả
+- level1: Tư duy tính toán
+  level2:
+  - Phân rã vấn đề thành các phần có trách nhiệm rõ ràng
+  - Nhận diện mẫu và tái sử dụng cách giải cho những bài toán tương tự
+  - 'Trừu tượng hóa: giữ thông tin cần thiết và bỏ chi tiết không liên quan'
+  - Lựa chọn mức trừu tượng phù hợp với câu hỏi đang giải quyết
+  - Mô hình hóa trạng thái và các phép chuyển trạng thái
+  - Tách dữ liệu đầu vào, quy tắc xử lý và kết quả đầu ra
+  - Thiết kế quy trình có thể mô tả, thực hiện và kiểm chứng
+  - 'Tư duy đệ quy: bài toán con, trường hợp cơ sở và tiến triển'
+  - 'Tư duy bất biến: điều gì phải đúng trước, trong và sau mỗi bước'
+  - Phân biệt tương quan, quan hệ nhân quả và giả thuyết cần kiểm chứng
+- level1: Bài toán và đặc tả
+  level2:
+  - Chuyển yêu cầu bằng ngôn ngữ tự nhiên thành bài toán rõ ràng
+  - Xác định miền đầu vào, miền đầu ra và điều kiện hợp lệ
+  - Tiền điều kiện, hậu điều kiện và hợp đồng của lời giải
+  - Ràng buộc chức năng, tài nguyên, thời gian và môi trường thực thi
+  - Ví dụ chuẩn, trường hợp biên và đầu vào không hợp lệ
+  - Bài toán quyết định, tìm kiếm, đếm và tối ưu hóa
+  - Lời giải chính xác, lời giải gần đúng và kết quả có tính xác suất
+  - Phân biệt yêu cầu bắt buộc với lựa chọn thiết kế
+  - Xử lý yêu cầu mơ hồ, thiếu thông tin và giả định chưa được xác nhận
+  - Tiêu chí chấp nhận và cách nhận biết một bài toán đã được giải
+- level1: Thông tin và biểu diễn
+  level2:
+  - Phân biệt dữ liệu, thông tin, ý nghĩa và ngữ cảnh diễn giải
+  - Biểu diễn rời rạc và chuyển đổi từ tín hiệu liên tục sang dữ liệu số
+  - Bit, byte, đơn vị dung lượng và số lượng trạng thái có thể biểu diễn
+  - Hệ nhị phân, thập lục phân và chuyển đổi giữa các cơ số
+  - Biểu diễn số nguyên, số có dấu và giới hạn miền giá trị
+  - Số dấu phẩy động, sai số biểu diễn và giới hạn so sánh số thực
+  - Ký tự, Unicode, điểm mã và mã hóa UTF-8, UTF-16
+  - Biểu diễn hình ảnh, âm thanh và các đánh đổi khi lấy mẫu
+  - Mã hóa biểu diễn, nén, mã hóa bảo mật và băm phục vụ những mục đích gì
+  - Nén không mất dữ liệu, nén mất dữ liệu và giới hạn khả năng nén
+  - Lượng thông tin, entropy và quan hệ với mức độ bất định
+  - Phát hiện lỗi dữ liệu, kiểm tra toàn vẹn và giới hạn của checksum
+- level1: Logic và suy luận
+  level2:
+  - Mệnh đề, giá trị chân lý và các phép toán logic
+  - Bảng chân trị và kiểm tra tương đương logic
+  - Kéo theo, tương đương, điều kiện cần và điều kiện đủ
+  - Phủ định mệnh đề và các quy tắc De Morgan
+  - Vị từ, miền xét và lượng từ với mọi, tồn tại
+  - Phủ định biểu thức có lượng từ và tránh nhầm thứ tự lượng từ
+  - Suy luận hợp lệ, giả thiết, kết luận và lỗi suy luận thường gặp
+  - Chứng minh trực tiếp, phản chứng và phản đảo
+  - Phản ví dụ và cách bác bỏ một khẳng định tổng quát
+  - Biểu thức điều kiện trong chương trình và sự khác nhau với logic toán học
+- level1: Toán học cốt lõi
+  level2:
+  - Tập hợp, phần tử, tập con và các phép toán trên tập
+  - Tích Descartes, bộ giá trị và biểu diễn dữ liệu có cấu trúc
+  - Quan hệ, tính tương đương và quan hệ thứ tự
+  - Hàm, miền xác định, miền giá trị và phép hợp thành
+  - Dãy, tổng, tích và những quy luật tăng trưởng cơ bản
+  - Lũy thừa, logarit và ý nghĩa trong chia đôi, mã hóa, tìm kiếm
+  - Quy nạp toán học và quy nạp theo cấu trúc
+  - Quy tắc đếm, hoán vị, chỉnh hợp và tổ hợp
+  - Xác suất, xác suất có điều kiện và tính độc lập
+  - Biến ngẫu nhiên, kỳ vọng và phân biệt trung bình với từng kết quả
+  - Số học modulo và ứng dụng trong chỉ mục vòng, băm, kiểm tra chia hết
+  - Đồ thị, đỉnh, cạnh, đường đi và quan hệ kết nối
+- level1: Mô hình tính toán
+  level2:
+  - Mô hình tính toán và lý do cần tách cách tính khỏi thiết bị thực hiện
+  - Hệ chuyển trạng thái và cách mô tả một phép tính
+  - Máy trạng thái hữu hạn và những giới hạn về bộ nhớ
+  - Bộ nhớ có ngăn xếp và khả năng xử lý cấu trúc lồng nhau
+  - Máy Turing và ý tưởng về một mô hình tính toán tổng quát
+  - Thuật toán, chương trình và thiết bị tính toán không phải là một khái niệm
+  - Khả năng tính toán, tính quyết định được và bài toán không quyết định được
+  - Bài toán dừng và giới hạn của việc tự động phân tích mọi chương trình
+  - Phân biệt bài toán không thể giải tổng quát với bài toán quá tốn tài nguyên
+- level1: Nền tảng thuật toán
+  level2:
+  - Thuật toán là gì và cần mô tả những thông tin nào
+  - Tính xác định của từng bước, tính hiệu quả thực hiện và điều kiện dừng
+  - Mã giả, sơ đồ luồng và bảng lần vết thực hiện
+  - Thực hiện tuần tự, lựa chọn và lặp
+  - Đầu vào, đầu ra, trạng thái trung gian và bất biến
+  - Thuật toán xác định và thuật toán có sử dụng ngẫu nhiên
+  - Thuật toán lặp và thuật toán đệ quy
+  - Duyệt tuần tự, tìm kiếm và tích lũy kết quả
+  - Sắp xếp, thứ tự so sánh và ý nghĩa của tính ổn định
+  - Biểu diễn cùng một thuật toán bằng nhiều ngôn ngữ hoặc mô hình
+- level1: Thiết kế thuật toán
+  level2:
+  - Vét cạn và sử dụng lời giải đơn giản làm mốc đối chiếu
+  - Giảm kích thước bài toán và tiến dần đến trường hợp cơ sở
+  - Chia để trị và kết hợp lời giải các bài toán con
+  - Tham lam và điều kiện để lựa chọn cục bộ dẫn đến kết quả đúng
+  - Quy hoạch động, trạng thái và bài toán con chồng lặp
+  - Ghi nhớ kết quả và lập bảng tính theo thứ tự phụ thuộc
+  - Quay lui, khôi phục trạng thái và cắt bỏ nhánh không khả thi
+  - Biến đổi cách biểu diễn để bài toán dễ giải hơn
+  - Mô hình hóa quan hệ thành đồ thị để duyệt và tìm đường
+  - Chọn chiến lược dựa trên cấu trúc bài toán và ràng buộc đầu vào
+- level1: Độ đúng chương trình
+  level2:
+  - Độ đúng so với đặc tả và sự khác nhau giữa đúng với có vẻ hợp lý
+  - Độ đúng bộ phận, tính kết thúc và độ đúng toàn phần
+  - 'Bất biến vòng lặp: khởi tạo, duy trì và kết luận'
+  - Đại lượng giảm và cách lập luận rằng vòng lặp sẽ dừng
+  - Hợp đồng của hàm và kết hợp các thành phần đã được kiểm chứng
+  - Chứng minh thuật toán đệ quy bằng quy nạp
+  - Điều kiện biên, chỉ số và lỗi lệch một đơn vị
+  - Độ đúng số học khi có tràn số, làm tròn hoặc mất độ chính xác
+  - Kiểm thử, chứng minh và phân tích tĩnh cung cấp những bằng chứng khác nhau
+  - Phản ví dụ nhỏ nhất và thu hẹp đầu vào gây sai
+- level1: Phân tích chi phí
+  level2:
+  - Kích thước đầu vào và mô hình đếm phép toán
+  - Chi phí thời gian và chi phí bộ nhớ
+  - Trường hợp tốt nhất, xấu nhất và trung bình
+  - Ký hiệu O, Omega, Theta và cách diễn giải giới hạn tiệm cận
+  - Tăng trưởng hằng số, logarit, tuyến tính, đa thức và hàm mũ
+  - Phân tích chuỗi lệnh, nhánh điều kiện và vòng lặp lồng nhau
+  - Phân tích đệ quy bằng phương trình truy hồi đơn giản
+  - Chi phí khấu hao và sự khác nhau với chi phí trung bình
+  - Đánh đổi thời gian, bộ nhớ và độ chính xác
+  - Chi phí I/O, truyền dữ liệu và giới hạn của mô hình chỉ đếm CPU
+  - Tính khả thi thực tế và ý nghĩa nhập môn của P, NP, NP-complete, NP-hard
+  - Vì sao số đo thời gian chạy không thay thế được phân tích độ phức tạp
+- level1: Mô hình dữ liệu
+  level2:
+  - Mô hình dữ liệu và cách chọn những thuộc tính cần biểu diễn
+  - Giá trị vô hướng, bản ghi, bộ giá trị và cấu trúc lồng nhau
+  - Danh tính đối tượng và sự bằng nhau về giá trị
+  - Dữ liệu khả biến, bất biến và quan hệ với trạng thái chương trình
+  - Giá trị thiếu, null, tập rỗng và dữ liệu không hợp lệ
+  - Bất biến dữ liệu và trách nhiệm giữ dữ liệu hợp lệ
+  - Quan hệ một một, một nhiều, nhiều nhiều và cách biểu diễn
+  - Mô hình cây, đồ thị và lựa chọn theo quan hệ thực tế
+  - Kiểu dữ liệu trừu tượng và phân biệt giao diện với cách cài đặt
+  - Tuần tự hóa, lược đồ và thay đổi định dạng dữ liệu theo thời gian
+- level1: Cấu trúc dữ liệu
+  level2:
+  - Mảng và truy cập phần tử theo chỉ số
+  - Mảng động, dung lượng dự phòng và chi phí mở rộng
+  - Danh sách liên kết và đánh đổi giữa truy cập với cập nhật
+  - Ngăn xếp và xử lý theo thứ tự vào sau ra trước
+  - Hàng đợi, hàng đợi hai đầu và bộ đệm vòng
+  - Bảng băm, hàm băm, va chạm và tra cứu theo khóa
+  - Tập hợp, ánh xạ và các hợp đồng về tính duy nhất, thứ tự
+  - Cây, cây tìm kiếm và ý nghĩa của việc giữ cây cân bằng
+  - Heap và hàng đợi ưu tiên
+  - Biểu diễn đồ thị bằng danh sách kề hoặc ma trận kề
+  - Chọn cấu trúc theo thao tác chủ đạo, dữ liệu và giới hạn tài nguyên
+  - Ảnh hưởng của bố trí bộ nhớ, tính cục bộ và chi phí quản lý phần tử
+- level1: Nền tảng lập trình
+  level2:
+  - Giá trị, biến, tên và trạng thái trong chương trình
+  - Biểu thức, toán tử, thứ tự tính và phép gán
+  - Rẽ nhánh, điều kiện kết hợp và cách tránh logic khó theo dõi
+  - Vòng lặp, điều kiện dừng và các dạng duyệt dữ liệu
+  - Hàm, tham số, đối số và kết quả trả về
+  - Phạm vi tên, che khuất tên và thời gian sống của dữ liệu
+  - Tác dụng phụ và phân biệt tính toán với cập nhật trạng thái
+  - Đầu vào, đầu ra và kiểm tra dữ liệu ở ranh giới chương trình
+  - Lỗi có thể dự kiến, ngoại lệ và lựa chọn cách biểu diễn thất bại
+  - Đọc mã, lần vết thực hiện và dự đoán kết quả trước khi chạy
+  - 'Phong cách viết mã rõ ràng: đặt tên, độ dài hàm và mức lồng nhau'
+- level1: Hàm và mô-đun
+  level2:
+  - Trừu tượng hóa bằng hàm và che giấu chi tiết xử lý
+  - Hàm thuần, tác dụng phụ và tính dễ kiểm chứng
+  - Tham số, giá trị trả về và truyền sự phụ thuộc rõ ràng
+  - Truyền giá trị, truyền tham chiếu và chia sẻ đối tượng
+  - Đệ quy, ngăn xếp lời gọi và giới hạn độ sâu
+  - Mô-đun, giao diện công khai và chi tiết nội bộ
+  - Tính gắn kết trong mô-đun và mức phụ thuộc giữa các mô-đun
+  - Hợp thành chức năng và tránh lặp lại quy tắc xử lý
+  - Quản lý trạng thái dùng chung và giảm phụ thuộc ngầm
+  - Tái sử dụng phù hợp và tránh trừu tượng hóa khi chưa có nhu cầu rõ ràng
+- level1: Ngôn ngữ lập trình
+  level2:
+  - Cú pháp, ngữ nghĩa và sự khác nhau giữa mã hợp lệ với mã đúng yêu cầu
+  - Từ vựng, phân tích cú pháp và cây cú pháp ở mức khái niệm
+  - Kiểu dữ liệu và vai trò của hệ thống kiểu
+  - Kiểm tra kiểu tĩnh, kiểm tra kiểu động và thời điểm phát hiện lỗi
+  - Suy luận kiểu, chuyển kiểu tường minh và chuyển kiểu ngầm định
+  - Đa hình tham số, kiểu con và tái sử dụng theo hợp đồng
+  - Kiểu hàm, giá trị hàm và đóng gói môi trường bằng closure
+  - Biên dịch, thông dịch, AOT, JIT và các cách thực thi kết hợp
+  - Ngôn ngữ, thư viện chuẩn, môi trường thực thi và hệ sinh thái công cụ
+  - Lựa chọn ngôn ngữ theo bài toán, môi trường và những đánh đổi
+- level1: Phong cách lập trình
+  level2:
+  - Lập trình mệnh lệnh và mô tả các bước thay đổi trạng thái
+  - Lập trình thủ tục và tổ chức chương trình bằng hàm
+  - 'Lập trình hướng đối tượng: đối tượng, trách nhiệm và sự cộng tác'
+  - Đóng gói, đa hình và hợp thành trong thiết kế hướng đối tượng
+  - 'Lập trình hàm: hàm thuần, dữ liệu bất biến và hợp thành phép biến đổi'
+  - Lập trình khai báo và mô tả kết quả cần có
+  - Lập trình logic và suy luận từ các quan hệ, quy tắc
+  - Lập trình hướng sự kiện và phản ứng với thay đổi từ môi trường
+  - Ngôn ngữ đa phong cách và lựa chọn cách tổ chức phù hợp
+- level1: Chương trình và bộ nhớ
+  level2:
+  - Biến trong mã nguồn, vị trí lưu trữ và giá trị khi thực thi
+  - Địa chỉ bộ nhớ, con trỏ và tham chiếu ở mức khái niệm
+  - Ngăn xếp lời gọi, khung hàm và dữ liệu cục bộ
+  - Heap, cấp phát động và thời gian sống vượt khỏi lời gọi hàm
+  - Chia sẻ tham chiếu, bí danh và thay đổi dữ liệu qua nhiều tên
+  - Sao chép nông, sao chép sâu và tác động đến dữ liệu dùng chung
+  - Quyền sở hữu, mượn tài nguyên và trách nhiệm thu hồi
+  - Thu gom rác và phân biệt khả năng truy cập với tài nguyên bên ngoài
+  - Rò rỉ bộ nhớ, tham chiếu treo và sử dụng sau khi giải phóng
+  - Quản lý tệp, socket, khóa và thu dọn tài nguyên có giới hạn
+  - Đo mức sử dụng bộ nhớ và giải thích sự khác nhau giữa các chỉ số
+- level1: Máy tính và thực thi
+  level2:
+  - Mô hình chương trình lưu trong bộ nhớ
+  - CPU, RAM, thiết bị lưu trữ và thiết bị vào ra
+  - Lệnh máy, tập lệnh và vai trò của hợp ngữ
+  - Chu trình lấy lệnh, giải mã và thực hiện
+  - Thanh ghi, cache và tháp phân cấp bộ nhớ
+  - Tần số, số lõi, CPI và các giới hạn của việc so sánh CPU
+  - Từ mã nguồn qua biên dịch, liên kết, nạp đến chạy chương trình
+  - Phần cứng, hệ điều hành và môi trường thực thi phối hợp như thế nào
+  - Ngắt, ngoại lệ bộ xử lý và phản ứng với sự kiện
+  - Máy vật lý, máy ảo và container khác nhau ở ranh giới nào
+- level1: Hệ điều hành
+  level2:
+  - Hệ điều hành quản lý và trừu tượng hóa những tài nguyên nào
+  - Không gian người dùng, không gian nhân và lời gọi hệ thống
+  - Chương trình, tiến trình, luồng và vòng đời thực thi
+  - Lập lịch, chuyển ngữ cảnh và chia sẻ CPU
+  - Không gian địa chỉ, bộ nhớ ảo và bảo vệ bộ nhớ
+  - Tệp, thư mục, đường dẫn và bộ mô tả tài nguyên
+  - I/O có đệm, chặn, không chặn và bất đồng bộ
+  - Giao tiếp giữa tiến trình và các cơ chế chia sẻ dữ liệu
+  - Người dùng, quyền truy cập và nguyên tắc đặc quyền tối thiểu
+  - Tín hiệu, kết thúc tiến trình và thu hồi tài nguyên
+  - Giới hạn tài nguyên, cạn bộ nhớ, cạn dung lượng và các dạng thất bại
+- level1: Đồng thời và song song
+  level2:
+  - Đồng thời và song song giải quyết những vấn đề khác nhau
+  - Tác vụ dùng nhiều CPU, tác vụ chờ I/O và lựa chọn mô hình thực thi
+  - Thứ tự xen kẽ, điều kiện tranh chấp và tính không xác định
+  - Nguyên tử, tính hiển thị và thứ tự bộ nhớ
+  - Vùng tới hạn, khóa và duy trì bất biến dữ liệu dùng chung
+  - Semaphore, biến điều kiện và phối hợp tiến triển
+  - Deadlock, livelock, starvation và cách phân biệt triệu chứng
+  - Dữ liệu bất biến, quyền sở hữu và truyền thông điệp để giảm chia sẻ
+  - Nhóm luồng, hàng đợi công việc và giới hạn số việc đang xử lý
+  - Bất đồng bộ, vòng lặp sự kiện và áp lực ngược (backpressure)
+  - Chi phí phối hợp, phần tuần tự và giới hạn tăng tốc theo Amdahl
+- level1: Mạng và Internet
+  level2:
+  - Mạng, nút, liên kết và truyền dữ liệu theo gói
+  - Phân lớp giao thức, đóng gói và mô hình TCP/IP
+  - Địa chỉ MAC, địa chỉ IP, cổng và tên miền
+  - Mạng cục bộ, định tuyến và hành trình qua nhiều mạng
+  - Băng thông, thông lượng, độ trễ, mất gói và jitter
+  - TCP, UDP và sự khác nhau giữa luồng byte với datagram
+  - Socket, kết nối và giao tiếp giữa hai tiến trình
+  - DNS và quá trình phân giải tên
+  - HTTP, yêu cầu, phản hồi và tính không lưu phiên của giao thức
+  - TLS, chứng chỉ và thiết lập kênh truyền được bảo vệ
+  - Proxy, cân bằng tải, cache và các thành phần trung gian
+  - Hết thời gian chờ, gửi lại và kết quả chưa biết khi mạng có lỗi
+- level1: Dữ liệu bền vững
+  level2:
+  - Dữ liệu tạm thời, dữ liệu bền vững và vòng đời vượt khỏi tiến trình
+  - Tệp văn bản, tệp nhị phân và định dạng trao đổi dữ liệu
+  - Lưu trực tiếp vào tệp, dùng hệ quản trị cơ sở dữ liệu và tiêu chí lựa chọn
+  - 'Mô hình quan hệ: bảng, hàng, cột, khóa và ràng buộc'
+  - Mô hình tài liệu, khóa giá trị, đồ thị và nhu cầu truy cập tương ứng
+  - Lược đồ, dư thừa dữ liệu và các bất thường khi cập nhật
+  - Truy vấn, lọc, kết hợp, nhóm và tổng hợp dữ liệu
+  - Chỉ mục, kế hoạch truy vấn và chi phí đọc, ghi
+  - Giao dịch, ACID và ranh giới bảo đảm
+  - Cập nhật đồng thời, mức cô lập và xung đột dữ liệu
+  - Nhật ký, bản sao lưu, snapshot và kiểm tra phục hồi
+  - Thay đổi lược đồ, tương thích dữ liệu và di chuyển dữ liệu an toàn
+- level1: Hệ thống phân tán
+  level2:
+  - Hệ thống phân tán, nút độc lập và lỗi từng phần
+  - Mô hình máy khách, máy chủ và giao tiếp giữa dịch vụ
+  - Độ trễ, đồng hồ khác nhau và thiếu góc nhìn toàn cục tức thời
+  - Sao chép, phân vùng dữ liệu và mục tiêu mở rộng
+  - Nhất quán mạnh, nhất quán cuối cùng và trải nghiệm quan sát dữ liệu
+  - Phân vùng mạng và cách hiểu đúng đánh đổi CAP ở mức nhập môn
+  - Hết thời gian chờ, thử lại và thao tác lũy đẳng
+  - Hàng đợi thông điệp, xử lý lặp và bảo đảm giao nhận
+  - Đồng thuận, bầu chọn nút dẫn đầu và trật tự cập nhật
+  - Khả dụng, chịu lỗi và chi phí phối hợp giữa các nút
+  - Khi nào nên giữ kiến trúc một máy hoặc một khối ứng dụng
+- level1: An toàn thông tin
+  level2:
+  - Bí mật, toàn vẹn, khả dụng và tài sản cần bảo vệ
+  - Mô hình đe dọa, bề mặt tấn công và ranh giới tin cậy
+  - Xác thực, phân quyền và ghi nhận truy cập
+  - Mã hóa đối xứng, bất đối xứng và trao đổi khóa
+  - Hàm băm mật mã, MAC, chữ ký số và các mục tiêu khác nhau
+  - Mật khẩu, salt, hàm dẫn xuất khóa và quản lý bí mật
+  - Kiểm tra đầu vào, chèn lệnh và xử lý dữ liệu không đáng tin
+  - An toàn bộ nhớ, lỗi truy cập và cơ chế giảm thiểu
+  - Đặc quyền tối thiểu, cách ly và giới hạn phạm vi ảnh hưởng
+  - Rò rỉ thông tin qua nhật ký, lỗi trả về và dữ liệu thử nghiệm
+  - Nguồn gốc phụ thuộc, cập nhật thành phần và bảo vệ chuỗi cung ứng
+  - Phòng vệ nhiều lớp và giới hạn của việc chỉ dựa vào một biện pháp
+- level1: Phát triển phần mềm
+  level2:
+  - Vòng đời từ yêu cầu đến thiết kế, cài đặt, kiểm chứng và bảo trì
+  - Yêu cầu chức năng, chất lượng và bối cảnh sử dụng
+  - Thiết kế giao diện, hợp đồng và ranh giới thành phần
+  - Tách trách nhiệm, che giấu thông tin và quản lý sự phụ thuộc
+  - Đánh đổi thiết kế, giả định và ghi lại quyết định quan trọng
+  - Đọc mã, nhận xét mã và phối hợp thay đổi trong nhóm
+  - Quản lý phiên bản, lịch sử thay đổi và truy nguyên nguyên nhân
+  - Tài liệu sử dụng, tài liệu thiết kế và ví dụ có thể kiểm chứng
+  - Phụ thuộc, cấu hình và khả năng tái tạo môi trường
+  - Tích hợp liên tục, tạo bản phát hành và kiểm tra trước khi đưa vào sử dụng
+  - Bảo trì, tương thích ngược, nợ kỹ thuật và cải tiến từng bước
+- level1: Kiểm thử và gỡ lỗi
+  level2:
+  - Phân biệt lỗi trong mã, trạng thái sai và thất bại quan sát được
+  - Kiểm thử đơn vị, tích hợp, toàn hệ thống và kiểm thử chấp nhận
+  - Chọn ca kiểm thử theo lớp tương đương và giá trị biên
+  - Đối chiếu kết quả với đặc tả và vấn đề xác định đáp án đúng
+  - Kiểm thử theo thuộc tính, quan hệ biến đổi và kiểm thử ngẫu nhiên
+  - Kiểm thử hồi quy và bảo vệ hành vi đã được xác nhận
+  - Test double, mock, stub và giới hạn của môi trường giả lập
+  - Độ bao phủ và lý do số phần trăm không chứng minh chất lượng
+  - Tái hiện lỗi, thu hẹp tình huống và tạo ví dụ tối thiểu
+  - Breakpoint, quan sát biến, stack trace và lần theo luồng thực thi
+  - Nhật ký có mục đích, giả thuyết nguyên nhân và kiểm chứng cách sửa
+  - Phân tích tĩnh, kiểm tra kiểu và kết hợp nhiều nguồn bằng chứng
+- level1: Hiệu năng và tin cậy
+  level2:
+  - Phân biệt hiệu quả thuật toán với hiệu năng của toàn hệ thống
+  - Thời gian CPU, thời gian thực và thời gian chờ
+  - Độ trễ trung bình, phân vị và thông lượng
+  - Nút thắt CPU, bộ nhớ, lưu trữ, mạng và tài nguyên dùng chung
+  - Đo chuẩn với tải đại diện, thời gian làm nóng và điều kiện tái lập
+  - Chi phí cố định, xử lý theo lô và tái sử dụng kết quả
+  - Cache, tính cục bộ và bài toán vô hiệu hóa dữ liệu cũ
+  - Quá tải, hàng đợi, giới hạn tài nguyên và từ chối công việc
+  - Lỗi tạm thời, phục hồi, thử lại có giới hạn và tránh khuếch đại tải
+  - Quan sát bằng log, metric, trace và lựa chọn bằng chứng phù hợp
+  - Mục tiêu chất lượng dịch vụ và đánh đổi giữa độ tin cậy với chi phí
+- level1: Công cụ và môi trường
+  level2:
+  - Hệ thống tệp, thư mục làm việc và cách tổ chức dự án
+  - Terminal, shell, đối số, mã thoát và biến môi trường
+  - Luồng vào ra chuẩn, chuyển hướng và kết nối lệnh qua pipe
+  - Trình soạn thảo, IDE, trình biên dịch và bộ gỡ lỗi
+  - 'Git: kho mã, vùng chuẩn bị, commit và lịch sử'
+  - Nhánh, hợp nhất, xung đột và cộng tác qua bản thay đổi
+  - Công cụ build, đồ thị phụ thuộc và tạo tác đầu ra
+  - Trình quản lý gói, phiên bản phụ thuộc và tệp khóa phiên bản
+  - Môi trường cục bộ, môi trường kiểm thử và sự khác biệt cấu hình
+  - Tự động hóa thao tác lặp lại và kiểm tra kết quả bằng mã thoát
+- level1: Tương tác người và máy
+  level2:
+  - Người dùng, nhiệm vụ, ngữ cảnh và mục tiêu của giao diện
+  - Mô hình tư duy của người dùng và cách trình bày trạng thái hệ thống
+  - Phản hồi, khả năng khám phá và tính nhất quán của thao tác
+  - Ngăn ngừa lỗi, thông báo lỗi và hỗ trợ phục hồi
+  - Thiết kế tương tác cho bàn phím và các phương thức hỗ trợ
+  - Khả năng tiếp cận, độ tương phản và thông tin không chỉ dựa vào màu
+  - Nguyên mẫu, đánh giá khả dụng và quan sát người dùng thực hiện nhiệm vụ
+  - Phân biệt giao diện dễ nhìn với giao diện giúp hoàn thành công việc
+- level1: Trí tuệ nhân tạo
+  level2:
+  - Trí tuệ nhân tạo, học máy và khoa học dữ liệu liên hệ như thế nào
+  - Biểu diễn tri thức, tìm kiếm và ra quyết định theo mục tiêu
+  - Học có giám sát, không giám sát và học tăng cường
+  - Dữ liệu, đặc trưng, nhãn, mô hình và tham số
+  - Huấn luyện, suy luận và sự khác nhau về chi phí thực hiện
+  - Tập huấn luyện, kiểm định, kiểm thử và rò rỉ dữ liệu
+  - Khái quát hóa, quá khớp và sai khác phân phối dữ liệu
+  - Chọn thước đo theo mục tiêu và chi phí của các loại dự đoán sai
+  - Tính xác suất, độ bất định và giới hạn của đầu ra do mô hình tạo
+  - Kết hợp mô hình với quy tắc, kiểm chứng và trách nhiệm của con người
+- level1: Trách nhiệm nghề nghiệp
+  level2:
+  - Tác động của hệ thống máy tính đến cá nhân, tổ chức và xã hội
+  - Quyền riêng tư, thu thập tối thiểu và vòng đời dữ liệu cá nhân
+  - Thiên lệch dữ liệu, công bằng và nhóm người có thể bị ảnh hưởng
+  - Khả năng giải thích, minh bạch và truy nguyên quyết định
+  - Bản quyền, giấy phép phần mềm và trách nhiệm khi tái sử dụng
+  - Thực hành bảo mật có trách nhiệm và tôn trọng phạm vi được phép
+  - Chi phí năng lượng, lưu trữ và lựa chọn sử dụng tài nguyên phù hợp
+  - Trung thực với số đo, giới hạn bằng chứng và mức độ chắc chắn của kết luận
+- level1: Thực hành nền tảng
+  level2:
+  - Đặc tả một bài toán quản lý danh sách từ yêu cầu còn mơ hồ
+  - Lần vết thuật toán bằng tay và tìm trường hợp biên trước khi viết mã
+  - Xây dựng lời giải vét cạn rồi cải tiến dựa trên cấu trúc bài toán
+  - So sánh hai cấu trúc dữ liệu với cùng tập thao tác thực tế
+  - Chứng minh bất biến vòng lặp và kiểm tra bằng ca thử
+  - Khảo sát tràn số, sai số dấu phẩy động và mã hóa Unicode
+  - Tổ chức chương trình thành hàm, mô-đun và hợp đồng rõ ràng
+  - Đọc, lưu, kiểm tra và khôi phục dữ liệu khi chương trình có lỗi
+  - Quan sát tiến trình, bộ nhớ, tệp và kết nối mạng của ứng dụng
+  - Tái hiện tranh chấp dữ liệu và đánh giá một cách đồng bộ
+  - Xây dựng ứng dụng máy khách, máy chủ với xử lý lỗi đầu vào và mạng
+  - Đo hiệu năng, khoanh vùng nút thắt và xác nhận lợi ích của cách cải tiến
+  - Hoàn thiện dự án nhỏ với quản lý phiên bản, kiểm thử, tài liệu và đánh giá rủi ro

@@ -1,0 +1,3 @@
+menuLevel1: ZonedDateTime
+menuLevel2: Chọn độ lệch sớm hoặc muộn bằng withEarlierOffsetAtOverlap() và withLaterOffsetAtOverlap()
+status: WRITTEN

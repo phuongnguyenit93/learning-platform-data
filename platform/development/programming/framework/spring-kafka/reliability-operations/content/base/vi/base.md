@@ -1,0 +1,7 @@
+# Spring Kafka Reliability Operations
+
+Spring Kafka Reliability Operations tập trung vào việc vận hành luồng thông điệp ổn định khi consumer, broker hoặc dịch vụ phụ thuộc gặp lỗi. Khác với việc chỉ gửi và nhận message, xử lý đáng tin cậy đòi hỏi hiểu offset, thời điểm xác nhận, cơ chế thử lại và những giới hạn của các mức bảo đảm giao nhận. Module dành cho người đã biết Spring Boot, Kafka producer/consumer và `@KafkaListener` cơ bản.
+
+Lộ trình bắt đầu từ at-most-once, at-least-once và exactly-once, rồi chuyển sang commit offset, acknowledgment, error handler, retry và Dead Letter Topic. Tiếp theo, bạn sẽ tìm hiểu idempotency và giao dịch Kafka, cách consumer group rebalance, cùng kỹ thuật điều tiết bằng pause/resume khi tải tăng hoặc downstream bị lỗi. Non-blocking retry topic có đánh đổi về thứ tự và không kết hợp trực tiếp với container transaction; lựa chọn cơ chế cần dựa trên yêu cầu cụ thể.
+
+Sau khi học, bạn có thể thiết kế đường xử lý khi lỗi, xác định phạm vi dữ liệu có thể bị xử lý lại, theo dõi lag và metrics, và diễn tập khởi động lại để kiểm chứng khả năng phục hồi. Bạn cũng sẽ biết phân biệt bảo đảm exactly-once trong chuỗi Kafka với các tác động bên ngoài như ghi cơ sở dữ liệu.

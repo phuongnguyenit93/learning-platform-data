@@ -1,0 +1,7 @@
+# Software Design Design Pattern Creational Singleton
+
+**Singleton Pattern** là mẫu thiết kế khởi tạo nhằm kiểm soát việc tạo đối tượng để một lớp cung cấp một instance dùng chung và một điểm truy cập tới instance đó. Trong Java, việc bảo đảm duy nhất có phạm vi cụ thể, thường gắn với class loader; đồng thời bản thân một instance duy nhất không có nghĩa rằng trạng thái bên trong đối tượng đã an toàn khi nhiều luồng sử dụng.
+
+Lộ trình gồm tám mốc: nhận diện mục đích của Singleton, kiểm soát constructor và điểm truy cập, triển khai eager initialization, lazy initialization với holder, xử lý thread safety và double-checked locking, sử dụng enum Singleton, hiểu giới hạn về phạm vi/trạng thái dùng chung, cuối cùng là kiểm thử và cân nhắc giải pháp thay thế. Các ví dụ sử dụng Java để làm rõ sự khác biệt giữa một triển khai chạy được và một thiết kế phù hợp với yêu cầu thực tế.
+
+Module phù hợp với người đã biết class, static, constructor, enum và kiến thức đa luồng Java cơ bản. Sau khi hoàn thành, bạn có thể viết và so sánh các biến thể Singleton, giải thích các rủi ro do mutable shared state, kiểm thử tính nhất quán của instance và nhận diện khi dependency injection hoặc quản lý vòng đời đối tượng bởi framework sẽ dễ bảo trì hơn.

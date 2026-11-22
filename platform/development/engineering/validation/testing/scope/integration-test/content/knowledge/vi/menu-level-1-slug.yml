@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan tích hợp
+  slug: integration-overview
+  index: 0
+- title: Phạm vi và mục tiêu
+  slug: scope-and-objectives
+  index: 1
+- title: Chiến lược tích hợp
+  slug: integration-strategy
+  index: 2
+- title: Thiết kế tình huống
+  slug: scenario-design
+  index: 3
+- title: Kiến trúc mã kiểm thử
+  slug: test-code-architecture
+  index: 4
+- title: Môi trường và dependency
+  slug: environment-and-dependencies
+  index: 5
+- title: Testcontainers
+  slug: testcontainers
+  index: 6
+- title: Dữ liệu và fixture
+  slug: data-and-fixtures
+  index: 7
+- title: JUnit và build
+  slug: junit-and-build
+  index: 8
+- title: Spring TestContext
+  slug: spring-test-context
+  index: 9
+- title: Spring Boot và test slice
+  slug: spring-boot-and-test-slices
+  index: 10
+- title: HTTP và Spring MVC
+  slug: http-and-spring-mvc
+  index: 11
+- title: WebFlux và reactive
+  slug: webflux-and-reactive
+  index: 12
+- title: Dữ liệu và hợp đồng
+  slug: data-and-contracts
+  index: 13
+- title: Persistence và ORM
+  slug: persistence-and-orm
+  index: 14
+- title: Giao dịch
+  slug: transactions
+  index: 15
+- title: Schema và migration
+  slug: schema-and-migration
+  index: 16
+- title: Cache và Redis
+  slug: cache-and-redis
+  index: 17
+- title: HTTP client và dịch vụ ngoài
+  slug: http-clients-and-external-services
+  index: 18
+- title: Giao thức dịch vụ
+  slug: service-protocols
+  index: 19
+- title: Xác thực và phân quyền
+  slug: authentication-and-authorization
+  index: 20
+- title: Messaging và sự kiện
+  slug: messaging-and-events
+  index: 21
+- title: Nhất quán phân tán
+  slug: distributed-consistency
+  index: 22
+- title: Tệp và lưu trữ
+  slug: files-and-storage
+  index: 23
+- title: Tác vụ nền và theo lịch
+  slug: background-and-scheduled-tasks
+  index: 24
+- title: Lỗi và khả năng phục hồi
+  slug: errors-and-resilience
+  index: 25
+- title: Đồng thời và tài nguyên
+  slug: concurrency-and-resources
+  index: 26
+- title: Thời gian và tính xác định
+  slug: time-and-determinism
+  index: 27
+- title: Assertion và bằng chứng
+  slug: assertions-and-evidence
+  index: 28
+- title: Cô lập và thực thi song song
+  slug: isolation-and-parallel-execution
+  index: 29
+- title: CI và báo cáo
+  slug: ci-and-reporting
+  index: 30
+- title: Chẩn đoán và bảo trì
+  slug: diagnostics-and-maintenance
+  index: 31
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 32

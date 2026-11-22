@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cấu trúc và tương tác
+  slug: structure-and-interaction
+  index: 1
+- title: Hợp đồng hành vi
+  slug: behavior-contract
+  index: 2
+- title: Proxy thủ công
+  slug: manual-proxy
+  index: 3
+- title: Proxy ảo
+  slug: virtual-proxy
+  index: 4
+- title: Proxy bảo vệ
+  slug: protection-proxy
+  index: 5
+- title: Proxy từ xa
+  slug: remote-proxy
+  index: 6
+- title: Proxy bộ nhớ đệm
+  slug: cache-proxy
+  index: 7
+- title: Tham chiếu thông minh
+  slug: smart-references
+  index: 8
+- title: Chặn lời gọi
+  slug: call-interception
+  index: 9
+- title: Vòng đời và đồng thời
+  slug: lifecycle-and-concurrency
+  index: 10
+- title: Danh tính và lớp bọc
+  slug: identity-and-wrappers
+  index: 11
+- title: JDK Dynamic Proxy
+  slug: jdk-dynamic-proxy
+  index: 12
+- title: Thiết kế InvocationHandler
+  slug: invocationhandler-design
+  index: 13
+- title: Proxy dựa trên lớp
+  slug: class-based-proxies
+  index: 14
+- title: Proxy trong Spring
+  slug: spring-proxy
+  index: 15
+- title: Proxy trong ORM
+  slug: orm-proxy
+  index: 16
+- title: Chuỗi Proxy
+  slug: proxy-chains
+  index: 17
+- title: Lỗi và bất đồng bộ
+  slug: errors-and-asynchrony
+  index: 18
+- title: So sánh các mẫu
+  slug: pattern-comparison
+  index: 19
+- title: Kiểm thử Proxy
+  slug: proxy-testing
+  index: 20
+- title: Hiệu năng và chẩn đoán
+  slug: performance-and-diagnostics
+  index: 21
+- title: Bẫy thiết kế
+  slug: design-traps
+  index: 22
+- title: Lựa chọn và chuyển đổi
+  slug: selection-and-migration
+  index: 23
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 24

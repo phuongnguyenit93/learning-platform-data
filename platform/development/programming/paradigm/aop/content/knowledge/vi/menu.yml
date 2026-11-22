@@ -1,0 +1,347 @@
+menu:
+- level1: Tư duy AOP
+  level2:
+  - Lập trình hướng khía cạnh (AOP) là gì
+  - Mối quan tâm cốt lõi và mối quan tâm cắt ngang
+  - Mã bị phân tán (scattering) và mã bị đan xen (tangling)
+  - Vì sao ghi nhật ký, đo thời gian hoặc kiểm soát truy cập dễ lặp lại
+  - Tách hành vi cắt ngang khỏi luồng nghiệp vụ
+  - Quan hệ giữa AOP, lập trình thủ tục và lập trình hướng đối tượng
+  - So sánh AOP với hàm dùng chung, đối tượng cộng tác và thiết kế theo thành phần
+  - Lợi ích, đánh đổi và những bài toán không nên dùng AOP
+  - Lộ trình từ khái niệm đến cơ chế và ứng dụng
+- level1: Mô hình thành phần
+  level2:
+  - Aspect là đơn vị đóng gói mối quan tâm cắt ngang
+  - Join point là điểm có thể can thiệp trong mô hình thực thi
+  - Pointcut là điều kiện lựa chọn tập điểm can thiệp
+  - Advice là hành vi được thực hiện tại điểm đã chọn
+  - Weaving là quá trình kết hợp aspect với chương trình
+  - Chương trình gốc, bộ dệt và kết quả sau khi dệt
+  - Phân biệt chọn vị trí, truyền ngữ cảnh và thực hiện hành vi
+  - Luồng tương tác giữa mã nghiệp vụ và một aspect
+  - Khả năng của mô hình AOP phụ thuộc ngôn ngữ và công cụ
+- level1: Điểm can thiệp
+  level2:
+  - Phân biệt vị trí gọi và vị trí thực thi phương thức
+  - Điểm can thiệp khi khởi tạo đối tượng và thực thi hàm tạo
+  - Đọc và ghi thuộc tính khi mô hình AOP hỗ trợ
+  - Khởi tạo lớp, khởi tạo đối tượng và thứ tự thực thi
+  - Điểm xử lý ngoại lệ và các giới hạn theo công cụ
+  - Các điểm liên quan khóa hoặc đồng bộ khi được hỗ trợ
+  - Thông tin tĩnh và ngữ cảnh động của một join point
+  - Phân biệt điểm trong mã nguồn với điểm trong luồng thực thi
+  - Những thao tác không thuộc mô hình join point của công cụ đang dùng
+- level1: Pointcut cơ bản
+  level2:
+  - Chọn điểm theo kiểu, tên và chữ ký phương thức
+  - Giới hạn theo phạm vi gói, mô-đun hoặc thành phần
+  - Khớp kiểu trả về, danh sách tham số và mức truy cập
+  - Phân biệt kiểu khai báo và kiểu thực tế khi lựa chọn điểm can thiệp
+  - Kế thừa, ghi đè phương thức và ảnh hưởng của đa hình
+  - Ký tự đại diện và biểu thức mẫu theo cú pháp công cụ
+  - Kết hợp điều kiện bằng phép và, hoặc và phủ định
+  - Đặt tên pointcut để tái sử dụng và diễn đạt ý định
+  - Phân biệt điều kiện bao gồm với điều kiện loại trừ
+  - Chọn phương thức nạp chồng và tránh khớp ngoài ý muốn
+  - Đánh đổi giữa biểu thức ngắn và độ chính xác của phạm vi
+  - Kiểu tổng quát, mã sinh và phương thức cầu nối khi nền tảng có
+- level1: Pointcut theo ngữ cảnh
+  level2:
+  - Chọn theo kiểu của đối tượng đang thực thi và đối tượng đích
+  - Chọn theo kiểu hoặc giá trị tham số khi được hỗ trợ
+  - Chọn theo annotation và siêu dữ liệu của chương trình
+  - Chọn theo luồng điều khiển của một lời gọi
+  - Điều kiện tĩnh và điều kiện cần đánh giá lúc chạy
+  - Ràng buộc biến ngữ cảnh cho advice sử dụng
+  - Kết hợp điều kiện ngữ cảnh với phạm vi cấu trúc
+  - Giới hạn của ngữ cảnh khi công việc chuyển sang luồng hoặc tác vụ khác
+  - Chi phí và khả năng kiểm thử của điều kiện động
+- level1: Advice trước và sau
+  level2:
+  - Advice trước khi điểm can thiệp thực thi
+  - Advice sau khi hoàn tất thành công và xử lý giá trị trả về
+  - Advice khi có ngoại lệ và ngữ cảnh lỗi
+  - Advice khi kết thúc bất kể thành công hay thất bại
+  - Phân biệt hành vi sau hoàn tất với hành vi luôn dọn dẹp
+  - Thứ tự advice trong trường hợp có nhiều lớp can thiệp
+  - Ngoại lệ phát sinh từ advice và ảnh hưởng tới lời gọi gốc
+  - Giới hạn thay đổi dữ liệu theo loại advice và công cụ
+  - Thiết kế advice nhỏ, rõ mục đích và ít tác dụng phụ
+- level1: Advice bao quanh
+  level2:
+  - Advice bao quanh và quyền kiểm soát luồng thực thi
+  - Gọi tiếp hành vi gốc qua cơ chế proceed hoặc cơ chế tương đương
+  - Không gọi tiếp và trách nhiệm bảo toàn hợp đồng
+  - Thay đổi tham số hoặc kết quả khi công cụ cho phép
+  - Gọi tiếp nhiều lần và nguy cơ lặp tác dụng phụ
+  - Đo thời gian bằng điểm bắt đầu và khối dọn dẹp
+  - Bắt, chuyển đổi hoặc truyền tiếp ngoại lệ
+  - Giới hạn kiểu trả về và tính tương thích của advice
+  - Phân biệt bao quanh một lời gọi đồng bộ với toàn bộ tác vụ bất đồng bộ
+- level1: Dữ liệu trong advice
+  level2:
+  - Truy cập chữ ký và mô tả điểm can thiệp
+  - Nhận tham số, đối tượng đích và đối tượng thực thi
+  - Phân biệt dữ liệu ràng buộc trực tiếp với tra cứu bằng phản chiếu
+  - Giá trị null, kiểu nguyên thủy và chuyển đổi kiểu
+  - Làm việc với giá trị trả về và phương thức không trả dữ liệu
+  - Đọc annotation và dữ liệu cấu hình liên quan
+  - Không giữ tham chiếu đối tượng lâu hơn nhu cầu xử lý
+  - Giới hạn thu thập tham số chứa dữ liệu nhạy cảm
+  - Tách trích xuất ngữ cảnh khỏi xử lý nghiệp vụ của aspect
+- level1: Kiến trúc weaving
+  level2:
+  - Cách bộ dệt tìm điểm phù hợp với pointcut
+  - Chèn hành vi vào mã nguồn, mã trung gian hoặc đường gọi
+  - Phân biệt dệt tĩnh với can thiệp động lúc chạy
+  - Đầu vào, đầu ra và thời điểm áp dụng aspect
+  - Phạm vi dệt trong một mô-đun và giữa các mô-đun
+  - Quan hệ giữa thứ tự xây dựng và kết quả dệt
+  - Cấu hình phạm vi được dệt và phạm vi bị loại trừ
+  - Mã đã dệt, thông tin gỡ lỗi và khả năng truy vết
+  - Phân biệt lỗi biên dịch, lỗi dệt và lỗi thực thi
+  - Dệt lặp và phát hiện hành vi bị chèn nhiều lần
+- level1: Các thời điểm dệt
+  level2:
+  - Dệt khi biên dịch và yêu cầu đối với chuỗi xây dựng
+  - Dệt sau biên dịch trên mã trung gian hoặc thư viện có sẵn
+  - Dệt khi nạp và quan hệ với cơ chế nạp lớp hoặc mô-đun
+  - Can thiệp lúc chạy và giới hạn của nền tảng
+  - Thay đổi aspect và nhu cầu xây dựng hoặc khởi động lại
+  - Ảnh hưởng đến đóng gói, triển khai và tính lặp lại của bản dựng
+  - Khả năng can thiệp thư viện ngoài và giới hạn sở hữu mã
+  - So sánh độ bao phủ, chi phí và độ phức tạp vận hành
+  - Chọn thời điểm dệt theo yêu cầu hệ thống
+- level1: AOP qua proxy
+  level2:
+  - Mô hình đối tượng trung gian tiếp nhận và chuyển tiếp lời gọi
+  - Ủy quyền qua giao diện so với tạo lớp con trung gian
+  - Đối tượng trung gian và đối tượng đích có danh tính khác nhau thế nào
+  - Giới hạn của lời gọi nội bộ không đi qua proxy
+  - Ảnh hưởng của phương thức riêng, phương thức tĩnh và thành phần không thể ghi đè
+  - Đối tượng được tạo ngoài cơ chế quản lý proxy
+  - Chuỗi interceptor và cơ chế gọi tiếp
+  - Khác biệt về phạm vi can thiệp giữa proxy và biến đổi mã
+  - Chẩn đoán tình huống lời gọi không kích hoạt advice
+- level1: Vòng đời aspect
+  level2:
+  - Aspect dùng chung và aspect được tạo theo ngữ cảnh
+  - Vòng đời gắn với từng đối tượng khi công cụ hỗ trợ
+  - Vòng đời gắn với luồng điều khiển khi công cụ hỗ trợ
+  - Thời điểm tạo, khởi tạo và giải phóng aspect
+  - Chọn aspect không trạng thái hoặc có trạng thái
+  - Quan hệ giữa vòng đời aspect và đối tượng được can thiệp
+  - Lưu trạng thái theo lời gọi thay vì trạng thái dùng chung
+  - Nguy cơ rò rỉ bộ nhớ và giữ đối tượng ngoài ý muốn
+- level1: Phối hợp nhiều aspect
+  level2:
+  - Một join point đồng thời phù hợp với nhiều aspect
+  - Thứ tự ưu tiên và quy tắc phân xử khi có xung đột
+  - Chuỗi advice bao quanh và thứ tự tháo lớp khi trả về
+  - Quan hệ thứ tự giữa advice trước, sau và khi có lỗi
+  - Phụ thuộc ngữ nghĩa giữa bảo mật, giao dịch và ghi nhật ký
+  - Thiết kế thứ tự tường minh thay vì dựa vào chi tiết triển khai
+  - Ngăn quan hệ phụ thuộc vòng giữa các aspect
+  - Tách aspect độc lập khỏi aspect phải phối hợp
+  - Kiểm thử hành vi tổng thể thay vì chỉ từng advice
+- level1: Ngoại lệ và hợp đồng
+  level2:
+  - Điều kiện trước, điều kiện sau và bất biến của chương trình
+  - Bảo toàn kiểu trả về và ý nghĩa giá trị trả về
+  - Giữ nguyên hoặc chuyển đổi ngoại lệ có chủ đích
+  - Rủi ro nuốt lỗi và che khuất nguyên nhân gốc
+  - Dọn dẹp tài nguyên khi advice hoặc mã gốc thất bại
+  - Tác dụng phụ và tính nguyên tử của thao tác
+  - Khả năng thay thế của đối tượng sau khi áp dụng aspect
+  - Quy định hành vi khi chức năng cắt ngang không khả dụng
+  - Ghi nhận hợp đồng của aspect cho bên sử dụng
+- level1: Trạng thái và đồng thời
+  level2:
+  - Aspect dùng chung với nhiều lời gọi đồng thời
+  - Biến khả biến, tranh chấp dữ liệu và tính nhìn thấy
+  - Tách dữ liệu cấu hình bất biến khỏi trạng thái mỗi lần gọi
+  - Trạng thái theo luồng và giới hạn với nhóm luồng
+  - Dọn dữ liệu ngữ cảnh để tránh rò rỉ giữa các yêu cầu
+  - Truyền ngữ cảnh qua tác vụ bất đồng bộ có kiểm soát
+  - Khóa trong advice và nguy cơ deadlock hoặc tăng tranh chấp
+  - Tái nhập, lời gọi lồng nhau và aspect tự can thiệp
+  - Thiết kế aspect an toàn khi chạy song song
+- level1: Luồng điều khiển nâng cao
+  level2:
+  - Pointcut theo luồng điều khiển và phạm vi lời gọi động
+  - Phân biệt điểm khởi đầu với các điểm nằm bên dưới luồng gọi
+  - Giới hạn hành vi theo chuỗi lời gọi thay vì vị trí mã đơn lẻ
+  - Loại trừ mã của chính aspect để tránh đệ quy
+  - Ràng buộc dữ liệu giữa các điểm trong cùng ngữ cảnh
+  - Lời gọi đệ quy và ý nghĩa của độ sâu can thiệp
+  - Luồng bất đồng bộ, callback và giới hạn suy diễn quan hệ gọi
+  - Chi phí theo dõi ngữ cảnh động và phương án đơn giản hơn
+  - Thiết kế ví dụ để kiểm chứng chính xác phạm vi điều khiển
+- level1: Thay đổi cấu trúc
+  level2:
+  - Phân biệt cắt ngang hành vi với cắt ngang cấu trúc
+  - Bổ sung phương thức, thuộc tính hoặc giao diện khi công cụ hỗ trợ
+  - Khai báo liên kiểu (inter-type declaration) trong mô hình AOP phù hợp
+  - Giới hạn truy cập và xung đột tên khi bổ sung thành phần
+  - Thay đổi quan hệ kiểu và ảnh hưởng tới mã sử dụng
+  - Quan hệ giữa mở rộng cấu trúc, mixin và kế thừa
+  - Cảnh báo hoặc lỗi ở bước xây dựng để kiểm tra quy tắc kiến trúc
+  - Tương thích mã nguồn, tương thích nhị phân và chi phí bảo trì
+  - Khi nào nên sửa thiết kế kiểu trực tiếp thay vì mở rộng bằng aspect
+- level1: Trừu tượng và tái sử dụng
+  level2:
+  - Aspect trừu tượng và phần hành vi dùng chung
+  - Pointcut trừu tượng làm điểm tùy biến phạm vi
+  - Kế thừa aspect khi mô hình ngôn ngữ cho phép
+  - Tham số hóa chính sách thay vì chép lại advice
+  - Tách cơ chế can thiệp khỏi dịch vụ xử lý dùng chung
+  - Thiết kế giao diện cấu hình rõ ràng cho aspect
+  - Giới hạn phụ thuộc vào tên gói và chữ ký nội bộ
+  - Đóng gói aspect theo một mối quan tâm có trách nhiệm rõ
+  - Đánh giá mức tái sử dụng so với độ phức tạp
+- level1: Annotation và siêu dữ liệu
+  level2:
+  - Dùng annotation để thể hiện ý định áp dụng hành vi
+  - Annotation là siêu dữ liệu, không tự tạo cơ chế AOP
+  - Đánh dấu ở cấp kiểu, phương thức hoặc tham số
+  - Phạm vi lưu giữ và khả năng đọc siêu dữ liệu
+  - Kế thừa annotation và khác biệt giữa khai báo với thực thi
+  - Đọc giá trị cấu hình từ annotation trong advice
+  - Kết hợp marker tường minh với giới hạn phạm vi
+  - Kiểm tra annotation thiếu, mâu thuẫn hoặc đặt sai chỗ
+  - Đánh đổi giữa cấu hình bên ngoài và đánh dấu trong mã
+- level1: Ranh giới bất đồng bộ
+  level2:
+  - Thời điểm trả kết quả đại diện so với thời điểm công việc hoàn tất
+  - Đo thời gian phần tạo tác vụ và thời gian hoàn thành tác vụ
+  - Ngoại lệ phát sinh đồng bộ so với lỗi trong callback
+  - Giữ và khôi phục ngữ cảnh quan sát trong xử lý bất đồng bộ
+  - Không giữ tài nguyên theo lời gọi ngắn cho công việc kéo dài
+  - Can thiệp vào luồng sự kiện và nguy cơ phá vỡ áp lực ngược
+  - Hủy tác vụ, thời gian chờ và thực hiện dọn dẹp
+  - Xác định rõ điểm kết thúc hành vi được advice bao quanh
+  - Khi nào nên dùng cơ chế chuyên biệt của mô hình bất đồng bộ
+- level1: Quan sát chương trình
+  level2:
+  - Ghi nhật ký tại ranh giới nghiệp vụ thay vì mọi phương thức
+  - Tạo mã tương quan và gắn ngữ cảnh theo lời gọi
+  - Đo số lần gọi, thời gian và tỷ lệ lỗi
+  - Phân biệt số liệu kỹ thuật với sự kiện nghiệp vụ
+  - Che dữ liệu nhạy cảm và giới hạn kích thước tham số
+  - Lấy mẫu, giới hạn tần suất và giảm khối lượng đầu ra
+  - Không để lỗi ghi nhật ký làm thay đổi kết quả ngoài chính sách
+  - Tránh đo trùng khi có nhiều lớp aspect hoặc công cụ quan sát
+  - Kiểm tra chi phí quan sát trong điều kiện tải thực tế
+- level1: Chính sách thực thi
+  level2:
+  - Đặt ranh giới giao dịch bằng advice theo khả năng nền tảng
+  - Thứ tự giữa giao dịch, thử lại và ghi nhận kết quả
+  - Thử lại và yêu cầu tính lặp an toàn của thao tác
+  - Bộ nhớ đệm và điều kiện lời gọi có thể bỏ qua thực thi gốc
+  - Thiết kế khóa bộ nhớ đệm theo đúng ngữ cảnh và dữ liệu
+  - Giới hạn thời gian và giới hạn khả năng dừng tác vụ
+  - Giới hạn tốc độ hoặc số lời gọi đồng thời
+  - Không dùng aspect để che giấu thiếu sót trong hợp đồng nghiệp vụ
+  - Đánh giá ảnh hưởng của mỗi chính sách tới lỗi và tác dụng phụ
+- level1: Kiểm soát truy cập
+  level2:
+  - Đặt kiểm tra quyền tại ranh giới thao tác có ý nghĩa
+  - Liên kết danh tính và ngữ cảnh quyền với lời gọi
+  - Phân biệt kiểm tra quyền tổng quát và quyền trên từng đối tượng
+  - Không suy diễn quyền chỉ từ tên phương thức hoặc kiểu tham số
+  - Thứ tự kiểm tra quyền so với giao dịch và bộ nhớ đệm
+  - Nguy cơ đường gọi không đi qua cơ chế can thiệp
+  - Ghi nhận từ chối truy cập mà không làm lộ dữ liệu
+  - Ngăn aspect bảo mật bị vô hiệu hóa ngoài ý muốn
+  - Kiểm thử nhiều đường vào thay vì chỉ luồng sử dụng thông thường
+- level1: Thiết kế kiến trúc
+  level2:
+  - Chọn mối quan tâm đủ ổn định để tách thành aspect
+  - Xác định nơi áp dụng và nơi tuyệt đối không được can thiệp
+  - Nguyên tắc trách nhiệm đơn và độ kết dính của aspect
+  - Phụ thuộc ẩn giữa mã nghiệp vụ với cấu hình pointcut
+  - Pointcut mong manh khi đổi tên, di chuyển hoặc nạp chồng phương thức
+  - Biên giới mô-đun và khả năng hiểu hành vi từ mã nguồn
+  - So sánh với decorator, middleware, interceptor và instrumentation
+  - Giữ quy tắc nghiệp vụ cốt lõi tường minh khi cần
+  - Tài liệu hóa phạm vi, hợp đồng và các quyết định về thứ tự
+- level1: Minh họa với AspectJ
+  level2:
+  - AspectJ như một ví dụ cụ thể của mô hình AOP có weaving
+  - Aspect bằng cú pháp chuyên biệt và bằng annotation
+  - Biểu thức execution, call và within trong pointcut
+  - Biểu thức this, target, args và pointcut theo annotation
+  - Pointcut cflow và cflowbelow để minh họa luồng điều khiển
+  - Advice before, after, around và lời gọi proceed
+  - Khai báo ưu tiên, aspect trừu tượng và mô hình tạo aspect
+  - Mô hình singleton, perthis, pertarget và percflow trong vòng đời aspect
+  - Khai báo liên kiểu và kiểm tra quy tắc ở bước xây dựng
+  - Cấu hình phạm vi dệt và đọc thông báo của bộ dệt
+  - Phân biệt đặc tính riêng của AspectJ với khái niệm AOP tổng quát
+- level1: Kiểm thử aspect
+  level2:
+  - Kiểm thử phần xử lý của advice độc lập với bộ dệt
+  - Kiểm thử pointcut khớp đúng trường hợp mong muốn
+  - Kiểm thử âm để phát hiện can thiệp ngoài phạm vi
+  - Kiểm thử kiểu trả về, ngoại lệ và giá trị null
+  - Kiểm thử thứ tự nhiều aspect và lời gọi lồng nhau
+  - Kiểm thử lời gọi nội bộ, đường gọi trực tiếp và mã không được dệt
+  - Kiểm thử trạng thái dùng chung trong điều kiện đồng thời
+  - Kiểm thử tác vụ bất đồng bộ và ngữ cảnh được truyền
+  - Kiểm thử hồi quy khi cấu trúc mã thay đổi
+  - So sánh hành vi khi bật và tắt một aspect
+- level1: Gỡ lỗi và chẩn đoán
+  level2:
+  - Xác nhận aspect đã được cấu hình và nạp
+  - Kiểm tra mã hoặc mô-đun có nằm trong phạm vi dệt
+  - Đọc thông báo điểm đã được dệt và điểm không phù hợp
+  - Đối chiếu chữ ký thực tế với biểu thức pointcut
+  - Phân biệt lỗi không khớp pointcut với lời gọi không qua proxy
+  - Đọc ngăn xếp lời gọi có advice và mã được sinh
+  - Đặt điểm dừng trong advice, mã gốc và cơ chế gọi tiếp
+  - Chẩn đoán đệ quy, advice chạy nhiều lần hoặc sai thứ tự
+  - Tạo tình huống tái hiện tối thiểu cho lỗi tương tác aspect
+- level1: Hiệu năng và tài nguyên
+  level2:
+  - Chi phí khớp pointcut ở thời điểm dệt và thời điểm chạy
+  - Chi phí chuyển qua advice, proxy và chuỗi interceptor
+  - Phản chiếu, đóng gói dữ liệu ngữ cảnh và cấp phát bộ nhớ
+  - Ảnh hưởng của ghi nhật ký và tuần tự hóa tham số
+  - Chi phí pointcut động và theo dõi luồng điều khiển
+  - Ảnh hưởng tới tối ưu hóa, khởi động và nạp mã
+  - Thiết kế đo đạc có đường cơ sở và điều kiện tải đại diện
+  - Tối ưu phạm vi can thiệp trước khi tối ưu vi mô
+  - Kiểm tra rò rỉ bộ nhớ, khóa và tài nguyên giữ quá lâu
+- level1: Tích hợp và triển khai
+  level2:
+  - Khai báo công cụ biên dịch hoặc bộ dệt trong quy trình xây dựng
+  - Tách mã aspect, cấu hình và thư viện dùng chung
+  - Đóng gói và kiểm tra tạo tác đã dệt
+  - Quản lý phiên bản công cụ, định dạng mã và thư viện phụ thuộc
+  - Triển khai dệt khi nạp trong môi trường có nhiều bộ nạp
+  - Loại trừ mã sinh, thư viện ngoài và công cụ quan sát khi cần
+  - Kiểm tra tương thích với kiểm thử, đo độ bao phủ và gỡ lỗi
+  - Tạo bản dựng lặp lại và phát hiện thay đổi kết quả weaving
+  - Bật theo giai đoạn, giám sát và chuẩn bị phương án quay lui
+- level1: Sai lầm thường gặp
+  level2:
+  - Dùng aspect cho mọi đoạn mã trùng mà không xét ý nghĩa
+  - Pointcut quá rộng hoặc phụ thuộc chi tiết dễ thay đổi
+  - Advice làm thay đổi kết quả hoặc nuốt lỗi ngoài dự kiến
+  - Gọi proceed sai số lần hoặc sai thời điểm
+  - Lưu trạng thái yêu cầu trong aspect dùng chung
+  - Không xác định thứ tự cho các aspect có phụ thuộc
+  - Bổ sung quá nhiều hành vi ẩn khiến chương trình khó hiểu
+- level1: Bài tập tổng hợp
+  level2:
+  - Nhận diện scattering và tangling trong chương trình mẫu
+  - Thiết kế aspect ghi nhật ký với phạm vi chọn và loại trừ rõ ràng
+  - Đo thời gian và bảo toàn kết quả, ngoại lệ của lời gọi
+  - Thực nghiệm khác biệt giữa điểm gọi và điểm thực thi
+  - So sánh lời gọi qua proxy với cơ chế biến đổi mã
+  - Thiết kế hai aspect có thứ tự và kiểm chứng chuỗi thực thi
+  - Xây dựng aspect có ngữ cảnh riêng cho lời gọi đồng thời
+  - Minh họa pointcut theo luồng điều khiển hoặc mở rộng cấu trúc kiểu
+  - Thử thay đổi cấu trúc mã để phát hiện pointcut mong manh
+  - Đo chi phí, kiểm thử hồi quy và giải thích khi nên bỏ AOP

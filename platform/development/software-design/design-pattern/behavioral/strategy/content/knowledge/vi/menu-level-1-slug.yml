@@ -1,0 +1,73 @@
+menu:
+  - title: "Tổng quan"
+    slug: pattern-overview
+    index: 0
+  - title: "Cấu trúc và luồng chạy"
+    slug: structure-and-execution
+    index: 1
+  - title: "Hợp đồng Strategy"
+    slug: strategy-contract
+    index: 2
+  - title: "Hiện thực bằng interface"
+    slug: interface-implementation
+    index: 3
+  - title: "Thiết kế Context"
+    slug: context-design
+    index: 4
+  - title: "Lambda và method reference"
+    slug: lambdas-and-method-references
+    index: 5
+  - title: "Strategy bằng enum"
+    slug: enum-strategies
+    index: 6
+  - title: "Generics và kiểu dữ liệu"
+    slug: generics-and-data-types
+    index: 7
+  - title: "Trạng thái và vòng đời"
+    slug: state-and-lifecycle
+    index: 8
+  - title: "Lựa chọn lúc chạy"
+    slug: runtime-selection
+    index: 9
+  - title: "Registry và khởi tạo"
+    slug: registry-and-instantiation
+    index: 10
+  - title: "Cấu hình và tích hợp"
+    slug: configuration-and-integration
+    index: 11
+  - title: "Kết hợp chiến lược"
+    slug: strategy-composition
+    index: 12
+  - title: "Lỗi và dự phòng"
+    slug: errors-and-fallbacks
+    index: 13
+  - title: "Đồng thời và bất đồng bộ"
+    slug: concurrency-and-async
+    index: 14
+  - title: "Hiệu năng và quan sát"
+    slug: performance-and-observability
+    index: 15
+  - title: "Tái cấu trúc mã"
+    slug: refactoring-conditionals
+    index: 16
+  - title: "Phân biệt các mẫu"
+    slug: pattern-comparisons
+    index: 17
+  - title: "Kiểm thử từng chiến lược"
+    slug: individual-strategy-testing
+    index: 18
+  - title: "Kiểm thử Context và lựa chọn"
+    slug: context-and-selection-testing
+    index: 19
+  - title: "Tình huống thực tế"
+    slug: real-world-use-cases
+    index: 20
+  - title: "Bài thực hành Java"
+    slug: java-exercises
+    index: 21
+  - title: "Sai lầm thường gặp"
+    slug: common-pitfalls
+    index: 22
+  - title: "Tiêu chí thiết kế"
+    slug: design-review-criteria
+    index: 23

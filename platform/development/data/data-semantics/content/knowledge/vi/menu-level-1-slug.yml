@@ -1,0 +1,85 @@
+menu:
+- title: Nền tảng
+  slug: semantics-overview
+  index: 0
+- title: Ngữ cảnh và thuật ngữ
+  slug: context-and-terminology
+  index: 1
+- title: Mô hình ý nghĩa
+  slug: meaning-models
+  index: 2
+- title: Định danh
+  slug: identifiers
+  index: 3
+- title: Miền giá trị
+  slug: value-domains
+  index: 4
+- title: Giá trị thiếu
+  slug: missing-values
+  index: 5
+- title: Giá trị trong Java
+  slug: java-values
+  index: 6
+- title: Bằng nhau và sắp thứ tự
+  slug: equality-and-ordering
+  index: 7
+- title: Số và độ chính xác
+  slug: numbers-and-precision
+  index: 8
+- title: Đơn vị và tiền tệ
+  slug: units-and-currencies
+  index: 9
+- title: Văn bản và Unicode
+  slug: text-and-unicode
+  index: 10
+- title: Thời gian
+  slug: time-semantics
+  index: 11
+- title: Khoảng và hiệu lực
+  slug: ranges-and-validity
+  index: 12
+- title: Mã và trạng thái
+  slug: codes-and-states
+  index: 13
+- title: Tập hợp và quan hệ
+  slug: collections-and-relations
+  index: 14
+- title: Phép toán dữ liệu
+  slug: data-operations
+  index: 15
+- title: Sự kiện và thay đổi
+  slug: events-and-changes
+  index: 16
+- title: Cập nhật và hợp nhất
+  slug: updates-and-merging
+  index: 17
+- title: Chỉ số và tổng hợp
+  slug: indexes-and-aggregates
+  index: 18
+- title: Nguồn gốc và độ tin cậy
+  slug: provenance-and-trust
+  index: 19
+- title: Trao đổi giữa hệ thống
+  slug: system-exchange
+  index: 20
+- title: Từ vựng và đồ thị
+  slug: vocabulary-and-graphs
+  index: 21
+- title: Đặc tả ngữ nghĩa
+  slug: semantic-specifications
+  index: 22
+- title: Tiến hóa ngữ nghĩa
+  slug: semantic-evolution
+  index: 23
+- title: Kiểm chứng ý nghĩa
+  slug: semantic-verification
+  index: 24
+- title: Quản trị ngữ nghĩa
+  slug: semantic-governance
+  index: 25
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 26
+- title: Thực hành tổng hợp
+  slug: integrated-semantics-practice
+  index: 27

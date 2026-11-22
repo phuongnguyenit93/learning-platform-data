@@ -1,0 +1,13 @@
+references:
+  - title: "MapStruct 1.6.3 Reference Guide"
+    url: "https://mapstruct.org/documentation/stable/reference/html/"
+    description: "Tài liệu chính thức về mapper, @Mapping, chuyển kiểu, nested mapping, collection và cập nhật đối tượng."
+  - title: "MapStruct 1.6.3 API"
+    url: "https://mapstruct.org/documentation/stable/api/"
+    description: "Javadoc chính thức của các annotation và API MapStruct."
+  - title: "ModelMapper User Manual"
+    url: "https://modelmapper.org/user-manual/"
+    description: "Tài liệu cấu hình, deep mapping, converter, matching strategy và kiểm tra mapping."
+  - title: "Java SE 21 - java.beans.Introspector"
+    url: "https://docs.oracle.com/en/java/javase/21/docs/api/java.desktop/java/beans/Introspector.html"
+    description: "API JavaBeans để nhận diện thuộc tính và phương thức phục vụ mapping động."

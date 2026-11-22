@@ -1,0 +1,1801 @@
+menu:
+- slug: pattern-overview
+  title: Tổng quan
+  childs:
+  - slug: pattern-overview-001
+    title: Ý định của Template Method và bài toán cố định khung thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-002
+    title: Nhận diện phần bất biến và các bước cần tùy biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-003
+    title: Vai trò của kế thừa và đa hình trong tái sử dụng hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-004
+    title: Nguyên lý Hollywood và cơ chế lớp cơ sở điều phối lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-005
+    title: Phân biệt template method, bước nguyên thủy và hook
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-006
+    title: Lợi ích, chi phí và điều kiện áp dụng mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-007
+    title: Những tình huống không nên dùng Template Method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-008
+    title: Thuật ngữ và ví dụ khởi đầu bằng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-structure
+  title: Cấu trúc mẫu
+  childs:
+  - slug: pattern-structure-001
+    title: Trách nhiệm của lớp cơ sở AbstractClass
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-002
+    title: Trách nhiệm của lớp triển khai ConcreteClass
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-003
+    title: Phương thức khuôn mẫu và thứ tự gọi các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-004
+    title: Bước trừu tượng bắt buộc và bước có triển khai mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-005
+    title: Hook tùy chọn trước, sau và giữa các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-006
+    title: Client làm việc với hợp đồng của lớp cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-007
+    title: Sơ đồ lớp và sơ đồ trình tự của một lượt thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-008
+    title: Luồng dữ liệu và quyền sở hữu kết quả trong cấu trúc mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-fundamentals
+  title: Nền tảng Java
+  childs:
+  - slug: java-fundamentals-001
+    title: Khai báo abstract class và các phương thức trừu tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-fundamentals-002
+    title: Dynamic dispatch khi lớp cơ sở gọi phương thức được override
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-fundamentals-003
+    title: Dùng final để bảo vệ khung thuật toán khi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-fundamentals-004
+    title: Chọn public, protected và private cho từng loại phương thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-fundamentals-005
+    title: Dùng @Override và kiểm tra chữ ký khi triển khai bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-fundamentals-006
+    title: Phân biệt override với overload và phương thức static
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-fundamentals-007
+    title: Rủi ro gọi phương thức có thể override trong constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-fundamentals-008
+    title: Khởi tạo lớp con và truyền phụ thuộc qua constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: algorithm-skeleton
+  title: Khung thuật toán
+  childs:
+  - slug: algorithm-skeleton-001
+    title: Xác định điểm vào công khai duy nhất của quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: algorithm-skeleton-002
+    title: Phân rã thuật toán thành các bước có trách nhiệm rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: algorithm-skeleton-003
+    title: Sắp xếp kiểm tra đầu vào, chuẩn bị, xử lý và hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: algorithm-skeleton-004
+    title: Giữ quy tắc nghiệp vụ bất biến trong lớp cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: algorithm-skeleton-005
+    title: Thiết kế nhánh điều kiện và vòng lặp trong khung xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: algorithm-skeleton-006
+    title: Quy định dừng sớm, bỏ qua bước và điều kiện hoàn thành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: algorithm-skeleton-007
+    title: Truyền dữ liệu giữa các bước và tạo kết quả trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: algorithm-skeleton-008
+    title: Tránh gọi lồng template method gây lặp hoặc tái nhập ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: abstract-steps
+  title: Bước trừu tượng
+  childs:
+  - slug: abstract-steps-001
+    title: Chọn điểm biến thiên thực sự cần lớp con triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-steps-002
+    title: Quy định đầu vào, đầu ra và ý nghĩa của mỗi bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-steps-003
+    title: Thiết kế độ hạt của bước để dễ triển khai và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-steps-004
+    title: Phân định kiểm tra dùng chung và kiểm tra đặc thù
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-steps-005
+    title: Quy định null, dữ liệu rỗng và giá trị không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-steps-006
+    title: Quy định quyền sửa dữ liệu và tác dụng phụ của bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-steps-007
+    title: Khai báo checked exception và hợp đồng lỗi của bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-steps-008
+    title: Tránh phụ thuộc ngầm giữa các phương thức trừu tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extension-hooks
+  title: Hook mở rộng
+  childs:
+  - slug: extension-hooks-001
+    title: Hook mặc định không làm gì và cách dùng an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-hooks-002
+    title: Hook cung cấp hành vi mặc định có thể thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-hooks-003
+    title: Hook boolean quyết định thực hiện một bước tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-hooks-004
+    title: Hook trước xử lý, sau thành công và sau thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-hooks-005
+    title: Phân biệt hook tùy chọn với bước nghiệp vụ bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-hooks-006
+    title: Đặt tên hook theo thời điểm và mục đích mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-hooks-007
+    title: Quy định khi nào lớp con cần gọi super
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-hooks-008
+    title: Kiểm soát số lượng hook và tránh cấu hình quy trình bằng quá nhiều cờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-contracts
+  title: Hợp đồng kế thừa
+  childs:
+  - slug: inheritance-contracts-001
+    title: Tiền điều kiện và hậu điều kiện của template method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-002
+    title: Bất biến của đối tượng trước, trong và sau khi thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-003
+    title: Áp dụng nguyên lý thay thế Liskov cho lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-004
+    title: Giới hạn thay đổi tiền điều kiện và hậu điều kiện khi override
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-005
+    title: Quy định thứ tự gọi, số lần gọi và khả năng gọi lại từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-006
+    title: Cam kết về ngoại lệ, tài nguyên và tác dụng phụ khi mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-007
+    title: Ghi hợp đồng mở rộng bằng Javadoc, @implSpec và ví dụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-contracts-008
+    title: Bảo vệ hợp đồng bằng phương thức final và thành phần private
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extension-api-design
+  title: Thiết kế API
+  childs:
+  - slug: extension-api-design-001
+    title: Tách API dành cho client khỏi API dành cho lớp kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-api-design-002
+    title: Đóng gói trường dữ liệu và hạn chế protected mutable field
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-api-design-003
+    title: Tiêm collaborator qua constructor để hỗ trợ kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-api-design-004
+    title: Dùng tham số đầu vào hoặc đối tượng cấu hình thay cho setter rời rạc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-api-design-005
+    title: Tách đối tượng cấu hình khỏi ngữ cảnh của một lượt chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-api-design-006
+    title: Cân nhắc phạm vi package và khả năng mở rộng ngoài module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-api-design-007
+    title: Dùng sealed class khi cần giới hạn tập lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-api-design-008
+    title: Thiết kế điểm mở rộng tối thiểu và tránh lộ chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: generics-and-data-modeling
+  title: Kiểu và dữ liệu
+  childs:
+  - slug: generics-and-data-modeling-001
+    title: Tham số hóa lớp cơ sở theo kiểu đầu vào và đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-modeling-002
+    title: Thiết kế kiểu trung gian cho các giai đoạn xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-modeling-003
+    title: Dùng bounded type parameter khi bước cần một hợp đồng kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-modeling-004
+    title: Chọn generic ở cấp lớp hay cấp phương thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-modeling-005
+    title: Biểu diễn kết quả thành công, bỏ qua và thất bại có chủ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-modeling-006
+    title: Dùng value object hoặc record cho dữ liệu trao đổi giữa các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-modeling-007
+    title: Quy định sao chép, chia sẻ và tính bất biến của dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generics-and-data-modeling-008
+    title: Tránh ép kiểu không an toàn và phụ thuộc vào kiểu lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-state
+  title: Trạng thái thực thi
+  childs:
+  - slug: execution-state-001
+    title: Ưu tiên biến cục bộ cho dữ liệu của một lượt chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-state-002
+    title: Truyền context tường minh giữa các bước khi cần chia sẻ trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-state-003
+    title: Phân biệt instance dùng một lần với instance có thể tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-state-004
+    title: Khởi tạo và xóa trạng thái khi một instance chạy nhiều lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-state-005
+    title: Giữ bất biến khi bước giữa chừng ném ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-state-006
+    title: Xử lý tái nhập và việc lớp con gọi lại điểm vào quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-state-007
+    title: Quy định thời điểm công bố kết quả và tránh lộ trạng thái dở dang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-state-008
+    title: Đánh giá tính xác định và tác dụng phụ của toàn bộ quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-and-resources
+  title: Lỗi và tài nguyên
+  childs:
+  - slug: errors-and-resources-001
+    title: Xác định lớp chịu trách nhiệm bắt, chuyển đổi và truyền ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-resources-002
+    title: Thiết kế hook báo lỗi mà vẫn giữ nguyên nguyên nhân gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-resources-003
+    title: Dùng try, catch và finally đúng với vòng đời thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-resources-004
+    title: Quản lý tài nguyên bằng try-with-resources và AutoCloseable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-resources-005
+    title: Quy định bên tạo, bên sở hữu và bên đóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-resources-006
+    title: Xử lý lỗi khi dọn dẹp và hiểu suppressed exception
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-resources-007
+    title: Phân biệt hook sau thành công với bước luôn phải dọn dẹp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-resources-008
+    title: Ghi log lỗi đúng chỗ và tránh xử lý lặp hoặc nuốt ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-retries
+  title: Giao dịch và thử lại
+  childs:
+  - slug: transactions-and-retries-001
+    title: Đặt ranh giới giao dịch bao quanh các bước cần tính nguyên tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-retries-002
+    title: Quy định thời điểm commit và rollback trong khung thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-retries-003
+    title: Phân biệt hook trước commit và sau commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-retries-004
+    title: Xử lý tác dụng phụ ngoài giao dịch và nhu cầu bù trừ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-retries-005
+    title: Xác định thao tác có thể thử lại và lỗi không được thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-retries-006
+    title: Thiết kế tính lũy đẳng để hạn chế tác dụng phụ trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-retries-007
+    title: Chọn thử lại từng bước hay toàn bộ quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-retries-008
+    title: Kiểm thử lỗi từng phần, rollback và thực thi lại sau thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: thread-safety-and-concurrency
+  title: Đồng thời
+  childs:
+  - slug: thread-safety-and-concurrency-001
+    title: Đánh giá thread safety của lớp cơ sở và từng lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-and-concurrency-002
+    title: Dùng chung instance khi chỉ có cấu hình bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-and-concurrency-003
+    title: Cô lập context và tài nguyên theo từng lượt thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-and-concurrency-004
+    title: Giới hạn vùng khóa khi gọi mã override của lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-and-concurrency-005
+    title: Nhận diện deadlock do hook gọi ngược vào đối tượng đang giữ khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-and-concurrency-006
+    title: Kiểm soát collaborator không an toàn khi dùng nhiều luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-and-concurrency-007
+    title: Truyền ngữ cảnh tường minh và cân nhắc vòng đời ThreadLocal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: thread-safety-and-concurrency-008
+    title: Kiểm thử race condition, rò rỉ trạng thái và thực thi song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: asynchronous-execution
+  title: Bất đồng bộ
+  childs:
+  - slug: asynchronous-execution-001
+    title: Phân biệt khung đồng bộ với khung trả về CompletionStage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-execution-002
+    title: Duy trì thứ tự các bước bằng phép ghép CompletableFuture
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-execution-003
+    title: Thiết kế kiểu kết quả và ngoại lệ cho bước bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-execution-004
+    title: Quản lý vòng đời tài nguyên đến khi tác vụ thực sự kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-execution-005
+    title: Quy định Executor và nơi thực thi các hook
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-execution-006
+    title: Thiết kế timeout và hợp đồng hủy theo khả năng của tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-execution-007
+    title: Truyền ngữ cảnh và tránh chia sẻ trạng thái qua callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asynchronous-execution-008
+    title: Nhận diện khi composition hoặc pipeline phù hợp hơn kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-import-example
+  title: Ví dụ nhập dữ liệu
+  childs:
+  - slug: data-import-example-001
+    title: Phân tích quy trình đọc, phân tích, kiểm tra, chuyển đổi và lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-import-example-002
+    title: Thiết kế AbstractDataImporter với khung thuật toán dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-import-example-003
+    title: Triển khai CsvImporter và JsonImporter theo cùng hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-import-example-004
+    title: Phân định lỗi cả tệp, lỗi từng bản ghi và chính sách bỏ qua
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-import-example-005
+    title: Thêm hook chuẩn hóa dữ liệu và thông báo kết quả nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-import-example-006
+    title: Quản lý reader, stream và ngữ cảnh thống kê của mỗi lần nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-import-example-007
+    title: Kiểm thử thứ tự bước, dữ liệu lỗi và đóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-import-example-008
+    title: Đánh giá giới hạn khi cần cấu hình động các bước nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: report-generation-example
+  title: Ví dụ nghiệp vụ
+  childs:
+  - slug: report-generation-example-001
+    title: Xây dựng khung tạo báo cáo với bước lấy dữ liệu và kết xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: report-generation-example-002
+    title: Chia sẻ kiểm tra đầu vào và tổng hợp dữ liệu trong lớp cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: report-generation-example-003
+    title: Tùy biến định dạng đầu ra bằng các lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: report-generation-example-004
+    title: Thêm hook tạo tiêu đề, chân trang và nội dung tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: report-generation-example-005
+    title: Giữ quy tắc cấp quyền và kiểm tra bắt buộc ngoài hook tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: report-generation-example-006
+    title: Tiêm nguồn dữ liệu và bộ kết xuất để tránh kế thừa quá sâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: report-generation-example-007
+    title: Quản lý lỗi kết xuất và kết quả báo cáo chưa hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: report-generation-example-008
+    title: So sánh hai ví dụ để rút ra điểm biến thiên và phần bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workflow-testing
+  title: Kiểm thử
+  childs:
+  - slug: workflow-testing-001
+    title: Kiểm thử hành vi quan sát được của template method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-testing-002
+    title: Tạo lớp con thử nghiệm để ghi nhận trình tự các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-testing-003
+    title: Viết bộ kiểm thử hợp đồng áp dụng cho mọi lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-testing-004
+    title: Kiểm thử hook mặc định và hook được override
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-testing-005
+    title: Kiểm thử nhánh tùy chọn, dừng sớm và số lần gọi bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-testing-006
+    title: Tiêm lỗi tại từng bước để kiểm tra ngoại lệ và dọn dẹp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-testing-007
+    title: Kiểm thử nhiều lượt chạy và tính độc lập của context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-testing-008
+    title: Dùng JUnit và test double mà không khóa chặt chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refactoring-to-template-method
+  title: Refactor sang mẫu
+  childs:
+  - slug: refactoring-to-template-method-001
+    title: Nhận diện thuật toán gần giống nhau trong nhiều lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-template-method-002
+    title: So sánh luồng điều khiển trước khi trích xuất lớp cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-template-method-003
+    title: Viết kiểm thử đặc trưng cho hành vi hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-template-method-004
+    title: Trích phần bất biến thành template method theo từng bước nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-template-method-005
+    title: Chuyển điểm khác biệt thành bước trừu tượng hoặc hook
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-template-method-006
+    title: Di chuyển phụ thuộc mà không tạo trường trạng thái dùng chung ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-template-method-007
+    title: Kiểm tra tương thích về kết quả, ngoại lệ và tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-template-method-008
+    title: Đánh giá lại thiết kế khi các lớp con liên tục yêu cầu ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: strategy-comparison
+  title: So sánh Strategy
+  childs:
+  - slug: strategy-comparison-001
+    title: So sánh cơ chế kế thừa của Template Method và ủy quyền của Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-comparison-002
+    title: So sánh khung thuật toán cố định và thuật toán có thể thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-comparison-003
+    title: Phân biệt tùy biến từng bước với thay toàn bộ hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-comparison-004
+    title: So sánh khả năng đổi hành vi lúc chạy và vòng đời đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-comparison-005
+    title: Đánh giá mức liên kết, khả năng kiểm thử và số lớp phát sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-comparison-006
+    title: Chuyển bước trừu tượng thành Strategy được tiêm từ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-comparison-007
+    title: Kết hợp Template Method với Strategy tại một bước biến thiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: strategy-comparison-008
+    title: Chọn mẫu qua các tình huống có một hoặc nhiều chiều thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: related-design-patterns
+  title: Các mẫu liên quan
+  childs:
+  - slug: related-design-patterns-001
+    title: Phân biệt Template Method với Factory Method và điểm kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-002
+    title: Phân biệt xây dựng quy trình với xây dựng đối tượng bằng Builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-003
+    title: So sánh hook bao quanh bước với Decorator bao quanh đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-004
+    title: So sánh trình tự cố định với Chain of Responsibility
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-005
+    title: So sánh quy trình được điều phối với chuyển trạng thái trong State
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-006
+    title: Phân biệt bước gọi cố định và thông báo nhiều bên bằng Observer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-007
+    title: Kết hợp Adapter để tích hợp collaborator có giao diện khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: related-design-patterns-008
+    title: Nhận diện template method trong vòng đời của framework và thư viện Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reuse-alternatives
+  title: Cách tái sử dụng khác
+  childs:
+  - slug: reuse-alternatives-001
+    title: So sánh kế thừa với composition và delegation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reuse-alternatives-002
+    title: Trích hàm dùng chung khi chỉ cần tái sử dụng một phép xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reuse-alternatives-003
+    title: Dùng callback hoặc functional interface cho một điểm biến thiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reuse-alternatives-004
+    title: Dùng lambda với Function, Consumer, Supplier hoặc Predicate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reuse-alternatives-005
+    title: So sánh abstract class với interface có default method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reuse-alternatives-006
+    title: Tổ chức quy trình bằng danh sách bước hoặc pipeline cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reuse-alternatives-007
+    title: Chọn cấu hình dữ liệu khi khác biệt không cần hành vi mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reuse-alternatives-008
+    title: Lập tiêu chí chọn theo số điểm biến thiên và nhu cầu thay đổi lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-pitfalls
+  title: Sai lầm thường gặp
+  childs:
+  - slug: design-pitfalls-001
+    title: Để lớp con override khung thuật toán và phá vỡ bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-002
+    title: Tạo lớp cơ sở quá lớn hoặc hệ phân cấp quá sâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-003
+    title: Dùng kế thừa chỉ để lấy lại mã dù thiếu quan hệ thay thế hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-004
+    title: Phụ thuộc vào trường protected và thứ tự khởi tạo ngầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-005
+    title: Buộc lớp con gọi super mà không có hợp đồng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-006
+    title: Thêm hook liên tục khiến luồng xử lý khó dự đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-007
+    title: Đưa trạng thái của một lượt chạy vào instance dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-008
+    title: Lạm dụng mẫu cho thuật toán đơn giản hoặc thường xuyên đổi cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-evolution
+  title: Tiến hóa thiết kế
+  childs:
+  - slug: design-evolution-001
+    title: Đánh giá ảnh hưởng khi thêm phương thức trừu tượng mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-evolution-002
+    title: Thêm hook mặc định và kiểm tra tương tác với lớp con hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-evolution-003
+    title: Phân biệt tương thích mã nguồn, nhị phân và hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-evolution-004
+    title: Đánh giá thay đổi thứ tự bước và số lần gọi hook
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-evolution-005
+    title: Quản lý thay đổi về tiền điều kiện, ngoại lệ và quyền sở hữu tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-evolution-006
+    title: Nhận diện fragile base class khi sửa triển khai lớp cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-evolution-007
+    title: Di chuyển từng điểm mở rộng từ kế thừa sang collaborator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-evolution-008
+    title: Dùng tài liệu hợp đồng và kiểm thử hồi quy để bảo vệ người mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercises-001
+    title: Cài đặt quy trình nhập dữ liệu với ít nhất hai lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-002
+    title: Thiết kế hook tùy chọn mà vẫn giữ bước kiểm tra bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-003
+    title: Bổ sung context riêng cho mỗi lượt chạy và kiểm tra tái sử dụng instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-004
+    title: Mô phỏng lỗi giữa quy trình và xác minh tài nguyên được giải phóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-005
+    title: Thiết kế hợp đồng thử lại cho một bước có tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-006
+    title: Refactor một điểm biến thiên sang Strategy và so sánh kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-007
+    title: Viết bộ kiểm thử hợp đồng để đánh giá một lớp con mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-008
+    title: Tự đánh giá thiết kế theo bất biến, khả năng mở rộng và chi phí kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

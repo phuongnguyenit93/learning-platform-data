@@ -1,0 +1,201 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Core Container là gì và nằm ở đâu trong Spring Framework
+  - Vấn đề ghép nối đối tượng khi tự khởi tạo bằng new
+  - Đảo ngược điều khiển (IoC) và tiêm phụ thuộc (DI)
+  - Bean, định nghĩa bean và thể hiện đối tượng
+  - Đồ thị phụ thuộc và trách nhiệm của container
+  - BeanFactory, ApplicationContext và các dịch vụ bổ sung
+  - Phân biệt Spring Framework với Spring Boot
+  - Ranh giới với AOP, giao dịch và các mô-đun web
+  - Lộ trình từ mô hình khái niệm đến kiểm chứng cấu hình
+- level1: Ứng dụng đầu tiên
+  level2:
+  - Chuẩn bị thư viện spring-context và phiên bản tương thích
+  - Tạo lớp nghiệp vụ và hợp đồng cho đối tượng cộng tác
+  - Khai báo cấu hình tối thiểu bằng @Configuration và @Bean
+  - Khởi tạo AnnotationConfigApplicationContext
+  - Lấy bean theo kiểu và thực hiện một luồng xử lý
+  - Quan sát đối tượng được tạo và phụ thuộc được cung cấp
+  - Đóng context bằng try-with-resources
+  - So sánh ứng dụng có container với cách lắp ghép thủ công
+- level1: Định nghĩa bean
+  level2:
+  - BeanDefinition mô tả cách tạo và quản lý một bean
+  - Kiểu lớp, hàm khởi tạo và phương thức nhà máy
+  - Tên bean, bí danh và quy ước đặt tên
+  - Một lớp được đăng ký thành nhiều bean độc lập
+  - Thuộc tính scope, lazy-init, primary và depends-on
+  - Giá trị cấu hình và tham chiếu giữa các bean
+  - Phân biệt kế thừa định nghĩa bean với kế thừa lớp Java
+  - Định nghĩa trừu tượng và hợp nhất cấu hình kế thừa
+  - Xung đột tên và chính sách ghi đè định nghĩa
+- level1: Tiêm phụ thuộc
+  level2:
+  - Phụ thuộc bắt buộc, phụ thuộc tùy chọn và bất biến đối tượng
+  - Tiêm qua hàm khởi tạo và bảo đảm trạng thái hợp lệ
+  - Tiêm qua setter cho cấu hình có thể tùy chọn
+  - Tiêm trực tiếp vào trường và ảnh hưởng tới kiểm thử
+  - Tiêm qua phương thức cấu hình có nhiều tham số
+  - Phân biệt tham chiếu bean với giá trị đơn giản
+  - Tiêm dựa trên hợp đồng thay vì tự tìm kiếm đối tượng
+  - Nhận diện quá nhiều phụ thuộc và trách nhiệm cần tách
+- level1: '@Autowired'
+  level2:
+  - Cơ chế xử lý @Autowired trong container
+  - Lớp có một hàm khởi tạo không cần ghi @Autowired
+  - Quy tắc chọn khi có nhiều hàm khởi tạo
+  - Tiêm trường, setter và phương thức nhiều tham số
+  - Ý nghĩa required và thời điểm phụ thuộc được giải quyết
+  - Phân biệt @Autowired với jakarta.inject.Inject
+  - Chọn theo tên bằng jakarta.annotation.Resource
+  - '@Named, @Qualifier và phạm vi hỗ trợ của chuẩn Jakarta'
+  - Vì sao đối tượng tự tạo ngoài container không được tự động tiêm
+- level1: Chọn ứng viên
+  level2:
+  - Tra cứu ứng viên theo kiểu có thể gán
+  - Giải quyết một phụ thuộc có nhiều bean cùng kiểu
+  - Ưu tiên một ứng viên bằng @Primary
+  - Lọc tập ứng viên bằng @Qualifier
+  - Tạo annotation qualifier theo ý nghĩa nghiệp vụ
+  - Dùng tham số kiểu tổng quát làm điều kiện chọn bean
+  - Tên tham số, tên bean và vai trò của tùy chọn biên dịch -parameters
+  - '@Fallback và điều kiện phiên bản từ Spring Framework 6.2'
+  - Giới hạn ứng viên bằng autowire-candidate
+  - Phân biệt ưu tiên lựa chọn với thứ tự khởi tạo
+- level1: Phụ thuộc linh hoạt
+  level2:
+  - Tiêm mảng, List, Set và Map<String, T>
+  - Thứ tự tập hợp với Ordered, @Order và @Priority
+  - Lọc tập hợp bằng qualifier và phân biệt với @Primary
+  - Biểu diễn phụ thuộc tùy chọn bằng Optional
+  - Tra cứu trì hoãn bằng ObjectFactory và ObjectProvider
+  - getObject, getIfAvailable và getIfUnique
+  - Duyệt nhiều ứng viên bằng stream và orderedStream
+  - Dùng jakarta.inject.Provider và chọn thời điểm lấy bean
+  - Giới hạn sử dụng provider để tránh che giấu phụ thuộc
+- level1: Quét thành phần
+  level2:
+  - Đăng ký lớp bằng @Component và các stereotype chuyên biệt
+  - Ý nghĩa @Service, @Repository và @Controller trong container
+  - Phạm vi quét của @ComponentScan và vị trí gói
+  - Khai báo basePackages và basePackageClasses
+  - Bộ lọc include, exclude và useDefaultFilters
+  - Quy tắc sinh tên và tùy biến BeanNameGenerator
+  - Tạo stereotype ghép bằng meta-annotation và @AliasFor
+  - Phân biệt component scanning với xử lý annotation trên bean đã có
+  - Xung đột do quét trùng và giới hạn quét theo mô-đun
+- level1: Cấu hình Java
+  level2:
+  - Vai trò của @Configuration và phương thức @Bean
+  - Đăng ký đối tượng thư viện không có @Component
+  - Tham số phương thức @Bean biểu diễn phụ thuộc
+  - Tên, bí danh và kiểu trả về của phương thức @Bean
+  - Phương thức @Bean static và thời điểm container phát hiện kiểu
+  - Chế độ đầy đủ của @Configuration và lớp tăng cường CGLIB
+  - Chế độ lite và @Configuration(proxyBeanMethods = false)
+  - Hành vi gọi trực tiếp giữa các phương thức @Bean
+  - Giới hạn final, private và static khi chặn lời gọi @Bean
+  - Tách việc tạo đối tượng khỏi công việc khởi tạo nghiệp vụ
+- level1: Ghép cấu hình
+  level2:
+  - Chia cấu hình theo ranh giới chức năng
+  - Nhập lớp cấu hình bằng @Import
+  - Kết hợp nhiều nguồn cấu hình trong một context
+  - Nhập cấu hình XML bằng @ImportResource
+  - Chọn cấu hình bằng ImportSelector
+  - Thời điểm xử lý DeferredImportSelector
+  - Đăng ký định nghĩa bằng ImportBeanDefinitionRegistrar
+  - Thiết kế annotation bật tính năng theo mẫu @Enable
+  - Tránh phụ thuộc vòng giữa các lớp cấu hình
+- level1: Cấu hình XML
+  level2:
+  - Cấu trúc beans, namespace và kiểm tra schema
+  - Khai báo bean bằng id, class và alias
+  - Cấp tham số qua constructor-arg
+  - Cấp thuộc tính qua property, value và ref
+  - Giá trị null, tập hợp lồng nhau và bean nội bộ
+  - Nhập tài nguyên cấu hình bằng import
+  - Autowiring XML theo tên, theo kiểu và giới hạn của cơ chế
+  - Bật annotation-config và component-scan
+  - Chuyển đổi cấu hình XML sang Java mà giữ nguyên hành vi
+- level1: Thời điểm tạo bean
+  level2:
+  - Singleton khởi tạo sớm và quá trình tiền khởi tạo
+  - Trì hoãn tạo bean bằng @Lazy và lazy-init
+  - Bean lazy vẫn có thể được tạo bởi phụ thuộc không lazy
+  - Proxy tại điểm tiêm @Lazy và thời điểm lỗi xuất hiện
+  - '@DependsOn cho phụ thuộc khởi tạo không thể hiện bằng DI'
+  - Thứ tự khởi tạo xuất phát từ đồ thị phụ thuộc
+  - Phân biệt @Order, @DependsOn và thứ tự định nghĩa
+  - Quan hệ phụ thuộc và thứ tự hủy singleton
+- level1: Phạm vi bean
+  level2:
+  - Scope quyết định quan hệ giữa định nghĩa và thể hiện
+  - Singleton theo bean và theo container
+  - Phân biệt singleton Spring với mẫu Singleton GoF
+  - Prototype và mỗi lần container đáp ứng yêu cầu lấy bean
+  - Quản lý khởi tạo nhưng không tự hủy bean prototype
+  - Request, session, application và websocket scope
+  - Điều kiện cần có của context hỗ trợ phạm vi web
+  - Khai báo @Scope và các annotation phạm vi web
+  - Trạng thái dùng chung và an toàn luồng của singleton
+  - SimpleThreadScope và giới hạn đăng ký, giải phóng tài nguyên
+- level1: Phụ thuộc khác phạm vi
+  level2:
+  - Vì sao prototype tiêm trực tiếp vào singleton không đổi mỗi lần gọi
+  - Lấy đối tượng đúng thời điểm bằng ObjectProvider
+  - Scoped proxy và cách chọn đối tượng đích theo scope
+  - ScopedProxyMode.INTERFACES và TARGET_CLASS
+  - Giới hạn proxy dựa trên lớp và phương thức có thể chặn
+  - Lỗi ScopeNotActiveException khi phạm vi chưa hoạt động
+  - Lookup method injection bằng @Lookup
+  - Giới hạn @Lookup với lớp final và đối tượng do @Bean tạo
+  - Thiết kế, đăng ký và kiểm soát vòng đời Scope tùy biến
+- level1: Vòng đời bean
+  level2:
+  - Các bước tạo đối tượng, tiêm phụ thuộc và khởi tạo
+  - Callback @PostConstruct sau khi hoàn tất cung cấp phụ thuộc
+  - InitializingBean.afterPropertiesSet và @Bean(initMethod)
+  - Thứ tự khi kết hợp nhiều cơ chế khởi tạo
+  - BeanPostProcessor trước và sau callback khởi tạo
+  - SmartInitializingSingleton sau khi tạo các singleton thông thường
+  - Giới hạn gọi bean khác hoặc làm việc nặng trong callback khởi tạo
+  - Callback @PreDestroy, DisposableBean và destroyMethod
+  - Suy luận close, shutdown và tắt suy luận bằng destroyMethod rỗng
+  - Giải phóng tài nguyên và giới hạn callback hủy với prototype
+- level1: Vòng đời context
+  level2:
+  - ConfigurableApplicationContext và các giai đoạn refresh
+  - Nạp định nghĩa, chạy post-processor và tạo singleton
+  - Phân biệt refresh, start, stop và close
+  - Lifecycle cho thành phần cần khởi động, dừng chủ động
+  - SmartLifecycle, autoStartup và thứ tự phase
+  - Dừng có callback hoàn tất và giới hạn thời gian
+  - registerShutdownHook và kết thúc ứng dụng ngoài môi trường web
+  - Thất bại khi refresh và dọn dẹp tài nguyên đã tạo
+- level1: Callback Aware
+  level2:
+  - Khi nào bean cần nhận thông tin từ container
+  - BeanNameAware, BeanFactoryAware và ApplicationContextAware
+  - EnvironmentAware, ResourceLoaderAware và MessageSourceAware
+  - ApplicationEventPublisherAware và lựa chọn tiêm hợp đồng hẹp
+  - Thứ tự callback Aware trong chu trình tạo bean
+  - Đánh đổi giữa tiện ích container và mức độ phụ thuộc vào Spring
+- level1: FactoryBean
+  level2:
+  - Phân biệt FactoryBean với BeanFactory
+  - Tạo sản phẩm qua FactoryBean.getObject
+  - Khai báo kiểu sản phẩm bằng getObjectType
+  - Ý nghĩa isSingleton đối với sản phẩm
+  - Lấy sản phẩm theo tên và lấy nhà máy bằng tiền tố &
+  - Vòng đời của FactoryBean và trách nhiệm quản lý sản phẩm
+  - Lựa chọn giữa FactoryBean, @Bean và phương thức nhà máy
+  - Khả năng xác định kiểu sớm và ảnh hưởng tới autowiring
+- level1: Mở rộng định nghĩa
+  level2:
+  - Phân biệt thay đổi BeanDefinition với xử lý thể hiện bean
+  - BeanFactoryPostProcessor và thời điểm can thiệp metadata
+  - BeanDefinitionRegistryPostProcessor để bổ sung định nghĩa
+  - Đăng ký post-processor tự động và bằng mã

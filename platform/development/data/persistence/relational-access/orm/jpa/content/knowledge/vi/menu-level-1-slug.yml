@@ -1,0 +1,121 @@
+menu:
+- title: Nền tảng ORM
+  slug: orm-overview
+  index: 0
+- title: Kiến trúc JPA
+  slug: jpa-architecture
+  index: 1
+- title: Persistence Unit
+  slug: persistence-unit
+  index: 2
+- title: Entity và định danh
+  slug: entities-and-identity
+  index: 3
+- title: Ánh xạ thuộc tính
+  slug: attribute-mapping
+  index: 4
+- title: Kiểu giá trị
+  slug: value-types
+  index: 5
+- title: Khóa và chiến lược sinh
+  slug: identifiers-and-generation
+  index: 6
+- title: Khóa ghép
+  slug: composite-keys
+  index: 7
+- title: Quan hệ thực thể
+  slug: entity-relationships
+  index: 8
+- title: Quan hệ một-một
+  slug: one-to-one-relationships
+  index: 9
+- title: Quan hệ một-nhiều
+  slug: one-to-many-relationships
+  index: 10
+- title: Quan hệ nhiều-nhiều
+  slug: many-to-many-relationships
+  index: 11
+- title: Tập hợp và Map
+  slug: collections-and-maps
+  index: 12
+- title: Kế thừa
+  slug: inheritance
+  index: 13
+- title: Persistence Context
+  slug: persistence-context
+  index: 14
+- title: Vòng đời entity
+  slug: entity-lifecycle
+  index: 15
+- title: Đồng bộ và flush
+  slug: synchronization-and-flush
+  index: 16
+- title: Giao dịch
+  slug: transactions
+  index: 17
+- title: Cascade và orphanRemoval
+  slug: cascade-and-orphan-removal
+  index: 18
+- title: JPQL cơ bản
+  slug: jpql-basics
+  index: 19
+- title: JPQL nâng cao
+  slug: jpql-advanced
+  index: 20
+- title: Criteria API
+  slug: criteria-api
+  index: 21
+- title: Native SQL
+  slug: native-sql
+  index: 22
+- title: Thủ tục lưu trữ
+  slug: stored-procedures
+  index: 23
+- title: Truy vấn thay đổi
+  slug: bulk-queries
+  index: 24
+- title: Kế hoạch tải
+  slug: fetch-plans
+  index: 25
+- title: DTO và phân trang
+  slug: dtos-and-pagination
+  index: 26
+- title: Khóa lạc quan
+  slug: optimistic-locking
+  index: 27
+- title: Khóa bi quan
+  slug: pessimistic-locking
+  index: 28
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 29
+- title: Sự kiện vòng đời
+  slug: lifecycle-events
+  index: 30
+- title: Kiểm tra dữ liệu
+  slug: data-validation
+  index: 31
+- title: Siêu dữ liệu và lược đồ
+  slug: metadata-and-schemas
+  index: 32
+- title: Lỗi và phục hồi
+  slug: errors-and-recovery
+  index: 33
+- title: Hiệu năng
+  slug: performance
+  index: 34
+- title: Bảo mật dữ liệu
+  slug: data-security
+  index: 35
+- title: Kiểm thử JPA
+  slug: jpa-testing
+  index: 36
+- title: Thiết kế Repository
+  slug: repository-design
+  index: 37
+- title: Vận hành và di trú
+  slug: operations-and-migration
+  index: 38
+- title: Thực hành tổng hợp
+  slug: integrated-jpa-practice
+  index: 39

@@ -1,0 +1,51 @@
+roadmap:
+- id: autoboxing
+  title: Autoboxing
+  purpose: Hiểu cách dùng kiểu nguyên thủy cùng các lớp bao.
+  objectives:
+  - Nhận biết boxing và unboxing tự động
+  - Tránh lỗi null và so sánh wrapper sai bằng ==
+- id: generics
+  title: Generics
+  purpose: Viết API và tập hợp an toàn kiểu.
+  objectives:
+  - Dùng kiểu và phương thức tổng quát
+  - Chọn giới hạn kiểu và wildcard phù hợp
+  - Nhận biết hệ quả của xóa kiểu
+- id: vong-lap-for-each
+  title: Vòng lặp for-each
+  purpose: Duyệt mảng và tập hợp rõ ràng hơn.
+  objectives:
+  - Duyệt mảng và Iterable bằng for-each
+  - Chọn Iterator khi cần xóa phần tử lúc duyệt
+- id: varargs
+  title: Varargs
+  purpose: Thiết kế phương thức nhận số đối số linh hoạt.
+  objectives:
+  - Khai báo và gọi tham số dạng T...
+  - Nhận biết rủi ro khi kết hợp varargs với generics
+- id: enum
+  title: Enum
+  purpose: Biểu diễn tập giá trị hữu hạn bằng kiểu riêng.
+  objectives:
+  - Khai báo enum có trường và phương thức
+  - Dùng EnumSet hoặc EnumMap theo tình huống
+- id: annotation
+  title: Annotation
+  purpose: Mô tả siêu dữ liệu phục vụ compiler và framework.
+  objectives:
+  - Dùng các annotation chuẩn đúng mục đích
+  - Khai báo annotation với Target và Retention phù hợp
+- id: static-import
+  title: Static import
+  purpose: Rút gọn lời gọi thành viên tĩnh khi vẫn dễ đọc.
+  objectives:
+  - Nhập chọn lọc phương thức hoặc hằng số tĩnh
+  - Nhận biết xung đột tên và tránh lạm dụng import *
+- id: lap-trinh-dong-thoi
+  title: Lập trình đồng thời
+  purpose: Phối hợp tác vụ và dữ liệu chia sẻ bằng thư viện chuẩn.
+  objectives:
+  - Thực thi Callable qua ExecutorService và lấy kết quả bằng Future
+  - Dùng concurrent collections, atomic hoặc Lock đúng nhu cầu
+  - Phối hợp tác vụ và dừng executor đúng cách

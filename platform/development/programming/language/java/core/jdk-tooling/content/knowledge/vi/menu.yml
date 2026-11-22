@@ -1,0 +1,526 @@
+menu:
+- level1: Tổng quan JDK Tooling
+  level2:
+  - JDK Tooling là gì
+  - Bài toán công cụ JDK giải quyết
+  - JDK và JRE
+  - JDK và JVM
+  - Công cụ thời điểm build
+  - Công cụ thời điểm chạy
+  - Công cụ chẩn đoán
+  - Công cụ đóng gói
+  - Công cụ phát triển
+  - Thuật ngữ cốt lõi
+- level1: Cài đặt JDK
+  level2:
+  - Chọn bản JDK
+  - JDK phân phối
+  - JDK theo hệ điều hành
+  - JAVA_HOME
+  - PATH
+  - Kiểm tra cài đặt
+  - Nhiều JDK trên máy
+  - Quản lý version JDK
+  - JDK trong container
+  - Cập nhật JDK an toàn
+- level1: Java launcher
+  level2:
+  - Lệnh java
+  - Chạy class
+  - Chạy JAR
+  - Chạy module
+  - Classpath runtime
+  - Module path runtime
+  - Main class
+  - System property runtime
+  - VM option
+  - Exit code
+- level1: Tham số runtime
+  level2:
+  - Tham số ứng dụng
+  - Dấu phân cách tham số
+  - System properties
+  - Environment variables
+  - Heap option
+  - GC option
+  - Assertion option
+  - Preview feature option
+  - Property file
+  - Kiểm tra tham số thực tế
+- level1: javac
+  level2:
+  - Lệnh javac
+  - Biên dịch một class
+  - Biên dịch nhiều source
+  - Source path
+  - Classpath compiler
+  - Module path compiler
+  - Output directory
+  - Source encoding
+  - Target release
+  - Lỗi biên dịch
+- level1: Tùy chọn javac
+  level2:
+  - source và target
+  - --release
+  - Thông tin debug
+  - Cảnh báo compiler
+  - Bật lint
+  - Werror
+  - Parameter metadata
+  - Pha xử lý annotation
+  - Compiler plugin
+  - Tệp argument
+- level1: Compilation pipeline
+  level2:
+  - Source code
+  - Parse source
+  - Type checking
+  - Pha annotation processing
+  - Sinh bytecode
+  - Ghi class file
+  - Kiểm tra bytecode
+  - Incremental compilation
+  - Biên dịch nhiều module
+  - Theo dõi output
+- level1: Class file
+  level2:
+  - Bytecode là gì
+  - Class file structure
+  - Magic và version
+  - Constant pool
+  - Field và method
+  - Attribute
+  - Debug information
+  - Access flag
+  - Class file compatibility
+  - Kiểm tra class file
+- level1: javap
+  level2:
+  - Lệnh javap
+  - Xem khai báo class
+  - Xem bytecode
+  - Xem constant pool
+  - Xem private member
+  - Xem module descriptor
+  - Xem verbose output
+  - Đọc bytecode
+  - Đối chiếu source với bytecode
+  - Kiểm tra compiler output
+- level1: jar
+  level2:
+  - Lệnh jar
+  - Tạo JAR
+  - Liệt kê JAR
+  - Giải nén JAR
+  - Cập nhật JAR
+  - Manifest
+  - Main-Class
+  - Class-Path manifest
+  - Multi-release JAR
+  - Kiểm tra JAR
+- level1: jmod
+  level2:
+  - Lệnh jmod
+  - JMOD là gì
+  - Tạo JMOD
+  - Liệt kê JMOD
+  - Extract JMOD
+  - Hash trong JMOD
+  - Native command
+  - Native library
+  - JMOD và module image
+  - Khi nào dùng JMOD
+- level1: Module toolchain
+  level2:
+  - Module descriptor
+  - requires
+  - exports
+  - opens
+  - uses
+  - provides
+  - requires transitive
+  - requires static
+  - Đường dẫn module
+  - Kiểm tra module graph
+- level1: jlink
+  level2:
+  - Lệnh jlink
+  - Custom runtime image
+  - Chọn module cần thiết
+  - Module closure
+  - Launcher trong image
+  - Compression
+  - Strip debug
+  - Include service binding
+  - Kích thước image
+  - Kiểm thử runtime image
+- level1: jpackage
+  level2:
+  - Lệnh jpackage
+  - Đóng gói ứng dụng
+  - Application image
+  - Native installer
+  - Tên ứng dụng
+  - Version package
+  - Icon package
+  - Runtime image
+  - Tùy chọn nền tảng
+  - Kiểm tra installer
+- level1: jshell
+  level2:
+  - JShell là gì
+  - Khởi động JShell
+  - Snippet
+  - Khai báo biến
+  - Khai báo method
+  - Import trong JShell
+  - Lệnh slash
+  - Lưu và tải session
+  - Classpath trong JShell
+  - Thử nghiệm API
+- level1: Javadoc
+  level2:
+  - Lệnh javadoc
+  - Tạo API documentation
+  - Doc comment
+  - Tag chuẩn
+  - Link trong Javadoc
+  - Package documentation
+  - Module documentation
+  - Custom doclet
+  - Chọn source
+  - Kiểm tra Javadoc
+- level1: Doclint
+  level2:
+  - Doclint là gì
+  - Lỗi HTML trong doc
+  - Lỗi tag Javadoc
+  - Lỗi reference
+  - Bật doclint
+  - Tắt doclint có kiểm soát
+  - Doclint trong CI
+  - Sửa cảnh báo tài liệu
+  - Tài liệu không hợp lệ
+  - Kiểm thử documentation
+- level1: jdeps
+  level2:
+  - Lệnh jdeps
+  - Phân tích dependency
+  - Dependency class
+  - Dependency package
+  - Dependency module
+  - Summary dependency
+  - Recursive analysis
+  - JDK internal API
+  - Class path analysis
+  - Hỗ trợ migration module
+- level1: jdeprscan
+  level2:
+  - Lệnh jdeprscan
+  - API deprecated
+  - Deprecated for removal
+  - Quét JAR
+  - Quét class directory
+  - Quét nhiều artifact
+  - Đọc kết quả scan
+  - Xử lý cảnh báo
+  - Tích hợp CI
+  - Kế hoạch thay thế API
+- level1: keytool
+  level2:
+  - Lệnh keytool
+  - Keystore
+  - Truststore
+  - Tạo key pair
+  - Import certificate
+  - Export certificate
+  - Xem certificate
+  - Alias
+  - Keystore format
+  - Bảo vệ mật khẩu
+- level1: jarsigner
+  level2:
+  - Lệnh jarsigner
+  - Ký JAR
+  - Kiểm tra chữ ký
+  - Certificate chain
+  - Timestamp
+  - Signature algorithm
+  - Artifact đã ký
+  - JAR unsigned
+  - Lỗi xác thực chữ ký
+  - Quản lý khóa ký
+- level1: Bảo mật runtime
+  level2:
+  - TLS và JDK
+  - Trust anchor
+  - Security property
+  - Policy runtime
+  - Mật mã được hỗ trợ
+  - Disabled algorithm
+  - Certificate validation
+  - Secret trong tham số
+  - Audit bảo mật
+  - Cập nhật bản vá JDK
+- level1: jcmd
+  level2:
+  - Lệnh jcmd
+  - Liệt kê JVM process
+  - Gửi diagnostic command
+  - VM command
+  - Thread command
+  - GC command
+  - JFR command
+  - System property command
+  - Pid và quyền truy cập
+  - Dùng jcmd an toàn
+- level1: jps
+  level2:
+  - Lệnh jps
+  - Liệt kê Java process
+  - Pid process
+  - Main class output
+  - Argument output
+  - Remote process
+  - Thiếu process trong jps
+  - Quyền quan sát process
+  - jps và jcmd
+  - Giới hạn của jps
+- level1: jinfo
+  level2:
+  - Lệnh jinfo
+  - VM flag
+  - Thuộc tính hệ thống trong jinfo
+  - Flag động
+  - Flag không thể đổi
+  - Kiểm tra cấu hình JVM
+  - Quyền truy cập process
+  - Đọc output jinfo
+  - jinfo và jcmd
+  - Khi nào dùng jinfo
+- level1: jstack
+  level2:
+  - Lệnh jstack
+  - Thread dump
+  - Thread state
+  - Stack trace
+  - Deadlock detection
+  - Blocked thread
+  - Waiting thread
+  - Nhiều thread dump
+  - Đọc thread dump
+  - jstack và jcmd
+- level1: jmap
+  level2:
+  - Lệnh jmap
+  - Heap summary
+  - Heap dump
+  - Class histogram
+  - Live object
+  - Dump format
+  - Phân tích heap dump
+  - Chi phí heap dump
+  - Quyền tạo dump
+  - jmap và jcmd
+- level1: jstat
+  level2:
+  - Lệnh jstat
+  - GC statistics
+  - Heap statistics
+  - Class loading statistics
+  - Compiler statistics
+  - Interval sampling
+  - Count sample
+  - Đọc cột jstat
+  - Giới hạn jstat
+  - jstat và metric runtime
+- level1: jconsole
+  level2:
+  - JConsole là gì
+  - Kết nối local JVM
+  - Kết nối remote JVM
+  - MBean
+  - Memory tab
+  - Thread tab
+  - Class tab
+  - VM summary
+  - JMX security
+  - Giới hạn jconsole
+- level1: Java Flight Recorder
+  level2:
+  - JFR là gì
+  - Bắt đầu recording
+  - Dừng recording
+  - Recording profile
+  - Event JFR
+  - Thời lượng recording
+  - Dump file JFR
+  - Continuous recording
+  - JFR trong production
+  - Chi phí JFR
+- level1: JFR analysis
+  level2:
+  - Đọc file JFR
+  - CPU hot method
+  - Allocation
+  - Garbage collection
+  - Lock contention
+  - Thread latency
+  - I/O event
+  - Exception event
+  - Custom JFR event
+  - Kết luận từ recording
+- level1: Debugging JVM
+  level2:
+  - JVM debugging
+  - JDWP
+  - Debug local
+  - Debug remote
+  - Port debug
+  - Suspend policy
+  - jdb
+  - Breakpoint
+  - Debug production an toàn
+  - Đóng debug endpoint
+- level1: Performance tooling
+  level2:
+  - Đo thời gian chạy
+  - Đo CPU
+  - Đo allocation
+  - Đo GC
+  - Đo lock
+  - Profiling sampling
+  - Profiling instrumentation
+  - Benchmarking
+  - So sánh trước và sau
+  - Tránh kết luận sai
+- level1: GC diagnostics
+  level2:
+  - GC log
+  - Bật GC logging
+  - GC log format
+  - Young collection
+  - Old collection
+  - Pause time
+  - Heap sizing
+  - GC configuration
+  - Phân tích GC log
+  - Liên hệ GC với latency
+- level1: Build integration
+  level2:
+  - Gọi javac từ build
+  - Toolchain Maven
+  - Toolchain Gradle
+  - Source set
+  - Compile task
+  - Test task
+  - Javadoc task
+  - Jar task
+  - Module build
+  - Đồng bộ JDK build
+- level1: CI/CD tooling
+  level2:
+  - Cài JDK trong CI
+  - Chọn version CI
+  - Cache JDK
+  - Cache dependency
+  - Compile trong CI
+  - Test trong CI
+  - Javadoc trong CI
+  - jdeps trong CI
+  - jdeprscan trong CI
+  - Đóng gói artifact
+- level1: Reproducible build
+  level2:
+  - Build tái lập
+  - Pin version JDK
+  - Pin compiler release
+  - Ổn định timestamp
+  - Ổn định file order
+  - Kiểm tra checksum
+  - Artifact provenance
+  - Môi trường build
+  - So sánh output
+  - Audit toolchain
+- level1: Cross-platform tooling
+  level2:
+  - Khác biệt Windows và Linux
+  - Khác biệt macOS
+  - Quoting tham số
+  - Path separator
+  - Script shell
+  - Script PowerShell
+  - Encoding terminal
+  - Line ending
+  - Native package
+  - Kiểm thử đa nền tảng
+- level1: Quản lý artifact
+  level2:
+  - JAR artifact
+  - Module artifact
+  - Runtime image artifact
+  - Installer artifact
+  - Checksum artifact
+  - Metadata artifact
+  - Repository publishing
+  - Version artifact
+  - Artifact retention
+  - Xác minh artifact
+- level1: Xử lý sự cố
+  level2:
+  - Lỗi không tìm thấy java
+  - Lỗi không tìm thấy javac
+  - Sai JAVA_HOME
+  - Sai classpath
+  - Sai module path
+  - Unsupported class version
+  - Không mở được JAR
+  - Không attach được JVM
+  - Thiếu quyền thao tác
+  - Quy trình chẩn đoán
+- level1: Anti-pattern tooling
+  level2:
+  - Dùng JDK khác khi build
+  - Trộn classpath và module path
+  - Gọi tool không pin version
+  - Bỏ qua warning compiler
+  - Tạo runtime image quá lớn
+  - Dump production không kiểm soát
+  - Debug production công khai
+  - Không kiểm tra artifact
+  - Script phụ thuộc máy cá nhân
+  - Không ghi lại toolchain
+- level1: Thiết kế toolchain
+  level2:
+  - Xác định mục tiêu build
+  - Chọn tool phù hợp
+  - Chọn classpath hay module path
+  - Chọn cách đóng gói
+  - Chọn cách chẩn đoán
+  - Chọn mức bảo mật
+  - Chọn chiến lược CI
+  - Chọn artifact output
+  - Chọn cách kiểm chứng
+  - Ghi lại quyết định
+- level1: Dự án thực hành
+  level2:
+  - Biên dịch ứng dụng bằng javac
+  - Chạy ứng dụng bằng java
+  - Đóng gói bằng jar
+  - Phân tích bằng jdeps
+  - Tạo runtime bằng jlink
+  - Tạo installer bằng jpackage
+  - Thử nghiệm bằng jshell
+  - Tạo tài liệu bằng javadoc
+  - Chẩn đoán bằng jcmd
+  - Profiling bằng JFR
+  - Tích hợp toàn bộ vào CI
+- level1: Tổng kết JDK Tooling
+  level2:
+  - Bản đồ công cụ JDK
+  - Luồng từ source đến artifact
+  - Luồng chẩn đoán JVM
+  - Checklist toolchain
+  - Checklist phát hành
+  - Bước học tiếp theo

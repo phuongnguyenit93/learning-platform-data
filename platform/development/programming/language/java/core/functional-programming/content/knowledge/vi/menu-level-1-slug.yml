@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: functional-overview
+  index: 0
+- title: Nguyên lý cốt lõi
+  slug: functional-principles
+  index: 1
+- title: Functional interface
+  slug: functional-interfaces
+  index: 2
+- title: java.util.function
+  slug: java-util-function
+  index: 3
+- title: Cú pháp lambda
+  slug: lambda-syntax
+  index: 4
+- title: Phạm vi và bắt giữ
+  slug: scope-capture
+  index: 5
+- title: Kiểu đích và suy luận
+  slug: target-typing-inference
+  index: 6
+- title: Tham chiếu phương thức
+  slug: method-references
+  index: 7
+- title: Kết hợp hàm
+  slug: function-composition
+  index: 8
+- title: API nhận hành vi
+  slug: behavioral-apis
+  index: 9
+- title: Ngoại lệ
+  slug: functional-exceptions
+  index: 10
+- title: Optional
+  slug: optional
+  index: 11
+- title: Mô hình Stream
+  slug: stream-model
+  index: 12
+- title: Tạo Stream
+  slug: stream-creation
+  index: 13
+- title: Lọc và chọn phần tử
+  slug: stream-filtering
+  index: 14
+- title: Biến đổi dữ liệu
+  slug: stream-mapping
+  index: 15
+- title: Sắp xếp và quan sát
+  slug: stream-sorting-observing
+  index: 16
+- title: Thao tác kết thúc
+  slug: terminal-operations
+  index: 17
+- title: Stream nguyên thủy
+  slug: primitive-streams
+  index: 18
+- title: Rút gọn bằng reduce
+  slug: reduce-operations
+  index: 19
+- title: Thu thập kết quả
+  slug: collectors
+  index: 20
+- title: Nhóm và phân vùng
+  slug: grouping-partitioning
+  index: 21
+- title: Collector kết hợp
+  slug: collector-composition
+  index: 22
+- title: Collector tùy chỉnh
+  slug: custom-collectors
+  index: 23
+- title: Cơ chế thực thi
+  slug: execution-model
+  index: 24
+- title: Trạng thái và tác dụng phụ
+  slug: state-side-effects
+  index: 25
+- title: Xử lý song song
+  slug: parallel-processing
+  index: 26
+- title: Nguồn tùy chỉnh
+  slug: custom-sources
+  index: 27
+- title: Thiết kế theo hàm
+  slug: functional-design
+  index: 28
+- title: Kiểm thử và thực hành
+  slug: testing-practice
+  index: 29

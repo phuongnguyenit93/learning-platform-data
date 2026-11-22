@@ -1,0 +1,3 @@
+menuLevel1: Interrupt & Hủy
+menuLevel2: interrupt(), isInterrupted() và Thread.interrupted()
+status: TRANSLATE

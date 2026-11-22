@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-continuous-inspection
+  title: Tổng quan Continuous Inspection
+  purpose: Hiểu kiểm tra chất lượng mã liên tục khi mã nguồn thay đổi.
+  objectives:
+  - Giải thích mục đích và lợi ích của kiểm tra liên tục.
+  - Phân biệt một lần quét với theo dõi theo mỗi thay đổi.
+- id: luong-phan-tich-trong-ci
+  title: Luồng phân tích trong CI
+  purpose: Hình dung cách kết quả phân tích gắn với build và code review.
+  objectives:
+  - Mô tả chuỗi commit, build, scan và phản hồi.
+  - Xác định nơi hiển thị kết quả cho nhánh hoặc pull request.
+- id: rules-quality-profiles
+  title: Rules & Quality Profiles
+  purpose: Biết cách bộ quy tắc quyết định những vấn đề được phát hiện.
+  objectives:
+  - Phân biệt rule với quality profile.
+  - Chọn quy tắc phù hợp ngôn ngữ và chuẩn dự án.
+- id: issues-phan-loai
+  title: Issues & phân loại
+  purpose: Nhận diện các cảnh báo cần xem xét sau mỗi lần phân tích.
+  objectives:
+  - Phân loại vấn đề về reliability, security và maintainability.
+  - Tra cứu vị trí mã, mức tác động và mô tả issue.
+- id: metrics-bao-cao
+  title: Metrics & báo cáo
+  purpose: Đọc các thước đo để nhận định chất lượng mã theo ngữ cảnh.
+  objectives:
+  - Diễn giải coverage, duplication và complexity.
+  - Phân biệt số đo từ phân tích và dữ liệu test được nhập.
+- id: quality-gates
+  title: Quality Gates
+  purpose: Sử dụng ngưỡng chất lượng để quyết định có thể tích hợp mã.
+  objectives:
+  - Giải thích điều kiện pass/fail của quality gate.
+  - Nhận diện tác động của ngưỡng tới pipeline và merge.
+- id: new-code-no-ky-thuat
+  title: New Code & nợ kỹ thuật
+  purpose: Ưu tiên mã vừa thay đổi trong khi quản lý vấn đề tồn đọng.
+  objectives:
+  - Phân biệt chỉ số new code với overall code.
+  - Đề xuất cách hạn chế phát sinh nợ kỹ thuật mới.
+- id: triage-cai-tien
+  title: Triage & cải tiến
+  purpose: Biến kết quả kiểm tra liên tục thành hành động cụ thể.
+  objectives:
+  - Xem xét, sửa hoặc giải trình false positive.
+  - Chạy lại phân tích và theo dõi xu hướng qua các lần build.

@@ -1,0 +1,7 @@
+# Spring Cloud Core
+
+Spring Cloud là hệ sinh thái dựa trên Spring Boot, cung cấp các abstraction và công cụ giúp triển khai những mẫu thiết kế phổ biến trong hệ thống phân tán như cấu hình tập trung, khám phá dịch vụ, giao tiếp giữa các dịch vụ, cân bằng tải và xử lý lỗi. Thay vì coi Spring Cloud là một framework đơn lẻ, người học nên nhìn nó như một nhóm dự án có thể kết hợp theo nhu cầu; Spring Cloud Commons và Spring Cloud Context cung cấp nhiều khái niệm chung cho các tích hợp ấy.
+
+Module phù hợp với người đã biết Java, Spring Boot, Dependency Injection, REST API và cấu hình ứng dụng cơ bản. Lộ trình bắt đầu bằng tổng quan hệ sinh thái và quản lý tương thích Spring Boot–Spring Cloud thông qua release train/BOM, sau đó đi vào Commons, ApplicationContext, property sources và cơ chế cấu hình từ bên ngoài. Các mốc tiếp theo giới thiệu service discovery, registration, load balancing và resilience ở mức nền tảng, trước khi kết nối chúng trong bài thực hành có quan sát trạng thái ứng dụng.
+
+Sau khi hoàn thành, bạn có thể chọn dependency phù hợp phiên bản Spring Boot, giải thích luồng cấu hình và tìm kiếm service instance, mô tả cách client gọi dịch vụ bằng service ID, đồng thời đọc log và Actuator health để chẩn đoán lỗi đơn giản. Với Spring Boot hiện đại, `spring.config.import` thường là cách tích hợp Config Client; cơ chế bootstrap cũ cần được phân biệt rõ. Tính năng refresh và các management endpoints phải được bật có chủ đích và bảo vệ quyền truy cập, không mặc định công khai trong môi trường thật.

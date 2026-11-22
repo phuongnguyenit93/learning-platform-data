@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình giao tiếp
+  slug: communication-model
+  index: 1
+- title: Phạm vi và cách tiếp cận
+  slug: scope-and-approach
+  index: 2
+- title: Thiết kế hợp đồng
+  slug: contract-design
+  index: 3
+- title: Hợp đồng HTTP
+  slug: http-contracts
+  index: 4
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 5
+- title: Đối sánh dữ liệu
+  slug: data-matching
+  index: 6
+- title: Đặc tả và schema
+  slug: specifications-and-schemas
+  index: 7
+- title: Kiểm thử phía sử dụng
+  slug: consumer-side-testing
+  index: 8
+- title: Kiểm chứng phía cung cấp
+  slug: provider-side-verification
+  index: 9
+- title: Provider state
+  slug: provider-state
+  index: 10
+- title: Tương thích
+  slug: compatibility
+  index: 11
+- title: Ứng dụng khách Java
+  slug: java-client
+  index: 12
+- title: Pact phía sử dụng
+  slug: consumer-pact
+  index: 13
+- title: Pact phía cung cấp
+  slug: provider-pact
+  index: 14
+- title: Pact Broker
+  slug: pact-broker
+  index: 15
+- title: Spring Cloud Contract
+  slug: spring-cloud-contract
+  index: 16
+- title: Stub Runner
+  slug: stub-runner
+  index: 17
+- title: Hợp đồng thông điệp
+  slug: message-contracts
+  index: 18
+- title: Phiên bản sự kiện
+  slug: event-versioning
+  index: 19
+- title: gRPC và Protobuf
+  slug: grpc-and-protobuf
+  index: 20
+- title: GraphQL
+  slug: graphql
+  index: 21
+- title: Dữ liệu và môi trường
+  slug: data-and-environments
+  index: 22
+- title: CI/CD
+  slug: ci-cd
+  index: 23
+- title: Phát hành
+  slug: release
+  index: 24
+- title: Chất lượng hợp đồng
+  slug: contract-quality
+  index: 25
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 26
+- title: Bảo trì
+  slug: maintenance
+  index: 27
+- title: Phối hợp nhóm
+  slug: team-collaboration
+  index: 28
+- title: Thực hành
+  slug: integrated-practice
+  index: 29

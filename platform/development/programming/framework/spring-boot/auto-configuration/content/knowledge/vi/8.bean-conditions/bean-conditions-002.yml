@@ -1,0 +1,3 @@
+menuLevel1: Điều kiện bean
+menuLevel2: '@ConditionalOnMissingBean và lựa chọn bean mặc định khi chưa có ứng viên'
+status: WRITTEN

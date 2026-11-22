@@ -1,0 +1,3 @@
+menuLevel1: So sánh theo danh tính
+menuLevel2: IdentityHashMap dùng == cho cả khóa và giá trị thay vì equals()
+status: WRITTEN

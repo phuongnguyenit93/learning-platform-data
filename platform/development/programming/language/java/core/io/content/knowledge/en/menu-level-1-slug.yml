@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan I/O
+  slug: io-overview
+  index: 0
+- title: Luồng byte
+  slug: byte-streams
+  index: 1
+- title: Luồng ký tự
+  slug: character-streams
+  index: 2
+- title: Mã hóa văn bản
+  slug: text-encoding
+  index: 3
+- title: Bộ đệm và ghép luồng
+  slug: buffering-and-stream-composition
+  index: 4
+- title: Dòng và token
+  slug: lines-and-tokens
+  index: 5
+- title: Console và định dạng
+  slug: console-and-formatting
+  index: 6
+- title: I/O trong bộ nhớ
+  slug: in-memory-io
+  index: 7
+- title: Dữ liệu nhị phân
+  slug: binary-data
+  index: 8
+- title: Tài nguyên và lỗi
+  slug: resources-and-errors
+  index: 9
+- title: File truyền thống
+  slug: legacy-file-io
+  index: 10
+- title: Path
+  slug: path
+  index: 11
+- title: Đọc ghi bằng Files
+  slug: files-read-write
+  index: 12
+- title: Thao tác tệp
+  slug: file-operations
+  index: 13
+- title: Duyệt cây thư mục
+  slug: directory-tree-traversal
+  index: 14
+- title: Thuộc tính và quyền
+  slug: file-attributes-and-permissions
+  index: 15
+- title: Liên kết tệp
+  slug: file-links
+  index: 16
+- title: Hệ thống tệp
+  slug: file-systems
+  index: 17
+- title: Truy cập ngẫu nhiên
+  slug: random-access
+  index: 18
+- title: NIO Buffer
+  slug: nio-buffer
+  index: 19
+- title: NIO Channel
+  slug: nio-channel
+  index: 20
+- title: FileChannel
+  slug: file-channel
+  index: 21
+- title: Ánh xạ bộ nhớ
+  slug: memory-mapping
+  index: 22
+- title: Khóa và dữ liệu bền
+  slug: file-locking-and-durability
+  index: 23
+- title: NIO mạng
+  slug: nio-networking
+  index: 24
+- title: Selector
+  slug: selector
+  index: 25
+- title: I/O bất đồng bộ
+  slug: asynchronous-io
+  index: 26
+- title: Theo dõi thay đổi
+  slug: watch-service
+  index: 27
+- title: Nén và đóng gói
+  slug: compression-and-archives
+  index: 28
+- title: Tuần tự hóa cơ bản
+  slug: serialization-basics
+  index: 29
+- title: Tuần tự hóa nâng cao
+  slug: advanced-serialization
+  index: 30
+- title: Thiết kế an toàn
+  slug: safe-io-design
+  index: 31
+- title: Hiệu năng và tệp lớn
+  slug: performance-and-large-files
+  index: 32
+- title: Kiểm thử và chẩn đoán
+  slug: testing-and-diagnostics
+  index: 33
+- title: Thực hành
+  slug: practical-exercises
+  index: 34
+- title: Tra cứu
+  slug: reference-tables
+  index: 35

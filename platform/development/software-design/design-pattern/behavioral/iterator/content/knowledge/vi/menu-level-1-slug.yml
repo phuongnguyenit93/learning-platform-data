@@ -1,0 +1,61 @@
+menu:
+  - title: "Bản chất và phạm vi áp dụng mẫu Iterator"
+    slug: "iterator-fundamentals-and-applicability"
+    index: 0
+  - title: "Vai trò, cộng tác và biến thể thiết kế Iterator"
+    slug: "iterator-roles-and-design-variants"
+    index: 1
+  - title: "Hợp đồng Iterator<E> trong Java"
+    slug: "java-iterator-contract"
+    index: 2
+  - title: "Thiết kế tập hợp tùy chỉnh có hỗ trợ Iterator"
+    slug: "custom-collection-design"
+    index: 3
+  - title: "Tự cài đặt iterator cho tập hợp dùng mảng"
+    slug: "array-based-iterator"
+    index: 4
+  - title: "Tự cài đặt iterator cho danh sách liên kết"
+    slug: "linked-list-iterator"
+    index: 5
+  - title: "Iterable<T>, vòng lặp for-each và tái sử dụng lượt duyệt"
+    slug: "iterable-and-for-each"
+    index: 6
+  - title: "Sử dụng Iterator với Java Collections Framework"
+    slug: "java-collections-iteration"
+    index: 7
+  - title: "Duyệt hai chiều và chỉnh sửa bằng ListIterator<E>"
+    slug: "bidirectional-list-iterator"
+    index: 8
+  - title: "Thay đổi collection trong khi đang duyệt"
+    slug: "collection-mutation-during-iteration"
+    index: 9
+  - title: "Iterator fail-fast và phát hiện thay đổi cấu trúc"
+    slug: "fail-fast-iterators"
+    index: 10
+  - title: "Duyệt đồng thời và lựa chọn chính sách nhất quán"
+    slug: "concurrent-iteration-and-consistency"
+    index: 11
+  - title: "Thiết kế các chiến lược duyệt tùy chỉnh"
+    slug: "custom-iteration-strategies"
+    index: 12
+  - title: "Duyệt cây, đồ thị và cấu trúc phân cấp"
+    slug: "tree-and-graph-iteration"
+    index: 13
+  - title: "Duyệt lười và tích hợp nguồn dữ liệu thực tế"
+    slug: "lazy-iteration-and-data-sources"
+    index: 14
+  - title: "Quan hệ với mẫu thiết kế và API duyệt khác"
+    slug: "related-patterns-and-iteration-apis"
+    index: 15
+  - title: "Độ phức tạp, hiệu năng và chất lượng API"
+    slug: "iterator-performance-and-api-quality"
+    index: 16
+  - title: "Kiểm thử hợp đồng và các trường hợp biên"
+    slug: "iterator-contract-and-edge-case-testing"
+    index: 17
+  - title: "Bài thực hành và bài tập tích hợp"
+    slug: "iterator-practice-and-integration"
+    index: 18
+  - title: "Lỗi thường gặp và tiêu chí đánh giá thiết kế"
+    slug: "iterator-pitfalls-and-design-review"
+    index: 19

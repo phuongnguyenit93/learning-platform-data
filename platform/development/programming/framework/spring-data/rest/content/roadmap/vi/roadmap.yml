@@ -1,0 +1,57 @@
+roadmap:
+- id: rest-tu-repository
+  title: REST từ Repository
+  purpose: Hiểu cách Spring Data REST xuất bản repository thành tài nguyên HTTP.
+  objectives:
+  - Tạo entity và repository mẫu
+  - Kích hoạt Spring Data REST cho ứng dụng
+  - Xác định collection và item endpoints
+- id: http-crud
+  title: HTTP CRUD
+  purpose: Nắm thao tác tạo, đọc, sửa, xóa qua HTTP và phản hồi mặc định.
+  objectives:
+  - Thử GET, POST, PUT, PATCH, DELETE
+  - Giải thích mã 200, 201, 204, 404, 405
+  - Kiểm tra dữ liệu sau khi cập nhật
+- id: hal-hateoas
+  title: HAL & HATEOAS
+  purpose: Biết khám phá API thông qua liên kết và biểu diễn tài nguyên dạng HAL.
+  objectives:
+  - Đọc _links và _embedded trong JSON
+  - Theo liên kết self và quan hệ
+  - Khám phá API từ endpoint gốc
+- id: phan-trang-tim-kiem
+  title: Phân trang & tìm kiếm
+  purpose: Truy vấn tập tài nguyên hiệu quả qua paging, sorting và repository search.
+  objectives:
+  - Sử dụng page, size và sort
+  - Định nghĩa query method cho repository
+  - Gọi endpoint /search và đọc kết quả
+- id: quan-he-projections
+  title: Quan hệ & Projections
+  purpose: Biểu diễn liên kết giữa entity và tùy biến dữ liệu trả về cho client.
+  objectives:
+  - Khám phá association resource
+  - Tạo @Projection cho một entity
+  - Dùng excerptProjection cho collection
+- id: cau-hinh-rest
+  title: Cấu hình REST
+  purpose: Kiểm soát URI, repository và HTTP method được công khai.
+  objectives:
+  - Đổi base path và tên resource
+  - Ẩn endpoint bằng exported=false
+  - Giới hạn method bằng exposure configuration
+- id: validation-events
+  title: Validation & Events
+  purpose: Kiểm tra dữ liệu và thực thi logic ở các thời điểm trong vòng đời REST.
+  objectives:
+  - Đăng ký validator trước khi lưu
+  - Xử lý beforeCreate và beforeSave
+  - Phân biệt validation với event handler
+- id: security-kiem-thu
+  title: Security & kiểm thử
+  purpose: Bảo vệ thao tác trên repository và xác minh API hoạt động đúng quyền.
+  objectives:
+  - Áp dụng bảo mật theo repository/method
+  - Thử yêu cầu được phép và bị từ chối
+  - Kiểm thử CRUD, liên kết và lỗi validation

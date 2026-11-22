@@ -1,0 +1,848 @@
+# Configuring Annotation Processors and Modules for a JavaCompiler API Task
+
+## 1. Problem Statement: Compiling from a Java Program Instead of Running javac
+
+An IDE, code generator, test harness, or build tool sometimes needs to initiate a Java compilation itself, rather than invoking `javac` via the terminal. Java provides the **Java Compiler API (JSR 199)** in module `java.compiler`:
+
+- `javax.tools.JavaCompiler`: creates compilation tasks;
+- `javax.tools.JavaCompiler.CompilationTask`: configures and runs the task;
+- `javax.tools.StandardJavaFileManager` and `JavaFileManager.Location`: specify source files, outputs, classpath, and module locations;
+- `javax.tools.DiagnosticCollector`: receives structured errors/warnings;
+- `javax.annotation.processing.Processor` (JSR 269): processes annotations while the compilation task executes.
+
+A task can simultaneously compile **named modules** under the Java Platform Module System (JPMS) and run **annotation processors** to validate or generate code. These two capabilities are related yet must not be confused:
+
+- **Modules of the application being compiled** are the modules containing sources/classes that the compiler needs to analyze. They use `MODULE_SOURCE_PATH`, `MODULE_PATH`, and `module-info.java`.
+- **Modules containing processors** are where `Processor` implementations live along with libraries the processor needs to **execute inside the compiler environment**. They can be loaded from `ANNOTATION_PROCESSOR_MODULE_PATH` with JPMS service providers, or processors can sit on `ANNOTATION_PROCESSOR_PATH` like an ordinary classpath.
+- **An API task** can bypass processor discovery and supply **object instances** directly via `task.setProcessors(...)`. In that case, you must manage loading/instantiating the processor yourself; the processor path does not do this automatically on behalf of the API caller.
+
+Learning objectives: create a task from `ToolProvider.getSystemJavaCompiler()`, configure processors in two ways, set module source path, module path, and output properly, handle diagnostics, and avoid confusing the runtime environment with the compilation environment.
+
+## 2. Classes and Events of a Compilation Task
+
+Typical workflow:
+
+```text
+ToolProvider.getSystemJavaCompiler()
+                 |
+                 v
+JavaCompiler + StandardJavaFileManager
+                 |
+      +----------+-----------+
+      |                      |
+Source units + options    Locations
+      |                CLASS_OUTPUT / SOURCE_OUTPUT
+      |                CLASS_PATH / MODULE_PATH
+      |                MODULE_SOURCE_PATH
+      |                ANNOTATION_PROCESSOR_PATH
+      |                ANNOTATION_PROCESSOR_MODULE_PATH
+      +----------+-----------+
+                 |
+                 v
+JavaCompiler.getTask(...)
+                 |
+         CompilationTask
+                 |
+      setProcessors(...)   (if using instances)
+      addModules(...)      (if needing root modules)
+      setLocale(...)       (if needed)
+                 |
+               call()
+                 |
+          diagnostics + output
+```
+
+Important principles:
+
+1. `ToolProvider.getSystemJavaCompiler()` requires a runtime with a system compiler (usually a **JDK**). If running on a runtime image lacking `jdk.compiler`, the API may return `null`; check before using.
+2. `compiler.getTask(...)` **creates** the task, without executing it yet. `task.call()` actually starts compilation.
+3. `CompilationTask.setProcessors(...)` and `addModules(...)` must be called **before** `call()`.
+4. A `CompilationTask` can only invoke `call()` **once**. To compile another group of sources, create another task; a standard file manager can be reused for sequential tasks if managed properly.
+5. `call()` returns a `Boolean` indicating success/failure per the API contract; errors from caller-provided components can still throw exceptions, so do not treat every exception as a normal Java source diagnostic.
+6. `StandardJavaFileManager` is a resource that must be closed with try-with-resources; do not close it before the task finishes.
+7. A source generated with `Filer` can be fed into a subsequent round and compiled in the same task, provided the processor is enabled and there are no blocking errors.
+
+**Do not confuse JSR 199 with JSR 269:** JSR 199 controls the compiler/task/file manager, whereas JSR 269 lets processors inspect the language model and generate files. A program can use the JavaCompiler API without processors; a processor can also run when a user invokes `javac` directly.
+
+## 3. Distinguishing Six Commonly Confused Paths
+
+`StandardLocation` (in `javax.tools`) provides standard locations. The following names are especially important:
+
+| Location in File Manager | Conceptually Equivalent javac Option | Purpose |
+| --- | --- | --- |
+| `CLASS_OUTPUT` | `-d` | `.class` output from compilation |
+| `SOURCE_OUTPUT` | `-s` | `.java` output generated by processors |
+| `CLASS_PATH` | `--class-path` / `-cp` | Binary dependencies of sources compiled in classpath mode |
+| `SOURCE_PATH` | `--source-path` | Source dependencies that may be found implicitly |
+| `MODULE_PATH` | `--module-path` | **Compiled modules** that the application needs to read |
+| `MODULE_SOURCE_PATH` | `--module-source-path` | **Modules with sources** being located/compiled by the compiler |
+| `ANNOTATION_PROCESSOR_PATH` | `--processor-path` / `-processorpath` | Processor classes/JARs and dependencies on the processor classpath |
+| `ANNOTATION_PROCESSOR_MODULE_PATH` | `--processor-module-path` | **Named modules containing processors** and related processor modules |
+
+Remember three independent questions:
+
+- "Where should the compiler read **application code** from?" → source path, module source path, classpath, module path.
+- "Where are processors **loaded for execution** from?" → processor classpath/module path or self-supplied object instances.
+- "Where must new sources and classes be **written**?" → source output and class output.
+
+Do not put a processor JAR on the application's `MODULE_PATH` and expect it to be discovered. `MODULE_PATH` is for modules that the **application code** being compiled needs to find; `ANNOTATION_PROCESSOR_MODULE_PATH` is for finding **named modules providing Processors**. Similarly, `CLASS_OUTPUT` does not automatically become `CLASS_PATH` for another compilation.
+
+**Configuring via file manager or via options:** with the standard file manager, you can use `setLocationFromPaths(...)`. You can also pass javac options in `compiler.getTask`. Choose one consistent approach for the same location to avoid ambiguity, because both options and file-manager state participate in defining the compilation environment.
+
+## 4. Configuring with StandardJavaFileManager
+
+For a project with real directories on disk:
+
+```java
+JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+if (compiler == null) {
+    throw new IllegalStateException("JDK compiler unavailable");
+}
+
+try (StandardJavaFileManager files =
+         compiler.getStandardFileManager(null, null, null)) {
+
+    files.setLocationFromPaths(
+            StandardLocation.CLASS_OUTPUT, List.of(classOutput));
+
+    files.setLocationFromPaths(
+            StandardLocation.SOURCE_OUTPUT, List.of(generatedSourceOutput));
+
+    files.setLocationFromPaths(
+            StandardLocation.CLASS_PATH, List.of(applicationLibDirectory));
+
+    // Create compilation units, getTask(...), setProcessors(...), call().
+}
+```
+
+This is an **illustrative code sample**, assuming `classOutput`, `generatedSourceOutput`, and `applicationLibDirectory` are already declared with type `Path` and suitable values; it is not yet a standalone Java program. Output directories must **exist** before calling `setLocationFromPaths` on the standard file manager, and the caller should explicitly control their clean/stale state.
+
+With `StandardLocation.MODULE_SOURCE_PATH`, the root usually contains subdirectories named after modules. Do not set it to a directory containing a single package file and expect the compiler to infer a multi-module layout.
+
+**Caution with multiple modules:** `StandardJavaFileManager.setLocationForModule(...)` can bind a dedicated location for a named module. When reassigning a root for the same module-oriented location using `setLocationFromPaths(...)`, module-specific associations may be cleared. If deep module control is needed, understand the `JavaFileManager.Location` contract and the order of configuration calls.
+
+## 5. getTask, options, diagnostics, and processors: Meaning of Each Parameter
+
+Common signature:
+
+```java
+JavaCompiler.CompilationTask task = compiler.getTask(
+        writer,
+        fileManager,
+        diagnosticListener,
+        options,
+        classes,
+        compilationUnits);
+```
+
+Meaning:
+
+| Parameter | Function |
+| --- | --- |
+| `writer` | Receives text output from the compiler when present; `null` uses the default writer |
+| `fileManager` | Finds/reads/writes `JavaFileObject`; can use `StandardJavaFileManager` |
+| `diagnosticListener` | Receives diagnostics of type `Diagnostic<? extends JavaFileObject>` |
+| `options` | Compiler options such as `--release`, `-encoding`, `--module-path`; do not put source filenames here |
+| `classes` | Class names processed for annotation processing in appropriate cases, **not** where `Class<?>` objects go; most source compilation examples pass `null` |
+| `compilationUnits` | `Iterable<? extends JavaFileObject>` representing `.java` files to compile |
+
+Many people see the parameter named `classes` and pass `List<Class<?>>` into it: wrong type and wrong meaning. It accepts **class names** as `String` when using the supported class-processing mechanism, while source inputs are normally supplied via `compilationUnits`.
+
+To receive structured errors:
+
+```java
+DiagnosticCollector<JavaFileObject> diagnostics =
+        new DiagnosticCollector<>();
+
+JavaCompiler.CompilationTask task = compiler.getTask(
+        null, files, diagnostics,
+        List.of("--release", "17", "-encoding", "UTF-8"),
+        null, units);
+
+boolean success = Boolean.TRUE.equals(task.call());
+
+for (Diagnostic<? extends JavaFileObject> d
+        : diagnostics.getDiagnostics()) {
+    if (d.getKind() == Diagnostic.Kind.ERROR) {
+        System.err.println(d.getKind() + ": " + d.getMessage(null));
+    }
+}
+```
+
+This is a code snippet inside a method that already has `compiler`, `files`, and `units`. `getMessage(null)` uses default formatting; diagnostic wording is not an immutable API contract. When IDE positioning is needed, also read `getSource()`, `getLineNumber()`, and `getColumnNumber()`. `DiagnosticCollector` does not replace checking `task.call()`: a task may report warnings yet still succeed.
+
+**API options are not the same as command-line Java launcher options.** For example, `-J-Xmx...` is syntax for passing a JVM option when invoking the `javac` program from the command line; when the compiler runs **inside the application JVM** via JSR 199, configure the JVM **hosting the application** at startup. Do not treat `-J...` as a reliable way to change the heap of an already-running JVM.
+
+## 6. Two Strategies for Supplying Processors
+
+### 6.1. Supplying Processor Objects Directly via setProcessors
+
+```java
+JavaCompiler.CompilationTask task = compiler.getTask(
+        null, files, diagnostics, options, null, units);
+
+task.setProcessors(List.of(new MyProcessor()));
+boolean ok = Boolean.TRUE.equals(task.call());
+```
+
+`MyProcessor` in this snippet is a **class already loadable by the API-calling application**, such as a class in host code or a host dependency; it does not need to be discovered from `ANNOTATION_PROCESSOR_PATH`. `setProcessors(...)` **bypasses the default processor discovery mechanism** per the `CompilationTask` specification.
+
+Advantage: selects exact instances/versions, convenient for integrating programs, unit tests, IDEs, and tools with dependency injection.
+
+Point to remember: `Processor` still runs in the **runtime/compiler environment**, without automatically loading dependencies on the module path of the source being compiled. The host must itself be able to load the processor and its dependencies; if the processor has already been instantiated in the application, `--processor-module-path` does not automatically add that module to the host's classloader after the JVM has started.
+
+With `setProcessors`, do not also add `-processor` just to "reselect the same processor": those are two different processor-selection strategies; a single clear configuration path is easier to maintain. Do not use `-proc:none` and expect processor objects to still run.
+
+### 6.2. Letting javac Find Processors from Path/Module Path
+
+Example via options:
+
+```java
+List<String> options = List.of(
+        "--release", "17",
+        "--processor-path", "processor-libs",
+        "-processor", "tools.MyProcessor",
+        "-s", "build/generated",
+        "-d", "build/classes");
+```
+
+This is an **illustrative configuration snippet**, requiring `processor-libs` to actually contain `tools.MyProcessor` and its dependencies. A named processor module can be found on `--processor-module-path` via the module's service provider metadata; this is **not** an ordinary classpath processor.
+
+If using discovery from classpath, a processor JAR typically has the service file:
+
+```text
+META-INF/services/javax.annotation.processing.Processor
+```
+
+Content:
+
+```text
+tools.MyProcessor
+```
+
+For a named module, instead of relying only on a service-file resource, the module descriptor declares:
+
+```java
+module tools.processor {
+    requires java.compiler;
+    provides javax.annotation.processing.Processor
+        with tools.MyProcessor;
+}
+```
+
+This is an **illustrative `module-info.java`**, valid only when class `tools.MyProcessor` actually implements `Processor` and the module is compiled/placed on the processor module path properly. `requires java.compiler` is needed so the processor can reference `javax.annotation.processing` and language model APIs; `provides` lets the `ServiceLoader` mechanism find the provider. `exports tools` is not needed solely for a service loader to instantiate a valid provider when provider accessibility rules are met.
+
+**JDK version difference:** starting in JDK 23, the compiler does not automatically run processors implicitly merely because a processor happens to be on the classpath. Projects using codegen must explicitly configure `-processor` or processor path/module path and the appropriate processing mode instead of relying on defaults; verify behavior per specific JDK/toolchain.
+
+## 7. Runnable Example: JavaCompiler API Attaching a Processor Directly
+
+The following example is **a single Java file runnable on JDK 17+**, requiring no Maven/Gradle or external JARs. It does four things:
+
+1. Creates two temporary source files: annotation `demo.Generate` and class `demo.App`.
+2. Creates a compilation task via the JavaCompiler API and sets output locations.
+3. Attaches a processor instance with `task.setProcessors(List.of(new GenProcessor()))`; the processor generates `demo.GeneratedMessage`.
+4. Checks task success, verifies the generated file exists, and loads/runs `demo.App` from class output.
+
+### 7.1. Create CompilerApiDemo.java
+
+```java
+import java.io.IOException;
+import java.io.Writer;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.StandardLocation;
+import javax.tools.ToolProvider;
+
+public class CompilerApiDemo {
+    @SupportedAnnotationTypes("demo.Generate")
+    @SupportedSourceVersion(SourceVersion.RELEASE_17)
+    public static final class GenProcessor extends AbstractProcessor {
+        @Override
+        public boolean process(Set<? extends TypeElement> annotations,
+                               RoundEnvironment round) {
+            if (round.processingOver()) return true;
+
+            for (TypeElement annotation : annotations) {
+                for (Element element
+                        : round.getElementsAnnotatedWith(annotation)) {
+                    try {
+                        JavaFileObject file = processingEnv.getFiler()
+                                .createSourceFile("demo.GeneratedMessage", element);
+                        try (Writer w = file.openWriter()) {
+                            w.write("package demo;\n"
+                                    + "public final class GeneratedMessage {\n"
+                                    + "  public static String text() { "
+                                    + "return \"GENERATED\"; }\n"
+                                    + "}\n");
+                        }
+                    } catch (IOException e) {
+                        processingEnv.getMessager().printMessage(
+                                Diagnostic.Kind.ERROR, e.toString(), element);
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            throw new IllegalStateException("JDK compiler unavailable");
+        }
+
+        Path root = Files.createTempDirectory("api-processor-");
+        Path src = Files.createDirectories(root.resolve("src/demo"));
+        Path classes = Files.createDirectories(root.resolve("classes"));
+        Path generated = Files.createDirectories(root.resolve("generated"));
+        Path marker = src.resolve("Generate.java");
+        Path app = src.resolve("App.java");
+
+        Files.writeString(marker, """
+                package demo;
+                import java.lang.annotation.*;
+                @Target(ElementType.TYPE)
+                @Retention(RetentionPolicy.SOURCE)
+                public @interface Generate {}
+                """);
+
+        Files.writeString(app, """
+                package demo;
+                @Generate
+                public class App {
+                    public static void main(String[] args) {
+                        System.out.println(GeneratedMessage.text());
+                    }
+                }
+                """);
+
+        DiagnosticCollector<JavaFileObject> diagnostics =
+                new DiagnosticCollector<>();
+
+        boolean success;
+        try (StandardJavaFileManager files =
+                 compiler.getStandardFileManager(diagnostics, null, null)) {
+
+            files.setLocationFromPaths(
+                    StandardLocation.CLASS_OUTPUT, List.of(classes));
+            files.setLocationFromPaths(
+                    StandardLocation.SOURCE_OUTPUT, List.of(generated));
+
+            Iterable<? extends JavaFileObject> units =
+                    files.getJavaFileObjectsFromPaths(List.of(marker, app));
+
+            JavaCompiler.CompilationTask task = compiler.getTask(
+                    null, files, diagnostics,
+                    List.of("--release", "17", "-encoding", "UTF-8"),
+                    null, units);
+
+            task.setProcessors(List.of(new GenProcessor()));
+            success = Boolean.TRUE.equals(task.call());
+        }
+
+        System.out.println("compiled=" + success);
+        System.out.println("generated=" + Files.isRegularFile(
+                generated.resolve("demo/GeneratedMessage.java")));
+
+        for (Diagnostic<? extends JavaFileObject> d
+                : diagnostics.getDiagnostics()) {
+            if (d.getKind() == Diagnostic.Kind.ERROR) {
+                System.err.println(d.getKind() + ": " + d.getMessage(null));
+            }
+        }
+
+        if (!success) {
+            throw new IllegalStateException("Compilation failed");
+        }
+
+        try (URLClassLoader loader = new URLClassLoader(
+                new URL[] { classes.toUri().toURL() },
+                ClassLoader.getPlatformClassLoader())) {
+            Class<?> appClass = Class.forName("demo.App", true, loader);
+            appClass.getMethod("main", String[].class)
+                    .invoke(null, (Object) new String[0]);
+        }
+    }
+}
+```
+
+### 7.2. Compile and Run
+
+In the directory containing the file:
+
+```bash
+javac --release 17 CompilerApiDemo.java
+java CompilerApiDemo
+```
+
+**Exact stdout tested on OpenJDK 21:**
+
+```text
+compiled=true
+generated=true
+GENERATED
+```
+
+Each run, the example creates a new temporary directory prefixed with `api-processor-`. `classes` and `generated` are two subdirectories of that root. They are created before `setLocationFromPaths` to satisfy the output location contract. The example does not proactively delete the temp folder, letting learners inspect output when needed.
+
+**Why can `demo.GeneratedMessage` be called even though there was no source file initially?** The processor is attached directly with `setProcessors`, processes `@Generate`, and writes the file with `Filer`. The compiler feeds the generated source into the next round and creates the class file. When the task succeeds, `URLClassLoader` opens the class output and invokes `main` on the compiled class.
+
+**Why use `ClassLoader.getPlatformClassLoader()` as parent?** To reduce the chance that this loader accidentally picks up a same-named `demo.App` from the host program's application classpath; the Java platform runtime remains available. This is a choice for an illustrative example, not a security sandbox. In real applications, manage classloader isolation and the lifecycle of newly compiled code carefully.
+
+The example consistently uses `@SupportedSourceVersion(RELEASE_17)` and `--release 17`. On older JDKs that do not support Java text blocks, this host code does not compile; the lesson prerequisite is **JDK 17+**.
+
+### 7.3. Compiler API Highlights Demonstrated
+
+- `getSystemJavaCompiler()`: retrieves the compiler present in the system runtime.
+- `getStandardFileManager(...)`: creates a manager to read/write real paths.
+- `getJavaFileObjectsFromPaths(...)`: turns `Path`s into Java compilation units.
+- `getTask(...)`: gathers options, diagnostics, manager, and units.
+- `setProcessors(...)`: supplies processor instances, **bypassing service discovery**.
+- `call()`: actually runs the compiler, processing rounds, and code generation.
+- `SOURCE_OUTPUT`: where `Filer` writes `GeneratedMessage.java`.
+- `CLASS_OUTPUT`: where `App.class`, `Generate.class`, and `GeneratedMessage.class` are saved.
+- `DiagnosticCollector`: stores structured diagnostics, even when not printed to stdout.
+- `URLClassLoader`: execution step **after compilation**, separate from the processor running inside the compiler.
+
+If processing is disabled or `setProcessors` is not called in the example (and no alternative processor discovery is configured), `App` code will lack `GeneratedMessage`, leading to compile errors when no binary of the same name exists from another environment.
+
+## 8. Configuring Named Modules from the JavaCompiler API
+
+A Java module named `demo.app` can contain `module-info.java` and its source:
+
+```text
+project/
+└── src/
+    └── demo.app/
+        ├── module-info.java
+        └── sample/
+            └── App.java
+```
+
+File `src/demo.app/module-info.java`:
+
+```java
+module demo.app {
+    exports sample;
+}
+```
+
+File `src/demo.app/sample/App.java`:
+
+```java
+package sample;
+
+public class App {
+    public static String name() {
+        return "MODULE";
+    }
+}
+```
+
+`module-info.java` is **a module source**, not an annotation processor configuration file. Here the module needs no dependencies beyond `java.base`, so there are no other `requires`.
+
+### 8.1. Runnable Example of MODULE_SOURCE_PATH
+
+Create **ModuleTaskDemo.java** — a host program creating temporary module source and asking the JavaCompiler API to compile it:
+
+```java
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.StandardLocation;
+import javax.tools.ToolProvider;
+
+public class ModuleTaskDemo {
+    public static void main(String[] args) throws Exception {
+        Path root = Files.createTempDirectory("module-task-");
+        Path src = Files.createDirectories(root.resolve("src"));
+        Path packageDir = Files.createDirectories(
+                src.resolve("demo.app/sample"));
+        Path moduleInfo = src.resolve("demo.app/module-info.java");
+        Path app = packageDir.resolve("App.java");
+
+        Files.writeString(
+                moduleInfo, "module demo.app { exports sample; }\n");
+        Files.writeString(app,
+                "package sample; public class App { "
+                + "public static String name() { return \"MODULE\"; } }\n");
+
+        Path output = Files.createDirectories(root.resolve("out"));
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            throw new IllegalStateException("JDK compiler unavailable");
+        }
+
+        DiagnosticCollector<JavaFileObject> diagnostics =
+                new DiagnosticCollector<>();
+
+        boolean success;
+        try (StandardJavaFileManager files =
+                 compiler.getStandardFileManager(diagnostics, null, null)) {
+
+            files.setLocationFromPaths(
+                    StandardLocation.MODULE_SOURCE_PATH, List.of(src));
+            files.setLocationFromPaths(
+                    StandardLocation.CLASS_OUTPUT, List.of(output));
+
+            Iterable<? extends JavaFileObject> units =
+                    files.getJavaFileObjectsFromPaths(
+                            List.of(moduleInfo, app));
+
+            JavaCompiler.CompilationTask task = compiler.getTask(
+                    null, files, diagnostics,
+                    List.of("--release", "17"), null, units);
+
+            success = Boolean.TRUE.equals(task.call());
+        }
+
+        System.out.println("compiled=" + success);
+        System.out.println("moduleInfo=" + Files.exists(
+                output.resolve("demo.app/module-info.class")));
+        System.out.println("app=" + Files.exists(
+                output.resolve("demo.app/sample/App.class")));
+    }
+}
+```
+
+Compile and run on JDK 17+:
+
+```bash
+javac --release 17 ModuleTaskDemo.java
+java ModuleTaskDemo
+```
+
+**Stdout verified on OpenJDK 21:**
+
+```text
+compiled=true
+moduleInfo=true
+app=true
+```
+
+In this experiment, `StandardLocation.MODULE_SOURCE_PATH` points to root `src`, where each subdirectory is a named module. Therefore `demo.app` is a module root, not a package name. The compilation output is:
+
+```text
+out/
+└── demo.app/
+    ├── module-info.class
+    └── sample/
+        └── App.class
+```
+
+You can do the equivalent with options:
+
+```java
+List<String> options = List.of(
+        "--release", "17",
+        "--module-source-path", "src",
+        "-d", "out");
+```
+
+This is a **config snippet**, not a complete task call. In the runnable example, we configure file-manager locations instead of `--module-source-path` and `-d` options. Do not combine both ways to set the exact same location without a clear reason.
+
+### 8.2. MODULE_PATH Is Not MODULE_SOURCE_PATH
+
+- `MODULE_SOURCE_PATH` tells the compiler **where to find module sources** to compile.
+- `MODULE_PATH` tells the compiler **where to find compiled modules** used as dependencies.
+- `CLASS_PATH` is for classpath mode and binaries not used as named modules on the module path.
+- `CLASS_OUTPUT` tells the compiler **where to output compiled modules**, typically organized as `out/<module-name>/...` when compiling multiple modules.
+
+If `demo.app` has `requires demo.lib;`, module `demo.lib` must be found via the module graph. You can supply a compiled build of `demo.lib` on `MODULE_PATH`, or include `demo.lib`'s source in the set of modules compiled from `MODULE_SOURCE_PATH`. Merely declaring `requires` does not make the compiler automatically download dependencies from the Internet.
+
+In `StandardJavaFileManager`:
+
+```java
+files.setLocationFromPaths(
+        StandardLocation.MODULE_PATH, List.of(compiledModulesRoot));
+```
+
+This is an **illustrative code snippet**, assuming `compiledModulesRoot` is a valid `Path` pointing to a module JAR, a module directory, or a directory containing modules with an appropriate structure, and is not necessarily the application classpath. Do not arbitrarily replace `MODULE_PATH` with `ANNOTATION_PROCESSOR_MODULE_PATH`: the two serve two different environments.
+
+## 9. Processor Placed in a Named Module: Configuring the Proper Environment
+
+Consider a processor implementation:
+
+```java
+package tools;
+
+import java.util.Set;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.TypeElement;
+
+@SupportedAnnotationTypes("demo.Generate")
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
+public class GenerateProcessor extends AbstractProcessor {
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations,
+                           RoundEnvironment roundEnv) {
+        return true;
+    }
+}
+```
+
+This is a **processor skeleton to illustrate loading via a module**, generating no files; use it to observe discovery, not as a replacement for the full `GenProcessor` in section 7.
+
+Processor module descriptor:
+
+```java
+module tools.processor {
+    requires java.compiler;
+    provides javax.annotation.processing.Processor
+        with tools.GenerateProcessor;
+}
+```
+
+This is a valid `module-info.java` when `GenerateProcessor` resides in this module and is compiled. When packaged, the module can sit under a root directory like `processor-modules/tools.processor` or as a modular JAR. The compiler can find the processor via the provider declaration through the processor module path.
+
+Configuration **via options** of `getTask` can look like:
+
+```java
+List<String> options = List.of(
+        "--release", "17",
+        "--processor-module-path", "processor-modules",
+        "-d", "build/classes",
+        "-s", "build/generated");
+```
+
+Here `processor-modules` **must contain the compiled processor module** and its module dependencies. Putting uncompiled `module-info.java` in this path will not make the compiler run the processor. With the processor module path, service registration via `provides ... with ...` is a key contract; a plain classpath service file does not replace a named module's descriptor.
+
+Corresponding configuration **via file-manager location**:
+
+```java
+files.setLocationFromPaths(
+        StandardLocation.ANNOTATION_PROCESSOR_MODULE_PATH,
+        List.of(processorModulesRoot));
+```
+
+This is a code snippet with `files` and `processorModulesRoot` already existing; not a separate program. If the processor is an ordinary class/JAR rather than a named module, use `ANNOTATION_PROCESSOR_PATH`.
+
+**Note on JDK and discovery:** the default semantics of finding processors may change across compiler versions. If a build requires generated code, do not rely solely on a JAR's presence on the classpath; configure the processor explicitly via the appropriate mechanism (setProcessors, -processor, or processor module path with provider declarations) and verify that generated files actually appear.
+
+## 10. Do Application Modules and Processor Modules Need to Read Each Other?
+
+This is one of the most common confusions.
+
+Suppose:
+
+- The application module `shop.app` declares `module shop.app { requires shop.api; }`.
+- Module `shop.api` provides annotations or types used by the application.
+- Processor module `shop.processor` implements `Processor` to generate classes based on annotations.
+
+Distinguishing relationships:
+
+1. `shop.app` needs `requires shop.api;` **if** its sources use public types belonging to that module.
+2. `shop.processor` usually needs `requires java.compiler;` to use `javax.annotation.processing`, `javax.lang.model`, and `javax.tools`.
+3. If the processor **directly references annotation APIs by class** in the processor's own code, the processor module may need `requires shop.api;` and module `shop.api` must be present in the **processor runtime module graph**.
+4. `shop.app` **does not inherently need** `requires shop.processor;` just to run annotation processing. The processor module is a build-time tool, not an application runtime dependency if generated code does not reference the processor's own API.
+5. If generated code references other types, the application needs corresponding compile-time and runtime dependencies, independent of whether the processor loaded successfully.
+
+**Two environments:** the compiler analyzes the application in the **compilation environment**, whereas the processor runs in the compiler's runtime/tool environment. The application's module graph and the processor's module graph can differ; adding a JAR to one side does not make it automatically appear on the other.
+
+If the host application uses `setProcessors(new MyProcessor())`, the host must load `MyProcessor` itself in its runtime module graph/classpath; it does not necessarily use `--processor-module-path`. Choose **one clear processor-loading strategy** before implementing.
+
+## 11. addModules Differs from Adding a Module to the Module Path
+
+`JavaCompiler.CompilationTask` has the API:
+
+```java
+task.addModules(List.of("my.optional.module"));
+```
+
+This is an **illustrative code snippet**, assuming module `my.optional.module` is truly observable and valid in the configuration. This call adds **root modules** to module graph resolution of the compilation task. It does not create modules, does not download JARs, does not replace providing `MODULE_PATH`, and **is not how processors are registered**.
+
+Do not confuse:
+
+- `files.setLocationFromPaths(MODULE_PATH, ...)`: **where** module binaries reside.
+- `task.addModules(...)`: **which root modules** to add for resolution.
+- `--add-modules`: equivalent javac option at the module resolution level when appropriate.
+- `requires ...;` in `module-info.java`: declares a **module dependency** of a named module.
+- `provides Processor with ...;` in a processor module: declares a **service implementation** for processor discovery.
+
+In a JavaCompiler API program, call `addModules` before `task.call()`. If the task has already started, the API may throw `IllegalStateException`.
+
+## 12. When to Choose Classpath Processor, Module Processor, or Instance?
+
+| Context | Usually Appropriate Strategy | Note |
+| --- | --- | --- |
+| Testing a processor whose instance already exists in JVM | `task.setProcessors(List.of(instance))` | Bypasses discovery, host is responsible for loading dependencies |
+| CLI/build tool using a processor JAR classpath | `-processorpath` + `-processor` or service file | Isolates processor dependencies from app classpath |
+| Processor is a named JPMS module | `--processor-module-path` + `provides Processor with ...` | Module must be compiled, processor module graph valid |
+| Application has named modules | `MODULE_SOURCE_PATH` / `MODULE_PATH` + `module-info.java` | Does not automatically determine processor location |
+| Wanting only validation/codegen without generating final classes | `-proc:only` when supported by compiler | Needs separate compile step if app needs class files |
+| Not wanting processing | `-proc:none` | If app calls generated classes, missing generated classes will error |
+| Needing processor-specific options | `-Akey=value` and `ProcessingEnvironment.getOptions()` | Processor declares supported options; pin values for reproducibility |
+
+Do not arbitrarily mix `--processor-path` with `--processor-module-path` in a single invocation: they represent two different processor-supply mechanisms, and `javac` has constraints against specifying both simultaneously. A maintainable practice is **one clearly defined processor source** and dependency paths matching that source.
+
+## 13. Processing Rounds, Generated Files, and task.call()
+
+With a processor using `Filer.createSourceFile(...)`:
+
+```text
+compilationUnits (app source + annotations)
+    |
+    v
+Round 1: processor reads Element, TypeMirror
+    |
+    +-- generates GeneratedMessage.java via Filer
+    |
+    v
+Round 2: compiler receives generated source
+    |
+    v
+Final round: processingOver() == true
+    |
+    v
+Generate class files if compilation completes
+```
+
+`task.call()` returns after all processing and compilation work has finished; it is not a "start and return a pollable future" command even though the name `CompilationTask` might suggest it. The API executes synchronously upon `call()`. If wanting to compile work in parallel, you must manage your application's own concurrency, classloaders, file managers, output ownership, and processor state; **do not** reuse one task to call twice.
+
+A processor object should not be shared across concurrent compilation tasks as if it were stateless. `AbstractProcessor` has `processingEnv` attached to a single processing environment; an instance's lifecycle must be managed carefully. For each independent task, creating a new processor instance is the clear choice.
+
+For source files generated inside a named module, ensure the output's module context is determined. Options such as `--default-module-for-created-files` may be necessary in complex module configurations if the compiler cannot infer which module contains the new file; do not assume "generated source always goes into the unnamed module" or that merely creating a source with a package name suffices. Generated sources must also obey exports, reads, and package rules of the module being compiled.
+
+## 14. Diagnostics, Configuration Errors, and Security
+
+### 14.1. Three Error Types to Distinguish
+
+| Error Type | Example | How to Handle |
+| --- | --- | --- |
+| **Compiler diagnostic** | `cannot find symbol`, module cannot read package, syntax error in generated code | `DiagnosticCollector`, `task.call()==false`, source/line/column |
+| **Processor diagnostic** | Processor uses `Messager.printMessage(ERROR, ...)` to report wrong annotation | Report right `Element`, check processing options and inputs |
+| **Caller/tooling exception** | File manager cannot open file, processor throws unhandled exception, wrong option types | Catch/log exception separately, do not turn into fake "wrong source code" |
+
+When stable tests are needed, check **error kind**, source position, and meaningful content; do not depend verbatim on every diagnostic sentence or absolute path that may change across OS and JDK.
+
+### 14.2. Why Should Untrusted Processors Not Be Run?
+
+Processors are **code executing inside the build environment**, able to read files, environment variables, and use Java APIs for which it has permissions. It is not automatically sandboxed merely because it belongs to annotation processing. When a compiler host accepts projects from others, auto-discovering processors on an uncontrolled classpath can create an attack surface. Therefore:
+
+- Only run approved processors, pinning versions/checksums;
+- Isolate the processor classpath/module path and dependency graph;
+- Do not expose avoidable secrets to the process/CI job if the processor does not need them;
+- Restrict resources, time, and filesystem scope via **the execution environment** of the build tool;
+- Inspect generated sources before packaging/releasing.
+
+`setProcessors` reduces surprises from discovery yet does **not** itself sandbox processor object code chosen by the host.
+
+### 14.3. Reproducible Builds and Stale Sources
+
+`-d out` or `CLASS_OUTPUT` does not automatically delete old classes. If a task uses caches or generated files from a previous run, an issue like a missing processor can be masked. For negative tests, use a new/clean directory for output. Record toolchain, options, module roots, processor versions, file inputs/hashes, and outputs to reproduce compile failures.
+
+Generated names should be stable, processors must avoid `FilerException` from creating duplicate classes, and must not rely implicitly on round/processor order. `Filer.createSourceFile(name, originatingElements...)` supports associating outputs with originating elements; build tools can leverage that information for incremental compilation when the processor supports it.
+
+## 15. Common Errors in the JavaCompiler API
+
+| Symptom | Likely Cause | How to Check |
+| --- | --- | --- |
+| `getSystemJavaCompiler() == null` | Runtime image lacks system compiler | Run host on a JDK or runtime image containing the compiler module |
+| `ClassNotFoundException` for processor | Host could not load processor object or wrong processor path | Distinguish `setProcessors` and discovery; check classloader/JAR |
+| `Provider ... not found` | Named processor module does not declare `provides` properly or is not on module path | Check `module-info.java`, module JAR, and `ANNOTATION_PROCESSOR_MODULE_PATH` |
+| Generated class does not appear | Processor did not run, annotation did not match, `-proc:none`, `Filer` error | Check `setProcessors`/options, diagnostics, `SOURCE_OUTPUT` |
+| `module not found` | Wrong `MODULE_PATH`/`MODULE_SOURCE_PATH` or missing module dependency | Check `requires`, actual paths, and module layouts |
+| `package ... is not visible` | Module readability/exports unsatisfied | Check `module-info.java`, `requires`, and `exports` |
+| `duplicate module` | Module candidates have duplicate names or overlapping source/module roots | Check module candidate lists and clean output |
+| Generated file placed in wrong module | Compiler could not infer matching module | Check package/module context, `--default-module-for-created-files` when needed |
+| `IllegalStateException` after `task.call()` | Called task again or configured task after it already started | Create a new task for another compilation |
+| `IOException` from `setLocationFromPaths` | Output directory does not exist yet or wrong permissions/path | Create root output, verify filesystem |
+| Compile passes yet runtime does not load class | Confused compiler output with runtime classpath/module path | Configure separate `java` command, check runtime module graph |
+| Compiler uses unexpected JDK | Host JVM contains compiler differing from project toolchain | Record host `java -version` and compiler metadata |
+| `-J` flag has no effect | Used CLI launcher option in API task | Set JVM arguments when starting host process |
+
+## 16. Workflow for Designing Reliable API Tasks
+
+1. **Choose source semantics:** unnamed module/classpath or one/multiple named modules? Is there a `module-info.java`?
+2. **Identify processor source:** object instances in host or discovery via classpath/named module? Avoid overlap.
+3. **Record Java toolchain:** host runtime/JDK, `ToolProvider`, `--release` level, encoding, source file list.
+4. **Create file manager** and explicitly declare `CLASS_OUTPUT`, `SOURCE_OUTPUT`, `CLASS_PATH`, or `MODULE_PATH`/`MODULE_SOURCE_PATH`.
+5. **Create units from Paths** or custom `JavaFileObject`, ensuring valid filenames/packages/modules.
+6. **Create task via getTask**, passing options and diagnostics; set `setProcessors` or `addModules` if needed, before call.
+7. **Call `call()` once**; record Boolean result, diagnostics, and host/processor exceptions.
+8. **Verify artifacts:** class outputs, generated sources, module-info.class, and expected files; do not let stale output mask errors.
+9. **Test runtime** with separately configured classpath or module path, using the minimum Java runtime the application must support.
+10. **Keep builds reproducible and secure:** pin processor binaries, dependencies, limit resources/secrets, close file managers and loaders.
+
+A quick rule: **where application code lives** and **where processors execute** have no reason to be the same. When the application's module graph is wrong, fix `MODULE_PATH` and `module-info.java`; when the processor is not discovered, fix `ANNOTATION_PROCESSOR_MODULE_PATH` or `setProcessors`. Do not edit both sides interchangeably just because both contain the word "module".
+
+## 17. Self-Check Exercises
+
+**Question 1.** A host application creates `CompilationTask` and wants to use an existing `Processor` object. Which API should be called and when?
+
+**Answer:** `task.setProcessors(List.of(processorInstance))` **before `task.call()`**. This bypasses default discovery; the host must be able to load the processor.
+
+**Question 2.** A project is compiling module `shop.app` which has `requires shop.api;`. Which location does the compiled `shop.api` JAR belong to?
+
+**Answer:** `StandardLocation.MODULE_PATH` (or option `--module-path`), not `ANNOTATION_PROCESSOR_MODULE_PATH` just because the project has a processor.
+
+**Question 3.** What must a named module providing an annotation processor via `ServiceLoader` declare?
+
+**Answer:** The module usually `requires java.compiler;` and `provides javax.annotation.processing.Processor with ...;`. The processor module and dependencies must reside on the appropriate processor module path.
+
+**Question 4.** How do `MODULE_SOURCE_PATH` and `MODULE_PATH` differ?
+
+**Answer:** The first locates sources of named modules being compiled; the second locates already-compiled named modules used as dependencies.
+
+**Question 5.** Does `task.addModules(List.of("shop.api"))` automatically download the `shop.api` JAR from the Internet or register this module's processor?
+
+**Answer:** No. It adds a root module for resolution; the module still needs to be observable via appropriate system/module path configuration, and processor discovery is a separate mechanism.
+
+**Question 6.** Why not use `-J-Xmx2g` in `getTask(..., options, ...)` to raise the heap?
+
+**Answer:** `-J` is an option of the `javac` command-line launcher to forward JVM options. In the in-process Compiler API, the host JVM is already running, so heap must be configured when starting the **host**.
+
+**Question 7.** The task returns `true` yet `GeneratedMessage.java` does not exist. Could this be valid?
+
+**Answer:** Yes, if the processor was not requested, the annotation did not match, or codegen is not part of the task contract. If the project expects codegen, verify that the processor ran and specific outputs were generated; compilation success alone does not prove a generator ran.
+
+**Question 8.** Why is `Files.createDirectories(output)` needed before `StandardJavaFileManager.setLocationFromPaths(CLASS_OUTPUT, ...)`?
+
+**Answer:** The StandardJavaFileManager contract requires the output location to point to an existing directory; if the path does not exist, the API may report `IOException`.
+
+**Question 9.** After a failed compilation, the host program still sees `App.class` in the output. May the task be considered to have produced valid artifacts?
+
+**Answer:** No. Output may contain old files or partial artifacts. Use a new/clean output, and check `task.call()` and diagnostics.
+
+**Question 10.** Why does placing a processor JAR on `MODULE_PATH` with named modules not guarantee the processor runs?
+
+**Answer:** `MODULE_PATH` of the compilation environment serves application modules; the processor runs in the compiler environment and needs a processor instance or corresponding processor discovery location.
+
+## 18. Official Reference Documentation
+
+- **Java SE 21 JavaCompiler API:** https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/tools/JavaCompiler.html — `getTask`, compiler file manager, diagnostics.
+- **Java SE 21 CompilationTask API:** https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/tools/JavaCompiler.CompilationTask.html — `setProcessors`, `addModules`, `setLocale`, and `call`.
+- **Java SE 21 StandardJavaFileManager:** https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/tools/StandardJavaFileManager.html — `getJavaFileObjectsFromPaths`, `setLocationFromPaths`, `setLocationForModule`.
+- **Java SE 21 StandardLocation:** https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/tools/StandardLocation.html — `MODULE_PATH`, `MODULE_SOURCE_PATH`, `ANNOTATION_PROCESSOR_PATH`, `ANNOTATION_PROCESSOR_MODULE_PATH`, and output locations.
+- **Java SE 21 ToolProvider:** https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/tools/ToolProvider.html — `getSystemJavaCompiler` and when it can be `null`.
+- **Oracle JDK 21 javac reference:** https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html — module options, processor options, and the *Compilation Environment and Runtime Environment* section.
+- **Java SE 21 Processor API:** https://docs.oracle.com/en/java/javase/21/docs/api/java.compiler/javax/annotation/processing/Processor.html — lifecycle and semantics of annotation processing.
+- **Java Language Specification `7, `9:** https://docs.oracle.com/javase/specs/jls/se21/html/ — packages, modules, annotations.
+
+**Summary:** when using the JavaCompiler API, configure **application modules** via `MODULE_SOURCE_PATH`/`MODULE_PATH`, configure **the processor to execute** via `setProcessors` or processor path/module path, and configure **where to write artifacts** via `SOURCE_OUTPUT`/`CLASS_OUTPUT`. Separating these three roles and then inspecting `task.call()`, diagnostics, and generated files helps you create controllable, reproducible, and debuggable compilation tasks.

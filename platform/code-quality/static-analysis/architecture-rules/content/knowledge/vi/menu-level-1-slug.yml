@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình phụ thuộc
+  slug: dependency-model
+  index: 1
+- title: Đặc tả quy tắc
+  slug: rule-specification
+  index: 2
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 3
+- title: Thiết lập ArchUnit
+  slug: archunit-setup
+  index: 4
+- title: Phạm vi phân tích
+  slug: analysis-scope
+  index: 5
+- title: Cú pháp quy tắc
+  slug: rule-syntax
+  index: 6
+- title: Phụ thuộc gói
+  slug: package-dependencies
+  index: 7
+- title: Truy cập lớp
+  slug: class-access
+  index: 8
+- title: Thành viên và API
+  slug: members-and-apis
+  index: 9
+- title: Quy ước cấu trúc
+  slug: structural-conventions
+  index: 10
+- title: Kiến trúc phân tầng
+  slug: layered-architecture
+  index: 11
+- title: Kiến trúc hướng lõi
+  slug: core-oriented-architecture
+  index: 12
+- title: Mô-đun nghiệp vụ
+  slug: domain-modules
+  index: 13
+- title: Phát hiện chu trình
+  slug: cycle-detection
+  index: 14
+- title: Spring và JPA
+  slug: spring-and-jpa
+  index: 15
+- title: Thư viện và nền tảng
+  slug: libraries-and-platforms
+  index: 16
+- title: Quy tắc tùy biến
+  slug: custom-rules
+  index: 17
+- title: Kiểm thử quy tắc
+  slug: rule-testing
+  index: 18
+- title: Báo cáo vi phạm
+  slug: violation-reporting
+  index: 19
+- title: Ngoại lệ có kiểm soát
+  slug: controlled-exceptions
+  index: 20
+- title: Triển khai trên mã cũ
+  slug: legacy-code-rollout
+  index: 21
+- title: Gradle và Maven
+  slug: gradle-and-maven
+  index: 22
+- title: CI và cổng kiểm tra
+  slug: ci-and-quality-gates
+  index: 23
+- title: JPMS và jdeps
+  slug: jpms-and-jdeps
+  index: 24
+- title: Spring Modulith
+  slug: spring-modulith
+  index: 25
+- title: Sơ đồ và hợp đồng
+  slug: diagrams-and-contracts
+  index: 26
+- title: Chỉ số kiến trúc
+  slug: architecture-metrics
+  index: 27
+- title: Hiệu năng phân tích
+  slug: analysis-performance
+  index: 28
+- title: Giới hạn và sai lệch
+  slug: limits-and-biases
+  index: 29
+- title: Quản trị quy tắc
+  slug: rule-governance
+  index: 30
+- title: Refactor kiến trúc
+  slug: architecture-refactoring
+  index: 31
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 32

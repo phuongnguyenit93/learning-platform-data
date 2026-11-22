@@ -1,0 +1,7 @@
+# Lớp và đối tượng trong Java (Class & Object)
+
+Trong Java, lớp (`class`) mô tả cấu trúc và hành vi của một kiểu đối tượng, còn đối tượng là một thể hiện cụ thể của lớp. Nắm vững mối quan hệ giữa lớp, trường, phương thức và biến tham chiếu giúp bạn hiểu chương trình lưu giữ, thay đổi và sử dụng trạng thái như thế nào, thay vì chỉ ghi nhớ cú pháp.
+
+Tài liệu này dành cho người bắt đầu học Java Core hoặc muốn củng cố kiến thức về class và object. Lộ trình gồm tám mốc: lớp và đối tượng; trường và phương thức; khởi tạo bằng `new`, constructor và `this`; tham chiếu và `null`; đóng gói và quyền truy cập; thành viên `static` và `final`; khởi tạo và vòng đời; cuối cùng là thiết kế lớp đơn giản. Các mốc nối tiếp nhau từ khai báo cấu trúc đến lý giải hành vi thực tế của đối tượng.
+
+Sau khi học, bạn có thể xây dựng một lớp với trạng thái hợp lệ và phương thức phù hợp, phân biệt dữ liệu riêng của từng đối tượng với dữ liệu chung của lớp, giải thích truyền tham trị trong Java và hệ quả khi nhiều biến cùng tham chiếu một đối tượng. Bạn cũng sẽ biết theo dõi thứ tự khởi tạo, nhận diện khi đối tượng có thể được thu gom rác và kiểm tra một lớp đơn giản trước khi tiến tới những chủ đề thiết kế OOP rộng hơn.

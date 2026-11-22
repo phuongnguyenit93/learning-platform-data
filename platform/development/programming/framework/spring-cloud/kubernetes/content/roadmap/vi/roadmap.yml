@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-starter
+  title: Vai trò & Starter
+  purpose: Phân biệt năng lực Kubernetes sẵn có với tích hợp Spring Cloud Kubernetes để chỉ thêm dependency khi cần.
+  objectives:
+  - Giải thích khi nào Spring Boot chạy K8s không cần starter
+  - Chọn Spring Cloud BOM khớp phiên bản Boot
+  - Phân biệt starter Fabric8 và Kubernetes Java Client
+- id: deploy-spring-boot-len-k8s
+  title: Deploy Spring Boot lên K8s
+  purpose: Đóng gói ứng dụng và chạy trên cluster bằng tài nguyên Kubernetes cơ bản trước khi thêm tính năng Cloud.
+  objectives:
+  - Tạo container image cho Spring Boot
+  - Khai báo Deployment, Pod replicas và Service
+  - Dùng kubectl kiểm tra pod, rollout và endpoint
+- id: configmap-secrets
+  title: ConfigMap & Secrets
+  purpose: Nạp cấu hình ngoài ứng dụng có kiểm soát và phân biệt dữ liệu thường với bí mật.
+  objectives:
+  - Phân biệt ConfigMap, Secret và environment variable
+  - 'Áp dụng spring.config.import: kubernetes: khi cần'
+  - Kiểm tra thứ tự ưu tiên cấu hình và không log Secret
+- id: discoveryclient-namespace
+  title: DiscoveryClient & Namespace
+  purpose: Khám phá các service theo tên hoặc nhãn, đúng phạm vi namespace đã cấp quyền.
+  objectives:
+  - Dùng DiscoveryClient lấy danh sách ServiceInstance
+  - Lọc service bằng namespace và labels
+  - So sánh discovery API với Kubernetes Service DNS
+- id: loadbalancer-ket-noi
+  title: LoadBalancer & Kết nối
+  purpose: Chọn cơ chế gọi dịch vụ và cân bằng tải mà không nhầm định tuyến của Kubernetes với client-side balancing.
+  objectives:
+  - So sánh Spring Cloud LoadBalancer ở mode POD/SERVICE
+  - Cấu hình tên service, namespace và HTTP port
+  - Thử gọi service khác sau khi đổi số replicas
+- id: config-watcher-refresh
+  title: Config Watcher & Refresh
+  purpose: Hiểu cách cập nhật cấu hình tại runtime và tránh giả định ứng dụng tự reload khi ConfigMap thay đổi.
+  objectives:
+  - Giải thích mounted config đổi không tự refresh Spring
+  - Mô tả luồng watcher → event → refresh
+  - Bảo vệ Actuator refresh endpoint và thử cập nhật
+- id: serviceaccount-rbac
+  title: ServiceAccount & RBAC
+  purpose: Giảm quyền truy cập Kubernetes API của ứng dụng theo tính năng thật sự sử dụng.
+  objectives:
+  - Tạo ServiceAccount riêng cho workload
+  - Viết Role/RoleBinding chỉ cấp verbs và resources cần
+  - Kiểm tra namespace scope và tránh đọc Secret tràn lan
+- id: probes-rollout-kiem-thu
+  title: Probes, Rollout & Kiểm thử
+  purpose: Vận hành Spring Boot ổn định, xác nhận trạng thái dịch vụ và lỗi cấu hình khi scale hoặc cập nhật.
+  objectives:
+  - Gắn Actuator liveness/readiness vào probe
+  - Kiểm tra rolling update và scale replicas
+  - Quan sát logs, metrics và lỗi mất quyền RBAC

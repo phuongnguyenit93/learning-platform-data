@@ -1,0 +1,7 @@
+# Java Core — Abstract Class và Interface
+
+Trừu tượng hóa trong Java giúp mô tả **một đối tượng cần đáp ứng điều gì** trước khi quyết định **nó thực hiện bằng cách nào**. Hai công cụ quan trọng là `abstract class`, có thể cung cấp trạng thái và hành vi chung trong một nhánh kế thừa, và `interface`, biểu diễn hợp đồng mà nhiều lớp khác nhau có thể triển khai. Khi mã sử dụng các kiểu trừu tượng làm điểm giao tiếp, cơ chế đa hình cho phép thay đổi phần triển khai mà vẫn giữ cách sử dụng nhất quán.
+
+Module dành cho người đã biết lớp, đối tượng, phương thức, kế thừa và ghi đè trong Java. Bạn sẽ bắt đầu từ tư duy tách hợp đồng khỏi chi tiết triển khai; tiếp đó tìm hiểu lớp trừu tượng, phương thức `abstract`, constructor và thành viên dùng chung; cách khai báo, mở rộng, triển khai `interface` bằng `extends` và `implements`; rồi vận dụng tham chiếu kiểu trừu tượng để quan sát phương thức được chọn khi chương trình chạy.
+
+Các mốc tiếp theo giải thích phương thức `default`, `static`, `private` trong interface, quy tắc kế thừa nhiều interface và cách xử lý xung đột. Bạn sẽ cân nhắc khi nào nên dùng `abstract class`, `interface` hoặc kết hợp cả hai, đồng thời làm quen với interface hàm và giới hạn kế thừa bằng `sealed`. Phần thực hành cuối yêu cầu thiết kế một hợp đồng với nhiều cách triển khai, thay thế chúng qua cùng một điểm sử dụng và giải thích lựa chọn thiết kế của mình.

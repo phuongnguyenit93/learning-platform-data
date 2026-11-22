@@ -1,0 +1,3 @@
+menuLevel1: Stream.toList
+menuLevel2: Giới hạn suy luận generic khi gán kết quả vào List của supertype
+status: ""

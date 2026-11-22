@@ -1,0 +1,49 @@
+roadmap:
+- id: jackson-json
+  title: Jackson & JSON
+  purpose: Hiểu vai trò của Jackson trong chuyển đổi dữ liệu Java và JSON.
+  objectives:
+  - '- Phân biệt serialize và deserialize.'
+  - '- Nhận diện core, databind và annotations.'
+- id: objectmapper
+  title: ObjectMapper
+  purpose: Thực hiện chuyển đổi JSON và đối tượng Java bằng API cốt lõi.
+  objectives:
+  - '- Dùng readValue và writeValueAsString.'
+  - '- Tái sử dụng ObjectMapper đã cấu hình.'
+- id: pojo-collections
+  title: POJO & Collections
+  purpose: Ánh xạ dữ liệu vào model Java và các kiểu tập hợp.
+  objectives:
+  - '- Đọc/ghi POJO qua field, getter và constructor.'
+  - '- Dùng TypeReference cho List/Map generic.'
+- id: jackson-annotations
+  title: Jackson Annotations
+  purpose: Điều khiển tên trường và dữ liệu được ánh xạ.
+  objectives:
+  - '- Dùng @JsonProperty, @JsonIgnore, @JsonInclude.'
+  - '- Xử lý field thiếu hoặc tên khác nhau.'
+- id: jsonnode
+  title: JsonNode
+  purpose: Xử lý JSON linh hoạt khi cấu trúc thay đổi.
+  objectives:
+  - '- Đọc/truy vấn tree bằng JsonNode.'
+  - '- Chỉnh sửa ObjectNode và chuyển về POJO.'
+- id: cau-hinh-modules
+  title: Cấu hình & Modules
+  purpose: Điều chỉnh hành vi Jackson cho nhu cầu ứng dụng.
+  objectives:
+  - '- Cấu hình property lạ, null và định dạng JSON.'
+  - '- Hỗ trợ Java time qua JavaTimeModule ở Jackson 2.x.'
+- id: tuy-bien-chuyen-doi
+  title: Tùy biến chuyển đổi
+  purpose: Giải quyết định dạng JSON đặc thù bằng bộ chuyển đổi riêng.
+  objectives:
+  - '- Viết JsonSerializer và JsonDeserializer.'
+  - '- Đăng ký bộ chuyển đổi qua module.'
+- id: streaming-loi
+  title: Streaming & Lỗi
+  purpose: Xử lý dữ liệu lớn và lỗi chuyển đổi an toàn.
+  objectives:
+  - '- Đọc/ghi luồng bằng JsonParser và JsonGenerator.'
+  - '- Nhận diện lỗi mapping và giới hạn input.'

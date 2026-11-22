@@ -1,0 +1,7 @@
+# Validation Testing Type – Usability Test
+
+Usability Test (kiểm thử tính dễ sử dụng) đánh giá cách người dùng thực tế tương tác với một sản phẩm để hoàn thành các nhiệm vụ cụ thể. Trọng tâm của phương pháp này là quan sát người tham gia: họ có hoàn thành mục tiêu hay không, gặp khó khăn tại bước nào, mất bao nhiêu thời gian và cảm thấy trải nghiệm ra sao. Đây là cách phát hiện vấn đề giao diện và quy trình sử dụng mà kiểm thử chức năng đơn thuần có thể bỏ sót.
+
+Module hướng dẫn xác định mục tiêu nghiên cứu, lập kế hoạch, tuyển người tham gia đại diện và xây dựng kịch bản tác vụ không mang tính gợi ý. Người học tiếp tục thực hành điều phối buổi thử nghiệm, ghi nhận hành vi và chỉ số usability, phân tích bằng chứng, ưu tiên cải tiến rồi kiểm chứng lại thiết kế. Khi phù hợp, kết quả cũng được phối hợp với đánh giá khả năng tiếp cận (accessibility), vốn là một phạm vi đánh giá riêng.
+
+Module dành cho developer, QA, tester và người tham gia phát triển trải nghiệm sản phẩm. Sau khi hoàn thành, bạn có thể tổ chức một usability test nhỏ có cấu trúc, đặt câu hỏi trung lập, phân biệt dữ liệu quan sát với nhận xét chủ quan, báo cáo vấn đề có bằng chứng và đánh giá tác động của các thay đổi giao diện.

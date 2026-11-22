@@ -1,0 +1,49 @@
+roadmap:
+- id: bai-toan-y-dinh
+  title: Bài toán & Ý định
+  purpose: Nhận diện khi client bị phụ thuộc vào nhiều API và cần một lối vào đơn giản hơn.
+  objectives:
+  - '- Nêu mục đích của Facade trong nhóm Structural.'
+  - '- Nhận diện coupling và quy trình gọi subsystem phức tạp.'
+- id: cau-truc-facade
+  title: Cấu trúc Facade
+  purpose: Hiểu vai trò của Facade, client và các thành phần subsystem.
+  objectives:
+  - '- Phác thảo sơ đồ client → Facade → subsystem.'
+  - '- Giải thích vì sao subsystem không cần biết Facade.'
+- id: thiet-ke-api-don-gian
+  title: Thiết kế API đơn giản
+  purpose: Xây dựng giao diện mức cao tập trung vào tác vụ client thật sự cần.
+  objectives:
+  - '- Chọn các operation có ý nghĩa nghiệp vụ.'
+  - '- Ẩn thứ tự gọi và chi tiết cấu hình subsystem.'
+- id: trien-khai-voi-java
+  title: Triển khai với Java
+  purpose: Dùng composition và delegation để kết nối các lớp hiện có phía sau Facade.
+  objectives:
+  - '- Viết lớp Facade giữ dependency qua constructor.'
+  - '- Điều phối nhiều service mà không sao chép logic của chúng.'
+- id: dependency-vong-doi
+  title: Dependency & Vòng đời
+  purpose: Kiểm soát việc tạo đối tượng và tài nguyên mà không biến Facade thành nơi ôm mọi trách nhiệm.
+  objectives:
+  - '- Lựa chọn inject hay tự khởi tạo subsystem.'
+  - '- Xử lý lỗi và đóng tài nguyên đúng chủ sở hữu.'
+- id: client-kiem-thu
+  title: Client & Kiểm thử
+  purpose: Kiểm tra rằng client được đơn giản hóa và hành vi subsystem vẫn giữ nguyên.
+  objectives:
+  - '- Thay lời gọi rời rạc bằng một lời gọi Facade.'
+  - '- Viết unit test delegation và integration test luồng tổng thể.'
+- id: so-sanh-pattern
+  title: So sánh Pattern
+  purpose: Chọn đúng Facade thay vì dùng nhầm các structural pattern có mục đích khác.
+  objectives:
+  - '- Phân biệt Facade với Adapter và Decorator.'
+  - '- So sánh Facade với Mediator theo hướng phụ thuộc.'
+- id: danh-doi-refactor
+  title: Đánh đổi & Refactor
+  purpose: Áp dụng Facade vừa đủ, tránh tạo lớp trung gian quá lớn hoặc che mất tính linh hoạt cần thiết.
+  objectives:
+  - '- Nhận biết god facade và API bộc lộ quá nhiều.'
+  - '- Tách Facade theo use case và đánh giá khả năng mở rộng.'

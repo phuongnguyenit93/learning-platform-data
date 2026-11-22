@@ -1,0 +1,3832 @@
+menu:
+- slug: mybatis-overview
+  title: Định hướng
+  childs:
+  - slug: mybatis-overview-001
+    title: MyBatis là gì và giải quyết vấn đề nào trong truy cập dữ liệu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-002
+    title: Vai trò SQL mapper và mức kiểm soát câu lệnh SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-003
+    title: Phân biệt MyBatis với JDBC trực tiếp và ORM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-004
+    title: Phân biệt MyBatis lõi, MyBatis-Spring và Spring Boot Starter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-005
+    title: Luồng dữ liệu từ phương thức Mapper tới cơ sở dữ liệu và kết quả Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-006
+    title: 'Các thuật ngữ: Mapper, statement, SqlSession, resultMap và TypeHandler'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-007
+    title: Trách nhiệm của ứng dụng, MyBatis, JDBC driver và hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-008
+    title: Điều kiện kiến thức nền về Java, SQL và giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-009
+    title: Những trường hợp phù hợp và giới hạn cần cân nhắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-overview-010
+    title: Lộ trình học từ truy vấn đơn giản tới tích hợp và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mybatis-architecture
+  title: Kiến trúc
+  childs:
+  - slug: mybatis-architecture-001
+    title: Vai trò của Configuration trong cấu hình lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-002
+    title: SqlSessionFactoryBuilder và quá trình khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-003
+    title: SqlSessionFactory và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-004
+    title: SqlSession và ranh giới một lần làm việc với dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-005
+    title: Mapper proxy và liên kết phương thức với mapped statement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-006
+    title: MappedStatement và thông tin thực thi câu lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-007
+    title: SqlSource, BoundSql và SQL sau khi xử lý động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-008
+    title: Executor và cơ chế điều phối truy vấn hoặc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-009
+    title: StatementHandler, ParameterHandler và ResultSetHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-010
+    title: TypeHandler trong đường ghi tham số và đọc kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-architecture-011
+    title: Phân biệt cấu hình dùng chung với trạng thái theo phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mybatis-setup
+  title: Thiết lập
+  childs:
+  - slug: mybatis-setup-001
+    title: Lựa chọn MyBatis, JDBC driver và thư viện kết nối tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-002
+    title: Khai báo phụ thuộc và kiểm tra classpath của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-003
+    title: Chuẩn bị cơ sở dữ liệu và lược đồ cho ví dụ tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-004
+    title: Tổ chức tài nguyên mybatis-config.xml và Mapper XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-005
+    title: Nạp cấu hình từ classpath bằng Resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-006
+    title: Khởi tạo DataSource và môi trường độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-007
+    title: Xây dựng SqlSessionFactory từ XML hoặc Configuration Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-008
+    title: Đăng ký Mapper và thực hiện truy vấn đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-009
+    title: Mở và đóng phiên bằng try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-setup-010
+    title: Kiểm chứng SQL, tham số và dữ liệu trả về của luồng tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mybatis-configuration
+  title: Cấu hình
+  childs:
+  - slug: mybatis-configuration-001
+    title: Cấu trúc và thứ tự các phần trong mybatis-config.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-002
+    title: Khai báo properties và thứ tự ưu tiên giá trị cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-003
+    title: Phân biệt placeholder cấu hình với tham số của câu lệnh SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-004
+    title: Cấu hình environments và lựa chọn môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-005
+    title: DataSource UNPOOLED, POOLED, JNDI và nguồn kết nối bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-006
+    title: Transaction manager JDBC, MANAGED và ranh giới quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-007
+    title: Đăng ký Mapper bằng resource, URL, class hoặc package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-008
+    title: Đặt tên rút gọn cho kiểu Java bằng typeAliases
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-009
+    title: Đăng ký typeHandlers và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-010
+    title: Cấu hình ánh xạ tự động và quy ước tên thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-011
+    title: Cấu hình timeout, fetchSize và loại executor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-012
+    title: Cấu hình cache, tải lười và phạm vi cache cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-configuration-013
+    title: Kiểm tra cấu hình có hiệu lực thay vì chỉ đọc giá trị khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mappers
+  title: Mapper
+  childs:
+  - slug: mappers-001
+    title: Thiết kế Mapper interface theo nhu cầu truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-002
+    title: Namespace XML và tên đầy đủ của Mapper interface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-003
+    title: Liên kết statement id với tên phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-004
+    title: Đăng ký và lấy Mapper bằng SqlSession.getMapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-005
+    title: Lựa chọn kiểu trả về cho truy vấn một bản ghi hoặc nhiều bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-006
+    title: Kiểu trả về của thao tác insert, update và delete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-007
+    title: Trả kết quả dạng Map và vai trò của @MapKey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-008
+    title: Tổ chức Mapper XML trong tài nguyên được đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-009
+    title: Phân biệt lời gọi qua Mapper proxy với statement id dạng chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-010
+    title: Hạn chế của nạp chồng phương thức dùng chung tên statement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-011
+    title: Phát hiện Mapper chưa đăng ký hoặc statement bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappers-012
+    title: Thiết kế hợp đồng khi không tìm thấy dữ liệu hoặc có kết quả trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameters
+  title: Tham số
+  childs:
+  - slug: parameters-001
+    title: Truyền một giá trị đơn vào câu lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-002
+    title: Truyền đối tượng JavaBean và truy cập thuộc tính lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-003
+    title: Truyền Map và xác định tên khóa được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-004
+    title: Truyền nhiều đối số bằng @Param
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-005
+    title: Tên tham số thực, tùy chọn biên dịch và useActualParamName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-006
+    title: Truyền List, array và collection có tên rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-007
+    title: Tham số nội bộ và đối tượng nguồn _parameter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-008
+    title: 'Ràng buộc giá trị bằng placeholder #{...}'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-009
+    title: Phân biệt ràng buộc tham số với thay thế chuỗi ${...}
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-010
+    title: Khai báo javaType, jdbcType và TypeHandler cho tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-011
+    title: Xử lý null và kiểu JDBC phù hợp với driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-012
+    title: Đặt giới hạn và chuẩn hóa tham số trước khi gọi Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-013
+    title: Kiểm chứng tên, thứ tự và kiểu tham số trong SQL thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crud-statements
+  title: Câu lệnh CRUD
+  childs:
+  - slug: crud-statements-001
+    title: Khai báo select, insert, update và delete trong XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-002
+    title: Chọn resultType hoặc resultMap theo hình dạng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-003
+    title: Đọc theo khóa và trả về trường hợp không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-004
+    title: Thêm bản ghi và kiểm tra kết quả thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-005
+    title: Cập nhật một phần hoặc toàn bộ các trường được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-006
+    title: Xóa bản ghi có điều kiện và bảo vệ phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-007
+    title: Đọc số hàng bị ảnh hưởng để phát hiện xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-008
+    title: Phân biệt upsert với insert hoặc update thuần túy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-009
+    title: Chọn statementType PREPARED, STATEMENT hoặc CALLABLE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-010
+    title: Cấu hình timeout và các thuộc tính thực thi theo statement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-011
+    title: Phân biệt gửi câu lệnh thành công với commit giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-statements-012
+    title: Giữ câu lệnh dễ đọc và tránh phụ thuộc ngầm vào thứ tự cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-generation
+  title: Khóa sinh
+  childs:
+  - slug: key-generation-001
+    title: Phân biệt khóa do ứng dụng cấp và khóa do cơ sở dữ liệu sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-002
+    title: Nhận khóa qua useGeneratedKeys
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-003
+    title: Ánh xạ khóa về đối tượng bằng keyProperty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-004
+    title: Vai trò keyColumn khi driver và hệ quản trị yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-005
+    title: Dùng selectKey để lấy hoặc tạo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-006
+    title: Thứ tự BEFORE và AFTER của selectKey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-007
+    title: Nhận khóa khi tham số được đặt tên bằng @Param
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-008
+    title: Xử lý nhiều cột sinh tự động và khóa có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-009
+    title: Kiểm chứng khóa trả về khi insert nhiều bản ghi hoặc chạy batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-010
+    title: Giới hạn tương thích của cơ chế sinh khóa theo JDBC driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-mapping
+  title: Ánh xạ kết quả
+  childs:
+  - slug: result-mapping-001
+    title: Chuyển cột SQL sang thuộc tính Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-002
+    title: Sử dụng bí danh cột để thể hiện hợp đồng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-003
+    title: Quy ước snake_case và mapUnderscoreToCamelCase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-004
+    title: Ánh xạ giá trị đơn, JavaBean và Map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-005
+    title: Xác định kiểu phần tử khi phương thức trả collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-006
+    title: Phân biệt resultType với kiểu collection bao ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-007
+    title: Kiểm soát hành vi tự động ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-008
+    title: Phát hiện cột không nhận diện và trường bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-009
+    title: Xử lý SQL NULL với thuộc tính nguyên thủy và kiểu bao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-010
+    title: Ánh xạ số chính xác, thời gian và dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-011
+    title: Tránh trùng nhãn cột khi truy vấn nhiều bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-mapping-012
+    title: Kiểm chứng hình dạng kết quả khi SQL hoặc mô hình Java thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-maps
+  title: resultMap
+  childs:
+  - slug: result-maps-001
+    title: Khai báo resultMap và tái sử dụng bằng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-002
+    title: Vai trò của id và result trong ánh xạ thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-003
+    title: Khai báo column, property, javaType và jdbcType
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-004
+    title: Tùy biến TypeHandler cho từng trường kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-005
+    title: Tổ chức resultMap theo đối tượng và mục đích đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-006
+    title: Kế thừa cấu hình resultMap bằng extends
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-007
+    title: Ánh xạ cấu trúc lồng nhau bằng association
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-008
+    title: Ánh xạ tập phần tử bằng collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-009
+    title: Chọn cấu trúc kết quả theo discriminator và case
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-010
+    title: Kết hợp ánh xạ tường minh với autoMapping có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-011
+    title: Dùng columnPrefix để tái sử dụng ánh xạ trong truy vấn JOIN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-012
+    title: Xác định khi nào đối tượng con nên được tạo bằng notNullColumn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-maps-013
+    title: Kiểm soát khóa nhận diện để ghép đúng các hàng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-relationships
+  title: Quan hệ dữ liệu
+  childs:
+  - slug: data-relationships-001
+    title: Ánh xạ quan hệ một–một và một–nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-002
+    title: So sánh nested select với nested result
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-003
+    title: JOIN nhiều bảng và ghép kết quả về đồ thị đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-004
+    title: Truyền khóa đơn hoặc khóa ghép vào truy vấn con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-005
+    title: Xử lý bảng con không có dữ liệu trong LEFT JOIN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-006
+    title: Giữ danh tính của đối tượng cha khi nhiều hàng cùng tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-007
+    title: Vai trò của id trong loại bỏ đối tượng trùng khi ghép kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-008
+    title: Tải ngay và tải lười theo cấu hình quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-009
+    title: Nhận diện truy vấn N+1 do nested select
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-010
+    title: Nguy cơ tải quan hệ ngoài thời điểm dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-011
+    title: Phân trang trên hàng JOIN và phân trang theo thực thể cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-012
+    title: Cắt quan hệ vòng và giới hạn độ sâu của mô hình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-sql
+  title: SQL động
+  childs:
+  - slug: dynamic-sql-001
+    title: Vai trò của OGNL trong biểu thức điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-002
+    title: Thêm điều kiện truy vấn bằng if
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-003
+    title: Lựa chọn một nhánh bằng choose, when và otherwise
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-004
+    title: Xử lý tiền tố WHERE và toán tử mở đầu bằng where
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-005
+    title: Tạo danh sách trường cập nhật bằng set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-006
+    title: Tùy biến tiền tố và hậu tố bằng trim
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-007
+    title: Duyệt collection bằng foreach
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-008
+    title: Xây dựng mệnh đề IN với tham số được ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-009
+    title: Xử lý collection null hoặc rỗng trước khi tạo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-010
+    title: Dùng bind để chuẩn bị giá trị trong ngữ cảnh SQL động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-011
+    title: Điều kiện cho thuộc tính lồng nhau có thể null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-012
+    title: Phân biệt thiếu thuộc tính, null, chuỗi rỗng và giá trị số không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-013
+    title: Ngăn SQL động tạo UPDATE hoặc DELETE không có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-sql-014
+    title: Kiểm tra các tổ hợp nhánh để tránh SQL thiếu hoặc thừa thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reusable-sql
+  title: Tái sử dụng SQL
+  childs:
+  - slug: reusable-sql-001
+    title: Tách đoạn SQL dùng chung bằng sql
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-002
+    title: Chèn đoạn SQL bằng include và refid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-003
+    title: Truyền thuộc tính tĩnh vào đoạn SQL dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-004
+    title: Phân biệt thay thế lúc nạp Mapper với ràng buộc lúc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-005
+    title: Chia sẻ danh sách cột với bí danh nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-006
+    title: Tái sử dụng điều kiện mà không che mất quy tắc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-007
+    title: Tham chiếu đoạn SQL giữa các namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-008
+    title: Quản lý phụ thuộc và thứ tự phân tích tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-009
+    title: Tránh trừu tượng hóa SQL thành chuỗi include khó theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-sql-010
+    title: Rà soát tác động khi sửa một đoạn SQL được nhiều statement sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-handlers
+  title: TypeHandler
+  childs:
+  - slug: type-handlers-001
+    title: Vai trò của TypeHandler khi ghi tham số và đọc kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-002
+    title: Các kiểu Java và JDBC cần đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-003
+    title: Xử lý BigDecimal và giữ độ chính xác giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-004
+    title: Ánh xạ kiểu ngày giờ Java và khác biệt với kiểu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-005
+    title: EnumTypeHandler và ánh xạ enum theo tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-006
+    title: EnumOrdinalTypeHandler và rủi ro khi thay đổi thứ tự enum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-007
+    title: Thiết kế TypeHandler cho enum có mã nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-008
+    title: Viết TypeHandler tùy biến bằng BaseTypeHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-009
+    title: Đăng ký theo kiểu Java, kiểu JDBC và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-010
+    title: Vai trò của @MappedTypes và @MappedJdbcTypes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-011
+    title: Xử lý null khi chuyển đổi giá trị tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-handlers-012
+    title: Kiểm thử đối xứng ghi–đọc và trường hợp dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: immutable-objects
+  title: Đối tượng bất biến
+  childs:
+  - slug: immutable-objects-001
+    title: Ánh xạ bằng constructor thay vì setter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-002
+    title: Khai báo constructor, idArg và arg trong resultMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-003
+    title: Đối chiếu tên, thứ tự và kiểu đối số constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-004
+    title: Ảnh hưởng của thông tin tên tham số khi biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-005
+    title: Ánh xạ Java record và kiểm chứng constructor được lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-006
+    title: Xử lý nhiều constructor và cấu hình lựa chọn tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-007
+    title: Giữ bất biến của value object khi nhận dữ liệu từ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-008
+    title: Ánh xạ collection và đối tượng con có cấu trúc bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-009
+    title: Xử lý SQL NULL khi constructor không chấp nhận giá trị vắng mặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-objects-010
+    title: Phân biệt mô hình đọc bất biến với mô hình dùng cho cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotations
+  title: Annotation
+  childs:
+  - slug: annotations-001
+    title: Khai báo truy vấn bằng @Select
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-002
+    title: Ghi dữ liệu bằng @Insert, @Update và @Delete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-003
+    title: Đặt tên tham số bằng @Param trong Mapper dùng annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-004
+    title: Khai báo ánh xạ bằng @Results và @Result
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-005
+    title: Tái sử dụng ánh xạ qua @ResultMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-006
+    title: Ánh xạ quan hệ bằng @One và @Many
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-007
+    title: Ánh xạ constructor bằng @ConstructorArgs và @Arg
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-008
+    title: Cấu hình thực thi bằng @Options
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-009
+    title: Nhận khóa sinh bằng @SelectKey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-010
+    title: Viết SQL động bằng script trong annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-011
+    title: Lựa chọn XML hoặc annotation theo độ phức tạp truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-012
+    title: Tránh khai báo trùng statement giữa XML và annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sql-providers
+  title: SQL Provider
+  childs:
+  - slug: sql-providers-001
+    title: Vai trò lớp cung cấp SQL cho Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-002
+    title: Sử dụng @SelectProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-003
+    title: Sử dụng @InsertProvider, @UpdateProvider và @DeleteProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-004
+    title: Liên kết lớp và phương thức cung cấp SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-005
+    title: Truyền tham số vào phương thức provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-006
+    title: Sử dụng ProviderContext để lấy ngữ cảnh Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-007
+    title: Tách cấu trúc SQL khỏi giá trị tham số được ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-008
+    title: Giữ phương thức provider dễ kiểm thử và ít tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-009
+    title: So sánh provider với XML SQL động và annotation trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-providers-010
+    title: Chẩn đoán lỗi tìm phương thức hoặc trả về SQL không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-sql
+  title: SQL bằng Java
+  childs:
+  - slug: java-sql-001
+    title: Dựng câu lệnh bằng lớp org.apache.ibatis.jdbc.SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-002
+    title: Tạo SELECT, JOIN, WHERE và ORDER BY bằng SQL builder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-003
+    title: Tạo INSERT, UPDATE và DELETE bằng API Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-004
+    title: Phối hợp SQL builder với phương thức provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-005
+    title: Giữ nguyên cơ chế ràng buộc tham số khi dựng SQL bằng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-006
+    title: Phân biệt SQL builder lõi với thư viện MyBatis Dynamic SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-007
+    title: Mô hình bảng và cột trong MyBatis Dynamic SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-008
+    title: Dựng điều kiện, phép JOIN và các thao tác ghi bằng DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-009
+    title: Kết xuất SQL cùng tham số để gọi Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-sql-010
+    title: Đánh giá phụ thuộc và tương thích trước khi chọn thư viện DSL bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sql-sessions
+  title: SqlSession
+  childs:
+  - slug: sql-sessions-001
+    title: Mở phiên với lựa chọn auto-commit và mức cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-002
+    title: Mở phiên từ DataSource hoặc Connection được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-003
+    title: Gọi selectOne và xử lý trường hợp nhiều hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-004
+    title: Gọi selectList, selectMap và lựa chọn hình dạng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-005
+    title: Thực thi insert, update và delete qua API phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-006
+    title: Lấy Mapper gắn với vòng đời SqlSession
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-007
+    title: Phân biệt DefaultSqlSession với SqlSessionTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-008
+    title: Giới hạn chia sẻ SqlSession độc lập giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-009
+    title: Commit, rollback và đóng phiên đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-010
+    title: Xóa cache cục bộ bằng clearCache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-011
+    title: Quản lý tài nguyên khi xử lý kết quả bằng Cursor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-sessions-012
+    title: Tránh giữ Mapper hoặc kết quả tải lười vượt vòng đời phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Ranh giới giao dịch khi chạy MyBatis độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-002
+    title: Ảnh hưởng của auto-commit tới nhiều câu lệnh liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-003
+    title: Quyền sở hữu commit và rollback của phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-004
+    title: Phân biệt flushStatements với commit giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-005
+    title: Đọc dữ liệu vừa ghi trong cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-006
+    title: Mức cô lập và các hành vi cần kiểm chứng ở hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-007
+    title: Rollback khi một bước ghi nhiều bảng thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-008
+    title: Lựa chọn phạm vi giao dịch theo thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-009
+    title: Ảnh hưởng của giao dịch dài tới kết nối và khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-010
+    title: Phân biệt quản lý JDBC, MANAGED và giao dịch Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-011
+    title: Kết quả chưa rõ khi mất kết nối trong lúc commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-012
+    title: Thiết kế thử lại giao dịch có kiểm soát và thao tác lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-013
+    title: Giới hạn giao dịch khi có nhiều DataSource hoặc dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: executors-and-batch
+  title: Executor và batch
+  childs:
+  - slug: executors-and-batch-001
+    title: Cơ chế thực thi của ExecutorType.SIMPLE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-002
+    title: Tái sử dụng câu lệnh với ExecutorType.REUSE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-003
+    title: Gom thao tác cập nhật bằng ExecutorType.BATCH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-004
+    title: Phân biệt JDBC batch với INSERT nhiều hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-005
+    title: Chọn executor theo đặc điểm truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-006
+    title: Thời điểm flush và ảnh hưởng của truy vấn xen kẽ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-007
+    title: Đọc BatchResult và số hàng được cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-008
+    title: Giới hạn diễn giải giá trị trả về trước khi batch được flush
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-009
+    title: Chọn kích thước lô theo bộ nhớ và giới hạn driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-010
+    title: Nhận khóa sinh khi ghi theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-011
+    title: Xử lý lỗi một phần và phạm vi rollback của batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-012
+    title: Phân biệt gửi lô thành công với giao dịch đã commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-and-batch-013
+    title: Quản lý batch executor khi tham gia giao dịch Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Phân biệt cache cục bộ với cache cấp hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Vòng đời cache cục bộ trong SqlSession
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Lựa chọn localCacheScope SESSION hoặc STATEMENT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Ảnh hưởng của việc sửa đối tượng nhận từ cache cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Các thao tác làm thay đổi hoặc xóa cache của phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Bật cache cấp hai theo namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Chia sẻ vùng cache bằng cache-ref
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Vai trò của useCache và flushCache trên statement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: Thời điểm cache và giao dịch được phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-010
+    title: Chính sách loại bỏ, thời hạn và giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-011
+    title: Chế độ readOnly và sao chép giá trị trong cache cho phép thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-012
+    title: Khả năng tuần tự hóa và hợp đồng của giá trị cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-013
+    title: Dữ liệu thay đổi ngoài namespace và nguy cơ cache cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-014
+    title: Kiểm chứng cache khi nhiều phiên hoặc nhiều tiến trình cùng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Vai trò của MyBatis-Spring trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Tạo SqlSessionFactoryBean từ DataSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: SqlSessionTemplate và vòng đời phiên theo giao dịch Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Đăng ký Mapper bằng @MapperScan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Đăng ký tường minh với MapperFactoryBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Tiêm Mapper vào dịch vụ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Cấu hình transaction manager dùng cùng DataSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Phối hợp @Transactional với các lời gọi Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Quyền quản lý commit, rollback và close trong môi trường Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Chuyển lỗi truy cập dữ liệu sang DataAccessException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Giới hạn khi trộn SqlSession độc lập với phiên do Spring quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-012
+    title: Cấu hình nhiều SqlSessionFactory và liên kết đúng Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-013
+    title: Giới hạn đổi loại executor trong một giao dịch Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Chọn phiên bản starter tương thích Spring Boot và JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Điều kiện tự cấu hình DataSource, SqlSessionFactory và SqlSessionTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Quét Mapper bằng @Mapper và @MapperScan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Cấu hình đường dẫn XML bằng mybatis.mapper-locations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: Đăng ký package chứa bí danh kiểu và TypeHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Dùng cấu hình mybatis.configuration hoặc tệp config-location
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Phân biệt configuration-properties với các thiết lập của Configuration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Tùy biến cấu hình bằng các điểm mở rộng của starter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Đăng ký interceptor và thành phần tùy biến trong Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-010
+    title: Cấu hình theo môi trường mà không đưa bí mật vào mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-011
+    title: Xử lý trường hợp nhiều DataSource cần cấu hình tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-012
+    title: Kiểm tra tài nguyên XML và bean Mapper khi đóng gói ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: large-queries
+  title: Truy vấn lớn
+  childs:
+  - slug: large-queries-001
+    title: Giới hạn kết quả tại câu lệnh SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-002
+    title: Phân trang bằng LIMIT, OFFSET hoặc cú pháp tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-003
+    title: Phân trang theo khóa cho dữ liệu tăng trưởng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-004
+    title: RowBounds và khác biệt với phân trang tại cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-005
+    title: Chọn thứ tự ổn định khi kết quả có giá trị trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-006
+    title: Dùng Cursor để duyệt kết quả và đóng tài nguyên đúng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-007
+    title: Dùng ResultHandler để xử lý kết quả theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-008
+    title: Vai trò fetchSize và điều kiện phụ thuộc JDBC driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-009
+    title: Giữ kết nối và giao dịch trong lúc đọc dữ liệu theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-010
+    title: Đọc theo lô để giới hạn bộ nhớ và thời gian giữ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-011
+    title: Phân trang đối tượng cha khi ánh xạ collection qua JOIN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-queries-012
+    title: Kiểm soát chi phí đếm tổng số kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency
+  title: Đồng thời
+  childs:
+  - slug: concurrency-001
+    title: Phạm vi an toàn luồng của factory, phiên và Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-002
+    title: Tách an toàn luồng khỏi tính đúng đắn của giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-003
+    title: Cuộc đua giữa kiểm tra tồn tại và thêm bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-004
+    title: Dùng ràng buộc duy nhất để bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-005
+    title: Khóa lạc quan bằng cột phiên bản trong SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-006
+    title: Phát hiện xung đột qua số hàng bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-007
+    title: Khóa bi quan bằng cú pháp hệ quản trị hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-008
+    title: Cập nhật tăng giảm nguyên tử thay vì đọc rồi ghi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-009
+    title: Deadlock, timeout khóa và thứ tự truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-010
+    title: Thử lại toàn giao dịch khi xung đột có thể phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-011
+    title: Bảo vệ bất biến trải trên nhiều bản ghi hoặc nhiều bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-database-vendors
+  title: Đa hệ quản trị
+  childs:
+  - slug: multiple-database-vendors-001
+    title: Vai trò của databaseIdProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-002
+    title: Khai báo statement theo databaseId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-003
+    title: Dùng _databaseId trong SQL động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-004
+    title: Khác biệt cú pháp phân trang, upsert và sinh khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-005
+    title: Quy tắc trích dẫn tên bảng hoặc cột theo hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-006
+    title: Khác biệt kiểu boolean, ngày giờ và số chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-007
+    title: Ánh xạ dữ liệu JSON hoặc kiểu đặc thù bằng TypeHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-008
+    title: Gọi stored procedure bằng statementType CALLABLE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-009
+    title: Tham số IN, OUT và INOUT trong lời gọi thủ tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-010
+    title: Xử lý nhiều result set khi driver và hệ quản trị hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-011
+    title: Ánh xạ câu lệnh ghi trả dữ liệu và vai trò của affectData
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-database-vendors-012
+    title: Xây bộ kiểm thử tương thích trên từng hệ quản trị được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mybatis-extensions
+  title: Mở rộng MyBatis
+  childs:
+  - slug: mybatis-extensions-001
+    title: Những trường hợp cần mở rộng thay vì cấu hình sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-002
+    title: Viết plugin bằng Interceptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-003
+    title: Khai báo @Intercepts và @Signature
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-004
+    title: Các điểm can thiệp Executor, StatementHandler, ParameterHandler và ResultSetHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-005
+    title: Kiểm soát phạm vi và thứ tự thực thi plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-006
+    title: Đọc BoundSql mà không làm lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-007
+    title: Nguy cơ thay đổi SQL nhưng không đồng bộ tham số hoặc cache key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-008
+    title: Tùy biến tạo đối tượng bằng ObjectFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-009
+    title: Tùy biến ngôn ngữ SQL bằng LanguageDriver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-010
+    title: Phân biệt plugin tự viết với tiện ích phân trang của bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mybatis-extensions-011
+    title: Kiểm chứng tính tương thích và chi phí của thành phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-organization
+  title: Tổ chức mã
+  childs:
+  - slug: code-organization-001
+    title: Đặt Mapper và SQL theo miền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-002
+    title: Tách mô hình lưu trữ khỏi DTO giao tiếp bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-003
+    title: Thiết kế truy vấn phục vụ đọc theo hình dạng dữ liệu cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-004
+    title: Đặt ranh giới giữa Service, Repository và Mapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-005
+    title: Quy ước tên statement, tham số và resultMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-006
+    title: Quản lý SQL phức tạp mà vẫn kiểm tra được kế hoạch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-007
+    title: Tách migration lược đồ khỏi logic ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-008
+    title: Vai trò MyBatis Generator và phạm vi mã có thể sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-009
+    title: Lựa chọn target runtime và phụ thuộc của mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-010
+    title: Tách phần sinh tự động khỏi SQL hoặc mô hình tự viết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-011
+    title: Rà soát thay đổi khi sinh lại từ lược đồ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-012
+    title: Tránh giả định MyBatis-Plus hoặc tiện ích bên ngoài là khả năng của lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: 'Ràng buộc giá trị bằng #{...} để hạn chế SQL injection'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Rủi ro thay thế trực tiếp chuỗi bằng ${...}
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Danh sách cho phép đối với tên cột, bảng và hướng sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Ngăn SQL động cập nhật hoặc xóa ngoài phạm vi cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Áp dụng điều kiện phân quyền và phân tách đơn vị thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Phân biệt lọc theo quyền với chỉ nhận định danh từ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Giới hạn kích thước collection và số lượng tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Giới hạn độ sâu hoặc độ phức tạp của truy vấn do đầu vào quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Cấp quyền tối thiểu cho tài khoản cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Quản lý thông tin kết nối và mã hóa đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Che thông tin nhạy cảm trong SQL log và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-012
+    title: Rà soát ảnh hưởng bảo mật của provider và plugin tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử Mapper bằng cơ sở dữ liệu thật trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Giới hạn của mock Mapper và cơ sở dữ liệu thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Chuẩn bị migration cùng dữ liệu mẫu có thể lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử CRUD và số hàng bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử null, enum, số chính xác và dữ liệu ngày giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử khóa sinh và ánh xạ về đúng đối tượng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử mọi nhánh SQL động và collection rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử resultMap, JOIN và kết quả có quan hệ lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử số truy vấn để phát hiện N+1 và tải lười ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử commit, rollback và lỗi khi flush batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử cache giữa nhiều phiên có cập nhật dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử đồng thời với lịch thực thi được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Dùng @MybatisTest khi phù hợp với cấu hình dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm tra khác biệt giữa rollback trong test và hành vi commit thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-diagnostics
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: error-diagnostics-001
+    title: Đọc chuỗi nguyên nhân của lỗi MyBatis và JDBC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-002
+    title: Lỗi Invalid bound statement và liên kết namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-003
+    title: Lỗi Parameter not found và tên @Param
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-004
+    title: Không tìm thấy Mapper XML trong tài nguyên đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-005
+    title: Trùng mapped statement hoặc resultMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-006
+    title: Không tìm thấy thuộc tính getter hoặc setter phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-007
+    title: Không tìm được constructor hay TypeHandler cho kiểu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-008
+    title: TooManyResultsException khi truy vấn kỳ vọng một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-009
+    title: Lỗi SQL sau khi ghép nhánh động hoặc include
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-010
+    title: Lỗi jdbcType khi truyền null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-011
+    title: Thiếu commit hoặc cấu hình sai transaction manager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-012
+    title: Cursor hoặc quan hệ tải lười được dùng sau khi đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-013
+    title: Khoanh vùng lỗi do driver, SQL, cấu hình hoặc mô hình Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo chi phí truy vấn và ánh xạ trong toàn bộ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đọc SQL cùng tham số để tái hiện đúng truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Phân tích kế hoạch thực thi và mức sử dụng chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Giảm cột và hàng được tải thay vì tối ưu chỉ phần Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: So sánh JOIN, nested select và nhiều truy vấn theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Kiểm soát N+1, số lượt mạng và kích thước kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Tối ưu batch theo tải thực tế và giới hạn driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đánh giá SIMPLE, REUSE và BATCH bằng phép đo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Theo dõi bộ nhớ khi dựng đồ thị đối tượng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Định cỡ connection pool theo năng lực xử lý của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Chọn cache theo yêu cầu độ mới và cách dữ liệu bị cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Tránh dùng plugin hoặc cache để che truy vấn chưa được đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Lựa chọn logging framework và mức log theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Bật log theo Mapper hoặc statement cần chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Theo dõi truy vấn chậm, lỗi và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Quan sát connection pool, giao dịch dài và chờ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Theo dõi batch thất bại và các tác vụ cần đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Quản lý tương thích giữa Mapper, lược đồ và phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Kiểm tra phụ thuộc và tài nguyên khi nâng cấp MyBatis hoặc driver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Xác minh cấu hình đang chạy sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Lập quy trình xử lý cache cũ, thiếu kết nối và timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-010
+    title: Bảo vệ dữ liệu thật khi tái hiện lỗi và đo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-mybatis-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-mybatis-practice-001
+    title: Xây ứng dụng MyBatis độc lập cho một danh mục có CRUD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-002
+    title: Thiết kế Mapper XML có tham số rõ ràng và resultMap tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-003
+    title: Xây bộ lọc động có phân trang và kiểm soát thứ tự sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-004
+    title: Ánh xạ đơn hàng cùng các dòng hàng từ kết quả JOIN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-005
+    title: So sánh nested select với JOIN bằng số truy vấn và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-006
+    title: Viết TypeHandler cho giá trị nghiệp vụ có mã riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-007
+    title: Ánh xạ mô hình đọc bất biến và kiểm thử giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-008
+    title: Thực hiện batch có khóa sinh, lỗi giữa lô và rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-009
+    title: Tích hợp dịch vụ Spring với nhiều thao tác trong một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-010
+    title: Kiểm chứng cache khi hai phiên lần lượt đọc và cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-011
+    title: Xử lý cập nhật đồng thời bằng phiên bản và số hàng bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-mybatis-practice-012
+    title: Hoàn thiện kiểm thử tích hợp, phép đo và hướng dẫn chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

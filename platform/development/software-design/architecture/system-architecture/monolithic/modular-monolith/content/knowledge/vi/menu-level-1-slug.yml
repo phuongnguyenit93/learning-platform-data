@@ -1,0 +1,76 @@
+menu:
+  - title: "Nền tảng và phạm vi của Modular Monolith"
+    slug: modular-monolith-foundations
+    index: 0
+  - title: "Khảo sát nghiệp vụ và xác định ranh giới module"
+    slug: module-boundary-discovery
+    index: 1
+  - title: "Mô hình miền và bất biến bên trong module"
+    slug: domain-modeling-and-invariants
+    index: 2
+  - title: "Cấu trúc nội bộ và tổ chức mã nguồn"
+    slug: module-internal-structure
+    index: 3
+  - title: "Hợp đồng và API giữa các module"
+    slug: module-contracts-and-apis
+    index: 4
+  - title: "Đồ thị phụ thuộc và quy tắc tương tác"
+    slug: dependency-graphs-and-interactions
+    index: 5
+  - title: "Lắp ghép ứng dụng và bảo vệ ranh giới kỹ thuật"
+    slug: app-composition-boundary-enforcement
+    index: 6
+  - title: "Quyền sở hữu dữ liệu và thiết kế lưu trữ"
+    slug: data-ownership-and-storage
+    index: 7
+  - title: "Giao dịch và nhất quán trong module"
+    slug: module-transactions-and-consistency
+    index: 8
+  - title: "Phối hợp giao dịch xuyên module"
+    slug: cross-module-transaction-coordination
+    index: 9
+  - title: "Giao tiếp qua sự kiện và độ tin cậy"
+    slug: event-communication-and-reliability
+    index: 10
+  - title: "Truy vấn liên module và mô hình đọc"
+    slug: cross-module-queries-and-read-models
+    index: 11
+  - title: "Tích hợp hệ thống bên ngoài"
+    slug: external-system-integration
+    index: 12
+  - title: "Bảo mật và quản trị truy cập theo module"
+    slug: module-security-and-access-control
+    index: 13
+  - title: "Chiến lược kiểm thử chức năng và tích hợp"
+    slug: functional-and-integration-testing
+    index: 14
+  - title: "Kiểm thử kiến trúc và ngăn xói mòn ranh giới"
+    slug: architecture-tests-boundary-enforcement
+    index: 15
+  - title: "Quan sát hệ thống và khả năng chẩn đoán"
+    slug: observability-and-diagnostics
+    index: 16
+  - title: "Hiệu năng, đồng thời và giới hạn cô lập"
+    slug: performance-concurrency-and-isolation
+    index: 17
+  - title: "Build, triển khai và vận hành một đơn vị phát hành"
+    slug: build-deployment-and-operations
+    index: 18
+  - title: "Quản trị kiến trúc và phối hợp nhóm"
+    slug: architecture-governance-team-collab
+    index: 19
+  - title: "Mẫu lỗi và dấu hiệu suy giảm tính module"
+    slug: modularity-antipatterns-and-erosion
+    index: 20
+  - title: "Chuyển đổi từ monolith hiện hữu"
+    slug: legacy-monolith-migration
+    index: 21
+  - title: "Đánh giá và chuẩn bị tách microservices"
+    slug: microservices-extraction-assessment
+    index: 22
+  - title: "Thực hành thiết kế hệ thống bán hàng theo module"
+    slug: modular-sales-system-design-workshop
+    index: 23
+  - title: "Thực hành triển khai, kiểm chứng và đánh giá kiến trúc"
+    slug: implementation-arch-validation-workshop
+    index: 24

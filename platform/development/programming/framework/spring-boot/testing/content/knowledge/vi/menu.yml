@@ -1,0 +1,499 @@
+menu:
+- level1: Bức tranh kiểm thử
+  level2:
+  - Kiểm thử tự động giải quyết vấn đề gì khi phát triển ứng dụng Spring Boot
+  - Một ca kiểm thử gồm điều kiện ban đầu, hành động và kết quả mong đợi
+  - Đơn vị được kiểm thử và các ranh giới phụ thuộc
+  - Phân biệt unit test, test slice, integration test và kiểm thử đầu cuối
+  - Ứng dụng chạy được, context khởi động được và nghiệp vụ đúng là các bằng chứng khác nhau
+  - Vai trò của JUnit, Spring Test, Spring Boot Test, Mockito và Testcontainers
+  - Kiểm thử hành vi quan sát được và tránh bám chặt cách hiện thực
+  - Tính độc lập, lặp lại được và phản hồi nhanh của bộ kiểm thử
+  - Trình tự học từ kiểm thử không có Spring đến tích hợp nhiều thành phần
+- level1: Chiến lược kiểm thử
+  level2:
+  - Chọn cấp kiểm thử theo rủi ro và phạm vi cần chứng minh
+  - Phân bổ unit test, slice test và integration test theo kiến trúc
+  - Ma trận trường hợp thành công, đầu vào sai, biên và phụ thuộc lỗi
+  - Phân biệt kiểm thử chức năng, hợp đồng, bảo mật và hiệu năng
+  - Chọn thành phần thật, fake, stub, mock hoặc dịch vụ trong container
+  - Arrange–Act–Assert và Given–When–Then để mô tả hành vi
+  - Viết kiểm thử hồi quy trước hoặc cùng lúc sửa lỗi
+  - Vòng lặp TDD và lựa chọn điểm áp dụng trong Spring Boot
+  - Đặt tên ca kiểm thử theo tình huống và kết quả
+  - Độ bao phủ mã nguồn, độ mạnh của assertion và giới hạn của các con số
+  - Chi phí bảo trì và cách nhận diện kiểm thử giá trị thấp
+- level1: Thiết lập kiểm thử
+  level2:
+  - Cấu trúc src/test/java, src/test/resources và cách tổ chức package
+  - Dependency kiểm thử và phạm vi testImplementation, testRuntimeOnly
+  - Spring Boot dependency management và tương thích thư viện kiểm thử
+  - Starter kiểm thử chung và các module theo công nghệ ở từng dòng Spring Boot
+  - JUnit Platform, Jupiter và Vintage trong quá trình phát hiện test
+  - Cấu hình Gradle useJUnitPlatform và thực thi test bằng wrapper
+  - Chạy một lớp, một phương thức hoặc một nhóm tag
+  - Cấu hình IDE và đối chiếu với cách chạy trên dòng lệnh
+  - Classpath, tài nguyên kiểm thử và khác biệt với môi trường ứng dụng
+  - Đọc báo cáo lỗi, stack trace và xác định ca kiểm thử thực sự đã chạy
+- level1: JUnit Jupiter
+  level2:
+  - '@Test, @DisplayName và cấu trúc lớp kiểm thử'
+  - '@BeforeEach, @AfterEach, @BeforeAll và @AfterAll'
+  - Vòng đời PER_METHOD, PER_CLASS và trạng thái dùng chung
+  - '@Nested để nhóm các tình huống liên quan'
+  - '@ParameterizedTest với nguồn dữ liệu đơn giản'
+  - '@MethodSource, @CsvSource và @CsvFileSource'
+  - Kiểm thử giá trị null, rỗng, biên và tổ hợp đầu vào
+  - '@Tag và phân nhóm theo mục đích thực thi'
+  - Assumption, điều kiện môi trường và lý do bỏ qua test
+  - Timeout và khác biệt giữa giới hạn thời gian thông thường với preemptive timeout
+  - Extension model, MockitoExtension và SpringExtension
+  - '@TempDir cho tài nguyên tạm và dọn dữ liệu sau test'
+- level1: Assertion
+  level2:
+  - Chọn kết quả quan sát được để xác nhận hành vi
+  - JUnit assertions và nhóm nhiều điều kiện kiểm chứng
+  - 'AssertJ: fluent assertions và thông điệp lỗi dễ đọc'
+  - So sánh collection, thứ tự, phần tử trùng và tập rỗng
+  - So sánh đối tượng theo thuộc tính và recursive comparison
+  - Kiểm tra exception, nguyên nhân và thông điệp phù hợp
+  - Kiểm tra thời gian, số thập phân và sai số được chấp nhận
+  - JSON assertions, JSONPath và so sánh cấu trúc
+  - Soft assertions và phạm vi sử dụng có kiểm soát
+  - Tránh assertion luôn đúng, quá yếu hoặc phụ thuộc chi tiết không liên quan
+- level1: Mockito
+  level2:
+  - Mock, stub, fake và spy trong thiết kế kiểm thử
+  - '@Mock, @InjectMocks và khởi tạo qua MockitoExtension'
+  - when–thenReturn, thenThrow và mô phỏng nhiều lần gọi
+  - ArgumentMatchers, eq và quy tắc dùng matcher nhất quán
+  - ArgumentCaptor để kiểm tra dữ liệu gửi đến phụ thuộc
+  - verify, số lần gọi và thứ tự khi hành vi yêu cầu
+  - doReturn, doThrow và giới hạn khi làm việc với spy
+  - Strict stubbing và phát hiện cấu hình giả lập không được sử dụng
+  - Mock phương thức void, final hoặc static theo khả năng phiên bản
+  - Khép phạm vi static mock và tránh làm rò trạng thái giữa các test
+  - Phân biệt mock đối tượng Java với thay thế bean trong Spring context
+  - Giới hạn over-mocking và kiểm thử chỉ lặp lại mã hiện thực
+- level1: Unit test nghiệp vụ
+  level2:
+  - Kiểm thử service bằng constructor injection mà không khởi động Spring
+  - Giả lập repository và kiểm chứng quy tắc nghiệp vụ
+  - Kiểm thử validator, mapper và phép biến đổi dữ liệu
+  - Phân biệt lỗi đầu vào với lỗi phụ thuộc hoặc trạng thái nghiệp vụ
+  - Kiểm thử biên, trạng thái chuyển tiếp và nhánh xử lý lỗi
+  - Đưa Clock vào thiết kế để kiểm thử logic theo thời gian
+  - Kiểm soát ngẫu nhiên, UUID và bộ sinh định danh
+  - Kiểm tra tính lũy đẳng và hành vi khi thao tác bị gọi lại
+  - Kiểm thử dữ liệu gửi ra ngoài thay vì chỉ đếm lời gọi
+  - Giới hạn của unit test với transaction, proxy, validation và cấu hình Spring
+- level1: Spring TestContext
+  level2:
+  - TestContext framework và vai trò của SpringExtension
+  - Khởi tạo ApplicationContext, tiêm phụ thuộc và thực thi test
+  - '@ContextConfiguration và khai báo cấu hình tối thiểu'
+  - '@SpringJUnitConfig khi cần Spring nhưng không cần Spring Boot'
+  - TestExecutionListener và các giai đoạn vòng đời kiểm thử
+  - Context hierarchy và phạm vi cấu hình cha, con
+  - Dependency injection vào test instance và constructor
+  - Kế thừa cấu hình, lớp @Nested và annotation tổng hợp
+  - 'Proxy Spring trong test: transaction, cache và method security'
+  - Phân biệt lỗi tải context với lỗi assertion hoặc lỗi nghiệp vụ
+- level1: Cấu hình môi trường test
+  level2:
+  - Tìm @SpringBootConfiguration và ảnh hưởng của cấu trúc package
+  - Nested @Configuration và @TestConfiguration trong lớp kiểm thử
+  - '@Import để bổ sung cấu hình hoặc bean cần thiết'
+  - '@ActiveProfiles và application-test.yml'
+  - '@TestPropertySource và properties trên annotation kiểm thử'
+  - '@DynamicPropertySource cho port, URL và tài nguyên tạo động'
+  - Thứ tự ưu tiên cấu hình và cách xác minh giá trị thực sự được dùng
+  - '@ConfigurationProperties, binding và validation trong test'
+  - Tách cấu hình kiểm thử khỏi secret và dịch vụ production
+  - Điều khiển command-line arguments và thuộc tính khởi động theo phiên bản
+  - Dùng cấu hình dùng chung mà vẫn giữ ranh giới từng nhóm test
+- level1: Thay thế bean
+  level2:
+  - '@MockBean, @SpyBean và phạm vi áp dụng trong các dòng Spring Boot cũ'
+  - '@MockitoBean, @MockitoSpyBean và phiên bản Spring Framework hỗ trợ'
+  - Thay bean theo type, tên và qualifier khi có nhiều ứng viên
+  - Thêm mock khi thiếu bean so với bắt buộc thay bean đã tồn tại
+  - Spy bean thật, tác động phụ và cách stub an toàn
+  - Reset mock giữa các ca kiểm thử và trạng thái dùng chung
+  - '@TestBean hoặc @TestConfiguration để cung cấp fake, stub'
+  - '@Primary, @Qualifier và giới hạn của việc bật bean definition overriding'
+  - Bean bị mock và ảnh hưởng đến proxy transaction, cache hoặc security
+  - Ảnh hưởng của khai báo mock tới khóa cache ApplicationContext
+  - Chọn test double ở đúng ranh giới thay vì mock toàn bộ chuỗi nghiệp vụ
+- level1: '@SpringBootTest'
+  level2:
+  - '@SpringBootTest tải ứng dụng theo cơ chế Spring Boot như thế nào'
+  - webEnvironment MOCK, NONE, RANDOM_PORT và DEFINED_PORT
+  - MOCK không đồng nghĩa có embedded server đang lắng nghe
+  - '@AutoConfigureMockMvc với context đầy đủ'
+  - '@AutoConfigureWebTestClient và điều kiện hỗ trợ của ứng dụng'
+  - Khởi động server thật với RANDOM_PORT
+  - '@LocalServerPort, management port và địa chỉ gọi trong test'
+  - Chọn classes, properties và các tùy chọn khởi động cần kiểm chứng
+  - ApplicationRunner, CommandLineRunner và tác động khi tải ứng dụng
+  - Giao dịch trên luồng HTTP server khác với giao dịch của phương thức test
+  - Kiểm tra context khởi động và kiểm tra hành vi ứng dụng
+  - Tiêu chí dùng full context thay cho unit test hoặc test slice
+- level1: Test slice
+  level2:
+  - Test slice giới hạn những bean và auto-configuration nào
+  - Chọn @WebMvcTest, @WebFluxTest, @JsonTest hoặc slice dữ liệu
+  - TypeExcludeFilter, component scan và nguyên nhân bean ngoài phạm vi xuất hiện
+  - Bổ sung dependency cần thiết bằng import hoặc bean thay thế
+  - Phân biệt cấu hình slice với context ứng dụng đầy đủ
+  - '@OverrideAutoConfiguration và @ImportAutoConfiguration'
+  - Include filter, exclude filter và phạm vi quét thành phần
+  - '@AutoConfigureTestDatabase và chính sách thay thế DataSource'
+  - Không chồng nhiều slice để tạo một context không rõ phạm vi
+  - Ma trận chọn slice theo thành phần và bằng chứng cần thu được
+- level1: Spring MVC
+  level2:
+  - '@WebMvcTest và phạm vi Controller, advice, converter, filter'
+  - 'MockMvc: standaloneSetup và webAppContextSetup'
+  - Gửi request với path variable, query parameter, header và body
+  - Kiểm tra status, header, content type và nội dung phản hồi
+  - JSONPath, JSON assertions và dữ liệu trả về
+  - Bean Validation, binding lỗi và phản hồi đầu vào không hợp lệ
+  - '@ControllerAdvice, exception handler và ProblemDetail'
+  - Filter, interceptor, argument resolver và cấu hình MVC tùy chỉnh
+  - Multipart, upload và giới hạn dữ liệu
+  - Async request, asyncDispatch và xử lý phản hồi bất đồng bộ
+  - MockMvcTester trong các phiên bản hỗ trợ
+  - Giới hạn của MockMvc so với gọi server qua HTTP thật
+- level1: Spring WebFlux
+  level2:
+  - '@WebFluxTest và thành phần web được đưa vào context'
+  - WebTestClient gắn Controller, ApplicationContext hoặc server thật
+  - Kiểm thử annotated Controller và functional endpoint
+  - Gửi request và kiểm tra status, header, body
+  - Kiểm tra Mono, Flux và dữ liệu nhiều phần tử
+  - Validation, codec và xử lý lỗi của WebFlux
+  - Filter Reactive và cấu hình phụ thuộc của slice
+  - Kiểm thử streaming, SSE và giới hạn thời gian chờ
+  - Kiểm tra Reactor Context được truyền trong chuỗi xử lý
+  - Phân biệt lỗi ứng dụng với lỗi do block hoặc subscribe sai cách
+  - Giới hạn của web slice khi cần kiểm chứng toàn bộ ứng dụng
+- level1: Luồng Reactive
+  level2:
+  - reactor-test và kiểm thử publisher ngoài Spring context
+  - 'StepVerifier: giá trị, hoàn tất và tín hiệu lỗi'
+  - Kiểm tra thứ tự phần tử và dữ liệu bị loại bỏ
+  - Virtual time cho delay, timeout và retry
+  - Tạo publisher đúng thời điểm khi dùng withVirtualTime
+  - TestPublisher để điều khiển dữ liệu và tín hiệu từ phụ thuộc
+  - PublisherProbe để kiểm tra nhánh fallback được đăng ký
+  - Kiểm thử demand, backpressure và cancellation
+  - Kiểm thử Reactor Context và ranh giới chuyển scheduler
+  - Giới hạn thời gian xác minh và dọn scheduler sau test
+- level1: HTTP tích hợp
+  level2:
+  - Chọn kiểm thử HTTP thật khi cần kiểm chứng embedded server
+  - TestRestTemplate, WebTestClient và RestTestClient theo dòng phiên bản
+  - Cấu hình base URL từ RANDOM_PORT thay vì gắn cứng port
+  - Kiểm tra hợp đồng status, header, JSON và thông báo lỗi
+  - Cookie, session, redirect và nhiều request liên tiếp
+  - Kiểm thử upload, download và phản hồi có kích thước lớn
+  - Dữ liệu được commit trên server và chiến lược dọn sau test
+  - Kiểm thử management endpoint trên port riêng
+  - Phân biệt kiểm thử HTTP phía backend với kiểm thử đầu cuối qua trình duyệt
+  - Giới hạn của mock web environment với filter container và cấu hình mạng
+- level1: JSON và serialization
+  level2:
+  - '@JsonTest và phạm vi hỗ trợ serialization'
+  - JacksonTester, JsonbTester, GsonTester hoặc BasicJsonTester theo thư viện
+  - Kiểm tra JSON đầu ra theo cấu trúc và thuộc tính quan trọng
+  - Deserialize đầu vào hợp lệ, thiếu trường, sai kiểu hoặc dư trường
+  - Naming strategy, null, enum và định dạng ngày giờ
+  - Custom serializer, deserializer, module và @JsonComponent
+  - Round-trip serialization và giới hạn của việc chỉ kiểm tra hai chiều
+  - Kiểm tra trường nhạy cảm không xuất hiện trong phản hồi
+  - JSON fixture, charset và tính ổn định khi so sánh
+  - Đối chiếu cấu hình mapper trong test với mapper ứng dụng thực tế
+- level1: GraphQL và SOAP
+  level2:
+  - '@GraphQlTest và phạm vi resolver, controller được kiểm thử'
+  - GraphQlTester cho query, mutation và biến đầu vào
+  - Kiểm tra data path, GraphQL errors và nullability
+  - ExecutionGraphQlServiceTester so với kiểm thử qua HTTP
+  - HttpGraphQlTester và kiểm chứng transport, authentication
+  - Kiểm thử subscription và dữ liệu phát ra
+  - Kiểm thử resolver phụ thuộc service, DataLoader và ngữ cảnh
+  - '@WebServiceClientTest cho ứng dụng SOAP client'
+  - '@WebServiceServerTest và MockWebServiceClient theo phiên bản hỗ trợ'
+  - Kiểm tra XML payload, SOAP fault và ánh xạ lỗi
+  - Chọn kiểm thử hợp đồng hay tích hợp transport theo rủi ro
+- level1: Spring Data JPA
+  level2:
+  - '@DataJpaTest và thành phần persistence được tự cấu hình'
+  - Embedded database, database thật và @AutoConfigureTestDatabase
+  - TestEntityManager với persist, flush, clear và find
+  - Kiểm thử derived query, JPQL và native query
+  - Phân biệt dữ liệu trong persistence context với dữ liệu đã ghi xuống database
+  - Ràng buộc unique, foreign key và thời điểm phát sinh lỗi
+  - Mapping quan hệ, cascade, orphan removal và lazy loading
+  - Phân trang, sắp xếp, projection và dữ liệu tổng
+  - Kiểm thử optimistic locking và xung đột cập nhật
+  - H2 khác database production ở dialect, kiểu dữ liệu và hành vi SQL
+  - Kiểm chứng migration và schema thay vì chỉ dựa vào tự tạo bảng
+  - Giới hạn rollback mặc định đối với các hành vi cần commit thật
+- level1: JDBC và dữ liệu SQL
+  level2:
+  - '@JdbcTest và kiểm thử JdbcTemplate'
+  - '@DataJdbcTest cho Spring Data JDBC'
+  - '@JooqTest và cấu hình DSLContext'
+  - '@DataR2dbcTest và kiểm thử truy cập dữ liệu Reactive'
+  - Kiểm tra row mapping, giá trị null và chuyển đổi kiểu
+  - Kiểm tra câu lệnh SQL, điều kiện lọc và số dòng bị tác động
+  - Generated key, batch update và ràng buộc database
+  - Giao dịch JDBC so với giao dịch Reactive trong kiểm thử
+  - Kiểm thử stored procedure hoặc tính năng riêng của database khi có sử dụng
+  - Chọn slice hoặc full context để kiểm chứng cấu hình DataSource thực tế
+- level1: Dữ liệu ngoài SQL
+  level2:
+  - '@DataMongoTest và kiểm thử document, mapping, query'
+  - '@DataRedisTest với cache, TTL và cấu trúc dữ liệu được sử dụng'
+  - '@DataElasticsearchTest và khác biệt của khả năng hỗ trợ theo phiên bản'
+  - '@DataNeo4jTest cho quan hệ và truy vấn đồ thị'
+  - '@DataCassandraTest, @DataCouchbaseTest hoặc @DataLdapTest khi ứng dụng có tích hợp'
+  - Khởi tạo dịch vụ thật bằng container và cấu hình kết nối động
+  - Dọn collection, key, index hoặc dữ liệu giữa các test
+  - Eventual consistency, refresh index và chờ điều kiện quan sát được
+  - Phiên bản dịch vụ, mapping và giới hạn của bản giả lập
+  - Kiểm thử tính năng giao dịch theo khả năng của từng hệ lưu trữ
+- level1: Giao dịch kiểm thử
+  level2:
+  - Test-managed transaction, transaction của ứng dụng và transaction của database
+  - '@Transactional trên test và phạm vi rollback mặc định'
+  - '@Rollback, @Commit và kiểm soát dữ liệu sau mỗi test'
+  - TestTransaction để kết thúc và mở lại giao dịch có chủ đích
+  - '@BeforeTransaction và @AfterTransaction'
+  - Flush để quan sát lỗi SQL trước khi transaction kết thúc
+  - REQUIRES_NEW và dữ liệu có thể được commit ngoài transaction của test
+  - HTTP thật, @Async và lời gọi chạy ngoài luồng transaction của test
+  - Preemptive timeout và rủi ro thao tác ngoài ngữ cảnh giao dịch
+  - Kiểm thử after-commit event và tác vụ chỉ chạy sau commit
+  - Giao dịch Reactive và khác biệt với cơ chế ThreadLocal
+  - Chiến lược dọn dữ liệu khi rollback không bao phủ toàn bộ thao tác
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Fixture, object builder và dữ liệu có ý nghĩa theo từng tình huống
+  - Tạo dữ liệu tối thiểu để quan sát một hành vi
+  - '@Sql, @SqlGroup và thời điểm chạy script'
+  - '@SqlConfig, transaction mode và script dọn dữ liệu'
+  - Flyway, Liquibase và kiểm chứng nâng cấp schema
+  - Tách dữ liệu kiểm thử khỏi seed data của ứng dụng
+  - Định danh, thời gian, múi giờ và locale có thể lặp lại
+  - Dữ liệu biên, ký tự Unicode, null và quan hệ không hợp lệ
+  - Schema, database hoặc namespace riêng cho từng nhóm test
+  - Tránh phụ thuộc thứ tự và dữ liệu còn lại từ test trước
+  - Kiểm thử truy vấn với kích thước, phân bố và đặc điểm dữ liệu phù hợp
+- level1: Testcontainers
+  level2:
+  - Vì sao dùng dịch vụ thật trong container cho kiểm thử tích hợp
+  - Dependency Testcontainers, JUnit integration và môi trường Docker
+  - '@Testcontainers, @Container và vòng đời static hoặc instance'
+  - Container do Spring quản lý qua @Bean trong cấu hình test
+  - '@ServiceConnection và ConnectionDetails trong các phiên bản hỗ trợ'
+  - '@DynamicPropertySource khi cần tự cung cấp cấu hình kết nối'
+  - Phân biệt container dùng chung với dữ liệu dùng chung
+  - Chọn image, ghim phiên bản và kiểm soát tính lặp lại
+  - Mapped port, container network và URL từ ứng dụng đến dịch vụ
+  - Wait strategy, readiness và kiểm tra dịch vụ thực sự sẵn sàng
+  - Dọn tài nguyên, log container và chẩn đoán startup lỗi
+  - Container reuse, context cache và giới hạn khi chạy song song
+  - Chạy Testcontainers trên CI với quyền, tài nguyên và Docker phù hợp
+  - Docker Compose trong test và lựa chọn theo khả năng hỗ trợ của Spring Boot
+- level1: HTTP client và giả lập
+  level2:
+  - Chọn ranh giới giả lập khi ứng dụng gọi dịch vụ HTTP ngoài
+  - '@RestClientTest và cấu hình client được đưa vào slice'
+  - MockRestServiceServer với RestTemplate hoặc RestClient theo phiên bản
+  - HTTP stub server cho WebClient và client cần kiểm chứng transport
+  - Kiểm tra URL, method, header, query, body và số lần gọi
+  - Giả lập phản hồi thành công, dữ liệu sai và mã lỗi
+  - Timeout, chậm phản hồi, ngắt kết nối và giới hạn retry
+  - Fallback, circuit breaker và tránh gọi lặp ngoài dự kiến
+  - Kiểm tra propagation của token, correlation ID và header cần thiết
+  - Khởi động stub ở port động, reset expectation và dọn sau test
+  - Giới hạn của mock tại lớp Java so với server giả lập qua HTTP
+- level1: Messaging
+  level2:
+  - Phân biệt unit test listener với tích hợp qua broker thật
+  - Giả lập producer, consumer hoặc adapter ở ranh giới nghiệp vụ
+  - Embedded Kafka và Kafka trong Testcontainers
+  - RabbitMQ trong container và công cụ kiểm thử của Spring AMQP
+  - Topic, queue, consumer group và cách ly dữ liệu kiểm thử
+  - Serialization, header, routing key và schema thông điệp
+  - Chờ listener sẵn sàng trước khi gửi dữ liệu
+  - Xác nhận xử lý bất đồng bộ bằng điều kiện có thời hạn
+  - Retry, redelivery, dead-letter và kiểm tra lỗi không bị mất
+  - Thông điệp trùng, tính lũy đẳng và tác động nghiệp vụ
+  - Transaction, outbox và quan hệ giữa ghi database với gửi thông điệp
+  - Dọn broker state, offset và tài nguyên sau từng nhóm test
+- level1: Bảo mật
+  level2:
+  - spring-security-test và tích hợp filter chain thật trong kiểm thử
+  - '@WithMockUser, anonymous và danh tính tùy chỉnh'
+  - Kiểm thử chưa xác thực, thiếu quyền và được phép truy cập
+  - CSRF token và phân biệt lỗi CSRF với lỗi phân quyền
+  - Form login, HTTP Basic, session và logout khi ứng dụng có sử dụng
+  - JWT, opaque token, OAuth2 Login và các công cụ mô phỏng tương ứng
+  - Authentication được mock không chứng minh chữ ký hoặc toàn bộ luồng xác thực
+  - Kiểm thử method security qua Spring proxy
+  - Quyền theo đối tượng, chủ sở hữu và cách ly tenant
+  - Kiểm thử CORS, security header và xử lý lỗi bảo mật
+  - Giới hạn của việc tắt filter để làm test thành công
+  - Kiểm thử bảo mật Reactive với WebTestClient và Reactor Context
+- level1: Bất đồng bộ và lịch chạy
+  level2:
+  - Kiểm thử @Async qua proxy và executor được cấu hình
+  - CompletableFuture, callback và truyền lỗi về phía kiểm thử
+  - Chờ điều kiện hoàn tất thay cho thời gian ngủ cố định
+  - CountDownLatch, barrier và phối hợp luồng có kiểm soát
+  - Clock, scheduler và kiểm thử tác vụ theo thời gian
+  - Tách logic nghiệp vụ khỏi @Scheduled để kiểm thử độc lập
+  - Kiểm soát việc tự chạy scheduler khi khởi động context test
+  - Truyền SecurityContext, tenant và correlation ID sang tác vụ
+  - Timeout, hủy tác vụ và dọn thread sau test
+  - Kiểm thử Spring Batch job, step và tham số khi ứng dụng có sử dụng
+  - Kiểm thử chạy lại, xử lý trùng và lỗi giữa chừng
+  - Giới hạn của executor đồng bộ khi cần chứng minh hành vi đồng thời
+- level1: Kiểm thử auto-configuration
+  level2:
+  - ApplicationContextRunner cho auto-configuration có phạm vi hẹp
+  - AutoConfigurations.of và cấu hình cần được kiểm chứng
+  - withUserConfiguration và bean do ứng dụng cung cấp
+  - withPropertyValues và ma trận điều kiện cấu hình
+  - '@ConditionalOnClass, @ConditionalOnProperty và @ConditionalOnMissingBean'
+  - FilteredClassLoader để kiểm thử khi dependency không có trên classpath
+  - Kiểm tra loại bean, số lượng bean và thuộc tính cấu hình
+  - Xác minh auto-configuration nhường quyền cho cấu hình người dùng
+  - WebApplicationContextRunner và ReactiveWebApplicationContextRunner
+  - Kiểm thử binding, validation và giá trị mặc định của configuration properties
+  - Đọc ConditionEvaluationReport khi điều kiện không khớp
+- level1: Tích hợp bổ sung
+  level2:
+  - Kiểm thử @Cacheable, @CachePut, @CacheEvict qua bean proxy
+  - Cache key, TTL và dữ liệu tách biệt giữa người dùng hoặc tenant
+  - Xóa cache giữa các ca kiểm thử và kiểm chứng cache provider thực tế
+  - Kiểm thử method validation và khác biệt với gọi đối tượng Java trực tiếp
+  - Kiểm tra tác động của self-invocation tới transaction, cache và validation
+  - File, đường dẫn, charset và tài nguyên trong @TempDir
+  - ClassPathResource trong test và giới hạn khi ứng dụng được đóng gói
+  - Email với mail server giả lập và xác nhận nội dung, người nhận
+  - Object storage hoặc hệ thống tệp ngoài được thay thế ở đúng ranh giới
+  - Kiểm tra lỗi IO, quyền truy cập, đóng stream và dọn tài nguyên
+- level1: Sự kiện và observability
+  level2:
+  - '@RecordApplicationEvents và ApplicationEvents'
+  - Kiểm tra loại sự kiện, nội dung và số lần phát
+  - Phân biệt sự kiện đã phát với listener đã xử lý xong
+  - '@EventListener, @TransactionalEventListener và thời điểm commit'
+  - Kiểm thử listener đồng bộ, bất đồng bộ và nhánh xử lý lỗi
+  - Kiểm thử ApplicationRunner, readiness và vòng đời ứng dụng
+  - '@AutoConfigureObservability theo khả năng hỗ trợ của phiên bản'
+  - MeterRegistry thử nghiệm và kiểm chứng counter, timer, tag
+  - Observation, trace context và tránh phụ thuộc exporter bên ngoài
+  - Health indicator, Actuator endpoint và chính sách truy cập
+  - CapturedOutput hoặc công cụ ghi log thử nghiệm khi log là hành vi cần chứng minh
+- level1: Hợp đồng và khả năng phục hồi
+  level2:
+  - Phân biệt contract test với integration test và kiểm thử đầu cuối
+  - Hợp đồng request, response, schema và khả năng tương thích
+  - Consumer-driven contract khi nhiều dịch vụ phát triển độc lập
+  - Kiểm tra thay đổi tương thích và thay đổi làm hỏng client
+  - Giả lập phụ thuộc chậm, lỗi, mất kết nối hoặc trả dữ liệu không hợp lệ
+  - Retry có giới hạn, backoff và tránh thực thi nghiệp vụ hai lần
+  - Timeout, fallback và circuit breaker theo cấu hình ứng dụng
+  - Kiểm thử hoạt động khi database, broker hoặc dịch vụ ngoài tạm gián đoạn
+  - Kiểm thử khởi động với cấu hình thiếu hoặc tài nguyên chưa sẵn sàng
+  - Ranh giới giữa kiểm thử chức năng, kiểm thử tải và thử nghiệm gây lỗi có kiểm soát
+- level1: Context cache và hiệu năng
+  level2:
+  - Context cache tái sử dụng ApplicationContext như thế nào
+  - 'Các thành phần tạo khóa cache: cấu hình, profile, properties và bean override'
+  - Quan sát cache hit, miss và số context thực sự được tạo
+  - Chuẩn hóa cấu hình test để giảm context trùng lặp
+  - '@DirtiesContext và chi phí dựng lại ứng dụng'
+  - Đo thời gian khởi động context, container và từng nhóm test
+  - Thay full-context test bằng slice hoặc unit test khi đủ bằng chứng
+  - Container dùng chung, context được cache và vòng đời kết nối
+  - Giới hạn của cache khi Gradle fork nhiều JVM
+  - Chọn phạm vi tối ưu mà vẫn giữ tính độc lập và khả năng phát hiện lỗi
+- level1: Cách ly và chạy song song
+  level2:
+  - Độc lập theo phương thức, lớp, JVM và tài nguyên ngoài
+  - JUnit parallel execution và số worker của Gradle
+  - Singleton bean, mock dùng chung và trạng thái có thể thay đổi
+  - Database, schema, topic, queue và namespace riêng
+  - Port động và tránh tranh chấp tài nguyên mạng
+  - Static field, system property, locale và timezone dùng chung
+  - '@DirtiesContext và bean override khi nhiều test dùng cùng context'
+  - ResourceLock hoặc cơ chế khóa theo khả năng của JUnit
+  - Clock, random seed và khả năng tái hiện một lần chạy thất bại
+  - Phát hiện test phụ thuộc thứ tự hoặc dữ liệu còn sót
+  - Chạy lặp, xáo trộn thứ tự và phân tích race condition
+  - Dọn executor, scheduler, connection và container khi test kết thúc
+- level1: Build và CI
+  level2:
+  - Tách nhóm unit, slice, integration và kiểm thử đầu cuối
+  - JUnit tag, Gradle test filter và task kiểm thử theo nhóm
+  - Source set hoặc JVM Test Suite cho integration test theo phiên bản Gradle
+  - Thứ tự task, dependency và kiểm tra cần chạy trước khi build thành công
+  - Ma trận JDK, Spring Boot và phiên bản dịch vụ phụ thuộc
+  - Docker trên runner và tài nguyên cho Testcontainers
+  - Cache dependency, image và giới hạn của việc tái sử dụng kết quả test
+  - JUnit XML, HTML report, log và artifact để điều tra lỗi
+  - 'JaCoCo: line, branch coverage và chất lượng điều kiện kiểm chứng'
+  - Mutation testing để đánh giá khả năng phát hiện thay đổi sai
+  - Test retry, flaky test và chính sách xử lý lỗi không ổn định
+  - Bảo vệ secret, dữ liệu thật và đích kết nối trong môi trường CI
+- level1: Chẩn đoán lỗi kiểm thử
+  level2:
+  - Test không được phát hiện do engine, classpath, tên hoặc bộ lọc
+  - Failed to load ApplicationContext và truy nguyên lỗi đầu tiên
+  - Context failure threshold và thông báo lặp che nguyên nhân gốc
+  - Không tìm thấy @SpringBootConfiguration hoặc chọn sai cấu hình
+  - Thiếu bean trong slice, import dư và vòng phụ thuộc cấu hình
+  - Nhiều bean cùng type, qualifier sai hoặc bean override không đúng
+  - Mockito stubbing sai, mock không được dùng hoặc verify sai thời điểm
+  - Mockito agent, mock maker và tương thích JDK
+  - MockMvc trả 401, 403 hoặc 404 ngoài dự kiến
+  - Database constraint chỉ lỗi sau flush hoặc commit
+  - Container chưa sẵn sàng, sai mapped port hoặc mất kết nối
+  - Test chỉ thất bại khi chạy cả suite hoặc trên CI
+  - Reactive test không hoàn tất, mất context hoặc dùng scheduler sai
+  - Port, thread hoặc tài nguyên còn sống sau khi test kết thúc
+- level1: Phiên bản và chuyển đổi
+  level2:
+  - Đối chiếu Spring Boot, Spring Framework, JUnit, Mockito và Testcontainers
+  - JUnit 4, SpringRunner và chuyển sang Jupiter
+  - Vintage engine cho giai đoạn chạy song song bộ test cũ
+  - 'JUnit 5 và JUnit 6: tương thích với dòng Spring Boot đang sử dụng'
+  - '@MockBean, @SpyBean và chuyển sang @MockitoBean, @MockitoSpyBean'
+  - Thay đổi module, starter và package test annotation giữa các dòng Spring Boot
+  - MockMvcTester, RestTestClient và API chỉ có ở phiên bản hỗ trợ
+  - Thay đổi Jackson, JSON tester và dependency serialization
+  - Thay đổi test database replacement, service connection và thư viện container
+  - AOT, native testing và phạm vi annotation được hỗ trợ
+  - Giữ ma trận hành vi làm chuẩn khi refactor hoặc nâng cấp bộ kiểm thử
+- level1: Thực hành tích hợp
+  level2:
+  - Xây bộ kiểm thử cho một tính năng từ service đến HTTP và database
+  - Viết unit test cho quy tắc nghiệp vụ có nhánh lỗi và điều kiện biên
+  - Kiểm thử Controller bằng @WebMvcTest và hợp đồng phản hồi
+  - Kiểm thử repository với database thật trong Testcontainers
+  - Kiểm thử cùng nghiệp vụ qua @SpringBootTest với RANDOM_PORT
+  - Chứng minh ranh giới rollback và dọn dữ liệu sau HTTP test
+  - Giả lập dịch vụ ngoài với timeout, lỗi và retry có giới hạn
+  - Kiểm thử gửi, nhận thông điệp và xử lý thông điệp trùng
+  - Kiểm thử xác thực, quyền sở hữu và truy cập chéo tenant
+  - Kiểm thử luồng Reactive bằng virtual time và WebTestClient
+  - Đo số context, thời gian suite và tối ưu cấu hình dùng chung
+  - Chạy bộ kiểm thử trên CI và điều tra một lỗi chỉ xuất hiện khi chạy song song
+  - Tổng hợp ma trận yêu cầu, bằng chứng và giới hạn của từng loại test

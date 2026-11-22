@@ -1,0 +1,7 @@
+# Support Document Word — Xử lý tài liệu Word bằng Java
+
+Tài liệu Microsoft Word thường được sử dụng để tạo hợp đồng, thư xác nhận, biểu mẫu và báo cáo. Trong ứng dụng Java, việc xử lý Word không chỉ là nối các chuỗi văn bản: chương trình cần hiểu định dạng `.doc` và `.docx`, cấu trúc đoạn văn, các *runs* mang định dạng, bảng, hình ảnh và phần đầu/cuối trang. Module tập trung vào định dạng **DOCX** và thư viện **Apache POI XWPF**; với tài liệu DOC nhị phân cũ, POI cung cấp thành phần HWPF riêng.
+
+Lộ trình dành cho người học đã biết Java, Maven hoặc Gradle, thao tác tệp và xử lý ngoại lệ. Bạn sẽ bắt đầu từ WordprocessingML/Office Open XML, sau đó dùng `XWPFDocument` để đọc, trích xuất nội dung và tạo tài liệu mới. Phần tiếp theo hướng dẫn xây đoạn văn, áp dụng kiểu trình bày, tạo bảng và danh sách, chèn ảnh hoặc header/footer. Khi làm việc với template, cần chú ý placeholder có thể bị chia thành nhiều `XWPFRun`, vì vậy thay văn bản đơn giản không phải lúc nào cũng giữ nguyên định dạng.
+
+Kết thúc module, bạn sẽ thực hành điền dữ liệu vào mẫu DOCX, lưu, mở lại và kiểm tra nội dung cùng bố cục. Bạn cũng sẽ nắm giới hạn của API cấp cao, nguyên tắc đóng tài nguyên và cách xử lý tệp không tin cậy. Sau khi hoàn thành, bạn có thể triển khai tác vụ đọc hoặc sinh báo cáo Word cơ bản trong Java, đồng thời biết khi nào cần thư viện chuyên sâu như docx4j hoặc bước chuyển đổi riêng nếu phải xuất PDF.

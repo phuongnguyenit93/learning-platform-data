@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: data-structures-overview
+  index: 0
+- title: Đặc tả và chi phí
+  slug: specifications-and-costs
+  index: 1
+- title: Bộ nhớ và biểu diễn
+  slug: memory-and-representation
+  index: 2
+- title: Mảng
+  slug: arrays
+  index: 3
+- title: Mảng động
+  slug: dynamic-arrays
+  index: 4
+- title: Chuỗi và dãy bit
+  slug: strings-and-bit-sequences
+  index: 5
+- title: Danh sách liên kết
+  slug: linked-lists
+  index: 6
+- title: Ngăn xếp
+  slug: stacks
+  index: 7
+- title: Hàng đợi và deque
+  slug: queues-and-deques
+  index: 8
+- title: Tập hợp và ánh xạ
+  slug: sets-and-maps
+  index: 9
+- title: Bảng băm
+  slug: hash-tables
+  index: 10
+- title: Biến thể bảng băm
+  slug: hash-table-variants
+  index: 11
+- title: Cây cơ bản
+  slug: basic-trees
+  index: 12
+- title: Duyệt và biến đổi cây
+  slug: tree-traversal-and-transformation
+  index: 13
+- title: Cây tìm kiếm nhị phân
+  slug: binary-search-trees
+  index: 14
+- title: Cây tìm kiếm cân bằng
+  slug: balanced-search-trees
+  index: 15
+- title: Cây nhiều nhánh
+  slug: multiway-trees
+  index: 16
+- title: Heap và hàng đợi ưu tiên
+  slug: heaps-and-priority-queues
+  index: 17
+- title: Tập hợp rời nhau
+  slug: disjoint-sets
+  index: 18
+- title: Trie và chỉ mục chuỗi
+  slug: tries-and-string-indexes
+  index: 19
+- title: Biểu diễn đồ thị
+  slug: graph-representations
+  index: 20
+- title: Truy vấn đoạn
+  slug: range-queries
+  index: 21
+- title: Cấu trúc ngẫu nhiên
+  slug: randomized-structures
+  index: 22
+- title: Cây tăng cường
+  slug: augmented-trees
+  index: 23
+- title: Chỉ mục không gian
+  slug: spatial-indexes
+  index: 24
+- title: Cấu trúc xác suất
+  slug: probabilistic-structures
+  index: 25
+- title: Khóa số nguyên
+  slug: integer-keys
+  index: 26
+- title: Bất biến và phiên bản
+  slug: immutability-and-versions
+  index: 27
+- title: Biểu diễn gọn
+  slug: compact-representations
+  index: 28
+- title: Dữ liệu ngoài bộ nhớ
+  slug: external-memory-data
+  index: 29
+- title: Truy cập đồng thời
+  slug: concurrent-access
+  index: 30
+- title: Lựa chọn và thiết kế
+  slug: selection-and-design
+  index: 31
+- title: Kiểm chứng và thực hành
+  slug: verification-and-practice
+  index: 32

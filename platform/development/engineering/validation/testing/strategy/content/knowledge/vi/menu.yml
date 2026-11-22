@@ -1,0 +1,382 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Chiến lược kiểm thử là gì và những quyết định cần định hướng
+  - Vai trò của kiểm thử trong cung cấp thông tin về chất lượng và rủi ro
+  - Quan hệ giữa nhu cầu người dùng, yêu cầu kỹ thuật và bằng chứng kiểm thử
+  - Phân biệt kiểm chứng kỹ thuật (verification) và xác nhận nhu cầu sử dụng (validation)
+  - Phân biệt chiến lược, cách tiếp cận, kế hoạch và ca kiểm thử
+  - Chiến lược ở cấp tổ chức, sản phẩm, dự án và từng phạm vi kiểm thử
+  - 'Các thành phần cốt lõi: mục tiêu, phạm vi, phương pháp, nguồn lực và tiêu chí'
+  - Chi phí phát hiện lỗi, tốc độ phản hồi và chi phí duy trì
+  - Giới hạn của kiểm thử và cách trình bày mức độ tin cậy
+  - Lộ trình xây dựng chiến lược từ bối cảnh đến quyết định phát hành
+- level1: Bối cảnh sản phẩm
+  level2:
+  - Xác định người dùng, mục tiêu kinh doanh và hành trình quan trọng
+  - Nhận diện miền nghiệp vụ và hậu quả khi sản phẩm hoạt động sai
+  - Phân tích kiến trúc, luồng dữ liệu và các điểm tích hợp
+  - Đánh giá vòng đời sản phẩm, mức độ trưởng thành và tốc độ thay đổi
+  - Xác định mô hình phát triển và nhịp phát hành
+  - Đánh giá kỹ năng nhóm, công cụ hiện có và nợ kiểm thử
+  - Ghi nhận yêu cầu hợp đồng, kiểm toán và ràng buộc dữ liệu
+  - Phân tích dịch vụ bên ngoài và thành phần do nhóm khác sở hữu
+  - Xác định giả định, giới hạn và thông tin còn thiếu trước khi chọn phương án
+- level1: Mục tiêu chất lượng
+  level2:
+  - Chuyển nhu cầu kinh doanh thành mục tiêu chất lượng có thể kiểm chứng
+  - Phân biệt mục tiêu kiểm thử với mục tiêu sửa lỗi hoặc cải tiến sản phẩm
+  - Định nghĩa mục tiêu cụ thể, đo được và phù hợp thời hạn
+  - Xác định kết quả nghiệp vụ đúng và mức dịch vụ cần đáp ứng
+  - Phân biệt mức chất lượng mong muốn với ngưỡng chấp nhận tối thiểu
+  - Ưu tiên các thuộc tính chất lượng khi có đánh đổi
+  - Thống nhất nguồn xác nhận kết quả mong đợi và người giải thích yêu cầu
+  - Gắn mục tiêu với bằng chứng, cách đo và điều kiện đánh giá
+  - Rà soát lại mục tiêu khi người dùng, rủi ro hoặc kiến trúc thay đổi
+- level1: Phạm vi kiểm thử
+  level2:
+  - 'Xác định đối tượng kiểm thử: mã, dịch vụ, dữ liệu, cấu hình và sản phẩm triển khai'
+  - Vẽ ranh giới hệ thống và các thành phần thuộc phạm vi trách nhiệm
+  - Lựa chọn chức năng, luồng nghiệp vụ và thuộc tính chất lượng cần kiểm tra
+  - Xác định phiên bản, nền tảng, trình duyệt và cấu hình cần hỗ trợ
+  - Phân biệt phạm vi của một thay đổi với phạm vi hồi quy
+  - Ghi rõ phần ngoài phạm vi cùng lý do và tác động
+  - Xác định thành phần kiểm tra trực tiếp và thành phần chỉ kiểm chứng qua hợp đồng
+  - Quản lý giả định về dịch vụ bên ngoài và hệ thống dùng chung
+  - Liên kết phạm vi với yêu cầu, rủi ro và giới hạn nguồn lực
+  - Rà soát khoảng trống hoặc trùng lặp giữa các nhóm phụ trách
+- level1: Rủi ro
+  level2:
+  - Phân biệt rủi ro chất lượng sản phẩm với rủi ro thực hiện dự án
+  - Nhận diện rủi ro từ người dùng, nghiệp vụ, kiến trúc và lịch sử sự cố
+  - Đánh giá khả năng xảy ra và mức tác động theo thang phù hợp
+  - Ghi nhận độ bất định và giới hạn của việc chấm điểm rủi ro
+  - Xây danh mục rủi ro và xác định người phụ trách theo dõi
+  - Chọn độ sâu kiểm thử theo mức rủi ro và khả năng phát hiện lỗi
+  - Phân bổ nguồn lực vào vùng quan trọng hoặc thay đổi nhiều
+  - Phân biệt giảm thiểu bằng kiểm thử với biện pháp thiết kế, vận hành và phòng ngừa
+  - Theo dõi rủi ro còn lại sau khi thực hiện các hoạt động kiểm chứng
+  - Cập nhật đánh giá khi có bằng chứng mới hoặc thay đổi phạm vi
+  - Trình bày phần rủi ro được chấp nhận và người có thẩm quyền quyết định
+- level1: Cách tiếp cận
+  level2:
+  - Lựa chọn cách tiếp cận từ mục tiêu, rủi ro và bối cảnh thực tế
+  - Kiểm thử dựa trên yêu cầu và tiêu chí chấp nhận
+  - Kiểm thử dựa trên rủi ro và lịch sử lỗi
+  - Kiểm thử dựa trên mô hình trạng thái, quy tắc hoặc luồng nghiệp vụ
+  - Kiểm thử dựa trên kinh nghiệm và giả thuyết về lỗi
+  - Sử dụng danh sách kiểm tra hoặc quy trình theo nhu cầu chứng minh
+  - Kết hợp đặc tả sẵn với khám phá trong quá trình thực thi
+  - Phối hợp kiểm thử tĩnh, kiểm thử động và phản hồi từ vận hành
+  - So sánh các phương án theo hiệu quả phát hiện lỗi và chi phí
+  - Ghi lại lý do lựa chọn và điều kiện cần xem xét lại
+- level1: Phân bổ kiểm thử
+  level2:
+  - Phân biệt cấp độ kiểm thử, loại kiểm thử và kỹ thuật thiết kế
+  - Phân bổ mục tiêu giữa đơn vị, tích hợp, hệ thống và chấp nhận
+  - Vị trí của E2E trong danh mục kiểm chứng hành trình
+  - Sử dụng mô hình kim tự tháp kiểm thử để thảo luận phân bổ
+  - Sử dụng testing quadrants để nhìn các mục tiêu và hoạt động bổ sung
+  - Điều chỉnh mô hình theo kiến trúc thay vì áp tỷ lệ ca cố định
+  - Phối hợp kiểm tra hộp đen, hộp trắng và thông tin nội bộ bổ sung
+  - Giảm kiểm tra trùng mục tiêu giữa nhiều tầng
+  - Nhận diện rủi ro chưa được một tầng nào chịu trách nhiệm
+  - Đánh đổi giữa cô lập, độ giống thực tế, tốc độ và khả năng chẩn đoán
+- level1: Vòng đời phát triển
+  level2:
+  - Thiết kế hoạt động kiểm thử trong mô hình tuần tự, lặp và gia tăng
+  - Đưa phân tích rủi ro và tiêu chí chấp nhận vào giai đoạn làm rõ yêu cầu
+  - Thực hiện kiểm tra sớm với yêu cầu, thiết kế và mã nguồn
+  - Vị trí của TDD, BDD và ATDD trong chiến lược phản hồi
+  - Phối hợp kiểm thử trong nhóm Agile và chu trình DevOps
+  - Chọn thời điểm đánh giá bảo mật, hiệu năng và độ tin cậy
+  - Phản hồi từ production và vai trò của kiểm chứng sau triển khai
+  - Tích hợp hoạt động kiểm thử vào định nghĩa hoàn thành
+  - Điều chỉnh chiến lược theo nhịp phát hành và thay đổi của sản phẩm
+- level1: Kiểm thử tĩnh
+  level2:
+  - Lựa chọn sản phẩm công việc cần rà soát trước khi thực thi
+  - Rà soát yêu cầu, tiêu chí chấp nhận và thiết kế theo rủi ro
+  - Phối hợp rà soát mã với phân tích tĩnh tự động
+  - Phân biệt kiểm tra quy ước, dấu hiệu lỗi và vấn đề kiến trúc
+  - Xác định mức bắt buộc và cách xử lý cảnh báo
+  - Phân công người rà soát và mức độc lập cần thiết
+  - Theo dõi kết quả rà soát và chuyển vấn đề thành hành động
+  - Đánh giá giới hạn của phân tích tĩnh so với kiểm chứng khi chạy
+- level1: Đơn vị và tích hợp
+  level2:
+  - Xác định đơn vị hành vi và ranh giới cần cô lập
+  - Đưa quy tắc nghiệp vụ chi tiết vào tầng kiểm tra phù hợp
+  - Lựa chọn kiểm chứng trạng thái hoặc tương tác theo rủi ro
+  - Chọn mock, stub, fake hoặc thành phần phụ thuộc thật theo mục tiêu
+  - Phân biệt tích hợp giữa thành phần và tích hợp giữa hệ thống
+  - Kiểm tra giao tiếp với cơ sở dữ liệu, bộ nhớ đệm và hàng đợi
+  - Lựa chọn container, trình mô phỏng hoặc môi trường dùng chung
+  - Đánh giá sai lệch giữa thành phần thay thế với môi trường thực tế
+  - Phân công trách nhiệm kiểm tra lỗi tại từng điểm tích hợp
+  - Đặt ngân sách thời gian và tiêu chí độc lập cho từng nhóm kiểm thử
+- level1: API và hợp đồng
+  level2:
+  - Xác định hợp đồng tại ranh giới dịch vụ và đối tác
+  - Chọn phạm vi kiểm tra schema, ngữ nghĩa và lỗi của API
+  - Phối hợp kiểm thử từ phía cung cấp với phía sử dụng hợp đồng
+  - Đánh giá thay đổi tương thích và thay đổi phá vỡ hợp đồng
+  - Lựa chọn kiểm thử hợp đồng hướng người tiêu thụ khi phù hợp
+  - Kiểm tra hợp đồng của message và sự kiện bất đồng bộ
+  - Xác định bằng chứng còn cần từ tích hợp thật hoặc luồng đầu cuối
+  - Quản lý phiên bản hợp đồng và phối hợp lịch phát hành
+  - Chia sẻ trách nhiệm khi dịch vụ hoặc nhóm khác thay đổi
+- level1: Hệ thống và E2E
+  level2:
+  - Xác định mục tiêu kiểm thử toàn hệ thống và hành trình đầu cuối
+  - Chọn luồng cốt lõi từ góc nhìn người dùng hoặc tác nhân bên ngoài
+  - Lựa chọn điểm bắt đầu và kết quả kết thúc có thể quan sát
+  - Chọn kiểm chứng qua UI, API hoặc phối hợp các giao diện
+  - Xác định thành phần thật và phần được mô phỏng trong từng môi trường
+  - Kiểm tra hành trình có xác thực, dữ liệu và tác dụng phụ
+  - Lập phạm vi cho luồng bất đồng bộ hoặc đi qua nhiều dịch vụ
+  - Giới hạn số ca theo giá trị phát hiện lỗi và khả năng duy trì
+  - Đánh giá độ ổn định và chi phí môi trường của nhóm kiểm thử rộng
+  - Ghi rõ giới hạn kết luận của luồng đã được kiểm chứng
+- level1: Chấp nhận sản phẩm
+  level2:
+  - Xác định người đại diện nhu cầu sử dụng và quyền chấp nhận
+  - Thống nhất tiêu chí chấp nhận trước khi phát triển
+  - Liên kết ví dụ nghiệp vụ với hành vi có thể quan sát
+  - Phân biệt chấp nhận của người dùng với hoàn tất kiểm tra kỹ thuật
+  - Lựa chọn hoạt động UAT phù hợp với người dùng và môi trường
+  - Kiểm tra mức sẵn sàng vận hành cùng nhóm phụ trách hệ thống
+  - Lập lịch tham gia của bên liên quan và xử lý phản hồi
+  - Đánh giá tiêu chí chưa rõ hoặc chưa có bằng chứng
+  - Ghi nhận chấp nhận có điều kiện và các hành động còn lại
+- level1: Phi chức năng
+  level2:
+  - Chuyển mục tiêu tốc độ và công suất thành phạm vi kiểm thử hiệu năng
+  - Chọn mô hình tải và dữ liệu phù hợp với nhu cầu sử dụng
+  - Xác định phạm vi kiểm tra bảo mật từ tài sản và mối đe dọa
+  - Lựa chọn bằng chứng về chịu lỗi, phục hồi và độ sẵn sàng
+  - Kiểm tra sao lưu, khôi phục và mục tiêu phục hồi theo yêu cầu
+  - Lập ma trận tương thích giữa nền tảng, phiên bản và cấu hình
+  - Kết hợp đánh giá khả năng sử dụng với người dùng đại diện
+  - Xác định yêu cầu và phạm vi kiểm tra khả năng truy cập
+  - Đánh giá khả năng bảo trì, triển khai và quan sát hệ thống
+  - Phân bổ môi trường và chuyên môn cho các kiểm tra chuyên sâu
+  - Xác định ngưỡng và điều kiện đo riêng cho từng thuộc tính chất lượng
+- level1: Thiết kế bao phủ
+  level2:
+  - Liên kết yêu cầu, rủi ro, điều kiện kiểm thử và bằng chứng
+  - Xác định tiêu chí bao phủ theo chức năng, luồng và trạng thái
+  - Chọn phân vùng tương đương và giá trị biên theo loại dữ liệu
+  - Chọn bảng quyết định hoặc mô hình trạng thái cho quy tắc nghiệp vụ
+  - Chọn tổ hợp cấu hình theo rủi ro và tương tác cần kiểm chứng
+  - Lựa chọn tiêu chí cấu trúc mã phù hợp với mức độ quan trọng
+  - Đánh giá chất lượng bộ kiểm thử bằng kiểm thử đột biến (mutation testing) khi phù hợp
+  - Sử dụng lỗi lịch sử để bổ sung điều kiện kiểm thử
+  - Xác định nguồn xác nhận kết quả mong đợi cho dữ liệu khó dự đoán
+  - Nhận diện giới hạn của số ca, tỷ lệ thành công và độ bao phủ mã
+  - Rà soát vùng chưa bao phủ và lý do chấp nhận khoảng trống
+- level1: Thủ công và khám phá
+  level2:
+  - Xác định công việc cần nhận định của con người
+  - Lập mục tiêu và phạm vi phiên kiểm thử khám phá
+  - Kết hợp kiến thức người dùng, rủi ro và kinh nghiệm lỗi
+  - Phân bổ thời gian khám phá trong vòng lặp phát triển
+  - Ghi chép giả thuyết, thao tác, bằng chứng và phát hiện
+  - Lựa chọn cặp phối hợp giữa phát triển, kiểm thử và nghiệp vụ
+  - Chuyển phát hiện có giá trị thành hồi quy phù hợp
+  - Đánh giá mức bao phủ khám phá và thông tin còn thiếu
+  - Cân đối kiểm thử có kịch bản với khám phá theo tình huống
+- level1: Tự động hóa
+  level2:
+  - Xác định mục tiêu tự động hóa và vấn đề cần cải thiện
+  - Lựa chọn ca theo tần suất chạy, độ ổn định và giá trị phản hồi
+  - Phân tích chi phí xây dựng, vận hành và bảo trì
+  - Chọn tầng tự động hóa phù hợp với hành vi cần kiểm chứng
+  - Đánh giá công cụ theo khả năng tích hợp, kỹ năng và vòng đời hỗ trợ
+  - Thử nghiệm nhỏ trước khi mở rộng phạm vi
+  - Thiết kế mã kiểm thử, dữ liệu và các lớp hỗ trợ có thể duy trì
+  - Đặt yêu cầu về tính xác định, độc lập và khả năng chẩn đoán
+  - Quản lý kiểm thử thiếu ổn định (flaky test) và chính sách chạy lại
+  - Xác định người sở hữu và ngân sách bảo trì bộ kiểm thử
+  - Đo hiệu quả tự động hóa bằng phản hồi và lỗi được phát hiện
+- level1: Khả năng kiểm thử
+  level2:
+  - Đánh giá khả năng điều khiển đầu vào và quan sát kết quả
+  - Thiết kế điểm giao tiếp giúp kiểm tra hành vi độc lập
+  - Tách phụ thuộc để kiểm soát thời gian, ngẫu nhiên và dịch vụ ngoài
+  - Bổ sung log, chỉ số và định danh tương quan phục vụ chẩn đoán
+  - Xác định cơ chế chuẩn bị và đặt lại trạng thái kiểm thử
+  - Thiết kế healthcheck và điều kiện sẵn sàng của môi trường
+  - Kiểm soát phạm vi và quyền của giao diện hỗ trợ kiểm thử
+  - Đưa yêu cầu về khả năng kiểm thử vào thiết kế và rà soát kiến trúc
+  - Ưu tiên cải tiến sản phẩm khi chi phí kiểm tra xuất phát từ thiết kế khó quan sát
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Xác định loại dữ liệu và trạng thái cần cho từng mục tiêu
+  - Chọn dữ liệu tổng hợp, dữ liệu mẫu hoặc dữ liệu đã khử nhận dạng
+  - Thiết kế dữ liệu cho trường hợp biên, lỗi và khối lượng lớn
+  - Quản lý tài khoản, vai trò, vùng khách hàng (tenant) và quan hệ giữa các thực thể
+  - Cô lập dữ liệu giữa ca, nhóm thực thi và môi trường
+  - Thiết kế tạo mới, đặt lại, dọn dẹp và thời hạn tồn tại
+  - Kiểm soát thời gian, locale và yếu tố ngẫu nhiên
+  - Quản lý phiên bản dữ liệu cùng schema và ứng dụng
+  - Xác định quyền truy cập, trách nhiệm quản lý và giới hạn chia sẻ
+  - Đánh giá độ đại diện và các sai lệch của dữ liệu được chọn
+- level1: Môi trường kiểm thử
+  level2:
+  - Xác định môi trường cần cho từng cấp độ và loại kiểm thử
+  - Chọn môi trường riêng, dùng chung hoặc tạm theo lần chạy
+  - Đánh giá mức tương đồng cần thiết với production
+  - Cố định phiên bản ứng dụng, công cụ, thành phần phụ thuộc và cấu hình
+  - Lựa chọn dịch vụ thật, sandbox hoặc mô phỏng theo mục tiêu
+  - Quản lý mạng, chứng chỉ, bí mật và quyền truy cập
+  - Thiết kế cấp phát, kiểm tra sẵn sàng và thu hồi môi trường
+  - Phân bổ năng lực cho kiểm thử tải hoặc chạy đồng thời
+  - Theo dõi sai lệch cấu hình và sự cố hạ tầng
+  - Xác định giới hạn bằng chứng do điều kiện môi trường khác thực tế
+  - Lập phương án dự phòng khi môi trường hoặc dịch vụ bên ngoài không sẵn sàng
+- level1: Hồi quy
+  level2:
+  - Phân biệt kiểm thử xác nhận bản sửa với kiểm thử hồi quy
+  - Phân tích ảnh hưởng từ thay đổi mã, cấu hình, dữ liệu và thành phần phụ thuộc
+  - Xây bộ smoke, hồi quy cốt lõi và hồi quy mở rộng
+  - Ưu tiên ca theo rủi ro, vùng thay đổi và lịch sử lỗi
+  - Lựa chọn bộ kiểm thử theo tác động và kiểm tra giới hạn của lựa chọn
+  - Lập lịch chạy thường xuyên và chạy đầy đủ định kỳ
+  - Thêm hồi quy cho lỗi thực tế ở tầng phát hiện phù hợp
+  - Loại bỏ ca trùng mục tiêu hoặc không còn tương ứng với sản phẩm
+  - Quản lý thời gian chạy và dữ liệu cho bộ kiểm thử tăng dần
+  - Xác định phần hồi quy chưa chạy và rủi ro còn lại của bản phát hành
+- level1: CI/CD
+  level2:
+  - Phân bổ kiểm tra theo thời điểm commit, pull request, tích hợp và phát hành
+  - Đặt các kiểm tra phản hồi nhanh vào giai đoạn sớm
+  - Chạy kiểm tra rộng trên sản phẩm đã đóng gói và triển khai
+  - Thiết kế ma trận môi trường và giới hạn số tổ hợp
+  - Tách lỗi sản phẩm, lỗi kiểm thử và lỗi hạ tầng trong kết quả pipeline
+  - Chạy song song hoặc chia bộ kiểm thử theo ngân sách tài nguyên
+  - Quản lý artifact, log, báo cáo và truy vết phiên bản
+  - Thiết kế cách xử lý timeout, hủy và dọn tài nguyên
+  - Xác định trách nhiệm khôi phục pipeline khi kiểm tra thất bại
+  - Đối chiếu điều kiện chạy cục bộ với môi trường CI
+- level1: Tiêu chí chất lượng
+  level2:
+  - Định nghĩa điều kiện bắt đầu cho từng hoạt động kiểm thử
+  - Xác định tiêu chí hoàn tất gắn với mục tiêu và rủi ro
+  - Đặt ngưỡng chấp nhận lỗi theo tác động và khả năng khắc phục
+  - Đặt ngưỡng hiệu năng, độ tin cậy và bảo mật theo bối cảnh
+  - Quy định bằng chứng bắt buộc và điều kiện đo hợp lệ
+  - Thiết kế điểm chặn chất lượng (quality gate) với kết quả rõ ràng và người chịu trách nhiệm
+  - Phân biệt tiêu chí chưa đạt với dữ liệu đánh giá chưa có
+  - Quản lý ngoại lệ có thời hạn và biện pháp giảm thiểu
+  - Xác định quyền chấp nhận rủi ro và quyền quyết định phát hành
+  - Rà soát tiêu chí khi mục tiêu hoặc điều kiện sản phẩm thay đổi
+- level1: Nguồn lực
+  level2:
+  - Phân rã công việc theo phân tích, chuẩn bị, thực thi và bảo trì
+  - Ước lượng theo kinh nghiệm, công việc tương tự và tham vấn nhóm
+  - Sử dụng ước lượng ba điểm khi cần thể hiện độ bất định
+  - Tính thời gian cho dữ liệu, môi trường, điều tra và sửa bộ kiểm thử
+  - Phân biệt công sức thực hiện với thời gian chờ theo lịch
+  - Xác định kỹ năng chuyên sâu và khả năng đáp ứng của nhóm
+  - Lập ngân sách công cụ, hạ tầng và dịch vụ bên ngoài
+  - Dành năng lực cho kiểm tra lại, hồi quy và thay đổi đột xuất
+  - Điều chỉnh phạm vi theo nguồn lực và công khai rủi ro phát sinh
+- level1: Trách nhiệm
+  level2:
+  - Xác định trách nhiệm của phát triển, kiểm thử, nghiệp vụ và vận hành
+  - Thống nhất người sở hữu từng nhóm bằng chứng và bộ kiểm thử
+  - Chọn mức độc lập kiểm thử phù hợp với rủi ro sản phẩm
+  - Phối hợp với bảo mật, hiệu năng, trải nghiệm và bên thứ ba
+  - Xây ma trận trách nhiệm và cơ chế bàn giao rõ ràng
+  - Thiết kế kênh phản hồi nhanh khi yêu cầu hoặc kết quả chưa rõ
+  - Chia sẻ kiến thức và giảm phụ thuộc vào một cá nhân
+  - Thống nhất quyền phê duyệt thay đổi chiến lược và chấp nhận ngoại lệ
+  - Đánh giá năng lực nhóm và kế hoạch phát triển kỹ năng
+- level1: Lỗi và sự cố
+  level2:
+  - Thống nhất quy trình ghi nhận, phân loại và xử lý lỗi
+  - Phân biệt mức nghiêm trọng với mức ưu tiên sửa
+  - Xác định dữ liệu cần có để tái hiện và đánh giá tác động
+  - Tổ chức đánh giá lỗi với các bên có quyền quyết định
+  - Liên kết lỗi với yêu cầu, rủi ro, bản build và bằng chứng
+  - Đặt tiêu chí kiểm tra lại và đóng lỗi
+  - Xử lý lỗi không ổn định hoặc chỉ xuất hiện trong môi trường thực tế
+  - Chuyển sự cố production thành thông tin điều chỉnh chiến lược
+  - Phân tích nguyên nhân lọt lỗi và hành động phòng ngừa
+  - Quản lý lỗi tồn đọng và rủi ro được chấp nhận
+- level1: Đo lường
+  level2:
+  - Chọn chỉ số từ mục tiêu và câu hỏi cần trả lời
+  - Theo dõi bao phủ yêu cầu, rủi ro và hành trình quan trọng
+  - Đo thời gian có phản hồi và độ tin cậy của kết quả kiểm thử
+  - Theo dõi tỷ lệ thiếu ổn định và chi phí chạy lại
+  - Đánh giá lỗi được phát hiện sớm và lỗi lọt ra production
+  - Đo thời gian điều tra, sửa lỗi và khôi phục pipeline
+  - Đánh giá công sức bảo trì và chi phí hạ tầng
+  - Phân biệt tiến độ thực hiện với bằng chứng về chất lượng
+  - Đọc xu hướng theo phiên bản và ghi rõ điều kiện so sánh
+  - Nhận diện chỉ số dễ bị tối ưu sai hoặc thiếu ngữ cảnh
+  - Trình bày độ bất định, khoảng trống và giới hạn suy luận
+- level1: Phát hành và vận hành
+  level2:
+  - Tổng hợp bằng chứng kiểm thử cho bản phát hành cụ thể
+  - Đối chiếu tiêu chí chất lượng và các ngoại lệ còn hiệu lực
+  - Trình bày rủi ro còn lại cùng phương án giảm thiểu
+  - Xác minh migration, cấu hình và khả năng tương thích khi triển khai
+  - Lựa chọn smoke sau triển khai và kiểm tra mức sẵn sàng vận hành
+  - Phối hợp triển khai từng phần, canary hoặc cờ tính năng (feature flag) theo khả năng hệ thống
+  - Xác định tín hiệu dừng, quay lui hoặc khôi phục theo kế hoạch
+  - Phân biệt kiểm thử sau triển khai với giám sát liên tục
+  - Thu nhận phản hồi người dùng và dữ liệu sự cố để bổ sung bằng chứng
+  - Liên kết quyết định phát hành với người chịu trách nhiệm
+- level1: Tài liệu chiến lược
+  level2:
+  - Chọn mức tài liệu phù hợp với nhóm, rủi ro và yêu cầu chứng minh
+  - Mô tả bối cảnh, mục tiêu, phạm vi và giả định
+  - Ghi danh mục rủi ro và lý do chọn cách tiếp cận
+  - Thể hiện phân bổ cấp độ, loại kiểm thử và kỹ thuật chính
+  - Mô tả dữ liệu, môi trường, công cụ và trách nhiệm
+  - Ghi lịch phản hồi, nguồn lực, tiêu chí và cách báo cáo
+  - Liên kết chiến lược với kế hoạch và bằng chứng thực thi
+  - Ghi quyết định, phương án bị loại và điều kiện xem xét lại
+  - Quản lý phiên bản, người rà soát và lịch cập nhật
+  - Đánh giá tính nhất quán và khả năng thực hiện của tài liệu
+- level1: Quản lý thay đổi
+  level2:
+  - Xác định sự kiện cần xem xét lại chiến lược
+  - Đánh giá tác động khi yêu cầu, kiến trúc hoặc thành phần phụ thuộc thay đổi
+  - Cập nhật rủi ro và phân bổ kiểm thử theo bằng chứng mới
+  - Sử dụng hồi cứu để phát hiện điểm nghẽn và vùng lọt lỗi
+  - Ưu tiên cải tiến theo tác động và công sức thực hiện
+  - Thử nghiệm thay đổi ở phạm vi nhỏ với tiêu chí đánh giá
+  - Đo hiệu quả trước và sau trong điều kiện so sánh phù hợp
+  - Quản lý nợ kiểm thử và kế hoạch xử lý dài hạn
+  - Duy trì chiến lược phù hợp với sản phẩm đang vận hành
+- level1: Kiến trúc đặc thù
+  level2:
+  - Thiết kế chiến lược cho thư viện Java có nhiều bên sử dụng
+  - Thiết kế chiến lược cho ứng dụng Spring Boot nguyên khối
+  - Phân bổ bằng chứng cho hệ thống microservices và nhiều nhóm phát hành
+  - Kiểm chứng hệ thống hướng sự kiện với kết quả nhất quán sau một khoảng thời gian
+  - Ưu tiên kiểm thử khi cải tiến hệ thống cũ thiếu bộ hồi quy
+  - Kiểm thử chuyển đổi schema, dữ liệu và phiên bản ứng dụng
+  - Điều chỉnh chiến lược cho hệ thống nhiều tenant và nhiều cấu hình
+  - Chọn ma trận cho sản phẩm web hoặc di động có nhiều môi trường sử dụng
+  - Xác định bằng chứng cho nền tảng đám mây với thành phần do nhà cung cấp quản lý
+  - Điều chỉnh mức kiểm chứng cho chức năng có hậu quả sai sót nghiêm trọng
+- level1: Thực hành
+  level2:
+  - Phân tích bối cảnh và xác định mục tiêu chất lượng cho một sản phẩm
+  - Lập danh mục rủi ro cùng mức ưu tiên và người theo dõi
+  - Xác định phạm vi, phần loại trừ và giả định cần kiểm chứng
+  - Chọn cách tiếp cận và phân bổ mục tiêu giữa các tầng kiểm thử
+  - Thiết kế chiến lược cho chức năng mới có nhiều điểm tích hợp
+  - Lập phương án dữ liệu, môi trường và dịch vụ bên ngoài
+  - Xây lịch phản hồi và điểm chặn chất lượng cho một pipeline
+  - Ước lượng nguồn lực với giới hạn thời gian được giao
+  - Đánh giá chiến lược đang phụ thuộc quá nhiều vào E2E hoặc kiểm thử thủ công
+  - Phân tích một sự cố lọt lỗi và đề xuất thay đổi có bằng chứng
+  - Soạn tài liệu chiến lược ngắn gọn với các quyết định có lý do
+  - Rà soát chiến lược với góc nhìn nghiệp vụ, phát triển và vận hành
+  - Trình bày quyết định phát hành khi bằng chứng hoặc nguồn lực chưa đầy đủ

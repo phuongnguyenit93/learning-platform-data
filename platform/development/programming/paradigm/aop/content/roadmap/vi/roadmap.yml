@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-aop
+  title: Tư duy AOP
+  purpose: Hiểu vì sao các mối quan tâm cắt ngang cần cách tổ chức riêng, bên cạnh chức năng nghiệp vụ.
+  objectives:
+  - '- Phân biệt chức năng cốt lõi và mối quan tâm cắt ngang.'
+  - '- Nhận diện mã bị phân tán hoặc đan xen qua ví dụ ghi nhật ký.'
+  - '- Giải thích quan hệ giữa AOP và lập trình hướng đối tượng.'
+- id: mo-hinh-aop
+  title: Mô hình AOP
+  purpose: Nắm các thành phần và cách chúng phối hợp để bổ sung hành vi cho chương trình.
+  objectives:
+  - '- Giải thích aspect, join point, pointcut, advice và weaving.'
+  - '- Mô tả luồng từ chọn điểm can thiệp đến thực thi hành vi.'
+  - '- Phân biệt mã nghiệp vụ với phần được aspect bổ sung.'
+- id: pointcut-va-ngu-canh
+  title: Pointcut và ngữ cảnh
+  purpose: Chọn đúng nơi áp dụng aspect và lấy đủ dữ liệu cho hành vi cần thực hiện.
+  objectives:
+  - '- Xác định điểm can thiệp theo lời gọi, thực thi hoặc ngữ cảnh được hỗ trợ.'
+  - '- Kết hợp điều kiện chọn và loại trừ để giới hạn phạm vi.'
+  - '- Liên kết tham số, đối tượng và dữ liệu ngữ cảnh với advice.'
+- id: advice-va-hop-dong
+  title: Advice và hợp đồng
+  purpose: Bổ sung hành vi mà vẫn kiểm soát được kết quả và ngữ nghĩa của chương trình.
+  objectives:
+  - '- Phân biệt advice trước, sau, quanh và theo kết quả thực thi.'
+  - '- Mô tả ảnh hưởng của advice tới luồng gọi, giá trị trả về và ngoại lệ.'
+  - '- Giữ đúng hợp đồng khi gọi tiếp hoặc thay đổi hành vi gốc.'
+- id: co-che-weaving
+  title: Cơ chế weaving
+  purpose: Hiểu cách aspect được kết hợp với chương trình và giới hạn của từng cơ chế.
+  objectives:
+  - '- So sánh weaving khi biên dịch, khi nạp và khi chạy.'
+  - '- Phân biệt can thiệp qua mã đã biến đổi với đối tượng trung gian.'
+  - '- Đánh giá phạm vi can thiệp, hiệu năng và khả năng gỡ lỗi.'
+- id: phoi-hop-aspect
+  title: Phối hợp aspect
+  purpose: Kiểm soát tương tác giữa nhiều aspect để hành vi tổng thể có thể dự đoán được.
+  objectives:
+  - '- Xác định thứ tự và quan hệ phụ thuộc giữa các aspect.'
+  - '- Phân tích lời gọi lồng nhau, tái nhập và nguy cơ đệ quy.'
+  - '- Quản lý trạng thái aspect an toàn khi có thực thi đồng thời.'
+- id: aop-nang-cao
+  title: AOP nâng cao
+  purpose: Mở rộng cách tổ chức aspect và nhận diện các đánh đổi về tính linh hoạt, độ phụ thuộc.
+  objectives:
+  - '- Phân tích vòng đời aspect gắn với đối tượng hoặc luồng điều khiển.'
+  - '- Nhận diện mở rộng cấu trúc kiểu và điều kiện công cụ hỗ trợ.'
+  - '- Thiết kế aspect tái sử dụng, hạn chế phụ thuộc vào chi tiết mã.'
+- id: kiem-thu-va-ung-dung
+  title: Kiểm thử và ứng dụng
+  purpose: Vận dụng AOP vào bài toán phù hợp và kiểm chứng giá trị thực tế của giải pháp.
+  objectives:
+  - '- Thiết kế ví dụ ghi nhật ký, đo thời gian hoặc kiểm soát truy cập.'
+  - '- Kiểm thử phạm vi pointcut, tương tác advice và đường lỗi.'
+  - '- Đánh giá chi phí, khả năng bảo trì và trường hợp nên chọn cách khác.'

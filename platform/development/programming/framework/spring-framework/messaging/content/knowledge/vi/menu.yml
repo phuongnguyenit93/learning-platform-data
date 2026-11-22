@@ -1,0 +1,450 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Thông điệp là gì và bài toán giao tiếp giữa các thành phần
+  - Vì sao ứng dụng cần cơ chế gửi và nhận thông điệp
+  - Vị trí của spring-messaging trong Spring Framework
+  - 'Bản đồ thuật ngữ: bên gửi, bên nhận, kênh, đích và bộ môi giới'
+  - Quan hệ giữa thông điệp, lệnh, sự kiện và yêu cầu
+  - Phân biệt gọi hàm trực tiếp, HTTP và giao tiếp bằng thông điệp
+  - Phân biệt sự kiện ApplicationContext và thông điệp liên tiến trình
+  - Phạm vi của spring-messaging, spring-jms và spring-websocket
+  - Phân biệt Spring Framework, Spring Boot và các dự án tích hợp
+  - Lộ trình học từ trừu tượng nền tảng đến các giao thức
+- level1: Mô hình trao đổi
+  level2:
+  - Đồng bộ và bất đồng bộ nhìn từ bên gửi và bên nhận
+  - Trao đổi trong bộ nhớ và trao đổi qua mạng
+  - Hàng đợi công việc và nhiều bên nhận cạnh tranh
+  - Phát hành và đăng ký nhận thông điệp
+  - Gửi một chiều và gửi yêu cầu chờ phản hồi
+  - Luồng dữ liệu liên tục và kiểm soát tốc độ nhận
+  - Liên kết về thời gian, địa chỉ và cấu trúc dữ liệu
+  - Thứ tự, trùng lặp, thất lạc và các mức bảo đảm giao nhận
+  - Lựa chọn mô hình theo độ trễ, độ bền và yêu cầu nghiệp vụ
+- level1: Thiết lập
+  level2:
+  - Xác định phiên bản Spring Framework, Java và thư viện giao thức tương thích
+  - Vai trò và phụ thuộc của các mô-đun messaging, jms và websocket
+  - Khai báo các bean hạ tầng bằng Java Configuration
+  - Phân biệt cấu hình Framework thủ công và tự cấu hình của Spring Boot
+  - Tách cấu hình kết nối khỏi mã xử lý nghiệp vụ
+  - Chuẩn bị bộ môi giới và thông tin xác thực cho môi trường thử nghiệm
+  - Quản lý địa chỉ đích và giới hạn tài nguyên bằng cấu hình ngoài
+  - Dựng ví dụ nhỏ để quan sát đường đi của một thông điệp
+- level1: Thông điệp
+  level2:
+  - 'Cấu trúc Message<T>: phần dữ liệu và tập header'
+  - Hợp đồng Message và kiểu dữ liệu của payload
+  - GenericMessage và cách tạo thông điệp thông thường
+  - MessageBuilder.withPayload và MessageBuilder.fromMessage
+  - Sao chép thông điệp khi cần thay đổi dữ liệu hoặc header
+  - Phân biệt bất biến của vỏ thông điệp và khả năng thay đổi của payload
+  - ErrorMessage và cách biểu diễn lỗi dưới dạng thông điệp
+  - MessageHeaders.ID, TIMESTAMP và vòng đời định danh
+  - So sánh Message của Spring với jakarta.jms.Message
+  - Thiết kế đối tượng dữ liệu truyền đi độc lập với thực thể lưu trữ
+- level1: Header
+  level2:
+  - MessageHeaders và truy cập metadata của thông điệp
+  - Header chuẩn, header ứng dụng và quy tắc đặt tên
+  - MessageHeaderAccessor và quản lý trạng thái có thể thay đổi
+  - NativeMessageHeaderAccessor và header của giao thức bên ngoài
+  - CONTENT_TYPE và vai trò của kiểu nội dung
+  - REPLY_CHANNEL và ERROR_CHANNEL trong hợp đồng trao đổi
+  - Mã tương quan và liên kết yêu cầu với phản hồi
+  - Phân biệt mã thông điệp, mã nghiệp vụ và mã truy vết
+  - Sao chép, bổ sung, loại bỏ và giới hạn header nhạy cảm
+- level1: Kênh truyền
+  level2:
+  - MessageChannel và hợp đồng send
+  - Ý nghĩa giá trị trả về và thời gian chờ khi gửi
+  - PollableChannel và mô hình chủ động lấy thông điệp
+  - SubscribableChannel và đăng ký MessageHandler
+  - ExecutorSubscribableChannel với xử lý trực tiếp hoặc qua Executor
+  - Quan hệ giữa luồng gửi và luồng thực thi bộ xử lý
+  - Đăng ký, hủy đăng ký và nhiều bộ xử lý trên cùng kênh
+  - AbstractMessageChannel và điểm mở rộng của kênh
+  - Ranh giới của kênh trong bộ nhớ đối với độ bền và giao dịch
+  - Phân biệt lớp kênh của Spring Framework và Spring Integration
+- level1: Gửi và nhận
+  level2:
+  - MessageSendingOperations và gửi thông điệp tới một đích
+  - MessageReceivingOperations và thao tác nhận
+  - MessageRequestReplyOperations và trao đổi yêu cầu phản hồi
+  - GenericMessagingTemplate và thao tác trên MessageChannel
+  - Đích mặc định và phân giải tên đích bằng DestinationResolver
+  - BeanFactoryMessageChannelDestinationResolver và tên bean kênh
+  - send, receive và sendAndReceive
+  - convertAndSend, receiveAndConvert và convertSendAndReceive
+  - Cấu hình thời gian chờ gửi, nhận và xử lý phản hồi đến muộn
+  - MessagePostProcessor và bổ sung metadata sau chuyển đổi
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - MessageConverter và hai chiều chuyển đổi payload
+  - Phân biệt MessageConverter với ConversionService
+  - StringMessageConverter và ByteArrayMessageConverter
+  - CompositeMessageConverter và thứ tự lựa chọn bộ chuyển đổi
+  - Chuyển đổi JSON theo thư viện và phiên bản Spring đang dùng
+  - Kiểu nội dung, MIME type và charset
+  - GenericMessageConverter và chuyển đổi kiểu bằng ConversionService
+  - Kiểu đích tổng quát, thông tin phương thức và gợi ý chuyển đổi
+  - Viết bộ chuyển đổi riêng và xác định điều kiện hỗ trợ
+  - MessageConversionException khi dữ liệu hoặc kiểu nội dung không hợp lệ
+- level1: Chặn và xử lý
+  level2:
+  - MessageHandler và trách nhiệm xử lý một thông điệp
+  - ChannelInterceptor và các điểm chặn gửi hoặc nhận
+  - preSend và cách từ chối một thông điệp
+  - postSend và afterSendCompletion trong thành công hoặc thất bại
+  - preReceive, postReceive và afterReceiveCompletion trên kênh có thao tác nhận
+  - ExecutorChannelInterceptor trước và sau thực thi MessageHandler
+  - Phân biệt luồng thực thi của ChannelInterceptor và ExecutorChannelInterceptor
+  - Thứ tự interceptor, ngoại lệ và dọn dẹp tài nguyên
+  - Truyền ngữ cảnh truy vết, danh tính và dữ liệu theo luồng
+  - MessagingException, MessageDeliveryException và MessageHandlingException
+- level1: Nền tảng JMS
+  level2:
+  - JMS và vai trò của Spring JMS đối với hệ thống dùng bộ môi giới
+  - Queue, Topic và mô hình nhận thông điệp
+  - ConnectionFactory, Connection, Session, Producer và Consumer
+  - TextMessage, BytesMessage, MapMessage, StreamMessage và ObjectMessage
+  - JMS header, thuộc tính ứng dụng và nội dung thông điệp
+  - Selector và điều kiện lọc phía bộ môi giới
+  - Đăng ký Topic bền vững, không bền vững và chia sẻ
+  - clientId, tên subscription và vòng đời bên nhận
+  - Chế độ lưu bền, độ ưu tiên và thời hạn tồn tại
+  - Chuyển từ javax.jms sang jakarta.jms và yêu cầu tương thích phiên bản
+- level1: Kết nối JMS
+  level2:
+  - Cấu hình ConnectionFactory do nhà cung cấp JMS triển khai
+  - Tra cứu ConnectionFactory và Destination qua JNDI
+  - SingleConnectionFactory và tái sử dụng kết nối
+  - CachingConnectionFactory và bộ nhớ đệm Session, Producer, Consumer
+  - Phân biệt bộ nhớ đệm của Spring với pool của nhà cung cấp
+  - Quản lý Session khi nhiều luồng cùng gửi hoặc nhận
+  - DestinationResolver, DynamicDestinationResolver và JndiDestinationResolver
+  - pubSubDomain và phân giải Queue hoặc Topic
+  - Phân biệt phân giải Destination với tạo tài nguyên vật lý trên broker
+  - Đóng tài nguyên, đặt lại kết nối và xử lý broker mất kết nối
+- level1: Gửi nhận JMS
+  level2:
+  - JmsTemplate và quản lý tài nguyên gửi nhận
+  - Gửi bằng MessageCreator và convertAndSend
+  - Nhận đồng bộ bằng receive và receiveAndConvert
+  - receiveTimeout và nguy cơ chặn luồng vô thời hạn
+  - SimpleMessageConverter của JMS và các kiểu dữ liệu hỗ trợ
+  - Bộ chuyển đổi JSON cho JMS theo phiên bản đang sử dụng
+  - MessagePostProcessor của JMS và thiết lập thuộc tính sau chuyển đổi
+  - SessionCallback, ProducerCallback và thao tác JMS nâng cao
+  - JmsMessagingTemplate nối JMS với Message của Spring
+  - JmsClient và API fluent từ Spring Framework 7.0
+  - Cấu hình explicitQosEnabled, deliveryMode, priority và timeToLive
+- level1: Listener JMS
+  level2:
+  - Nhận bất đồng bộ bằng MessageListener và Message-Driven POJO
+  - MessageListenerAdapter và ánh xạ tới phương thức của đối tượng
+  - Bật @EnableJms và khai báo @JmsListener
+  - DefaultJmsListenerContainerFactory và cấu hình mặc định
+  - destination, selector, subscription, concurrency và containerFactory
+  - Tham số payload, Message, header, Session và chuyển đổi dữ liệu
+  - '@Payload, @Header, @Headers và kiểm tra hợp lệ đầu vào'
+  - Phản hồi từ listener bằng giá trị trả về và @SendTo
+  - Nhiều @JmsListener trên một phương thức và annotation @JmsListeners
+  - JmsListenerConfigurer và đăng ký endpoint bằng chương trình
+  - JmsListenerEndpointRegistry và điều khiển vòng đời listener
+- level1: Container JMS
+  level2:
+  - Vai trò container trong đăng ký, nhận và gọi listener
+  - SimpleMessageListenerContainer và mô hình callback của nhà cung cấp
+  - DefaultMessageListenerContainer và vòng lặp nhận thông điệp
+  - Tiêu chí chọn container theo giao dịch và khả năng mở rộng
+  - Thiết lập số consumer đồng thời và điều chỉnh tải
+  - TaskExecutor, receiveTimeout và thời gian consumer rảnh
+  - Các mức cache và ảnh hưởng tới tài nguyên JMS
+  - Khôi phục kết nối bằng recoveryInterval hoặc BackOff
+  - ExceptionListener và ErrorHandler ở các tầng lỗi khác nhau
+  - Khởi động, dừng, chờ xử lý và nhận thông điệp khi đang dừng
+- level1: Giao dịch JMS
+  level2:
+  - Phân biệt xác nhận nhận thông điệp với hoàn tất nghiệp vụ
+  - AUTO_ACKNOWLEDGE, CLIENT_ACKNOWLEDGE và DUPS_OK_ACKNOWLEDGE
+  - Thời điểm xác nhận phụ thuộc chế độ và loại listener container
+  - sessionTransacted và giao dịch cục bộ trên Session
+  - JmsTransactionManager và một ConnectionFactory
+  - JmsTemplate tham gia tài nguyên giao dịch của Spring
+  - Nhận và gửi phản hồi trong cùng giao dịch JMS
+  - Rollback, redelivery và ngoại lệ thoát khỏi listener
+  - JTA, XA và phối hợp JMS với cơ sở dữ liệu
+  - Giới hạn giao dịch cục bộ khi cập nhật đồng thời broker và database
+  - Transactional outbox và xử lý lặp lại như phương án phối hợp dữ liệu
+- level1: Độ tin cậy JMS
+  level2:
+  - JMSMessageID, JMSCorrelationID và JMSReplyTo
+  - Yêu cầu phản hồi bằng hàng đợi tạm thời hoặc hàng đợi cố định
+  - Thời gian chờ phản hồi và dọn dẹp tài nguyên tạm
+  - JMSRedelivered, số lần giao lại và thông điệp lỗi lặp
+  - Chính sách retry, trì hoãn và hàng đợi lỗi của nhà cung cấp
+  - Thiết kế xử lý idempotent bằng khóa nghiệp vụ
+  - Độ bền của message và subscription khi bên nhận ngắt kết nối
+  - Thứ tự khi có nhiều consumer, giao lại hoặc ưu tiên khác nhau
+  - Expiration, delivery delay và sự khác biệt giữa các nhà cung cấp
+  - Phân biệt giao nhận thành công với bảo đảm hiệu ứng nghiệp vụ một lần
+- level1: Nền tảng WebSocket
+  level2:
+  - WebSocket và giao tiếp hai chiều trên kết nối lâu dài
+  - Quan hệ giữa HTTP handshake, WebSocket và giao thức ứng dụng
+  - WebSocketHandler thuần và mô hình thông điệp cấp cao
+  - Phân biệt STOMP qua WebSocket và WebSocket thuần
+  - Đăng ký endpoint và cấu hình handshake
+  - HandshakeInterceptor, thuộc tính phiên và Principal
+  - SockJS và các phương thức truyền dự phòng
+  - Allowed origins, triển khai qua reverse proxy và TLS
+  - Giới hạn của kết nối lâu dài khi client hoặc server ngắt
+- level1: Giao thức STOMP
+  level2:
+  - 'Cấu trúc STOMP frame: lệnh, header và body'
+  - CONNECT, CONNECTED và thương lượng phiên
+  - SEND, SUBSCRIBE, UNSUBSCRIBE và MESSAGE
+  - DISCONNECT, RECEIPT và xác nhận thao tác giao thức
+  - ERROR frame và kết thúc phiên do lỗi
+  - Heart-beat và phát hiện kết nối không hoạt động
+  - destination, subscription id và message id
+  - content-type, content-length và dữ liệu nhị phân
+  - ACK, NACK và transaction frame theo khả năng broker
+  - Phân biệt quy ước tên /topic, /queue với ngữ nghĩa thực của broker
+- level1: Luồng STOMP
+  level2:
+  - '@EnableWebSocketMessageBroker và WebSocketMessageBrokerConfigurer'
+  - registerStompEndpoints và đường dẫn kết nối của client
+  - configureMessageBroker và các tiền tố đích
+  - clientInboundChannel, brokerChannel và clientOutboundChannel
+  - Đường đi của SEND tới @MessageMapping
+  - Đường đi của SUBSCRIBE tới bộ môi giới
+  - Đường đi của thông điệp phát từ server tới subscriber
+  - Tiền tố ứng dụng, tiền tố broker và tiền tố người dùng
+  - StompSubProtocolHandler và chuyển đổi STOMP frame sang Message
+  - Phân biệt xử lý tại controller với chuyển tiếp thẳng tới broker
+- level1: Controller STOMP
+  level2:
+  - '@Controller và ánh xạ thông điệp bằng @MessageMapping'
+  - Ánh xạ cấp lớp, cấp phương thức và mẫu đường dẫn
+  - '@DestinationVariable và quy ước dấu chấm trong destination'
+  - '@Payload, Message, MessageHeaders và các header accessor'
+  - '@Header, @Headers và Principal trong phương thức xử lý'
+  - Chuyển đổi payload và kiểm tra bằng @Valid hoặc @Validated
+  - Giá trị trả về, đích mặc định và tùy chỉnh bằng @SendTo
+  - Trả kết quả bất đồng bộ theo kiểu được phiên bản Spring hỗ trợ
+  - '@SubscribeMapping và phản hồi trực tiếp khi đăng ký'
+  - '@MessageExceptionHandler và @ControllerAdvice'
+  - Ranh giới giữa hoàn tất controller và client nhận được kết quả
+- level1: Gửi tới người dùng
+  level2:
+  - SimpMessageSendingOperations và SimpMessagingTemplate
+  - Phát thông điệp từ service bằng convertAndSend
+  - Header SIMP và header STOMP native khi gửi
+  - User destination và chuyển từ /user sang đích theo phiên
+  - '@SendToUser và phản hồi cho người dùng gửi yêu cầu'
+  - convertAndSendToUser với tên Principal
+  - broadcast và lựa chọn một phiên hoặc nhiều phiên của cùng người dùng
+  - SimpUserRegistry và theo dõi người dùng, phiên, subscription
+  - User destination khi chưa có xác thực hoặc khi chạy nhiều server
+  - Xử lý đích người dùng chưa phân giải được trong cụm
+- level1: Bộ môi giới STOMP
+  level2:
+  - Simple broker trong bộ nhớ và quản lý subscription
+  - Giới hạn tính năng, độ bền và mở rộng của simple broker
+  - TaskScheduler và heart-beat của simple broker
+  - STOMP broker relay và kết nối tới broker bên ngoài
+  - Kết nối hệ thống, kết nối client và thông tin đăng nhập relay
+  - Virtual host, TLS và cấu hình kết nối TCP tới broker
+  - BrokerAvailabilityEvent và phản ứng khi broker không sẵn sàng
+  - Khôi phục kết nối relay và giới hạn bảo đảm khi mất kết nối
+  - ACK, receipt, transaction và độ bền theo broker thực tế
+  - Lựa chọn simple broker hay broker relay theo yêu cầu hệ thống
+- level1: Client STOMP
+  level2:
+  - WebSocketStompClient và thiết lập WebSocket transport
+  - SockJsClient khi cần transport dự phòng
+  - StompSessionHandler và vòng đời kết nối
+  - StompSession, StompHeaders và gửi thông điệp
+  - StompFrameHandler và chuyển đổi payload nhận được
+  - Đăng ký, hủy đăng ký và quản lý subscription
+  - TaskScheduler, heart-beat và giới hạn kích thước thông điệp
+  - Receipt callback, thời gian chờ và giới hạn của simple broker
+  - Phân biệt lỗi frame, lỗi xử lý và lỗi transport
+  - Kết nối lại, đăng ký lại và khôi phục trạng thái ứng dụng
+  - Ngắt kết nối có kiểm soát và giải phóng tài nguyên client
+- level1: Bảo mật STOMP
+  level2:
+  - Danh tính người dùng từ HTTP handshake tới STOMP session
+  - Giới hạn của login và passcode STOMP trong xác thực ứng dụng
+  - Xác thực token qua ChannelInterceptor khi phù hợp
+  - Phân quyền CONNECT, SEND và SUBSCRIBE với Spring Security
+  - Tách quyền gửi tới ứng dụng và quyền đọc từ broker
+  - Ngăn giả mạo người dùng, tenant và destination
+  - Same-origin, CSRF và SockJS theo cấu hình bảo mật
+  - Kiểm tra payload, giới hạn kích thước và tốc độ gửi
+  - Không ghi token, thông tin đăng nhập hoặc payload nhạy cảm vào log
+  - Phân quyền đối tượng nghiệp vụ ngoài kiểm tra đường dẫn đích
+- level1: Hiệu năng STOMP
+  level2:
+  - Cấu hình executor của clientInboundChannel và clientOutboundChannel
+  - Kích thước pool, hàng đợi và ảnh hưởng của tác vụ chặn
+  - setPreservePublishOrder và thứ tự gửi trong một phiên
+  - setPreserveReceiveOrder và thứ tự nhận theo phiên bản hỗ trợ
+  - Phân biệt thứ tự frame, thứ tự thực thi và thứ tự nghiệp vụ
+  - Giới hạn kích thước message, thời gian gửi và bộ đệm
+  - Client chậm, bộ đệm đầy và chính sách đóng kết nối
+  - SessionConnectEvent, SessionConnectedEvent và các sự kiện đăng ký
+  - SessionDisconnectEvent có thể lặp và xử lý dọn dẹp idempotent
+  - WebSocket scope và vòng đời dữ liệu theo phiên
+  - WebSocketMessageBrokerStats và chẩn đoán tải kết nối
+- level1: Nền tảng RSocket
+  level2:
+  - RSocket và giao thức trao đổi dữ liệu phản ứng
+  - Requester, responder và tính đối xứng hai chiều
+  - Request-response và một kết quả phản hồi
+  - Fire-and-forget và giới hạn xác nhận xử lý
+  - Request-stream và nhiều phần tử phản hồi
+  - Request-channel và luồng dữ liệu hai chiều
+  - Payload gồm data và metadata
+  - Transport TCP hoặc WebSocket và multiplexing trên kết nối
+  - Backpressure qua REQUEST_N và nhu cầu nhận dữ liệu
+  - Phân biệt RSocket với STOMP, HTTP và hàng đợi bền vững
+- level1: RSocketRequester
+  level2:
+  - Tạo RSocketRequester.Builder và cấu hình kết nối
+  - Thiết lập RSocketStrategies dùng chung
+  - dataMimeType, metadataMimeType và thương lượng dữ liệu
+  - setupRoute, setupData và setupMetadata
+  - route với tham số và metadata theo yêu cầu
+  - Gửi một chiều bằng send
+  - Nhận một kết quả bằng retrieveMono
+  - Nhận luồng kết quả bằng retrieveFlux
+  - Truyền Publisher đầu vào cho tương tác request-channel
+  - Kiểu phản hồi tổng quát và ParameterizedTypeReference
+  - Kết nối lười, tái sử dụng requester và quản lý tài nguyên
+- level1: Xử lý RSocket
+  level2:
+  - RSocketMessageHandler và bộ xử lý dựa trên annotation
+  - Đăng ký acceptor và khởi tạo server RSocket
+  - '@Controller, @MessageMapping và ánh xạ route'
+  - Ánh xạ mô hình tương tác từ kiểu đầu vào và đầu ra
+  - '@Payload, @Header, @Headers và @DestinationVariable cho RSocket'
+  - '@ConnectMapping và xử lý dữ liệu thiết lập kết nối'
+  - Xử lý yêu cầu ngược từ server tới client
+  - '@MessageExceptionHandler và ánh xạ lỗi của bộ xử lý'
+  - Thiết lập RSocketStrategies thống nhất giữa requester và responder
+  - Tách xử lý nghiệp vụ khỏi thao tác transport và phiên kết nối
+- level1: Dữ liệu RSocket
+  level2:
+  - Encoder, Decoder và cấu hình codec
+  - Codec cho chuỗi, dữ liệu nhị phân và đối tượng JSON
+  - Routing metadata và quy ước tên route
+  - Composite metadata và nhiều mục metadata trong một payload
+  - MetadataExtractor và ánh xạ metadata thành header
+  - Phân biệt MIME type của data và metadata
+  - Validation tại ranh giới nhận thông điệp
+  - Buffer, pooled data và trách nhiệm giải phóng dữ liệu ở API thấp
+  - Tương thích hợp đồng khi thay đổi codec, route hoặc kiểu dữ liệu
+- level1: Vòng đời RSocket
+  level2:
+  - Thiết lập, duy trì và đóng kết nối RSocket
+  - Keepalive và phát hiện transport mất kết nối
+  - Hủy subscription, tín hiệu hoàn tất và lan truyền cancellation
+  - Timeout cho từng yêu cầu và quản lý luồng không kết thúc
+  - Reconnect và giới hạn khôi phục yêu cầu đang chạy
+  - Resume, trạng thái phiên và điều kiện hỗ trợ của các bên
+  - Lease và phân biệt giới hạn yêu cầu với REQUEST_N
+  - Giới hạn bộ đệm, fragmentation và payload lớn
+  - Đưa tác vụ chặn ra khỏi luồng xử lý phản ứng
+  - Xác thực metadata và phân quyền route bằng Spring Security
+  - TLS, danh tính kết nối và quyền trên từng yêu cầu
+- level1: Lỗi và phục hồi
+  level2:
+  - Phân loại lỗi kết nối, giao thức, chuyển đổi và nghiệp vụ
+  - Xác định tầng chịu trách nhiệm xử lý hoặc chuyển tiếp lỗi
+  - Timeout không đồng nghĩa với tác vụ phía nhận đã dừng
+  - Retry có giới hạn, backoff và tránh nhiều tầng cùng thử lại
+  - Phân biệt thao tác có thể lặp lại với thao tác gây tác dụng phụ
+  - Mã lỗi công khai và thông tin chẩn đoán nội bộ
+  - Correlation id và theo dõi kết quả đến muộn
+  - Thiết kế xử lý khi một phần trao đổi đã thành công
+  - Thử nghiệm mất kết nối, hết tài nguyên và thông điệp không hợp lệ
+- level1: Hợp đồng thông điệp
+  level2:
+  - Thiết kế command, event và response theo trách nhiệm nghiệp vụ
+  - Envelope gồm phiên bản, định danh, thời gian và dữ liệu
+  - Tương thích ngược khi thêm, bỏ hoặc đổi kiểu trường
+  - Quy ước tên destination, route và schema
+  - Định dạng thời gian, múi giờ, số và giá trị enum
+  - Phân biệt thứ tự nghiệp vụ với thứ tự giao nhận
+  - Khóa idempotency, lưu kết quả và thời hạn chống trùng
+  - Giới hạn kích thước và truyền tham chiếu thay cho dữ liệu lớn
+  - Giảm phụ thuộc vào lớp Java nội bộ và tuần tự hóa ObjectMessage
+  - Tài liệu hóa hợp đồng và trách nhiệm của từng bên tham gia
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử MessageBuilder, header và bộ chuyển đổi dữ liệu
+  - Kiểm thử MessageHandler và điều kiện chặn của interceptor
+  - Kiểm thử gửi nhận qua kênh với executor có kiểm soát
+  - Kiểm thử JmsTemplate và listener với broker thực
+  - Kiểm thử rollback, redelivery, selector và durable subscription
+  - Kiểm thử controller STOMP ở mức bộ xử lý thông điệp
+  - Kiểm thử đầu cuối bằng WebSocketStompClient
+  - Kiểm thử user destination với nhiều người dùng và nhiều phiên
+  - Kiểm thử RSocketRequester và RSocketMessageHandler
+  - Dùng StepVerifier kiểm tra luồng phản ứng, lỗi và cancellation
+  - Kiểm thử tương thích schema, phân quyền và dữ liệu không hợp lệ
+  - Kiểm thử timeout, kết nối lại và client chậm mà không dựa vào sleep tùy ý
+- level1: Quan sát hệ thống
+  level2:
+  - Đo số lượng gửi nhận, thông lượng và thời gian xử lý
+  - Phân biệt độ trễ broker, hàng đợi và xử lý nghiệp vụ
+  - Theo dõi kết nối, phiên, subscription và consumer
+  - Quan sát retry, redelivery, timeout và tỷ lệ lỗi
+  - Liên kết log bằng mã thông điệp và mã tương quan
+  - Truyền ngữ cảnh truy vết qua header và ranh giới bất đồng bộ
+  - Micrometer Observation cho JMS theo khả năng phiên bản và cấu hình
+  - Giới hạn số lượng giá trị nhãn và tránh đưa định danh người dùng vào metric
+  - Readiness của ứng dụng khi broker hoặc transport chưa sẵn sàng
+  - Chẩn đoán không nhận được thông điệp theo từng chặng
+- level1: Mở rộng hệ thống
+  level2:
+  - Phân bổ nhiều instance và trạng thái đang giữ trong bộ nhớ
+  - Cân bằng tải WebSocket, proxy timeout và nhu cầu gắn phiên
+  - Phân phối STOMP qua broker ngoài khi chạy nhiều server
+  - User registry và user destination trong cụm
+  - Tăng consumer JMS và đánh đổi với thứ tự xử lý
+  - Quản lý số kết nối RSocket và chia tải theo mô hình ứng dụng
+  - Giới hạn đồng thời, bộ đệm và tải tối đa của bên nhận
+  - Dừng có kiểm soát và xử lý thông điệp đang thực thi
+  - Quản lý vòng đời executor, scheduler, client và tài nguyên kết nối
+  - Đánh giá năng lực bằng tải thực tế, p95/p99 và thử nghiệm sự cố
+- level1: Hệ sinh thái
+  level2:
+  - Spring Integration và các mẫu tích hợp dựa trên Message
+  - Spring AMQP và RabbitMQ trong bài toán dùng AMQP
+  - Spring for Apache Kafka và mô hình nhật ký phân vùng
+  - Spring for Apache Pulsar và lớp tích hợp riêng
+  - Spring Cloud Stream và mô hình binder
+  - Spring Modulith hoặc ApplicationEvent cho sự kiện trong ứng dụng
+  - Phân biệt JMS API với giao thức của từng broker
+  - Lựa chọn JMS, STOMP hoặc RSocket theo đối tượng giao tiếp
+  - Ranh giới giữa kiến thức Framework và cấu hình sản phẩm bên ngoài
+  - Tra cứu Javadoc, tài liệu theo phiên bản và thay đổi API khi nâng cấp
+- level1: Thực hành
+  level2:
+  - Xây dựng đường đi thông điệp trong bộ nhớ từ bên gửi tới bộ xử lý
+  - Thực nghiệm interceptor, chuyển đổi payload và lỗi thời gian chạy
+  - Xây dựng hàng đợi công việc JMS với xác nhận và rollback
+  - Thực nghiệm Topic bền vững và xử lý thông điệp trùng
+  - Xây dựng trao đổi yêu cầu phản hồi JMS có thời gian chờ
+  - Xây dựng ứng dụng cập nhật trực tiếp qua STOMP
+  - Thực nghiệm thông báo riêng cho người dùng có nhiều phiên
+  - So sánh simple broker và broker relay bằng tình huống lỗi
+  - Xây dựng RSocket request-response và request-stream
+  - Thực nghiệm request-channel, backpressure và cancellation
+  - Đo tải, ngắt kết nối và giải thích giới hạn bảo đảm của từng mô hình
+  - Rà soát lựa chọn công nghệ từ yêu cầu đến kết quả kiểm chứng

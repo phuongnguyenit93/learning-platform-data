@@ -1,0 +1,503 @@
+menu:
+- level1: Nền tảng Observability
+  level2:
+  - Observability là gì
+  - Spring Boot quan sát hệ thống như thế nào
+  - Khác biệt giữa monitoring và observability
+  - Tín hiệu từ bên ngoài và trạng thái bên trong
+  - Observability trong vòng đời ứng dụng
+  - Vai trò của Spring Boot Actuator
+  - Micrometer trong Spring ecosystem
+  - Khi nào cần custom instrumentation
+  - Observability cho local và production
+- level1: Ba trụ cột
+  level2:
+  - Logging
+  - Metrics
+  - Traces
+  - Quan hệ giữa log, metric và trace
+  - Tín hiệu định lượng và định tính
+  - Từ metric đến trace điều tra sự cố
+  - Correlation ID giữa các tín hiệu
+  - Chọn tín hiệu cho từng câu hỏi vận hành
+  - Giới hạn của từng trụ cột
+- level1: Micrometer Observation
+  level2:
+  - Observation là gì
+  - ObservationRegistry
+  - Observation.Context
+  - ObservationHandler
+  - ObservationDocumentation
+  - Observation name
+  - Observation start và stop
+  - Observation thành công và thất bại
+  - Observation cho metrics và traces
+  - No-op khi thiếu registry
+  - Observation API và vendor API
+- level1: Vòng đời observation
+  level2:
+  - Tạo observation chưa bắt đầu
+  - Bắt đầu observation
+  - Mở scope
+  - Đóng scope
+  - Ghi nhận exception
+  - Ghi low-cardinality key value
+  - Ghi high-cardinality key value
+  - Observation event
+  - Nested observation
+  - Observation bị hủy
+  - Đảm bảo stop observation trong mọi nhánh
+- level1: Cấu hình registry
+  level2:
+  - Đăng ký ObservationRegistry trong Spring Boot
+  - Auto-configuration của registry
+  - ObservationRegistryCustomizer
+  - ObservationPredicate
+  - GlobalObservationConvention
+  - ObservationFilter
+  - ObservationHandler bean
+  - Thứ tự xử lý handler
+  - Nhiều registry trong một ứng dụng
+  - Registry cho test
+  - Tách registry theo boundary
+- level1: Custom observation
+  level2:
+  - Tạo observation cho nghiệp vụ
+  - Observation.createNotStarted
+  - Tên observation ổn định
+  - Chọn context phù hợp
+  - Convention cho custom observation
+  - Gắn low-cardinality metadata
+  - Gắn high-cardinality metadata
+  - Bao quanh đoạn code bằng observe
+  - Custom observation cho batch job
+  - Custom observation cho integration flow
+  - Tránh instrument cùng một đoạn hai lần
+- level1: Convention và filter
+  level2:
+  - ObservationConvention
+  - Default convention
+  - Custom convention
+  - GlobalObservationConvention
+  - ObservationFilter
+  - ObservationPredicate
+  - Đổi observation name
+  - Thêm key value theo request
+  - Loại bỏ observation không cần thiết
+  - Không thay convention bằng filter
+  - Kiểm thử convention
+- level1: Cardinality và metadata
+  level2:
+  - Low-cardinality key value
+  - High-cardinality key value
+  - Cardinality trong metrics
+  - Cardinality trong traces
+  - Tag theo endpoint
+  - Tag theo tenant
+  - Tag theo user id
+  - Tag theo request id
+  - Rủi ro tạo metric theo giá trị động
+  - Giới hạn kích thước metadata
+  - Chính sách lọc dữ liệu nhạy cảm
+- level1: Metrics nền tảng
+  level2:
+  - MeterRegistry
+  - Counter
+  - Timer
+  - LongTaskTimer
+  - Gauge
+  - DistributionSummary
+  - Percentile
+  - Histogram
+  - Base unit
+  - Metric name
+  - Tag và common tag
+  - Meter bị trùng tên
+  - Metric lifecycle
+- level1: Spring Boot metrics
+  level2:
+  - Auto-configured MeterRegistry
+  - management.metrics
+  - Common tags
+  - Global registry
+  - MeterFilter
+  - MeterRegistryCustomizer
+  - Metric naming convention
+  - Binders
+  - JVM metrics
+  - System metrics
+  - Application metrics
+  - Tomcat và WebFlux metrics
+  - Data source metrics
+- level1: Application metrics
+  level2:
+  - HTTP request metrics
+  - HTTP client metrics
+  - JVM memory metrics
+  - JVM threads metrics
+  - Garbage collection metrics
+  - Class loading metrics
+  - CPU metrics
+  - File descriptor metrics
+  - Process uptime metrics
+  - Logback metrics
+  - Executor metrics
+  - Cache metrics
+  - Data source pool metrics
+- level1: Actuator metrics endpoint
+  level2:
+  - Endpoint /actuator/metrics
+  - Liệt kê metric names
+  - Đọc một metric
+  - Danh sách available tags
+  - Query theo tag
+  - Content type của metrics API
+  - Metric endpoint và security
+  - Metric endpoint trong production
+  - Khác biệt metrics endpoint và exporter
+  - Không coi endpoint là time-series backend
+- level1: Meter registry và exporter
+  level2:
+  - SimpleMeterRegistry
+  - PrometheusMeterRegistry
+  - OTLP meter registry
+  - Datadog registry
+  - Graphite registry
+  - Influx registry
+  - CloudWatch registry
+  - Atlas registry
+  - Exporter step và batch
+  - Push và pull model
+  - Điều kiện chọn backend
+  - Kiểm thử metric export
+- level1: Tracing
+  level2:
+  - Trace là gì
+  - Span là gì
+  - Trace ID
+  - Span ID
+  - Parent-child span
+  - Micrometer Tracing
+  - Tracer abstraction
+  - Span name
+  - Span attributes
+  - Span event
+  - Span error
+  - Trace backend
+  - Trace và metrics correlation
+- level1: Tracer implementation
+  level2:
+  - OpenTelemetry với OTLP
+  - OpenZipkin Brave với Zipkin
+  - Micrometer tracing bridge
+  - OpenTelemetry tracer provider
+  - Brave tracer
+  - OTLP HTTP exporter
+  - OTLP gRPC exporter
+  - Zipkin exporter
+  - Chọn tracer theo hệ thống
+  - Tránh dùng vendor API trực tiếp
+  - Tương thích tracer và Boot version
+- level1: Context propagation
+  level2:
+  - Tracing context
+  - Mở scope trong thread hiện tại
+  - Context qua HTTP
+  - Context qua messaging
+  - Context qua executor
+  - Context qua reactive pipeline
+  - ThreadLocal và Reactor Context
+  - Context propagation trong async task
+  - Mất trace context khi tự tạo thread
+  - Dùng builder auto-configured để giữ propagation
+  - Kiểm thử propagation
+- level1: Baggage và correlation
+  level2:
+  - Baggage là gì
+  - Tạo baggage trong scope
+  - Remote baggage fields
+  - Correlation fields
+  - Baggage trong HTTP header
+  - Baggage trong gRPC metadata
+  - Baggage trong MDC
+  - Baggage khác trace tag như thế nào
+  - Giới hạn kích thước baggage
+  - Bảo vệ dữ liệu trong baggage
+  - Theo dõi correlation ID xuyên service
+- level1: Sampling
+  level2:
+  - Trace sampling là gì
+  - Sampling probability
+  - Mặc định 10 phần trăm
+  - Always-on sampler
+  - Always-off sampler
+  - Trace ID ratio sampler
+  - Parent-based sampler
+  - Sampling theo môi trường
+  - Sampling cho lỗi
+  - Sampling cho traffic cao
+  - Đánh đổi chi phí và độ quan sát
+  - Kiểm tra sampling thực tế
+- level1: OpenTelemetry
+  level2:
+  - OpenTelemetry trong Spring Boot
+  - Actuator hỗ trợ OpenTelemetry
+  - OpenTelemetry Resource
+  - Resource attributes
+  - OTEL_SERVICE_NAME
+  - OTEL_RESOURCE_ATTRIBUTES
+  - Context propagators
+  - SdkTracerProvider
+  - SdkMeterProvider
+  - SdkLoggerProvider
+  - Bật và tắt OpenTelemetry
+  - Micrometer và OpenTelemetry
+  - Không nhầm OTel metrics với Micrometer metrics
+- level1: OTLP export
+  level2:
+  - OTLP là gì
+  - OTLP traces
+  - OTLP metrics
+  - OTLP HTTP endpoint
+  - OTLP gRPC endpoint
+  - Signal-specific endpoint
+  - Endpoint fallback
+  - management.opentelemetry
+  - Cấu hình resource attributes
+  - Kiểm tra exporter connectivity
+  - Exporter retry và timeout
+  - Không export secret trong telemetry
+- level1: Logging
+  level2:
+  - Structured logging
+  - Log level theo environment
+  - Correlation ID trong log
+  - Trace ID và span ID trong MDC
+  - Log exception đúng context
+  - Log request và response an toàn
+  - Mask dữ liệu nhạy cảm
+  - Giảm duplicate log
+  - Log sampling
+  - Log aggregation
+  - Liên kết log với trace
+  - Log retention
+- level1: HTTP server observability
+  level2:
+  - http.server.requests
+  - HTTP server observation
+  - Request method
+  - URI template
+  - Response status
+  - Outcome
+  - Exception
+  - Server request convention
+  - Servlet instrumentation
+  - Reactive server instrumentation
+  - Server observation filter
+  - Không dùng raw URL làm metric tag
+  - Theo dõi latency phân vị
+- level1: HTTP client observability
+  level2:
+  - http.client.requests
+  - RestTemplate observation
+  - RestClient observation
+  - WebClient observation
+  - Client request convention
+  - HTTP client method
+  - URI template
+  - Client name
+  - Status và outcome
+  - IO_ERROR
+  - Client timeout
+  - Connection establishment time
+  - Body deserialization time
+  - Giữ propagation bằng auto-configured builder
+- level1: Database observability
+  level2:
+  - JDBC observability
+  - Datasource Micrometer
+  - JDBC observation starter
+  - R2DBC observability
+  - r2dbc-proxy
+  - Query latency
+  - Connection pool metrics
+  - Active và idle connection
+  - Database error metrics
+  - Trace database call
+  - Mask SQL parameter nhạy cảm
+  - Phân biệt query time và pool wait time
+- level1: Messaging và task observability
+  level2:
+  - Message publish observation
+  - Message process observation
+  - JMS instrumentation
+  - Kafka instrumentation boundary
+  - RabbitMQ instrumentation boundary
+  - Scheduled task observation
+  - tasks.scheduled.execution
+  - Executor observation
+  - Queue depth và lag
+  - Trace context qua message header
+  - Đo thời gian chờ và thời gian xử lý
+- level1: Annotation observability
+  level2:
+  - '@Observed'
+  - '@Timed'
+  - '@Counted'
+  - '@MeterTag'
+  - '@NewSpan'
+  - management.observations.annotations.enabled
+  - AspectJ weaver
+  - Spring Boot starter aspectj
+  - Annotation trên service method
+  - Annotation trên controller
+  - Duplicate observation khi auto-instrumented
+  - Predicate để loại trừ annotation
+  - Khi dùng annotation thay custom API
+- level1: Actuator và management
+  level2:
+  - Spring Boot Actuator
+  - Management server
+  - Management port
+  - Expose management endpoints
+  - Include và exclude endpoint
+  - Security cho actuator
+  - Health endpoint
+  - Info endpoint
+  - Metrics endpoint
+  - Prometheus endpoint
+  - Loggers endpoint
+  - Shutdown endpoint
+  - Không public endpoint nhạy cảm
+- level1: Health và readiness
+  level2:
+  - Health indicator
+  - Readiness state
+  - Liveness state
+  - Application availability
+  - Startup state
+  - Broker health
+  - Database health
+  - External service health
+  - Health group
+  - Health endpoint detail
+  - Readiness khi dependency lỗi
+  - Không dùng liveness thay cho business metric
+  - Kubernetes probe
+- level1: Security và privacy
+  level2:
+  - Bảo vệ telemetry endpoint
+  - Authorization cho actuator
+  - Không log access token
+  - Không trace password
+  - Mask request body
+  - Mask response body
+  - PII trong tags
+  - PII trong baggage
+  - PII trong logs
+  - Data retention
+  - Tenant isolation trong telemetry
+  - Kiểm tra quyền đọc metrics
+- level1: Hiệu năng observability
+  level2:
+  - Chi phí tạo observation
+  - Chi phí export telemetry
+  - Async exporter
+  - Batch exporter
+  - Queue của exporter
+  - Drop telemetry khi quá tải
+  - Cardinality budget
+  - Metric registry memory
+  - Trace sampling budget
+  - Log volume budget
+  - Không làm telemetry chặn request
+  - Load test khi bật instrumentation
+- level1: Testing observability
+  level2:
+  - Test custom observation
+  - Test ObservationRegistry
+  - Test observation name
+  - Test low-cardinality key
+  - Test high-cardinality key
+  - Test ObservationPredicate
+  - Test ObservationFilter
+  - Test metrics bằng SimpleMeterRegistry
+  - Test trace propagation
+  - Test baggage propagation
+  - Test actuator endpoint
+  - Test exporter bằng mock
+  - Test lỗi mà không làm mất telemetry
+- level1: Dashboard và alert
+  level2:
+  - Dashboard request rate
+  - Dashboard error rate
+  - Dashboard latency
+  - Dashboard saturation
+  - Dashboard JVM
+  - Dashboard database
+  - Dashboard external calls
+  - Dashboard queue và executor
+  - Alert theo error rate
+  - Alert theo latency percentile
+  - Alert theo health state
+  - Alert theo exporter failure
+  - Runbook gắn với alert
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không thấy metrics
+  - Không thấy traces
+  - Trace context bị mất
+  - Sai service name
+  - Sai exporter endpoint
+  - Observation không được ghi
+  - Metric bị trùng
+  - Cardinality tăng bất thường
+  - Log không có correlation ID
+  - Actuator endpoint bị 401
+  - Health báo DOWN ngoài dự kiến
+  - Phân biệt lỗi ứng dụng và lỗi exporter
+  - Kiểm tra bằng curl và actuator
+- level1: Thiết kế kiến trúc
+  level2:
+  - Chọn metric cho SLI
+  - Chọn trace cho điều tra latency
+  - Chọn log cho chi tiết nghiệp vụ
+  - Đặt tên observation ổn định
+  - Đặt tag có bounded values
+  - Tách business telemetry và framework telemetry
+  - Instrumentation ở đúng boundary
+  - Không instrument trùng lặp
+  - Telemetry contract giữa service
+  - Observability trong monolith
+  - Observability trong microservices
+  - Chiến lược rollout telemetry
+- level1: Vận hành production
+  level2:
+  - Cấu hình theo profile
+  - Cấu hình exporter bằng environment
+  - Quản lý secret exporter
+  - Sampling theo môi trường
+  - Alert khi collector lỗi
+  - Fallback khi backend telemetry lỗi
+  - Kiểm soát chi phí lưu trữ
+  - Retention metrics
+  - Retention traces
+  - Retention logs
+  - Kiểm tra sau deployment
+  - Canary observability change
+  - Postmortem dùng telemetry
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo custom observation cho use case
+  - Bật metrics và trace cho HTTP
+  - Gắn correlation ID vào log
+  - Cấu hình Prometheus endpoint
+  - Cấu hình OTLP trace export
+  - Thiết lập sampling
+  - Thêm baggage và MDC correlation
+  - Instrument database call
+  - Thiết lập health và readiness
+  - Viết dashboard latency và error
+  - Mô phỏng mất exporter
+  - Điều tra một request chậm
+  - Checklist production readiness

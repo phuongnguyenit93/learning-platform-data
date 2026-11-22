@@ -1,0 +1,3 @@
+menuLevel1: Singleton trong container
+menuLevel2: Phân biệt GoF Singleton với singleton scope do DI container quản lý
+status: ""

@@ -1,0 +1,2395 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Mô phỏng dịch vụ (service stubbing) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Sơ đồ tương tác giữa ứng dụng, dịch vụ phụ thuộc và máy chủ stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các thuật ngữ nền tảng: stub, mapping, matcher, fixture và scenario'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt stub, mock, fake, spy và giả lập dịch vụ (service virtualization)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt thay thế đối tượng trong tiến trình và mô phỏng qua giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Tính độc lập, khả năng tái lập và giới hạn của môi trường mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Ví dụ đầu tiên: thay dịch vụ tra cứu sản phẩm bằng phản hồi kiểm soát được'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Trình tự học từ một phản hồi tĩnh đến kịch bản tích hợp nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-strategies
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategies-001
+    title: Xác định ranh giới hệ thống cần kiểm thử và phần phụ thuộc được thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategies-002
+    title: Vai trò của stub trong kiểm thử thành phần, tích hợp và đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategies-003
+    title: Chọn dịch vụ thật, sandbox hay stub theo mục tiêu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategies-004
+    title: Phân biệt kiểm tra kết quả đầu ra và xác minh tương tác với dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategies-005
+    title: Thiết kế ma trận kịch bản thành công, thất bại, biên và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategies-006
+    title: Cân bằng mức chân thực, tốc độ chạy và chi phí bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategies-007
+    title: Vì sao stub chạy đúng chưa chứng minh tương thích với nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategies-008
+    title: Kết hợp kiểm thử hợp đồng và kiểm thử với dịch vụ thật theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-foundations
+  title: Nền tảng HTTP
+  childs:
+  - slug: http-foundations-001
+    title: Cấu trúc yêu cầu và phản hồi HTTP cần mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-002
+    title: Phương thức HTTP và ý nghĩa của tính an toàn, tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-003
+    title: Đường dẫn, tham số truy vấn, mã hóa URL và dấu gạch chéo cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-004
+    title: Header, cookie, Content-Type và thương lượng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-005
+    title: Mã trạng thái, phản hồi không có nội dung và chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-006
+    title: JSON, XML, dữ liệu biểu mẫu, multipart và dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-007
+    title: Thời hạn chờ, kết nối, TLS và các lớp lỗi phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-foundations-008
+    title: Phân trang, bộ nhớ đệm HTTP và yêu cầu có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: Tiêu chí chọn công cụ theo giao thức, kịch bản và cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: Tổng quan WireMock, MockServer, Hoverfly và Microcks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: Phân biệt công cụ nguồn mở, phần mở rộng và dịch vụ thương mại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Mô hình nhúng trong kiểm thử, tiến trình độc lập và container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: So sánh khai báo bằng Java DSL, JSON và đặc tả API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Khi nào dùng MockWebServer hoặc bộ chặn HTTP phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Kiểm tra khả năng tương thích JDK, thư viện HTTP và phiên bản công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Xây dựng bài thử nhỏ để đánh giá công cụ trên cùng một kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: wiremock-basics
+  title: WireMock căn bản
+  childs:
+  - slug: wiremock-basics-001
+    title: Thiết lập WireMock cho dự án Java và kiểm thử kết nối đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-002
+    title: Khởi chạy, dừng và lấy địa chỉ WireMockServer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-003
+    title: Tạo mapping GET đơn giản bằng Java DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-004
+    title: Khai báo mapping bằng JSON và tổ chức thư mục mappings, __files
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-005
+    title: Chạy WireMock độc lập và gọi thử bằng curl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-006
+    title: Quản lý mapping qua Admin API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-007
+    title: Nhận diện yêu cầu không khớp và phản hồi mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-008
+    title: Ưu tiên mapping khi nhiều quy tắc cùng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiremock-basics-009
+    title: Phân biệt xóa mapping, xóa nhật ký và đặt lại trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-matching
+  title: Ghép yêu cầu
+  childs:
+  - slug: request-matching-001
+    title: Thiết kế điều kiện ghép (request matching) vừa đủ chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-002
+    title: Ghép phương thức, toàn URL và riêng đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-003
+    title: Ghép đường dẫn bằng mẫu, biểu thức chính quy và biến đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-004
+    title: Ghép tham số truy vấn và giá trị xuất hiện nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-005
+    title: Ghép header, cookie, thông tin xác thực và điều kiện vắng mặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-006
+    title: Ghép chuỗi chính xác, chuỗi con và biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-007
+    title: So sánh JSON theo cấu trúc thay vì chuỗi ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-008
+    title: Lọc JSON bằng JSONPath và xử lý trường tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-009
+    title: So sánh XML và lựa chọn nút bằng XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-010
+    title: Ghép dữ liệu biểu mẫu, multipart và nội dung nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-011
+    title: Kết hợp điều kiện, phủ định và xử lý mapping chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matching-012
+    title: Kiểm thử riêng bộ ghép với dữ liệu gần đúng và không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: response-stubbing
+  title: Tạo phản hồi
+  childs:
+  - slug: response-stubbing-001
+    title: Chọn mã trạng thái phù hợp với ngữ nghĩa API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-002
+    title: Tạo nội dung JSON, XML và văn bản tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-003
+    title: Đọc nội dung phản hồi từ file fixture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-004
+    title: Thiết lập header, cookie và kiểu nội dung phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-005
+    title: Trả dữ liệu nhị phân, file tải xuống và nội dung mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-006
+    title: Mô phỏng phân trang, lọc và sắp xếp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-007
+    title: Mô phỏng chuyển hướng và chuỗi chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-008
+    title: Mô phỏng ETag, Last-Modified và phản hồi có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-stubbing-009
+    title: Thiết kế phản hồi lỗi với mã lỗi và thông tin chẩn đoán nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-responses
+  title: Phản hồi động
+  childs:
+  - slug: dynamic-responses-001
+    title: Khi nào cần mẫu phản hồi (response templating)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-responses-002
+    title: Bật và giới hạn phạm vi áp dụng mẫu trong WireMock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-responses-003
+    title: Lấy đường dẫn, truy vấn, header và nội dung yêu cầu làm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-responses-004
+    title: Sử dụng Handlebars với điều kiện, vòng lặp và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-responses-005
+    title: Trích xuất dữ liệu JSON và dựng phản hồi theo đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-responses-006
+    title: Tạo mã định danh, ngày giờ và dữ liệu biến thiên có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-responses-007
+    title: Giữ đúng kiểu dữ liệu, mã hóa ký tự và cấu trúc JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-responses-008
+    title: Giới hạn logic trong mẫu để tránh xây lại toàn bộ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interaction-verification
+  title: Xác minh tương tác
+  childs:
+  - slug: interaction-verification-001
+    title: Nhật ký yêu cầu và sự kiện phục vụ phản hồi trong WireMock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-002
+    title: Xác minh một yêu cầu đã được gửi với đúng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-003
+    title: Kiểm tra số lần gọi chính xác, tối thiểu và tối đa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-004
+    title: Xác minh không phát sinh lời gọi ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-005
+    title: Phát hiện yêu cầu không khớp và mapping chưa được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-006
+    title: Đối chiếu thứ tự tương tác và giới hạn của việc dựa vào thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-007
+    title: Chờ tương tác bất đồng bộ bằng điều kiện có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-008
+    title: Tách lỗi của ứng dụng khỏi lỗi khai báo stub khi assertion thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-verification-009
+    title: Quản lý dung lượng và vòng đời nhật ký yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stateful-scenarios
+  title: Kịch bản trạng thái
+  childs:
+  - slug: stateful-scenarios-001
+    title: Phân biệt phản hồi không trạng thái và kịch bản có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-002
+    title: Mô hình hóa trạng thái ban đầu và điều kiện chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-003
+    title: Khai báo scenario của WireMock theo chuỗi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-004
+    title: Mô phỏng tạo, đọc, cập nhật và xóa tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-005
+    title: Mô phỏng tác vụ đang xử lý rồi hoàn tất khi thăm dò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-006
+    title: Mô phỏng hết hạn phiên và làm mới thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-007
+    title: Đặt lại scenario giữa các phép thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-008
+    title: Xử lý nhiều người dùng và rủi ro dùng chung trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-scenarios-009
+    title: Giới hạn scenario dựng sẵn và lựa chọn mô hình trạng thái mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-simulation
+  title: Mô phỏng sự cố
+  childs:
+  - slug: failure-simulation-001
+    title: Phân biệt lỗi nghiệp vụ, lỗi HTTP và lỗi truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-002
+    title: Mô phỏng 400, 401, 403, 404 và dữ liệu yêu cầu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-003
+    title: Mô phỏng 409, 429 và tín hiệu Retry-After
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-004
+    title: Mô phỏng 500, 502, 503 và 504
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-005
+    title: Tạo độ trễ cố định và độ trễ theo phân bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-006
+    title: Truyền phản hồi chậm theo từng phần để thử thời hạn đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-007
+    title: Mô phỏng phản hồi rỗng, dữ liệu hỏng và kết nối bị ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-008
+    title: Mô phỏng lỗi DNS và từ chối kết nối bằng hạ tầng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-009
+    title: Thiết kế chuỗi lỗi tạm thời rồi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-simulation-010
+    title: Kiểm soát tính ngẫu nhiên và ghi lại điều kiện tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resilience-testing
+  title: Khả năng phục hồi
+  childs:
+  - slug: resilience-testing-001
+    title: Kiểm thử thời hạn kết nối, thời hạn đọc và hạn chót toàn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-002
+    title: Kiểm thử số lần thử lại và các lỗi được phép thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-003
+    title: Kiểm tra khoảng chờ tăng dần và độ biến thiên khi thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-004
+    title: Xác minh ứng dụng tôn trọng Retry-After
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-005
+    title: Ngăn gửi trùng thao tác bằng khóa lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-006
+    title: Kiểm thử trạng thái đóng, mở và thăm dò của circuit breaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-007
+    title: Kiểm thử phương án dự phòng khi dịch vụ phụ thuộc ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-008
+    title: Kiểm thử giới hạn đồng thời và cách ly tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-testing-009
+    title: Phát hiện vòng lặp thử lại và khuếch đại lưu lượng giữa các lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Thiết kế fixture tối thiểu nhưng thể hiện đúng quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Tổ chức dữ liệu chuẩn, dữ liệu biên và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: Biểu diễn trường thiếu, null, chuỗi rỗng và danh sách rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: Xử lý Unicode, múi giờ, số thập phân và dữ liệu định dạng vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Tạo dữ liệu theo tham số với khả năng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Quản lý mã định danh và dữ liệu liên quan giữa nhiều endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Loại bỏ dữ liệu cá nhân và bí mật khỏi fixture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Tránh liên kết vòng giữa dữ liệu stub và giá trị assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-record-replay
+  title: Proxy và ghi phát lại
+  childs:
+  - slug: proxy-record-replay-001
+    title: Mô hình proxy chuyển tiếp và chuyển hướng địa chỉ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-002
+    title: Ghi lưu lượng từ dịch vụ thật để tạo bộ tương tác mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-003
+    title: Phát lại tương tác khi không còn kết nối tới dịch vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-004
+    title: Lựa chọn trường cần giữ và trường cần bỏ khỏi điều kiện ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-005
+    title: Chuẩn hóa thời gian, mã định danh và giá trị thay đổi giữa các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-006
+    title: Che thông tin xác thực và làm sạch dữ liệu trước khi lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-007
+    title: Kết hợp mapping chủ động với chuyển tiếp yêu cầu không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-008
+    title: Ngăn kiểm thử vô tình gọi dịch vụ thật trong chế độ phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-record-replay-009
+    title: Rà soát và cập nhật bản ghi khi API thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: https-authentication
+  title: HTTPS và xác thực
+  childs:
+  - slug: https-authentication-001
+    title: Khởi chạy stub qua HTTPS và quản lý chứng chỉ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-authentication-002
+    title: Thiết lập truststore cho Java HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-authentication-003
+    title: Kiểm thử tên máy chủ và chuỗi tin cậy của chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-authentication-004
+    title: Mô phỏng xác thực hai chiều mTLS khi công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-authentication-005
+    title: Mô phỏng API key, Basic và Bearer token ở mức giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-authentication-006
+    title: Mô phỏng endpoint cấp token, hết hạn token và làm mới token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-authentication-007
+    title: Phân biệt kiểm thử luồng xác thực và kiểm thử mật mã thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-authentication-008
+    title: Bảo vệ Admin API, giới hạn cổng mở và che bí mật trong nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-junit
+  title: Java và JUnit
+  childs:
+  - slug: java-junit-001
+    title: Thiết kế một phép thử Arrange–Act–Assert với dịch vụ stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-002
+    title: Sử dụng @WireMockTest và WireMockRuntimeInfo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-003
+    title: Cấu hình WireMockExtension bằng chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-004
+    title: Lựa chọn vòng đời theo lớp và theo phương thức kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-005
+    title: Truyền cổng động vào cấu hình HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-006
+    title: Gọi stub bằng java.net.http.HttpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-007
+    title: Kiểm thử theo tham số trên nhiều phản hồi và mã trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-008
+    title: Cô lập server, mapping và trạng thái khi JUnit chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-junit-009
+    title: Đóng tài nguyên và lưu bằng chứng khi phép thử thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Thay địa chỉ dịch vụ phụ thuộc bằng cấu hình của môi trường test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Cấp địa chỉ stub trước khi Spring ApplicationContext khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Tích hợp WireMock với @SpringBootTest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Kiểm thử lớp gọi ra ngoài bằng RestTemplate và WebClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: Phân biệt server stub với MockRestServiceServer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Quản lý nhiều stub bằng tên cấu hình độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Đặt lại dữ liệu khi tái sử dụng ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Xử lý xung đột dependency, Jetty và cấu hình khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: docker-va-testcontainers
+  title: Docker và Testcontainers
+  childs:
+  - slug: docker-va-testcontainers-001
+    title: Đóng gói mapping và fixture trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-va-testcontainers-002
+    title: Khởi chạy WireMock bằng Docker và Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-va-testcontainers-003
+    title: Khởi chạy stub bằng Testcontainers trong JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-va-testcontainers-004
+    title: Phân biệt cổng container, cổng máy chủ và địa chỉ ứng dụng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-va-testcontainers-005
+    title: Kết nối ứng dụng và stub qua mạng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-va-testcontainers-006
+    title: Đợi stub sẵn sàng trước khi chạy kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-va-testcontainers-007
+    title: Nạp tài nguyên bằng bind mount, sao chép file hoặc image riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-va-testcontainers-008
+    title: Thu nhật ký và dọn container khi kiểm thử kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mockserver
+  title: MockServer
+  childs:
+  - slug: mockserver-001
+    title: Mô hình expectation, matcher và action trong MockServer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-002
+    title: Khởi chạy MockServer và kết nối bằng Java client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-003
+    title: Tạo expectation cho phản hồi tĩnh và dữ liệu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-004
+    title: Quản lý priority, times và timeToLive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-005
+    title: Lựa chọn phản hồi động bằng template hoặc callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-006
+    title: Xác minh số lần gọi và chuỗi tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-007
+    title: Truy xuất yêu cầu, clear và reset đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-008
+    title: Dùng proxy và ghi phát lại để xây bộ expectation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockserver-009
+    title: Chuyển cùng một kịch bản giữa WireMock và MockServer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hoverfly
+  title: Hoverfly
+  childs:
+  - slug: hoverfly-001
+    title: Mô hình proxy và dữ liệu simulation của Hoverfly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hoverfly-002
+    title: Khởi chạy Hoverfly và định tuyến HTTP client qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hoverfly-003
+    title: Ghi tương tác bằng Capture mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hoverfly-004
+    title: Phát lại tương tác bằng Simulate mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hoverfly-005
+    title: Lựa chọn Spy, Diff, Synthesize và Modify mode theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hoverfly-006
+    title: Điều chỉnh điều kiện ghép và nội dung simulation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hoverfly-007
+    title: Mô phỏng độ trễ và xử lý dữ liệu HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hoverfly-008
+    title: Tích hợp Hoverfly vào kiểm thử Java và cô lập từng lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specification-driven-stubs
+  title: Stub theo đặc tả
+  childs:
+  - slug: specification-driven-stubs-001
+    title: Vai trò của OpenAPI và ví dụ phản hồi trong việc tạo stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-driven-stubs-002
+    title: Tạo nhiều ví dụ cho thành công, lỗi và trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-driven-stubs-003
+    title: Mô phỏng REST API bằng Microcks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-driven-stubs-004
+    title: Lựa chọn phản hồi theo yêu cầu và quy tắc dispatch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-driven-stubs-005
+    title: Kiểm tra dữ liệu mẫu theo schema và ràng buộc API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-driven-stubs-006
+    title: Quản lý nhiều phiên bản đặc tả và bộ stub tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-driven-stubs-007
+    title: Phân biệt sinh stub từ đặc tả và xác minh hợp đồng của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-driven-stubs-008
+    title: Đối chiếu stub với dịch vụ thật để phát hiện sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-extensions
+  title: Giao thức mở rộng
+  childs:
+  - slug: protocol-extensions-001
+    title: Mô phỏng SOAP với WSDL, XML namespace và SOAP Fault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-002
+    title: Mô phỏng GraphQL theo operation, variables, data và errors
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-003
+    title: Mô phỏng gRPC theo Protobuf và mã trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-004
+    title: Phân biệt gRPC đơn phản hồi với luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-005
+    title: Mô phỏng WebSocket theo phiên kết nối và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-006
+    title: Mô phỏng Server-Sent Events và dữ liệu HTTP truyền theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-007
+    title: Mô phỏng sự kiện theo AsyncAPI bằng công cụ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-extensions-008
+    title: Xác định khi nào cần broker hoặc máy chủ giao thức thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webhooks-asynchrony
+  title: Webhook và bất đồng bộ
+  childs:
+  - slug: webhooks-asynchrony-001
+    title: Phân biệt phản hồi HTTP trực tiếp, callback và webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhooks-asynchrony-002
+    title: Cấu hình webhook khi một yêu cầu khớp stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhooks-asynchrony-003
+    title: Truyền mã tương quan từ yêu cầu sang callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhooks-asynchrony-004
+    title: Mô phỏng webhook trễ, lặp lại và đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhooks-asynchrony-005
+    title: Mô phỏng quá trình tiếp nhận, thăm dò và hoàn tất tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhooks-asynchrony-006
+    title: Kiểm thử chữ ký webhook bằng bí mật kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhooks-asynchrony-007
+    title: Chờ callback theo điều kiện thay vì thời gian ngủ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhooks-asynchrony-008
+    title: Thu hồi callback đang chờ và cô lập phép thử tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-dependent-services
+  title: Nhiều dịch vụ phụ thuộc
+  childs:
+  - slug: multiple-dependent-services-001
+    title: Vẽ sơ đồ phụ thuộc và xác định từng điểm thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-dependent-services-002
+    title: Khởi chạy nhiều stub có địa chỉ và vòng đời độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-dependent-services-003
+    title: Phối hợp fixture giữa đơn hàng, thanh toán và tồn kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-dependent-services-004
+    title: Mô phỏng thành công một phần và giao dịch bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-dependent-services-005
+    title: Mô phỏng kết quả tổng hợp khi một phụ thuộc chậm hoặc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-dependent-services-006
+    title: Cô lập kịch bản theo tenant, người dùng và mã tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-dependent-services-007
+    title: Ngăn xung đột mapping giữa nhiều nhóm dùng chung môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-dependent-services-008
+    title: Chọn điểm kết thúc mô phỏng để tránh dựng lại cả hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-execution
+  title: Chạy trong CI
+  childs:
+  - slug: ci-execution-001
+    title: Tổ chức tác vụ build cho bộ kiểm thử sử dụng stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-002
+    title: Ghim phiên bản thư viện, image và bộ fixture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-003
+    title: Khởi tạo, kiểm tra sẵn sàng và hủy môi trường theo từng job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-004
+    title: Chạy song song với cổng động và không gian dữ liệu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-005
+    title: Chặn kết nối ra ngoài khi bộ kiểm thử yêu cầu chạy độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-006
+    title: Định cấu hình thời hạn toàn job và xử lý treo tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-007
+    title: Lưu yêu cầu không khớp, nhật ký và báo cáo kiểm thử làm bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-008
+    title: Tái hiện lỗi CI trên máy phát triển bằng cùng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-execution-009
+    title: Kiểm thử tương thích khi nâng cấp công cụ hoặc dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-debugging
+  title: Quan sát và gỡ lỗi
+  childs:
+  - slug: observability-debugging-001
+    title: Đọc nhật ký yêu cầu, phản hồi và mapping được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-002
+    title: Phân tích near miss để tìm điều kiện ghép không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-003
+    title: Chẩn đoán sai cổng, sai base URL và ứng dụng gọi nhầm dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-004
+    title: Chẩn đoán lỗi query, header, body và mã hóa ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-005
+    title: Chẩn đoán mapping ưu tiên sai và trạng thái scenario bị rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-006
+    title: Chẩn đoán lỗi TLS, proxy và mạng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-007
+    title: Phân biệt stub chưa sẵn sàng với lỗi thời hạn của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-008
+    title: Theo dõi mã tương quan xuyên qua ứng dụng và stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-009
+    title: Rút gọn kịch bản lỗi thành phép thử tái hiện tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-limits
+  title: Hiệu năng và giới hạn
+  childs:
+  - slug: performance-limits-001
+    title: Đo chi phí độ trễ do stub bổ sung vào phép thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-002
+    title: Đánh giá số kết nối đồng thời và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-003
+    title: Tác động của nhật ký yêu cầu và fixture lớn lên bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-004
+    title: Tối ưu số lượng mapping, biểu thức chính quy và template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-005
+    title: Mô phỏng tốc độ phụ thuộc mà không để stub thành nút thắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-006
+    title: Phân biệt kiểm thử tải ứng dụng với đánh giá hiệu năng dịch vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-007
+    title: Nhận diện giới hạn về mạng, giao thức và tính chân thực của mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extending-wiremock
+  title: Mở rộng WireMock
+  childs:
+  - slug: extending-wiremock-001
+    title: Khi nào cấu hình và template không còn đáp ứng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extending-wiremock-002
+    title: Viết bộ ghép yêu cầu tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extending-wiremock-003
+    title: Viết bộ biến đổi phản hồi tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extending-wiremock-004
+    title: Bổ sung template helper và dữ liệu cho mô hình template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extending-wiremock-005
+    title: Theo dõi tương tác bằng ServeEventListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extending-wiremock-006
+    title: Đóng gói và đăng ký extension ở dạng nhúng hoặc độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extending-wiremock-007
+    title: Kiểm thử extension và quản lý tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extending-wiremock-008
+    title: Giữ extension độc lập với logic nghiệp vụ của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stub-maintenance
+  title: Bảo trì bộ stub
+  childs:
+  - slug: stub-maintenance-001
+    title: Tổ chức mapping theo dịch vụ, năng lực và kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-maintenance-002
+    title: Đặt tên fixture và gắn metadata để truy nguyên mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-maintenance-003
+    title: Rà soát mapping trùng, quá rộng hoặc không còn được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-maintenance-004
+    title: Kiểm tra schema và cú pháp tài nguyên trong bước build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-maintenance-005
+    title: Quản lý thay đổi hợp đồng và phiên bản bộ stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-maintenance-006
+    title: Phát hiện stub lỗi thời bằng kiểm tra định kỳ với nguồn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-maintenance-007
+    title: Chia sẻ fixture có kiểm soát mà không ràng buộc các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-maintenance-008
+    title: Đánh giá chi phí bảo trì và tiêu chí loại bỏ một stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-practice
+  title: Thực hành tích hợp
+  childs:
+  - slug: integration-practice-001
+    title: Bài thực hành tra cứu sản phẩm với phản hồi tĩnh và dữ liệu biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-002
+    title: Bài thực hành tìm kiếm có phân trang và phản hồi theo đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-003
+    title: Bài thực hành thanh toán có khóa lũy đẳng và thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-004
+    title: Bài thực hành tác vụ bất đồng bộ với polling và webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-005
+    title: Bài thực hành khách hàng Java xử lý lỗi HTTPS và token hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-006
+    title: Bài thực hành tổng hợp dữ liệu từ nhiều dịch vụ với phương án dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-007
+    title: Bài thực hành ghi phát lại API và làm sạch dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-008
+    title: Bài thực hành chạy song song trong CI và điều tra phép thử chập chờn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-009
+    title: 'Tiêu chí nghiệm thu: kết quả, tương tác, tính cô lập và khả năng tái lập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

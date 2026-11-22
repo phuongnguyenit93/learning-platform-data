@@ -1,0 +1,57 @@
+roadmap:
+- id: dia-chi-va-giao-thuc
+  title: Địa chỉ và giao thức
+  purpose: Hiểu cách một ứng dụng Java xác định đích đến và chọn giao thức mạng.
+  objectives:
+  - Phân biệt IP, port, DNS, URI và URL.
+  - Dùng InetAddress và InetSocketAddress để mô tả điểm kết nối.
+  - Chọn TCP, UDP hoặc HTTP theo yêu cầu giao tiếp.
+- id: ket-noi-tcp
+  title: Kết nối TCP
+  purpose: Xây dựng giao tiếp có kết nối và xử lý dữ liệu dạng luồng byte.
+  objectives:
+  - Tạo cặp client/server bằng Socket và ServerSocket.
+  - Định nghĩa ranh giới thông điệp và mã hóa ký tự.
+  - Xử lý EOF, timeout và đóng kết nối đúng vòng đời.
+- id: datagram-udp
+  title: Datagram UDP
+  purpose: Hiểu giao tiếp theo gói khi không có bảo đảm truyền tin của TCP.
+  objectives:
+  - Gửi và nhận datagram bằng API Java.
+  - Kiểm chứng tình huống mất, trùng hoặc đảo thứ tự gói.
+  - Giải thích giới hạn kích thước và nhu cầu bổ sung cơ chế tin cậy.
+- id: mo-hinh-i-o
+  title: Mô hình I/O
+  purpose: Chọn cách xử lý nhiều kết nối phù hợp với quy mô và hành vi chờ.
+  objectives:
+  - So sánh I/O chặn, không chặn và bất đồng bộ.
+  - Dùng channel, buffer và Selector trong một ví dụ.
+  - Xử lý đọc/ghi từng phần và đánh giá mô hình luồng hoặc virtual thread.
+- id: http-va-websocket
+  title: HTTP và WebSocket
+  purpose: Sử dụng API mức cao để giao tiếp với dịch vụ web.
+  objectives:
+  - Tạo HttpRequest và đọc HttpResponse bằng HttpClient.
+  - So sánh send với sendAsync và tiêu thụ body theo nhu cầu.
+  - Mô tả vòng đời WebSocket và xử lý dữ liệu nhận liên tục.
+- id: ket-noi-tls
+  title: Kết nối TLS
+  purpose: Bảo vệ kết nối và kiểm tra danh tính của phía bên kia.
+  objectives:
+  - Giải thích chứng chỉ, trust store và quá trình bắt tay TLS.
+  - Cấu hình SSLContext cho một kết nối thử nghiệm.
+  - Phân biệt kiểm tra chuỗi chứng chỉ với kiểm tra tên máy chủ.
+- id: do-ben-ket-noi
+  title: Độ bền kết nối
+  purpose: Giới hạn tài nguyên và xử lý lỗi mạng có kiểm soát.
+  objectives:
+  - Phân biệt lỗi DNS, kết nối bị từ chối, timeout và ngắt giữa chừng.
+  - Thiết kế timeout, hủy tác vụ và retry có giới hạn.
+  - Kiểm soát số kết nối, tốc độ gửi và kích thước dữ liệu.
+- id: kiem-chung-mang
+  title: Kiểm chứng mạng
+  purpose: Dùng thí nghiệm và số liệu để xác nhận tính đúng đắn của giao tiếp.
+  objectives:
+  - Kiểm thử client/server trên loopback với kết quả xác định.
+  - Mô phỏng máy chủ chậm, dữ liệu thiếu và kết nối đột ngột đóng.
+  - Đo độ trễ, thông lượng và tài nguyên trước khi điều chỉnh.

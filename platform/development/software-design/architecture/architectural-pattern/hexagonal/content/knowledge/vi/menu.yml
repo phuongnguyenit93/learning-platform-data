@@ -1,0 +1,303 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiến trúc lục giác (Hexagonal Architecture) và tên gọi Ports and Adapters
+  - Bài toán nghiệp vụ bị gắn chặt với giao diện, cơ sở dữ liệu và framework
+  - Mục tiêu chạy và kiểm thử ứng dụng độc lập với công nghệ bên ngoài
+  - 'Các thuật ngữ nền tảng: ứng dụng, tác nhân, cổng và bộ chuyển đổi'
+  - Ý nghĩa hình lục giác và cách đọc sơ đồ bên trong, bên ngoài
+  - Luồng minh họa từ một yêu cầu đặt hàng đến dịch vụ lưu trữ
+  - Những lợi ích, chi phí và giới hạn của kiến trúc
+  - Lộ trình học và kiến thức nền cần chuẩn bị
+- level1: Nền tảng thiết kế
+  level2:
+  - Đóng gói trách nhiệm và che giấu chi tiết có thể thay đổi
+  - Mức độ gắn kết trong mô-đun và liên kết giữa các mô-đun
+  - Phân biệt chính sách nghiệp vụ với cơ chế kỹ thuật
+  - Nguyên lý đảo ngược phụ thuộc và vai trò của trừu tượng
+  - Phân biệt đảo ngược phụ thuộc với tiêm phụ thuộc
+  - Thiết kế theo hành vi thay vì theo tên bảng hoặc công nghệ
+  - Khả năng thay thế triển khai và tính ổn định của hợp đồng
+  - Tính thực dụng khi lựa chọn mức độ tách biệt
+- level1: Mô hình kiến trúc
+  level2:
+  - 'Phần bên trong: hành vi và quy tắc của ứng dụng'
+  - 'Phần bên ngoài: con người, hệ thống và thiết bị tương tác'
+  - Tác nhân khởi phát (driving actor) và tác nhân được gọi (driven actor)
+  - Cổng vào (inbound port) và cổng ra (outbound port)
+  - Bộ chuyển đổi vào và bộ chuyển đổi ra
+  - Chiều gọi trong thời gian chạy và chiều phụ thuộc của mã nguồn
+  - Nhiều bộ chuyển đổi sử dụng cùng một cổng
+  - Đường biên logic và ranh giới triển khai vật lý
+  - Cách diễn đạt kiến trúc bằng sơ đồ thành phần và sơ đồ trình tự
+- level1: Ranh giới ứng dụng
+  level2:
+  - Xác định phạm vi ứng dụng và năng lực nghiệp vụ nó sở hữu
+  - Phân biệt ứng dụng đang thiết kế với toàn bộ hệ thống
+  - Những quyết định thuộc bên trong và chi tiết nên để bên ngoài
+  - Tách điều phối ca sử dụng khỏi xử lý giao thức
+  - Nhận diện rò rỉ thư viện và kiểu dữ liệu qua đường biên
+  - Đặt tên cổng theo mục đích tương tác
+  - Tình huống nhiều miền hoặc nhiều mô-đun trong cùng hệ thống
+  - Tiêu chí đánh giá một đường biên có giá trị thực tế
+- level1: Miền nghiệp vụ
+  level2:
+  - Vai trò của mô hình miền bên trong ứng dụng
+  - Thực thể (entity), đối tượng giá trị (value object) và định danh
+  - Quy tắc bất biến và nơi bảo vệ tính hợp lệ của trạng thái
+  - Hành vi nghiệp vụ trong đối tượng và dịch vụ miền
+  - Phân biệt quy tắc miền với điều kiện thực hiện ca sử dụng
+  - Thời gian, số ngẫu nhiên và dữ liệu bên ngoài ảnh hưởng đến quy tắc
+  - Lựa chọn mô hình miền phong phú hoặc logic đơn giản theo bài toán
+  - Quan hệ tùy chọn với DDD, aggregate và ngôn ngữ chung
+  - Giữ miền độc lập với HTTP, ORM và vùng chứa phụ thuộc
+- level1: Ca sử dụng
+  level2:
+  - Xác định ca sử dụng từ mục tiêu của tác nhân
+  - Đầu vào, đầu ra, tiền điều kiện và kết quả nghiệp vụ
+  - Điều phối miền và các cổng ra trong một ca sử dụng
+  - Phân biệt dịch vụ ứng dụng với dịch vụ miền
+  - Quyền sở hữu quy trình và thứ tự các bước xử lý
+  - Thiết kế thao tác ghi và truy vấn theo nhu cầu sử dụng
+  - Chính sách phân quyền theo hành động nghiệp vụ
+  - Tránh ca sử dụng quá lớn hoặc chia nhỏ thiếu ý nghĩa
+  - Mô tả kịch bản thành công, từ chối và thất bại kỹ thuật
+- level1: Cổng vào
+  level2:
+  - Cổng vào như hợp đồng về khả năng ứng dụng cung cấp
+  - Thiết kế cổng theo ca sử dụng hoặc nhóm hành vi liên quan
+  - Lựa chọn giao diện tường minh hoặc API công khai tối thiểu
+  - Mô hình lệnh, truy vấn và kết quả độc lập giao thức
+  - Hợp đồng lỗi nghiệp vụ và trạng thái không thành công
+  - Xác định điều kiện hợp lệ mà mọi tác nhân đều phải tuân thủ
+  - Hợp đồng đồng bộ, bất đồng bộ và thời hạn xử lý
+  - Tiến hóa cổng vào khi xuất hiện tác nhân hoặc kênh mới
+- level1: Cổng ra
+  level2:
+  - Cổng ra như nhu cầu ứng dụng đặt lên môi trường bên ngoài
+  - Quyền sở hữu cổng ra từ phía ứng dụng
+  - Thiết kế thao tác theo ngôn ngữ nghiệp vụ
+  - Cổng lưu trữ, gửi thông báo, thanh toán và gọi dịch vụ ngoài
+  - Cổng thời gian hoặc sinh định danh khi cần kiểm soát tính xác định
+  - Lựa chọn độ hạt và tách các trách nhiệm không liên quan
+  - Hợp đồng về nhất quán, độ trễ và tác dụng phụ
+  - Biểu diễn không tìm thấy, bị từ chối và tạm thời không khả dụng
+  - Tránh biến cổng ra thành bản sao API của nhà cung cấp
+- level1: Bộ chuyển đổi vào
+  level2:
+  - Vai trò tiếp nhận tác nhân và chuyển yêu cầu vào ứng dụng
+  - 'Bộ chuyển đổi HTTP: ánh xạ route, tham số và nội dung yêu cầu'
+  - Bộ chuyển đổi dòng lệnh và giao diện người dùng
+  - Bộ chuyển đổi hàng đợi, sự kiện và lịch chạy
+  - Chuyển dữ liệu giao thức thành đầu vào ca sử dụng
+  - Kiểm tra cú pháp và định dạng tại điểm tiếp nhận
+  - Ánh xạ kết quả và lỗi ứng dụng về phản hồi giao thức
+  - Truyền thông tin danh tính và ngữ cảnh cần thiết
+  - Giữ controller hoặc consumer gọn và không chứa quy tắc nghiệp vụ
+- level1: Bộ chuyển đổi ra
+  level2:
+  - Hiện thực cổng ra bằng một công nghệ cụ thể
+  - Bộ chuyển đổi SQL, NoSQL và tệp
+  - Bộ chuyển đổi HTTP client, SDK và hệ thống cũ
+  - Bộ chuyển đổi gửi thư, xuất bản thông điệp và lưu trữ đối tượng
+  - Chuyển dữ liệu ứng dụng sang mô hình nhà cung cấp
+  - Chuyển lỗi thư viện thành kết quả phù hợp hợp đồng cổng
+  - Cấu hình kết nối, bí mật và tài nguyên kỹ thuật
+  - Thay thế nhà cung cấp mà vẫn giữ ngữ nghĩa nghiệp vụ
+  - Quản lý đóng mở kết nối và vòng đời tài nguyên
+- level1: Chiều phụ thuộc
+  level2:
+  - Phân biệt quan hệ gọi hàm với quan hệ phụ thuộc biên dịch
+  - Cách lõi gọi hệ thống ngoài mà không phụ thuộc lớp triển khai
+  - Vị trí khai báo giao diện và chiều hiện thực cổng
+  - Tách mô-đun hợp đồng khi có lý do rõ ràng
+  - Tránh phụ thuộc vòng giữa ứng dụng và các bộ chuyển đổi
+  - Phụ thuộc thư viện tiện ích và nguy cơ kéo theo framework
+  - Kiểm tra phụ thuộc gián tiếp qua kiểu trả về và ngoại lệ
+  - Đánh giá ngoại lệ có chủ đích đối với quy tắc phụ thuộc
+- level1: Ghép nối thành phần
+  level2:
+  - Điểm ghép nối (composition root) và nơi chọn triển khai
+  - Lắp ứng dụng bằng hàm tạo trong chương trình tối thiểu
+  - Lắp bộ chuyển đổi thật hoặc bộ thay thế cho từng môi trường
+  - Tiêm nhiều triển khai và lựa chọn theo cấu hình
+  - Decorator cho giao dịch, bộ nhớ đệm hoặc đo lường
+  - Phân biệt khởi tạo đối tượng với xử lý nghiệp vụ
+  - Kiểm tra cấu hình thiếu hoặc mâu thuẫn khi khởi động
+  - Quản lý vòng đời và phạm vi đối tượng có trạng thái
+- level1: Mô hình dữ liệu
+  level2:
+  - Phân biệt dữ liệu giao thức, dữ liệu ca sử dụng, miền và lưu trữ
+  - Lý do tách mô hình và chi phí sao chép dữ liệu
+  - Ánh xạ tại đường biên và quyền sở hữu bộ chuyển đổi dữ liệu
+  - Định danh, tiền tệ, thời điểm và đơn vị đo qua các cổng
+  - Dữ liệu tùy chọn, giá trị rỗng và thông tin không hợp lệ
+  - Không để kiểu ORM hoặc HTTP lộ vào hợp đồng nghiệp vụ
+  - Đầu ra truy vấn, mô hình đọc và dữ liệu trình chiếu
+  - Phân trang, sắp xếp và bộ lọc độc lập thư viện
+  - Khi nào có thể dùng chung mô hình và cách ghi nhận đánh đổi
+- level1: Lưu trữ
+  level2:
+  - Thiết kế cổng lưu trữ theo nhu cầu ca sử dụng
+  - Repository và khác biệt với lớp truy cập dữ liệu kỹ thuật
+  - Ánh xạ mô hình miền sang mô hình lưu trữ
+  - Truy vấn theo aggregate và giới hạn tải dữ liệu
+  - Định danh mới, phiên bản bản ghi và trạng thái đã lưu
+  - Khóa lạc quan, cập nhật đồng thời và xử lý xung đột
+  - Lazy loading, truy vấn N+1 và ranh giới phiên làm việc
+  - Thay bộ chuyển đổi lưu trữ bằng triển khai trong bộ nhớ
+  - Thay công nghệ lưu trữ và kiểm chứng ngữ nghĩa hợp đồng
+- level1: Giao dịch
+  level2:
+  - Xác định đơn vị công việc theo ca sử dụng
+  - Phân biệt ranh giới giao dịch logic và cơ chế giao dịch kỹ thuật
+  - Đặt điều phối giao dịch ở điểm ghép nối hoặc lớp bọc phù hợp
+  - Nguyên tử khi một ca sử dụng thực hiện nhiều thao tác lưu trữ
+  - Mức cô lập, cạnh tranh dữ liệu và quy tắc nghiệp vụ
+  - Tác dụng phụ ngoài cơ sở dữ liệu và giới hạn rollback
+  - Transactional Outbox khi cần đồng bộ dữ liệu với thông điệp
+  - Tính lặp an toàn và chống xử lý trùng trong thao tác ghi
+  - Bù trừ khi quy trình đi qua nhiều hệ thống độc lập
+- level1: Lỗi và độ tin cậy
+  level2:
+  - Phân loại lỗi đầu vào, lỗi nghiệp vụ và lỗi hạ tầng
+  - Chọn ngoại lệ hoặc kiểu kết quả theo hợp đồng
+  - Ánh xạ lỗi qua từng đường biên mà không làm mất ý nghĩa
+  - Thời hạn xử lý, hủy tác vụ và giới hạn tài nguyên
+  - Đặt chính sách thử lại ở nơi hiểu tác dụng phụ
+  - Tạm ngắt kết nối lỗi và phương án dự phòng có kiểm soát
+  - Xử lý thất bại một phần và trạng thái chưa xác định
+  - Bảo toàn nguyên nhân kỹ thuật cho chẩn đoán
+  - Tránh dùng lỗi của nhà cung cấp làm ngôn ngữ nghiệp vụ
+- level1: Xử lý bất đồng bộ
+  level2:
+  - Phân biệt thông điệp nhận vào với sự kiện miền
+  - Consumer như bộ chuyển đổi vào của một ca sử dụng
+  - Publisher như bộ chuyển đổi ra cho nhu cầu tích hợp
+  - Chuyển sự kiện miền thành hợp đồng thông điệp bên ngoài
+  - Xác nhận thông điệp và quan hệ với kết quả xử lý
+  - Thông điệp trùng, sai thứ tự và tính nhất quán cuối cùng
+  - Hàng đợi lỗi, xử lý lại và lưu dấu kết quả
+  - Tiến hóa lược đồ và tương thích phiên bản thông điệp
+  - Giữ miền độc lập với broker và framework xử lý sự kiện
+- level1: Bảo mật
+  level2:
+  - Xác thực tác nhân ở bộ chuyển đổi biên
+  - Biểu diễn người thực hiện và quyền hạn trong đầu vào ứng dụng
+  - Phân quyền theo ca sử dụng và quy tắc truy cập dữ liệu
+  - Tách danh tính nghiệp vụ khỏi kiểu bảo mật của framework
+  - Kiểm tra dữ liệu không tin cậy tại những ranh giới phù hợp
+  - Cấp thông tin bí mật cho bộ chuyển đổi ra
+  - Ngăn rò rỉ dữ liệu nhạy cảm qua phản hồi và nhật ký
+  - Kiểm thử chính sách bảo mật qua nhiều kênh gọi
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử quy tắc miền bằng đối tượng thuần
+  - Kiểm thử ca sử dụng không khởi động giao diện hoặc cơ sở dữ liệu
+  - Vai trò của stub, fake, mock và đối tượng thật
+  - Bộ kiểm thử hợp đồng chung cho các triển khai cổng ra
+  - Kiểm thử bộ chuyển đổi vào với dữ liệu giao thức
+  - Kiểm thử tích hợp bộ chuyển đổi lưu trữ và dịch vụ ngoài
+  - Kiểm thử ghép nối để phát hiện thiếu hoặc sai triển khai
+  - Kiểm thử đầu cuối và lựa chọn số lượng kịch bản đại diện
+  - Kiểm thử lỗi, cạnh tranh dữ liệu và xử lý trùng
+  - Tránh kiểm thử chi tiết triển khai làm cản trở thay thế bộ chuyển đổi
+- level1: Triển khai Java
+  level2:
+  - Cấu trúc tối thiểu cho ví dụ quản lý đơn hàng
+  - Xây dựng mô hình miền bằng lớp Java và đối tượng giá trị
+  - Định nghĩa cổng vào cho thao tác tạo đơn hàng
+  - Định nghĩa cổng ra lưu đơn hàng và gửi thông báo
+  - Hiện thực ca sử dụng với phụ thuộc truyền qua hàm tạo
+  - Viết bộ chuyển đổi lưu trữ trong bộ nhớ
+  - Viết bộ chuyển đổi dòng lệnh gọi cùng ca sử dụng
+  - Lắp và chạy ứng dụng không cần vùng chứa framework
+  - Thêm một bộ chuyển đổi mới mà không đổi quy tắc nghiệp vụ
+  - Viết kiểm thử miền và ca sử dụng bằng JUnit
+- level1: Tích hợp Spring
+  level2:
+  - Khởi động hệ chủ và lắp các thành phần bằng cấu hình Spring
+  - Khai báo bean tường minh cho lõi ứng dụng
+  - Controller REST ánh xạ yêu cầu sang cổng vào
+  - Bộ chuyển đổi Spring Data JPA hiện thực cổng lưu trữ
+  - Tách entity JPA và dữ liệu HTTP khỏi mô hình miền khi cần
+  - Ranh giới giao dịch, proxy và các lời gọi không đi qua proxy
+  - Tích hợp Spring Security mà vẫn giữ rõ chính sách ứng dụng
+  - Chọn triển khai theo profile và cấu hình môi trường
+  - Kiểm thử theo lát cắt và kiểm thử tích hợp với Testcontainers
+  - Đánh đổi giữa lõi thuần Java và việc dùng annotation có chủ đích
+- level1: Bảo vệ kiến trúc
+  level2:
+  - Chuyển quy tắc phụ thuộc thành ràng buộc kiểm tra được
+  - Kiểm tra package và lớp bằng ArchUnit
+  - Ngăn miền phụ thuộc framework hoặc gói bộ chuyển đổi
+  - Giới hạn lớp công khai và quyền truy cập package
+  - Phát hiện chu trình giữa mô-đun và các gói
+  - Phân tách Gradle hoặc Maven module khi cần rào chắn biên dịch
+  - Đưa kiểm tra kiến trúc vào pipeline phát triển
+  - Ghi nhận ngoại lệ và theo dõi sự xói mòn ranh giới
+- level1: Quan sát và hiệu năng
+  level2:
+  - Liên kết yêu cầu xuyên qua bộ chuyển đổi và ca sử dụng
+  - Đo độ trễ tại cổng vào và cổng ra
+  - Phân biệt chỉ số nghiệp vụ với chỉ số hạ tầng
+  - Gắn quan sát bằng lớp bọc mà không làm rối quy tắc miền
+  - Chi phí ánh xạ và cấp phát đối tượng qua nhiều mô hình
+  - Vị trí bộ nhớ đệm và ảnh hưởng đến ngữ nghĩa cổng
+  - Xử lý truy vấn lớn, phân trang và luồng dữ liệu
+  - Điều tra nút thắt bằng số đo trước khi thay đổi ranh giới
+- level1: Tổ chức dự án
+  level2:
+  - Tổ chức package theo tính năng và theo vai trò kiến trúc
+  - Ranh giới package domain, application, port, adapter và bootstrap
+  - 'Một mô-đun hay nhiều mô-đun: tiêu chí lựa chọn'
+  - Quyền sở hữu hợp đồng và trách nhiệm giữa các nhóm
+  - Tài liệu hóa ca sử dụng, cổng và sơ đồ phụ thuộc
+  - Quản lý thay đổi hợp đồng và kiểm tra các bên sử dụng
+  - Đóng gói một ứng dụng và các cấu hình triển khai
+  - Tránh mô-đun dùng chung trở thành điểm gom phụ thuộc
+- level1: Quan hệ kiến trúc
+  level2:
+  - Hexagonal và Layered Architecture trong tổ chức phụ thuộc
+  - 'Hexagonal và Clean Architecture: điểm chung và khác biệt trọng tâm'
+  - Hexagonal và Onion Architecture trong bảo vệ mô hình miền
+  - 'Hexagonal với DDD: vai trò của bounded context và aggregate'
+  - Hexagonal bên trong một khối đơn thể mô-đun
+  - Hexagonal bên trong một vi dịch vụ và giới hạn lợi ích phân tán
+  - Hexagonal với CQRS khi tách mô hình ghi và đọc
+  - Hexagonal với kiến trúc hướng sự kiện tại các cổng tích hợp
+  - Adapter, Facade, Strategy và Dependency Injection trong triển khai
+- level1: Chuyển đổi hệ thống
+  level2:
+  - Khảo sát luồng nghiệp vụ và phụ thuộc công nghệ hiện tại
+  - Chọn ca sử dụng đại diện cho đợt chuyển đổi đầu tiên
+  - Tạo đường nối thay thế quanh cơ sở dữ liệu hoặc dịch vụ ngoài
+  - Tách cổng theo nhu cầu đang có thay vì dự đoán mọi khả năng
+  - Di chuyển quy tắc ra khỏi controller và lớp lưu trữ
+  - Duy trì tương thích hành vi bằng kiểm thử đặc tính hiện có
+  - Chạy song song hoặc chuyển dần từng bộ chuyển đổi
+  - Xử lý dữ liệu, giao dịch và thay đổi cấu hình khi chuyển đổi
+  - Đo kết quả và quyết định phạm vi chuyển đổi tiếp theo
+- level1: Sai lầm thiết kế
+  level2:
+  - Vẽ hình lục giác nhưng vẫn phụ thuộc công nghệ trong lõi
+  - Cho rằng mọi lớp hoặc mọi thao tác CRUD đều cần một cổng riêng
+  - Giao diện cổng chỉ sao chép API của ORM hoặc nhà cung cấp
+  - Dồn quy tắc nghiệp vụ vào controller hoặc repository adapter
+  - Nhầm sơ đồ sáu cạnh với số lớp hoặc số cổng bắt buộc
+  - Ánh xạ quá nhiều mô hình mà không có nhu cầu tách biệt
+  - Lạm dụng mock và bỏ qua kiểm thử hợp đồng bộ chuyển đổi
+  - Đặt giao dịch, thử lại hoặc bộ nhớ đệm sai ranh giới ngữ nghĩa
+  - Áp dụng cấu trúc phức tạp vượt nhu cầu và năng lực bảo trì
+- level1: Bài tập và tình huống
+  level2:
+  - Thiết kế sơ đồ Hexagonal cho hệ thống đặt hàng
+  - Cho HTTP và dòng lệnh sử dụng chung một ca sử dụng
+  - Thay lưu trữ trong bộ nhớ bằng PostgreSQL qua cùng một cổng
+  - Thay nhà cung cấp gửi thông báo và kiểm chứng hợp đồng
+  - Tích hợp cổng thanh toán có thể trả kết quả chưa xác định
+  - Tiếp nhận đơn hàng từ hàng đợi và xử lý thông điệp trùng
+  - Thiết kế truy vấn báo cáo không làm lệch mô hình ghi
+  - Chuyển một luồng Spring truyền thống sang Ports and Adapters
+  - Viết quyết định kiến trúc và đánh giá các phương án đánh đổi
+  - Danh sách kiểm tra ranh giới, phụ thuộc và khả năng kiểm thử

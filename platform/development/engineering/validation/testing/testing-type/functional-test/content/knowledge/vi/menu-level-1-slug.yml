@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan chức năng
+  slug: functional-overview
+  index: 0
+- title: Yêu cầu và phạm vi
+  slug: requirements-and-scope
+  index: 1
+- title: Kết quả và bất biến
+  slug: results-and-invariants
+  index: 2
+- title: Lựa chọn mức kiểm thử
+  slug: test-level-selection
+  index: 3
+- title: Thiết kế tình huống
+  slug: scenario-design
+  index: 4
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 5
+- title: Kiểm tra đầu vào
+  slug: input-validation
+  index: 6
+- title: Quy tắc nghiệp vụ
+  slug: business-rules
+  index: 7
+- title: Trạng thái và quy trình
+  slug: state-and-workflow
+  index: 8
+- title: CRUD và lưu trữ
+  slug: crud-and-persistence
+  index: 9
+- title: Giao dịch và toàn vẹn
+  slug: transactions-and-integrity
+  index: 10
+- title: Tìm kiếm và danh sách
+  slug: search-and-lists
+  index: 11
+- title: Tính toán và tiền tệ
+  slug: calculations-and-money
+  index: 12
+- title: Ngày giờ và bản địa hóa
+  slug: date-time-and-localization
+  index: 13
+- title: Đăng nhập và phiên
+  slug: login-and-sessions
+  index: 14
+- title: Quyền và phạm vi dữ liệu
+  slug: permissions-and-data-scope
+  index: 15
+- title: Giao diện người dùng
+  slug: user-interfaces
+  index: 16
+- title: API và phản hồi
+  slug: api-and-responses
+  index: 17
+- title: Tích hợp bên ngoài
+  slug: external-integration
+  index: 18
+- title: Sự kiện và bất đồng bộ
+  slug: events-and-async
+  index: 19
+- title: Trùng lặp và đồng thời
+  slug: duplicates-and-concurrency
+  index: 20
+- title: Tệp và nhập xuất
+  slug: files-and-import-export
+  index: 21
+- title: Báo cáo và tổng hợp
+  slug: reports-and-aggregation
+  index: 22
+- title: Tác vụ nền và theo lịch
+  slug: background-and-scheduled-tasks
+  index: 23
+- title: Thông báo và liên lạc
+  slug: notifications-and-communication
+  index: 24
+- title: Cấu hình và biến thể
+  slug: configuration-and-variants
+  index: 25
+- title: Lỗi và phục hồi
+  slug: errors-and-recovery
+  index: 26
+- title: Chấp nhận và ví dụ
+  slug: acceptance-and-examples
+  index: 27
+- title: Tự động hóa với Java
+  slug: java-automation
+  index: 28
+- title: Bộ test và hồi quy
+  slug: test-suites-and-regression
+  index: 29
+- title: Thực thi và bằng chứng
+  slug: execution-and-evidence
+  index: 30
+- title: Bao phủ và chất lượng
+  slug: coverage-and-quality
+  index: 31
+- title: Bảo trì kiểm thử
+  slug: test-maintenance
+  index: 32
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 33

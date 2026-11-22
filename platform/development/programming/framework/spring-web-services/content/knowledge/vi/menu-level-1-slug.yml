@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan Spring-WS
+  slug: web-services-overview
+  index: 0
+- title: Nền tảng XML
+  slug: xml-foundations
+  index: 1
+- title: Giao thức SOAP
+  slug: soap-protocol
+  index: 2
+- title: Thiết kế hợp đồng
+  slug: contract-design
+  index: 3
+- title: Thiết kế XSD
+  slug: xsd-design
+  index: 4
+- title: Đọc và công bố WSDL
+  slug: wsdl-reading-and-publishing
+  index: 5
+- title: Khởi tạo dự án
+  slug: project-initialization
+  index: 6
+- title: Sinh mã JAXB
+  slug: jaxb-code-generation
+  index: 7
+- title: Marshalling và OXM
+  slug: marshalling-and-oxm
+  index: 8
+- title: Kiến trúc xử lý
+  slug: processing-architecture
+  index: 9
+- title: Cấu hình máy chủ
+  slug: server-configuration
+  index: 10
+- title: Xây dựng endpoint
+  slug: endpoint-construction
+  index: 11
+- title: Định tuyến thông điệp
+  slug: message-routing
+  index: 12
+- title: Xử lý XML trực tiếp
+  slug: direct-xml-processing
+  index: 13
+- title: Header và ngữ cảnh
+  slug: headers-and-context
+  index: 14
+- title: Kiểm tra dữ liệu
+  slug: data-validation
+  index: 15
+- title: Interceptor
+  slug: interceptors
+  index: 16
+- title: SOAP Fault
+  slug: soap-faults
+  index: 17
+- title: Máy khách Spring-WS
+  slug: spring-ws-client
+  index: 18
+- title: HTTP và kết nối
+  slug: http-and-connections
+  index: 19
+- title: WS-Addressing
+  slug: ws-addressing
+  index: 20
+- title: Tệp đính kèm
+  slug: attachments
+  index: 21
+- title: Bảo vệ xử lý XML
+  slug: xml-processing-security
+  index: 22
+- title: WS-Security
+  slug: ws-security
+  index: 23
+- title: Chứng chỉ và khóa
+  slug: certificates-and-keys
+  index: 24
+- title: Tích hợp Spring Security
+  slug: spring-security-integration
+  index: 25
+- title: Truyền tải mở rộng
+  slug: extended-transports
+  index: 26
+- title: Tương thích hợp đồng
+  slug: contract-compatibility
+  index: 27
+- title: Kiểm thử máy chủ
+  slug: server-testing
+  index: 28
+- title: Kiểm thử máy khách
+  slug: client-testing
+  index: 29
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 30
+- title: Hiệu năng và vận hành
+  slug: performance-and-operations
+  index: 31
+- title: Quan sát và chẩn đoán
+  slug: observability-and-diagnostics
+  index: 32
+- title: Nâng cấp và di chuyển
+  slug: upgrades-and-migration
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-web-services-practice
+  index: 34

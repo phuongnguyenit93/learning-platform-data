@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan CRaC
+  slug: crac-overview
+  index: 0
+- title: Nền tảng JVM
+  slug: crac-jvm-foundations
+  index: 1
+- title: Môi trường thực hành
+  slug: crac-lab-setup
+  index: 2
+- title: Chu kỳ checkpoint–restore
+  slug: crac-checkpoint-restore-cycle
+  index: 3
+- title: API CRaC
+  slug: crac-api
+  index: 4
+- title: Vòng đời tài nguyên
+  slug: crac-resource-lifecycle
+  index: 5
+- title: Tệp và bộ nhớ native
+  slug: crac-files-and-native-memory
+  index: 6
+- title: Kết nối mạng
+  slug: crac-network-connections
+  index: 7
+- title: Cơ sở dữ liệu
+  slug: crac-database-connections
+  index: 8
+- title: Luồng và tác vụ nền
+  slug: crac-threads-and-background-tasks
+  index: 9
+- title: Thời gian và định danh
+  slug: crac-time-and-identity
+  index: 10
+- title: Trạng thái và cấu hình
+  slug: crac-state-and-configuration
+  index: 11
+- title: Làm nóng JVM
+  slug: crac-jvm-warmup
+  index: 12
+- title: Spring Boot
+  slug: crac-spring-boot
+  index: 13
+- title: Tích hợp thư viện
+  slug: crac-library-integration
+  index: 14
+- title: Đóng gói checkpoint
+  slug: crac-checkpoint-packaging
+  index: 15
+- title: Giới hạn tương thích
+  slug: crac-compatibility-limits
+  index: 16
+- title: Container và Kubernetes
+  slug: crac-containers-and-kubernetes
+  index: 17
+- title: Bảo mật checkpoint
+  slug: crac-checkpoint-security
+  index: 18
+- title: Kiểm thử
+  slug: crac-testing
+  index: 19
+- title: Chẩn đoán sự cố
+  slug: crac-troubleshooting
+  index: 20
+- title: Đánh giá hiệu năng
+  slug: crac-performance-evaluation
+  index: 21
+- title: Vận hành thực tế
+  slug: crac-production-operations
+  index: 22
+- title: Lựa chọn giải pháp
+  slug: crac-solution-selection
+  index: 23
+- title: Bài thực hành
+  slug: crac-practice-exercises
+  index: 24

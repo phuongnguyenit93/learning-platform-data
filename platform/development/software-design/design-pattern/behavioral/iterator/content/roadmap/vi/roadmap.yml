@@ -1,0 +1,57 @@
+roadmap:
+- id: iterator-bai-toan-duyet
+  title: Iterator & bài toán duyệt
+  purpose: Hiểu nhu cầu duyệt phần tử trong nhiều cấu trúc dữ liệu mà không làm lộ cách lưu trữ nội bộ.
+  objectives:
+  - Nhận diện mã duyệt gắn chặt vào cấu trúc collection
+  - Giải thích mục đích tách logic duyệt khỏi collection
+  - Nêu tình huống nên áp dụng Iterator
+- id: iterator-aggregate
+  title: Iterator & Aggregate
+  purpose: Nắm các vai trò chính của mẫu thiết kế và quan hệ giữa bộ duyệt với đối tượng chứa phần tử.
+  objectives:
+  - Phân biệt Iterator, ConcreteIterator và Aggregate
+  - Mô tả cách Aggregate cung cấp iterator
+  - Vẽ luồng Client → Iterator → Collection
+- id: giao-thuc-duyet-phan-tu
+  title: Giao thức duyệt phần tử
+  purpose: Định nghĩa những thao tác cần thiết để đi qua các phần tử và quản lý vị trí duyệt.
+  objectives:
+  - Giải thích hasNext() và next()
+  - Xử lý thời điểm bắt đầu và kết thúc duyệt
+  - Không cho Client truy cập trực tiếp cấu trúc nội bộ
+- id: tu-xay-iterator-java
+  title: Tự xây Iterator Java
+  purpose: Cài đặt iterator đơn giản cho một collection tự định nghĩa bằng Java và kiểm tra tính đóng gói.
+  objectives:
+  - Tạo lớp Iterator lưu vị trí duyệt riêng
+  - Trả về phần tử theo đúng thứ tự mong muốn
+  - Ném NoSuchElementException khi hết phần tử
+- id: nhieu-chien-luoc-duyet
+  title: Nhiều chiến lược duyệt
+  purpose: Tách cách duyệt ra khỏi collection để hỗ trợ những trình tự khác nhau mà không sửa mã Client.
+  objectives:
+  - Thiết kế duyệt xuôi và duyệt ngược
+  - Mô tả DFS hoặc BFS cho cấu trúc cây
+  - Chọn thuật toán duyệt phù hợp từng bài toán
+- id: iterable-java-collections
+  title: Iterable & Java Collections
+  purpose: Liên hệ mẫu thiết kế với API Java tiêu chuẩn để sử dụng bộ duyệt thống nhất và an toàn.
+  objectives:
+  - Dùng Iterable.iterator() và vòng for-each
+  - Thực hành java.util.Iterator trên List/Set
+  - Phân biệt Iterator với ListIterator
+- id: trang-thai-thay-doi-khi-duyet
+  title: Trạng thái & thay đổi khi duyệt
+  purpose: Nhận diện các rủi ro phát sinh khi collection hoặc iterator thay đổi trong quá trình đi qua phần tử.
+  objectives:
+  - Giải thích iterator giữ trạng thái duyệt độc lập
+  - Phân biệt remove() tùy chọn với sửa collection trực tiếp
+  - Kiểm tra chính sách sửa đổi đồng thời của collection
+- id: refactor-kiem-thu-danh-doi
+  title: Refactor, kiểm thử & đánh đổi
+  purpose: Đánh giá tính phù hợp của Iterator qua việc đơn giản hóa mã Client và kiểm thử các biên.
+  objectives:
+  - Refactor vòng duyệt phụ thuộc cấu trúc sang Iterator
+  - Kiểm thử rỗng, một phần tử và nhiều iterator độc lập
+  - Đánh giá lợi ích đóng gói so với số lớp bổ sung

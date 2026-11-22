@@ -1,0 +1,3 @@
+menuLevel1: '@JmsListener'
+menuLevel2: JmsListenerEndpointRegistry để tìm và quản lý container
+status: WRITTEN

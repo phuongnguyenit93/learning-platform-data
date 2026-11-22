@@ -1,0 +1,3 @@
+menuLevel1: RSocket
+menuLevel2: Điều kiện lựa chọn RSocket so với WebClient, SSE hoặc WebSocket
+status: WRITTEN

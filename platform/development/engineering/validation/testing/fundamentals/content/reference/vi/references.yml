@@ -1,0 +1,13 @@
+references:
+  - title: "ISTQB - Certified Tester Foundation Level (CTFL) v4.0"
+    url: "https://www.istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/"
+    description: "Đề cương nền tảng về nguyên lý, hoạt động, mức độ, loại kiểm thử và quản lý lỗi."
+  - title: "ISTQB - Official Glossary of Software Testing"
+    url: "https://glossary.istqb.org/en_US/search"
+    description: "Tra cứu thuật ngữ chuẩn về testing, defect, failure và verification/validation."
+  - title: "Google for Developers - Testing Content-driven Web App Backends"
+    url: "https://developers.google.com/solutions/content-driven/backend/testing"
+    description: "Ví dụ về unit, integration, functional testing và tự động hóa trong CI."
+  - title: "Martin Fowler - The Practical Test Pyramid"
+    url: "https://martinfowler.com/articles/practical-test-pyramid.html"
+    description: "Cách tổ chức bộ kiểm thử cân bằng giữa chi phí, tốc độ và độ tin cậy."

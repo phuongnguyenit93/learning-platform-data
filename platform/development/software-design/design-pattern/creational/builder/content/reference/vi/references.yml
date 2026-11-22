@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring.Guru — Builder"
+    url: "https://refactoring.guru/design-patterns/builder"
+    description: "Ý định, cấu trúc Builder, ConcreteBuilder, Director và đánh đổi của pattern."
+  - title: "Refactoring.Guru — Builder in Java"
+    url: "https://refactoring.guru/design-patterns/builder/java/example"
+    description: "Ví dụ Java tạo Car và Manual bằng các bước dựng dùng chung cùng Director."
+  - title: "Java Design Patterns — Builder"
+    url: "https://java-design-patterns.com/patterns/builder/"
+    description: "Ví dụ fluent Builder trong Java, tham số tùy chọn và chi phí thiết kế."
+  - title: "SourceMaking — Builder"
+    url: "https://sourcemaking.com/design_patterns/builder"
+    description: "Ý định, cấu trúc, các bước áp dụng và quan hệ với Abstract Factory."

@@ -1,0 +1,3 @@
+menuLevel1: Luồng byte
+menuLevel2: read trả về int từ 0 đến 255 và dấu hiệu EOF -1
+status: WRITTEN

@@ -1,0 +1,3109 @@
+menu:
+- slug: foundation
+  title: Nền tảng
+  childs:
+  - slug: foundation-001
+    title: Lưu trữ bền vững trên tệp là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-002
+    title: Phân biệt dữ liệu trong bộ nhớ và dữ liệu đã lưu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-003
+    title: Phân biệt thao tác tệp, tuần tự hóa và cơ chế lưu trữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-004
+    title: Phân biệt tệp dữ liệu, tệp cấu hình, tệp xuất và nhật ký ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-005
+    title: Khi nào nên lưu bằng tệp và khi nào nên chọn cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-006
+    title: Vòng đời từ tạo, đọc, cập nhật đến xóa dữ liệu trên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-007
+    title: Các yêu cầu về tính nguyên tử, nhất quán, cô lập và độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-008
+    title: Mối liên hệ giữa biểu diễn dữ liệu, bố cục tệp và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-009
+    title: Ranh giới bảo đảm của ứng dụng, hệ điều hành và thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-010
+    title: Các thuật ngữ cốt lõi và trình tự học File Persistence
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-systems
+  title: Hệ thống tệp
+  childs:
+  - slug: file-systems-001
+    title: Tệp, thư mục, đường dẫn và mục thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-002
+    title: Nội dung tệp và siêu dữ liệu của tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-003
+    title: Phân biệt tên tệp, định danh tệp và đối tượng đang được mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-004
+    title: Tệp thông thường, liên kết tượng trưng và liên kết cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-005
+    title: Phân vùng, ổ đĩa, điểm gắn và ranh giới hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-006
+    title: Quyền truy cập, chủ sở hữu và thuộc tính chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-007
+    title: Ý nghĩa của kích thước và các dấu thời gian của tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-008
+    title: Bộ đệm ứng dụng, bộ đệm hệ điều hành và bộ nhớ thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-009
+    title: Ảnh hưởng của việc đổi tên hoặc xóa tệp đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-systems-010
+    title: Những khác biệt hệ điều hành cần kiểm tra khi thiết kế lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-models
+  title: Mô hình lưu trữ
+  childs:
+  - slug: storage-models-001
+    title: Xác định đơn vị dữ liệu và khóa nhận diện cần lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-002
+    title: Lựa chọn một tệp cho toàn bộ dữ liệu hoặc một tệp cho mỗi đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-003
+    title: Lựa chọn tệp dữ liệu và tệp siêu dữ liệu đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-004
+    title: Lựa chọn ghi thay thế, cập nhật tại chỗ và ghi nối tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-005
+    title: Xác định thứ tự bản ghi và cách tìm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-006
+    title: Thiết kế bất biến nghiệp vụ cần giữ sau mỗi lần cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-007
+    title: Xác định phạm vi giao dịch và khả năng thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-008
+    title: Thiết kế bản ghi xóa và vòng đời dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-009
+    title: Xác định mức tăng trưởng, kích thước tệp và số lượng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-models-010
+    title: Thiết kế chính sách phiên bản, kiểm chứng và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paths-and-identifiers
+  title: Đường dẫn và định danh
+  childs:
+  - slug: paths-and-identifiers-001
+    title: Phân biệt đường dẫn tuyệt đối và đường dẫn tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-002
+    title: Xác định thư mục gốc lưu trữ độc lập với thư mục làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-003
+    title: Ghép và phân giải đường dẫn bằng Path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-004
+    title: Phân biệt chuẩn hóa đường dẫn và phân giải đường dẫn thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-005
+    title: Kiểm tra đường dẫn có nằm trong thư mục được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-006
+    title: Ánh xạ khóa nghiệp vụ thành tên tệp an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-007
+    title: Xử lý Unicode, chữ hoa chữ thường và ký tự tên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-008
+    title: Xử lý liên kết tượng trưng khi truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-009
+    title: Phân biệt so sánh tên đường dẫn và kiểm tra cùng một tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-010
+    title: Tránh phụ thuộc vào dấu phân cách và quy ước đường dẫn hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-identifiers-011
+    title: Xử lý rủi ro thay đổi tệp giữa lúc kiểm tra và lúc sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-file-apis
+  title: API tệp trong Java
+  childs:
+  - slug: java-file-apis-001
+    title: Vai trò của File, Path, Files và FileSystem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-002
+    title: Tạo thư mục và tệp với điều kiện tồn tại tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-003
+    title: Lựa chọn tùy chọn mở để đọc, ghi, tạo và cắt ngắn tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-004
+    title: Đọc và cập nhật thuộc tính tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-005
+    title: Duyệt thư mục và đóng tài nguyên khi liệt kê tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-006
+    title: Sao chép, di chuyển và đổi tên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-007
+    title: Xóa tệp và xử lý thư mục không rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-008
+    title: Phân loại IOException và các lỗi truy cập thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-009
+    title: Phân biệt kiểm tra tồn tại trước và xử lý kết quả thao tác thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-file-apis-010
+    title: Lựa chọn API theo yêu cầu bộ nhớ, hiệu năng và tính khả chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streams-and-charsets
+  title: Luồng và bảng mã
+  childs:
+  - slug: streams-and-charsets-001
+    title: Phân biệt luồng byte và luồng ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-002
+    title: Đọc ghi theo luồng thay vì nạp toàn bộ tệp vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-003
+    title: Thiết kế bộ đệm và kích thước khối đọc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-004
+    title: Xử lý đọc chưa đủ dữ liệu và dấu kết thúc luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-005
+    title: Lựa chọn bảng mã tường minh khi lưu văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-006
+    title: Xử lý BOM, ký tự xuống dòng và dòng cuối tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-007
+    title: Phân biệt byte lỗi, ký tự lỗi và dữ liệu không đúng định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-008
+    title: Phân biệt flush, close và yêu cầu độ bền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-009
+    title: Quản lý tài nguyên bằng try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-010
+    title: Xử lý lỗi khi đóng luồng mà vẫn giữ nguyên nguyên nhân chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-charsets-011
+    title: Đọc ghi dữ liệu nhị phân với quy ước kiểu và thứ tự byte rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: positional-access
+  title: Truy cập theo vị trí
+  childs:
+  - slug: positional-access-001
+    title: Khi nào cần truy cập ngẫu nhiên thay vì đọc tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-002
+    title: Đọc ghi với RandomAccessFile và con trỏ tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-003
+    title: Vai trò của FileChannel và ByteBuffer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-004
+    title: Quản lý position, limit và capacity của bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-005
+    title: Phân biệt vị trí của kênh và vị trí đọc ghi được chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-006
+    title: Xử lý đọc ghi một phần và vòng lặp hoàn tất thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-007
+    title: Thiết kế truy cập bản ghi theo độ lệch byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-008
+    title: Thay đổi độ dài tệp và kiểm tra ranh giới truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-009
+    title: Lựa chọn bộ đệm trên heap và bộ đệm trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-010
+    title: Sao chép dữ liệu bằng kênh và xử lý giới hạn mỗi lần truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: positional-access-011
+    title: Đánh giá vai trò của truy cập tệp bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: formats-and-records
+  title: Định dạng và bản ghi
+  childs:
+  - slug: formats-and-records-001
+    title: Lựa chọn văn bản, nhị phân và định dạng có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-002
+    title: Lựa chọn JSON, CSV hoặc định dạng riêng theo kiểu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-003
+    title: Thiết kế tiêu đề tệp với dấu nhận diện và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-004
+    title: Phân tách bản ghi bằng dấu kết thúc, độ dài hoặc kích thước cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-005
+    title: Thiết kế bản ghi nhiều dòng và quy tắc thoát ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-006
+    title: Biểu diễn khóa, giá trị null và dữ liệu tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-007
+    title: Bảo toàn số thập phân, ngày giờ và định danh dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-008
+    title: Giới hạn độ dài bản ghi và kiểm tra tràn khi tính kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-009
+    title: Thiết kế mã kiểm tra cho bản ghi và khối dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-010
+    title: Phát hiện bản ghi chưa ghi xong và vùng dữ liệu chưa sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-011
+    title: Đánh giá lưu đối tượng Java bằng ObjectOutputStream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-012
+    title: Đánh giá tương thích và rủi ro khi đọc lại đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-records-013
+    title: Tách bộ mã hóa dữ liệu khỏi cơ chế đọc ghi tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: directory-organization
+  title: Tổ chức thư mục
+  childs:
+  - slug: directory-organization-001
+    title: Thiết kế cấu trúc thư mục theo tập dữ liệu và loại đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-002
+    title: Phân chia thư mục theo khóa băm để tránh tập trung quá nhiều tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-003
+    title: Phân vùng dữ liệu theo thời gian hoặc phạm vi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-004
+    title: Đặt tên tệp dữ liệu, tệp tạm, tệp khóa và tệp chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-005
+    title: Thiết kế tệp kê khai (manifest) cho một thế hệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-006
+    title: Phân biệt dữ liệu đang hoạt động và dữ liệu chờ công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-007
+    title: Quản lý tệp không còn được tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-008
+    title: Giữ cấu trúc thư mục ổn định khi số lượng đối tượng tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-009
+    title: Thiết kế kiểm kê dữ liệu mà không phải đọc toàn bộ nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directory-organization-010
+    title: Kiểm tra tính nhất quán giữa manifest và các tệp thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-replace-writes
+  title: Ghi thay thế an toàn
+  childs:
+  - slug: safe-replace-writes-001
+    title: Rủi ro khi cắt ngắn tệp cũ trước khi ghi bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-002
+    title: Thiết kế ghi bản mới vào tệp tạm cùng khu vực lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-003
+    title: Ghi đủ nội dung và kiểm tra trước khi công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-004
+    title: Phân biệt hoàn tất ghi nội dung và đổi tên công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-005
+    title: Sử dụng yêu cầu di chuyển nguyên tử và kiểm tra khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-006
+    title: Xử lý trường hợp di chuyển qua hai hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-007
+    title: Xác định chính sách khi thao tác nguyên tử không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-008
+    title: Bảo vệ bản cũ khi bản mới ghi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-009
+    title: Phối hợp ghi thay thế với người đọc đang mở tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-010
+    title: Xử lý tệp tạm sót lại và xác định phiên bản đang có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-replace-writes-011
+    title: Kiểm tra trạng thái thực sau khi kết quả đổi tên không rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-durability
+  title: Độ bền dữ liệu
+  childs:
+  - slug: data-durability-001
+    title: Phân biệt nhìn thấy dữ liệu mới và dữ liệu tồn tại sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-002
+    title: Theo dõi đường đi từ bộ đệm Java tới thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-003
+    title: Vai trò của FileChannel.force và FileDescriptor.sync
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-004
+    title: Phân biệt đồng bộ nội dung và đồng bộ siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-005
+    title: Vai trò của tùy chọn SYNC và DSYNC khi mở tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-006
+    title: Độ bền của thay đổi thư mục và giới hạn API khả chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-007
+    title: Thiết kế thời điểm xác nhận ghi thành công cho bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-008
+    title: Lựa chọn đồng bộ từng bản ghi, từng khối hoặc theo chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-009
+    title: Phân biệt lỗi tiến trình, lỗi hệ điều hành và mất nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-010
+    title: Đánh giá bảo đảm trên hệ thống tệp và thiết bị thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-011
+    title: Lưu bằng chứng về cấu hình và mức bảo đảm độ bền đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: in-process-concurrency
+  title: Đồng thời trong tiến trình
+  childs:
+  - slug: in-process-concurrency-001
+    title: Phân biệt an toàn luồng và an toàn dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-002
+    title: Lựa chọn một luồng ghi và hàng đợi yêu cầu ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-003
+    title: Đồng bộ thao tác đọc sửa ghi như một đơn vị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-004
+    title: Sử dụng khóa đọc ghi theo phạm vi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-005
+    title: Quản lý khóa theo đường dẫn hoặc khóa đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-006
+    title: Tránh tạo hai khóa cho cùng một tệp qua các đường dẫn khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-007
+    title: Phối hợp thay thế tệp với bộ nhớ đệm và người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-008
+    title: Phân biệt đọc ảnh chụp ổn định và đọc trạng thái đang thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-009
+    title: Thiết kế thứ tự lấy khóa để tránh bế tắc (deadlock)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-010
+    title: Xử lý hủy, timeout và lỗi trong vùng giữ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-concurrency-011
+    title: Kiểm tra cập nhật đồng thời không làm mất thay đổi đã ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interprocess-locking
+  title: Khóa giữa tiến trình
+  childs:
+  - slug: interprocess-locking-001
+    title: Phạm vi bảo vệ của khóa Java và khóa tệp hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-002
+    title: Sử dụng FileLock với FileChannel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-003
+    title: Phân biệt khóa chia sẻ và khóa độc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-004
+    title: Khóa toàn tệp và khóa theo vùng byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-005
+    title: Phân biệt chờ khóa và thử lấy khóa không chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-006
+    title: Xử lý vùng khóa chồng lấn trong cùng JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-007
+    title: Đánh giá sự tuân thủ khóa của các tiến trình truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-008
+    title: Quản lý vòng đời khóa khi đóng kênh hoặc tiến trình kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-009
+    title: Thiết kế tệp khóa và giới hạn của khóa dựa trên sự tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-010
+    title: Xử lý đổi tên và thay thế tệp đang được dùng làm đối tượng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-locking-011
+    title: Kiểm chứng hành vi khóa trên Windows, Linux và hệ thống tệp từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: append-only-logs
+  title: Nhật ký nối tiếp
+  childs:
+  - slug: append-only-logs-001
+    title: Mô hình lưu bằng cách nối thêm bản ghi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-002
+    title: Phân biệt nhật ký dữ liệu và nhật ký chẩn đoán ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-003
+    title: Thiết kế bản ghi tạo, cập nhật và xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-004
+    title: Đánh số thứ tự và nhận diện bản ghi đã áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-005
+    title: Ghi đầy đủ một bản ghi và đánh dấu ranh giới hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-006
+    title: Xử lý nhiều bên ghi mà không giả định mọi lần ghi nối là nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-007
+    title: Phát hiện và bỏ qua phần đuôi bị ghi dở khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-008
+    title: Phát lại nhật ký để dựng trạng thái trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-009
+    title: Chia nhật ký thành các phân đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-010
+    title: Xác định thời điểm chuyển phân đoạn và đóng phân đoạn cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: append-only-logs-011
+    title: Thiết kế xác nhận ghi theo mức độ bền đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexes-and-lookup
+  title: Chỉ mục và tra cứu
+  childs:
+  - slug: indexes-and-lookup-001
+    title: Phân biệt dữ liệu nguồn và chỉ mục có thể tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-002
+    title: Ánh xạ khóa nghiệp vụ đến tệp, phân đoạn và độ lệch byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-003
+    title: Xây dựng chỉ mục trong bộ nhớ khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-004
+    title: Lưu chỉ mục trên đĩa để giảm thời gian khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-005
+    title: Tra cứu theo khóa, theo khoảng và theo thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-006
+    title: Cập nhật chỉ mục khi bản ghi đổi vị trí hoặc bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-007
+    title: Phối hợp ghi dữ liệu và cập nhật chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-008
+    title: Phát hiện chỉ mục cũ hoặc không khớp thế hệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-009
+    title: Xây dựng lại chỉ mục từ tệp nguồn có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-and-lookup-010
+    title: Đánh đổi giữa kích thước chỉ mục, bộ nhớ và số lần đọc tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: snapshots-and-merging
+  title: Bản chụp và hợp nhất
+  childs:
+  - slug: snapshots-and-merging-001
+    title: Bản chụp trạng thái (snapshot) và mục tiêu rút ngắn phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-002
+    title: Chọn thời điểm tạo bản chụp nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-003
+    title: Phối hợp bản chụp với vị trí đã áp dụng trong nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-004
+    title: Ghi và công bố bản chụp như một thế hệ dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-005
+    title: Kiểm tra bản chụp trước khi thay thế bản đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-006
+    title: Hợp nhất dữ liệu để loại bỏ phiên bản cũ và bản ghi xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-007
+    title: Giữ khả năng đọc trong lúc xây dựng dữ liệu hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-008
+    title: Xử lý thay đổi mới phát sinh trong quá trình hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-009
+    title: Cập nhật manifest và chuyển thế hệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-010
+    title: Xóa phân đoạn cũ sau khi không còn người đọc hoặc bản sao lưu phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-and-merging-011
+    title: Đánh giá chi phí ghi lại và khoảng dung lượng tạm cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-file-transactions
+  title: Giao dịch nhiều tệp
+  childs:
+  - slug: multi-file-transactions-001
+    title: Vì sao ghi thành công từng tệp chưa đủ cho giao dịch nhiều tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-002
+    title: Xác định đơn vị thay đổi cần được công bố đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-003
+    title: Dùng thế hệ dữ liệu và manifest để công bố một tập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-004
+    title: Thiết kế bản ghi chuẩn bị và dấu xác nhận hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-005
+    title: Nguyên tắc ghi nhật ký trước khi sửa dữ liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-006
+    title: Phân biệt phục hồi bằng áp dụng lại và bằng hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-007
+    title: Thiết kế thứ tự ghi, đồng bộ và công bố trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-008
+    title: Phát hiện giao dịch chưa hoàn tất sau khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-009
+    title: Bảo đảm áp dụng lại hoặc hoàn tác có tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-010
+    title: Phối hợp khóa với giao dịch cập nhật nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-file-transactions-011
+    title: Đánh giá khi độ phức tạp giao dịch vượt phạm vi lưu trữ bằng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crash-recovery
+  title: Khôi phục sau sự cố
+  childs:
+  - slug: crash-recovery-001
+    title: Xác định các trạng thái có thể có sau mỗi điểm gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-002
+    title: Phân biệt tệp thiếu, tệp rỗng, tệp hỏng và tệp ghi dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-003
+    title: Quét và xác định phần dữ liệu hợp lệ có thể sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-004
+    title: Kiểm tra bản chụp và lựa chọn chuỗi nhật ký cần phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-005
+    title: Phục hồi giao dịch chưa hoàn tất theo giao thức đã thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-006
+    title: Xử lý tệp tạm, tệp mồ côi và thế hệ chưa được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-007
+    title: Giữ nguyên bằng chứng hỏng dữ liệu trước khi sửa chữa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-008
+    title: Thiết kế chế độ chỉ đọc khi chưa thể bảo đảm tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-009
+    title: Thực hiện phục hồi có thể chạy lại nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-010
+    title: Đối soát bất biến và chỉ mục trước khi mở lại quyền ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crash-recovery-011
+    title: Báo cáo dữ liệu đã khôi phục và phần chưa thể xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-integrity
+  title: Toàn vẹn dữ liệu
+  childs:
+  - slug: data-integrity-001
+    title: Phân biệt lỗi cấu trúc, lỗi nội dung và lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-002
+    title: Kiểm tra dấu nhận diện, phiên bản và kích thước khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-003
+    title: Dùng mã kiểm tra (checksum) để phát hiện hỏng bản ghi và phân đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-004
+    title: Phân biệt phát hiện hỏng dữ liệu và chống sửa đổi có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-005
+    title: Đối chiếu số lượng bản ghi và tổng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-006
+    title: Kiểm tra khóa trùng và tham chiếu giữa các đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-007
+    title: Phát hiện bản ghi bị thiếu, lặp hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-008
+    title: Xử lý dữ liệu không giải mã được mà không bỏ qua âm thầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-009
+    title: Kiểm tra định kỳ dữ liệu ít được đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrity-010
+    title: Thiết kế công cụ kiểm tra chỉ đọc trước khi sửa tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-versioning
+  title: Phiên bản dữ liệu
+  childs:
+  - slug: data-versioning-001
+    title: Phiên bản hóa tiêu đề tệp và cấu trúc bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-002
+    title: Phân biệt tương thích khi đọc và tương thích khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-003
+    title: Thêm trường tùy chọn và xác định giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-004
+    title: Xử lý đổi tên, đổi kiểu và loại bỏ trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-005
+    title: Bảo toàn ý nghĩa khi thay đổi đơn vị đo hoặc quy tắc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-006
+    title: Thiết kế bộ đọc hỗ trợ nhiều phiên bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-007
+    title: Lựa chọn chuyển đổi khi đọc hoặc chuyển đổi dữ liệu lưu sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-008
+    title: Di chuyển dữ liệu bằng thế hệ mới thay vì sửa trực tiếp không kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-009
+    title: Tiếp tục hoặc hủy quá trình chuyển đổi bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-010
+    title: Lập kế hoạch quay lại phiên bản trước cùng giới hạn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-versioning-011
+    title: Kiểm chứng dữ liệu trước và sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-mapped-files
+  title: Tệp ánh xạ bộ nhớ
+  childs:
+  - slug: memory-mapped-files-001
+    title: Cơ chế ánh xạ vùng tệp vào không gian địa chỉ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-002
+    title: Sử dụng MappedByteBuffer để truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-003
+    title: Lựa chọn chế độ chỉ đọc, đọc ghi và ánh xạ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-004
+    title: Phân biệt thay đổi vùng nhớ và thời điểm dữ liệu được lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-005
+    title: Chia cửa sổ ánh xạ cho tệp có kích thước lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-006
+    title: Phối hợp ánh xạ với thay đổi kích thước và thay thế tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-007
+    title: Quản lý vòng đời ánh xạ trong phạm vi Java 21
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-008
+    title: Xử lý giới hạn tài nguyên và lỗi khi truy cập vùng ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapped-files-009
+    title: Đánh giá khi ánh xạ bộ nhớ phù hợp hơn đọc ghi qua kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-scale
+  title: Hiệu năng và quy mô
+  childs:
+  - slug: performance-and-scale-001
+    title: Đo độ trễ, thông lượng và số thao tác đọc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-002
+    title: Phân biệt tải tuần tự, ngẫu nhiên và hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-003
+    title: Đánh giá ảnh hưởng của bộ đệm và dữ liệu đã được hệ điều hành lưu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-004
+    title: Lựa chọn kích thước khối và kích thước phân đoạn bằng đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-005
+    title: Gom nhiều yêu cầu ghi để giảm chi phí đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-006
+    title: Thiết kế bộ nhớ đệm phù hợp với phiên bản dữ liệu trên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-007
+    title: Giới hạn số tệp mở và quản lý vòng đời kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-008
+    title: Đánh giá chi phí khi có nhiều tệp nhỏ hoặc thư mục rất lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-009
+    title: Giảm khuếch đại ghi khi cập nhật và hợp nhất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-010
+    title: Quản lý dung lượng trống và phần dự phòng cho ghi thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-011
+    title: Đo hiệu năng trong khi tạo bản chụp, sao lưu và hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-012
+    title: Nhận diện giới hạn cần chuyển sang cơ sở dữ liệu hoặc kho đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-security
+  title: Bảo mật lưu trữ
+  childs:
+  - slug: storage-security-001
+    title: Xác định quyền đọc, ghi và xóa theo người dùng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-002
+    title: Phân tách thư mục dữ liệu khỏi mã chương trình và tài nguyên công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-003
+    title: Ngăn đường dẫn thoát khỏi thư mục lưu trữ cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-004
+    title: Kiểm soát liên kết tượng trưng và thay đổi đường dẫn ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-005
+    title: Tạo tệp tạm với quyền truy cập phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-006
+    title: Giới hạn kích thước, số lượng tệp và tài nguyên giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-007
+    title: Giảm rủi ro khi giải tuần tự đối tượng Java không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-008
+    title: Bảo vệ dữ liệu nhạy cảm trên tệp và trong nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-009
+    title: Quản lý mã hóa và khóa mã hóa tách khỏi dữ liệu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-010
+    title: Kiểm tra tính xác thực khi cần phát hiện sửa đổi có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-security-011
+    title: Đánh giá rủi ro xóa tệp, bản sao và dữ liệu còn lưu trong bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-and-cleanup
+  title: Vòng đời và dọn dẹp
+  childs:
+  - slug: lifecycle-and-cleanup-001
+    title: Phân biệt dữ liệu hoạt động, dữ liệu tạm và dữ liệu đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-002
+    title: Thiết kế chính sách thời hạn lưu và điều kiện xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-003
+    title: Đánh dấu xóa logic trước khi thu hồi vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-004
+    title: Xác định tệp còn được người đọc, chỉ mục hoặc bản sao lưu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-005
+    title: Dọn tệp tạm sót lại sau khi tiến trình dừng bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-006
+    title: Thu hồi thế hệ và phân đoạn dữ liệu cũ an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-007
+    title: Tránh xóa nhầm khi tác vụ dọn dẹp chạy đồng thời với tác vụ ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-008
+    title: Xử lý lỗi xóa và lập lịch thử lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-009
+    title: Kiểm kê dung lượng và phát hiện tệp mồ côi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-cleanup-010
+    title: Thiết kế chế độ kiểm tra trước khi thực hiện dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-restore
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-restore-001
+    title: Phân biệt bản chụp nội bộ và bản sao lưu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-002
+    title: Xác định phạm vi dữ liệu, manifest, nhật ký và khóa cần sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-003
+    title: Tạo bản sao lưu nhất quán khi ứng dụng vẫn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-004
+    title: Lựa chọn sao lưu đầy đủ và sao lưu bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-005
+    title: Kiểm tra số phần, kích thước và checksum của bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-006
+    title: Lưu bản sao tách khỏi nơi lưu dữ liệu đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-007
+    title: Xác định mục tiêu mất dữ liệu và thời gian phục hồi chấp nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-008
+    title: Phục hồi vào khu vực riêng trước khi thay thế dữ liệu đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-009
+    title: Đối soát dữ liệu và kiểm tra phiên bản sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-010
+    title: Diễn tập phục hồi thay vì chỉ kiểm tra tác vụ sao lưu thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-011
+    title: Quản lý thời hạn lưu và quyền truy cập bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability-testing
+  title: Kiểm thử độ tin cậy
+  childs:
+  - slug: reliability-testing-001
+    title: Kiểm thử đọc ghi bằng thư mục tạm riêng cho từng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-002
+    title: Kiểm thử tuần tự hóa hai chiều và bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-003
+    title: Kiểm thử bản ghi rỗng, lớn, sai độ dài và hỏng mã kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-004
+    title: Kiểm thử tệp thiếu, quyền truy cập và dung lượng không đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-005
+    title: Mô phỏng đọc ghi một phần và lỗi tại từng ranh giới thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-006
+    title: Kiểm thử dừng tiến trình tại các điểm trước và sau công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-007
+    title: Kiểm thử phục hồi chạy lặp mà không nhân bản thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-008
+    title: Kiểm thử cạnh tranh giữa nhiều luồng và nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-009
+    title: Kiểm thử thay thế tệp khi còn người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-010
+    title: Kiểm thử di chuyển phiên bản và dữ liệu của phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-011
+    title: Kiểm thử sao lưu và phục hồi với dữ liệu đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-012
+    title: Phân biệt mô phỏng lỗi tiến trình và kiểm chứng mất nguồn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-013
+    title: Kiểm thử trên các hệ điều hành và hệ thống tệp mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-monitoring
+  title: Theo dõi vận hành
+  childs:
+  - slug: operational-monitoring-001
+    title: Ghi nhật ký theo thao tác, khóa dữ liệu và thế hệ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-002
+    title: Theo dõi số lượng tệp, dung lượng và tốc độ tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-003
+    title: Đo thời gian đọc, ghi, đồng bộ và chờ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-004
+    title: Theo dõi số bản ghi chưa được đồng bộ theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-005
+    title: Theo dõi tiến độ tạo bản chụp, hợp nhất và sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-006
+    title: Phân biệt lỗi dữ liệu với lỗi thiết bị và lỗi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-007
+    title: Cảnh báo sớm về dung lượng thấp và giới hạn tệp mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-008
+    title: Cảnh báo hỏng dữ liệu, phục hồi thất bại và không thể xác nhận ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-009
+    title: Bảo vệ dữ liệu nhạy cảm trong bằng chứng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-010
+    title: Lập hướng dẫn điều tra và xác minh trước khi cho phép ghi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Đặt ranh giới giữa nghiệp vụ và bộ lưu trữ trên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Thiết kế giao diện kho dữ liệu độc lập với định dạng lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Quản lý thư mục gốc bằng cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Kiểm tra dữ liệu và khả năng phục hồi khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Nạp trạng thái cần thiết trước khi sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Quản lý một bộ ghi dùng chung và vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Đồng bộ trạng thái trong bộ nhớ sau khi dữ liệu được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Chuyển lỗi lưu trữ thành kết quả nghiệp vụ có thể xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Thiết kế dừng ứng dụng có kiểm soát và giới hạn chờ ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Tách tác vụ bảo trì khỏi luồng xử lý yêu cầu chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-011
+    title: Giữ bộ kiểm tra, sao lưu và phục hồi dùng chung quy tắc định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-environment-deployment
+  title: Triển khai đa môi trường
+  childs:
+  - slug: multi-environment-deployment-001
+    title: Tách dữ liệu bền vững khỏi thư mục cài đặt ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-002
+    title: Xử lý đường dẫn và quyền truy cập khác nhau giữa môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-003
+    title: Đánh giá khác biệt hành vi tệp trên Windows và Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-004
+    title: Lưu dữ liệu trong container và xác định nơi dữ liệu tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-005
+    title: Phân biệt lớp ghi tạm của container và vùng lưu trữ gắn ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-006
+    title: Kiểm tra khả năng hỗ trợ khóa và thao tác nguyên tử của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-007
+    title: Đánh giá hệ thống tệp mạng trước khi dùng chung dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-008
+    title: Tránh nhiều bản sao ứng dụng ghi chung tệp khi chưa có giao thức phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-009
+    title: Kiểm tra hạn mức dung lượng, quyền và tùy chọn gắn vùng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-010
+    title: Lập quy trình di chuyển thư mục dữ liệu giữa máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-deployment-011
+    title: Xác minh mức độ bền trên hạ tầng triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-repository
+  title: Repository trên tệp
+  childs:
+  - slug: file-repository-001
+    title: Thiết kế mô hình khóa và bản ghi có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-002
+    title: Xây dựng bộ mã hóa và giải mã với kiểm tra định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-003
+    title: Triển khai kho một tệp cho mỗi đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-004
+    title: Triển khai ghi thay thế với tệp tạm và bước công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-005
+    title: Triển khai kho nhật ký nối tiếp với một bộ ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-006
+    title: Xây dựng chỉ mục theo khóa và cập nhật trạng thái trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-007
+    title: Tạo bản chụp và phục hồi bằng phát lại nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-008
+    title: Tách bộ đồng bộ dữ liệu để kiểm thử chính sách độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-009
+    title: Thiết kế điểm chèn lỗi phục vụ kiểm thử giao thức ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-repository-010
+    title: So sánh các mô hình kho theo tính đúng và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Thiết kế kho hồ sơ trên tệp với yêu cầu lưu trữ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Lưu và đọc dữ liệu Unicode, số thập phân và ngày giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Cập nhật bản ghi mà vẫn giữ bản cũ khi ghi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Phát hiện hai yêu cầu cập nhật đồng thời cùng một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Xây dựng kho khóa giá trị bằng nhật ký nối tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Mô phỏng bản ghi cuối bị ghi dở và phục hồi phần hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tạo bản chụp, hợp nhất nhật ký và kiểm tra thế hệ đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Thử chuyển đổi định dạng rồi phục hồi khi quá trình bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Tạo bản sao lưu và phục hồi sang thư mục dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Đo hiệu năng với chính sách đồng bộ và kích thước dữ liệu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Đánh giá giới hạn của giải pháp và đề xuất khi nào chuyển hệ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Nghiệm thu bằng bất biến dữ liệu và bằng chứng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

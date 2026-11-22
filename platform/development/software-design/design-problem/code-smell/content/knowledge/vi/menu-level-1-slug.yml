@@ -1,0 +1,115 @@
+menu:
+- title: Tổng quan Code Smell
+  slug: code-smell-overview
+  index: 0
+- title: Tư duy chẩn đoán
+  slug: diagnostic-mindset
+  index: 1
+- title: Nền tảng thiết kế
+  slug: design-foundations
+  index: 2
+- title: Tên gọi và ý định
+  slug: naming-and-intent
+  index: 3
+- title: Hàm quá dài
+  slug: long-method
+  index: 4
+- title: Lớp quá lớn
+  slug: large-class
+  index: 5
+- title: Danh sách tham số dài
+  slug: long-parameter-list
+  index: 6
+- title: Ám ảnh kiểu nguyên thủy
+  slug: primitive-obsession
+  index: 7
+- title: Cụm dữ liệu
+  slug: data-clumps
+  index: 8
+- title: Mã trùng lặp
+  slug: duplicate-code
+  index: 9
+- title: Bình luận che vấn đề
+  slug: comments-masking-problems
+  index: 10
+- title: Cấu trúc ít giá trị
+  slug: low-value-structures
+  index: 11
+- title: Mã chết và dư thừa
+  slug: dead-and-redundant-code
+  index: 12
+- title: Tổng quát hóa sớm
+  slug: premature-generalization
+  index: 13
+- title: Lớp chỉ chứa dữ liệu
+  slug: data-class
+  index: 14
+- title: Dữ liệu khả biến
+  slug: mutable-data
+  index: 15
+- title: Dữ liệu toàn cục
+  slug: global-data
+  index: 16
+- title: Trường tạm thời
+  slug: temporary-field
+  index: 17
+- title: Điều kiện lặp lại
+  slug: repeated-conditionals
+  index: 18
+- title: Vòng lặp khó hiểu
+  slug: confusing-loops
+  index: 19
+- title: Hành vi đặt sai chỗ
+  slug: misplaced-behavior
+  index: 20
+- title: Phụ thuộc chi tiết nội bộ
+  slug: inappropriate-intimacy
+  index: 21
+- title: Chuỗi lời gọi
+  slug: message-chains
+  index: 22
+- title: Trung gian dư thừa
+  slug: middle-man
+  index: 23
+- title: Giao diện thiếu thống nhất
+  slug: inconsistent-interfaces
+  index: 24
+- title: Kế thừa không phù hợp
+  slug: inappropriate-inheritance
+  index: 25
+- title: Phân cấp song song
+  slug: parallel-inheritance-hierarchies
+  index: 26
+- title: Thay đổi phân tán
+  slug: shotgun-surgery
+  index: 27
+- title: Nhiều lý do thay đổi
+  slug: divergent-change
+  index: 28
+- title: Ranh giới mô-đun
+  slug: module-boundaries
+  index: 29
+- title: API và luồng xử lý
+  slug: api-and-control-flow
+  index: 30
+- title: Kiểm thử và chẩn đoán
+  slug: testing-and-diagnosis
+  index: 31
+- title: Công cụ và chỉ số
+  slug: tools-and-metrics
+  index: 32
+- title: Ưu tiên và nợ kỹ thuật
+  slug: prioritization-and-technical-debt
+  index: 33
+- title: Quy trình tái cấu trúc
+  slug: refactoring-workflow
+  index: 34
+- title: Rủi ro và đánh đổi
+  slug: risks-and-tradeoffs
+  index: 35
+- title: Rà soát và duy trì
+  slug: review-and-maintenance
+  index: 36
+- title: Tình huống và thực hành
+  slug: scenarios-and-practice
+  index: 37

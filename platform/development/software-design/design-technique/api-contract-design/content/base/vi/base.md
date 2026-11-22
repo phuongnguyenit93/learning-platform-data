@@ -1,0 +1,7 @@
+# Software Design Design Technique Api Contract Design
+
+**API Contract Design** là kỹ thuật xác định thỏa thuận rõ ràng giữa bên cung cấp và bên sử dụng API trước khi đi sâu vào triển khai. Một hợp đồng tốt mô tả tài nguyên, thao tác, cấu trúc dữ liệu, phản hồi lỗi, yêu cầu bảo mật và quy tắc thay đổi, giúp các nhóm phối hợp độc lập mà vẫn tránh hiểu sai hoặc phá vỡ khả năng tích hợp.
+
+Lộ trình gồm **8 mốc**: thiết kế API-first dựa trên nhu cầu consumer; định nghĩa resource và operation; mô hình schema và payload; ngữ nghĩa HTTP cùng hợp đồng lỗi; bảo mật; mô tả bằng OpenAPI; tương thích và versioning; cuối cùng là contract testing trong CI. Người học thực hành trên một API HTTP mẫu, từ phác thảo request/response đến tài liệu máy đọc được và kiểm chứng sự phù hợp giữa code với contract.
+
+Học phần phù hợp với developer, API designer hoặc người thiết kế hệ thống đã biết HTTP, JSON và khái niệm REST cơ bản. Sau khi hoàn thành, bạn có thể viết hợp đồng API nhất quán, nhận diện thay đổi breaking, trao đổi rõ yêu cầu với consumer và dùng các bài kiểm tra tự động để ngăn API triển khai sai thỏa thuận. Tư duy contract-first còn có thể mở rộng sang RPC hoặc message API với định dạng đặc tả phù hợp.

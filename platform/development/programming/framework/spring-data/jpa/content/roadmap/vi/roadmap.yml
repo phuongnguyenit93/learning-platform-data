@@ -1,0 +1,55 @@
+roadmap:
+- id: nen-tang-spring-data-jpa
+  title: Nền tảng Spring Data JPA
+  purpose: Hiểu quan hệ giữa JPA, Hibernate và Spring Data trong tầng truy cập dữ liệu.
+  objectives:
+  - Giải thích vai trò của EntityManager và Repository.
+  - Mô tả luồng lưu và đọc entity qua Spring Data JPA.
+- id: entity-quan-he
+  title: Entity & Quan hệ
+  purpose: Thiết kế mô hình dữ liệu ánh xạ đúng bảng và quan hệ trong cơ sở dữ liệu.
+  objectives:
+  - Khai báo @Entity, @Id và các thuộc tính cơ bản.
+  - Ánh xạ quan hệ @ManyToOne/@OneToMany hợp lý.
+- id: repository-crud
+  title: Repository CRUD
+  purpose: Dùng Repository để thao tác dữ liệu mà không phải viết mã truy cập lặp lại.
+  objectives:
+  - Tạo JpaRepository cho một entity.
+  - Thực hiện save, findById, findAll và delete theo yêu cầu.
+- id: query-methods-query
+  title: Query Methods & @Query
+  purpose: Truy vấn theo nghiệp vụ bằng quy ước đặt tên và câu lệnh khai báo.
+  objectives:
+  - Viết derived query với điều kiện lọc cơ bản.
+  - Viết @Query dùng JPQL và nhận biết khi cần native query.
+- id: paging-projection
+  title: Paging & Projection
+  purpose: Lấy đúng tập dữ liệu và các trường cần thiết cho người dùng.
+  objectives:
+  - Áp dụng Pageable và Sort cho danh sách.
+  - Sử dụng interface hoặc DTO projection phù hợp.
+- id: specification-loc-dong
+  title: Specification & Lọc động
+  purpose: Kết hợp điều kiện tìm kiếm linh hoạt mà không nhân bản nhiều phương thức.
+  objectives:
+  - Tạo Specification với một điều kiện.
+  - Kết hợp nhiều bộ lọc qua JpaSpecificationExecutor.
+- id: transaction-locking
+  title: Transaction & Locking
+  purpose: Giữ tính nhất quán khi nhiều thao tác hoặc nhiều giao dịch cùng truy cập dữ liệu.
+  objectives:
+  - Đặt ranh giới @Transactional ở tầng dịch vụ.
+  - Phân biệt khóa tối ưu và khóa bi quan trong tình huống cập nhật.
+- id: fetching-hieu-nang
+  title: Fetching & Hiệu năng
+  purpose: Nhận diện chi phí truy vấn phát sinh từ quan hệ entity và cách lấy dữ liệu.
+  objectives:
+  - Phát hiện dấu hiệu N+1 qua SQL log.
+  - Chọn fetch join hoặc EntityGraph cho tình huống phù hợp.
+- id: auditing-kiem-thu
+  title: Auditing & Kiểm thử
+  purpose: Theo dõi thay đổi dữ liệu và xác nhận Repository hoạt động như dự định.
+  objectives:
+  - Thiết lập created/modified timestamps bằng Spring Data auditing.
+  - Viết bài kiểm thử Repository với dữ liệu và truy vấn đại diện.

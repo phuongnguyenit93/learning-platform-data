@@ -1,0 +1,370 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử hợp đồng (contract testing) là gì và vấn đề cần giải quyết
+  - Hợp đồng tại ranh giới giao tiếp giữa các thành phần
+  - Bên sử dụng (consumer), bên cung cấp (provider) và cam kết tương thích
+  - Quan hệ giữa đặc tả, mã thực thi, dữ liệu trao đổi và bằng chứng kiểm chứng
+  - Phân biệt kiểm thử hợp đồng, kiểm tra schema và mô phỏng dịch vụ
+  - Quan hệ với kiểm thử đơn vị, tích hợp và đầu cuối
+  - Lợi ích của phát hiện sai lệch trước khi triển khai đồng thời
+  - Giới hạn của hợp đồng đối với nghiệp vụ, hạ tầng và chất lượng phi chức năng
+  - Ví dụ xuyên suốt về một ứng dụng gọi dịch vụ do nhóm khác phát triển
+  - Lộ trình từ thiết kế hợp đồng đến phát hành các bên độc lập
+- level1: Mô hình giao tiếp
+  level2:
+  - Vai trò phía sử dụng và phía cung cấp trong HTTP
+  - Vai trò phía phát và phía nhận trong giao tiếp bằng thông điệp
+  - Tương tác (interaction), yêu cầu, phản hồi và điều kiện ban đầu
+  - Phân biệt hợp đồng cấu trúc với cam kết về ý nghĩa dữ liệu
+  - Phân biệt tài liệu đặc tả, ví dụ dữ liệu và hợp đồng có thể kiểm chứng
+  - Trạng thái phía cung cấp và điều kiện để tái hiện tương tác
+  - Phiên bản ứng dụng, phiên bản đặc tả và nội dung hợp đồng
+  - Vòng đời tạo, chia sẻ, xác minh và sử dụng kết quả hợp đồng
+- level1: Phạm vi và cách tiếp cận
+  level2:
+  - Xác định ranh giới API hoặc kênh thông điệp cần kiểm tra
+  - Kiểm kê bên sử dụng đã biết và nhu cầu dữ liệu thực tế
+  - Phân biệt hợp đồng do phía cung cấp và phía sử dụng định hướng
+  - Chọn đặc tả trước, suy ra từ mã hoặc kết hợp hai cách
+  - Lựa chọn kiểm chứng theo schema, theo ví dụ hoặc theo tương tác
+  - Chọn công cụ theo giao thức, ngôn ngữ và mô hình phát hành
+  - Xác định phần phụ thuộc được thay thế trong mỗi phía kiểm thử
+  - Phân bổ kiểm thử tích hợp thật để bổ sung khoảng trống hợp đồng
+  - Ghi rõ phạm vi kết luận và trách nhiệm của từng bên
+- level1: Thiết kế hợp đồng
+  level2:
+  - Xuất phát từ nhu cầu mà mã phía sử dụng thực sự phụ thuộc
+  - Chọn một tương tác có mục tiêu và điều kiện rõ ràng
+  - Định nghĩa đầu vào hợp lệ và các dạng phản hồi có ý nghĩa
+  - Mô tả trường dữ liệu tối thiểu cần dùng và ràng buộc cần thiết
+  - Tách trường hợp thành công, không có dữ liệu và lỗi
+  - Thiết kế ví dụ cụ thể đại diện cho từng nhóm dữ liệu
+  - Tránh ràng buộc vào chi tiết triển khai nội bộ của phía cung cấp
+  - Phân biệt tương tác độc lập với chuỗi kịch bản nghiệp vụ
+  - Đặt tên hợp đồng, tương tác và trạng thái dễ truy vết
+  - Rà soát giả định với cả phía sử dụng lẫn phía cung cấp
+- level1: Hợp đồng HTTP
+  level2:
+  - Định nghĩa method, đường dẫn và path parameter
+  - Định nghĩa query parameter, giá trị lặp và cách mã hóa
+  - Quy định header bắt buộc, giá trị và quy tắc đối sánh
+  - Kiểm tra Content-Type, Accept và cơ chế chọn biểu diễn
+  - Định nghĩa request body cho JSON, form và multipart
+  - Quy định status code và cấu trúc phản hồi tương ứng
+  - Phân biệt phản hồi không có body với body rỗng hoặc null
+  - Kiểm tra cấu trúc lỗi, mã lỗi ổn định và dữ liệu giải thích
+  - Mô tả phân trang, lọc, sắp xếp và giá trị mặc định
+  - Xác định phần xác thực, quyền và danh tính thuộc cam kết giao tiếp
+  - Mô tả idempotency key hoặc điều kiện truy cập khi API yêu cầu
+  - Xác định tác động của redirect, encoding và header được thêm bởi hạ tầng
+- level1: Mô hình dữ liệu
+  level2:
+  - Lược đồ (schema), kiểu dữ liệu và miền giá trị được chấp nhận
+  - Phân biệt trường bắt buộc, trường tùy chọn và giá trị null
+  - Phân biệt thiếu trường, chuỗi rỗng, mảng rỗng và đối tượng rỗng
+  - Định nghĩa số nguyên, số thập phân và yêu cầu độ chính xác
+  - Quy định thời gian, múi giờ, định dạng ngày và đơn vị đo
+  - Định nghĩa enum và cách xử lý giá trị chưa được biết
+  - Mô tả đối tượng lồng, mảng, tập hợp và map
+  - Quy định thứ tự phần tử khi thứ tự thuộc cam kết
+  - Xác định chính sách cho trường bổ sung ngoài dự kiến
+  - Mô tả đa hình và dấu hiệu phân biệt kiểu dữ liệu
+  - Kiểm tra sự nhất quán giữa ý nghĩa nghiệp vụ với kiểu dữ liệu
+- level1: Đối sánh dữ liệu
+  level2:
+  - Phân biệt giá trị ví dụ với quy tắc đối sánh (matcher)
+  - Chọn so sánh chính xác, theo kiểu hoặc theo mẫu
+  - Đối sánh chuỗi bằng biểu thức chính quy có giới hạn phù hợp
+  - Đối sánh định dạng ngày, thời gian và định danh
+  - Đối sánh mảng theo phần tử, kích thước và thứ tự cần thiết
+  - Xử lý trường tùy chọn và các nhánh dữ liệu theo khả năng công cụ
+  - Phân biệt độ chặt cần thiết cho request và response
+  - Kiểm tra giá trị sinh động bằng matcher và bộ sinh dữ liệu
+  - Phát hiện matcher quá rộng làm bỏ sót sai lệch
+  - Phát hiện so sánh quá chặt gây lỗi khi dữ liệu hợp lệ thay đổi
+  - Xác minh quy tắc đối sánh bằng cả mẫu hợp lệ và mẫu bị từ chối
+- level1: Đặc tả và schema
+  level2:
+  - Vai trò của OpenAPI trong mô tả hợp đồng HTTP
+  - Đọc operation, parameter, request body và response trong OpenAPI
+  - Mô tả schema, ví dụ và tham chiếu dùng chung
+  - Kiểm tra dữ liệu theo JSON Schema và phiên bản dialect được chọn
+  - Quy định required, nullable và trường bổ sung theo đúng phiên bản đặc tả
+  - Phân biệt hợp lệ về cú pháp, hợp lệ theo schema và đúng ngữ nghĩa
+  - Kiểm chứng triển khai thực tế so với đặc tả
+  - Phân tích thay đổi đặc tả và giới hạn của công cụ so sánh schema
+  - Quản lý sai lệch giữa tài liệu, mã sinh tự động và hành vi thực thi
+  - Xác định bằng chứng bổ sung cho nhu cầu riêng của từng bên sử dụng
+- level1: Kiểm thử phía sử dụng
+  level2:
+  - Xác định mã client hoặc lớp xử lý phản hồi cần thực thi thật
+  - Đăng ký tương tác với máy chủ mô phỏng dựa trên hợp đồng
+  - Trỏ client tới địa chỉ và cổng kiểm thử được cấp
+  - Kiểm chứng request mà client thực sự tạo ra
+  - Kiểm chứng giải tuần tự (deserialization), ánh xạ và cách dùng dữ liệu trả về
+  - Kiểm tra cách client xử lý phản hồi lỗi có trong hợp đồng
+  - Phân biệt kiểm tra client thật với chỉ gọi HTTP trực tiếp từ mã test
+  - Xác nhận các tương tác dự kiến đã được thực hiện
+  - Sinh hợp đồng từ kết quả kiểm thử thành công theo cơ chế công cụ
+  - Đánh giá giới hạn khi phía cung cấp chưa xác minh hợp đồng
+- level1: Kiểm chứng phía cung cấp
+  level2:
+  - Chọn đúng hợp đồng và các phiên bản bên sử dụng cần hỗ trợ
+  - Khởi chạy phần triển khai thực tế trong phạm vi kiểm chứng đã xác định
+  - Thiết lập địa chỉ đích, cấu hình và phụ thuộc cần thiết
+  - Chuẩn bị điều kiện ban đầu trước từng tương tác
+  - Thực hiện request và so sánh response với hợp đồng
+  - Xác minh phần xác thực mà không thay đổi ý nghĩa request
+  - Kiểm tra serialization, status, header và cấu trúc lỗi thực tế
+  - Công bố kết quả gắn với đúng phiên bản phía cung cấp
+  - Phân biệt lỗi hợp đồng với lỗi thiết lập hoặc môi trường
+  - Đánh giá khoảng trống khi dùng lớp web mô phỏng thay vì HTTP server thật
+- level1: Provider state
+  level2:
+  - Ý nghĩa của provider state như điều kiện ban đầu cho tương tác
+  - Đặt tên trạng thái theo dữ liệu hoặc điều kiện có thể tái tạo
+  - Tách trạng thái kiểm thử khỏi trình tự gọi API nghiệp vụ
+  - Truyền tham số trạng thái và tạo dữ liệu phù hợp
+  - Chuẩn bị trạng thái bằng fixture, API hỗ trợ hoặc lớp dữ liệu
+  - Quản lý định danh được sinh và trả giá trị cho tương tác khi công cụ hỗ trợ
+  - Thiết lập lại trạng thái độc lập giữa các lần kiểm chứng
+  - Dọn dẹp dữ liệu khi tương tác thành công hoặc thất bại
+  - Tránh giả lập phản hồi đang cần kiểm chứng trong bước chuẩn bị
+  - Kiểm soát quyền truy cập và phạm vi của giao diện thiết lập trạng thái
+- level1: Tương thích
+  level2:
+  - Xác định tương thích theo chiều dữ liệu gửi và nhận
+  - Phân biệt tương thích với phiên bản cũ, mới và nhiều phiên bản đang hỗ trợ
+  - Đánh giá thêm, xóa hoặc đổi tên trường trong request
+  - Đánh giá thêm, xóa hoặc đổi tên trường trong response
+  - Đánh giá thay đổi bắt buộc, tùy chọn, null và giá trị mặc định
+  - Đánh giá thay đổi kiểu, độ chính xác và miền giá trị
+  - Đánh giá mở rộng enum theo cách client xử lý giá trị chưa biết
+  - Đánh giá thay đổi status code, header và cấu trúc lỗi
+  - Nhận diện thay đổi cùng schema nhưng khác ý nghĩa hoặc đơn vị dữ liệu
+  - Đánh giá thay đổi sắp xếp, phân trang và quy tắc giá trị mặc định
+  - Kiểm tra tính tương thích bằng các phiên bản client thực tế
+  - Ghi rõ giới hạn của quy tắc tương thích chung và giả định riêng của từng bên
+- level1: Ứng dụng khách Java
+  level2:
+  - Kiểm thử HTTP client dùng trong ứng dụng Java thực tế
+  - Ánh xạ JSON với DTO, record và cấu hình Jackson
+  - Kiểm tra trường thiếu, null và giá trị mặc định trong Java
+  - Kiểm tra trường và giá trị enum chưa biết theo cấu hình client
+  - Kiểm tra BigDecimal, số lớn và khác biệt kiểu số
+  - Kiểm tra ngày, thời gian và module serialization được cấu hình
+  - Kiểm tra mã hóa query, header và request body
+  - Đánh giá client sinh từ đặc tả với hành vi serialization thực tế
+  - Quản lý cấu hình độc lập để phát hiện giả định chưa được kiểm chứng giữa hai bên
+  - Liên kết phiên bản SDK hoặc client với hợp đồng đã được kiểm chứng
+- level1: Pact phía sử dụng
+  level2:
+  - Thiết lập Pact JVM consumer với JUnit Jupiter
+  - Chọn phiên bản thư viện và Pact specification tương thích
+  - Định nghĩa consumer, provider và interaction bằng Pact DSL
+  - Định nghĩa request, response và provider state
+  - Sử dụng PactConsumerTest hoặc extension theo phiên bản đang dùng
+  - Chọn tương tác bằng PactTestFor
+  - Lấy địa chỉ mock server và gọi mã client thật
+  - Khai báo matcher cùng giá trị ví dụ trong Pact DSL
+  - Kiểm chứng kết quả mà client nhận và sử dụng
+  - Sinh pact file và kiểm soát thư mục đầu ra
+  - Quản lý pact file cũ, tương tác được hợp nhất và kết quả của lần chạy hiện tại
+- level1: Pact phía cung cấp
+  level2:
+  - Thiết lập Pact JVM provider với JUnit Jupiter
+  - Định danh provider và chọn nguồn pact từ tệp hoặc Broker
+  - Thực hiện tương tác bằng TestTemplate và PactVerificationContext
+  - Cấu hình HttpTestTarget, HttpsTestTarget hoặc MessageTestTarget
+  - Thiết lập provider state bằng callback phù hợp
+  - Tích hợp với ứng dụng Spring Boot theo phiên bản tương thích
+  - Chọn hợp đồng qua consumer version selector
+  - Chạy kiểm chứng và đọc khác biệt từng tương tác
+  - Công bố verification result với phiên bản và nhánh ứng dụng
+  - Thiết lập cấu hình trong đúng JVM kiểm thử của Maven hoặc Gradle
+  - Xác định điều kiện hợp lệ trước khi công bố kết quả kiểm chứng
+- level1: Pact Broker
+  level2:
+  - Vai trò Broker trong lưu hợp đồng và kết quả xác minh
+  - Định danh ứng dụng, phiên bản bất biến và metadata nguồn
+  - Công bố pact cùng phiên bản consumer và thông tin nhánh
+  - Truy xuất pact theo nhánh chính, nhánh làm việc hoặc phiên bản đã triển khai
+  - Phân biệt branch, môi trường và cơ chế tag trong hệ thống đang dùng
+  - Ghi nhận phiên bản được triển khai hoặc phát hành
+  - Đọc ma trận tương thích giữa các phiên bản ứng dụng
+  - Kiểm tra can-i-deploy trước khi triển khai phiên bản cụ thể
+  - Xử lý kết quả thiếu kiểm chứng và trạng thái chưa có bằng chứng
+  - Sử dụng webhook để yêu cầu kiểm chứng hợp đồng thay đổi
+  - Hiểu pending pact, WIP pact và ảnh hưởng lên kết quả build
+  - Quản lý quyền truy cập, credential và vòng đời dữ liệu Broker
+- level1: Spring Cloud Contract
+  level2:
+  - Mô hình hợp đồng, kiểm thử sinh tự động và stub trong Spring Cloud Contract
+  - Kiểm tra tương thích giữa Spring Boot, Spring Cloud và plugin build
+  - Tổ chức tệp hợp đồng theo API, bên sử dụng hoặc miền nghiệp vụ
+  - Khai báo hợp đồng HTTP bằng Groovy DSL hoặc YAML
+  - Phân biệt dữ liệu dùng ở phía client và phía server trong DSL
+  - Khai báo giá trị động, matcher và ví dụ
+  - Sinh kiểm thử phía cung cấp từ hợp đồng
+  - Cấu hình lớp nền và dữ liệu chuẩn bị cho kiểm thử được sinh
+  - Chọn chế độ kiểm tra lớp web hoặc HTTP thật theo mục tiêu
+  - Sinh stub HTTP và đóng gói artifact
+  - Định nghĩa hợp đồng thông điệp khi hệ thống dùng giao tiếp bất đồng bộ
+  - Phối hợp đóng góp hợp đồng giữa phía sử dụng và phía cung cấp
+- level1: Stub Runner
+  level2:
+  - Vai trò Stub Runner trong sử dụng stub đã được kiểm chứng
+  - Định danh artifact bằng group, artifact, version và classifier theo cấu hình
+  - Nạp stub từ máy cục bộ hoặc kho artifact
+  - Khởi chạy stub và truyền địa chỉ cho client
+  - Quản lý cổng động và nhiều dịch vụ mô phỏng
+  - Chọn đúng phiên bản stub tương ứng với bằng chứng phía cung cấp
+  - Quan sát request không khớp và cấu hình mapping WireMock
+  - Đánh giá giới hạn của stub đối với dữ liệu, trạng thái và hạ tầng thật
+  - Ngăn sử dụng stub cũ khi hợp đồng hoặc phiên bản triển khai đã thay đổi
+- level1: Hợp đồng thông điệp
+  level2:
+  - Xác định phía phát, phía nhận và ranh giới thông điệp
+  - Mô tả payload, header và metadata mà bên nhận cần
+  - Kiểm thử mã xử lý thông điệp thật với dữ liệu theo hợp đồng
+  - Kiểm chứng dữ liệu do phía phát thực sự tạo ra
+  - Quản lý tuần tự hóa (serialization) và định dạng trước khi đi qua cơ chế vận chuyển
+  - Sử dụng message contract của Pact hoặc Spring Cloud Contract theo khả năng
+  - Phân biệt hợp đồng nội dung với kiểm thử tích hợp broker
+  - Ghi rõ phạm vi về topic, routing, thứ tự và bảo đảm giao nhận
+  - Mô tả định danh, loại sự kiện, phiên bản và correlation id
+  - Kiểm tra dữ liệu lỗi hoặc thông điệp không đáp ứng cam kết
+  - Phân bổ kiểm thử bổ sung cho xử lý trùng lặp, thử lại và hàng đợi lỗi
+- level1: Phiên bản sự kiện
+  level2:
+  - Chọn định dạng và công cụ quản lý schema sự kiện
+  - Phân biệt hợp lệ theo schema với phù hợp nhu cầu bên nhận
+  - Đánh giá thêm, xóa hoặc đổi trường trong message
+  - Quản lý trường tùy chọn, mặc định và giá trị enum mới
+  - Đánh giá chính sách tương thích của schema registry đang sử dụng
+  - Kiểm tra bên nhận cũ với message mới và bên nhận mới với message cũ
+  - Quản lý dữ liệu lịch sử cần đọc lại hoặc xử lý lại
+  - Đồng tồn tại nhiều phiên bản sự kiện trong giai đoạn chuyển đổi
+  - Ngừng hỗ trợ phiên bản khi đã xác minh các bên liên quan
+- level1: gRPC và Protobuf
+  level2:
+  - Vai trò service, method và message trong hợp đồng gRPC
+  - Kiểm tra tệp proto, mã sinh và triển khai dịch vụ
+  - Phân biệt tương thích nhị phân với tương thích khi biểu diễn JSON
+  - Quản lý field number và reserved khi thay đổi message
+  - Kiểm tra field presence, giá trị mặc định và enum
+  - Đánh giá thay đổi kiểu trường theo quy tắc Protobuf được áp dụng
+  - Kiểm chứng request, response, status và metadata
+  - Xác định phạm vi kiểm chứng với unary và streaming
+  - Chọn công cụ xác minh hoặc plugin có hỗ trợ đúng giao thức
+  - Thực thi client được sinh để phát hiện khác biệt giữa đặc tả và cách dùng
+- level1: GraphQL
+  level2:
+  - Vai trò schema, operation và lựa chọn trường của client
+  - Kiểm tra query hoặc mutation của client với schema phía cung cấp
+  - Quản lý argument, input object và giá trị mặc định
+  - Đánh giá thay đổi nullability theo chiều đầu vào và đầu ra
+  - Đánh giá thay đổi enum, scalar và trường được client sử dụng
+  - Kiểm chứng dữ liệu trả về và lỗi từng phần
+  - Phân biệt kiểm tra schema với kiểm chứng hành vi resolver
+  - Quản lý operation được sử dụng thực tế và trường đã đánh dấu lỗi thời
+  - Kiểm tra tương thích khi client cũ vẫn còn được hỗ trợ
+- level1: Dữ liệu và môi trường
+  level2:
+  - Tạo dữ liệu tối thiểu cho từng điều kiện hợp đồng
+  - Cô lập dữ liệu giữa tương tác, lần chạy và nhóm thực thi
+  - Kiểm soát thời gian, định danh, ngẫu nhiên và locale
+  - Chọn dependency thật hoặc thành phần thay thế theo phạm vi kiểm chứng
+  - Sử dụng container để chuẩn bị dịch vụ phụ trợ khi cần
+  - Kiểm tra ứng dụng và dependency đã sẵn sàng
+  - Quản lý cấu hình URL, cổng, TLS và thông tin xác thực
+  - Đảm bảo hợp đồng và artifact không chứa bí mật hoặc dữ liệu cá nhân
+  - Dọn tài nguyên và ghi bằng chứng khi chuẩn bị môi trường thất bại
+- level1: CI/CD
+  level2:
+  - Tách tác vụ kiểm thử phía sử dụng và xác minh phía cung cấp
+  - Sinh hợp đồng từ đúng mã nguồn và phiên bản trong pipeline
+  - Công bố hợp đồng sau khi kiểm thử phía sử dụng thành công
+  - Kích hoạt kiểm chứng khi hợp đồng hoặc mã phía cung cấp thay đổi
+  - Chọn tập phiên bản cần kiểm chứng cho nhánh và môi trường đích
+  - Đăng kết quả xác minh gắn với commit và artifact cụ thể
+  - Phân biệt lỗi hợp đồng, lỗi môi trường và lỗi truy cập Broker
+  - Chặn triển khai khi kết quả cần thiết thất bại hoặc chưa được xác định
+  - Lưu báo cáo, pact, stub và metadata để truy vết
+  - Thiết kế chạy lại có kiểm soát và tránh công bố nhầm kết quả cũ
+- level1: Phát hành
+  level2:
+  - Xây ma trận các phiên bản phía sử dụng và phía cung cấp đang hỗ trợ
+  - Chọn trình tự phát hành khi một bên bổ sung khả năng mới
+  - Áp dụng mở rộng trước, chuyển sử dụng rồi thu hẹp hợp đồng
+  - Giữ tương thích trong giai đoạn nhiều phiên bản cùng hoạt động
+  - Phân biệt nhánh phát triển với phiên bản thực sự được triển khai
+  - Ghi nhận deployment hoặc release sau khi thao tác tương ứng thành công
+  - Kiểm tra phiên bản quay lui với các bên đang hoạt động
+  - Quản lý ngừng hỗ trợ endpoint, trường hoặc phiên bản message
+  - Phối hợp thay đổi phá vỡ hợp đồng với các bên chịu ảnh hưởng
+  - Ghi rõ rủi ro còn lại ngoài phần đã được hợp đồng kiểm chứng
+- level1: Chất lượng hợp đồng
+  level2:
+  - Đánh giá hợp đồng có phản ánh nhu cầu thực của bên sử dụng
+  - Kiểm tra độ đại diện của tương tác, dữ liệu và nhánh lỗi
+  - Phát hiện kiểm thử chỉ xác nhận cấu hình mô phỏng của chính nó
+  - Phát hiện phía cung cấp đang bị thay thế tại đúng phần cần xác minh
+  - Kiểm tra tính độc lập giữa các tương tác và provider state
+  - Thử thay đổi phá vỡ có chủ đích để xác nhận kiểm thử phát hiện được
+  - Đánh giá ràng buộc quá chặt hoặc matcher quá rộng
+  - Phát hiện hợp đồng không còn được dùng hoặc chưa được bên cung cấp xác minh
+  - Đối chiếu kết quả với kiểm thử tích hợp và sự cố thực tế
+  - Đánh giá mức bao phủ theo tương tác quan trọng thay vì chỉ số lượng hợp đồng
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc báo cáo khác biệt theo method, path, header, status và body
+  - Phân biệt request không khớp với response vi phạm kỳ vọng
+  - Chẩn đoán sai kiểu, thiếu trường, null và quy tắc đối sánh
+  - Chẩn đoán khác biệt encoding, số, thời gian và serialization
+  - Kiểm tra provider state thiếu hoặc tạo dữ liệu không đúng
+  - Kiểm tra sai phiên bản pact, stub hoặc ứng dụng đang chạy
+  - Phân tích selector, pending pact và kết quả xác minh chưa được chọn
+  - Kiểm tra lỗi authentication, TLS, cổng và địa chỉ đích
+  - Tái hiện tương tác riêng với cùng hợp đồng và điều kiện
+  - Lưu request, response và metadata đã che dữ liệu nhạy cảm
+- level1: Bảo trì
+  level2:
+  - Quản lý hợp đồng cùng thay đổi mã của bên sở hữu
+  - Rà soát tương tác không còn tương ứng với nhu cầu sử dụng
+  - Giảm trùng lặp giữa ví dụ mà vẫn giữ mục tiêu kiểm chứng
+  - Quản lý nâng cấp thư viện, Pact specification và định dạng stub
+  - Đối chiếu schema sinh tự động với hợp đồng đang được dùng
+  - Rà soát trạng thái, dữ liệu và cơ chế dọn dẹp
+  - Quản lý chính sách hỗ trợ phiên bản và xóa artifact hết hạn
+  - Theo dõi lỗi lọt qua hợp đồng và cải tiến phạm vi kiểm chứng
+  - Tài liệu hóa giả định, giới hạn và quyết định thiết kế
+- level1: Phối hợp nhóm
+  level2:
+  - Xác định người sở hữu API, hợp đồng và mã kiểm chứng
+  - Thống nhất nhu cầu tối thiểu của từng bên sử dụng
+  - Rà soát thay đổi hợp đồng trước khi yêu cầu khả năng mới
+  - Xây quy trình xử lý khi hợp đồng mới chưa được phía cung cấp hỗ trợ
+  - Thống nhất quy tắc tương thích và thời hạn ngừng hỗ trợ
+  - Quản lý hợp đồng cho bên sử dụng không thuộc quyền kiểm soát của nhóm
+  - Chia sẻ kết quả và trách nhiệm khi kiểm chứng thất bại
+  - Đo thời gian phản hồi, độ ổn định và chi phí duy trì
+  - Kết hợp hợp đồng với tài liệu API và kênh trao đổi nghiệp vụ
+- level1: Thực hành
+  level2:
+  - Xác định ranh giới và các giả định giữa hai dịch vụ Java
+  - Thiết kế hợp đồng HTTP cho thành công, dữ liệu rỗng và lỗi
+  - Viết consumer test đi qua mã client thật và sinh pact
+  - Viết provider verification với trạng thái dữ liệu độc lập
+  - Thay đổi một trường bắt buộc và phân tích lỗi được phát hiện
+  - Thêm trường hoặc enum mới và kiểm tra các phiên bản client
+  - Công bố pact, kết quả xác minh và metadata vào Broker thử nghiệm
+  - Đánh giá can-i-deploy với ma trận phiên bản đã được chuẩn bị
+  - Sinh kiểm thử và stub bằng Spring Cloud Contract
+  - Dùng Stub Runner để kiểm thử phía sử dụng với đúng artifact
+  - Kiểm chứng một message từ mã tạo dữ liệu đến mã tiếp nhận
+  - Phân tích thay đổi proto hoặc GraphQL schema theo nhu cầu client
+  - Đưa tạo hợp đồng và xác minh vào hai pipeline độc lập
+  - Mô phỏng phát hành nhiều bước và kiểm tra khả năng quay lui
+  - Đánh giá khoảng trống còn cần kiểm thử tích hợp hoặc E2E

@@ -1,0 +1,43 @@
+roadmap:
+- id: tong-quan-pmd
+  title: Tổng quan PMD
+  purpose: Hiểu PMD phát hiện gì và vai trò của nó trong kiểm soát chất lượng mã.
+  objectives:
+  - Phân biệt PMD với kiểm thử và công cụ định dạng mã.
+  - Nêu được vai trò của rule và CPD.
+- id: cai-dat-chay
+  title: Cài đặt & chạy
+  purpose: Biết thực thi phân tích PMD trên mã Java.
+  objectives:
+  - Chạy được PMD qua CLI hoặc Gradle.
+  - Chỉ định mã nguồn và ruleset phù hợp.
+- id: quan-ly-ruleset
+  title: Quản lý ruleset
+  purpose: Chọn các quy tắc phản ánh tiêu chuẩn chất lượng của dự án.
+  objectives:
+  - Chọn rule theo nhóm và mức ưu tiên.
+  - Tùy chỉnh ruleset ở mức cơ bản.
+- id: doc-bao-cao
+  title: Đọc báo cáo
+  purpose: Biến kết quả phân tích thành đầu việc sửa mã cụ thể.
+  objectives:
+  - Xác định vị trí và ý nghĩa violation.
+  - Phân loại cảnh báo theo tác động.
+- id: xu-ly-canh-bao
+  title: Xử lý cảnh báo
+  purpose: Cải thiện mã và kiểm soát các cảnh báo không phù hợp.
+  objectives:
+  - Sửa một violation có cơ sở.
+  - Chỉ suppress cảnh báo khi có lý do rõ ràng.
+- id: phat-hien-ma-lap-voi-cpd
+  title: Phát hiện mã lặp với CPD
+  purpose: Tìm mã trùng lặp để cân nhắc tái cấu trúc.
+  objectives:
+  - Chạy CPD với ngưỡng token phù hợp.
+  - Đọc kết quả và đề xuất cách giảm trùng lặp.
+- id: tich-hop-gradle-ci
+  title: Tích hợp Gradle & CI
+  purpose: Duy trì phân tích mã tĩnh trong quy trình phát triển.
+  objectives:
+  - Chạy PMD trong tác vụ kiểm tra Gradle.
+  - Đưa báo cáo và tiêu chí vi phạm vào CI.

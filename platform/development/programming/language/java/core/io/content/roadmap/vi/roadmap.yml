@@ -1,0 +1,64 @@
+roadmap:
+- id: tu-duy-nhap-xuat
+  title: Tư duy nhập xuất
+  purpose: Hiểu cách dữ liệu đi từ nguồn đến đích và chọn nhóm API phù hợp.
+  objectives:
+  - Phân biệt byte với ký tự
+  - Nhận diện nguồn, đích và luồng dữ liệu
+  - Định vị java.io và java.nio
+- id: luong-byte
+  title: Luồng byte
+  purpose: Đọc ghi dữ liệu nhị phân theo từng phần mà không làm thay đổi nội dung.
+  objectives:
+  - Sử dụng InputStream và OutputStream
+  - Xử lý số byte thực đọc và dấu kết thúc
+  - Sao chép dữ liệu bằng bộ đệm
+- id: van-ban-va-bang-ma
+  title: Văn bản và bảng mã
+  purpose: Chuyển đổi đúng giữa byte và văn bản để tránh sai dữ liệu tiếng Việt.
+  objectives:
+  - Sử dụng Reader và Writer
+  - Chỉ định Charset khi đọc ghi
+  - Đọc từng dòng và hiểu ký tự xuống dòng
+- id: bo-dem-va-tai-nguyen
+  title: Bộ đệm và tài nguyên
+  purpose: Kết hợp hiệu quả các lớp luồng và bảo đảm tài nguyên được đóng.
+  objectives:
+  - Dùng BufferedInputStream và BufferedReader
+  - Phân biệt flush với close
+  - Áp dụng try-with-resources và xử lý IOException
+- id: duong-dan-va-tep
+  title: Đường dẫn và tệp
+  purpose: Thao tác tệp, thư mục bằng Path và Files theo cách rõ ràng.
+  objectives:
+  - Ghép, chuẩn hóa và phân giải đường dẫn
+  - Tạo, sao chép, di chuyển và xóa tệp
+  - Đọc thuộc tính và duyệt cây thư mục
+- id: du-lieu-co-cau-truc
+  title: Dữ liệu có cấu trúc
+  purpose: Lưu và đọc dữ liệu nhị phân có quy ước để các phía hiểu cùng một định dạng.
+  objectives:
+  - Dùng DataInputStream và DataOutputStream
+  - Đọc ghi đúng thứ tự và kiểu dữ liệu
+  - Nhận diện serialization và rủi ro dữ liệu không tin cậy
+- id: nio-va-truy-cap-vi-tri
+  title: NIO và truy cập vị trí
+  purpose: Mở rộng từ luồng tuần tự sang bộ đệm và kênh cho yêu cầu truy cập linh hoạt.
+  objectives:
+  - Hiểu trạng thái position, limit và capacity của Buffer
+  - Đọc ghi với Channel và xử lý thao tác chưa hoàn tất
+  - Dùng FileChannel để truy cập theo vị trí
+- id: chon-cach-xu-ly
+  title: Chọn cách xử lý
+  purpose: Chọn chiến lược I/O theo kích thước dữ liệu, độ tin cậy và mô hình chờ.
+  objectives:
+  - So sánh đọc toàn bộ với xử lý từng phần
+  - Phân biệt blocking, non-blocking và asynchronous I/O
+  - Nhận diện lỗi quyền truy cập, thiếu tệp và thay đổi đồng thời
+- id: thuc-hanh-tich-hop
+  title: Thực hành tích hợp
+  purpose: Xây dựng một luồng xử lý tệp có kiểm chứng từ đầu vào đến đầu ra.
+  objectives:
+  - Xử lý tệp văn bản lớn với bảng mã rõ ràng
+  - Kiểm thử tệp rỗng, nội dung lỗi và thiếu quyền
+  - Kiểm chứng tính toàn vẹn dữ liệu và đóng tài nguyên

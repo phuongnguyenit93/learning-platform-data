@@ -1,0 +1,57 @@
+roadmap:
+- id: bridge-bai-toan-ke-thua
+  title: Bridge & bài toán kế thừa
+  purpose: Hiểu khi nào một lớp có hai chiều thay đổi độc lập khiến hệ thống sinh quá nhiều lớp con.
+  objectives:
+  - Nhận diện số lớp tăng theo tổ hợp biến thể
+  - Giải thích mục đích tách abstraction khỏi implementation
+  - Nêu tình huống phù hợp với Bridge
+- id: hai-chieu-thay-doi-doc-lap
+  title: Hai chiều thay đổi độc lập
+  purpose: Phân tích trách nhiệm ở từng chiều để thiết kế hai hệ phân cấp có thể mở rộng riêng.
+  objectives:
+  - Xác định chiều nghiệp vụ và chiều nền tảng
+  - Vẽ hai hệ phân cấp thay cho tổ hợp lớp con
+  - Phân định trách nhiệm giữa hai phía
+- id: abstraction-refinedabstraction
+  title: Abstraction & RefinedAbstraction
+  purpose: Xây dựng phía điều khiển hành vi ở mức cao, không phụ thuộc vào lớp triển khai cụ thể.
+  objectives:
+  - Khai báo API mà client sử dụng
+  - Tạo Abstraction giữ tham chiếu Implementor
+  - Mở rộng hành vi bằng RefinedAbstraction
+- id: implementor-concreteimplementor
+  title: Implementor & ConcreteImplementor
+  purpose: Thiết kế hợp đồng thao tác mức thấp chung cho các cách triển khai khác nhau.
+  objectives:
+  - Định nghĩa interface Implementor tối thiểu
+  - Cài đặt ít nhất hai ConcreteImplementor
+  - Giữ chi tiết nền tảng khỏi API của client
+- id: composition-uy-quyen
+  title: Composition & ủy quyền
+  purpose: Kết nối hai hệ phân cấp bằng composition để thay thế triển khai mà không sửa phần điều khiển.
+  objectives:
+  - Tiêm Implementor qua constructor của Abstraction
+  - Ủy quyền thao tác qua interface chung
+  - Tránh tạo trực tiếp concrete class trong Abstraction
+- id: hoan-doi-mo-rong-doc-lap
+  title: Hoán đổi & mở rộng độc lập
+  purpose: Kiểm chứng lợi ích của Bridge bằng việc thêm biến thể ở một chiều mà không đổi chiều còn lại.
+  objectives:
+  - Kết hợp nhiều Abstraction và Implementor
+  - Hoán đổi implementation khi cần
+  - Thêm biến thể mới mà không nhân lớp tổ hợp
+- id: refactor-so-sanh-pattern
+  title: Refactor & so sánh pattern
+  purpose: Áp dụng Bridge an toàn vào mã kế thừa phức tạp và phân biệt với các mẫu tương tự.
+  objectives:
+  - Tách phần triển khai khỏi cây kế thừa cũ
+  - So sánh mục đích Bridge với Adapter và Strategy
+  - Nhận diện trường hợp Bridge gây phức tạp không cần thiết
+- id: kiem-thu-danh-doi
+  title: Kiểm thử & đánh đổi
+  purpose: Xác nhận hành vi trên các tổ hợp đối tượng và đánh giá chi phí thêm lớp trừu tượng.
+  objectives:
+  - Kiểm thử các cặp Abstraction–Implementor
+  - Dùng fake Implementor để kiểm thử phần điều khiển
+  - Đánh giá độ linh hoạt so với độ phức tạp

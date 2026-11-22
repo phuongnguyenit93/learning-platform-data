@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "ENGINEERING_VALIDATION_TESTING_TOOL_INTEGRATION_TESTING"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Thực hành kiểm thử tích hợp Java/Spring tại ranh giới giữa controller, service, database, broker và dịch vụ bên ngoài. Sử dụng Spring Test, Testcontainers và công cụ dữ liệu thử để kiểm tra cấu hình, transaction, giao tiếp và lỗi, tạo bộ test tái lập được trong CI."
+  }
+}

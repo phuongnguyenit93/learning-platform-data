@@ -1,0 +1,3 @@
+menuLevel1: Generational ZGC
+menuLevel2: Xác minh collector thực tế bằng startup log và GC log
+status: WRITTEN

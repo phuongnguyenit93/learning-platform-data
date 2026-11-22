@@ -1,0 +1,13 @@
+references:
+  - title: "Spring Kafka — Sending Messages"
+    url: "https://docs.spring.io/spring-kafka/reference/kafka/sending-messages.html"
+    description: "Tài liệu chính thức về KafkaTemplate, topic, key, record, header và kết quả gửi."
+  - title: "Spring Kafka — Receiving Messages"
+    url: "https://docs.spring.io/spring-kafka/reference/kafka/receiving-messages.html"
+    description: "Tổng quan MessageListenerContainer, @KafkaListener và các cách nhận message."
+  - title: "Spring Kafka — Serialization and Message Conversion"
+    url: "https://docs.spring.io/spring-kafka/reference/kafka/serdes.html"
+    description: "Cấu hình serializer/deserializer, JSON, mapping kiểu và message conversion."
+  - title: "Spring Kafka — Testing Applications"
+    url: "https://docs.spring.io/spring-kafka/reference/testing.html"
+    description: "Kiểm thử Spring Kafka bằng spring-kafka-test và @EmbeddedKafka."

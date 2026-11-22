@@ -1,0 +1,49 @@
+roadmap:
+- id: proxy-trong-spring
+  title: Proxy trong Spring
+  purpose: Hiểu cơ chế Spring AOP để xác định đúng lời gọi có thể được can thiệp.
+  objectives:
+  - Nhận diện bean đích, proxy và lời gọi đi qua proxy.
+  - So sánh JDK/CGLIB; chỉ ra giới hạn tự gọi nội bộ, final và private.
+- id: kich-hoat-aspect
+  title: Kích hoạt Aspect
+  purpose: Đưa aspect vào ApplicationContext bằng cấu hình Spring phù hợp.
+  objectives:
+  - Đăng ký @Aspect như bean và bật @EnableAspectJAutoProxy.
+  - Đối chiếu cấu hình annotation với XML aop:config.
+- id: pointcut-cho-bean
+  title: Pointcut cho Bean
+  purpose: Chọn chính xác phương thức của bean cần áp dụng aspect.
+  objectives:
+  - Viết và tái dùng @Pointcut theo phương thức, annotation hoặc tên bean.
+  - Phân biệt this/target, args và các biểu thức Spring hỗ trợ.
+- id: advice-trong-spring
+  title: Advice trong Spring
+  purpose: Triển khai hành vi bổ sung mà giữ đúng kết quả của phương thức đích.
+  objectives:
+  - Áp dụng các loại advice và ràng buộc tham số, kết quả, ngoại lệ.
+  - Sử dụng ProceedingJoinPoint.proceed() đúng trong @Around.
+- id: thu-tu-va-trang-thai
+  title: Thứ tự và trạng thái
+  purpose: Kiểm soát nhiều aspect cùng tác động lên một bean.
+  objectives:
+  - Dự đoán chuỗi advice bằng @Order hoặc Ordered.
+  - Giữ aspect an toàn khi nhiều luồng dùng chung trạng thái.
+- id: api-aop-nang-cao
+  title: API AOP nâng cao
+  purpose: Mở rộng cơ chế AOP khi cấu hình aspect thông thường chưa đủ.
+  objectives:
+  - Tạo proxy bằng ProxyFactory với Advisor và MethodInterceptor.
+  - Nhận biết vai trò Introduction và TargetSource trong Spring AOP.
+- id: tich-hop-thuc-te
+  title: Tích hợp thực tế
+  purpose: Phối hợp aspect với các cơ chế Spring đang dùng trong ứng dụng.
+  objectives:
+  - Đánh giá tương tác với proxy giao dịch, bất đồng bộ và cache.
+  - Chọn Spring AOP hoặc tích hợp AspectJ trong Spring theo giới hạn proxy.
+- id: kiem-thu-va-chan-doan
+  title: Kiểm thử và chẩn đoán
+  purpose: Chứng minh aspect hoạt động đúng trên bean được Spring quản lý.
+  objectives:
+  - Kiểm thử qua ApplicationContext cho kết quả thường, ngoại lệ và thứ tự advice.
+  - Chẩn đoán advice không chạy do cấu hình, pointcut hoặc lời gọi bỏ qua proxy.

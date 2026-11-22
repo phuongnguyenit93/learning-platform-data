@@ -1,0 +1,415 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Cloud Kubernetes là gì và giải quyết những vấn đề nào
+  - Ranh giới giữa Spring Cloud Kubernetes, Spring Boot và Kubernetes
+  - 'Các nhóm chức năng: khám phá dịch vụ, cấu hình và điều phối'
+  - Ứng dụng kết nối trực tiếp Kubernetes API và các phương án thay thế
+  - Khi nào chỉ cần Kubernetes Service và DNS
+  - Luồng dữ liệu từ tài nguyên Kubernetes vào ứng dụng Spring
+  - Thành phần chạy trong ứng dụng và thành phần triển khai riêng
+  - Điều kiện nền tảng trước khi triển khai tích hợp
+  - Lộ trình học và mô hình ứng dụng thực hành
+- level1: Nền tảng Kubernetes
+  level2:
+  - Cluster, control plane, node và Kubernetes API
+  - Pod, container và vòng đời một bản sao ứng dụng
+  - Deployment, ReplicaSet và khai báo trạng thái mong muốn
+  - Service, selector và tập Pod phục vụ yêu cầu
+  - Endpoints, EndpointSlice và mối liên hệ với Service
+  - Namespace, label và annotation
+  - ConfigMap, Secret và cách đưa dữ liệu vào container
+  - ServiceAccount, Role và RoleBinding
+  - Readiness, liveness và startup probe
+  - DNS nội bộ, địa chỉ Service và cổng đích
+  - Đọc manifest và quan sát tài nguyên bằng kubectl
+- level1: Thiết lập dự án
+  level2:
+  - Chọn Spring Boot và Spring Cloud Release Train tương thích
+  - Quản lý phiên bản bằng Spring Cloud BOM
+  - Các starter theo chức năng và loại Kubernetes client
+  - Phân biệt phụ thuộc khám phá dịch vụ, cấu hình và cân bằng tải
+  - Chọn mô hình Servlet hoặc reactive theo ứng dụng
+  - Đặt spring.application.name và tên tài nguyên liên quan
+  - Tổ chức cấu hình local, kiểm thử và chạy trong cluster
+  - Nhận diện môi trường Kubernetes và kích hoạt profile phù hợp
+  - Kiểm tra điều kiện tự cấu hình và các bean được tạo
+  - Tạo dự án tối thiểu và xác minh kết nối đầu tiên
+- level1: Kubernetes client
+  level2:
+  - Fabric8 Kubernetes Client và Kubernetes Java Client
+  - So sánh các chức năng được hỗ trợ theo từng client
+  - Chọn starter nhất quán và tránh đưa nhiều client không cần thiết
+  - Vòng đời Kubernetes client và tái sử dụng kết nối
+  - Cấu hình client từ môi trường, file cấu hình và thông tin trong Pod
+  - Phân biệt client ứng dụng với HTTP DiscoveryClient
+  - Xử lý timeout, retry và giới hạn kết nối của client
+  - Kiểu dữ liệu tài nguyên và lỗi trả về từ Kubernetes API
+  - Khả năng tùy biến client và giới hạn theo bản phát hành
+  - Kiểm tra tương thích giữa thư viện client và cluster
+- level1: Kết nối Kubernetes API
+  level2:
+  - Địa chỉ API server và thông tin truy cập
+  - Xác thực trong cluster bằng ServiceAccount
+  - Kubeconfig và context khi chạy ứng dụng ngoài cluster
+  - Chứng chỉ CA, TLS và xác minh máy chủ
+  - Token được gắn vào Pod và thời hạn sử dụng
+  - Phân biệt lỗi mạng, lỗi xác thực và lỗi thiếu quyền
+  - Kết nối qua proxy và môi trường bị giới hạn mạng
+  - Timeout kết nối, timeout đọc và hành vi khi API server gián đoạn
+  - Kiểm chứng danh tính và quyền truy cập thực tế của ứng dụng
+- level1: Namespace và phạm vi
+  level2:
+  - Namespace mặc định và cách xác định namespace của ứng dụng
+  - Cấu hình namespace tường minh theo từng chức năng
+  - Khám phá dịch vụ trong một namespace
+  - Khám phá nhiều namespace và điều kiện cấp quyền
+  - Đọc ConfigMap hoặc Secret từ namespace được chỉ định
+  - Tên tài nguyên trùng giữa các namespace
+  - Phân biệt phạm vi theo namespace và phạm vi toàn cluster
+  - Giảm phạm vi truy vấn bằng label và bộ lọc
+  - Thiết kế ranh giới truy cập cho nhiều nhóm ứng dụng
+- level1: Khám phá dịch vụ
+  level2:
+  - DiscoveryClient trong mô hình Spring Cloud Commons
+  - Lấy danh sách service ID và các ServiceInstance
+  - Ánh xạ Kubernetes Service sang dịch vụ của ứng dụng
+  - Lấy danh sách bản sao từ tài nguyên endpoint
+  - Lọc dịch vụ bằng label và điều kiện biểu thức được hỗ trợ
+  - Chỉ chọn các endpoint sẵn sàng và tác động của readiness
+  - Khám phá Pod chưa sẵn sàng khi có yêu cầu đặc biệt
+  - Thông tin namespace và metadata của dịch vụ được khám phá
+  - Chiến lược cập nhật danh sách và độ trễ phát hiện thay đổi
+  - Xử lý dịch vụ không tồn tại hoặc không có endpoint
+  - Tắt khám phá dịch vụ khi ứng dụng chỉ cần cấu hình
+  - Đối chiếu kết quả DiscoveryClient với trạng thái cluster
+- level1: ServiceInstance và cổng
+  level2:
+  - ServiceInstance ID, host, port và URI
+  - Phân biệt địa chỉ Pod, ClusterIP và địa chỉ DNS
+  - Service port, targetPort và containerPort
+  - Chọn cổng khi Service công bố nhiều cổng
+  - Tên cổng và cấu hình ưu tiên cổng
+  - Nhận diện kết nối an toàn và thông tin HTTPS
+  - Đưa label, annotation và thông tin tài nguyên vào metadata
+  - Nguy cơ đưa dữ liệu nhạy cảm vào metadata công khai
+  - Ảnh hưởng của headless Service đến danh sách bản sao
+  - Kiểm thử ánh xạ cổng và địa chỉ trong các manifest khác nhau
+- level1: Discovery Server
+  level2:
+  - Mục đích của Spring Cloud Kubernetes Discovery Server
+  - So sánh truy cập Kubernetes API trực tiếp với qua Discovery Server
+  - Triển khai server và xác định phạm vi tài nguyên được đọc
+  - Cấu hình HTTP DiscoveryClient kết nối đến server
+  - Vai trò của HTTP client trong lấy danh sách dịch vụ
+  - Định dạng và ý nghĩa dữ liệu khám phá được trả về
+  - Quyền Kubernetes của server và quyền kết nối của ứng dụng
+  - Timeout, lỗi server và ảnh hưởng đến bên gọi
+  - Giới hạn truy cập và bảo vệ endpoint khám phá
+  - Đánh giá tính sẵn sàng, khả năng mở rộng và chi phí vận hành
+- level1: Cân bằng tải
+  level2:
+  - Tích hợp Spring Cloud LoadBalancer với Kubernetes DiscoveryClient
+  - Cân bằng tải qua địa chỉ Pod và qua Kubernetes Service
+  - Phân biệt chế độ POD và SERVICE khi bản phát hành hỗ trợ
+  - Chọn cổng và giao thức cho yêu cầu cân bằng tải
+  - Gọi tên dịch vụ bằng HTTP client đã tích hợp LoadBalancer
+  - Tách cấu hình HTTP client khỏi cấu hình khám phá Kubernetes
+  - Cache danh sách bản sao và độ trễ loại bỏ Pod
+  - Readiness, thay đổi endpoint và lời gọi đang thực hiện
+  - Retry sang bản sao khác và tính lũy đẳng của yêu cầu
+  - Quan sát bản sao nhận yêu cầu để kiểm chứng phân phối
+  - Khi DNS, Gateway hoặc service mesh đã đáp ứng yêu cầu
+- level1: Nạp Config Data
+  level2:
+  - Tích hợp cấu hình Kubernetes với Spring Boot Environment
+  - Khai báo spring.config.import theo cơ chế được hỗ trợ
+  - Nạp bắt buộc và nạp tùy chọn khi nguồn cấu hình không có
+  - Config Data và cơ chế bootstrap của các phiên bản cũ
+  - Vai trò của PropertySource và thứ tự nạp
+  - Chọn nguồn ConfigMap, Secret hoặc kết hợp cả hai
+  - Phân biệt nạp qua API với đọc file được gắn vào Pod
+  - Thời điểm nạp cấu hình so với khởi tạo bean
+  - Fail-fast và retry khi không đọc được nguồn
+  - Xác minh nguồn gốc thuộc tính đã có trong Environment
+- level1: ConfigMap
+  level2:
+  - Cấu trúc data của ConfigMap và kiểu dữ liệu thực tế
+  - Ánh xạ khóa đơn thành thuộc tính Spring
+  - Nạp nội dung application.yaml hoặc application.properties
+  - Quy tắc chọn ConfigMap theo tên ứng dụng
+  - Chỉ định nhiều ConfigMap theo tên và namespace
+  - Chọn ConfigMap theo label khi chức năng được hỗ trợ
+  - Hợp nhất nhiều nguồn và xử lý khóa trùng
+  - Tiền tố thuộc tính để tránh xung đột giữa các nguồn
+  - Profile trong tên tài nguyên và nội dung cấu hình
+  - Đọc ConfigMap từ volume thay vì gọi Kubernetes API
+  - Giới hạn kích thước và phân chia cấu hình hợp lý
+  - Xử lý ConfigMap thiếu, rỗng hoặc có nội dung sai cú pháp
+  - Kiểm chứng giá trị nạp vào @ConfigurationProperties
+- level1: Secret
+  level2:
+  - Secret và ranh giới bảo vệ thông tin nhạy cảm
+  - Phân biệt mã hóa base64 với mã hóa bảo mật
+  - Ánh xạ dữ liệu Secret sang thuộc tính ứng dụng
+  - Bật đọc Secret qua API một cách tường minh
+  - Chỉ định nguồn Secret theo tên, namespace và bộ chọn
+  - Đọc Secret từ volume được gắn vào container
+  - Quyền đọc Secret và nguy cơ lộ toàn bộ thông tin trong namespace
+  - Hợp nhất Secret với ConfigMap và xử lý trùng khóa
+  - Đặc điểm cập nhật Secret khi dùng volume hoặc biến môi trường
+  - Ứng xử khi Secret chưa tồn tại hoặc thiếu khóa bắt buộc
+  - Luân chuyển mật khẩu, token và chứng chỉ
+  - Kiểm tra Secret mà không ghi giá trị nhạy cảm ra log
+- level1: Profile và ưu tiên
+  level2:
+  - Quan hệ giữa active profile và cấu hình Kubernetes
+  - Profile riêng cho local, kiểm thử và production
+  - Thứ tự ưu tiên giữa file đóng gói, nguồn Kubernetes và biến môi trường
+  - Ưu tiên giữa nhiều ConfigMap và nhiều Secret
+  - Cấu hình theo profile trong YAML nhiều tài liệu
+  - Tránh vòng phụ thuộc khi thuộc tính cần thiết cho chính quá trình nạp
+  - Placeholder và giá trị mặc định
+  - Kiểu dữ liệu, binding và kiểm tra ràng buộc cấu hình
+  - Truy tìm nguồn ghi đè khi giá trị thực tế khác mong đợi
+  - Viết kiểm thử để xác nhận thứ tự ưu tiên của dự án
+- level1: Thiết kế cấu hình
+  level2:
+  - Phân chia cấu hình dùng chung và cấu hình riêng ứng dụng
+  - Đặt tên tài nguyên, khóa và label nhất quán
+  - Tách cấu hình thường xuyên thay đổi khỏi cấu hình cần khởi động lại
+  - Phân biệt cấu hình nghiệp vụ và bí mật truy cập
+  - Thiết kế giá trị mặc định và thuộc tính bắt buộc
+  - Phiên bản hóa ConfigMap và Secret cùng manifest triển khai
+  - Giữ hợp đồng cấu hình tương thích khi nhiều phiên bản cùng chạy
+  - Tránh lưu dữ liệu nghiệp vụ hoặc dữ liệu lớn trong ConfigMap
+  - Kiểm tra cấu hình trước khi đưa vào cluster
+- level1: Cập nhật cấu hình
+  level2:
+  - Phân biệt cập nhật tài nguyên với cập nhật bean đang chạy
+  - 'Các cách áp dụng thay đổi: refresh, khởi động lại và triển khai lại'
+  - Giới hạn cập nhật của biến môi trường và volume
+  - '@RefreshScope, @ConfigurationProperties và vòng đời bean'
+  - Thuộc tính chỉ được đọc lúc khởi tạo và phần cần tái tạo
+  - Reload trong tiến trình và tình trạng hỗ trợ theo phiên bản
+  - Cơ chế theo dõi sự kiện và thăm dò định kỳ khi được hỗ trợ
+  - Xử lý nhiều thay đổi liên tiếp và tránh refresh quá mức
+  - Độ trễ cập nhật và tính nhất quán giữa nhiều Pod
+  - Ứng xử khi cấu hình mới không hợp lệ
+  - Tiêu chí chọn refresh động hay rolling restart
+- level1: Configuration Watcher
+  level2:
+  - Kiến trúc Spring Cloud Kubernetes Configuration Watcher
+  - Triển khai watcher tách khỏi ứng dụng nghiệp vụ
+  - Chọn ConfigMap và Secret cần theo dõi bằng metadata
+  - Liên kết tài nguyên cấu hình với ứng dụng cần thông báo
+  - Thông báo qua HTTP và điều kiện endpoint refresh
+  - Thông báo qua Spring Cloud Bus khi bản phát hành hỗ trợ
+  - Địa chỉ ứng dụng, management port và đường dẫn Actuator
+  - Thông báo đến nhiều bản sao và kiểm chứng phạm vi cập nhật
+  - Điều chỉnh độ trễ để chờ dữ liệu volume được đồng bộ
+  - Phân quyền watcher và bảo vệ kênh thông báo
+  - Xử lý thông báo lỗi, trùng hoặc đến liên tiếp
+  - Quan sát sự kiện từ thay đổi tài nguyên đến cấu hình có hiệu lực
+- level1: Phân quyền RBAC
+  level2:
+  - Quyền tối thiểu theo từng tính năng Spring Cloud Kubernetes
+  - ServiceAccount dành riêng cho ứng dụng
+  - Role và RoleBinding trong một namespace
+  - Khi nào cần ClusterRole và ClusterRoleBinding
+  - Phân biệt các quyền get, list và watch
+  - Quyền trên Service, endpoint, Pod và tài nguyên cấu hình
+  - Cấp quyền đọc Secret theo phạm vi cần thiết
+  - Quyền ghi cần thiết cho cơ chế leader election
+  - Kiểm tra quyền bằng kubectl auth can-i
+  - Tách quyền ứng dụng, Discovery Server và Configuration Watcher
+  - Thu hồi quyền, rà soát quyền rộng và kiểm thử lỗi 403
+- level1: Bầu leader
+  level2:
+  - Leader election là gì và những tác vụ cần một bên điều phối
+  - Phân biệt leader của ứng dụng với leader của control plane
+  - Điều kiện hỗ trợ theo Kubernetes client và bản phát hành
+  - Tài nguyên khóa và cơ chế cạnh tranh vai trò
+  - Cấu hình danh tính, namespace và phạm vi nhóm bầu chọn
+  - Sự kiện được cấp và bị thu hồi vai trò leader
+  - Chỉ cho phép thực hiện tác vụ khi đang giữ vai trò
+  - Xử lý leader dừng, mất kết nối hoặc không gia hạn được khóa
+  - Thời gian phát hiện mất leader và chọn leader mới
+  - Vì sao leader election không tự bảo đảm thực thi đúng một lần
+  - Tính lũy đẳng, fencing và bảo vệ tác dụng phụ quan trọng
+  - Kiểm thử chuyển giao vai trò giữa nhiều Pod
+- level1: Vòng đời Pod
+  level2:
+  - Trình tự khởi động từ nạp cấu hình đến sẵn sàng phục vụ
+  - Startup probe cho ứng dụng có thời gian khởi tạo dài
+  - Readiness và thời điểm Pod được đưa vào tập endpoint
+  - Liveness và tránh khởi động lại vì phụ thuộc bên ngoài gián đoạn
+  - Graceful shutdown và ngừng nhận yêu cầu mới
+  - preStop và terminationGracePeriodSeconds
+  - Yêu cầu đang xử lý khi Pod bị loại khỏi Service
+  - Giải phóng tài nguyên và vai trò leader khi dừng
+  - Rolling update và tương thích giữa các phiên bản ứng dụng
+  - Ảnh hưởng của eviction, node hỏng và scale down
+  - Kiểm chứng hành vi ứng dụng trong suốt vòng đời triển khai
+- level1: Actuator và sức khỏe
+  level2:
+  - Thông tin Kubernetes được bổ sung vào endpoint info
+  - HealthIndicator liên quan tới Kubernetes và khám phá dịch vụ
+  - Chọn thành phần cho health group của ứng dụng
+  - Tách liveness và readiness bằng Spring Boot Actuator
+  - Quan hệ giữa sức khỏe ứng dụng và khả năng truy cập API server
+  - Management port và định tuyến tới endpoint quản trị
+  - Giới hạn chi tiết sức khỏe công khai
+  - Bảo vệ các endpoint refresh và thay đổi trạng thái
+  - Phân biệt tín hiệu trong ứng dụng với trạng thái Pod
+  - Kiểm thử probe khi API server hoặc dịch vụ phụ thuộc gián đoạn
+- level1: Khả năng quan sát
+  level2:
+  - Log tên ứng dụng, namespace, Pod và phiên bản triển khai
+  - Đưa thông tin tài nguyên vào ngữ cảnh ghi log
+  - Theo dõi lỗi truy cập Kubernetes API và vòng đời watch
+  - Đo thời gian nạp cấu hình và phát hiện thay đổi
+  - Quan sát số dịch vụ, endpoint và danh sách bản sao
+  - Ghi nhận refresh thành công, thất bại và cấu hình đang dùng
+  - Theo dõi các lần thay đổi leader
+  - Metrics của HTTP client và chi phí gọi API server
+  - Tránh nhãn có quá nhiều giá trị và tránh lộ Secret
+  - Đối chiếu log ứng dụng, sự kiện Kubernetes và distributed trace
+- level1: Đóng gói ứng dụng
+  level2:
+  - Xây dựng executable JAR và container image
+  - Lựa chọn buildpack hoặc Dockerfile
+  - Chạy container bằng tài khoản không có quyền root
+  - Tách cấu hình khỏi image và tránh nhúng Secret
+  - Thiết lập tài nguyên JVM theo giới hạn container
+  - Endpoint quản trị, cổng ứng dụng và cổng probe
+  - Thời gian khởi động và chi phí làm nóng ứng dụng
+  - Kiểm tra image chạy được với các nguồn cấu hình đã chọn
+  - Điều kiện hỗ trợ AOT hoặc native image theo bộ thư viện
+- level1: Manifest triển khai
+  level2:
+  - Deployment tối thiểu cho ứng dụng Spring Cloud Kubernetes
+  - Service và selector khớp đúng Pod
+  - Khai báo ConfigMap, Secret, volume và volumeMount
+  - Gắn ServiceAccount và các tài nguyên RBAC
+  - Labels, annotations và dữ liệu Pod qua Downward API
+  - Requests, limits và giới hạn mức đồng thời của ứng dụng
+  - Probe, chiến lược cập nhật và thời gian kết thúc
+  - Kustomize hoặc Helm để quản lý khác biệt giữa môi trường
+  - Triển khai Discovery Server và Configuration Watcher khi cần
+  - NetworkPolicy cho API server, ứng dụng và endpoint quản trị
+  - Kiểm tra manifest và tài nguyên đã được áp dụng
+  - Giữ cấu hình triển khai có thể truy vết về phiên bản nguồn
+- level1: Phát triển cục bộ
+  level2:
+  - Chọn kind, minikube hoặc môi trường Kubernetes tương đương
+  - Nạp image cục bộ vào cluster thử nghiệm
+  - Chạy ứng dụng ngoài cluster với kubeconfig riêng
+  - Chạy ứng dụng trong cluster với ServiceAccount
+  - Port-forward và truy cập endpoint phục vụ kiểm chứng
+  - Profile local không phụ thuộc Kubernetes
+  - Tạo dữ liệu ConfigMap và Secret phục vụ thử nghiệm
+  - Quan sát log, event và trạng thái rollout
+  - Tái tạo môi trường từ manifest mà không phụ thuộc thao tác thủ công
+- level1: Kiểm thử tự động
+  level2:
+  - Phân chia unit test, integration test và kiểm thử trong cluster
+  - Kiểm thử binding và validation của cấu hình
+  - Giả lập Kubernetes API phù hợp với loại client
+  - Kiểm thử DiscoveryClient với nhiều Service và endpoint
+  - Kiểm thử lựa chọn cổng, namespace và bộ lọc
+  - Kiểm thử thứ tự ưu tiên ConfigMap và Secret
+  - Kiểm thử nạp cấu hình bắt buộc, tùy chọn và fail-fast
+  - Kiểm thử cập nhật tài nguyên, refresh và bean được tái tạo
+  - Kiểm thử quyền thiếu, token hết hạn và chứng chỉ không hợp lệ
+  - Kiểm thử leader failover và tác vụ chạy trùng
+  - Kiểm thử trong cluster tạm thời và dọn tài nguyên sau khi chạy
+  - Giữ kiểm thử ổn định trước độ trễ đồng bộ của Kubernetes
+- level1: Hiệu năng và độ bền
+  level2:
+  - Chi phí list và watch khi số Pod ứng dụng tăng
+  - Cache, informer và phạm vi sử dụng theo loại client
+  - Giới hạn namespace và label để giảm lượng tài nguyên theo dõi
+  - API rate limit, phản hồi 429 và backoff
+  - Khôi phục watch sau mất kết nối hoặc phiên bản tài nguyên hết hiệu lực
+  - Tránh nhiều Pod cùng nạp lại cấu hình hoặc gửi lại yêu cầu
+  - Ứng xử với dữ liệu đã có khi API server tạm thời không truy cập được
+  - Chi phí bộ nhớ của danh sách tài nguyên và metadata
+  - Đặt timeout, giới hạn retry và ngân sách khởi động
+  - Đo khả năng chịu tải trước khi tăng quy mô cluster
+- level1: Bảo mật tích hợp
+  level2:
+  - Đánh giá quyền truy cập API server của từng thành phần
+  - Giới hạn tự động gắn ServiceAccount token khi không cần
+  - Xác minh TLS và bảo vệ kubeconfig
+  - Nguyên tắc tối thiểu quyền đối với Secret
+  - Bảo vệ refresh endpoint khỏi yêu cầu trái phép
+  - NetworkPolicy và giới hạn kết nối giữa các namespace
+  - Chính sách bảo mật Pod và filesystem chỉ đọc
+  - Quản lý Secret bằng công cụ ngoài và ranh giới tích hợp
+  - Kiểm toán truy cập và thay đổi tài nguyên cấu hình
+  - Rà soát log, endpoint info và health để tránh rò rỉ dữ liệu
+  - Luân chuyển thông tin truy cập mà không gián đoạn dịch vụ
+- level1: Vận hành cấu hình
+  level2:
+  - Quản lý thay đổi ConfigMap và Secret qua quy trình GitOps
+  - Đối chiếu trạng thái khai báo với trạng thái đang chạy
+  - Theo dõi phiên bản cấu hình được áp dụng trên từng Pod
+  - Phát hành thay đổi cấu hình tương thích với phiên bản ứng dụng
+  - Chọn cập nhật tại chỗ hoặc tạo tài nguyên cấu hình mới
+  - Quay lại cấu hình trước khi thay đổi gây lỗi
+  - Phối hợp rollout ứng dụng với luân chuyển Secret
+  - Rà soát tài nguyên, label và quyền không còn sử dụng
+  - Chuẩn bị quy trình xử lý khi API server hoặc watcher ngừng hoạt động
+  - Tiêu chí xác nhận thay đổi đã có hiệu lực trên toàn bộ bản sao
+- level1: Chẩn đoán sự cố
+  level2:
+  - Ứng dụng không kết nối được Kubernetes API
+  - Lỗi 401, 403, 404 và cách xác định nguyên nhân
+  - Không tìm thấy namespace hoặc tên tài nguyên mong đợi
+  - DiscoveryClient không trả về dịch vụ hoặc bản sao
+  - Service không có endpoint do selector hoặc readiness
+  - Chọn sai địa chỉ, cổng hoặc giao thức
+  - ConfigMap không được nạp hoặc bị nguồn khác ghi đè
+  - Secret không được đọc do cấu hình, mount hoặc quyền
+  - Thay đổi cấu hình đã có nhưng bean vẫn giữ giá trị cũ
+  - Configuration Watcher không tìm đúng ứng dụng hoặc endpoint
+  - Leader không được bầu hoặc chuyển giao quá chậm
+  - Pod khởi động lại liên tục vì probe hoặc cấu hình lỗi
+  - API server bị quá tải vì truy vấn, watch hoặc retry
+  - Quy trình thu thập bằng chứng và tạo kịch bản tái hiện tối thiểu
+- level1: Tương thích và nâng cấp
+  level2:
+  - Đọc ma trận Spring Boot, Spring Cloud và Spring Cloud Kubernetes
+  - Kiểm tra khả năng tương thích với phiên bản Kubernetes API
+  - Chuyển từ bootstrap sang Config Data khi phù hợp
+  - Rà soát cơ chế reload cũ và phương án Configuration Watcher
+  - Đánh giá thay đổi khi đổi Fabric8 và Kubernetes Java Client
+  - Đối chiếu hành vi DiscoveryClient và lựa chọn cổng sau nâng cấp
+  - Rà soát thay đổi trên Endpoints và EndpointSlice
+  - Kiểm thử thứ tự cấu hình, quyền RBAC và endpoint quản trị
+  - Rà soát tính năng bị thay thế hoặc ngừng hỗ trợ trong bản phát hành
+  - Kế hoạch nâng cấp từng phần và tiêu chí quay lại phiên bản trước
+- level1: Thực hành tổng hợp
+  level2:
+  - Triển khai hai dịch vụ với nhiều Pod trong namespace riêng
+  - Đối chiếu gọi qua DNS với DiscoveryClient và LoadBalancer
+  - Nạp ConfigMap, Secret và cấu hình theo profile
+  - Theo dõi thuộc tính bị ghi đè từ nhiều nguồn
+  - Cập nhật cấu hình qua refresh và so sánh với rolling restart
+  - Triển khai watcher và kiểm chứng cập nhật trên tất cả bản sao
+  - Thử RBAC tối thiểu rồi quan sát lỗi khi thiếu từng quyền
+  - Chạy tác vụ điều phối bằng leader election và mô phỏng failover
+  - Mô phỏng thay đổi endpoint, API server lỗi và Pod bị dừng
+  - Tổng hợp manifest, kiểm thử và bằng chứng vận hành
+- level1: Lựa chọn kiến trúc
+  level2:
+  - Khi nên dùng Spring Cloud Kubernetes trong ứng dụng
+  - Khi Kubernetes Service, DNS và cấu hình qua volume đã đủ
+  - Chọn truy cập API trực tiếp hay dùng Discovery Server
+  - Chọn cấu hình nạp lúc khởi động hay cập nhật động
+  - Chọn leader election hay cơ chế điều phối tác vụ khác
+  - Đánh đổi giữa khả năng tích hợp và sự phụ thuộc nền tảng
+  - Phân chia trách nhiệm giữa mã ứng dụng và đội vận hành
+  - Danh sách kiểm tra thiết kế, bảo mật và vận hành
+  - Bài tập đánh giá kiến trúc với yêu cầu và giới hạn cụ thể

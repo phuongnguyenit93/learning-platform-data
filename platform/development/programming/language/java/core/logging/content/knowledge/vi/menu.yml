@@ -1,0 +1,538 @@
+menu:
+- level1: Tổng quan Java Logging
+  level2:
+  - Logging là gì
+  - Bài toán logging giải quyết
+  - Log message và sự kiện
+  - Logger và backend
+  - Mức độ log
+  - Console và file log
+  - Log trong vòng đời ứng dụng
+  - Logging và debugging
+  - Logging và observability
+  - Thuật ngữ cốt lõi
+- level1: Mục tiêu của logging
+  level2:
+  - Ghi nhận hành vi hệ thống
+  - Điều tra lỗi
+  - Theo dõi nghiệp vụ
+  - Đo lường vận hành
+  - Hỗ trợ kiểm toán
+  - Cảnh báo sự cố
+  - Phân biệt log và metric
+  - Phân biệt log và trace
+  - Chi phí của logging
+  - Nguyên tắc log hữu ích
+- level1: Kiến trúc logging
+  level2:
+  - Ứng dụng phát log
+  - Logger tiếp nhận log
+  - Bộ lọc log
+  - Bộ định tuyến log
+  - Tầng appender và handler
+  - Tầng formatter và layout
+  - Đích ghi log
+  - Đọc và phân tích log
+  - Pipeline log
+  - Điểm mở rộng kiến trúc
+- level1: Logger
+  level2:
+  - Logger là gì
+  - Tên logger
+  - Logger theo package
+  - Logger theo class
+  - Logger gốc
+  - Logger con
+  - Kế thừa cấu hình
+  - Tạo logger
+  - Tái sử dụng logger
+  - Đặt tên logger nhất quán
+- level1: Log level
+  level2:
+  - TRACE
+  - DEBUG
+  - INFO
+  - WARN
+  - ERROR
+  - OFF và ALL
+  - Chọn level phù hợp
+  - Level ở môi trường phát triển
+  - Level ở production
+  - Thay đổi level khi chạy
+- level1: Log message
+  level2:
+  - Nội dung message
+  - Message có ngữ cảnh
+  - Message có thể tìm kiếm
+  - Message ổn định
+  - Placeholder
+  - Parameter hóa message
+  - String concatenation
+  - Message nhiều dòng
+  - Mã sự kiện
+  - Ngôn ngữ của message
+- level1: Exception logging
+  level2:
+  - Ghi stack trace
+  - Truyền exception đúng cách
+  - Cause chain
+  - Lỗi có thể xử lý
+  - Lỗi không thể xử lý
+  - Log một lần hay nhiều lần
+  - Không che mất nguyên nhân
+  - Exception và log level
+  - Thông tin request khi lỗi
+  - Kiểm tra log lỗi
+- level1: Java Util Logging
+  level2:
+  - java.util.logging là gì
+  - Logger của JDK
+  - Level của JUL
+  - Handler của JUL
+  - Formatter của JUL
+  - ConsoleHandler
+  - FileHandler
+  - LogManager
+  - Cấu hình JUL
+  - Giới hạn của JUL
+- level1: SLF4J
+  level2:
+  - SLF4J là gì
+  - Facade cho logging
+  - LoggerFactory
+  - SLF4J API
+  - Parameter substitution
+  - Exception trong SLF4J
+  - Binding tới backend
+  - Multiple bindings
+  - Version compatibility
+  - Khi nào dùng SLF4J
+- level1: Logback
+  level2:
+  - Logback là gì
+  - Logger của Logback
+  - Appender của Logback
+  - Encoder của Logback
+  - Layout của Logback
+  - logback.xml
+  - logback-spring.xml
+  - Profile cấu hình
+  - Status của Logback
+  - Khi nào dùng Logback
+- level1: Log4j2
+  level2:
+  - Log4j2 là gì
+  - Logger trong Log4j2
+  - Appender trong Log4j2
+  - Layout trong Log4j2
+  - Filter trong Log4j2
+  - log4j2.xml
+  - Async Logger
+  - Plugin của Log4j2
+  - Cầu nối Log4j2
+  - Quản lý phiên bản Log4j2
+- level1: Facade và backend
+  level2:
+  - Facade khác backend
+  - Chọn facade
+  - Chọn implementation
+  - Binding runtime
+  - Bridge giữa API
+  - JUL bridge
+  - JCL bridge
+  - Log4j bridge
+  - Xung đột dependency
+  - Kiểm tra dependency logging
+- level1: Appender và handler
+  level2:
+  - Appender là gì
+  - Handler là gì
+  - Console appender
+  - File appender
+  - Rolling appender
+  - Socket appender
+  - Appender bất đồng bộ
+  - Nhiều appender
+  - Appender theo level
+  - Đóng appender an toàn
+- level1: Formatter và layout
+  level2:
+  - Formatter là gì
+  - Layout là gì
+  - Pattern layout
+  - Định dạng thời gian
+  - Định dạng thread
+  - Định dạng logger
+  - Định dạng level
+  - Định dạng exception
+  - Định dạng key-value
+  - Ổn định format log
+- level1: Console logging
+  level2:
+  - Log ra stdout
+  - Log ra stderr
+  - Console trong development
+  - Console trong container
+  - Màu terminal
+  - Flush console
+  - Đồng bộ output
+  - Giới hạn console log
+  - Thu thập log container
+  - Kiểm thử console output
+- level1: File logging
+  level2:
+  - Log vào file
+  - Đường dẫn log
+  - Quyền ghi file
+  - Encoding file
+  - File log theo ứng dụng
+  - File log theo module
+  - Tên file động
+  - Đóng file khi shutdown
+  - Đọc file log
+  - Xử lý file đầy
+- level1: Log rotation
+  level2:
+  - Vì sao cần rotation
+  - Rotation theo thời gian
+  - Rotation theo kích thước
+  - Giữ số file lịch sử
+  - Nén file log
+  - Xóa file quá hạn
+  - Đồng bộ rotation
+  - Rotation trong container
+  - Rotation khi restart
+  - Kiểm tra rotation
+- level1: Structured logging
+  level2:
+  - Structured logging là gì
+  - Key-value log
+  - Schema log
+  - Field name ổn định
+  - Timestamp chuẩn
+  - Mã sự kiện chuẩn
+  - Phân tích log có cấu trúc
+  - Tương thích log collector
+  - Chuyển log text sang structured
+  - Đánh đổi structured logging
+- level1: JSON logging
+  level2:
+  - JSON log là gì
+  - JSON encoder
+  - Field message
+  - Field level
+  - Field logger
+  - Field timestamp
+  - Field exception
+  - Field context
+  - Escape JSON
+  - Kiểm tra JSON hợp lệ
+- level1: Logging context
+  level2:
+  - Context của log
+  - Request context
+  - User context
+  - Tenant context
+  - Operation context
+  - Context và thread
+  - Context qua async
+  - Context qua executor
+  - Xóa context đúng lúc
+  - Tránh context lỗi thời
+- level1: MDC
+  level2:
+  - MDC là gì
+  - Đặt giá trị MDC
+  - Đọc giá trị MDC
+  - Xóa giá trị MDC
+  - MDC theo request
+  - MDC theo user
+  - MDC trong thread pool
+  - MDC trong async
+  - MDC và structured log
+  - Kiểm thử MDC
+- level1: Correlation ID
+  level2:
+  - Correlation ID là gì
+  - Tạo correlation ID
+  - Nhận correlation ID
+  - Truyền qua HTTP
+  - Truyền qua message
+  - Ghi correlation ID
+  - Tìm log theo correlation ID
+  - Correlation ID và retry
+  - Correlation ID và batch
+  - Kiểm tra tính duy nhất
+- level1: Trace context
+  level2:
+  - Trace ID
+  - Span ID
+  - Trace context trong log
+  - Liên kết log với trace
+  - Propagation qua service
+  - Propagation qua message
+  - Sampling và log
+  - Trace context không đầy đủ
+  - Tương thích OpenTelemetry
+  - Phân tích log theo trace
+- level1: Logging trong thread
+  level2:
+  - Thread name
+  - Thread ID
+  - Log trong thread pool
+  - Log trong virtual thread
+  - Context của thread
+  - Race condition khi ghi log
+  - Logger thread-safe
+  - Shutdown thread logging
+  - Định danh worker
+  - Kiểm thử đồng thời
+- level1: Logging bất đồng bộ
+  level2:
+  - Async logging là gì
+  - Queue log
+  - Consumer ghi log
+  - Backpressure log
+  - Mất log khi queue đầy
+  - Flush async log
+  - Shutdown async logger
+  - Độ trễ async logging
+  - Đánh đổi throughput
+  - Kiểm thử async logger
+- level1: Cấu hình logging
+  level2:
+  - Cấu hình bằng file
+  - Cấu hình bằng code
+  - Tên file cấu hình
+  - Classpath configuration
+  - Cấu hình mặc định
+  - Cấu hình theo logger
+  - Cấu hình theo appender
+  - Reload cấu hình
+  - Kiểm tra cấu hình thực tế
+  - Xử lý cấu hình sai
+- level1: Môi trường chạy
+  level2:
+  - Cấu hình development
+  - Cấu hình test
+  - Cấu hình staging
+  - Cấu hình production
+  - Profile logging
+  - Biến môi trường
+  - System property
+  - Container configuration
+  - Cloud logging configuration
+  - Không lẫn cấu hình môi trường
+- level1: Filtering
+  level2:
+  - Filter log là gì
+  - Filter theo level
+  - Filter theo logger
+  - Filter theo message
+  - Filter theo context
+  - Filter theo exception
+  - Filter theo environment
+  - Drop log không cần thiết
+  - Filter trước format
+  - Kiểm thử filter
+- level1: Routing và phân loại
+  level2:
+  - Routing log
+  - Tách log lỗi
+  - Tách log audit
+  - Tách log access
+  - Tách log nghiệp vụ
+  - Tách log theo package
+  - Tách log theo tenant
+  - Nhiều đích ghi
+  - Tránh duplicate log
+  - Kiểm tra routing
+- level1: Hiệu năng logging
+  level2:
+  - Chi phí tạo log
+  - Kiểm tra level trước log
+  - Parameterized logging
+  - Lazy message
+  - Chi phí stack trace
+  - Chi phí serialization
+  - Chi phí MDC
+  - Throughput của appender
+  - Đo overhead logging
+  - Tối ưu hot path
+- level1: Độ tin cậy logging
+  level2:
+  - Mất log
+  - Log bị trùng
+  - Log sai thứ tự
+  - Log bị chặn ứng dụng
+  - Queue đầy
+  - Đích ghi không khả dụng
+  - Fallback appender
+  - Flush khi crash
+  - Shutdown hook
+  - Mục tiêu độ tin cậy
+- level1: Bảo mật logging
+  level2:
+  - Threat model của logging
+  - Log injection
+  - Log forging
+  - Escape dữ liệu đầu vào
+  - Giới hạn quyền file log
+  - Bảo vệ cấu hình logger
+  - Bảo vệ kênh vận chuyển
+  - Audit thay đổi cấu hình
+  - Phát hiện log bất thường
+  - Xử lý sự cố logging
+- level1: Quyền riêng tư
+  level2:
+  - Dữ liệu cá nhân trong log
+  - Bí mật trong log
+  - Token và credential
+  - Mask dữ liệu nhạy cảm
+  - Hash dữ liệu định danh
+  - Redaction
+  - Data retention
+  - Quyền đọc log
+  - Xóa log theo yêu cầu
+  - Rà soát nội dung log
+- level1: Audit logging
+  level2:
+  - Audit log là gì
+  - Sự kiện audit
+  - Ai thực hiện thao tác
+  - Thao tác nào đã xảy ra
+  - Thời điểm audit
+  - Nguồn truy cập
+  - Kết quả thao tác
+  - Tính bất biến audit
+  - Lưu giữ audit
+  - Phân biệt audit và debug
+- level1: Logging trong ứng dụng web
+  level2:
+  - HTTP access log
+  - Request method
+  - Request path
+  - Response status
+  - Request duration
+  - Client address
+  - User agent
+  - Request body và rủi ro
+  - Correlation với response
+  - Filter endpoint nhạy cảm
+- level1: Logging trong ứng dụng message
+  level2:
+  - Log message consumer
+  - Log message producer
+  - Message identifier
+  - Topic và partition
+  - Queue và delivery
+  - Retry message
+  - Dead-letter message
+  - Correlation qua message
+  - Duplicate message log
+  - Kiểm tra message flow
+- level1: Logging và exception
+  level2:
+  - Log ở boundary
+  - Log ở service
+  - Log ở repository
+  - Chọn nơi ghi lỗi
+  - Không ghi lỗi nhiều lần
+  - Preserve root cause
+  - Error code
+  - Business error
+  - Technical error
+  - Đối chiếu exception với metric
+- level1: Testing logging
+  level2:
+  - Kiểm thử logger được gọi
+  - Kiểm thử log level
+  - Kiểm thử message
+  - Kiểm thử exception
+  - Kiểm thử ngữ cảnh MDC
+  - Kiểm thử structured field
+  - Kiểm thử JSON log
+  - Kiểm thử file output
+  - Kiểm thử rotation
+  - Tránh test quá phụ thuộc format
+- level1: Observability
+  level2:
+  - Log metric trace
+  - Log và dashboard
+  - Log và alert
+  - Log aggregation
+  - Log search
+  - Log parsing
+  - Log enrichment
+  - Log sampling
+  - Log retention
+  - SLO cho pipeline log
+- level1: Thu thập và vận chuyển
+  level2:
+  - Log collector
+  - Agent trên máy chủ
+  - Sidecar collector
+  - Container stdout
+  - File shipper
+  - Remote appender
+  - Batch vận chuyển
+  - Retry vận chuyển
+  - Buffer khi mất mạng
+  - Kiểm tra pipeline end-to-end
+- level1: Vận hành production
+  level2:
+  - Runbook logging
+  - Theo dõi dung lượng log
+  - Theo dõi lỗi ghi log
+  - Điều chỉnh level khẩn cấp
+  - Replay log
+  - Truy tìm sự cố
+  - Phân quyền production log
+  - Luân chuyển file
+  - Khôi phục cấu hình
+  - Kiểm tra sau triển khai
+- level1: Anti-pattern logging
+  level2:
+  - Log mọi thứ ở INFO
+  - Log bí mật
+  - Log message không ngữ cảnh
+  - Nối chuỗi không cần thiết
+  - Log cùng exception nhiều lần
+  - Dùng log thay cho control flow
+  - Phụ thuộc format không ổn định
+  - Không giới hạn file log
+  - Không kiểm soát PII
+  - Không có chiến lược retention
+- level1: Thiết kế chiến lược log
+  level2:
+  - Xác định mục tiêu log
+  - Xác định sự kiện quan trọng
+  - Chọn level
+  - Chọn field chuẩn
+  - Chọn format
+  - Chọn đích ghi
+  - Chọn retention
+  - Chọn quyền truy cập
+  - Chọn cách kiểm thử
+  - Ghi lại quyết định
+- level1: Dự án thực hành
+  level2:
+  - Thiết kế logging baseline
+  - Cấu hình logger theo package
+  - Thêm correlation ID
+  - Thêm MDC
+  - Chuyển sang structured log
+  - Thêm JSON output
+  - Thiết lập rotation
+  - Thêm masking dữ liệu
+  - Viết kiểm thử logging
+  - Đo hiệu năng
+  - Tạo runbook vận hành
+- level1: Tổng kết Java Logging
+  level2:
+  - Bản đồ khái niệm
+  - Luồng từ logger đến đích ghi
+  - Checklist nội dung log
+  - Checklist bảo mật
+  - Checklist hiệu năng
+  - Bước học tiếp theo

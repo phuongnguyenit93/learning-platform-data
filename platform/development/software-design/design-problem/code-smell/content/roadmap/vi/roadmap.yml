@@ -1,0 +1,49 @@
+roadmap:
+- id: khai-niem-code-smell
+  title: Khái niệm Code Smell
+  purpose: Hiểu Code Smell là tín hiệu thiết kế cần xem xét, không đồng nghĩa với lỗi chạy chương trình.
+  objectives:
+  - Định nghĩa Code Smell và tác động tới maintainability.
+  - Phân biệt Code Smell với bug và quy tắc style.
+- id: long-method-large-class
+  title: Long Method & Large Class
+  purpose: Nhận biết mã chứa quá nhiều logic hoặc trách nhiệm trong một phương thức hay lớp.
+  objectives:
+  - Chỉ ra dấu hiệu Long Method và Large Class ở Java.
+  - Giải thích khi nào nên dùng Extract Method hoặc Extract Class.
+- id: duplication-dead-code
+  title: Duplication & Dead Code
+  purpose: Phát hiện phần mã trùng lặp hoặc không còn giá trị sử dụng.
+  objectives:
+  - Nhận diện Duplicate Code và Dead Code trong ví dụ.
+  - Đề xuất loại bỏ hoặc trích xuất logic chung an toàn.
+- id: smell-do-coupling
+  title: Smell do Coupling
+  purpose: Nhận diện phụ thuộc quá sâu làm khó thay đổi và kiểm thử.
+  objectives:
+  - Giải thích Feature Envy và Message Chains.
+  - Đề xuất Move Method hoặc che giấu quan hệ phụ thuộc.
+- id: smell-can-tro-thay-doi
+  title: Smell cản trở thay đổi
+  purpose: Phân tích dấu hiệu một thay đổi kéo theo quá nhiều vị trí sửa.
+  objectives:
+  - Phân biệt Shotgun Surgery và Divergent Change.
+  - Xác định trách nhiệm cần gom hoặc tách.
+- id: du-lieu-api-smells
+  title: Dữ liệu & API Smells
+  purpose: Nhận biết biểu diễn dữ liệu và tham số thiếu trừu tượng.
+  objectives:
+  - Phát hiện Primitive Obsession, Data Clumps và Long Parameter List.
+  - Đề xuất Value Object hoặc Parameter Object phù hợp.
+- id: danh-gia-uu-tien
+  title: Đánh giá & ưu tiên
+  purpose: Biết kiểm chứng dấu hiệu và ưu tiên xử lý theo rủi ro thực tế.
+  objectives:
+  - Đánh giá tác động lên hiểu mã, kiểm thử và chi phí thay đổi.
+  - Giải thích vì sao không phải mọi smell đều cần sửa ngay.
+- id: refactor-xac-minh
+  title: Refactor & xác minh
+  purpose: Áp dụng refactoring nhỏ, có kiểm thử để cải thiện thiết kế mà không đổi hành vi.
+  objectives:
+  - Thực hiện một thay đổi Extract Method hoặc Extract Class.
+  - Chạy test và so sánh hành vi trước, sau refactor.

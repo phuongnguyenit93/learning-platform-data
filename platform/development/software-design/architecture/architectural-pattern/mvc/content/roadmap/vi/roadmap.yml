@@ -1,0 +1,64 @@
+roadmap:
+- id: mvc-luong-tuong-tac
+  title: MVC & Luồng tương tác
+  purpose: Nắm cách mô hình MVC chia trách nhiệm giao diện và xử lý yêu cầu.
+  objectives:
+  - Phân biệt Model, View và Controller theo trách nhiệm.
+  - Vẽ luồng request → controller → model → view → response.
+  - Nêu lợi ích của separation of concerns.
+- id: model-domain-logic
+  title: Model & Domain Logic
+  purpose: Đặt trạng thái và quy tắc nghiệp vụ đúng chỗ, độc lập với cách hiển thị.
+  objectives:
+  - Thiết kế model cho một bài toán CRUD đơn giản.
+  - Phân biệt domain model, entity và dữ liệu trình bày.
+  - Giữ nghiệp vụ không phụ thuộc View hoặc Controller.
+- id: view-viewmodel
+  title: View & ViewModel
+  purpose: Tạo giao diện hiển thị dữ liệu mà không trộn lẫn quy tắc nghiệp vụ.
+  objectives:
+  - Phân biệt View template với ViewModel.
+  - Truyền dữ liệu từ controller tới template.
+  - Tránh truy vấn DB và xử lý nghiệp vụ trong View.
+- id: controller-routing
+  title: Controller & Routing
+  purpose: Tiếp nhận tương tác và điều phối tới logic thích hợp qua các route.
+  objectives:
+  - Ánh xạ URL, HTTP method và request params vào action.
+  - Phân biệt @Controller với @RestController trong Spring.
+  - Giữ controller mỏng và trả đúng view/response.
+- id: binding-view-resolution
+  title: Binding & View Resolution
+  purpose: Kết nối dữ liệu HTTP với model đầu vào và chọn template để kết xuất.
+  objectives:
+  - Dùng @ModelAttribute hoặc tham số request cho form.
+  - Giải thích Model, tên view và ViewResolver.
+  - Nhận diện rủi ro mass assignment khi bind input.
+- id: validation-error-flow
+  title: Validation & Error Flow
+  purpose: Xử lý đầu vào không hợp lệ và lỗi ứng dụng theo cùng một cách rõ ràng.
+  objectives:
+  - Thử @Valid và BindingResult cho dữ liệu form.
+  - Hiển thị thông báo lỗi mà vẫn giữ input đã nhập.
+  - Phân biệt lỗi validation, lỗi không tìm thấy và exception.
+- id: service-layer-phan-tach
+  title: Service Layer & Phân tách
+  purpose: Giảm kết dính khi ứng dụng lớn bằng cách tách điều phối, nghiệp vụ và dữ liệu.
+  objectives:
+  - Tách business operation từ controller sang service.
+  - Phân biệt trách nhiệm service và repository.
+  - Nhận diện vòng phụ thuộc hoặc fat controller.
+- id: mini-project-spring-mvc
+  title: Mini Project Spring MVC
+  purpose: Áp dụng mô hình vào luồng CRUD có giao diện server-rendered.
+  objectives:
+  - Tạo Spring Boot MVC project với Thymeleaf.
+  - Xây list/detail/create cho một thực thể.
+  - Kiểm tra render view, điều hướng và lỗi form.
+- id: kiem-thu-danh-doi
+  title: Kiểm thử & Đánh đổi
+  purpose: Xác minh các thành phần độc lập và lựa chọn MVC đúng bối cảnh.
+  objectives:
+  - Viết unit test cho domain/service và MockMvc cho controller.
+  - Kiểm tra route, view name, model attributes và validation.
+  - So sánh MVC với SPA hoặc API-only về độ phức tạp và trách nhiệm.

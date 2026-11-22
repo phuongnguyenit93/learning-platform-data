@@ -1,0 +1,2395 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: 'Excel trong Java: bài toán trao đổi dữ liệu, báo cáo và tự động hóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Sổ làm việc, trang tính, hàng, cột và ô: các khái niệm nền tảng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa dữ liệu, kiểu ô, công thức và cách hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Luồng nhập dữ liệu: nhận tệp, đọc, kiểm tra và chuyển đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Luồng xuất dữ liệu: chuẩn bị dữ liệu, dựng workbook và bàn giao tệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt tệp dữ liệu máy đọc với báo cáo phục vụ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi của thư viện Excel và những tính năng cần ứng dụng bảng tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-formats
+  title: Định dạng tệp
+  childs:
+  - slug: file-formats-001
+    title: 'XLS, XLSX và XLSM: cấu trúc, khả năng tương thích và cách lựa chọn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-formats-002
+    title: 'HSSF, XSSF và SXSSF trong Apache POI: vai trò và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-formats-003
+    title: 'Cấu trúc XLSX: gói ZIP, XML, quan hệ và các thành phần dùng chung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-formats-004
+    title: Giới hạn hàng, cột, độ dài ô và kiểu dáng theo định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-formats-005
+    title: 'Đuôi tệp, kiểu MIME và chữ ký nội dung: nhận diện đúng định dạng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-formats-006
+    title: 'Tệp có macro: yêu cầu bảo toàn nội dung và giới hạn xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-formats-007
+    title: 'Chuyển đổi giữa XLS và XLSX: những đặc tính có thể mất'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-formats-008
+    title: Tương thích với Microsoft Excel, LibreOffice và trình xem trực tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-setup
+  title: Thiết lập Java
+  childs:
+  - slug: java-setup-001
+    title: Khai báo Apache POI trong Gradle hoặc Maven cho dự án Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-setup-002
+    title: Phân biệt poi và poi-ooxml cùng các phụ thuộc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-setup-003
+    title: Quản lý phiên bản thư viện và xử lý xung đột phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-setup-004
+    title: Tổ chức lớp đọc, lớp ghi, ánh xạ và kiểm tra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-setup-005
+    title: Làm việc với Path, InputStream, OutputStream và byte array
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-setup-006
+    title: Quản lý Workbook và luồng bằng try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-setup-007
+    title: Tạo ví dụ đọc và ghi tối thiểu để kiểm tra môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: excel-object-model
+  title: Mô hình Excel
+  childs:
+  - slug: excel-object-model-001
+    title: Workbook, Sheet, Row và Cell trong mô hình đối tượng Apache POI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: excel-object-model-002
+    title: Chỉ số hàng và cột từ 0 so với địa chỉ A1 trong Excel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: excel-object-model-003
+    title: 'CellReference và CellRangeAddress: biểu diễn địa chỉ và vùng ô'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: excel-object-model-004
+    title: Phân biệt ô không tồn tại, ô trống và ô chứa chuỗi rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: excel-object-model-005
+    title: Hàng thưa, ô thưa và giới hạn của bộ duyệt hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: excel-object-model-006
+    title: 'Chỉ số hàng cuối và số lượng hàng vật lý: cách diễn giải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: excel-object-model-007
+    title: 'Trạng thái sheet: thứ tự, sheet đang chọn, ẩn và hiển thị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: excel-object-model-008
+    title: Vòng đời đối tượng và phạm vi sử dụng workbook an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reading-workbooks
+  title: Đọc workbook
+  childs:
+  - slug: reading-workbooks-001
+    title: Mở workbook từ tệp hoặc luồng bằng WorkbookFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-002
+    title: Chọn sheet theo tên hoặc vị trí và xử lý sheet bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-003
+    title: Duyệt hàng và ô theo chỉ số hoặc bộ duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-004
+    title: Chính sách MissingCellPolicy khi đọc ô thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-005
+    title: Xác định hàng tiêu đề, vùng dữ liệu và điều kiện kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-006
+    title: Đọc nhiều sheet và phân biệt cấu trúc của từng sheet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-007
+    title: Nhận diện hàng rỗng, hàng ẩn và dữ liệu nằm ngoài bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-008
+    title: 'Đọc vùng gộp ô: vị trí lưu giá trị và cách diễn giải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-workbooks-009
+    title: Đọc tệp lỗi định dạng, tệp hỏng và tệp có mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: writing-workbooks
+  title: Ghi workbook
+  childs:
+  - slug: writing-workbooks-001
+    title: Tạo workbook mới bằng HSSFWorkbook hoặc XSSFWorkbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-002
+    title: Tạo sheet và đặt tên phù hợp với quy tắc của Excel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-003
+    title: Tạo hàng, ô và ghi giá trị bằng đúng kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-004
+    title: Ghi một bảng dữ liệu kèm tiêu đề và thứ tự cột ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-005
+    title: Ghi nhiều sheet và xử lý tên sheet trùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-006
+    title: Mở tệp hiện có để cập nhật đúng ô hoặc vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-007
+    title: Xuất workbook ra tệp, luồng và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-008
+    title: Ghi tệp tạm rồi thay thế đích để tránh bàn giao tệp chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-workbooks-009
+    title: Đóng tài nguyên và xác minh tệp có thể mở lại sau khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cell-data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: cell-data-types-001
+    title: 'CellType: STRING, NUMERIC, BOOLEAN, FORMULA, BLANK và ERROR'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-002
+    title: Đọc giá trị gốc so với chuỗi hiển thị bằng DataFormatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-003
+    title: Locale và định dạng số khi chuyển giá trị ô thành văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-004
+    title: Mã định danh, số điện thoại và dữ liệu có số 0 đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-005
+    title: Giới hạn độ chính xác số của Excel đối với long và BigDecimal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-006
+    title: Lựa chọn lưu số hay chuỗi cho tiền tệ và mã nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-007
+    title: Giá trị boolean và quy tắc chuyển đổi dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-008
+    title: Ký tự Unicode, xuống dòng và văn bản nhiều định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-data-types-009
+    title: 'Ô lỗi và FormulaError: nhận diện, ghi nhận và phản hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dates-and-times
+  title: Ngày giờ
+  childs:
+  - slug: dates-and-times-001
+    title: 'Ngày giờ trong Excel: số sê-ri và định dạng hiển thị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dates-and-times-002
+    title: Hệ ngày 1900, hệ ngày 1904 và các trường hợp tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dates-and-times-003
+    title: Nhận diện ô ngày giờ bằng DateUtil và định dạng ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dates-and-times-004
+    title: Đọc và ghi LocalDate, LocalDateTime cùng các kiểu thời gian Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dates-and-times-005
+    title: Múi giờ, thời điểm tuyệt đối và giá trị thời gian không có múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dates-and-times-006
+    title: Phân biệt ngày dạng chuỗi với ngày được lưu bằng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dates-and-times-007
+    title: Thời lượng, phần thập phân của ngày và định dạng giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dates-and-times-008
+    title: Kiểm tra ngày không hợp lệ và tránh chuyển đổi ngày theo suy đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-mapping
+  title: Ánh xạ dữ liệu
+  childs:
+  - slug: data-mapping-001
+    title: Thiết kế đối tượng nhận dữ liệu độc lập với cấu trúc workbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-002
+    title: Ánh xạ cột theo vị trí và theo tên tiêu đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-003
+    title: Chuẩn hóa tiêu đề có khoảng trắng, khác hoa thường hoặc bí danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-004
+    title: Phát hiện cột bắt buộc bị thiếu và tiêu đề trùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-005
+    title: Bộ chuyển đổi kiểu cho số, ngày giờ, enum và giá trị tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-006
+    title: Phân biệt giá trị thiếu với giá trị mặc định của nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-007
+    title: Ánh xạ dữ liệu liên quan giữa nhiều sheet theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-008
+    title: Quản lý thay đổi cấu trúc cột và phiên bản mẫu nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-validation
+  title: Kiểm tra dữ liệu
+  childs:
+  - slug: data-validation-001
+    title: Phân lớp kiểm tra cấu trúc tệp, kiểu dữ liệu và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-002
+    title: Kiểm tra trường bắt buộc, độ dài, miền giá trị và mẫu ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-003
+    title: Kiểm tra quan hệ giữa các cột trong cùng một hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-004
+    title: Phát hiện khóa trùng trong tệp và trùng với dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-005
+    title: Kiểm tra tham chiếu giữa các sheet hoặc với danh mục bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-006
+    title: Gắn lỗi với tên sheet, số hàng, tên cột và giá trị gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-007
+    title: Lựa chọn dừng ngay, gom lỗi hoặc tiếp nhận một phần dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-validation-008
+    title: Tạo báo cáo lỗi có thể tải về mà vẫn bảo toàn dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cell-styling
+  title: Kiểu dáng ô
+  childs:
+  - slug: cell-styling-001
+    title: 'CellStyle, Font và DataFormat: các thành phần định dạng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-002
+    title: Tái sử dụng kiểu dáng để tránh tạo quá nhiều CellStyle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-003
+    title: Định dạng số nguyên, thập phân, phần trăm, tiền tệ và văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-004
+    title: Phông chữ, cỡ chữ, màu chữ và nhấn mạnh nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-005
+    title: Màu nền, kiểu tô và đường viền ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-006
+    title: Căn lề, thụt lề, xoay chữ và ngắt dòng trong ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-007
+    title: Màu theo bảng màu HSSF và màu trong XSSF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-008
+    title: Sao chép kiểu dáng trong cùng workbook và giữa các workbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-009
+    title: RichTextString cho nhiều kiểu chữ trong một ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-styling-010
+    title: Quy ước kiểu dáng nhất quán cho tiêu đề, dữ liệu, tổng và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sheet-layout
+  title: Bố cục sheet
+  childs:
+  - slug: sheet-layout-001
+    title: Độ rộng cột, chiều cao hàng và tác động đến khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-002
+    title: 'Auto-size cột: thời điểm áp dụng, chi phí và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-003
+    title: Gộp ô, hủy gộp và tránh các vùng gộp chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-004
+    title: Đóng băng hàng, cột và chia khung nhìn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-005
+    title: Ẩn hoặc hiện hàng, cột và đường lưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-006
+    title: Nhóm hàng, nhóm cột và mức thu gọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-007
+    title: 'Chèn, dịch và xóa hàng: ảnh hưởng đến dữ liệu và tham chiếu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-008
+    title: Sao chép hàng hoặc sheet và kiểm tra các thành phần đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sheet-layout-009
+    title: Bố trí tiêu đề, phần dữ liệu, ghi chú và tổng kết trong báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: formulas
+  title: Công thức
+  childs:
+  - slug: formulas-001
+    title: Ghi biểu thức công thức bằng setCellFormula
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-002
+    title: Tham chiếu tương đối, tuyệt đối và hỗn hợp trong địa chỉ ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-003
+    title: Tham chiếu giữa các sheet và tên sheet chứa ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-004
+    title: Phân biệt biểu thức, kết quả đã lưu và kết quả được tính lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-005
+    title: 'FormulaEvaluator: tính một ô, nhiều ô và cập nhật bộ nhớ đệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-006
+    title: Yêu cầu Excel tính lại khi mở tệp và giới hạn của phương án này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-007
+    title: Nhóm hàm thường dùng cho tổng hợp, điều kiện, văn bản và tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-008
+    title: Hàm không được hỗ trợ, liên kết ngoài và lỗi khi tính công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-009
+    title: Sao chép công thức theo hàng với quy tắc điều chỉnh tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formulas-010
+    title: 'Đọc ô công thức khi nhập dữ liệu: tin kết quả nào và kiểm tra ra sao'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tables-and-ranges
+  title: Bảng và vùng
+  childs:
+  - slug: tables-and-ranges-001
+    title: Xác định vùng dữ liệu ổn định khi bảng tăng hoặc giảm số hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-ranges-002
+    title: Tạo bảng có cấu trúc bằng XSSFTable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-ranges-003
+    title: Tiêu đề cột, hàng tổng và kiểu dáng bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-ranges-004
+    title: AutoFilter và phạm vi lọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-ranges-005
+    title: 'Vùng có tên: tạo, đọc, cập nhật và phạm vi hiệu lực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-ranges-006
+    title: Tham chiếu có cấu trúc trong công thức và yêu cầu tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-ranges-007
+    title: Cập nhật phạm vi bảng khi thêm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-and-ranges-008
+    title: Phân biệt tạo bộ lọc trong tệp với thực hiện lọc dữ liệu bằng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cell-input-validation
+  title: Ràng buộc nhập ô
+  childs:
+  - slug: cell-input-validation-001
+    title: 'DataValidation: mục đích và giới hạn kiểm tra trong ứng dụng bảng tính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-input-validation-002
+    title: Danh sách lựa chọn trực tiếp và danh sách từ vùng có tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-input-validation-003
+    title: Ràng buộc số nguyên, số thập phân, ngày và độ dài văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-input-validation-004
+    title: Ràng buộc bằng công thức và quan hệ giữa các ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-input-validation-005
+    title: Thông báo hướng dẫn nhập và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-input-validation-006
+    title: Quy tắc cho phép ô trống và mở rộng phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-input-validation-007
+    title: Danh sách phụ thuộc giữa các cột và vấn đề tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cell-input-validation-008
+    title: Kiểm tra lại phía Java vì ràng buộc trong Excel có thể bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditional-formatting
+  title: Định dạng điều kiện
+  childs:
+  - slug: conditional-formatting-001
+    title: Phân biệt định dạng tĩnh với định dạng có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-formatting-002
+    title: Tạo điều kiện theo giá trị và theo công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-formatting-003
+    title: Đánh dấu dữ liệu trùng, thiếu hoặc vượt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-formatting-004
+    title: Thang màu, thanh dữ liệu và bộ biểu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-formatting-005
+    title: Thứ tự ưu tiên và điều kiện dừng của nhiều quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-formatting-006
+    title: Điều chỉnh vùng áp dụng khi số hàng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-formatting-007
+    title: Giới hạn thư viện và kiểm tra hiển thị trên ứng dụng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: report-templates
+  title: Mẫu báo cáo
+  childs:
+  - slug: report-templates-001
+    title: Thiết kế tệp mẫu với vùng cố định và vùng dữ liệu động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-002
+    title: Nạp mẫu và tìm vị trí điền bằng tên vùng hoặc dấu giữ chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-003
+    title: Thay nội dung tiêu đề, thông số và thông tin người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-004
+    title: Lặp vùng chi tiết theo danh sách dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-005
+    title: Sao chép kiểu dáng và công thức từ hàng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-006
+    title: Dịch vùng tổng kết khi số dòng chi tiết thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-007
+    title: Bảo toàn hình ảnh, biểu đồ, tên vùng và thiết lập in của mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-008
+    title: Kiểm soát phiên bản mẫu và phát hiện mẫu không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: report-templates-009
+    title: Phân tách dữ liệu báo cáo khỏi logic trình bày workbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aggregation-and-charts
+  title: Tổng hợp và biểu đồ
+  childs:
+  - slug: aggregation-and-charts-001
+    title: Tổng hợp dữ liệu trong Java so với dùng công thức trong workbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-002
+    title: Tổng theo nhóm, tổng cuối và xử lý dữ liệu rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-003
+    title: SUBTOTAL và yêu cầu tổng hợp khi người dùng lọc bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-004
+    title: 'Pivot table: dữ liệu nguồn, bộ nhớ đệm và yêu cầu làm mới'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-005
+    title: Tạo biểu đồ bằng các thành phần XDDF trong XSSF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-006
+    title: Trục, chuỗi dữ liệu, nhãn và chú giải của biểu đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-007
+    title: 'Biểu đồ cột, đường và tròn: lựa chọn theo mục đích trình bày'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-008
+    title: Liên kết biểu đồ với vùng dữ liệu và cập nhật số hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-and-charts-009
+    title: Kiểm tra biểu đồ và bảng tổng hợp sau khi mở bằng ứng dụng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: objects-and-links
+  title: Đối tượng và liên kết
+  childs:
+  - slug: objects-and-links-001
+    title: Chèn hình ảnh và lựa chọn định dạng ảnh phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-links-002
+    title: 'Drawing và ClientAnchor: neo ảnh theo hàng, cột và kích thước'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-links-003
+    title: Tỷ lệ ảnh, kích thước tệp và bố trí khi thay đổi chiều rộng cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-links-004
+    title: Tạo, đọc và xóa chú thích ô trong phạm vi thư viện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-links-005
+    title: Phân biệt chú thích truyền thống với các dạng bình luận khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-links-006
+    title: Hyperlink đến trang web, địa chỉ email, tệp và vị trí trong workbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-links-007
+    title: Thông tin tác giả, tiêu đề và thuộc tính tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-and-links-008
+    title: 'Đối tượng nhúng và liên kết ngoài: nhận diện và giới hạn bảo toàn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: print-setup
+  title: Thiết lập in
+  childs:
+  - slug: print-setup-001
+    title: Khổ giấy, hướng giấy và tỷ lệ thu phóng khi in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: print-setup-002
+    title: Căn nội dung vừa trang theo chiều ngang và chiều dọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: print-setup-003
+    title: Lề trang và căn giữa bảng trên trang in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: print-setup-004
+    title: Vùng in và hàng hoặc cột tiêu đề lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: print-setup-005
+    title: Ngắt trang tự động và ngắt trang chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: print-setup-006
+    title: Đầu trang, chân trang, số trang và thông tin báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: print-setup-007
+    title: Phân biệt tạo tệp Excel với kết xuất PDF hoặc hình ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: print-setup-008
+    title: Kiểm tra xem trước khi in đối với bảng rộng và báo cáo nhiều trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csv-and-tsv
+  title: CSV và TSV
+  childs:
+  - slug: csv-and-tsv-001
+    title: Phân biệt CSV, TSV và workbook Excel thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-002
+    title: Chọn dấu phân cách, ký tự bao và quy tắc thoát ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-003
+    title: Trường chứa dấu phân cách, dấu nháy hoặc xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-004
+    title: UTF-8, BOM và khả năng nhận diện tiếng Việt của ứng dụng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-005
+    title: Số thập phân, ngày giờ và khác biệt thiết lập vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-006
+    title: Đọc và ghi bằng thư viện CSV thay vì tách chuỗi thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-007
+    title: Bảo toàn mã định danh và giới hạn của định dạng văn bản thuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-008
+    title: Chuyển CSV sang XLSX và xác định kiểu ô rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-and-tsv-009
+    title: Phòng tránh giá trị CSV bị diễn giải thành công thức khi mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reading-large-files
+  title: Đọc tệp lớn
+  childs:
+  - slug: reading-large-files-001
+    title: Nhận diện nguy cơ hết bộ nhớ khi nạp toàn bộ workbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-002
+    title: 'Mô hình đọc sự kiện: XLSX bằng SAX và XLS bằng HSSF event API'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-003
+    title: XSSFReader, SharedStrings và StylesTable trong luồng đọc XLSX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-004
+    title: Khôi phục vị trí cột từ địa chỉ ô trong XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-005
+    title: Xử lý ô thiếu, chuỗi dùng chung, chuỗi trực tiếp và ô công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-006
+    title: Chuyển số và ngày giờ khi đọc bằng mô hình sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-007
+    title: Đọc từng hàng, chia lô và bàn giao cho bước xử lý tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-008
+    title: Kiểm soát lỗi, khả năng hủy và giải phóng tài nguyên khi dừng sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reading-large-files-009
+    title: So sánh độ phức tạp triển khai với lợi ích bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: writing-large-files
+  title: Ghi tệp lớn
+  childs:
+  - slug: writing-large-files-001
+    title: SXSSFWorkbook và cơ chế cửa sổ hàng trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-002
+    title: Cấu hình số hàng giữ lại và thời điểm đẩy dữ liệu ra đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-003
+    title: Giới hạn truy cập hoặc sửa hàng đã được đẩy khỏi bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-004
+    title: 'Tệp tạm của SXSSF: dung lượng, nén và cơ chế dọn dẹp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-005
+    title: 'Chuỗi trực tiếp và bảng chuỗi dùng chung: đánh đổi bộ nhớ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-006
+    title: Theo dõi cột để auto-size trong quá trình ghi luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-007
+    title: Chi phí của kiểu dáng, vùng gộp, chú thích và đối tượng bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-008
+    title: Ghi dữ liệu theo lô từ nguồn thay vì gom toàn bộ vào danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: writing-large-files-009
+    title: Chia dữ liệu thành nhiều sheet hoặc nhiều tệp khi vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Lập ngân sách bộ nhớ, đĩa tạm và thời gian cho mỗi tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Tái sử dụng kiểu dáng, phông chữ và định dạng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Giảm thao tác auto-size, gộp ô và tính lại công thức không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Đọc dữ liệu nguồn theo lô và tránh truy vấn lặp cho từng hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Giới hạn xử lý đồng thời và tránh chia sẻ workbook giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đo tốc độ, mức dùng bộ nhớ và dung lượng tệp theo dữ liệu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Thử nghiệm các mức tải và nhận diện điểm nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đặt giới hạn tài nguyên và xử lý khi vượt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Xem tệp tải lên là dữ liệu không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Kiểm tra kích thước, định dạng thực và nguồn nhận tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Nguy cơ ZIP bomb trong XLSX và giới hạn giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Giới hạn số sheet, hàng, cột, độ dài ô và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Ngăn dữ liệu không tin cậy trở thành công thức hoặc liên kết nguy hiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: 'Macro, đối tượng nhúng và tham chiếu ngoài: chính sách tiếp nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Phân biệt bảo vệ ô hoặc sheet với mã hóa tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Mở và ghi tệp được mã hóa trong phạm vi thư viện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Quản lý mật khẩu, tệp tạm và dữ liệu nhạy cảm trong nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Cập nhật thư viện và kiểm tra lỗ hổng của phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Thiết kế dịch vụ nhập và xuất Excel độc lập với giao diện gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Nhận tệp qua MultipartFile trong ứng dụng Spring khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Trả tệp tải xuống với Content-Type, Content-Disposition và tên Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Lựa chọn trả byte array, tài nguyên tệp hoặc luồng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Giới hạn tải lên, thời gian chờ và kích thước phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Xử lý đồng bộ so với tác vụ nền cho báo cáo lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Lưu trữ tệp cục bộ hoặc kho đối tượng và quản lý thời hạn truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Quyền truy cập, phạm vi dữ liệu và kiểm tra người tải báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Dọn tệp sau khi hoàn tất, hết hạn hoặc tác vụ thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-and-operations
+  title: Giao dịch và vận hành
+  childs:
+  - slug: transactions-and-operations-001
+    title: Ranh giới giao dịch khi nhập dữ liệu từ workbook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-operations-002
+    title: 'Nhập toàn bộ hoặc theo lô: lựa chọn mức độ nhất quán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-operations-003
+    title: Nhận diện lần nhập trùng và thiết kế xử lý lặp an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-operations-004
+    title: Ghi nhận số dòng đã đọc, hợp lệ, thành công và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-operations-005
+    title: Phân loại lỗi tệp, lỗi dữ liệu, lỗi hệ thống và lỗi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-operations-006
+    title: Cơ chế thử lại với lỗi tạm thời và tránh nhân đôi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-operations-007
+    title: Mã tác vụ, tiến độ và khả năng đối chiếu kết quả nhập hoặc xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-operations-008
+    title: Nhật ký có ngữ cảnh và số liệu vận hành cho tác vụ Excel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử bộ chuyển đổi kiểu và ánh xạ cột bằng dữ liệu nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Tạo workbook trong bộ nhớ cho kiểm thử đọc và ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Mở lại tệp xuất để kiểm tra giá trị, kiểu ô và cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử ô thiếu, hàng rỗng, Unicode và số có số 0 đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử ngày giờ, số lớn, công thức và ô lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử ràng buộc dữ liệu, tên vùng, kiểu dáng và thiết lập in
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử tệp hỏng, tệp mã hóa và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử tệp lớn và xác minh dọn tài nguyên sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm tra tương thích và bố cục bằng ứng dụng bảng tính thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: So sánh nội dung có ý nghĩa thay vì so sánh byte của toàn bộ XLSX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Tệp không mở được vì nội dung không khớp phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Thông báo Excel đã sửa tệp và cách khoanh vùng thành phần lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Mất số 0 đầu hoặc sai độ chính xác khi đọc và ghi số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Sai ngày do định dạng, hệ ngày hoặc chuyển đổi múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Công thức hiển thị sai hoặc kết quả chưa được tính lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Vượt giới hạn kiểu dáng hoặc tên sheet không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Hết bộ nhớ, đầy đĩa tạm hoặc tệp tạm chưa được xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Lỗi phông chữ và auto-size trong môi trường không có giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Phân biệt lỗi dữ liệu nguồn với lỗi thư viện và lỗi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xuất danh sách dữ liệu có tiêu đề, kiểu ô và định dạng nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Nhập danh sách có kiểm tra từng dòng và báo cáo lỗi chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Tạo báo cáo nhiều sheet từ một mô hình dữ liệu chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Điền mẫu báo cáo có vùng chi tiết, công thức và phần tổng kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Tạo workbook có danh sách lựa chọn và cảnh báo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Đọc tệp lớn theo sự kiện và ghi kết quả theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Thiết kế tác vụ nhập theo lô có xử lý lặp an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Hoàn thiện bộ tiêu chí nghiệm thu về dữ liệu, bố cục và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

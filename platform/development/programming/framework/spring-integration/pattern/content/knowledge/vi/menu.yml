@@ -1,0 +1,676 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Enterprise Integration Pattern là gì?
+  - Vì sao hệ thống tích hợp cần mẫu giao tiếp rõ ràng?
+  - Message, channel và endpoint trong một integration flow
+  - Phân biệt dữ liệu nghiệp vụ với message envelope
+  - Từ nguồn phát đến đích nhận qua nhiều bước
+  - Spring Integration hiện thực các pattern ở lớp nào?
+  - Mẫu cấu trúc, mẫu định tuyến và mẫu biến đổi
+  - Mẫu xử lý lỗi, độ tin cậy và giao dịch
+  - Khi pattern giúp giảm coupling và khi pattern tạo gián tiếp
+  - Lộ trình học từ message flow đến flow phân tán
+- level1: Message system
+  level2:
+  - Message gồm payload và headers
+  - MessageHeaders và tính bất biến của metadata
+  - MessageBuilder và tạo message có chủ đích
+  - Message ID, timestamp và correlation metadata
+  - Header propagation qua các endpoint
+  - Header mapping giữa các hệ thống
+  - Header enricher và bổ sung metadata
+  - Loại payload và hợp đồng kiểu dữ liệu
+  - Message có payload null và cách biểu diễn
+  - Phân biệt message với command, event và document
+  - Message history và truy nguyên flow
+  - Không đưa dữ liệu nhạy cảm vào header hoặc log
+- level1: Message channel
+  level2:
+  - Channel là Pipe trong Enterprise Integration Patterns
+  - DirectChannel và gọi handler theo chuỗi
+  - ExecutorChannel và giao tiếp bất đồng bộ
+  - PublishSubscribeChannel và nhiều subscriber
+  - QueueChannel và bộ đệm message
+  - PriorityChannel và thứ tự theo priority
+  - RendezvousChannel và trao đổi đồng bộ
+  - FluxMessageChannel và reactive bridge
+  - Channel interceptor và quan sát message
+  - Channel capacity và hành vi khi đầy
+  - Send timeout và receive timeout
+  - Kênh nội bộ và kênh qua hệ thống ngoài
+  - Chọn channel theo semantics cần bảo đảm
+- level1: Endpoint
+  level2:
+  - Message Endpoint chuyển message thành hành vi ứng dụng
+  - Event-driven consumer và polling consumer
+  - Service Activator gọi service method
+  - Message Filter quyết định message được đi tiếp
+  - Transformer chuyển payload hoặc message
+  - Router chọn channel đích
+  - Splitter tạo nhiều message từ một message
+  - Aggregator gom nhiều message thành một
+  - Channel adapter nối nguồn hoặc đích ngoài
+  - Gateway tạo facade cho message flow
+  - Endpoint lifecycle và trạng thái running
+  - Input channel, output channel và error channel
+- level1: Pipes and filters
+  level2:
+  - Pipes and Filters gồm các bước xử lý độc lập
+  - Filter và điều kiện tiếp tục flow
+  - Chuỗi filter tuần tự
+  - Transformer giữa các kiểu payload
+  - Tách business logic khỏi transport
+  - Đặt validation gần nơi nhận dữ liệu
+  - Đặt enrichment trước bước cần metadata
+  - Xử lý message bị loại khỏi flow
+  - Đảm bảo output của một filter là input hợp lệ
+  - Flow tuyến tính và flow có nhiều nhánh
+  - Tái sử dụng subflow như một pipeline
+  - Độ dài flow và khả năng đọc
+- level1: Message router
+  level2:
+  - Message Router quyết định channel đích
+  - Router theo payload type
+  - Router theo header value
+  - Router theo biểu thức
+  - Router theo recipient list
+  - Router theo nội dung nghiệp vụ
+  - Channel mapping và tên route
+  - Default output channel khi không có route
+  - Resolution required và message không có đích
+  - Router phân cấp và route nhiều bước
+  - Router có state và rủi ro không xác định
+  - Phân biệt router với filter và recipient list
+- level1: Content-based router
+  level2:
+  - Content-Based Router chọn đường theo nội dung
+  - Điều kiện route thuần và có thể kiểm thử
+  - Payload object và biểu thức truy cập dữ liệu
+  - Header làm nguồn quyết định route
+  - Route khi dữ liệu thiếu hoặc sai kiểu
+  - Default route và dead-end route
+  - Nhiều điều kiện cùng khớp
+  - Thứ tự đánh giá route
+  - Không làm thay đổi payload trong router
+  - Giữ quyết định route có thể quan sát
+  - Test từng nhóm nội dung và route tương ứng
+  - Tránh nhúng nghiệp vụ lớn trong expression
+- level1: Header-based router
+  level2:
+  - Header Value Router và giá trị định tuyến
+  - Tên header cố định và quy ước header
+  - Header type và chuyển đổi kiểu
+  - Header bị mất qua adapter
+  - Header mapper trước khi route
+  - Giá trị null hoặc header vắng mặt
+  - Wildcard hoặc mapping nhiều giá trị
+  - Default output channel
+  - Bảo vệ header khỏi dữ liệu người dùng không tin cậy
+  - Theo dõi route bằng correlation header
+  - Phân biệt header kỹ thuật với header nghiệp vụ
+- level1: Recipient list
+  level2:
+  - Recipient List Router gửi một message đến nhiều đích
+  - Danh sách recipient cố định và động
+  - Channel name trong recipient list
+  - Broadcast và fan-out
+  - Xử lý lỗi ở một recipient
+  - Có cần chờ mọi recipient hay không?
+  - Copy message và chia sẻ payload
+  - Tránh gửi trùng đến cùng một recipient
+  - Giới hạn số nhánh được tạo
+  - Theo dõi kết quả từng nhánh
+  - Phân biệt recipient list với publish-subscribe channel
+- level1: Publish subscribe
+  level2:
+  - Publish-Subscribe Channel và nhiều subscriber
+  - Một message được phát cho nhiều consumer
+  - Subscriber độc lập và lỗi riêng từng nhánh
+  - Broadcasting trong cùng process
+  - Executor cho subscriber bất đồng bộ
+  - Đảm bảo thứ tự ở từng subscriber
+  - Một subscriber chậm ảnh hưởng publisher thế nào?
+  - Xử lý subscriber đăng ký hoặc hủy
+  - Fan-out event và eventual consistency
+  - So sánh publish-subscribe với queue
+  - Khi cần durable broker thay cho channel nội bộ
+- level1: Routing slip
+  level2:
+  - Routing Slip lưu danh sách bước cần đi qua
+  - Route sequence trong header hoặc message state
+  - Routing slip động theo loại message
+  - Điều chỉnh route sau mỗi bước
+  - Kết thúc khi hết route
+  - Route không hợp lệ hoặc bước không tồn tại
+  - Tránh để client kiểm soát route tùy ý
+  - Theo dõi bước hiện tại trong message
+  - Idempotency khi message chạy lại routing slip
+  - So sánh routing slip với flow tĩnh
+  - Test nhiều route sequence
+- level1: Dynamic router
+  level2:
+  - Dynamic Router chọn route từ dữ liệu runtime
+  - Nguồn cấu hình route và vòng đời cache
+  - Cập nhật route mà không dừng hệ thống
+  - Đồng bộ cấu hình giữa nhiều instance
+  - Route không tồn tại sau khi cấu hình đổi
+  - Fallback khi dynamic route thất bại
+  - Kiểm soát quyền thay đổi route
+  - Audit quyết định định tuyến
+  - Đảm bảo route deterministic trong một message
+  - Kiểm thử snapshot cấu hình route
+  - Giới hạn độ phức tạp của route runtime
+- level1: Filter
+  level2:
+  - Message Filter loại message không thỏa điều kiện
+  - Filter theo payload
+  - Filter theo header
+  - Filter theo predicate
+  - Discard channel và xử lý message bị loại
+  - Discard flow và ghi nhận lý do loại
+  - Throw exception on rejection
+  - Filter có tác dụng phụ và vấn đề retry
+  - Filter idempotent và filter stateful
+  - Filter sau validation và trước business handler
+  - Phân biệt filter với router chỉ có một nhánh
+  - Test accepted, rejected và malformed message
+- level1: Transformer
+  level2:
+  - Message Transformer chuyển dữ liệu trong flow
+  - Transformer payload-to-payload
+  - Transformer message-to-message
+  - Giữ hoặc thay đổi headers khi transform
+  - Chuyển đổi kiểu dữ liệu
+  - Chuyển đổi schema giữa hai hệ thống
+  - Xử lý dữ liệu thiếu trong transformer
+  - Transformer có thể ném lỗi
+  - Chuyển đổi bất biến và không sửa payload gốc
+  - Chain nhiều transformer
+  - Transformer theo content type
+  - Phân biệt transformer với service activator
+- level1: Content enricher
+  level2:
+  - Content Enricher bổ sung dữ liệu cho message
+  - Enrich payload và enrich header
+  - Chọn nguồn dữ liệu bổ sung
+  - Request-reply trong quá trình enrichment
+  - Timeout khi lấy nội dung bổ sung
+  - Giữ payload gốc và dữ liệu đã enrich
+  - Enrichment thất bại và chiến lược fallback
+  - Cache nội dung bổ sung
+  - Tránh gọi nguồn phụ nhiều lần
+  - Correlation giữa message gốc và request enrichment
+  - Phân biệt enricher với aggregator
+- level1: Splitter
+  level2:
+  - Splitter chia một message thành nhiều message con
+  - Splitter theo danh sách hoặc collection
+  - Splitter theo dòng văn bản
+  - Splitter theo batch và kích thước lô
+  - Splitter giữ correlation metadata
+  - Sequence size và sequence number
+  - Message group cho các phần được tách
+  - Xử lý phần tử rỗng hoặc malformed
+  - Splitter phát hiện lỗi giữa chừng
+  - Không để một phần tử làm mất toàn bộ batch ngoài ý muốn
+  - Đối chiếu output với input ban đầu
+  - Phân biệt splitter với chunking
+- level1: Aggregator
+  level2:
+  - Aggregator gom nhiều message thành một kết quả
+  - Correlation key xác định một message group
+  - Release strategy xác định khi nào gom xong
+  - Completion strategy và điều kiện hoàn tất
+  - MessageGroupProcessor xử lý group
+  - Message group timeout
+  - Expire group và xử lý phần chưa hoàn tất
+  - Release một lần và ngăn release trùng
+  - Aggregate payload theo danh sách, tổng hoặc kết quả
+  - Aggregate headers và quy tắc xung đột
+  - Correlation không ổn định gây gom nhầm group
+  - Chọn output channel sau aggregation
+  - Transaction và persistence của group state
+- level1: Scatter gather
+  level2:
+  - Scatter-Gather gửi một yêu cầu đến nhiều nhánh
+  - Gather kết quả từ các nhánh song song
+  - Correlation giữa request và response
+  - Release strategy cho gathered replies
+  - Timeout khi một nhánh không trả lời
+  - Chấp nhận partial result hay fail toàn bộ
+  - Ưu tiên hoặc xếp hạng kết quả
+  - Xử lý duplicate reply
+  - Nhánh trả lỗi và nhánh trả thành công
+  - Giới hạn số nhánh và tài nguyên
+  - So sánh scatter-gather với recipient list
+  - Kiểm thử đầy đủ, thiếu và quá hạn reply
+- level1: Resequencer
+  level2:
+  - Resequencer sắp xếp message theo sequence
+  - Sequence number và sequence size
+  - Message đến không đúng thứ tự
+  - Buffer message đến sớm
+  - Release khi đủ sequence
+  - Timeout khi thiếu một phần sequence
+  - Sequence group và correlation key
+  - Duplicate sequence number
+  - Late message sau khi sequence đã release
+  - Giới hạn bộ nhớ buffer
+  - Xử lý sequence không bắt đầu từ giá trị dự kiến
+  - So sánh resequencer với aggregator
+- level1: Claim check
+  level2:
+  - Claim Check lưu payload ngoài message
+  - Message chỉ giữ claim token
+  - Kho claim và vòng đời dữ liệu
+  - Check in và check out payload
+  - Claim token không đoán được
+  - Claim hết hạn hoặc không tìm thấy
+  - Xử lý payload lớn qua claim check
+  - Quyền truy cập claim giữa các flow
+  - Xóa claim sau khi xử lý
+  - Retry message với claim đã dùng
+  - Tính nhất quán giữa message và kho claim
+  - Phân biệt claim check với object storage link
+- level1: Content-based correlation
+  level2:
+  - Correlation Identifier xác định cùng một luồng
+  - Tạo correlation ID ở điểm vào
+  - Truyền correlation ID qua nhiều endpoint
+  - Correlation key theo payload hoặc header
+  - Không dùng giá trị dễ thay đổi làm correlation key
+  - Correlation giữa request và reply
+  - Correlation qua retry và redelivery
+  - Correlation qua gateway và adapter
+  - Correlation group cho splitter và aggregator
+  - Truy nguyên message bằng correlation ID
+  - Xung đột ID giữa nhiều flow
+  - Kiểm thử correlation với message đến xen kẽ
+- level1: Idempotent receiver
+  level2:
+  - Idempotent Receiver xử lý message lặp an toàn
+  - Message ID và idempotency key
+  - Kho duplicate message
+  - Kiểm tra rồi ghi nhận message atomically
+  - Thời hạn giữ idempotency record
+  - Xử lý retry sau khi handler thất bại
+  - Đánh dấu message trước hay sau business action
+  - Idempotency với transaction
+  - Idempotency qua nhiều instance
+  - Key khác nhau cho cùng payload
+  - Duplicate do broker và duplicate do client
+  - Khác biệt idempotency với deduplication
+  - Kiểm thử message lặp và xử lý đồng thời
+- level1: Message filter và validation
+  level2:
+  - Validation trước khi đưa message vào flow
+  - Bean Validation trên payload
+  - Error message cho validation failure
+  - Reject malformed message
+  - Discard versus exception khi validation fail
+  - Định tuyến invalid message sang quarantine
+  - Giữ lỗi và nguyên nhân trong metadata an toàn
+  - Validation schema tại boundary
+  - Validation sau transformer
+  - Validation trước service activator
+  - Không xác thực lại tùy tiện ở mọi bước
+  - Kiểm thử payload thiếu, sai kiểu và sai miền giá trị
+- level1: Normalizer
+  level2:
+  - Normalizer chuyển nhiều định dạng về một biểu diễn chung
+  - Chuẩn hóa payload từ nhiều nguồn
+  - Chuẩn hóa header và content type
+  - Đặt canonical model trong integration flow
+  - Giữ thông tin nguồn sau normalization
+  - Xử lý field thiếu giữa các schema
+  - Normalizer và version của message
+  - Tránh làm mất dữ liệu khi chuẩn hóa
+  - So sánh normalizer với transformer
+  - Kiểm thử nhiều định dạng đầu vào
+  - Định tuyến message không thể normalize
+  - Đảm bảo canonical model ổn định
+- level1: Envelope wrapper
+  level2:
+  - Envelope Wrapper thêm metadata quanh payload
+  - Envelope chứa correlation, tenant và trace information
+  - Phân biệt envelope với payload nghiệp vụ
+  - Tạo envelope ở boundary
+  - Giải wrapper trước khi gọi domain service
+  - Không để domain logic phụ thuộc transport envelope
+  - Truyền envelope qua subflow
+  - Bảo vệ metadata khỏi bị ghi đè
+  - Version envelope và tương thích
+  - Envelope khi message qua nhiều hệ thống
+  - Kiểm thử payload và metadata độc lập
+- level1: Message translator
+  level2:
+  - Message Translator chuyển message giữa hai hệ thống
+  - Mapping payload và metadata
+  - Mapping header của hệ thống nguồn sang đích
+  - Bảo toàn message identity khi cần
+  - Translator cho schema version khác nhau
+  - Xử lý field không có ánh xạ
+  - Mapping dữ liệu nhạy cảm
+  - Lỗi mapping và thông tin chẩn đoán
+  - Translator hai chiều và nguy cơ mất thông tin
+  - Không gắn logic nghiệp vụ lớn vào mapping
+  - Kiểm thử contract của translator
+- level1: Service activator
+  level2:
+  - Service Activator gọi phương thức ứng dụng từ message
+  - Mapping payload vào method argument
+  - Mapping header vào tham số
+  - Return value thành reply message
+  - Void method và output channel
+  - Service activator có transaction
+  - Xử lý exception từ service method
+  - Idempotency của service action
+  - Tách service activator khỏi transport
+  - Chọn method không gây side effect ngoài ý muốn
+  - Test input, output và lỗi của service activator
+- level1: Messaging gateway
+  level2:
+  - Messaging Gateway che giấu MessageChannel phía sau API
+  - Gateway gửi one-way message
+  - Gateway request-reply
+  - Gateway timeout và reply channel
+  - Gateway default request channel
+  - Gateway header mapping từ method argument
+  - Gateway payload expression
+  - Gateway error channel
+  - Gateway trả null khi không có reply
+  - Gateway với interface proxy
+  - Gateway và boundary giữa application code với flow
+  - Kiểm thử gateway theo hợp đồng công khai
+- level1: Request reply
+  level2:
+  - Request-Reply pattern ghép request với response
+  - Message correlation trong request-reply
+  - Temporary reply channel
+  - Explicit reply channel
+  - Reply timeout và xử lý quá hạn
+  - Reply message không đúng kiểu
+  - Không có handler trả reply
+  - Nhiều reply cho một request
+  - Late reply sau khi gateway timeout
+  - Xử lý exception trong reply flow
+  - Request-reply qua hệ thống bất đồng bộ
+  - Phân biệt request-reply với event notification
+- level1: Remote procedure invocation
+  level2:
+  - Remote Procedure Invocation trong integration flow
+  - Đóng gói lời gọi từ xa thành message
+  - Gateway và remote adapter
+  - Timeout mạng và timeout xử lý
+  - Retry lời gọi từ xa
+  - Idempotency của remote operation
+  - Contract của request và reply
+  - Versioning endpoint từ xa
+  - Bảo vệ dữ liệu và credential
+  - Circuit breaker ở ranh giới gọi từ xa
+  - Phân biệt RPC với message-driven interaction
+- level1: Message broker
+  level2:
+  - Message Channel nội bộ và broker channel
+  - Publish và consume qua broker
+  - Durable message và queue semantics
+  - Acknowledgement và redelivery
+  - Partition hoặc consumer group
+  - Message ordering trong broker
+  - Correlation khi qua broker
+  - Header mapping qua broker
+  - Dead-letter queue và retry topic
+  - Transaction giữa broker và ứng dụng
+  - Khác biệt broker semantics với Spring Integration channel
+- level1: Channel adapter
+  level2:
+  - Channel Adapter nối hệ thống ngoài với message flow
+  - Inbound channel adapter
+  - Outbound channel adapter
+  - Adapter chuyển đổi payload và header
+  - Polling adapter và lịch đọc
+  - Event-driven adapter
+  - Adapter error channel
+  - Retry ở adapter boundary
+  - Backpressure và giới hạn tốc độ
+  - Idempotency khi adapter redeliver
+  - Theo dõi nguồn và đích của adapter
+  - Phân biệt adapter với gateway và service activator
+- level1: Bridge
+  level2:
+  - Message Bridge nối hai channel tương thích
+  - Bridge giữa channel nội bộ và channel khác
+  - Giữ payload, headers và message identity
+  - Bridge không biến đổi message
+  - Bridge với output channel
+  - Bridge để tách subflow
+  - Bridge giữa sync và async channel
+  - Bridge qua queue và thay đổi semantics
+  - Bridge error propagation
+  - Đo độ trễ do bridge
+  - Tránh tạo bridge vòng
+  - Kiểm thử bridge không làm mất message
+- level1: Wire tap
+  level2:
+  - Wire Tap quan sát message mà không đổi flow chính
+  - Tap channel và tap endpoint
+  - Tap đồng bộ và bất đồng bộ
+  - Wire tap để audit hoặc debug
+  - Không để tap làm chậm flow chính
+  - Lỗi ở tap và ảnh hưởng đến flow
+  - Lọc message trước khi tap
+  - Ẩn payload nhạy cảm trong tap
+  - Tap nhiều điểm trong flow
+  - Gỡ wire tap debug khỏi production
+  - Kiểm thử tap không thay đổi kết quả chính
+- level1: Message logger
+  level2:
+  - Logging handler và ghi nhận message
+  - Log payload hay chỉ metadata
+  - Message history để theo dõi flow
+  - Correlation ID trong log
+  - Log level và chi phí tạo log
+  - Lọc hoặc che dữ liệu nhạy cảm
+  - Log exception và failed message
+  - Không dùng log làm cơ chế giao tiếp
+  - Structured logging cho integration flow
+  - Giới hạn message log trong production
+  - Đối chiếu log với metric và trace
+- level1: Control bus
+  level2:
+  - Control Bus điều khiển endpoint bằng message
+  - Gửi lệnh lifecycle qua control channel
+  - Start, stop và pause flow
+  - Đọc trạng thái endpoint
+  - Quyền truy cập control bus
+  - Rủi ro thực thi expression điều khiển
+  - Audit lệnh vận hành
+  - Điều khiển một flow đang có message
+  - Xử lý lệnh không hợp lệ
+  - Control bus trong vận hành nhiều instance
+  - Phân biệt control bus với business message
+- level1: Error channel
+  level2:
+  - Error Channel nhận ErrorMessage
+  - MessagingException và failedMessage
+  - Định tuyến lỗi theo loại exception
+  - Flow xử lý lỗi riêng
+  - Default error channel và global behavior
+  - Local error channel của endpoint
+  - Error channel khi message bất đồng bộ
+  - Rethrow exception sau khi xử lý
+  - Quarantine message lỗi
+  - Retry advice và error channel
+  - Không làm mất payload gốc của lỗi
+  - Theo dõi lỗi không tạo vòng error flow
+- level1: Dead letter
+  level2:
+  - Dead Letter Channel giữ message không xử lý được
+  - Điều kiện đưa message vào dead letter
+  - Retry trước khi chuyển dead letter
+  - Lưu original message và exception
+  - Đặt dead letter channel theo flow
+  - Xử lý lại dead letter có kiểm soát
+  - Ngăn dead letter quay vòng vô hạn
+  - Quyền truy cập và dữ liệu nhạy cảm
+  - Theo dõi tuổi message trong dead letter
+  - Kết hợp dead letter với cảnh báo
+  - Phân biệt dead letter với discard
+- level1: Null channel
+  level2:
+  - Null Channel loại bỏ message có chủ đích
+  - Khi discard output là hành vi hợp lệ
+  - Dùng null channel cho one-way flow
+  - Phân biệt null channel với mất message
+  - Quan sát message trước khi discard
+  - Không dùng null channel để che lỗi
+  - Kiểm tra flow kết thúc tại null channel
+  - Chọn discard channel khi cần audit
+- level1: Priority
+  level2:
+  - Priority Channel sắp xếp message theo mức ưu tiên
+  - Priority header và comparator
+  - Ưu tiên cao làm message khác chờ lâu
+  - Tie-breaker khi cùng priority
+  - Queue capacity của priority channel
+  - Không để priority starvation
+  - Priority trong flow đồng bộ và bất đồng bộ
+  - Đảm bảo priority được truyền đúng
+  - Retry message có giữ priority không?
+  - Kiểm thử nhiều mức ưu tiên
+  - Phân biệt priority với deadline
+- level1: Transactional messaging
+  level2:
+  - Transactional Channel và transaction boundary
+  - Message send trong transaction
+  - Message receive và transaction
+  - Transaction Synchronization trong flow
+  - Commit, rollback và redelivery
+  - Transaction propagation qua service activator
+  - Transactional resource và message channel
+  - Giao dịch local và distributed transaction
+  - Outbox như cách tách business transaction khỏi transport
+  - Không giả định SMTP hoặc HTTP rollback được
+  - Kiểm thử transaction với message flow
+  - Bằng chứng khi transaction commit thành công
+- level1: Retry
+  level2:
+  - Retry advice cho message handler
+  - Retry theo exception type
+  - Số lần thử và backoff
+  - Stateful retry theo message identity
+  - Stateless retry và mỗi lần redelivery
+  - Recovery callback sau khi retry hết
+  - Retry context và thông tin chẩn đoán
+  - Retry cùng transaction
+  - Retry không idempotent gây side effect lặp
+  - Retry kết hợp error channel
+  - Giới hạn retry để tránh bão tải
+  - Kiểm thử thành công sau retry và thất bại cuối cùng
+- level1: Circuit breaker
+  level2:
+  - Circuit breaker bảo vệ flow gọi dependency
+  - Closed, open và half-open state
+  - Điều kiện mở circuit
+  - Fallback khi circuit mở
+  - Timeout và lỗi làm tăng failure count
+  - Reset circuit và thời gian chờ
+  - Circuit breaker theo endpoint hoặc tenant
+  - Không retry vô hạn khi circuit đã mở
+  - Theo dõi trạng thái circuit
+  - Kiểm thử dependency chậm và dependency lỗi
+  - Phân biệt circuit breaker với filter
+- level1: Rate limiter
+  level2:
+  - Rate Limiter giới hạn tốc độ message
+  - Giới hạn theo flow, tenant hoặc endpoint
+  - Token bucket và fixed window
+  - Message bị chặn, trì hoãn hoặc loại bỏ
+  - Rate limit ở trước hay sau router
+  - Kết hợp rate limiter với retry
+  - Backpressure và rate limiting khác nhau thế nào?
+  - Tính công bằng giữa nhiều producer
+  - Theo dõi số message bị giới hạn
+  - Cấu hình động và nhất quán nhiều instance
+  - Kiểm thử burst và sustained load
+- level1: Delay
+  level2:
+  - Delayer trì hoãn message trong một khoảng thời gian
+  - Delay period cố định và động
+  - Delay group và message identity
+  - Release message sau khi hết thời gian
+  - Persistence của delayed message
+  - Restart khi message đang chờ
+  - Timeout hoặc lỗi trong delayed flow
+  - Múi giờ và thời gian tuyệt đối
+  - Delay kết hợp retry hoặc scheduler
+  - Không dùng delay để che race condition
+  - Kiểm thử thời gian bằng clock kiểm soát
+- level1: Barrier
+  level2:
+  - Barrier chờ message đạt điều kiện đồng bộ
+  - Correlation key cho barrier
+  - Barrier message và trigger message
+  - Timeout khi điều kiện không đủ
+  - Barrier state và persistence
+  - Release một lần khi đủ tín hiệu
+  - Duplicate trigger và duplicate barrier
+  - Xử lý message đến sai thứ tự
+  - Barrier trong flow phân tán
+  - Phân biệt barrier với aggregator
+- level1: Resequencer nâng cao
+  level2:
+  - Sequence number sinh từ nguồn nào
+  - Sequence size biết trước hay suy ra
+  - Sequence group hết hạn
+  - Xử lý sequence bị thiếu vĩnh viễn
+  - Duplicate và conflicting sequence
+  - Late arrival sau khi group hoàn tất
+  - Bộ nhớ của các group đang chờ
+  - Kiểm tra thứ tự đầu ra
+  - Ranh giới sequence qua retry
+  - Theo dõi group chưa hoàn thành
+- level1: Audit và observability
+  level2:
+  - Audit message vào và ra khỏi flow
+  - Message history và vị trí endpoint
+  - Trace context qua channel
+  - Metric cho từng pattern
+  - Đo queue depth và thời gian chờ
+  - Đo số message bị filter hoặc discard
+  - Theo dõi group của aggregator
+  - Theo dõi retry, dead letter và recovery
+  - Ghi version của flow hoặc route
+  - Che payload khi audit
+  - Liên kết log, metric và trace bằng correlation ID
+  - Xác định điểm mất message trong flow
+- level1: Kiểm thử pattern
+  level2:
+  - Kiểm thử từng pattern với message tối thiểu
+  - Kiểm thử payload và headers
+  - Kiểm thử flow tuyến tính
+  - Kiểm thử router theo từng route
+  - Kiểm thử splitter và aggregator theo correlation
+  - Kiểm thử reply timeout và late reply
+  - Kiểm thử duplicate và idempotency
+  - Kiểm thử retry, recovery và dead letter
+  - Kiểm thử thứ tự với resequencer
+  - Kiểm thử bất đồng bộ không dùng sleep tùy ý
+  - Kiểm thử channel đầy và send timeout
+  - Kiểm thử restart với message đang chờ
+- level1: Lỗi thường gặp
+  level2:
+  - Dùng router thay cho business orchestration quá lớn
+  - Đặt logic nghiệp vụ trong expression
+  - Dùng publish-subscribe nhưng cần durable delivery
+  - Aggregator thiếu correlation hoặc release strategy
+  - Splitter không truyền sequence metadata
+  - Retry tác dụng phụ nhưng không có idempotency
+  - Discard message mà không có audit
+  - Error flow tự tạo vòng lặp
+  - Wire tap làm chậm hoặc lộ dữ liệu
+  - Queue channel đầy nhưng không có policy
+  - Gateway timeout nhưng reply vẫn tạo side effect
+  - Bridge che mất ranh giới giao tiếp thực sự
+  - Dùng pattern để che một hợp đồng message chưa rõ

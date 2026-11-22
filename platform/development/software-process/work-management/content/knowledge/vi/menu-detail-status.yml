@@ -1,0 +1,2722 @@
+menu:
+- slug: orientation
+  title: Định hướng
+  childs:
+  - slug: orientation-001
+    title: Quản lý công việc phần mềm là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-002
+    title: Phân biệt công việc, hạng mục công việc, sản phẩm bàn giao và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-003
+    title: Mối liên hệ giữa quản lý công việc, quản lý dự án và quản lý sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-004
+    title: Chu trình từ tiếp nhận nhu cầu đến hoàn tất và phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-005
+    title: 'Các khái niệm nền: phạm vi, nguồn lực, thời hạn, rủi ro và phụ thuộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-006
+    title: 'Đặc thù công việc phần mềm: bất định, tri thức và thay đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-007
+    title: Phân biệt kế hoạch công việc với quy trình phát triển phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-008
+    title: Lựa chọn cách quản lý theo loại công việc và bối cảnh tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-009
+    title: Trình tự học từ quản lý cá nhân đến điều phối nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: goals-and-scope
+  title: Mục tiêu và phạm vi
+  childs:
+  - slug: goals-and-scope-001
+    title: Chuyển mục tiêu kinh doanh thành kết quả công việc có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-002
+    title: Phân biệt kết quả mong đợi với số lượng đầu việc đã hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-003
+    title: Xác định phạm vi, ranh giới và những việc chưa thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-004
+    title: Nhận diện bên liên quan, người sử dụng và người nhận bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-005
+    title: Xác định giả định, ràng buộc và tiêu chí thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-006
+    title: Cân bằng phạm vi, thời gian, chi phí, chất lượng và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-007
+    title: Liên kết mục tiêu với sản phẩm bàn giao và hạng mục công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-008
+    title: Quy định cách xác nhận kết quả và xử lý mục tiêu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: roles-and-responsibilities
+  title: Vai trò và trách nhiệm
+  childs:
+  - slug: roles-and-responsibilities-001
+    title: Phân biệt người yêu cầu, người quyết định, người thực hiện và người nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-002
+    title: Phân định trách nhiệm giữa quản lý sản phẩm, quản lý dự án và nhóm kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-003
+    title: Thiết lập người chịu trách nhiệm chính cho từng hạng mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-004
+    title: Xây dựng ma trận trách nhiệm RACI và giới hạn áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-005
+    title: Phân quyền quyết định để giảm thời gian chờ phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-006
+    title: Tự tổ chức trong nhóm và trách nhiệm giải trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-007
+    title: Xác định đầu mối phối hợp với vận hành, bảo mật và các nhóm hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-008
+    title: Xử lý trách nhiệm chồng chéo, công việc bị bỏ sót và thay đổi người phụ trách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-intake
+  title: Tiếp nhận công việc
+  childs:
+  - slug: work-intake-001
+    title: Thiết kế kênh tiếp nhận thống nhất và tránh yêu cầu ngoài luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-002
+    title: Phân loại tính năng, lỗi, bảo trì, hỗ trợ, nghiên cứu và công việc vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-003
+    title: Thu thập bối cảnh, mục đích, người yêu cầu và thời điểm cần kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-004
+    title: Phân biệt mức độ nghiêm trọng, độ khẩn cấp và độ ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-005
+    title: Sàng lọc yêu cầu trùng lặp, thiếu thông tin hoặc ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-006
+    title: Đánh giá ban đầu về giá trị, công sức, rủi ro và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-007
+    title: Quy định tiếp nhận, từ chối, hoãn và chuyển tiếp yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-008
+    title: Thiết lập quy tắc cho công việc khẩn cấp và gián đoạn kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-intake-009
+    title: Theo dõi yêu cầu từ lúc tiếp nhận đến khi được quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-item
+  title: Hạng mục công việc
+  childs:
+  - slug: work-item-001
+    title: 'Chọn loại hạng mục phù hợp: sáng kiến, epic, story, task, bug và spike'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-002
+    title: Phân biệt phân cấp công việc với liên kết phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-003
+    title: Viết tiêu đề rõ hành động hoặc kết quả cần đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-004
+    title: Mô tả bối cảnh, đầu vào, đầu ra và giới hạn thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-005
+    title: Xác định tiêu chí chấp nhận có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-006
+    title: Bổ sung người phụ trách, độ ưu tiên, thời hạn và liên kết nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-007
+    title: Quản lý trạng thái, lịch sử thay đổi và quyết định liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-008
+    title: Thiết kế mẫu hạng mục theo loại công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-009
+    title: Nhận diện hạng mục quá lớn, quá mơ hồ hoặc quá vụn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-item-010
+    title: Quản lý đầu việc chưa rõ lời giải bằng khảo sát có giới hạn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-breakdown
+  title: Phân rã công việc
+  childs:
+  - slug: work-breakdown-001
+    title: Phân rã theo sản phẩm bàn giao bằng cấu trúc WBS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-002
+    title: Phân biệt phân rã theo tính năng, thành phần kỹ thuật và giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-003
+    title: Chia lát dọc để tạo kết quả sử dụng hoặc kiểm chứng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-004
+    title: Tách công việc lớn theo quy tắc nghiệp vụ, luồng sử dụng và mức độ rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-005
+    title: Xác định gói công việc đủ nhỏ để theo dõi và bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-006
+    title: Bảo toàn tiêu chí chấp nhận khi tách một hạng mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-007
+    title: Nhận diện việc tích hợp, kiểm thử, triển khai và tài liệu bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-008
+    title: Tránh phân rã theo cá nhân làm tăng số lần bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-breakdown-009
+    title: Kiểm tra tính đầy đủ và trùng lặp của cấu trúc công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-list
+  title: Danh sách công việc
+  childs:
+  - slug: work-list-001
+    title: Vai trò của danh sách công việc tồn đọng (backlog)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-002
+    title: Tổ chức danh sách theo sản phẩm, nhóm và phạm vi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-003
+    title: Phân biệt danh sách ý tưởng, việc đã cam kết và việc đang thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-004
+    title: Liên kết mục tiêu, nhóm chủ đề và hạng mục chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-005
+    title: Làm rõ và cập nhật hạng mục trước khi đưa vào kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-006
+    title: Xác định mức độ sẵn sàng để nhóm bắt đầu thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-007
+    title: Quản lý tuổi hạng mục, yêu cầu lỗi thời và công việc bị bỏ quên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-008
+    title: Dọn danh sách định kỳ và lưu lý do hoãn hoặc loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-list-009
+    title: Giữ một nguồn theo dõi thống nhất khi nhiều công cụ cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-prioritization
+  title: Ưu tiên công việc
+  childs:
+  - slug: work-prioritization-001
+    title: Xác định giá trị từ lợi ích người dùng và mục tiêu kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-002
+    title: Đánh giá chi phí trì hoãn và cơ hội mất đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-003
+    title: Phân biệt thứ tự ưu tiên với mức độ quan trọng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-004
+    title: Phân nhóm bằng MoSCoW và làm rõ giới hạn của mỗi nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-005
+    title: Đánh giá phạm vi tác động, mức ảnh hưởng, độ tin cậy và công sức bằng RICE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-006
+    title: Ưu tiên theo chi phí trì hoãn và độ lớn công việc bằng WSJF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-007
+    title: Ưu tiên giảm rủi ro và kiểm chứng giả định trước khi đầu tư lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-008
+    title: Cân bằng tính năng, lỗi, nợ kỹ thuật và nhu cầu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-009
+    title: Giải quyết xung đột ưu tiên giữa các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-prioritization-010
+    title: Điều chỉnh thứ tự khi xuất hiện dữ liệu mới hoặc phụ thuộc bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-estimation
+  title: Ước lượng công việc
+  childs:
+  - slug: work-estimation-001
+    title: Phân biệt ước lượng, dự báo, mục tiêu và cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-002
+    title: Phân biệt công sức thực hiện với thời gian hoàn thành theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-003
+    title: Ước lượng theo giờ, ngày công, độ lớn tương đối và dữ liệu dòng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-004
+    title: Ước lượng từ trên xuống và từ các hạng mục chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-005
+    title: So sánh tương tự và sử dụng hạng mục tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-006
+    title: Ước lượng ba điểm và biểu diễn khoảng bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-007
+    title: Thảo luận ước lượng theo nhóm và làm rõ khác biệt về giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-008
+    title: Tách thời gian khảo sát cho công việc chưa đủ thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-009
+    title: Tính đến tích hợp, kiểm thử, sửa lỗi và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-010
+    title: Nhận diện thiên lệch lạc quan, neo số và độ chính xác giả tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-estimation-011
+    title: Cập nhật ước lượng theo bằng chứng và đối chiếu với thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capabilities-and-resources
+  title: Năng lực và nguồn lực
+  childs:
+  - slug: capabilities-and-resources-001
+    title: Xác định năng lực thực tế theo thời gian sẵn có và kỹ năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-002
+    title: Phân biệt số người, tổng ngày công và khả năng hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-003
+    title: Tính đến nghỉ phép, họp, trực vận hành và công việc hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-004
+    title: Lập bản đồ kỹ năng và xác định điểm phụ thuộc vào một người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-005
+    title: Cân bằng khối lượng giữa các cá nhân và chuyên môn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-006
+    title: Dành năng lực cho lỗi phát sinh, bảo trì và nhu cầu đột xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-007
+    title: Ảnh hưởng của chuyển đổi ngữ cảnh và làm nhiều việc đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-008
+    title: Đánh giá tác động khi thêm người vào công việc đang chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-009
+    title: Điều phối nhân sự dùng chung và nguồn lực bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capabilities-and-resources-010
+    title: Điều chỉnh kế hoạch khi năng lực hoặc cơ cấu nhóm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-dependencies
+  title: Phụ thuộc công việc
+  childs:
+  - slug: work-dependencies-001
+    title: Nhận diện phụ thuộc kỹ thuật, nghiệp vụ, dữ liệu và nguồn lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-002
+    title: Phân biệt quan hệ phụ thuộc với thứ tự ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-003
+    title: Biểu diễn quan hệ trước sau bằng sơ đồ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-004
+    title: Phát hiện vòng phụ thuộc và điều kiện bắt đầu chưa được đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-005
+    title: Xác định đầu vào, đầu ra và cam kết giữa các bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-006
+    title: Giảm phụ thuộc bằng chia lát, hợp đồng giao tiếp và dữ liệu giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-007
+    title: Theo dõi mốc bàn giao giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-008
+    title: Quản lý phụ thuộc vào nhà cung cấp và hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-dependencies-009
+    title: Đánh giá tác động dây chuyền khi một hạng mục bị chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schedule-and-progress
+  title: Tiến độ và lịch làm việc
+  childs:
+  - slug: schedule-and-progress-001
+    title: Phân biệt lộ trình, kế hoạch phát hành và lịch công việc chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-002
+    title: Xác định mốc kiểm chứng, mốc bàn giao và thời hạn bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-003
+    title: Lập sơ đồ mạng công việc và xác định đường găng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-004
+    title: Độ dự trữ thời gian và tác động của việc chậm một công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-005
+    title: Thể hiện trình tự và tiến độ bằng biểu đồ Gantt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-006
+    title: Xử lý giới hạn nguồn lực khi xây dựng lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-007
+    title: Bố trí khoảng dự phòng theo bất định và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-008
+    title: Lập kế hoạch cuốn chiếu từ xa đến gần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-009
+    title: Phân biệt kế hoạch cơ sở với kế hoạch cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedule-and-progress-010
+    title: Điều chỉnh lịch khi phạm vi, phụ thuộc hoặc năng lực thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: short-term-planning
+  title: Kế hoạch ngắn hạn
+  childs:
+  - slug: short-term-planning-001
+    title: Lựa chọn làm việc theo đợt có thời hạn hoặc dòng liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-002
+    title: Xác định mục tiêu ngắn hạn và kết quả có thể bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-003
+    title: Chọn công việc theo ưu tiên, mức độ sẵn sàng và năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-004
+    title: Tách dự báo thực hiện khỏi cam kết thời hạn cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-005
+    title: Lập kế hoạch kiểm thử, tích hợp và nghiệm thu trong cùng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-006
+    title: Giữ khoảng dự phòng cho gián đoạn có thể dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-007
+    title: Làm rõ cách tiếp nhận thêm việc khi kế hoạch đã bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-008
+    title: Điều chỉnh kế hoạch hằng ngày dựa trên tiến độ và trở ngại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-term-planning-009
+    title: Kết thúc chu kỳ bằng kiểm chứng kết quả và phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-process
+  title: Quy trình công việc
+  childs:
+  - slug: work-process-001
+    title: Mô hình hóa luồng từ sẵn sàng, đang làm đến hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-002
+    title: Thiết kế trạng thái theo hoạt động và điều kiện thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-003
+    title: Quy định điều kiện vào, điều kiện ra và trách nhiệm mỗi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-004
+    title: Phân biệt đang thực hiện, đang chờ và đang bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-005
+    title: Mô hình hóa bước rà soát, kiểm thử, nghiệm thu và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-006
+    title: Xử lý công việc bị trả lại và vòng lặp làm lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-007
+    title: Thiết kế luồng riêng cho việc khẩn cấp hoặc có hạn chót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-008
+    title: Giới hạn trạng thái để bảng công việc dễ hiểu và sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-process-009
+    title: Thống nhất tiêu chí hoàn tất giữa nhóm và bên nhận bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow
+  title: Dòng công việc
+  childs:
+  - slug: workflow-001
+    title: Trực quan hóa công việc bằng bảng Kanban
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-002
+    title: Giới hạn công việc đang thực hiện (WIP) và lý do cần giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-003
+    title: Cơ chế kéo công việc theo năng lực còn trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-004
+    title: Thiết lập điểm cam kết và điểm bàn giao trong dòng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-005
+    title: Phân loại dịch vụ theo nhu cầu xử lý và chính sách rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-006
+    title: Giảm kích thước lô và số lần bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-007
+    title: Phát hiện nút thắt, hàng đợi và công việc tích tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-008
+    title: Ưu tiên hoàn tất việc đang làm trước khi bắt đầu thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-009
+    title: Áp dụng quan hệ giữa WIP, thông lượng và thời gian chu kỳ khi điều kiện phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-010
+    title: Điều chỉnh giới hạn và chính sách dựa trên dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: daily-coordination
+  title: Điều phối hằng ngày
+  childs:
+  - slug: daily-coordination-001
+    title: Theo dõi tiến độ theo kết quả thay vì chỉ ghi nhận hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-002
+    title: Cập nhật trạng thái đúng lúc và thống nhất ý nghĩa trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-003
+    title: Trao đổi ngắn để xác định việc tiếp theo và trở ngại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-004
+    title: Phát hiện sớm công việc đứng yên hoặc chưa có người xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-005
+    title: Phối hợp cùng giải quyết hạng mục đang gây tắc nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-006
+    title: Làm rõ quyết định cần hỗ trợ và thời điểm cần phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-007
+    title: Điều chỉnh phân công mà vẫn bảo toàn trách nhiệm chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-008
+    title: Quản lý việc chuyển giao giữa ca trực hoặc thời điểm làm việc khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: daily-coordination-009
+    title: Duy trì nhịp thực hiện bền vững và tránh phụ thuộc vào làm thêm giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interruptions-and-impediments
+  title: Gián đoạn và trở ngại
+  childs:
+  - slug: interruptions-and-impediments-001
+    title: Phân biệt rủi ro chưa xảy ra, vấn đề đã xảy ra và trở ngại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-002
+    title: Ghi nhận nội dung bị chặn, nguyên nhân, tác động và người xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-003
+    title: Theo dõi thời gian bị chặn và thời điểm cần nâng cấp xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-004
+    title: Thiết lập cơ chế yêu cầu hỗ trợ và chuyển cấp quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-005
+    title: Xử lý sự cố vận hành chen vào kế hoạch phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-006
+    title: Điều phối yêu cầu khẩn cấp mà không làm mất dấu công việc hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-007
+    title: Đánh giá lại kế hoạch sau gián đoạn lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-008
+    title: Phân biệt giải pháp tạm thời với xử lý nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interruptions-and-impediments-009
+    title: Theo dõi việc tái diễn và cải thiện cơ chế phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-risks
+  title: Rủi ro công việc
+  childs:
+  - slug: work-risks-001
+    title: Nhận diện rủi ro về phạm vi, kỹ thuật, tiến độ, nhân sự và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-002
+    title: Mô tả rủi ro theo nguyên nhân, sự kiện và hậu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-003
+    title: Đánh giá xác suất, mức tác động và mức độ cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-004
+    title: Chỉ định người chịu trách nhiệm theo dõi từng rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-005
+    title: Lựa chọn tránh, giảm thiểu, chuyển giao hoặc chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-006
+    title: Lập công việc giảm thiểu và kế hoạch dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-007
+    title: Xác định dấu hiệu cảnh báo cùng điều kiện kích hoạt ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-008
+    title: Liên kết rủi ro với phụ thuộc, mốc bàn giao và quyết định ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-risks-009
+    title: Rà soát rủi ro còn lại và cập nhật theo diễn biến công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plan-change
+  title: Thay đổi kế hoạch
+  childs:
+  - slug: plan-change-001
+    title: Phân biệt làm rõ yêu cầu với thay đổi phạm vi đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-002
+    title: Thiết lập cách tiếp nhận và ghi nhận đề nghị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-003
+    title: Phân tích tác động đến công việc, lịch, chi phí và chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-004
+    title: Xác định quyền phê duyệt theo mức độ ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-005
+    title: Xử lý thêm việc bằng đổi ưu tiên, thay phạm vi hoặc bổ sung thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-006
+    title: Nhận diện phạm vi tăng âm thầm và công việc phát sinh không được ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-007
+    title: Cập nhật phiên bản kế hoạch và thông báo cho bên chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-008
+    title: Lưu lý do quyết định để hỗ trợ truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-change-009
+    title: Đánh giá thay đổi khẩn cấp và hoàn thiện thông tin sau xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-and-completion
+  title: Chất lượng và hoàn tất
+  childs:
+  - slug: quality-and-completion-001
+    title: Đưa hoạt động bảo đảm chất lượng vào kế hoạch công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-002
+    title: Phân biệt tiêu chí chấp nhận với tiêu chí hoàn tất chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-003
+    title: Lập kế hoạch rà soát mã, kiểm thử, bảo mật và tài liệu cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-004
+    title: Theo dõi lỗi phát hiện trong quá trình thực hiện và sau bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-005
+    title: Quản lý công việc làm lại và tác động đến năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-006
+    title: Nhận diện công việc gần xong nhưng chưa đủ điều kiện bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-007
+    title: Đưa xử lý nợ kỹ thuật vào danh sách và thứ tự ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-008
+    title: Lưu bằng chứng kiểm chứng phù hợp với mức độ rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-completion-009
+    title: Phối hợp nghiệm thu mà không thay thế quy trình quản lý chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-and-budget
+  title: Chi phí và ngân sách
+  childs:
+  - slug: cost-and-budget-001
+    title: Phân biệt công sức, chi phí nhân sự và tổng chi phí thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-and-budget-002
+    title: Ước tính chi phí hạ tầng, công cụ, dịch vụ và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-and-budget-003
+    title: Lập ngân sách theo gói công việc hoặc giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-and-budget-004
+    title: Theo dõi chi phí đã phát sinh và chi phí dự kiến còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-and-budget-005
+    title: Phân biệt giá trị công việc hoàn thành với số tiền đã chi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-and-budget-006
+    title: Nhận diện sai lệch chi phí cùng nguyên nhân phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-and-budget-007
+    title: Cân nhắc tăng nguồn lực, giảm phạm vi hoặc thay thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-and-budget-008
+    title: Đánh giá chi phí cơ hội khi trì hoãn hoặc dừng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-and-decisions
+  title: Giao tiếp và quyết định
+  childs:
+  - slug: communication-and-decisions-001
+    title: Xác định ai cần thông tin gì, vào thời điểm nào và qua kênh nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-002
+    title: Thiết kế thông báo tiến độ gắn với kết quả, rủi ro và đề nghị hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-003
+    title: Phân biệt trao đổi thông tin, tham vấn và phê duyệt quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-004
+    title: Chuẩn bị cuộc họp với mục tiêu, đầu vào và kết quả cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-005
+    title: Ghi lại quyết định, người thực hiện và hạn hoàn thành hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-006
+    title: Giải quyết bất đồng ưu tiên, ước lượng và phân công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-007
+    title: Trình bày dự báo có bất định mà không tạo kỳ vọng sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-008
+    title: Quản lý kỳ vọng khi thời hạn hoặc kết quả có nguy cơ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-and-decisions-009
+    title: Lưu trữ kiến thức và quyết định để giảm phụ thuộc vào trao đổi miệng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-team-collaboration
+  title: Cộng tác nhiều nhóm
+  childs:
+  - slug: multi-team-collaboration-001
+    title: Phân định phạm vi công việc và quyền sở hữu giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-002
+    title: Liên kết kế hoạch nhóm với mục tiêu và mốc chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-003
+    title: Điều phối phụ thuộc bằng cam kết đầu vào, đầu ra và thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-004
+    title: Quản lý tích hợp liên nhóm để tránh hoàn tất cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-005
+    title: Cân bằng nguồn lực chuyên môn dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-006
+    title: Phối hợp với đối tác qua sản phẩm bàn giao và tiêu chí xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-007
+    title: Thiết kế trao đổi bất đồng bộ cho nhóm phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-008
+    title: Xử lý múi giờ, thời gian chờ và bàn giao thiếu bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-009
+    title: Giải quyết xung đột ưu tiên liên nhóm qua cơ chế ra quyết định rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-collaboration-010
+    title: Theo dõi kết quả toàn luồng thay vì tối ưu riêng từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-measurement
+  title: Đo lường công việc
+  childs:
+  - slug: work-measurement-001
+    title: Chọn chỉ số dựa trên câu hỏi quản lý cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-002
+    title: Phân biệt chỉ số đầu vào, hoạt động, đầu ra và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-003
+    title: Đo thời gian dẫn (lead time) và thống nhất điểm bắt đầu, kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-004
+    title: Đo thời gian chu kỳ (cycle time) và thời gian công việc bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-005
+    title: Đo thông lượng (throughput), WIP và tuổi công việc đang làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-006
+    title: Đo tỷ lệ hoàn thành, việc làm lại và công việc ngoài kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-007
+    title: Sử dụng biểu đồ dòng tích lũy để phát hiện hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-008
+    title: Đọc biểu đồ phân bố thời gian chu kỳ và các phân vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-009
+    title: Sử dụng biểu đồ công việc còn lại và công việc đã hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-010
+    title: Hiểu phạm vi sử dụng vận tốc nhóm và tránh so sánh giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-011
+    title: Tránh đánh giá cá nhân bằng số phiếu, số dòng mã hoặc số giờ bận rộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-measurement-012
+    title: Kiểm tra chất lượng dữ liệu trước khi diễn giải chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracking-and-forecasting
+  title: Theo dõi và dự báo
+  childs:
+  - slug: tracking-and-forecasting-001
+    title: So sánh thực tế với kế hoạch theo phạm vi, thời gian và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-002
+    title: Phát hiện sai lệch sớm bằng xu hướng và ngưỡng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-003
+    title: Phân biệt báo cáo trạng thái hiện tại với dự báo tương lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-004
+    title: Dự báo thời điểm hoàn thành từ dữ liệu thông lượng hoặc thời gian chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-005
+    title: Biểu diễn khả năng hoàn thành bằng khoảng và mức tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-006
+    title: Mô phỏng Monte Carlo từ dữ liệu lịch sử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-007
+    title: Xác định kỳ vọng mức dịch vụ từ phân bố thời gian hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-008
+    title: Đánh giá lại dự báo khi cơ cấu nhóm hoặc loại công việc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-009
+    title: Trình bày kịch bản thay đổi phạm vi, nguồn lực và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracking-and-forecasting-010
+    title: Chọn hành động điều chỉnh và theo dõi hiệu quả sau quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: handover-and-closure
+  title: Bàn giao và đóng việc
+  childs:
+  - slug: handover-and-closure-001
+    title: Lập kế hoạch phát hành dựa trên kết quả đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-002
+    title: Phân biệt hoàn tất hạng mục, sẵn sàng phát hành và đã đến tay người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-003
+    title: Phối hợp lịch triển khai, cửa sổ thay đổi và nhóm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-004
+    title: 'Kiểm tra điều kiện bàn giao: hướng dẫn, giám sát, hỗ trợ và phương án khôi phục'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-005
+    title: Xác nhận nghiệm thu, ghi nhận hạn chế còn lại và người tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-006
+    title: Đóng hạng mục với bằng chứng và liên kết liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-007
+    title: Xử lý hạng mục chưa xong, bị hủy hoặc chuyển sang giai đoạn sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-008
+    title: Thu thập phản hồi và kiểm tra kết quả thực tế sau bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-closure-009
+    title: Chuyển trách nhiệm hỗ trợ, bảo trì và theo dõi lỗi sau phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-automation
+  title: Công cụ và tự động hóa
+  childs:
+  - slug: tools-and-automation-001
+    title: Chọn công cụ theo quy trình và nhu cầu phối hợp thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-002
+    title: Thiết kế bảng công việc, trường dữ liệu và bộ lọc theo vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-003
+    title: Chuẩn hóa mẫu hạng mục mà không tạo gánh nặng nhập liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-004
+    title: Liên kết công việc với nhánh mã, commit, yêu cầu hợp nhất và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-005
+    title: Tự động cập nhật trạng thái từ sự kiện phát triển có điều kiện kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-006
+    title: Tạo nhắc việc, cảnh báo quá hạn và thông báo phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-007
+    title: Đồng bộ dữ liệu giữa công cụ và xác định nguồn chuẩn cho từng loại thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-008
+    title: Quản lý quyền truy cập, lịch sử thay đổi và thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-009
+    title: Xây dựng bảng theo dõi và báo cáo từ dữ liệu có thể truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-010
+    title: Nhận diện giới hạn của công cụ và tránh thay quy trình bằng cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: personal-management
+  title: Quản lý cá nhân
+  childs:
+  - slug: personal-management-001
+    title: Thu thập đầu việc cá nhân và liên kết với kế hoạch chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: personal-management-002
+    title: Xác định việc tiếp theo có thể hành động được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: personal-management-003
+    title: Ưu tiên theo mục tiêu, thời hạn và tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: personal-management-004
+    title: Lập lịch tập trung và giới hạn số việc đang làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: personal-management-005
+    title: Quản lý thông báo, gián đoạn và chuyển đổi ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: personal-management-006
+    title: Ghi lại tiến độ, trở ngại và quyết định cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: personal-management-007
+    title: Ước lượng và rà soát cách sử dụng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: personal-management-008
+    title: Cân bằng tự chủ cá nhân với minh bạch trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-improvement
+  title: Cải tiến cách làm
+  childs:
+  - slug: process-improvement-001
+    title: Thu thập dữ liệu và phản hồi từ quá trình thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-002
+    title: Tổ chức nhìn lại dựa trên sự kiện và điều kiện làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-003
+    title: Phân tích nguyên nhân của chậm trễ, làm lại và công việc bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-004
+    title: Chọn một vấn đề có tác động rõ để thử nghiệm cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-005
+    title: Đặt giả thuyết, hành động và cách đo kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-006
+    title: Giới hạn số thay đổi để đánh giá được tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-007
+    title: Theo dõi hành động cải tiến như các hạng mục công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-008
+    title: Chuẩn hóa cách làm có hiệu quả và loại bỏ bước không tạo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-improvement-009
+    title: Phân biệt điều chỉnh quản lý công việc với cải tổ toàn bộ quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Lập kế hoạch quá chi tiết khi đầu vào còn nhiều bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Cam kết thời hạn trước khi hiểu phạm vi và năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Xem ước lượng là cam kết cố định hoặc ép ước lượng theo hạn chót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Để mọi yêu cầu đều khẩn cấp và liên tục đổi ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Tối đa hóa mức sử dụng từng người làm tăng hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Mở quá nhiều việc và báo tiến độ bằng tỷ lệ hoàn thành cảm tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Bỏ sót kiểm thử, tích hợp, tài liệu và công việc vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Dùng trạng thái hoàn tất để che công việc chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Điều hành bằng chỉ số đơn lẻ hoặc so sánh năng suất cá nhân sai cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Duy trì bảng công việc hình thức, dữ liệu cũ và quyết định không được ghi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Thiết kế quy trình tiếp nhận và sàng lọc yêu cầu cho một nhóm phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Chuyển mục tiêu sản phẩm thành cấu trúc công việc và sản phẩm bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Chuẩn hóa mô tả hạng mục cùng tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Ưu tiên danh sách có tính năng, lỗi, nợ kỹ thuật và việc vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Lập ước lượng, năng lực và kế hoạch khi có nghỉ phép hoặc trực hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Xây dựng lịch có phụ thuộc và xác định công việc ảnh hưởng mốc chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thiết kế bảng công việc với giới hạn WIP và chính sách xử lý việc bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Điều phối yêu cầu khẩn cấp trong khi vẫn bảo vệ mục tiêu đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Phân tích yêu cầu thay đổi và đề xuất phương án đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Đọc dữ liệu dòng công việc để chẩn đoán nút thắt và dự báo hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Tổ chức bàn giao liên nhóm cùng bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Thực hiện một vòng nhìn lại và đo kết quả cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-pipes-filters
+  title: Tư duy Pipes & Filters
+  purpose: Hiểu cách chia tác vụ xử lý dữ liệu thành các bước độc lập, nối tiếp nhau qua đường truyền.
+  objectives:
+  - Giải thích vai trò của pipe và filter.
+  - Vẽ luồng dữ liệu cho quy trình ETL đơn giản.
+  - Nêu lợi ích về tái sử dụng và thay đổi thứ tự bước.
+- id: source-filter-sink
+  title: Source, Filter & Sink
+  purpose: Xác định đầu vào, các giai đoạn biến đổi và điểm tiêu thụ kết quả trong pipeline.
+  objectives:
+  - Phân biệt source, processing filter và sink.
+  - Tách ví dụ xử lý log thành các filter nhỏ.
+  - Giữ mỗi filter tập trung một trách nhiệm.
+- id: hop-dong-du-lieu-interface
+  title: Hợp đồng dữ liệu & Interface
+  purpose: Giảm phụ thuộc giữa các bước nhờ giao diện và định dạng trao đổi nhất quán.
+  objectives:
+  - Định nghĩa input/output cho hai filter liên tiếp.
+  - Chọn DTO hoặc message schema phù hợp.
+  - Kiểm tra một thay đổi dữ liệu không phá vỡ filter sau.
+- id: ghep-pipeline-tai-su-dung
+  title: Ghép Pipeline & Tái sử dụng
+  purpose: Xây dựng quy trình xử lý bằng cách kết hợp, thay thế hoặc sắp xếp lại các filter.
+  objectives:
+  - Ghép validate → transform → enrich → output.
+  - Đổi vị trí hai bước độc lập và so sánh kết quả.
+  - Tái sử dụng một filter ở pipeline khác.
+- id: pipe-dong-bo-bat-dong-bo
+  title: Pipe đồng bộ & bất đồng bộ
+  purpose: Chọn cách truyền dữ liệu giữa các bước theo yêu cầu về latency, thông lượng và độ bền.
+  objectives:
+  - Phân biệt function/stream với message channel.
+  - So sánh truyền trực tiếp và qua queue.
+  - Xác định thứ tự xử lý và ranh giới transaction.
+- id: loi-retry-idempotency
+  title: Lỗi, Retry & Idempotency
+  purpose: Xác định hành vi khi một filter thất bại để tránh mất dữ liệu hoặc xử lý trùng.
+  objectives:
+  - Quy định fail-fast, retry hoặc dead-letter theo lỗi.
+  - Giải thích vì sao retry cần idempotency.
+  - Thiết kế cách phát hiện và bỏ qua message trùng.
+- id: throughput-backpressure
+  title: Throughput & Backpressure
+  purpose: Nhận diện bước xử lý chậm và kiểm soát tốc độ dữ liệu qua các pipe.
+  objectives:
+  - Đo latency và throughput của từng filter.
+  - Xác định bottleneck và nhu cầu scale riêng.
+  - Giải thích buffer, backpressure và giới hạn queue.
+- id: kiem-thu-trade-offs
+  title: Kiểm thử & Trade-offs
+  purpose: Đánh giá tính đúng đắn từng filter và chọn pattern trong tình huống phù hợp.
+  objectives:
+  - Viết unit test cho một filter độc lập.
+  - Kiểm tra integration test của pipeline hoàn chỉnh.
+  - Nêu khi nào pipeline gây overhead hoặc không phù hợp.

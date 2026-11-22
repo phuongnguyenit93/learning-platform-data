@@ -1,0 +1,3 @@
+menuLevel1: Resource Server JWT
+menuLevel2: Ánh xạ scope thành quyền SCOPE_ và tùy chỉnh JwtGrantedAuthoritiesConverter
+status: WRITTEN

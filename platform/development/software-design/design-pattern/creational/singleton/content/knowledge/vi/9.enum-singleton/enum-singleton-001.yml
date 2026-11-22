@@ -1,0 +1,3 @@
+menuLevel1: Enum Singleton
+menuLevel2: Triển khai enum một hằng làm Singleton và đặt hành vi nghiệp vụ vào enum
+status: ""

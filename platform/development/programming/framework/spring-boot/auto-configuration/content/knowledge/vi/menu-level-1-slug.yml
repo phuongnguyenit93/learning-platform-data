@@ -1,0 +1,88 @@
+menu:
+- title: Bức tranh tự cấu hình
+  slug: auto-configuration-overview
+  index: 0
+- title: Nền tảng cần biết
+  slug: core-prerequisites
+  index: 1
+- title: Kích hoạt tự cấu hình
+  slug: enable-auto-configuration
+  index: 2
+- title: Khám phá ứng viên
+  slug: candidate-discovery
+  index: 3
+- title: Lớp tự cấu hình
+  slug: auto-configuration-class
+  index: 4
+- title: Cơ chế điều kiện
+  slug: condition-mechanism
+  index: 5
+- title: Điều kiện classpath
+  slug: classpath-conditions
+  index: 6
+- title: Điều kiện bean
+  slug: bean-conditions
+  index: 7
+- title: Điều kiện thuộc tính
+  slug: property-conditions
+  index: 8
+- title: Điều kiện môi trường
+  slug: environment-conditions
+  index: 9
+- title: Thứ tự cấu hình
+  slug: configuration-order
+  index: 10
+- title: Thay thế và loại trừ
+  slug: replacement-and-exclusion
+  index: 11
+- title: Thuộc tính thư viện
+  slug: library-properties
+  index: 12
+- title: Điểm mở rộng
+  slug: extension-points
+  index: 13
+- title: Báo cáo điều kiện
+  slug: condition-evaluation-report
+  index: 14
+- title: Đọc mã tự cấu hình
+  slug: reading-auto-configuration
+  index: 15
+- title: Ví dụ JDBC
+  slug: jdbc-example
+  index: 16
+- title: Ví dụ ứng dụng web
+  slug: web-application-example
+  index: 17
+- title: Thư viện tự cấu hình
+  slug: auto-configuration-library
+  index: 18
+- title: Starter tùy chỉnh
+  slug: custom-starter
+  index: 19
+- title: Metadata
+  slug: auto-configuration-metadata
+  index: 20
+- title: Kiểm thử độc lập
+  slug: isolated-testing
+  index: 21
+- title: Ma trận kiểm thử
+  slug: test-matrix
+  index: 22
+- title: Điều kiện tùy chỉnh
+  slug: custom-conditions
+  index: 23
+- title: Hiệu năng và AOT
+  slug: performance-and-aot
+  index: 24
+- title: Tương thích phiên bản
+  slug: version-compatibility
+  index: 25
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 26
+- title: Thiết kế và bảo trì
+  slug: design-and-maintenance
+  index: 27
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 28

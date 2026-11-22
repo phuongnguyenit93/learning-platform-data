@@ -1,0 +1,34 @@
+roadmap:
+- id: suy-luan-kieu-voi-var
+  title: Suy luận kiểu với var
+  purpose: Giảm lặp tên kiểu mà vẫn giữ kiểu tĩnh và mã dễ đọc.
+  objectives:
+  - Giải thích kiểu được suy luận lúc biên dịch từ biểu thức khởi tạo.
+  - Dùng var cho biến cục bộ, vòng lặp và tài nguyên trong try.
+  - Nhận diện nơi không dùng được var và khi nên ghi rõ kiểu.
+- id: tap-hop-voi-copyof
+  title: Tập hợp với copyOf
+  purpose: Tạo kết quả không cho sửa cấu trúc và tách khỏi thay đổi cấu trúc của nguồn.
+  objectives:
+  - Dùng List.copyOf, Set.copyOf và Map.copyOf.
+  - Phân biệt bản sao với khung nhìn và phần tử có thể thay đổi.
+  - Kiểm tra dữ liệu null trước khi sao chép.
+- id: ket-qua-stream-khong-sua-doi
+  title: Kết quả Stream không sửa đổi
+  purpose: Chốt kết quả xử lý Stream thành tập hợp không cho thêm, xóa hoặc thay thế phần tử.
+  objectives:
+  - Chọn toUnmodifiableList, toUnmodifiableSet hoặc toUnmodifiableMap.
+  - Xử lý null và khóa trùng trước hoặc khi thu thập.
+- id: lay-gia-tri-hoac-bao-loi
+  title: Lấy giá trị hoặc báo lỗi
+  purpose: Diễn đạt rõ trường hợp bắt buộc phải có giá trị trong Optional.
+  objectives:
+  - Dùng orElseThrow() không tham số để lấy giá trị.
+  - Kiểm chứng NoSuchElementException khi Optional rỗng.
+- id: jvm-trong-container
+  title: JVM trong container
+  purpose: Hiểu cách JVM nhận giới hạn tài nguyên của container Linux để cấu hình phù hợp.
+  objectives:
+  - Kiểm tra CPU và bộ nhớ JVM thực sự nhận được.
+  - Điều chỉnh heap bằng -Xmx hoặc -XX:MaxRAMPercentage.
+  - Chừa bộ nhớ cho các phần ngoài heap.

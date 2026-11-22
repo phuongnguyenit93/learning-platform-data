@@ -1,0 +1,133 @@
+menu:
+- title: Tổng quan ứng dụng sự kiện
+  slug: application-events-overview
+  index: 0
+- title: Spring Modulith
+  slug: spring-modulith-introduction
+  index: 1
+- title: Kiến trúc theo module
+  slug: modular-architecture
+  index: 2
+- title: Ranh giới module
+  slug: module-boundaries
+  index: 3
+- title: Mô hình sự kiện
+  slug: event-model
+  index: 4
+- title: Thiết kế event
+  slug: event-design
+  index: 5
+- title: Hợp đồng sự kiện
+  slug: event-contracts
+  index: 6
+- title: Event nội bộ và tích hợp
+  slug: internal-vs-integration-events
+  index: 7
+- title: Chu kỳ phát hành
+  slug: event-publication-lifecycle
+  index: 8
+- title: Listener và subscriber
+  slug: event-listeners-subscribers
+  index: 9
+- title: Điều phối handler
+  slug: handler-coordination
+  index: 10
+- title: Đồng bộ và bất đồng bộ
+  slug: synchronous-vs-asynchronous-events
+  index: 11
+- title: Giao dịch và event
+  slug: transactions-and-events
+  index: 12
+- title: Transactional listener
+  slug: transactional-event-listeners
+  index: 13
+- title: Đảm bảo tin cậy
+  slug: event-delivery-reliability
+  index: 14
+- title: Publication Registry
+  slug: event-publication-registry
+  index: 15
+- title: Outbox và lưu trữ
+  slug: outbox-and-event-storage
+  index: 16
+- title: Thử lại và bù trừ
+  slug: retries-and-compensation
+  index: 17
+- title: Externalization
+  slug: event-externalization
+  index: 18
+- title: Định tuyến sự kiện
+  slug: event-routing
+  index: 19
+- title: Serialization
+  slug: event-serialization
+  index: 20
+- title: Broker và adapter
+  slug: brokers-and-adapters
+  index: 21
+- title: Kafka integration
+  slug: kafka-integration
+  index: 22
+- title: RabbitMQ và AMQP
+  slug: rabbitmq-amqp-integration
+  index: 23
+- title: Projection và read model
+  slug: projections-and-read-models
+  index: 24
+- title: Saga và process manager
+  slug: sagas-and-process-managers
+  index: 25
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 26
+- title: Idempotency
+  slug: event-idempotency
+  index: 27
+- title: Xử lý lỗi
+  slug: event-error-handling
+  index: 28
+- title: Bảo mật event
+  slug: event-security
+  index: 29
+- title: Quan sát event
+  slug: event-observability
+  index: 30
+- title: Hiệu năng event
+  slug: event-performance
+  index: 31
+- title: Kiểm thử event
+  slug: event-testing
+  index: 32
+- title: Kiểm thử module
+  slug: module-testing
+  index: 33
+- title: Scenario testing
+  slug: scenario-testing
+  index: 34
+- title: Testing broker
+  slug: broker-testing
+  index: 35
+- title: Phiên bản event
+  slug: event-versioning
+  index: 36
+- title: Di trú event
+  slug: event-migration
+  index: 37
+- title: Tài liệu event
+  slug: event-documentation
+  index: 38
+- title: Vận hành production
+  slug: production-operations
+  index: 39
+- title: Anti-pattern event
+  slug: event-antipatterns
+  index: 40
+- title: Thiết kế quyết định
+  slug: event-design-decisions
+  index: 41
+- title: Dự án thực hành
+  slug: hands-on-project
+  index: 42
+- title: Tổng kết ứng dụng sự kiện
+  slug: application-events-summary
+  index: 43

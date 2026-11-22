@@ -1,0 +1,3 @@
+menuLevel1: Nạp và liên kết lớp AOT
+menuLevel2: Ghi nhận workload với -XX:AOTMode=record và -XX:AOTConfiguration
+status: ""

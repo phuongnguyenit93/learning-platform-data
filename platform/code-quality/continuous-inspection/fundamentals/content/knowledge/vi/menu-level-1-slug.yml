@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: code-quality-overview
+  index: 0
+- title: Vòng phản hồi
+  slug: feedback-loop
+  index: 1
+- title: Phạm vi kiểm tra
+  slug: inspection-scope
+  index: 2
+- title: Kiến trúc hệ thống
+  slug: system-architecture
+  index: 3
+- title: Nguồn bằng chứng
+  slug: evidence-sources
+  index: 4
+- title: Chỉ số chất lượng
+  slug: quality-metrics
+  index: 5
+- title: Phân loại phát hiện
+  slug: finding-categories
+  index: 6
+- title: Quy tắc và hồ sơ
+  slug: rules-and-profiles
+  index: 7
+- title: Cổng chất lượng
+  slug: quality-gates
+  index: 8
+- title: Mã mới và mã cũ
+  slug: new-and-legacy-code
+  index: 9
+- title: Độ bao phủ
+  slug: coverage
+  index: 10
+- title: Mã trùng lặp
+  slug: code-duplication
+  index: 11
+- title: Độ phức tạp
+  slug: complexity
+  index: 12
+- title: Nợ kỹ thuật
+  slug: technical-debt
+  index: 13
+- title: Xử lý phát hiện
+  slug: finding-remediation
+  index: 14
+- title: Ngoại lệ và đường cơ sở
+  slug: exceptions-and-baselines
+  index: 15
+- title: Thiết kế pipeline
+  slug: pipeline-design
+  index: 16
+- title: Tích hợp Java
+  slug: java-integration
+  index: 17
+- title: Pull request và nhánh
+  slug: pull-requests-and-branches
+  index: 18
+- title: Phản hồi lập trình viên
+  slug: developer-feedback
+  index: 19
+- title: Báo cáo chất lượng
+  slug: quality-reports
+  index: 20
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 21
+- title: Bảo vệ pipeline
+  slug: pipeline-protection
+  index: 22
+- title: Độ tin cậy kết quả
+  slug: result-reliability
+  index: 23
+- title: Hiệu năng kiểm tra
+  slug: inspection-performance
+  index: 24
+- title: Áp dụng trên mã cũ
+  slug: legacy-code-adoption
+  index: 25
+- title: Quản trị cấu hình
+  slug: configuration-governance
+  index: 26
+- title: Đo lường cải tiến
+  slug: improvement-metrics
+  index: 27
+- title: Chẩn đoán sự cố
+  slug: incident-diagnosis
+  index: 28
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 29

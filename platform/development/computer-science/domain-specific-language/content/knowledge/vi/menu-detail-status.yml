@@ -1,0 +1,4087 @@
+menu:
+- slug: domain-specific-language-overview
+  title: Tổng quan DSL
+  childs:
+  - slug: domain-specific-language-overview-001
+    title: DSL là gì và giải quyết bài toán nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-002
+    title: Vì sao cần ngôn ngữ chuyên miền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-003
+    title: Đặc trưng của DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-004
+    title: DSL khác ngôn ngữ đa dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-005
+    title: DSL khai báo và DSL mệnh lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-006
+    title: DSL nội bộ và DSL bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-007
+    title: Ví dụ DSL trong thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-008
+    title: Lợi ích và giới hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-009
+    title: Vòng đời của một DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-overview-010
+    title: Thuật ngữ cốt lõi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-scope
+  title: Phạm vi miền
+  childs:
+  - slug: domain-scope-001
+    title: Xác định miền nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-002
+    title: Xác định bên liên quan
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-003
+    title: Bài toán và mục tiêu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-004
+    title: Ranh giới của DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-005
+    title: Khái niệm trung tâm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-006
+    title: Quy tắc nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-007
+    title: Thuật ngữ miền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-008
+    title: Biến thể và điểm mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-scope-009
+    title: Điều DSL không bao phủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-discovery
+  title: Khám phá miền
+  childs:
+  - slug: domain-discovery-001
+    title: Phỏng vấn chuyên gia miền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-002
+    title: Thu thập ví dụ thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-003
+    title: Kịch bản sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-004
+    title: Luồng công việc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-005
+    title: Ma trận quyết định miền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-006
+    title: Sự kiện và trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-007
+    title: Phân tích ngôn ngữ tự nhiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-008
+    title: Kiểm chứng với chuyên gia
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-discovery-009
+    title: Duy trì bảng thuật ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-modeling
+  title: Mô hình miền
+  childs:
+  - slug: domain-modeling-001
+    title: Thực thể và đối tượng giá trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-002
+    title: Quan hệ giữa các khái niệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-003
+    title: Ranh giới aggregate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-004
+    title: Bất biến của miền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-005
+    title: Chuyển đổi trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-006
+    title: Hành động và sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-007
+    title: Thuộc tính và siêu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-008
+    title: Liên kết mô hình với yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-009
+    title: Mô hình hóa ví dụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-specific-language-architecture
+  title: Kiến trúc DSL
+  childs:
+  - slug: domain-specific-language-architecture-001
+    title: Các lớp của một DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-002
+    title: Tiền xử lý và frontend
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-003
+    title: Luồng qua mô hình trung gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-004
+    title: Backend và target
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-005
+    title: Runtime của DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-006
+    title: Công cụ phát triển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-007
+    title: Lưu trữ và phân phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-008
+    title: Điểm mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-architecture-009
+    title: Lựa chọn kiến trúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: internal-and-external-languages
+  title: Nội bộ và bên ngoài
+  childs:
+  - slug: internal-and-external-languages-001
+    title: DSL nội bộ là gì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-002
+    title: DSL bên ngoài là gì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-003
+    title: DSL nhúng trong ngôn ngữ chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-004
+    title: DSL độc lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-005
+    title: DSL lai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-006
+    title: So sánh khả năng biểu đạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-007
+    title: So sánh an toàn kiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-008
+    title: So sánh chi phí công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-009
+    title: Khi nào nên chọn cách nào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-and-external-languages-010
+    title: Lộ trình chuyển đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: internal-language
+  title: Ngôn ngữ nội bộ
+  childs:
+  - slug: internal-language-001
+    title: API thông thạo (fluent API)
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-002
+    title: Mẫu Builder
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-003
+    title: Lambda và closure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-004
+    title: Static import và tên ngắn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-005
+    title: Tận dụng hệ kiểu của Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-006
+    title: Đọc gần ngôn ngữ miền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-007
+    title: Giới hạn của ngữ pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-008
+    title: Thiết kế API ổn định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-language-009
+    title: Kiểm thử DSL nội bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-syntax
+  title: Cú pháp tổng thể
+  childs:
+  - slug: language-syntax-001
+    title: Cú pháp cụ thể và trừu tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-002
+    title: Từ vựng và ngữ pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-003
+    title: Ký hiệu hướng người dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-004
+    title: Cú pháp dễ đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-005
+    title: Tính nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-006
+    title: Tùy chọn và giá trị mặc định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-007
+    title: Dấu phân cách và khối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-008
+    title: Khoảng trắng và chú thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-syntax-009
+    title: Tránh mơ hồ cú pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lexical-structure
+  title: Từ vựng
+  childs:
+  - slug: lexical-structure-001
+    title: Token và lexeme
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-002
+    title: Từ khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-003
+    title: Tên định danh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-004
+    title: Giá trị literal
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-005
+    title: Toán tử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-006
+    title: Khoảng trắng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-007
+    title: Chú thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-008
+    title: Ký tự thoát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-009
+    title: Unicode và mã hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-structure-010
+    title: Vị trí nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: grammar
+  title: Ngữ pháp
+  childs:
+  - slug: grammar-001
+    title: Luật sản sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-002
+    title: Ký pháp EBNF
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-003
+    title: Đệ quy và lặp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-004
+    title: Ưu tiên toán tử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-005
+    title: Tính kết hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-006
+    title: Lookahead
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-007
+    title: Đệ quy trái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-008
+    title: Mơ hồ ngữ pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-009
+    title: Ngữ pháp mô-đun
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-010
+    title: Đơn giản hóa luật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: syntax-trees
+  title: Cây cú pháp
+  childs:
+  - slug: syntax-trees-001
+    title: CST và parse tree
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-002
+    title: AST và mục đích sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-003
+    title: Nút và quan hệ cây
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-004
+    title: Thông tin vị trí nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-005
+    title: Giữ hoặc bỏ trivia
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-006
+    title: Chuẩn hóa cây
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-007
+    title: AST bất biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-008
+    title: Visitor và listener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-009
+    title: Biến đổi cây
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-trees-010
+    title: Truy vết về mã nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: abstract-syntax-models
+  title: Mô hình trừu tượng
+  childs:
+  - slug: abstract-syntax-models-001
+    title: Metamodel là gì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-002
+    title: Lớp và thuộc tính
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-003
+    title: Tham chiếu và containment
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-004
+    title: Số lượng phần tử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-005
+    title: Kế thừa mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-006
+    title: Giá trị mặc định thuộc tính
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-007
+    title: Ràng buộc mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-008
+    title: Tuần tự hóa mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-009
+    title: Tiến hóa schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstract-syntax-models-010
+    title: Đồng bộ cú pháp và mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-semantics
+  title: Ngữ nghĩa
+  childs:
+  - slug: language-semantics-001
+    title: Ngữ nghĩa tĩnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-002
+    title: Ngữ nghĩa động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-003
+    title: Ngữ nghĩa chỉ định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-004
+    title: Ngữ nghĩa vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-005
+    title: Ý nghĩa của cấu trúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-006
+    title: Tác dụng phụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-007
+    title: Tính xác định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-008
+    title: Lỗi trong quá trình thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-semantics-009
+    title: Tài liệu hóa ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: type-systems
+  title: Hệ kiểu
+  childs:
+  - slug: type-systems-001
+    title: Kiểu nguyên thủy và kiểu miền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-002
+    title: Suy luận kiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-003
+    title: Tương thích và chuyển kiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-004
+    title: Kiểu con và đa hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-005
+    title: Tham số hóa và generic
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-006
+    title: Giá trị null
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-007
+    title: Đơn vị đo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-008
+    title: Lỗi kiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-009
+    title: Kiểm tra kiểu tĩnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: type-systems-010
+    title: Kiểm tra kiểu động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: name-resolution
+  title: Phân giải tên
+  childs:
+  - slug: name-resolution-001
+    title: Phạm vi tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-002
+    title: Bảng ký hiệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-003
+    title: Namespace và import
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-004
+    title: Tên đầy đủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-005
+    title: Che khuất tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-006
+    title: Tham chiếu trước khai báo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-007
+    title: Liên kết tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-008
+    title: Tham chiếu vòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-009
+    title: Phân giải nhiều tệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: name-resolution-010
+    title: Chẩn đoán tên không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lexical-analysis
+  title: Phân tích từ vựng
+  childs:
+  - slug: lexical-analysis-001
+    title: Quy trình lexer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-002
+    title: Nhận diện token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-003
+    title: Chế độ lexer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-004
+    title: Kênh token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-005
+    title: Quy tắc khớp dài nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-006
+    title: Ký tự không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-007
+    title: Theo dõi dòng và cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-008
+    title: Lexer tăng dần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-009
+    title: Kiểm thử quy tắc lexer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: parsing
+  title: Phân tích cú pháp
+  childs:
+  - slug: parsing-001
+    title: Parser là gì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-002
+    title: Parser LL và LR
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-003
+    title: Parser PEG
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-004
+    title: Recursive descent
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-005
+    title: Parser combinator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-006
+    title: Phân tích ưu tiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-007
+    title: Xử lý lookahead
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-008
+    title: Khôi phục sau lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-009
+    title: Hiệu năng parser
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-010
+    title: Kiểm thử luật parser
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-diagnostics
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: error-diagnostics-001
+    title: Lỗi từ vựng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-002
+    title: Lỗi cú pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-003
+    title: Lỗi ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-004
+    title: Vị trí lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-005
+    title: Token được mong đợi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-006
+    title: Thông báo dễ hiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-007
+    title: Gợi ý sửa lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-008
+    title: Khôi phục để báo nhiều lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-009
+    title: Mã lỗi và mức độ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-diagnostics-010
+    title: Bản địa hóa thông báo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: semantic-analysis
+  title: Kiểm tra ngữ nghĩa
+  childs:
+  - slug: semantic-analysis-001
+    title: Các pha kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-002
+    title: Thuộc tính bắt buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-003
+    title: Ràng buộc kiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-004
+    title: Ràng buộc tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-005
+    title: Bất biến liên nút
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-006
+    title: Kiểm tra nhiều tệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-007
+    title: Cảnh báo và lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-008
+    title: Quy tắc có thể mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-009
+    title: Sửa nhanh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semantic-analysis-010
+    title: Kiểm chứng mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compilation-and-interpretation
+  title: Biên dịch và thông dịch
+  childs:
+  - slug: compilation-and-interpretation-001
+    title: Thông dịch DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-002
+    title: Biên dịch DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-003
+    title: Pipeline xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-004
+    title: Mã trung gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-005
+    title: Tối ưu hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-006
+    title: Sinh target
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-007
+    title: Runtime độc lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-008
+    title: Biên dịch tăng dần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-009
+    title: Bộ nhớ đệm kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-and-interpretation-010
+    title: Đánh đổi giữa hai cách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: code-generation
+  title: Sinh mã
+  childs:
+  - slug: code-generation-001
+    title: Mẫu sinh mã
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-002
+    title: Ánh xạ mô hình sang mã
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-003
+    title: Quy tắc đặt tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-004
+    title: Quản lý import
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-005
+    title: Định dạng mã sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-006
+    title: Chú thích nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-007
+    title: Source map
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-008
+    title: Sinh mã lặp lại an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-009
+    title: Ranh giới mã sinh và mã tay
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-generation-010
+    title: Kiểm tra mã đầu ra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-transformation
+  title: Biến đổi ngôn ngữ
+  childs:
+  - slug: language-transformation-001
+    title: Transpilation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-002
+    title: Desugaring
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-003
+    title: Chuẩn hóa mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-004
+    title: Biến đổi mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-005
+    title: Chuyển đổi phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-006
+    title: Mô hình trung gian cho chuyển đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-007
+    title: Bảo toàn ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-008
+    title: Round-trip
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-009
+    title: Truy vết biến đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-transformation-010
+    title: Tương thích ngược
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-execution
+  title: Thực thi DSL
+  childs:
+  - slug: language-execution-001
+    title: Engine thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-002
+    title: Bối cảnh đánh giá
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-003
+    title: Biến và phạm vi chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-004
+    title: Hàm và phép toán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-005
+    title: Quản lý trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-006
+    title: Giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-007
+    title: Lập lịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-008
+    title: Đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-009
+    title: Quan sát và ghi log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-execution-010
+    title: Cô lập môi trường chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: persistence-and-exchange
+  title: Lưu trữ và trao đổi
+  childs:
+  - slug: persistence-and-exchange-001
+    title: Định dạng văn bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-002
+    title: Tuần tự hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-003
+    title: Giải tuần tự hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-004
+    title: Schema dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-005
+    title: Dạng biểu diễn chuẩn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-006
+    title: So sánh và diff
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-007
+    title: Hợp nhất và merge
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-008
+    title: Nhập và xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-009
+    title: Tương thích dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-exchange-010
+    title: Kiểm tra toàn vẹn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-specific-language-editors
+  title: Trình soạn thảo
+  childs:
+  - slug: domain-specific-language-editors-001
+    title: Tô màu cú pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-002
+    title: Thu gọn mã
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-003
+    title: Cây phác thảo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-004
+    title: Gợi ý hoàn thành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-005
+    title: Hiển thị hover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-006
+    title: Đi tới định nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-007
+    title: Tìm tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-008
+    title: Đổi tên an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-009
+    title: Định dạng tự động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-editors-010
+    title: Tái cấu trúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-servers
+  title: Language Server
+  childs:
+  - slug: language-servers-001
+    title: Vai trò của LSP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-002
+    title: Khởi tạo phiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-003
+    title: Đồng bộ tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-004
+    title: Chẩn đoán thời gian thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-005
+    title: Hoàn thành mã
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-006
+    title: Symbol và workspace
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-007
+    title: Điều hướng tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-008
+    title: Hủy tác vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-009
+    title: Cập nhật tăng dần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-servers-010
+    title: Đo lường và telemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-tooling
+  title: Công cụ hỗ trợ
+  childs:
+  - slug: language-tooling-001
+    title: Giao diện dòng lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-002
+    title: Trình định dạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-003
+    title: Trình kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-004
+    title: REPL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-005
+    title: Trình gỡ lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-006
+    title: Trình trực quan hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-007
+    title: Trình tạo dự án
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-008
+    title: Tài liệu tự sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-009
+    title: Plugin
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-tooling-010
+    title: Tích hợp CI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-frameworks-and-workbenches
+  title: Framework và workbench
+  childs:
+  - slug: language-frameworks-and-workbenches-001
+    title: ANTLR
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-002
+    title: Xtext
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-003
+    title: JetBrains MPS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-004
+    title: Framework parser combinator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-005
+    title: Workbench tùy biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-006
+    title: Tiêu chí lựa chọn công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-007
+    title: Tích hợp generated artifact
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-008
+    title: Khả năng mở rộng framework
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-009
+    title: Quản lý phiên bản công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-frameworks-and-workbenches-010
+    title: Chi phí khóa nhà cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: configuration-language
+  title: DSL cấu hình
+  childs:
+  - slug: configuration-language-001
+    title: Khai báo cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-002
+    title: Giá trị mặc định môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-003
+    title: Ghi đè cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-004
+    title: Profile môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-005
+    title: Biến môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-006
+    title: Quản lý bí mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-007
+    title: Schema và validation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-008
+    title: Triển khai cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-009
+    title: Phát hiện cấu hình lệch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-language-010
+    title: Khả năng truy vết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: query-language
+  title: DSL truy vấn
+  childs:
+  - slug: query-language-001
+    title: Mục tiêu của DSL truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-002
+    title: Chọn và chiếu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-003
+    title: Lọc dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-004
+    title: Kết hợp nguồn dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-005
+    title: Nhóm và tổng hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-006
+    title: Sắp xếp và phân trang
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-007
+    title: Kiểu kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-008
+    title: Tối ưu hóa truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-009
+    title: Kiểm soát quyền truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-language-010
+    title: An toàn trước injection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: rules-and-decision-language
+  title: DSL luật và quyết định
+  childs:
+  - slug: rules-and-decision-language-001
+    title: Luật điều kiện và hành động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-002
+    title: Độ ưu tiên luật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-003
+    title: Xung đột giữa các luật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-004
+    title: Bảng quyết định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-005
+    title: Cây quyết định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-006
+    title: Giải thích kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-007
+    title: Mô phỏng kịch bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-008
+    title: Phiên bản luật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-009
+    title: Kiểm toán quyết định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rules-and-decision-language-010
+    title: Kiểm thử tập luật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: process-language
+  title: DSL quy trình
+  childs:
+  - slug: process-language-001
+    title: Trạng thái và chuyển tiếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-002
+    title: Điều kiện chuyển trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-003
+    title: Sự kiện quy trình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-004
+    title: Tác vụ tự động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-005
+    title: Tác vụ con người
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-006
+    title: Retry và bù trừ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-007
+    title: Timeout
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-008
+    title: Nhánh song song
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-009
+    title: Theo dõi tiến trình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-language-010
+    title: Trực quan hóa quy trình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: build-and-deployment-language
+  title: DSL xây dựng và triển khai
+  childs:
+  - slug: build-and-deployment-language-001
+    title: Khai báo tác vụ build
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-002
+    title: Đồ thị phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-003
+    title: Đóng gói sản phẩm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-004
+    title: Môi trường triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-005
+    title: Pipeline phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-006
+    title: Artifact
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-007
+    title: Tính tái lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-008
+    title: Bộ nhớ đệm build
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-009
+    title: Kiểm soát quyền thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-deployment-language-010
+    title: Quan sát pipeline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-and-data-language
+  title: DSL API và dữ liệu
+  childs:
+  - slug: api-and-data-language-001
+    title: Mô tả schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-002
+    title: Mô tả endpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-003
+    title: Payload và kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-004
+    title: Ràng buộc đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-005
+    title: Ánh xạ mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-006
+    title: Sinh mã client và server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-007
+    title: Tương thích hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-008
+    title: Ví dụ yêu cầu và phản hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-009
+    title: Tài liệu API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-data-language-010
+    title: Kiểm thử hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Nhúng DSL vào ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-002
+    title: API của host
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-003
+    title: Vòng đời engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-004
+    title: Gọi dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-005
+    title: Plugin và extension
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-006
+    title: Sự kiện tích hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-007
+    title: Giao dịch xuyên ranh giới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-008
+    title: Xử lý lỗi tích hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-009
+    title: Cấu hình host
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-010
+    title: Kiểm thử tích hợp host
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-security
+  title: Bảo mật DSL
+  childs:
+  - slug: language-security-001
+    title: Mô hình đe dọa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-002
+    title: Đầu vào không tin cậy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-003
+    title: Sandbox
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-004
+    title: Phân quyền thao tác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-005
+    title: Bảo vệ bí mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-006
+    title: Phòng chống injection runtime
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-007
+    title: Giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-008
+    title: Kiểm toán hoạt động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-009
+    title: Chuỗi cung ứng công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-security-010
+    title: Phản ứng sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-performance
+  title: Hiệu năng DSL
+  childs:
+  - slug: language-performance-001
+    title: Tốc độ phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-002
+    title: Mức sử dụng bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-003
+    title: Mô hình lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-004
+    title: Phân tích tăng dần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-005
+    title: Bộ nhớ đệm AST
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-006
+    title: Tối ưu mã sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-007
+    title: Hiệu năng runtime
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-008
+    title: Đo đạc và profiling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-009
+    title: Giới hạn quy mô
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-performance-010
+    title: Đánh đổi hiệu năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-testing
+  title: Kiểm thử DSL
+  childs:
+  - slug: language-testing-001
+    title: Kiểm thử lexer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-002
+    title: Kiểm thử parser
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-003
+    title: Kiểm thử AST
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-004
+    title: Kiểm thử ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-005
+    title: Golden test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-006
+    title: Property-based test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-007
+    title: Mutation test
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-008
+    title: Kiểm thử tích hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-009
+    title: Kiểm thử mã sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-testing-010
+    title: Kiểm thử tương thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: documentation-and-learning
+  title: Tài liệu và học tập
+  childs:
+  - slug: documentation-and-learning-001
+    title: Hướng dẫn nhập môn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-002
+    title: Tài liệu tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-003
+    title: Ví dụ theo kịch bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-004
+    title: Tài liệu ngữ pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-005
+    title: Tài liệu ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-006
+    title: Tài liệu lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-007
+    title: Tài liệu API công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-008
+    title: Hướng dẫn di trú
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-009
+    title: Changelog
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: documentation-and-learning-010
+    title: Lộ trình onboarding
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-and-migration
+  title: Phiên bản và di trú
+  childs:
+  - slug: versioning-and-migration-001
+    title: Chiến lược phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-002
+    title: Tương thích cú pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-003
+    title: Tương thích ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-004
+    title: Đánh dấu ngừng dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-005
+    title: Cảnh báo di trú
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-006
+    title: Tự động nâng cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-007
+    title: Feature flag
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-008
+    title: Di trú schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-009
+    title: Phát hành và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-migration-010
+    title: Kiểm thử phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lifecycle-governance
+  title: Quản trị vòng đời
+  childs:
+  - slug: lifecycle-governance-001
+    title: Sở hữu ngôn ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-002
+    title: Kho mã và cấu trúc dự án
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-003
+    title: Quy trình đóng góp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-004
+    title: Đánh giá thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-005
+    title: Lịch phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-006
+    title: Hệ sinh thái mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-007
+    title: Chỉ số sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-008
+    title: Hỗ trợ người dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-009
+    title: Kế hoạch ngừng dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-governance-010
+    title: Lưu trữ DSL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-design-patterns
+  title: Mẫu thiết kế DSL
+  childs:
+  - slug: language-design-patterns-001
+    title: Ngôn ngữ nhỏ và tập trung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-002
+    title: Thiết kế phân tầng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-003
+    title: Thiết kế hợp thành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-004
+    title: Khai báo theo quy ước
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-005
+    title: Tách mô tả và thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-006
+    title: Lõi ổn định và plugin
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-007
+    title: Mở rộng có kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-008
+    title: Tái sử dụng mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-009
+    title: Thiết kế hướng ví dụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-design-patterns-010
+    title: Nhận diện anti-pattern
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-tradeoffs
+  title: Đánh đổi thiết kế
+  childs:
+  - slug: design-tradeoffs-001
+    title: Tính dễ đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-002
+    title: Khả năng biểu đạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-003
+    title: An toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-004
+    title: Tính linh hoạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-005
+    title: Chi phí phát triển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-006
+    title: Đường cong học tập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-007
+    title: Chất lượng tooling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-008
+    title: Mức độ phụ thuộc công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-009
+    title: Khả năng liên thông
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-tradeoffs-010
+    title: Khung ra quyết định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-specific-language-practice
+  title: Dự án thực hành
+  childs:
+  - slug: domain-specific-language-practice-001
+    title: Chọn một miền nhỏ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-002
+    title: Viết bảng thuật ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-003
+    title: Xác định ví dụ chuẩn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-004
+    title: Thiết kế cú pháp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-005
+    title: Viết grammar
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-006
+    title: Xây parser và AST
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-007
+    title: Thêm kiểm tra ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-008
+    title: Xây interpreter hoặc codegen
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-009
+    title: Tạo công cụ soạn thảo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-010
+    title: Viết bộ kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-practice-011
+    title: Đóng gói và tài liệu hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-specific-language-summary
+  title: Tổng kết DSL
+  childs:
+  - slug: domain-specific-language-summary-001
+    title: Bản đồ khái niệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-summary-002
+    title: Quy trình thiết kế hoàn chỉnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-summary-003
+    title: Danh sách kiểm tra chất lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-summary-004
+    title: Rà soát quyết định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-summary-005
+    title: Bài tập củng cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-specific-language-summary-006
+    title: Bước phát triển tiếp theo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

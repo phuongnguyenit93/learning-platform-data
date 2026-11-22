@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring.Guru — Factory Method"
+    url: "https://refactoring.guru/design-patterns/factory-method"
+    description: "Ý định, vấn đề, cấu trúc Product/Creator, tình huống áp dụng và đánh đổi."
+  - title: "Refactoring.Guru — Factory Method in Java"
+    url: "https://refactoring.guru/design-patterns/factory-method/java/example"
+    description: "Ví dụ Java dùng Dialog, Button và ConcreteCreator để thay đổi sản phẩm."
+  - title: "Java Design Patterns — Factory Method"
+    url: "https://java-design-patterns.com/patterns/factory-method/"
+    description: "Cách triển khai Factory Method trong Java, ví dụ và trường hợp sử dụng."
+  - title: "SourceMaking — Factory Method"
+    url: "https://sourcemaking.com/design_patterns/factory_method"
+    description: "Cấu trúc, ý định, checklist và so sánh với các mẫu khởi tạo liên quan."

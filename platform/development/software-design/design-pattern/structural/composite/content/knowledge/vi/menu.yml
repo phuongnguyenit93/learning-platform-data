@@ -1,0 +1,296 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Composite là gì và vị trí trong nhóm mẫu thiết kế cấu trúc
+  - Bài toán biểu diễn quan hệ phần–toàn thể trong phần mềm
+  - Xử lý đối tượng đơn lẻ và nhóm đối tượng qua một hợp đồng chung
+  - Vai trò của đa hình và kết hợp đối tượng trong Composite
+  - Nhận diện cấu trúc đệ quy có cùng loại thao tác ở nhiều cấp
+  - Lợi ích đối với mã sử dụng và khả năng mở rộng cấu trúc
+  - Chi phí của giao diện chung và việc quản lý cấu trúc
+  - Phân biệt Composite với thao tác composition nói chung
+  - Thuật ngữ và thứ tự học từ mô hình đơn giản đến thiết kế hoàn chỉnh
+- level1: Bài toán phần–toàn thể
+  level2:
+  - Mô hình hóa phần tử đơn và nhóm có thể chứa nhóm khác
+  - Nhận diện thao tác có ý nghĩa ở cả cấp lá lẫn cấp nhóm
+  - Phân biệt quan hệ chứa thành phần với quan hệ kế thừa
+  - Phân tích cách xử lý bằng điều kiện theo từng loại đối tượng
+  - Nhận diện mã lặp khi phải duyệt nhiều tầng nhóm
+  - Tách yêu cầu nghiệp vụ khỏi cách tổ chức cây trong bộ nhớ
+  - Kiểm tra trường hợp cấu trúc chỉ cần danh sách phẳng
+  - Xác định mục tiêu đơn giản hóa mã bên sử dụng
+- level1: Cấu trúc mẫu
+  level2:
+  - 'Component: hợp đồng chung của các phần tử'
+  - 'Leaf: phần tử thực hiện hành vi và không chứa phần tử con'
+  - 'Composite: phần tử chứa con và phối hợp thao tác trên chúng'
+  - 'Client: bên sử dụng làm việc qua hợp đồng Component'
+  - Mối quan hệ giữa Component, Leaf và Composite trên sơ đồ lớp
+  - Diễn biến một lời gọi từ nút gốc đến các nút lá
+  - Phân biệt vai trò mẫu thiết kế với tên lớp trong miền nghiệp vụ
+  - Phân bổ trách nhiệm giữa thao tác nghiệp vụ và quản lý cấu trúc
+  - Biến thể dùng interface hoặc lớp cơ sở trừu tượng
+  - Những phần có thể thay đổi và phần cần giữ ổn định
+- level1: Hợp đồng Component
+  level2:
+  - Chọn thao tác chung có ngữ nghĩa nhất quán cho mọi nút
+  - Thiết kế tham số và kết quả trả về của thao tác đệ quy
+  - Đặt tên theo nghiệp vụ thay vì theo chi tiết duyệt cây
+  - Xác định bất biến, tiền điều kiện và hậu điều kiện
+  - Phân biệt thao tác truy vấn với thao tác làm thay đổi trạng thái
+  - Thiết kế hợp đồng lỗi để bên sử dụng xử lý được
+  - Xác định hành vi hợp lệ của nút tổ hợp rỗng
+  - Kiểm soát thông tin nội bộ được công khai qua Component
+  - Tránh giao diện buộc nút lá cung cấp khả năng không phù hợp
+  - Kiểm chứng hợp đồng bằng ví dụ gọi trên cả lá và nhóm
+- level1: Lá và nút tổ hợp
+  level2:
+  - Triển khai trường hợp cơ sở tại nút lá
+  - Triển khai bước đệ quy tại nút tổ hợp
+  - Chọn cấu trúc lưu trữ các phần tử con
+  - Ủy quyền thao tác xuống con và tổng hợp kết quả
+  - Phân biệt hành vi riêng của nhóm với hành vi của từng thành viên
+  - Xử lý cây một nút, cây rỗng và nhóm rỗng
+  - Quy định thứ tự thực thi giữa các phần tử con
+  - Giữ dữ liệu riêng của nút tổ hợp tách khỏi kết quả được tổng hợp
+  - Thêm loại nút mới mà vẫn giữ ổn định mã sử dụng
+  - Đánh giá phần triển khai chung nên đặt ở lớp cơ sở
+- level1: Trong suốt và an toàn
+  level2:
+  - Thiết kế trong suốt với thao tác quản lý con trên Component
+  - Thiết kế an toàn với thao tác quản lý con chỉ trên Composite
+  - Đánh đổi giữa API đồng nhất và khả năng sử dụng sai
+  - Xử lý add hoặc remove khi đối tượng nhận là nút lá
+  - Đánh giá exception, thao tác không làm gì và hợp đồng thay thế
+  - Ảnh hưởng đến nguyên tắc thay thế Liskov
+  - Phân tách giao diện thao tác nghiệp vụ và giao diện quản lý con
+  - Phân biệt mã xây dựng cây với mã chỉ thực hiện nghiệp vụ
+  - Chọn biến thể theo nhu cầu thực tế của bên sử dụng
+- level1: Xây dựng cấu trúc
+  level2:
+  - Tạo nút gốc và gắn các thành phần con
+  - Thêm con ở cuối hoặc tại vị trí xác định
+  - Xóa theo tham chiếu, định danh hoặc vị trí
+  - Thay thế một phần tử và giữ nguyên thứ tự
+  - Di chuyển nhánh giữa hai nút tổ hợp
+  - Xác định quy tắc phần tử trùng và nhiều lần xuất hiện
+  - Kiểm tra null và thành phần không phù hợp khi thêm
+  - Công khai danh sách con bằng bản sao hoặc góc nhìn chỉ đọc
+  - Ngăn mã bên ngoài sửa cấu trúc mà bỏ qua kiểm tra
+  - Thiết kế builder cho cây có nhiều cấp
+  - Tách giai đoạn lắp ráp khỏi giai đoạn sử dụng khi phù hợp
+- level1: Sở hữu và định danh
+  level2:
+  - Xác định một nút được thuộc một cha hay nhiều cha
+  - Phân biệt cây, đồ thị không chu trình có hướng và đồ thị có chu trình
+  - Ngăn một nút chứa chính nó trực tiếp hoặc gián tiếp
+  - Kiểm tra nguy cơ tạo chu trình khi gắn hoặc di chuyển nhánh
+  - Đánh giá tham chiếu cha phục vụ tìm đường và di chuyển
+  - Duy trì nhất quán giữa danh sách con và tham chiếu cha
+  - Phân biệt định danh nghiệp vụ với danh tính đối tượng
+  - Thiết kế equals và hashCode khi nút có cấu trúc đệ quy
+  - Quy định xử lý khi cùng một đối tượng xuất hiện ở nhiều nhánh
+  - Phân biệt sao chép nông, sao chép sâu và chia sẻ nút
+  - Quản lý tách nhánh, xóa nhánh và vòng đời của đối tượng
+- level1: Duyệt cây
+  level2:
+  - Duyệt đệ quy theo chiều sâu từ nút gốc
+  - Phân biệt thứ tự trước, sau và theo yêu cầu nghiệp vụ
+  - Duyệt theo chiều rộng bằng hàng đợi
+  - Duyệt lặp bằng stack để kiểm soát độ sâu
+  - Phân biệt thao tác do nút thực hiện với bộ duyệt bên ngoài
+  - Tìm kiếm, lọc và dừng sớm khi đã có kết quả
+  - Truyền độ sâu, đường dẫn và ngữ cảnh xuống các nút con
+  - Xác định cách xử lý phần tử bị lặp trong cấu trúc dùng chung
+  - Xử lý thay đổi tập con trong khi đang duyệt
+  - Thiết kế Iterator hoặc Spliterator khi cần cung cấp cách duyệt riêng
+- level1: Tính toán tổng hợp
+  level2:
+  - Tổng hợp kết quả từ lá lên nút tổ hợp
+  - Chọn giá trị khởi tạo phù hợp cho nhóm rỗng
+  - Tính tổng, đếm và tìm giá trị nhỏ nhất hoặc lớn nhất
+  - Tính trung bình từ tổng và số lượng thay vì trung bình các nhóm
+  - Đánh giá thứ tự khi phép kết hợp không có tính giao hoán
+  - Phân biệt kết quả theo từng lần xuất hiện với theo từng nút duy nhất
+  - Xử lý hệ số, số lượng và trọng số trong quan hệ phần–toàn thể
+  - Quản lý độ chính xác, làm tròn và tràn số theo nghiệp vụ
+  - Truyền điều kiện và ngữ cảnh tính toán qua các cấp
+  - Phân biệt phép tính thuần với thao tác có tác động bên ngoài
+  - Đánh giá tính kết hợp trước khi thay cách nhóm phép tính
+- level1: Triển khai Java
+  level2:
+  - Xây dựng ví dụ tối thiểu bằng interface Component
+  - Triển khai lớp Leaf với dữ liệu và hành vi cơ sở
+  - Triển khai lớp Composite chứa danh sách Component
+  - Tổ chức constructor và kiểm tra dữ liệu đầu vào
+  - Ủy quyền thao tác đến con qua đa hình
+  - Đóng gói danh sách con và giới hạn quyền sửa
+  - Xử lý thêm, xóa và thứ tự con bằng Java Collections
+  - Thiết kế exception khi thao tác cấu trúc không hợp lệ
+  - Viết mã sử dụng chỉ phụ thuộc hợp đồng chung
+  - Tránh ép kiểu và kiểm tra instanceof trong luồng nghiệp vụ chung
+  - Minh họa thêm một loại lá mà không sửa thuật toán phía client
+- level1: Thiết kế kiểu Java
+  level2:
+  - Lựa chọn interface và abstract class theo phần hành vi dùng chung
+  - Đánh giá generic cho kết quả thao tác và loại phần tử
+  - Giới hạn generic để API vẫn dễ hiểu và sử dụng
+  - Cân nhắc sealed interface khi tập loại nút cần được giới hạn
+  - Đánh giá khả năng mở rộng khi có phân cấp kiểu đóng
+  - Sử dụng record chứa collection và bảo vệ dữ liệu bên trong
+  - Phân biệt danh sách không sửa được với cây bất biến sâu
+  - Thiết kế định danh, equals, hashCode và toString tránh đệ quy không kiểm soát
+  - Quản lý null và biểu diễn kết quả không tìm thấy
+  - Chọn kiểu kết quả thể hiện rõ thành công, lỗi hoặc kết quả một phần
+- level1: Trạng thái và thay đổi
+  level2:
+  - Phân biệt cây có thể thay đổi với cây bất biến
+  - Cố định cấu trúc sau giai đoạn xây dựng
+  - Giới hạn quyền thêm, xóa và di chuyển nhánh
+  - Theo dõi thay đổi từ nút con đến các nút tổ tiên
+  - Vô hiệu hóa kết quả cache khi cấu trúc hoặc dữ liệu thay đổi
+  - Phân biệt thay đổi tại chỗ với tạo phiên bản cấu trúc mới
+  - Dùng snapshot để giữ góc nhìn nhất quán khi duyệt
+  - Đánh giá khóa ở cấp cây, nhánh hoặc nút
+  - Xử lý thao tác đọc và ghi đồng thời theo hợp đồng đã chọn
+  - Kiểm chứng bất biến sau một chuỗi thay đổi cấu trúc
+- level1: Lỗi và tính nhất quán
+  level2:
+  - Xác định dừng ngay hay tiếp tục khi một nút con thất bại
+  - Tổng hợp nhiều lỗi cùng đường dẫn đến nút gây lỗi
+  - Phân biệt lỗi dữ liệu, lỗi cấu trúc và lỗi thao tác nghiệp vụ
+  - Kiểm tra toàn bộ điều kiện trước khi thay đổi cấu trúc
+  - Giữ nhất quán khi di chuyển nhánh thất bại giữa chừng
+  - Thiết kế hoàn nguyên cho thao tác có thể đảo ngược
+  - Đánh giá tính lặp an toàn khi thực hiện lại thao tác trên nhánh
+  - Tránh kết quả một phần bị hiểu là thành công đầy đủ
+  - Giới hạn của Composite đối với giao dịch và tác động bên ngoài
+  - Ghi nhật ký lỗi có ngữ cảnh mà không duyệt vô hạn cấu trúc
+- level1: Hiệu năng
+  level2:
+  - Đánh giá chi phí thao tác theo số nút và số quan hệ được duyệt
+  - Đánh giá bộ nhớ theo độ sâu và chiến lược duyệt
+  - Nhận diện nguy cơ tràn stack ở cây sâu
+  - Tránh tính lại cùng một kết quả nhiều lần không cần thiết
+  - Lựa chọn cache theo tần suất đọc và thay đổi
+  - Đánh giá chi phí vô hiệu hóa cache dọc theo tổ tiên
+  - Xây chỉ mục hỗ trợ tìm kiếm khi truy vấn thường xuyên
+  - Đánh giá tải lười của nút con và số lần truy cập lưu trữ
+  - Cân nhắc xử lý song song với thứ tự, tính kết hợp và an toàn trạng thái
+  - Đo đạc trên cây sâu, cây rộng và dữ liệu đại diện
+- level1: Lưu trữ và khôi phục
+  level2:
+  - Biểu diễn loại nút, định danh và quan hệ cha–con
+  - Lựa chọn cấu trúc lồng nhau hoặc danh sách liên kết theo định danh
+  - Lưu thứ tự phần tử con khi thứ tự có ý nghĩa
+  - Tránh tuần tự hóa lặp vô hạn qua tham chiếu hai chiều
+  - Khôi phục cây theo giai đoạn tạo nút rồi nối quan hệ
+  - Kiểm tra định danh trùng, thiếu cha và chu trình khi đọc dữ liệu
+  - Kiểm soát loại nút và dữ liệu đầu vào được chấp nhận
+  - Phân biệt mô hình lưu trữ với hợp đồng đối tượng trong bộ nhớ
+  - Quản lý thay đổi định dạng và giá trị mặc định
+  - Kiểm thử lưu rồi đọc lại để bảo toàn cấu trúc và hành vi
+- level1: Kết hợp mẫu thiết kế
+  level2:
+  - Kết hợp Iterator để tách cách duyệt khỏi hành vi của nút
+  - Kết hợp Visitor khi cần thêm nhiều thao tác trên phân cấp ổn định
+  - Đánh giá việc thêm loại nút mới khi sử dụng Visitor
+  - Kết hợp Decorator để bổ sung hành vi cho một phần tử
+  - Sử dụng Strategy cho chính sách tổng hợp hoặc xử lý nút
+  - Sử dụng Factory và Builder để kiểm soát quá trình tạo cấu trúc
+  - Sử dụng Prototype khi cần sao chép nhánh có quy tắc rõ ràng
+  - Đánh giá Flyweight khi nhiều lá chia sẻ dữ liệu không thay đổi
+  - Kết hợp Command cho thao tác cấu trúc cần hoàn tác
+  - Kết hợp Observer khi thay đổi nút cần được thông báo
+  - Chọn cách kết hợp theo vấn đề thực tế và giới hạn độ phức tạp
+- level1: So sánh và lựa chọn
+  level2:
+  - Phân biệt Composite với collection chứa các đối tượng thông thường
+  - Phân biệt Composite với cấu trúc dữ liệu cây thuần túy
+  - Phân biệt Composite với Decorator theo mục tiêu và quan hệ chứa
+  - Phân biệt Composite với Facade theo cách đơn giản hóa việc sử dụng
+  - Phân biệt Composite với Chain of Responsibility theo luồng xử lý
+  - So sánh Composite hướng đối tượng với hàm xử lý trên dữ liệu cây
+  - Đánh giá yêu cầu xử lý đồng nhất trước khi chọn Composite
+  - Nhận diện trường hợp các loại nút không có hợp đồng chung hợp lý
+  - Cân nhắc cách tiếp cận đơn giản hơn cho cấu trúc nông và ít biến đổi
+- level1: Kiểm thử Composite
+  level2:
+  - Kiểm thử hợp đồng chung trên cả Leaf và Composite
+  - Kiểm thử trường hợp một lá, nhóm rỗng và nhiều cấp lồng nhau
+  - Kiểm thử thứ tự thực thi và thứ tự tổng hợp
+  - Kiểm thử thêm, xóa, thay thế và di chuyển nhánh
+  - Kiểm thử chặn null, tự chứa và chu trình gián tiếp
+  - Kiểm thử định danh trùng và đối tượng được chia sẻ
+  - Kiểm thử lỗi ở một con và chính sách xử lý kết quả một phần
+  - Kiểm thử cache sau thay đổi dữ liệu hoặc cấu trúc
+  - Kiểm thử truy cập chỉ đọc và giới hạn sửa danh sách con
+  - Kiểm thử cây sâu và cây rộng theo yêu cầu tài nguyên
+  - Sử dụng sinh dữ liệu cây để kiểm tra bất biến
+  - Kiểm thử lưu, khôi phục và sao chép cấu trúc
+- level1: Tái cấu trúc sang Composite
+  level2:
+  - Nhận diện điều kiện phân nhánh giữa phần tử đơn và nhóm
+  - Tìm các thao tác bị lặp ở nhiều tầng của cấu trúc
+  - Thiết lập kiểm thử bảo vệ hành vi hiện tại
+  - Trích xuất hợp đồng chung có ngữ nghĩa phù hợp
+  - Chuyển hành vi cơ sở về Leaf và hành vi phối hợp về Composite
+  - Thay lời gọi phụ thuộc loại cụ thể bằng đa hình
+  - Đưa quản lý con vào đúng biến thể API đã chọn
+  - Bổ sung kiểm tra quyền sở hữu và chu trình
+  - Chuyển đổi từng bước và đối chiếu hành vi nghiệp vụ
+  - Đánh giá lại lợi ích so với độ phức tạp mới
+- level1: Tình huống áp dụng
+  level2:
+  - Biểu diễn hình đơn và nhóm hình trong hệ thống đồ họa
+  - Truyền ngữ cảnh tọa độ và phép biến đổi qua nhóm hình
+  - Mô hình hóa widget và vùng chứa trong giao diện người dùng
+  - Biểu diễn tệp và thư mục để tính dung lượng hoặc liệt kê
+  - Đánh giá liên kết tượng trưng và giới hạn mô hình cây thư mục
+  - Mô hình hóa sản phẩm đơn và gói sản phẩm lồng nhau
+  - Xử lý số lượng, giá và chính sách giảm giá ở từng cấp
+  - Biểu diễn công việc và nhóm công việc để tổng hợp tiến độ
+  - Đánh giá cây phòng ban với nhân sự tham gia nhiều nhóm
+  - Biểu diễn biểu thức bằng toán hạng và nút phép toán
+  - Nhận diện bài toán cần đồ thị thay vì cây có một cha
+  - Chọn hợp đồng phù hợp với từng miền thay vì tái sử dụng một mô hình cây chung
+- level1: Sai lầm thường gặp
+  level2:
+  - Cho rằng mọi cấu trúc cây đều cần Composite
+  - Tạo Component quá lớn với nhiều thao tác không phù hợp cho lá
+  - Cho add hoặc remove âm thầm không làm gì trên nút lá
+  - Lặp điều kiện instanceof trong thuật toán đáng lẽ dùng đa hình
+  - Trả danh sách con có thể bị sửa từ bên ngoài
+  - Cho phép chu trình hoặc di chuyển nút làm sai quan hệ cha–con
+  - Đếm trùng kết quả khi dùng chung một nút mà chưa quy định ngữ nghĩa
+  - Giả định phép tổng hợp có tính kết hợp khi đổi cách chia nhóm
+  - Dùng cache nhưng bỏ sót cập nhật khi cây thay đổi
+  - Viết equals, hashCode hoặc toString đệ quy không kiểm soát
+  - Bỏ qua trạng thái một phần khi một nút con thất bại
+  - Áp dụng quá nhiều mẫu thiết kế bổ sung cho một cấu trúc đơn giản
+- level1: Bài thực hành
+  level2:
+  - Phân tích bài toán phần tử đơn và nhóm nhiều cấp
+  - Thiết kế sơ đồ vai trò và hợp đồng Component
+  - Triển khai ví dụ Leaf và Composite tối thiểu bằng Java
+  - Xây cây mẫu có nhóm rỗng, nhiều cấp và thứ tự xác định
+  - Cài đặt thao tác tổng hợp và kiểm chứng kết quả thủ công
+  - So sánh hai biến thể quản lý con trong suốt và an toàn
+  - Thêm loại lá mới và kiểm tra phạm vi mã cần sửa
+  - Bổ sung tìm kiếm hoặc bộ duyệt bên ngoài
+  - Thực hiện di chuyển nhánh có kiểm tra quyền sở hữu và chu trình
+  - Bổ sung chính sách lỗi cùng kiểm thử kết quả một phần
+  - Lưu và khôi phục cây rồi đối chiếu cấu trúc
+  - Đo hành vi trên cây sâu hoặc rộng và đánh giá phương án cải thiện
+  - Ghi lại đánh đổi thiết kế và giới hạn của ví dụ
+- level1: Quy trình thiết kế
+  level2:
+  - Xác định quan hệ phần–toàn thể và thao tác cần xử lý đồng nhất
+  - Chọn Component, Leaf và Composite theo ngữ nghĩa miền
+  - Quy định hợp đồng, hành vi nhóm rỗng và cách tổng hợp
+  - Chọn biến thể API cùng chính sách sở hữu cấu trúc
+  - Thiết kế duyệt cây, xử lý lỗi và bất biến
+  - Triển khai tối thiểu rồi kiểm thử các trường hợp biên
+  - Đánh giá lưu trữ, hiệu năng và thay đổi đồng thời theo nhu cầu
+  - Chỉ bổ sung mẫu hỗ trợ khi có yêu cầu đã được kiểm chứng

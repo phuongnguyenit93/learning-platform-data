@@ -1,0 +1,3 @@
+menuLevel1: Quyền reflection
+menuLevel2: 'canAccess(receiver): kiểm tra khả năng truy cập và quy tắc receiver cho static hoặc instance'
+status: ""

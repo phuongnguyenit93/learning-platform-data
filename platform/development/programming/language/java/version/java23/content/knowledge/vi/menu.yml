@@ -1,0 +1,273 @@
+menu:
+- level1: Định hướng Java 23
+  level2:
+  - Vai trò của Java 23 trong tiến trình phát triển Java
+  - 'Các nhóm thay đổi: ngôn ngữ, thư viện, JVM và công cụ'
+  - Phân biệt tính năng chính thức, preview và incubator
+  - Bản đồ tính năng Java 23 còn áp dụng và phiên bản hiện hành
+  - Java 23 là mốc kiến thức; ví dụ dùng JDK mới hơn phải ghi rõ phiên bản
+  - Quan hệ giữa Stream, Gatherer, ScopedValue và tác vụ đồng thời
+  - Quan hệ giữa class file, trình biên dịch và mã sinh động
+  - Cách đọc đặc tả, API Docs và ghi chú tương thích
+- level1: Môi trường thực hành
+  level2:
+  - Kiểm tra JDK của terminal, IDE, công cụ build và kiểm thử
+  - Tách cấu hình ví dụ Java 23 khỏi ví dụ Java 24, 25 hoặc 27
+  - Chọn --release phù hợp với ngôn ngữ và API đích
+  - Điều kiện biên dịch, chạy preview trên cùng phiên bản JDK
+  - Phân biệt --enable-preview với --add-modules cho incubator
+  - Tổ chức mã nguồn, tài nguyên, dữ liệu mẫu và lệnh chạy
+  - Quản lý phiên bản dependency và annotation processor
+  - Ghi lại môi trường để tái hiện kết quả và lỗi
+- level1: Javadoc Markdown
+  level2:
+  - Markdown documentation comments chính thức từ Java 23
+  - Cú pháp /// và vị trí gắn comment với khai báo
+  - Dòng trống có /// và ranh giới kết thúc comment
+  - Loại bỏ thụt lề chung và giữ khoảng trắng có ý nghĩa
+  - Tiêu đề, đoạn văn, danh sách và bảng đơn giản
+  - Code span, fenced code block và nội dung chứa comment Java
+  - Liên kết tới kiểu, trường, phương thức, package và module
+  - Phân biệt liên kết Markdown thường với tham chiếu phần tử Java
+  - Kết hợp Markdown với @param, @return, @throws và inline tag
+  - Quan hệ giữa Markdown, HTML và comment Javadoc truyền thống
+  - Tài liệu bổ sung trong doc-files và liên kết giữa các trang
+  - Sinh HTML và kiểm tra bố cục, liên kết, khả năng đọc
+- level1: Chất lượng tài liệu
+  level2:
+  - Viết mô tả hợp đồng API, đầu vào, đầu ra và ngoại lệ
+  - Đặt comment trước annotation và khai báo
+  - Phát hiện comment sai vị trí bằng -Xlint:dangling-doc-comments
+  - Doclint và kiểm tra tham chiếu không tồn tại
+  - Ví dụ mã ngắn, có phiên bản JDK và điều kiện chạy
+  - Kiểm tra snippet bằng biên dịch hoặc kiểm thử riêng
+  - Ghi @since và trạng thái API chính xác
+  - Kiểm tra tài liệu được sinh trong quy trình build
+- level1: Import module
+  level2:
+  - 'Trạng thái: preview đầu tiên ở Java 23, chính thức từ Java 25'
+  - Phần thực hành dùng cú pháp chính thức của Java 25 trở lên
+  - Bài toán nhiều package được export từ cùng module
+  - Cú pháp import module và phạm vi tên được nhập
+  - Phân biệt import module, import package và import static
+  - Quan hệ với requires và tính đọc được của module
+  - Ảnh hưởng của requires transitive đến tập kiểu được nhập
+  - Dùng trong mã thuộc unnamed module
+  - Xung đột tên kiểu và cách chọn import rõ ràng
+  - 'Quy tắc export: import không mở quyền truy cập nội bộ'
+- level1: Chương trình gọn
+  level2:
+  - Java 23 preview lần 3; hình thức chính thức là compact source file từ Java 25
+  - Phần thực hành dùng compact source file và instance main của Java 25 trở lên
+  - Bài toán chương trình nhỏ và đường chuyển sang lớp có tên
+  - Trường, phương thức và lớp được khai báo ngầm
+  - Instance main có hoặc không có tham số String[]
+  - Quy tắc chọn main và tạo đối tượng khi khởi chạy
+  - Chạy tệp nguồn trực tiếp và biên dịch thành class file
+  - Nhập tự động các kiểu công khai được export bởi java.base
+  - Nhập, xuất cơ bản bằng java.lang.IO của Java 25
+  - Giới hạn package, constructor và tham chiếu lớp ngầm
+  - Tách mã thành lớp, package và module khi chương trình lớn lên
+- level1: Constructor linh hoạt
+  level2:
+  - 'Trạng thái: preview lần 2 ở Java 23, chính thức từ Java 25'
+  - Phần thực hành dùng quy tắc chính thức của Java 25 trở lên
+  - Bài toán kiểm tra tham số trước super hoặc this
+  - Phần lệnh trước và sau lời gọi constructor tường minh
+  - Ngữ cảnh khởi tạo sớm và giới hạn dùng đối tượng đang tạo
+  - Khởi tạo trường trước super theo các trường hợp được cho phép
+  - Biến cục bộ, tham số và kiểm tra đầu vào
+  - Constructor nối chuỗi qua this và thứ tự khởi tạo
+  - Tránh để this thoát ra ngoài khi đối tượng chưa hoàn chỉnh
+  - Lỗi biên dịch và kiểm thử trạng thái khi constructor thất bại
+- level1: Pattern nguyên thủy
+  level2:
+  - 'Trạng thái: preview đầu tiên ở Java 23, preview lần 5 ở Java 27'
+  - Phần thực hành dùng đặc tả preview Java 27 và ghi rõ tùy chọn
+  - Bài toán kiểm tra chuyển đổi số trước khi ép kiểu
+  - Type pattern với các kiểu nguyên thủy
+  - instanceof giữa các kiểu số và tính biểu diễn chính xác
+  - Pattern nguyên thủy trong record pattern
+  - switch với selector nguyên thủy và nhãn phù hợp
+  - Điều kiện when, thứ tự nhánh và tính chi phối
+  - Tính đầy đủ và các chuyển đổi luôn chính xác
+  - Boxing, unboxing và trường hợp null
+  - Kiểm thử biên số nguyên, số thực, NaN và vô cực
+- level1: Gatherer có sẵn
+  level2:
+  - 'Trạng thái: preview lần 2 ở Java 23, chính thức từ Java 24'
+  - Phần thực hành dùng API Gatherer chính thức của Java 24 trở lên
+  - Bài toán phép biến đổi trung gian có trạng thái
+  - Stream.gather và vị trí trong pipeline
+  - Chia nhóm bằng Gatherers.windowFixed
+  - Cửa sổ trượt bằng Gatherers.windowSliding
+  - Tích lũy kết quả bằng Gatherers.fold
+  - Sinh các giá trị tích lũy bằng Gatherers.scan
+  - 'Gatherers.mapConcurrent: mức song song, thứ tự và lỗi'
+  - So sánh Gatherer với map, flatMap và Collector
+  - Luồng rỗng, nhóm cuối và thao tác kết thúc sớm
+  - Đo bộ nhớ và hiệu năng trên dữ liệu thực tế
+- level1: Gatherer tùy biến
+  level2:
+  - Mô hình đầu vào, trạng thái và đầu ra của Gatherer
+  - Initializer tạo trạng thái riêng cho mỗi phép tính
+  - Integrator xử lý phần tử và đẩy kết quả xuống dưới
+  - Downstream.push, tín hiệu từ chối và dừng sớm
+  - Finisher xử lý dữ liệu còn lại khi kết thúc
+  - Combiner và điều kiện kết hợp trạng thái song song
+  - Tạo Gatherer tuần tự hoặc có khả năng kết hợp
+  - Thành phần không giữ trạng thái và tránh tác dụng phụ dùng chung
+  - Ghép các Gatherer bằng andThen
+  - Ví dụ khử trùng lặp liên tiếp hoặc gom nhóm theo điều kiện
+  - Kiểm thử tương đương tuần tự, song song và kết thúc sớm
+- level1: Scoped Value
+  level2:
+  - 'Trạng thái: preview lần 3 ở Java 23, chính thức từ Java 25'
+  - Phần thực hành dùng ScopedValue chính thức của Java 25 trở lên
+  - Bài toán truyền ngữ cảnh xuyên qua chuỗi lời gọi
+  - Tạo khóa bằng ScopedValue.newInstance
+  - Ràng buộc giá trị trong phạm vi bằng where, run và call
+  - Đọc bằng get và xử lý khi chưa có ràng buộc
+  - Phạm vi động, ràng buộc lồng nhau và khôi phục giá trị
+  - Ràng buộc không đổi khác với đối tượng bất biến sâu
+  - Vòng đời ngữ cảnh và xử lý ngoại lệ
+  - Quan hệ với virtual thread và kế thừa ngữ cảnh có cấu trúc
+  - Chọn ScopedValue, tham số tường minh hoặc ThreadLocal theo nhu cầu
+  - Giữ dữ liệu ngữ cảnh nhỏ, rõ chủ sở hữu và dễ kiểm thử
+- level1: Đồng thời có cấu trúc
+  level2:
+  - 'Trạng thái: preview lần 3 ở Java 23, preview lần 7 ở Java 27'
+  - Phần thực hành dùng API preview Java 27, không dùng chữ ký API Java 23 cũ
+  - Bài toán tác vụ con tồn tại lâu hơn công việc cha
+  - Mở StructuredTaskScope trong try-with-resources
+  - fork tác vụ, join và đọc kết quả theo hợp đồng
+  - Chủ sở hữu scope và giới hạn gọi fork, join, close
+  - Joiner và chính sách xử lý kết quả, lỗi của nhóm tác vụ
+  - Giới hạn thời gian chờ và phân biệt nguyên nhân thất bại
+  - Hủy hợp tác, interruption và tác vụ không phản hồi hủy
+  - Đóng scope và bảo đảm kết thúc các tác vụ con
+  - Quan hệ với ScopedValue và virtual thread
+  - Kiểm thử thất bại một phần, hủy và rò rỉ tác vụ
+- level1: Vector API
+  level2:
+  - 'Trạng thái: incubator lần 8 ở Java 23, lần 12 ở Java 27'
+  - Phần thực hành dùng API incubator Java 27 với module jdk.incubator.vector
+  - Bài toán SIMD và quan hệ với phép tính vô hướng
+  - Lane, kiểu phần tử, VectorSpecies và VectorShape
+  - Chọn species phù hợp với nền tảng
+  - Nạp dữ liệu từ mảng và ghi kết quả về mảng
+  - Phép toán trên lane, so sánh và VectorMask
+  - Xử lý phần đuôi bằng mặt nạ hoặc vòng lặp vô hướng
+  - Phép giảm và chuyển đổi kiểu dữ liệu
+  - Giới hạn phần cứng, JIT và đường thực thi vô hướng
+  - So sánh kết quả số thực và đánh giá chi phí bộ nhớ
+  - Đo hiệu năng sau khi làm nóng trên phần cứng đích
+- level1: Đọc class file
+  level2:
+  - 'Trạng thái: preview lần 2 ở Java 23, chính thức từ Java 24'
+  - Phần thực hành dùng java.lang.classfile chính thức của Java 24 trở lên
+  - Bài toán phân tích bytecode bằng API đi cùng JDK
+  - Quan hệ giữa class file, constant pool, descriptor và instruction
+  - ClassFile.of, parse và ClassModel
+  - Duyệt field, method, attribute và CodeModel
+  - Kiểu mô hình bất biến và cách duyệt phần tử
+  - Đọc tên, chữ ký và các tham chiếu phụ thuộc
+  - Xử lý dữ liệu đầu vào sai hoặc phiên bản không hỗ trợ
+  - Đối chiếu kết quả với javap
+- level1: Biến đổi class file
+  level2:
+  - ClassBuilder, MethodBuilder và CodeBuilder
+  - Tạo lớp, phương thức và mã lệnh đơn giản
+  - ClassTransform và giữ lại phần tử không cần sửa
+  - MethodTransform, CodeTransform và phạm vi biến đổi
+  - Nhãn, nhánh, biến cục bộ và luồng điều khiển
+  - Constant pool, stack map và các hỗ trợ tự động của API
+  - Chọn phiên bản class file đích tương thích môi trường chạy
+  - Kiểm tra class file bằng ClassFile.verify
+  - Nạp và chạy kết quả trong môi trường kiểm thử
+  - Giới hạn biến đổi đối với framework và công cụ sinh bytecode
+- level1: Bộ nhớ an toàn
+  level2:
+  - Java 23 thúc đẩy thay truy cập bộ nhớ nội bộ bằng API công khai
+  - Phân biệt truy cập trường, mảng và bộ nhớ ngoài heap
+  - Chọn VarHandle cho truy cập biến có quy tắc bộ nhớ
+  - Truy cập thông thường, volatile, acquire và release
+  - Thao tác nguyên tử và điều kiện hỗ trợ từng access mode
+  - MemorySegment và Arena của FFM chính thức từ Java 22
+  - Phạm vi, giới hạn vùng nhớ và vòng đời tài nguyên
+  - Arena confined, shared và quyền truy cập từ các luồng
+  - ValueLayout, kích thước và căn chỉnh dữ liệu
+  - Khác biệt truy cập nguyên tử trên heap buffer và vùng nhớ căn chỉnh
+  - Rà soát dependency dùng API nội bộ và chọn bản thay thế
+  - Kiểm thử vượt biên, dùng sau đóng và truy cập sai luồng
+- level1: ZGC phân thế hệ
+  level2:
+  - Java 23 chuyển chế độ mặc định của ZGC sang phân thế hệ
+  - Không đồng nhất ZGC mặc định phân thế hệ với bộ GC mặc định của JVM
+  - Đối tượng sống ngắn, sống lâu và lợi ích của phân thế hệ
+  - Thu gom đồng thời và mục tiêu giảm thời gian dừng
+  - Load barrier, store barrier và chi phí lên ứng dụng
+  - Chọn ZGC bằng -XX:+UseZGC theo JDK hỗ trợ
+  - Giới hạn heap và khoảng trống phục vụ thu gom đồng thời
+  - Đọc GC log và đánh giá độ trễ, thông lượng, bộ nhớ
+  - So sánh ZGC với G1 trên cùng tải
+  - 'Cấu hình hiện hành: không dựa vào chế độ không phân thế hệ đã bị bỏ'
+  - Kiểm thử tải đỉnh và kiểm chứng kết quả sau nâng cấp
+- level1: Annotation processing
+  level2:
+  - 'Thay đổi từ Java 23: xử lý annotation cần cấu hình hoặc yêu cầu tường minh'
+  - Phân biệt annotation runtime với annotation processor
+  - Chọn processor cụ thể và đường dẫn processor
+  - Vai trò -processor, --processor-path và --processor-module-path
+  - Phân biệt -proc:none, -proc:only và -proc:full
+  - Không dựa vào tự phát hiện processor trên classpath mặc định
+  - Cấu hình tương ứng trong công cụ build và IDE
+  - Tách dependency biên dịch khỏi dependency processor
+  - Kiểm tra mã được sinh, vòng xử lý và lỗi processor
+  - Cố định phiên bản processor và kiểm chứng build sạch
+- level1: API tiện ích
+  level2:
+  - Instant.until(Instant) trả về Duration từ Java 23
+  - Khoảng thời gian âm, bằng không và giới hạn biểu diễn
+  - Console.format, printf, readLine và readPassword với Locale tường minh
+  - Xử lý trường hợp không có console và bảo vệ dữ liệu nhập nhạy cảm
+  - WatchService, hàng đợi sự kiện và OVERFLOW
+  - jdk.nio.file.WatchService.maxEventsPerPoll và giới hạn bộ đệm
+  - Đồng bộ lại trạng thái thư mục sau OVERFLOW
+  - Không coi WatchService là nhật ký sự kiện bảo đảm đầy đủ
+  - Kiểm thử khác biệt hệ điều hành, locale và múi giờ
+- level1: Chẩn đoán và bảo mật
+  level2:
+  - jcmd, JFR và phép đo có thể tái hiện
+  - Theo dõi CPU, cấp phát, GC và các tác vụ chờ
+  - Chẩn đoán khai báo serialization sai bằng JFR khi phải tương thích dữ liệu sẵn có
+  - Đọc javap -verify để bổ sung thông tin kiểm tra class file
+  - JAXP và cấu hình XML chặt chẽ cho dữ liệu không đáng tin cậy
+  - Giới hạn truy cập tài nguyên ngoài khi xử lý XML
+  - Kiểm thử tương thích trước khi áp dụng cấu hình bảo mật
+  - Thông tin luồng, thời gian trong java.security.debug
+  - Thu thập đủ bằng chứng và tránh lộ bí mật trong bản ghi
+- level1: Nâng cấp và triển khai
+  level2:
+  - Kiểm kê dependency, công cụ build và cấu hình JVM
+  - 'Ma trận phiên bản: mã Java 23, API chính thức 24, 25 và preview 27'
+  - Biên dịch lại ví dụ preview khi chuyển phiên bản JDK
+  - Thay API preview cũ bằng hợp đồng API hiện hành đã chọn
+  - Phát hiện API nội bộ và chuyển sang API công khai
+  - Kiểm tra cấu hình annotation processor sau nâng JDK
+  - Rà soát tham số GC và các tùy chọn JVM không còn hợp lệ
+  - Kiểm thử tương thích mã nguồn, nhị phân và hành vi
+  - Đóng gói runtime theo JDK đích bằng jlink, jpackage khi phù hợp
+  - Triển khai từng bước, quan sát và chuẩn bị quay lui
+- level1: Thực hành tổng hợp
+  level2:
+  - Viết và sinh tài liệu API bằng Javadoc Markdown
+  - Tạo chương trình nhỏ rồi chuyển thành lớp, package rõ ràng
+  - Kiểm tra constructor và mô hình dữ liệu bất biến
+  - Xử lý luồng dữ liệu bằng Gatherer trên JDK 24 trở lên
+  - Truyền ngữ cảnh bằng ScopedValue trên JDK 25 trở lên
+  - Thử nhóm tác vụ có hủy trên API preview JDK 27
+  - Thử Vector trên API incubator JDK 27 và so với bản vô hướng
+  - Phân tích, biến đổi rồi kiểm tra class file bằng API JDK 24 trở lên
+  - Kiểm chứng VarHandle, Arena và giới hạn truy cập bộ nhớ
+  - Đánh giá ZGC, build sạch và nghiệm thu theo ma trận phiên bản

@@ -1,0 +1,3 @@
+menuLevel1: VarHandle
+menuLevel2: getAndSet, getAndAdd và phép cập nhật bit
+status: WRITTEN

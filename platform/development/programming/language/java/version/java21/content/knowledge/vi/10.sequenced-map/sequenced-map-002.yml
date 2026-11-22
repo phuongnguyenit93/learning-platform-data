@@ -1,0 +1,3 @@
+menuLevel1: SequencedMap
+menuLevel2: LinkedHashMap theo insertion order hoặc access order
+status: WRITTEN

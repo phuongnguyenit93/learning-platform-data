@@ -1,0 +1,57 @@
+roadmap:
+- id: api-first-pham-vi
+  title: API-first & phạm vi
+  purpose: Thống nhất hành vi mà consumer cần trước khi gắn API với chi tiết triển khai.
+  objectives:
+  - Liệt kê consumer và các use case chính
+  - Xác định dữ liệu vào, ra và bất biến
+  - Viết ví dụ request/response cho một luồng
+- id: resource-operation
+  title: Resource & Operation
+  purpose: Thiết kế tên resource, thao tác và tham số rõ nghĩa, nhất quán.
+  objectives:
+  - Định nghĩa URI và HTTP method cho resource
+  - Mô tả path/query/header parameters
+  - Quy định lọc, phân trang và sắp xếp
+- id: schema-payload
+  title: Schema & Payload
+  purpose: Định nghĩa cấu trúc dữ liệu để producer và consumer hiểu giống nhau.
+  objectives:
+  - Xây schema với type, required và enum
+  - Phân biệt trường tùy chọn với null
+  - Tạo ví dụ request và response hợp lệ
+- id: http-error-contract
+  title: HTTP & Error Contract
+  purpose: Quy định phản hồi nhất quán cho cả thành công và thất bại.
+  objectives:
+  - Chọn status code đúng ngữ nghĩa HTTP
+  - Thiết kế lỗi theo Problem Details
+  - Ghi rõ header và quy tắc idempotency
+- id: security-contract
+  title: Security Contract
+  purpose: Mô tả cơ chế xác thực và phân quyền gắn với từng operation.
+  objectives:
+  - Khai báo security scheme và scope cần thiết
+  - Xác định quyền trên resource của từng vai trò
+  - Kiểm tra đầu vào và dữ liệu nhạy cảm
+- id: openapi-specification
+  title: OpenAPI Specification
+  purpose: Biểu diễn hợp đồng máy đọc được để review, mock và tạo tài liệu.
+  objectives:
+  - Viết paths, operations và components
+  - Khai báo schema, response và security
+  - Validate tài liệu OpenAPI và thử mock
+- id: evolution-versioning
+  title: Evolution & Versioning
+  purpose: Thay đổi API mà vẫn bảo vệ những consumer đang sử dụng hợp đồng cũ.
+  objectives:
+  - Nhận diện thay đổi compatible và breaking
+  - Thiết kế deprecation và thời hạn chuyển đổi
+  - So sánh contract trước và sau sửa đổi
+- id: contract-testing-ci
+  title: Contract Testing & CI
+  purpose: Phát hiện lệch hợp đồng sớm và duy trì quy tắc thiết kế khi triển khai.
+  objectives:
+  - Viết test kiểm tra provider theo hợp đồng
+  - Thử consumer-driven contract bằng Pact
+  - Chạy lint, diff và test trong CI

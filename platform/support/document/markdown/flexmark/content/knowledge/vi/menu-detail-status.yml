@@ -1,0 +1,2185 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Markdown là gì và vai trò trong việc viết tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Flexmark là gì và quan hệ với Markdown, CommonMark, GFM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Luồng xử lý từ văn bản Markdown qua cây cú pháp đến HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt cú pháp khối, cú pháp nội dòng và phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Giới hạn của Markdown, Flexmark và công cụ hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Cách đọc, chạy và đối chiếu ví dụ trong module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Thiết lập
+  childs:
+  - slug: setup-001
+    title: Chọn bộ thư viện flexmark và quản lý phiên bản phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Khai báo phụ thuộc bằng Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Chuẩn bị văn bản UTF-8 và quy ước xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Ví dụ đầu tiên với Parser và HtmlRenderer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Tổ chức cấu hình dùng chung cho bộ phân tích và bộ kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Đọc tệp Markdown và ghi kết quả HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Phân biệt cấu hình thư viện với cấu hình trình xem tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-structure
+  title: Bố cục tài liệu
+  childs:
+  - slug: document-structure-001
+    title: Xác định người đọc, mục đích và phạm vi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-structure-002
+    title: Sắp xếp tiêu đề, phần mở đầu, nội dung và tài liệu tham khảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-structure-003
+    title: Chia chương, mục và đoạn theo một luồng đọc rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-structure-004
+    title: Chọn tên mục ngắn, nhất quán và dễ tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-structure-005
+    title: Viết hướng dẫn có điều kiện đầu vào, thao tác và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-structure-006
+    title: Phân biệt hướng dẫn bắt đầu, giải thích, chỉ dẫn và tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-structure-007
+    title: Thiết kế một tài liệu mẫu có thể tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text
+  title: Văn bản
+  childs:
+  - slug: text-001
+    title: Tạo đoạn văn và phân tách đoạn bằng dòng trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-002
+    title: Phân biệt xuống dòng mềm và xuống dòng cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-003
+    title: Tạo xuống dòng cứng bằng dấu cách cuối dòng hoặc dấu gạch chéo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-004
+    title: Ảnh hưởng của khoảng trắng và tab đến việc phân tích cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-005
+    title: Hiển thị ký tự đặc biệt bằng cơ chế escape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-006
+    title: Sử dụng thực thể ký tự và Unicode trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-007
+    title: Viết đường dẫn có dấu gạch chéo ngược và ký tự dễ nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-008
+    title: Tránh lỗi mất khoảng trắng khi sao chép hoặc định dạng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: headings
+  title: Tiêu đề
+  childs:
+  - slug: headings-001
+    title: 'Viết tiêu đề ATX bằng dấu #'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headings-002
+    title: Viết tiêu đề Setext và phân biệt với đường phân cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headings-003
+    title: Tổ chức phân cấp tiêu đề và tránh nhảy cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headings-004
+    title: Đặt tiêu đề dễ hiểu và tránh trùng tên trong cùng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headings-005
+    title: Quan hệ giữa tiêu đề, định danh và liên kết đến một mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headings-006
+    title: Kiểm tra tiêu đề có dấu, dấu câu và nội dung định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inline-formatting
+  title: Định dạng nội dòng
+  childs:
+  - slug: inline-formatting-001
+    title: Viết chữ nghiêng bằng dấu * hoặc dấu _
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-formatting-002
+    title: Viết chữ đậm và kết hợp chữ đậm với chữ nghiêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-formatting-003
+    title: Quy tắc ranh giới dấu phân cách và dấu gạch dưới trong từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-formatting-004
+    title: Tạo mã nội dòng bằng dấu backtick
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-formatting-005
+    title: Hiển thị dấu backtick bên trong mã nội dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-formatting-006
+    title: Phân biệt văn bản có định dạng với nội dung mã nguyên văn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inline-formatting-007
+    title: Kết hợp định dạng với liên kết mà vẫn giữ khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lists
+  title: Danh sách
+  childs:
+  - slug: lists-001
+    title: Viết danh sách không thứ tự bằng -, + hoặc *
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-002
+    title: Viết danh sách có thứ tự và chọn số bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-003
+    title: Phân biệt danh sách gọn với danh sách có đoạn cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-004
+    title: Tạo danh sách lồng nhau bằng thụt lề phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-005
+    title: Đặt nhiều đoạn văn trong một mục danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-006
+    title: Chèn khối mã, hình ảnh và trích dẫn vào mục danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-007
+    title: Tiếp tục danh sách sau một khối nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lists-008
+    title: Chẩn đoán lỗi thụt lề làm danh sách bị tách hoặc biến thành mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: blockquotes
+  title: Trích dẫn
+  childs:
+  - slug: blockquotes-001
+    title: Tạo khối trích dẫn bằng dấu >
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blockquotes-002
+    title: Viết trích dẫn nhiều đoạn và nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blockquotes-003
+    title: Lồng trích dẫn và phối hợp với danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blockquotes-004
+    title: Đặt khối mã hoặc liên kết trong trích dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blockquotes-005
+    title: Phân biệt trích dẫn với khối cảnh báo của phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blockquotes-006
+    title: Ghi nguồn trích dẫn và giữ ranh giới nội dung rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-blocks
+  title: Khối mã
+  childs:
+  - slug: code-blocks-001
+    title: Tạo khối mã bằng hàng rào backtick hoặc dấu ngã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-002
+    title: Tạo khối mã bằng thụt lề và nhận biết giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-003
+    title: Gắn nhãn ngôn ngữ bằng chuỗi thông tin của khối mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-004
+    title: Chọn độ dài hàng rào khi ví dụ chứa chính dấu hàng rào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-005
+    title: Giữ nguyên khoảng trắng và ký tự đặc biệt trong mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-006
+    title: Đặt khối mã bên trong danh sách và trích dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-007
+    title: Phân biệt Flexmark sinh HTML với công cụ tô màu cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-blocks-008
+    title: Viết ví dụ Java, cấu hình và lệnh có thể sao chép chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: links
+  title: Liên kết
+  childs:
+  - slug: links-001
+    title: Tạo liên kết nội dòng với địa chỉ và tiêu đề tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-002
+    title: Tạo liên kết tham chiếu dạng đầy đủ, nhãn rỗng và chỉ có nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-003
+    title: Tổ chức khai báo tham chiếu và xử lý nhãn trùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-004
+    title: Viết địa chỉ có khoảng trắng, dấu ngoặc hoặc ký tự cần mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-005
+    title: Phân biệt URL tuyệt đối, URL tương đối và liên kết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-006
+    title: Liên kết đến một mục trong cùng tệp hoặc tệp khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-007
+    title: Tạo liên kết tự động theo cú pháp lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-008
+    title: Nhận biết khác biệt giữa liên kết tự động lõi và phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-009
+    title: Kiểm tra văn bản liên kết, đích đến và khả năng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: images
+  title: Hình ảnh
+  childs:
+  - slug: images-001
+    title: Chèn hình ảnh với văn bản thay thế và tiêu đề tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-002
+    title: Sử dụng hình ảnh theo kiểu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-003
+    title: Quản lý đường dẫn hình ảnh tương đối theo vị trí tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-004
+    title: Biến hình ảnh thành một liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-005
+    title: Viết văn bản thay thế có ý nghĩa cho người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-006
+    title: Phân biệt cú pháp ảnh với điều chỉnh kích thước bằng HTML hoặc phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: images-007
+    title: Xử lý ảnh thiếu, ảnh từ xa và đường dẫn khác môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tables
+  title: Bảng
+  childs:
+  - slug: tables-001
+    title: Bật TablesExtension và nhận biết bảng ngoài cú pháp lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-002
+    title: Tạo hàng tiêu đề, hàng phân cách và các hàng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-003
+    title: Căn trái, căn giữa và căn phải trong bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-004
+    title: Hiển thị dấu | trong nội dung ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-005
+    title: Kết hợp mã nội dòng, liên kết và định dạng trong ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-006
+    title: Hiểu giới hạn với ô nhiều dòng, ô gộp và nội dung khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-007
+    title: Xử lý số cột không khớp và bảng có dữ liệu khuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-008
+    title: Chọn bảng hay danh sách theo độ dài và khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: task-lists
+  title: Tác vụ
+  childs:
+  - slug: task-lists-001
+    title: Bật TaskListExtension cho danh sách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-lists-002
+    title: Viết mục chưa hoàn thành và đã hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-lists-003
+    title: Lồng mục tác vụ với danh sách thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-lists-004
+    title: Phân biệt trạng thái được viết trong nguồn với tương tác trên HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-lists-005
+    title: Kiểm tra checkbox, nhãn và cách hiển thị trong trình xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-lists-006
+    title: Dùng danh sách tác vụ cho quy trình và tiêu chí hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extended-syntax
+  title: Cú pháp bổ sung
+  childs:
+  - slug: extended-syntax-001
+    title: Tạo đường phân cách và tránh nhầm với tiêu đề hoặc danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-syntax-002
+    title: Bật phần mở rộng gạch xóa và sử dụng cặp dấu ~~
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-syntax-003
+    title: Bật phần mở rộng nhận diện liên kết từ văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-syntax-004
+    title: Sử dụng dấu ngoặc kép và dấu câu kiểu chữ qua phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-syntax-005
+    title: Sử dụng emoji và kiểm tra tài nguyên hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-syntax-006
+    title: Đánh giá ảnh hưởng của cú pháp bổ sung đến tính tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: footnotes
+  title: Chú thích
+  childs:
+  - slug: footnotes-001
+    title: Bật FootnoteExtension và viết lời gọi chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: footnotes-002
+    title: Khai báo nội dung chú thích và liên kết với nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: footnotes-003
+    title: Viết chú thích nhiều đoạn hoặc chứa định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: footnotes-004
+    title: Tái sử dụng chú thích và kiểm tra thứ tự hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: footnotes-005
+    title: Xử lý chú thích thiếu định nghĩa hoặc trùng nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: footnotes-006
+    title: Phân biệt chú thích cuối trang với liên kết tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: footnotes-007
+    title: Kiểm tra liên kết đi tới và quay lại trong HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: definitions
+  title: Định nghĩa
+  childs:
+  - slug: definitions-001
+    title: Bật DefinitionExtension để viết danh sách định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definitions-002
+    title: Tổ chức thuật ngữ với một hoặc nhiều phần giải nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definitions-003
+    title: Viết phần giải nghĩa nhiều đoạn và có nội dung lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definitions-004
+    title: Bật AbbreviationExtension và khai báo từ viết tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definitions-005
+    title: Kiểm tra phạm vi nhận diện từ viết tắt trong văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: definitions-006
+    title: Xây dựng bảng thuật ngữ nhất quán cho tài liệu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embedded-html
+  title: HTML nhúng
+  childs:
+  - slug: embedded-html-001
+    title: Phân biệt HTML nội dòng với khối HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-html-002
+    title: Nhận biết ảnh hưởng của dòng trống và ranh giới khối HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-html-003
+    title: Kết hợp Markdown với HTML và kiểm tra vùng còn được phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-html-004
+    title: Chọn HTML khi cần cấu trúc vượt khả năng cú pháp Markdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-html-005
+    title: Phân biệt giữ nguyên, escape và loại bỏ HTML nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-html-006
+    title: Kiểm tra tính tương thích khi trình xem hạn chế HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-html-007
+    title: Giữ nội dung nguồn dễ đọc khi sử dụng HTML bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attributes
+  title: Thuộc tính
+  childs:
+  - slug: attributes-001
+    title: Bật AttributesExtension và nhận biết cú pháp thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-002
+    title: Gắn id, class và thuộc tính cho phần tử được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-003
+    title: Phân biệt thuộc tính dành cho nội dòng và dành cho khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-004
+    title: Phối hợp thuộc tính với hình ảnh, liên kết và tiêu đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-005
+    title: Xử lý định danh trùng và quy ước đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-006
+    title: Phân biệt gắn class trong HTML với định nghĩa CSS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-007
+    title: Kiểm soát các thuộc tính nguy hiểm từ nguồn không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: table-of-contents
+  title: Mục lục
+  childs:
+  - slug: table-of-contents-001
+    title: Chọn TocExtension hoặc SimTocExtension theo cách tạo mục lục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: table-of-contents-002
+    title: Đặt mục lục vào vị trí phù hợp trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: table-of-contents-003
+    title: Chọn phạm vi cấp tiêu đề xuất hiện trong mục lục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: table-of-contents-004
+    title: Phân biệt mục lục tạo khi kết xuất với mục lục được ghi vào nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: table-of-contents-005
+    title: Phối hợp mục lục với AnchorLinkExtension và định danh tiêu đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: table-of-contents-006
+    title: Kiểm tra liên kết với tiêu đề trùng, tiếng Việt và dấu câu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: table-of-contents-007
+    title: Giữ mục lục chính xác khi đổi tên hoặc chuyển vị trí chương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: admonition-blocks
+  title: Khối cảnh báo
+  childs:
+  - slug: admonition-blocks-001
+    title: Bật AdmonitionExtension để viết khối lưu ý và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: admonition-blocks-002
+    title: Tổ chức tiêu đề và nội dung bên trong khối cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: admonition-blocks-003
+    title: Phân biệt loại cảnh báo với ý nghĩa mà tài liệu muốn truyền đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: admonition-blocks-004
+    title: Lồng danh sách, liên kết và khối mã trong cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: admonition-blocks-005
+    title: Chuẩn bị CSS cần thiết để khối cảnh báo hiển thị đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: admonition-blocks-006
+    title: Kiểm tra cách đọc thay thế trên môi trường không hỗ trợ phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata
+  title: Siêu dữ liệu
+  childs:
+  - slug: metadata-001
+    title: Bật YamlFrontMatterExtension và đặt khối front matter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-002
+    title: Phân biệt siêu dữ liệu đầu tệp với nội dung tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-003
+    title: Trích xuất siêu dữ liệu để dùng trong quy trình xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-004
+    title: Quy định các trường như tiêu đề, tác giả, nhãn và mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-005
+    title: Phân biệt việc nhận diện front matter với kiểm định dữ liệu YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-006
+    title: Xử lý trường thiếu và giữ nguyên nội dung Markdown phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: math-and-diagrams
+  title: Công thức và sơ đồ
+  childs:
+  - slug: math-and-diagrams-001
+    title: Phân biệt biểu diễn công thức trong nguồn với kết xuất công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-and-diagrams-002
+    title: Xác định cú pháp toán theo phần mở rộng và môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-and-diagrams-003
+    title: Phối hợp HTML đầu ra với bộ hiển thị công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-and-diagrams-004
+    title: Viết sơ đồ Mermaid trong khối mã có nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-and-diagrams-005
+    title: Phân biệt khối mã Mermaid với sơ đồ đã được dựng hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-and-diagrams-006
+    title: Chọn hình ảnh thay thế khi môi trường không hỗ trợ sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: math-and-diagrams-007
+    title: Kiểm tra tài nguyên, escape và độ tin cậy của nội dung nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: syntax-profiles
+  title: Hồ sơ cú pháp
+  childs:
+  - slug: syntax-profiles-001
+    title: Chọn hồ sơ ParserEmulationProfile theo nguồn tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-profiles-002
+    title: Phân biệt hỗ trợ GFM với khả năng hiển thị đầy đủ trên GitHub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-profiles-003
+    title: Đăng ký các phần mở rộng cần thiết cho một hồ sơ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-profiles-004
+    title: Đồng bộ phần mở rộng giữa Parser, HtmlRenderer và Formatter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-profiles-005
+    title: Nhận biết xung đột cú pháp khi bật nhiều phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-profiles-006
+    title: Cố định quy ước cú pháp cho cả nhóm biên soạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-profiles-007
+    title: Lập bảng khả năng hỗ trợ của các môi trường xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-profiles-008
+    title: Kiểm tra tác động khi đổi hồ sơ hoặc nâng phiên bản Flexmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parsing
+  title: Phân tích cú pháp
+  childs:
+  - slug: parsing-001
+    title: Tạo Parser bằng builder và tập tùy chọn DataHolder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-002
+    title: Quản lý tùy chọn với MutableDataSet và cấu hình ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-003
+    title: Phân tích chuỗi Markdown thành nút Document
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-004
+    title: Phân biệt kết quả cây cú pháp với HTML đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-005
+    title: Theo dõi ranh giới đoạn, danh sách và khối mã khi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-006
+    title: Kiểm tra văn bản lỗi cú pháp và cách diễn giải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-007
+    title: Tổ chức cấu hình theo từng loại tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-008
+    title: Phân biệt cấu hình bộ phân tích với tùy chọn bộ kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: syntax-tree
+  title: Cây cú pháp
+  childs:
+  - slug: syntax-tree-001
+    title: Nhận diện Document, Heading, Paragraph, Text và các nút liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-tree-002
+    title: Đọc quan hệ cha, con và anh em trong cây nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-tree-003
+    title: Duyệt cây bằng NodeVisitor và VisitHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-tree-004
+    title: Trích xuất tiêu đề, liên kết và hình ảnh từ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-tree-005
+    title: Truy vết nút về đoạn văn bản nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-tree-006
+    title: Biến đổi cây nút trước khi kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-tree-007
+    title: Giữ cấu trúc hợp lệ khi thêm, chuyển hoặc xóa nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-tree-008
+    title: Phân biệt lấy văn bản thuần với lấy nguyên cú pháp Markdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: html-rendering
+  title: Kết xuất HTML
+  childs:
+  - slug: html-rendering-001
+    title: Tạo HtmlRenderer và kết xuất Document
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-rendering-002
+    title: Chọn kết xuất đoạn HTML hay xây dựng trang HTML hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-rendering-003
+    title: Điều khiển cách hiển thị xuống dòng và các phần tử được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-rendering-004
+    title: Kết xuất liên kết, hình ảnh và URL theo môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-rendering-005
+    title: Tùy chỉnh thuộc tính đầu ra bằng AttributeProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-rendering-006
+    title: Tùy chỉnh cách giải quyết liên kết bằng LinkResolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-rendering-007
+    title: Chuẩn bị CSS, tô màu mã và tài nguyên phía trình xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-rendering-008
+    title: Kiểm tra ngữ nghĩa HTML và khả năng truy cập của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-formatting
+  title: Định dạng nguồn
+  childs:
+  - slug: source-formatting-001
+    title: Tạo Formatter để xuất lại Markdown từ cây cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-formatting-002
+    title: Phân biệt định dạng nguồn Markdown với kết xuất HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-formatting-003
+    title: Chuẩn hóa khoảng cách, thụt lề và danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-formatting-004
+    title: Định dạng lại bảng và khai báo tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-formatting-005
+    title: Kiểm tra phần mở rộng có hỗ trợ Formatter tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-formatting-006
+    title: Đánh giá thay đổi sau vòng đọc, định dạng và đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-formatting-007
+    title: Giữ nguyên ý nghĩa tài liệu khi nguồn được chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-formatting-008
+    title: Kiểm tra tính ổn định khi định dạng lặp nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flexmark-extensions
+  title: Mở rộng Flexmark
+  childs:
+  - slug: flexmark-extensions-001
+    title: Xác định khi nào cấu hình có sẵn chưa đáp ứng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexmark-extensions-002
+    title: Thiết kế cú pháp tùy chỉnh và quy tắc ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexmark-extensions-003
+    title: Phân biệt mở rộng bộ phân tích, cây nút và bộ kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexmark-extensions-004
+    title: Biểu diễn cú pháp mới bằng loại nút riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexmark-extensions-005
+    title: Kết xuất nút tùy chỉnh bằng NodeRenderer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexmark-extensions-006
+    title: Bổ sung khả năng định dạng nguồn cho cú pháp tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexmark-extensions-007
+    title: Kiểm tra xung đột với cú pháp lõi và phần mở rộng đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexmark-extensions-008
+    title: Thiết kế cách hiển thị thay thế cho môi trường không hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safety-and-sanitization
+  title: An toàn
+  childs:
+  - slug: safety-and-sanitization-001
+    title: Phân loại nguồn Markdown tin cậy và không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safety-and-sanitization-002
+    title: Nhận diện nguy cơ XSS qua HTML, URL và thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safety-and-sanitization-003
+    title: Phân biệt escape HTML với làm sạch HTML đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safety-and-sanitization-004
+    title: Kiểm soát giao thức URL và liên kết nguy hiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safety-and-sanitization-005
+    title: Xử lý hình ảnh từ xa và nguy cơ lộ thông tin người xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safety-and-sanitization-006
+    title: Giới hạn kích thước đầu vào và độ phức tạp tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safety-and-sanitization-007
+    title: Kiểm soát đường dẫn khi ứng dụng đọc tài nguyên cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safety-and-sanitization-008
+    title: Áp dụng chính sách bảo mật của trang hiển thị tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-checks
+  title: Kiểm tra chất lượng
+  childs:
+  - slug: quality-checks-001
+    title: Lập bộ mẫu cho cú pháp lõi và các phần mở rộng đã bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-002
+    title: Kiểm tra cây cú pháp và HTML bằng JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-003
+    title: So sánh kết quả mong đợi với nguồn chuẩn và hồ sơ cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-004
+    title: Kiểm tra liên kết hỏng, ảnh thiếu và định danh trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-005
+    title: Kiểm tra phân cấp tiêu đề, văn bản thay thế và văn bản liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-006
+    title: Đối chiếu hiển thị trên môi trường xuất bản thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-007
+    title: Kiểm tra hồi quy khi đổi cấu hình hoặc nâng thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-008
+    title: Đo thời gian và bộ nhớ với tài liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-management
+  title: Quản lý tài liệu
+  childs:
+  - slug: document-management-001
+    title: Tổ chức thư mục tài liệu, hình ảnh và tệp dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-management-002
+    title: Đặt tên tệp và thiết kế đường dẫn liên kết bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-management-003
+    title: Tách tài liệu dài và giữ điều hướng giữa các phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-management-004
+    title: Quản lý biến thể ngôn ngữ và liên kết giữa bản dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-management-005
+    title: Quy định cách viết ví dụ, lưu ý và tài liệu tham khảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-management-006
+    title: Rà soát thay đổi Markdown bằng Git và quy trình đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-management-007
+    title: Quản lý phiên bản tài liệu cùng phiên bản phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercise
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercise-001
+    title: Viết README có giới thiệu, cài đặt, ví dụ và mục lục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-002
+    title: Viết hướng dẫn thao tác với danh sách, khối mã và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-003
+    title: Viết tài liệu tham chiếu có bảng, liên kết và thuật ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-004
+    title: Xây dựng chương trình Java chuyển Markdown thành HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-005
+    title: Kết hợp front matter, cây cú pháp và siêu dữ liệu trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-006
+    title: Tự động kiểm tra và kết xuất tài liệu trong quy trình build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-007
+    title: Đóng gói tài nguyên và xuất bản bộ tài liệu tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-008
+    title: Chuyển một tài liệu khác hồ sơ sang cấu hình Flexmark đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-009
+    title: Chẩn đoán tài liệu hiển thị sai và hoàn thiện danh sách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

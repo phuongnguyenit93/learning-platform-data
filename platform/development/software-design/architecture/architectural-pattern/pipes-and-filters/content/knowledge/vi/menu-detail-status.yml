@@ -1,0 +1,2341 @@
+menu:
+- slug: pattern-overview
+  title: Tổng quan
+  childs:
+  - slug: pattern-overview-001
+    title: Khái niệm Pipes and Filters và mục tiêu phân rã luồng xử lý dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-002
+    title: Nguồn gốc tư duy pipeline và nguyên lý ghép các bước biến đổi độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-003
+    title: Luồng dữ liệu qua nguồn, các filter, các pipe và đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-004
+    title: Phân biệt mẫu kiến trúc Pipes and Filters với pipeline ở mức mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-005
+    title: 'Các thuộc tính cốt lõi: tính kết hợp, tính độc lập và khả năng thay thế'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-006
+    title: Lợi ích về tái sử dụng, kiểm thử, bảo trì và phát triển từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-007
+    title: Chi phí điều phối, truyền dữ liệu và quan sát khi tăng số bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-008
+    title: 'Thuật ngữ nền tảng: record, message, stream, stage và pipeline'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: core-components
+  title: Thành phần cốt lõi
+  childs:
+  - slug: core-components-001
+    title: 'Source: tiếp nhận dữ liệu, xác định ranh giới đầu vào và phát tín hiệu kết thúc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: core-components-002
+    title: 'Filter: nhận dữ liệu, thực hiện một trách nhiệm và tạo đầu ra theo hợp đồng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: core-components-003
+    title: 'Pipe: chuyển dữ liệu và tách biệt cơ chế vận chuyển khỏi phép biến đổi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: core-components-004
+    title: 'Sink: tiêu thụ kết quả và xác định thời điểm hoàn tất xử lý'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: core-components-005
+    title: 'Bộ điều phối: quản lý vòng đời, phụ thuộc và kết quả của pipeline'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: core-components-006
+    title: 'Mặt phẳng dữ liệu và tín hiệu điều khiển: lỗi, hủy, nhu cầu và hoàn tất'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: core-components-007
+    title: Quyền sở hữu dữ liệu, tài nguyên và trách nhiệm giải phóng giữa các thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: core-components-008
+    title: Ranh giới giữa logic nghiệp vụ, adapter đầu vào/đầu ra và hạ tầng thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: applicability-and-boundaries
+  title: Ranh giới áp dụng
+  childs:
+  - slug: applicability-and-boundaries-001
+    title: Nhận diện bài toán có thể biểu diễn bằng chuỗi biến đổi dữ liệu độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-boundaries-002
+    title: Điều kiện áp dụng cho ETL, xử lý tệp, nhật ký, thông điệp và đa phương tiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-boundaries-003
+    title: Đánh giá mức độc lập, tính kết hợp và nhu cầu tái sử dụng của từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-boundaries-004
+    title: Hạn chế khi cần tương tác qua lại, trạng thái chung hoặc giao dịch xuyên nhiều bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-boundaries-005
+    title: So sánh với Layered Architecture theo luồng dữ liệu và hướng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-boundaries-006
+    title: So sánh với Chain of Responsibility theo quyền xử lý và chuyển tiếp yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-boundaries-007
+    title: So sánh với middleware và workflow theo ngữ nghĩa của từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-boundaries-008
+    title: Cân nhắc độ phức tạp vận hành trước khi chọn pipeline phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: filter-design
+  title: Thiết kế filter
+  childs:
+  - slug: filter-design-001
+    title: Chia filter theo một trách nhiệm nghiệp vụ có đầu vào và đầu ra xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-design-002
+    title: Thiết kế giao diện Filter<I, O> và biểu diễn phép kết hợp an toàn về kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-design-003
+    title: Phân biệt filter thuần, filter có trạng thái và filter có tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-design-004
+    title: Thiết kế ánh xạ một-một, một-nhiều, nhiều-một và loại bỏ phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-design-005
+    title: Giữ filter độc lập với filter kế tiếp và cơ chế vận chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-design-006
+    title: Tách cấu hình, phụ thuộc bên ngoài và ngữ cảnh xử lý khỏi dữ liệu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-design-007
+    title: Chọn độ hạt filter để cân bằng khả năng tái sử dụng và chi phí kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-design-008
+    title: Xác định tính xác định, tính lũy đẳng và các bất biến của phép biến đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: Xác định schema, kiểu dữ liệu, trường bắt buộc và trường tùy chọn tại mỗi ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-002
+    title: Mô tả ngữ nghĩa, đơn vị đo, miền giá trị và quy ước chuẩn hóa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-003
+    title: Quy định tiền điều kiện, hậu điều kiện và bất biến giữa các filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-004
+    title: Phân biệt dữ liệu thiếu, null, rỗng, không hợp lệ và giá trị mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-005
+    title: Tách payload khỏi metadata như mã tương quan, phiên bản và dấu thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-006
+    title: Quy định định dạng lỗi và biểu diễn kết quả thành công, bị loại hoặc thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-007
+    title: Xác định quyền sửa đổi dữ liệu và chính sách dùng đối tượng bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-008
+    title: Thiết kế hợp đồng tuần tự hóa, mã hóa ký tự và kích thước bản ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-009
+    title: Khai báo số lượng đầu ra, tín hiệu kết thúc và hành vi với đầu vào rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-contracts-010
+    title: Xác minh khả năng kết hợp đầu ra của filter trước với đầu vào của filter sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pipe-design
+  title: Thiết kế pipe
+  childs:
+  - slug: pipe-design-001
+    title: Pipe đồng bộ qua lời gọi trực tiếp và truyền giá trị trong bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipe-design-002
+    title: Pipe bất đồng bộ qua hàng đợi và phân tách tốc độ giữa các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipe-design-003
+    title: Pipe liên tiến trình hoặc qua mạng và chi phí truyền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipe-design-004
+    title: Lựa chọn lưu trữ tạm thời hoặc bền vững theo yêu cầu phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipe-design-005
+    title: Xác định dung lượng, chính sách khi đầy và thời hạn chờ của pipe
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipe-design-006
+    title: Quy định thứ tự, quyền sở hữu và thời điểm dữ liệu được coi là đã chuyển giao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipe-design-007
+    title: Thiết kế đóng pipe, truyền lỗi và giải phóng tài nguyên khi dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipe-design-008
+    title: Chọn cơ chế vận chuyển theo độ trễ, thông lượng, độ bền và mức ghép nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pipeline-topologies
+  title: Cấu trúc pipeline
+  childs:
+  - slug: pipeline-topologies-001
+    title: Pipeline tuyến tính và điều kiện kết hợp các filter theo thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-topologies-002
+    title: Định tuyến có điều kiện theo nội dung và tách luồng dữ liệu không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-topologies-003
+    title: 'Fan-out: nhân bản dữ liệu hoặc phân chia dữ liệu sang nhiều nhánh'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-topologies-004
+    title: 'Fan-in: hợp nhất các nhánh và xác định ngữ nghĩa thứ tự đầu ra'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-topologies-005
+    title: 'Splitter và aggregator: tách bản ghi rồi gom kết quả theo khóa'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-topologies-006
+    title: Kết hợp nhiều nguồn bằng join và quản lý thời hạn chờ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-topologies-007
+    title: Đồ thị không chu trình, phụ thuộc giữa các bước và phát hiện cấu hình sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-topologies-008
+    title: Vòng phản hồi và nhu cầu bổ sung giới hạn lặp, chống lặp vô hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-orchestration
+  title: Điều phối thực thi
+  childs:
+  - slug: execution-orchestration-001
+    title: Phân biệt luồng dữ liệu với luồng điều khiển của bộ điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-002
+    title: Xây dựng kế hoạch thực thi từ cấu hình và kiểm tra kết nối trước khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-003
+    title: Quản lý khởi tạo, sẵn sàng, chạy, hoàn tất và đóng từng thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-004
+    title: Lập lịch các bước theo phụ thuộc và ngân sách tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-005
+    title: Truyền ngữ cảnh xử lý, thời hạn và tín hiệu hủy xuyên pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-006
+    title: Thiết kế timeout cho từng bước và thời hạn tổng thể của một lần xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-007
+    title: Phối hợp hoàn tất khi có nhiều nguồn, nhiều nhánh và đầu ra rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-008
+    title: 'Dừng êm: ngừng nhận dữ liệu mới, xử lý phần tồn và đóng sink'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-009
+    title: Giám sát lỗi của tác vụ con và ngăn tác vụ bị bỏ quên khi pipeline kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-orchestration-010
+    title: Phân định điều phối tập trung và điều phối qua thông điệp giữa các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: processing-models
+  title: Mô hình xử lý
+  childs:
+  - slug: processing-models-001
+    title: 'Mô hình push: nguồn chủ động phát dữ liệu và trách nhiệm kiểm soát tốc độ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-models-002
+    title: 'Mô hình pull: bước sau yêu cầu dữ liệu và đánh giá xử lý theo nhu cầu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-models-003
+    title: Xử lý theo lô với tập dữ liệu hữu hạn và điều kiện hoàn tất rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-models-004
+    title: Xử lý luồng liên tục với nguồn không hữu hạn và kết quả tăng dần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-models-005
+    title: Xử lý từng bản ghi và vi lô theo đánh đổi độ trễ, thông lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-models-006
+    title: Thực thi đồng bộ và bất đồng bộ theo mức ghép nối giữa các bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-models-007
+    title: Thực thi lười và thực thi ngay theo thời điểm phát sinh công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processing-models-008
+    title: Đánh giá vật chất hóa dữ liệu trung gian so với truyền dữ liệu liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-management
+  title: Quản lý trạng thái
+  childs:
+  - slug: state-management-001
+    title: Nhận diện trạng thái cục bộ, trạng thái theo khóa và trạng thái dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-002
+    title: Chọn filter không trạng thái khi phép biến đổi không cần lịch sử xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-003
+    title: Thiết kế phạm vi sống và quyền sở hữu của trạng thái trong filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-004
+    title: Phân vùng trạng thái theo khóa và giữ dữ liệu liên quan cùng nơi xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-005
+    title: Lưu trạng thái trong bộ nhớ hoặc kho bên ngoài theo độ trễ và độ bền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-006
+    title: Giới hạn trạng thái bằng TTL, cửa sổ và chính sách thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-007
+    title: Chụp snapshot, tạo checkpoint và khôi phục trạng thái sau sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-008
+    title: Phối hợp trạng thái với vị trí đọc nguồn và kết quả đã ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-009
+    title: Di chuyển trạng thái khi thay đổi số phân vùng hoặc số worker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-management-010
+    title: 'Quản lý cache trong filter: độ mới, vô hiệu hóa và tính nhất quán'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ordering-and-time
+  title: Thứ tự và thời gian
+  childs:
+  - slug: ordering-and-time-001
+    title: Phân biệt thứ tự toàn cục, thứ tự theo nguồn và thứ tự theo khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-time-002
+    title: Ảnh hưởng của xử lý song song, retry và nhiều nhánh tới thứ tự kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-time-003
+    title: Số thứ tự, bộ đệm sắp xếp lại và giới hạn thời gian chờ phần tử thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-time-004
+    title: Phân biệt thời gian sự kiện, thời gian tiếp nhận và thời gian xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-time-005
+    title: Cửa sổ cố định, trượt và phiên cho phép tổng hợp dữ liệu luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-time-006
+    title: Watermark, dữ liệu đến muộn và giới hạn chờ hoàn tất cửa sổ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-time-007
+    title: Chính sách bỏ qua, cập nhật hoặc phát kết quả hiệu chỉnh khi dữ liệu đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-time-008
+    title: Đồng bộ thời gian và bảo đảm tính xác định khi kiểm thử hoặc phát lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-classification
+  title: Phân loại lỗi
+  childs:
+  - slug: error-classification-001
+    title: Phân biệt lỗi dữ liệu, lỗi nghiệp vụ, lỗi hạ tầng và lỗi lập trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-classification-002
+    title: Xác định lỗi tạm thời, lỗi vĩnh viễn và điều kiện có thể thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-classification-003
+    title: Phạm vi lỗi ở mức bản ghi, vi lô, filter và toàn pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-classification-004
+    title: Chọn fail-fast, tiếp tục có kiểm soát hoặc kết thúc một phần theo hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-classification-005
+    title: Thiết kế kênh lỗi và giữ thông tin nguồn gốc, nguyên nhân, bước thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-classification-006
+    title: Cách ly dữ liệu lỗi bằng quarantine hoặc dead-letter queue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-classification-007
+    title: Biểu diễn kết quả một phần và tránh bỏ qua lỗi hoặc thất thoát âm thầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-classification-008
+    title: Cô lập nhánh thất bại và xác định điều kiện hủy các nhánh liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: recovery-and-retries
+  title: Phục hồi và retry
+  childs:
+  - slug: recovery-and-retries-001
+    title: Thiết kế retry có giới hạn theo số lần, thời gian và ngân sách xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-retries-002
+    title: Exponential backoff và jitter để giảm tải khi phụ thuộc gặp sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-retries-003
+    title: Chọn vị trí retry tại nguồn, từng filter hoặc toàn pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-retries-004
+    title: Ngăn retry lồng nhau, bão retry và khuếch đại số lần gọi phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-retries-005
+    title: Circuit breaker và thời điểm tạm ngừng gọi dịch vụ đang lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-retries-006
+    title: Phát hiện poison message và chuyển sang kênh xử lý thủ công có truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-retries-007
+    title: Phục hồi từ checkpoint và phát lại trong phạm vi dữ liệu được xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-retries-008
+    title: Thiết kế quy trình sửa dữ liệu, tái xử lý và đối soát sau phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: delivery-guarantees
+  title: Bảo đảm giao nhận
+  childs:
+  - slug: delivery-guarantees-001
+    title: At-most-once và đánh đổi giữa trùng lặp với nguy cơ mất dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-guarantees-002
+    title: At-least-once và yêu cầu xử lý trùng lặp ở các bước nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-guarantees-003
+    title: 'Exactly-once: phạm vi bảo đảm, giả định và giới hạn khi gọi hệ thống bên ngoài'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-guarantees-004
+    title: Thời điểm acknowledge, commit offset và xác nhận ghi kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-guarantees-005
+    title: Khóa lũy đẳng, định danh bản ghi và chiến lược khử trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-guarantees-006
+    title: Kho lưu dấu đã xử lý, thời hạn lưu và xử lý va chạm định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-guarantees-007
+    title: Cửa sổ sự cố giữa nhận dữ liệu, cập nhật trạng thái và phát đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-guarantees-008
+    title: Kiểm chứng bảo đảm giao nhận từ đầu đến cuối qua từng ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-side-effects
+  title: Giao dịch và tác dụng phụ
+  childs:
+  - slug: transactions-and-side-effects-001
+    title: Tách phép biến đổi thuần khỏi ghi cơ sở dữ liệu, gọi API và phát thông điệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-002
+    title: Chọn ranh giới giao dịch tại filter hoặc sink theo đơn vị nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-003
+    title: Thiết kế sink có tính lũy đẳng và thao tác ghi có điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-004
+    title: Transactional outbox để phối hợp cập nhật dữ liệu và phát sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-005
+    title: Inbox và khử trùng lặp để bảo vệ tác dụng phụ ở phía nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-006
+    title: Giao dịch phân tán và giới hạn khi tài nguyên không cùng cơ chế commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-007
+    title: Bù trừ và Saga khi chuỗi tác dụng phụ không thể rollback đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-side-effects-008
+    title: Đối soát tác dụng phụ khi timeout khiến kết quả thực tế chưa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backpressure
+  title: Backpressure
+  childs:
+  - slug: backpressure-001
+    title: Nhận diện chênh lệch tốc độ giữa nguồn, filter và sink
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-002
+    title: Phân biệt backpressure, buffering, throttling và rate limiting
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-003
+    title: Điều tiết theo nhu cầu của bước nhận trong mô hình pull hoặc demand
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-004
+    title: Truyền áp lực ngược bằng chặn ghi hoặc chờ bất đồng bộ có giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-005
+    title: Ngưỡng cao, ngưỡng thấp và chính sách tạm dừng rồi tiếp tục nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-006
+    title: Chọn chờ, từ chối, bỏ phần tử hoặc lưu tạm theo ngữ nghĩa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-007
+    title: Xử lý nhánh chậm trong fan-out và giới hạn ảnh hưởng lên nhánh khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-008
+    title: Lan truyền áp lực ngược qua tiến trình, mạng và broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-009
+    title: Kiểm soát tiếp nhận và giảm tải khi tốc độ đầu vào vượt năng lực bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-010
+    title: Quan sát tốc độ, độ sâu hàng đợi và thời gian chờ để kiểm chứng điều tiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: buffering-and-resource-management
+  title: Bộ đệm và tài nguyên
+  childs:
+  - slug: buffering-and-resource-management-001
+    title: Ước lượng dung lượng hàng đợi từ tốc độ đến, thời gian chờ và kích thước bản ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-resource-management-002
+    title: Giới hạn số phần tử cùng kích thước byte để kiểm soát bộ nhớ thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-resource-management-003
+    title: Chọn bộ đệm trong bộ nhớ, trên đĩa hoặc cơ chế spill theo tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-resource-management-004
+    title: Quản lý vòng đời buffer, kết nối, luồng đọc và tệp tạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-resource-management-005
+    title: Cân bằng sao chép dữ liệu, chia sẻ đối tượng và tối ưu truyền bộ đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-resource-management-006
+    title: Áp dụng quota cho kết nối, tác vụ đang xử lý và dung lượng lưu tạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-resource-management-007
+    title: Ngăn rò rỉ tài nguyên khi lỗi, timeout, hủy và dừng giữa chừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-resource-management-008
+    title: Dự phòng tài nguyên cho đột biến tải và giới hạn thời gian lưu dữ liệu tồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrent-processing
+  title: Xử lý đồng thời
+  childs:
+  - slug: concurrent-processing-001
+    title: Phân biệt song song giữa các bước và song song bên trong một bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-processing-002
+    title: Chọn số worker theo đặc tính công việc CPU hoặc chờ I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-processing-003
+    title: Phân chia dữ liệu theo bản ghi, lô hoặc khóa để tránh tranh chấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-processing-004
+    title: Thiết kế filter an toàn luồng và cô lập trạng thái có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-processing-005
+    title: Điều phối executor, nhóm worker và giới hạn tác vụ đang chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-processing-006
+    title: Khôi phục thứ tự đầu ra và nhận diện head-of-line blocking
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-processing-007
+    title: Ngăn deadlock khi các pipe hữu hạn cùng chờ đọc hoặc ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-processing-008
+    title: Đánh giá công bằng, tranh chấp khóa và khả năng hủy khi chạy song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-optimization
+  title: Tối ưu hiệu năng
+  childs:
+  - slug: performance-optimization-001
+    title: Đo thông lượng, độ trễ toàn tuyến và độ trễ tại các phân vị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-002
+    title: Phân rã thời gian xử lý, thời gian xếp hàng và thời gian truyền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-003
+    title: Xác định nút thắt bằng đo đạc từng bước với tải đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-004
+    title: Áp dụng định luật Little để liên hệ tải đang xử lý, thông lượng và độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-005
+    title: Cân chỉnh kích thước lô theo chi phí cố định, bộ nhớ và thời gian chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-006
+    title: Giảm tuần tự hóa, sao chép, cấp phát đối tượng và chuyển đổi ngữ cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-007
+    title: Hợp nhất hoặc tách filter theo đánh đổi chi phí thực thi và khả năng độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-optimization-008
+    title: Benchmark có warm-up, tải ổn định và so sánh trước sau theo cùng điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-scalability
+  title: Mở rộng hệ thống
+  childs:
+  - slug: system-scalability-001
+    title: Mở rộng dọc và mở rộng ngang theo đặc tính của từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scalability-002
+    title: Scale riêng filter chậm trong phạm vi pipe và hạ tầng cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scalability-003
+    title: Thiết kế partition và khóa phân vùng để phân phối công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scalability-004
+    title: Phát hiện dữ liệu lệch, hot key và phân bố tải không đồng đều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scalability-005
+    title: Rebalance khi thêm bớt worker và ảnh hưởng đến thứ tự, trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scalability-006
+    title: Tự động mở rộng theo backlog, tốc độ đến và thời gian xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scalability-007
+    title: Tính đến giới hạn của sink, dịch vụ phụ thuộc, băng thông và lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scalability-008
+    title: Cân bằng khả năng sẵn sàng, chi phí vận hành và mức dư địa công suất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Xác thực và phân quyền cho nguồn, pipe, filter và sink
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-002
+    title: Kiểm soát dữ liệu không tin cậy, kích thước payload và định dạng đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-003
+    title: Mã hóa dữ liệu khi truyền, lưu tạm và lưu bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-004
+    title: Quản lý bí mật, thông tin kết nối và vòng đời thông tin xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-005
+    title: Che giấu dữ liệu nhạy cảm trong log, trace và bản ghi lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-006
+    title: Cô lập dữ liệu, tài nguyên và quyền truy cập giữa các bên thuê
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-007
+    title: Giới hạn lưu giữ, xóa dữ liệu và xử lý bản sao trong các hàng đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-008
+    title: Ghi dấu kiểm toán cho thay đổi pipeline, phát lại và thao tác quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pipeline-observability
+  title: Quan sát pipeline
+  childs:
+  - slug: pipeline-observability-001
+    title: Truyền mã tương quan và theo dõi hành trình bản ghi qua các filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-observability-002
+    title: Thu thập số lượng đầu vào, đầu ra, bị loại, thất bại và thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-observability-003
+    title: Đo độ sâu hàng đợi, tuổi bản ghi tồn, consumer lag và mức sử dụng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-observability-004
+    title: Thiết kế tracing cho xử lý bất đồng bộ, fan-out và fan-in
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-observability-005
+    title: Log có cấu trúc, lấy mẫu và quản lý số lượng giá trị nhãn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-observability-006
+    title: Theo dõi nguồn gốc dữ liệu và phiên bản các phép biến đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-observability-007
+    title: Xác định SLI, SLO và cảnh báo theo độ trễ, tính đầy đủ, độ mới dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-observability-008
+    title: Chẩn đoán pipeline bị kẹt, sink chậm, mất kết nối và suy giảm chất lượng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: filter-testing
+  title: Kiểm thử filter
+  childs:
+  - slug: filter-testing-001
+    title: Kiểm thử đơn vị filter thuần bằng đầu vào và đầu ra tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-testing-002
+    title: Kiểm thử trường bắt buộc, giá trị biên, null và dữ liệu sai định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-testing-003
+    title: Kiểm tra tiền điều kiện, hậu điều kiện và bất biến của phép biến đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-testing-004
+    title: Kiểm thử theo thuộc tính với các miền dữ liệu được sinh có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-testing-005
+    title: Kiểm thử tính xác định, tính lũy đẳng và hành vi với phần tử trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-testing-006
+    title: Kiểm thử filter có trạng thái bằng chuỗi sự kiện và trạng thái kỳ vọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-testing-007
+    title: Thay thế phụ thuộc bên ngoài bằng fake hoặc stub phù hợp với hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-testing-008
+    title: Kiểm thử lỗi, timeout, hủy và giải phóng tài nguyên của từng filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-testing
+  title: Kiểm thử tích hợp
+  childs:
+  - slug: integration-testing-001
+    title: Kiểm thử hợp đồng giữa đầu ra filter trước và đầu vào filter sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-002
+    title: Kiểm thử pipe với tuần tự hóa, giới hạn dung lượng và tín hiệu kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-003
+    title: Kiểm thử tích hợp với broker, kho trạng thái và sink thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-004
+    title: Kiểm thử toàn tuyến từ nguồn đến đích bằng bộ dữ liệu có kết quả đối chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-005
+    title: Kiểm thử fan-out, fan-in, routing và bảo toàn số lượng bản ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-006
+    title: Kiểm thử thứ tự theo khóa, cửa sổ thời gian và dữ liệu đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-007
+    title: Kiểm thử retry, khử trùng lặp và tác dụng phụ tại ranh giới giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-008
+    title: Tạo dữ liệu kiểm thử tái lập và kiểm soát thời gian, lịch chạy bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: load-and-resilience-testing
+  title: Kiểm thử độ bền
+  childs:
+  - slug: load-and-resilience-testing-001
+    title: Kiểm thử tải ổn định, tải tăng dần và đột biến lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-and-resilience-testing-002
+    title: Làm chậm sink để kiểm chứng backpressure và dung lượng bộ đệm hữu hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-and-resilience-testing-003
+    title: Kiểm thử chạy dài để phát hiện rò rỉ bộ nhớ, kết nối và tăng trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-and-resilience-testing-004
+    title: Dừng worker giữa nhận, ghi trạng thái và acknowledge để kiểm tra phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-and-resilience-testing-005
+    title: Mô phỏng mất mạng, timeout và phụ thuộc không sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-and-resilience-testing-006
+    title: Khởi động lại từ checkpoint và đối soát dữ liệu thiếu hoặc trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-and-resilience-testing-007
+    title: Kiểm tra deadlock, tranh chấp, starvation và khả năng dừng dưới tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-and-resilience-testing-008
+    title: Xác định tiêu chí chấp nhận về độ trễ, độ đầy đủ và thời gian phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: configuration-and-deployment
+  title: Cấu hình và triển khai
+  childs:
+  - slug: configuration-and-deployment-001
+    title: Biểu diễn topology, hợp đồng và tham số filter bằng cấu hình có kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-deployment-002
+    title: Xác minh phụ thuộc, quyền truy cập và tài nguyên trước khi nhận dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-deployment-003
+    title: Quản lý cấu hình theo môi trường và tách bí mật khỏi cấu hình pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-deployment-004
+    title: Triển khai trong cùng tiến trình, nhiều tiến trình hoặc nhiều dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-deployment-005
+    title: Thiết kế health check, readiness và liveness theo tiến độ xử lý thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-deployment-006
+    title: Triển khai cuốn chiếu hoặc canary với các phiên bản filter tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-deployment-007
+    title: Dừng êm, drain hàng đợi và xử lý dữ liệu đang dở khi nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-deployment-008
+    title: Chuẩn bị rollback, runbook sự cố và kiểm tra khả năng khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: contract-evolution
+  title: Tiến hóa hợp đồng
+  childs:
+  - slug: contract-evolution-001
+    title: Phân biệt tương thích ngược, tương thích xuôi và thay đổi phá vỡ hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-002
+    title: Bổ sung trường, đổi kiểu, đổi ngữ nghĩa và quản lý giá trị mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-003
+    title: Quản lý phiên bản schema, filter và topology theo vòng đời độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-004
+    title: Dùng adapter chuyển đổi để hỗ trợ giai đoạn nhiều phiên bản cùng tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-005
+    title: Thêm, bỏ hoặc đổi thứ tự filter mà vẫn bảo toàn bất biến nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-006
+    title: Di trú trạng thái và checkpoint khi thay đổi logic hoặc cách phân vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-007
+    title: Chạy song song, shadow hoặc phát lại để so sánh hành vi trước khi chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-008
+    title: Quy định chủ sở hữu hợp đồng, thời hạn ngừng hỗ trợ và hồ sơ quyết định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architectural-composition
+  title: Kết hợp kiến trúc
+  childs:
+  - slug: architectural-composition-001
+    title: Pipes and Filters trong ETL và ELT theo vị trí thực hiện phép biến đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-composition-002
+    title: Kết hợp Messaging để tách vận chuyển dữ liệu khỏi xử lý nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-composition-003
+    title: Kết hợp kiến trúc hướng sự kiện và phân biệt pipeline với phát tán sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-composition-004
+    title: Kết hợp microservices và xác định khi nào filter cần thành dịch vụ riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-composition-005
+    title: Kết hợp Hexagonal Architecture để cô lập adapter nguồn và đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-composition-006
+    title: Dùng pipeline xây dựng projection trong CQRS và xử lý phát lại sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-composition-007
+    title: Áp dụng Reactive Streams cho giao thức truyền nhu cầu và backpressure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-composition-008
+    title: Kết hợp bộ lập lịch lô hoặc workflow khi cần quản lý phụ thuộc công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practical-scenarios
+  title: Tình huống thực hành
+  childs:
+  - slug: practical-scenarios-001
+    title: 'Pipeline CSV: đọc, chuẩn hóa, kiểm tra, làm giàu và ghi kết quả'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-scenarios-002
+    title: 'Pipeline đơn hàng: tách phép biến đổi thuần khỏi tác dụng phụ khi gọi dịch vụ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-scenarios-003
+    title: 'Pipeline sự kiện: phân vùng theo khóa, tổng hợp cửa sổ và xử lý dữ liệu muộn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-scenarios-004
+    title: 'Pipeline tệp lớn: đọc theo luồng, giới hạn bộ nhớ và dừng sớm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-scenarios-005
+    title: Pipeline Java đồng bộ với Filter<I, O> và hợp đồng kiểu dữ liệu tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-scenarios-006
+    title: Pipeline Java bất đồng bộ với hàng đợi hữu hạn, timeout và hủy tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-scenarios-007
+    title: 'Bài thực hành lỗi: retry, cách ly dữ liệu, checkpoint và phát lại an toàn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-scenarios-008
+    title: 'Bài thực hành tải: đo độ trễ, quan sát backpressure và chọn mức song song'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: antipatterns-and-design-review
+  title: Phản mẫu và thẩm định
+  childs:
+  - slug: antipatterns-and-design-review-001
+    title: Filter ôm nhiều trách nhiệm hoặc phụ thuộc trực tiếp vào bước kế tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-002
+    title: Truyền đối tượng dùng chung có thể sửa đổi và trạng thái toàn cục ngầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-003
+    title: Hàng đợi không giới hạn, tạo tác vụ vô hạn và thiếu kiểm soát tiếp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-004
+    title: Retry mọi lỗi hoặc tuyên bố exactly-once ngoài phạm vi thực sự được bảo đảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-005
+    title: Bỏ qua lỗi, thiếu kênh cách ly và phát lại dữ liệu không kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-006
+    title: Chia quá nhiều bước nhỏ hoặc phân tán pipeline khi chi phí vượt lợi ích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-007
+    title: Đánh giá tính đầy đủ của hợp đồng, quyền sở hữu và ranh giới tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-008
+    title: Đánh giá khả năng phục hồi, bảo toàn dữ liệu và giới hạn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-009
+    title: Đánh giá hiệu năng, khả năng mở rộng và khả năng vận hành bằng số liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: antipatterns-and-design-review-010
+    title: Ghi nhận giả định, đánh đổi và tiêu chí lựa chọn trong quyết định kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

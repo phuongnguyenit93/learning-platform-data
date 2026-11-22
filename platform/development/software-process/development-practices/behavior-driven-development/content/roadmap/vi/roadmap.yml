@@ -1,0 +1,64 @@
+roadmap:
+- id: bdd-shared-understanding
+  title: BDD & Shared Understanding
+  purpose: Hiểu BDD là cách cộng tác khám phá hành vi mong đợi trước khi viết mã và kiểm thử.
+  objectives:
+  - Phân biệt BDD với chỉ tự động hóa test bằng Cucumber.
+  - Mô tả chu trình Discovery → Formulation → Automation.
+  - Giải thích lợi ích của ví dụ cụ thể và ngôn ngữ chung.
+- id: three-amigos-example-mapping
+  title: Three Amigos & Example Mapping
+  purpose: Làm rõ user story qua đối thoại giữa góc nhìn sản phẩm, phát triển và kiểm thử.
+  objectives:
+  - Phân vai product, developer và tester trong buổi thảo luận.
+  - Ghi business rules, examples và open questions bằng Example Mapping.
+  - Nhận diện story quá lớn hoặc chưa đủ rõ để triển khai.
+- id: business-rules-edge-cases
+  title: Business Rules & Edge Cases
+  purpose: Chuyển nhu cầu mơ hồ thành những ví dụ minh họa quy tắc kinh doanh.
+  objectives:
+  - Viết ví dụ happy path cho một business rule.
+  - Bổ sung boundary, negative case và ngoại lệ quan trọng.
+  - Xác nhận kết quả mong đợi với stakeholder trước khi tự động hóa.
+- id: gherkin-given-when-then
+  title: Gherkin & Given–When–Then
+  purpose: Viết executable specification dễ đọc từ góc nhìn hành vi người dùng.
+  objectives:
+  - Tạo Feature và Scenario theo ngôn ngữ miền nghiệp vụ.
+  - Dùng Given cho bối cảnh, When cho hành động, Then cho kết quả.
+  - Tránh mô tả click UI hoặc chi tiết triển khai trong scenario.
+- id: scenario-outline-test-data
+  title: Scenario Outline & Test Data
+  purpose: Tái sử dụng mẫu hành vi khi nhiều trường hợp chỉ khác dữ liệu kiểm thử.
+  objectives:
+  - Viết Scenario Outline và bảng Examples cho các giá trị biên.
+  - Phân biệt Examples table với Data Table truyền vào step.
+  - Chọn Background hoặc Rule khi giúp tài liệu dễ hiểu hơn.
+- id: cucumber-jvm-step-definitions
+  title: Cucumber-JVM & Step Definitions
+  purpose: Kết nối các câu Gherkin với mã Java để chạy specification tự động.
+  objectives:
+  - Cấu hình Cucumber-JVM cùng JUnit Platform và file .feature.
+  - Ánh xạ bước bằng @Given, @When, @Then và Cucumber Expressions.
+  - Dùng tham số hóa thay vì tạo step trùng lặp cho từng giá trị.
+- id: assertions-scenario-isolation
+  title: Assertions & Scenario Isolation
+  purpose: Đảm bảo kiểm thử xác nhận đúng hành vi và không phụ thuộc vào thứ tự chạy.
+  objectives:
+  - Viết assertion cho kết quả nghiệp vụ thay vì chỉ kiểm tra không lỗi.
+  - Cô lập trạng thái, test data và side effect giữa các scenario.
+  - Dùng hook hoặc dependency injection để setup và cleanup có kiểm soát.
+- id: ci-reports-living-docs
+  title: CI, Reports & Living Docs
+  purpose: Duy trì phản hồi nhanh và biến ví dụ được chạy thành tài liệu còn đúng với hệ thống.
+  objectives:
+  - Chạy Cucumber suite trong CI và làm build fail khi assertion sai.
+  - Xuất báo cáo pass/fail cùng ngữ cảnh của scenario.
+  - Review, cập nhật hoặc bỏ ví dụ khi business rule thay đổi.
+- id: mini-project-feedback-loop
+  title: Mini Project & Feedback Loop
+  purpose: Hoàn thiện một vòng BDD nhỏ từ thảo luận yêu cầu tới test và mã triển khai.
+  objectives:
+  - Dùng Example Mapping cho luật giảm giá của API bán hàng.
+  - Viết ba scenario Gherkin rồi tự động hóa bằng Cucumber-JVM.
+  - Thử rule mới, xem test fail trước và cập nhật code cùng tài liệu.

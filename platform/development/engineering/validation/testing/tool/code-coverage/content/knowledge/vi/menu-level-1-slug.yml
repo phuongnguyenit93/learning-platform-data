@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Chỉ số bao phủ
+  slug: coverage-metrics
+  index: 1
+- title: Điều kiện và nhánh
+  slug: condition-and-branch-coverage
+  index: 2
+- title: Thiết kế ca kiểm thử
+  slug: test-case-design
+  index: 3
+- title: Hệ sinh thái công cụ
+  slug: tool-ecosystem
+  index: 4
+- title: Cơ chế JaCoCo
+  slug: jacoco-internals
+  index: 5
+- title: Thiết lập ban đầu
+  slug: initial-setup
+  index: 6
+- title: Tích hợp Gradle
+  slug: gradle-integration
+  index: 7
+- title: Tích hợp Maven
+  slug: maven-integration
+  index: 8
+- title: Đọc báo cáo
+  slug: reading-reports
+  index: 9
+- title: Dữ liệu thực thi
+  slug: execution-data
+  index: 10
+- title: Kiểm thử tích hợp
+  slug: integration-test-coverage
+  index: 11
+- title: Dự án nhiều module
+  slug: multi-module-projects
+  index: 12
+- title: Làm việc trong IDE
+  slug: ide-workflow
+  index: 13
+- title: Đặc điểm mã Java
+  slug: java-code-characteristics
+  index: 14
+- title: Ứng dụng Spring
+  slug: spring-applications
+  index: 15
+- title: Phạm vi đo
+  slug: measurement-scope
+  index: 16
+- title: Ngưỡng chất lượng
+  slug: quality-thresholds
+  index: 17
+- title: Bao phủ mã thay đổi
+  slug: changed-code-coverage
+  index: 18
+- title: Tích hợp SonarQube
+  slug: sonarqube-integration
+  index: 19
+- title: Tích hợp CI
+  slug: ci-integration
+  index: 20
+- title: Java agent nâng cao
+  slug: advanced-java-agent
+  index: 21
+- title: Chèn mã ngoại tuyến
+  slug: offline-instrumentation
+  index: 22
+- title: Độ tin cậy phép đo
+  slug: measurement-reliability
+  index: 23
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 24
+- title: Diễn giải và cải thiện
+  slug: interpretation-and-improvement
+  index: 25
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 26

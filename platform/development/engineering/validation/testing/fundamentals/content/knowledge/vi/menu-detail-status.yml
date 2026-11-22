@@ -1,0 +1,2620 @@
+menu:
+- slug: testing-overview
+  title: Bức tranh kiểm thử
+  childs:
+  - slug: testing-overview-001
+    title: Kiểm thử phần mềm là gì và vì sao phần mềm cần được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-002
+    title: Từ nhu cầu người dùng đến hành vi thực tế của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-003
+    title: 'Mô hình tư duy: đối tượng, điều kiện, thao tác, quan sát và kết luận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-004
+    title: Các mục tiêu của kiểm thử trong phát triển và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-005
+    title: Phân biệt thực hiện kiểm thử với chỉ chạy chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-006
+    title: Kiểm thử cung cấp bằng chứng gì cho người ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-007
+    title: Mối liên hệ giữa yêu cầu, mã nguồn, kiểm thử và sản phẩm bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-008
+    title: Những giới hạn của một tập ca kiểm thử hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-overview-009
+    title: Lộ trình học từ thuật ngữ đến tự xây dựng một phép kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-and-risk
+  title: Chất lượng và rủi ro
+  childs:
+  - slug: quality-and-risk-001
+    title: Chất lượng phần mềm nhìn từ người dùng, nghiệp vụ và đội phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-risk-002
+    title: Chức năng đúng và các đặc tính chất lượng ngoài chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-risk-003
+    title: Phân biệt đảm bảo chất lượng, kiểm soát chất lượng và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-risk-004
+    title: 'Rủi ro sản phẩm: khả năng xảy ra và mức độ tác động'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-risk-005
+    title: Rủi ro dự án và sự khác nhau với rủi ro của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-risk-006
+    title: Liên hệ vùng rủi ro với mục tiêu và phạm vi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-risk-007
+    title: Chi phí phát hiện lỗi, sửa lỗi và phòng ngừa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-risk-008
+    title: Rủi ro còn lại sau kiểm thử và cách trình bày sự không chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: defects-and-failures
+  title: Sai sót và khiếm khuyết
+  childs:
+  - slug: defects-and-failures-001
+    title: Phân biệt sai sót của con người (error), khiếm khuyết (defect) và hành vi sai (failure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-failures-002
+    title: Nguyên nhân gốc và chuỗi dẫn từ sai sót đến lỗi quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-failures-003
+    title: Khiếm khuyết trong yêu cầu, thiết kế, mã nguồn và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-failures-004
+    title: Vì sao một khiếm khuyết có thể chưa biểu hiện trong mọi lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-failures-005
+    title: Dữ liệu, trạng thái và môi trường kích hoạt hành vi sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-failures-006
+    title: Phân biệt lỗi sản phẩm với lỗi trong mã hoặc dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-failures-007
+    title: Phân biệt kiểm thử, chẩn đoán nguyên nhân và sửa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defects-and-failures-008
+    title: Vai trò của kiểm thử xác nhận sửa lỗi và phòng ngừa tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: verification-and-validation
+  title: Xác minh và xác nhận
+  childs:
+  - slug: verification-and-validation-001
+    title: 'Xác minh (verification): đối chiếu sản phẩm với đặc tả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-validation-002
+    title: 'Xác nhận đáp ứng nhu cầu (validation): đối chiếu với mục đích sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-validation-003
+    title: Một chức năng đúng đặc tả nhưng chưa giải quyết nhu cầu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-validation-004
+    title: Bằng chứng cho sự phù hợp kỹ thuật và bằng chứng cho giá trị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-validation-005
+    title: Vai trò của các bên liên quan trong xác nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-validation-006
+    title: Quan hệ giữa kiểm thử chấp nhận và mục tiêu validation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-validation-007
+    title: Phân biệt validation sản phẩm với kiểm tra hợp lệ dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-and-validation-008
+    title: Kết hợp xác minh và xác nhận trong cùng vòng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-principles
+  title: Nguyên tắc kiểm thử
+  childs:
+  - slug: testing-principles-001
+    title: Kiểm thử cho thấy sự hiện diện của khiếm khuyết và giới hạn của kết luận không có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-principles-002
+    title: Vì sao không thể kiểm thử vét cạn mọi tổ hợp trong đa số hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-principles-003
+    title: Phát hiện và phản hồi sớm trong vòng đời phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-principles-004
+    title: Sự tập trung của khiếm khuyết và cách quan sát các vùng có vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-principles-005
+    title: Vì sao bộ kiểm thử cần được cập nhật khi sản phẩm và hiểu biết thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-principles-006
+    title: Thiết kế kiểm thử theo bối cảnh và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-principles-007
+    title: Sản phẩm ít lỗi nhưng không đáp ứng nhu cầu vẫn chưa đạt mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-principles-008
+    title: Vận dụng các nguyên tắc khi chọn và diễn giải một ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-subjects-and-basis
+  title: Đối tượng và căn cứ
+  childs:
+  - slug: test-subjects-and-basis-001
+    title: 'Đối tượng kiểm thử: hàm, thành phần, dịch vụ, hệ thống hoặc sản phẩm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-subjects-and-basis-002
+    title: Xác định ranh giới hệ thống đang được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-subjects-and-basis-003
+    title: 'Căn cứ kiểm thử (test basis): yêu cầu, hợp đồng, mô hình và tài liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-subjects-and-basis-004
+    title: Phân biệt điều kiện kiểm thử, ca kiểm thử và thủ tục kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-subjects-and-basis-005
+    title: Đầu vào, đầu ra, trạng thái và các tác dụng phụ cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-subjects-and-basis-006
+    title: Phụ thuộc bên trong, hệ thống bên ngoài và điểm tiếp xúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-subjects-and-basis-007
+    title: Nhận diện giả định chưa được xác minh trong căn cứ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-subjects-and-basis-008
+    title: Xác định nội dung thuộc phạm vi và ngoài phạm vi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-and-criteria
+  title: Yêu cầu và tiêu chí
+  childs:
+  - slug: requirements-and-criteria-001
+    title: Đọc yêu cầu dưới góc nhìn hành vi có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-002
+    title: Nhận diện yêu cầu mơ hồ, thiếu điều kiện hoặc mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-003
+    title: Ví dụ cụ thể giúp thống nhất cách hiểu yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-004
+    title: Tiêu chí chấp nhận và quan hệ với kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-005
+    title: Tiền điều kiện, hậu điều kiện và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-006
+    title: Luồng thông thường, luồng thay thế và tình huống không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-007
+    title: Yêu cầu chất lượng cần có điều kiện đo hoặc quan sát rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-008
+    title: Phân biệt tiêu chí chấp nhận tính năng với tiêu chí kết thúc kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-009
+    title: Truy vết từ yêu cầu đến điều kiện kiểm thử và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-criteria-010
+    title: Làm rõ yêu cầu trước khi tự suy đoán kết quả đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-process
+  title: Quy trình kiểm thử
+  childs:
+  - slug: testing-process-001
+    title: Tổng quan các hoạt động và đầu ra trong một quy trình kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-002
+    title: Lập kế hoạch theo mục tiêu, phạm vi và nguồn lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-003
+    title: Theo dõi, đối chiếu tiến độ và điều chỉnh hoạt động kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-004
+    title: Phân tích căn cứ để xác định điều gì cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-005
+    title: Thiết kế ca kiểm thử và xác định kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-006
+    title: Chuẩn bị dữ liệu, thủ tục, công cụ và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-007
+    title: Thực thi, ghi nhận kết quả và thu thập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-008
+    title: Phân tích sai khác, báo cáo vấn đề và trao đổi kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-009
+    title: Hoàn tất kiểm thử, lưu đầu ra và ghi nhận bài học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-process-010
+    title: Các hoạt động có thể lặp lại hoặc diễn ra song song theo bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: roles-and-collaboration
+  title: Vai trò và phối hợp
+  childs:
+  - slug: roles-and-collaboration-001
+    title: Trách nhiệm kiểm thử của lập trình viên, tester và các bên nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-collaboration-002
+    title: Chất lượng là trách nhiệm chung của đội phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-collaboration-003
+    title: 'Tính độc lập trong kiểm thử: lợi ích và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-collaboration-004
+    title: Tư duy phản biện, đặt câu hỏi và nhận diện thiên kiến xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-collaboration-005
+    title: Trao đổi khiếm khuyết dựa trên bằng chứng và hành vi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-collaboration-006
+    title: Phối hợp làm rõ yêu cầu trước khi viết mã và ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-collaboration-007
+    title: Chia sẻ hiểu biết về rủi ro, phạm vi và giới hạn kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-collaboration-008
+    title: Phản hồi từ người dùng và vận hành trong vòng cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-in-sdlc
+  title: Kiểm thử trong SDLC
+  childs:
+  - slug: testing-in-sdlc-001
+    title: Quan hệ giữa hoạt động phát triển và hoạt động kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-002
+    title: Kiểm thử trong mô hình tuần tự và mô hình chữ V
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-003
+    title: Kiểm thử trong phát triển lặp và gia tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-004
+    title: Kiểm thử trong Agile và vai trò của vòng phản hồi ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-005
+    title: Dịch chuyển phản hồi sớm (shift left) và những việc có thể làm trước khi chạy mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-006
+    title: Học từ vận hành và phản hồi sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-007
+    title: Phân biệt kiểm thử trước phát hành với quan sát hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-008
+    title: 'TDD, ATDD và BDD: mục đích và mối liên hệ ở mức nền tảng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-in-sdlc-009
+    title: Chu kỳ viết mã, nhận phản hồi và cải tiến thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-and-dynamic-testing
+  title: Kiểm thử tĩnh và động
+  childs:
+  - slug: static-and-dynamic-testing-001
+    title: 'Kiểm thử tĩnh và kiểm thử động: khác nhau ở việc thực thi đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-002
+    title: Rà soát yêu cầu, thiết kế, mã nguồn và ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-003
+    title: Những loại vấn đề có thể phát hiện trước khi chạy chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-004
+    title: Rà soát không chính thức, walkthrough, technical review và inspection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-005
+    title: Chuẩn bị, đọc độc lập, trao đổi và theo dõi kết quả rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-006
+    title: Phân tích tĩnh bằng công cụ và giới hạn của quy tắc tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-007
+    title: Kiểm thử động và quan sát hành vi dưới điều kiện cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-008
+    title: Kết hợp bằng chứng tĩnh với bằng chứng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-dynamic-testing-009
+    title: Phân biệt kiểm tra cú pháp, cảnh báo công cụ và kết luận về nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: levels-and-scope
+  title: Cấp độ và phạm vi
+  childs:
+  - slug: levels-and-scope-001
+    title: Cấp độ kiểm thử, phạm vi kiểm thử và mục tiêu cần phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-002
+    title: Kiểm thử thành phần (unit/component testing) và ranh giới đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-003
+    title: Kiểm thử tích hợp thành phần và các tương tác nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-004
+    title: Kiểm thử hệ thống đối với hành vi của một sản phẩm hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-005
+    title: Kiểm thử tích hợp hệ thống và các hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-006
+    title: Kiểm thử chấp nhận từ góc nhìn các bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-007
+    title: Kiểm thử E2E theo một hành trình xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-008
+    title: Phân biệt phạm vi chức năng với kích thước tài nguyên của phép kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-009
+    title: Điều kiện đầu vào, đối tượng và môi trường thay đổi theo cấp độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-010
+    title: Kết hợp các cấp độ để bổ sung bằng chứng cho cùng một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: levels-and-scope-011
+    title: Không đồng nhất mọi kiểm thử qua HTTP hoặc cơ sở dữ liệu với một cấp độ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-types
+  title: Các loại kiểm thử
+  childs:
+  - slug: testing-types-001
+    title: Loại kiểm thử và sự khác nhau với cấp độ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-002
+    title: 'Kiểm thử chức năng: hành vi và quy tắc nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-003
+    title: 'Kiểm thử phi chức năng: các đặc tính chất lượng cần đánh giá'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-004
+    title: Kiểm thử hiệu năng và các câu hỏi về tốc độ, tải, tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-005
+    title: Kiểm thử độ tin cậy và khả năng duy trì hoặc khôi phục hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-006
+    title: Kiểm thử an toàn bảo mật và các hành vi truy cập cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-007
+    title: Kiểm thử khả dụng và khả năng tiếp cận của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-008
+    title: Kiểm thử tương thích giữa môi trường, phiên bản hoặc nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-009
+    title: Kiểm thử hợp đồng giữa bên cung cấp và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-010
+    title: Một kịch bản có thể cung cấp bằng chứng cho nhiều đặc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-types-011
+    title: Giới hạn của việc suy kết luận chất lượng này từ loại kiểm thử khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: run-purposes
+  title: Mục đích các lượt chạy
+  childs:
+  - slug: run-purposes-001
+    title: Kiểm thử xác nhận sửa lỗi và kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-purposes-002
+    title: Phân tích thay đổi để nhận diện phần có thể bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-purposes-003
+    title: Kiểm thử smoke và kiểm tra nhanh khả năng dùng được của bản build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-purposes-004
+    title: Thống nhất cách hiểu sanity testing trong từng đội
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-purposes-005
+    title: Kiểm chứng tính năng mới và kiểm chứng hành vi cần giữ nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-purposes-006
+    title: Kiểm thử bảo trì khi cấu hình, môi trường hoặc thư viện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-purposes-007
+    title: Chạy lại một ca kiểm thử và ý nghĩa của điều kiện tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-purposes-008
+    title: Vì sao một bộ hồi quy cũ cần được bổ sung và rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-cases-and-suites
+  title: Ca kiểm thử và bộ kiểm
+  childs:
+  - slug: test-cases-and-suites-001
+    title: Ca kiểm thử là một phép kiểm chứng có mục tiêu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-002
+    title: Tên, định danh và khả năng truy vết của ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-003
+    title: Tiền điều kiện và trạng thái ban đầu cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-004
+    title: Dữ liệu đầu vào và các thao tác thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-005
+    title: Kết quả mong đợi, kết quả thực tế và căn cứ so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-006
+    title: Hậu điều kiện và việc kiểm tra tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-007
+    title: Ca kiểm thử trừu tượng so với ca đã có dữ liệu cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-008
+    title: Thủ tục kiểm thử, kịch bản và bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-009
+    title: Nhóm các ca theo mục tiêu, phạm vi hoặc đặc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-cases-and-suites-010
+    title: Độ chi tiết vừa đủ để người khác hiểu và tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evaluation-basis
+  title: Căn cứ đánh giá
+  childs:
+  - slug: evaluation-basis-001
+    title: 'Test oracle: dựa vào đâu để quyết định kết quả đúng hay sai'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-002
+    title: Đặc tả, ví dụ đã duyệt và quy tắc nghiệp vụ làm căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-003
+    title: Mô hình tham chiếu hoặc phép tính độc lập với mã đang kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-004
+    title: Ý kiến chuyên môn và phản hồi người dùng khi đặc tả chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-005
+    title: So sánh kết quả với phiên bản trước và giới hạn của cách làm này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-006
+    title: Kiểm tra thuộc tính bất biến khi khó liệt kê mọi đầu ra cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-007
+    title: Phân biệt không biết kết quả đúng với sản phẩm đã có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-008
+    title: Tránh sao chép chính thuật toán đang kiểm thử để tạo kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-009
+    title: Tín hiệu báo lỗi sai và lỗi thật bị bộ kiểm thử bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-basis-010
+    title: Bằng chứng đủ cho một kết luận và những điều chưa được quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-design-mindset
+  title: Tư duy thiết kế ca
+  childs:
+  - slug: test-design-mindset-001
+    title: Thiết kế từ hành vi bên ngoài, cấu trúc mã và kinh nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-002
+    title: Phân vùng tương đương để chọn đại diện đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-003
+    title: Giá trị biên và các điểm dễ sai ở ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-004
+    title: Bảng quyết định cho các quy tắc kết hợp nhiều điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-005
+    title: Mô hình trạng thái và các chuyển đổi được phép hoặc bị cấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-006
+    title: Kiểm tra luồng sử dụng thông thường, ngoại lệ và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-007
+    title: 'Câu lệnh, nhánh và đường đi: các góc nhìn về cấu trúc mã'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-008
+    title: Phỏng đoán lỗi từ kinh nghiệm và lịch sử sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-009
+    title: 'Kiểm thử khám phá: kết hợp học, thiết kế và thực thi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-010
+    title: Checklist và câu hỏi định hướng theo vùng rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-011
+    title: Giới hạn số ca bằng đại diện có lý do thay vì chọn dữ liệu tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-design-mindset-012
+    title: Nhận diện những tổ hợp chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Vai trò của dữ liệu trong việc kích hoạt và quan sát hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Dữ liệu hợp lệ, không hợp lệ, thiếu và dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: Giá trị rỗng, null, cực trị và các ranh giới kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: Quan hệ giữa nhiều trường dữ liệu và ràng buộc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Dữ liệu cho trạng thái có sẵn và chuỗi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Tạo dữ liệu tổng hợp thay vì phụ thuộc bản sao dữ liệu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Che giấu dữ liệu nhạy cảm và giới hạn quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Dữ liệu cố định, dữ liệu sinh tự động và khả năng tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-009
+    title: Tách dữ liệu của từng phép kiểm thử và chuẩn bị khả năng dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-010
+    title: Lưu seed hoặc đầu vào gây lỗi để chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-and-isolation
+  title: Môi trường và cô lập
+  childs:
+  - slug: environment-and-isolation-001
+    title: 'Thành phần của môi trường kiểm thử: phần mềm, cấu hình và tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-002
+    title: Khác biệt giữa môi trường phát triển, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-003
+    title: Chọn mức tương đồng cần thiết theo mục tiêu phép kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-004
+    title: Thiết lập trạng thái ban đầu và khôi phục sau khi thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-005
+    title: Tài nguyên dùng chung và nguy cơ phụ thuộc thứ tự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-006
+    title: Cô lập tệp, dữ liệu, cổng mạng và tài khoản kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-007
+    title: Phụ thuộc mạng, dịch vụ ngoài và những điều nằm ngoài quyền kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-008
+    title: Môi trường sẵn sàng so với sản phẩm đạt yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-009
+    title: Phân biệt thất bại do hạ tầng với sai khác hành vi cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-isolation-010
+    title: Ghi lại cấu hình để người khác tái hiện kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-doubles
+  title: Thành phần thay thế
+  childs:
+  - slug: test-doubles-001
+    title: Test double là gì và vì sao đôi khi cần thay phụ thuộc thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-002
+    title: 'Dummy: đối tượng chỉ để hoàn thiện đầu vào'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-003
+    title: 'Stub: cung cấp phản hồi đã chuẩn bị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-004
+    title: 'Fake: cách triển khai đơn giản phục vụ kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-005
+    title: 'Spy và mock: quan sát hoặc kiểm chứng tương tác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-006
+    title: Kiểm chứng trạng thái so với kiểm chứng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-007
+    title: Lựa chọn phụ thuộc thật hoặc thành phần thay thế theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-008
+    title: Rủi ro mô phỏng khác hợp đồng thật hoặc ràng buộc quá chặt vào cách cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-doubles-009
+    title: Xác định bằng chứng còn thiếu khi phép kiểm thử dùng thành phần thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertions-and-observation
+  title: Assertion và quan sát
+  childs:
+  - slug: assertions-and-observation-001
+    title: Assertion là gì và quan hệ với kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-002
+    title: Phân biệt chạy qua một đoạn mã với kiểm chứng hành vi của nó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-003
+    title: So sánh giá trị, tập hợp và cấu trúc dữ liệu theo ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-004
+    title: Kiểm chứng ngoại lệ dự kiến và nội dung lỗi cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-005
+    title: Kiểm chứng trạng thái, tác dụng phụ và tương tác có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-006
+    title: Sai số cho giá trị số và điều kiện so sánh thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-007
+    title: Assertion đủ rõ để chỉ ra hành vi sai khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-008
+    title: Phân biệt assertion của framework với từ khóa assert trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-009
+    title: Assumption và điều kiện khiến ca kiểm thử chưa thể tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-and-observation-010
+    title: Tránh phép kiểm thử không có kết luận hoặc luôn thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-structure
+  title: Cấu trúc phép kiểm thử
+  childs:
+  - slug: test-structure-001
+    title: Arrange–Act–Assert và cách tách chuẩn bị, thực hiện, kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-002
+    title: Given–When–Then và diễn đạt tình huống theo hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-003
+    title: Một mục tiêu kiểm chứng với số assertion phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-004
+    title: Tên phép kiểm thử thể hiện điều kiện và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-005
+    title: Fixture, bước thiết lập và bước dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-006
+    title: Phép kiểm thử độc lập với thứ tự và kết quả của ca khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-007
+    title: Tham số hóa các trường hợp có cùng cấu trúc hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-008
+    title: Hàm hỗ trợ và cân bằng tái sử dụng với khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-009
+    title: Tránh logic điều kiện phức tạp che khuất điều đang kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-structure-010
+    title: Phân biệt hành vi công khai với chi tiết cài đặt có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: manual-and-automated-testing
+  title: Thủ công và tự động
+  childs:
+  - slug: manual-and-automated-testing-001
+    title: Kiểm thử thủ công và kiểm thử tự động hỗ trợ các mục tiêu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-automated-testing-002
+    title: Phân biệt tự động thực hiện thao tác với tự động đưa ra kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-automated-testing-003
+    title: Những tình huống lặp lại có lợi khi tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-automated-testing-004
+    title: Vai trò của con người trong khám phá, học và đánh giá trải nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-automated-testing-005
+    title: Chi phí xây dựng, vận hành và bảo trì phép kiểm thử tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-automated-testing-006
+    title: Khả năng tái sử dụng dữ liệu, môi trường và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-automated-testing-007
+    title: Vì sao tự động hóa không biến một ca thiết kế sai thành ca có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-automated-testing-008
+    title: Chọn mức tự động hóa dựa trên rủi ro và khả năng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testability
+  title: Khả năng kiểm thử
+  childs:
+  - slug: testability-001
+    title: Khả năng kiểm thử (testability) và liên hệ với thiết kế phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-002
+    title: Khả năng kiểm soát đầu vào, thời gian và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-003
+    title: Khả năng quan sát kết quả, tác dụng phụ và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-004
+    title: Phụ thuộc tường minh giúp xác định ranh giới phép kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-005
+    title: Tách tính toán nghiệp vụ khỏi I/O và tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-006
+    title: Điểm thay thế phụ thuộc và giới hạn của việc chỉ dùng mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-007
+    title: Thiết kế cho hành vi rõ ràng mà không mở lộ chi tiết nội bộ tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-008
+    title: Phản hồi từ phép kiểm thử khó viết đến việc xem lại thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stability-and-reliability
+  title: Độ ổn định và tin cậy
+  childs:
+  - slug: stability-and-reliability-001
+    title: Tính xác định và khả năng lặp lại của phép kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-002
+    title: 'Flaky test: kết quả thay đổi khi các điều kiện liên quan chưa được kiểm soát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-003
+    title: Đồng hồ, múi giờ, locale và dữ liệu phụ thuộc thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-004
+    title: Ngẫu nhiên, seed và lưu đầu vào gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-005
+    title: Trạng thái dùng chung và phụ thuộc thứ tự thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-006
+    title: Luồng, tác vụ bất đồng bộ và giả định sai về thời điểm hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-007
+    title: Mạng, tài nguyên ngoài và giới hạn của chờ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-008
+    title: Chạy lại thành công không tự giải thích được nguyên nhân thất bại trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stability-and-reliability-009
+    title: Tách chẩn đoán độ không ổn định của phép kiểm thử khỏi chẩn đoán lỗi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: results-and-bug-reports
+  title: Kết quả và báo lỗi
+  childs:
+  - slug: results-and-bug-reports-001
+    title: Phân biệt đạt, không đạt, bị chặn và chưa thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-002
+    title: Skipped hoặc aborted không cung cấp cùng bằng chứng với ca đã đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-003
+    title: Đối chiếu kết quả thực tế với kết quả mong đợi và các giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-004
+    title: Phân biệt assertion thất bại, lỗi thiết lập và sự cố công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-005
+    title: Ghi nhận bước tái hiện, dữ liệu, phiên bản và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-006
+    title: Tiêu đề báo lỗi mô tả hành vi quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-007
+    title: Kết quả mong đợi, kết quả thực tế và bằng chứng đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-008
+    title: Mức nghiêm trọng và độ ưu tiên xử lý là hai góc nhìn khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-009
+    title: Vòng đời một báo lỗi và việc xác nhận sau khi sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-010
+    title: Trao đổi trường hợp không tái hiện được hoặc yêu cầu chưa thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-bug-reports-011
+    title: Phân biệt kết luận đã có bằng chứng với giả thuyết về nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coverage-and-metrics
+  title: Độ bao phủ và số liệu
+  childs:
+  - slug: coverage-and-metrics-001
+    title: Độ bao phủ cần được gắn với đối tượng hoặc tiêu chí cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-002
+    title: Bao phủ yêu cầu, quy tắc nghiệp vụ và vùng rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-003
+    title: Bao phủ câu lệnh và bao phủ nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-004
+    title: Vì sao chạy qua mã không đồng nghĩa với kiểm chứng đúng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-005
+    title: Tỷ lệ ca đạt và giới hạn khi diễn giải kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-006
+    title: Lỗi còn lọt, thời gian phản hồi và độ ổn định của bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-007
+    title: Mutation testing như một cách tìm hiểu sức phát hiện lỗi của phép kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-008
+    title: Truy vết các yêu cầu chưa có bằng chứng hoặc chưa được thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-009
+    title: Tránh dùng số ca, số assertion hoặc phần trăm bao phủ làm mục tiêu duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-metrics-010
+    title: Báo cáo điều đã kiểm chứng cùng điều còn chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-balance
+  title: Cân bằng phạm vi
+  childs:
+  - slug: scope-balance-001
+    title: Ưu tiên tình huống theo tác động, xác suất và phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-002
+    title: Phản hồi nhanh so với độ trung thực của môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-003
+    title: Kim tự tháp kiểm thử như một mô hình tham khảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-004
+    title: Vì sao không áp dụng một tỷ lệ unit, integration và E2E cố định cho mọi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-005
+    title: Điểm mù khi chỉ có phép kiểm thử rất nhỏ hoặc chỉ có E2E
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-006
+    title: Kết hợp phạm vi để phát hiện lỗi và định vị nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-007
+    title: Phân biệt ưu tiên ca kiểm thử với khẳng định phần còn lại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-008
+    title: Tiêu chí bắt đầu, tiêu chí kết thúc và quyết định chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-balance-009
+    title: Khi nào cần học sâu thêm về chiến lược, thiết kế hoặc loại kiểm thử chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-integration
+  title: Công cụ và tích hợp
+  childs:
+  - slug: tools-and-integration-001
+    title: Phân biệt framework kiểm thử, bộ chạy, thư viện assertion và công cụ báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-002
+    title: Từ một phép kiểm chứng Java nhỏ đến phép kiểm thử dùng JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-003
+    title: Vai trò của công cụ build trong biên dịch và thực thi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-004
+    title: Phát hiện ca kiểm thử và nguy cơ build xanh khi không chạy ca nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-005
+    title: Tích hợp phép kiểm thử vào phản hồi khi thay đổi mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-006
+    title: Log, stack trace và báo cáo giúp tái hiện hoặc định vị vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-007
+    title: Quản lý phiên bản mã kiểm thử cùng mã sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-008
+    title: Vai trò của IDE, CI và môi trường chạy trong việc diễn giải kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integration-009
+    title: Giới hạn của công cụ khi yêu cầu, oracle hoặc phạm vi đã sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Từ yêu cầu tính phí đơn giản đến tiêu chí chấp nhận có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Tìm điều kiện còn thiếu hoặc mâu thuẫn trong một đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Phân biệt sai sót, khiếm khuyết và hành vi sai qua một ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Thiết kế các ca đại diện cho dữ liệu thông thường, biên và không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Xác định kết quả đúng bằng căn cứ độc lập với cách cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Tổ chức phép kiểm thử theo Arrange–Act–Assert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: So sánh kiểm thử dùng phụ thuộc thật với thành phần thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Tạo tình huống báo lỗi sai hoặc bỏ sót lỗi để xem lại assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Viết báo lỗi có thể tái hiện và xác nhận sau khi sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: Đọc báo cáo ca đạt, ca bị bỏ qua và phần chưa có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-011
+    title: Giải thích phạm vi, rủi ro còn lại và giới hạn của bộ kiểm thử đã xây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

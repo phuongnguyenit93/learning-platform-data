@@ -1,0 +1,13 @@
+references:
+  - title: "Google Engineering Practices — Code Review"
+    url: "https://google.github.io/eng-practices/review/"
+    description: "Hướng dẫn review mã nguồn, bao gồm thiết kế, tính đúng, độ phức tạp, kiểm thử, đặt tên và quy ước."
+  - title: "Refactoring Guru — Code Smells"
+    url: "https://refactoring.guru/refactoring/smells"
+    description: "Danh mục các dấu hiệu mã khó bảo trì như hàm dài, mã lặp, lớp lớn và phụ thuộc quá chặt."
+  - title: "Martin Fowler — Refactoring"
+    url: "https://refactoring.com/"
+    description: "Giới thiệu cải tiến cấu trúc nội bộ từng bước và bảo toàn hành vi của phần mềm."
+  - title: "Microsoft Learn — Code Analysis Overview"
+    url: "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview"
+    description: "Ví dụ chính thức về static analysis và các quy tắc phát hiện vấn đề thiết kế, độ tin cậy và phong cách mã."

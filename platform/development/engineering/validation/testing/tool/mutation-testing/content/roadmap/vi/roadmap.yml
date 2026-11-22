@@ -1,0 +1,58 @@
+roadmap:
+- id: tu-duy-mutation-testing
+  title: Tư duy Mutation Testing
+  purpose: Đánh giá sức mạnh của bộ kiểm thử bằng cách cố ý tạo lỗi nhỏ trong chương trình, thay vì chỉ đo lượng mã được chạy.
+  objectives:
+  - Giải thích mutant và khái niệm kill a mutant
+  - Phân biệt mutation testing với line coverage
+  - Nêu ví dụ test chạy qua mã nhưng bỏ sót lỗi
+- id: mutation-operators
+  title: Mutation Operators
+  purpose: Nhận diện các kiểu thay đổi mà công cụ tạo ra để mô phỏng lỗi phổ biến trong điều kiện, phép toán và giá trị trả
+    về.
+  objectives:
+  - Phân tích đổi ranh giới điều kiện và phủ định nhánh
+  - Nhận diện mutator sửa return hoặc bỏ lời gọi
+  - Đánh giá operator phù hợp với mã Java cần kiểm thử
+- id: ket-qua-mutation-score
+  title: Kết quả & Mutation Score
+  purpose: Đọc báo cáo để phân biệt lỗi bị bắt với lỗ hổng thật của test suite và tránh diễn giải sai một điểm số đơn lẻ.
+  objectives:
+  - Phân biệt Killed, Survived và No Coverage
+  - Tính mutation score trên tập mutant hợp lệ
+  - Xác định vị trí và test liên quan đến mutant còn sống
+- id: pit-java-project
+  title: PIT & Java Project
+  purpose: Thiết lập PIT cho dự án Java có bộ unit test đang hoạt động và chạy phân tích trong phạm vi nhỏ.
+  objectives:
+  - Thêm pitest-maven vào cấu hình build
+  - Cấu hình JUnit 5 plugin khi dùng Jupiter
+  - Chạy mutationCoverage và mở HTML report
+- id: phan-tich-surviving-mutants
+  title: Phân tích Surviving Mutants
+  purpose: Dùng các mutant còn sống để tìm đường đi và hành vi chưa được kiểm chứng bằng assertion có ý nghĩa.
+  objectives:
+  - Truy dấu dòng code và operator của mutant sống
+  - Tạo input làm rõ khác biệt giữa code gốc và mutant
+  - Xác minh test mới thất bại với mutant, pass với code gốc
+- id: thiet-ke-test-manh-hon
+  title: Thiết kế Test mạnh hơn
+  purpose: Cải thiện phép kiểm thử tập trung vào hành vi thay vì chỉ tăng số lượng test hoặc mức line coverage.
+  objectives:
+  - Thêm assertion kiểm tra giá trị và side effect
+  - Bao phủ điều kiện biên, trường hợp lỗi và nhánh rẽ
+  - Tránh test phụ thuộc cứng vào chi tiết cài đặt
+- id: equivalent-mutants-gioi-han
+  title: Equivalent Mutants & Giới hạn
+  purpose: Nhận biết những mutant không thể phân biệt về hành vi hoặc không đáng kiểm thử, đồng thời hiểu chi phí chạy.
+  objectives:
+  - Giải thích equivalent mutant và non-viable mutant
+  - Phân biệt vấn đề test yếu với hành vi tương đương
+  - Theo dõi timeout, flaky tests và thời gian phân tích
+- id: tich-hop-ci-cai-tien
+  title: Tích hợp CI & Cải tiến
+  purpose: Đưa mutation testing vào vòng phản hồi chất lượng theo phạm vi phù hợp và ưu tiên sửa lỗ hổng kiểm thử quan trọng.
+  objectives:
+  - Giới hạn targetClasses và mutators khi cần
+  - Chạy theo module hoặc thay đổi để giảm chi phí
+  - Theo dõi báo cáo và chất lượng test theo thời gian

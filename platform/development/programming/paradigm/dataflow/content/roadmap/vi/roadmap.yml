@@ -1,0 +1,49 @@
+roadmap:
+- id: tu-duy-dataflow
+  title: Tư duy Dataflow
+  purpose: Hiểu cách mô tả chương trình bằng luồng dữ liệu và phụ thuộc tính toán thay vì thứ tự câu lệnh.
+  objectives:
+  - Định nghĩa dataflow programming và vai trò của dữ liệu đầu vào.
+  - Phân biệt dataflow với control flow qua ví dụ.
+- id: do-thi-phu-thuoc-dag
+  title: Đồ thị Phụ thuộc (DAG)
+  purpose: Biểu diễn tác vụ và quan hệ dữ liệu để nhận biết thứ tự thực thi hợp lệ.
+  objectives:
+  - Vẽ node, edge, input và output cho một biểu thức.
+  - Xác định topo order và nhánh có thể chạy độc lập.
+- id: transform-du-lieu-bat-bien
+  title: Transform & Dữ liệu Bất biến
+  purpose: Xây phép biến đổi nhỏ với đầu vào, đầu ra rõ ràng để dễ ghép và kiểm thử.
+  objectives:
+  - Thực hành map, filter và aggregate trên dữ liệu mẫu.
+  - Giải thích lợi ích của output mới thay vì sửa input.
+- id: pipeline-branch-merge
+  title: Pipeline, Branch & Merge
+  purpose: Kết hợp các phép biến đổi thành một mạng xử lý có thể tái sử dụng.
+  objectives:
+  - Thiết kế luồng source → transform → sink.
+  - Vẽ hai nhánh xử lý và một bước hợp nhất dữ liệu.
+- id: scheduling-parallelism
+  title: Scheduling & Parallelism
+  purpose: Hiểu khi nào node sẵn sàng chạy và lợi ích của tác vụ độc lập.
+  objectives:
+  - Xác định node cần chờ đủ input trước khi xử lý.
+  - Giải thích song song theo phụ thuộc và giới hạn tài nguyên.
+- id: streaming-flow-control
+  title: Streaming & Flow Control
+  purpose: Xử lý dữ liệu đến liên tục và tránh quá tải khi tốc độ nguồn và đích khác nhau.
+  objectives:
+  - Phân biệt bounded batch với unbounded stream.
+  - Mô tả buffering, backpressure và windowing cơ bản.
+- id: dataflow-voi-java
+  title: Dataflow với Java
+  purpose: Áp dụng mô hình đồ thị dữ liệu vào một pipeline thực hành bằng Java.
+  objectives:
+  - Xây pipeline PCollection/PTransform đơn giản với Apache Beam.
+  - Liên hệ Publisher–Subscriber của Java Flow với luồng bất đồng bộ.
+- id: kiem-thu-toi-uu
+  title: Kiểm thử & Tối ưu
+  purpose: Bảo đảm kết quả đúng và nhận diện nút thắt trong đồ thị xử lý.
+  objectives:
+  - Viết test transform và pipeline bằng TestPipeline/PAssert.
+  - Theo dõi lỗi, độ trễ, throughput và điểm nghẽn.

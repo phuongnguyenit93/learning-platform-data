@@ -1,0 +1,279 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Embeddings là gì và vì sao cần biểu diễn dữ liệu bằng vector
+  - Kho vector (vector store) là gì và khác cơ sở dữ liệu thông thường ở đâu
+  - Tìm kiếm từ khóa và tìm kiếm ngữ nghĩa giải quyết những bài toán nào
+  - Vai trò của Spring AI trong việc kết nối mô hình embeddings với kho vector
+  - 'Luồng tổng thể: tài liệu → chia đoạn → tạo embeddings → lưu trữ → truy xuất'
+  - Phân biệt mô hình embeddings, mô hình hội thoại và huấn luyện mô hình
+  - Vị trí của truy xuất vector trong RAG và ranh giới với bước sinh câu trả lời
+  - Các thuật ngữ chính, kiến thức tiên quyết và thứ tự học của module
+- level1: Nền tảng vector
+  level2:
+  - Số chiều, thành phần và không gian biểu diễn của vector
+  - Độ tương đồng cosine, tích vô hướng và khoảng cách Euclidean
+  - Chuẩn hóa vector và quan hệ giữa độ dài vector với phép đo
+  - Phân biệt khoảng cách, điểm tương đồng và xác suất đúng
+  - 'Tìm láng giềng gần nhất chính xác và gần đúng: k-NN và ANN'
+  - Vì sao truy vấn và tài liệu phải dùng không gian embeddings tương thích
+  - Embeddings đa ngôn ngữ và ảnh hưởng của tiếng Việt đến truy xuất
+  - Giới hạn của embeddings với mã định danh, số liệu, phủ định và ngữ cảnh
+- level1: Thiết lập
+  level2:
+  - Xác định phiên bản Spring AI, Spring Boot và JDK tương thích
+  - Quản lý phụ thuộc bằng Spring AI BOM trong Maven hoặc Gradle
+  - Chọn starter cho mô hình embeddings và kho vector
+  - Cấu hình kết nối, thông tin xác thực và các môi trường chạy
+  - Tự động cấu hình và khai báo bean thủ công trong Spring Boot
+  - Phân biệt cấu hình dùng chung với thuộc tính riêng của từng nhà cung cấp
+  - Cấu hình nhiều EmbeddingModel và VectorStore bằng Qualifier
+  - Chạy thử luồng thêm tài liệu và tìm kiếm tối thiểu
+- level1: EmbeddingModel
+  level2:
+  - Hợp đồng EmbeddingModel và quan hệ với Model API
+  - Tạo vector từ chuỗi, Document và danh sách văn bản
+  - EmbeddingRequest, EmbeddingResponse và thứ tự các kết quả Embedding
+  - EmbeddingOptions và sự khác nhau giữa tùy chọn mặc định với từng yêu cầu
+  - Đọc số chiều, thông tin mô hình và mức sử dụng token từ phản hồi
+  - Phân biệt nội dung được nhúng với metadata chỉ dùng để lưu trữ
+  - Kiểm tra đầu vào rỗng, giới hạn token và tính hợp lệ của vector đầu ra
+  - Tính đồng bộ của lời gọi embeddings và cách bố trí luồng thực thi
+- level1: Nhà cung cấp
+  level2:
+  - 'Tiêu chí chọn mô hình: ngôn ngữ, miền dữ liệu, chất lượng, chi phí và độ trễ'
+  - Dùng dịch vụ embeddings từ xa qua các tích hợp Spring AI được hỗ trợ
+  - Dùng Ollama để tạo embeddings trong môi trường cục bộ
+  - Dùng mô hình Transformers qua ONNX và chuẩn bị tài nguyên suy luận
+  - Đối chiếu giới hạn đầu vào, số chiều và tùy chọn theo từng mô hình
+  - Phân biệt chế độ biểu diễn cho truy vấn và tài liệu khi mô hình hỗ trợ
+  - Kiểm soát việc cắt ngắn văn bản và phát hiện mất thông tin đầu vào
+  - Ghi nhận định danh, phiên bản và cấu hình mô hình để tái lập kết quả
+- level1: Document
+  level2:
+  - 'Cấu trúc Document: định danh, nội dung, metadata và điểm truy xuất'
+  - Thiết kế định danh ổn định cho tài liệu gốc và từng đoạn
+  - Thiết kế metadata cho nguồn, trang, mục, ngôn ngữ và phiên bản
+  - Kiểu dữ liệu metadata và giới hạn lưu trữ giữa các kho vector
+  - Định dạng nội dung đưa vào embeddings bằng ContentFormatter và MetadataMode
+  - Bảo toàn liên kết từ đoạn truy xuất về tài liệu nguồn
+  - Tách dữ liệu nghiệp vụ chuẩn khỏi bản sao phục vụ tìm kiếm
+  - Phân biệt dữ liệu văn bản với khả năng đa phương thức theo phiên bản và tích hợp
+- level1: Đọc dữ liệu
+  level2:
+  - Vai trò của DocumentReader và Spring Resource trong bước trích xuất
+  - Đọc văn bản thuần và chuẩn hóa mã hóa ký tự
+  - Đọc JSON và chọn trường nội dung bằng JsonReader
+  - Đọc Markdown và giữ cấu trúc tiêu đề, danh sách, đoạn mã
+  - Đọc PDF theo trang hoặc đoạn bằng các PDF DocumentReader
+  - Đọc nhiều định dạng tài liệu bằng TikaDocumentReader
+  - Tự xây dựng DocumentReader cho cơ sở dữ liệu hoặc nguồn nghiệp vụ
+  - Xử lý tài liệu quét cần OCR, tệp lỗi và nội dung không trích xuất được
+- level1: Chia đoạn
+  level2:
+  - Vì sao cần chia đoạn trước khi tạo embeddings
+  - Phân biệt token, ký tự, câu và đơn vị ngữ nghĩa
+  - Cơ chế chia văn bản và các tùy chọn của TokenTextSplitter
+  - Điều chỉnh kích thước đoạn, độ dài tối thiểu và giới hạn số đoạn
+  - Bảo toàn tiêu đề, bảng, danh sách và đoạn mã khi chia tài liệu
+  - Thiết kế phần ngữ cảnh chồng lấp bằng bộ chia tùy chỉnh khi cần
+  - Kế thừa metadata và gán định danh cho các đoạn sau khi chia
+  - Đo ảnh hưởng của kích thước đoạn đến chất lượng, số vector và chi phí
+- level1: Luồng nhập liệu
+  level2:
+  - Kết nối DocumentReader, DocumentTransformer và DocumentWriter thành luồng ETL
+  - Làm sạch khoảng trắng, nội dung lặp và các phần không có giá trị tìm kiếm
+  - Bổ sung metadata nguồn và kiểm tra chất lượng trước khi ghi
+  - Phân biệt chia tài liệu thành đoạn với gom tài liệu thành lô
+  - BatchingStrategy và TokenCountBatchingStrategy trong bước tạo embeddings
+  - Cân bằng giới hạn token mỗi tài liệu với tổng token của một lô
+  - Nhập liệu theo lô có giới hạn bộ nhớ và ghi nhận tiến độ từng đợt
+  - Thiết kế luồng nhập liệu độc lập với đường xử lý truy vấn
+- level1: VectorStore
+  level2:
+  - Hợp đồng VectorStore và trách nhiệm của từng thành phần tham gia
+  - Tách quyền truy xuất chỉ đọc bằng VectorStoreRetriever theo phiên bản hỗ trợ
+  - Thêm Document bằng add và tích hợp vai trò DocumentWriter
+  - Khi nào VectorStore gọi EmbeddingModel trong bước ghi và tìm kiếm
+  - Hành vi khi ghi lại cùng định danh và cách kiểm tra theo từng kho
+  - Xóa tài liệu theo danh sách định danh
+  - Xóa tài liệu theo biểu thức metadata khi tích hợp hỗ trợ
+  - Khả năng truy vấn, lấy theo định danh và cập nhật ngoài hợp đồng chung
+  - Truy cập client gốc bằng getNativeClient và kiểm soát phụ thuộc đặc thù
+- level1: Truy vấn tương đồng
+  level2:
+  - Từ chuỗi truy vấn đến vector truy vấn và danh sách Document kết quả
+  - Tạo SearchRequest bằng builder và cấu hình các tham số truy xuất
+  - Chọn topK và hiểu giới hạn số kết quả trả về
+  - Dùng similarityThreshold và xử lý trường hợp không có kết quả
+  - Đọc điểm truy xuất, thứ tự kết quả và nguồn của từng đoạn
+  - Phân biệt điểm tương đồng giữa các mô hình, phép đo và kho vector
+  - Ảnh hưởng của dữ liệu trùng lặp đến danh sách kết quả
+  - Giới hạn về phân trang, sắp xếp và tính ổn định của tìm kiếm vector
+- level1: Lọc metadata
+  level2:
+  - Vai trò của metadata filter trong việc giới hạn tập tài liệu được tìm
+  - Cú pháp lọc dạng chuỗi và biểu diễn Filter.Expression
+  - Tạo bộ lọc bằng FilterExpressionBuilder
+  - So sánh, kiểm tra tập giá trị và kết hợp điều kiện AND, OR, NOT
+  - Xử lý kiểu dữ liệu, giá trị thiếu và ký tự đặc biệt trong bộ lọc
+  - Chuyển bộ lọc chung sang cú pháp gốc và nhận diện giới hạn tích hợp
+  - Phân biệt lọc trước với lọc sau tìm kiếm và ảnh hưởng đến số kết quả
+  - Áp dụng cùng phạm vi metadata cho tìm kiếm và xóa dữ liệu
+- level1: SimpleVectorStore
+  level2:
+  - Vai trò của SimpleVectorStore trong học tập và kiểm thử
+  - Khởi tạo kho vector trong bộ nhớ bằng EmbeddingModel
+  - Thực hiện thêm, tìm kiếm, lọc và xóa trên tập dữ liệu nhỏ
+  - Lưu và nạp dữ liệu JSON bằng save và load
+  - Đối chiếu mô hình embeddings khi nạp lại dữ liệu đã lưu
+  - Giới hạn về độ bền dữ liệu, tài nguyên và khả năng dùng trong vận hành thực tế
+- level1: PGvector
+  level2:
+  - Kiến trúc PostgreSQL kết hợp phần mở rộng pgvector
+  - Chuẩn bị PostgreSQL và các phần mở rộng theo yêu cầu tích hợp
+  - Cấu hình PgVectorStore bằng starter hoặc builder
+  - Thiết kế bảng nội dung, metadata, định danh và cột vector
+  - Khớp số chiều giữa mô hình embeddings với schema hiện có
+  - Khởi tạo schema có chủ đích và quản lý quyền tạo đối tượng
+  - 'Chọn phép đo và loại chỉ mục: tìm chính xác, HNSW hoặc IVFFlat'
+  - Truy vấn kết hợp vector với metadata và kiểm tra kế hoạch thực thi
+  - Điều chỉnh lô ghi, kết nối JDBC và tài nguyên PostgreSQL
+  - Quản lý thay đổi schema và tách bước chuyển đổi khỏi khởi động ứng dụng
+- level1: Redis
+  level2:
+  - Khả năng tìm kiếm vector của Redis và điều kiện môi trường cần có
+  - Cấu hình RedisVectorStore, kết nối và thông tin xác thực
+  - Thiết kế tên chỉ mục, tiền tố khóa và phạm vi dữ liệu
+  - Khai báo trường metadata phù hợp với nhu cầu lọc
+  - Chọn số chiều, phép đo và thuật toán FLAT hoặc HNSW
+  - Thực hiện thêm, tìm kiếm, lọc và xóa qua Spring AI
+  - Độ bền dữ liệu, chính sách loại bỏ khóa và giới hạn bộ nhớ của Redis
+- level1: Qdrant và Milvus
+  level2:
+  - Mô hình collection và sự khác nhau giữa Qdrant với Milvus
+  - Cấu hình QdrantVectorStore và kết nối đến dịch vụ Qdrant
+  - Chuẩn bị collection Qdrant với số chiều và phép đo tương thích
+  - Metadata payload, chỉ mục lọc và tìm kiếm trong Qdrant
+  - Cấu hình MilvusVectorStore và các thành phần kết nối
+  - Thiết kế collection, schema, chỉ mục và phạm vi dữ liệu trong Milvus
+  - Khả năng đọc sau ghi và các mức nhất quán theo từng kho
+  - Đối chiếu thao tác ghi, tìm kiếm và xóa trên cùng bộ dữ liệu
+- level1: Kho vector khác
+  level2:
+  - Tiêu chí chọn kho vector theo quy mô, dữ liệu, vận hành và khả năng lọc
+  - Elasticsearch và OpenSearch khi cần kết hợp hạ tầng tìm kiếm hiện có
+  - MongoDB Atlas Vector Search và yêu cầu chuẩn bị chỉ mục
+  - Chroma cho môi trường phát triển và các cấu hình kết nối tương ứng
+  - Pinecone với chỉ mục và phạm vi dữ liệu do dịch vụ quản lý
+  - Weaviate với schema, thuộc tính và cấu hình vector phù hợp
+  - Neo4j khi cần liên kết truy xuất vector với dữ liệu đồ thị
+  - Khả năng tích hợp cơ sở dữ liệu SQL và dịch vụ đám mây theo phiên bản Spring AI
+  - Lập bảng đối chiếu khả năng và xác định thao tác cần client gốc
+- level1: Chỉ mục vector
+  level2:
+  - Vì sao chỉ mục vector quyết định chi phí và tốc độ tìm kiếm
+  - Cơ chế tìm kiếm toàn bộ tập vector và vai trò của đường chuẩn chính xác
+  - Nguyên lý HNSW và cân bằng bộ nhớ, thời gian tạo chỉ mục, độ bao phủ
+  - Nguyên lý IVFFlat và điều kiện dữ liệu để tạo chỉ mục phù hợp
+  - Tách tham số tạo chỉ mục khỏi tham số điều chỉnh lúc truy vấn
+  - Lượng tử hóa vector và đánh đổi giữa dung lượng với độ chính xác
+  - Ảnh hưởng của bộ lọc metadata và phân vùng đến chất lượng ANN
+  - Kiểm tra chỉ mục đã sẵn sàng và xử lý thay đổi cấu hình
+- level1: Chất lượng truy xuất
+  level2:
+  - Xác định thế nào là tài liệu liên quan với từng loại truy vấn nghiệp vụ
+  - Tạo bộ truy vấn đánh giá và gán nhãn tài liệu liên quan
+  - Đo Precision@K, Recall@K, MRR và nDCG
+  - So sánh kết quả ANN với tìm kiếm chính xác trên cùng dữ liệu
+  - Hiệu chỉnh topK và ngưỡng tương đồng bằng dữ liệu đánh giá
+  - So sánh mô hình embeddings bằng thực nghiệm có kiểm soát
+  - Phân tích kết quả sai do nguồn dữ liệu, chia đoạn, mô hình hoặc bộ lọc
+  - Đánh giá truy vấn tiếng Việt, truy vấn đa ngôn ngữ và câu hỏi ngoài phạm vi
+- level1: Truy xuất nâng cao
+  level2:
+  - Khi nào tìm kiếm vector đơn thuần không đáp ứng yêu cầu
+  - Kết hợp tìm kiếm từ khóa với tìm kiếm vector theo khả năng của kho
+  - Gộp thứ hạng bằng Reciprocal Rank Fusion và kiểm soát khác biệt điểm số
+  - Xếp hạng lại kết quả (reranking) và phân biệt với tạo embeddings
+  - Giảm kết quả trùng lặp và tăng đa dạng nguồn tài liệu
+  - Truy xuất đoạn nhỏ rồi mở rộng ngữ cảnh về tài liệu cha
+  - Bàn giao tài liệu, metadata và nguồn dẫn sang luồng RAG
+- level1: Vòng đời dữ liệu
+  level2:
+  - Thiết kế việc nhập lại dữ liệu không tạo bản ghi trùng
+  - Phát hiện nguồn thay đổi bằng định danh, dấu thời gian và hàm băm nội dung
+  - Cập nhật nội dung hoặc metadata và xác định lúc cần tạo lại embeddings
+  - Xóa các đoạn đã mất khỏi nguồn và đối chiếu dữ liệu tồn dư
+  - Ghi nhận phiên bản của nguồn, bộ chia đoạn và mô hình embeddings
+  - Tái tạo toàn bộ embeddings khi đổi mô hình hoặc số chiều
+  - Xây dựng chỉ mục mới song song rồi chuyển truy vấn và có phương án quay lại
+  - Sao lưu, khôi phục và kiểm tra tính tương thích của dữ liệu vector
+- level1: Hiệu năng
+  level2:
+  - Phân rã độ trễ thành đọc nguồn, tạo embeddings, ghi và truy vấn
+  - Ước lượng số vector, dung lượng lưu trữ và chi phí tạo embeddings
+  - Điều chỉnh kích thước lô theo token, số tài liệu và dung lượng yêu cầu
+  - Giới hạn số tác vụ đồng thời và điều tiết khi bên nhận xử lý chậm
+  - Điều chỉnh kết nối, thời hạn chờ và tài nguyên của client theo từng kho
+  - Bộ nhớ đệm embeddings với khóa gồm nội dung, mô hình và cấu hình
+  - Bộ nhớ đệm kết quả truy xuất gắn với bộ lọc, quyền truy cập và phiên bản dữ liệu
+  - Đo độ trễ p95, p99 và thông lượng dưới tải thực tế
+- level1: Độ tin cậy
+  level2:
+  - Phân loại lỗi từ mô hình embeddings, mạng, dữ liệu và kho vector
+  - Thử lại có giới hạn, giãn cách và tôn trọng hạn mức nhà cung cấp
+  - Xử lý lô thất bại một phần và bảo toàn kết quả đã ghi
+  - Thiết kế điểm tiếp tục cho đợt nhập liệu bị gián đoạn
+  - Tránh giả định giao dịch bao trùm dịch vụ embeddings và kho dữ liệu
+  - Xử lý độ trễ hiển thị của chỉ mục và xác minh dữ liệu sau ghi
+  - Lập quy trình chẩn đoán sai số chiều, sai schema và kết quả rỗng
+  - Lập quy trình khôi phục khi dịch vụ embeddings hoặc kho vector ngừng đáp ứng
+- level1: Bảo mật
+  level2:
+  - Quản lý khóa API, tài khoản kho vector và kết nối được mã hóa
+  - Kiểm soát dữ liệu nhạy cảm trước khi gửi đến dịch vụ embeddings
+  - Phân tách dữ liệu giữa khách hàng bằng collection, namespace hoặc metadata
+  - Ràng buộc quyền truy cập bằng danh tính đã xác thực và bộ lọc phía máy chủ
+  - Kiểm tra quyền trước khi xóa theo định danh hoặc biểu thức metadata
+  - Kiểm soát nguồn nhập liệu, URL và đường dẫn để hạn chế truy cập ngoài ý muốn
+  - Ngăn rò rỉ tài liệu, truy vấn và metadata qua nhật ký hoặc bộ nhớ đệm
+  - Thiết kế thời hạn lưu giữ và xóa dữ liệu khỏi chỉ mục, bản sao, bản sao lưu
+- level1: Quan sát hệ thống
+  level2:
+  - Vai trò của Micrometer, metrics và tracing trong luồng embeddings–vector
+  - Theo dõi lời gọi EmbeddingModel và các thao tác thêm, xóa, truy vấn
+  - Liên kết dấu vết từ yêu cầu tìm kiếm đến mô hình và kho vector
+  - Theo dõi số token, số lô, số tài liệu, lỗi và chi phí ước tính
+  - Chọn nhãn đo lường có số lượng giá trị hữu hạn và che dữ liệu nhạy cảm
+  - Thiết lập cảnh báo cho độ trễ, lỗi nhập liệu và dữ liệu chưa được cập nhật
+- level1: Kiểm thử
+  level2:
+  - Phân biệt kiểm thử đơn vị, tích hợp, hợp đồng và chất lượng truy xuất
+  - Dùng EmbeddingModel giả với vector xác định để kiểm tra logic
+  - Kiểm thử luồng ETL, metadata và định danh của các đoạn
+  - Kiểm thử thêm, tìm kiếm, lọc và xóa bằng SimpleVectorStore
+  - Kiểm thử kho dữ liệu thực bằng Testcontainers hoặc môi trường cô lập
+  - Kiểm tra hành vi khi ghi trùng, sai số chiều và bộ lọc không được hỗ trợ
+  - Kiểm thử cách ly dữ liệu, quyền truy cập và xóa đúng phạm vi
+  - Kiểm thử lỗi mạng, hạn mức, lô thất bại một phần và khả năng tiếp tục
+  - Chạy đánh giá hồi quy truy xuất với bộ dữ liệu và cấu hình đã cố định
+- level1: Mở rộng
+  level2:
+  - Tổ chức lớp dịch vụ để tách nghiệp vụ khỏi từng mô hình và kho dữ liệu
+  - Tự triển khai EmbeddingModel và ánh xạ yêu cầu, phản hồi, lỗi
+  - Tự triển khai DocumentTransformer hoặc BatchingStrategy cho dữ liệu đặc thù
+  - Bổ sung VectorStore cho kho mới và xác định rõ các khả năng hỗ trợ
+  - Bọc VectorStore để áp dụng chính sách lọc, ghi nhận hoặc bộ nhớ đệm
+  - Đổi kho vector bằng kiểm thử hợp đồng và kế hoạch chuyển dữ liệu
+  - Rà soát thay đổi API, starter, cấu hình và dữ liệu khi nâng cấp Spring AI
+- level1: Thực hành
+  level2:
+  - Xây công cụ tìm kiếm ngữ nghĩa tài liệu tiếng Việt từ đầu đến cuối
+  - Nhập bộ tài liệu Markdown và PDF có nguồn dẫn, số trang và phiên bản
+  - So sánh kết quả giữa SimpleVectorStore và PGvector trên cùng dữ liệu
+  - Thử nghiệm kích thước đoạn, mô hình, topK và ngưỡng tương đồng
+  - Xây truy vấn lọc theo chuyên mục, ngôn ngữ và quyền truy cập
+  - Cập nhật tài liệu, dọn đoạn cũ và chứng minh nhập lại không tạo trùng
+  - Di chuyển sang mô hình embeddings mới với chỉ mục song song và quay lại
+  - Hoàn thiện báo cáo chất lượng, hiệu năng và quy trình vận hành

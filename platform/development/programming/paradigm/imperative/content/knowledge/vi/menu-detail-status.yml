@@ -1,0 +1,2197 @@
+menu:
+- slug: imperative-mental-model
+  title: Tư duy mệnh lệnh
+  childs:
+  - slug: imperative-mental-model-001
+    title: Lập trình mệnh lệnh (imperative programming) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-002
+    title: Diễn tả cách thực hiện công việc bằng các bước thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-003
+    title: 'Ba thành phần cốt lõi: trạng thái, lệnh và luồng điều khiển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-004
+    title: Từ yêu cầu bài toán đến chuỗi thao tác có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-005
+    title: Vai trò của biến, phép gán, điều kiện và vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-006
+    title: Quan hệ giữa lập trình mệnh lệnh, có cấu trúc và thủ tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-007
+    title: Ngôn ngữ đa mô hình và cách nhận diện phần mã mệnh lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-008
+    title: Kiến thức đầu vào, mã giả và cách theo dõi ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: imperative-mental-model-009
+    title: Trình tự học từ mô hình thực thi đến thiết kế chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: program-state
+  title: Trạng thái chương trình
+  childs:
+  - slug: program-state-001
+    title: Trạng thái (state) và giá trị tại một thời điểm thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-002
+    title: Biến, tên biến, vị trí lưu trữ và giá trị được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-003
+    title: Quan hệ giữa môi trường tên và bộ nhớ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-004
+    title: Trạng thái ban đầu, trạng thái trung gian và trạng thái kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-005
+    title: Chuyển trạng thái sau một lệnh hoặc một nhóm lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-006
+    title: Trạng thái cục bộ, trạng thái dùng chung và trạng thái bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-007
+    title: Phân biệt dữ liệu đầu vào, dữ liệu làm việc và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-008
+    title: Biểu diễn trạng thái bằng bảng và sơ đồ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-009
+    title: Tính xác định của kết quả dưới các giả định đầu vào và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-state-010
+    title: Nhận diện phần trạng thái cần thiết để giải quyết bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: statements-and-assignment
+  title: Lệnh và phép gán
+  childs:
+  - slug: statements-and-assignment-001
+    title: Lệnh (statement), biểu thức và đơn vị thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-002
+    title: Khai báo, khởi tạo và gán lại giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-003
+    title: Phép gán là thao tác cập nhật trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-004
+    title: Phân biệt phép gán với quan hệ bằng nhau trong toán học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-005
+    title: Đọc giá trị cũ trước khi ghi giá trị mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-006
+    title: Phép gán kết hợp và toán tử tăng giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-007
+    title: Hoán đổi hai giá trị và vai trò của biến tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-008
+    title: Gán liên tiếp và sự phụ thuộc vào quy tắc ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-009
+    title: Kiểu dữ liệu, chuyển kiểu và giới hạn giá trị khi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statements-and-assignment-010
+    title: Lỗi đọc trước khởi tạo và trạng thái chưa hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expressions-and-effects
+  title: Biểu thức và hiệu ứng
+  childs:
+  - slug: expressions-and-effects-001
+    title: Giá trị của biểu thức và tác dụng phụ (side effect)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-002
+    title: Biểu thức chỉ đọc trạng thái và biểu thức làm thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-003
+    title: Độ ưu tiên toán tử, tính kết hợp và thứ tự đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-004
+    title: Tiền tăng, hậu tăng và sự khác nhau giữa giá trị trả về với giá trị lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-005
+    title: Đánh giá ngắn mạch và tác dụng phụ trong điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-006
+    title: Thứ tự đánh giá đối số khi gọi hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-007
+    title: Quan hệ phụ thuộc khi cùng đọc và ghi một biến trong biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-008
+    title: Tách thao tác cập nhật khỏi biểu thức tính toán phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-009
+    title: Quy tắc đánh giá của Java và việc kiểm tra quy tắc ở ngôn ngữ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-effects-010
+    title: Thay đổi thứ tự biểu thức khi có ngoại lệ hoặc tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-control
+  title: Điều khiển có cấu trúc
+  childs:
+  - slug: structured-control-001
+    title: Thực thi tuần tự và ý nghĩa của thứ tự lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-002
+    title: 'Ba cấu trúc nền tảng: tuần tự, lựa chọn và lặp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-003
+    title: Khối lệnh và cách kết hợp cấu trúc điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-004
+    title: Điểm vào, điểm ra và đường đi của một khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-005
+    title: Sơ đồ luồng điều khiển (control-flow graph)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-006
+    title: Hoàn tất bình thường và chuyển điều khiển đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-007
+    title: Nhảy không có cấu trúc và vấn đề theo dõi đường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-008
+    title: Return sớm và cách làm rõ điều kiện kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-control-009
+    title: Phân rã luồng phức tạp thành các khối có thể suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditionals
+  title: Rẽ nhánh
+  childs:
+  - slug: conditionals-001
+    title: Điều kiện Boolean và việc lựa chọn nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-002
+    title: If, if–else và chuỗi điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-003
+    title: Thứ tự kiểm tra khi nhiều điều kiện cùng đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-004
+    title: Điều kiện loại trừ nhau và điều kiện bao phủ đủ trường hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-005
+    title: Rẽ nhánh lồng nhau và độ sâu điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-006
+    title: Switch và lựa chọn theo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-007
+    title: Fall-through và việc kết thúc nhánh theo quy tắc ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-008
+    title: Điều kiện bảo vệ (guard clause) cho trường hợp không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-009
+    title: Trạng thái sau điểm hợp nhánh và dữ liệu cần được khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditionals-010
+    title: Biến đổi điều kiện mà vẫn giữ nguyên tác dụng phụ và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loops
+  title: Vòng lặp
+  childs:
+  - slug: loops-001
+    title: Khởi tạo, điều kiện tiếp tục, thân lặp và bước cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-002
+    title: While và vòng lặp kiểm tra điều kiện trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-003
+    title: Do–while và vòng lặp thực hiện thân ít nhất một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-004
+    title: For và cách gom logic điều khiển chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-005
+    title: Duyệt theo phần tử và duyệt theo chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-006
+    title: Vòng lặp đếm, vòng lặp theo điều kiện và giá trị đánh dấu kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-007
+    title: Break, continue và ảnh hưởng tới bước cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-008
+    title: Vòng lặp lồng nhau và quan hệ giữa các biến điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-009
+    title: Khoảng chỉ số, cận bao gồm và cận không bao gồm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-010
+    title: Lỗi lệch một đơn vị và trường hợp dữ liệu rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-011
+    title: Vòng lặp vô hạn, tiến triển và điều kiện dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-012
+    title: Chuyển đổi giữa các dạng vòng lặp mà giữ nguyên hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functions-and-procedures
+  title: Hàm và thủ tục
+  childs:
+  - slug: functions-and-procedures-001
+    title: Trừu tượng hóa một chuỗi lệnh bằng chương trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-002
+    title: Thủ tục tạo hiệu ứng và hàm trả về giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-003
+    title: Tham số, đối số và hợp đồng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-004
+    title: Giá trị trả về, return sớm và đường thực thi thiếu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-005
+    title: Ngăn xếp lời gọi và trạng thái cục bộ của mỗi lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-006
+    title: Hàm chỉ tính toán và hàm có thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-007
+    title: Truyền giá trị hoặc truyền tham chiếu theo quy tắc ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-008
+    title: 'Java truyền giá trị: cập nhật đối tượng và gán lại biến tham số'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-009
+    title: Đệ quy và sự tương ứng với lời giải dùng vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-010
+    title: Điều kiện dừng đệ quy và giới hạn tài nguyên ngăn xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-and-procedures-011
+    title: Định nghĩa rõ dữ liệu đọc, dữ liệu sửa và kết quả của hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-and-lifetimes
+  title: Phạm vi và thời gian sống
+  childs:
+  - slug: scope-and-lifetimes-001
+    title: Phạm vi tên biến và thời gian sống của vùng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-lifetimes-002
+    title: Biến cục bộ, tham số và trạng thái có thời gian sống dài hơn lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-lifetimes-003
+    title: Che khuất tên biến và lỗi đọc nhầm trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-lifetimes-004
+    title: Biến toàn cục hoặc static và sự phụ thuộc giữa các lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-lifetimes-005
+    title: Khởi tạo trạng thái trước khi đưa vào sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-lifetimes-006
+    title: Giới hạn phạm vi biến theo nơi cần đọc và cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-lifetimes-007
+    title: Trạng thái được giữ lại giữa nhiều lần thực hiện một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-lifetimes-008
+    title: Vòng đời dữ liệu và vòng đời tài nguyên bên ngoài bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: references-and-mutation
+  title: Tham chiếu và biến đổi
+  childs:
+  - slug: references-and-mutation-001
+    title: Giá trị tham chiếu và đối tượng được tham chiếu tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-002
+    title: Gán lại tham chiếu và thay đổi nội dung đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-003
+    title: Nhiều tên cùng trỏ tới một đối tượng (aliasing)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-004
+    title: Ảnh hưởng của thay đổi qua một tham chiếu tới bên đang giữ tham chiếu khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-005
+    title: Sao chép tham chiếu, sao chép nông và sao chép sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-006
+    title: Tham chiếu không được gán lại và tính bất biến của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-007
+    title: Thay đổi tại chỗ và tạo dữ liệu kết quả mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-008
+    title: Quyền sở hữu dữ liệu và trách nhiệm thực hiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-009
+    title: Lộ trạng thái nội bộ và sao chép phòng vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: references-and-mutation-010
+    title: Phạm vi ảnh hưởng của một thao tác cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-data
+  title: Dữ liệu có cấu trúc
+  childs:
+  - slug: structured-data-001
+    title: Mảng, danh sách và bảng dữ liệu trong chương trình mệnh lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-002
+    title: Đọc và ghi phần tử qua chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-003
+    title: Duyệt cấu trúc dữ liệu với trạng thái điều khiển tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-004
+    title: Chèn, xóa và cập nhật khi đang duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-005
+    title: Iterator và quy tắc thay đổi cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-006
+    title: Dữ liệu nhiều chiều và phối hợp các chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-007
+    title: Khởi tạo từng phần và duy trì tính hợp lệ của cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-008
+    title: Đồng bộ các trường dữ liệu có quan hệ ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-data-009
+    title: Chọn biểu diễn dữ liệu phù hợp với các thao tác cần thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: procedural-design
+  title: Thiết kế thủ tục
+  childs:
+  - slug: procedural-design-001
+    title: Chia bài toán thành các bước và thủ tục có tên rõ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-002
+    title: Thiết kế từ tổng thể xuống chi tiết (top-down)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-003
+    title: Tách xử lý đầu vào, tính toán và xuất kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-004
+    title: Truyền dữ liệu tường minh thay cho phụ thuộc ngầm vào biến dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-005
+    title: Tính gắn kết của thủ tục và mức phụ thuộc giữa các thủ tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-006
+    title: Phân biệt dữ liệu cấu hình, trạng thái làm việc và trạng thái lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-007
+    title: Thiết kế hợp đồng cho thao tác có thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-008
+    title: Tách quyết định nghiệp vụ khỏi cơ chế thực thi hiệu ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedural-design-009
+    title: Giữ trình tự công việc dễ đọc khi chia nhỏ hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: algorithm-patterns
+  title: Mẫu thuật toán
+  childs:
+  - slug: algorithm-patterns-001
+    title: Quét tuần tự và duy trì thông tin đã xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-002
+    title: Biến tích lũy cho tổng, tích và kết quả ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-003
+    title: Biến đếm và bảng tần suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-004
+    title: Tìm phần tử đầu tiên, cực trị và điều kiện tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-005
+    title: Đếm hoặc kiểm tra tất cả phần tử theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-006
+    title: Lọc dữ liệu và ghi kết quả vào vùng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-007
+    title: Hai con trỏ và cập nhật nhiều chỉ số có phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-008
+    title: Xử lý theo nhóm và trạng thái của nhóm hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-009
+    title: Cập nhật tại chỗ với phép đảo, đổi chỗ hoặc phân hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-010
+    title: Đệ quy quay lui và thao tác hoàn tác trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-patterns-011
+    title: Lựa chọn mẫu dựa trên thông tin cần giữ sau mỗi bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-machines
+  title: Máy trạng thái
+  childs:
+  - slug: state-machines-001
+    title: Mô hình hóa quy trình bằng tập trạng thái và chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machines-002
+    title: Sự kiện đầu vào, điều kiện chuyển và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machines-003
+    title: Phân biệt trạng thái điều khiển với dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machines-004
+    title: Biểu diễn chuyển trạng thái bằng if hoặc switch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machines-005
+    title: Ràng buộc các chuyển trạng thái hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machines-006
+    title: Trạng thái kết thúc, trạng thái lỗi và đường phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machines-007
+    title: Giảm tổ hợp cờ Boolean bằng trạng thái có tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-machines-008
+    title: Theo dõi lịch sử thao tác để giải thích trạng thái hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inputs-and-side-effects
+  title: Đầu vào và hiệu ứng ngoài
+  childs:
+  - slug: inputs-and-side-effects-001
+    title: Đọc đầu vào và cập nhật trạng thái theo từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-002
+    title: Xuất kết quả và thứ tự các thao tác ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-003
+    title: Đọc tệp, luồng dữ liệu và trạng thái vị trí đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-004
+    title: Làm việc với dữ liệu lớn theo từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-005
+    title: Tách dữ liệu không hợp lệ khỏi điều kiện kết thúc đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-006
+    title: Thời gian, số ngẫu nhiên và dịch vụ ngoài trong luồng mệnh lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-007
+    title: Tác dụng phụ quan sát được và thứ tự tương tác với môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-008
+    title: Tiêm nguồn thời gian hoặc dữ liệu để kiểm thử có thể lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inputs-and-side-effects-009
+    title: Thực hiện lại thao tác và yêu cầu về tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-resources
+  title: Lỗi và tài nguyên
+  childs:
+  - slug: errors-and-resources-001
+    title: Phân biệt lỗi đầu vào, lỗi logic và lỗi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-002
+    title: Mã lỗi, giá trị kết quả và ngoại lệ trong thiết kế luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-003
+    title: Trạng thái còn lại khi một bước trong chuỗi thao tác thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-004
+    title: Kiểm tra trước khi thay đổi và giới hạn của cách kiểm tra này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-005
+    title: Khôi phục bất biến khi thao tác chỉ hoàn thành một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-006
+    title: Hoàn tác trạng thái cục bộ và hành động bù cho hiệu ứng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-007
+    title: Try, catch, finally và đường đi khi phát sinh ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-008
+    title: Thu nhận, sử dụng và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-009
+    title: Try-with-resources trong ví dụ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resources-010
+    title: Điều kiện thử lại, số lần thử và nguy cơ lặp tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: correctness-reasoning
+  title: Lý luận tính đúng
+  childs:
+  - slug: correctness-reasoning-001
+    title: Đặc tả yêu cầu thành tiền điều kiện và hậu điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-002
+    title: Bất biến của dữ liệu và trạng thái hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-003
+    title: Bộ ba Hoare cho một khối lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-004
+    title: Suy luận tác động của phép gán bằng phép thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-005
+    title: Kết hợp hợp đồng của các lệnh thực hiện tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-006
+    title: Lập luận riêng cho từng nhánh điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-007
+    title: Bất biến vòng lặp và ba bước khởi tạo, bảo toàn, kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-008
+    title: Đại lượng giảm để lập luận chương trình sẽ dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-009
+    title: Tính đúng bộ phận và tính đúng toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-010
+    title: Giới hạn số, tràn số và giả định của mô hình toán học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-011
+    title: Aliasing và việc xác định phần dữ liệu được phép thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-reasoning-012
+    title: Kết hợp chứng minh, kiểm thử và các giả định về môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-semantics
+  title: Ngữ nghĩa thực thi
+  childs:
+  - slug: execution-semantics-001
+    title: Mô hình ngôn ngữ mệnh lệnh tối giản với biến và lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-002
+    title: Cú pháp trừu tượng của biểu thức và câu lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-003
+    title: Đánh giá biểu thức trong một trạng thái cho trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-004
+    title: Ngữ nghĩa phép gán và phép cập nhật bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-005
+    title: Ngữ nghĩa tuần tự, điều kiện và vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-006
+    title: Ngữ nghĩa bước nhỏ và dấu vết thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-007
+    title: Ngữ nghĩa bước lớn và quan hệ giữa đầu vào với kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-008
+    title: Chương trình không kết thúc và trạng thái thực thi bị mắc kẹt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-009
+    title: Tương đương chương trình theo kết quả và hiệu ứng quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-semantics-010
+    title: Phân biệt thứ tự ở mức ngôn ngữ với cách compiler tổ chức mã máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-and-state
+  title: Đồng thời và trạng thái
+  childs:
+  - slug: concurrency-and-state-001
+    title: Từ mô hình tuần tự tới nhiều luồng cùng truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-state-002
+    title: Xen kẽ thao tác và kết quả phụ thuộc lịch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-state-003
+    title: Race condition trong chuỗi đọc, tính toán và ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-state-004
+    title: Tính nguyên tử của một bước và của một nhóm bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-state-005
+    title: Khả năng nhìn thấy cập nhật giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-state-006
+    title: Bảo vệ bất biến bằng đồng bộ theo hợp đồng của ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-state-007
+    title: Giảm trạng thái dùng chung bằng phân chia quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-state-008
+    title: Giới hạn của suy luận tuần tự khi xuất hiện xử lý đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-debugging
+  title: Kiểm thử và gỡ lỗi
+  childs:
+  - slug: testing-and-debugging-001
+    title: Kiểm thử theo hợp đồng đầu vào, đầu ra và thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-002
+    title: Chọn trường hợp biên cho nhánh và vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-003
+    title: Đối chiếu trạng thái trước và sau mỗi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-004
+    title: Kiểm thử chuỗi thao tác thay vì chỉ từng lời gọi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-005
+    title: Kiểm thử dựa trên thuộc tính và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-006
+    title: Chuẩn bị trạng thái kiểm thử và tránh rò rỉ giữa các test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-007
+    title: Dùng breakpoint, watch và call stack để theo dõi giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-008
+    title: Lập bảng truy vết cho lỗi chỉ số hoặc cập nhật sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-009
+    title: Ghi log chuyển trạng thái và mốc thực hiện hiệu ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-010
+    title: Tái hiện lỗi có đầu vào, thời gian và ngẫu nhiên được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-debugging-011
+    title: Phân biệt bằng chứng từ độ bao phủ với bằng chứng về tính đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-quality-and-refactoring
+  title: Chất lượng và tái cấu trúc
+  childs:
+  - slug: code-quality-and-refactoring-001
+    title: Đặt tên theo ý nghĩa dữ liệu và vai trò của bước xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-002
+    title: Giảm số biến có thể thay đổi tại cùng một điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-003
+    title: Hạn chế gán lại một biến cho nhiều ý nghĩa khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-004
+    title: Tách biểu thức có nhiều tác dụng phụ thành các lệnh rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-005
+    title: Giảm nhánh lồng nhau bằng điều kiện bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-006
+    title: Tách hàm dài mà giữ rõ thứ tự và luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-007
+    title: Loại bỏ biến cờ hoặc dữ liệu trung gian dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-008
+    title: Gom cập nhật liên quan để bảo toàn bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-009
+    title: Tránh phụ thuộc vào thứ tự gọi hàm không được hợp đồng thể hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-quality-and-refactoring-010
+    title: Kiểm chứng hành vi trước và sau khi tái cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-tradeoffs
+  title: Hiệu năng và đánh đổi
+  childs:
+  - slug: performance-tradeoffs-001
+    title: Đếm số thao tác theo số lần lặp và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-002
+    title: Độ phức tạp thời gian của vòng lặp đơn và lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-003
+    title: Bộ nhớ phụ, biến tích lũy và xử lý tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-004
+    title: Đánh đổi giữa sao chép dữ liệu với thay đổi dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-005
+    title: Vị trí dữ liệu trong bộ nhớ và cách tổ chức truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-006
+    title: Tối ưu vòng lặp khi có phụ thuộc giữa các lần cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-007
+    title: Giữ hiệu ứng và kết quả khi thay đổi thứ tự thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-008
+    title: Đo hiệu năng bằng tải đại diện trước khi tăng độ phức tạp của mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tradeoffs-009
+    title: Cân bằng tốc độ, khả năng đọc và chi phí kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paradigm-comparisons
+  title: Quan hệ các mô hình
+  childs:
+  - slug: paradigm-comparisons-001
+    title: 'Mệnh lệnh và khai báo: mức độ mô tả cách thực hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-002
+    title: 'Mệnh lệnh và thủ tục: cách tổ chức các chuỗi thao tác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-003
+    title: 'Mệnh lệnh và hướng đối tượng: trạng thái được quản lý qua đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-004
+    title: 'Mệnh lệnh và hàm: kiểm soát dữ liệu khả biến và tác dụng phụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-005
+    title: Vòng lặp tường minh và pipeline xử lý tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-006
+    title: Trạng thái trong chương trình hướng sự kiện hoặc phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-007
+    title: Sử dụng biến đổi cục bộ bên trong giao diện không làm lộ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-008
+    title: Chọn cách biểu đạt theo bản chất thuật toán và yêu cầu bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paradigm-comparisons-009
+    title: Nhận diện trường hợp nhiều mô hình cùng xuất hiện trong một chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-labs
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-labs-001
+    title: Truy vết trạng thái của một chương trình có nhiều phép gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-002
+    title: Viết hai cách hoán đổi dữ liệu và kiểm tra giả định của từng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-003
+    title: Thiết kế rẽ nhánh bao phủ đủ các trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-004
+    title: Xây dựng vòng lặp tính tổng hoặc cực trị với bất biến rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-005
+    title: Tìm và sửa lỗi lệch chỉ số trong thao tác trên mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-006
+    title: So sánh thay đổi tại chỗ với tạo danh sách kết quả mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-007
+    title: Tái hiện lỗi do hai tham chiếu cùng trỏ tới một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-008
+    title: Chia một quy trình xử lý dữ liệu thành các thủ tục có hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-009
+    title: Xây dựng máy trạng thái cho một quy trình nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-010
+    title: Xử lý tệp với đường đi thành công, thất bại và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-011
+    title: Kiểm thử chuỗi thao tác trên một cấu trúc dữ liệu khả biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-012
+    title: Tái cấu trúc chương trình mệnh lệnh và chứng minh phần hành vi được giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

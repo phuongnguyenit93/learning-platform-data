@@ -1,0 +1,3 @@
+menuLevel1: Retry và idempotency
+menuLevel2: Áp dụng backoff, jitter và giới hạn số lần thử để giảm quá tải
+status: ""

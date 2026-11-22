@@ -1,0 +1,49 @@
+roadmap:
+- id: buc-tranh-bien-dich
+  title: Bức tranh biên dịch
+  purpose: Hiểu vai trò của trình biên dịch trong hành trình từ mã nguồn đến chương trình chạy.
+  objectives:
+  - '- Mô tả luồng .java → .class → JVM.'
+  - '- Phân biệt biên dịch nguồn, nạp lớp và JIT.'
+- id: javac-va-tep-nguon
+  title: javac và tệp nguồn
+  purpose: Chủ động biên dịch chương trình ngoài IDE với đầu vào và đầu ra rõ ràng.
+  objectives:
+  - '- Biên dịch nhiều tệp theo package bằng javac.'
+  - '- Chọn thư mục đầu ra và kiểm tra tệp .class.'
+- id: kieu-loi-va-canh-bao
+  title: Kiểu, lỗi và cảnh báo
+  purpose: Nhận diện những vấn đề được kiểm tra trước khi chương trình chạy.
+  objectives:
+  - '- Giải thích các bước phân tích cú pháp, tên và kiểu.'
+  - '- Đọc vị trí lỗi và xử lý cảnh báo với -Xlint.'
+- id: classpath-va-module-path
+  title: Classpath và module path
+  purpose: Cấu hình đúng nơi trình biên dịch tìm các kiểu và phụ thuộc.
+  objectives:
+  - '- Biên dịch với thư viện trên classpath.'
+  - '- Phân biệt classpath, module path và module-info.java.'
+- id: tuong-thich-phien-ban
+  title: Tương thích phiên bản
+  purpose: Tạo đầu ra phù hợp với phiên bản Java đích.
+  objectives:
+  - '- Phân biệt JDK biên dịch và Java đích.'
+  - '- Dùng --release và kiểm tra giới hạn API, cú pháp.'
+- id: sinh-ma-luc-bien-dich
+  title: Sinh mã lúc biên dịch
+  purpose: Hiểu annotation processing và vai trò của mã được sinh trong bản build.
+  objectives:
+  - '- Mô tả các vòng xử lý annotation.'
+  - '- Cấu hình processor và theo dõi tệp được sinh.'
+- id: bien-dich-bang-api
+  title: Biên dịch bằng API
+  purpose: Gọi trình biên dịch từ chương trình Java theo cách có kiểm soát.
+  objectives:
+  - '- Tạo tác vụ bằng JavaCompiler và file manager.'
+  - '- Thu thập diagnostics và kiểm tra kết quả biên dịch.'
+- id: kiem-chung-dau-ra
+  title: Kiểm chứng đầu ra
+  purpose: Xác nhận cấu hình biên dịch tạo đúng sản phẩm mong đợi.
+  objectives:
+  - '- Dùng javap để xem cấu trúc và bytecode.'
+  - '- Kiểm tra lại từ đầu với JDK, tùy chọn và phụ thuộc xác định.'

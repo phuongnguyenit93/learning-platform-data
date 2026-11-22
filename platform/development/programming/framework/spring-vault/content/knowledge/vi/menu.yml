@@ -1,0 +1,494 @@
+menu:
+- level1: Bản đồ Spring Vault
+  level2:
+  - Spring Vault là gì và bài toán quản lý bí mật (secret)
+  - Thông tin xác thực, khóa mã hóa và cấu hình nhạy cảm
+  - Quan hệ giữa ứng dụng Spring, thư viện client và máy chủ Vault
+  - Secret tĩnh, secret động và vòng đời sử dụng
+  - Xác thực ứng dụng với Vault và phân quyền truy cập dữ liệu
+  - Phân biệt Spring Vault với Spring Cloud Vault và Spring Security
+  - Đối chiếu cách dùng API, PropertySource và repository
+  - Trách nhiệm của thư viện so với trách nhiệm vận hành Vault
+  - Lộ trình từ đọc secret đến quản lý vòng đời trong ứng dụng
+- level1: Nền tảng Vault
+  level2:
+  - Secrets engine và vị trí gắn kết (mount path)
+  - Auth method, role và quan hệ với danh tính ứng dụng
+  - Đường dẫn logic, tiền tố API và đường dẫn tương đối
+  - Token, policy và các quyền được cấp
+  - Lease ID, TTL và khả năng gia hạn
+  - Namespace và ranh giới tổ chức theo phiên bản, gói sản phẩm
+  - Seal, unseal và trạng thái sẵn sàng của máy chủ
+  - Storage, mã hóa khi lưu và kết nối TLS
+  - Secret được lưu sẵn và thông tin xác thực được cấp theo yêu cầu
+  - Audit log và dấu vết của từng yêu cầu
+  - Vai trò của CLI, HTTP API và thư viện Java
+  - Đọc cấu trúc phản hồi gồm data, auth, metadata và thông tin lease
+- level1: Phân quyền truy cập
+  level2:
+  - Policy và nguyên tắc cấp quyền theo nhu cầu
+  - Quyền create, read, update, delete, list và các quyền đặc biệt
+  - Khớp đường dẫn policy với mount path thực tế
+  - Đường dẫn data và metadata của KV phiên bản 2
+  - Phân biệt xác thực thành công với được phép đọc một secret
+  - Role ở auth method và role ở secrets engine
+  - Token dùng cho ứng dụng và token dùng cho quản trị
+  - Quyền lookup, renew và revoke theo vòng đời cần sử dụng
+  - Quyền khám phá mount và các API nội bộ mà abstraction có thể gọi
+  - Thiết kế policy cho từng dịch vụ và từng môi trường
+  - Kiểm chứng trường hợp được phép và bị từ chối trong bài thực hành
+- level1: Phiên bản và phụ thuộc
+  level2:
+  - Chọn dòng Spring Vault phù hợp với Java và Spring Framework
+  - Quan hệ giữa Spring Vault, Spring Boot và Spring Cloud release train
+  - Khác biệt API giữa dòng 3.x, 4.0 và 4.1 trở lên
+  - Dependency spring-vault-core và các thành phần tùy chọn
+  - HTTP client, thư viện JSON và cơ chế chuyển đổi dữ liệu
+  - Phụ thuộc cho Reactor và client không chặn
+  - Phụ thuộc SDK riêng của từng phương thức xác thực cloud
+  - Phụ thuộc Spring Data khi sử dụng repository
+  - Khóa phiên bản và kiểm tra dependency bắc cầu
+  - Đọc API, release notes và tài liệu theo đúng dòng đang dùng
+- level1: Môi trường thực hành
+  level2:
+  - Tổ chức một môi trường Vault cục bộ dành cho học tập
+  - Phân biệt máy chủ chế độ dev với cấu hình vận hành
+  - Khởi tạo dữ liệu mẫu và mount riêng cho bài thực hành
+  - Chuẩn bị token hoặc role có quyền phù hợp với ví dụ
+  - Đọc, ghi thử bằng CLI để đối chiếu đường dẫn
+  - Chuẩn bị chứng thư và truststore cho bài TLS
+  - Phân tách cấu hình giữa máy cá nhân, kiểm thử và triển khai
+  - Dữ liệu giả, cấu hình ngoài mã nguồn và phạm vi dọn dẹp
+  - Kiểm tra kết nối và trạng thái máy chủ trước khi chạy ứng dụng
+  - Thiết kế bài thực hành có thể tạo lại và thực hiện độc lập
+- level1: Kiến trúc client
+  level2:
+  - VaultOperations và hợp đồng truy cập đồng bộ
+  - VaultTemplate và các nhóm thao tác chuyên biệt
+  - VaultEndpoint và VaultEndpointProvider
+  - ClientAuthentication và việc lấy VaultToken
+  - SessionManager và tái sử dụng phiên xác thực
+  - ClientOptions, cấu hình TLS và HTTP transport
+  - VaultClient dựa trên RestClient từ Spring Vault 4.1
+  - ReactiveVaultOperations và thành phần cho mô hình không chặn
+  - SecretLeaseContainer và việc theo dõi secret có lease
+  - PropertySource và repository xây trên các API cốt lõi
+  - Vòng đời bean khi khởi tạo, sử dụng và dừng ứng dụng
+  - Thiết kế lớp truy cập secret theo nhu cầu nghiệp vụ
+- level1: Cấu hình Java
+  level2:
+  - Các bean tối thiểu để đọc được một secret
+  - AbstractVaultConfiguration và các phương thức cần cung cấp
+  - Cấu hình VaultEndpoint theo môi trường
+  - Cung cấp ClientAuthentication và tùy chọn xác thực
+  - Cấu hình SessionManager và TaskScheduler
+  - Khởi tạo VaultTemplate bằng các constructor phù hợp phiên bản
+  - Tùy chỉnh VaultClient trên các phiên bản có hỗ trợ
+  - EnvironmentVaultConfiguration và nhóm thuộc tính vault.*
+  - Lấy cấu hình từ Environment đúng thời điểm khởi tạo
+  - Tạo nhiều client cho các đích hoặc danh tính riêng
+  - Sử dụng thư viện trong hoặc ngoài ApplicationContext
+  - Quản lý đóng client và dừng các tác vụ nền
+- level1: HTTP và TLS
+  level2:
+  - Scheme, host, port và tiền tố của địa chỉ Vault
+  - Timeout kết nối, đọc và giới hạn chờ của transport
+  - Kết nối dùng lại, connection pool và giới hạn đồng thời
+  - Truststore, CA nội bộ và xác minh tên máy chủ
+  - Keystore và chứng thư phía client khi cần
+  - Phân biệt TLS của đường truyền với cert auth method
+  - Cấu hình proxy và đường đi mạng tới Vault
+  - Namespace header và phạm vi áp dụng cho yêu cầu
+  - Kiểm soát đường dẫn và URL tuyệt đối truyền vào client
+  - Header xác thực và giới hạn của interceptor tùy chỉnh
+  - Kiểm tra cấu hình khi đổi HTTP client hoặc nâng phiên bản
+  - Chẩn đoán lỗi DNS, TLS handshake và kết nối bị từ chối
+- level1: VaultTemplate
+  level2:
+  - Đọc dữ liệu bằng read và VaultResponse
+  - Ghi dữ liệu bằng write và đối tượng đầu vào
+  - Xóa theo đường dẫn bằng delete
+  - Liệt kê khóa bằng list và xử lý kết quả
+  - Đọc dữ liệu thành kiểu Java cụ thể
+  - Phản hồi rỗng, dữ liệu không tồn tại và trường bắt buộc
+  - Đọc metadata, cảnh báo và thông tin lease trong phản hồi
+  - Chọn nhóm opsFor tương ứng với loại secrets engine
+  - Callback trong phiên xác thực và ngoài phiên
+  - Gọi endpoint chưa có abstraction chuyên biệt
+  - Ánh xạ lỗi HTTP thành ngoại lệ của thư viện
+  - Tái sử dụng template và giữ cấu hình ổn định
+  - Đối chiếu yêu cầu từ template với HTTP API của Vault
+- level1: KV phiên bản 1
+  level2:
+  - Mô hình một giá trị hiện hành cho mỗi khóa
+  - VaultKeyValueOperations và lựa chọn KV_1
+  - Mount path và đường dẫn secret tương đối
+  - Ghi Map hoặc đối tượng Java vào một khóa
+  - Đọc lại dữ liệu và kiểm tra kiểu giá trị
+  - Thay thế dữ liệu và tránh làm mất trường khi ghi
+  - Liệt kê khóa theo đường dẫn thư mục
+  - Xóa dữ liệu và phạm vi tác động
+  - Phân biệt engine version với phiên bản của một secret
+  - Lựa chọn API KV chuyên biệt hoặc thao tác đường dẫn trực tiếp
+- level1: KV phiên bản 2
+  level2:
+  - Phiên bản dữ liệu, thời điểm tạo và metadata
+  - VaultKeyValueOperations với KV_2
+  - VaultVersionedKeyValueOperations và kiểu Versioned
+  - Đường dẫn logic so với các endpoint data, metadata, delete và destroy
+  - Đọc phiên bản mới nhất và phiên bản được chỉ định
+  - Ghi phiên bản mới và lấy metadata trả về
+  - Check-and-set để phát hiện cập nhật cạnh tranh
+  - Yêu cầu tạo mới và cập nhật theo phiên bản đã đọc
+  - Xử lý CAS không khớp và lựa chọn thử lại
+  - Đánh dấu xóa phiên bản hiện hành hoặc các phiên bản cụ thể
+  - Khôi phục phiên bản đã đánh dấu xóa bằng undelete
+  - Hủy dữ liệu phiên bản bằng destroy
+  - Xóa metadata và toàn bộ lịch sử của một khóa
+  - Giới hạn lịch sử, metadata tùy chỉnh và chính sách xóa
+  - Phân biệt dữ liệu bị xóa, bị hủy và khóa chưa tồn tại
+  - Đối chiếu put thay thế dữ liệu với cập nhật một phần khi API hỗ trợ
+- level1: Ánh xạ dữ liệu
+  level2:
+  - VaultResponse, VaultResponseSupport và phần dữ liệu nghiệp vụ
+  - Map lồng nhau, collection và các kiểu giá trị JSON
+  - Ánh xạ phản hồi thành DTO thay vì truyền Map xuyên ứng dụng
+  - Quy ước tên thuộc tính và cấu hình bộ chuyển đổi JSON
+  - Kiểu dữ liệu chung và generic khi đọc phản hồi
+  - Xử lý trường thiếu, null và dữ liệu thay đổi cấu trúc
+  - Versioned và việc giữ metadata tách khỏi giá trị
+  - Biểu diễn byte, chuỗi và Base64 theo từng endpoint
+  - Giới hạn việc in DTO chứa secret ra log hoặc thông báo lỗi
+  - Kiểm thử ánh xạ bằng dữ liệu giả và phản hồi tối thiểu
+- level1: Nền tảng xác thực
+  level2:
+  - Bài toán cấp danh tính ban đầu cho ứng dụng
+  - ClientAuthentication và hợp đồng trả về VaultToken
+  - VaultToken, LoginToken và dữ liệu vòng đời đi kèm
+  - TokenAuthentication với token được cấp từ bên ngoài
+  - Chọn phương thức xác thực theo môi trường chạy
+  - Mount path của auth method và role được sử dụng
+  - Cung cấp thông tin xác thực từ cấu hình ngoài mã nguồn
+  - Tách thông tin đăng nhập Vault khỏi secret cần lấy
+  - Thời điểm đăng nhập và việc tái sử dụng token
+  - Kiểm tra quyền và khả năng gia hạn của token được cấp
+  - Phân biệt xác thực ứng dụng với xác thực người dùng cuối
+  - Thiết kế hành vi khi không lấy được thông tin xác thực ban đầu
+- level1: Xác thực AppRole
+  level2:
+  - RoleId, SecretId và cấu hình ràng buộc của role
+  - AppRoleAuthentication và AppRoleAuthenticationOptions
+  - Cung cấp trực tiếp RoleId và SecretId
+  - Lấy thông tin theo chế độ pull với danh tính khởi tạo
+  - SecretId được response-wrap và bước unwrap
+  - Kết hợp chế độ push, pull và wrapped theo nhu cầu
+  - TTL, giới hạn số lần dùng và vòng đời SecretId
+  - Ràng buộc địa chỉ mạng và các điều kiện ở phía Vault
+  - Cấp SecretId mới khi triển khai lại ứng dụng
+  - Tách đơn vị cấp danh tính khỏi tiến trình sử dụng secret
+  - Xử lý SecretId sai, hết hạn hoặc đã dùng hết lượt
+  - Kiểm thử đăng nhập lại khi danh tính khởi tạo thay đổi
+- level1: Kubernetes và JWT
+  level2:
+  - KubernetesAuthentication và vai trò của ServiceAccount
+  - Token được gắn vào Pod và nguồn cung cấp JWT
+  - Đọc lại token khi cơ chế projected token xoay vòng
+  - Role, namespace Kubernetes và tên ServiceAccount được cho phép
+  - Audience, issuer và điều kiện kiểm tra theo cấu hình Vault
+  - Phân biệt auth method Kubernetes với auth method JWT
+  - JwtAuthentication và JwtAuthenticationOptions
+  - Cung cấp JWT bằng giá trị hoặc supplier
+  - JWKS, khóa công khai và nguồn xác minh danh tính ở phía Vault
+  - Phân biệt TTL của JWT đầu vào với TTL của Vault token
+  - Xử lý token hết hạn, Pod khởi động lại và đăng nhập lại
+  - Kiểm thử quyền của workload theo namespace và role
+- level1: Xác thực cloud
+  level2:
+  - AWS IAM và yêu cầu ký để chứng minh danh tính
+  - Nguồn AWS credentials và quyền của danh tính chạy ứng dụng
+  - AWS EC2 và tài liệu nhận dạng từ metadata service
+  - Nonce và vòng đời đăng nhập lại với AWS EC2
+  - IMDS và tùy chọn được hỗ trợ theo phiên bản client
+  - Azure managed identity và metadata của môi trường máy ảo
+  - GCP GCE và chứng minh danh tính từ metadata
+  - GCP IAM Credentials API và việc ký JWT cho service account
+  - GcpIamCredentialsAuthentication và khác biệt với API GCP cũ
+  - PCF và danh tính ứng dụng dựa trên chứng thư của nền tảng
+  - Tùy chọn role, auth path và các SDK bổ sung
+  - Giới hạn hỗ trợ reactive của từng cơ chế xác thực
+  - Kiểm tra quyền của môi trường cloud và policy Vault riêng biệt
+- level1: Chứng thư và tài khoản
+  level2:
+  - ClientCertificateAuthentication và cert auth method
+  - Keystore chứa chứng thư cùng khóa riêng của client
+  - Tên role chứng thư và auth mount tùy chỉnh
+  - Thay chứng thư đầu vào và thời điểm cần đăng nhập lại
+  - UserPasswordAuthentication với userpass
+  - Dùng cơ chế tương ứng cho LDAP, Okta và RADIUS
+  - GitHubAuthentication và token dùng để chứng minh danh tính
+  - CubbyholeAuthentication và token khởi tạo dùng cho việc nhận token khác
+  - Chọn xác thực theo người dùng hay theo danh tính dịch vụ
+  - Kiểm soát nơi cung cấp mật khẩu, token và khóa riêng
+- level1: Phiên và vòng đời token
+  level2:
+  - SessionManager và lý do không đăng nhập lại cho từng lần đọc
+  - SimpleSessionManager và phạm vi trách nhiệm
+  - LifecycleAwareSessionManager và lịch gia hạn nền
+  - Token lookup để xác định TTL còn lại và khả năng renew
+  - Token dịch vụ, token batch và khả năng quản lý vòng đời
+  - Thời hạn, max TTL và giới hạn gia hạn do máy chủ quyết định
+  - Đăng nhập lại sau khi token không còn dùng được
+  - AuthenticationListener và AuthenticationErrorListener
+  - Đồng bộ nhiều yêu cầu cùng cần một token mới
+  - Thu hồi token khi dừng ứng dụng theo loại token và cấu hình
+  - Phân biệt token được client tạo ra với token được quản lý bên ngoài
+  - Tác động của token bị thu hồi đến các lease đã tạo
+  - Kiểm thử lỗi gia hạn, hết hạn và đóng ApplicationContext
+  - Giữ thông tin token ngoài dữ liệu trả về cho người dùng
+- level1: Authentication Steps
+  level2:
+  - Mô tả chuỗi xác thực độc lập với cách thực thi
+  - AuthenticationSteps và các bước lấy, chuyển đổi, gửi dữ liệu
+  - AuthenticationStepsFactory ở các phương thức có hỗ trợ
+  - AuthenticationStepsExecutor cho đăng nhập đồng bộ
+  - AuthenticationStepsOperator cho đăng nhập reactive
+  - Truyền dữ liệu và đường dẫn giữa các bước
+  - Lấy thông tin xác thực mới qua supplier khi đăng nhập lại
+  - Tùy chỉnh chuỗi đăng nhập mà vẫn giữ ranh giới trách nhiệm
+  - Phương thức xác thực không hỗ trợ chuỗi không chặn
+  - Kiểm thử các bước bằng đầu vào và phản hồi giả
+- level1: Vòng đời lease
+  level2:
+  - Lease ID, thời hạn và thuộc tính renewable
+  - Phân biệt lease của secret động với TTL gợi ý của KV
+  - Yêu cầu gia hạn và thời hạn thực tế được máy chủ cấp
+  - Giới hạn max TTL và thời điểm cần lấy secret mới
+  - SecretLeaseContainer và vòng đời theo ApplicationContext
+  - RequestedSecret với chế độ gia hạn hoặc xoay vòng
+  - TaskScheduler, ngưỡng sắp hết hạn và khoảng gia hạn tối thiểu
+  - LeaseListener và các sự kiện tạo, gia hạn, hết hạn
+  - LeaseErrorListener và lỗi lấy hoặc gia hạn secret
+  - Sự kiện phía client và độ trễ phát hiện secret đã hết hạn
+  - Ảnh hưởng của sai lệch đồng hồ và tác vụ nền bị chậm
+  - Thu hồi lease khi không còn sử dụng
+  - Tương tác giữa đăng nhập lại và việc đăng ký secret
+  - Kiểm thử vòng đời bằng TTL ngắn và thời gian có kiểm soát
+- level1: Xoay vòng trong ứng dụng
+  level2:
+  - Gia hạn thông tin hiện có và nhận một bộ thông tin mới
+  - Ứng dụng tiếp nhận dữ liệu từ sự kiện lease
+  - ManagedSecret và SecretRegistrar từ Spring Vault 4.1
+  - Truy cập dữ liệu có kiểu qua SecretAccessor
+  - Thứ tự đăng ký secret và khởi tạo thành phần sử dụng
+  - Cập nhật thông tin xác thực cho connection pool hoặc HTTP client
+  - Xử lý kết nối đang hoạt động khi thông tin cũ bị thu hồi
+  - Phân biệt cập nhật PropertySource với thay giá trị đã chụp trong bean
+  - Đồng bộ thay đổi giữa các luồng trong ứng dụng
+  - Ứng xử khi nhận secret mới thất bại
+  - Phạm vi lưu đệm và thời hạn sử dụng dữ liệu đã nhận
+  - Kiểm thử ứng dụng tiếp tục hoạt động qua nhiều lần xoay vòng
+- level1: Nguồn cấu hình
+  level2:
+  - VaultPropertySource và Spring Environment
+  - Đăng ký PropertySource theo chương trình
+  - '@VaultPropertySource trên lớp cấu hình'
+  - Đường dẫn KV v1, KV v2 và quy ước của abstraction
+  - Thứ tự ưu tiên giữa Vault và các nguồn cấu hình khác
+  - Tiền tố tên thuộc tính và tránh xung đột khóa
+  - Placeholder trong đường dẫn và yêu cầu dữ liệu có sẵn
+  - Ánh xạ giá trị lồng nhau thành thuộc tính ứng dụng
+  - Thời điểm lấy secret trước khi tạo bean phụ thuộc
+  - Chế độ renewal và rotation của nguồn cấu hình
+  - Đọc lại Environment và giới hạn của giá trị đã gán cho bean
+  - Tách cấu hình kết nối Vault khỏi cấu hình được lấy từ Vault
+  - Ranh giới với việc nạp cấu hình qua Spring Cloud Vault
+- level1: API reactive
+  level2:
+  - ReactiveVaultTemplate và ReactiveVaultOperations
+  - Mono, Flux và thời điểm thực hiện yêu cầu
+  - AbstractReactiveVaultConfiguration và thành phần cần cung cấp
+  - ReactiveVaultClient trên các phiên bản có hỗ trợ
+  - VaultTokenSupplier và việc cấp token không chặn
+  - ReactiveSessionManager cùng quản lý gia hạn
+  - Đọc, ghi, xóa và ánh xạ dữ liệu theo chuỗi reactive
+  - Nhóm thao tác chuyên biệt có trong API reactive
+  - Callback cho yêu cầu có phiên và không có phiên
+  - Xử lý kết quả rỗng, lỗi và timeout trong Reactor
+  - Kiểm soát số yêu cầu đồng thời tới Vault
+  - Tránh đưa thao tác chặn vào luồng xử lý không chặn
+  - Kiểm thử pipeline cùng việc hủy đăng ký
+  - Đóng client, session manager và tài nguyên nền
+- level1: Vault Repository
+  level2:
+  - Khi nào dùng repository thay cho VaultOperations
+  - Phụ thuộc Spring Data Commons và Spring Data KeyValue
+  - Kích hoạt bằng @EnableVaultRepositories
+  - '@Secret và ánh xạ lớp dữ liệu'
+  - '@Id và cách hình thành khóa lưu trữ'
+  - CrudRepository với thao tác lưu, đọc và xóa
+  - Lựa chọn mount và nhận diện phiên bản KV
+  - Giới hạn truy vấn suy diễn theo thuộc tính định danh
+  - Phân trang, sắp xếp và chi phí đọc khóa
+  - Ý nghĩa delete trên engine KV có phiên bản
+  - Quyền khám phá mount mà repository cần sử dụng
+  - Kiểm thử ánh xạ và tránh giả định tính năng của cơ sở dữ liệu quan hệ
+- level1: Mã hóa Transit
+  level2:
+  - Transit secrets engine và mô hình mã hóa như một dịch vụ
+  - VaultTransitOperations và mount path tương ứng
+  - Tạo khóa, chọn loại khóa và quyền quản lý
+  - Plaintext, Ciphertext và biểu diễn dữ liệu nhị phân
+  - Mã hóa và giải mã một giá trị
+  - Xử lý theo lô và lỗi riêng của từng phần tử
+  - Context, khóa dẫn xuất và yêu cầu khi sử dụng
+  - Xoay phiên bản khóa và khả năng đọc dữ liệu cũ
+  - Rewrap ciphertext sang phiên bản khóa mới
+  - Data key và mô hình mã hóa phong bì
+  - Ký số và xác minh theo khả năng của loại khóa
+  - HMAC, băm và mục đích sử dụng khác nhau
+  - Giới hạn phiên bản khóa được phép sử dụng
+  - Lưu ciphertext trong ứng dụng và phân tách quyền giải mã
+  - Kiểm thử sai context, sai khóa và dữ liệu không hợp lệ
+- level1: Chứng thư PKI
+  level2:
+  - PKI secrets engine, CA và role cấp chứng thư
+  - VaultPkiOperations và các thao tác được hỗ trợ
+  - Yêu cầu chứng thư theo tên miền, SAN và TTL
+  - Nhận chứng thư, chuỗi CA và khóa riêng khi được cấp
+  - Ký CSR để giữ việc tạo khóa ở phía ứng dụng
+  - Lấy chứng thư issuer theo API của phiên bản sử dụng
+  - Thu hồi chứng thư theo số sê-ri
+  - Lấy CRL và biểu diễn PEM hoặc DER
+  - Phân biệt thời hạn chứng thư với lease của một secret
+  - Cấp chứng thư thay thế và cập nhật thành phần TLS sử dụng
+  - Ranh giới cấu hình CA, role và thao tác của client ứng dụng
+  - Kiểm thử điều kiện role không cho phép cấp chứng thư
+- level1: Cubbyhole và wrapping
+  level2:
+  - Cubbyhole và dữ liệu gắn với token
+  - Phân biệt Cubbyhole secrets engine với CubbyholeAuthentication
+  - Response wrapping và token dùng để nhận phản hồi
+  - TTL của wrapping token và thời hạn của dữ liệu bên trong
+  - Yêu cầu wrap theo từng lần gọi API
+  - Unwrap và ngữ nghĩa dùng một lần
+  - Kiểm tra đường dẫn tạo cùng thông tin của wrapping token
+  - Truyền thông tin khởi tạo qua ranh giới triển khai
+  - Xử lý token đã unwrap, hết hạn hoặc không đúng nguồn
+  - Tách quyền tạo dữ liệu khỏi quyền nhận dữ liệu cuối cùng
+- level1: Engine mở rộng
+  level2:
+  - Sử dụng read và write cho engine chưa có API chuyên biệt
+  - Database secrets engine và thông tin đăng nhập động theo role
+  - Phân biệt database role động với thông tin tài khoản tĩnh
+  - Cloud secrets engine và thông tin xác thực được cấp có thời hạn
+  - SSH signing và yêu cầu theo hợp đồng endpoint
+  - Ánh xạ phản hồi riêng của từng engine
+  - VaultTransformOperations và yêu cầu tính năng Enterprise
+  - Transform encode, decode và cấu hình role ở phía máy chủ
+  - Phân biệt tokenization, che dữ liệu và mã hóa giữ định dạng
+  - Thao tác theo lô và kiểm tra kết quả từng mục
+  - Đối chiếu khả năng của server với phiên bản client
+  - Lựa chọn abstraction chuyên biệt hoặc yêu cầu HTTP có kiểm soát
+- level1: API hệ thống
+  level2:
+  - VaultSysOperations và phạm vi thao tác quản trị
+  - Đọc trạng thái health, initialized và seal
+  - Phân biệt active, standby và máy chủ chưa sẵn sàng
+  - Liệt kê và cấu hình mount của secrets engine
+  - Liệt kê và cấu hình auth mount
+  - Đọc, tạo và cập nhật policy
+  - VaultTokenOperations cho tạo, tra cứu, gia hạn và thu hồi token
+  - Token con, orphan token và phạm vi thu hồi
+  - Các API lease và tác động thu hồi theo đường dẫn
+  - Khởi tạo, seal, unseal trong bài thực hành quản trị riêng
+  - Tách client vận hành khỏi danh tính của ứng dụng
+  - Xác định quyền cần thiết cho từng thao tác hệ thống
+- level1: Tích hợp ứng dụng
+  level2:
+  - Tạo lớp cung cấp secret theo hợp đồng nghiệp vụ
+  - Cấp VaultOperations qua dependency injection và tách khỏi controller
+  - Chọn lấy secret khi khởi tạo hay theo nhu cầu sử dụng
+  - Quản lý nhiều danh tính, namespace và mount trong cùng ứng dụng
+  - Tích hợp cơ sở dữ liệu với thông tin xác thực động
+  - Tích hợp thư viện bên ngoài cần khóa API hoặc chứng thư
+  - Vault Agent và việc phân chia trách nhiệm xác thực
+  - Phân biệt client gọi trực tiếp với đọc dữ liệu Agent đã ghi ra
+  - Kết hợp Spring Cloud Vault khi cần tích hợp Config Data
+  - Quyền ưu tiên cấu hình và các bean do từng thành phần quản lý
+  - Chọn cơ chế cập nhật phù hợp cho thành phần giữ trạng thái
+  - Đảm bảo secret cần thiết có sẵn trước khi phục vụ yêu cầu
+- level1: Lỗi và khả năng phục hồi
+  level2:
+  - VaultException và ngữ cảnh của yêu cầu thất bại
+  - Phân biệt từ chối xác thực với thiếu quyền theo policy
+  - Secret không tồn tại, sai mount và sai phiên bản KV
+  - CAS không khớp và xử lý cập nhật cạnh tranh
+  - Máy chủ sealed, chưa khởi tạo hoặc đang chuyển vai trò
+  - Lỗi mạng, timeout và phản hồi không xác định kết quả
+  - Thử lại thao tác đọc và giới hạn số lần thử
+  - Nguy cơ cấp thêm token hoặc secret động khi thử lại yêu cầu ghi
+  - Backoff, độ trễ ngẫu nhiên và tránh quá tải khi đồng loạt khởi động
+  - Ứng xử khi secret đang dùng sắp hết hạn trong lúc mất kết nối
+  - Phân loại dữ liệu bắt buộc khi khởi động và dữ liệu có thể chờ
+  - Giữ nguyên nguyên nhân lỗi mà không đưa secret vào thông báo
+  - Kiểm thử phục hồi sau khi Vault hoặc mạng hoạt động trở lại
+- level1: Quan sát và hiệu năng
+  level2:
+  - Đo độ trễ đăng nhập, đọc dữ liệu và thao tác mã hóa
+  - Theo dõi gia hạn token, lease và các lỗi nền
+  - Tương quan log ứng dụng với request ID và audit của Vault
+  - Che dữ liệu ở log HTTP, log đối tượng và thông báo lỗi
+  - Giới hạn thông tin xuất qua endpoint quản trị của ứng dụng
+  - Tái sử dụng client và giảm đăng nhập không cần thiết
+  - Chọn số kết nối và giới hạn đồng thời
+  - Gộp yêu cầu theo lô khi engine hỗ trợ
+  - Lưu đệm secret có thời hạn và kiểm soát dữ liệu cũ
+  - Phân biệt health của Vault với khả năng tiếp tục phục vụ của ứng dụng
+  - Tải nhiều phiên bản ứng dụng và tác động đến số token, lease
+  - Đóng ứng dụng đúng thứ tự để dừng tác vụ và thu hồi khi thích hợp
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử lớp nghiệp vụ với VaultOperations giả
+  - Kiểm thử ánh xạ dữ liệu mà không dùng secret thật
+  - Giả lập HTTP để kiểm tra đường dẫn, header và nội dung
+  - Máy chủ Vault tạm thời cho kiểm thử tích hợp
+  - Chuẩn bị policy và danh tính riêng cho từng nhóm kiểm thử
+  - Kiểm tra KV v1, KV v2 và cập nhật CAS
+  - Kiểm tra xóa mềm, khôi phục và hủy dữ liệu trong môi trường thử
+  - Kiểm tra đăng nhập, gia hạn, hết hạn và thu hồi token
+  - Kiểm tra lease, xoay vòng và thành phần nhận dữ liệu mới
+  - Kiểm thử Reactor bằng StepVerifier
+  - Kiểm tra lỗi ủy quyền, TLS và mất kết nối
+  - Kiểm tra log và thông báo lỗi không chứa giá trị nhạy cảm
+  - Kiểm thử nhiều yêu cầu đồng thời và vòng đời ApplicationContext
+  - Tổ chức dữ liệu mẫu, đồng hồ và tài nguyên dọn sau kiểm thử
+- level1: Nâng cấp và tương thích
+  level2:
+  - Kiểm kê phiên bản Vault, Spring và HTTP transport
+  - Chuyển API RestTemplate cũ sang lựa chọn phù hợp dòng đích
+  - VaultClient và các điểm tùy chỉnh mới từ phiên bản 4.1
+  - ReactiveVaultClient và thay đổi callback theo phiên bản
+  - Đối chiếu constructor và phương thức đã deprecated
+  - Rà lại cơ chế tuần tự hóa, hợp đồng null và mô hình dữ liệu
+  - Nâng SDK xác thực cloud cùng API danh tính tương ứng
+  - ManagedSecret và lựa chọn quản lý xoay vòng theo phiên bản
+  - Giữ đúng ý nghĩa đường dẫn, namespace và phiên bản engine
+  - Đối chiếu policy với các endpoint client mới gọi thêm
+  - Kiểm thử vòng đời token, lease và shutdown sau nâng cấp
+  - Lập kế hoạch triển khai khi nhiều phiên bản ứng dụng cùng hoạt động
+- level1: Thực hành tổng hợp
+  level2:
+  - Đọc cấu hình nhạy cảm từ KV bằng VaultTemplate
+  - Xây dựng dịch vụ truy cập secret với DTO và hợp đồng lỗi
+  - Quản lý KV có phiên bản cùng cập nhật cạnh tranh
+  - Đăng nhập AppRole bằng SecretId được response-wrap
+  - Xác thực workload Kubernetes theo ServiceAccount
+  - Tích hợp một phương thức xác thực cloud phù hợp môi trường giả lập
+  - Nạp cấu hình bằng VaultPropertySource
+  - Sử dụng thông tin cơ sở dữ liệu động qua nhiều lần xoay vòng
+  - Mã hóa dữ liệu bằng Transit và thực hiện rewrap
+  - Cấp chứng thư thử nghiệm rồi thay thế khi sắp hết hạn
+  - Thực hiện chuỗi đọc và cập nhật bằng API reactive
+  - Đối chiếu repository với API KV theo cùng dữ liệu đầu vào
+  - Tái hiện mất kết nối, token hết hạn và quá trình phục hồi
+  - Hoàn thiện ứng dụng bằng policy, kiểm thử và bằng chứng vòng đời

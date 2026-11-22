@@ -1,0 +1,57 @@
+roadmap:
+- id: y-nghia-ngu-canh
+  title: Ý nghĩa & ngữ cảnh
+  purpose: Hiểu vì sao dữ liệu đúng cú pháp vẫn có thể bị diễn giải sai khi thiếu bối cảnh nghiệp vụ.
+  objectives:
+  - Phân biệt giá trị, cấu trúc và ý nghĩa dữ liệu.
+  - Nhận diện các trường dữ liệu dễ gây hiểu nhầm.
+  - Mô tả bối cảnh cần có để diễn giải một giá trị.
+- id: khai-niem-thuat-ngu
+  title: Khái niệm & thuật ngữ
+  purpose: Xây dựng ngôn ngữ chung để các nhóm và hệ thống hiểu một khái niệm theo cùng một cách.
+  objectives:
+  - Viết định nghĩa nghiệp vụ cho khái niệm cốt lõi.
+  - Phân biệt đồng nghĩa và khác nghĩa giữa các thuật ngữ.
+  - Lập glossary có ví dụ và phản ví dụ.
+- id: kieu-don-vi-gia-tri
+  title: Kiểu, đơn vị & giá trị
+  purpose: Làm rõ miền giá trị và cách biểu diễn để tránh nhầm lẫn số đo, mã và giá trị thiếu.
+  objectives:
+  - Xác định miền giá trị, đơn vị đo và tiền tệ.
+  - Phân biệt null, rỗng, không xác định và không áp dụng.
+  - Chuẩn hóa mã trạng thái và danh mục giá trị.
+- id: dinh-danh-muc-hat
+  title: Định danh & mức hạt
+  purpose: Xác định một bản ghi đại diện cho thực thể hay sự kiện nào và ở mức chi tiết nào.
+  objectives:
+  - Định nghĩa thực thể, khóa định danh và phạm vi duy nhất.
+  - Nêu mức hạt của bản ghi và ý nghĩa các phép tổng hợp.
+  - Phân biệt định danh nội bộ với định danh liên hệ thống.
+- id: quan-he-quy-tac
+  title: Quan hệ & quy tắc
+  purpose: Biểu diễn các liên hệ và điều kiện nghiệp vụ quyết định một tập dữ liệu có ý nghĩa nhất quán.
+  objectives:
+  - Xác định quan hệ và lực lượng tham gia giữa các khái niệm.
+  - Diễn đạt ràng buộc nghiệp vụ bằng ví dụ cụ thể.
+  - Phân biệt quy tắc ngữ nghĩa với kiểm tra kiểu dữ liệu.
+- id: thoi-gian-trang-thai
+  title: Thời gian & trạng thái
+  purpose: Diễn giải đúng thời điểm phát sinh, hiệu lực và quá trình thay đổi trạng thái dữ liệu.
+  objectives:
+  - Phân biệt thời gian sự kiện, ghi nhận và có hiệu lực.
+  - Xác định múi giờ, khoảng thời gian và đơn vị thời lượng.
+  - Mô tả vòng đời trạng thái và chuyển trạng thái hợp lệ.
+- id: metadata-tu-vung-chung
+  title: Metadata & từ vựng chung
+  purpose: Gắn ý nghĩa vào dữ liệu có thể tra cứu và đối chiếu giữa các nguồn khác nhau.
+  objectives:
+  - Lập data dictionary gồm định nghĩa, nguồn gốc và ví dụ.
+  - Dùng từ vựng/mã chuẩn để giảm sai khác cách gọi.
+  - Ánh xạ các trường khác tên nhưng cùng hoặc khác nghĩa.
+- id: kiem-chung-tien-hoa
+  title: Kiểm chứng & tiến hóa
+  purpose: Phát hiện thay đổi ý nghĩa qua phiên bản và giữ cách hiểu thống nhất giữa bên tạo và bên dùng dữ liệu.
+  objectives:
+  - Viết ví dụ, phản ví dụ và quy tắc kiểm chứng ngữ nghĩa.
+  - Nhận diện thay đổi định nghĩa gây mất tương thích.
+  - Thiết lập cách ghi nhận, truyền đạt và rà soát thay đổi.

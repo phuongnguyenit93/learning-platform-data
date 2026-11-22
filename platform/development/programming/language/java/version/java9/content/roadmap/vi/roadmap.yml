@@ -1,0 +1,53 @@
+roadmap:
+- id: jshell
+  title: JShell
+  purpose: Thử nhanh cú pháp và API bằng phản hồi tức thời.
+  objectives:
+  - Chạy biểu thức, khai báo biến và phương thức
+  - Lưu, mở lại và chỉnh sửa các đoạn thử nghiệm
+- id: cai-tien-ngon-ngu
+  title: Cải tiến ngôn ngữ
+  purpose: Viết mã gọn hơn mà vẫn giữ rõ trách nhiệm.
+  objectives:
+  - Tái sử dụng mã bằng private method trong interface
+  - Dùng biến effectively final trong try-with-resources
+  - Áp dụng diamond cho lớp ẩn danh khi hợp lệ
+- id: tap-hop-chi-doc
+  title: Tập hợp chỉ đọc
+  purpose: Tạo tập hợp nhỏ bằng API chuẩn, ngắn gọn.
+  objectives:
+  - Dùng List.of, Set.of, Map.of và Map.ofEntries
+  - Nhận biết giới hạn null và phần tử trùng
+  - Phân biệt cấu trúc chỉ đọc với phần tử khả biến
+- id: stream-va-optional
+  title: Stream và Optional
+  purpose: Diễn đạt xử lý chuỗi dữ liệu và giá trị vắng mặt rõ hơn.
+  objectives:
+  - Dùng takeWhile, dropWhile, ofNullable và iterate có điều kiện
+  - Kết hợp Optional.stream, or và ifPresentOrElse
+- id: mo-dun-java
+  title: Mô-đun Java
+  purpose: Khai báo phụ thuộc và ranh giới đóng gói rõ ràng.
+  objectives:
+  - Viết module-info với requires, exports và opens
+  - Phân biệt classpath với module path
+  - Phân tích phụ thuộc bằng jdeps và tạo runtime bằng jlink
+- id: varhandle
+  title: VarHandle
+  purpose: Truy cập biến có kiểm soát về tính nguyên tử và thứ tự bộ nhớ.
+  objectives:
+  - Tạo VarHandle cho trường hoặc phần tử mảng
+  - Phân biệt truy cập thường, volatile và compareAndSet
+- id: api-bat-dong-bo
+  title: API bất đồng bộ
+  purpose: Điều phối kết quả và kiểm soát tốc độ truyền dữ liệu.
+  objectives:
+  - Dùng timeout và delayedExecutor của CompletableFuture
+  - Mô tả Publisher, Subscriber và Subscription trong Flow
+  - Điều khiển nhu cầu nhận dữ liệu bằng request
+- id: quan-ly-tien-trinh
+  title: Quản lý tiến trình
+  purpose: Theo dõi tiến trình hệ điều hành bằng API chuẩn.
+  objectives:
+  - Tra cứu PID, thông tin và tiến trình con bằng ProcessHandle
+  - Chờ kết thúc qua onExit và kiểm tra quyền khi dừng tiến trình

@@ -1,0 +1,3 @@
+menuLevel1: Strategy bằng enum
+menuLevel2: Cho enum triển khai interface để Context tiếp tục phụ thuộc vào hợp đồng chung
+status: ""

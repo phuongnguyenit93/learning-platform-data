@@ -1,0 +1,60 @@
+roadmap:
+- id: tong-quan-phan-chieu
+  title: Tổng quan phản chiếu
+  purpose: Hiểu phản chiếu (reflection) giúp khám phá và thao tác kiểu dữ liệu lúc chạy.
+  objectives:
+  - Phân biệt gọi trực tiếp với phản chiếu
+  - Nhận biết Class, Field, Method và Constructor
+  - Giải thích ứng dụng trong công cụ và framework
+- id: doi-tuong-class
+  title: Đối tượng Class
+  purpose: Lấy và đọc thông tin kiểu làm điểm bắt đầu cho phản chiếu.
+  objectives:
+  - Lấy Class bằng .class, getClass và Class.forName
+  - Đọc tên, lớp cha và giao diện
+  - Kiểm tra quan hệ kiểu bằng isInstance và isAssignableFrom
+- id: kham-pha-thanh-vien
+  title: Khám phá thành viên
+  purpose: Tìm đúng trường, phương thức và hàm tạo theo phạm vi mong muốn.
+  objectives:
+  - Phân biệt getMethods với getDeclaredMethods
+  - Tra cứu thành viên bằng tên và kiểu tham số
+  - Đọc kiểu, phạm vi truy cập và Modifier
+- id: khoi-tao-va-truy-cap
+  title: Khởi tạo và truy cập
+  purpose: Tạo đối tượng, đọc ghi trường và gọi phương thức qua API phản chiếu.
+  objectives:
+  - Tạo đối tượng bằng Constructor.newInstance
+  - Đọc và ghi Field với đối tượng phù hợp
+  - Gọi Method.invoke cho phương thức static và instance
+- id: quyen-truy-cap-va-loi
+  title: Quyền truy cập và lỗi
+  purpose: Xử lý giới hạn đóng gói và phân biệt lỗi tra cứu với lỗi thực thi.
+  objectives:
+  - Dùng canAccess và trySetAccessible
+  - Nhận biết vai trò exports và opens của mô-đun
+  - Phân biệt lỗi truy cập, đối số và thiếu thành viên
+  - Lấy nguyên nhân từ InvocationTargetException
+- id: sieu-du-lieu-nang-cao
+  title: Siêu dữ liệu nâng cao
+  purpose: Đọc thông tin annotation, kiểu tổng quát và tham số còn lưu trong lớp.
+  objectives:
+  - Đọc annotation có vòng đời RUNTIME
+  - Phân biệt Class với Type và ParameterizedType
+  - Nhận biết TypeVariable và WildcardType
+  - Hiểu điều kiện giữ tên tham số với -parameters
+- id: mang-va-proxy-dong
+  title: Mảng và proxy động
+  purpose: Mở rộng thao tác động sang mảng và đối tượng đại diện cho giao diện.
+  objectives:
+  - Tạo và truy cập mảng bằng java.lang.reflect.Array
+  - Tạo proxy giao diện bằng Proxy và InvocationHandler
+  - Theo dõi cách lời gọi được chuyển tới bộ xử lý
+- id: thuc-hanh-va-lua-chon
+  title: Thực hành và lựa chọn
+  purpose: Xây công cụ nhỏ dùng phản chiếu có kiểm tra lỗi và phạm vi rõ ràng.
+  objectives:
+  - Viết công cụ liệt kê hoặc ánh xạ thuộc tính
+  - Kiểm thử thành viên thiếu, sai kiểu và bị chặn truy cập
+  - Cân nhắc hiệu năng, đóng gói và khả năng bảo trì
+  - Nhận biết MethodHandle như lựa chọn liên quan

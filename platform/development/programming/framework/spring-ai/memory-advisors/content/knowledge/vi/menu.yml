@@ -1,0 +1,282 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bộ nhớ hội thoại là gì và vì sao mô hình không tự nhớ các lượt trước
+  - Phân biệt bộ nhớ ngữ cảnh, lịch sử đầy đủ và tri thức của mô hình
+  - Phân biệt bộ nhớ ngắn hạn, bộ nhớ dài hạn và RAG
+  - Advisor là gì và vai trò trong vòng đời yêu cầu ChatClient
+  - Mối liên hệ giữa ChatClient, Advisor, ChatMemory và kho lưu trữ
+  - Luồng đọc bộ nhớ, bổ sung ngữ cảnh, gọi mô hình và lưu phản hồi
+  - 'Giới hạn của bộ nhớ: tính chính xác, độ bền và khả năng quên'
+  - Kiến thức cần có và thứ tự học các thành phần
+- level1: Thiết lập
+  level2:
+  - Chọn phiên bản Spring AI và kiểm tra tương thích Java, Spring Boot
+  - Quản lý phụ thuộc bằng Spring AI BOM trong Maven và Gradle
+  - Chọn starter mô hình và tách cấu hình nhà cung cấp khỏi cấu hình bộ nhớ
+  - Cấu hình ChatClient.Builder và bean ChatMemory ban đầu
+  - Đăng ký MessageChatMemoryAdvisor cho ứng dụng tối thiểu
+  - Truyền mã hội thoại và thực hiện cuộc hội thoại hai lượt
+  - Cấu hình theo môi trường và bảo vệ khóa truy cập mô hình
+  - Phân biệt cấu hình tự động với cấu hình bean thủ công
+- level1: Thông điệp
+  level2:
+  - Message, Prompt và thứ tự thông điệp trong một cuộc hội thoại
+  - Vai trò của SystemMessage, UserMessage và AssistantMessage
+  - ToolResponseMessage và liên kết giữa lời gọi công cụ với kết quả
+  - Phân biệt nội dung văn bản, siêu dữ liệu và dữ liệu đa phương thức
+  - Thông điệp hệ thống và ranh giới giữa chỉ dẫn với dữ liệu lịch sử
+  - Biểu diễn một lượt hội thoại có nhiều thông điệp
+  - Khả năng lưu và khôi phục từng loại thông điệp theo kho lưu trữ
+  - Tránh mất vai trò hoặc sai thứ tự khi chuyển đổi thông điệp
+- level1: API bộ nhớ
+  level2:
+  - Hợp đồng ChatMemory và trách nhiệm quản lý thông điệp được giữ lại
+  - Thêm một hoặc nhiều thông điệp bằng ChatMemory.add
+  - Lấy ngữ cảnh theo mã hội thoại bằng ChatMemory.get
+  - Xóa bộ nhớ một hội thoại bằng ChatMemory.clear
+  - ChatMemory.CONVERSATION_ID và tham số ngữ cảnh của Advisor
+  - Quản lý bộ nhớ thủ công khi gọi trực tiếp ChatModel
+  - Phân biệt ghi trực tiếp vào bộ nhớ với ghi tự động qua Advisor
+  - Tách kho lịch sử đầy đủ khỏi bộ nhớ dùng để dựng prompt
+- level1: Cửa sổ thông điệp
+  level2:
+  - MessageWindowChatMemory và cơ chế giữ một cửa sổ hữu hạn
+  - Cấu hình maxMessages và phân biệt số thông điệp với số lượt
+  - Giới hạn số thông điệp không tương đương giới hạn số token
+  - Quy tắc loại bỏ thông điệp cũ khi vượt kích thước cửa sổ
+  - Bảo toàn SystemMessage và xử lý khi có chỉ dẫn hệ thống mới
+  - Ranh giới lượt hội thoại và sự khác biệt hành vi giữa các phiên bản
+  - Ảnh hưởng của việc loại bỏ thông điệp tới dữ kiện được nhớ
+  - Phân biệt xóa khỏi kho bộ nhớ với chỉ rút gọn ngữ cảnh gửi đi
+  - Chọn kích thước cửa sổ bằng các cuộc hội thoại đại diện
+- level1: Kho lưu trữ
+  level2:
+  - ChatMemoryRepository và ranh giới với chính sách ChatMemory
+  - Liệt kê mã hội thoại bằng findConversationIds
+  - Đọc thông điệp bằng findByConversationId
+  - saveAll thay thế toàn bộ thông điệp của một hội thoại
+  - Xóa hội thoại bằng deleteByConversationId
+  - InMemoryChatMemoryRepository và giới hạn khi khởi động lại hoặc chạy nhiều bản sao
+  - Kết nối repository tùy chọn với MessageWindowChatMemory
+  - Chọn kho lưu trữ theo độ bền, quy mô và loại thông điệp
+- level1: Lưu trữ JDBC
+  level2:
+  - Thiết lập starter JDBC và nguồn dữ liệu cho bộ nhớ hội thoại
+  - Xây dựng JdbcChatMemoryRepository bằng builder hoặc cấu hình tự động
+  - Schema lưu thông điệp và lựa chọn dialect theo cơ sở dữ liệu
+  - Khởi tạo schema trong môi trường phát triển và quản lý migration
+  - Đảm bảo thứ tự thông điệp khi đọc lại hội thoại
+  - Lưu dấu thời gian và siêu dữ liệu theo khả năng của phiên bản
+  - Giới hạn lưu thông điệp công cụ và dữ liệu đa phương thức
+  - Giao dịch, kết nối và tranh chấp khi cập nhật cùng hội thoại
+  - Khôi phục cuộc hội thoại sau khi ứng dụng khởi động lại
+- level1: Lưu trữ NoSQL
+  level2:
+  - CassandraChatMemoryRepository và mô hình lưu trữ theo hội thoại
+  - Neo4jChatMemoryRepository và biểu diễn hội thoại bằng đồ thị
+  - MongoChatMemoryRepository và điều kiện phiên bản hỗ trợ
+  - RedisChatMemoryRepository và điều kiện phiên bản hỗ trợ
+  - Phân biệt repository tích hợp với phần mở rộng bên ngoài như Cosmos DB
+  - Cấu hình kết nối, schema hoặc chỉ mục theo từng hệ lưu trữ
+  - Đối chiếu hỗ trợ loại thông điệp, thứ tự và thời hạn lưu
+  - Chọn JDBC, Cassandra, Neo4j, MongoDB hoặc Redis theo nhu cầu
+- level1: Chuỗi Advisor
+  level2:
+  - Advisor, getName và getOrder trong chuỗi xử lý
+  - CallAdvisor và CallAdvisorChain cho lời gọi đồng bộ
+  - StreamAdvisor và StreamAdvisorChain cho lời gọi streaming
+  - ChatClientRequest, ChatClientResponse và dữ liệu ngữ cảnh dùng chung
+  - Thứ tự xử lý yêu cầu đi vào và phản hồi đi ra
+  - Gọi phần tử tiếp theo bằng nextCall hoặc nextStream
+  - BaseAdvisor và các điểm mở rộng before, after
+  - Phân biệt tham số ngữ cảnh Advisor với biến mẫu prompt
+  - Dừng chuỗi, trả phản hồi sớm và tác động tới bộ nhớ
+  - Kiểm soát thứ tự khi nhiều Advisor cùng sửa prompt
+- level1: Tích hợp ChatClient
+  level2:
+  - Đăng ký Advisor mặc định bằng defaultAdvisors
+  - Đăng ký Advisor riêng cho từng yêu cầu bằng advisors
+  - Truyền tham số bằng param và params theo từng lời gọi
+  - Phân biệt cấu hình mặc định với tham số thay đổi theo hội thoại
+  - Đọc content, ChatResponse và ChatClientResponse theo mục đích
+  - Chia sẻ ChatClient an toàn giữa nhiều người dùng
+  - Tách nhiều ChatClient theo mô hình hoặc chính sách bộ nhớ
+  - Tránh gắn cùng Memory Advisor nhiều lần trong một chuỗi
+- level1: MessageChatMemoryAdvisor
+  level2:
+  - Khởi tạo MessageChatMemoryAdvisor từ ChatMemory
+  - Đọc lịch sử và ghép vào prompt dưới dạng các Message
+  - Giữ vai trò và thứ tự của lịch sử khi bổ sung yêu cầu mới
+  - Thời điểm lưu câu hỏi và câu trả lời trong vòng đời Advisor
+  - Phân biệt thông điệp người dùng với chỉ dẫn hệ thống của yêu cầu
+  - Cấu hình thứ tự thực thi và scheduler theo API phiên bản
+  - Nhận diện lịch sử đã có trong prompt và nguy cơ lặp thông điệp
+  - Giới hạn lưu kết quả khi mô hình lỗi hoặc không có nội dung
+  - Phân biệt bộ nhớ ứng dụng với trạng thái do nhà cung cấp mô hình giữ
+  - Theo dõi cuộc hội thoại nhiều lượt để kiểm chứng cơ chế ghi và đọc
+- level1: Định danh hội thoại
+  level2:
+  - Thiết kế conversationId cho người dùng có nhiều cuộc hội thoại
+  - Tạo mã hội thoại phía máy chủ và gắn với danh tính đã xác thực
+  - Phân vùng theo tổ chức, người dùng và cuộc hội thoại
+  - Truyền mã hội thoại qua HTTP, phiên đăng nhập hoặc WebSocket
+  - Kiểm tra quyền khi tiếp tục, liệt kê hoặc xóa hội thoại
+  - Hành vi khi thiếu hoặc rỗng mã hội thoại theo phiên bản
+  - Bắt đầu hội thoại mới, tiếp tục hội thoại cũ và đặt lại bộ nhớ
+  - Quản lý vòng đời hội thoại khi đăng xuất hoặc hết thời hạn lưu
+- level1: Bộ nhớ ngữ nghĩa
+  level2:
+  - Vì sao truy hồi theo ý nghĩa bổ sung cho cửa sổ thông điệp
+  - Phân biệt ChatMemoryRepository với VectorStore
+  - Biến nội dung hội thoại thành Document và vector biểu diễn
+  - Mã hội thoại và siêu dữ liệu dùng để phân vùng truy hồi
+  - Lựa chọn mô hình embedding tương thích với kho vector
+  - Tìm kiếm tương đồng và ý nghĩa của số kết quả topK
+  - Đánh đổi giữa độ liên quan, tính mới và thứ tự thời gian
+  - Bộ nhớ ngữ nghĩa không thay thế kho lịch sử hội thoại đầy đủ
+- level1: VectorStoreChatMemoryAdvisor
+  level2:
+  - Thiết lập phụ thuộc và VectorStoreChatMemoryAdvisor
+  - Luồng truy hồi bộ nhớ trước lời gọi và lưu nội dung sau phản hồi
+  - Truyền conversationId và kiểm tra bộ lọc hội thoại
+  - Cấu hình số kết quả truy hồi bằng builder hoặc tham số TOP_K
+  - Cách ghép bộ nhớ truy hồi vào nội dung SystemMessage
+  - Tùy biến PromptTemplate với instructions và long_term_memory
+  - Phân biệt mẫu prompt của Advisor với TemplateRenderer của ChatClient
+  - Giới hạn với dữ liệu phi văn bản và thông điệp công cụ
+  - Xử lý trường hợp không tìm thấy ký ức liên quan
+  - Xóa dữ liệu hội thoại khỏi kho vector bằng khả năng của kho lưu trữ
+- level1: Ngân sách ngữ cảnh
+  level2:
+  - Phân bổ cửa sổ ngữ cảnh cho chỉ dẫn, lịch sử, RAG, công cụ và đầu ra
+  - Ước lượng số token trước khi gửi yêu cầu tới mô hình
+  - Cắt ngắn theo số thông điệp, số token hoặc ranh giới lượt
+  - Thiết kế bộ nhớ tóm tắt bằng thành phần tùy biến
+  - Kết hợp bản tóm tắt với các lượt gần nhất
+  - Đánh giá mất dữ kiện và sai lệch tích lũy khi tóm tắt
+  - Kết hợp cửa sổ gần nhất với truy hồi ngữ nghĩa mà không lặp dữ liệu
+  - Phân biệt chính sách tự xây dựng với tính năng có sẵn theo phiên bản
+- level1: Streaming
+  level2:
+  - Luồng xử lý stream từ ChatClient tới StreamAdvisor
+  - Thời điểm đăng ký Flux và tác động của nhiều lần đăng ký
+  - Tổng hợp phản hồi từng phần trước khi lưu câu trả lời
+  - Vai trò của MessageAggregator hoặc ChatClientMessageAggregator theo phiên bản
+  - Phân biệt nội dung đã gửi cho người dùng với phản hồi đã lưu
+  - Xử lý lỗi giữa luồng, hủy đăng ký và mất kết nối
+  - Tránh gọi repository chặn luồng trên luồng xử lý phản ứng
+  - Lựa chọn scheduler và kiểm soát tải khi nhiều hội thoại streaming
+  - Kiểm chứng việc lưu bộ nhớ sau khi luồng kết thúc bình thường
+- level1: RAG và công cụ
+  level2:
+  - Phân biệt lịch sử hội thoại với tài liệu tri thức được truy hồi
+  - Kết hợp MessageChatMemoryAdvisor với QuestionAnswerAdvisor
+  - Kết hợp bộ nhớ với RetrievalAugmentationAdvisor
+  - Ảnh hưởng của thứ tự Advisor tới truy hồi và prompt cuối
+  - Sử dụng lịch sử để làm rõ câu hỏi nối tiếp trước khi tìm kiếm
+  - Tách siêu dữ liệu và bộ lọc hội thoại khỏi bộ lọc tài liệu RAG
+  - Vòng lặp gọi công cụ và thứ tự tương đối của Memory Advisor
+  - Giới hạn lưu thông điệp trung gian trong các bước gọi công cụ
+  - Quản lý bộ nhớ khi tự điều khiển thực thi công cụ
+  - Tránh lưu lặp ngữ cảnh RAG hoặc kết quả công cụ quá lớn
+- level1: Tùy biến bộ nhớ
+  level2:
+  - Xây dựng ChatMemory theo chính sách giữ thông điệp riêng
+  - Xây dựng ChatMemoryRepository cho hệ lưu trữ chưa được hỗ trợ
+  - Tuân thủ hợp đồng saveAll, thứ tự đọc và xóa theo hội thoại
+  - Tuần tự hóa vai trò, nội dung, siêu dữ liệu và liên kết công cụ
+  - Bổ sung TTL và tác vụ dọn dữ liệu bằng cơ chế ứng dụng hoặc kho lưu trữ
+  - Thiết kế bộ nhớ phân tầng và bộ nhớ đệm trước repository
+  - Bổ sung bộ lọc nội dung trước khi ghi bộ nhớ
+  - Kiểm tra tương thích khi thay repository cho cùng chính sách bộ nhớ
+- level1: Tùy biến Advisor
+  level2:
+  - Xác định khi nào cần Advisor riêng thay vì cấu hình Advisor có sẵn
+  - Triển khai CallAdvisor và duy trì hợp đồng gọi chuỗi
+  - Triển khai StreamAdvisor mà không phá vỡ luồng phản hồi
+  - Dùng BaseAdvisor để chia sẻ logic trước và sau lời gọi
+  - Chọn tên, thứ tự và khóa ngữ cảnh tránh xung đột
+  - Tạo Advisor kiểm soát ngân sách hoặc chọn bộ nhớ theo yêu cầu
+  - Quản lý trạng thái theo yêu cầu thay vì trường có thể thay đổi dùng chung
+  - Xử lý lỗi và giải phóng tài nguyên trong Advisor tùy biến
+- level1: Nhất quán dữ liệu
+  level2:
+  - Phân biệt an toàn luồng với tính nguyên tử của đọc, sửa và ghi
+  - Mất cập nhật khi nhiều yêu cầu cùng ghi một conversationId
+  - Tuần tự hóa yêu cầu hoặc khóa theo từng cuộc hội thoại
+  - Đồng bộ giữa nhiều bản sao ứng dụng dùng repository chung
+  - Thời điểm ghi câu hỏi và câu trả lời khi gọi mô hình thất bại
+  - Retry, timeout và nguy cơ tạo thông điệp trùng
+  - Thiết kế mã yêu cầu để hỗ trợ xử lý lặp an toàn
+  - Xung đột giữa xóa hội thoại với yêu cầu còn đang xử lý
+  - Tính nhất quán khi đồng thời lưu bộ nhớ cửa sổ và bộ nhớ vector
+- level1: Bảo mật dữ liệu
+  level2:
+  - Kiểm soát truy cập và ngăn đọc chéo hội thoại
+  - Ngăn giả mạo conversationId và rò rỉ dữ liệu giữa các tổ chức
+  - Prompt injection từ lịch sử hoặc ký ức được truy hồi
+  - Giữ ranh giới chỉ dẫn và dữ liệu khi dựng prompt từ bộ nhớ
+  - Lọc hoặc che dữ liệu nhạy cảm trước khi lưu và ghi log
+  - Mã hóa dữ liệu lưu trữ và bảo vệ kết nối tới repository
+  - Chính sách lưu giữ, xóa dữ liệu và phạm vi bản sao lưu
+  - Xác minh xóa đồng bộ ở kho lịch sử, bộ nhớ và kho vector
+  - Giới hạn quyền công cụ khi sử dụng nội dung bộ nhớ không đáng tin cậy
+- level1: Hiệu năng và giám sát
+  level2:
+  - Đo độ trễ đọc, ghi bộ nhớ tách khỏi độ trễ mô hình
+  - Đo số token, số thông điệp và chi phí theo hội thoại
+  - Chi phí embedding, truy hồi và lưu trữ của bộ nhớ vector
+  - Tối ưu chỉ mục, kết nối và truy vấn theo mã hội thoại
+  - Kiểm soát tăng trưởng số hội thoại và dung lượng kho lưu trữ
+  - Số đo (metrics) và dấu vết (trace) của Advisor trong Spring AI
+  - Sử dụng SimpleLoggerAdvisor để chẩn đoán có kiểm soát dữ liệu
+  - Tránh dùng conversationId làm nhãn metrics có số lượng giá trị quá lớn
+  - Chọn hành vi khi repository hoặc kho vector không sẵn sàng
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử add, get, clear bằng repository trong bộ nhớ
+  - Kiểm thử giới hạn cửa sổ và bảo toàn thông điệp hệ thống
+  - Kiểm thử thứ tự thông điệp và cách chia ranh giới lượt
+  - Dùng ChatModel giả để kiểm tra prompt mà không phụ thuộc dịch vụ LLM
+  - Kiểm thử thứ tự Advisor và tham số ngữ cảnh
+  - Kiểm thử cách ly giữa người dùng, tổ chức và hội thoại
+  - Kiểm thử JDBC hoặc NoSQL bằng Testcontainers và khởi động lại ứng dụng
+  - Kiểm thử streaming bằng StepVerifier với hoàn tất, lỗi và hủy
+  - Kiểm thử truy hồi vector bằng dữ liệu cố định và bộ lọc hội thoại
+  - Kiểm thử cạnh tranh cập nhật, retry và xóa khi còn yêu cầu chạy
+  - Đánh giá khả năng nhớ bằng câu hỏi nhiều lượt và tiêu chí rõ ràng
+- level1: Chẩn đoán lỗi
+  level2:
+  - Mô hình quên thông tin dù ứng dụng đã gắn Memory Advisor
+  - Thiếu conversationId hoặc dùng nhầm khóa tham số ngữ cảnh
+  - Dữ liệu của người dùng khác xuất hiện trong câu trả lời
+  - Thông điệp bị lặp do ghi thủ công và ghi tự động cùng lúc
+  - Mất lịch sử sau khi khởi động lại hoặc chuyển bản sao ứng dụng
+  - Sai thứ tự thông điệp hoặc lỗi schema và dialect JDBC
+  - Vượt cửa sổ ngữ cảnh dù maxMessages đã được giới hạn
+  - Phản hồi streaming hiển thị nhưng không được lưu đầy đủ
+  - Truy hồi vector sai hội thoại hoặc trả kết quả không liên quan
+  - Lỗi chuỗi công cụ do thiếu thông điệp trung gian
+  - Advisor không chạy hoặc chạy sai thứ tự mong đợi
+- level1: Tương thích phiên bản
+  level2:
+  - Đọc tài liệu và Javadoc đúng phiên bản đang sử dụng
+  - Nhận diện ví dụ dùng RequestResponseAdvisor và API Advisor cũ
+  - PromptChatMemoryAdvisor trong phiên bản cũ và hướng chuyển sang bộ nhớ Message
+  - Thay đổi yêu cầu conversationId và vị trí khóa MemoryAdvisor.CONVERSATION_ID
+  - Đối chiếu hỗ trợ repository và hành vi loại bỏ thông điệp giữa các phiên bản
+  - Định hướng Session Memory trong nhánh Spring AI 2.1 và trạng thái ổn định của nhánh
+  - Đối chiếu ChatMemory với SessionService, SessionRepository và SessionAdvisors
+  - Lập kế hoạch chuyển dữ liệu và kiểm thử khi nâng cấp cơ chế bộ nhớ
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng chatbot nhiều lượt bằng bộ nhớ cửa sổ trong RAM
+  - Bổ sung nhiều hội thoại cho cùng một người dùng
+  - Chuyển chatbot sang JDBC và kiểm chứng khôi phục sau khởi động lại
+  - Cung cấp thao tác bắt đầu mới, tiếp tục và xóa hội thoại
+  - Xây dựng phản hồi streaming có kiểm chứng lưu bộ nhớ
+  - Kết hợp bộ nhớ gần nhất với ký ức truy hồi từ kho vector
+  - Xây dựng trợ lý hỏi đáp có lịch sử và RAG tách biệt
+  - Thực nghiệm gọi công cụ trong cuộc hội thoại có bộ nhớ
+  - Hoàn thiện ứng dụng với cách ly người dùng, kiểm thử và giám sát

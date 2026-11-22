@@ -1,0 +1,57 @@
+roadmap:
+- id: task-lifecycle
+  title: Task Lifecycle
+  purpose: Hiểu mô hình ứng dụng Spring Boot chạy ngắn hạn và cách Spring Cloud Task ghi nhận một lần thực thi.
+  objectives:
+  - Phân biệt task với dịch vụ HTTP chạy lâu
+  - Mô tả các giai đoạn start, run và kết thúc
+  - Giải thích ý nghĩa của một TaskExecution
+- id: tao-task-application
+  title: Tạo Task Application
+  purpose: Khởi tạo ứng dụng Java đơn giản có thể chạy và kết thúc với Spring Cloud Task.
+  objectives:
+  - Tạo dự án với Spring Cloud Task và H2
+  - Bật task và viết ApplicationRunner mẫu
+  - Chạy ứng dụng rồi xác nhận tiến trình kết thúc
+- id: runners-arguments
+  title: Runners & Arguments
+  purpose: Truyền đầu vào cho tác vụ và tổ chức logic xử lý theo vòng đời Spring Boot.
+  objectives:
+  - Phân biệt CommandLineRunner và ApplicationRunner
+  - Đọc command-line arguments an toàn
+  - Cấu hình task name rõ ràng cho mỗi lần chạy
+- id: taskrepository-schema
+  title: TaskRepository & Schema
+  purpose: Lưu lịch sử thực thi bền vững để có thể tra cứu sau khi tiến trình dừng.
+  objectives:
+  - So sánh H2 in-memory với DataSource bền vững
+  - Kiểm tra các bảng metadata TASK_*
+  - Cấu hình khởi tạo schema và quyền cơ sở dữ liệu
+- id: taskexecution-explorer
+  title: TaskExecution & Explorer
+  purpose: Đọc trạng thái và kết quả của mỗi task từ metadata thay vì chỉ dựa vào log.
+  objectives:
+  - Tra cứu execution ID, startTime và endTime
+  - Đọc exitCode, arguments và errorMessage
+  - Dùng TaskExplorer xem lịch sử chạy
+- id: listeners-failure
+  title: Listeners & Failure
+  purpose: Theo dõi sự kiện task và báo kết quả lỗi nhất quán cho người vận hành.
+  objectives:
+  - Thử onTaskStartup, onTaskEnd và onTaskFailed
+  - Ánh xạ exception sang exit code phù hợp
+  - Kiểm tra tính idempotent trước khi chạy lại
+- id: spring-batch-integration
+  title: Spring Batch Integration
+  purpose: Hiểu sự khác nhau giữa vòng đời task và tiến trình xử lý batch trong cùng ứng dụng.
+  objectives:
+  - Phân biệt TaskExecution với JobExecution
+  - Liên kết Spring Batch job qua task batch listener
+  - Thử fail-on-job-failure khi batch job lỗi
+- id: van-hanh-qa
+  title: Vận hành & QA
+  purpose: Đảm bảo tác vụ chạy được theo lịch ngoài, có thể quan sát và kiểm thử trước khi triển khai.
+  objectives:
+  - Chạy task với tham số trong môi trường test
+  - Ghi nhận metric, log và kết quả exit
+  - Phân biệt scheduling bên ngoài với vòng đời task

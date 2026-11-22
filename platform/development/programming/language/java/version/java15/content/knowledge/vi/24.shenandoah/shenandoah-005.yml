@@ -1,0 +1,3 @@
+menuLevel1: Shenandoah
+menuLevel2: Chọn -XX:+UseShenandoahGC trên môi trường hỗ trợ
+status: WRITTEN

@@ -1,0 +1,2245 @@
+menu:
+- slug: crac-overview
+  title: Tổng quan CRaC
+  childs:
+  - slug: crac-overview-001
+    title: 'CRaC là gì: Coordinated Restore at Checkpoint'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-002
+    title: Khởi động chậm và giai đoạn làm nóng của ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-003
+    title: 'Checkpoint, ảnh trạng thái và restore: các khái niệm cốt lõi'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-004
+    title: Vai trò của ứng dụng, JVM và cơ chế tạo ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-005
+    title: Trạng thái trong tiến trình và tài nguyên bên ngoài tiến trình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-006
+    title: 'Vòng đời tổng thể: khởi động, làm nóng, checkpoint và restore'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-007
+    title: 'Tình huống áp dụng: mở rộng nhanh, khởi động lại và dịch vụ ít truy cập'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-008
+    title: Giới hạn của CRaC đối với dữ liệu bền vững và hệ thống bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-overview-009
+    title: Kiến thức đầu vào và trình tự học CRaC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-jvm-foundations
+  title: Nền tảng JVM
+  childs:
+  - slug: crac-jvm-foundations-001
+    title: Nạp lớp và khởi tạo lớp trước thời điểm checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-foundations-002
+    title: Heap, metaspace và mã máy do JIT biên dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-foundations-003
+    title: Thông tin thực thi và ảnh hưởng của JIT đến hiệu năng sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-foundations-004
+    title: Luồng Java, luồng hệ điều hành và trạng thái đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-foundations-005
+    title: File descriptor và tài nguyên do hệ điều hành quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-foundations-006
+    title: Garbage Collector, bộ nhớ đang dùng và kích thước ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-foundations-007
+    title: Ranh giới giữa trạng thái Java, mã native và trạng thái hệ điều hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-lab-setup
+  title: Môi trường thực hành
+  childs:
+  - slug: crac-lab-setup-001
+    title: Phân biệt JDK thông thường với bản dựng JDK có hỗ trợ CRaC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-002
+    title: Chọn và cố định phiên bản JDK, thư viện org.crac và hệ điều hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-003
+    title: Kiểm tra khả năng hỗ trợ CRaC của bản dựng đang sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-004
+    title: Chuẩn bị môi trường Linux cho bài thực hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-005
+    title: Vai trò của CRIU trong cơ chế checkpoint dựa trên Linux
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-006
+    title: Quyền hệ điều hành và capabilities theo yêu cầu của từng cơ chế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-007
+    title: Phân biệt criuengine, simengine và cơ chế riêng của nhà cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-008
+    title: Phạm vi mô phỏng bằng simengine và giới hạn của kết quả kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-009
+    title: Khai báo org.crac:crac trong Maven hoặc Gradle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-lab-setup-010
+    title: Cấu trúc dự án mẫu và lệnh chạy có thể tái lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-checkpoint-restore-cycle
+  title: Chu kỳ checkpoint–restore
+  childs:
+  - slug: crac-checkpoint-restore-cycle-001
+    title: Chạy ứng dụng với -XX:CRaCCheckpointTo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-002
+    title: Chuẩn bị thư mục ảnh và các điều kiện trước checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-003
+    title: Xác định thời điểm checkpoint bằng tín hiệu sẵn sàng của ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-004
+    title: Yêu cầu checkpoint bằng jcmd và JDK.checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-005
+    title: Yêu cầu checkpoint trong chương trình bằng Core.checkpointRestore()
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-006
+    title: Khôi phục ứng dụng bằng -XX:CRaCRestoreFrom
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-007
+    title: Quan sát điểm tiếp tục thực thi và vòng đời phương thức main
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-008
+    title: Phân biệt checkpoint thành công, checkpoint thất bại và restore thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-009
+    title: Khôi phục nhiều tiến trình từ cùng một ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-restore-cycle-010
+    title: Giới hạn của checkpoint lặp lại theo bản dựng và cơ chế tạo ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-api
+  title: API CRaC
+  childs:
+  - slug: crac-api-001
+    title: Quan hệ giữa API tương thích org.crac và API jdk.crac
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-002
+    title: 'Resource: khai báo thành phần cần tham gia checkpoint và restore'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-003
+    title: 'Context: quản lý nhóm Resource và phân phối thông báo'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-004
+    title: Core.getGlobalContext() và Context.register()
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-005
+    title: 'beforeCheckpoint(): chuẩn bị trạng thái trước khi tạo ảnh'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-006
+    title: 'afterRestore(): tái lập tài nguyên trước khi phục vụ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-007
+    title: 'Thứ tự callback: ngược thứ tự đăng ký trước checkpoint, thuận sau restore'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-008
+    title: Context lồng nhau và điều phối quan hệ phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-009
+    title: Tham chiếu yếu trong Context và cách giữ Resource còn tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-010
+    title: CheckpointException, RestoreException và các ngoại lệ bị gom
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-011
+    title: Khôi phục trạng thái thành phần khi checkpoint bị hủy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-api-012
+    title: Hành vi của org.crac trên JVM không hỗ trợ checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-resource-lifecycle
+  title: Vòng đời tài nguyên
+  childs:
+  - slug: crac-resource-lifecycle-001
+    title: Kiểm kê tài nguyên và xác định thành phần chịu trách nhiệm quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-002
+    title: Phân loại trạng thái có thể giữ lại, phải đóng và phải tạo mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-003
+    title: Ngừng nhận công việc mới và chờ công việc đang chạy hoàn tất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-004
+    title: Đóng tài nguyên theo thứ tự phụ thuộc và mở lại theo thứ tự ngược
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-005
+    title: Thiết kế trạng thái đang hoạt động, đang tạm dừng và sẵn sàng trở lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-006
+    title: Ngăn truy cập tài nguyên trong khoảng chuyển tiếp checkpoint–restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-007
+    title: Thiết kế callback có thể xử lý trạng thái khởi tạo dở dang
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-008
+    title: Thời hạn chờ, hủy thao tác và tránh khóa chết trong callback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-009
+    title: Khôi phục một phần và chính sách dừng ứng dụng khi không thể phục vụ an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-resource-lifecycle-010
+    title: Phân biệt callback CRaC với shutdown hook và AutoCloseable
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-files-and-native-memory
+  title: Tệp và bộ nhớ native
+  childs:
+  - slug: crac-files-and-native-memory-001
+    title: Đóng và mở lại InputStream, OutputStream và FileChannel
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-002
+    title: Lưu vị trí đọc ghi và kiểm tra nội dung tệp sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-003
+    title: Bộ đệm ghi, thao tác flush và nguy cơ mất hoặc lặp dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-004
+    title: Tệp log, xoay vòng log và việc mở lại đích ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-005
+    title: Tệp tạm, đường dẫn tuyệt đối và tài nguyên đóng gói trong JAR
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-006
+    title: Khóa tệp, WatchService và tài nguyên theo dõi hệ thống tệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-007
+    title: MappedByteBuffer, bộ nhớ ngoài heap và giới hạn theo bản dựng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-008
+    title: Tài nguyên JNI, thư viện native và file descriptor ngoài JDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-009
+    title: Chính sách file descriptor qua jdk.crac.resource-policies
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-files-and-native-memory-010
+    title: Phạm vi close, reopen và giới hạn của chính sách tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-network-connections
+  title: Kết nối mạng
+  childs:
+  - slug: crac-network-connections-001
+    title: Vì sao kết nối đang mở không bảo đảm còn hợp lệ sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-002
+    title: Đóng và mở lại socket lắng nghe của máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-003
+    title: Ngừng nhận yêu cầu và xử lý các yêu cầu đang phục vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-004
+    title: Khôi phục HTTP client và nhóm kết nối dùng lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-005
+    title: DNS, địa chỉ IP và thông tin máy chủ có thể thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-006
+    title: TLS, chứng chỉ và phiên kết nối sau khoảng tạm dừng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-007
+    title: WebSocket, gRPC và kết nối kéo dài qua ranh giới checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-008
+    title: Đăng ký lại dịch vụ và phát hiện địa chỉ của tiến trình mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-network-connections-009
+    title: Kết nối lại với thời gian chờ, số lần thử và độ trễ ngẫu nhiên phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-database-connections
+  title: Cơ sở dữ liệu
+  childs:
+  - slug: crac-database-connections-001
+    title: Quản lý vòng đời DataSource và nhóm kết nối JDBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-002
+    title: Đóng kết nối trước checkpoint và kiểm tra lại sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-003
+    title: HikariCP và mức hỗ trợ CRaC theo phiên bản thư viện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-004
+    title: Giao dịch chưa hoàn tất và ranh giới checkpoint an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-005
+    title: EntityManager, Hibernate Session và tài nguyên truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-006
+    title: Thông tin xác thực cơ sở dữ liệu hết hạn hoặc được xoay vòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-007
+    title: Tránh chạy lại thay đổi lược đồ và khởi tạo dữ liệu ngoài ý muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-008
+    title: Khôi phục nhiều bản sao mà không gây bùng nổ số kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-database-connections-009
+    title: Xử lý trường hợp cơ sở dữ liệu chưa sẵn sàng khi restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-threads-and-background-tasks
+  title: Luồng và tác vụ nền
+  childs:
+  - slug: crac-threads-and-background-tasks-001
+    title: Phối hợp luồng ứng dụng với luồng thực hiện callback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-002
+    title: Thread pool, ExecutorService và công việc đang chờ xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-003
+    title: Tác vụ đang chạy và cách đưa hệ thống về trạng thái yên ổn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-004
+    title: 'ScheduledExecutorService: fixedRate, fixedDelay và lịch bị bỏ lỡ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-005
+    title: Hủy lịch trước checkpoint và đăng ký lịch lại sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-006
+    title: Event loop và thứ tự tạm dừng các thành phần dùng chung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-007
+    title: Khóa, điều kiện chờ và khả năng hiển thị trạng thái giữa các luồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-008
+    title: ThreadLocal và dữ liệu gắn với yêu cầu đã kết thúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-009
+    title: 'Virtual thread và structured concurrency: kiểm tra hỗ trợ theo bản dựng'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-threads-and-background-tasks-010
+    title: Luồng không phải daemon và nguy cơ JVM kết thúc trước khi tạo ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-time-and-identity
+  title: Thời gian và định danh
+  childs:
+  - slug: crac-time-and-identity-001
+    title: Khoảng thời gian tạm dừng và dữ liệu thời gian được lưu trong ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-002
+    title: Đồng hồ thời gian thực, nanoTime và cách tính lại thời lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-003
+    title: TTL, thời điểm hết hạn và vô hiệu hóa dữ liệu đã cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-004
+    title: Thời hạn yêu cầu, phiên đăng nhập và token hết hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-005
+    title: Lịch cron, tác vụ định kỳ và chính sách xử lý lần chạy bị bỏ lỡ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-006
+    title: ID tiến trình, tên máy và định danh bản sao sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-007
+    title: UUID và bộ đếm được tạo trước checkpoint khi nhân nhiều bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-008
+    title: Random, SecureRandom và việc đánh giá tính duy nhất theo runtime
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-time-and-identity-009
+    title: Lease, khóa phân tán và nhiệm kỳ chủ sở hữu đã hết hiệu lực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-state-and-configuration
+  title: Trạng thái và cấu hình
+  childs:
+  - slug: crac-state-and-configuration-001
+    title: Phân biệt trạng thái khởi tạo dùng chung với trạng thái riêng từng bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-002
+    title: Biến static, singleton và dữ liệu đã khởi tạo trước checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-003
+    title: Cache trong bộ nhớ và chiến lược làm mới sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-004
+    title: Biến môi trường, system property và cấu hình đã được ứng dụng lưu lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-005
+    title: Giới hạn thay đổi tham số JVM và cấu hình tại thời điểm restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-006
+    title: Tách cấu hình lúc dựng ảnh khỏi cấu hình lúc triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-007
+    title: Tạo lại định danh, tài nguyên và thông tin xác thực riêng từng bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-008
+    title: Đối chiếu trạng thái trong ảnh với trạng thái hiện tại của dịch vụ ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-state-and-configuration-009
+    title: Không dùng checkpoint thay cho sao lưu cơ sở dữ liệu hoặc nhật ký giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-jvm-warmup
+  title: Làm nóng JVM
+  childs:
+  - slug: crac-jvm-warmup-001
+    title: Phân biệt khởi tạo ứng dụng với làm nóng các đường thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-002
+    title: Chọn tập yêu cầu làm nóng đại diện cho tải thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-003
+    title: Chuẩn bị lớp, bộ phân tích dữ liệu và các thành phần khởi tạo lười
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-004
+    title: Làm nóng JIT mà không tạo giao dịch hoặc dữ liệu nghiệp vụ thật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-005
+    title: Dùng dữ liệu giả lập và dịch vụ phụ thuộc kiểm soát được
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-006
+    title: Kiểm soát cache, phân bổ bộ nhớ và tài nguyên sinh ra khi làm nóng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-007
+    title: Chọn thời điểm checkpoint dựa trên tiêu chí có thể quan sát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-008
+    title: Đánh đổi giữa mức độ làm nóng, thời gian dựng ảnh và kích thước ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-jvm-warmup-009
+    title: Kiểm tra hiệu năng sau restore thay vì suy ra từ trạng thái trước checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-spring-boot
+  title: Spring Boot
+  childs:
+  - slug: crac-spring-boot-001
+    title: Điều kiện tích hợp Spring Framework, Spring Boot và org.crac
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-002
+    title: Quan hệ giữa Lifecycle, SmartLifecycle và callback CRaC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-003
+    title: Dừng và khởi động lại bean khi checkpoint theo yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-004
+    title: Thứ tự phase và quan hệ phụ thuộc giữa các bean
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-005
+    title: Checkpoint tự động tại onRefresh bằng spring.context.checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-006
+    title: Thử giai đoạn khởi tạo bằng spring.context.exit=onRefresh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-007
+    title: Phân biệt checkpoint lúc refresh với checkpoint sau khi làm nóng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-008
+    title: Quản lý máy chủ web nhúng và nhóm kết nối dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-009
+    title: Tích hợp Resource tùy chỉnh cho thành phần không thuộc Spring
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-010
+    title: Tác vụ @Scheduled và công việc nền sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-011
+    title: Trì hoãn truy cập dịch vụ ngoài và nạp bí mật tới giai đoạn phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-spring-boot-012
+    title: Readiness, liveness và thời điểm cho phép nhận lưu lượng sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-library-integration
+  title: Tích hợp thư viện
+  childs:
+  - slug: crac-library-integration-001
+    title: Đánh giá mức hỗ trợ CRaC của thư viện và phiên bản đang dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-002
+    title: Redis client, cache phân tán và việc tái lập kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-003
+    title: Kafka, RabbitMQ và vòng đời producer hoặc consumer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-004
+    title: Thông điệp đang xử lý, offset, xác nhận và nguy cơ xử lý lặp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-005
+    title: SDK đám mây, bộ cấp thông tin xác thực và bộ đệm kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-006
+    title: Logging bất đồng bộ, metrics và tracing sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-007
+    title: Java agent, profiler và tài nguyên do công cụ giám sát mở
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-008
+    title: Thiết kế lớp bọc Resource cho thư viện chưa có tích hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-library-integration-009
+    title: Đối chiếu cách tích hợp của Quarkus và Micronaut với mô hình CRaC chung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-checkpoint-packaging
+  title: Đóng gói checkpoint
+  childs:
+  - slug: crac-checkpoint-packaging-001
+    title: Phân biệt ảnh checkpoint, JAR ứng dụng và container image
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-002
+    title: Cấu trúc bộ tệp checkpoint và yêu cầu bảo toàn tính đầy đủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-003
+    title: Quan hệ giữa ảnh, JDK, mã ứng dụng và thư viện phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-004
+    title: Gắn phiên bản, mã nguồn và thông tin môi trường vào bản phát hành ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-005
+    title: Kiểm tra checksum và phát hiện ảnh thiếu hoặc hỏng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-006
+    title: Quyền truy cập, chủ sở hữu và đường dẫn cần giữ khi phân phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-007
+    title: Lưu trữ, truyền tải và dọn dẹp ảnh không còn sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-008
+    title: Khi nào phải tạo lại ảnh sau thay đổi mã nguồn hoặc bản vá
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-packaging-009
+    title: Tách giai đoạn tạo ảnh khỏi giai đoạn khôi phục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-compatibility-limits
+  title: Giới hạn tương thích
+  childs:
+  - slug: crac-compatibility-limits-001
+    title: Tương thích giữa checkpoint và restore theo phiên bản, nhà cung cấp JDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-compatibility-limits-002
+    title: Kiến trúc CPU và các tập lệnh được mã JIT sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-compatibility-limits-003
+    title: Khác biệt kernel, thư viện hệ thống và môi trường native
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-compatibility-limits-004
+    title: Hệ thống tệp, mount và tài nguyên bắt buộc phải có khi restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-compatibility-limits-005
+    title: Giới hạn thay đổi heap, GC và các cờ JVM theo bản dựng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-compatibility-limits-006
+    title: Cgroups, CPU và bộ nhớ khả dụng trong môi trường đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-compatibility-limits-007
+    title: Tương thích theo checkpoint engine và phần mở rộng của nhà cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-compatibility-limits-008
+    title: Xây dựng ma trận môi trường được kiểm chứng thay vì giả định ảnh chạy mọi nơi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-containers-and-kubernetes
+  title: Container và Kubernetes
+  childs:
+  - slug: crac-containers-and-kubernetes-001
+    title: Xây dựng container có JDK hỗ trợ CRaC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-002
+    title: Tạo ảnh checkpoint trong quy trình container build
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-003
+    title: Bố trí checkpoint trong image layer hoặc volume
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-004
+    title: Capabilities, seccomp và security context theo checkpoint engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-005
+    title: PID namespace và xung đột định danh khi dùng cơ chế CRIU
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-006
+    title: Quyền người dùng, filesystem chỉ đọc và thư mục cần ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-007
+    title: Startup probe, readiness probe và liveness probe sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-008
+    title: Khôi phục nhiều Pod và kiểm soát tải lên dịch vụ phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-009
+    title: Rolling update, autoscaling và định danh riêng của từng Pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-containers-and-kubernetes-010
+    title: Xác minh môi trường khôi phục trên node và kiến trúc CPU đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-checkpoint-security
+  title: Bảo mật checkpoint
+  childs:
+  - slug: crac-checkpoint-security-001
+    title: Nhận diện bí mật và dữ liệu nhạy cảm có thể tồn tại trong ảnh bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-002
+    title: Tạo checkpoint bằng dữ liệu giả và thông tin xác thực giới hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-003
+    title: Nạp hoặc làm mới bí mật sau restore và giới hạn của việc xóa dấu vết trong heap
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-004
+    title: Mã hóa ảnh khi lưu trữ và truyền tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-005
+    title: Phân quyền tải ảnh và kiểm soát nguồn phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-006
+    title: Kiểm tra tính toàn vẹn và độ tin cậy trước khi restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-007
+    title: Token, chứng chỉ, nonce và dữ liệu bảo mật không được dùng lại giữa các bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-008
+    title: Phân tách quyền tạo ảnh với quyền chạy ứng dụng trong môi trường thật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-checkpoint-security-009
+    title: Thu hồi ảnh cũ và tạo lại ảnh khi vá JDK hoặc thư viện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-testing
+  title: Kiểm thử
+  childs:
+  - slug: crac-testing-001
+    title: Xây dựng tiêu chí đúng đắn cho ứng dụng trước và sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-002
+    title: Kiểm thử callback độc lập với cơ chế tạo ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-003
+    title: Kiểm thử thứ tự đăng ký, phụ thuộc và vòng đời Resource
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-004
+    title: Kiểm thử mô phỏng bằng simengine khi bản dựng hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-005
+    title: Kiểm thử tích hợp bằng checkpoint và restore thật trên Linux
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-006
+    title: Giả lập ngoại lệ trong beforeCheckpoint() và afterRestore()
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-007
+    title: Kiểm thử restore sau khi token, TTL và kết nối đã hết hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-008
+    title: Kiểm thử nhiều bản sao để phát hiện ID trùng và tác dụng phụ lặp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-009
+    title: Kiểm thử dịch vụ phụ thuộc chậm, mất kết nối hoặc chưa sẵn sàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-testing-010
+    title: Kiểm thử ma trận JDK, kernel, CPU và container trong CI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: crac-troubleshooting-001
+    title: Phân loại lỗi khởi chạy, checkpoint, restore và phục vụ sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-002
+    title: Đọc CheckpointException, RestoreException và suppressed exceptions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-003
+    title: Tìm tệp hoặc socket còn mở từ thông báo lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-004
+    title: Thu thập vị trí tạo file descriptor bằng jdk.crac.collect-fd-stacktraces
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-005
+    title: Đọc log JVM, log checkpoint engine và log CRIU
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-006
+    title: Chẩn đoán file descriptor phát sinh từ mã native
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-007
+    title: Phát hiện callback bị treo và khóa chết khi tạm dừng tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-008
+    title: Chẩn đoán thiếu quyền, seccomp và xung đột PID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-009
+    title: Chẩn đoán đường dẫn, thư viện hoặc CPU không tương thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-010
+    title: Phân biệt lệnh yêu cầu checkpoint báo thành công với ảnh thực sự hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-troubleshooting-011
+    title: Thu thập bằng chứng lỗi mà không làm lộ dữ liệu trong checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-performance-evaluation
+  title: Đánh giá hiệu năng
+  childs:
+  - slug: crac-performance-evaluation-001
+    title: Định nghĩa thời gian khởi động, thời gian sẵn sàng và thời gian đáp ứng đầu tiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-002
+    title: So sánh khởi động lạnh, JVM đã làm nóng và tiến trình vừa restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-003
+    title: Đo thời gian checkpoint và chi phí tạo ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-004
+    title: Đo thời gian tải ảnh, restore và mở lại tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-005
+    title: Đo độ trễ p50, p95, p99 và thông lượng sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-006
+    title: Đo RSS, bộ nhớ container, CPU và dung lượng lưu trữ ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-007
+    title: Ảnh hưởng của cache hệ điều hành, page fault và tốc độ ổ đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-008
+    title: Thiết kế phép đo có tải tương đương, lặp lại và kiểm soát môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-009
+    title: Đánh giá khả năng mở rộng đồng thời và tải tái kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-performance-evaluation-010
+    title: Tính tổng chi phí dựng, lưu, phân phối và sử dụng ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-production-operations
+  title: Vận hành thực tế
+  childs:
+  - slug: crac-production-operations-001
+    title: Thiết kế pipeline dựng ứng dụng, làm nóng, tạo ảnh và kiểm chứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-002
+    title: Chỉ phát hành ảnh đã vượt qua kiểm thử restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-003
+    title: Truy vết bản phát hành từ mã nguồn tới JDK và checkpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-004
+    title: Chọn chính sách tạo lại ảnh theo thay đổi và tuổi của ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-005
+    title: Triển khai thử trên một phần lưu lượng và theo dõi chất lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-006
+    title: Giám sát lỗi restore, thời gian sẵn sàng và sức khỏe tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-007
+    title: Khởi động thông thường dự phòng khi restore không đáp ứng điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-008
+    title: Quay lui bản phát hành mà không dùng lại trạng thái nghiệp vụ không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-009
+    title: Kiểm soát việc nhân bản tác vụ, consumer và thành phần giữ vai trò duy nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-production-operations-010
+    title: Quy trình xử lý sự cố, thu hồi ảnh và giải phóng dung lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-solution-selection
+  title: Lựa chọn giải pháp
+  childs:
+  - slug: crac-solution-selection-001
+    title: 'CRaC và Java serialization: khác biệt về đối tượng được lưu'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-solution-selection-002
+    title: CRaC và checkpoint tiến trình bằng CRIU không có phối hợp ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-solution-selection-003
+    title: 'CRaC và CDS hoặc AppCDS: khác biệt về phạm vi trạng thái'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-solution-selection-004
+    title: 'CRaC và các cơ chế AOT của JDK: kiểm tra theo phiên bản'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-solution-selection-005
+    title: 'CRaC và GraalVM Native Image: đánh đổi khởi động, tính tương thích và vận hành'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-solution-selection-006
+    title: 'CRaC và snapshot của máy ảo hoặc container: ranh giới trách nhiệm'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-solution-selection-007
+    title: API CRaC và dịch vụ snapshot được quản lý như AWS Lambda SnapStart
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-solution-selection-008
+    title: Chọn giải pháp theo tần suất khởi động, trạng thái ứng dụng và chi phí tích hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crac-practice-exercises
+  title: Bài thực hành
+  childs:
+  - slug: crac-practice-exercises-001
+    title: Tạo chương trình Java tối thiểu và thực hiện checkpoint–restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-002
+    title: Quan sát thứ tự callback của các Resource phụ thuộc nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-003
+    title: Tái hiện lỗi Resource bị thu gom do chỉ còn tham chiếu yếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-004
+    title: Đóng và mở lại tệp với vị trí đọc ghi được kiểm chứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-005
+    title: Tạm dừng máy chủ HTTP và tái lập kết nối sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-006
+    title: Khôi phục ứng dụng JDBC khi nhóm kết nối cũ đã hết hiệu lực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-007
+    title: Xử lý tác vụ định kỳ và dữ liệu hết hạn sau thời gian tạm dừng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-008
+    title: Làm mới định danh khi khôi phục nhiều bản sao từ một ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-009
+    title: So sánh Spring Boot onRefresh với checkpoint sau làm nóng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-010
+    title: Đóng gói và khôi phục ứng dụng trong container Linux
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-011
+    title: Chủ động gây lỗi checkpoint và restore để luyện chẩn đoán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crac-practice-exercises-012
+    title: Xây dựng báo cáo hiệu năng và tiêu chí chấp nhận cho ứng dụng mẫu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

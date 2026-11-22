@@ -1,0 +1,2161 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Nợ kỹ thuật (technical debt) là gì trong thiết kế phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Ẩn dụ khoản vay, vốn gốc và lãi giúp giải thích điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Lợi ích ngắn hạn và nghĩa vụ thay đổi phát sinh trong tương lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt nợ kỹ thuật với lỗi phần mềm, thiếu tính năng và công việc bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt nợ kỹ thuật với mã cũ, thiết kế xấu và sở thích cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vì sao nợ kỹ thuật có thể tồn tại trong một hệ thống đang hoạt động tốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vòng đời từ phát sinh, nhận diện và quyết định đến xử lý hoặc chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: origins
+  title: Nguồn hình thành
+  childs:
+  - slug: origins-001
+    title: Đánh đổi có chủ đích để kiểm chứng sản phẩm hoặc đáp ứng thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-002
+    title: Quyết định thiếu thông tin và khoản nợ chỉ được nhận ra sau khi học thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-003
+    title: Phân biệt quyết định có cân nhắc với quyết định thiếu căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-004
+    title: Thay đổi yêu cầu và giả định thiết kế không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-005
+    title: Tăng trưởng quy mô làm lộ giới hạn của giải pháp ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-006
+    title: Thiếu phản hồi, kiểm thử và quyền sở hữu làm nợ tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-007
+    title: Tối ưu cục bộ giữa các nhóm gây chi phí cho toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-008
+    title: Phức tạp hóa sớm và tổng quát hóa vượt nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debt-classification
+  title: Phân loại nợ
+  childs:
+  - slug: debt-classification-001
+    title: Nợ mã nguồn và nợ thiết kế trong cấu trúc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-002
+    title: Nợ kiến trúc trong ranh giới, phụ thuộc và cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-003
+    title: Nợ kiểm thử làm giảm khả năng thay đổi an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-004
+    title: Nợ dữ liệu và hợp đồng giao tiếp làm khó tiến hóa hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-005
+    title: Nợ phụ thuộc, công cụ xây dựng và nền tảng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-006
+    title: Nợ tài liệu, kiến thức và khả năng quan sát hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-007
+    title: Nợ bảo mật trong thiết kế và cơ chế bảo vệ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-008
+    title: Nợ quy trình có tác động trực tiếp đến chất lượng kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-classification-009
+    title: Một vấn đề mang nhiều loại nợ và cách tránh ghi nhận trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-models
+  title: Mô hình chi phí
+  childs:
+  - slug: cost-models-001
+    title: Ước lượng vốn gốc là công sức xử lý trong một phạm vi xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-002
+    title: Nhận diện lãi qua công sức tăng thêm khi sửa lỗi hoặc phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-003
+    title: Phân biệt chi phí thường xuyên với rủi ro tổn thất khi sự cố xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-004
+    title: Chi phí cơ hội khi nợ làm chậm thay đổi có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-005
+    title: Nợ tích lũy, nợ khuếch đại và các khoản nợ phụ thuộc lẫn nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-006
+    title: Ảnh hưởng của tần suất thay đổi đến mức lãi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-007
+    title: Vì sao khoản nợ trong thành phần ít thay đổi có thể chưa cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-008
+    title: Giới hạn của ẩn dụ tài chính và độ bất định trong ước lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-models-009
+    title: So sánh chi phí giữ nguyên, giảm nhẹ, trả nợ và loại bỏ thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-smells
+  title: Dấu hiệu thiết kế
+  childs:
+  - slug: design-smells-001
+    title: Mã có mùi (code smell) là dấu hiệu điều tra thay vì kết luận tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-002
+    title: Lớp hoặc mô-đun ôm quá nhiều trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-003
+    title: Liên kết phụ thuộc chặt và tính gắn kết nội bộ thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-004
+    title: Phụ thuộc vòng và hướng phụ thuộc đi ngược ranh giới thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-005
+    title: Một thay đổi nhỏ buộc sửa nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-006
+    title: Nhiều lý do thay đổi không liên quan tập trung trong cùng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-007
+    title: Sao chép quy tắc nghiệp vụ dẫn đến sửa không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-008
+    title: Trừu tượng rò rỉ, điều kiện phân nhánh và ngoại lệ ngày càng chồng chất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-009
+    title: Trạng thái dùng chung, tác dụng phụ ẩn và thứ tự gọi ngầm định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-smells-010
+    title: Đánh giá dấu hiệu theo bối cảnh thay đổi thay vì ngưỡng máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-debt
+  title: Nợ kiến trúc
+  childs:
+  - slug: architecture-debt-001
+    title: Ranh giới miền không phản ánh trách nhiệm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-debt-002
+    title: Chia sẻ dữ liệu làm các thành phần không thể thay đổi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-debt-003
+    title: Quy trình triển khai cần phối hợp nhiều nhóm cho một thay đổi nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-debt-004
+    title: Phụ thuộc hạ tầng hoặc nhà cung cấp bị lan vào logic cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-debt-005
+    title: Quyết định kiến trúc không còn đáp ứng yêu cầu chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-debt-006
+    title: Nhận diện suy giảm kiến trúc qua sai lệch so với quy tắc đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-debt-007
+    title: Kiến trúc phân tán nhưng vẫn phụ thuộc như một khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-debt-008
+    title: Phân biệt nợ kiến trúc với nhu cầu mở rộng chưa được chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-debt
+  title: Nợ kiểm thử
+  childs:
+  - slug: test-debt-001
+    title: Thiếu bằng chứng về hành vi hiện tại trước khi sửa thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-debt-002
+    title: Kiểm thử dễ vỡ vì phụ thuộc chi tiết triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-debt-003
+    title: Bộ kiểm thử chậm làm kéo dài vòng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-debt-004
+    title: Kiểm thử chập chờn làm giảm niềm tin vào kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-debt-005
+    title: Phụ thuộc môi trường và dữ liệu khiến kiểm thử khó tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-debt-006
+    title: Thiếu kiểm thử hợp đồng ở ranh giới giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-debt-007
+    title: Khoảng trống kiểm thử trong các luồng nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-debt-008
+    title: Vì sao tỷ lệ bao phủ mã cao chưa chứng minh nợ kiểm thử thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-contract-debt
+  title: Nợ dữ liệu và hợp đồng
+  childs:
+  - slug: data-and-contract-debt-001
+    title: Lược đồ dữ liệu không thể hiện rõ quy tắc và quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-contract-debt-002
+    title: Dữ liệu trùng, dữ liệu sai và thiếu ràng buộc nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-contract-debt-003
+    title: Nhiều dịch vụ cùng ghi vào cấu trúc dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-contract-debt-004
+    title: API làm lộ mô hình lưu trữ hoặc chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-contract-debt-005
+    title: Hợp đồng không có chính sách tương thích và ngừng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-contract-debt-006
+    title: Định dạng sự kiện thiếu phiên bản hoặc ý nghĩa ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-contract-debt-007
+    title: Mã chuyển đổi tạm thời và nhánh tương thích không được dọn bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-contract-debt-008
+    title: Đánh giá tác động đến bên sử dụng trước khi gọi một hợp đồng là nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-debt
+  title: Nợ nền tảng
+  childs:
+  - slug: platform-debt-001
+    title: Thư viện và môi trường thực thi quá khó nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-002
+    title: Tùy biến nền tảng làm tăng chi phí bảo trì dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-003
+    title: Quy trình xây dựng thiếu khả năng tái hiện và phản hồi nhanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-004
+    title: Cấu hình môi trường không nhất quán gây lỗi khó chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-005
+    title: Triển khai, quay lui và khôi phục phụ thuộc thao tác thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-006
+    title: Thiếu khả năng quan sát làm kéo dài điều tra và sửa đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-007
+    title: Tài liệu lỗi thời và kiến thức tập trung ở một người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-008
+    title: Xác định phần nợ cần phối hợp với bảo mật và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-debt-009
+    title: Phân biệt nợ bảo mật có thể lên kế hoạch với lỗ hổng cần xử lý khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: detection-and-evidence
+  title: Phát hiện và bằng chứng
+  childs:
+  - slug: detection-and-evidence-001
+    title: Kết hợp rà soát mã, phản hồi của nhóm và dữ liệu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-002
+    title: Thu thập ví dụ thay đổi thực tế bị chậm bởi cấu trúc hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-003
+    title: Phân tích lỗi lặp lại và các khu vực thường gây hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-004
+    title: Dùng phân tích tĩnh để tìm ứng viên cần điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-005
+    title: Đọc đồ thị phụ thuộc và đối chiếu ranh giới mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-006
+    title: Rà soát công việc thủ công và đường xử lý ngoại lệ kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-007
+    title: Nhận diện khoản nợ được ghi trong TODO, FIXME và quyết định tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-008
+    title: Phỏng vấn người bảo trì để làm rõ chi phí không xuất hiện trong công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-and-evidence-009
+    title: Tách quan sát, giả thuyết nguyên nhân và kết luận đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hotspot-analysis
+  title: Phân tích điểm nóng
+  childs:
+  - slug: hotspot-analysis-001
+    title: Kết hợp tần suất thay đổi với độ phức tạp để tìm điểm nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-analysis-002
+    title: Đọc lịch sử Git và xác định các tệp thường thay đổi cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-analysis-003
+    title: Phân biệt thành phần lớn nhưng ổn định với thành phần thường gây cản trở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-analysis-004
+    title: Đối chiếu biến động mã với lỗi, thời gian sửa và số nhóm liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-analysis-005
+    title: Nhận diện khu vực thiếu người am hiểu và có rủi ro bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-analysis-006
+    title: Xử lý nhiễu từ mã sinh tự động, đổi định dạng và di chuyển tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-analysis-007
+    title: Giới hạn của lịch sử commit khi suy luận nguyên nhân thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hotspot-analysis-008
+    title: Dùng điểm nóng để chọn phạm vi khảo sát thay vì tự động xếp hạng con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: impact-assessment
+  title: Đánh giá tác động
+  childs:
+  - slug: impact-assessment-001
+    title: Xác định hành vi nghiệp vụ và yêu cầu chất lượng đang bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-002
+    title: Đo công sức tăng thêm qua các thay đổi có thể so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-003
+    title: Ước lượng tần suất phải chạm vào khoản nợ trong tương lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-004
+    title: Đánh giá phạm vi ảnh hưởng và hệ quả khi xử lý thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-005
+    title: Phân biệt mức độ nghiêm trọng, mức khẩn cấp và độ chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-006
+    title: Ước lượng công sức bằng khoảng giá trị cùng các giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-007
+    title: Dùng khảo sát kỹ thuật ngắn để giảm điều chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-008
+    title: Đánh giá độ đảo ngược và các phương án thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-009
+    title: Ghi nhận chi phí chuyển đổi, đào tạo và vận hành song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-assessment-010
+    title: Kiểm tra bằng chứng trước khi chuyển đánh giá thành cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debt-record
+  title: Hồ sơ khoản nợ
+  childs:
+  - slug: debt-record-001
+    title: Mô tả vấn đề bằng biểu hiện cụ thể và bằng chứng tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-002
+    title: Ghi rõ phạm vi mã nguồn, hệ thống và bên bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-003
+    title: Lưu bối cảnh quyết định cùng lợi ích ngắn hạn ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-004
+    title: Ghi nhận tác động, rủi ro, giả định và độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-005
+    title: Xác định chủ sở hữu, người hỗ trợ và bên quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-006
+    title: Mô tả phương án giữ nguyên, giảm nhẹ hoặc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-007
+    title: Đặt điều kiện kích hoạt xử lý và ngày rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-008
+    title: Định nghĩa tiêu chí hoàn thành cùng bằng chứng cần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-record-009
+    title: Liên kết hồ sơ với issue, quyết định kiến trúc (ADR) và thay đổi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remediation-prioritization
+  title: Ưu tiên xử lý
+  childs:
+  - slug: remediation-prioritization-001
+    title: Ưu tiên theo tác động đến sản phẩm và thay đổi sắp diễn ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-002
+    title: Kết hợp mức lãi, rủi ro, công sức và độ bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-003
+    title: Tìm khoản nợ chặn nhiều công việc hoặc nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-004
+    title: Xem xét thứ tự phụ thuộc giữa các khoản nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-005
+    title: Phân biệt xử lý khẩn cấp với cải tiến có thể lên lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-006
+    title: Đánh giá lợi ích kỳ vọng và thời gian hoàn vốn với giả định rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-007
+    title: Dùng chấm điểm để hỗ trợ thảo luận thay vì tạo độ chính xác giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-008
+    title: Cân nhắc xử lý ngay khi đang thay đổi cùng khu vực mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-prioritization-009
+    title: Quyết định giữ nguyên khi chi phí xử lý vượt lợi ích có thể chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debt-repayment-plan
+  title: Kế hoạch trả nợ
+  childs:
+  - slug: debt-repayment-plan-001
+    title: Chọn mục tiêu giảm chi phí hoặc rủi ro cụ thể cho từng đợt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-repayment-plan-002
+    title: Chia công việc thành thay đổi nhỏ có thể kiểm chứng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-repayment-plan-003
+    title: Tách bước chuẩn bị, chuyển đổi và dọn bỏ giải pháp cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-repayment-plan-004
+    title: Lập kế hoạch theo phụ thuộc và năng lực của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-repayment-plan-005
+    title: Đưa công việc trả nợ vào kế hoạch cùng công việc sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-repayment-plan-006
+    title: Dành năng lực xử lý theo dữ liệu và nhu cầu thay vì tỷ lệ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-repayment-plan-007
+    title: Xác định điểm dừng, điều kiện quay lại và phạm vi có thể giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debt-repayment-plan-008
+    title: Dừng hoặc đổi hướng khi bằng chứng không xác nhận lợi ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-alignment
+  title: Thống nhất với sản phẩm
+  childs:
+  - slug: product-alignment-001
+    title: Diễn đạt nợ bằng tác động đến giao hàng, sự cố và chi phí thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-alignment-002
+    title: So sánh phương án theo lợi ích, rủi ro và thời điểm cần quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-alignment-003
+    title: Phân biệt cải tiến bắt buộc với cải tiến có thể trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-alignment-004
+    title: Làm rõ đánh đổi khi rút ngắn thời hạn hoặc giảm phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-alignment-005
+    title: Thống nhất trách nhiệm chấp nhận rủi ro và thời hạn rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-alignment-006
+    title: Bảo vệ công việc giảm rủi ro mà không hứa hẹn lợi ích thiếu căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-alignment-007
+    title: Báo cáo kết quả bằng bằng chứng thay vì số dòng mã đã sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-safety
+  title: An toàn thay đổi
+  childs:
+  - slug: change-safety-001
+    title: Lập bản đồ hành vi cần giữ và các ranh giới có tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-002
+    title: Viết kiểm thử đặc tả hành vi hiện tại (characterization test)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-003
+    title: Chọn kết quả chuẩn (golden master) và kiểm soát dữ liệu không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-004
+    title: Tạo điểm tách phụ thuộc để kiểm thử mã khó thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-005
+    title: Bổ sung kiểm thử hợp đồng và kiểm thử hồi quy theo mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-006
+    title: Tách tái cấu trúc giữ nguyên hành vi khỏi thay đổi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-007
+    title: Giữ thay đổi nhỏ để rà soát và xác định nguồn hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-008
+    title: Chuẩn bị quan sát, triển khai có kiểm soát và phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-safety-009
+    title: Xử lý hành vi hiện tại bị lỗi bằng quyết định riêng có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-refactoring
+  title: Tái cấu trúc thiết kế
+  childs:
+  - slug: design-refactoring-001
+    title: Tách trách nhiệm và làm rõ ranh giới của lớp hoặc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-002
+    title: Giảm phụ thuộc vòng và thống nhất hướng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-003
+    title: Đưa quy tắc nghiệp vụ về nơi sở hữu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-004
+    title: Loại bỏ sao chép khi đã xác nhận phần chung ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-005
+    title: Thay trừu tượng sai bằng mô hình đơn giản hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-006
+    title: Làm rõ trạng thái, tác dụng phụ và thứ tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-007
+    title: Cô lập mã phụ thuộc hạ tầng khỏi logic cần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-008
+    title: Giảm điều kiện phân nhánh bằng mô hình phù hợp với bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-009
+    title: Xóa mã chết, cấu hình thừa và đường xử lý không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-refactoring-010
+    title: Kiểm tra chi phí thay đổi sau tái cấu trúc thay vì chỉ đánh giá hình thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-improvement
+  title: Cải tiến kiến trúc
+  childs:
+  - slug: architecture-improvement-001
+    title: Xác định kiến trúc đích vừa đủ cho yêu cầu đã được chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-002
+    title: Tạo ranh giới chuyển tiếp để giảm phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-003
+    title: Thay triển khai dần qua lớp trừu tượng (branch by abstraction)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-004
+    title: Thay thế từng phần hệ thống cũ bằng hướng tiếp cận strangler fig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-005
+    title: Bảo vệ mô hình nghiệp vụ bằng lớp cách ly (anti-corruption layer)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-006
+    title: Giảm phụ thuộc dữ liệu và triển khai giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-007
+    title: Thiết kế lộ trình cùng tồn tại mà không kéo dài trạng thái trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-008
+    title: So sánh cải tiến từng bước với viết lại toàn bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-improvement-009
+    title: Đặt điều kiện kết thúc chuyển đổi và loại bỏ kiến trúc tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-migration
+  title: Chuyển đổi hợp đồng
+  childs:
+  - slug: contract-migration-001
+    title: Kiểm kê bên sử dụng API, sự kiện và cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-002
+    title: Mở rộng hợp đồng trước khi chuyển người sử dụng sang phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-003
+    title: Áp dụng mở rộng rồi thu gọn (expand-contract) cho thay đổi tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-004
+    title: Lập kế hoạch chuyển dữ liệu và kiểm tra tính đầy đủ, nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-005
+    title: Đánh giá rủi ro khi ghi song song vào hai cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-006
+    title: Đối soát kết quả giữa đường xử lý cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-007
+    title: Xử lý quay lui khi thay đổi dữ liệu không thể đảo ngược trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-008
+    title: Ngừng hỗ trợ và dọn phiên bản cũ sau khi xác nhận không còn bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-verification
+  title: Kiểm chứng kết quả
+  childs:
+  - slug: result-verification-001
+    title: Đối chiếu tiêu chí hoàn thành với thay đổi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-verification-002
+    title: Chứng minh hành vi được giữ qua kiểm thử và dữ liệu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-verification-003
+    title: So sánh công sức cho các thay đổi tương tự trước và sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-verification-004
+    title: Đánh giá giảm phụ thuộc, giảm thao tác thủ công và tăng khả năng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-verification-005
+    title: Kiểm tra chi phí hoặc rủi ro có bị chuyển sang nhóm khác hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-verification-006
+    title: Phát hiện khoản nợ mới phát sinh từ giải pháp trả nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-verification-007
+    title: Chỉ đóng hồ sơ khi đã dọn đường chuyển tiếp và cập nhật tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-verification-008
+    title: Tiếp tục theo dõi để kiểm chứng lợi ích không chỉ xuất hiện tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accumulation-prevention
+  title: Phòng ngừa tích lũy
+  childs:
+  - slug: accumulation-prevention-001
+    title: Đưa tiêu chí bảo trì và khả năng kiểm thử vào định nghĩa hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-002
+    title: Rà soát thiết kế tại các ranh giới có ảnh hưởng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-003
+    title: Ghi quyết định, giả định và thời hạn cho giải pháp tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-004
+    title: Dùng kiểm thử kiến trúc để bảo vệ hướng phụ thuộc đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-005
+    title: Thiết lập cổng kiểm soát chất lượng phù hợp với bối cảnh dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-006
+    title: Giữ phản hồi xây dựng và kiểm thử đủ nhanh để được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-007
+    title: Cập nhật kiến thức và chia sẻ trách nhiệm bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-008
+    title: Kiểm chứng mã viết tay, mã sinh và mã do AI hỗ trợ theo cùng tiêu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accumulation-prevention-009
+    title: Tránh phòng ngừa bằng khuôn mẫu hoặc trừu tượng vượt nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-governance
+  title: Quản trị vòng đời
+  childs:
+  - slug: lifecycle-governance-001
+    title: Quản lý danh mục nợ có phạm vi và chủ sở hữu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-governance-002
+    title: Rà soát khoản nợ theo lịch và khi điều kiện kích hoạt xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-governance-003
+    title: Gắn nợ với quyết định kiến trúc và kế hoạch tiến hóa sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-governance-004
+    title: Quy định ai có thể tạo, chấp nhận, trì hoãn và đóng khoản nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-governance-005
+    title: Kiểm soát ngoại lệ và gia hạn giải pháp tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-governance-006
+    title: Loại bỏ hồ sơ trùng, lỗi thời hoặc không còn tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-governance-007
+    title: Xử lý khoản nợ vượt ranh giới nhóm bằng trách nhiệm phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-governance-008
+    title: Điều chỉnh cơ chế khuyến khích để không thưởng việc tạo nợ rồi sửa nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sustainability-metrics
+  title: Đo lường bền vững
+  childs:
+  - slug: sustainability-metrics-001
+    title: Thiết lập đường cơ sở trước khi triển khai chương trình giảm nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainability-metrics-002
+    title: Theo dõi chi phí thay đổi và thời gian phản hồi của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainability-metrics-003
+    title: Theo dõi lỗi lặp lại, công việc làm lại và gián đoạn do thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainability-metrics-004
+    title: Đối chiếu chỉ số cấu trúc mã với trải nghiệm bảo trì thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainability-metrics-005
+    title: Theo dõi tốc độ phát sinh, xử lý và tái xuất hiện của khoản nợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainability-metrics-006
+    title: Phân biệt số lượng hồ sơ nợ với mức nợ và rủi ro thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainability-metrics-007
+    title: Kiểm soát tác động của thay đổi phạm vi đo hoặc công cụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainability-metrics-008
+    title: Tránh dùng một điểm chất lượng duy nhất để xếp hạng đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Gọi mọi phần mã không thích là nợ mà thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Đồng nhất mọi cảnh báo phân tích tĩnh với công việc phải sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Chỉ ưu tiên công việc dễ làm để tăng số lượng khoản nợ đã đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Cam kết giảm chi phí bằng ước lượng không có giả định và đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Viết lại toàn bộ để né việc hiểu hành vi hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Để lớp chuyển tiếp, cờ tính năng và nhánh tương thích tồn tại vô thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Trì hoãn nợ mãi hoặc yêu cầu xóa sạch nợ trước khi phát triển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Biến trả nợ thành tranh luận cá nhân và bỏ qua mục tiêu sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Tối ưu chỉ số bằng cách đổi quy tắc đo hoặc che cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: guided-practice
+  title: Thực hành có hướng dẫn
+  childs:
+  - slug: guided-practice-001
+    title: Nhận diện dấu hiệu nợ trong một mô-đun có nhiều lý do thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-002
+    title: Thu thập bằng chứng từ lịch sử sửa lỗi và yêu cầu tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-003
+    title: Lập hồ sơ nợ với giả định, chủ sở hữu và tiêu chí hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-004
+    title: So sánh các khoản nợ bằng tác động, rủi ro và công sức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-005
+    title: Xây dựng kiểm thử hành vi trước khi tách trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-006
+    title: Loại bỏ phụ thuộc vòng qua các bước thay đổi nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-007
+    title: Lập kế hoạch chuyển đổi hợp đồng có giai đoạn cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-008
+    title: Đo kết quả trước và sau rồi quyết định đóng hoặc tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-009
+    title: Viết ADR giải thích khoản nợ được chấp nhận cùng điều kiện rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-scenario
+  title: Tình huống tổng hợp
+  childs:
+  - slug: integrated-scenario-001
+    title: Giải pháp tạm để kiểm chứng sản phẩm trở thành nền tảng sử dụng lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-002
+    title: Mô-đun trung tâm làm mọi tính năng mới phải sửa nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-003
+    title: Khoản nợ ít gây lỗi nhưng liên tục làm chậm giao hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-004
+    title: Nợ kiểm thử khiến một thay đổi thiết kế nhỏ có rủi ro cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-005
+    title: Nhiều dịch vụ phải triển khai cùng nhau vì dùng chung dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-006
+    title: Nâng cấp nền tảng bị chặn bởi tùy biến và phụ thuộc cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-007
+    title: Chương trình trả nợ hoàn thành nhiều việc nhưng không giảm chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-008
+    title: Checklist đánh giá quyết định giữ nguyên, giảm nhẹ, xử lý hoặc loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

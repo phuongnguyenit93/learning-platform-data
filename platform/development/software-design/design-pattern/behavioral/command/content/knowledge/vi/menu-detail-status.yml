@@ -1,0 +1,2101 @@
+menu:
+- slug: command-overview
+  title: Tổng quan Command
+  childs:
+  - slug: command-overview-001
+    title: Ý định của Command và vị trí trong nhóm mẫu thiết kế hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-overview-002
+    title: Đóng gói một yêu cầu thành đối tượng chứa thao tác và dữ liệu thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-overview-003
+    title: Bài toán phụ thuộc trực tiếp giữa thành phần phát sinh yêu cầu và thành phần xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-overview-004
+    title: Lợi ích của việc truyền, lưu giữ, kết hợp và trì hoãn thao tác dưới dạng đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-overview-005
+    title: Nhận diện nhu cầu dùng Command trong trình soạn thảo, điều khiển thiết bị và xử lý tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-overview-006
+    title: Đánh đổi giữa khả năng mở rộng với số lượng lớp và chi phí quản lý vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-overview-007
+    title: Phân biệt Command theo GoF với lệnh ứng dụng và thông điệp gửi qua hệ thống phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-overview-008
+    title: Tiêu chí chọn Command và trường hợp một lời gọi phương thức trực tiếp đã đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-structure
+  title: Cấu trúc mẫu
+  childs:
+  - slug: pattern-structure-001
+    title: Command định nghĩa hợp đồng thực thi chung cho các yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-002
+    title: ConcreteCommand liên kết thao tác với Receiver và lưu tham số cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-003
+    title: Receiver cung cấp hành vi nghiệp vụ thực sự được lệnh sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-004
+    title: Invoker giữ hoặc kích hoạt lệnh mà không cần biết chi tiết xử lý nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-005
+    title: Client tạo Receiver, tạo Command và cấu hình Invoker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-006
+    title: Sơ đồ lớp và hướng phụ thuộc giữa Command, ConcreteCommand, Invoker, Receiver và Client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-007
+    title: Sơ đồ tương tác từ hành động của người dùng đến lời gọi trên Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-structure-008
+    title: Áp dụng nguyên lý trách nhiệm đơn nhất, đảo ngược phụ thuộc và đóng mở khi thêm lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-flow
+  title: Luồng thực thi
+  childs:
+  - slug: execution-flow-001
+    title: Tách thời điểm tạo lệnh, gửi lệnh và thực thi lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-002
+    title: Thu thập đầu vào và xác định Receiver trước khi đưa lệnh cho Invoker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-003
+    title: Kiểm tra tính hợp lệ của dữ liệu và điều kiện nghiệp vụ tại thời điểm phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-004
+    title: Theo dõi trạng thái tạo mới, chờ chạy, đang chạy, thành công, thất bại và bị hủy khi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-005
+    title: Truyền kết quả và lỗi từ Receiver qua Command về thành phần gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-006
+    title: Xác định tác dụng phụ và thời điểm thao tác được coi là hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-007
+    title: Phân biệt một đối tượng lệnh với từng lần thực thi của đối tượng đó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-flow-008
+    title: Quản lý tài nguyên và dọn dẹp sau khi lệnh kết thúc hoặc gặp lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: command-contracts
+  title: Hợp đồng lệnh
+  childs:
+  - slug: command-contracts-001
+    title: Thiết kế interface Command tối giản với phương thức execute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-contracts-002
+    title: Lựa chọn hợp đồng không trả kết quả hoặc Command có kiểu kết quả tổng quát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-contracts-003
+    title: Phân biệt tham số đầu vào, kết quả nghiệp vụ và siêu dữ liệu thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-contracts-004
+    title: Thiết kế hợp đồng lỗi với ngoại lệ hoặc đối tượng kết quả có trạng thái rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-contracts-005
+    title: Tách hợp đồng lệnh có thể hoàn tác khỏi lệnh chỉ hỗ trợ thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-contracts-006
+    title: Quy định khả năng tái sử dụng, tính thay đổi và giới hạn an toàn luồng của lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-contracts-007
+    title: Thiết kế canExecute khi cần phản hồi giao diện và kiểm tra lại điều kiện khi thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-contracts-008
+    title: Tách hợp đồng đồng bộ và bất đồng bộ khi cách nhận kết quả khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Hiện thực Java
+  childs:
+  - slug: java-implementation-001
+    title: Xây dựng ví dụ điều khiển đèn để minh họa đủ các vai trò của Command
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Định nghĩa interface Command và các Receiver chứa thao tác bật tắt thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Cài đặt LightOnCommand và LightOffCommand bằng cách ủy quyền cho Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Thiết kế RemoteControl làm Invoker và gán lệnh cho từng nút điều khiển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Lắp ráp Client bằng constructor injection để thể hiện rõ các phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Thêm một loại thiết bị và lệnh mới mà không sửa logic thực thi của Invoker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Lựa chọn giữa NoOpCommand và kiểm tra thiếu lệnh theo ngữ nghĩa của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-008
+    title: Tổ chức package và trách nhiệm lớp cho ví dụ có thể mở rộng và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: command-data-and-state
+  title: Dữ liệu và trạng thái
+  childs:
+  - slug: command-data-and-state-001
+    title: Lưu tham số bất biến để yêu cầu không đổi ngoài ý muốn trước khi được thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-data-and-state-002
+    title: Sao chép dữ liệu đầu vào có thể thay đổi và tránh giữ tham chiếu bộ sưu tập bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-data-and-state-003
+    title: Lựa chọn lưu định danh đối tượng hay giữ trực tiếp tham chiếu Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-data-and-state-004
+    title: Phân biệt trạng thái nghiệp vụ của Receiver với trạng thái vòng đời của lần thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-data-and-state-005
+    title: Xử lý dữ liệu hoặc điều kiện nghiệp vụ đã thay đổi giữa lúc tạo và lúc chạy lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-data-and-state-006
+    title: Quy định lệnh dùng một lần và lệnh có thể chạy lại để tránh tái sử dụng sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-data-and-state-007
+    title: Truyền ngữ cảnh người dùng, thời hạn và mã theo dõi mà không phụ thuộc biến toàn cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-data-and-state-008
+    title: Tránh giữ kết nối, luồng dữ liệu và đối tượng lớn quá lâu trong lệnh đang chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: parameterized-commands
+  title: Lệnh có tham số
+  childs:
+  - slug: parameterized-commands-001
+    title: Chọn lớp lệnh chuyên biệt hoặc lệnh tổng quát theo mức độ khác nhau của hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameterized-commands-002
+    title: Thiết kế constructor, factory và builder cho lệnh có nhiều tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameterized-commands-003
+    title: Dùng kiểu dữ liệu rõ nghĩa để tránh nhầm thứ tự và đơn vị của tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameterized-commands-004
+    title: Kiểm tra ràng buộc đầu vào và báo lỗi trước khi phát sinh tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameterized-commands-005
+    title: Biểu diễn lệnh đơn giản bằng functional interface, lambda và method reference trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameterized-commands-006
+    title: Phân tích dữ liệu được lambda nắm giữ và nguy cơ tham chiếu đến trạng thái thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameterized-commands-007
+    title: Giới hạn của lambda khi cần lịch sử, hoàn tác, định danh và lưu trữ lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parameterized-commands-008
+    title: Tránh lệnh tổng quát chứa chuỗi điều kiện lớn thay cho các hành vi có trách nhiệm rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: invoker-design
+  title: Thiết kế Invoker
+  childs:
+  - slug: invoker-design-001
+    title: Giữ trách nhiệm của Invoker tập trung vào tiếp nhận và điều phối thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invoker-design-002
+    title: Đăng ký và tra cứu lệnh bằng khóa có kiểu rõ ràng khi giao diện có nhiều thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invoker-design-003
+    title: Phân biệt kích hoạt lệnh trực tiếp với nhận lệnh để xử lý về sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invoker-design-004
+    title: Thiết kế điểm mở rộng cho lịch sử, quan sát và chính sách thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invoker-design-005
+    title: Tách đối tượng dữ liệu lệnh và CommandHandler khi kiến trúc ứng dụng cần định tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invoker-design-006
+    title: Xây dựng CommandBus tối giản và quy định một handler cho mỗi loại yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invoker-design-007
+    title: Lắp ráp danh mục handler bằng dependency injection và phát hiện đăng ký thiếu hoặc trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: invoker-design-008
+    title: Xử lý lệnh gọi lồng nhau, tái nhập và nguy cơ tạo chu trình điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: receiver-design
+  title: Thiết kế Receiver
+  childs:
+  - slug: receiver-design-001
+    title: Đặt quy tắc nghiệp vụ và bất biến dữ liệu tại Receiver hoặc lớp miền phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: receiver-design-002
+    title: Giữ Command làm đối tượng mô tả hoặc điều phối yêu cầu thay vì sao chép nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: receiver-design-003
+    title: Thiết kế giao diện Receiver đủ hẹp để Command ít phụ thuộc chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: receiver-design-004
+    title: Dùng nhiều Receiver trong một thao tác và xác định ranh giới trách nhiệm điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: receiver-design-005
+    title: Xác định quyền sở hữu trạng thái khi nhiều lệnh cùng tác động một Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: receiver-design-006
+    title: Đưa ranh giới giao dịch về nơi có thể bảo vệ đầy đủ bất biến nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: receiver-design-007
+    title: Trả kết quả và lỗi nghiệp vụ đủ rõ để Command quyết định bước tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: receiver-design-008
+    title: Tách truy cập hạ tầng khỏi hành vi miền để kiểm thử Receiver và Command độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: macro-commands
+  title: Lệnh tổng hợp
+  childs:
+  - slug: macro-commands-001
+    title: Dùng MacroCommand để biểu diễn một thao tác gồm nhiều lệnh con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macro-commands-002
+    title: Kết hợp Command với Composite để lệnh đơn và lệnh tổng hợp dùng chung hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macro-commands-003
+    title: Quy định thứ tự chạy lệnh con và cách tổng hợp kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macro-commands-004
+    title: Lựa chọn dừng ngay khi lỗi hoặc tiếp tục các lệnh con còn lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macro-commands-005
+    title: Ghi nhận chính xác các lệnh con đã thành công trước khi một lệnh khác thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macro-commands-006
+    title: Hoàn tác các lệnh con đã thực hiện theo thứ tự ngược khi hợp đồng cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macro-commands-007
+    title: Phân biệt tính nguyên tử thật sự với cơ chế bù trừ của một chuỗi thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macro-commands-008
+    title: Kiểm soát lệnh tổng hợp lồng nhau, chu trình tham chiếu và giới hạn kích thước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: undo-operations
+  title: Hoàn tác thao tác
+  childs:
+  - slug: undo-operations-001
+    title: Xác định thao tác nào có thể hoàn tác và điều kiện để khôi phục có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: undo-operations-002
+    title: Thiết kế UndoableCommand với dữ liệu cần thiết cho execute và undo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: undo-operations-003
+    title: Lựa chọn thao tác nghịch đảo hoặc lưu trạng thái trước khi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: undo-operations-004
+    title: Chỉ ghi nhận lệnh có tác động thành công vào lịch sử hoàn tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: undo-operations-005
+    title: Xử lý thao tác không làm thay đổi dữ liệu và yêu cầu không được phép hoàn tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: undo-operations-006
+    title: Kiểm tra phiên bản hoặc trạng thái Receiver để phát hiện xung đột khi undo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: undo-operations-007
+    title: Gộp nhiều thay đổi nhỏ thành một thao tác hoàn tác có ý nghĩa với người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: undo-operations-008
+    title: Nhận diện tác dụng phụ khó đảo ngược như gửi thông báo và gọi dịch vụ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: redo-and-history
+  title: Redo và lịch sử
+  childs:
+  - slug: redo-and-history-001
+    title: Thiết kế UndoManager bằng hai ngăn xếp hoặc con trỏ trong danh sách lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: redo-and-history-002
+    title: Mô tả chuyển trạng thái của lịch sử khi execute, undo và redo thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: redo-and-history-003
+    title: Xóa nhánh redo khi người dùng tạo thao tác mới sau một lần undo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: redo-and-history-004
+    title: Phân biệt redo với tạo yêu cầu mới và với retry một lần thực thi thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: redo-and-history-005
+    title: Lưu dữ liệu đã xác định để redo không thay đổi do thời gian, ngẫu nhiên hoặc đầu vào mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: redo-and-history-006
+    title: Giữ lịch sử nhất quán khi undo hoặc redo thất bại giữa chừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: redo-and-history-007
+    title: Giới hạn số bước, dung lượng và thời gian giữ lịch sử theo nhu cầu ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: redo-and-history-008
+    title: Phân biệt lịch sử thao tác phục vụ người dùng với nhật ký quan sát và nhật ký kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: command-and-memento
+  title: Command và Memento
+  childs:
+  - slug: command-and-memento-001
+    title: Kết hợp Command với Memento khi khôi phục bằng thao tác nghịch đảo quá phức tạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-memento-002
+    title: Phân vai Originator, Memento và Caretaker trong cơ chế lưu trạng thái Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-memento-003
+    title: Tạo bản chụp trước thay đổi và bảo vệ tính đóng gói của trạng thái nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-memento-004
+    title: Chọn bản sao sâu, cấu trúc bất biến hoặc bản chụp phần dữ liệu thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-memento-005
+    title: So sánh chi phí bộ nhớ và độ chính xác giữa lưu trạng thái với lưu thao tác nghịch đảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-memento-006
+    title: Kết hợp điểm khôi phục định kỳ với lịch sử thay đổi để giới hạn chi phí lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-memento-007
+    title: Kiểm tra tính tương thích của bản chụp khi mô hình dữ liệu hoặc phiên bản ứng dụng đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-and-memento-008
+    title: Kiểm thử tính độc lập của bản chụp và khả năng khôi phục sau nhiều chuỗi thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-and-transactions
+  title: Lỗi và giao dịch
+  childs:
+  - slug: errors-and-transactions-001
+    title: Phân loại lỗi kiểm tra đầu vào, lỗi nghiệp vụ, lỗi hạ tầng và lỗi lập trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-transactions-002
+    title: Biểu diễn kết quả thành công, thất bại và hoàn tất một phần mà không che giấu tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-transactions-003
+    title: Áp dụng giao dịch cục bộ cho các thay đổi thuộc cùng một ranh giới dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-transactions-004
+    title: Xử lý thất bại khi một lệnh tác động nhiều tài nguyên không dùng chung giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-transactions-005
+    title: Phân biệt rollback, undo do người dùng yêu cầu và compensation trong quy trình nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-transactions-006
+    title: Xác định cách báo cáo và phục hồi khi chính thao tác bù trừ hoặc hoàn tác thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-transactions-007
+    title: Đồng bộ việc cập nhật lịch sử với kết quả giao dịch và trạng thái Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-transactions-008
+    title: Bảo đảm giải phóng tài nguyên và giữ nguyên thông tin nguyên nhân khi truyền lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: command-queues
+  title: Hàng đợi lệnh
+  childs:
+  - slug: command-queues-001
+    title: Tách bên tạo lệnh và bên xử lý bằng hàng đợi trong bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-queues-002
+    title: Lựa chọn FIFO, hàng đợi ưu tiên và phạm vi cần giữ đúng thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-queues-003
+    title: Thiết kế producer, consumer và vòng lặp lấy lệnh bằng BlockingQueue trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-queues-004
+    title: Giới hạn dung lượng và áp dụng backpressure khi tốc độ nhận lệnh vượt năng lực xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-queues-005
+    title: Theo dõi thời điểm nhận, thời gian chờ và chuyển trạng thái khi consumer nhận lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-queues-006
+    title: Cô lập lệnh lỗi và quy định cách đưa lại hàng đợi hoặc chuyển sang nơi xử lý riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-queues-007
+    title: Xử lý yêu cầu hủy khi lệnh còn chờ và khi consumer đã bắt đầu thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-queues-008
+    title: Dừng tiếp nhận, xử lý phần việc còn lại và đóng worker theo chính sách shutdown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-async-execution
+  title: Bất đồng bộ Java
+  childs:
+  - slug: java-async-execution-001
+    title: Phân biệt thực thi đồng bộ, trì hoãn, bất đồng bộ và thực thi song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-async-execution-002
+    title: Chọn Runnable hoặc Callable làm bộ chuyển tiếp từ Command sang ExecutorService
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-async-execution-003
+    title: Nhận kết quả và lỗi bằng Future mà không làm mất ngoại lệ của tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-async-execution-004
+    title: Kết hợp CompletableFuture với Command cho chuỗi xử lý và tổng hợp kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-async-execution-005
+    title: Lựa chọn executor theo loại công việc và tránh chặn nhầm luồng giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-async-execution-006
+    title: Truyền ngữ cảnh theo dõi và người dùng qua ranh giới luồng một cách tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-async-execution-007
+    title: Phân biệt hết thời gian chờ kết quả với việc tác vụ thực sự bị hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-async-execution-008
+    title: Quản lý vòng đời executor và thu hồi tài nguyên khi ứng dụng dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-and-cancellation
+  title: Đồng thời và hủy
+  childs:
+  - slug: concurrency-and-cancellation-001
+    title: Đánh giá an toàn luồng riêng cho Command, Invoker, Receiver và dữ liệu dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-cancellation-002
+    title: Chạy tuần tự theo Receiver hoặc khóa nghiệp vụ khi cần bảo toàn thứ tự thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-cancellation-003
+    title: Lựa chọn khóa đồng bộ hoặc kiểm soát phiên bản để ngăn cập nhật xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-cancellation-004
+    title: Bảo vệ lịch sử undo và redo trước các lần thực thi xen kẽ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-cancellation-005
+    title: Thiết kế hủy hợp tác bằng trạng thái hủy và xử lý interruption đúng hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-cancellation-006
+    title: Xác định điểm không thể hủy sau khi tác dụng phụ đã được xác nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-cancellation-007
+    title: Giải quyết tranh chấp giữa hoàn tất, timeout và yêu cầu hủy của cùng một lần chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-cancellation-008
+    title: Phát hiện deadlock, tranh chấp tài nguyên và kết quả đến muộn trong luồng bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: retry-and-idempotency
+  title: Retry và idempotency
+  childs:
+  - slug: retry-and-idempotency-001
+    title: Chọn lỗi tạm thời có thể retry và lỗi phải dừng để tránh lặp thao tác vô ích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-and-idempotency-002
+    title: Phân biệt gửi lại cùng yêu cầu với tạo một yêu cầu nghiệp vụ mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-and-idempotency-003
+    title: Thiết kế khóa idempotency và lưu kết quả để nhận diện yêu cầu trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-and-idempotency-004
+    title: Bảo đảm việc chống trùng và thay đổi dữ liệu nhất quán trong ranh giới phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-and-idempotency-005
+    title: Áp dụng backoff, jitter và giới hạn số lần thử để giảm quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-and-idempotency-006
+    title: Kết hợp retry với thời hạn, ngân sách thời gian và yêu cầu hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-and-idempotency-007
+    title: Giữ đúng thứ tự nghiệp vụ khi một lệnh bị retry trong chuỗi lệnh liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retry-and-idempotency-008
+    title: Phân tích giới hạn của bảo đảm giao nhận và tránh mặc định rằng một yêu cầu chỉ chạy một lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: persistence-and-recovery
+  title: Lưu trữ và khôi phục
+  childs:
+  - slug: persistence-and-recovery-001
+    title: Xác định khi nào cần hàng đợi bền vững thay cho hàng đợi trong bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-recovery-002
+    title: Lưu loại lệnh, phiên bản, dữ liệu đầu vào và định danh thay vì đồ thị đối tượng Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-recovery-003
+    title: Ánh xạ dữ liệu lệnh đã lưu sang handler và Receiver tại thời điểm xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-recovery-004
+    title: Thiết kế tương thích phiên bản khi cấu trúc dữ liệu hoặc cách xử lý lệnh thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-recovery-005
+    title: Quy định thời điểm xác nhận tiếp nhận và xác nhận xử lý đối với dữ liệu đã lưu bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-recovery-006
+    title: Khôi phục lệnh đang chờ hoặc đang chạy dở sau khi tiến trình gặp sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-recovery-007
+    title: Áp dụng outbox và inbox khi cần phối hợp thay đổi dữ liệu với gửi hoặc nhận lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: persistence-and-recovery-008
+    title: Phân biệt phát lại yêu cầu với phát lại sự kiện và kiểm soát tác dụng phụ khi phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scheduling-and-priorities
+  title: Lịch chạy và ưu tiên
+  childs:
+  - slug: scheduling-and-priorities-001
+    title: Biểu diễn lệnh chạy trễ và xác định thời điểm đủ điều kiện thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-and-priorities-002
+    title: Phân biệt lịch chạy theo chu kỳ cố định với khoảng nghỉ sau mỗi lần hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-and-priorities-003
+    title: Tạo lần thực thi và định danh riêng cho từng lượt của tác vụ lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-and-priorities-004
+    title: Ngăn các lượt chạy chồng lấn khi thao tác trước chưa hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-and-priorities-005
+    title: Thiết kế mức ưu tiên và cơ chế công bằng để tránh lệnh bị bỏ đói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-and-priorities-006
+    title: Xử lý lệnh hết hạn hoặc bỏ lỡ lịch khi worker tạm ngừng hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-and-priorities-007
+    title: Quy định việc đổi lịch, hủy lịch và xử lý những lệnh đã được đưa vào hàng đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scheduling-and-priorities-008
+    title: Phân biệt trách nhiệm của bộ lập lịch với Invoker và logic nghiệp vụ của Command
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Ánh xạ nút bấm, phím tắt và thao tác menu giao diện vào cùng một Command
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-002
+    title: Chuyển tham số dòng lệnh thành đối tượng yêu cầu và trả mã kết thúc phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-003
+    title: Tách controller HTTP khỏi xử lý nghiệp vụ thông qua Command và handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-004
+    title: Thiết kế phản hồi chấp nhận tác vụ và tra cứu trạng thái cho yêu cầu chạy nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-005
+    title: Bao bọc thao tác dữ liệu bằng ranh giới giao dịch và chính sách xử lý lỗi rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-006
+    title: Điều phối lời gọi dịch vụ bên ngoài với timeout, chống trùng và cơ chế bù trừ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-007
+    title: Xử lý lô dữ liệu bằng lệnh cho từng phần tử và tổng hợp kết quả thành công hoặc lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-integration-008
+    title: Lựa chọn mức tích hợp vừa đủ từ ứng dụng một tiến trình đến nhiều worker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: behavior-extensions
+  title: Mở rộng hành vi
+  childs:
+  - slug: behavior-extensions-001
+    title: Dùng Decorator để bổ sung ghi log, đo thời gian và kiểm tra quyền quanh thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-extensions-002
+    title: Tạo pipeline kiểm tra dữ liệu, xác thực ngữ cảnh và áp dụng chính sách trước handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-extensions-003
+    title: Quy định thứ tự middleware để giao dịch, retry và ghi nhận kết quả không xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-extensions-004
+    title: Dùng Adapter để đưa API hoặc thao tác cũ vào hợp đồng Command
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-extensions-005
+    title: Giữ nguyên ngữ nghĩa hoàn tác khi bọc một UndoableCommand bằng lớp mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-extensions-006
+    title: Thiết kế hook trước và sau thực thi mà không làm lỗi quan sát che khuất lỗi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-extensions-007
+    title: Tách phần xử lý lệnh và truy vấn khi cần, đồng thời xác định phạm vi áp dụng CQRS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-extensions-008
+    title: Ngăn tính năng mở rộng làm Command phụ thuộc ngược vào giao diện và hạ tầng điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-comparisons
+  title: So sánh mẫu
+  childs:
+  - slug: pattern-comparisons-001
+    title: Command và Strategy khác nhau ở đối tượng yêu cầu với thuật toán có thể thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-002
+    title: Command và Memento bổ sung cho nhau trong lưu thao tác và lưu trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-003
+    title: Command và Composite kết hợp để biểu diễn một lệnh hoặc cây lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-004
+    title: Command và Chain of Responsibility khác nhau ở định tuyến xử lý và hợp đồng thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-005
+    title: Command và Observer khác nhau ở yêu cầu thực hiện với thông báo điều đã xảy ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-006
+    title: Command và Template Method khác nhau ở đóng gói yêu cầu với bộ khung thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-007
+    title: Command và service nghiệp vụ khác nhau ở biểu diễn lời yêu cầu với năng lực xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-008
+    title: Command GoF, command message và CQRS có thể liên quan nhưng giải quyết các phạm vi khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: command-testing
+  title: Kiểm thử Command
+  childs:
+  - slug: command-testing-001
+    title: Kiểm thử đơn vị Command với fake hoặc mock Receiver và kiểm tra dữ liệu được ủy quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-testing-002
+    title: Kiểm thử tích hợp Receiver và giao dịch bằng trạng thái nghiệp vụ quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-testing-003
+    title: Kiểm thử Invoker và định tuyến để phát hiện lệnh thiếu, trùng hoặc được gọi sai thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-testing-004
+    title: Kiểm thử MacroCommand khi lệnh con thành công, thất bại và hoàn tác một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-testing-005
+    title: Kiểm thử bất biến undo và redo bằng chuỗi thao tác, lịch sử phân nhánh và tình huống xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-testing-006
+    title: Kiểm thử hàng đợi với giới hạn dung lượng, thứ tự, backpressure và shutdown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-testing-007
+    title: Kiểm thử bất đồng bộ bằng executor và đồng hồ kiểm soát được, tránh phụ thuộc thời gian ngủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: command-testing-008
+    title: Kiểm thử cạnh tranh, timeout, hủy, retry, yêu cầu trùng và khôi phục sau sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-security
+  title: Quan sát và bảo mật
+  childs:
+  - slug: observability-and-security-001
+    title: Ghi log vòng đời lệnh với loại yêu cầu, định danh lần chạy và kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-002
+    title: Phân biệt mã tương quan theo dõi, định danh lệnh và khóa idempotency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-003
+    title: Đo thời gian chờ, thời gian xử lý, độ sâu hàng đợi và tỷ lệ lỗi hoặc retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-004
+    title: Liên kết trace từ bên gửi qua hàng đợi đến handler và Receiver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-005
+    title: Kiểm tra quyền tại thời điểm thực thi khi lệnh có thể được trì hoãn lâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-006
+    title: Giới hạn loại lệnh được chấp nhận và kiểm tra dữ liệu khi giải mã yêu cầu bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-007
+    title: Giảm dữ liệu nhạy cảm trong tham số, lịch sử, bản chụp và nhật ký kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-008
+    title: Giới hạn kích thước yêu cầu, số lệnh con và tài nguyên để tránh lạm dụng cơ chế thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-resources
+  title: Hiệu năng và tài nguyên
+  childs:
+  - slug: performance-and-resources-001
+    title: Đánh giá chi phí tạo đối tượng lệnh và giữ tham chiếu trong hàng đợi hoặc lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-002
+    title: Đo bộ nhớ của bản chụp và lựa chọn chính sách cắt giảm lịch sử undo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-003
+    title: Cân đối số worker, năng lực Receiver và mức tranh chấp trên tài nguyên chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-004
+    title: Chọn dung lượng hàng đợi theo tốc độ tiếp nhận, thời gian xử lý và giới hạn bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-005
+    title: Cân nhắc xử lý theo lô với yêu cầu độ trễ, thứ tự và khả năng báo lỗi từng lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-006
+    title: Giảm chi phí ghi log và thu thập chỉ số trên đường thực thi thường xuyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-007
+    title: Tránh tái sử dụng đối tượng lệnh có trạng thái chỉ để giảm cấp phát khi chưa có số đo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-008
+    title: Đo thông lượng, phân vị độ trễ và mức sử dụng tài nguyên bằng tải đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-pitfalls
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Tạo quá nhiều lớp lệnh cho thao tác đơn giản mà không có nhu cầu điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-002
+    title: Dồn nghiệp vụ vào Invoker hoặc sao chép cùng quy tắc vào nhiều ConcreteCommand
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-003
+    title: Giữ tham số có thể thay đổi khiến lệnh thực thi khác yêu cầu ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-004
+    title: Đồng nhất execute, redo và retry dù ba thao tác có ngữ nghĩa khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-005
+    title: Cập nhật lịch sử trước khi thao tác thành công hoặc làm mất lịch sử khi hoàn tác lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-006
+    title: Mặc định lệnh tổng hợp luôn nguyên tử và mọi tác dụng phụ đều có thể đảo ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-007
+    title: Bỏ qua lỗi tác vụ nền, retry vô hạn hoặc coi timeout là bằng chứng thao tác chưa xảy ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-pitfalls-008
+    title: Cho phép dữ liệu bên ngoài chọn tùy ý lớp lệnh, Receiver hoặc phương thức thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: exercises-and-projects
+  title: Bài tập và dự án
+  childs:
+  - slug: exercises-and-projects-001
+    title: Xây dựng bộ điều khiển nhiều thiết bị và chứng minh có thể thêm lệnh mà không sửa Invoker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-projects-002
+    title: Viết trình soạn thảo văn bản có chèn, xóa, thay thế, undo, redo và lịch sử phân nhánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-projects-003
+    title: Tạo MacroCommand có lỗi được chủ động kích hoạt để kiểm tra thứ tự và kết quả bù trừ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-projects-004
+    title: Xây dựng hàng đợi giới hạn dung lượng với nhiều producer, worker và shutdown có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-projects-005
+    title: Mở rộng tác vụ Java bất đồng bộ với kết quả, ngoại lệ, thời hạn và hủy hợp tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-projects-006
+    title: Thiết kế API nhận lệnh có khóa idempotency và kiểm thử khi cùng yêu cầu được gửi lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-projects-007
+    title: Lưu dữ liệu lệnh có phiên bản và mô phỏng khởi động lại để kiểm tra phục hồi công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-projects-008
+    title: Hoàn thiện dự án tổng hợp với sơ đồ vai trò, tiêu chí đúng đắn, kiểm thử lỗi và số đo hiệu năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

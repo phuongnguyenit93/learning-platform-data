@@ -1,0 +1,507 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring AMQP là gì và bài toán tích hợp ứng dụng bằng thông điệp
+  - Vai trò của producer, broker, consumer và ứng dụng nghiệp vụ
+  - Hàng đợi công việc, phát–đăng ký và yêu cầu–phản hồi
+  - Quan hệ giữa AMQP, RabbitMQ và Spring AMQP
+  - Phân biệt gửi thông điệp với gọi HTTP đồng bộ
+  - Phân biệt Spring AMQP, Spring JMS, Spring Integration và Spring Cloud Stream
+  - Luồng tổng thể từ tạo thông điệp đến xử lý và xác nhận
+  - Lợi ích, chi phí và trường hợp không nên thêm hệ thống hàng đợi
+- level1: Mô hình AMQP
+  level2:
+  - Exchange, queue, binding và routing key trong AMQP 0.9.1
+  - Connection, channel và vòng đời kết nối đến broker
+  - Message body, properties và application headers
+  - Virtual host và phạm vi cô lập tài nguyên
+  - Phân biệt lưu thông điệp trong queue với sao chép tới nhiều queue
+  - Competing consumers và phân phối công việc
+  - Consumer acknowledgement và publisher confirm là hai cơ chế độc lập
+  - Ý nghĩa giao nhận at-most-once, at-least-once và giới hạn exactly-once
+  - Phân biệt AMQP 0.9.1, AMQP 1.0 và RabbitMQ Stream protocol
+- level1: Phiên bản và thư viện
+  level2:
+  - Vai trò của spring-amqp và spring-rabbit
+  - Chọn Java, Spring Framework, Spring Boot và Spring AMQP tương thích
+  - Quản lý dependency qua Spring Boot và tránh trộn phiên bản RabbitMQ client
+  - Phạm vi tích hợp RabbitMQ bằng AMQP 0.9.1
+  - spring-rabbit-stream và phạm vi hỗ trợ RabbitMQ Streams
+  - spring-rabbitmq-client cho RabbitMQ AMQP 1.0 từ Spring AMQP 4.0
+  - spring-amqp-client cho AMQP 1.0 tổng quát từ Spring AMQP 4.1
+  - Phân biệt cấu hình và API giữa các protocol
+  - Đọc tài liệu đúng phiên bản và theo dõi tính năng bị ngừng hỗ trợ
+- level1: Khởi tạo
+  level2:
+  - Dựng RabbitMQ cục bộ bằng Docker Compose cho thực hành
+  - Thêm starter RabbitMQ phù hợp phiên bản Spring Boot bằng Maven hoặc Gradle
+  - Cấu hình host, port, virtual host và tài khoản kết nối
+  - Vai trò tự cấu hình của RabbitTemplate, RabbitAdmin và listener container factory
+  - Tạo exchange, queue và binding tối thiểu bằng Spring bean
+  - Gửi thông điệp đầu tiên và nhận bằng @RabbitListener
+  - Quan sát luồng thông điệp qua RabbitMQ Management
+  - Tách cấu hình môi trường và kiểm chứng kết nối ban đầu
+- level1: Khai báo tài nguyên
+  level2:
+  - Queue, Exchange, Binding và các builder của Spring AMQP
+  - QueueBuilder, ExchangeBuilder và BindingBuilder
+  - 'Durable, exclusive và auto-delete: ba thuộc tính khác nhau'
+  - AnonymousQueue, tên queue do broker sinh và vòng đời kết nối
+  - RabbitAdmin và tự động khai báo tài nguyên khi có kết nối
+  - Declarables và tổ chức tập tài nguyên liên quan
+  - '@QueueBinding, @Queue và @Exchange trên listener'
+  - Kiểm soát auto-declare, shouldDeclare và admin chịu trách nhiệm
+  - Khai báo thụ động, tài nguyên chưa tồn tại và lỗi không khớp thuộc tính
+  - Quyền sở hữu topology giữa ứng dụng và đội vận hành
+  - Khai báo tài nguyên khi có nhiều connection factory hoặc RabbitAdmin
+- level1: Định tuyến thông điệp
+  level2:
+  - DirectExchange và khớp chính xác routing key
+  - 'TopicExchange với wildcard * và #'
+  - FanoutExchange và phát thông điệp đến nhiều queue
+  - HeadersExchange và điều kiện x-match
+  - Default exchange và định tuyến theo tên queue
+  - Nhiều binding trên một queue và nhiều queue cho một sự kiện
+  - Exchange-to-exchange binding trong RabbitMQ
+  - Alternate exchange cho thông điệp không có queue phù hợp
+  - Chọn exchange, routing key và quy tắc đặt tên theo miền nghiệp vụ
+  - Đối chiếu định tuyến đúng, không định tuyến được và exchange không tồn tại
+- level1: Các loại hàng đợi
+  level2:
+  - Classic queue và đặc điểm sử dụng
+  - Quorum queue, sao chép và điều kiện đủ số bản sao
+  - Stream queue và mô hình log có thể đọc lại
+  - Chọn queue type theo độ tin cậy, thời gian lưu và cách tiêu thụ
+  - Khai báo queue type bằng QueueBuilder hoặc đối số phù hợp
+  - Single Active Consumer và điều kiện sử dụng
+  - Consumer priority và khác biệt với message priority
+  - Exclusive consumer và giới hạn theo queue type
+  - Không đồng nhất classic durable queue với queue được sao chép
+  - Thay đổi queue type và kế hoạch chuyển dữ liệu
+- level1: Chính sách hàng đợi
+  level2:
+  - Message TTL theo queue và theo từng thông điệp
+  - Queue TTL và phân biệt hết hạn queue với hết hạn thông điệp
+  - Giới hạn số lượng thông điệp và tổng kích thước queue
+  - 'Overflow: loại bỏ đầu hàng đợi hoặc từ chối publish theo khả năng queue'
+  - Priority queue và giới hạn ưu tiên theo loại queue, phiên bản RabbitMQ
+  - Delivery limit của quorum queue và xử lý thông điệp gây lỗi
+  - Policy, operator policy và đối số x-arguments do ứng dụng khai báo
+  - Ưu tiên cấu hình có thể thay đổi và giới hạn của thuộc tính cố định
+  - Đánh giá tác động của TTL, giới hạn và chính sách lên dữ liệu đang lưu
+- level1: Kết nối và channel
+  level2:
+  - Spring ConnectionFactory và RabbitMQ Java Client ConnectionFactory
+  - CachingConnectionFactory và tái sử dụng connection/channel
+  - CacheMode.CHANNEL so với CacheMode.CONNECTION
+  - channelCacheSize là kích thước cache hay giới hạn đang dùng
+  - channelCheckoutTimeout, connectionLimit và thời gian chờ tài nguyên
+  - PooledChannelConnectionFactory và giới hạn publisher confirm tương quan
+  - ThreadChannelConnectionFactory và vòng đời channel gắn với luồng
+  - Tách kết nối publisher khỏi consumer bằng cấu hình phù hợp
+  - Executor, heartbeat, timeout và tên kết nối
+  - ConnectionListener, ChannelListener và sự kiện đóng tài nguyên
+  - RabbitTemplate.execute(), invoke() và phạm vi dùng chung channel
+  - An toàn đa luồng và trách nhiệm đóng channel được truy cập trực tiếp
+- level1: Cấu trúc thông điệp
+  level2:
+  - org.springframework.amqp.core.Message và MessageProperties
+  - MessageBuilder và MessagePropertiesBuilder
+  - Content type, content encoding và định dạng dữ liệu
+  - Delivery mode và ý nghĩa thông điệp persistent
+  - messageId, correlationId, timestamp, type và appId
+  - replyTo, expiration và priority
+  - Header nghiệp vụ, metadata định tuyến và thông tin nhận từ broker
+  - Delivery tag, redelivered và consumer tag ở phía nhận
+  - Phân biệt Spring AMQP Message với Spring Messaging Message<?>
+  - Thiết kế envelope sự kiện và định danh ổn định cho từng thông điệp
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - MessageConverter và ranh giới chuyển đổi payload
+  - send() với Message so với convertAndSend() với đối tượng
+  - SimpleMessageConverter cho byte[], String và đối tượng được hỗ trợ
+  - Rủi ro Java serialization và giới hạn đối tượng được phép giải tuần tự
+  - 'JSON converter theo phiên bản: Jackson2JsonMessageConverter hoặc JacksonJsonMessageConverter'
+  - Chuyển đổi Jackson 2 sang Jackson 3 khi nâng cấp Spring AMQP
+  - Type headers, DefaultClassMapper và trusted packages
+  - Kiểu suy luận từ tham số listener so với kiểu do producer cung cấp
+  - ParameterizedTypeReference và payload có kiểu generic
+  - ContentTypeDelegatingMessageConverter và nhiều định dạng nội dung
+  - Jackson XML, marshalling và converter tùy biến khi cần
+  - Tương thích JSON với producer hoặc consumer không dùng Spring
+  - Phiên bản schema, trường tùy chọn và thay đổi cấu trúc sự kiện
+- level1: Gửi thông điệp
+  level2:
+  - AmqpTemplate, RabbitOperations và RabbitTemplate
+  - Gửi theo exchange và routing key hoặc dùng giá trị mặc định
+  - MessagePostProcessor và bổ sung properties trước khi gửi
+  - Before-publish và after-receive post processor
+  - GzipPostProcessor và giải nén theo content encoding khi phù hợp
+  - Đặt messageId, thời hạn và metadata nghiệp vụ
+  - Gửi nhiều thông điệp trong cùng phạm vi channel
+  - Gửi thất bại trước khi kết nối, khi channel đóng hoặc khi broker từ chối
+  - Retry phía publisher và khả năng tạo thông điệp trùng
+  - Chọn điểm kết thúc nghiệp vụ gửi dựa trên confirm thay vì chỉ gọi hàm thành công
+- level1: Confirm và return
+  level2:
+  - Phân biệt broker nhận publish với consumer hoàn thành xử lý
+  - Publisher confirm kiểu SIMPLE và CORRELATED
+  - Cấu hình publisher confirm trên connection factory
+  - ConfirmCallback và CorrelationData cho từng lần gửi
+  - CompletableFuture từ CorrelationData và xử lý confirm bất đồng bộ
+  - Publisher returns, mandatory và ReturnsCallback
+  - Thông điệp không định tuyến được vẫn có thể nhận confirm ack
+  - Thứ tự xử lý return và confirm cho cùng thông điệp
+  - Publish vào exchange không tồn tại và lỗi đóng channel
+  - Timeout hoặc mất kết nối khi chưa biết kết quả publish
+  - Giới hạn số publish chưa được xác nhận và lưu trạng thái chờ
+  - Thiết kế gửi lại khi kết quả không rõ và chống xử lý trùng
+- level1: Nhận thông điệp
+  level2:
+  - Nhận đồng bộ bằng RabbitTemplate.receive()
+  - receiveAndConvert() và chuyển kiểu dữ liệu phía nhận
+  - Nhận ngay, chờ có thời hạn và chi phí polling
+  - MessageListener và ChannelAwareMessageListener
+  - MessageListenerAdapter và ánh xạ thông điệp vào phương thức
+  - Nhận theo sự kiện bằng listener container
+  - Header nhận, routing key gốc và thông tin queue
+  - Lựa chọn polling, listener hoặc request–reply theo bài toán
+- level1: Listener khai báo
+  level2:
+  - '@EnableRabbit trong Spring thuần và tự cấu hình trong Spring Boot'
+  - '@RabbitListener tại phương thức và lớp'
+  - Khai báo queues, queuesToDeclare và bindings
+  - Tham số payload, Message, Channel, @Header và @Headers
+  - '@Payload, kiểm tra dữ liệu và lỗi trước khi gọi phương thức'
+  - '@RabbitHandler và phân phối theo kiểu payload'
+  - containerFactory, concurrency, ackMode và messageConverter
+  - SpEL, property placeholder và định danh endpoint
+  - '@SendTo, giá trị trả về và thông điệp phản hồi'
+  - RabbitListenerConfigurer và đăng ký endpoint bằng mã
+  - RabbitListenerEndpointRegistry và quản lý start/stop theo id
+  - Giới hạn proxy, phương thức generic và các trường hợp chọn handler không rõ
+- level1: Listener container
+  level2:
+  - Vai trò listener container trong luồng nhận, xử lý và xác nhận
+  - SimpleMessageListenerContainer và luồng xử lý riêng cho consumer
+  - DirectMessageListenerContainer và thực thi trên luồng RabbitMQ client
+  - SimpleRabbitListenerContainerFactory và DirectRabbitListenerContainerFactory
+  - concurrentConsumers, maxConcurrentConsumers và consumersPerQueue
+  - Prefetch và số thông điệp chưa được xác nhận
+  - TaskExecutor, thread pool và giới hạn xử lý đồng thời
+  - Nhận từ nhiều queue và phân bổ consumer giữa các queue
+  - Thêm hoặc xóa queue trong lúc chạy
+  - autoStartup, SmartLifecycle và thứ tự khởi động
+  - Missing queue, sai thuộc tính queue và chính sách dừng container
+  - Sự kiện idle, consumer thất bại và thay đổi trạng thái
+  - Dừng an toàn, forceStop và thông điệp đã được prefetch
+- level1: Xác nhận tiêu thụ
+  level2:
+  - AcknowledgeMode.NONE, AUTO và MANUAL của Spring
+  - Phân biệt AUTO của Spring với auto-ack tại broker
+  - Thời điểm ack khi listener trả về thành công
+  - basicAck, basicNack và basicReject
+  - Delivery tag chỉ có ý nghĩa trong channel nhận tương ứng
+  - Tham số multiple, requeue và ảnh hưởng tới các delivery khác
+  - Exception trong listener và defaultRequeueRejected
+  - Thông điệp unacked khi consumer mất kết nối
+  - Lỗi unknown delivery tag do ack sai channel hoặc ack hai lần
+  - Manual ack khi xử lý bất đồng bộ và tránh xác nhận quá sớm
+  - Thời hạn xác nhận của consumer và thời gian xử lý kéo dài
+  - Chọn chiến lược ack theo ranh giới hoàn tất nghiệp vụ
+- level1: Xử lý lỗi
+  level2:
+  - Lỗi kết nối, lỗi chuyển đổi thông điệp và lỗi nghiệp vụ
+  - AmqpException và cơ chế chuyển đổi exception
+  - ListenerExecutionFailedException và thông điệp gây lỗi
+  - ErrorHandler của container và RabbitListenerErrorHandler
+  - ConditionalRejectingErrorHandler và FatalExceptionStrategy
+  - AmqpRejectAndDontRequeueException để từ chối không xếp lại
+  - ImmediateRequeueAmqpException và yêu cầu xếp lại có chủ đích
+  - Lỗi fatal trước khi gọi listener và tác động đến MANUAL ack
+  - Thông điệp poison, x-death và phòng tránh vòng lặp vô hạn
+  - Phản hồi exception qua request–reply và giới hạn converter
+  - Chính sách dừng listener khi lỗi fatal theo phiên bản hỗ trợ
+- level1: Thử lại thông điệp
+  level2:
+  - Phân biệt thử kết nối lại, thử gửi lại và thử xử lý lại thông điệp
+  - Phân loại lỗi tạm thời với lỗi không thể phục hồi bằng retry
+  - RetryTemplate và retry interceptor theo dòng phiên bản sử dụng
+  - Stateless retry và stateful retry cho listener
+  - messageId và khóa nhận diện khi dùng stateful retry
+  - Số lần thử, khoảng chờ tăng dần và giới hạn tổng thời gian
+  - adviceChain và thứ tự retry so với giao dịch
+  - MessageRecoverer sau khi hết số lần thử
+  - RejectAndDontRequeueRecoverer và RepublishMessageRecoverer
+  - RepublishMessageRecovererWithConfirms và độ tin cậy khi chuyển lỗi
+  - Ảnh hưởng của retry chặn luồng đến consumer và prefetch
+  - Khi nào dùng retry tại chỗ và khi nào chuyển sang queue trì hoãn
+- level1: Dead-letter và trì hoãn
+  level2:
+  - Dead-letter exchange, dead-letter queue và routing key
+  - 'Các nguyên nhân dead-letter: reject, hết hạn, giới hạn và delivery limit'
+  - Khai báo DLX bằng policy hoặc đối số queue
+  - x-death, lịch sử chuyển queue và đếm số lần xử lý
+  - Retry queue dùng TTL và DLX để trì hoãn
+  - Giới hạn TTL theo từng thông điệp và hiện tượng chặn ở đầu queue
+  - Giới hạn số lần quay lại và queue cách ly cuối cùng
+  - Phân biệt republish từ ứng dụng với dead-letter do broker thực hiện
+  - Độ tin cậy của dead-letter theo loại queue và chính sách
+  - Delayed-message exchange plugin khi được hỗ trợ và cài đặt
+  - Delayed retry tích hợp của broker theo loại queue và phiên bản hỗ trợ
+  - Kiểm tra, sửa và phát lại thông điệp lỗi có kiểm soát
+  - Ngăn chu trình DLX, mất routing key và tăng kích thước header
+- level1: Yêu cầu và phản hồi
+  level2:
+  - Mô hình request–reply qua RabbitMQ và chi phí so với gọi HTTP
+  - sendAndReceive() và convertSendAndReceive()
+  - replyTo, correlationId và đối chiếu phản hồi
+  - RabbitMQ Direct Reply-To và điều kiện sử dụng
+  - Queue phản hồi cố định hoặc tạm thời
+  - Cấu hình reply listener và phân biệt với listener nghiệp vụ
+  - '@SendTo, ReplyPostProcessor và chọn đích phản hồi'
+  - replyTimeout, phản hồi đến muộn và yêu cầu không có phản hồi
+  - Publisher confirm/return trong luồng request–reply
+  - AsyncRabbitTemplate với CompletableFuture
+  - convertSendAndReceiveAsType() cho kiểu phản hồi phức tạp
+  - Giới hạn độ tin cậy của Direct Reply-To và khả năng xử lý lại request
+- level1: Xử lý bất đồng bộ
+  level2:
+  - '@RabbitListener trả về CompletableFuture hoặc Mono'
+  - Hoàn tất bất đồng bộ và thời điểm ack hoặc nack
+  - Tự chọn MANUAL ack theo loại trả về và phiên bản hỗ trợ
+  - Lỗi trước khi tạo Future hoặc Mono và lỗi khi hoàn tất
+  - RabbitListenerErrorHandler cho kết quả trả về bất đồng bộ
+  - Quản lý executor, số công việc đang chạy và giới hạn tài nguyên
+  - Kotlin suspend listener khi dự án sử dụng Kotlin
+  - Phân biệt listener trả Mono với toàn bộ RabbitMQ client không chặn
+  - Hủy tác vụ, dừng ứng dụng và xử lý delivery chưa hoàn tất
+- level1: Xử lý theo lô
+  level2:
+  - Phân biệt lô do producer tạo với lô gom từ các delivery riêng
+  - BatchingRabbitTemplate và BatchingStrategy
+  - Giới hạn số lượng, kích thước và thời gian chờ gom lô
+  - Giải lô tự động và thuộc tính deBatchingEnabled
+  - consumerBatchEnabled, batchListener và kiểu tham số listener
+  - batchSize, receiveTimeout và các tùy chọn gom lô theo phiên bản
+  - Giới hạn khác nhau giữa SMLC và DMLC
+  - Ack theo lô, lỗi một phần và nguy cơ phát lại nhiều thông điệp
+  - Retry, recoverer và thông điệp lỗi trong một lô
+  - Đo thông lượng so với độ trễ và bộ nhớ khi dùng batching
+- level1: Giao dịch
+  level2:
+  - channelTransacted và giao dịch AMQP cục bộ
+  - RabbitTransactionManager và phạm vi tài nguyên quản lý
+  - '@Transactional kết hợp listener với giao dịch cơ sở dữ liệu'
+  - Đồng bộ giao dịch cơ sở dữ liệu và AMQP theo best-efforts one-phase commit
+  - Giới hạn tính nguyên tử khi commit hai hệ thống khác nhau
+  - Rollback, acknowledgement và xếp lại thông điệp
+  - alwaysRequeueWithTxManagerRollback theo cấu hình và phiên bản
+  - Tương tác giữa giao dịch, retry và lỗi nghiệp vụ
+  - Giới hạn kết hợp channel transaction với publisher confirm
+  - Chi phí hiệu năng và lựa chọn thay thế bằng outbox
+- level1: Độ tin cậy đầu cuối
+  level2:
+  - Vì sao queue durable và message persistent chưa đủ bảo đảm hoàn tất nghiệp vụ
+  - Xác định các cửa sổ mất thông điệp và xử lý trùng
+  - Publisher confirm, consumer ack và trách nhiệm của mỗi bên
+  - Message ID, khóa nghiệp vụ và consumer có tính lặp an toàn (idempotency)
+  - Lưu dấu xử lý bằng ràng buộc duy nhất hoặc inbox
+  - Transactional outbox để đồng bộ thay đổi dữ liệu và ý định gửi
+  - Outbox relay với confirm và trạng thái publish chưa rõ
+  - Xử lý sự kiện trùng, đến muộn hoặc không còn phù hợp
+  - Exactly-once ở cấp tác động nghiệp vụ và giới hạn bảo đảm của broker
+  - Đối soát thông điệp, dữ liệu nghiệp vụ và tác vụ bị bỏ dở
+  - Phát lại sự kiện và kiểm soát tác động lặp lên hệ thống ngoài
+- level1: Thứ tự và đồng thời
+  level2:
+  - Phạm vi bảo đảm thứ tự của queue và channel
+  - Nhiều producer, nhiều channel và thứ tự quan sát thực tế
+  - Nhiều consumer, prefetch và hoàn tất xử lý không cùng thứ tự
+  - Requeue, redelivery, priority và retry làm thay đổi thứ tự
+  - Single Active Consumer cho yêu cầu tiêu thụ tuần tự
+  - Phân vùng theo khóa nghiệp vụ qua nhiều queue
+  - Định tuyến nhất quán theo aggregate hoặc khách hàng
+  - Tăng concurrency của SMLC và DMLC đúng cơ chế
+  - Giới hạn đồng thời theo tài nguyên cơ sở dữ liệu hoặc API phía sau
+  - Version sự kiện và phát hiện sự kiện đến sai thứ tự
+- level1: Phục hồi kết nối
+  level2:
+  - Spring AMQP recovery và automatic recovery của RabbitMQ Java Client
+  - Mất connection so với lỗi chỉ đóng một channel
+  - Heartbeat, phát hiện mất kết nối và thời gian phục hồi
+  - Recovery interval, BackOff và giới hạn kết nối lại
+  - Phục hồi consumer sau khi broker hoặc node khởi động lại
+  - Khai báo lại exchange, queue và binding khi cần
+  - Exclusive queue, AnonymousQueue và thay đổi tên sau phục hồi
+  - Publish chưa có confirm và delivery chưa ack khi mất kết nối
+  - Consumer bị broker hủy và xử lý queue biến mất
+  - Blocked connection do giới hạn bộ nhớ hoặc dung lượng đĩa
+  - Điều phối retry để tránh đồng loạt kết nối lại quá mức
+  - Kiểm chứng trạng thái ứng dụng sau khi phục hồi
+- level1: Nhiều broker và khách hàng
+  level2:
+  - Phân biệt cluster RabbitMQ với nhiều broker độc lập
+  - Cấu hình nhiều địa chỉ kết nối và lựa chọn node
+  - Nhiều ConnectionFactory, RabbitTemplate và container factory
+  - AbstractRoutingConnectionFactory và chọn đích kết nối theo ngữ cảnh
+  - Định tuyến gửi/nhận và tài nguyên tương ứng trên từng broker
+  - Cô lập khách hàng bằng virtual host, tài khoản hoặc broker
+  - RabbitAdmin phụ trách khai báo đúng tập tài nguyên
+  - Connection name, metric và log cho từng broker hoặc khách hàng
+  - Giới hạn số connection, channel và tài nguyên theo khách hàng
+  - Đánh giá Shovel/Federation như cơ chế broker ngoài phạm vi RabbitTemplate
+- level1: RabbitMQ Streams
+  level2:
+  - Khi nào dùng stream thay cho queue tiêu thụ thông thường
+  - Phân biệt truy cập stream qua AMQP với native Stream protocol
+  - spring-rabbit-stream và cấu hình Environment
+  - Khai báo stream bằng QueueBuilder hoặc StreamAdmin theo cách kết nối
+  - RabbitStreamTemplate và gửi thông điệp bất đồng bộ
+  - StreamListenerContainer và StreamRabbitListenerContainerFactory
+  - Đọc Spring Message hoặc thông điệp stream nguyên bản
+  - Offset bắt đầu, theo dõi offset và đọc lại dữ liệu
+  - Retention theo thời gian hoặc dung lượng
+  - SuperStream, phân vùng và chọn khóa định tuyến
+  - Single Active Consumer trong super stream
+  - Giới hạn annotation, retry và tính năng so với container AMQP 0.9.1
+- level1: AMQP 1.0
+  level2:
+  - Khác biệt mô hình connection, session, link và settlement với AMQP 0.9.1
+  - RabbitMQ AMQP 1.0 qua spring-rabbitmq-client từ phiên bản 4.0
+  - Cấu hình môi trường, kết nối và template của RabbitMQ AMQP 1.0
+  - Listener RabbitMQ AMQP 1.0 và phạm vi tái sử dụng @RabbitListener
+  - AMQP 1.0 tổng quát qua spring-amqp-client từ phiên bản 4.1
+  - Qpid ProtonJ2, AmqpConnectionFactory và SingleAmqpConnectionFactory
+  - AmqpClient và thao tác gửi/nhận dựa trên CompletableFuture
+  - AmqpMessageListenerContainer, link credit và settlement thủ công
+  - '@EnableAmqp, @AmqpListener và registry riêng của generic client'
+  - Chuyển đổi thông điệp và tương thích với broker AMQP 1.0 mục tiêu
+  - Phân biệt API, thuộc tính và mức hỗ trợ giữa hai module AMQP 1.0
+  - Kế hoạch chuyển protocol và kiểm thử tương thích nghiệp vụ
+- level1: Bảo mật
+  level2:
+  - Tài khoản RabbitMQ và quyền configure, write, read trên virtual host
+  - Phân tách quyền producer, consumer và quản trị topology
+  - TLS, trust store và xác minh danh tính broker
+  - mTLS hoặc cơ chế xác thực khác theo khả năng client/broker
+  - Quản lý mật khẩu, chứng chỉ và bí mật theo môi trường
+  - Luân chuyển thông tin kết nối và khôi phục ứng dụng
+  - Trusted packages, type headers và phòng tránh giải tuần tự không an toàn
+  - Giới hạn nội dung, header và dữ liệu đầu vào không tin cậy
+  - Mã hóa dữ liệu nghiệp vụ nhạy cảm khi yêu cầu bảo vệ đầu cuối
+  - Che payload, token và thông tin nhận diện khỏi log
+  - Cô lập management endpoint và cập nhật bản vá thư viện
+- level1: Quan sát hệ thống
+  level2:
+  - RabbitMQ Management, Prometheus và số liệu của broker
+  - Queue depth, ready, unacked và tốc độ publish/deliver/ack
+  - Micrometer timer cho RabbitTemplate và listener
+  - Micrometer Observation và tracing theo phiên bản hỗ trợ
+  - Truyền trace context, correlationId và messageId
+  - Phân biệt độ trễ chờ trong queue với thời gian xử lý
+  - Theo dõi confirm nack, return, retry và dead-letter
+  - Giám sát connection, channel, consumer và mức sử dụng executor
+  - Listener idle events và sự kiện consumer thất bại
+  - Giới hạn cardinality khi gắn nhãn theo queue hoặc khách hàng
+  - Cảnh báo backlog, mất consumer, resource alarm và thông điệp poison
+- level1: Kiểm thử
+  level2:
+  - Chọn kiểm thử đơn vị, tích hợp và toàn trình cho luồng thông điệp
+  - Mock RabbitTemplate và kiểm thử quy tắc định tuyến nghiệp vụ
+  - TestRabbitTemplate và giới hạn mô phỏng không có broker
+  - spring-rabbit-test, @SpringRabbitTest và @RabbitListenerTest
+  - RabbitListenerTestHarness để quan sát listener được gọi
+  - LatchCountDownAndCallRealMethodAnswer và chờ kết quả không đồng bộ
+  - RabbitMQContainer, Testcontainers và cấu hình kết nối cho Spring Boot
+  - Kiểm thử topology, converter và producer/consumer khác ngôn ngữ
+  - Kiểm thử confirm, mandatory return và exchange không tồn tại
+  - Kiểm thử ack, requeue, retry và DLQ bằng broker thật
+  - Mô phỏng trùng lặp, mất kết nối và khởi động lại consumer
+  - Kiểm thử giao dịch, outbox và tác động nghiệp vụ có tính lặp an toàn
+  - Kiểm thử batch, RPC, stream và protocol theo phạm vi sử dụng
+  - Đồng bộ chờ bằng điều kiện thay vì sleep cố định
+  - Cô lập queue, dữ liệu và tài nguyên giữa các lượt kiểm thử
+- level1: Hiệu năng
+  level2:
+  - Đo thông lượng, độ trễ và kích thước thông điệp thực tế
+  - Chọn prefetch theo thời gian xử lý và dung lượng bộ nhớ
+  - Tăng consumer concurrency theo năng lực hệ thống phía sau
+  - Tối ưu channel cache, connection và executor
+  - Publisher confirm bất đồng bộ và số publish đang chờ
+  - Đánh giá batching, nén payload và chi phí chuyển đổi JSON
+  - Giảm kích thước thông điệp bằng tham chiếu tới dữ liệu ngoài
+  - Chi phí persistence, quorum replication và transaction
+  - Đánh giá queue backlog, thông điệp ưu tiên và tải không đồng đều
+  - Điều tiết producer, flow control và giới hạn tài nguyên broker
+  - Kiểm thử tải kéo dài, tải đột biến và hành vi khi quá tải
+- level1: Triển khai và vận hành
+  level2:
+  - Đóng gói ứng dụng và quản lý cấu hình RabbitMQ theo môi trường
+  - Readiness, liveness và quyết định khi broker chưa sẵn sàng
+  - Khởi động topology và listener đúng thứ tự
+  - Triển khai nhiều bản sao producer/consumer
+  - Dừng an toàn, xử lý delivery đang chạy và rút consumer
+  - Tự động mở rộng theo queue backlog và thời gian xử lý
+  - Giới hạn CPU, bộ nhớ, connection và channel của ứng dụng
+  - RabbitMQ cluster, quorum và tác động khi node mất kết nối
+  - Sao lưu definitions, dữ liệu và ranh giới trách nhiệm vận hành
+  - Nâng cấp broker/ứng dụng theo từng đợt và kiểm tra tương thích
+  - Thay đổi topology không phá hủy thông điệp còn chờ
+  - Runbook phục hồi và đối soát sau sự cố
+- level1: Mẫu tích hợp
+  level2:
+  - Work queue cho tác vụ nền và phân phối việc giữa consumer
+  - Pub/sub cho sự kiện miền với queue riêng từng nhóm sử dụng
+  - Routing key theo loại sự kiện, phiên bản hoặc khách hàng
+  - Request–reply cho yêu cầu cần phản hồi có thời hạn
+  - Outbox/inbox trong kiến trúc giao dịch phân tán
+  - Saga và ranh giới điều phối nghiệp vụ qua thông điệp
+  - Retry queue, DLQ và khu vực xử lý thông điệp lỗi
+  - Spring Integration AMQP adapter và gateway khi cần luồng tích hợp
+  - Spring Cloud Stream Rabbit binder và ranh giới so với Spring AMQP trực tiếp
+  - Chọn queue, stream hoặc broker khác theo đặc điểm bài toán
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không kết nối được do địa chỉ, virtual host, TLS hoặc quyền truy cập
+  - PRECONDITION_FAILED khi khai báo queue/exchange không khớp
+  - Thông điệp mất do không có binding hoặc gửi sai exchange/routing key
+  - Confirm ack nhưng không có consumer nhận thông điệp
+  - Thông điệp nằm ở ready vì listener chưa chạy hoặc bị hủy
+  - Unacked tăng liên tục do xử lý chậm, kẹt luồng hoặc thiếu ack
+  - Lỗi unknown delivery tag và channel bị đóng
+  - MessageConversionException, sai content type hoặc kiểu JSON
+  - Retry/requeue vô hạn và DLQ không nhận được thông điệp
+  - RPC timeout, correlation sai và phản hồi đến muộn
+  - Hết channel, cạn executor hoặc publisher bị broker chặn
+  - Phát lại nhiều thông điệp sau khi consumer khởi động lại
+  - Quorum queue không khả dụng hoặc chạm delivery limit
+  - Lệch thứ tự khi tăng consumer, dùng retry hoặc ưu tiên
+  - Thu thập bằng chứng từ log ứng dụng, broker, metrics và tracing
+- level1: Nâng cấp và tương thích
+  level2:
+  - Đối chiếu Spring Boot, Spring AMQP, Java client và RabbitMQ broker
+  - Chuyển đổi API Future, callback và loại trả về bất đồng bộ
+  - Di chuyển converter Jackson 2 sang Jackson 3 theo dòng phiên bản
+  - Đối chiếu thay đổi mặc định của container, prefetch và xử lý lỗi
+  - Đối chiếu delivery limit, priority và dead-letter của từng queue type
+  - Di chuyển khỏi cấu hình classic queue mirroring cũ khi broker không còn hỗ trợ
+  - Giữ tên exchange, queue, routing key và schema sự kiện tương thích
+  - Chuyển từ XML namespace sang Java/annotation khi có nhu cầu
+  - Đánh giá module AMQP 1.0 mà không trộn cấu hình AMQP 0.9.1
+  - Kiểm thử hồi quy, phát hành từng phần và kế hoạch khôi phục
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng producer/consumer với topology khai báo bằng Spring
+  - So sánh direct, topic, fanout và headers exchange
+  - Gửi JSON có phiên bản schema và nhận từ ứng dụng khác
+  - Kiểm chứng confirm, return và publish có kết quả chưa rõ
+  - Thiết kế manual ack theo thời điểm hoàn tất giao dịch nghiệp vụ
+  - Xây dựng retry giới hạn, DLQ và quy trình phát lại có kiểm soát
+  - Triển khai consumer có tính lặp an toàn với inbox hoặc khóa duy nhất
+  - Đồng bộ cơ sở dữ liệu và RabbitMQ bằng transactional outbox
+  - Xây dựng request–reply và quan sát timeout hoặc phản hồi đến muộn
+  - Đo tác động của prefetch, concurrency và batching
+  - Mô phỏng broker/consumer gián đoạn và kiểm chứng phục hồi
+  - Thực hành đọc lại stream hoặc client AMQP 1.0 khi phiên bản phù hợp
+  - Hoàn thiện kiểm thử tích hợp, tracing và bảng theo dõi vận hành

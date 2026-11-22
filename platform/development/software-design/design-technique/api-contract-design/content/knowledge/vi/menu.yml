@@ -1,0 +1,346 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Hợp đồng API (API contract) là gì và giải quyết vấn đề nào
+  - Bên cung cấp, bên sử dụng và ranh giới trách nhiệm của hợp đồng
+  - Phân biệt giao diện, lược đồ dữ liệu, hành vi và chi tiết triển khai
+  - Điều kiện trước, điều kiện sau và các bất biến cần bảo đảm
+  - Hợp đồng tường minh và giả định ngầm của bên sử dụng
+  - Quan hệ giữa hợp đồng API với thiết kế miền và kiến trúc hệ thống
+  - Phân biệt hợp đồng kỹ thuật với tài liệu hướng dẫn và cam kết dịch vụ
+  - Vòng đời từ thiết kế, triển khai và kiểm chứng đến ngừng hỗ trợ
+- level1: Nhu cầu sử dụng
+  level2:
+  - Xác định nhóm sử dụng API và các tình huống tích hợp
+  - Phân biệt API nội bộ, API đối tác và API công khai
+  - Thu thập luồng thành công, luồng lỗi và trường hợp biên
+  - Xác định nhu cầu đồng bộ, bất đồng bộ và truyền dữ liệu liên tục
+  - Xác định bên sở hữu dữ liệu và bên ra quyết định nghiệp vụ
+  - Làm rõ kỳ vọng về tốc độ, khối lượng và mức nhất quán
+  - Thiết kế từ nhu cầu sử dụng thay vì sao chép cấu trúc cơ sở dữ liệu
+- level1: Ranh giới API
+  level2:
+  - Chọn năng lực nghiệp vụ và trách nhiệm mà API công bố
+  - Phân biệt tài nguyên, truy vấn, lệnh và sự kiện
+  - Xác định mức chi tiết của một thao tác và phạm vi tác dụng phụ
+  - Tránh API quá vụn khiến bên gọi phải ghép nhiều bước
+  - Tránh API quá rộng với nhiều hành vi phụ thuộc cờ điều khiển
+  - Cô lập mô hình nội bộ khỏi mô hình dữ liệu công bố
+  - Định nghĩa quyền sở hữu và định danh ổn định
+  - Chọn REST, RPC, GraphQL hoặc thông điệp theo nhu cầu giao tiếp
+- level1: Quy trình thiết kế
+  level2:
+  - So sánh thiết kế hợp đồng trước, từ mã nguồn và từ nhu cầu bên sử dụng
+  - Viết ví dụ yêu cầu và phản hồi trước khi hoàn thiện đặc tả
+  - Dùng mô hình giả lập để kiểm tra sớm trải nghiệm tích hợp
+  - Rà soát thiết kế cùng bên cung cấp và bên sử dụng
+  - Kiểm tra khả năng biểu đạt của định dạng đặc tả đã chọn
+  - Ghi quyết định, giả định và phần chưa được bảo đảm
+  - Chọn nguồn chuẩn và cơ chế đồng bộ với mã triển khai
+  - Định nghĩa tiêu chí chấp thuận hợp đồng trước khi phát hành
+- level1: Mô hình dữ liệu
+  level2:
+  - Thiết kế tên trường theo ý nghĩa nghiệp vụ nhất quán
+  - Phân biệt định danh tài nguyên với mã nghiệp vụ có thể thay đổi
+  - Chọn kiểu cho số lượng, tiền tệ và giá trị cần độ chính xác
+  - Biểu diễn thời điểm, ngày, múi giờ, thời lượng và đơn vị đo
+  - Phân biệt trường không có mặt, null, rỗng và giá trị mặc định
+  - Biểu diễn tập hợp, thứ tự, phần tử trùng và tập hợp rỗng
+  - Thiết kế enum và cách xử lý giá trị chưa được biết
+  - Biểu diễn quan hệ bằng định danh, liên kết hoặc dữ liệu nhúng
+  - Định nghĩa trường chỉ đọc, chỉ ghi và trường do hệ thống sinh
+- level1: Lược đồ và ràng buộc
+  level2:
+  - Phân biệt tính hợp lệ của cấu trúc với tính hợp lệ nghiệp vụ
+  - Xác định trường bắt buộc theo từng loại yêu cầu và phản hồi
+  - Đặc tả độ dài, miền giá trị, mẫu định dạng và giới hạn kích thước
+  - Đặc tả ràng buộc giữa các trường và điều kiện phụ thuộc
+  - Thiết kế kiểu hợp, biến thể và dấu phân biệt loại dữ liệu
+  - Quy định cách xử lý trường không được nhận diện
+  - Phân biệt giá trị mặc định trong tài liệu với giá trị được áp dụng khi chạy
+  - Đặc tả chuẩn hóa khoảng trắng, chữ hoa thường và mã hóa ký tự
+  - Kiểm tra khác biệt giữa bộ xác thực, bộ tuần tự hóa và ngôn ngữ lập trình
+  - Xây dựng ví dụ hợp lệ, không hợp lệ và đúng tại ranh giới
+- level1: Tài nguyên HTTP
+  level2:
+  - Thiết kế đường dẫn và tên tài nguyên theo từ vựng nghiệp vụ
+  - Phân biệt tài nguyên đơn, tập tài nguyên và tài nguyên con
+  - Chọn quan hệ lồng nhau mà không buộc cấu trúc đường dẫn theo lưu trữ
+  - Thiết kế thao tác nghiệp vụ không phù hợp với CRUD thuần túy
+  - Xác định vòng đời tạo, đọc, cập nhật, lưu trữ và xóa tài nguyên
+  - Thiết kế biểu diễn trạng thái và các chuyển trạng thái được phép
+  - Biểu diễn quan hệ cùng liên kết đến tài nguyên liên quan
+  - Quy định tính ổn định của URL và định danh công khai
+- level1: Ngữ nghĩa HTTP
+  level2:
+  - Chọn phương thức HTTP theo ý nghĩa của thao tác
+  - Phân biệt tính an toàn (safe) với tính lũy đẳng (idempotent)
+  - Phân biệt thay thế bằng PUT và cập nhật một phần bằng PATCH
+  - Chọn mã trạng thái theo kết quả giao tiếp và kết quả nghiệp vụ
+  - Quy định header, kiểu nội dung và thương lượng biểu diễn
+  - Thiết kế phản hồi tạo mới, không có nội dung và tài nguyên không tồn tại
+  - Thiết kế cache, thời hạn lưu và điều kiện xác thực lại dữ liệu
+  - Giữ ngữ nghĩa nhất quán khi đi qua proxy, gateway và bộ nhớ đệm
+- level1: Thiết kế yêu cầu
+  level2:
+  - Chọn dữ liệu đặt trong đường dẫn, query, header hoặc body
+  - Quy định tham số bắt buộc, tùy chọn và hành vi khi bỏ qua
+  - Đặc tả cách mã hóa mảng, đối tượng và ký tự đặc biệt trong tham số
+  - Xác định quy tắc đối với tham số lặp hoặc mâu thuẫn
+  - Phân biệt tạo mới, cập nhật toàn phần và cập nhật một phần
+  - Thiết kế tải tệp và dữ liệu multipart theo phạm vi cần thiết
+  - Đặt giới hạn kích thước yêu cầu và số phần tử mỗi thao tác
+  - Quy định mã yêu cầu và siêu dữ liệu phục vụ đối chiếu
+- level1: Thiết kế phản hồi
+  level2:
+  - Chọn cấu trúc phản hồi theo nhu cầu sử dụng
+  - Giữ kiểu, tên và ý nghĩa trường nhất quán giữa các thao tác
+  - Quy định dữ liệu trả về sau tạo mới hoặc cập nhật
+  - Biểu diễn kết quả rỗng và phân biệt với không tìm thấy tài nguyên
+  - Thiết kế siêu dữ liệu và liên kết điều hướng khi cần
+  - Kiểm soát việc nhúng dữ liệu và lựa chọn trường trả về
+  - Phân biệt trường ổn định với trường phục vụ chẩn đoán
+  - Thiết kế phản hồi theo lô với thành công và thất bại từng phần
+- level1: Hợp đồng lỗi
+  level2:
+  - Phân biệt lỗi giao thức, lỗi xác thực, lỗi nghiệp vụ và lỗi hệ thống
+  - Thiết kế cấu trúc lỗi thống nhất và định danh loại lỗi ổn định
+  - Tách mã lỗi cho chương trình với thông điệp cho con người
+  - Biểu diễn lỗi xác thực dữ liệu theo trường và theo đối tượng
+  - Mô tả xung đột trạng thái và điều kiện nghiệp vụ không được đáp ứng
+  - Định nghĩa lỗi có thể thử lại và thông tin chờ trước khi thử lại
+  - Cung cấp mã đối chiếu mà không lộ thông tin nội bộ
+  - Đánh giá cách dùng Problem Details cho API HTTP
+  - Quy định khả năng bản địa hóa và sự ổn định của thông điệp lỗi
+  - Kiểm tra lỗi từ gateway hoặc phụ thuộc có phù hợp hợp đồng công bố
+- level1: Truy vấn tập dữ liệu
+  level2:
+  - Thiết kế phân trang theo offset, con trỏ hoặc khóa
+  - Định nghĩa thứ tự ổn định và điều kiện chuyển trang
+  - Xử lý dữ liệu thay đổi giữa các lần lấy trang
+  - Thiết kế bộ lọc và tập toán tử được hỗ trợ
+  - Quy định sắp xếp nhiều trường và cách xử lý giá trị bằng nhau
+  - Giới hạn kích thước trang và độ phức tạp truy vấn
+  - Mô tả tổng số chính xác, ước lượng hoặc không cung cấp tổng số
+  - Đặc tả hành vi khi con trỏ không hợp lệ hoặc hết hiệu lực
+- level1: Lũy đẳng và thử lại
+  level2:
+  - Phân biệt lũy đẳng của phương thức với lũy đẳng của thao tác nghiệp vụ
+  - Xác định các tình huống bên gọi không biết yêu cầu đã thành công hay chưa
+  - Thiết kế khóa lũy đẳng và phạm vi nhận diện yêu cầu trùng
+  - Quy định thời hạn lưu kết quả và cách trả lại kết quả cũ
+  - Xử lý cùng khóa nhưng nội dung yêu cầu khác nhau
+  - Xử lý yêu cầu trùng đến đồng thời hoặc khi lần trước chưa hoàn tất
+  - Đặc tả timeout và điều kiện thử lại an toàn
+  - Quy định backoff, giới hạn số lần và thời gian chờ của bên gọi
+  - Giới hạn của cam kết tránh tác dụng phụ trùng ở hệ thống phân tán
+- level1: Đồng thời và nhất quán
+  level2:
+  - Định nghĩa mức nhất quán mà bên sử dụng có thể dựa vào
+  - Xử lý dữ liệu đọc chưa phản ánh thao tác ghi vừa hoàn tất
+  - Ngăn ghi đè thay đổi bằng phiên bản tài nguyên hoặc ETag
+  - Đặc tả yêu cầu có điều kiện và lỗi khi điều kiện không còn đúng
+  - Phân biệt phạm vi nguyên tử của một thao tác với chuỗi thao tác
+  - Định nghĩa điều kiện bù trừ khi không có giao dịch xuyên dịch vụ
+  - Xử lý thay đổi thứ tự giữa các yêu cầu đồng thời
+  - Mô tả trạng thái trung gian thay vì hứa hẹn nhất quán không được bảo đảm
+- level1: Tác vụ bất đồng bộ
+  level2:
+  - Quyết định khi nào thao tác cần trả kết quả theo kiểu bất đồng bộ
+  - Thiết kế phản hồi chấp nhận công việc và định danh tác vụ
+  - Đặc tả trạng thái chờ, đang chạy, hoàn tất, thất bại và bị hủy
+  - Chọn cơ chế thăm dò, callback hoặc sự kiện thông báo kết quả
+  - Mô tả tiến độ, thời hạn lưu kết quả và quyền truy cập trạng thái
+  - Thiết kế hủy tác vụ và hành vi khi tác vụ đã hoàn tất
+  - Quy định thử lại, chống xử lý trùng và khả năng tiếp tục công việc
+  - Phân biệt thành công khi tiếp nhận với thành công nghiệp vụ cuối cùng
+- level1: Xác thực và phân quyền
+  level2:
+  - Đặc tả cơ chế xác thực cùng dữ liệu bên gọi phải cung cấp
+  - Phân biệt danh tính, quyền truy cập và phạm vi ủy quyền
+  - Định nghĩa quyền theo thao tác, tài nguyên và trường dữ liệu
+  - Xác định ranh giới khách hàng trong hệ thống nhiều bên thuê
+  - Quy định hành vi với thông tin xác thực thiếu, sai hoặc hết hiệu lực
+  - Kiểm soát việc tiết lộ tài nguyên có tồn tại hay không
+  - Đặc tả hành vi thay đổi quyền trong yêu cầu hoặc tác vụ kéo dài
+  - Bảo vệ thông tin xác thực trong URL, ví dụ và nhật ký
+- level1: An toàn dữ liệu
+  level2:
+  - Xác định dữ liệu nhạy cảm và phạm vi công bố tối thiểu
+  - Ngăn nhận hoặc trả về trường ngoài quyền của bên gọi
+  - Tách mô hình dữ liệu đầu vào khỏi đối tượng nội bộ có nhiều quyền
+  - Đặc tả che dữ liệu và trường chỉ được truy cập trong ngữ cảnh phù hợp
+  - Kiểm soát nội dung lỗi, ví dụ và siêu dữ liệu có thể làm lộ thông tin
+  - Đặt giới hạn cho tệp tải lên, cấu trúc lồng sâu và dữ liệu mở rộng
+  - Mô tả thời hạn lưu, khả năng xóa và quyền truy cập kết quả tải xuống
+  - Rà soát rủi ro khi hợp đồng cho phép callback hoặc truy cập URL bên ngoài
+- level1: Giới hạn vận hành
+  level2:
+  - Công bố hạn mức lưu lượng và phạm vi áp dụng theo danh tính hoặc tài nguyên
+  - Phân biệt giới hạn tốc độ, hạn ngạch và giới hạn xử lý đồng thời
+  - Đặc tả phản hồi khi vượt giới hạn cùng thông tin thử lại
+  - Phân biệt timeout phía gọi, phía cung cấp và hạn hoàn thành nghiệp vụ
+  - Định nghĩa giới hạn dung lượng, số phần tử và độ phức tạp thao tác
+  - Mô tả yêu cầu về khả dụng và độ trễ trong phạm vi có thể bảo đảm
+  - Xử lý ngắt kết nối, hủy yêu cầu và điều tiết luồng dữ liệu
+  - Phân biệt hợp đồng chức năng với giả định hiệu năng chưa được kiểm chứng
+- level1: Khả năng tương thích
+  level2:
+  - Phân biệt tương thích cấu trúc, hành vi và ngữ nghĩa
+  - Phân biệt tương thích ngược, tương thích tiến và tương thích giữa các bên
+  - Đánh giá thay đổi yêu cầu đầu vào theo phía cung cấp và phía sử dụng
+  - Đánh giá thay đổi phản hồi đầu ra theo phía cung cấp và phía sử dụng
+  - Ảnh hưởng của thêm, xóa, đổi tên và đổi kiểu trường dữ liệu
+  - Ảnh hưởng của đổi tính bắt buộc, giá trị mặc định và điều kiện null
+  - Rủi ro khi mở rộng enum hoặc tập trạng thái nghiệp vụ
+  - Ảnh hưởng của đổi lỗi, thứ tự, phân trang và mức nhất quán
+  - Vì sao sửa một hành vi sai vẫn có thể làm hỏng bên sử dụng
+  - Xác định thay đổi phá vỡ dựa trên cam kết và cách sử dụng thực tế
+- level1: Phiên bản API
+  level2:
+  - Quyết định khi nào cần phiên bản mới và khi nào có thể mở rộng
+  - So sánh phiên bản theo đường dẫn, header, kiểu nội dung hoặc đặc tả giao thức
+  - Phân biệt phiên bản hợp đồng với phiên bản triển khai
+  - Xác định phạm vi phiên bản theo API, thao tác hoặc loại thông điệp
+  - Quy định các phiên bản được hỗ trợ và thời gian cùng tồn tại
+  - Mô tả ngừng khuyến nghị sử dụng và thời điểm ngừng hỗ trợ
+  - Tránh đổi phiên bản để che thay đổi ngữ nghĩa chưa được làm rõ
+  - Giữ tài liệu, thư viện phía gọi và kiểm thử đúng với từng phiên bản
+- level1: Chuyển đổi hợp đồng
+  level2:
+  - Kiểm kê bên sử dụng và các hành vi đang được phụ thuộc
+  - Lập kế hoạch mở rộng trước rồi thu gọn hợp đồng cũ
+  - Thiết kế lớp chuyển đổi khi hai phiên bản phải cùng tồn tại
+  - Chạy thử và đối chiếu kết quả giữa hợp đồng cũ và mới
+  - Triển khai theo nhóm sử dụng cùng điều kiện dừng hoặc quay lại
+  - Theo dõi mức sử dụng và liên hệ bên chưa chuyển đổi
+  - Xác định bằng chứng đủ để ngừng phiên bản cũ
+  - Dọn mã tương thích và cập nhật tài liệu sau khi kết thúc chuyển đổi
+- level1: OpenAPI và JSON Schema
+  level2:
+  - Vai trò của OpenAPI trong mô tả API HTTP
+  - Vai trò của JSON Schema trong mô tả cấu trúc và ràng buộc dữ liệu
+  - Mô tả đường dẫn, thao tác, tham số và nội dung yêu cầu
+  - Mô tả phản hồi thành công, phản hồi lỗi và các header
+  - Tái sử dụng thành phần mà không tạo phụ thuộc đặc tả khó bảo trì
+  - Mô tả bảo mật, ví dụ và các hành vi ngoài khả năng biểu đạt của schema
+  - Kiểm tra khả năng hỗ trợ giữa phiên bản đặc tả và công cụ sử dụng
+  - Kiểm chứng ví dụ, tham chiếu và ràng buộc bằng công cụ tự động
+  - Đồng bộ đặc tả với triển khai và phát hiện sai lệch
+- level1: Hợp đồng RPC
+  level2:
+  - Thiết kế thao tác RPC theo năng lực nghiệp vụ và ranh giới trách nhiệm
+  - Mô tả dịch vụ, phương thức và thông điệp bằng IDL
+  - Thiết kế kiểu dữ liệu và ý nghĩa trường trong Protocol Buffers
+  - Quản lý số trường, trường ngừng sử dụng và giá trị chưa được nhận diện
+  - Đặc tả thời hạn yêu cầu, hủy thao tác và kết quả lỗi
+  - Thiết kế metadata cùng thông tin xác thực và đối chiếu
+  - Đặc tả luồng truyền đơn, hai chiều và điều kiện kết thúc
+  - Kiểm chứng tương thích giữa mã sinh và các phiên bản bên gọi
+  - Phân biệt tương thích mã hóa với tương thích hành vi nghiệp vụ
+- level1: Hợp đồng GraphQL
+  level2:
+  - Thiết kế schema theo miền sử dụng thay vì sao chép dữ liệu lưu trữ
+  - Phân biệt query, mutation và subscription trong hợp đồng
+  - Thiết kế đối số, kiểu đầu vào và khả năng null
+  - Mô tả lỗi từng phần cùng ảnh hưởng đến dữ liệu phản hồi
+  - Thiết kế phân trang và định danh đối tượng nhất quán
+  - Đặc tả quyền theo trường và giới hạn độ phức tạp truy vấn
+  - Mở rộng, ngừng khuyến nghị và loại bỏ trường theo mức sử dụng
+  - Kiểm thử schema cùng các truy vấn thực tế của bên sử dụng
+- level1: Hợp đồng thông điệp
+  level2:
+  - Phân biệt lệnh yêu cầu thực hiện với sự kiện thông báo điều đã xảy ra
+  - Thiết kế phong bì thông điệp, phần dữ liệu và siêu dữ liệu
+  - Định danh thông điệp, liên kết nguyên nhân và chuỗi hội thoại
+  - Đặc tả thứ tự, phạm vi phân vùng và điều kiện giao nhận
+  - Xử lý thông điệp trùng, đến muộn và không đúng thứ tự
+  - Phân biệt xác nhận đã nhận với xác nhận xử lý nghiệp vụ thành công
+  - Đặc tả thử lại, hàng đợi lỗi và phát lại thông điệp
+  - Quản lý tiến hóa schema cùng khả năng đọc dữ liệu lịch sử
+  - Đánh giá AsyncAPI và CloudEvents theo nhu cầu mô tả hợp đồng
+  - Làm rõ giới hạn của cam kết xử lý đúng một lần
+- level1: Hợp đồng webhook
+  level2:
+  - Đặc tả đăng ký, xác minh và ngừng nhận webhook
+  - Thiết kế định danh sự kiện và cấu trúc nội dung gửi đi
+  - Đặc tả xác minh nguồn gửi và chống phát lại yêu cầu
+  - Quy định timeout, phản hồi xác nhận và lịch gửi lại
+  - Xử lý sự kiện trùng và thứ tự giao không được bảo đảm
+  - Cung cấp khả năng đối soát hoặc lấy lại sự kiện bị bỏ lỡ
+  - Quản lý thay đổi phiên bản cùng quyền truy cập địa chỉ nhận
+- level1: Tài liệu và SDK
+  level2:
+  - Tổ chức tài liệu theo tác vụ tích hợp và hành trình sử dụng
+  - Viết ví dụ thành công, lỗi và trường hợp biên có thể kiểm chứng
+  - Giải thích ngữ nghĩa mà kiểu dữ liệu và schema không thể diễn đạt
+  - Cung cấp hướng dẫn xác thực, thử lại và xử lý lỗi an toàn
+  - Xây dựng môi trường thử nghiệm với dữ liệu không nhạy cảm
+  - Đánh giá mã sinh cho thư viện phía gọi (SDK) và phần triển khai khung
+  - Kiểm tra ánh xạ null, số chính xác và thời gian giữa các ngôn ngữ
+  - Quản lý phiên bản SDK cùng ma trận tương thích hợp đồng
+  - Tránh xem tài liệu được sinh tự động là toàn bộ hợp đồng
+- level1: Kiểm thử hợp đồng
+  level2:
+  - Phân biệt kiểm thử schema, hợp đồng, tích hợp và đầu cuối
+  - Kiểm thử phía cung cấp theo đặc tả đã công bố
+  - Kiểm thử hợp đồng từ nhu cầu bên sử dụng (consumer-driven contract)
+  - Chuẩn bị trạng thái và dữ liệu để kiểm thử có thể tái hiện
+  - Kiểm thử yêu cầu không hợp lệ, lỗi và các ranh giới dữ liệu
+  - Kiểm thử quyền truy cập và khác biệt giữa các nhóm sử dụng
+  - Kiểm thử tương thích giữa nhiều phiên bản hợp đồng
+  - Kiểm thử lũy đẳng, đồng thời và trạng thái tác vụ bất đồng bộ
+  - Kiểm chứng mock không sai lệch với hành vi thực
+  - Đánh giá khoảng trống mà kiểm thử hợp đồng chưa thể bảo đảm
+- level1: Tự động hóa kiểm tra
+  level2:
+  - Kiểm tra cú pháp, tham chiếu và quy tắc thiết kế trong CI
+  - So sánh đặc tả để nhận diện thay đổi có nguy cơ phá vỡ
+  - Kiểm chứng ví dụ và bộ kiểm thử trước khi phát hành
+  - Chạy ma trận phiên bản phía cung cấp và phía sử dụng
+  - Chặn triển khai khi điều kiện tương thích chưa được chứng minh
+  - Phát hiện sai lệch giữa hợp đồng công bố và lưu lượng thực
+  - Quản lý ngoại lệ có người phê duyệt và thời hạn
+  - Lưu đặc tả, kết quả kiểm thử và bằng chứng theo bản phát hành
+- level1: Quản trị hợp đồng
+  level2:
+  - Xác định chủ sở hữu và trách nhiệm duyệt thay đổi
+  - Xây dựng quy ước tên, lỗi và dữ liệu dùng chung
+  - Chọn mức chuẩn hóa phù hợp mà không ép các miền khác nhau vào một mô hình
+  - Lưu quyết định thiết kế cùng lý do chấp nhận đánh đổi
+  - Quản lý danh mục API, bên sử dụng và tình trạng hỗ trợ
+  - Thiết lập quy trình thông báo thay đổi và xử lý bất đồng
+  - Rà soát hợp đồng dựa trên phản hồi và lỗi tích hợp thực tế
+- level1: Sai lầm thường gặp
+  level2:
+  - Công bố trực tiếp entity lưu trữ làm hợp đồng API
+  - Chỉ mô tả dữ liệu mà bỏ qua hành vi và tác dụng phụ
+  - Dùng một cấu trúc cho mọi yêu cầu và phản hồi bất kể ngữ nghĩa
+  - Giữ mã trạng thái thành công nhưng che lỗi trong cấu trúc tùy ý
+  - Thêm trường bắt buộc hoặc giá trị enum mà không đánh giá bên sử dụng
+  - Hứa hẹn thử lại an toàn khi chưa có cơ chế tránh tác dụng phụ trùng
+  - Phụ thuộc thông điệp lỗi tự do hoặc thứ tự dữ liệu không được cam kết
+  - Phát hành schema hợp lệ nhưng không có bằng chứng tương thích hành vi
+  - Để phiên bản cũ và lớp chuyển đổi tồn tại không có kế hoạch kết thúc
+- level1: Thực hành có hướng dẫn
+  level2:
+  - Đặc tả tình huống tạo đơn hàng với điều kiện trước và kết quả sau
+  - Thiết kế mô hình yêu cầu, phản hồi và lỗi nghiệp vụ
+  - Viết OpenAPI cùng ví dụ đúng, sai và dữ liệu ranh giới
+  - Thiết kế phân trang có thứ tự ổn định khi dữ liệu thay đổi
+  - Bổ sung khóa lũy đẳng và xử lý kết quả chưa xác định
+  - Thiết kế cập nhật đồng thời và phát hiện xung đột
+  - Thiết kế tác vụ dài với trạng thái cùng cơ chế nhận kết quả
+  - Viết kiểm thử phía cung cấp và kiểm thử từ nhu cầu bên sử dụng
+  - Đánh giá thay đổi phá vỡ và lập kế hoạch chuyển đổi phiên bản
+  - Đối chiếu cùng một năng lực qua HTTP, RPC và thông điệp
+- level1: Tình huống tổng hợp
+  level2:
+  - API hợp lệ theo schema nhưng hai bên hiểu khác nhau về null và giá trị mặc định
+  - Đổi mã lỗi khiến bên sử dụng thực hiện sai chính sách thử lại
+  - Yêu cầu timeout rồi được gửi lại gây tạo giao dịch trùng
+  - Phân trang bỏ sót hoặc lặp dữ liệu khi danh sách liên tục thay đổi
+  - Phiên bản mới thêm trạng thái khiến ứng dụng cũ không xử lý được
+  - Sự kiện phát lại hợp lệ về cấu trúc nhưng sai giả định nghiệp vụ
+  - Bên cung cấp muốn ngừng phiên bản mà chưa biết hết bên sử dụng
+  - Checklist rà soát hợp đồng trước khi công bố hoặc thay đổi

@@ -1,0 +1,3 @@
+menuLevel1: Thực thi reactive
+menuLevel2: Tránh block() và subscribe() thủ công trong luồng xử lý yêu cầu
+status: WRITTEN

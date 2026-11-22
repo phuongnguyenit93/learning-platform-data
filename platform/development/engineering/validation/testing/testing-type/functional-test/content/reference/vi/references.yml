@@ -1,0 +1,13 @@
+references:
+  - title: "ISTQB Certified Tester Foundation Level (CTFL) v4.0"
+    url: "https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/"
+    description: "Nền tảng test types, test design, black-box techniques, defect management và automation."
+  - title: "Selenium Test Practices"
+    url: "https://www.selenium.dev/documentation/test_practices/"
+    description: "Hướng dẫn thiết kế và duy trì kiểm thử chức năng tự động trên trình duyệt."
+  - title: "Playwright Writing Tests"
+    url: "https://playwright.dev/docs/writing-tests"
+    description: "Ví dụ viết test UI, actions, assertions và isolation."
+  - title: "Postman API Test Scripts"
+    url: "https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-scripts/"
+    description: "Viết assertions cho phản hồi API và quản lý test scripts."

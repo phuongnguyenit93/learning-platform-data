@@ -1,0 +1,49 @@
+roadmap:
+- id: nhan-dien-anti-pattern
+  title: Nhận diện Anti-pattern
+  purpose: Hiểu vì sao một cách giải quen thuộc có thể gây hệ quả xấu khi được dùng sai bối cảnh.
+  objectives:
+  - Phân biệt anti-pattern, code smell và design pattern.
+  - Phân tích triệu chứng, nguyên nhân và hậu quả của một ví dụ.
+- id: ma-phinh-to
+  title: Mã phình to
+  purpose: Nhận ra khi phương thức hoặc lớp ôm quá nhiều trách nhiệm và khó thay đổi.
+  objectives:
+  - Phát hiện Long Method, Large Class và God Object.
+  - Chỉ ra chi phí bảo trì do trách nhiệm dồn vào một nơi.
+- id: phu-thuoc-roi
+  title: Phụ thuộc rối
+  purpose: Nhìn thấy cấu trúc liên kết chặt hoặc đổi một nơi gây ảnh hưởng nhiều nơi.
+  objectives:
+  - Phát hiện Feature Envy, Message Chains và Shotgun Surgery.
+  - Vẽ quan hệ phụ thuộc để tìm ranh giới cần tách.
+- id: lam-dung-oop
+  title: Lạm dụng OOP
+  purpose: Nhận diện thiết kế hướng đối tượng không phân chia đúng dữ liệu và hành vi.
+  objectives:
+  - Phân tích tình huống Anemic Domain Model.
+  - Nhận biết kế thừa không phù hợp và switch theo kiểu lặp lại.
+- id: lap-thua-ma
+  title: Lặp & Thừa mã
+  purpose: Nhận biết phần mã làm tăng độ phức tạp mà không mang lại giá trị rõ ràng.
+  objectives:
+  - Tìm Duplicate Code, Dead Code và Speculative Generality.
+  - Phân biệt trùng lặp thật sự với sự giống nhau ngẫu nhiên.
+- id: thiet-ke-qua-muc
+  title: Thiết kế quá mức
+  purpose: Đánh giá khi lớp trừu tượng hoặc công nghệ được áp dụng không vì nhu cầu thực tế.
+  objectives:
+  - Nhận diện overengineering và abstraction không cần thiết.
+  - Đề xuất thiết kế đơn giản theo yêu cầu hiện tại.
+- id: refactoring-an-toan
+  title: Refactoring an toàn
+  purpose: Chuyển dấu hiệu vấn đề thành cải tiến từng bước mà không đổi hành vi nghiệp vụ.
+  objectives:
+  - Chọn Extract Method, Extract Class hoặc Move Method phù hợp.
+  - Viết và chạy kiểm thử trước và sau khi tái cấu trúc.
+- id: ngan-tai-dien
+  title: Ngăn tái diễn
+  purpose: Thiết lập thói quen đánh giá thiết kế thay vì áp quy tắc máy móc.
+  objectives:
+  - Đưa dấu hiệu anti-pattern vào checklist review mã.
+  - Cân nhắc mức ảnh hưởng và chi phí trước khi refactor.

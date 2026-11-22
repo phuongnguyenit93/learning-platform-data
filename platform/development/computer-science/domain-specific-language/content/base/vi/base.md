@@ -1,0 +1,7 @@
+# Computer Science — Domain Specific Language (DSL)
+
+Domain Specific Language (DSL) là ngôn ngữ được thiết kế để mô tả một nhóm vấn đề hẹp bằng khái niệm và quy tắc gần với miền nghiệp vụ, thay vì cung cấp mọi khả năng như ngôn ngữ lập trình tổng quát. Những ví dụ quen thuộc gồm SQL, biểu thức chính quy và ngôn ngữ cấu hình chuyên biệt. DSL có thể giúp người dùng diễn đạt ý định ngắn gọn, dễ kiểm tra; đổi lại, người xây dựng cần xác định rõ phạm vi, cú pháp, ngữ nghĩa và cách tích hợp với hệ thống hiện có.
+
+Module phù hợp với người đã biết lập trình Java cơ bản, cấu trúc dữ liệu và cách chương trình xử lý văn bản. Trước tiên, bạn sẽ phân biệt **internal DSL** (dùng cú pháp và công cụ của ngôn ngữ chủ, chẳng hạn fluent API) với **external DSL** (có cú pháp và bước phân tích riêng), sau đó chọn một bài toán nhỏ để xác định mô hình miền và ví dụ đầu vào. Lộ trình tiếp tục qua grammar, tokenization, parser, parse tree/AST và kiểm tra ngữ nghĩa. ANTLR minh họa cách xây parser, còn Eclipse Xtext và JetBrains MPS cho thấy những lựa chọn hỗ trợ ngôn ngữ ở mức công cụ.
+
+Sau khi có mô hình hợp lệ, bạn sẽ thực hành diễn giải lệnh DSL hoặc sinh mã Java, thiết kế thông báo lỗi và xây các kiểm thử đầu vào đúng/sai. Bước cuối xem xét tương thích phiên bản và cách phát triển DSL mà không phá hỏng các mô tả đã được sử dụng. Hoàn thành module, bạn có thể thiết kế và giải thích một DSL nhỏ từ yêu cầu miền đến thực thi, đồng thời biết khi nào chi phí tạo ngôn ngữ riêng lớn hơn lợi ích của một API hoặc cấu hình thông thường.

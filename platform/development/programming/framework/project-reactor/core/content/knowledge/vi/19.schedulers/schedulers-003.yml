@@ -1,0 +1,3 @@
+menuLevel1: Scheduler
+menuLevel2: Thực thi ngay trên luồng hiện tại bằng Schedulers.immediate
+status: ''

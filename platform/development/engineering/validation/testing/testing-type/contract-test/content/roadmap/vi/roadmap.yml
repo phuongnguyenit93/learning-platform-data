@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-cua-contract-test
+  title: Vai trò của Contract Test
+  purpose: Hiểu kiểm thử hợp đồng giúp phát hiện thay đổi gây lỗi tại ranh giới giữa các hệ thống.
+  objectives:
+  - Phân biệt contract test với unit, integration và E2E test.
+  - Nhận diện consumer, provider và hợp đồng giao tiếp.
+  - Chọn điểm tích hợp có nguy cơ không tương thích.
+- id: dang-hop-dong-giao-tiep
+  title: Dạng hợp đồng giao tiếp
+  purpose: Nhận biết các hình thức hợp đồng cần kiểm tra cho API và hệ thống trao đổi thông điệp.
+  objectives:
+  - Phân biệt schema-based với consumer-driven contract testing.
+  - Xác định HTTP request/response hoặc cấu trúc message.
+  - Chọn loại hợp đồng phù hợp với từng tích hợp.
+- id: dac-ta-api-va-schema
+  title: Đặc tả API và Schema
+  purpose: Mô tả rõ các yêu cầu giao tiếp để có cơ sở kiểm chứng tính tương thích.
+  objectives:
+  - Định nghĩa endpoint, phương thức, status và trường dữ liệu.
+  - Khai báo kiểu, trường bắt buộc và ràng buộc bằng OpenAPI.
+  - Xác định ví dụ hợp lệ và không hợp lệ.
+- id: kiem-thu-phia-consumer
+  title: Kiểm thử phía Consumer
+  purpose: Ghi nhận chính xác những tương tác mà ứng dụng tiêu thụ thật sự phụ thuộc.
+  objectives:
+  - Viết test mô tả request và response mà consumer sử dụng.
+  - Dùng mock provider và matcher để tránh ràng buộc quá mức.
+  - Sinh hoặc cập nhật contract artifact từ consumer test.
+- id: xac-minh-phia-provider
+  title: Xác minh phía Provider
+  purpose: Chứng minh provider đáp ứng các hợp đồng đã công bố cho consumer.
+  objectives:
+  - Nạp hợp đồng và thiết lập provider state phù hợp.
+  - Chạy lại request để so sánh response với hợp đồng.
+  - Phân tích sai lệch ở status, header và body.
+- id: tuong-thich-va-thay-doi
+  title: Tương thích và Thay đổi
+  purpose: Kiểm soát việc sửa API để tránh làm hỏng các consumer đang hoạt động.
+  objectives:
+  - Nhận diện đổi tên hoặc xóa trường bắt buộc gây breaking change.
+  - Kiểm tra trường tùy chọn và quy tắc matching phù hợp.
+  - Đánh giá khả năng tương thích giữa các phiên bản.
+- id: hop-dong-message
+  title: Hợp đồng Message
+  purpose: Mở rộng contract test sang giao tiếp bất đồng bộ khi hệ thống dùng messaging.
+  objectives:
+  - Xác định payload và metadata của sự kiện hoặc message.
+  - Xác minh kiểu dữ liệu và trường bắt buộc của message.
+  - Kiểm tra thay đổi schema ảnh hưởng đến consumer.
+- id: tu-dong-hoa-va-ci
+  title: Tự động hóa và CI
+  purpose: Biến xác minh hợp đồng thành bước kiểm soát thay đổi có phản hồi sớm.
+  objectives:
+  - Chạy consumer và provider verification trong CI.
+  - Công bố hợp đồng, phiên bản và kết quả xác minh lên broker khi dùng.
+  - Kiểm tra điều kiện triển khai tương thích trước khi release.

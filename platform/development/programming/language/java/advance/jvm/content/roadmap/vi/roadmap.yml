@@ -1,0 +1,57 @@
+roadmap:
+- id: buc-tranh-jvm
+  title: Bức tranh JVM
+  purpose: Hiểu vai trò của JVM trong quá trình chạy Java và phân biệt đặc tả với cách triển khai.
+  objectives:
+  - Phân biệt JDK, JVM và thư viện nền tảng.
+  - Mô tả đường đi từ mã nguồn đến chương trình đang chạy.
+  - Phân biệt quy định của JVMS với lựa chọn của HotSpot.
+- id: class-va-bytecode
+  title: Class và bytecode
+  purpose: Đọc được đơn vị mã mà JVM nạp và thực thi.
+  objectives:
+  - Nhận diện phiên bản, constant pool và phương thức trong tệp class.
+  - Dùng javap để đối chiếu một phương thức với bytecode.
+  - Theo dõi biến cục bộ và operand stack trong ví dụ nhỏ.
+- id: vong-doi-lop
+  title: Vòng đời lớp
+  purpose: Hiểu khi nào một lớp được nạp, liên kết và khởi tạo.
+  objectives:
+  - Phân biệt loading, linking và initialization.
+  - Giải thích vai trò class loader và định danh lớp.
+  - Dự đoán thứ tự khởi tạo trong một ví dụ có kế thừa.
+- id: bo-nho-va-doi-tuong
+  title: Bộ nhớ và đối tượng
+  purpose: Xác định nơi dữ liệu tồn tại và cách lời gọi phương thức sử dụng bộ nhớ.
+  objectives:
+  - Phân biệt heap, JVM stack, method area và bộ nhớ native.
+  - Theo dõi frame, tham chiếu và vòng đời đối tượng.
+  - Phân biệt StackOverflowError với OutOfMemoryError.
+- id: thuc-thi-va-jit
+  title: Thực thi và JIT
+  purpose: Hiểu cách JVM chuyển bytecode thành thực thi và tối ưu khi chương trình chạy.
+  objectives:
+  - So sánh thông dịch với biên dịch JIT.
+  - Giải thích warm-up, inlining và deoptimization.
+  - Nhận diện sai lệch khi đo một đoạn mã chưa ổn định.
+- id: thu-gom-rac
+  title: Thu gom rác
+  purpose: Hiểu cách bộ nhớ đối tượng được thu hồi và các đánh đổi khi chọn bộ thu gom.
+  objectives:
+  - Xác định đối tượng còn truy cập được và đối tượng có thể thu gom.
+  - Phân biệt thông lượng, độ trễ và dung lượng bộ nhớ.
+  - Đọc log GC để nhận diện cấp phát dày hoặc thời gian dừng dài.
+- id: luong-va-mo-hinh-nho
+  title: Luồng và mô hình nhớ
+  purpose: Liên hệ cơ chế chạy luồng với tính đúng đắn của dữ liệu chia sẻ.
+  objectives:
+  - Phân biệt luồng Java với cơ chế lập lịch của hệ điều hành.
+  - Giải thích tính nhìn thấy và quan hệ happens-before.
+  - Đối chiếu synchronized, volatile và thao tác nguyên tử trong ví dụ.
+- id: quan-sat-va-toi-uu
+  title: Quan sát và tối ưu
+  purpose: Dùng bằng chứng thực thi để giải thích và cải thiện hành vi JVM.
+  objectives:
+  - Thu thập thread dump, số liệu heap và bản ghi JFR phù hợp.
+  - Đặt giả thuyết từ dữ liệu CPU, GC hoặc bộ nhớ.
+  - So sánh trước–sau với cùng tải và điều kiện đo.

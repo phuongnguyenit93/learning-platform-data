@@ -1,0 +1,306 @@
+menu:
+- level1: Tổng quan web
+  level2:
+  - Vai trò của Spring Web trong ứng dụng Java và các loại ứng dụng web
+  - Phân biệt Spring Framework, Spring MVC, Spring WebFlux và Spring Boot
+  - Các mô-đun spring-web, spring-webmvc, spring-webflux và spring-websocket
+  - 'Kiến thức cần có: Java, IoC/DI, HTTP và xử lý đồng thời'
+  - Chọn Servlet/MVC hoặc WebFlux theo chuỗi I/O và nhu cầu ứng dụng
+  - Phiên bản Spring, Jakarta Servlet và khả năng tương thích của API
+- level1: Nền tảng HTTP
+  level2:
+  - Chu trình yêu cầu–phản hồi và cấu trúc một thông điệp HTTP
+  - URI, đường dẫn, tham số truy vấn và quy tắc mã hóa
+  - HTTP method, tính an toàn và tính lặp lại không đổi kết quả
+  - Mã trạng thái và ý nghĩa của các nhóm 2xx, 3xx, 4xx, 5xx
+  - Header, Content-Type, Accept và thương lượng nội dung
+  - Cookie, phiên làm việc và giới hạn của trạng thái qua HTTP
+  - HTTPS, reverse proxy, chuyển hướng và địa chỉ công khai
+  - Phân biệt REST, trang HTML, HTTP streaming và WebSocket
+- level1: Khởi tạo ứng dụng
+  level2:
+  - Thiết lập phụ thuộc và cấu trúc ứng dụng Spring Web tối thiểu
+  - Đăng ký DispatcherServlet bằng Java và nhận biết cấu hình web.xml
+  - WebApplicationContext gốc, ngữ cảnh servlet và quan hệ cha–con
+  - Ánh xạ servlet, context path và đường dẫn của ứng dụng
+  - '@EnableWebMvc, WebMvcConfigurer và cấu hình XML tương đương'
+  - Phân biệt cấu hình Spring MVC trực tiếp với tự động cấu hình của Spring Boot
+  - Triển khai trên Servlet container và phân biệt WAR với máy chủ nhúng
+- level1: Luồng xử lý MVC
+  level2:
+  - Servlet container, Filter chain và điểm vào DispatcherServlet
+  - 'HandlerMapping: tìm thành phần xử lý phù hợp với yêu cầu'
+  - 'HandlerAdapter: gọi thành phần xử lý và hỗ trợ chữ ký phương thức'
+  - Giải quyết tham số, thực thi controller và xử lý giá trị trả về
+  - ModelAndView, ViewResolver và giai đoạn kết xuất giao diện
+  - HandlerExceptionResolver và luồng xử lý khi có ngoại lệ
+  - Các loại dispatch REQUEST, FORWARD, INCLUDE, ERROR và ASYNC
+  - Vòng đời controller singleton và nguy cơ dùng trạng thái chia sẻ
+- level1: Định tuyến yêu cầu
+  level2:
+  - '@Controller, @RestController và cơ chế phát hiện controller'
+  - '@RequestMapping ở lớp và phương thức; các annotation @GetMapping, @PostMapping'
+  - Điều kiện ánh xạ theo HTTP method, params, headers, consumes và produces
+  - Biến đường dẫn, biểu thức chính quy và đường dẫn có ký tự đại diện
+  - PathPattern, quy tắc chọn ánh xạ cụ thể và lỗi ánh xạ trùng
+  - Xử lý HEAD, OPTIONS và phân biệt lỗi 404, 405, 406, 415
+  - '@RequestMapping trên interface và cách tổ chức hợp đồng controller'
+  - Kiểm soát dấu gạch chéo cuối đường dẫn và khác biệt cấu hình theo phiên bản
+- level1: Đầu vào controller
+  level2:
+  - '@PathVariable và @MatrixVariable trong đường dẫn'
+  - '@RequestParam: giá trị bắt buộc, mặc định, nhiều giá trị và Map'
+  - '@RequestHeader và @CookieValue'
+  - '@RequestBody, HttpEntity và đọc nội dung yêu cầu'
+  - '@ModelAttribute và liên kết dữ liệu biểu mẫu'
+  - '@RequestPart và tham số multipart'
+  - '@RequestAttribute, @SessionAttribute và dữ liệu có sẵn trong ngữ cảnh'
+  - HttpServletRequest, HttpServletResponse, Principal và Locale trong chữ ký phương thức
+  - Giá trị null, Optional và phân biệt đầu vào thiếu với đầu vào rỗng
+  - Quy tắc chọn nơi lấy tham số và giới hạn đọc request body nhiều lần
+- level1: Binding và validation
+  level2:
+  - WebDataBinder và quá trình chuyển dữ liệu chuỗi thành đối tượng
+  - Constructor binding, property binding và thiết kế DTO đầu vào
+  - Converter, Formatter, ConversionService và định dạng ngày giờ
+  - '@InitBinder: cấu hình cục bộ và dùng chung qua @ControllerAdvice'
+  - Giới hạn trường được binding để tránh sửa thuộc tính ngoài hợp đồng
+  - Bean Validation với @Valid, @Validated và nhóm ràng buộc
+  - Errors, BindingResult và vị trí tham số nhận lỗi
+  - Phân biệt lỗi chuyển đổi kiểu, lỗi binding và lỗi kiểm tra dữ liệu
+  - Kiểm tra tham số phương thức và phân biệt các ngoại lệ validation theo phiên bản
+- level1: Nội dung HTTP
+  level2:
+  - HttpMessageConverter và quá trình đọc/ghi request–response body trong MVC
+  - Chọn bộ chuyển đổi cho chuỗi, byte[], Resource, JSON và XML
+  - 'Cấu hình bộ chuyển đổi: thay thế mặc định hay mở rộng danh sách'
+  - Tuần tự hóa JSON, DTO, kiểu generic và tham chiếu vòng
+  - Jackson và cấu hình ánh xạ dữ liệu phù hợp với phiên bản Spring
+  - Thương lượng nội dung theo Accept và lựa chọn media type
+  - Phân biệt lỗi JSON sai cú pháp, JSON sai kiểu và dữ liệu không hợp lệ
+  - RequestBodyAdvice, ResponseBodyAdvice và giới hạn biến đổi nội dung dùng chung
+- level1: Phản hồi REST
+  level2:
+  - '@ResponseBody và khác biệt với tên view trả về từ @Controller'
+  - 'ResponseEntity: điều khiển status, header và body'
+  - '@ResponseStatus, phản hồi không có nội dung và trường hợp body null'
+  - Tạo tài nguyên với 201 Created và header Location
+  - Thiết kế DTO phản hồi và tách mô hình HTTP khỏi đối tượng lưu trữ
+  - Phân trang, sắp xếp, bộ lọc và hợp đồng danh sách kết quả
+  - Thiết kế cập nhật PUT/PATCH và quy tắc xử lý yêu cầu lặp lại
+  - Giữ hợp đồng API ổn định khi thay đổi cấu trúc dữ liệu
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi đầu vào, lỗi nghiệp vụ và lỗi hệ thống
+  - '@ExceptionHandler ở controller và quy tắc chọn phương thức xử lý'
+  - '@ControllerAdvice, @RestControllerAdvice và phạm vi áp dụng'
+  - HandlerExceptionResolver và ResponseEntityExceptionHandler
+  - ProblemDetail, ErrorResponse và định dạng lỗi theo RFC 9457
+  - Biểu diễn lỗi từng trường, thông tin mở rộng và mã lỗi ổn định
+  - Phân biệt ngoại lệ trong controller với lỗi ở Filter hoặc Servlet container
+  - Ẩn thông tin nhạy cảm, gắn mã đối chiếu và tránh trả stack trace cho người dùng
+- level1: View và biểu mẫu
+  level2:
+  - Model, ModelMap, ModelAndView và tên view logic
+  - ViewResolver, thứ tự phân giải và tích hợp template engine
+  - 'Thymeleaf, FreeMarker, JSP: vai trò và điều kiện sử dụng'
+  - Truyền dữ liệu từ controller tới view bằng @ModelAttribute
+  - Liên kết biểu mẫu, hiển thị BindingResult và thông báo lỗi
+  - Redirect, forward và mẫu Post/Redirect/Get
+  - RedirectAttributes, flash attributes và vòng đời dữ liệu chuyển hướng
+  - Giới hạn nội dung động, escape HTML và nguy cơ XSS khi kết xuất view
+- level1: Trạng thái và ngôn ngữ
+  level2:
+  - Request scope, session scope và dữ liệu dùng chung giữa các yêu cầu
+  - Cookie và cấu hình thời hạn, Secure, HttpOnly, SameSite
+  - HttpSession, tạo/hủy phiên và giới hạn khi triển khai nhiều máy chủ
+  - '@SessionAttributes, SessionStatus và khác biệt với @SessionAttribute'
+  - LocaleResolver, LocaleContextResolver và lựa chọn ngôn ngữ
+  - MessageSource, thông báo validation và bản địa hóa giao diện
+  - RequestContextHolder, LocaleContextHolder và giới hạn ThreadLocal
+  - Truyền ngữ cảnh khi chuyển sang xử lý bất đồng bộ
+- level1: Filter và interceptor
+  level2:
+  - Phân biệt Servlet Filter, HandlerInterceptor, AOP và ControllerAdvice
+  - Filter chain, thứ tự đăng ký và các loại dispatch được áp dụng
+  - OncePerRequestFilter và hành vi với async/error dispatch
+  - preHandle, postHandle, afterCompletion và điều kiện gọi lại
+  - Đăng ký interceptor, phạm vi đường dẫn và AsyncHandlerInterceptor
+  - CharacterEncodingFilter, FormContentFilter và HiddenHttpMethodFilter
+  - Bọc request/response để đọc nội dung và giới hạn bộ nhớ
+  - Chọn đúng điểm mở rộng cho ghi log, đo thời gian và truyền mã đối chiếu
+- level1: Tệp và tài nguyên
+  level2:
+  - MultipartResolver và cấu hình multipart của Servlet container
+  - Nhận MultipartFile, Part và kết hợp tệp với dữ liệu JSON
+  - Giới hạn dung lượng, số tệp, kiểu tệp và tên tệp không tin cậy
+  - StreamingResponseBody, Resource và Content-Disposition khi tải xuống
+  - Range request, ResourceRegion và phản hồi 206 Partial Content
+  - ResourceHandler, vị trí tài nguyên tĩnh và thứ tự ánh xạ
+  - Resource chain, phiên bản tài nguyên và đường dẫn có dấu vân tay nội dung
+  - Ngăn path traversal và kiểm soát quyền truy cập tệp
+- level1: CORS và an toàn web
+  level2:
+  - Same-origin policy, origin và điều kiện phát sinh CORS
+  - Yêu cầu đơn giản, preflight OPTIONS và các header CORS
+  - '@CrossOrigin, cấu hình toàn cục và cách kết hợp chính sách'
+  - CorsFilter, allowed origins, credentials và hạn chế ký tự đại diện
+  - Phân biệt CORS, xác thực, phân quyền và CSRF
+  - Ranh giới trách nhiệm của Spring Web và Spring Security
+  - ForwardedHeaderFilter, header do proxy cung cấp và ranh giới tin cậy
+  - Kiểm soát chuyển hướng mở, nội dung tải lên và thông tin nhạy cảm trong log
+- level1: Cache HTTP
+  level2:
+  - Cache-Control, Expires và phân biệt cache trình duyệt với cache dùng chung
+  - ETag, Last-Modified và yêu cầu có điều kiện
+  - If-None-Match, If-Modified-Since và phản hồi 304
+  - WebRequest.checkNotModified và cấu hình cache trên ResponseEntity
+  - ShallowEtagHeaderFilter, chi phí tạo phản hồi và giới hạn tối ưu
+  - Vary, nội dung cá nhân hóa và tránh lưu nhầm dữ liệu riêng tư
+  - If-Match, precondition và kiểm soát cập nhật đồng thời
+- level1: URI và phiên bản API
+  level2:
+  - 'UriComponentsBuilder: ghép đường dẫn, tham số và URI template'
+  - Mã hóa URI đúng một lần và phân biệt dữ liệu với ký tự phân cách
+  - ServletUriComponentsBuilder và xây URI từ yêu cầu hiện tại
+  - MvcUriComponentsBuilder và tạo liên kết tới controller
+  - Đường dẫn công khai khi ứng dụng nằm sau reverse proxy
+  - Chiến lược phiên bản API theo đường dẫn, header, tham số hoặc media type
+  - 'Hỗ trợ API versioning từ Spring 7: phân giải phiên bản, ánh xạ và thông báo ngừng hỗ trợ'
+- level1: Bất đồng bộ MVC
+  level2:
+  - Servlet async và khác biệt giữa giải phóng luồng yêu cầu với I/O không chặn
+  - Callable, DeferredResult, WebAsyncTask và lựa chọn mô hình hoàn thành
+  - Cấu hình TaskExecutor, timeout và giới hạn tài nguyên
+  - Luồng dispatch ASYNC và xử lý kết quả hoặc ngoại lệ
+  - ResponseBodyEmitter, SseEmitter và StreamingResponseBody
+  - Trả về kiểu reactive trong MVC và giới hạn khi ghi phản hồi
+  - Phát hiện ngắt kết nối, dọn tài nguyên và xử lý lỗi sau khi đã gửi header
+  - Truyền ngữ cảnh, an toàn luồng và tránh sử dụng executor không giới hạn
+- level1: Functional MVC
+  level2:
+  - WebMvc.fn và khác biệt với controller dùng annotation
+  - ServerRequest, ServerResponse và HandlerFunction
+  - RouterFunction, RequestPredicate và khai báo tuyến lồng nhau
+  - Đọc đầu vào, tạo phản hồi và sử dụng message converter
+  - HandlerFilterFunction, xử lý lỗi và tổ chức các tuyến chức năng
+  - Kết hợp functional endpoint với hạ tầng Spring MVC hiện có
+- level1: Nền tảng WebFlux
+  level2:
+  - Reactive Streams và vai trò của Publisher, Subscriber, Subscription
+  - Mono, Flux và ý nghĩa của không có, một hoặc nhiều giá trị
+  - Tính trì hoãn, đăng ký thực thi và vòng đời một chuỗi reactive
+  - Event loop, mô hình luồng và tác hại của thao tác chặn
+  - Backpressure, lượng yêu cầu dữ liệu và giới hạn khi đi qua giao thức HTTP
+  - map, flatMap, kết hợp kết quả và lựa chọn mức đồng thời
+  - Lỗi, hủy đăng ký, timeout và giải phóng tài nguyên
+  - Đánh giá WebFlux theo toàn bộ chuỗi I/O; không mặc định nhanh hơn MVC
+- level1: Hạ tầng WebFlux
+  level2:
+  - HttpHandler, WebHandler và ServerWebExchange
+  - DispatcherHandler, HandlerMapping, HandlerAdapter và HandlerResultHandler
+  - WebFilter, WebFilterChain và WebExceptionHandler
+  - ServerHttpRequest, ServerHttpResponse và dữ liệu request/response
+  - Codec, HttpMessageReader, HttpMessageWriter và cấu hình giới hạn bộ nhớ
+  - '@EnableWebFlux, WebFluxConfigurer và cấu hình hạ tầng'
+  - WebSession, LocaleContext và Reactor Context
+  - Máy chủ reactive, kết nối và khác biệt với mô hình Servlet
+- level1: Controller WebFlux
+  level2:
+  - Ánh xạ controller bằng annotation và các điểm chung với MVC
+  - Đọc tham số, header, cookie, Principal và dữ liệu trong ServerWebExchange
+  - '@RequestBody với Mono/Flux và phản hồi reactive qua ResponseEntity'
+  - Binding, Bean Validation và nhận diện lỗi đầu vào trong WebFlux
+  - Multipart, FilePart, PartEvent và xử lý tệp theo luồng
+  - '@ExceptionHandler, @RestControllerAdvice và ProblemDetail trong WebFlux'
+  - Trả view, Model và tích hợp template engine reactive
+  - Cấu hình CORS, tài nguyên tĩnh và HTTP caching trong WebFlux
+- level1: Functional WebFlux
+  level2:
+  - WebFlux.fn, RouterFunction và HandlerFunction
+  - ServerRequest, ServerResponse và hợp đồng bất đồng bộ
+  - Định tuyến theo đường dẫn, method, header và kiểu nội dung
+  - Nesting, hợp thành router và tổ chức tuyến theo tính năng
+  - Đọc body bằng bodyToMono/bodyToFlux và kiểm tra dữ liệu
+  - Filter cho router, xử lý lỗi và tạo phản hồi thống nhất
+  - Tích hợp router bean với DispatcherHandler
+- level1: Streaming WebFlux
+  level2:
+  - SSE với Flux và ServerSentEvent
+  - JSON theo luồng, NDJSON và lựa chọn media type
+  - DataBuffer, bộ nhớ đệm dùng pool và trách nhiệm giải phóng
+  - Giới hạn kích thước dữ liệu, tốc độ tiêu thụ và tránh gom toàn bộ stream
+  - Cô lập tác vụ chặn với scheduler phù hợp và giới hạn đồng thời
+  - Hủy đăng ký, client ngắt kết nối và dọn dẹp tài nguyên
+  - Truyền ngữ cảnh qua Reactor Context thay cho giả định về ThreadLocal
+  - WebSocketHandler reactive và vòng đời luồng nhận/gửi
+- level1: HTTP client đồng bộ
+  level2:
+  - Chọn RestClient, RestTemplate, WebClient hoặc HTTP Service Client
+  - Tạo RestClient và cấu hình base URL, header, cookie mặc định
+  - Gửi yêu cầu với URI template, query, form và multipart
+  - retrieve, exchange và đọc status, header, body
+  - HttpMessageConverter, kiểu generic và ParameterizedTypeReference
+  - ClientHttpRequestFactory và lựa chọn thư viện HTTP nền
+  - Timeout, connection pool, TLS và vòng đời tài nguyên
+  - Interceptor, xử lý mã lỗi và thiết kế retry theo tính lặp lại của thao tác
+  - RestTemplate trong hệ thống sẵn có và chuyển sang RestClient; deprecated từ Spring 7
+- level1: WebClient
+  level2:
+  - WebClient.Builder, ClientHttpConnector và thư viện HTTP nền
+  - Gửi yêu cầu reactive và thiết lập URI, header, cookie, body
+  - retrieve, onStatus, exchangeToMono và exchangeToFlux
+  - Đọc JSON, kiểu generic, dữ liệu theo luồng và multipart
+  - ExchangeFilterFunction và cấu hình dùng chung
+  - Timeout, connection pool, TLS và giới hạn bộ nhớ codec
+  - Xử lý lỗi, retry có giới hạn và tránh lặp thao tác có tác dụng phụ
+  - Tiêu thụ hoặc giải phóng response body để tái sử dụng kết nối
+  - Dùng WebClient trong MVC; chọn vị trí block và tránh chặn event loop
+  - Reactor Context, truyền mã đối chiếu và hủy yêu cầu đang chạy
+- level1: HTTP Service Client
+  level2:
+  - '@HttpExchange và khai báo hợp đồng HTTP bằng interface'
+  - '@GetExchange, @PostExchange và ánh xạ tham số phương thức'
+  - HttpServiceProxyFactory và adapter cho RestClient hoặc WebClient
+  - Kiểu trả về đồng bộ, reactive và phản hồi ResponseEntity
+  - Cấu hình header, URI, chuyển đổi dữ liệu và xử lý lỗi
+  - Quản lý nhiều dịch vụ, khả năng tương thích phiên bản và kiểm thử proxy
+- level1: WebSocket và STOMP
+  level2:
+  - So sánh polling, SSE, WebSocket và chọn cơ chế cập nhật
+  - WebSocket handshake, subprotocol và vòng đời kết nối
+  - WebSocketHandler, TextWebSocketHandler và đăng ký endpoint Servlet
+  - HandshakeInterceptor, kiểm tra origin và thông tin người dùng
+  - Giới hạn message, gửi đồng thời, timeout và ngắt kết nối
+  - SockJS fallback và các ràng buộc khi đi qua proxy
+  - STOMP, destination và luồng thông điệp qua các channel của Spring
+  - '@MessageMapping, @SendTo, @SendToUser và SimpMessagingTemplate'
+  - Simple broker, broker relay và lựa chọn khi mở rộng hệ thống
+  - Xác thực, phân quyền destination, heartbeat và phục hồi kết nối
+  - Xử lý ngoại lệ, sự kiện kết nối, giám sát và kiểm thử WebSocket
+- level1: Kiểm thử web
+  level2:
+  - Phân biệt kiểm thử controller độc lập, kiểm thử hạ tầng và HTTP qua máy chủ thật
+  - 'MockMvc: standaloneSetup và webAppContextSetup'
+  - Kiểm chứng mapping, tham số, header, status và nội dung JSON
+  - Kiểm thử binding, validation, ProblemDetail và ControllerAdvice
+  - Kiểm thử view, form, redirect, flash attributes và session
+  - Kiểm thử multipart, CORS và yêu cầu có điều kiện
+  - Kiểm thử MVC async, asyncDispatch và phản hồi streaming
+  - WebTestClient với controller, RouterFunction, ApplicationContext hoặc máy chủ thật
+  - Kiểm thử Flux, SSE, hủy đăng ký và giới hạn thời gian
+  - MockRestServiceServer cho client đồng bộ và máy chủ giả lập cho WebClient
+  - Kiểm thử HTTP Service Client và WebSocket/STOMP theo hợp đồng
+- level1: Vận hành và thực hành
+  level2:
+  - Thiết kế lớp HTTP mỏng, ranh giới dịch vụ và hợp đồng dữ liệu rõ ràng
+  - Quan sát yêu cầu/phản hồi bằng log, tracing và Micrometer Observation
+  - Đọc lỗi 404, 405, 406, 415, validation và ngoại lệ bất đồng bộ
+  - Chẩn đoán cạn luồng, nghẽn kết nối, thiếu bộ nhớ và tác vụ chặn event loop
+  - 'Triển khai sau proxy: HTTPS, forwarded headers, streaming và WebSocket'
+  - Giới hạn tài nguyên, timeout, ngắt kết nối và dừng ứng dụng an toàn
+  - 'Thực hành REST API: mapping, DTO, validation, lỗi và kiểm thử'
+  - 'Thực hành trang biểu mẫu: view, bản địa hóa, session và redirect'
+  - 'Thực hành gọi dịch vụ: HTTP client, timeout và xử lý lỗi'
+  - 'Thực hành cập nhật thời gian thực: lựa chọn SSE hoặc WebSocket'
+  - Đối chiếu cùng một bài toán trên MVC và WebFlux bằng hành vi quan sát được

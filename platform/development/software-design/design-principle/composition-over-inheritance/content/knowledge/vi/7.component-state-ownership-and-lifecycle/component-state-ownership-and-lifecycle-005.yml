@@ -1,0 +1,3 @@
+menuLevel1: Trạng thái, quyền sở hữu và vòng đời của thành phần
+menuLevel2: Defensive copy và tránh làm lộ trạng thái nội bộ qua getter
+status: ""

@@ -1,0 +1,106 @@
+menu:
+- title: Bản đồ ngôn ngữ
+  slug: language-map
+  index: 0
+- title: Thiết kế và tiến hóa
+  slug: language-design
+  index: 1
+- title: Cú pháp
+  slug: syntax
+  index: 2
+- title: Ngữ nghĩa
+  slug: semantics
+  index: 3
+- title: Tên và liên kết
+  slug: names-and-binding
+  index: 4
+- title: Phạm vi và thời gian sống
+  slug: scope-and-lifetime
+  index: 5
+- title: Nền tảng hệ kiểu
+  slug: type-system-foundations
+  index: 6
+- title: Kiểu dữ liệu cơ sở
+  slug: primitive-data-types
+  index: 7
+- title: Biểu thức và phép gán
+  slug: expressions-and-assignment
+  index: 8
+- title: Điều khiển luồng
+  slug: control-flow
+  index: 9
+- title: Chương trình con
+  slug: subroutines
+  index: 10
+- title: Tham số và lời gọi
+  slug: parameters-and-calls
+  index: 11
+- title: Closure và tiếp diễn
+  slug: closures-and-continuations
+  index: 12
+- title: Kiểu hợp thành
+  slug: composite-types
+  index: 13
+- title: Tổng quát hóa
+  slug: generics
+  index: 14
+- title: Trừu tượng và mô-đun
+  slug: abstraction-and-modules
+  index: 15
+- title: Hướng đối tượng
+  slug: object-oriented-programming
+  index: 16
+- title: Lập trình hàm
+  slug: functional-programming
+  index: 17
+- title: Lập trình logic
+  slug: logic-programming
+  index: 18
+- title: Lỗi và ngoại lệ
+  slug: errors-and-exceptions
+  index: 19
+- title: Hiệu ứng và tài nguyên
+  slug: effects-and-resources
+  index: 20
+- title: Chiến lược đánh giá
+  slug: evaluation-strategies
+  index: 21
+- title: Cơ chế thực thi
+  slug: execution-mechanisms
+  index: 22
+- title: Quản lý bộ nhớ
+  slug: memory-management
+  index: 23
+- title: Biểu diễn dữ liệu
+  slug: data-representation
+  index: 24
+- title: Đồng thời
+  slug: concurrency
+  index: 25
+- title: Bất đồng bộ và song song
+  slug: async-and-parallelism
+  index: 26
+- title: Siêu lập trình
+  slug: metaprogramming
+  index: 27
+- title: Ngôn ngữ miền
+  slug: domain-specific-languages
+  index: 28
+- title: Tương tác ngôn ngữ
+  slug: language-interop
+  index: 29
+- title: An toàn ngôn ngữ
+  slug: language-safety
+  index: 30
+- title: Hệ kiểu nâng cao
+  slug: advanced-type-systems
+  index: 31
+- title: Đặc tả và kiểm chứng
+  slug: specification-and-verification
+  index: 32
+- title: So sánh và lựa chọn
+  slug: comparison-and-selection
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

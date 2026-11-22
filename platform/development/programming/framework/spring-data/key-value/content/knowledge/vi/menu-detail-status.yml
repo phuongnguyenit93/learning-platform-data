@@ -1,0 +1,2128 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data KeyValue là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vị trí của KeyValue trong hệ sinh thái Spring Data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa khóa, giá trị, keyspace, entity và repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng xử lý từ Repository qua Template đến Adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt Spring Data KeyValue, Java Map và cơ sở dữ liệu khóa–giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt lưu trữ đối tượng với bộ nhớ đệm Spring Cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Trường hợp phù hợp và giới hạn của giải pháp lưu trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức tiên quyết và trình tự học từ cơ bản đến mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-value-foundations
+  title: Nền tảng khóa–giá trị
+  childs:
+  - slug: key-value-foundations-001
+    title: Cấu trúc cặp khóa–giá trị và cách tra cứu bằng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-foundations-002
+    title: Không gian khóa và phạm vi duy nhất của định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-foundations-003
+    title: Tra cứu trực tiếp theo khóa và tìm kiếm theo thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-foundations-004
+    title: Mô hình đối tượng lưu trữ và ranh giới đối tượng gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-foundations-005
+    title: Biểu diễn quan hệ bằng định danh hoặc dữ liệu lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-foundations-006
+    title: Đặc điểm lưu trữ trong tiến trình và mất dữ liệu khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-foundations-007
+    title: Tính bền vững, tính nhất quán và tính sẵn sàng trong lựa chọn kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-value-foundations-008
+    title: Giới hạn của mô hình khi cần phép nối, ràng buộc và truy vấn phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-setup
+  title: Khởi tạo dự án
+  childs:
+  - slug: project-setup-001
+    title: Lựa chọn Java, Spring Framework và Spring Data tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-002
+    title: Khai báo spring-data-keyvalue bằng Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-003
+    title: Quản lý phiên bản bằng Spring Boot BOM hoặc Spring Data BOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-004
+    title: Phân biệt thư viện spring-data-keyvalue với starter của kho dữ liệu cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-005
+    title: Tổ chức mã nguồn cấu hình, mô hình, repository và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-006
+    title: Khởi tạo ứng dụng Spring với một entity và một Map repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-007
+    title: Chạy ví dụ lưu, đọc, cập nhật và xóa đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-configuration
+  title: Cấu hình lưu trữ
+  childs:
+  - slug: storage-configuration-001
+    title: Kích hoạt Map repository bằng @EnableMapRepositories
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-002
+    title: Giới hạn quét repository bằng basePackages và basePackageClasses
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-003
+    title: Khai báo bean KeyValueAdapter và KeyValueOperations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-004
+    title: Kết nối KeyValueTemplate với MapKeyValueAdapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-005
+    title: Vai trò tên bean mapKeyValueTemplate và keyValueTemplateRef
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-006
+    title: Lựa chọn mapType và quan hệ với adapter được cấu hình tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-007
+    title: Cấu hình nhiều Template và tách phạm vi repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-008
+    title: Quản lý cấu hình theo môi trường và profile của Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-configuration-009
+    title: Vòng đời ApplicationContext, Template và adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-model
+  title: Mô hình đối tượng
+  childs:
+  - slug: object-model-001
+    title: Thiết kế POJO cho dữ liệu khóa–giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-model-002
+    title: Nhận diện thuộc tính định danh bằng org.springframework.data.annotation.Id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-model-003
+    title: Vai trò của kiểu thuộc tính, getter và setter khi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-model-004
+    title: Thuộc tính lồng nhau, collection và giới hạn truy cập đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-model-005
+    title: Đối tượng có thể thay đổi và ảnh hưởng của việc chia sẻ tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-model-006
+    title: Phân biệt metadata ánh xạ với chuyển đổi hoặc tuần tự hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-model-007
+    title: Kế thừa kiểu dữ liệu và cách tổ chức đối tượng trong cùng keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-model-008
+    title: Thiết kế ranh giới dữ liệu và kiểm tra hợp lệ ở tầng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity
+  title: Định danh
+  childs:
+  - slug: identity-001
+    title: Chọn kiểu ID và giữ nhất quán giữa entity với repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-002
+    title: Phân biệt khóa nghiệp vụ và khóa kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-003
+    title: Gán ID trước khi lưu và quy tắc nhận diện đối tượng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-004
+    title: Sinh ID tự động và các kiểu ID được hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-005
+    title: Tùy chỉnh chiến lược sinh khóa bằng IdentifierGenerator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-006
+    title: Truyền ID tường minh khi thao tác với KeyValueTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-007
+    title: Đối chiếu ID truyền vào với ID trên đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-008
+    title: Khóa trùng, ID null và khác biệt giữa kiểu nguyên thủy với kiểu bao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-009
+    title: Giữ ID ổn định và xử lý yêu cầu thay đổi khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keyspace
+  title: Keyspace
+  childs:
+  - slug: keyspace-001
+    title: Keyspace là gì và cách phân vùng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-002
+    title: Keyspace mặc định suy ra từ tên lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-003
+    title: Đặt tên keyspace tường minh bằng @KeySpace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-004
+    title: Phạm vi trùng ID giữa cùng và khác keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-005
+    title: Kế thừa @KeySpace và lọc kết quả theo kiểu đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-006
+    title: Giới hạn an toàn khi nhiều kiểu dữ liệu dùng chung keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-007
+    title: Tạo annotation kết hợp với @KeySpace, @Persistent và @AliasFor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-008
+    title: Phân giải keyspace bằng KeySpaceResolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keyspace-009
+    title: Ảnh hưởng của đổi tên lớp hoặc keyspace đến dữ liệu hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: map-storage
+  title: Lưu trữ Map
+  childs:
+  - slug: map-storage-001
+    title: Cấu trúc Map theo keyspace bên trong MapKeyValueAdapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-002
+    title: ConcurrentHashMap làm cấu trúc lưu trữ mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-003
+    title: Lựa chọn Map khác và yêu cầu khởi tạo của adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-004
+    title: Khởi tạo adapter bằng cấu trúc Map có dữ liệu ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-005
+    title: Phân biệt Map bao ngoài và Map chứa dữ liệu từng keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-006
+    title: Lưu tham chiếu đối tượng và hệ quả khi thay đổi đối tượng đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-007
+    title: Thứ tự duyệt Map và tính ổn định của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-008
+    title: Phạm vi tác động của xóa một khóa, xóa keyspace và clear toàn adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: map-storage-009
+    title: Giải phóng dữ liệu và tài nguyên khi gọi destroy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: template-operations
+  title: Thao tác Template
+  childs:
+  - slug: template-operations-001
+    title: Vai trò hợp đồng KeyValueOperations và lớp KeyValueTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-002
+    title: Chèn đối tượng bằng insert với ID tự xác định hoặc truyền tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-003
+    title: Phân biệt hành vi insert khi khóa mới và khóa đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-004
+    title: Đọc đối tượng bằng findById và xử lý Optional rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-005
+    title: Đọc toàn bộ đối tượng theo kiểu bằng findAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-006
+    title: Cập nhật đối tượng bằng update và xử lý khóa chưa tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-007
+    title: Phân biệt thay thế toàn bộ đối tượng với cập nhật từng thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-008
+    title: Xóa theo đối tượng hoặc theo ID và kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-009
+    title: Xóa toàn bộ dữ liệu theo kiểu và phạm vi keyspace liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-010
+    title: Đếm dữ liệu theo kiểu bằng count
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-011
+    title: Thao tác mức thấp bằng execute và KeyValueCallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-operations-012
+    title: Truy cập MappingContext và adapter khi cần mở rộng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-basics
+  title: Repository cơ bản
+  childs:
+  - slug: repository-basics-001
+    title: Định nghĩa repository với kiểu entity và kiểu ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-002
+    title: Lựa chọn CrudRepository hoặc KeyValueRepository theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-003
+    title: Vai trò của các giao diện CRUD và phân trang theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-004
+    title: Lưu bằng save và cách SimpleKeyValueRepository chọn insert hoặc update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-005
+    title: Đọc bằng findById, findAll và findAllById
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-006
+    title: Kiểm tra tồn tại bằng existsById và đếm bằng count
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-007
+    title: Xóa bằng deleteById, delete và deleteAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-008
+    title: Thao tác nhiều đối tượng bằng saveAll và các phương thức xóa tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-009
+    title: Xử lý giá trị trả về, đối tượng không tồn tại và thứ tự kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-basics-010
+    title: Phân biệt thao tác tập hợp với bảo đảm nguyên tử của toàn bộ thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: template-queries
+  title: Truy vấn Template
+  childs:
+  - slug: template-queries-001
+    title: Cấu trúc KeyValueQuery và vai trò kiểu dữ liệu tiêu chí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-002
+    title: Kết nối KeyValueQuery với QueryEngine tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-003
+    title: Tạo điều kiện bằng Predicate với bộ máy truy vấn hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-004
+    title: Tạo điều kiện bằng SpEL với SpelQueryEngine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-005
+    title: Kết hợp điều kiện so sánh, logic và kiểm tra giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-006
+    title: Truy cập thuộc tính lồng nhau và xử lý đường dẫn không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-007
+    title: Thực thi truy vấn bằng find, count và exists
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-008
+    title: Giới hạn kết quả bằng offset, rows, skip và limit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-009
+    title: Quản lý EvaluationContext khi cần truy vấn SpEL có tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-queries-010
+    title: Giới hạn độ tin cậy của biểu thức và tránh ghép dữ liệu đầu vào trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-queries
+  title: Truy vấn Repository
+  childs:
+  - slug: repository-queries-001
+    title: Nguyên tắc suy diễn truy vấn từ tên phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-002
+    title: Phân tách phần chủ đề, điều kiện và đường dẫn thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-003
+    title: Truy vấn bằng điều kiện bằng, phủ định, And và Or
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-004
+    title: 'Điều kiện chuỗi, so sánh và tập hợp: phạm vi hỗ trợ của QueryCreator'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-005
+    title: Giá trị null, thuộc tính lồng nhau và điều kiện không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-006
+    title: Truyền tham số và lựa chọn kiểu kết quả đơn hoặc tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-007
+    title: Xử lý truy vấn mong đợi một kết quả nhưng trả về nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-008
+    title: Sắp xếp tĩnh bằng OrderBy và sắp xếp động bằng Sort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-009
+    title: Giới hạn, phân trang và các kiểu trả về được hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-010
+    title: Vai trò PredicateQueryCreator và khác biệt với SpelQueryCreator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-011
+    title: Phối hợp QueryCreator với QueryEngine để tránh sai kiểu tiêu chí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-queries-012
+    title: Đọc lỗi khởi tạo repository khi tên phương thức không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sorting-pagination
+  title: Sắp xếp và phân trang
+  childs:
+  - slug: sorting-pagination-001
+    title: Xây dựng Sort theo một hoặc nhiều thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-002
+    title: Lựa chọn chiều tăng, giảm và khóa phụ để ổn định thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-003
+    title: Áp dụng Sort vào Template, KeyValueQuery và repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-004
+    title: Truy cập thuộc tính khi so sánh và xử lý giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-005
+    title: Vai trò SortAccessor và bộ so sánh thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-006
+    title: Đọc một khoảng dữ liệu bằng findInRange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-007
+    title: Tạo PageRequest và đọc Page qua repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-008
+    title: Phân biệt tổng số phần tử, kích thước trang và số trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-pagination-009
+    title: Ảnh hưởng của dữ liệu thay đổi trong lúc lọc, đếm và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: internal-architecture
+  title: Kiến trúc nội bộ
+  childs:
+  - slug: internal-architecture-001
+    title: Chuỗi gọi từ repository proxy đến SimpleKeyValueRepository và Template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-002
+    title: Vai trò KeyValueRepositoryFactoryBean và KeyValueRepositoryFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-003
+    title: EntityInformation và việc nhận diện đối tượng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-004
+    title: KeyValueMappingContext, PersistentEntity và PersistentProperty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-005
+    title: Phân giải ID, kiểu dữ liệu và keyspace từ metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-006
+    title: KeyValuePartTreeQuery và quá trình tạo truy vấn từ PartTree
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-007
+    title: CachingKeyValuePartTreeQuery và phạm vi lưu kết quả phân tích truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-008
+    title: Vai trò AbstractKeyValueAdapter và hợp đồng KeyValueAdapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-architecture-009
+    title: QueryEngine, CriteriaAccessor và SortAccessor trong thực thi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-events
+  title: Sự kiện vòng đời
+  childs:
+  - slug: lifecycle-events-001
+    title: KeyValueEvent và cơ chế phát sự kiện qua Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-002
+    title: Sự kiện trước và sau khi chèn hoặc cập nhật đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-003
+    title: Sự kiện trước và sau khi đọc hoặc xóa theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-004
+    title: Sự kiện trước và sau khi xóa keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-005
+    title: Đăng ký ApplicationListener hoặc @EventListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-006
+    title: Đọc khóa, keyspace, kiểu dữ liệu và dữ liệu kèm sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-007
+    title: Lựa chọn sự kiện được phát bằng setEventTypesToPublish
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-008
+    title: Thứ tự thực thi, lỗi trong listener và ảnh hưởng đến thao tác dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-events-009
+    title: Phân biệt sự kiện thao tác dữ liệu với cơ chế auditing cần cấu hình riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions
+  title: Ngoại lệ
+  childs:
+  - slug: exceptions-001
+    title: Phân biệt lỗi cấu hình, lỗi ánh xạ, lỗi truy vấn và lỗi kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-002
+    title: Hệ thống ngoại lệ org.springframework.dao và vai trò chuyển đổi ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-003
+    title: KeyValuePersistenceExceptionTranslator và UncategorizedKeyValueException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-004
+    title: Xử lý chèn trùng khóa và cập nhật đối tượng không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-005
+    title: Xử lý ID null, sai kiểu ID và entity thiếu định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-006
+    title: Phân biệt kết quả rỗng hợp lệ với thao tác thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-007
+    title: Kiểm tra hợp lệ, thông báo lỗi và ranh giới xử lý ở tầng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-008
+    title: Thiết kế thao tác lặp lại an toàn và điều kiện thử lại sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-access
+  title: Truy cập đồng thời
+  childs:
+  - slug: concurrent-access-001
+    title: An toàn luồng của Map và an toàn luồng của đối tượng được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-002
+    title: Phạm vi nguyên tử của một thao tác và chuỗi đọc–sửa–ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-003
+    title: Mất cập nhật khi nhiều luồng cùng sửa một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-004
+    title: Điều kiện tranh chấp khi kiểm tra tồn tại rồi chèn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-005
+    title: Nhất quán khi duyệt Map, thực thi truy vấn và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-006
+    title: Lựa chọn khóa đồng bộ hoặc thao tác nguyên tử ở tầng thích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-007
+    title: Giới hạn của @Transactional với adapter Map không có giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-008
+    title: Khóa lạc quan và kiểm tra phiên bản khi tự bổ sung cơ chế hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-access-009
+    title: Phạm vi bảo đảm trong một JVM và giới hạn khi chạy nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-extensions
+  title: Mở rộng Repository
+  childs:
+  - slug: repository-extensions-001
+    title: Lựa chọn phương thức suy diễn, Template hoặc mã repository tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-extensions-002
+    title: Tổ chức repository fragment và lớp triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-extensions-003
+    title: Kết hợp nhiều điều kiện động bằng KeyValueOperations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-extensions-004
+    title: Tái sử dụng hành vi chung bằng giao diện cơ sở và @NoRepositoryBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-extensions-005
+    title: Tùy chỉnh repositoryBaseClass và repositoryFactoryBeanClass
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-extensions-006
+    title: Cấu hình phạm vi quét và quy ước tìm lớp triển khai tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-extensions-007
+    title: 'QuerydslKeyValueRepository: điều kiện tích hợp và khả năng hỗ trợ theo phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-extensions-008
+    title: Giữ ranh giới giữa nghiệp vụ, repository và chi tiết adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-adapters
+  title: Adapter tùy chỉnh
+  childs:
+  - slug: custom-adapters-001
+    title: Khi nào cần triển khai KeyValueAdapter riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-002
+    title: Lựa chọn triển khai trực tiếp hoặc kế thừa AbstractKeyValueAdapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-003
+    title: Thực hiện put, get, contains và delete theo khóa cùng keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-004
+    title: Thực hiện count, getAllOf và deleteAllOf theo keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-005
+    title: Duyệt entries bằng CloseableIterator và đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-006
+    title: Phân biệt clear toàn kho với xóa một keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-007
+    title: Tích hợp QueryEngine có tiêu chí và kiểu sắp xếp tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-008
+    title: Quy định chuyển đổi đối tượng và tuần tự hóa cho kho lưu trữ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-009
+    title: Chuyển đổi ngoại lệ, giải phóng tài nguyên và công bố giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-adapters-010
+    title: Xây dựng bộ kiểm tra hợp đồng cho adapter mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-memory
+  title: Hiệu năng và bộ nhớ
+  childs:
+  - slug: performance-memory-001
+    title: Chi phí tra cứu theo ID so với quét dữ liệu theo thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-002
+    title: Chi phí lọc, đếm, sắp xếp và phân trang trên Map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-003
+    title: Ảnh hưởng số lượng entity, keyspace và kích thước đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-004
+    title: Đo độ trễ và thông lượng với dữ liệu cùng tải truy cập thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-005
+    title: Giảm truy vấn lặp, giới hạn kết quả và tránh đọc toàn bộ không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-006
+    title: Chi phí SpEL và điều kiện sử dụng biên dịch biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-007
+    title: Thiết kế chỉ mục bổ sung khi adapter có nhu cầu truy vấn lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-008
+    title: Quản lý kích thước dữ liệu, vòng đời đối tượng và áp lực GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-memory-009
+    title: Tiêu chí chuyển sang kho lưu trữ chuyên dụng khi vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị tầng dịch vụ và giới hạn của repository giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử tích hợp với Spring Context và MapKeyValueAdapter thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Tạo dữ liệu mẫu và cô lập adapter giữa các phép thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra CRUD, khóa trùng và ID được sinh hoặc gán trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm tra cách ly keyspace và entity có kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra toán tử truy vấn, null và thuộc tính lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm tra thứ tự ổn định, phân trang và tổng số phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm tra sự kiện vòng đời và ngoại lệ của listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm tra thay đổi đối tượng qua tham chiếu được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tái hiện mất cập nhật và điều kiện tranh chấp bằng nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra destroy, khởi tạo lại và hành vi mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Đưa repository vào tầng dịch vụ bằng constructor injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Thiết kế DTO và kiểm tra hợp lệ trước khi truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Xây dựng luồng nghiệp vụ qua Template hoặc repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Nạp dữ liệu ban đầu và tránh nạp lặp ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Tách cấu hình lưu trữ thử nghiệm khỏi cấu hình môi trường thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Kết hợp nhiều mô-đun Spring Data và tách phạm vi repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Phân biệt dùng KeyValue làm kho chính với dùng Spring Cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Ranh giới tái sử dụng hạ tầng KeyValue trong Spring Data Redis
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Đánh giá nguy cơ mất dữ liệu khi dừng, lỗi hoặc khởi động lại JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Giới hạn dữ liệu, theo dõi bộ nhớ và tránh giữ đối tượng vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: 'TTL và loại bỏ dữ liệu: trách nhiệm bổ sung ngoài adapter Map mặc định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Theo dõi số lượng phần tử, độ trễ và lỗi ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Kiểm soát quyền truy cập và xác thực tại ranh giới ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Không đưa dữ liệu nhạy cảm hoặc biểu thức không tin cậy vào log và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Cách ly dữ liệu theo nhóm sử dụng và giới hạn bảo mật của keyspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Đánh giá yêu cầu bền vững, chia sẻ dữ liệu và mở rộng nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics-upgrades
+  title: Chẩn đoán và nâng cấp
+  childs:
+  - slug: diagnostics-upgrades-001
+    title: Không tạo được repository do phạm vi quét hoặc cấu hình kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-002
+    title: Thiếu hoặc trùng bean KeyValueOperations và sai keyValueTemplateRef
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-003
+    title: Lỗi định danh, khóa trùng và không tìm thấy dữ liệu vừa lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-004
+    title: Lệch keyspace do annotation, kế thừa hoặc đổi tên lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-005
+    title: Lỗi đường dẫn thuộc tính, toán tử và kiểu tham số truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-006
+    title: Không khớp QueryCreator, QueryEngine hoặc SortAccessor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-007
+    title: Kết quả thay đổi do thứ tự Map hoặc tham chiếu đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-008
+    title: Phân tích phụ thuộc để tìm xung đột phiên bản Spring Data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-009
+    title: Đối chiếu thay đổi API và mặc định truy vấn giữa các dòng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-upgrades-010
+    title: Kiểm thử hồi quy khi nâng cấp hoặc thay adapter lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Xây dựng kho danh mục sản phẩm trong bộ nhớ bằng Map repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Cài đặt cùng một luồng CRUD bằng Repository và KeyValueTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Tách dữ liệu theo keyspace và kiểm chứng phạm vi định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Xây dựng bộ lọc động kết hợp sắp xếp cùng phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Ghi nhận thay đổi dữ liệu qua KeyValueEvent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Tái hiện lỗi chia sẻ tham chiếu và thiết kế biện pháp kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Mô phỏng mất cập nhật khi nhiều luồng cùng sửa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Triển khai adapter tối thiểu và kiểm tra hợp đồng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Đánh giá giới hạn giải pháp và lập phương án chuyển sang kho bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,386 @@
+menu:
+- level1: Vận hành kiểm thử
+  level2:
+  - Thực thi và bảo trì kiểm thử là gì trong vòng đời phần mềm
+  - Quan hệ giữa thiết kế test, triển khai test, thực thi và đánh giá kết quả
+  - Phân biệt test case, test suite, test run, test result và defect
+  - Vai trò của người kiểm thử, lập trình viên và hệ thống CI
+  - Đầu vào cần nhận từ yêu cầu, kế hoạch và thiết kế kiểm thử
+  - Đầu ra gồm kết quả, bằng chứng, lỗi và quyết định tiếp theo
+  - Kiểm thử thủ công và tự động phối hợp trong cùng chu trình
+  - Lộ trình từ một lần chạy đáng tin cậy đến bộ kiểm thử được duy trì lâu dài
+- level1: Chu kỳ thực thi
+  level2:
+  - Quy trình chuẩn bị, kiểm tra sẵn sàng, chạy và tổng kết
+  - Tiêu chí bắt đầu, tạm dừng, tiếp tục và kết thúc đợt kiểm thử
+  - Xác định phiên bản phần mềm và phạm vi được kiểm tra
+  - Phân công thực thi, người tiếp nhận lỗi và người xử lý môi trường
+  - Theo dõi tiến độ theo trạng thái thực tế của từng test
+  - Xử lý lần chạy bị ngắt hoặc hoàn thành một phần
+  - Quản lý thay đổi phạm vi khi yêu cầu hoặc bản build thay đổi
+  - Bàn giao kết quả và những rủi ro còn tồn tại
+- level1: Điều kiện đầu vào
+  level2:
+  - Xác minh bản build, commit và cấu hình cần kiểm thử
+  - Kiểm tra khả năng truy cập, tài khoản, quyền và dữ liệu
+  - Smoke test để xác nhận môi trường đủ điều kiện chạy tiếp
+  - Xác minh dependency và dịch vụ phụ trợ đã sẵn sàng
+  - Kiểm tra tài nguyên, dung lượng, kết nối và giới hạn hệ thống
+  - Nhận diện test bị chặn trước khi tính kết quả thực thi
+  - Phân biệt lỗi sản phẩm, lỗi triển khai và lỗi cấu hình
+  - Lưu bằng chứng preflight gắn với từng đợt chạy
+- level1: Tổ chức bộ kiểm thử
+  level2:
+  - Tổ chức test theo khả năng sản phẩm và ranh giới thành phần
+  - Đặt tên test để kết quả thất bại thể hiện rõ hành vi
+  - Phân nhóm smoke, regression và bộ kiểm tra chuyên biệt
+  - Tag, category và metadata phục vụ lựa chọn test
+  - Quan hệ giữa suite, package, lớp và từng test case
+  - Quản lý test có tham số và định danh từng trường hợp dữ liệu
+  - Nhận diện dependency giữa test và tránh chuỗi thứ tự ngầm
+  - Lưu người phụ trách, mục đích và điều kiện áp dụng của test
+- level1: Cấu hình lần chạy
+  level2:
+  - Tham số hóa môi trường, endpoint và tài khoản kiểm thử
+  - Thứ tự ưu tiên giữa tệp cấu hình, biến môi trường và dòng lệnh
+  - Tách cấu hình dùng chung khỏi cấu hình riêng của từng máy
+  - Chọn test bằng tên, tag, nhóm hoặc thay đổi liên quan
+  - Ma trận trình duyệt, hệ điều hành, JDK và cấu hình ứng dụng
+  - Feature flag và tập cấu hình cần được xác minh
+  - Quản lý seed, timeout và mức song song như tham số có thể truy vết
+  - In cấu hình hữu ích mà không làm lộ thông tin bí mật
+  - Tạo mã định danh cho test run và gắn với toàn bộ artifact
+- level1: Môi trường kiểm thử
+  level2:
+  - Phân biệt môi trường cục bộ, CI, tích hợp, staging và production
+  - Tạo môi trường bằng cấu hình có quản lý phiên bản
+  - Container và môi trường tạm thời theo từng lần chạy
+  - Phát hiện configuration drift giữa các môi trường
+  - Quản lý phiên bản runtime, database và dịch vụ phụ trợ
+  - Readiness, health check và điều kiện bắt đầu phát yêu cầu
+  - Cô lập namespace, cổng mạng, tài khoản và vùng lưu trữ
+  - Chuẩn bị môi trường khi chạy offline hoặc mạng bị giới hạn
+  - Dọn môi trường sau khi chạy thành công, thất bại hoặc bị hủy
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Phân biệt dữ liệu tham chiếu, dữ liệu đầu vào và dữ liệu sinh trong test
+  - Tạo dữ liệu bằng fixture, factory hoặc seed script
+  - Kiểm soát tính duy nhất của khóa, email và mã định danh
+  - Dữ liệu theo test, theo lớp và dùng chung cho cả suite
+  - Đặt lại dữ liệu mà không phá trạng thái của lần chạy khác
+  - Quản lý dữ liệu có thời hạn, phiên bản và quan hệ phụ thuộc
+  - Ẩn danh dữ liệu nhạy cảm và bảo toàn đặc trưng cần kiểm tra
+  - Đảm bảo dữ liệu đủ dùng khi test chạy song song hoặc chạy lại
+  - Truy vết dữ liệu gây lỗi để tái hiện độc lập
+- level1: Fixture và tài nguyên
+  level2:
+  - Vai trò của setup, teardown và phạm vi sống của fixture
+  - Tách chuẩn bị dữ liệu khỏi hành vi đang được kiểm tra
+  - Mở, chia sẻ và đóng file, socket, thread pool hoặc connection
+  - Cleanup khi assertion thất bại hoặc khởi tạo dở dang
+  - Quản lý tài nguyên bằng try-with-resources và cơ chế vòng đời test
+  - Phát hiện rò rỉ tài nguyên giữa các lần chạy
+  - Cân bằng chi phí khởi tạo với mức độ cô lập
+  - Kiểm chứng cleanup không che mất lỗi ban đầu
+  - Thiết kế fixture nhỏ, rõ ràng và có thể sử dụng độc lập
+- level1: Thực thi thủ công
+  level2:
+  - Chuẩn bị test case, dữ liệu và điều kiện trước khi thao tác
+  - Ghi nhận bước đã chạy cùng kết quả thực tế
+  - Đối chiếu kết quả mong đợi và xử lý mô tả chưa rõ
+  - Phân biệt pass, fail, blocked và not run
+  - Thu thập ảnh, video, log và thời điểm xảy ra lỗi
+  - Quản lý phiên kiểm thử khám phá với mục tiêu và ghi chú
+  - Giữ khả năng bàn giao khi nhiều người thực thi cùng bộ test
+  - Tổng kết phần đã kiểm tra, phần chưa chạy và giới hạn bằng chứng
+- level1: JUnit và vòng đời
+  level2:
+  - JUnit Platform, test engine và công cụ khởi chạy liên hệ thế nào
+  - Phát hiện test và xử lý trường hợp không có test được tìm thấy
+  - Vòng đời test instance và ảnh hưởng của PER_METHOD, PER_CLASS
+  - '@BeforeEach, @AfterEach, @BeforeAll và @AfterAll'
+  - Thực thi test có tham số, test lồng nhau và test động
+  - '@Tag, @Disabled và điều kiện thực thi có kiểm soát'
+  - Assertion, assumption, abort và cách đọc trạng thái kết quả
+  - Extension để quản lý tài nguyên và thu thập bằng chứng
+  - Chạy test độc lập, theo lớp và theo suite
+  - Giữ hành vi nhất quán giữa IDE, dòng lệnh và CI
+- level1: Maven và Gradle
+  level2:
+  - Phân biệt biên dịch mã test, phát hiện test và thực thi test
+  - Maven Surefire, Failsafe và vòng đời unit test, integration test
+  - Gradle Test task và liên kết với check, build
+  - Chọn lớp, phương thức, tag và tập test trên dòng lệnh
+  - Tách tiến trình JVM kiểm thử và truyền system property, JVM argument
+  - Quản lý classpath, test engine và dependency runtime
+  - Đọc test report XML, HTML và mã thoát của lệnh chạy
+  - Xử lý test bị bỏ qua, không phát hiện test hoặc chạy sai module
+  - Phân biệt kết quả tái sử dụng từ cache với test thực sự chạy lại
+  - Lưu lệnh tái hiện chính xác cho lần chạy thất bại
+- level1: Phụ thuộc bên ngoài
+  level2:
+  - Phân biệt dependency thật, test double và dịch vụ giả lập
+  - Mock, stub, fake và ranh giới cần kiểm soát khi thực thi
+  - Quản lý vòng đời Mockito và đặt lại trạng thái tương tác
+  - Giả lập HTTP với WireMock hoặc công cụ tương đương
+  - Khởi chạy dependency bằng Testcontainers và kiểm tra readiness
+  - Đồng bộ phiên bản image, dữ liệu khởi tạo và cấu hình kết nối
+  - Lựa chọn dependency thật hay giả lập theo mục tiêu của suite
+  - Nhận diện test pass do giả lập không phản ánh hợp đồng thực tế
+  - Đóng dependency và thu thập log khi lần chạy thất bại
+- level1: Database và giao dịch
+  level2:
+  - Chuẩn bị schema, migration và dữ liệu trước khi chạy test
+  - Phạm vi transaction trong test và ứng dụng được gọi
+  - Rollback, commit và các trường hợp rollback không bao phủ
+  - Tách database, schema hoặc tenant cho test chạy đồng thời
+  - Xử lý identity, sequence, constraint và dữ liệu tham chiếu
+  - Giữ tương thích giữa database kiểm thử và database mục tiêu
+  - Dọn dữ liệu theo quan hệ khóa ngoại mà không xóa dữ liệu ngoài phạm vi
+  - Chẩn đoán deadlock, connection leak và transaction timeout
+  - Kiểm tra migration trên dữ liệu cũ và đường nâng cấp
+  - Tránh test phụ thuộc vào thứ tự bản ghi không được bảo đảm
+- level1: API và bất đồng bộ
+  level2:
+  - Chuẩn bị base URL, token, header và dữ liệu theo lần chạy
+  - Đối chiếu status, header, body và tác dụng phụ
+  - Theo dõi request ID qua các dịch vụ để điều tra thất bại
+  - Kiểm tra sự kiện, message queue và xử lý nền
+  - Chờ điều kiện có giới hạn thay vì chèn sleep cố định
+  - Kiểm soát eventual consistency và thời điểm có thể quan sát kết quả
+  - Phân biệt retry của ứng dụng với retry của công cụ kiểm thử
+  - Kiểm tra idempotency khi yêu cầu hoặc message được gửi lại
+  - Đối chiếu kết quả khi response thành công nhưng tác vụ nền thất bại
+  - Dọn message, subscription và dữ liệu tồn dư giữa các test
+- level1: Giao diện người dùng
+  level2:
+  - Chuẩn bị browser, driver, viewport và cấu hình thiết bị
+  - Chờ trạng thái giao diện ổn định bằng điều kiện quan sát được
+  - Quản lý selector bền vững và tránh phụ thuộc bố cục ngẫu nhiên
+  - Cô lập session, cookie, localStorage và dữ liệu người dùng
+  - Phân biệt lỗi giao diện với lỗi mạng hoặc API phía sau
+  - Thu thập screenshot, video, trace và browser console
+  - Quản lý download, upload, popup và nhiều cửa sổ
+  - Đối chiếu thực thi headless với trình duyệt có giao diện
+  - Chạy ma trận trình duyệt có chủ đích và lưu thông tin tái hiện
+- level1: Tính xác định
+  level2:
+  - Phân biệt kết quả không xác định với biến động môi trường
+  - Tiêm Clock để kiểm soát thời gian hiện tại
+  - Quản lý timezone, locale, DST và định dạng ngày giờ
+  - Kiểm soát dữ liệu ngẫu nhiên bằng seed được ghi nhận
+  - Thay thế UUID hoặc nguồn sinh mã khi cần tái hiện
+  - Xử lý thứ tự collection, filesystem và truy vấn
+  - Tránh dùng thời gian máy hoặc trạng thái toàn cục ngoài kiểm soát
+  - Giữ khả năng chạy lặp lại cùng một đầu vào
+  - Đổi seed hoặc đảo thứ tự có chủ đích để tìm dependency ẩn
+- level1: Song song và cô lập
+  level2:
+  - Phân biệt song song theo tiến trình, lớp và phương thức
+  - Chọn mức song song theo tài nguyên và loại test
+  - Đồng bộ fixture dùng chung và nhận diện shared mutable state
+  - Cô lập filesystem, port, database và tài khoản theo worker
+  - Resource lock và chạy tuần tự phần không thể chia sẻ an toàn
+  - Thread-local, static state và rò rỉ trạng thái giữa test
+  - Điều tra test chỉ thất bại khi chạy cùng suite
+  - Đảo thứ tự chạy để phát hiện dependency giữa các test
+  - Đánh giá tăng tốc cùng với độ ổn định và mức tiêu thụ tài nguyên
+- level1: Timeout và chạy lại
+  level2:
+  - Đặt timeout theo thao tác, test, suite và toàn bộ job
+  - Phân biệt thời gian chờ kết nối, phản hồi và chờ điều kiện
+  - Timeout có hủy công việc nền hay chỉ dừng chờ kết quả
+  - Cleanup sau khi test bị timeout hoặc bị hủy
+  - Phân loại lỗi có thể chạy lại và lỗi phải điều tra ngay
+  - Giới hạn số lần chạy lại, khoảng chờ và backoff
+  - Giữ kết quả lần đầu cùng lịch sử mọi lần chạy lại
+  - Ngăn retry tạo dữ liệu trùng hoặc che khuất hồi quy
+  - Đặt ngân sách thực thi để test treo không giữ tài nguyên vô hạn
+- level1: Tích hợp CI/CD
+  level2:
+  - Thiết kế pipeline từ kiểm tra nhanh đến bộ kiểm thử đầy đủ
+  - Chạy theo pull request, nhánh chính, lịch hoặc yêu cầu thủ công
+  - Gắn kết quả với commit, artifact và phiên bản được triển khai
+  - Chuẩn bị JDK, dependency, môi trường và dữ liệu trên runner
+  - Phân biệt cache dependency với dữ liệu và kết quả test
+  - Thiết lập điều kiện chạy tiếp hoặc dừng khi một stage thất bại
+  - Thu thập artifact ngay cả khi test lỗi hoặc job bị hủy
+  - Quản lý secret và quyền truy cập theo từng loại sự kiện
+  - Xử lý job cũ khi có commit mới mà vẫn giữ bằng chứng cần thiết
+  - Đồng nhất điều kiện tái hiện giữa máy cá nhân và CI
+- level1: Phân phối công việc
+  level2:
+  - Chia suite thành shard theo lớp, nhóm hoặc dữ liệu
+  - Cân bằng shard bằng thời lượng thực tế của test
+  - Phân biệt ma trận môi trường với chia nhỏ cùng một suite
+  - Bảo đảm test không bị bỏ sót hoặc chạy trùng ngoài chủ đích
+  - Giữ định danh ổn định khi tổng hợp kết quả nhiều worker
+  - Phân bổ tài nguyên cho unit test, integration test và UI test
+  - Xử lý worker thất bại, mất kết nối hoặc kết thúc dở dang
+  - Tổng hợp báo cáo khi một phần ma trận chưa hoàn tất
+  - Đánh giá tổng thời gian, thời gian chờ và chi phí chạy phân tán
+- level1: Bộ kiểm thử chuyên biệt
+  level2:
+  - Tiếp nhận điều kiện thực thi từ kế hoạch kiểm thử của từng loại
+  - Chuẩn bị môi trường riêng cho kiểm thử hiệu năng và benchmark
+  - Quản lý cấu hình, tài khoản và phạm vi cho kiểm tra bảo mật
+  - Tổ chức ma trận phiên bản trong kiểm thử tương thích và hợp đồng
+  - Điều phối khởi tạo, khôi phục trong kiểm thử độ tin cậy
+  - Ghi nhận cấu hình thiết bị và công cụ hỗ trợ trong kiểm tra khả năng sử dụng
+  - Tránh để các bộ kiểm thử tranh chấp môi trường hoặc dữ liệu
+  - Tổng hợp kết quả khác đơn vị mà vẫn giữ đúng ý nghĩa của từng loại
+- level1: Bằng chứng thực thi
+  level2:
+  - Xác định bằng chứng cần lưu cho từng loại test
+  - Gắn log với test ID, run ID, request ID và timestamp
+  - Thu thập application log, container log và log công cụ kiểm thử
+  - Ảnh, video, network trace và tệp đầu ra phục vụ tái hiện
+  - Thread dump, heap dump và chẩn đoán khi test treo
+  - Phân biệt dữ liệu quan sát được với suy đoán nguyên nhân
+  - Giảm nhiễu log nhưng vẫn giữ thông tin khi test thất bại
+  - Che dữ liệu nhạy cảm trong ảnh, log và artifact
+  - Lưu đường dẫn, thời hạn và quyền truy cập bằng chứng
+- level1: Báo cáo kết quả
+  level2:
+  - Chuẩn hóa trạng thái pass, fail, error, skipped, aborted và blocked
+  - Phân biệt số test case, lượt thực thi và trường hợp có tham số
+  - Tổng hợp kết quả nhiều module, shard và môi trường
+  - Tính thời lượng thực thi, thời gian chờ và thời gian toàn bộ đợt chạy
+  - Hiển thị lỗi gốc, stacktrace và liên kết đến bằng chứng
+  - Đưa test bị cách ly hoặc chạy lại vào báo cáo một cách rõ ràng
+  - Đối chiếu số test dự kiến với số test thực sự đã chạy
+  - Phân biệt kết quả đầy đủ với báo cáo từ lần chạy bị ngắt
+  - Viết bản tổng kết phần đã kiểm tra, phần chưa chạy và rủi ro còn lại
+- level1: Phân tích thất bại
+  level2:
+  - Phân loại lỗi sản phẩm, lỗi test, lỗi dữ liệu và lỗi hạ tầng
+  - Đọc assertion failure, exception và stacktrace theo nguyên nhân gốc
+  - Tái hiện test thất bại bằng lệnh, dữ liệu và cấu hình đã lưu
+  - Thu nhỏ tình huống lỗi mà không làm mất điều kiện gây lỗi
+  - So sánh chạy riêng, chạy cả suite và chạy trên CI
+  - Điều tra thứ tự thực thi, race condition và trạng thái dùng chung
+  - Đối chiếu log nhiều thành phần theo cùng dấu vết yêu cầu
+  - Phân tích thay đổi gần nhất bằng diff, lịch sử và bisect khi phù hợp
+  - Phân biệt tương quan thời điểm với bằng chứng về nguyên nhân
+  - Ghi kết luận, mức độ chắc chắn và bước kiểm chứng tiếp theo
+- level1: Quản lý lỗi
+  level2:
+  - Viết báo cáo lỗi với điều kiện, bước tái hiện và kết quả thực tế
+  - Gắn expected result với yêu cầu hoặc hành vi đã được thống nhất
+  - Phân biệt severity với priority khi phân loại lỗi
+  - Triage cùng nhóm phát triển và xử lý báo cáo trùng
+  - Quản lý vòng đời từ phát hiện đến sửa, xác nhận và đóng
+  - Xử lý lỗi không tái hiện được hoặc chỉ xuất hiện ở một môi trường
+  - Liên kết defect với test, commit sửa lỗi và bằng chứng xác nhận
+  - Trao đổi lỗi bị từ chối, hoãn xử lý hoặc cần làm rõ yêu cầu
+  - Chuyển nguyên nhân gốc thành hành động ngăn tái diễn
+- level1: Xác nhận và hồi quy
+  level2:
+  - Phân biệt confirmation testing với regression testing
+  - Xác nhận bản sửa đúng phiên bản và đúng tình huống đã lỗi
+  - Bổ sung test tái hiện lỗi vào bộ kiểm thử phù hợp
+  - Chọn vùng hồi quy theo tác động và dependency
+  - Chạy kiểm tra lân cận để phát hiện tác dụng phụ
+  - Giữ phạm vi kiểm tra toàn diện khi lựa chọn test theo thay đổi chưa đủ tin cậy
+  - Đối chiếu kết quả trước và sau bản sửa
+  - Xử lý lỗi mở lại khi bản sửa chỉ giải quyết một phần
+  - Ghi lại giới hạn kiểm tra và điều kiện đóng lỗi
+- level1: Kiểm thử thất thường
+  level2:
+  - Flaky test là gì và cách phân biệt với lỗi sản phẩm chập chờn
+  - Nhóm nguyên nhân từ thời gian, thứ tự, đồng thời và môi trường
+  - Đo tỷ lệ thất bại theo test và theo điều kiện thực thi
+  - Chạy lặp lại có kiểm soát để thu thập bằng chứng
+  - Nhận diện retry pass đang che khuất tín hiệu thất bại
+  - Sửa đồng bộ hóa, dữ liệu và fixture thay vì tăng sleep tùy tiện
+  - Kiểm chứng bản sửa qua nhiều seed, thứ tự và mức song song
+  - Theo dõi thời gian xử lý cùng người chịu trách nhiệm
+  - Ngăn test không ổn định quay lại mà không phát hiện
+- level1: Cách ly và quality gate
+  level2:
+  - Khi nào tạm cách ly test và bằng chứng cần có
+  - Gắn người phụ trách, lý do và thời hạn xử lý test bị cách ly
+  - Tách kết quả cách ly khỏi bộ test chặn phát hành
+  - Giữ test bị cách ly tiếp tục được chạy và theo dõi
+  - Định nghĩa quality gate từ trạng thái thực thi và rủi ro
+  - Ngăn pipeline xanh khi toàn bộ test bị skip hoặc không được phát hiện
+  - Quản lý ngoại lệ theo thời hạn và phạm vi cụ thể
+  - Khôi phục test vào bộ bắt buộc sau khi xác minh
+  - Rà soát ngoại lệ để tránh tích lũy kiểm tra bị vô hiệu hóa
+- level1: Bảo trì bộ kiểm thử
+  level2:
+  - Nhận diện dấu hiệu bộ test xuống cấp theo thời gian
+  - Lập danh mục test theo mục đích, người phụ trách và chi phí
+  - Rà soát test trùng, lỗi thời hoặc không còn kiểm tra hành vi cần thiết
+  - Cân nhắc giá trị bảo vệ khi xóa hoặc gộp test
+  - Theo dõi test chậm và lựa chọn tối ưu theo bằng chứng
+  - Ưu tiên sửa test tạo nhiều nhiễu hoặc chặn công việc thường xuyên
+  - Phân bổ công việc bảo trì cùng thay đổi sản phẩm
+  - Quản lý nợ kiểm thử với tác động và kế hoạch xử lý
+  - Xác minh bộ test còn phát hiện được lỗi có ý nghĩa sau bảo trì
+- level1: Cải tổ mã kiểm thử
+  level2:
+  - Nhận diện test dài, assertion mơ hồ và fixture quá lớn
+  - Tách hành vi kiểm tra để lỗi báo về đúng nguyên nhân
+  - Áp dụng test data builder và factory có phạm vi rõ ràng
+  - Loại bỏ trùng lặp mà không tạo abstraction khó đọc
+  - Giảm phụ thuộc vào chi tiết triển khai không thuộc hợp đồng
+  - Cải thiện assertion để thông báo chênh lệch hữu ích
+  - Giảm mocking quá mức và tránh kiểm tra tương tác không cần thiết
+  - Tách hỗ trợ test dùng chung khỏi mã ứng dụng
+  - Cải tổ từng bước và giữ nguyên giá trị kiểm tra
+- level1: Ứng phó thay đổi
+  level2:
+  - Cập nhật test khi yêu cầu thay đổi và xác minh lại kỳ vọng
+  - Phân biệt sửa test lỗi với nới assertion để làm pipeline xanh
+  - Quản lý test khi đổi API, schema hoặc hợp đồng sự kiện
+  - Chạy song song hành vi cũ và mới trong giai đoạn chuyển tiếp
+  - Feature flag, thời điểm bật tắt và vòng đời test tương ứng
+  - 'Snapshot hoặc golden file: quy trình xem xét và cập nhật'
+  - Loại bỏ fixture, dữ liệu và giả lập đã lỗi thời
+  - Nâng cấp JDK, framework, driver và thư viện hỗ trợ test
+  - Xác minh khám phá test, số lượng và kết quả sau nâng cấp
+- level1: Quản lý phiên bản
+  level2:
+  - Quản lý mã test cùng source và cấu hình thực thi
+  - Liên kết yêu cầu, test case, automation và kết quả theo phiên bản
+  - Định danh test ổn định khi đổi tên hoặc di chuyển mã
+  - Đồng bộ test với nhánh phát hành và bản vá
+  - Review thay đổi test như thay đổi mã sản phẩm
+  - Quản lý dependency, lockfile và image tag để tái lập
+  - Lưu lịch sử thay đổi kỳ vọng, fixture và baseline
+  - Bàn giao quyền sở hữu khi nhóm hoặc thành phần thay đổi
+- level1: Chỉ số vận hành
+  level2:
+  - Đo thời gian phản hồi của bộ test từ commit đến kết quả
+  - Theo dõi thời lượng, hàng đợi và các test chậm nhất
+  - Tỷ lệ thất bại, flaky rate và tỷ lệ pass sau retry
+  - Tỷ lệ skipped, blocked và test bị cách ly lâu ngày
+  - Thời gian triage, thời gian sửa test và thời gian xác nhận lỗi
+  - Đối chiếu coverage với khả năng phát hiện lỗi thực tế
+  - Phân tích lỗi lọt qua và giới hạn của bộ test hiện có
+  - Tránh đánh giá chất lượng chỉ bằng số test hoặc tỷ lệ pass
+  - Dùng xu hướng chỉ số để chọn hành động cải tiến cụ thể
+- level1: Tài nguyên và bảo mật
+  level2:
+  - Quản lý ngân sách CPU, RAM, lưu trữ và thời lượng chạy
+  - Dọn container, tiến trình, tài khoản và dữ liệu tạm sau test
+  - Kiểm soát quyền của tài khoản kiểm thử theo môi trường
+  - Giữ secret bên ngoài source, báo cáo và artifact công khai
+  - Che thông tin nhạy cảm trong log và bằng chứng lỗi
+  - Tách dữ liệu kiểm thử khỏi dữ liệu người dùng thật
+  - Thiết lập thời hạn lưu và quyền tải test artifact
+  - Kiểm tra test không vô tình thao tác sai endpoint hoặc môi trường
+  - Quản lý runner không tin cậy và thông tin bí mật trên pull request
+- level1: Thực hành tổng hợp
+  level2:
+  - Tổ chức một đợt kiểm thử từ preflight đến báo cáo tổng kết
+  - Chạy cùng bộ JUnit bằng IDE, Maven hoặc Gradle và CI
+  - Xây dựng integration test có database container và cleanup đáng tin cậy
+  - Sửa test bất đồng bộ đang phụ thuộc vào sleep cố định
+  - Phát hiện dữ liệu dùng chung gây lỗi khi chạy song song
+  - Điều tra một test chỉ thất bại trên CI bằng bằng chứng đầy đủ
+  - Thiết lập shard và tổng hợp báo cáo không bỏ sót test
+  - Quản lý flaky test từ phát hiện, cách ly đến khôi phục
+  - Cải tổ test lỗi thời khi API hoặc yêu cầu thay đổi
+  - Xây dựng quality gate và kế hoạch bảo trì dựa trên chỉ số thực tế

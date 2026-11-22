@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Tư duy hệ thống
+  slug: systems-thinking
+  index: 1
+- title: Khởi động cải tiến
+  slug: improvement-initiation
+  index: 2
+- title: Khảo sát hiện trạng
+  slug: current-state-assessment
+  index: 3
+- title: Mô tả quy trình
+  slug: process-description
+  index: 4
+- title: Dòng giá trị
+  slug: value-stream
+  index: 5
+- title: Mục tiêu và đo lường
+  slug: goals-and-measurement
+  index: 6
+- title: Quản lý dữ liệu
+  slug: data-management
+  index: 7
+- title: Chỉ số phần mềm
+  slug: software-metrics
+  index: 8
+- title: Phân tích biến thiên
+  slug: variation-analysis
+  index: 9
+- title: Nguyên nhân gốc rễ
+  slug: root-cause-analysis
+  index: 10
+- title: Ưu tiên cải tiến
+  slug: improvement-prioritization
+  index: 11
+- title: PDCA và PDSA
+  slug: pdca-pdsa
+  index: 12
+- title: Mô hình IDEAL
+  slug: ideal-model
+  index: 13
+- title: Lean và Kaizen
+  slug: lean-and-kaizen
+  index: 14
+- title: Six Sigma
+  slug: six-sigma
+  index: 15
+- title: CMMI
+  slug: cmmi
+  index: 16
+- title: Đánh giá năng lực
+  slug: capability-assessment
+  index: 17
+- title: Thiết kế cải tiến
+  slug: improvement-design
+  index: 18
+- title: Thử nghiệm cải tiến
+  slug: improvement-experiment
+  index: 19
+- title: Quản lý thay đổi
+  slug: change-management
+  index: 20
+- title: Chuẩn hóa quy trình
+  slug: process-standardization
+  index: 21
+- title: Công cụ và tự động hóa
+  slug: tools-and-automation
+  index: 22
+- title: Bối cảnh phần mềm
+  slug: software-context
+  index: 23
+- title: Đánh giá hiệu quả
+  slug: effectiveness-assessment
+  index: 24
+- title: Duy trì và nhân rộng
+  slug: sustainment-and-scaling
+  index: 25
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 26
+- title: Thực hành
+  slug: practice
+  index: 27

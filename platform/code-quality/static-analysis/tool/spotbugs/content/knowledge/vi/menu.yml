@@ -1,0 +1,353 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - SpotBugs là gì và vai trò trong kiểm soát chất lượng mã Java
+  - 'Từ FindBugs đến SpotBugs: lịch sử và thuật ngữ còn được giữ lại'
+  - Phân tích tĩnh bytecode khác gì biên dịch, kiểm thử và phân tích khi chạy
+  - Mẫu lỗi, bộ phát hiện và cảnh báo trong SpotBugs
+  - Mối liên hệ giữa cảnh báo và lỗi thực tế của chương trình
+  - So sánh phạm vi SpotBugs với Checkstyle, PMD và Error Prone
+  - Phối hợp SpotBugs với kiểm thử, rà soát mã và nền tảng kiểm tra liên tục
+  - Giới hạn phát hiện và ý nghĩa của kết quả không có cảnh báo
+  - Kiến thức nền và thứ tự học để sử dụng SpotBugs hiệu quả
+- level1: Cơ chế phân tích
+  level2:
+  - Vì sao SpotBugs cần tệp .class thay vì chỉ có mã nguồn
+  - 'Đầu vào phân tích: thư mục lớp, JAR, WAR và kho lưu trữ lồng'
+  - Phân biệt mã ứng dụng cần quét, auxiliary classpath và source path
+  - Thông tin kiểu, quan hệ kế thừa và phụ thuộc dùng trong phân tích
+  - Đồ thị luồng điều khiển và phân tích luồng dữ liệu ở mức khái niệm
+  - Phân tích trong phương thức và liên phương thức
+  - Giới hạn khi gặp reflection, proxy, dependency injection và mã sinh
+  - Vai trò của thông tin dòng nguồn và debug metadata
+  - Effort, độ chính xác, thời gian chạy và mức tiêu thụ bộ nhớ
+  - Phân biệt kích hoạt detector, lọc kết quả và giới hạn phạm vi lớp
+- level1: Thiết lập môi trường
+  level2:
+  - Kiểm tra yêu cầu Java chạy SpotBugs và phiên bản bytecode được hỗ trợ
+  - Phân biệt phiên bản SpotBugs core, build plugin và detector plugin
+  - Chọn phiên bản tương thích từ tài liệu và ghi chú phát hành
+  - Cài bản phân phối SpotBugs và nhận diện cấu trúc bin, lib, plugin
+  - Chạy SpotBugs trên Windows, Linux và macOS
+  - Xác minh phiên bản, trợ giúp và môi trường JVM
+  - Chuẩn bị dự án Java nhỏ với ví dụ có lỗi và ví dụ đã sửa
+  - Biên dịch mã và kiểm tra vị trí tệp .class trước khi phân tích
+  - Giữ cấu hình và dependency phân tích có thể tái lập
+- level1: Phân tích đầu tiên
+  level2:
+  - Thực hiện chu trình biên dịch, phân tích, đọc báo cáo và sửa lỗi
+  - Chạy phân tích một thư mục lớp hoặc JAR đơn giản
+  - Cung cấp dependency qua auxiliary classpath
+  - Cung cấp source path để điều hướng từ cảnh báo về mã nguồn
+  - Nhận diện bug pattern, lớp, phương thức và dòng bị báo
+  - Kiểm chứng một cảnh báo bằng đường đi dữ liệu và ca kiểm thử
+  - Biên dịch lại, chạy lại và xác nhận cảnh báo đã được giải quyết
+  - Kiểm tra lỗi phân tích và lớp bị thiếu trước khi kết luận kết quả
+- level1: Dòng lệnh
+  level2:
+  - Chạy java -jar, wrapper script và chế độ -textui
+  - Phân biệt tham số JVM, tham số wrapper và tham số của SpotBugs
+  - Khai báo nhiều đầu vào và đọc danh sách tệp bằng -analyzeFromFile hoặc -xargs
+  - Thiết lập -auxclasspath, -auxclasspathFromFile và -sourcepath
+  - Điều khiển effort và các analysis properties
+  - Chọn detector bằng -visitors, -omitVisitors và -chooseVisitors
+  - Nạp detector plugin bằng -pluginList và kiểm tra plugin đã tải
+  - Chọn ngưỡng confidence, rank và nhóm cảnh báo cần báo cáo
+  - Xuất XML, HTML, SARIF và chỉ định đường dẫn báo cáo
+  - Bật tiến độ, debug và kiểm tra cấu hình thực tế
+  - Dùng -exitcode và phân biệt cảnh báo, thiếu lớp, lỗi thực thi
+- level1: Tích hợp Maven
+  level2:
+  - Khai báo com.github.spotbugs:spotbugs-maven-plugin trong pom.xml
+  - Phân biệt goal spotbugs:spotbugs, spotbugs:check và spotbugs:gui
+  - Gắn kiểm tra SpotBugs vào lifecycle và phase verify
+  - Đảm bảo biên dịch trước khi phân tích và chọn phạm vi mã test
+  - Cấu hình effort, threshold và tham số theo phiên bản plugin
+  - Phân biệt ngưỡng cảnh báo được báo với ngưỡng làm kiểm tra thất bại
+  - Cấu hình failOnError, maxAllowedViolations và skip có chủ đích
+  - Khai báo includeFilterFile, excludeFilterFile và detector bổ sung
+  - Tạo báo cáo XML, HTML, SARIF và tích hợp Maven Site
+  - Quản lý cấu hình chung bằng pluginManagement và kế thừa
+  - Xác minh effective POM, dependency và lệnh chạy lại trên CI
+- level1: Tích hợp Gradle
+  level2:
+  - Áp dụng com.github.spotbugs cùng Java plugin
+  - Phân biệt Gradle plugin và SpotBugs core được chọn bởi toolVersion
+  - Các task spotbugsMain, spotbugsTest và quan hệ với classes, check
+  - Cấu hình SpotBugsExtension và ghi đè cho từng SpotBugsTask
+  - Groovy DSL, Kotlin DSL và kiểu enum Effort, Confidence theo phiên bản
+  - Thiết lập classes, auxClassPaths và nguồn cho task tùy chỉnh
+  - Điều khiển reportLevel, ignoreFailures và ý nghĩa kết quả build
+  - Cấu hình includeFilter, excludeFilter, baselineFile và onlyAnalyze
+  - Xuất báo cáo với required, outputLocation và stylesheet phù hợp
+  - Thêm detector qua configuration spotbugsPlugins
+  - Phân biệt com.github.spotbugs và com.github.spotbugs-base
+  - Kiểm tra tương thích JDK, Gradle, toolchain và phiên bản plugin
+- level1: GUI và IDE
+  level2:
+  - Tạo project trong SpotBugs GUI với mã cần quét, dependency và mã nguồn
+  - Chạy phân tích, nhóm cảnh báo và điều hướng đến vị trí nguồn
+  - Lưu, mở lại project và kết quả phân tích trong GUI
+  - Tích hợp SpotBugs với Eclipse và cấu hình phạm vi project
+  - Sử dụng plugin IntelliJ IDEA phù hợp và kiểm tra phiên bản hỗ trợ
+  - Đồng bộ cấu hình IDE với cấu hình dòng lệnh và build
+  - Chẩn đoán khác biệt classpath, compiler và detector giữa IDE với CI
+  - Tích hợp tác vụ Ant trong dự án hiện có khi cần
+- level1: Đọc kết quả
+  level2:
+  - 'Cấu trúc một cảnh báo: type, mã rút gọn, thông báo và vị trí'
+  - Phân biệt bug category, bug code, bug pattern và tên detector
+  - Confidence và tên priority trong định dạng hoặc cấu hình cũ
+  - Bug rank và cách dùng rank để sắp thứ tự xem xét
+  - Phân biệt độ tin cậy của phát hiện với mức ảnh hưởng nghiệp vụ
+  - Nhóm CORRECTNESS, BAD_PRACTICE và STYLE
+  - Nhóm MT_CORRECTNESS, PERFORMANCE và I18N
+  - Nhóm MALICIOUS_CODE, SECURITY và detector mở rộng
+  - Detector thử nghiệm, detector mặc định và detector bị tắt
+  - 'Đọc các vị trí liên quan: nơi khai báo, nơi truyền giá trị và nơi sử dụng'
+  - Nhận diện mã test, mã sinh và mã thư viện trong báo cáo
+  - Tra mô tả bug pattern và đối chiếu với phiên bản đang chạy
+- level1: Null và hợp đồng
+  level2:
+  - NP_ALWAYS_NULL và việc sử dụng giá trị chắc chắn null
+  - NP_NULL_ON_SOME_PATH và nhánh thực thi có nguy cơ NullPointerException
+  - Giá trị trả về có thể null và trách nhiệm kiểm tra ở bên gọi
+  - Truyền null vào tham số có hợp đồng không null
+  - Trường không null chưa được khởi tạo đúng
+  - Trả null từ phương thức trả Boolean hoặc Optional
+  - Unboxing giá trị bọc có thể null
+  - Kiểm tra null dư thừa và mâu thuẫn giữa điều kiện với luồng dữ liệu
+  - Đường ngoại lệ, nhánh không khả thi và nguyên nhân cảnh báo null sai
+  - Chọn sửa luồng dữ liệu, làm rõ hợp đồng hoặc bổ sung kiểm chứng
+- level1: So sánh và tập hợp
+  level2:
+  - So sánh String bằng == và nhóm cảnh báo ES
+  - So sánh tham chiếu giữa các kiểu không tương thích
+  - Hợp đồng equals và hashCode với nhóm cảnh báo EQ, HE
+  - Tính đối xứng, kế thừa và tham số null trong equals
+  - Hợp đồng compareTo và kiểm tra dấu của kết quả so sánh
+  - Kiểu phần tử không phù hợp khi gọi contains, remove hoặc get
+  - So sánh mảng và sử dụng API so sánh nội dung phù hợp
+  - Ép kiểu không an toàn và suy luận kiểu từ bytecode
+  - Ảnh hưởng của equals, hashCode và khóa khả biến đến Map, Set
+  - Viết ca kiểm thử hợp đồng trước và sau khi sửa cảnh báo
+- level1: Số học và điều kiện
+  level2:
+  - Tràn số trong phép tính trung gian trước khi chuyển sang kiểu rộng
+  - Chia số nguyên rồi mới chuyển sang số thực
+  - Chuyển kiểu số, mất độ chính xác và kiểm tra giá trị biên
+  - Phép dịch bit, mặt nạ bit và dấu của toán hạng
+  - So sánh số thực và các giả định không đúng về độ chính xác
+  - Điều kiện luôn đúng, luôn sai và nhánh đáng ngờ
+  - Phép gán không có tác dụng và giá trị gán không được sử dụng
+  - Nhánh switch rơi xuống và ý định của lập trình viên
+  - Chỉ số mảng, chuỗi và khoảng giá trị vượt giới hạn
+  - Liên hệ từng cảnh báo với trường hợp đầu vào gây lỗi cụ thể
+- level1: API và tài nguyên
+  level2:
+  - RV_RETURN_VALUE_IGNORED và việc bỏ qua giá trị trả về cần sử dụng
+  - Đối tượng bất biến và lỗi tưởng rằng phương thức thay đổi tại chỗ
+  - API nhập xuất và JDBC được detector kiểm tra về đóng tài nguyên
+  - Rò rỉ tài nguyên trên đường ngoại lệ và try-with-resources
+  - Quyền sở hữu tài nguyên giữa bên tạo và bên sử dụng
+  - Nuốt ngoại lệ, bỏ qua ngoại lệ và khối catch đáng ngờ
+  - Tạo đối tượng ngoại lệ nhưng không thực sự throw
+  - Kết quả read, skip và các thao tác nhập xuất bị bỏ qua
+  - Dùng assert để kiểm tra đầu vào public và giới hạn khi assertion bị tắt
+  - Sử dụng API lỗi thời, finalize và hành vi phụ thuộc phiên bản Java
+  - Kiểm thử đóng tài nguyên và bảo toàn ngữ nghĩa xử lý ngoại lệ
+- level1: Thiết kế đối tượng
+  level2:
+  - EI_EXPOSE_REP khi getter trả trực tiếp đối tượng có thể thay đổi
+  - EI_EXPOSE_REP2 khi giữ tham chiếu đầu vào có thể bị thay đổi từ ngoài
+  - Bản sao phòng vệ, bản sao nông và cấu trúc lồng nhau
+  - Phân biệt collection chỉ đọc và dữ liệu thực sự bất biến
+  - Công bố trạng thái static có thể thay đổi
+  - Ghi trường static từ phương thức đối tượng và rủi ro chia sẻ trạng thái
+  - Phương thức có thể bị ghi đè được gọi trong constructor
+  - Che khuất trường và nhầm lẫn giữa trạng thái cha, con
+  - Hợp đồng clone, sao chép đối tượng và rủi ro kế thừa
+  - Serializable, serialVersionUID và trường không phù hợp để tuần tự hóa
+- level1: Đồng thời
+  level2:
+  - Nhóm MT_CORRECTNESS và phạm vi suy luận về mã nhiều luồng
+  - Đồng bộ trên String, Boolean hoặc đối tượng có thể được chia sẻ
+  - Khóa trên tham chiếu bị thay đổi và lựa chọn đối tượng khóa ổn định
+  - Đọc, ghi trường dùng chung với cơ chế đồng bộ không nhất quán
+  - Giới hạn của volatile đối với phép toán gồm nhiều bước
+  - Khởi tạo lười và double-checked locking không an toàn
+  - Gọi wait, notify, notifyAll và yêu cầu sở hữu monitor
+  - Điều kiện chờ, vòng lặp và xử lý InterruptedException
+  - Chia sẻ đối tượng không an toàn luồng như SimpleDateFormat
+  - Gọi Thread.run thay vì start và các lỗi sử dụng luồng liên quan
+  - Kiểm chứng cảnh báo bằng mô hình đồng thời và ca kiểm thử phù hợp
+- level1: Hiệu năng
+  level2:
+  - Nhóm PERFORMANCE và sự khác biệt giữa mẫu tốn kém với số đo thực tế
+  - Tạo boxing object không cần thiết và chuyển đổi kiểu dư thừa
+  - Chuỗi, vòng lặp và các mẫu tạo đối tượng tránh được
+  - Tạo đối tượng nhưng kết quả không được sử dụng
+  - Trường, phương thức hoặc giá trị không được dùng theo phạm vi suy luận
+  - Đối chiếu cảnh báo với compiler, JVM và phiên bản API hiện tại
+  - Sửa cảnh báo hiệu năng nhưng vẫn giữ nguyên hành vi chương trình
+  - Dùng profiler hoặc benchmark để xác nhận cải thiện khi cần
+- level1: Quốc tế hóa
+  level2:
+  - DM_DEFAULT_ENCODING và phụ thuộc vào charset mặc định
+  - Chuyển đổi byte–String với Charset hoặc StandardCharsets tường minh
+  - DM_CONVERT_CASE và ảnh hưởng của Locale khi đổi hoa, thường
+  - Phân biệt xử lý mã định danh kỹ thuật và văn bản theo ngôn ngữ người dùng
+  - Nhận diện giả định ngày giờ, locale và định dạng vượt ngoài detector hiện có
+  - Kiểm thử dữ liệu tiếng Việt và khác biệt môi trường thực thi
+- level1: Bảo mật
+  level2:
+  - Phân biệt detector SECURITY, MALICIOUS_CODE và plugin Find Security Bugs
+  - Bật Find Security Bugs trong Maven, Gradle hoặc dòng lệnh
+  - Luồng dữ liệu không tin cậy từ đầu vào đến thao tác nhạy cảm
+  - Nhận diện SQL injection và command injection bằng detector phù hợp
+  - Nhận diện path traversal, XML và deserialization không an toàn khi được hỗ trợ
+  - Phát hiện mật mã yếu, ngẫu nhiên không phù hợp và bí mật ghi cố định trong mã
+  - Kiểm tra hỗ trợ framework và giới hạn suy luận của detector bảo mật
+  - Tra CWE, mô tả detector và xác minh khả năng khai thác trong ngữ cảnh
+  - Ưu tiên sửa theo ảnh hưởng và khả năng tiếp cận thực tế
+  - Phối hợp phân tích mã với kiểm tra dependency, cấu hình và kiểm thử bảo mật
+- level1: Annotations
+  level2:
+  - Thêm spotbugs-annotations với phạm vi dependency phù hợp
+  - Vì sao tên package edu.umd.cs.findbugs.annotations vẫn được sử dụng
+  - Ý nghĩa của @NonNull đối với trường, tham số và giá trị trả về
+  - Phân biệt @CheckForNull, @Nullable và phần tử chưa có annotation
+  - '@UnknownNullness và hợp đồng chưa xác định'
+  - '@ReturnValuesAreNonnullByDefault và phạm vi mặc định'
+  - '@DefaultAnnotation cùng biến thể cho fields, methods, parameters'
+  - '@CheckReturnValue và ý định sử dụng giá trị trả về'
+  - Hợp đồng kế thừa và giới hạn tương thích giữa các hệ annotation
+  - Phân biệt annotation hỗ trợ phân tích với kiểm tra bắt buộc khi chạy
+- level1: Bộ lọc XML
+  level2:
+  - Cấu trúc FindBugsFilter và phần tử Match
+  - Phân biệt include filter, exclude filter và lọc phạm vi phân tích
+  - Chọn cảnh báo bằng Bug pattern, code hoặc category
+  - Lọc theo Confidence và Rank
+  - Lọc theo Class, Package và Source
+  - Lọc theo Method, Field và chữ ký kiểu
+  - Lọc theo Annotation và yêu cầu retention
+  - Kết hợp điều kiện bằng And, Or, Not và quan hệ mặc định trong Match
+  - Tên đầy đủ, biểu thức chính quy và phạm vi package con
+  - Vai trò của các vị trí được gắn với một cảnh báo khi đối sánh
+  - Phân biệt bộ lọc Match với XML kết quả dùng làm baseline
+  - Kiểm tra filter bằng ví dụ phải giữ và ví dụ phải loại khỏi báo cáo
+  - Kiểm soát filter quá rộng và xác minh sau mỗi thay đổi
+- level1: Ẩn cảnh báo
+  level2:
+  - Khi nào nên sửa mã và khi nào có cơ sở để suppression
+  - Dùng @SuppressFBWarnings với value và justification
+  - Chọn phạm vi suppression nhỏ nhất theo vị trí cảnh báo
+  - Phân biệt @SuppressFBWarnings với @SuppressWarnings của Java
+  - So sánh annotation suppression, exclude filter và baseline
+  - Không coi comment bỏ qua là cơ chế suppression chung cho mọi detector
+  - Ghi lý do, bằng chứng và trách nhiệm xem xét lại
+  - Phát hiện suppression lỗi thời sau khi mã hoặc detector thay đổi
+  - Kiểm thử để việc ẩn một cảnh báo không che mất cảnh báo khác
+- level1: Báo cáo và baseline
+  level2:
+  - Chọn XML cho xử lý máy, HTML cho đọc và SARIF cho tích hợp
+  - Cấu trúc BugCollection, BugInstance và SourceLine trong báo cáo XML
+  - Nhận diện cảnh báo giữa các lần quét bằng thông tin và định danh báo cáo
+  - Tạo baseline từ kết quả phân tích đã được rà soát
+  - Dùng -excludeBugs hoặc tùy chọn baseline của build plugin
+  - Phân biệt cảnh báo tồn đọng, cảnh báo mới và cảnh báo đã được giải quyết
+  - Rủi ro thay đổi định danh sau refactor, biên dịch hoặc nâng cấp detector
+  - Giữ điều kiện phân tích nhất quán khi so sánh hai báo cáo
+  - Tổng hợp báo cáo nhiều module và tránh đếm trùng cảnh báo
+  - Lưu nguồn phiên bản, cấu hình và commit để truy nguyên kết quả
+  - Thu hẹp baseline khi trả nợ kỹ thuật và kiểm soát cập nhật baseline
+- level1: CI và cổng chất lượng
+  level2:
+  - Đặt SpotBugs sau biên dịch trong pipeline kiểm tra
+  - Dùng Maven check hoặc Gradle check làm điểm kiểm tra thống nhất
+  - Chọn điều kiện chặn theo confidence, rank, nhóm lỗi và chính sách dự án
+  - Phân biệt lỗi công cụ, thiếu dependency và vi phạm chính sách
+  - Lưu báo cáo ngay cả khi bước kiểm tra thất bại
+  - Tích hợp GitHub Actions hoặc Jenkins với cấu hình trong repository
+  - Công bố SARIF khi nền tảng và quyền truy cập hỗ trợ
+  - Kiểm tra nguồn mã được phân tích đúng commit của pull request
+  - Không chỉ quét tệp .java thay đổi khi phụ thuộc bytecode có thể ảnh hưởng kết quả
+  - Áp dụng chính sách không phát sinh lỗi mới trên dự án có baseline
+  - Xác minh cổng chất lượng thực sự chặn bằng một vi phạm có kiểm soát
+  - Tích hợp SonarQube qua plugin tương thích và tránh nhầm với bộ phân tích Java sẵn có
+- level1: Xử lý cảnh báo
+  level2:
+  - Phân loại cảnh báo thật, cảnh báo sai và trường hợp chưa đủ bằng chứng
+  - Lần theo dữ liệu từ nơi khởi tạo đến vị trí bị báo
+  - Đọc mã nguồn, bytecode và hợp đồng API liên quan khi cần
+  - Tạo ví dụ tái hiện tối thiểu trước khi kết luận detector sai
+  - Chọn cách sửa nguyên nhân thay vì thay mã để đánh lừa detector
+  - Viết kiểm thử hồi quy cho hành vi gây lỗi
+  - So sánh thay đổi hành vi, tương thích và hiệu năng của bản sửa
+  - Biên dịch lại và xác minh cả cảnh báo cũ lẫn cảnh báo mới
+  - Ưu tiên xử lý theo rủi ro, phạm vi ảnh hưởng và công sức sửa
+  - Ghi nhận quyết định suppression hoặc báo lỗi detector cùng bằng chứng
+- level1: Dự án nhiều module
+  level2:
+  - Phân định module cần phân tích và dependency chỉ thuộc auxiliary classpath
+  - Đảm bảo đầu ra biên dịch của module phụ thuộc đã sẵn sàng
+  - Dùng cấu hình dùng chung mà vẫn cho phép khác biệt hợp lệ từng module
+  - Tách phân tích mã chính, mã test và source set bổ sung
+  - Xử lý mã sinh từ annotation processor và thư viện như Lombok
+  - Giữ thông tin nguồn và nhận diện artifact khi phân tích JAR đóng gói
+  - Kiểm soát quét trùng dependency hoặc archive lồng
+  - Phân bổ bộ nhớ và mức song song trên máy phát triển, CI
+  - Đánh giá cache, phạm vi phân tích và khả năng tái lập theo build plugin
+  - Phân biệt tổng hợp báo cáo với phân tích liên module
+- level1: Detector tùy chỉnh
+  level2:
+  - Khi nào cần detector riêng thay vì cấu hình detector hiện có
+  - Thiết kế mẫu lỗi, phạm vi áp dụng và trường hợp phản ví dụ
+  - Tạo project plugin và dependency SpotBugs tương thích
+  - Chọn AnnotationDetector, BytecodeScanningDetector hoặc OpcodeStackDetector
+  - Đọc opcode, kiểu dữ liệu và operand stack ở mức cần thiết
+  - Tạo BugInstance và báo kết quả qua BugReporter
+  - Gắn thông tin class, method, field và SourceLine hữu ích
+  - Đăng ký Detector và BugPattern trong findbugs.xml
+  - Viết ShortDescription, LongDescription, Details trong messages.xml
+  - Kiểm thử ví dụ có lỗi và ví dụ hợp lệ bằng bộ hỗ trợ test
+  - Đóng gói JAR plugin và nạp vào CLI, Maven, Gradle
+  - Kiểm soát cảnh báo sai, chi phí phân tích và tương thích khi phát hành
+- level1: Khắc phục sự cố
+  level2:
+  - 'UnsupportedClassVersionError: phân biệt JVM chạy công cụ và bytecode đầu vào'
+  - 'Missing classes: chẩn đoán dependency thiếu trên auxiliary classpath'
+  - Không có cảnh báo do chưa biên dịch, sai thư mục hoặc task bị bỏ qua
+  - Cảnh báo không xuất hiện do ngưỡng, filter, suppression hoặc detector bị tắt
+  - OutOfMemoryError và điều chỉnh heap, effort, phạm vi lớp
+  - 'Phân tích chậm: xác định module, detector và đầu vào gây tốn thời gian'
+  - Detector exception, plugin không nạp được và dependency xung đột
+  - Vị trí nguồn sai do bytecode cũ, debug metadata hoặc source path
+  - Kết quả khác nhau giữa IDE, dòng lệnh và CI
+  - SARIF hoặc HTML thiếu dữ liệu do đường dẫn và cấu hình báo cáo
+  - Đọc debug log, cấu hình hiệu lực và thu thập ví dụ tái hiện
+- level1: Nâng cấp và quản trị
+  level2:
+  - Di chuyển từ FindBugs sang SpotBugs và giữ cấu hình tương thích cần thiết
+  - Đánh giá thay đổi phiên bản core, build plugin và detector bổ sung riêng biệt
+  - Kiểm tra hỗ trợ cú pháp Java mới, record, lambda và bytecode compiler tạo
+  - Đối chiếu thay đổi DSL, kiểu enum và API cấu hình của build plugin
+  - So sánh detector thêm mới, bị loại bỏ và thay đổi mức cảnh báo
+  - Rà soát lại annotations, filters, suppression và baseline sau nâng cấp
+  - Áp dụng SpotBugs từng giai đoạn cho dự án đang vận hành
+  - Quy định trách nhiệm xử lý cảnh báo và cập nhật cấu hình
+  - Theo dõi nợ kỹ thuật bằng xu hướng có ngữ cảnh thay vì chỉ số lượng
+  - Tài liệu hóa cách chạy, diễn giải kết quả và quy trình thay đổi chính sách
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết lập dự án mẫu có bộ cảnh báo đại diện và bản sửa tương ứng
+  - Phân tích cùng một đầu vào bằng CLI và một build plugin
+  - Tái hiện lỗi null, so sánh đối tượng và bỏ qua giá trị trả về
+  - Sửa lỗi tài nguyên, đóng gói trạng thái và sử dụng API
+  - Phân tích một cảnh báo đồng thời và kiểm chứng giả định
+  - Bổ sung annotation và kiểm tra thay đổi kết quả phân tích
+  - Viết filter và suppression hẹp kèm ca kiểm chứng
+  - Tạo baseline rồi chứng minh cảnh báo mới vẫn làm kiểm tra thất bại
+  - Tích hợp CI, lưu báo cáo và đọc kết quả từ commit cụ thể
+  - Xây detector đơn giản với ví dụ đúng, sai và bộ kiểm thử hồi quy

@@ -1,0 +1,57 @@
+roadmap:
+- id: ldap-dn-schema
+  title: LDAP, DN & schema
+  purpose: Nắm cấu trúc thư mục LDAP để thiết kế entity và truy vấn phù hợp với dữ liệu dạng cây.
+  objectives:
+  - Phân biệt entry, attribute và objectClass
+  - Đọc Distinguished Name (DN), RDN và base DN
+  - Giải thích schema và search scope
+- id: ket-noi-spring-data-ldap
+  title: Kết nối Spring Data LDAP
+  purpose: Thiết lập kết nối đến directory và kích hoạt repository trong ứng dụng Spring.
+  objectives:
+  - Cấu hình ContextSource và LdapTemplate
+  - Kích hoạt @EnableLdapRepositories
+  - Phân biệt vai trò Spring LDAP và Spring Data LDAP
+- id: object-directory-mapping
+  title: Object-Directory Mapping
+  purpose: Ánh xạ entry LDAP thành đối tượng Java theo đúng DN và thuộc tính thư mục.
+  objectives:
+  - Áp dụng @Entry, @Id và @Attribute
+  - Ánh xạ @DnAttribute và @Transient
+  - Phân biệt ODM với mapping JPA
+- id: repository-crud
+  title: Repository & CRUD
+  purpose: Dùng repository để thực hiện thao tác với entry mà không phải viết toàn bộ mã LDAP thủ công.
+  objectives:
+  - Định nghĩa LdapRepository cho một entity
+  - Thử save, findById, findAll và delete
+  - Giải thích vì sao ID là javax.naming.Name
+- id: query-methods-query
+  title: Query Methods & @Query
+  purpose: Biết tạo bộ lọc truy vấn LDAP qua tên phương thức và khai báo filter tùy chỉnh.
+  objectives:
+  - Tạo finder methods theo attribute
+  - Viết @Query với tham số đặt tên
+  - Phân biệt bộ lọc AND, OR và phủ định
+- id: ldapquery-ldaptemplate
+  title: LdapQuery & LdapTemplate
+  purpose: Sử dụng API LDAP thấp hơn khi cần kiểm soát base, scope và điều kiện tìm kiếm.
+  objectives:
+  - Tạo LdapQuery với base và filter
+  - Dùng LdapTemplate cho truy vấn tùy chỉnh
+  - Giới hạn thời gian và số kết quả tìm kiếm
+- id: gioi-han-an-toan-ldap
+  title: Giới hạn & an toàn LDAP
+  purpose: Nhận diện khác biệt giữa LDAP và cơ sở dữ liệu quan hệ để tránh giả định sai trong truy cập dữ liệu.
+  objectives:
+  - Giải thích giới hạn paging/sorting ở repository
+  - Tránh ghép trực tiếp đầu vào vào LDAP filter
+  - Nêu yêu cầu bảo vệ thông tin đăng nhập và TLS
+- id: kiem-thu-truy-cap-thu-muc
+  title: Kiểm thử truy cập thư mục
+  purpose: Kiểm chứng mapping, CRUD và truy vấn trên directory kiểm thử với dữ liệu có thể lặp lại.
+  objectives:
+  - Tạo dữ liệu kiểm thử bằng LDIF hoặc LDAP nhúng
+  - Thử truy vấn đúng và sai DN/attribute
+  - Xác nhận lỗi kết nối và lỗi schema được xử lý

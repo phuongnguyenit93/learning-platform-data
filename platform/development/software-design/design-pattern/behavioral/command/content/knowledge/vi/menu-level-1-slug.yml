@@ -1,0 +1,85 @@
+menu:
+  - title: "Tổng quan Command"
+    slug: command-overview
+    index: 0
+  - title: "Cấu trúc mẫu"
+    slug: pattern-structure
+    index: 1
+  - title: "Luồng thực thi"
+    slug: execution-flow
+    index: 2
+  - title: "Hợp đồng lệnh"
+    slug: command-contracts
+    index: 3
+  - title: "Hiện thực Java"
+    slug: java-implementation
+    index: 4
+  - title: "Dữ liệu và trạng thái"
+    slug: command-data-and-state
+    index: 5
+  - title: "Lệnh có tham số"
+    slug: parameterized-commands
+    index: 6
+  - title: "Thiết kế Invoker"
+    slug: invoker-design
+    index: 7
+  - title: "Thiết kế Receiver"
+    slug: receiver-design
+    index: 8
+  - title: "Lệnh tổng hợp"
+    slug: macro-commands
+    index: 9
+  - title: "Hoàn tác thao tác"
+    slug: undo-operations
+    index: 10
+  - title: "Redo và lịch sử"
+    slug: redo-and-history
+    index: 11
+  - title: "Command và Memento"
+    slug: command-and-memento
+    index: 12
+  - title: "Lỗi và giao dịch"
+    slug: errors-and-transactions
+    index: 13
+  - title: "Hàng đợi lệnh"
+    slug: command-queues
+    index: 14
+  - title: "Bất đồng bộ Java"
+    slug: java-async-execution
+    index: 15
+  - title: "Đồng thời và hủy"
+    slug: concurrency-and-cancellation
+    index: 16
+  - title: "Retry và idempotency"
+    slug: retry-and-idempotency
+    index: 17
+  - title: "Lưu trữ và khôi phục"
+    slug: persistence-and-recovery
+    index: 18
+  - title: "Lịch chạy và ưu tiên"
+    slug: scheduling-and-priorities
+    index: 19
+  - title: "Tích hợp ứng dụng"
+    slug: application-integration
+    index: 20
+  - title: "Mở rộng hành vi"
+    slug: behavior-extensions
+    index: 21
+  - title: "So sánh mẫu"
+    slug: pattern-comparisons
+    index: 22
+  - title: "Kiểm thử Command"
+    slug: command-testing
+    index: 23
+  - title: "Quan sát và bảo mật"
+    slug: observability-and-security
+    index: 24
+  - title: "Hiệu năng và tài nguyên"
+    slug: performance-and-resources
+    index: 25
+  - title: "Sai lầm thường gặp"
+    slug: common-pitfalls
+    index: 26
+  - title: "Bài tập và dự án"
+    slug: exercises-and-projects
+    index: 27

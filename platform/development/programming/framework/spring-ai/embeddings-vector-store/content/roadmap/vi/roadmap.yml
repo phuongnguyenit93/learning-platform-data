@@ -1,0 +1,57 @@
+roadmap:
+- id: embedding-similarity
+  title: Embedding & Similarity
+  purpose: Hiểu cách biểu diễn ý nghĩa văn bản bằng vector để tìm nội dung gần nghĩa.
+  objectives:
+  - Giải thích embedding, vector dimension và similarity.
+  - Phân biệt semantic search với tìm kiếm từ khóa.
+  - So sánh cosine similarity và khoảng cách vector.
+- id: embeddingmodel-cau-hinh
+  title: EmbeddingModel & Cấu hình
+  purpose: Sử dụng Spring AI EmbeddingModel và cấu hình mô hình phù hợp với vector store.
+  objectives:
+  - Tạo embedding mẫu bằng EmbeddingModel.embed().
+  - Đo số chiều của vector và kiểm tra cấu hình model.
+  - Quản lý API key hoặc mô hình chạy local an toàn.
+- id: document-metadata
+  title: Document & Metadata
+  purpose: Tổ chức nội dung và thuộc tính nguồn thành các Document có thể truy vết.
+  objectives:
+  - Tạo Document với content, ID và metadata.
+  - Gắn nguồn, phiên bản và nhãn phân nhóm phù hợp.
+  - Xác định metadata sẽ cần khi tìm kiếm hoặc xóa.
+- id: chunking-etl
+  title: Chunking & ETL
+  purpose: Chuẩn bị các đoạn văn bản có kích thước phù hợp trước khi đưa vào chỉ mục vector.
+  objectives:
+  - Đọc nguồn bằng DocumentReader.
+  - Chia đoạn với TokenTextSplitter và kiểm tra nội dung.
+  - Giữ metadata nguồn qua bước transform.
+- id: vectorstore-pgvector
+  title: VectorStore & PGvector
+  purpose: Khởi tạo nơi lưu embedding thông qua abstraction VectorStore của Spring AI.
+  objectives:
+  - Kết nối một vector store thử nghiệm như PGvector.
+  - Cấu hình starter, schema và kích thước embedding.
+  - Giải thích vai trò index và metric tìm kiếm.
+- id: indexing-lifecycle
+  title: Indexing & Lifecycle
+  purpose: Thêm, cập nhật và loại bỏ tài liệu mà vẫn duy trì tính nhất quán của chỉ mục.
+  objectives:
+  - Thêm Document bằng VectorStore.add().
+  - Xóa tài liệu qua ID hoặc filter có phạm vi đúng.
+  - Lập kế hoạch re-embedding khi đổi model hoặc dữ liệu.
+- id: similarity-search-filters
+  title: Similarity Search & Filters
+  purpose: Truy xuất tài liệu liên quan bằng tham số và metadata filter có kiểm soát.
+  objectives:
+  - Dùng SearchRequest với query, topK và threshold.
+  - Lọc theo metadata và so sánh kết quả truy xuất.
+  - Phân biệt metadata filter với kiểm tra quyền truy cập.
+- id: chat-luong-van-hanh
+  title: Chất lượng & Vận hành
+  purpose: Đánh giá kết quả semantic search và giám sát chi phí, độ trễ, dữ liệu nhạy cảm.
+  objectives:
+  - Tạo bộ câu hỏi kiểm tra độ liên quan của kết quả.
+  - Theo dõi metric/tracing khi add, delete và search.
+  - Tránh ghi nội dung nhạy cảm vào log hay trace.

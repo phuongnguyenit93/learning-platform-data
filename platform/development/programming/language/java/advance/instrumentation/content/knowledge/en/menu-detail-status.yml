@@ -1,0 +1,1876 @@
+menu:
+- slug: instrumentation-overview
+  title: Bức tranh instrumentation
+  childs:
+  - slug: instrumentation-overview-001
+    title: Instrumentation là gì và vì sao công cụ cần chèn mã quan sát vào chương trình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-002
+    title: Java agent chạy trong cùng JVM với ứng dụng và có vòng đời như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-003
+    title: Phân biệt theo dõi bằng lấy mẫu với thu thập dữ liệu bằng mã được chèn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-004
+    title: 'Các ứng dụng: đếm lời gọi, đo thời gian, theo dõi lỗi và độ bao phủ'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-005
+    title: Phân biệt biến đổi ngoại tuyến, biến đổi lúc nạp và thay đổi lớp đã nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-006
+    title: Vai trò của java.lang.instrument, Attach API, Class-File API và JVM TI
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-007
+    title: Ranh giới giữa API đăng ký biến đổi với công cụ thực sự đọc, sửa bytecode
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-008
+    title: Tính đúng đắn của ứng dụng, chi phí quan sát và giới hạn của dữ liệu thu thập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-overview-009
+    title: 'Kiến thức cần chuẩn bị: vòng đời lớp, bytecode, class loader, module và xử lý đồng thời'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-file-fundamentals
+  title: Nền tảng class file
+  childs:
+  - slug: class-file-fundamentals-001
+    title: Tệp class là biểu diễn nhị phân có thể tồn tại dưới dạng byte trong bộ nhớ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-002
+    title: Major version, minor version và tương thích với JVM đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-003
+    title: Tên lớp nội bộ, descriptor của trường, phương thức và kiểu mảng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-004
+    title: Constant pool và tham chiếu đến lớp, trường, phương thức được gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-005
+    title: Code attribute, local variables, operand stack và các lệnh trả về
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-006
+    title: Nhãn nhảy, bảng xử lý ngoại lệ và StackMapTable
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-007
+    title: Constructor <init>, class initializer <clinit> và trạng thái this chưa khởi tạo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-008
+    title: Annotation, synthetic, bridge, lambda và mã do trình biên dịch sinh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-009
+    title: Line number, local variable metadata và giới hạn liên hệ bytecode với mã nguồn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-fundamentals-010
+    title: Dùng javap để đọc bytecode trước và sau khi chèn mã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-java-agents
+  title: Agent khi khởi động
+  childs:
+  - slug: startup-java-agents-001
+    title: Đóng gói agent JAR và cấu trúc META-INF/MANIFEST.MF
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-002
+    title: Premain-Class và hai chữ ký hợp lệ của premain
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-003
+    title: -javaagent:jarpath=options và cách nhận chuỗi agentArgs
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-004
+    title: Nhận Instrumentation từ JVM và giữ tham chiếu dùng cho vòng đời agent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-005
+    title: Thứ tự premain trước main và trường hợp nhiều -javaagent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-006
+    title: Khởi tạo cấu hình, helper và transformer trước khi ứng dụng chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-007
+    title: Lỗi nạp agent, sai chữ ký và ngoại lệ không được bắt có thể làm JVM không khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-008
+    title: Launcher-Agent-Class trong executable JAR và vai trò agentmain
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-009
+    title: Phân biệt Main-Class, Premain-Class, Agent-Class và Launcher-Agent-Class
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-java-agents-010
+    title: Thử một agent chỉ ghi dấu mốc để quan sát thứ tự khởi động
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-jvm-attach
+  title: Attach vào JVM
+  childs:
+  - slug: dynamic-jvm-attach-001
+    title: Attach API và module jdk.attach có vai trò gì
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-002
+    title: Khám phá tiến trình bằng VirtualMachine.list và VirtualMachineDescriptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-003
+    title: Gắn vào JVM bằng VirtualMachine.attach với định danh đã xác nhận
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-004
+    title: VirtualMachine.loadAgent và đường dẫn agent JAR trong môi trường của JVM đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-005
+    title: Agent-Class, chữ ký agentmain và truyền agentArgs
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-006
+    title: Khởi tạo agent khi ứng dụng đã chạy và các lớp có thể đã được nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-007
+    title: Phân biệt attach thành công, nạp agent thành công và biến đổi lớp thành công
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-008
+    title: detach kết nối điều khiển không đồng nghĩa với gỡ agent khỏi JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-009
+    title: Quyền hệ điều hành, container, self-attach và khả năng hỗ trợ của nhà cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-010
+    title: Cảnh báo nạp agent động, EnableDynamicAgentLoading và chính sách theo phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-jvm-attach-011
+    title: AttachNotSupportedException, AgentLoadException và AgentInitializationException
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instrumentation-capabilities
+  title: Khả năng Instrumentation
+  childs:
+  - slug: instrumentation-capabilities-001
+    title: Manifest khai báo khả năng khác với khả năng JVM thực sự hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-capabilities-002
+    title: Can-Retransform-Classes và isRetransformClassesSupported
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-capabilities-003
+    title: Can-Redefine-Classes và isRedefineClassesSupported
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-capabilities-004
+    title: Can-Set-Native-Method-Prefix và isNativeMethodPrefixSupported
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-capabilities-005
+    title: isModifiableClass khác với kiểm tra khả năng chung của agent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-capabilities-006
+    title: Primitive class, array class và những lớp không thể sửa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-capabilities-007
+    title: isModifiableModule và điều kiện trước khi thay đổi quan hệ module
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-capabilities-008
+    title: Chọn chức năng thay thế hoặc bỏ qua có báo cáo khi khả năng không được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-file-transformer-contract
+  title: Hợp đồng transformer
+  childs:
+  - slug: class-file-transformer-contract-001
+    title: ClassFileTransformer và thời điểm callback được gọi trước khi lớp được định nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-002
+    title: Hai dạng transform có và không có tham số Module
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-003
+    title: Ý nghĩa của loader, className, classBeingRedefined và ProtectionDomain
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-004
+    title: Nhận diện bootstrap loader qua loader null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-005
+    title: Lọc lớp theo tên, bộ nạp, module và nguồn mã trước khi phân tích bytecode
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-006
+    title: Trả null khi không đổi và trả mảng byte mới khi có biến đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-007
+    title: Không sửa trực tiếp classfileBuffer do JVM cung cấp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-008
+    title: Phân biệt định nghĩa lần đầu với redefine hoặc retransform qua ngữ cảnh callback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-009
+    title: IllegalClassFormatException và ngoại lệ transformer không bảo đảm ngăn nạp lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-010
+    title: Loại trừ lớp của agent, helper và công cụ ghi log để tránh tự chèn mã
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-transformer-contract-011
+    title: Quản lý dữ liệu chẩn đoán mà không làm callback phụ thuộc vào lớp đang được nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transformer-chaining
+  title: Chuỗi biến đổi
+  childs:
+  - slug: transformer-chaining-001
+    title: addTransformer với canRetransform false hoặc true
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-002
+    title: Kết quả của transformer trước trở thành đầu vào của transformer sau
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-003
+    title: Thứ tự bốn nhóm transformer Java, native và khả năng retransformation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-004
+    title: Thứ tự đăng ký bên trong từng nhóm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-005
+    title: Điều gì xảy ra khi một transformer không đổi hoặc ném ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-006
+    title: Biến đổi xác định theo đầu vào và khả năng chịu được nhiều lần xử lý
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-007
+    title: Không giả định mảng byte đầu vào luôn giống bản class trên đĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-008
+    title: Giữ tương thích khi nhiều agent cùng chỉnh một phương thức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-009
+    title: removeTransformer và khả năng callback đang chạy vẫn tiếp tục
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformer-chaining-010
+    title: Gỡ transformer không tự khôi phục các lớp đã được biến đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-file-api
+  title: Class-File API
+  childs:
+  - slug: class-file-api-001
+    title: java.lang.classfile là API chính thức từ JDK 24 và yêu cầu tương thích phiên bản
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-002
+    title: ClassFile.parse, ClassModel và cách đọc cây thành phần của lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-003
+    title: MethodModel, CodeModel và chọn đúng phương thức bằng tên cùng descriptor
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-004
+    title: Model bất biến, phân tích trì hoãn và lưu ý khi chia sẻ giữa các luồng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-005
+    title: ClassBuilder, MethodBuilder, CodeBuilder và việc giữ lại phần không thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-006
+    title: ClassTransform, MethodTransform, CodeTransform và ghép các phép biến đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-007
+    title: Chèn lệnh gọi helper thay vì viết lại toàn bộ thuật toán của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-008
+    title: Quản lý vị trí biến cục bộ, nhãn nhảy và đường đi ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-009
+    title: Tạo stack map và giải quyết quan hệ kế thừa bằng ClassHierarchyResolver
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-010
+    title: Chọn bộ phân giải phù hợp class loader để tránh nạp lớp ngoài ý muốn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-011
+    title: Giữ thông tin debug, thuộc tính chuẩn và thuộc tính không nhận diện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-api-012
+    title: ClassFile.verify, kiểm tra lại byte sinh ra và giới hạn của xác minh cấu trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: probe-design
+  title: Thiết kế điểm đo
+  childs:
+  - slug: probe-design-001
+    title: Chọn điểm đo theo câu hỏi cần trả lời thay vì chèn vào mọi phương thức
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-002
+    title: Ghi sự kiện bắt đầu và kết thúc một lời gọi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-003
+    title: Đo khoảng thời gian bằng nguồn thời gian đơn điệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-004
+    title: Phân biệt mọi lệnh return với các đường thoát do ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-005
+    title: Xử lý ngoại lệ phát sinh từ lời gọi hoặc lệnh khác mà không có athrow trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-006
+    title: Bảo toàn giá trị trả về và đối tượng ngoại lệ gốc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-007
+    title: Chèn mã vào constructor sau khi this có trạng thái hợp lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-008
+    title: Phương thức abstract, native, synchronized và các trường hợp không có Code
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-009
+    title: Đếm lời gọi lồng nhau, đệ quy và giữ cặp sự kiện nhất quán
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-010
+    title: Không suy ra thời gian hoàn thành tác vụ bất đồng bộ từ lúc phương thức trả future
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-011
+    title: Hạn chế dữ liệu đối số, chuỗi hóa đối tượng và nguy cơ helper gọi lại mã ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probe-design-012
+    title: Xuất số đo qua bộ đếm, hàng đợi sự kiện hoặc JFR Event tùy mục tiêu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-retransformation
+  title: Retransformation
+  childs:
+  - slug: class-retransformation-001
+    title: Vì sao đăng ký transformer sau khi attach chưa thay đổi các lớp đã nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-002
+    title: Tìm lớp đích, kiểm tra isModifiableClass và yêu cầu retransformClasses
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-003
+    title: Điều kiện manifest cùng khả năng JVM trước khi retransformation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-004
+    title: Dữ liệu ban đầu được lấy từ lần định nghĩa hoặc redefine gần nhất
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-005
+    title: Tái sử dụng kết quả transformer không hỗ trợ retransformation mà không gọi lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-006
+    title: Gọi lại các transformer hỗ trợ retransformation theo đúng thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-007
+    title: Constant pool, thứ tự phương thức và thuộc tính có thể khác bản byte đã lưu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-008
+    title: Giới hạn thay đổi thân phương thức so với thêm trường, thêm phương thức hoặc đổi kế thừa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-009
+    title: Ràng buộc với NestHost, NestMembers, Record và PermittedSubclasses
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-010
+    title: Frame đang chạy tiếp tục dùng mã cũ; lời gọi mới dùng định nghĩa mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-011
+    title: Trường static, đối tượng hiện hữu và class initializer không được khởi tạo lại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-012
+    title: Xử lý nhiều lớp như một tập và trường hợp không lớp nào được cài nếu yêu cầu thất bại
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-retransformation-013
+    title: Thiết kế bật, tắt điểm đo bằng cấu hình và retransformation có kiểm soát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-redefinition
+  title: Redefinition
+  childs:
+  - slug: class-redefinition-001
+    title: redefineClasses thay định nghĩa bằng byte được cung cấp qua ClassDefinition
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-002
+    title: Chọn redefine hay retransform theo nguồn byte và mục tiêu thay đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-003
+    title: Transformer đã đăng ký vẫn tham gia xử lý dữ liệu redefine
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-004
+    title: Kiểm tra khả năng redefine và khả năng sửa của từng lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-005
+    title: Những thay đổi cấu trúc không được hỗ trợ theo hợp đồng JVM hiện hành
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-006
+    title: Lớp, đối tượng và trạng thái đang tồn tại được giữ như thế nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-007
+    title: Lời gọi đang chạy khác với lời gọi bắt đầu sau khi redefine
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-008
+    title: Thay đồng thời các lớp phụ thuộc và đánh giá kết quả toàn tập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-009
+    title: Khôi phục mã cần có định nghĩa tương thích và vẫn chịu ảnh hưởng chuỗi transformer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-redefinition-010
+    title: Phân biệt sửa mã khi chạy với nạp một phiên bản lớp bằng class loader mới
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-loaders-and-helpers
+  title: Class loader và helper
+  childs:
+  - slug: class-loaders-and-helpers-001
+    title: Lớp agent được nạp bởi system class loader và thuộc unnamed module
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-002
+    title: Vì sao mã đã chèn có thể không nhìn thấy helper của agent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-003
+    title: Định danh lớp gồm tên cùng class loader và lỗi trùng tên giữa các bộ nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-004
+    title: appendToBootstrapClassLoaderSearch và Boot-Class-Path
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-005
+    title: appendToSystemClassLoaderSearch và yêu cầu với system class loader tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-006
+    title: Helper ở bootstrap chỉ liên kết với các lớp mà bootstrap có thể nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-007
+    title: Tách helper tối thiểu khỏi phần agent có nhiều phụ thuộc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-008
+    title: Tên package riêng và tránh chiếm nhầm lớp hoặc tài nguyên của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-009
+    title: Thêm JAR vào đường tìm kiếm không sửa một tham chiếu đã phân giải thất bại trước đó
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-010
+    title: Không dùng class loader để nạp lại chính lớp đang được biến đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-loaders-and-helpers-011
+    title: Quản lý tham chiếu đến Class, ClassLoader và cache để không giữ bộ nạp đã hết vòng đời
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-aware-instrumentation
+  title: Instrumentation và module
+  childs:
+  - slug: module-aware-instrumentation-001
+    title: Named module, unnamed module và khả năng đọc lớp helper
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-002
+    title: Đối số Module trong transformer giúp xác định lớp thuộc module nào
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-003
+    title: Quan hệ đọc bổ sung mà JVM thiết lập cho module chứa lớp được biến đổi
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-004
+    title: Phân biệt reads, exports và opens
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-005
+    title: redefineModule với extraReads, extraExports và extraOpens
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-006
+    title: Bổ sung uses, provides và kiểm tra điều kiện dịch vụ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-007
+    title: Kiểm tra isModifiableModule và xử lý UnmodifiableModuleException
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-008
+    title: Các quan hệ bổ sung không phải thao tác thu hồi quyền truy cập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-009
+    title: Chỉ mở đúng package và đúng module cần cho helper hoặc phản chiếu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-aware-instrumentation-010
+    title: Phân biệt thay module bằng Instrumentation với cấu hình --add-modules, --add-reads, --add-opens
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-class-inspection
+  title: Khảo sát khi chạy
+  childs:
+  - slug: runtime-class-inspection-001
+    title: getAllLoadedClasses trả ảnh chụp các lớp đã được JVM nạp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-002
+    title: getInitiatedClasses phản ánh bộ nạp khởi xướng, không chỉ bộ nạp định nghĩa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-003
+    title: Bootstrap loader, hidden class và array class trong kết quả khảo sát
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-004
+    title: Phân biệt lớp được liệt kê với lớp có thể được sửa
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-005
+    title: Lọc tập lớp để lập kế hoạch biến đổi và ghi nhận lớp bỏ qua
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-006
+    title: getObjectSize trả ước lượng kích thước phụ thuộc cách triển khai
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-007
+    title: Kích thước của một đối tượng khác với tổng đồ thị hoặc retained size
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-008
+    title: So sánh kích thước trong cùng cấu hình mà không coi số đo là hằng số của Java
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-class-inspection-009
+    title: Chi phí và vòng đời tham chiếu khi lặp lại việc khảo sát lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-method-and-jvmti
+  title: Native và JVM TI
+  childs:
+  - slug: native-method-and-jvmti-001
+    title: Phương thức native không có bytecode để chèn trực tiếp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-method-and-jvmti-002
+    title: Bọc native bằng phương thức Java khi định nghĩa lớp lần đầu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-method-and-jvmti-003
+    title: setNativeMethodPrefix và Can-Set-Native-Method-Prefix
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-method-and-jvmti-004
+    title: Tiền tố riêng cho mỗi transformer và cơ chế thử phân giải native
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-method-and-jvmti-005
+    title: Vì sao thêm wrapper khi lớp đã nạp chịu giới hạn thay đổi cấu trúc
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-method-and-jvmti-006
+    title: Java agent khác với thư viện agent native dùng -agentlib hoặc -agentpath
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-method-and-jvmti-007
+    title: 'JVM TI: capabilities, giai đoạn hoạt động và ClassFileLoadHook ở mức tổng quan'
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-method-and-jvmti-008
+    title: Ranh giới lựa chọn Java Instrumentation, JVM TI, debugger và công cụ lấy mẫu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instrumentation-concurrency-performance
+  title: Đồng thời và hiệu năng
+  childs:
+  - slug: instrumentation-concurrency-performance-001
+    title: Transformer có thể nhận lời gọi đồng thời từ nhiều luồng nạp lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-002
+    title: Khởi tạo helper trước và phòng nạp lớp đệ quy, class circularity hoặc deadlock
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-003
+    title: Bảo vệ trạng thái chia sẻ mà không khóa kéo dài đường nạp lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-004
+    title: Chốt cấu hình nhất quán trong khi đổi bộ lọc hoặc bật tắt điểm đo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-005
+    title: Giới hạn cấp phát, phân tích bytecode và ghi log trong callback
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-006
+    title: Không thực hiện I/O chậm trên luồng gọi điểm đo
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-007
+    title: Hàng đợi có giới hạn, lấy mẫu sự kiện và chính sách khi quá tải
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-008
+    title: Ảnh hưởng đến thời gian khởi động, JIT, inlining, GC và độ trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-009
+    title: Tránh giữ đối tượng ứng dụng trong dữ liệu đo lâu hơn vòng đời cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-010
+    title: Đo overhead bằng nhóm chạy có agent và không có agent trong cùng điều kiện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-concurrency-performance-011
+    title: Đánh giá tính đúng đắn bên cạnh thông lượng và phân vị độ trễ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agent-packaging-deployment
+  title: Đóng gói và triển khai
+  childs:
+  - slug: agent-packaging-deployment-001
+    title: Tách agent entry point, transformer, helper và phần thu thập dữ liệu
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-002
+    title: Phụ thuộc của agent, xung đột phiên bản và cô lập tên lớp thư viện
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-003
+    title: Phiên bản bytecode agent, bytecode helper và phiên bản ứng dụng đích
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-004
+    title: Chọn Class-File API trên JDK hỗ trợ và phương án cho JDK thấp hơn
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-005
+    title: Không phụ thuộc các lớp xử lý bytecode nội bộ không được JDK hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-006
+    title: Agent JAR độc lập, executable JAR và class path hoặc module path của ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-007
+    title: Kiểm tra java.instrument, jdk.attach và các module cần thiết trong runtime tùy chỉnh
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-008
+    title: Cấu hình -javaagent qua trình chạy hoặc JAVA_TOOL_OPTIONS với phạm vi rõ ràng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-009
+    title: Kiểm tra nguồn gốc agent, nội dung JAR và phạm vi dữ liệu được thu thập
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-010
+    title: Khả năng cùng tồn tại với nhiều agent, coverage tool và chế độ CDS hoặc AOT
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agent-packaging-deployment-011
+    title: Phân biệt vô hiệu hóa chức năng, gỡ transformer và kết thúc tiến trình
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instrumentation-testing-diagnostics
+  title: Kiểm thử và chẩn đoán
+  childs:
+  - slug: instrumentation-testing-diagnostics-001
+    title: Kiểm thử bộ lọc bằng tên lớp, descriptor, class loader và module
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-002
+    title: Biến đổi byte trong bài kiểm thử trước khi cài agent vào JVM thử nghiệm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-003
+    title: Lưu byte đầu vào/đầu ra có chọn lọc và đọc lại bằng javap
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-004
+    title: Xác minh cấu trúc với ClassFile.verify rồi kiểm tra nạp, chạy trên JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-005
+    title: Bảo toàn kết quả, ngoại lệ, trạng thái và số lần gọi phương thức ứng dụng
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-006
+    title: Bộ ca constructor, nhánh điều kiện, nhiều return, ngoại lệ và phương thức synchronized
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-007
+    title: Kiểm thử bridge, synthetic, lambda, record, sealed class và nhiều class loader
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-008
+    title: Kiểm tra nhiều lần retransform, redefine và thay đổi thứ tự agent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-009
+    title: Tái hiện thiếu helper, sai module, VerifyError, ClassFormatError và LinkageError
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-010
+    title: Phân biệt lỗi khởi động premain, lỗi agentmain và lỗi bytecode đã cài
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-011
+    title: Kiểm tra bỏ đăng ký trong khi callback đang chạy và ngừng thu thập có thứ tự
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-diagnostics-012
+    title: Ghi ma trận JDK, JVM, cách khởi động và khả năng được hỗ trợ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-agent-practice
+  title: Thực nghiệm agent
+  childs:
+  - slug: java-agent-practice-001
+    title: Tạo agent premain tối thiểu và quan sát thời điểm chạy trước main
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-002
+    title: Liệt kê lớp đã nạp cùng bộ nạp và khả năng sửa của từng lớp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-003
+    title: Viết transformer chỉ ghi nhận lớp đích và trả null
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-004
+    title: Dùng Class-File API để chèn một lời gọi helper rồi kiểm chứng bytecode
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-005
+    title: Đo thời gian phương thức cho cả đường trả về và đường ném ngoại lệ
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-006
+    title: Attach agent vào một JVM thử nghiệm và biến đổi lớp đã nạp bằng retransformation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-007
+    title: So sánh kết quả của transformer có và không có khả năng retransformation
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-008
+    title: Redefine thân phương thức khi một lời gọi cũ vẫn đang chạy
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-009
+    title: Tạo tình huống helper không thấy được rồi sửa bằng bố trí class loader phù hợp
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-010
+    title: Thử module có đóng gói mạnh và bổ sung đúng quan hệ cần thiết
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-011
+    title: So sánh getObjectSize của các đối tượng trong cùng cấu hình JVM
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-012
+    title: Chạy hai transformer nối tiếp và kiểm chứng thứ tự cùng ảnh hưởng của removeTransformer
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-013
+    title: Đo overhead và khả năng phục hồi khi phần xuất sự kiện bị chậm
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-practice-014
+    title: Báo cáo giả thuyết, bằng chứng bytecode, kết quả chạy và giới hạn của agent
+    status: TRANSLATE
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

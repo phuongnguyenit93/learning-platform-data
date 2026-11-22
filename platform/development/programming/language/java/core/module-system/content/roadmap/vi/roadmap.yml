@@ -1,0 +1,49 @@
+roadmap:
+- id: nen-tang-jpms
+  title: Nền tảng JPMS
+  purpose: Hiểu Java Platform Module System và lợi ích của ranh giới module so với chỉ dùng package.
+  objectives:
+  - Giải thích module, package và module path.
+  - Phân biệt module path với classpath.
+- id: khai-bao-module-info-java
+  title: Khai báo module-info.java
+  purpose: Biết khai báo định danh và quan hệ cơ bản của một module Java.
+  objectives:
+  - Tạo module-info.java cho module nhỏ.
+  - Khai báo requires và exports đúng phạm vi.
+- id: do-thi-phu-thuoc
+  title: Đồ thị phụ thuộc
+  purpose: Hiểu cách module đọc module khác và tác động của các dạng requires.
+  objectives:
+  - Phân biệt requires, requires transitive và requires static.
+  - Giải thích khả năng đọc module trong một đồ thị nhỏ.
+- id: dong-goi-va-reflection
+  title: Đóng gói và Reflection
+  purpose: Kiểm soát API công khai và quyền truy cập phản chiếu theo đúng ranh giới module.
+  objectives:
+  - Phân biệt exports với opens.
+  - Chọn qualified exports/opens khi cần giới hạn đối tượng truy cập.
+- id: services-giua-modules
+  title: Services giữa modules
+  purpose: Giảm phụ thuộc trực tiếp thông qua cơ chế service của JPMS.
+  objectives:
+  - Khai báo uses và provides ... with.
+  - Nạp provider bằng ServiceLoader trong ứng dụng mẫu.
+- id: bien-dich-va-chay
+  title: Biên dịch và chạy
+  purpose: Triển khai module thực tế bằng các công cụ JDK.
+  objectives:
+  - Biên dịch với javac và module path.
+  - Chạy module bằng java --module và đóng gói modular JAR.
+- id: tuong-thich-va-chuyen-doi
+  title: Tương thích và chuyển đổi
+  purpose: Biết lộ trình đưa thư viện cũ vào ứng dụng module mà vẫn kiểm soát phụ thuộc.
+  objectives:
+  - Phân biệt unnamed module và automatic module.
+  - Dùng jdeps để xác định phụ thuộc khi chuyển đổi.
+- id: runtime-tuy-bien-voi-jlink
+  title: Runtime tùy biến với jlink
+  purpose: Kết hợp những module cần thiết để tạo runtime riêng cho ứng dụng.
+  objectives:
+  - Xác định tập module phụ thuộc của ứng dụng.
+  - Dùng jlink tạo và chạy thử runtime image.

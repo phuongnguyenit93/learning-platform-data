@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cơ chế Native Image
+  slug: native-image-mechanism
+  index: 1
+- title: Spring AOT
+  slug: spring-aot
+  index: 2
+- title: Môi trường build
+  slug: build-environment
+  index: 3
+- title: Ứng dụng đầu tiên
+  slug: first-application
+  index: 4
+- title: Gradle
+  slug: gradle
+  index: 5
+- title: Maven
+  slug: maven
+  index: 6
+- title: Buildpacks
+  slug: buildpacks
+  index: 7
+- title: Sản phẩm build
+  slug: build-artifacts
+  index: 8
+- title: Bean và AOT
+  slug: beans-and-aot
+  index: 9
+- title: Cấu hình hai giai đoạn
+  slug: two-phase-configuration
+  index: 10
+- title: Runtime hints
+  slug: runtime-hints
+  index: 11
+- title: Reflection
+  slug: reflection
+  index: 12
+- title: Tài nguyên
+  slug: resources
+  index: 13
+- title: Proxy và AOP
+  slug: proxies-and-aop
+  index: 14
+- title: Binding và JSON
+  slug: binding-and-json
+  index: 15
+- title: Serialization và JNI
+  slug: serialization-and-jni
+  index: 16
+- title: Khởi tạo lớp
+  slug: class-initialization
+  index: 17
+- title: Giới hạn động
+  slug: dynamic-limitations
+  index: 18
+- title: Thư viện ngoài
+  slug: external-libraries
+  index: 19
+- title: Tracing agent
+  slug: tracing-agent
+  index: 20
+- title: Kiểm thử hints
+  slug: hints-testing
+  index: 21
+- title: Kiểm thử AOT
+  slug: aot-testing
+  index: 22
+- title: Kiểm thử native
+  slug: native-testing
+  index: 23
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 24
+- title: Quan sát
+  slug: observability
+  index: 25
+- title: Đo hiệu năng
+  slug: performance-measurement
+  index: 26
+- title: Tối ưu
+  slug: optimization
+  index: 27
+- title: Container
+  slug: container
+  index: 28
+- title: CI/CD
+  slug: ci-cd
+  index: 29
+- title: Vận hành
+  slug: operations
+  index: 30
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 31
+- title: Bảo mật
+  slug: security
+  index: 32
+- title: Di chuyển và nâng cấp
+  slug: migration-and-upgrade
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

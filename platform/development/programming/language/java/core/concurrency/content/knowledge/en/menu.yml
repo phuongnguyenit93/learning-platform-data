@@ -1,0 +1,401 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Concurrency, parallelism và asynchronous execution khác nhau thế nào?
+  - Process, platform thread, virtual thread và task
+  - 'CPU-bound và I/O-bound: chọn cách thực thi'
+  - Latency, throughput, responsiveness và utilization
+  - 'Concurrency trong ứng dụng Java: use case và rủi ro'
+  - Shared mutable state, coordination và thread confinement
+  - Safety, liveness, progress và starvation
+  - 'Race condition, deadlock, livelock: nhận diện ở mức tổng quan'
+  - 'Concurrency overhead: context switch, contention, scheduling'
+  - Khi nào nên dùng tuần tự thay vì đa luồng
+- level1: Thread API
+  level2:
+  - Tạo thread bằng Thread và Runnable
+  - Phân biệt gọi start() và run()
+  - Đọc thông tin currentThread(), name và ID
+  - 'Thread priority: ý nghĩa và giới hạn bảo đảm'
+  - Platform thread và chi phí tạo tài nguyên
+  - Daemon thread và user thread khi JVM kết thúc
+  - Đặt tên luồng và thiết lập UncaughtExceptionHandler
+  - ThreadFactory để chuẩn hóa cách tạo luồng
+  - Runnable, Callable và cách truyền kết quả tác vụ
+  - sleep(), yield() và các giới hạn khi điều phối
+  - join() để chờ kết thúc một thread
+  - Phân biệt công việc của thread và vòng đời task
+  - 'Thread.Builder: tạo platform thread, virtual thread và ThreadFactory theo cấu hình'
+- level1: Vòng đời Thread
+  level2:
+  - Các trạng thái NEW, RUNNABLE và TERMINATED
+  - Các trạng thái BLOCKED, WAITING, TIMED_WAITING
+  - Chuyển trạng thái khi vào monitor hoặc chờ lock
+  - Chuyển trạng thái bởi sleep(), join(), wait()
+  - Quan sát trạng thái bằng Thread.getState()
+  - Scheduling và sự bất định của thứ tự thực thi
+  - Ảnh hưởng của blocking I/O và chờ điều kiện
+  - Khởi chạy một lần và lỗi khởi chạy lại thread
+  - Chờ thread hoàn tất mà không busy waiting
+  - Vòng đời tài nguyên gắn với thread
+  - Phân biệt trạng thái thread và trạng thái nghiệp vụ
+- level1: Race Conditions
+  level2:
+  - Shared mutable state tạo ra tranh chấp ra sao?
+  - Interleaving và tính không xác định của kết quả
+  - Lost update trong thao tác tăng biến đếm
+  - Read-modify-write không phải một thao tác atomic
+  - Check-then-act và lỗi kiểm tra rồi thao tác
+  - Broken invariant khi cập nhật nhiều biến liên quan
+  - TOCTOU và lỗi đồng thời theo thời điểm
+  - Không an toàn khi dùng collection thường chung nhiều luồng
+  - Phân biệt data race, race condition và logic race
+  - Minh họa lỗi bằng test điều phối thời điểm thực thi
+  - 'Phương án sửa: ownership, locking, atomic, immutable state'
+- level1: Java Memory Model
+  level2:
+  - Atomicity, visibility và ordering trong Java
+  - Happens-before và vai trò trong tính đúng đắn
+  - Program order và các quan hệ happens-before
+  - Quy tắc lock/unlock của monitor
+  - Quy tắc write/read của volatile
+  - Thread.start(), Thread.join() và quan hệ đồng bộ
+  - Safe publication và nguy cơ đọc đối tượng khởi tạo dở
+  - Trường final và bảo đảm khởi tạo đúng
+  - Data race và hành vi quan sát khó dự đoán
+  - Reordering của compiler, CPU và bộ nhớ
+  - Giới hạn của volatile với compound actions
+  - Double-checked locking và điều kiện dùng volatile
+  - Phân biệt tính hiển thị và loại trừ tương hỗ
+- level1: Thread Safety
+  level2:
+  - Thế nào là một class thread-safe?
+  - Stateless objects và tránh trạng thái chia sẻ
+  - Immutability và immutable object graph
+  - Thread confinement và ownership rõ ràng
+  - Encapsulation của trạng thái cần đồng bộ
+  - Safe publication qua final, volatile và khóa
+  - Defensive copy và snapshot bất biến
+  - Giữ nhất quán invariant khi nhiều trường liên quan
+  - Thread-safe collection và compound action chưa atomic
+  - Document thread-safety contract cho public API
+  - Nhận diện mutable collaborator làm phá vỡ thread safety
+- level1: Synchronization
+  level2:
+  - Intrinsic lock và monitor của mọi object
+  - synchronized method so với synchronized block
+  - Khóa theo instance và theo class
+  - Reentrant synchronization là gì?
+  - Mutual exclusion và memory visibility của monitor
+  - Thiết kế critical section đủ nhỏ và dễ kiểm chứng
+  - Lock ordering để ngăn deadlock
+  - Tránh khóa trên String literal hay public object
+  - Đợi monitor bằng wait() và đánh thức bằng notify()/notifyAll()
+  - Giữ invariant khi chờ và sau khi thức dậy
+  - Contended monitor và rủi ro giữ khóa quá lâu
+  - Vấn đề khi gọi callback hoặc blocking I/O trong synchronized
+- level1: Locks & Conditions
+  level2:
+  - Lock interface so với intrinsic monitor
+  - 'ReentrantLock: lock(), unlock() và finally'
+  - tryLock() và timeout khi tranh chấp khóa
+  - lockInterruptibly() và hỗ trợ hủy khi chờ lock
+  - 'Fairness policy: throughput và starvation'
+  - Condition await(), signal(), signalAll()
+  - Vì sao await() luôn cần vòng lặp kiểm tra điều kiện
+  - ReadWriteLock cho read-heavy workload
+  - 'ReentrantReadWriteLock: nâng/hạ cấp khóa và giới hạn'
+  - StampedLock với optimistic read
+  - Chi phí, độ phức tạp và tiêu chí chọn loại lock
+  - Lock hierarchy và cách tránh thứ tự khóa vòng
+- level1: Atomic & CAS
+  level2:
+  - AtomicInteger, AtomicLong và AtomicBoolean
+  - AtomicReference và cập nhật object state
+  - compareAndSet() và nguyên tắc CAS
+  - CAS loop, retry và contention
+  - getAndUpdate(), updateAndGet() và accumulator
+  - Atomic compound reference qua immutable state
+  - AtomicIntegerFieldUpdater và điều kiện áp dụng
+  - ABA problem và AtomicStampedReference
+  - LongAdder và LongAccumulator khi cập nhật cạnh tranh
+  - 'VarHandle: truy cập atomic và access mode'
+  - Atomic không thay thế giao dịch nhiều đối tượng
+  - Chọn atomic, lock hay thread confinement
+  - 'AtomicIntegerArray, AtomicLongArray và AtomicReferenceArray: cập nhật từng phần tử'
+  - Hàm updateAndGet, accumulateAndGet và nguy cơ tác dụng phụ khi CAS phải thử lại
+- level1: Phối hợp luồng
+  level2:
+  - wait(), notify(), notifyAll() hoạt động trong monitor
+  - 'Điều kiện chờ: while thay vì if'
+  - Spurious wakeup và kiểm tra lại invariant
+  - Producer–consumer với hàng đợi giới hạn
+  - 'BlockingQueue: put(), take(), offer(), poll()'
+  - Timeout khi chờ dữ liệu hoặc tài nguyên
+  - Lock + Condition cho nhiều điều kiện chờ
+  - LockSupport.park()/unpark() và permit
+  - 'Missed signal và lost notification: nguyên nhân'
+  - Poison pill và kết thúc consumer có trật tự
+  - Tránh busy waiting bằng blocking primitives
+  - So sánh phối hợp bằng shared state và message passing
+- level1: Interrupt & Hủy
+  level2:
+  - Interrupt là tín hiệu hợp tác, không phải dừng cưỡng bức
+  - interrupt(), isInterrupted() và Thread.interrupted()
+  - InterruptedException và cách xử lý hợp lệ
+  - Khôi phục interrupt flag khi không thể truyền ngoại lệ
+  - Điểm chặn hỗ trợ và không hỗ trợ interrupt
+  - Thiết kế cancellation flag, volatile và cleanup
+  - Future.cancel(true) và các giới hạn thực tế
+  - Timeout khác cancellation thế nào?
+  - shutdown(), shutdownNow() và awaitTermination()
+  - Đảm bảo finally đóng tài nguyên khi dừng tác vụ
+  - Phân tầng tín hiệu hủy trong chuỗi xử lý
+  - Không nuốt InterruptedException hoặc làm mất tín hiệu hủy
+  - 'Vì sao tránh Thread.stop(), suspend() và resume(): rủi ro khóa và tính nhất quán'
+- level1: Executor Framework
+  level2:
+  - Executor, ExecutorService và ThreadPoolExecutor
+  - execute() so với submit() và xử lý lỗi
+  - Fixed, cached và single-thread executors
+  - Đánh giá rủi ro của queue không giới hạn
+  - corePoolSize, maximumPoolSize và keepAliveTime
+  - 'Work queue: ArrayBlockingQueue, LinkedBlockingQueue'
+  - RejectedExecutionHandler và bốn chính sách từ chối
+  - ThreadFactory và UncaughtExceptionHandler trong executor
+  - Lựa chọn pool size cho CPU-bound và I/O-bound
+  - submit task độc lập và tránh thread starvation
+  - Khả năng quan sát active count, queue size, completed tasks
+  - 'Lifecycle: đóng executor và tránh thread leak'
+  - Kiểm soát số task đang chờ và backpressure
+  - Phân biệt user task concurrency với thread pool concurrency
+  - 'Thứ tự tiếp nhận việc của ThreadPoolExecutor: core threads, queue, maximum và rejection'
+  - 'AbortPolicy, CallerRunsPolicy, DiscardPolicy và DiscardOldestPolicy: hệ quả khi quá tải'
+  - 'prestartAllCoreThreads() và allowCoreThreadTimeOut(): quản lý luồng lõi'
+  - beforeExecute(), afterExecute() và cách nhận biết ngoại lệ của tác vụ submit()
+- level1: Future & Scheduling
+  level2:
+  - 'Future: get(), isDone(), isCancelled()'
+  - get(timeout) và tránh chờ vô hạn
+  - Cancellation và trạng thái của Future
+  - Callable<T> so với Runnable khi cần trả kết quả
+  - ExecutionException và truy nguyên lỗi task
+  - invokeAll() cho nhóm kết quả
+  - invokeAny() cho kết quả thành công đầu tiên
+  - ExecutorCompletionService nhận kết quả theo thứ tự hoàn tất
+  - ScheduledExecutorService cho công việc trì hoãn
+  - scheduleAtFixedRate() và scheduleWithFixedDelay()
+  - Exception trong tác vụ lặp và tác động tới lần chạy sau
+  - Thiết kế stop/shutdown cho lịch chạy định kỳ
+  - 'FutureTask: một tác vụ Runnable có thể được theo dõi bằng Future'
+  - Future.State, resultNow() và exceptionNow() từ Java 21
+  - 'invokeAll() và invokeAny() có thời hạn: xử lý tác vụ chưa hoàn tất'
+  - 'ExecutorService.close() và try-with-resources từ Java 21: điều kiện chờ kết thúc'
+  - ScheduledThreadPoolExecutor.setRemoveOnCancelPolicy() và tác vụ bị hủy trong hàng đợi
+  - 'Tác vụ định kỳ chạy lâu: fixed rate, fixed delay và việc không chạy chồng chính nó'
+  - 'TimeUnit: chuyển đơn vị, độ chính xác và ngân sách thời gian qua nhiều bước'
+- level1: Fork/Join
+  level2:
+  - Fork/Join và divide-and-conquer
+  - ForkJoinPool và cơ chế work stealing
+  - RecursiveTask<V> so với RecursiveAction
+  - compute(), fork() và join()
+  - Chiến lược chia nhỏ và ngưỡng threshold
+  - Tránh tạo quá nhiều tác vụ nhỏ
+  - Phân biệt invoke(), execute() và submit()
+  - ForkJoinPool.commonPool() và tác vụ dùng chung
+  - Blocking operation trong Fork/Join và ManagedBlocker
+  - Task dependency và nguy cơ chờ vòng
+  - Benchmark so với thực thi tuần tự
+  - 'Ứng dụng: tổng hợp mảng, cây và tính toán đệ quy'
+  - 'CountedCompleter: mục đích và khác biệt với RecursiveTask, RecursiveAction'
+  - Quan hệ completer, pending count và cây hoàn tất của CountedCompleter
+  - Thiết lập pending count trước khi fork để tránh hoàn tất sớm
+  - 'tryComplete(), propagateCompletion() và onCompletion(): cơ chế lan truyền hoàn tất'
+  - Vì sao compute() trả về chưa đồng nghĩa CountedCompleter đã hoàn tất
+  - 'onExceptionalCompletion(): xử lý và lan truyền ngoại lệ của CountedCompleter'
+  - Ví dụ tìm kiếm không đều và dừng sớm bằng CountedCompleter
+  - 'ForkJoinPool asyncMode: chế độ FIFO cho tác vụ kiểu sự kiện không join'
+  - 'Vòng đời commonPool và pool riêng: shutdown, close và awaitTermination'
+  - ForkJoinTask.cancel() so với adaptInterruptible(Callable) trên Java 21
+  - ManagedBlocker.isReleasable(), block() và giới hạn bù luồng khi chặn
+- level1: Concurrent Collections
+  level2:
+  - Vì sao ArrayList và HashMap không an toàn khi truy cập chung?
+  - 'ConcurrentHashMap: putIfAbsent(), compute(), merge()'
+  - Atomic compound operations của ConcurrentHashMap
+  - Weakly consistent iteration và snapshot semantics
+  - 'CopyOnWriteArrayList: ưu và nhược điểm khi ghi nhiều'
+  - ConcurrentLinkedQueue và ConcurrentLinkedDeque
+  - ArrayBlockingQueue so với LinkedBlockingQueue
+  - PriorityBlockingQueue, DelayQueue và SynchronousQueue
+  - ConcurrentSkipListMap và ConcurrentSkipListSet
+  - Collections.synchronizedMap/List và yêu cầu khóa khi duyệt
+  - Concurrent queue, blocking queue và backpressure
+  - Chọn collection theo read/write ratio và ordering
+  - 'ConcurrentHashMap: chính sách null, computeIfAbsent() và giới hạn hàm ánh xạ'
+  - Giá trị mutable trong ConcurrentHashMap vẫn cần hợp đồng thread safety riêng
+  - CopyOnWriteArraySet và tính chất snapshot của iterator khi có ghi
+  - 'TransferQueue và BlockingDeque: chuyển giao trực tiếp và thao tác hai đầu'
+- level1: Synchronizers
+  level2:
+  - CountDownLatch chờ một mốc hoàn tất
+  - CyclicBarrier phối hợp các vòng làm việc
+  - Phaser cho số lượng participant linh hoạt
+  - Semaphore giới hạn truy cập tài nguyên hữu hạn
+  - Exchanger<T> trao đổi dữ liệu giữa hai luồng
+  - Các thao tác timeout và interruption
+  - Barrier action, trạng thái broken và reset
+  - Đếm permit và phòng tránh permit leak
+  - Latch dùng một lần so với barrier tái sử dụng
+  - Sử dụng synchronizer trong test concurrency
+  - Khi nên dùng BlockingQueue thay vì tự phối hợp luồng
+  - Tránh deadlock do thiếu arrive(), countDown() hoặc release()
+- level1: CompletableFuture
+  level2:
+  - CompletionStage và CompletableFuture khác Future truyền thống
+  - completedFuture(), supplyAsync(), runAsync()
+  - thenApply(), thenAccept(), thenRun()
+  - thenApplyAsync() và ý nghĩa của executor
+  - thenCompose() để nối các tác vụ bất đồng bộ
+  - thenCombine() khi cần phối hợp hai kết quả
+  - allOf(), anyOf() với nhiều tác vụ song song
+  - applyToEither() và acceptEither() khi cạnh tranh kết quả
+  - handle(), exceptionally(), whenComplete()
+  - Khác biệt get() và join() khi xử lý lỗi
+  - orTimeout(), completeOnTimeout() và fallback
+  - Propagate lỗi trong chuỗi CompletableFuture
+  - Chọn custom executor để quản lý tải và tránh tắc nghẽn
+  - Giới hạn concurrency khi tạo hàng loạt future
+  - Cancellation, interrupt và giới hạn của CompletableFuture
+  - Fan-out / fan-in thực hành với nhiều tác vụ I/O
+  - 'CompletableFuture chưa hoàn tất: complete(), completeExceptionally() và cuộc đua hoàn tất'
+  - 'completedStage(), failedFuture(), failedStage(): kết quả đã có và kết quả lỗi'
+  - 'getNow(): đọc kết quả không chặn và phân biệt null với chưa hoàn tất'
+  - 'exceptionallyCompose(): phục hồi bằng một CompletionStage bất đồng bộ'
+  - 'minimalCompletionStage() và copy(): giới hạn quyền hoàn tất future của bên nhận'
+  - 'delayedExecutor(): lên lịch khởi chạy mà không chặn luồng chờ'
+  - Callback không có hậu tố Async có thể chạy trên luồng hoàn tất hoặc luồng gọi
+  - 'thenAcceptBoth() và runAfterBoth(): phối hợp hai nhánh không cần giá trị trả về'
+  - 'HttpClient.sendAsync(): ghép phản hồi HTTP, lỗi mạng và CompletableFuture'
+  - Thời hạn HTTP request so với timeout và cancellation của CompletableFuture
+  - 'NIO CompletionHandler: chuyển callback completed()/failed() sang CompletionStage'
+- level1: Virtual Threads
+  level2:
+  - Virtual thread trong Java 21 và mục tiêu thiết kế
+  - Khác biệt virtual thread với platform thread
+  - Tạo luồng bằng Thread.ofVirtual() và startVirtualThread()
+  - newVirtualThreadPerTaskExecutor()
+  - Thread-per-request cho I/O blocking
+  - Carrier threads và scheduling của JVM
+  - Vì sao không pool virtual threads?
+  - Giới hạn tài nguyên ngoài bằng Semaphore/pool kết nối
+  - Pinning với monitor/native code ở Java 21
+  - ThreadLocal và chi phí dữ liệu theo từng virtual thread
+  - CPU-bound workload không tự nhanh hơn nhờ virtual threads
+  - Chẩn đoán bằng thread dump và Java Flight Recorder
+  - 'Structured Concurrency (preview ở Java 21): vai trò và giới hạn'
+  - Thread.ofVirtual().unstarted(), ThreadFactory và vòng đời khởi chạy
+  - 'JDK 21 so với JDK 24+: synchronized thông thường không còn gây pinning kiểu cũ'
+  - 'Native method và foreign function: các trường hợp pinning còn phải đánh giá'
+  - JFR VirtualThreadPinned, VirtualThreadSubmitFailed và ngưỡng ghi sự kiện
+  - Giới hạn ThreadMXBean và cách dùng jcmd Thread.dump_to_file cho virtual threads
+- level1: Ngữ cảnh luồng
+  level2:
+  - 'ThreadLocal: set(), get(), remove()'
+  - Khởi tạo giá trị với ThreadLocal.withInitial()
+  - InheritableThreadLocal và các giới hạn kế thừa
+  - Rò rỉ context khi tái sử dụng thread pool
+  - Truyền context qua Runnable, Callable và executor
+  - Context theo request và ranh giới vòng đời task
+  - ThreadLocal khi chạy hàng nghìn virtual threads
+  - Scoped Values (preview ở Java 21) để chia sẻ context bất biến
+  - Ưu tiên tham số tường minh khi luồng dữ liệu đơn giản
+  - Không lưu state nghiệp vụ mutable vào context chung
+- level1: Parallel Streams
+  level2:
+  - Stream.parallel() và parallelStream()
+  - Spliterator và khả năng chia nguồn dữ liệu
+  - ForkJoin common pool phía sau parallel streams
+  - Associativity của phép reduce và tính đúng đắn
+  - Stateless lambda và tránh shared mutable state
+  - 'Ordering: forEachOrdered(), findFirst(), unordered()'
+  - Collector concurrent so với collector tuần tự
+  - Combiner, identity và lỗi reduction khi chạy song song
+  - Vì sao blocking I/O có thể làm nghẽn parallel stream?
+  - Dùng benchmark để xác định ngưỡng có lợi
+  - Tránh nested parallel streams thiếu kiểm soát
+- level1: Flow & Backpressure
+  level2:
+  - Flow API trong java.util.concurrent
+  - Publisher, Subscriber, Subscription, Processor
+  - request(n) và demand-driven consumption
+  - onSubscribe(), onNext(), onError(), onComplete()
+  - SubmissionPublisher và executor sử dụng
+  - Backpressure khác buffering thế nào?
+  - Giới hạn buffer và chính sách xử lý chậm
+  - Hủy subscription và giải phóng tài nguyên
+  - Thread safety trong callback và xử lý lỗi
+  - Flow API của JDK so với blocking queue
+  - Khi phù hợp để xây pipeline theo sự kiện
+  - 'SubmissionPublisher.submit() so với offer(): xử lý subscriber chậm và buffer đầy'
+  - Đóng SubmissionPublisher, tín hiệu kết thúc và vòng đời executor của publisher
+- level1: Thiết kế đồng thời
+  level2:
+  - Chia nhỏ task theo mức độ độc lập
+  - Producer–consumer và queue có giới hạn
+  - Work queue, worker pool và task dispatch
+  - Fan-out / fan-in và tổng hợp kết quả
+  - Message passing để giảm shared mutable state
+  - Ownership và tránh chia sẻ state không cần thiết
+  - 'Bulkhead: giới hạn tải theo loại tài nguyên'
+  - Rate limiting và giới hạn in-flight requests
+  - Đảm bảo idempotency khi task có thể được chạy lại
+  - Timeout budget qua nhiều bước xử lý
+  - Tránh giữ lock xuyên qua call không kiểm soát
+  - Phân biệt concurrency control và business transaction
+- level1: Hiệu năng
+  level2:
+  - Latency, throughput, utilization và độ ổn định
+  - Amdahl's law và giới hạn speedup
+  - Đo tác động của thread count và context switching
+  - CPU saturation so với I/O wait
+  - Lock contention, starvation và fairness trade-off
+  - Queue length, rejection và hiệu ứng quá tải
+  - Little's Law để liên hệ lượng tác vụ, thời gian chờ và throughput
+  - False sharing và cache-line contention
+  - LongAdder so với AtomicLong dưới contention
+  - Benchmark đáng tin cậy với JMH (công cụ ngoài JDK)
+  - Warming up JVM, JIT và tránh microbenchmark sai
+  - Giới hạn tài nguyên và backpressure để bảo vệ hệ thống
+  - 'ThreadLocalRandom.current(): tránh tranh chấp, khả năng tái lập và giới hạn bảo mật'
+- level1: Kiểm thử & Chẩn đoán
+  level2:
+  - Test tính đúng đắn khi nhiều tác vụ cùng truy cập state
+  - Tái hiện race condition với latch/barrier
+  - Không dùng Thread.sleep() thay cho điều kiện đồng bộ trong test
+  - Test timeout, interruption và cancellation
+  - Test shutdown khi task đang chờ hoặc đang chạy
+  - Kiểm tra invariant và lỗi mất dữ liệu
+  - Kiểm tra contention/stress với jcstress (công cụ ngoài JDK)
+  - Thread dump và nhận diện RUNNABLE/BLOCKED/WAITING
+  - jcmd Thread.print, jstack và ThreadMXBean
+  - Phân tích deadlock với ThreadMXBean
+  - Java Flight Recorder cho thread park, lock và allocation
+  - Đọc stack trace khi future và async stage lỗi
+  - Log có thread name, task ID và correlation ID
+  - Xác định nguyên nhân trước khi tinh chỉnh pool/lock
+- level1: Bài tập thực tế
+  level2:
+  - Xây counter bị race và lần lượt sửa bằng lock, atomic
+  - Xây bounded producer–consumer bằng BlockingQueue
+  - Xây executor có bounded queue và rejection policy
+  - Chạy nhiều Callable, lấy kết quả theo thứ tự hoàn tất
+  - Tính tổng mảng bằng Fork/Join và so benchmark
+  - Gọi nhiều I/O giả lập bằng CompletableFuture với timeout
+  - So sánh platform threads và virtual threads cho tác vụ I/O
+  - Triển khai Semaphore giới hạn tài nguyên đồng thời
+  - Viết test tái hiện deadlock rồi sửa lock ordering
+  - Đọc thread dump và tìm vị trí chặn luồng
+  - Thiết kế shutdown có hủy, timeout và đóng tài nguyên
+  - 'Tổng kết checklist: thread safety, cancellation, observability'

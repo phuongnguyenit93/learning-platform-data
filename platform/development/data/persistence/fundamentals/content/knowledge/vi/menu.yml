@@ -1,0 +1,384 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Lưu trữ bền vững (data persistence) là gì và giải quyết vấn đề nào
+  - Phân biệt dữ liệu trong bộ nhớ với dữ liệu được lưu trữ lâu dài
+  - Luồng dữ liệu giữa ứng dụng và hệ thống lưu trữ
+  - Nguồn dữ liệu chuẩn và trách nhiệm sở hữu dữ liệu
+  - 'Các thuật ngữ: kho dữ liệu, bản ghi, lược đồ, truy vấn và giao dịch'
+  - Phân biệt persistence, serialization, object mapping và ORM
+  - Phân biệt lưu trữ bền vững với cache, bản sao và bản sao lưu
+  - Quan hệ giữa tính đúng đắn, độ bền, hiệu năng và tính sẵn sàng
+  - Vì sao lưu thành công ở ứng dụng chưa đủ để kết luận dữ liệu an toàn
+  - Phạm vi nền tảng chung và ranh giới với các công nghệ triển khai
+  - Lộ trình học từ thao tác lưu đơn giản đến xử lý lỗi và đồng thời
+- level1: Vòng đời dữ liệu
+  level2:
+  - Tạo, đọc, cập nhật và xóa trong vòng đời một bản ghi
+  - Xác định thời điểm dữ liệu cần tồn tại ngoài tiến trình
+  - Dữ liệu tạm thời, dữ liệu nghiệp vụ và dữ liệu dẫn xuất
+  - Phân biệt trạng thái trong đối tượng với trạng thái đã lưu
+  - Định danh và nhận diện một bản ghi qua nhiều lần xử lý
+  - Theo dõi thời điểm tạo, cập nhật và nguồn thay đổi
+  - Chuyển trạng thái nghiệp vụ và điều kiện được phép lưu
+  - Phân biệt ghi mới, ghi đè và bổ sung vào nhật ký
+  - Xóa vật lý, xóa logic và dữ liệu đã được lưu trữ lạnh
+  - Chính sách giữ dữ liệu và vòng đời dữ liệu liên quan
+  - Trách nhiệm đồng bộ khi dữ liệu xuất hiện ở nhiều nơi
+- level1: Yêu cầu lưu trữ
+  level2:
+  - Xác định kiểu dữ liệu và kích thước bản ghi
+  - Đánh giá tổng dung lượng và tốc độ tăng trưởng
+  - Xác định mẫu đọc, ghi và tần suất truy cập
+  - Phân biệt tải xử lý giao dịch với tải phân tích
+  - Đặt yêu cầu về độ trễ và thông lượng
+  - Xác định dữ liệu cần nhất quán ngay và dữ liệu được phép trễ
+  - Xác định phạm vi cập nhật cần tính nguyên tử
+  - Yêu cầu về độ bền và khả năng khôi phục
+  - Xác định mức sẵn sàng và thời gian gián đoạn chấp nhận được
+  - Đánh giá chi phí lưu trữ, truy cập và vận hành
+  - Lập tiêu chí lựa chọn kho dữ liệu từ nhu cầu thực tế
+- level1: Biểu diễn dữ liệu
+  level2:
+  - Dữ liệu logic và biểu diễn vật lý bằng byte
+  - Mã hóa ký tự, Unicode và lựa chọn charset
+  - Định dạng văn bản, nhị phân và cấu trúc bản ghi
+  - Phân biệt tuần tự hóa đối tượng với thiết kế lược đồ lưu trữ
+  - Kiểu số, độ chính xác và nguy cơ mất giá trị
+  - Biểu diễn tiền tệ, đơn vị đo và các giá trị có ngữ nghĩa
+  - Biểu diễn ngày giờ, múi giờ và độ chính xác thời gian
+  - Phân biệt null, thiếu trường, chuỗi rỗng và giá trị mặc định
+  - Biểu diễn dữ liệu nhị phân lớn và thông tin mô tả
+  - Tương thích định dạng khi ứng dụng thay đổi phiên bản
+  - Kiểm tra dữ liệu hỏng bằng độ dài, định dạng và checksum
+  - Nén và mã hóa dữ liệu dưới góc độ chi phí truy cập
+- level1: Mô hình lưu trữ
+  level2:
+  - Lưu trữ bằng tệp và thư mục
+  - 'Mô hình quan hệ: bảng, hàng và cột'
+  - Mô hình khóa–giá trị và truy cập theo khóa
+  - Mô hình tài liệu và cấu trúc dữ liệu lồng nhau
+  - Mô hình họ cột (wide-column) và tổ chức dữ liệu theo truy vấn
+  - Phân biệt wide-column với lưu trữ phân tích theo cột
+  - Mô hình đồ thị và truy cập theo quan hệ
+  - Lưu trữ đối tượng (object storage) và dữ liệu kích thước lớn
+  - Nhật ký chỉ ghi thêm và snapshot dưới góc độ lưu trữ
+  - Phân biệt cơ sở dữ liệu nhúng với hệ quản trị chạy riêng
+  - So sánh các mô hình theo truy vấn, giao dịch và cấu trúc dữ liệu
+  - Giới hạn của việc chọn công nghệ chỉ theo nhãn SQL hoặc NoSQL
+- level1: Định danh và quan hệ
+  level2:
+  - Định danh bản ghi và khóa truy cập
+  - Khóa tự nhiên và khóa do hệ thống tạo
+  - Khóa đơn, khóa ghép và phạm vi duy nhất
+  - Định danh có ý nghĩa nghiệp vụ và định danh kỹ thuật
+  - Đánh đổi khi dùng số tăng dần, UUID hoặc định danh phân tán
+  - Quan hệ một–một, một–nhiều và nhiều–nhiều
+  - Tham chiếu bằng khóa và nhúng dữ liệu
+  - Tính toàn vẹn tham chiếu và xử lý bản ghi không còn tồn tại
+  - Xác định chủ sở hữu khi dữ liệu có nhiều liên kết
+  - Vòng đời bản ghi con khi cập nhật hoặc xóa bản ghi cha
+  - Bảo toàn danh tính khi chuyển dữ liệu qua các tầng ứng dụng
+- level1: Lược đồ và ràng buộc
+  level2:
+  - Lược đồ dữ liệu và hợp đồng giữa ứng dụng với kho lưu trữ
+  - Kiểu cột, miền giá trị và trường bắt buộc
+  - Ràng buộc duy nhất và tính toàn vẹn dữ liệu
+  - Khóa chính, khóa ngoại và kiểm tra điều kiện
+  - Giá trị mặc định ở ứng dụng và ở kho lưu trữ
+  - Phân biệt kiểm tra đầu vào với ràng buộc tại nơi lưu
+  - Vì sao kiểm tra trước khi ghi không thay thế ràng buộc duy nhất
+  - Chuẩn hóa và giảm lặp dữ liệu ở mức nền tảng
+  - Phi chuẩn hóa có chủ đích theo nhu cầu truy cập
+  - Bảo toàn bất biến trải trên nhiều trường hoặc bản ghi
+  - Ghi nhận quy tắc nghiệp vụ mà lược đồ không tự bảo đảm
+- level1: Thao tác dữ liệu
+  level2:
+  - Thêm bản ghi và nhận kết quả định danh
+  - Đọc theo khóa và biểu diễn trường hợp không tìm thấy
+  - Cập nhật một phần hoặc thay thế toàn bộ bản ghi
+  - Phân biệt tạo mới, cập nhật và upsert
+  - Xóa một bản ghi và ảnh hưởng tới dữ liệu liên quan
+  - Cập nhật có điều kiện theo trạng thái hiện tại
+  - Kiểm tra số bản ghi bị ảnh hưởng
+  - Đọc một bản ghi và đọc tập kết quả
+  - Thao tác hàng loạt và giới hạn kích thước lô
+  - Lựa chọn cập nhật tại kho dữ liệu thay vì đọc rồi ghi lại
+  - Phân biệt dữ liệu chưa được gửi với yêu cầu gán null
+  - Xác định tính lũy đẳng của từng thao tác ghi
+- level1: Truy vấn và phân trang
+  level2:
+  - Xây dựng truy vấn từ nhu cầu đọc của ứng dụng
+  - Lọc, sắp xếp và lựa chọn các trường cần đọc
+  - Thứ tự xác định và khóa phụ khi giá trị sắp xếp trùng nhau
+  - Kết hợp dữ liệu và tổng hợp ở mức khái niệm
+  - Phân biệt lọc tại kho dữ liệu với lọc sau khi tải về
+  - Giới hạn kết quả để kiểm soát bộ nhớ và thời gian xử lý
+  - Phân trang bằng offset và giới hạn khi dữ liệu thay đổi
+  - Phân trang theo khóa hoặc con trỏ
+  - Tính nhất quán của các trang khi có ghi đồng thời
+  - Đánh đổi giữa đếm tổng số bản ghi và chỉ kiểm tra trang tiếp theo
+  - Đọc theo luồng và vòng đời tài nguyên truy vấn
+  - Phân biệt API truy vấn thuận tiện với chi phí truy cập thực tế
+- level1: Chỉ mục
+  level2:
+  - Chỉ mục là gì và vì sao có thể giảm chi phí tra cứu
+  - Đánh đổi giữa tốc độ đọc, tốc độ ghi và dung lượng
+  - Quét toàn bộ dữ liệu so với truy cập qua chỉ mục
+  - Chỉ mục theo cây và theo hàm băm ở mức nền tảng
+  - Chỉ mục đơn và chỉ mục kết hợp
+  - Thứ tự trường trong chỉ mục và dạng điều kiện truy vấn
+  - Độ chọn lọc và phân bố giá trị
+  - Chỉ mục duy nhất và vai trò bảo vệ dữ liệu
+  - Chỉ mục hỗ trợ sắp xếp và truy vấn chỉ đọc các trường cần thiết
+  - Ảnh hưởng của biểu thức, kiểu dữ liệu và chuyển đổi ngầm
+  - Đọc kế hoạch thực thi để kiểm chứng giả thuyết tối ưu
+  - Nhận diện chỉ mục dư thừa và chi phí bảo trì
+- level1: Giao dịch
+  level2:
+  - Giao dịch là gì và ranh giới công việc cần cùng thành công
+  - Tính nguyên tử, nhất quán, cô lập và bền vững trong ACID
+  - Phân biệt nhất quán của bất biến với nhất quán giữa các bản sao
+  - Bắt đầu, commit và rollback giao dịch
+  - Chế độ auto-commit và giao dịch tường minh
+  - Phạm vi giao dịch và quyền sở hữu kết nối
+  - Đọc và ghi nhiều bản ghi trong một giao dịch
+  - Điểm lưu (savepoint) và giới hạn khôi phục một phần
+  - Xử lý lỗi trước commit, trong commit và sau commit
+  - Độ dài giao dịch và tài nguyên bị giữ
+  - Phân biệt giao dịch chỉ đọc với các bảo đảm thực tế của hệ lưu trữ
+  - Giới hạn của giao dịch cục bộ khi có nhiều tài nguyên bên ngoài
+- level1: Tính cô lập
+  level2:
+  - Vì sao truy cập đồng thời tạo ra các hiện tượng đọc bất thường
+  - Đọc dữ liệu chưa commit (dirty read)
+  - Đọc lại nhận giá trị khác (non-repeatable read)
+  - Thay đổi tập bản ghi phù hợp điều kiện (phantom read)
+  - Mất cập nhật (lost update)
+  - Sai lệch ghi giữa các giao dịch (write skew)
+  - Mức READ UNCOMMITTED và nguy cơ đọc dữ liệu chưa commit
+  - Mức READ COMMITTED và thay đổi giữa các lần đọc
+  - Mức REPEATABLE READ và giới hạn bảo đảm theo hệ quản trị
+  - Mức SERIALIZABLE và chi phí xử lý xung đột để giữ tính tuần tự tương đương
+  - Vai trò của snapshot và kiểm soát đồng thời đa phiên bản (MVCC)
+  - Phân biệt snapshot isolation với thực thi tuần tự tương đương
+  - Vì sao cùng tên mức cô lập vẫn cần kiểm tra hành vi của từng hệ quản trị
+  - Chọn mức cô lập theo bất biến và mẫu truy cập
+  - Kiểm chứng mức cô lập bằng các lịch thực thi đồng thời
+- level1: Kiểm soát đồng thời
+  level2:
+  - Phân biệt an toàn luồng trong JVM với đồng thời tại kho dữ liệu
+  - Cuộc đua giữa đọc, kiểm tra điều kiện và cập nhật
+  - Khóa bi quan và phạm vi tài nguyên bị khóa
+  - Khóa lạc quan bằng cột phiên bản
+  - Cập nhật có điều kiện và so sánh phiên bản
+  - Thao tác tăng giảm nguyên tử tại nơi lưu trữ
+  - Phân biệt khóa hàng, khóa phạm vi và khóa cấp cao hơn
+  - Chờ khóa, timeout và hiện tượng deadlock
+  - Thống nhất thứ tự truy cập để giảm nguy cơ deadlock
+  - Thử lại giao dịch khi phát hiện xung đột
+  - Giữ các bất biến liên quan nhiều bản ghi
+  - Xử lý yêu cầu trùng lặp bằng định danh thao tác và ràng buộc dữ liệu
+- level1: Độ bền dữ liệu
+  level2:
+  - Dữ liệu đi qua bộ đệm ứng dụng, hệ điều hành và thiết bị lưu trữ
+  - Phân biệt hoàn tất lời gọi ghi với dữ liệu đã bền vững
+  - Ý nghĩa của flush trong I/O và trong ORM
+  - Đồng bộ dữ liệu xuống thiết bị và giới hạn bảo đảm của hạ tầng
+  - Nguyên tắc ghi nhật ký trước (write-ahead logging)
+  - Checkpoint và phục hồi từ nhật ký
+  - Ghi chỉ thêm, ghi đè và nguy cơ bản ghi dở dang
+  - Thay thế tệp theo thao tác nguyên tử và các điều kiện áp dụng
+  - Kiểm soát thứ tự ghi dữ liệu và siêu dữ liệu
+  - Xử lý tiến trình dừng, hệ điều hành dừng và thiết bị lỗi
+  - Kiểm tra tính toàn vẹn sau khi khôi phục
+  - Đánh đổi giữa xác nhận nhanh và mức bảo đảm độ bền
+- level1: Kết nối và tài nguyên
+  level2:
+  - Vòng đời kết nối từ ứng dụng tới kho dữ liệu
+  - Chi phí tạo kết nối và vai trò của connection pool
+  - Mượn, sử dụng và hoàn trả kết nối đúng phạm vi
+  - Đóng kết nối, câu lệnh và tập kết quả bằng try-with-resources
+  - Kích thước pool và quan hệ với năng lực xử lý phía máy chủ
+  - Phân biệt thời gian chờ kết nối, chờ truy vấn và chờ giao dịch
+  - Tránh giữ kết nối trong khi chờ tác vụ ngoài không liên quan
+  - Quản lý tài nguyên khi đọc dữ liệu theo luồng
+  - Phát hiện rò rỉ kết nối và tài nguyên không được giải phóng
+  - Kiểm tra kết nối hỏng và phục hồi sau gián đoạn
+  - Giới hạn chia sẻ tài nguyên truy cập dữ liệu giữa các luồng
+- level1: Lỗi và thử lại
+  level2:
+  - Phân loại lỗi kết nối, xác thực, truy vấn và dữ liệu
+  - Phân biệt lỗi tạm thời với lỗi không thể giải quyết bằng thử lại
+  - Giữ nguyên nguyên nhân và ngữ cảnh của lỗi lưu trữ
+  - Trạng thái chưa xác định khi mất kết nối lúc commit
+  - Vì sao timeout không đồng nghĩa thao tác ghi chưa xảy ra
+  - Thiết kế thao tác lũy đẳng trước khi tự động thử lại
+  - Chọn phạm vi thử lại cho một câu lệnh hoặc toàn giao dịch
+  - Giãn cách, độ ngẫu nhiên và giới hạn số lần thử lại
+  - Xử lý trùng yêu cầu bằng khóa lũy đẳng
+  - Đối soát trạng thái sau kết quả ghi không rõ ràng
+  - Cô lập lỗi và tránh khuếch đại tải khi kho dữ liệu chậm
+  - Báo lỗi phù hợp cho tầng nghiệp vụ mà không lộ chi tiết nhạy cảm
+- level1: Ranh giới ứng dụng
+  level2:
+  - Tách mô hình miền khỏi chi tiết công nghệ lưu trữ
+  - Vai trò của DAO, Repository và lớp truy cập dữ liệu
+  - Phân biệt đối tượng miền, entity lưu trữ và DTO
+  - Đặt ranh giới giao dịch tại thao tác nghiệp vụ
+  - Đơn vị công việc (unit of work) và theo dõi thay đổi
+  - Đối tượng được quản lý và đối tượng đã tách khỏi ngữ cảnh lưu trữ
+  - Tách truy vấn phục vụ đọc khỏi thao tác thay đổi trạng thái khi cần
+  - Thiết kế hợp đồng Repository theo nhu cầu miền
+  - Giữ điều kiện nghiệp vụ khỏi bị phân tán trong mã truy cập dữ liệu
+  - Phân biệt trừu tượng hóa hữu ích với che giấu chi phí truy vấn
+  - Xử lý phụ thuộc giữa truy cập dữ liệu và dịch vụ bên ngoài
+  - Kiểm soát tác dụng phụ trước và sau commit
+- level1: Hệ sinh thái Java
+  level2:
+  - Vai trò của Java I/O và NIO trong lưu trữ qua tệp
+  - Vai trò của JDBC trong giao tiếp với cơ sở dữ liệu quan hệ
+  - Trách nhiệm của driver, DataSource và connection pool
+  - Phân biệt SQL trực tiếp, SQL mapper và ORM
+  - Vai trò MyBatis khi ứng dụng chủ động quản lý SQL
+  - Phân biệt đặc tả JPA với thư viện triển khai như Hibernate
+  - Ánh xạ đối tượng–quan hệ và những khác biệt mô hình cần giải quyết
+  - Vai trò Spring JDBC và Spring Data trong truy cập dữ liệu
+  - Quản lý giao dịch trong ứng dụng Spring ở mức nền tảng
+  - Truy cập kho phi quan hệ qua API và driver tương ứng
+  - Lựa chọn công nghệ triển khai dựa trên yêu cầu thay vì mức độ tự động
+- level1: Nhất quán và cache
+  level2:
+  - Phân biệt nguồn dữ liệu chuẩn với dữ liệu được lưu đệm
+  - Lưu trạng thái trong bộ nhớ và nguy cơ khác trạng thái đã commit
+  - Đọc từ nguồn sau ghi và yêu cầu thấy dữ liệu vừa cập nhật
+  - Dữ liệu cũ được phép phục vụ trong giới hạn nghiệp vụ
+  - Cập nhật hoặc vô hiệu hóa cache sau khi lưu thành công
+  - Cuộc đua giữa tải dữ liệu, cập nhật nguồn và vô hiệu hóa
+  - Vai trò của TTL và giới hạn bảo đảm tính đúng đắn
+  - Phân biệt cache của ứng dụng với bộ đệm bên trong hệ quản trị
+  - Tính nhất quán giữa bảng chính, dữ liệu dẫn xuất và chỉ mục tìm kiếm
+  - Đối soát và sửa sai lệch mà không biến cache thành nguồn chuẩn
+- level1: Nền tảng phân tán
+  level2:
+  - Vì sao dữ liệu cần được nhân bản hoặc phân mảnh
+  - Phân biệt replication, partitioning và sharding
+  - Phân biệt phân vùng dữ liệu với phân vùng mạng
+  - Nhân bản đồng bộ và bất đồng bộ
+  - Độ trễ bản sao và ảnh hưởng tới đường đọc
+  - Ghi theo nút lãnh đạo và chuyển đổi khi nút lỗi
+  - Đánh đổi nhất quán và tính sẵn sàng khi xảy ra phân vùng mạng
+  - Đọc và ghi theo quorum cùng các giới hạn cần kiểm chứng
+  - Phạm vi giao dịch trong một phân mảnh và nhiều phân mảnh
+  - Vấn đề ghi đồng thời vào hai hệ thống (dual write)
+  - Nhật ký outbox và xử lý lũy đẳng để phối hợp thay đổi
+  - Ranh giới giữa giao dịch phân tán, bù trừ và quy trình nghiệp vụ
+- level1: Tiến hóa dữ liệu
+  level2:
+  - Vì sao lược đồ và định dạng lưu trữ phải thay đổi theo thời gian
+  - Quản lý migration bằng phiên bản và lịch sử thực thi
+  - Thêm trường với giá trị mặc định và dữ liệu đã tồn tại
+  - Đổi tên hoặc đổi kiểu mà vẫn bảo toàn dữ liệu
+  - Đặt ràng buộc mới khi dữ liệu cũ chưa đáp ứng
+  - Bổ sung dữ liệu còn thiếu bằng backfill có kiểm soát
+  - Chiến lược mở rộng rồi thu hẹp (expand–contract)
+  - Tương thích khi nhiều phiên bản ứng dụng chạy đồng thời
+  - Quản lý chỉ mục và tác động trong lúc migration
+  - Đánh giá khả năng quay lui với thay đổi không đảo ngược
+  - Xác minh dữ liệu trước, trong và sau chuyển đổi
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ, thông lượng và mức sử dụng tài nguyên
+  - Phân biệt nút thắt CPU, bộ nhớ, I/O, mạng và chờ khóa
+  - Phát hiện số lần truy cập vượt nhu cầu nghiệp vụ
+  - Vấn đề N+1 và truy vấn lặp theo từng phần tử
+  - Giảm dữ liệu truyền bằng lựa chọn trường và giới hạn kết quả
+  - Gộp lệnh và xử lý theo lô theo khả năng công nghệ
+  - Kích thước giao dịch và đánh đổi giữa thông lượng với thời gian giữ khóa
+  - Kiểm soát bộ nhớ khi đọc hoặc ghi tập dữ liệu lớn
+  - Phân bố dữ liệu và điểm nóng truy cập
+  - Đánh giá kế hoạch truy vấn trước khi thêm cache hoặc nâng tài nguyên
+  - Đo tải với dữ liệu và phân bố truy cập đại diện
+  - Đánh giá giới hạn năng lực và phần tài nguyên dự phòng
+- level1: An toàn dữ liệu
+  level2:
+  - Xác thực và phân quyền truy cập kho dữ liệu
+  - Nguyên tắc cấp quyền tối thiểu cho tài khoản ứng dụng
+  - Tách dữ liệu giữa môi trường và giữa các đơn vị thuê
+  - Ngăn SQL injection bằng tham số hóa truy vấn
+  - Kiểm soát tên trường và hướng sắp xếp do người dùng lựa chọn
+  - Quản lý thông tin kết nối và bí mật ngoài mã nguồn
+  - Mã hóa đường truyền và dữ liệu được lưu
+  - Che thông tin nhạy cảm trong log, truy vấn và lỗi
+  - Bảo vệ dữ liệu sao lưu và bản sao phục vụ kiểm thử
+  - Theo dõi thay đổi dữ liệu bằng nhật ký kiểm toán
+  - Xóa dữ liệu theo vòng đời và kiểm tra các bản sao liên quan
+- level1: Sao lưu và khôi phục
+  level2:
+  - Phân biệt bản sao lưu với bản sao đang phục vụ truy cập
+  - Xác định mục tiêu mất dữ liệu cho phép (RPO)
+  - Xác định mục tiêu thời gian khôi phục (RTO)
+  - Sao lưu toàn bộ và các hình thức sao lưu phần thay đổi
+  - Tính nhất quán của dữ liệu trong thời gian sao lưu
+  - Khôi phục theo thời điểm khi công nghệ hỗ trợ
+  - Quản lý phiên bản lược đồ cùng dữ liệu sao lưu
+  - Kiểm tra tính toàn vẹn và khả năng đọc của bản sao
+  - Thực hành khôi phục thay vì chỉ kiểm tra tác vụ sao lưu thành công
+  - Tách vị trí và quyền truy cập của bản sao dự phòng
+  - Lập quy trình khôi phục, đối soát và mở lại lưu lượng
+- level1: Kiểm thử lưu trữ
+  level2:
+  - Phân biệt kiểm thử nghiệp vụ với kiểm thử tích hợp lưu trữ
+  - Giới hạn của mock Repository trong chứng minh tính đúng đắn dữ liệu
+  - Kiểm thử tạo, đọc, cập nhật và xóa theo hợp đồng
+  - Kiểm thử ràng buộc, giá trị biên và dữ liệu không hợp lệ
+  - Kiểm thử commit, rollback và các trường hợp lỗi giữa giao dịch
+  - Kiểm thử đồng thời bằng lịch thực thi có kiểm soát
+  - Kiểm thử mất cập nhật, vi phạm duy nhất và xung đột phiên bản
+  - Kiểm thử ánh xạ kiểu, null, số chính xác và thời gian
+  - Dùng môi trường cô lập với hệ lưu trữ đại diện
+  - Quản lý dữ liệu kiểm thử và dọn trạng thái giữa các lần chạy
+  - Kiểm thử migration và khả năng đọc dữ liệu phiên bản cũ
+  - Mô phỏng gián đoạn kết nối, ghi dở dang và kết quả commit chưa rõ
+  - Kiểm thử phục hồi và đối soát sau sự cố
+- level1: Quan sát và vận hành
+  level2:
+  - Theo dõi độ trễ, lỗi và thông lượng thao tác dữ liệu
+  - Quan sát kết nối đang dùng, thời gian chờ và độ dài hàng đợi
+  - Phát hiện truy vấn chậm, giao dịch dài và chờ khóa
+  - Theo dõi dung lượng, tốc độ tăng trưởng và tài nguyên còn lại
+  - Đo độ trễ nhân bản và tình trạng sao lưu
+  - Liên kết trace ứng dụng với thao tác lưu trữ
+  - Giới hạn dữ liệu nhạy cảm trong log và nhãn đo lường
+  - Cảnh báo theo tác động tới nghiệp vụ
+  - Lập hướng dẫn xử lý hết kết nối, hết dung lượng và dữ liệu sai lệch
+  - Quản lý thay đổi cấu hình và xác minh sau triển khai
+  - Kiểm tra năng lực phục hồi bằng các lần diễn tập
+- level1: Lỗi thiết kế
+  level2:
+  - Xem dữ liệu trong đối tượng là dữ liệu đã được lưu
+  - Đồng nhất flush với commit hoặc với độ bền trên thiết bị
+  - Giữ giao dịch mở trong lúc gọi dịch vụ ngoài
+  - Dùng kiểm tra trước khi ghi thay cho ràng buộc duy nhất
+  - Đọc rồi ghi lại giá trị mà không kiểm soát đồng thời
+  - Thử lại thao tác ghi không lũy đẳng sau mọi timeout
+  - Tải toàn bộ dữ liệu để lọc hoặc phân trang trong bộ nhớ
+  - Giả định ORM loại bỏ nhu cầu hiểu truy vấn và giao dịch
+  - Dùng cache hoặc bản sao truy cập thay cho bản sao lưu
+  - Thay đổi lược đồ mà không xét nhiều phiên bản ứng dụng
+  - Chỉ kiểm thử đường thành công và bỏ qua khả năng khôi phục
+  - Lựa chọn kho dữ liệu theo trào lưu thay vì yêu cầu truy cập
+- level1: Thực hành tổng hợp
+  level2:
+  - So sánh dữ liệu mất khi dừng tiến trình với dữ liệu đã lưu bền vững
+  - Thiết kế hợp đồng lưu trữ cho một danh mục có định danh
+  - Lưu và đọc cùng dữ liệu qua tệp và cơ sở dữ liệu để đối chiếu
+  - Kiểm chứng ràng buộc duy nhất trước các yêu cầu đồng thời
+  - Dựng một thao tác nghiệp vụ nhiều bước có commit và rollback
+  - Tái hiện mất cập nhật rồi áp dụng cập nhật có điều kiện
+  - So sánh phân trang offset với phân trang theo khóa
+  - Quan sát kế hoạch truy vấn trước và sau khi thêm chỉ mục
+  - Mô phỏng timeout khi ghi và thiết kế cơ chế thử lại lũy đẳng
+  - Thực hiện migration có backfill và kiểm chứng tương thích
+  - Khôi phục dữ liệu từ bản sao lưu trong môi trường cô lập
+  - Hoàn thiện tiêu chí lựa chọn công nghệ, bộ kiểm thử và hướng dẫn vận hành

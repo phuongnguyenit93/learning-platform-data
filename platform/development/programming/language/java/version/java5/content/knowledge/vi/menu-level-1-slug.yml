@@ -1,0 +1,142 @@
+menu:
+- title: Java 5 trong Java hiện đại
+  slug: java-5-in-modern-java
+  index: 0
+- title: Kiểu generic
+  slug: generic-types
+  index: 1
+- title: Phương thức generic
+  slug: generic-methods
+  index: 2
+- title: Wildcard
+  slug: wildcard
+  index: 3
+- title: Xóa kiểu
+  slug: type-erasure
+  index: 4
+- title: Thiết kế API generic
+  slug: generic-api-design
+  index: 5
+- title: Vòng lặp for-each
+  slug: enhanced-for-loops
+  index: 6
+- title: Boxing và unboxing
+  slug: autoboxing-unboxing
+  index: 7
+- title: Enum
+  slug: enum
+  index: 8
+- title: EnumSet và EnumMap
+  slug: enumset-enummap
+  index: 9
+- title: Varargs
+  slug: varargs
+  index: 10
+- title: Static import
+  slug: static-import
+  index: 11
+- title: Annotation
+  slug: annotation
+  index: 12
+- title: Annotation lúc chạy
+  slug: runtime-annotations
+  index: 13
+- title: Reflection generic
+  slug: reflection-generic
+  index: 14
+- title: Kiểu trả về đồng biến
+  slug: covariant-return-types
+  index: 15
+- title: Queue và PriorityQueue
+  slug: queues-priorityqueue
+  index: 16
+- title: Tiện ích collection
+  slug: collection-utilities
+  index: 17
+- title: Mô hình bộ nhớ
+  slug: java-memory-model
+  index: 18
+- title: Executor
+  slug: executor
+  index: 19
+- title: Callable và Future
+  slug: callable-va-future
+  index: 20
+- title: ThreadPoolExecutor
+  slug: thread-pool-executor
+  index: 21
+- title: Lập lịch tác vụ
+  slug: task-scheduling
+  index: 22
+- title: BlockingQueue
+  slug: blocking-queue
+  index: 23
+- title: Collection đồng thời
+  slug: concurrent-collections
+  index: 24
+- title: Lock và Condition
+  slug: lock-va-condition
+  index: 25
+- title: ReadWriteLock
+  slug: read-write-lock
+  index: 26
+- title: Biến nguyên tử
+  slug: atomic-variables
+  index: 27
+- title: Phối hợp tác vụ
+  slug: task-coordination
+  index: 28
+- title: AQS và LockSupport
+  slug: aqs-va-lock-support
+  index: 29
+- title: Chẩn đoán luồng
+  slug: thread-diagnostics
+  index: 30
+- title: Formatter và printf
+  slug: formatter-va-printf
+  index: 31
+- title: Scanner
+  slug: scanner
+  index: 32
+- title: StringBuilder
+  slug: string-builder
+  index: 33
+- title: Unicode
+  slug: unicode
+  index: 34
+- title: Số thập phân
+  slug: decimal-numbers
+  index: 35
+- title: Toán học và bit
+  slug: math-bit-operations
+  index: 36
+- title: UUID
+  slug: uuid
+  index: 37
+- title: ProcessBuilder
+  slug: process-builder
+  index: 38
+- title: XPath
+  slug: xpath
+  index: 39
+- title: Kiểm tra XML Schema
+  slug: xml-schema-validation
+  index: 40
+- title: SSLEngine
+  slug: ssl-engine
+  index: 41
+- title: SASL
+  slug: sasl
+  index: 42
+- title: Giám sát JVM
+  slug: jvm-monitoring
+  index: 43
+- title: Java agent
+  slug: java-agent
+  index: 44
+- title: JVM và hiệu năng
+  slug: jvm-performance
+  index: 45
+- title: Thực hành tổng hợp
+  slug: java5-capstone
+  index: 46

@@ -1,0 +1,2332 @@
+menu:
+- slug: string-overview
+  title: Tổng quan
+  childs:
+  - slug: string-overview-001
+    title: String là gì và vai trò biểu diễn văn bản trong Java
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-overview-002
+    title: Quan hệ giữa String, char[], CharSequence và đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-overview-003
+    title: Phân biệt nội dung chuỗi với biến tham chiếu đến chuỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-overview-004
+    title: Chuỗi rỗng, chuỗi trắng, null và chuỗi chứa chữ null
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-overview-005
+    title: Vì sao String là lớp final và có tính bất biến
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-overview-006
+    title: 'Các nhóm thao tác: đọc, so sánh, tìm kiếm, biến đổi và chuyển mã'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-overview-007
+    title: Chọn String, StringBuilder hoặc StringBuffer theo nhu cầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-overview-008
+    title: Kiến thức nền và trình tự học Java Core String
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-creation
+  title: Khai báo và tạo chuỗi
+  childs:
+  - slug: string-creation-001
+    title: Literal chuỗi và cú pháp dấu nháy kép
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-creation-002
+    title: Escape cho dấu nháy, dấu gạch chéo và ký tự điều khiển
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-creation-003
+    title: Unicode escape trong mã nguồn và thứ tự xử lý của trình biên dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-creation-004
+    title: Tạo String từ char[] hoặc một vùng của mảng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-creation-005
+    title: Tạo String từ mảng code point
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-creation-006
+    title: Tạo String từ byte[] với bộ mã ký tự
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-creation-007
+    title: Tạo String từ StringBuilder hoặc StringBuffer
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-creation-008
+    title: new String và vì sao thường không cần sao chép một String đã có
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unicode-utf-16
+  title: Unicode và UTF-16
+  childs:
+  - slug: unicode-utf-16-001
+    title: Phân biệt code unit, code point và cụm ký tự hiển thị
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-utf-16-002
+    title: String dùng chỉ số theo đơn vị char của UTF-16
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-utf-16-003
+    title: BMP, ký tự bổ sung và surrogate pair
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-utf-16-004
+    title: Độ dài của tiếng Việt, dấu kết hợp và emoji
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-utf-16-005
+    title: String có thể chứa surrogate không ghép cặp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-utf-16-006
+    title: Character.toChars, charCount và các thao tác trên code point
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-utf-16-007
+    title: UTF-16 của mô hình String khác với charset của tệp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-utf-16-008
+    title: Vì sao số char không luôn bằng số ký tự người dùng nhìn thấy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-immutability
+  title: Tính bất biến
+  childs:
+  - slug: string-immutability-001
+    title: Giá trị String không đổi sau khi đối tượng được tạo
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-immutability-002
+    title: Phân biệt final của biến với bất biến của đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-immutability-003
+    title: Phương thức biến đổi trả kết quả thay vì sửa chuỗi nguồn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-immutability-004
+    title: Vì sao bỏ qua giá trị trả về dễ làm mất kết quả
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-immutability-005
+    title: Gán lại tham chiếu không làm thay đổi chuỗi được chia sẻ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-immutability-006
+    title: Sao chép đầu vào char[] và tính độc lập của toCharArray
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-immutability-007
+    title: Lợi ích khi dùng làm khóa, chia sẻ dữ liệu và xử lý đồng thời
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-immutability-008
+    title: Chuỗi bất biến không làm mọi biến hoặc cấu trúc chứa nó an toàn đa luồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-pool-and-intern
+  title: Pool và intern
+  childs:
+  - slug: string-pool-and-intern-001
+    title: String pool và việc dùng chung literal
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-pool-and-intern-002
+    title: Biểu thức hằng chuỗi được tính khi biên dịch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-pool-and-intern-003
+    title: Phân biệt nối hằng với nối giá trị lúc chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-pool-and-intern-004
+    title: new String tạo đối tượng và quan hệ với literal có sẵn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-pool-and-intern-005
+    title: String.intern và tham chiếu chuẩn hóa theo nội dung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-pool-and-intern-006
+    title: Phân biệt string pool với constant pool của class file
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-pool-and-intern-007
+    title: Vì sao quan sát == trên literal không thay thế so sánh nội dung
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-pool-and-intern-008
+    title: Khi nào intern có ích và giới hạn khi dùng trên dữ liệu không kiểm soát
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-access
+  title: Độ dài và truy cập
+  childs:
+  - slug: string-access-001
+    title: length và isEmpty
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-access-002
+    title: charAt và điều kiện chỉ số hợp lệ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-access-003
+    title: codePointAt và codePointBefore
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-access-004
+    title: codePointCount trên một khoảng UTF-16
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-access-005
+    title: offsetByCodePoints để di chuyển theo code point
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-access-006
+    title: getChars và sao chép một vùng sang char[]
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-access-007
+    title: toCharArray và bản sao dữ liệu ký tự
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-access-008
+    title: Chọn đơn vị chỉ số phù hợp trước khi duyệt hoặc cắt chuỗi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-extraction
+  title: Trích xuất chuỗi
+  childs:
+  - slug: string-extraction-001
+    title: substring từ một vị trí đến hết chuỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-extraction-002
+    title: substring với biên đầu bao gồm và biên cuối không bao gồm
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-extraction-003
+    title: Chuỗi rỗng khi hai biên bằng nhau
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-extraction-004
+    title: subSequence và hợp đồng CharSequence
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-extraction-005
+    title: Trường hợp biên âm, vượt độ dài hoặc đảo thứ tự
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-extraction-006
+    title: Cắt theo code point thay vì chia đôi surrogate pair
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-extraction-007
+    title: Cắt theo cụm ký tự bằng BreakIterator
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-extraction-008
+    title: Không phụ thuộc vào việc kết quả có dùng chung đối tượng hoặc bộ nhớ nội bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-comparison
+  title: So sánh
+  childs:
+  - slug: string-comparison-001
+    title: == so sánh tham chiếu còn equals so sánh nội dung String
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-002
+    title: equals với null và với đối tượng không phải String
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-003
+    title: Objects.equals cho hai tham chiếu có thể null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-004
+    title: equalsIgnoreCase và giới hạn không phụ thuộc locale
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-005
+    title: compareTo và thứ tự từ điển theo giá trị char
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-006
+    title: compareToIgnoreCase và CASE_INSENSITIVE_ORDER
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-007
+    title: contentEquals khi so sánh với StringBuilder hoặc CharSequence
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-008
+    title: regionMatches để so sánh một vùng chuỗi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-comparison-009
+    title: Quan hệ giữa equals, hashCode và việc hai chuỗi băm trùng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-search
+  title: Tìm kiếm
+  childs:
+  - slug: string-search-001
+    title: contains để kiểm tra chuỗi con
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-002
+    title: startsWith, startsWith có vị trí và endsWith
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-003
+    title: indexOf với ký tự hoặc code point
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-004
+    title: indexOf với chuỗi con và fromIndex
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-005
+    title: lastIndexOf và hướng tìm ngược
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-006
+    title: Giá trị -1 và lỗi dùng kết quả tìm kiếm làm chỉ số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-007
+    title: Chuỗi tìm rỗng và các trường hợp ở biên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-008
+    title: indexOf có beginIndex, endIndex từ Java 21
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-search-009
+    title: Phân biệt tìm chuỗi nguyên văn với tìm theo biểu thức chính quy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-whitespace
+  title: Chuỗi trắng
+  childs:
+  - slug: string-whitespace-001
+    title: isBlank so với isEmpty
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-whitespace-002
+    title: trim và tập ký tự không vượt U+0020
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-whitespace-003
+    title: strip, stripLeading và stripTrailing
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-whitespace-004
+    title: Character.isWhitespace và giới hạn với khoảng trắng Unicode
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-whitespace-005
+    title: Khoảng trắng không ngắt dòng không luôn được strip loại bỏ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-whitespace-006
+    title: Phân biệt null, chuỗi rỗng và dữ liệu chỉ có khoảng trắng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-whitespace-007
+    title: Xác định chính sách làm sạch trước khi kiểm tra đầu vào
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-whitespace-008
+    title: Vì sao không tự động xóa mọi khoảng trắng trong dữ liệu người dùng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-transformation
+  title: Biến đổi nội dung
+  childs:
+  - slug: string-transformation-001
+    title: replace(char,char) và thay mọi ký tự khớp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-transformation-002
+    title: replace(CharSequence,CharSequence) với chuỗi nguyên văn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-transformation-003
+    title: Phân biệt replace với replaceFirst và replaceAll
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-transformation-004
+    title: 'repeat: số lần lặp, trường hợp rỗng và số âm'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-transformation-005
+    title: transform và xây dựng chuỗi bước xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-transformation-006
+    title: Thay đổi độ dài sau biến đổi và tác động đến chỉ số cũ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-transformation-007
+    title: Phân biệt phép biến đổi giữ nguyên ý nghĩa với phép làm mất dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-transformation-008
+    title: Giữ chuỗi gốc khi cần đối chiếu hoặc hiển thị lại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: case-and-normalization
+  title: Hoa thường và chuẩn hóa
+  childs:
+  - slug: case-and-normalization-001
+    title: toLowerCase và toUpperCase với locale tường minh
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-and-normalization-002
+    title: Locale.ROOT cho định danh kỹ thuật khi phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-and-normalization-003
+    title: Trường hợp chữ I của tiếng Thổ Nhĩ Kỳ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-and-normalization-004
+    title: Đổi hoa–thường có thể làm thay đổi độ dài chuỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-and-normalization-005
+    title: Normalizer và các dạng NFC, NFD, NFKC, NFKD
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-and-normalization-006
+    title: Chuỗi nhìn giống nhau nhưng khác dãy code point
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-and-normalization-007
+    title: Phân biệt chuẩn hóa Unicode với loại bỏ dấu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: case-and-normalization-008
+    title: Collator khi cần so sánh theo quy tắc ngôn ngữ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-concatenation
+  title: Nối chuỗi
+  childs:
+  - slug: string-concatenation-001
+    title: Toán tử + và phép chuyển giá trị thành chuỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-concatenation-002
+    title: Thứ tự kết hợp trái–phải của + với số và chuỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-concatenation-003
+    title: Phân biệt ký tự cộng số với nối chuỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-concatenation-004
+    title: concat và khác biệt về đối số null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-concatenation-005
+    title: += là tạo kết quả rồi gán lại tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-concatenation-006
+    title: Chuyển Object qua toString khi tham gia nối chuỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-concatenation-007
+    title: Nối trong một biểu thức so với tích lũy qua vòng lặp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-concatenation-008
+    title: Chi tiết biên dịch phép nối có thể thay đổi theo JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-builder
+  title: StringBuilder
+  childs:
+  - slug: string-builder-001
+    title: Bộ đệm ký tự có thể thay đổi và mô hình xây dựng chuỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-002
+    title: Constructor, length và capacity
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-003
+    title: append với String, primitive, Object, char[] và CharSequence
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-004
+    title: appendCodePoint và dữ liệu ngoài BMP
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-005
+    title: insert, delete, deleteCharAt và replace
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-006
+    title: setCharAt và setLength
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-007
+    title: setLength tăng độ dài bằng ký tự NUL
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-008
+    title: ensureCapacity, trimToSize và chi phí cấp phát
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-009
+    title: reverse bảo toàn surrogate pair nhưng không bảo đảm bảo toàn cụm ký tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-010
+    title: repeat với code point hoặc CharSequence từ Java 21
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-011
+    title: toString tạo kết quả độc lập với thay đổi về sau
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-builder-012
+    title: equals, compareTo và giới hạn chia sẻ giữa nhiều luồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-buffer
+  title: StringBuffer
+  childs:
+  - slug: string-buffer-001
+    title: Vai trò của StringBuffer trong mã cần đồng bộ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-buffer-002
+    title: So sánh API với StringBuilder
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-buffer-003
+    title: Đồng bộ từng phương thức không bảo đảm nguyên tử cho cả chuỗi thao tác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-buffer-004
+    title: Đối tượng nguồn khả biến khi append hoặc insert
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-buffer-005
+    title: Chọn khóa chung khi cần phối hợp nhiều thao tác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-buffer-006
+    title: Chuyển từ StringBuffer sang String
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-buffer-007
+    title: Chi phí đồng bộ và điều kiện thực sự cần StringBuffer
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-joining
+  title: Ghép nhiều phần
+  childs:
+  - slug: string-joining-001
+    title: String.join với mảng hoặc Iterable
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-joining-002
+    title: Dấu phân cách và phần tử rỗng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-joining-003
+    title: Chính sách null của delimiter, tập phần tử và từng phần tử
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-joining-004
+    title: StringJoiner với delimiter, prefix và suffix
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-joining-005
+    title: StringJoiner.add, merge và setEmptyValue
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-joining-006
+    title: Collectors.joining trong xử lý Stream
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-joining-007
+    title: So sánh join, StringJoiner, StringBuilder và phép nối +
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-splitting
+  title: Tách chuỗi
+  childs:
+  - slug: string-splitting-001
+    title: String.split nhận biểu thức chính quy
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-002
+    title: limit dương, bằng 0 và âm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-003
+    title: Giữ hoặc bỏ các phần tử rỗng ở cuối
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-004
+    title: Dấu phân cách ở đầu, liên tiếp và ở cuối
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-005
+    title: Regex khớp độ rộng bằng 0 và khác biệt với dấu phân cách có độ rộng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-006
+    title: Dùng Pattern.quote khi dấu phân cách là dữ liệu nguyên văn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-007
+    title: splitWithDelimiters từ Java 21
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-008
+    title: Pattern.splitAsStream và xử lý kết quả lười
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-splitting-009
+    title: Vì sao split đơn giản không đủ để phân tích CSV có dấu nháy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: regular-expressions
+  title: Biểu thức chính quy
+  childs:
+  - slug: regular-expressions-001
+    title: String.matches kiểm tra toàn bộ chuỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-002
+    title: Pattern và Matcher cho nhiều lần xử lý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-003
+    title: Matcher.matches, find và lookingAt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-004
+    title: Lớp ký tự, lượng từ, neo và nhóm bắt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-005
+    title: 'Hai lớp escape: literal Java và cú pháp regex'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-006
+    title: Pattern.quote cho dữ liệu được tìm nguyên văn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-007
+    title: Cờ CASE_INSENSITIVE, UNICODE_CASE và UNICODE_CHARACTER_CLASS
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-008
+    title: Ký tự Unicode, ranh giới từ và cụm ký tự trong regex
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regular-expressions-009
+    title: Lựa chọn mẫu tránh khớp quá rộng hoặc quay lui quá nhiều
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: regex-replacement
+  title: Thay thế bằng regex
+  childs:
+  - slug: regex-replacement-001
+    title: replaceFirst và replaceAll
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-replacement-002
+    title: Nhóm bắt và tham chiếu nhóm trong chuỗi thay thế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-replacement-003
+    title: Ý nghĩa đặc biệt của dấu đô la và gạch chéo ngược
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-replacement-004
+    title: Matcher.quoteReplacement cho nội dung thay thế nguyên văn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-replacement-005
+    title: Phân biệt escape của mẫu tìm với escape của phần thay thế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-replacement-006
+    title: Matcher.replaceAll với hàm tính chuỗi thay thế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-replacement-007
+    title: Thay thế nhiều lần và giới hạn của việc dùng regex thay bộ phân tích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regex-replacement-008
+    title: Kiểm thử dữ liệu chứa ký tự có ý nghĩa đặc biệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-formatting
+  title: Định dạng chuỗi
+  childs:
+  - slug: string-formatting-001
+    title: String.format, String.formatted và Formatter
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-002
+    title: Cú pháp chỉ số đối số, cờ, độ rộng, độ chính xác và kiểu chuyển
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-003
+    title: Các kiểu %s, %c, %b, %d, %f và %e
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-004
+    title: Căn lề, đệm ký tự và phân nhóm chữ số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-005
+    title: '%% cho dấu phần trăm và %n cho kết thúc dòng'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-006
+    title: Locale mặc định so với String.format(Locale,...)
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-007
+    title: Đối số null và các IllegalFormatException thường gặp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-008
+    title: Phân biệt độ chính xác khi trình bày với giá trị số gốc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-formatting-009
+    title: MessageFormat khi mẫu cần đổi thứ tự theo ngôn ngữ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-blocks
+  title: Text block
+  childs:
+  - slug: text-blocks-001
+    title: Text block là cú pháp tạo String nhiều dòng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-002
+    title: Quy tắc mở và đóng dấu ba nháy kép
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-003
+    title: Chuẩn hóa kết thúc dòng trong text block
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-004
+    title: Khoảng trắng thụt lề ngẫu nhiên và vị trí dấu đóng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-005
+    title: Escape khoảng trắng bằng \s và nối dòng bằng gạch chéo ngược
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-006
+    title: Dòng cuối có hoặc không có ký tự xuống dòng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-007
+    title: stripIndent và indent khi xử lý thụt lề
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-008
+    title: translateEscapes và khác biệt với Unicode escape do compiler xử lý
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-blocks-009
+    title: Text block không tự nội suy biến và không tự escape cho định dạng đích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-lines-and-streams
+  title: Dòng và Stream
+  childs:
+  - slug: string-lines-and-streams-001
+    title: lines và các kiểu kết thúc dòng CR, LF, CRLF
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-lines-and-streams-002
+    title: Chuỗi rỗng và ký tự xuống dòng ở cuối
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-lines-and-streams-003
+    title: Khác biệt giữa lines và split với limit
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-lines-and-streams-004
+    title: indent thay đổi lề và chuẩn hóa kết thúc dòng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-lines-and-streams-005
+    title: chars trả các đơn vị char mở rộng thành int
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-lines-and-streams-006
+    title: codePoints kết hợp surrogate pair thành code point
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-lines-and-streams-007
+    title: Lọc, đếm và biến đổi dữ liệu bằng IntStream
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-lines-and-streams-008
+    title: Xây lại String bằng bộ đệm với appendCodePoint
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-and-bytes
+  title: Chuỗi và byte
+  childs:
+  - slug: strings-and-bytes-001
+    title: Phân biệt encode chuỗi thành byte với decode byte thành chuỗi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-002
+    title: getBytes với Charset hoặc StandardCharsets
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-003
+    title: new String(byte[],Charset) và giải mã một vùng byte
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-004
+    title: Độ dài UTF-8 không bằng length của String
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-005
+    title: Charset mặc định và ảnh hưởng môi trường hoặc phiên bản JDK
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-006
+    title: Dữ liệu sai mã, ký tự thay thế và mất thông tin
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-007
+    title: CharsetEncoder, CharsetDecoder và chính sách REPORT
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-008
+    title: Đối chiếu chuỗi qua ranh giới tệp, console và dữ liệu truyền
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-bytes-009
+    title: Vì sao Base64, escape và chuyển charset là các thao tác khác nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: value-conversion
+  title: Chuyển đổi giá trị
+  childs:
+  - slug: value-conversion-001
+    title: String.valueOf với primitive và Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-conversion-002
+    title: Phân biệt valueOf(Object) với valueOf(char[]) khi truyền null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-conversion-003
+    title: copyValueOf và tạo chuỗi từ mảng ký tự
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-conversion-004
+    title: toString của String và của đối tượng khác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-conversion-005
+    title: Integer.parseInt, parseLong và cơ số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-conversion-006
+    title: BigInteger, BigDecimal và giới hạn biểu diễn qua số thực
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-conversion-007
+    title: NumberFormat khi phân tích số theo locale
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-conversion-008
+    title: Kiểm tra toàn chuỗi và xử lý dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-in-collections
+  title: String trong collection
+  childs:
+  - slug: strings-in-collections-001
+    title: String làm khóa HashMap hoặc phần tử HashSet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-in-collections-002
+    title: Hợp đồng equals–hashCode và va chạm băm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-in-collections-003
+    title: So sánh theo nội dung thay vì dựa vào intern
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-in-collections-004
+    title: Sắp xếp List<String> theo tự nhiên hoặc Comparator
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-in-collections-005
+    title: Comparator không phân biệt hoa–thường và quan hệ với equals
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-in-collections-006
+    title: Chuẩn hóa khóa khác với bảo toàn văn bản hiển thị
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-in-collections-007
+    title: Phân biệt String[] với List<String> khi chuyển đổi dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-internals
+  title: Bộ nhớ và cài đặt
+  childs:
+  - slug: string-internals-001
+    title: Phân biệt mô hình UTF-16 của API với biểu diễn nội bộ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-internals-002
+    title: Compact Strings và các dạng LATIN1, UTF16 trong OpenJDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-internals-003
+    title: Chi phí đối tượng, mảng lưu dữ liệu và chuỗi tạm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-internals-004
+    title: Bộ nhớ đệm hashCode là chi tiết cài đặt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-internals-005
+    title: Constant pool và vai trò của Constable, ConstantDesc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-internals-006
+    title: Phép nối qua StringConcatFactory và invokedynamic
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-internals-007
+    title: Chi tiết substring, intern và tối ưu có thể khác giữa phiên bản JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-performance
+  title: Hiệu năng
+  childs:
+  - slug: string-performance-001
+    title: Chi phí duyệt, tìm kiếm, so sánh và sao chép theo độ dài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-performance-002
+    title: Nối lặp bằng += và tổng lượng dữ liệu phải sao chép
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-performance-003
+    title: Ước lượng capacity của StringBuilder
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-performance-004
+    title: Tránh tạo nhiều chuỗi trung gian khi xử lý theo từng bước
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-performance-005
+    title: Biên dịch lại regex so với tái sử dụng Pattern
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-performance-006
+    title: Đánh đổi giữa tính dễ đọc và tối ưu theo dữ liệu đo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-performance-007
+    title: Đo bằng JMH với làm nóng, chống bỏ mã và tránh gấp hằng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-performance-008
+    title: Đánh giá bộ nhớ và kết quả trên dữ liệu ASCII, tiếng Việt và emoji
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-api-design
+  title: Thiết kế API
+  childs:
+  - slug: string-api-design-001
+    title: Chọn String hay CharSequence cho tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-api-design-002
+    title: CharSequence không mặc nhiên bất biến hoặc có equals theo nội dung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-api-design-003
+    title: Quy định rõ cách xử lý null, rỗng và trắng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-api-design-004
+    title: Quy định đơn vị chỉ số hoặc giới hạn độ dài
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-api-design-005
+    title: Tách dữ liệu nguyên bản, dữ liệu chuẩn hóa và bản hiển thị
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-api-design-006
+    title: Phân biệt văn bản thông thường với cấu trúc có ngữ pháp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-api-design-007
+    title: Dùng bộ xử lý đúng định dạng cho JSON, CSV, đường dẫn hoặc URI
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-api-design-008
+    title: Giữ trách nhiệm mã hóa và escape tại đúng ranh giới
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-testing
+  title: Kiểm thử và lỗi
+  childs:
+  - slug: string-testing-001
+    title: Ma trận null, rỗng, trắng, một ký tự và chuỗi dài
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-002
+    title: Kiểm thử chỉ số đầu–cuối và khoảng trích xuất
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-003
+    title: Kiểm thử surrogate pair, surrogate đơn và dấu kết hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-004
+    title: Kiểm thử trim, strip, NBSP và các loại xuống dòng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-005
+    title: Kiểm thử ==, equals, intern và biểu thức hằng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-006
+    title: Kiểm thử regex với dấu chấm, gạch chéo, đô la và nhóm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-007
+    title: Kiểm thử split giữ phần rỗng và splitWithDelimiters
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-008
+    title: Kiểm thử định dạng theo locale và chuyển mã hai chiều
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-testing-009
+    title: Phân biệt lỗi nội dung, lỗi chỉ số, lỗi regex và lỗi mã hóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: string-practice-001
+    title: Xây dựng bộ làm sạch đầu vào theo chính sách tường minh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-002
+    title: Tìm và trích xuất trường từ chuỗi có cấu trúc đơn giản
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-003
+    title: Ghép báo cáo văn bản bằng StringBuilder hoặc StringJoiner
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-004
+    title: Tách dữ liệu có phần tử rỗng và giữ đúng dấu phân cách
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-005
+    title: Đếm ký tự theo char, code point và cụm hiển thị
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-006
+    title: So sánh tên tiếng Việt sau chuẩn hóa phù hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-007
+    title: Tái hiện bẫy null, overload, intern và phép nối với số
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-008
+    title: Đối chiếu hiệu năng các cách ghép chuỗi trên cùng dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-practice-009
+    title: Lập bảng lựa chọn API và tự đánh giá các tình huống xử lý chuỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

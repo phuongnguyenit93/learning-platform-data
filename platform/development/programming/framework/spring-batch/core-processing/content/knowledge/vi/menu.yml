@@ -1,0 +1,765 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Spring Batch giải quyết bài toán xử lý dữ liệu nào?
+  - Batch processing khác xử lý request trực tuyến ra sao?
+  - Job, Step và flow thực thi trong Spring Batch
+  - Dữ liệu đầu vào, xử lý và đầu ra
+  - Đặc điểm của một batch job đáng tin cậy
+  - Định danh lần chạy và khả năng khởi động lại
+  - Transaction, checkpoint và trạng thái tiến độ
+  - Khi dùng chunk processing và khi dùng tasklet
+  - Vai trò của metadata repository
+  - Các thành phần sẽ gặp trong một ứng dụng Spring Batch
+  - Lộ trình từ job đơn giản đến pipeline production
+- level1: Job
+  level2:
+  - Job biểu diễn một quy trình batch như thế nào?
+  - JobInstance và nhận diện một logical job
+  - JobExecution đại diện cho một lần chạy
+  - JobParameters tham gia xác định instance
+  - Job chưa chạy, đang chạy, hoàn tất và thất bại
+  - Job có thể chạy lại hay không?
+  - Job với một step và nhiều step
+  - Job flow tuần tự và flow có điều kiện
+  - Job name và job registry
+  - Job restart từ execution thất bại
+  - Job kết thúc với COMPLETED hoặc FAILED
+  - JobExecution metadata cần được lưu ở đâu?
+  - Phân biệt job definition với job execution
+- level1: Step
+  level2:
+  - Step là đơn vị xử lý trong Job
+  - StepExecution và trạng thái thực thi
+  - Step contribution và số lượng đọc, ghi, bỏ qua
+  - TaskletStep và chunk-oriented step
+  - Step bắt đầu, đang chạy, hoàn tất và thất bại
+  - Step có thể restart từ checkpoint nào?
+  - StepExecutionContext lưu trạng thái gì?
+  - Step name phải ổn định như thế nào?
+  - Một job có nhiều step phụ thuộc nhau
+  - Step flow và điều kiện chuyển tiếp
+  - Giới hạn của việc nhồi quá nhiều logic vào một step
+- level1: JobRepository
+  level2:
+  - JobRepository lưu metadata batch như thế nào?
+  - JobInstance, JobExecution và StepExecution
+  - ExecutionContext của job và step
+  - Schema repository và bảng metadata
+  - Transaction khi cập nhật batch metadata
+  - JobRepository trong môi trường single instance
+  - JobRepository dùng database ngoài
+  - Isolation khi khởi động cùng job
+  - Chọn database và datasource cho metadata
+  - Lỗi metadata không nhất quán
+  - Dọn metadata cũ và retention
+  - Không coi metadata repository là dữ liệu nghiệp vụ
+- level1: JobLauncher
+  level2:
+  - JobLauncher khởi chạy JobExecution
+  - Khởi chạy đồng bộ và bất đồng bộ
+  - JobLauncher với TaskExecutor
+  - JobParameters khi launch
+  - Job đã hoàn tất và hành vi launch lại
+  - Job đang chạy và duplicate launch
+  - Launch exception và lỗi validation
+  - Theo dõi kết quả từ job launcher
+  - Không giữ request thread cho job dài
+  - Quyền gọi job launcher
+  - Kiểm thử launcher với job test
+- level1: JobParameters
+  level2:
+  - JobParameters xác định JobInstance
+  - String, Long, Double và Date parameter
+  - Parameter identifying và non-identifying
+  - Tham số đầu vào từ command line
+  - Tham số mặc định và tính xác định
+  - Parameter converter
+  - Parameter validation
+  - Thời gian hiện tại làm parameter có ổn định không?
+  - Tránh tạo instance mới ngoài ý muốn
+  - JobParametersIncrementer
+  - Hiển thị parameters trong metadata
+  - Bảo vệ secret không lưu trực tiếp vào metadata
+- level1: Chunk processing
+  level2:
+  - Chunk-oriented processing là gì?
+  - ItemReader, ItemProcessor và ItemWriter
+  - Commit interval và kích thước chunk
+  - Đọc, xử lý và ghi trong một transaction
+  - Checkpoint sau mỗi chunk
+  - Chunk rỗng và kết thúc input
+  - Chunk có ít item hơn commit interval
+  - Lỗi giữa chunk và rollback
+  - Chunk size ảnh hưởng throughput và memory
+  - Tách input, transformation và output
+  - Khi chunk processing phù hợp hơn tasklet
+  - Đảm bảo reader, processor và writer cùng hợp đồng
+- level1: ItemReader
+  level2:
+  - ItemReader đọc một item mỗi lần
+  - read trả null để báo hết input
+  - Reader state và current item
+  - Reader restartable và save state
+  - open, update và close trong ItemStream
+  - Reader từ file, database và resource
+  - Reader xử lý input rỗng
+  - Reader lỗi giữa chừng
+  - Reader không được bỏ qua item ngoài ý muốn
+  - Reader thread safety
+  - Đọc theo thứ tự và ý nghĩa của order
+  - Kiểm thử reader với input biên
+- level1: ItemProcessor
+  level2:
+  - ItemProcessor biến đổi hoặc kiểm tra item
+  - Processor trả null để filter item
+  - Processor ném exception khi item sai
+  - Processor stateless và stateful
+  - Chain nhiều processor
+  - Validate trước khi transform
+  - Mapping input model sang output model
+  - Không để processor thực hiện side effect khó retry
+  - Processor idempotent
+  - Processor dùng service ngoài
+  - Kiểm thử processor với item hợp lệ và không hợp lệ
+  - Phân biệt filter với skip
+- level1: ItemWriter
+  level2:
+  - ItemWriter ghi một chunk item
+  - Write nhận danh sách item
+  - Write transaction và commit
+  - Writer ghi file, database hoặc message
+  - Writer xử lý partial failure
+  - Writer idempotency khi retry
+  - Writer flush và close resource
+  - Writer thứ tự item
+  - Writer không được sửa input sau khi nhận
+  - Writer lỗi và rollback
+  - Writer restart state
+  - Kiểm thử writer với chunk rỗng và nhiều item
+- level1: Tasklet
+  level2:
+  - Tasklet thực hiện một tác vụ trong Step
+  - RepeatStatus.FINISHED và CONTINUABLE
+  - Tasklet cho thao tác một lần
+  - Tasklet đọc ExecutionContext
+  - Tasklet transaction boundary
+  - Tasklet xử lý file hoặc gọi thủ tục
+  - Tasklet idempotency khi restart
+  - Tasklet ném exception
+  - Tasklet cleanup sau xử lý
+  - Khi tasklet đơn giản hơn chunk
+  - Không đưa pipeline item vào tasklet quá lớn
+  - Kiểm thử tasklet với step contribution
+- level1: Transactions
+  level2:
+  - Transaction boundary của chunk step
+  - Transaction bắt đầu và commit ở đâu?
+  - Rollback khi reader, processor hoặc writer lỗi
+  - Transaction propagation trong service được gọi
+  - Transaction manager cho database
+  - Transaction metadata và business data
+  - Writer nhiều resource và giới hạn atomicity
+  - Isolation level của batch transaction
+  - Deadlock và retry transaction
+  - Transaction timeout
+  - Không mở transaction kéo dài qua toàn bộ job
+  - Kiểm thử commit và rollback
+- level1: Commit policy
+  level2:
+  - Commit interval và số item mỗi transaction
+  - CompletionPolicy
+  - Commit theo kích thước dữ liệu
+  - Commit theo thời gian
+  - Chunk completion khi reader kết thúc
+  - Trade-off giữa commit nhỏ và commit lớn
+  - Commit nhỏ giảm rollback scope
+  - Commit lớn giảm transaction overhead
+  - Memory của item trong một chunk
+  - Commit policy và restart checkpoint
+  - Chọn policy theo latency, throughput và độ tin cậy
+- level1: ExecutionContext
+  level2:
+  - ExecutionContext lưu trạng thái restart
+  - JobExecutionContext và StepExecutionContext
+  - Key ổn định cho reader state
+  - Serialize context vào repository
+  - Cập nhật context trước commit
+  - State không serialize được
+  - Context quá lớn và chi phí metadata
+  - Không lưu dữ liệu nhạy cảm tùy ý
+  - Context khi step thất bại
+  - Context khi job restart
+  - Phân biệt context với job parameters
+  - Kiểm tra state sau một lần chạy
+- level1: Listeners
+  level2:
+  - JobExecutionListener trước và sau job
+  - StepExecutionListener trước và sau step
+  - ChunkListener trước và sau chunk
+  - ItemReadListener
+  - ItemProcessListener
+  - ItemWriteListener
+  - SkipListener
+  - RetryListener
+  - Listener order
+  - Listener không được che lỗi chính
+  - Dùng listener cho metric và audit
+  - Listener và transaction callback
+  - Kiểm thử listener với execution status
+- level1: Flow
+  level2:
+  - Sequential flow giữa các step
+  - Start, next và end
+  - Conditional transition theo ExitStatus
+  - BatchStatus và ExitStatus
+  - Flow không có nhánh
+  - Flow có điều kiện thành công
+  - Flow có điều kiện thất bại
+  - Skip step và stop job
+  - Decider quyết định bước tiếp theo
+  - JobExecutionDecider và trạng thái quyết định
+  - Restart flow sau step thất bại
+  - Không tạo flow khó theo dõi từ quá nhiều nhánh
+- level1: JobStep
+  level2:
+  - JobStep chạy một Job con trong một Step
+  - Parent job và child job
+  - JobParameters truyền vào job con
+  - JobStep execution context
+  - Transaction boundary của JobStep
+  - Restart job con
+  - Phân biệt JobStep với flow lồng nhau
+  - Theo dõi status của job con
+  - Lỗi job con ảnh hưởng parent thế nào?
+  - Dùng JobStep cho quy trình độc lập
+  - Kiểm thử parent và child job
+- level1: Partitioning
+  level2:
+  - Partitioning chia dữ liệu thành nhiều step execution
+  - Partitioner tạo ExecutionContext cho từng partition
+  - Partition name và step execution
+  - Partition handler
+  - Worker step xử lý partition
+  - Master step điều phối partition
+  - Range partitioning
+  - Key partitioning
+  - Restart partition
+  - Partition context và metadata
+  - Phân biệt partitioning với chunk processing
+  - Giới hạn partitioning trong module core
+- level1: Parallel flow
+  level2:
+  - Chạy nhiều flow song song trong một job
+  - Flow split và join
+  - Executor cho parallel flow
+  - Đồng bộ khi các flow hoàn tất
+  - Lỗi một flow ảnh hưởng job thế nào?
+  - Tài nguyên dùng chung giữa các flow
+  - Thứ tự kết quả của parallel flow
+  - ExecutionContext trong flow song song
+  - Deadlock khi flow chia sẻ resource
+  - Kiểm thử parallel flow
+  - Khi dùng scaling module thay vì core flow
+- level1: Skip
+  level2:
+  - Skip item không xử lý được
+  - Skip limit
+  - SkipPolicy
+  - Skippable exception
+  - Skip trong read, process và write
+  - SkipListener ghi nhận item bị bỏ qua
+  - Skip item và rollback chunk
+  - Giới hạn skip để không che lỗi hàng loạt
+  - Skip với output có thể gây thiếu dữ liệu
+  - Skip count trong StepExecution
+  - Skip khi restart
+  - Kiểm thử skip allowed và skip limit exceeded
+- level1: Retry
+  level2:
+  - Retry item bị lỗi tạm thời
+  - RetryPolicy
+  - Retryable exception
+  - Retry limit
+  - BackoffPolicy
+  - Retry trong read, process và write
+  - Retry state và item identity
+  - Retry listener
+  - Retry cùng transaction rollback
+  - Retry không an toàn với side effect
+  - Recovery sau retry hết
+  - Phân biệt retry với skip
+- level1: Fault tolerance
+  level2:
+  - FaultTolerantStepBuilder
+  - Kết hợp skip và retry
+  - Exception classifier
+  - Skip limit và retry limit
+  - No rollback exception
+  - Phân loại rollback cho fault-tolerant step
+  - Transactional reader
+  - Non-transactional reader
+  - Fault-tolerant chunk và checkpoint
+  - Xử lý lỗi khi writer ghi một phần
+  - Đảm bảo dữ liệu không bị nhân đôi
+  - Kiểm thử nhiều loại lỗi
+- level1: Rollback
+  level2:
+  - Rollback chunk khi processor ném exception
+  - Rollback khi writer thất bại
+  - Item đã đọc trước rollback
+  - Reader transactional queue
+  - NoRollbackExceptionClasses
+  - Chính sách rollback cho step có classifier
+  - Rollback và retry
+  - Rollback và skip
+  - Rollback side effect ngoài database
+  - Cleanup sau rollback
+  - Kiểm tra trạng thái metadata sau rollback
+- level1: Restart
+  level2:
+  - Restartable job là gì?
+  - Điều kiện job có thể restart
+  - Restart từ step thất bại
+  - Restart từ chunk checkpoint
+  - Restart với reader state
+  - Restart với writer state
+  - Restart sau process bị kill
+  - JobInstance không restart được khi COMPLETED
+  - startLimit của step
+  - allowStartIfComplete
+  - JobParameters mới và instance mới
+  - Thiết kế restart không tạo duplicate output
+- level1: Job execution status
+  level2:
+  - BatchStatus của JobExecution
+  - ExitStatus của StepExecution
+  - Exit code cho scheduler
+  - Custom ExitStatus
+  - Status khi skip vẫn hoàn tất
+  - Status khi retry recovery
+  - Status khi job dừng có chủ đích
+  - Status khi operator stop job
+  - Mapping status sang monitoring
+  - Không dùng message status thay cho BatchStatus
+  - Kiểm thử trạng thái cuối
+- level1: Scope
+  level2:
+  - JobScope và step scope
+  - Late binding từ JobParameters
+  - Late binding từ ExecutionContext
+  - Bean scoped theo job
+  - Bean scoped theo step
+  - Proxy của scoped bean
+  - Reader hoặc writer cần step scope
+  - Scope khi test job
+  - Scope trong multi-thread execution
+  - Lỗi bean ngoài scope
+  - Không dùng scoped bean cho state toàn cục
+- level1: Parameter injection
+  level2:
+  - '@Value từ jobParameters'
+  - '@Value từ jobExecutionContext'
+  - '@Value từ stepExecutionContext'
+  - Tên key và kiểu dữ liệu
+  - Late binding expression
+  - Parameter không tồn tại
+  - Default parameter
+  - Validation trước khi tạo step
+  - Truyền parameter vào reader và writer
+  - Không ghép chuỗi expression quá phức tạp
+  - Kiểm thử parameter binding
+- level1: Resource management
+  level2:
+  - Mở file input và output trong reader, writer
+  - ItemStream open và close
+  - Đóng resource khi job thất bại
+  - Tệp tạm và cleanup
+  - Resource từ classpath và filesystem
+  - Encoding file
+  - File lock và file đang được sử dụng
+  - Tên output theo job instance
+  - Không ghi đè output của lần chạy trước
+  - Quyền filesystem
+  - Kiểm thử resource leak
+- level1: Flat file
+  level2:
+  - FlatFileItemReader
+  - LineMapper và FieldSetMapper
+  - DelimitedLineTokenizer
+  - FixedLengthTokenizer
+  - FieldSet và kiểu dữ liệu
+  - BeanWrapperFieldSetMapper
+  - LineCallbackHandler
+  - RecordSeparatorPolicy
+  - Header và footer callback
+  - Bỏ qua dòng header
+  - Tệp có dòng lỗi và skip
+  - Encoding và newline
+  - FlatFileItemWriter
+  - LineAggregator
+  - HeaderCallback và FooterCallback
+  - Append hay overwrite output
+- level1: Database
+  level2:
+  - JdbcCursorItemReader
+  - JdbcPagingItemReader
+  - RowMapper và mapper domain
+  - Paging query và sort key
+  - Cursor transaction
+  - Page size và fetch size
+  - JdbcBatchItemWriter
+  - ItemPreparedStatementSetter
+  - SqlParameterSourceProvider
+  - DataSourceTransactionManager
+  - Nhiều datasource trong batch
+  - Restart reader database
+  - Đọc và ghi cùng database
+- level1: XML
+  level2:
+  - StaxEventItemReader
+  - JAXB hoặc marshaller trong XML processing
+  - Fragment root và item boundary
+  - Resource XML lớn và streaming
+  - Validation XML schema
+  - Namespace và mapping
+  - Restart vị trí trong XML
+  - StaxEventItemWriter
+  - Root tag và fragment
+  - Marshaller trong writer
+  - Encoding XML
+  - XML lỗi giữa chừng
+  - Kiểm thử XML reader và writer
+- level1: JSON
+  level2:
+  - JsonItemReader
+  - JsonObject và Jackson mapping
+  - JSON array lớn và streaming
+  - JsonItemWriter
+  - Root array và item separator
+  - ObjectMapper configuration
+  - Unknown field và schema evolution
+  - Null field và default mapping
+  - Encoding JSON
+  - Restart JSON reader
+  - Lỗi parse JSON và skip
+  - Kiểm thử JSON input và output
+- level1: Custom components
+  level2:
+  - Tự viết ItemReader
+  - Tự viết ItemProcessor
+  - Tự viết ItemWriter
+  - Implement ItemStream cho component có state
+  - Save state bằng ExecutionContext
+  - Open và close resource
+  - Xử lý null và end of input
+  - Thread safety của custom component
+  - Exception contract
+  - Idempotency của custom writer
+  - Kiểm thử custom component độc lập
+  - Đăng ký component trong step
+- level1: Composite
+  level2:
+  - CompositeItemProcessor
+  - Chain processor theo thứ tự
+  - Processor trả null giữa chain
+  - CompositeItemWriter
+  - Ghi cùng item đến nhiều writer
+  - Thứ tự writer và lỗi một writer
+  - Processor composite chọn theo classifier
+  - Writer composite chọn theo classifier
+  - Route item theo loại
+  - Output nhất quán giữa nhiều writer
+  - Rollback composite operation
+  - Kiểm thử từng nhánh composite
+- level1: Classifier
+  level2:
+  - Classifier xác định processor hoặc writer
+  - Phân loại theo payload type
+  - Phân loại theo field hoặc business state
+  - ClassifierCompositeItemProcessor
+  - ClassifierCompositeItemWriter
+  - Default classifier
+  - Item không khớp classifier
+  - Classifier có state
+  - Classifier và deterministic routing
+  - Lỗi phân loại và skip
+  - Kiểm thử mọi nhánh classifier
+- level1: Multi-resource
+  level2:
+  - MultiResourceItemReader
+  - Đọc nhiều file theo thứ tự resource
+  - Comparator cho resource
+  - Lưu resource hiện tại trong checkpoint
+  - File mới xuất hiện khi job chạy
+  - MultiResourceItemWriter
+  - Phân chia output theo số item
+  - Tên file suffix
+  - Restart với nhiều output file
+  - Resource bị thiếu hoặc đổi tên
+  - Quản lý output cũ
+  - Kiểm thử danh sách resource
+- level1: Jdbc processing
+  level2:
+  - Đọc theo cursor và transaction
+  - Đọc theo page và sort ổn định
+  - Paging khi dữ liệu thay đổi
+  - Parameter trong query
+  - RowMapper bất biến
+  - Batch update writer
+  - Generated key và output mapping
+  - Deadlock khi đọc ghi cùng bảng
+  - Isolation level và repeatable read
+  - Restart sau khi commit database
+  - Skip duplicate key
+  - Kiểm thử database reader writer
+- level1: JPA processing
+  level2:
+  - JpaPagingItemReader
+  - EntityManager và persistence context
+  - Clear persistence context theo chunk
+  - Flush trước commit
+  - Lazy relation trong processor
+  - JpaItemWriter
+  - Transaction manager cho JPA
+  - Optimistic locking
+  - N+1 query trong processor
+  - Restart với database item
+  - Entity state sau rollback
+  - Kiểm thử JPA batch
+- level1: Message processing
+  level2:
+  - ItemReader đọc message từ queue
+  - ItemWriter gửi message
+  - Transaction với broker
+  - Acknowledgement theo chunk
+  - Redelivery và duplicate item
+  - Message key và correlation
+  - Retry message processing
+  - Dead-letter message
+  - Serialization payload
+  - Batch commit và broker commit
+  - Không mất message khi writer lỗi
+  - Kiểm thử message reader writer
+- level1: Processor patterns
+  level2:
+  - Validation processor
+  - Filtering processor
+  - Mapping processor
+  - Enrichment processor
+  - Composite processor
+  - Classifier processor
+  - Caching processor
+  - Processor gọi remote service
+  - Processor timeout
+  - Processor retry và idempotency
+  - Processor side effect và rollback
+  - Kiểm thử processor chain
+- level1: Output consistency
+  level2:
+  - Output được tạo một lần hay nhiều lần
+  - File output và restart safety
+  - Database output và unique constraint
+  - Message output và duplicate delivery
+  - Transactional writer
+  - Write-ahead hoặc outbox output
+  - Atomic rename file
+  - Temporary output và commit marker
+  - Kiểm tra output sau job complete
+  - Dọn output sau job failed
+  - Đối chiếu input, skipped và output counts
+- level1: Testing batch
+  level2:
+  - JobLauncherTestUtils
+  - JobRepositoryTestUtils
+  - Chạy job test với JobParameters
+  - JobScopeTestUtils
+  - Kiểm thử job instance
+  - Kiểm thử step riêng
+  - MetaDataInstanceFactory
+  - Assert JobExecution status
+  - Assert StepExecution counts
+  - Assert ExecutionContext
+  - Kiểm thử restart
+  - Kiểm thử skip và retry
+  - Kiểm thử listener
+  - Kiểm thử input output resource
+- level1: Test data
+  level2:
+  - Tạo JobParameters ổn định trong test
+  - Database test schema
+  - Dữ liệu file test nhỏ và rõ
+  - Dữ liệu lỗi cho skip
+  - Dữ liệu lỗi cho retry
+  - Dữ liệu để kiểm tra restart
+  - Dữ liệu duplicate
+  - Dữ liệu rỗng và giới hạn
+  - Dọn metadata sau test
+  - Dọn output file sau test
+  - Không để test phụ thuộc thời gian thật
+- level1: Test infrastructure
+  level2:
+  - JobRepository dành cho test
+  - Embedded database cho metadata
+  - Transaction manager trong test
+  - TestExecutionListener
+  - Spring TestContext
+  - Context cache
+  - Test profile
+  - Mock external service
+  - Clock và thời gian kiểm thử
+  - Executor test
+  - Chạy test song song an toàn
+  - Phân biệt unit test và batch integration test
+- level1: Execution control
+  level2:
+  - Start job từ command line
+  - Start job từ scheduler
+  - Stop job đang chạy
+  - Abandon job execution
+  - Operator restart job failed
+  - JobOperator và thao tác điều khiển
+  - JobExplorer đọc metadata
+  - JobRegistry tìm job
+  - Duplicate launch protection
+  - Graceful stop tại checkpoint
+  - Không kill process giữa critical write
+- level1: Scheduling
+  level2:
+  - Lịch chạy batch
+  - JobParameters từ scheduler
+  - Prevent overlapping execution
+  - Lock khi nhiều scheduler instance
+  - Misfire và missed schedule
+  - Chạy lại sau failure
+  - Dependency giữa các job
+  - Job completion signal
+  - Time zone của schedule
+  - Run window và deadline
+  - Audit lần launch
+- level1: Monitoring
+  level2:
+  - Đếm read, write, filter và skip
+  - Theo dõi commit count
+  - Theo dõi retry count
+  - Theo dõi thời gian mỗi chunk
+  - Theo dõi step duration
+  - Theo dõi job duration
+  - Tỷ lệ failure theo job
+  - Metadata cho audit
+  - Log job instance và execution
+  - Correlation với request hoặc scheduler
+  - Alert job không tiến triển
+  - Dashboard batch operational
+- level1: Logging
+  level2:
+  - Log ở job listener
+  - Log ở step listener
+  - Log item lỗi an toàn
+  - Không log toàn bộ dữ liệu nhạy cảm
+  - Gắn job execution ID
+  - Gắn step execution ID
+  - Gắn chunk hoặc item key
+  - Structured log cho batch
+  - Log retry và recovery
+  - Log restart point
+  - Giảm log trên job lớn
+  - Đối chiếu log với metadata
+- level1: Performance
+  level2:
+  - Throughput theo chunk
+  - Latency của reader processor writer
+  - Commit interval tuning
+  - Fetch size và page size
+  - Batch update size
+  - Memory của chunk
+  - CPU trong processor
+  - I/O của reader và writer
+  - Connection pool
+  - GC và object allocation
+  - Tối ưu mà không phá restart
+  - Benchmark dữ liệu đại diện
+- level1: Failure recovery
+  level2:
+  - Failure ở reader
+  - Failure ở processor
+  - Failure ở writer
+  - Failure khi commit
+  - Failure khi cập nhật metadata
+  - Process bị kill
+  - Database mất kết nối
+  - File system đầy
+  - Remote service timeout
+  - Dữ liệu lỗi hàng loạt
+  - Recovery bằng retry hoặc restart
+  - Runbook xử lý failure
+- level1: Data quality
+  level2:
+  - Validate đầu vào trước batch
+  - Quarantine item lỗi
+  - Skip và báo cáo rejected item
+  - Đối chiếu tổng input và output
+  - Reconciliation sau job
+  - Duplicate detection
+  - Missing record detection
+  - Data type và format validation
+  - Schema version của input
+  - Business rule trong processor
+  - Báo cáo chất lượng dữ liệu
+  - Không biến skip thành mất dữ liệu im lặng
+- level1: Security
+  level2:
+  - Secret trong JobParameters
+  - Không ghi credential vào ExecutionContext
+  - Quyền đọc input resource
+  - Quyền ghi output resource
+  - Database credential
+  - Mã hóa file nhạy cảm
+  - Mask dữ liệu trong log
+  - Phân quyền launch và stop job
+  - Audit operator action
+  - Validate input tránh injection
+  - Bảo vệ metadata repository
+- level1: Lỗi thường gặp
+  level2:
+  - Dùng thời gian hiện tại để luôn tạo JobInstance mới
+  - Chạy lại job COMPLETED như restart
+  - Không lưu reader state
+  - Reader không restartable nhưng job cần restart
+  - Writer tạo duplicate output
+  - Skip quá rộng che lỗi dữ liệu
+  - Retry lỗi vĩnh viễn
+  - Chunk quá lớn gây thiếu bộ nhớ
+  - Chunk quá nhỏ làm throughput thấp
+  - Gọi remote service trong transaction dài
+  - Không dọn file tạm sau failure
+  - Test chỉ kiểm tra exit code
+  - Không kiểm tra ExecutionContext
+- level1: Quyết định thiết kế
+  level2:
+  - Chọn chunk hay tasklet
+  - Chọn reader database hay file
+  - Chọn cursor hay paging
+  - Chọn skip hay fail fast
+  - Chọn retry hay restart
+  - Chọn metadata database hay cơ chế khác
+  - Chọn synchronous hay asynchronous launch
+  - Chọn một job lớn hay nhiều job nhỏ
+  - Chọn output transaction hay outbox
+  - Đánh đổi throughput với khả năng phục hồi
+  - Ghi giả thiết và giới hạn của job
+- level1: Dự án thực hành
+  level2:
+  - Tạo job đọc file CSV và ghi database
+  - Thêm processor validate và map dữ liệu
+  - Cấu hình JobRepository và JobLauncher
+  - Thiết kế JobParameters định danh lần chạy
+  - Thêm chunk transaction và checkpoint
+  - Xử lý skip dữ liệu lỗi với báo cáo
+  - Thêm retry lỗi tạm thời
+  - Kiểm tra restart sau khi process bị dừng
+  - Tạo job flow nhiều step
+  - Thêm listener và metric
+  - Viết unit và integration test
+  - Đưa job vào scheduler
+  - Tạo runbook cho failure và recovery

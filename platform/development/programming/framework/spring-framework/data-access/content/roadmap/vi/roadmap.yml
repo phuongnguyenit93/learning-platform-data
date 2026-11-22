@@ -1,0 +1,69 @@
+roadmap:
+- id: mo-hinh-truy-cap-du-lieu
+  title: Mô hình truy cập dữ liệu
+  purpose: Hiểu trách nhiệm của tầng truy cập dữ liệu và các lựa chọn Spring cung cấp.
+  objectives:
+  - Xác định nền tảng SQL, JDBC và Spring IoC cần có.
+  - Phân định tầng nghiệp vụ, DAO/repository và cơ sở dữ liệu.
+  - Nhận diện JDBC, ORM và truy cập phản ứng (reactive).
+- id: ket-noi-va-tai-nguyen
+  title: Kết nối và tài nguyên
+  purpose: Thiết lập nguồn dữ liệu và hiểu cách Spring quản lý tài nguyên kết nối.
+  objectives:
+  - Cấu hình DataSource và pool kết nối.
+  - Giải thích lấy, dùng và trả kết nối theo giao dịch.
+  - Khởi tạo schema và dữ liệu thử có kiểm soát.
+- id: thao-tac-voi-jdbc
+  title: Thao tác với JDBC
+  purpose: Thực hiện truy vấn và cập nhật bằng các lớp hỗ trợ JDBC của Spring.
+  objectives:
+  - Gắn tham số bằng JdbcTemplate hoặc JdbcClient.
+  - Ánh xạ kết quả bằng RowMapper.
+  - Thực hiện batch và lấy khóa sinh tự động.
+  - Giải thích @Repository và dịch ngoại lệ sang DataAccessException.
+- id: giao-dich-co-ban
+  title: Giao dịch cơ bản
+  purpose: Giữ các thay đổi liên quan nhất quán bằng cơ chế commit và rollback của Spring.
+  objectives:
+  - Liên hệ ACID với transaction manager và tài nguyên.
+  - Chọn @Transactional hoặc TransactionTemplate.
+  - Đặt ranh giới giao dịch tại thao tác nghiệp vụ.
+  - Kiểm tra điều kiện rollback của từng loại ngoại lệ.
+- id: dieu-khien-giao-dich
+  title: Điều khiển giao dịch
+  purpose: Kiểm soát phạm vi và tương tác giữa các giao dịch trong ứng dụng.
+  objectives:
+  - Phân biệt lan truyền (propagation) và mức cô lập (isolation).
+  - Thiết lập thời gian chờ, readOnly và quy tắc rollback.
+  - Nhận diện self-invocation, rollback-only và UnexpectedRollbackException.
+  - Chọn transaction manager; phân biệt giao dịch cục bộ và JTA.
+- id: tich-hop-orm
+  title: Tích hợp ORM
+  purpose: Tích hợp JPA/Hibernate với container và giao dịch của Spring.
+  objectives:
+  - Cấu hình EntityManagerFactory và JpaTransactionManager.
+  - Sử dụng EntityManager trong DAO/repository.
+  - Giải thích persistence context, lazy loading và dịch ngoại lệ.
+- id: truy-cap-voi-r2dbc
+  title: Truy cập với R2DBC
+  purpose: Truy cập dữ liệu không chặn và giữ ranh giới giao dịch trong luồng xử lý phản ứng.
+  objectives:
+  - Phân biệt ConnectionFactory với DataSource.
+  - Đọc ghi bằng DatabaseClient và ánh xạ hàng dữ liệu.
+  - Dùng ReactiveTransactionManager hoặc TransactionalOperator.
+  - Giữ giao dịch trong Reactor context, tránh chèn JDBC chặn.
+- id: anh-xa-xml
+  title: Ánh xạ XML
+  purpose: Sử dụng lớp trừu tượng OXM khi cần chuyển đổi giữa đối tượng và XML.
+  objectives:
+  - Phân biệt marshalling với unmarshalling.
+  - Cấu hình Marshaller/Unmarshaller và bộ ánh xạ phù hợp.
+  - Kiểm chứng schema và xử lý dữ liệu XML đầu vào.
+- id: kiem-chung-va-lua-chon
+  title: Kiểm chứng và lựa chọn
+  purpose: Xác nhận tính đúng đắn và chọn cơ chế truy cập dữ liệu phù hợp.
+  objectives:
+  - Kiểm thử CRUD, commit, rollback và ngoại lệ trên cơ sở dữ liệu.
+  - Phân biệt kiểm thử tự rollback với commit thực.
+  - Quan sát truy vấn, pool kết nối và chi phí tải dữ liệu.
+  - Chọn JDBC, ORM hoặc R2DBC theo yêu cầu ứng dụng.

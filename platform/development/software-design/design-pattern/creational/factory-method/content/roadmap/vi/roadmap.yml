@@ -1,0 +1,49 @@
+roadmap:
+- id: bai-toan-tao-doi-tuong
+  title: Bài toán tạo đối tượng
+  purpose: Nhận diện sự phụ thuộc cứng vào lớp cụ thể khi logic ứng dụng trực tiếp khởi tạo đối tượng.
+  objectives:
+  - Chỉ ra chỗ dùng new làm client phụ thuộc concrete class.
+  - Giải thích khi nào cần hoán đổi loại sản phẩm mà không sửa logic chính.
+- id: product-interface
+  title: Product Interface
+  purpose: Thiết kế hợp đồng thống nhất cho các sản phẩm có hành vi tương đương.
+  objectives:
+  - Định nghĩa interface Product với hành vi dùng chung.
+  - Cài đặt hai ConcreteProduct tuân theo cùng hợp đồng.
+- id: creator-factory-method
+  title: Creator & Factory Method
+  purpose: Tách quyết định tạo sản phẩm khỏi quy trình nghiệp vụ của lớp tạo.
+  objectives:
+  - Định nghĩa Creator với factory method trả về Product.
+  - Sử dụng factory method bên trong nghiệp vụ của Creator.
+- id: concrete-creator
+  title: Concrete Creator
+  purpose: Cho phép lớp con quyết định kiểu sản phẩm cụ thể thông qua ghi đè.
+  objectives:
+  - Tạo hai ConcreteCreator override factory method.
+  - Kiểm chứng từng Creator tạo đúng ConcreteProduct.
+- id: client-da-hinh
+  title: Client & Đa hình
+  purpose: Giữ mã phía client độc lập với cách khởi tạo và triển khai của sản phẩm.
+  objectives:
+  - Gọi Creator và Product qua kiểu trừu tượng.
+  - Đổi ConcreteCreator mà không chỉnh luồng sử dụng Product.
+- id: cai-dat-java
+  title: Cài đặt Java
+  purpose: Ứng dụng toàn bộ cấu trúc Factory Method vào một ví dụ Java nhỏ.
+  objectives:
+  - Xây dựng ví dụ vận chuyển hoặc nút giao diện có nhiều biến thể.
+  - Vẽ quan hệ Creator, ConcreteCreator, Product và ConcreteProduct.
+- id: kiem-thu-mo-rong
+  title: Kiểm thử & Mở rộng
+  purpose: Xác minh việc mở rộng loại sản phẩm vẫn bảo toàn hành vi client.
+  objectives:
+  - Viết unit test cho các factory method và hành vi Product.
+  - Thêm một biến thể sản phẩm/creator mà không sửa client.
+- id: so-sanh-danh-doi
+  title: So sánh & Đánh đổi
+  purpose: Chọn Factory Method khi phù hợp và tránh tạo phân cấp lớp không cần thiết.
+  objectives:
+  - Phân biệt Factory Method với simple/static factory và Abstract Factory.
+  - Đánh giá lợi ích giảm coupling so với chi phí tăng số lớp.

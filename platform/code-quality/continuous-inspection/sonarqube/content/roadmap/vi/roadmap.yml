@@ -1,0 +1,57 @@
+roadmap:
+- id: kiem-tra-ma-lien-tuc
+  title: Kiểm tra mã liên tục
+  purpose: Hiểu vai trò của SonarQube trong việc phát hiện và theo dõi chất lượng mã qua từng thay đổi.
+  objectives:
+  - Mô tả vòng lặp phân tích–phản hồi–cải thiện
+  - Phân biệt phân tích tĩnh với chạy kiểm thử
+  - Giải thích giá trị của kiểm tra tự động trong CI
+- id: thiet-lap-du-an
+  title: Thiết lập dự án
+  purpose: Tạo nền tảng để SonarQube nhận kết quả phân tích đúng dự án.
+  objectives:
+  - Xác định server, project key và quyền truy cập
+  - Thiết lập token phân tích an toàn
+  - Nhận diện thông tin cấu hình dự án cần kiểm tra
+- id: sonarscanner-cho-java
+  title: SonarScanner cho Java
+  purpose: Kết nối quá trình build Java với SonarQube để tạo kết quả phân tích có thể xem lại.
+  objectives:
+  - Cấu hình SonarScanner trong Gradle hoặc Maven
+  - Chuẩn bị mã đã biên dịch cho Java analysis
+  - Chạy phân tích và kiểm tra trạng thái kết quả
+- id: rules-quality-profiles
+  title: Rules & Quality Profiles
+  purpose: Hiểu cách SonarQube áp dụng quy tắc mã theo ngôn ngữ và chuẩn của dự án.
+  objectives:
+  - Giải thích mối quan hệ giữa rule và quality profile
+  - Tìm rule gây ra một issue
+  - Đánh giá nhu cầu điều chỉnh bộ rule
+- id: issues-xu-ly-canh-bao
+  title: Issues & xử lý cảnh báo
+  purpose: Đọc kết quả phân tích để nhận biết và ưu tiên vấn đề cần sửa.
+  objectives:
+  - Lọc issue theo tác động, trạng thái và mã mới
+  - Đọc vị trí và lý do vi phạm rule
+  - Phân biệt sửa lỗi với ghi nhận false positive hợp lệ
+- id: metrics-coverage
+  title: Metrics & Coverage
+  purpose: Sử dụng chỉ số để đánh giá mức độ dễ bảo trì và mức kiểm thử của mã.
+  objectives:
+  - Đọc coverage, duplications và các chỉ số chính
+  - Tạo báo cáo JaCoCo trước khi import vào SonarQube
+  - Giải thích giới hạn của một chỉ số riêng lẻ
+- id: new-code-quality-gate
+  title: New Code & Quality Gate
+  purpose: Đặt tiêu chuẩn chấp nhận thay đổi dựa trên điều kiện chất lượng rõ ràng.
+  objectives:
+  - Phân biệt kết quả trên new code và overall code
+  - Đọc trạng thái pass/fail của Quality Gate
+  - Giải thích điều kiện gate trong quyết định merge
+- id: ci-cd-cai-tien
+  title: CI/CD & cải tiến
+  purpose: Đưa việc phân tích vào quy trình phát triển và theo dõi tác động của sửa lỗi.
+  objectives:
+  - Bố trí bước scanner sau build và test trong CI
+  - Kiểm tra kết quả gate trên pipeline phù hợp
+  - Xác minh issue và metrics sau lần phân tích tiếp theo

@@ -1,0 +1,115 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Lựa chọn kiến trúc
+  slug: architecture-selection
+  index: 1
+- title: Nền tảng phân tán
+  slug: distributed-systems-basics
+  index: 2
+- title: Phân rã nghiệp vụ
+  slug: business-decomposition
+  index: 3
+- title: Ranh giới dịch vụ
+  slug: service-boundaries
+  index: 4
+- title: Thiết kế dịch vụ
+  slug: service-design
+  index: 5
+- title: Mô hình giao tiếp
+  slug: communication-models
+  index: 6
+- title: Giao tiếp đồng bộ
+  slug: synchronous-communication
+  index: 7
+- title: Giao tiếp bất đồng bộ
+  slug: asynchronous-communication
+  index: 8
+- title: Hợp đồng và phiên bản
+  slug: contracts-versioning
+  index: 9
+- title: Khám phá và định tuyến
+  slug: service-discovery-routing
+  index: 10
+- title: Cổng API
+  slug: api-gateway
+  index: 11
+- title: Quyền sở hữu dữ liệu
+  slug: data-ownership
+  index: 12
+- title: Truy vấn liên dịch vụ
+  slug: cross-service-queries
+  index: 13
+- title: Giao dịch phân tán
+  slug: distributed-transactions
+  index: 14
+- title: Truyền sự kiện tin cậy
+  slug: reliable-event-delivery
+  index: 15
+- title: Đồng thời và lặp an toàn
+  slug: concurrency-idempotency
+  index: 16
+- title: Khả năng chịu lỗi
+  slug: fault-tolerance
+  index: 17
+- title: Bảo mật
+  slug: security
+  index: 18
+- title: Cấu hình và bí mật
+  slug: configuration-secrets
+  index: 19
+- title: Quan sát hệ thống
+  slug: observability
+  index: 20
+- title: Chiến lược kiểm thử
+  slug: testing-strategy
+  index: 21
+- title: Tích hợp và phát hành
+  slug: integration-releases
+  index: 22
+- title: Triển khai dịch vụ
+  slug: service-deployment
+  index: 23
+- title: Container và điều phối
+  slug: containers-orchestration
+  index: 24
+- title: Khả năng mở rộng
+  slug: scalability
+  index: 25
+- title: Hiệu năng và bộ nhớ đệm
+  slug: performance-caching
+  index: 26
+- title: Vận hành và SLO
+  slug: operations-slo
+  index: 27
+- title: Khôi phục thảm họa
+  slug: disaster-recovery
+  index: 28
+- title: Quản trị dữ liệu
+  slug: data-governance
+  index: 29
+- title: Tổ chức nhóm
+  slug: team-organization
+  index: 30
+- title: Nền tảng và quản trị
+  slug: platform-governance
+  index: 31
+- title: Chi phí và đánh đổi
+  slug: costs-tradeoffs
+  index: 32
+- title: Chuyển đổi kiến trúc
+  slug: architecture-migration
+  index: 33
+- title: Java và Spring
+  slug: java-and-spring
+  index: 34
+- title: Quan hệ kiến trúc
+  slug: architectural-relationships
+  index: 35
+- title: Sai lầm thiết kế
+  slug: design-pitfalls
+  index: 36
+- title: Bài tập và tình huống
+  slug: exercises-scenarios
+  index: 37

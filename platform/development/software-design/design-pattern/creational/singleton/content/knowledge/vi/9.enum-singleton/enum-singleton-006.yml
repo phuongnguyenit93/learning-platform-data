@@ -1,0 +1,3 @@
+menuLevel1: Enum Singleton
+menuLevel2: Trạng thái mutable trong enum vẫn cần chính sách an toàn luồng riêng
+status: ""

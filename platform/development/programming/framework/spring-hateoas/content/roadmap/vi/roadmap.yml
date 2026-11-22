@@ -1,0 +1,43 @@
+roadmap:
+- id: nguyen-ly-hateoas
+  title: Nguyên lý HATEOAS
+  purpose: Hiểu cách liên kết hypermedia giúp client khám phá tài nguyên và hành động từ phản hồi REST.
+  objectives:
+  - Giải thích vai trò của hypermedia trong REST.
+  - Phân biệt dữ liệu tài nguyên với liên kết điều hướng.
+- id: link-linkrelation
+  title: Link & LinkRelation
+  purpose: Biết mô tả đúng đích và ý nghĩa của liên kết trong API.
+  objectives:
+  - Tạo Link với rel như self, next.
+  - Sử dụng URI template khi đường dẫn có tham số.
+- id: tao-link-tu-controller
+  title: Tạo link từ Controller
+  purpose: Sinh liên kết theo ánh xạ Spring MVC để tránh tự nối URL thủ công.
+  objectives:
+  - Dùng WebMvcLinkBuilder.linkTo và methodOn.
+  - Tạo self link phản ánh đúng endpoint và tham số.
+- id: representation-models
+  title: Representation Models
+  purpose: Biểu diễn dữ liệu kèm liên kết theo nhu cầu từng kiểu tài nguyên.
+  objectives:
+  - Dùng RepresentationModel và EntityModel cho tài nguyên đơn.
+  - Dùng CollectionModel và PagedModel cho tập dữ liệu.
+- id: assembler-phan-trang
+  title: Assembler & phân trang
+  purpose: Tập trung chuyển đổi dữ liệu thành hypermedia và duy trì liên kết nhất quán.
+  objectives:
+  - Triển khai RepresentationModelAssembler.
+  - Gắn liên kết điều hướng vào kết quả phân trang.
+- id: hal-affordances
+  title: HAL & Affordances
+  purpose: Hiểu cách biểu diễn link và hành động hợp lệ theo định dạng hypermedia.
+  objectives:
+  - Đọc phản hồi HAL qua _links và _embedded.
+  - Mô tả hành động bằng affordances và nhận biết HAL-FORMS.
+- id: client-kiem-thu
+  title: Client & kiểm thử
+  purpose: Đảm bảo API cung cấp liên kết đúng và client có thể đi theo quan hệ liên kết.
+  objectives:
+  - Dùng Traverson hoặc LinkDiscoverer để theo rel.
+  - Kiểm tra link và media type trong phản hồi HTTP.

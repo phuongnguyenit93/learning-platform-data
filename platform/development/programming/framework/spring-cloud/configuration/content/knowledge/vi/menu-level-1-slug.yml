@@ -1,0 +1,91 @@
+menu:
+- title: Định hướng
+  slug: overview-and-goals
+  index: 0
+- title: Nền tảng cấu hình
+  slug: configuration-fundamentals
+  index: 1
+- title: Kiến trúc Config
+  slug: config-architecture
+  index: 2
+- title: Chuẩn bị môi trường
+  slug: environment-setup
+  index: 3
+- title: Thiết kế kho cấu hình
+  slug: configuration-repository-design
+  index: 4
+- title: Profile và label
+  slug: profiles-and-labels
+  index: 5
+- title: Config Server
+  slug: config-server
+  index: 6
+- title: API cấu hình
+  slug: configuration-api
+  index: 7
+- title: Kho Git
+  slug: git-backend
+  index: 8
+- title: Nguồn lưu trữ khác
+  slug: alternative-backends
+  index: 9
+- title: Kho tổng hợp
+  slug: composite-repositories
+  index: 10
+- title: Config Client
+  slug: config-client
+  index: 11
+- title: Thứ tự ưu tiên
+  slug: property-precedence
+  index: 12
+- title: Bootstrap cũ
+  slug: legacy-bootstrap
+  index: 13
+- title: Làm mới cấu hình
+  slug: configuration-refresh
+  index: 14
+- title: RefreshScope
+  slug: refreshscope
+  index: 15
+- title: Spring Cloud Bus
+  slug: spring-cloud-bus
+  index: 16
+- title: Webhook cấu hình
+  slug: configuration-webhooks
+  index: 17
+- title: Mã hóa cấu hình
+  slug: configuration-encryption
+  index: 18
+- title: Bảo mật
+  slug: security
+  index: 19
+- title: Vault Config
+  slug: vault-config
+  index: 20
+- title: Consul Config
+  slug: consul-config
+  index: 21
+- title: Zookeeper Config
+  slug: zookeeper-config
+  index: 22
+- title: Độ sẵn sàng
+  slug: high-availability
+  index: 23
+- title: Quản trị thay đổi
+  slug: change-management
+  index: 24
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 25
+- title: Kiểm thử
+  slug: testing
+  index: 26
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 27
+- title: Mở rộng và nâng cấp
+  slug: scaling-and-upgrades
+  index: 28
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 29

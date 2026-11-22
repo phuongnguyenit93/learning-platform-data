@@ -1,0 +1,13 @@
+references:
+  - title: "ISO/IEC 25010:2023 - Product Quality Model"
+    url: "https://www.iso.org/standard/78176.html"
+    description: "Tiêu chuẩn chất lượng sản phẩm phần mềm, là cơ sở xác định yêu cầu độ tin cậy."
+  - title: "Microsoft Azure - Design a Reliability Testing Strategy"
+    url: "https://learn.microsoft.com/en-us/azure/well-architected/reliability/reliability-test"
+    description: "Hướng dẫn thử lỗi, xác thực mục tiêu độ tin cậy, failover và khôi phục."
+  - title: "AWS Well-Architected Framework - Reliability"
+    url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/reliability.html"
+    description: "Nguyên tắc thiết kế, vận hành và kiểm thử hệ thống có khả năng phục hồi."
+  - title: "Google Cloud Well-Architected Framework - Reliability Pillar"
+    url: "https://docs.cloud.google.com/architecture/framework/reliability"
+    description: "Khái niệm độ tin cậy, tính chống chịu lỗi, giám sát và kiểm thử phục hồi."

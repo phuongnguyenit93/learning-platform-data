@@ -1,0 +1,57 @@
+roadmap:
+- id: object-mapping-dto
+  title: Object Mapping & DTO
+  purpose: Hiểu mục đích chuyển đổi giữa các mô hình đối tượng và vai trò của DTO ở ranh giới ứng dụng.
+  objectives:
+  - Phân biệt source, target và DTO.
+  - Xác định trường nào cần hoặc không cần ánh xạ.
+  - Nhận diện trường hợp chuyển đổi hai chiều.
+- id: quy-tac-anh-xa
+  title: Quy tắc ánh xạ
+  purpose: Thiết kế hợp đồng chuyển đổi rõ ràng khi tên trường, kiểu dữ liệu hoặc cấu trúc khác nhau.
+  objectives:
+  - Xác định quy tắc đổi tên và bỏ qua trường.
+  - Ánh xạ giá trị mặc định và kiểu dữ liệu khác nhau.
+  - Đặt quy tắc cho trường bắt buộc và dữ liệu thiếu.
+- id: mapping-thu-cong
+  title: Mapping thủ công
+  purpose: Nắm cách tự chuyển đổi dữ liệu để hiểu rõ logic và giới hạn của việc sao chép thuộc tính.
+  objectives:
+  - Viết hàm chuyển Entity sang DTO và ngược lại.
+  - Ánh xạ với constructor, record hoặc setter phù hợp.
+  - Tránh rò rỉ trường nhạy cảm hoặc nội bộ.
+- id: object-long-collection
+  title: Object lồng & Collection
+  purpose: Ánh xạ cấu trúc nhiều tầng mà vẫn duy trì đúng quan hệ và thứ tự dữ liệu.
+  objectives:
+  - Chuyển đổi object lồng nhau và danh sách.
+  - Ánh xạ Map, enum và tập hợp khi cần.
+  - Tránh chia sẻ tham chiếu mutable ngoài ý muốn.
+- id: null-cap-nhat
+  title: Null & cập nhật
+  purpose: Kiểm soát giá trị thiếu và cách cập nhật đối tượng đích mà không ghi đè dữ liệu hợp lệ.
+  objectives:
+  - Phân biệt null với giá trị mặc định.
+  - Chọn hành vi bỏ qua hoặc ghi đè null khi cập nhật.
+  - Xác định khi nào cần tạo mới hay cập nhật object.
+- id: mapstruct
+  title: MapStruct
+  purpose: Sử dụng mapping sinh tại thời điểm biên dịch để giảm mã lặp và bắt lỗi sai tên trường sớm.
+  objectives:
+  - Định nghĩa mapper và cấu hình @Mapping.
+  - Chuyển đổi kiểu, danh sách và object lồng nhau.
+  - Kiểm tra code mapper được sinh và lỗi biên dịch.
+- id: modelmapper-lua-chon
+  title: ModelMapper & lựa chọn
+  purpose: Hiểu ánh xạ động và chọn cách tiếp cận phù hợp với độ phức tạp, hiệu năng và kiểm soát.
+  objectives:
+  - Thực hiện map object bằng ModelMapper.
+  - Cấu hình quy tắc trường và converter cơ bản.
+  - So sánh mapping thủ công, MapStruct và ModelMapper.
+- id: kiem-thu-mapping
+  title: Kiểm thử mapping
+  purpose: Đảm bảo phép biến đổi đúng dữ liệu và ổn định trước các trường hợp biên.
+  objectives:
+  - Viết test cho trường đổi tên, kiểu và collection.
+  - Kiểm tra null, cập nhật và chiều ánh xạ ngược.
+  - Xác nhận các trường không được phép không bị lộ.

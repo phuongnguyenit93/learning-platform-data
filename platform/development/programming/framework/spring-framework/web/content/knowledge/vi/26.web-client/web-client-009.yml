@@ -1,0 +1,3 @@
+menuLevel1: WebClient
+menuLevel2: Dùng WebClient trong MVC; chọn vị trí block và tránh chặn event loop
+status: WRITTEN

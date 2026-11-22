@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan Resource Server
+  slug: resource-server-overview
+  index: 0
+- title: OAuth 2.0 và OIDC
+  slug: oauth-and-oidc
+  index: 1
+- title: Bearer token
+  slug: bearer-tokens
+  index: 2
+- title: JWT và JOSE
+  slug: jwt-and-jose
+  index: 3
+- title: Hợp đồng access token
+  slug: access-token-contracts
+  index: 4
+- title: Khởi tạo và cấu hình
+  slug: bootstrap-configuration
+  index: 5
+- title: Chuỗi xử lý Servlet
+  slug: servlet-processing-chain
+  index: 6
+- title: Giải mã và xác minh JWT
+  slug: jwt-decode-and-verify
+  index: 7
+- title: Issuer và discovery
+  slug: issuer-and-discovery
+  index: 8
+- title: JWK và vòng đời khóa
+  slug: jwk-key-lifecycle
+  index: 9
+- title: Kiểm tra claims
+  slug: claim-validation
+  index: 10
+- title: Principal và danh tính
+  slug: principal-identity
+  index: 11
+- title: Scope và authorities
+  slug: scopes-and-authorities
+  index: 12
+- title: Phân quyền HTTP
+  slug: http-authorization
+  index: 13
+- title: Bảo vệ nghiệp vụ
+  slug: business-protection
+  index: 14
+- title: Opaque token
+  slug: opaque-token
+  index: 15
+- title: Tùy chỉnh introspection
+  slug: introspection-customization
+  index: 16
+- title: Lỗi và phản hồi Bearer
+  slug: bearer-error-handling
+  index: 17
+- title: Trạng thái và bảo vệ web
+  slug: web-security-state
+  index: 18
+- title: Kiến trúc WebFlux
+  slug: web-flux-architecture
+  index: 19
+- title: JWT trong WebFlux
+  slug: web-flux-jwt
+  index: 20
+- title: Introspection phản ứng
+  slug: reactive-introspection
+  index: 21
+- title: Nhiều tenant
+  slug: multi-tenancy
+  index: 22
+- title: Nhiều cơ chế xác thực
+  slug: multiple-authentication-mechanisms
+  index: 23
+- title: Tích hợp nhà phát hành
+  slug: issuer-integration
+  index: 24
+- title: Vòng đời và thu hồi
+  slug: token-lifecycle-revocation
+  index: 25
+- title: Token ràng buộc khóa
+  slug: proof-of-possession-tokens
+  index: 26
+- title: Chuyển tiếp token
+  slug: token-relay
+  index: 27
+- title: Kiểm thử Servlet
+  slug: servlet-testing
+  index: 28
+- title: Kiểm thử WebFlux
+  slug: webflux-testing
+  index: 29
+- title: Kiểm chứng tích hợp
+  slug: integration-verification
+  index: 30
+- title: Hiệu năng và vận hành
+  slug: performance-operations
+  index: 31
+- title: Triển khai an toàn
+  slug: secure-deployment
+  index: 32
+- title: Nâng cấp và di chuyển
+  slug: upgrade-migration
+  index: 33
+- title: Thực hành tổng hợp
+  slug: practical-exercises
+  index: 34

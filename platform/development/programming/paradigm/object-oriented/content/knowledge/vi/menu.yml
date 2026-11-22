@@ -1,0 +1,235 @@
+menu:
+- level1: Tư duy OOP
+  level2:
+  - OOP là gì và bài toán tổ chức chương trình
+  - Đối tượng, trạng thái, hành vi và trách nhiệm
+  - 'Lớp, kiểu và thể hiện: các khái niệm nền tảng'
+  - Tương tác giữa đối tượng và lời gọi phương thức
+  - Đóng gói, trừu tượng, kế thừa và đa hình
+  - 'OOP và lập trình thủ tục: cách phân chia bài toán'
+  - OOP dựa trên lớp và OOP dựa trên nguyên mẫu
+  - Khi nên và không nên sử dụng OOP
+- level1: Lớp
+  level2:
+  - 'Cấu trúc lớp: thuộc tính và phương thức'
+  - Khai báo lớp và tạo thể hiện
+  - Thành viên của thể hiện và thành viên dùng chung
+  - Phạm vi truy cập của thành viên
+  - Tham số, giá trị trả về và tác động của phương thức
+  - Thành viên chỉ đọc và thành viên có thể thay đổi
+  - Tham chiếu đến đối tượng hiện tại
+  - Thiết kế lớp qua ví dụ tài khoản ngân hàng
+- level1: Đối tượng
+  level2:
+  - Danh tính, trạng thái và hành vi của đối tượng
+  - Tham chiếu, giá trị và cách truyền đối tượng
+  - Nhiều tham chiếu cùng trỏ đến một đối tượng
+  - Phân biệt cùng đối tượng với bằng nhau về giá trị
+  - Đối tượng có thể thay đổi và đối tượng bất biến
+  - Sao chép nông và sao chép sâu
+  - Chia sẻ đối tượng và tác động của thay đổi trạng thái
+  - Giá trị rỗng và đối tượng chưa tồn tại
+  - Theo dõi tương tác của các đối tượng trong một tình huống
+- level1: Vòng đời
+  level2:
+  - Tạo đối tượng và cấp phát tài nguyên
+  - Hàm khởi tạo và thiết lập trạng thái hợp lệ
+  - Khởi tạo mặc định, tham số và nhiều cách khởi tạo
+  - Thứ tự khởi tạo trong quan hệ kế thừa
+  - Hàm tạo tĩnh, Factory và Builder
+  - Thời gian tồn tại, khả năng truy cập và giải phóng bộ nhớ
+  - Thu gom rác và quản lý bộ nhớ thủ công
+  - Đóng tài nguyên và giới hạn của hàm hủy
+  - Tránh để đối tượng chưa khởi tạo xong bị sử dụng
+- level1: Đóng gói
+  level2:
+  - Ẩn thông tin và ranh giới của đối tượng
+  - Điều kiện bất biến của đối tượng
+  - Kiểm soát truy cập và thay đổi trạng thái
+  - Getter, setter và phương thức thể hiện ý định
+  - Kiểm tra đầu vào tại ranh giới đối tượng
+  - Ngăn lộ dữ liệu nội bộ có thể thay đổi
+  - Sao chép phòng vệ và biểu diễn bất biến
+  - Đóng gói hành vi thay vì chỉ bao bọc dữ liệu
+  - Ví dụ bảo vệ số dư và trạng thái đơn hàng
+- level1: Trừu tượng
+  level2:
+  - Trừu tượng hóa và chọn đặc điểm thiết yếu
+  - Phân biệt trừu tượng với đóng gói
+  - Hợp đồng sử dụng và chi tiết thực hiện
+  - Tiền điều kiện, hậu điều kiện và cam kết hành vi
+  - Lớp trừu tượng và phương thức trừu tượng
+  - Phân biệt lớp cụ thể với lớp trừu tượng
+  - Mức trừu tượng phù hợp với bài toán
+  - Rò rỉ chi tiết thực hiện qua giao diện sử dụng
+- level1: Giao diện
+  level2:
+  - Giao diện như một hợp đồng và một vai trò
+  - Khai báo và thực hiện giao diện
+  - Lập trình dựa trên giao diện
+  - Một đối tượng đảm nhận nhiều giao diện
+  - Chọn giao diện hay lớp trừu tượng
+  - Giao diện nhỏ và phân tách vai trò
+  - Thành viên mặc định và giới hạn tùy ngôn ngữ
+  - Thay thế cách thực hiện mà giữ hợp đồng
+  - Thiết kế giao diện thanh toán hoặc lưu trữ
+- level1: Kế thừa
+  level2:
+  - Lớp cha, lớp con và quan hệ kế thừa
+  - Kế thừa trạng thái và hành vi
+  - Mở rộng hành vi của lớp cha
+  - Ghi đè phương thức và gọi hành vi lớp cha
+  - Khả năng truy cập thành viên được kế thừa
+  - Khởi tạo lớp con và chuỗi khởi tạo lớp cha
+  - Thành viên không thể ghi đè và lớp không thể kế thừa
+  - Kế thừa đơn, kế thừa đa và xung đột hành vi
+  - Mixin, trait và tái sử dụng hành vi tùy ngôn ngữ
+  - Giới hạn và chi phí của cây kế thừa sâu
+- level1: Kiểu con
+  level2:
+  - Phân biệt kế thừa mã với quan hệ kiểu con
+  - Quan hệ “là một” và tính thay thế
+  - Tương thích kiểu theo tên và theo cấu trúc
+  - Kiểu khai báo và kiểu thực tế của đối tượng
+  - Chuyển từ kiểu con sang kiểu cha
+  - Ép về kiểu con và kiểm tra kiểu
+  - Giữ đúng hợp đồng khi mở rộng kiểu
+  - Phản ví dụ hình chữ nhật và hình vuông
+- level1: Đa hình
+  level2:
+  - Đa hình và nhiều cách thực hiện cùng một thao tác
+  - Đa hình kiểu con qua giao diện hoặc lớp cha
+  - Phân giải phương thức tĩnh và phân giải động
+  - Ghi đè và lựa chọn phương thức khi chạy
+  - Phân biệt ghi đè với nạp chồng
+  - Phân biệt che khuất thành viên với ghi đè
+  - Phạm vi đa hình của phương thức và thuộc tính
+  - Duck typing và đa hình theo khả năng
+  - Đa hình thay cho điều kiện kiểm tra từng loại
+  - Ví dụ nhiều phương thức thanh toán
+- level1: Kết hợp
+  level2:
+  - Ghép đối tượng để xây dựng hành vi
+  - Quan hệ “có một” và quan hệ “là một”
+  - Ủy quyền công việc cho đối tượng khác
+  - Tái sử dụng bằng kết hợp và bằng kế thừa
+  - Thay đổi đối tượng cộng tác khi chạy
+  - Tiêm phụ thuộc qua hàm khởi tạo hoặc phương thức
+  - Quyền sở hữu và vòng đời đối tượng được chứa
+  - Chuyển thiết kế kế thừa sang kết hợp
+- level1: Quan hệ
+  level2:
+  - Liên kết giữa các đối tượng
+  - Sự phụ thuộc tạm thời và liên kết lâu dài
+  - Tập hợp và hợp thành
+  - 'Số lượng: một-một, một-nhiều và nhiều-nhiều'
+  - Hướng liên kết và khả năng điều hướng
+  - Quan hệ hai chiều và giữ dữ liệu nhất quán
+  - Vòng phụ thuộc và cách phá vòng
+  - Đọc ký hiệu quan hệ trong sơ đồ lớp
+- level1: Thiết kế lớp
+  level2:
+  - Xác định trách nhiệm của từng lớp
+  - Tính gắn kết bên trong lớp
+  - Mức phụ thuộc giữa các lớp
+  - Tách dữ liệu, nghiệp vụ và tương tác bên ngoài
+  - Đặt tên lớp, thuộc tính và phương thức
+  - Đối tượng thực thể, đối tượng giá trị và dịch vụ
+  - Mô hình giàu hành vi và mô hình chỉ chứa dữ liệu
+  - Tách truy vấn khỏi thao tác thay đổi trạng thái
+  - Giới hạn việc truy cập sâu vào chuỗi đối tượng
+- level1: Mô hình hóa
+  level2:
+  - Thu thập tình huống sử dụng và quy tắc nghiệp vụ
+  - Nhận diện đối tượng từ yêu cầu
+  - Phân chia trách nhiệm và đối tượng cộng tác
+  - 'Thẻ CRC: lớp, trách nhiệm và cộng tác'
+  - 'Sơ đồ lớp: thành viên và quan hệ'
+  - 'Sơ đồ đối tượng: các thể hiện tại một thời điểm'
+  - 'Sơ đồ tuần tự: thứ tự tương tác'
+  - 'Sơ đồ trạng thái: chuyển trạng thái hợp lệ'
+  - Đối chiếu mô hình với mã và tình huống thực tế
+- level1: SOLID
+  level2:
+  - Mục đích và phạm vi áp dụng SOLID
+  - 'Trách nhiệm đơn: một nhóm lý do thay đổi'
+  - 'Đóng-mở: mở rộng hành vi với thay đổi có kiểm soát'
+  - 'Thay thế Liskov: bảo toàn hợp đồng của kiểu cha'
+  - 'Phân tách giao diện: hợp đồng phù hợp từng bên sử dụng'
+  - 'Đảo ngược phụ thuộc: phụ thuộc vào sự trừu tượng'
+  - Phân biệt đảo ngược phụ thuộc và tiêm phụ thuộc
+  - Cân bằng các nguyên tắc với độ phức tạp thực tế
+- level1: Mẫu thiết kế
+  level2:
+  - 'Mẫu thiết kế: vấn đề, bối cảnh và đánh đổi'
+  - Factory Method và Abstract Factory
+  - Builder và việc tạo đối tượng phức tạp
+  - Singleton và rủi ro trạng thái dùng chung
+  - Adapter và tích hợp giao diện khác nhau
+  - Decorator và bổ sung hành vi
+  - Facade và đơn giản hóa cách sử dụng
+  - Strategy và thay thế thuật toán
+  - State và hành vi theo trạng thái
+  - Observer và thông báo thay đổi
+  - Template Method và khung thuật toán
+  - Command và đóng gói yêu cầu
+  - Khi mẫu thiết kế làm hệ thống phức tạp hơn cần thiết
+- level1: Cơ chế ngôn ngữ
+  level2:
+  - Kiểu tổng quát và lớp có tham số kiểu
+  - Ràng buộc tham số kiểu
+  - Quan hệ kiểu của các cấu trúc tổng quát
+  - Kiểu tĩnh, kiểu động và kiểm tra kiểu
+  - Toán tử, thuộc tính và quy ước của ngôn ngữ
+  - Hợp đồng so sánh bằng và mã băm
+  - Biểu diễn chuỗi và thông tin chẩn đoán của đối tượng
+  - Ngoại lệ, trạng thái lỗi và hợp đồng phương thức
+  - Khác biệt ngôn ngữ khi hiện thực cùng một thiết kế OOP
+- level1: Lỗi thiết kế
+  level2:
+  - Lớp ôm quá nhiều trách nhiệm
+  - Trạng thái công khai và mất điều kiện bất biến
+  - Getter, setter tràn lan nhưng thiếu hành vi
+  - Kế thừa chỉ để dùng lại vài phương thức
+  - Lạm dụng ép kiểu và kiểm tra kiểu
+  - Giao diện quá lớn hoặc quá nhiều lớp trừu tượng
+  - Phụ thuộc vòng và truy cập sâu vào đối tượng
+  - Trạng thái dùng chung khó kiểm soát
+  - Đối tượng có thể thay đổi làm sai phép so sánh hoặc mã băm
+  - Lạm dụng mẫu thiết kế và trừu tượng hóa quá sớm
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử hành vi công khai và hợp đồng đối tượng
+  - Kiểm thử hàm khởi tạo và trạng thái không hợp lệ
+  - Kiểm thử điều kiện bất biến và chuyển trạng thái
+  - Kiểm thử các cách thực hiện cùng một giao diện
+  - Kiểm thử tính thay thế của kiểu con
+  - Fake, stub, mock và đối tượng cộng tác
+  - Thiết kế để thay thế phụ thuộc khi kiểm thử
+  - Tránh kiểm thử phụ thuộc quá chặt vào chi tiết bên trong
+  - Kiểm thử hồi quy khi thay đổi thiết kế
+  - Kiểm thử tương tác giữa nhiều đối tượng
+- level1: Tái cấu trúc
+  level2:
+  - Nhận diện dấu hiệu cần cải thiện thiết kế
+  - Đổi tên để làm rõ ý định
+  - Tách phương thức và tách lớp
+  - Di chuyển hành vi về đối tượng chịu trách nhiệm
+  - Đóng gói trường dữ liệu và cấu trúc nội bộ
+  - Thay điều kiện theo loại bằng đa hình
+  - Thay kế thừa bằng kết hợp
+  - Gộp hoặc loại bỏ trừu tượng không cần thiết
+  - Cải thiện thiết kế từng bước với kiểm thử bảo vệ
+- level1: Thực hành
+  level2:
+  - Bài tập lớp và đối tượng qua tài khoản ngân hàng
+  - Bài tập đóng gói quy tắc của đơn hàng
+  - Bài tập giao diện và đa hình thanh toán
+  - Bài tập chọn kế thừa hay kết hợp
+  - Bài tập đối tượng giá trị và so sánh bằng
+  - Bài tập nhận diện lỗi thiết kế
+  - Bài tập tái cấu trúc đoạn mã thủ tục thành mô hình đối tượng
+  - 'Dự án tổng hợp: phân tích yêu cầu và tình huống sử dụng'
+  - 'Dự án tổng hợp: thiết kế lớp và quan hệ'
+  - 'Dự án tổng hợp: hiện thực và kiểm thử hành vi'
+  - 'Dự án tổng hợp: thay đổi yêu cầu và đánh giá thiết kế'

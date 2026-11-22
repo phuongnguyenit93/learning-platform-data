@@ -1,0 +1,3589 @@
+menu:
+- slug: protection-overview
+  title: Bản đồ bảo vệ
+  childs:
+  - slug: protection-overview-001
+    title: Spring Security Protection là gì và các nhóm nguy cơ cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-002
+    title: Quan hệ giữa xác thực, phân quyền và bảo vệ trước kiểu tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-003
+    title: Tài nguyên, dữ liệu và hành động cần được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-004
+    title: Vai trò của máy chủ, trình duyệt và hạ tầng trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-005
+    title: Các lớp CSRF, HTTP headers, HTTPS và request firewall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-006
+    title: Phân biệt cấu hình mặc định với chính sách riêng của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-007
+    title: Phạm vi hỗ trợ trên Servlet và WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-008
+    title: Từ mô hình nguy cơ đến cơ chế bảo vệ và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-overview-009
+    title: Lộ trình học từ một yêu cầu HTTP đến hành trình người dùng hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browser-foundations
+  title: Nền tảng trình duyệt
+  childs:
+  - slug: browser-foundations-001
+    title: Origin gồm scheme, host và port
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-002
+    title: Khái niệm site và sự khác biệt với origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-003
+    title: Same-Origin Policy và ranh giới đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-004
+    title: Cách trình duyệt gửi cookie và thông tin xác thực tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-005
+    title: Yêu cầu cùng nguồn, khác nguồn và khác site
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-006
+    title: HTTP method an toàn và hành động làm thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-007
+    title: Content-Type, yêu cầu đơn giản và yêu cầu có preflight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-008
+    title: Header do trình duyệt quản lý và dữ liệu client có thể cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-009
+    title: Cookie, bộ nhớ phía client và thời gian sống của thông tin đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-010
+    title: Nguy cơ từ mã chạy trong trang và từ yêu cầu phát sinh bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-foundations-011
+    title: Mô hình tin cậy giữa trình duyệt, ứng dụng và dịch vụ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: applied-security-architecture
+  title: Kiến trúc áp dụng
+  childs:
+  - slug: applied-security-architecture-001
+    title: SecurityFilterChain và đường đi của yêu cầu Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-002
+    title: SecurityWebFilterChain và đường đi của yêu cầu WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-003
+    title: FilterChainProxy, WebFilterChainProxy và phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-004
+    title: Thứ tự các lớp CORS, CSRF, xác thực và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-005
+    title: Lớp ghi header trước khi phản hồi được gửi hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-006
+    title: RequestMatcher và ServerWebExchangeMatcher theo mô hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-007
+    title: Nhiều security chain và nguyên tắc chọn chain phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-008
+    title: Khác biệt giữa cho phép truy cập với bỏ qua security chain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-009
+    title: Đường dẫn tài nguyên tĩnh và các lớp bảo vệ vẫn cần áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-010
+    title: Xử lý từ chối ở firewall, CSRF và tầng phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-011
+    title: Kiểm tra phạm vi áp dụng với ERROR, FORWARD và ASYNC dispatch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: applied-security-architecture-012
+    title: Ranh giới giữa bộ lọc bảo mật với controller, service và proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-and-versions
+  title: Cấu hình và phiên bản
+  childs:
+  - slug: configuration-and-versions-001
+    title: Chọn dòng Spring Security phù hợp với Spring Framework và Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-002
+    title: Lambda DSL cho HttpSecurity và ServerHttpSecurity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-003
+    title: Cấu hình theo bean thay cho các ví dụ kế thừa cấu hình cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-004
+    title: Đối chiếu mặc định CSRF và header trên phiên bản đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-005
+    title: Request matcher và thay đổi cách khớp đường dẫn giữa các dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-006
+    title: Tách cấu hình dùng chung khỏi phần riêng cho Servlet hoặc Reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-007
+    title: Cấu hình theo môi trường và nguồn gốc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-008
+    title: Phạm vi áp dụng chính sách trên từng security chain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-009
+    title: Cấu hình CSRF SPA chuyên biệt từ Spring Security 7.0
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-010
+    title: Khả năng dùng firewall Reactive từ các phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versions-011
+    title: Đọc API, migration guide và kiểm thử lại khi đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csrf-mechanism
+  title: Cơ chế CSRF
+  childs:
+  - slug: csrf-mechanism-001
+    title: Giả mạo yêu cầu liên trang (CSRF) và điều kiện xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-002
+    title: Vai trò của thông tin xác thực được trình duyệt tự gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-003
+    title: Mẫu synchronizer token và cách gắn token với phiên người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-004
+    title: Mẫu double-submit cookie, biến thể có ký và điều kiện kiểm soát cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-005
+    title: Lưu giá trị dự kiến và nhận giá trị client gửi để đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-006
+    title: Token truyền qua trường form hoặc HTTP header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-007
+    title: Phân biệt CSRF token với session ID và access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-008
+    title: Bảo vệ yêu cầu đăng nhập và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-009
+    title: Phương thức an toàn chỉ dùng cho hành động đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-010
+    title: SameSite và quan hệ với bảo vệ bằng token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-011
+    title: Mã XSS ảnh hưởng thế nào đến giả thiết của cơ chế CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-012
+    title: Điều kiện đánh giá nguy cơ theo cách lưu và gửi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-mechanism-013
+    title: Thiết kế ca kiểm thử có token đúng, thiếu và sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: servlet-csrf
+  title: CSRF trên Servlet
+  childs:
+  - slug: servlet-csrf-001
+    title: CsrfFilter và vị trí kiểm tra trong filter chain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-002
+    title: CsrfTokenRepository và trách nhiệm tạo, lưu, đọc token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-003
+    title: HttpSessionCsrfTokenRepository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-004
+    title: CookieCsrfTokenRepository và quy ước cookie–header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-005
+    title: CsrfTokenRequestHandler và cách đưa token vào request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-006
+    title: CsrfTokenRequestAttributeHandler và giá trị token thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-007
+    title: XorCsrfTokenRequestAttributeHandler và cơ chế giảm nguy cơ BREACH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-008
+    title: DeferredCsrfToken và thời điểm tải hoặc tạo token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-009
+    title: Token gốc, token được che và quá trình giải quyết giá trị gửi lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-010
+    title: Tùy chỉnh tên cookie, tên header và tên tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-011
+    title: MissingCsrfTokenException, InvalidCsrfTokenException và phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-012
+    title: AccessDeniedHandler cho lỗi CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-csrf-013
+    title: Kiểm tra thời điểm token được xóa hoặc thay sau xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csrf-and-forms
+  title: CSRF và biểu mẫu
+  childs:
+  - slug: csrf-and-forms-001
+    title: Chèn token vào form hiển thị phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-002
+    title: Tích hợp với form tag và template engine phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-003
+    title: Đưa token vào nút đăng nhập và form đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-004
+    title: Form nhiều bước, quay lại và gửi lại trang cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-005
+    title: Session hết hạn trong lúc người dùng đang nhập liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-006
+    title: Hiển thị lỗi và cách lấy token mới khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-007
+    title: Multipart upload và thứ tự phân tích nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-008
+    title: Gửi token qua header khi tải tệp bằng JavaScript
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-009
+    title: Đánh đổi khi đặt token trong tham số URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-010
+    title: HiddenHttpMethodFilter và phương thức thực sự được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-forms-011
+    title: Kiểm thử các nhánh điều hướng mà vẫn giữ CSRF hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csrf-for-spa-and-api
+  title: CSRF cho SPA và API
+  childs:
+  - slug: csrf-for-spa-and-api-001
+    title: Cookie đăng nhập và cách đánh giá CSRF cho API JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-002
+    title: Token do JavaScript chủ động gửi trong Authorization header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-003
+    title: Ứng dụng stateless và các nguồn thông tin xác thực trình duyệt vẫn có thể tự gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-004
+    title: Lấy CSRF token khi khởi tạo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-005
+    title: Cookie XSRF và header do frontend gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-006
+    title: Quyền JavaScript đọc cookie CSRF và phân biệt với cookie phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-007
+    title: Xử lý token gốc trong cookie cùng token được che của request handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-008
+    title: Lấy token mới sau đăng nhập và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-009
+    title: CsrfConfigurer.spa() trên dòng phiên bản có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-010
+    title: Cấu hình repository và request handler trên các dòng trước đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-011
+    title: Frontend khác origin và phối hợp credentials với CORS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-012
+    title: Mobile client cùng backend phục vụ trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-for-spa-and-api-013
+    title: Tránh đưa token vào log, cache công khai hoặc đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-csrf
+  title: CSRF trên Reactive
+  childs:
+  - slug: reactive-csrf-001
+    title: CsrfWebFilter và luồng kiểm tra trong WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-002
+    title: ServerCsrfTokenRepository và các thao tác không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-003
+    title: WebSessionServerCsrfTokenRepository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-004
+    title: CookieServerCsrfTokenRepository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-005
+    title: ServerCsrfTokenRequestHandler và exchange attributes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-006
+    title: XorServerCsrfTokenRequestAttributeHandler theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-007
+    title: Mono<CsrfToken> và thời điểm đăng ký để lấy token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-008
+    title: Đưa token vào view hoặc phản hồi cho client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-009
+    title: Nhận token từ header hoặc tham số theo cơ chế hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-010
+    title: Tùy chỉnh ServerWebExchangeMatcher cho yêu cầu được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-011
+    title: ServerAccessDeniedHandler và xử lý lỗi CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-csrf-012
+    title: Kiểm thử vòng đời token khi WebSession thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csrf-scope
+  title: Phạm vi kiểm tra CSRF
+  childs:
+  - slug: csrf-scope-001
+    title: Xác định endpoint thay đổi trạng thái và kiểu client gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-002
+    title: Matcher yêu cầu CSRF và matcher miễn trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-003
+    title: Giới hạn miễn trừ theo đường dẫn, phương thức và hợp đồng xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-004
+    title: Webhook có cơ chế xác minh riêng và ranh giới với trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-005
+    title: API dùng bearer token cùng khu vực dùng cookie phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-006
+    title: Phân biệt permitAll với việc bỏ kiểm tra CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-007
+    title: Ảnh hưởng của bỏ qua toàn bộ security chain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-008
+    title: Xử lý nhiều chain với chính sách CSRF khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-009
+    title: Kiểm tra các endpoint mới có rơi ngoài phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-010
+    title: Đánh giá thay đổi khi chuyển cách lưu token hoặc thêm trình duyệt client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-scope-011
+    title: Ghi rõ giả thiết và kiểm thử hồi quy cho mỗi ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cors
+  title: CORS
+  childs:
+  - slug: cors-001
+    title: CORS giải quyết quyền đọc phản hồi khác nguồn như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-002
+    title: Yêu cầu thực tế và preflight OPTIONS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-003
+    title: Origin được phép và cách so khớp chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-004
+    title: Allowed methods, allowed headers và exposed headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-005
+    title: Credentials, cookie và ràng buộc khi cho phép origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-006
+    title: Allowed origin patterns và phạm vi tin cậy được mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-007
+    title: CorsConfigurationSource và UrlBasedCorsConfigurationSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-008
+    title: CorsFilter cùng tích hợp cấu hình Spring MVC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-009
+    title: CorsWebFilter và cấu hình cho WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-010
+    title: Thứ tự xử lý preflight trước các yêu cầu xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-011
+    title: Nhiều nguồn cấu hình CORS và cấu hình theo security chain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-012
+    title: Vary, bộ nhớ đệm preflight và phản hồi qua CDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-013
+    title: Vai trò riêng của CORS, CSRF và phân quyền phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-014
+    title: Kiểm thử cả origin được phép, bị chặn và client ngoài trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-header-architecture
+  title: Kiến trúc HTTP header
+  childs:
+  - slug: http-header-architecture-001
+    title: Header bảo mật được máy chủ gửi và trình duyệt thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-002
+    title: Tập header mặc định trên phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-003
+    title: HeaderWriterFilter và HeaderWriter trên Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-004
+    title: ServerHttpHeadersWriter và cơ chế ghi header trên Reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-005
+    title: Thời điểm ghi header và phản hồi đã được gửi hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-006
+    title: Tùy chỉnh một header trong khi giữ các mặc định khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-007
+    title: Cấu hình header tĩnh bằng writer phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-008
+    title: Ghi header theo matcher hoặc theo dữ liệu của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-009
+    title: Header có sẵn từ controller, container hoặc proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-010
+    title: Tránh header lặp và chính sách mâu thuẫn giữa các lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-011
+    title: Kiểm tra header trên phản hồi thành công, redirect và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-header-architecture-012
+    title: Phân biệt có cấu hình writer với thực sự có header trên đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching-and-mime
+  title: Bộ nhớ đệm và MIME
+  childs:
+  - slug: caching-and-mime-001
+    title: Cache-Control cho dữ liệu gắn với người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-002
+    title: Ý nghĩa của no-store, no-cache và chính sách xác thực lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-003
+    title: Pragma, Expires và tương thích với hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-004
+    title: CacheControlHeadersWriter và header do ứng dụng đã đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-005
+    title: Tài nguyên tĩnh được cache với chính sách riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-006
+    title: Cache tại trình duyệt, reverse proxy và CDN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-007
+    title: Dữ liệu sau đăng xuất và giới hạn của chính sách cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-008
+    title: X-Content-Type-Options và nosniff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-009
+    title: Đặt Content-Type chính xác cho HTML, JSON và tệp tải xuống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-010
+    title: Content-Disposition và trách nhiệm của lớp phục vụ tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-mime-011
+    title: Kiểm thử nội dung riêng tư không bị dùng chung giữa người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: clickjacking-protection
+  title: Chống nhúng trang
+  childs:
+  - slug: clickjacking-protection-001
+    title: Clickjacking và tương tác bị đánh lừa trong iframe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-002
+    title: X-Frame-Options với chính sách DENY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-003
+    title: SAMEORIGIN và yêu cầu nhúng trang cùng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-004
+    title: Giới hạn của giá trị ALLOW-FROM trong hệ sinh thái hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-005
+    title: CSP frame-ancestors và nguồn được phép nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-006
+    title: Phân biệt frame-ancestors với frame-src
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-007
+    title: Phối hợp X-Frame-Options và CSP trên các trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-008
+    title: Ngoại lệ nhúng trang theo endpoint với phạm vi xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-009
+    title: Kiểm thử việc nhúng từ trang cùng nguồn và khác nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clickjacking-protection-010
+    title: Đánh giá nhu cầu iframe của thư viện giao diện hoặc ứng dụng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-security-policy
+  title: Chính sách nội dung CSP
+  childs:
+  - slug: content-security-policy-001
+    title: CSP và vai trò giảm tác động của nội dung bị chèn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-002
+    title: ContentSecurityPolicyHeaderWriter và chỉ thị do ứng dụng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-003
+    title: Content-Security-Policy và chế độ Report-Only
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-004
+    title: default-src và chính sách theo từng nhóm tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-005
+    title: script-src, style-src và mã inline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-006
+    title: Nonce riêng cho phản hồi cùng cách truyền vào template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-007
+    title: Hash cho tài nguyên nội tuyến cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-008
+    title: object-src, base-uri và form-action
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-009
+    title: connect-src cho fetch, WebSocket và các kết nối phía client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-010
+    title: img-src, font-src và tài nguyên từ dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-011
+    title: Giới hạn của allowlist rộng cùng unsafe-inline, unsafe-eval
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-012
+    title: Báo cáo vi phạm và lộ trình chuyển từ quan sát sang chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-013
+    title: Phối hợp CSP giữa ứng dụng, proxy và cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-security-policy-014
+    title: Kiểm thử hành vi thật trên trình duyệt ngoài việc kiểm tra chuỗi header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browser-permissions-and-isolation
+  title: Quyền và cô lập trình duyệt
+  childs:
+  - slug: browser-permissions-and-isolation-001
+    title: Referrer-Policy và dữ liệu được gửi theo liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-002
+    title: Permissions-Policy cho camera, microphone và tính năng trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-003
+    title: X-Permitted-Cross-Domain-Policies và trường hợp sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-004
+    title: Cross-Origin-Opener-Policy và quan hệ giữa các cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-005
+    title: Cross-Origin-Embedder-Policy và điều kiện tải tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-006
+    title: Cross-Origin-Resource-Policy và phạm vi dùng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-007
+    title: Phối hợp COOP, COEP, CORP với CORS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-008
+    title: Ảnh hưởng của cô lập đến popup, đăng nhập ngoài và thư viện nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-009
+    title: HeaderWriter tương ứng và khác biệt hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-010
+    title: Khả năng hỗ trợ trên trình duyệt và kiểm thử suy giảm chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-permissions-and-isolation-011
+    title: Chọn chính sách theo dữ liệu cùng tính năng ứng dụng thực sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: https-and-hsts
+  title: HTTPS và HSTS
+  childs:
+  - slug: https-and-hsts-001
+    title: Mã hóa đường truyền và ranh giới cấu hình của Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-002
+    title: Chuyển hướng yêu cầu HTTP sang HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-003
+    title: redirectToHttps và API tương ứng theo dòng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-004
+    title: Chọn yêu cầu cần chuyển hướng và tránh vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-005
+    title: Strict-Transport-Security và cách trình duyệt ghi nhớ chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-006
+    title: HstsHeaderWriter cùng điều kiện yêu cầu được xem là secure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-007
+    title: max-age và thời gian hiệu lực phía trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-008
+    title: includeSubDomains và phạm vi các tên miền con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-009
+    title: Preload và sự khác biệt với chỉ gửi chỉ thị trong header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-010
+    title: Giới hạn bảo vệ ở lần truy cập đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-011
+    title: HTTPS tại ứng dụng hoặc kết thúc TLS tại proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-012
+    title: Phối hợp HSTS, cookie Secure và địa chỉ redirect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: https-and-hsts-013
+    title: Kiểm thử truy cập HTTP, HTTPS và nhận diện giao thức qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-and-origins
+  title: Proxy và nguồn gốc
+  childs:
+  - slug: proxy-and-origins-001
+    title: Reverse proxy, load balancer và địa chỉ client nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-002
+    title: Forwarded, X-Forwarded-Proto, Host và cổng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-003
+    title: Ranh giới tin cậy khi tiếp nhận forwarded headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-004
+    title: Loại bỏ header giả mạo trước khi chuyển vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-005
+    title: ForwardedHeaderFilter hoặc cấu hình container trong Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-006
+    title: ForwardedHeaderTransformer và cấu hình tương ứng trên WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-007
+    title: Chọn cơ chế xử lý forwarded headers theo phiên bản Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-008
+    title: Nhận diện HTTPS để ghi HSTS và cookie đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-009
+    title: URL redirect, context path và tiền tố do proxy thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-010
+    title: Header do CDN thêm, sửa hoặc giữ trong cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-origins-011
+    title: Kiểm thử ứng dụng qua đường truy cập triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: servlet-firewall
+  title: Firewall trên Servlet
+  childs:
+  - slug: servlet-firewall-001
+    title: HttpFirewall và vị trí trước khi chọn security chain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-002
+    title: StrictHttpFirewall cùng nguyên tắc từ chối yêu cầu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-003
+    title: Đường dẫn chưa chuẩn hóa và khác biệt giữa các container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-004
+    title: contextPath, servletPath, pathInfo và dữ liệu dùng để khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-005
+    title: Semicolon, path parameters và matrix variables
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-006
+    title: Dấu phân cách được mã hóa, backslash và ký tự không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-007
+    title: Danh sách phương thức HTTP được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-008
+    title: Header name, header value và ràng buộc ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-009
+    title: Parameter name, parameter value và điều kiện hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-010
+    title: Host được phép theo nhu cầu triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-011
+    title: RequestRejectedException và RequestRejectedHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-012
+    title: Phân biệt từ chối yêu cầu với sửa hoặc chuẩn hóa yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-013
+    title: Ngoại lệ firewall có phạm vi cùng kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-firewall-014
+    title: Ranh giới giữa request firewall, WAF và kiểm tra dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-firewall
+  title: Firewall trên Reactive
+  childs:
+  - slug: reactive-firewall-001
+    title: ServerWebExchangeFirewall và phạm vi hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-002
+    title: StrictServerWebExchangeFirewall trong WebFilterChainProxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-003
+    title: Kiểm tra đường dẫn và phương thức HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-004
+    title: Kiểm tra header cùng tên, giá trị tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-005
+    title: Tùy chỉnh bean firewall trong cấu hình WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-006
+    title: ServerExchangeRejectedException và luồng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-007
+    title: ServerExchangeRejectedHandler cùng phản hồi từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-008
+    title: Kiểm soát các ngoại lệ cần thiết cho giao thức ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-009
+    title: Đối chiếu tùy chọn Reactive với tùy chọn Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-010
+    title: Kiểm thử trên HTTP server thực và qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-firewall-011
+    title: Đánh giá cấu hình khi nâng cấp từ phiên bản chưa có firewall Reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-and-cookies
+  title: Session và cookie
+  childs:
+  - slug: sessions-and-cookies-001
+    title: Session fixation và yêu cầu thay định danh sau đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-002
+    title: ChangeSessionIdAuthenticationStrategy trong Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-003
+    title: Các chiến lược đổi session theo khả năng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-004
+    title: WebSession và thay đổi định danh trong ứng dụng Reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-005
+    title: Giữ dữ liệu cần thiết khi chuyển từ phiên chưa đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-006
+    title: Secure, HttpOnly và trách nhiệm của từng thuộc tính cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-007
+    title: SameSite Strict, Lax, None và hành trình đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-008
+    title: Domain, Path và phạm vi cookie được trình duyệt gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-009
+    title: Chính sách cookie bên thứ ba và kiểm thử khả năng gửi cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-010
+    title: Phân biệt cookie phiên, cookie CSRF và cookie ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-011
+    title: 'Đơn vị sở hữu cấu hình cookie: container, Spring Session hoặc ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-012
+    title: Session timeout và phối hợp với vòng đời CSRF token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-013
+    title: Giới hạn phiên đồng thời theo yêu cầu bảo vệ tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-014
+    title: Thu hồi, xóa session và hiệu lực của dữ liệu client còn giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-015
+    title: Kiểm thử nhiều tab, đổi phiên và đăng xuất trên các thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: login-and-logout
+  title: Đăng nhập và đăng xuất
+  childs:
+  - slug: login-and-logout-001
+    title: Login CSRF và ràng buộc hành động đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-002
+    title: Logout CSRF và lựa chọn phương thức thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-003
+    title: Token CSRF mới sau khi thay đổi trạng thái xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-004
+    title: Thông báo đăng nhập thất bại và giới hạn tiết lộ danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-005
+    title: Ranh giới của Spring Security với kiểm soát tần suất đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-006
+    title: Xác minh đích redirect và dữ liệu saved request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-007
+    title: Đăng xuất phía máy chủ và dữ liệu còn lưu trên trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-008
+    title: Clear-Site-Data cùng các nhóm dữ liệu có thể yêu cầu xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-009
+    title: Gắn HeaderWriterLogoutHandler khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-010
+    title: Giới hạn hỗ trợ trình duyệt và yêu cầu kết nối an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-011
+    title: Phối hợp xóa cookie, session, cache và trạng thái frontend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-and-logout-012
+    title: Kiểm thử gửi lại yêu cầu đăng nhập hoặc đăng xuất từ trang cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: websocket-and-stomp
+  title: WebSocket và STOMP
+  childs:
+  - slug: websocket-and-stomp-001
+    title: Ranh giới bảo vệ tại HTTP handshake và tại lớp message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-002
+    title: Khác biệt thực thi same-origin đối với WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-003
+    title: Allowed origins trong cấu hình WebSocket hoặc SockJS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-004
+    title: Kế thừa danh tính từ kết nối HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-005
+    title: '@EnableWebSocketSecurity và lớp kiểm tra message'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-006
+    title: CSRF token trong STOMP CONNECT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-007
+    title: Truyền token bằng STOMP headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-008
+    title: CsrfChannelInterceptor và thông tin token theo phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-009
+    title: Phân biệt kiểm tra CONNECT với phân quyền SEND, SUBSCRIBE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-010
+    title: SockJS fallback và nhu cầu iframe cùng origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-011
+    title: Miễn trừ CSRF lớp HTTP cho transport trong phạm vi có bảo vệ thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-012
+    title: Giới hạn khi dùng WebSocket thuần hoặc mô hình Reactive khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-stomp-013
+    title: Kiểm thử kết nối bị từ chối và truy cập message ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Ứng dụng render phía máy chủ và form có cookie phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: SPA cùng origin qua reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: SPA khác origin với CORS và cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: API có client chủ động gửi bearer token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Hệ thống cùng phục vụ trình duyệt và client máy–máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Upload, download và trách nhiệm kiểm soát dữ liệu theo từng lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Đăng nhập liên kết với SameSite, redirect và các token giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Phân biệt CSRF token với state, nonce và PKCE trong OAuth/OIDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Trang nhúng, popup và tài nguyên bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Phối hợp headers giữa ứng dụng chính và endpoint quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-011
+    title: Thiết kế chính sách theo từng hành trình thay vì sao chép một cấu hình chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-012
+    title: Ghi lại giả thiết về client, thông tin xác thực và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protection-boundaries
+  title: Ranh giới bảo vệ
+  childs:
+  - slug: protection-boundaries-001
+    title: Phạm vi tự động bảo vệ và trách nhiệm của mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-002
+    title: XSS và yêu cầu mã hóa đầu ra đúng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-003
+    title: Nội dung HTML được phép nhập và nhu cầu làm sạch dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-004
+    title: SQL injection và truy vấn tham số hóa ở tầng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-005
+    title: SSRF và kiểm soát đích kết nối ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-006
+    title: Path traversal khi đọc tệp và kiểm tra đường dẫn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-007
+    title: Ràng buộc kích thước request, multipart và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-008
+    title: Rate limiting ở ứng dụng, gateway hoặc hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-009
+    title: Trình phân tích dữ liệu, deserialization và thư viện phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-010
+    title: Phân quyền đối tượng tại service để bảo vệ dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-011
+    title: Giới hạn của CORS hoặc response header với client ngoài trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-boundaries-012
+    title: Đặt từng lớp bảo vệ vào đúng mô hình nguy cơ của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: servlet-testing
+  title: Kiểm thử Servlet
+  childs:
+  - slug: servlet-testing-001
+    title: Tích hợp spring-security-test với MockMvc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-002
+    title: Đảm bảo security filter chain thực sự tham gia bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-003
+    title: Phân biệt giả lập danh tính với cung cấp CSRF token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-004
+    title: csrf() để gửi token hợp lệ trong tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-005
+    title: csrf().asHeader() cho yêu cầu dùng header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-006
+    title: csrf().useInvalidToken() cho ca dữ liệu token sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-007
+    title: Kiểm tra yêu cầu thiếu token và phương thức an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-008
+    title: Kiểm tra matcher miễn trừ cùng các endpoint vẫn phải bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-009
+    title: Kiểm tra header trên phản hồi thành công và phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-010
+    title: Kiểm tra CORS preflight và origin bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-011
+    title: Kiểm tra HTTP redirect cùng HSTS của yêu cầu secure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-012
+    title: Kiểm tra firewall và hành vi từ chối trước controller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-013
+    title: Kiểm tra đổi session ID và dữ liệu sau đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-testing-014
+    title: Giới hạn của kiểm thử giả lập với hành vi trình duyệt hoặc container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-testing
+  title: Kiểm thử Reactive
+  childs:
+  - slug: reactive-testing-001
+    title: Tích hợp spring-security-test với WebTestClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-002
+    title: Cấu hình security web filters trong bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-003
+    title: SecurityMockServerConfigurers.csrf() và token hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-004
+    title: Kiểm tra yêu cầu thiếu token hoặc giá trị không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-005
+    title: Kiểm tra CSRF repository dùng WebSession hoặc cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-006
+    title: Kiểm tra việc lấy Mono<CsrfToken> và vòng đời session
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-007
+    title: Kiểm tra CORS preflight qua CorsWebFilter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-008
+    title: Kiểm tra header cùng redirect trên ứng dụng WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-009
+    title: Kiểm tra StrictServerWebExchangeFirewall khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-010
+    title: Đối chiếu filter giả lập với HTTP server thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-testing-011
+    title: Giữ riêng cấu hình, dữ liệu và danh tính giữa các ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browser-testing
+  title: Kiểm thử trình duyệt
+  childs:
+  - slug: browser-testing-001
+    title: Xây dựng các trang thử ở cùng origin và khác origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-002
+    title: Quan sát cookie, request header và response header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-003
+    title: Kiểm tra gửi form liên trang trong môi trường kiểm thử riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-004
+    title: Kiểm tra CORS chặn đọc phản hồi cùng hành vi gửi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-005
+    title: Kiểm tra cookie SameSite trên các hành trình thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-006
+    title: Kiểm tra iframe được phép và bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-007
+    title: Kiểm tra script hợp lệ, script bị CSP chặn và báo cáo vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-008
+    title: Kiểm tra nonce thay đổi giữa các phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-009
+    title: Kiểm tra popup, tài nguyên nhúng và cô lập cross-origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-010
+    title: Kiểm tra đăng xuất, Back, Refresh và phiên hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-011
+    title: Kiểm tra proxy, CDN cùng header mà trình duyệt thực sự nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-testing-012
+    title: Chọn bằng chứng gồm phản hồi, console và kết quả hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-diagnostics
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: error-diagnostics-001
+    title: Phân biệt 401, 403 và lỗi từ chối yêu cầu ở firewall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-002
+    title: Tìm security chain thực sự xử lý endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-003
+    title: CSRF token thiếu do chưa được tạo hoặc chưa tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-004
+    title: Token không khớp do session, cookie hoặc cơ chế che giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-005
+    title: Token cũ sau đăng nhập, đăng xuất hoặc đổi phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-006
+    title: Cookie không được gửi do Secure, SameSite, Domain hoặc Path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-007
+    title: Preflight bị chặn trước khi xử lý CORS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-008
+    title: CORS header trùng hoặc origin cấu hình không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-009
+    title: Header bị thiếu trên tài nguyên đã bỏ qua security chain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-010
+    title: HSTS không xuất hiện do nhận diện sai HTTPS sau proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-011
+    title: CSP làm hỏng chức năng hoặc nonce không khớp template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-012
+    title: Firewall từ chối đường dẫn hoặc header hợp lệ của client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-013
+    title: Thu thập log cần thiết mà không ghi token hay nội dung nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-monitoring
+  title: Vận hành và giám sát
+  childs:
+  - slug: operations-and-monitoring-001
+    title: Quản lý cấu hình bảo vệ theo môi trường và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-002
+    title: Đối chiếu header thực tế sau mỗi lần triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-003
+    title: Chuyển CSP từ Report-Only sang thực thi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-004
+    title: Theo dõi lỗi CSRF và phân biệt lỗi tích hợp với yêu cầu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-005
+    title: Theo dõi request bị firewall từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-006
+    title: Giới hạn dữ liệu lưu trong báo cáo CSP và log bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-007
+    title: Phối hợp chính sách ứng dụng với CDN, proxy và gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-008
+    title: Đánh giá thay đổi domain, subdomain và hạ tầng TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-009
+    title: Triển khai chính sách HSTS theo phạm vi quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-010
+    title: Quản lý ngoại lệ theo endpoint và rà lại khi kiến trúc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-011
+    title: Kiểm thử hồi quy sau thay đổi frontend hoặc thư viện bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-monitoring-012
+    title: Duy trì cấu hình có thể giải thích bằng mô hình nguy cơ và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-and-compatibility
+  title: Nâng cấp và tương thích
+  childs:
+  - slug: upgrades-and-compatibility-001
+    title: Đối chiếu mặc định bảo vệ giữa các dòng Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-002
+    title: Chuyển cấu hình kế thừa cũ sang security chain và Lambda DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-003
+    title: Thay đổi request matcher và ngữ nghĩa đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-004
+    title: Deferred token cùng cơ chế XOR trong các dòng hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-005
+    title: Nâng cấu hình SPA theo API có trong phiên bản đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-006
+    title: Rà lại firewall Reactive và các tùy chọn mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-007
+    title: Đối chiếu API xử lý proxy của Spring Boot và Spring Framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-008
+    title: X-XSS-Protection cùng vai trò lịch sử của bộ lọc XSS trên trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-009
+    title: HPKP, Feature-Policy và các chính sách trình duyệt đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-010
+    title: Chuyển cấu hình WebSocket cũ sang mô hình được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-011
+    title: Kiểm tra khả năng hỗ trợ header trên các trình duyệt mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-compatibility-012
+    title: Lập kiểm thử hồi quy cho token, header, cookie và hành trình đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-protection-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-protection-practice-001
+    title: Thiết kế bảo vệ cho ứng dụng MVC có form và cookie phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-002
+    title: Thiết kế CSRF cho SPA có bước đăng nhập và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-003
+    title: Tách khu vực API bearer token khỏi khu vực dùng cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-004
+    title: Cấu hình CORS theo origin của từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-005
+    title: Bảo vệ ứng dụng WebFlux với CSRF và header tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-006
+    title: Thiết kế CSP cho trang dùng script nội bộ và dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-007
+    title: Cho phép nhúng một màn hình trong phạm vi đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-008
+    title: Triển khai HTTPS qua reverse proxy và xác minh HSTS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-009
+    title: Kiểm tra một ngoại lệ firewall bằng ca hợp lệ cùng ca bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-010
+    title: Bảo vệ STOMP CONNECT và kiểm tra message trên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-011
+    title: Tái hiện phiên hết hạn cùng luồng lấy CSRF token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-012
+    title: Hoàn thiện bộ kiểm thử giả lập, HTTP thực và trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-protection-practice-013
+    title: Đánh giá kết quả bằng mô hình nguy cơ, cấu hình và bằng chứng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: toan-canh-java-18
+  title: Toàn cảnh Java 18
+  purpose: Nắm các thay đổi của Java 18 còn áp dụng trong Java hiện đại.
+  objectives:
+  - Xác định các nhóm kiến thức ngôn ngữ, thư viện và công cụ cần học
+  - Phân biệt nội dung chính thức còn dùng được với API thử nghiệm đã thay đổi
+  - Chuẩn bị ví dụ trên JDK hiện hành và tra cứu đúng hợp đồng API
+- id: utf-8-mac-dinh
+  title: UTF-8 mặc định
+  purpose: Đọc ghi văn bản nhất quán giữa các môi trường và tránh lệ thuộc bảng mã hệ điều hành.
+  objectives:
+  - Giải thích thay đổi bảng mã mặc định từ JDK 18
+  - Chọn Charset tường minh tại ranh giới dữ liệu bên ngoài
+  - Kiểm thử tệp tiếng Việt và phân biệt bảng mã tệp với console
+- id: may-chu-tep-don-gian
+  title: Máy chủ tệp đơn giản
+  purpose: Phục vụ tệp tĩnh để thử nghiệm và học HTTP bằng công cụ chuẩn của JDK.
+  objectives:
+  - Chạy jwebserver với thư mục gốc, địa chỉ và cổng phù hợp
+  - Tạo máy chủ bằng SimpleFileServer và kiểm tra GET, HEAD
+  - Xác định giới hạn phục vụ tệp và phạm vi dùng cho phát triển, kiểm thử
+- id: javadoc-snippet
+  title: Javadoc snippet
+  purpose: Gắn ví dụ mã rõ ràng và có thể kiểm chứng vào tài liệu API.
+  objectives:
+  - Viết ví dụ bằng thẻ @snippet trong Javadoc
+  - Tách mã ví dụ ra tệp và chọn vùng mã cần hiển thị
+  - Tạo tài liệu rồi biên dịch, kiểm thử ví dụ để kiểm chứng tính đúng
+- id: reflection-hien-dai
+  title: Reflection hiện đại
+  purpose: Hiểu hợp đồng reflection và ảnh hưởng của việc triển khai bằng method handle từ JDK 18.
+  objectives:
+  - Đọc thành viên và gọi phương thức bằng API reflection công khai
+  - Phân biệt hợp đồng API với cơ chế MethodHandles bên dưới
+  - Kiểm thử thư viện phản chiếu mà không phụ thuộc lớp nội bộ của JDK
+- id: phan-giai-dia-chi
+  title: Phân giải địa chỉ
+  purpose: Tùy biến cách đổi tên máy và địa chỉ IP qua SPI chuẩn.
+  objectives:
+  - Phân biệt vai trò InetAddress, InetAddressResolver và InetAddressResolverProvider
+  - Đăng ký lớp cung cấp qua ServiceLoader
+  - Kiểm tra tra cứu thành công, lỗi và việc dùng bộ phân giải mặc định
+- id: dong-tai-nguyen
+  title: Đóng tài nguyên
+  purpose: Quản lý tài nguyên ngoài heap bằng vòng đời tường minh và có thể kiểm thử.
+  objectives:
+  - Xác định tài nguyên phải được đóng độc lập với thu gom rác
+  - Dùng AutoCloseable và try-with-resources
+  - Kiểm thử đường đi có ngoại lệ và xác nhận tài nguyên vẫn được đóng
+- id: thuc-hanh-tich-hop
+  title: Thực hành tích hợp
+  purpose: Kiểm chứng các API đã học trong công cụ nhỏ với kết quả quan sát được.
+  objectives:
+  - Tạo bộ tệp UTF-8 rồi phục vụ bằng máy chủ tệp cục bộ
+  - Viết Javadoc snippet và kiểm thử ví dụ đi kèm
+  - Thử lớp phân giải địa chỉ tùy chỉnh và kiểm tra việc đóng tài nguyên

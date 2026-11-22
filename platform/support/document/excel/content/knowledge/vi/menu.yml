@@ -1,0 +1,317 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Excel trong Java: bài toán trao đổi dữ liệu, báo cáo và tự động hóa'
+  - 'Sổ làm việc, trang tính, hàng, cột và ô: các khái niệm nền tảng'
+  - Quan hệ giữa dữ liệu, kiểu ô, công thức và cách hiển thị
+  - 'Luồng nhập dữ liệu: nhận tệp, đọc, kiểm tra và chuyển đổi'
+  - 'Luồng xuất dữ liệu: chuẩn bị dữ liệu, dựng workbook và bàn giao tệp'
+  - Phân biệt tệp dữ liệu máy đọc với báo cáo phục vụ người dùng
+  - Phạm vi của thư viện Excel và những tính năng cần ứng dụng bảng tính
+- level1: Định dạng tệp
+  level2:
+  - 'XLS, XLSX và XLSM: cấu trúc, khả năng tương thích và cách lựa chọn'
+  - 'HSSF, XSSF và SXSSF trong Apache POI: vai trò và giới hạn'
+  - 'Cấu trúc XLSX: gói ZIP, XML, quan hệ và các thành phần dùng chung'
+  - Giới hạn hàng, cột, độ dài ô và kiểu dáng theo định dạng
+  - 'Đuôi tệp, kiểu MIME và chữ ký nội dung: nhận diện đúng định dạng'
+  - 'Tệp có macro: yêu cầu bảo toàn nội dung và giới hạn xử lý'
+  - 'Chuyển đổi giữa XLS và XLSX: những đặc tính có thể mất'
+  - Tương thích với Microsoft Excel, LibreOffice và trình xem trực tuyến
+- level1: Thiết lập Java
+  level2:
+  - Khai báo Apache POI trong Gradle hoặc Maven cho dự án Java
+  - Phân biệt poi và poi-ooxml cùng các phụ thuộc liên quan
+  - Quản lý phiên bản thư viện và xử lý xung đột phụ thuộc
+  - Tổ chức lớp đọc, lớp ghi, ánh xạ và kiểm tra dữ liệu
+  - Làm việc với Path, InputStream, OutputStream và byte array
+  - Quản lý Workbook và luồng bằng try-with-resources
+  - Tạo ví dụ đọc và ghi tối thiểu để kiểm tra môi trường
+- level1: Mô hình Excel
+  level2:
+  - Workbook, Sheet, Row và Cell trong mô hình đối tượng Apache POI
+  - Chỉ số hàng và cột từ 0 so với địa chỉ A1 trong Excel
+  - 'CellReference và CellRangeAddress: biểu diễn địa chỉ và vùng ô'
+  - Phân biệt ô không tồn tại, ô trống và ô chứa chuỗi rỗng
+  - Hàng thưa, ô thưa và giới hạn của bộ duyệt hiện có
+  - 'Chỉ số hàng cuối và số lượng hàng vật lý: cách diễn giải'
+  - 'Trạng thái sheet: thứ tự, sheet đang chọn, ẩn và hiển thị'
+  - Vòng đời đối tượng và phạm vi sử dụng workbook an toàn
+- level1: Đọc workbook
+  level2:
+  - Mở workbook từ tệp hoặc luồng bằng WorkbookFactory
+  - Chọn sheet theo tên hoặc vị trí và xử lý sheet bị thiếu
+  - Duyệt hàng và ô theo chỉ số hoặc bộ duyệt
+  - Chính sách MissingCellPolicy khi đọc ô thiếu
+  - Xác định hàng tiêu đề, vùng dữ liệu và điều kiện kết thúc
+  - Đọc nhiều sheet và phân biệt cấu trúc của từng sheet
+  - Nhận diện hàng rỗng, hàng ẩn và dữ liệu nằm ngoài bảng
+  - 'Đọc vùng gộp ô: vị trí lưu giá trị và cách diễn giải'
+  - Đọc tệp lỗi định dạng, tệp hỏng và tệp có mật khẩu
+- level1: Ghi workbook
+  level2:
+  - Tạo workbook mới bằng HSSFWorkbook hoặc XSSFWorkbook
+  - Tạo sheet và đặt tên phù hợp với quy tắc của Excel
+  - Tạo hàng, ô và ghi giá trị bằng đúng kiểu dữ liệu
+  - Ghi một bảng dữ liệu kèm tiêu đề và thứ tự cột ổn định
+  - Ghi nhiều sheet và xử lý tên sheet trùng nhau
+  - Mở tệp hiện có để cập nhật đúng ô hoặc vùng dữ liệu
+  - Xuất workbook ra tệp, luồng và bộ nhớ
+  - Ghi tệp tạm rồi thay thế đích để tránh bàn giao tệp chưa hoàn tất
+  - Đóng tài nguyên và xác minh tệp có thể mở lại sau khi ghi
+- level1: Kiểu dữ liệu
+  level2:
+  - 'CellType: STRING, NUMERIC, BOOLEAN, FORMULA, BLANK và ERROR'
+  - Đọc giá trị gốc so với chuỗi hiển thị bằng DataFormatter
+  - Locale và định dạng số khi chuyển giá trị ô thành văn bản
+  - Mã định danh, số điện thoại và dữ liệu có số 0 đầu
+  - Giới hạn độ chính xác số của Excel đối với long và BigDecimal
+  - Lựa chọn lưu số hay chuỗi cho tiền tệ và mã nghiệp vụ
+  - Giá trị boolean và quy tắc chuyển đổi dữ liệu đầu vào
+  - Ký tự Unicode, xuống dòng và văn bản nhiều định dạng
+  - 'Ô lỗi và FormulaError: nhận diện, ghi nhận và phản hồi'
+- level1: Ngày giờ
+  level2:
+  - 'Ngày giờ trong Excel: số sê-ri và định dạng hiển thị'
+  - Hệ ngày 1900, hệ ngày 1904 và các trường hợp tương thích
+  - Nhận diện ô ngày giờ bằng DateUtil và định dạng ô
+  - Đọc và ghi LocalDate, LocalDateTime cùng các kiểu thời gian Java
+  - Múi giờ, thời điểm tuyệt đối và giá trị thời gian không có múi giờ
+  - Phân biệt ngày dạng chuỗi với ngày được lưu bằng số
+  - Thời lượng, phần thập phân của ngày và định dạng giờ
+  - Kiểm tra ngày không hợp lệ và tránh chuyển đổi ngày theo suy đoán
+- level1: Ánh xạ dữ liệu
+  level2:
+  - Thiết kế đối tượng nhận dữ liệu độc lập với cấu trúc workbook
+  - Ánh xạ cột theo vị trí và theo tên tiêu đề
+  - Chuẩn hóa tiêu đề có khoảng trắng, khác hoa thường hoặc bí danh
+  - Phát hiện cột bắt buộc bị thiếu và tiêu đề trùng nhau
+  - Bộ chuyển đổi kiểu cho số, ngày giờ, enum và giá trị tùy chọn
+  - Phân biệt giá trị thiếu với giá trị mặc định của nghiệp vụ
+  - Ánh xạ dữ liệu liên quan giữa nhiều sheet theo khóa
+  - Quản lý thay đổi cấu trúc cột và phiên bản mẫu nhập
+- level1: Kiểm tra dữ liệu
+  level2:
+  - Phân lớp kiểm tra cấu trúc tệp, kiểu dữ liệu và quy tắc nghiệp vụ
+  - Kiểm tra trường bắt buộc, độ dài, miền giá trị và mẫu ký tự
+  - Kiểm tra quan hệ giữa các cột trong cùng một hàng
+  - Phát hiện khóa trùng trong tệp và trùng với dữ liệu đã lưu
+  - Kiểm tra tham chiếu giữa các sheet hoặc với danh mục bên ngoài
+  - Gắn lỗi với tên sheet, số hàng, tên cột và giá trị gốc
+  - Lựa chọn dừng ngay, gom lỗi hoặc tiếp nhận một phần dữ liệu
+  - Tạo báo cáo lỗi có thể tải về mà vẫn bảo toàn dữ liệu đầu vào
+- level1: Kiểu dáng ô
+  level2:
+  - 'CellStyle, Font và DataFormat: các thành phần định dạng'
+  - Tái sử dụng kiểu dáng để tránh tạo quá nhiều CellStyle
+  - Định dạng số nguyên, thập phân, phần trăm, tiền tệ và văn bản
+  - Phông chữ, cỡ chữ, màu chữ và nhấn mạnh nội dung
+  - Màu nền, kiểu tô và đường viền ô
+  - Căn lề, thụt lề, xoay chữ và ngắt dòng trong ô
+  - Màu theo bảng màu HSSF và màu trong XSSF
+  - Sao chép kiểu dáng trong cùng workbook và giữa các workbook
+  - RichTextString cho nhiều kiểu chữ trong một ô
+  - Quy ước kiểu dáng nhất quán cho tiêu đề, dữ liệu, tổng và cảnh báo
+- level1: Bố cục sheet
+  level2:
+  - Độ rộng cột, chiều cao hàng và tác động đến khả năng đọc
+  - 'Auto-size cột: thời điểm áp dụng, chi phí và giới hạn'
+  - Gộp ô, hủy gộp và tránh các vùng gộp chồng lấn
+  - Đóng băng hàng, cột và chia khung nhìn
+  - Ẩn hoặc hiện hàng, cột và đường lưới
+  - Nhóm hàng, nhóm cột và mức thu gọn
+  - 'Chèn, dịch và xóa hàng: ảnh hưởng đến dữ liệu và tham chiếu'
+  - Sao chép hàng hoặc sheet và kiểm tra các thành phần đi kèm
+  - Bố trí tiêu đề, phần dữ liệu, ghi chú và tổng kết trong báo cáo
+- level1: Công thức
+  level2:
+  - Ghi biểu thức công thức bằng setCellFormula
+  - Tham chiếu tương đối, tuyệt đối và hỗn hợp trong địa chỉ ô
+  - Tham chiếu giữa các sheet và tên sheet chứa ký tự đặc biệt
+  - Phân biệt biểu thức, kết quả đã lưu và kết quả được tính lại
+  - 'FormulaEvaluator: tính một ô, nhiều ô và cập nhật bộ nhớ đệm'
+  - Yêu cầu Excel tính lại khi mở tệp và giới hạn của phương án này
+  - Nhóm hàm thường dùng cho tổng hợp, điều kiện, văn bản và tra cứu
+  - Hàm không được hỗ trợ, liên kết ngoài và lỗi khi tính công thức
+  - Sao chép công thức theo hàng với quy tắc điều chỉnh tham chiếu
+  - 'Đọc ô công thức khi nhập dữ liệu: tin kết quả nào và kiểm tra ra sao'
+- level1: Bảng và vùng
+  level2:
+  - Xác định vùng dữ liệu ổn định khi bảng tăng hoặc giảm số hàng
+  - Tạo bảng có cấu trúc bằng XSSFTable
+  - Tiêu đề cột, hàng tổng và kiểu dáng bảng
+  - AutoFilter và phạm vi lọc dữ liệu
+  - 'Vùng có tên: tạo, đọc, cập nhật và phạm vi hiệu lực'
+  - Tham chiếu có cấu trúc trong công thức và yêu cầu tương thích
+  - Cập nhật phạm vi bảng khi thêm dữ liệu
+  - Phân biệt tạo bộ lọc trong tệp với thực hiện lọc dữ liệu bằng Java
+- level1: Ràng buộc nhập ô
+  level2:
+  - 'DataValidation: mục đích và giới hạn kiểm tra trong ứng dụng bảng tính'
+  - Danh sách lựa chọn trực tiếp và danh sách từ vùng có tên
+  - Ràng buộc số nguyên, số thập phân, ngày và độ dài văn bản
+  - Ràng buộc bằng công thức và quan hệ giữa các ô
+  - Thông báo hướng dẫn nhập và thông báo lỗi
+  - Quy tắc cho phép ô trống và mở rộng phạm vi áp dụng
+  - Danh sách phụ thuộc giữa các cột và vấn đề tương thích
+  - Kiểm tra lại phía Java vì ràng buộc trong Excel có thể bị bỏ qua
+- level1: Định dạng điều kiện
+  level2:
+  - Phân biệt định dạng tĩnh với định dạng có điều kiện
+  - Tạo điều kiện theo giá trị và theo công thức
+  - Đánh dấu dữ liệu trùng, thiếu hoặc vượt ngưỡng
+  - Thang màu, thanh dữ liệu và bộ biểu tượng
+  - Thứ tự ưu tiên và điều kiện dừng của nhiều quy tắc
+  - Điều chỉnh vùng áp dụng khi số hàng thay đổi
+  - Giới hạn thư viện và kiểm tra hiển thị trên ứng dụng đích
+- level1: Mẫu báo cáo
+  level2:
+  - Thiết kế tệp mẫu với vùng cố định và vùng dữ liệu động
+  - Nạp mẫu và tìm vị trí điền bằng tên vùng hoặc dấu giữ chỗ
+  - Thay nội dung tiêu đề, thông số và thông tin người nhận
+  - Lặp vùng chi tiết theo danh sách dữ liệu
+  - Sao chép kiểu dáng và công thức từ hàng mẫu
+  - Dịch vùng tổng kết khi số dòng chi tiết thay đổi
+  - Bảo toàn hình ảnh, biểu đồ, tên vùng và thiết lập in của mẫu
+  - Kiểm soát phiên bản mẫu và phát hiện mẫu không tương thích
+  - Phân tách dữ liệu báo cáo khỏi logic trình bày workbook
+- level1: Tổng hợp và biểu đồ
+  level2:
+  - Tổng hợp dữ liệu trong Java so với dùng công thức trong workbook
+  - Tổng theo nhóm, tổng cuối và xử lý dữ liệu rỗng
+  - SUBTOTAL và yêu cầu tổng hợp khi người dùng lọc bảng
+  - 'Pivot table: dữ liệu nguồn, bộ nhớ đệm và yêu cầu làm mới'
+  - Tạo biểu đồ bằng các thành phần XDDF trong XSSF
+  - Trục, chuỗi dữ liệu, nhãn và chú giải của biểu đồ
+  - 'Biểu đồ cột, đường và tròn: lựa chọn theo mục đích trình bày'
+  - Liên kết biểu đồ với vùng dữ liệu và cập nhật số hàng
+  - Kiểm tra biểu đồ và bảng tổng hợp sau khi mở bằng ứng dụng đích
+- level1: Đối tượng và liên kết
+  level2:
+  - Chèn hình ảnh và lựa chọn định dạng ảnh phù hợp
+  - 'Drawing và ClientAnchor: neo ảnh theo hàng, cột và kích thước'
+  - Tỷ lệ ảnh, kích thước tệp và bố trí khi thay đổi chiều rộng cột
+  - Tạo, đọc và xóa chú thích ô trong phạm vi thư viện hỗ trợ
+  - Phân biệt chú thích truyền thống với các dạng bình luận khác
+  - Hyperlink đến trang web, địa chỉ email, tệp và vị trí trong workbook
+  - Thông tin tác giả, tiêu đề và thuộc tính tài liệu
+  - 'Đối tượng nhúng và liên kết ngoài: nhận diện và giới hạn bảo toàn'
+- level1: Thiết lập in
+  level2:
+  - Khổ giấy, hướng giấy và tỷ lệ thu phóng khi in
+  - Căn nội dung vừa trang theo chiều ngang và chiều dọc
+  - Lề trang và căn giữa bảng trên trang in
+  - Vùng in và hàng hoặc cột tiêu đề lặp lại
+  - Ngắt trang tự động và ngắt trang chủ động
+  - Đầu trang, chân trang, số trang và thông tin báo cáo
+  - Phân biệt tạo tệp Excel với kết xuất PDF hoặc hình ảnh
+  - Kiểm tra xem trước khi in đối với bảng rộng và báo cáo nhiều trang
+- level1: CSV và TSV
+  level2:
+  - Phân biệt CSV, TSV và workbook Excel thực sự
+  - Chọn dấu phân cách, ký tự bao và quy tắc thoát ký tự
+  - Trường chứa dấu phân cách, dấu nháy hoặc xuống dòng
+  - UTF-8, BOM và khả năng nhận diện tiếng Việt của ứng dụng đích
+  - Số thập phân, ngày giờ và khác biệt thiết lập vùng
+  - Đọc và ghi bằng thư viện CSV thay vì tách chuỗi thủ công
+  - Bảo toàn mã định danh và giới hạn của định dạng văn bản thuần
+  - Chuyển CSV sang XLSX và xác định kiểu ô rõ ràng
+  - Phòng tránh giá trị CSV bị diễn giải thành công thức khi mở
+- level1: Đọc tệp lớn
+  level2:
+  - Nhận diện nguy cơ hết bộ nhớ khi nạp toàn bộ workbook
+  - 'Mô hình đọc sự kiện: XLSX bằng SAX và XLS bằng HSSF event API'
+  - XSSFReader, SharedStrings và StylesTable trong luồng đọc XLSX
+  - Khôi phục vị trí cột từ địa chỉ ô trong XML
+  - Xử lý ô thiếu, chuỗi dùng chung, chuỗi trực tiếp và ô công thức
+  - Chuyển số và ngày giờ khi đọc bằng mô hình sự kiện
+  - Đọc từng hàng, chia lô và bàn giao cho bước xử lý tiếp theo
+  - Kiểm soát lỗi, khả năng hủy và giải phóng tài nguyên khi dừng sớm
+  - So sánh độ phức tạp triển khai với lợi ích bộ nhớ
+- level1: Ghi tệp lớn
+  level2:
+  - SXSSFWorkbook và cơ chế cửa sổ hàng trong bộ nhớ
+  - Cấu hình số hàng giữ lại và thời điểm đẩy dữ liệu ra đĩa
+  - Giới hạn truy cập hoặc sửa hàng đã được đẩy khỏi bộ nhớ
+  - 'Tệp tạm của SXSSF: dung lượng, nén và cơ chế dọn dẹp'
+  - 'Chuỗi trực tiếp và bảng chuỗi dùng chung: đánh đổi bộ nhớ'
+  - Theo dõi cột để auto-size trong quá trình ghi luồng
+  - Chi phí của kiểu dáng, vùng gộp, chú thích và đối tượng bổ sung
+  - Ghi dữ liệu theo lô từ nguồn thay vì gom toàn bộ vào danh sách
+  - Chia dữ liệu thành nhiều sheet hoặc nhiều tệp khi vượt giới hạn
+- level1: Hiệu năng
+  level2:
+  - Lập ngân sách bộ nhớ, đĩa tạm và thời gian cho mỗi tác vụ
+  - Tái sử dụng kiểu dáng, phông chữ và định dạng số
+  - Giảm thao tác auto-size, gộp ô và tính lại công thức không cần thiết
+  - Đọc dữ liệu nguồn theo lô và tránh truy vấn lặp cho từng hàng
+  - Giới hạn xử lý đồng thời và tránh chia sẻ workbook giữa các luồng
+  - Đo tốc độ, mức dùng bộ nhớ và dung lượng tệp theo dữ liệu thực
+  - Thử nghiệm các mức tải và nhận diện điểm nghẽn
+  - Đặt giới hạn tài nguyên và xử lý khi vượt ngưỡng
+- level1: Bảo mật
+  level2:
+  - Xem tệp tải lên là dữ liệu không đáng tin cậy
+  - Kiểm tra kích thước, định dạng thực và nguồn nhận tệp
+  - Nguy cơ ZIP bomb trong XLSX và giới hạn giải nén
+  - Giới hạn số sheet, hàng, cột, độ dài ô và thời gian xử lý
+  - Ngăn dữ liệu không tin cậy trở thành công thức hoặc liên kết nguy hiểm
+  - 'Macro, đối tượng nhúng và tham chiếu ngoài: chính sách tiếp nhận'
+  - Phân biệt bảo vệ ô hoặc sheet với mã hóa tệp
+  - Mở và ghi tệp được mã hóa trong phạm vi thư viện hỗ trợ
+  - Quản lý mật khẩu, tệp tạm và dữ liệu nhạy cảm trong nhật ký
+  - Cập nhật thư viện và kiểm tra lỗ hổng của phụ thuộc
+- level1: Tích hợp ứng dụng
+  level2:
+  - Thiết kế dịch vụ nhập và xuất Excel độc lập với giao diện gọi
+  - Nhận tệp qua MultipartFile trong ứng dụng Spring khi có nhu cầu
+  - Trả tệp tải xuống với Content-Type, Content-Disposition và tên Unicode
+  - Lựa chọn trả byte array, tài nguyên tệp hoặc luồng phản hồi
+  - Giới hạn tải lên, thời gian chờ và kích thước phản hồi
+  - Xử lý đồng bộ so với tác vụ nền cho báo cáo lớn
+  - Lưu trữ tệp cục bộ hoặc kho đối tượng và quản lý thời hạn truy cập
+  - Quyền truy cập, phạm vi dữ liệu và kiểm tra người tải báo cáo
+  - Dọn tệp sau khi hoàn tất, hết hạn hoặc tác vụ thất bại
+- level1: Giao dịch và vận hành
+  level2:
+  - Ranh giới giao dịch khi nhập dữ liệu từ workbook
+  - 'Nhập toàn bộ hoặc theo lô: lựa chọn mức độ nhất quán'
+  - Nhận diện lần nhập trùng và thiết kế xử lý lặp an toàn
+  - Ghi nhận số dòng đã đọc, hợp lệ, thành công và thất bại
+  - Phân loại lỗi tệp, lỗi dữ liệu, lỗi hệ thống và lỗi lưu trữ
+  - Cơ chế thử lại với lỗi tạm thời và tránh nhân đôi dữ liệu
+  - Mã tác vụ, tiến độ và khả năng đối chiếu kết quả nhập hoặc xuất
+  - Nhật ký có ngữ cảnh và số liệu vận hành cho tác vụ Excel
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử bộ chuyển đổi kiểu và ánh xạ cột bằng dữ liệu nhỏ
+  - Tạo workbook trong bộ nhớ cho kiểm thử đọc và ghi
+  - Mở lại tệp xuất để kiểm tra giá trị, kiểu ô và cấu trúc
+  - Kiểm thử ô thiếu, hàng rỗng, Unicode và số có số 0 đầu
+  - Kiểm thử ngày giờ, số lớn, công thức và ô lỗi
+  - Kiểm thử ràng buộc dữ liệu, tên vùng, kiểu dáng và thiết lập in
+  - Kiểm thử tệp hỏng, tệp mã hóa và giới hạn tài nguyên
+  - Kiểm thử tệp lớn và xác minh dọn tài nguyên sau lỗi
+  - Kiểm tra tương thích và bố cục bằng ứng dụng bảng tính thực tế
+  - So sánh nội dung có ý nghĩa thay vì so sánh byte của toàn bộ XLSX
+- level1: Xử lý sự cố
+  level2:
+  - Tệp không mở được vì nội dung không khớp phần mở rộng
+  - Thông báo Excel đã sửa tệp và cách khoanh vùng thành phần lỗi
+  - Mất số 0 đầu hoặc sai độ chính xác khi đọc và ghi số
+  - Sai ngày do định dạng, hệ ngày hoặc chuyển đổi múi giờ
+  - Công thức hiển thị sai hoặc kết quả chưa được tính lại
+  - Vượt giới hạn kiểu dáng hoặc tên sheet không hợp lệ
+  - Hết bộ nhớ, đầy đĩa tạm hoặc tệp tạm chưa được xóa
+  - Lỗi phông chữ và auto-size trong môi trường không có giao diện
+  - Phân biệt lỗi dữ liệu nguồn với lỗi thư viện và lỗi môi trường
+- level1: Thực hành tổng hợp
+  level2:
+  - Xuất danh sách dữ liệu có tiêu đề, kiểu ô và định dạng nhất quán
+  - Nhập danh sách có kiểm tra từng dòng và báo cáo lỗi chi tiết
+  - Tạo báo cáo nhiều sheet từ một mô hình dữ liệu chung
+  - Điền mẫu báo cáo có vùng chi tiết, công thức và phần tổng kết
+  - Tạo workbook có danh sách lựa chọn và cảnh báo dữ liệu
+  - Đọc tệp lớn theo sự kiện và ghi kết quả theo luồng
+  - Thiết kế tác vụ nhập theo lô có xử lý lặp an toàn
+  - Hoàn thiện bộ tiêu chí nghiệm thu về dữ liệu, bố cục và tài nguyên

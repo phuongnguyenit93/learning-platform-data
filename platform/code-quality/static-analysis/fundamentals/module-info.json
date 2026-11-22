@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "CODE_QUALITY_STATIC_ANALYSIS_FUNDAMENTALS"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hiểu nguyên lý phân tích tĩnh mã nguồn và bytecode, từ luồng điều khiển, luồng dữ liệu, diễn giải trừu tượng đến các quy tắc phát hiện lỗi, nguy cơ bảo mật. Học đọc cảnh báo, nhận diện false positive và đưa công cụ phân tích Java vào build, IDE, CI."
+  }
+}

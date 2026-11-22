@@ -1,0 +1,3043 @@
+menu:
+- slug: orientation
+  title: Định hướng
+  childs:
+  - slug: orientation-001
+    title: Phát triển Agile là gì và giải quyết vấn đề nào trong phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-002
+    title: Phân biệt Agile, phương pháp, khung làm việc và thực hành kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-003
+    title: Mối liên hệ giữa nhu cầu thay đổi, phản hồi và khả năng thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-004
+    title: 'Các khái niệm nền: giá trị, vòng lặp, phần tăng trưởng và luồng công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-005
+    title: Phân biệt phát triển lặp với phát triển tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-006
+    title: Agile trong toàn bộ vòng đời từ khám phá đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-007
+    title: Quan hệ giữa Agile, Scrum, Kanban, Lean và Extreme Programming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-008
+    title: Điều kiện áp dụng và giới hạn của phát triển Agile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-009
+    title: Trình tự học từ tư duy nền tảng đến thực hành trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agile-foundation
+  title: Nền tảng Agile
+  childs:
+  - slug: agile-foundation-001
+    title: Bối cảnh hình thành Tuyên ngôn Agile năm 2001
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-foundation-002
+    title: Những khó khăn của việc cố định giải pháp khi hiểu biết còn thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-foundation-003
+    title: Giảm bất định bằng các vòng phản hồi ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-foundation-004
+    title: Chia nhỏ việc bàn giao để sớm kiểm chứng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-foundation-005
+    title: Cân bằng khả năng thích ứng với tính kỷ luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-foundation-006
+    title: Phân biệt thực hiện hoạt động Agile với thay đổi cách ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-foundation-007
+    title: Vai trò của kỹ năng con người, năng lực kỹ thuật và môi trường tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-foundation-008
+    title: Agile và mối liên hệ với tư duy tinh gọn cùng phát triển sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agile-values
+  title: Giá trị Agile
+  childs:
+  - slug: agile-values-001
+    title: Cá nhân và tương tác so với quy trình và công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-values-002
+    title: Phần mềm hoạt động được so với tài liệu đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-values-003
+    title: Cộng tác với khách hàng so với đàm phán hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-values-004
+    title: Ứng phó thay đổi so với bám theo kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-values-005
+    title: Hiểu đúng việc coi trọng hai phía trong mỗi cặp giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-values-006
+    title: Vận dụng bốn giá trị vào quyết định công việc hằng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agile-principles
+  title: Nguyên tắc Agile
+  childs:
+  - slug: agile-principles-001
+    title: Ưu tiên sự hài lòng của khách hàng bằng phần mềm có giá trị được bàn giao sớm và liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-002
+    title: Đón nhận thay đổi yêu cầu trong quá trình phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-003
+    title: Bàn giao phần mềm hoạt động được thường xuyên với chu kỳ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-004
+    title: Cộng tác thường xuyên giữa người làm nghiệp vụ và người phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-005
+    title: Xây dựng môi trường hỗ trợ, tin tưởng và tạo động lực cho con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-006
+    title: Giao tiếp trực tiếp để truyền đạt thông tin hiệu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-007
+    title: Sử dụng phần mềm hoạt động được làm thước đo tiến triển chủ yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-008
+    title: Duy trì nhịp phát triển bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-009
+    title: Chú trọng năng lực kỹ thuật và thiết kế tốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-010
+    title: Đơn giản hóa bằng cách giảm công việc không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-011
+    title: Tạo điều kiện để nhóm tự tổ chức hình thành giải pháp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-012
+    title: Thường xuyên nhìn lại và điều chỉnh cách làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-principles-013
+    title: Liên kết mười hai nguyên tắc với các quyết định thực tế trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: empirical-mindset
+  title: Tư duy thực nghiệm
+  childs:
+  - slug: empirical-mindset-001
+    title: Phân biệt điều đã biết, giả định và điều cần khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empirical-mindset-002
+    title: Minh bạch thông tin để nhóm và bên liên quan cùng hiểu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empirical-mindset-003
+    title: Kiểm tra kết quả và điều chỉnh dựa trên bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empirical-mindset-004
+    title: Đặt giả thuyết trước khi triển khai giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empirical-mindset-005
+    title: Thiết kế thử nghiệm nhỏ để giảm rủi ro học sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empirical-mindset-006
+    title: Rút ngắn vòng phản hồi từ người dùng, phần mềm và hệ thống vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empirical-mindset-007
+    title: Ra quyết định khi thông tin chưa đầy đủ và khả năng thay đổi còn cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empirical-mindset-008
+    title: Tránh biến nghi thức và chỉ số thành mục tiêu tự thân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-and-value
+  title: Sản phẩm và giá trị
+  childs:
+  - slug: product-and-value-001
+    title: Phân biệt đầu ra bàn giao với kết quả mang lại cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-002
+    title: Xác định vấn đề, nhóm người dùng và giá trị cần tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-003
+    title: Liên kết tầm nhìn, mục tiêu sản phẩm và công việc ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-004
+    title: Kết hợp khám phá nhu cầu với phát triển giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-005
+    title: Xác định phần sản phẩm nhỏ nhất để kiểm chứng một giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-006
+    title: Phân biệt nguyên mẫu, sản phẩm khả dụng tối thiểu và phần tăng trưởng có thể sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-007
+    title: Thu thập phản hồi từ sử dụng thực tế và thử nghiệm với người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-008
+    title: Điều chỉnh hướng sản phẩm khi dữ liệu không xác nhận giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-and-value-009
+    title: Cân bằng giá trị khách hàng với khả năng vận hành và mục tiêu tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collaboration-and-leadership
+  title: Cộng tác và lãnh đạo
+  childs:
+  - slug: collaboration-and-leadership-001
+    title: Nhóm đa chức năng và khả năng tạo kết quả xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-002
+    title: Tự tổ chức, tự quản và ranh giới quyền quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-003
+    title: Xây dựng mục tiêu chung và trách nhiệm đối với kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-004
+    title: An toàn tâm lý trong trao đổi, phản biện và thừa nhận sai sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-005
+    title: Lãnh đạo phục vụ và hỗ trợ nhóm tháo gỡ trở ngại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-006
+    title: Phân biệt hướng dẫn, huấn luyện, hỗ trợ thảo luận và ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-007
+    title: Chia sẻ kiến thức để giảm phụ thuộc vào một cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-008
+    title: Xử lý bất đồng kỹ thuật, ưu tiên và cách làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-009
+    title: Thiết lập thỏa thuận cộng tác cùng nhịp làm việc bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-leadership-010
+    title: Trách nhiệm của quản lý trong xây dựng môi trường phát triển Agile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adaptive-requirements
+  title: Yêu cầu thích ứng
+  childs:
+  - slug: adaptive-requirements-001
+    title: Phát triển hiểu biết về yêu cầu qua các vòng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-002
+    title: Mô tả nhu cầu bằng ngôn ngữ người dùng và bối cảnh nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-003
+    title: Làm rõ yêu cầu đúng mức cho quyết định sắp tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-004
+    title: Tổ chức trao đổi giữa nghiệp vụ, phát triển và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-005
+    title: Mô tả ví dụ cụ thể để phát hiện cách hiểu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-006
+    title: Đưa yêu cầu chất lượng, bảo mật và vận hành vào kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-007
+    title: Quản lý thay đổi mà vẫn giữ dấu vết mục tiêu và quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-008
+    title: Phân biệt làm rõ yêu cầu với mở rộng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-009
+    title: Xử lý giả định chưa được kiểm chứng bằng công việc khảo sát có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-requirements-010
+    title: Liên kết yêu cầu với tiêu chí chấp nhận và bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-story
+  title: User story
+  childs:
+  - slug: user-story-001
+    title: User story như công cụ hỗ trợ trao đổi về giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-002
+    title: Cấu trúc người dùng, nhu cầu và lợi ích trong mô tả câu chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-003
+    title: Thẻ ghi, trao đổi và xác nhận trong mô hình 3C
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-004
+    title: Đánh giá chất lượng câu chuyện bằng các tiêu chí INVEST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-005
+    title: Phân biệt epic, user story, task, bug và spike
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-006
+    title: Chia lát dọc để tạo kết quả có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-007
+    title: Tách câu chuyện theo luồng sử dụng, quy tắc nghiệp vụ và mức độ rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-008
+    title: Xây dựng tiêu chí chấp nhận cùng ví dụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-009
+    title: Lập bản đồ câu chuyện để nhìn hành trình và các lát phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-story-010
+    title: Nhận diện câu chuyện giả, công việc thuần kỹ thuật và các giới hạn của khuôn mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prioritization-and-backlog
+  title: Ưu tiên và backlog
+  childs:
+  - slug: prioritization-and-backlog-001
+    title: Vai trò của danh sách công việc tồn đọng trong phát triển thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-002
+    title: Liên kết hạng mục với mục tiêu sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-003
+    title: Sắp xếp công việc theo giá trị, rủi ro, phụ thuộc và chi phí trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-004
+    title: Cân bằng tính năng, lỗi, nợ kỹ thuật và hoạt động khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-005
+    title: Làm rõ và phân nhỏ hạng mục trước khi chọn thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-006
+    title: Điều chỉnh mức chi tiết theo khoảng cách đến thời điểm triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-007
+    title: Phân biệt tiêu chí sẵn sàng do nhóm thống nhất với yêu cầu bắt buộc của khung làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-008
+    title: Kiểm soát yêu cầu cũ, trùng lặp và công việc ngoài luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-009
+    title: Thay đổi thứ tự ưu tiên khi xuất hiện bằng chứng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prioritization-and-backlog-010
+    title: Giữ một nguồn công việc rõ ràng khi nhiều bên cùng đề xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adaptive-planning
+  title: Kế hoạch thích ứng
+  childs:
+  - slug: adaptive-planning-001
+    title: Phân biệt mục tiêu dài hạn với kế hoạch chi tiết ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-002
+    title: Lập kế hoạch cuốn chiếu theo mức độ hiểu biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-003
+    title: Kết nối tầm nhìn, lộ trình, kế hoạch phát hành và công việc hằng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-004
+    title: Giới hạn thời gian bằng timebox và lựa chọn nhịp phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-005
+    title: Lập kế hoạch theo năng lực thực tế và dữ liệu đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-006
+    title: Xác định mục tiêu ngắn hạn cùng phần giá trị có thể bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-007
+    title: Dành năng lực cho kiểm thử, tích hợp, bảo trì và việc phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-008
+    title: Xử lý phụ thuộc mà vẫn bảo toàn khả năng đổi hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-009
+    title: Phân biệt dự báo thực hiện với cam kết thời hạn cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-010
+    title: Điều chỉnh kế hoạch khi phạm vi, nguồn lực hoặc giả định thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-planning-011
+    title: Duy trì khả năng dự đoán mà không cố định mọi chi tiết từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: estimation-and-forecasting
+  title: Ước lượng và dự báo
+  childs:
+  - slug: estimation-and-forecasting-001
+    title: Mục đích của ước lượng trong trao đổi và lập kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-002
+    title: Phân biệt công sức, độ phức tạp, thời gian theo lịch và bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-003
+    title: Ước lượng tương đối bằng story point và hạng mục tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-004
+    title: Thảo luận ước lượng theo nhóm bằng Planning Poker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-005
+    title: Ước lượng theo độ lớn hoặc khoảng khi chưa đủ thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-006
+    title: Phân biệt vận tốc nhóm với năng suất và giá trị tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-007
+    title: Dự báo từ thông lượng và dữ liệu thời gian hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-008
+    title: Biểu diễn khả năng hoàn thành bằng khoảng cùng xác suất dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-009
+    title: Nhận diện điều kiện khi có thể giảm nhu cầu ước lượng từng hạng mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-forecasting-010
+    title: Tránh biến ước lượng thành hạn chót bắt buộc hoặc công cụ so sánh cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scrum-foundation
+  title: Nền tảng Scrum
+  childs:
+  - slug: scrum-foundation-001
+    title: Scrum là khung làm việc hỗ trợ giải quyết vấn đề phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-foundation-002
+    title: Chủ nghĩa kinh nghiệm và tư duy tinh gọn trong Scrum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-foundation-003
+    title: Minh bạch, kiểm tra và thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-foundation-004
+    title: Cam kết, tập trung, cởi mở, tôn trọng và can đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-foundation-005
+    title: Scrum Team như một nhóm nhỏ đa chức năng và tự quản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-foundation-006
+    title: Mối liên hệ giữa trách nhiệm, sự kiện, tạo tác và cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-foundation-007
+    title: Phân biệt quy định của Scrum với thực hành nhóm tự bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-foundation-008
+    title: Những giới hạn Scrum cần được hỗ trợ bằng kỹ thuật và bối cảnh tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scrum-responsibilities
+  title: Trách nhiệm Scrum
+  childs:
+  - slug: scrum-responsibilities-001
+    title: Product Owner và trách nhiệm tối đa hóa giá trị sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-002
+    title: Quản lý Product Backlog và truyền đạt Product Goal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-003
+    title: Scrum Master và trách nhiệm đối với hiệu quả vận dụng Scrum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-004
+    title: Scrum Master hỗ trợ Scrum Team, Product Owner và tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-005
+    title: Developers và trách nhiệm xây dựng phần tăng trưởng sử dụng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-006
+    title: Developers tự quản kế hoạch thực hiện và thích ứng hằng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-007
+    title: Trách nhiệm chung của Scrum Team đối với kết quả sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-008
+    title: Cộng tác với bên liên quan và chuyên gia ngoài Scrum Team
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-responsibilities-009
+    title: Giải quyết khoảng trống trách nhiệm khi tổ chức có vai trò quản lý dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scrum-events
+  title: Sự kiện Scrum
+  childs:
+  - slug: scrum-events-001
+    title: Sprint như nhịp chứa các hoạt động và sự kiện Scrum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-002
+    title: 'Sprint Planning: mục tiêu, lựa chọn công việc và cách thực hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-003
+    title: Xây dựng Sprint Goal làm định hướng chung cho Sprint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-004
+    title: Daily Scrum và điều chỉnh kế hoạch của Developers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-005
+    title: Sprint Review để cùng kiểm tra kết quả và định hướng tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-006
+    title: Sprint Retrospective để cải thiện chất lượng và hiệu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-007
+    title: Làm rõ Product Backlog như hoạt động liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-008
+    title: Giới hạn thời gian và tính nhất quán của nhịp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-009
+    title: Xử lý thay đổi, công việc chưa hoàn tất và điều kiện hủy Sprint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-events-010
+    title: Phân biệt mục đích sự kiện với báo cáo tình trạng hoặc phê duyệt hình thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scrum-artifacts
+  title: Tạo tác Scrum
+  childs:
+  - slug: scrum-artifacts-001
+    title: Product Backlog và cam kết Product Goal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-002
+    title: Sprint Backlog và cam kết Sprint Goal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-003
+    title: Increment và cam kết Definition of Done
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-004
+    title: Mối liên hệ giữa ba tạo tác và tính minh bạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-005
+    title: Cập nhật Sprint Backlog trong quá trình học hỏi và thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-006
+    title: Xây dựng nhiều Increment cùng khả năng tích hợp trong một Sprint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-007
+    title: Bàn giao Increment khi sẵn sàng mà không phải chờ Sprint Review
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-008
+    title: Phân biệt Definition of Done với tiêu chí chấp nhận của từng hạng mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-009
+    title: Áp dụng tiêu chí hoàn tất chung khi nhiều nhóm cùng phát triển sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scrum-artifacts-010
+    title: Xử lý công việc chưa đáp ứng Definition of Done
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kanban
+  title: Kanban
+  childs:
+  - slug: kanban-001
+    title: Kanban và mục tiêu tối ưu dòng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-002
+    title: Định nghĩa luồng công việc cùng điểm bắt đầu và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-003
+    title: Trực quan hóa trạng thái, hàng đợi và công việc bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-004
+    title: Kiểm soát công việc đang thực hiện bằng giới hạn WIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-005
+    title: Kéo công việc theo năng lực còn trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-006
+    title: Làm rõ chính sách chuyển trạng thái và điều kiện hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-007
+    title: Quản lý tuổi công việc cùng kỳ vọng thời gian phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-008
+    title: Xử lý công việc khẩn cấp bằng chính sách dịch vụ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-009
+    title: Phát hiện nút thắt và giảm thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-010
+    title: Phân biệt bảng Kanban với một hệ thống quản lý dòng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-011
+    title: Cải tiến luồng dựa trên dữ liệu và thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kanban-012
+    title: Mối liên hệ giữa Kanban, Agile và quy trình hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lean
+  title: Lean
+  childs:
+  - slug: lean-001
+    title: Tư duy tinh gọn trong phát triển phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-002
+    title: Nhận diện giá trị từ góc nhìn người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-003
+    title: 'Nhận diện lãng phí: chờ đợi, bàn giao, làm lại và việc chưa hoàn tất'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-004
+    title: Giảm kích thước lô và rút ngắn thời gian tạo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-005
+    title: Tăng cường học hỏi và giữ các phương án khi còn bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-006
+    title: Ra quyết định vào thời điểm có đủ thông tin cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-007
+    title: Xây dựng chất lượng ngay trong quá trình phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-008
+    title: Tôn trọng con người và trao quyền giải quyết vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-009
+    title: Tối ưu toàn hệ thống và nhận diện tác hại của tối ưu cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extreme-programming
+  title: Extreme Programming
+  childs:
+  - slug: extreme-programming-001
+    title: Extreme Programming và vai trò của phản hồi kỹ thuật nhanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-002
+    title: Các giá trị giao tiếp, đơn giản, phản hồi, can đảm và tôn trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-003
+    title: Khách hàng tham gia thường xuyên và trao đổi về ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-004
+    title: Lập kế hoạch cộng tác và phát hành theo phần nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-005
+    title: Thiết kế đơn giản theo nhu cầu đã được hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-006
+    title: Ẩn dụ hệ thống và ngôn ngữ chung để định hướng thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-007
+    title: Phát triển có kiểm thử dẫn dắt và phản hồi tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-008
+    title: Tái cấu trúc liên tục để bảo toàn khả năng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-009
+    title: Lập trình cặp và chia sẻ hiểu biết khi phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-010
+    title: Quyền sở hữu mã chung cùng quy ước mã nguồn thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-011
+    title: Tích hợp liên tục để phát hiện xung đột sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-012
+    title: Nhịp làm việc bền vững và khả năng duy trì chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extreme-programming-013
+    title: Quan hệ hỗ trợ lẫn nhau giữa các thực hành XP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: other-approaches
+  title: Các cách tiếp cận khác
+  childs:
+  - slug: other-approaches-001
+    title: Crystal và lựa chọn cách làm theo quy mô cùng mức độ quan trọng của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-002
+    title: 'Crystal: trao đổi thường xuyên, phản hồi và an toàn trong cộng tác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-003
+    title: DSDM và cân bằng thời gian, chi phí, chất lượng với phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-004
+    title: 'DSDM: ưu tiên MoSCoW, timebox và cộng tác nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-005
+    title: Feature-Driven Development và vai trò của mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-006
+    title: 'FDD: danh sách tính năng cùng lập kế hoạch, thiết kế và xây dựng theo tính năng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-007
+    title: Scrumban và sự kết hợp thực hành theo nhu cầu dòng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-008
+    title: So sánh trọng tâm của Scrum, Kanban, XP, Lean và các cách tiếp cận liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-009
+    title: Phân biệt kết hợp có chủ đích với việc tùy ý bỏ những cơ chế cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-approaches-010
+    title: Xác định phần nền tảng cần giữ khi điều chỉnh một cách tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: engineering-practices
+  title: Thực hành kỹ thuật
+  childs:
+  - slug: engineering-practices-001
+    title: Vai trò của năng lực kỹ thuật đối với khả năng thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-002
+    title: Kiểm thử đơn vị và nền tảng phản hồi tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-003
+    title: Vòng lặp TDD và mối liên hệ với thiết kế mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-004
+    title: BDD và trao đổi hành vi bằng ví dụ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-005
+    title: ATDD và thống nhất tiêu chí nghiệm thu trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-006
+    title: Phân biệt mục tiêu và phạm vi của TDD, BDD và ATDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-007
+    title: Tích hợp liên tục cùng nhánh mã tồn tại ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-008
+    title: Tự động hóa xây dựng, kiểm thử và kiểm tra chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-009
+    title: Phân biệt chuyển giao liên tục với triển khai liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-010
+    title: Kết hợp lập trình cặp, rà soát mã và chia sẻ kiến thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: engineering-practices-011
+    title: Mối liên hệ giữa Agile, DevOps và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evolutionary-design
+  title: Thiết kế tiến hóa
+  childs:
+  - slug: evolutionary-design-001
+    title: Thiết kế tiến hóa và khả năng thay đổi theo hiểu biết mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-002
+    title: Cân bằng thiết kế đủ dùng với rủi ro phải làm lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-003
+    title: Khảo sát kỹ thuật bằng spike và nguyên mẫu có mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-004
+    title: Thiết kế mô đun để giảm phụ thuộc và giới hạn tác động thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-005
+    title: Giữ tính đơn giản và tránh xây sẵn khả năng chưa được chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-006
+    title: Tái cấu trúc an toàn nhờ bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-007
+    title: Quản lý nợ kỹ thuật và chi phí thay đổi tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-008
+    title: Điều phối kiến trúc giữa các nhóm bằng ràng buộc cùng quyết định rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolutionary-design-009
+    title: Lưu quyết định kiến trúc và kiểm chứng các giả định quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-quality
+  title: Chất lượng liên tục
+  childs:
+  - slug: continuous-quality-001
+    title: Chất lượng như trách nhiệm chung trong toàn bộ vòng phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-002
+    title: Xác định chất lượng cần đạt từ nhu cầu và mức độ rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-003
+    title: Đưa kiểm thử vào từng phần tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-004
+    title: Tổ chức kiểm thử theo nhiều mức cùng vòng phản hồi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-005
+    title: Kết hợp kiểm thử tự động với kiểm thử khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-006
+    title: Đưa bảo mật, hiệu năng, khả năng truy cập và vận hành vào công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-007
+    title: Ngăn tích tụ lỗi và công việc kiểm chứng ở cuối chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-008
+    title: Duy trì tiêu chí hoàn tất khi thời hạn gây áp lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-009
+    title: Theo dõi lỗi lọt ra thực tế và sử dụng phản hồi để phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-quality-010
+    title: Đánh giá chất lượng của kết quả thay vì chỉ đếm số bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: feedback-and-release
+  title: Phản hồi và phát hành
+  childs:
+  - slug: feedback-and-release-001
+    title: Phân biệt nhịp phát triển, nhịp kiểm chứng và nhịp phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-002
+    title: Thiết kế phần tăng trưởng đủ nhỏ để nhận phản hồi sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-003
+    title: Thu thập phản hồi qua trình diễn, sử dụng thử và quan sát thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-004
+    title: Kết hợp phản hồi định tính với dữ liệu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-005
+    title: Phát hành có kiểm soát bằng cờ tính năng và giới hạn phạm vi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-006
+    title: Đưa quan sát hệ thống cùng khả năng khôi phục vào kế hoạch phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-007
+    title: Phối hợp hỗ trợ người dùng và vận hành sau bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-008
+    title: Kiểm chứng kết quả sản phẩm sau khi tính năng được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-009
+    title: Điều chỉnh ưu tiên khi phản hồi trái với giả định ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feedback-and-release-010
+    title: Khép kín vòng học hỏi giữa phát triển, người dùng và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agile-metrics
+  title: Đo lường Agile
+  childs:
+  - slug: agile-metrics-001
+    title: Chọn chỉ số theo câu hỏi và quyết định cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-002
+    title: Phân biệt hoạt động, đầu ra, kết quả và tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-003
+    title: Đo giá trị sản phẩm thông qua mục tiêu có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-004
+    title: Đo thời gian dẫn (lead time) và xác định ranh giới đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-005
+    title: Đo thời gian chu kỳ (cycle time), WIP và thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-006
+    title: Theo dõi tuổi công việc, thời gian bị chặn và mức độ làm lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-007
+    title: Đọc biểu đồ dòng tích lũy cùng phân bố thời gian hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-008
+    title: Sử dụng biểu đồ công việc còn lại và công việc đã hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-009
+    title: Hiểu vận tốc trong bối cảnh của từng nhóm và cách ước lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-010
+    title: Đánh giá chất lượng, mức độ ổn định và tính bền vững của nhịp làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-011
+    title: Tránh dùng chỉ số để xếp hạng cá nhân hoặc ép tăng khối lượng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-metrics-012
+    title: Kiểm tra chất lượng dữ liệu và điều kiện so sánh trước khi kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-improvement
+  title: Cải tiến liên tục
+  childs:
+  - slug: continuous-improvement-001
+    title: Tạo vòng cải tiến từ quan sát, giả thuyết đến thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-002
+    title: Tổ chức nhìn lại dựa trên sự kiện cùng điều kiện làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-003
+    title: Phân tích nguyên nhân của chậm trễ, lỗi và trở ngại lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-004
+    title: Chọn vấn đề có tác động rõ và phạm vi thử nghiệm phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-005
+    title: Xác định người thực hiện, thời hạn và cách đo hiệu quả cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-006
+    title: Theo dõi hành động cải tiến trong công việc thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-007
+    title: Điều chỉnh chính sách, kỹ thuật và cách phối hợp theo kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-008
+    title: Lan tỏa hiểu biết mà vẫn tôn trọng khác biệt bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-009
+    title: Nhận diện cải tiến hình thức và các hành động liên tục bị bỏ quên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-teams
+  title: Nhóm phân tán
+  childs:
+  - slug: distributed-teams-001
+    title: Thiết lập thỏa thuận cộng tác cho nhóm làm việc từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-teams-002
+    title: Kết hợp giao tiếp đồng bộ với trao đổi bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-teams-003
+    title: Duy trì minh bạch mục tiêu, công việc và quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-teams-004
+    title: Tổ chức sự kiện có sự tham gia thực chất khi khác địa điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-teams-005
+    title: Giảm thời gian chờ do múi giờ và bàn giao thiếu bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-teams-006
+    title: Lưu trữ kiến thức để hỗ trợ thành viên mới và người vắng mặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-teams-007
+    title: Duy trì an toàn tâm lý cùng cơ hội đóng góp công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-teams-008
+    title: Nhận diện giới hạn của công cụ và điều chỉnh cách cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-team-coordination
+  title: Phối hợp nhiều nhóm
+  childs:
+  - slug: multi-team-coordination-001
+    title: Xác định sản phẩm chung, mục tiêu chung và ranh giới nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-002
+    title: Tổ chức nhóm theo khả năng tạo giá trị xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-003
+    title: Quản lý danh sách công việc và thứ tự ưu tiên trên phạm vi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-004
+    title: Nhận diện và giảm phụ thuộc giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-005
+    title: Tích hợp thường xuyên cùng tiêu chí chất lượng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-006
+    title: Điều phối chuyên môn dùng chung và nhóm hỗ trợ nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-007
+    title: Phối hợp nhịp kiểm chứng, phát hành và phản hồi khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-008
+    title: Nhận diện phạm vi của Nexus, LeSS và SAFe trong mở rộng Agile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-009
+    title: Đánh giá chi phí phối hợp khi thêm nhóm hoặc tầng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-coordination-010
+    title: Đo kết quả toàn luồng và bảo toàn khả năng thích ứng ở quy mô lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-and-constraints
+  title: Quản trị và ràng buộc
+  childs:
+  - slug: governance-and-constraints-001
+    title: Liên kết tự chủ của nhóm với mục tiêu và trách nhiệm giải trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-002
+    title: Lập ngân sách theo khả năng học hỏi và giá trị cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-003
+    title: Quản lý rủi ro bằng bàn giao nhỏ cùng phản hồi sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-004
+    title: Xử lý thời hạn bắt buộc và phạm vi có thể thương lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-005
+    title: Cộng tác với khách hàng khi hợp đồng hoặc cơ chế mua sắm còn cứng nhắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-006
+    title: Duy trì tài liệu cần thiết cùng khả năng truy vết quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-007
+    title: Tích hợp yêu cầu tuân thủ và bằng chứng kiểm chứng vào dòng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-008
+    title: Phối hợp với nhà cung cấp có nhịp phát triển khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-009
+    title: Thích ứng trong hệ thống cũ hoặc môi trường bị giới hạn khả năng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-constraints-010
+    title: Cân bằng yêu cầu kiểm soát tổ chức với tốc độ phản hồi của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agile-transformation
+  title: Chuyển đổi Agile
+  childs:
+  - slug: agile-transformation-001
+    title: Đánh giá vấn đề hiện tại trước khi lựa chọn cách thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-002
+    title: Xác định mục tiêu chuyển đổi bằng kết quả có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-003
+    title: Chuẩn bị sự hỗ trợ của lãnh đạo và quyền ra quyết định phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-004
+    title: Lựa chọn nhóm thí điểm cùng phạm vi thử nghiệm có thể học hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-005
+    title: Phát triển kỹ năng cộng tác, sản phẩm và kỹ thuật song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-006
+    title: Điều chỉnh cơ chế giao việc, đánh giá và phân bổ nguồn lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-007
+    title: Xử lý lo ngại và sự kháng cự thông qua đối thoại cùng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-008
+    title: Theo dõi tiến triển bằng kết quả thực tế của nhóm và sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-009
+    title: Mở rộng cách làm dựa trên điều kiện thành công của thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agile-transformation-010
+    title: Duy trì học hỏi để tránh biến chuyển đổi thành một chương trình có điểm kết thúc hình thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: approach-selection
+  title: Lựa chọn cách tiếp cận
+  childs:
+  - slug: approach-selection-001
+    title: Đánh giá mức bất định về nhu cầu và giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-selection-002
+    title: Đánh giá tần suất gián đoạn, loại công việc và khả năng bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-selection-003
+    title: Cân nhắc Scrum khi cần mục tiêu cùng nhịp kiểm tra định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-selection-004
+    title: Cân nhắc Kanban khi cần quản lý dòng công việc liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-selection-005
+    title: Bổ sung thực hành XP để củng cố chất lượng cùng khả năng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-selection-006
+    title: Vận dụng Lean để nhận diện lãng phí và cải thiện dòng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-selection-007
+    title: Kết hợp cách lập kế hoạch dự báo và thích ứng khi có ràng buộc cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approach-selection-008
+    title: Thiết kế thử nghiệm để kiểm chứng cách tiếp cận phù hợp với nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Đồng nhất Agile với tốc độ làm việc cao hoặc thiếu kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Đồng nhất Agile với Scrum hoặc một bộ công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Thực hiện đủ nghi thức nhưng không có phản hồi và thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Biến Daily Scrum thành báo cáo cho người quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Biến Sprint Review thành cổng nghiệm thu duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Xem Product Owner là người ghi yêu cầu và Scrum Master là người giao việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Ép vận tốc tăng liên tục hoặc so sánh story point giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Coi mọi yêu cầu mới đều phải làm ngay vì nhóm đang áp dụng Agile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Chia nhỏ đầu việc nhưng không tạo phần giá trị có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Dồn kiểm thử và tích hợp sang cuối kỳ hoặc nhóm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-011
+    title: Tối ưu mức bận rộn cá nhân làm tăng WIP và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-012
+    title: Mở rộng khuôn tổ chức trước khi giải quyết trở ngại của từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Phân tích một tình huống phát triển và xác định nhu cầu thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Đối chiếu quyết định của nhóm với bốn giá trị cùng mười hai nguyên tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Chuyển mục tiêu sản phẩm thành các giả thuyết và phần tăng trưởng nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Viết, trao đổi và chia lát user story có tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Xây dựng backlog rồi điều chỉnh ưu tiên sau phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Lập kế hoạch ngắn hạn theo năng lực, phụ thuộc và bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Mô phỏng một Sprint với trách nhiệm, sự kiện, tạo tác và cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Thiết kế hệ thống Kanban với chính sách cùng giới hạn WIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Lựa chọn các thực hành XP hỗ trợ một vấn đề chất lượng cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Đọc dữ liệu dòng công việc để phát hiện nút thắt và lập dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Xử lý tình huống thay đổi yêu cầu, thời hạn cứng và công việc khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Thiết kế một thử nghiệm cải tiến với cách kiểm chứng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Đề xuất cách áp dụng Agile cho nhóm phân tán hoặc nhiều nhóm cùng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

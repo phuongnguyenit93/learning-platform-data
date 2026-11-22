@@ -1,0 +1,2686 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Bảo trì phần mềm là gì và vì sao bắt đầu chuẩn bị trước khi bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Tiến hóa phần mềm là gì và mối liên hệ với nhu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt phát triển mới, bảo trì, vận hành và hỗ trợ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt sửa lỗi, cải tiến, tái cấu trúc và hiện đại hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Các đối tượng cần bảo trì: mã nguồn, dữ liệu, cấu hình, kiểm thử và tài liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Giá trị nghiệp vụ của việc duy trì một hệ thống đang được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Rủi ro của thay đổi đối với hành vi, tính toàn vẹn và tính liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình từ tiếp nhận hệ thống đến thay đổi, chuyển đổi và ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintenance-classification
+  title: Phân loại bảo trì
+  childs:
+  - slug: maintenance-classification-001
+    title: 'Bảo trì khắc phục (corrective): xử lý vấn đề đã được phát hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-002
+    title: 'Bảo trì thích nghi (adaptive): đáp ứng môi trường thay đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-003
+    title: 'Bảo trì hoàn thiện (perfective): cải thiện thuộc tính và khả năng sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-004
+    title: 'Bảo trì phòng ngừa (preventive): xử lý lỗi tiềm ẩn trước khi xảy ra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-005
+    title: Bảo trì bổ sung (additive) trong ISO/IEC/IEEE 14764:2022
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-006
+    title: Phân biệt sửa chữa với nâng cao và thay đổi có nhiều mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-007
+    title: Phân biệt bảo trì chủ động với bảo trì phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-008
+    title: Bảo trì theo lịch, ngoài lịch và khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-classification-009
+    title: Đối chiếu cách phân loại giữa tài liệu truyền thống và tiêu chuẩn áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evolution-laws
+  title: Quy luật tiến hóa
+  childs:
+  - slug: evolution-laws-001
+    title: Phần mềm gắn với thế giới thực và nguồn áp lực phải thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-002
+    title: Phân loại S, P, E của Lehman và phạm vi của hệ thống loại E
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-003
+    title: Quy luật thay đổi liên tục và sự suy giảm phù hợp với nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-004
+    title: Quy luật gia tăng độ phức tạp khi hệ thống được sửa đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-005
+    title: Quy luật tự điều chỉnh của quá trình tiến hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-006
+    title: Quy luật bảo toàn mức hoạt động của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-007
+    title: Quy luật bảo toàn mức độ quen thuộc với hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-008
+    title: Quy luật tăng trưởng liên tục về khả năng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-009
+    title: Quy luật suy giảm chất lượng khi môi trường không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-010
+    title: Quy luật hệ thống phản hồi nhiều tầng và nhiều tác nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-011
+    title: Giới hạn bằng chứng thực nghiệm và cách vận dụng các quy luật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-laws-012
+    title: Các giai đoạn phát triển, tiến hóa, duy trì hạn chế và kết thúc vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintainability
+  title: Khả năng bảo trì
+  childs:
+  - slug: maintainability-001
+    title: Khả năng bảo trì là gì và vì sao cần được đặc tả từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintainability-002
+    title: Tính dễ phân tích, dễ sửa đổi và dễ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintainability-003
+    title: Tính mô đun, phụ thuộc và tác động lan truyền của thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintainability-004
+    title: Độ phức tạp, tính kết dính và mức độ liên kết giữa thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintainability-005
+    title: Khả năng tái hiện bản dựng và khôi phục môi trường phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintainability-006
+    title: Khả năng quan sát hành vi để hỗ trợ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintainability-007
+    title: Vai trò của kiểm thử, tài liệu và tri thức miền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintainability-008
+    title: Đánh giá khả năng bảo trì bằng nhiều bằng chứng thay vì một chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintenance-organization
+  title: Tổ chức bảo trì
+  childs:
+  - slug: maintenance-organization-001
+    title: Phân công chủ sở hữu sản phẩm và trách nhiệm bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-002
+    title: Nhóm phát triển kiêm bảo trì và nhóm bảo trì chuyên trách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-003
+    title: Phối hợp giữa hỗ trợ người dùng, vận hành, bảo mật và phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-004
+    title: Tiếp nhận công việc qua đầu mối hỗ trợ và cơ chế chuyển cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-005
+    title: Thỏa thuận phạm vi dịch vụ và mục tiêu đáp ứng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-006
+    title: Bảo trì nội bộ, thuê ngoài và phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-007
+    title: Quản lý năng lực, đào tạo chéo và rủi ro phụ thuộc một người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-008
+    title: Phân bổ nguồn lực khi nhiều sản phẩm dùng chung đội bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-organization-009
+    title: Giao tiếp với khách hàng và bên liên quan trong thời gian thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintenance-planning
+  title: Kế hoạch bảo trì
+  childs:
+  - slug: maintenance-planning-001
+    title: Xác định phạm vi, thời hạn và mức dịch vụ cần duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-002
+    title: Chuẩn bị chiến lược bảo trì ngay trong quá trình phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-003
+    title: Lập danh mục tài sản phần mềm và mức quan trọng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-004
+    title: Xác định môi trường, công cụ, quyền truy cập và dữ liệu cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-005
+    title: Phân bổ năng lực cho sửa lỗi, thích nghi, cải tiến và phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-006
+    title: Lập kế hoạch theo yêu cầu thay đổi, phiên bản và danh mục sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-007
+    title: Dự báo rủi ro lỗi thời của công nghệ và nguồn lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-008
+    title: Xác định tiêu chí tiếp tục duy trì, hiện đại hóa hoặc thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-planning-009
+    title: Điều chỉnh kế hoạch từ số liệu thực tế và phản hồi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintenance-handover
+  title: Chuyển giao bảo trì
+  childs:
+  - slug: maintenance-handover-001
+    title: Chuyển tiếp trách nhiệm từ nhóm phát triển sang nhóm bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-002
+    title: Kiểm kê mã nguồn, nhánh, bản phát hành và lịch sử quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-003
+    title: Bàn giao kiến trúc, luồng nghiệp vụ và phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-004
+    title: Bàn giao bản dựng, pipeline, môi trường và cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-005
+    title: Bàn giao kiểm thử, dữ liệu mẫu và danh sách lỗi còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-006
+    title: Xác minh quyền sở hữu, quyền truy cập và liên hệ nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-007
+    title: Đào tạo qua thực hành và chạy thử một yêu cầu bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-008
+    title: Tiêu chí chấp nhận bàn giao và xử lý phần chưa đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-handover-009
+    title: Lưu bằng chứng chuyển giao và giai đoạn hỗ trợ sau bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-process
+  title: Quy trình thay đổi
+  childs:
+  - slug: change-process-001
+    title: Luồng tiếp nhận, phân tích, phê duyệt, thực hiện và chấp nhận thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-002
+    title: Phân biệt báo cáo vấn đề với đề nghị sửa đổi phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-003
+    title: Thu thập triệu chứng, phiên bản, môi trường và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-004
+    title: Phân loại yêu cầu theo loại bảo trì và phạm vi trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-005
+    title: Phân biệt mức nghiêm trọng, mức khẩn cấp và độ ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-006
+    title: Phân tích phương án cùng tác động, nguồn lực và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-007
+    title: Quyết định chấp nhận, từ chối, hoãn hoặc chuyển sang dự án khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-008
+    title: Thiết lập tiêu chí chấp nhận và người có thẩm quyền quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-009
+    title: Theo dõi trạng thái, căn cứ và lịch sử quyết định của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-process-010
+    title: Điều chỉnh quy trình cho thay đổi khẩn cấp mà vẫn lưu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-understanding
+  title: Hiểu hệ thống
+  childs:
+  - slug: system-understanding-001
+    title: Xác định mục tiêu tìm hiểu trước khi đọc một hệ thống lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-002
+    title: Khôi phục môi trường và chạy lại hành vi hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-003
+    title: Đi từ ca sử dụng đến điểm vào, luồng xử lý và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-004
+    title: Đọc mã theo luồng gọi, luồng điều khiển và luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-005
+    title: Kết hợp phân tích tĩnh với quan sát khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-006
+    title: Đọc lịch sử phiên bản để tìm lý do của hành vi hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-007
+    title: Khai thác kiểm thử, log, cấu hình và tài liệu còn đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-008
+    title: Nhận diện hành vi chủ ý, lỗi đã biết và quy tắc nghiệp vụ ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-009
+    title: Đối chiếu hiểu biết với người dùng và người từng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-understanding-010
+    title: Ghi lại bản đồ thành phần, câu hỏi còn mở và mức chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: impact-analysis
+  title: Phân tích tác động
+  childs:
+  - slug: impact-analysis-001
+    title: Xác định phạm vi thay đổi trực tiếp và ảnh hưởng gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-002
+    title: Phân tích phụ thuộc giữa mã nguồn, dữ liệu, cấu hình và giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-003
+    title: Truy vết từ yêu cầu thay đổi đến thiết kế và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-004
+    title: Phát hiện thành phần liên quan bằng đồ thị gọi và lịch sử đồng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-005
+    title: Đánh giá tác động lên thuộc tính chất lượng và ràng buộc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-006
+    title: Đánh giá ảnh hưởng đến hệ thống tích hợp và người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-007
+    title: Xác định kiểm thử cần chạy và bằng chứng cần bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-008
+    title: Phân tích khả năng quay lui và thay đổi dữ liệu khó đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-009
+    title: Cập nhật ước lượng và mức rủi ro khi phát hiện phụ thuộc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnosis-and-repair
+  title: Chẩn đoán và sửa lỗi
+  childs:
+  - slug: diagnosis-and-repair-001
+    title: Phân biệt triệu chứng, lỗi trong mã và nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-002
+    title: Tạo bước tái hiện tối thiểu cùng dữ liệu và môi trường đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-003
+    title: Thu thập bằng chứng trước khi thay đổi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-004
+    title: Khoanh vùng bằng giả thuyết, log, trình gỡ lỗi và đối chiếu phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-005
+    title: Dùng lịch sử thay đổi hoặc tìm kiếm nhị phân để tìm lần phát sinh lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-006
+    title: Xử lý lỗi phụ thuộc thời gian, dữ liệu hoặc điều kiện cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-007
+    title: Viết kiểm thử tái hiện trước khi sửa lỗi khi có thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-008
+    title: Chọn bản sửa đúng nguyên nhân và giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-009
+    title: Phân biệt biện pháp tạm thời với bản sửa lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnosis-and-repair-010
+    title: Xác minh lỗi đã hết và bổ sung phòng ngừa lỗi tương tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-enhancement
+  title: Cải tiến chức năng
+  childs:
+  - slug: functional-enhancement-001
+    title: Phân biệt làm rõ hành vi cũ với thay đổi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-enhancement-002
+    title: Thu nhận nhu cầu mới trong bối cảnh hệ thống đang được dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-enhancement-003
+    title: Phân tích khoảng cách giữa khả năng hiện có và mục tiêu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-enhancement-004
+    title: Bổ sung chức năng theo các phần nhỏ có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-enhancement-005
+    title: Giữ ổn định hành vi người dùng còn phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-enhancement-006
+    title: Xử lý cải tiến tác động tới dữ liệu lịch sử và quy trình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-enhancement-007
+    title: Đánh đổi giữa giá trị mới, độ phức tạp và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-enhancement-008
+    title: Xác nhận hiệu quả cải tiến sau khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: regression-testing
+  title: Kiểm thử hồi quy
+  childs:
+  - slug: regression-testing-001
+    title: Mục tiêu của kiểm thử hồi quy trong bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-002
+    title: Phân biệt kiểm thử xác nhận bản sửa với kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-003
+    title: Ghi nhận hành vi hiện có bằng kiểm thử đặc trưng (characterization test)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-004
+    title: Xác định hành vi cần giữ và hành vi sai được phép thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-005
+    title: Lựa chọn phạm vi kiểm thử theo phân tích tác động và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-006
+    title: Kết hợp kiểm thử đơn vị, tích hợp, hợp đồng và đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-007
+    title: Kiểm thử dữ liệu cũ, cấu hình cũ và nhiều phiên bản cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-008
+    title: Kiểm thử hồi quy hiệu năng, bảo mật và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-009
+    title: Quản lý dữ liệu kiểm thử, môi trường và kết quả kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-010
+    title: Xử lý kiểm thử chập chờn và các bộ kiểm thử quá chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: regression-testing-011
+    title: Đánh giá giới hạn của độ bao phủ mã và bằng chứng chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-refactoring
+  title: Tái cấu trúc mã
+  childs:
+  - slug: code-refactoring-001
+    title: Tái cấu trúc (refactoring) và yêu cầu bảo toàn hành vi bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-002
+    title: Phân biệt tái cấu trúc với sửa lỗi, tối ưu và viết lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-003
+    title: Nhận diện dấu hiệu mã khó thay đổi và chi phí phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-004
+    title: Tạo điểm tách phụ thuộc để bổ sung kiểm thử cho mã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-005
+    title: Thực hiện biến đổi nhỏ và kiểm chứng sau từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-006
+    title: Đổi tên, tách hàm, di chuyển trách nhiệm và giảm trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-007
+    title: Cải thiện ranh giới mô đun và hướng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-008
+    title: Tái cấu trúc để chuẩn bị cho một thay đổi có mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-009
+    title: Sử dụng công cụ hỗ trợ và rà soát tác động ngoài mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-refactoring-010
+    title: Đánh giá kết quả bằng khả năng thực hiện thay đổi tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-debt
+  title: Nợ kỹ thuật
+  childs:
+  - slug: technical-debt-001
+    title: Nợ kỹ thuật là gì và giới hạn của phép so sánh với nợ tài chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-002
+    title: Phân biệt nợ kỹ thuật với lỗi sản phẩm và mọi việc chưa hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-003
+    title: Nợ trong kiến trúc, mã, dữ liệu, kiểm thử và hạ tầng phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-004
+    title: Nhận diện quyết định đánh đổi có chủ ý và nợ phát hiện muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-005
+    title: Ghi nhận hạng mục nợ cùng hậu quả, căn cứ và người sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-006
+    title: Ước lượng chi phí xử lý và công sức tăng thêm khi tiếp tục trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-007
+    title: Ưu tiên xử lý nợ tại nơi có giá trị thay đổi cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-008
+    title: Kết hợp trả nợ với sửa lỗi hoặc cải tiến tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-009
+    title: Theo dõi nợ đã xử lý, nợ chấp nhận và điều kiện cần đánh giá lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reengineering
+  title: Tái kỹ nghệ
+  childs:
+  - slug: reengineering-001
+    title: Tái kỹ nghệ (reengineering) và mối quan hệ với bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-002
+    title: Phân biệt kỹ nghệ ngược, khôi phục thiết kế và xây dựng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-003
+    title: Phân tích hệ thống để tạo biểu diễn ở mức trừu tượng cao hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-004
+    title: Khôi phục kiến trúc, mô hình dữ liệu và đặc tả từ hệ thống hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-005
+    title: Phân biệt tái lập tài liệu với thay đổi phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-006
+    title: Lựa chọn phạm vi tái cấu trúc mã, dữ liệu hoặc kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-007
+    title: Bảo toàn quy tắc nghiệp vụ khi chuyển đổi cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-008
+    title: Xác minh tính tương đương và xử lý khác biệt có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reengineering-009
+    title: Đánh giá công cụ chuyển đổi tự động và công việc thủ công còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modernization
+  title: Hiện đại hóa
+  childs:
+  - slug: modernization-001
+    title: Xác định mục tiêu nghiệp vụ của hiện đại hóa hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-002
+    title: Đánh giá giá trị nghiệp vụ và chất lượng kỹ thuật của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-003
+    title: So sánh tiếp tục bảo trì, thay nền tảng, tái kiến trúc và thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-004
+    title: Phân tích rủi ro viết lại toàn bộ và thời gian duy trì hai hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-005
+    title: Thay thế từng phần bằng cách tiếp cận Strangler Fig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-006
+    title: Tạo ranh giới chuyển tiếp bằng lớp bao và lớp chuyển đổi giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-007
+    title: Chọn các phần theo năng lực nghiệp vụ có thể chuyển giao độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-008
+    title: Quản lý cùng tồn tại giữa hệ thống cũ và hệ thống mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-009
+    title: Đo tiến độ bằng phần trách nhiệm đã chuyển giao và phần cũ đã loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modernization-010
+    title: Đánh giá lại lộ trình khi giả định hoặc nhu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-migration
+  title: Chuyển đổi nền tảng
+  childs:
+  - slug: platform-migration-001
+    title: Phân biệt di chuyển môi trường với thay đổi kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-migration-002
+    title: Kiểm kê phụ thuộc vào hệ điều hành, runtime và dịch vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-migration-003
+    title: Phân tích khác biệt hành vi giữa nền tảng nguồn và nền tảng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-migration-004
+    title: Lập kế hoạch chuyển đổi mã, cấu hình và tài nguyên triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-migration-005
+    title: Kiểm chứng khả năng xây dựng và chạy trên môi trường mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-migration-006
+    title: Chạy thử, chạy song song và đối chiếu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-migration-007
+    title: Chuẩn bị điều kiện chuyển giao và phương án khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-migration-008
+    title: Xác nhận hoàn tất chuyển đổi với nhóm vận hành và người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-evolution
+  title: Tiến hóa dữ liệu
+  childs:
+  - slug: data-evolution-001
+    title: Quan hệ giữa thay đổi phần mềm và thay đổi cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-002
+    title: Quản lý phiên bản schema và các bước migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-003
+    title: Tiến hóa schema bằng mở rộng, chuyển đổi rồi thu hẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-004
+    title: Giữ tương thích khi phiên bản ứng dụng cũ và mới cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-005
+    title: Chuyển đổi hoặc bổ sung dữ liệu theo lô và xử lý chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-006
+    title: Kiểm tra tính toàn vẹn, đối soát và các bản ghi ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-007
+    title: Đánh giá khóa dữ liệu, dung lượng và thời gian thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-008
+    title: Phân biệt quay lui mã với phục hồi dữ liệu đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-009
+    title: Thử nghiệm phục hồi trước khi thực hiện thay đổi khó đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-evolution-010
+    title: Loại bỏ cột, bảng và đường xử lý cũ sau khi đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-compatibility
+  title: Tương thích giao tiếp
+  childs:
+  - slug: communication-compatibility-001
+    title: Xác định hợp đồng công khai và các bên đang phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-002
+    title: Phân biệt tương thích nguồn, nhị phân, giao thức và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-003
+    title: Tương thích ngược và tương thích tiến trong hệ thống nhiều phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-004
+    title: Định phiên bản API và truyền đạt thay đổi không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-005
+    title: Dùng Semantic Versioning khi đã xác định hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-006
+    title: Đánh dấu ngừng khuyến nghị sử dụng và lập lịch loại bỏ giao tiếp cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-007
+    title: Bổ sung lớp chuyển đổi hoặc đường xử lý tương thích tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-008
+    title: Kiểm thử hợp đồng và kiểm chứng với bên sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-compatibility-009
+    title: Quản lý thay đổi sự kiện, tệp trao đổi và dữ liệu tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-maintenance
+  title: Bảo trì phụ thuộc
+  childs:
+  - slug: dependency-maintenance-001
+    title: Kiểm kê thư viện, framework, runtime và công cụ xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-002
+    title: Phân biệt phụ thuộc trực tiếp, bắc cầu và thành phần được đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-003
+    title: Bảng kê thành phần phần mềm (SBOM) và phạm vi thông tin cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-004
+    title: Theo dõi vòng đời hỗ trợ và thành phần đã ngừng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-005
+    title: Đọc ghi chú phát hành và hướng dẫn chuyển đổi trước khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-006
+    title: Nâng cấp theo bước nhỏ và kiểm tra tổ hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-007
+    title: Kiểm chứng bản dựng tái lập và nguồn gốc thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-008
+    title: Quản lý bản vá riêng, fork và đóng góp thay đổi về dự án gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-maintenance-009
+    title: Lựa chọn thay thế khi phụ thuộc không còn được duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-maintenance
+  title: Bảo trì bảo mật
+  childs:
+  - slug: security-maintenance-001
+    title: Tiếp nhận và xác minh báo cáo lỗ hổng sau khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-002
+    title: Xác định phiên bản, cấu hình và khách hàng chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-003
+    title: Ưu tiên khắc phục theo khả năng khai thác và tác động thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-004
+    title: Phân biệt biện pháp giảm thiểu tạm thời với bản vá nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-005
+    title: Kiểm thử bản vá mà không làm mất yêu cầu bảo mật khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-006
+    title: Đưa bản sửa về các nhánh còn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-007
+    title: Bảo vệ tính toàn vẹn của gói cập nhật và đường phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-008
+    title: Phối hợp thông tin khắc phục với các bên chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-maintenance-009
+    title: Phân tích nguyên nhân để ngăn lỗ hổng cùng loại tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-and-versioning
+  title: Cấu hình và phiên bản
+  childs:
+  - slug: configuration-and-versioning-001
+    title: Xác định cấu hình chuẩn của mã, phụ thuộc, dữ liệu và tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-002
+    title: Truy vết từ đề nghị thay đổi đến commit và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-003
+    title: Quản lý nhánh chính, nhánh bảo trì và bản vá khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-004
+    title: Phân biệt bản đang phát triển với các phiên bản đang được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-005
+    title: Đưa bản sửa về nhánh cũ và đưa ngược vào dòng phát triển hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-006
+    title: Xử lý xung đột khi nhiều nhánh sửa cùng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-007
+    title: Quản lý cấu hình theo môi trường và tránh sai lệch ngoài kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-008
+    title: Đánh dấu bản phát hành và lưu hiện vật có thể truy nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-versioning-009
+    title: Đồng bộ kiểm thử, tài liệu và ghi chú với đúng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-release
+  title: Phát hành thay đổi
+  childs:
+  - slug: change-release-001
+    title: Xác định nội dung bản phát hành từ các yêu cầu đã được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-002
+    title: Tự động hóa xây dựng, kiểm thử và kiểm tra điều kiện phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-003
+    title: Rà soát bằng chứng và rủi ro còn lại trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-004
+    title: Lập kế hoạch triển khai theo đợt và giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-005
+    title: Triển khai thăm dò (canary) và so sánh tín hiệu với phiên bản đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-006
+    title: Cờ tính năng (feature flag) và quản lý vòng đời cờ tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-007
+    title: Chọn điều kiện dừng, quay lui hoặc sửa tiếp trên phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-008
+    title: Phối hợp triển khai ứng dụng với thay đổi schema và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-009
+    title: Thông báo thay đổi, giới hạn đã biết và hướng dẫn cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-release-010
+    title: Xác nhận bản phát hành đạt tiêu chí chấp nhận sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-feedback
+  title: Phản hồi vận hành
+  childs:
+  - slug: operational-feedback-001
+    title: Dùng báo cáo sự cố và phản hồi người dùng làm đầu vào bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-feedback-002
+    title: Phân biệt khôi phục dịch vụ với thực hiện thay đổi phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-feedback-003
+    title: Liên hệ log, số đo và dấu vết với phiên bản đã triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-feedback-004
+    title: Chẩn đoán suy giảm hiệu năng hoặc lỗi phát sinh sau cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-feedback-005
+    title: Lựa chọn dữ liệu quan sát cần thiết mà vẫn bảo vệ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-feedback-006
+    title: Đối chiếu hành vi thực tế với tiêu chí chấp nhận của bản thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-feedback-007
+    title: Chuyển bài học sau sự cố thành yêu cầu sửa chữa hoặc phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-feedback-008
+    title: Đóng vòng phản hồi bằng cách xác nhận kết quả với bên báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-and-knowledge
+  title: Tài liệu và tri thức
+  childs:
+  - slug: documentation-and-knowledge-001
+    title: Xác định tài liệu còn đúng với hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-knowledge-002
+    title: Cập nhật kiến trúc, hợp đồng giao tiếp và mô hình dữ liệu sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-knowledge-003
+    title: Ghi lại quyết định cùng bối cảnh, phương án và lý do lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-knowledge-004
+    title: Duy trì hướng dẫn tái hiện lỗi và thiết lập môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-knowledge-005
+    title: Duy trì hướng dẫn phát hành, xử lý sự cố và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-knowledge-006
+    title: Liên kết yêu cầu, mã, kiểm thử và tài liệu thay vì sao chép nhiều bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-knowledge-007
+    title: Chuyển giao tri thức bằng làm việc cặp, rà soát và đào tạo chéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-knowledge-008
+    title: Lưu giữ tri thức khi nhân sự hoặc nhà cung cấp thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-support
+  title: Công cụ hỗ trợ
+  childs:
+  - slug: tools-and-support-001
+    title: Lựa chọn khả năng công cụ theo vấn đề bảo trì cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-002
+    title: Tìm kiếm mã, điều hướng tham chiếu và phân tích phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-003
+    title: Phân tích tĩnh, phát hiện trùng lặp và theo dõi độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-004
+    title: Tự động hóa kiểm thử hồi quy và kiểm tra tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-005
+    title: Theo dõi phụ thuộc, lỗ hổng và vòng đời hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-006
+    title: Tự động hóa biến đổi mã và giới hạn cần rà soát thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-007
+    title: Ứng dụng trí tuệ nhân tạo (AI) để giải thích mã và gợi ý thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-008
+    title: Kiểm chứng kết quả do AI tạo và bảo vệ dữ liệu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-support-009
+    title: Tránh tạo thêm công cụ khó bảo trì hoặc tri thức chỉ một người nắm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: estimation-and-metrics
+  title: Ước lượng và đo lường
+  childs:
+  - slug: estimation-and-metrics-001
+    title: Phân biệt công sức sửa mã với tổng công sức hoàn tất bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-002
+    title: Ước lượng từ dữ liệu lịch sử, chuyên gia và phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-003
+    title: Đưa thời gian tìm hiểu, kiểm thử và phát hành vào ước lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-004
+    title: Biểu diễn bất định và cập nhật dự báo khi có bằng chứng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-005
+    title: Theo dõi yêu cầu tồn đọng, tuổi yêu cầu và thời gian hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-006
+    title: Theo dõi lỗi tái mở, lỗi lặp lại và lỗi gây ra bởi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-007
+    title: Đo phân bổ công sức giữa các loại bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-008
+    title: Đánh giá chi phí duy trì theo sản phẩm và xu hướng dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-009
+    title: Tránh dùng số dòng mã hoặc số yêu cầu đóng làm năng suất tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: estimation-and-metrics-010
+    title: Cải tiến quy trình từ nguyên nhân chậm trễ và lỗi lọt qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: decommissioning
+  title: Ngừng sử dụng
+  childs:
+  - slug: decommissioning-001
+    title: Nhận diện điều kiện ngừng hỗ trợ hoặc ngừng vận hành phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-002
+    title: Phân biệt hết hỗ trợ, hết vòng đời và ngừng dùng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-003
+    title: Kiểm kê người dùng, tích hợp và quy trình còn phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-004
+    title: Lập kế hoạch thay thế, chuyển giao và thông báo mốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-005
+    title: Di chuyển, lưu giữ hoặc xóa dữ liệu theo chính sách đã được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-006
+    title: Chuẩn bị quyền truy cập và khả năng đọc dữ liệu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-007
+    title: Thu hồi tích hợp, tài nguyên và quyền truy cập khi đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-008
+    title: Xác minh không còn luồng nghiệp vụ dựa vào hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-009
+    title: Lưu hồ sơ hoàn tất và trách nhiệm hỗ trợ còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: special-contexts
+  title: Bối cảnh đặc thù
+  childs:
+  - slug: special-contexts-001
+    title: Bảo trì phần mềm đóng gói sẵn và giới hạn can thiệp của bên mua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-002
+    title: Bảo trì phần mềm nguồn mở khi phụ thuộc cộng đồng hoặc người duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-003
+    title: Bảo trì sản phẩm nhiều khách hàng và kiểm soát tùy biến riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-004
+    title: Bảo trì hệ thống nhúng hoặc thiết bị khó cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-005
+    title: Bảo trì hệ thống cần bằng chứng kiểm chứng nghiêm ngặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-006
+    title: Bảo trì dịch vụ thuê ngoài hoặc SaaS khi không nắm mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-007
+    title: Bảo trì kho dữ liệu và luồng xử lý dữ liệu dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-008
+    title: Quản lý thay đổi mô hình, dữ liệu và tiêu chí đánh giá trong hệ thống AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: special-contexts-009
+    title: Duy trì phần mềm có tài liệu thiếu hoặc không còn nhóm phát triển ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Tiếp nhận một ứng dụng cũ và lập hồ sơ sẵn sàng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Phân loại tập yêu cầu sửa lỗi, thích nghi, hoàn thiện và bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Khôi phục hành vi bằng đọc mã và kiểm thử đặc trưng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Phân tích tác động rồi sửa lỗi nghiệp vụ có kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tái cấu trúc một thành phần trước khi thêm chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Lập danh sách nợ kỹ thuật và chọn hạng mục cần xử lý trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Nâng cấp phụ thuộc có thay đổi không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Chuyển đổi schema để hai phiên bản ứng dụng cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Lập kế hoạch hiện đại hóa từng phần cùng bằng chứng chuyển giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Chuẩn bị phát hành, phương án khôi phục và đánh giá sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Lập kế hoạch ngừng hệ thống cũ sau khi hoàn tất thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

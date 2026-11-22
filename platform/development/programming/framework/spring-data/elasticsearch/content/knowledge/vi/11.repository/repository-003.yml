@@ -1,0 +1,3 @@
+menuLevel1: Repository
+menuLevel2: Quét Repository với @EnableElasticsearchRepositories
+status: WRITTEN

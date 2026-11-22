@@ -1,0 +1,3883 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Project Reactor Core là gì và bài toán xử lý dữ liệu theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao cần lập trình phản ứng khi ứng dụng có nhiều tác vụ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt đồng bộ, bất đồng bộ, chặn và không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Quan hệ giữa lập trình phản ứng, Reactive Streams và Project Reactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của Mono, Flux, toán tử, Scheduler và Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mô hình dữ liệu đi xuôi và nhu cầu truyền ngược trong chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt chuỗi phản ứng với Java Stream và CompletableFuture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phân biệt xử lý đồng thời với xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Quan hệ của Reactor Core với Reactor Netty, Spring WebFlux và reactor-test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Khi nào nên dùng Reactor và khi nào cách xử lý tuần tự đã phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-011
+    title: Kiến thức tiên quyết và lộ trình học từ mô hình tín hiệu đến thiết kế ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-streams
+  title: Reactive Streams
+  childs:
+  - slug: reactive-streams-001
+    title: Hợp đồng giữa Publisher, Subscriber, Subscription và Processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-002
+    title: Trình tự onSubscribe, onNext và tín hiệu kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-003
+    title: Ý nghĩa của onComplete, onError và tính duy nhất của tín hiệu kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-004
+    title: Yêu cầu dữ liệu bằng request(n) và cơ chế điều tiết ngược (backpressure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-005
+    title: Nhu cầu hữu hạn, nhu cầu không giới hạn và quy tắc không phát vượt nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-006
+    title: Hủy đăng ký bằng cancel và giới hạn của việc hủy tác vụ đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-007
+    title: Quy tắc không phát giá trị null và cách biểu diễn dữ liệu vắng mặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-008
+    title: Tuần tự hóa tín hiệu và an toàn khi nguồn phát từ nhiều luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-009
+    title: Phân biệt giao thức Reactive Streams với mô hình Java Flow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-streams-010
+    title: Giới hạn bảo đảm của giao thức đối với bộ nhớ, tải hệ thống và tác động phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-setup
+  title: Thiết lập
+  childs:
+  - slug: project-setup-001
+    title: Khai báo reactor-core trong Gradle và Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-002
+    title: Quản lý phiên bản đồng bộ bằng Reactor BOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-003
+    title: Sử dụng phiên bản Reactor do Spring Boot quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-004
+    title: Kiểm tra yêu cầu JDK và khác biệt API giữa các dòng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-005
+    title: Chuẩn bị JUnit Jupiter và reactor-test cho ví dụ thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-006
+    title: Tổ chức chương trình Java thuần sử dụng Mono và Flux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-007
+    title: Viết chuỗi xử lý đầu tiên và quan sát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-008
+    title: Đọc Javadoc, sơ đồ marble và bảng lựa chọn toán tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-009
+    title: Nhận diện API đã lỗi thời khi đọc ví dụ hoặc tài liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mono-and-flux
+  title: Mono và Flux
+  childs:
+  - slug: mono-and-flux-001
+    title: 'Mono<T>: không hoặc một giá trị rồi kết thúc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-002
+    title: 'Flux<T>: từ không đến nhiều giá trị, hữu hạn hoặc vô hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-003
+    title: Mono<Void> và hợp đồng chỉ biểu diễn việc hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-004
+    title: Phân biệt Mono<List<T>> với Flux<T>
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-005
+    title: Chuỗi rỗng, chuỗi lỗi và chuỗi không bao giờ kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-006
+    title: Phân biệt kiểu Publisher khai báo với số lượng tín hiệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-007
+    title: Chuyển Mono thành Flux và Flux thành Mono theo đúng ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-008
+    title: Ý nghĩa của next, single, singleOrEmpty và last
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-009
+    title: Kiểu generic, Tuple và mô hình dữ liệu trong chuỗi phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mono-and-flux-010
+    title: Tính bất biến của chuỗi toán tử và lỗi bỏ quên giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: subscription-and-execution
+  title: Đăng ký và thực thi
+  childs:
+  - slug: subscription-and-execution-001
+    title: Phân biệt giai đoạn lắp ráp, đăng ký và phát tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-002
+    title: Vì sao mô tả chuỗi chưa đồng nghĩa với thực hiện công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-003
+    title: Các biến thể subscribe và trách nhiệm xử lý dữ liệu, lỗi, kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-004
+    title: Disposable được trả về khi subscribe và cách quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-005
+    title: BaseSubscriber và các điểm mở rộng hookOnSubscribe, hookOnNext, hookFinally
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-006
+    title: Chủ động điều khiển request và cancel trong BaseSubscriber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-007
+    title: Nhiều lượt đăng ký và việc thực thi lặp lại nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-008
+    title: Phân biệt trạng thái theo từng đăng ký với trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-009
+    title: Vì sao subscribe lồng nhau dễ làm mất luồng lỗi và quyền hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscription-and-execution-010
+    title: Ai sở hữu việc subscribe ở biên ứng dụng và trong framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-publisher-creation
+  title: Tạo nguồn cơ bản
+  childs:
+  - slug: basic-publisher-creation-001
+    title: Tạo giá trị biết trước bằng just và thời điểm giá trị được tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-002
+    title: Biểu diễn giá trị có thể vắng mặt bằng justOrEmpty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-003
+    title: Tạo Flux từ mảng, Iterable và khoảng số bằng range
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-004
+    title: Tạo Flux từ Java Stream và cung cấp Stream mới theo từng đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-005
+    title: Tạo nguồn empty, error và never
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-006
+    title: Trì hoãn tính giá trị bằng fromSupplier và fromCallable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-007
+    title: Biểu diễn tác vụ không có giá trị trả về bằng fromRunnable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-008
+    title: Tạo lại Publisher theo từng đăng ký bằng defer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-009
+    title: Phân biệt just, fromSupplier, fromCallable và defer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-010
+    title: Chuyển Publisher tương thích sang Mono hoặc Flux bằng from
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-publisher-creation-011
+    title: Tạo nguồn lỗi trễ bằng Supplier<Throwable>
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-publisher-creation
+  title: Tạo nguồn tùy chỉnh
+  childs:
+  - slug: custom-publisher-creation-001
+    title: Sinh dữ liệu đồng bộ từng bước bằng Flux.generate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-002
+    title: Quản lý trạng thái theo đăng ký và dọn trạng thái trong generate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-003
+    title: SynchronousSink và giới hạn số lần next trong một lượt sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-004
+    title: Chuyển API callback hoặc listener sang Flux.create
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-005
+    title: FluxSink và các tín hiệu next, error, complete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-006
+    title: Chọn Flux.push khi nguồn chỉ phát từ một luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-007
+    title: Phân biệt create với push và với việc tự tạo luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-008
+    title: Phản hồi nhu cầu bằng onRequest và kiểm tra trạng thái hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-009
+    title: Dọn listener bằng onCancel và onDispose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-010
+    title: Chọn OverflowStrategy khi nối nguồn không hỗ trợ backpressure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-011
+    title: Tạo Mono từ callback bằng Mono.create và MonoSink
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-publisher-creation-012
+    title: Tránh vòng lặp chặn và phát tín hiệu sau khi nguồn đã kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronous-transformations
+  title: Biến đổi đồng bộ
+  childs:
+  - slug: synchronous-transformations-001
+    title: Biến đổi từng phần tử bằng map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-002
+    title: Chuyển kiểu bằng cast và lọc theo kiểu bằng ofType
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-003
+    title: Gắn chỉ số bằng index và xử lý dữ liệu theo vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-004
+    title: Kết hợp lọc, biến đổi và kết thúc sớm bằng handle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-005
+    title: Tránh trả về null trong map và sử dụng mapNotNull khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-006
+    title: Thêm dữ liệu đầu hoặc cuối bằng startWith và concatWithValues
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-007
+    title: Tách và biểu diễn tín hiệu bằng materialize
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-008
+    title: Khôi phục chuỗi tín hiệu bằng dematerialize
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-009
+    title: Mở rộng dữ liệu dạng cây hoặc đồ thị bằng expand và expandDeep
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-transformations-010
+    title: Chọn biến đổi thuần và tách tác động phụ khỏi hàm ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-transformations
+  title: Biến đổi bất đồng bộ
+  childs:
+  - slug: asynchronous-transformations-001
+    title: Vì sao gọi hàm trả về Publisher cần phép làm phẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-002
+    title: Phân biệt map với flatMap khi kết quả là Mono hoặc Flux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-003
+    title: Mono.flatMap và Mono.flatMapMany theo số lượng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-004
+    title: Flux.flatMap và khả năng xen kẽ kết quả giữa các nguồn con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-005
+    title: Giữ thứ tự bằng concatMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-006
+    title: Đăng ký đồng thời nhưng phát đúng thứ tự bằng flatMapSequential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-007
+    title: So sánh flatMap, concatMap và flatMapSequential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-008
+    title: Điều khiển concurrency và prefetch cho các nguồn con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-009
+    title: Chuyển dữ liệu Iterable thành nhiều phần tử bằng flatMapIterable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-010
+    title: Thay thế nguồn con cũ bằng switchMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-011
+    title: Phân biệt hủy nguồn con với hoàn tác tác động phụ đã thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-transformations-012
+    title: Phạm vi xử lý lỗi ở nguồn cha và bên trong từng nguồn con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filtering-and-selection
+  title: Lọc và lựa chọn
+  childs:
+  - slug: filtering-and-selection-001
+    title: Lọc đồng bộ bằng filter và bất đồng bộ bằng filterWhen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-002
+    title: Loại phần tử trùng bằng distinct và distinctUntilChanged
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-003
+    title: Lấy hoặc bỏ số phần tử bằng take và skip
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-004
+    title: Lấy hoặc bỏ các phần tử cuối bằng takeLast và skipLast
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-005
+    title: Lấy hoặc bỏ theo điều kiện bằng takeWhile và skipWhile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-006
+    title: Điều khiển điểm dừng bằng takeUntil và takeUntilOther
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-007
+    title: Bỏ dữ liệu theo nguồn kích hoạt bằng skipUntilOther
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-008
+    title: Chọn phần tử theo vị trí bằng elementAt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-009
+    title: Lấy một phần tử bằng next, single và last với hợp đồng tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-010
+    title: Lấy mẫu sự kiện bằng sample và sampleTimeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-011
+    title: Giữ sự kiện đầu mỗi khoảng thời gian bằng sampleFirst
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-selection-012
+    title: Nhận diện dữ liệu bị loại, việc hủy nguồn và chi phí giữ trạng thái khi lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-composition
+  title: Phối hợp nhiều nguồn
+  childs:
+  - slug: source-composition-001
+    title: Nối tuần tự nhiều nguồn bằng concat và concatWith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-002
+    title: Trộn dữ liệu theo thời điểm phát bằng merge và mergeWith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-003
+    title: Đăng ký sớm nhưng giữ thứ tự nguồn bằng mergeSequential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-004
+    title: Ghép theo vị trí bằng zip và zipWith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-005
+    title: Kết hợp giá trị mới nhất bằng combineLatest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-006
+    title: Phân biệt zip với combineLatest về thời điểm phát và dữ liệu được giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-007
+    title: Kết hợp nguồn chính với giá trị phụ mới nhất bằng withLatestFrom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-008
+    title: Kết hợp Mono phụ thuộc giá trị bằng zipWhen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-009
+    title: Chọn nguồn thắng cuộc bằng firstWithSignal và firstWithValue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-010
+    title: Phối hợp nguồn chứa nguồn bằng switchOnNext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-011
+    title: Phối hợp tác vụ qua tín hiệu kết thúc bằng when, whenDelayError và and
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-012
+    title: Kết hợp theo khoảng tồn tại của phần tử bằng join và groupJoin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-013
+    title: Ảnh hưởng của nguồn rỗng, lỗi hoặc vô hạn đến kết quả phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-composition-014
+    title: Trì hoãn lỗi bằng các biến thể DelayError khi cần thu nhận kết quả còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-aggregation
+  title: Tổng hợp dữ liệu
+  childs:
+  - slug: data-aggregation-001
+    title: Thu toàn bộ phần tử bằng collectList và giới hạn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-002
+    title: Thu dữ liệu có sắp xếp bằng collectSortedList và sort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-003
+    title: Tạo ánh xạ bằng collectMap và collectMultimap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-004
+    title: Tùy biến bộ chứa bằng collect và Java Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-005
+    title: Tính kết quả cuối bằng reduce và reduceWith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-006
+    title: Phát kết quả trung gian bằng scan và scanWith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-007
+    title: Đếm phần tử bằng count
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-008
+    title: Kiểm tra điều kiện bằng all, any, hasElement và hasElements
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-009
+    title: So sánh hai chuỗi bằng sequenceEqual
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-010
+    title: Xử lý đầu vào rỗng và chọn giá trị khởi tạo khi tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-aggregation-011
+    title: Vì sao không thể thu toàn bộ một nguồn vô hạn vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: buffering-and-grouping
+  title: Chia lô và phân nhóm
+  childs:
+  - slug: buffering-and-grouping-001
+    title: Phân biệt buffer, window và groupBy theo kiểu dữ liệu đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-002
+    title: Gom theo số lượng bằng buffer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-003
+    title: Tạo các lô chồng lấn hoặc cách quãng bằng tham số skip
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-004
+    title: Gom theo thời gian và số lượng bằng bufferTimeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-005
+    title: Gom theo điều kiện bằng bufferUntil và bufferWhile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-006
+    title: Gom theo tín hiệu mở hoặc đóng bằng bufferWhen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-007
+    title: Chia thành các Flux con bằng window
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-008
+    title: Chọn biến thể window theo kích thước, thời gian hoặc điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-009
+    title: Phân nhóm theo khóa bằng groupBy và tiêu thụ GroupedFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-010
+    title: Nguy cơ treo hoặc tăng bộ nhớ khi số nhóm lớn và mức tiêu thụ không đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-and-grouping-011
+    title: Quản lý nhu cầu, lỗi và hủy cho luồng cha cùng các luồng con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: empty-and-completion
+  title: Rỗng và hoàn tất
+  childs:
+  - slug: empty-and-completion-001
+    title: Biểu diễn không có kết quả mà không dùng null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-002
+    title: Cấp giá trị mặc định bằng defaultIfEmpty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-003
+    title: Chuyển sang nguồn dự phòng bằng switchIfEmpty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-004
+    title: Dùng defer để trì hoãn công việc trong nhánh dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-005
+    title: Bỏ dữ liệu và chỉ quan tâm kết thúc bằng ignoreElements
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-006
+    title: Chuyển tiếp sau hoàn tất bằng then, thenReturn và thenMany
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-007
+    title: Chờ tác vụ chỉ có tín hiệu kết thúc bằng thenEmpty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-008
+    title: Giữ giá trị gốc và chờ công việc phụ bằng delayUntil
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-009
+    title: Vì sao zip hoặc zipWhen có thể không gọi hàm ghép khi nguồn rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: empty-and-completion-010
+    title: Chọn Optional hoặc singleOptional khi cần biểu diễn vắng mặt như một giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: onError kết thúc nguồn và ý nghĩa của việc thay thế nguồn khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Phân biệt ngoại lệ ném khi lắp ráp với lỗi được phát trong chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: Trả giá trị dự phòng bằng onErrorReturn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Chuyển nguồn khi lỗi bằng onErrorResume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Biến lỗi thành hoàn tất bằng onErrorComplete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Chuyển đổi ngoại lệ bằng onErrorMap và bảo toàn nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Quan sát lỗi bằng doOnError mà không thay đổi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Giới hạn phục hồi theo loại lỗi hoặc Predicate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Đặt xử lý lỗi bên trong flatMap để cô lập lỗi từng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Giới hạn và tác động lan truyền của onErrorContinue cùng onErrorStop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-011
+    title: Phân biệt lỗi nghiệp vụ, lỗi hạ tầng và lỗi lập trình để chọn chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-012
+    title: Nhận diện lỗi nghiêm trọng và xử lý ngoại lệ qua tiện ích Exceptions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retry-and-repeat
+  title: Thử lại và lặp lại
+  childs:
+  - slug: retry-and-repeat-001
+    title: Retry là đăng ký lại nguồn sau lỗi, không tiếp tục từ phần tử lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-002
+    title: Thử lại có giới hạn bằng retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-003
+    title: Mô tả chính sách bằng retryWhen và Retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-004
+    title: So sánh Retry.max, Retry.fixedDelay và Retry.backoff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-005
+    title: Giới hạn số lần, lọc ngoại lệ và xử lý khi cạn lượt thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-006
+    title: Điều chỉnh backoff, jitter và Scheduler cho việc thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-007
+    title: Quan sát RetrySignal và các điểm mở rộng doBeforeRetry, doAfterRetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-008
+    title: Tạo lại công việc bằng defer để mỗi lần đăng ký thực hiện lần thử mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-009
+    title: Lặp sau hoàn tất bằng repeat và repeatWhen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-010
+    title: Thực hiện lại khi Mono rỗng bằng repeatWhenEmpty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-011
+    title: Phối hợp timeout với retry và xác định giới hạn cho từng lần hoặc toàn tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retry-and-repeat-012
+    title: Tính lũy đẳng, tác động phụ lặp lại và hủy trong lúc đợi lần thử kế tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backpressure
+  title: Backpressure
+  childs:
+  - slug: backpressure-001
+    title: Phân biệt tốc độ nguồn, tốc độ tiêu thụ và nhu cầu đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-002
+    title: Request được truyền và biến đổi qua chuỗi toán tử như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-003
+    title: Điều khiển nhu cầu thủ công bằng BaseSubscriber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-004
+    title: Request không giới hạn từ các cách subscribe thông dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-005
+    title: Prefetch và cơ chế yêu cầu bổ sung của toán tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-006
+    title: Điều tiết request theo lô bằng limitRate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-007
+    title: Giới hạn tổng nhu cầu bằng take(n, true) và phân biệt với điều tiết request theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-008
+    title: Đệm dữ liệu bằng onBackpressureBuffer và lựa chọn giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-009
+    title: Loại dữ liệu bằng onBackpressureDrop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-010
+    title: Chỉ giữ giá trị mới nhất bằng onBackpressureLatest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-011
+    title: Báo lỗi khi quá tải bằng onBackpressureError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-012
+    title: Chọn chính sách khi nguồn ngoài không thể giảm tốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-013
+    title: Phân biệt backpressure với giới hạn mức đồng thời và giới hạn tần suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-014
+    title: Chi phí bộ nhớ, độ trễ và quan sát dữ liệu bị loại khi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-and-side-effects
+  title: Vòng đời và tác động phụ
+  childs:
+  - slug: lifecycle-and-side-effects-001
+    title: Quan sát dữ liệu bằng doOnNext mà không thay thế phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-002
+    title: Quan sát đăng ký và nhu cầu bằng doOnSubscribe và doOnRequest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-003
+    title: Phân biệt Mono.doOnSuccess với doOnNext khi Mono kết thúc rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-004
+    title: Quan sát hoàn tất và lỗi bằng doOnComplete và doOnError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-005
+    title: Phân biệt doOnTerminate với doAfterTerminate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-006
+    title: Xử lý hủy bằng doOnCancel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-007
+    title: Dọn dẹp theo SignalType bằng doFinally
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-008
+    title: Quan sát tổng hợp tín hiệu bằng doOnEach
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-009
+    title: Thứ tự callback khi lắp nhiều toán tử quan sát trong chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-010
+    title: Quản lý nhóm Disposable và thay thế tác vụ bằng Disposables
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-011
+    title: Giới hạn của cancel với tác vụ chặn và công việc bên ngoài Reactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-and-side-effects-012
+    title: Phân biệt kết thúc luồng, hủy đăng ký và hoàn tác tác động phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schedulers
+  title: Scheduler
+  childs:
+  - slug: schedulers-001
+    title: Scheduler là bộ lập lịch và đồng hồ cho tác vụ phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-002
+    title: Phân biệt Scheduler, Worker, Thread và ExecutorService
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-003
+    title: Thực thi ngay trên luồng hiện tại bằng Schedulers.immediate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-004
+    title: Chọn Schedulers.single cho công việc cần một luồng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-005
+    title: Chọn Schedulers.parallel cho công việc tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-006
+    title: Chọn Schedulers.boundedElastic cho tác vụ chặn cần cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-007
+    title: Giới hạn số luồng, hàng đợi và thời gian chờ trên boundedElastic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-008
+    title: Chế độ boundedElastic dùng virtual thread trên Java 21 và điều kiện kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-009
+    title: Tạo Scheduler riêng bằng newSingle, newParallel và newBoundedElastic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-010
+    title: Tích hợp ExecutorService bằng Schedulers.fromExecutorService
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-011
+    title: Phân biệt Scheduler dùng chung với Scheduler do ứng dụng sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schedulers-012
+    title: Dọn Worker, Scheduler và quản lý vòng đời tài nguyên lập lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-switching
+  title: Chuyển luồng thực thi
+  childs:
+  - slug: execution-switching-001
+    title: Luồng thực thi mặc định khi chưa chỉ định Scheduler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-002
+    title: publishOn chuyển nơi xử lý tín hiệu cho phần chuỗi phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-003
+    title: subscribeOn điều khiển nơi đăng ký và tương tác với nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-004
+    title: So sánh publishOn với subscribeOn theo hướng truyền tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-005
+    title: Ảnh hưởng của vị trí publishOn trong chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-006
+    title: Tác động của nhiều subscribeOn và chi phí chuyển luồng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-007
+    title: Toán tử tự chọn Scheduler và cách truyền Scheduler tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-008
+    title: Tách công việc I/O chặn khỏi luồng chuyên xử lý không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-009
+    title: Vì sao chuyển Scheduler chưa tự tạo xử lý song song cho từng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-010
+    title: Nhận diện luồng NonBlocking và lỗi gọi block trên single hoặc parallel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-switching-011
+    title: Đọc dấu vết luồng để xác minh nơi thực thi của từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parallel-processing
+  title: Xử lý song song
+  childs:
+  - slug: parallel-processing-001
+    title: Phân biệt flatMap có concurrency với ParallelFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-002
+    title: Chia dữ liệu thành các rail bằng parallel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-003
+    title: Phân phối công việc lên Scheduler bằng runOn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-004
+    title: Xử lý và tổng hợp kết quả trên từng rail
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-005
+    title: Hợp nhất ParallelFlux về Flux bằng sequential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-006
+    title: Thứ tự dữ liệu khi hợp nhất kết quả song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-007
+    title: Chọn mức song song theo CPU và bản chất công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-008
+    title: Tránh trạng thái mutable dùng chung trong các phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-009
+    title: Quản lý prefetch, hàng đợi và chi phí chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-processing-010
+    title: Trường hợp song song hóa làm chậm hơn và cách kiểm chứng bằng đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-operators
+  title: Thời gian
+  childs:
+  - slug: time-operators-001
+    title: Tạo tín hiệu trễ bằng Mono.delay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-002
+    title: Tạo chuỗi định kỳ bằng Flux.interval và lưu ý nhu cầu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-003
+    title: Trì hoãn đăng ký bằng delaySubscription
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-004
+    title: Trì hoãn phần tử bằng delayElement hoặc delayElements
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-005
+    title: Chờ công việc phụ hoàn thành bằng delayUntil theo từng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-006
+    title: Áp thời hạn chờ bằng timeout và lựa chọn nguồn dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-007
+    title: Lấy hoặc bỏ dữ liệu trong khoảng thời gian bằng take và skip
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-008
+    title: Đo khoảng cách tín hiệu bằng elapsed và gắn thời điểm bằng timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-009
+    title: Đo thời gian bằng timed và khai thác các giá trị trong Timed
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-010
+    title: Lấy mẫu và giới hạn mật độ tín hiệu theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-operators-011
+    title: Chọn Scheduler làm đồng hồ và tránh nhầm thời gian xử lý với thời gian sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hot-and-shared-sources
+  title: Nguồn nóng và chia sẻ
+  childs:
+  - slug: hot-and-shared-sources-001
+    title: Phân biệt nguồn lạnh và nguồn nóng theo thời điểm tạo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-002
+    title: just ghi nhận giá trị sớm và defer tạo lại công việc khi đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-003
+    title: Tác động của nhiều người đăng ký lên nguồn lạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-004
+    title: Chuyển nguồn sang cơ chế chia sẻ bằng publish
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-005
+    title: ConnectableFlux và quyền chủ động bắt đầu bằng connect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-006
+    title: Tự kết nối theo ngưỡng người đăng ký bằng autoConnect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-007
+    title: Tự kết nối và ngắt theo số người nhận bằng refCount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-008
+    title: Khoảng chờ trước ngắt kết nối với refCount theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-009
+    title: Chia sẻ nguồn bằng share và phân biệt với lưu lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-010
+    title: Nhu cầu của nhiều người nhận và tác động của người nhận chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-011
+    title: Người đăng ký đến muộn, tín hiệu kết thúc và hành vi kết nối lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hot-and-shared-sources-012
+    title: Biến đổi một nguồn dùng chung trong phạm vi publish(Function)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching-and-replay
+  title: Lưu và phát lại
+  childs:
+  - slug: caching-and-replay-001
+    title: Phân biệt replay, cache và share theo vòng đời nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-002
+    title: Tạo ConnectableFlux phát lại dữ liệu bằng replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-003
+    title: Giới hạn lịch sử phát lại theo số lượng và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-004
+    title: Lưu kết quả Mono bằng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-005
+    title: Lưu dữ liệu Flux bằng cache và giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-006
+    title: Thời hạn cache cho giá trị, lỗi và kết quả rỗng của Mono
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-007
+    title: Đăng ký đồng thời khi cache chưa có dữ liệu hoặc vừa hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-008
+    title: Tác động của lưu cache đến việc hủy và số lần gọi nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-009
+    title: Đánh giá cacheInvalidateIf và cacheInvalidateWhen khi cần vô hiệu hóa Mono
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-replay-010
+    title: Tránh giữ dữ liệu người dùng hoặc tài nguyên quá lâu trong cache dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sinks
+  title: Sinks
+  childs:
+  - slug: sinks-001
+    title: Sinks là cầu nối phát tín hiệu chủ động và quan hệ với Publisher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-002
+    title: Sinks.One và Sinks.Empty cho một kết quả hoặc chỉ tín hiệu kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-003
+    title: Sinks.Many và các chính sách unicast, multicast, replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-004
+    title: Chọn unicast().onBackpressureBuffer cho một người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-005
+    title: Chọn multicast().onBackpressureBuffer cho nhiều người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-006
+    title: So sánh directAllOrNothing và directBestEffort khi nhu cầu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-007
+    title: Chọn replay().all, limit hoặc latest theo yêu cầu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-008
+    title: Phát tín hiệu bằng tryEmitNext, tryEmitValue, tryEmitComplete và tryEmitError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-009
+    title: Đọc Sinks.EmitResult và xử lý tràn bộ đệm, kết thúc hoặc thiếu người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-010
+    title: Phân biệt tryEmit với emit và vai trò của EmitFailureHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-011
+    title: Xử lý cạnh tranh giữa nhiều luồng phát và giới hạn của busyLooping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-012
+    title: Đưa Sinks ra ngoài qua asFlux hoặc asMono
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-013
+    title: Vòng đời người đăng ký, autoCancel và giữ dữ liệu trước đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-014
+    title: Sinks.unsafe và trách nhiệm tuần tự hóa tín hiệu khi tự bảo đảm an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sinks-015
+    title: Nhận diện Processor cũ và định hướng chuyển sang Sinks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactor-context
+  title: Reactor Context
+  childs:
+  - slug: reactor-context-001
+    title: Context là dữ liệu gắn với từng đăng ký và vì sao cần thay cho trạng thái theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-002
+    title: Phân biệt Context bất biến với ContextView chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-003
+    title: Ghi dữ liệu bằng contextWrite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-004
+    title: Đọc dữ liệu trễ bằng deferContextual
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-005
+    title: Biến đổi theo ngữ cảnh bằng transformDeferredContextual
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-006
+    title: Hướng truyền Context và ảnh hưởng của vị trí contextWrite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-007
+    title: Phạm vi Context trong flatMap và các chuỗi con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-008
+    title: Quản lý khóa, dữ liệu vắng mặt và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-009
+    title: Truyền mã định danh yêu cầu, thông tin người dùng và dữ liệu truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-010
+    title: Tích hợp Micrometer Context Propagation và ThreadLocalAccessor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-011
+    title: Chụp trạng thái ThreadLocal bằng contextCapture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-012
+    title: Phân biệt chế độ khôi phục giới hạn với automatic context propagation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-013
+    title: Bật hoặc tắt truyền ngữ cảnh tự động bằng Hooks và quản lý ranh giới đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-014
+    title: Ngăn rò rỉ dữ liệu giữa các yêu cầu khi luồng thực thi được tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-management
+  title: Quản lý tài nguyên
+  childs:
+  - slug: resource-management-001
+    title: Cấp phát và giải phóng tài nguyên theo đăng ký bằng using
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-002
+    title: So sánh dọn tài nguyên sớm và muộn trong using
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-003
+    title: Quản lý tài nguyên bất đồng bộ bằng usingWhen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-004
+    title: Các nhánh dọn dẹp khi hoàn tất, báo lỗi và bị hủy trong usingWhen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-005
+    title: Xử lý lỗi trong bước dọn tài nguyên và ảnh hưởng lên kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-006
+    title: Giải phóng phần tử bị loại bằng doOnDiscard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-007
+    title: Phân biệt discard hợp lệ với tín hiệu bị drop ngoài giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-008
+    title: Tương tác giữa filter, buffer, prefetch, hủy và dữ liệu cần giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-009
+    title: Yêu cầu dọn dẹp lũy đẳng với đối tượng dùng đếm tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-010
+    title: Quản lý tệp, kết nối, listener và tài nguyên ngoài vòng đời bộ nhớ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-reuse
+  title: Tái sử dụng chuỗi
+  childs:
+  - slug: pipeline-reuse-001
+    title: Tách chuỗi toán tử thành hàm có kiểu đầu vào và đầu ra rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-002
+    title: Áp dụng công thức biến đổi khi lắp ráp bằng transform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-003
+    title: Áp dụng công thức theo từng đăng ký bằng transformDeferred
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-004
+    title: Chọn transformDeferredContextual khi công thức phụ thuộc Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-005
+    title: Chuyển sang kiểu trừu tượng khác bằng as
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-006
+    title: Phân biệt tái sử dụng mô tả Publisher với chia sẻ kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-007
+    title: Dùng defer để trì hoãn việc tạo tác vụ trong các hàm hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-008
+    title: Cô lập trạng thái mutable theo từng đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-009
+    title: Xây dựng các đoạn xử lý chung cho ghi log, lỗi và chính sách thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-reuse-010
+    title: Giữ công thức dễ kiểm thử và tránh che giấu thao tác subscribe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-integration
+  title: Tích hợp mã hiện có
+  childs:
+  - slug: legacy-integration-001
+    title: Bao lời gọi đồng bộ có thể ném ngoại lệ bằng fromCallable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-002
+    title: Cô lập lời gọi chặn bằng subscribeOn với boundedElastic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-003
+    title: Phân biệt bọc tác vụ chặn với chuyển tác vụ thành I/O không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-004
+    title: Chuyển CompletableFuture hoặc CompletionStage thành Mono
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-005
+    title: Trì hoãn tạo Future theo từng đăng ký và quản lý việc hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-006
+    title: Chuyển Mono thành CompletableFuture bằng toFuture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-007
+    title: Chuyển API callback, listener và sự kiện vào nguồn phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-008
+    title: Chuyển Flux sang Iterable hoặc Stream tại biên cần xử lý chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-009
+    title: Ý nghĩa và giới hạn của block, blockOptional, blockFirst và blockLast
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-010
+    title: Giới hạn thời gian khi bắt buộc chờ kết quả đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-011
+    title: Tác động của việc block hoặc chuyển đổi nhiều lần lên số lượt đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-012
+    title: Thiết kế ranh giới giữa mã tuần tự và mã phản ứng để giữ luồng lỗi và quyền hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-testing
+  title: Kiểm thử hành vi
+  childs:
+  - slug: behavior-testing-001
+    title: Xác định hợp đồng dữ liệu, kết thúc, lỗi, thời gian và nhu cầu trước khi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-002
+    title: Kiểm thử Mono và Flux bằng StepVerifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-003
+    title: Kiểm tra đối tượng và thứ tự tín hiệu bằng các phép xác nhận phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-004
+    title: Kiểm tra request theo từng đợt và hành vi khi hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-005
+    title: Kiểm tra toán tử thời gian bằng thời gian ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-006
+    title: Điều khiển nguồn đầu vào bằng TestPublisher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-007
+    title: Kiểm chứng nhánh dự phòng bằng PublisherProbe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-008
+    title: Kiểm tra Context và việc dọn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-009
+    title: Kiểm tra nguồn nóng, nhiều người đăng ký và tác động phụ lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-010
+    title: Cô lập Scheduler, Hooks và trạng thái toàn cục giữa các bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-testing-011
+    title: Giới hạn phạm vi kiểm thử đơn vị và chuyển sang kiểm thử tích hợp khi có hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debugging
+  title: Gỡ lỗi
+  childs:
+  - slug: debugging-001
+    title: Vì sao stack trace bất đồng bộ khó chỉ ra nơi lắp ráp chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-002
+    title: Đọc tín hiệu, request và cancel bằng log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-003
+    title: Gắn mốc định vị bằng checkpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-004
+    title: Chọn checkpoint có mô tả hoặc kèm stack trace theo chi phí chấp nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-005
+    title: Bật thông tin lắp ráp bằng Hooks.onOperatorDebug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-006
+    title: Sử dụng ReactorDebugAgent và phân biệt với chế độ debug toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-007
+    title: Đặt tên chuỗi để xác định giai đoạn xảy ra lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-008
+    title: Chẩn đoán chuỗi không chạy do chưa đăng ký hoặc bỏ quên toán tử trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-009
+    title: Chẩn đoán zip không phát, Context không thấy hoặc nguồn phát sai thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-010
+    title: Chẩn đoán bế tắc do groupBy, nhu cầu thiếu hoặc lời gọi chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-011
+    title: Phát hiện lời gọi chặn không phù hợp bằng BlockHound
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hooks-and-extensions
+  title: Hooks và mở rộng
+  childs:
+  - slug: hooks-and-extensions-001
+    title: Phân biệt callback cục bộ với Hooks tác động toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-002
+    title: Quan sát tín hiệu dư bằng onNextDropped và onErrorDropped
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-003
+    title: Can thiệp lỗi toán tử bằng onOperatorError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-004
+    title: Can thiệp lúc lắp ráp bằng onEachOperator và onLastOperator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-005
+    title: Quản lý Hooks theo khóa và khôi phục bằng các phương thức reset tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-006
+    title: Tác động của Hooks lên mọi luồng trong cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-007
+    title: Quan sát tín hiệu bằng tap, SignalListener và SignalListenerFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-008
+    title: Thay thế hoặc trang trí Scheduler qua Schedulers.Factory khi có nhu cầu hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-009
+    title: Trang trí Subscriber bằng Operators.lift và các ràng buộc giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-extensions-010
+    title: Ưu tiên điểm mở rộng công khai và kiểm thử tương thích theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát vận hành
+  childs:
+  - slug: observability-001
+    title: Phân biệt log, chỉ số đo lường và truy vết phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Vai trò của mô-đun reactor-core-micrometer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Đặt name và tag cho giai đoạn cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Thu chỉ số Publisher bằng tap với Micrometer.metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Quan sát vòng đời tác vụ qua Micrometer.observation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Đo tác vụ Scheduler bằng Micrometer.timedScheduler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Theo dõi trạng thái hoàn tất, lỗi, hủy và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Theo dõi nhu cầu dữ liệu và dấu hiệu nghẽn trong chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Giới hạn số giá trị nhãn để tránh chi phí cardinality quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Liên kết mã định danh yêu cầu giữa Reactor Context, log và observation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-011
+    title: Phân biệt API đo lường hiện hành với API metrics cũ khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-internals
+  title: Cơ chế nâng cao
+  childs:
+  - slug: advanced-internals-001
+    title: Chuỗi Subscriber bên trong và quá trình đăng ký ngược qua các toán tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-002
+    title: CorePublisher, CoreSubscriber và điểm mở rộng phục vụ Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-003
+    title: Operator fusion và mục tiêu giảm hàng đợi hoặc chi phí truyền phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-004
+    title: Phân biệt fusion đồng bộ với fusion bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-005
+    title: Vai trò của Fuseable, QueueSubscription và ConditionalSubscriber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-006
+    title: Tối ưu nguồn đơn giá trị và tác động lên đường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-007
+    title: Tách khả năng fusion hoặc che định danh nguồn bằng hide
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-008
+    title: Quan sát cấu trúc chuỗi bằng Scannable và các thuộc tính vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-009
+    title: Tạo toán tử riêng từ tổ hợp toán tử có sẵn trước khi mở rộng lớp nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-010
+    title: Trách nhiệm truyền request, cancel, lỗi và Context khi tự viết toán tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-011
+    title: Kiểm chứng tuân thủ Reactive Streams bằng TCK khi triển khai Publisher riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-internals-012
+    title: Phân biệt hợp đồng API công khai với chi tiết nội bộ có thể đổi theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Xác định nút nghẽn CPU, I/O, hàng đợi hay người tiêu thụ chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Cân bằng thông lượng, độ trễ, mức đồng thời và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Điều chỉnh concurrency, prefetch và kích thước lô bằng đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Đánh giá chi phí publishOn, chuyển luồng và tạo Scheduler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Kiểm soát bộ nhớ của collect, sort, distinct, groupBy, cache và replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Chọn buffer hữu hạn và chính sách loại dữ liệu theo yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Đánh giá chi phí log, debug, Hooks và truyền Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Tránh giữ trạng thái mutable hoặc tham chiếu lớn trong lambda dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: So sánh nguồn đơn giá trị, nguồn đồng bộ và nguồn bất đồng bộ trong phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Phân biệt microbenchmark với kiểm thử tải của cả ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Kiểm tra tài nguyên được giải phóng sau hoàn tất, lỗi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-design
+  title: Thiết kế ứng dụng
+  childs:
+  - slug: application-design-001
+    title: Chọn hợp đồng Mono, Flux hoặc Mono<Void> theo ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-002
+    title: Giữ chuỗi xử lý xuyên suốt các lớp và để biên ứng dụng sở hữu subscribe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-003
+    title: Tách phép biến đổi thuần khỏi tác động phụ và truy cập hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-004
+    title: Thiết kế nhánh rỗng, lỗi và hủy như các kết quả cần được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-005
+    title: Giới hạn mức đồng thời theo năng lực thực của hệ thống phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-006
+    title: Thiết kế timeout, thử lại và tính lũy đẳng như một chính sách thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-007
+    title: Truyền dữ liệu theo yêu cầu bằng Context với phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-008
+    title: Tránh chia sẻ cache hoặc nguồn nóng ngoài chủ đích nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-009
+    title: Xử lý tác vụ tách rời mà vẫn quản lý lỗi, vòng đời và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-010
+    title: Giữ thứ tự nghiệp vụ mà không hy sinh mức đồng thời ngoài nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-011
+    title: Tiêu chí đọc hiểu và rà soát một chuỗi phản ứng trước khi đưa vào vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xây dựng chuỗi kiểm tra và biến đổi dữ liệu với Mono và Flux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Phối hợp nhiều nguồn dữ liệu với yêu cầu giữ hoặc không giữ thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Xử lý theo lô với giới hạn số lượng và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Xây dựng dịch vụ tra cứu có cache, nhánh dự phòng và thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Chuyển API listener thành Flux có hủy và dọn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Phát sự kiện qua Sinks cho nhiều người nhận với tốc độ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Cô lập dịch vụ chặn và giới hạn mức đồng thời của các lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Xây dựng chính sách timeout, backoff và thử lại có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Truyền mã định danh yêu cầu qua Context và theo dõi toàn bộ chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Quản lý tài nguyên bất đồng bộ trên các nhánh hoàn tất, lỗi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Viết bộ kiểm thử chứng minh dữ liệu, lỗi, backpressure và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Phân tích và cải tiến một chuỗi có block, subscribe lồng nhau hoặc bộ đệm không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,55 @@
+roadmap:
+- id: luong-tool-calling
+  title: Luồng Tool Calling
+  purpose: Hiểu cách mô hình đề xuất gọi công cụ và ứng dụng Spring thực thi theo quyền kiểm soát.
+  objectives:
+  - Mô tả chu trình model → tool request → kết quả → model.
+  - Phân biệt tool calling với việc mô hình tự truy cập hệ thống.
+- id: chatclient-model
+  title: ChatClient & Model
+  purpose: Thiết lập môi trường có mô hình hỗ trợ tool calling để thực hành luồng cơ bản.
+  objectives:
+  - Tạo ChatClient với ChatModel phù hợp.
+  - Thử một prompt cần dữ liệu từ công cụ và kiểm tra phản hồi.
+- id: dinh-nghia-tool-bang-tool
+  title: Định nghĩa Tool bằng @Tool
+  purpose: Đưa phương thức Java thành công cụ có tên và mô tả rõ nhiệm vụ.
+  objectives:
+  - Tạo bean có phương thức gắn @Tool và trả dữ liệu mẫu.
+  - Đặt tên, mô tả tool đủ rõ để model chọn đúng.
+- id: tham-so-json-schema
+  title: Tham số & JSON Schema
+  purpose: Giúp mô hình tạo đối số đúng cấu trúc và ứng dụng xác thực đầu vào.
+  objectives:
+  - Khai báo DTO, kiểu, required và @ToolParam phù hợp.
+  - Kiểm tra trường hợp thiếu tham số hoặc dữ liệu sai kiểu.
+- id: dang-ky-toolcallback
+  title: Đăng ký ToolCallback
+  purpose: Quyết định công cụ nào có mặt ở từng yêu cầu thay vì mở toàn bộ quyền.
+  objectives:
+  - Đăng ký tool qua ChatClient.tools hoặc defaultTools.
+  - So sánh @Tool với ToolCallback/ToolCallbackProvider.
+- id: toolcontext-quyen-truy-cap
+  title: ToolContext & Quyền truy cập
+  purpose: Truyền ngữ cảnh đáng tin cậy mà không để mô hình tự quyết định danh tính hoặc quyền.
+  objectives:
+  - Dùng ToolContext để cung cấp tenant/user scope phía server.
+  - Áp dụng kiểm tra quyền bên trong tool trước khi truy cập dữ liệu.
+- id: thuc-thi-xu-ly-loi
+  title: Thực thi & Xử lý lỗi
+  purpose: Kiểm soát vòng lặp gọi tool và ứng xử khi tool gặp lỗi hay chậm.
+  objectives:
+  - Giải thích vai trò ToolCallingManager và cơ chế loop theo phiên bản.
+  - Thử timeout, lỗi ngoại lệ và giới hạn số lần gọi.
+- id: mcp-cong-cu-ben-ngoai
+  title: MCP & Công cụ bên ngoài
+  purpose: Tích hợp công cụ từ nguồn khác mà vẫn giới hạn phạm vi tin cậy.
+  objectives:
+  - Kết nối MCP tool qua ToolCallbackProvider khi cần.
+  - Lọc tool, kiểm tra trùng tên và hạn chế tool gây thay đổi dữ liệu.
+- id: kiem-thu-quan-sat
+  title: Kiểm thử & Quan sát
+  purpose: Xác minh tính chính xác, an toàn và chi phí của lời gọi công cụ.
+  objectives:
+  - Test tool được chọn, đối số đầu vào và kết quả lỗi.
+  - Theo dõi số lần gọi, thời gian thực thi và ẩn dữ liệu nhạy cảm khỏi log.

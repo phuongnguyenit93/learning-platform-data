@@ -1,0 +1,43 @@
+roadmap:
+- id: tong-quan-checkstyle
+  title: Tổng quan Checkstyle
+  purpose: Hiểu Checkstyle kiểm tra quy ước mã Java và vai trò của phân tích tĩnh.
+  objectives:
+  - Phân biệt Checkstyle với formatter và unit test.
+  - Giải thích check và violation.
+- id: chay-checkstyle
+  title: Chạy Checkstyle
+  purpose: Biết thực thi phân tích trên mã nguồn Java.
+  objectives:
+  - Chạy Checkstyle bằng CLI với cấu hình XML.
+  - Đọc thông báo lỗi và kết quả kiểm tra.
+- id: cau-hinh-xml
+  title: Cấu hình XML
+  purpose: Tạo tập quy tắc phù hợp với dự án.
+  objectives:
+  - Mô tả vai trò Checker và TreeWalker.
+  - Bật/tắt check và chỉnh thuộc tính.
+- id: nhom-quy-tac-pho-bien
+  title: Nhóm quy tắc phổ biến
+  purpose: Chọn quy ước mã giúp nhóm làm việc nhất quán.
+  objectives:
+  - Áp dụng check về naming, imports, whitespace và Javadoc.
+  - Giải thích ví dụ vi phạm trong từng nhóm.
+- id: doc-sua-vi-pham
+  title: Đọc & sửa vi phạm
+  purpose: Biến báo cáo thành các thay đổi mã cụ thể.
+  objectives:
+  - Xác định file, dòng và tên check bị vi phạm.
+  - Sửa mã rồi chạy lại để xác nhận.
+- id: ngoai-le-co-kiem-soat
+  title: Ngoại lệ có kiểm soát
+  purpose: Xử lý cảnh báo cần miễn trừ mà vẫn giữ chất lượng kiểm tra.
+  objectives:
+  - Tạo suppression với phạm vi chính xác.
+  - Ghi rõ lý do miễn trừ và kiểm tra tác động.
+- id: tich-hop-gradle-ci
+  title: Tích hợp Gradle & CI
+  purpose: Đưa kiểm tra quy ước mã vào quy trình phát triển.
+  objectives:
+  - Chạy checkstyleMain và tác vụ check của Gradle.
+  - Xem báo cáo và cấu hình ngưỡng làm build thất bại.

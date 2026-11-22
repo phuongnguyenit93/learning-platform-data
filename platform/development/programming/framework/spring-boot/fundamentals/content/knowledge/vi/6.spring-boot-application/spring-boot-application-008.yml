@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootApplication'
+menuLevel2: exclude, excludeName và loại một auto-configuration cụ thể
+status: WRITTEN

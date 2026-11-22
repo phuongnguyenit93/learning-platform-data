@@ -1,0 +1,3379 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Data Couchbase là gì và giải quyết bài toán truy cập dữ liệu nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vị trí của Spring Data Couchbase giữa Spring Data, Spring Boot và Java SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mô hình tài liệu JSON và truy cập theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt truy cập Key-Value, truy vấn SQL++ và tìm kiếm toàn văn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Repository, Template và Java SDK: vai trò và quan hệ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Ánh xạ đối tượng khác gì ORM và persistence context của JPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lựa chọn truy cập đồng bộ hoặc phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Ví dụ xuyên suốt: ứng dụng quản lý khách hàng và đơn hàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Phạm vi kiến thức, điều kiện đầu vào và thứ tự học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: couchbase-foundations
+  title: Nền tảng Couchbase
+  childs:
+  - slug: couchbase-foundations-001
+    title: Cluster, node và các dịch vụ dữ liệu, truy vấn, chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-002
+    title: Bucket, scope và collection trong tổ chức dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-003
+    title: Khóa tài liệu, nội dung JSON và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-004
+    title: vBucket, phân vùng dữ liệu và định tuyến yêu cầu theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-005
+    title: Bản sao, chuyển đổi dự phòng và tái cân bằng cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-006
+    title: CAS, thời gian hết hạn và mã thông báo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-007
+    title: Chỉ mục cập nhật bất đồng bộ và độ mới của kết quả truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-008
+    title: Phân biệt tính nguyên tử, tính nhất quán và độ bền ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-009
+    title: Đặc điểm của Couchbase Server tự quản lý và Couchbase Capella
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: couchbase-foundations-010
+    title: Ranh giới giữa kiến thức cần cho ứng dụng và quản trị cụm chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment
+  title: Môi trường
+  childs:
+  - slug: environment-001
+    title: Chọn bộ phiên bản tương thích của Java, Spring Boot, Spring Data và Java SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-002
+    title: Xác minh yêu cầu phiên bản Server cho từng tính năng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-003
+    title: Quản lý phiên bản phụ thuộc qua Spring Boot và Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-004
+    title: Khởi tạo Couchbase phục vụ học tập bằng Docker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-005
+    title: Tạo bucket, scope, collection và tài khoản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-006
+    title: Bật các dịch vụ cần cho Key-Value và SQL++
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-007
+    title: Nạp dữ liệu mẫu và kiểm tra bằng giao diện quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-008
+    title: Kết nối từ máy chủ ứng dụng tới môi trường Docker hoặc Capella
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-009
+    title: Kiểm tra sẵn sàng trước khi chạy ứng dụng và bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-010
+    title: Tổ chức cấu hình riêng cho phát triển, kiểm thử và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-configuration
+  title: Cấu hình kết nối
+  childs:
+  - slug: connection-configuration-001
+    title: Cấu hình tự động với các starter Couchbase của Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-002
+    title: Khai báo chuỗi kết nối, thông tin xác thực và bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-003
+    title: Phân biệt nhóm thuộc tính spring.couchbase và spring.data.couchbase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-004
+    title: Cấu hình Java qua AbstractCouchbaseConfiguration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-005
+    title: ClusterEnvironment, Cluster, Bucket và CouchbaseClientFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-006
+    title: Vòng đời và khả năng dùng chung các đối tượng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-007
+    title: Phạm vi quét entity và kích hoạt repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-008
+    title: Thời gian chờ kết nối, thao tác Key-Value và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-009
+    title: Tùy chỉnh môi trường SDK theo nhu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-010
+    title: Cấu hình TLS, chứng chỉ và xác minh máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-011
+    title: Đóng tài nguyên đúng vòng đời Spring ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-modeling
+  title: Mô hình tài liệu
+  childs:
+  - slug: document-modeling-001
+    title: Xác định ranh giới aggregate và các mẫu truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-002
+    title: Ánh xạ lớp Java bằng @Document và @Id
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-003
+    title: Ánh xạ tên trường bằng @Field và loại bỏ trường với @Transient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-004
+    title: Đối tượng lồng nhau, danh sách, tập hợp và ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-005
+    title: Nhúng dữ liệu so với tham chiếu bằng khóa tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-006
+    title: Nhiều loại entity và thông tin phân biệt kiểu trong JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-007
+    title: Phân biệt khóa tài liệu với một trường id trong nội dung JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-008
+    title: Constructor, @PersistenceCreator và khởi tạo entity bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-009
+    title: Java record và giới hạn cần kiểm tra khi entity có metadata thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-010
+    title: Phân biệt trường thiếu, giá trị null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-011
+    title: Thiết kế kích thước tài liệu và tránh cấu trúc tăng không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-012
+    title: Tài liệu cũ, trường mới và khả năng đọc dữ liệu không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-keys
+  title: Khóa tài liệu
+  childs:
+  - slug: document-keys-001
+    title: Thiết kế khóa duy nhất theo nhu cầu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-002
+    title: Khóa tự nhiên, khóa thay thế và khóa ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-003
+    title: Tiền tố phân loại, namespace và quy tắc tránh va chạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-004
+    title: Tạo khóa bằng UUID hoặc thuộc tính nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-005
+    title: '@GeneratedValue và lựa chọn chiến lược sinh khóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-006
+    title: '@IdPrefix, @IdSuffix và @IdAttribute trong ghép khóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-007
+    title: Thứ tự thành phần, dấu phân cách và tính ổn định của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-008
+    title: Giới hạn độ dài khóa theo byte và dữ liệu Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-009
+    title: Khóa bất biến, đổi khóa và di chuyển tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-keys-010
+    title: Idempotency key và xử lý yêu cầu tạo dữ liệu lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-conversion
+  title: Chuyển đổi kiểu
+  childs:
+  - slug: type-conversion-001
+    title: Cơ chế đọc và ghi entity của MappingCouchbaseConverter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-002
+    title: Kiểu số, boolean, chuỗi và biểu diễn JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-003
+    title: Ngày giờ, múi giờ và lựa chọn định dạng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-004
+    title: Enum, kiểu giá trị nghiệp vụ và dữ liệu nhiều biến thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-005
+    title: Đăng ký bộ chuyển đổi đọc và ghi bằng CouchbaseCustomConversions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-006
+    title: Phân biệt chuyển đổi một trường và thay đổi biểu diễn toàn tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-007
+    title: Thông tin kiểu, @TypeAlias và tương thích khi đổi package hoặc tên lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-008
+    title: Giá trị tiền tệ, độ chính xác và tránh mất thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-009
+    title: Kiểm tra ánh xạ hai chiều và phát hiện dữ liệu không chuyển đổi được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-010
+    title: Ảnh hưởng của bộ chuyển đổi tùy chỉnh đến truy vấn và chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scopes-collections
+  title: Scope và Collection
+  childs:
+  - slug: scopes-collections-001
+    title: Phân biệt collection mặc định và collection do ứng dụng tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-002
+    title: Chọn scope mặc định trong cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-003
+    title: '@Scope và @Collection trên entity, repository và phương thức'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-004
+    title: Chọn scope và collection qua API của Template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-005
+    title: DynamicProxyable và đổi đích truy cập của repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-006
+    title: Thứ tự ưu tiên giữa cấu hình, annotation và lựa chọn khi gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-007
+    title: Ngữ cảnh truy vấn SQL++ và tên keyspace đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-008
+    title: Tổ chức nhiều loại dữ liệu trong một bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-009
+    title: Định tuyến theo tenant và kiểm soát tenant được phép truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-010
+    title: Tách repository hoặc Template cho nhiều bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scopes-collections-011
+    title: Kiểm thử truy cập đúng collection và phát hiện nhầm namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository
+  title: Repository
+  childs:
+  - slug: repository-001
+    title: Định nghĩa CouchbaseRepository và kiểu khóa của entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-002
+    title: Repository proxy, dependency injection và phạm vi trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-003
+    title: Tạo, đọc, sửa, xóa tài liệu theo định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-004
+    title: Ý nghĩa của save và ảnh hưởng của trạng thái mới hoặc trường phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-005
+    title: Phân biệt thao tác theo khóa với thao tác được thực hiện bằng SQL++
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-006
+    title: Kiểu trả về Optional, danh sách và kết quả không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-007
+    title: Đọc hoặc ghi nhiều tài liệu và giới hạn về tính nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-008
+    title: exists, count và chi phí của các thao tác tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-009
+    title: Xóa theo khóa, xóa theo điều kiện và phạm vi dữ liệu bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-010
+    title: Quản lý nhiều module Spring Data trong cùng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-011
+    title: Giới hạn của Repository và thời điểm chuyển sang Template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: template
+  title: Template
+  childs:
+  - slug: template-001
+    title: CouchbaseTemplate và giao diện CouchbaseOperations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-002
+    title: 'API fluent: chọn thao tác, entity, tùy chọn và cách lấy kết quả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-003
+    title: insertById, upsertById và replaceById theo mục đích ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-004
+    title: findById, existsById và removeById
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-005
+    title: Truy vấn và xóa theo điều kiện với findByQuery và removeByQuery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-006
+    title: Chọn một kết quả, tất cả kết quả hoặc kết quả có phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-007
+    title: Chỉ định scope, collection, thời gian chờ và tùy chọn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-008
+    title: Áp dụng CAS, thời gian hết hạn và yêu cầu độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-009
+    title: Ánh xạ kết quả về entity hoặc biểu diễn cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-010
+    title: Kết hợp nhiều thao tác mà vẫn giữ quyền sở hữu vòng đời rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: template-011
+    title: Truy cập Java SDK qua client factory khi cần tính năng cấp thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: derived-queries
+  title: Truy vấn dẫn xuất
+  childs:
+  - slug: derived-queries-001
+    title: Tạo truy vấn từ tên phương thức repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-002
+    title: Tra cứu theo trường đơn và nhiều trường kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-003
+    title: Toán tử so sánh, khoảng giá trị và tập giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-004
+    title: Truy vấn chuỗi và điều kiện không phân biệt hoa thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-005
+    title: Điều kiện cho dữ liệu lồng nhau và tên thuộc tính Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-006
+    title: Điều kiện null, thiếu trường và giới hạn suy diễn từ tên phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-007
+    title: Sắp xếp bằng OrderBy và tham số Sort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-008
+    title: Giới hạn số kết quả và lựa chọn kiểu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-009
+    title: Truy vấn count, exists và delete theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-010
+    title: Kiểm tra từ khóa thực sự được hỗ trợ trong phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-queries-011
+    title: Đọc truy vấn được tạo và nhận diện tên phương thức quá phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sqlpp-query-annotations
+  title: SQL++ và @Query
+  childs:
+  - slug: sqlpp-query-annotations-001
+    title: SQL++ và tên gọi N1QL trong API Spring Data Couchbase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-002
+    title: SELECT, FROM, WHERE và truy cập trường JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-003
+    title: Mảng, đối tượng lồng nhau và biểu thức ANY hoặc EVERY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-004
+    title: Giá trị NULL, MISSING và logic điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-005
+    title: GROUP BY, HAVING và các phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-006
+    title: Khai báo truy vấn bằng @Query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-007
+    title: Tham số vị trí, tham số có tên và @Param
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-008
+    title: Biểu thức SpEL và phân biệt với tham số truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-009
+    title: '#n1ql.selectEntity, #n1ql.fields và metadata cần cho ánh xạ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-010
+    title: '#n1ql.filter và lọc đúng kiểu entity'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-011
+    title: '#n1ql.bucket, #n1ql.scope và #n1ql.collection'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-012
+    title: Truy vấn thay đổi dữ liệu và lựa chọn kết quả RETURNING
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sqlpp-query-annotations-013
+    title: Ràng buộc đầu vào và phòng tránh ghép chuỗi truy vấn không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-queries
+  title: Truy vấn động
+  childs:
+  - slug: dynamic-queries-001
+    title: Tạo Query và QueryCriteria theo bộ lọc đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-002
+    title: Kết hợp điều kiện AND, OR và nhóm điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-003
+    title: Ánh xạ tên thuộc tính Java sang tên trường lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-004
+    title: Trường lồng nhau, tập giá trị và điều kiện tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-005
+    title: Sắp xếp, giới hạn và phân trang trong truy vấn động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-006
+    title: Tái sử dụng tiêu chí mà không chia sẻ trạng thái khả biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-007
+    title: 'Querydsl: sinh kiểu truy vấn và cấu hình annotation processor'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-008
+    title: Xác minh phạm vi hỗ trợ Querydsl theo phiên bản phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-009
+    title: So sánh truy vấn dẫn xuất, @Query, QueryCriteria và gọi SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-queries-010
+    title: Kiểm thử bộ lọc động với dữ liệu null, thiếu trường và đầu vào rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: projections-pagination
+  title: Chiếu và phân trang
+  childs:
+  - slug: projections-pagination-001
+    title: Chỉ lấy các trường cần dùng thay vì đọc toàn bộ entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-002
+    title: Projection theo interface và DTO theo khả năng hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-003
+    title: Bí danh trường và ánh xạ kết quả SQL++ tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-004
+    title: Khi nào kết quả cần giữ document ID và CAS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-005
+    title: Page, Slice và chi phí truy vấn đếm tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-006
+    title: Pageable, Sort và thứ tự ổn định giữa các trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-007
+    title: OFFSET và LIMIT khi số lượng dữ liệu tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-008
+    title: Phân trang theo khóa bằng điều kiện SQL++ tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-009
+    title: Giới hạn của phân trang trên dữ liệu đang thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-010
+    title: Phân trang trong luồng phản ứng mà không giả định có Page tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: projections-pagination-011
+    title: Kết quả tổng hợp và biểu diễn không phải entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexes
+  title: Chỉ mục
+  childs:
+  - slug: indexes-001
+    title: Vai trò của chỉ mục với truy vấn repository và SQL++
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-002
+    title: Primary index và secondary index
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-003
+    title: Chỉ mục ghép và thứ tự các trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-004
+    title: Chỉ mục có điều kiện theo loại entity hoặc điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-005
+    title: Chỉ mục trên mảng và truy vấn dữ liệu lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-006
+    title: Chỉ mục bao phủ và giảm bước đọc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-007
+    title: '@QueryIndexed và @CompositeQueryIndex trong mô hình được hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-008
+    title: Cấu hình tạo chỉ mục tự động và ranh giới với triển khai production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-009
+    title: Quản lý chỉ mục riêng cho scope và collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-010
+    title: Đọc EXPLAIN và đối chiếu kế hoạch với mẫu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-011
+    title: Xây dựng chỉ mục, chờ sẵn sàng và triển khai thay đổi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-012
+    title: Chi phí ghi, dung lượng và bảo trì khi thêm nhiều chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency
+  title: Tính nhất quán
+  childs:
+  - slug: consistency-001
+    title: Độ mới của dữ liệu khi đọc theo khóa và khi truy vấn qua chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-002
+    title: NOT_BOUNDED và REQUEST_PLUS trong truy vấn SQL++
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-003
+    title: Cấu hình @ScanConsistency cho repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-004
+    title: Chọn mức nhất quán cho từng truy vấn Template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-005
+    title: Đọc sau ghi và thời điểm chỉ mục nhìn thấy thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-006
+    title: MutationState và nhất quán theo thay đổi tại lớp Java SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-007
+    title: Đánh đổi giữa độ mới, độ trễ và tải trên dịch vụ chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-008
+    title: Phân biệt kết quả cũ do chỉ mục với dữ liệu cũ trong bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-009
+    title: Kiểm thử độ trễ cập nhật chỉ mục bằng tình huống có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: optimistic-locking
+  title: Khóa lạc quan
+  childs:
+  - slug: optimistic-locking-001
+    title: CAS là token phiên bản của tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-002
+    title: Ánh xạ CAS vào thuộc tính @Version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-003
+    title: Nhận biết entity mới và entity đã được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-004
+    title: Chu trình đọc, sửa, ghi và nguy cơ mất cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-005
+    title: OptimisticLockingFailureException và cách phản hồi cho bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-006
+    title: Thử lại toàn bộ chu trình trên dữ liệu mới nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-007
+    title: Kiểm soát xóa theo phiên bản và xác minh ngữ nghĩa API sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-008
+    title: Giữ CAS trong kết quả truy vấn dùng để cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-009
+    title: Cập nhật đồng thời giữa Repository, Template và mã SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimistic-locking-010
+    title: Lựa chọn CAS, thao tác sub-document hoặc giao dịch theo ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expiration
+  title: Thời gian hết hạn
+  childs:
+  - slug: expiration-001
+    title: TTL, thời điểm hết hạn và tài liệu không có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-002
+    title: Cấu hình expiry trên @Document theo phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-003
+    title: Đơn vị thời gian và cấu hình thời hạn bằng thuộc tính ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-004
+    title: TTL tương đối và mốc thời gian tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-005
+    title: Giữ lại, thay thế hoặc làm mới thời hạn khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-006
+    title: Touch và get-and-touch khi thao tác qua SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-007
+    title: Thời hạn mặc định của bucket hoặc collection và ảnh hưởng lên tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-008
+    title: Dữ liệu đã hết hạn và thời điểm kết quả đọc phản ánh trạng thái mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-009
+    title: Thiết kế phiên đăng nhập, mã xác thực và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-010
+    title: Kiểm thử thời gian hết hạn mà không dựa vào chờ tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: write-durability
+  title: Độ bền ghi
+  childs:
+  - slug: write-durability-001
+    title: Xác nhận ghi trên node chính, sao chép và lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-002
+    title: DurabilityLevel và các mức xác nhận được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-003
+    title: Cấu hình độ bền trên entity và cho từng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-004
+    title: Đánh đổi giữa độ an toàn dữ liệu, độ trễ và khả năng sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-005
+    title: Điều kiện số bản sao và cấu hình cụm đáp ứng độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-006
+    title: Thời gian chờ và tình huống chưa biết chắc kết quả ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-007
+    title: Phân biệt độ bền ghi với độ mới của chỉ mục truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-008
+    title: Khả năng phục hồi sau failover và giới hạn của yêu cầu độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-durability-009
+    title: Kiểm thử lỗi node trong môi trường thử nghiệm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sub-document
+  title: Sub-document
+  childs:
+  - slug: sub-document-001
+    title: Đọc hoặc sửa một phần tài liệu thay vì truyền toàn bộ JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-002
+    title: Đường dẫn trường, đối tượng lồng nhau và phần tử mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-003
+    title: lookupIn và mutateIn tại lớp Java SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-004
+    title: Phạm vi API sub-document của Template theo phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-005
+    title: Gộp nhiều thay đổi nguyên tử trên cùng một tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-006
+    title: Thêm, thay thế, xóa trường và tạo đường dẫn khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-007
+    title: Cập nhật mảng và bộ đếm trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-008
+    title: Kết hợp CAS và yêu cầu độ bền với cập nhật từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-009
+    title: Trường không tồn tại, sai kiểu và lỗi đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sub-document-010
+    title: Ảnh hưởng của cập nhật qua SDK đến ánh xạ, auditing và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Khi nào ràng buộc nghiệp vụ cần giao dịch nhiều tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-002
+    title: Yêu cầu phiên bản, cấu hình cụm và trường @Version của entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-003
+    title: CouchbaseTransactionManager và kích hoạt quản lý giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-004
+    title: '@Transactional tại ranh giới dịch vụ và cơ chế Spring proxy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-005
+    title: Những thao tác Repository và Template có thể tham gia giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-006
+    title: CouchbaseTransactionalOperator cho giao dịch lập trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-007
+    title: Giao dịch trực tiếp trong lambda của Java SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-008
+    title: Giao dịch đồng bộ và giao dịch phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-009
+    title: Mức cô lập và các thuộc tính @Transactional cần xác minh phạm vi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-010
+    title: Thử lại thân giao dịch và kiểm soát tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-011
+    title: Thời gian chờ, xung đột và kết quả commit chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-012
+    title: Giao dịch Couchbase với HTTP, hàng đợi hoặc cơ sở dữ liệu khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-013
+    title: Thiết kế và kiểm thử chuyển tiền hoặc giữ tồn kho nhiều tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-access
+  title: Truy cập phản ứng
+  childs:
+  - slug: reactive-access-001
+    title: ReactiveCouchbaseRepository và ReactiveCouchbaseTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-002
+    title: Mono, Flux và vòng đời đăng ký thực hiện thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-003
+    title: Tạo, đọc, sửa và xóa bằng chuỗi phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-004
+    title: Truy vấn dẫn xuất và @Query với kiểu trả về phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-005
+    title: Phối hợp nhiều thao tác bằng flatMap hoặc concatMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-006
+    title: Giới hạn số thao tác đồng thời để bảo vệ cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-007
+    title: Áp lực ngược và giới hạn tại ranh giới SDK hoặc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-008
+    title: Phục hồi lỗi, thử lại và thời gian chờ trong chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-009
+    title: Hủy đăng ký và khả năng hủy tác vụ đang thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-010
+    title: Giao dịch phản ứng và truyền ngữ cảnh đúng vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-011
+    title: Auditing phản ứng và xác định người thao tác từ ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-access-012
+    title: Tích hợp WebFlux và cô lập thư viện có thao tác chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: relationships-joins
+  title: Quan hệ và JOIN
+  childs:
+  - slug: relationships-joins-001
+    title: Nhúng tài liệu, tham chiếu khóa và phi chuẩn hóa theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-002
+    title: Quan hệ một–một, một–nhiều và nhiều–nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-003
+    title: JOIN, NEST và UNNEST trong truy vấn SQL++
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-004
+    title: ANSI JOIN giữa các collection theo trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-005
+    title: '@N1qlJoin và khai báo điều kiện liên kết entity'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-006
+    title: Phạm vi tải liên kết và các tùy chọn phụ thuộc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-007
+    title: Chỉ mục phục vụ điều kiện JOIN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-008
+    title: Chi phí nhiều truy vấn và phát hiện kiểu truy cập N+1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-009
+    title: Dữ liệu liên kết thiếu, đã hết hạn hoặc đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: relationships-joins-010
+    title: Ranh giới toàn vẹn tham chiếu do ứng dụng chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-auditing
+  title: Vòng đời và auditing
+  childs:
+  - slug: lifecycle-auditing-001
+    title: Các giai đoạn chuyển đổi, đọc và ghi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-002
+    title: Sự kiện ánh xạ và callback theo API của phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-003
+    title: Tách chuẩn hóa dữ liệu khỏi tác dụng phụ trong callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-004
+    title: Kiểm tra dữ liệu bằng Bean Validation tại ranh giới phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-005
+    title: '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-006
+    title: Kích hoạt @EnableCouchbaseAuditing và cung cấp AuditorAware
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-007
+    title: Vai trò trường @Version khi phân biệt tạo mới và cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-008
+    title: Cấu hình thời gian và nguồn xác định người thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-009
+    title: EnableReactiveCouchbaseAuditing và ReactiveAuditorAware
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-010
+    title: Các đường ghi trực tiếp qua SDK hoặc truy vấn cần kiểm tra auditing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-auditing-011
+    title: Sự kiện nghiệp vụ, sự kiện lưu trữ và độ tin cậy sau commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Phân biệt lưu trữ tài liệu và Spring Cache abstraction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: CouchbaseCacheManager và kích hoạt @EnableCaching
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: '@Cacheable, @CachePut và @CacheEvict'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Thiết kế cache key, tên cache và tránh va chạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Cấu hình thời hạn riêng cho từng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Định dạng giá trị cache và tương thích giữa phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Dữ liệu null, kết quả không tồn tại và chính sách lưu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Vô hiệu hóa cache sau cập nhật và ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: Nhiều yêu cầu cùng nạp một khóa và nguy cơ cache stampede
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-010
+    title: Quan sát tỉ lệ trúng cache và kiểm thử dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sdk-extensions
+  title: Mở rộng bằng SDK
+  childs:
+  - slug: sdk-extensions-001
+    title: Tiêu chí dùng SDK trực tiếp khi Repository hoặc Template chưa đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-002
+    title: Dùng chung Cluster, Bucket và Collection do Spring quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-003
+    title: Bộ đếm nguyên tử theo khóa và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-004
+    title: Đọc từ bản sao và đánh đổi về độ mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-005
+    title: 'Full-Text Search: chỉ mục tìm kiếm và truy vấn qua SDK'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-006
+    title: 'Analytics: phân tích dữ liệu và phân biệt với truy vấn phục vụ giao dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-007
+    title: Metadata, cảnh báo và số liệu của kết quả truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-008
+    title: Thao tác nhiều tài liệu với giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-009
+    title: Chuyển kết quả SDK sang mô hình dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-extensions-010
+    title: Giữ nhất quán quy tắc mã hóa, TTL, CAS và ánh xạ khi kết hợp các API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân quyền RBAC theo bucket, scope, collection và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Tách tài khoản ứng dụng khỏi tài khoản quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Quản lý mật khẩu, chuỗi kết nối và chứng chỉ bằng cấu hình bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Kết nối mã hóa TLS và xác thực chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Ràng buộc tham số SQL++ và kiểm soát trường sắp xếp động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Xác minh tenant và ngăn truy cập nhầm collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Field Level Encryption và điều kiện phụ thuộc cần bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: '@Encrypted, CryptoManager và vòng đời khóa mã hóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Ảnh hưởng của trường mã hóa đến truy vấn và chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Giới hạn dữ liệu nhạy cảm trong log, lỗi và kết quả trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-design
+  title: Thiết kế ứng dụng
+  childs:
+  - slug: application-design-001
+    title: Phân chia Controller, Service, Repository và lớp ánh xạ DTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-002
+    title: Đặt ranh giới aggregate, transaction và quyền sở hữu cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-003
+    title: Tách mô hình API khỏi cấu trúc tài liệu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-004
+    title: Repository fragment và cài đặt truy vấn tùy chỉnh bằng Template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-005
+    title: Thiết kế thao tác tạo, sửa và xóa có tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-006
+    title: Ràng buộc duy nhất trong nghiệp vụ và chiến lược theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-007
+    title: Xóa mềm, lọc dữ liệu còn hiệu lực và tương tác với TTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-008
+    title: Phân quyền và tenant ở ranh giới dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-009
+    title: Phối hợp cập nhật dữ liệu với sự kiện bên ngoài một cách tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-design-010
+    title: Quản lý nhiều bucket hoặc nhiều cluster mà không trộn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân lớp kiểm thử nghiệp vụ, ánh xạ và tích hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Giới hạn của mock khi xác minh ngữ nghĩa Couchbase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: '@DataCouchbaseTest và cấu hình tài nguyên kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Khởi tạo CouchbaseContainer bằng Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Cung cấp cấu hình kết nối động và chờ cluster sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Tạo scope, collection, chỉ mục và dữ liệu thử có thể tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử CRUD, truy vấn dẫn xuất và @Query trên dữ liệu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử CAS bằng hai cập nhật cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử giao dịch thành công, rollback và thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử TTL, độ bền và độ trễ cập nhật chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: StepVerifier cho Repository và Template phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Cô lập dữ liệu giữa các bài kiểm thử và dọn dẹp đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử quyền truy cập, cấu hình sai và tính tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Hệ thống ngoại lệ Spring Data và ngoại lệ gốc từ SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: Tài liệu không tồn tại, khóa trùng và xung đột phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: Lỗi ánh xạ, lỗi chuyển đổi và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: Không tìm thấy bucket, scope, collection hoặc chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: Lỗi xác thực, phân quyền, DNS và chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Phân biệt lỗi có thể thử lại với lỗi cần thay đổi đầu vào hoặc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Thời gian chờ có kết quả xác định và chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Tính lũy đẳng trước khi thử lại thao tác ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-009
+    title: Giới hạn số lần thử, thời gian chờ tăng dần và ngân sách tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-010
+    title: Xử lý lỗi giao dịch và kiểm tra khả năng đã commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-011
+    title: Chuyển lỗi dữ liệu thành phản hồi API phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-012
+    title: Thu thập ngữ cảnh chẩn đoán mà không lộ thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-operations-001
+    title: Kiểm tra kết nối và trạng thái sẵn sàng của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-002
+    title: Phân biệt health check với độ sẵn sàng của từng dịch vụ Couchbase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-003
+    title: Log SDK, thông tin chẩn đoán và endpoint kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-004
+    title: Đo độ trễ Key-Value, truy vấn, lỗi và số thao tác đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-005
+    title: Theo dõi truy vấn chậm, request ID và ngữ cảnh truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-006
+    title: Quan sát tải chỉ mục, bộ nhớ, dung lượng và dịch vụ truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-007
+    title: Hành vi ứng dụng khi failover, rebalance hoặc gián đoạn mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-008
+    title: Quản lý thời gian khởi động và phục hồi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-009
+    title: Dừng ứng dụng có kiểm soát và đóng tài nguyên SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-010
+    title: Sao lưu, khôi phục và kiểm tra khả năng đọc lại dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Chọn truy cập theo khóa khi đã có định danh tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo đường cơ sở theo độ trễ, thông lượng và lượng dữ liệu truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tối ưu chỉ mục theo điều kiện lọc và sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Giảm số trường trả về và số tài liệu trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Thay cập nhật toàn tài liệu bằng sub-document khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Kiểm soát kích thước trang và truy vấn đếm tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Tối ưu truy vấn tham số hóa và kế hoạch chuẩn bị theo API hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Giới hạn đồng thời và tránh làm đầy hàng đợi SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đánh giá chi phí của REQUEST_PLUS, độ bền và giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Phân tích tài liệu lớn, khóa nóng và tải phân bố không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đo với dữ liệu và topology đại diện trước khi chọn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evolution-migration
+  title: Tiến hóa và di trú
+  childs:
+  - slug: evolution-migration-001
+    title: Quản lý phiên bản tài liệu trong cơ sở dữ liệu không có lược đồ cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-002
+    title: Đọc tương thích khi thêm, đổi tên hoặc thay kiểu trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-003
+    title: Thay đổi @TypeAlias, thông tin kiểu và tên lớp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-004
+    title: Di trú tài liệu theo lô với tiến độ và khả năng chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-005
+    title: Chuyển dữ liệu sang scope, collection hoặc bucket mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-006
+    title: Triển khai chỉ mục trước các truy vấn phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-007
+    title: Đọc và ghi đồng thời trong giai đoạn chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-008
+    title: Nâng Spring Boot, Spring Data Couchbase và Java SDK theo ma trận tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-009
+    title: Nhận diện API hoặc ví dụ cũ thuộc SDK và Spring Data thế hệ trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-migration-010
+    title: Kiểm thử dữ liệu cũ, sao lưu và phương án khôi phục khi di trú lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Xây dựng CRUD khách hàng bằng Repository và Template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Thiết kế khóa đơn hàng và kiểm tra yêu cầu tạo lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Ánh xạ tài liệu lồng nhau và bộ chuyển đổi tiền tệ hoặc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Tạo bộ lọc động, sắp xếp và phân trang danh sách đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Tạo chỉ mục và so sánh kế hoạch truy vấn trước và sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Mô phỏng đọc sau ghi với nhiều mức nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Xử lý hai yêu cầu cập nhật cạnh tranh bằng CAS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Lưu phiên đăng nhập có TTL và kiểm tra làm mới thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Thực hiện giao dịch chuyển tiền giữa nhiều tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Xây dựng API WebFlux truy cập Couchbase theo chuỗi phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Kiểm thử bằng Testcontainers và đo tải theo một mẫu truy cập cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-012
+    title: Di trú tài liệu sang phiên bản mới và xác minh dữ liệu sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

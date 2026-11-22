@@ -1,0 +1,3 @@
+menuLevel1: Luồng xác thực
+menuLevel2: DaoAuthenticationProvider kết nối UserDetailsService với PasswordEncoder
+status: WRITTEN

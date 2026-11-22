@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring Guru — Mediator Pattern"
+    url: "https://refactoring.guru/design-patterns/mediator"
+    description: "Giải thích ý định, vấn đề coupling, các thành phần Mediator/Colleague, cách triển khai và đánh đổi thiết kế."
+  - title: "Refactoring Guru — Mediator in Java"
+    url: "https://refactoring.guru/design-patterns/mediator/java/example"
+    description: "Ví dụ Java về việc tổ chức các thành phần giao diện cộng tác qua mediator mà không gọi trực tiếp nhau."
+  - title: "SourceMaking — Mediator Design Pattern"
+    url: "https://sourcemaking.com/design_patterns/mediator"
+    description: "Trình bày cấu trúc, checklist triển khai, cách giảm phụ thuộc và so sánh Mediator với Observer/Facade."
+  - title: "Java Design Patterns — Mediator"
+    url: "https://java-design-patterns.com/patterns/mediator/"
+    description: "Ví dụ Java điều phối giữa các thành viên, ứng dụng thực tế, lợi ích và nguy cơ Mediator thành God Object."

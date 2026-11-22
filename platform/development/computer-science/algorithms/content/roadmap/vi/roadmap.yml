@@ -1,0 +1,57 @@
+roadmap:
+- id: bai-toan-tinh-dung-dan
+  title: Bài toán & tính đúng đắn
+  purpose: Học cách phát biểu bài toán rõ ràng và lý giải vì sao một thuật toán cho kết quả đúng.
+  objectives:
+  - Xác định đầu vào, đầu ra và ràng buộc
+  - Viết giả mã với các bước rõ ràng
+  - Dùng bất biến và phản ví dụ để kiểm tra
+- id: tim-kiem-sap-xep
+  title: Tìm kiếm & sắp xếp
+  purpose: Nắm những thuật toán kinh điển dùng để truy xuất và tổ chức dữ liệu.
+  objectives:
+  - Cài đặt tìm kiếm tuyến tính và nhị phân
+  - Mô phỏng merge sort và quicksort
+  - Chọn thuật toán phù hợp dữ liệu đầu vào
+- id: chia-de-tri
+  title: Chia để trị
+  purpose: Biết giải bài toán bằng cách phân tách thành các bài toán con rồi kết hợp kết quả.
+  objectives:
+  - Nhận diện cấu trúc chia để trị
+  - Viết lời giải đệ quy với điều kiện dừng
+  - Giải thích cách merge sort kết hợp kết quả
+- id: thuat-toan-tham-lam
+  title: Thuật toán tham lam
+  purpose: Hiểu khi nào một lựa chọn tốt tại chỗ tạo ra lời giải tối ưu.
+  objectives:
+  - Xây dựng quy tắc chọn từng bước
+  - Giải bài toán chọn hoạt động cơ bản
+  - Phân biệt chứng minh đúng và phản ví dụ
+- id: quy-hoach-dong
+  title: Quy hoạch động
+  purpose: Giải bài toán có bài toán con lặp lại bằng cách lưu và tái sử dụng kết quả.
+  objectives:
+  - Xác định trạng thái và công thức chuyển
+  - Phân biệt memoization với tabulation
+  - Giải bài toán balô hoặc dãy con cơ bản
+- id: quay-lui-cat-tia
+  title: Quay lui & cắt tỉa
+  purpose: Tìm lời giải trong không gian lựa chọn có ràng buộc mà tránh nhánh vô ích.
+  objectives:
+  - Xây dựng cây trạng thái và điều kiện hợp lệ
+  - Cài đặt quay lui cho tổ hợp hoặc N-Queens
+  - Giải thích lúc nào có thể cắt tỉa
+- id: thuat-toan-do-thi
+  title: Thuật toán đồ thị
+  purpose: Sử dụng phép duyệt đồ thị để tìm kết nối, đường đi và cấu trúc của mạng.
+  objectives:
+  - Duyệt đồ thị bằng BFS và DFS
+  - Tìm đường đi ngắn nhất với BFS hoặc Dijkstra
+  - Nhận biết bài toán cây khung nhỏ nhất
+- id: ky-thuat-mang-chuoi
+  title: Kỹ thuật mảng & chuỗi
+  purpose: Áp dụng những mẫu xử lý dữ liệu tuần tự để giải bài toán hiệu quả hơn.
+  objectives:
+  - Sử dụng hai con trỏ và cửa sổ trượt
+  - Tính truy vấn đoạn bằng tổng tiền tố
+  - Áp dụng tìm mẫu chuỗi cơ bản

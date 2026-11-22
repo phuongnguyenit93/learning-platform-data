@@ -1,0 +1,73 @@
+menu:
+  - title: "Tổng quan về Spotless và chuẩn định dạng trong dự án Java"
+    slug: spotless-overview
+    index: 0
+  - title: "Chuẩn bị môi trường và lựa chọn phiên bản"
+    slug: environment-and-versions
+    index: 1
+  - title: "Cơ chế hoạt động và vòng lặp kiểm tra, áp dụng"
+    slug: formatting-workflow
+    index: 2
+  - title: "Thiết lập Spotless cho Gradle"
+    slug: gradle-setup
+    index: 3
+  - title: "Thiết lập Spotless cho Maven"
+    slug: maven-setup
+    index: 4
+  - title: "Lựa chọn và cấu hình Java formatter"
+    slug: java-formatter-selection-configuration
+    index: 5
+  - title: "Quản lý import và thứ tự các bước Java"
+    slug: java-import-management
+    index: 6
+  - title: "Xác định phạm vi file và loại trừ"
+    slug: file-targeting-and-exclusions
+    index: 7
+  - title: "Khoảng trắng, mã hóa và ký tự kết thúc dòng"
+    slug: whitespace-encoding-and-line-endings
+    index: 8
+  - title: "Định dạng cấu trúc Java, chú thích và Javadoc"
+    slug: java-syntax-comments-and-javadoc
+    index: 9
+  - title: "Quản lý license header"
+    slug: license-headers
+    index: 10
+  - title: "Định dạng file hỗ trợ trong dự án Java"
+    slug: supporting-file-formatting
+    index: 11
+  - title: "Ngoại lệ định dạng và bước tùy chỉnh"
+    slug: formatting-exceptions-and-custom-steps
+    index: 12
+  - title: "Chia sẻ cấu hình trong dự án Gradle nhiều module"
+    slug: gradle-multi-module-configuration
+    index: 13
+  - title: "Kế thừa cấu hình trong dự án Maven nhiều module"
+    slug: maven-multi-module-configuration
+    index: 14
+  - title: "Đồng bộ Spotless với IDE"
+    slug: ide-integration
+    index: 15
+  - title: "Quy trình Git, hook và review thay đổi"
+    slug: git-hooks-and-code-review
+    index: 16
+  - title: "Tích hợp CI và cổng kiểm tra định dạng"
+    slug: ci-formatting-checks
+    index: 17
+  - title: "Triển khai dần trên mã nguồn hiện hữu"
+    slug: legacy-code-adoption
+    index: 18
+  - title: "Hiệu năng và khả năng tái lập kết quả"
+    slug: performance-and-reproducibility
+    index: 19
+  - title: "Chẩn đoán và xử lý lỗi Spotless"
+    slug: spotless-troubleshooting
+    index: 20
+  - title: "Bảo trì và nâng cấp chuẩn định dạng"
+    slug: formatting-maintenance-and-upgrades
+    index: 21
+  - title: "Thực hành tích hợp Spotless với Gradle"
+    slug: gradle-integration-workshop
+    index: 22
+  - title: "Thực hành tích hợp Spotless với Maven"
+    slug: maven-integration-workshop
+    index: 23

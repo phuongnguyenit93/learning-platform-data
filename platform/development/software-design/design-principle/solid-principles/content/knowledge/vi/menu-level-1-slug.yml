@@ -1,0 +1,64 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng thiết kế
+  slug: design-foundation
+  index: 1
+- title: Thay đổi và ranh giới
+  slug: change-and-boundaries
+  index: 2
+- title: 'SRP: Đơn trách nhiệm'
+  slug: srp-single-responsibility
+  index: 3
+- title: 'OCP: Đóng và mở'
+  slug: ocp-open-closed
+  index: 4
+- title: Hợp đồng hành vi
+  slug: behavior-contract
+  index: 5
+- title: 'LSP: Khả năng thay thế'
+  slug: lsp-substitutability
+  index: 6
+- title: 'ISP: Tách giao diện'
+  slug: isp-interface-segregation
+  index: 7
+- title: 'DIP: Đảo ngược phụ thuộc'
+  slug: dip-dependency-inversion
+  index: 8
+- title: DI và IoC
+  slug: dependency-injection-ioc
+  index: 9
+- title: Kế thừa và kết hợp
+  slug: inheritance-composition
+  index: 10
+- title: Phối hợp các nguyên lý
+  slug: principle-coordination
+  index: 11
+- title: Liên hệ mẫu thiết kế
+  slug: design-pattern-relations
+  index: 12
+- title: SOLID trong Java
+  slug: solid-in-java
+  index: 13
+- title: Kiểm thử thiết kế
+  slug: design-testing
+  index: 14
+- title: Tái cấu trúc từng bước
+  slug: incremental-refactoring
+  index: 15
+- title: Đánh đổi và giới hạn
+  slug: tradeoffs-and-limits
+  index: 16
+- title: Rà soát thiết kế
+  slug: design-review
+  index: 17
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 18
+- title: Thực hành có hướng dẫn
+  slug: guided-practice
+  index: 19
+- title: Tình huống tổng hợp
+  slug: integrated-scenario
+  index: 20

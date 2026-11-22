@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-function-runtime
+  title: Tư duy Function & Runtime
+  purpose: Hiểu cách Spring Cloud Function tách xử lý nghiệp vụ khỏi cơ chế gọi HTTP, message hoặc serverless.
+  objectives:
+  - Mô tả vai trò function, input, output và runtime adapter.
+  - Phân biệt Spring Cloud Function với Spring MVC/WebFlux.
+  - Nêu lợi ích tái sử dụng logic trên nhiều môi trường.
+- id: supplier-function-consumer
+  title: Supplier, Function & Consumer
+  purpose: Viết logic nghiệp vụ dưới dạng functional bean Java rõ đầu vào và đầu ra.
+  objectives:
+  - Khai báo @Bean Supplier<T>, Function<I,O>, Consumer<T>.
+  - Phân biệt tạo dữ liệu, biến đổi và tiếp nhận dữ liệu.
+  - Chạy thử hàm trực tiếp trong ứng dụng Spring Boot.
+- id: functioncatalog-kieu-du-lieu
+  title: FunctionCatalog & kiểu dữ liệu
+  purpose: Tra cứu hàm theo tên và hiểu cơ chế bọc hàm, chuyển đổi kiểu của framework.
+  objectives:
+  - Dùng FunctionCatalog.lookup để gọi một bean theo tên.
+  - Thử chuyển đổi JSON/POJO dựa trên chữ ký hàm.
+  - Phân biệt bean trực tiếp với hàm lấy qua catalog.
+- id: composition-routing
+  title: Composition & Routing
+  purpose: Ghép các phép biến đổi và chọn hàm xử lý phù hợp theo cấu hình.
+  objectives:
+  - Ghép hàm bằng spring.cloud.function.definition=foo|bar.
+  - Phân biệt composition với routing qua functionRouter.
+  - Tránh nhận routing expression không tin cậy từ header.
+- id: http-web-adapter
+  title: HTTP Web Adapter
+  purpose: Xuất functional bean thành HTTP endpoint đơn giản và hiểu các giới hạn của adapter.
+  objectives:
+  - Cấu hình spring-cloud-starter-function-web.
+  - Gọi Function và Consumer qua HTTP với JSON hoặc text.
+  - Kiểm tra đường dẫn, content type và function được export.
+- id: messaging-reactive-function
+  title: Messaging & Reactive Function
+  purpose: Dùng cùng mô hình hàm cho luồng thông điệp và phân biệt xử lý từng message với xử lý stream.
+  objectives:
+  - Kết hợp Spring Cloud Stream để kết nối broker.
+  - Phân biệt Function<T,R> và Function<Flux<T>,Flux<R>>.
+  - Nhận diện quy tắc invoke của imperative và reactive.
+- id: serverless-adapter-deploy
+  title: Serverless Adapter & Deploy
+  purpose: Đóng gói logic dạng function để chạy trên môi trường FaaS thích hợp.
+  objectives:
+  - Giải thích vai trò adapter AWS Lambda, Azure hoặc Google Cloud.
+  - Đóng gói JAR và chọn function definition/handler.
+  - So sánh chạy local với serverless về trigger và cold start.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Kiểm tra tính đúng đắn và các rủi ro khi đưa function vào môi trường thực tế.
+  objectives:
+  - Viết unit test cho hàm và integration test cho adapter.
+  - Kiểm tra lỗi chuyển kiểu, routing và exception.
+  - Theo dõi latency, log, secret và tương thích phiên bản Spring.

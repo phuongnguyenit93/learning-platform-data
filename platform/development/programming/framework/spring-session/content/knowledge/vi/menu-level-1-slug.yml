@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan Spring Session
+  slug: overview
+  index: 0
+- title: Dữ liệu phiên
+  slug: session-data
+  index: 1
+- title: API và repository
+  slug: api-and-repositories
+  index: 2
+- title: Khởi tạo và cấu hình
+  slug: bootstrap-configuration
+  index: 3
+- title: Tích hợp Servlet
+  slug: servlet-integration
+  index: 4
+- title: Vòng đời phiên
+  slug: session-lifecycle
+  index: 5
+- title: Cookie phiên
+  slug: session-cookie
+  index: 6
+- title: Định danh qua header
+  slug: header-identifiers
+  index: 7
+- title: Redis cơ bản
+  slug: redis-foundations
+  index: 8
+- title: Redis có chỉ mục
+  slug: redis-indexed
+  index: 9
+- title: Hết hạn trên Redis
+  slug: redis-expiration
+  index: 10
+- title: Chính sách ghi
+  slug: write-policies
+  index: 11
+- title: Tuần tự hóa dữ liệu
+  slug: data-serialization
+  index: 12
+- title: Lưu phiên bằng JDBC
+  slug: jdbc-session-storage
+  index: 13
+- title: Tùy chỉnh JDBC
+  slug: jdbc-customization
+  index: 14
+- title: Kho lưu trữ mở rộng
+  slug: extended-repositories
+  index: 15
+- title: Tích hợp WebFlux
+  slug: webflux-integration
+  index: 16
+- title: Redis phản ứng
+  slug: reactive-redis
+  index: 17
+- title: Tích hợp Spring Security
+  slug: spring-security-integration
+  index: 18
+- title: Nhiều phiên đăng nhập
+  slug: multiple-logins
+  index: 19
+- title: Ghi nhớ và đăng xuất
+  slug: remember-me-and-logout
+  index: 20
+- title: Tích hợp WebSocket
+  slug: web-socket-integration
+  index: 21
+- title: Đồng thời và nhất quán
+  slug: concurrency-and-consistency
+  index: 22
+- title: Triển khai nhiều nút
+  slug: multi-node-deployment
+  index: 23
+- title: An toàn dữ liệu phiên
+  slug: session-data-safety
+  index: 24
+- title: Chia sẻ giữa ứng dụng
+  slug: cross-application-sharing
+  index: 25
+- title: Repository tùy chỉnh
+  slug: custom-repository
+  index: 26
+- title: Kiểm thử Servlet
+  slug: servlet-testing
+  index: 27
+- title: Kiểm thử WebFlux
+  slug: web-flux-testing
+  index: 28
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 29
+- title: Hiệu năng và giám sát
+  slug: performance-and-monitoring
+  index: 30
+- title: Vận hành và phục hồi
+  slug: operations-and-recovery
+  index: 31
+- title: Nâng cấp và di chuyển
+  slug: upgrade-and-migration
+  index: 32
+- title: Thực hành tích hợp
+  slug: integrated-practice
+  index: 33

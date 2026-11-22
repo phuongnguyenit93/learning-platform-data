@@ -1,0 +1,454 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Xác thực là gì và giải quyết vấn đề nhận diện chủ thể như thế nào
+  - Phân biệt xác thực, phân quyền và quản lý vòng đời tài khoản
+  - Người dùng, tài khoản dịch vụ và nhà cung cấp danh tính
+  - Thông tin xác thực, bằng chứng danh tính và ranh giới tin cậy
+  - 'Bản đồ các cách đăng nhập: mật khẩu, phiên, token, chứng thư và passkey'
+  - Quan hệ giữa Spring Security, Spring Boot và kho danh tính
+  - Phạm vi xác thực trong ứng dụng Servlet và reactive
+  - Kiến thức đầu vào và trình tự học từ luồng đăng nhập cơ bản đến tích hợp ngoài
+- level1: Mô hình danh tính
+  level2:
+  - 'Authentication với hai vai trò: yêu cầu xác thực và danh tính đã được xác thực'
+  - Principal và sự khác biệt với tài khoản nghiệp vụ trong cơ sở dữ liệu
+  - Credentials và giới hạn vòng đời dữ liệu nhạy cảm
+  - 'GrantedAuthority: quyền được nạp sau khi nhận diện danh tính'
+  - Ý nghĩa của getName, getPrincipal, getCredentials và getAuthorities
+  - isAuthenticated biểu diễn trạng thái nội bộ, không thay thế việc kiểm tra bằng chứng
+  - UsernamePasswordAuthenticationToken trước và sau xác thực
+  - Authentication.getDetails và dữ liệu bổ sung của yêu cầu
+  - AnonymousAuthenticationToken, người dùng đã đăng nhập và AuthenticationTrustResolver
+  - Thiết kế principal riêng với định danh ổn định và dữ liệu tối thiểu
+- level1: Bộ máy xác thực
+  level2:
+  - AuthenticationManager và hợp đồng authenticate
+  - ProviderManager và danh sách AuthenticationProvider
+  - AuthenticationProvider.supports chọn loại Authentication được hỗ trợ
+  - Thứ tự provider và cách xử lý thành công, không hỗ trợ hoặc thất bại
+  - Manager cha và điều kiện chuyển tiếp khi manager con không xử lý được
+  - ProviderNotFoundException khi không có provider phù hợp
+  - DaoAuthenticationProvider trong xác thực username và password
+  - AuthenticationException và những lỗi trạng thái tài khoản
+  - eraseCredentialsAfterAuthentication và tác động đến đối tượng dùng chung
+  - Phân biệt manager dùng chung với manager của từng SecurityFilterChain
+  - Quan sát một lượt xác thực từ đầu vào đến Authentication kết quả
+- level1: Hợp đồng người dùng
+  level2:
+  - UserDetails và dữ liệu mà bộ máy xác thực cần
+  - UserDetailsService chỉ tải người dùng, không tự thực hiện toàn bộ việc đăng nhập
+  - UserDetailsManager và các thao tác quản lý tài khoản
+  - InMemoryUserDetailsManager cho ví dụ và kiểm thử
+  - Định nghĩa UserDetails riêng hay dùng lớp User có sẵn
+  - Ánh xạ quyền nghiệp vụ thành GrantedAuthority
+  - UsernameNotFoundException và xử lý tài khoản không tồn tại
+  - Chuẩn hóa username, email và chính sách phân biệt chữ hoa, chữ thường
+  - Không trả entity chứa toàn bộ dữ liệu nghiệp vụ làm principal theo thói quen
+  - Bộ nhớ đệm UserDetails và việc làm mới dữ liệu sau thay đổi tài khoản
+- level1: Kho tài khoản
+  level2:
+  - JdbcUserDetailsManager và lược đồ người dùng, quyền
+  - Tùy chỉnh truy vấn JDBC để phù hợp dữ liệu sẵn có
+  - Tích hợp JPA hoặc kho nghiệp vụ thông qua UserDetailsService
+  - Tải quyền, nhóm quyền và tránh truy vấn lặp không cần thiết
+  - Định danh duy nhất, ràng buộc dữ liệu và xử lý tên tài khoản trùng
+  - Giao dịch đọc tài khoản và tránh phụ thuộc vào phiên ORM sau xác thực
+  - 'Đa tổ chức: tìm đúng tài khoản trong phạm vi tenant'
+  - Phân biệt không tìm thấy người dùng với lỗi kết nối kho tài khoản
+  - Chính sách bộ nhớ đệm, thu hồi và tính nhất quán khi dữ liệu thay đổi
+- level1: Trạng thái tài khoản
+  level2:
+  - isEnabled và trạng thái tài khoản được phép sử dụng
+  - isAccountNonLocked và chính sách khóa tài khoản
+  - isAccountNonExpired và thời hạn sử dụng tài khoản
+  - isCredentialsNonExpired và yêu cầu đổi thông tin xác thực
+  - UserDetailsChecker và các bước kiểm tra trước, sau đối chiếu mật khẩu
+  - BadCredentialsException, LockedException, DisabledException và lỗi hết hạn
+  - Không để nội dung phản hồi giúp dò tài khoản hoặc trạng thái khóa
+  - Thay đổi trạng thái sau đăng nhập và giới hạn của việc chỉ kiểm tra lúc đăng nhập
+- level1: Băm mật khẩu
+  level2:
+  - PasswordEncoder và sự khác biệt giữa băm với mã hóa có thể giải mã
+  - encode, matches và upgradeEncoding
+  - Salt, hệ số chi phí và khả năng chống dò mật khẩu
+  - BCryptPasswordEncoder và đặc điểm giới hạn đầu vào cần kiểm tra
+  - Pbkdf2PasswordEncoder và tham số thuật toán
+  - SCryptPasswordEncoder, Argon2PasswordEncoder và chi phí bộ nhớ
+  - PasswordEncoderFactories và DelegatingPasswordEncoder
+  - Định dạng {id}encodedPassword và lựa chọn encoder khi xác minh
+  - Vì sao không so sánh hai kết quả encode để kiểm tra cùng một mật khẩu
+  - NoOpPasswordEncoder và giới hạn của cấu hình minh họa
+  - Đo chi phí xác minh, giới hạn đầu vào và phòng ngừa cạn tài nguyên
+- level1: Nâng cấp mật khẩu
+  level2:
+  - Lựa chọn thuật toán mới mà vẫn xác minh được dữ liệu cũ
+  - UserDetailsPasswordService và nâng cấp giá trị băm sau đăng nhập
+  - upgradeEncoding và thời điểm thay đổi tham số băm
+  - Xử lý giá trị băm thiếu tiền tố hoặc dùng thuật toán không được chấp nhận
+  - Chính sách chuyển đổi tài khoản không thể nâng cấp trực tiếp
+  - Đổi mật khẩu, xác minh mật khẩu hiện tại và cập nhật dữ liệu nguyên tử
+  - Pepper, kho bí mật và kế hoạch thay đổi bí mật phía máy chủ
+  - Thu hồi phiên, remember-me hoặc token liên quan sau đổi mật khẩu
+- level1: Ngữ cảnh Servlet
+  level2:
+  - SecurityContext, SecurityContextHolder và danh tính của yêu cầu hiện tại
+  - Cơ chế ThreadLocal và yêu cầu dọn ngữ cảnh sau xử lý
+  - SecurityContextHolderStrategy và giới hạn của các chiến lược lưu
+  - 'SecurityContextRepository: tải, lưu và phạm vi tồn tại của ngữ cảnh'
+  - HttpSessionSecurityContextRepository và RequestAttributeSecurityContextRepository
+  - DelegatingSecurityContextRepository kết hợp các nơi lưu trữ
+  - SecurityContextHolderFilter và cơ chế explicit save theo phiên bản
+  - Tạo ngữ cảnh mới thay vì sửa đối tượng được chia sẻ giữa các yêu cầu
+  - Lưu ngữ cảnh khi đăng nhập tùy chỉnh và trước khi response được hoàn tất
+  - Truyền danh tính sang tác vụ nền bằng các lớp DelegatingSecurityContext
+- level1: Tích hợp bộ lọc
+  level2:
+  - DelegatingFilterProxy, FilterChainProxy và vị trí tiếp nhận thông tin xác thực
+  - SecurityFilterChain, securityMatcher và phạm vi endpoint đăng nhập
+  - AbstractAuthenticationProcessingFilter và các bước xử lý cốt lõi
+  - AuthenticationFilter và AuthenticationConverter
+  - AuthenticationWebDetailsSource và dữ liệu bổ sung của yêu cầu
+  - requiresAuthenticationRequestMatcher chọn đúng yêu cầu cần xác thực
+  - AuthenticationSuccessHandler và AuthenticationFailureHandler
+  - SessionAuthenticationStrategy sau khi xác thực thành công
+  - Đặt thứ tự bộ lọc và tránh đăng ký cùng bộ lọc hai lần
+  - Phân biệt tiếp tục chuỗi, trả phản hồi và chuyển lỗi cho thành phần phù hợp
+- level1: Đăng nhập biểu mẫu
+  level2:
+  - Luồng truy cập tài nguyên được bảo vệ và chuyển tới trang đăng nhập
+  - formLogin, loginPage và loginProcessingUrl
+  - UsernamePasswordAuthenticationFilter và tham số username, password
+  - Trang đăng nhập tự tạo và những đường dẫn cần được truy cập công khai
+  - CSRF token trong biểu mẫu đăng nhập
+  - RequestCache, SavedRequest và khôi phục yêu cầu sau đăng nhập
+  - defaultSuccessUrl và xử lý chuyển hướng thành công
+  - failureUrl, failureHandler và thông báo đăng nhập không tiết lộ tài khoản
+  - Giới hạn địa chỉ chuyển hướng để ngăn open redirect
+  - Kiểm tra tạo phiên, đổi định danh phiên và lưu SecurityContext
+- level1: HTTP Basic
+  level2:
+  - Header Authorization và luồng xác thực HTTP Basic
+  - BasicAuthenticationFilter và cách gọi AuthenticationManager
+  - Cấu hình httpBasic, realm và WWW-Authenticate
+  - Base64 không phải mã hóa bảo mật và yêu cầu dùng HTTPS
+  - Xác thực từng yêu cầu và mối quan hệ với chính sách phiên
+  - Trình duyệt tự gửi thông tin xác thực và nguy cơ CSRF
+  - Giới hạn đăng xuất, xử lý lỗi và tách Basic khỏi chuỗi đăng nhập biểu mẫu
+- level1: Đăng nhập JSON
+  level2:
+  - Phân biệt định dạng yêu cầu đăng nhập với mô hình phiên hoặc token
+  - Đọc username, password từ JSON bằng thành phần chuyển đổi phù hợp
+  - Giới hạn HTTP method, Content-Type và kích thước dữ liệu đầu vào
+  - Xác thực qua AuthenticationManager thay vì tự so sánh mật khẩu trong Controller
+  - Lưu SecurityContext khi endpoint JSON tạo phiên đăng nhập
+  - Áp dụng SessionAuthenticationStrategy trong cơ chế đăng nhập tự viết
+  - Phản hồi thành công và thất bại nhất quán cho API
+  - CSRF, CORS và cookie khi client trình duyệt gọi endpoint đăng nhập
+  - Kiểm thử yêu cầu tiếp theo để xác nhận danh tính thực sự được duy trì
+- level1: Provider tùy chỉnh
+  level2:
+  - Khi nào cần AuthenticationProvider thay vì chỉ thay UserDetailsService
+  - Thiết kế Authentication token riêng với đầu vào chưa được tin cậy
+  - Cài đặt supports và kiểm tra chính xác loại thông tin xác thực
+  - Đối chiếu bằng chứng với nguồn danh tính đáng tin cậy
+  - Trả Authentication kết quả với principal và quyền đã được xác minh
+  - Phân biệt trả null, ném AuthenticationException và lỗi hệ thống
+  - Không nhận quyền hoặc trạng thái đã xác thực trực tiếp từ client
+  - Xóa dữ liệu bí mật và tránh lưu đối tượng có thể thay đổi dùng chung
+  - Tích hợp provider với bộ lọc, manager và thành phần xử lý kết quả
+  - Kiểm thử provider độc lập trước khi ghép vào chuỗi HTTP
+- level1: Nhiều cơ chế
+  level2:
+  - Phân biệt nhiều provider trong một manager với nhiều SecurityFilterChain
+  - Chọn AuthenticationManager theo yêu cầu bằng AuthenticationManagerResolver
+  - Tách đăng nhập quản trị, người dùng và tài khoản dịch vụ
+  - Xác định thứ tự khi một yêu cầu có nhiều loại thông tin xác thực
+  - Ngăn cơ chế yếu hơn trở thành đường thay thế bỏ qua chính sách
+  - Đa tổ chức và lựa chọn kho danh tính từ dữ liệu đã được kiểm soát
+  - Quyền nạp từ các nguồn khác nhau và yêu cầu chuẩn hóa
+  - Kiểm thử toàn bộ đường đăng nhập và chuỗi dự phòng
+- level1: Quản lý phiên
+  level2:
+  - 'SessionCreationPolicy: ALWAYS, IF_REQUIRED, NEVER và STATELESS'
+  - Xác thực thành công không đồng nghĩa với danh tính được lưu cho yêu cầu sau
+  - Session fixation và các chiến lược thay đổi định danh phiên
+  - SessionAuthenticationStrategy và trách nhiệm của cơ chế đăng nhập
+  - Giới hạn phiên đồng thời bằng maximumSessions
+  - SessionRegistry, HttpSessionEventPublisher và theo dõi phiên hoạt động
+  - Phân biệt phiên hết hạn, phiên không hợp lệ và phiên bị thay thế
+  - Cookie phiên với Secure, HttpOnly, SameSite, path và thời gian sống
+  - Spring Session, nhiều nút ứng dụng và giới hạn kho phiên cục bộ
+  - Thu hồi phiên sau khóa tài khoản, đổi mật khẩu hoặc sự cố bảo mật
+- level1: Ghi nhớ đăng nhập
+  level2:
+  - Remember-me khác với giữ một HttpSession tồn tại lâu hơn
+  - RememberMeServices, RememberMeAuthenticationFilter và provider tương ứng
+  - TokenBasedRememberMeServices và cookie có chữ ký
+  - PersistentTokenBasedRememberMeServices và PersistentTokenRepository
+  - Thời hạn cookie, khóa ký và bảo vệ dữ liệu token lưu phía máy chủ
+  - Remember-me, anonymous và fullyAuthenticated trong chính sách truy cập
+  - Thu hồi token ghi nhớ khi đăng xuất hoặc thay đổi thông tin tài khoản
+  - Kiểm thử cookie hết hạn, bị sửa, bị đánh cắp hoặc bị phát lại
+- level1: Đăng xuất
+  level2:
+  - LogoutFilter, LogoutHandler và LogoutSuccessHandler
+  - HTTP method và yêu cầu CSRF đối với thao tác đăng xuất
+  - Xóa Authentication và dữ liệu của SecurityContext
+  - Vô hiệu hóa HttpSession và xóa cookie liên quan
+  - Xóa remember-me và những thông tin đăng nhập được lưu lâu dài
+  - Đăng xuất qua chuyển hướng cho web hoặc phản hồi trạng thái cho API
+  - Endpoint đăng xuất tự viết và SecurityContextLogoutHandler
+  - Phân biệt đăng xuất cục bộ, thu hồi token và đăng xuất tại hệ thống danh tính ngoài
+  - Kiểm thử đăng xuất một thiết bị, mọi thiết bị và yêu cầu sau đăng xuất
+- level1: Xác thực reactive
+  level2:
+  - ReactiveAuthenticationManager và hợp đồng Mono<Authentication>
+  - Phân biệt xác thực thành công, Mono.empty và tín hiệu lỗi
+  - ReactiveUserDetailsService và MapReactiveUserDetailsService
+  - UserDetailsRepositoryReactiveAuthenticationManager trong xác thực mật khẩu
+  - DelegatingReactiveAuthenticationManager và việc phối hợp nhiều manager
+  - AuthenticationWebFilter và ServerAuthenticationConverter
+  - ReactiveAuthenticationManagerResolver chọn manager theo ngữ cảnh yêu cầu
+  - ServerAuthenticationSuccessHandler và ServerAuthenticationFailureHandler
+  - Tích hợp kho dữ liệu không chặn luồng và kiểm soát công việc tốn CPU
+  - Giới hạn của việc chuyển mã đồng bộ sang reactive bằng adapter
+- level1: Ngữ cảnh reactive
+  level2:
+  - ReactiveSecurityContextHolder và Reactor Context
+  - Thời điểm đăng ký Publisher và vòng đời danh tính trong chuỗi
+  - ServerSecurityContextRepository và WebSessionServerSecurityContextRepository
+  - NoOpServerSecurityContextRepository cho trường hợp không lưu ngữ cảnh
+  - ReactorContextWebFilter và tích hợp ngữ cảnh vào yêu cầu WebFlux
+  - Lưu ngữ cảnh sau đăng nhập và xác nhận bằng yêu cầu tiếp theo
+  - Tránh block, subscribe thủ công và truyền danh tính qua ThreadLocal
+  - Kiểm thử đổi Scheduler, hủy đăng ký và không rò rỉ danh tính giữa yêu cầu
+- level1: LDAP và AD
+  level2:
+  - LDAP, directory và Active Directory trong mô hình danh tính tổ chức
+  - Kết nối LDAP, base DN và tài khoản dùng để tìm kiếm
+  - Xác thực bằng bind với bằng chứng của người dùng
+  - Password comparison và điều kiện sử dụng phù hợp
+  - LdapBindAuthenticationManagerFactory và cấu hình theo phiên bản
+  - Tìm người dùng, tìm nhóm và ánh xạ quyền LDAP
+  - UserDetailsContextMapper và principal từ thuộc tính directory
+  - ActiveDirectoryLdapAuthenticationProvider và đặc điểm đăng nhập AD
+  - LDAPS, bí mật kết nối, timeout và phân biệt lỗi tài khoản với lỗi hạ tầng
+  - Kiểm thử với directory thử nghiệm và dữ liệu tổ chức có kiểm soát
+- level1: Tiền xác thực
+  level2:
+  - Mô hình pre-authentication khi danh tính được xác minh ở hệ thống phía trước
+  - AbstractPreAuthenticatedProcessingFilter và PreAuthenticatedAuthenticationToken
+  - PreAuthenticatedAuthenticationProvider và việc nạp quyền ứng dụng
+  - RequestHeaderAuthenticationFilter và dữ liệu danh tính từ header
+  - Ranh giới tin cậy với proxy và ngăn client tự giả mạo header
+  - JEE pre-authentication và danh tính do Servlet Container cung cấp
+  - Thay đổi danh tính ở hệ thống ngoài, phiên hiện tại và xử lý mất xác thực
+- level1: Chứng thư X.509
+  level2:
+  - Xác thực bằng chứng thư phía client và quan hệ với mTLS
+  - Ranh giới giữa kiểm tra TLS tại hạ tầng và ánh xạ danh tính trong ứng dụng
+  - X509AuthenticationFilter và cấu hình x509
+  - Trích xuất principal từ subject của chứng thư
+  - Ánh xạ danh tính chứng thư sang tài khoản và GrantedAuthority
+  - Chứng thư qua reverse proxy và yêu cầu bảo vệ đường truyền, header
+  - Hết hạn, thu hồi chứng thư và kiểm thử chuỗi tin cậy
+- level1: OAuth2 và OIDC
+  level2:
+  - Phân biệt OAuth2, OpenID Connect và đăng nhập bằng tài khoản ngoài
+  - Vai trò client, authorization server, resource server và end user
+  - Luồng Authorization Code và các bước tạo danh tính tại ứng dụng
+  - ClientRegistration, redirect URI và thông tin định danh ứng dụng
+  - state, PKCE và nonce bảo vệ những phần nào của luồng đăng nhập
+  - OAuth2UserService, OidcUserService và tiếp nhận dữ liệu người dùng
+  - Ánh xạ claims, quyền và định danh bên ngoài sang principal nội bộ
+  - Liên kết tài khoản an toàn và không tin email chưa được xác minh
+  - Phân biệt ID token, access token, refresh token và phiên đăng nhập cục bộ
+  - Đăng xuất cục bộ, đăng xuất OIDC và ranh giới với vòng đời token
+- level1: Liên kết danh tính
+  level2:
+  - SSO và quan hệ giữa danh tính ngoài với phiên ứng dụng
+  - 'SAML2 Login: service provider, identity provider và assertion'
+  - RelyingPartyRegistration, metadata và thông tin tin cậy
+  - Ánh xạ thuộc tính SAML, NameID và tài khoản nội bộ
+  - 'CAS: service ticket và xác thực tập trung'
+  - JAAS và vai trò tích hợp Subject với mô hình Spring Security
+  - Kerberos, SPNEGO và những dependency, điều kiện triển khai riêng
+  - Lựa chọn giao thức theo hạ tầng và giới hạn không thể dùng thay thế tùy ý
+- level1: Bearer token
+  level2:
+  - Bearer token và ý nghĩa của việc sở hữu token
+  - OAuth2 Resource Server tiếp nhận và xác thực token
+  - JwtAuthenticationProvider, JwtDecoder và Authentication kết quả
+  - Kiểm tra chữ ký, thuật toán, issuer, audience và thời hạn JWT
+  - JWK Set, thay đổi khóa và giới hạn tin cậy nguồn khóa
+  - OpaqueTokenAuthenticationProvider và introspection
+  - Chuyển claims hoặc scope thành GrantedAuthority
+  - Thành phần xác thực JWT, opaque token tương ứng trong mô hình reactive
+  - Ranh giới giữa xác thực JWT, phát hành token và triển khai giao thức cấp quyền
+  - Thời gian sống, thu hồi token và thay đổi quyền sau khi token đã được cấp
+- level1: API key
+  level2:
+  - API key đại diện cho ứng dụng, dịch vụ hoặc tài khoản theo chính sách cụ thể
+  - Lựa chọn vị trí truyền khóa và tránh đưa bí mật vào URL
+  - Provider hoặc manager riêng để kiểm tra API key
+  - Băm khóa khi chỉ cần đối chiếu và tách phần định danh khỏi bí mật
+  - Định danh khóa, phạm vi quyền và giới hạn môi trường sử dụng
+  - Luân chuyển, hết hạn và thu hồi khóa
+  - Ngăn cơ chế API key trở thành đường bỏ qua xác thực mạnh hơn
+- level1: Token dùng một lần
+  level2:
+  - Điều kiện phiên bản và phạm vi hỗ trợ của One-Time Token Login
+  - Phân biệt OTT do máy chủ phát hành với TOTP hoặc HOTP
+  - oneTimeTokenLogin và các endpoint phát hành, tiếp nhận token
+  - OneTimeTokenService và việc tạo, lưu, tiêu thụ token
+  - OneTimeTokenGenerationSuccessHandler và phần gửi token do ứng dụng đảm nhiệm
+  - Magic link, URL công khai và giới hạn địa chỉ chuyển hướng
+  - Hết hạn, tiêu thụ một lần và xử lý yêu cầu đồng thời
+  - Chống dò tài khoản, giới hạn yêu cầu gửi và bảo vệ token khỏi log, lịch sử trình duyệt
+- level1: Passkey
+  level2:
+  - WebAuthn, passkey và điều kiện phiên bản, dependency của Spring Security
+  - Authenticator, relying party và credential khóa công khai
+  - Luồng đăng ký credential khác với luồng xác thực bằng assertion
+  - Relying Party ID, allowed origins và yêu cầu HTTPS
+  - Challenge, thời hạn và kiểm tra đúng ngữ cảnh thao tác
+  - Lưu user entity, credential và quản lý nhiều passkey của một tài khoản
+  - User presence, user verification và ý nghĩa của chính sách xác minh
+  - Mất thiết bị, thu hồi credential và khôi phục tài khoản mà không tạo đường yếu hơn
+- level1: Nhiều yếu tố
+  level2:
+  - MFA, hai bước đăng nhập và sự độc lập của các yếu tố xác thực
+  - Những yếu tố đã hoàn tất và trạng thái chưa đạt mức xác thực yêu cầu
+  - FactorGrantedAuthority và @EnableMultiFactorAuthentication ở phiên bản hỗ trợ
+  - Quan hệ giữa cơ chế cung cấp yếu tố với quy tắc yêu cầu đủ yếu tố
+  - Yêu cầu xác thực bổ sung cho thao tác nhạy cảm
+  - Thời điểm xác thực và thời hạn chấp nhận một yếu tố
+  - 'Tích hợp TOTP hoặc HOTP: phần thư viện hỗ trợ và phần ứng dụng cần xây dựng'
+  - Đăng ký yếu tố, recovery code và chính sách thay đổi yếu tố
+  - Kiểm soát mọi đường đăng nhập, remember-me và khôi phục tài khoản
+  - Kiểm thử thiếu yếu tố, yếu tố hết hạn, bị phát lại và chuyển đổi danh tính
+- level1: Vòng đời tài khoản
+  level2:
+  - Đăng ký, xác minh liên hệ và kích hoạt tài khoản
+  - Chính sách mật khẩu và phản hồi kiểm tra dữ liệu đầu vào
+  - 'Token xác minh liên hệ: mục đích, thời hạn và sử dụng một lần'
+  - Yêu cầu đặt lại mật khẩu mà không tiết lộ tài khoản tồn tại
+  - Đặt lại mật khẩu với token độc lập với token đăng nhập
+  - Thay đổi email, số điện thoại và dữ liệu khôi phục có xác thực lại
+  - Khóa tạm thời, vô hiệu hóa và xóa tài khoản
+  - Liên kết, gỡ liên kết tài khoản ngoài với danh tính nội bộ
+  - Thu hồi phiên, khóa, token và yếu tố sau thay đổi tài khoản
+  - Phân biệt trách nhiệm của Spring Security với dịch vụ nghiệp vụ quản lý tài khoản
+- level1: Chống tấn công
+  level2:
+  - Brute force, password spraying và credential stuffing
+  - Giới hạn tốc độ theo tài khoản, nguồn yêu cầu và dấu hiệu rủi ro
+  - Khóa tạm thời và tránh biến cơ chế khóa thành công cụ từ chối dịch vụ
+  - Phản hồi, thời gian xử lý và nguy cơ dò sự tồn tại của tài khoản
+  - HTTPS, cookie an toàn và bảo vệ trước đánh cắp phiên
+  - CSRF ở đăng nhập, đăng xuất và các cơ chế được trình duyệt tự gửi
+  - CORS không thay thế kiểm tra danh tính hoặc bảo vệ CSRF
+  - Session fixation, token replay và ranh giới của từng biện pháp giảm thiểu
+  - Chuyển hướng sau đăng nhập và giới hạn nguồn URL được tin cậy
+  - Không ghi mật khẩu, token, API key hoặc mã khôi phục vào log
+  - Phishing, xác thực bổ sung và giới hạn của các cơ chế dựa trên bí mật có thể nhập lại
+- level1: Phản hồi xác thực
+  level2:
+  - AuthenticationEntryPoint và yêu cầu client cung cấp bằng chứng danh tính
+  - Chuyển hướng tới trang đăng nhập khác với trả HTTP 401 cho API
+  - WWW-Authenticate cho HTTP Basic và Bearer
+  - AuthenticationFailureHandler và lỗi tại endpoint đăng nhập
+  - Phân biệt chưa xác thực với lỗi phân quyền HTTP 403
+  - DelegatingAuthenticationEntryPoint chọn phản hồi theo nhóm yêu cầu
+  - Thành phần phản hồi lỗi tương ứng trong WebFlux
+  - Lỗi từ Filter không tự được @ControllerAdvice xử lý
+  - Mã lỗi công khai, mã tương quan và thông tin chi tiết chỉ dành cho vận hành
+- level1: Sự kiện xác thực
+  level2:
+  - AuthenticationEventPublisher và DefaultAuthenticationEventPublisher
+  - Sự kiện thành công và nhóm sự kiện xác thực thất bại
+  - Ánh xạ exception tùy chỉnh sang sự kiện phù hợp
+  - Phân biệt sự kiện xác thực thành công với toàn bộ luồng đăng nhập hoàn tất
+  - Thiết kế nhật ký đăng nhập và theo dõi thiết bị, phiên liên quan
+  - Tách tác vụ kiểm toán khỏi đường xử lý dễ gây tăng độ trễ hoặc lộ dữ liệu
+  - Tính nhất quán khi có nhiều provider, thử lại và xác thực trên nhiều yêu cầu
+- level1: Kiểm thử thành phần
+  level2:
+  - Kiểm thử PasswordEncoder và tính tương thích với dữ liệu băm được lưu
+  - Kiểm thử UserDetailsService với tài khoản tồn tại, thiếu và không hợp lệ
+  - Kiểm thử AuthenticationProvider.supports và các kết quả authenticate
+  - Kiểm thử ProviderManager với nhiều provider và manager cha
+  - Kiểm thử trạng thái tài khoản, quyền được nạp và việc xóa credentials
+  - Kiểm thử nâng cấp mật khẩu và cập nhật dữ liệu sau xác thực
+  - Kiểm thử AuthenticationConverter, JSON sai và thông tin đầu vào thiếu
+  - StepVerifier cho ReactiveAuthenticationManager và các nhánh Mono
+  - Kiểm thử ghi, đọc và dọn SecurityContext trong đúng mô hình thực thi
+  - Phân biệt principal giả lập với bằng chứng xác thực được kiểm tra thực
+- level1: Kiểm thử đăng nhập
+  level2:
+  - Tích hợp spring-security-test với MockMvc hoặc WebTestClient
+  - formLogin, httpBasic và logout trong kiểm thử Servlet
+  - '@WithMockUser, @WithUserDetails và @WithSecurityContext'
+  - Đăng nhập đúng, sai mật khẩu, tài khoản khóa và tài khoản bị vô hiệu hóa
+  - CSRF token, cookie phiên và phản hồi chuyển hướng
+  - Yêu cầu sau đăng nhập để xác nhận danh tính được lưu đúng
+  - Session fixation, phiên đồng thời, hết phiên và thu hồi truy cập
+  - Remember-me hợp lệ, hết hạn, bị sửa và đăng xuất
+  - Token giả lập khác với kiểm thử decoder, chữ ký hoặc introspection thực
+  - Kiểm thử danh tính ngoài, liên kết tài khoản và lỗi nhà cung cấp
+  - 'OTT, passkey và MFA: ca hết hạn, phát lại, thiếu yếu tố và khôi phục'
+  - Kiểm thử song song và xác nhận không rò rỉ danh tính giữa người dùng
+  - Kiểm thử qua container, proxy và trình duyệt cho hành vi cookie, TLS thực tế
+- level1: Vận hành
+  level2:
+  - Quản lý mật khẩu kết nối, client secret, khóa ký và bí mật ứng dụng
+  - Cookie, HTTPS và cấu hình danh tính sau reverse proxy
+  - Nhật ký đăng nhập, mã tương quan và bảo vệ dữ liệu cá nhân
+  - Đo độ trễ xác thực, chi phí băm mật khẩu và truy vấn tài khoản
+  - Timeout, giới hạn kết nối và ứng xử khi nguồn danh tính ngoài gặp lỗi
+  - Bộ nhớ đệm danh tính và thời gian có hiệu lực của thay đổi quyền, trạng thái
+  - Kho phiên, kho token dùng một lần và điều kiện nhất quán khi chạy nhiều nút
+  - Luân chuyển khóa, API key và chứng thư
+  - Phát hiện đăng nhập bất thường và quy trình thu hồi truy cập
+  - Kiểm soát log DEBUG, TRACE và dữ liệu nhạy cảm khi điều tra sự cố
+  - Cập nhật dependency và kiểm tra cảnh báo lỗ hổng đúng phiên bản
+- level1: Chẩn đoán
+  level2:
+  - Không có AuthenticationProvider hỗ trợ loại token đầu vào
+  - ProviderManager chọn sai provider hoặc cơ chế xác thực không chạy
+  - Mật khẩu đúng nhưng xác minh thất bại do encoder, tiền tố hoặc dữ liệu băm
+  - Thông tin tài khoản bị cũ do cache hoặc quyền bị thay đổi
+  - Đăng nhập thành công nhưng yêu cầu sau vẫn chưa được xác thực
+  - Mất cookie, sai SameSite hoặc URL công khai không khớp proxy
+  - Vòng lặp chuyển hướng do endpoint đăng nhập, trang lỗi hoặc matcher
+  - CSRF bị từ chối trước khi thông tin đăng nhập tới provider
+  - Bộ lọc chạy hai lần hoặc xử lý kết quả ở sai vị trí
+  - Mất Reactor Context hoặc ThreadLocal không phù hợp mô hình thực thi
+  - Lỗi LDAP, chứng thư, issuer hoặc JWK bị nhầm thành sai mật khẩu
+  - Khóa tài khoản hoặc đăng xuất chưa thu hồi được những phiên, token còn hiệu lực
+- level1: Phiên bản
+  level2:
+  - Tra cứu API và reference theo đúng phiên bản Spring Security
+  - Quản lý bộ phiên bản tương thích bằng Spring Boot BOM
+  - Bean AuthenticationManager, AuthenticationProvider và cấu hình hiện đại
+  - Đọc cấu hình cũ dùng WebSecurityConfigurerAdapter hoặc API đã lỗi thời
+  - Thay đổi cơ chế lưu SecurityContext và trách nhiệm explicit save
+  - Kiểm tra dependency, persistence và phiên bản trước khi bật OTT hoặc WebAuthn
+  - MFA tích hợp theo phiên bản và phần cần xây dựng khi thư viện chưa hỗ trợ
+  - Rà soát khác biệt Servlet, reactive và các thư viện tích hợp bên ngoài
+  - Bộ kiểm thử hồi quy cho đăng nhập, duy trì danh tính và thu hồi truy cập sau nâng cấp
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây đăng nhập biểu mẫu với tài khoản trong bộ nhớ rồi chuyển sang kho dữ liệu
+  - Tự triển khai UserDetailsService và ánh xạ quyền từ dữ liệu nghiệp vụ
+  - Nâng cấp giá trị băm mật khẩu mà không yêu cầu mọi người dùng đặt lại cùng lúc
+  - Xây endpoint đăng nhập JSON dùng phiên và lưu SecurityContext đúng cách
+  - Xây AuthenticationProvider cho một loại bằng chứng riêng
+  - Tách nhiều cơ chế đăng nhập theo SecurityFilterChain
+  - Xây luồng xác thực WebFlux với nguồn người dùng reactive
+  - Tích hợp LDAP hoặc nhà cung cấp OIDC trong môi trường thử nghiệm
+  - Tạo và thu hồi API key cho tài khoản dịch vụ
+  - Triển khai OTT, passkey hoặc MFA trên phiên bản phù hợp
+  - Kiểm chứng khóa tài khoản, đổi mật khẩu và đăng xuất trên nhiều phiên
+  - Điều tra một lỗi xác thực từ request tới provider, ngữ cảnh và response

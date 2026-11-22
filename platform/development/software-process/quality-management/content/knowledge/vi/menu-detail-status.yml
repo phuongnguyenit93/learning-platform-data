@@ -1,0 +1,2179 @@
+menu:
+- slug: quality-foundation
+  title: Nền tảng chất lượng
+  childs:
+  - slug: quality-foundation-001
+    title: Chất lượng phần mềm là gì và ai quyết định chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-foundation-002
+    title: Chất lượng sản phẩm, dịch vụ và quy trình trong vòng đời phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-foundation-003
+    title: Phân biệt quản lý chất lượng, đảm bảo chất lượng, kiểm soát chất lượng và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-foundation-004
+    title: Sai sót con người, khiếm khuyết trong sản phẩm và sự cố khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-foundation-005
+    title: Sự phù hợp yêu cầu và sự phù hợp mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-foundation-006
+    title: Quan hệ giữa chất lượng, giá trị kinh doanh, rủi ro, tiến độ và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-foundation-007
+    title: Bản đồ thuật ngữ và luồng từ mục tiêu chất lượng đến bằng chứng nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-foundation-008
+    title: Phạm vi quản lý chất lượng và quan hệ với quản lý dự án, yêu cầu và cải tiến quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-model
+  title: Mô hình chất lượng
+  childs:
+  - slug: quality-model-001
+    title: Vai trò của mô hình chất lượng và hệ tiêu chuẩn SQuaRE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-002
+    title: Chất lượng sản phẩm theo ISO/IEC 25010:2023 và khác biệt với phiên bản 2011
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-003
+    title: Mức phù hợp chức năng (functional suitability) và độ đầy đủ, đúng đắn của chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-004
+    title: Hiệu quả hiệu năng (performance efficiency) và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-005
+    title: Khả năng tương thích (compatibility) giữa hệ thống và thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-006
+    title: Khả năng tương tác với người dùng (interaction capability)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-007
+    title: Độ tin cậy (reliability), khả năng chịu lỗi và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-008
+    title: Bảo mật (security) và bảo vệ thông tin, quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-009
+    title: Khả năng bảo trì (maintainability) và tác động của thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-010
+    title: Tính linh hoạt (flexibility) và khả năng thích nghi với bối cảnh mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-011
+    title: An toàn (safety) và giảm tác hại do hệ thống gây ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-012
+    title: Chất lượng khi sử dụng theo ISO/IEC 25019 và vai trò của bối cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-model-013
+    title: Chuyển thuộc tính chất lượng thành tiêu chí đánh giá và xử lý đánh đổi giữa thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: principles
+  title: Nguyên tắc
+  childs:
+  - slug: principles-001
+    title: Tập trung vào khách hàng và các bên chịu ảnh hưởng bởi phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-002
+    title: Cam kết lãnh đạo và sự tham gia của các vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-003
+    title: Tiếp cận theo quy trình và nhận diện quan hệ giữa các quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-004
+    title: Phòng ngừa khiếm khuyết và xây dựng chất lượng ngay từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-005
+    title: Ra quyết định dựa trên bằng chứng và công khai độ không chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-006
+    title: Tư duy dựa trên rủi ro và cơ hội nâng cao chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-007
+    title: Chu trình Plan–Do–Check–Act và vòng phản hồi chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principles-008
+    title: Quản lý quan hệ với nhà cung cấp và trách nhiệm chất lượng toàn chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-system
+  title: Hệ thống chất lượng
+  childs:
+  - slug: quality-system-001
+    title: Hệ thống quản lý chất lượng (QMS) và phạm vi áp dụng trong tổ chức phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-002
+    title: Chính sách chất lượng, mục tiêu tổ chức và mục tiêu của từng dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-003
+    title: Cấu trúc chính sách, quy trình, thủ tục, hướng dẫn và hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-004
+    title: Vai trò ISO 9001 và kiểm tra phiên bản tiêu chuẩn đang áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-005
+    title: ISO/IEC/IEEE 90003 và giới hạn hướng dẫn theo phiên bản ISO 9001 được viện dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-006
+    title: Định vị SWEBOK, IEEE 730 và các chuẩn vòng đời trong quản lý chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-007
+    title: Chọn yêu cầu áp dụng từ tiêu chuẩn, hợp đồng và đặc thù ngành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-008
+    title: Điều chỉnh quy trình và kiểm soát ngoại lệ bằng phê duyệt có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-system-009
+    title: Phân biệt đáp ứng tiêu chuẩn, đánh giá năng lực quy trình và chứng nhận hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-organization
+  title: Tổ chức chất lượng
+  childs:
+  - slug: quality-organization-001
+    title: Phân định trách nhiệm giữa lãnh đạo, quản lý dự án, phát triển, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-organization-002
+    title: Vai trò bộ phận đảm bảo chất lượng và mức độc lập cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-organization-003
+    title: Ma trận trách nhiệm RACI cho hoạt động và quyết định chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-organization-004
+    title: Thẩm quyền chấp nhận rủi ro, miễn trừ tiêu chí và dừng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-organization-005
+    title: Năng lực chuyên môn, đào tạo và quản lý tri thức chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-organization-006
+    title: Văn hóa báo cáo vấn đề sớm và học từ sai sót không quy chụp cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-organization-007
+    title: Đạo đức nghề nghiệp và tính trung thực của báo cáo, bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-organization-008
+    title: Cơ chế phối hợp giữa các nhóm và xử lý xung đột mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-plan
+  title: Kế hoạch chất lượng
+  childs:
+  - slug: quality-plan-001
+    title: Mục đích và cấu trúc kế hoạch chất lượng phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-002
+    title: Xác định phạm vi, sản phẩm bàn giao, giả định và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-003
+    title: Đặt mục tiêu chất lượng đo được và gắn với nhu cầu các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-004
+    title: Lập ma trận tiêu chuẩn, hoạt động, người phụ trách và bằng chứng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-005
+    title: Lập lịch rà soát, kiểm thử, đánh giá và mốc kiểm soát chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-006
+    title: Ước lượng nhân lực, ngân sách, công cụ và môi trường cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-007
+    title: Xác định tiêu chí bắt đầu, kết thúc và điều kiện chuyển giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-008
+    title: Quy định báo cáo, xử lý vấn đề, ngoại lệ và tuyến báo cáo vượt cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-plan-009
+    title: Phê duyệt, quản lý phiên bản và cập nhật kế hoạch khi phạm vi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-risks
+  title: Rủi ro chất lượng
+  childs:
+  - slug: quality-risks-001
+    title: Phân biệt rủi ro chất lượng sản phẩm và rủi ro của quy trình thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-risks-002
+    title: Nhận diện rủi ro từ nghiệp vụ, kiến trúc, dữ liệu và phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-risks-003
+    title: Ước lượng xác suất, tác động và khả năng phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-risks-004
+    title: Lập sổ đăng ký rủi ro với chủ sở hữu, biện pháp và dấu hiệu kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-risks-005
+    title: Phân tích dạng sai hỏng và ảnh hưởng bằng FMEA khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-risks-006
+    title: Ưu tiên hoạt động đảm bảo và kiểm soát theo mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-risks-007
+    title: Đánh giá rủi ro còn lại và thẩm quyền chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-risks-008
+    title: Theo dõi rủi ro mới khi yêu cầu, môi trường hoặc sản phẩm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-requirements
+  title: Yêu cầu chất lượng
+  childs:
+  - slug: quality-requirements-001
+    title: Thu thập nhu cầu chất lượng từ người dùng, khách hàng và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-002
+    title: Viết yêu cầu chất lượng cụ thể thay cho các mô tả nhanh, dễ dùng, ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-003
+    title: Kịch bản chất lượng với kích thích, môi trường, phản ứng và phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-004
+    title: Xác định ngưỡng chấp nhận, tải tham chiếu và điều kiện đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-005
+    title: Rà soát tính đầy đủ, nhất quán, khả thi và khả năng kiểm chứng của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-006
+    title: Liên kết yêu cầu với rủi ro, thiết kế, hoạt động kiểm tra và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-007
+    title: Quản lý thay đổi yêu cầu và phân tích tác động đến cam kết chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-requirements-008
+    title: Thống nhất yêu cầu với khách hàng trước khi dùng làm căn cứ nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-assurance
+  title: Đảm bảo quy trình
+  childs:
+  - slug: process-assurance-001
+    title: Mục tiêu SQA và cách tạo niềm tin dựa trên bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-assurance-002
+    title: Xác định quy trình cần giám sát theo kế hoạch và mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-assurance-003
+    title: Đảm bảo chất lượng trong hoạt động yêu cầu và thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-assurance-004
+    title: Đảm bảo chất lượng trong lập trình, tích hợp và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-assurance-005
+    title: Đảm bảo chất lượng khi bàn giao, vận hành, bảo trì và ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-assurance-006
+    title: Kiểm tra sự tuân thủ và đánh giá hiệu lực thực tế của quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-assurance-007
+    title: Ghi nhận điểm không phù hợp và theo dõi hành động xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-assurance-008
+    title: Báo cáo đảm bảo chất lượng độc lập với báo cáo tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-review
+  title: Rà soát kỹ thuật
+  childs:
+  - slug: technical-review-001
+    title: Vai trò rà soát tĩnh và phân biệt với kiểm thử thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-review-002
+    title: Chọn rà soát đồng cấp, walkthrough hoặc inspection theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-review-003
+    title: Chuẩn bị đầu vào, tiêu chí rà soát và danh sách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-review-004
+    title: Phân công tác giả, người điều phối, người rà soát và người ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-review-005
+    title: Rà soát yêu cầu, thiết kế, mã nguồn, kế hoạch kiểm thử và tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-review-006
+    title: Phát hiện, phân loại và ghi nhận vấn đề có thể hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-review-007
+    title: Theo dõi sửa chữa và xác nhận đóng vấn đề sau rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-review-008
+    title: Đo hiệu quả rà soát và tránh biến cuộc họp thành hình thức phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-verification
+  title: Kiểm chứng sản phẩm
+  childs:
+  - slug: product-verification-001
+    title: Phân biệt kiểm chứng (verification) và thẩm định (validation)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-verification-002
+    title: Lựa chọn kiểm tra, phân tích, mô phỏng, trình diễn và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-verification-003
+    title: Lập kế hoạch V&V phù hợp mức rủi ro và vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-verification-004
+    title: Kiểm chứng sản phẩm trung gian so với yêu cầu và thiết kế đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-verification-005
+    title: Thẩm định giải pháp với người dùng trong bối cảnh sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-verification-006
+    title: Đánh giá độc lập khi cần và quản lý xung đột lợi ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-verification-007
+    title: Tổng hợp bằng chứng, giới hạn kiểm chứng và phần chưa được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-verification-008
+    title: Liên kết kết quả V&V với quyết định chấp nhận sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-management
+  title: Quản lý kiểm thử
+  childs:
+  - slug: test-management-001
+    title: Xây dựng chiến lược kiểm thử từ yêu cầu và rủi ro chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-002
+    title: Phân bổ kiểm thử đơn vị, tích hợp, hệ thống và nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-003
+    title: Cân bằng kiểm thử chức năng và các thuộc tính chất lượng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-004
+    title: Chọn kỹ thuật thiết kế kiểm thử và xác định mức bao phủ cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-005
+    title: Quản lý môi trường, dữ liệu thử và tính đại diện so với thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-006
+    title: Kiểm thử hồi quy và lựa chọn phạm vi sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-007
+    title: Phối hợp kiểm thử khám phá, kiểm thử thủ công và tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-008
+    title: Kiểm soát kiểm thử không ổn định, kết quả không tái lập và thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-009
+    title: Theo dõi tiến độ, mức bao phủ rủi ro và tiêu chí kết thúc kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-management-010
+    title: Đọc báo cáo kiểm thử và tránh suy ra chất lượng chỉ từ tỷ lệ ca kiểm thử đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-quality
+  title: Chất lượng kỹ thuật
+  childs:
+  - slug: technical-quality-001
+    title: Liên kết quyết định kiến trúc với mục tiêu và rủi ro chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-002
+    title: Tiêu chuẩn mã nguồn, cấu trúc thiết kế và khả năng hiểu chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-003
+    title: Phân tích tĩnh, độ phức tạp và khả năng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-004
+    title: Kiểm soát trùng lặp, phụ thuộc và ranh giới thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-005
+    title: Đánh giá nợ kỹ thuật và ưu tiên xử lý theo tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-006
+    title: Quản lý yêu cầu bảo mật và bằng chứng kiểm tra lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-007
+    title: Đánh giá hiệu năng, tải, độ bền và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-008
+    title: Đánh giá trải nghiệm người dùng và khả năng tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-quality-009
+    title: Chất lượng dữ liệu, tài liệu và giao diện tích hợp trong sản phẩm bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation
+  title: Tự động hóa
+  childs:
+  - slug: automation-001
+    title: Vai trò công cụ trong quản lý chất lượng và giới hạn của tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-002
+    title: Tích hợp rà soát và kiểm tra tự động vào luồng thay đổi mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-003
+    title: Thiết kế cổng chất lượng (quality gate) theo mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-004
+    title: Kết hợp kiểm thử, phân tích tĩnh và kiểm tra thành phần phụ thuộc trong CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-005
+    title: Chặn phát hành có căn cứ và kiểm soát ngoại lệ khi cổng chất lượng không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-006
+    title: Đánh giá độ chính xác, cảnh báo sai và lỗi bị bỏ sót của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-007
+    title: Quản lý phiên bản bộ quy tắc, cấu hình công cụ và ngưỡng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-008
+    title: Bảo đảm tính tái lập của môi trường và kết quả kiểm tra tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-009
+    title: Lưu bằng chứng pipeline và đo chi phí bảo trì tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: defect-management
+  title: Quản lý lỗi
+  childs:
+  - slug: defect-management-001
+    title: Phân biệt khiếm khuyết, điểm không phù hợp, yêu cầu thay đổi và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-002
+    title: 'Nội dung báo cáo lỗi: điều kiện tái hiện, mong đợi, thực tế và bằng chứng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-003
+    title: Phân biệt mức nghiêm trọng (severity) và mức ưu tiên (priority)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-004
+    title: Thiết kế vòng đời lỗi và trách nhiệm chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-005
+    title: Phân loại, loại trùng và điều phối xử lý qua phiên phân loại lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-006
+    title: Xác định phiên bản phát sinh, phạm vi ảnh hưởng và sản phẩm liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-007
+    title: Kiểm tra bản sửa, kiểm thử hồi quy và điều kiện đóng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-008
+    title: Quản lý lỗi mở lại, lỗi tồn lâu, lỗi hoãn sửa và ngoại lệ chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: defect-management-009
+    title: Thông báo lỗi quan trọng và theo dõi cam kết xử lý với bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement
+  title: Đo lường
+  childs:
+  - slug: measurement-001
+    title: Xây dựng mục tiêu, câu hỏi và phép đo theo Goal–Question–Metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-002
+    title: Phân biệt dữ liệu gốc, phép đo, chỉ số và tiêu chí ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-003
+    title: Định nghĩa chỉ số với công thức, đơn vị, nguồn dữ liệu và chu kỳ đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-004
+    title: Chọn chỉ số dẫn dắt và chỉ số kết quả phù hợp từng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-005
+    title: Mật độ khiếm khuyết và giới hạn khi so sánh khác quy mô hoặc ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-006
+    title: Lỗi lọt sau phát hành và hiệu quả phát hiện khiếm khuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-007
+    title: Bao phủ yêu cầu, rủi ro và mã nguồn cùng giới hạn diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-008
+    title: Thời gian phát hiện, xử lý và đóng lỗi theo mức độ ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-009
+    title: Đo chất lượng vận hành bằng độ sẵn sàng, lỗi và thời gian khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-010
+    title: Đo sự hài lòng, mức hoàn thành tác vụ và giá trị người dùng nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-011
+    title: Quản lý chất lượng dữ liệu đo và tránh biến chỉ số thành mục tiêu đối phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-analysis
+  title: Phân tích dữ liệu
+  childs:
+  - slug: data-analysis-001
+    title: Lập đường cơ sở chất lượng và phân đoạn dữ liệu theo bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analysis-002
+    title: Phân tích xu hướng, phân bố và các điểm bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analysis-003
+    title: Dùng Pareto để ưu tiên nhóm vấn đề có tác động lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analysis-004
+    title: Phân biệt biến động thông thường và biến động có nguyên nhân đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analysis-005
+    title: Biểu đồ kiểm soát và điều kiện áp dụng cho dữ liệu quy trình phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analysis-006
+    title: Lấy mẫu, sai lệch dữ liệu và độ không chắc chắn của kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analysis-007
+    title: Phân biệt tương quan với nguyên nhân khi giải thích chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analysis-008
+    title: Thiết kế bảng theo dõi, ngưỡng cảnh báo và báo cáo cho từng nhóm ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-of-quality
+  title: Chi phí chất lượng
+  childs:
+  - slug: cost-of-quality-001
+    title: Chi phí phòng ngừa, thẩm định, sai hỏng nội bộ và sai hỏng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-of-quality-002
+    title: Ước tính chi phí làm lại, sự cố, hỗ trợ và mất cơ hội
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-of-quality-003
+    title: Đánh giá lợi ích của rà soát sớm và tự động hóa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-of-quality-004
+    title: Cân bằng ngân sách chất lượng với mức rủi ro chấp nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-of-quality-005
+    title: Lập luận đầu tư xử lý nợ kỹ thuật dựa trên chi phí và tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-of-quality-006
+    title: So sánh phương án chất lượng với giả định và độ không chắc chắn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-of-quality-007
+    title: Tránh coi cắt hoạt động kiểm tra là tiết kiệm chi phí mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-evidence
+  title: Bằng chứng chất lượng
+  childs:
+  - slug: quality-evidence-001
+    title: Xác định hồ sơ và bằng chứng cần lưu cho mỗi hoạt động chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-evidence-002
+    title: Quản lý phiên bản yêu cầu, thiết kế, mã nguồn và kết quả kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-evidence-003
+    title: Thiết lập đường cơ sở và định danh chính xác bản dựng được đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-evidence-004
+    title: Truy vết hai chiều giữa yêu cầu, thay đổi, lỗi và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-evidence-005
+    title: Bảo đảm tính toàn vẹn, quyền truy cập và thời hạn lưu trữ hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-evidence-006
+    title: Liên kết bằng chứng tự động với báo cáo và quyết định phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-evidence-007
+    title: Chứng minh khả năng tái lập bản dựng và kết quả kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-evidence-008
+    title: Lập luận bảo đảm chất lượng bằng tuyên bố, lập luận và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compliance-assessment
+  title: Đánh giá tuân thủ
+  childs:
+  - slug: compliance-assessment-001
+    title: Phân biệt đánh giá tuân thủ (audit), rà soát kỹ thuật và xem xét của lãnh đạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-assessment-002
+    title: Lập chương trình đánh giá nội bộ theo phạm vi và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-assessment-003
+    title: Xác định tiêu chí, người đánh giá và tính độc lập cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-assessment-004
+    title: Thu thập bằng chứng qua hồ sơ, phỏng vấn và lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-assessment-005
+    title: Viết phát hiện đánh giá gắn với yêu cầu và bằng chứng khách quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-assessment-006
+    title: Phân loại điểm không phù hợp và thống nhất hành động xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-assessment-007
+    title: Theo dõi thời hạn, xác nhận hiệu lực hành động và đóng phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-assessment-008
+    title: Chuẩn bị đánh giá bên ngoài và phân biệt hồ sơ đầy đủ với hiệu lực hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: acceptance-and-release
+  title: Nghiệm thu và phát hành
+  childs:
+  - slug: acceptance-and-release-001
+    title: Phân biệt hoàn thành phát triển, nghiệm thu và sẵn sàng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-release-002
+    title: Tổng hợp tiêu chí chấp nhận và bằng chứng chất lượng của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-release-003
+    title: Rà soát lỗi còn mở, lỗ hổng, giới hạn đã biết và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-release-004
+    title: Tổ chức quyết định phát hành hoặc dừng với người có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-release-005
+    title: Quản lý miễn trừ, chấp nhận có điều kiện và thời hạn khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-release-006
+    title: Kiểm tra tài liệu, cấu hình, phương án chuyển đổi và khả năng quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-release-007
+    title: Bàn giao hỗ trợ, hướng dẫn vận hành và trách nhiệm sau phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acceptance-and-release-008
+    title: Xác nhận nghiệm thu, lưu quyết định và theo dõi cam kết còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-quality
+  title: Chất lượng vận hành
+  childs:
+  - slug: operational-quality-001
+    title: Thu thập tín hiệu chất lượng từ người dùng, hỗ trợ và hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-002
+    title: Xác định SLI, SLO và liên hệ với thỏa thuận SLA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-003
+    title: Theo dõi lỗi sau phát hành, mức ảnh hưởng và độ tin cậy dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-004
+    title: Quan sát bằng log, metric, trace và bảo vệ dữ liệu trong bằng chứng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-005
+    title: Kiểm tra chất lượng khi triển khai từng phần và mở rộng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-006
+    title: Quản lý sự cố, khôi phục dịch vụ và bảo toàn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-007
+    title: Rà soát sau sự cố và đưa phát hiện về hoạt động phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-008
+    title: Đánh giá hồi quy chất lượng khi bảo trì, nâng cấp hoặc thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-quality-009
+    title: Quản lý chất lượng khi di chuyển dữ liệu và ngừng sử dụng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: suppliers
+  title: Nhà cung cấp
+  childs:
+  - slug: suppliers-001
+    title: Đánh giá năng lực và rủi ro chất lượng của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppliers-002
+    title: Thống nhất yêu cầu, tiêu chí nghiệm thu và trách nhiệm trong hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppliers-003
+    title: Yêu cầu bằng chứng đối với phần mềm thuê ngoài và dịch vụ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppliers-004
+    title: Đánh giá chất lượng thành phần nguồn mở và phụ thuộc thương mại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppliers-005
+    title: Theo dõi thay đổi phiên bản, lỗ hổng và vòng đời hỗ trợ của phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppliers-006
+    title: Kiểm tra tích hợp và xử lý sự không phù hợp từ sản phẩm cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppliers-007
+    title: Quản lý thay đổi nhà cung cấp và kế hoạch duy trì chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-improvement
+  title: Cải tiến chất lượng
+  childs:
+  - slug: quality-improvement-001
+    title: Chọn vấn đề cải tiến từ lỗi lặp lại, số liệu và phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-002
+    title: Phân biệt sửa lỗi tức thời, khắc phục nguyên nhân và phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-003
+    title: Phân tích nguyên nhân gốc bằng 5 Whys và sơ đồ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-004
+    title: Kiểm chứng giả thuyết nguyên nhân bằng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-005
+    title: Lập hành động với chủ sở hữu, thời hạn và tiêu chí hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-006
+    title: Thử nghiệm biện pháp trên phạm vi nhỏ và theo dõi tác dụng ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-007
+    title: Đánh giá kết quả so với đường cơ sở và cập nhật quy trình phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-008
+    title: Xác nhận vấn đề không tái diễn và chia sẻ bài học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-improvement-009
+    title: Chuyển nhu cầu cải tiến quy trình rộng hơn sang chương trình cải tiến của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-tailoring
+  title: Điều chỉnh bối cảnh
+  childs:
+  - slug: context-tailoring-001
+    title: Quản lý chất lượng trong vòng đời tuần tự và theo các mốc bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-002
+    title: Quản lý chất lượng trong Agile bằng tiêu chí chấp nhận và Definition of Done
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-003
+    title: Quản lý chất lượng trong DevOps với phản hồi liên tục và trách nhiệm chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-004
+    title: Áp dụng kế hoạch chất lượng tinh gọn cho nhóm nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-005
+    title: Phối hợp chất lượng giữa nhiều nhóm, địa điểm và hệ thống tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-006
+    title: Điều chỉnh mức độc lập và bằng chứng cho phần mềm có rủi ro cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-007
+    title: Quản lý chất lượng hệ thống cũ với dữ liệu và kiểm thử còn thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-008
+    title: Điều chỉnh đánh giá cho sản phẩm dùng AI và kết quả có tính xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-tailoring-009
+    title: Đánh giá lại hoạt động chất lượng khi quy mô, bối cảnh hoặc mức rủi ro thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Đồng nhất đảm bảo chất lượng với một nhóm kiểm thử ở cuối dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Đánh giá chất lượng chỉ bằng số lỗi, độ bao phủ hoặc số ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Sao chép ngưỡng chất lượng giữa các sản phẩm không cùng bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Đặt mục tiêu không lỗi tuyệt đối mà thiếu phạm vi và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Chạy theo chứng nhận nhưng không cải thiện kết quả thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Cho qua cổng chất lượng mà không ghi nhận rủi ro và thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Đổ lỗi cá nhân hoặc đóng hành động trước khi kiểm tra hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Tự động hóa nhiều nhưng bỏ qua cảnh báo sai, kiểm thử không ổn định và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Phân tích bối cảnh và các bên liên quan của một sản phẩm mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây dựng mục tiêu, mô hình và bộ yêu cầu chất lượng đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Soạn kế hoạch chất lượng và ma trận trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Lập sổ rủi ro và lựa chọn biện pháp đảm bảo, kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Thiết kế rà soát, chiến lược kiểm thử và cổng chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Tạo báo cáo lỗi, bộ bằng chứng truy vết và bảng theo dõi chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thực hiện đánh giá nội bộ và lập hành động khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Ra quyết định phát hành dựa trên lỗi còn lại, bằng chứng và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Phân tích phản hồi sau phát hành và đánh giá hiệu lực một biện pháp cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

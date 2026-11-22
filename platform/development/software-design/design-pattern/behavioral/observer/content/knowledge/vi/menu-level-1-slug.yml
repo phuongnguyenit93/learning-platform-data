@@ -1,0 +1,67 @@
+menu:
+  - title: "Tổng quan"
+    slug: intent-and-use-cases
+    index: 0
+  - title: "Cấu trúc mẫu"
+    slug: pattern-structure
+    index: 1
+  - title: "Hợp đồng thông báo"
+    slug: notification-contracts
+    index: 2
+  - title: "Thiết kế sự kiện"
+    slug: event-design
+    index: 3
+  - title: "Cài đặt Java"
+    slug: java-implementation
+    index: 4
+  - title: "Quản lý đăng ký"
+    slug: subscription-management
+    index: 5
+  - title: "Vòng đời observer"
+    slug: observer-lifecycle
+    index: 6
+  - title: "Trình tự thông báo"
+    slug: notification-flow
+    index: 7
+  - title: "Nhất quán trạng thái"
+    slug: state-consistency
+    index: 8
+  - title: "Xử lý lỗi"
+    slug: error-handling
+    index: 9
+  - title: "An toàn luồng"
+    slug: thread-safety
+    index: 10
+  - title: "Thông báo bất đồng bộ"
+    slug: asynchronous-notifications
+    index: 11
+  - title: "Kiểm soát tải"
+    slug: load-control
+    index: 12
+  - title: "API Java liên quan"
+    slug: java-event-apis
+    index: 13
+  - title: "Kiểm thử chức năng"
+    slug: functional-testing
+    index: 14
+  - title: "Kiểm thử đồng thời"
+    slug: concurrency-testing
+    index: 15
+  - title: "Hiệu năng"
+    slug: performance-analysis
+    index: 16
+  - title: "Quan sát vận hành"
+    slug: operational-observability
+    index: 17
+  - title: "Tích hợp ứng dụng"
+    slug: application-integration
+    index: 18
+  - title: "So sánh mẫu"
+    slug: pattern-comparisons
+    index: 19
+  - title: "Lỗi thường gặp"
+    slug: notification-pitfalls
+    index: 20
+  - title: "Thực hành tổng hợp"
+    slug: capstone-project
+    index: 21

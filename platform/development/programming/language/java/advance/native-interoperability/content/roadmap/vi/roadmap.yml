@@ -1,0 +1,50 @@
+roadmap:
+- id: ranh-gioi-java-native
+  title: Ranh giới Java–native
+  purpose: Hiểu khi nào cần gọi mã ngoài JVM và các ràng buộc của giao diện nhị phân.
+  objectives:
+  - So sánh JNI với Foreign Function & Memory API.
+  - Xác định JDK hỗ trợ API; nhận biết FFM ổn định từ JDK 22.
+  - Giải thích ABI, kích thước kiểu, căn chỉnh và quyền sở hữu dữ liệu.
+- id: loi-goi-jni
+  title: Lời gọi JNI
+  purpose: Tạo cầu nối tối thiểu giữa phương thức Java và hàm native.
+  objectives:
+  - Khai báo native method và sinh header bằng javac -h.
+  - Biên dịch, nạp thư viện và gọi hàm từ Java.
+  - Xử lý tên symbol, chữ ký và lỗi UnsatisfiedLinkError.
+- id: du-lieu-va-vong-doi-jni
+  title: Dữ liệu và vòng đời JNI
+  purpose: Quản lý đối tượng và luồng đúng quy tắc khi đi qua JNI.
+  objectives:
+  - Phân biệt local reference, global reference và bộ nhớ native.
+  - Chuyển chuỗi, mảng và kiểm tra ngoại lệ đang chờ.
+  - Giải thích phạm vi JNIEnv và gắn/tháo luồng native với JVM.
+- id: bo-nho-ffm
+  title: Bộ nhớ FFM
+  purpose: Truy cập dữ liệu ngoài heap với phạm vi sống được kiểm soát.
+  objectives:
+  - Cấp phát MemorySegment bằng Arena và đóng đúng vòng đời.
+  - Mô tả dữ liệu bằng MemoryLayout và ValueLayout.
+  - Kiểm thử truy cập vượt biên, sai luồng hoặc sau khi arena đóng.
+- id: goi-ham-native
+  title: Gọi hàm native
+  purpose: Kết nối chữ ký Java với hàm của thư viện qua FFM.
+  objectives:
+  - Tìm symbol và tạo downcall bằng Linker.
+  - Khai báo FunctionDescriptor phù hợp với ABI.
+  - Chuyển con trỏ, chuỗi và cấu trúc dữ liệu theo hợp đồng native.
+- id: callback-va-loi
+  title: Callback và lỗi
+  purpose: Cho mã native gọi ngược vào Java mà vẫn kiểm soát vòng đời.
+  objectives:
+  - Tạo upcall stub và giữ nó sống đủ lâu.
+  - Giới hạn ngoại lệ ở ranh giới Java–native.
+  - Diễn giải mã lỗi hoặc trạng thái lỗi do thư viện native trả về.
+- id: dong-goi-va-kiem-chung
+  title: Đóng gói và kiểm chứng
+  purpose: Xác nhận cầu nối hoạt động đúng trên nền tảng đích và có thể chẩn đoán lỗi.
+  objectives:
+  - Đóng gói thư viện theo hệ điều hành và kiến trúc CPU.
+  - Cấu hình native access theo JDK và module đang dùng.
+  - Kiểm thử rò rỉ, sai ABI và lỗi native trong tiến trình thử nghiệm riêng.

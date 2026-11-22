@@ -1,0 +1,483 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data Neo4j là gì và giải quyết bài toán dữ liệu nào?
+  - Vai trò của Neo4j, Neo4j Java Driver, Spring Data và Spring Boot
+  - 'Bản đồ khái niệm: node, label, relationship, property, entity và repository'
+  - Luồng xử lý từ đối tượng Java đến Cypher và kết quả đồ thị
+  - So sánh mô hình đồ thị với mô hình quan hệ và tài liệu
+  - Khi nào dùng repository, Neo4jTemplate, Neo4jClient hoặc driver trực tiếp?
+  - Phân biệt Spring Data Neo4j hiện đại với các thế hệ dùng Neo4j-OGM
+  - Lộ trình học và bộ dữ liệu phim–diễn viên dùng xuyên suốt tài liệu
+- level1: Nền tảng đồ thị
+  level2:
+  - Mô hình đồ thị thuộc tính và cách biểu diễn dữ liệu liên kết
+  - Node, nhiều label và ý nghĩa của label trong truy vấn
+  - Relationship có hướng, có kiểu và có thuộc tính
+  - Phân biệt hướng lưu quan hệ với hướng duyệt đồ thị
+  - Đường đi, số bước duyệt, chu trình và node có nhiều kết nối
+  - Định danh nghiệp vụ và định danh nội bộ của cơ sở dữ liệu
+  - So sánh JOIN với duyệt quan hệ qua ví dụ phim–diễn viên
+- level1: Cypher cơ bản
+  level2:
+  - Đọc mẫu node và relationship trong câu Cypher
+  - MATCH, WHERE, RETURN và tham số có tên
+  - OPTIONAL MATCH, dữ liệu thiếu và cách xử lý null
+  - CREATE, MERGE, SET và REMOVE
+  - DELETE, DETACH DELETE và phạm vi xóa dữ liệu
+  - WITH, phạm vi biến và truy vấn nhiều giai đoạn
+  - UNWIND, collection, map và xử lý dữ liệu theo lô
+  - COUNT, COLLECT, DISTINCT và tổng hợp kết quả
+  - ORDER BY, SKIP, LIMIT và thứ tự kết quả ổn định
+  - Truy vấn nhiều bước, đường đi và giới hạn số bước duyệt
+  - CALL, truy vấn con và gọi procedure trong phạm vi hỗ trợ của phiên bản
+- level1: Khởi tạo
+  level2:
+  - Chọn phiên bản Java, Spring Boot, SDN, driver và Neo4j tương thích
+  - Khai báo spring-boot-starter-data-neo4j và quản lý dependency
+  - Chuẩn bị Neo4j bằng Docker, bản cài cục bộ hoặc Aura
+  - URI bolt/neo4j, cổng kết nối và thông tin xác thực
+  - Cấu hình spring.neo4j và spring.data.neo4j.database
+  - Tạo node entity và Neo4jRepository đầu tiên
+  - Thực hiện vòng CRUD và xác minh dữ liệu trong công cụ truy vấn Neo4j
+  - Nạp dữ liệu mẫu và tách cấu hình theo môi trường
+- level1: Cấu hình và kiến trúc
+  level2:
+  - Auto-configuration của Spring Boot cho driver và Spring Data Neo4j
+  - Chuỗi thành phần repository → template → client → driver
+  - Kích hoạt @EnableNeo4jRepositories và giới hạn package được quét
+  - Cấu hình thủ công bằng AbstractNeo4jConfig
+  - Neo4jMappingContext và metadata của mô hình miền
+  - Đăng ký Neo4jClient, Neo4jTemplate và Neo4jTransactionManager
+  - Phân biệt phạm vi cấu hình driver với phạm vi cấu hình SDN
+  - Quản lý vòng đời Driver, session và tài nguyên kết nối
+- level1: Thiết kế mô hình
+  level2:
+  - Từ câu hỏi nghiệp vụ đến node, relationship và property
+  - Chọn dữ liệu làm thuộc tính hay node độc lập
+  - Quan hệ có thuộc tính hay node trung gian?
+  - Ranh giới aggregate và phạm vi đọc–ghi trong một đồ thị liên kết
+  - Chọn hướng ánh xạ theo ca sử dụng thay vì sao chép mọi quan hệ
+  - Tránh quan hệ hai chiều làm mở rộng đồ thị đối tượng quá mức
+  - Thiết kế ID ổn định, ràng buộc duy nhất và dữ liệu dùng chung
+  - Phân biệt mô hình ghi nghiệp vụ với mô hình đọc cho báo cáo
+  - Thiết kế mô hình phim, diễn viên, vai diễn và đánh giá
+- level1: Ánh xạ node
+  level2:
+  - Đánh dấu entity bằng @Node và nhận diện lớp trong mapping context
+  - Primary label, label bổ sung và quy ước tên mặc định
+  - Định nghĩa thuộc tính bằng @Property
+  - Phân biệt annotation SDN, Spring Data Commons và annotation JPA
+  - Loại bỏ dữ liệu không lưu bằng @Transient
+  - Thuộc tính chỉ đọc bằng @ReadOnlyProperty
+  - Đối chiếu entity với node, label và property thực tế
+- level1: Định danh
+  level2:
+  - Vai trò của @Id khi nhận diện cùng một entity
+  - ID tự gán từ nghiệp vụ và ràng buộc duy nhất tương ứng
+  - '@GeneratedValue và chiến lược sinh ID'
+  - Phân biệt ID số nội bộ, elementId và ID lưu trong property
+  - Giới hạn ổn định của định danh nội bộ và lựa chọn ID công khai
+  - Sinh UUID bằng UUIDStringGenerator
+  - Tùy chỉnh IdGenerator bằng generatorClass hoặc generatorRef
+  - Phát hiện entity mới và vai trò của @Version với ID tự gán
+  - Nhận lại ID trên đối tượng được trả về sau save
+  - Đổi khóa nghiệp vụ, dữ liệu nhập ngoài và nguy cơ tạo node trùng
+- level1: Thuộc tính và kiểu
+  level2:
+  - Kiểu Cypher, kiểu Java và chuyển đổi mặc định của driver
+  - Chuỗi, số nguyên, số thực, boolean và giới hạn miền giá trị
+  - Property không tồn tại, giá trị null và kiểu nguyên thủy Java
+  - 'Mảng và collection thuộc tính: kiểu phần tử và giới hạn lưu trữ'
+  - Enum, UUID, BigDecimal và lựa chọn biểu diễn phù hợp
+  - Ngày, giờ, thời điểm, múi giờ và duration
+  - Point, hệ tọa độ và dữ liệu không gian
+  - Phân biệt property đơn giản, map kết quả và đối tượng miền cần ánh xạ
+  - Kiểm tra biểu diễn dữ liệu để tránh sai so sánh hoặc sắp xếp
+- level1: Khởi tạo đối tượng
+  level2:
+  - Cách SDN dựng entity từ record và gán thuộc tính
+  - Constructor, factory và @PersistenceCreator
+  - Tên tham số constructor và tùy chọn biên dịch -parameters
+  - Thiết kế entity bất biến và phương thức wither
+  - Ánh xạ Java record và đối tượng có thuộc tính sinh tự động
+  - Nullability và dữ liệu không đủ để gọi constructor
+  - equals, hashCode, toString và nguy cơ đệ quy qua relationship
+  - Ảnh hưởng của Lombok và collection đến định danh đối tượng
+- level1: Ánh xạ quan hệ
+  level2:
+  - Khai báo @Relationship với type và direction
+  - Quan hệ OUTGOING, INCOMING và cách hiểu node đích
+  - Ánh xạ quan hệ đơn bằng một thuộc tính entity
+  - Ánh xạ nhiều quan hệ bằng List hoặc Set
+  - Chọn đầu chịu trách nhiệm cập nhật khi mô hình có hai chiều
+  - Quan hệ tự tham chiếu và chu trình trong mô hình Java
+  - Thêm, bỏ hoặc thay thế liên kết trong collection
+  - Phân biệt xóa relationship với xóa node được liên kết
+  - Nhiều đường liên kết tới cùng node và vấn đề trùng đối tượng
+- level1: Thuộc tính quan hệ
+  level2:
+  - Khi nào cần @RelationshipProperties?
+  - Thiết kế lớp thuộc tính quan hệ và @TargetNode
+  - '@RelationshipId và nhận diện relationship đã tồn tại'
+  - Ánh xạ vai diễn, điểm đánh giá hoặc thời điểm tạo liên kết
+  - Nhiều relationship cùng kiểu giữa cùng một cặp node
+  - Cập nhật thuộc tính relationship mà giữ đúng định danh
+  - Hướng INCOMING và ý nghĩa TargetNode theo phía đang ánh xạ
+  - Đối chiếu collection Java với các relationship thực tế
+- level1: Ánh xạ nâng cao
+  level2:
+  - '@DynamicLabels và tập label được quản lý khi đọc–ghi'
+  - Quan hệ động bằng Map với khóa String hoặc enum
+  - Phân biệt Map quan hệ động với Map thuộc tính tổng hợp
+  - '@CompositeProperty, prefix, delimiter và quy tắc trải thuộc tính'
+  - Kế thừa entity, lớp trừu tượng và ánh xạ đa hình bằng label
+  - Đánh giá phạm vi hỗ trợ interface theo phiên bản SDN
+  - '@ReadOnlyProperty trên relationship và ranh giới dữ liệu được ghi'
+  - Phối hợp với ứng dụng khác cùng sửa label hoặc property
+- level1: Đọc và ghi đồ thị
+  level2:
+  - Đường đi xử lý save từ entity gốc đến node và relationship liên quan
+  - Quyết định tạo mới hoặc cập nhật theo ID và version
+  - Lưu các node dùng chung mà không tạo bản sao ngoài ý muốn
+  - Đồng bộ relationship từ trạng thái đồ thị đối tượng
+  - Nguy cơ mất liên kết khi save entity chỉ được tải một phần
+  - Phân biệt thuộc tính chưa được tải, null và collection rỗng
+  - Tải đồ thị theo quan hệ đã ánh xạ và nguy cơ đọc quá nhiều dữ liệu
+  - Chu trình, nhiều nhánh và cách giới hạn đồ thị cần đọc
+  - 'Không có dirty checking: thời điểm thay đổi Java được ghi vào Neo4j'
+  - Phạm vi xóa của phương thức repository và tác động lên dữ liệu liên quan
+- level1: Repository CRUD
+  level2:
+  - Khai báo Neo4jRepository với entity và kiểu ID
+  - Thiết kế giao diện cơ sở bằng @NoRepositoryBean
+  - save, saveAll và ý nghĩa đối tượng trả về
+  - findById, findAllById và findAll
+  - existsById và count
+  - delete, deleteById, deleteAllById và deleteAll
+  - Optional, collection rỗng và lỗi kết quả không duy nhất
+  - Phân biệt lời gọi hàng loạt với đảm bảo về hiệu năng hàng loạt
+  - Giới hạn tập phương thức công khai theo ca sử dụng
+- level1: Truy vấn suy diễn
+  level2:
+  - Cấu trúc tên phương thức và chiến lược tìm truy vấn
+  - Tìm theo property trực tiếp và đường dẫn qua relationship
+  - Kết hợp And, Or và xử lý đường dẫn thuộc tính mơ hồ
+  - So sánh bằng, khác, khoảng giá trị và mốc thời gian
+  - IsNull, IsNotNull, True, False, In và NotIn
+  - Tìm chuỗi với Containing, StartingWith, EndingWith và IgnoreCase
+  - Distinct, OrderBy, First và Top theo khả năng của phiên bản
+  - Phương thức count, exists và delete theo điều kiện
+  - Truy vấn theo vị trí và kiểm chứng từ khóa không gian được hỗ trợ
+  - Nhận diện từ khóa không phù hợp hoặc thuộc tính không tồn tại
+  - Đọc Cypher sinh tự động để xác minh đúng ý nghĩa nghiệp vụ
+- level1: Cypher tùy chỉnh
+  level2:
+  - Khai báo @Query từ package Spring Data Neo4j hiện đại
+  - Bind tham số bằng $name, @Param và tên tham số Java
+  - Trả entity, scalar hoặc DTO theo mục tiêu truy vấn
+  - Truy vấn qua nhiều relationship và điều kiện trên thuộc tính quan hệ
+  - SpEL và các phần mở rộng biểu thức được SDN hỗ trợ
+  - Phân biệt tham số giá trị với label, kiểu quan hệ và cấu trúc Cypher
+  - Named query và vị trí cấu hình theo phiên bản
+  - Truy vấn CREATE, MERGE, SET hoặc DELETE qua repository
+  - Đánh dấu count, exists, delete và chọn kiểu kết quả phù hợp
+  - Chọn ranh giới giao dịch cho truy vấn đọc hoặc ghi tự khai báo
+- level1: Ánh xạ kết quả
+  level2:
+  - Record của Neo4j khác gì entity trong mô hình miền?
+  - Yêu cầu một record chứa đủ dữ liệu cho một entity gốc
+  - Thu thập node và relationship bằng COLLECT
+  - Trùng entity gốc, tích Descartes và quan hệ bị thiếu trong kết quả
+  - OPTIONAL MATCH và collection rỗng trong kết quả đồ thị
+  - 'Kết quả đường đi: tách node và relationship để ánh xạ'
+  - Gom dữ liệu nhiều tầng tại cơ sở dữ liệu hoặc phía ứng dụng
+  - Alias cột, kết quả tổng hợp và giá trị scalar
+  - Khi nào chuyển sang mapping tùy chỉnh bằng Neo4jClient?
+- level1: Projection và DTO
+  level2:
+  - Tách dữ liệu trả về khỏi entity dùng cho ghi
+  - Projection interface đóng và projection mở
+  - DTO constructor và Java record
+  - Projection nhiều tầng để giới hạn relationship cần tải
+  - Projection động qua tham số Class của phương thức repository
+  - Thuộc tính quan hệ và các giới hạn kiểu dữ liệu trong projection
+  - Định nghĩa aggregate boundary ở entity trong phiên bản hỗ trợ
+  - Lưu theo projection bằng Neo4jTemplate.saveAs
+  - Phạm vi thuộc tính và relationship được cập nhật khi lưu projection
+  - Tránh ghi lại projection hoặc entity thiếu dữ liệu bằng save toàn phần
+- level1: Phân trang và kết quả
+  level2:
+  - Chọn entity đơn, Optional, List, Page, Slice hoặc Stream theo hỗ trợ
+  - Pageable, PageRequest và Sort trong truy vấn suy diễn
+  - Thứ tự ổn định và khóa phụ khi nhiều node cùng giá trị sắp xếp
+  - Phân trang Cypher tùy chỉnh với $skip và $limit
+  - countQuery cho Page và cách đếm đúng số entity gốc
+  - Slice và xác định còn kết quả phía sau
+  - Giới hạn áp dụng Sort từ Pageable cho @Query
+  - Phân trang node gốc trước khi mở rộng relationship
+  - Phân trang theo khóa bằng Cypher tùy chỉnh cho dữ liệu lớn
+  - Quản lý tài nguyên khi đọc kết quả lớn hoặc dạng luồng
+- level1: Query by Example
+  level2:
+  - Khi nào dùng Query by Example trong Spring Data Neo4j?
+  - Tạo đối tượng mẫu, Example và ExampleMatcher
+  - Khớp toàn bộ hoặc bất kỳ thuộc tính được chọn
+  - Xử lý null, kiểu nguyên thủy và bỏ qua thuộc tính
+  - Khớp chuỗi, phân biệt hoa thường và tùy chỉnh theo trường
+  - Tìm, đếm và kiểm tra tồn tại qua QueryByExampleExecutor
+  - Phân trang, sắp xếp và fluent query theo phiên bản
+  - Giới hạn điều kiện lồng nhau, collection và truy vấn relationship
+- level1: Cypher-DSL
+  level2:
+  - Khi nào dùng Cypher-DSL thay vì nối chuỗi truy vấn?
+  - Khai báo node, relationship, condition và parameter bằng Java
+  - Xây bộ lọc tùy chọn và nhóm điều kiện
+  - Tái sử dụng thành phần truy vấn, projection và thứ tự sắp xếp
+  - Tích hợp CypherdslConditionExecutor vào repository
+  - Truy vấn đầy đủ bằng CypherdslStatementExecutor
+  - Biến thể reactive và phạm vi API được hỗ trợ
+  - Render Cypher, truyền tham số và kiểm tra tương thích dialect
+  - Phân biệt Cypher-DSL với Querydsl hoặc JPA Criteria
+- level1: Neo4jTemplate
+  level2:
+  - Vai trò của Neo4jOperations và Neo4jTemplate
+  - Thực hiện CRUD mà không cần khai báo repository cho từng kiểu
+  - Tìm entity bằng Cypher và tham số
+  - 'Fluent find: chọn kiểu miền, projection và kết quả cuối'
+  - saveAs và fluent save để giới hạn dữ liệu được ghi
+  - Điều kiện chọn thuộc tính động khi lưu theo phiên bản
+  - Kết hợp template với converter, callback và giao dịch
+  - Quyết định dùng template hay client cho kết quả ngoài mô hình miền
+- level1: Neo4jClient
+  level2:
+  - Khởi tạo hoặc dùng Neo4jClient do Spring Boot cung cấp
+  - Thực thi Cypher bằng query và bind tham số
+  - Bind nhiều tham số bằng map hoặc chuyển đổi đối tượng
+  - fetch, one, first, all và quy ước số lượng kết quả
+  - fetchAs và mappedBy cho DTO hoặc kết quả tùy chỉnh
+  - Đọc Record, Value, Node, Relationship và Path của driver
+  - run, ResultSummary và số node/relationship bị thay đổi
+  - Chọn database cho một thao tác client
+  - Dùng cùng Driver với transaction manager để tham gia giao dịch Spring
+  - Ủy quyền thao tác driver khi cần truy cập mức thấp
+- level1: Repository mở rộng
+  level2:
+  - Thiết kế repository fragment và lớp triển khai
+  - Quy ước tên, phát hiện fragment và ghép giao diện
+  - Dùng Neo4jTemplate cho entity và Neo4jClient cho kết quả riêng
+  - Tái sử dụng fragment giữa nhiều repository
+  - Truyền ranh giới giao dịch qua các phương thức tùy chỉnh
+  - Chọn lớp repository cơ sở khi cần thay đổi hành vi dùng chung
+  - Kiểm thử độc lập fragment và kết hợp với repository sinh tự động
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Khi nào cần converter thay vì node hoặc relationship mới?
+  - Converter đọc và ghi giữa kiểu miền với Neo4j Value
+  - Đăng ký chuyển đổi bằng Neo4jConversions
+  - Chuyển đổi toàn cục và chuyển đổi theo thuộc tính bằng @ConvertWith
+  - Ánh xạ value object và dữ liệu nhiều property qua cơ chế composite
+  - Ngày giờ dạng chuỗi hoặc số và tương thích dữ liệu từ hệ thống cũ
+  - Kiểu tiền tệ, enum đặc thù và lựa chọn biểu diễn cho truy vấn
+  - Kiểm thử đọc–ghi đối xứng, null và dữ liệu không hợp lệ
+- level1: Giao dịch đồng bộ
+  level2:
+  - Ranh giới giao dịch của Neo4j và của ứng dụng Spring
+  - Giao dịch mặc định của CRUD và phương thức truy vấn tự khai báo
+  - Đặt @Transactional ở tầng dịch vụ
+  - Phối hợp nhiều repository, template và client trong cùng giao dịch
+  - Neo4jTransactionManager và tài nguyên gắn với luồng thực thi
+  - readOnly và ảnh hưởng đến định tuyến truy vấn đọc–ghi
+  - Rollback, rollbackFor và xử lý exception
+  - Propagation, timeout và isolation trong giới hạn hỗ trợ của Neo4j
+  - Proxy, self-invocation và nguyên nhân giao dịch không được áp dụng
+  - Quản lý giao dịch lập trình bằng TransactionTemplate
+  - Phân biệt giao dịch Spring với giao dịch tự mở bằng Driver
+- level1: Kiểm soát đồng thời
+  level2:
+  - Mất cập nhật khi nhiều giao dịch cùng sửa node hoặc relationship
+  - Optimistic locking bằng @Version trên entity
+  - Version khởi tạo, phát hiện entity mới và cập nhật version
+  - Xử lý OptimisticLockingFailureException bằng tải lại dữ liệu
+  - Khóa ghi, deadlock và thứ tự cập nhật các node
+  - Cập nhật nguyên tử bằng Cypher thay cho đọc–sửa–ghi thiếu kiểm soát
+  - MERGE, uniqueness constraint và yêu cầu ghi đồng thời
+  - Phân biệt lỗi tạm thời có thể thử lại với lỗi nghiệp vụ
+  - Idempotency và tác động phụ khi một giao dịch được chạy lại
+- level1: Truy cập reactive
+  level2:
+  - Phân biệt imperative, asynchronous và reactive API của driver
+  - Mono, Flux, subscription và thời điểm truy vấn được thực thi
+  - Cấu hình AbstractReactiveNeo4jConfig và @EnableReactiveNeo4jRepositories
+  - Khai báo ReactiveNeo4jRepository và các kiểu kết quả phù hợp
+  - Thao tác entity bằng ReactiveNeo4jTemplate
+  - Truy vấn tùy chỉnh bằng ReactiveNeo4jClient
+  - Backpressure, fetch size và tiêu thụ kết quả lớn
+  - Tránh block, subscribe thủ công và lẫn API đồng bộ trong chuỗi reactive
+  - Lựa chọn xử lý tuần tự hoặc có giới hạn đồng thời cho thao tác ghi
+- level1: Giao dịch reactive
+  level2:
+  - ReactiveNeo4jTransactionManager và phạm vi Reactor Context
+  - '@Transactional trên phương thức trả về Publisher'
+  - Quản lý giao dịch bằng TransactionalOperator
+  - Ghép nhiều thao tác repository/client trong cùng một chuỗi
+  - Phân biệt lỗi, hoàn thành và hủy subscription đối với giao dịch
+  - Giới hạn xử lý song song trên cùng session hoặc transaction
+  - Đặt retry đúng ranh giới để chạy lại trọn đơn vị công việc
+  - Phân trang reactive bằng Cypher và phép đếm riêng khi cần
+  - Kiểm thử reactive bằng StepVerifier và xác minh kết quả sau commit
+- level1: Callback và sự kiện
+  level2:
+  - Vai trò của EntityCallback trong quy trình ánh xạ SDN
+  - BeforeBindCallback trước khi entity được chuyển thành tham số ghi
+  - ReactiveBeforeBindCallback và xử lý bất đồng bộ
+  - Callback với entity bất biến và đối tượng được trả về
+  - Callback sau chuyển đổi và phạm vi hỗ trợ theo phiên bản
+  - Thứ tự callback tùy chỉnh với callback auditing
+  - Phân biệt callback SDN, sự kiện nghiệp vụ và sự kiện sau commit
+  - Giới hạn callback khi ghi Cypher trực tiếp hoặc dùng driver
+  - Thiết kế xử lý sự kiện có thể thử lại mà không lặp tác động phụ
+- level1: Auditing
+  level2:
+  - Kích hoạt @EnableNeo4jAuditing cho ứng dụng đồng bộ
+  - '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+  - Cung cấp người thao tác bằng AuditorAware
+  - DateTimeProvider, múi giờ và thời gian kiểm thử xác định
+  - Kích hoạt @EnableReactiveNeo4jAuditing và ReactiveAuditorAware
+  - Lấy người thao tác từ ngữ cảnh bảo mật đồng bộ hoặc reactive
+  - Vai trò của ID và version khi phân biệt tạo mới với cập nhật
+  - Giới hạn auditing khi dữ liệu được ghi ngoài quy trình entity
+  - Phân biệt thông tin lần sửa gần nhất với lịch sử thay đổi đầy đủ
+- level1: Schema và chỉ mục
+  level2:
+  - Vì sao đồ thị linh hoạt vẫn cần schema và ràng buộc?
+  - Uniqueness constraint cho khóa nghiệp vụ
+  - Ràng buộc tồn tại, kiểu property và node key theo edition/phiên bản
+  - Phân biệt khai báo @Id với tạo constraint trong cơ sở dữ liệu
+  - Chỉ mục range, text, point và token lookup theo nhu cầu truy vấn
+  - Chỉ mục tổng hợp và thứ tự property trong điều kiện
+  - Kiểm tra trạng thái index và constraint trước khi phục vụ ứng dụng
+  - Đánh đổi giữa hiệu năng đọc, chi phí ghi và dung lượng chỉ mục
+- level1: Migration dữ liệu
+  level2:
+  - Quản lý Cypher migration có phiên bản và lịch sử thực thi
+  - Chọn công cụ migration phù hợp thay vì kỳ vọng SDN tự tạo schema
+  - Tạo constraint và index trước khi nạp dữ liệu lớn
+  - Đổi label, property hoặc relationship type theo giai đoạn
+  - Backfill ID, version và thuộc tính mới
+  - Dùng UNWIND với dữ liệu theo lô và ID ổn định
+  - Nhập dữ liệu lặp an toàn bằng MERGE kết hợp constraint
+  - Kiểm tra tính tương thích khi ứng dụng cũ và mới cùng hoạt động
+  - Sao lưu, khôi phục và xác minh kết quả chuyển đổi dữ liệu
+- level1: Cluster và bookmark
+  level2:
+  - URI kết nối trực tiếp và URI có định tuyến
+  - Định tuyến đọc–ghi trong cụm Neo4j
+  - Causal consistency và bài toán đọc thấy dữ liệu vừa ghi
+  - Bookmark và vai trò của Neo4jBookmarkManager
+  - Neo4jBookmarksUpdatedEvent và việc thu nhận bookmark
+  - Chia sẻ bookmark giữa yêu cầu hoặc phiên bản ứng dụng khi cần
+  - Ảnh hưởng khi bỏ quản lý bookmark và các trường hợp đọc dữ liệu cũ
+  - Failover, lỗi tạm thời và retry theo phạm vi được hỗ trợ
+- level1: Nhiều database
+  level2:
+  - Chọn database cố định bằng cấu hình Spring Boot
+  - DatabaseSelectionProvider và lựa chọn database theo giao dịch
+  - ReactiveDatabaseSelectionProvider và dữ liệu từ Reactor Context
+  - Thiết kế tenant theo database hoặc theo mô hình dữ liệu
+  - Dùng nhiều Driver hoặc transaction manager khi kết nối nhiều hệ thống
+  - Giữ đúng database khi phối hợp repository, template và client
+  - Không trộn entity đã tải từ các database hoặc tenant khác nhau
+  - Impersonation, UserSelectionProvider và giới hạn theo môi trường
+  - Health check và quyền truy cập khi database mặc định khác database ứng dụng
+- level1: Truy vấn chuyên biệt
+  level2:
+  - Truy vấn thời gian và khoảng thời gian với kiểu dữ liệu phù hợp
+  - Truy vấn không gian, khoảng cách và hệ tọa độ
+  - Đường đi ngắn và truy vấn nhiều bước có giới hạn
+  - Full-text search qua Cypher và ánh xạ kết quả cùng điểm số
+  - Vector search theo phiên bản Neo4j và tách biệt với khả năng mapping SDN
+  - 'Gọi APOC: cài đặt, quyền thực thi và dữ liệu trả về'
+  - Ranh giới tích hợp Graph Data Science qua client hoặc procedure
+  - Ánh xạ kết quả thuật toán thành DTO thay vì entity dùng để lưu
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian truy vấn, số record, dung lượng và số lượt giao tiếp
+  - 'Đọc EXPLAIN và PROFILE: ước lượng so với thực thi thật'
+  - Nhận diện full scan, số bước duyệt lớn và tích Descartes
+  - Giới hạn đồ thị được tải bằng mô hình, projection hoặc Cypher
+  - Phân trang entity gốc và tránh nhân bản kết quả do relationship
+  - Tối ưu truy vấn bằng index và điểm bắt đầu phù hợp
+  - Phân biệt saveAll với truy vấn ghi theo lô bằng UNWIND
+  - Giới hạn kích thước giao dịch và số phần tử mỗi lô
+  - Pool, fetch size và backpressure khi có nhiều yêu cầu
+  - Cache kết quả ở tầng ứng dụng và vô hiệu hóa khi đồ thị thay đổi
+  - Đo riêng chi phí Neo4j, driver và ánh xạ đối tượng
+- level1: Kiểm thử
+  level2:
+  - Chọn unit test, repository test và integration test theo mục tiêu
+  - Kiểm thử mô hình nghiệp vụ không cần Neo4j
+  - '@DataNeo4jTest và phạm vi cấu hình được nạp'
+  - Testcontainers với Neo4j cùng phiên bản mục tiêu
+  - Neo4j Test Harness và kết nối qua Bolt khi phù hợp
+  - '@DynamicPropertySource hoặc service connection theo Spring Boot'
+  - Chuẩn bị fixture, constraint, index và dữ liệu kiểm thử
+  - Kiểm thử ID, version, kiểu dữ liệu và converter
+  - Kiểm thử quan hệ động, thuộc tính quan hệ và nhiều relationship cùng cặp node
+  - Kiểm thử @Query, ánh xạ record, projection và phân trang
+  - Kiểm thử save dữ liệu được tải một phần và bảo toàn liên kết
+  - Kiểm thử rollback, auditing, callback và xung đột đồng thời
+  - Kiểm thử reactive cùng phạm vi commit và cleanup tường minh
+  - Phân biệt hành vi rollback của test với kết quả sau commit thực tế
+  - Kiểm thử hồi quy truy vấn, dung lượng đồ thị và tính cô lập giữa test
+- level1: Lỗi và chẩn đoán
+  level2:
+  - Phân biệt lỗi driver, lỗi Cypher, lỗi mapping và lỗi Spring Data
+  - Sai URI, TLS, xác thực, routing hoặc tên database
+  - Không tìm thấy repository hoặc quét nhầm loại repository
+  - Entity thiếu ID, relationship thiếu định danh hoặc metadata không hợp lệ
+  - Constructor, alias, kiểu property và giá trị null không khớp
+  - Không có kết quả, nhiều kết quả hoặc record thiếu dữ liệu để ánh xạ
+  - Entity gốc bị trùng và collection quan hệ bị thiếu
+  - Save tạo node trùng hoặc xóa liên kết ngoài dự kiến
+  - Optimistic locking, vi phạm constraint và deadlock
+  - Giao dịch không có hiệu lực, cạn pool hoặc truy vấn quá thời gian
+  - Chuỗi reactive không được thực thi hoặc mất phạm vi giao dịch
+  - Quy trình tái hiện lỗi bằng truy vấn tối thiểu, tham số và kiểm thử tích hợp
+- level1: Bảo mật và vận hành
+  level2:
+  - Quản lý bí mật kết nối và quyền tài khoản cơ sở dữ liệu
+  - TLS, xác minh chứng chỉ và cấu hình kết nối an toàn
+  - Bind tham số để phòng Cypher injection
+  - Kiểm soát label, loại relationship và cấu trúc truy vấn động
+  - Tách quyền đọc, ghi, migration và gọi procedure
+  - Cấu hình logger cho SDN, driver và truy vấn Cypher
+  - Health indicator, chỉ số driver/pool và truy vấn chậm
+  - Cấu hình timeout, retry và giới hạn tài nguyên theo môi trường
+  - Bảo vệ endpoint trả đồ thị khỏi truy vấn sâu hoặc dữ liệu quá lớn
+  - Tuần tự hóa DTO để tránh vòng lặp, lộ thông tin và payload quá rộng
+  - Quan sát log, metric và trace mà không ghi lộ dữ liệu nhạy cảm
+- level1: Chuyển đổi và nâng cấp
+  level2:
+  - Đọc release notes và ma trận tương thích Boot–SDN–driver–Neo4j
+  - Phân biệt tài liệu SDN hiện đại với tài liệu OGM cũ
+  - Chuyển annotation, session và API độ sâu từ hệ thống dùng OGM
+  - Điều chỉnh ID nội bộ, elementId và ID nghiệp vụ theo phiên bản
+  - 'Chuyển từ JPA: thiết kế lại liên kết theo câu hỏi nghiệp vụ'
+  - Chuyển từ driver thuần sang client/template/repository theo từng ca sử dụng
+  - Kiểm tra thay đổi Cypher sinh tự động và dialect khi nâng Neo4j
+  - Đối chiếu callback, projection, aggregate boundary và tính năng mới theo phiên bản
+  - Lập kiểm thử hồi quy dữ liệu, giao dịch và hiệu năng trước nâng cấp
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân tích câu hỏi nghiệp vụ trên đồ thị phim–diễn viên–đánh giá
+  - Thiết kế entity, ID và relationship có thuộc tính
+  - Dựng database, migration, constraint và dữ liệu mẫu
+  - Triển khai repository CRUD và truy vấn suy diễn
+  - Viết truy vấn nhiều bước, projection và phân trang
+  - Thực nghiệm save đồ thị được tải đầy đủ hoặc một phần
+  - Bổ sung auditing, optimistic locking và xử lý yêu cầu ghi lặp
+  - Xây một luồng đọc–ghi reactive có giao dịch
+  - Kiểm thử bằng Testcontainers và đo truy vấn bằng PROFILE
+  - 'Bài tập mở rộng: gợi ý phim, tìm đường liên kết và tìm kiếm chuyên biệt'
+  - Rà soát tính đúng dữ liệu, bảo mật và tiêu chí sẵn sàng triển khai

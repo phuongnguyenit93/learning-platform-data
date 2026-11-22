@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "VALIDATION_TESTING_TYPE_SECURITY_TEST"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Xây dựng quy trình kiểm thử bảo mật trong phạm vi được phép, từ threat model, thiết kế ca kiểm thử đến xác minh xác thực, phân quyền, API, dữ liệu, cấu hình và chuỗi cung ứng. Kết hợp SAST, DAST, SCA, fuzzing và kiểm tra thủ công để báo cáo rủi ro, xác nhận bản sửa và tích hợp CI/CD."
+  }
+}

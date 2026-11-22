@@ -1,0 +1,3232 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Spring Cloud Kubernetes là gì và giải quyết những vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Ranh giới giữa Spring Cloud Kubernetes, Spring Boot và Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các nhóm chức năng: khám phá dịch vụ, cấu hình và điều phối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Ứng dụng kết nối trực tiếp Kubernetes API và các phương án thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Khi nào chỉ cần Kubernetes Service và DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Luồng dữ liệu từ tài nguyên Kubernetes vào ứng dụng Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Thành phần chạy trong ứng dụng và thành phần triển khai riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Điều kiện nền tảng trước khi triển khai tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình học và mô hình ứng dụng thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-foundations
+  title: Nền tảng Kubernetes
+  childs:
+  - slug: kubernetes-foundations-001
+    title: Cluster, control plane, node và Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-002
+    title: Pod, container và vòng đời một bản sao ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-003
+    title: Deployment, ReplicaSet và khai báo trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-004
+    title: Service, selector và tập Pod phục vụ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-005
+    title: Endpoints, EndpointSlice và mối liên hệ với Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-006
+    title: Namespace, label và annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-007
+    title: ConfigMap, Secret và cách đưa dữ liệu vào container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-008
+    title: ServiceAccount, Role và RoleBinding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-009
+    title: Readiness, liveness và startup probe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-010
+    title: DNS nội bộ, địa chỉ Service và cổng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-foundations-011
+    title: Đọc manifest và quan sát tài nguyên bằng kubectl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-setup
+  title: Thiết lập dự án
+  childs:
+  - slug: project-setup-001
+    title: Chọn Spring Boot và Spring Cloud Release Train tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-002
+    title: Quản lý phiên bản bằng Spring Cloud BOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-003
+    title: Các starter theo chức năng và loại Kubernetes client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-004
+    title: Phân biệt phụ thuộc khám phá dịch vụ, cấu hình và cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-005
+    title: Chọn mô hình Servlet hoặc reactive theo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-006
+    title: Đặt spring.application.name và tên tài nguyên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-007
+    title: Tổ chức cấu hình local, kiểm thử và chạy trong cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-008
+    title: Nhận diện môi trường Kubernetes và kích hoạt profile phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-009
+    title: Kiểm tra điều kiện tự cấu hình và các bean được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-setup-010
+    title: Tạo dự án tối thiểu và xác minh kết nối đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-client
+  title: Kubernetes client
+  childs:
+  - slug: kubernetes-client-001
+    title: Fabric8 Kubernetes Client và Kubernetes Java Client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-002
+    title: So sánh các chức năng được hỗ trợ theo từng client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-003
+    title: Chọn starter nhất quán và tránh đưa nhiều client không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-004
+    title: Vòng đời Kubernetes client và tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-005
+    title: Cấu hình client từ môi trường, file cấu hình và thông tin trong Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-006
+    title: Phân biệt client ứng dụng với HTTP DiscoveryClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-007
+    title: Xử lý timeout, retry và giới hạn kết nối của client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-008
+    title: Kiểu dữ liệu tài nguyên và lỗi trả về từ Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-009
+    title: Khả năng tùy biến client và giới hạn theo bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-client-010
+    title: Kiểm tra tương thích giữa thư viện client và cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-api-connectivity
+  title: Kết nối Kubernetes API
+  childs:
+  - slug: kubernetes-api-connectivity-001
+    title: Địa chỉ API server và thông tin truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-002
+    title: Xác thực trong cluster bằng ServiceAccount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-003
+    title: Kubeconfig và context khi chạy ứng dụng ngoài cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-004
+    title: Chứng chỉ CA, TLS và xác minh máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-005
+    title: Token được gắn vào Pod và thời hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-006
+    title: Phân biệt lỗi mạng, lỗi xác thực và lỗi thiếu quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-007
+    title: Kết nối qua proxy và môi trường bị giới hạn mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-008
+    title: Timeout kết nối, timeout đọc và hành vi khi API server gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-api-connectivity-009
+    title: Kiểm chứng danh tính và quyền truy cập thực tế của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: namespaces-and-scopes
+  title: Namespace và phạm vi
+  childs:
+  - slug: namespaces-and-scopes-001
+    title: Namespace mặc định và cách xác định namespace của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-002
+    title: Cấu hình namespace tường minh theo từng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-003
+    title: Khám phá dịch vụ trong một namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-004
+    title: Khám phá nhiều namespace và điều kiện cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-005
+    title: Đọc ConfigMap hoặc Secret từ namespace được chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-006
+    title: Tên tài nguyên trùng giữa các namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-007
+    title: Phân biệt phạm vi theo namespace và phạm vi toàn cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-008
+    title: Giảm phạm vi truy vấn bằng label và bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespaces-and-scopes-009
+    title: Thiết kế ranh giới truy cập cho nhiều nhóm ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-discovery
+  title: Khám phá dịch vụ
+  childs:
+  - slug: service-discovery-001
+    title: DiscoveryClient trong mô hình Spring Cloud Commons
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-002
+    title: Lấy danh sách service ID và các ServiceInstance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-003
+    title: Ánh xạ Kubernetes Service sang dịch vụ của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-004
+    title: Lấy danh sách bản sao từ tài nguyên endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-005
+    title: Lọc dịch vụ bằng label và điều kiện biểu thức được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-006
+    title: Chỉ chọn các endpoint sẵn sàng và tác động của readiness
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-007
+    title: Khám phá Pod chưa sẵn sàng khi có yêu cầu đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-008
+    title: Thông tin namespace và metadata của dịch vụ được khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-009
+    title: Chiến lược cập nhật danh sách và độ trễ phát hiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-010
+    title: Xử lý dịch vụ không tồn tại hoặc không có endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-011
+    title: Tắt khám phá dịch vụ khi ứng dụng chỉ cần cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-012
+    title: Đối chiếu kết quả DiscoveryClient với trạng thái cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serviceinstance-and-ports
+  title: ServiceInstance và cổng
+  childs:
+  - slug: serviceinstance-and-ports-001
+    title: ServiceInstance ID, host, port và URI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-002
+    title: Phân biệt địa chỉ Pod, ClusterIP và địa chỉ DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-003
+    title: Service port, targetPort và containerPort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-004
+    title: Chọn cổng khi Service công bố nhiều cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-005
+    title: Tên cổng và cấu hình ưu tiên cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-006
+    title: Nhận diện kết nối an toàn và thông tin HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-007
+    title: Đưa label, annotation và thông tin tài nguyên vào metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-008
+    title: Nguy cơ đưa dữ liệu nhạy cảm vào metadata công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-009
+    title: Ảnh hưởng của headless Service đến danh sách bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serviceinstance-and-ports-010
+    title: Kiểm thử ánh xạ cổng và địa chỉ trong các manifest khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discovery-server
+  title: Discovery Server
+  childs:
+  - slug: discovery-server-001
+    title: Mục đích của Spring Cloud Kubernetes Discovery Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-002
+    title: So sánh truy cập Kubernetes API trực tiếp với qua Discovery Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-003
+    title: Triển khai server và xác định phạm vi tài nguyên được đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-004
+    title: Cấu hình HTTP DiscoveryClient kết nối đến server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-005
+    title: Vai trò của HTTP client trong lấy danh sách dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-006
+    title: Định dạng và ý nghĩa dữ liệu khám phá được trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-007
+    title: Quyền Kubernetes của server và quyền kết nối của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-008
+    title: Timeout, lỗi server và ảnh hưởng đến bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-009
+    title: Giới hạn truy cập và bảo vệ endpoint khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-server-010
+    title: Đánh giá tính sẵn sàng, khả năng mở rộng và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-balancing
+  title: Cân bằng tải
+  childs:
+  - slug: load-balancing-001
+    title: Tích hợp Spring Cloud LoadBalancer với Kubernetes DiscoveryClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-002
+    title: Cân bằng tải qua địa chỉ Pod và qua Kubernetes Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-003
+    title: Phân biệt chế độ POD và SERVICE khi bản phát hành hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-004
+    title: Chọn cổng và giao thức cho yêu cầu cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-005
+    title: Gọi tên dịch vụ bằng HTTP client đã tích hợp LoadBalancer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-006
+    title: Tách cấu hình HTTP client khỏi cấu hình khám phá Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-007
+    title: Cache danh sách bản sao và độ trễ loại bỏ Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-008
+    title: Readiness, thay đổi endpoint và lời gọi đang thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-009
+    title: Retry sang bản sao khác và tính lũy đẳng của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-010
+    title: Quan sát bản sao nhận yêu cầu để kiểm chứng phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-011
+    title: Khi DNS, Gateway hoặc service mesh đã đáp ứng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: config-data-loading
+  title: Nạp Config Data
+  childs:
+  - slug: config-data-loading-001
+    title: Tích hợp cấu hình Kubernetes với Spring Boot Environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-002
+    title: Khai báo spring.config.import theo cơ chế được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-003
+    title: Nạp bắt buộc và nạp tùy chọn khi nguồn cấu hình không có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-004
+    title: Config Data và cơ chế bootstrap của các phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-005
+    title: Vai trò của PropertySource và thứ tự nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-006
+    title: Chọn nguồn ConfigMap, Secret hoặc kết hợp cả hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-007
+    title: Phân biệt nạp qua API với đọc file được gắn vào Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-008
+    title: Thời điểm nạp cấu hình so với khởi tạo bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-009
+    title: Fail-fast và retry khi không đọc được nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-loading-010
+    title: Xác minh nguồn gốc thuộc tính đã có trong Environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configmaps
+  title: ConfigMap
+  childs:
+  - slug: configmaps-001
+    title: Cấu trúc data của ConfigMap và kiểu dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-002
+    title: Ánh xạ khóa đơn thành thuộc tính Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-003
+    title: Nạp nội dung application.yaml hoặc application.properties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-004
+    title: Quy tắc chọn ConfigMap theo tên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-005
+    title: Chỉ định nhiều ConfigMap theo tên và namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-006
+    title: Chọn ConfigMap theo label khi chức năng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-007
+    title: Hợp nhất nhiều nguồn và xử lý khóa trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-008
+    title: Tiền tố thuộc tính để tránh xung đột giữa các nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-009
+    title: Profile trong tên tài nguyên và nội dung cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-010
+    title: Đọc ConfigMap từ volume thay vì gọi Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-011
+    title: Giới hạn kích thước và phân chia cấu hình hợp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-012
+    title: Xử lý ConfigMap thiếu, rỗng hoặc có nội dung sai cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configmaps-013
+    title: Kiểm chứng giá trị nạp vào @ConfigurationProperties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secrets
+  title: Secret
+  childs:
+  - slug: secrets-001
+    title: Secret và ranh giới bảo vệ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-002
+    title: Phân biệt mã hóa base64 với mã hóa bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-003
+    title: Ánh xạ dữ liệu Secret sang thuộc tính ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-004
+    title: Bật đọc Secret qua API một cách tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-005
+    title: Chỉ định nguồn Secret theo tên, namespace và bộ chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-006
+    title: Đọc Secret từ volume được gắn vào container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-007
+    title: Quyền đọc Secret và nguy cơ lộ toàn bộ thông tin trong namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-008
+    title: Hợp nhất Secret với ConfigMap và xử lý trùng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-009
+    title: Đặc điểm cập nhật Secret khi dùng volume hoặc biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-010
+    title: Ứng xử khi Secret chưa tồn tại hoặc thiếu khóa bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-011
+    title: Luân chuyển mật khẩu, token và chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-012
+    title: Kiểm tra Secret mà không ghi giá trị nhạy cảm ra log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: profiles-and-precedence
+  title: Profile và ưu tiên
+  childs:
+  - slug: profiles-and-precedence-001
+    title: Quan hệ giữa active profile và cấu hình Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-002
+    title: Profile riêng cho local, kiểm thử và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-003
+    title: Thứ tự ưu tiên giữa file đóng gói, nguồn Kubernetes và biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-004
+    title: Ưu tiên giữa nhiều ConfigMap và nhiều Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-005
+    title: Cấu hình theo profile trong YAML nhiều tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-006
+    title: Tránh vòng phụ thuộc khi thuộc tính cần thiết cho chính quá trình nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-007
+    title: Placeholder và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-008
+    title: Kiểu dữ liệu, binding và kiểm tra ràng buộc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-009
+    title: Truy tìm nguồn ghi đè khi giá trị thực tế khác mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-and-precedence-010
+    title: Viết kiểm thử để xác nhận thứ tự ưu tiên của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-design
+  title: Thiết kế cấu hình
+  childs:
+  - slug: configuration-design-001
+    title: Phân chia cấu hình dùng chung và cấu hình riêng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-002
+    title: Đặt tên tài nguyên, khóa và label nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-003
+    title: Tách cấu hình thường xuyên thay đổi khỏi cấu hình cần khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-004
+    title: Phân biệt cấu hình nghiệp vụ và bí mật truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-005
+    title: Thiết kế giá trị mặc định và thuộc tính bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-006
+    title: Phiên bản hóa ConfigMap và Secret cùng manifest triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-007
+    title: Giữ hợp đồng cấu hình tương thích khi nhiều phiên bản cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-008
+    title: Tránh lưu dữ liệu nghiệp vụ hoặc dữ liệu lớn trong ConfigMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-design-009
+    title: Kiểm tra cấu hình trước khi đưa vào cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-updates
+  title: Cập nhật cấu hình
+  childs:
+  - slug: configuration-updates-001
+    title: Phân biệt cập nhật tài nguyên với cập nhật bean đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-002
+    title: 'Các cách áp dụng thay đổi: refresh, khởi động lại và triển khai lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-003
+    title: Giới hạn cập nhật của biến môi trường và volume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-004
+    title: '@RefreshScope, @ConfigurationProperties và vòng đời bean'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-005
+    title: Thuộc tính chỉ được đọc lúc khởi tạo và phần cần tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-006
+    title: Reload trong tiến trình và tình trạng hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-007
+    title: Cơ chế theo dõi sự kiện và thăm dò định kỳ khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-008
+    title: Xử lý nhiều thay đổi liên tiếp và tránh refresh quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-009
+    title: Độ trễ cập nhật và tính nhất quán giữa nhiều Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-010
+    title: Ứng xử khi cấu hình mới không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-updates-011
+    title: Tiêu chí chọn refresh động hay rolling restart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-watcher
+  title: Configuration Watcher
+  childs:
+  - slug: configuration-watcher-001
+    title: Kiến trúc Spring Cloud Kubernetes Configuration Watcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-002
+    title: Triển khai watcher tách khỏi ứng dụng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-003
+    title: Chọn ConfigMap và Secret cần theo dõi bằng metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-004
+    title: Liên kết tài nguyên cấu hình với ứng dụng cần thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-005
+    title: Thông báo qua HTTP và điều kiện endpoint refresh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-006
+    title: Thông báo qua Spring Cloud Bus khi bản phát hành hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-007
+    title: Địa chỉ ứng dụng, management port và đường dẫn Actuator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-008
+    title: Thông báo đến nhiều bản sao và kiểm chứng phạm vi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-009
+    title: Điều chỉnh độ trễ để chờ dữ liệu volume được đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-010
+    title: Phân quyền watcher và bảo vệ kênh thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-011
+    title: Xử lý thông báo lỗi, trùng hoặc đến liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-watcher-012
+    title: Quan sát sự kiện từ thay đổi tài nguyên đến cấu hình có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rbac
+  title: Phân quyền RBAC
+  childs:
+  - slug: rbac-001
+    title: Quyền tối thiểu theo từng tính năng Spring Cloud Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-002
+    title: ServiceAccount dành riêng cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-003
+    title: Role và RoleBinding trong một namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-004
+    title: Khi nào cần ClusterRole và ClusterRoleBinding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-005
+    title: Phân biệt các quyền get, list và watch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-006
+    title: Quyền trên Service, endpoint, Pod và tài nguyên cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-007
+    title: Cấp quyền đọc Secret theo phạm vi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-008
+    title: Quyền ghi cần thiết cho cơ chế leader election
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-009
+    title: Kiểm tra quyền bằng kubectl auth can-i
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-010
+    title: Tách quyền ứng dụng, Discovery Server và Configuration Watcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rbac-011
+    title: Thu hồi quyền, rà soát quyền rộng và kiểm thử lỗi 403
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: leader-election
+  title: Bầu leader
+  childs:
+  - slug: leader-election-001
+    title: Leader election là gì và những tác vụ cần một bên điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-002
+    title: Phân biệt leader của ứng dụng với leader của control plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-003
+    title: Điều kiện hỗ trợ theo Kubernetes client và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-004
+    title: Tài nguyên khóa và cơ chế cạnh tranh vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-005
+    title: Cấu hình danh tính, namespace và phạm vi nhóm bầu chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-006
+    title: Sự kiện được cấp và bị thu hồi vai trò leader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-007
+    title: Chỉ cho phép thực hiện tác vụ khi đang giữ vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-008
+    title: Xử lý leader dừng, mất kết nối hoặc không gia hạn được khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-009
+    title: Thời gian phát hiện mất leader và chọn leader mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-010
+    title: Vì sao leader election không tự bảo đảm thực thi đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-011
+    title: Tính lũy đẳng, fencing và bảo vệ tác dụng phụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leader-election-012
+    title: Kiểm thử chuyển giao vai trò giữa nhiều Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pod-lifecycle
+  title: Vòng đời Pod
+  childs:
+  - slug: pod-lifecycle-001
+    title: Trình tự khởi động từ nạp cấu hình đến sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-002
+    title: Startup probe cho ứng dụng có thời gian khởi tạo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-003
+    title: Readiness và thời điểm Pod được đưa vào tập endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-004
+    title: Liveness và tránh khởi động lại vì phụ thuộc bên ngoài gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-005
+    title: Graceful shutdown và ngừng nhận yêu cầu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-006
+    title: preStop và terminationGracePeriodSeconds
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-007
+    title: Yêu cầu đang xử lý khi Pod bị loại khỏi Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-008
+    title: Giải phóng tài nguyên và vai trò leader khi dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-009
+    title: Rolling update và tương thích giữa các phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-010
+    title: Ảnh hưởng của eviction, node hỏng và scale down
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pod-lifecycle-011
+    title: Kiểm chứng hành vi ứng dụng trong suốt vòng đời triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: actuator-and-health
+  title: Actuator và sức khỏe
+  childs:
+  - slug: actuator-and-health-001
+    title: Thông tin Kubernetes được bổ sung vào endpoint info
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-002
+    title: HealthIndicator liên quan tới Kubernetes và khám phá dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-003
+    title: Chọn thành phần cho health group của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-004
+    title: Tách liveness và readiness bằng Spring Boot Actuator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-005
+    title: Quan hệ giữa sức khỏe ứng dụng và khả năng truy cập API server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-006
+    title: Management port và định tuyến tới endpoint quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-007
+    title: Giới hạn chi tiết sức khỏe công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-008
+    title: Bảo vệ các endpoint refresh và thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-009
+    title: Phân biệt tín hiệu trong ứng dụng với trạng thái Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actuator-and-health-010
+    title: Kiểm thử probe khi API server hoặc dịch vụ phụ thuộc gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Khả năng quan sát
+  childs:
+  - slug: observability-001
+    title: Log tên ứng dụng, namespace, Pod và phiên bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Đưa thông tin tài nguyên vào ngữ cảnh ghi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Theo dõi lỗi truy cập Kubernetes API và vòng đời watch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Đo thời gian nạp cấu hình và phát hiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Quan sát số dịch vụ, endpoint và danh sách bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Ghi nhận refresh thành công, thất bại và cấu hình đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Theo dõi các lần thay đổi leader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Metrics của HTTP client và chi phí gọi API server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Tránh nhãn có quá nhiều giá trị và tránh lộ Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Đối chiếu log ứng dụng, sự kiện Kubernetes và distributed trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-packaging
+  title: Đóng gói ứng dụng
+  childs:
+  - slug: application-packaging-001
+    title: Xây dựng executable JAR và container image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-002
+    title: Lựa chọn buildpack hoặc Dockerfile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-003
+    title: Chạy container bằng tài khoản không có quyền root
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-004
+    title: Tách cấu hình khỏi image và tránh nhúng Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-005
+    title: Thiết lập tài nguyên JVM theo giới hạn container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-006
+    title: Endpoint quản trị, cổng ứng dụng và cổng probe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-007
+    title: Thời gian khởi động và chi phí làm nóng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-008
+    title: Kiểm tra image chạy được với các nguồn cấu hình đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-packaging-009
+    title: Điều kiện hỗ trợ AOT hoặc native image theo bộ thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-manifests
+  title: Manifest triển khai
+  childs:
+  - slug: deployment-manifests-001
+    title: Deployment tối thiểu cho ứng dụng Spring Cloud Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-002
+    title: Service và selector khớp đúng Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-003
+    title: Khai báo ConfigMap, Secret, volume và volumeMount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-004
+    title: Gắn ServiceAccount và các tài nguyên RBAC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-005
+    title: Labels, annotations và dữ liệu Pod qua Downward API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-006
+    title: Requests, limits và giới hạn mức đồng thời của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-007
+    title: Probe, chiến lược cập nhật và thời gian kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-008
+    title: Kustomize hoặc Helm để quản lý khác biệt giữa môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-009
+    title: Triển khai Discovery Server và Configuration Watcher khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-010
+    title: NetworkPolicy cho API server, ứng dụng và endpoint quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-011
+    title: Kiểm tra manifest và tài nguyên đã được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-manifests-012
+    title: Giữ cấu hình triển khai có thể truy vết về phiên bản nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-development
+  title: Phát triển cục bộ
+  childs:
+  - slug: local-development-001
+    title: Chọn kind, minikube hoặc môi trường Kubernetes tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-002
+    title: Nạp image cục bộ vào cluster thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-003
+    title: Chạy ứng dụng ngoài cluster với kubeconfig riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-004
+    title: Chạy ứng dụng trong cluster với ServiceAccount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-005
+    title: Port-forward và truy cập endpoint phục vụ kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-006
+    title: Profile local không phụ thuộc Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-007
+    title: Tạo dữ liệu ConfigMap và Secret phục vụ thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-008
+    title: Quan sát log, event và trạng thái rollout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-development-009
+    title: Tái tạo môi trường từ manifest mà không phụ thuộc thao tác thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-testing
+  title: Kiểm thử tự động
+  childs:
+  - slug: automated-testing-001
+    title: Phân chia unit test, integration test và kiểm thử trong cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-002
+    title: Kiểm thử binding và validation của cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-003
+    title: Giả lập Kubernetes API phù hợp với loại client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-004
+    title: Kiểm thử DiscoveryClient với nhiều Service và endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-005
+    title: Kiểm thử lựa chọn cổng, namespace và bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-006
+    title: Kiểm thử thứ tự ưu tiên ConfigMap và Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-007
+    title: Kiểm thử nạp cấu hình bắt buộc, tùy chọn và fail-fast
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-008
+    title: Kiểm thử cập nhật tài nguyên, refresh và bean được tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-009
+    title: Kiểm thử quyền thiếu, token hết hạn và chứng chỉ không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-010
+    title: Kiểm thử leader failover và tác vụ chạy trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-011
+    title: Kiểm thử trong cluster tạm thời và dọn tài nguyên sau khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-testing-012
+    title: Giữ kiểm thử ổn định trước độ trễ đồng bộ của Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-resilience
+  title: Hiệu năng và độ bền
+  childs:
+  - slug: performance-and-resilience-001
+    title: Chi phí list và watch khi số Pod ứng dụng tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-002
+    title: Cache, informer và phạm vi sử dụng theo loại client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-003
+    title: Giới hạn namespace và label để giảm lượng tài nguyên theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-004
+    title: API rate limit, phản hồi 429 và backoff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-005
+    title: Khôi phục watch sau mất kết nối hoặc phiên bản tài nguyên hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-006
+    title: Tránh nhiều Pod cùng nạp lại cấu hình hoặc gửi lại yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-007
+    title: Ứng xử với dữ liệu đã có khi API server tạm thời không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-008
+    title: Chi phí bộ nhớ của danh sách tài nguyên và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-009
+    title: Đặt timeout, giới hạn retry và ngân sách khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resilience-010
+    title: Đo khả năng chịu tải trước khi tăng quy mô cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-security
+  title: Bảo mật tích hợp
+  childs:
+  - slug: integration-security-001
+    title: Đánh giá quyền truy cập API server của từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-002
+    title: Giới hạn tự động gắn ServiceAccount token khi không cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-003
+    title: Xác minh TLS và bảo vệ kubeconfig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-004
+    title: Nguyên tắc tối thiểu quyền đối với Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-005
+    title: Bảo vệ refresh endpoint khỏi yêu cầu trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-006
+    title: NetworkPolicy và giới hạn kết nối giữa các namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-007
+    title: Chính sách bảo mật Pod và filesystem chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-008
+    title: Quản lý Secret bằng công cụ ngoài và ranh giới tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-009
+    title: Kiểm toán truy cập và thay đổi tài nguyên cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-010
+    title: Rà soát log, endpoint info và health để tránh rò rỉ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-011
+    title: Luân chuyển thông tin truy cập mà không gián đoạn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-operations
+  title: Vận hành cấu hình
+  childs:
+  - slug: configuration-operations-001
+    title: Quản lý thay đổi ConfigMap và Secret qua quy trình GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-002
+    title: Đối chiếu trạng thái khai báo với trạng thái đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-003
+    title: Theo dõi phiên bản cấu hình được áp dụng trên từng Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-004
+    title: Phát hành thay đổi cấu hình tương thích với phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-005
+    title: Chọn cập nhật tại chỗ hoặc tạo tài nguyên cấu hình mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-006
+    title: Quay lại cấu hình trước khi thay đổi gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-007
+    title: Phối hợp rollout ứng dụng với luân chuyển Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-008
+    title: Rà soát tài nguyên, label và quyền không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-009
+    title: Chuẩn bị quy trình xử lý khi API server hoặc watcher ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-operations-010
+    title: Tiêu chí xác nhận thay đổi đã có hiệu lực trên toàn bộ bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Ứng dụng không kết nối được Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Lỗi 401, 403, 404 và cách xác định nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Không tìm thấy namespace hoặc tên tài nguyên mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: DiscoveryClient không trả về dịch vụ hoặc bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Service không có endpoint do selector hoặc readiness
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Chọn sai địa chỉ, cổng hoặc giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: ConfigMap không được nạp hoặc bị nguồn khác ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Secret không được đọc do cấu hình, mount hoặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Thay đổi cấu hình đã có nhưng bean vẫn giữ giá trị cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Configuration Watcher không tìm đúng ứng dụng hoặc endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Leader không được bầu hoặc chuyển giao quá chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Pod khởi động lại liên tục vì probe hoặc cấu hình lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: API server bị quá tải vì truy vấn, watch hoặc retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Quy trình thu thập bằng chứng và tạo kịch bản tái hiện tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-and-upgrades
+  title: Tương thích và nâng cấp
+  childs:
+  - slug: compatibility-and-upgrades-001
+    title: Đọc ma trận Spring Boot, Spring Cloud và Spring Cloud Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-002
+    title: Kiểm tra khả năng tương thích với phiên bản Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-003
+    title: Chuyển từ bootstrap sang Config Data khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-004
+    title: Rà soát cơ chế reload cũ và phương án Configuration Watcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-005
+    title: Đánh giá thay đổi khi đổi Fabric8 và Kubernetes Java Client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-006
+    title: Đối chiếu hành vi DiscoveryClient và lựa chọn cổng sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-007
+    title: Rà soát thay đổi trên Endpoints và EndpointSlice
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-008
+    title: Kiểm thử thứ tự cấu hình, quyền RBAC và endpoint quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-009
+    title: Rà soát tính năng bị thay thế hoặc ngừng hỗ trợ trong bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-upgrades-010
+    title: Kế hoạch nâng cấp từng phần và tiêu chí quay lại phiên bản trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Triển khai hai dịch vụ với nhiều Pod trong namespace riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Đối chiếu gọi qua DNS với DiscoveryClient và LoadBalancer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Nạp ConfigMap, Secret và cấu hình theo profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Theo dõi thuộc tính bị ghi đè từ nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Cập nhật cấu hình qua refresh và so sánh với rolling restart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Triển khai watcher và kiểm chứng cập nhật trên tất cả bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Thử RBAC tối thiểu rồi quan sát lỗi khi thiếu từng quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Chạy tác vụ điều phối bằng leader election và mô phỏng failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Mô phỏng thay đổi endpoint, API server lỗi và Pod bị dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Tổng hợp manifest, kiểm thử và bằng chứng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-decisions
+  title: Lựa chọn kiến trúc
+  childs:
+  - slug: architecture-decisions-001
+    title: Khi nên dùng Spring Cloud Kubernetes trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-002
+    title: Khi Kubernetes Service, DNS và cấu hình qua volume đã đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-003
+    title: Chọn truy cập API trực tiếp hay dùng Discovery Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-004
+    title: Chọn cấu hình nạp lúc khởi động hay cập nhật động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-005
+    title: Chọn leader election hay cơ chế điều phối tác vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-006
+    title: Đánh đổi giữa khả năng tích hợp và sự phụ thuộc nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-007
+    title: Phân chia trách nhiệm giữa mã ứng dụng và đội vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-008
+    title: Danh sách kiểm tra thiết kế, bảo mật và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-decisions-009
+    title: Bài tập đánh giá kiến trúc với yêu cầu và giới hạn cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,351 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm tra chất lượng liên tục là gì và giải quyết vấn đề nào
+  - Mối liên hệ giữa chất lượng mã, rủi ro thay đổi và khả năng bảo trì
+  - Phân biệt Continuous Inspection, Continuous Integration và Continuous Delivery
+  - Phân biệt phân tích tĩnh, kiểm thử tự động và đánh giá mã thủ công
+  - Phát hiện, chỉ số, quy tắc, báo cáo và cổng chất lượng trong cùng mô hình
+  - Vì sao một lần quét mã không tạo thành quy trình kiểm tra liên tục
+  - Những giới hạn của kết luận chất lượng dựa trên công cụ
+  - Kiến thức Git, build, kiểm thử và CI cần chuẩn bị
+- level1: Vòng phản hồi
+  level2:
+  - Luồng thay đổi mã từ máy lập trình viên đến nhánh chính
+  - Kiểm tra trong IDE, trước commit, trong pull request và sau merge
+  - Phản hồi sớm và chi phí sửa lỗi ở từng thời điểm
+  - Phân biệt kiểm tra nhanh cục bộ và xác minh đầy đủ trong CI
+  - Kết hợp kết quả tự động với nhận xét của người đánh giá
+  - Chuyển phát hiện thành hành động sửa hoặc quyết định có lý do
+  - Xác nhận lại sau sửa và theo dõi tái xuất hiện
+  - Vai trò của lập trình viên, reviewer, người quản lý quy tắc và chủ sở hữu mã
+  - Thiết kế vòng phản hồi ngắn, rõ trách nhiệm và có thể lặp lại
+- level1: Phạm vi kiểm tra
+  level2:
+  - Xác định repository, dự án, mô-đun, ngôn ngữ và nhánh cần phân tích
+  - Phân biệt mã sản phẩm, mã kiểm thử và tài nguyên cấu hình
+  - Xử lý mã sinh tự động, mã bên thứ ba và tệp không được bảo trì
+  - Phân biệt quét toàn bộ mã và đánh giá phần thay đổi
+  - Kiểm tra chuẩn mã, mẫu lỗi, phụ thuộc và ranh giới kiến trúc
+  - Phạm vi của phân tích bảo mật và các nguồn bằng chứng bổ sung
+  - Ranh giới giữa kiểm tra chất lượng mã và kiểm thử hành vi sản phẩm
+  - Loại trừ có lý do và nguy cơ làm mất phạm vi bảo vệ
+  - Xác nhận có dữ liệu thực sự được phân tích trước khi kết luận
+- level1: Kiến trúc hệ thống
+  level2:
+  - Vai trò của bộ phân tích, scanner, bộ thu báo cáo và nền tảng tổng hợp
+  - Thực thi kiểm tra tại máy cá nhân hoặc CI runner
+  - Phân biệt tạo báo cáo cục bộ và gửi dữ liệu lên máy chủ
+  - Luồng xử lý từ mã nguồn đến phát hiện, chỉ số và trạng thái cổng
+  - Phân biệt scanner hoàn tất và máy chủ xử lý kết quả hoàn tất
+  - Định danh dự án, nhánh, commit và lần phân tích
+  - Lưu kết quả, lịch sử và cấu hình để truy nguyên
+  - Phân biệt công cụ độc lập, dịch vụ tự quản lý và dịch vụ đám mây
+  - Giới hạn chức năng theo phiên bản hoặc gói sản phẩm
+- level1: Nguồn bằng chứng
+  level2:
+  - Mã nguồn, bytecode và metadata cần cho phân tích Java
+  - Báo cáo kiểm thử và thông tin ca kiểm thử thất bại
+  - Dữ liệu thực thi và báo cáo độ bao phủ
+  - Kết quả kiểm tra chuẩn mã và định dạng
+  - Kết quả phân tích mẫu lỗi và quan hệ phụ thuộc
+  - Kết quả kiểm thử kiến trúc và ranh giới mô-đun
+  - Kết quả quét dependency, bí mật và mã có rủi ro bảo mật
+  - Thông tin Git để xác định thay đổi và nguồn gốc dòng mã
+  - Phân biệt dữ liệu đo được, suy luận của công cụ và đánh giá thủ công
+  - Gắn mọi bằng chứng với đúng phiên bản mã và cấu hình
+- level1: Chỉ số chất lượng
+  level2:
+  - Phân biệt phép đo, chỉ số, xếp hạng và điều kiện cổng chất lượng
+  - Độ tin cậy, khả năng bảo trì và an toàn bảo mật
+  - Số dòng mã, số lớp, số phương thức và ảnh hưởng của quy mô
+  - Mật độ phát hiện và giới hạn khi chuẩn hóa theo số dòng
+  - Độ bao phủ, mã trùng lặp và độ phức tạp
+  - Chỉ số toàn dự án và chỉ số trên mã mới
+  - Tổng hợp theo mô-đun mà không lấy trung bình tỷ lệ sai cách
+  - Giá trị bằng 0, dữ liệu không có và chỉ số không áp dụng
+  - So sánh theo thời gian khi cách đo hoặc phạm vi thay đổi
+  - Tránh xem một điểm tổng hợp là bằng chứng đầy đủ về chất lượng
+- level1: Phân loại phát hiện
+  level2:
+  - Phân biệt lỗi tiềm ẩn, vấn đề bảo trì và vấn đề bảo mật
+  - Mức nghiêm trọng, độ tin cậy và xác suất ảnh hưởng
+  - Ngữ cảnh sử dụng và tác động thực tế của một phát hiện
+  - Phân biệt cảnh báo tự động và kết luận lỗi đã được xác nhận
+  - Phát hiện đúng, báo sai và vấn đề bị bỏ sót
+  - Ưu tiên theo rủi ro, khả năng khai thác và phạm vi ảnh hưởng
+  - Phân biệt lỗi mới, lỗi tồn đọng và lỗi tái xuất hiện
+  - Xử lý nhãn hoặc thang phân loại khác nhau giữa công cụ
+  - Không cộng gộp cảnh báo trùng như các lỗi độc lập
+- level1: Quy tắc và hồ sơ
+  level2:
+  - Quy tắc phân tích gồm điều kiện phát hiện, mô tả và cách khắc phục
+  - Hồ sơ chất lượng là tập quy tắc được bật cho một phạm vi
+  - Phân biệt hồ sơ quy tắc và cổng chất lượng
+  - Chọn quy tắc theo ngôn ngữ, phiên bản và loại ứng dụng
+  - Tham số quy tắc và ảnh hưởng đến kết quả phân tích
+  - Kế thừa, tùy chỉnh và tái sử dụng cấu hình giữa dự án
+  - Kiểm tra quy tắc mới trước khi áp dụng diện rộng
+  - Đối chiếu quy tắc giữa IDE và CI
+  - Quản lý thay đổi hồ sơ để kết quả có thể giải thích
+- level1: Cổng chất lượng
+  level2:
+  - Cổng chất lượng là gì và quyết định ở thời điểm nào
+  - Cấu trúc điều kiện gồm chỉ số, toán tử, ngưỡng và phạm vi
+  - Chọn điều kiện trên mã mới hoặc toàn bộ mã
+  - Phân biệt cảnh báo tham khảo và điều kiện chặn tích hợp
+  - Thiết lập ngưỡng dựa trên rủi ro và dữ liệu thực tế
+  - Vì sao không có một ngưỡng độ bao phủ phù hợp cho mọi dự án
+  - Xử lý trạng thái đang chờ, đạt, không đạt và lỗi phân tích
+  - Chờ kết quả xử lý cuối cùng trước khi kết luận cổng
+  - Phân biệt build thành công, scanner thành công và cổng đạt
+  - Chính sách khi thiếu báo cáo hoặc chỉ số không áp dụng
+  - Thay đổi cổng có kiểm soát thay vì hạ ngưỡng để vượt qua lỗi
+- level1: Mã mới và mã cũ
+  level2:
+  - Vì sao nên kiểm soát chất lượng phần thay đổi
+  - Định nghĩa mã mới theo nhánh tham chiếu, phiên bản hoặc mốc phân tích
+  - Phân biệt mã thay đổi trong pull request và kỳ mã mới của một nhánh
+  - Vai trò của Git history, nhánh đích và mốc so sánh
+  - Sửa mã cũ có thể đưa phần sửa vào phạm vi mã mới
+  - Đánh giá mã mới và theo dõi sức khỏe toàn bộ hệ thống
+  - Ngăn vi phạm mới trong khi xử lý dần nợ tồn đọng
+  - Đổi nhánh tham chiếu, đổi phiên bản và rủi ro dịch chuyển đường cơ sở
+  - Refactor, đổi tên tệp và khả năng nhận diện thay đổi của công cụ
+  - Không xem mã ngoài kỳ đánh giá là đã hết rủi ro
+- level1: Độ bao phủ
+  level2:
+  - Độ bao phủ kiểm thử đo điều gì và không chứng minh điều gì
+  - Phân biệt line coverage, branch coverage và instruction coverage
+  - Mẫu số là phần mã có thể thực thi hoặc nhánh được công cụ nhận diện
+  - Một dòng đã chạy không có nghĩa mọi nhánh đã được kiểm tra
+  - Độ bao phủ trên mã mới và trên toàn dự án
+  - Thu thập dữ liệu bằng công cụ như JaCoCo
+  - Phân biệt dữ liệu thực thi, báo cáo XML và báo cáo HTML
+  - Kết hợp kiểm thử đơn vị, tích hợp và nhiều mô-đun
+  - Giới hạn do bytecode tổng hợp, debug information và mã sinh
+  - Phân biệt không chạy kiểm thử, không nhập báo cáo và độ bao phủ thấp
+  - Bổ sung kiểm thử có khẳng định ý nghĩa thay vì chỉ tăng tỷ lệ
+- level1: Mã trùng lặp
+  level2:
+  - Khái niệm khối trùng lặp và cách công cụ nhận diện
+  - Phân biệt dòng giống nhau, token giống nhau và ý nghĩa nghiệp vụ giống nhau
+  - Tỷ lệ trùng lặp và phạm vi mẫu số
+  - Mã trùng trên phần thay đổi và trên toàn dự án
+  - Ảnh hưởng của mã sinh, cấu hình lặp và dữ liệu kiểm thử
+  - Khi nên trích xuất dùng chung và khi nên giữ độc lập
+  - Rủi ro tạo trừu tượng sai chỉ để giảm chỉ số
+  - Xác nhận hành vi không đổi sau khi giảm mã trùng
+- level1: Độ phức tạp
+  level2:
+  - Độ phức tạp chu trình và số quyết định trong luồng điều khiển
+  - Độ phức tạp nhận thức và khó khăn khi đọc hiểu mã
+  - Phân biệt phép đo theo phương thức, lớp và mô-đun
+  - Độ sâu lồng nhau, số nhánh và trách nhiệm của phương thức
+  - Quan hệ giữa độ phức tạp, khả năng kiểm thử và rủi ro thay đổi
+  - Chọn ngưỡng theo bối cảnh thay vì chia nhỏ cơ học
+  - Refactor điều kiện, tách trách nhiệm và làm rõ tên gọi
+  - Đối chiếu cải thiện chỉ số với khả năng hiểu và hành vi thực tế
+- level1: Nợ kỹ thuật
+  level2:
+  - Nợ kỹ thuật là gì và khác gì với danh sách cảnh báo
+  - Chi phí sửa ước lượng và giới hạn của mô hình công cụ
+  - Nguyên nhân phát sinh, chi phí trì hoãn và tác động thay đổi
+  - Phân biệt nợ có chủ đích và sai sót chưa được nhận diện
+  - Ưu tiên nợ theo điểm nóng thay đổi và ảnh hưởng nghiệp vụ
+  - Kết hợp dữ liệu phát hiện với kinh nghiệm của nhóm
+  - Đặt kế hoạch trả nợ từng phần trong công việc thường xuyên
+  - Theo dõi nợ mới, nợ được xử lý và nợ tái xuất hiện
+  - Không dùng số giờ ước lượng như cam kết tiến độ chính xác
+- level1: Xử lý phát hiện
+  level2:
+  - Tiếp nhận cảnh báo và xác định chủ sở hữu
+  - Đọc vị trí, đường dẫn dữ liệu và bằng chứng gây phát hiện
+  - Tái hiện hoặc xác minh vấn đề trong ngữ cảnh mã
+  - Phân loại cần sửa, báo sai hoặc chấp nhận có điều kiện
+  - Ước lượng mức ảnh hưởng và sắp xếp ưu tiên xử lý
+  - Chọn cách khắc phục thay vì chỉ làm mất cảnh báo
+  - Bổ sung kiểm thử khi vấn đề có thể tái xuất hiện
+  - Chạy lại phân tích để xác nhận kết quả sau sửa
+  - Theo dõi trạng thái mở, đã xử lý và tái mở theo công cụ
+  - Liên kết phát hiện với thay đổi mã và quyết định của người đánh giá
+- level1: Ngoại lệ và đường cơ sở
+  level2:
+  - Đường cơ sở là gì và cách ghi nhận vấn đề tồn tại trước khi áp dụng
+  - Phân biệt bỏ qua tệp, tắt quy tắc và chấp nhận một phát hiện
+  - Yêu cầu lý do, chủ sở hữu và thời hạn cho ngoại lệ
+  - Chấp nhận rủi ro khác với xác nhận công cụ báo sai
+  - Giới hạn phạm vi suppress hoặc exclusion nhỏ nhất phù hợp
+  - Kiểm tra ngoại lệ hết hạn hoặc không còn tương ứng với mã
+  - Quản lý đường cơ sở cùng thay đổi mã và cấu hình
+  - Không tái tạo đường cơ sở tự động để che vấn đề mới
+  - Giữ khả năng truy nguyên khi đổi công cụ hoặc định danh phát hiện
+- level1: Thiết kế pipeline
+  level2:
+  - 'Chọn sự kiện kích hoạt: commit, pull request, nhánh chính hoặc lịch kiểm tra'
+  - Xác định đầu vào, đầu ra và điều kiện thành công của từng bước
+  - Thứ tự checkout, chuẩn bị môi trường, build, test và thu báo cáo
+  - Phân biệt kiểm tra thực thi trong build và bước tổng hợp sau build
+  - Chỉ chuyển bước khi bằng chứng bắt buộc đã được tạo
+  - Xử lý máy chủ phân tích bất đồng bộ và chờ trạng thái cuối
+  - Liên kết kết quả với đúng commit, nhánh và lần chạy
+  - Timeout, hủy lần chạy cũ và kiểm soát thực thi đồng thời
+  - Chạy lại có thể lặp an toàn và tránh cập nhật trạng thái nhầm phiên bản
+  - Lưu báo cáo chẩn đoán khi bước kiểm tra thất bại
+  - Tách cổng chất lượng mã khỏi các điều kiện phát hành khác
+- level1: Tích hợp Java
+  level2:
+  - Vai trò của Gradle, Maven và vòng đời xác minh dự án
+  - Khai báo plugin kiểm tra và dependency chỉ dành cho phân tích
+  - Phân biệt công cụ đọc mã nguồn, công cụ đọc bytecode và công cụ cần classpath
+  - Cấu hình phiên bản JDK, mức ngôn ngữ và encoding phù hợp
+  - Liên kết tác vụ kiểm tra với Gradle check hoặc Maven verify
+  - Khai báo quan hệ tác vụ để báo cáo tồn tại trước khi được nhập
+  - Tổ chức kiểm tra nhiều mô-đun và tổng hợp báo cáo
+  - Tách phạm vi mã sản phẩm, kiểm thử và mã sinh
+  - Đối chiếu đường dẫn nguồn, lớp biên dịch và báo cáo trong CI
+  - Tái sử dụng cùng cấu hình và lệnh xác minh ở máy cá nhân
+- level1: Pull request và nhánh
+  level2:
+  - Vai trò của phân tích pull request trong quyết định tích hợp
+  - Xác định nhánh nguồn, nhánh đích và commit đang được đánh giá
+  - Phân biệt phân tích commit đầu nhánh và commit hợp nhất thử nghiệm
+  - Git history không đủ và sai phạm vi so sánh thay đổi
+  - Status check, commit status và phản hồi gắn vào dòng mã
+  - Thiết lập kiểm tra bắt buộc theo chính sách repository
+  - Phân biệt kiểm tra đạt, bị bỏ qua, chưa chạy và không có kết quả
+  - Không dùng kết quả của commit cũ để kết luận cho thay đổi mới
+  - Phân tích nhánh chính sau merge và phát hiện sai khác với pull request
+  - Đổi tên nhánh, force push và các lần chạy bị thay thế
+  - Giới hạn phân tích nhánh hoặc pull request theo nền tảng và gói sản phẩm
+- level1: Phản hồi lập trình viên
+  level2:
+  - Đưa cảnh báo vào IDE mà vẫn giữ cấu hình tương thích CI
+  - Chọn bộ kiểm tra nhanh trước khi gửi thay đổi
+  - Thông báo cần chỉ rõ vấn đề, bằng chứng và hành động tiếp theo
+  - Hiển thị phát hiện trên phần mã đang sửa
+  - Tránh lặp cảnh báo ở nhiều công cụ và nhiều kênh
+  - Phân biệt lỗi cần sửa ngay và thông tin để xem xét
+  - Liên kết tới quy tắc, ví dụ và hướng dẫn khắc phục
+  - Giữ phản hồi ổn định khi chạy lại cùng mã và cấu hình
+  - Kết hợp tự động hóa với trách nhiệm của người đánh giá mã
+- level1: Báo cáo chất lượng
+  level2:
+  - Thiết kế báo cáo theo người đọc và quyết định cần đưa ra
+  - Trạng thái hiện tại, xu hướng và phạm vi dữ liệu
+  - Tổng hợp mã mới và toàn bộ mã mà không đánh đồng
+  - Phân nhóm theo mô-đun, loại vấn đề và mức ưu tiên
+  - Liên kết phát hiện với tệp, dòng mã, commit và lần phân tích
+  - Phân biệt chất lượng mã với sức khỏe của hệ thống kiểm tra
+  - Xuất báo cáo máy đọc được và định dạng tích hợp như SARIF
+  - Thời hạn lưu, lịch sử và khả năng truy xuất bằng chứng
+  - Tránh bảng điểm gây hiểu nhầm hoặc che mất dữ liệu thiếu
+- level1: Lựa chọn công cụ
+  level2:
+  - Xác định nhu cầu trước khi chọn nền tảng kiểm tra liên tục
+  - So sánh công cụ đơn lẻ và nền tảng tổng hợp kết quả
+  - Vai trò của Checkstyle, PMD, SpotBugs, Error Prone và ArchUnit
+  - Vai trò của JaCoCo trong cung cấp dữ liệu độ bao phủ
+  - Vai trò của nền tảng như SonarQube trong tổng hợp và cổng chất lượng
+  - Đánh giá ngôn ngữ, build, IDE và hệ thống quản lý mã được hỗ trợ
+  - Cân nhắc tự quản lý, đám mây, quyền truy cập và chi phí vận hành
+  - Kiểm tra khả năng nhập báo cáo, quản lý ngoại lệ và xuất dữ liệu
+  - Thử nghiệm trên mã đại diện trước khi áp dụng diện rộng
+  - Giữ chính sách chất lượng đủ độc lập để có thể đổi công cụ
+- level1: Bảo vệ pipeline
+  level2:
+  - Quản lý token phân tích và quyền tối thiểu
+  - Tách bí mật của nhánh tin cậy khỏi mã gửi từ nguồn không tin cậy
+  - Nguy cơ thực thi mã pull request với quyền của nhánh chính
+  - Cấp quyền đọc mã, ghi trạng thái và quản lý cấu hình đúng nhu cầu
+  - Bảo vệ mã nguồn, báo cáo và dữ liệu nhạy cảm trong log
+  - Kiểm soát nguồn plugin, scanner và phiên bản dependency
+  - Cố định phiên bản công cụ và xác minh artifact khi cần
+  - Xử lý chứng chỉ, proxy và kết nối đến máy chủ phân tích
+  - Kiểm soát ai được thay quy tắc, ngưỡng và kết luận ngoại lệ
+  - Tách quyền xem kết quả khỏi quyền làm thay đổi chính sách
+- level1: Độ tin cậy kết quả
+  level2:
+  - Định nghĩa điều kiện để hai lần phân tích có thể so sánh
+  - Giữ đúng mã nguồn, bytecode, báo cáo và cấu hình của cùng một lần build
+  - Kiểm tra dữ liệu đầu vào đầy đủ trước khi đánh giá cổng
+  - Phát hiện phân tích rỗng hoặc tập kiểm thử không được chạy
+  - Ảnh hưởng của phiên bản analyzer, JDK và plugin
+  - Đường dẫn khác nhau giữa runner, container và máy cá nhân
+  - Git metadata thiếu và nhận diện mã mới không chính xác
+  - Xử lý phát hiện trùng khi nhập nhiều nguồn báo cáo
+  - Kiểm tra cache hoặc artifact cũ không bị dùng nhầm
+  - Đối chứng kết quả trên ví dụ có vấn đề đã biết
+- level1: Hiệu năng kiểm tra
+  level2:
+  - Đo thời gian build, kiểm thử, phân tích, truyền dữ liệu và chờ xử lý
+  - Tách bước nhanh và bước chuyên sâu theo mục đích phản hồi
+  - Chạy song song các kiểm tra độc lập
+  - Tái sử dụng cache nhưng giữ tính đúng đắn của kết quả
+  - Phân tích tăng dần và điều kiện cần quét đầy đủ
+  - Kiểm tra nhiều mô-đun mà không bỏ qua phụ thuộc xuyên mô-đun
+  - Cấu hình bộ nhớ, CPU và số tác vụ đồng thời theo tải
+  - Giới hạn thời gian chờ và tránh hàng đợi phân tích kéo dài
+  - Cân bằng tốc độ phản hồi với mức bảo đảm chất lượng
+- level1: Áp dụng trên mã cũ
+  level2:
+  - Khảo sát chất lượng hiện tại và khả năng tạo bằng chứng
+  - Chọn một dự án hoặc mô-đun thí điểm
+  - Chạy chế độ quan sát để đánh giá độ hữu ích và báo sai
+  - Thiết lập đường cơ sở và ngăn vấn đề mới
+  - Ưu tiên nhóm quy tắc có độ tin cậy và tác động cao
+  - Nâng dần điều kiện cổng khi nhóm có khả năng đáp ứng
+  - Lập kế hoạch xử lý điểm nóng và nợ cũ theo rủi ro
+  - Đào tạo cách đọc phát hiện và giải quyết cổng không đạt
+  - Đánh giá lại sau giai đoạn thí điểm trước khi mở rộng
+  - Giữ quá trình cải tiến minh bạch thay vì làm đẹp số liệu
+- level1: Quản trị cấu hình
+  level2:
+  - Lưu cấu hình kiểm tra trong Git khi công cụ hỗ trợ
+  - Phân biệt cấu hình toàn tổ chức, dự án, nhánh và lần chạy
+  - Đối chiếu thứ tự ưu tiên giữa cấu hình giao diện và tham số CI
+  - Quản lý phiên bản quy tắc, ngưỡng và phạm vi phân tích
+  - Đánh giá tác động khi thay analyzer hoặc hồ sơ chất lượng
+  - Rà soát thay đổi cấu hình cùng người sở hữu chính sách
+  - Ghi nhận lý do thay đổi và thời điểm có hiệu lực
+  - Phát hiện cấu hình lệch giữa IDE, CI và máy chủ
+  - Quy trình khôi phục cấu hình khi thay đổi gây kết luận sai
+  - Chuyển công cụ mà vẫn giữ lịch sử quyết định quan trọng
+- level1: Đo lường cải tiến
+  level2:
+  - Chọn mục tiêu cải tiến gắn với vấn đề của nhóm
+  - Theo dõi tỷ lệ phát hiện được xác nhận và tỷ lệ báo sai
+  - Đo thời gian nhận phản hồi và thời gian xử lý vấn đề
+  - Theo dõi vấn đề mới, vấn đề tồn đọng và lỗi tái xuất hiện
+  - Quan sát xu hướng độ bao phủ, trùng lặp và điểm nóng thay đổi
+  - Đối chiếu cảnh báo với lỗi thực tế lọt qua quy trình
+  - Không dùng số cảnh báo hoặc số dòng mã để xếp hạng cá nhân
+  - Phân biệt tương quan của chỉ số và nguyên nhân cải thiện
+  - Điều chỉnh quy trình dựa trên bằng chứng và chi phí duy trì
+- level1: Chẩn đoán sự cố
+  level2:
+  - Build xanh nhưng bước phân tích chưa thực sự chạy
+  - Scanner thành công nhưng máy chủ chưa tính xong cổng
+  - Không có độ bao phủ do sai đường dẫn hoặc thiếu báo cáo
+  - Báo cáo không khớp source hoặc bytecode của commit được quét
+  - Mã mới bị nhận diện sai do nhánh đích hoặc Git history
+  - Kết quả khác nhau giữa IDE và CI
+  - Cổng thất bại hàng loạt sau khi đổi hồ sơ hoặc phiên bản analyzer
+  - Phát hiện cũ tái xuất hiện sau đổi tên, refactor hoặc đổi định danh
+  - Status check không xuất hiện hoặc gắn nhầm commit
+  - Timeout, lỗi xác thực, lỗi mạng và hàng đợi máy chủ
+  - Cổng vượt qua do bước bị bỏ qua hoặc lỗi bị nuốt
+  - Phân biệt lỗi hạ tầng, lỗi cấu hình và vấn đề chất lượng mã
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế vòng kiểm tra liên tục cho một dự án Java nhỏ
+  - Kết hợp kiểm tra chuẩn mã, mẫu lỗi và kiểm thử tự động
+  - Tạo và nhập báo cáo độ bao phủ từ JaCoCo
+  - Thiết lập hồ sơ quy tắc và cổng chất lượng theo mục tiêu đã chọn
+  - Tạo thay đổi có lỗi mới và theo dõi phản hồi trong pull request
+  - Tái hiện thiếu báo cáo để phân biệt với độ bao phủ thấp
+  - Xử lý một báo sai và ghi ngoại lệ có giới hạn
+  - Áp dụng đường cơ sở cho mã cũ rồi chặn vi phạm mới
+  - Tái hiện trạng thái phân tích bất đồng bộ hoặc kết quả thuộc commit cũ
+  - So sánh hai lần phân tích và giải thích biến động chỉ số
+  - Đánh giá quy trình bằng độ tin cậy, tốc độ phản hồi và khả năng duy trì

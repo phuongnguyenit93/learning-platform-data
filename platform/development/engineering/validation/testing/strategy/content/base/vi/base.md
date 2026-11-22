@@ -1,0 +1,7 @@
+# Validation Testing Strategy
+
+Validation Testing Strategy là cách xác định toàn cảnh hoạt động kiểm thử nhằm cung cấp bằng chứng đáng tin cậy về chất lượng phần mềm trong giới hạn thời gian và nguồn lực thực tế. Chiến lược giải thích vì sao cần kiểm thử, rủi ro nào phải được ưu tiên, những cấp độ và loại kiểm thử nào phù hợp, cũng như tiêu chí nào sẽ được dùng để đánh giá mức sẵn sàng của sản phẩm. Nội dung này hữu ích cho developer, tester, QA và người phụ trách phát hành khi cùng thống nhất cách quản lý rủi ro chất lượng.
+
+Lộ trình bắt đầu từ mục tiêu chất lượng và bối cảnh hệ thống, sau đó đánh giá rủi ro để xác định phạm vi, mức ưu tiên và cách tiếp cận kiểm thử. Người học chọn sự phối hợp giữa unit, integration, system, acceptance, kiểm thử chức năng và phi chức năng tùy theo nhu cầu; đồng thời chuẩn bị môi trường, dữ liệu, công cụ và cách kiểm soát sự phụ thuộc. Việc tự động hóa được cân nhắc dựa trên giá trị phản hồi, độ ổn định và chi phí bảo trì, đặc biệt khi tích hợp vào CI.
+
+Khi áp dụng, người học thiết lập tiêu chí bắt đầu và kết thúc, theo dõi khiếm khuyết, kết quả chạy kiểm thử và các rủi ro còn tồn đọng để hỗ trợ quyết định phát hành. Những chỉ số như độ bao phủ phù hợp, lỗi lọt sản phẩm và tỉ lệ flaky test giúp đánh giá hiệu quả, nhưng cần đọc cùng bối cảnh và mức độ rủi ro. Chiến lược nên được cập nhật khi yêu cầu, kiến trúc và phản hồi thực tế thay đổi.

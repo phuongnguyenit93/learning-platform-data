@@ -1,0 +1,485 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Security Test là gì và giải quyết vấn đề nào
+  - Phân biệt kiểm thử xác thực, phân quyền và các cơ chế bảo vệ
+  - Authentication, principal, authorities và SecurityContext trong một ca kiểm thử
+  - Đối chiếu tầng HTTP, tầng phương thức và thành phần bảo mật riêng lẻ
+  - Giả lập người dùng khác với chạy quy trình đăng nhập thật
+  - Giả lập token khác với kiểm tra chữ ký hoặc introspection thật
+  - Kiểm thử Servlet và Reactive dùng mô hình ngữ cảnh khác nhau
+  - Hợp đồng cho phép, từ chối và tác dụng phụ cần quan sát
+  - Vì sao mã HTTP thành công chưa đủ chứng minh cấu hình bảo mật đúng
+  - Lộ trình học từ người dùng giả lập đến kiểm thử tích hợp đầu cuối
+- level1: Chiến lược kiểm thử
+  level2:
+  - Xác định chính sách bảo mật cần chứng minh trước khi chọn công cụ
+  - Phân biệt kiểm thử đơn vị, kiểm thử theo lát cắt, tích hợp và đầu cuối
+  - Lập ma trận tài nguyên, hành động, danh tính và quyền
+  - Ca chưa đăng nhập, đủ quyền, thiếu quyền và thông tin xác thực sai
+  - Chọn giả lập ở lớp phụ thuộc mà không bỏ qua lớp đang kiểm tra
+  - Phân biệt kiểm thử chính sách phân quyền với kiểm thử cơ chế xác thực
+  - Kết hợp khẳng định trạng thái, nội dung, header và trạng thái bảo mật
+  - Kiểm tra tác dụng phụ không xảy ra khi truy cập bị từ chối
+  - Ca biên theo chủ sở hữu, tenant và trạng thái tài nguyên
+  - Bằng chứng cần có để tránh kết quả đạt do cấu hình bị vô hiệu hóa
+  - Giới hạn của kiểm thử ứng dụng so với đánh giá bảo mật tổng thể
+- level1: Phụ thuộc và phiên bản
+  level2:
+  - Vai trò của spring-security-test, spring-test và bộ chạy kiểm thử
+  - Khai báo phụ thuộc kiểm thử bằng Maven hoặc Gradle
+  - Giữ phiên bản Spring Security Test phù hợp với runtime
+  - Chọn tài liệu theo Spring Boot, Spring Framework và Spring Security
+  - JUnit Jupiter, SpringExtension và TestContext Framework
+  - Phân biệt static import của Servlet với Reactive
+  - '@MockBean, @SpyBean và các API thay thế theo thế hệ Spring'
+  - '@MockitoBean và @MockitoSpyBean khi phiên bản hỗ trợ'
+  - Phụ thuộc bổ sung cho Reactor Test và kiểm thử WebFlux
+  - Nhận diện cấu hình hoặc annotation cũ trước khi sao chép ví dụ
+  - Không trộn mô hình SecurityFilterChain với cấu hình legacy không tương thích
+- level1: Ngữ cảnh và vòng đời
+  level2:
+  - SecurityContextHolder và phạm vi ngữ cảnh trên luồng kiểm thử
+  - TestSecurityContextHolder và vai trò trong kiểm thử web giả lập
+  - WithSecurityContextTestExecutionListener thiết lập và dọn ngữ cảnh
+  - Thời điểm TEST_METHOD so với TEST_EXECUTION
+  - Quan hệ giữa khởi tạo danh tính với @BeforeEach
+  - '@SecurityTestExecutionListeners trong phạm vi phù hợp'
+  - Ngữ cảnh trống khác với AnonymousAuthenticationToken
+  - Authentication.isAuthenticated khác với quyền thực hiện một hành động
+  - Dọn ngữ cảnh sau test để tránh rò rỉ danh tính
+  - Ngữ cảnh luồng test không tự đi qua HTTP đến máy chủ chạy thật
+  - Phân biệt ngữ cảnh giả lập với dữ liệu được lưu qua nhiều request
+  - Giữ vòng đời SecurityContext độc lập với dữ liệu nghiệp vụ của test
+- level1: Annotation người dùng
+  level2:
+  - '@WithMockUser ở phương thức và ở lớp kiểm thử'
+  - Tên người dùng, mật khẩu giả lập và kiểu principal mặc định
+  - roles và tiền tố ROLE_ được bổ sung theo quy ước
+  - authorities và tên quyền tường minh
+  - Phân biệt ROLE_* với SCOPE_* trong điều kiện phân quyền
+  - '@WithAnonymousUser để thay thế mặc định của lớp'
+  - '@WithUserDetails và UserDetailsService thật trong context kiểm thử'
+  - Chọn UserDetailsService theo tên bean khi có nhiều bean
+  - Điều kiện tồn tại người dùng trước khi annotation được xử lý
+  - Principal tùy chỉnh và giới hạn của @WithMockUser
+  - setupBefore khi dữ liệu người dùng được tạo trong bước chuẩn bị
+  - Annotation tổng hợp để dùng lại một danh tính kiểm thử
+  - Giới hạn của annotation người dùng đối với đăng nhập, mật khẩu và token thật
+- level1: SecurityContext tùy biến
+  level2:
+  - '@WithSecurityContext và hợp đồng của WithSecurityContextFactory'
+  - Tạo principal có trường miền như userId hoặc tenantId
+  - Tạo Authentication đúng loại mà ứng dụng mong đợi
+  - Gán authorities rõ ràng theo chính sách kiểm thử
+  - Tạo SecurityContext mới cho từng ca thay vì sửa đối tượng dùng chung
+  - Tiêm bean cần thiết vào factory thông qua Spring
+  - Tham số hóa annotation cho nhiều vai trò hoặc tenant
+  - Chọn thời điểm thiết lập context phù hợp dữ liệu kiểm thử
+  - Giữ factory đơn giản và tránh truy cập hệ thống bên ngoài ngoài ý muốn
+  - Kiểm thử chính factory để tránh danh tính giả lập không hợp lệ
+  - Phân biệt danh tính được giả lập với bước chuyển đổi danh tính ở runtime
+- level1: Bảo mật phương thức
+  level2:
+  - Bật method security bằng cơ chế của phiên bản mục tiêu
+  - Gọi Spring bean có proxy để đi qua lớp kiểm tra quyền
+  - Kiểm tra @PreAuthorize với vai trò, authority và tham số phương thức
+  - Kiểm tra @PostAuthorize theo đối tượng trả về
+  - '@PreFilter, @PostFilter và dữ liệu được giữ hoặc loại bỏ'
+  - '@Secured và @RolesAllowed khi được cấu hình hỗ trợ'
+  - Biểu thức SpEL, tên tham số và tùy chọn biên dịch -parameters
+  - Quyền theo chủ sở hữu, bean hỗ trợ hoặc PermissionEvaluator
+  - Ngoại lệ khi thiếu Authentication hoặc không đủ quyền
+  - Tự gọi phương thức trong cùng đối tượng và giới hạn của proxy
+  - Không mock chính phương thức đang cần kiểm tra phân quyền
+  - Xác minh nghiệp vụ chưa được thực hiện khi kiểm tra trước bị từ chối
+  - Kiểm tra tác dụng phụ có thể đã xảy ra trước khi @PostAuthorize từ chối
+- level1: Kiểm thử thành phần
+  level2:
+  - AuthenticationProvider với thông tin xác thực hợp lệ và không hợp lệ
+  - AuthenticationManager và cơ chế chọn provider phù hợp
+  - UserDetailsService với tài khoản tồn tại, thiếu hoặc bị vô hiệu hóa
+  - PasswordEncoder và kiểm tra mật khẩu mà không so khớp chuỗi hash cố định
+  - AuthorizationManager với yêu cầu được phép và bị từ chối
+  - Bộ chuyển đổi Authentication hoặc authorities từ dữ liệu đầu vào
+  - AuthenticationEntryPoint và phản hồi chưa xác thực
+  - AccessDeniedHandler và phản hồi không đủ quyền
+  - AuthenticationSuccessHandler và AuthenticationFailureHandler
+  - Bộ xử lý đăng xuất và dữ liệu cần dọn
+  - JwtAuthenticationConverter hoặc bộ chuyển đổi quyền tùy chỉnh
+  - Đối chiếu unit test với ít nhất một ca đi qua cấu hình tích hợp thực
+- level1: Thiết lập MockMvc
+  level2:
+  - MockMvc và giới hạn của việc không chạy máy chủ HTTP thật
+  - webAppContextSetup và standaloneSetup khác nhau về phạm vi cấu hình
+  - Nạp SecurityFilterChain cùng FilterChainProxy vào context kiểm thử
+  - SecurityMockMvcConfigurers.springSecurity để kết nối hạ tầng kiểm thử
+  - Vai trò của bộ xử lý TestSecurityContextHolder trong request
+  - '@WebMvcTest và những bean bảo mật cần đưa vào lát cắt'
+  - '@SpringBootTest kết hợp @AutoConfigureMockMvc'
+  - '@Import cấu hình kiểm thử mà không thay chính sách cần xác minh'
+  - defaultRequest và nguy cơ đặt sẵn danh tính cho mọi request
+  - addFilters=false và lý do có thể làm kiểm thử phân quyền đạt sai
+  - Phát hiện filter được gắn hai lần hoặc cấu hình thiếu filter
+  - Xác minh một request thực sự đi qua chuỗi bảo mật mong đợi
+- level1: Danh tính trên yêu cầu
+  level2:
+  - SecurityMockMvcRequestPostProcessors và phạm vi tác động
+  - user với tên người dùng, mật khẩu giả lập và vai trò
+  - user với UserDetails tùy chỉnh
+  - anonymous để biểu diễn request chưa đăng nhập theo cơ chế anonymous
+  - authentication với một Authentication cụ thể
+  - securityContext với toàn bộ ngữ cảnh đã chuẩn bị
+  - Kết hợp annotation người dùng và request post-processor có chủ ý
+  - Danh tính mặc định khác với danh tính riêng của một request
+  - Giữ đúng kiểu principal cho @AuthenticationPrincipal
+  - Danh tính của request hiện tại khác với phiên đăng nhập đã được lưu
+  - Tạo post-processor riêng cho quy ước kiểm thử ứng dụng
+  - Không suy ra cơ chế xác thực đã hoạt động chỉ vì controller nhận được principal
+- level1: Khẳng định kết quả
+  level2:
+  - SecurityMockMvcResultMatchers và kết quả bảo mật sau request
+  - authenticated để kiểm tra sự hiện diện của người dùng đã xác thực
+  - withUsername, withRoles và kiểm tra authorities theo API phù hợp
+  - withAuthentication để kiểm tra loại token hoặc principal cụ thể
+  - unauthenticated sau đăng nhập sai hoặc đăng xuất
+  - HTTP 401, 403 và chuyển hướng đăng nhập theo cấu hình ứng dụng
+  - Khẳng định Location, WWW-Authenticate và nội dung lỗi
+  - Phân biệt người dùng vẫn xác thực nhưng bị cấm truy cập
+  - Kiểm tra phản hồi không lộ dữ liệu tài nguyên bị bảo vệ
+  - Xác minh trạng thái phiên, cookie hoặc repository khi cần
+  - Tránh chỉ kiểm tra status mà bỏ qua nhánh nghiệp vụ thực sự chạy
+- level1: Đăng nhập qua HTTP
+  level2:
+  - httpBasic tạo header xác thực cho request MockMvc
+  - Thông tin đúng, sai và không có thông tin xác thực
+  - formLogin và đường dẫn xử lý đăng nhập của ứng dụng
+  - Tên trường người dùng, mật khẩu và cấu hình form tùy chỉnh
+  - Mã trạng thái, chuyển hướng và kết quả Authentication sau đăng nhập
+  - Tài khoản bị khóa, hết hạn hoặc bị vô hiệu hóa
+  - Đăng nhập thành công khác với đăng nhập thất bại nhưng vẫn có phiên cũ
+  - Request cache và quay lại tài nguyên ban đầu theo cấu hình
+  - Remember-me và phạm vi cần kiểm tra bằng cookie thật
+  - Kiểm tra bằng header hoặc form thực thay vì đưa sẵn người dùng vào context
+  - Giữ bảo mật filter chain khi mock kho người dùng hoặc dịch vụ bên ngoài
+  - Không dùng dữ liệu xác thực thật của môi trường triển khai trong bộ kiểm thử
+- level1: Phân quyền HTTP
+  level2:
+  - Ma trận endpoint, HTTP method và danh tính
+  - Tài nguyên công khai, tài nguyên cần đăng nhập và tài nguyên theo quyền
+  - hasRole, hasAuthority và quy ước tiền tố
+  - Quyền theo chủ sở hữu hoặc tenant trong tầng HTTP và nghiệp vụ
+  - Cùng đường dẫn nhưng khác HTTP method có thể có chính sách khác nhau
+  - RequestMatcher, context path và servlet path trong ca kiểm thử
+  - Thứ tự rule và chính sách mặc định cho request không khớp
+  - Nhiều SecurityFilterChain và lựa chọn chuỗi theo securityMatcher
+  - Phát hiện endpoint lọt ra ngoài mọi chuỗi bảo mật
+  - Ca đổi định danh tài nguyên để kiểm tra truy cập ngang quyền
+  - Dispatch thông thường, lỗi hoặc bất đồng bộ khi ứng dụng có chính sách riêng
+  - Phân biệt lỗi phân quyền với lỗi routing, binding hoặc validation
+  - Xác minh không đọc hoặc ghi tài nguyên trái phép dù status đã đúng
+- level1: CSRF
+  level2:
+  - Xác định request cần được bảo vệ theo cấu hình thực tế
+  - Ca không có token, token hợp lệ và token không hợp lệ
+  - csrf làm RequestPostProcessor cho MockMvc
+  - Truyền CSRF token qua tham số hoặc header
+  - useInvalidToken để kiểm tra nhánh từ chối trong MockMvc
+  - Kết hợp CSRF với người dùng có và không có quyền
+  - Phân biệt lỗi CSRF với lỗi xác thực hoặc phân quyền
+  - Các endpoint được miễn CSRF và giới hạn của ngoại lệ
+  - Token repository, cookie và phiên cần kiểm tra khi dùng cơ chế thật
+  - Lấy token qua request thật để kiểm tra vòng đời phát và gửi lại
+  - CSRF trì hoãn hoặc mã hóa token theo phiên bản và cấu hình
+  - Không tắt CSRF chỉ để làm một bài kiểm thử đi qua
+- level1: CORS và header bảo vệ
+  level2:
+  - Yêu cầu Origin và chính sách nguồn được phép
+  - Preflight với OPTIONS, Access-Control-Request-Method và header yêu cầu
+  - Nguồn, phương thức hoặc header không được phép
+  - Access-Control-Allow-Origin và các header phản hồi cần đối chiếu
+  - Credentials và điều kiện cấu hình khi dùng cookie
+  - CORS cần được kiểm tra cùng thứ tự filter thực tế
+  - Giới hạn của MockMvc hoặc WebTestClient so với thực thi chính sách trong trình duyệt
+  - Kiểm tra header bảo vệ theo chính sách đã cấu hình
+  - HSTS trong ngữ cảnh request bảo mật
+  - CSP, chống nhúng khung và các tùy biến của ứng dụng
+  - Đối chiếu header trên phản hồi thành công, lỗi và chuyển hướng
+  - Phân biệt quyền đọc phản hồi từ trình duyệt với quyền gọi API trên máy chủ
+- level1: Phiên và đăng xuất
+  level2:
+  - SecurityContextRepository và việc lưu ngữ cảnh giữa các request
+  - Dùng MockHttpSession để kiểm tra tiếp nối phiên Servlet
+  - Đăng nhập rồi truy cập tài nguyên bằng cùng phiên
+  - Tách hai phiên hoặc hai người dùng trong cùng ca kiểm thử
+  - Session fixation và thay đổi mã phiên theo chiến lược đã chọn
+  - Chính sách tạo phiên trong ứng dụng stateful hoặc stateless
+  - logout với URL, HTTP method và CSRF đúng cấu hình
+  - Kiểm tra xóa Authentication, vô hiệu phiên và xử lý cookie
+  - Gọi lại tài nguyên sau đăng xuất để xác minh bị từ chối
+  - Remember-me sau đăng xuất hoặc sau khi phiên hết hạn
+  - Số phiên đồng thời và phiên bị hết hiệu lực khi ứng dụng dùng chức năng này
+  - Giới hạn của gắn sẵn SecurityContext khi cần chứng minh trạng thái đã được lưu
+- level1: JWT với MockMvc
+  level2:
+  - jwt tạo Authentication cho kiểm thử phân quyền resource server
+  - Tùy chỉnh subject, header và claims trong Jwt giả lập
+  - scope, scp và ánh xạ mặc định thành authorities
+  - Gán authorities tường minh cho từng ca kiểm thử
+  - Giả lập JwtAuthenticationToken và principal đúng kiểu
+  - Controller đọc Jwt qua @AuthenticationPrincipal
+  - Kiểm tra claim nghiệp vụ như tenantId hoặc userId
+  - Khi gán quyền trực tiếp làm bỏ qua bộ chuyển đổi quyền của ứng dụng
+  - Gọi bộ chuyển đổi quyền thật để kiểm tra quy tắc ánh xạ riêng
+  - Mock JwtDecoder để đi qua bước lấy bearer token nhưng kiểm soát kết quả giải mã
+  - Kiểm tra token bị từ chối khi decoder trả lỗi
+  - Phân biệt jwt helper, decoder giả lập và token được xác minh mật mã
+  - Không dùng một Jwt giả lập để kết luận chữ ký hoặc hạn token đã được kiểm tra
+- level1: JWT và token thực
+  level2:
+  - Gửi Authorization Bearer thật qua chuỗi filter
+  - Dùng khóa kiểm thử độc lập để ký và kiểm tra token
+  - Chữ ký sai, khóa không phù hợp và thuật toán không được chấp nhận
+  - Issuer hợp lệ hoặc không khớp
+  - Audience theo validator mà ứng dụng thực sự cấu hình
+  - exp, nbf và khoảng lệch thời gian cho phép
+  - Thay thế nguồn thời gian hoặc dữ liệu thời gian để kiểm thử ổn định
+  - Claim thiếu, kiểu claim sai và token không đúng cấu trúc
+  - JWK Set, lựa chọn kid và thay khóa trong hạ tầng kiểm thử
+  - Tách lỗi tải khóa từ xa với lỗi giá trị token
+  - Giữ bộ chuyển đổi authorities và validator thật trong kiểm thử tích hợp
+  - Giới hạn cache khóa và phụ thuộc mạng trong ca xoay khóa
+  - Xác minh cả phản hồi từ chối và việc nghiệp vụ không được gọi
+- level1: Opaque token
+  level2:
+  - opaqueToken tạo BearerTokenAuthentication cho MockMvc
+  - Tùy chỉnh principal, attributes và authorities
+  - Kiểm tra quyền và truy cập token attributes ở controller
+  - Giới hạn của helper không gọi introspection endpoint
+  - Mock OpaqueTokenIntrospector để kiểm soát kết quả và lỗi
+  - Gửi bearer token thật khi cần kiểm tra đường đi qua introspector
+  - Phản hồi active=false, thiếu scope hoặc thiếu dữ liệu cần thiết
+  - Timeout, lỗi HTTP và phản hồi introspection không hợp lệ
+  - Ánh xạ attributes thành quyền theo cấu hình ứng dụng
+  - Không suy ra introspection thật đã hoạt động từ một principal giả lập
+- level1: Đăng nhập OAuth2 và OIDC
+  level2:
+  - oauth2Login trong MockMvc và principal OAuth2User
+  - oidcLogin trong MockMvc và principal OidcUser
+  - Tùy chỉnh attributes, authorities và thuộc tính định danh
+  - OidcIdToken, OidcUserInfo và nguồn lấy từng claim
+  - Tùy chỉnh ClientRegistration cho ngữ cảnh đăng nhập
+  - Đối tượng OAuth2AuthenticationToken và tên registration
+  - Principal tùy chỉnh trong ứng dụng
+  - Kiểm tra @AuthenticationPrincipal với đúng kiểu người dùng
+  - Vai trò của OAuth2AuthorizedClient được chuẩn bị trong kiểm thử
+  - Giới hạn của helper không chạy redirect, đổi code hoặc xác minh ID token thật
+  - Tách kiểm thử phân quyền sau đăng nhập khỏi kiểm thử giao thức đăng nhập
+  - Không dùng @WithMockUser thay cho OidcUser khi mã ứng dụng cần claim OIDC
+- level1: Ứng dụng khách OAuth2
+  level2:
+  - oauth2Client trong MockMvc và OAuth2AuthorizedClient
+  - registrationId, principalName và client registration
+  - Access token, scope và thời điểm hết hạn trong dữ liệu giả lập
+  - '@RegisteredOAuth2AuthorizedClient trong controller'
+  - Repository hoặc service lưu authorized client
+  - Mock OAuth2AuthorizedClientManager khi cần cô lập việc cấp token
+  - Kiểm thử lớp gọi dịch vụ ngoài sử dụng authorized client
+  - Xác minh Authorization header trên yêu cầu gửi đi
+  - Gia hạn, hết hạn và lỗi lấy token theo cơ chế đang dùng
+  - Không coi client giả lập là bằng chứng token endpoint đã được gọi đúng
+  - Tách biệt dữ liệu authorized client giữa người dùng hoặc phiên
+- level1: Luồng OAuth2 thực
+  level2:
+  - Xác định ranh giới kiểm thử giữa client, authorization server và resource server
+  - Dùng endpoint giao thức trong hạ tầng kiểm thử do bộ test kiểm soát
+  - Kiểm tra yêu cầu chuyển hướng với client_id, redirect_uri, scope và state
+  - Liên kết state với phiên và từ chối callback không khớp
+  - Đổi authorization code lấy token và kiểm tra yêu cầu gửi đến token endpoint
+  - PKCE khi luồng của ứng dụng yêu cầu
+  - OIDC nonce, issuer và kiểm tra ID token theo cấu hình thật
+  - Lỗi consent, code không hợp lệ, callback lặp hoặc token endpoint thất bại
+  - Không thay cấu hình production chỉ để thuận tiện cho test
+  - Phân biệt kiểm thử ứng dụng OAuth2 với chứng nhận tuân thủ toàn bộ giao thức
+  - Giới hạn và dữ liệu độc lập khi kiểm thử một authorization server
+- level1: Thiết lập WebTestClient
+  level2:
+  - WebTestClient với máy chủ giả lập khác với kết nối HTTP thật
+  - bindToApplicationContext và cấu hình WebFlux kiểm thử
+  - SecurityWebFilterChain và hạ tầng bảo mật Reactive
+  - SecurityMockServerConfigurers.springSecurity để gắn hỗ trợ kiểm thử
+  - '@WebFluxTest và các bean bảo mật cần đưa vào lát cắt'
+  - '@SpringBootTest kết hợp WebTestClient theo phạm vi mục tiêu'
+  - mutateWith và cấu hình danh tính cho từng ca
+  - Không dùng post-processor Servlet cho request WebFlux
+  - Phân biệt client tùy biến cho một test với client dùng chung
+  - Kiểm tra WebFilter bảo mật thật sự nằm trong đường xử lý
+  - Giới hạn mutator giả lập đối với máy chủ chạy ngoài tiến trình test
+  - Gửi header hoặc cookie thực khi cần kiểm thử HTTP qua mạng
+- level1: Danh tính Reactive
+  level2:
+  - mockUser với tên, vai trò hoặc UserDetails
+  - mockAuthentication với loại Authentication riêng
+  - '@WithMockUser trong bộ test có hạ tầng Reactive phù hợp'
+  - ReactiveSecurityContextHolder và Reactor Context
+  - Phân biệt ngữ cảnh phản ứng với SecurityContextHolder của luồng test
+  - Các ca anonymous, không có danh tính và thiếu quyền theo chính sách ứng dụng
+  - Phân quyền theo path, method và thông tin chủ sở hữu
+  - Kiểm tra phản hồi 401, 403 hoặc chuyển hướng phù hợp cấu hình
+  - Giữ danh tính độc lập giữa các request được tạo từ client
+  - Kiểm tra principal và authorities mà handler Reactive quan sát
+  - Giới hạn của danh tính giả lập đối với cơ chế xác thực thực tế
+- level1: OAuth2 Reactive
+  level2:
+  - mockJwt để kiểm tra phân quyền bằng JWT giả lập
+  - Tùy chỉnh claims và authorities trong mockJwt
+  - ReactiveJwtDecoder giả lập so với decoder thật
+  - mockOpaqueToken và attributes của principal
+  - ReactiveOpaqueTokenIntrospector với kết quả hoặc lỗi kiểm soát được
+  - mockOAuth2Login và OAuth2User
+  - mockOidcLogin và OidcUser với ID token hoặc user info
+  - mockOAuth2Client với authorized client theo registrationId
+  - Kiểm tra người dùng hoặc authorized client được phương thức xử lý nhận
+  - SecurityMockServerConfigurers.csrf cho request WebFlux được bảo vệ
+  - Kiểm tra token thiếu hoặc sai bằng request thực theo cấu hình ứng dụng
+  - Tách các helper Reactive khỏi API có tên gần giống của MockMvc
+  - Bổ sung ca xác thực thật để kiểm tra bước mà mutator đã giả lập
+- level1: Phương thức Reactive
+  level2:
+  - Bật reactive method security đúng cấu hình mục tiêu
+  - Gọi bean có proxy trả về Mono hoặc Flux
+  - ReactorContextTestExecutionListener và ngữ cảnh bảo mật cho phương thức
+  - Kiểm tra với @WithMockUser và authorities cần thiết
+  - StepVerifier cho kết quả được phép và lỗi từ chối
+  - Quyền theo dữ liệu trả về hoặc tham số khi cơ chế đó được hỗ trợ
+  - Kiểm tra sau subscribe thay vì chỉ tạo một Publisher
+  - Giữ Reactor Context khi chuyển scheduler
+  - Ngữ cảnh danh tính được đặt tường minh trong pipeline kiểm thử
+  - Phân biệt bảo mật phương thức Reactive với filter của WebFlux
+  - Không giả định mọi annotation Servlet đều áp dụng giống hệt trong Reactive
+- level1: Filter và cơ chế tùy biến
+  level2:
+  - Unit test một filter với request, response và chuỗi xử lý được kiểm soát
+  - Kiểm thử tích hợp để xác nhận vị trí filter trong SecurityFilterChain
+  - Bộ lọc lấy token từ header, cookie hoặc nguồn tùy chỉnh
+  - Converter, AuthenticationManager và provider được filter sử dụng
+  - Kiểm tra gọi tiếp chuỗi đúng một lần hoặc dừng đúng điều kiện
+  - Dọn SecurityContext khi xác thực thất bại
+  - ExceptionTranslationFilter và phạm vi chuyển lỗi sang phản hồi
+  - Filter chạy theo dispatcher hoặc nhiều lần trên một request
+  - WebFilter và cơ chế xác thực tùy biến trong Reactive
+  - Không gắn filter hai lần khi dùng cấu hình tự động và đăng ký thủ công
+  - Kiểm tra thứ tự chuỗi bảo mật cùng @Order và matcher
+  - Tách lỗi trong filter khỏi lỗi controller hoặc dịch vụ được bảo vệ
+- level1: Bất đồng bộ và ngữ cảnh
+  level2:
+  - ThreadLocal không tự truyền danh tính sang mọi luồng khác
+  - Executor, CompletableFuture và phạm vi cần kiểm tra riêng
+  - DelegatingSecurityContextRunnable hoặc Callable theo cơ chế đang dùng
+  - DelegatingSecurityContextExecutor và bộ thực thi được bảo vệ
+  - Không rò rỉ người dùng giữa các tác vụ dùng lại cùng worker
+  - Kiểm tra ngữ cảnh được khôi phục sau tác vụ thành công hoặc thất bại
+  - MockMvc async dispatch và các lần xử lý tiếp theo
+  - Reactor Context khác với cơ chế kế thừa ThreadLocal
+  - Chờ kết quả có điều kiện và giới hạn thời gian của ca kiểm thử
+  - Virtual time cho timer Reactor khác với Clock dùng để xác minh hạn token
+  - Tránh một test đạt chỉ vì nhánh bất đồng bộ chưa được thực thi
+- level1: Dữ liệu và cô lập
+  level2:
+  - Người dùng, vai trò, tenant và tài nguyên kiểm thử có định danh rõ ràng
+  - Tạo dữ liệu trước đúng thời điểm @WithUserDetails được xử lý
+  - Khóa, token, phiên và cookie riêng cho từng ca cần độc lập
+  - Test factory cho UserDetails, Jwt, OidcUser và dữ liệu miền
+  - Giữ dữ liệu giả lập giống hợp đồng mà runtime thực sự sử dụng
+  - Dọn dữ liệu lưu phiên, authorized client và remember-me
+  - Không chia sẻ Authentication hoặc đối tượng principal khả biến giữa các test
+  - Kiểm tra truy cập tài nguyên của người dùng hoặc tenant khác
+  - Transaction của luồng test khác với transaction của request HTTP thật
+  - Kho dữ liệu thật trong môi trường kiểm thử khi hành vi truy vấn ảnh hưởng quyền
+  - Lựa chọn reset dữ liệu hoặc tạo context mới theo ranh giới cần cô lập
+  - Tránh phụ thuộc thứ tự chạy và trạng thái còn lại từ ca trước
+- level1: Tích hợp đầu cuối
+  level2:
+  - '@SpringBootTest với máy chủ chạy trên cổng ngẫu nhiên'
+  - Gửi thông tin xác thực thật qua HTTP thay vì chỉ đặt SecurityContext của test
+  - Đăng nhập, nhận phiên hoặc token rồi truy cập tài nguyên
+  - Kết hợp kiểm tra tầng HTTP với tác dụng phụ trong kho dữ liệu
+  - Ứng dụng resource server xác minh token bằng thành phần thật
+  - Client OAuth2 dùng endpoint kiểm thử cục bộ có hợp đồng kiểm soát được
+  - Proxy, HTTPS, cookie và chuyển hướng trong môi trường gần triển khai
+  - Đối chiếu phản hồi phía máy khách với sự kiện hoặc trạng thái phía máy chủ
+  - Giữ một tập ca đại diện để kiểm tra kết nối giữa các tầng đã được unit test
+  - Phân biệt lỗi ứng dụng với lỗi hạ tầng ngoài phạm vi bộ kiểm thử
+- level1: Cơ chế chuyên biệt
+  level2:
+  - Xác thực LDAP với dữ liệu và máy chủ kiểm thử độc lập
+  - X.509 với thuộc tính chứng thư trong request và giới hạn giả lập đó
+  - SAML2 với Authentication tùy chỉnh cho ca phân quyền sau đăng nhập
+  - Kiểm tra luồng SAML2, chữ ký và điều kiện assertion bằng thành phần thật khi cần
+  - Remember-me với phát hành, gửi lại và vô hiệu token
+  - API key hoặc cơ chế tùy chỉnh qua filter thật của ứng dụng
+  - Nhiều yếu tố xác thực khi phiên bản và cấu hình cung cấp khả năng tương ứng
+  - Chọn principal đúng kiểu mà cơ chế xác thực thực tế tạo ra
+  - Đối chiếu helper sẵn có trước khi mô phỏng một cơ chế chuyên biệt
+  - Ghi rõ phần được giả lập và phần giao thức cần kiểm tra riêng
+- level1: Bộ kiểm thử và CI
+  level2:
+  - Tổ chức test theo chính sách bảo mật và ranh giới hệ thống
+  - Parameterized test cho ma trận vai trò, endpoint và HTTP method
+  - Tên test mô tả danh tính, hành động và quyết định mong đợi
+  - Ưu tiên ca phủ định bên cạnh ca truy cập thành công
+  - Phát hiện cấu hình permitAll hoặc thiếu filter làm kết quả đạt sai
+  - Tách bộ test nhanh khỏi kiểm thử tích hợp có phụ thuộc hạ tầng
+  - Context cache và tác động của cấu hình mock khác nhau
+  - Chỉ dùng @DirtiesContext khi cần cô lập thay đổi context thực sự
+  - Dữ liệu ngẫu nhiên có thể tái hiện và kiểm soát thời gian
+  - Chạy song song mà không dùng chung phiên, cổng hoặc dữ liệu khả biến
+  - Thu thập log chẩn đoán có che token, cookie và thông tin xác thực
+  - Độ bao phủ mã không tự chứng minh đủ độ bao phủ chính sách
+  - Phát hiện test không có khẳng định hoặc chỉ kiểm tra dữ liệu tự giả lập
+  - Giữ môi trường CI độc lập với tài khoản và dịch vụ production
+- level1: Di chuyển và nâng cấp
+  level2:
+  - Lập danh sách chính sách và hành vi bảo mật cần bảo toàn khi nâng phiên bản
+  - Đồng bộ phiên bản Spring Boot, Spring Framework và Spring Security Test
+  - Đổi namespace javax sang jakarta theo thế hệ ứng dụng
+  - Chuyển cấu hình bảo mật legacy sang bean SecurityFilterChain khi phù hợp
+  - Đối chiếu matcher và cách xử lý đường dẫn sau nâng cấp
+  - Kiểm tra thay đổi mặc định về lưu SecurityContext, CSRF hoặc phiên
+  - Chuyển @MockBean, @SpyBean sang API mới khi nhánh mục tiêu yêu cầu
+  - Kiểm tra package và cấu hình test slice theo phiên bản Spring Boot
+  - Đối chiếu helper Servlet và Reactive với Javadoc đúng nhánh
+  - Chạy lại ca xác thực thật cùng ma trận phân quyền sau chuyển đổi
+  - Không cập nhật kết quả mong đợi chỉ để che một thay đổi chính sách ngoài ý muốn
+- level1: Chẩn đoán sự cố
+  level2:
+  - '@WithMockUser không có tác dụng vì test listener hoặc context chưa được nạp'
+  - Principal sai kiểu khi dùng người dùng thông thường cho controller OAuth2
+  - UserDetails không tồn tại ở thời điểm annotation được xử lý
+  - Nhầm roles với authorities hoặc lặp tiền tố ROLE_
+  - 403 do CSRF nhưng bị hiểu là lỗi phân quyền
+  - 302 đến trang đăng nhập nhưng test lại mặc định chờ 401
+  - Endpoint trả 200 vì filter bị tắt, matcher bỏ sót hoặc cấu hình permitAll
+  - Method security không chạy do gọi đối tượng không qua proxy
+  - MockMvc standalone thiếu hạ tầng bảo mật cần thiết
+  - jwt helper làm test đạt dù decoder hoặc converter thật vẫn sai
+  - Mutator WebTestClient không áp dụng cho request HTTP thật
+  - Reactive test chưa subscribe hoặc thiếu Reactor Context
+  - SecurityContext bị rò rỉ giữa test, luồng hoặc tác vụ
+  - Token hết hạn, clock skew hoặc cache khóa làm test không ổn định
+  - Thu hẹp lỗi bằng chuỗi filter được chọn, danh tính thực và lớp phát sinh quyết định
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập ma trận quyền cho API có người dùng thường, quản trị và truy cập ẩn danh
+  - Kiểm thử một service có @PreAuthorize theo chủ sở hữu tài nguyên
+  - Tạo annotation người dùng miền bằng @WithSecurityContext
+  - Kiểm thử form login, giữ phiên rồi logout và gọi lại tài nguyên
+  - Xây bộ ca CSRF đủ token hợp lệ, thiếu và không hợp lệ
+  - Kiểm tra CORS preflight cùng các header bảo vệ của ứng dụng
+  - Kiểm thử JWT bằng helper rồi bổ sung ca token ký thật
+  - Kiểm thử introspection thành công, token không active và lỗi dịch vụ
+  - Kiểm thử principal OIDC có claim phục vụ quy tắc nghiệp vụ
+  - Chuyển ma trận kiểm thử từ MockMvc sang WebTestClient đúng API
+  - Kiểm tra danh tính trong một tác vụ bất đồng bộ hoặc pipeline Reactive
+  - Đưa vào một cấu hình sai có chủ ý để xác nhận bộ test phát hiện được
+  - Bài tập tổng hợp từ chính sách bảo mật đến bằng chứng tự động có giới hạn rõ ràng

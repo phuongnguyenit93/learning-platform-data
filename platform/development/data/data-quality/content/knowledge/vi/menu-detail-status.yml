@@ -1,0 +1,3034 @@
+menu:
+- slug: foundation
+  title: Nền tảng
+  childs:
+  - slug: foundation-001
+    title: Chất lượng dữ liệu là gì và vì sao phải phù hợp mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-002
+    title: Dữ liệu kém chất lượng ảnh hưởng thế nào đến nghiệp vụ và hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-003
+    title: Vòng đời chất lượng từ thu thập đến khai thác dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-004
+    title: Các chiều chất lượng và mối quan hệ giữa chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-005
+    title: Phân biệt tính hợp lệ, tính chính xác và tính đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-006
+    title: Phân biệt chất lượng dữ liệu, ngữ nghĩa dữ liệu và hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-007
+    title: 'Đơn vị đánh giá: trường, bản ghi, thực thể và tập dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-008
+    title: Chất lượng tại nguồn và chất lượng sau biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-009
+    title: Phát hiện, ngăn ngừa và khắc phục lỗi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-010
+    title: Các thuật ngữ cốt lõi và trình tự học Data Quality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evaluation-context
+  title: Ngữ cảnh đánh giá
+  childs:
+  - slug: evaluation-context-001
+    title: Xác định người sử dụng dữ liệu và quyết định cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-002
+    title: Chuyển yêu cầu nghiệp vụ thành tiêu chí chất lượng có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-003
+    title: Xác định phạm vi, mức chi tiết và khóa nghiệp vụ của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-004
+    title: Xác định dữ liệu trọng yếu và mức độ ảnh hưởng khi sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-005
+    title: Lựa chọn nguồn đối chiếu và dữ liệu tham chiếu đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-006
+    title: Xác định khoảng thời gian và thời điểm đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-007
+    title: Phân nhóm đánh giá theo nguồn, sản phẩm và khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-008
+    title: Phân biệt lỗi dữ liệu, ngoại lệ nghiệp vụ và trường hợp chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-009
+    title: Thiết lập mức chấp nhận theo rủi ro và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-context-010
+    title: Lập danh mục vấn đề và kế hoạch đánh giá ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-profiling
+  title: Khảo sát dữ liệu
+  childs:
+  - slug: data-profiling-001
+    title: Lập hồ sơ dữ liệu (data profiling) và câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-002
+    title: Khảo sát cấu trúc, kiểu dữ liệu và quy ước biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-003
+    title: Thống kê số dòng, số giá trị khác nhau và tỷ lệ thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-004
+    title: Phân tích miền giá trị, tần suất và các giá trị phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-005
+    title: Khảo sát độ dài, mẫu ký tự và khả năng chuyển đổi kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-006
+    title: Khảo sát giá trị nhỏ nhất, lớn nhất và các phân vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-007
+    title: Phát hiện khóa ứng viên và phụ thuộc giữa các cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-008
+    title: Khảo sát quan hệ liên bảng và bản ghi không có đối tượng tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-009
+    title: Đối chiếu hồ sơ theo phân vùng và nhóm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-010
+    title: Lấy mẫu dữ liệu và giới hạn của kết luận từ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-011
+    title: Xây dựng đường cơ sở (baseline) cho tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-profiling-012
+    title: Lập báo cáo khám phá và ưu tiên vấn đề cần xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement-models
+  title: Mô hình đo lường
+  childs:
+  - slug: measurement-models-001
+    title: Thiết kế chỉ số từ mục tiêu và chiều chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-002
+    title: Xác định tử số, mẫu số và tập bản ghi đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-003
+    title: Phân biệt tỷ lệ bản ghi lỗi và tỷ lệ lần kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-004
+    title: Biểu diễn kết quả đạt, không đạt và không đủ dữ liệu đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-005
+    title: Đo theo ảnh chụp, phân vùng và cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-006
+    title: Tổng hợp chỉ số theo cột, bảng và quy trình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-007
+    title: Phân tích chỉ số theo nhóm để tránh che khuất lỗi cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-008
+    title: Lựa chọn ngưỡng tuyệt đối, ngưỡng tương đối và ngưỡng động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-009
+    title: Đặt mục tiêu mức dịch vụ (SLO) cho chất lượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-010
+    title: Đánh giá độ tin cậy, độ bao phủ và chi phí của phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-models-011
+    title: Lưu lịch sử chỉ số để so sánh các lần đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-rules
+  title: Quy tắc chất lượng
+  childs:
+  - slug: quality-rules-001
+    title: Chuyển tiêu chí nghiệp vụ thành quy tắc kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-002
+    title: Phân loại quy tắc theo trường, bản ghi, tập dữ liệu và quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-003
+    title: Thiết kế điều kiện áp dụng và các ngoại lệ có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-004
+    title: Tách lỗi cấu trúc, lỗi biểu diễn và lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-005
+    title: Xác định mức nghiêm trọng và hành động khi quy tắc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-006
+    title: Thiết kế kết quả kiểm tra gồm mã quy tắc, bằng chứng và phạm vi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-007
+    title: Quản lý quy tắc có tham số và dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-008
+    title: Xử lý giá trị thiếu và trạng thái không xác định trong quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-009
+    title: Phát hiện quy tắc trùng lặp, mâu thuẫn và không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-010
+    title: Đánh giá báo sai và bỏ sót của quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-011
+    title: Phiên bản hóa quy tắc và truy vết thay đổi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-rules-012
+    title: Thiết kế cửa kiểm soát chất lượng (quality gate)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: completeness
+  title: Tính đầy đủ
+  childs:
+  - slug: completeness-001
+    title: Phân biệt thiếu giá trị, thiếu bản ghi và thiếu phạm vi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-002
+    title: Phân biệt null, chuỗi rỗng, khoảng trắng và giá trị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-003
+    title: Xác định trường bắt buộc theo điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-004
+    title: Đo mức đầy đủ ở cấp trường và cấp bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-005
+    title: Đo độ bao phủ theo thời gian, nguồn và nhóm đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-006
+    title: Phát hiện phân vùng thiếu và khoảng trống trong chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-007
+    title: Nhận diện dữ liệu thiếu có hệ thống qua phân tích theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-008
+    title: Đối chiếu số lượng mong đợi với số lượng thực nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-009
+    title: Đánh giá ảnh hưởng của dữ liệu thiếu tới phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completeness-010
+    title: Lựa chọn giữ thiếu, bổ sung hoặc loại bỏ dữ liệu có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validity
+  title: Tính hợp lệ
+  childs:
+  - slug: validity-001
+    title: Kiểm tra kiểu dữ liệu và khả năng chuyển đổi an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-002
+    title: Kiểm tra miền giá trị, khoảng giá trị và tập mã cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-003
+    title: Kiểm tra mẫu ký tự và giới hạn của biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-004
+    title: Kiểm tra độ dài theo ký tự, mã Unicode và byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-005
+    title: Kiểm tra ngày giờ, múi giờ và lịch hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-006
+    title: Kiểm tra số, độ chính xác thập phân và quy tắc làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-007
+    title: Kiểm tra đơn vị đo, tiền tệ và tỷ lệ biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-008
+    title: Kiểm tra quan hệ điều kiện giữa các trường trong một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-009
+    title: Kiểm tra trạng thái và chuyển trạng thái nghiệp vụ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-010
+    title: Phân biệt dữ liệu đọc được và dữ liệu được nghiệp vụ chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validity-011
+    title: Quản lý ngoại lệ hợp lệ mà không nới lỏng toàn bộ quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accuracy
+  title: Tính chính xác
+  childs:
+  - slug: accuracy-001
+    title: Xác định sự thật tham chiếu và giới hạn của việc xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-002
+    title: Đối chiếu với nguồn chuẩn có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-003
+    title: Đánh giá độ mới và độ tin cậy của dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-004
+    title: Đối soát tổng tiền, số lượng và chỉ tiêu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-005
+    title: Kiểm tra độ chính xác qua mẫu được xác minh thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-006
+    title: Đo sai số tuyệt đối, sai số tương đối và mức dung sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-007
+    title: Nhận diện lỗi nhập liệu, lỗi đo lường và lỗi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-008
+    title: Xử lý xung đột giữa nhiều nguồn cùng mô tả một đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-009
+    title: Phân biệt dữ liệu bất thường với dữ liệu sai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accuracy-010
+    title: Biểu diễn kết quả chưa xác minh được tính chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency
+  title: Tính nhất quán
+  childs:
+  - slug: consistency-001
+    title: Nhất quán giữa các trường trong cùng một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-002
+    title: Nhất quán giữa bản ghi chi tiết và dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-003
+    title: Nhất quán giữa các bảng, hệ thống và bản sao dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-004
+    title: Nhất quán về mã định danh và cách biểu diễn đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-005
+    title: Nhất quán về đơn vị đo, tiền tệ và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-006
+    title: Nhất quán theo thời gian và trình tự sự kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-007
+    title: Đối chiếu dữ liệu khi các nguồn cập nhật lệch thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-008
+    title: Phân biệt mâu thuẫn dữ liệu với độ trễ đồng bộ được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-009
+    title: Thiết kế quy tắc đối soát và lưu bằng chứng chênh lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-010
+    title: Giải quyết xung đột dựa trên nguồn ưu tiên và lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: uniqueness
+  title: Tính duy nhất
+  childs:
+  - slug: uniqueness-001
+    title: Xác định đối tượng cần duy nhất và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-002
+    title: Phân biệt khóa kỹ thuật và khóa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-003
+    title: Kiểm tra trùng lặp toàn bộ bản ghi và trùng lặp theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-004
+    title: Kiểm tra tính duy nhất theo khóa ghép và phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-005
+    title: Xử lý khóa thiếu, khóa tái sử dụng và khóa thay đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-006
+    title: Phân biệt bản ghi trùng với nhiều sự kiện hợp lệ của cùng thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-007
+    title: Đo tỷ lệ trùng và số nhóm bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-008
+    title: Nhận diện trùng do gửi lại, đọc lại và nạp dữ liệu chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-009
+    title: Lựa chọn bản ghi đại diện theo quy tắc xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uniqueness-010
+    title: Ngăn ngừa trùng lặp bằng ràng buộc và tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeliness
+  title: Tính kịp thời
+  childs:
+  - slug: timeliness-001
+    title: Phân biệt thời điểm phát sinh, tiếp nhận và xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-002
+    title: Phân biệt độ trễ, độ mới và tần suất cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-003
+    title: Xác định thời hạn sẵn sàng theo nhu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-004
+    title: Đo độ trễ đầu cuối và độ trễ từng công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-005
+    title: Đo độ mới theo bảng, phân vùng và nhóm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-006
+    title: Phát hiện dữ liệu đến muộn, thiếu kỳ và ngừng cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-007
+    title: Xử lý múi giờ, lệch đồng hồ và dấu thời gian không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-008
+    title: Phân biệt dữ liệu đến muộn và dữ liệu phát sinh muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-009
+    title: Đánh giá dữ liệu sửa đổi sau khi kỳ báo cáo đã đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-010
+    title: Thiết lập ngưỡng kịp thời theo lịch làm việc và chu kỳ nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeliness-011
+    title: Theo dõi khả năng đáp ứng thời hạn qua lịch sử vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: referential-integrity
+  title: Toàn vẹn liên kết
+  childs:
+  - slug: referential-integrity-001
+    title: Kiểm tra khóa chính, khóa ngoại và quan hệ tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-002
+    title: Phát hiện bản ghi mồ côi và liên kết bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-003
+    title: Kiểm tra số lượng quan hệ một-một, một-nhiều và nhiều-nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-004
+    title: Kiểm tra phụ thuộc hàm và tổ hợp giá trị không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-005
+    title: Kiểm tra quan hệ cha-con, vòng lặp và độ sâu phân cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-006
+    title: Kiểm tra khoảng hiệu lực và tham chiếu đúng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-007
+    title: Kiểm tra khoảng thời gian chồng lấn và khoảng trống hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-008
+    title: Xử lý tham chiếu đến đối tượng chưa được nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-009
+    title: Đánh giá ảnh hưởng của xóa, gộp và đổi khóa đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: referential-integrity-010
+    title: Đối chiếu ràng buộc cơ sở dữ liệu với kiểm tra chất lượng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-standardization
+  title: Chuẩn hóa dữ liệu
+  childs:
+  - slug: data-standardization-001
+    title: Thiết kế chuỗi làm sạch có thứ tự và có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-002
+    title: Chuẩn hóa khoảng trắng, ký tự điều khiển và ký tự vô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-003
+    title: Chuẩn hóa Unicode và bảo toàn ý nghĩa văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-004
+    title: Chuẩn hóa chữ hoa, chữ thường và quy tắc theo ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-005
+    title: Chuẩn hóa số, dấu phân cách và định dạng theo địa phương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-006
+    title: Chuẩn hóa ngày giờ, múi giờ và độ chính xác thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-007
+    title: Chuẩn hóa đơn vị đo, tiền tệ và quy tắc chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-008
+    title: Chuẩn hóa tập mã và ánh xạ giá trị đồng nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-009
+    title: Chuẩn hóa địa chỉ, số điện thoại và định danh theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-010
+    title: Xử lý giá trị thiếu và giá trị thay thế trong bước làm sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-011
+    title: Kiểm tra tính lũy đẳng, khả năng mất thông tin và lỗi phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-standardization-012
+    title: Giữ dữ liệu gốc và truy vết từng phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: entity-matching
+  title: Đối sánh thực thể
+  childs:
+  - slug: entity-matching-001
+    title: Phân biệt phát hiện trùng bản ghi và đối sánh thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-002
+    title: Lựa chọn thuộc tính và chuẩn bị dữ liệu đối sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-003
+    title: Đối sánh chính xác theo khóa và tổ hợp thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-004
+    title: Đối sánh gần đúng cho tên và chuỗi văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-005
+    title: Kết hợp nhiều tín hiệu thành điểm đối sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-006
+    title: Thu hẹp cặp ứng viên để giảm chi phí so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-007
+    title: Xử lý thuộc tính thiếu, xung đột và thay đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-008
+    title: Đặt ngưỡng tự động ghép, tự động tách và cần xét duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-009
+    title: Đánh giá độ chính xác và độ bao phủ của kết quả đối sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-010
+    title: Gom nhóm thực thể và xử lý liên kết gián tiếp gây ghép sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-011
+    title: Chọn giá trị đại diện khi hợp nhất bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: entity-matching-012
+    title: Lưu lịch sử hợp nhất và hỗ trợ tách lại khi phát hiện sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: anomalous-data
+  title: Dữ liệu bất thường
+  childs:
+  - slug: anomalous-data-001
+    title: Phân biệt ngoại lệ thống kê, ngoại lệ nghiệp vụ và lỗi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-002
+    title: Phát hiện bất thường bằng giới hạn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-003
+    title: Phát hiện bất thường bằng phân vị và khoảng tứ phân vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-004
+    title: Sử dụng điểm chuẩn hóa và độ lệch tuyệt đối trung vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-005
+    title: Phát hiện bất thường theo nhóm đối tượng tương đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-006
+    title: Phát hiện bất thường trong chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-007
+    title: Xử lý mùa vụ, xu hướng và nhóm dữ liệu có ít quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-008
+    title: Nhận diện bất thường từ tổ hợp nhiều thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-009
+    title: Đánh giá báo sai, bỏ sót và mức độ ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anomalous-data-010
+    title: Quyết định cảnh báo, cách ly hay giữ lại dữ liệu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distribution-and-drift
+  title: Phân bố và biến động
+  childs:
+  - slug: distribution-and-drift-001
+    title: Phân tích phân bố số, phân bố phân loại và độ lệch phân bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-002
+    title: Theo dõi biến động số lượng và tỷ lệ dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-003
+    title: Theo dõi thay đổi phân vị, độ phân tán và tần suất giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-004
+    title: Phát hiện giá trị mới, giá trị biến mất và thay đổi độ đa dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-005
+    title: So sánh phân bố giữa nguồn, thời kỳ và nhóm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-006
+    title: Phát hiện dịch chuyển dữ liệu (data drift) so với đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-007
+    title: Phân biệt biến động nghiệp vụ hợp lệ và sự cố chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-008
+    title: Đánh giá ảnh hưởng của cỡ mẫu và cách lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-009
+    title: Kiểm tra độ đại diện và sai lệch do thu thập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-010
+    title: Chọn cửa sổ so sánh và cập nhật đường cơ sở có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-and-drift-011
+    title: Tránh kết luận sai từ chỉ số tổng hợp và thay đổi cơ cấu nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-scoring
+  title: Chấm điểm chất lượng
+  childs:
+  - slug: quality-scoring-001
+    title: Xây dựng bảng điểm theo chiều chất lượng và nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-002
+    title: Chuẩn hóa chỉ số trước khi tổng hợp điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-003
+    title: Lựa chọn trọng số theo độ trọng yếu của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-004
+    title: Tránh tính trùng lỗi giữa nhiều quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-005
+    title: Xử lý chỉ số thiếu, không áp dụng và chưa đủ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-006
+    title: Thiết kế điều kiện bắt buộc vượt lên trên điểm trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-007
+    title: So sánh điểm giữa các kỳ khi tập quy tắc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-008
+    title: Công bố điểm cùng độ bao phủ và bằng chứng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-009
+    title: Phân tích độ nhạy của điểm với ngưỡng và trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-scoring-010
+    title: Đánh giá mức sẵn sàng sử dụng thay vì chỉ tối ưu điểm số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: invalid-data-handling
+  title: Xử lý dữ liệu lỗi
+  childs:
+  - slug: invalid-data-handling-001
+    title: Thiết kế chính sách chấp nhận, cảnh báo, từ chối và cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-002
+    title: Tách lỗi cấp bản ghi khỏi lỗi làm dừng cả tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-003
+    title: Lưu dữ liệu lỗi cùng nguyên nhân và nguồn phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-004
+    title: Thiết kế vùng cách ly và hàng đợi xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-005
+    title: Phân loại lỗi có thể tự sửa và lỗi cần nghiệp vụ xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-006
+    title: Bổ sung giá trị thiếu và đánh giá rủi ro sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-007
+    title: Sửa dữ liệu tại nguồn và đồng bộ xuống các hệ thống sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-008
+    title: Xử lý lại dữ liệu sau khi sửa quy tắc hoặc dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-009
+    title: Nạp bù dữ liệu (backfill) và đối soát sau sửa chữa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-010
+    title: Bảo đảm tính lũy đẳng và không tạo thêm bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-011
+    title: Lưu vết chỉnh sửa và hỗ trợ khôi phục khi sửa sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-data-handling-012
+    title: Xác nhận chất lượng sau xử lý và đóng vòng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batch-controls
+  title: Kiểm soát theo lô
+  childs:
+  - slug: batch-controls-001
+    title: Đặt điểm kiểm tra tại tiếp nhận, vùng tạm và đầu ra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-002
+    title: Kiểm tra tệp, cấu trúc và dấu hiệu lô nạp không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-003
+    title: Đối soát số dòng, tổng kiểm soát và phân vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-004
+    title: Kiểm tra dữ liệu trước và sau các phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-005
+    title: Theo dõi dữ liệu bị mất hoặc nhân lên khi nối và tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-006
+    title: Kiểm soát nạp tăng dần và ranh giới giữa các lần nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-007
+    title: Phát hiện thay đổi cấu trúc và thay đổi ý nghĩa dữ liệu nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-008
+    title: Thiết kế ghi kết quả đồng bộ với trạng thái kiểm tra chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-009
+    title: Xử lý lô thất bại, chạy lại và nạp lại từng phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-010
+    title: Xác minh tính đầy đủ sau khi chạy lại hoặc nạp bù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-controls-011
+    title: Lưu bằng chứng chất lượng cho từng phiên thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stream-controls
+  title: Kiểm soát luồng
+  childs:
+  - slug: stream-controls-001
+    title: Đặc điểm kiểm tra chất lượng trên dữ liệu liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-002
+    title: Kiểm tra chất lượng theo sự kiện và theo cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-003
+    title: Xử lý thời gian sự kiện, thời gian xử lý và mốc chờ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-004
+    title: Đánh giá dữ liệu đến muộn và sự kiện không đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-005
+    title: Khử trùng khi sự kiện được giao lại hoặc phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-006
+    title: Quản lý trạng thái kiểm tra và thời gian lưu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-007
+    title: Đối chiếu với dữ liệu tham chiếu thay đổi trong quá trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-008
+    title: Phân biệt chỉ số tạm thời và kết quả đã hoàn tất cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-009
+    title: Chuyển sự kiện lỗi sang luồng cách ly có đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-010
+    title: Xử lý áp lực ngược và suy giảm khả năng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-011
+    title: Khôi phục trạng thái và kiểm tra sau khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stream-controls-012
+    title: Đối soát giữa kết quả luồng và kết quả xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hierarchical-data
+  title: Dữ liệu phân cấp
+  childs:
+  - slug: hierarchical-data-001
+    title: Kiểm tra tài liệu JSON và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-002
+    title: Phân biệt thuộc tính vắng mặt, giá trị null và mảng rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-003
+    title: Kiểm tra kiểu phần tử và cấu trúc không đồng nhất trong mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-004
+    title: Kiểm tra trường bắt buộc theo loại tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-005
+    title: Kiểm tra định danh và quan hệ giữa các phần tử lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-006
+    title: Kiểm tra số lượng phần tử, mức lồng và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-007
+    title: Theo dõi mất dữ liệu và nhân bản khi trải phẳng cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-008
+    title: Xử lý trường mới, trường không nhận diện và nhiều phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-009
+    title: Đo chỉ số khi một tài liệu chứa nhiều đối tượng cần đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchical-data-010
+    title: Ghi vị trí lỗi theo đường dẫn trường và phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-testing
+  title: Kiểm thử chất lượng
+  childs:
+  - slug: quality-testing-001
+    title: Phân biệt kiểm thử quy tắc và đánh giá dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-002
+    title: Thiết kế bộ dữ liệu mẫu có kết quả mong đợi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-003
+    title: Kiểm thử biên, giá trị thiếu và tổ hợp điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-004
+    title: Kiểm thử quy tắc bằng thuộc tính và bất biến dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-005
+    title: Kiểm thử phép biến đổi qua quan hệ đầu vào và đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-006
+    title: Kiểm thử tích hợp với nguồn, nơi lưu và dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-007
+    title: Kiểm thử hồi quy bằng ảnh chụp dữ liệu đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-008
+    title: Kiểm thử lỗi cấu trúc và thay đổi phiên bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-009
+    title: Kiểm thử dữ liệu đến muộn, trùng lặp và chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-010
+    title: Kiểm thử báo sai, bỏ sót và tính ổn định của ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-011
+    title: Tạo dữ liệu giả lập có lỗi nhưng không làm lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-testing-012
+    title: Tích hợp kiểm tra chất lượng vào quy trình CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-monitoring
+  title: Giám sát chất lượng
+  childs:
+  - slug: quality-monitoring-001
+    title: Phân biệt kiểm thử chất lượng và quan sát dữ liệu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-002
+    title: Thu thập chỉ số, nhật ký và bằng chứng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-003
+    title: Thiết kế bảng theo dõi theo tập dữ liệu và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-004
+    title: Theo dõi độ mới, số lượng, phân bố và tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-005
+    title: Phân biệt dữ liệu đạt chất lượng với phép kiểm tra chưa chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-006
+    title: Phát hiện lỗi của chính hệ thống kiểm tra chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-007
+    title: Thiết lập cảnh báo theo mức nghiêm trọng và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-008
+    title: Gom nhóm, chống lặp và hạn chế cảnh báo không hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-009
+    title: Điều chỉnh cảnh báo theo mùa vụ và lịch cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-010
+    title: Liên kết cảnh báo với nguồn gốc và các hệ thống sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-monitoring-011
+    title: Theo dõi thời gian phát hiện, xác nhận và khắc phục vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: root-cause-analysis
+  title: Điều tra nguyên nhân
+  childs:
+  - slug: root-cause-analysis-001
+    title: Xác nhận sự cố và đánh giá tác động nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-002
+    title: Khoanh vùng thời điểm bắt đầu suy giảm chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-003
+    title: So sánh bản ghi lỗi và bản ghi đạt theo cùng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-004
+    title: Truy vết nguồn gốc dữ liệu (data lineage) qua các công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-005
+    title: Đối chiếu thay đổi mã, cấu hình, cấu trúc và dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-006
+    title: Phân biệt lỗi nguồn, lỗi truyền nhận và lỗi biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-007
+    title: Dựng lại điều kiện gây lỗi bằng dữ liệu và phiên bản đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-008
+    title: Xác định nguyên nhân gốc và yếu tố làm lỗi lan rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-009
+    title: Ước lượng phạm vi dữ liệu và báo cáo cần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-010
+    title: Lập hồ sơ sự cố và biện pháp ngăn tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-governance
+  title: Quản trị chất lượng
+  childs:
+  - slug: quality-governance-001
+    title: Phân công chủ sở hữu, người quản lý và người sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-002
+    title: Quản lý thuật ngữ, định nghĩa chỉ số và nguồn chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-003
+    title: Quản lý danh mục dữ liệu trọng yếu và quy tắc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-004
+    title: Thiết kế quy trình đề xuất, duyệt và ngừng áp dụng quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-005
+    title: Quản lý ngoại lệ chất lượng có thời hạn và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-006
+    title: Thiết lập thỏa thuận chất lượng giữa bên cung cấp và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-007
+    title: Theo dõi tồn đọng vấn đề và ưu tiên theo ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-008
+    title: Lưu bằng chứng đánh giá, quyết định và lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-009
+    title: Bảo vệ dữ liệu nhạy cảm trong mẫu lỗi, báo cáo và nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-010
+    title: Quản lý quyền truy cập và thời hạn lưu dữ liệu cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-governance-011
+    title: Đánh giá trách nhiệm khi chia sẻ dữ liệu cho nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-scale
+  title: Hiệu năng và quy mô
+  childs:
+  - slug: performance-and-scale-001
+    title: Ước lượng chi phí đọc, tính toán và lưu kết quả kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-002
+    title: Lựa chọn kiểm tra toàn bộ, lấy mẫu hoặc kiểm tra tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-003
+    title: Đẩy phép kiểm tra xuống nơi lưu trữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-004
+    title: Kết hợp nhiều chỉ số trong cùng một lượt quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-005
+    title: Tận dụng phân vùng, chỉ mục và điều kiện lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-006
+    title: Xử lý độ lệch phân vùng và nhóm khóa có quá nhiều bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-007
+    title: Tối ưu kiểm tra duy nhất và đối sánh trên tập lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-008
+    title: Sử dụng phép tính gần đúng và công bố giới hạn sai số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-009
+    title: Quản lý bộ nhớ khi kiểm tra và lưu mẫu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-010
+    title: Đặt giới hạn thời gian, tài nguyên và hành vi khi kiểm tra quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-011
+    title: Đo hiệu năng bằng dữ liệu đại diện cho khối lượng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sql-implementation
+  title: Triển khai với SQL
+  childs:
+  - slug: sql-implementation-001
+    title: Kiểm tra giá trị thiếu và logic ba giá trị với NULL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-002
+    title: Đo tỷ lệ đạt bằng biểu thức điều kiện và phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-003
+    title: Phát hiện trùng lặp theo khóa bằng GROUP BY và HAVING
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-004
+    title: Chọn bản ghi đại diện bằng hàm cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-005
+    title: Phát hiện bản ghi mồ côi bằng NOT EXISTS và phép nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-006
+    title: Đối soát tổng giữa bảng chi tiết và bảng tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-007
+    title: Kiểm tra khoảng hiệu lực và trình tự sự kiện bằng hàm cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-008
+    title: Đo độ mới và phát hiện khoảng trống theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-009
+    title: So sánh dữ liệu trước và sau phép nối để phát hiện nhân dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-010
+    title: Lưu kết quả kiểm tra và mẫu lỗi có thể truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-implementation-011
+    title: Kiểm chứng khác biệt về NULL, so sánh chuỗi và thời gian giữa hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-implementation
+  title: Triển khai với Java
+  childs:
+  - slug: java-implementation-001
+    title: Thiết kế mô hình kết quả kiểm tra và ngữ cảnh đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-002
+    title: Tách quy tắc, bộ thực thi và chính sách xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-003
+    title: Phân biệt lỗi chuyển đổi kiểu với lỗi chất lượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-004
+    title: Xử lý giá trị thiếu mà không làm mất nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-005
+    title: Chuẩn hóa Unicode và văn bản với Normalizer và Locale
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-006
+    title: Kiểm tra độ chính xác số và dung sai với BigDecimal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-007
+    title: Kiểm tra thời gian với java.time và Clock có thể thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-008
+    title: Phát hiện trùng lặp bằng khóa nghiệp vụ bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-009
+    title: Tổng hợp chỉ số theo nhóm và kiểm soát bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-010
+    title: Đọc dữ liệu bằng JDBC theo lô và quản lý tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-011
+    title: Thiết kế xử lý song song không làm sai lệch kết quả kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-012
+    title: Kiểm thử quy tắc và bộ thực thi bằng JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-improvement
+  title: Vận hành và cải tiến
+  childs:
+  - slug: operations-and-improvement-001
+    title: Triển khai quy tắc mới ở chế độ quan sát trước khi chặn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-002
+    title: Đánh giá tác động và hiệu chỉnh ngưỡng bằng dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-003
+    title: Đưa cửa kiểm soát vào vận hành theo mức độ rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-004
+    title: Phân biệt lỗi dữ liệu với lỗi hạ tầng thực thi kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-005
+    title: Thiết kế hướng dẫn xử lý cho từng nhóm cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-006
+    title: Lập kế hoạch nạp bù và xác minh sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-007
+    title: Quản lý thay đổi quy tắc mà vẫn so sánh được chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-008
+    title: Theo dõi chi phí lỗi, chi phí kiểm tra và hiệu quả sửa chữa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-009
+    title: Rà soát quy tắc ít giá trị và bổ sung khoảng trống kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-improvement-010
+    title: Dùng phản hồi từ bên sử dụng để cải thiện chất lượng tại nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Khảo sát tập dữ liệu khách hàng, đơn hàng và thanh toán có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xác định khóa nghiệp vụ, dữ liệu trọng yếu và mục tiêu chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Lập hồ sơ dữ liệu và danh sách vấn đề theo mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Xây dựng bộ quy tắc cho các chiều chất lượng chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Đối soát đơn hàng, thanh toán và hoàn tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Chuẩn hóa và đối sánh hồ sơ khách hàng trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thiết kế luồng cách ly, sửa lỗi và xử lý lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Kiểm tra dữ liệu đến muộn và tính lũy đẳng khi chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Xây dựng báo cáo chất lượng kèm bằng chứng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Kiểm thử hồi quy và đánh giá hiệu năng bộ kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Mô phỏng sự cố, điều tra nguyên nhân và xác minh khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Đánh giá sản phẩm theo yêu cầu nghiệp vụ và kế hoạch cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

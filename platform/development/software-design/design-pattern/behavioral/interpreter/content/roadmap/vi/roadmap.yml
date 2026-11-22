@@ -1,0 +1,49 @@
+roadmap:
+- id: bai-toan-interpreter
+  title: Bài toán Interpreter
+  purpose: Hiểu khi nào cần biểu diễn và đánh giá câu lệnh của một ngôn ngữ miền nhỏ.
+  objectives:
+  - Nêu một ví dụ biểu thức hoặc quy tắc nghiệp vụ đơn giản.
+  - Giải thích mục tiêu tách ngữ pháp khỏi logic xử lý rải rác.
+- id: thiet-ke-ngu-phap
+  title: Thiết kế ngữ pháp
+  purpose: Xác định tập ký hiệu và quy tắc kết hợp trước khi xây mô hình đối tượng.
+  objectives:
+  - Viết ngữ pháp nhỏ gồm terminal và nonterminal.
+  - Phân biệt cú pháp hợp lệ với ý nghĩa của biểu thức.
+- id: giao-dien-expression
+  title: Giao diện Expression
+  purpose: Định nghĩa hợp đồng chung để các biểu thức được đánh giá nhất quán.
+  objectives:
+  - Tạo interface Expression với phương thức interpret.
+  - Xác định tham số Context hoặc dữ liệu đánh giá cần truyền.
+- id: terminal-expression
+  title: Terminal Expression
+  purpose: Cài đặt các biểu thức lá đại diện cho ký hiệu hoặc giá trị cơ bản.
+  objectives:
+  - Tạo biểu thức hằng số hoặc biến trong Java.
+  - Kiểm thử kết quả đánh giá một biểu thức lá độc lập.
+- id: nonterminal-expression
+  title: Nonterminal Expression
+  purpose: Kết hợp các biểu thức con thành quy tắc phức hợp theo ngữ pháp.
+  objectives:
+  - Tạo biểu thức AND/OR hoặc phép cộng có các node con.
+  - Đánh giá đệ quy kết quả từ các biểu thức con.
+- id: context-client
+  title: Context & Client
+  purpose: Tổ chức thông tin ngữ cảnh và vai trò thành phần gọi bộ thông dịch.
+  objectives:
+  - Đưa giá trị biến hoặc dữ liệu đầu vào vào Context.
+  - Mô tả cách Client tạo cấu trúc biểu thức và gọi interpret.
+- id: xay-dung-ast
+  title: Xây dựng AST
+  purpose: Hiểu quan hệ giữa chuỗi đầu vào, phân tích cú pháp và cây biểu thức.
+  objectives:
+  - Chuyển ví dụ biểu thức đơn giản thành AST hợp lệ.
+  - Phân biệt trách nhiệm parsing và interpreting.
+- id: kiem-thu-gioi-han
+  title: Kiểm thử & Giới hạn
+  purpose: Xác minh tính đúng đắn và nhận biết khi pattern không phù hợp.
+  objectives:
+  - Kiểm thử biểu thức lồng nhau, ngữ cảnh và đầu vào lỗi.
+  - Giải thích chi phí nhiều lớp và khi nên dùng parser chuyên dụng.

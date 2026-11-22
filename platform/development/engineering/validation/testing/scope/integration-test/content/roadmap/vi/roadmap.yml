@@ -1,0 +1,57 @@
+roadmap:
+- id: pham-vi-integration-test
+  title: Phạm vi Integration Test
+  purpose: Hiểu kiểm thử tích hợp xác nhận sự phối hợp giữa các thành phần, thay vì chỉ hành vi của từng đơn vị riêng lẻ.
+  objectives:
+  - Phân biệt integration test với unit test và E2E test.
+  - Xác định các thành phần cùng tham gia một luồng.
+  - Chọn ranh giới và hành vi tích hợp cần xác minh.
+- id: thiet-ke-kich-ban-tich-hop
+  title: Thiết kế kịch bản tích hợp
+  purpose: Xây dựng bài kiểm thử theo tương tác, dữ liệu trao đổi và kết quả quan sát được qua ranh giới thành phần.
+  objectives:
+  - Liệt kê luồng thành công và các điểm giao tiếp.
+  - Định nghĩa đầu vào, trạng thái và kết quả mong đợi.
+  - Kiểm tra cả tác động phụ ngoài giá trị trả về.
+- id: moi-truong-va-test-data
+  title: Môi trường và Test Data
+  purpose: Tạo điều kiện chạy gần với môi trường thực tế nhưng dễ kiểm soát và tái lập.
+  objectives:
+  - Chuẩn bị cấu hình, phụ thuộc và dữ liệu thử nghiệm.
+  - Dùng Testcontainers khi cần dịch vụ thực như database.
+  - Thiết lập và dọn dẹp trạng thái trước/sau test.
+- id: tich-hop-database
+  title: Tích hợp Database
+  purpose: Xác nhận tầng truy cập dữ liệu làm việc đúng với cơ sở dữ liệu và ánh xạ thực tế.
+  objectives:
+  - Kiểm thử thao tác ghi, đọc, cập nhật và xóa dữ liệu.
+  - Xác minh mapping, constraint và truy vấn quan trọng.
+  - Đối chiếu dữ liệu lưu trữ với hành vi ứng dụng.
+- id: tich-hop-api-va-service
+  title: Tích hợp API và Service
+  purpose: Xác minh các tầng tiếp nhận yêu cầu, xử lý nghiệp vụ và trả kết quả phối hợp đúng.
+  objectives:
+  - Gửi request qua API hoặc tầng ứng dụng phù hợp.
+  - Kiểm tra status, response và thay đổi dữ liệu.
+  - Chọn phạm vi context hoặc test slice cần thiết.
+- id: dich-vu-ngoai-va-messaging
+  title: Dịch vụ ngoài và Messaging
+  purpose: Kiểm tra tương tác với hệ thống khác và chọn test double phù hợp để giữ phạm vi ổn định.
+  objectives:
+  - Phân biệt khi nào dùng stub và khi nào dùng dịch vụ thực.
+  - Xác minh lời gọi HTTP, thông điệp và dữ liệu trao đổi.
+  - Thử phản hồi chậm, không hợp lệ hoặc mất kết nối.
+- id: transaction-va-failure-path
+  title: Transaction và Failure Path
+  purpose: Phát hiện lỗi tại ranh giới tích hợp khi xảy ra ngoại lệ hoặc thay đổi trạng thái không trọn vẹn.
+  objectives:
+  - Kiểm tra commit/rollback và tính nhất quán dữ liệu.
+  - Xác minh timeout, retry hoặc xử lý lỗi khi có áp dụng.
+  - Đảm bảo test phát hiện trạng thái trung gian sai.
+- id: on-dinh-va-ci
+  title: Ổn định và CI
+  purpose: Đưa integration test vào quy trình build với kết quả đáng tin cậy và chi phí chạy hợp lý.
+  objectives:
+  - Cách ly trạng thái để test chạy độc lập, có thể lặp lại.
+  - Phân tích flaky test do thời gian, dữ liệu hoặc môi trường.
+  - Chạy integration suite trên CI và xem log khi thất bại.

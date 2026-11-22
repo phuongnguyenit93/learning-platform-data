@@ -1,0 +1,1510 @@
+menu:
+- slug: cache-overview
+  title: Tổng quan
+  childs:
+  - slug: cache-overview-001
+    title: Bộ nhớ đệm (cache) là gì và bài toán giảm xử lý lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-overview-002
+    title: Phân biệt cache với buffer, cơ sở dữ liệu và HTTP cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-overview-003
+    title: Truy cập trúng cache (hit), trượt cache (miss) và dữ liệu cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-overview-004
+    title: Vì sao Spring Cache là lớp trừu tượng chứ không phải kho lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-overview-005
+    title: Mối liên hệ giữa lời gọi phương thức, khóa và kết quả được lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-overview-006
+    title: Tiêu chí chọn phương thức phù hợp để lưu kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-overview-007
+    title: Đánh đổi giữa tốc độ, bộ nhớ và độ mới của dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-overview-008
+    title: Kiến thức nền và trình tự học Spring Cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-architecture
+  title: Kiến trúc
+  childs:
+  - slug: cache-architecture-001
+    title: Cache và hợp đồng thao tác trên từng vùng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-architecture-002
+    title: CacheManager và việc tìm hoặc tạo cache theo tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-architecture-003
+    title: CacheResolver và lựa chọn cache cho từng thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-architecture-004
+    title: KeyGenerator và ánh xạ lời gọi thành khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-architecture-005
+    title: CacheInterceptor, metadata annotation và luồng xử lý lời gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-architecture-006
+    title: Nhà cung cấp cache và bộ chuyển đổi sang Spring Cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-architecture-007
+    title: Phân biệt cấu hình ứng dụng với cấu hình riêng của kho cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-setup
+  title: Thiết lập
+  childs:
+  - slug: cache-setup-001
+    title: Các thư viện Spring cần thiết và phụ thuộc nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-setup-002
+    title: Khai báo bean CacheManager trong Java configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-setup-003
+    title: Bật xử lý annotation bằng @EnableCaching
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-setup-004
+    title: Đặt cấu hình cache trong đúng ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-setup-005
+    title: Định nghĩa tên cache tường minh hoặc tạo động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-setup-006
+    title: Kiểm tra bean nghiệp vụ được Spring quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-setup-007
+    title: Phân biệt cấu hình Spring Framework với tự động cấu hình của Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-setup-008
+    title: Xây dựng ví dụ tối thiểu chứng minh cache đã hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cacheable
+  title: '@Cacheable'
+  childs:
+  - slug: cacheable-001
+    title: Khai báo cacheNames, value và quan hệ alias
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-002
+    title: Áp dụng annotation ở cấp lớp hoặc từng phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-003
+    title: Luồng xử lý khi cache có hoặc không có khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-004
+    title: Trả kết quả từ cache và bỏ qua thân phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-005
+    title: Thời điểm lưu kết quả sau lời gọi thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-006
+    title: Phương thức có tham số và phương thức không tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-007
+    title: Ảnh hưởng khi thân phương thức có tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-008
+    title: Giới hạn dùng nhiều cacheNames như một hệ cache nhiều tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cacheable-009
+    title: Kiểm chứng hành vi bằng số lần thực thi phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-key-design
+  title: Thiết kế khóa
+  childs:
+  - slug: cache-key-design-001
+    title: SimpleKeyGenerator với không có, một hoặc nhiều đối số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-002
+    title: Trường hợp đối số null, đối số mảng và khóa tổng hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-003
+    title: Hợp đồng equals–hashCode của khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-004
+    title: Vì sao tên phương thức không tự nằm trong khóa mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-005
+    title: Nguy cơ va chạm giữa nhiều phương thức dùng chung vùng cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-006
+    title: Chọn đầy đủ tham số thực sự làm thay đổi kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-007
+    title: Khóa theo người dùng, tổ chức hoặc phạm vi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-008
+    title: Khóa bất biến, biểu diễn ổn định và giới hạn kích thước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-key-design-009
+    title: Viết KeyGenerator dùng chung và đăng ký bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-spel
+  title: Biểu thức SpEL
+  childs:
+  - slug: cache-spel-001
+    title: Dùng key để chọn đối số hoặc thuộc tính của đối số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-spel-002
+    title: 'Truy cập #p0, #a0 và tên tham số'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-spel-003
+    title: Thông tin tên tham số và tùy chọn biên dịch -parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-spel-004
+    title: 'Truy cập #root.methodName, targetClass, args và caches'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-spel-005
+    title: 'Dùng giá trị trả về qua #result ở những ngữ cảnh cho phép'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-spel-006
+    title: Xử lý đối tượng null trong biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-spel-007
+    title: Phân biệt key với keyGenerator và lỗi khi khai báo cả hai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-spel-008
+    title: Kiểm thử biểu thức để tránh khóa thiếu thành phần hoặc sai kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-conditions
+  title: Điều kiện lưu
+  childs:
+  - slug: cache-conditions-001
+    title: condition và kiểm tra trước khi áp dụng cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-conditions-002
+    title: unless và từ chối lưu sau khi có kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-conditions-003
+    title: Phân biệt điều kiện bỏ qua cache với điều kiện nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-conditions-004
+    title: Không lưu kết quả null bằng biểu thức phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-conditions-005
+    title: 'Optional: lưu giá trị bên trong hoặc biểu diễn rỗng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-conditions-006
+    title: '#result của Optional và toán tử điều hướng an toàn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-conditions-007
+    title: Giới hạn kết hợp điều kiện với chế độ sync
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-put
+  title: '@CachePut'
+  childs:
+  - slug: cache-put-001
+    title: Luôn thực thi phương thức và cập nhật kết quả vào cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-put-002
+    title: Phân biệt @CachePut với @Cacheable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-put-003
+    title: Chọn khóa theo đối số hoặc kết quả trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-put-004
+    title: Giữ thống nhất khóa giữa đọc và cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-put-005
+    title: Điều kiện cập nhật và thời điểm có kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-put-006
+    title: Hành vi khi phương thức phát sinh ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-put-007
+    title: Rủi ro kết hợp @CachePut và @Cacheable trên cùng phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-evict
+  title: '@CacheEvict'
+  childs:
+  - slug: cache-evict-001
+    title: Xóa một khóa khi dữ liệu nguồn thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-002
+    title: allEntries và xóa toàn bộ vùng cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-003
+    title: beforeInvocation=false và xóa sau lời gọi thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-004
+    title: beforeInvocation=true và xóa trước khi phương thức chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-005
+    title: Thời điểm xóa khi phương thức phát sinh ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-006
+    title: Khóa dựa trên kết quả chỉ khả dụng ở thời điểm phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-007
+    title: Phương thức void làm tác nhân xóa cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-008
+    title: Xóa các bản sao dữ liệu liên quan ở nhiều khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-evict-009
+    title: Phân biệt xóa chủ động với tự hết hạn tại kho lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-configuration
+  title: Cấu hình chung
+  childs:
+  - slug: cache-configuration-001
+    title: '@CacheConfig và các giá trị mặc định ở cấp lớp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-configuration-002
+    title: '@CacheConfig không tự kích hoạt thao tác cache'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-configuration-003
+    title: Thứ tự ưu tiên giữa cấu hình toàn cục, lớp và phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-configuration-004
+    title: '@Caching để nhóm nhiều thao tác trên một phương thức'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-configuration-005
+    title: Điều kiện và khóa riêng cho từng thao tác được nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-configuration-006
+    title: Annotation tổng hợp tùy chỉnh cho quy ước dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-configuration-007
+    title: CachingConfigurer cho manager, resolver, key generator và error handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-selection
+  title: Chọn vùng cache
+  childs:
+  - slug: cache-selection-001
+    title: Chọn CacheManager bằng tên bean trên thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-selection-002
+    title: Nhiều CacheManager trong cùng ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-selection-003
+    title: CacheResolver tùy chỉnh theo đối số hoặc ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-selection-004
+    title: Phân biệt cacheManager với cacheResolver và ràng buộc loại trừ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-selection-005
+    title: Xử lý tên cache không tồn tại hoặc không được cấp phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-selection-006
+    title: SimpleCacheManager với danh sách cache có sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-selection-007
+    title: CompositeCacheManager và thứ tự tìm kiếm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-selection-008
+    title: NoOpCacheManager khi cần chủ động bỏ qua lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-proxy-mechanics
+  title: Cơ chế proxy
+  childs:
+  - slug: cache-proxy-mechanics-001
+    title: Chế độ proxy và lời gọi đi qua bean Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-mechanics-002
+    title: Tự gọi trong cùng đối tượng và vì sao annotation bị bỏ qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-mechanics-003
+    title: JDK proxy, proxy dựa trên lớp và proxyTargetClass
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-mechanics-004
+    title: Phạm vi truy cập phương thức và giới hạn final hoặc private
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-mechanics-005
+    title: Annotation trên giao diện so với lớp cài đặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-mechanics-006
+    title: Giới hạn sử dụng cache trong constructor hoặc @PostConstruct
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-mechanics-007
+    title: Thứ tự cache advice so với các advice khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-proxy-mechanics-008
+    title: Chế độ AspectJ và điều kiện dệt mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-concurrency
+  title: Đồng thời
+  childs:
+  - slug: cache-concurrency-001
+    title: Nhiều luồng cùng trượt một khóa và tính toán lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-concurrency-002
+    title: '@Cacheable(sync=true) và hợp đồng hỗ trợ của nhà cung cấp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-concurrency-003
+    title: Giới hạn một cache, không unless và không ghép thao tác khi sync
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-concurrency-004
+    title: Phân biệt an toàn đa luồng của kho với tính nguyên tử của chuỗi thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-concurrency-005
+    title: Phạm vi đồng bộ trong một tiến trình so với nhiều máy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-concurrency-006
+    title: Tranh chấp giữa đọc, cập nhật và xóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-concurrency-007
+    title: Cache bị dồn tải khi khóa phổ biến hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-concurrency-008
+    title: Thiết kế xử lý để việc tính toán lặp không gây sai nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-lifecycle
+  title: Dữ liệu và vòng đời
+  childs:
+  - slug: cache-lifecycle-001
+    title: Lưu theo tham chiếu so với lưu bản sao giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-002
+    title: Rủi ro sửa đối tượng khả biến sau khi lấy từ cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-003
+    title: Chọn DTO hoặc dữ liệu bất biến để lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-004
+    title: Chính sách null và cơ chế thích nghi giá trị của nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-005
+    title: Cache kết quả không tồn tại và hệ quả khi dữ liệu được tạo sau đó
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-006
+    title: TTL, TTI và chính sách loại bỏ thuộc cấu hình kho cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-007
+    title: Vì sao annotation Spring Cache không khai báo TTL chuẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-008
+    title: Hết hạn khác với làm mới dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-lifecycle-009
+    title: Giới hạn dung lượng, số khóa và dữ liệu lưu quá lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-api
+  title: API lập trình
+  childs:
+  - slug: cache-api-001
+    title: Lấy cache qua CacheManager.getCache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-002
+    title: Cache.get và phân biệt không có khóa với giá trị null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-003
+    title: Cache.ValueWrapper và biến thể get có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-004
+    title: get với Callable để nạp dữ liệu khi thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-005
+    title: put và putIfAbsent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-006
+    title: evict so với evictIfPresent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-007
+    title: clear so với invalidate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-008
+    title: Thao tác có thể trì hoãn và kỳ vọng hiệu lực tức thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-api-009
+    title: getNativeCache và giới hạn phụ thuộc vào nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: in-memory-cache
+  title: Cache trong bộ nhớ
+  childs:
+  - slug: in-memory-cache-001
+    title: ConcurrentMapCache và ConcurrentMapCacheManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-cache-002
+    title: Thiết lập tên cache tĩnh hoặc chế độ tạo động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-cache-003
+    title: Hỗ trợ null và lưu theo tham chiếu mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-cache-004
+    title: Tùy chọn lưu theo giá trị và yêu cầu tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-cache-005
+    title: SimpleCacheManager với ConcurrentMapCache được khai báo sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-cache-006
+    title: Giới hạn TTL và dung lượng của cài đặt ConcurrentMap cơ bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-cache-007
+    title: Chọn cache đơn giản cho kiểm thử và môi trường phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caffeine-integration
+  title: Tích hợp Caffeine
+  childs:
+  - slug: caffeine-integration-001
+    title: CaffeineCache và CaffeineCacheManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-integration-002
+    title: Khai báo cấu hình bằng builder hoặc chuỗi đặc tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-integration-003
+    title: Giới hạn kích thước hoặc trọng lượng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-integration-004
+    title: Thiết lập hết hạn theo lần ghi hoặc lần truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-integration-005
+    title: Phân biệt hết hạn với nạp và làm mới giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-integration-006
+    title: Chính sách null khi dùng bộ chuyển đổi Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-integration-007
+    title: Đăng ký cache tùy chỉnh với cấu hình riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caffeine-integration-008
+    title: Chế độ cache bất đồng bộ và setAsyncCacheMode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jcache-integration
+  title: JCache
+  childs:
+  - slug: jcache-integration-001
+    title: JSR-107, nhà cung cấp và JCacheCacheManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcache-integration-002
+    title: Phân biệt javax.cache.Cache với org.springframework.cache.Cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcache-integration-003
+    title: Dùng annotation Spring trên kho tuân thủ JCache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcache-integration-004
+    title: '@CacheResult, @CachePut, @CacheRemove và @CacheRemoveAll'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcache-integration-005
+    title: Ánh xạ tham số khóa và giá trị bằng annotation JCache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcache-integration-006
+    title: Khác biệt về ngoại lệ được lưu và thời điểm xóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcache-integration-007
+    title: Cấu hình chuẩn so với mở rộng riêng của nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jcache-integration-008
+    title: Nhận diện khi cần Spring Cache hay hợp đồng JCache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-transactions
+  title: Giao dịch
+  childs:
+  - slug: cache-transactions-001
+    title: Vì sao hoàn tất phương thức chưa đồng nghĩa commit thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-transactions-002
+    title: Rủi ro cache dữ liệu sau đó bị rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-transactions-003
+    title: TransactionAwareCacheManagerProxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-transactions-004
+    title: TransactionAwareCacheDecorator và thao tác sau commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-transactions-005
+    title: Giới hạn của putIfAbsent và các thao tác cần hiệu lực tức thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-transactions-006
+    title: Thứ tự cache advice với transaction advice
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-transactions-007
+    title: Giao dịch cơ sở dữ liệu không tự làm cache phân tán nguyên tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-transactions-008
+    title: Kiểm thử cập nhật, xóa và rollback theo ranh giới giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-cache
+  title: Bất đồng bộ
+  childs:
+  - slug: async-cache-001
+    title: Hỗ trợ CompletableFuture và kiểu reactive từ Spring 6.1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-002
+    title: Lưu giá trị do CompletableFuture hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-003
+    title: 'Mono: lưu giá trị được phát thay vì giữ Publisher làm dữ liệu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-004
+    title: 'Flux: thu thập toàn bộ kết quả thành danh sách trước khi lưu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-005
+    title: Giới hạn với luồng vô hạn hoặc lượng kết quả lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-006
+    title: Yêu cầu kho hỗ trợ truy xuất bằng CompletableFuture
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-007
+    title: Cache.retrieve và các dạng biểu diễn hit, miss, null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-008
+    title: Thời điểm @CachePut và @CacheEvict theo kết quả bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-cache-009
+    title: Giới hạn nhiều cacheNames và chế độ sync với truy xuất bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

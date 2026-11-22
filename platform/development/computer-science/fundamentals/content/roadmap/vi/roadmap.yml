@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-tinh-toan
+  title: Tư duy tính toán
+  purpose: Rèn cách phân rã vấn đề và xây dựng lời giải có thể thực hiện bởi máy.
+  objectives:
+  - Phân rã một vấn đề thành các bước nhỏ
+  - Nhận diện mẫu và trừu tượng hóa
+  - Xác định đầu vào, đầu ra và ràng buộc
+- id: bieu-dien-thong-tin
+  title: Biểu diễn thông tin
+  purpose: Hiểu cách máy tính mã hóa và thao tác với dữ liệu.
+  objectives:
+  - Chuyển đổi giữa nhị phân và thập phân
+  - Phân biệt bit, byte, số và ký tự
+  - Áp dụng phép logic AND, OR, NOT
+- id: thuat-toan-co-ban
+  title: Thuật toán cơ bản
+  purpose: Luyện mô tả quy trình giải bài toán rõ ràng trước khi viết mã.
+  objectives:
+  - Viết giả mã hoặc sơ đồ luồng đơn giản
+  - Mô phỏng tìm kiếm và sắp xếp cơ bản
+  - Kiểm tra thuật toán với dữ liệu biên
+- id: lap-trinh-nen-tang
+  title: Lập trình nền tảng
+  purpose: Biến thuật toán thành chương trình có cấu trúc và dễ hiểu.
+  objectives:
+  - Sử dụng biến, điều kiện và vòng lặp
+  - Tách chương trình thành hàm
+  - Giải thích trạng thái và luồng thực thi
+- id: cau-truc-du-lieu
+  title: Cấu trúc dữ liệu
+  purpose: Chọn cách tổ chức dữ liệu phù hợp với thao tác cần thực hiện.
+  objectives:
+  - So sánh mảng, danh sách, stack và queue
+  - Mô tả mục đích của map và set
+  - Chọn cấu trúc dữ liệu cho bài toán nhỏ
+- id: do-phuc-tap
+  title: Độ phức tạp
+  purpose: Hiểu vì sao các lời giải dùng tài nguyên khác nhau khi dữ liệu tăng.
+  objectives:
+  - Ước lượng số thao tác theo kích thước đầu vào
+  - Nhận biết O(1), O(n) và O(n²)
+  - So sánh đánh đổi thời gian và bộ nhớ
+- id: dung-dan-kiem-thu
+  title: Đúng đắn & kiểm thử
+  purpose: Hình thành thói quen kiểm chứng chương trình và tìm nguyên nhân lỗi.
+  objectives:
+  - Xác định điều kiện đúng của kết quả
+  - Tạo trường hợp kiểm thử thường và biên
+  - Theo dõi luồng chạy để gỡ lỗi
+- id: he-thong-mang
+  title: Hệ thống & mạng
+  purpose: Liên hệ kiến thức lập trình với cách máy tính vận hành và giao tiếp.
+  objectives:
+  - Phân biệt vai trò CPU, RAM và hệ điều hành
+  - Mô tả tệp và tiến trình ở mức khái niệm
+  - Giải thích client-server và lỗi mạng cơ bản

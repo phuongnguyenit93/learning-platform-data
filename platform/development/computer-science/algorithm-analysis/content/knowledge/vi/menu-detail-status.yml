@@ -1,0 +1,3694 @@
+menu:
+- slug: algorithm-analysis-overview
+  title: Tổng quan
+  childs:
+  - slug: algorithm-analysis-overview-001
+    title: Phân tích thuật toán là gì và những câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-002
+    title: Phân biệt tính đúng, khả năng giải và hiệu quả thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-003
+    title: Thuật toán, cách cài đặt và chương trình chạy trên máy thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-004
+    title: Tài nguyên thời gian, bộ nhớ, truyền dữ liệu và số phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-005
+    title: Từ mô tả bài toán đến tham số đầu vào và mô hình chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-006
+    title: Phân biệt chi phí của một thuật toán với độ khó của bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-007
+    title: Vì sao cùng một kết quả có thể đạt được với chi phí rất khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-008
+    title: Vai trò của giả định, chứng minh và đo lường thực nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-009
+    title: 'Bản đồ thuật ngữ: cận trên, cận dưới, tiệm cận, kỳ vọng và khấu hao'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-analysis-overview-010
+    title: Lộ trình học và quan hệ với toán, cấu trúc dữ liệu và thiết kế thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specifications-and-correctness
+  title: Đặc tả và tính đúng
+  childs:
+  - slug: specifications-and-correctness-001
+    title: Đặc tả đầu vào, đầu ra và điều kiện hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-002
+    title: Tiền điều kiện, hậu điều kiện và quan hệ giữa chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-003
+    title: Tính đúng bộ phận và tính đúng toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-004
+    title: 'Bất biến vòng lặp: khởi tạo, duy trì và kết thúc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-005
+    title: Hàm biến thiên và chứng minh vòng lặp dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-006
+    title: Quy nạp để chứng minh tính đúng của thuật toán đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-007
+    title: Điều kiện cơ sở và tiến triển về bài toán nhỏ hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-008
+    title: Chứng minh bằng trao đổi trong thuật toán tham lam
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-009
+    title: Quan hệ tối ưu con và lập luận cho quy hoạch động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-010
+    title: Vai trò của phản ví dụ khi kiểm tra một lập luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specifications-and-correctness-011
+    title: Vì sao kiểm thử hữu hạn không thay thế được chứng minh tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-model
+  title: Mô hình tính chi phí
+  childs:
+  - slug: cost-model-001
+    title: Chọn phép toán cơ bản và đơn vị đo chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-002
+    title: Mô hình máy truy cập ngẫu nhiên (RAM) và giả định về bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-003
+    title: Mô hình word-RAM và giới hạn kích thước từ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-004
+    title: Chi phí đơn vị và khi nào giả định hằng số không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-005
+    title: Mô hình chỉ dựa trên phép so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-006
+    title: Mô hình chi phí bit khi số nguyên có độ dài thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-007
+    title: Đọc đầu vào, ghi đầu ra và chi phí không thể bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-008
+    title: Chi phí cấp phát, sao chép, băm và so sánh đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-009
+    title: Chi phí gọi hàm thư viện phụ thuộc dữ liệu và cách cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-010
+    title: Phân biệt số phép toán lý thuyết với thời gian đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-011
+    title: Chi phí tiền xử lý, một truy vấn và cả chuỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-012
+    title: Chọn mô hình theo mục tiêu phân tích và công bố rõ giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: size-and-encoding
+  title: Quy mô và mã hóa
+  childs:
+  - slug: size-and-encoding-001
+    title: Xác định kích thước đầu vào từ cách biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-002
+    title: Độ lớn giá trị khác với số bit dùng để mã hóa giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-003
+    title: Các tham số n, m, k và lý do không luôn gộp thành một biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-004
+    title: Kích thước mảng, độ dài chuỗi và độ dài của mỗi phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-005
+    title: Đồ thị theo số đỉnh, số cạnh và độ dài trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-006
+    title: Miền giá trị, bảng chữ cái và miền khóa của bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-007
+    title: Mã nhị phân, mã một ngôi và ảnh hưởng đến phân loại đa thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-008
+    title: Chi phí theo đầu vào nén và theo dữ liệu sau giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-009
+    title: Kích thước đầu ra và giới hạn khi phải liệt kê nhiều kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-010
+    title: Phân biệt tham số cố định, tham số thay đổi và dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: size-and-encoding-011
+    title: Chuẩn hóa cách ký hiệu trước khi so sánh hai thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mathematical-tools
+  title: Công cụ toán
+  childs:
+  - slug: mathematical-tools-001
+    title: Lũy thừa, logarit và các quy tắc biến đổi cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-002
+    title: Đổi cơ số logarit và điều kiện để bỏ hằng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-003
+    title: Hàm sàn, hàm trần và xử lý số phần tử không chia hết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-004
+    title: Tổng cấp số cộng và tổng cấp số nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-005
+    title: Tổng điều hòa và xấp xỉ bằng logarit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-006
+    title: Tổng của i, i² và các lũy thừa cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-007
+    title: Tổng có trọng số như i·2ⁱ hoặc i/2ⁱ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-008
+    title: Giai thừa, hệ số nhị thức và xấp xỉ Stirling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-009
+    title: Đánh giá tổng bằng chặn trên, chặn dưới và tích phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-010
+    title: Đổi thứ tự lấy tổng và đếm cùng một tập theo hai cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-011
+    title: Quy nạp thường, quy nạp mạnh và chọn giả thuyết đủ mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-012
+    title: Bất đẳng thức cơ bản và điều kiện áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mathematical-tools-013
+    title: Dãy tăng trưởng, giới hạn và các phép so sánh tỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asymptotic-notation
+  title: Ký hiệu tiệm cận
+  childs:
+  - slug: asymptotic-notation-001
+    title: Định nghĩa O bằng hằng số và ngưỡng đủ lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-002
+    title: Định nghĩa Ω và ý nghĩa của một cận dưới cho hàm chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-003
+    title: Định nghĩa Θ và điều kiện có cận chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-004
+    title: Ký hiệu o, ω và tăng trưởng nhỏ hơn hoặc lớn hơn nghiêm ngặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-005
+    title: Chứng minh trực tiếp từ định nghĩa tiệm cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-006
+    title: Tính bắc cầu, tính đối xứng của Θ và quan hệ giữa các ký hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-007
+    title: Cộng, nhân và lấy cực đại các hàm không âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-008
+    title: Bỏ hằng số và số hạng bậc thấp trong đúng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-009
+    title: Ký hiệu tiệm cận với nhiều tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-010
+    title: Cận đồng đều khi nhiều tham số cùng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-011
+    title: Ý nghĩa của các biểu thức có O trong số mũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-012
+    title: Ký hiệu Õ và O* cùng những thừa số bị ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-013
+    title: Vì sao Big O không đồng nghĩa với trường hợp xấu nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-014
+    title: Vì sao Big Ω không đồng nghĩa với trường hợp tốt nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asymptotic-notation-015
+    title: Cận trên đúng nhưng lỏng và cách tìm cận Θ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: growth-rates
+  title: Tốc độ tăng trưởng
+  childs:
+  - slug: growth-rates-001
+    title: So sánh hằng số, logarit, tuyến tính và tuyến tính nhân logarit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-002
+    title: Đa thức, siêu đa thức, hàm mũ và giai thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-003
+    title: So sánh lũy thừa logarit với lũy thừa của n
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-004
+    title: So sánh n^log n, 2^n và n!
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-005
+    title: Logarit lặp và hàm nghịch đảo Ackermann ở mức định hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-006
+    title: Dùng giới hạn tỉ số để xác định quan hệ tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-007
+    title: Các hàm không so sánh được theo một thứ tự tiệm cận duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-008
+    title: Cơ số logarit là hằng số nhưng cơ số hàm mũ có thể quyết định khác biệt lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-009
+    title: Điểm giao chi phí và vai trò của hằng số ở quy mô thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: growth-rates-010
+    title: Khả năng mở rộng khi kích thước đầu vào tăng gấp đôi hoặc gấp mười
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: guarantee-types
+  title: Các loại bảo đảm
+  childs:
+  - slug: guarantee-types-001
+    title: Hàm chi phí trên từng đầu vào và trên một kích thước cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-002
+    title: Trường hợp tốt nhất, xấu nhất và trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-003
+    title: Trường hợp trung bình cần một phân bố đầu vào cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-004
+    title: Kỳ vọng theo ngẫu nhiên nội tại với một đầu vào đã cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-005
+    title: Phân biệt trung bình theo đầu vào với kỳ vọng theo lựa chọn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-006
+    title: Chi phí khấu hao trên cả chuỗi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-007
+    title: Bảo đảm cho một thao tác và bảo đảm cho toàn bộ quá trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-008
+    title: Cận kỳ vọng khác với cận có xác suất cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-009
+    title: Phân tích nhạy theo đầu ra, đặc điểm dữ liệu và tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-010
+    title: Phân tích làm trơn với nhiễu nhỏ trên dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-011
+    title: Nêu đúng nguồn ngẫu nhiên, miền lượng hóa và phạm vi bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guarantee-types-012
+    title: Những kết luận không thể suy ra chỉ từ một giá trị trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loops
+  title: Vòng lặp
+  childs:
+  - slug: loops-001
+    title: Đếm số lần thực hiện từ phạm vi chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-002
+    title: Vòng lặp nối tiếp và quy tắc cộng chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-003
+    title: Vòng lặp lồng nhau với số lần lặp độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-004
+    title: Vòng lặp tam giác và các cận phụ thuộc chỉ số ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-005
+    title: Chỉ số tăng theo cộng, nhân hoặc lũy thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-006
+    title: Vòng lặp chia đôi và số bước theo logarit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-007
+    title: Tổng điều hòa từ các bước nhảy phụ thuộc chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-008
+    title: Vòng lặp có break, return và nhánh điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-009
+    title: Nhánh loại trừ nhau khác với các khối cùng được thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-010
+    title: Con trỏ không quay lại và cách đếm tổng số lần tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-011
+    title: Hai con trỏ, cửa sổ trượt và các vòng while lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-012
+    title: Phần tử vào–ra cấu trúc hữu hạn lần và chi phí tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-013
+    title: Chi phí trong thân vòng lặp không phải lúc nào cũng hằng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-014
+    title: Vòng lặp lặp đến hội tụ và điều kiện dừng phụ thuộc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-015
+    title: Lỗi kết luận bậc hai chỉ vì nhìn thấy hai vòng lặp lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: space-and-allocation
+  title: Không gian và cấp phát
+  childs:
+  - slug: space-and-allocation-001
+    title: Không gian đầu vào, đầu ra và không gian phụ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-002
+    title: Không gian cực đại đang dùng khác với tổng lượng bộ nhớ đã cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-003
+    title: Biến cục bộ, cấu trúc phụ và bộ đệm tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-004
+    title: Ngăn xếp lời gọi và độ sâu đệ quy cực đại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-005
+    title: Số lời gọi đệ quy khác với số khung ngăn xếp cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-006
+    title: Cây đệ quy và thứ tự thực hiện ảnh hưởng đến đỉnh sử dụng bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-007
+    title: Chia sẻ dữ liệu, lát cắt và sao chép mảng con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-008
+    title: Truyền tham chiếu không có nghĩa mọi thao tác đều không sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-009
+    title: Thuật toán tại chỗ và quy ước cho bộ nhớ ngăn xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-010
+    title: Đệ quy đuôi và điều kiện để thực sự giảm bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-011
+    title: Bộ nhớ đệm kết quả, vòng đời đối tượng và khả năng thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-012
+    title: Đánh đổi thời gian–không gian qua tiền xử lý và lưu thông tin phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: space-and-allocation-013
+    title: Chi phí biểu diễn một phần tử khi kích thước giá trị không cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recurrence-and-recursion
+  title: Đệ quy và truy hồi
+  childs:
+  - slug: recurrence-and-recursion-001
+    title: Mô hình hóa một lời gọi bằng kích thước bài toán hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-002
+    title: Số bài toán con, kích thước bài toán con và chi phí ngoài đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-003
+    title: Điều kiện cơ sở và ảnh hưởng đến nghiệm truy hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-004
+    title: Truy hồi giảm một đơn vị và giảm theo hệ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-005
+    title: Một nhánh đệ quy khác với nhiều nhánh cùng được thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-006
+    title: Truy hồi cho nhánh xấu nhất và nhánh được chọn theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-007
+    title: Truy hồi phụ thuộc nhiều tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-008
+    title: Xử lý n lẻ, hàm sàn và hàm trần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-009
+    title: Chi phí sao chép và tạo dữ liệu con trong mỗi lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-010
+    title: Phân biệt truy hồi bằng nhau với bất đẳng thức truy hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-011
+    title: Nhận biết bài toán con trùng lặp trước khi cộng chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-and-recursion-012
+    title: Kiểm tra tiến triển và tính dừng trước khi phân tích thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solving-recurrences
+  title: Giải truy hồi
+  childs:
+  - slug: solving-recurrences-001
+    title: Khai triển liên tiếp và xác định số mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-002
+    title: Đổi biến để đưa truy hồi về dạng dễ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-003
+    title: 'Cây đệ quy: chi phí tại nút, tại mức và toàn cây'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-004
+    title: Độ cao cây, số lá và vai trò của điều kiện cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-005
+    title: Tổng chi phí khi các mức bằng nhau, tăng dần hoặc giảm dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-006
+    title: Cây đệ quy không cân bằng và các đường đi có độ sâu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-007
+    title: Phương pháp thế và chứng minh cận trên bằng quy nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-008
+    title: Chứng minh cận dưới và ghép thành cận Θ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-009
+    title: Chọn hằng số, ngưỡng cơ sở và giả thuyết quy nạp đủ mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-010
+    title: Thêm số hạng hiệu chỉnh để tránh phép thế không khép kín
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-011
+    title: Truy hồi tuyến tính hệ số hằng và phương trình đặc trưng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-012
+    title: Nghiệm truy hồi Fibonacci và khác biệt giữa giá trị trả về với số lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-013
+    title: Kiểm tra nghiệm bằng thay ngược và đối chiếu các giá trị nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solving-recurrences-014
+    title: Giới hạn của suy đoán nghiệm từ một vài số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: master-theorem-extensions
+  title: Master và mở rộng
+  childs:
+  - slug: master-theorem-extensions-001
+    title: Dạng T(n)=aT(n/b)+f(n) và các giả định của định lý Master
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-002
+    title: So sánh f(n) với n^(log_b a)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-003
+    title: Trường hợp chi phí ở lá chiếm ưu thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-004
+    title: Trường hợp cân bằng giữa các mức của cây đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-005
+    title: Trường hợp chi phí gần gốc chiếm ưu thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-006
+    title: Khoảng cách đa thức và lý do không chỉ so sánh lớn hơn hoặc nhỏ hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-007
+    title: Điều kiện chính quy trong trường hợp f(n) chiếm ưu thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-008
+    title: Thừa số logarit và các phiên bản mở rộng của Master
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-009
+    title: Trường hợp biên dẫn đến log log n
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-010
+    title: Vì sao Master không áp dụng trực tiếp cho T(n−1) hoặc các nhánh không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-011
+    title: Định lý Akra–Bazzi cho một số truy hồi chia không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-012
+    title: Điều kiện áp dụng, số mũ cân bằng và thành phần tích phân của Akra–Bazzi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: master-theorem-extensions-013
+    title: Chọn phương pháp giải thay vì ép mọi truy hồi vào một công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-programming
+  title: Quy hoạch động
+  childs:
+  - slug: dynamic-programming-001
+    title: Không gian trạng thái và ý nghĩa của một trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-002
+    title: Số trạng thái có thể có khác với số trạng thái thực sự đạt tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-003
+    title: Chi phí bằng số trạng thái nhân chi phí chuyển trong đúng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-004
+    title: Đếm cạnh của đồ thị phụ thuộc khi số chuyển không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-005
+    title: Ghi nhớ kết quả và bảo đảm mỗi trạng thái chỉ được tính hữu ích một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-006
+    title: Chi phí tra cứu bộ nhớ đệm bằng mảng, bảng băm hoặc cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-007
+    title: Đệ quy có ghi nhớ so với tính bảng theo thứ tự phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-008
+    title: Bộ nhớ bảng kết quả và ngăn xếp lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-009
+    title: Nén chiều, mảng cuộn và điều kiện không mất dữ liệu cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-010
+    title: Chi phí khôi phục lời giải bên cạnh chỉ tính giá trị tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-011
+    title: Đếm trạng thái theo tập con, đoạn và nhiều tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-012
+    title: Bài toán ba lô và dấu hiệu độ phức tạp giả đa thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-013
+    title: Chi phí biểu diễn và sao chép giá trị trong mỗi ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-programming-014
+    title: Lỗi bỏ qua vòng duyệt chuyển trạng thái hoặc dữ liệu không đạt tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-structure-costs
+  title: Chi phí cấu trúc dữ liệu
+  childs:
+  - slug: data-structure-costs-001
+    title: Mảng cố định, mảng động và danh sách liên kết theo từng phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-002
+    title: Chi phí thao tác khi đã biết vị trí khác với phải tìm vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-003
+    title: Ngăn xếp, hàng đợi và deque trên các cách cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-004
+    title: 'Bảng băm: chi phí băm khóa, hệ số tải và va chạm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-005
+    title: Thời gian kỳ vọng của bảng băm khác với bảo đảm xấu nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-006
+    title: BST theo chiều cao và ảnh hưởng của dữ liệu đã có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-007
+    title: Cây cân bằng và số lần cập nhật thông tin phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-008
+    title: 'Heap: thêm, lấy cực trị, đổi ưu tiên và xây từ dưới lên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-009
+    title: Trie theo độ dài khóa và cách lưu tập nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-010
+    title: Cây đoạn và Fenwick theo số mức cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-011
+    title: 'DSU: hợp theo hạng, nén đường đi và chi phí cả chuỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-012
+    title: Chi phí duyệt mọi phần tử cùng chi phí duy trì bộ duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-013
+    title: Phối hợp nhiều cấu trúc và cộng chi phí cập nhật các chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-structure-costs-014
+    title: Không coi thao tác thư viện là hằng số chỉ vì có một lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: searching-and-sorting
+  title: Tìm kiếm và sắp xếp
+  childs:
+  - slug: searching-and-sorting-001
+    title: Tìm kiếm tuyến tính và phân bố vị trí cần tìm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-002
+    title: 'Tìm kiếm nhị phân: số phép so sánh và điều kiện truy cập dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-003
+    title: Chèn vào mảng đã sắp xếp và chi phí dịch chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-004
+    title: Sắp xếp chèn và số nghịch thế của đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-005
+    title: Sắp xếp chọn và số phép so sánh không phụ thuộc nhiều vào thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-006
+    title: Sắp xếp nổi bọt với hoặc không có điều kiện dừng sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-007
+    title: 'Sắp xếp trộn: truy hồi thời gian và bộ nhớ phụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-008
+    title: Quicksort với phân hoạch cân bằng, lệch và nhiều khóa trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-009
+    title: Heapsort và tổng chi phí xây heap rồi lấy phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-010
+    title: Counting sort theo số phần tử và miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-011
+    title: Radix sort theo số lượt, cơ số và độ dài khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-012
+    title: Bucket sort và giả định phân bố dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-013
+    title: 'Quickselect: chỉ theo nhánh chứa hạng cần tìm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-014
+    title: Chọn phần tử bằng median-of-medians và truy hồi chia không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-015
+    title: So sánh tính ổn định, tính tại chỗ và chi phí so sánh khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: searching-and-sorting-016
+    title: Vì sao thuật toán không dựa trên so sánh có thể vượt cận của mô hình so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphs-and-representations
+  title: Đồ thị và biểu diễn
+  childs:
+  - slug: graphs-and-representations-001
+    title: Đếm chi phí theo số đỉnh V và số cạnh E
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-002
+    title: Danh sách kề so với ma trận kề trong phép duyệt láng giềng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-003
+    title: BFS và DFS theo biểu diễn đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-004
+    title: Đỉnh không liên thông và vòng duyệt để bao phủ toàn bộ đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-005
+    title: Chi phí thêm, xóa và kiểm tra cạnh theo cấu trúc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-006
+    title: Sắp xếp tôpô bằng bậc vào và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-007
+    title: Dijkstra với mảng, heap nhị phân và thao tác giảm khóa ưu tiên (decrease-key)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-008
+    title: Phần tử cũ trong heap khi dùng cách thêm bản ghi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-009
+    title: Bellman–Ford và số lượt quét cạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-010
+    title: Floyd–Warshall và ba chiều lặp theo số đỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-011
+    title: Kruskal với chi phí sắp xếp cạnh và hợp nhất tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-012
+    title: Prim và ảnh hưởng của biểu diễn cùng hàng đợi ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-013
+    title: Phân biệt đồ thị thưa, đồ thị dày và việc thay E bằng V²
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-014
+    title: Chi phí khôi phục đường đi và xuất kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphs-and-representations-015
+    title: Kích thước trọng số và giới hạn của giả định phép cộng hằng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: amortized-analysis
+  title: Phân tích khấu hao
+  childs:
+  - slug: amortized-analysis-001
+    title: Một thao tác đắt nhưng cả chuỗi vẫn có chi phí thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-002
+    title: Phân biệt khấu hao với trung bình theo phân bố đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-003
+    title: Phương pháp tổng hợp và chặn tổng chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-004
+    title: Bộ đếm nhị phân và tổng số lần lật bit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-005
+    title: Ngăn xếp có thao tác lấy nhiều phần tử (multipop) và đếm vòng đời phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-006
+    title: Hàng đợi bằng hai ngăn xếp và số lần di chuyển mỗi phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-007
+    title: Mảng động tăng theo cấp số nhân và chi phí sao chép tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-008
+    title: Ngưỡng tăng–giảm dung lượng và tránh dao động cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-009
+    title: Phương pháp kế toán và nơi lưu khoản trả trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-010
+    title: Điều kiện khoản tín dụng hợp lệ khi kết thúc mọi tiền tố thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-011
+    title: Phương pháp thế năng và công thức chi phí khấu hao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-012
+    title: Thế năng ban đầu, cận dưới thế năng và tổng dạng triệt tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-013
+    title: Chọn hàm thế năng theo công việc còn tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-014
+    title: Khấu hao cho cây splay và cấu trúc cập nhật lười ở mức định hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-015
+    title: Bảo đảm khấu hao không giới hạn độ trễ của từng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: amortized-analysis-016
+    title: Khử khấu hao bằng chia nhỏ công việc giữa các thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: probability-in-analysis
+  title: Xác suất trong phân tích
+  childs:
+  - slug: probability-in-analysis-001
+    title: Không gian mẫu, biến cố và nguồn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-002
+    title: Biến ngẫu nhiên rời rạc và hàm chi phí ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-003
+    title: Kỳ vọng và tính tuyến tính không đòi hỏi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-004
+    title: Biến chỉ báo và kỹ thuật đếm bằng tổng chỉ báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-005
+    title: Xác suất có điều kiện và công thức kỳ vọng toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-006
+    title: Độc lập, độc lập từng đôi và phụ thuộc giữa các lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-007
+    title: Phân bố đều, hoán vị ngẫu nhiên và lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-008
+    title: Lấy mẫu có hoàn lại so với không hoàn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-009
+    title: Phân bố hình học và thời gian chờ đến thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-010
+    title: Phương sai và độ phân tán quanh kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-011
+    title: Kỳ vọng của tổng khác với kỳ vọng của tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probability-in-analysis-012
+    title: Vai trò của đối thủ và thứ tự chọn đầu vào, chọn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: randomized-algorithms
+  title: Thuật toán ngẫu nhiên
+  childs:
+  - slug: randomized-algorithms-001
+    title: Phân biệt thuật toán ngẫu nhiên với phân tích đầu vào ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-002
+    title: 'Las Vegas: bảo đảm đúng và thời gian thực hiện ngẫu nhiên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-003
+    title: 'Monte Carlo: giới hạn tài nguyên và xác suất sai'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-004
+    title: Phân tích quicksort ngẫu nhiên bằng số cặp phần tử được so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-005
+    title: Truy hồi kỳ vọng cho phân hoạch ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-006
+    title: Quickselect ngẫu nhiên và phân tích tiến triển kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-007
+    title: Tìm cực trị theo thứ tự ngẫu nhiên và số lần cập nhật kỷ lục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-008
+    title: Băm phổ dụng và số va chạm kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-009
+    title: Thuật toán thử lại và chi phí theo xác suất thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-010
+    title: Khuếch đại xác suất thành công bằng lặp độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-011
+    title: Dừng với xác suất một không tự bảo đảm kỳ vọng thời gian hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-012
+    title: Chi phí sinh ngẫu nhiên và cách công bố giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: randomized-algorithms-013
+    title: Hạt giống cố định, tái hiện kết quả và giới hạn của thử nghiệm ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: probabilistic-bounds
+  title: Cận xác suất
+  childs:
+  - slug: probabilistic-bounds-001
+    title: Vì sao biết kỳ vọng chưa đủ để chặn một lần chạy chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-002
+    title: Bất đẳng thức Markov cho biến ngẫu nhiên không âm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-003
+    title: Bất đẳng thức Chebyshev khi biết phương sai hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-004
+    title: Cận Chernoff và điều kiện độc lập phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-005
+    title: Chặn xác suất hợp các biến cố mà không cần giả định độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-006
+    title: Quy ước xác suất cao và hằng số trong cận lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-007
+    title: Chặn thời gian cho một thao tác khác với cho toàn bộ chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-008
+    title: Chặn chiều cao của cấu trúc ngẫu nhiên ở mức định hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-009
+    title: Đổi mức bảo đảm bằng số lần lặp hoặc tham số nội tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-010
+    title: Những sai lầm khi áp dụng cận độc lập cho dữ liệu phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: probabilistic-bounds-011
+    title: Phân biệt cận đuôi lý thuyết với phân vị đo được từ số mẫu hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lower-bounds
+  title: Cận dưới
+  childs:
+  - slug: lower-bounds-001
+    title: Cận dưới cho một thuật toán khác với cận dưới cho mọi thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-002
+    title: Phát biểu cận dưới phải chỉ rõ mô hình và phạm vi đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-003
+    title: Cận đọc dữ liệu và cận ghi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-004
+    title: Cây quyết định và số khả năng phải phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-005
+    title: Cận so sánh cho tìm kiếm trong một dãy đã sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-006
+    title: Cận so sánh cho sắp xếp các khóa phân biệt từ n! hoán vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-007
+    title: Cận cho tìm phần tử lớn nhất bằng các phép so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-008
+    title: Phương pháp đối thủ và trì hoãn thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-009
+    title: Đếm thông tin và giới hạn của một phép truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-010
+    title: Quy dẫn một bài toán đã có cận dưới sang bài toán đang xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-011
+    title: Cận thời gian–không gian và các dạng đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-012
+    title: Khi thuật toán đạt cận dưới và ý nghĩa của tối ưu tiệm cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lower-bounds-013
+    title: Vì sao đổi mô hình có thể vượt qua một cận dưới cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reductions-and-hardness
+  title: Quy dẫn và độ khó
+  childs:
+  - slug: reductions-and-hardness-001
+    title: Quy dẫn như cách chuyển một bài toán thành bài toán khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-002
+    title: Chiều quy dẫn khi chứng minh cận dưới hoặc độ khó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-003
+    title: Chi phí biến đổi đầu vào và chuyển kết quả về bài toán gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-004
+    title: Cách quy dẫn đa thức khác với quy dẫn bảo toàn cận thời gian chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-005
+    title: Phân biệt thuật toán đa thức, giả đa thức và hàm mũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-006
+    title: Bài toán quyết định, tìm kiếm, tối ưu và đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-007
+    title: Các lớp P, NP và bộ kiểm chứng có chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-008
+    title: NP-khó, NP-đầy đủ và điều kiện chứng minh tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-009
+    title: Vì sao NP-đầy đủ không phải chứng minh cận dưới hàm mũ vô điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-010
+    title: Phân biệt chưa biết thuật toán nhanh với đã chứng minh không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-011
+    title: Bài toán không quyết định được nằm ngoài câu hỏi chỉ tối ưu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reductions-and-hardness-012
+    title: Giả thuyết độ khó và cách ghi rõ tính có điều kiện của một cận dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameters-and-inputs
+  title: Tham số và dữ liệu
+  childs:
+  - slug: parameters-and-inputs-001
+    title: Phân tích nhiều tham số và các miền mà mỗi thuật toán có lợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-002
+    title: Chi phí theo số kết quả được xuất ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-003
+    title: Chi phí thích nghi theo số nghịch thế hoặc các đoạn đã có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-004
+    title: Số giá trị phân biệt, mức trùng khóa và phân bố tần suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-005
+    title: Độ thưa của dữ liệu và số trạng thái thực sự đạt tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-006
+    title: Tham số k tách biệt với kích thước đầu vào n
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-007
+    title: FPT với chi phí f(k)·n^c và điều kiện số mũ không phụ thuộc k
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-008
+    title: XP với số mũ của n có thể phụ thuộc tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-009
+    title: Thuật toán mũ chính xác và việc giảm cơ số hàm mũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-010
+    title: Chia đôi không gian tìm kiếm (meet-in-the-middle) và đánh đổi bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-011
+    title: Phân tích làm trơn theo mức nhiễu của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-012
+    title: Chi phí tiền xử lý được chia sẻ giữa nhiều truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-013
+    title: Độ phức tạp nhạy theo chứng chỉ hoặc mức khó của từng trường hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-inputs-014
+    title: So sánh bảo đảm tổng quát với bảo đảm có điều kiện về dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bit-complexity
+  title: Độ phức tạp bit
+  childs:
+  - slug: bit-complexity-001
+    title: Số bit của một số nguyên và tác động của dấu hoặc cách mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-002
+    title: Cộng, so sánh và dịch bit trên số nguyên nhiều từ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-003
+    title: Nhân số nguyên theo cách học ở trường và theo Karatsuba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-004
+    title: Truy hồi chi phí phép nhân khi chia các toán hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-005
+    title: Chia, lấy dư và chi phí phụ thuộc độ dài toán hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-006
+    title: 'Thuật toán Euclid: số vòng lặp khác với tổng chi phí bit'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-007
+    title: Lũy thừa nhanh theo số bit của số mũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-008
+    title: Phép toán modulo và kích thước giá trị trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-009
+    title: Giai thừa, Fibonacci và độ dài của kết quả số học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-010
+    title: Vì sao số phép cộng đa thức chưa đủ để kết luận thời gian đa thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-011
+    title: Quy hoạch động theo giá trị và ranh giới giả đa thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-012
+    title: Độ chính xác p như một tham số khi tính toán số học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-complexity-013
+    title: Phân biệt độ phức tạp tính toán với sai số số học và tính ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-and-locality
+  title: I/O và tính cục bộ
+  childs:
+  - slug: io-and-locality-001
+    title: Truyền dữ liệu vào–ra (I/O) giữa các tầng bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-002
+    title: Các tham số N, M, B trong mô hình bộ nhớ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-003
+    title: Quét tuần tự và truy cập ngẫu nhiên nhìn từ số lần truyền khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-004
+    title: Cận I/O cho sắp xếp và giả định của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-005
+    title: Chi phí tìm kiếm theo trang trong cây B và B+
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-006
+    title: Ghép nhiều luồng dữ liệu để tận dụng bộ nhớ trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-007
+    title: Thuật toán nhận biết bộ nhớ đệm và thuật toán cache-oblivious
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-008
+    title: Bố trí dữ liệu liên tiếp, theo khối và theo cấu trúc đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-009
+    title: Kích thước tập dữ liệu đang dùng và tỉ lệ trúng bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-010
+    title: Phân biệt số phép toán RAM với số lần truy cập thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-locality-011
+    title: Giới hạn khi bỏ qua nén, tiền đọc và đặc điểm thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parallel-analysis
+  title: Phân tích song song
+  childs:
+  - slug: parallel-analysis-001
+    title: Tổng công việc W và đường phụ thuộc dài nhất S
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-002
+    title: Đồ thị tác vụ và các phụ thuộc giới hạn thực hiện đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-003
+    title: Mức song song khả dụng W/S
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-004
+    title: Cận dưới thời gian theo số bộ xử lý và đường phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-005
+    title: Nguyên lý Brent và điều kiện của mô hình lập lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-006
+    title: Tăng tốc, hiệu suất và chi phí phụ do song song hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-007
+    title: Định luật Amdahl và phần công việc phải chạy tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-008
+    title: Phân biệt quy mô bài toán cố định với quy mô tăng theo tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-009
+    title: Chi phí tạo tác vụ, đồng bộ và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-010
+    title: Tranh chấp, mất cân bằng tải và chia sẻ giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-011
+    title: Phân tích công việc–độ sâu cho tổng, quét tiền tố và chia để trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-analysis-012
+    title: Vì sao giảm độ sâu không tự bảo đảm giảm thời gian chạy thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: online-analysis
+  title: Phân tích trực tuyến
+  childs:
+  - slug: online-analysis-001
+    title: Dữ liệu đến dần và quyết định trước khi biết toàn bộ đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-002
+    title: Quyết định trực tuyến và khả năng lưu dữ liệu là hai đặc điểm độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-003
+    title: Bộ giải tối ưu ngoại tuyến làm mốc đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-004
+    title: Tỉ số cạnh tranh và hằng số cộng trong phát biểu bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-005
+    title: Phương pháp đối thủ cho thuật toán trực tuyến xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-006
+    title: Bài toán thuê hay mua và đánh đổi chờ đợi với cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-007
+    title: Thay trang, bộ nhớ đệm và phân tích chính sách LRU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-008
+    title: Phân tích pha hoặc thế năng trong chứng minh cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-009
+    title: Thuật toán ngẫu nhiên với đối thủ không thích nghi hoặc có thích nghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-010
+    title: Phân biệt tỉ số cạnh tranh với bảo đảm xấp xỉ cho bài toán ngoại tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-011
+    title: Giới hạn của bảo đảm xấu nhất khi dự đoán tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: online-analysis-012
+    title: Dòng dữ liệu, số lượt đọc và giới hạn bộ nhớ lưu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-approximation
+  title: Sai số và xấp xỉ
+  childs:
+  - slug: errors-and-approximation-001
+    title: Nghiệm khả thi, giá trị tối ưu và thước đo chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-002
+    title: Tỉ số xấp xỉ cho bài toán cực tiểu và cực đại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-003
+    title: Sai số cộng khác với sai số nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-004
+    title: Điều kiện giá trị mục tiêu để tỉ số xấp xỉ có nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-005
+    title: Đánh đổi thời gian và chất lượng theo tham số ε
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-006
+    title: PTAS và sự phụ thuộc của số mũ vào độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-007
+    title: FPTAS và yêu cầu đa thức theo cả kích thước đầu vào lẫn 1/ε
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-008
+    title: Phân tích bằng cận dưới của tối ưu và cách tính phần chi phí dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-009
+    title: Bảo đảm xấp xỉ khác với hiệu quả quan sát của một phương pháp kinh nghiệm (heuristic)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-010
+    title: Xác suất đúng, sai số ước lượng và chi phí lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-011
+    title: Chi phí duy trì bản tóm tắt dữ liệu trong mô hình dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-approximation-012
+    title: Phân biệt xấp xỉ nghiệm, xấp xỉ số học và xấp xỉ một hàm chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: experimental-analysis
+  title: Phân tích thực nghiệm
+  childs:
+  - slug: experimental-analysis-001
+    title: Chuyển câu hỏi phân tích thành giả thuyết có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-002
+    title: Chọn kích thước dữ liệu và phân bố đầu vào đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-003
+    title: Dữ liệu ngẫu nhiên, đã có thứ tự, lệch và đối kháng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-004
+    title: Đo thời gian chạy thay vì trộn với tạo dữ liệu hoặc xuất kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-005
+    title: Khởi động, biên dịch động và trạng thái bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-006
+    title: Cấp phát, thu gom rác và biến động do môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-007
+    title: Lặp thí nghiệm, kiểm soát hạt giống và tái hiện kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-008
+    title: Trung vị, phân vị, độ phân tán và các lần chạy bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-009
+    title: Đếm phép so sánh, lần cấp phát hoặc truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-010
+    title: Đồ thị thời gian theo n và các phép chuẩn hóa n, n log n, n²
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-011
+    title: Đồ thị log–log và giới hạn của suy ra số mũ từ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-012
+    title: Đo bộ nhớ cực đại khác với tổng số byte được cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-013
+    title: So sánh công bằng giữa các cách cài đặt và cùng tiêu chí kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-014
+    title: Vì sao khớp một đường cong hữu hạn không chứng minh được cận tiệm cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experimental-analysis-015
+    title: Trình bày môi trường, số mẫu, sai số và những giả định chưa kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practice-001
+    title: Quy trình đọc mã, xác định tham số và chọn mô hình chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Viết hàm chi phí trước khi rút gọn bằng ký hiệu tiệm cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Đếm vòng lặp phụ thuộc và kiểm tra bằng ví dụ nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Lập truy hồi từ mã thay vì đoán theo tên thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Giải cùng một truy hồi bằng cây đệ quy, thế và định lý phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Tính thời gian cùng bộ nhớ cho thuật toán đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Phân tích một thuật toán có thư viện, sao chép và cấp phát ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Chứng minh chi phí khấu hao cho cả chuỗi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Chỉ rõ nguồn ngẫu nhiên trong một phân tích kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Dựng phản ví dụ cho một kết luận cận trên hoặc cận dưới sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: So sánh hai thuật toán theo nhiều tham số và điểm giao thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Đối chiếu dự đoán lý thuyết với kết quả đo có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-013
+    title: Lập báo cáo gồm giả định, tính đúng, chi phí, bảo đảm và giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-014
+    title: Bài tập tổng hợp từ đặc tả bài toán đến lập luận hiệu năng hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

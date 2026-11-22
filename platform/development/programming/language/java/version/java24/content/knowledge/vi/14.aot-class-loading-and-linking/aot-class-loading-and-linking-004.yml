@@ -1,0 +1,3 @@
+menuLevel1: Nạp và liên kết lớp AOT
+menuLevel2: Tạo cache bằng -XX:AOTMode=create và -XX:AOTCache
+status: ""

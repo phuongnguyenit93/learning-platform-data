@@ -1,0 +1,392 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Những nền tảng từ Java 7 vẫn được sử dụng trong Java hiện đại
+  - Quan hệ giữa cải tiến ngôn ngữ, thư viện chuẩn và JVM
+  - Kiến thức cần có về generic, ngoại lệ, I/O và đa luồng
+  - Tổ chức ví dụ trên một JDK đang được hỗ trợ
+  - Tra cứu nguồn gốc tính năng và hợp đồng API hiện hành
+  - Lựa chọn tính năng theo bài toán và kiểm chứng bằng chương trình nhỏ
+- level1: Cú pháp số
+  level2:
+  - Literal nhị phân và cách đọc biểu diễn bit
+  - Tiền tố 0b, 0B và các kiểu số nguyên
+  - Độ rộng kiểu, dấu của số và hậu tố long
+  - Biểu diễn mặt nạ và tổ hợp cờ bit
+  - Dấu gạch dưới trong literal số
+  - Nhóm chữ số theo đơn vị có ý nghĩa
+  - Vị trí gạch dưới hợp lệ và lỗi cú pháp
+  - Phân biệt literal trong mã với chuỗi dữ liệu cần phân tích
+- level1: switch với String
+  level2:
+  - Điều phối theo giá trị chuỗi
+  - Nhãn case là hằng chuỗi và nhánh default
+  - So sánh nội dung và phân biệt chữ hoa, chữ thường
+  - Chuẩn hóa chuỗi đầu vào trước khi phân nhánh
+  - Xử lý null và dữ liệu không được nhận diện
+  - Nhóm nhãn, break và kiểm soát rơi qua nhánh
+  - Chọn String, enum hoặc cấu trúc tra cứu phù hợp
+- level1: Diamond
+  level2:
+  - Tham số kiểu ở nơi khai báo và nơi tạo đối tượng
+  - Suy luận tham số khi khởi tạo bằng dấu <>
+  - Phân biệt diamond với kiểu thô
+  - Khai báo collection và generic lồng nhau
+  - Tham số kiểu của lớp và của constructor
+  - Thông tin kiểu từ ngữ cảnh và trường hợp cần ghi tường minh
+  - Đọc cảnh báo unchecked và kiểm tra an toàn kiểu
+  - Tái cấu trúc khai báo dài mà giữ nguyên hợp đồng kiểu
+- level1: Multi-catch
+  level2:
+  - Nhận diện các nhánh catch có cách xử lý giống nhau
+  - Kết hợp kiểu ngoại lệ bằng dấu |
+  - Giới hạn quan hệ cha con giữa các kiểu được kết hợp
+  - Kiểu quan sát được của tham số catch
+  - Quy tắc không gán lại tham số multi-catch
+  - Thứ tự catch và phát hiện nhánh không thể chạy
+  - Chọn xử lý chung, xử lý riêng hoặc chuyển đổi ngoại lệ
+  - Giữ nguyên nguyên nhân và thông tin chẩn đoán
+- level1: Ném lại ngoại lệ
+  level2:
+  - Phân tích các ngoại lệ thực sự phát sinh từ khối try
+  - Suy luận chính xác hơn khi ném lại biến catch
+  - Vai trò của biến final hoặc không bị gán lại
+  - Quan hệ giữa kiểu catch và danh sách throws
+  - Ảnh hưởng của việc thay đổi biến ngoại lệ
+  - Ghi nhật ký rồi ném lại mà không làm mất nguyên nhân
+  - Kiểm tra đường đi ngoại lệ và hợp đồng phương thức
+- level1: try-with-resources
+  level2:
+  - Quyền sở hữu và thời điểm kết thúc tài nguyên
+  - Khai báo tài nguyên trong phần mở đầu try
+  - Điều kiện tài nguyên triển khai AutoCloseable
+  - Nhiều tài nguyên và thứ tự đóng ngược
+  - Phạm vi biến và tài nguyên tham chiếu null
+  - Xử lý lỗi khi khởi tạo một phần tài nguyên
+  - Quan hệ với catch, finally và return
+  - Ngoại lệ của phần xử lý và ngoại lệ khi đóng
+  - Đọc ngoại lệ bị giữ lại bằng getSuppressed
+  - Phân biệt suppressed exception với chuỗi nguyên nhân
+  - Áp dụng cho tệp, kênh, cơ sở dữ liệu và tài nguyên tự định nghĩa
+  - Kiểm thử cả đường đi thành công và đường đi thất bại
+- level1: AutoCloseable
+  level2:
+  - Thiết kế kiểu có vòng đời tài nguyên rõ ràng
+  - Hợp đồng close và lựa chọn ngoại lệ được khai báo
+  - Phân biệt AutoCloseable với Closeable
+  - Quản lý tài nguyên được tạo, được mượn hoặc được chia sẻ
+  - Quy tắc đóng một lần, đóng lặp và trạng thái sau khi đóng
+  - Ủy quyền đóng các tài nguyên thành phần
+  - Tránh đóng ngoài ý muốn tài nguyên của bên gọi
+  - Xây tài nguyên giả lập để kiểm chứng thứ tự và lỗi đóng
+- level1: Varargs an toàn
+  level2:
+  - Mối liên hệ giữa varargs, mảng và xóa kiểu generic
+  - Kiểu reifiable và thông tin kiểu còn lại lúc chạy
+  - Nguyên nhân gây heap pollution
+  - Cảnh báo ở nơi khai báo và nơi gọi
+  - Ý nghĩa cam kết của @SafeVarargs
+  - Kiểm tra điều kiện sử dụng annotation theo mức ngôn ngữ
+  - Phân biệt bảo đảm an toàn với che cảnh báo
+  - Rà soát thoát tham chiếu và ghi vào mảng varargs
+  - Sử dụng cảnh báo unchecked, varargs trong kiểm tra mã
+- level1: Objects
+  level2:
+  - Tiện ích dùng chung cho hợp đồng đối tượng
+  - Kiểm tra đầu vào bằng requireNonNull
+  - So sánh có xét null bằng Objects.equals
+  - So sánh mảng lồng nhau bằng deepEquals
+  - Tạo mã băm nhiều trường và phân biệt hash với hashCode
+  - Chuỗi biểu diễn có giá trị thay thế khi null
+  - So sánh theo Comparator bằng Objects.compare
+  - Kiểm thử tính nhất quán của equals, hashCode và dữ liệu đầu vào
+- level1: BitSet
+  level2:
+  - Biểu diễn tập chỉ số và dãy cờ bằng bit
+  - Phân biệt độ dài logic với dung lượng lưu trữ
+  - Chuyển từ mảng byte hoặc long bằng valueOf
+  - Xuất dữ liệu bằng toByteArray và toLongArray
+  - Quy ước thứ tự bit và biểu diễn little-endian
+  - Tìm bit theo chiều ngược bằng previousSetBit, previousClearBit
+  - Biên chỉ số, tập rỗng và việc chia sẻ giữa nhiều luồng
+  - Ứng dụng lưu cờ, lọc tập chỉ số và kiểm chứng chuyển đổi
+- level1: Bảng mã
+  level2:
+  - Vai trò của StandardCharsets trong xử lý văn bản
+  - Chọn UTF-8 hoặc bảng mã tường minh theo định dạng dữ liệu
+  - Chuyển đổi giữa byte và ký tự
+  - Phân biệt bảng mã với thứ tự byte
+  - Xử lý dữ liệu không hợp lệ bằng CharsetDecoder, CharsetEncoder
+  - Tránh phụ thuộc bảng mã mặc định của môi trường
+  - Kiểm thử tiếng Việt, ký tự bổ sung và dữ liệu qua nhiều hệ điều hành
+- level1: Path
+  level2:
+  - Đường dẫn như một giá trị thuộc hệ thống tệp
+  - Tạo đường dẫn từ các thành phần hoặc URI
+  - Đường dẫn tuyệt đối, tương đối và thư mục làm việc
+  - Đọc root, tên tệp, thư mục cha và từng đoạn tên
+  - Ghép bằng resolve, resolveSibling
+  - Tạo đường dẫn tương đối bằng relativize
+  - Phân biệt normalize với toRealPath
+  - Kiểm tra tiền tố, hậu tố và quan hệ đường dẫn
+  - Tương tác với File tại ranh giới thư viện
+  - Khác biệt cú pháp và nhà cung cấp giữa các nền tảng
+  - Kiểm tra đường dẫn nằm trong thư mục được phép
+- level1: Files
+  level2:
+  - Tạo tệp, thư mục và các thư mục cha
+  - Tạo tệp tạm và quản lý việc dọn dẹp
+  - Đọc ghi byte và lựa chọn theo kích thước dữ liệu
+  - Đọc ghi văn bản với bảng mã đã chỉ rõ
+  - Mở InputStream, OutputStream, Reader và Writer
+  - Tùy chọn tạo mới, ghi thêm, cắt nội dung và ghi đồng bộ
+  - Sao chép tệp và chính sách khi đích tồn tại
+  - Sao chép thuộc tính và giới hạn giữa các hệ thống tệp
+  - Di chuyển nguyên tử và xử lý AtomicMoveNotSupportedException
+  - Xóa tệp hoặc thư mục với delete, deleteIfExists
+  - Ngoại lệ cụ thể và thông tin đường dẫn khi thao tác thất bại
+  - Tránh giả định trạng thái không đổi sau thao tác kiểm tra
+- level1: Duyệt cây tệp
+  level2:
+  - Đọc thư mục theo DirectoryStream
+  - Đóng luồng duyệt và xử lý DirectoryIteratorException
+  - Lọc bằng glob hoặc DirectoryStream.Filter
+  - PathMatcher và khác biệt glob với biểu thức chính quy
+  - Đi qua cây bằng Files.walkFileTree
+  - FileVisitor, SimpleFileVisitor và thứ tự callback
+  - Xử lý tệp lỗi, bỏ qua nhánh hoặc kết thúc sớm
+  - Giới hạn độ sâu và tùy chọn theo liên kết
+  - Phát hiện vòng lặp liên kết trong cây
+  - Thiết kế tìm kiếm, thống kê và sao chép cây thư mục
+- level1: Thuộc tính tệp
+  level2:
+  - Đọc metadata bằng BasicFileAttributes
+  - Thời gian tạo, sửa đổi và truy cập với FileTime
+  - Đọc ghi thuộc tính theo tên hoặc giao diện có kiểu
+  - Kiểm tra khả năng hỗ trợ trước khi dùng attribute view
+  - Chủ sở hữu và UserPrincipal
+  - Quyền POSIX theo người sở hữu, nhóm và bên khác
+  - Thuộc tính DOS trên hệ thống hỗ trợ
+  - Danh sách kiểm soát truy cập với AclFileAttributeView
+  - Thuộc tính mở rộng do người dùng định nghĩa
+  - FileStore và kiểm tra dung lượng khả dụng
+- level1: Liên kết tệp
+  level2:
+  - Phân biệt liên kết cứng và liên kết tượng trưng
+  - Tạo và đọc đích liên kết tượng trưng
+  - NOFOLLOW_LINKS trong kiểm tra và thao tác metadata
+  - Đường dẫn tương đối được lưu trong liên kết
+  - Liên kết không còn đích và vòng tham chiếu
+  - Chính sách sao chép, di chuyển hoặc xóa liên kết
+  - Kiểm thử quyền truy cập và hỗ trợ của hệ điều hành
+- level1: WatchService
+  level2:
+  - Mô hình đăng ký thư mục và nhận thông báo thay đổi
+  - ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY
+  - Vòng nhận sự kiện bằng take hoặc poll
+  - WatchKey, reset và khóa mất hiệu lực
+  - Chuyển context sự kiện thành đường dẫn cần xử lý
+  - OVERFLOW và việc quét lại trạng thái thực
+  - Đăng ký từng thư mục khi theo dõi cả cây
+  - Gộp sự kiện trùng và tránh xử lý khi tệp chưa ghi xong
+  - Đóng dịch vụ, ngắt chờ và dừng có kiểm soát
+  - Giới hạn bảo đảm theo nhà cung cấp và hệ thống tệp
+- level1: FileSystem và ZIP
+  level2:
+  - Quan hệ Path, FileSystem và FileSystemProvider
+  - Nhà cung cấp mặc định và hệ thống tệp bổ sung
+  - Tạo hệ thống tệp bằng FileSystems.newFileSystem
+  - Truy cập ZIP hoặc JAR như một cây đường dẫn
+  - Tạo, đọc và cập nhật mục trong kho ZIP
+  - Tùy chọn tạo mới và bảng mã tên mục
+  - Đóng FileSystem và vòng đời các Path liên quan
+  - Lỗi nhà cung cấp không khớp hoặc hệ thống tệp đã đóng
+  - Giữ đường dẫn mục giải nén trong vùng đích cho phép
+- level1: Kênh tệp bất đồng bộ
+  level2:
+  - Phân biệt I/O chặn, không chặn và bất đồng bộ
+  - Vai trò của AsynchronousFileChannel
+  - Kết quả Future và callback CompletionHandler
+  - Đọc ghi theo vị trí thay vì con trỏ dùng chung
+  - ByteBuffer và trường hợp chưa đọc ghi đủ dữ liệu
+  - Tổ chức nhiều thao tác độc lập và kiểm soát bộ đệm
+  - Khóa vùng tệp và xử lý lỗi hoàn tất
+  - Quản lý executor cùng vòng đời kênh
+  - Đo lợi ích theo kiểu tải thay vì giả định bất đồng bộ luôn nhanh hơn
+- level1: Kênh mạng bất đồng bộ
+  level2:
+  - AsynchronousServerSocketChannel và chấp nhận kết nối
+  - AsynchronousSocketChannel và vòng đời kết nối
+  - Hoàn tất connect, read và write
+  - Trạng thái đọc ghi đang chờ và giới hạn truy cập bộ đệm
+  - Đọc ghi một phần, kết thúc luồng và lỗi kết nối
+  - Thời hạn chờ, hủy và đóng kênh
+  - AsynchronousChannelGroup và luồng xử lý callback
+  - Tránh chặn callback hoặc tạo vòng chờ lẫn nhau
+  - Tổ chức dừng máy chủ và thu hồi tài nguyên
+- level1: Socket và multicast
+  level2:
+  - NetworkChannel và cấu hình SocketOption
+  - Tra cứu khả năng hỗ trợ qua supportedOptions
+  - Các tùy chọn chuẩn và khác biệt theo nền tảng
+  - Chọn họ giao thức khi mở DatagramChannel
+  - Tham gia nhóm bằng MulticastChannel
+  - MembershipKey, giao diện mạng và nguồn gửi
+  - Chặn nguồn, hủy đăng ký và đóng kênh
+  - Kiểm thử mạng có hỗ trợ multicast
+- level1: Fork/Join
+  level2:
+  - Chia để trị cho bài toán tính toán có thể tách nhỏ
+  - ForkJoinPool và cơ chế đánh cắp tác vụ
+  - RecursiveTask cho kết quả và RecursiveAction cho hành động
+  - Thiết kế compute với điều kiện dừng rõ ràng
+  - Chọn ngưỡng phân chia theo chi phí thực tế
+  - Phối hợp fork, xử lý cục bộ và join
+  - Thực thi nhiều tác vụ bằng invokeAll
+  - Tránh dữ liệu dùng chung và phụ thuộc tạo chu kỳ
+  - Xử lý ngoại lệ, hủy và trạng thái hoàn tất
+  - Tác vụ chặn và giao diện ManagedBlocker
+  - Quản lý pool theo quyền sở hữu
+  - So sánh thuật toán song song với kết quả tuần tự
+- level1: Phaser
+  level2:
+  - Đồng bộ một nhóm công việc qua nhiều giai đoạn
+  - Phase, số bên tham gia và số bên chưa đến
+  - Đăng ký linh hoạt bằng register, bulkRegister
+  - arrive và arriveAndAwaitAdvance
+  - Chờ giai đoạn đổi bằng awaitAdvance
+  - Rút khỏi nhóm bằng arriveAndDeregister
+  - Chờ có thể ngắt hoặc hết thời hạn
+  - Điều kiện kết thúc và tùy biến onAdvance
+  - Phaser phân tầng khi số bên tham gia lớn
+  - Chọn Phaser theo cấu trúc phối hợp của bài toán
+- level1: Hàng đợi đồng thời
+  level2:
+  - Chuyển giao dữ liệu giữa bên tạo và bên nhận
+  - TransferQueue cùng LinkedTransferQueue
+  - Phân biệt đưa vào hàng đợi với transfer tới bên nhận
+  - tryTransfer và biến thể có thời hạn chờ
+  - Ngắt luồng, hủy công việc và quy trình kết thúc
+  - Kiểm soát tốc độ khi hàng đợi không giới hạn
+  - ConcurrentLinkedDeque cho thao tác hai đầu
+  - Iterator nhất quán yếu và thao tác nhiều bước
+  - Kiểm tra dữ liệu dùng chung và bảo đảm quan sát giữa các luồng
+- level1: ThreadLocalRandom
+  level2:
+  - Giảm tranh chấp khi nhiều luồng cần số ngẫu nhiên
+  - Lấy bộ sinh qua current
+  - Sinh số trong khoảng xác định
+  - Giới hạn cận và đầu vào không hợp lệ
+  - Quản lý trạng thái theo luồng và giới hạn đặt seed
+  - Phân biệt nhu cầu ngẫu nhiên thông thường với ngẫu nhiên mật mã
+  - Chọn cách kiểm thử khi không thể điều khiển seed
+- level1: JDBC
+  level2:
+  - Tự đóng Connection, Statement và ResultSet
+  - Thứ tự phụ thuộc tài nguyên trong một lần truy vấn
+  - Phân biệt kết thúc tài nguyên với commit hoặc rollback
+  - getObject theo Class và chuyển đổi kiểu được driver hỗ trợ
+  - Lấy hoặc đặt schema của kết nối
+  - Network timeout và quyền sở hữu executor
+  - Hủy kết nối bằng abort khi cần thu hồi
+  - closeOnCompletion và vòng đời các ResultSet
+  - Kiểm tra khả năng hỗ trợ bằng DatabaseMetaData
+  - Xử lý SQLFeatureNotSupportedException và driver
+  - Kiểm thử lỗi truy vấn, lỗi giao dịch và lỗi đóng
+- level1: MethodHandle
+  level2:
+  - Tham chiếu có kiểu tới hành vi có thể gọi
+  - MethodType và chữ ký tham số, kết quả
+  - MethodHandles.Lookup và kiểm tra quyền truy cập
+  - Tra cứu phương thức static, virtual và constructor
+  - Tra cứu getter, setter của trường
+  - Phân biệt invokeExact với invoke
+  - Chuyển chữ ký bằng asType
+  - Cố định đối tượng nhận hoặc tham số bằng bindTo
+  - Kết hợp hành vi qua các bộ biến đổi MethodHandles
+  - CallSite và vai trò của invokedynamic
+  - Phân biệt sử dụng API được hỗ trợ với phụ thuộc API nội bộ
+  - Kiểm chứng kiểu gọi, lỗi liên kết và chi phí làm nóng
+- level1: Nạp lớp an toàn
+  level2:
+  - Quan hệ giữa class loader, định danh lớp và tài nguyên
+  - Giải phóng tệp JAR bằng URLClassLoader.close
+  - Đóng loader và giới hạn thu hồi các lớp đã nạp
+  - Thiết kế quyền sở hữu loader trong cơ chế plugin
+  - Nạp song song và registerAsParallelCapable
+  - Khóa theo tên lớp qua getClassLoadingLock
+  - Tránh khóa chéo khi ủy quyền giữa nhiều loader
+  - Kiểm thử đóng loader và thay đổi tài nguyên
+- level1: Locale và Unicode
+  level2:
+  - Thẻ ngôn ngữ BCP 47 trong trao đổi dữ liệu
+  - Tạo Locale bằng Locale.Builder
+  - Chuyển đổi forLanguageTag và toLanguageTag
+  - Đọc language, script, region và phần mở rộng
+  - Phân biệt locale hiển thị với locale định dạng
+  - Chuỗi tên phù hợp người dùng bằng các phương thức getDisplay
+  - 'Currency: tên hiển thị và mã tiền tệ dạng số'
+  - Nhận diện script và duyệt văn bản theo code point
+  - Kiểm thử tiếng Việt, ký tự bổ sung và các locale khác nhau
+- level1: Regex Unicode
+  level2:
+  - Nhóm bắt có tên và đọc kết quả theo tên
+  - Tham chiếu ngược tới nhóm có tên
+  - Thay thế văn bản bằng nhóm tên
+  - Lớp ký tự theo script và thuộc tính Unicode
+  - UNICODE_CHARACTER_CLASS và lớp ký tự định sẵn
+  - Phân biệt xử lý chữ hoa, chữ thường với chuẩn hóa văn bản
+  - Escape code point và cú pháp Java chứa biểu thức chính quy
+  - Kiểm thử đầu vào đa ngôn ngữ và mẫu không hợp lệ
+- level1: Luồng ZIP
+  level2:
+  - Chọn ZipFile hoặc các luồng đọc ghi ZIP
+  - Chỉ rõ bảng mã tên mục bằng Charset
+  - Tên Unicode, metadata và khả năng tương tác giữa công cụ
+  - Giới hạn định dạng ZIP và kho lưu trữ kích thước lớn
+  - Điều khiển flush của bộ nén khi cần truyền dữ liệu liên tục
+  - Quản lý tài nguyên ZIP bằng try-with-resources
+  - Kiểm tra dữ liệu hỏng và kích thước đầu ra
+  - Giới hạn đường dẫn và tài nguyên khi giải nén
+- level1: Swing chuẩn
+  level2:
+  - JLayer và LayerUI trong ứng dụng desktop còn được duy trì
+  - Vẽ lớp phủ lên một nhóm thành phần
+  - Theo dõi sự kiện trong phạm vi lớp trang trí
+  - Đăng ký và hủy event mask theo vòng đời giao diện
+  - Nimbus trong namespace javax.swing.plaf.nimbus được hỗ trợ
+  - 'Window: hình dạng tùy chỉnh và độ trong suốt'
+  - Kiểm tra GraphicsDevice trước khi dùng hiệu ứng
+  - Giữ thao tác giao diện trên luồng sự kiện
+- level1: G1
+  level2:
+  - Phân vùng heap và mục tiêu của Garbage-First
+  - Ưu tiên thu hồi vùng có khả năng giải phóng cao
+  - Đánh dấu đồng thời và những thời điểm ứng dụng phải dừng
+  - Di chuyển đối tượng sống để thu hồi, giảm phân mảnh
+  - Cân bằng thời gian dừng, thông lượng và bộ nhớ
+  - Giới hạn của mục tiêu thời gian dừng
+  - Quan sát hành vi trên JVM đang sử dụng trước khi tinh chỉnh
+- level1: JIT phân tầng
+  level2:
+  - Thông dịch, thu thập hồ sơ và biên dịch lúc chạy
+  - Vai trò của các tầng biên dịch trong HotSpot
+  - Quan hệ giữa thời gian khởi động và hiệu năng ổn định
+  - Inline, tối ưu theo hồ sơ và khả năng quay lại mã ít tối ưu
+  - Tác động của quá trình làm nóng tới phép đo
+  - Phân biệt tối ưu của JVM với bảo đảm của ngôn ngữ
+  - Thiết kế so sánh có kết quả được sử dụng và dữ liệu đại diện
+- level1: Thực hành tổng hợp
+  level2:
+  - Mô hình cờ bit và điều phối lệnh chuỗi
+  - Rà soát generic, varargs và cảnh báo an toàn kiểu
+  - Mô phỏng lỗi khởi tạo, xử lý và đóng tài nguyên
+  - Viết công cụ tìm kiếm, sao chép và thống kê cây tệp
+  - Theo dõi thay đổi thư mục có cơ chế khôi phục sau OVERFLOW
+  - Đọc ghi tệp hoặc phục vụ kết nối bằng kênh bất đồng bộ
+  - Tính toán chia để trị và điều chỉnh ngưỡng Fork/Join
+  - Phối hợp các giai đoạn bằng Phaser và chuyển giao qua TransferQueue
+  - Kiểm thử JDBC theo từng loại lỗi và vòng đời tài nguyên
+  - Khám phá MethodHandle bằng các chữ ký có kiểu khác nhau
+  - Kiểm chứng văn bản Unicode, locale và kho ZIP
+  - Ghi nhận kết quả chức năng, tài nguyên và hiệu năng

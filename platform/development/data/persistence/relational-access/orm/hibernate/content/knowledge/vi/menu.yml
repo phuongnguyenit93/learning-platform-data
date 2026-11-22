@@ -1,0 +1,499 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Hibernate ORM là gì và giải quyết độ lệch giữa đối tượng Java với dữ liệu quan hệ như thế nào
+  - Phân biệt JDBC, ORM, Jakarta Persistence và Hibernate
+  - Hibernate dưới vai trò bộ triển khai đặc tả và các khả năng mở rộng riêng
+  - Phân biệt Hibernate ORM với Hibernate Validator, Search và Reactive
+  - Mối liên hệ giữa lớp, đối tượng, bảng, hàng, khóa và giao dịch
+  - Những việc ORM tự động hóa và những quyết định ứng dụng vẫn phải chịu trách nhiệm
+  - Khi nào truy cập qua ORM phù hợp và khi nào cần SQL hoặc JDBC trực tiếp
+  - Lộ trình học với ví dụ khách hàng, đơn hàng, dòng hàng và sản phẩm
+- level1: Kiến trúc Hibernate
+  level2:
+  - SessionFactory, Session và Transaction trong toàn bộ vòng đời truy cập dữ liệu
+  - Quan hệ giữa EntityManagerFactory với SessionFactory và EntityManager với Session
+  - Persistence Context, bộ nhớ đệm cấp một và cơ chế giữ danh tính đối tượng
+  - Siêu dữ liệu ánh xạ, bộ mô tả kiểu và Dialect
+  - Từ thao tác đối tượng đến hàng đợi hành động và SQL gửi qua JDBC
+  - Từ HQL đến mô hình truy vấn ngữ nghĩa, kế hoạch truy vấn và SQL
+  - Vai trò của DataSource, bộ kết nối và JDBC driver
+  - Ranh giới giữa API công khai, SPI mở rộng và chi tiết nội bộ không nên phụ thuộc
+- level1: Khởi tạo và cấu hình
+  level2:
+  - Chọn bộ phiên bản tương thích giữa Java, Hibernate, Jakarta Persistence và JDBC driver
+  - Khởi tạo gốc với registry dịch vụ, metadata và SessionFactory
+  - Khởi tạo qua Jakarta Persistence với persistence unit
+  - Cấu hình bằng thuộc tính, tệp cấu hình và môi trường triển khai
+  - Đăng ký thực thể, package và các nguồn siêu dữ liệu
+  - Lựa chọn Dialect và kiểm tra hỗ trợ của hệ quản trị
+  - Kết nối qua DataSource và bộ kết nối dùng chung
+  - Cấu hình tên logic, tên vật lý, schema và catalog
+  - Cấu hình múi giờ JDBC, hiển thị SQL và thống kê
+  - Quản lý thông tin xác thực, đóng tài nguyên và lỗi trong giai đoạn khởi động
+- level1: Session và tài nguyên
+  level2:
+  - Phạm vi sử dụng và khả năng chia sẻ SessionFactory
+  - Session không an toàn để dùng đồng thời và cách chọn phạm vi tồn tại
+  - Mở, sử dụng và đóng Session khi giao dịch thành công hoặc thất bại
+  - Phân biệt vòng đời Session, giao dịch và kết nối JDBC
+  - Kết nối được lấy hoặc trả vào thời điểm nào theo cấu hình
+  - Session theo yêu cầu, theo giao dịch hoặc theo tác vụ xử lý lô
+  - Session hiện tại và cơ chế liên kết với ngữ cảnh thực thi
+  - Không truyền Session hoặc thực thể đang quản lý sang luồng khác tùy tiện
+  - Nguyên tắc bỏ Session đã lỗi và tạo ranh giới xử lý mới
+- level1: Ánh xạ thực thể
+  level2:
+  - Điều kiện để một lớp Java trở thành thực thể được Hibernate quản lý
+  - '@Entity, @Table và sự khác nhau giữa tên thực thể với tên bảng'
+  - Chiến lược truy cập qua trường hoặc thuộc tính
+  - '@Column, tên cột và các tùy chọn ánh xạ cơ bản'
+  - Thuộc tính không lưu bằng @Transient và từ khóa transient của Java
+  - Constructor, tính khả kiến và tác động của lớp hoặc phương thức final
+  - Record, lớp bất biến và lựa chọn phù hợp cho thực thể hoặc dữ liệu chiếu
+  - Ánh xạ nhiều bảng cho một thực thể bằng bảng phụ
+  - Thuộc tính do cơ sở dữ liệu sinh và thời điểm đọc lại
+  - Phân biệt metadata phục vụ sinh DDL với kiểm tra dữ liệu lúc chạy
+- level1: Kiểu dữ liệu
+  level2:
+  - Ánh xạ kiểu Java, kiểu JDBC và kiểu cột của hệ quản trị
+  - Chuỗi, số, boolean, dữ liệu nhị phân và đối tượng lớn
+  - BigDecimal, precision, scale và độ chính xác của tiền tệ
+  - Instant, LocalDate, LocalDateTime, OffsetDateTime và chính sách múi giờ
+  - Enum theo tên hoặc giá trị tùy chỉnh và nguy cơ dùng thứ tự ordinal
+  - AttributeConverter cho đối tượng giá trị và giới hạn áp dụng
+  - '@JdbcTypeCode cùng cơ chế chỉ định cách biểu diễn JDBC'
+  - Ánh xạ JSON, mảng hoặc kiểu đặc thù theo phiên bản và Dialect
+  - Kiểu tùy chỉnh với UserType hoặc SPI kiểu dữ liệu khi converter chưa đủ
+  - Tính có thể thay đổi của giá trị và ảnh hưởng đến sao chép với kiểm tra thay đổi
+  - Null, giá trị mặc định và giá trị do cơ sở dữ liệu tính
+- level1: Định danh
+  level2:
+  - Khóa thực thể, định danh Java và khóa chính trong cơ sở dữ liệu
+  - Định danh do ứng dụng gán hoặc do hệ thống sinh
+  - So sánh chiến lược IDENTITY, SEQUENCE, TABLE và AUTO
+  - Bộ sinh UUID và các lựa chọn định danh phù hợp với phiên bản sử dụng
+  - Sequence, kích thước cấp phát và nguy cơ lệch cấu hình với cơ sở dữ liệu
+  - Khóa ghép bằng @EmbeddedId hoặc @IdClass
+  - Định danh phụ thuộc và @MapsId
+  - Khóa tự nhiên với @NaturalId và truy vấn theo khóa nghiệp vụ
+  - Tính bất biến của định danh sau khi đối tượng được quản lý
+  - Thời điểm có định danh và ảnh hưởng đến batching hoặc equals
+  - Định danh trong mô hình nhiều tổ chức và phạm vi duy nhất
+- level1: Giá trị và tập hợp
+  level2:
+  - '@Embeddable và @Embedded cho đối tượng giá trị'
+  - Ghi đè tên cột khi nhúng cùng một kiểu ở nhiều vị trí
+  - Giá trị nhúng nhiều tầng và cách xử lý null
+  - '@ElementCollection cho tập hợp giá trị không có danh tính thực thể riêng'
+  - Collection table, cột liên kết và vòng đời dữ liệu thành phần
+  - List, Set, Map và bag khác nhau về ngữ nghĩa ánh xạ
+  - '@OrderBy khác với @OrderColumn'
+  - Khóa ánh xạ, giá trị ánh xạ và tập hợp đối tượng nhúng
+  - Thay đổi tập hợp và SQL cập nhật hoặc xóa được sinh
+  - Tập hợp lớn và dấu hiệu cần mô hình hóa thành thực thể riêng
+- level1: Quan hệ đơn trị
+  level2:
+  - '@ManyToOne, khóa ngoại và phía quản lý liên kết'
+  - '@OneToOne với khóa ngoại duy nhất hoặc khóa chính dùng chung'
+  - Quan hệ một chiều, hai chiều và ý nghĩa của mappedBy
+  - Quan hệ tùy chọn và sự khác nhau giữa optional với nullable
+  - Tham chiếu trì hoãn và điều kiện để tránh tải thực thể ngay
+  - Khóa ngoại thiếu, dữ liệu không nhất quán và cách xử lý lỗi
+  - '@JoinColumn, @JoinColumns và tham chiếu khóa ghép'
+  - Đồng bộ hai phía quan hệ bằng phương thức nghiệp vụ
+  - Phân biệt phía quản lý liên kết với chủ sở hữu vòng đời nghiệp vụ
+- level1: Quan hệ đa trị
+  level2:
+  - '@OneToMany hai chiều và vai trò khóa ngoại ở phía nhiều'
+  - '@OneToMany một chiều và các phương án bảng liên kết hoặc cột liên kết'
+  - '@ManyToMany và cấu trúc bảng liên kết'
+  - Thực thể liên kết khi quan hệ có thuộc tính hoặc quy tắc riêng
+  - Chọn Set, List hoặc Map theo ý nghĩa nghiệp vụ
+  - Thêm, xóa và thay thế phần tử trên tập hợp đang được quản lý
+  - Đồng bộ hai phía mà không tạo vòng gọi hoặc cập nhật thừa
+  - Sắp xếp, thứ tự lưu và chi phí cập nhật vị trí
+  - Quan hệ tự tham chiếu và mô hình cha con
+  - Giới hạn đồ thị đối tượng và tránh tải toàn bộ tập hợp không cần thiết
+- level1: Kế thừa
+  level2:
+  - '@MappedSuperclass và phần ánh xạ dùng chung'
+  - Kế thừa thực thể với SINGLE_TABLE
+  - Kế thừa thực thể với JOINED
+  - Kế thừa thực thể với TABLE_PER_CLASS
+  - Cột phân loại và giá trị phân loại kiểu con
+  - Truy vấn đa hình và các bảng hoặc phép nối được sử dụng
+  - Ảnh hưởng đến khóa, ràng buộc và thuộc tính bắt buộc
+  - Chi phí truy vấn khi số kiểu con hoặc độ sâu kế thừa tăng
+  - Chọn kết hợp đối tượng thay vì kế thừa khi quan hệ nghiệp vụ không phù hợp
+- level1: Ánh xạ nâng cao
+  level2:
+  - Thuộc tính tính bằng biểu thức SQL với @Formula
+  - Biểu thức đọc hoặc ghi cột với @ColumnTransformer
+  - Ánh xạ mô hình đọc qua @Subselect và khai báo đồng bộ bằng @Synchronize
+  - '@Immutable cho thực thể hoặc tập hợp và giới hạn bảo đảm'
+  - Tùy chỉnh SQL insert, update hoặc delete và trách nhiệm giữ đúng trạng thái
+  - Ánh xạ liên kết không theo khóa chính với điều kiện duy nhất rõ ràng
+  - Quan hệ đa hình bằng @Any và giới hạn bảo toàn tham chiếu
+  - Ánh xạ lược đồ có sẵn với tên đặc biệt, kiểu cột cũ hoặc cấu trúc bất thường
+  - Chọn ánh xạ chỉ đọc thay vì cố biến mọi nguồn dữ liệu thành thực thể có thể sửa
+  - Đánh giá khả năng di chuyển và kiểm thử SQL của mỗi phần mở rộng
+- level1: Danh tính đối tượng
+  level2:
+  - Phân biệt cùng tham chiếu Java, cùng định danh lưu trữ và cùng giá trị nghiệp vụ
+  - Chọn thuộc tính cho equals và hashCode của thực thể
+  - Định danh chưa được sinh và tính ổn định của hashCode
+  - Khóa tự nhiên bất biến như một tiêu chí so sánh khi phù hợp
+  - Proxy, kế thừa và nguy cơ so sánh kiểu thực thể không đúng
+  - Thực thể trong HashSet hoặc làm khóa HashMap khi thuộc tính bị thay đổi
+  - So sánh các đối tượng thuộc nhiều Session khác nhau
+  - Giới hạn của equals, hashCode hoặc toString được sinh tự động trên quan hệ
+  - Kiểm thử tính đối xứng, bắc cầu và hành vi trước với sau khi lưu
+- level1: Vòng đời thực thể
+  level2:
+  - Các trạng thái transient, managed, detached và removed
+  - persist và quá trình đưa thực thể mới vào Persistence Context
+  - Tải thực thể theo định danh và lấy tham chiếu trì hoãn
+  - Thay đổi thuộc tính của thực thể đang được quản lý
+  - merge và sự khác nhau giữa đối tượng truyền vào với kết quả được quản lý
+  - remove và điều kiện để xóa thực thể
+  - detach, clear và việc chấm dứt quản lý trạng thái
+  - refresh để đọc lại dữ liệu từ cơ sở dữ liệu
+  - Phân biệt persist, merge và cập nhật dữ liệu trực tiếp bằng truy vấn
+  - Lỗi thực thể detached được đưa vào thao tác không phù hợp
+  - Rà soát vòng đời qua SQL, định danh và trạng thái Session
+- level1: Persistence Context
+  level2:
+  - Một thực thể theo một định danh trong cùng Persistence Context
+  - Bộ nhớ đệm cấp một và việc đọc lại không nhất thiết phát SQL mới
+  - Dữ liệu đang quản lý có thể khác với dữ liệu vừa đổi bên ngoài Session
+  - Tải đối tượng, lưu ảnh trạng thái và theo dõi thay đổi
+  - contains, detach, clear và phạm vi ảnh hưởng
+  - Đồ thị đối tượng, tập hợp được quản lý và tham chiếu tới proxy
+  - Chế độ chỉ đọc và những thay đổi thực sự được bỏ theo dõi
+  - Session tồn tại lâu, bộ nhớ tăng và dữ liệu bị cũ
+  - Phân biệt làm mới, xóa khỏi context và làm rỗng bộ nhớ đệm cấp hai
+  - Ranh giới context trong xử lý theo lô và nhiều giao dịch
+- level1: Dirty Checking và Flush
+  level2:
+  - Dirty checking phát hiện thay đổi thuộc tính như thế nào
+  - So sánh ảnh trạng thái với theo dõi thay đổi bằng bytecode enhancement
+  - Flush chuyển các thay đổi đang chờ thành SQL
+  - Flush khác với commit và không tự kết thúc giao dịch
+  - Thời điểm flush trước truy vấn hoặc khi kết thúc giao dịch
+  - FlushMode và các chế độ hỗ trợ theo API Hibernate hoặc Jakarta Persistence
+  - Hàng đợi hành động và thứ tự insert, update, delete
+  - Ràng buộc cơ sở dữ liệu khiến thứ tự SQL trở nên quan trọng
+  - '@DynamicInsert, @DynamicUpdate và đánh đổi với khả năng tái sử dụng câu lệnh'
+  - Trường sinh tự động, giá trị mặc định và thời điểm đồng bộ trở lại
+  - Tránh gọi flush hoặc clear theo thói quen khi chưa rõ mục đích
+- level1: Giao dịch
+  level2:
+  - Giao dịch nghiệp vụ, giao dịch Hibernate và giao dịch cơ sở dữ liệu
+  - Bắt đầu, commit, rollback và xử lý lỗi đúng ranh giới
+  - Giao dịch resource-local và tích hợp JTA
+  - Auto-commit JDBC và lý do phải xác định ranh giới giao dịch rõ ràng
+  - Phân biệt mức cô lập của cơ sở dữ liệu với cơ chế quản lý trạng thái của ORM
+  - Đọc lặp lại trong context không đồng nghĩa với mọi bảo đảm cô lập ở cơ sở dữ liệu
+  - Timeout, trạng thái chỉ được rollback và lỗi xuất hiện tại commit
+  - Ảnh hưởng của giao dịch dài đến khóa, kết nối và phiên bản dữ liệu
+  - Đặt ranh giới giao dịch tại thao tác nghiệp vụ nhiều bước
+  - Không tái sử dụng Session đã lỗi để tiếp tục xử lý ngoài kiểm soát
+- level1: Khóa và đồng thời
+  level2:
+  - Mất cập nhật, đọc dữ liệu cũ và điều kiện tranh chấp
+  - '@Version cho kiểm soát khóa lạc quan'
+  - SQL kiểm tra phiên bản và kết quả khi bản ghi đã bị sửa
+  - Khóa lạc quan với yêu cầu tăng phiên bản chủ động
+  - Khóa bi quan khi tải hoặc truy vấn thực thể
+  - Timeout khóa, deadlock và xử lý thất bại có giới hạn
+  - Chế độ khóa Hibernate và ánh xạ sang khả năng của Dialect
+  - Khóa trên thực thể, quan hệ và phạm vi bảo vệ thực tế
+  - Khóa lạc quan không dùng cột phiên bản và giới hạn của các cơ chế mở rộng
+  - Retry toàn thao tác nghiệp vụ bằng context mới khi phù hợp
+  - Bất biến giữa nhiều hàng và vai trò của ràng buộc cơ sở dữ liệu
+- level1: Cascade và xóa
+  level2:
+  - Cascade truyền thao tác vòng đời khác với tải dữ liệu liên quan
+  - PERSIST, MERGE, REMOVE, REFRESH, DETACH và ý nghĩa của ALL
+  - Cascade từ gốc aggregate theo quyền sở hữu nghiệp vụ
+  - orphanRemoval khi phần tử không còn thuộc quan hệ
+  - Phân biệt bỏ liên kết, xóa phần tử con và xóa thực thể cha
+  - Rủi ro truyền REMOVE qua quan hệ nhiều với nhiều
+  - Cascade ở ORM khác với ON DELETE CASCADE ở cơ sở dữ liệu
+  - Thứ tự xóa, khóa ngoại và dữ liệu cần giữ lịch sử
+  - Xóa bằng truy vấn hàng loạt không giống xóa từng thực thể
+  - Kiểm chứng tác động xóa bằng số hàng và SQL thực tế
+- level1: Tải dữ liệu
+  level2:
+  - Thời điểm tải khác với cách Hibernate lấy dữ liệu
+  - LAZY và EAGER không mặc nhiên xác định số câu SQL
+  - Tải bằng select, join, batch hoặc subselect
+  - N+1 trong quan hệ đơn trị lẫn đa trị
+  - JOIN FETCH theo từng tình huống sử dụng
+  - Entity graph và fetch profile để định nghĩa dữ liệu cần tải
+  - '@BatchSize và cấu hình kích thước tải nhóm'
+  - FetchMode.SUBSELECT và các điều kiện cần kiểm chứng
+  - Tải nhiều tập hợp, tích Descartes và giới hạn của bag
+  - Phân trang cùng collection fetch join và nguy cơ xử lý trong bộ nhớ
+  - Chọn DTO projection khi chỉ cần dữ liệu đọc
+  - Kiểm tra số truy vấn, số hàng và kích thước kết quả thay vì chỉ nhìn annotation
+- level1: Proxy và tăng cường
+  level2:
+  - Proxy biểu diễn tham chiếu chưa được khởi tạo
+  - Thời điểm truy cập thuộc tính gây tải dữ liệu
+  - LazyInitializationException và ranh giới context đã đóng
+  - Nhận diện trạng thái tải và khởi tạo có chủ đích
+  - Phân biệt proxy thực thể với wrapper của tập hợp
+  - Unproxy và cách xác định kiểu khi cần làm việc với thực thể thực
+  - Bytecode enhancement cho tải trì hoãn thuộc tính hoặc theo dõi thay đổi
+  - Cấu hình enhancement trong quá trình build và kiểm tra mã đã được tăng cường
+  - Giới hạn liên quan đến final, kế thừa và phương thức bị ghi đè
+  - Không để tuần tự hóa, debugger, log hoặc toString vô tình tải cả đồ thị
+- level1: HQL
+  level2:
+  - HQL truy vấn theo thực thể và thuộc tính thay vì tên bảng hoặc cột
+  - Quan hệ giữa JPQL chuẩn với các khả năng riêng của HQL
+  - SelectionQuery, MutationQuery và các API truy vấn theo phiên bản
+  - Chọn thực thể, giá trị vô hướng và kiểu kết quả mong đợi
+  - Tham số đặt tên, tham số danh sách và xử lý giá trị null
+  - Điều kiện lọc, so sánh, biểu thức điều kiện và thứ tự kết quả
+  - Join tường minh, join ngầm định và ảnh hưởng của quan hệ tùy chọn
+  - Truy vấn con, kiểm tra tồn tại và xử lý tập hợp
+  - Nhóm dữ liệu, hàm tổng hợp và điều kiện sau khi nhóm
+  - Named query, hint, timeout và chế độ chỉ đọc
+  - An toàn khi ghép các thành phần truy vấn động
+- level1: HQL nâng cao
+  level2:
+  - Xác nhận tính năng HQL theo phiên bản Hibernate và khả năng của Dialect
+  - Hàm dựng sẵn, hàm SQL và đăng ký hàm mở rộng
+  - Biểu thức theo kiểu, truy vấn đa hình và xử lý kiểu con
+  - Các phép toán tập hợp khi phiên bản hỗ trợ
+  - Biểu thức bảng chung (CTE) và truy vấn đệ quy khi được hỗ trợ
+  - Hàm cửa sổ, xếp hạng và tổng hợp theo nhóm cửa sổ
+  - Truy vấn lateral hoặc bảng suy ra trong phạm vi hỗ trợ
+  - Insert, update, delete theo truy vấn và giới hạn ánh xạ thực thể
+  - Ảnh hưởng của bulk DML đến Persistence Context, phiên bản và callback
+  - Phân biệt hàng SQL trùng với thực thể trùng trong kết quả truy vấn
+  - Kiểm tra SQL sinh ra và tránh phụ thuộc ngoài chủ đích vào tính năng riêng
+- level1: Criteria và truy vấn động
+  level2:
+  - Criteria API cho truy vấn được xây dựng bằng mã Java
+  - CriteriaBuilder, CriteriaQuery, Root và Predicate
+  - Kết hợp bộ lọc có hoặc không có giá trị đầu vào
+  - Join, fetch, truy vấn con và điều kiện tồn tại
+  - Projection, tổng hợp, nhóm và sắp xếp động
+  - Metamodel tĩnh và kiểm tra tên thuộc tính trong quá trình biên dịch
+  - HibernateCriteriaBuilder cùng các khả năng mở rộng theo phiên bản
+  - CriteriaUpdate, CriteriaDelete và quy tắc đồng bộ context
+  - Tái sử dụng phần điều kiện mà không làm sai alias hoặc phạm vi truy vấn
+  - Đánh đổi giữa Criteria, HQL và SQL theo độ phức tạp thực tế
+- level1: SQL gốc
+  level2:
+  - Khi nào dùng native SQL trong ứng dụng Hibernate
+  - Tạo native query và binding tham số
+  - Ánh xạ giá trị vô hướng, thực thể và kết quả nhiều cột
+  - '@SqlResultSetMapping, constructor result và giới hạn kiểu kết quả'
+  - Trả về thực thể từ SQL với các cột cần thiết cho ánh xạ
+  - Đồng bộ context trước hoặc sau thao tác SQL ngoài cơ chế theo dõi thực thể
+  - Thực thi thủ tục lưu trữ và tham số vào, ra
+  - doWork hoặc doReturningWork để làm việc với JDBC khi cần
+  - Không tự đóng hoặc quản lý commit trên kết nối Hibernate đang sở hữu
+  - Tính di động, bảo mật tham số và kiểm thử theo hệ quản trị đích
+- level1: Kết quả và phân trang
+  level2:
+  - Trả về một kết quả, kết quả tùy chọn hoặc danh sách và xử lý số lượng không phù hợp
+  - DTO projection, biểu thức constructor và ánh xạ Tuple
+  - TupleTransformer hoặc ResultListTransformer trong phạm vi API hỗ trợ
+  - Đọc bằng stream hoặc ScrollableResults và trách nhiệm đóng tài nguyên
+  - Phân trang theo độ lệch và thứ tự ổn định
+  - Phân trang theo khóa để xử lý tập dữ liệu lớn
+  - Tách truy vấn đếm khỏi truy vấn dữ liệu khi hình dạng join khác nhau
+  - Phân trang hai bước theo định danh khi cần tải thêm tập hợp
+  - Giới hạn số hàng, fetch size JDBC và kích thước trang không phải một khái niệm
+  - Trả DTO ra ranh giới ứng dụng để tránh tải trì hoãn ngoài dự kiến
+- level1: Ghi hàng loạt
+  level2:
+  - Phân biệt JDBC batching, bulk DML và xử lý từng thực thể theo lô
+  - Cấu hình kích thước JDBC batch và xác nhận driver hỗ trợ
+  - Thứ tự insert hoặc update và khả năng gom câu lệnh
+  - Chiến lược sinh định danh ảnh hưởng thế nào đến gom insert
+  - Flush rồi clear theo từng lô để giới hạn Persistence Context
+  - Xử lý quan hệ và tham chiếu sau khi context đã được làm rỗng
+  - StatelessSession và khác biệt với Session có context
+  - Các bảo đảm, callback và khả năng batching của StatelessSession theo phiên bản
+  - Chia giao dịch, lưu điểm tiếp tục và chạy lại sau lỗi
+  - Lỗi batch, số hàng bị tác động và khả năng đối soát
+  - Chọn ORM, HQL mutation hoặc JDBC theo bằng chứng hiệu năng
+- level1: Bộ nhớ đệm
+  level2:
+  - Phân biệt bộ nhớ đệm cấp một, cấp hai, truy vấn và bộ kết nối
+  - Điều kiện dùng bộ nhớ đệm cấp hai và chọn bộ cung cấp tương thích
+  - Vùng đệm thực thể, tập hợp và khóa tự nhiên
+  - Chiến lược chỉ đọc hoặc đọc ghi theo khả năng bảo đảm của bộ cung cấp
+  - Query cache khác với lưu toàn bộ đồ thị thực thể
+  - Bố cục dữ liệu query cache và cấu hình phụ thuộc phiên bản Hibernate
+  - Mất hiệu lực khi dữ liệu được thay đổi qua Hibernate
+  - Thay đổi qua JDBC, ứng dụng khác hoặc native SQL và nguy cơ dữ liệu cũ
+  - Evict, hết hạn và giới hạn việc xóa đệm quá rộng
+  - Đo hit, miss, put và chi phí truy vấn sau khi bật bộ nhớ đệm
+  - Giữ đúng phân tách dữ liệu theo tổ chức và quyền truy cập
+- level1: Lược đồ và chuyển đổi
+  level2:
+  - Sinh, xác thực hoặc cập nhật lược đồ từ metadata
+  - Phân biệt create, create-drop, update và validate theo môi trường
+  - Giới hạn của tự cập nhật lược đồ khi cần bảo toàn dữ liệu
+  - Nguồn sở hữu DDL giữa ánh xạ ORM với công cụ migration
+  - Tích hợp Flyway hoặc Liquibase theo một quy trình có kiểm soát
+  - Naming strategy và tránh đổi tên ngoài dự kiến khi nâng cấp
+  - Kiểu cột, sequence, ràng buộc, chỉ mục và khả năng của Dialect
+  - Thay đổi ánh xạ theo chiến lược mở rộng rồi thu hẹp
+  - Đọc tương thích khi dữ liệu hoặc lược đồ có nhiều phiên bản
+  - Kiểm tra đồng bộ giữa migration, schema thực và metadata Hibernate
+- level1: Tích hợp Spring
+  level2:
+  - Spring Boot, Jakarta Persistence và Hibernate phối hợp khởi tạo như thế nào
+  - EntityManager được liên kết với giao dịch và cách truy cập Session bằng unwrap
+  - '@Transactional và vị trí ranh giới tại dịch vụ ứng dụng'
+  - Proxy Spring, lời gọi nội bộ và trường hợp giao dịch không được kích hoạt
+  - Propagation, isolation, timeout và chính sách rollback theo loại ngoại lệ
+  - readOnly là tín hiệu tối ưu và cần xác minh tác động thực tế
+  - Spring Data JPA như lớp repository phía trên Hibernate
+  - Phân biệt save, saveAndFlush, persist và merge
+  - Open Session in View và quyết định nơi cho phép tải dữ liệu
+  - Chuyển DTO bên trong ranh giới phù hợp để kiểm soát truy vấn
+  - Tác vụ nền hoặc bất đồng bộ cần context và giao dịch riêng
+  - Phối hợp nhiều DataSource mà không giả định có một giao dịch chung
+- level1: Sự kiện và mở rộng
+  level2:
+  - Callback vòng đời Jakarta Persistence và thời điểm được gọi
+  - Interceptor, event listener và trường hợp cần cơ chế Hibernate riêng
+  - Integrator cùng cách đăng ký thành phần mở rộng
+  - StatementInspector để quan sát hoặc xử lý SQL có chủ đích
+  - Thông tin tạo, sửa và trách nhiệm cập nhật metadata
+  - Bộ sinh giá trị hoặc định danh tùy chỉnh theo SPI được hỗ trợ
+  - Quy tắc kiểm tra Jakarta Validation khi thực thể được lưu hoặc cập nhật
+  - Giới hạn của callback khi truy vấn hàng loạt hoặc SQL ngoài ORM
+  - Tránh truy vấn, gửi mạng hoặc tạo thay đổi đệ quy trong callback
+  - Phân biệt sự kiện nội bộ ORM với sự kiện nghiệp vụ cần công bố sau commit
+- level1: Lịch sử với Envers
+  level2:
+  - Envers giải quyết nhu cầu kiểm toán thay đổi dữ liệu nào
+  - Đăng ký thực thể cần theo dõi bằng @Audited
+  - Bảng lịch sử, số revision và thông tin lần thay đổi
+  - Đọc thực thể tại một revision bằng AuditReader
+  - Truy vấn các lần thay đổi và xác định kiểu thêm, sửa hoặc xóa
+  - Theo dõi quan hệ và ranh giới giữa dữ liệu có với không có kiểm toán
+  - Thuộc tính bị loại trừ và đánh dấu trường đã thay đổi
+  - Revision entity tùy chỉnh cho người thao tác hoặc ngữ cảnh yêu cầu
+  - Các chiến lược lưu lịch sử và đánh đổi về truy vấn với dung lượng
+  - Giới hạn với bulk DML hoặc cập nhật trực tiếp ngoài cơ chế sự kiện
+  - Phân biệt Envers, event sourcing và nhật ký phục vụ tuân thủ
+- level1: Bộ lọc và xóa mềm
+  level2:
+  - Bộ lọc động với @FilterDef, @Filter và tham số theo Session
+  - Điều kiện tĩnh với @SQLRestriction và phạm vi áp dụng
+  - Bật, tắt bộ lọc và giới hạn khi context đã có sẵn thực thể
+  - Ảnh hưởng của filter khi tải theo định danh hoặc qua quan hệ theo phiên bản
+  - Xóa mềm bằng @SoftDelete trong các phiên bản hỗ trợ
+  - Phân biệt xóa mềm với tùy chỉnh lệnh xóa bằng @SQLDelete
+  - Quan hệ, truy vấn gốc và ranh giới được áp dụng điều kiện ẩn
+  - Ràng buộc duy nhất khi bản ghi đã xóa mềm vẫn còn trong bảng
+  - Khôi phục, xóa vĩnh viễn và yêu cầu giữ lịch sử
+  - Bộ lọc ORM không thay thế phân quyền hoặc phân lập dữ liệu hoàn chỉnh
+- level1: Nhiều tổ chức
+  level2:
+  - Phân biệt nhiều tổ chức dùng chung bảng, tách schema hoặc tách cơ sở dữ liệu
+  - Xác định tổ chức hiện tại và truyền ngữ cảnh qua tác vụ xử lý
+  - CurrentTenantIdentifierResolver và phạm vi sử dụng
+  - MultiTenantConnectionProvider cho cách ly kết nối theo khả năng hỗ trợ
+  - '@TenantId trong mô hình phân biệt dữ liệu theo tổ chức'
+  - Khóa chính, khóa nghiệp vụ và quan hệ giữa dữ liệu cùng tổ chức
+  - Phân tách Session, giao dịch và bộ nhớ đệm
+  - Truy vấn HQL, native SQL và thao tác ngoài Hibernate cần kiểm soát phạm vi
+  - Ngăn tái sử dụng nhầm ngữ cảnh khi dùng bộ luồng
+  - Kiểm thử chống lộ dữ liệu và thay đổi lược đồ cho nhiều tổ chức
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Log SQL và log giá trị tham số với giới hạn dữ liệu nhạy cảm
+  - SQL được log khác với thời điểm giao dịch hoàn tất
+  - Thống kê SessionFactory và các chỉ số tải thực thể hoặc tập hợp
+  - Đếm câu lệnh, số hàng, thời gian truy vấn và thời gian chờ kết nối
+  - Phân biệt chậm do ORM, mạng, bộ kết nối hay cơ sở dữ liệu
+  - Dấu vết qua ranh giới dịch vụ, giao dịch và JDBC
+  - Đọc kế hoạch truy vấn từ SQL do Hibernate sinh
+  - Phát hiện flush ngoài dự kiến, truy vấn trong vòng lặp và tải trì hoãn
+  - Chẩn đoán lỗi ánh xạ, ràng buộc, kiểu dữ liệu hoặc tham chiếu không tồn tại
+  - Bật đo đạc theo mục đích và kiểm soát chi phí quan sát
+- level1: Hiệu năng
+  level2:
+  - Lập dữ liệu đo và mẫu truy cập đại diện cho tình huống thực tế
+  - Chọn hình dạng kết quả theo nhu cầu thay vì luôn tải thực thể đầy đủ
+  - Giảm N+1 bằng kế hoạch tải có chủ đích
+  - Đánh đổi giữa join lớn, batch fetch và nhiều truy vấn nhỏ
+  - Phân trang đúng với quan hệ đa trị và thứ tự ổn định
+  - Kiểm soát kích thước Persistence Context trong tác vụ dài
+  - Tối ưu thao tác ghi bằng batching, sequence và thứ tự câu lệnh
+  - Chỉ đọc, thực thể bất biến và chi phí dirty checking
+  - Đo hiệu quả bộ nhớ đệm trước khi bật rộng
+  - Đối chiếu chỉ mục, kế hoạch thực thi và điều kiện lọc từ SQL thực
+  - Chọn truy vấn hàng loạt hoặc JDBC khi vòng đời thực thể không cần thiết
+  - Đánh giá bộ nhớ, số kết nối và hành vi dưới tải đồng thời
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị quy tắc miền và kiểm thử tích hợp hành vi ORM
+  - Khởi tạo cơ sở dữ liệu thực bằng Testcontainers khi cần
+  - Giới hạn khi thay hệ quản trị đích bằng cơ sở dữ liệu trong bộ nhớ
+  - Kiểm tra ánh xạ kiểu số, thời gian, enum và giá trị null
+  - Kiểm thử định danh, khóa ghép và quan hệ có vòng đời phụ thuộc
+  - Kiểm thử persist, merge, detach, refresh và trạng thái sau rollback
+  - Flush rồi clear có chủ đích để buộc kiểm chứng dữ liệu đã lưu
+  - Kiểm thử số câu SQL và phát hiện N+1 theo từng thao tác
+  - Kiểm thử cascade, orphanRemoval, xóa mềm và dữ liệu lịch sử
+  - Kiểm thử khóa lạc quan, khóa bi quan và giao dịch đồng thời
+  - Kiểm thử cache, filter và phân lập dữ liệu nhiều tổ chức
+  - Kiểm thử migration, Envers và các khả năng phụ thuộc Dialect
+  - Đối soát kết quả qua SQL độc lập khi cần kiểm chứng ràng buộc thực tế
+- level1: Nâng cấp và tương thích
+  level2:
+  - Lập ma trận phiên bản Java, Hibernate, Jakarta Persistence, Spring và cơ sở dữ liệu
+  - Thay đổi không gian tên javax.persistence sang jakarta.persistence trong mã cũ
+  - Phân biệt API công khai với SPI hoặc API nội bộ dễ thay đổi
+  - Nhận diện API cũ như save, update, saveOrUpdate và Criteria Hibernate đời trước
+  - Đọc thay đổi về truy vấn, hệ kiểu và cách sinh SQL trước khi nâng cấp
+  - Kiểm tra chiến lược sinh định danh, sequence và naming strategy
+  - Kiểm tra bộ cung cấp cache, Envers và công cụ enhancement tương thích
+  - Đánh giá cấu hình cũ bị đổi nghĩa, ngừng hỗ trợ hoặc thay mặc định
+  - Chạy kiểm thử hồi quy về dữ liệu, SQL, đồng thời và hiệu năng
+  - Nâng cấp theo giai đoạn với khả năng quay về phiên bản đã kiểm chứng
+- level1: Lỗi thường gặp
+  level2:
+  - Đánh đồng Hibernate với Jakarta Persistence hoặc Spring Data JPA
+  - Dùng EAGER cho mọi quan hệ để xử lý LazyInitializationException
+  - Bật Open Session in View mà không kiểm soát truy vấn ngoài giao dịch nghiệp vụ
+  - Trả thực thể trực tiếp qua API khiến đồ thị bị tải hoặc lộ ngoài dự kiến
+  - Chỉ sửa phía không quản lý liên kết rồi kỳ vọng khóa ngoại tự đổi
+  - Lạm dụng CascadeType.ALL hoặc REMOVE trên quan hệ dùng chung
+  - Gọi merge nhưng tiếp tục sửa đối tượng detached thay vì kết quả được quản lý
+  - Thay equals, hashCode hoặc thuộc tính khóa khi thực thể đang nằm trong tập hợp
+  - Dùng fetch join nhiều tập hợp mà không đo số hàng tăng
+  - Chạy bulk update rồi tiếp tục dùng context chưa được đồng bộ
+  - Gọi flush sau từng thao tác và làm mất lợi ích của batching
+  - Dùng hbm2ddl update làm toàn bộ quy trình chuyển đổi dữ liệu
+  - Nuốt ngoại lệ giao dịch rồi tiếp tục dùng Session đã lỗi
+- level1: Thực hành tổng hợp
+  level2:
+  - Khởi tạo Hibernate với mô hình khách hàng, đơn hàng, dòng hàng và sản phẩm
+  - Ánh xạ định danh, đối tượng giá trị, quan hệ và các ràng buộc
+  - Quan sát vòng đời thực thể qua Session và SQL được sinh
+  - Thiết kế ranh giới giao dịch cho tạo đơn, sửa đơn và hủy đơn
+  - Bảo vệ cập nhật đồng thời bằng phiên bản và ràng buộc cơ sở dữ liệu
+  - So sánh HQL, Criteria, DTO projection và native SQL cho cùng nhu cầu đọc
+  - Phát hiện rồi xử lý N+1 bằng kế hoạch tải được đo cụ thể
+  - Nhập dữ liệu theo lô với batching, flush, clear và khả năng chạy lại
+  - Bổ sung lịch sử bằng Envers và đánh giá yêu cầu xóa mềm
+  - Thực nghiệm bộ nhớ đệm cấp hai với trường hợp dữ liệu đổi ngoài ORM
+  - Tích hợp Spring mà vẫn giữ rõ nơi mở context và giao dịch
+  - Thực hiện một thay đổi lược đồ với migration và kiểm thử tương thích
+  - Hoàn thiện bộ kiểm chứng số SQL, dữ liệu lưu, khóa và khả năng phục hồi
+  - Danh sách kiểm tra trước khi đưa phần truy cập Hibernate vào sử dụng

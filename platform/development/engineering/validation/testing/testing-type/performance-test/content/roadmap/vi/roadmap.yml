@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-hieu-nang
+  title: Mục tiêu hiệu năng
+  purpose: Làm rõ yêu cầu về tốc độ, khả năng đáp ứng và độ ổn định trước khi xây dựng phép thử.
+  objectives:
+  - Xác định giao dịch hoặc API quan trọng
+  - Đặt ngưỡng latency, throughput và error rate
+  - Phân biệt mục tiêu hiệu năng với tính đúng chức năng
+- id: chi-so-quan-sat
+  title: Chỉ số & quan sát
+  purpose: Đo hành vi từ phía người dùng và tài nguyên hệ thống để đánh giá toàn diện.
+  objectives:
+  - Theo dõi p95/p99, thông lượng và lỗi
+  - Quan sát CPU, bộ nhớ, GC và thread pool
+  - Liên hệ số liệu client với metrics server
+- id: workload-du-lieu
+  title: Workload & dữ liệu
+  purpose: Thiết kế tải phản ánh hành vi sử dụng thực tế thay vì chỉ tạo nhiều request.
+  objectives:
+  - Xác định số người dùng ảo, tốc độ đến và think time
+  - Mô phỏng tỷ lệ các luồng nghiệp vụ chính
+  - Chuẩn bị dữ liệu và trạng thái thử tái lập
+- id: cac-loai-performance-test
+  title: Các loại performance test
+  purpose: Chọn phép thử phù hợp với câu hỏi về tải thường, giới hạn chịu tải và độ bền.
+  objectives:
+  - Phân biệt load, stress và spike test
+  - Thiết kế soak test để phát hiện vấn đề kéo dài
+  - Đánh giá scalability và capacity theo mục tiêu
+- id: moi-truong-baseline
+  title: Môi trường & baseline
+  purpose: Giảm sai lệch phép đo do cấu hình, tài nguyên và tải ngoài gây ra.
+  objectives:
+  - Cố định phiên bản và cấu hình triển khai
+  - Tách tải bộ sinh khỏi hệ thống được đo
+  - Lưu baseline cùng điều kiện thử nghiệm
+- id: kich-ban-cong-cu
+  title: Kịch bản & công cụ
+  purpose: Hiện thực các giao dịch đại diện với công cụ đo tải và xác nhận phản hồi hợp lệ.
+  objectives:
+  - Tạo test script bằng k6 hoặc JMeter
+  - Thiết lập ramp-up, duration và assertion
+  - Kiểm tra script không tạo lỗi giả hoặc tải sai
+- id: chay-thu-chan-doan
+  title: Chạy thử & chẩn đoán
+  purpose: Thực thi có kiểm soát và xác định điểm nghẽn từ số liệu thu được.
+  objectives:
+  - Chạy warm-up và nhiều lần đo nhất quán
+  - Đối chiếu latency, lỗi với metrics hạ tầng
+  - Khoanh vùng bottleneck ở ứng dụng, DB hoặc mạng
+- id: bao-cao-hoi-quy
+  title: Báo cáo & hồi quy
+  purpose: Biến kết quả thành quyết định cải tiến và theo dõi hiệu năng sau thay đổi.
+  objectives:
+  - So sánh với baseline và ngưỡng đã đặt
+  - Báo cáo điều kiện đo, rủi ro và giới hạn
+  - Tích hợp bài tải phù hợp vào pipeline theo chu kỳ

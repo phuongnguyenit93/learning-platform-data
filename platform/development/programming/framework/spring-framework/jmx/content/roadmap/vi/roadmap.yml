@@ -1,0 +1,49 @@
+roadmap:
+- id: jmx-mbeans
+  title: JMX & MBeans
+  purpose: Nắm mô hình quản trị và giám sát ứng dụng Java thông qua các đối tượng được quản lý.
+  objectives:
+  - '- Phân biệt MBean, MXBean, MBeanServer và JMX client.'
+  - '- Nhận diện attribute, operation và notification.'
+- id: mbeanserver-objectname
+  title: MBeanServer & ObjectName
+  purpose: Hiểu cách tài nguyên được đăng ký, định danh và tra cứu trong JMX.
+  objectives:
+  - '- Tạo ObjectName theo domain và key properties.'
+  - '- Quan sát MBeanServer của JVM và danh sách MBean đã đăng ký.'
+- id: spring-mbeanexporter
+  title: Spring MBeanExporter
+  purpose: Đưa Spring bean thành tài nguyên quản lý bằng cấu hình Spring Framework.
+  objectives:
+  - '- Cấu hình MBeanExporter xuất một bean mẫu.'
+  - '- Đăng ký MBean với server và kiểm tra tên, thuộc tính, thao tác.'
+- id: annotations-exposure
+  title: Annotations & Exposure
+  purpose: Chỉ công bố các thông tin và thao tác cần thiết cho người vận hành.
+  objectives:
+  - '- Dùng @ManagedResource, @ManagedAttribute và @ManagedOperation.'
+  - '- Kích hoạt @EnableMBeanExport và thử thuộc tính read-only.'
+- id: jmx-monitoring-actuator
+  title: JMX Monitoring & Actuator
+  purpose: Quan sát dữ liệu quản trị thực tế để hỗ trợ chẩn đoán và vận hành ứng dụng.
+  objectives:
+  - '- Dùng JConsole xem JVM và MBean của ứng dụng.'
+  - '- Phân biệt Spring JMX MBeans với Spring Boot Actuator JMX endpoints.'
+- id: notifications-listeners
+  title: Notifications & Listeners
+  purpose: Phát hiện sự kiện quản trị mà không phải liên tục gọi đọc thuộc tính.
+  objectives:
+  - '- Gửi Notification với NotificationPublisherAware khi phù hợp.'
+  - '- Đăng ký listener và kiểm tra sự kiện nhận được.'
+- id: jmx-proxy-remote-access
+  title: JMX Proxy & Remote Access
+  purpose: Truy cập MBean từ mã Java hoặc hệ thống quản trị bên ngoài có kiểm soát.
+  objectives:
+  - '- Dùng MBeanProxyFactoryBean gọi MBean qua Java interface.'
+  - '- Mô tả JMXConnector và MBeanServerConnection từ xa.'
+- id: security-verification
+  title: Security & Verification
+  purpose: Giảm rủi ro điều khiển trái phép tài nguyên quản trị và xác minh chức năng JMX.
+  objectives:
+  - '- Giới hạn MBean/operation công khai, xác thực và bảo vệ kết nối từ xa.'
+  - '- Test đăng ký, gọi operation, phân quyền và gỡ MBean khi dừng.'

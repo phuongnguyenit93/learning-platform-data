@@ -1,0 +1,581 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Những năng lực Java 8 tiếp tục dùng trong Java hiện đại
+  - Mối liên hệ giữa lambda, Stream, Optional và java.time
+  - Phân biệt mô hình đồng thời với xử lý song song
+  - Giữ hợp đồng API khi thay đổi cách triển khai
+  - Đọc Javadoc hiện hành và thông tin Since
+  - Thực hành trên JDK được hỗ trợ với nền tảng có nguồn gốc Java 8
+- level1: Lambda
+  level2:
+  - Truyền hành vi như một tham số
+  - Cú pháp tham số, dấu mũi tên và phần thân
+  - Lambda không tham số, một tham số và nhiều tham số
+  - Phần thân biểu thức và khối lệnh
+  - Kiểu trả về, return và tương thích void
+  - Kiểu tham số tường minh hoặc được suy luận
+  - Phạm vi từ vựng, this và super
+  - Capture biến final hoặc effectively final
+  - Phân biệt tham chiếu được giữ cố định với đối tượng bất biến
+  - Quy tắc tên biến và khác biệt với anonymous class
+  - Ngoại lệ checked trong hợp đồng hàm đích
+  - Thiết kế lambda ngắn, rõ nghĩa và không giấu tác dụng phụ
+- level1: Functional interface
+  level2:
+  - Single abstract method và functional descriptor
+  - Vai trò kiểm tra của @FunctionalInterface
+  - Phương thức default, static và các phương thức của Object
+  - Kế thừa nhiều interface và tính hợp lệ của phương thức hàm
+  - Runnable, Callable và Comparator như kiểu đích
+  - Functional interface generic và wildcard
+  - Hợp đồng throws và ngoại lệ trong hàm
+  - Chọn interface chuẩn hoặc định nghĩa interface theo nghiệp vụ
+  - Kiểm thử hành vi thông qua hợp đồng
+- level1: Hàm chuẩn
+  level2:
+  - Predicate và biểu diễn điều kiện
+  - Function và biến đổi giá trị
+  - Consumer và thao tác không trả kết quả
+  - Supplier và cung cấp giá trị theo nhu cầu
+  - UnaryOperator và BinaryOperator
+  - BiPredicate, BiFunction và BiConsumer
+  - Predicate.and, or, negate và isEqual
+  - Function.compose, andThen và identity
+  - Consumer.andThen và thứ tự thực hiện
+  - Các biến thể primitive giúp tránh boxing
+  - ToIntFunction, ToLongFunction, ToDoubleFunction
+  - Thiết kế chuỗi xử lý có kiểu và điều kiện biên rõ ràng
+- level1: Method reference
+  level2:
+  - Quan hệ giữa method reference với lambda
+  - Tham chiếu phương thức static
+  - Tham chiếu phương thức instance đã gắn đối tượng
+  - Tham chiếu phương thức instance qua tên kiểu
+  - Tham chiếu constructor
+  - Tham chiếu constructor mảng
+  - Ánh xạ tham số, kiểu trả về và phương thức generic
+  - Overload và trường hợp cần chỉ rõ kiểu đích
+  - Thời điểm đánh giá receiver và lỗi khi receiver null
+  - Lựa chọn cách viết giúp người đọc nhận ra ý định
+- level1: Interface
+  level2:
+  - Default method và tiến hóa hợp đồng thư viện
+  - Khai báo, kế thừa và ghi đè default method
+  - Quy tắc ưu tiên phương thức của lớp
+  - Interface chuyên biệt hơn và phương thức được chọn
+  - Xung đột nhiều default method
+  - Gọi triển khai mặc định bằng InterfaceName.super
+  - Static method và phạm vi gắn với interface
+  - Giới hạn đối với phương thức của Object
+  - Default method so với abstract class
+  - Kiểm thử tương thích khi bổ sung hành vi vào interface
+- level1: Suy luận kiểu
+  level2:
+  - Kiểu đích của lambda và method reference
+  - Ngữ cảnh phép gán, tham số và ép kiểu
+  - Poly expression và ràng buộc generic
+  - Suy luận kiểu trong lời gọi phương thức generic
+  - Overload mơ hồ với nhiều functional interface
+  - Ép kiểu tường minh để làm rõ ý nghĩa
+  - Intersection type và ràng buộc nhiều interface
+  - Phân biệt kiểu được suy luận với kiểu động
+  - Giữ API generic dễ dùng mà không làm lỗi thông báo khó hiểu
+- level1: Type annotation
+  level2:
+  - Annotation trên vị trí sử dụng kiểu
+  - TYPE_USE và TYPE_PARAMETER
+  - Annotation trong generic argument, array và cast
+  - Annotation trên kiểu trả về, tham số và throws
+  - Receiver parameter và metadata cho receiver
+  - Retention và phạm vi nhìn thấy lúc biên dịch, runtime
+  - Pluggable type system và kiểm tra tĩnh
+  - 'Giới hạn: annotation không tự tạo kiểm tra runtime'
+  - AnnotatedType và cấu trúc kiểu có annotation
+  - Kiểm thử công cụ phân tích và annotation processor
+- level1: Annotation lặp
+  level2:
+  - '@Repeatable và nhiều annotation cùng loại'
+  - Annotation chứa và thuộc tính value
+  - Quan hệ Target, Retention, Documented và Inherited
+  - getAnnotationsByType và getDeclaredAnnotationsByType
+  - Annotation trực tiếp, chứa và kế thừa
+  - Annotation lặp ở khai báo hoặc vị trí sử dụng kiểu
+  - Thiết kế metadata mở rộng mà vẫn dễ đọc
+  - Kiểm thử một, nhiều hoặc không có annotation
+- level1: Metadata tham số
+  level2:
+  - Executable và mô hình chung của method, constructor
+  - Parameter và getParameters
+  - javac -parameters và lưu tên tham số
+  - isNamePresent và tên khi thiếu metadata
+  - Tham số synthetic, implicit và varargs
+  - Đọc kiểu generic và annotation của tham số
+  - Giới hạn metadata khi dependency được build khác cấu hình
+  - Tích hợp binding, dependency injection và tài liệu API
+  - Kiểm thử metadata trên artifact thực tế
+- level1: Mô hình Stream
+  level2:
+  - Stream là luồng xử lý thay vì nơi lưu dữ liệu
+  - Nguồn, thao tác trung gian và thao tác kết thúc
+  - Thực thi lười và thời điểm bắt đầu duyệt
+  - Stream dùng một lần và tạo lại từ nguồn
+  - Stateless, stateful và short-circuit
+  - Encounter order và thứ tự thực thi
+  - Không can thiệp vào nguồn đang xử lý
+  - Tránh phụ thuộc trạng thái thay đổi bên ngoài
+  - Tác dụng phụ và giới hạn của khả năng quan sát pipeline
+  - Lựa chọn Stream hoặc vòng lặp theo độ rõ ràng
+- level1: Nguồn Stream
+  level2:
+  - Collection.stream và parallelStream
+  - Stream.of, empty và builder
+  - Arrays.stream cho object và primitive
+  - Stream.generate và iterate
+  - IntStream.range và rangeClosed
+  - Stream.concat và nối nguồn
+  - BufferedReader.lines và Files
+  - Random.ints, longs, doubles
+  - CharSequence.chars và codePoints
+  - Pattern.splitAsStream, BitSet.stream và JarFile.stream
+  - StreamSupport và nguồn tùy biến
+  - Giới hạn luồng vô hạn và quản lý tài nguyên của nguồn
+- level1: Biến đổi Stream
+  level2:
+  - filter và chọn phần tử
+  - map và chuyển đổi giá trị
+  - flatMap và làm phẳng kết quả nhiều phần tử
+  - mapToInt, mapToLong, mapToDouble
+  - distinct và hợp đồng equals, hashCode
+  - sorted và thứ tự tự nhiên hoặc Comparator
+  - limit, skip và chi phí theo encounter order
+  - peek và giới hạn sử dụng cho quan sát
+  - Đặt filter, map, sorted theo ý nghĩa và chi phí
+  - Xử lý phần tử null, lỗi chuyển đổi và dữ liệu không hợp lệ
+  - Kiểm thử tính lười và số phần tử thực sự được duyệt
+- level1: Kết thúc Stream
+  level2:
+  - forEach và hành động trên từng phần tử
+  - forEachOrdered và bảo toàn encounter order
+  - toArray và kiểu mảng kết quả
+  - count, min và max
+  - findFirst, findAny và kết quả có thể vắng mặt
+  - anyMatch, allMatch và noneMatch
+  - Short-circuit và nguồn hữu hạn, vô hạn
+  - reduce và collect trong tổng hợp dữ liệu
+  - iterator, spliterator và điều khiển duyệt thủ công
+  - Hành vi trên nguồn rỗng và ngoại lệ ở thao tác kết thúc
+- level1: Reduction
+  level2:
+  - Phép tổng hợp và yêu cầu associativity
+  - Identity và giá trị trung hòa
+  - reduce với hoặc không có identity
+  - Accumulator, combiner và reduction ba tham số
+  - Reduction bất biến và mutable reduction
+  - Vì sao không sửa collection dùng chung trong reduce
+  - Tính đúng khi chia nguồn theo nhiều cách
+  - Tràn số nguyên và sai số số thực
+  - Kiểm thử reduction tuần tự, song song và nguồn rỗng
+- level1: Collector cơ bản
+  level2:
+  - collect và tách thao tác tích lũy khỏi pipeline
+  - Collectors.toList, toSet và giới hạn hợp đồng kết quả
+  - toCollection và chọn cấu trúc lưu trữ
+  - joining với delimiter, prefix và suffix
+  - toMap và lỗi khóa trùng
+  - Merge function khi nhiều phần tử có cùng khóa
+  - Map supplier và yêu cầu giữ thứ tự
+  - counting, summing và averaging
+  - Summary statistics theo kiểu số
+  - minBy, maxBy và Optional kết quả
+  - collectingAndThen và hoàn thiện đầu ra
+- level1: Phân nhóm dữ liệu
+  level2:
+  - groupingBy và classifier
+  - Downstream collector và tổng hợp trong từng nhóm
+  - Phân nhóm nhiều cấp
+  - mapping trước khi thu thập theo nhóm
+  - partitioningBy và hai nhánh boolean
+  - reducing trong một nhóm
+  - Chọn map factory và thứ tự khóa
+  - groupingByConcurrent và toConcurrentMap
+  - Phân biệt không có nhóm với nhóm có tổng bằng không
+  - Kiểm thử khóa, null và dữ liệu trùng lặp
+- level1: Collector tùy biến
+  level2:
+  - Collector<T,A,R> và các kiểu đầu vào, tích lũy, kết quả
+  - Supplier, accumulator, combiner và finisher
+  - Collector.of và tạo bộ thu thập
+  - IDENTITY_FINISH, UNORDERED và CONCURRENT
+  - Luật đồng nhất và luật kết hợp
+  - Accumulator riêng cho mỗi phân hoạch
+  - Giới hạn khi khai báo collector đồng thời
+  - Kiểm thử nhiều cách phân chia, gộp dữ liệu
+  - Khi nên tái sử dụng collector chuẩn
+- level1: Primitive Stream
+  level2:
+  - IntStream, LongStream và DoubleStream
+  - Boxing, unboxing và chi phí xử lý số
+  - sum, average và summaryStatistics
+  - boxed và mapToObj
+  - asLongStream, asDoubleStream và chuyển đổi giá trị
+  - IntSummaryStatistics, LongSummaryStatistics, DoubleSummaryStatistics
+  - Range gồm biên hoặc không gồm biên
+  - NaN, vô cực, tràn và sai số
+  - Lựa chọn primitive stream theo dữ liệu nguồn
+- level1: Stream song song
+  level2:
+  - parallelStream, parallel và sequential
+  - Chia nguồn, xử lý và gộp kết quả
+  - Common ForkJoinPool và tài nguyên dùng chung
+  - Điều kiện dữ liệu đủ lớn, dễ chia và tác vụ đủ nặng
+  - Chi phí sorted, distinct, skip và limit
+  - unordered và khi có thể bỏ ràng buộc thứ tự
+  - Collector đồng thời hoặc accumulator độc lập
+  - Race condition do sửa biến, collection bên ngoài
+  - I/O chặn và ảnh hưởng lên common pool
+  - Pipeline lồng nhau và tranh chấp tài nguyên
+  - Đo throughput, latency và độ đúng thay vì mặc định song song nhanh hơn
+- level1: Spliterator
+  level2:
+  - Spliterator và quan hệ với Iterator
+  - tryAdvance và forEachRemaining
+  - trySplit và chiến lược chia nguồn
+  - estimateSize và getExactSizeIfKnown
+  - ORDERED, DISTINCT, SORTED và NONNULL
+  - SIZED, SUBSIZED, IMMUTABLE và CONCURRENT
+  - Primitive Spliterator và tránh boxing
+  - Spliterators, AbstractSpliterator và nguồn tự tạo
+  - Late-binding, fail-fast và nguồn đồng thời
+  - StreamSupport và kiểm thử nguồn chạy song song
+- level1: Optional
+  level2:
+  - Biểu diễn kết quả có thể không tồn tại
+  - empty, of và ofNullable
+  - isPresent, ifPresent và truy cập giá trị
+  - map, flatMap và filter
+  - orElse và orElseGet theo thời điểm tính giá trị thay thế
+  - orElseThrow với Supplier ngoại lệ
+  - OptionalInt, OptionalLong và OptionalDouble
+  - Không trả Optional null hoặc gọi get vô điều kiện
+  - Phạm vi dùng ở kiểu trả về và thiết kế API
+  - Value-based semantics và so sánh bằng giá trị
+  - Giới hạn dùng cho field, tham số và mô hình dữ liệu
+  - Kiểm thử chuỗi chuyển đổi có dữ liệu vắng mặt
+- level1: Collection
+  level2:
+  - Iterable.forEach và Iterator.forEachRemaining
+  - Collection.removeIf và xóa theo điều kiện
+  - List.replaceAll và biến đổi tại chỗ
+  - List.sort với Comparator
+  - Collection.stream, parallelStream và spliterator
+  - Phân biệt sửa nguồn với tạo kết quả mới
+  - Collection không hỗ trợ sửa đổi và UnsupportedOperationException
+  - Fail-fast và giới hạn bảo đảm khi có cập nhật đồng thời
+  - HashMap xử lý va chạm khóa trong triển khai JDK hiện đại
+  - Hợp đồng equals, hashCode và tác động lên tập hợp
+- level1: Map
+  level2:
+  - getOrDefault và phân biệt khóa vắng với giá trị null
+  - forEach và replaceAll
+  - putIfAbsent và thêm có điều kiện
+  - remove(key,value) và replace có điều kiện
+  - computeIfAbsent và tạo giá trị theo nhu cầu
+  - computeIfPresent và cập nhật giá trị đang tồn tại
+  - compute và ý nghĩa khi hàm trả null
+  - merge và tổng hợp dữ liệu theo khóa
+  - Hợp đồng default method và giới hạn tính nguyên tử
+  - ConcurrentMap và bảo đảm riêng của implementation
+  - Tránh cập nhật đệ quy hoặc tác vụ dài bên trong hàm tính
+- level1: Comparator
+  level2:
+  - comparing và trích xuất khóa sắp xếp
+  - comparingInt, comparingLong, comparingDouble
+  - thenComparing và nhiều tiêu chí
+  - naturalOrder, reverseOrder và reversed
+  - nullsFirst, nullsLast và chính sách null
+  - Đảo toàn bộ comparator hoặc đảo một tiêu chí
+  - Tính bắc cầu và tính nhất quán với equals
+  - Map.Entry.comparingByKey, comparingByValue
+  - Kiểm thử khóa bằng nhau, null và dữ liệu biên
+- level1: Mảng
+  level2:
+  - Arrays.parallelSort cho object và primitive
+  - Sắp xếp toàn mảng hoặc một khoảng
+  - Arrays.setAll và hàm sinh theo chỉ số
+  - Arrays.parallelSetAll và giới hạn tác dụng phụ
+  - Arrays.parallelPrefix và phép tích lũy kết hợp
+  - Thay đổi mảng tại chỗ và xử lý lỗi
+  - Arrays.stream và spliterator
+  - Chi phí common pool và ngưỡng dữ liệu phù hợp
+  - Đối chiếu kết quả tuần tự, song song và tràn số
+- level1: Mô hình ngày giờ
+  level2:
+  - JSR 310 và hệ kiểu java.time
+  - Phân biệt ngày, giờ cục bộ, thời điểm và múi giờ
+  - Giá trị bất biến và khả năng dùng giữa nhiều luồng
+  - Chọn kiểu theo ý nghĩa nghiệp vụ
+  - Factory of, parse và now
+  - Độ chính xác nanosecond và giới hạn đồng hồ hệ thống
+  - DateTimeException và dữ liệu không hợp lệ
+  - So sánh giá trị và giới hạn sử dụng danh tính đối tượng
+  - Thiết kế dữ liệu thời gian ở biên API, lưu trữ và hiển thị
+- level1: Ngày giờ cục bộ
+  level2:
+  - LocalDate và ngày không gắn múi giờ
+  - LocalTime và giờ trong ngày
+  - LocalDateTime và thời gian cục bộ
+  - Year, YearMonth và MonthDay
+  - Month, DayOfWeek và enum liên quan
+  - Đọc trường và kiểm tra giá trị hợp lệ
+  - with, plus, minus và đối tượng mới
+  - So sánh ngày giờ và giới hạn thứ tự
+  - Năm nhuận, cuối tháng và phép cộng theo lịch
+  - Biểu diễn ngày sinh, giờ mở cửa và lịch làm việc
+- level1: Instant và offset
+  level2:
+  - Instant và điểm trên trục thời gian
+  - Epoch second, epoch milli và phần nanosecond
+  - ZoneOffset và độ lệch UTC
+  - OffsetDateTime và OffsetTime
+  - Chuyển giữa Instant với thời gian có offset
+  - So sánh cùng thời điểm với so sánh giá trị hiển thị
+  - Giới hạn ngày giờ hỗ trợ
+  - Độ chính xác khi truyền và lưu dữ liệu
+  - Tránh gắn múi giờ mặc định ngầm vào dữ liệu
+- level1: Múi giờ
+  level2:
+  - ZoneId và tên vùng thời gian
+  - ZonedDateTime và quy tắc lịch địa phương
+  - ZoneRules và ZoneOffsetTransition
+  - Khoảng trống, khoảng trùng do đổi giờ mùa hè
+  - Giữ cùng thời điểm hoặc giữ cùng giờ địa phương khi đổi vùng
+  - atZone và chọn cách giải quyết thời gian không duy nhất
+  - Ảnh hưởng của dữ liệu tzdb cập nhật
+  - Phân biệt ZoneId với offset cố định
+  - Thiết kế lịch hẹn giữa nhiều múi giờ
+  - Kiểm thử ranh giới chuyển giờ và thay đổi quy tắc
+- level1: Khoảng thời gian
+  level2:
+  - Duration và khoảng theo giây, nanosecond
+  - Period và khoảng theo năm, tháng, ngày
+  - between, until và ChronoUnit
+  - Phân biệt ngày lịch với 24 giờ
+  - Khoảng âm, giá trị bằng không và normalized
+  - Cộng, trừ, nhân, chia khoảng theo hợp đồng
+  - Định dạng ISO-8601
+  - Đo thời gian thực thi bằng đồng hồ đơn điệu
+  - Kiểm thử cuối tháng, năm nhuận và chuyển giờ
+- level1: Định dạng ngày giờ
+  level2:
+  - DateTimeFormatter và hằng định dạng ISO
+  - ofPattern và thành phần pattern
+  - Phân biệt năm u, y và năm theo tuần Y
+  - Locale, FormatStyle và tên ngày, tháng
+  - Zone, offset và ký hiệu trong mẫu
+  - ResolverStyle.STRICT, SMART và LENIENT
+  - DateTimeFormatterBuilder và phần tùy chọn
+  - parse, parseBest và truy vấn kết quả
+  - DateTimeParseException và thông tin lỗi
+  - Tái sử dụng formatter bất biến giữa nhiều luồng
+  - Kiểm thử chuỗi hợp lệ, sai định dạng và sai ngày thực tế
+- level1: Temporal và Clock
+  level2:
+  - TemporalAccessor và Temporal
+  - TemporalField, TemporalUnit và kiểm tra khả năng hỗ trợ
+  - TemporalAdjuster, TemporalAdjusters và điều chỉnh lịch
+  - Tìm đầu tháng, cuối tháng và ngày trong tuần kế tiếp
+  - TemporalQuery, TemporalQueries và truy vấn riêng
+  - WeekFields, IsoFields và quy tắc tuần
+  - Clock.system, fixed và offset
+  - Truyền Clock vào ứng dụng để kiểm thử xác định
+  - Chronology và lịch ISO, Nhật, Hijrah, Minguo, Thái
+  - Giới hạn chuyển đổi hệ lịch theo ý nghĩa nghiệp vụ
+- level1: CompletableFuture
+  level2:
+  - CompletionStage và mô hình công việc phụ thuộc
+  - Tạo future hoàn thành sẵn hoặc hoàn thành thủ công
+  - runAsync và supplyAsync
+  - thenApply, thenAccept và thenRun
+  - Biến thể Async và lựa chọn Executor
+  - Luồng hoàn tất và ngữ cảnh chạy bước tiếp theo
+  - get, join và sự khác biệt ngoại lệ
+  - complete, completeExceptionally và cạnh tranh hoàn thành
+  - Tách tác vụ CPU với tác vụ I/O chặn
+  - Giữ chuỗi bất đồng bộ dễ quan sát và không chặn vô ích
+- level1: Ghép tác vụ
+  level2:
+  - thenCompose và làm phẳng công việc phụ thuộc
+  - thenCombine, thenAcceptBoth và runAfterBoth
+  - applyToEither, acceptEither và runAfterEither
+  - allOf và thu kết quả nhiều future
+  - anyOf và xử lý kết quả hoàn thành trước
+  - exceptionally và phục hồi lỗi
+  - handle và biến đổi cả kết quả lẫn ngoại lệ
+  - whenComplete và quan sát không thay ý nghĩa kết quả
+  - CompletionException, ExecutionException và nguyên nhân gốc
+  - Lan truyền lỗi qua chuỗi và qua các nhánh độc lập
+  - Hủy future và giới hạn ngắt công việc phía dưới
+  - Thiết kế deadline, timeout và quản lý executor theo API hiện hành
+- level1: ConcurrentHashMap
+  level2:
+  - compute, computeIfAbsent và merge theo khóa
+  - Giới hạn thời gian và tác dụng phụ trong hàm tính
+  - forEach, search và reduce trên map
+  - parallelismThreshold và lựa chọn xử lý song song
+  - mappingCount và giới hạn quan sát kích thước
+  - newKeySet và keySet với giá trị ánh xạ mặc định
+  - Iterator nhất quán yếu và cập nhật đồng thời
+  - Phân biệt nguyên tử từng thao tác với giao dịch nhiều khóa
+  - Thứ tự, null và hợp đồng của map
+  - Kiểm thử tần suất cập nhật, tranh chấp và khả năng mở rộng
+- level1: Biến tích lũy
+  level2:
+  - LongAdder, DoubleAdder và giảm tranh chấp cập nhật
+  - So sánh với AtomicLong khi cần một giá trị nguyên tử
+  - LongAccumulator, DoubleAccumulator và toán tử tích lũy
+  - Identity, associativity và thứ tự cập nhật không xác định
+  - sum, get và giới hạn ảnh chụp khi vẫn có ghi
+  - reset, sumThenReset, getThenReset và điều kiện sử dụng
+  - Atomic updateAndGet, getAndUpdate và các biến thể accumulate
+  - Hàm cập nhật có thể bị gọi lại khi CAS thất bại
+  - Không dùng bộ đếm thống kê thay cho điều kiện kiểm soát chính xác
+  - Kiểm thử đúng đắn và hiệu năng dưới tranh chấp
+- level1: StampedLock
+  level2:
+  - Đọc, ghi và đọc lạc quan
+  - Stamp và vòng đời một lần giữ khóa
+  - readLock, writeLock và mở khóa trong finally
+  - tryOptimisticRead, sao chép dữ liệu và validate
+  - Chuyển sang read lock khi kiểm tra thất bại
+  - tryConvertToWriteLock và chuyển chế độ
+  - Try lock, timeout và phản hồi interrupt
+  - Giới hạn không tái nhập và nguy cơ deadlock
+  - View ReadWriteLock và hợp đồng khóa
+  - Lựa chọn theo tỷ lệ đọc, ghi và độ phức tạp kiểm chứng
+- level1: Fork/Join
+  level2:
+  - ForkJoinPool.commonPool và tài nguyên dùng chung
+  - Common parallelism và tác động lên nhiều thư viện
+  - Executors.newWorkStealingPool
+  - CountedCompleter và hoàn tất theo quan hệ tác vụ
+  - Pending count và truyền tín hiệu hoàn tất
+  - Giới hạn khi công việc chặn hoặc thực hiện I/O
+  - Chia hạt công việc theo chi phí thực tế
+  - Kiểm thử kết thúc, ngoại lệ và không bỏ sót công việc
+- level1: Tệp và I/O
+  level2:
+  - BufferedReader.lines và nguồn dữ liệu lười
+  - Files.lines với Charset
+  - Files.list và danh sách con trực tiếp
+  - Files.walk và giới hạn độ sâu
+  - Files.find với Path, BasicFileAttributes
+  - FOLLOW_LINKS và vòng lặp liên kết tượng trưng
+  - Đóng Stream của tài nguyên bằng try-with-resources
+  - UncheckedIOException và lỗi xảy ra khi duyệt
+  - Tệp lớn, backpressure ở mức ứng dụng và giới hạn bộ nhớ
+  - Kiểm thử lỗi quyền, tệp biến mất và nội dung không hợp lệ
+- level1: Chuỗi và Base64
+  level2:
+  - String.join và ghép chuỗi theo dấu phân cách
+  - StringJoiner, prefix, suffix và dữ liệu rỗng
+  - StringJoiner.merge và kết hợp kết quả
+  - CharSequence.chars với đơn vị UTF-16
+  - CharSequence.codePoints và ký tự ngoài BMP
+  - Base64 cơ bản, URL-safe và MIME
+  - Encoder, Decoder và padding
+  - Stream wrapper để encode, decode dữ liệu
+  - Charset, đầu vào sai và giới hạn bộ nhớ
+  - Phân biệt Base64 với mã hóa bảo mật
+- level1: Số học
+  level2:
+  - Integer, Long và biểu diễn số không dấu
+  - compareUnsigned, divideUnsigned, remainderUnsigned
+  - parseUnsignedInt, parseUnsignedLong và toUnsignedString
+  - Byte.toUnsignedInt, Short.toUnsignedInt và mở rộng giá trị
+  - Math.addExact, subtractExact, multiplyExact
+  - incrementExact, decrementExact, negateExact và toIntExact
+  - floorDiv, floorMod và cách xử lý số âm
+  - nextDown và các giá trị số thực liền kề
+  - sum, min, max dùng như toán tử hàm
+  - SplittableRandom và nguồn ngẫu nhiên cho tính toán
+  - Objects.isNull, nonNull và lọc dữ liệu
+- level1: JDBC 4.2
+  level2:
+  - JDBC 4.2 và các API tiếp tục dùng trong driver hiện đại
+  - SQLType, JDBCType và mã kiểu SQL
+  - setObject, updateObject với SQLType
+  - LocalDate, LocalTime và LocalDateTime với kiểu SQL tương ứng
+  - OffsetTime, OffsetDateTime và giới hạn hỗ trợ của DBMS
+  - Đọc kiểu đích và kiểm tra khả năng của driver
+  - executeLargeUpdate, executeLargeBatch và update count kiểu long
+  - BatchUpdateException với số lượng cập nhật lớn
+  - DriverAction và vòng đời hủy đăng ký driver
+  - Kiểm thử timezone, precision, null và dữ liệu biên
+- level1: Ngôn ngữ và locale
+  level2:
+  - Locale.LanguageRange và thứ tự ưu tiên ngôn ngữ
+  - Locale.filter, filterTags, lookup và lookupTag
+  - Matching theo tập ngôn ngữ hoặc một ngôn ngữ phù hợp nhất
+  - Fallback theo nhu cầu ứng dụng
+  - Định dạng theo dữ liệu locale hiện hành
+  - Kiểm thử ngôn ngữ không được hỗ trợ và khác biệt tên vùng
+- level1: Logging theo nhu cầu
+  level2:
+  - Logger với Supplier<String>
+  - Log level và điều kiện supplier được thực thi
+  - Tránh tính thông điệp đắt tiền khi log bị tắt
+  - Giữ supplier không có tác dụng phụ
+  - Thông điệp, ngoại lệ và thông tin ngữ cảnh
+  - Kiểm thử nội dung log cùng chi phí tạo thông điệp
+- level1: Mật mã ứng dụng
+  level2:
+  - AES-GCM và mã hóa có xác thực
+  - Cipher, khóa, nonce và dữ liệu xác thực bổ sung
+  - Không tái sử dụng nonce với cùng khóa
+  - Kiểm tra thẻ xác thực và xử lý dữ liệu bị sửa
+  - SecureRandom.getInstanceStrong và cấu hình nguồn entropy
+  - Phân biệt ngẫu nhiên tính toán với ngẫu nhiên mật mã
+  - PKIXRevocationChecker, OCSP và CRL
+  - Chính sách lỗi khi không truy cập được nguồn kiểm tra thu hồi
+  - Lựa chọn provider, thuật toán theo chính sách JDK hiện hành
+  - Kiểm thử sai khóa, sai dữ liệu, nonce và chứng chỉ không hợp lệ
+- level1: JVM và công cụ
+  level2:
+  - Lambda, invokedynamic và LambdaMetafactory
+  - Capture, cấp phát và giới hạn phụ thuộc implementation
+  - Default method và lời gọi ở mức bytecode
+  - Metaspace, metadata lớp và vòng đời ClassLoader
+  - Phân biệt heap với bộ nhớ native của lớp
+  - jdeps và tìm phụ thuộc API nội bộ
+  - javac -parameters và kiểm chứng metadata trên class file
+  - javac -h và sinh header cho tích hợp native khi cần
+  - Doclint, DocTree và chất lượng Javadoc
+  - Kiểm thử công cụ, agent và thư viện bytecode trên JDK hiện hành
+- level1: Kiểm thử và tối ưu
+  level2:
+  - Kiểm thử lambda qua functional interface
+  - Pipeline với nguồn rỗng, null, trùng lặp và dữ liệu biên
+  - Đối chiếu vòng lặp với Stream tuần tự, song song
+  - Kiểm thử collector theo luật đồng nhất, kết hợp
+  - Clock cố định và các ranh giới ngày giờ
+  - Executor kiểm soát được cho CompletableFuture
+  - Race condition, cancellation và deadline
+  - Đo sau warm-up và tránh kết quả bị JIT loại bỏ
+  - Quan sát boxing, allocation, GC và common pool
+  - Chọn cách làm dễ hiểu trước khi tăng mức xử lý song song
+- level1: Thực hành
+  level2:
+  - Thiết kế bộ quy tắc với Predicate, Function và method reference
+  - Tổng hợp dữ liệu đơn hàng bằng Stream, collector và Comparator
+  - Viết collector có thể kiểm chứng khi xử lý song song
+  - Thiết kế API kết quả vắng mặt bằng Optional
+  - Đọc và xử lý tệp lớn bằng Stream có quản lý tài nguyên
+  - Lịch hẹn nhiều múi giờ với Clock và DateTimeFormatter
+  - Tích hợp dữ liệu ngày giờ với JDBC
+  - Ghép nhiều lời gọi I/O bằng CompletableFuture và executor riêng
+  - Đếm sự kiện đồng thời bằng map và biến tích lũy
+  - Kiểm chứng đọc lạc quan bằng StampedLock
+  - Tạo nguồn Stream tùy biến với Spliterator
+  - Xây annotation, đọc metadata và kiểm tra hợp đồng kiểu
+  - Bài tổng hợp trên JDK hiện hành với các kỹ thuật Java 8 còn áp dụng

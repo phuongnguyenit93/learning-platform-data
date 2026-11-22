@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-spring-amqp
+  title: Tổng quan Spring AMQP
+  purpose: Hiểu cách Spring hỗ trợ nhắn tin bất đồng bộ bằng AMQP trên RabbitMQ.
+  objectives:
+  - Phân biệt message broker với HTTP đồng bộ.
+  - Nhận biết spring-amqp, spring-rabbit và vai trò producer/consumer.
+- id: ket-noi-topology
+  title: Kết nối & Topology
+  purpose: Thiết lập kết nối RabbitMQ và tuyến đường chuyển thông điệp đến queue.
+  objectives:
+  - Thêm spring-boot-starter-amqp và cấu hình kết nối broker.
+  - Khai báo Exchange, Queue và Binding bằng Spring beans.
+- id: gui-voi-rabbittemplate
+  title: Gửi với RabbitTemplate
+  purpose: Xuất bản thông điệp có routing key tới đúng exchange.
+  objectives:
+  - Dùng convertAndSend(exchange, routingKey, payload).
+  - Phân biệt direct, topic và fanout exchange qua ví dụ.
+- id: nhan-voi-rabbitlistener
+  title: Nhận với @RabbitListener
+  purpose: Xử lý message bất đồng bộ bằng listener do Spring quản lý.
+  objectives:
+  - Viết @RabbitListener nhận dữ liệu từ queue.
+  - Điều chỉnh concurrency và prefetch theo tải.
+- id: message-converter-dto
+  title: Message Converter & DTO
+  purpose: Truyền dữ liệu có cấu trúc và giảm phụ thuộc vào định dạng nội bộ.
+  objectives:
+  - Dùng JSON converter với DTO rõ schema.
+  - Thiết kế xử lý payload không hợp lệ và thay đổi phiên bản.
+- id: ack-confirm-durability
+  title: Ack, Confirm & Durability
+  purpose: Hiểu các điểm xác nhận riêng biệt khi gửi, lưu và xử lý thông điệp.
+  objectives:
+  - Phân biệt publisher confirm với consumer acknowledgement.
+  - Giải thích durable queue, persistent message và idempotent consumer.
+- id: retry-dead-letter-queue
+  title: Retry & Dead Letter Queue
+  purpose: Xử lý lỗi tạm thời và cô lập thông điệp không thể xử lý an toàn.
+  objectives:
+  - Cấu hình retry giới hạn và backoff cho listener.
+  - Dùng reject/no-requeue để đưa message lỗi vào DLX/DLQ.
+- id: kiem-thu-quan-sat
+  title: Kiểm thử & Quan sát
+  purpose: Xác minh tuyến gửi/nhận và phát hiện sự cố vận hành.
+  objectives:
+  - Viết integration test publish → listener với RabbitMQ.
+  - Theo dõi queue depth, unacked messages và lỗi xử lý.

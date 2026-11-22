@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Hợp đồng chung
+  slug: collection-contracts
+  index: 1
+- title: Kiểu phần tử
+  slug: element-types
+  index: 2
+- title: Bằng nhau và băm
+  slug: equality-hashing
+  index: 3
+- title: So sánh và sắp xếp
+  slug: comparison-sorting
+  index: 4
+- title: Duyệt phần tử
+  slug: iteration
+  index: 5
+- title: List
+  slug: list
+  index: 6
+- title: ArrayList
+  slug: arraylist
+  index: 7
+- title: LinkedList
+  slug: linkedlist
+  index: 8
+- title: Set
+  slug: set
+  index: 9
+- title: Set dùng băm
+  slug: hash-based-set
+  index: 10
+- title: Set sắp xếp
+  slug: sorted-set
+  index: 11
+- title: Queue và Deque
+  slug: queue-deque
+  index: 12
+- title: PriorityQueue
+  slug: priorityqueue
+  index: 13
+- title: Map
+  slug: map
+  index: 14
+- title: HashMap
+  slug: hashmap
+  index: 15
+- title: LinkedHashMap
+  slug: linkedhashmap
+  index: 16
+- title: TreeMap
+  slug: treemap
+  index: 17
+- title: Cấu trúc chuyên biệt
+  slug: specialized-collections
+  index: 18
+- title: Thứ tự từ Java 21
+  slug: sequenced-collections
+  index: 19
+- title: View và sao chép
+  slug: views-copies
+  index: 20
+- title: Collection chỉ đọc
+  slug: unmodifiable-collections
+  index: 21
+- title: Tiện ích Collections
+  slug: collections-utilities
+  index: 22
+- title: Mảng và chuyển đổi
+  slug: array-conversion
+  index: 23
+- title: Stream và Spliterator
+  slug: streams-spliterators
+  index: 24
+- title: An toàn đa luồng
+  slug: thread-safety
+  index: 25
+- title: Map và Set đồng thời
+  slug: concurrent-maps-sets
+  index: 26
+- title: Queue đồng thời
+  slug: concurrent-queues
+  index: 27
+- title: Cài đặt tùy chỉnh
+  slug: custom-collections
+  index: 28
+- title: Hiệu năng
+  slug: performance
+  index: 29
+- title: Kiểm thử và lỗi
+  slug: testing-pitfalls
+  index: 30
+- title: Thực hành tổng hợp
+  slug: practical-exercises
+  index: 31

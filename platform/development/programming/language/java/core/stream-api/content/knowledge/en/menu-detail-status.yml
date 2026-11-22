@@ -1,0 +1,2431 @@
+menu:
+- slug: stream-api-overview
+  title: Tổng quan Stream API
+  childs:
+  - slug: stream-api-overview-001
+    title: Stream API là gì và giải quyết bài toán nào?
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-api-overview-002
+    title: Phân biệt Stream, Collection, Iterator và luồng vào ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-api-overview-003
+    title: Mô hình nguồn dữ liệu, phép toán trung gian và phép toán kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-api-overview-004
+    title: Viết pipeline đầu tiên với filter, map và collect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-api-overview-005
+    title: Lựa chọn giữa vòng lặp và Stream theo bài toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-api-overview-006
+    title: Phân biệt Stream tuần tự, Stream song song và lập trình phản ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-api-overview-007
+    title: Đọc chữ ký API và tài liệu java.util.stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pipeline-contracts-and-lifecycle
+  title: Hợp đồng và vòng đời pipeline
+  childs:
+  - slug: pipeline-contracts-and-lifecycle-001
+    title: Tính lười và thời điểm pipeline thực sự được thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-contracts-and-lifecycle-002
+    title: Tính sử dụng một lần và lỗi tái sử dụng Stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-contracts-and-lifecycle-003
+    title: Phân biệt phép toán không trạng thái và có trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-contracts-and-lifecycle-004
+    title: Phép toán kết thúc ngắn mạch và khả năng dừng pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-contracts-and-lifecycle-005
+    title: Encounter order và các bảo đảm về thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-contracts-and-lifecycle-006
+    title: 'Non-interference: không can thiệp vào nguồn đang được xử lý'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-contracts-and-lifecycle-007
+    title: Hàm không trạng thái, tác dụng phụ và khả năng quan sát kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-contracts-and-lifecycle-008
+    title: Vòng đời tiêu thụ, đóng Stream và thiết kế hàm cung cấp Stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: behavioral-functions-and-types
+  title: Hàm hành vi và kiểu dữ liệu
+  childs:
+  - slug: behavioral-functions-and-types-001
+    title: Dùng Predicate, Function và Consumer trong pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-functions-and-types-002
+    title: Dùng Supplier, BiFunction và BinaryOperator đúng vai trò
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-functions-and-types-003
+    title: Lambda và method reference cho các phép toán Stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-functions-and-types-004
+    title: Suy luận kiểu, generic và xử lý lỗi biên dịch trong pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-functions-and-types-005
+    title: Kết hợp Predicate và Function để biểu diễn quy tắc xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-functions-and-types-006
+    title: Biến được capture và yêu cầu effectively final
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-functions-and-types-007
+    title: Dùng Comparator để sắp xếp và chọn phần tử cực trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavioral-functions-and-types-008
+    title: Thiết kế hàm thuần và hàm ánh xạ dễ kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: streams-from-existing-data
+  title: Tạo Stream từ dữ liệu có sẵn
+  childs:
+  - slug: streams-from-existing-data-001
+    title: Tạo Stream từ Collection bằng stream và parallelStream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-002
+    title: Tạo Stream từ mảng bằng Arrays.stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-003
+    title: Tạo Stream bằng Stream.of, Stream.empty và Stream.ofNullable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-004
+    title: Dựng nguồn dữ liệu bằng Stream.Builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-005
+    title: Tạo Stream từ khóa, giá trị và entry của Map
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-006
+    title: Chuyển Optional thành Stream bằng Optional.stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-007
+    title: Nối nguồn bằng Stream.concat và quản lý chuỗi nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-008
+    title: Tạo IntStream từ String.chars và String.codePoints
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: streams-from-existing-data-009
+    title: Chuyển Iterable, Iterator và Spliterator thành Stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sequences-and-infinite-streams
+  title: Dãy số và Stream vô hạn
+  childs:
+  - slug: sequences-and-infinite-streams-001
+    title: Tạo khoảng số bằng range và rangeClosed
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sequences-and-infinite-streams-002
+    title: Tạo nguồn bằng Stream.generate và Supplier
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sequences-and-infinite-streams-003
+    title: Tạo dãy bằng Stream.iterate với hàm chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sequences-and-infinite-streams-004
+    title: Tạo dãy có điều kiện dừng bằng Stream.iterate ba tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sequences-and-infinite-streams-005
+    title: Kết hợp nguồn vô hạn với limit, takeWhile và phép toán ngắn mạch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sequences-and-infinite-streams-006
+    title: Nhận diện pipeline không thể kết thúc trên nguồn vô hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sequences-and-infinite-streams-007
+    title: Sinh dãy phục vụ mô phỏng và kiểm thử có thể tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: filtering-and-transformation
+  title: Lọc và biến đổi phần tử
+  childs:
+  - slug: filtering-and-transformation-001
+    title: Lọc dữ liệu bằng filter và các điều kiện kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-002
+    title: Biến đổi phần tử bằng map và xử lý ánh xạ nhiều bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-003
+    title: Làm phẳng cấu trúc lồng nhau bằng flatMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-004
+    title: Ánh xạ không, một hoặc nhiều kết quả bằng mapMulti
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-005
+    title: So sánh flatMap và mapMulti theo hợp đồng và cách dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-006
+    title: Làm phẳng Optional và loại bỏ kết quả không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-007
+    title: Chuyển giữa Stream đối tượng và Stream nguyên thủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-008
+    title: Xử lý phần tử null và kết quả ánh xạ null
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filtering-and-transformation-009
+    title: Giữ ngữ cảnh dữ liệu khi làm phẳng quan hệ cha con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ordering-deduplication-and-slicing
+  title: Thứ tự, loại trùng và cắt lát
+  childs:
+  - slug: ordering-deduplication-and-slicing-001
+    title: Loại phần tử trùng bằng distinct với equals và hashCode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-002
+    title: Sắp xếp theo thứ tự tự nhiên bằng sorted
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-003
+    title: Sắp xếp nhiều tiêu chí bằng Comparator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-004
+    title: Cắt lát dữ liệu bằng skip và limit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-005
+    title: Lấy tiền tố thỏa điều kiện bằng takeWhile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-006
+    title: Bỏ tiền tố thỏa điều kiện bằng dropWhile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-007
+    title: Phân biệt filter với takeWhile và dropWhile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-008
+    title: Dùng unordered để bỏ ràng buộc thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-deduplication-and-slicing-009
+    title: Tác động của thứ tự phép toán đến kết quả và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: traversal-search-and-matching
+  title: Duyệt, tìm kiếm và đối sánh
+  childs:
+  - slug: traversal-search-and-matching-001
+    title: Đếm phần tử bằng count và nhận biết tối ưu hóa bỏ qua duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-002
+    title: Tìm cực trị bằng min và max
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-003
+    title: Tìm phần tử bằng findFirst và findAny
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-004
+    title: Kiểm tra điều kiện bằng anyMatch, allMatch và noneMatch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-005
+    title: Hiểu kết quả đối sánh khi Stream rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-006
+    title: Duyệt kết quả bằng forEach và forEachOrdered
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-007
+    title: Chuyển kết quả thành mảng bằng toArray
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-008
+    title: Quan sát pipeline bằng peek và các giới hạn của tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traversal-search-and-matching-009
+    title: Chọn phép toán kết thúc theo mục đích và yêu cầu dừng sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: primitive-streams
+  title: Stream kiểu nguyên thủy
+  childs:
+  - slug: primitive-streams-001
+    title: Mô hình IntStream, LongStream và DoubleStream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-002
+    title: Tạo nguồn nguyên thủy từ mảng, khoảng số và bộ sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-003
+    title: Ánh xạ bằng mapToInt, mapToLong và mapToDouble
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-004
+    title: Làm phẳng bằng flatMapToInt, flatMapToLong và flatMapToDouble
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-005
+    title: Dùng mapMulti trên Stream nguyên thủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-006
+    title: Chuyển sang Stream đối tượng bằng boxed và mapToObj
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-007
+    title: Chuyển kiểu bằng asLongStream và asDoubleStream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-008
+    title: Tính sum, average, min, max và summaryStatistics
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-streams-009
+    title: Thu thập Stream nguyên thủy bằng collect ba tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: numeric-aggregation-accuracy
+  title: Độ chính xác khi tổng hợp số
+  childs:
+  - slug: numeric-aggregation-accuracy-001
+    title: Xử lý tổng và trung bình trên nguồn rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: numeric-aggregation-accuracy-002
+    title: Tràn số khi tính tổng số nguyên và cách lựa chọn kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: numeric-aggregation-accuracy-003
+    title: Sai số dấu phẩy động và thứ tự cộng trong phép rút gọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: numeric-aggregation-accuracy-004
+    title: NaN, vô cực và số không có dấu trong DoubleStream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: numeric-aggregation-accuracy-005
+    title: Tổng hợp BigDecimal bằng reduce với quy tắc làm tròn rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: numeric-aggregation-accuracy-006
+    title: Chọn summaryStatistics thay cho nhiều lần duyệt nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: numeric-aggregation-accuracy-007
+    title: Kiểm tra tính đúng của kết quả số khi chuyển sang song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: optional-stream-results
+  title: Optional trong kết quả Stream
+  childs:
+  - slug: optional-stream-results-001
+    title: Xử lý Optional trả về từ findFirst, findAny, min, max và reduce
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optional-stream-results-002
+    title: Sử dụng OptionalInt, OptionalLong và OptionalDouble
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optional-stream-results-003
+    title: Chọn giá trị mặc định bằng orElse và orElseGet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optional-stream-results-004
+    title: Ánh xạ và kiểm tra kết quả bằng map, flatMap và filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optional-stream-results-005
+    title: Xử lý kết quả vắng mặt bằng ifPresent và orElseThrow
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optional-stream-results-006
+    title: Thiết kế kết quả cho nguồn rỗng và phần tử null
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optional-stream-results-007
+    title: Kết hợp kết quả tìm kiếm với pipeline tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reduction-with-reduce
+  title: Phép rút gọn với reduce
+  childs:
+  - slug: reduction-with-reduce-001
+    title: Tư duy rút gọn dữ liệu và lựa chọn reduce
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-002
+    title: Dùng reduce không có giá trị khởi đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-003
+    title: Dùng reduce với identity và accumulator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-004
+    title: Dùng reduce ba tham số để thay đổi kiểu kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-005
+    title: Tính kết hợp và phần tử đơn vị trong phép rút gọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-006
+    title: Tính tương thích giữa accumulator và combiner
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-007
+    title: Vì sao không dùng bộ chứa mutable làm identity của reduce?
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-008
+    title: Rút gọn chuỗi, đối tượng giá trị và kết quả tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reduction-with-reduce-009
+    title: Kiểm chứng phép rút gọn trên nguồn rỗng và pipeline song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collect-and-collector-contracts
+  title: Cơ chế collect và Collector
+  childs:
+  - slug: collect-and-collector-contracts-001
+    title: Phân biệt rút gọn bất biến và rút gọn vào bộ chứa mutable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-002
+    title: Sử dụng collect với supplier, accumulator và combiner
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-003
+    title: Thành phần supplier, accumulator, combiner và finisher của Collector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-004
+    title: Đọc kiểu Collector<T, A, R> và kiểu trạng thái tích lũy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-005
+    title: Đặc tính IDENTITY_FINISH, UNORDERED và CONCURRENT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-006
+    title: Hợp đồng đơn vị, kết hợp và tính tương đương của Collector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-007
+    title: Tạo Collector tùy biến bằng Collector.of
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-008
+    title: Triển khai Collector với trạng thái tích lũy và bước hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collect-and-collector-contracts-009
+    title: Kiểm tra Collector khi ghép nhiều kết quả trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collecting-to-collections
+  title: Thu thập thành Collection
+  childs:
+  - slug: collecting-to-collections-001
+    title: Thu thập thành List bằng Collectors.toList
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-collections-002
+    title: Thu thập bằng Stream.toList và phân biệt hợp đồng với Collector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-collections-003
+    title: Thu thập thành Set và hiểu ngữ nghĩa loại trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-collections-004
+    title: Chọn kiểu bộ chứa bằng Collectors.toCollection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-collections-005
+    title: Giữ thứ tự gặp bằng ArrayList và LinkedHashSet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-collections-006
+    title: Thu thập theo thứ tự sắp xếp bằng TreeSet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-collections-007
+    title: Dùng toUnmodifiableList và toUnmodifiableSet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-collections-008
+    title: So sánh tính sửa đổi được, thứ tự và chính sách null của kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collecting-to-maps
+  title: Thu thập thành Map
+  childs:
+  - slug: collecting-to-maps-001
+    title: Chuyển Stream thành Map bằng Collectors.toMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-002
+    title: Xử lý khóa trùng bằng hàm merge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-003
+    title: Lựa chọn quy tắc giữ bản ghi đầu, cuối hoặc gộp giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-004
+    title: Chọn loại Map bằng mapFactory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-005
+    title: Giữ thứ tự khóa bằng LinkedHashMap và sắp xếp bằng TreeMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-006
+    title: Thiết kế chính sách cho khóa null và giá trị null
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-007
+    title: Tạo Map không sửa đổi được bằng toUnmodifiableMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-008
+    title: Xây dựng chỉ mục tra cứu từ danh sách đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collecting-to-maps-009
+    title: Kiểm tra tính kết hợp và ảnh hưởng của thứ tự trong hàm merge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: grouping-and-partitioning
+  title: Phân nhóm và phân hoạch
+  childs:
+  - slug: grouping-and-partitioning-001
+    title: Phân nhóm dữ liệu bằng Collectors.groupingBy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-002
+    title: Chọn kiểu Map và Collector phía sau của groupingBy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-003
+    title: Phân nhóm nhiều cấp với khóa lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-004
+    title: Phân nhóm theo khóa ghép bằng đối tượng giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-005
+    title: Phân hoạch theo điều kiện bằng partitioningBy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-006
+    title: Kết hợp partitioningBy với Collector phía sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-007
+    title: Xử lý khóa phân nhóm null và nhóm không có phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-008
+    title: Phân biệt groupingBy, partitioningBy và toMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grouping-and-partitioning-009
+    title: Giữ thứ tự nhóm và thứ tự phần tử trong từng nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: composed-collectors-and-aggregation
+  title: Collector nhiều tầng và tổng hợp
+  childs:
+  - slug: composed-collectors-and-aggregation-001
+    title: Đếm và tính tổng từng nhóm bằng counting và summing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-002
+    title: Tính trung bình và thống kê bằng averaging và summarizing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-003
+    title: Tìm cực trị từng nhóm bằng minBy và maxBy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-004
+    title: Biến đổi đầu vào Collector bằng mapping
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-005
+    title: Làm phẳng đầu vào Collector bằng flatMapping
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-006
+    title: Lọc trong từng nhóm bằng filtering
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-007
+    title: Rút gọn từng nhóm bằng reducing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-008
+    title: Hoàn thiện kết quả bằng collectingAndThen
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-009
+    title: Kết hợp hai phép thu thập bằng teeing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-010
+    title: Ghép chuỗi bằng joining với dấu phân cách, tiền tố và hậu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: composed-collectors-and-aggregation-011
+    title: Tạo báo cáo nhiều chỉ số và kết quả tổng hợp bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: io-sources-and-resource-management
+  title: Nguồn vào ra và quản lý tài nguyên
+  childs:
+  - slug: io-sources-and-resource-management-001
+    title: Đọc dòng văn bản bằng Files.lines và BufferedReader.lines
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-002
+    title: Liệt kê và duyệt cây thư mục bằng Files.list, Files.walk và Files.find
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-003
+    title: Xác định quyền sở hữu và trách nhiệm đóng Stream trả về từ API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-004
+    title: Đóng nguồn bằng try-with-resources
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-005
+    title: Đăng ký xử lý đóng bằng onClose
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-006
+    title: Thứ tự chạy onClose và ngoại lệ bị suppressed
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-007
+    title: Quản lý vòng đời Stream con trong flatMap và mapMulti
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-008
+    title: Đóng nguồn khi dừng sớm hoặc khi pipeline phát sinh ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: io-sources-and-resource-management-009
+    title: Tránh giữ tài nguyên mở khi trả về Stream hoặc nối nhiều nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spliterators-and-custom-sources
+  title: Spliterator và nguồn tự định nghĩa
+  childs:
+  - slug: spliterators-and-custom-sources-001
+    title: Vai trò của Spliterator trong duyệt và chia nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-002
+    title: Triển khai tryAdvance và forEachRemaining
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-003
+    title: Chia nguồn bằng trySplit và ước lượng bằng estimateSize
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-004
+    title: Đặc tính ORDERED, DISTINCT, SORTED và NONNULL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-005
+    title: Đặc tính SIZED, SUBSIZED, IMMUTABLE và CONCURRENT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-006
+    title: Late binding, nguồn có thể thay đổi và giới hạn fail-fast
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-007
+    title: Tạo Stream bằng StreamSupport với Spliterator trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-008
+    title: Tạo Stream bằng StreamSupport với Supplier của Spliterator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-009
+    title: Thiết kế Spliterator từ Iterator với kích thước biết trước hoặc chưa biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spliterators-and-custom-sources-010
+    title: Kiểm chứng dữ liệu, thứ tự và tính đúng của các lần chia nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: parallel-stream-semantics
+  title: Ngữ nghĩa xử lý song song
+  childs:
+  - slug: parallel-stream-semantics-001
+    title: Kích hoạt song song bằng parallelStream và parallel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-002
+    title: Chuyển chế độ bằng sequential và kiểm tra bằng isParallel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-003
+    title: Hiểu mô hình chia nguồn, xử lý và ghép kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-004
+    title: Ảnh hưởng của kích thước nguồn, chi phí phần tử và cách chia
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-005
+    title: Thứ tự kết quả với findAny, findFirst, forEach và forEachOrdered
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-006
+    title: Chi phí của sorted, distinct, skip, limit, takeWhile và dropWhile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-007
+    title: Trạng thái dùng chung, thread confinement và an toàn luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-008
+    title: ForkJoinPool chung, tác vụ chặn và giới hạn kiểm soát bộ thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-009
+    title: Tránh song song lồng nhau và lựa chọn điểm song song hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parallel-stream-semantics-010
+    title: Chuyển pipeline tuần tự sang song song mà vẫn giữ đúng ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrent-collectors
+  title: Thu thập đồng thời
+  childs:
+  - slug: concurrent-collectors-001
+    title: Phân biệt collect trên Stream song song và Collector đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-collectors-002
+    title: Điều kiện áp dụng thu thập đồng thời với CONCURRENT và UNORDERED
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-collectors-003
+    title: Tạo ConcurrentMap bằng Collectors.toConcurrentMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-collectors-004
+    title: Phân nhóm đồng thời bằng groupingByConcurrent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-collectors-005
+    title: Ảnh hưởng của Collector phía sau đến phân nhóm đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-collectors-006
+    title: Thiết kế trạng thái tích lũy an toàn cho Collector đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-collectors-007
+    title: Kiểm tra tranh chấp khóa, tính đúng và chi phí đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-memory
+  title: Hiệu năng và bộ nhớ
+  childs:
+  - slug: performance-and-memory-001
+    title: Hiểu pipeline fusion, tính lười và chi phí tạo đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-002
+    title: Đẩy phép lọc và dừng sớm lên vị trí phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-003
+    title: Giảm boxing và unboxing bằng Stream nguyên thủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-004
+    title: Ước lượng bộ nhớ của sorted, distinct, groupingBy và collect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-005
+    title: Xử lý dữ liệu lớn theo dòng và giới hạn kích thước kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-006
+    title: Chọn flatMap hoặc mapMulti theo dữ liệu và phép đo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-007
+    title: Tránh duyệt nguồn nhiều lần và thiết kế tổng hợp trong một lượt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-008
+    title: 'Đo hiệu năng bằng JMH: warmup, fork và chống loại bỏ mã'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-009
+    title: So sánh vòng lặp, Stream tuần tự và Stream song song công bằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-memory-010
+    title: Phân tích cấp phát, GC và nghẽn xử lý của pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: exceptions-and-safety
+  title: Ngoại lệ và tính an toàn
+  childs:
+  - slug: exceptions-and-safety-001
+    title: Lan truyền ngoại lệ từ nguồn, hàm ánh xạ và phép toán kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-002
+    title: Xử lý checked exception trong lambda của Stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-003
+    title: Thiết kế kết quả thành công hoặc lỗi cho từng phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-004
+    title: Chọn dừng khi có lỗi hoặc thu thập lỗi cùng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-005
+    title: Tránh nuốt ngoại lệ và giữ nguyên nguyên nhân gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-006
+    title: Xử lý thay đổi nguồn và ConcurrentModificationException
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-007
+    title: Giới hạn tác dụng phụ và tình trạng hoàn tất một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-008
+    title: Nhận diện thao tác nguy hiểm khi xử lý song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-safety-009
+    title: Tách các bước gọi dịch vụ và ghi dữ liệu khỏi phép biến đổi thuần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: debugging-and-testing-pipelines
+  title: Gỡ lỗi và kiểm thử pipeline
+  childs:
+  - slug: debugging-and-testing-pipelines-001
+    title: Đọc pipeline theo kiểu dữ liệu và hình dạng dữ liệu qua từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-002
+    title: Tách pipeline dài thành các bước có tên và hợp đồng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-003
+    title: Dùng breakpoint và peek để quan sát với giới hạn tối ưu hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-004
+    title: Kiểm thử nguồn rỗng, một phần tử, trùng lặp và null
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-005
+    title: Kiểm thử thứ tự, phần tử cực trị và kết quả Optional
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-006
+    title: Kiểm thử tính kết hợp của reduce và Collector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-007
+    title: Đối chiếu kết quả tuần tự và song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-008
+    title: Kiểm thử đóng tài nguyên khi dừng sớm hoặc có ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: debugging-and-testing-pipelines-009
+    title: Kiểm thử tính chất và tạo dữ liệu ngẫu nhiên có thể tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: stream-gatherers
+  title: Stream Gatherer
+  childs:
+  - slug: stream-gatherers-001
+    title: Vai trò của gather và Gatherer trong JDK hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-002
+    title: Phân biệt Gatherer với map, mapMulti và Collector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-003
+    title: Chia cửa sổ cố định bằng Gatherers.windowFixed
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-004
+    title: Tạo cửa sổ trượt bằng Gatherers.windowSliding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-005
+    title: Tích lũy và phát trạng thái bằng Gatherers.scan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-006
+    title: Gộp dữ liệu bằng Gatherers.fold
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-007
+    title: Ánh xạ đồng thời có giới hạn bằng Gatherers.mapConcurrent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-008
+    title: Kết hợp Gatherer bằng andThen
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-009
+    title: Xử lý thứ tự, nguồn vô hạn và dừng sớm khi dùng Gatherer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: custom-gatherers
+  title: Xây dựng Gatherer tùy biến
+  childs:
+  - slug: custom-gatherers-001
+    title: Hợp đồng initializer, integrator, combiner và finisher
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-002
+    title: Quản lý trạng thái riêng cho mỗi phân đoạn xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-003
+    title: Phát kết quả qua Downstream.push và xử lý tín hiệu từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-004
+    title: Phân biệt Integrator thông thường và Integrator.ofGreedy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-005
+    title: Tạo Gatherer tuần tự bằng Gatherer.ofSequential
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-006
+    title: Thiết kế Gatherer có combiner cho xử lý song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-007
+    title: Xử lý phần dữ liệu còn lại bằng finisher
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-008
+    title: Xây dựng toán tử gộp phần tử liên tiếp theo khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: custom-gatherers-009
+    title: Kiểm thử số lượng đầu ra, tính lười, dừng sớm và ghép trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jdk-compatibility
+  title: Khả năng tương thích JDK
+  childs:
+  - slug: jdk-compatibility-001
+    title: Bản đồ API nền tảng của Stream trong Java 8
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-compatibility-002
+    title: 'Các bổ sung Java 9: ofNullable, iterate, takeWhile và dropWhile'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-compatibility-003
+    title: Collector không sửa đổi được từ Java 10
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-compatibility-004
+    title: Kết hợp Collector bằng teeing từ Java 12
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-compatibility-005
+    title: Stream.toList và mapMulti từ Java 16
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-compatibility-006
+    title: Phân biệt Gatherer thử nghiệm và API chính thức từ Java 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-compatibility-007
+    title: Xác định JDK tối thiểu và chọn cách triển khai tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-compatibility-008
+    title: Rà soát ngữ nghĩa kết quả khi nâng JDK hoặc thay phép toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practical-data-processing-patterns
+  title: Mẫu xử lý dữ liệu thực tế
+  childs:
+  - slug: practical-data-processing-patterns-001
+    title: Làm sạch, chuẩn hóa và loại dữ liệu không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-002
+    title: Lập chỉ mục và phát hiện bản ghi trùng theo khóa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-003
+    title: Tổng hợp đơn hàng theo khách hàng và khoảng thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-004
+    title: Tạo bảng tần suất từ và thống kê văn bản Unicode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-005
+    title: Kết hợp dữ liệu qua chỉ mục Map thay cho lặp lồng tốn kém
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-006
+    title: Chọn top N toàn cục và top N theo nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-007
+    title: Phân trang dữ liệu trong bộ nhớ và giới hạn của skip, limit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-008
+    title: Tạo histogram và phân khoảng giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-009
+    title: Phân tích tệp log theo dòng với chính sách xử lý lỗi rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-data-processing-patterns-010
+    title: Tính chỉ số theo cửa sổ với Gatherer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: beginner-and-intermediate-exercises
+  title: Bài tập nền tảng và trung cấp
+  childs:
+  - slug: beginner-and-intermediate-exercises-001
+    title: Chuyển vòng lặp lọc, ánh xạ và tính tổng thành pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: beginner-and-intermediate-exercises-002
+    title: Xử lý danh sách sinh viên với nhiều tiêu chí sắp xếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: beginner-and-intermediate-exercises-003
+    title: Làm phẳng danh sách đơn hàng và chi tiết sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: beginner-and-intermediate-exercises-004
+    title: Phân biệt kết quả giữa filter, takeWhile và dropWhile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: beginner-and-intermediate-exercises-005
+    title: Thiết kế Map với khóa trùng và thứ tự đầu ra xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: beginner-and-intermediate-exercises-006
+    title: Lập báo cáo nhóm bằng Collector nhiều tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: beginner-and-intermediate-exercises-007
+    title: Viết phép reduce đúng hợp đồng và tìm phản ví dụ sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: beginner-and-intermediate-exercises-008
+    title: Xử lý nguồn rỗng, null và kết quả tìm kiếm vắng mặt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: advanced-exercises-and-projects
+  title: Bài tập nâng cao và dự án
+  childs:
+  - slug: advanced-exercises-and-projects-001
+    title: Xây dựng bộ phân tích tệp lớn với đóng tài nguyên đúng vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-exercises-and-projects-002
+    title: Viết Collector tùy biến để tổng hợp nhiều chỉ số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-exercises-and-projects-003
+    title: Thiết kế Spliterator cho nguồn dữ liệu chia theo lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-exercises-and-projects-004
+    title: Viết Gatherer xử lý nhóm liên tiếp và cửa sổ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-exercises-and-projects-005
+    title: Sửa pipeline song song có lỗi trạng thái dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-exercises-and-projects-006
+    title: Đo và giải thích hiệu năng của ba cách xử lý cùng bài toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-exercises-and-projects-007
+    title: Xây dựng báo cáo bán hàng với kiểm thử tính đúng và thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-exercises-and-projects-008
+    title: Rà soát dự án theo hợp đồng API, khả năng bảo trì và tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

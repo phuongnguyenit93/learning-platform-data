@@ -1,0 +1,2506 @@
+menu:
+- slug: foundation
+  title: Nền tảng
+  childs:
+  - slug: foundation-001
+    title: Hợp đồng dữ liệu (data contract) là gì và vì sao cần thỏa thuận giữa bên cung cấp và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-002
+    title: Kiểm tra tính hợp lệ (validation) và các câu hỏi dữ liệu phải trả lời trước khi được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-003
+    title: Phân biệt hợp đồng dữ liệu, lược đồ (schema), mô hình dữ liệu và tài liệu API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-004
+    title: Phân biệt kiểm tra cấu trúc, cú pháp, ý nghĩa và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-005
+    title: Phân biệt kiểm tra hợp lệ, chuẩn hóa, chuyển đổi kiểu và làm sạch dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-006
+    title: Ranh giới tin cậy và vòng đời dữ liệu từ đầu vào đến đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-007
+    title: Vai trò của bên cung cấp, bên sử dụng và người chịu trách nhiệm hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-008
+    title: 'Lộ trình học và ví dụ xuyên suốt: hợp đồng tạo đơn hàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-design
+  title: Thiết kế hợp đồng
+  childs:
+  - slug: contract-design-001
+    title: Xác định mục đích dữ liệu, phạm vi sử dụng và những giả định phải công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-002
+    title: Mô tả tên trường, ý nghĩa, kiểu dữ liệu, ràng buộc và ví dụ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-003
+    title: Quy định trường bắt buộc, trường tùy chọn và điều kiện xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-004
+    title: Phân biệt trường vắng mặt, null, chuỗi rỗng, khoảng trắng và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-005
+    title: Quy định trường chưa biết, thuộc tính mở rộng và mức độ nghiêm ngặt khi tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-006
+    title: Thiết kế danh sách giá trị, mã định danh và giá trị dự phòng khi chưa nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-007
+    title: Phân biệt mô hình truyền dữ liệu, mô hình miền và mô hình lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-008
+    title: Đặc tả cam kết về độ mới, khả năng sẵn sàng và thay đổi ý nghĩa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-009
+    title: Ví dụ hợp lệ, ví dụ bị từ chối và tiêu chí chấp nhận của một hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-010
+    title: Chọn nguồn định nghĩa chuẩn và tránh lệch giữa tài liệu, lược đồ và mã kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: types-and-structure
+  title: Kiểu và cấu trúc
+  childs:
+  - slug: types-and-structure-001
+    title: Kiểu nguyên thủy, đối tượng, danh sách, tập hợp và ánh xạ trong hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-002
+    title: Số nguyên, số thập phân, độ chính xác, thang số và giới hạn biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-003
+    title: Tiền tệ, phần trăm, đơn vị đo và quy tắc biểu diễn thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-004
+    title: Chuỗi văn bản, Unicode, độ dài và cách đếm ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-005
+    title: Ngày, giờ, múi giờ, thời điểm và khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-006
+    title: Định dạng mã định danh, URI, email và số điện thoại theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-007
+    title: Thứ tự, tính duy nhất, kích thước và phần tử null của tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-008
+    title: Đối tượng lồng nhau, tham chiếu, chu trình và giới hạn độ sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-structure-009
+    title: Biểu diễn nhiều biến thể dữ liệu bằng trường phân loại và tập trường tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantic-rules
+  title: Quy tắc ngữ nghĩa
+  childs:
+  - slug: semantic-rules-001
+    title: Ràng buộc một trường và ràng buộc liên hệ nhiều trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-002
+    title: Khoảng giá trị, biên đóng, biên mở và trường hợp không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-003
+    title: Quan hệ ngày bắt đầu, ngày kết thúc và thời điểm có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-004
+    title: Quy tắc ít nhất một, đúng một hoặc cùng xuất hiện giữa các trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-005
+    title: Ràng buộc phụ thuộc loại dữ liệu, quốc gia hoặc ngữ cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-006
+    title: Tính đầy đủ, duy nhất và nhất quán bên trong một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-007
+    title: Tính nhất quán giữa tổng tiền, dòng hàng, thuế và đơn vị tiền tệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-008
+    title: Phân biệt quy tắc nội tại với điều kiện phụ thuộc trạng thái hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-rules-009
+    title: Xác định thời điểm đánh giá và nguồn dữ liệu tham chiếu của mỗi quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-normalization
+  title: Chuẩn hóa dữ liệu
+  childs:
+  - slug: data-normalization-001
+    title: 'Thiết kế chuỗi tiếp nhận: giải mã, chuyển đổi kiểu, chuẩn hóa và kiểm tra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-002
+    title: Cắt khoảng trắng, chuẩn hóa chữ hoa thường và những ý nghĩa có thể bị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-003
+    title: Chuẩn hóa Unicode và so sánh văn bản theo yêu cầu miền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-004
+    title: Chuyển đổi số và ngày giờ theo định dạng, ngôn ngữ và múi giờ đã thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-005
+    title: Quy tắc gán mặc định và cách giữ dấu vết giá trị thực sự được gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-006
+    title: Giữ dữ liệu gốc và dữ liệu đã chuẩn hóa để truy vết lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-007
+    title: Tính lặp lại ổn định của phép chuẩn hóa và nguy cơ chuẩn hóa nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-008
+    title: Phân biệt từ chối dữ liệu sai với tự sửa dữ liệu khi chưa có thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-schema
+  title: JSON Schema
+  childs:
+  - slug: json-schema-001
+    title: Vai trò của JSON Schema, phiên bản đặc tả và khả năng hỗ trợ của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-002
+    title: Khai báo type, properties và required cho cấu trúc JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-003
+    title: Mô tả null và phân biệt thuộc tính bị thiếu với thuộc tính có giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-004
+    title: Giới hạn số, chuỗi, độ dài và mẫu ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-005
+    title: 'Mô tả mảng: phần tử, kích thước, tính duy nhất và điều kiện chứa phần tử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-006
+    title: Kiểm soát thuộc tính ngoài dự kiến bằng additionalProperties và unevaluatedProperties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-007
+    title: Kết hợp lược đồ bằng allOf, anyOf, oneOf và not
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-008
+    title: Ràng buộc có điều kiện bằng if, then, else và quan hệ phụ thuộc thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-009
+    title: Tái sử dụng định nghĩa bằng $defs, $ref và quản lý định danh lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-010
+    title: Phân biệt chú thích default, examples với hành vi kiểm tra hoặc tự điền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-011
+    title: Ý nghĩa của format và yêu cầu xác nhận chế độ kiểm tra của từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-012
+    title: Đọc đường dẫn vi phạm, thu thập lỗi và kiểm thử lược đồ bằng dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-contracts
+  title: Hợp đồng HTTP
+  childs:
+  - slug: http-contracts-001
+    title: 'Phạm vi hợp đồng HTTP: phương thức, đường dẫn, tham số, tiêu đề và nội dung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-002
+    title: Mô tả request, response, mã trạng thái và kiểu nội dung bằng OpenAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-003
+    title: Ràng buộc tham số đường dẫn, truy vấn, tiêu đề và phần thân yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-004
+    title: Quy ước phân trang, sắp xếp, lọc và giới hạn dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-005
+    title: Phân biệt tạo mới, thay thế toàn bộ và cập nhật một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-006
+    title: Biểu diễn không đổi, gán null và xóa giá trị trong hợp đồng cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-007
+    title: Lựa chọn JSON Merge Patch, JSON Patch hoặc mô hình cập nhật riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-008
+    title: Thiết kế hợp đồng phản hồi thành công và phản hồi lỗi thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-009
+    title: Kiểm tra dữ liệu đầu ra để phát hiện vi phạm cam kết với bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-010
+    title: Phạm vi suy ra lược đồ từ mã và giới hạn của tài liệu được sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-contracts
+  title: Hợp đồng thông điệp
+  childs:
+  - slug: message-contracts-001
+    title: Phân biệt sự kiện, lệnh và bản ghi dữ liệu trong giao tiếp bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-002
+    title: 'Thiết kế vỏ thông điệp: định danh, loại, phiên bản, thời gian và nguồn phát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-003
+    title: Tách dữ liệu nghiệp vụ khỏi siêu dữ liệu phục vụ truyền nhận và truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-004
+    title: Vai trò của Avro, Protocol Buffers và JSON Schema trong quản lý hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-005
+    title: Mô hình lược đồ bên ghi, bên đọc và cơ chế phân giải khi sử dụng Avro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-006
+    title: Số hiệu trường, sự hiện diện và trường chưa biết trong Protocol Buffers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-007
+    title: Đăng ký, tra cứu và kiểm soát tương thích bằng kho lược đồ (schema registry)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-008
+    title: Kiểm tra tại bên phát, bên nhận và xử lý thông điệp không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-009
+    title: Hợp đồng về thứ tự, trùng lặp, thời điểm sự kiện và khả năng phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-010
+    title: Hàng đợi lỗi, vùng cách ly và điều kiện đưa thông điệp trở lại luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-versioning
+  title: Phiên bản hợp đồng
+  childs:
+  - slug: contract-versioning-001
+    title: Tương thích ngược, tương thích xuôi và tương thích đầy đủ theo vai trò bên ghi và bên đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-002
+    title: Phân biệt tương thích cấu trúc, tương thích ý nghĩa và tương thích hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-003
+    title: Phân tích thêm, xóa, đổi tên và đổi kiểu trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-004
+    title: Ảnh hưởng của thay đổi bắt buộc, null, giá trị mặc định và giới hạn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-005
+    title: Mở rộng tập giá trị và nguy cơ bên sử dụng xử lý không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-006
+    title: Quản lý phiên bản tài liệu, lược đồ, API và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-007
+    title: Chính sách ngừng hỗ trợ, thời gian chuyển đổi và thông báo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-008
+    title: Triển khai mở rộng rồi thu hẹp để nhiều phiên bản cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-009
+    title: Đọc dữ liệu cũ, chuyển đổi dữ liệu lịch sử và phát lại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-versioning-010
+    title: Ma trận tương thích giữa các phiên bản và điều kiện chặn phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-architecture
+  title: Kiến trúc kiểm tra
+  childs:
+  - slug: validation-architecture-001
+    title: Phân bố kiểm tra tại giao diện, ranh giới ứng dụng, miền nghiệp vụ và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-architecture-002
+    title: Phân biệt lỗi chuyển đổi kiểu, lỗi kiểm tra, lỗi nghiệp vụ và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-architecture-003
+    title: Kiểm tra khai báo bằng annotation và kiểm tra chủ động bằng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-architecture-004
+    title: Tái sử dụng quy tắc mà không ép mọi lớp dùng chung một mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-architecture-005
+    title: Kiểm tra đồng bộ, kiểm tra phụ thuộc nguồn ngoài và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-architecture-006
+    title: Dừng ở lỗi đầu tiên hay thu thập nhiều lỗi theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-architecture-007
+    title: Thiết kế kết quả kiểm tra, mã quy tắc, mức độ và đường dẫn trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-architecture-008
+    title: Ranh giới giữa kiểm tra dữ liệu, xác thực danh tính và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jakarta-validation
+  title: Jakarta Validation
+  childs:
+  - slug: jakarta-validation-001
+    title: Jakarta Validation, Bean Validation và vai trò của bộ triển khai Hibernate Validator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-002
+    title: Phân biệt API đặc tả, bộ triển khai và phần mở rộng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-003
+    title: Không gian tên jakarta.validation và lưu ý với mã cũ dùng javax.validation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-004
+    title: Khởi tạo ValidatorFactory, lấy Validator và quản lý vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-005
+    title: Kiểm tra toàn đối tượng bằng validate và đọc tập ConstraintViolation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-006
+    title: Kiểm tra thuộc tính hoặc giá trị bằng validateProperty và validateValue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-007
+    title: Truy vấn siêu dữ liệu ràng buộc bằng BeanDescriptor và PropertyDescriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-008
+    title: Ràng buộc tại trường, thuộc tính truy cập và nguy cơ kiểm tra trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-validation-009
+    title: DTO, Java record và vị trí annotation cần xác minh theo cơ chế sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standard-constraints
+  title: Ràng buộc chuẩn
+  childs:
+  - slug: standard-constraints-001
+    title: '@Null, @NotNull, @NotEmpty và @NotBlank: khác nhau về đối tượng và ý nghĩa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-002
+    title: '@Size cho chuỗi, tập hợp, ánh xạ và mảng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-003
+    title: '@Min, @Max, @DecimalMin và @DecimalMax cho giới hạn số'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-004
+    title: '@Positive, @PositiveOrZero, @Negative và @NegativeOrZero'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-005
+    title: '@Digits cho độ dài phần nguyên và phần thập phân'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-006
+    title: '@Pattern, @Email và giới hạn kiểm tra ý nghĩa thực tế'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-007
+    title: '@Past, @PastOrPresent, @Future và @FutureOrPresent'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-008
+    title: '@AssertTrue và @AssertFalse cho điều kiện logic'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-009
+    title: Cách các ràng buộc xử lý null và khi nào phải kết hợp @NotNull
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-010
+    title: Kiểu dữ liệu được hỗ trợ và lỗi khi đặt ràng buộc lên kiểu không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-011
+    title: Kiểu nguyên thủy, kiểu bao và tác động của giá trị mặc định đến kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nested-data
+  title: Dữ liệu lồng nhau
+  childs:
+  - slug: nested-data-001
+    title: Kiểm tra lan truyền (cascaded validation) bằng @Valid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-002
+    title: Phân biệt @Valid và @NotNull trên đối tượng con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-003
+    title: Ràng buộc phần tử List, Set và phân biệt kiểm tra kiểu mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-004
+    title: Ràng buộc khóa và giá trị của Map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-005
+    title: Kiểm tra cấu trúc chứa nhiều tầng và xác định vị trí vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-006
+    title: Optional, sự hiện diện dữ liệu và giới hạn của từng bộ trích xuất giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-007
+    title: Vai trò của ValueExtractor và trích xuất giá trị từ kiểu bao tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-008
+    title: Quy tắc bỏ bao giá trị (unwrapping) và cách tránh đặt nhầm ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-data-009
+    title: Đồ thị đối tượng có tham chiếu lặp và kiểm soát chi phí kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-constraints
+  title: Ràng buộc tùy chỉnh
+  childs:
+  - slug: custom-constraints-001
+    title: Khi nào cần ràng buộc riêng thay vì ghép các ràng buộc chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-002
+    title: Thiết kế annotation với @Constraint, message, groups và payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-003
+    title: Triển khai ConstraintValidator, khởi tạo cấu hình và kiểm tra isValid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-004
+    title: Chính sách null và trách nhiệm của từng ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-005
+    title: Ràng buộc cấp lớp cho quan hệ giữa nhiều trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-006
+    title: Gắn lỗi cấp lớp vào trường phù hợp bằng ConstraintValidatorContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-007
+    title: Tạo nhiều vi phạm và quản lý thông báo mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-008
+    title: Kết hợp ràng buộc và sử dụng @ReportAsSingleViolation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-009
+    title: Ghi đè thuộc tính của ràng buộc thành phần bằng @OverridesAttribute
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-010
+    title: Thiết kế validator không giữ trạng thái yêu cầu và dùng an toàn khi tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-011
+    title: Giới hạn gọi dịch vụ ngoài hoặc truy vấn cơ sở dữ liệu bên trong validator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-groups
+  title: Nhóm kiểm tra
+  childs:
+  - slug: validation-groups-001
+    title: Nhóm Default và cách chọn nhóm khi gọi Validator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-002
+    title: Thiết kế nhóm theo tình huống tạo mới, cập nhật và xử lý từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-003
+    title: Kế thừa nhóm và ảnh hưởng đến tập ràng buộc được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-004
+    title: Thứ tự kiểm tra bằng @GroupSequence và điều kiện dừng giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-005
+    title: Định nghĩa lại nhóm mặc định của lớp và các ràng buộc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-006
+    title: Chuyển đổi nhóm cho đối tượng con bằng @ConvertGroup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-007
+    title: Phân biệt nhóm kiểm tra với thứ tự thực thi từng ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-008
+    title: Phần mở rộng chọn nhóm động và giới hạn tính di động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-009
+    title: Dấu hiệu lạm dụng nhóm và lúc nên tách DTO theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-validation
+  title: Kiểm tra phương thức
+  childs:
+  - slug: method-validation-001
+    title: Tiền điều kiện, hậu điều kiện và hợp đồng của phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-002
+    title: Ràng buộc tham số, giá trị trả về và đối tượng trả về lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-003
+    title: Kiểm tra tham số và kết quả khởi tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-004
+    title: Ràng buộc liên tham số và quy tắc nhất quán của nhiều đối số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-005
+    title: Kiểm tra chủ động bằng ExecutableValidator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-006
+    title: Kế thừa phương thức và quy tắc không tăng tiền điều kiện của kiểu con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-007
+    title: Kế thừa ràng buộc kết quả trả về và các cấu hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-008
+    title: Phân biệt annotation khai báo với cơ chế thực sự kích hoạt kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Tích hợp Jakarta Validation vào ứng dụng Spring và lựa chọn bộ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Kích hoạt kiểm tra request DTO bằng @Valid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Chọn nhóm bằng @Validated và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Kiểm tra model attribute, query parameter và request body trong Spring MVC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Phân biệt lỗi binding, lỗi đọc JSON và lỗi ràng buộc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Kiểm tra phương thức tại lớp dịch vụ thông qua cơ chế proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Lời gọi nội bộ cùng đối tượng và giới hạn của kiểm tra dựa trên proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Xử lý kết quả bằng BindingResult hoặc cơ chế ánh xạ ngoại lệ tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Sự khác nhau giữa kiểm tra đối tượng và kiểm tra phương thức của bộ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Cấu hình MessageSource, locale và đồng hồ kiểm tra theo nhu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Lưu ý với luồng phản ứng và tránh tác vụ kiểm tra chặn luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-012
+    title: Giới hạn việc tích hợp Spring và giữ quy tắc miền có thể kiểm thử độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-messages
+  title: Thông báo và lỗi
+  childs:
+  - slug: errors-and-messages-001
+    title: Phân biệt mã lỗi ổn định, thông báo cho người dùng và chi tiết kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-002
+    title: 'Đọc ConstraintViolation: đường dẫn, mẫu thông báo, giá trị và siêu dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-003
+    title: Đường dẫn lỗi cho trường lồng nhau, phần tử mảng và khóa ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-004
+    title: Nội suy thông báo, ValidationMessages và hỗ trợ nhiều ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-005
+    title: Thiết kế phản hồi lỗi bằng Problem Details hoặc định dạng hợp đồng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-006
+    title: Lựa chọn mã trạng thái cho lỗi cú pháp, lỗi ràng buộc và xung đột nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-007
+    title: Tổ chức nhiều lỗi, loại bỏ trùng lặp và sắp xếp ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-008
+    title: Gắn mã truy vết và ngữ cảnh yêu cầu vào báo cáo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-009
+    title: Ẩn dữ liệu nhạy cảm trong giá trị bị từ chối và thông báo trả ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-messages-010
+    title: Giữ tương thích khi đổi nội dung thông báo hoặc cấu trúc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-rules
+  title: Quy tắc nghiệp vụ
+  childs:
+  - slug: business-rules-001
+    title: Đặt bất biến (invariant) trong đối tượng giá trị và thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-002
+    title: Khởi tạo đối tượng hợp lệ qua constructor hoặc factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-003
+    title: Phân biệt tính hợp lệ của dữ liệu với tính hợp lệ của một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-004
+    title: Kiểm tra trạng thái hiện tại và chuyển trạng thái được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-005
+    title: Quy tắc phụ thuộc tài khoản, quyền sở hữu và điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-006
+    title: Đóng gói quy tắc có thể tái sử dụng bằng chính sách hoặc đối tượng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-007
+    title: Trả nhiều lỗi nghiệp vụ hay thất bại ngay theo từng quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-008
+    title: Phối hợp kiểm tra DTO và miền mà không để lọt bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-rules-009
+    title: Xử lý thất bại khi nguồn tham chiếu không sẵn sàng hoặc đã lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency-and-storage
+  title: Nhất quán và lưu trữ
+  childs:
+  - slug: consistency-and-storage-001
+    title: Ràng buộc NOT NULL, CHECK, UNIQUE và khóa ngoại như lớp bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-002
+    title: Phân biệt kiểm tra trước khi ghi với đảm bảo tính đúng tại thời điểm ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-003
+    title: Tranh chấp giữa kiểm tra và sử dụng dữ liệu khi có truy cập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-004
+    title: Bảo vệ tính duy nhất bằng ràng buộc cơ sở dữ liệu và xử lý vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-005
+    title: Phạm vi giao dịch, khóa và kiểm soát phiên bản theo bất biến cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-006
+    title: Vai trò của Jakarta Validation trong vòng đời lưu trữ qua JPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-007
+    title: Ánh xạ vi phạm lưu trữ thành lỗi ứng dụng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-008
+    title: Tính nhất quán cuối cùng và quy tắc kiểm tra giữa nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-and-storage-009
+    title: Thay đổi ràng buộc khi dữ liệu cũ chưa đáp ứng hợp đồng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batch-input-processing
+  title: Nhập liệu và xử lý lô
+  childs:
+  - slug: batch-input-processing-001
+    title: 'Hợp đồng tệp CSV, Excel và JSON Lines: cấu trúc, cột và phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-002
+    title: Mã hóa, dấu phân cách, tiêu đề và quy tắc biểu diễn ô trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-003
+    title: Kiểm tra theo tệp, theo hàng, theo trường và giữa nhiều hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-004
+    title: Tham chiếu dữ liệu danh mục và phát hiện bản ghi trùng trong lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-005
+    title: Chọn từ chối toàn bộ hay chấp nhận một phần với quy tắc rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-006
+    title: Báo lỗi kèm số dòng, tên cột và dữ liệu đã che thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-007
+    title: Xử lý theo luồng, chia lô và kiểm soát bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-008
+    title: Vùng dữ liệu chờ kiểm tra, vùng cách ly và điều kiện nhập chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-009
+    title: Chạy lại, tiếp tục sau lỗi và tránh tạo dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-input-processing-010
+    title: Đối soát số bản ghi nhận, chấp nhận, từ chối và được ghi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-security
+  title: Bảo mật đầu vào
+  childs:
+  - slug: input-security-001
+    title: Giới hạn kích thước yêu cầu, số phần tử, độ sâu và độ dài trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-002
+    title: Giới hạn thời gian và nguy cơ từ biểu thức chính quy có chi phí lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-003
+    title: Danh sách giá trị cho phép và nguyên tắc từ chối có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-004
+    title: Thuộc tính ngoài dự kiến, gán hàng loạt và nguy cơ thay đổi trường nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-005
+    title: URL, đường dẫn tệp và yêu cầu kiểm tra theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-006
+    title: Phân biệt kiểm tra đầu vào với truy vấn tham số hóa và mã hóa đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-007
+    title: Dữ liệu nhị phân, nội dung tệp và giới hạn tin cậy kiểu MIME
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-008
+    title: Ngăn rò rỉ thông tin nội bộ qua lỗi kiểm tra và log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-security-009
+    title: Giới hạn số lỗi trả về để tránh lạm dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-and-context
+  title: Thời gian và ngữ cảnh
+  childs:
+  - slug: time-and-context-001
+    title: Kiểm tra phụ thuộc thời gian và sử dụng ClockProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-context-002
+    title: Múi giờ, ranh giới ngày và khoảng thời gian chuyển giờ theo mùa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-context-003
+    title: Độ mới dữ liệu, thời gian sự kiện và thời gian hệ thống nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-context-004
+    title: Kiểm tra theo quốc gia, ngôn ngữ và quy ước địa phương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-context-005
+    title: Quy tắc theo khách hàng tổ chức và quản lý cấu hình có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-context-006
+    title: Xác định nguồn cấu hình, thời điểm áp dụng và khả năng tái hiện kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-context-007
+    title: Phân biệt dữ liệu sai với không đủ thông tin để kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-context-008
+    title: Giữ tính xác định khi kiểm thử và xử lý lại dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo chi phí kiểm tra theo kích thước dữ liệu, số ràng buộc và độ sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Tái sử dụng ValidatorFactory và Validator theo hợp đồng an toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Chọn kiểm tra tuần tự theo nhóm để tránh công việc không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Dừng ở lỗi đầu tiên qua phần mở rộng của bộ triển khai và đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Tránh truy vấn lặp cho từng bản ghi và gom kiểm tra dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Bộ nhớ đệm dữ liệu tham chiếu, thời hạn hiệu lực và rủi ro dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Biên dịch và tái sử dụng lược đồ trong giới hạn của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Kiểm tra dữ liệu lớn theo luồng và giới hạn số lỗi được giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đo tải, độ trễ và hành vi khi nhiều yêu cầu kiểm tra đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constraint-testing
+  title: Kiểm thử ràng buộc
+  childs:
+  - slug: constraint-testing-001
+    title: Thiết kế ma trận trường hợp hợp lệ, không hợp lệ và chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-002
+    title: Kiểm thử null, thiếu trường, rỗng, khoảng trắng và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-003
+    title: Kiểm thử tại biên số, độ dài, thời gian và độ chính xác thập phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-004
+    title: Kiểm thử Unicode, ngôn ngữ, múi giờ và dữ liệu được chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-005
+    title: Kiểm thử ràng buộc tùy chỉnh và vị trí chính xác của vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-006
+    title: Kiểm thử dữ liệu lồng nhau, nhóm, chuyển đổi nhóm và thứ tự nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-007
+    title: Kiểm thử ràng buộc phương thức và việc kích hoạt qua proxy thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-008
+    title: Kiểm thử tích hợp binding, ánh xạ ngoại lệ và định dạng phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-009
+    title: Sinh dữ liệu theo thuộc tính và dữ liệu ngẫu nhiên có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-010
+    title: Kiểm thử tranh chấp, dữ liệu tham chiếu thay đổi và nguồn ngoài bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constraint-testing-011
+    title: Thiết kế dữ liệu kiểm thử độc lập, có thể tái hiện và không chứa thông tin riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-testing
+  title: Kiểm thử hợp đồng
+  childs:
+  - slug: contract-testing-001
+    title: Phân biệt kiểm thử lược đồ, kiểm thử tích hợp và kiểm thử hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-002
+    title: Kiểm tra yêu cầu, phản hồi và thông điệp bằng lược đồ chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-003
+    title: Kiểm thử hợp đồng do bên sử dụng định nghĩa và xác minh tại bên cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-004
+    title: Vai trò của Pact hoặc Spring Cloud Contract trong luồng xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-005
+    title: Xác định phạm vi hợp đồng và tránh sao chép toàn bộ hành vi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-006
+    title: Kiểm thử nhiều phiên bản bên cung cấp và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-007
+    title: So sánh lược đồ để phát hiện thay đổi có thể phá vỡ tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-008
+    title: Kiểm tra khác biệt ý nghĩa mà công cụ so sánh cấu trúc không phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-009
+    title: Quản lý dữ liệu mẫu, bản chụp chuẩn và điều kiện cập nhật có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-010
+    title: Đặt cổng kiểm tra hợp đồng trong CI/CD và chặn bản phát hành vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-operations
+  title: Vận hành hợp đồng
+  childs:
+  - slug: contract-operations-001
+    title: Quản lý người chịu trách nhiệm, kho hợp đồng và quy trình phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-002
+    title: Đánh giá tác động khi thay đổi trường hoặc quy tắc kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-003
+    title: Phát hiện độ lệch giữa dữ liệu thực tế, mã xử lý và hợp đồng công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-004
+    title: Theo dõi tỷ lệ bị từ chối, mã lỗi phổ biến và phiên bản hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-005
+    title: Thiết kế nhãn đo lường có số lượng giá trị hữu hạn và log có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-006
+    title: Chạy kiểm tra quan sát trước khi bật chế độ từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-007
+    title: Phát hành từng phần, theo dõi ảnh hưởng và quay về phiên bản trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-008
+    title: Quản lý ngoại lệ tạm thời, thời hạn miễn trừ và nợ hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-009
+    title: Xử lý sự cố vi phạm, thông báo bên sử dụng và phát lại dữ liệu an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-operations-010
+    title: Rà soát định kỳ quy tắc đã lỗi thời và chứng cứ hợp đồng còn được đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Thiết kế hợp đồng đơn hàng từ yêu cầu nghiệp vụ và dữ liệu ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây dựng DTO đầu vào với ràng buộc chuẩn và đối tượng lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Tạo ràng buộc liên trường cho khoảng giao hàng và tổng tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Phân tách hợp đồng tạo đơn, cập nhật đơn và kiểm tra chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tích hợp Spring, bản địa hóa thông báo và chuẩn hóa phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Bảo vệ mã đơn duy nhất dưới truy cập đồng thời bằng ràng buộc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thiết kế sự kiện đơn hàng và nâng cấp hợp đồng qua hai phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Nhập danh sách đơn theo lô với báo cáo lỗi và khả năng chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Xây dựng bộ kiểm thử ràng buộc, hợp đồng và cổng CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Theo dõi dữ liệu vi phạm và lập kế hoạch chuyển đổi hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Danh sách kiểm tra để đánh giá một hợp đồng dữ liệu trước khi đưa vào sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

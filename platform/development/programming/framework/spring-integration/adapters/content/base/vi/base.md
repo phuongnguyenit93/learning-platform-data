@@ -1,0 +1,7 @@
+# Spring Integration Adapters
+
+Spring Integration Adapters kết nối ứng dụng dựa trên `MessageChannel` với những hệ thống bên ngoài như file system, SFTP, HTTP, cơ sở dữ liệu và JMS. Một *inbound channel adapter* nhận dữ liệu từ bên ngoài rồi đưa thành message vào luồng tích hợp; một *outbound channel adapter* gửi message ra hệ thống đích. Các adapter thường phục vụ trao đổi một chiều; khi cần cơ chế yêu cầu và phản hồi, bạn sẽ cân nhắc dùng gateway.
+
+Module dành cho người học đã biết Java, Spring và những khái niệm cơ bản của Spring Integration như `Message`, `MessageChannel` và `IntegrationFlow`. Lộ trình bắt đầu từ vai trò và hướng dữ liệu của adapter, rồi phân biệt polling với xử lý dựa trên sự kiện. Tiếp theo, bạn sẽ tìm hiểu những lựa chọn tiêu biểu cho File/SFTP, HTTP, JDBC và JMS, tập trung vào cách cấu hình điểm nhận/gửi dữ liệu và ánh xạ message.
+
+Trong phần thực hành, người học xây dựng một luồng trao đổi qua adapter, kiểm tra kết quả và đánh giá lỗi kết nối, dữ liệu trùng lặp hoặc gửi thất bại. Kết thúc module, bạn có thể lựa chọn adapter theo giao thức và chiều truyền, cấu hình một luồng tích hợp đơn giản, đồng thời biết những điểm cần kiểm tra khi vận hành kết nối với hệ thống bên ngoài.

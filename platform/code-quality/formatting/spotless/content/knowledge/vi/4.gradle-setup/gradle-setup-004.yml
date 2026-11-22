@@ -1,0 +1,3 @@
+menuLevel1: Thiết lập Spotless cho Gradle
+menuLevel2: Chạy spotlessCheck và spotlessApply qua Gradle Wrapper
+status: ""

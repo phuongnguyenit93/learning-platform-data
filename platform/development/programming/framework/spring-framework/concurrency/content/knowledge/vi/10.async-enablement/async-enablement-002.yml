@@ -1,0 +1,3 @@
+menuLevel1: Bật @Async
+menuLevel2: Bean phải được container quản lý để annotation được xử lý
+status: WRITTEN

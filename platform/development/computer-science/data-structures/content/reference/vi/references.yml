@@ -1,0 +1,13 @@
+references:
+  - title: "Open Data Structures"
+    url: "https://opendatastructures.org/"
+    description: "Sách mở về array, linked list, hash table, cây tìm kiếm, heap và biểu diễn đồ thị; có mã Java/C++."
+  - title: "Algorithms, 4th Edition — Princeton Booksite"
+    url: "https://algs4.cs.princeton.edu/home/"
+    description: "Tài liệu và ví dụ Java về stack, queue, union-find, bảng băm, cây tìm kiếm, priority queue và đồ thị."
+  - title: "MIT OpenCourseWare — 6.006 Introduction to Algorithms"
+    url: "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/"
+    description: "Bài giảng và bài tập đại học về dynamic array, hashing, cây cân bằng, heap và đồ thị."
+  - title: "VisuAlgo — Data Structures and Algorithms"
+    url: "https://visualgo.net/en"
+    description: "Mô phỏng tương tác thao tác với cấu trúc dữ liệu, giúp quan sát biến đổi và so sánh."

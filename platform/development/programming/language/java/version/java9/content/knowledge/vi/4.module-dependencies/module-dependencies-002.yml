@@ -1,0 +1,3 @@
+menuLevel1: Phụ thuộc mô-đun
+menuLevel2: requires transitive khi API công khai làm lộ kiểu của mô-đun khác
+status: WRITTEN

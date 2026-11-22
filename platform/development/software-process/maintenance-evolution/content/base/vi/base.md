@@ -1,0 +1,7 @@
+# Software Process Maintenance Evolution
+
+**Software Maintenance & Evolution** là quá trình giữ phần mềm tiếp tục hữu ích, an toàn và thích ứng sau khi đã được bàn giao hoặc đưa vào sử dụng. Công việc không chỉ gồm sửa lỗi (*corrective maintenance*) mà còn thích ứng với môi trường thay đổi, cải thiện tính năng và chủ động giảm rủi ro bảo trì trong tương lai. Theo cách nhìn của ISO/IEC/IEEE 14764, bảo trì phần mềm tập trung vào thay đổi sản phẩm và quản lý thay đổi; không đồng nhất với các công việc vận hành hệ thống thường ngày.
+
+Lộ trình gồm tám mốc: hiểu các loại hình và vòng đời bảo trì; tiếp nhận, phân loại và ưu tiên yêu cầu; đọc hiểu hệ thống hiện hữu; kiểm soát thay đổi bằng kiểm thử hồi quy; refactoring và quản lý nợ kỹ thuật; nâng cấp phụ thuộc và bảo đảm tương thích; hiện đại hóa từng phần bằng chiến lược như *Strangler Fig*; cuối cùng là đo lường hiệu quả bảo trì và lập kế hoạch ngừng hỗ trợ. Nội dung nhấn mạnh tiến hóa có kiểm soát, bảo vệ hành vi quan trọng và đánh giá rủi ro theo giá trị nghiệp vụ thay vì mặc định mọi hệ thống cũ đều cần viết lại.
+
+Module phù hợp với lập trình viên, kỹ sư bảo trì, tech lead và người quản lý chất lượng đã nắm Git, kiểm thử phần mềm, thiết kế module và quy trình phát hành cơ bản. Sau khi hoàn thành, bạn có thể phân tích yêu cầu thay đổi, xác định điểm tác động trong codebase, chuẩn bị regression tests, đề xuất thứ tự trả nợ kỹ thuật, lên kế hoạch nâng cấp hoặc thay thế legacy từng bước và đo lường tính bền vững của hoạt động bảo trì.

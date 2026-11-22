@@ -1,0 +1,121 @@
+menu:
+  - title: "Tổng quan"
+    slug: overview
+    index: 0
+  - title: "Nguyên lý nền tảng"
+    slug: foundational-principles
+    index: 1
+  - title: "Dependency Rule"
+    slug: dependency-rule
+    index: 2
+  - title: "Chính sách và tầng"
+    slug: policies-and-layers
+    index: 3
+  - title: "Ranh giới kiến trúc"
+    slug: architectural-boundaries
+    index: 4
+  - title: "Phân tích nghiệp vụ"
+    slug: business-analysis
+    index: 5
+  - title: "Entity"
+    slug: entities
+    index: 6
+  - title: "Value Object"
+    slug: value-objects
+    index: 7
+  - title: "Dịch vụ miền"
+    slug: domain-services
+    index: 8
+  - title: "Use case"
+    slug: use-cases
+    index: 9
+  - title: "Input và Output Port"
+    slug: input-and-output-ports
+    index: 10
+  - title: "DTO và dữ liệu biên"
+    slug: dtos-and-boundary-data
+    index: 11
+  - title: "Interface Adapter"
+    slug: interface-adapters
+    index: 12
+  - title: "Controller"
+    slug: controllers
+    index: 13
+  - title: "Presenter"
+    slug: presenters
+    index: 14
+  - title: "Repository và Gateway"
+    slug: repositories-and-gateways
+    index: 15
+  - title: "Ánh xạ lưu trữ"
+    slug: persistence-mapping
+    index: 16
+  - title: "Giao dịch"
+    slug: transactions
+    index: 17
+  - title: "Framework và hạ tầng"
+    slug: frameworks-and-infrastructure
+    index: 18
+  - title: "Composition Root"
+    slug: composition-root
+    index: 19
+  - title: "Tổ chức mã Java"
+    slug: java-code-organization
+    index: 20
+  - title: "API và giao diện"
+    slug: apis-and-user-interfaces
+    index: 21
+  - title: "Validation"
+    slug: validation
+    index: 22
+  - title: "Lỗi và ngoại lệ"
+    slug: errors-and-exceptions
+    index: 23
+  - title: "Bảo mật"
+    slug: security
+    index: 24
+  - title: "Tích hợp bên ngoài"
+    slug: external-integrations
+    index: 25
+  - title: "Sự kiện và luồng dài"
+    slug: events-and-long-running-workflows
+    index: 26
+  - title: "Cache và hiệu năng"
+    slug: caching-and-performance
+    index: 27
+  - title: "Kiểm thử miền"
+    slug: domain-testing
+    index: 28
+  - title: "Kiểm thử use case"
+    slug: use-case-testing
+    index: 29
+  - title: "Kiểm thử adapter"
+    slug: adapter-testing
+    index: 30
+  - title: "Kiểm thử kiến trúc"
+    slug: architecture-testing
+    index: 31
+  - title: "Quan sát hệ thống"
+    slug: observability
+    index: 32
+  - title: "Đối chiếu kiến trúc"
+    slug: architecture-comparisons
+    index: 33
+  - title: "Đánh đổi thiết kế"
+    slug: design-tradeoffs
+    index: 34
+  - title: "Nhận diện vi phạm"
+    slug: detecting-architecture-violations
+    index: 35
+  - title: "Tái cấu trúc từng bước"
+    slug: incremental-refactoring
+    index: 36
+  - title: "Thực hành tình huống"
+    slug: practical-case-study
+    index: 37
+  - title: "Mở rộng và tiến hóa"
+    slug: extension-and-evolution
+    index: 38
+  - title: "Review kiến trúc"
+    slug: architecture-review
+    index: 39

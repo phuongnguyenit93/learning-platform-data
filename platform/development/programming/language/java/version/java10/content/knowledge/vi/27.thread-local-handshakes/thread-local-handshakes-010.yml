@@ -1,0 +1,3 @@
+menuLevel1: Handshake theo luồng
+menuLevel2: Phân biệt thread-local handshake với biến ThreadLocal của ứng dụng
+status: WRITTEN

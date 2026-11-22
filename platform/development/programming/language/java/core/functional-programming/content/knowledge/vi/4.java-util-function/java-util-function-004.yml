@@ -1,0 +1,3 @@
+menuLevel1: java.util.function
+menuLevel2: Supplier<T> cho thao tác cung cấp giá trị không nhận đối số
+status: WRITTEN

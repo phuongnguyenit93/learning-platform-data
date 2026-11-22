@@ -1,0 +1,322 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Ngoại lệ là gì và vấn đề cần giải quyết
+  - Phân biệt lỗi biên dịch, thất bại khi chạy và kết quả nghiệp vụ
+  - Vì sao dùng ngoại lệ thay cho mã lỗi hoặc giá trị đặc biệt
+  - 'Các thành phần: nơi phát sinh, nơi gọi và nơi xử lý'
+  - Quan hệ giữa ngoại lệ, hợp đồng phương thức và trạng thái chương trình
+  - 'Một ví dụ xuyên suốt: đọc và xử lý dữ liệu đầu vào'
+  - Kiến thức tiên quyết và trình tự học đề xuất
+  - Phạm vi Java Core và cách đối chiếu phiên bản JDK
+- level1: Phân cấp ngoại lệ
+  level2:
+  - Throwable là gốc của hệ phân cấp
+  - Exception và RuntimeException
+  - Error và VirtualMachineError
+  - 'Checked exception: quy tắc bắt hoặc khai báo'
+  - 'Unchecked exception: RuntimeException, Error và các lớp con'
+  - Phân biệt quy tắc checked với khả năng phục hồi thực tế
+  - Quan hệ kiểu cha, kiểu con và lựa chọn catch
+  - Vì sao catch Exception không bắt mọi Throwable
+- level1: Luồng thực thi
+  level2:
+  - Hoàn tất bình thường và hoàn tất đột ngột
+  - Ngoại lệ phát sinh từ mã Java, API hoặc JVM
+  - Dừng phần biểu thức hoặc câu lệnh chưa hoàn tất
+  - Lan truyền ngoại lệ dọc theo ngăn xếp lời gọi
+  - Tìm khối catch phù hợp gần nhất
+  - Vị trí tiếp tục thực thi sau khi xử lý
+  - Ngoại lệ chưa được bắt và việc kết thúc luồng hiện tại
+  - Giới hạn giữa ngoại lệ đồng bộ và ngoại lệ bất đồng bộ của JVM
+  - Giải phóng monitor khi rời synchronized do ngoại lệ
+- level1: Lệnh throw
+  level2:
+  - Cú pháp throw và yêu cầu kiểu Throwable
+  - Tạo đối tượng ngoại lệ bằng constructor
+  - Phân biệt tạo ngoại lệ với ném ngoại lệ
+  - Ném ngoại lệ có thông điệp và ngữ cảnh phù hợp
+  - throw null và NullPointerException
+  - Ném lại cùng đối tượng ngoại lệ bằng throw e
+  - Đường thực thi không thể tới sau throw
+  - Throw trong nhánh switch và luồng điều khiển có trả về giá trị
+- level1: Mệnh đề throws
+  level2:
+  - Cú pháp throws trên phương thức và constructor
+  - Khai báo một hoặc nhiều kiểu ngoại lệ
+  - Quan hệ giữa kiểu được khai báo và lớp con thực sự bị ném
+  - Phân biệt throw với throws
+  - Lan truyền checked exception qua nhiều tầng lời gọi
+  - Khi nào nên catch và khi nào nên tiếp tục throws
+  - Khai báo unchecked exception và vai trò tài liệu hóa
+  - Vì sao throws không có nghĩa phương thức luôn phát sinh lỗi
+  - Hợp đồng ngoại lệ của main và giới hạn khi đẩy lỗi lên trên cùng
+- level1: Try và catch
+  level2:
+  - Cú pháp try-catch và phạm vi được bảo vệ
+  - Bắt ngoại lệ theo kiểu đối tượng thực tế
+  - Nhiều khối catch và thứ tự từ cụ thể đến tổng quát
+  - Khối catch đầu tiên phù hợp được thực thi
+  - Phạm vi của biến trong try và tham số catch
+  - Biến cục bộ và yêu cầu được gán giá trị chắc chắn
+  - Ngoại lệ phát sinh ngay trong khối catch
+  - Try-catch lồng nhau và ranh giới xử lý
+  - Catch không thể tới do khối catch trước đã bao phủ
+  - Quy tắc bắt checked exception mà khối try không thể ném
+- level1: Multi-catch và rethrow
+  level2:
+  - Multi-catch từ Java 7 và cú pháp dấu |
+  - Khi nào nhiều loại ngoại lệ có thể dùng chung một cách xử lý
+  - Không đặt kiểu cha và kiểu con trong cùng multi-catch
+  - Tham số multi-catch ngầm định final
+  - Giới hạn thành viên được truy cập qua tham số multi-catch
+  - Precise rethrow và suy ra tập checked exception hẹp hơn
+  - Ảnh hưởng của final, effectively final và việc gán lại tham số catch
+  - So sánh multi-catch với catch kiểu cha quá rộng
+- level1: Khối finally
+  level2:
+  - Cú pháp try-finally và try-catch-finally
+  - Finally khi try hoàn tất bình thường hoặc có ngoại lệ
+  - Finally khi return, break hoặc continue
+  - Giá trị trả về được tính trước khi thực thi finally
+  - Thay đổi đối tượng trả về khác thay đổi biến cục bộ như thế nào
+  - Return hoặc throw trong finally che mất kết quả trước đó
+  - Ngoại lệ cleanup che mất ngoại lệ ban đầu
+  - Giới hạn thực thi finally khi JVM dừng, tiến trình bị kết thúc hoặc mã không thoát
+  - Phân biệt finally, final và finalize
+- level1: Try-with-resources
+  level2:
+  - Mục đích và cú pháp try-with-resources từ Java 7
+  - AutoCloseable và Closeable
+  - Resource được khai báo trong try và phạm vi sử dụng
+  - Dùng resource có sẵn là final hoặc effectively final từ Java 9
+  - Thứ tự tạo tài nguyên từ trái sang phải
+  - Thứ tự đóng tài nguyên ngược với thứ tự tạo
+  - Xử lý khi việc tạo một tài nguyên thất bại
+  - Tài nguyên null và lời gọi close tự động
+  - Ngoại lệ từ thân try, close và nguyên tắc chọn ngoại lệ chính
+  - Try-with-resources kết hợp catch và finally
+  - Tài nguyên được đóng khi return hoặc thoát đột ngột
+  - Quyền sở hữu tài nguyên và trường hợp không nên tự động đóng
+- level1: Đối tượng Throwable
+  level2:
+  - Các constructor với message, cause và cấu hình nâng cao
+  - getMessage, getLocalizedMessage và toString
+  - Stack trace được ghi nhận tại thời điểm nào
+  - printStackTrace và cách biểu diễn đầy đủ một ngoại lệ
+  - getStackTrace và cấu trúc StackTraceElement
+  - fillInStackTrace và tác động khi cập nhật dấu vết
+  - setStackTrace và giới hạn khi tự thay đổi thông tin chẩn đoán
+  - getCause, initCause và điều kiện khởi tạo nguyên nhân
+  - addSuppressed và getSuppressed
+  - Cấu hình enableSuppression và writableStackTrace
+- level1: Nguyên nhân và lỗi phụ
+  level2:
+  - Exception chaining và ý nghĩa của quan hệ cause
+  - Giữ nguyên nguyên nhân khi bọc ngoại lệ
+  - Phân biệt ngoại lệ ngoài cùng với nguyên nhân sâu nhất
+  - Suppressed exception và quan hệ với try-with-resources
+  - Phân biệt cause với suppressed exception
+  - Nhiều lần close thất bại và thứ tự lỗi phụ
+  - Giới hạn với self-cause, self-suppression và giá trị null
+  - Đọc cây ngoại lệ thay vì chỉ đọc dòng thông điệp cuối
+  - Giữ cả lỗi chính và lỗi cleanup khi quản lý tài nguyên thủ công
+- level1: Ngoại lệ tùy chỉnh
+  level2:
+  - Khi nào cần định nghĩa loại ngoại lệ riêng
+  - Chọn extends Exception hay extends RuntimeException
+  - Đặt tên theo tình huống thất bại và mức trừu tượng
+  - Constructor hỗ trợ message và cause
+  - Thuộc tính ngữ cảnh có kiểu và tránh dữ liệu dư thừa
+  - Thiết kế hệ phân cấp theo cách bên gọi cần xử lý
+  - Giữ thông tin lỗi độc lập với câu chữ của message
+  - 'Giới hạn generic: lớp con Throwable không được có tham số kiểu'
+  - Serialization và serialVersionUID khi hợp đồng có yêu cầu
+  - Tránh kế thừa trực tiếp Throwable hoặc Error khi không phù hợp
+- level1: Kế thừa và hợp đồng
+  level2:
+  - Checked exception trong phương thức ghi đè
+  - Không mở rộng tập checked exception được phép ném
+  - Thu hẹp hoặc bỏ khai báo checked exception
+  - Unchecked exception khi ghi đè
+  - Một phương thức thực thi nhiều interface có throws khác nhau
+  - Overload, kiểu khai báo của tham chiếu và tập ngoại lệ cần xử lý
+  - Checked exception của constructor lớp cha
+  - Checked exception trong instance initializer và các constructor
+  - Static initializer, checked exception và lỗi khởi tạo lớp
+- level1: Lambda và generic
+  level2:
+  - Checked exception trong lambda theo hợp đồng của kiểu hàm
+  - Method reference và tính tương thích của throws
+  - Runnable, Callable và khác biệt về khai báo ngoại lệ
+  - Vì sao Function, Consumer và Supplier thông thường gây vướng với checked exception
+  - Bắt tại lambda, chuyển đổi ngoại lệ hoặc chọn interface riêng
+  - Phương thức generic có tham số kiểu mở rộng Throwable
+  - Giới hạn của catch đối với type parameter
+  - Suy luận kiểu với throws và rủi ro của sneaky throw
+  - Giữ hợp đồng rõ ràng khi kết hợp Stream và thao tác có thể thất bại
+- level1: Ngoại lệ runtime
+  level2:
+  - 'NullPointerException: dereference, unboxing và đầu vào null'
+  - IllegalArgumentException và IllegalStateException
+  - IndexOutOfBoundsException và ArrayIndexOutOfBoundsException
+  - NumberFormatException và chuyển đổi dữ liệu đầu vào
+  - ArithmeticException với phép toán số nguyên và các phép toán exact
+  - Phân biệt chia số thực cho 0 với chia số nguyên cho 0
+  - ClassCastException và ArrayStoreException
+  - NegativeArraySizeException
+  - NoSuchElementException và truy cập khi không có phần tử
+  - UnsupportedOperationException và thao tác tùy chọn
+  - ConcurrentModificationException và giới hạn của cơ chế fail-fast
+  - Objects.requireNonNull và kiểm tra điều kiện trước khi xử lý
+- level1: Ngoại lệ API
+  level2:
+  - IOException, FileNotFoundException và lỗi đọc ghi
+  - NoSuchFileException, AccessDeniedException và các lỗi NIO
+  - EOFException và xử lý dữ liệu kết thúc sớm
+  - SocketException, SocketTimeoutException và lỗi mạng
+  - 'SQLException: cause, SQLState và chuỗi nextException'
+  - ParseException, DateTimeParseException và ngữ cảnh phân tích dữ liệu
+  - ReflectiveOperationException và các lỗi tra cứu bằng reflection
+  - InvocationTargetException và ngoại lệ thật của phương thức được gọi
+  - ClassNotFoundException khác NoClassDefFoundError
+  - UndeclaredThrowableException khi dùng dynamic proxy
+  - UncheckedIOException khi API không khai báo checked IOException
+- level1: Error và khởi tạo
+  level2:
+  - Khi nào Error được phát sinh và phạm vi xử lý phù hợp
+  - AssertionError và câu lệnh assert
+  - Không dùng assert thay kiểm tra đầu vào công khai
+  - OutOfMemoryError và giới hạn phục hồi trong cùng tiến trình
+  - StackOverflowError và đệ quy không kiểm soát
+  - LinkageError và các vấn đề tương thích mã đã biên dịch
+  - ExceptionInInitializerError khi khởi tạo static thất bại
+  - NoClassDefFoundError trong lần sử dụng sau một lần khởi tạo thất bại
+  - Vì sao bắt Throwable hoặc Error cần một ranh giới và mục đích rõ ràng
+- level1: Thiết kế API
+  level2:
+  - Định nghĩa trạng thái hợp lệ trước và sau khi phương thức thất bại
+  - Chọn checked hay unchecked theo hợp đồng và khả năng xử lý
+  - Dùng loại ngoại lệ cụ thể thay vì throws Exception
+  - Phân biệt lỗi tham số, lỗi trạng thái và lỗi từ phụ thuộc
+  - Chuyển đổi ngoại lệ tại ranh giới trừu tượng
+  - Giữ cause khi chuyển lỗi kỹ thuật thành lỗi có ý nghĩa với bên gọi
+  - Tài liệu hóa bằng @throws và điều kiện phát sinh
+  - Chọn ngoại lệ, Optional hay kiểu kết quả có cấu trúc
+  - Không để chi tiết thư viện phụ thuộc trở thành hợp đồng công khai ngoài ý muốn
+  - Tác động tương thích khi thay đổi hợp đồng ngoại lệ
+- level1: Bảo toàn trạng thái
+  level2:
+  - Tính nguyên tử khi thất bại và nguy cơ thay đổi dở dang
+  - Kiểm tra điều kiện trước khi thay đổi trạng thái
+  - Tính toán trên dữ liệu tạm rồi mới công bố kết quả
+  - Khôi phục trạng thái và giới hạn của rollback
+  - Ngoại lệ không tự hoàn tác file, dữ liệu hay tác động bên ngoài
+  - Đóng tài nguyên và hủy đăng ký theo quyền sở hữu
+  - Lock.lock kết hợp unlock trong finally
+  - Phân biệt giải phóng khóa synchronized với bảo đảm bất biến dữ liệu
+  - Xử lý lỗi cleanup mà vẫn giữ thông tin lỗi ban đầu
+- level1: Ngoại lệ và luồng
+  level2:
+  - Ngoại lệ chỉ lan truyền trong ngăn xếp của luồng đang thực thi
+  - Try-catch ở luồng tạo không tự bắt lỗi ở luồng con
+  - Thread.UncaughtExceptionHandler
+  - Handler riêng, ThreadGroup và handler mặc định
+  - Khác biệt giữa Executor.execute và submit khi tác vụ thất bại
+  - Future.get và ExecutionException
+  - Tách lỗi của tác vụ khỏi lỗi ở luồng đang chờ
+  - TimeoutException và CancellationException
+  - Lỗi trong tác vụ định kỳ và ảnh hưởng tới các lần chạy tiếp theo
+  - Chuyển thông tin thất bại qua ranh giới luồng bằng kết quả có quản lý
+- level1: Ngắt và hủy
+  level2:
+  - InterruptedException là tín hiệu gì
+  - Quan hệ giữa interrupt flag và phương thức chờ có thể bị ngắt
+  - Phân biệt Thread.interrupted với isInterrupted
+  - Lan truyền InterruptedException khi hợp đồng cho phép
+  - Khôi phục interrupt flag khi không thể tiếp tục lan truyền
+  - Dừng xử lý và cleanup sau khi nhận tín hiệu ngắt
+  - Vì sao không nên nuốt InterruptedException rồi tiếp tục như bình thường
+  - Phân biệt ngắt luồng, hủy Future và kết thúc cưỡng bức
+  - Giới hạn của timeout và cancellation đối với tác vụ bên dưới
+- level1: CompletableFuture
+  level2:
+  - Hoàn tất bình thường và hoàn tất bằng ngoại lệ
+  - completeExceptionally và failedFuture
+  - get ném ExecutionException, join thường ném CompletionException
+  - Truy nguyên nhân qua lớp bọc của tác vụ bất đồng bộ
+  - 'exceptionally: phục hồi bằng một kết quả'
+  - 'handle: chuyển đổi cả kết quả thành công và thất bại'
+  - 'whenComplete: quan sát kết quả và các lỗi phát sinh khi quan sát'
+  - Lan truyền lỗi qua các stage phụ thuộc
+  - allOf, anyOf và giới hạn khi cần thu thập mọi thất bại
+  - orTimeout, completeOnTimeout và việc tác vụ có thực sự dừng hay không
+  - CancellationException và giới hạn mayInterruptIfRunning
+- level1: Chẩn đoán và ghi log
+  level2:
+  - Đọc stack trace từ loại lỗi và điểm phát sinh
+  - Đọc Caused by, Suppressed và các frame được rút gọn
+  - Tìm frame thuộc mã ứng dụng và đối chiếu dòng nguồn
+  - Thông điệp NullPointerException chi tiết trong JDK hiện đại
+  - Ghi cả đối tượng ngoại lệ thay vì chỉ ghi getMessage
+  - Thêm ngữ cảnh thao tác và định danh có ích cho điều tra
+  - Chọn tầng chịu trách nhiệm ghi log để tránh lặp cùng một lỗi
+  - Tránh ghi thông tin bí mật hoặc dữ liệu cá nhân vào message và log
+  - Phân biệt thông tin chẩn đoán nội bộ với thông báo dành cho người dùng
+  - Dùng debugger với exception breakpoint cho lỗi đã bắt hoặc chưa bắt
+  - Đối chiếu bytecode, phiên bản thư viện và mã nguồn khi trace không khớp
+- level1: Hiệu năng
+  level2:
+  - Chi phí tạo Throwable và thu thập stack trace
+  - Phân biệt chi phí tạo, ném, bắt và ghi log ngoại lệ
+  - Không dùng ngoại lệ cho nhánh điều khiển thường xuyên
+  - Không tạo message tốn kém khi chưa cần phát sinh lỗi
+  - Stack trace bị lược bỏ và tối ưu phụ thuộc JVM
+  - Đánh đổi khi tắt writableStackTrace hoặc tái sử dụng đối tượng ngoại lệ
+  - Rủi ro khi dùng chung ngoại lệ có thông tin nguyên nhân hoặc lỗi phụ thay đổi
+  - Đo bằng benchmark có tình huống lỗi và tần suất thực tế
+- level1: Sai lầm thường gặp
+  level2:
+  - Catch rỗng và nuốt mất tín hiệu thất bại
+  - Bắt Exception hoặc Throwable quá rộng ở mọi tầng
+  - Vừa ghi log vừa ném lại ở nhiều tầng
+  - Ném ngoại lệ mới nhưng làm mất cause
+  - Return trong finally hoặc lỗi cleanup che lỗi chính
+  - Đóng tài nguyên thủ công thiếu nhánh thất bại
+  - Dùng ngoại lệ để che việc kiểm tra điều kiện đơn giản
+  - Trả null hoặc giá trị mặc định sau lỗi mà hợp đồng không nói rõ
+  - Thử lại mọi ngoại lệ mà không xét tính tạm thời và tác động lặp
+  - Để exception message trở thành định dạng dữ liệu mà mã khác phải phân tích
+  - Bắt lỗi do sai lập trình rồi tiếp tục với trạng thái không hợp lệ
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đường thành công và đường thất bại theo hợp đồng
+  - Khẳng định đúng loại ngoại lệ thay vì chỉ khẳng định có lỗi
+  - Kiểm tra message, thuộc tính ngữ cảnh và cause khi phù hợp
+  - Kiểm tra suppressed exception và thứ tự đóng tài nguyên
+  - Kiểm tra trạng thái đối tượng sau khi phương thức thất bại
+  - Tạo fake resource để mô phỏng lỗi khởi tạo hoặc close
+  - Kiểm thử finally không che lỗi và không thay đổi kết quả ngoài ý muốn
+  - Kiểm thử ngoại lệ qua Future và CompletableFuture
+  - Kiểm thử ngắt bằng phối hợp luồng xác định thay vì chỉ sleep
+  - Phân biệt lỗi của mã đang kiểm thử với lỗi trong phần chuẩn bị dữ liệu
+- level1: Thực hành
+  level2:
+  - Xây dựng quy trình đọc file có kiểm tra dữ liệu đầu vào
+  - So sánh xử lý tại chỗ với lan truyền bằng throws
+  - Chuyển nhiều khối catch giống nhau thành multi-catch
+  - Tái cấu trúc cleanup thủ công sang try-with-resources
+  - Tạo ngoại lệ nghiệp vụ có cause và dữ liệu ngữ cảnh
+  - Tái hiện lỗi chính kèm nhiều suppressed exception
+  - Thiết kế API giữ trạng thái hợp lệ khi có lỗi
+  - Xử lý lỗi và ngắt trong tác vụ ExecutorService
+  - So sánh phục hồi lỗi bằng exceptionally, handle và whenComplete
+  - Hoàn thiện ví dụ tích hợp với kiểm thử các tình huống thất bại
+- level1: Tra cứu
+  level2:
+  - Bảng phân biệt throw, throws, catch và finally
+  - Bảng checked, unchecked, Exception và Error
+  - Bảng kết quả của try, catch, finally và try-with-resources
+  - Bảng phân biệt cause, suppressed và stack trace
+  - Bảng chọn cách xử lý lỗi theo ranh giới API hoặc luồng
+  - Tra cứu JLS, Throwable Javadoc và hợp đồng ngoại lệ của từng API

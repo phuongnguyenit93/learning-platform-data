@@ -1,0 +1,380 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - PMD là gì và bài toán kiểm soát chất lượng mã nguồn
+  - Phân biệt luật, vi phạm và tập luật (ruleset)
+  - PMD phân tích mã nguồn khác gì compiler và công cụ phân tích bytecode
+  - Vai trò của PMD trong chu trình phát triển và rà soát mã
+  - Phân biệt khả năng phân tích luật của PMD và phát hiện trùng lặp của CPD
+  - So sánh phạm vi PMD với Checkstyle, SpotBugs và Error Prone
+  - Quan hệ giữa quy tắc kỹ thuật, quy ước nhóm và rủi ro nghiệp vụ
+  - Giới hạn phát hiện và ý nghĩa của kết quả không có vi phạm
+  - Kiến thức nền và lộ trình sử dụng PMD từ cơ bản đến mở rộng
+- level1: Cơ chế phân tích
+  level2:
+  - Từ mã nguồn đến token, cú pháp và cây cú pháp trừu tượng (AST)
+  - Phân biệt AST với văn bản nguồn và bytecode
+  - Ký hiệu, phạm vi khai báo và phân giải tên trong mã Java
+  - Phân giải kiểu, nạp thông tin dependency và lựa chọn phương thức gọi
+  - Vai trò của auxiliary classpath trong độ chính xác của luật
+  - Cách luật duyệt hoặc chọn các nút AST để kiểm tra
+  - Thông tin vị trí nguồn và cách sinh một vi phạm
+  - Giới hạn khi gặp reflection, dependency injection và mã sinh
+  - Phân biệt luật cú pháp, luật cần kiểu và phép đo cấu trúc mã
+  - Chu trình đọc cấu hình, phân tích, áp dụng luật và dựng báo cáo
+- level1: Khởi tạo
+  level2:
+  - Kiểm tra phiên bản Java chạy PMD và phiên bản mã Java cần phân tích
+  - Phân biệt PMD core, mô-đun ngôn ngữ và plugin của công cụ build
+  - Tải bản phân phối và kiểm tra phiên bản theo tài liệu chính thức
+  - Thiết lập PMD trên Windows, Linux và macOS
+  - Cấu trúc bản phân phối và giao diện lệnh pmd
+  - Tạo dự án mẫu có mã vi phạm và mã hợp lệ
+  - Chạy pmd check với ruleset đầu tiên
+  - Đọc báo cáo, sửa vi phạm và phân tích lại
+  - Khi nào cần đầu ra biên dịch hoặc dependency để hỗ trợ phân giải kiểu
+  - Cố định phiên bản công cụ và lưu cấu hình cùng repository
+- level1: Phạm vi mã nguồn
+  level2:
+  - Chọn tệp, thư mục và danh sách nguồn đầu vào
+  - Nhận diện ngôn ngữ từ phần mở rộng và cấu hình ngôn ngữ tường minh
+  - Phân biệt khả năng hỗ trợ ngôn ngữ của PMD và của CPD
+  - Chọn phiên bản ngôn ngữ Java bằng --use-version
+  - Xử lý record, sealed class, pattern matching và cú pháp preview theo hỗ trợ thực tế
+  - Khai báo encoding đầu vào và xử lý mã nguồn tiếng Việt
+  - Phân tách mã chính, mã test, mã sinh và thư viện bên ngoài
+  - Áp dụng include-pattern, exclude-pattern và bộ lọc nguồn của build plugin
+  - Cung cấp thư viện ứng dụng và Java runtime phù hợp trên auxiliary classpath
+  - Kiểm chứng danh sách tệp thực sự được quét trước khi đánh giá kết quả
+- level1: Ruleset
+  level2:
+  - Cấu trúc XML ruleset, namespace, tên và mô tả
+  - Tham chiếu từng luật bằng category/java/...xml/RuleName
+  - Tám nhóm luật Java và mục đích của từng nhóm
+  - Phân biệt category, ruleset có sẵn và ruleset riêng của dự án
+  - Tham khảo quickstart rồi lựa chọn luật phù hợp với mã đang có
+  - Tham chiếu cả nhóm luật và loại trừ luật bằng exclude
+  - Tổ chức ruleset dùng chung và ruleset chuyên biệt
+  - Đường dẫn ruleset trên hệ thống tệp và classpath
+  - Tác động của luật mới khi tham chiếu toàn bộ một category
+  - Xác minh luật được nạp đúng và phát hiện tham chiếu không hợp lệ
+  - Tài liệu hóa lý do bật, bỏ hoặc thay đổi từng luật
+- level1: Cấu hình luật
+  level2:
+  - 'Đọc tài liệu luật: mục tiêu, ví dụ, priority và properties'
+  - Phân biệt luật phát hiện lỗi với luật thể hiện lựa chọn phong cách
+  - Thang priority từ 1 đến 5 và ý nghĩa ưu tiên
+  - Ghi đè priority cho luật trong ruleset
+  - Ngưỡng minimum-priority và các luật thực sự được thực thi
+  - Cấu hình properties kiểu số, boolean, chuỗi, danh sách và biểu thức
+  - Tùy chỉnh ngưỡng độ phức tạp, số tham số và kích thước cấu trúc
+  - Tùy chỉnh tên định danh, phạm vi áp dụng và ngoại lệ có chủ đích
+  - Phân biệt priority của luật, độ tin cậy và ảnh hưởng nghiệp vụ
+  - Kiểm thử thay đổi cấu hình bằng ví dụ phải báo và không được báo
+- level1: Dòng lệnh
+  level2:
+  - Cấu trúc lệnh pmd check và cách đọc --help theo phiên bản
+  - Chỉ định nguồn, ruleset, định dạng và tệp báo cáo
+  - Cấu hình --aux-classpath và khác biệt dấu phân cách giữa các hệ điều hành
+  - Dùng --use-version, --force-language và encoding đúng mục đích
+  - Chọn --minimum-priority và kiểm tra phạm vi luật
+  - Phân biệt --property của renderer với property khai báo cho luật
+  - Cấu hình --threads và thông số JVM
+  - Bật --cache, tắt cache và chạy phân tích đối chứng
+  - Theo dõi tiến độ, debug log và benchmark
+  - Phân biệt exit code do vi phạm, lỗi cấu hình và lỗi phân tích
+  - Điều khiển --fail-on-violation, --fail-on-error và lưu báo cáo khi có lỗi
+- level1: Tích hợp Maven
+  level2:
+  - Khai báo org.apache.maven.plugins:maven-pmd-plugin
+  - Phân biệt phiên bản Maven PMD Plugin với PMD dùng bên trong
+  - Goal pmd:pmd tạo báo cáo và pmd:check kiểm tra vi phạm
+  - Goal pmd:cpd và pmd:cpd-check dành cho mã trùng lặp
+  - Gắn kiểm tra vào lifecycle và xác minh phase thực thi
+  - Phân biệt cấu hình trong build với reporting của Maven Site
+  - Khai báo rulesets, source encoding và mức Java nguồn
+  - Phân tích mã chính, mã test và dùng ruleset khác nhau khi phù hợp
+  - Cấu hình ngưỡng kiểm tra, failOnViolation và số vi phạm được phép
+  - Loại trừ vi phạm được chấp thuận bằng cơ chế của plugin
+  - Quản lý cấu hình chung, kế thừa và pluginManagement
+  - Đối chiếu effective POM và báo cáo PMD, CPD được tạo thực tế
+- level1: Tích hợp Gradle
+  level2:
+  - Áp dụng plugin pmd có sẵn của Gradle
+  - Task pmdMain, pmdTest và quan hệ với check
+  - Cấu hình PmdExtension và ghi đè từng Pmd task
+  - Chọn toolVersion tương thích với Gradle và mã Java
+  - Dùng ruleSets, ruleSetFiles và kiểm soát ruleset mặc định
+  - Thiết lập rulesMinimumPriority, consoleOutput và ignoreFailures
+  - Phân biệt configuration pmd với pmdAux phục vụ phân giải kiểu
+  - Cấu hình source set và dependency trên classpath phân tích
+  - Xuất XML, HTML và cấu hình báo cáo theo phiên bản Gradle
+  - Phân biệt JVM chạy Gradle, JVM chạy PMD và phiên bản ngôn ngữ nguồn
+  - Tích hợp CPD bằng tác vụ riêng hoặc plugin phù hợp, không suy ra từ pmdMain
+  - Đối chiếu Groovy DSL, Kotlin DSL và cấu hình hiệu lực của task
+- level1: Tích hợp IDE
+  level2:
+  - Lựa chọn tích hợp IDE và kiểm tra phiên bản PMD được hỗ trợ
+  - Nạp ruleset dự án thay vì dùng cấu hình riêng mặc định của IDE
+  - Chạy PMD trên tệp, package hoặc toàn project
+  - Đọc thông báo và điều hướng đến vị trí vi phạm
+  - Kiểm tra classpath và phiên bản ngôn ngữ khi kết quả khác CLI
+  - Đồng bộ ngưỡng, properties và suppression giữa IDE với CI
+  - Dùng IDE để phản hồi sớm và build để kiểm tra nhất quán
+  - Tích hợp Ant hoặc Java API khi dự án cần cách chạy ngoài Maven, Gradle
+- level1: Lỗi tiềm ẩn
+  level2:
+  - Nhóm Error Prone và cách xác minh hành vi có thể sai
+  - EmptyCatchBlock và nguy cơ bỏ qua ngoại lệ
+  - BrokenNullCheck, MisplacedNullCheck và thứ tự kiểm tra null
+  - UseEqualsToCompareStrings và so sánh chuỗi bằng tham chiếu
+  - OverrideBothEqualsAndHashcode và hợp đồng bằng nhau
+  - CollectionTypeMismatch và kiểu đối tượng không phù hợp trong collection
+  - CloseResource và các đường thực thi không đóng tài nguyên
+  - ImplicitSwitchFallThrough và nhánh switch rơi xuống ngoài ý định
+  - UnusedReturnValue và giá trị trả về bị bỏ qua
+  - ReturnFromFinallyBlock và việc che mất kết quả hoặc ngoại lệ
+  - ConstructorCallsOverridableMethod và trạng thái khởi tạo chưa hoàn chỉnh
+  - Liên hệ mỗi luật với ví dụ tái hiện và ca kiểm thử hồi quy
+- level1: Thực hành tốt
+  level2:
+  - Nhóm Best Practices và lựa chọn phù hợp với quy ước dự án
+  - UnusedLocalVariable, UnusedPrivateField và UnusedPrivateMethod
+  - UnusedFormalParameter, UnusedAssignment và giá trị không được dùng
+  - UseTryWithResources và quyền sở hữu tài nguyên
+  - PreserveStackTrace khi chuyển đổi hoặc ném lại ngoại lệ
+  - MissingOverride và khai báo rõ hợp đồng kế thừa
+  - LooseCoupling và phụ thuộc vào interface thay vì kiểu triển khai
+  - ArrayIsStoredDirectly, MethodReturnsInternalArray và sao chép phòng vệ
+  - RelianceOnDefaultCharset, UseStandardCharsets và hành vi theo môi trường
+  - GuardLogStatement, SystemPrintln và sử dụng logging có chủ đích
+  - Các luật về assertion, vòng đời và độ rõ ràng của mã kiểm thử
+  - Nhận diện trường hợp framework truy cập thành phần qua reflection
+- level1: Phong cách và tài liệu
+  level2:
+  - Phân biệt nhóm Code Style, Documentation và việc định dạng tự động
+  - Quy ước tên lớp, phương thức, biến, tham số và type parameter
+  - LinguisticNaming và tên không phản ánh ý nghĩa sử dụng
+  - Thứ tự modifier, khai báo biến và import không cần thiết
+  - Khối điều khiển, dấu ngoặc và biểu thức dư thừa
+  - Lambda, method reference và giới hạn của chuyển đổi chỉ vì ngắn hơn
+  - Quy tắc final, số điểm return và các lựa chọn phụ thuộc phong cách nhóm
+  - Phân biệt Javadoc không hợp lệ, thiếu mô tả và tài liệu không hữu ích
+  - DanglingJavadoc và tài liệu không gắn đúng khai báo
+  - Mô tả constructor hoặc method body rỗng khi cần làm rõ ý định
+  - Chọn phạm vi luật tài liệu cho public API và mã nội bộ
+  - Tránh trùng trách nhiệm giữa PMD, Checkstyle và công cụ formatter
+- level1: Thiết kế và độ phức tạp
+  level2:
+  - Nhóm Design và cách đọc phép đo trong ngữ cảnh mã
+  - CyclomaticComplexity và số nhánh quyết định
+  - CognitiveComplexity và mức khó theo dõi luồng điều khiển
+  - NPathComplexity và số đường đi qua phương thức
+  - Độ lồng, kích thước phương thức và mức tập trung trách nhiệm
+  - ExcessiveParameterList và thiết kế đầu vào phương thức
+  - CouplingBetweenObjects, ExcessiveImports và phụ thuộc giữa kiểu
+  - GodClass, DataClass và giới hạn khi áp dụng lên DTO hoặc entity
+  - LawOfDemeter và chuỗi truy cập đối tượng
+  - Thiết kế utility class, phạm vi public và thành phần chỉ dùng một lần
+  - Refactor để giảm phức tạp nhưng vẫn giữ nguyên hành vi
+  - Hiệu chỉnh ngưỡng theo loại mã và kiểm chứng bằng rà soát thiết kế
+- level1: Đồng thời
+  level2:
+  - Nhóm Multithreading và giới hạn phân tích tĩnh với lỗi nhiều luồng
+  - DontCallThreadRun và khác biệt giữa gọi run với start
+  - DoubleCheckedLocking và các điều kiện hợp lệ theo Java Memory Model
+  - NonThreadSafeSingleton và khởi tạo trạng thái dùng chung
+  - UnsynchronizedStaticFormatter và đối tượng không an toàn luồng
+  - UseNotifyAllInsteadOfNotify và giả định về điều kiện chờ
+  - Ngữ cảnh của các luật hạn chế volatile, synchronized hoặc quản lý luồng trực tiếp
+  - Đối chiếu quy tắc với virtual thread, phiên bản JDK và môi trường chạy
+  - Kiểm chứng cảnh báo bằng mô hình đồng thời và bằng chứng thực thi
+- level1: Hiệu năng mã nguồn
+  level2:
+  - Nhóm Performance và sự khác biệt giữa mẫu mã với nút thắt đã đo được
+  - Tạo đối tượng, boxing và chuyển đổi chuỗi không cần thiết
+  - Nối chuỗi trong vòng lặp và lựa chọn cấu trúc phù hợp
+  - Sao chép mảng, duyệt collection và sử dụng API sẵn có
+  - Tạo Calendar hoặc đối tượng nặng không cần thiết
+  - Kích thước collection, StringBuilder và ngưỡng cấu hình liên quan
+  - Đối chiếu khuyến nghị cũ với compiler, JVM và Java API hiện tại
+  - Dùng profiler hoặc benchmark để xác nhận tác động khi cần
+- level1: Bảo mật
+  level2:
+  - Phạm vi thực tế của nhóm Security trong bộ luật Java
+  - HardCodedCryptoKey và khóa mật mã được ghi cố định trong mã nguồn
+  - InsecureCryptoIv và vector khởi tạo không phù hợp
+  - Tra mô tả luật, API được nhận diện và giới hạn suy luận
+  - Phân biệt luật bảo mật của Java với luật của các ngôn ngữ khác trong PMD
+  - Vì sao bật category Security không thay thế kiểm tra bảo mật toàn diện
+  - Phối hợp PMD với phân tích luồng dữ liệu, kiểm tra dependency và rà soát cấu hình
+  - Kiểm chứng việc sửa vi phạm trong ngữ cảnh ứng dụng thực tế
+- level1: Đọc và xử lý kết quả
+  level2:
+  - Đọc tên luật, ruleset, priority, thông báo và phạm vi dòng vi phạm
+  - Phân biệt vi phạm, lỗi parse, lỗi xử lý và lỗi cấu hình
+  - Tra tài liệu luật và các property đang được áp dụng
+  - Lần theo dữ liệu, hợp đồng API và ý định thiết kế
+  - Phân loại vi phạm thật, cảnh báo sai và trường hợp chưa đủ bằng chứng
+  - Tái hiện tối thiểu trước khi quy kết lỗi cho luật
+  - Chọn sửa nguyên nhân, chỉnh property hoặc ngoại lệ có giải thích
+  - Kiểm thử hồi quy và phân tích lại sau khi sửa mã
+  - Kiểm tra vi phạm mới phát sinh và bảo toàn hành vi
+  - Ưu tiên theo rủi ro và ngữ cảnh thay vì chỉ đếm số cảnh báo
+- level1: Ẩn cảnh báo
+  level2:
+  - Khi nào suppression có cơ sở và khi nào nên sửa mã
+  - Dùng @SuppressWarnings("PMD.RuleName") với phạm vi nhỏ
+  - Rủi ro khi dùng @SuppressWarnings("PMD") cho cả lớp hoặc phương thức
+  - NOPMD, vị trí dòng được báo và phần lý do đi kèm
+  - Tùy chỉnh --suppress-marker khi cần
+  - Ẩn theo thông báo bằng violationSuppressRegex
+  - Ẩn theo ngữ cảnh AST bằng violationSuppressXPath
+  - Context node và rủi ro XPath ẩn quá nhiều vi phạm
+  - Phân biệt suppression, loại trừ tệp và bỏ luật khỏi ruleset
+  - Kiểm tra suppressed violations trong định dạng báo cáo hỗ trợ
+  - Phát hiện suppression không còn cần thiết khi phiên bản hỗ trợ
+  - Ghi nhận lý do, bằng chứng và trách nhiệm xem xét lại ngoại lệ
+- level1: CPD
+  level2:
+  - CPD là gì và phân biệt trùng token với giống ý nghĩa nghiệp vụ
+  - Chạy pmd cpd và chọn ngôn ngữ nguồn
+  - Ngưỡng --minimum-tokens khác gì số dòng mã trùng
+  - Chọn phạm vi so sánh trong một module hoặc giữa nhiều module
+  - Bỏ qua tên định danh, literal hoặc annotation và đánh đổi độ nhạy
+  - Đọc nhóm đoạn trùng, vị trí tệp, số dòng và số token
+  - Loại trừ tệp, mã sinh và bản sao được giữ có chủ đích
+  - CPD-OFF, CPD-ON và khác biệt với suppression của PMD
+  - Xuất báo cáo và kiểm tra CPD qua Maven hoặc tác vụ Gradle riêng
+  - Refactor bằng trích phương thức, thành phần dùng chung hoặc tham số hóa
+  - Tránh gom mã chỉ giống bề ngoài nhưng có lý do thay đổi khác nhau
+  - Kiểm thử hành vi sau khi giảm trùng lặp và kiểm tra lại CPD
+- level1: Luật XPath
+  level2:
+  - Khi nào viết luật XPath thay vì bật hoặc cấu hình luật có sẵn
+  - Dùng Rule Designer để xem AST và thử biểu thức
+  - Thiết lập JavaFX cho Designer theo yêu cầu phiên bản
+  - Nút, thuộc tính, trục và context trong mô hình XPath của AST
+  - XPath 3.1 trong PMD 7 và khác biệt với ví dụ PMD cũ
+  - Viết điều kiện chọn cấu trúc mã cần phát hiện
+  - Dùng hàm mở rộng PMD cho kiểu, phương thức và thông tin ngữ nghĩa
+  - Phân biệt so sánh tên kiểu dưới dạng chuỗi và kiểm tra kiểu thực
+  - Khai báo XPathRule, message, priority và property trong ruleset
+  - Chọn đúng nút để báo vị trí vi phạm hữu ích
+  - Hiệu năng biểu thức và tránh quét AST rộng không cần thiết
+  - Kiểm chứng biểu thức với mã vi phạm và các phản ví dụ hợp lệ
+- level1: Luật Java
+  level2:
+  - Khi nào luật Java phù hợp hơn luật XPath
+  - Chuẩn bị dependency pmd-core, pmd-java và project luật riêng
+  - Kế thừa AbstractJavaRule và sử dụng mô hình visitor
+  - Chọn loại nút cần kiểm tra và điều khiển phạm vi duyệt
+  - Dùng API symbol, type và method để phân tích ngữ nghĩa
+  - Khai báo properties bằng PropertyFactory phù hợp phiên bản
+  - Đọc cấu hình rule và kiểm tra giá trị property
+  - Báo vi phạm qua RuleContext và gắn vị trí nguồn
+  - Chọn mục tiêu thực thi bằng RuleTargetSelector theo API của phiên bản
+  - Quản lý trạng thái luật khi phân tích nhiều tệp và nhiều luồng
+  - Đóng gói JAR, ruleset và nạp vào execution classpath của PMD
+  - Phân biệt classpath của luật tùy chỉnh với auxiliary classpath của mã được quét
+- level1: Kiểm thử luật
+  level2:
+  - Thiết kế ví dụ phải báo và ví dụ không được báo
+  - Dùng bộ hỗ trợ kiểm thử PMD với JUnit theo phiên bản
+  - Tổ chức ca kiểm thử XML và đoạn mã nguồn mẫu
+  - Kiểm tra số vi phạm, vị trí nguồn và thông báo
+  - Kiểm tra các tổ hợp property và giá trị biên
+  - Kiểm tra overload, generic, kế thừa và dependency ngoài
+  - Kiểm tra phiên bản Java, cú pháp mới và cấu trúc AST liên quan
+  - Thêm hồi quy cho cảnh báo sai và trường hợp bị bỏ sót
+  - Kiểm tra suppression và các ngoại lệ mà luật hỗ trợ
+  - Chạy kiểm thử luật trên CI và đo chi phí với đầu vào lớn
+- level1: Báo cáo và chính sách
+  level2:
+  - Lựa chọn text, XML, HTML, CSV hoặc SARIF theo mục đích
+  - Nhận diện thông tin bị thiếu giữa các định dạng báo cáo
+  - Cấu hình renderer properties và đường dẫn đầu ra
+  - Phân biệt priority của luật với điều kiện làm kiểm tra thất bại
+  - Đặt ngưỡng vi phạm cho mã mới và kế hoạch xử lý tồn đọng
+  - Phân biệt exclusion file của plugin, baseline và bộ so sánh báo cáo riêng
+  - Giữ đầu vào, ruleset và phiên bản nhất quán khi so sánh kết quả
+  - Xử lý thay đổi định danh, dòng nguồn và thông báo sau refactor
+  - Theo dõi vi phạm được giải quyết, phát sinh và được chấp thuận
+  - Lưu commit, cấu hình và phiên bản để truy nguyên báo cáo
+  - Xác minh báo cáo tồn tại kể cả khi kiểm tra thất bại
+- level1: Tích hợp CI
+  level2:
+  - Đặt PMD và CPD vào pipeline với mục đích kiểm tra riêng
+  - Dùng lệnh kiểm tra giống nhau trên máy phát triển và CI
+  - Cố định phiên bản công cụ, ruleset và luật tùy chỉnh
+  - Phân biệt vi phạm chất lượng với lỗi hạ tầng phân tích
+  - Thực thi với đúng nguồn mã của commit hoặc pull request
+  - Lưu báo cáo và hiển thị vi phạm có vị trí nguồn
+  - Đưa SARIF lên nền tảng hỗ trợ khi có cấu hình và quyền phù hợp
+  - Tách phạm vi kiểm tra nhanh và phân tích đầy đủ theo chính sách
+  - Kiểm soát chạy trên tệp thay đổi để không bỏ sót tác động của dependency
+  - Chứng minh cổng chất lượng chặn bằng vi phạm có kiểm soát
+  - Quản lý cache CI và tránh dùng kết quả cũ như bằng chứng cho commit mới
+- level1: Dự án nhiều module
+  level2:
+  - Chọn phạm vi luật và source set cho từng module
+  - Chia sẻ ruleset và cấu hình qua artifact hoặc convention plugin
+  - Bổ sung dependency giữa module để phân giải kiểu đúng
+  - Phân biệt phân tích từng module và tổng hợp báo cáo
+  - Tổ chức cấu hình Maven nhiều module và báo cáo tổng
+  - Tổ chức tác vụ Gradle nhiều project và kết quả độc lập
+  - Áp dụng quy tắc phù hợp cho mã test, DTO, entity và mã sinh
+  - Đối chiếu PMD source với mã do annotation processor tạo
+  - Xác định phạm vi CPD giữa module để phát hiện trùng lặp có ý nghĩa
+  - Ngăn quét trùng nguồn, lẫn báo cáo hoặc ghi đè đầu ra giữa các tác vụ
+- level1: Tối ưu phân tích
+  level2:
+  - Bật incremental analysis và chọn vị trí cache
+  - Phân biệt tái sử dụng kết quả của tệp không đổi với baseline bỏ qua vi phạm
+  - Hiểu báo cáo khi dùng cache vẫn phản ánh toàn phạm vi đầu vào
+  - Kiểm tra vô hiệu hóa cache khi phiên bản, luật hoặc dependency thay đổi
+  - Đo thời gian phân tích với benchmark và debug log
+  - Điều chỉnh --threads, heap và số tác vụ song song
+  - Tìm luật hoặc biểu thức XPath gây tốn tài nguyên
+  - Tối ưu auxiliary classpath và phạm vi nguồn mà vẫn giữ độ chính xác
+  - Tách cache theo module, cấu hình và môi trường thực thi
+  - Chạy đối chứng không cache khi điều tra kết quả bất thường
+- level1: Nâng cấp
+  level2:
+  - Kiểm tra hỗ trợ JDK, ngôn ngữ nguồn và plugin trước nâng cấp
+  - Di chuyển từ PMD 6 sang PMD 7 theo hướng dẫn chính thức
+  - Thay tham số CLI và tham chiếu ruleset đã lỗi thời
+  - Theo dõi luật đổi tên, chuyển category, bị bỏ hoặc thay đổi mặc định
+  - Rà soát AST, thuộc tính và XPath khi nâng cấp phiên bản chính
+  - Chuyển luật Java sang API và cơ chế báo vi phạm mới
+  - Kiểm tra phiên bản XPath và loại bỏ cấu hình không còn hỗ trợ
+  - Chạy lại kiểm thử luật, suppression và báo cáo so sánh
+  - Đánh giá vi phạm mới do mở rộng luật khác với thay đổi mã
+  - Cập nhật baseline hoặc ngoại lệ sau rà soát và lưu lý do
+  - Tài liệu hóa phiên bản đã xác minh cùng lệnh chạy tái lập
+- level1: Khắc phục sự cố
+  level2:
+  - Lỗi parse do sai phiên bản ngôn ngữ hoặc cú pháp chưa được hỗ trợ
+  - Thiếu kiểu và phương thức do auxiliary classpath chưa đầy đủ
+  - JVM chạy PMD không tương thích với core, module ngôn ngữ hoặc luật tùy chỉnh
+  - Ruleset không tải được, rule ref không tồn tại hoặc XML không hợp lệ
+  - Property không nhận, sai kiểu hoặc khác biệt giữa phiên bản luật
+  - Không có vi phạm do nguồn rỗng, luật bị lọc hoặc suppression quá rộng
+  - Vi phạm sai khi mã phụ thuộc reflection, framework hoặc mã sinh
+  - Kết quả khác nhau giữa IDE, CLI, Maven và Gradle
+  - Không điều hướng đúng nguồn do đường dẫn báo cáo hoặc workspace khác nhau
+  - OutOfMemoryError, phân tích chậm và tác vụ cạnh tranh tài nguyên
+  - Thu thập log, cấu hình hiệu lực và ví dụ tái hiện trước khi báo lỗi
+- level1: Thực hành tổng hợp
+  level2:
+  - Khởi tạo dự án Java mẫu và ruleset có các luật đại diện
+  - Chạy PMD bằng CLI và một công cụ build trên cùng đầu vào
+  - Xử lý vi phạm ngoại lệ, tài nguyên, mã không dùng và hợp đồng API
+  - Hiệu chỉnh luật thiết kế bằng ví dụ phương thức quá phức tạp
+  - Thêm suppression hẹp và kiểm chứng các vi phạm khác vẫn xuất hiện
+  - Chạy CPD, đánh giá trùng lặp và refactor có kiểm thử
+  - Viết luật XPath theo quy ước riêng của dự án
+  - Viết luật Java cần thông tin kiểu và thêm bộ kiểm thử
+  - Tích hợp CI, lưu báo cáo và kiểm chứng điều kiện chặn
+  - So sánh chạy có cache, không cache và sau thay đổi ruleset
+  - Thực hiện một lần nâng cấp công cụ với báo cáo hồi quy

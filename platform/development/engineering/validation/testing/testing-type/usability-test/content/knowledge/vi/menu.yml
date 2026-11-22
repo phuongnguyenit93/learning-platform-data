@@ -1,0 +1,358 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử tính dễ sử dụng (usability testing) là gì và giải quyết vấn đề nào
+  - Người dùng, mục tiêu, nhiệm vụ và bối cảnh sử dụng
+  - Hiệu quả hoàn thành, hiệu suất và mức độ hài lòng
+  - Mối quan hệ giữa tính dễ sử dụng và trải nghiệm người dùng (UX)
+  - Phân biệt kiểm thử tính dễ sử dụng và kiểm thử chức năng
+  - Phân biệt kiểm thử tính dễ sử dụng, nghiên cứu người dùng và kiểm thử chấp nhận
+  - Kiểm thử trong quá trình thiết kế và đánh giá trước khi phát hành
+  - 'Ví dụ xuyên suốt: kiểm thử một luồng đăng ký và hoàn thành giao dịch'
+  - Lộ trình học từ xác định vấn đề đến xác minh cải tiến
+- level1: Mục tiêu và phạm vi
+  level2:
+  - Chuyển vấn đề sản phẩm thành câu hỏi nghiên cứu có thể kiểm chứng
+  - Xác định nhóm người dùng, luồng trọng yếu và phạm vi ngoài kiểm thử
+  - Ưu tiên theo rủi ro, tần suất sử dụng và hậu quả khi thao tác sai
+  - Đặt giả thuyết về trở ngại và xác định bằng chứng cần thu thập
+  - Xác định tiêu chí thành công trước khi quan sát người dùng
+  - Lựa chọn giai đoạn, độ hoàn thiện sản phẩm và thời điểm kiểm thử
+  - Phối hợp mục tiêu kinh doanh với nhu cầu thực tế của người dùng
+  - Xác định ràng buộc thời gian, ngân sách, nhân lực và khả năng tiếp cận mẫu
+  - Giới hạn suy luận và các câu hỏi mà một đợt kiểm thử không trả lời được
+- level1: Thiết kế nghiên cứu
+  level2:
+  - Lựa chọn nghiên cứu khám phá hoặc đánh giá theo mục tiêu đã xác định
+  - So sánh phương pháp định tính, định lượng và kết hợp
+  - Lựa chọn phiên có điều phối hoặc phiên tự thực hiện
+  - Lựa chọn kiểm thử trực tiếp, từ xa và tại bối cảnh sử dụng thực
+  - Quan sát hành vi và kỹ thuật nói thành lời suy nghĩ (think-aloud)
+  - So sánh thiết kế giữa các nhóm và lặp lại trên cùng người tham gia
+  - Lựa chọn kiểm thử đối chiếu phiên bản hoặc sản phẩm cạnh tranh
+  - Vai trò bổ trợ của đánh giá theo nguyên tắc và đi qua nhiệm vụ bằng góc nhìn người dùng
+  - Kiểm thử cây điều hướng, lần nhấp đầu tiên và khả năng hiểu thông tin
+  - Phân biệt kiểm thử tính dễ sử dụng với thử nghiệm A/B và phân tích dữ liệu truy cập
+  - Kết hợp các nguồn bằng chứng mà vẫn giữ rõ phạm vi từng phương pháp
+- level1: Kế hoạch kiểm thử
+  level2:
+  - 'Cấu trúc kế hoạch: mục tiêu, đối tượng, phương pháp, nhiệm vụ và đầu ra'
+  - Lập ma trận câu hỏi nghiên cứu, nhiệm vụ, chỉ số và bằng chứng
+  - Phân vai người điều phối, người ghi chép, người quan sát và chủ sản phẩm
+  - Lập lịch phiên thử, thời gian nghỉ và phương án người tham gia vắng mặt
+  - Ước lượng khối lượng công việc và nguồn lực cho toàn đợt kiểm thử
+  - Chọn tiêu chí bắt đầu, kết thúc và dừng sớm một phiên thử
+  - Thống nhất cách xử lý lỗi kỹ thuật, gián đoạn và tình huống ngoài kịch bản
+  - Lập kế hoạch lưu trữ dữ liệu, phân tích, báo cáo và kiểm tra lại
+  - Rà soát và thống nhất kế hoạch với các bên liên quan
+  - Quản lý thay đổi kế hoạch mà vẫn giữ khả năng so sánh kết quả
+- level1: Người tham gia
+  level2:
+  - Xác định tiêu chí tuyển chọn từ người dùng thực và bối cảnh sử dụng
+  - Phân nhóm theo kinh nghiệm, vai trò, mục tiêu và mức độ quen thuộc
+  - Soạn bảng sàng lọc (screener) với câu hỏi trung lập
+  - Chọn kênh tuyển, gửi lời mời và xác nhận lịch tham gia
+  - Xác định số người tham gia theo mục tiêu và mức độ đa dạng của nhóm
+  - Lập luận về cỡ mẫu cho nghiên cứu định tính và định lượng
+  - Giới hạn của việc áp dụng máy móc quy tắc năm người dùng
+  - Tuyển người mới, người dùng lâu năm và người dùng sản phẩm đối chiếu
+  - Tuyển người khuyết tật, người dùng công nghệ hỗ trợ và nhóm ít được đại diện
+  - Thiết kế thù lao phù hợp và hạn chế ảnh hưởng đến phản hồi
+  - Xử lý người tham gia không phù hợp, bỏ cuộc hoặc tham gia lặp lại
+  - Theo dõi độ bao phủ mẫu và công bố sai lệch tuyển chọn
+- level1: Đạo đức và riêng tư
+  level2:
+  - Giải thích mục đích nghiên cứu và xin sự đồng ý có hiểu biết
+  - Quyền từ chối, bỏ qua nhiệm vụ và dừng tham gia
+  - Xin phép ghi âm, ghi hình, chia sẻ màn hình và cho người khác quan sát
+  - Sử dụng tài khoản, danh tính và dữ liệu thử thay cho dữ liệu thật
+  - Hạn chế thu thập thông tin cá nhân và dữ liệu nhạy cảm
+  - Ẩn danh bản ghi, trích dẫn, ảnh chụp và báo cáo
+  - Phân quyền truy cập, thời hạn lưu trữ và quy trình xóa dữ liệu nghiên cứu
+  - Bảo vệ người tham gia trước áp lực, tổn thương và cảm giác bị đánh giá
+  - Xử lý nghiên cứu với trẻ vị thành niên hoặc nhóm dễ bị tổn thương
+  - Đánh giá công cụ ghi phiên, phiên âm và dịch vụ AI trước khi đưa dữ liệu vào
+  - Xử lý yêu cầu rút lại dữ liệu và sự cố lộ thông tin
+- level1: Nhiệm vụ kiểm thử
+  level2:
+  - Chuyển mục tiêu người dùng thành tình huống và nhiệm vụ thực tế
+  - Viết nhiệm vụ theo kết quả mong muốn thay vì hướng dẫn thao tác
+  - Tránh gợi ý tên nút, đường đi và đáp án trong mô tả nhiệm vụ
+  - Xác định trạng thái bắt đầu, dữ liệu đầu vào và kết quả hoàn thành
+  - Bao phủ luồng chính, luồng thay thế, lỗi thao tác và phục hồi
+  - Thiết kế nhiệm vụ cho người dùng lần đầu và người dùng có kinh nghiệm
+  - Xác định độ khó, thời lượng và mức tải nhận thức phù hợp
+  - Sắp xếp hoặc hoán đổi thứ tự để kiểm soát hiệu ứng học và mệt mỏi
+  - Tách nhiệm vụ độc lập và xử lý nhiệm vụ có phụ thuộc
+  - Thiết kế nhiệm vụ khi chỉ có mẫu thử chưa hoàn chỉnh
+  - Chuẩn hóa điều kiện dừng, hỗ trợ và bỏ cuộc cho từng nhiệm vụ
+  - Rà soát ngôn ngữ nhiệm vụ với nhóm người dùng mục tiêu
+- level1: Mẫu thử và môi trường
+  level2:
+  - Lựa chọn bản phác thảo, mẫu thử tương tác hoặc sản phẩm đang hoạt động
+  - Xác định giới hạn độ trung thực của mẫu thử đối với câu hỏi nghiên cứu
+  - Chuẩn bị tài khoản, quyền truy cập và dữ liệu nhất quán giữa các phiên
+  - Thiết lập trạng thái ban đầu và đặt lại sản phẩm sau mỗi phiên
+  - Kiểm tra thiết bị, trình duyệt, màn hình, âm thanh và kết nối
+  - Chuẩn bị ghi màn hình, ghi âm và dấu thời gian để đối chiếu bằng chứng
+  - Tách lỗi của mẫu thử, môi trường và sản phẩm khỏi vấn đề tính dễ sử dụng
+  - Mô phỏng mạng chậm, gián đoạn và điều kiện sử dụng thực khi cần
+  - Chuẩn bị môi trường an toàn cho nhiệm vụ có giao dịch hoặc thay đổi dữ liệu
+  - Kiểm tra rò rỉ gợi ý từ dữ liệu mẫu, hướng dẫn và màn hình thử
+  - Dự phòng khi hệ thống, tài khoản hoặc công cụ ghi phiên gặp sự cố
+- level1: Kịch bản và biểu mẫu
+  level2:
+  - 'Soạn lời mở đầu: đánh giá sản phẩm và giúp người tham gia cảm thấy an toàn'
+  - Chuẩn bị câu hỏi trước phiên về kinh nghiệm và bối cảnh sử dụng
+  - Soạn hướng dẫn nói thành lời suy nghĩ với ví dụ trung lập
+  - Soạn lời giao nhiệm vụ và câu hỏi gợi mở không dẫn dắt
+  - Xây dựng quy tắc can thiệp, trợ giúp và chuyển nhiệm vụ
+  - Thiết kế phiếu ghi chép theo người tham gia, nhiệm vụ và dấu thời gian
+  - Chuẩn bị biểu mẫu ghi thành công, thất bại, lỗi, trợ giúp và bỏ cuộc
+  - Đặt thời điểm hỏi cảm nhận sau nhiệm vụ và sau toàn phiên
+  - Soạn câu hỏi tổng kết về kỳ vọng, khó khăn và đề xuất
+  - Chuẩn hóa mã người tham gia, mã nhiệm vụ và quy tắc đặt tên bản ghi
+- level1: Kiểm thử thí điểm
+  level2:
+  - Mục tiêu của phiên thí điểm trước khi triển khai chính thức
+  - Chọn người thử thí điểm và xác định mức độ phù hợp với nhóm mục tiêu
+  - Kiểm tra khả năng hiểu nhiệm vụ, thời lượng và độ khó
+  - Kiểm tra kịch bản điều phối, biểu mẫu và khả năng ghi bằng chứng
+  - Phát hiện lỗi mẫu thử, tài khoản và thiết bị làm sai lệch quan sát
+  - Hiệu chỉnh tiêu chí hoàn thành, trợ giúp và phân loại lỗi
+  - Quyết định có đưa dữ liệu thí điểm vào phân tích hay không
+  - Chốt phiên bản kế hoạch và ghi nhận các thay đổi sau thí điểm
+- level1: Phiên có điều phối
+  level2:
+  - Mở đầu phiên, tạo sự thoải mái và xác nhận lại quyền tham gia
+  - Quan sát hành vi, lời nói và biểu hiện do dự mà không suy diễn động cơ
+  - Nhắc người tham gia nói thành lời mà không làm gián đoạn thao tác
+  - Giữ trung lập khi người tham gia hỏi cách làm hoặc mong được xác nhận
+  - Lựa chọn thời điểm im lặng, hỏi thêm và hỗ trợ
+  - Đặt câu hỏi hồi tưởng để làm rõ quyết định và kỳ vọng
+  - Xử lý người ít nói, nói nhiều hoặc có xu hướng làm hài lòng người điều phối
+  - Xử lý thất bại nhiệm vụ, căng thẳng, mệt mỏi và xin dừng phiên
+  - Quản lý người quan sát và ngăn trao đổi làm ảnh hưởng người tham gia
+  - Ghi nhận mọi can thiệp và mức độ trợ giúp đã cung cấp
+  - Kết thúc phiên, giải đáp thắc mắc và kiểm tra tính đầy đủ của bản ghi
+- level1: Kiểm thử từ xa
+  level2:
+  - Lựa chọn đồng bộ hoặc không đồng bộ theo người dùng và nhiệm vụ
+  - Chuẩn bị hướng dẫn kết nối, chia sẻ màn hình và kiểm tra thiết bị
+  - Đánh giá ảnh hưởng của môi trường tại nhà hoặc nơi làm việc
+  - Quan sát trên thiết bị thật mà vẫn bảo vệ thông báo và dữ liệu riêng tư
+  - Điều phối khi có độ trễ, mất âm thanh hoặc mất kết nối
+  - Ghi nhận phần hành vi ngoài màn hình và giới hạn quan sát
+  - Tổ chức phiên trên điện thoại, máy tính bảng và nhiều màn hình
+  - Phối hợp người phiên dịch hoặc người hỗ trợ mà hạn chế can thiệp
+  - Thiết lập phương án tiếp tục hoặc hẹn lại khi phiên bị gián đoạn
+  - Công bố khác biệt môi trường khi so sánh các nhóm từ xa
+- level1: Phiên tự thực hiện
+  level2:
+  - Xác định khi nào phương pháp không có người điều phối phù hợp
+  - Soạn hướng dẫn tự thực hiện rõ ràng và kiểm tra mức độ hiểu
+  - Thiết lập câu hỏi sàng lọc, nhiệm vụ và điều kiện kết thúc trên công cụ
+  - Thiết kế kiểm tra kỹ thuật trước khi bắt đầu ghi dữ liệu
+  - Thu lời nói, thao tác và phản hồi mà không có người hỏi trực tiếp
+  - Phát hiện trả lời qua loa, gian lận tuyển mẫu và bản ghi không sử dụng được
+  - Định nghĩa tiêu chí loại dữ liệu trước khi thu thập
+  - Xử lý bỏ cuộc, không gửi kết quả và dữ liệu từng phần
+  - Kiểm soát chất lượng khi tuyển nhiều người hoặc nhiều nhóm
+  - Nhận diện câu hỏi chưa được giải đáp để tiếp tục bằng phiên có điều phối
+- level1: Chỉ số hành vi
+  level2:
+  - Tỷ lệ hoàn thành nhiệm vụ và định nghĩa mẫu số phù hợp
+  - Phân loại hoàn thành độc lập, hoàn thành có trợ giúp và thất bại
+  - 'Thời gian thực hiện: điểm bắt đầu, điểm kết thúc và khoảng gián đoạn'
+  - Đo thời gian khi nhiệm vụ thất bại hoặc bị dừng sớm
+  - Tần suất, loại lỗi thao tác và tỷ lệ người gặp lỗi
+  - Số lần cần trợ giúp và số lần người điều phối can thiệp
+  - Độ dài đường đi, số bước thừa và thao tác quay lại
+  - Khả năng tìm thấy thông tin và kết quả của lần nhấp đầu tiên
+  - Đo khả năng học qua các lần thực hiện và chi phí của hiệu ứng học
+  - Đo khả năng ghi nhớ sau một khoảng thời gian không sử dụng
+  - Phân biệt chỉ số trong phiên thử và chỉ số hành vi ngoài thực tế
+  - Chọn bộ chỉ số đủ trả lời câu hỏi nghiên cứu và tránh đo thừa
+- level1: Đánh giá cảm nhận
+  level2:
+  - Phân biệt cảm nhận chủ quan và kết quả thực hiện nhiệm vụ
+  - Câu hỏi sau nhiệm vụ và mức độ dễ thực hiện với SEQ
+  - Đánh giá tính dễ sử dụng toàn hệ thống với SUS
+  - Lựa chọn UMUX hoặc UMUX-LITE theo mục đích nghiên cứu
+  - Vai trò của UEQ khi cần khảo sát trải nghiệm rộng hơn tính dễ sử dụng
+  - Đánh giá tải công việc với NASA-TLX khi nhiệm vụ có yêu cầu phù hợp
+  - Đo sự tự tin, hài lòng, tin tưởng và cảm nhận khả năng kiểm soát
+  - Thời điểm hỏi và ảnh hưởng của câu hỏi đến hành vi đang quan sát
+  - Giữ nguyên cách diễn đạt, thang trả lời và quy tắc tính điểm của bảng hỏi
+  - Sử dụng bản dịch phù hợp và kiểm tra khả năng hiểu câu hỏi
+  - Giới hạn khi dùng NPS hoặc mức độ yêu thích để đại diện cho tính dễ sử dụng
+  - Đối chiếu phản hồi tích cực với lỗi và thất bại quan sát được
+- level1: Phân tích định tính
+  level2:
+  - Tổ chức bản ghi, ghi chú, dấu thời gian và thông tin bối cảnh
+  - Tách quan sát thực tế, lời trích dẫn, diễn giải và đề xuất
+  - Xây dựng bộ mã cho hành vi, trở ngại, kỳ vọng và cách phục hồi
+  - Mã hóa dữ liệu theo nhiệm vụ và theo chủ đề
+  - Nhóm các quan sát bằng sơ đồ tương đồng (affinity mapping)
+  - Tổng hợp nhiều biểu hiện của cùng một vấn đề mà không đếm trùng
+  - Phân tích nguyên nhân có khả năng xảy ra và ghi rõ mức độ chắc chắn
+  - Đối chiếu trường hợp trái chiều và các quan sát không khớp giả thuyết
+  - Liên kết phát hiện với người tham gia, nhiệm vụ và bằng chứng gốc
+  - Phối hợp nhiều người phân tích và xử lý bất đồng mã hóa
+  - Phân biệt vấn đề phổ biến, vấn đề cá biệt và phát hiện chưa đủ bằng chứng
+- level1: Phân tích định lượng
+  level2:
+  - Làm sạch dữ liệu theo tiêu chí đã định và lưu vết dữ liệu bị loại
+  - Tổng hợp tỷ lệ hoàn thành theo nhiệm vụ và theo nhóm người dùng
+  - Chọn trung bình, trung vị và độ phân tán cho dữ liệu thời gian
+  - Trình bày khoảng tin cậy và độ bất định của tỷ lệ hoặc điểm số
+  - Xử lý dữ liệu thiếu, giá trị bất thường và nhiệm vụ chưa hoàn thành
+  - Áp dụng quy tắc tính điểm bảng hỏi và kiểm tra câu đảo chiều khi có
+  - So sánh phiên bản với thiết kế theo cặp hoặc hai nhóm độc lập
+  - Xác định cỡ mẫu theo độ chính xác hoặc mức khác biệt cần phát hiện
+  - Phân biệt ý nghĩa thống kê và ý nghĩa đối với trải nghiệm thực tế
+  - Kiểm soát ảnh hưởng của thứ tự, kinh nghiệm và điều kiện kiểm thử
+  - Tránh suy rộng từ mẫu nhỏ, tuyển thuận tiện hoặc quá nhiều phép so sánh
+  - Trực quan hóa kết quả mà không che giấu cỡ mẫu và độ bất định
+- level1: Phân loại vấn đề
+  level2:
+  - Viết một vấn đề rõ bối cảnh, hành vi, trở ngại và hậu quả
+  - Phân biệt triệu chứng, nguyên nhân giả định và giải pháp đề xuất
+  - Nhóm vấn đề theo điều hướng, nội dung, tương tác, phản hồi và phục hồi
+  - Đánh giá mức nghiêm trọng theo tác động, tần suất và khả năng phục hồi
+  - Phân biệt mức nghiêm trọng của vấn đề với thứ tự ưu tiên triển khai
+  - Xử lý vấn đề ít gặp nhưng gây hậu quả lớn hoặc loại trừ một nhóm người dùng
+  - Đánh giá độ tin cậy của phát hiện dựa trên chất lượng bằng chứng
+  - Xử lý phát hiện do lỗi chức năng, giới hạn mẫu thử hoặc môi trường
+  - Hợp nhất vấn đề trùng lặp và giữ khác biệt giữa các nhóm người dùng
+  - Lập danh sách ưu tiên theo tác động, công sức và rủi ro còn lại
+  - Xác định vấn đề cần nghiên cứu thêm trước khi đề xuất thay đổi
+- level1: Báo cáo kết quả
+  level2:
+  - 'Thiết kế báo cáo theo người đọc: nhóm sản phẩm, thiết kế, phát triển và quản lý'
+  - Trình bày mục tiêu, phương pháp, mẫu tham gia và giới hạn nghiên cứu
+  - Tóm tắt kết quả theo nhiệm vụ và câu hỏi nghiên cứu
+  - Viết phát hiện kèm bằng chứng, ảnh hưởng và mức nghiêm trọng
+  - Chọn ảnh chụp, đoạn video và lời trích dẫn đã xử lý thông tin riêng tư
+  - Trình bày chỉ số cùng cỡ mẫu, định nghĩa và độ bất định
+  - Phân biệt phát hiện đã quan sát và khuyến nghị cần xác minh
+  - Đề xuất hành động cụ thể, người phụ trách và tiêu chí chấp nhận
+  - Tổ chức buổi xem lại bằng chứng và thống nhất ưu tiên
+  - Chuyển báo cáo thành danh sách công việc có liên kết đến bằng chứng
+  - Trình bày kết quả chưa kết luận được và kế hoạch nghiên cứu tiếp theo
+- level1: Cải tiến và kiểm tra lại
+  level2:
+  - Chuyển vấn đề thành giả thuyết cải tiến có thể đánh giá
+  - Chọn thay đổi nhỏ, phương án thay thế và vấn đề cần thiết kế lại
+  - Xác định điều kiện chấp nhận trước khi thử phiên bản mới
+  - Giữ khả năng so sánh mục tiêu, nhiệm vụ, mẫu và môi trường giữa các đợt
+  - Lựa chọn người tham gia mới hoặc quay lại theo mục tiêu kiểm tra
+  - Đánh giá cải thiện mà không nhầm với hiệu ứng quen thuộc
+  - Kiểm tra nguy cơ cải thiện một nhóm nhưng gây khó khăn cho nhóm khác
+  - Theo dõi vấn đề mở, đã xử lý, tái xuất hiện và chưa đủ bằng chứng
+  - Đối chiếu phiên kiểm thử với dữ liệu hỗ trợ và phản hồi sau phát hành
+  - Xác định thời điểm cần kiểm thử lại khi nội dung, giao diện hoặc luồng thay đổi
+- level1: Luồng và tương tác
+  level2:
+  - Kiểm thử đăng ký, đăng nhập, xác thực và khôi phục quyền truy cập
+  - Kiểm thử khám phá tính năng, hướng dẫn ban đầu và lần sử dụng đầu tiên
+  - Kiểm thử kiến trúc thông tin, điều hướng, tìm kiếm và bộ lọc
+  - Kiểm thử biểu mẫu, nhập liệu, xác nhận và thông báo lỗi
+  - Kiểm thử luồng nhiều bước, lưu tiến độ và tiếp tục công việc
+  - 'Kiểm thử thao tác quan trọng: xác nhận, hoàn tác và tránh mất dữ liệu'
+  - Kiểm thử phản hồi hệ thống, trạng thái chờ và xử lý tác vụ kéo dài
+  - Kiểm thử trạng thái rỗng, mất kết nối và lỗi dịch vụ
+  - Kiểm thử nội dung, nhãn, hướng dẫn và thông điệp giúp ra quyết định
+  - Kiểm thử thông báo, yêu cầu quyền và các gián đoạn trong luồng
+  - Kiểm thử bảng dữ liệu, bảng điều khiển và màn hình mật độ thông tin cao
+  - Kiểm thử tính nhất quán giữa các điểm chạm trong cùng hành trình
+- level1: Thiết bị và nền tảng
+  level2:
+  - Lựa chọn thiết bị theo bối cảnh sử dụng và nhóm người dùng
+  - Kiểm thử giao diện thích ứng với kích thước và hướng màn hình
+  - Quan sát thao tác cảm ứng, vùng chạm và nhập liệu trên điện thoại
+  - Kiểm thử bằng chuột, bàn phím, phím tắt và thao tác kết hợp
+  - Kiểm thử khả năng sử dụng bằng một tay và khi đang di chuyển
+  - Kiểm thử khác biệt giữa ứng dụng web, ứng dụng di động và ứng dụng máy tính
+  - Kiểm thử chuyển đổi thiết bị, đồng bộ và tiếp tục cùng một nhiệm vụ
+  - Đánh giá ảnh hưởng của mạng yếu, hiệu năng và mức phản hồi đến thao tác
+  - Phân biệt vấn đề tương thích kỹ thuật và khó khăn sử dụng
+  - Lập ma trận điều kiện thử mà vẫn giữ số phiên trong khả năng thực hiện
+- level1: Khả năng tiếp cận
+  level2:
+  - Mối liên hệ và khác biệt giữa tính dễ sử dụng và khả năng tiếp cận (accessibility)
+  - Kết hợp kiểm tra yêu cầu tiếp cận với phiên thử có người dùng thực
+  - Chuẩn bị phiên với người dùng trình đọc màn hình hoặc bàn phím
+  - Quan sát thứ tự tiêu điểm, điều hướng và khả năng hiểu trạng thái
+  - Kiểm thử phóng to, chữ lớn, tương phản và nội dung không phụ thuộc màu sắc
+  - Kiểm thử với hạn chế vận động, thính giác hoặc thị giác
+  - Đánh giá độ rõ ràng của ngôn ngữ, tải nhận thức và khả năng ghi nhớ
+  - Thiết kế hỗ trợ phù hợp cho người lớn tuổi và người ít kỹ năng số
+  - Đánh giá ngôn ngữ, bản địa hóa và khác biệt văn hóa trong nhiệm vụ
+  - Điều chỉnh thời lượng, phương tiện và cách giao tiếp theo nhu cầu người tham gia
+  - Trình bày rào cản theo từng nhóm và tránh kết luận đại diện thay người dùng
+- level1: Bối cảnh chuyên biệt
+  level2:
+  - Kiểm thử phần mềm nội bộ với vai trò, quyền hạn và quy trình công việc
+  - Kiểm thử công cụ chuyên môn có đường học dài và người dùng giàu kinh nghiệm
+  - 'Kiểm thử thương mại điện tử: tìm sản phẩm, quyết định mua và thanh toán'
+  - Kiểm thử dịch vụ công và luồng cần đọc hiểu biểu mẫu hoặc yêu cầu hồ sơ
+  - Kiểm thử ứng dụng tài chính với yêu cầu rõ ràng, tin tưởng và tránh thao tác nhầm
+  - Kiểm thử nền tảng học tập với mục tiêu tìm nội dung và theo dõi tiến độ
+  - Kiểm thử giao diện dòng lệnh và công cụ dành cho lập trình viên
+  - Kiểm thử giao diện hội thoại và hệ thống có câu trả lời do AI tạo ra
+  - Đánh giá khả năng nhận biết sai sót, sửa yêu cầu và lấy lại quyền kiểm soát
+  - Xác định khi nào cần chuyên gia lĩnh vực và phương án thử không gây hậu quả thật
+- level1: Công cụ và tự động hóa
+  level2:
+  - Chọn công cụ theo tuyển mẫu, điều phối, ghi phiên, khảo sát và phân tích
+  - Thiết kế kho bằng chứng có khả năng tìm kiếm và truy vết phát hiện
+  - Dùng bảng tính hoặc mã xử lý dữ liệu để tổng hợp chỉ số có thể kiểm tra lại
+  - Dùng phiên âm, gắn dấu thời gian và trích đoạn để hỗ trợ phân tích
+  - Phạm vi hỗ trợ và giới hạn của bản đồ nhiệt hoặc xem lại phiên truy cập
+  - Giới hạn của phân tích tự động khi thiếu mục tiêu và bối cảnh người dùng
+  - Kết hợp kiểm tra giao diện, tiếp cận và hiệu năng với quan sát trực tiếp
+  - Phân biệt kiểm thử UI tự động và kiểm thử tính dễ sử dụng với người dùng
+  - Sử dụng AI để hỗ trợ mã hóa, tóm tắt và soạn báo cáo có kiểm chứng
+  - Kiểm tra sai sót phiên âm, suy diễn từ AI và việc truy vết về bằng chứng gốc
+  - Đánh giá chi phí, khả năng xuất dữ liệu, quyền truy cập và sự phụ thuộc công cụ
+- level1: Tích hợp phát triển
+  level2:
+  - Đưa kiểm thử tính dễ sử dụng vào khám phá yêu cầu và phát triển lặp
+  - Phối hợp nhà nghiên cứu, thiết kế, kiểm thử viên và lập trình viên
+  - Tổ chức các đợt kiểm thử nhỏ theo rủi ro và quyết định cần đưa ra
+  - Liên kết phát hiện với yêu cầu, mẫu thiết kế, công việc và tiêu chí chấp nhận
+  - Xác định điều kiện sẵn sàng phát hành từ rủi ro sử dụng còn lại
+  - Quản lý ngoại lệ khi chưa thể xử lý một vấn đề nghiêm trọng
+  - Kết hợp phản hồi chăm sóc khách hàng, phân tích truy cập và nghiên cứu
+  - Theo dõi chỉ số qua nhiều phiên bản với phương pháp đo nhất quán
+  - Xây dựng kho bài học và tránh lặp lại các vấn đề đã biết
+  - Duy trì kiểm thử khi thay đổi thiết kế chung hoặc thành phần dùng lại
+- level1: Sai lệch và giới hạn
+  level2:
+  - Thiên lệch xác nhận khi chỉ tìm bằng chứng ủng hộ thiết kế
+  - Ảnh hưởng của câu hỏi dẫn dắt, trợ giúp sớm và lời khen trong phiên
+  - Thiên lệch xã hội khi người tham gia muốn làm hài lòng nhóm sản phẩm
+  - Ảnh hưởng của việc bị quan sát và yêu cầu nói thành lời suy nghĩ
+  - Hiệu ứng thứ tự, quen thuộc, mệt mỏi và chuyển giao kinh nghiệm
+  - Sai lệch do tuyển người dễ tiếp cận hoặc dùng đồng nghiệp thay người dùng
+  - Sai lệch do mẫu thử chưa hoàn chỉnh và nhiệm vụ thiếu bối cảnh thực
+  - Nhầm lẫn giữa sở thích được phát biểu và khả năng sử dụng quan sát được
+  - Đếm số vấn đề hoặc số người tham gia mà bỏ qua mức độ ảnh hưởng
+  - Kết luận quan hệ nhân quả từ quan sát chưa được kiểm soát
+  - Che giấu dữ liệu trái chiều, thất bại nhiệm vụ hoặc độ bất định
+  - Nhận diện khi nào cần đổi phương pháp hoặc tiếp tục thu thập bằng chứng
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập kế hoạch kiểm thử cho luồng đăng ký và hoàn thành giao dịch
+  - Soạn bộ sàng lọc, giấy đồng ý và lịch tuyển người tham gia
+  - Viết nhiệm vụ trung lập và tiêu chí hoàn thành có thể quan sát
+  - Chuẩn bị mẫu thử, tài khoản và dữ liệu trước một phiên thí điểm
+  - Thực hành điều phối và ghi chép một phiên hoàn chỉnh
+  - Xây dựng bảng dữ liệu kết quả nhiệm vụ và tính các chỉ số đã chọn
+  - Mã hóa quan sát, nhóm vấn đề và truy vết về bản ghi
+  - Phân tích một trường hợp lời khen mâu thuẫn với kết quả thực hiện
+  - Ưu tiên phát hiện và đề xuất cải tiến theo bằng chứng
+  - Soạn báo cáo cùng danh sách công việc và tiêu chí chấp nhận
+  - Thiết kế đợt kiểm tra lại và so sánh trước với sau cải tiến
+  - Tự đánh giá chất lượng kế hoạch, phiên thử, phân tích và báo cáo

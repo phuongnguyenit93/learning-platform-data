@@ -1,0 +1,112 @@
+menu:
+- title: Bức tranh unit test
+  slug: overview
+  index: 0
+- title: Ranh giới đơn vị
+  slug: unit-boundaries
+  index: 1
+- title: Hành vi và ca kiểm thử
+  slug: behavior-and-test-cases
+  index: 2
+- title: Bộ công cụ Java
+  slug: java-testing-toolkit
+  index: 3
+- title: JUnit cơ bản
+  slug: junit-basics
+  index: 4
+- title: Fixture và vòng đời
+  slug: fixtures-and-lifecycle
+  index: 5
+- title: Assertion nền tảng
+  slug: core-assertions
+  index: 6
+- title: Ngoại lệ và timeout
+  slug: exceptions-and-timeouts
+  index: 7
+- title: Assertion với AssertJ
+  slug: assert-j-assertions
+  index: 8
+- title: Kiểm thử tham số
+  slug: parameterized-testing
+  index: 9
+- title: Tổ chức với JUnit
+  slug: junit-organization
+  index: 10
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 11
+- title: Thiết kế dễ kiểm thử
+  slug: testable-design
+  index: 12
+- title: Thành phần thay thế
+  slug: test-doubles
+  index: 13
+- title: Mockito cơ bản
+  slug: mockito-basics
+  index: 14
+- title: Stubbing
+  slug: stubbing
+  index: 15
+- title: Matcher và Captor
+  slug: matchers-and-captors
+  index: 16
+- title: Kiểm chứng tương tác
+  slug: interaction-verification
+  index: 17
+- title: Spy và mock đặc biệt
+  slug: spy-and-special-mocks
+  index: 18
+- title: Hàm thuần và phép tính
+  slug: pure-functions
+  index: 19
+- title: Chuỗi và tập hợp
+  slug: strings-and-collections
+  index: 20
+- title: Trạng thái và nghiệp vụ
+  slug: state-and-domain-logic
+  index: 21
+- title: Dịch vụ điều phối
+  slug: orchestration-services
+  index: 22
+- title: Thời gian và ngẫu nhiên
+  slug: time-and-randomness
+  index: 23
+- title: I/O và cấu hình
+  slug: io-and-configuration
+  index: 24
+- title: Bất đồng bộ và đồng thời
+  slug: async-and-concurrency
+  index: 25
+- title: Kiểm thử thuộc tính
+  slug: property-based-testing
+  index: 26
+- title: TDD và phản hồi thiết kế
+  slug: tdd-and-design-feedback
+  index: 27
+- title: Độ bao phủ
+  slug: code-coverage
+  index: 28
+- title: Mutation testing
+  slug: mutation-testing
+  index: 29
+- title: Mã nguồn có sẵn
+  slug: existing-source-code
+  index: 30
+- title: Khả năng bảo trì
+  slug: maintainability
+  index: 31
+- title: Độ ổn định
+  slug: stability
+  index: 32
+- title: Mở rộng JUnit
+  slug: junit-extensions
+  index: 33
+- title: Build và CI
+  slug: build-and-ci
+  index: 34
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 35
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 36

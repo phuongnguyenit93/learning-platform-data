@@ -1,0 +1,115 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc framework
+  slug: framework-architecture
+  index: 1
+- title: Khởi tạo dự án
+  slug: project-setup
+  index: 2
+- title: Kiểm thử đầu tiên
+  slug: first-test
+  index: 3
+- title: Tổ chức kiểm thử
+  slug: test-organization
+  index: 4
+- title: Vòng đời Jupiter
+  slug: jupiter-lifecycle
+  index: 5
+- title: Kiểm chứng kết quả
+  slug: assertions
+  index: 6
+- title: Điều kiện thực thi
+  slug: execution-conditions
+  index: 7
+- title: Kiểm thử tham số
+  slug: parameterized-tests
+  index: 8
+- title: Chuyển đổi dữ liệu
+  slug: data-conversion
+  index: 9
+- title: Kiểm thử lặp và động
+  slug: repeated-dynamic-tests
+  index: 10
+- title: Mẫu kiểm thử
+  slug: test-templates
+  index: 11
+- title: Chọn và gom kiểm thử
+  slug: test-selection-grouping
+  index: 12
+- title: Thứ tự và trạng thái
+  slug: ordering-state
+  index: 13
+- title: Thời gian kiểm thử
+  slug: test-timeouts
+  index: 14
+- title: Chạy song song
+  slug: parallel-execution
+  index: 15
+- title: Tài nguyên kiểm thử
+  slug: test-resources
+  index: 16
+- title: Mở rộng Jupiter
+  slug: jupiter-extensions
+  index: 17
+- title: Ngữ cảnh extension
+  slug: extension-context
+  index: 18
+- title: Kiểm thử extension
+  slug: extension-testing
+  index: 19
+- title: Nền tảng JUnit
+  slug: junit-platform
+  index: 20
+- title: Tự xây TestEngine
+  slug: custom-test-engines
+  index: 21
+- title: TestNG cơ bản
+  slug: testng-basics
+  index: 22
+- title: Dữ liệu TestNG
+  slug: testng-data
+  index: 23
+- title: Suite và phụ thuộc
+  slug: suites-dependencies
+  index: 24
+- title: Song song TestNG
+  slug: testng-parallelism
+  index: 25
+- title: Mở rộng TestNG
+  slug: testng-extensions
+  index: 26
+- title: Tích hợp Gradle
+  slug: gradle-integration
+  index: 27
+- title: Tích hợp Maven
+  slug: maven-integration
+  index: 28
+- title: IDE và dòng lệnh
+  slug: ide-command-line
+  index: 29
+- title: Tích hợp hệ sinh thái
+  slug: ecosystem-integration
+  index: 30
+- title: Framework chuyên biệt
+  slug: specialized-frameworks
+  index: 31
+- title: Báo cáo và CI
+  slug: reports-ci
+  index: 32
+- title: Chuyển đổi và nâng cấp
+  slug: migration-upgrades
+  index: 33
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 34
+- title: Thiết kế và bảo trì
+  slug: design-maintenance
+  index: 35
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 36
+- title: Tra cứu
+  slug: reference
+  index: 37

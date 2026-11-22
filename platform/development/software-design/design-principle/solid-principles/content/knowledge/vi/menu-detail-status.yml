@@ -1,0 +1,1999 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: SOLID là gì và vấn đề thiết kế nào cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Ý nghĩa của năm nguyên lý SRP, OCP, LSP, ISP và DIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mục tiêu giảm tác động lan truyền khi phần mềm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Quan hệ giữa SOLID với hướng đối tượng và thiết kế mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt nguyên lý thiết kế với quy tắc cú pháp và mẫu thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vì sao tuân theo hình thức chưa chứng minh thiết kế có chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lộ trình từ hiểu trách nhiệm đến thiết kế hợp đồng và hướng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-foundation
+  title: Nền tảng thiết kế
+  childs:
+  - slug: design-foundation-001
+    title: Phân biệt đối tượng, lớp, giao diện và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-002
+    title: Trách nhiệm, hành vi và trạng thái trong thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-003
+    title: Bên gọi, bên cung cấp và các đối tượng cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-004
+    title: Tính gắn kết nội bộ (cohesion) và liên kết phụ thuộc (coupling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-005
+    title: Đóng gói dữ liệu và che giấu quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-006
+    title: Trừu tượng hóa theo nhu cầu sử dụng thay vì theo chi tiết triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-007
+    title: Phân biệt kế thừa, quan hệ kiểu con và đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-008
+    title: Phân biệt phụ thuộc trong mã nguồn với luồng gọi khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundation-009
+    title: Kết hợp đối tượng (composition) và ủy quyền (delegation)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-and-boundaries
+  title: Thay đổi và ranh giới
+  childs:
+  - slug: change-and-boundaries-001
+    title: Nhận diện các lý do thay đổi từ nghiệp vụ và các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-boundaries-002
+    title: Phân biệt thay đổi thường đi cùng nhau với thay đổi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-boundaries-003
+    title: Đánh giá tác động lan truyền qua đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-boundaries-004
+    title: Nhận diện điểm ổn định và điểm có khả năng biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-boundaries-005
+    title: Chọn ranh giới lớp hoặc mô-đun theo trách nhiệm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-boundaries-006
+    title: Phân biệt dấu hiệu cần khảo sát với bằng chứng vi phạm nguyên lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-and-boundaries-007
+    title: Dùng tình huống thay đổi cụ thể để đánh giá một thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: srp-single-responsibility
+  title: 'SRP: Đơn trách nhiệm'
+  childs:
+  - slug: srp-single-responsibility-001
+    title: Nguyên lý đơn trách nhiệm (Single Responsibility Principle) nói về điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-002
+    title: Một lý do thay đổi và vai trò của bên yêu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-003
+    title: Phân biệt trách nhiệm nghiệp vụ với danh sách thao tác kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-004
+    title: Vì sao một trách nhiệm không đồng nghĩa một phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-005
+    title: Nhận diện lớp gộp tính toán nghiệp vụ, lưu trữ và trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-006
+    title: Những thay đổi độc lập nhưng phải sửa cùng một thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-007
+    title: Gom hành vi có cùng lý do thay đổi để giữ tính gắn kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-008
+    title: Tách trách nhiệm mà không tạo các lớp chỉ chuyển tiếp vô ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-009
+    title: Xác định lớp điều phối và trách nhiệm phối hợp luồng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-010
+    title: Áp dụng SRP ở mức hàm, lớp và mô-đun theo bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-011
+    title: Phân tích ví dụ xử lý hóa đơn trước và sau khi tách trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-012
+    title: Kiểm tra trạng thái và bất biến có còn được bảo vệ sau khi tách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-013
+    title: Đánh giá chi phí điều hướng khi thiết kế bị chia quá nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: srp-single-responsibility-014
+    title: Kiểm chứng SRP bằng yêu cầu thay đổi thay vì số dòng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ocp-open-closed
+  title: 'OCP: Đóng và mở'
+  childs:
+  - slug: ocp-open-closed-001
+    title: Nguyên lý đóng và mở (Open-Closed Principle) bảo vệ điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-002
+    title: Mở rộng hành vi trong khi giữ ổn định phần chính sách đã được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-003
+    title: Vì sao OCP không có nghĩa cấm sửa mã nguồn hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-004
+    title: Chọn trục biến đổi dựa trên thay đổi đã có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-005
+    title: Tách chính sách ổn định khỏi các cách thực hiện có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-006
+    title: Dùng đa hình hoặc kết hợp đối tượng để tạo điểm mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-007
+    title: Phân tích chuỗi if hoặc switch theo loại để tìm điểm cần thiết kế lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-008
+    title: Khi giữ điều kiện rẽ nhánh lại đơn giản và phù hợp hơn đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-009
+    title: Thiết kế đăng ký và lựa chọn cách xử lý mà không sửa logic cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-010
+    title: Mở rộng bằng cấu hình hoặc dữ liệu và giới hạn của cách tiếp cận này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-011
+    title: Phân tích ví dụ thêm chính sách giảm giá hoặc cách tính phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-012
+    title: Giữ hợp đồng của điểm mở rộng ổn định khi thêm cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-013
+    title: Kiểm thử hồi quy phần ổn định và kiểm thử riêng phần mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-014
+    title: Tránh tạo điểm mở rộng cho mọi khả năng chưa xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocp-open-closed-015
+    title: Đánh giá OCP theo một loại thay đổi cụ thể thay vì mọi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-contract
+  title: Hợp đồng hành vi
+  childs:
+  - slug: behavior-contract-001
+    title: Hợp đồng của một kiểu gồm cam kết nào với bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-002
+    title: Điều kiện trước, điều kiện sau và bất biến của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-003
+    title: Phân biệt hợp đồng cấu trúc với hợp đồng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-004
+    title: Trạng thái có thể quan sát và tác dụng phụ của thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-005
+    title: Ý nghĩa của kết quả trả về, lỗi và ngoại lệ trong hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-006
+    title: Ràng buộc lịch sử đối với các thay đổi trạng thái được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-007
+    title: Đặc tả hành vi với giá trị rỗng, trường hợp biên và thao tác không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-008
+    title: Viết ví dụ và thuộc tính để làm rõ giả định ngầm của bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-contract-009
+    title: Giới hạn của kiểm thử hữu hạn khi kiểm chứng hợp đồng tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lsp-substitutability
+  title: 'LSP: Khả năng thay thế'
+  childs:
+  - slug: lsp-substitutability-001
+    title: Nguyên lý thay thế Liskov (Liskov Substitution Principle) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-002
+    title: Thay thế đối tượng theo kỳ vọng hành vi của bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-003
+    title: Phân biệt quan hệ kế thừa trong mã với quan hệ kiểu con đúng về hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-004
+    title: Vì sao kiểu con không được siết chặt điều kiện trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-005
+    title: Vì sao kiểu con không được làm yếu điều kiện sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-006
+    title: Bảo toàn bất biến và các thay đổi trạng thái được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-007
+    title: Kiểm soát ý nghĩa ngoại lệ, kết quả và tác dụng phụ khi thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-008
+    title: Dấu hiệu bên gọi phải kiểm tra kiểu cụ thể trước khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-009
+    title: Phân tích hình chữ nhật và hình vuông dựa trên hợp đồng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-010
+    title: Phân tích kiểu con không hỗ trợ một thao tác mà kiểu cha đã cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-011
+    title: Thiết kế lại quan hệ bằng tách vai trò hoặc kết hợp đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-012
+    title: Phân biệt lỗi trong cách triển khai với hợp đồng kiểu cha không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-013
+    title: Chạy cùng bộ kiểm thử hợp đồng cho các cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lsp-substitutability-014
+    title: Đánh giá LSP theo từng cách sử dụng và phạm vi cam kết rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isp-interface-segregation
+  title: 'ISP: Tách giao diện'
+  childs:
+  - slug: isp-interface-segregation-001
+    title: Nguyên lý phân tách giao diện (Interface Segregation Principle) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-002
+    title: Bên sử dụng không phải phụ thuộc thao tác không cần đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-003
+    title: Thiết kế giao diện theo vai trò của bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-004
+    title: Nhận diện giao diện chứa các nhóm thao tác phục vụ nhu cầu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-005
+    title: Dấu hiệu phương thức rỗng hoặc ném lỗi vì không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-006
+    title: Tách khả năng đọc, ghi hoặc quản trị khi nhu cầu sử dụng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-007
+    title: Một lớp có thể phục vụ nhiều giao diện vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-008
+    title: Phân biệt giao diện nhỏ với giao diện có tính gắn kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-009
+    title: Phân tích ví dụ thiết bị đa chức năng và các khả năng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-010
+    title: Ảnh hưởng của thay đổi giao diện đến các bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-011
+    title: Tránh tạo một giao diện cho từng phương thức một cách máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-012
+    title: Giữ ranh giới giao diện phù hợp với hợp đồng có thể cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isp-interface-segregation-013
+    title: Kiểm chứng ISP bằng tập nhu cầu của từng bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dip-dependency-inversion
+  title: 'DIP: Đảo ngược phụ thuộc'
+  childs:
+  - slug: dip-dependency-inversion-001
+    title: Nguyên lý đảo ngược phụ thuộc (Dependency Inversion Principle) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-002
+    title: Phân biệt chính sách cấp cao với chi tiết cấp thấp trong một quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-003
+    title: Cả chính sách và chi tiết phụ thuộc vào trừu tượng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-004
+    title: Trừu tượng không bị quyết định bởi chi tiết triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-005
+    title: Đảo hướng phụ thuộc trong mã mà vẫn giữ được luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-006
+    title: Đặt giao diện theo nhu cầu của phần chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-007
+    title: Xác định quyền sở hữu trừu tượng và vị trí đặt trong mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-008
+    title: Tránh để kiểu dữ liệu hạ tầng rò rỉ qua ranh giới trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-009
+    title: Phân tích ví dụ nghiệp vụ phụ thuộc trực tiếp cơ sở dữ liệu hoặc dịch vụ gửi tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-010
+    title: Dùng adapter để nối chi tiết bên ngoài với giao diện cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-011
+    title: Phân biệt phụ thuộc một kiểu cụ thể ổn định với phụ thuộc chi tiết dễ đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-012
+    title: Vì sao không cần tạo giao diện cho mọi lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-013
+    title: Kiểm chứng hướng phụ thuộc bằng cấu trúc package và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-014
+    title: Đánh giá khả năng thay chi tiết mà không sửa chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dip-dependency-inversion-015
+    title: Nhận diện trừu tượng mang tên giao diện nhưng vẫn bị chi phối bởi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-injection-ioc
+  title: DI và IoC
+  childs:
+  - slug: dependency-injection-ioc-001
+    title: Phân biệt DIP, tiêm phụ thuộc (DI) và đảo quyền điều khiển (IoC)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-002
+    title: Tiêm đối tượng từ bên ngoài chưa đủ để thỏa mãn DIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-003
+    title: Thiết kế hàm khởi tạo để biểu đạt các phụ thuộc bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-004
+    title: Đánh giá tiêm qua hàm khởi tạo, setter và trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-005
+    title: Lắp ghép đối tượng tại điểm khởi tạo tập trung (composition root)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-006
+    title: Thực hiện DI thủ công trước khi dùng bộ chứa hoặc framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-007
+    title: Phân biệt cung cấp phụ thuộc với tự tra cứu qua Service Locator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-008
+    title: Quản lý vòng đời và cấu hình mà không đẩy vào logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-009
+    title: Xử lý phụ thuộc vòng bằng xem lại trách nhiệm thay vì chỉ sửa cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-injection-ioc-010
+    title: Dùng đối tượng thay thế trong kiểm thử mà không lạm dụng mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inheritance-composition
+  title: Kế thừa và kết hợp
+  childs:
+  - slug: inheritance-composition-001
+    title: Chọn kế thừa theo hợp đồng thay vì chỉ để tái sử dụng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-composition-002
+    title: Phân biệt quan hệ có thể thay thế với quan hệ chứa hoặc sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-composition-003
+    title: Chi phí lan truyền khi thay đổi lớp cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-composition-004
+    title: Đánh giá hành vi mặc định và các điểm ghi đè trong lớp nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-composition-005
+    title: Kết hợp đối tượng để thay hành vi độc lập với cây kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-composition-006
+    title: Ủy quyền nhưng vẫn giữ trách nhiệm và hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-composition-007
+    title: Phân tích trạng thái có thể thay đổi trong quan hệ cha con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-composition-008
+    title: Chọn thiết kế đơn giản hơn khi chưa có nhu cầu đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: principle-coordination
+  title: Phối hợp các nguyên lý
+  childs:
+  - slug: principle-coordination-001
+    title: SRP giúp xác định phần thay đổi cần được cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-002
+    title: OCP cần hợp đồng mở rộng đủ ổn định và có thể thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-003
+    title: LSP bảo vệ kỳ vọng tại các điểm mở rộng đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-004
+    title: ISP làm rõ vai trò mà bên sử dụng thực sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-005
+    title: DIP định hướng phụ thuộc qua các ranh giới trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-006
+    title: Một dấu hiệu thiết kế có thể liên quan nhiều nguyên lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-007
+    title: Đánh giá phương án cải thiện một nguyên lý nhưng tăng chi phí ở nơi khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-008
+    title: Phân tích chuỗi tác động từ thay đổi yêu cầu đến trách nhiệm và hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-coordination-009
+    title: Không dùng số nguyên lý được gắn nhãn để chấm điểm chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-pattern-relations
+  title: Liên hệ mẫu thiết kế
+  childs:
+  - slug: design-pattern-relations-001
+    title: Strategy hỗ trợ thay chính sách theo trục biến đổi đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-002
+    title: Factory và điểm lắp ghép đối tượng giúp cô lập việc tạo phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-003
+    title: Adapter kết nối chi tiết bên ngoài với giao diện mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-004
+    title: Decorator bổ sung hành vi nhưng vẫn phải giữ hợp đồng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-005
+    title: Template Method tạo điểm mở rộng cùng các ràng buộc kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-006
+    title: Bridge tách các chiều biến đổi cần phát triển độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-007
+    title: Facade hỗ trợ giao diện sử dụng mà không tự bảo đảm ISP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-008
+    title: Vì sao không có quan hệ một đối một bắt buộc giữa nguyên lý và mẫu thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pattern-relations-009
+    title: Chỉ chọn mẫu thiết kế khi làm rõ được vấn đề và chi phí giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solid-in-java
+  title: SOLID trong Java
+  childs:
+  - slug: solid-in-java-001
+    title: Biểu đạt vai trò và hợp đồng bằng interface hoặc abstract class
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-002
+    title: Phân biệt ràng buộc ghi đè do trình biên dịch kiểm tra với hợp đồng hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-003
+    title: Kiểu trả về, ngoại lệ và trạng thái trong cách triển khai thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-004
+    title: Ảnh hưởng của default method đến các lớp triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-005
+    title: Dùng lambda và giao diện hàm cho hành vi nhỏ cần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-006
+    title: Thiết kế package và mức truy cập để bảo vệ ranh giới trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-007
+    title: Áp dụng DI thủ công trong một chương trình Java đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-008
+    title: Dùng kiểu giá trị hoặc record khi phù hợp với dữ liệu cần biểu đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-009
+    title: Cân nhắc kiểu đóng với sealed type và điểm mở rộng đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solid-in-java-010
+    title: Phân biệt hợp đồng generic với khả năng thay thế đúng về hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-testing
+  title: Kiểm thử thiết kế
+  childs:
+  - slug: design-testing-001
+    title: Viết kiểm thử hành vi trước khi tách hoặc thay cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-002
+    title: Thiết kế kiểm thử hợp đồng dùng chung cho các cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-003
+    title: Kiểm tra điều kiện trước, điều kiện sau và bất biến quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-004
+    title: Đưa các giá trị biên và chuỗi thao tác vào kiểm thử LSP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-005
+    title: Thêm cách triển khai mới để kiểm chứng điểm mở rộng OCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-006
+    title: Thay chi tiết hạ tầng bằng đối tượng thử nghiệm để kiểm chứng DIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-007
+    title: Kiểm tra nhu cầu của từng bên gọi sau khi tách giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-008
+    title: Phân biệt kiểm thử hành vi với kiểm thử khóa chặt cách cộng tác nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-009
+    title: Kết hợp kiểm thử đơn vị, tích hợp và ranh giới mô-đun theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-testing-010
+    title: Giới hạn của bộ kiểm thử khi kết luận một thiết kế tuân thủ SOLID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incremental-refactoring
+  title: Tái cấu trúc từng bước
+  childs:
+  - slug: incremental-refactoring-001
+    title: Chọn tình huống thay đổi và xác định điểm gây tác động lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-002
+    title: Làm rõ hành vi hiện tại cùng các ràng buộc cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-003
+    title: Tách trách nhiệm trong phạm vi nhỏ có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-004
+    title: Rút giao diện từ nhu cầu bên gọi thay vì sao chép mọi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-005
+    title: Chuyển việc khởi tạo ra điểm lắp ghép và điều chỉnh hướng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-006
+    title: Thay điều kiện phân loại bằng đa hình khi trục biến đổi đã rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-007
+    title: Sửa quan hệ kế thừa không đáp ứng hợp đồng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-008
+    title: Giữ thay đổi hành vi nghiệp vụ tách khỏi thay đổi cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-009
+    title: Chạy kiểm thử và rà soát sau mỗi bước thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-refactoring-010
+    title: Dọn trừu tượng, lớp chuyển tiếp và đường xử lý không còn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tradeoffs-and-limits
+  title: Đánh đổi và giới hạn
+  childs:
+  - slug: tradeoffs-and-limits-001
+    title: Cân bằng khả năng mở rộng với tính đơn giản và chi phí điều hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-002
+    title: Liên hệ SOLID với KISS, YAGNI và tránh tổng quát hóa sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-003
+    title: Cân bằng loại bỏ lặp với việc giữ các trách nhiệm độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-004
+    title: Đánh giá số lớp, số giao diện và mức gián tiếp phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-005
+    title: Xem xét chi phí hiệu năng khi thêm lớp phối hợp hoặc cấp phát đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-006
+    title: Giữ mô hình dữ liệu đơn giản khi chưa có hành vi cần đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-007
+    title: Áp dụng nguyên lý theo mức ổn định và tần suất thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-and-limits-008
+    title: Chấp nhận đánh đổi có lý do và xác định khi nào cần xem lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-review
+  title: Rà soát thiết kế
+  childs:
+  - slug: design-review-001
+    title: Đặt câu hỏi về bên yêu cầu thay đổi khi rà soát SRP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-002
+    title: Đặt câu hỏi về loại mở rộng được bảo vệ khi rà soát OCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-003
+    title: Đặt câu hỏi về kỳ vọng bên gọi khi rà soát LSP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-004
+    title: Đặt câu hỏi về nhu cầu từng vai trò khi rà soát ISP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-005
+    title: Đặt câu hỏi về quyền sở hữu trừu tượng khi rà soát DIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-006
+    title: Đọc đồ thị phụ thuộc cùng các tình huống thay đổi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-007
+    title: Đánh giá khả năng đọc hiểu, kiểm thử và bảo trì sau cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-008
+    title: Phân biệt nhận xét có bằng chứng với sở thích tổ chức mã cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-review-009
+    title: Ghi lý do thiết kế và các điều kiện có thể làm quyết định thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Hiểu SRP thành mỗi lớp chỉ được có một phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Hiểu OCP thành không được sửa bất kỳ mã nguồn cũ nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Xem kế thừa biên dịch được là đã thỏa mãn LSP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Tạo kiểu con nhưng bỏ trống thao tác hoặc từ chối hợp đồng của kiểu cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Chia giao diện theo số phương thức mà không nhìn nhu cầu bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Tạo interface cho mọi lớp rồi coi đó là đã áp dụng DIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Đồng nhất dùng bộ chứa DI hoặc framework với thiết kế đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Dùng kiểm tra kiểu và ép kiểu để bù cho quan hệ đa hình sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Lạm dụng mẫu thiết kế và các lớp chuyển tiếp chỉ để gắn nhãn SOLID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Đánh giá chất lượng bằng số lớp hoặc tỷ lệ giao diện thay vì chi phí thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: guided-practice
+  title: Thực hành có hướng dẫn
+  childs:
+  - slug: guided-practice-001
+    title: Tách xử lý nghiệp vụ, lưu trữ và trình bày trong ví dụ hóa đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-002
+    title: Thiết kế các chính sách tính phí có thể mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-003
+    title: Viết hợp đồng rồi kiểm tra tính thay thế giữa các cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-004
+    title: Thiết kế lại quan hệ hình chữ nhật và hình vuông theo nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-005
+    title: Tách vai trò đọc, ghi và quản trị theo các bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-006
+    title: Đảo phụ thuộc giữa nghiệp vụ và hệ thống gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-007
+    title: Lắp ghép toàn bộ ví dụ bằng DI thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-008
+    title: Thêm yêu cầu mới để so sánh tác động trước và sau tái cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-009
+    title: Đơn giản hóa một thiết kế có quá nhiều trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-practice-010
+    title: Viết nhận xét rà soát nêu bằng chứng, phương án và đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-scenario
+  title: Tình huống tổng hợp
+  childs:
+  - slug: integrated-scenario-001
+    title: Một lớp phục vụ nhiều nhóm khiến thay đổi nhỏ liên tục gây xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-002
+    title: Thêm loại chính sách mới buộc sửa nhiều chuỗi điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-003
+    title: Cách triển khai mới đúng chữ ký nhưng làm hỏng giả định của bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-004
+    title: Một bên sử dụng chỉ cần đọc nhưng phải phụ thuộc giao diện quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-005
+    title: Logic nghiệp vụ khó kiểm thử vì tự tạo kết nối và gọi dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-006
+    title: Đã dùng DI nhưng trừu tượng vẫn làm lộ kiểu dữ liệu hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-007
+    title: Thiết kế dễ mở rộng nhưng quá khó đọc và thiếu nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-008
+    title: Các nguyên lý đưa ra áp lực khác nhau đối với cùng một phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenario-009
+    title: Checklist tự đánh giá thiết kế SOLID bằng thay đổi và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

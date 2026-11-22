@@ -1,0 +1,303 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử đột biến (mutation testing) là gì?
+  - Vì sao kiểm thử vẫn bỏ sót lỗi khi độ bao phủ mã cao?
+  - Đột biến, phiên bản đột biến và toán tử đột biến
+  - Phát hiện mutant, mutant sống và vai trò của phép khẳng định
+  - Mối liên hệ với kiểm thử đơn vị và kiểm thử hồi quy
+  - Phân biệt độ bao phủ dòng, độ bao phủ nhánh và độ bao phủ đột biến
+  - Kiểm thử đột biến, phân tích tĩnh, fuzzing và kiểm thử dựa trên thuộc tính
+  - Những loại lỗi mutation testing có thể giúp phát hiện
+  - Giới hạn của mutation testing và ý nghĩa của điểm số cao
+  - Kiến thức đầu vào và trình tự học với một ví dụ Java
+- level1: Cơ chế hoạt động
+  level2:
+  - Quy trình từ bộ kiểm thử gốc đến báo cáo đột biến
+  - Điều kiện bộ kiểm thử gốc phải chạy thành công
+  - Tạo đột biến trên mã nguồn và trên bytecode
+  - Đột biến bậc một và đột biến bậc cao
+  - Điều kiện để đột biến được thực thi, gây khác biệt và được quan sát
+  - Phân biệt kiểm thử đột biến yếu và kiểm thử đột biến mạnh
+  - Cách PIT thu thập độ bao phủ theo từng ca kiểm thử
+  - Cách PIT lựa chọn và ưu tiên ca kiểm thử cho từng mutant
+  - Vai trò của tiến trình JVM riêng và bộ nạp lớp
+  - Nguyên nhân một dòng Java sinh ra nhiều mutant
+  - Ảnh hưởng của trình biên dịch đến vị trí và hình thức đột biến
+- level1: Công cụ và lựa chọn
+  level2:
+  - PIT trong hệ sinh thái kiểm thử Java
+  - Vai trò của PIT core, plugin hệ thống build và plugin kiểm thử
+  - Phân biệt PIT với JaCoCo và công cụ phân tích chất lượng mã
+  - Họ công cụ Stryker cho JavaScript, TypeScript, C# và Scala
+  - Tiêu chí lựa chọn theo ngôn ngữ, framework và quy mô dự án
+  - Kiểm tra tương thích JDK, PIT, Gradle hoặc Maven và JUnit Platform
+  - Phân biệt tính năng PIT nguồn mở và phần mở rộng của Arcmutate
+  - Chi phí vận hành, giấy phép và khả năng bảo trì công cụ
+- level1: PIT với Gradle
+  level2:
+  - Chuẩn bị dự án Java và bộ kiểm thử JUnit Jupiter
+  - Khai báo plugin info.solidsoft.pitest
+  - Chọn phiên bản PIT và pitest-junit5-plugin tương thích
+  - Cấu hình tối thiểu trong build.gradle
+  - Cấu hình tương ứng trong build.gradle.kts
+  - Biên dịch mã và chạy tác vụ pitest
+  - Chọn lớp cần đột biến và ca kiểm thử bằng targetClasses, targetTests
+  - Xuất báo cáo HTML và XML
+  - Thiết lập thư mục báo cáo và timestampedReports
+  - Truyền thuộc tính hệ thống và tham số JVM cho tiến trình PIT
+  - Đối chiếu lần chạy kiểm thử thông thường với lần chạy PIT đầu tiên
+- level1: PIT với Maven
+  level2:
+  - Khai báo pitest-maven trong pom.xml
+  - Đặt pitest-junit5-plugin đúng phạm vi phụ thuộc plugin
+  - Chạy test-compile và goal mutationCoverage
+  - Cấu hình targetClasses, targetTests và mutators
+  - Tách cấu hình mutation testing bằng Maven profile
+  - Truyền thuộc tính từ dòng lệnh và kiểm tra cấu hình có hiệu lực
+  - Cấu hình vị trí báo cáo và định dạng đầu ra
+  - Gắn goal vào vòng đời build theo nhu cầu
+  - Đối chiếu cấu hình tương đương giữa Maven và Gradle
+- level1: Phạm vi phân tích
+  level2:
+  - Xác định mã nghiệp vụ cần ưu tiên kiểm thử đột biến
+  - Quy tắc mẫu glob cho package, lớp và lớp lồng nhau
+  - Phân biệt targetClasses, targetTests, excludedClasses và excludedTestClasses
+  - Giới hạn phương thức bằng excludedMethods
+  - Chọn source set chứa mã và source set chứa kiểm thử
+  - Phân biệt đường dẫn mã có thể đột biến với classpath chạy kiểm thử
+  - Xử lý mã được sinh tự động, Lombok, record và phương thức tổng hợp
+  - Đánh giá việc loại trừ DTO, cấu hình, mã ghi log và mã hạ tầng
+  - Sử dụng features theo khả năng của phiên bản PIT đang dùng
+  - Nhận diện phạm vi rỗng và cấu hình failWhenNoMutations
+  - Ghi nhận lý do loại trừ để giữ ý nghĩa của báo cáo
+- level1: Toán tử cơ bản
+  level2:
+  - Toán tử đột biến và cách đọc thay đổi tương ứng trong Java
+  - 'CONDITIONALS_BOUNDARY: thay đổi điều kiện tại biên'
+  - 'NEGATE_CONDITIONALS: đảo kết quả điều kiện'
+  - 'MATH: thay thế phép toán số học và thao tác bit'
+  - 'INCREMENTS: thay đổi phép tăng giảm biến cục bộ'
+  - 'INVERT_NEGS: loại bỏ phép đổi dấu giá trị'
+  - 'VOID_METHOD_CALLS: loại bỏ lời gọi phương thức void'
+  - 'TRUE_RETURNS và FALSE_RETURNS: thay đổi giá trị boolean trả về'
+  - 'NULL_RETURNS và EMPTY_RETURNS: thay đổi giá trị tham chiếu trả về'
+  - 'PRIMITIVE_RETURNS: thay đổi giá trị nguyên thủy trả về'
+  - Lựa chọn dữ liệu kiểm thử để phân biệt mã gốc với từng toán tử
+- level1: Toán tử mở rộng
+  level2:
+  - Nhóm DEFAULTS, STRONGER và ALL theo phiên bản PIT
+  - 'REMOVE_CONDITIONALS: buộc một nhánh điều kiện'
+  - 'INLINE_CONSTS: thay đổi hằng số tại vị trí sử dụng'
+  - 'NON_VOID_METHOD_CALLS: loại bỏ lời gọi có giá trị trả về'
+  - 'CONSTRUCTOR_CALLS: thay đổi việc tạo đối tượng'
+  - 'REMOVE_INCREMENTS: loại bỏ phép tăng giảm'
+  - Đột biến switch và giới hạn của toán tử thử nghiệm
+  - Các họ toán tử mở rộng cho số học, quan hệ và thao tác bit
+  - Giới hạn đột biến đối với BigDecimal, BigInteger và thư viện bên ngoài
+  - Đánh đổi giữa số toán tử, tín hiệu hữu ích và chi phí chạy
+  - Đối chiếu tập toán tử trước khi so sánh kết quả giữa các lần chạy
+- level1: Báo cáo và chỉ số
+  level2:
+  - Cấu trúc báo cáo theo dự án, package, lớp và dòng mã
+  - Đọc vị trí đột biến, mô tả thay đổi và ca kiểm thử phát hiện lỗi
+  - Ý nghĩa trạng thái KILLED
+  - Phân biệt SURVIVED và NO_COVERAGE
+  - Ý nghĩa TIMED_OUT và nguy cơ vòng lặp không kết thúc
+  - Phân biệt NON_VIABLE, MEMORY_ERROR và RUN_ERROR
+  - Độ bao phủ dòng trong phạm vi mã được PIT phân tích
+  - Độ bao phủ đột biến và cách xác định mẫu số
+  - Test strength và khác biệt với độ bao phủ đột biến
+  - Ảnh hưởng của trạng thái lỗi, timeout và số mẫu nhỏ đến chỉ số
+  - Đọc mutations.xml để truy vết và xử lý kết quả tự động
+  - So sánh báo cáo khi phạm vi, cấu hình và môi trường tương đương
+- level1: Phân tích mutant sống
+  level2:
+  - Quy trình phân loại một mutant chưa được phát hiện
+  - Đối chiếu hành vi gốc, hành vi đột biến và yêu cầu nghiệp vụ
+  - Thiếu dữ liệu chạm biên hoặc thiếu một nhánh điều kiện
+  - Mã được thực thi nhưng kết quả chưa được kiểm tra
+  - Khẳng định quá yếu, kiểm tra sai đối tượng hoặc sai thời điểm
+  - Khác biệt bị che khuất trước khi đến kết quả quan sát
+  - Đột biến làm mất tác dụng phụ nhưng kiểm thử chỉ xét giá trị trả về
+  - Thiết lập mock khiến logic thực tế không được thực thi
+  - Phân biệt lỗi kiểm thử, mã dư thừa và yêu cầu chưa rõ
+  - Tái hiện mutant bằng một thay đổi thủ công có kiểm soát
+  - Ưu tiên xử lý mutant theo rủi ro và xác minh lại sau khi bổ sung kiểm thử
+- level1: Mutant tương đương
+  level2:
+  - Mutant tương đương là gì và vì sao khó nhận diện?
+  - Phân biệt mutant tương đương với mutant khó phát hiện
+  - Phân biệt tương đương trong miền đầu vào với giả định đầu vào chưa được bảo đảm
+  - Ví dụ tương đương do bất biến và điều kiện đã được ràng buộc
+  - Đường chạy không thể đạt tới và mã không còn giá trị sử dụng
+  - Mutant trùng lặp và quan hệ bao hàm khả năng phát hiện
+  - Khả năng tự lọc của công cụ và phần cần con người đánh giá
+  - Lập luận và bằng chứng khi chấp nhận một mutant sống
+  - Chọn refactor, bổ sung kiểm thử hay loại trừ có giải thích
+  - Giới hạn của việc suy ra khả năng phát hiện lỗi thật từ mutation score
+- level1: Thiết kế kiểm thử
+  level2:
+  - Thiết kế kiểm thử theo hành vi và hợp đồng nghiệp vụ
+  - Chọn phép khẳng định có thể phát hiện thay đổi quan sát được
+  - Phân vùng tương đương và giá trị biên
+  - Bảng quyết định cho nhiều điều kiện kết hợp
+  - Kiểm thử tham số hóa với JUnit Jupiter
+  - Kiểm tra ngoại lệ, thông tin lỗi và tác dụng phụ khi thất bại
+  - Kiểm tra đầy đủ giá trị trả về và trạng thái sau thực thi
+  - Đánh giá tương tác với phụ thuộc khi đó là một phần của hợp đồng
+  - Dùng kiểm thử dựa trên thuộc tính để tìm dữ liệu phân biệt mutant
+  - Dùng quan hệ biến hình khi khó xác định kết quả cho từng đầu vào
+  - Tránh sao chép thuật toán cần kiểm thử vào phần tính kết quả mong đợi
+  - Giữ kiểm thử dễ đọc và tránh phụ thuộc chi tiết cài đặt
+- level1: Tình huống Java
+  level2:
+  - Giá trị biên của phép so sánh và quy tắc khoảng
+  - Phép tính số nguyên, chia dư và tràn số
+  - Số thực, sai số cho phép và các giá trị đặc biệt
+  - Chuỗi rỗng, khoảng trắng, null và quy tắc chuẩn hóa
+  - Collection rỗng, phần tử trùng lặp và thứ tự kết quả
+  - Optional, giá trị mặc định và nhánh không có dữ liệu
+  - Stream, lambda và khả năng quan sát kết quả xử lý
+  - equals, hashCode và tính nhất quán của đối tượng giá trị
+  - Comparator, trường hợp bằng nhau và thứ tự sắp xếp
+  - Ngày giờ, múi giờ và ranh giới thời hạn
+  - Vòng lặp, điều kiện dừng và số lần thực thi
+  - Máy trạng thái và tác dụng phụ của từng lần chuyển trạng thái
+- level1: Mockito và phụ thuộc
+  level2:
+  - Vai trò của mock, stub và fake khi phân tích đột biến
+  - Giữ lớp đang kiểm thử là đối tượng thật
+  - Dữ liệu stub cần phù hợp với tình huống nghiệp vụ
+  - Khẳng định kết quả nghiệp vụ bên cạnh verify tương tác
+  - ArgumentCaptor và kiểm tra dữ liệu truyền tới phụ thuộc
+  - Nhận diện matcher quá rộng và dữ liệu trả về làm che khuất lỗi
+  - Kiểm tra tương tác bị mất, bị thừa hoặc sai số lần
+  - Xác minh hành vi khi phụ thuộc ném ngoại lệ
+  - Đánh đổi khi dùng spy, mock static và mock constructor
+  - Giới hạn phụ thuộc Mockito inline, Java agent và phiên bản JDK
+- level1: Spring Boot
+  level2:
+  - Chọn logic nghiệp vụ phù hợp để bắt đầu trong ứng dụng Spring Boot
+  - Ưu tiên kiểm thử service không khởi động ApplicationContext
+  - Phân biệt kiểm thử đơn vị, kiểm thử lát cắt và kiểm thử toàn ngữ cảnh
+  - Đánh giá chi phí chạy @SpringBootTest dưới PIT
+  - MockMvc và WebTestClient trong phạm vi mã được kiểm thử
+  - Proxy, AOP, giao dịch và sự khác biệt với lời gọi đối tượng trực tiếp
+  - Cấu hình profile, thuộc tính ứng dụng và biến môi trường cho PIT
+  - Kiểm thử repository với cơ sở dữ liệu có trạng thái được cô lập
+  - Testcontainers và chi phí khởi tạo tài nguyên ngoài
+  - Giới hạn đột biến đối với Bean Validation, annotation và truy vấn khai báo
+  - Tách kiểm thử logic Java khỏi kiểm thử hành vi do framework thực hiện
+- level1: Tính ổn định
+  level2:
+  - Nhận diện kiểm thử chập chờn trước khi đánh giá mutant
+  - Phụ thuộc thứ tự chạy và trạng thái static dùng chung
+  - Vòng đời khởi tạo, dọn dẹp và bộ nhớ đệm giữa các kiểm thử
+  - Cô lập thời gian bằng Clock và nguồn sinh số ngẫu nhiên
+  - Cô lập tệp, cổng mạng, biến môi trường và thuộc tính hệ thống
+  - Dữ liệu cơ sở dữ liệu và tài nguyên dùng chung giữa các tiến trình
+  - Kiểm thử bất đồng bộ và thời điểm quan sát kết quả
+  - Phân biệt timeout do đột biến với timeout do máy chạy quá tải
+  - Đối chiếu locale, múi giờ và khác biệt giữa máy cá nhân với CI
+  - Xác minh tính lặp lại trước khi kết luận mutant đã được phát hiện
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian bộ kiểm thử gốc và từng giai đoạn PIT
+  - Ước lượng chi phí theo số mutant và tốc độ kiểm thử
+  - Thu hẹp phạm vi theo lớp, package và rủi ro thay đổi
+  - Chọn số threads phù hợp với CPU và bộ nhớ
+  - Phân biệt tham số JVM của tiến trình điều phối và tiến trình kiểm thử
+  - Điều chỉnh timeoutFactor và timeoutConstant có căn cứ
+  - Loại kiểm thử chậm khỏi một lượt phân tích có phạm vi rõ ràng
+  - Giảm chi phí khởi tạo fixture và tài nguyên ngoài
+  - Giới hạn số mutant và ghi nhận phần độ bao phủ bị đánh đổi
+  - Đánh giá mức tăng tốc cùng độ tin cậy của kết quả
+- level1: Phân tích gia tăng
+  level2:
+  - Phân tích gia tăng (incremental analysis) và mục đích sử dụng
+  - Lưu kết quả lịch sử và điều kiện tái sử dụng
+  - Cấu hình withHistory trong Maven
+  - Cấu hình tệp lịch sử đầu vào và đầu ra theo hệ thống build
+  - Ảnh hưởng của thay đổi mã, kiểm thử và phụ thuộc đến lịch sử
+  - Vô hiệu hóa lịch sử khi đổi phiên bản hoặc tập toán tử
+  - Quản lý khóa cache và tệp lịch sử trong CI
+  - Phân biệt lịch sử PIT với phân tích chỉ phần mã thay đổi
+  - Giới hạn của việc chọn lớp từ Git diff và ảnh hưởng xuyên lớp
+  - Chạy toàn bộ định kỳ để đối chiếu kết quả gia tăng
+- level1: Dự án đa module
+  level2:
+  - Xác định module sở hữu mã và module sở hữu kiểm thử
+  - Áp dụng cấu hình dùng chung và tùy chỉnh riêng từng module
+  - Chạy PIT cho một module hoặc một nhóm module
+  - Thiết lập source set và đường dẫn mã cần đột biến trong Gradle
+  - Kiểm thử mã thuộc module phụ thuộc và additionalMutableCodePaths
+  - Cross-module trong Maven và điều kiện hỗ trợ của phiên bản PIT
+  - Classpath chứa JAR và nguy cơ dùng sai bản mã đã biên dịch
+  - Tránh phân tích trùng một lớp ở nhiều module
+  - Tổng hợp báo cáo và kiểm tra mẫu số trước khi gộp chỉ số
+  - Chọn cổng chất lượng theo module thay vì che lấp bằng điểm toàn dự án
+- level1: CI và cổng chất lượng
+  level2:
+  - Tách lượt kiểm thử thường và lượt kiểm thử đột biến trong pipeline
+  - Thiết kế job PIT trên GitHub Actions hoặc Jenkins
+  - Chạy theo pull request, lịch định kỳ và thay đổi rủi ro cao
+  - Ghim phiên bản JDK, công cụ build và plugin
+  - Thiết lập mutationThreshold và coverageThreshold
+  - Ngưỡng test strength theo khả năng của phiên bản đang sử dụng
+  - Khác biệt giữa ngưỡng tối thiểu và chính sách không giảm chất lượng
+  - Thiết lập mốc ban đầu cho mã cũ và yêu cầu với mã mới
+  - Lưu báo cáo HTML, XML, cấu hình và định danh commit
+  - Cache phụ thuộc, lịch sử phân tích và giới hạn thời gian job
+  - Phân biệt thất bại cổng chất lượng với lỗi hạ tầng chạy PIT
+  - Quy trình duyệt ngoại lệ, trách nhiệm xử lý và thời hạn xem xét lại
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không tìm thấy lớp cần đột biến
+  - Không tìm thấy kiểm thử hoặc JUnit engine không được nhận diện
+  - Bộ kiểm thử gốc thành công nhưng kiểm tra ban đầu của PIT thất bại
+  - Tất cả mutant ở trạng thái NO_COVERAGE
+  - Số mutant bằng không hoặc thấp bất thường
+  - Lỗi NoSuchMethodError do lệch phiên bản JUnit Platform
+  - Lỗi bytecode không được hỗ trợ khi đổi phiên bản JDK
+  - Lỗi classpath và tên đường dẫn dài trên Windows
+  - Tiến trình kiểm thử thoát bất thường hoặc thiếu bộ nhớ
+  - Quá nhiều TIMED_OUT, NON_VIABLE hoặc RUN_ERROR
+  - Báo cáo không hiển thị mã nguồn hoặc ánh xạ sai dòng
+  - Xung đột agent đo độ bao phủ, instrumentation hoặc mocking
+  - Kết quả khác nhau giữa hai máy hoặc hai lần chạy
+  - Thu thập log chi tiết và tạo ví dụ tối thiểu để tái hiện lỗi
+- level1: Mở rộng PIT
+  level2:
+  - Kiến trúc plugin và các điểm mở rộng của PIT
+  - Plugin hỗ trợ framework kiểm thử
+  - Plugin bổ sung toán tử và bộ máy đột biến
+  - Bộ lọc giảm mutant không hữu ích
+  - Mở rộng định dạng báo cáo và tích hợp công cụ phân tích
+  - Quản lý classpath và đóng gói plugin mở rộng
+  - Kiểm thử tính đúng đắn và tương thích của phần mở rộng
+  - Tiêu chí chọn cấu hình sẵn có hoặc tự phát triển plugin
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết lập bộ kiểm thử có độ bao phủ dòng cao nhưng khẳng định yếu
+  - Phát hiện sai lệch điều kiện biên trong bộ kiểm tra dữ liệu
+  - Cải thiện kiểm thử phép tính giảm giá và làm tròn
+  - Phát hiện lời gọi gửi thông báo bị loại bỏ
+  - Kiểm thử luật chuyển trạng thái đơn hàng
+  - Phân tích trường hợp mutant sống có lập luận tương đương
+  - Đo tác động của kiểm thử tham số hóa lên tập mutant
+  - Tối ưu thời gian PIT trên một dự án nhiều package
+  - Tích hợp báo cáo và cổng chất lượng vào một pull request
+  - Lập hồ sơ trước và sau gồm cấu hình, mutant, kiểm thử và kết quả
+- level1: Áp dụng thực tế
+  level2:
+  - Chọn phạm vi thí điểm theo rủi ro nghiệp vụ
+  - Đánh giá mức sẵn sàng của bộ kiểm thử và thời gian phản hồi
+  - Lập danh sách mutant sống cần xử lý theo mức ưu tiên
+  - Đưa phân tích mutant vào quá trình review và refactor
+  - Đánh giá lợi ích qua lỗi phát hiện, chi phí chạy và chi phí bảo trì
+  - Tránh tối ưu điểm số bằng loại trừ mã hoặc kiểm thử thiếu ý nghĩa
+  - Đánh giá kiểm thử do AI sinh bằng yêu cầu nghiệp vụ và bằng chứng
+  - Theo dõi xu hướng khi quy mô mã và tập toán tử thay đổi
+  - Cập nhật công cụ và xác minh lại mốc so sánh
+  - Checklist hoàn thành và kế hoạch duy trì mutation testing

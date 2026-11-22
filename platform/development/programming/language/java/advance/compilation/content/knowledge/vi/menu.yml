@@ -1,0 +1,213 @@
+menu:
+- level1: Bức tranh nền tảng
+  level2:
+  - Biên dịch Java là gì và giải quyết vấn đề nào
+  - Từ mã nguồn đến tệp class và chương trình chạy
+  - Vai trò của JDK, javac, JVM và JIT
+  - Phân biệt biên dịch, đóng gói, nạp lớp và thực thi
+  - Đầu vào, cấu hình, chẩn đoán và đầu ra của một lần biên dịch
+  - Mã biên dịch thành công chưa bảo đảm chạy đúng
+  - Kiến thức cần có và cách thực hành với một dự án nhỏ
+  - Ranh giới giữa đặc tả Java và chi tiết triển khai javac
+- level1: Tổ chức mã nguồn
+  level2:
+  - Tệp nguồn, khai báo kiểu và quy tắc tên lớp public
+  - Package, thư mục gốc và tên kiểu đầy đủ
+  - Import, static import và giới hạn của việc nhập tên
+  - Tổ chức nhiều tệp có tham chiếu qua lại
+  - Tên nhị phân của lớp lồng nhau và các tệp class được sinh
+  - Vai trò của package-info.java và module-info.java
+  - Tách mã nguồn chính, kiểm thử và mã được sinh
+  - Encoding, ký tự Unicode và khả năng tái lập khi đọc nguồn
+- level1: Sử dụng javac
+  level2:
+  - Kiểm tra JDK và xác định đúng javac đang được gọi
+  - Biên dịch và chạy chương trình đầu tiên ngoài IDE
+  - Biên dịch nhiều tệp trong một lần gọi
+  - Dùng -d để tổ chức thư mục đầu ra
+  - Biên dịch chương trình có package từ đúng thư mục gốc
+  - Dùng tệp đối số @argfile cho tập nguồn lớn
+  - Đường dẫn có khoảng trắng và ký hiệu phân cách trên Windows, Linux
+  - Thư mục làm việc, biến môi trường và cấu hình ngầm
+  - Phân biệt javac với chế độ chạy trực tiếp tệp nguồn của java
+- level1: Cấu hình biên dịch
+  level2:
+  - Chọn rõ tập nguồn và đường tìm mã nguồn
+  - Biên dịch ngầm phụ thuộc nguồn và tùy chọn -implicit
+  - Thiết lập -encoding để tránh phụ thuộc môi trường
+  - Điều khiển thông tin debug bằng -g
+  - Lưu tên tham số bằng -parameters và giới hạn của thông tin này
+  - Phân biệt tùy chọn javac với tùy chọn JVM truyền qua -J
+  - Phân loại tùy chọn chuẩn, mở rộng và nội bộ của javac
+  - Ghi lại cấu hình thực tế để tái hiện một lần biên dịch
+- level1: Các giai đoạn
+  level2:
+  - Toàn cảnh các giai đoạn xử lý trong javac
+  - Từ ký tự nguồn đến token và cây cú pháp trừu tượng
+  - Ghi nhận khai báo và xây dựng bảng ký hiệu
+  - Phân giải tên, phạm vi và liên kết tới khai báo
+  - Kiểm tra kiểu và gán ý nghĩa cho biểu thức
+  - Phân tích luồng điều khiển và điều kiện hợp lệ
+  - Vị trí của annotation processing trong chu trình biên dịch
+  - Hạ cấu trúc ngôn ngữ và sinh tệp class
+- level1: Kiểm tra ngữ nghĩa
+  level2:
+  - Kiểm tra quyền truy cập và tính hợp lệ của tham chiếu kiểu
+  - Phân giải overload và ảnh hưởng của kiểu tại thời điểm biên dịch
+  - Kiểm tra override, kiểu trả về và ngoại lệ khai báo
+  - Chuyển đổi kiểu, boxing, unboxing và lỗi chỉ xuất hiện khi chạy
+  - Kiểm tra generics, suy luận kiểu và trường hợp không suy luận được
+  - Raw type, unchecked conversion và ý nghĩa cảnh báo
+  - Kiểm tra definite assignment và biến có thể chưa được gán
+  - Kiểm tra checked exception và các nhánh xử lý
+  - Reachability, return và các nhánh điều khiển không hợp lệ
+  - Kiểu đích của lambda, method reference và biểu thức điều kiện
+- level1: Biến đổi mã
+  level2:
+  - Type erasure và sự khác nhau giữa kiểu nguồn với descriptor
+  - Bridge method và synthetic member trong đầu ra biên dịch
+  - Biên dịch lớp lồng nhau, lớp cục bộ và lớp vô danh
+  - Biến effectively final và dữ liệu được giữ bởi lambda
+  - Quan sát lambda và method reference trong bytecode
+  - Hằng số lúc biên dịch, gấp hằng và nguy cơ dùng giá trị cũ
+  - Quan sát mã được sinh cho record và enum
+  - Phân biệt biến đổi của javac với tối ưu hóa của JVM
+- level1: Classpath
+  level2:
+  - Classpath là gì và trình biên dịch tìm kiểu như thế nào
+  - Dùng thư mục class và tệp JAR làm phụ thuộc
+  - Phân biệt import với cấu hình classpath
+  - Thứ tự tìm kiếm và xung đột khi nhiều thư viện chứa cùng kiểu
+  - Phân biệt phụ thuộc lúc biên dịch với phụ thuộc lúc chạy
+  - Chọn giữa mã nguồn và class có sẵn khi cùng tìm thấy
+  - Giới hạn của ký tự đại diện trong đường dẫn phụ thuộc
+  - Lỗi cannot find symbol và package does not exist do cấu hình
+  - Cô lập đầu ra và tránh tệp class cũ che lỗi thiếu phụ thuộc
+- level1: Mô-đun Java
+  level2:
+  - Vì sao module path khác classpath
+  - Named module, unnamed module và automatic module
+  - module-info.java với requires và exports
+  - requires transitive, requires static và ảnh hưởng khi biên dịch
+  - Biên dịch một hoặc nhiều mô-đun bằng --module-source-path
+  - Khả năng đọc mô-đun, quyền truy cập package và split package
+  - Khi nào dùng --add-modules, --add-reads và --add-exports
+  - Phân biệt quyền truy cập lúc biên dịch với cấu hình phản chiếu lúc chạy
+  - Dùng --patch-module trong tình huống có kiểm soát
+- level1: Tương thích phiên bản
+  level2:
+  - Phân biệt phiên bản JDK công cụ, ngôn ngữ nguồn và class đích
+  - Ý nghĩa và giới hạn của -source và -target
+  - Dùng --release để ràng buộc cú pháp, API nền tảng và đầu ra
+  - Vì sao -target đơn lẻ không bảo đảm dùng được API trên Java cũ
+  - Đọc major, minor version và lỗi UnsupportedClassVersionError
+  - Biên dịch phụ thuộc đã được tạo bởi JDK mới hơn
+  - Bật preview khi biên dịch và chạy trên phiên bản tương ứng
+  - Ảnh hưởng của API deprecated, forRemoval và tính năng bị loại bỏ
+  - Kiểm tra ma trận JDK biên dịch và môi trường Java đích
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc vị trí, mã lỗi và ngữ cảnh thông báo biên dịch
+  - Phân biệt lỗi cú pháp, tên, kiểu, truy cập và phụ thuộc
+  - Tìm lỗi gốc khi một lỗi tạo ra nhiều thông báo dây chuyền
+  - Dùng -Xlint để phát hiện nhóm cảnh báo có ý nghĩa
+  - Áp dụng -Werror và xây dựng chính sách cảnh báo phù hợp
+  - Dùng @SuppressWarnings có phạm vi và căn cứ rõ ràng
+  - Điều chỉnh độ chi tiết chẩn đoán mà không dựa vào định dạng cố định
+  - Thu nhỏ ví dụ lỗi và so sánh cấu hình IDE với dòng lệnh
+- level1: Xử lý annotation
+  level2:
+  - Annotation processing là gì và khi nào nên sinh mã
+  - Phân biệt annotation processing với reflection và biến đổi AST
+  - Vòng xử lý, mã mới sinh và điều kiện kết thúc
+  - Processor phát hiện annotation nào và ý nghĩa claim annotation
+  - Chọn processor bằng -processor và cấu hình đường tìm processor
+  - Tách processor path, processor module path và classpath ứng dụng
+  - Dùng -proc để chọn chế độ xử lý theo JDK đang sử dụng
+  - Thư mục nguồn sinh -s và quan hệ với thư mục class
+  - Theo dõi vòng xử lý và chẩn đoán processor không được gọi
+- level1: Xây dựng processor
+  level2:
+  - Cấu trúc AbstractProcessor và ProcessingEnvironment
+  - Khai báo annotation hỗ trợ, tùy chọn và SourceVersion
+  - Dùng RoundEnvironment để duyệt phần tử cần xử lý
+  - Đọc Element, TypeMirror và mô hình ngôn ngữ
+  - Dùng Elements, Types thay cho suy đoán từ chuỗi kiểu
+  - Sinh nguồn và tài nguyên bằng Filer
+  - Gắn lỗi, cảnh báo vào phần tử bằng Messager
+  - Xử lý processingOver, errorRaised và dữ liệu qua nhiều vòng
+  - Tránh tạo trùng tệp, xử lý FilerException và ghi nhận phần tử nguồn
+  - Đóng gói, đăng ký và kiểm tra processor từ một dự án sử dụng
+- level1: Compiler API
+  level2:
+  - JavaCompiler và các thành phần của javax.tools
+  - Lấy compiler bằng ToolProvider và xử lý khi compiler không có sẵn
+  - Phân biệt module java.compiler với triển khai trong jdk.compiler
+  - Biên dịch tệp bằng StandardJavaFileManager
+  - Tạo CompilationTask bằng getTask và truyền tùy chọn
+  - Thu DiagnosticCollector, vị trí lỗi và mức độ chẩn đoán
+  - Xử lý kết quả call, đầu ra chẩn đoán và lỗi cấu hình
+  - Quản lý file manager, tài nguyên và các lần biên dịch kế tiếp
+  - Cấu hình processor và mô-đun cho tác vụ API
+  - Phân biệt API chuẩn với lớp triển khai nội bộ của javac
+- level1: Biên dịch trong bộ nhớ
+  level2:
+  - Mô hình JavaFileObject và URI của một đơn vị nguồn
+  - Biểu diễn nguồn String bằng SimpleJavaFileObject
+  - Thu bytecode bằng ForwardingJavaFileManager
+  - Lưu nhiều tệp class cho lớp lồng nhau và nguồn được sinh
+  - Cấu hình phụ thuộc và vị trí đầu ra cho file manager tùy biến
+  - Ánh xạ chẩn đoán về đúng nguồn và vị trí ban đầu
+  - Quản lý vòng đời bộ đệm, file manager và kết quả thất bại
+  - Ranh giới giữa biên dịch bytecode với nạp hoặc chạy bytecode
+- level1: Cây cú pháp
+  level2:
+  - Vai trò của Compiler Tree API trong phân tích mã nguồn
+  - Dùng JavacTask để parse, analyze và generate
+  - Duyệt CompilationUnitTree bằng TreeScanner và TreePathScanner
+  - Liên hệ nút Tree với Element và TypeMirror bằng Trees
+  - Xác định vị trí nguồn để báo lỗi hoặc hiển thị kết quả phân tích
+  - Quan sát giai đoạn bằng TaskListener mà không sửa nội bộ compiler
+  - Giới hạn của cây chỉ mới parse và rủi ro khi phụ thuộc API nội bộ
+- level1: Kiểm chứng đầu ra
+  level2:
+  - Dùng javap để xem khai báo, descriptor và bytecode
+  - Đọc constant pool và thuộc tính class ở mức phục vụ kiểm chứng
+  - Quan sát thông tin dòng, biến cục bộ và tên tham số
+  - Đối chiếu generics ở Signature với descriptor sau erasure
+  - Kiểm tra bridge method, synthetic member và lớp phụ được sinh
+  - Phân biệt kiểm tra của compiler với xác minh bytecode của JVM
+  - Phân biệt lỗi biên dịch với lỗi liên kết do thư viện không tương thích
+  - Kiểm tra tệp class đúng phiên bản trước khi đóng gói
+- level1: Tích hợp build
+  level2:
+  - Vai trò của Gradle hoặc Maven quanh trình biên dịch
+  - Cấu hình toolchain độc lập với JDK chạy công cụ build
+  - Tách biên dịch mã chính, mã kiểm thử và nguồn được sinh
+  - Tách phụ thuộc ứng dụng với phụ thuộc annotation processor
+  - Biên dịch tăng dần, phụ thuộc thay đổi và khi nào cần build sạch
+  - Tệp class cũ, hằng số được nhúng và rủi ro của đầu ra thiếu cập nhật
+  - Xác định đầu vào của build cache và tránh dùng kết quả sai cấu hình
+  - Kiểm soát JDK, encoding, processor và phụ thuộc để tái lập bản build
+  - Tái hiện lệnh biên dịch từ log build và môi trường CI
+- level1: Kiểm thử biên dịch
+  level2:
+  - Thiết kế ca phải biên dịch thành công và ca phải bị từ chối
+  - Kiểm tra trạng thái lỗi thay vì chỉ so chuỗi thông báo
+  - Kiểm tra vị trí và mức độ diagnostics qua Compiler API
+  - Kiểm tra cảnh báo, -Werror và phạm vi SuppressWarnings
+  - Kiểm thử processor với mã sinh đúng và đầu vào không hợp lệ
+  - Kiểm tra mã sinh bằng một lần biên dịch sử dụng thực tế
+  - Kiểm thử thiếu phụ thuộc, xung đột kiểu và cấu hình mô-đun
+  - Kiểm thử --release, preview và các phiên bản JDK hỗ trợ
+  - Phân biệt kiểm thử đầu ra bytecode ổn định với chi tiết triển khai dễ đổi
+  - 'Bài thực hành: từ cấu hình javac đến kiểm chứng tự động bản build'
+- level1: An toàn và giới hạn
+  level2:
+  - Vì sao biên dịch thành công không tạo ra môi trường chạy an toàn
+  - Processor và plugin là mã thực thi trong môi trường biên dịch
+  - Chỉ cho phép processor, plugin và phụ thuộc có nguồn tin cậy
+  - Cô lập nguồn không tin cậy, quyền tệp và tài nguyên tiến trình
+  - Kiểm soát thời gian, bộ nhớ và đường ghi khi cung cấp dịch vụ biên dịch
+  - Tránh lộ đường dẫn và dữ liệu nhạy cảm qua diagnostics
+  - Đánh giá chi phí khởi động compiler và tái sử dụng tài nguyên có giới hạn

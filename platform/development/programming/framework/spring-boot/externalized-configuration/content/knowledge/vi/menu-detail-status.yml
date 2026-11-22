@@ -1,0 +1,2263 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Cấu hình ngoài (externalized configuration) là gì và giải quyết vấn đề nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Một bản dựng dùng cho nhiều môi trường: mã nguồn và cấu hình thay đổi độc lập'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: thuộc tính, nguồn cấu hình, Environment, profile và liên kết kiểu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt cấu hình ứng dụng, định nghĩa bean và dữ liệu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Hành trình từ nguồn cấu hình đến giá trị được bean sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của Spring Framework và phần mở rộng của Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi Spring Boot 3.3 và kiến thức Java, IoC cần chuẩn bị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và ứng dụng mẫu để quan sát cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sources-and-precedence
+  title: Nguồn và ưu tiên
+  childs:
+  - slug: sources-and-precedence-001
+    title: Các nhóm nguồn cấu hình và cách chúng cùng tham gia Environment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-002
+    title: Thứ tự ưu tiên đầy đủ của PropertySource trong Spring Boot 3.3
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-003
+    title: Cấu hình mặc định bằng SpringApplication.setDefaultProperties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-004
+    title: 'Config Data: cấu hình đóng gói và cấu hình bên ngoài ứng dụng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-005
+    title: Đối chiếu biến môi trường, thuộc tính JVM và tham số dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-006
+    title: JNDI, ServletContext và ServletConfig trong môi trường Servlet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-007
+    title: SPRING_APPLICATION_JSON và vị trí của nguồn JSON trong thứ tự ưu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-008
+    title: Nguồn cấu hình kiểm thử và thiết lập toàn cục của Devtools
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-009
+    title: Phân biệt thứ tự ưu tiên nguồn, thứ tự nạp tệp và ghi đè từng khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sources-and-precedence-010
+    title: Thực nghiệm nhiều nguồn cùng khai báo một khóa cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: properties-and-yaml
+  title: Properties và YAML
+  childs:
+  - slug: properties-and-yaml-001
+    title: Cú pháp khóa và giá trị trong application.properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-002
+    title: Khoảng trắng, chú thích, ký tự đặc biệt và nối dòng trong properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-003
+    title: Cấu trúc phân cấp và quy tắc thụt lề trong YAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-004
+    title: Chuỗi, số, boolean và thời điểm cần đặt dấu nháy trong YAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-005
+    title: 'Chuỗi nhiều dòng trong YAML: giữ xuống dòng và gộp dòng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-006
+    title: Biểu diễn danh sách và ánh xạ bằng properties và YAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-007
+    title: Chuyển cấu trúc YAML thành tên thuộc tính phẳng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-008
+    title: Xử lý khóa trùng, sai thụt lề và khác biệt giữa trống với null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: properties-and-yaml-009
+    title: Lựa chọn một định dạng và xử lý trường hợp properties cùng tồn tại với YAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-file-loading
+  title: Tìm và nạp tệp
+  childs:
+  - slug: configuration-file-loading-001
+    title: Các vị trí tìm application.properties và application.yaml mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-002
+    title: 'Phân biệt classpath, thư mục làm việc và đường dẫn file:'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-003
+    title: Đổi tên cơ sở của tệp bằng spring.config.name
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-004
+    title: Thay thế vị trí mặc định bằng spring.config.location
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-005
+    title: Bổ sung vị trí bằng spring.config.additional-location
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-006
+    title: Quy tắc đường dẫn tệp, thư mục và dấu gạch chéo cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-007
+    title: 'Nhóm vị trí nạp: dấu phẩy, dấu chấm phẩy và tác động đến ghi đè'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-008
+    title: Vị trí wildcard và thứ tự xét các thư mục cấu hình bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-009
+    title: Thời điểm cung cấp spring.config.* để bộ nạp nhận được cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-file-loading-010
+    title: 'Ứng xử khi vị trí không tồn tại: optional: và spring.config.on-not-found'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: config-data-import
+  title: Config Data Import
+  childs:
+  - slug: config-data-import-001
+    title: Vai trò của spring.config.import và khác biệt với location
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-002
+    title: Nhập tệp properties hoặc YAML từ classpath và hệ thống tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-003
+    title: Đường dẫn nhập cố định và đường dẫn tương đối với tệp khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-004
+    title: Ưu tiên của dữ liệu nhập so với tài liệu khai báo import
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-005
+    title: Nhiều import, nhập lồng nhau và quy tắc chỉ nạp một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-006
+    title: Biến thể theo profile của tệp được import
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-007
+    title: Import tùy chọn và phân biệt thiếu tài nguyên với nội dung không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-008
+    title: Nạp tệp không có phần mở rộng bằng gợi ý [.properties] hoặc [.yaml]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-009
+    title: 'Cây cấu hình configtree: từ tên thư mục, tên tệp đến khóa và giá trị'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: config-data-import-010
+    title: Import nhiều cây cấu hình và lựa chọn kiểu String hoặc byte[]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: profiles
+  title: Profile
+  childs:
+  - slug: profiles-001
+    title: Profile là gì và khi nào cần tách cấu hình theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-002
+    title: Kích hoạt profile bằng spring.profiles.active từ các nguồn cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-003
+    title: Profile mặc định và thuộc tính spring.profiles.default
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-004
+    title: Tệp application-{profile} và quan hệ với tệp cấu hình chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-005
+    title: Nhiều profile hoạt động đồng thời và thứ tự ghi đè
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-006
+    title: Bổ sung profile bằng spring.profiles.include
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-007
+    title: Gom profile theo chức năng bằng spring.profiles.group
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-008
+    title: Đặt active, default, include và group ở tài liệu hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-009
+    title: '@Profile: chọn bean theo profile và liên hệ với tệp cấu hình'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-010
+    title: Bổ sung profile bằng SpringApplication và ConfigurableEnvironment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiles-011
+    title: Thiết kế profile theo nhu cầu triển khai và tránh tổ hợp khó kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditional-documents
+  title: Tài liệu có điều kiện
+  childs:
+  - slug: conditional-documents-001
+    title: Phân biệt một tệp vật lý với nhiều tài liệu cấu hình logic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-documents-002
+    title: 'Tách tài liệu YAML bằng --- và properties bằng #--- hoặc !---'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-documents-003
+    title: Thứ tự xử lý và ghi đè giữa các tài liệu trong cùng tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-documents-004
+    title: Kích hoạt tài liệu bằng spring.config.activate.on-profile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-documents-005
+    title: Biểu thức profile với toán tử !, & và |
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-documents-006
+    title: Kích hoạt theo nền tảng bằng spring.config.activate.on-cloud-platform
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-documents-007
+    title: Kết hợp điều kiện profile và nền tảng triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-documents-008
+    title: Giới hạn nạp tài liệu nhiều phần qua @PropertySource và @TestPropertySource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-variables
+  title: Biến môi trường
+  childs:
+  - slug: environment-variables-001
+    title: Chuyển tên thuộc tính chuẩn thành tên biến môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-002
+    title: Quy tắc dấu chấm, dấu gạch ngang và chữ hoa khi liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-003
+    title: Chỉ số danh sách trong tên biến môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-004
+    title: Khóa Map qua biến môi trường và giới hạn bảo toàn chữ hoa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-005
+    title: Truyền thuộc tính JVM bằng -D và vị trí trước -jar
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-006
+    title: Truyền tham số --key=value và phân biệt với đối số thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-007
+    title: Tắt nguồn dòng lệnh bằng setAddCommandLineProperties(false)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-008
+    title: Truyền cấu hình có cấu trúc qua SPRING_APPLICATION_JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-009
+    title: Ý nghĩa của null trong JSON khi cần ghi đè giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-010
+    title: Dấu nháy và ký tự đặc biệt khi chạy trên PowerShell hoặc shell Unix
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-variables-011
+    title: Phân biệt biến của tiến trình, tùy chọn IDE và tệp .env không tự được Boot nạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: placeholders-and-defaults
+  title: Placeholder và mặc định
+  childs:
+  - slug: placeholders-and-defaults-001
+    title: Tham chiếu thuộc tính bằng cú pháp ${key}
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-002
+    title: Cung cấp giá trị dự phòng bằng ${key:default}
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-003
+    title: Tham chiếu lồng nhau và xây giá trị từ nhiều thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-004
+    title: Tên khóa chuẩn dạng kebab-case trong placeholder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-005
+    title: Phân biệt khóa vắng mặt, chuỗi rỗng, giá trị 0 và false
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-006
+    title: Lỗi placeholder không phân giải được và tham chiếu vòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-007
+    title: 'Phân biệt placeholder ${...} với biểu thức SpEL #{...}'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-008
+    title: Giá trị ngẫu nhiên từ random.* và giới hạn sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-and-defaults-009
+    title: Phân biệt thay thế placeholder lúc chạy với lọc tài nguyên lúc dựng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-access
+  title: Truy cập cấu hình
+  childs:
+  - slug: configuration-access-001
+    title: Chọn Environment, @Value hay @ConfigurationProperties theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-002
+    title: Đọc giá trị bằng Environment.getProperty và chỉ định kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-003
+    title: Thuộc tính bắt buộc với getRequiredProperty và kiểm tra containsProperty
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-004
+    title: Phân giải chuỗi chứa placeholder qua Environment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-005
+    title: Tiêm giá trị đơn bằng @Value ở constructor, trường và phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-006
+    title: Chuyển đổi kiểu và giá trị mặc định khi dùng @Value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-007
+    title: Sử dụng SpEL trong @Value và giới hạn khi đọc dữ liệu cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-008
+    title: Giới hạn liên kết tên và cấu trúc phức tạp của @Value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-009
+    title: Thời điểm tiêm giá trị và lý do trường static không phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-access-010
+    title: Thay các @Value rải rác bằng đối tượng cấu hình có cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-properties
+  title: '@ConfigurationProperties'
+  childs:
+  - slug: configuration-properties-001
+    title: Mô hình cấu hình có kiểu và lợi ích của @ConfigurationProperties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-002
+    title: Thiết kế prefix theo miền chức năng và quy tắc đặt tên chuẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-003
+    title: Đăng ký bằng @ConfigurationPropertiesScan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-004
+    title: Đăng ký tường minh bằng @EnableConfigurationProperties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-005
+    title: Đăng ký kiểu JavaBean bằng @Component và phạm vi áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-006
+    title: Liên kết kiểu JavaBean qua getter, setter và giá trị khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-007
+    title: Mô hình hóa đối tượng lồng nhau và đường dẫn thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-008
+    title: Dùng @ConfigurationProperties trên @Bean của thư viện bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-009
+    title: Phân biệt tạo bean, liên kết thuộc tính và tiêm phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-properties-010
+    title: Tách lớp cấu hình khỏi dịch vụ nghiệp vụ và phụ thuộc bean khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constructors-and-records
+  title: Constructor và record
+  childs:
+  - slug: constructors-and-records-001
+    title: Liên kết qua constructor và thiết kế cấu hình bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-002
+    title: Suy luận constructor liên kết khi lớp có một constructor phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-003
+    title: Chọn constructor bằng @ConstructorBinding khi có nhiều constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-004
+    title: Dùng Java record cho cấu hình và đối tượng lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-005
+    title: Cấp giá trị mặc định bằng @DefaultValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-006
+    title: Đối tượng lồng nhau khi toàn bộ nhóm thuộc tính vắng mặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-007
+    title: Yêu cầu tên tham số -parameters và cấu hình biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-008
+    title: Giới hạn constructor binding với bean tạo qua @Component hoặc @Bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-009
+    title: Lý do không nên dùng Optional làm trường cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-and-records-010
+    title: So sánh JavaBean, lớp bất biến và record qua cùng một mô hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binding-rules
+  title: Quy tắc liên kết
+  childs:
+  - slug: binding-rules-001
+    title: Liên kết linh hoạt (relaxed binding) và tên thuộc tính chuẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-002
+    title: Đối chiếu kebab-case, camelCase và underscore theo từng nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-003
+    title: Phân biệt quy tắc prefix với quy tắc tên thuộc tính thành viên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-004
+    title: Khác biệt giữa tra cứu trực tiếp Environment và liên kết đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-005
+    title: Xử lý thuộc tính không có trong lớp với ignoreUnknownFields
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-006
+    title: Xử lý giá trị sai kiểu với ignoreInvalidFields
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-007
+    title: Phát hiện khóa viết sai thay vì bỏ qua âm thầm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-008
+    title: Giá trị mặc định của kiểu nguyên thủy và rủi ro che giấu cấu hình thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-009
+    title: Phân biệt liên kết thành công với cấu hình đáp ứng yêu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections-and-maps
+  title: Collection và Map
+  childs:
+  - slug: collections-and-maps-001
+    title: Liên kết mảng, List và Set từ properties hoặc YAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-002
+    title: Cú pháp chỉ số và danh sách phân tách bằng dấu phẩy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-003
+    title: Liên kết danh sách đối tượng có cấu trúc lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-004
+    title: Danh sách bị thay thế khi xuất hiện ở nguồn ưu tiên cao hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-005
+    title: Tác động của profile lên danh sách và phần tử có thuộc tính thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-006
+    title: Liên kết Map có giá trị đơn hoặc đối tượng phức tạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-007
+    title: Cách Map kết hợp các khóa từ nhiều nguồn cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-008
+    title: Bảo toàn khóa Map đặc biệt bằng ký pháp dấu ngoặc vuông
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-009
+    title: Phân biệt dấu chấm trong khóa Map với đường dẫn đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-and-maps-010
+    title: Collection khả biến, bất biến và yêu cầu getter hoặc setter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-conversion
+  title: Chuyển đổi kiểu
+  childs:
+  - slug: type-conversion-001
+    title: Vai trò của ConversionService trong liên kết cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-002
+    title: Chuyển chuỗi thành số, boolean, enum và kiểu chuẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-003
+    title: Cấu hình khoảng thời gian bằng Duration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-004
+    title: Đơn vị mặc định và @DurationUnit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-005
+    title: Cấu hình dung lượng bằng DataSize và @DataSizeUnit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-006
+    title: Chuyển đổi URI, URL, InetAddress và Resource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-007
+    title: Tạo Converter tùy chỉnh với @ConfigurationPropertiesBinding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-008
+    title: Yêu cầu khởi tạo sớm của bộ chuyển đổi và giới hạn phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-009
+    title: Ảnh hưởng của bean tên conversionService và cách tránh thay đổi ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-conversion-010
+    title: Chẩn đoán sai định dạng, sai đơn vị và giá trị vượt miền hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation
+  title: Kiểm tra hợp lệ
+  childs:
+  - slug: validation-001
+    title: Vì sao cần kiểm tra cấu hình ngay khi khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-002
+    title: Chuẩn bị Bean Validation và các annotation jakarta.validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-003
+    title: Kích hoạt kiểm tra bằng @Validated trên cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-004
+    title: Ràng buộc chuỗi, số, địa chỉ và giá trị bắt buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-005
+    title: Kiểm tra đối tượng lồng nhau bằng @Valid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-006
+    title: Kiểm tra phần tử collection và giá trị Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-007
+    title: Ràng buộc quan hệ giữa nhiều trường cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-008
+    title: Tạo constraint và ConstraintValidator theo yêu cầu riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-009
+    title: Validator chuyên dụng mang tên configurationPropertiesValidator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-010
+    title: Phân biệt lỗi liên kết, lỗi chuyển đổi và lỗi vi phạm ràng buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-011
+    title: Thiết kế thông báo lỗi hữu ích mà không lộ giá trị bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-metadata
+  title: Metadata cấu hình
+  childs:
+  - slug: configuration-metadata-001
+    title: Configuration metadata là gì và hỗ trợ IDE ra sao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-002
+    title: Sinh metadata bằng spring-boot-configuration-processor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-003
+    title: Khai báo annotation processor trong Gradle và Maven
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-004
+    title: Cấu trúc groups, properties và hints của metadata JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-005
+    title: Mô tả thuộc tính, kiểu dữ liệu và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-006
+    title: Metadata cho kiểu lồng nhau và @NestedConfigurationProperty
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-007
+    title: Bổ sung thông tin bằng additional-spring-configuration-metadata.json
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-008
+    title: Gợi ý giá trị, đánh dấu ngừng khuyến nghị và khai báo khóa thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-metadata-009
+    title: Kiểm tra metadata trong JAR và phân biệt metadata với kiểm tra lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-binder
+  title: Binder nâng cao
+  childs:
+  - slug: advanced-binder-001
+    title: Khi nào cần liên kết lập trình thay vì annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-002
+    title: Lấy Binder từ Environment và liên kết theo prefix
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-003
+    title: Giữ thông tin kiểu tổng quát bằng Bindable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-004
+    title: Xử lý BindResult và trường hợp không có dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-005
+    title: Khởi tạo đối tượng bằng bindOrCreate và quản lý giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-006
+    title: Liên kết vào đối tượng sẵn có bằng Bindable.ofInstance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-007
+    title: Tùy biến quá trình bằng BindHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-008
+    title: Kiểm tra hợp lệ và phát hiện dữ liệu không được liên kết qua handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-binder-009
+    title: Giới hạn của Binder khi dùng trực tiếp ngoài vòng đời bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-extensions
+  title: Mở rộng Environment
+  childs:
+  - slug: environment-extensions-001
+    title: PropertySource và MutablePropertySources trong ConfigurableEnvironment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-002
+    title: Thêm nguồn bằng addFirst, addLast, addBefore và addAfter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-003
+    title: Nạp properties bổ sung bằng @PropertySource và xác định ưu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-004
+    title: Giới hạn YAML, tài liệu nhiều phần và thời điểm của @PropertySource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-005
+    title: Thuộc tính đọc sớm như logging.* và spring.main.*
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-006
+    title: Can thiệp sớm bằng EnvironmentPostProcessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-007
+    title: Đăng ký EnvironmentPostProcessor và điều phối thứ tự thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-008
+    title: Phân biệt EnvironmentPostProcessor với ApplicationContextInitializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-009
+    title: Mở rộng Config Data qua ConfigDataLocationResolver và ConfigDataLoader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-extensions-010
+    title: Ranh giới giữa Boot thuần với Spring Cloud Config, Consul và Vault
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-protection
+  title: Bảo vệ bí mật
+  childs:
+  - slug: secret-protection-001
+    title: Phân loại giá trị cấu hình thông thường và thông tin bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-protection-002
+    title: Tách bí mật khỏi Git, tài nguyên classpath và bản dựng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-protection-003
+    title: Cấp bí mật qua biến môi trường hoặc tệp được gắn vào tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-protection-004
+    title: 'Đọc Docker secrets và Kubernetes Secrets bằng configtree:'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-protection-005
+    title: Rủi ro lộ bí mật qua dòng lệnh, log, toString và thông báo lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-protection-006
+    title: Ẩn giá trị khi chẩn đoán bằng Actuator env và configprops
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-protection-007
+    title: Giới hạn mã hóa của Spring Boot thuần và vai trò kho bí mật bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-protection-008
+    title: Thay đổi bí mật, vòng đời tiến trình và kế hoạch khởi động lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-deployment
+  title: Triển khai cấu hình
+  childs:
+  - slug: configuration-deployment-001
+    title: Tổ chức cấu hình chung, cấu hình môi trường và bí mật riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-002
+    title: Chạy từ IDE, bootRun và java -jar với cùng hợp đồng cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-003
+    title: Phân biệt tham số Gradle, thuộc tính JVM và đối số ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-004
+    title: Thư mục làm việc khác nhau và lỗi tìm cấu hình khi triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-005
+    title: Truyền cấu hình vào Docker và phân biệt biến Compose với biến trong container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-006
+    title: Nạp ConfigMap hoặc Secret dưới dạng biến môi trường hay volume
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-007
+    title: Chọn giá trị triển khai khi có cấu hình tệp và biến môi trường đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-008
+    title: Phân biệt đọc lúc khởi động với thay đổi tệp sau khi ứng dụng đã chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-009
+    title: Giới hạn tự làm mới cấu hình của Boot thuần và ranh giới Spring Cloud
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-deployment-010
+    title: Phiên bản hóa cấu hình, kiểm soát sai lệch và quay lại bản đã biết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-testing
+  title: Kiểm thử cấu hình
+  childs:
+  - slug: configuration-testing-001
+    title: 'Chọn mức kiểm thử: đối tượng, Binder, ApplicationContextRunner và ứng dụng đầy đủ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-002
+    title: Kiểm thử liên kết và chuyển đổi kiểu bằng Binder với nguồn dữ liệu nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-003
+    title: Kiểm thử bean cấu hình bằng ApplicationContextRunner.withPropertyValues
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-004
+    title: Kiểm thử cấu hình không hợp lệ và xác nhận lỗi khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-005
+    title: Ghi đè thuộc tính bằng @SpringBootTest(properties = ...)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-006
+    title: Nạp nguồn kiểm thử bằng @TestPropertySource và hiểu giới hạn Config Data
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-007
+    title: Cấp giá trị động bằng @DynamicPropertySource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-008
+    title: Kích hoạt profile kiểm thử bằng @ActiveProfiles
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-009
+    title: Kiểm thử thực tế thứ tự ưu tiên, import và vị trí tệp qua SpringApplication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-010
+    title: Kiểm thử collection, đối tượng lồng nhau, giá trị trống và cấu hình thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-011
+    title: Cô lập biến môi trường, System properties và trạng thái dùng chung giữa các test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-012
+    title: Phân biệt @DynamicPropertySource với @ServiceConnection khi dùng Testcontainers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: 'Quy trình truy vết giá trị: khóa, nguồn, profile, vị trí và thời điểm đọc'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Xem profile hoạt động và thông tin nạp Config Data trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Quan sát PropertySource và nguồn gốc giá trị mà không in bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Dùng Actuator env để tìm nguồn thắng và configprops để xem kết quả liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Giới hạn truy cập Actuator và chính sách hiển thị giá trị khi chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Phân tích lỗi không tìm thấy vị trí hoặc tài nguyên Config Data
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Phân tích lỗi placeholder, chuyển đổi kiểu và ConfigurationPropertiesBindException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Xử lý profile không được kích hoạt và cấu hình đặt sai tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Xử lý danh sách bị thay thế, Map sai khóa và biến môi trường sai tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Phân biệt báo cáo điều kiện tự cấu hình với bằng chứng giá trị thuộc tính thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-and-evolution
+  title: Thiết kế và nâng cấp
+  childs:
+  - slug: design-and-evolution-001
+    title: 'Xây hợp đồng cấu hình: tên khóa, kiểu, đơn vị, mặc định và ràng buộc'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-002
+    title: Chọn ranh giới nhóm cấu hình theo trách nhiệm chức năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-003
+    title: Tránh sao chép toàn bộ cấu hình giữa các profile
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-004
+    title: Quản lý khóa tùy chọn và khóa bắt buộc cho từng môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-005
+    title: Tách lựa chọn tính năng bằng @ConditionalOnProperty khỏi dữ liệu cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-006
+    title: Đổi tên thuộc tính mà vẫn quản lý tương thích và lộ trình loại bỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-007
+    title: Dùng spring-boot-properties-migrator khi nâng cấp thuộc tính do Boot quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-008
+    title: Đối chiếu tài liệu đúng phiên bản và nhận diện hướng dẫn bootstrap cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-and-evolution-009
+    title: Rà soát cấu hình trước phát hành bằng metadata, kiểm thử và tài liệu sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Khởi tạo ứng dụng mẫu có nhóm cấu hình kết nối dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Thí nghiệm một khóa qua tệp, biến môi trường, JVM và dòng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Thiết kế cấu hình chung cùng profile local, test và prod
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tách tệp dùng chung bằng import và chứng minh thứ tự ghi đè
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Mô hình hóa timeout, giới hạn dung lượng và danh sách máy chủ bằng record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Kiểm tra cấu hình thiếu hoặc sai và quan sát ứng dụng dừng sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: 'Nạp bí mật thử nghiệm từ configtree: với dữ liệu giả lập'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Viết kiểm thử cho quy tắc ghi đè, liên kết và kiểm tra hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Chẩn đoán một sự cố cấu hình từ bằng chứng nguồn gốc giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Đóng gói một lần, chạy ở hai môi trường và tài liệu hóa hợp đồng cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

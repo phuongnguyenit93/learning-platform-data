@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-constraint-programming
+  title: Tư duy Constraint Programming
+  purpose: Hiểu cách mô tả bài toán bằng các điều kiện cần thỏa mãn thay vì viết từng bước tìm đáp án.
+  objectives:
+  - Phân biệt lập trình ràng buộc với lối viết thuật toán tuần tự
+  - Giải thích CSP gồm biến, miền giá trị và ràng buộc
+  - Nêu ví dụ phân công, xếp lịch và giải đố
+- id: variables-domains
+  title: Variables & Domains
+  purpose: Chọn biến và miền giá trị đủ chính xác để biểu diễn không gian lời giải mà solver sẽ tìm kiếm.
+  objectives:
+  - Khai báo biến nguyên và Boolean cho bài toán nhỏ
+  - Xác định miền hữu hạn theo dữ liệu đầu vào
+  - Nhận diện miền quá rộng hoặc thiếu giá trị hợp lệ
+- id: constraints-consistency
+  title: Constraints & Consistency
+  purpose: Chuyển yêu cầu thành các điều kiện logic và số học kiểm chứng được trên mọi lời giải.
+  objectives:
+  - Biểu diễn bằng nhau, bất đẳng thức và tổng có giới hạn
+  - Sử dụng AllDifferent hoặc AtMostOne khi phù hợp
+  - Kiểm tra từng nghiệm có thỏa tất cả hard constraints
+- id: propagation-backtracking
+  title: Propagation & Backtracking
+  purpose: Hiểu cách solver loại trừ giá trị không khả thi và tìm kiếm tiếp khi chưa có đủ thông tin để xác định nghiệm.
+  objectives:
+  - Giải thích constraint propagation thu hẹp domain
+  - Minh họa lựa chọn biến, thử giá trị và backtrack
+  - So sánh các thứ tự tìm kiếm trên cùng bài toán
+- id: mo-hinh-phan-cong-xep-lich
+  title: Mô hình phân công & xếp lịch
+  purpose: Chuyển một tình huống thực tế thành mô hình CSP nhỏ có thể chạy và kiểm tra tính hợp lệ.
+  objectives:
+  - Xác định biến quyết định cho người, ca và thời gian
+  - Mô hình hóa giới hạn nguồn lực và xung đột
+  - Giải thử bài toán phân ca hoặc timetable
+- id: feasibility-optimization
+  title: Feasibility & Optimization
+  purpose: Phân biệt tìm một nghiệm hợp lệ với tìm nghiệm tốt nhất theo tiêu chí, đồng thời quản lý ưu tiên mềm.
+  objectives:
+  - Phân biệt hard constraint với soft preference
+  - Thêm objective minimize hoặc maximize
+  - Giải thích FEASIBLE, OPTIMAL và INFEASIBLE
+- id: java-solvers-choco-cp-sat
+  title: 'Java Solvers: Choco & CP-SAT'
+  purpose: Thực hành mô hình và giải CSP bằng thư viện Java thay vì tự viết bộ tìm kiếm đầy đủ.
+  objectives:
+  - Tạo Model, biến, constraints với Choco Solver
+  - Tạo CpModel và gọi CpSolver bằng OR-Tools Java
+  - Đọc giá trị nghiệm và kiểm tra trạng thái solver
+- id: debugging-hieu-nang
+  title: Debugging & Hiệu năng
+  purpose: Đánh giá mô hình có đúng yêu cầu và đủ hiệu quả, đặc biệt khi thiếu nghiệm hoặc số biến tăng lên.
+  objectives:
+  - Tạo test cho trường hợp có nghiệm và vô nghiệm
+  - Thu hẹp miền, kiểm tra ràng buộc gây mâu thuẫn
+  - Giới hạn thời gian chạy và theo dõi thống kê solver

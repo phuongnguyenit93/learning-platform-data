@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khởi tạo
+  slug: setup
+  index: 1
+- title: Mô hình miền
+  slug: domain-model
+  index: 2
+- title: Luồng xử lý
+  slug: processing-flow
+  index: 3
+- title: Công bố repository
+  slug: repository-exposure
+  index: 4
+- title: Đường dẫn tài nguyên
+  slug: resource-paths
+  index: 5
+- title: HAL và HATEOAS
+  slug: hal-hateoas
+  index: 6
+- title: Đọc tài nguyên
+  slug: resource-reads
+  index: 7
+- title: Ghi tài nguyên
+  slug: resource-writes
+  index: 8
+- title: Tài nguyên liên kết
+  slug: linked-resources
+  index: 9
+- title: Truy vấn tìm kiếm
+  slug: search-queries
+  index: 10
+- title: Phân trang và sắp xếp
+  slug: pagination-sorting
+  index: 11
+- title: Projections và Excerpts
+  slug: projections-excerpts
+  index: 12
+- title: Ánh xạ JSON
+  slug: json-mapping
+  index: 13
+- title: Kiểm tra dữ liệu
+  slug: data-validation
+  index: 14
+- title: Sự kiện REST
+  slug: rest-events
+  index: 15
+- title: Giao dịch và auditing
+  slug: transactions-auditing
+  index: 16
+- title: ETag và bộ nhớ đệm
+  slug: etags-caching
+  index: 17
+- title: Xác thực và phân quyền
+  slug: authentication-authorization
+  index: 18
+- title: CORS
+  slug: cors
+  index: 19
+- title: Siêu dữ liệu
+  slug: metadata
+  index: 20
+- title: Mở rộng API
+  slug: api-extensions
+  index: 21
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 22
+- title: Kiểm thử
+  slug: testing
+  index: 23
+- title: Hiệu năng
+  slug: performance
+  index: 24
+- title: Vận hành
+  slug: operations
+  index: 25
+- title: Tích hợp máy khách
+  slug: client-integration
+  index: 26
+- title: Thiết kế và nâng cấp
+  slug: design-and-upgrades
+  index: 27
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 28

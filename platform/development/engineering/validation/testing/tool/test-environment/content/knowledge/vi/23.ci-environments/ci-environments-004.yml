@@ -1,0 +1,3 @@
+menuLevel1: Môi trường CI
+menuLevel2: 'Chạy kiểm thử trong container: dùng Docker socket hoặc Docker-in-Docker'
+status: ''

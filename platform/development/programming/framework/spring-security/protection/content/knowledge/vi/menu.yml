@@ -1,0 +1,453 @@
+menu:
+- level1: Bản đồ bảo vệ
+  level2:
+  - Spring Security Protection là gì và các nhóm nguy cơ cần xử lý
+  - Quan hệ giữa xác thực, phân quyền và bảo vệ trước kiểu tấn công
+  - Tài nguyên, dữ liệu và hành động cần được bảo vệ
+  - Vai trò của máy chủ, trình duyệt và hạ tầng trung gian
+  - Các lớp CSRF, HTTP headers, HTTPS và request firewall
+  - Phân biệt cấu hình mặc định với chính sách riêng của ứng dụng
+  - Phạm vi hỗ trợ trên Servlet và WebFlux
+  - Từ mô hình nguy cơ đến cơ chế bảo vệ và bằng chứng kiểm thử
+  - Lộ trình học từ một yêu cầu HTTP đến hành trình người dùng hoàn chỉnh
+- level1: Nền tảng trình duyệt
+  level2:
+  - Origin gồm scheme, host và port
+  - Khái niệm site và sự khác biệt với origin
+  - Same-Origin Policy và ranh giới đọc dữ liệu
+  - Cách trình duyệt gửi cookie và thông tin xác thực tự động
+  - Yêu cầu cùng nguồn, khác nguồn và khác site
+  - HTTP method an toàn và hành động làm thay đổi trạng thái
+  - Content-Type, yêu cầu đơn giản và yêu cầu có preflight
+  - Header do trình duyệt quản lý và dữ liệu client có thể cung cấp
+  - Cookie, bộ nhớ phía client và thời gian sống của thông tin đăng nhập
+  - Nguy cơ từ mã chạy trong trang và từ yêu cầu phát sinh bên ngoài
+  - Mô hình tin cậy giữa trình duyệt, ứng dụng và dịch vụ bên thứ ba
+- level1: Kiến trúc áp dụng
+  level2:
+  - SecurityFilterChain và đường đi của yêu cầu Servlet
+  - SecurityWebFilterChain và đường đi của yêu cầu WebFlux
+  - FilterChainProxy, WebFilterChainProxy và phạm vi bảo vệ
+  - Thứ tự các lớp CORS, CSRF, xác thực và phân quyền
+  - Lớp ghi header trước khi phản hồi được gửi hoàn tất
+  - RequestMatcher và ServerWebExchangeMatcher theo mô hình ứng dụng
+  - Nhiều security chain và nguyên tắc chọn chain phù hợp
+  - Khác biệt giữa cho phép truy cập với bỏ qua security chain
+  - Đường dẫn tài nguyên tĩnh và các lớp bảo vệ vẫn cần áp dụng
+  - Xử lý từ chối ở firewall, CSRF và tầng phân quyền
+  - Kiểm tra phạm vi áp dụng với ERROR, FORWARD và ASYNC dispatch
+  - Ranh giới giữa bộ lọc bảo mật với controller, service và proxy
+- level1: Cấu hình và phiên bản
+  level2:
+  - Chọn dòng Spring Security phù hợp với Spring Framework và Spring Boot
+  - Lambda DSL cho HttpSecurity và ServerHttpSecurity
+  - Cấu hình theo bean thay cho các ví dụ kế thừa cấu hình cũ
+  - Đối chiếu mặc định CSRF và header trên phiên bản đang dùng
+  - Request matcher và thay đổi cách khớp đường dẫn giữa các dòng
+  - Tách cấu hình dùng chung khỏi phần riêng cho Servlet hoặc Reactive
+  - Cấu hình theo môi trường và nguồn gốc triển khai
+  - Phạm vi áp dụng chính sách trên từng security chain
+  - Cấu hình CSRF SPA chuyên biệt từ Spring Security 7.0
+  - Khả năng dùng firewall Reactive từ các phiên bản hỗ trợ
+  - Đọc API, migration guide và kiểm thử lại khi đổi phiên bản
+- level1: Cơ chế CSRF
+  level2:
+  - Giả mạo yêu cầu liên trang (CSRF) và điều kiện xảy ra
+  - Vai trò của thông tin xác thực được trình duyệt tự gửi
+  - Mẫu synchronizer token và cách gắn token với phiên người dùng
+  - Mẫu double-submit cookie, biến thể có ký và điều kiện kiểm soát cookie
+  - Lưu giá trị dự kiến và nhận giá trị client gửi để đối chiếu
+  - Token truyền qua trường form hoặc HTTP header
+  - Phân biệt CSRF token với session ID và access token
+  - Bảo vệ yêu cầu đăng nhập và đăng xuất
+  - Phương thức an toàn chỉ dùng cho hành động đọc
+  - SameSite và quan hệ với bảo vệ bằng token
+  - Mã XSS ảnh hưởng thế nào đến giả thiết của cơ chế CSRF
+  - Điều kiện đánh giá nguy cơ theo cách lưu và gửi thông tin xác thực
+  - Thiết kế ca kiểm thử có token đúng, thiếu và sai
+- level1: CSRF trên Servlet
+  level2:
+  - CsrfFilter và vị trí kiểm tra trong filter chain
+  - CsrfTokenRepository và trách nhiệm tạo, lưu, đọc token
+  - HttpSessionCsrfTokenRepository
+  - CookieCsrfTokenRepository và quy ước cookie–header
+  - CsrfTokenRequestHandler và cách đưa token vào request
+  - CsrfTokenRequestAttributeHandler và giá trị token thông thường
+  - XorCsrfTokenRequestAttributeHandler và cơ chế giảm nguy cơ BREACH
+  - DeferredCsrfToken và thời điểm tải hoặc tạo token
+  - Token gốc, token được che và quá trình giải quyết giá trị gửi lên
+  - Tùy chỉnh tên cookie, tên header và tên tham số
+  - MissingCsrfTokenException, InvalidCsrfTokenException và phản hồi
+  - AccessDeniedHandler cho lỗi CSRF
+  - Kiểm tra thời điểm token được xóa hoặc thay sau xác thực
+- level1: CSRF và biểu mẫu
+  level2:
+  - Chèn token vào form hiển thị phía máy chủ
+  - Tích hợp với form tag và template engine phù hợp
+  - Đưa token vào nút đăng nhập và form đăng xuất
+  - Form nhiều bước, quay lại và gửi lại trang cũ
+  - Session hết hạn trong lúc người dùng đang nhập liệu
+  - Hiển thị lỗi và cách lấy token mới khi cần
+  - Multipart upload và thứ tự phân tích nội dung
+  - Gửi token qua header khi tải tệp bằng JavaScript
+  - Đánh đổi khi đặt token trong tham số URL
+  - HiddenHttpMethodFilter và phương thức thực sự được kiểm tra
+  - Kiểm thử các nhánh điều hướng mà vẫn giữ CSRF hoạt động
+- level1: CSRF cho SPA và API
+  level2:
+  - Cookie đăng nhập và cách đánh giá CSRF cho API JSON
+  - Token do JavaScript chủ động gửi trong Authorization header
+  - Ứng dụng stateless và các nguồn thông tin xác thực trình duyệt vẫn có thể tự gửi
+  - Lấy CSRF token khi khởi tạo ứng dụng
+  - Cookie XSRF và header do frontend gửi
+  - Quyền JavaScript đọc cookie CSRF và phân biệt với cookie phiên
+  - Xử lý token gốc trong cookie cùng token được che của request handler
+  - Lấy token mới sau đăng nhập và đăng xuất
+  - CsrfConfigurer.spa() trên dòng phiên bản có hỗ trợ
+  - Cấu hình repository và request handler trên các dòng trước đó
+  - Frontend khác origin và phối hợp credentials với CORS
+  - Mobile client cùng backend phục vụ trình duyệt
+  - Tránh đưa token vào log, cache công khai hoặc đường dẫn
+- level1: CSRF trên Reactive
+  level2:
+  - CsrfWebFilter và luồng kiểm tra trong WebFlux
+  - ServerCsrfTokenRepository và các thao tác không chặn
+  - WebSessionServerCsrfTokenRepository
+  - CookieServerCsrfTokenRepository
+  - ServerCsrfTokenRequestHandler và exchange attributes
+  - XorServerCsrfTokenRequestAttributeHandler theo phiên bản
+  - Mono<CsrfToken> và thời điểm đăng ký để lấy token
+  - Đưa token vào view hoặc phản hồi cho client
+  - Nhận token từ header hoặc tham số theo cơ chế hỗ trợ
+  - Tùy chỉnh ServerWebExchangeMatcher cho yêu cầu được kiểm tra
+  - ServerAccessDeniedHandler và xử lý lỗi CSRF
+  - Kiểm thử vòng đời token khi WebSession thay đổi
+- level1: Phạm vi kiểm tra CSRF
+  level2:
+  - Xác định endpoint thay đổi trạng thái và kiểu client gọi
+  - Matcher yêu cầu CSRF và matcher miễn trừ
+  - Giới hạn miễn trừ theo đường dẫn, phương thức và hợp đồng xác thực
+  - Webhook có cơ chế xác minh riêng và ranh giới với trình duyệt
+  - API dùng bearer token cùng khu vực dùng cookie phiên
+  - Phân biệt permitAll với việc bỏ kiểm tra CSRF
+  - Ảnh hưởng của bỏ qua toàn bộ security chain
+  - Xử lý nhiều chain với chính sách CSRF khác nhau
+  - Kiểm tra các endpoint mới có rơi ngoài phạm vi bảo vệ
+  - Đánh giá thay đổi khi chuyển cách lưu token hoặc thêm trình duyệt client
+  - Ghi rõ giả thiết và kiểm thử hồi quy cho mỗi ngoại lệ
+- level1: CORS
+  level2:
+  - CORS giải quyết quyền đọc phản hồi khác nguồn như thế nào
+  - Yêu cầu thực tế và preflight OPTIONS
+  - Origin được phép và cách so khớp chính xác
+  - Allowed methods, allowed headers và exposed headers
+  - Credentials, cookie và ràng buộc khi cho phép origin
+  - Allowed origin patterns và phạm vi tin cậy được mở
+  - CorsConfigurationSource và UrlBasedCorsConfigurationSource
+  - CorsFilter cùng tích hợp cấu hình Spring MVC
+  - CorsWebFilter và cấu hình cho WebFlux
+  - Thứ tự xử lý preflight trước các yêu cầu xác thực
+  - Nhiều nguồn cấu hình CORS và cấu hình theo security chain
+  - Vary, bộ nhớ đệm preflight và phản hồi qua CDN
+  - Vai trò riêng của CORS, CSRF và phân quyền phía máy chủ
+  - Kiểm thử cả origin được phép, bị chặn và client ngoài trình duyệt
+- level1: Kiến trúc HTTP header
+  level2:
+  - Header bảo mật được máy chủ gửi và trình duyệt thực thi
+  - Tập header mặc định trên phiên bản sử dụng
+  - HeaderWriterFilter và HeaderWriter trên Servlet
+  - ServerHttpHeadersWriter và cơ chế ghi header trên Reactive
+  - Thời điểm ghi header và phản hồi đã được gửi hoàn tất
+  - Tùy chỉnh một header trong khi giữ các mặc định khác
+  - Cấu hình header tĩnh bằng writer phù hợp
+  - Ghi header theo matcher hoặc theo dữ liệu của yêu cầu
+  - Header có sẵn từ controller, container hoặc proxy
+  - Tránh header lặp và chính sách mâu thuẫn giữa các lớp
+  - Kiểm tra header trên phản hồi thành công, redirect và lỗi
+  - Phân biệt có cấu hình writer với thực sự có header trên đường truyền
+- level1: Bộ nhớ đệm và MIME
+  level2:
+  - Cache-Control cho dữ liệu gắn với người dùng
+  - Ý nghĩa của no-store, no-cache và chính sách xác thực lại
+  - Pragma, Expires và tương thích với hệ thống cũ
+  - CacheControlHeadersWriter và header do ứng dụng đã đặt
+  - Tài nguyên tĩnh được cache với chính sách riêng
+  - Cache tại trình duyệt, reverse proxy và CDN
+  - Dữ liệu sau đăng xuất và giới hạn của chính sách cache
+  - X-Content-Type-Options và nosniff
+  - Đặt Content-Type chính xác cho HTML, JSON và tệp tải xuống
+  - Content-Disposition và trách nhiệm của lớp phục vụ tệp
+  - Kiểm thử nội dung riêng tư không bị dùng chung giữa người dùng
+- level1: Chống nhúng trang
+  level2:
+  - Clickjacking và tương tác bị đánh lừa trong iframe
+  - X-Frame-Options với chính sách DENY
+  - SAMEORIGIN và yêu cầu nhúng trang cùng nguồn
+  - Giới hạn của giá trị ALLOW-FROM trong hệ sinh thái hiện hành
+  - CSP frame-ancestors và nguồn được phép nhúng
+  - Phân biệt frame-ancestors với frame-src
+  - Phối hợp X-Frame-Options và CSP trên các trình duyệt
+  - Ngoại lệ nhúng trang theo endpoint với phạm vi xác định
+  - Kiểm thử việc nhúng từ trang cùng nguồn và khác nguồn
+  - Đánh giá nhu cầu iframe của thư viện giao diện hoặc ứng dụng cũ
+- level1: Chính sách nội dung CSP
+  level2:
+  - CSP và vai trò giảm tác động của nội dung bị chèn
+  - ContentSecurityPolicyHeaderWriter và chỉ thị do ứng dụng cung cấp
+  - Content-Security-Policy và chế độ Report-Only
+  - default-src và chính sách theo từng nhóm tài nguyên
+  - script-src, style-src và mã inline
+  - Nonce riêng cho phản hồi cùng cách truyền vào template
+  - Hash cho tài nguyên nội tuyến cố định
+  - object-src, base-uri và form-action
+  - connect-src cho fetch, WebSocket và các kết nối phía client
+  - img-src, font-src và tài nguyên từ dịch vụ bên ngoài
+  - Giới hạn của allowlist rộng cùng unsafe-inline, unsafe-eval
+  - Báo cáo vi phạm và lộ trình chuyển từ quan sát sang chặn
+  - Phối hợp CSP giữa ứng dụng, proxy và cache
+  - Kiểm thử hành vi thật trên trình duyệt ngoài việc kiểm tra chuỗi header
+- level1: Quyền và cô lập trình duyệt
+  level2:
+  - Referrer-Policy và dữ liệu được gửi theo liên kết
+  - Permissions-Policy cho camera, microphone và tính năng trình duyệt
+  - X-Permitted-Cross-Domain-Policies và trường hợp sử dụng
+  - Cross-Origin-Opener-Policy và quan hệ giữa các cửa sổ
+  - Cross-Origin-Embedder-Policy và điều kiện tải tài nguyên
+  - Cross-Origin-Resource-Policy và phạm vi dùng tài nguyên
+  - Phối hợp COOP, COEP, CORP với CORS
+  - Ảnh hưởng của cô lập đến popup, đăng nhập ngoài và thư viện nhúng
+  - HeaderWriter tương ứng và khác biệt hỗ trợ theo phiên bản
+  - Khả năng hỗ trợ trên trình duyệt và kiểm thử suy giảm chức năng
+  - Chọn chính sách theo dữ liệu cùng tính năng ứng dụng thực sự cần
+- level1: HTTPS và HSTS
+  level2:
+  - Mã hóa đường truyền và ranh giới cấu hình của Spring Security
+  - Chuyển hướng yêu cầu HTTP sang HTTPS
+  - redirectToHttps và API tương ứng theo dòng phiên bản
+  - Chọn yêu cầu cần chuyển hướng và tránh vòng lặp
+  - Strict-Transport-Security và cách trình duyệt ghi nhớ chính sách
+  - HstsHeaderWriter cùng điều kiện yêu cầu được xem là secure
+  - max-age và thời gian hiệu lực phía trình duyệt
+  - includeSubDomains và phạm vi các tên miền con
+  - Preload và sự khác biệt với chỉ gửi chỉ thị trong header
+  - Giới hạn bảo vệ ở lần truy cập đầu tiên
+  - HTTPS tại ứng dụng hoặc kết thúc TLS tại proxy
+  - Phối hợp HSTS, cookie Secure và địa chỉ redirect
+  - Kiểm thử truy cập HTTP, HTTPS và nhận diện giao thức qua proxy
+- level1: Proxy và nguồn gốc
+  level2:
+  - Reverse proxy, load balancer và địa chỉ client nhìn thấy
+  - Forwarded, X-Forwarded-Proto, Host và cổng bên ngoài
+  - Ranh giới tin cậy khi tiếp nhận forwarded headers
+  - Loại bỏ header giả mạo trước khi chuyển vào ứng dụng
+  - ForwardedHeaderFilter hoặc cấu hình container trong Servlet
+  - ForwardedHeaderTransformer và cấu hình tương ứng trên WebFlux
+  - Chọn cơ chế xử lý forwarded headers theo phiên bản Spring Boot
+  - Nhận diện HTTPS để ghi HSTS và cookie đúng
+  - URL redirect, context path và tiền tố do proxy thêm
+  - Header do CDN thêm, sửa hoặc giữ trong cache
+  - Kiểm thử ứng dụng qua đường truy cập triển khai thực tế
+- level1: Firewall trên Servlet
+  level2:
+  - HttpFirewall và vị trí trước khi chọn security chain
+  - StrictHttpFirewall cùng nguyên tắc từ chối yêu cầu bất thường
+  - Đường dẫn chưa chuẩn hóa và khác biệt giữa các container
+  - contextPath, servletPath, pathInfo và dữ liệu dùng để khớp
+  - Semicolon, path parameters và matrix variables
+  - Dấu phân cách được mã hóa, backslash và ký tự không hợp lệ
+  - Danh sách phương thức HTTP được phép
+  - Header name, header value và ràng buộc ký tự
+  - Parameter name, parameter value và điều kiện hợp lệ
+  - Host được phép theo nhu cầu triển khai
+  - RequestRejectedException và RequestRejectedHandler
+  - Phân biệt từ chối yêu cầu với sửa hoặc chuẩn hóa yêu cầu
+  - Ngoại lệ firewall có phạm vi cùng kiểm thử hồi quy
+  - Ranh giới giữa request firewall, WAF và kiểm tra dữ liệu nghiệp vụ
+- level1: Firewall trên Reactive
+  level2:
+  - ServerWebExchangeFirewall và phạm vi hỗ trợ theo phiên bản
+  - StrictServerWebExchangeFirewall trong WebFilterChainProxy
+  - Kiểm tra đường dẫn và phương thức HTTP
+  - Kiểm tra header cùng tên, giá trị tham số
+  - Tùy chỉnh bean firewall trong cấu hình WebFlux
+  - ServerExchangeRejectedException và luồng lỗi
+  - ServerExchangeRejectedHandler cùng phản hồi từ chối
+  - Kiểm soát các ngoại lệ cần thiết cho giao thức ứng dụng
+  - Đối chiếu tùy chọn Reactive với tùy chọn Servlet
+  - Kiểm thử trên HTTP server thực và qua proxy
+  - Đánh giá cấu hình khi nâng cấp từ phiên bản chưa có firewall Reactive
+- level1: Session và cookie
+  level2:
+  - Session fixation và yêu cầu thay định danh sau đăng nhập
+  - ChangeSessionIdAuthenticationStrategy trong Servlet
+  - Các chiến lược đổi session theo khả năng container
+  - WebSession và thay đổi định danh trong ứng dụng Reactive
+  - Giữ dữ liệu cần thiết khi chuyển từ phiên chưa đăng nhập
+  - Secure, HttpOnly và trách nhiệm của từng thuộc tính cookie
+  - SameSite Strict, Lax, None và hành trình đăng nhập
+  - Domain, Path và phạm vi cookie được trình duyệt gửi
+  - Chính sách cookie bên thứ ba và kiểm thử khả năng gửi cookie
+  - Phân biệt cookie phiên, cookie CSRF và cookie ứng dụng
+  - 'Đơn vị sở hữu cấu hình cookie: container, Spring Session hoặc ứng dụng'
+  - Session timeout và phối hợp với vòng đời CSRF token
+  - Giới hạn phiên đồng thời theo yêu cầu bảo vệ tài khoản
+  - Thu hồi, xóa session và hiệu lực của dữ liệu client còn giữ
+  - Kiểm thử nhiều tab, đổi phiên và đăng xuất trên các thiết bị
+- level1: Đăng nhập và đăng xuất
+  level2:
+  - Login CSRF và ràng buộc hành động đăng nhập
+  - Logout CSRF và lựa chọn phương thức thay đổi trạng thái
+  - Token CSRF mới sau khi thay đổi trạng thái xác thực
+  - Thông báo đăng nhập thất bại và giới hạn tiết lộ danh tính
+  - Ranh giới của Spring Security với kiểm soát tần suất đăng nhập
+  - Xác minh đích redirect và dữ liệu saved request
+  - Đăng xuất phía máy chủ và dữ liệu còn lưu trên trình duyệt
+  - Clear-Site-Data cùng các nhóm dữ liệu có thể yêu cầu xóa
+  - Gắn HeaderWriterLogoutHandler khi phù hợp
+  - Giới hạn hỗ trợ trình duyệt và yêu cầu kết nối an toàn
+  - Phối hợp xóa cookie, session, cache và trạng thái frontend
+  - Kiểm thử gửi lại yêu cầu đăng nhập hoặc đăng xuất từ trang cũ
+- level1: WebSocket và STOMP
+  level2:
+  - Ranh giới bảo vệ tại HTTP handshake và tại lớp message
+  - Khác biệt thực thi same-origin đối với WebSocket
+  - Allowed origins trong cấu hình WebSocket hoặc SockJS
+  - Kế thừa danh tính từ kết nối HTTP
+  - '@EnableWebSocketSecurity và lớp kiểm tra message'
+  - CSRF token trong STOMP CONNECT
+  - Truyền token bằng STOMP headers
+  - CsrfChannelInterceptor và thông tin token theo phiên
+  - Phân biệt kiểm tra CONNECT với phân quyền SEND, SUBSCRIBE
+  - SockJS fallback và nhu cầu iframe cùng origin
+  - Miễn trừ CSRF lớp HTTP cho transport trong phạm vi có bảo vệ thay thế
+  - Giới hạn khi dùng WebSocket thuần hoặc mô hình Reactive khác
+  - Kiểm thử kết nối bị từ chối và truy cập message ngoài phạm vi
+- level1: Tích hợp ứng dụng
+  level2:
+  - Ứng dụng render phía máy chủ và form có cookie phiên
+  - SPA cùng origin qua reverse proxy
+  - SPA khác origin với CORS và cookie
+  - API có client chủ động gửi bearer token
+  - Hệ thống cùng phục vụ trình duyệt và client máy–máy
+  - Upload, download và trách nhiệm kiểm soát dữ liệu theo từng lớp
+  - Đăng nhập liên kết với SameSite, redirect và các token giao thức
+  - Phân biệt CSRF token với state, nonce và PKCE trong OAuth/OIDC
+  - Trang nhúng, popup và tài nguyên bên thứ ba
+  - Phối hợp headers giữa ứng dụng chính và endpoint quản trị
+  - Thiết kế chính sách theo từng hành trình thay vì sao chép một cấu hình chung
+  - Ghi lại giả thiết về client, thông tin xác thực và hạ tầng
+- level1: Ranh giới bảo vệ
+  level2:
+  - Phạm vi tự động bảo vệ và trách nhiệm của mã ứng dụng
+  - XSS và yêu cầu mã hóa đầu ra đúng ngữ cảnh
+  - Nội dung HTML được phép nhập và nhu cầu làm sạch dữ liệu
+  - SQL injection và truy vấn tham số hóa ở tầng dữ liệu
+  - SSRF và kiểm soát đích kết nối ra ngoài
+  - Path traversal khi đọc tệp và kiểm tra đường dẫn nghiệp vụ
+  - Ràng buộc kích thước request, multipart và giới hạn tài nguyên
+  - Rate limiting ở ứng dụng, gateway hoặc hạ tầng
+  - Trình phân tích dữ liệu, deserialization và thư viện phụ thuộc
+  - Phân quyền đối tượng tại service để bảo vệ dữ liệu nghiệp vụ
+  - Giới hạn của CORS hoặc response header với client ngoài trình duyệt
+  - Đặt từng lớp bảo vệ vào đúng mô hình nguy cơ của ứng dụng
+- level1: Kiểm thử Servlet
+  level2:
+  - Tích hợp spring-security-test với MockMvc
+  - Đảm bảo security filter chain thực sự tham gia bài kiểm thử
+  - Phân biệt giả lập danh tính với cung cấp CSRF token
+  - csrf() để gửi token hợp lệ trong tham số
+  - csrf().asHeader() cho yêu cầu dùng header
+  - csrf().useInvalidToken() cho ca dữ liệu token sai
+  - Kiểm tra yêu cầu thiếu token và phương thức an toàn
+  - Kiểm tra matcher miễn trừ cùng các endpoint vẫn phải bảo vệ
+  - Kiểm tra header trên phản hồi thành công và phản hồi lỗi
+  - Kiểm tra CORS preflight và origin bị từ chối
+  - Kiểm tra HTTP redirect cùng HSTS của yêu cầu secure
+  - Kiểm tra firewall và hành vi từ chối trước controller
+  - Kiểm tra đổi session ID và dữ liệu sau đăng xuất
+  - Giới hạn của kiểm thử giả lập với hành vi trình duyệt hoặc container
+- level1: Kiểm thử Reactive
+  level2:
+  - Tích hợp spring-security-test với WebTestClient
+  - Cấu hình security web filters trong bài kiểm thử
+  - SecurityMockServerConfigurers.csrf() và token hợp lệ
+  - Kiểm tra yêu cầu thiếu token hoặc giá trị không đúng
+  - Kiểm tra CSRF repository dùng WebSession hoặc cookie
+  - Kiểm tra việc lấy Mono<CsrfToken> và vòng đời session
+  - Kiểm tra CORS preflight qua CorsWebFilter
+  - Kiểm tra header cùng redirect trên ứng dụng WebFlux
+  - Kiểm tra StrictServerWebExchangeFirewall khi được hỗ trợ
+  - Đối chiếu filter giả lập với HTTP server thực
+  - Giữ riêng cấu hình, dữ liệu và danh tính giữa các ca kiểm thử
+- level1: Kiểm thử trình duyệt
+  level2:
+  - Xây dựng các trang thử ở cùng origin và khác origin
+  - Quan sát cookie, request header và response header
+  - Kiểm tra gửi form liên trang trong môi trường kiểm thử riêng
+  - Kiểm tra CORS chặn đọc phản hồi cùng hành vi gửi yêu cầu
+  - Kiểm tra cookie SameSite trên các hành trình thực tế
+  - Kiểm tra iframe được phép và bị chặn
+  - Kiểm tra script hợp lệ, script bị CSP chặn và báo cáo vi phạm
+  - Kiểm tra nonce thay đổi giữa các phản hồi
+  - Kiểm tra popup, tài nguyên nhúng và cô lập cross-origin
+  - Kiểm tra đăng xuất, Back, Refresh và phiên hết hạn
+  - Kiểm tra proxy, CDN cùng header mà trình duyệt thực sự nhận
+  - Chọn bằng chứng gồm phản hồi, console và kết quả hành vi
+- level1: Chẩn đoán lỗi
+  level2:
+  - Phân biệt 401, 403 và lỗi từ chối yêu cầu ở firewall
+  - Tìm security chain thực sự xử lý endpoint
+  - CSRF token thiếu do chưa được tạo hoặc chưa tải
+  - Token không khớp do session, cookie hoặc cơ chế che giá trị
+  - Token cũ sau đăng nhập, đăng xuất hoặc đổi phiên
+  - Cookie không được gửi do Secure, SameSite, Domain hoặc Path
+  - Preflight bị chặn trước khi xử lý CORS
+  - CORS header trùng hoặc origin cấu hình không khớp
+  - Header bị thiếu trên tài nguyên đã bỏ qua security chain
+  - HSTS không xuất hiện do nhận diện sai HTTPS sau proxy
+  - CSP làm hỏng chức năng hoặc nonce không khớp template
+  - Firewall từ chối đường dẫn hoặc header hợp lệ của client
+  - Thu thập log cần thiết mà không ghi token hay nội dung nhạy cảm
+- level1: Vận hành và giám sát
+  level2:
+  - Quản lý cấu hình bảo vệ theo môi trường và phiên bản
+  - Đối chiếu header thực tế sau mỗi lần triển khai
+  - Chuyển CSP từ Report-Only sang thực thi có kiểm soát
+  - Theo dõi lỗi CSRF và phân biệt lỗi tích hợp với yêu cầu bất thường
+  - Theo dõi request bị firewall từ chối
+  - Giới hạn dữ liệu lưu trong báo cáo CSP và log bảo mật
+  - Phối hợp chính sách ứng dụng với CDN, proxy và gateway
+  - Đánh giá thay đổi domain, subdomain và hạ tầng TLS
+  - Triển khai chính sách HSTS theo phạm vi quản lý
+  - Quản lý ngoại lệ theo endpoint và rà lại khi kiến trúc thay đổi
+  - Kiểm thử hồi quy sau thay đổi frontend hoặc thư viện bên thứ ba
+  - Duy trì cấu hình có thể giải thích bằng mô hình nguy cơ và bằng chứng
+- level1: Nâng cấp và tương thích
+  level2:
+  - Đối chiếu mặc định bảo vệ giữa các dòng Spring Security
+  - Chuyển cấu hình kế thừa cũ sang security chain và Lambda DSL
+  - Thay đổi request matcher và ngữ nghĩa đường dẫn
+  - Deferred token cùng cơ chế XOR trong các dòng hiện hành
+  - Nâng cấu hình SPA theo API có trong phiên bản đích
+  - Rà lại firewall Reactive và các tùy chọn mới
+  - Đối chiếu API xử lý proxy của Spring Boot và Spring Framework
+  - X-XSS-Protection cùng vai trò lịch sử của bộ lọc XSS trên trình duyệt
+  - HPKP, Feature-Policy và các chính sách trình duyệt đã thay đổi
+  - Chuyển cấu hình WebSocket cũ sang mô hình được hỗ trợ
+  - Kiểm tra khả năng hỗ trợ header trên các trình duyệt mục tiêu
+  - Lập kiểm thử hồi quy cho token, header, cookie và hành trình đăng nhập
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế bảo vệ cho ứng dụng MVC có form và cookie phiên
+  - Thiết kế CSRF cho SPA có bước đăng nhập và đăng xuất
+  - Tách khu vực API bearer token khỏi khu vực dùng cookie
+  - Cấu hình CORS theo origin của từng môi trường
+  - Bảo vệ ứng dụng WebFlux với CSRF và header tương ứng
+  - Thiết kế CSP cho trang dùng script nội bộ và dịch vụ bên ngoài
+  - Cho phép nhúng một màn hình trong phạm vi đã xác định
+  - Triển khai HTTPS qua reverse proxy và xác minh HSTS
+  - Kiểm tra một ngoại lệ firewall bằng ca hợp lệ cùng ca bị từ chối
+  - Bảo vệ STOMP CONNECT và kiểm tra message trên kết nối
+  - Tái hiện phiên hết hạn cùng luồng lấy CSRF token mới
+  - Hoàn thiện bộ kiểm thử giả lập, HTTP thực và trình duyệt
+  - Đánh giá kết quả bằng mô hình nguy cơ, cấu hình và bằng chứng hành vi

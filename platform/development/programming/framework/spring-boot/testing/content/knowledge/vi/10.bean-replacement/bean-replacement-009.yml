@@ -1,0 +1,3 @@
+menuLevel1: Thay thế bean
+menuLevel2: Bean bị mock và ảnh hưởng đến proxy transaction, cache hoặc security
+status: WRITTEN

@@ -1,0 +1,55 @@
+roadmap:
+- id: event-trong-applicationcontext
+  title: Event trong ApplicationContext
+  purpose: Hiểu cơ chế giao tiếp nội bộ bằng sự kiện để giảm phụ thuộc giữa các Spring bean.
+  objectives:
+  - Giải thích publisher, listener và luồng phát sự kiện.
+  - Phân biệt application event nội bộ với message broker liên dịch vụ.
+- id: thiet-ke-event
+  title: Thiết kế Event
+  purpose: Tạo payload sự kiện chứa đủ ngữ cảnh mà không phụ thuộc vào trạng thái thay đổi.
+  objectives:
+  - Tạo một POJO hoặc record như OrderCreatedEvent.
+  - Chọn trường dữ liệu bất biến và tên event thể hiện việc đã xảy ra.
+- id: phat-su-kien
+  title: Phát sự kiện
+  purpose: Gửi event từ nghiệp vụ tới các listener thông qua ApplicationContext.
+  objectives:
+  - Inject ApplicationEventPublisher vào service.
+  - Gọi publishEvent(event) sau thao tác nghiệp vụ phù hợp.
+- id: lang-nghe-voi-eventlistener
+  title: Lắng nghe với @EventListener
+  purpose: Xử lý event theo kiểu dữ liệu mà không buộc publisher biết listener.
+  objectives:
+  - Viết một bean có phương thức @EventListener nhận đúng event.
+  - Thử điều kiện condition và xử lý nhiều loại event khi cần.
+- id: event-vong-doi-spring
+  title: Event vòng đời Spring
+  purpose: Nhận biết những sự kiện sẵn có của ApplicationContext và phạm vi phát sinh.
+  objectives:
+  - Bắt ContextRefreshedEvent và ContextClosedEvent.
+  - Giải thích listener chỉ nhận event trong phạm vi context phù hợp.
+- id: dong-bo-thu-tu
+  title: Đồng bộ & Thứ tự
+  purpose: Hiểu ảnh hưởng của listener lên thời gian chạy và xử lý lỗi của publisher.
+  objectives:
+  - Kiểm tra listener chạy đồng bộ theo mặc định.
+  - Thử @Order và quan sát lỗi listener ảnh hưởng lời gọi phát.
+- id: listener-bat-dong-bo
+  title: Listener bất đồng bộ
+  purpose: Tách tác vụ tốn thời gian khỏi luồng gọi và quản lý thực thi an toàn.
+  objectives:
+  - Bật @EnableAsync và thêm @Async cho @EventListener.
+  - Cấu hình TaskExecutor, xử lý lỗi và lưu ý thread context.
+- id: event-theo-transaction
+  title: Event theo Transaction
+  purpose: Chỉ thực thi xử lý phụ thuộc kết quả giao dịch ở thời điểm phù hợp.
+  objectives:
+  - Dùng @TransactionalEventListener mặc định AFTER_COMMIT.
+  - Thử rollback và trường hợp không có transaction/fallbackExecution.
+- id: kiem-thu-gioi-han
+  title: Kiểm thử & Giới hạn
+  purpose: Xác minh hành vi phát sự kiện và chọn giải pháp đáng tin cậy cho đúng phạm vi.
+  objectives:
+  - Test bằng @RecordApplicationEvents và ApplicationEvents.
+  - Phân biệt event trong tiến trình với messaging/outbox cần lưu bền.

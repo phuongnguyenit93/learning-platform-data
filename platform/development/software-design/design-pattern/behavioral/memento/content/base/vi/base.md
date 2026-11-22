@@ -1,0 +1,7 @@
+# Software Design Design Pattern Behavioral Memento
+
+Memento là mẫu thiết kế hành vi (Behavioral Design Pattern) giúp lưu một bản chụp trạng thái của đối tượng và khôi phục trạng thái đó về sau mà không phá vỡ tính đóng gói. Mẫu này phù hợp với các chức năng undo/redo, checkpoint hoặc phục hồi thao tác trong trình soạn thảo và ứng dụng có trạng thái thay đổi. Thay vì để bên ngoài đọc và ghi các trường nội bộ, đối tượng sở hữu trạng thái tự tạo và áp dụng snapshot của chính mình.
+
+Module dành cho người đã nắm Java hướng đối tượng, encapsulation, composition và collection cơ bản. Lộ trình bắt đầu từ mục đích của Memento cùng ba vai trò Originator, Memento và Caretaker; sau đó thiết kế snapshot an toàn, cài đặt các thao tác lưu/khôi phục bằng Java và xây dựng lịch sử trạng thái. Những phần tiếp theo tập trung vào undo/redo, quản lý bản sao với dữ liệu mutable, giới hạn chi phí bộ nhớ và kiểm thử các trường hợp biên.
+
+Hoàn thành module, bạn có thể nhận diện trường hợp nên dùng Memento, triển khai luồng lưu và phục hồi trạng thái không làm lộ cấu trúc nội bộ, thiết kế lịch sử undo/redo nhất quán và phân biệt Memento với Command hoặc Prototype. Khi triển khai thực tế, cần cân nhắc tính bất biến của snapshot, dung lượng lịch sử và vòng đời của đối tượng được khôi phục.

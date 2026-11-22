@@ -1,0 +1,73 @@
+menu:
+  - title: "Tổng quan"
+    slug: pattern-overview
+    index: 0
+  - title: "Cấu trúc mẫu"
+    slug: pattern-structure
+    index: 1
+  - title: "Nền tảng Java"
+    slug: java-fundamentals
+    index: 2
+  - title: "Khung thuật toán"
+    slug: algorithm-skeleton
+    index: 3
+  - title: "Bước trừu tượng"
+    slug: abstract-steps
+    index: 4
+  - title: "Hook mở rộng"
+    slug: extension-hooks
+    index: 5
+  - title: "Hợp đồng kế thừa"
+    slug: inheritance-contracts
+    index: 6
+  - title: "Thiết kế API"
+    slug: extension-api-design
+    index: 7
+  - title: "Kiểu và dữ liệu"
+    slug: generics-and-data-modeling
+    index: 8
+  - title: "Trạng thái thực thi"
+    slug: execution-state
+    index: 9
+  - title: "Lỗi và tài nguyên"
+    slug: errors-and-resources
+    index: 10
+  - title: "Giao dịch và thử lại"
+    slug: transactions-and-retries
+    index: 11
+  - title: "Đồng thời"
+    slug: thread-safety-and-concurrency
+    index: 12
+  - title: "Bất đồng bộ"
+    slug: asynchronous-execution
+    index: 13
+  - title: "Ví dụ nhập dữ liệu"
+    slug: data-import-example
+    index: 14
+  - title: "Ví dụ nghiệp vụ"
+    slug: report-generation-example
+    index: 15
+  - title: "Kiểm thử"
+    slug: workflow-testing
+    index: 16
+  - title: "Refactor sang mẫu"
+    slug: refactoring-to-template-method
+    index: 17
+  - title: "So sánh Strategy"
+    slug: strategy-comparison
+    index: 18
+  - title: "Các mẫu liên quan"
+    slug: related-design-patterns
+    index: 19
+  - title: "Cách tái sử dụng khác"
+    slug: reuse-alternatives
+    index: 20
+  - title: "Sai lầm thường gặp"
+    slug: design-pitfalls
+    index: 21
+  - title: "Tiến hóa thiết kế"
+    slug: design-evolution
+    index: 22
+  - title: "Thực hành tổng hợp"
+    slug: hands-on-exercises
+    index: 23

@@ -1,0 +1,57 @@
+roadmap:
+- id: bat-dau-voi-gradle
+  title: Bắt đầu với Gradle
+  purpose: Hiểu vai trò của Gradle và chạy bản build nhất quán bằng Gradle Wrapper.
+  objectives:
+  - Nhận diện project, build và task
+  - Khởi tạo dự án và chạy gradlew
+  - Đọc kết quả lệnh build
+- id: cau-truc-build-dsl
+  title: Cấu trúc Build & DSL
+  purpose: Nắm các tệp cấu hình và cách diễn đạt build bằng Groovy hoặc Kotlin DSL.
+  objectives:
+  - Phân biệt settings.gradle và build.gradle
+  - Nhận diện Groovy DSL và Kotlin DSL
+  - Thiết lập thuộc tính và cấu hình cơ bản
+- id: vong-doi-tasks
+  title: Vòng đời & Tasks
+  purpose: Hiểu ba pha của build và cách Gradle sắp xếp, thực thi các task.
+  objectives:
+  - Giải thích initialization, configuration, execution
+  - Chạy và kết nối task bằng dependencies
+  - Kiểm tra task graph và kết quả thực thi
+- id: plugins-build-logic
+  title: Plugins & Build Logic
+  purpose: Sử dụng plugin và tổ chức logic build để cấu hình dự án dễ bảo trì.
+  objectives:
+  - Áp dụng và cấu hình plugin
+  - Phân biệt task có sẵn với custom task
+  - Tái sử dụng convention/build logic
+- id: dependencies-repositories
+  title: Dependencies & Repositories
+  purpose: Khai báo và kiểm soát thư viện, repository và phiên bản phụ thuộc.
+  objectives:
+  - Khai báo repositories và dependencies
+  - Phân biệt các dependency configurations
+  - Kiểm tra xung đột và quản lý phiên bản
+- id: multi-project-builds
+  title: Multi-project Builds
+  purpose: Tổ chức các module trong một build và nhận diện trường hợp dùng composite build.
+  objectives:
+  - Khai báo subprojects trong settings
+  - Thiết lập dependency giữa các project
+  - Phân biệt multi-project và included builds
+- id: kiem-thu-phat-hanh
+  title: Kiểm thử & Phát hành
+  purpose: Tích hợp kiểm thử, tạo artifact và hiểu bước xuất bản trong pipeline build.
+  objectives:
+  - Chạy test và check
+  - Tạo JAR hoặc artifact phù hợp
+  - Nhận diện quy trình publishing
+- id: cache-hieu-nang-ci
+  title: Cache, Hiệu năng & CI
+  purpose: Tăng tốc build và vận hành Gradle ổn định trên máy cá nhân lẫn CI.
+  objectives:
+  - Phân biệt incremental build, build cache, configuration cache
+  - Chẩn đoán task bị chạy lại
+  - Chạy lệnh Gradle bằng Wrapper trên CI

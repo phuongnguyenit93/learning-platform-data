@@ -1,0 +1,3 @@
+menuLevel1: PromptTemplate
+menuLevel2: Sử dụng mẫu qua các hàm cấu hình system và user của ChatClient
+status: ''

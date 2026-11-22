@@ -1,0 +1,13 @@
+references:
+  - title: "SpotBugs — Bug Descriptions"
+    url: "https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html"
+    description: "Danh mục bug pattern SpotBugs theo nhóm lỗi, kèm ý nghĩa và ví dụ."
+  - title: "Error Prone — Bug Patterns"
+    url: "https://errorprone.info/bugpatterns"
+    description: "Danh sách kiểm tra lỗi Java từ Error Prone, mức độ và mô tả từng mẫu."
+  - title: "PMD — Java Error Prone Rules"
+    url: "https://pmd.github.io/pmd/pmd_rules_java_errorprone.html"
+    description: "Các luật PMD Java nhằm phát hiện cấu trúc dễ gây lỗi cùng ví dụ và cách áp dụng."
+  - title: "MITRE — Common Weakness Enumeration (CWE)"
+    url: "https://cwe.mitre.org/data/"
+    description: "Phân loại điểm yếu phần mềm để đối chiếu mẫu lỗi có ảnh hưởng bảo mật."

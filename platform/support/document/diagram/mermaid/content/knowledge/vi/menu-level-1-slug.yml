@@ -1,0 +1,121 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường
+  slug: environment-setup
+  index: 1
+- title: Markdown
+  slug: markdown-integration
+  index: 2
+- title: Cú pháp
+  slug: syntax
+  index: 3
+- title: Lưu đồ
+  slug: flowcharts
+  index: 4
+- title: Trình tự
+  slug: sequence-diagrams
+  index: 5
+- title: Sơ đồ lớp
+  slug: class-diagrams
+  index: 6
+- title: Trạng thái
+  slug: state-diagrams
+  index: 7
+- title: Thực thể
+  slug: entity-relationship-diagrams
+  index: 8
+- title: Ca sử dụng
+  slug: use-case-diagrams
+  index: 9
+- title: Luồng trách nhiệm
+  slug: responsibility-flows
+  index: 10
+- title: Yêu cầu
+  slug: requirement-diagrams
+  index: 11
+- title: Kiến trúc C4
+  slug: c4-architecture
+  index: 12
+- title: Kiến trúc dịch vụ
+  slug: service-architecture
+  index: 13
+- title: Sơ đồ khối
+  slug: block-diagrams
+  index: 14
+- title: Hành trình
+  slug: user-journeys
+  index: 15
+- title: Gantt
+  slug: gantt-charts
+  index: 16
+- title: Dòng thời gian
+  slug: timelines
+  index: 17
+- title: GitGraph
+  slug: gitgraph
+  index: 18
+- title: Tư duy và cây
+  slug: mindmaps-and-trees
+  index: 19
+- title: Kanban
+  slug: kanban-charts
+  index: 20
+- title: Biểu đồ dữ liệu
+  slug: data-charts
+  index: 21
+- title: Luồng và phân cấp
+  slug: flow-and-hierarchy
+  index: 22
+- title: Sơ đồ chuyên biệt
+  slug: specialized-diagrams
+  index: 23
+- title: Mô hình sự kiện
+  slug: event-modeling
+  index: 24
+- title: Phân tích chiến lược
+  slug: strategy-analysis
+  index: 25
+- title: ZenUML
+  slug: zenuml
+  index: 26
+- title: Định dạng
+  slug: styling
+  index: 27
+- title: Cấu hình
+  slug: configuration
+  index: 28
+- title: Bố cục
+  slug: layout
+  index: 29
+- title: Tích hợp web
+  slug: web-integration
+  index: 30
+- title: Dòng lệnh
+  slug: cli-usage
+  index: 31
+- title: Tích hợp Java
+  slug: java-integration
+  index: 32
+- title: Xuất bản
+  slug: publishing
+  index: 33
+- title: Bảo mật
+  slug: security
+  index: 34
+- title: Khả năng tiếp cận
+  slug: accessibility
+  index: 35
+- title: Kiểm thử
+  slug: testing
+  index: 36
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 37
+- title: Hiệu năng và bảo trì
+  slug: performance-and-maintenance
+  index: 38
+- title: Thực hành
+  slug: practice
+  index: 39

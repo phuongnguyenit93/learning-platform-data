@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Thiết kế kiểm thử
+  slug: test-design
+  index: 1
+- title: Bộ công cụ
+  slug: toolkit
+  index: 2
+- title: Tổ chức dự án
+  slug: project-organization
+  index: 3
+- title: Spring TestContext
+  slug: spring-testcontext
+  index: 4
+- title: Spring Boot Test
+  slug: spring-boot-test
+  index: 5
+- title: Test slices
+  slug: test-slices
+  index: 6
+- title: Testcontainers cơ bản
+  slug: testcontainers-basics
+  index: 7
+- title: Vòng đời container
+  slug: container-lifecycle
+  index: 8
+- title: Mạng và nhiều dịch vụ
+  slug: networks-multiple-services
+  index: 9
+- title: Cơ sở dữ liệu SQL
+  slug: sql-databases
+  index: 10
+- title: Dữ liệu và migration
+  slug: data-migrations
+  index: 11
+- title: DBUnit và Database Rider
+  slug: dbunit-database-rider
+  index: 12
+- title: Giao dịch và đồng thời
+  slug: transactions-concurrency
+  index: 13
+- title: MongoDB và Redis
+  slug: mongodb-redis
+  index: 14
+- title: HTTP và bảo mật
+  slug: http-security
+  index: 15
+- title: Kafka
+  slug: kafka
+  index: 16
+- title: RabbitMQ
+  slug: rabbitmq
+  index: 17
+- title: Bất đồng bộ
+  slug: asynchronous-testing
+  index: 18
+- title: Email
+  slug: email
+  index: 19
+- title: Kho tệp và đám mây
+  slug: file-cloud-storage
+  index: 20
+- title: Tác vụ và sự kiện
+  slug: tasks-events
+  index: 21
+- title: Lỗi và phục hồi
+  slug: failures-recovery
+  index: 22
+- title: Cô lập và song song
+  slug: isolation-parallel-testing
+  index: 23
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 24
+- title: Tối ưu thời gian chạy
+  slug: execution-time-optimization
+  index: 25
+- title: CI/CD
+  slug: cicd
+  index: 26
+- title: Chất lượng và bảo trì
+  slug: quality-maintenance
+  index: 27
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 28

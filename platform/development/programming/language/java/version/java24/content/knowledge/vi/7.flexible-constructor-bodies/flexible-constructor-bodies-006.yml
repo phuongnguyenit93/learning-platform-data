@@ -1,0 +1,3 @@
+menuLevel1: Thân constructor linh hoạt
+menuLevel2: Tránh trạng thái chưa khởi tạo khi superclass gọi phương thức override
+status: ""

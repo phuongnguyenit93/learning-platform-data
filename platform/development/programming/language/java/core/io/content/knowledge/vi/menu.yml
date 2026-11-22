@@ -1,0 +1,442 @@
+menu:
+- level1: Tổng quan I/O
+  level2:
+  - I/O là gì và vai trò của nguồn, đích và dữ liệu
+  - Phân biệt dữ liệu nhị phân với văn bản
+  - Luồng dữ liệu, tài nguyên hệ điều hành và vòng đời sử dụng
+  - Phân biệt stream I/O với java.util.stream.Stream
+  - Bản đồ java.io, java.nio và NIO.2
+  - Tuần tự, truy cập ngẫu nhiên, blocking và non-blocking
+  - Kiến thức tiên quyết và trình tự học đề xuất
+  - Phạm vi Java Core và khác biệt theo phiên bản JDK
+- level1: Luồng byte
+  level2:
+  - InputStream và OutputStream
+  - read trả về int từ 0 đến 255 và dấu hiệu EOF -1
+  - Đọc theo byte[], offset và length
+  - Một lần read không bảo đảm lấp đầy buffer
+  - Ghi đúng số byte thực tế đã đọc
+  - readNBytes và khác biệt với readAllBytes
+  - skip, skipNBytes và giới hạn khi bỏ qua dữ liệu
+  - available không phải kích thước toàn bộ dữ liệu
+  - transferTo và quyền sở hữu hai stream
+  - FileInputStream, FileOutputStream và chế độ append
+  - nullInputStream, nullOutputStream và tình huống sử dụng
+- level1: Luồng ký tự
+  level2:
+  - Reader và Writer xử lý đơn vị char
+  - Đọc và ghi char[], String và từng phần dữ liệu
+  - EOF của Reader và số ký tự thực tế đã đọc
+  - InputStreamReader nối luồng byte với ký tự
+  - OutputStreamWriter nối ký tự với luồng byte
+  - FileReader, FileWriter và lựa chọn charset
+  - Reader.transferTo và giới hạn xử lý dữ liệu lớn
+  - Readable, Appendable và khả năng ghép API
+  - Vì sao không dùng luồng ký tự để sao chép dữ liệu nhị phân
+- level1: Mã hóa văn bản
+  level2:
+  - Quan hệ giữa byte, char UTF-16, code point và ký tự hiển thị
+  - Unicode, UTF-8, UTF-16 và các charset thường gặp
+  - Charset, StandardCharsets và tên charset
+  - Chọn charset tường minh khi đọc và ghi
+  - Charset mặc định, thay đổi UTF-8 từ JDK 18 và ngoại lệ theo API
+  - BOM và khác biệt UTF-16, UTF-16BE, UTF-16LE
+  - Lỗi mojibake khi encode và decode không cùng charset
+  - Malformed input, unmappable character và chính sách xử lý
+  - CharsetEncoder, CharsetDecoder và CodingErrorAction
+  - Giải mã nhiều khối khi ký tự bị chia giữa hai lần đọc
+  - Không cắt chuỗi byte hoặc char tùy ý giữa một ký tự
+  - Phân biệt charset với Base64 và nén dữ liệu
+- level1: Bộ đệm và ghép luồng
+  level2:
+  - Mục đích của BufferedInputStream và BufferedOutputStream
+  - BufferedReader và BufferedWriter
+  - 'Decorator: lớp bọc bổ sung hành vi cho stream'
+  - Thứ tự ghép stream, buffer, charset và định dạng
+  - Kích thước bộ đệm và số lần gọi I/O
+  - flush đẩy bộ đệm phần mềm nhưng không đồng nghĩa dữ liệu bền vững
+  - close lớp ngoài cùng và việc đóng tài nguyên bên dưới
+  - Mark, reset, markSupported và readlimit
+  - Reader.ready khác kiểm tra EOF như thế nào
+  - Tránh trộn nhiều lớp đọc có bộ đệm trên cùng một nguồn
+- level1: Dòng và token
+  level2:
+  - BufferedReader.readLine và dấu kết thúc dòng bị loại bỏ
+  - LF, CRLF, CR và quy ước xuống dòng
+  - BufferedWriter.newLine và System.lineSeparator
+  - BufferedReader.lines và quyền đóng Reader
+  - 'Scanner: nguồn dữ liệu, delimiter và token'
+  - next, nextLine và phần xuống dòng còn lại
+  - Đọc số với Scanner theo locale và radix
+  - hasNext, InputMismatchException và token không hợp lệ
+  - Scanner.ioException và đóng nguồn dữ liệu
+  - StreamTokenizer và lựa chọn công cụ phân tích phù hợp
+  - Giới hạn dùng tách dòng hoặc split để đọc định dạng có escape phức tạp
+- level1: Console và định dạng
+  level2:
+  - System.in, System.out và System.err
+  - Chuyển hướng đầu vào, đầu ra và lỗi ở mức tiến trình
+  - System.console và trường hợp không có console
+  - Console.reader, writer, readLine và readPassword
+  - PrintStream khác PrintWriter
+  - print, println, printf và Formatter
+  - Locale, mẫu định dạng và dấu phân cách số
+  - Auto-flush và các thao tác thực sự kích hoạt flush
+  - checkError và các lỗi I/O không được ném trực tiếp
+  - Không vô tình đóng các stream chuẩn dùng chung
+- level1: I/O trong bộ nhớ
+  level2:
+  - ByteArrayInputStream và ByteArrayOutputStream
+  - toByteArray tạo bản sao và writeTo chuyển dữ liệu
+  - StringReader, StringWriter và các luồng mảng char
+  - Chuyển byte[] sang String bằng charset xác định
+  - SequenceInputStream nối nhiều nguồn byte
+  - PushbackInputStream và PushbackReader
+  - PipedInputStream, PipedOutputStream và giao tiếp giữa luồng
+  - PipedReader, PipedWriter và nguy cơ bế tắc khi dùng không đúng
+  - Dùng stream bộ nhớ trong kiểm thử và các phép biến đổi
+  - Giới hạn dung lượng khi tích lũy toàn bộ nội dung
+- level1: Dữ liệu nhị phân
+  level2:
+  - DataInput, DataOutput và định dạng dữ liệu nguyên thủy
+  - DataInputStream và DataOutputStream
+  - Thứ tự ghi phải tương ứng với thứ tự đọc
+  - Big-endian, signed byte và các thao tác đọc unsigned
+  - readFully khác read và cách xử lý EOFException
+  - readUTF, writeUTF và modified UTF-8
+  - Giới hạn độ dài của writeUTF
+  - Thiết kế bản ghi có magic number, version và length
+  - Kiểm tra độ dài trước khi cấp phát hoặc đọc dữ liệu
+  - Phân biệt định dạng nhị phân tự thiết kế với Java serialization
+- level1: Tài nguyên và lỗi
+  level2:
+  - IOException và các lỗi thường gặp khi mở, đọc hoặc ghi
+  - EOF bình thường khác dữ liệu bị cắt cụt
+  - Closeable, AutoCloseable và try-with-resources
+  - Thứ tự đóng tài nguyên và suppressed exception
+  - 'Ai mở, ai đóng: quy tắc sở hữu trong thiết kế API'
+  - Đóng stream bọc, tài nguyên chia sẻ và tài nguyên do bên gọi truyền vào
+  - Cleanup khi tạo hoặc ghép tài nguyên thất bại
+  - UncheckedIOException khi kết hợp I/O với Stream API
+  - Đọc hoặc ghi dở dang khi có ngoại lệ
+  - Ngắt, đóng từ luồng khác và hành vi phụ thuộc loại I/O
+- level1: File truyền thống
+  level2:
+  - File là biểu diễn đường dẫn, không phải nội dung tệp
+  - Tạo File không đồng nghĩa tạo tệp vật lý
+  - Đường dẫn tuyệt đối, tương đối và thư mục làm việc
+  - getPath, getAbsolutePath và getCanonicalPath
+  - Kiểm tra tồn tại, loại tệp, kích thước và quyền truy cập
+  - list, listFiles, FileFilter và FilenameFilter
+  - mkdir, mkdirs, createNewFile, renameTo và delete
+  - Giới hạn thông tin lỗi của API trả về boolean
+  - Chuyển đổi File.toPath và Path.toFile
+  - Khi nào nên ưu tiên Path và Files
+- level1: Path
+  level2:
+  - Tạo Path bằng Path.of, Paths.get và FileSystem
+  - Root, parent, file name và các thành phần đường dẫn
+  - resolve, resolveSibling và ghép đường dẫn
+  - relativize và điều kiện tương thích
+  - normalize chỉ xử lý cú pháp đường dẫn
+  - toAbsolutePath khác toRealPath
+  - startsWith, endsWith, equals và so sánh theo thành phần
+  - URI, toUri và giới hạn chuyển đổi giữa các provider
+  - Đường dẫn Windows, Unix, dấu phân cách và tính phân biệt hoa thường
+  - Path không bảo đảm đích đang tồn tại
+  - PathMatcher với glob và regex
+- level1: Đọc ghi bằng Files
+  level2:
+  - readAllBytes và giới hạn bộ nhớ
+  - readString, writeString và charset UTF-8 mặc định của API
+  - readAllLines và dữ liệu được đưa toàn bộ vào bộ nhớ
+  - Files.lines đọc lười và bắt buộc quản lý vòng đời Stream
+  - newBufferedReader và newBufferedWriter
+  - newInputStream, newOutputStream và các lựa chọn mở tệp
+  - READ, WRITE, CREATE, CREATE_NEW và TRUNCATE_EXISTING
+  - APPEND và giới hạn kết hợp OpenOption
+  - SYNC, DSYNC, DELETE_ON_CLOSE và tính hỗ trợ của provider
+  - Files.copy kết hợp InputStream hoặc OutputStream
+  - Files.mismatch và so sánh nội dung hai tệp
+- level1: Thao tác tệp
+  level2:
+  - createFile, createDirectory và createDirectories
+  - createTempFile, createTempDirectory và phạm vi dọn dẹp
+  - copy tệp với REPLACE_EXISTING và COPY_ATTRIBUTES
+  - move, đổi tên và lựa chọn ATOMIC_MOVE
+  - delete khác deleteIfExists
+  - Xử lý tệp đích đã tồn tại và thư mục không rỗng
+  - Thao tác xuyên file system và giới hạn provider
+  - exists, notExists và trường hợp không xác định được trạng thái
+  - Không kiểm tra trước rồi mặc định thao tác sau sẽ thành công
+  - Xử lý lỗi từng bước trong các thao tác nhiều tệp
+- level1: Duyệt cây thư mục
+  level2:
+  - DirectoryStream và đóng handle thư mục
+  - Files.list chỉ liệt kê con trực tiếp
+  - Files.walk và độ sâu tối đa
+  - Files.find kết hợp Path với BasicFileAttributes
+  - walkFileTree, FileVisitor và SimpleFileVisitor
+  - preVisitDirectory, visitFile, visitFileFailed và postVisitDirectory
+  - 'FileVisitResult: tiếp tục, bỏ nhánh hoặc kết thúc'
+  - FOLLOW_LINKS, vòng liên kết và FileSystemLoopException
+  - Thứ tự duyệt không mặc nhiên là thứ tự mong muốn
+  - Sao chép hoặc xóa cây theo đúng thứ tự xử lý
+  - Đóng Stream trả về từ list, walk và find
+- level1: Thuộc tính và quyền
+  level2:
+  - BasicFileAttributes và BasicFileAttributeView
+  - Thời gian tạo, sửa, truy cập và FileTime
+  - Kích thước, loại tệp và fileKey
+  - Đọc thuộc tính theo kiểu hoặc theo tên
+  - POSIX permission và PosixFileAttributeView
+  - Thuộc tính DOS trên Windows
+  - Owner, UserPrincipal và AclFileAttributeView
+  - UserDefinedFileAttributeView và hỗ trợ theo file system
+  - Thiết lập thuộc tính khi tạo tệp
+  - FileStore, dung lượng và supportedFileAttributeViews
+  - probeContentType và giới hạn suy đoán MIME type
+- level1: Liên kết tệp
+  level2:
+  - Symbolic link và hard link
+  - Tạo, đọc và nhận biết symbolic link
+  - Đường dẫn đích tương đối của symbolic link
+  - Liên kết hỏng và khác biệt khi theo hoặc không theo link
+  - NOFOLLOW_LINKS trong đọc thuộc tính và kiểm tra tệp
+  - Files.isSameFile khác Path.equals
+  - Thao tác copy, move, delete tác động vào link hay đích
+  - Vòng liên kết và giới hạn khi duyệt cây
+  - Quyền và tính hỗ trợ theo hệ điều hành
+- level1: Hệ thống tệp
+  level2:
+  - FileSystem, FileSystems và FileSystemProvider
+  - Default file system và các provider được cài đặt
+  - Quan hệ giữa Path với FileSystem tạo ra nó
+  - newFileSystem, getFileSystem và quyền đóng tài nguyên
+  - 'ZIP file system: thao tác archive bằng Path và Files'
+  - Root directories, FileStore và các đặc điểm provider
+  - ProviderMismatchException, FileSystemNotFoundException và ClosedFileSystemException
+  - Giới hạn chuyển sang File và giả định về đường dẫn vật lý
+  - Khả năng mở rộng provider và ranh giới của Java API
+- level1: Truy cập ngẫu nhiên
+  level2:
+  - RandomAccessFile và các chế độ r, rw, rws, rwd
+  - File pointer, seek và getFilePointer
+  - Đọc ghi dữ liệu nguyên thủy qua DataInput và DataOutput
+  - length, setLength và vùng dữ liệu chưa được ghi
+  - Thiết kế bản ghi có vị trí và kích thước xác định
+  - getChannel và trạng thái vị trí được chia sẻ
+  - Không chia sẻ file pointer giữa nhiều thao tác mà thiếu phối hợp
+  - Khi nào chọn RandomAccessFile thay FileChannel
+- level1: NIO Buffer
+  level2:
+  - Buffer, ByteBuffer, CharBuffer và các kiểu buffer khác
+  - Capacity, position, limit và mark
+  - Chu trình ghi vào buffer, flip và đọc khỏi buffer
+  - clear không xóa dữ liệu trong vùng nhớ
+  - rewind, compact và reset
+  - get, put tương đối và tuyệt đối
+  - remaining, hasRemaining và lỗi tràn hoặc thiếu buffer
+  - allocate, wrap và vùng dữ liệu được chia sẻ
+  - Heap buffer, direct buffer và chi phí cấp phát
+  - ByteOrder và các view buffer cho kiểu nguyên thủy
+  - slice, duplicate, read-only buffer và trạng thái vị trí riêng
+  - Buffer không mặc nhiên an toàn cho nhiều luồng
+- level1: NIO Channel
+  level2:
+  - Channel khác InputStream và OutputStream
+  - ReadableByteChannel, WritableByteChannel và ByteChannel
+  - SeekableByteChannel và khả năng thay đổi vị trí
+  - Đọc hoặc ghi không đủ toàn bộ buffer
+  - Ý nghĩa của kết quả 0 và EOF -1
+  - Vòng lặp đọc ghi dựa trên position và remaining
+  - Scattering read và gathering write
+  - Channels.newChannel, newInputStream và newOutputStream
+  - Channels.newReader, newWriter và chuyển đổi charset
+  - Đóng channel, khả năng ngắt và tài nguyên bên dưới
+- level1: FileChannel
+  level2:
+  - Mở FileChannel bằng Path và OpenOption
+  - Đọc ghi theo vị trí hiện tại
+  - Đọc ghi tại vị trí tuyệt đối mà không đổi position
+  - size, truncate và giới hạn thay đổi độ dài
+  - transferTo, transferFrom và xử lý số byte chuyển thực tế
+  - Zero-copy là khả năng tối ưu, không phải bảo đảm cho mọi tình huống
+  - force và phạm vi bảo đảm với thiết bị lưu trữ
+  - Quan hệ với FileInputStream, FileOutputStream và RandomAccessFile
+  - 'Dùng đồng thời: vị trí chia sẻ và thao tác có vị trí tường minh'
+  - Append và các hành vi phụ thuộc hệ điều hành
+  - FileChannel không phải selectable channel
+- level1: Ánh xạ bộ nhớ
+  level2:
+  - Memory-mapped file và MappedByteBuffer
+  - MapMode READ_ONLY, READ_WRITE và PRIVATE
+  - Ánh xạ từng vùng và giới hạn kích thước buffer
+  - Đọc ghi dữ liệu qua vùng nhớ đã ánh xạ
+  - load, isLoaded và tác động của page fault
+  - force cho thay đổi trên vùng ánh xạ
+  - Đóng channel không tự kết thúc vòng đời vùng ánh xạ
+  - Giới hạn giải phóng mapping theo phiên bản API và JVM
+  - Rủi ro khi tệp bị thay đổi kích thước trong lúc đang ánh xạ
+  - Khi nào memory mapping có ích và khi nào gây bất lợi
+- level1: Khóa và dữ liệu bền
+  level2:
+  - FileLock, lock và tryLock
+  - Khóa độc quyền, khóa chia sẻ và vùng byte
+  - File lock thuộc phạm vi JVM, không thay thế khóa giữa các luồng
+  - OverlappingFileLockException và giới hạn hỗ trợ của hệ điều hành
+  - Giải phóng lock khi đóng tài nguyên
+  - Phân biệt flush, FileDescriptor.sync và FileChannel.force
+  - Ghi ra tệp tạm rồi thay thế đích
+  - ATOMIC_MOVE và khả năng không được hỗ trợ
+  - Tính nguyên tử của đổi tên khác độ bền sau sự cố nguồn điện
+  - Giới hạn nhất quán trên network file system
+- level1: NIO mạng
+  level2:
+  - SocketChannel, ServerSocketChannel và DatagramChannel
+  - Chế độ blocking và non-blocking
+  - Connect, finishConnect, accept, read và write
+  - TCP là luồng byte, không bảo toàn ranh giới bản tin
+  - Thiết kế framing bằng độ dài hoặc dấu phân cách
+  - Partial read, partial write và lưu trạng thái giữa các lần sẵn sàng
+  - EOF, đóng kết nối và đóng một chiều
+  - Datagram và khác biệt với luồng TCP
+  - Phạm vi I/O mạng và các kiến thức giao thức cần học riêng
+- level1: Selector
+  level2:
+  - Selector và mô hình nhiều channel trên một luồng
+  - Đăng ký channel ở chế độ non-blocking
+  - SelectionKey, interest set và ready set
+  - OP_ACCEPT, OP_CONNECT, OP_READ và OP_WRITE
+  - select, selectNow và select có timeout
+  - Lặp selectedKeys và loại bỏ key đã xử lý
+  - Wakeup, hủy key và đóng selector
+  - Sẵn sàng I/O không bảo đảm hoàn tất toàn bộ thao tác
+  - Chỉ đăng ký OP_WRITE khi còn dữ liệu cần gửi
+  - Tránh busy loop, nghẽn xử lý và dùng chung buffer sai cách
+- level1: I/O bất đồng bộ
+  level2:
+  - Phân biệt asynchronous I/O với non-blocking I/O
+  - AsynchronousFileChannel và vị trí thao tác tường minh
+  - Future và CompletionHandler
+  - AsynchronousSocketChannel và AsynchronousServerSocketChannel
+  - AsynchronousChannelGroup và nhóm luồng thực thi
+  - Không sửa hoặc tái sử dụng buffer khi thao tác chưa hoàn tất
+  - Tiếp tục đọc ghi khi kết quả chỉ hoàn tất một phần
+  - Xử lý lỗi, ngắt, timeout và đóng channel
+  - Giới hạn số thao tác đồng thời và áp lực lên tài nguyên
+  - Lựa chọn blocking, selector hoặc API bất đồng bộ theo bài toán
+- level1: Theo dõi thay đổi
+  level2:
+  - WatchService, Watchable và đăng ký thư mục
+  - ENTRY_CREATE, ENTRY_DELETE và ENTRY_MODIFY
+  - WatchKey, pollEvents và đường dẫn tương đối của sự kiện
+  - take, poll và vòng xử lý sự kiện
+  - reset key và trạng thái đăng ký không còn hợp lệ
+  - OVERFLOW và nhu cầu quét lại trạng thái
+  - Đăng ký đệ quy và thư mục được tạo mới
+  - Sự kiện lặp, gộp và thời điểm nội dung tệp chưa hoàn tất
+  - Giới hạn phụ thuộc nền tảng và network file system
+  - Đóng WatchService và dừng luồng chờ
+- level1: Nén và đóng gói
+  level2:
+  - Phân biệt nén GZIP với archive ZIP
+  - GZIPInputStream và GZIPOutputStream
+  - ZipInputStream, ZipOutputStream và ZipEntry
+  - putNextEntry, closeEntry và hoàn tất archive
+  - finish khác flush và close
+  - ZipFile truy cập từng entry và quản lý vòng đời
+  - Charset tên entry và metadata của archive
+  - JarFile, JarInputStream và manifest ở mức I/O
+  - Deflater, Inflater và phạm vi điều khiển mức nén
+  - CRC32, Adler32 và giới hạn của checksum
+  - Giới hạn dung lượng, số entry và tỷ lệ giải nén
+  - Giải nén đúng thư mục đích và xử lý đường dẫn entry
+- level1: Tuần tự hóa cơ bản
+  level2:
+  - Tuần tự hóa (serialization), Serializable và việc lưu đồ thị đối tượng
+  - ObjectOutputStream và ObjectInputStream
+  - writeObject, readObject và định dạng stream
+  - Tham chiếu dùng chung, vòng tham chiếu và object handle
+  - Trường transient, static và trạng thái mặc định được lưu
+  - serialVersionUID và tương thích lớp
+  - NotSerializableException, InvalidClassException và StreamCorruptedException
+  - Constructor của lớp Serializable và lớp cha không Serializable
+  - Ghi lại đối tượng đã thay đổi, reset và cache handle
+  - Stream header và lỗi khi nối tùy tiện nhiều object stream
+  - Khác biệt với định dạng trao đổi có schema độc lập Java
+- level1: Tuần tự hóa nâng cao
+  level2:
+  - writeObject, readObject và defaultWriteObject, defaultReadObject
+  - readObjectNoData và thay đổi hệ phân cấp
+  - serialPersistentFields và điều khiển dạng lưu trữ
+  - writeReplace, readResolve và thay thế đối tượng
+  - Externalizable, writeExternal và readExternal
+  - Yêu cầu constructor public không tham số của Externalizable
+  - Serializable với enum và record
+  - '@Serial và kiểm tra khai báo thành viên đặc biệt'
+  - Kiểm tra bất biến sau khi khôi phục đối tượng
+  - 'ObjectInputFilter: giới hạn lớp, độ sâu, số tham chiếu và độ dài mảng'
+  - Filter theo stream, cấu hình JVM và phụ thuộc phiên bản JDK
+  - Không khôi phục trực tiếp dữ liệu đối tượng không tin cậy
+- level1: Thiết kế an toàn
+  level2:
+  - Giới hạn kích thước đầu vào và lượng bộ nhớ sử dụng
+  - Path traversal và ranh giới thư mục được phép
+  - Normalize không thay thế việc xử lý symbolic link
+  - 'TOCTOU: khoảng trống giữa kiểm tra và thao tác'
+  - SecureDirectoryStream và khả năng hỗ trợ của provider
+  - Tạo tệp tạm có quyền phù hợp và dọn dẹp có kiểm soát
+  - Không ghi đè dữ liệu ngoài ý muốn khi mở hoặc copy
+  - Kiểm tra tính toàn vẹn bằng hash khi bài toán yêu cầu
+  - Tránh ghi dữ liệu nhạy cảm và đường dẫn nội bộ vào thông báo công khai
+  - Phân biệt quyền hệ điều hành với các cơ chế bảo mật Java lịch sử
+- level1: Hiệu năng và tệp lớn
+  level2:
+  - Xử lý từng khối thay vì đưa toàn bộ tệp vào bộ nhớ
+  - Chọn kích thước buffer theo phép đo
+  - Chi phí syscall, chuyển đổi charset và số lớp bọc
+  - So sánh stream có bộ đệm, Files.copy và FileChannel
+  - Heap buffer, direct memory và áp lực bộ nhớ
+  - Giới hạn đọc song song và thứ tự ghép kết quả
+  - Đo throughput, latency và mức sử dụng bộ nhớ
+  - Ảnh hưởng của cache hệ điều hành khi benchmark
+  - Không mặc định NIO hoặc memory mapping luôn nhanh hơn
+  - Giới hạn file descriptor và số tài nguyên đang mở
+- level1: Kiểm thử và chẩn đoán
+  level2:
+  - Kiểm thử bằng stream bộ nhớ trước khi phụ thuộc tệp thật
+  - Tạo thư mục tạm riêng cho từng kịch bản
+  - Kiểm tra nội dung byte chính xác và round-trip văn bản
+  - Dữ liệu Unicode, BOM và ký tự bị chia giữa các khối
+  - Tệp rỗng, tệp lớn, EOF sớm và bản ghi không hoàn chỉnh
+  - Mô phỏng partial read, partial write và lỗi giữa chừng
+  - Kiểm tra tài nguyên được đóng khi có lỗi
+  - Kiểm tra symbolic link, quyền và hành vi theo nền tảng
+  - Chẩn đoán sai working directory, charset và đường dẫn resource
+  - Chẩn đoán dữ liệu chưa flush, file handle còn mở và buffer sai trạng thái
+  - Kiểm tra event, callback và thao tác đồng thời theo cách xác định
+- level1: Thực hành
+  level2:
+  - Sao chép tệp nhị phân với buffer giới hạn
+  - Chuyển văn bản giữa hai charset có kiểm tra lỗi
+  - Đọc file lớn theo dòng và thống kê dữ liệu
+  - Thiết kế định dạng nhị phân có version và length
+  - Xây dựng công cụ duyệt cây và lọc tệp
+  - Cập nhật tệp bằng ghi tạm và thay thế
+  - So sánh RandomAccessFile với FileChannel trên bản ghi cố định
+  - Xây dựng vòng selector cho giao tiếp TCP đơn giản
+  - Theo dõi thư mục bằng WatchService có xử lý overflow
+  - Nén, giải nén archive có giới hạn và kiểm tra đường dẫn
+  - Minh họa serialization và cấu hình ObjectInputFilter
+  - Hoàn thiện ví dụ tích hợp với kiểm thử các nhánh thất bại
+- level1: Tra cứu
+  level2:
+  - Bảng chọn InputStream, Reader, Files hoặc Channel
+  - Bảng charset và quy tắc chuyển byte sang ký tự
+  - Bảng biến đổi trạng thái Buffer
+  - Bảng OpenOption, CopyOption, LinkOption và FileVisitOption
+  - Bảng trách nhiệm đóng tài nguyên theo từng API
+  - Bảng lỗi I/O thường gặp và thông tin cần kiểm tra
+  - Bảng API truyền thống, NIO, NIO.2 và các mốc phiên bản
+  - Tra cứu Javadoc, Serialization Specification và khả năng của provider

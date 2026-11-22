@@ -1,0 +1,2083 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Embeddings là gì và vì sao cần biểu diễn dữ liệu bằng vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Kho vector (vector store) là gì và khác cơ sở dữ liệu thông thường ở đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Tìm kiếm từ khóa và tìm kiếm ngữ nghĩa giải quyết những bài toán nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của Spring AI trong việc kết nối mô hình embeddings với kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Luồng tổng thể: tài liệu → chia đoạn → tạo embeddings → lưu trữ → truy xuất'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt mô hình embeddings, mô hình hội thoại và huấn luyện mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vị trí của truy xuất vector trong RAG và ranh giới với bước sinh câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Các thuật ngữ chính, kiến thức tiên quyết và thứ tự học của module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vector-fundamentals
+  title: Nền tảng vector
+  childs:
+  - slug: vector-fundamentals-001
+    title: Số chiều, thành phần và không gian biểu diễn của vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-fundamentals-002
+    title: Độ tương đồng cosine, tích vô hướng và khoảng cách Euclidean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-fundamentals-003
+    title: Chuẩn hóa vector và quan hệ giữa độ dài vector với phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-fundamentals-004
+    title: Phân biệt khoảng cách, điểm tương đồng và xác suất đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-fundamentals-005
+    title: 'Tìm láng giềng gần nhất chính xác và gần đúng: k-NN và ANN'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-fundamentals-006
+    title: Vì sao truy vấn và tài liệu phải dùng không gian embeddings tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-fundamentals-007
+    title: Embeddings đa ngôn ngữ và ảnh hưởng của tiếng Việt đến truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-fundamentals-008
+    title: Giới hạn của embeddings với mã định danh, số liệu, phủ định và ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Thiết lập
+  childs:
+  - slug: setup-001
+    title: Xác định phiên bản Spring AI, Spring Boot và JDK tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Quản lý phụ thuộc bằng Spring AI BOM trong Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Chọn starter cho mô hình embeddings và kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Cấu hình kết nối, thông tin xác thực và các môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Tự động cấu hình và khai báo bean thủ công trong Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Phân biệt cấu hình dùng chung với thuộc tính riêng của từng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Cấu hình nhiều EmbeddingModel và VectorStore bằng Qualifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Chạy thử luồng thêm tài liệu và tìm kiếm tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embeddingmodel
+  title: EmbeddingModel
+  childs:
+  - slug: embeddingmodel-001
+    title: Hợp đồng EmbeddingModel và quan hệ với Model API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embeddingmodel-002
+    title: Tạo vector từ chuỗi, Document và danh sách văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embeddingmodel-003
+    title: EmbeddingRequest, EmbeddingResponse và thứ tự các kết quả Embedding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embeddingmodel-004
+    title: EmbeddingOptions và sự khác nhau giữa tùy chọn mặc định với từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embeddingmodel-005
+    title: Đọc số chiều, thông tin mô hình và mức sử dụng token từ phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embeddingmodel-006
+    title: Phân biệt nội dung được nhúng với metadata chỉ dùng để lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embeddingmodel-007
+    title: Kiểm tra đầu vào rỗng, giới hạn token và tính hợp lệ của vector đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embeddingmodel-008
+    title: Tính đồng bộ của lời gọi embeddings và cách bố trí luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: providers
+  title: Nhà cung cấp
+  childs:
+  - slug: providers-001
+    title: 'Tiêu chí chọn mô hình: ngôn ngữ, miền dữ liệu, chất lượng, chi phí và độ trễ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-002
+    title: Dùng dịch vụ embeddings từ xa qua các tích hợp Spring AI được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-003
+    title: Dùng Ollama để tạo embeddings trong môi trường cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-004
+    title: Dùng mô hình Transformers qua ONNX và chuẩn bị tài nguyên suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-005
+    title: Đối chiếu giới hạn đầu vào, số chiều và tùy chọn theo từng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-006
+    title: Phân biệt chế độ biểu diễn cho truy vấn và tài liệu khi mô hình hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-007
+    title: Kiểm soát việc cắt ngắn văn bản và phát hiện mất thông tin đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-008
+    title: Ghi nhận định danh, phiên bản và cấu hình mô hình để tái lập kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document
+  title: Document
+  childs:
+  - slug: document-001
+    title: 'Cấu trúc Document: định danh, nội dung, metadata và điểm truy xuất'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-002
+    title: Thiết kế định danh ổn định cho tài liệu gốc và từng đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-003
+    title: Thiết kế metadata cho nguồn, trang, mục, ngôn ngữ và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-004
+    title: Kiểu dữ liệu metadata và giới hạn lưu trữ giữa các kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-005
+    title: Định dạng nội dung đưa vào embeddings bằng ContentFormatter và MetadataMode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-006
+    title: Bảo toàn liên kết từ đoạn truy xuất về tài liệu nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-007
+    title: Tách dữ liệu nghiệp vụ chuẩn khỏi bản sao phục vụ tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-008
+    title: Phân biệt dữ liệu văn bản với khả năng đa phương thức theo phiên bản và tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-loading
+  title: Đọc dữ liệu
+  childs:
+  - slug: data-loading-001
+    title: Vai trò của DocumentReader và Spring Resource trong bước trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-loading-002
+    title: Đọc văn bản thuần và chuẩn hóa mã hóa ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-loading-003
+    title: Đọc JSON và chọn trường nội dung bằng JsonReader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-loading-004
+    title: Đọc Markdown và giữ cấu trúc tiêu đề, danh sách, đoạn mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-loading-005
+    title: Đọc PDF theo trang hoặc đoạn bằng các PDF DocumentReader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-loading-006
+    title: Đọc nhiều định dạng tài liệu bằng TikaDocumentReader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-loading-007
+    title: Tự xây dựng DocumentReader cho cơ sở dữ liệu hoặc nguồn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-loading-008
+    title: Xử lý tài liệu quét cần OCR, tệp lỗi và nội dung không trích xuất được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-chunking
+  title: Chia đoạn
+  childs:
+  - slug: document-chunking-001
+    title: Vì sao cần chia đoạn trước khi tạo embeddings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-002
+    title: Phân biệt token, ký tự, câu và đơn vị ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-003
+    title: Cơ chế chia văn bản và các tùy chọn của TokenTextSplitter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-004
+    title: Điều chỉnh kích thước đoạn, độ dài tối thiểu và giới hạn số đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-005
+    title: Bảo toàn tiêu đề, bảng, danh sách và đoạn mã khi chia tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-006
+    title: Thiết kế phần ngữ cảnh chồng lấp bằng bộ chia tùy chỉnh khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-007
+    title: Kế thừa metadata và gán định danh cho các đoạn sau khi chia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-chunking-008
+    title: Đo ảnh hưởng của kích thước đoạn đến chất lượng, số vector và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ingestion-pipeline
+  title: Luồng nhập liệu
+  childs:
+  - slug: ingestion-pipeline-001
+    title: Kết nối DocumentReader, DocumentTransformer và DocumentWriter thành luồng ETL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingestion-pipeline-002
+    title: Làm sạch khoảng trắng, nội dung lặp và các phần không có giá trị tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingestion-pipeline-003
+    title: Bổ sung metadata nguồn và kiểm tra chất lượng trước khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingestion-pipeline-004
+    title: Phân biệt chia tài liệu thành đoạn với gom tài liệu thành lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingestion-pipeline-005
+    title: BatchingStrategy và TokenCountBatchingStrategy trong bước tạo embeddings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingestion-pipeline-006
+    title: Cân bằng giới hạn token mỗi tài liệu với tổng token của một lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingestion-pipeline-007
+    title: Nhập liệu theo lô có giới hạn bộ nhớ và ghi nhận tiến độ từng đợt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingestion-pipeline-008
+    title: Thiết kế luồng nhập liệu độc lập với đường xử lý truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vectorstore
+  title: VectorStore
+  childs:
+  - slug: vectorstore-001
+    title: Hợp đồng VectorStore và trách nhiệm của từng thành phần tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-002
+    title: Tách quyền truy xuất chỉ đọc bằng VectorStoreRetriever theo phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-003
+    title: Thêm Document bằng add và tích hợp vai trò DocumentWriter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-004
+    title: Khi nào VectorStore gọi EmbeddingModel trong bước ghi và tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-005
+    title: Hành vi khi ghi lại cùng định danh và cách kiểm tra theo từng kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-006
+    title: Xóa tài liệu theo danh sách định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-007
+    title: Xóa tài liệu theo biểu thức metadata khi tích hợp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-008
+    title: Khả năng truy vấn, lấy theo định danh và cập nhật ngoài hợp đồng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstore-009
+    title: Truy cập client gốc bằng getNativeClient và kiểm soát phụ thuộc đặc thù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: similarity-search
+  title: Truy vấn tương đồng
+  childs:
+  - slug: similarity-search-001
+    title: Từ chuỗi truy vấn đến vector truy vấn và danh sách Document kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: similarity-search-002
+    title: Tạo SearchRequest bằng builder và cấu hình các tham số truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: similarity-search-003
+    title: Chọn topK và hiểu giới hạn số kết quả trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: similarity-search-004
+    title: Dùng similarityThreshold và xử lý trường hợp không có kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: similarity-search-005
+    title: Đọc điểm truy xuất, thứ tự kết quả và nguồn của từng đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: similarity-search-006
+    title: Phân biệt điểm tương đồng giữa các mô hình, phép đo và kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: similarity-search-007
+    title: Ảnh hưởng của dữ liệu trùng lặp đến danh sách kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: similarity-search-008
+    title: Giới hạn về phân trang, sắp xếp và tính ổn định của tìm kiếm vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata-filtering
+  title: Lọc metadata
+  childs:
+  - slug: metadata-filtering-001
+    title: Vai trò của metadata filter trong việc giới hạn tập tài liệu được tìm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-filtering-002
+    title: Cú pháp lọc dạng chuỗi và biểu diễn Filter.Expression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-filtering-003
+    title: Tạo bộ lọc bằng FilterExpressionBuilder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-filtering-004
+    title: So sánh, kiểm tra tập giá trị và kết hợp điều kiện AND, OR, NOT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-filtering-005
+    title: Xử lý kiểu dữ liệu, giá trị thiếu và ký tự đặc biệt trong bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-filtering-006
+    title: Chuyển bộ lọc chung sang cú pháp gốc và nhận diện giới hạn tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-filtering-007
+    title: Phân biệt lọc trước với lọc sau tìm kiếm và ảnh hưởng đến số kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-filtering-008
+    title: Áp dụng cùng phạm vi metadata cho tìm kiếm và xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: simplevectorstore
+  title: SimpleVectorStore
+  childs:
+  - slug: simplevectorstore-001
+    title: Vai trò của SimpleVectorStore trong học tập và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: simplevectorstore-002
+    title: Khởi tạo kho vector trong bộ nhớ bằng EmbeddingModel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: simplevectorstore-003
+    title: Thực hiện thêm, tìm kiếm, lọc và xóa trên tập dữ liệu nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: simplevectorstore-004
+    title: Lưu và nạp dữ liệu JSON bằng save và load
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: simplevectorstore-005
+    title: Đối chiếu mô hình embeddings khi nạp lại dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: simplevectorstore-006
+    title: Giới hạn về độ bền dữ liệu, tài nguyên và khả năng dùng trong vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pgvector
+  title: PGvector
+  childs:
+  - slug: pgvector-001
+    title: Kiến trúc PostgreSQL kết hợp phần mở rộng pgvector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-002
+    title: Chuẩn bị PostgreSQL và các phần mở rộng theo yêu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-003
+    title: Cấu hình PgVectorStore bằng starter hoặc builder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-004
+    title: Thiết kế bảng nội dung, metadata, định danh và cột vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-005
+    title: Khớp số chiều giữa mô hình embeddings với schema hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-006
+    title: Khởi tạo schema có chủ đích và quản lý quyền tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-007
+    title: 'Chọn phép đo và loại chỉ mục: tìm chính xác, HNSW hoặc IVFFlat'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-008
+    title: Truy vấn kết hợp vector với metadata và kiểm tra kế hoạch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-009
+    title: Điều chỉnh lô ghi, kết nối JDBC và tài nguyên PostgreSQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pgvector-010
+    title: Quản lý thay đổi schema và tách bước chuyển đổi khỏi khởi động ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redis
+  title: Redis
+  childs:
+  - slug: redis-001
+    title: Khả năng tìm kiếm vector của Redis và điều kiện môi trường cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-002
+    title: Cấu hình RedisVectorStore, kết nối và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-003
+    title: Thiết kế tên chỉ mục, tiền tố khóa và phạm vi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-004
+    title: Khai báo trường metadata phù hợp với nhu cầu lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-005
+    title: Chọn số chiều, phép đo và thuật toán FLAT hoặc HNSW
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-006
+    title: Thực hiện thêm, tìm kiếm, lọc và xóa qua Spring AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-007
+    title: Độ bền dữ liệu, chính sách loại bỏ khóa và giới hạn bộ nhớ của Redis
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: qdrant-milvus
+  title: Qdrant và Milvus
+  childs:
+  - slug: qdrant-milvus-001
+    title: Mô hình collection và sự khác nhau giữa Qdrant với Milvus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qdrant-milvus-002
+    title: Cấu hình QdrantVectorStore và kết nối đến dịch vụ Qdrant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qdrant-milvus-003
+    title: Chuẩn bị collection Qdrant với số chiều và phép đo tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qdrant-milvus-004
+    title: Metadata payload, chỉ mục lọc và tìm kiếm trong Qdrant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qdrant-milvus-005
+    title: Cấu hình MilvusVectorStore và các thành phần kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qdrant-milvus-006
+    title: Thiết kế collection, schema, chỉ mục và phạm vi dữ liệu trong Milvus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qdrant-milvus-007
+    title: Khả năng đọc sau ghi và các mức nhất quán theo từng kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: qdrant-milvus-008
+    title: Đối chiếu thao tác ghi, tìm kiếm và xóa trên cùng bộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: other-vector-stores
+  title: Kho vector khác
+  childs:
+  - slug: other-vector-stores-001
+    title: Tiêu chí chọn kho vector theo quy mô, dữ liệu, vận hành và khả năng lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-002
+    title: Elasticsearch và OpenSearch khi cần kết hợp hạ tầng tìm kiếm hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-003
+    title: MongoDB Atlas Vector Search và yêu cầu chuẩn bị chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-004
+    title: Chroma cho môi trường phát triển và các cấu hình kết nối tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-005
+    title: Pinecone với chỉ mục và phạm vi dữ liệu do dịch vụ quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-006
+    title: Weaviate với schema, thuộc tính và cấu hình vector phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-007
+    title: Neo4j khi cần liên kết truy xuất vector với dữ liệu đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-008
+    title: Khả năng tích hợp cơ sở dữ liệu SQL và dịch vụ đám mây theo phiên bản Spring AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-vector-stores-009
+    title: Lập bảng đối chiếu khả năng và xác định thao tác cần client gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vector-indexes
+  title: Chỉ mục vector
+  childs:
+  - slug: vector-indexes-001
+    title: Vì sao chỉ mục vector quyết định chi phí và tốc độ tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-indexes-002
+    title: Cơ chế tìm kiếm toàn bộ tập vector và vai trò của đường chuẩn chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-indexes-003
+    title: Nguyên lý HNSW và cân bằng bộ nhớ, thời gian tạo chỉ mục, độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-indexes-004
+    title: Nguyên lý IVFFlat và điều kiện dữ liệu để tạo chỉ mục phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-indexes-005
+    title: Tách tham số tạo chỉ mục khỏi tham số điều chỉnh lúc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-indexes-006
+    title: Lượng tử hóa vector và đánh đổi giữa dung lượng với độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-indexes-007
+    title: Ảnh hưởng của bộ lọc metadata và phân vùng đến chất lượng ANN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-indexes-008
+    title: Kiểm tra chỉ mục đã sẵn sàng và xử lý thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retrieval-quality
+  title: Chất lượng truy xuất
+  childs:
+  - slug: retrieval-quality-001
+    title: Xác định thế nào là tài liệu liên quan với từng loại truy vấn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-quality-002
+    title: Tạo bộ truy vấn đánh giá và gán nhãn tài liệu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-quality-003
+    title: Đo Precision@K, Recall@K, MRR và nDCG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-quality-004
+    title: So sánh kết quả ANN với tìm kiếm chính xác trên cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-quality-005
+    title: Hiệu chỉnh topK và ngưỡng tương đồng bằng dữ liệu đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-quality-006
+    title: So sánh mô hình embeddings bằng thực nghiệm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-quality-007
+    title: Phân tích kết quả sai do nguồn dữ liệu, chia đoạn, mô hình hoặc bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retrieval-quality-008
+    title: Đánh giá truy vấn tiếng Việt, truy vấn đa ngôn ngữ và câu hỏi ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-retrieval
+  title: Truy xuất nâng cao
+  childs:
+  - slug: advanced-retrieval-001
+    title: Khi nào tìm kiếm vector đơn thuần không đáp ứng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-retrieval-002
+    title: Kết hợp tìm kiếm từ khóa với tìm kiếm vector theo khả năng của kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-retrieval-003
+    title: Gộp thứ hạng bằng Reciprocal Rank Fusion và kiểm soát khác biệt điểm số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-retrieval-004
+    title: Xếp hạng lại kết quả (reranking) và phân biệt với tạo embeddings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-retrieval-005
+    title: Giảm kết quả trùng lặp và tăng đa dạng nguồn tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-retrieval-006
+    title: Truy xuất đoạn nhỏ rồi mở rộng ngữ cảnh về tài liệu cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-retrieval-007
+    title: Bàn giao tài liệu, metadata và nguồn dẫn sang luồng RAG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-lifecycle
+  title: Vòng đời dữ liệu
+  childs:
+  - slug: data-lifecycle-001
+    title: Thiết kế việc nhập lại dữ liệu không tạo bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-002
+    title: Phát hiện nguồn thay đổi bằng định danh, dấu thời gian và hàm băm nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-003
+    title: Cập nhật nội dung hoặc metadata và xác định lúc cần tạo lại embeddings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-004
+    title: Xóa các đoạn đã mất khỏi nguồn và đối chiếu dữ liệu tồn dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-005
+    title: Ghi nhận phiên bản của nguồn, bộ chia đoạn và mô hình embeddings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-006
+    title: Tái tạo toàn bộ embeddings khi đổi mô hình hoặc số chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-007
+    title: Xây dựng chỉ mục mới song song rồi chuyển truy vấn và có phương án quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-008
+    title: Sao lưu, khôi phục và kiểm tra tính tương thích của dữ liệu vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Phân rã độ trễ thành đọc nguồn, tạo embeddings, ghi và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Ước lượng số vector, dung lượng lưu trữ và chi phí tạo embeddings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Điều chỉnh kích thước lô theo token, số tài liệu và dung lượng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Giới hạn số tác vụ đồng thời và điều tiết khi bên nhận xử lý chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Điều chỉnh kết nối, thời hạn chờ và tài nguyên của client theo từng kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Bộ nhớ đệm embeddings với khóa gồm nội dung, mô hình và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Bộ nhớ đệm kết quả truy xuất gắn với bộ lọc, quyền truy cập và phiên bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đo độ trễ p95, p99 và thông lượng dưới tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Phân loại lỗi từ mô hình embeddings, mạng, dữ liệu và kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Thử lại có giới hạn, giãn cách và tôn trọng hạn mức nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Xử lý lô thất bại một phần và bảo toàn kết quả đã ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Thiết kế điểm tiếp tục cho đợt nhập liệu bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Tránh giả định giao dịch bao trùm dịch vụ embeddings và kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Xử lý độ trễ hiển thị của chỉ mục và xác minh dữ liệu sau ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Lập quy trình chẩn đoán sai số chiều, sai schema và kết quả rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Lập quy trình khôi phục khi dịch vụ embeddings hoặc kho vector ngừng đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Quản lý khóa API, tài khoản kho vector và kết nối được mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Kiểm soát dữ liệu nhạy cảm trước khi gửi đến dịch vụ embeddings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Phân tách dữ liệu giữa khách hàng bằng collection, namespace hoặc metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Ràng buộc quyền truy cập bằng danh tính đã xác thực và bộ lọc phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Kiểm tra quyền trước khi xóa theo định danh hoặc biểu thức metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Kiểm soát nguồn nhập liệu, URL và đường dẫn để hạn chế truy cập ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Ngăn rò rỉ tài liệu, truy vấn và metadata qua nhật ký hoặc bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Thiết kế thời hạn lưu giữ và xóa dữ liệu khỏi chỉ mục, bản sao, bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Vai trò của Micrometer, metrics và tracing trong luồng embeddings–vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Theo dõi lời gọi EmbeddingModel và các thao tác thêm, xóa, truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Liên kết dấu vết từ yêu cầu tìm kiếm đến mô hình và kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Theo dõi số token, số lô, số tài liệu, lỗi và chi phí ước tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Chọn nhãn đo lường có số lượng giá trị hữu hạn và che dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Thiết lập cảnh báo cho độ trễ, lỗi nhập liệu và dữ liệu chưa được cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân biệt kiểm thử đơn vị, tích hợp, hợp đồng và chất lượng truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Dùng EmbeddingModel giả với vector xác định để kiểm tra logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử luồng ETL, metadata và định danh của các đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử thêm, tìm kiếm, lọc và xóa bằng SimpleVectorStore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử kho dữ liệu thực bằng Testcontainers hoặc môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra hành vi khi ghi trùng, sai số chiều và bộ lọc không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử cách ly dữ liệu, quyền truy cập và xóa đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử lỗi mạng, hạn mức, lô thất bại một phần và khả năng tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Chạy đánh giá hồi quy truy xuất với bộ dữ liệu và cấu hình đã cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scaling
+  title: Mở rộng
+  childs:
+  - slug: scaling-001
+    title: Tổ chức lớp dịch vụ để tách nghiệp vụ khỏi từng mô hình và kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-002
+    title: Tự triển khai EmbeddingModel và ánh xạ yêu cầu, phản hồi, lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-003
+    title: Tự triển khai DocumentTransformer hoặc BatchingStrategy cho dữ liệu đặc thù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-004
+    title: Bổ sung VectorStore cho kho mới và xác định rõ các khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-005
+    title: Bọc VectorStore để áp dụng chính sách lọc, ghi nhận hoặc bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-006
+    title: Đổi kho vector bằng kiểm thử hợp đồng và kế hoạch chuyển dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-007
+    title: Rà soát thay đổi API, starter, cấu hình và dữ liệu khi nâng cấp Spring AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây công cụ tìm kiếm ngữ nghĩa tài liệu tiếng Việt từ đầu đến cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Nhập bộ tài liệu Markdown và PDF có nguồn dẫn, số trang và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: So sánh kết quả giữa SimpleVectorStore và PGvector trên cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thử nghiệm kích thước đoạn, mô hình, topK và ngưỡng tương đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Xây truy vấn lọc theo chuyên mục, ngôn ngữ và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Cập nhật tài liệu, dọn đoạn cũ và chứng minh nhập lại không tạo trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Di chuyển sang mô hình embeddings mới với chỉ mục song song và quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Hoàn thiện báo cáo chất lượng, hiệu năng và quy trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

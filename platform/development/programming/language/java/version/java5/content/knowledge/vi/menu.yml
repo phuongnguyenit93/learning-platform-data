@@ -1,0 +1,666 @@
+menu:
+- level1: Java 5 trong Java hiện đại
+  level2:
+  - Vai trò của Java 5 trong nền tảng ngôn ngữ và thư viện Java
+  - Kiến thức Java cần có trước khi học các tính năng Java 5
+  - Mối liên hệ giữa generics, collections, boxing và vòng lặp for-each
+  - Mối liên hệ giữa enum, annotation và thông tin kiểu lúc chạy
+  - Bức tranh tổng thể của java.util.concurrent
+  - Phân biệt nguồn gốc Java 5 với API được bổ sung ở phiên bản sau
+  - Tra cứu đặc tả ngôn ngữ và trạng thái API trên JDK đang sử dụng
+  - Biên dịch và thực hành các kiến thức Java 5 trên JDK còn được hỗ trợ
+- level1: Kiểu generic
+  level2:
+  - Generics và vấn đề an toàn kiểu khi tái sử dụng mã
+  - Khai báo lớp generic và tham số kiểu T, E, K, V
+  - Khai báo giao diện generic và lớp triển khai
+  - Kiểu tham số hóa và đối số kiểu cụ thể
+  - Nhiều tham số kiểu và quan hệ giữa các tham số
+  - Kiểu generic lồng nhau trong List và Map
+  - Tham số kiểu trong trường, hàm tạo và phương thức
+  - Phạm vi tham số kiểu và giới hạn trong ngữ cảnh static
+  - Kế thừa lớp generic với đối số kiểu cố định hoặc được truyền tiếp
+  - Phân biệt List<Object> và List<String>
+  - Giới hạn sử dụng kiểu nguyên thủy làm đối số kiểu
+  - Kiểm tra lỗi kiểu tại thời điểm biên dịch
+- level1: Phương thức generic
+  level2:
+  - Cú pháp khai báo tham số kiểu của phương thức
+  - Phương thức generic static và phương thức của lớp generic
+  - Hàm tạo generic và phạm vi tham số kiểu riêng
+  - Suy luận đối số kiểu từ lời gọi phương thức
+  - Chỉ định đối số kiểu tường minh khi gọi phương thức
+  - Giới hạn trên bằng extends cho tham số kiểu
+  - Nhiều giới hạn và thứ tự lớp, giao diện trong intersection bound
+  - Giới hạn đệ quy với Comparable<T>
+  - Quan hệ giữa kiểu đầu vào và kiểu trả về
+  - Phân biệt phương thức generic với phương thức nhận Object
+  - Nạp chồng phương thức generic và lỗi không xác định được lời gọi
+- level1: Wildcard
+  level2:
+  - Wildcard không giới hạn với dấu ?
+  - Wildcard giới hạn trên với ? extends T
+  - Wildcard giới hạn dưới với ? super T
+  - Tính bất biến của kiểu generic
+  - Quy tắc đọc và thêm phần tử đối với từng loại wildcard
+  - Nguyên tắc nguồn cung cấp và nơi tiếp nhận dữ liệu theo PECS
+  - Phân biệt List<?> và List<Object>
+  - Quan hệ tương thích giữa các kiểu wildcard
+  - Capture conversion và tham số kiểu được trình biên dịch ghi nhận
+  - Phương thức trợ giúp cho wildcard capture
+  - Kết hợp wildcard với nhiều tham số kiểu
+  - Lựa chọn wildcard hay tham số kiểu có tên trong chữ ký API
+- level1: Xóa kiểu
+  level2:
+  - Cơ chế xóa kiểu và dạng kiểu sau biên dịch
+  - Xóa kiểu của tham số không giới hạn và tham số có giới hạn
+  - Các phép ép kiểu được trình biên dịch chèn vào
+  - Phương thức cầu nối khi kế thừa và ghi đè kiểu generic
+  - Trùng chữ ký phương thức sau khi xóa kiểu
+  - Kiểu reifiable và thông tin kiểu có thể kiểm tra lúc chạy
+  - Giới hạn tạo đối tượng bằng new T()
+  - Giới hạn tạo mảng kiểu tham số hóa
+  - Giới hạn kiểm tra instanceof đối với đối số kiểu
+  - Giới hạn lớp generic liên quan đến Throwable
+  - Nhiễm bẩn heap và cảnh báo unchecked
+  - Phân biệt thông tin kiểu của đối tượng với chữ ký generic được lưu trong class file
+- level1: Thiết kế API generic
+  level2:
+  - Mô hình hóa quan hệ kiểu thay cho ép kiểu tại nơi sử dụng
+  - Thiết kế lớp chứa dữ liệu generic
+  - Thiết kế hàm sao chép dữ liệu giữa các collection
+  - Ràng buộc Comparable và Comparator trong thuật toán generic
+  - Truyền Class<T> để kiểm tra kiểu lúc chạy
+  - Thiết kế vùng lưu trữ phân biệt dữ liệu bằng Class<T>
+  - Hạn chế wildcard ở kiểu trả về khi làm API khó sử dụng
+  - Giữ tính an toàn kiểu tại ranh giới reflection
+  - Tài liệu hóa tham số kiểu và giới hạn bằng Javadoc
+  - Kiểm tra chữ ký generic bằng các trường hợp biên dịch hợp lệ và không hợp lệ
+- level1: Vòng lặp for-each
+  level2:
+  - Cú pháp for-each cho mảng và Iterable
+  - Kiểu của biến vòng lặp và chuyển đổi kiểu phần tử
+  - Vai trò của Iterable<T> và Iterator<T>
+  - Cơ chế duyệt mảng và cơ chế duyệt Iterable
+  - Tự xây dựng lớp có thể duyệt bằng for-each
+  - Thứ tự duyệt phụ thuộc cấu trúc dữ liệu
+  - Tác động của việc gán lại biến vòng lặp
+  - Phân biệt sửa đối tượng phần tử với thay phần tử trong collection
+  - Giới hạn khi cần chỉ số, duyệt ngược hoặc xóa phần tử
+  - ConcurrentModificationException và việc sửa collection trong lúc duyệt
+  - Vòng lặp lồng nhau và kiểm soát luồng bằng break, continue
+- level1: Boxing và unboxing
+  level2:
+  - Chuyển đổi tự động giữa kiểu nguyên thủy và lớp bao
+  - Boxing trong phép gán, truyền đối số và collection
+  - Unboxing trong phép tính, so sánh và điều kiện
+  - NullPointerException khi unboxing giá trị null
+  - So sánh giá trị bằng equals và so sánh tham chiếu bằng ==
+  - Bộ nhớ đệm lớp bao và giới hạn bảo đảm về định danh
+  - Phối hợp boxing, unboxing và mở rộng kiểu nguyên thủy
+  - Boxing trong lựa chọn phương thức nạp chồng
+  - Chuyển đổi kiểu trong biểu thức điều kiện ba ngôi
+  - Tính bất biến của lớp bao và phép tăng giảm
+  - Rủi ro dùng đối tượng lớp bao làm khóa đồng bộ
+  - Chi phí cấp phát và unboxing trong vòng lặp
+  - Phân biệt remove(int) và remove(Object) của List<Integer>
+  - Lựa chọn kiểu nguyên thủy hoặc lớp bao theo hợp đồng dữ liệu
+- level1: Enum
+  level2:
+  - Kiểu liệt kê và mô hình tập giá trị hữu hạn
+  - Khai báo enum và các hằng enum
+  - Trường dữ liệu, hàm tạo và phương thức trong enum
+  - Quy tắc khởi tạo và tham chiếu trường static
+  - Thân lớp riêng của từng hằng enum
+  - Phương thức trừu tượng do từng hằng triển khai
+  - Enum triển khai giao diện
+  - Phân biệt name(), toString() và ordinal()
+  - Tra cứu hằng bằng values() và valueOf()
+  - So sánh hằng enum và thứ tự tự nhiên
+  - Sử dụng enum với câu lệnh switch
+  - Giới hạn kế thừa và tạo đối tượng enum
+  - Định danh ổn định khi trao đổi dữ liệu thay cho phụ thuộc ordinal()
+- level1: EnumSet và EnumMap
+  level2:
+  - Mục đích và đặc điểm biểu diễn của EnumSet
+  - Tạo EnumSet bằng noneOf, allOf, of và range
+  - Sao chép và lấy phần bù của tập enum
+  - Phép hợp, giao và hiệu trên EnumSet
+  - Thứ tự duyệt và quy tắc null của EnumSet
+  - Dùng EnumSet để mô hình hóa tập quyền hoặc tập tùy chọn
+  - Mục đích và kiểu khóa của EnumMap
+  - Tạo, truy cập và cập nhật EnumMap
+  - Thứ tự duyệt và quy tắc null của EnumMap
+  - Chi phí và tiêu chí chọn EnumMap so với Map thông thường
+  - Chia sẻ EnumSet, EnumMap giữa các luồng một cách an toàn
+- level1: Varargs
+  level2:
+  - Tham số số lượng thay đổi và ký hiệu ba dấu chấm
+  - Vị trí cuối cùng của tham số varargs
+  - Cơ chế đóng gói đối số thành mảng
+  - Lời gọi không có đối số, một đối số hoặc nhiều đối số
+  - Truyền một mảng có sẵn vào phương thức varargs
+  - Phân biệt mảng null và phần tử null
+  - Varargs và lựa chọn phương thức nạp chồng
+  - Varargs kết hợp với kiểu nguyên thủy và boxing
+  - Varargs generic, kiểu không reifiable và cảnh báo an toàn kiểu
+  - Tác động khi phương thức thay đổi hoặc làm lộ mảng tham số
+  - Chi phí cấp phát và trường hợp nên dùng chữ ký cố định
+- level1: Static import
+  level2:
+  - Cú pháp static import cho trường và phương thức
+  - Nhập một thành viên static cụ thể
+  - Nhập static theo ký tự đại diện
+  - Phân biệt static import với import kiểu
+  - Quy tắc truy cập và phân giải tên
+  - Xung đột tên giữa các thành viên được nhập
+  - Tương tác với phương thức nạp chồng
+  - Tiêu chí sử dụng trong mã kiểm thử và mã tính toán dễ đọc
+- level1: Annotation
+  level2:
+  - Annotation và vai trò của siêu dữ liệu trong chương trình
+  - Cú pháp sử dụng và khai báo kiểu annotation
+  - Annotation đánh dấu, một phần tử và nhiều phần tử
+  - Các kiểu hợp lệ của phần tử annotation
+  - Giá trị mặc định và quy tắc giá trị hằng
+  - Phần tử annotation dạng mảng và annotation lồng nhau
+  - '@Retention với SOURCE, CLASS và RUNTIME'
+  - '@Target và giới hạn vị trí sử dụng'
+  - '@Documented và tài liệu API'
+  - '@Inherited và giới hạn kế thừa annotation qua lớp cha'
+  - '@Override và kiểm tra ý định ghi đè'
+  - '@Deprecated và thông báo vòng đời API'
+  - '@SuppressWarnings và giới hạn phạm vi tắt cảnh báo'
+  - Annotation trên package qua package-info.java
+- level1: Annotation lúc chạy
+  level2:
+  - Điều kiện lưu giữ để đọc annotation bằng reflection
+  - Đọc annotation trên lớp, phương thức, hàm tạo và trường
+  - Đọc annotation trên tham số phương thức
+  - Phân biệt annotation khai báo trực tiếp và annotation được kế thừa
+  - Đọc giá trị phần tử và giá trị mặc định của annotation
+  - Hợp đồng equals, hashCode và annotationType
+  - Các lỗi khi kiểu annotation hoặc giá trị tham chiếu không còn phù hợp
+  - Xây dựng bộ kiểm tra dữ liệu dựa trên annotation
+  - Xây dựng bảng đăng ký hành vi dựa trên annotation
+  - Giới hạn giữa siêu dữ liệu và cơ chế thực thi nghiệp vụ
+  - Chi phí tra cứu và quản lý bộ nhớ đệm annotation
+- level1: Reflection generic
+  level2:
+  - Class<T> và quan hệ giữa Class với đối tượng
+  - Kiểm tra và chuyển kiểu bằng Class.cast, Class.asSubclass
+  - Đọc chữ ký generic của lớp cha và giao diện
+  - Đọc kiểu generic của trường, tham số và giá trị trả về
+  - Vai trò của Type trong mô hình reflection
+  - ParameterizedType và các đối số kiểu thực tế
+  - TypeVariable và danh sách giới hạn
+  - WildcardType và giới hạn trên, giới hạn dưới
+  - GenericArrayType và kiểu phần tử generic
+  - Phân biệt getType() với getGenericType()
+  - Nhận diện phương thức bridge, synthetic và varargs
+  - Nhận diện lớp enum và danh sách hằng enum
+  - Giới hạn suy ra đối số kiểu của một đối tượng bất kỳ
+- level1: Kiểu trả về đồng biến
+  level2:
+  - Ghi đè phương thức với kiểu trả về tham chiếu cụ thể hơn
+  - Quan hệ kiểu con trong kiểu trả về của phương thức
+  - Phân biệt ghi đè với nạp chồng
+  - Kiểu tĩnh và kiểu thực tế tại nơi gọi phương thức
+  - Kết hợp kiểu trả về đồng biến với giao diện
+  - Kết hợp ghi đè generic và phương thức bridge
+  - Giới hạn đối với kiểu nguyên thủy và ngoại lệ khai báo
+  - Thiết kế API kế thừa dễ sử dụng bằng kiểu trả về phù hợp
+- level1: Queue và PriorityQueue
+  level2:
+  - Hợp đồng Queue và các cách tổ chức thứ tự phần tử
+  - Phân biệt add, offer và cách biểu diễn thất bại
+  - Phân biệt remove, poll, element và peek
+  - Quy tắc null trong các triển khai Queue
+  - PriorityQueue và cấu trúc heap ưu tiên
+  - Thứ tự tự nhiên và Comparator tùy chỉnh
+  - Thứ tự duyệt so với thứ tự lấy phần tử
+  - Phần tử có cùng độ ưu tiên và tính ổn định
+  - Độ phức tạp của thêm, lấy và tìm phần tử
+  - Rủi ro thay đổi khóa so sánh sau khi thêm phần tử
+  - Giới hạn an toàn luồng của PriorityQueue
+  - Ứng dụng xử lý công việc theo mức ưu tiên
+- level1: Tiện ích collection
+  level2:
+  - Phối hợp generics, boxing và for-each với collection
+  - Arrays.toString và Arrays.deepToString
+  - Arrays.hashCode và Arrays.deepHashCode
+  - Arrays.equals và Arrays.deepEquals
+  - Phân biệt so sánh nội dung mảng một chiều và mảng lồng nhau
+  - Collections.addAll với tham số varargs
+  - Collections.frequency để đếm phần tử theo equals
+  - Collections.disjoint để kiểm tra hai tập dữ liệu
+  - Comparator đảo thứ tự bằng Collections.reverseOrder
+  - Kiểu an toàn động với Collections.checkedCollection và các biến thể
+  - Giới hạn của lớp bọc khi collection gốc vẫn có thể bị sửa trực tiếp
+- level1: Mô hình bộ nhớ
+  level2:
+  - Tính nguyên tử, tính hiển thị và thứ tự thực thi giữa các luồng
+  - Tranh chấp dữ liệu và điều kiện tranh chấp
+  - Thứ tự happens-before trong Java Memory Model
+  - Quan hệ happens-before của khóa monitor
+  - Ngữ nghĩa ghi và đọc trường volatile
+  - Giới hạn của volatile với thao tác đọc sửa ghi
+  - Ngữ nghĩa trường final sau khi hàm tạo hoàn tất
+  - Rủi ro làm lộ this trong quá trình khởi tạo
+  - Công bố đối tượng an toàn bằng các cơ chế đồng bộ
+  - Quan hệ bộ nhớ khi bắt đầu và chờ kết thúc luồng
+  - Tính bắc cầu của happens-before
+  - Quan hệ bộ nhớ do executor, future và collection đồng thời cung cấp
+  - Kiểm chứng giả định đồng thời thay cho dựa vào độ trễ hoặc thứ tự log
+- level1: Executor
+  level2:
+  - Tách tác vụ khỏi cơ chế thực thi bằng Executor
+  - Phân biệt Runnable và Callable
+  - ExecutorService và vòng đời bộ thực thi
+  - execute so với submit
+  - Các bộ thực thi tạo bởi Executors
+  - Đặc điểm bộ thực thi một luồng và số luồng cố định
+  - Đặc điểm bộ thực thi tái sử dụng luồng theo nhu cầu
+  - Giới hạn hàng đợi hoặc số luồng khi chọn cấu hình
+  - ThreadFactory và việc đặt tên luồng
+  - shutdown, shutdownNow và awaitTermination
+  - Tác vụ chưa chạy và tác vụ đang chạy khi dừng bộ thực thi
+  - Quyền sở hữu và trách nhiệm đóng vòng đời ExecutorService
+- level1: Callable và Future
+  level2:
+  - Callable<V>, giá trị trả về và ngoại lệ của tác vụ
+  - Future và cách theo dõi kết quả bất đồng bộ
+  - Chờ kết quả bằng get và get có thời hạn
+  - ExecutionException và truy nguyên lỗi gốc
+  - InterruptedException và xử lý tín hiệu ngắt
+  - TimeoutException và phân biệt hết hạn chờ với hủy tác vụ
+  - cancel, isCancelled và isDone
+  - Giới hạn dừng tác vụ bằng yêu cầu ngắt
+  - FutureTask kết hợp Runnable với Future
+  - invokeAll và chờ một nhóm kết quả
+  - invokeAny và lựa chọn một kết quả thành công
+  - ExecutorCompletionService và thu kết quả theo thứ tự hoàn tất
+  - Quan hệ bộ nhớ sau khi Future.get hoàn tất
+- level1: ThreadPoolExecutor
+  level2:
+  - Các thành phần của bộ luồng thực thi
+  - corePoolSize, maximumPoolSize và quy tắc nhận tác vụ
+  - Vai trò của workQueue trong quyết định tạo luồng
+  - Hàng đợi có giới hạn, không giới hạn và SynchronousQueue
+  - keepAliveTime và vòng đời luồng nhàn rỗi
+  - ThreadFactory trong bộ luồng tùy chỉnh
+  - RejectedExecutionHandler và tình huống từ chối tác vụ
+  - AbortPolicy, CallerRunsPolicy và các chính sách loại bỏ
+  - Ảnh hưởng của việc loại bỏ tác vụ đến Future và bên chờ kết quả
+  - Giới hạn tài nguyên và kiểm soát tốc độ nhận việc
+  - Ngoại lệ của tác vụ qua execute và submit
+  - Các điểm mở rộng beforeExecute, afterExecute và terminated
+  - Chỉ số số luồng, số tác vụ hoạt động và hàng đợi
+  - Nguy cơ cạn luồng do tác vụ phụ thuộc lẫn nhau
+  - Lựa chọn kích thước bộ luồng theo đặc tính tải
+- level1: Lập lịch tác vụ
+  level2:
+  - ScheduledExecutorService và tác vụ chạy sau độ trễ
+  - Lập lịch một lần với Runnable hoặc Callable
+  - scheduleAtFixedRate và chu kỳ tính từ mốc dự kiến
+  - scheduleWithFixedDelay và khoảng nghỉ sau khi hoàn tất
+  - Tác vụ chạy lâu hơn chu kỳ và giới hạn chồng lặp
+  - Ảnh hưởng của ngoại lệ đến các lần chạy tiếp theo
+  - ScheduledFuture và điều khiển hủy lịch
+  - TimeUnit và biểu diễn đơn vị thời gian
+  - Giới hạn chính xác của lịch chạy và hệ điều hành
+  - Vòng đời ScheduledThreadPoolExecutor khi ứng dụng dừng
+  - Phân biệt lịch theo khoảng thời gian với lịch theo ngày giờ nghiệp vụ
+- level1: BlockingQueue
+  level2:
+  - BlockingQueue trong mô hình bên sản xuất và bên tiêu thụ
+  - So sánh add, offer, put và offer có thời hạn
+  - So sánh remove, poll, take và poll có thời hạn
+  - Ngắt luồng đang chờ và quản lý thời hạn
+  - ArrayBlockingQueue và dung lượng cố định
+  - LinkedBlockingQueue và lựa chọn giới hạn dung lượng
+  - PriorityBlockingQueue và thứ tự ưu tiên
+  - DelayQueue, Delayed và thời điểm phần tử được lấy
+  - SynchronousQueue và chuyển giao trực tiếp
+  - drainTo và xử lý theo lô
+  - Quy tắc null và tín hiệu kết thúc xử lý
+  - Điều phối dừng khi có nhiều luồng sản xuất hoặc tiêu thụ
+  - Quan hệ bộ nhớ khi chuyển dữ liệu qua hàng đợi
+  - Lựa chọn hàng đợi theo thứ tự, dung lượng và chiến lược chờ
+- level1: Collection đồng thời
+  level2:
+  - ConcurrentMap và các thao tác cập nhật nguyên tử
+  - ConcurrentHashMap trong truy cập nhiều luồng
+  - putIfAbsent, replace và remove có điều kiện
+  - Phân biệt thao tác đơn nguyên tử với chuỗi thao tác ghép
+  - Quy tắc null của ConcurrentHashMap
+  - Iterator nhất quán yếu và giới hạn ảnh chụp trạng thái
+  - ConcurrentLinkedQueue và hàng đợi không chặn
+  - CopyOnWriteArrayList và chi phí sao chép khi ghi
+  - CopyOnWriteArraySet và trường hợp tập ít thay đổi
+  - Iterator ảnh chụp của collection copy-on-write
+  - Tính an toàn của đối tượng phần tử bên trong collection
+  - Chọn collection theo tỷ lệ đọc ghi và yêu cầu thứ tự
+  - Quan hệ công bố dữ liệu khi đưa phần tử vào collection đồng thời
+- level1: Lock và Condition
+  level2:
+  - Lock và khác biệt về khả năng điều khiển so với synchronized
+  - ReentrantLock và tính tái nhập
+  - Khóa và mở khóa an toàn với try, finally
+  - tryLock và thao tác thử khóa có thời hạn
+  - lockInterruptibly và chờ khóa có thể bị ngắt
+  - Chính sách công bằng và giới hạn bảo đảm lập lịch
+  - Condition và hàng đợi chờ theo điều kiện
+  - await, signal và signalAll
+  - Nhả khóa khi await và giành lại khóa trước khi tiếp tục
+  - Đánh thức giả và kiểm tra điều kiện trong vòng lặp
+  - Nhiều Condition dùng chung một Lock
+  - Phối hợp thứ tự khóa để phòng tránh deadlock
+  - Tài liệu hóa dữ liệu và điều kiện được từng khóa bảo vệ
+- level1: ReadWriteLock
+  level2:
+  - Mục đích tách khóa đọc và khóa ghi
+  - ReentrantReadWriteLock và khả năng đọc đồng thời
+  - Quy tắc độc quyền của khóa ghi
+  - Tính tái nhập của khóa đọc và khóa ghi
+  - Chính sách công bằng và nguy cơ chờ lâu
+  - Hạ cấp từ khóa ghi sang khóa đọc
+  - Giới hạn nâng cấp từ khóa đọc sang khóa ghi
+  - Condition gắn với khóa ghi
+  - Đo chi phí khóa trước khi chọn ReadWriteLock
+  - Bảo vệ dữ liệu dùng chung trong bộ nhớ đệm đọc nhiều
+- level1: Biến nguyên tử
+  level2:
+  - Biến nguyên tử và thao tác đọc sửa ghi
+  - AtomicBoolean, AtomicInteger và AtomicLong
+  - AtomicReference và cập nhật tham chiếu
+  - get, set, getAndSet và compareAndSet
+  - Phân biệt incrementAndGet với getAndIncrement
+  - Vòng lặp compare-and-set và việc tính lại khi tranh chấp
+  - AtomicIntegerArray, AtomicLongArray và AtomicReferenceArray
+  - Tính nguyên tử từng phần tử so với toàn bộ mảng
+  - Vấn đề ABA khi so sánh giá trị tham chiếu
+  - AtomicStampedReference và AtomicMarkableReference
+  - Giới hạn của biến nguyên tử với bất biến gồm nhiều trường
+  - Tác động của tranh chấp và vòng lặp thử lại lên hiệu năng
+  - Lựa chọn khóa hoặc biến nguyên tử theo phạm vi cập nhật
+- level1: Phối hợp tác vụ
+  level2:
+  - Phân biệt đợi hoàn tất, giới hạn truy cập và hội tụ theo chặng
+  - CountDownLatch và bộ đếm hoàn tất một lần
+  - await, countDown và quan hệ bộ nhớ của latch
+  - CyclicBarrier và điểm hội tụ có thể tái sử dụng
+  - Hành động tại barrier và hoàn tất một chặng
+  - BrokenBarrierException, ngắt luồng và hết hạn chờ
+  - Semaphore và số giấy phép truy cập tài nguyên
+  - acquire, tryAcquire, release và cân bằng giấy phép
+  - Chính sách công bằng của Semaphore
+  - Exchanger và trao đổi dữ liệu giữa hai tác vụ
+  - Chờ có thời hạn để tránh phụ thuộc vô hạn
+  - Lựa chọn công cụ phối hợp theo quan hệ giữa các tác vụ
+  - Thiết kế đường dừng và đường lỗi cho nhóm tác vụ
+- level1: AQS và LockSupport
+  level2:
+  - Vai trò của AbstractQueuedSynchronizer trong công cụ đồng bộ
+  - Trạng thái đồng bộ và cơ chế xếp hàng chờ
+  - Chế độ chiếm hữu độc quyền và chia sẻ
+  - Các điểm mở rộng tryAcquire, tryRelease và biến thể shared
+  - Quản lý chủ sở hữu khi xây dựng bộ đồng bộ độc quyền
+  - ConditionObject và điều kiện hỗ trợ của bộ đồng bộ
+  - LockSupport.park, unpark và giấy phép cho luồng
+  - Giấy phép không tích lũy và khả năng unpark trước park
+  - Đánh thức giả, tín hiệu ngắt và kiểm tra điều kiện
+  - Ranh giới giữa sử dụng công cụ có sẵn và tự xây bộ đồng bộ
+  - Kiểm tra hợp đồng bộ nhớ, tiến triển và hủy chờ
+- level1: Chẩn đoán luồng
+  level2:
+  - Thread.State và các trạng thái vòng đời luồng
+  - Phân biệt BLOCKED, WAITING và TIMED_WAITING
+  - Giới hạn của ảnh chụp trạng thái tại một thời điểm
+  - Đọc stack trace của luồng để xác định vị trí chờ
+  - Thread.getStackTrace và Thread.getAllStackTraces
+  - UncaughtExceptionHandler của luồng và bộ xử lý mặc định
+  - Phân biệt lỗi không được bắt với lỗi được giữ trong Future
+  - Đặt tên luồng để theo dõi tác vụ và bộ thực thi
+  - Nhận diện deadlock, chờ lâu và cạn luồng
+  - Phối hợp trạng thái luồng với số liệu hàng đợi và khóa
+  - Kiểm thử dừng tác vụ bằng tín hiệu ngắt
+- level1: Formatter và printf
+  level2:
+  - Cấu trúc chuỗi định dạng và chỉ định chuyển đổi
+  - String.format, PrintStream.printf và Formatter
+  - Chỉ số đối số và tái sử dụng đối số
+  - Độ rộng, độ chính xác và căn lề
+  - Các cờ định dạng số và chuỗi
+  - Định dạng số nguyên, số thực và BigDecimal
+  - Định dạng boolean, ký tự và chuỗi
+  - Locale và dấu phân cách số
+  - Xuống dòng bằng %n và dấu phần trăm theo nghĩa đen
+  - Xử lý null và đối số không phù hợp
+  - Các nhóm IllegalFormatException
+  - Formattable và tùy biến biểu diễn đối tượng
+  - Quản lý đích ghi, tài nguyên và lỗi I/O của Formatter
+- level1: Scanner
+  level2:
+  - Scanner và mô hình tách token từ nguồn văn bản
+  - Nguồn String, Readable, luồng vào và tệp
+  - Lựa chọn bộ mã ký tự khi đọc dữ liệu
+  - Delimiter bằng biểu thức chính quy
+  - next, hasNext và các phương thức đọc kiểu số
+  - Phân biệt nextLine với đọc token
+  - Phối hợp nextInt với nextLine
+  - Locale và hệ cơ số khi phân tích số
+  - InputMismatchException và xử lý token không hợp lệ
+  - NoSuchElementException và cuối nguồn dữ liệu
+  - Tìm mẫu bằng findInLine, findWithinHorizon và skip
+  - Khả năng chặn khi chờ dữ liệu
+  - ioException và lỗi đọc của nguồn
+  - Đóng Scanner và quyền sở hữu luồng nguồn
+  - Giới hạn hiệu năng và giới hạn dùng Scanner làm bộ phân tích định dạng phức tạp
+- level1: StringBuilder
+  level2:
+  - Chuỗi có thể thay đổi và vai trò của StringBuilder
+  - Khởi tạo với nội dung hoặc sức chứa dự kiến
+  - append cho chuỗi, kiểu nguyên thủy và đối tượng
+  - insert, delete, deleteCharAt và replace
+  - length, capacity và ensureCapacity
+  - setLength và nội dung được mở rộng
+  - charAt, setCharAt, substring và subSequence
+  - reverse và các ký tự biểu diễn bằng cặp surrogate
+  - appendCodePoint và dữ liệu Unicode ngoài BMP
+  - Chuyển kết quả sang String
+  - Phạm vi sử dụng trong một luồng và rủi ro chia sẻ
+  - Chi phí nối chuỗi trong vòng lặp và cách đo phù hợp
+- level1: Unicode
+  level2:
+  - Phân biệt ký tự hiển thị, code point và đơn vị mã UTF-16
+  - Vùng BMP và các code point bổ sung
+  - Cặp surrogate cao, surrogate thấp
+  - Giới hạn của char và String.length()
+  - Character.isValidCodePoint, isSupplementaryCodePoint và charCount
+  - Character.toChars và Character.toCodePoint
+  - String.codePointAt và String.codePointBefore
+  - String.codePointCount và String.offsetByCodePoints
+  - Duyệt chuỗi theo code point mà không cắt cặp surrogate
+  - Các phương thức Character nhận đối số int
+  - Kiểm tra phân loại chữ cái, chữ số theo code point
+  - Phân biệt xử lý code point với phân đoạn ký tự người dùng nhìn thấy
+  - Độc lập giữa biểu diễn UTF-16 trong bộ nhớ và mã hóa tệp
+- level1: Số thập phân
+  level2:
+  - MathContext và tính toán theo độ chính xác chỉ định
+  - Phân biệt precision và scale của BigDecimal
+  - Các chế độ làm tròn bằng RoundingMode
+  - Ý nghĩa của UP, DOWN, CEILING và FLOOR
+  - Ý nghĩa của HALF_UP, HALF_DOWN và HALF_EVEN
+  - UNNECESSARY và trường hợp phát sinh ArithmeticException
+  - Tạo BigDecimal từ chuỗi và BigDecimal.valueOf
+  - Cộng, trừ, nhân, chia với MathContext
+  - Chia không hữu hạn và lựa chọn chính sách làm tròn
+  - setScale so với round
+  - MathContext.UNLIMITED, DECIMAL32, DECIMAL64 và DECIMAL128
+  - Phân biệt equals với compareTo của BigDecimal
+  - Ảnh hưởng của làm tròn trung gian đến kết quả cuối
+  - Chính sách số thập phân trong tính tiền và tính tổng
+- level1: Toán học và bit
+  level2:
+  - Math.log10 và căn bậc ba bằng Math.cbrt
+  - Math.sinh, cosh và tanh
+  - Math.expm1 và log1p cho giá trị gần không
+  - Math.hypot và việc kiểm soát sai số trung gian
+  - Math.ulp, signum và giới hạn độ chính xác
+  - Lựa chọn Math hoặc StrictMath theo yêu cầu tái lập kết quả
+  - Literal số thực hệ mười sáu và biểu diễn nhị phân chính xác
+  - 'Integer, Long: highestOneBit và lowestOneBit'
+  - 'Integer, Long: numberOfLeadingZeros và numberOfTrailingZeros'
+  - 'Integer, Long: bitCount, rotateLeft và rotateRight'
+  - Đảo bit và đảo thứ tự byte
+  - Kiểm thử NaN, vô cực, số không có dấu và các giá trị biên
+- level1: UUID
+  level2:
+  - Cấu trúc định danh UUID 128 bit
+  - Phiên bản và biến thể của UUID
+  - Tạo UUID ngẫu nhiên bằng randomUUID
+  - Chuyển đổi bằng fromString và toString
+  - Truy cập hai phần 64 bit của UUID
+  - So sánh, equals và hashCode của UUID
+  - Xác suất trùng và giới hạn ý nghĩa duy nhất
+  - Phân biệt định danh UUID với bí mật xác thực
+  - Lựa chọn biểu diễn UUID trong dữ liệu và giao tiếp
+- level1: ProcessBuilder
+  level2:
+  - ProcessBuilder và mô hình tạo tiến trình con
+  - Danh sách lệnh và đối số tách biệt
+  - Ảnh hưởng của shell, dấu cách và ký tự đặc biệt
+  - Thiết lập thư mục làm việc
+  - Đọc và điều chỉnh môi trường tiến trình con
+  - System.getenv và môi trường của tiến trình hiện tại
+  - Khởi động bằng start và xử lý lỗi tạo tiến trình
+  - Các luồng stdin, stdout và stderr của Process
+  - redirectErrorStream và hợp nhất luồng lỗi
+  - Nguy cơ đầy bộ đệm và deadlock khi không tiêu thụ đầu ra
+  - waitFor, exitValue và mã thoát
+  - destroy và quản lý vòng đời tiến trình
+  - Quản lý quyền sở hữu và đóng các luồng I/O
+  - Giới hạn dữ liệu đầu vào khi tạo lệnh từ nội dung bên ngoài
+- level1: XPath
+  level2:
+  - XPath trong JAXP và truy vấn tài liệu XML
+  - Đường dẫn, trục, thuộc tính và lựa chọn nút XML
+  - Điều kiện lọc và vị trí phần tử trong biểu thức XPath
+  - Hàm xử lý chuỗi, số và điều kiện trong XPath
+  - XPathFactory, XPath và XPathExpression
+  - Biên dịch biểu thức để tái sử dụng
+  - Ngữ cảnh đánh giá và các dạng nguồn đầu vào
+  - Kiểu kết quả qua XPathConstants
+  - NamespaceContext và ánh xạ tiền tố
+  - Không gian tên mặc định của XML và tiền tố trong truy vấn
+  - Biến XPath qua XPathVariableResolver
+  - Hàm mở rộng qua XPathFunctionResolver
+  - XPathExpressionException và lỗi đánh giá
+  - Giới hạn an toàn luồng của đối tượng XPath
+  - Phân biệt truyền giá trị bằng biến với ghép biểu thức từ dữ liệu ngoài
+  - Kiểm soát phân tích XML, thực thể ngoài và truy cập tài nguyên
+  - Giới hạn tài nguyên khi xử lý XML không tin cậy
+- level1: Kiểm tra XML Schema
+  level2:
+  - Vai trò của schema trong kiểm tra tính hợp lệ XML
+  - SchemaFactory và lựa chọn ngôn ngữ schema
+  - Biên dịch XSD thành Schema
+  - Tạo Validator cho mỗi lần kiểm tra phù hợp
+  - Đầu vào Source và đầu ra Result
+  - ErrorHandler và phân biệt cảnh báo, lỗi, lỗi nghiêm trọng
+  - LSResourceResolver và việc phân giải tài nguyên
+  - Schema có thể dùng chung và giới hạn chia sẻ Validator
+  - ValidatorHandler trong chuỗi xử lý SAX
+  - Kiểm soát external DTD, external schema và xử lý an toàn
+  - Giới hạn kích thước, độ phức tạp và quyền truy cập tài nguyên ngoài
+  - Thiết kế kiểm thử cho XML hợp lệ, sai cấu trúc và có tài nguyên ngoài
+- level1: SSLEngine
+  level2:
+  - SSLEngine và TLS độc lập cơ chế vận chuyển dữ liệu
+  - Khởi tạo từ SSLContext và vai trò client, server
+  - ByteBuffer chứa dữ liệu ứng dụng và dữ liệu mạng
+  - wrap, unwrap và SSLEngineResult
+  - Các trạng thái xử lý và trạng thái bắt tay
+  - NEED_WRAP, NEED_UNWRAP và NEED_TASK
+  - BUFFER_UNDERFLOW, BUFFER_OVERFLOW và điều chỉnh bộ đệm
+  - SSLEngineResult.HandshakeStatus.FINISHED và hoàn tất bắt tay
+  - Xử lý tác vụ được giao qua getDelegatedTask và phối hợp I/O không chặn
+  - Đóng chiều gửi, chiều nhận và kết thúc phiên
+  - Xác minh danh tính đối tác, chứng thư và tham số TLS
+  - Lựa chọn giao thức, thuật toán theo chính sách bảo mật hiện hành
+  - Giới hạn trách nhiệm của SSLEngine so với quản lý kết nối
+- level1: SASL
+  level2:
+  - SASL và cơ chế xác thực độc lập giao thức ứng dụng
+  - Vai trò SaslClient và SaslServer
+  - Trao đổi challenge, response và trạng thái hoàn tất
+  - CallbackHandler và việc cung cấp thông tin xác thực
+  - Phân biệt định danh xác thực và quyền đại diện
+  - Lựa chọn cơ chế từ nhà cung cấp và chính sách hiện hành
+  - Chất lượng bảo vệ được thương lượng trong SASL
+  - wrap, unwrap khi cơ chế hỗ trợ lớp bảo vệ
+  - Phối hợp bảo vệ đường truyền và bảo vệ thông tin bí mật
+  - Giải phóng ngữ cảnh bằng dispose và xử lý lỗi xác thực
+- level1: Giám sát JVM
+  level2:
+  - java.lang.management và mô hình Platform MXBean
+  - ManagementFactory và truy cập các MXBean nền tảng
+  - MemoryMXBean và số liệu heap, non-heap
+  - MemoryPoolMXBean và các vùng bộ nhớ
+  - GarbageCollectorMXBean và thời gian, số lần thu gom
+  - ThreadMXBean, ThreadInfo và thông tin luồng
+  - Phát hiện luồng chờ khóa và deadlock trong phạm vi được hỗ trợ
+  - ClassLoadingMXBean và số lớp được nạp
+  - RuntimeMXBean, CompilationMXBean và đặc tính JVM
+  - OperatingSystemMXBean và giới hạn ý nghĩa số liệu hệ thống
+  - MemoryNotificationInfo và ngưỡng sử dụng bộ nhớ được hỗ trợ
+  - MBeanServer, ObjectName và đăng ký Standard MBean
+  - Thuộc tính, thao tác và thông báo của MBean ứng dụng
+  - Quan sát ứng dụng bằng JConsole qua kết nối được kiểm soát
+  - Chi phí giám sát và giới hạn khả năng đo trên từng JVM
+- level1: Java agent
+  level2:
+  - java.lang.instrument và mục đích quan sát, biến đổi bytecode
+  - Cấu trúc agent JAR và thuộc tính Premain-Class
+  - premain và khởi chạy bằng -javaagent
+  - Instrumentation và khả năng JVM cung cấp
+  - ClassFileTransformer và đường đi biến đổi lớp lúc nạp
+  - Giá trị trả về của transformer và thứ tự xử lý
+  - Đăng ký, gỡ transformer và xử lý lỗi
+  - ClassDefinition và redefineClasses khi được hỗ trợ
+  - Giới hạn thay đổi cấu trúc lớp khi định nghĩa lại
+  - Phạm vi class loader và khả năng truy cập lớp hỗ trợ
+  - getObjectSize và ý nghĩa kích thước ước lượng
+  - Ảnh hưởng đến hiệu năng, tính đúng và khả năng nạp lớp
+  - Kiểm tra độ tin cậy của agent trước khi triển khai
+- level1: JVM và hiệu năng
+  level2:
+  - Class Data Sharing và chia sẻ siêu dữ liệu lớp
+  - Lợi ích, giới hạn của CDS đối với thời gian khởi động và bộ nhớ
+  - Phân biệt dữ liệu lớp được chia sẻ với trạng thái đối tượng ứng dụng
+  - Cơ chế JVM tự chọn cấu hình theo môi trường chạy (ergonomics)
+  - Quan hệ giữa thông lượng, độ trễ và dung lượng heap
+  - System.nanoTime cho đo khoảng thời gian
+  - Phân biệt nanoTime với đồng hồ ngày giờ
+  - Đơn vị nanosecond và giới hạn độ phân giải thực tế
+  - Ảnh hưởng của khởi động JVM, JIT và tải nền đến phép đo
+  - Đánh giá tối ưu bằng dữ liệu thay cho dùng cấu hình mặc định từ JDK cũ
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng API generic với giới hạn kiểu và wildcard
+  - Kiểm tra xóa kiểu và phương thức bridge bằng javap
+  - Mô hình hóa trạng thái nghiệp vụ bằng enum và EnumMap
+  - Xây dựng bộ tùy chọn bằng EnumSet
+  - Kiểm tra cấu hình bằng annotation lúc chạy
+  - Phân tích dữ liệu văn bản bằng Scanner và xuất báo cáo bằng Formatter
+  - Xử lý chuỗi có code point ngoài BMP
+  - Tính toán số thập phân với chính sách làm tròn rõ ràng
+  - Xây dựng luồng xử lý có BlockingQueue và ExecutorService
+  - Thu kết quả theo thứ tự hoàn tất và xử lý hết thời hạn
+  - Kiểm thử hủy tác vụ, dừng bộ thực thi và lỗi từ chối việc
+  - So sánh phương án bảo vệ dữ liệu bằng Lock, Atomic và collection đồng thời
+  - Chẩn đoán chờ khóa bằng thông tin luồng và MXBean
+  - Kiểm tra XML an toàn bằng XPath và Schema
+  - Tổng kết tiêu chí chọn tính năng Java 5 trong ứng dụng Java hiện đại

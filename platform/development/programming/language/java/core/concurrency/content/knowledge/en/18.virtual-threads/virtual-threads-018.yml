@@ -1,0 +1,3 @@
+menuLevel1: Virtual Threads
+menuLevel2: Giới hạn ThreadMXBean và cách dùng jcmd Thread.dump_to_file cho virtual threads
+status: TRANSLATE

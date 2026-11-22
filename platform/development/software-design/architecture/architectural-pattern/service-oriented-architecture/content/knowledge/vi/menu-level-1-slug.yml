@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan SOA
+  slug: soa-overview
+  index: 0
+- title: Nền tảng phân tán
+  slug: distributed-foundations
+  index: 1
+- title: Nguyên lý dịch vụ
+  slug: service-principles
+  index: 2
+- title: Phân tích nghiệp vụ
+  slug: business-analysis
+  index: 3
+- title: Ranh giới dịch vụ
+  slug: service-boundaries
+  index: 4
+- title: Danh mục dịch vụ
+  slug: service-catalog
+  index: 5
+- title: Hợp đồng dịch vụ
+  slug: service-contracts
+  index: 6
+- title: Mô hình thông điệp
+  slug: message-models
+  index: 7
+- title: SOAP và WS-*
+  slug: soap-ws-specifications
+  index: 8
+- title: REST và HTTP
+  slug: rest-http
+  index: 9
+- title: Nhắn tin bất đồng bộ
+  slug: asynchronous-messaging
+  index: 10
+- title: Tích hợp hệ thống
+  slug: system-integration
+  index: 11
+- title: ESB và trung gian
+  slug: enterprise-service-bus
+  index: 12
+- title: Phối hợp dịch vụ
+  slug: service-orchestration
+  index: 13
+- title: Dữ liệu dịch vụ
+  slug: service-data
+  index: 14
+- title: Giao dịch phân tán
+  slug: distributed-transactions
+  index: 15
+- title: Khả năng phục hồi
+  slug: resilience
+  index: 16
+- title: Bảo mật dịch vụ
+  slug: service-security
+  index: 17
+- title: Quản trị SOA
+  slug: soa-governance
+  index: 18
+- title: Khám phá dịch vụ
+  slug: service-discovery
+  index: 19
+- title: Tiến hóa hợp đồng
+  slug: contract-evolution
+  index: 20
+- title: Kiểm thử dịch vụ
+  slug: service-testing
+  index: 21
+- title: Quan sát hệ thống
+  slug: observability
+  index: 22
+- title: Triển khai và vận hành
+  slug: deployment-operations
+  index: 23
+- title: Hiệu năng và dung lượng
+  slug: performance-capacity
+  index: 24
+- title: Dịch vụ Java
+  slug: java-services
+  index: 25
+- title: Tích hợp trên Java
+  slug: java-integration
+  index: 26
+- title: Đánh giá kiến trúc
+  slug: architecture-evaluation
+  index: 27
+- title: Sai lầm thiết kế
+  slug: design-pitfalls
+  index: 28
+- title: Hiện đại hóa SOA
+  slug: soa-modernization
+  index: 29
+- title: Thực hành SOA
+  slug: soa-practice
+  index: 30

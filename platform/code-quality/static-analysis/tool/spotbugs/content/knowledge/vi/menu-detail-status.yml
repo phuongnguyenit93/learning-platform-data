@@ -1,0 +1,2734 @@
+menu:
+- slug: spotbugs-overview
+  title: Tổng quan
+  childs:
+  - slug: spotbugs-overview-001
+    title: SpotBugs là gì và vai trò trong kiểm soát chất lượng mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-002
+    title: 'Từ FindBugs đến SpotBugs: lịch sử và thuật ngữ còn được giữ lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-003
+    title: Phân tích tĩnh bytecode khác gì biên dịch, kiểm thử và phân tích khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-004
+    title: Mẫu lỗi, bộ phát hiện và cảnh báo trong SpotBugs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-005
+    title: Mối liên hệ giữa cảnh báo và lỗi thực tế của chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-006
+    title: So sánh phạm vi SpotBugs với Checkstyle, PMD và Error Prone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-007
+    title: Phối hợp SpotBugs với kiểm thử, rà soát mã và nền tảng kiểm tra liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-008
+    title: Giới hạn phát hiện và ý nghĩa của kết quả không có cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spotbugs-overview-009
+    title: Kiến thức nền và thứ tự học để sử dụng SpotBugs hiệu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analysis-mechanism
+  title: Cơ chế phân tích
+  childs:
+  - slug: analysis-mechanism-001
+    title: Vì sao SpotBugs cần tệp .class thay vì chỉ có mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-002
+    title: 'Đầu vào phân tích: thư mục lớp, JAR, WAR và kho lưu trữ lồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-003
+    title: Phân biệt mã ứng dụng cần quét, auxiliary classpath và source path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-004
+    title: Thông tin kiểu, quan hệ kế thừa và phụ thuộc dùng trong phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-005
+    title: Đồ thị luồng điều khiển và phân tích luồng dữ liệu ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-006
+    title: Phân tích trong phương thức và liên phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-007
+    title: Giới hạn khi gặp reflection, proxy, dependency injection và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-008
+    title: Vai trò của thông tin dòng nguồn và debug metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-009
+    title: Effort, độ chính xác, thời gian chạy và mức tiêu thụ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analysis-mechanism-010
+    title: Phân biệt kích hoạt detector, lọc kết quả và giới hạn phạm vi lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Thiết lập môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Kiểm tra yêu cầu Java chạy SpotBugs và phiên bản bytecode được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Phân biệt phiên bản SpotBugs core, build plugin và detector plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Chọn phiên bản tương thích từ tài liệu và ghi chú phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Cài bản phân phối SpotBugs và nhận diện cấu trúc bin, lib, plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Chạy SpotBugs trên Windows, Linux và macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Xác minh phiên bản, trợ giúp và môi trường JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Chuẩn bị dự án Java nhỏ với ví dụ có lỗi và ví dụ đã sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Biên dịch mã và kiểm tra vị trí tệp .class trước khi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-009
+    title: Giữ cấu hình và dependency phân tích có thể tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-analysis
+  title: Phân tích đầu tiên
+  childs:
+  - slug: first-analysis-001
+    title: Thực hiện chu trình biên dịch, phân tích, đọc báo cáo và sửa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-analysis-002
+    title: Chạy phân tích một thư mục lớp hoặc JAR đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-analysis-003
+    title: Cung cấp dependency qua auxiliary classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-analysis-004
+    title: Cung cấp source path để điều hướng từ cảnh báo về mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-analysis-005
+    title: Nhận diện bug pattern, lớp, phương thức và dòng bị báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-analysis-006
+    title: Kiểm chứng một cảnh báo bằng đường đi dữ liệu và ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-analysis-007
+    title: Biên dịch lại, chạy lại và xác nhận cảnh báo đã được giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-analysis-008
+    title: Kiểm tra lỗi phân tích và lớp bị thiếu trước khi kết luận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: command-line
+  title: Dòng lệnh
+  childs:
+  - slug: command-line-001
+    title: Chạy java -jar, wrapper script và chế độ -textui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-002
+    title: Phân biệt tham số JVM, tham số wrapper và tham số của SpotBugs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-003
+    title: Khai báo nhiều đầu vào và đọc danh sách tệp bằng -analyzeFromFile hoặc -xargs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-004
+    title: Thiết lập -auxclasspath, -auxclasspathFromFile và -sourcepath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-005
+    title: Điều khiển effort và các analysis properties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-006
+    title: Chọn detector bằng -visitors, -omitVisitors và -chooseVisitors
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-007
+    title: Nạp detector plugin bằng -pluginList và kiểm tra plugin đã tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-008
+    title: Chọn ngưỡng confidence, rank và nhóm cảnh báo cần báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-009
+    title: Xuất XML, HTML, SARIF và chỉ định đường dẫn báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-010
+    title: Bật tiến độ, debug và kiểm tra cấu hình thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: command-line-011
+    title: Dùng -exitcode và phân biệt cảnh báo, thiếu lớp, lỗi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-integration
+  title: Tích hợp Maven
+  childs:
+  - slug: maven-integration-001
+    title: Khai báo com.github.spotbugs:spotbugs-maven-plugin trong pom.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-002
+    title: Phân biệt goal spotbugs:spotbugs, spotbugs:check và spotbugs:gui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-003
+    title: Gắn kiểm tra SpotBugs vào lifecycle và phase verify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-004
+    title: Đảm bảo biên dịch trước khi phân tích và chọn phạm vi mã test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-005
+    title: Cấu hình effort, threshold và tham số theo phiên bản plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-006
+    title: Phân biệt ngưỡng cảnh báo được báo với ngưỡng làm kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-007
+    title: Cấu hình failOnError, maxAllowedViolations và skip có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-008
+    title: Khai báo includeFilterFile, excludeFilterFile và detector bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-009
+    title: Tạo báo cáo XML, HTML, SARIF và tích hợp Maven Site
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-010
+    title: Quản lý cấu hình chung bằng pluginManagement và kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-integration-011
+    title: Xác minh effective POM, dependency và lệnh chạy lại trên CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-integration
+  title: Tích hợp Gradle
+  childs:
+  - slug: gradle-integration-001
+    title: Áp dụng com.github.spotbugs cùng Java plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-002
+    title: Phân biệt Gradle plugin và SpotBugs core được chọn bởi toolVersion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-003
+    title: Các task spotbugsMain, spotbugsTest và quan hệ với classes, check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-004
+    title: Cấu hình SpotBugsExtension và ghi đè cho từng SpotBugsTask
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-005
+    title: Groovy DSL, Kotlin DSL và kiểu enum Effort, Confidence theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-006
+    title: Thiết lập classes, auxClassPaths và nguồn cho task tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-007
+    title: Điều khiển reportLevel, ignoreFailures và ý nghĩa kết quả build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-008
+    title: Cấu hình includeFilter, excludeFilter, baselineFile và onlyAnalyze
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-009
+    title: Xuất báo cáo với required, outputLocation và stylesheet phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-010
+    title: Thêm detector qua configuration spotbugsPlugins
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-011
+    title: Phân biệt com.github.spotbugs và com.github.spotbugs-base
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-integration-012
+    title: Kiểm tra tương thích JDK, Gradle, toolchain và phiên bản plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gui-and-ide
+  title: GUI và IDE
+  childs:
+  - slug: gui-and-ide-001
+    title: Tạo project trong SpotBugs GUI với mã cần quét, dependency và mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gui-and-ide-002
+    title: Chạy phân tích, nhóm cảnh báo và điều hướng đến vị trí nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gui-and-ide-003
+    title: Lưu, mở lại project và kết quả phân tích trong GUI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gui-and-ide-004
+    title: Tích hợp SpotBugs với Eclipse và cấu hình phạm vi project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gui-and-ide-005
+    title: Sử dụng plugin IntelliJ IDEA phù hợp và kiểm tra phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gui-and-ide-006
+    title: Đồng bộ cấu hình IDE với cấu hình dòng lệnh và build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gui-and-ide-007
+    title: Chẩn đoán khác biệt classpath, compiler và detector giữa IDE với CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gui-and-ide-008
+    title: Tích hợp tác vụ Ant trong dự án hiện có khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-reading
+  title: Đọc kết quả
+  childs:
+  - slug: result-reading-001
+    title: 'Cấu trúc một cảnh báo: type, mã rút gọn, thông báo và vị trí'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-002
+    title: Phân biệt bug category, bug code, bug pattern và tên detector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-003
+    title: Confidence và tên priority trong định dạng hoặc cấu hình cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-004
+    title: Bug rank và cách dùng rank để sắp thứ tự xem xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-005
+    title: Phân biệt độ tin cậy của phát hiện với mức ảnh hưởng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-006
+    title: Nhóm CORRECTNESS, BAD_PRACTICE và STYLE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-007
+    title: Nhóm MT_CORRECTNESS, PERFORMANCE và I18N
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-008
+    title: Nhóm MALICIOUS_CODE, SECURITY và detector mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-009
+    title: Detector thử nghiệm, detector mặc định và detector bị tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-010
+    title: 'Đọc các vị trí liên quan: nơi khai báo, nơi truyền giá trị và nơi sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-011
+    title: Nhận diện mã test, mã sinh và mã thư viện trong báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reading-012
+    title: Tra mô tả bug pattern và đối chiếu với phiên bản đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: null-and-contracts
+  title: Null và hợp đồng
+  childs:
+  - slug: null-and-contracts-001
+    title: NP_ALWAYS_NULL và việc sử dụng giá trị chắc chắn null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-002
+    title: NP_NULL_ON_SOME_PATH và nhánh thực thi có nguy cơ NullPointerException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-003
+    title: Giá trị trả về có thể null và trách nhiệm kiểm tra ở bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-004
+    title: Truyền null vào tham số có hợp đồng không null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-005
+    title: Trường không null chưa được khởi tạo đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-006
+    title: Trả null từ phương thức trả Boolean hoặc Optional
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-007
+    title: Unboxing giá trị bọc có thể null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-008
+    title: Kiểm tra null dư thừa và mâu thuẫn giữa điều kiện với luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-009
+    title: Đường ngoại lệ, nhánh không khả thi và nguyên nhân cảnh báo null sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-contracts-010
+    title: Chọn sửa luồng dữ liệu, làm rõ hợp đồng hoặc bổ sung kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparisons-and-collections
+  title: So sánh và tập hợp
+  childs:
+  - slug: comparisons-and-collections-001
+    title: So sánh String bằng == và nhóm cảnh báo ES
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-002
+    title: So sánh tham chiếu giữa các kiểu không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-003
+    title: Hợp đồng equals và hashCode với nhóm cảnh báo EQ, HE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-004
+    title: Tính đối xứng, kế thừa và tham số null trong equals
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-005
+    title: Hợp đồng compareTo và kiểm tra dấu của kết quả so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-006
+    title: Kiểu phần tử không phù hợp khi gọi contains, remove hoặc get
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-007
+    title: So sánh mảng và sử dụng API so sánh nội dung phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-008
+    title: Ép kiểu không an toàn và suy luận kiểu từ bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-009
+    title: Ảnh hưởng của equals, hashCode và khóa khả biến đến Map, Set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-and-collections-010
+    title: Viết ca kiểm thử hợp đồng trước và sau khi sửa cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arithmetic-and-conditions
+  title: Số học và điều kiện
+  childs:
+  - slug: arithmetic-and-conditions-001
+    title: Tràn số trong phép tính trung gian trước khi chuyển sang kiểu rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-002
+    title: Chia số nguyên rồi mới chuyển sang số thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-003
+    title: Chuyển kiểu số, mất độ chính xác và kiểm tra giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-004
+    title: Phép dịch bit, mặt nạ bit và dấu của toán hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-005
+    title: So sánh số thực và các giả định không đúng về độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-006
+    title: Điều kiện luôn đúng, luôn sai và nhánh đáng ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-007
+    title: Phép gán không có tác dụng và giá trị gán không được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-008
+    title: Nhánh switch rơi xuống và ý định của lập trình viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-009
+    title: Chỉ số mảng, chuỗi và khoảng giá trị vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-and-conditions-010
+    title: Liên hệ từng cảnh báo với trường hợp đầu vào gây lỗi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-and-resources
+  title: API và tài nguyên
+  childs:
+  - slug: api-and-resources-001
+    title: RV_RETURN_VALUE_IGNORED và việc bỏ qua giá trị trả về cần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-002
+    title: Đối tượng bất biến và lỗi tưởng rằng phương thức thay đổi tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-003
+    title: API nhập xuất và JDBC được detector kiểm tra về đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-004
+    title: Rò rỉ tài nguyên trên đường ngoại lệ và try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-005
+    title: Quyền sở hữu tài nguyên giữa bên tạo và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-006
+    title: Nuốt ngoại lệ, bỏ qua ngoại lệ và khối catch đáng ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-007
+    title: Tạo đối tượng ngoại lệ nhưng không thực sự throw
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-008
+    title: Kết quả read, skip và các thao tác nhập xuất bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-009
+    title: Dùng assert để kiểm tra đầu vào public và giới hạn khi assertion bị tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-010
+    title: Sử dụng API lỗi thời, finalize và hành vi phụ thuộc phiên bản Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-resources-011
+    title: Kiểm thử đóng tài nguyên và bảo toàn ngữ nghĩa xử lý ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-design
+  title: Thiết kế đối tượng
+  childs:
+  - slug: object-design-001
+    title: EI_EXPOSE_REP khi getter trả trực tiếp đối tượng có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-002
+    title: EI_EXPOSE_REP2 khi giữ tham chiếu đầu vào có thể bị thay đổi từ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-003
+    title: Bản sao phòng vệ, bản sao nông và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-004
+    title: Phân biệt collection chỉ đọc và dữ liệu thực sự bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-005
+    title: Công bố trạng thái static có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-006
+    title: Ghi trường static từ phương thức đối tượng và rủi ro chia sẻ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-007
+    title: Phương thức có thể bị ghi đè được gọi trong constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-008
+    title: Che khuất trường và nhầm lẫn giữa trạng thái cha, con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-009
+    title: Hợp đồng clone, sao chép đối tượng và rủi ro kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-design-010
+    title: Serializable, serialVersionUID và trường không phù hợp để tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency
+  title: Đồng thời
+  childs:
+  - slug: concurrency-001
+    title: Nhóm MT_CORRECTNESS và phạm vi suy luận về mã nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-002
+    title: Đồng bộ trên String, Boolean hoặc đối tượng có thể được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-003
+    title: Khóa trên tham chiếu bị thay đổi và lựa chọn đối tượng khóa ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-004
+    title: Đọc, ghi trường dùng chung với cơ chế đồng bộ không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-005
+    title: Giới hạn của volatile đối với phép toán gồm nhiều bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-006
+    title: Khởi tạo lười và double-checked locking không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-007
+    title: Gọi wait, notify, notifyAll và yêu cầu sở hữu monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-008
+    title: Điều kiện chờ, vòng lặp và xử lý InterruptedException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-009
+    title: Chia sẻ đối tượng không an toàn luồng như SimpleDateFormat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-010
+    title: Gọi Thread.run thay vì start và các lỗi sử dụng luồng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-011
+    title: Kiểm chứng cảnh báo bằng mô hình đồng thời và ca kiểm thử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Nhóm PERFORMANCE và sự khác biệt giữa mẫu tốn kém với số đo thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Tạo boxing object không cần thiết và chuyển đổi kiểu dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Chuỗi, vòng lặp và các mẫu tạo đối tượng tránh được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Tạo đối tượng nhưng kết quả không được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Trường, phương thức hoặc giá trị không được dùng theo phạm vi suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đối chiếu cảnh báo với compiler, JVM và phiên bản API hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Sửa cảnh báo hiệu năng nhưng vẫn giữ nguyên hành vi chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Dùng profiler hoặc benchmark để xác nhận cải thiện khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: internationalization
+  title: Quốc tế hóa
+  childs:
+  - slug: internationalization-001
+    title: DM_DEFAULT_ENCODING và phụ thuộc vào charset mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalization-002
+    title: Chuyển đổi byte–String với Charset hoặc StandardCharsets tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalization-003
+    title: DM_CONVERT_CASE và ảnh hưởng của Locale khi đổi hoa, thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalization-004
+    title: Phân biệt xử lý mã định danh kỹ thuật và văn bản theo ngôn ngữ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalization-005
+    title: Nhận diện giả định ngày giờ, locale và định dạng vượt ngoài detector hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalization-006
+    title: Kiểm thử dữ liệu tiếng Việt và khác biệt môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân biệt detector SECURITY, MALICIOUS_CODE và plugin Find Security Bugs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Bật Find Security Bugs trong Maven, Gradle hoặc dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Luồng dữ liệu không tin cậy từ đầu vào đến thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Nhận diện SQL injection và command injection bằng detector phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Nhận diện path traversal, XML và deserialization không an toàn khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Phát hiện mật mã yếu, ngẫu nhiên không phù hợp và bí mật ghi cố định trong mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Kiểm tra hỗ trợ framework và giới hạn suy luận của detector bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Tra CWE, mô tả detector và xác minh khả năng khai thác trong ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Ưu tiên sửa theo ảnh hưởng và khả năng tiếp cận thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Phối hợp phân tích mã với kiểm tra dependency, cấu hình và kiểm thử bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotations
+  title: Annotations
+  childs:
+  - slug: annotations-001
+    title: Thêm spotbugs-annotations với phạm vi dependency phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-002
+    title: Vì sao tên package edu.umd.cs.findbugs.annotations vẫn được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-003
+    title: Ý nghĩa của @NonNull đối với trường, tham số và giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-004
+    title: Phân biệt @CheckForNull, @Nullable và phần tử chưa có annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-005
+    title: '@UnknownNullness và hợp đồng chưa xác định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-006
+    title: '@ReturnValuesAreNonnullByDefault và phạm vi mặc định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-007
+    title: '@DefaultAnnotation cùng biến thể cho fields, methods, parameters'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-008
+    title: '@CheckReturnValue và ý định sử dụng giá trị trả về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-009
+    title: Hợp đồng kế thừa và giới hạn tương thích giữa các hệ annotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-010
+    title: Phân biệt annotation hỗ trợ phân tích với kiểm tra bắt buộc khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-filters
+  title: Bộ lọc XML
+  childs:
+  - slug: xml-filters-001
+    title: Cấu trúc FindBugsFilter và phần tử Match
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-002
+    title: Phân biệt include filter, exclude filter và lọc phạm vi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-003
+    title: Chọn cảnh báo bằng Bug pattern, code hoặc category
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-004
+    title: Lọc theo Confidence và Rank
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-005
+    title: Lọc theo Class, Package và Source
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-006
+    title: Lọc theo Method, Field và chữ ký kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-007
+    title: Lọc theo Annotation và yêu cầu retention
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-008
+    title: Kết hợp điều kiện bằng And, Or, Not và quan hệ mặc định trong Match
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-009
+    title: Tên đầy đủ, biểu thức chính quy và phạm vi package con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-010
+    title: Vai trò của các vị trí được gắn với một cảnh báo khi đối sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-011
+    title: Phân biệt bộ lọc Match với XML kết quả dùng làm baseline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-012
+    title: Kiểm tra filter bằng ví dụ phải giữ và ví dụ phải loại khỏi báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-filters-013
+    title: Kiểm soát filter quá rộng và xác minh sau mỗi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: suppressing-warnings
+  title: Ẩn cảnh báo
+  childs:
+  - slug: suppressing-warnings-001
+    title: Khi nào nên sửa mã và khi nào có cơ sở để suppression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-002
+    title: Dùng @SuppressFBWarnings với value và justification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-003
+    title: Chọn phạm vi suppression nhỏ nhất theo vị trí cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-004
+    title: Phân biệt @SuppressFBWarnings với @SuppressWarnings của Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-005
+    title: So sánh annotation suppression, exclude filter và baseline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-006
+    title: Không coi comment bỏ qua là cơ chế suppression chung cho mọi detector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-007
+    title: Ghi lý do, bằng chứng và trách nhiệm xem xét lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-008
+    title: Phát hiện suppression lỗi thời sau khi mã hoặc detector thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: suppressing-warnings-009
+    title: Kiểm thử để việc ẩn một cảnh báo không che mất cảnh báo khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reports-and-baseline
+  title: Báo cáo và baseline
+  childs:
+  - slug: reports-and-baseline-001
+    title: Chọn XML cho xử lý máy, HTML cho đọc và SARIF cho tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-002
+    title: Cấu trúc BugCollection, BugInstance và SourceLine trong báo cáo XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-003
+    title: Nhận diện cảnh báo giữa các lần quét bằng thông tin và định danh báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-004
+    title: Tạo baseline từ kết quả phân tích đã được rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-005
+    title: Dùng -excludeBugs hoặc tùy chọn baseline của build plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-006
+    title: Phân biệt cảnh báo tồn đọng, cảnh báo mới và cảnh báo đã được giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-007
+    title: Rủi ro thay đổi định danh sau refactor, biên dịch hoặc nâng cấp detector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-008
+    title: Giữ điều kiện phân tích nhất quán khi so sánh hai báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-009
+    title: Tổng hợp báo cáo nhiều module và tránh đếm trùng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-010
+    title: Lưu nguồn phiên bản, cấu hình và commit để truy nguyên kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-baseline-011
+    title: Thu hẹp baseline khi trả nợ kỹ thuật và kiểm soát cập nhật baseline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-and-quality-gates
+  title: CI và cổng chất lượng
+  childs:
+  - slug: ci-and-quality-gates-001
+    title: Đặt SpotBugs sau biên dịch trong pipeline kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-002
+    title: Dùng Maven check hoặc Gradle check làm điểm kiểm tra thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-003
+    title: Chọn điều kiện chặn theo confidence, rank, nhóm lỗi và chính sách dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-004
+    title: Phân biệt lỗi công cụ, thiếu dependency và vi phạm chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-005
+    title: Lưu báo cáo ngay cả khi bước kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-006
+    title: Tích hợp GitHub Actions hoặc Jenkins với cấu hình trong repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-007
+    title: Công bố SARIF khi nền tảng và quyền truy cập hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-008
+    title: Kiểm tra nguồn mã được phân tích đúng commit của pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-009
+    title: Không chỉ quét tệp .java thay đổi khi phụ thuộc bytecode có thể ảnh hưởng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-010
+    title: Áp dụng chính sách không phát sinh lỗi mới trên dự án có baseline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-011
+    title: Xác minh cổng chất lượng thực sự chặn bằng một vi phạm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-and-quality-gates-012
+    title: Tích hợp SonarQube qua plugin tương thích và tránh nhầm với bộ phân tích Java sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: warning-handling
+  title: Xử lý cảnh báo
+  childs:
+  - slug: warning-handling-001
+    title: Phân loại cảnh báo thật, cảnh báo sai và trường hợp chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-002
+    title: Lần theo dữ liệu từ nơi khởi tạo đến vị trí bị báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-003
+    title: Đọc mã nguồn, bytecode và hợp đồng API liên quan khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-004
+    title: Tạo ví dụ tái hiện tối thiểu trước khi kết luận detector sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-005
+    title: Chọn cách sửa nguyên nhân thay vì thay mã để đánh lừa detector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-006
+    title: Viết kiểm thử hồi quy cho hành vi gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-007
+    title: So sánh thay đổi hành vi, tương thích và hiệu năng của bản sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-008
+    title: Biên dịch lại và xác minh cả cảnh báo cũ lẫn cảnh báo mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-009
+    title: Ưu tiên xử lý theo rủi ro, phạm vi ảnh hưởng và công sức sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-handling-010
+    title: Ghi nhận quyết định suppression hoặc báo lỗi detector cùng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-projects
+  title: Dự án nhiều module
+  childs:
+  - slug: multi-module-projects-001
+    title: Phân định module cần phân tích và dependency chỉ thuộc auxiliary classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-002
+    title: Đảm bảo đầu ra biên dịch của module phụ thuộc đã sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-003
+    title: Dùng cấu hình dùng chung mà vẫn cho phép khác biệt hợp lệ từng module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-004
+    title: Tách phân tích mã chính, mã test và source set bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-005
+    title: Xử lý mã sinh từ annotation processor và thư viện như Lombok
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-006
+    title: Giữ thông tin nguồn và nhận diện artifact khi phân tích JAR đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-007
+    title: Kiểm soát quét trùng dependency hoặc archive lồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-008
+    title: Phân bổ bộ nhớ và mức song song trên máy phát triển, CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-009
+    title: Đánh giá cache, phạm vi phân tích và khả năng tái lập theo build plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-projects-010
+    title: Phân biệt tổng hợp báo cáo với phân tích liên module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-detectors
+  title: Detector tùy chỉnh
+  childs:
+  - slug: custom-detectors-001
+    title: Khi nào cần detector riêng thay vì cấu hình detector hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-002
+    title: Thiết kế mẫu lỗi, phạm vi áp dụng và trường hợp phản ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-003
+    title: Tạo project plugin và dependency SpotBugs tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-004
+    title: Chọn AnnotationDetector, BytecodeScanningDetector hoặc OpcodeStackDetector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-005
+    title: Đọc opcode, kiểu dữ liệu và operand stack ở mức cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-006
+    title: Tạo BugInstance và báo kết quả qua BugReporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-007
+    title: Gắn thông tin class, method, field và SourceLine hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-008
+    title: Đăng ký Detector và BugPattern trong findbugs.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-009
+    title: Viết ShortDescription, LongDescription, Details trong messages.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-010
+    title: Kiểm thử ví dụ có lỗi và ví dụ hợp lệ bằng bộ hỗ trợ test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-011
+    title: Đóng gói JAR plugin và nạp vào CLI, Maven, Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-detectors-012
+    title: Kiểm soát cảnh báo sai, chi phí phân tích và tương thích khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Khắc phục sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'UnsupportedClassVersionError: phân biệt JVM chạy công cụ và bytecode đầu vào'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Missing classes: chẩn đoán dependency thiếu trên auxiliary classpath'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Không có cảnh báo do chưa biên dịch, sai thư mục hoặc task bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Cảnh báo không xuất hiện do ngưỡng, filter, suppression hoặc detector bị tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: OutOfMemoryError và điều chỉnh heap, effort, phạm vi lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: 'Phân tích chậm: xác định module, detector và đầu vào gây tốn thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Detector exception, plugin không nạp được và dependency xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Vị trí nguồn sai do bytecode cũ, debug metadata hoặc source path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Kết quả khác nhau giữa IDE, dòng lệnh và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: SARIF hoặc HTML thiếu dữ liệu do đường dẫn và cấu hình báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Đọc debug log, cấu hình hiệu lực và thu thập ví dụ tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-and-governance
+  title: Nâng cấp và quản trị
+  childs:
+  - slug: upgrades-and-governance-001
+    title: Di chuyển từ FindBugs sang SpotBugs và giữ cấu hình tương thích cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-002
+    title: Đánh giá thay đổi phiên bản core, build plugin và detector bổ sung riêng biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-003
+    title: Kiểm tra hỗ trợ cú pháp Java mới, record, lambda và bytecode compiler tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-004
+    title: Đối chiếu thay đổi DSL, kiểu enum và API cấu hình của build plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-005
+    title: So sánh detector thêm mới, bị loại bỏ và thay đổi mức cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-006
+    title: Rà soát lại annotations, filters, suppression và baseline sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-007
+    title: Áp dụng SpotBugs từng giai đoạn cho dự án đang vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-008
+    title: Quy định trách nhiệm xử lý cảnh báo và cập nhật cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-009
+    title: Theo dõi nợ kỹ thuật bằng xu hướng có ngữ cảnh thay vì chỉ số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-governance-010
+    title: Tài liệu hóa cách chạy, diễn giải kết quả và quy trình thay đổi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practice-001
+    title: Thiết lập dự án mẫu có bộ cảnh báo đại diện và bản sửa tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Phân tích cùng một đầu vào bằng CLI và một build plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Tái hiện lỗi null, so sánh đối tượng và bỏ qua giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Sửa lỗi tài nguyên, đóng gói trạng thái và sử dụng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Phân tích một cảnh báo đồng thời và kiểm chứng giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Bổ sung annotation và kiểm tra thay đổi kết quả phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Viết filter và suppression hẹp kèm ca kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Tạo baseline rồi chứng minh cảnh báo mới vẫn làm kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Tích hợp CI, lưu báo cáo và đọc kết quả từ commit cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Xây detector đơn giản với ví dụ đúng, sai và bộ kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

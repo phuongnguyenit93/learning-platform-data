@@ -1,0 +1,455 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử hợp đồng là gì và vì sao cần trong hệ thống nhiều dịch vụ
+  - Producer, consumer và ranh giới giao tiếp giữa hai bên
+  - Consumer-driven contract và producer-driven contract
+  - Phân biệt contract test, unit test, integration test và end-to-end test
+  - Spring Cloud Contract Verifier và Stub Runner
+  - Hợp đồng, kiểm thử được sinh và stub có quan hệ thế nào
+  - Luồng kiểm chứng một thay đổi từ producer đến consumer
+  - Phân biệt hợp đồng kiểm thử với OpenAPI và tài liệu API
+  - Những lỗi có thể phát hiện và những bảo đảm không thể suy ra
+  - Lộ trình học với ví dụ HTTP và thông điệp
+- level1: Thiết kế hợp đồng
+  level2:
+  - Xác định nhu cầu thực tế của consumer trước khi viết hợp đồng
+  - Chọn ranh giới HTTP hoặc messaging cần kiểm chứng
+  - Mô tả hành vi quan sát được thay vì chi tiết triển khai
+  - Hợp đồng tối thiểu và nguy cơ ràng buộc dữ liệu không cần thiết
+  - Chọn ví dụ đại diện cho từng nhánh tương tác
+  - Phân biệt trường bắt buộc, trường tùy chọn và trường bị bỏ qua
+  - Thiết kế hợp đồng cho thành công, lỗi và dữ liệu rỗng
+  - Giữ dữ liệu kiểm thử xác định và có ý nghĩa nghiệp vụ
+  - Phạm vi trách nhiệm của producer và từng consumer
+  - Tiêu chí đánh giá một hợp đồng có thể duy trì lâu dài
+- level1: Vòng đời hợp đồng
+  level2:
+  - Từ yêu cầu của consumer đến đề xuất hợp đồng
+  - Producer xác minh khả năng đáp ứng hợp đồng
+  - Sinh và chạy kiểm thử phía producer
+  - Sinh stub từ cùng nguồn hợp đồng
+  - Đóng gói, công bố và lấy stub theo phiên bản
+  - Consumer kiểm thử mã gọi với stub đã công bố
+  - Xử lý hợp đồng mới khi producer chưa triển khai xong
+  - Loại bỏ hợp đồng không còn consumer sử dụng
+  - Bằng chứng cần có trước khi công bố khả năng tương thích
+- level1: Thiết lập dự án
+  level2:
+  - Chọn Spring Boot và Spring Cloud Release Train tương thích
+  - Quản lý phiên bản bằng BOM và plugin tương ứng
+  - Phụ thuộc cần thiết cho producer và consumer
+  - Phân biệt thư viện runtime với công cụ sinh kiểm thử
+  - Chọn Maven hoặc Gradle cho quy trình thực hành
+  - Chọn JUnit, Spock và ngôn ngữ kiểm thử theo khả năng hỗ trợ
+  - Tạo producer và consumer tối thiểu
+  - Cấu trúc thư mục hợp đồng, base test và tài nguyên stub
+  - Chạy quy trình đầu tiên từ hợp đồng đến consumer test
+  - Kiểm tra phiên bản Java và điều kiện của công cụ build
+- level1: Tổ chức hợp đồng
+  level2:
+  - Đặt tên hợp đồng, mô tả và nhãn nhận diện
+  - Nhóm hợp đồng theo consumer và năng lực nghiệp vụ
+  - Một tệp chứa một hoặc nhiều tương tác
+  - Phân biệt hợp đồng HTTP với hợp đồng thông điệp
+  - Quy ước đường dẫn ảnh hưởng đến kiểm thử được sinh
+  - Tách dữ liệu body lớn sang tệp tài nguyên
+  - Đánh dấu hợp đồng tạm bỏ qua hoặc đang phát triển khi được hỗ trợ
+  - Chọn hợp đồng bằng bộ lọc bao gồm và loại trừ
+  - Tránh trùng tên kiểm thử, nhãn và đường dẫn stub
+  - Quyền sở hữu và rà soát thay đổi trong kho hợp đồng
+- level1: Groovy DSL
+  level2:
+  - Cấu trúc Contract.make và các khối cơ bản
+  - Khối request, response, input và outputMessage
+  - Khai báo method, URL, header và body
+  - Giá trị literal, map, list và chuỗi nhiều dòng
+  - Tham chiếu tệp body từ hợp đồng
+  - Hàm hỗ trợ và biểu thức trong Groovy DSL
+  - Định nghĩa nhiều hợp đồng trong cùng tệp
+  - Metadata và mô tả phục vụ người đọc
+  - Giới hạn của mã tùy ý trong hợp đồng
+  - Đọc lỗi cú pháp và kiểm chứng hợp đồng trước khi sinh test
+- level1: YAML và DSL khác
+  level2:
+  - Biểu diễn cùng tương tác bằng YAML
+  - Cấu trúc request, response và phần matcher trong YAML
+  - Giá trị hai phía trong định dạng khai báo
+  - Body lồng nhau, mảng và dữ liệu lấy từ tệp
+  - Quy tắc quoting, escape và kiểu dữ liệu YAML
+  - Java DSL và Kotlin DSL theo khả năng hỗ trợ của phiên bản
+  - So sánh tính dễ đọc, khả năng mở rộng và yêu cầu công cụ
+  - Chuyển định dạng mà vẫn giữ nguyên ý nghĩa kiểm thử
+  - Chọn một quy ước thống nhất trong nhóm phát triển
+- level1: Request HTTP
+  level2:
+  - HTTP method và đường dẫn yêu cầu
+  - Phân biệt URL đầy đủ với urlPath
+  - Path parameter và biểu thức khớp đường dẫn
+  - Query parameter bắt buộc, tùy chọn và nhiều giá trị
+  - Request header và content negotiation
+  - Cookie và thông tin phiên trong hợp đồng
+  - JSON request body và cấu trúc lồng nhau
+  - Form URL-encoded và mã hóa ký tự
+  - Multipart, trường biểu mẫu và nội dung tệp
+  - Body dạng chuỗi, XML và dữ liệu nhị phân
+  - Phân biệt trường không có với trường có giá trị null
+  - Xác minh yêu cầu có xác thực bằng dữ liệu kiểm thử
+- level1: Response HTTP
+  level2:
+  - Mã trạng thái và ý nghĩa hợp đồng đối với consumer
+  - Response header và content type
+  - JSON response body và cấu trúc dữ liệu
+  - Phản hồi rỗng, không có body và giá trị null
+  - Phản hồi dạng mảng và danh sách không có phần tử
+  - Cookie, location và chuyển hướng khi thuộc phạm vi kiểm thử
+  - Thông báo lỗi và cấu trúc lỗi dùng chung
+  - Giá trị động như mã định danh và thời gian
+  - Trường mới trong response và kiểm tra tương thích
+  - Đối chiếu phản hồi thực tế với kỳ vọng được sinh
+- level1: Dữ liệu hợp đồng
+  level2:
+  - Thiết kế fixture đơn giản, ổn định và sát nhu cầu consumer
+  - JSON object, mảng, số, boolean và chuỗi
+  - Ngày giờ, múi giờ và độ chính xác dữ liệu số
+  - Body từ tệp JSON, XML hoặc tài nguyên nhị phân
+  - Ký tự Unicode, ký tự đặc biệt và escape
+  - Phân biệt giá trị mẫu với miền giá trị hợp lệ
+  - 'Dữ liệu biên: rỗng, thiếu, null và giá trị giới hạn'
+  - Tránh dữ liệu ngẫu nhiên khiến kiểm thử không lặp lại được
+  - Ẩn danh dữ liệu và loại bỏ thông tin production
+  - Giữ fixture độc lập với cơ sở dữ liệu hoặc dịch vụ ngoài
+- level1: Giá trị hai phía
+  level2:
+  - Mô hình consumer value và producer value
+  - Vai trò của từng phía trong request và response
+  - Biểu diễn value, consumer, producer và các dạng viết gọn
+  - Matcher dùng khi nhận request và giá trị mẫu dùng khi sinh test
+  - Matcher dùng khi xác minh response và giá trị trả về trong stub
+  - Chọn giá trị mẫu thỏa mãn biểu thức quy định
+  - Dùng regex cho dữ liệu động mà vẫn giữ kỳ vọng rõ ràng
+  - Tham chiếu dữ liệu request trong response khi được hỗ trợ
+  - Giới hạn của giá trị thực thi bằng mã phía kiểm thử
+  - Đọc test và mapping được sinh để phát hiện nhầm hai phía
+  - Thực hành sửa hợp đồng khớp quá rộng hoặc quá chặt
+- level1: Matcher và assertion
+  level2:
+  - So khớp bằng giá trị chính xác và bằng biểu thức chính quy
+  - Matcher theo kiểu dữ liệu
+  - JSONPath cho thuộc tính và phần tử mảng
+  - Số lượng phần tử và điều kiện trên tập dữ liệu
+  - Kiểm tra có, thiếu, null hoặc rỗng theo ngữ nghĩa được hỗ trợ
+  - Bỏ qua trường động mà không bỏ mất hành vi quan trọng
+  - Custom assertion bằng phương thức trong base test
+  - Matcher cho XML và giới hạn theo công cụ kiểm thử
+  - So khớp body không phụ thuộc định dạng khoảng trắng
+  - Phân biệt thứ tự phần tử có ý nghĩa và không có ý nghĩa
+  - Escape regex qua các lớp DSL, JSON và Java
+  - Đánh giá assertion được sinh thay vì chỉ nhìn hợp đồng nguồn
+- level1: Trạng thái và lỗi
+  level2:
+  - Thiết lập trạng thái producer trước từng tương tác
+  - Tách chuẩn bị dữ liệu khỏi hành vi cần xác minh
+  - Hợp đồng cho dữ liệu không tồn tại và yêu cầu không hợp lệ
+  - Phân biệt lỗi nghiệp vụ với lỗi kết nối hoặc hạ tầng
+  - Chuỗi tương tác có trạng thái và điều kiện trước khi dùng
+  - Scenario của stub và giới hạn so với trạng thái hệ thống thật
+  - Tránh kiểm thử phụ thuộc thứ tự hoặc dùng chung trạng thái
+  - Hành vi retry và giới hạn kiểm chứng bằng hợp đồng
+  - Phản hồi chậm, lỗi mạng giả lập và phạm vi kiểm thử consumer
+- level1: Contract Verifier
+  level2:
+  - Pipeline đọc hợp đồng, sinh kiểm thử và thực thi
+  - Chọn framework, ngôn ngữ và chế độ kiểm thử
+  - Cấu hình thư mục hợp đồng và đầu ra được sinh
+  - Tên package, lớp kiểm thử và phương thức kiểm thử
+  - Ánh xạ nhóm hợp đồng đến base class phù hợp
+  - Phân biệt sinh test thành công với test thực sự chạy và đạt
+  - Đọc mã kiểm thử được sinh để hiểu lời gọi và assertion
+  - Chọn tập hợp đồng cần xác minh trong từng lần build
+  - Xử lý hợp đồng không hợp lệ và trường hợp không có hợp đồng
+  - Quản lý mã được sinh trong hệ thống build
+  - Điều tra lỗi từ hợp đồng nguồn đến kết quả kiểm thử
+- level1: Base test
+  level2:
+  - Vai trò base class trong kiểm thử phía producer
+  - Cấu hình test context và dependency cần thiết
+  - Khởi tạo controller hoặc ứng dụng cần kiểm chứng
+  - Mock cộng tác viên ngoài ranh giới hợp đồng
+  - Thiết lập fixture, xác thực và trạng thái ban đầu
+  - Viết phương thức hỗ trợ cho custom assertion
+  - Chia base class theo nhóm nghiệp vụ hoặc loại giao tiếp
+  - Ánh xạ bằng tên package và cấu hình tường minh
+  - Dọn trạng thái sau kiểm thử và tránh ảnh hưởng chéo
+  - Kiểm soát thời gian, mã định danh và nguồn dữ liệu động
+  - Tránh base test mô phỏng chính hành vi producer cần kiểm chứng
+- level1: Kiểm thử HTTP
+  level2:
+  - Kiểm thử controller bằng MockMvc
+  - Dùng RestAssuredMockMvc trong base test
+  - Kiểm thử qua HTTP thật với ứng dụng chạy trên cổng ngẫu nhiên
+  - Chọn chế độ explicit và cấu hình địa chỉ producer
+  - Điều kiện kiểm thử JAX-RS theo môi trường ứng dụng
+  - Kiểm thử security filter và danh tính người gọi
+  - Kiểm thử serialization, validation và exception handler
+  - Giới hạn khi bỏ qua filter hoặc cấu hình web thực tế
+  - Chuẩn bị dữ liệu cho các nhánh thành công và thất bại
+  - Kiểm chứng request multipart và response không phải JSON
+  - Chọn mức độ tích hợp vừa đủ cho ranh giới HTTP
+- level1: Kiểm thử reactive
+  level2:
+  - Phân biệt hợp đồng HTTP với cách triển khai reactive
+  - Tích hợp WebTestClient theo khả năng Contract Verifier hỗ trợ
+  - Thiết lập base test cho ứng dụng WebFlux
+  - Kiểm chứng Mono, Flux và dữ liệu phản hồi được tổng hợp
+  - Thời gian chờ và tác vụ bất đồng bộ trong kiểm thử
+  - Streaming, SSE và giới hạn mô tả bằng hợp đồng
+  - Tránh block hoặc điều kiện đua trong phần chuẩn bị kiểm thử
+  - Khi cần bổ sung kiểm thử reactive ngoài hợp đồng
+- level1: Hợp đồng thông điệp
+  level2:
+  - Producer và consumer trong giao tiếp qua thông điệp
+  - Phân biệt hợp đồng thông điệp với hợp đồng HTTP
+  - Input, outputMessage và địa chỉ gửi hoặc nhận
+  - Body, header và content type của thông điệp
+  - Kích hoạt producer bằng triggeredBy
+  - Xác minh điều kiện bằng assertion trong hợp đồng
+  - Hợp đồng nhận một thông điệp và phát thông điệp khác
+  - Hợp đồng chỉ phát hoặc chỉ tiếp nhận thông điệp
+  - Giá trị động và matcher trong payload hoặc header
+  - Serialization và sự khác nhau giữa dữ liệu trước và sau chuyển đổi
+  - Correlation ID, khóa nghiệp vụ và dữ liệu định tuyến
+  - Giới hạn kiểm chứng thứ tự, giao nhận lại và xử lý đúng một lần
+- level1: Kiểm thử messaging
+  level2:
+  - Test binder và adapter kiểm thử trong luồng thông điệp
+  - Tích hợp Spring Cloud Stream theo mô hình lập trình được hỗ trợ
+  - Tích hợp Spring Integration và Spring AMQP theo phiên bản
+  - Các adapter messaging bổ sung và điều kiện sử dụng
+  - Chuẩn bị base test cho lời gọi kích hoạt gửi thông điệp
+  - Giả lập đầu vào và kiểm tra thông điệp đầu ra
+  - Stub Runner kích hoạt thông điệp theo nhãn hợp đồng
+  - Timeout, đồng bộ và chờ kết quả xử lý bất đồng bộ
+  - Dọn kênh hoặc hàng đợi để các kiểm thử không ảnh hưởng nhau
+  - Phân biệt kiểm thử qua adapter với kiểm thử broker thật
+  - Khi cần bổ sung kiểm thử ack, retry, DLQ và giao dịch
+- level1: Sinh và đóng gói stub
+  level2:
+  - Stub HTTP được sinh từ hợp đồng như thế nào
+  - WireMock mapping và tệp body trong gói stub
+  - Hợp đồng messaging và dữ liệu phục vụ Stub Runner
+  - Phân biệt artifact ứng dụng với artifact stubs
+  - Classifier, group ID, artifact ID và version
+  - Tổ chức thư mục contracts và mappings trong artifact
+  - Chỉ định hợp đồng thuộc từng consumer
+  - Kiểm tra nội dung gói stub trước khi công bố
+  - Liên kết phiên bản stub với mã producer đã được xác minh
+  - Tránh công bố stub khi producer test chưa đạt
+- level1: Stub Runner
+  level2:
+  - Vai trò Stub Runner trong kiểm thử consumer
+  - Khởi động bằng @AutoConfigureStubRunner
+  - StubRunnerExtension và cách dùng ngoài Spring test khi được hỗ trợ
+  - Khai báo stub ID và tọa độ artifact
+  - Chế độ lấy stub từ CLASSPATH, LOCAL và REMOTE
+  - Phiên bản, classifier và cổng trong cấu hình stub
+  - Khởi động nhiều producer stub trong cùng kiểm thử
+  - Lấy cổng hoặc URL stub được cấp phát động
+  - Chọn stub theo consumer name và cấu trúc hợp đồng
+  - Ánh xạ artifact sang service ID khi tích hợp khám phá dịch vụ
+  - Kích hoạt messaging stub theo nhãn
+  - Xử lý lỗi tải artifact, khởi động stub và không tìm thấy mapping
+- level1: WireMock
+  level2:
+  - WireMock trong Spring Cloud Contract và giới hạn trách nhiệm
+  - '@AutoConfigureWireMock cho kiểm thử HTTP độc lập'
+  - Nạp mapping được sinh và mapping viết tay
+  - So khớp method, URL, query, header và body
+  - Cổng ngẫu nhiên và truyền địa chỉ vào cấu hình consumer
+  - Xác minh số lần gọi và request thực tế đã nhận
+  - Kiểm soát độ ưu tiên khi nhiều mapping cùng khớp
+  - Scenario và trạng thái trong stub
+  - Giả lập độ trễ, mã lỗi và kết nối gặp sự cố
+  - HTTPS và cấu hình client trong môi trường kiểm thử
+  - Reset mapping, request journal và vòng đời giữa các test
+  - Phân biệt khả năng của WireMock với khả năng DSL sinh stub
+- level1: Kiểm thử consumer
+  level2:
+  - Kiểm thử mã HTTP client của consumer với stub thật
+  - Thay địa chỉ producer bằng URL do Stub Runner cung cấp
+  - Xác minh serialization, deserialization và ánh xạ lỗi
+  - Kiểm tra nhu cầu consumer đã được phản ánh trong hợp đồng
+  - Tránh assertion chỉ kiểm tra chính dữ liệu fixture
+  - Kiểm thử nhiều producer và cách ly cấu hình từng client
+  - Consumer reactive và thời điểm chờ lời gọi hoàn tất
+  - Kiểm thử timeout, retry và fallback bằng stub bổ sung
+  - Xác nhận mã consumer thực sự đi qua stub mong đợi
+  - Giới hạn bằng chứng khi chưa chạy producer test cùng phiên bản
+  - Phối hợp contract test với kiểm thử tích hợp và end-to-end
+- level1: Stub độc lập
+  level2:
+  - Chạy stub ngoài tiến trình kiểm thử của consumer
+  - Stub Runner Boot và cách cấu hình các producer stub
+  - Chạy stub trong container theo bộ công cụ được hỗ trợ
+  - Công bố cổng và URL cho ứng dụng gọi thử
+  - Tra cứu stub đang chạy và kích hoạt thông điệp
+  - Dùng stub cho phát triển cục bộ hoặc môi trường tạm thời
+  - Giới hạn truy cập và tránh dùng stub như dịch vụ production
+  - Quản lý vòng đời, cấu hình và phiên bản stub độc lập
+- level1: Tích hợp Gradle
+  level2:
+  - Áp dụng plugin Spring Cloud Contract và khai báo dependency
+  - Cấu hình contracts DSL trong build Gradle
+  - Task sinh kiểm thử và quan hệ với vòng đời test
+  - Task sinh stub, đóng gói và công bố artifact
+  - Cấu hình source set, thư mục nguồn và đầu ra
+  - Chọn test framework, base class và bộ lọc hợp đồng
+  - Tích hợp Maven Publish cho artifact stubs
+  - Quy trình nhiều module producer và consumer
+  - Build tăng dần, build cache và đầu vào cần theo dõi
+  - Kiểm chứng một clean build thực sự sinh và chạy đủ kiểm thử
+- level1: Tích hợp Maven
+  level2:
+  - Khai báo spring-cloud-contract-maven-plugin
+  - Cấu hình plugin, dependency và thứ tự thực thi
+  - Gắn sinh kiểm thử với lifecycle Maven
+  - Chạy test được sinh bằng công cụ kiểm thử phù hợp
+  - Đính kèm artifact stubs và classifier
+  - Quy trình package, install và deploy
+  - Cấu hình base class, thư mục hợp đồng và bộ lọc
+  - Tách cấu hình dùng cho local và CI bằng profile
+  - Build nhiều module và thứ tự công bố phụ thuộc
+  - Kiểm tra build không bỏ sót generated test hoặc stub artifact
+- level1: Kho hợp đồng và artifact
+  level2:
+  - Lưu hợp đồng cùng producer hoặc trong kho riêng
+  - Lưu hợp đồng theo consumer và nhu cầu hợp tác giữa nhóm
+  - Lấy hợp đồng từ vị trí hoặc artifact ngoài dự án
+  - Quy ước group ID, artifact ID, version và classifier
+  - Kho Maven cục bộ và kho artifact từ xa
+  - Xác thực, proxy và truy cập kho trong CI
+  - Phiên bản SNAPSHOT, cache và độ mới của stub
+  - Ghim phiên bản bất biến để tái lập kết quả kiểm thử
+  - Truy vết stub về hợp đồng, commit và lần xác minh producer
+  - Xóa artifact cũ mà không làm hỏng consumer còn dùng
+- level1: Phiên bản và tương thích
+  level2:
+  - Thay đổi tương thích và thay đổi phá vỡ hợp đồng
+  - Thêm trường response và mức ràng buộc thực tế của consumer
+  - Đổi tên, xóa trường và thay kiểu dữ liệu
+  - Thay đổi trường bắt buộc, giá trị null và quy tắc validation
+  - Thay đổi mã trạng thái, header hoặc kiểu thông điệp
+  - Nhiều phiên bản producer và consumer cùng tồn tại
+  - Xác minh hợp đồng của các consumer còn được hỗ trợ
+  - Giai đoạn chuyển tiếp khi thay đổi API hoặc schema
+  - Deprecation và tiêu chí kết thúc hỗ trợ hợp đồng cũ
+  - Giới hạn suy luận tương thích chỉ từ việc kiểm thử đạt
+  - Ma trận phiên bản và bằng chứng cần cho từng tổ hợp
+- level1: Phối hợp nhiều nhóm
+  level2:
+  - Quy trình consumer đề xuất và producer rà soát hợp đồng
+  - Quy trình producer công bố hợp đồng cho consumer sử dụng
+  - Thỏa thuận trách nhiệm sở hữu từng hợp đồng
+  - Phân biệt kỳ vọng hợp lệ với yêu cầu chưa được thống nhất
+  - Hợp đồng đang phát triển và cách ngăn xác nhận giả
+  - Phản hồi khi producer chưa đáp ứng tương tác mới
+  - Quản lý nhiều consumer có kỳ vọng khác nhau
+  - Giữ thay đổi hợp đồng và triển khai producer có thể truy vết
+  - Loại bỏ hợp đồng cũ có xác nhận của bên sử dụng
+  - Quy ước rà soát và tiêu chí chấp nhận thay đổi
+- level1: CI/CD
+  level2:
+  - 'Pipeline producer: kiểm tra hợp đồng, sinh test và xác minh'
+  - Chỉ công bố stub sau khi toàn bộ kiểm thử bắt buộc đạt
+  - Pipeline consumer dùng đúng phiên bản stub cần kiểm chứng
+  - Kiểm thử đề xuất thay đổi trước khi producer phát hành
+  - Chia job và lưu bằng chứng từ test đến artifact
+  - Cache dependency mà vẫn kiểm soát tính mới của SNAPSHOT
+  - Chạy song song và tránh xung đột cổng hoặc trạng thái stub
+  - Phân biệt kết quả kiểm thử với quyết định cho phép triển khai
+  - Bảo vệ credential kho artifact và quyền công bố
+  - Tái chạy pipeline với cùng đầu vào và cùng phiên bản stub
+  - Ngăn thay đổi không tin cậy trong DSL chạy bằng mã tùy ý
+- level1: Bảo mật hợp đồng
+  level2:
+  - Giả lập xác thực và phân quyền trong producer test
+  - Header token, cookie và chứng chỉ bằng dữ liệu kiểm thử
+  - Tránh ghi Secret hoặc dữ liệu cá nhân vào hợp đồng
+  - Ẩn thông tin nhạy cảm trong stub và báo cáo kiểm thử
+  - Bảo vệ quyền đọc và ghi kho artifact
+  - Rủi ro khi nạp Groovy hoặc mã mở rộng từ nguồn không tin cậy
+  - Giới hạn mạng và quyền của tiến trình chạy stub
+  - Rà soát tác dụng phụ của base test và custom assertion
+- level1: Chất lượng hợp đồng
+  level2:
+  - Bao phủ tương tác mà consumer thật sự phụ thuộc
+  - Phát hiện hợp đồng trùng, lỗi thời hoặc không có chủ sở hữu
+  - Matcher quá rộng làm bỏ lọt thay đổi không tương thích
+  - Matcher quá chặt khiến thay đổi vô hại làm vỡ test
+  - Tính xác định của fixture và kiểm thử được sinh
+  - Kiểm tra đủ nhánh thành công, lỗi và trường hợp biên
+  - Đánh giá test producer có kiểm chứng mã triển khai thực không
+  - Đánh giá test consumer có gọi đúng stub và phiên bản không
+  - Kiểm tra thủ công generated test và mapping khi thay đổi phức tạp
+  - Danh sách kiểm tra trước khi hợp nhất hoặc công bố hợp đồng
+- level1: Tùy biến và mở rộng
+  level2:
+  - Khi dùng cấu hình có sẵn và khi cần extension
+  - Custom assertion và helper trong base test
+  - Metadata phục vụ sinh stub theo khả năng hỗ trợ
+  - Biến đổi hợp đồng và bổ sung định dạng nguồn
+  - Tùy biến cách lấy hợp đồng hoặc artifact stub
+  - Adapter messaging cho công nghệ không có hỗ trợ sẵn
+  - Tùy biến WireMock mà vẫn giữ dấu vết nguồn hợp đồng
+  - Kiểm thử extension và tương thích khi nâng phiên bản
+  - Giới hạn mã tùy biến để quy trình hợp đồng dễ bảo trì
+- level1: Chẩn đoán sự cố
+  level2:
+  - Plugin không tìm thấy hợp đồng hoặc không sinh kiểm thử
+  - Generated test được tạo nhưng không được công cụ build chạy
+  - Sai base class, package hoặc test framework
+  - Request không khớp stub do URL, query hoặc header
+  - Sai content type, serialization hoặc dữ liệu body
+  - Nhầm consumer value và producer value
+  - Regex hoặc JSONPath đúng trong ý tưởng nhưng sai khi được sinh
+  - Stub artifact không tồn tại, sai classifier hoặc sai phiên bản
+  - Cổng stub không được truyền vào HTTP client của consumer
+  - Kiểm thử dùng cache SNAPSHOT cũ
+  - Scenario hoặc request journal gây ảnh hưởng chéo giữa các test
+  - Messaging test không nhận được thông điệp hoặc chờ quá lâu
+  - Producer test đạt nhưng consumer vẫn không tương thích
+  - Quy trình đọc hợp đồng, generated test, mapping và request thực tế
+- level1: Tương thích công cụ
+  level2:
+  - Đối chiếu Spring Boot, Spring Cloud Contract và phiên bản plugin
+  - Kiểm tra thay đổi Java, Groovy và framework kiểm thử
+  - Rà soát WireMock, HTTP client và xung đột dependency
+  - Kiểm tra chuyển đổi namespace thư viện theo nền tảng đang dùng
+  - Chuyển kiểm thử cũ sang JUnit hoặc công cụ mới phù hợp
+  - Đối chiếu generated test và stub trước và sau nâng cấp
+  - Giới hạn tích hợp với OpenAPI, Pact và các công cụ hợp đồng khác
+  - Kiểm thử hồi quy pipeline công bố và tải stub
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng producer HTTP và consumer với hợp đồng đầu tiên
+  - Sinh test producer, công bố stub và chạy consumer test
+  - Viết hợp đồng JSON có trường động và matcher
+  - Kiểm thử request multipart và trường hợp phản hồi lỗi
+  - Phát hiện thay đổi phá vỡ khi xóa trường consumer đang dùng
+  - Hỗ trợ đồng thời nhiều consumer và nhiều phiên bản hợp đồng
+  - Xây dựng luồng nhận và phát thông điệp
+  - Kích hoạt messaging stub và kiểm chứng mã consumer
+  - Chạy nhiều stub bằng cổng ngẫu nhiên
+  - Thiết lập pipeline với artifact có thể truy vết
+  - Điều tra một lỗi từ kết quả CI về hợp đồng nguồn
+- level1: Lựa chọn chiến lược
+  level2:
+  - Khi nên áp dụng Spring Cloud Contract
+  - Khi kiểm thử tích hợp hoặc end-to-end phù hợp hơn
+  - Chọn phạm vi HTTP, messaging và số consumer cần hỗ trợ
+  - Chọn nơi lưu hợp đồng và quy trình đề xuất thay đổi
+  - Chọn fixture, matcher và mức độ ràng buộc
+  - Chọn chạy verifier trong tiến trình hay qua ứng dụng thật
+  - Cân bằng tốc độ kiểm thử với mức tin cậy
+  - Đánh giá chi phí phối hợp và duy trì hợp đồng
+  - Bài tập thiết kế chiến lược kiểm thử cho hệ thống nhiều dịch vụ

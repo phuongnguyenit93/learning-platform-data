@@ -1,0 +1,7 @@
+# Software Design Design Pattern Creational Abstract Factory
+
+Abstract Factory là mẫu thiết kế thuộc nhóm *Creational Patterns*, giúp tạo **một họ đối tượng liên quan hoặc tương thích** mà mã sử dụng không cần biết các lớp cụ thể. Ví dụ, ứng dụng giao diện đa nền tảng cần tạo đồng thời `Button` và `Checkbox` theo phong cách Windows hoặc macOS. Nếu trực tiếp khởi tạo từng lớp ở nhiều nơi, ứng dụng dễ trộn nhầm biến thể và phải sửa nhiều đoạn mã khi đổi nền tảng. Abstract Factory tập trung việc lựa chọn họ sản phẩm vào một factory chung, trong khi client chỉ làm việc với các interface.
+
+Module dành cho người đã hiểu Java hướng đối tượng, interface, polymorphism và nguyên tắc phụ thuộc vào abstraction. Lộ trình bắt đầu từ bài toán product family và ma trận các biến thể, sau đó lần lượt thiết kế *Abstract Product*, *Abstract Factory*, các concrete products và concrete factories. Bạn sẽ thực hành truyền factory vào client, chọn biến thể tại nơi khởi tạo ứng dụng và viết unit test để bảo đảm từng factory tạo ra một bộ sản phẩm nhất quán.
+
+Phần cuối giúp phân biệt Abstract Factory với Factory Method (định nghĩa phương thức tạo một loại sản phẩm) và Builder (lắp ráp đối tượng phức tạp theo từng bước). Mẫu này thuận tiện khi thêm một **họ sản phẩm** mới, nhưng việc thêm **loại sản phẩm** mới thường đòi hỏi sửa interface factory và mọi concrete factory. Sau module, bạn có thể nhận biết đúng tình huống áp dụng, minh họa cấu trúc qua ví dụ Java và giải thích được đánh đổi giữa tính mở rộng với số lượng lớp và interface bổ sung.

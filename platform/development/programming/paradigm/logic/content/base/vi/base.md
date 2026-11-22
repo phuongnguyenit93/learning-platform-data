@@ -1,0 +1,7 @@
+# Programming Paradigm Logic
+
+**Lập trình logic (Logic Programming)** là mô hình lập trình khai báo: thay vì chỉ định từng bước thực hiện, người lập trình mô tả dữ kiện, quan hệ và quy tắc; hệ thống suy diễn tìm các nghiệm thỏa mãn truy vấn. Prolog là ngôn ngữ tiêu biểu để thực hành mô hình này, với các khái niệm như *facts*, *rules*, *unification* và *backtracking*. Cần phân biệt ý nghĩa logic của chương trình với chiến lược tìm kiếm cụ thể, vốn ảnh hưởng đến tính kết thúc và hiệu năng.
+
+Lộ trình gồm tám mốc: tư duy lập trình logic, biểu diễn facts/rules/predicates, terms và unification, truy vấn và backtracking, đệ quy cùng danh sách, phủ định và điều khiển, constraint logic programming, cuối cùng là mô hình hóa và kiểm thử. Qua các bài tập quan hệ gia đình, truy vấn tri thức hoặc giải bài toán ràng buộc, người học sẽ thấy cách mô tả **điều gì phải đúng** và kiểm tra nhiều lời giải mà không cần tự viết thuật toán duyệt cho từng trường hợp.
+
+Module phù hợp với người đã biết biến, hàm, đệ quy và cấu trúc dữ liệu cơ bản; không yêu cầu kinh nghiệm trước với Prolog. Sau khi học, bạn có thể xây dựng một tập luật đơn giản, truy vấn các kết luận, giải thích nguyên nhân truy vấn thành công hoặc thất bại, sử dụng ràng buộc số nguyên và viết kiểm thử để đánh giá tính đúng đắn của chương trình logic.

@@ -1,0 +1,378 @@
+menu:
+- level1: Tổng quan chức năng
+  level2:
+  - Kiểm thử chức năng là gì và câu hỏi về hành vi mà nó trả lời
+  - Tính đầy đủ, tính đúng và mức phù hợp với nhu cầu sử dụng
+  - Đầu vào, trạng thái, hành động, đầu ra và tác dụng phụ
+  - Phân biệt kiểm thử chức năng với hiệu năng, bảo mật và khả năng sử dụng
+  - Phân biệt loại kiểm thử với cấp độ unit, integration, system và acceptance
+  - Kiểm thử dựa trên đặc tả và giới hạn khi yêu cầu chưa rõ
+  - Kiểm thử thủ công và tự động cùng bảo vệ hành vi sản phẩm
+  - Lộ trình từ yêu cầu nghiệp vụ đến bằng chứng chức năng hoạt động đúng
+- level1: Yêu cầu và phạm vi
+  level2:
+  - Xác định yêu cầu chức năng từ đặc tả, user story và quy tắc nghiệp vụ
+  - Chuyển acceptance criteria thành điều kiện có thể kiểm tra
+  - Phân biệt hành vi bắt buộc với giả định của người thiết kế test
+  - Xác định người dùng, vai trò và ngữ cảnh sử dụng
+  - Tách điều kiện trước, điều kiện sau và bất biến nghiệp vụ
+  - Nhận diện yêu cầu thiếu, mâu thuẫn hoặc không thể quan sát
+  - Xác định ranh giới chức năng và các dependency liên quan
+  - Giới hạn phạm vi cùng những tình huống cần làm rõ
+  - Ưu tiên chức năng theo tác động và rủi ro sử dụng
+- level1: Kết quả và bất biến
+  level2:
+  - Nguồn xác định kết quả mong đợi và oracle kiểm thử
+  - Đối chiếu giá trị trả về với trạng thái hệ thống sau thao tác
+  - Kiểm tra bản ghi, sự kiện, tệp hoặc thông báo được tạo
+  - Kiểm tra tác dụng phụ không xuất hiện khi thao tác bị từ chối
+  - Bất biến dữ liệu phải giữ qua nhiều bước xử lý
+  - Oracle độc lập và nguy cơ sao chép lỗi của mã sản phẩm
+  - Kết quả có nhiều giá trị hợp lệ hoặc không bảo đảm thứ tự
+  - Độ chính xác, sai số và quy tắc chấp nhận kết quả
+  - Phân biệt sai kết quả, thiếu kết quả và hành vi chưa được đặc tả
+- level1: Lựa chọn mức kiểm thử
+  level2:
+  - Kiểm tra quy tắc thuần túy ở mức đơn vị
+  - Kiểm tra tương tác giữa thành phần ở mức tích hợp
+  - Kiểm tra khả năng sản phẩm ở mức hệ thống
+  - Kiểm tra tiêu chí chấp nhận từ góc nhìn nghiệp vụ
+  - Cùng một hành vi có thể được kiểm chứng ở nhiều mức
+  - Chọn điểm vào và điểm quan sát phù hợp với lỗi cần phát hiện
+  - Phân biệt test chức năng qua API với test qua giao diện
+  - Cân bằng độ bao phủ hành vi, tốc độ và khả năng chẩn đoán
+  - Tránh tạo test E2E cho mọi quy tắc có thể kiểm tra ở mức hẹp hơn
+- level1: Thiết kế tình huống
+  level2:
+  - Phân lớp đầu vào hợp lệ và không hợp lệ cho từng chức năng
+  - Chọn giá trị biên theo quy tắc nghiệp vụ
+  - Bảng quyết định cho nhiều điều kiện kết hợp
+  - Chuyển trạng thái cho vòng đời đối tượng nghiệp vụ
+  - Luồng chính, luồng thay thế và ngoại lệ
+  - Trường hợp không có dữ liệu, dữ liệu trùng và thao tác lặp
+  - Kết hợp tham số theo rủi ro thay vì thử mọi tổ hợp
+  - Test có tham số cho các ví dụ cùng một hành vi
+  - Ghi lý do tồn tại của từng tình huống và khoảng trống còn lại
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Tạo dữ liệu tối thiểu thể hiện rõ điều kiện nghiệp vụ
+  - Phân biệt dữ liệu tham chiếu, dữ liệu đầu vào và dữ liệu đầu ra
+  - Quan hệ giữa các bản ghi và điều kiện khởi tạo
+  - Dữ liệu rỗng, thiếu, sai định dạng và không còn hiệu lực
+  - Giá trị duy nhất, khóa trùng và dữ liệu có lịch sử
+  - Dữ liệu theo người dùng, vai trò và tenant
+  - Sinh dữ liệu có thể tái hiện và lưu trường hợp gây lỗi
+  - Cô lập dữ liệu giữa các test và các lần chạy
+  - Dọn dữ liệu mà không làm mất bằng chứng cần điều tra
+- level1: Kiểm tra đầu vào
+  level2:
+  - Trường bắt buộc, trường tùy chọn và giá trị mặc định
+  - Phân biệt null, thiếu trường, chuỗi rỗng và khoảng trắng
+  - Kiểu dữ liệu, định dạng, miền giá trị và giới hạn độ dài
+  - Ràng buộc liên trường và phụ thuộc có điều kiện
+  - Chuẩn hóa, cắt khoảng trắng và chuyển đổi chữ hoa, chữ thường
+  - Unicode, ký tự kết hợp và dữ liệu nhiều ngôn ngữ
+  - Đối chiếu validation ở giao diện và phía server
+  - Thứ tự báo lỗi khi nhiều trường không hợp lệ
+  - Xác minh request bị từ chối không làm thay đổi trạng thái
+- level1: Quy tắc nghiệp vụ
+  level2:
+  - Xác định quy tắc, thứ tự áp dụng và trường hợp ngoại lệ
+  - Kiểm tra chính sách giá, phí, ưu đãi hoặc điều kiện được hưởng
+  - Quy tắc có hiệu lực theo thời gian, khu vực hoặc nhóm người dùng
+  - Xử lý nhiều quy tắc cùng áp dụng hoặc mâu thuẫn
+  - Giới hạn số lượng, hạn mức và điều kiện đủ
+  - Đối chiếu công thức với ví dụ nghiệp vụ đã thống nhất
+  - Kiểm tra dữ liệu thay đổi giữa lúc hiển thị và lúc xác nhận
+  - Xác minh quy tắc được áp dụng nhất quán ở nhiều điểm vào
+  - Giữ bằng chứng cho quyết định nghiệp vụ tự động
+- level1: Trạng thái và quy trình
+  level2:
+  - Mô hình hóa trạng thái và sự kiện của đối tượng nghiệp vụ
+  - Chuyển trạng thái hợp lệ cùng điều kiện đi kèm
+  - Từ chối thao tác không hợp lệ tại từng trạng thái
+  - Luồng phê duyệt nhiều bước và nhiều vai trò
+  - Hủy, hoàn tác, mở lại và tiếp tục công việc
+  - Trạng thái kết thúc và thao tác sau khi đã hoàn tất
+  - Kiểm tra thứ tự bước cùng tác dụng phụ của mỗi mốc
+  - Gián đoạn rồi quay lại với trạng thái đã lưu
+  - Lịch sử thay đổi và khả năng truy vết người thực hiện
+- level1: CRUD và lưu trữ
+  level2:
+  - Tạo mới với giá trị mặc định và định danh được sinh
+  - Đọc dữ liệu đang tồn tại, không tồn tại hoặc đã bị xóa
+  - Cập nhật toàn phần, cập nhật một phần và trường không được sửa
+  - Xóa mềm, xóa cứng và quy tắc khôi phục
+  - Quan hệ cha con, cascade và ràng buộc tham chiếu
+  - Constraint về duy nhất, bắt buộc và toàn vẹn dữ liệu
+  - Kiểm tra dữ liệu sau khi tải lại từ nguồn lưu trữ
+  - Phân biệt không tìm thấy dữ liệu với không được phép truy cập
+  - Đối chiếu trạng thái hiển thị với trạng thái đã lưu
+- level1: Giao dịch và toàn vẹn
+  level2:
+  - Tính nguyên tử của một thao tác gồm nhiều thay đổi
+  - Commit khi thành công và rollback khi thất bại
+  - Lỗi giữa chừng sau khi đã cập nhật một phần dữ liệu
+  - Bất biến về tổng số lượng, số dư hoặc quan hệ nghiệp vụ
+  - Xung đột phiên bản và cập nhật dữ liệu đã cũ
+  - Tác dụng phụ bên ngoài không được rollback cùng database
+  - Thời điểm công bố sự kiện hoặc thông báo sau giao dịch
+  - Kiểm tra nghiệp vụ không chỉ dựa vào trạng thái trong bộ nhớ
+  - Xác minh trạng thái cuối cùng sau khi thử lại hoặc bù trừ
+- level1: Tìm kiếm và danh sách
+  level2:
+  - Tìm chính xác, gần đúng và các điều kiện được hỗ trợ
+  - Kết hợp bộ lọc và xử lý giá trị không hợp lệ
+  - Phân biệt chữ hoa, dấu tiếng Việt và quy tắc chuẩn hóa
+  - Sắp xếp tăng giảm, nhiều khóa và thứ tự khi bằng nhau
+  - Phân trang theo số trang, offset hoặc cursor
+  - Trang rỗng, trang cuối, vượt phạm vi và giới hạn kích thước
+  - Tổng số kết quả và tính nhất quán với dữ liệu trả về
+  - Ảnh hưởng của dữ liệu thay đổi trong lúc duyệt danh sách
+  - Giữ điều kiện quyền truy cập khi tìm kiếm hoặc lọc
+  - Đồng bộ kết quả khi có chỉ mục tìm kiếm hoặc cache
+- level1: Tính toán và tiền tệ
+  level2:
+  - Đối chiếu phép tính với công thức và quy tắc nghiệp vụ
+  - Làm tròn, số chữ số thập phân và thời điểm làm tròn
+  - Số âm, số không, giá trị cực lớn và giới hạn hợp lệ
+  - Đơn vị đo, quy đổi và sự nhất quán giữa các bước
+  - Đơn vị tiền tệ và quy tắc hiển thị số tiền
+  - Cộng dồn chi tiết với tổng hợp hóa đơn hoặc báo cáo
+  - Phân bổ giảm giá, phụ phí và phần dư sau làm tròn
+  - Kiểm tra bất biến số lượng hoặc số tiền sau cập nhật
+  - Tách dữ liệu tỷ giá đầu vào khỏi việc truy cập giá trị bên ngoài
+- level1: Ngày giờ và bản địa hóa
+  level2:
+  - Ngày hiệu lực, ngày hết hạn và điều kiện tại đúng thời điểm biên
+  - Phân biệt thời điểm tuyệt đối, ngày lịch và thời lượng
+  - Múi giờ người dùng, múi giờ lưu trữ và chuyển đổi hiển thị
+  - Năm nhuận, cuối tháng và thay đổi giờ theo mùa
+  - Định dạng ngày, số và tiền tệ theo locale
+  - Ngôn ngữ của nhãn, thông báo và nội dung được tạo
+  - Fallback khi thiếu bản dịch hoặc locale không được hỗ trợ
+  - Sắp xếp, tìm kiếm và nhập liệu với nội dung nhiều ngôn ngữ
+  - Kiểm soát Clock trong test thay vì phụ thuộc thời gian hiện tại
+- level1: Đăng nhập và phiên
+  level2:
+  - Đăng nhập thành công và thông tin đăng nhập không hợp lệ
+  - Tài khoản chưa kích hoạt, bị khóa hoặc đã ngừng hoạt động
+  - Đăng ký, xác nhận tài khoản và xử lý thông tin trùng
+  - Đổi mật khẩu, đặt lại mật khẩu và liên kết hết hạn
+  - Phiên mới, phiên hết hạn và đăng xuất
+  - Gia hạn token và trạng thái khi việc gia hạn thất bại
+  - Đăng nhập nhiều thiết bị theo chính sách sản phẩm
+  - Giữ hoặc xóa ngữ cảnh người dùng sau thay đổi phiên
+  - Phân biệt kiểm tra hành vi xác thực với đánh giá bảo mật chuyên sâu
+- level1: Quyền và phạm vi dữ liệu
+  level2:
+  - Ma trận vai trò, hành động và loại tài nguyên
+  - Quyền xem, tạo, sửa, xóa và phê duyệt
+  - Phân quyền theo người sở hữu hoặc trạng thái đối tượng
+  - Ranh giới tenant, tổ chức và nhóm người dùng
+  - Thay đổi quyền trong khi người dùng đang có phiên
+  - Kiểm tra quyền ở server dù giao diện đã ẩn thao tác
+  - Quyền đối với trường dữ liệu, tệp và kết quả xuất báo cáo
+  - Đối chiếu dữ liệu trả về khi người dùng đổi vai trò
+  - Xác minh thao tác bị từ chối không tạo tác dụng phụ
+- level1: Giao diện người dùng
+  level2:
+  - Biểu mẫu nhập liệu và thông báo validation theo yêu cầu
+  - Nút, liên kết và điều kiện bật tắt thao tác
+  - Điều hướng, tham số URL và trạng thái trang
+  - Hiển thị dữ liệu rỗng, đang tải, lỗi và thành công
+  - Giữ dữ liệu nhập khi validation hoặc lời gọi server thất bại
+  - Ngăn thao tác gửi lặp theo hành vi đã được quy định
+  - Hủy chỉnh sửa, rời trang và xác nhận thay đổi chưa lưu
+  - Đối chiếu dữ liệu sau refresh, quay lại hoặc mở phiên mới
+  - Phân biệt chức năng đúng với mức dễ sử dụng hoặc tính thẩm mỹ
+- level1: API và phản hồi
+  level2:
+  - Method, route, query parameter và path variable
+  - Request body, header, content type và encoding
+  - Status code cùng cấu trúc kết quả theo từng tình huống
+  - Trường bắt buộc, tùy chọn, chỉ đọc và giá trị mặc định
+  - Validation, lỗi nghiệp vụ và tài nguyên không tồn tại
+  - Pagination, filtering và sorting theo hợp đồng API
+  - Nhất quán giữa giá trị phản hồi và thay đổi thực tế
+  - Kiểm tra cùng chức năng qua API và giao diện
+  - Phân biệt phản hồi chấp nhận xử lý với hoàn thành nghiệp vụ
+  - Đối chiếu hợp đồng dữ liệu mà không thay thế kiểm tra hành vi
+- level1: Tích hợp bên ngoài
+  level2:
+  - Xác định chức năng phụ thuộc dịch vụ, database hoặc nhà cung cấp ngoài
+  - Ánh xạ request, response và ý nghĩa dữ liệu giữa các hệ thống
+  - Dependency trả thành công, lỗi nghiệp vụ hoặc dữ liệu không hợp lệ
+  - Xử lý không tìm thấy kết quả và phản hồi thiếu trường
+  - Timeout, mất kết nối và chính sách xử lý phía sản phẩm
+  - Đối chiếu kết quả khi dùng giả lập và dependency thật
+  - Môi trường sandbox và giới hạn những điều nó kiểm chứng
+  - Thay đổi hợp đồng hoặc phiên bản dependency
+  - Xác minh fallback không làm sai kết quả nghiệp vụ
+- level1: Sự kiện và bất đồng bộ
+  level2:
+  - Chức năng tạo công việc nền hoặc phát sự kiện
+  - Phân biệt đã tiếp nhận với đã xử lý thành công
+  - Kiểm tra nội dung sự kiện và tác dụng phụ tại consumer
+  - Chờ kết quả bằng điều kiện quan sát có giới hạn
+  - Message trùng, đến muộn hoặc sai thứ tự
+  - Retry, dead-letter và trạng thái công việc không hoàn thành
+  - Nhất quán cuối cùng giữa dữ liệu và màn hình hiển thị
+  - Hủy công việc và hành vi của xử lý đang diễn ra
+  - Đối chiếu trạng thái cuối cùng sau khi khởi động lại
+- level1: Trùng lặp và đồng thời
+  level2:
+  - Yêu cầu lặp có chủ đích và yêu cầu trùng do gửi lại
+  - Idempotency key và phạm vi nhận diện cùng một thao tác
+  - Hai người cùng cập nhật hoặc cùng xử lý một đối tượng
+  - Tranh chấp tồn kho, hạn mức hoặc tài nguyên giới hạn
+  - Xung đột phiên bản và thông báo dữ liệu đã thay đổi
+  - Kiểm tra không tạo trùng bản ghi, giao dịch hoặc thông báo
+  - Tính nguyên tử của kiểm tra điều kiện rồi thay đổi trạng thái
+  - Nhiều kết quả hợp lệ nhưng vẫn phải giữ bất biến
+  - Điều phối các bước trong test để tái hiện xung đột
+- level1: Tệp và nhập xuất
+  level2:
+  - Tải lên tệp đúng loại, kích thước và cấu trúc được hỗ trợ
+  - Tệp rỗng, tệp hỏng và nội dung không khớp định dạng
+  - Import theo bản ghi với dữ liệu hợp lệ, lỗi và trùng
+  - Chính sách dừng toàn bộ hoặc chấp nhận một phần dữ liệu
+  - Mapping cột, encoding và quy tắc chuyển đổi dữ liệu
+  - Xuất dữ liệu theo điều kiện lọc và quyền truy cập
+  - Đối chiếu số bản ghi, tổng giá trị và nội dung tệp
+  - Tên tệp, metadata và khả năng tải lại kết quả
+  - Xử lý hủy, lỗi giữa chừng và dọn dữ liệu tạm
+- level1: Báo cáo và tổng hợp
+  level2:
+  - Xác định nguồn dữ liệu và thời điểm chốt số liệu
+  - Tổng hợp, nhóm và phân loại theo quy tắc nghiệp vụ
+  - Bộ lọc, khoảng ngày và ranh giới bao gồm hoặc loại trừ
+  - Đối chiếu số chi tiết với tổng hợp
+  - Dữ liệu rỗng, bị thiếu, bị trùng hoặc cập nhật muộn
+  - Tính nhất quán giữa báo cáo trên màn hình và bản xuất
+  - Quyền xem chi tiết, tổng hợp và dữ liệu của tenant
+  - Phân biệt sai số liệu với dữ liệu chưa được cập nhật
+  - Giữ khả năng truy vết kết quả về dữ liệu đầu vào
+- level1: Tác vụ nền và theo lịch
+  level2:
+  - Điều kiện kích hoạt và đối tượng cần được xử lý
+  - Lịch chạy, múi giờ và quy tắc tại thời điểm biên
+  - Trạng thái chờ, đang chạy, hoàn tất, lỗi và hủy
+  - Xử lý batch, checkpoint và tiếp tục công việc dở dang
+  - Quy tắc retry hoặc bỏ qua bản ghi lỗi
+  - Chạy lại cùng tác vụ mà không tạo tác dụng phụ ngoài yêu cầu
+  - Ngăn hai lần chạy tranh chấp cùng phạm vi dữ liệu
+  - Đối chiếu số mục thành công, thất bại và chưa xử lý
+  - Quan sát kết quả nghiệp vụ thay vì chỉ kiểm tra job đã chạy
+- level1: Thông báo và liên lạc
+  level2:
+  - Sự kiện nào phải gửi hoặc không được gửi thông báo
+  - Chọn đúng người nhận, kênh và ngôn ngữ
+  - Nội dung, biến mẫu, liên kết và dữ liệu hiển thị
+  - Gửi ngay, gửi theo lịch và gửi bản tổng hợp
+  - Tùy chọn nhận thông báo và thay đổi tùy chọn người dùng
+  - Ngăn gửi trùng khi retry hoặc xử lý lại sự kiện
+  - Lỗi gửi và trạng thái được phản ánh cho nghiệp vụ
+  - Phân biệt yêu cầu gửi được chấp nhận với giao thành công
+  - Giả lập kênh gửi để kiểm tra nội dung và tác dụng phụ
+- level1: Cấu hình và biến thể
+  level2:
+  - Chức năng bật hoặc tắt theo cấu hình và feature flag
+  - Giá trị mặc định khi không có cấu hình
+  - Cấu hình không hợp lệ, thiếu hoặc xung đột
+  - Biến thể theo gói dịch vụ, vai trò hoặc tenant
+  - Thay đổi cấu hình và thời điểm có hiệu lực
+  - Kiểm tra hành vi cũ và mới trong giai đoạn chuyển tiếp
+  - Giữ trạng thái nghiệp vụ khi bật tắt tính năng
+  - Chọn tổ hợp cấu hình có rủi ro thay vì nhân toàn bộ ma trận
+  - Dọn nhánh hành vi và test khi biến thể không còn được hỗ trợ
+- level1: Lỗi và phục hồi
+  level2:
+  - Phân biệt lỗi validation, lỗi nghiệp vụ và lỗi kỹ thuật
+  - Thông báo lỗi, mã lỗi và thông tin hướng dẫn xử lý
+  - Không để dữ liệu hoặc trạng thái bị thay đổi một phần ngoài chủ đích
+  - Thao tác thất bại rồi được thực hiện lại
+  - Hủy, hoàn tác và bù trừ theo quy tắc sản phẩm
+  - Dependency phục hồi và khả năng hoàn thành công việc
+  - Người dùng tiếp tục sau mất kết nối hoặc phiên bị hết hạn
+  - Giữ lịch sử và kết quả của thao tác thất bại
+  - Đối chiếu trạng thái sau phục hồi với bất biến nghiệp vụ
+- level1: Chấp nhận và ví dụ
+  level2:
+  - Thiết kế ví dụ chức năng cùng người hiểu nghiệp vụ
+  - Given, When, Then cho một hành vi có thể quan sát
+  - Ví dụ thường gặp, ngoại lệ và phản chứng của quy tắc
+  - Scenario outline cho các biến thể cùng hành vi
+  - Phân biệt acceptance criteria với các bước thao tác chi tiết
+  - UAT với vai trò, dữ liệu và quy trình sử dụng đại diện
+  - Giải quyết khác biệt giữa đặc tả và mong đợi thực tế
+  - Ghi nhận điều kiện chấp nhận, phần chưa xác minh và quyết định
+  - Giữ ví dụ nghiệp vụ nhất quán khi sản phẩm thay đổi
+- level1: Tự động hóa với Java
+  level2:
+  - Ánh xạ test case chức năng sang cấu trúc Arrange, Act, Assert
+  - JUnit cho quy tắc, ví dụ có tham số và hành vi ngoại lệ
+  - Assertion cho giá trị trả về, trạng thái và tác dụng phụ
+  - Test double để kiểm soát điều kiện mà vẫn giữ mục tiêu chức năng
+  - Spring Test và MockMvc hoặc WebTestClient theo ranh giới cần kiểm tra
+  - Testcontainers khi cần xác minh hành vi với hạ tầng thật
+  - API client và công cụ kiểm thử giao diện cho luồng phù hợp
+  - Tiêm Clock, cố định seed và tạo dữ liệu độc lập
+  - Tách mã hỗ trợ khỏi điều kiện đánh giá đúng sai
+  - Giữ tên test và thông báo lỗi thể hiện ý nghĩa nghiệp vụ
+- level1: Bộ test và hồi quy
+  level2:
+  - Nhóm test theo chức năng, rủi ro và mức kiểm thử
+  - Bộ smoke xác nhận các khả năng sản phẩm thiết yếu
+  - Bộ regression bảo vệ hành vi đã được xác minh
+  - Phân biệt xác nhận bản sửa lỗi với kiểm tra hồi quy
+  - Chọn phạm vi theo thành phần và nghiệp vụ bị ảnh hưởng
+  - Bổ sung tình huống từ lỗi đã phát hiện
+  - Phân bố test giữa mức đơn vị, tích hợp và hệ thống
+  - Xác định phần phải chạy trước phát hành và phần chạy theo lịch
+  - Tránh bỏ sót chức năng khi lựa chọn test theo thay đổi
+- level1: Thực thi và bằng chứng
+  level2:
+  - Xác minh bản build, cấu hình, môi trường và dữ liệu trước khi chạy
+  - Thực thi thủ công hoặc tự động theo cùng kết quả mong đợi
+  - Phân biệt pass, fail, blocked, skipped và chưa thực hiện
+  - Thu thập request, response, trạng thái dữ liệu và bằng chứng liên quan
+  - Liên kết test run với phiên bản, test case và dữ liệu
+  - Phân loại lỗi chức năng, lỗi test và lỗi môi trường
+  - Tái hiện thất bại bằng điều kiện đã ghi nhận
+  - Báo cáo kết quả thực tế cùng phần chưa được kiểm tra
+  - Xử lý kết quả không ổn định trước khi kết luận về chức năng
+- level1: Bao phủ và chất lượng
+  level2:
+  - Liên kết yêu cầu, quy tắc, tình huống và kết quả thực thi
+  - Đối chiếu chức năng đã đặc tả với chức năng có test
+  - Bao phủ vai trò, trạng thái, dữ liệu và đường xử lý
+  - Phân biệt độ bao phủ mã với độ bao phủ hành vi
+  - Đánh giá oracle và assertion có đủ sức phát hiện sai kết quả
+  - Rà soát tình huống trùng, thiếu hoặc không còn ý nghĩa
+  - Ưu tiên khoảng trống theo mức ảnh hưởng và khả năng xảy ra
+  - Đánh giá lỗi lọt qua để cải thiện bộ test
+  - Ghi rủi ro còn lại thay vì suy luận chất lượng chỉ từ tỷ lệ pass
+- level1: Bảo trì kiểm thử
+  level2:
+  - Cập nhật test khi yêu cầu hoặc quy tắc nghiệp vụ thay đổi
+  - Phân biệt kỳ vọng cần sửa với lỗi sản phẩm cần khắc phục
+  - Quản lý phiên bản dữ liệu, fixture và ví dụ nghiệp vụ
+  - Giảm phụ thuộc vào chi tiết triển khai hoặc giao diện dễ đổi
+  - Sửa test thất thường từ nguyên nhân thay vì tăng retry tùy tiện
+  - Xóa hoặc gộp test mà vẫn giữ khả năng bảo vệ hành vi
+  - Rà soát test disabled và test bị cách ly lâu ngày
+  - Ghi người phụ trách và lý do thay đổi kỳ vọng
+  - Giữ tài liệu chức năng, mã test và bằng chứng nhất quán
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế bộ test cho đăng ký, đăng nhập và vòng đời phiên
+  - Kiểm chứng chính sách giá bằng bảng quyết định và ví dụ biên
+  - Kiểm tra vòng đời đơn hàng với phê duyệt, hủy và hoàn tất
+  - Xác minh CRUD cùng ràng buộc dữ liệu và rollback khi lỗi
+  - Kiểm tra tìm kiếm, phân trang và phạm vi quyền truy cập
+  - Đối chiếu chức năng qua API, giao diện và dữ liệu đã lưu
+  - Tái hiện yêu cầu trùng hoặc hai người cùng cập nhật
+  - Kiểm tra import một phần dữ liệu cùng báo cáo bản ghi lỗi
+  - Xác minh tác vụ bất đồng bộ và thông báo không bị tạo trùng
+  - Bàn giao bộ regression có truy vết và kết quả mong đợi rõ ràng

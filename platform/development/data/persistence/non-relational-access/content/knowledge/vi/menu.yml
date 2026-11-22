@@ -1,0 +1,418 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Truy cập dữ liệu phi quan hệ là gì và nằm ở đâu trong kiến trúc ứng dụng
+  - Phân biệt mô hình lưu trữ, bộ máy cơ sở dữ liệu, driver và thư viện truy cập
+  - 'Các họ kho dữ liệu: khóa–giá trị, tài liệu, cột rộng và đồ thị'
+  - Kho tìm kiếm, chuỗi thời gian và vectơ trong bức tranh truy cập dữ liệu
+  - Phân biệt kho dữ liệu gốc, bộ nhớ đệm và dữ liệu dẫn xuất
+  - Khác biệt với truy cập quan hệ về truy vấn, ràng buộc và ranh giới giao dịch
+  - 'Các khái niệm cần biết: khóa, tài liệu, phân vùng, bản sao và chỉ mục'
+  - Lộ trình từ kết nối Java đến đọc ghi đúng, kiểm thử và vận hành
+- level1: Lựa chọn kho dữ liệu
+  level2:
+  - Xuất phát từ câu hỏi nghiệp vụ và mẫu đọc ghi thay vì tên sản phẩm
+  - Đánh giá hình dạng dữ liệu, kích thước bản ghi và tốc độ tăng trưởng
+  - Yêu cầu truy vấn theo khóa, điều kiện, quan hệ hoặc tìm kiếm
+  - Yêu cầu về tính nhất quán, độ bền và phạm vi giao dịch
+  - Độ trễ, thông lượng, khả năng mở rộng và chi phí truy cập
+  - Ràng buộc triển khai tại chỗ, dịch vụ được quản lý và khả năng di chuyển
+  - Khi nào dùng nhiều loại kho và chi phí phối hợp dữ liệu
+  - Xây dựng tiêu chí đo thử trước khi quyết định giải pháp
+- level1: Mô hình truy cập
+  level2:
+  - Thiết kế đơn vị dữ liệu theo thao tác thường đọc hoặc ghi cùng nhau
+  - Khóa nghiệp vụ, định danh kỹ thuật và không gian tên
+  - Khóa phân vùng, thứ tự bên trong phân vùng và giới hạn kích thước
+  - Nhúng dữ liệu hay tham chiếu theo mẫu truy cập
+  - Nhân bản dữ liệu có chủ đích và xác định nguồn chịu trách nhiệm
+  - Trường tùy chọn, dữ liệu nhiều phiên bản và khả năng đọc tương thích
+  - Thứ tự kết quả, bộ lọc và phân trang phải được định nghĩa rõ
+  - Tránh khóa nóng, bản ghi quá lớn và phân vùng tăng vô hạn
+  - Tách quyết định mô hình dữ liệu khỏi chi tiết lời gọi driver
+- level1: Kiến trúc tích hợp
+  level2:
+  - Vai trò của driver gốc, SDK, Spring Data và lớp truy cập tự viết
+  - Tổ chức adapter lưu trữ và ranh giới với dịch vụ ứng dụng
+  - Repository theo khả năng nghiệp vụ thay vì ép mọi kho vào một giao diện CRUD
+  - Phân biệt đối tượng miền, đối tượng lưu trữ và dữ liệu trả về truy vấn
+  - Đóng gói câu truy vấn, chuyển đổi kiểu và ánh xạ lỗi
+  - Giữ rõ các khả năng riêng như ghi có điều kiện hoặc truy vấn đồ thị
+  - Chọn truy cập đồng bộ, bất đồng bộ hoặc phản ứng theo luồng xử lý
+  - Quản lý phiên bản thư viện và khả năng tương thích với máy chủ
+  - Tránh giả định mọi cơ chế Spring Data có cùng hành vi giữa các kho
+- level1: Kết nối và cấu hình
+  level2:
+  - Địa chỉ kết nối, cơ sở dữ liệu, không gian khóa và thông tin xác thực
+  - Khởi tạo client theo vòng đời ứng dụng và giải phóng khi dừng
+  - Phân biệt client, session, kết nối vật lý và bộ kết nối dùng chung
+  - An toàn luồng và quy tắc chia sẻ tài nguyên của từng driver
+  - Cấu hình timeout cho kết nối, lấy kết nối và thực thi thao tác
+  - Khám phá máy chủ, chọn nút và thay đổi topology
+  - Mã hóa đường truyền, xác minh chứng chỉ và cấu hình TLS
+  - Cấu hình môi trường phát triển, kiểm thử và triển khai
+  - Kiểm tra sẵn sàng, kết nối lại và phục hồi sau gián đoạn
+  - Giữ bí mật ngoài mã nguồn và tránh lộ trong chuỗi kết nối hoặc log
+- level1: Biểu diễn dữ liệu
+  level2:
+  - Ánh xạ kiểu Java sang kiểu dữ liệu của từng kho
+  - Phân biệt trường không tồn tại, null và giá trị mặc định
+  - Số nguyên lớn, số thập phân và giới hạn độ chính xác
+  - Tiền tệ, đơn vị đo và giá trị cần bộ chuyển đổi riêng
+  - Ngày giờ, múi giờ và độ chính xác khi lưu rồi đọc lại
+  - Enum, mã danh mục và xử lý giá trị chưa nhận diện
+  - Tập hợp, đối tượng lồng nhau và dữ liệu nhị phân
+  - 'Codec, serializer và converter: trách nhiệm khác nhau trong từng thư viện'
+  - Định danh tài liệu hoặc bản ghi và chuyển đổi định dạng khóa
+  - Kiểm tra dữ liệu đầu vào và giữ bất biến trước khi gọi kho lưu trữ
+- level1: Thao tác đọc ghi
+  level2:
+  - Tạo mới, ghi đè, cập nhật và upsert có ý nghĩa khác nhau
+  - Đọc theo khóa và biểu diễn trường hợp không tìm thấy
+  - Đọc một phần dữ liệu bằng phép chiếu theo khả năng của kho
+  - Cập nhật toàn bản ghi hay cập nhật một phần
+  - Thêm, thay đổi hoặc xóa trường mà không làm mất dữ liệu ngoài dự kiến
+  - Thao tác nguyên tử như tăng số, thêm phần tử và ghi có điều kiện
+  - Xóa bản ghi, xóa có điều kiện và xóa mềm
+  - Đọc hoặc ghi nhiều khóa và quy tắc đối chiếu từng kết quả
+  - 'Thông tin phản hồi: đã khớp, đã sửa, đã ghi nhận hay đã bền vững'
+  - Giữ đúng hành vi khi thao tác được gọi lặp lại
+- level1: Truy vấn và chỉ mục
+  level2:
+  - Truy vấn theo khóa khác với quét toàn bộ dữ liệu
+  - Bộ lọc phía máy chủ, bộ lọc phía ứng dụng và chi phí dữ liệu truyền về
+  - Chỉ mục phụ, chỉ mục ghép và khả năng hỗ trợ từng mẫu truy vấn
+  - Độ chọn lọc, thứ tự sắp xếp và giới hạn của việc thêm chỉ mục
+  - Phân trang theo độ lệch hoặc theo con trỏ tùy khả năng của kho
+  - Thứ tự ổn định và biến động dữ liệu giữa các trang
+  - Truy vấn trên trường lồng nhau, mảng và thuộc tính tùy chọn
+  - Đếm, tổng hợp và phân biệt kết quả chính xác với kết quả xấp xỉ
+  - Đọc kế hoạch thực thi hoặc chỉ số truy vấn để kiểm tra giả định
+  - Giới hạn số bản ghi, kích thước trang và thời gian thực thi
+- level1: Nhất quán phân tán
+  level2:
+  - Nhất quán mạnh, nhất quán cuối cùng và những bảo đảm cần đọc rõ
+  - Đọc thấy lần ghi của chính mình và tính đơn điệu khi đọc
+  - Nhân bản dữ liệu, độ trễ đồng bộ và khả năng đọc dữ liệu cũ
+  - Mức xác nhận ghi khác với việc đã đồng bộ mọi bản sao
+  - Quorum đọc, quorum ghi và giới hạn suy luận từ công thức số bản sao
+  - Lựa chọn khi mạng bị phân tách và cách hiểu đúng đánh đổi CAP
+  - Tính nhất quán theo khóa, phiên hoặc phạm vi giao dịch
+  - Xử lý xung đột và chính sách phân giải của từng kho
+  - Định tuyến đọc theo yêu cầu nghiệp vụ thay vì chỉ theo độ trễ
+  - Kiểm chứng bảo đảm thực tế theo cấu hình, topology và loại thao tác
+- level1: Giao dịch và đồng thời
+  level2:
+  - Ranh giới nguyên tử ở cấp lệnh, bản ghi, phân vùng hoặc nhiều bản ghi
+  - Phân biệt thực hiện nhiều lệnh với một giao dịch có bảo đảm
+  - Ghi có điều kiện, so sánh rồi đổi và trường phiên bản
+  - Ngăn mất cập nhật khi nhiều yêu cầu cùng sửa dữ liệu
+  - Ràng buộc duy nhất và thời điểm quyết định thắng khi có tranh chấp
+  - Phạm vi cô lập, khả năng đọc lại và giới hạn của từng loại giao dịch
+  - Lựa chọn retry khi xung đột và giới hạn số lần thử
+  - Thao tác trên nhiều kho và lý do không thể mặc nhiên dùng một giao dịch chung
+  - Outbox, quy trình bù trừ và điều phối khi cần cập nhật nhiều nơi
+  - Tách lỗi nghiệp vụ do điều kiện không đạt khỏi lỗi kỹ thuật
+- level1: Độ bền và vòng đời
+  level2:
+  - Dữ liệu được xác nhận ghi khác với dữ liệu đã bền vững theo cấu hình
+  - Nhật ký ghi, snapshot và cơ chế khôi phục ở mức khái niệm
+  - Độ bền trên một nút khác với khả năng sống sót khi mất nhiều nút
+  - Thời hạn sống (TTL), thời điểm hết hạn và chính sách gia hạn
+  - Phân biệt hết hạn, xóa chủ động và loại bỏ do áp lực bộ nhớ
+  - Xóa mềm, bản ghi đánh dấu xóa và thời điểm thu hồi dung lượng
+  - Dữ liệu không còn tồn tại khác với dữ liệu chưa đồng bộ tới bản sao
+  - Thiết kế thời gian lưu và khả năng đọc dữ liệu lịch sử
+  - Điều kiện để sử dụng một kho trong vai trò lưu trữ dữ liệu gốc
+  - Đối chiếu cấu hình độ bền với mức mất dữ liệu có thể chấp nhận
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi xác thực, cấu hình, kết nối, timeout và dữ liệu không hợp lệ
+  - Lỗi không tìm thấy, trùng khóa và điều kiện cập nhật không đạt
+  - Phân biệt thao tác thất bại với thao tác chưa biết đã hoàn tất hay chưa
+  - Timeout sau khi gửi lệnh và nguy cơ ghi trùng khi thử lại
+  - Thiết kế khóa idempotency và lưu kết quả thao tác khi cần
+  - Retry có giới hạn, khoảng chờ tăng dần và độ trễ ngẫu nhiên
+  - Tránh retry lồng nhau giữa ứng dụng, Spring và driver
+  - Giới hạn số thao tác đồng thời và ngắt tạm lời gọi khi nguồn đang lỗi
+  - Xử lý lỗi từng phần trong thao tác nhiều bản ghi
+  - Ánh xạ ngoại lệ kỹ thuật thành kết quả ứng dụng có thể hiểu và kiểm thử
+- level1: MongoDB căn bản
+  level2:
+  - Cơ sở dữ liệu, collection, tài liệu BSON và định danh _id
+  - Khởi tạo MongoClient, lấy MongoDatabase và MongoCollection
+  - Sử dụng Document hoặc codec ánh xạ đối tượng Java
+  - Insert, find, replace, update và delete với ngữ nghĩa rõ ràng
+  - Trường thiếu, null, ObjectId và kiểu số trong BSON
+  - Toán tử cập nhật trường, mảng và cập nhật có điều kiện
+  - Upsert, sinh định danh và xử lý trùng khóa
+  - Write concern, read concern và read preference phục vụ các yêu cầu khác nhau
+  - ClientSession và điều kiện hỗ trợ giao dịch theo topology
+  - Quản lý cursor, tài nguyên và lỗi khi kết quả đang được đọc
+- level1: Truy vấn MongoDB
+  level2:
+  - Xây dựng bộ lọc bằng biểu thức có kiểu và tham số dữ liệu
+  - Truy vấn trường lồng nhau và phần tử mảng
+  - Projection, sort, limit và phân trang theo khóa
+  - Chỉ mục đơn, ghép, duy nhất, đa khóa và TTL
+  - Thứ tự trường trong chỉ mục và đối chiếu với truy vấn thực tế
+  - Đọc explain để phát hiện quét collection hoặc sắp xếp tốn tài nguyên
+  - Aggregation pipeline với lọc, biến đổi, phân nhóm và tổng hợp
+  - Phép nối $lookup và đánh đổi so với tài liệu đã nhúng
+  - Bulk write có thứ tự hoặc không có thứ tự và lỗi từng phần
+  - Giới hạn kích thước tài liệu, tập kết quả và chi phí truyền dữ liệu
+- level1: Spring Data MongoDB
+  level2:
+  - Ánh xạ tài liệu với @Document, @Id và tên trường
+  - MongoRepository và phạm vi phù hợp của truy vấn suy ra từ tên phương thức
+  - MongoTemplate cho các thao tác cần điều khiển chi tiết
+  - Xây dựng truy vấn với Query, Criteria và Update
+  - Projection, aggregation và phân trang theo khả năng truy vấn
+  - Converter tùy chỉnh cho đối tượng giá trị và kiểu dữ liệu đặc thù
+  - '@Version và kiểm soát cập nhật đồng thời'
+  - Auditing và ý nghĩa của thời điểm tạo hoặc sửa
+  - Quản lý chỉ mục có chủ đích và tránh giả định được tạo tự động
+  - Giao dịch MongoDB trong Spring và phạm vi hỗ trợ thực tế
+  - Phân biệt save, insert và cập nhật từng phần để tránh ghi đè ngoài dự kiến
+- level1: Redis lưu trữ
+  level2:
+  - Redis dưới vai trò kho dữ liệu và ranh giới với chức năng bộ nhớ đệm
+  - String, Hash, List, Set và Sorted Set theo loại thao tác cần thực hiện
+  - Thiết kế tên khóa, không gian tên và định danh theo tổ chức
+  - Nhóm dữ liệu nên lưu trong một khóa hoặc tách thành nhiều khóa
+  - RDB, AOF và đánh đổi giữa thời gian phục hồi với độ bền
+  - Xác nhận ghi, nhân bản và nguy cơ mất dữ liệu trong các tình huống sự cố
+  - TTL, hết hạn và chính sách loại bỏ khi bộ nhớ đạt giới hạn
+  - Tính nguyên tử của một lệnh khác với chuỗi lệnh liên tiếp
+  - Redis Streams để lưu bản ghi luồng và giới hạn khác với Pub/Sub
+  - Tiêu chí bảo vệ dữ liệu khi Redis được dùng làm nguồn lưu trữ chính
+- level1: Java và Redis
+  level2:
+  - Lựa chọn client Lettuce hoặc Jedis và tích hợp vòng đời trong Spring
+  - RedisTemplate, StringRedisTemplate và các nhóm thao tác dữ liệu
+  - Serializer cho khóa, giá trị và rủi ro không tương thích định dạng
+  - Đọc ghi đối tượng qua Hash hoặc giá trị đã tuần tự hóa
+  - Pipeline để giảm lượt truyền mạng và giới hạn về tính nguyên tử
+  - MULTI, EXEC, WATCH và giới hạn về cơ chế hoàn tác
+  - Lua script cho thao tác nguyên tử và giới hạn tài nguyên thực thi
+  - Redis Cluster, hash slot và ràng buộc thao tác nhiều khóa
+  - Đọc nhiều khóa, duyệt bằng SCAN và tránh lệnh quét gây gián đoạn
+  - Ghi có điều kiện, bộ đếm và thao tác nhiều bước dưới truy cập đồng thời
+  - Phân biệt khả năng hỗ trợ của client, Spring Data và cấu hình Redis
+- level1: Cassandra căn bản
+  level2:
+  - Keyspace, bảng và cách tổ chức dữ liệu theo phân vùng
+  - Khóa phân vùng, khóa sắp xếp và câu truy vấn được mô hình hỗ trợ
+  - Thiết kế bảng theo mẫu truy cập thay vì kỳ vọng phép nối tùy ý
+  - Nhân bản và lựa chọn mức nhất quán cho đọc hoặc ghi
+  - Truy vấn có phạm vi phân vùng rõ ràng và nguy cơ dùng ALLOW FILTERING
+  - Dữ liệu tĩnh, tập hợp và kiểu do người dùng định nghĩa
+  - TTL, tombstone và tác động tới hành vi đọc hoặc xóa
+  - Dấu thời gian ghi, cập nhật từng cột và chính sách xử lý xung đột
+  - Lightweight transaction cho điều kiện so sánh rồi ghi
+  - Batch trong Cassandra và lý do không mặc nhiên là cơ chế tăng tốc ghi hàng loạt
+- level1: Java và Cassandra
+  level2:
+  - Khởi tạo CqlSession và cấu hình nút liên hệ với trung tâm dữ liệu
+  - SimpleStatement, PreparedStatement và BoundStatement
+  - Binding tham số, ánh xạ kiểu và quản lý câu lệnh chuẩn bị
+  - Đọc ResultSet theo trang và quản lý trạng thái phân trang
+  - Thao tác bất đồng bộ và giới hạn số yêu cầu đang xử lý
+  - Cấu hình mức nhất quán, timeout và đặc tính idempotency theo thao tác
+  - Xử lý kết quả điều kiện IF và trường hợp điều kiện không được áp dụng
+  - Spring Data Cassandra với ánh xạ bảng, khóa ghép và repository
+  - CassandraTemplate cho truy vấn hoặc cập nhật cần kiểm soát rõ
+  - Nhận diện truy vấn tốn nhiều phân vùng và thiết kế lại cách truy cập
+- level1: Neo4j căn bản
+  level2:
+  - Đỉnh, quan hệ có hướng, nhãn và thuộc tính trong đồ thị
+  - Định danh nghiệp vụ và ràng buộc duy nhất
+  - Mẫu truy vấn đường đi và lựa chọn điểm bắt đầu có chỉ mục
+  - Cypher với MATCH, CREATE, MERGE, SET và DELETE
+  - Phân biệt tạo mới bằng CREATE với tìm hoặc tạo bằng MERGE
+  - Tham số hóa giá trị và kiểm soát các phần truy vấn động
+  - Tính tùy chọn của quan hệ và dữ liệu không tồn tại
+  - Giới hạn độ sâu duyệt để tránh kết quả tăng ngoài dự kiến
+  - Kế hoạch truy vấn và chi phí mở rộng quan hệ
+  - Giao dịch khi cập nhật nhiều đỉnh hoặc quan hệ có liên quan
+- level1: Java và Neo4j
+  level2:
+  - Khởi tạo Driver, tạo Session và quản lý tài nguyên đúng phạm vi
+  - Thực thi Cypher có tham số và đọc Record
+  - Giao dịch được quản lý và khả năng hàm xử lý được gọi lại
+  - Định tuyến thao tác đọc hoặc ghi theo khả năng của driver
+  - Bookmark và duy trì quan hệ nhân quả giữa các phiên khi cần
+  - Quản lý kết quả theo luồng và tránh giữ toàn bộ đồ thị trong bộ nhớ
+  - Spring Data Neo4j với @Node, @Relationship và định danh
+  - Phạm vi tải quan hệ và nguy cơ lưu cả đồ thị ngoài dự kiến
+  - Truy vấn tùy chỉnh, projection và ánh xạ kết quả
+  - Kiểm thử thay đổi liên kết, xóa quan hệ và cập nhật đồng thời
+- level1: DynamoDB
+  level2:
+  - Bảng, item, partition key và sort key
+  - Thiết kế theo mẫu truy cập và giới hạn truy vấn ngoài khóa
+  - Phân biệt GetItem, Query và Scan
+  - Chỉ mục phụ toàn cục, chỉ mục phụ cục bộ và dữ liệu được chiếu
+  - Giới hạn hỗ trợ đọc nhất quán theo loại tài nguyên
+  - Ghi có điều kiện và biểu thức cập nhật
+  - Batch khác với giao dịch nhiều item
+  - Truy cập từ Java bằng AWS SDK và lựa chọn ánh xạ có kiểu
+  - Phân trang với khóa tiếp tục và xử lý phản hồi từng phần
+  - Thao tác chưa được xử lý trong batch và chiến lược retry
+  - Phân bố tải, throttling, TTL và chi phí đọc ghi
+- level1: Kho tìm kiếm
+  level2:
+  - Elasticsearch hoặc OpenSearch trong vai trò chỉ mục tìm kiếm
+  - Phân biệt chỉ mục dẫn xuất với nguồn dữ liệu gốc
+  - Mapping kiểu trường và khác biệt giữa text với keyword
+  - Ghi tài liệu, thay thế, cập nhật và xóa bằng Java client phù hợp
+  - Độ trễ hiển thị thay đổi và ngữ nghĩa gần thời gian thực
+  - Truy vấn toàn văn, bộ lọc chính xác và sắp xếp
+  - Phân trang kết quả lớn và giữ ngữ cảnh đọc ổn định theo khả năng của kho
+  - Bulk indexing và kiểm tra lỗi của từng tài liệu
+  - Xung đột phiên bản, cập nhật đồng thời và quá trình lập chỉ mục lại
+  - Tránh coi điểm liên quan tìm kiếm là phép kiểm tra đúng sai nghiệp vụ
+- level1: Kho chuyên dụng
+  level2:
+  - Truy cập kho chuỗi thời gian theo phép đo, nhãn và khoảng thời gian
+  - Ghi dữ liệu đến trễ, bản ghi trùng thời điểm và quy tắc hợp nhất
+  - Truy vấn tổng hợp theo cửa sổ và chính sách lưu nhiều mức chi tiết
+  - Truy cập kho vectơ với định danh, vectơ và siêu dữ liệu
+  - Chọn phép đo tương đồng và lọc siêu dữ liệu theo khả năng hệ thống
+  - Phân biệt tìm kiếm chính xác với tìm kiếm láng giềng gần đúng
+  - Quản lý phiên bản mô hình tạo vectơ và dữ liệu cần lập chỉ mục lại
+  - Đóng gói SDK riêng và công bố rõ giới hạn nhất quán với độ bền
+  - Chọn kho chuyên dụng khi nhu cầu truy cập được xác định và có thể đo lường
+- level1: Bất đồng bộ và phản ứng
+  level2:
+  - Phân biệt API đồng bộ, Future, CompletionStage và Reactive Streams
+  - Thư viện phản ứng không tự biến mọi thao tác thành không chặn
+  - Lựa chọn client đồng bộ hoặc phản ứng theo luồng xử lý ứng dụng
+  - Thời điểm lời gọi thực sự được thực thi và nguy cơ đăng ký xử lý nhiều lần
+  - Áp lực ngược (backpressure), kích thước trang và giới hạn thao tác đồng thời
+  - Truyền lỗi, timeout và hủy thao tác qua chuỗi xử lý
+  - Quản lý tài nguyên, phiên và giao dịch trong ngữ cảnh bất đồng bộ
+  - Giữ thứ tự khi kết quả được xử lý song song
+  - Tránh chặn luồng sự kiện bằng lời gọi lưu trữ đồng bộ
+  - Kiểm thử lỗi, hủy và hoàn tất khi xử lý dữ liệu theo luồng
+- level1: Thao tác hàng loạt
+  level2:
+  - Phân biệt nhiều thao tác độc lập với một thay đổi nguyên tử
+  - Chọn kích thước lô theo số bản ghi, số byte và giới hạn dịch vụ
+  - Giữ ánh xạ giữa bản ghi nguồn và kết quả từng thao tác
+  - Thực hiện có thứ tự hoặc không có thứ tự theo khả năng của kho
+  - Retry phần chưa thành công mà không tạo bản ghi trùng
+  - Lưu điểm tiếp tục và chạy lại sau khi tiến trình bị dừng
+  - Đọc hoặc ghi theo luồng để giới hạn bộ nhớ
+  - Điều tiết tốc độ khi nguồn lưu trữ trả tín hiệu quá tải
+  - Đối soát số lượng đã nhận, đã ghi, bị từ chối và chưa xác định
+- level1: Thay đổi và đồng bộ
+  level2:
+  - Đọc luồng thay đổi từ kho lưu trữ và phạm vi bảo đảm của từng cơ chế
+  - Phân biệt change stream, CDC, stream sự kiện và thông báo không lưu bền
+  - Lưu con trỏ tiếp tục và xử lý gián đoạn kết nối
+  - Thứ tự thay đổi theo khóa hoặc phân vùng
+  - Xử lý thay đổi trùng lặp và duy trì tác vụ nhận có tính idempotent
+  - Phân biệt cập nhật, xóa và hết hạn khi đồng bộ sang hệ thống khác
+  - Đồng bộ dữ liệu ban đầu rồi tiếp nối thay đổi mà không bỏ sót
+  - Tạo chỉ mục tìm kiếm hoặc mô hình đọc từ nguồn lưu trữ chính
+  - Đối soát, phát hiện sai lệch và tái tạo dữ liệu dẫn xuất
+- level1: Bảo mật truy cập
+  level2:
+  - Cấp quyền theo vai trò ứng dụng và phạm vi dữ liệu cần dùng
+  - Phân tách tài khoản đọc, ghi, quản trị và tác vụ chuyển đổi dữ liệu
+  - Giữ thông tin xác thực trong cấu hình bí mật và hỗ trợ thay đổi an toàn
+  - TLS, xác minh tên máy chủ và chuỗi chứng chỉ
+  - Phân lập dữ liệu theo tổ chức trong khóa, truy vấn và kết quả trả về
+  - Tham số hóa truy vấn và ngăn dữ liệu đầu vào trở thành toán tử ngoài dự kiến
+  - Giới hạn câu truy vấn động, phép duyệt đồ thị và truy vấn tốn tài nguyên
+  - Che thông tin nhạy cảm trong log, dấu vết và dữ liệu lỗi
+  - Đánh giá định dạng tuần tự hóa và tránh giải tuần tự hóa dữ liệu không tin cậy
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ, thông lượng, tỷ lệ lỗi và dung lượng theo mẫu tải thực tế
+  - Tái sử dụng client và điều chỉnh bộ kết nối hoặc số yêu cầu đang xử lý
+  - Chọn projection, kích thước trang và số trường cần truyền
+  - Tránh truy vấn lặp kiểu N+1 và gom thao tác khi có lợi
+  - Chi phí tuần tự hóa, sao chép bộ nhớ và kích thước bản ghi
+  - Đối chiếu chỉ mục với câu truy vấn thay vì thêm chỉ mục theo cảm tính
+  - Phát hiện khóa nóng, phân vùng quá lớn và truy vấn phân tán
+  - Chi phí ghi do chỉ mục, nhân bản và cơ chế bảo đảm độ bền
+  - Đo tải khi có timeout, retry hoặc một phần nút không sẵn sàng
+  - Tối ưu với điều kiện vẫn đáp ứng yêu cầu đúng và bền vững của dữ liệu
+- level1: Quan sát vận hành
+  level2:
+  - Ghi nhận thời gian kết nối, chờ tài nguyên và thực thi thao tác
+  - Theo dõi số kết nối, yêu cầu đang xử lý, timeout và retry
+  - Đo lỗi theo loại thao tác và phân biệt lỗi kỹ thuật với điều kiện nghiệp vụ
+  - Dấu vết phân tán qua lớp ứng dụng, adapter và client
+  - Log truy vấn chậm với giới hạn dữ liệu nhạy cảm
+  - Health check và readiness check phản ánh đúng khả năng phục vụ
+  - Phát hiện độ trễ nhân bản, áp lực bộ nhớ hoặc phân vùng nóng
+  - Thiết kế nhãn đo lường tránh số lượng giá trị tăng không giới hạn
+  - Kịch bản chẩn đoán khi kết nối được nhưng truy vấn sai hoặc quá chậm
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị adapter mà không mô phỏng quá mức hành vi kho lưu trữ
+  - Kiểm thử tích hợp bằng kho thực hoặc Testcontainers phù hợp
+  - Khởi tạo dữ liệu, cô lập bài kiểm thử và dọn tài nguyên
+  - Xác minh đọc ghi đi rồi về cho kiểu số, thời gian, null và đối tượng lồng nhau
+  - Kiểm thử chỉ mục, ràng buộc duy nhất và ghi có điều kiện
+  - Kiểm thử phân trang, thứ tự và dữ liệu thay đổi giữa các trang
+  - Kiểm thử đồng thời để phát hiện mất cập nhật hoặc ghi trùng
+  - Kiểm thử timeout với kết quả ghi chưa xác định
+  - Kiểm thử TTL, hết hạn và nhất quán cuối cùng với thời gian chờ có giới hạn
+  - Kiểm thử topology cần thiết cho giao dịch hoặc khả năng chịu lỗi
+  - Giới hạn của giả lập dịch vụ so với môi trường triển khai thực
+  - Kiểm tra ma trận tương thích giữa phiên bản client, thư viện và máy chủ
+- level1: Sao lưu và khôi phục
+  level2:
+  - Mục tiêu mất dữ liệu và thời gian phục hồi cần đáp ứng
+  - Phân biệt bản sao phục vụ sẵn sàng với bản sao lưu để khôi phục
+  - Sao lưu vật lý, xuất dữ liệu logic và giới hạn của từng lựa chọn
+  - Trạng thái nhất quán khi sao lưu dữ liệu đang có thay đổi
+  - Khôi phục dữ liệu cùng cấu hình, chỉ mục và thông tin cần thiết
+  - Kiểm tra độ đầy đủ bằng số lượng, dữ liệu mẫu và bất biến nghiệp vụ
+  - Khôi phục dữ liệu gốc trước rồi tái tạo chỉ mục hoặc mô hình dẫn xuất
+  - Diễn tập phục hồi để kiểm chứng thao tác đọc ghi sau khôi phục
+  - Ngăn ứng dụng tiếp tục dùng dữ liệu cũ hoặc ghi vào sai môi trường phục hồi
+- level1: Tiến hóa dữ liệu
+  level2:
+  - Phiên bản đối tượng lưu trữ và khả năng đọc dữ liệu cũ
+  - Thêm, đổi tên, đổi kiểu hoặc loại bỏ trường theo từng giai đoạn
+  - Thay đổi khóa, tách collection hoặc chuyển dữ liệu sang phân vùng mới
+  - Điền bổ sung dữ liệu theo lô có giới hạn tốc độ
+  - Tạo hoặc thay chỉ mục khi hệ thống vẫn đang phục vụ
+  - Triển khai đọc tương thích trước khi chuyển định dạng ghi
+  - Ghi vào hai nơi và nguy cơ kết quả chỉ thành công một phần
+  - Đối chiếu kết quả khi chuyển sang client hoặc thư viện truy cập khác
+  - Kế hoạch quay về phiên bản cũ và giới hạn khi dữ liệu đã biến đổi
+  - Chuyển đổi giữa các loại kho với tiêu chí đối soát được định nghĩa rõ
+- level1: Lỗi thường gặp
+  level2:
+  - Coi mọi kho phi quan hệ đều không có lược đồ hoặc không hỗ trợ giao dịch
+  - Dùng một repository chung che mất các bảo đảm quan trọng của từng kho
+  - Mở client hoặc kết nối mới cho mỗi yêu cầu
+  - Thử lại mọi lỗi dù thao tác trước có thể đã hoàn tất
+  - Coi pipeline, batch hoặc danh sách lệnh là giao dịch nguyên tử
+  - Dùng quét toàn bộ thay cho truy vấn có mô hình và chỉ mục phù hợp
+  - Ghi đè toàn đối tượng khi chỉ muốn thay đổi một trường
+  - Lưu tiền, thời gian hoặc mã nghiệp vụ bằng biểu diễn gây mất ý nghĩa
+  - Dùng Redis làm nguồn dữ liệu gốc nhưng không đánh giá độ bền và loại bỏ dữ liệu
+  - Xem kho tìm kiếm hoặc bản sao dẫn xuất là luôn đồng bộ với nguồn
+  - Kiểm thử một nút rồi suy ra đầy đủ hành vi khi chạy phân tán
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân tích mẫu truy cập của danh mục sản phẩm, đơn hàng và quan hệ khách hàng
+  - Chọn kho dữ liệu theo yêu cầu truy vấn, độ bền và tính nhất quán
+  - Xây dựng adapter Java với client dùng chung và cấu hình theo môi trường
+  - Đọc ghi tài liệu sản phẩm bằng MongoDB và Spring Data
+  - Tạo thao tác Redis có điều kiện với định dạng dữ liệu và chính sách độ bền rõ ràng
+  - Lưu dữ liệu theo mẫu truy cập phân vùng bằng Cassandra
+  - Truy vấn quan hệ khách hàng hoặc sản phẩm bằng Neo4j
+  - Xây dựng chỉ mục tìm kiếm dẫn xuất và khả năng tái tạo
+  - Thiết kế thao tác cập nhật đồng thời không làm mất dữ liệu
+  - Xử lý timeout, retry và ghi lặp bằng kịch bản lỗi có thể tái hiện
+  - Kiểm thử tích hợp, đo tải và theo dõi các chỉ số truy cập
+  - Chuyển đổi một phiên bản dữ liệu và kiểm chứng phục hồi
+  - Danh sách kiểm tra trước khi đưa lớp truy cập phi quan hệ vào sử dụng

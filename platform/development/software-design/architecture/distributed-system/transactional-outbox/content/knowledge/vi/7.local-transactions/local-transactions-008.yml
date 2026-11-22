@@ -1,0 +1,3 @@
+menuLevel1: Giao dịch cục bộ
+menuLevel2: Tránh tạo Outbox từ dữ liệu đọc lại sau khi đã commit
+status: ''

@@ -1,0 +1,58 @@
+menu:
+- title: 1. Nền tảng
+  slug: security-fundamentals
+  index: 0
+- title: 2. Kiến trúc JCA
+  slug: jca-architecture
+  index: 1
+- title: 3. Dữ liệu và ngẫu nhiên
+  slug: data-randomness
+  index: 2
+- title: 4. Hàm băm
+  slug: hash-functions
+  index: 3
+- title: 5. Mã xác thực
+  slug: message-authentication-code
+  index: 4
+- title: 6. Mã hóa đối xứng
+  slug: symmetric-encryption
+  index: 5
+- title: 7. Mật khẩu và dẫn xuất khóa
+  slug: password-key-derivation
+  index: 6
+- title: 8. Khóa công khai
+  slug: public-key-cryptography
+  index: 7
+- title: 9. Chữ ký số
+  slug: digital-signature
+  index: 8
+- title: 10. Thỏa thuận và bọc khóa
+  slug: key-establishment-and-wrapping
+  index: 9
+- title: 11. Vòng đời khóa
+  slug: key-lifecycle
+  index: 10
+- title: 12. KeyStore
+  slug: key-store
+  index: 11
+- title: 13. Chứng thư X.509
+  slug: x509-certificate
+  index: 12
+- title: 14. Đường dẫn tin cậy
+  slug: cert-path
+  index: 13
+- title: 15. Nền tảng TLS
+  slug: tls-foundation
+  index: 14
+- title: 16. JSSE
+  slug: jsse
+  index: 15
+- title: 17. Xác thực JAAS
+  slug: jaas-authentication
+  index: 16
+- title: 18. SASL và GSS-API
+  slug: sasl-gss-api
+  index: 17
+- title: 19. Ký JAR và XML
+  slug: jar-xml-signatures
+  index: 18

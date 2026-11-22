@@ -1,0 +1,13 @@
+references:
+  - title: "Refactoring Guru — Iterator Pattern"
+    url: "https://refactoring.guru/design-patterns/iterator"
+    description: "Ý định, bối cảnh áp dụng, các vai trò Iterator/Aggregate và lợi ích đóng gói logic duyệt."
+  - title: "Refactoring Guru — Iterator in Java"
+    url: "https://refactoring.guru/design-patterns/iterator/java/example"
+    description: "Ví dụ Java triển khai iterator cho nguồn dữ liệu phức tạp mà không để client phụ thuộc cấu trúc nội bộ."
+  - title: "SourceMaking — Iterator Design Pattern"
+    url: "https://sourcemaking.com/design_patterns/iterator"
+    description: "Giải thích giao thức duyệt, cấu trúc class, nhiều chiến lược duyệt và quan hệ với các mẫu thiết kế khác."
+  - title: "Oracle Java 17 — Iterator API"
+    url: "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Iterator.html"
+    description: "Định nghĩa chuẩn hasNext, next, remove, forEachRemaining và các trường hợp ngoại lệ của Iterator."

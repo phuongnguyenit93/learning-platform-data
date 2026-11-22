@@ -1,0 +1,815 @@
+# Viết truy vấn JOIN và lệnh ghi đặc thù trong fragment
+
+Trong **Spring Data Relational JDBC**, repository fragment cho phép mở rộng repository bằng những thao tác mà CRUD cơ bản hoặc derived query không diễn đạt thuận tiện. Một fragment có thể chứa truy vấn JOIN để tạo dữ liệu đọc từ nhiều bảng, hoặc một lệnh ghi đặc thù cần kiểm soát chính xác điều kiện cập nhật, số hàng bị ảnh hưởng và hành vi đồng thời.
+
+Ví dụ, màn hình danh mục sản phẩm cần tên danh mục bên cạnh tên và giá sản phẩm. Đây là dữ liệu đọc kết hợp từ bảng sản phẩm và danh mục, phù hợp với một projection. Một use case khác cần trừ tồn kho chỉ khi số lượng hiện có đủ và version vẫn đúng. Đây là lệnh ghi có điều kiện, cần được thực thi nguyên tử để tránh hai request cùng đặt chỗ vượt quá số hàng trong kho.
+
+Spring Data JDBC cho phép kết hợp các thao tác này trong một **repository fragment** được cài đặt bằng Spring JDBC, chẳng hạn `NamedParameterJdbcTemplate`, `JdbcTemplate` hoặc `JdbcClient`. Fragment giữ API truy vấn cạnh repository, trong khi implementation kiểm soát SQL và mapping kết quả.
+
+## 1. Repository fragment giải quyết vấn đề gì?
+
+Một repository chuẩn thường kế thừa `CrudRepository` hoặc `ListCrudRepository` để cung cấp các thao tác CRUD. Derived query phù hợp với điều kiện đơn giản, còn `@Query` phù hợp với câu SQL cố định. Khi truy vấn hoặc lệnh ghi cần nhiều logic, một fragment riêng giúp tách phần đó khỏi interface repository chính.
+
+Các trường hợp thường phù hợp:
+
+- JOIN nhiều bảng để tạo DTO hoặc projection.
+- Bộ lọc tùy chọn cần dựng SQL theo từng request.
+- Sắp xếp động theo danh sách cột được cho phép.
+- Câu lệnh UPDATE có điều kiện nghiệp vụ và optimistic locking.
+- INSERT/UPSERT phụ thuộc cú pháp riêng của database.
+- Một thao tác cần chạy nhiều câu SQL và ánh xạ kết quả đặc biệt.
+- Truy vấn cần `RowMapper` để chuyển từng hàng thành cấu trúc Java cụ thể.
+
+Mô hình:
+
+~~~text
+ProductRepository
+    |
+    +-- CrudRepository<Product, Long>
+    |
+    +-- ProductCatalogOperations
+              |
+              v
+      ProductCatalogOperationsImpl
+              |
+              +-- NamedParameterJdbcTemplate
+              |
+              v
+           Database
+~~~
+
+Repository chính cung cấp CRUD; fragment bổ sung các hành vi truy vấn hoặc ghi riêng. Không cần tạo fragment chỉ để bọc lại một method CRUD đã có sẵn.
+
+## 2. Khai báo fragment và ghép vào repository
+
+Giả sử ứng dụng có entity `Product` và cần các thao tác đọc catalog cùng giữ chỗ tồn kho.
+
+### 2.1. Interface của fragment
+
+~~~java
+import java.util.List;
+
+public interface ProductCatalogOperations {
+
+    List<ProductCatalogItem> searchCatalog(ProductCatalogFilter filter);
+
+    int reserveStock(Long productId, int quantity, Long expectedVersion);
+}
+~~~
+
+Fragment interface khai báo hợp đồng mà service có thể gọi. Nó không chứa SQL hay chi tiết JDBC.
+
+DTO và filter:
+
+~~~java
+import java.math.BigDecimal;
+
+public record ProductCatalogItem(
+        Long productId,
+        String sku,
+        String productName,
+        String categoryName,
+        BigDecimal price,
+        Integer availableQuantity
+) {
+}
+~~~
+
+~~~java
+public enum ProductCatalogSort {
+    NEWEST,
+    NAME,
+    PRICE_ASC,
+    PRICE_DESC
+}
+~~~
+
+~~~java
+public record ProductCatalogFilter(
+        Long categoryId,
+        String status,
+        String keyword,
+        ProductCatalogSort sort,
+        int limit,
+        long offset
+) {
+}
+~~~
+
+### 2.2. Ghép fragment vào repository chính
+
+~~~java
+import org.springframework.data.repository.CrudRepository;
+
+public interface ProductRepository
+        extends CrudRepository<Product, Long>, ProductCatalogOperations {
+
+    Optional<Product> findBySku(String sku);
+}
+~~~
+
+Repository kế thừa cả CRUD contract và fragment contract. Service có thể gọi `searchCatalog` hoặc `reserveStock` thông qua cùng bean `ProductRepository`.
+
+### 2.3. Quy ước đặt tên implementation
+
+Với fragment `ProductCatalogOperations`, implementation theo quy ước mặc định là:
+
+~~~java
+public class ProductCatalogOperationsImpl
+        implements ProductCatalogOperations {
+    // custom JDBC implementation
+}
+~~~
+
+Spring Data repository composition tìm implementation của fragment theo tên interface và postfix mặc định `Impl`. Nếu dự án cấu hình postfix khác, tên class cần tuân theo cấu hình đó. Đặt implementation trong package được repository scanning nhận diện.
+
+Có thể đánh dấu implementation bằng `@Repository` để thể hiện vai trò persistence và tham gia cơ chế exception translation của Spring:
+
+~~~java
+@Repository
+public class ProductCatalogOperationsImpl
+        implements ProductCatalogOperations {
+    // ...
+}
+~~~
+
+Với repository composition hiện đại, fragment có interface riêng giúp tách các nhóm hành vi và có thể kết hợp nhiều fragment. Không nhầm nó với cách đặt tên cũ chỉ gắn một implementation vào toàn bộ repository.
+
+## 3. Schema ví dụ cho truy vấn JOIN và lệnh ghi
+
+Giả sử catalog có hai bảng:
+
+~~~sql
+CREATE TABLE category (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name VARCHAR(120) NOT NULL
+);
+
+CREATE TABLE product (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    category_id BIGINT NOT NULL,
+    sku VARCHAR(80) NOT NULL UNIQUE,
+    name VARCHAR(200) NOT NULL,
+    status VARCHAR(24) NOT NULL,
+    price DECIMAL(19, 2) NOT NULL,
+    available_quantity INTEGER NOT NULL,
+    version BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    CONSTRAINT fk_product_category
+        FOREIGN KEY (category_id) REFERENCES category(id),
+    CONSTRAINT ck_product_quantity
+        CHECK (available_quantity >= 0)
+);
+
+CREATE INDEX idx_product_category_status
+    ON product(category_id, status);
+~~~
+
+Đây là schema minh họa; cú pháp sinh ID cần điều chỉnh theo database của ứng dụng. Cột `version` dùng để phát hiện cập nhật đồng thời. `available_quantity` được bảo vệ thêm bởi CHECK constraint để database không lưu số lượng âm.
+
+Entity root có thể dùng `@Version`:
+
+~~~java
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("product")
+public record Product(
+        @Id Long id,
+        @Version Long version,
+        Long categoryId,
+        String sku,
+        String name,
+        String status,
+        BigDecimal price,
+        Integer availableQuantity,
+        LocalDateTime createdAt
+) {
+}
+~~~
+
+`@Version` giúp Spring Data JDBC quản lý optimistic locking khi lưu aggregate qua repository chuẩn. Một lệnh SQL tùy chỉnh trong fragment không tự động chạy qua toàn bộ quy trình save; nếu lệnh đó cần version check, implementation phải đưa điều kiện version và cập nhật version vào SQL.
+
+## 4. Dùng NamedParameterJdbcTemplate trong fragment
+
+`NamedParameterJdbcTemplate` cho phép bind tham số theo tên thay vì theo vị trí dấu hỏi. Nó phù hợp với SQL có nhiều điều kiện và được Spring cấu hình dựa trên `DataSource` của ứng dụng.
+
+~~~java
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class ProductCatalogOperationsImpl
+        implements ProductCatalogOperations {
+
+    private final NamedParameterJdbcTemplate jdbc;
+
+    public ProductCatalogOperationsImpl(
+            NamedParameterJdbcTemplate jdbc
+    ) {
+        this.jdbc = jdbc;
+    }
+
+    // Implement các method của fragment.
+}
+~~~
+
+Constructor injection giúp dependency rõ ràng và dễ thay thế trong test. Không tự tạo connection bằng `DriverManager` và không tạo một `DataSource` riêng cho fragment. Dùng template được Spring quản lý để các câu SQL dùng chung datasource và có thể tham gia transaction hiện tại.
+
+`JdbcClient` là một lựa chọn khác từ Spring Framework 6.1 trở lên, cung cấp API fluent cho query/update. Với ứng dụng ở phiên bản cũ hơn, `NamedParameterJdbcTemplate` vẫn là lựa chọn phổ biến và tương thích rộng.
+
+## 5. Viết truy vấn JOIN để trả projection
+
+Màn hình catalog cần dữ liệu từ cả sản phẩm và danh mục. Vì kết quả không phải aggregate `Product` đầy đủ, fragment nên trả DTO đọc.
+
+### 5.1. SQL JOIN
+
+~~~sql
+SELECT
+    p.id AS product_id,
+    p.sku AS sku,
+    p.name AS product_name,
+    c.name AS category_name,
+    p.price AS price,
+    p.available_quantity AS available_quantity
+FROM product p
+JOIN category c ON c.id = p.category_id
+WHERE p.status = :status
+ORDER BY p.created_at DESC, p.id DESC;
+~~~
+
+Alias giúp phân biệt dữ liệu từ các bảng và nối nhãn cột với component của `ProductCatalogItem`. Ví dụ `p.id AS product_id` tương ứng với `productId` theo naming strategy snake_case thông thường.
+
+### 5.2. RowMapper chuyển ResultSet thành DTO
+
+Trong implementation:
+
+~~~java
+private static final RowMapper<ProductCatalogItem> CATALOG_ROW_MAPPER =
+        (rs, rowNum) -> new ProductCatalogItem(
+                rs.getLong("product_id"),
+                rs.getString("sku"),
+                rs.getString("product_name"),
+                rs.getString("category_name"),
+                rs.getBigDecimal("price"),
+                rs.getInt("available_quantity")
+        );
+~~~
+
+`RowMapper` chỉ rõ từng column label được chuyển vào component nào. Dùng getter phù hợp với kiểu SQL: `getBigDecimal` cho DECIMAL, `getString` cho chuỗi và getter số cho kiểu số. Nếu cột có thể NULL, dùng wrapper và kiểm tra null đúng cách; với primitive getter như `getInt`, JDBC trả 0 cho SQL NULL nên cần gọi `wasNull()` ngay sau getter nếu cần phân biệt.
+
+### 5.3. Thêm bộ lọc tùy chọn
+
+Có thể dựng câu SQL theo các filter có giá trị:
+
+~~~java
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+
+@Override
+public List<ProductCatalogItem> searchCatalog(
+        ProductCatalogFilter filter
+) {
+    validate(filter);
+
+    StringBuilder sql = new StringBuilder("""
+            SELECT
+                p.id AS product_id,
+                p.sku AS sku,
+                p.name AS product_name,
+                c.name AS category_name,
+                p.price AS price,
+                p.available_quantity AS available_quantity
+            FROM product p
+            JOIN category c ON c.id = p.category_id
+            WHERE 1 = 1
+            """);
+
+    MapSqlParameterSource params = new MapSqlParameterSource();
+
+    if (filter.categoryId() != null) {
+        sql.append(" AND p.category_id = :categoryId");
+        params.addValue("categoryId", filter.categoryId());
+    }
+
+    if (filter.status() != null && !filter.status().isBlank()) {
+        sql.append(" AND p.status = :status");
+        params.addValue("status", filter.status().trim());
+    }
+
+    if (filter.keyword() != null && !filter.keyword().isBlank()) {
+        sql.append(" AND (p.sku LIKE :keyword OR p.name LIKE :keyword)");
+        params.addValue(
+                "keyword",
+                "%" + filter.keyword().trim() + "%"
+        );
+    }
+
+    String orderBy = switch (filter.sort() == null
+            ? ProductCatalogSort.NEWEST : filter.sort()) {
+        case NEWEST -> "p.created_at DESC, p.id DESC";
+        case NAME -> "p.name ASC, p.id ASC";
+        case PRICE_ASC -> "p.price ASC, p.id ASC";
+        case PRICE_DESC -> "p.price DESC, p.id DESC";
+    };
+
+    sql.append(" ORDER BY ").append(orderBy);
+    sql.append(" LIMIT :limit OFFSET :offset");
+    params.addValue("limit", filter.limit());
+    params.addValue("offset", filter.offset());
+
+    return jdbc.query(sql.toString(), params, CATALOG_ROW_MAPPER);
+}
+~~~
+
+Ví dụ dùng cú pháp `LIMIT/OFFSET` có trên PostgreSQL, MySQL và một số database khác. Nếu ứng dụng hỗ trợ hệ quản trị có cú pháp phân trang khác, phần giới hạn hàng phải được tách theo dialect hoặc điều chỉnh cho database mục tiêu.
+
+### 5.4. Validate filter trước khi tạo SQL
+
+~~~java
+private void validate(ProductCatalogFilter filter) {
+    if (filter == null) {
+        throw new IllegalArgumentException("Filter không được null");
+    }
+    if (filter.limit() < 1 || filter.limit() > 100) {
+        throw new IllegalArgumentException("limit phải từ 1 đến 100");
+    }
+    if (filter.offset() < 0) {
+        throw new IllegalArgumentException("offset không được âm");
+    }
+}
+~~~
+
+Các điều kiện động cần có semantics rõ ràng:
+
+- Filter null: bỏ qua điều kiện tương ứng nếu đó là quy ước API.
+- Chuỗi rỗng hoặc chỉ có khoảng trắng: thường được chuẩn hóa thành không áp dụng.
+- Giá trị sai định dạng: từ chối trước khi truy vấn.
+- Sort: chọn từ enum/whitelist, không nối trực tiếp chuỗi do request gửi lên.
+- Limit/offset: giới hạn để tránh query quá lớn.
+
+Nếu tìm kiếm literal text, cần escape wildcard `%` và `_` theo cú pháp database; ví dụ đơn giản ở trên cho phép chúng hoạt động như wildcard của LIKE.
+
+### 5.5. Không nối input vào SQL
+
+Các giá trị phải được bind:
+
+~~~java
+sql.append(" AND p.status = :status");
+params.addValue("status", filter.status());
+~~~
+
+Không viết:
+
+~~~java
+sql.append(" AND p.status = '")
+   .append(filter.status())
+   .append("'");
+~~~
+
+Bind parameter ngăn giá trị đầu vào bị diễn giải như cú pháp SQL. Tên cột và hướng sort không thể bind như giá trị; hãy ánh xạ chúng từ enum hoặc danh sách identifier cố định như switch ở trên.
+
+### 5.6. Vì sao JOIN trả DTO thay vì Product?
+
+Query join có thể trả nhiều cột từ nhiều bảng. Nếu ánh xạ kết quả đó trực tiếp thành aggregate root, code có thể tạo cảm giác `Category` là thành phần sở hữu của `Product` hoặc bỏ qua các collection thuộc aggregate. `ProductCatalogItem` là read projection nên thể hiện đúng mục đích: dữ liệu tổng hợp để hiển thị.
+
+Với thao tác cập nhật sản phẩm, service vẫn nên tải `Product` root qua repository chuẩn, gọi hành vi miền và lưu root. Không dùng DTO join làm entity để gọi `save`.
+
+## 6. Lệnh ghi đặc thù: cập nhật tồn kho có điều kiện
+
+Một ví dụ điển hình của custom write là giữ chỗ tồn kho. Yêu cầu:
+
+- Số lượng yêu cầu phải lớn hơn 0.
+- Số lượng tồn phải đủ.
+- Version phải khớp với snapshot mà caller đã đọc.
+- Nếu thành công, giảm tồn kho và tăng version trong cùng một câu SQL.
+
+### 6.1. Vì sao không đọc rồi cập nhật bằng hai bước?
+
+Cách làm ngây thơ:
+
+~~~text
+SELECT available_quantity
+if available_quantity >= requested:
+    UPDATE available_quantity = available_quantity - requested
+~~~
+
+Hai request có thể cùng đọc tồn kho là 5 và mỗi request muốn giữ 4. Cả hai cùng vượt qua bước kiểm tra trước khi cập nhật; nếu không có điều kiện đồng thời phù hợp, tồn kho có thể bị âm hoặc bị ghi đè.
+
+Thay vào đó, đưa điều kiện vào chính lệnh UPDATE:
+
+~~~sql
+UPDATE product
+SET available_quantity = available_quantity - :quantity,
+    version = version + 1
+WHERE id = :productId
+  AND available_quantity >= :quantity
+  AND version = :expectedVersion;
+~~~
+
+Database kiểm tra điều kiện và thay đổi hàng trong một thao tác nguyên tử. Chỉ một request dùng cùng version có thể cập nhật thành công; request còn lại không còn khớp version hoặc điều kiện số lượng.
+
+### 6.2. Cài đặt method trong fragment
+
+~~~java
+@Override
+public int reserveStock(
+        Long productId,
+        int quantity,
+        Long expectedVersion
+) {
+    if (productId == null) {
+        throw new IllegalArgumentException("productId không được null");
+    }
+    if (quantity <= 0) {
+        throw new IllegalArgumentException("quantity phải lớn hơn 0");
+    }
+    if (expectedVersion == null || expectedVersion < 0) {
+        throw new IllegalArgumentException("expectedVersion không hợp lệ");
+    }
+
+    String sql = """
+            UPDATE product
+            SET available_quantity = available_quantity - :quantity,
+                version = version + 1
+            WHERE id = :productId
+              AND available_quantity >= :quantity
+              AND version = :expectedVersion
+            """;
+
+    MapSqlParameterSource params = new MapSqlParameterSource()
+            .addValue("productId", productId)
+            .addValue("quantity", quantity)
+            .addValue("expectedVersion", expectedVersion);
+
+    return jdbc.update(sql, params);
+}
+~~~
+
+Giá trị trả về là số hàng bị ảnh hưởng:
+
+- `1`: sản phẩm được cập nhật.
+- `0`: không có hàng thỏa toàn bộ điều kiện, có thể do ID không tồn tại, tồn kho không đủ hoặc version đã thay đổi.
+
+Vì `id` là primary key, một lệnh cập nhật theo ID không thể thành công với nhiều hàng. Nếu kết quả lớn hơn 1, schema/điều kiện hoặc giả định về khóa cần được xem xét.
+
+### 6.3. Xử lý kết quả trong service
+
+~~~java
+@Service
+public class InventoryService {
+
+    private final ProductRepository products;
+
+    public InventoryService(ProductRepository products) {
+        this.products = products;
+    }
+
+    @Transactional
+    public void reserve(
+            Long productId,
+            int quantity,
+            Long expectedVersion
+    ) {
+        int updated = products.reserveStock(
+                productId,
+                quantity,
+                expectedVersion
+        );
+
+        if (updated == 0) {
+            throw new StockReservationRejectedException(productId);
+        }
+        if (updated != 1) {
+            throw new IllegalStateException(
+                    "Số hàng được cập nhật không như dự kiến"
+            );
+        }
+    }
+}
+~~~
+
+Đoạn service dùng transaction Spring. Một câu UPDATE đơn lẻ vốn đã là thao tác nguyên tử ở database; transaction ở service hữu ích khi use case cần phối hợp thêm bước ghi khác, chẳng hạn ghi outbox hoặc tạo bản ghi reservation trong cùng transaction.
+
+Nếu cần phân biệt chính xác “không tìm thấy sản phẩm”, “không đủ tồn kho” và “version cũ”, service có thể đọc lại trạng thái sau khi update trả 0. Việc phân loại đó là một lần đọc sau thất bại và có thể chịu race condition tiếp theo; không nên xem nó như lý do thất bại tuyệt đối nếu trạng thái tiếp tục thay đổi.
+
+### 6.4. Custom SQL phải tự duy trì optimistic locking
+
+Với repository save thông thường, Spring Data JDBC sử dụng `@Version` để kiểm tra version và tăng version khi cập nhật. Một lệnh `jdbc.update` trong fragment không tự chạy qua cơ chế optimistic locking đó.
+
+Nếu custom command cần version check, SQL phải:
+
+1. So sánh version hiện tại với `expectedVersion`.
+2. Chỉ cập nhật khi version khớp.
+3. Tăng version trong cùng câu lệnh.
+4. Kiểm tra số hàng bị ảnh hưởng.
+
+Không tự tăng version trong Java rồi cho rằng database đã phát hiện được cạnh tranh. Điều kiện `WHERE version = :expectedVersion` mới là phần phát hiện snapshot đã cũ.
+
+## 7. Những lệnh ghi đặc thù khác
+
+Fragment không chỉ dành cho UPDATE. Nó có thể đóng gói INSERT, DELETE hoặc UPSERT khi có lý do rõ ràng.
+
+### 7.1. UPDATE trạng thái có điều kiện
+
+~~~sql
+UPDATE purchase_order
+SET status = :newStatus,
+    version = version + 1
+WHERE id = :orderId
+  AND status = :expectedStatus
+  AND version = :expectedVersion;
+~~~
+
+Lệnh này chỉ chuyển trạng thái khi đơn vẫn đang ở trạng thái mà caller mong đợi. Nó phù hợp với chuyển trạng thái có điều kiện, nhưng cần bảo đảm các invariant khác của đơn hàng cũng đã được kiểm tra.
+
+### 7.2. DELETE có điều kiện
+
+~~~sql
+DELETE FROM product
+WHERE id = :productId
+  AND status = 'DISCONTINUED';
+~~~
+
+Method có thể trả số hàng bị xóa để service biết có khớp điều kiện không. Tuy nhiên, xóa trực tiếp bảng root có thể bỏ qua quy trình quản lý child rows của Spring Data JDBC và bị foreign key từ chối. Nếu cần xóa aggregate có collection thuộc sở hữu, ưu tiên `repository.deleteById` hoặc dùng cơ chế xóa được thiết kế đầy đủ cho toàn aggregate.
+
+Không thêm `ON DELETE CASCADE` chỉ để làm câu lệnh chạy được nếu việc xóa child có thể phá hủy lịch sử hoặc dữ liệu cần lưu.
+
+### 7.3. INSERT có generated key
+
+Nếu một thao tác tạo dữ liệu cần SQL đặc thù, Spring JDBC có thể dùng `KeyHolder` để lấy generated key. Ví dụ khái niệm:
+
+~~~java
+GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+
+jdbc.update(
+        """
+        INSERT INTO audit_entry(event_type, aggregate_id, created_at)
+        VALUES (:eventType, :aggregateId, :createdAt)
+        """,
+        new MapSqlParameterSource()
+                .addValue("eventType", eventType)
+                .addValue("aggregateId", aggregateId)
+                .addValue("createdAt", createdAt),
+        keyHolder,
+        new String[] {"id"}
+);
+~~~
+
+Việc lấy generated key phụ thuộc driver và cách khai báo tên cột được sinh. Nếu đang tạo aggregate root thông thường, `repository.save` thường là lựa chọn phù hợp hơn vì Spring Data JDBC quản lý ID, version và aggregate mapping.
+
+### 7.4. UPSERT phụ thuộc database
+
+PostgreSQL có thể dùng `INSERT ... ON CONFLICT`; SQL Server/Oracle và các hệ quản trị khác có cú pháp hoặc semantics khác. Ví dụ PostgreSQL:
+
+~~~sql
+INSERT INTO product_price(product_id, price, updated_at)
+VALUES (:productId, :price, :updatedAt)
+ON CONFLICT (product_id)
+DO UPDATE SET
+    price = EXCLUDED.price,
+    updated_at = EXCLUDED.updated_at;
+~~~
+
+Đây là SQL đặc thù. Nếu ứng dụng hỗ trợ nhiều database, cần tách implementation theo dialect hoặc chọn cơ chế portable hơn. Cũng cần quyết định UPSERT có được phép ghi đè theo version hay phải kiểm tra điều kiện nghiệp vụ trước.
+
+## 8. Khi nào dùng fragment thay cho @Query và @Modifying?
+
+`@Query` kết hợp `@Modifying` phù hợp với câu lệnh cố định, ngắn và có hợp đồng đơn giản:
+
+~~~java
+@Modifying
+@Query("""
+       UPDATE product
+       SET status = :status
+       WHERE id = :id
+       """)
+int updateStatus(
+        @Param("id") Long id,
+        @Param("status") String status
+);
+~~~
+
+Fragment phù hợp hơn khi:
+
+- Một thao tác cần SQL được dựng từ nhiều điều kiện tùy chọn.
+- Cần JOIN và `RowMapper` riêng.
+- Cần whitelist identifier động.
+- Cần nhiều câu SQL trong một phương thức.
+- Cần kiểm soát generated key hoặc kết quả cập nhật đặc biệt.
+- Cần gom một nhóm truy vấn chuyên biệt thành API có tên rõ ràng.
+
+Không phải cứ có SQL là phải tạo fragment. Chọn cách đơn giản nhất vẫn giữ được ý định và mapping rõ ràng.
+
+## 9. Transaction và kết nối JDBC
+
+Custom fragment nên dùng `NamedParameterJdbcTemplate`, `JdbcTemplate` hoặc `JdbcClient` được Spring quản lý. Khi template sử dụng cùng `DataSource` và transaction manager của repository, các lệnh JDBC có thể tham gia transaction Spring đang mở.
+
+Ví dụ phối hợp cập nhật tồn kho và ghi outbox:
+
+~~~java
+@Transactional
+public void reserveAndRecord(
+        Long productId,
+        int quantity,
+        Long expectedVersion
+) {
+    int updated = productRepository.reserveStock(
+            productId,
+            quantity,
+            expectedVersion
+    );
+
+    if (updated != 1) {
+        throw new StockReservationRejectedException(productId);
+    }
+
+    outboxRepository.insertStockReserved(productId, quantity);
+}
+~~~
+
+Nếu ghi outbox thất bại, transaction có thể rollback cả thao tác cập nhật tồn kho. Điều này chỉ đúng khi cả hai thao tác tham gia cùng transaction manager/datasource phù hợp. Nếu outbox ở database khác, `@Transactional` cục bộ không tự tạo distributed transaction.
+
+### 9.1. Không tự mở connection
+
+Tránh gọi `DriverManager.getConnection` trong fragment. Một connection tự tạo không được Spring quản lý theo transaction hiện tại, khiến lệnh có thể commit độc lập hoặc không dùng connection pool. Tiêm template do Spring cấu hình qua constructor.
+
+### 9.2. Transaction boundary ở service
+
+Fragment nên tập trung vào truy vấn/lệnh SQL. Service xác định ranh giới use case:
+
+- `@Transactional(readOnly = true)` cho luồng đọc cần transaction.
+- `@Transactional` cho use case phối hợp nhiều thao tác ghi.
+- Isolation level chỉ định khi nghiệp vụ cần mức nhất quán cụ thể.
+
+`readOnly = true` là ý định/hint cho transaction infrastructure, không phải cơ chế phân quyền và không bảo đảm mọi database đều từ chối ghi.
+
+## 10. Aggregate boundary và trách nhiệm của custom write
+
+Một fragment dùng SQL trực tiếp có thể bỏ qua một số hành vi mà repository aggregate chuẩn thực hiện. Trước khi dùng custom write, cần xác định lệnh đó đang tác động lên:
+
+- Một bảng phụ phục vụ tìm kiếm/báo cáo.
+- Một bảng kỹ thuật như outbox hoặc audit.
+- Một thuộc tính đơn của aggregate root.
+- Nhiều aggregate hoặc collection child.
+
+Nếu cập nhật một aggregate root, lệnh SQL cần duy trì các invariant của aggregate. Nếu thay đổi collection child, phải xem xét foreign key, thứ tự và toàn bộ quy tắc sở hữu. Nếu thao tác đụng đến nhiều aggregate, cần xác định transaction hoặc cơ chế eventual consistency.
+
+### 10.1. Những gì custom SQL không tự làm
+
+Một lệnh `jdbc.update` không tự động:
+
+- Tải aggregate và gọi domain method.
+- Kiểm tra invariant trong constructor hoặc domain model.
+- Chạy toàn bộ lifecycle của `repository.save`.
+- Tự tăng `@Version` theo cơ chế Spring Data JDBC.
+- Tự phát domain event hoặc ghi outbox.
+- Tự đồng bộ object Java đang được giữ trong bộ nhớ.
+- Tự quản lý child collection như thao tác lưu aggregate chuẩn.
+
+Nếu những hành vi này cần thiết, hãy thực hiện rõ trong service/fragment hoặc dùng repository aggregate chuẩn.
+
+### 10.2. Khi custom write là lựa chọn hợp lý
+
+Một thao tác như “giảm tồn kho nếu đủ số lượng và version khớp” có thể phù hợp với SQL nguyên tử vì mục tiêu chính là bảo đảm điều kiện được kiểm tra tại database trong cùng thao tác. Service vẫn phải xác thực input, phân loại kết quả và phát event/outbox nếu nghiệp vụ yêu cầu.
+
+## 11. Bảo mật và tính đúng đắn của SQL động
+
+### 11.1. Bind mọi giá trị
+
+Dùng named parameter:
+
+~~~java
+params.addValue("categoryId", filter.categoryId());
+~~~
+
+Không nối giá trị request vào câu SQL. Bind parameter bảo vệ giá trị khỏi bị diễn giải như SQL syntax.
+
+### 11.2. Whitelist tên cột và hướng sort
+
+Tên cột, tên bảng và từ khóa `ASC`/`DESC` không phải giá trị bind thông thường. Chọn chúng từ enum hoặc hằng số:
+
+~~~java
+String orderBy = switch (sort) {
+    case NAME -> "p.name ASC, p.id ASC";
+    case PRICE_ASC -> "p.price ASC, p.id ASC";
+    case NEWEST -> "p.created_at DESC, p.id DESC";
+};
+~~~
+
+Không nối trực tiếp `request.sortBy()` vào SQL.
+
+### 11.3. Xác thực input
+
+Kiểm tra:
+
+- ID bắt buộc và số lượng dương.
+- Limit/offset trong phạm vi cho phép.
+- Collection filter không quá lớn.
+- Chuỗi được chuẩn hóa theo quy tắc nghiệp vụ.
+- Sort field nằm trong whitelist.
+- Trạng thái chuyển đổi nằm trong tập giá trị hợp lệ.
+
+Bind parameter không thay thế validation và authorization.
+
+## 12. Kiểm thử repository fragment
+
+Custom SQL cần integration test với database phù hợp. Unit test có thể kiểm tra validation và cách xây filter, nhưng không chứng minh JOIN, constraint, transaction hoặc dialect hoạt động đúng.
+
+### 12.1. Kiểm thử JOIN
+
+Chuẩn bị:
+
+- Một category có tên xác định.
+- Một product trỏ tới category đó.
+- Một product thuộc category khác.
+
+Kiểm tra:
+
+- `categoryName` lấy đúng từ bảng category.
+- Alias `product_id`, `product_name` và `category_name` được ánh xạ đúng.
+- Bộ lọc status/category/keyword được áp dụng đúng.
+- Không có kết quả thì trả list rỗng.
+- Sort và limit có thứ tự ổn định.
+
+### 12.2. Kiểm thử lệnh ghi có điều kiện
+
+Với `reserveStock`:
+
+| Tình huống | Kết quả mong đợi |
+| --- | --- |
+| ID tồn tại, version đúng, tồn kho đủ | Cập nhật một hàng; tồn giảm và version tăng |
+| Tồn kho không đủ | Không cập nhật; trả 0 hàng |
+| Version cũ | Không cập nhật; trả 0 hàng |
+| ID không tồn tại | Không cập nhật; trả 0 hàng |
+| Quantity bằng 0 hoặc âm | Bị validation từ chối trước khi chạy SQL |
+| Hai request cùng version | Tối đa một request cập nhật thành công |
+
+Kiểm tra trạng thái đọc lại sau khi cập nhật, không chỉ kiểm tra số hàng bị ảnh hưởng.
+
+### 12.3. Kiểm thử transaction rollback
+
+Trong use case cập nhật tồn kho và ghi outbox:
+
+1. Cho lệnh cập nhật tồn kho thành công.
+2. Làm cho thao tác ghi outbox thất bại.
+3. Xác nhận transaction rollback và tồn kho trở về giá trị ban đầu.
+
+Test này cần cùng transaction manager/datasource. Nếu các repository dùng database khác nhau, phải kiểm tra thiết kế nhất quán riêng.
+
+### 12.4. Dùng database mục tiêu
+
+Nếu SQL có `LIMIT`, `ON CONFLICT`, `RETURNING`, function JSON hoặc cú pháp riêng, hãy chạy test trên đúng database production hoặc Testcontainers tương ứng. H2 không chứng minh mọi cú pháp và locking behavior giống PostgreSQL, MySQL hay SQL Server.
+
+### 12.5. Quan sát SQL và execution plan
+
+Khi truy vấn JOIN chậm:
+
+- Kiểm tra điều kiện JOIN có dùng đúng khóa/index.
+- Kiểm tra index trên các cột filter và sort.
+- Xem số hàng trung gian do JOIN tạo ra.
+- Kiểm tra projection có chọn thừa cột hay không.
+- Dùng execution plan của database.
+
+Không thêm index chỉ dựa vào tên cột; hãy dựa vào truy vấn thực tế và execution plan.
+
+## 13. Những lỗi thường gặp
+
+| Lỗi | Hệ quả | Cách xử lý |
+| --- | --- | --- |
+| Đặt implementation sai tên fragment | Spring Data không ghép được implementation | Dùng tên fragment interface + postfix cấu hình |
+| Đưa toàn bộ SQL vào repository interface | Interface phình to, khó tách trách nhiệm | Dùng fragment riêng |
+| Dùng JOIN projection như aggregate root | Dữ liệu đọc không đầy đủ hoặc nhầm ownership | Trả DTO/read model |
+| Không alias cột JOIN | Trùng label hoặc mapping nhầm | Alias riêng theo ý nghĩa |
+| Nối input vào SQL | SQL injection | Dùng named parameter |
+| Nối sort field từ request | Identifier SQL không an toàn | Dùng enum/whitelist |
+| Tự mở JDBC connection | Không tham gia transaction/pool của Spring | Inject template do Spring quản lý |
+| UPDATE tồn kho bằng SELECT rồi UPDATE rời rạc | Race condition khi nhiều request đồng thời | Một UPDATE có điều kiện trong WHERE |
+| Custom UPDATE bỏ qua version | Ghi đè dữ liệu mới hơn | So sánh và tăng version trong SQL |
+| Chỉ kiểm tra exception mà không xem affected rows | Không biết lệnh có cập nhật hay không | Trả số hàng bị ảnh hưởng |
+| Xóa trực tiếp root có child | Vi phạm FK hoặc bỏ qua lifecycle aggregate | Dùng repository delete hoặc thiết kế xóa toàn aggregate |
+| Nghĩ fragment tự chạy domain callback | Bỏ qua invariant/audit/event | Gọi hành vi miền hoặc triển khai rõ các bước cần thiết |
+| Test chỉ trên H2 | Khác biệt dialect/locking không được phát hiện | Test database mục tiêu |
+
+## 14. Quy trình triển khai một fragment
+
+Khi cần thêm truy vấn JOIN hoặc lệnh ghi đặc thù:
+
+1. **Xác định mục đích:** đọc projection, thao tác trên aggregate hay ghi dữ liệu kỹ thuật?
+2. **Chọn hợp đồng fragment:** đặt tên method và kiểu trả về phản ánh rõ kết quả.
+3. **Tạo interface fragment:** chỉ khai báo API mà service cần.
+4. **Tạo implementation đúng quy ước:** inject `NamedParameterJdbcTemplate`, `JdbcTemplate` hoặc `JdbcClient`.
+5. **Viết SQL có alias và bind parameter:** chọn rõ cột, dùng alias ổn định, bind mọi giá trị.
+6. **Mapping kết quả:** dùng DTO và `RowMapper` khi JOIN tạo result shape riêng.
+7. **Bảo vệ lệnh ghi:** validate input, đặt điều kiện trong SQL, kiểm tra affected rows và xử lý version nếu cần.
+8. **Xác định transaction:** bảo đảm các thao tác phối hợp dùng đúng datasource/transaction manager.
+9. **Giữ aggregate boundary:** không biến projection thành entity ghi và không bỏ qua invariant của root.
+10. **Integration test:** kiểm tra JOIN, null, dữ liệu rỗng, cập nhật đồng thời, rollback và dialect mục tiêu.
+
+## Ghi nhớ
+
+Repository fragment là nơi phù hợp để đặt các truy vấn JOIN và lệnh ghi đặc thù khi CRUD, derived query hoặc một `@Query` đơn giản không còn đủ rõ ràng. Dùng `NamedParameterJdbcTemplate` để bind giá trị, `RowMapper` để chuyển kết quả JOIN thành DTO, và whitelist cho identifier động.
+
+Với lệnh ghi có điều kiện, đặt các điều kiện nghiệp vụ quan trọng ngay trong SQL và kiểm tra số hàng bị ảnh hưởng. Nếu cần optimistic locking, tự so sánh và tăng version trong câu lệnh tùy chỉnh. Fragment dùng template cùng datasource để tham gia transaction Spring, nhưng custom SQL không tự chạy toàn bộ lifecycle của aggregate repository. Hãy giữ rõ ranh giới giữa read projection và aggregate ghi, rồi kiểm thử trên database mục tiêu để xác nhận SQL, mapping, concurrency và rollback.

@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng kiểm thử
+  slug: testing-foundations
+  index: 1
+- title: Công cụ thực hành
+  slug: practical-tools
+  index: 2
+- title: Phân tích hành vi
+  slug: behavior-analysis
+  index: 3
+- title: Danh sách kiểm thử
+  slug: test-list
+  index: 4
+- title: Bước Đỏ
+  slug: red-step
+  index: 5
+- title: Bước Xanh
+  slug: green-step
+  index: 6
+- title: Tái cấu trúc
+  slug: refactoring
+  index: 7
+- title: Thiết kế qua kiểm thử
+  slug: test-driven-design
+  index: 8
+- title: Cấu trúc kiểm thử
+  slug: test-structure
+  index: 9
+- title: Assertion
+  slug: assertions
+  index: 10
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 11
+- title: Đối tượng thay thế
+  slug: test-doubles
+  index: 12
+- title: Phong cách TDD
+  slug: tdd-styles
+  index: 13
+- title: Ranh giới kiến trúc
+  slug: architectural-boundaries
+  index: 14
+- title: Logic nghiệp vụ
+  slug: business-logic
+  index: 15
+- title: Tính xác định
+  slug: determinism
+  index: 16
+- title: Lưu trữ dữ liệu
+  slug: data-persistence
+  index: 17
+- title: Giao tiếp bên ngoài
+  slug: external-communication
+  index: 18
+- title: Xử lý bất đồng bộ
+  slug: async-processing
+  index: 19
+- title: Mã nguồn có sẵn
+  slug: existing-code
+  index: 20
+- title: Đánh giá bộ kiểm thử
+  slug: test-suite-assessment
+  index: 21
+- title: Kỹ thuật bổ trợ
+  slug: supporting-techniques
+  index: 22
+- title: Tổ chức dự án
+  slug: project-organization
+  index: 23
+- title: Cộng tác nhóm
+  slug: team-collaboration
+  index: 24
+- title: Sai lầm và giới hạn
+  slug: mistakes-limitations
+  index: 25
+- title: Thực hành
+  slug: practice
+  index: 26

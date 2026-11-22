@@ -1,0 +1,2209 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Cải tiến quy trình phần mềm (SPI) là gì và vì sao tổ chức cần thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt quy trình, hoạt động, thực hành, phương pháp và công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa chất lượng quy trình, chất lượng sản phẩm và kết quả kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Cải tiến liên tục, khắc phục vấn đề và thiết kế lại quy trình khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt đánh giá quy trình, bảo đảm chất lượng và chương trình cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phạm vi cải tiến ở cá nhân, nhóm, dự án và toàn tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Bản đồ các hướng tiếp cận: PDCA, PDSA, IDEAL, Lean, Six Sigma và CMMI'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Thuật ngữ nền tảng, kiến thức tiên quyết và lộ trình học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: systems-thinking
+  title: Tư duy hệ thống
+  childs:
+  - slug: systems-thinking-001
+    title: Nhìn quy trình như một hệ thống gồm con người, công việc, công nghệ và chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: systems-thinking-002
+    title: Giá trị đối với khách hàng và người sử dụng là điểm xuất phát của cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: systems-thinking-003
+    title: Phân biệt tối ưu một bộ phận với cải thiện kết quả toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: systems-thinking-004
+    title: Nút thắt, giới hạn năng lực và sự dịch chuyển của điểm nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: systems-thinking-005
+    title: Vòng phản hồi, độ trễ và tác dụng ngoài dự kiến khi thay đổi quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: systems-thinking-006
+    title: Phân biệt sai sót cá nhân với điều kiện hệ thống tạo ra sai sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: systems-thinking-007
+    title: Cân bằng tốc độ, chất lượng, chi phí, khả năng dự đoán và sức khỏe đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: improvement-initiation
+  title: Khởi động cải tiến
+  childs:
+  - slug: improvement-initiation-001
+    title: Nhận diện động lực cải tiến từ nhu cầu kinh doanh và vấn đề thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-initiation-002
+    title: Viết phát biểu vấn đề có bối cảnh, phạm vi và tác động đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-initiation-003
+    title: Xác định khách hàng, người tài trợ và các bên chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-initiation-004
+    title: Thiết lập vai trò của người sở hữu quy trình và nhóm cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-initiation-005
+    title: Lập bản đề xuất cải tiến với mục tiêu, ranh giới và tiêu chí thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-initiation-006
+    title: Ước lượng nguồn lực, ngân sách và thời gian dành cho cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-initiation-007
+    title: Xác định quyền ra quyết định, trách nhiệm phối hợp và cơ chế giải quyết vướng mắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-initiation-008
+    title: Kiểm tra mức sẵn sàng thay đổi và chọn điểm khởi đầu khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: current-state-assessment
+  title: Khảo sát hiện trạng
+  childs:
+  - slug: current-state-assessment-001
+    title: Phân biệt quy trình được mô tả trong tài liệu với cách công việc thực sự diễn ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: current-state-assessment-002
+    title: Chuẩn bị câu hỏi khảo sát và chọn người tham gia đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: current-state-assessment-003
+    title: Phỏng vấn, quan sát công việc và tổ chức buổi khảo sát liên chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: current-state-assessment-004
+    title: Thu thập bằng chứng từ công việc, sản phẩm trung gian và lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: current-state-assessment-005
+    title: Kết hợp phản hồi định tính với số liệu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: current-state-assessment-006
+    title: Nhận diện công việc ẩn, bước làm lại và ngoại lệ thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: current-state-assessment-007
+    title: Đối chiếu nhiều nguồn để giảm thiên lệch và phát hiện thông tin mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: current-state-assessment-008
+    title: Ghi nhận hiện trạng, mức độ tin cậy và các khoảng trống cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-description
+  title: Mô tả quy trình
+  childs:
+  - slug: process-description-001
+    title: Xác định đầu vào, đầu ra, điểm bắt đầu và điểm kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-description-002
+    title: Dùng SIPOC để xác định nhà cung cấp, đầu vào, quy trình, đầu ra và khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-description-003
+    title: Vẽ lưu đồ và sơ đồ làn trách nhiệm cho công việc liên phòng ban
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-description-004
+    title: Mô tả vai trò, quyết định, điều kiện chuyển bước và điểm bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-description-005
+    title: Thể hiện công việc lặp lại, xử lý ngoại lệ và các bước phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-description-006
+    title: Chọn mức chi tiết đủ để phân tích mà không tạo gánh nặng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-description-007
+    title: Xác nhận sơ đồ với người thực hiện trước khi dùng làm cơ sở cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: value-stream
+  title: Dòng giá trị
+  childs:
+  - slug: value-stream-001
+    title: Dòng giá trị phần mềm là gì và khác chuỗi hoạt động của một nhóm ở đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-stream-002
+    title: Lập bản đồ dòng giá trị từ nhu cầu đến kết quả người dùng nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-stream-003
+    title: Phân biệt thời gian xử lý, thời gian chờ và tổng thời gian hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-stream-004
+    title: Đo số lần bàn giao, tỷ lệ công việc phải làm lại và lượng việc đang dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-stream-005
+    title: Nhận diện hàng đợi, lô công việc lớn và vòng lặp phản hồi chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-stream-006
+    title: Phân tích cả luồng phát triển thay đổi lẫn luồng khôi phục khi có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-stream-007
+    title: Phác thảo trạng thái mong muốn và xác định điểm nghẽn cần tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: value-stream-008
+    title: Dùng bản đồ dòng giá trị để thống nhất ưu tiên giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: goals-and-measurement
+  title: Mục tiêu và đo lường
+  childs:
+  - slug: goals-and-measurement-001
+    title: Chuyển mục tiêu kinh doanh thành mục tiêu cải tiến cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-002
+    title: Áp dụng Mục tiêu–Câu hỏi–Phép đo (GQM) để nối mục đích với dữ liệu cần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-003
+    title: Phân biệt chỉ số kết quả, chỉ số hoạt động và chỉ số dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-004
+    title: Chọn chỉ số cân bằng để theo dõi chất lượng, tốc độ và tác động phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-005
+    title: Định nghĩa đơn vị đo, sự kiện bắt đầu, sự kiện kết thúc và cách tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-006
+    title: Xác lập đường cơ sở (baseline), giai đoạn quan sát và nhóm dữ liệu so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-007
+    title: Đặt mục tiêu cải thiện có căn cứ thay vì chọn ngưỡng tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-008
+    title: Phân biệt số đo mô tả, chỉ tiêu mong muốn và giới hạn kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-measurement-009
+    title: Lập kế hoạch thu thập, phân tích, báo cáo và sử dụng kết quả đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-management
+  title: Quản lý dữ liệu
+  childs:
+  - slug: data-management-001
+    title: Thiết kế từ điển dữ liệu và quy ước trạng thái công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-management-002
+    title: Chọn nguồn dữ liệu từ quản lý công việc, kho mã, CI/CD và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-management-003
+    title: Kiểm tra dữ liệu thiếu, trùng, sai dấu thời gian và sai liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-management-004
+    title: Phân loại dữ liệu theo sản phẩm, loại công việc, độ phức tạp và bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-management-005
+    title: Lấy mẫu đại diện và nhận diện thiên lệch lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-management-006
+    title: Giữ lịch sử thay đổi định nghĩa chỉ số để so sánh đúng qua thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-management-007
+    title: Quyền truy cập, bảo mật và giới hạn sử dụng dữ liệu về nhân sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-management-008
+    title: Tự động hóa thu thập nhưng vẫn kiểm chứng chất lượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-metrics
+  title: Chỉ số phần mềm
+  childs:
+  - slug: software-metrics-001
+    title: Thời gian hoàn thành (lead time), thời gian chu kỳ (cycle time) và tuổi công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-002
+    title: Thông lượng, lượng việc đang dở và sơ đồ dòng tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-003
+    title: Điều kiện áp dụng định luật Little khi phân tích dòng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-004
+    title: Đo lỗi lọt ra ngoài, công việc làm lại và chi phí do chất lượng kém
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-005
+    title: Đo thời gian phản hồi và hàng đợi ở các bước rà soát, kiểm thử, phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-006
+    title: Các chỉ số DORA về thời gian thay đổi, tần suất triển khai và khôi phục triển khai lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-007
+    title: Tỷ lệ thay đổi gây lỗi và tỷ lệ triển khai để khắc phục sự cố trong DORA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-008
+    title: Phân biệt hiệu suất phân phối phần mềm với độ tin cậy và giá trị sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-009
+    title: Kết hợp dữ liệu vận hành với phản hồi trải nghiệm làm việc theo SPACE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-010
+    title: Giới hạn của số dòng mã, số commit, story point và mức sử dụng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-metrics-011
+    title: Tránh so sánh cá nhân hoặc xếp hạng nhóm từ các chỉ số thiếu bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: variation-analysis
+  title: Phân tích biến thiên
+  childs:
+  - slug: variation-analysis-001
+    title: Vì sao cần xem phân phối dữ liệu thay vì chỉ xem số trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-002
+    title: Dùng trung vị, phân vị và biểu đồ phân phối cho thời gian hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-003
+    title: Biểu đồ diễn tiến (run chart) và quan sát xu hướng theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-004
+    title: Biểu đồ kiểm soát và cách chọn loại phù hợp với dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-005
+    title: Phân biệt biến thiên do nguyên nhân thông thường với nguyên nhân đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-006
+    title: Phân biệt quy trình ổn định với quy trình đáp ứng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-007
+    title: Điều kiện và giới hạn khi áp dụng phân tích năng lực quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-008
+    title: Xem xét cỡ mẫu, tính phụ thuộc theo thời gian và độ bất định của kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variation-analysis-009
+    title: Tránh can thiệp liên tục chỉ để phản ứng với dao động ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: root-cause-analysis
+  title: Nguyên nhân gốc rễ
+  childs:
+  - slug: root-cause-analysis-001
+    title: Phân biệt hiện tượng, tác động, nguyên nhân và giả thuyết nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-002
+    title: Phân tầng dữ liệu trước khi kết luận vấn đề nằm ở đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-003
+    title: Dùng biểu đồ Pareto để chọn nhóm vấn đề cần điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-004
+    title: Áp dụng 5 Whys và nhận diện nguy cơ kết luận theo cảm tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-005
+    title: Dùng sơ đồ xương cá để mở rộng các nhóm nguyên nhân khả dĩ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-006
+    title: Dựng dòng thời gian và phân tích các điều kiện góp phần vào sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-007
+    title: Phân biệt tương quan với quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-008
+    title: Kiểm chứng giả thuyết bằng bằng chứng đối chiếu hoặc thử nghiệm phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-009
+    title: Chuyển kết quả phân tích thành hành động tác động vào hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: improvement-prioritization
+  title: Ưu tiên cải tiến
+  childs:
+  - slug: improvement-prioritization-001
+    title: Xây danh sách cơ hội cải tiến từ vấn đề và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-prioritization-002
+    title: Đánh giá tác động, mức khẩn cấp, rủi ro và phạm vi người hưởng lợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-prioritization-003
+    title: Ước lượng công sức, phụ thuộc, chi phí chuyển đổi và độ chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-prioritization-004
+    title: Dùng ma trận tác động–công sức để hỗ trợ thảo luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-prioritization-005
+    title: Ưu tiên nút thắt thay vì tối ưu nơi dễ đo hoặc dễ sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-prioritization-006
+    title: Phân biệt cải tiến nhỏ thực hiện sớm với thay đổi nền tảng dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-prioritization-007
+    title: Giới hạn số sáng kiến đang thực hiện và phân bổ năng lực cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-prioritization-008
+    title: Lập lộ trình có mốc đánh giá, điều kiện tiếp tục và điều kiện dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pdca-pdsa
+  title: PDCA và PDSA
+  childs:
+  - slug: pdca-pdsa-001
+    title: Chu trình Plan–Do–Check–Act và vai trò của từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdca-pdsa-002
+    title: Chu trình Plan–Do–Study–Act và trọng tâm học hỏi từ dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdca-pdsa-003
+    title: Phân biệt kiểm tra kết quả với nghiên cứu vì sao kết quả xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdca-pdsa-004
+    title: Viết mục tiêu, giả thuyết và dự đoán trước khi thực hiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdca-pdsa-005
+    title: Thực hiện chu trình nhỏ với phạm vi và thời gian quan sát rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdca-pdsa-006
+    title: Đối chiếu kết quả rồi chọn tiếp nhận, điều chỉnh hoặc từ bỏ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pdca-pdsa-007
+    title: Kết nối nhiều chu trình học hỏi thành cải tiến liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ideal-model
+  title: Mô hình IDEAL
+  childs:
+  - slug: ideal-model-001
+    title: Vai trò của IDEAL trong tổ chức chương trình cải tiến quy trình phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ideal-model-002
+    title: 'Initiating: xác lập bối cảnh, sự bảo trợ và hạ tầng cải tiến'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ideal-model-003
+    title: 'Diagnosing: mô tả hiện trạng, trạng thái mong muốn và khoảng cách'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ideal-model-004
+    title: 'Establishing: đặt ưu tiên, chọn cách tiếp cận và lập kế hoạch hành động'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ideal-model-005
+    title: 'Acting: tạo giải pháp, thử nghiệm, điều chỉnh và triển khai'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ideal-model-006
+    title: 'Learning: phân tích kết quả, rút kinh nghiệm và đề xuất hành động tiếp theo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ideal-model-007
+    title: Phối hợp các vòng IDEAL ở cấp tổ chức với thử nghiệm nhỏ ở cấp nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lean-and-kaizen
+  title: Lean và Kaizen
+  childs:
+  - slug: lean-and-kaizen-001
+    title: 'Tư duy Lean: xác định giá trị và loại bỏ lãng phí trong công việc phần mềm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-002
+    title: Nhận diện chờ đợi, bàn giao, việc dở dang và xử lý thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-003
+    title: Giảm kích thước lô và rút ngắn vòng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-004
+    title: Tổ chức dòng công việc kéo và giới hạn lượng việc đang dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-005
+    title: Kaizen hằng ngày và đợt cải tiến tập trung khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-006
+    title: Quan sát công việc tại nơi thực hiện và tôn trọng hiểu biết của người làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-007
+    title: Dùng A3 để trình bày vấn đề, phân tích và phương án cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-008
+    title: Chuẩn hóa cách làm hiện tại như cơ sở để tiếp tục học hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lean-and-kaizen-009
+    title: Điều chỉnh tư duy Lean cho công việc tri thức và tính bất định của phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: six-sigma
+  title: Six Sigma
+  childs:
+  - slug: six-sigma-001
+    title: Mục tiêu giảm biến thiên và sai lỗi trong quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: six-sigma-002
+    title: Chọn bài toán phù hợp với DMAIC thay vì áp dụng cho mọi tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: six-sigma-003
+    title: 'Define: làm rõ vấn đề, nhu cầu khách hàng và phạm vi dự án'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: six-sigma-004
+    title: 'Measure: kiểm chứng phép đo và xác lập hiện trạng đáng tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: six-sigma-005
+    title: 'Analyze: tìm và xác nhận yếu tố gây sai lỗi hoặc chậm trễ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: six-sigma-006
+    title: 'Improve: so sánh phương án và kiểm chứng giải pháp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: six-sigma-007
+    title: 'Control: duy trì kết quả bằng theo dõi và kế hoạch phản ứng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: six-sigma-008
+    title: Giới hạn khi chuyển các giả định thống kê từ sản xuất sang phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cmmi
+  title: CMMI
+  childs:
+  - slug: cmmi-001
+    title: CMMI là mô hình cải tiến năng lực và hiệu suất tổ chức như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-002
+    title: Quan hệ giữa mục tiêu kinh doanh, thực hành và bằng chứng thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-003
+    title: Phân biệt mức năng lực của phạm vi thực hành với mức trưởng thành tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-004
+    title: Từ cách làm ban đầu đến quản lý được và được định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-005
+    title: Vai trò của quản lý định lượng và tối ưu hóa ở mức trưởng thành cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-006
+    title: Lựa chọn phạm vi thực hành theo vấn đề và kết quả mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-007
+    title: Điều chỉnh quy trình chuẩn theo đặc điểm dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-008
+    title: Đánh giá CMMI, phạm vi kết quả và giới hạn của mức được công nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-009
+    title: Tránh đồng nhất mức trưởng thành với chất lượng mọi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cmmi-010
+    title: Kiểm tra phiên bản mô hình và thuật ngữ trước khi áp dụng tài liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capability-assessment
+  title: Đánh giá năng lực
+  childs:
+  - slug: capability-assessment-001
+    title: Mục đích của đánh giá quy trình và cách sử dụng kết quả để cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-002
+    title: Phân biệt mô hình tham chiếu, mô hình đánh giá và khung đo năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-003
+    title: Tổng quan họ ISO/IEC 330xx và quan hệ với ISO/IEC 15504 trước đây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-004
+    title: Phân biệt năng lực từng quy trình với mức trưởng thành của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-005
+    title: Xác định phạm vi, bối cảnh, quy trình và mẫu dự án được đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-006
+    title: Thu thập bằng chứng khách quan từ tài liệu, phỏng vấn và quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-007
+    title: Đối chiếu bằng chứng, ghi nhận điểm mạnh và xác nhận khoảng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-008
+    title: Phân biệt đánh giá nội bộ, đánh giá độc lập và kiểm tra tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capability-assessment-009
+    title: Dùng hồ sơ năng lực để ưu tiên cải tiến thay vì chỉ theo đuổi điểm số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: improvement-design
+  title: Thiết kế cải tiến
+  childs:
+  - slug: improvement-design-001
+    title: Chuyển nguyên nhân đã kiểm chứng thành mục tiêu thay đổi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-design-002
+    title: Tạo nhiều phương án trước khi chọn một giải pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-design-003
+    title: Phân biệt thay đổi chính sách, cách phối hợp, kỹ năng và công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-design-004
+    title: Thiết kế quy trình mong muốn với đầu vào, đầu ra và trách nhiệm rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-design-005
+    title: Đánh giá phụ thuộc và tác động đến các bước trước, sau của quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-design-006
+    title: Dự kiến rủi ro, tác dụng phụ và biện pháp phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-design-007
+    title: Ước lượng lợi ích, tổng chi phí sở hữu và chi phí cơ hội
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-design-008
+    title: Xác định cách kiểm chứng giải pháp và phương án quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: improvement-experiment
+  title: Thử nghiệm cải tiến
+  childs:
+  - slug: improvement-experiment-001
+    title: Viết giả thuyết có thể kiểm chứng và cơ chế tạo ra thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-002
+    title: Chọn nhóm thí điểm và kiểm tra mức độ đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-003
+    title: Thiết lập đường cơ sở, thời gian thử nghiệm và chỉ số bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-004
+    title: Chọn cách so sánh trước–sau, giữa các nhóm hoặc triển khai theo đợt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-005
+    title: Kiểm soát thay đổi đồng thời, mùa vụ và khác biệt loại công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-006
+    title: Thu thập cả kết quả định lượng lẫn trải nghiệm của người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-007
+    title: Phân biệt không thấy hiệu quả với chưa có đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-008
+    title: Quyết định tiếp tục, điều chỉnh, dừng hoặc mở rộng theo tiêu chí đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: improvement-experiment-009
+    title: Ghi lại kết quả thất bại như tri thức có thể tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-management
+  title: Quản lý thay đổi
+  childs:
+  - slug: change-management-001
+    title: Nhận diện nhóm chịu ảnh hưởng và lợi ích hoặc lo ngại của từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-002
+    title: Thiết lập sự bảo trợ của lãnh đạo đi cùng cam kết về nguồn lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-003
+    title: Đồng thiết kế cách làm mới với người trực tiếp thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-004
+    title: Truyền thông lý do thay đổi, kỳ vọng và giới hạn của thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-005
+    title: Đào tạo, hướng dẫn tại chỗ và hỗ trợ giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-006
+    title: Xử lý phản đối bằng tìm hiểu nguyên nhân thay vì áp đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-007
+    title: Tạo môi trường an toàn để báo vấn đề và phản hồi trung thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-008
+    title: Điều chỉnh cơ chế khuyến khích để không đi ngược mục tiêu cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-009
+    title: Theo dõi mức độ sử dụng thực tế và nguy cơ quá tải vì quá nhiều thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-standardization
+  title: Chuẩn hóa quy trình
+  childs:
+  - slug: process-standardization-001
+    title: Chọn nội dung cần chuẩn hóa sau khi giải pháp được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-standardization-002
+    title: Phân biệt chính sách bắt buộc, quy trình tham chiếu và hướng dẫn thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-standardization-003
+    title: Thiết kế tài liệu gọn với trách nhiệm, tiêu chí đầu vào và đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-standardization-004
+    title: Xây bộ tài sản quy trình gồm mẫu, ví dụ, danh sách kiểm tra và hướng dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-standardization-005
+    title: Xác định phần dùng chung và phần được điều chỉnh theo bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-standardization-006
+    title: Quản lý phiên bản, phê duyệt và thông báo thay đổi quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-standardization-007
+    title: Kiểm tra ngoại lệ, cập nhật cách làm và loại bỏ thủ tục không còn giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-standardization-008
+    title: Giữ liên kết giữa tài liệu, công việc thực tế và bằng chứng thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-automation
+  title: Công cụ và tự động hóa
+  childs:
+  - slug: tools-and-automation-001
+    title: Chọn công cụ theo vấn đề cần giải quyết và khả năng đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-002
+    title: Kết nối dữ liệu quản lý công việc, kho mã, kiểm thử và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-003
+    title: Dùng bảng theo dõi để hỗ trợ quyết định thay vì chỉ báo cáo số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-004
+    title: Tự động hóa bước lặp lại sau khi xác nhận quy trình có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-005
+    title: Khai phá quy trình (process mining) từ nhật ký sự kiện và điều kiện dữ liệu cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-006
+    title: Quản lý quy trình dưới dạng mã hoặc cấu hình có kiểm soát phiên bản khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-007
+    title: Đánh giá chi phí vận hành, khả năng tích hợp và rủi ro phụ thuộc công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-automation-008
+    title: Giữ quyền rà soát và xử lý ngoại lệ khi áp dụng tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-context
+  title: Bối cảnh phần mềm
+  childs:
+  - slug: software-context-001
+    title: Cải tiến trong nhóm Agile qua phản tư, thử nghiệm và hành động theo dõi được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-002
+    title: Cải tiến luồng DevOps từ thay đổi mã đến triển khai và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-003
+    title: Giảm vòng lặp làm rõ yêu cầu và phản hồi chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-004
+    title: Cải tiến rà soát mã, kiểm thử và xử lý lỗi theo điểm nghẽn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-005
+    title: Cải tiến bảo trì, hỗ trợ và phản hồi sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-006
+    title: Điều chỉnh cách tiếp cận cho nhóm nhỏ, hệ thống cũ và tổ chức nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-007
+    title: Phối hợp với nhà cung cấp và cải tiến các điểm bàn giao ngoài tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-008
+    title: 'Cải tiến quy trình cá nhân (PSP) và nhóm (TSP): vai trò và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-context-009
+    title: Kết hợp yêu cầu quản trị với cách làm linh hoạt mà không tăng thủ tục hình thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: effectiveness-assessment
+  title: Đánh giá hiệu quả
+  childs:
+  - slug: effectiveness-assessment-001
+    title: Phân biệt hoàn tất hoạt động cải tiến với tạo ra kết quả mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-002
+    title: Đối chiếu kết quả với đường cơ sở và tiêu chí đã đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-003
+    title: Xem xét mức cải thiện thực tế cùng độ bất định của số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-004
+    title: Kiểm tra tác động phụ lên chất lượng, độ tin cậy và sức khỏe đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-005
+    title: Đánh giá mức sử dụng cách làm mới và khả năng tạo lợi ích bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-006
+    title: Ước lượng lợi ích ròng, thời gian thu hồi và giới hạn quy đổi thành tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-007
+    title: Tách ảnh hưởng của cải tiến khỏi yếu tố bên ngoài khi có bằng chứng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-assessment-008
+    title: Báo cáo kết quả, giới hạn kết luận và quyết định vòng cải tiến tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sustainment-and-scaling
+  title: Duy trì và nhân rộng
+  childs:
+  - slug: sustainment-and-scaling-001
+    title: Bàn giao trách nhiệm duy trì từ nhóm cải tiến sang người sở hữu quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-002
+    title: Lập kế hoạch theo dõi, ngưỡng phản ứng và cách xử lý khi kết quả suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-003
+    title: Duy trì nhịp xem xét định kỳ và danh sách cơ hội cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-004
+    title: Lưu bài học, giả định và quyết định để giảm việc thử lại sai lầm cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-005
+    title: Xây cộng đồng thực hành và cơ chế hỗ trợ giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-006
+    title: Xác định điều kiện áp dụng trước khi nhân rộng kết quả thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-007
+    title: Triển khai theo đợt và theo dõi khác biệt bối cảnh giữa các đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-008
+    title: Cân bằng chuẩn chung của tổ chức với quyền điều chỉnh tại nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-009
+    title: Rà soát toàn bộ chương trình và dừng các sáng kiến không còn tạo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sustainment-and-scaling-010
+    title: Nuôi dưỡng văn hóa học hỏi và năng lực cải tiến liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Chọn công cụ hoặc mô hình trước khi xác định vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Thay đổi hàng loạt khiến không xác định được nguyên nhân của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Theo đuổi mức trưởng thành hoặc chứng nhận thay cho kết quả kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Biến chỉ số thành chỉ tiêu thưởng phạt và tạo hành vi đối phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: So sánh các nhóm có bối cảnh khác nhau như thể cùng một quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Quy lỗi cho con người và bỏ qua điều kiện hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Chuẩn hóa quá mức hoặc tự động hóa một bước vốn không cần tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Kết thúc cải tiến ngay sau thí điểm và không kiểm tra khả năng duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Khảo sát một quy trình phát triển phần mềm và lập hồ sơ hiện trạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Lập bản đồ dòng giá trị để tìm thời gian chờ và công việc làm lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Xây mục tiêu GQM, từ điển chỉ số và bộ dữ liệu đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Phân tích biến thiên, phân tầng dữ liệu và kiểm chứng nguyên nhân chậm trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Ưu tiên danh sách cải tiến với bằng chứng về tác động và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Thiết kế một thử nghiệm giảm thời gian rà soát hoặc giảm lỗi sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Lập chương trình IDEAL có vai trò, mốc đánh giá và kế hoạch học hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Đối chiếu hồ sơ năng lực quy trình mà không suy diễn thành chứng nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Viết báo cáo trước–sau, quyết định triển khai và kế hoạch duy trì kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

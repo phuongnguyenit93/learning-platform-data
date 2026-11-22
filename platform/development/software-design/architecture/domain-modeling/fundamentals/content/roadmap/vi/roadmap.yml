@@ -1,0 +1,49 @@
+roadmap:
+- id: bai-toan-ngon-ngu-mien
+  title: Bài toán & Ngôn ngữ miền
+  purpose: Khám phá khái niệm nghiệp vụ qua tình huống thực tế trước khi thiết kế lớp hay bảng.
+  objectives:
+  - '- Mô tả 2–3 use case và các quy tắc nghiệp vụ chính.'
+  - '- Lập glossary thống nhất thuật ngữ với người hiểu nghiệp vụ.'
+- id: domain-context
+  title: Domain & Context
+  purpose: Xác định phạm vi của mô hình để các khái niệm không bị trộn lẫn giữa nhiều bài toán.
+  objectives:
+  - '- Phân biệt domain, subdomain và phạm vi một model.'
+  - '- Phác thảo ranh giới context cho bài toán đơn giản.'
+- id: entity-identity
+  title: Entity & Identity
+  purpose: Nhận diện đối tượng có danh tính và vòng đời độc lập với sự thay đổi thuộc tính.
+  objectives:
+  - '- Chỉ ra Entity trong ví dụ đặt hàng/đặt chỗ.'
+  - '- Thiết kế ID ổn định, trạng thái và vòng đời của Entity.'
+- id: value-object
+  title: Value Object
+  purpose: Mô tả giá trị nghiệp vụ không cần danh tính riêng để giảm lỗi và làm rõ ý nghĩa.
+  objectives:
+  - '- Phân biệt Entity và Value Object theo identity/equality.'
+  - '- Cài đặt Money hoặc Address bất biến bằng Java.'
+- id: quan-he-so-do-mien
+  title: Quan hệ & Sơ đồ miền
+  purpose: Biểu diễn mối liên kết và trách nhiệm giữa các khái niệm nghiệp vụ.
+  objectives:
+  - '- Vẽ sơ đồ lớp với association, composition, multiplicity.'
+  - '- Phân biệt domain model và database schema/DTO.'
+- id: hanh-vi-invariant
+  title: Hành vi & Invariant
+  purpose: Đặt logic và ràng buộc vào đối tượng sở hữu dữ liệu để bảo toàn tính hợp lệ.
+  objectives:
+  - '- Viết phương thức chuyển trạng thái có ý nghĩa nghiệp vụ.'
+  - '- Chặn thao tác vi phạm invariant và tránh model chỉ có getter/setter.'
+- id: aggregate-domain-service
+  title: Aggregate & Domain Service
+  purpose: Nhóm đối tượng theo ranh giới nhất quán, tách logic không thuộc tự nhiên vào một Entity.
+  objectives:
+  - '- Xác định aggregate root cho một luồng nghiệp vụ nhỏ.'
+  - '- Phân biệt trách nhiệm Entity, Domain Service và Application Service.'
+- id: java-model-kiem-thu
+  title: Java Model & Kiểm thử
+  purpose: Chuyển mô hình khái niệm thành mã Java và kiểm tra nó qua các tình huống nghiệp vụ.
+  objectives:
+  - '- Tạo Entity/Value Object và kiểm thử rule, state transition.'
+  - '- Refactor dựa trên use case; giữ domain logic độc lập hạ tầng.'

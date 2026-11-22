@@ -1,0 +1,7 @@
+# Spring Security - Servlet
+
+Spring Security giúp ứng dụng web kiểm tra người gửi yêu cầu là ai, họ được phép làm gì và những cơ chế bảo vệ nào cần áp dụng. Module này tập trung vào ứng dụng chạy trên Servlet và Spring MVC: từ lúc yêu cầu HTTP đi vào chuỗi bộ lọc bảo mật đến khi được chuyển tới bộ điều khiển hoặc nhận phản hồi từ chối.
+
+Module dành cho người đã có kiến thức Java, HTTP và Spring MVC cơ bản, đang bắt đầu học hoặc muốn hiểu rõ cách cấu hình bảo mật web. Tư duy xuyên suốt là lần theo một yêu cầu cụ thể: chuỗi bộ lọc nào được chọn, danh tính được xác thực ra sao, quyền được kiểm tra ở đâu và ngữ cảnh bảo mật được lưu, khôi phục hay xóa khi nào. Phạm vi gồm cấu hình HttpSecurity, đăng nhập bằng biểu mẫu và HTTP Basic, phân quyền yêu cầu, quản lý phiên, đăng xuất, CSRF, CORS và các tiêu đề HTTP bảo mật.
+
+Lộ trình bắt đầu bằng bức tranh tổng thể và kiến trúc bộ lọc, sau đó chuyển sang cấu hình, xác thực, phân quyền và vòng đời ngữ cảnh bảo mật. Khi đã nối được các phần này thành một luồng xử lý, bạn tiếp tục với cơ chế bảo vệ tương tác web và dùng MockMvc cùng nhật ký để kiểm chứng hành vi. Mục tiêu là giải thích được vì sao một yêu cầu được chấp nhận, chuyển hướng hoặc từ chối, rồi điều chỉnh cấu hình dựa trên bằng chứng.

@@ -1,0 +1,57 @@
+roadmap:
+- id: ban-chat-no-ky-thuat
+  title: Bản chất nợ kỹ thuật
+  purpose: Hiểu nợ kỹ thuật là chi phí thay đổi gia tăng do những hạn chế trong thiết kế và chất lượng nội bộ.
+  objectives:
+  - Giải thích ẩn dụ nợ gốc và lãi phát sinh
+  - Phân biệt nợ kỹ thuật với lỗi chức năng
+  - Nêu ví dụ thay đổi nhỏ nhưng tốn nhiều công
+- id: nguon-goc-phan-loai
+  title: Nguồn gốc & phân loại
+  purpose: Nhận diện quyết định và hoàn cảnh tạo nợ để tránh quy kết mọi vấn đề cho một nguyên nhân.
+  objectives:
+  - Phân biệt nợ cố ý với nợ vô tình
+  - Giải thích nợ thận trọng và nợ liều lĩnh
+  - Nhận diện tác động của thay đổi yêu cầu hoặc công nghệ
+- id: dau-hieu-no-trong-thiet-ke
+  title: Dấu hiệu nợ trong thiết kế
+  purpose: Phát hiện các điểm khó thay đổi trong codebase qua dấu hiệu kỹ thuật và phản hồi của nhóm.
+  objectives:
+  - Nhận diện trùng lặp, coupling và cấu trúc rối
+  - Liên hệ lỗi lặp lại với vùng mã khó bảo trì
+  - Thu thập bằng chứng từ review và lịch sử sửa mã
+- id: chi-phi-tac-dong
+  title: Chi phí & tác động
+  purpose: Ước lượng ảnh hưởng của nợ kỹ thuật lên tốc độ thay đổi, độ tin cậy và hoạt động phát triển.
+  objectives:
+  - Mô tả chi phí sửa đổi và kiểm thử phát sinh
+  - Nhận diện rủi ro lỗi hoặc sự cố liên quan
+  - Phân biệt ước lượng với số đo chắc chắn
+- id: danh-gia-uu-tien-tra-no
+  title: Đánh giá & ưu tiên trả nợ
+  purpose: Chọn khoản nợ đáng xử lý theo rủi ro và tần suất sửa đổi thay vì làm sạch toàn bộ hệ thống.
+  objectives:
+  - Xếp hạng theo tác động, tần suất thay đổi và chi phí
+  - Phân biệt nợ ở vùng ít thay đổi và vùng trọng yếu
+  - Lập danh sách ưu tiên cùng lý do
+- id: tra-no-theo-tung-buoc
+  title: Trả nợ theo từng bước
+  purpose: Thực hiện cải tiến đủ nhỏ để giảm chi phí tương lai mà không ngắt quãng việc cung cấp giá trị.
+  objectives:
+  - Đề xuất refactoring có phạm vi rõ
+  - Bổ sung kiểm thử để giữ nguyên hành vi
+  - Tách cải tiến nhỏ vào công việc tính năng liên quan
+- id: phong-ngua-no-phat-sinh
+  title: Phòng ngừa nợ phát sinh
+  purpose: Tích hợp các thực hành chất lượng vào quy trình để hạn chế tích lũy nợ không được kiểm soát.
+  objectives:
+  - Áp dụng code review và kiểm thử tự động
+  - Ghi lại quyết định đánh đổi có thời hạn
+  - Đưa điều kiện chất lượng vào Definition of Done
+- id: theo-doi-ra-quyet-dinh
+  title: Theo dõi & ra quyết định
+  purpose: Quản trị nợ kỹ thuật liên tục cùng kế hoạch sản phẩm và điều chỉnh ưu tiên bằng tín hiệu thực tế.
+  objectives:
+  - Gắn khoản nợ với chủ sở hữu và hệ quả
+  - Theo dõi xu hướng lỗi, thời gian sửa và thay đổi
+  - Đánh giá lại mức ưu tiên sau mỗi giai đoạn

@@ -1,0 +1,2011 @@
+menu:
+- slug: email-overview
+  title: Tổng quan email
+  childs:
+  - slug: email-overview-001
+    title: Email thông báo là gì và vai trò trong luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-overview-002
+    title: Phân biệt thư giao dịch, thư nhắc việc, bản tin và thư tiếp thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-overview-003
+    title: 'Các khái niệm nền tảng: người gửi, người nhận, máy chủ, hộp thư và miền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-overview-004
+    title: Phân biệt gửi email với xác nhận thư đã đến hộp thư hoặc đã được đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-overview-005
+    title: So sánh email với thông báo trong ứng dụng, SMS và thông báo đẩy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-overview-006
+    title: 'Những giới hạn của email: độ trễ, thư rác, khả năng hiển thị và phản hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-overview-007
+    title: Xác định phạm vi tính năng gửi thông báo và kiến thức cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-overview-008
+    title: 'Ví dụ xuyên suốt: thông báo xác nhận và cập nhật trạng thái đơn hàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-flow
+  title: Luồng chuyển phát
+  childs:
+  - slug: delivery-flow-001
+    title: Từ sự kiện nghiệp vụ đến tạo nội dung và yêu cầu gửi thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-flow-002
+    title: Vai trò phần mềm đọc thư, máy chủ nộp thư, chuyển thư và phát vào hộp thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-flow-003
+    title: Gửi qua SMTP relay hoặc API của dịch vụ email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-flow-004
+    title: Tra cứu DNS, chuyển tiếp qua máy chủ và tiếp nhận tại miền người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-flow-005
+    title: 'Các trạng thái: chờ gửi, đang gửi, được tiếp nhận, bị trì hoãn và bị từ chối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-flow-006
+    title: Phản hồi đồng bộ khi gửi và thông báo chuyển phát đến sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-flow-007
+    title: Ranh giới trách nhiệm của ứng dụng, nhà cung cấp và máy chủ nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-flow-008
+    title: Phân biệt các mốc thời gian nghiệp vụ, gửi thư và ghi nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: addresses-identities
+  title: Địa chỉ và định danh
+  childs:
+  - slug: addresses-identities-001
+    title: Cấu trúc địa chỉ email, tên hiển thị và miền người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-identities-002
+    title: Phân biệt địa chỉ From, Sender, Reply-To và địa chỉ nhận phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-identities-003
+    title: SMTP envelope và các header hiển thị trong nội dung thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-identities-004
+    title: To, Cc, Bcc và bảo vệ danh sách người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-identities-005
+    title: Message-ID, mã thông báo nghiệp vụ và mã yêu cầu của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-identities-006
+    title: In-Reply-To, References và cách các thư được nhóm thành hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-identities-007
+    title: Kiểm tra định dạng địa chỉ và giới hạn của việc xác minh hộp thư tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-identities-008
+    title: Địa chỉ quốc tế hóa, Unicode và khả năng hỗ trợ của hệ thống gửi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: smtp-protocol
+  title: Giao thức SMTP
+  childs:
+  - slug: smtp-protocol-001
+    title: 'Phiên SMTP: kết nối, chào máy chủ, khai báo người gửi và người nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-002
+    title: EHLO và việc thương lượng các khả năng mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-003
+    title: MAIL FROM, RCPT TO, DATA và ranh giới giữa envelope với nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-004
+    title: Phân biệt kết quả chấp nhận người nhận với kết quả chấp nhận toàn bộ thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-005
+    title: Mã phản hồi SMTP và mã trạng thái mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-006
+    title: Lỗi tạm thời, lỗi vĩnh viễn và cách diễn giải theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-007
+    title: Gửi nhiều người nhận và xử lý trường hợp chỉ một phần được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-008
+    title: Timeout, mất kết nối và trạng thái gửi không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-protocol-009
+    title: Đọc bản ghi phiên SMTP để hiểu luồng xử lý mà không lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mime-content
+  title: MIME và nội dung
+  childs:
+  - slug: mime-content-001
+    title: 'Cấu trúc thông điệp email: header, dòng trống và phần thân'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-002
+    title: MIME và cách mô tả kiểu nội dung, bộ ký tự và dữ liệu nhiều phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-003
+    title: Content-Type, charset và Content-Transfer-Encoding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-004
+    title: Tiêu đề, tên hiển thị và nội dung tiếng Việt có dấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-005
+    title: multipart/alternative cho phiên bản văn bản thuần và HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-006
+    title: multipart/mixed cho nội dung thư đi cùng tệp đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-007
+    title: multipart/related cho HTML và tài nguyên nội tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-008
+    title: Ranh giới MIME, thứ tự các phần và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mime-content-009
+    title: Kiểm tra thông điệp gốc để tìm lỗi mã hóa hoặc bố cục nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: html-email
+  title: HTML cho email
+  childs:
+  - slug: html-email-001
+    title: Khác biệt giữa HTML email với trang web thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-email-002
+    title: Thiết kế bố cục có khả năng hiển thị trên nhiều phần mềm đọc thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-email-003
+    title: CSS nội tuyến, thuộc tính được hỗ trợ và cách xử lý khi CSS bị bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-email-004
+    title: Thiết kế thích ứng trên màn hình nhỏ và kiểm tra chế độ tối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-email-005
+    title: Tiêu đề, đoạn xem trước và thứ bậc nội dung dễ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-email-006
+    title: Nút hành động, liên kết, hình ảnh và văn bản thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-email-007
+    title: 'Khả năng tiếp cận: độ tương phản, cỡ chữ và nội dung khi ảnh không tải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: html-email-008
+    title: Bản văn bản thuần và trải nghiệm khi HTML không được hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: templates-localization
+  title: Mẫu và ngôn ngữ
+  childs:
+  - slug: templates-localization-001
+    title: Tách mẫu thư, dữ liệu nghiệp vụ và cấu hình người gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-localization-002
+    title: Thiết kế bố cục chung, phần nội dung dùng lại và mẫu theo loại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-localization-003
+    title: Khai báo biến bắt buộc, giá trị mặc định và kiểm tra dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-localization-004
+    title: Thoát ký tự theo ngữ cảnh để tránh chèn nội dung ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-localization-005
+    title: Kết xuất mẫu phía máy chủ và mẫu được quản lý tại nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-localization-006
+    title: Ngôn ngữ, múi giờ và định dạng ngày giờ, số tiền theo người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-localization-007
+    title: Quản lý phiên bản mẫu và khả năng truy lại nội dung đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-localization-008
+    title: Xem trước, phê duyệt và kiểm tra mẫu trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attachments-images
+  title: Tệp và hình ảnh
+  childs:
+  - slug: attachments-images-001
+    title: Phân biệt tệp đính kèm, ảnh nội tuyến và liên kết tải tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attachments-images-002
+    title: Đặt tên tệp tiếng Việt, MIME type và Content-Disposition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attachments-images-003
+    title: Content-ID và tham chiếu ảnh nội tuyến trong HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attachments-images-004
+    title: Giới hạn kích thước thư và chi phí tăng kích thước do mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attachments-images-005
+    title: Đọc tệp theo luồng và quản lý bộ nhớ, tài nguyên khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attachments-images-006
+    title: Kiểm tra loại tệp, nguồn tệp và quyền truy cập tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attachments-images-007
+    title: Thời hạn liên kết tải, quyền người nhận và cách tránh lộ tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attachments-images-008
+    title: Kiểm thử tệp rỗng, tệp hỏng, tên tệp đặc biệt và nhiều tệp cùng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-authentication
+  title: Xác thực tên miền
+  childs:
+  - slug: domain-authentication-001
+    title: Quan hệ giữa miền gửi, miền ký, địa chỉ envelope và danh tính hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-002
+    title: 'Bản ghi DNS liên quan: MX, TXT và thông tin xác thực miền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-003
+    title: 'SPF: kiểm tra nguồn gửi theo miền trong envelope'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-004
+    title: 'DKIM: ký thông điệp và xác minh bằng khóa công khai trong DNS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-005
+    title: 'DMARC: sự căn chỉnh miền và chính sách xử lý kết quả xác thực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-006
+    title: Đọc kết quả xác thực trong header thư và báo cáo liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-007
+    title: Tách miền hoặc miền con cho từng luồng gửi và từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-008
+    title: Quy trình thêm nguồn gửi, xác minh DNS và luân chuyển khóa ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-authentication-009
+    title: Giới hạn của xác thực miền đối với khả năng vào hộp thư chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deliverability
+  title: Khả năng chuyển phát
+  childs:
+  - slug: deliverability-001
+    title: Phân biệt thư được tiếp nhận, được phát và được xếp vào hộp thư chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-002
+    title: Danh tiếng miền, địa chỉ IP và lịch sử gửi thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-003
+    title: Ảnh hưởng của chất lượng danh sách, thư bị trả lại và khiếu nại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-004
+    title: Nội dung, liên kết và sự nhất quán của danh tính người gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-005
+    title: Tăng lưu lượng gửi có kiểm soát và tránh thay đổi đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-006
+    title: Địa chỉ IP dùng chung, IP riêng và trách nhiệm vận hành tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-007
+    title: Theo dõi thư rác, chính sách lọc và tín hiệu từ từng miền nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-008
+    title: Vai trò của PTR, HELO và cấu hình máy chủ khi tự vận hành hạ tầng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deliverability-009
+    title: Phân tích nguyên nhân thư vào spam bằng dữ liệu thay vì chỉ sửa câu chữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: smtp-connection-authentication
+  title: Kết nối và xác thực
+  childs:
+  - slug: smtp-connection-authentication-001
+    title: Thiết lập máy chủ, cổng và thông tin tài khoản gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-002
+    title: Phân biệt TLS ngay khi kết nối với nâng cấp kết nối bằng STARTTLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-003
+    title: Kiểm tra chứng thư, tên máy chủ và chính sách bắt buộc mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-004
+    title: SMTP AUTH và lựa chọn cơ chế được nhà cung cấp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-005
+    title: Mật khẩu ứng dụng, OAuth 2.0 và quản lý vòng đời thông tin truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-006
+    title: Tách tài khoản, bí mật và quyền gửi theo môi trường hoặc miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-007
+    title: Timeout kết nối, đọc, ghi và giới hạn thời gian toàn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-008
+    title: Kiểm tra kết nối từ môi trường triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smtp-connection-authentication-009
+    title: Luân chuyển thông tin truy cập và phục hồi khi quyền gửi bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jakarta-mail
+  title: Email với Jakarta Mail
+  childs:
+  - slug: jakarta-mail-001
+    title: Vai trò Jakarta Mail, triển khai thư viện và quan hệ với API JavaMail
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-002
+    title: Cấu hình Session, thuộc tính kết nối và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-003
+    title: Tạo MimeMessage với người gửi, người nhận, tiêu đề và ngày gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-004
+    title: Tạo thư văn bản thuần hoặc HTML bằng bộ ký tự phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-005
+    title: Lắp ghép MimeMultipart cho HTML, ảnh nội tuyến và tệp đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-006
+    title: Gửi thư bằng Transport và quản lý vòng đời kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-007
+    title: Xử lý lỗi xác thực, lỗi địa chỉ và lỗi gửi một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-008
+    title: Quản lý stream, tài nguyên tệp và thông điệp khi gửi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-mail-009
+    title: Kiểm tra nội dung MIME thực tế và cấu hình chẩn đoán an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-email
+  title: Email với Spring Boot
+  childs:
+  - slug: spring-boot-email-001
+    title: Vai trò hỗ trợ Mail của Spring Boot và JavaMailSender
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-002
+    title: Cấu hình kết nối SMTP bằng thuộc tính theo từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-003
+    title: Gửi thư đơn giản với SimpleMailMessage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-004
+    title: Tạo thư MIME bằng MimeMessage và MimeMessageHelper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-005
+    title: Kết xuất mẫu thư từ dữ liệu nghiệp vụ trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-006
+    title: Tách dịch vụ thông báo, bộ dựng thư và thành phần chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-007
+    title: Quản lý exception và chuyển lỗi thư viện thành kết quả gửi có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-008
+    title: Xử lý nền và giới hạn của việc chỉ dùng @Async để gửi thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-009
+    title: Quản lý bean, bí mật và cấu hình timeout trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-email-010
+    title: Kiểm chứng luồng gửi bằng máy chủ SMTP giả lập và dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: email-sending-api
+  title: API gửi email
+  childs:
+  - slug: email-sending-api-001
+    title: So sánh SMTP relay với HTTP API theo nhu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-sending-api-002
+    title: Thiết kế lớp chuyển đổi để ứng dụng không phụ thuộc sâu vào nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-sending-api-003
+    title: Ánh xạ người nhận, nội dung, mẫu, tệp và metadata sang yêu cầu API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-sending-api-004
+    title: Quản lý khóa API, quyền gửi và miền đã được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-sending-api-005
+    title: Phân biệt phản hồi tiếp nhận API với kết quả chuyển phát cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-sending-api-006
+    title: Mã yêu cầu, khóa chống lặp và các khả năng riêng cần kiểm tra trong hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-sending-api-007
+    title: Xử lý hạn ngạch, giới hạn tốc độ và lỗi phản hồi từ nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-sending-api-008
+    title: Thay đổi nhà cung cấp và quản lý trạng thái gửi không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-design
+  title: Thiết kế thông báo
+  childs:
+  - slug: notification-design-001
+    title: Xác định sự kiện nào cần email và thông tin người nhận cần biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-design-002
+    title: 'Mô hình thông báo: loại, người nhận, mẫu, dữ liệu và mức ưu tiên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-design-003
+    title: Phân biệt thời điểm phát sinh nghiệp vụ với thời điểm lập kế hoạch gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-design-004
+    title: Thiết kế trạng thái thông báo, lần gửi và kết quả từng người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-design-005
+    title: Xác định thông báo tức thời, thông báo theo lịch và bản tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-design-006
+    title: Thời hạn giá trị, hủy thông báo và xử lý khi nghiệp vụ đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-design-007
+    title: Ưu tiên email quan trọng và cô lập khỏi luồng gửi số lượng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-design-008
+    title: Thiết kế lịch sử phục vụ hỗ trợ mà không lưu thừa dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-transactions
+  title: Hàng đợi và giao dịch
+  childs:
+  - slug: queues-transactions-001
+    title: Vì sao không nên gắn việc chờ gửi email với giao dịch nghiệp vụ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-transactions-002
+    title: Cửa sổ lỗi khi ghi dữ liệu nghiệp vụ và gửi email bằng hai thao tác riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-transactions-003
+    title: Mẫu transactional outbox cho yêu cầu gửi phát sinh cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-transactions-004
+    title: Đưa công việc vào hàng đợi và lưu trạng thái bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-transactions-005
+    title: Worker lấy việc, khóa hoặc lease và phân chia công việc giữa nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-transactions-006
+    title: Thời điểm xác nhận công việc đã xử lý và cập nhật kết quả gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-transactions-007
+    title: Khôi phục công việc đang chạy khi tiến trình hoặc máy chủ bị dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-transactions-008
+    title: Tách giai đoạn lập kế hoạch, dựng nội dung và chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retries-deduplication
+  title: Retry và chống trùng
+  childs:
+  - slug: retries-deduplication-001
+    title: Phân loại lỗi có thể thử lại, lỗi vĩnh viễn và lỗi cần can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-002
+    title: Thiết kế khoảng chờ tăng dần, jitter và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-003
+    title: Áp dụng thời hạn thông báo khi email không còn giá trị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-004
+    title: Khóa chống trùng theo sự kiện nghiệp vụ, người nhận và loại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-005
+    title: Giao dịch trạng thái và xử lý khi nhiều worker nhận cùng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-006
+    title: Khoảng trống giữa máy chủ chấp nhận thư với việc ứng dụng ghi nhận thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-007
+    title: Giới hạn bảo đảm không gửi trùng khi kết quả chuyển phát chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-008
+    title: Hàng đợi thất bại cuối cùng và thao tác gửi lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-deduplication-009
+    title: Giữ nguyên nội dung hay kết xuất lại mẫu khi thử lại hoặc gửi lại thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-feedback
+  title: Phản hồi chuyển phát
+  childs:
+  - slug: delivery-feedback-001
+    title: Thông báo trạng thái chuyển phát và dữ liệu phản hồi từ nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-002
+    title: Thư trả lại tạm thời (soft bounce), vĩnh viễn (hard bounce) và mã lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-003
+    title: Phản hồi lỗi sau khi SMTP đã chấp nhận yêu cầu gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-004
+    title: Khiếu nại thư rác, vòng phản hồi (feedback loop) và quy trình ngừng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-005
+    title: Xác thực webhook phản hồi, chống phát lại và bảo vệ endpoint tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-006
+    title: Liên kết phản hồi với thông báo, lần gửi và đúng người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-007
+    title: Xử lý sự kiện phản hồi trùng, đến muộn hoặc không đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-008
+    title: Danh sách ngừng gửi và điều kiện xem xét khôi phục người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-feedback-009
+    title: Đối soát trạng thái khi thiếu phản hồi hoặc có dữ liệu mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recipients-preferences
+  title: Người nhận và tùy chọn
+  childs:
+  - slug: recipients-preferences-001
+    title: Xác minh quyền sử dụng địa chỉ email và xử lý khi người dùng đổi địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipients-preferences-002
+    title: Quản lý lựa chọn nhận thư theo loại nội dung và kênh thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipients-preferences-003
+    title: Phân biệt tùy chọn thư quảng bá với thông báo nghiệp vụ thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipients-preferences-004
+    title: Ghi nhận căn cứ đăng ký nhận và lịch sử thay đổi tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipients-preferences-005
+    title: Luồng hủy đăng ký, header List-Unsubscribe và hủy đăng ký một lần nhấp khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipients-preferences-006
+    title: Giới hạn tần suất, giờ yên lặng và tổng hợp thông báo theo múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipients-preferences-007
+    title: Người nhận đã bị ngừng gửi, địa chỉ sai và tài khoản không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipients-preferences-008
+    title: Kiểm tra lại trạng thái người nhận trước khi gửi công việc đã xếp hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: email-security
+  title: Bảo mật email
+  childs:
+  - slug: email-security-001
+    title: Ngăn chèn header và kiểm tra dữ liệu dùng trong người gửi, người nhận, tiêu đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-002
+    title: Ngăn chèn mẫu hoặc HTML không mong muốn từ dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-003
+    title: Bảo vệ liên kết đặt lại mật khẩu, xác minh tài khoản và hành động nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-004
+    title: Giới hạn nội dung nhạy cảm và tránh dùng email làm kho lưu trữ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-005
+    title: Quản lý khóa SMTP, token API và quyền truy cập cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-006
+    title: Phân quyền xem lịch sử, xem nội dung và gửi lại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-007
+    title: Ngăn endpoint gửi thử bị lạm dụng thành công cụ phát tán thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-008
+    title: Kiểm soát nguồn ảnh, tệp và tài nguyên tải từ URL bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-security-009
+    title: Phân biệt mã hóa đường truyền với mã hóa nội dung đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sending-performance
+  title: Hiệu năng gửi thư
+  childs:
+  - slug: sending-performance-001
+    title: Ước lượng lưu lượng theo số thông báo, số người nhận và số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-performance-002
+    title: Giới hạn tốc độ theo nhà cung cấp, miền nhận, tenant và loại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-performance-003
+    title: Giới hạn số worker, luồng xử lý và kết nối SMTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-performance-004
+    title: Tái sử dụng kết nối theo khả năng thư viện và chính sách máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-performance-005
+    title: Quản lý bộ nhớ khi nhiều thư có HTML, ảnh hoặc tệp lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-performance-006
+    title: Bộ đệm bền vững, áp lực ngược và xử lý backlog tăng nhanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-performance-007
+    title: Đo chi phí gửi theo dung lượng, số lần gửi và tính năng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-performance-008
+    title: Thử nghiệm tăng tải và kiểm tra mức ảnh hưởng đến luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: email-testing
+  title: Kiểm thử email
+  childs:
+  - slug: email-testing-001
+    title: Lập ma trận kiểm thử theo loại thông báo và trạng thái chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-002
+    title: Kiểm thử dữ liệu mẫu, biến thiếu và nội dung tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-003
+    title: Kiểm thử MIME, bản văn bản thuần, HTML và tệp đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-004
+    title: Kiểm tra hiển thị trên nhiều phần mềm đọc thư và thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-005
+    title: Dùng máy chủ SMTP kiểm thử để giữ thư trong môi trường an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-006
+    title: Kiểm thử lỗi xác thực, lỗi TLS, timeout và gửi một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-007
+    title: Kiểm thử outbox, retry, chống trùng và phục hồi sau khi dừng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-008
+    title: Kiểm thử webhook phản hồi, suppression và hủy đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-009
+    title: Kiểm thử tải, giới hạn tài nguyên và cô lập luồng ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-testing-010
+    title: Chặn gửi nhầm đến địa chỉ thật trong môi trường phát triển và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-operations-001
+    title: Log có cấu trúc theo mã thông báo, lần gửi và mã nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-002
+    title: Metric cho hàng đợi, tỷ lệ tiếp nhận, lỗi gửi và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-003
+    title: Theo dõi bounce, khiếu nại và kết quả xác thực tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-004
+    title: Độ trễ từ sự kiện nghiệp vụ đến lúc email được tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-005
+    title: Giới hạn của số liệu mở thư, nhấp liên kết và tác động của bảo vệ riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-006
+    title: Dashboard và cảnh báo theo mức ưu tiên hoặc miền nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-007
+    title: Triển khai nhiều bản sao, dừng worker an toàn và tiếp tục việc chưa xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-008
+    title: Quản lý thời hạn lưu lịch sử, payload và dữ liệu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-009
+    title: Runbook thay đổi cấu hình, nhà cung cấp và thông tin truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không kết nối được SMTP: kiểm tra DNS, cổng, mạng và cấu hình TLS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Xác thực thất bại: kiểm tra cơ chế đăng nhập, quyền và thông tin truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Máy chủ đã nhận thư nhưng người nhận chưa thấy trong hộp thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: 'Thư vào spam: kiểm tra danh tính, xác thực miền và chất lượng danh sách'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Lỗi tiếng Việt, tiêu đề sai hoặc nội dung MIME bị hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Ảnh không hiển thị, tệp không mở được hoặc bố cục HTML lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Thư gửi trùng, gửi muộn hoặc vẫn gửi sau khi nghiệp vụ đã hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Backlog tăng, vượt hạn ngạch và lỗi gửi tập trung ở một miền nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Đối soát sự cố, khoanh vùng thư ảnh hưởng và gửi lại có dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-project
+  title: Dự án thực hành
+  childs:
+  - slug: practice-project-001
+    title: Phân tích nhu cầu xác nhận đơn hàng và thông báo thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-project-002
+    title: Thiết kế mẫu thư song ngữ, người nhận và tùy chọn thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-project-003
+    title: Xây dựng dịch vụ gửi bằng Spring Boot với lớp chuyển phát thay thế được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-project-004
+    title: Tích hợp outbox, worker, giới hạn tốc độ và chính sách thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-project-005
+    title: Bảo vệ liên kết hành động bằng token, thời hạn giá trị và kiểm tra quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-project-006
+    title: Tiếp nhận phản hồi chuyển phát và cập nhật danh sách ngừng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-project-007
+    title: Mô phỏng mất kết nối, lỗi một phần, gửi trùng và sự kiện đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-project-008
+    title: Nghiệm thu nội dung, khả năng quan sát và quy trình phục hồi toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

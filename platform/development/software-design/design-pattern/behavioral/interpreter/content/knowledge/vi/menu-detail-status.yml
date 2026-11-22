@@ -1,0 +1,2245 @@
+menu:
+- slug: pattern-overview
+  title: Tổng quan
+  childs:
+  - slug: pattern-overview-001
+    title: Ý định của mẫu Interpreter và bài toán diễn giải một ngôn ngữ nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-002
+    title: Vị trí của Interpreter trong nhóm mẫu thiết kế hành vi GoF
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-003
+    title: Từ chuỗi đầu vào đến token, cây biểu thức và kết quả đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-004
+    title: Phân biệt grammar, lexer, parser, AST và evaluator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-005
+    title: Mối liên hệ giữa quy tắc grammar và các lớp biểu thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-006
+    title: Lợi ích của việc biểu diễn quy tắc bằng các đối tượng có thể kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-007
+    title: Chi phí xây dựng và bảo trì một ngôn ngữ chuyên biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-overview-008
+    title: Khi nên dùng Interpreter và những dấu hiệu nên chọn giải pháp khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: roles-and-collaboration
+  title: Vai trò và cộng tác
+  childs:
+  - slug: roles-and-collaboration-001
+    title: AbstractExpression và hợp đồng đánh giá biểu thức trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-collaboration-002
+    title: TerminalExpression và cách đánh giá phần tử không có biểu thức con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-collaboration-003
+    title: NonterminalExpression và cách kết hợp các biểu thức con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-collaboration-004
+    title: Context và dữ liệu dùng chung trong một lần đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-collaboration-005
+    title: Client và trách nhiệm tạo, phân tích, tái sử dụng cây biểu thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-collaboration-006
+    title: Luồng cộng tác giữa client, parser, AST, context và evaluator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-collaboration-007
+    title: Ánh xạ sơ đồ lớp GoF sang một mô hình Java tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: roles-and-collaboration-008
+    title: Tách trách nhiệm phân tích cú pháp khỏi thực thi ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-scope
+  title: Phạm vi ngôn ngữ
+  childs:
+  - slug: language-scope-001
+    title: Xác định người viết quy tắc, người vận hành và người sử dụng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-scope-002
+    title: Chọn miền bài toán và giới hạn năng lực của DSL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-scope-003
+    title: Thiết kế cú pháp gần nghiệp vụ nhưng có ngữ nghĩa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-scope-004
+    title: Xác định biến, toán tử, hàm và các kiểu kết quả được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-scope-005
+    title: Chọn biểu thức thuần và quy định rõ các tác dụng phụ được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-scope-006
+    title: Quy định hành vi với dữ liệu thiếu, giá trị null và đầu vào sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-scope-007
+    title: Xác định yêu cầu tương thích và phiên bản của ngôn ngữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-scope-008
+    title: Xây bộ ví dụ hợp lệ, không hợp lệ và các trường hợp biên trước khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: grammar-design
+  title: Thiết kế grammar
+  childs:
+  - slug: grammar-design-001
+    title: Biểu diễn grammar bằng BNF và EBNF
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-002
+    title: Ký hiệu bắt đầu, terminal, nonterminal và luật sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-003
+    title: Grammar cho literal, biến, lời gọi hàm và biểu thức có ngoặc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-004
+    title: Độ ưu tiên và tính kết hợp của các toán tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-005
+    title: Phân tầng grammar cho toán tử một ngôi, nhân chia, cộng trừ và so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-006
+    title: Phân tầng grammar cho NOT, AND và OR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-007
+    title: Phát hiện grammar mơ hồ qua những chuỗi có nhiều cách phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-008
+    title: Loại bỏ đệ quy trái và tách tiền tố chung khi dùng recursive descent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: grammar-design-009
+    title: Đồng bộ grammar với đặc tả ngữ nghĩa và ví dụ chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lexical-analysis
+  title: Phân tích từ vựng
+  childs:
+  - slug: lexical-analysis-001
+    title: Thiết kế TokenType, Token và vị trí nguồn trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-002
+    title: Nhận diện số, chuỗi, định danh, từ khóa và dấu phân cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-003
+    title: Xử lý khoảng trắng, chú thích và ký tự kết thúc đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-004
+    title: Quy tắc nhận diện toán tử nhiều ký tự và nguyên tắc khớp dài nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-005
+    title: Phân biệt dấu âm trong cú pháp với literal số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-006
+    title: Escape trong chuỗi, Unicode và chính sách phân biệt chữ hoa chữ thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-007
+    title: Thông báo lỗi khi gặp ký tự lạ hoặc chuỗi chưa đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lexical-analysis-008
+    title: Giới hạn độ dài nguồn, literal và số lượng token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ast-modeling
+  title: Mô hình AST
+  childs:
+  - slug: ast-modeling-001
+    title: Phân biệt cây phân tích cú pháp với cây cú pháp trừu tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-002
+    title: Thiết kế các node Literal, Variable, Unary, Binary và FunctionCall
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-003
+    title: Biểu diễn toán tử bằng enum và quan hệ giữa các node
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-004
+    title: Dùng interface, class, record hoặc sealed type theo phiên bản Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-005
+    title: Thiết kế AST bất biến và kiểm tra bất biến tại constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-006
+    title: Lưu vị trí nguồn để liên kết lỗi thực thi với biểu thức ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-007
+    title: Xây cây bằng tay để kiểm chứng mô hình trước khi viết parser
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-008
+    title: Duyệt cây, in cây và xuất lại biểu thức với dấu ngoặc phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ast-modeling-009
+    title: Kiểm tra độ sâu, số node và tính hợp lệ của cây trước khi đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: terminal-expressions
+  title: Biểu thức terminal
+  childs:
+  - slug: terminal-expressions-001
+    title: LiteralExpression cho số, chuỗi và giá trị boolean
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: terminal-expressions-002
+    title: VariableExpression và cơ chế tra cứu tên trong context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: terminal-expressions-003
+    title: ConstantExpression và các hằng được ngôn ngữ cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: terminal-expressions-004
+    title: Quy định kiểu trả về của từng loại terminal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: terminal-expressions-005
+    title: Xử lý biến chưa khai báo và giá trị không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: terminal-expressions-006
+    title: Phân biệt terminal của grammar với node lá trong AST
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: terminal-expressions-007
+    title: Kiểm thử terminal độc lập bằng context nhỏ và dữ liệu biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: terminal-expressions-008
+    title: Tránh để node lá tự truy cập cơ sở dữ liệu hoặc dịch vụ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: nonterminal-expressions
+  title: Biểu thức nonterminal
+  childs:
+  - slug: nonterminal-expressions-001
+    title: UnaryExpression cho đổi dấu và phủ định logic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nonterminal-expressions-002
+    title: BinaryExpression cho số học, so sánh và kết hợp logic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nonterminal-expressions-003
+    title: Biểu thức điều kiện và nhánh đánh giá được lựa chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nonterminal-expressions-004
+    title: Lời gọi hàm có danh sách đối số và kiểm tra số lượng tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nonterminal-expressions-005
+    title: Thứ tự đánh giá các biểu thức con và ảnh hưởng tới kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nonterminal-expressions-006
+    title: Short-circuit cho AND, OR và biểu thức điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nonterminal-expressions-007
+    title: Tổng hợp kết quả con và truyền lỗi lên biểu thức cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nonterminal-expressions-008
+    title: Giữ các lớp biểu thức tập trung vào một trách nhiệm ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: evaluation-context
+  title: Ngữ cảnh đánh giá
+  childs:
+  - slug: evaluation-context-001
+    title: Thiết kế EvaluationContext và giao diện truy cập biến có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-context-002
+    title: Phân biệt môi trường tên biến, dữ liệu thực tế và cấu hình thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-context-003
+    title: Phạm vi biến, che khuất tên và quy tắc phân giải định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-context-004
+    title: Đóng băng dữ liệu đầu vào cho một lần đánh giá nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-context-005
+    title: Truyền đồng hồ, múi giờ và locale một cách tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-context-006
+    title: Đăng ký hàm theo danh sách cho phép và hợp đồng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-context-007
+    title: Tách dữ liệu nghiệp vụ khỏi bộ đếm tài nguyên và trạng thái chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-context-008
+    title: Tránh context toàn cục, trạng thái ẩn và phụ thuộc khó kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: types-and-semantics
+  title: Kiểu và ngữ nghĩa
+  childs:
+  - slug: types-and-semantics-001
+    title: Chọn mô hình giá trị cho boolean, số, chuỗi, ngày giờ và giá trị thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-002
+    title: Phân biệt lỗi cú pháp, lỗi phân giải tên, lỗi kiểu và lỗi đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-003
+    title: Kiểm tra kiểu trước khi thực thi và kiểm tra động khi cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-004
+    title: Quy định ép kiểu tường minh, ép kiểu ngầm và các phép toán bị cấm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-005
+    title: Ngữ nghĩa so sánh bằng, so sánh thứ tự và tương thích kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-006
+    title: Thiết kế logic hai giá trị hoặc ba giá trị khi dữ liệu có thể thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-007
+    title: Quy định độ chính xác số, làm tròn, tràn số và chia cho không
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-008
+    title: Kiểu trả về, tính thuần và tính xác định của các hàm mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-semantics-009
+    title: Tách kết quả đánh giá thành thành công, lỗi và trạng thái không xác định nếu cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: handwritten-parser
+  title: Parser thủ công
+  childs:
+  - slug: handwritten-parser-001
+    title: Xây parser recursive descent từ các tầng ưu tiên của grammar
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-002
+    title: Quản lý con trỏ token, lookahead và các thao tác match, consume, expect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-003
+    title: Phân tích literal, định danh, ngoặc và lời gọi hàm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-004
+    title: Phân tích toán tử một ngôi và các chuỗi toán tử nhị phân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-005
+    title: Xây AST trực tiếp trong quá trình phân tích cú pháp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-006
+    title: Bảo toàn tính kết hợp trái hoặc phải theo đặc tả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-007
+    title: Yêu cầu đọc hết đầu vào và từ chối token dư
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-008
+    title: Đặt giới hạn đệ quy và trả lỗi có vị trí nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: handwritten-parser-009
+    title: Kiểm thử parser bằng cấu trúc cây mong đợi và các chuỗi lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: parsing-strategies
+  title: Chiến lược parser
+  childs:
+  - slug: parsing-strategies-001
+    title: So sánh recursive descent, Pratt parser và shunting-yard
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-strategies-002
+    title: Dùng Pratt parser khi có nhiều toán tử với binding power khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-strategies-003
+    title: Dùng shunting-yard để chuyển biểu thức trung tố sang hậu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-strategies-004
+    title: Khi nào grammar đủ phức tạp để cân nhắc công cụ sinh parser
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-strategies-005
+    title: Vai trò của ANTLR trong sinh lexer, parser và chuyển cây sang AST
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-strategies-006
+    title: Tách mô hình nghiệp vụ khỏi các kiểu dữ liệu do công cụ sinh ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-strategies-007
+    title: Cân đối khả năng mở rộng grammar, chất lượng lỗi và chi phí phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: parsing-strategies-008
+    title: Chọn chiến lược khôi phục lỗi cho trình soạn thảo và từ chối lỗi khi thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-evaluator
+  title: Evaluator Java
+  childs:
+  - slug: java-evaluator-001
+    title: Xây API parse, validate và evaluate với hợp đồng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-002
+    title: Triển khai interpret trên node hoặc tách bộ đánh giá khỏi AST
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-003
+    title: Chọn kiểu trả về có cấu trúc thay cho Object và ép kiểu rải rác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-004
+    title: Cài đặt đánh giá literal, biến, toán tử và lời gọi hàm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-005
+    title: Bảo đảm đánh giá lười tại những toán tử yêu cầu short-circuit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-006
+    title: Truyền context, vị trí nguồn và lỗi qua từng bước đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-007
+    title: Giữ AST dùng lại được với nhiều bộ dữ liệu đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-008
+    title: Cân nhắc duyệt lặp bằng stack khi cây sâu vượt khả năng đệ quy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-evaluator-009
+    title: Đóng gói evaluator thành thành phần độc lập để tích hợp ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: arithmetic-expressions
+  title: Biểu thức số học
+  childs:
+  - slug: arithmetic-expressions-001
+    title: Xây grammar và AST cho phép cộng, trừ, nhân, chia và dấu ngoặc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: arithmetic-expressions-002
+    title: Theo dõi từng bước đánh giá để minh họa độ ưu tiên toán tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: arithmetic-expressions-003
+    title: Bổ sung biến số và hàm có số lượng đối số được kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: arithmetic-expressions-004
+    title: Chọn BigDecimal cho ví dụ tiền tệ và cấu hình làm tròn tường minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: arithmetic-expressions-005
+    title: Quy định phép chia, giá trị âm và số có độ lớn bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: arithmetic-expressions-006
+    title: Phân biệt so sánh giá trị số với so sánh biểu diễn hoặc scale
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: arithmetic-expressions-007
+    title: Tạo constant folding cho các cây con chỉ chứa hằng thuần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: arithmetic-expressions-008
+    title: Kiểm chứng kết quả với dữ liệu thường gặp và các trường hợp biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: logic-and-conditions
+  title: Logic và điều kiện
+  childs:
+  - slug: logic-and-conditions-001
+    title: Xây các biểu thức AND, OR, NOT và toán tử so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-002
+    title: Thiết kế predicate cho dữ liệu khách hàng, đơn hàng và giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-003
+    title: Biểu thức điều kiện lồng nhau và ảnh hưởng của dấu ngoặc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-004
+    title: Short-circuit để tránh đánh giá nhánh không cần thiết hoặc không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-005
+    title: Quy tắc contains, in và kiểm tra tập giá trị có giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-006
+    title: Ngữ nghĩa cho chuỗi rỗng, null, thuộc tính thiếu và dữ liệu sai kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-007
+    title: So sánh ngày giờ với múi giờ và đồng hồ được truyền qua context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-008
+    title: Trả lời vì sao một điều kiện đúng hoặc sai bằng dấu vết đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logic-and-conditions-009
+    title: Kiểm thử bảng chân trị và những nhánh bắt buộc không được thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: business-rule-dsl
+  title: DSL nghiệp vụ
+  childs:
+  - slug: business-rule-dsl-001
+    title: Chuyển mô tả nghiệp vụ thành từ vựng, grammar và quy tắc ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-002
+    title: Thiết kế DSL tính ưu đãi theo giá trị đơn hàng và nhóm khách hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-003
+    title: Thiết kế DSL lọc đối tượng theo các thuộc tính được cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-004
+    title: Xác định độ ưu tiên và chính sách khi nhiều quy tắc cùng khớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-005
+    title: Đánh giá độc lập nhiều quy tắc và tổng hợp kết quả có thể giải thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-006
+    title: Chuẩn bị dữ liệu nghiệp vụ trước khi chạy evaluator để tránh I/O trong cây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-007
+    title: Phân biệt việc tính ra quyết định với việc thực hiện hành động nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-008
+    title: Định danh, lưu trữ và gắn phiên bản cho tập quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-rule-dsl-009
+    title: Xây ví dụ đầu vào, kết quả và lời giải thích cho người viết quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-and-diagnostics
+  title: Lỗi và chẩn đoán
+  childs:
+  - slug: errors-and-diagnostics-001
+    title: Xây hệ phân loại lỗi cho lexer, parser, validation và evaluator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-diagnostics-002
+    title: Thông báo token mong đợi, token nhận được và vị trí dòng cột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-diagnostics-003
+    title: Chỉ ra biến chưa khai báo, hàm không tồn tại và đối số không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-diagnostics-004
+    title: Đính kèm đoạn nguồn và đường đi tới node gây lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-diagnostics-005
+    title: Chọn dừng sớm hay thu thập nhiều lỗi ở từng giai đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-diagnostics-006
+    title: Phân biệt quy tắc cho kết quả false với quy tắc không thể đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-diagnostics-007
+    title: Thiết kế mã lỗi ổn định và thông báo tiếng Việt dễ hiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-diagnostics-008
+    title: Che dữ liệu nhạy cảm trong lỗi, log và nội dung chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-safety
+  title: An toàn thực thi
+  childs:
+  - slug: execution-safety-001
+    title: Xác định ranh giới tin cậy khi người dùng cung cấp biểu thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-002
+    title: Chỉ cho phép toán tử, hàm và thuộc tính đã được đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-003
+    title: Ngăn truy cập reflection, lớp Java, hệ thống tệp, mạng và lệnh hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-004
+    title: Giới hạn kích thước nguồn, số token, số node và độ sâu AST
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-005
+    title: Áp dụng ngân sách bước đánh giá, thời gian và kích thước kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-006
+    title: Thiết kế hủy hợp tác và hiểu giới hạn của timeout với mã không hợp tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-007
+    title: Cách ly thực thi ngoài tiến trình khi có phần mở rộng không đáng tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-008
+    title: Kiểm soát biểu thức chính quy, tập dữ liệu lớn và hàm có chi phí cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-009
+    title: Cách ly context, quyền truy cập dữ liệu và cache giữa các tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-safety-010
+    title: Từ chối quy tắc lỗi theo chính sách rõ ràng và tránh thực thi chuỗi như mã Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: evaluation-performance
+  title: Hiệu năng
+  childs:
+  - slug: evaluation-performance-001
+    title: Phân tách chi phí tokenize, parse, validate và evaluate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-002
+    title: Phân tích độ phức tạp theo số node và chi phí của từng toán tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-003
+    title: Parse một lần, kiểm tra một lần và đánh giá nhiều lần với context mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-004
+    title: Thiết kế cache AST có giới hạn dung lượng và chính sách loại bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-005
+    title: Tạo khóa cache theo nguồn, phiên bản grammar, cấu hình và phạm vi truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-006
+    title: Constant folding và rút gọn cây khi bảo toàn ngữ nghĩa và short-circuit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-007
+    title: Memoization có điều kiện và rủi ro khi phụ thuộc context hoặc hàm có tác dụng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-008
+    title: Đo bằng JMH với warmup và tách từng giai đoạn xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-performance-009
+    title: Xác định ngưỡng cân nhắc bytecode, thư viện biểu thức hoặc giải pháp khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-and-resources
+  title: Đồng thời và tài nguyên
+  childs:
+  - slug: concurrency-and-resources-001
+    title: Chia sẻ AST bất biến giữa nhiều luồng đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-resources-002
+    title: Tạo EvaluationContext riêng cho từng yêu cầu và từng người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-resources-003
+    title: Kiểm tra tính an toàn luồng của registry hàm và thành phần mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-resources-004
+    title: Đồng bộ cache và tránh tạo trùng AST khi tải cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-resources-005
+    title: Quản lý bộ nhớ của AST, dữ liệu context và dấu vết đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-resources-006
+    title: Truyền deadline và tín hiệu hủy xuyên suốt quá trình thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-resources-007
+    title: Đánh giá hàng loạt với giới hạn đồng thời và cơ chế điều tiết tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-resources-008
+    title: Kiểm thử chạy song song, hủy tác vụ và dọn trạng thái sau lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: language-extension
+  title: Mở rộng ngôn ngữ
+  childs:
+  - slug: language-extension-001
+    title: Quy trình thêm toán tử từ grammar tới AST, evaluator và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-002
+    title: Quy trình thêm hàm với chữ ký kiểu, giới hạn tài nguyên và tài liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-003
+    title: Mở rộng kiểu dữ liệu và kiểm tra tương thích với toán tử hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-004
+    title: Đánh giá chi phí gia tăng số lớp khi grammar có nhiều luật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-005
+    title: Cân nhắc thêm loại node mới so với thêm thao tác mới trên cây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-006
+    title: Quản lý phiên bản grammar và ngữ nghĩa của các quy tắc đã lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-007
+    title: Chuyển đổi quy tắc cũ và phát hiện thay đổi hành vi ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-008
+    title: Thiết kế API mở rộng có kiểm soát thay vì cho phép thực thi mã tùy ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: language-extension-009
+    title: Đặt giới hạn phạm vi để DSL không phát triển thành ngôn ngữ đa dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-pattern-integration
+  title: Phối hợp mẫu thiết kế
+  childs:
+  - slug: design-pattern-integration-001
+    title: Composite cho cấu trúc cây biểu thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-integration-002
+    title: Visitor cho đánh giá, kiểm tra kiểu, in cây và tối ưu AST
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-integration-003
+    title: Strategy cho lựa chọn chính sách đánh giá hoặc chiến lược xử lý toán tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-integration-004
+    title: Factory và Builder để tạo node hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-integration-005
+    title: Flyweight cho dữ liệu bất biến được chia sẻ khi lợi ích đã được đo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-integration-006
+    title: Specification cho các điều kiện nghiệp vụ có thể kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-integration-007
+    title: Chain of Responsibility cho chuỗi xử lý quy tắc theo chính sách dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-integration-008
+    title: Giữ ranh giới trách nhiệm khi kết hợp nhiều mẫu trong cùng hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: comparing-approaches
+  title: So sánh giải pháp
+  childs:
+  - slug: comparing-approaches-001
+    title: Interpreter với điều kiện if, switch và bảng tra cứu đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-002
+    title: Interpreter với Strategy khi lựa chọn thuật toán không cần grammar
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-003
+    title: Interpreter với Specification khi quy tắc được tạo trực tiếp bằng đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-004
+    title: Interpreter với State và bảng chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-005
+    title: Interpreter với rule engine có suy diễn, bộ nhớ làm việc và quản lý xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-006
+    title: Interpreter với decision table khi cần người nghiệp vụ đọc và chỉnh quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-007
+    title: Thông dịch AST với biên dịch bytecode và JIT về chi phí và độ phức tạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-008
+    title: Tự xây DSL với dùng thư viện biểu thức có sẵn trong hệ sinh thái Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: comparing-approaches-009
+    title: Ma trận lựa chọn theo quy mô grammar, tần suất chạy, khả năng giải thích và an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: expression-testing
+  title: Kiểm thử
+  childs:
+  - slug: expression-testing-001
+    title: Unit test cho từng terminal, nonterminal và hàm được đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-002
+    title: Kiểm thử lexer bằng token mong đợi và vị trí nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-003
+    title: Kiểm thử parser theo hình dạng AST, độ ưu tiên và tính kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-004
+    title: Kiểm thử tích hợp từ chuỗi quy tắc tới kết quả nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-005
+    title: Kiểm thử lỗi cú pháp, sai kiểu, biến thiếu và lỗi lúc thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-006
+    title: Kiểm thử short-circuit bằng hàm giả có thể phát hiện việc gọi ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-007
+    title: Property-based testing cho các tính chất đại số trong miền ngữ nghĩa phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-008
+    title: Fuzzing với nguồn ngẫu nhiên, dữ liệu lỗi và giới hạn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-009
+    title: Golden test cho thông báo lỗi, dấu vết và tương thích phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expression-testing-010
+    title: Kiểm thử bảo mật, tải, đồng thời và tính nhất quán giữa các context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-and-operations
+  title: Tích hợp và vận hành
+  childs:
+  - slug: integration-and-operations-001
+    title: Tổ chức package Java cho lexer, parser, AST, evaluator và tích hợp nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-operations-002
+    title: Thiết kế facade đánh giá quy tắc cho ứng dụng hoặc dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-operations-003
+    title: Tách quy trình soạn thảo, kiểm tra, kích hoạt và thực thi quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-operations-004
+    title: Gắn phiên bản quy tắc vào kết quả để phục vụ truy vết và kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-operations-005
+    title: Thu thập thời gian parse, thời gian evaluate, cache hit và tỷ lệ lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-operations-006
+    title: Lấy mẫu dấu vết để giải thích quyết định mà vẫn kiểm soát chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-operations-007
+    title: Triển khai phiên bản quy tắc mới, chạy đối chiếu và quay lại phiên bản trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-operations-008
+    title: Bảo vệ dữ liệu nhạy cảm và giới hạn lưu trữ log đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-design-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-design-mistakes-001
+    title: Dùng Interpreter cho một bài toán chỉ có vài nhánh cố định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-002
+    title: Trộn parser, truy cập dữ liệu và đánh giá trong cùng một lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-003
+    title: Thay grammar bằng chuỗi split hoặc regex không xử lý đúng cấu trúc lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-004
+    title: Dùng Object và ép kiểu tùy ý khiến lỗi chỉ xuất hiện khi thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-005
+    title: Đánh giá sẵn mọi đối số làm sai short-circuit và nhánh điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-006
+    title: Chia sẻ context có thể thay đổi hoặc cache kết quả thiếu dữ liệu phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-007
+    title: Nuốt lỗi đánh giá thành false hoặc giá trị mặc định không có chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-008
+    title: Mở rộng grammar không giới hạn và bỏ qua chi phí của cây sâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation-lab
+  title: Thực hành Java
+  childs:
+  - slug: java-implementation-lab-001
+    title: Đặc tả DSL mẫu, grammar và bộ tình huống chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-002
+    title: Xây giao diện Expression, mô hình giá trị và EvaluationContext
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-003
+    title: Cài đặt terminal và nonterminal rồi dựng AST bằng tay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-004
+    title: Cài lexer có vị trí nguồn và giới hạn đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-005
+    title: Cài parser với ưu tiên toán tử, ngoặc và phát hiện token dư
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-006
+    title: Thêm kiểm tra tên, kiểm tra kiểu và hệ thống lỗi thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-007
+    title: Hoàn thiện evaluator với số học, logic, hàm và short-circuit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-008
+    title: Xây ví dụ quy tắc ưu đãi với kết quả và lời giải thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-009
+    title: Bổ sung cache AST, ngân sách thực thi và kiểm thử tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-lab-010
+    title: Rà soát thiết kế theo tính đúng đắn, khả năng mở rộng, hiệu năng và an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: advanced-dsl-exercises
+  title: Bài tập nâng cao
+  childs:
+  - slug: advanced-dsl-exercises-001
+    title: Thêm toán tử mới và chứng minh không làm thay đổi độ ưu tiên hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-dsl-exercises-002
+    title: Bổ sung kiểu ngày giờ với dữ liệu kiểm thử quanh ranh giới múi giờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-dsl-exercises-003
+    title: Thiết kế chính sách dữ liệu thiếu và so sánh logic hai giá trị với ba giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-dsl-exercises-004
+    title: Viết Visitor in cây, kiểm tra kiểu và rút gọn hằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-dsl-exercises-005
+    title: So sánh recursive descent với Pratt parser trên cùng bộ biểu thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-dsl-exercises-006
+    title: Đo hiệu quả tái sử dụng AST và cache dưới tải nhiều luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-dsl-exercises-007
+    title: Tạo bộ đầu vào đối kháng để kiểm chứng giới hạn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-dsl-exercises-008
+    title: Hoàn thiện dự án DSL nghiệp vụ và giải thích lựa chọn Interpreter so với phương án khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

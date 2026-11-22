@@ -1,0 +1,57 @@
+roadmap:
+- id: bai-toan-design-pattern
+  title: Bài toán & Design Pattern
+  purpose: Hiểu pattern là giải pháp thiết kế có thể tái sử dụng cho những vấn đề lặp lại.
+  objectives:
+  - Nêu một vấn đề thiết kế thường gặp.
+  - Phân biệt pattern với thuật toán và thư viện.
+  - Giải thích khi nào pattern giúp mã dễ thay đổi.
+- id: nen-tang-oop
+  title: Nền tảng OOP
+  purpose: Ôn những khái niệm Java để nhận diện và triển khai pattern đúng mục đích.
+  objectives:
+  - Dùng interface và đa hình trong ví dụ nhỏ.
+  - Phân biệt kế thừa với composition/delegation.
+  - Nhận diện coupling cao và trách nhiệm thiếu rõ ràng.
+- id: cach-doc-mot-pattern
+  title: Cách đọc một Pattern
+  purpose: Học cách phân tích cấu trúc và hệ quả trước khi chọn một mẫu thiết kế.
+  objectives:
+  - Nêu intent, motivation và bối cảnh áp dụng.
+  - Đọc sơ đồ lớp và vai trò các thành phần.
+  - Đánh giá ưu điểm, giới hạn và trade-off.
+- id: nhom-creational
+  title: Nhóm Creational
+  purpose: Nhận diện các mẫu tách việc tạo đối tượng khỏi mã sử dụng.
+  objectives:
+  - Giải thích mục đích của Factory Method.
+  - Nêu trường hợp dùng Builder và Prototype.
+  - Nhận biết giới hạn khi áp dụng Singleton.
+- id: nhom-structural
+  title: Nhóm Structural
+  purpose: Hiểu cách kết hợp lớp hoặc đối tượng thành cấu trúc linh hoạt.
+  objectives:
+  - Nhận diện Adapter khi hai API không tương thích.
+  - Phân biệt Decorator với Composite theo ý định.
+  - Nêu lợi ích của Facade khi che giấu hệ thống phức tạp.
+- id: nhom-behavioral
+  title: Nhóm Behavioral
+  purpose: Hiểu cách phân chia thuật toán, giao tiếp và trách nhiệm giữa đối tượng.
+  objectives:
+  - Chọn Strategy cho thuật toán có thể thay thế.
+  - Giải thích cơ chế đăng ký/nhận tin của Observer.
+  - Nêu tình huống áp dụng Command hoặc Template Method.
+- id: chon-pattern-co-chu-dich
+  title: Chọn Pattern có chủ đích
+  purpose: Ra quyết định dựa trên vấn đề thực tế thay vì áp đặt cấu trúc phức tạp.
+  objectives:
+  - Viết tiêu chí chọn pattern theo yêu cầu thay đổi.
+  - So sánh hai pattern theo intent, chi phí và độ phức tạp.
+  - Nhận diện dấu hiệu overengineering.
+- id: refactor-kiem-thu
+  title: Refactor & kiểm thử
+  purpose: Thực hành cải thiện thiết kế mà vẫn giữ nguyên hành vi chức năng.
+  objectives:
+  - Refactor ví dụ Java sang một pattern phù hợp.
+  - Viết test bảo vệ hành vi trước và sau thay đổi.
+  - Giải thích kết quả bằng sơ đồ lớp ngắn gọn.

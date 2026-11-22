@@ -1,0 +1,7 @@
+# Spring Cloud Task
+
+**Spring Cloud Task** hỗ trợ xây dựng ứng dụng Spring Boot chạy trong thời gian hữu hạn, chẳng hạn tác vụ nhập dữ liệu, xử lý định kỳ hoặc công việc được kích hoạt theo yêu cầu. Khác với dịch vụ HTTP hoạt động liên tục, một task có điểm bắt đầu và kết thúc rõ ràng; framework ghi lại metadata cho từng lần chạy, bao gồm thời điểm, tham số và mã thoát, để việc theo dõi không phụ thuộc vào log của tiến trình đã dừng. Spring Cloud Task không tự thay thế công cụ lập lịch hay toàn bộ tính năng xử lý dữ liệu của Spring Batch.
+
+Lộ trình gồm **8 mốc**: vòng đời task; khởi tạo Spring Boot task; runners và tham số; lưu lịch sử vào TaskRepository; truy vấn TaskExecution; listener và xử lý thất bại; liên kết Spring Batch; cuối cùng là kiểm thử và vận hành. Người học triển khai task Java nhỏ, chạy với tham số, kiểm tra metadata trong database, thử kịch bản lỗi và đối chiếu trạng thái batch job với trạng thái task khi sử dụng chung.
+
+Học phần phù hợp với Java developer và người vận hành ứng dụng đã biết Spring Boot, Maven hoặc Gradle, JDBC và kiểm thử cơ bản. Sau khi hoàn thành, bạn có thể xây dựng tác vụ ngắn hạn dễ truy vết, chọn kho metadata bền vững, xử lý mã thoát chính xác và tích hợp với quy trình triển khai, giám sát hoặc lịch chạy do nền tảng bên ngoài quản lý.

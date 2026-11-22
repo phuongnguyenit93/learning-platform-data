@@ -1,0 +1,3040 @@
+menu:
+- slug: reliability-foundation
+  title: Nền tảng độ tin cậy
+  childs:
+  - slug: reliability-foundation-001
+    title: Độ tin cậy phần mềm là gì trong điều kiện và khoảng thời gian xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-foundation-002
+    title: Quan hệ giữa lỗi tiềm ẩn, sự cố thực thi và ảnh hưởng đến người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-foundation-003
+    title: Phân biệt reliability, availability, resilience và recoverability
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-foundation-004
+    title: Độ tin cậy của một thành phần và của luồng nghiệp vụ hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-foundation-005
+    title: Quan hệ giữa tính đúng chức năng và hành vi khi gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-foundation-006
+    title: Phân biệt reliability testing với kiểm thử tải, bảo mật và chaos engineering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-foundation-007
+    title: Những điều một thử nghiệm không gặp lỗi có thể và chưa thể chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-foundation-008
+    title: Lộ trình từ mục tiêu dịch vụ đến bằng chứng chịu lỗi và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-and-risks
+  title: Yêu cầu và rủi ro
+  childs:
+  - slug: requirements-and-risks-001
+    title: Chuyển nhu cầu nghiệp vụ thành yêu cầu độ tin cậy có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-risks-002
+    title: Xác định hành trình người dùng và chức năng thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-risks-003
+    title: Điều kiện vận hành, thời gian quan sát và mức tải mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-risks-004
+    title: Phân loại tác động khi mất dịch vụ, chậm xử lý hoặc sai dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-risks-005
+    title: Xác định mức suy giảm có thể chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-risks-006
+    title: Giới hạn thời gian phục hồi và mức mất dữ liệu được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-risks-007
+    title: Ưu tiên kịch bản theo khả năng xảy ra và mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-and-risks-008
+    title: Ghi giả định, phạm vi thử nghiệm và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability-metrics
+  title: Chỉ số độ tin cậy
+  childs:
+  - slug: reliability-metrics-001
+    title: SLI, SLO và phạm vi cam kết dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-002
+    title: Đo thành công theo request, tác vụ hoặc hành trình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-003
+    title: Availability theo thời gian và theo yêu cầu khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-004
+    title: Tỷ lệ lỗi, tần suất sự cố và thời gian không phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-005
+    title: MTTF, MTBF và điều kiện diễn giải từng chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-006
+    title: Thời gian phát hiện, phản ứng, khôi phục và quy ước sử dụng MTTR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-007
+    title: RTO, RPO và kết quả thực tế quan sát trong thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-008
+    title: Error budget và ảnh hưởng của sự cố lên mục tiêu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-009
+    title: Độ trễ đuôi, dữ liệu sai và các lỗi bị che bởi tỷ lệ thành công tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-metrics-010
+    title: Xác định cửa sổ đo, mẫu số và trường hợp bị loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-models
+  title: Mô hình lỗi
+  childs:
+  - slug: failure-models-001
+    title: Fault, error và failure trong chuỗi phát sinh sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-002
+    title: Lỗi tạm thời, kéo dài, gián đoạn và lặp theo chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-003
+    title: Lỗi hoàn toàn, lỗi một phần và thành phần phản hồi chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-004
+    title: Fail-stop, fail-slow và hành vi trả dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-005
+    title: Lỗi độc lập, lỗi tương quan và nguyên nhân chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-006
+    title: Lỗi trong tiến trình, host, dependency, mạng và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-007
+    title: Phân biệt sự cố được phát hiện với sự cố âm thầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-008
+    title: Xác định điểm gây lỗi cùng thời lượng, cường độ và điều kiện kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-009
+    title: Mô hình hóa sự cố đơn lẻ trước khi kết hợp nhiều sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-and-dependencies
+  title: Kiến trúc và dependency
+  childs:
+  - slug: architecture-and-dependencies-001
+    title: Lập bản đồ thành phần, đường gọi và đường đi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-002
+    title: Dependency bắt buộc và dependency có thể suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-003
+    title: Điểm lỗi đơn và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-004
+    title: Phạm vi lỗi theo tiến trình, host, vùng hoặc khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-005
+    title: Quan hệ nối tiếp, song song và dự phòng trong luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-006
+    title: Ảnh hưởng của cache, queue và trạng thái được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-007
+    title: Lan truyền sự cố qua chuỗi dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-008
+    title: Đánh giá giả định độc lập khi có nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-009
+    title: Chọn ranh giới test từ thành phần đến hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: experiment-design
+  title: Thiết kế thí nghiệm
+  childs:
+  - slug: experiment-design-001
+    title: Đặt giả thuyết về hành vi trước, trong và sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-002
+    title: Xác định trạng thái ổn định bằng chỉ số có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-003
+    title: Thiết kế lần chạy đối chứng không có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-004
+    title: Chọn workload, dữ liệu và điều kiện môi trường đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-005
+    title: Thay đổi một yếu tố trước khi kiểm tra tương tác phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-006
+    title: Quy định điều kiện đạt, không đạt và không đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-007
+    title: Xác định điểm bắt đầu đo ảnh hưởng và kết thúc phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-008
+    title: Chọn số lần lặp cùng cách ghi nhận biến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-009
+    title: Định nghĩa điều kiện dừng, dọn lỗi và đưa môi trường về trạng thái ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experiment-design-010
+    title: Lưu kế hoạch, cấu hình và mã định danh từng phiên thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-and-data
+  title: Môi trường và dữ liệu
+  childs:
+  - slug: environment-and-data-001
+    title: Chọn môi trường cục bộ, tích hợp, staging hoặc diễn tập được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-002
+    title: Giữ tương đồng về phiên bản, cấu hình và topology cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-003
+    title: Tạo dependency bằng container hoặc hạ tầng tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-004
+    title: Chuẩn bị dữ liệu có trạng thái và bất biến nghiệp vụ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-005
+    title: Cô lập tài nguyên và dữ liệu giữa các phiên thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-006
+    title: Ghi giới hạn của môi trường thu nhỏ so với hệ thống mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-007
+    title: Kiểm tra readiness, dung lượng và khả năng quan sát trước khi bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-008
+    title: Chụp trạng thái cần thiết để đối chiếu sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-and-data-009
+    title: Dọn môi trường khi thử nghiệm hoàn tất, lỗi hoặc bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-evidence
+  title: Quan sát và bằng chứng
+  childs:
+  - slug: observability-and-evidence-001
+    title: Liên kết metric, log và trace theo cùng phiên thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-002
+    title: Đo kết quả tại điểm người dùng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-003
+    title: Theo dõi tỷ lệ lỗi, độ trễ, hàng đợi và mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-004
+    title: Ghi thời điểm gây lỗi, phát hiện, xử lý và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-005
+    title: Kiểm tra cảnh báo có phản ánh đúng sự cố đang xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-006
+    title: Nhận diện request bị mất khỏi phép đo do timeout hoặc lỗi phía client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-007
+    title: Quan sát thành phần và toàn hệ thống để tìm hiệu ứng lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-008
+    title: Thu thập thread dump, heap dump hoặc log hạ tầng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-009
+    title: Giảm ảnh hưởng của công cụ quan sát lên kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-evidence-010
+    title: Giữ bằng chứng cả khi công cụ gây lỗi hoặc bộ phát tải bị hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workloads-and-baselines
+  title: Workload và baseline
+  childs:
+  - slug: workloads-and-baselines-001
+    title: Chọn tỷ lệ thao tác và dữ liệu theo nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-002
+    title: Phân biệt mức tải bình thường, cao điểm và gần giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-003
+    title: Đo baseline trước khi gây lỗi để có cơ sở so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-004
+    title: Mô hình phát tải mở, đóng và ảnh hưởng đến kết quả quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-005
+    title: Kiểm tra bộ phát tải không trở thành nút thắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-006
+    title: Theo dõi goodput thay vì chỉ đếm tổng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-007
+    title: Giữ workload tiếp tục trong giai đoạn gây lỗi và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-008
+    title: Đối chiếu số yêu cầu đã gửi, hoàn thành, thất bại và còn chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-baselines-009
+    title: Ghi điều kiện tải khi kết luận khả năng chịu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: long-running-execution
+  title: Chạy dài hạn
+  childs:
+  - slug: long-running-execution-001
+    title: Soak testing và endurance testing trong đánh giá độ ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-002
+    title: Chọn thời lượng từ chu kỳ tài nguyên và hành vi cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-003
+    title: Phát hiện memory leak, connection leak và tài nguyên không được thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-004
+    title: Theo dõi tăng trưởng hàng đợi, cache, log và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-005
+    title: Quan sát chu kỳ GC, tác vụ định kỳ và thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-006
+    title: Kiểm tra độ trễ hoặc tỷ lệ lỗi tăng dần theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-007
+    title: Đối chiếu khởi động mới với tiến trình đã chạy lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-008
+    title: Phân biệt xu hướng suy giảm với nhiễu ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-running-execution-009
+    title: Đánh giá khả năng trở về baseline sau khi giảm tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: controlled-fault-injection
+  title: Gây lỗi có kiểm soát
+  childs:
+  - slug: controlled-fault-injection-001
+    title: Fault injection và quan hệ với giả thuyết thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-002
+    title: Chọn mức gây lỗi tại lời gọi, tiến trình, container hoặc mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-003
+    title: Xác định phạm vi ảnh hưởng và tài nguyên được phép tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-004
+    title: Lỗi xác định, lỗi theo xác suất và cách giữ khả năng tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-005
+    title: Kích hoạt lỗi đúng thời điểm trong một luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-006
+    title: Giới hạn thời lượng, cường độ và số mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-007
+    title: Tách lỗi dự kiến khỏi lỗi do công cụ thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-008
+    title: Cơ chế dừng khẩn cấp và tự gỡ điều kiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-fault-injection-009
+    title: Kiểm tra môi trường sạch sau khi kết thúc thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processes-and-restart
+  title: Tiến trình và khởi động lại
+  childs:
+  - slug: processes-and-restart-001
+    title: Dừng mềm, dừng đột ngột và sự khác biệt về cleanup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-002
+    title: Crash trước, trong hoặc sau khi ghi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-003
+    title: Khởi động lại tiến trình khi vẫn có request hoặc công việc đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-004
+    title: Thời gian startup, readiness và thời điểm tiếp nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-005
+    title: Khôi phục dữ liệu chưa hoàn thành sau khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-006
+    title: Ngăn xử lý lặp khi tiến trình không biết thao tác trước đã thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-007
+    title: Restart loop và tác động của nhiều tiến trình cùng khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-008
+    title: Xác minh tiến trình phục hồi thực sự phục vụ đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-restart-009
+    title: Đối chiếu tài nguyên, khóa và dữ liệu tồn dư sau crash
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-and-connectivity
+  title: Mạng và kết nối
+  childs:
+  - slug: networking-and-connectivity-001
+    title: Độ trễ, jitter, mất gói và giới hạn băng thông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-002
+    title: Connection reset, từ chối kết nối và kết nối treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-003
+    title: Phân vùng mạng một chiều hoặc hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-004
+    title: DNS lỗi, kết quả cũ và thay đổi địa chỉ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-005
+    title: TLS handshake thất bại và chứng thư không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-006
+    title: Connection pool giữ kết nối đã hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-007
+    title: Kiểm tra hành vi khi mạng chập chờn rồi ổn định trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-008
+    title: Đối chiếu timeout phía client với trạng thái công việc phía server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-009
+    title: Xác minh không mất dữ liệu hoặc tạo thao tác trùng khi gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-failures
+  title: Dependency gặp sự cố
+  childs:
+  - slug: dependency-failures-001
+    title: Dependency không sẵn sàng, phản hồi chậm hoặc lỗi từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-002
+    title: Phản hồi thành công nhưng dữ liệu thiếu hoặc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-003
+    title: Rate limit, quota và hành vi khi bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-004
+    title: Chuỗi gọi nhiều tầng và lỗi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-005
+    title: Giới hạn thời gian chờ theo từng dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-006
+    title: Dependency phục hồi nhưng ứng dụng chưa kết nối lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-007
+    title: Thay đổi phiên bản hoặc cấu hình của dịch vụ phụ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-008
+    title: Xác minh fallback vẫn giữ quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-failures-009
+    title: Phân biệt lỗi dependency thật với lỗi do giả lập không đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources-and-overload
+  title: Tài nguyên và quá tải
+  childs:
+  - slug: resources-and-overload-001
+    title: CPU bão hòa và ảnh hưởng lên thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-002
+    title: Thiếu RAM, swap và giới hạn bộ nhớ container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-003
+    title: Disk full, filesystem chỉ đọc và lỗi I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-004
+    title: Cạn file descriptor, socket hoặc cổng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-005
+    title: Cạn thread pool, connection pool và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-006
+    title: Giới hạn tài nguyên làm một phần hệ thống suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-007
+    title: Kiểm tra từ chối công việc có kiểm soát khi vượt năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-008
+    title: Giảm tải và đo thời gian trở về trạng thái ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-overload-009
+    title: Xác minh quá tải không biến thành sai dữ liệu âm thầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-and-java-applications
+  title: JVM và ứng dụng Java
+  childs:
+  - slug: jvm-and-java-applications-001
+    title: Heap leak, native memory và RSS theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-002
+    title: GC pause kéo dài và ảnh hưởng đến timeout hoặc heartbeat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-003
+    title: OutOfMemoryError và hành vi của tiến trình sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-004
+    title: Thread leak, deadlock và tác vụ không kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-005
+    title: Executor queue tăng không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-006
+    title: Connection, stream và tài nguyên không được đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-007
+    title: Warmup và JIT trong giai đoạn khởi động hoặc phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-008
+    title: Java Flight Recorder, GC log và thread dump phục vụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-and-java-applications-009
+    title: Đối chiếu sức khỏe JVM với kết quả người dùng nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts-and-retries
+  title: Timeout và retry
+  childs:
+  - slug: timeouts-and-retries-001
+    title: Thiết kế timeout theo thao tác và toàn bộ chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-002
+    title: Phân biệt timeout kết nối, đọc và chờ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-003
+    title: Deadline propagation và ngân sách thời gian còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-004
+    title: Retry theo loại lỗi thay vì thử lại mọi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-005
+    title: Backoff, jitter và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-006
+    title: Retry storm khi nhiều client cùng gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-007
+    title: Idempotency trước thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-008
+    title: Công việc tiếp tục chạy sau khi phía gọi đã dừng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-009
+    title: Xác minh số lần gọi, tổng thời gian và trạng thái cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-retries-010
+    title: Đo khả năng phục hồi khi dependency hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolation-and-circuit-breaking
+  title: Cô lập và ngắt mạch
+  childs:
+  - slug: isolation-and-circuit-breaking-001
+    title: Circuit breaker với trạng thái closed, open và half-open
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-002
+    title: Ngưỡng lỗi, cửa sổ quan sát và điều kiện mở mạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-003
+    title: Kiểm tra probe và đóng mạch khi dependency hồi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-004
+    title: Bulkhead để cô lập tài nguyên giữa nhóm tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-005
+    title: Rate limiting và giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-006
+    title: Tương tác giữa retry, timeout, circuit breaker và fallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-007
+    title: Tác động của nhiều instance có trạng thái ngắt mạch khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-008
+    title: Tránh cấu hình khiến cơ chế bảo vệ tự gây gián đoạn kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-circuit-breaking-009
+    title: Đối chiếu khả năng cô lập lỗi với dịch vụ thiết yếu còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-and-event-processing
+  title: Queue và xử lý sự kiện
+  childs:
+  - slug: queues-and-event-processing-001
+    title: Broker dừng, mất kết nối và kết nối lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-002
+    title: Producer acknowledgment và mức bảo đảm dữ liệu được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-003
+    title: Consumer crash trước hoặc sau khi ghi tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-004
+    title: Message trùng, đến muộn hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-005
+    title: Consumer lag, backlog và tốc độ tiêu thụ sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-006
+    title: Retry queue, dead-letter và message không xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-007
+    title: Backpressure và giới hạn khi bộ đệm gần đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-008
+    title: Phát lại sự kiện mà không tạo tác dụng phụ trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-009
+    title: Rebalance, thay đổi consumer và gián đoạn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-event-processing-010
+    title: Đối chiếu số message được nhận với số nghiệp vụ hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-and-integrity
+  title: Database và toàn vẹn
+  childs:
+  - slug: database-and-integrity-001
+    title: Mất kết nối, database restart và transaction đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-002
+    title: Lỗi trước commit, sau commit và phản hồi commit không rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-003
+    title: Rollback, khóa tồn dư và khả năng tiếp tục giao dịch mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-004
+    title: Replica lag, đọc dữ liệu cũ và điều kiện nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-005
+    title: Xác minh dữ liệu đã xác nhận không bị mất ngoài mục tiêu cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-006
+    title: Đối chiếu số lượng, checksum và bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-007
+    title: Phát hiện bản ghi dở dang, trùng hoặc quan hệ bị phá vỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-008
+    title: Khôi phục connection pool sau khi database hoạt động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-009
+    title: Kiểm tra thiếu dung lượng hoặc lỗi lưu trữ trong lúc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-integrity-010
+    title: Giữ bằng chứng trạng thái dữ liệu trước và sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-and-temporary-state
+  title: Cache và trạng thái tạm
+  childs:
+  - slug: cache-and-temporary-state-001
+    title: Cache mất kết nối, bị xóa hoặc khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-002
+    title: Cache lạnh và tải dồn lên nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-003
+    title: Cache stampede khi nhiều yêu cầu cùng tái tạo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-004
+    title: Dữ liệu cũ, TTL và thời điểm có thể dùng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-005
+    title: Fallback về nguồn dữ liệu khi cache không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-006
+    title: Session hoặc trạng thái tạm bị mất giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-007
+    title: Thứ tự cập nhật cache và database khi có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-008
+    title: Phục hồi cache mà không giữ lại dữ liệu sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-and-temporary-state-009
+    title: Xác minh mất cache không phá bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-consistency
+  title: Nhất quán phân tán
+  childs:
+  - slug: distributed-consistency-001
+    title: Thành công một phần khi một thao tác đi qua nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-002
+    title: Transactional outbox và thời điểm sự kiện được phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-003
+    title: Consumer deduplication và xử lý ít nhất một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-004
+    title: Saga, bù trừ và tình huống bước bù cũng thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-005
+    title: Trạng thái không xác định sau timeout hoặc mất phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-006
+    title: Split-brain, leader cũ và thao tác từ thành phần không còn quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-007
+    title: Quorum hoặc replication theo mô hình hệ thống đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-008
+    title: Khôi phục sau phân vùng mạng và giải quyết xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-consistency-009
+    title: Kiểm chứng bất biến cuối cùng cùng thời gian đạt nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failover
+  title: Chuyển đổi dự phòng
+  childs:
+  - slug: failover-001
+    title: Failover, failback và vai trò của từng quá trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-002
+    title: Mô hình active-passive hoặc active-active cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-003
+    title: Phát hiện lỗi và thời điểm chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-004
+    title: Leader election, health check và ngăn split-brain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-005
+    title: Request đang xử lý trong lúc chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-006
+    title: Đồng bộ trạng thái và độ trễ của bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-007
+    title: Năng lực phần dự phòng khi phải gánh thêm tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-008
+    title: Flapping và việc chuyển đi chuyển lại không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-009
+    title: Đo gián đoạn, lỗi, dữ liệu mất và thời gian phục hồi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-010
+    title: Trở về cấu hình bình thường mà không tạo sự cố lần hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-restore
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backup-and-restore-001
+    title: Xác định dữ liệu, cấu hình và khóa cần có để khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-002
+    title: Kiểm tra backup có thể đọc và dùng để restore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-003
+    title: Full backup, incremental backup và chuỗi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-004
+    title: Point-in-time recovery theo khả năng của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-005
+    title: Nhất quán giữa dữ liệu được sao lưu ở nhiều thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-006
+    title: Đối chiếu trạng thái phục hồi với dữ liệu đã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-007
+    title: Đo thời gian khôi phục và khoảng dữ liệu bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-008
+    title: Kiểm tra ứng dụng hoạt động sau restore thay vì chỉ xét job thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-009
+    title: Xử lý backup hỏng, thiếu hoặc không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-010
+    title: Ghi lại phiên bản công cụ và điều kiện tái lập lần restore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disaster-recovery
+  title: Khôi phục thảm họa
+  childs:
+  - slug: disaster-recovery-001
+    title: Phân biệt phục hồi thành phần với khôi phục cả dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-002
+    title: Mất host, vùng hoặc khu vực theo phạm vi kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-003
+    title: Khôi phục hạ tầng, cấu hình và dữ liệu theo đúng dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-004
+    title: Khả năng truy cập backup, secret, DNS và dịch vụ danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-005
+    title: Thứ tự đưa các thành phần trở lại hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-006
+    title: Đo RTO, RPO trên hành trình nghiệp vụ hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-007
+    title: Đối chiếu dữ liệu và xử lý khoảng trạng thái không chắc chắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-008
+    title: Kiểm chứng runbook bằng thao tác có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-009
+    title: Diễn tập failback và kết thúc trạng thái khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graceful-degradation
+  title: Suy giảm có kiểm soát
+  childs:
+  - slug: graceful-degradation-001
+    title: Phân biệt phục vụ hạn chế với mất toàn bộ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-002
+    title: Ưu tiên chức năng thiết yếu khi dependency gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-003
+    title: Fallback, dữ liệu cũ và giới hạn sử dụng theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-004
+    title: Load shedding khi không thể nhận thêm công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-005
+    title: Backpressure và tín hiệu trả về cho phía gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-006
+    title: Chế độ chỉ đọc hoặc tạm hoãn thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-007
+    title: Thông báo trạng thái suy giảm mà không báo thành công sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-008
+    title: Khôi phục dần lưu lượng và tránh dồn tải ngay khi dịch vụ hồi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graceful-degradation-009
+    title: Kiểm tra chế độ suy giảm tự kết thúc đúng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-maintenance
+  title: Triển khai và bảo trì
+  childs:
+  - slug: deployment-and-maintenance-001
+    title: Rolling deployment, blue-green hoặc canary theo mô hình sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-002
+    title: Graceful shutdown và xử lý request đang thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-003
+    title: Readiness, liveness và ảnh hưởng đến việc điều phối lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-004
+    title: Draining connection, queue và công việc nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-005
+    title: Cùng tồn tại nhiều phiên bản ứng dụng trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-006
+    title: Tương thích schema, cấu hình và định dạng message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-007
+    title: Rollback ứng dụng khi dữ liệu đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-008
+    title: Khởi động đồng loạt và áp lực lên dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-009
+    title: Kiểm tra thao tác bảo trì có gây mất hoặc lặp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-maintenance-010
+    title: Đối chiếu mục tiêu dịch vụ trước, trong và sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-and-configuration
+  title: Thời gian và cấu hình
+  childs:
+  - slug: time-and-configuration-001
+    title: Clock skew giữa các thành phần và hành vi phụ thuộc timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-002
+    title: Nhảy đồng hồ, thay đổi múi giờ và điều kiện hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-003
+    title: Phân biệt đồng hồ lịch với đồng hồ đo khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-004
+    title: Token, chứng thư hoặc credential hết hạn trong lúc vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-005
+    title: Config reload, giá trị thiếu và cấu hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-006
+    title: Feature flag thay đổi khi công việc đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-007
+    title: Lease, heartbeat và quyết định thành phần còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-008
+    title: Dependency cấu hình hoặc dịch vụ danh tính tạm thời không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-configuration-009
+    title: Xác minh phục hồi sau khi thời gian hoặc cấu hình được sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-and-contention
+  title: Đồng thời và tranh chấp
+  childs:
+  - slug: concurrency-and-contention-001
+    title: Tăng cạnh tranh tài nguyên mà vẫn giữ workload đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-002
+    title: Race condition, lost update và vi phạm bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-003
+    title: Khóa không được giải phóng khi tiến trình chết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-004
+    title: Deadlock, livelock và starvation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-005
+    title: Lease hoặc distributed lock hết hạn khi tác vụ chưa xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-006
+    title: Hủy và retry đồng thời trên cùng một nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-007
+    title: Giới hạn hàng đợi để tránh tích lũy vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-008
+    title: Điều phối lịch thực thi để tái hiện lỗi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-contention-009
+    title: Đối chiếu tính đúng cùng khả năng tiếp tục phục vụ sau tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-tools
+  title: Công cụ với Java
+  childs:
+  - slug: java-tools-001
+    title: JUnit để mô tả giả thuyết và điều kiện đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-002
+    title: Testcontainers để tạo dependency và quản lý vòng đời môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-003
+    title: Toxiproxy hoặc proxy tương đương để mô phỏng lỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-004
+    title: WireMock để kiểm soát phản hồi chậm, lỗi và dữ liệu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-005
+    title: Công cụ phát tải duy trì workload trong thời gian gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-006
+    title: Awaitility hoặc cơ chế polling có giới hạn để chờ phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-007
+    title: Kiểm thử cấu hình chịu lỗi của Resilience4j khi ứng dụng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-008
+    title: Spring Boot health, readiness và shutdown trong kịch bản thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-009
+    title: Fixture gây lỗi cùng cleanup bảo đảm được gọi khi test thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tools-010
+    title: Lưu cấu hình và phiên bản công cụ phục vụ tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation-and-ci
+  title: Tự động hóa và CI
+  childs:
+  - slug: automation-and-ci-001
+    title: Tách thử nghiệm nhanh theo thành phần khỏi diễn tập toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-002
+    title: Chạy theo thay đổi, lịch hoặc yêu cầu có phạm vi rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-003
+    title: Tạo môi trường tạm và dữ liệu riêng cho từng phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-004
+    title: Quản lý topology, workload và fault scenario bằng cấu hình có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-005
+    title: Điều phối các mốc baseline, gây lỗi, quan sát và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-006
+    title: Timeout toàn phiên và cleanup khi job bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-007
+    title: Giữ log, metric và trạng thái cuối cùng như artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-008
+    title: Giới hạn song song để các thí nghiệm không gây nhiễu nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-009
+    title: Phân loại lỗi sản phẩm, môi trường và công cụ gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-010
+    title: Đưa kịch bản đã xác minh vào bộ hồi quy độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: statistics-and-inference
+  title: Thống kê và suy luận
+  childs:
+  - slug: statistics-and-inference-001
+    title: Chọn đơn vị quan sát theo request, sự cố hoặc thời gian hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-002
+    title: Phân bố thời gian đến lỗi và hàm độ tin cậy R(t)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-003
+    title: Tần suất lỗi thay đổi theo tải, tuổi tiến trình hoặc điều kiện vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-004
+    title: Giả định cần kiểm tra trước khi dùng mô hình xác suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-005
+    title: Khoảng tin cậy của ước lượng tỷ lệ lỗi hoặc thời gian phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-006
+    title: Quan sát bị kết thúc khi chưa xảy ra lỗi và dữ liệu bị kiểm duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-007
+    title: Giới hạn suy luận khi một thử nghiệm không ghi nhận lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-008
+    title: Phụ thuộc giữa các mẫu và sự cố có cùng nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-009
+    title: So sánh nhiều lần chạy với baseline trong điều kiện tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-and-inference-010
+    title: Phân biệt cải thiện có ý nghĩa với biến động ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reporting-and-evaluation
+  title: Báo cáo và đánh giá
+  childs:
+  - slug: reporting-and-evaluation-001
+    title: Tổng hợp giả thuyết, môi trường, workload và lỗi đã gây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-002
+    title: Trục thời gian từ trước sự cố đến sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-003
+    title: Kết quả người dùng, dữ liệu và tài nguyên trong từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-004
+    title: Đối chiếu mục tiêu độ tin cậy, RTO và RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-005
+    title: Phân biệt phục hồi hoàn toàn với còn backlog hoặc dữ liệu cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-006
+    title: Giải thích thử nghiệm không đạt hoặc không đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-007
+    title: Nêu giới hạn môi trường và khả năng áp dụng kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-008
+    title: Liên kết metric, log, cấu hình và phiên bản phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-evaluation-009
+    title: Ưu tiên hành động sửa theo tác động và mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintenance-and-improvement
+  title: Bảo trì và cải tiến
+  childs:
+  - slug: maintenance-and-improvement-001
+    title: Chuyển sự cố thực tế thành giả thuyết và kịch bản hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-002
+    title: Phân tích nguyên nhân gốc cùng yếu tố làm sự cố lan rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-003
+    title: Cập nhật dependency map khi kiến trúc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-004
+    title: Điều chỉnh kịch bản khi workload hoặc mục tiêu dịch vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-005
+    title: Xác minh biện pháp sửa lỗi bằng cùng điều kiện tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-006
+    title: Nhận diện flaky test do thời gian chờ, môi trường hoặc công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-007
+    title: Quản lý người phụ trách và thời hạn xử lý khoảng trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-008
+    title: Loại bỏ kịch bản trùng nhưng vẫn giữ bằng chứng bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-improvement-009
+    title: Theo dõi xu hướng độ tin cậy qua các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Đo tác động của dependency phản hồi chậm lên một API Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Kiểm tra retry có backoff mà không tạo giao dịch trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Gây lỗi mạng rồi xác minh circuit breaker mở và đóng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Crash consumer tại điểm ghi dữ liệu và xác nhận message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Kiểm tra database restart cùng phục hồi connection pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Chạy dài hạn để phát hiện tài nguyên tăng không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Diễn tập failover dưới workload và đối chiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Restore backup rồi kiểm chứng hành trình nghiệp vụ cùng RTO, RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Kiểm tra graceful shutdown trong lúc vẫn có công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: Bàn giao bộ thử nghiệm có giả thuyết, bằng chứng và điều kiện tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

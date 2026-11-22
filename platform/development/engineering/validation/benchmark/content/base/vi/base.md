@@ -1,0 +1,7 @@
+# Validation Benchmark
+
+Validation Benchmark là quá trình đo lường có phương pháp để kiểm chứng đặc tính hiệu năng của mã nguồn, dịch vụ hoặc hệ thống trong những điều kiện đã xác định. Thay vì kết luận dựa trên cảm giác “nhanh” hay “chậm”, người học xây dựng câu hỏi đo cụ thể, chọn chỉ số như độ trễ, thông lượng và tỉ lệ lỗi, rồi đặt ngưỡng đánh giá có thể kiểm chứng. Benchmark bổ sung bằng chứng định lượng cho hoạt động validation; kết quả đo không thay thế việc kiểm thử tính đúng đắn của chức năng.
+
+Lộ trình bắt đầu từ phạm vi và mục tiêu, sau đó xây dựng workload, dữ liệu và môi trường có thể tái lập. Người học nhận biết sự khác nhau giữa microbenchmark trên JVM (chẳng hạn JMH) và benchmark tải ứng dụng/API (chẳng hạn k6 hoặc JMeter), thực hành warmup, chạy lặp và thu thập kết quả có kiểm soát. Khi phân tích, cần nhìn vào phân vị, độ biến thiên, lỗi và điều kiện đo thay vì chỉ so sánh một con số trung bình.
+
+Cuối cùng, người học đối chiếu kết quả với baseline, xác định dấu hiệu suy giảm hiệu năng, trình bày giới hạn của phép đo và lưu script, cấu hình, dữ liệu để người khác chạy lại. Với phép đo đủ ổn định, tiêu chí benchmark có thể được dùng trong CI nhằm phát hiện hồi quy sớm.

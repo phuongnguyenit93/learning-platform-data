@@ -1,0 +1,3 @@
+menuLevel1: MXBean
+menuLevel2: JMX.newMXBeanProxy và gọi qua proxy
+status: WRITTEN

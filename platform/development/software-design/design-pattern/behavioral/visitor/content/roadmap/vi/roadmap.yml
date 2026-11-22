@@ -1,0 +1,57 @@
+roadmap:
+- id: bai-toan-pham-vi
+  title: Bài toán & phạm vi
+  purpose: Nhận diện tình huống cần bổ sung nhiều thao tác lên một hệ phân cấp lớp mà không trộn logic vào từng lớp.
+  objectives:
+  - Mô tả vấn đề khi thêm export hoặc báo cáo vào nhiều lớp
+  - Phân biệt thao tác nghiệp vụ lõi với thao tác bổ sung
+  - Xác định khi nào tập loại phần tử tương đối ổn định
+- id: thanh-phan-visitor
+  title: Thành phần Visitor
+  purpose: Nắm vai trò của Element, Visitor và Client để thiết kế hợp đồng giữa các đối tượng.
+  objectives:
+  - Vẽ sơ đồ Element và ConcreteElement
+  - Định nghĩa Visitor cùng visit theo từng kiểu phần tử
+  - Giải thích ConcreteVisitor và vai trò của Client
+- id: double-dispatch
+  title: Double Dispatch
+  purpose: Hiểu vì sao accept kết hợp visit chọn đúng xử lý theo kiểu phần tử thực tế trong Java.
+  objectives:
+  - Phân biệt overriding với overloading
+  - Theo dõi luồng element.accept(visitor) → visitor.visit(this)
+  - Giải thích vì sao gọi trực tiếp visit(element) có thể sai kiểu
+- id: cai-dat-java
+  title: Cài đặt Java
+  purpose: Tạo ví dụ Visitor hoạt động với các phần tử có kiểu cụ thể.
+  objectives:
+  - Xây dựng interface Element với accept(Visitor)
+  - Cài đặt accept cho ít nhất hai ConcreteElement
+  - Viết ConcreteVisitor và chạy kiểm thử hành vi
+- id: mo-rong-thao-tac
+  title: Mở rộng thao tác
+  purpose: Thêm thuật toán mới bằng visitor khác mà hạn chế sửa các lớp phần tử sẵn có.
+  objectives:
+  - Tạo thêm visitor cho xuất dữ liệu hoặc thống kê
+  - Tái sử dụng cùng hệ Element với nhiều visitor
+  - So sánh thay đổi mã trước và sau khi dùng Visitor
+- id: duyet-cau-truc-doi-tuong
+  title: Duyệt cấu trúc đối tượng
+  purpose: Áp dụng Visitor cho một tập phần tử hoặc cây Composite mà vẫn tách traversal và hành vi.
+  objectives:
+  - Chọn nơi điều khiển vòng duyệt các phần tử
+  - Kết hợp visitor với cây Composite đơn giản
+  - Tránh thăm lặp phần tử khi cây hoặc đồ thị có liên kết
+- id: trang-thai-ket-qua
+  title: Trạng thái & kết quả
+  purpose: Thiết kế cách thu thập giá trị khi các visit cần tổng hợp kết quả.
+  objectives:
+  - Tổng hợp bộ đếm hoặc kết quả trong ConcreteVisitor
+  - Lựa chọn visitor có trạng thái hoặc giá trị trả về
+  - Kiểm tra tác dụng phụ và khả năng tái sử dụng visitor
+- id: danh-doi-kiem-thu
+  title: Đánh đổi & kiểm thử
+  purpose: Đánh giá mức phù hợp của Visitor với khả năng mở rộng loại phần tử và yêu cầu đóng gói.
+  objectives:
+  - Viết test cho từng loại phần tử và visitor
+  - Phân tích chi phí khi thêm ConcreteElement mới
+  - So sánh Visitor với polymorphism hoặc Strategy

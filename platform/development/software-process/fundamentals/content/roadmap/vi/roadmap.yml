@@ -1,0 +1,57 @@
+roadmap:
+- id: software-process-sdlc
+  title: Software Process & SDLC
+  purpose: Hiểu quy trình phần mềm tổ chức các hoạt động từ hình thành nhu cầu đến vận hành và ngừng sử dụng sản phẩm.
+  objectives:
+  - Nêu các giai đoạn và hoạt động chính trong SDLC
+  - Phân biệt process, practice và lifecycle model
+  - Vẽ luồng từ yêu cầu đến bảo trì phần mềm
+- id: stakeholders-requirements
+  title: Stakeholders & Requirements
+  purpose: Làm rõ vấn đề cần giải quyết, kỳ vọng của các bên liên quan và tiêu chí chấp nhận trước khi phát triển.
+  objectives:
+  - Xác định stakeholder và mục tiêu kinh doanh
+  - Phân biệt yêu cầu chức năng với phi chức năng
+  - Viết user story hoặc yêu cầu có acceptance criteria
+- id: planning-lifecycle-models
+  title: Planning & Lifecycle Models
+  purpose: Lập kế hoạch phát triển và lựa chọn cách tổ chức vòng lặp phù hợp với mức bất định, rủi ro và nguồn lực.
+  objectives:
+  - So sánh tuần tự, lặp, tăng trưởng và Agile
+  - Phân rã công việc, ưu tiên backlog và ước lượng
+  - Nhận diện phụ thuộc, rủi ro và mốc bàn giao
+- id: design-implementation
+  title: Design & Implementation
+  purpose: Chuyển yêu cầu thành thiết kế đủ rõ rồi triển khai theo quy ước kỹ thuật để giảm lỗi và chi phí thay đổi.
+  objectives:
+  - Phác thảo kiến trúc, module và interface chính
+  - Áp dụng coding conventions và thiết kế dễ bảo trì
+  - Theo dõi quyết định kỹ thuật và thay đổi yêu cầu
+- id: version-control-collaboration
+  title: Version Control & Collaboration
+  purpose: Duy trì lịch sử có thể truy vết và tổ chức cộng tác để các thay đổi mã nguồn được đánh giá trước khi hợp nhất.
+  objectives:
+  - Tạo branch và commit có mục đích rõ
+  - Mở pull request, review và xử lý phản hồi
+  - Liên kết thay đổi mã với issue hoặc yêu cầu
+- id: verification-testing-security
+  title: Verification, Testing & Security
+  purpose: Xác minh phần mềm đúng yêu cầu và lồng ghép kiểm soát chất lượng, bảo mật xuyên suốt quá trình phát triển.
+  objectives:
+  - Phân biệt review, testing và acceptance testing
+  - Xây test cho hành vi chính và trường hợp lỗi
+  - Đưa kiểm tra dependency, secrets và security vào SDLC
+- id: release-operations-maintenance
+  title: Release, Operations & Maintenance
+  purpose: Hiểu cách đưa thay đổi vào sử dụng an toàn, giám sát sau phát hành và duy trì sản phẩm theo thời gian.
+  objectives:
+  - Mô tả pipeline build, test và deploy qua CI/CD
+  - Lập checklist release, rollback và theo dõi sự cố
+  - Phân biệt sửa lỗi, cải tiến và bảo trì thích nghi
+- id: metrics-process-improvement
+  title: Metrics & Process Improvement
+  purpose: Dùng dữ liệu và phản hồi từ nhóm để phát hiện điểm nghẽn, nâng chất lượng và cải tiến có kiểm chứng.
+  objectives:
+  - Theo dõi lead time, deployment frequency và lỗi
+  - Thực hiện retrospective và phân tích nguyên nhân gốc
+  - Đề xuất một thay đổi quy trình rồi đo hiệu quả

@@ -1,0 +1,320 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - MVC (Model–View–Controller) là gì
+  - Vấn đề khi giao diện, xử lý đầu vào và nghiệp vụ trộn lẫn
+  - Mục tiêu phân tách trách nhiệm của MVC
+  - Bức tranh tổng thể từ thao tác người dùng đến phản hồi giao diện
+  - Nguồn gốc MVC và sự thay đổi khi áp dụng trên web
+  - Phân biệt mẫu kiến trúc giao diện và kiến trúc toàn hệ thống
+  - Lợi ích về khả năng thay đổi, tái sử dụng và kiểm thử
+  - Chi phí phối hợp và giới hạn của việc chia thành ba thành phần
+  - Trường hợp phù hợp và trường hợp chưa cần MVC
+- level1: Cấu trúc và quan hệ
+  level2:
+  - Trách nhiệm cốt lõi của Model, View và Controller
+  - Phân biệt trạng thái nghiệp vụ và trạng thái trình bày
+  - Luồng dữ liệu, luồng điều khiển và hướng phụ thuộc
+  - Quan hệ giữa View và Model trong các biến thể MVC
+  - Quan hệ giữa View và Controller khi tiếp nhận thao tác
+  - Quan hệ giữa Controller và Model khi thực hiện hành động
+  - Một Model phục vụ nhiều View
+  - Một màn hình phối hợp nhiều Model và Controller
+  - Phân biệt giao diện trừu tượng và thành phần cụ thể
+  - Tiêu chí nhận diện ranh giới bị vi phạm
+- level1: Model
+  level2:
+  - Model biểu diễn dữ liệu, trạng thái và hành vi nghiệp vụ
+  - Vì sao Model không đồng nghĩa với bảng hoặc thực thể cơ sở dữ liệu
+  - Đối tượng nghiệp vụ, đối tượng giá trị và quy tắc bất biến
+  - Đặt hành vi cạnh dữ liệu mà hành vi đó quản lý
+  - Phân biệt Model nghiệp vụ và mô hình dữ liệu trình bày
+  - Thao tác truy vấn và thao tác thay đổi trạng thái
+  - Kiểm tra điều kiện nghiệp vụ trước khi cập nhật
+  - Đóng gói dữ liệu và kiểm soát quyền thay đổi
+  - Thông báo thay đổi Model cho các thành phần quan tâm
+  - Thiết kế Model độc lập với giao diện và giao thức truyền tải
+  - Ranh giới giữa Model, dịch vụ ứng dụng và lớp lưu trữ
+  - Model quá tải và Model chỉ chứa dữ liệu
+- level1: View
+  level2:
+  - View biểu diễn thông tin và khả năng tương tác
+  - Nhận dữ liệu trình bày và tạo đầu ra giao diện
+  - Phân biệt định dạng hiển thị và tính toán nghiệp vụ
+  - View truy vấn Model hoặc nhận dữ liệu đã chuẩn bị
+  - Khuôn mẫu, bố cục và thành phần giao diện tái sử dụng
+  - Hiển thị danh sách, chi tiết và trạng thái rỗng
+  - Trạng thái đang tải, thành công và thất bại
+  - Định dạng ngày giờ, số và nội dung theo ngôn ngữ
+  - Khả năng tiếp cận và phản hồi thao tác cho người dùng
+  - Giới hạn logic điều kiện và vòng lặp trong View
+  - Ranh giới giữa View, ViewModel và bộ chuyển đổi dữ liệu
+  - Giữ View có thể thay đổi mà không làm đổi quy tắc nghiệp vụ
+- level1: Controller
+  level2:
+  - Controller diễn giải ý định từ đầu vào người dùng
+  - Ánh xạ thao tác hoặc yêu cầu tới hành động
+  - Đọc đầu vào và chuyển đổi sang dữ liệu có kiểu
+  - Phối hợp dịch vụ ứng dụng hoặc thao tác trên Model
+  - Chọn kết quả, dữ liệu trả về và View phù hợp
+  - Phân biệt điều phối và thực thi quy tắc nghiệp vụ
+  - Phân biệt xác thực đầu vào và quyết định nghiệp vụ
+  - Quản lý điều hướng và kết quả sau thao tác
+  - Xử lý yêu cầu không hợp lệ hoặc hành động không được hỗ trợ
+  - Thiết kế Controller nhỏ, rõ trách nhiệm và dễ kiểm thử
+  - Tránh phụ thuộc trực tiếp vào chi tiết giao diện hoặc cơ sở dữ liệu
+  - Giới hạn của nguyên tắc Controller mỏng
+- level1: Luồng tương tác
+  level2:
+  - Luồng đọc và hiển thị dữ liệu
+  - Luồng tạo mới và cập nhật đối tượng nghiệp vụ
+  - Luồng xóa và xác nhận thao tác
+  - Trình tự tiếp nhận đầu vào, thay đổi trạng thái và cập nhật View
+  - Đồng bộ nhiều View cùng phản ánh một Model
+  - Phản hồi khi dữ liệu nhập không hợp lệ
+  - Phản hồi khi nghiệp vụ từ chối thao tác
+  - Điều hướng giữa danh sách, chi tiết và biểu mẫu
+  - Tránh vòng lặp cập nhật giữa Model và View
+  - Biểu diễn luồng bằng sơ đồ thành phần và sơ đồ trình tự
+- level1: MVC tương tác
+  level2:
+  - Đặc điểm MVC trong giao diện tương tác chạy dài
+  - Model chủ động (active model) và Model thụ động (passive model)
+  - Thông báo thay đổi bằng Observer và cơ chế đăng ký
+  - Kết hợp Observer, Strategy và Composite trong thiết kế giao diện
+  - Xử lý sự kiện bàn phím, chuột và lựa chọn
+  - Phân biệt sự kiện giao diện và sự kiện nghiệp vụ
+  - Vòng lặp sự kiện và giới hạn của luồng giao diện
+  - Cập nhật giao diện sau tác vụ nền
+  - Quản lý đăng ký theo dõi và giải phóng tài nguyên
+  - Giữ thống nhất lựa chọn và trạng thái giữa nhiều View
+- level1: MVC trên web
+  level2:
+  - Sự khác biệt giữa MVC trên web và MVC tương tác cổ điển
+  - Vòng đời yêu cầu HTTP và phản hồi
+  - Định tuyến và xác định Controller xử lý
+  - Mẫu Front Controller và điểm tiếp nhận tập trung
+  - Mẫu Page Controller và phạm vi áp dụng
+  - Bộ điều phối, bộ ánh xạ xử lý và cơ chế gọi hành động
+  - Đóng gói dữ liệu hiển thị và chọn khuôn mẫu
+  - Phân giải View và kết xuất HTML phía máy chủ
+  - Chuyển hướng sau thao tác ghi với Post/Redirect/Get
+  - Phân biệt chuyển tiếp nội bộ và chuyển hướng trình duyệt
+  - Trả biểu diễn dữ liệu và quan hệ với API
+  - Đặc tính không lưu trạng thái của HTTP và ảnh hưởng tới MVC
+- level1: Tổ chức mã
+  level2:
+  - Tổ chức theo vai trò kỹ thuật và theo tính năng nghiệp vụ
+  - Ranh giới gói mã cho Model, View và Controller
+  - Tách mô-đun giao diện khỏi mô-đun nghiệp vụ
+  - Đặt dịch vụ ứng dụng, kho lưu trữ và bộ chuyển đổi
+  - Quy ước tên cho hành động, dữ liệu nhập và dữ liệu trình bày
+  - Quản lý phụ thuộc bằng giao diện và tiêm phụ thuộc
+  - Tái sử dụng thành phần mà không tạo phụ thuộc vòng
+  - Phạm vi sử dụng của lớp cơ sở và thành phần dùng chung
+  - Giữ cấu hình nền tảng ngoài mã nghiệp vụ
+  - Kiểm tra cấu trúc bằng sơ đồ phụ thuộc và quy tắc kiến trúc
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Phân biệt đối tượng miền, DTO, dữ liệu biểu mẫu và ViewModel
+  - Thiết kế dữ liệu nhập theo từng hành động
+  - Thiết kế dữ liệu trình bày theo nhu cầu của View
+  - Ánh xạ dữ liệu tại ranh giới Controller và dịch vụ
+  - Phân biệt chuyển đổi kiểu, định dạng và kiểm tra hợp lệ
+  - Giới hạn trường được phép nhận từ người dùng
+  - Xử lý trường thiếu, giá trị rỗng và giá trị mặc định
+  - Truyền danh sách, phân trang và thông tin điều hướng
+  - Giữ hợp đồng giao diện ổn định khi mô hình lưu trữ thay đổi
+  - Ngăn chi tiết nội bộ rò rỉ qua dữ liệu trả về
+- level1: Biểu mẫu và kiểm tra
+  level2:
+  - Vòng đời biểu mẫu từ hiển thị đến tiếp nhận
+  - Liên kết dữ liệu nhập (data binding) và lỗi chuyển đổi kiểu
+  - Kiểm tra cấu trúc dữ liệu tại ranh giới giao diện
+  - Kiểm tra quy tắc nghiệp vụ trong Model hoặc dịch vụ
+  - Kiểm tra một trường, nhiều trường và điều kiện phụ thuộc
+  - Phân biệt kiểm tra phía trình duyệt và phía máy chủ
+  - Giữ dữ liệu người dùng đã nhập khi báo lỗi
+  - Ánh xạ lỗi vào từng trường và thông báo chung
+  - Ngăn gửi lặp và phân biệt với kiểm soát thao tác lũy đẳng
+  - Biểu mẫu nhiều bước và thời hạn tồn tại dữ liệu
+  - Thiết kế thông báo lỗi rõ nghĩa và hỗ trợ nhiều ngôn ngữ
+- level1: Trạng thái và vòng đời
+  level2:
+  - Phân loại trạng thái nghiệp vụ, phiên làm việc và giao diện
+  - Phạm vi tồn tại của Model, View và Controller
+  - Đối tượng dùng chung và dữ liệu riêng của từng yêu cầu
+  - An toàn luồng khi Controller xử lý nhiều yêu cầu đồng thời
+  - Giữ trạng thái biểu mẫu, bộ lọc và lựa chọn hiện tại
+  - Cookie, session và dữ liệu chuyển tiếp sau chuyển hướng
+  - Phân biệt lưu trạng thái ở trình duyệt và ở máy chủ
+  - Xung đột cập nhật và kiểm soát phiên bản dữ liệu
+  - Ngăn dữ liệu của người dùng này ảnh hưởng người dùng khác
+  - Hết phiên, tải lại trang và thao tác quay lại
+  - Dọn tài nguyên và kết thúc vòng đời thành phần
+- level1: Dịch vụ và lưu trữ
+  level2:
+  - Vai trò của dịch vụ ứng dụng trong một ca sử dụng
+  - Phân biệt dịch vụ ứng dụng và dịch vụ nghiệp vụ
+  - Controller phối hợp ca sử dụng thay vì thao tác lưu trữ trực tiếp
+  - Kho lưu trữ (Repository) và lớp truy cập dữ liệu
+  - Xác định ranh giới giao dịch
+  - Điều kiện nghiệp vụ cần được bảo vệ trong giao dịch
+  - Đọc dữ liệu theo nhu cầu hiển thị và tránh truy vấn dư thừa
+  - Tải dữ liệu trì hoãn và rủi ro truy cập từ View
+  - Ánh xạ kết quả nghiệp vụ thành dữ liệu trình bày
+  - Tích hợp dịch vụ bên ngoài qua ranh giới rõ ràng
+  - Đưa công việc kéo dài ra ngoài thời gian xử lý giao diện
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi đầu vào, lỗi nghiệp vụ và lỗi hạ tầng
+  - Biểu diễn kết quả thất bại bằng kiểu trả về hoặc ngoại lệ
+  - Chuyển lỗi nghiệp vụ thành phản hồi có ý nghĩa
+  - Ánh xạ lỗi tới trạng thái HTTP trong ứng dụng web
+  - Xử lý lỗi tập trung và giới hạn xử lý tại từng Controller
+  - Thiết kế trang lỗi và trạng thái lỗi của thành phần giao diện
+  - Phân biệt thông báo cho người dùng và thông tin chẩn đoán
+  - Ngăn lộ chi tiết kỹ thuật qua phản hồi lỗi
+  - Đảm bảo giao dịch không để lại thay đổi dở dang
+  - Phục hồi giao diện và hướng dẫn thao tác tiếp theo
+- level1: Bảo mật
+  level2:
+  - Ranh giới tin cậy từ đầu vào tới dữ liệu hiển thị
+  - Xác thực danh tính và truyền ngữ cảnh người dùng
+  - Phân quyền theo hành động và theo đối tượng nghiệp vụ
+  - Vị trí đặt kiểm tra quyền để bảo vệ nhiều loại giao diện
+  - Giới hạn liên kết dữ liệu để tránh gán trường ngoài ý muốn
+  - Mã hóa đầu ra và phòng chống XSS trong View
+  - Bảo vệ biểu mẫu trước CSRF
+  - An toàn truy vấn và vai trò của lớp truy cập dữ liệu
+  - Bảo vệ session, cookie và thông tin nhạy cảm
+  - Xử lý tệp tải lên và liên kết chuyển hướng không đáng tin cậy
+  - Kiểm thử truy cập trái phép và rò rỉ dữ liệu
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian của từng chặng xử lý MVC
+  - Giảm truy vấn lặp và hiện tượng N+1
+  - Phân trang, lọc và sắp xếp tại đúng lớp
+  - Chọn dữ liệu vừa đủ cho từng màn hình
+  - Bộ nhớ đệm cho dữ liệu nghiệp vụ và dữ liệu trình bày
+  - Tính đúng đắn và quyền truy cập khi dùng bộ nhớ đệm
+  - Chi phí kết xuất khuôn mẫu và tái sử dụng thành phần
+  - Tác vụ bất đồng bộ và phản hồi tiến độ
+  - Tránh chặn luồng giao diện hoặc giữ yêu cầu quá lâu
+  - Kiểm thử tải và xác định điểm nghẽn thực tế
+- level1: Kiểm thử
+  level2:
+  - Chiến lược kiểm thử theo trách nhiệm của từng thành phần
+  - Kiểm thử quy tắc nghiệp vụ của Model
+  - Kiểm thử Controller với các phụ thuộc thay thế
+  - Kiểm thử dữ liệu trình bày và quyết định chọn View
+  - Kiểm thử khuôn mẫu, nội dung và trạng thái lỗi
+  - Kiểm thử định tuyến, liên kết dữ liệu và kiểm tra đầu vào
+  - Kiểm thử tích hợp giao dịch và lớp lưu trữ
+  - Kiểm thử luồng người dùng xuyên suốt
+  - Kiểm thử quyền truy cập, session và cách ly người dùng
+  - Kiểm thử cạnh tranh cập nhật và gửi thao tác lặp
+  - Kiểm thử khả năng tiếp cận và bản địa hóa giao diện
+  - Giảm kiểm thử dễ vỡ do bám sát chi tiết triển khai
+- level1: Quan sát và vận hành
+  level2:
+  - Nhật ký có cấu trúc cho yêu cầu và hành động
+  - Định danh tương quan từ giao diện tới dịch vụ phụ thuộc
+  - Đo thời gian định tuyến, nghiệp vụ, truy vấn và kết xuất
+  - Theo dõi tỷ lệ lỗi kỹ thuật và lỗi nghiệp vụ
+  - Giới hạn ghi dữ liệu cá nhân và nội dung biểu mẫu
+  - Quản lý cấu hình môi trường và tài nguyên View
+  - Triển khai thay đổi mã và khuôn mẫu đồng bộ
+  - Chẩn đoán lỗi theo dấu vết của một thao tác người dùng
+- level1: MVC và kiến trúc
+  level2:
+  - MVC trong kiến trúc phân lớp
+  - MVC trong ứng dụng nguyên khối và nguyên khối mô-đun
+  - MVC tại ranh giới của một dịch vụ
+  - Quan hệ giữa MVC và Hexagonal Architecture
+  - Quan hệ giữa MVC và Clean Architecture
+  - Model nghiệp vụ trong thiết kế hướng miền
+  - Phân biệt ba vai trò MVC và ba tầng trình bày, nghiệp vụ, dữ liệu
+  - Nhiều giao diện dùng chung một tập ca sử dụng
+  - Giới hạn của MVC trước các quyết định tích hợp và triển khai
+- level1: Mẫu giao diện liên quan
+  level2:
+  - So sánh MVC và MVP theo trách nhiệm điều phối trình bày
+  - Passive View và Supervising Controller trong MVP
+  - So sánh MVC và MVVM theo trạng thái trình bày và liên kết dữ liệu
+  - Vai trò của Presentation Model
+  - So sánh MVC và luồng dữ liệu một chiều
+  - Quan hệ giữa MVC và kiến trúc giao diện dựa trên thành phần
+  - Phân biệt MVC, mô hình ba tầng và REST
+  - Kết xuất phía máy chủ, SPA và ranh giới giao diện–API
+  - Tiêu chí chọn mẫu theo độ phức tạp của tương tác
+  - Tránh gắn nhãn MVC chỉ dựa trên tên thư mục hoặc lớp
+- level1: Ánh xạ nền tảng
+  level2:
+  - Cách đọc một nền tảng theo trách nhiệm Model, View và Controller
+  - Tổ chức MVC trong ứng dụng Java Swing
+  - Áp dụng MVC với JavaFX và ranh giới của FXML
+  - Ánh xạ Front Controller trong Spring MVC
+  - Phân biệt Controller, dữ liệu Model và bộ phân giải View trong Spring MVC
+  - Kết xuất khuôn mẫu trong ứng dụng Spring MVC
+  - Phân biệt ứng dụng trả HTML và ứng dụng trả dữ liệu trong cùng nền tảng
+  - Vai trò tương ứng trong Rails, Django và ASP.NET Core MVC
+  - Những trách nhiệm nền tảng cung cấp và những ranh giới cần tự thiết kế
+- level1: Sai lầm thường gặp
+  level2:
+  - Controller chứa toàn bộ quy tắc nghiệp vụ
+  - Model bị thu hẹp thành thực thể cơ sở dữ liệu
+  - View thực hiện truy vấn hoặc cập nhật dữ liệu
+  - Truyền đối tượng lưu trữ trực tiếp ra giao diện không kiểm soát
+  - Chia thư mục thành ba nhóm nhưng vẫn phụ thuộc chéo
+  - Lạm dụng lớp cơ sở và thành phần dùng chung
+  - Đặt trạng thái người dùng trong đối tượng dùng chung
+  - Lặp lại logic kiểm tra và ánh xạ ở nhiều Controller
+  - Coi Controller mỏng là lý do tạo thêm các lớp trung gian không cần thiết
+  - Cố áp dụng cùng một biến thể MVC cho mọi loại giao diện
+- level1: Cải tiến thiết kế
+  level2:
+  - Nhận diện mã trộn giao diện và nghiệp vụ
+  - Bảo vệ hành vi hiện có bằng kiểm thử đặc trưng
+  - Tách xử lý đầu vào và tạo phản hồi khỏi mã nghiệp vụ
+  - Rút ca sử dụng ra dịch vụ ứng dụng
+  - Tách dữ liệu biểu mẫu và dữ liệu trình bày
+  - Đưa truy cập dữ liệu về lớp có trách nhiệm
+  - Thay phụ thuộc trực tiếp bằng ranh giới trừu tượng cần thiết
+  - Cải tiến từng luồng thay vì tổ chức lại toàn bộ mã một lần
+  - Đánh giá số lớp, mức phụ thuộc và khả năng đọc sau cải tiến
+  - Xác minh hành vi và xóa cấu trúc cũ đã được thay thế
+- level1: Minh họa quản lý sách
+  level2:
+  - Yêu cầu danh sách, xem chi tiết, tạo mới và sửa thông tin sách
+  - Xác định Model và quy tắc nghiệp vụ
+  - Xác định View, dữ liệu biểu mẫu và dữ liệu trình bày
+  - Thiết kế Controller và các hành động
+  - Tổ chức dịch vụ ứng dụng và kho lưu trữ
+  - Luồng hiển thị danh sách có phân trang và lọc
+  - Luồng gửi biểu mẫu, kiểm tra và báo lỗi
+  - Luồng cập nhật với kiểm soát xung đột
+  - Phân quyền thao tác và xử lý dữ liệu không tồn tại
+  - Kiểm thử và truy vết một ca sử dụng hoàn chỉnh
+- level1: Thực hành
+  level2:
+  - Xây dựng ứng dụng MVC tối giản không phụ thuộc nền tảng
+  - Tạo hai View cùng phản ánh một Model
+  - Thay lớp lưu trữ mà vẫn giữ hành vi giao diện
+  - Thêm biểu mẫu và phân tách các loại kiểm tra
+  - Chuyển một luồng MVC tương tác sang luồng MVC trên web
+  - Thiết kế phản hồi khi thao tác thất bại
+  - Tách Controller quá lớn trong một ví dụ có sẵn
+  - Thêm kiểm thử để bảo vệ ranh giới MVC
+  - So sánh hai phương án thiết kế và giải thích đánh đổi
+- level1: Đánh giá thiết kế
+  level2:
+  - Kiểm tra trách nhiệm của Model, View và Controller
+  - Kiểm tra hướng phụ thuộc và khả năng thay đổi độc lập
+  - Kiểm tra hợp đồng dữ liệu và ranh giới nghiệp vụ
+  - Kiểm tra trạng thái, vòng đời và an toàn đồng thời
+  - Kiểm tra lỗi, bảo mật và trải nghiệm phản hồi
+  - Kiểm tra mức bao phủ hành vi bằng kiểm thử
+  - Đánh giá hiệu năng và khả năng chẩn đoán
+  - Câu hỏi phản biện theo các yêu cầu thay đổi
+  - Ghi nhận quyết định, giới hạn và tiêu chí nghiệm thu

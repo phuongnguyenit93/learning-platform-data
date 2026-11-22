@@ -1,0 +1,118 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng truyền tin
+  slug: messaging-fundamentals
+  index: 1
+- title: Khởi tạo
+  slug: getting-started
+  index: 2
+- title: Kiến trúc
+  slug: architecture
+  index: 3
+- title: Mô hình hàm
+  slug: functional-programming-model
+  index: 4
+- title: Binding và cấu hình
+  slug: bindings-and-configuration
+  index: 5
+- title: Thông điệp và header
+  slug: messages-and-headers
+  index: 6
+- title: Chuyển đổi dữ liệu
+  slug: data-conversion
+  index: 7
+- title: Schema và hợp đồng
+  slug: schemas-and-contracts
+  index: 8
+- title: Nguồn phát
+  slug: message-producers
+  index: 9
+- title: StreamBridge
+  slug: streambridge
+  index: 10
+- title: Ghép hàm và định tuyến
+  slug: function-composition-and-routing
+  index: 11
+- title: Nhóm tiêu thụ
+  slug: consumer-groups
+  index: 12
+- title: Phân vùng
+  slug: partitioning
+  index: 13
+- title: Xử lý phản ứng
+  slug: reactive-processing
+  index: 14
+- title: Tiêu thụ chủ động
+  slug: pollable-consumers
+  index: 15
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 16
+- title: Độ tin cậy
+  slug: delivery-reliability
+  index: 17
+- title: Kafka Binder
+  slug: kafka-binder
+  index: 18
+- title: Nhận từ Kafka
+  slug: kafka-consumption
+  index: 19
+- title: Phát tới Kafka
+  slug: kafka-production
+  index: 20
+- title: Giao dịch Kafka
+  slug: kafka-transactions
+  index: 21
+- title: Khôi phục Kafka
+  slug: kafka-recovery
+  index: 22
+- title: RabbitMQ Binder
+  slug: rabbitmq-binder
+  index: 23
+- title: Độ tin cậy RabbitMQ
+  slug: rabbitmq-reliability
+  index: 24
+- title: Kafka Streams
+  slug: kafka-streams
+  index: 25
+- title: Trạng thái và cửa sổ
+  slug: stateful-stream-processing
+  index: 26
+- title: Vận hành Kafka Streams
+  slug: kafka-streams-operations
+  index: 27
+- title: Pulsar Binder
+  slug: pulsar-binder
+  index: 28
+- title: Nhiều binder
+  slug: multiple-binders
+  index: 29
+- title: Kiểm thử
+  slug: testing
+  index: 30
+- title: Quan sát
+  slug: observability
+  index: 31
+- title: Bảo mật
+  slug: security
+  index: 32
+- title: Hiệu năng
+  slug: performance
+  index: 33
+- title: Triển khai
+  slug: deployment
+  index: 34
+- title: Mở rộng
+  slug: scaling
+  index: 35
+- title: Nâng cấp
+  slug: upgrades
+  index: 36
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 37
+- title: Thực hành tổng hợp
+  slug: end-to-end-exercise
+  index: 38

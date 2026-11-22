@@ -1,0 +1,7 @@
+# Spring Boot - Actuator
+
+Khi ứng dụng đã chạy, việc nhận được một phản hồi HTTP chưa đủ để biết nó có sẵn sàng phục vụ hay đang gặp vấn đề. Spring Boot Actuator cung cấp các khả năng theo dõi và quản trị, giúp quan sát tình trạng ứng dụng, cấu hình, tài nguyên và hành vi xử lý. Kết hợp với Micrometer và hệ thống giám sát bên ngoài, những tín hiệu này hỗ trợ phát hiện sự cố và kiểm chứng giả thuyết bằng dữ liệu.
+
+Module dành cho người đã biết Spring Boot, HTTP, cấu hình ứng dụng và khái niệm cơ bản về xác thực, phân quyền. Nội dung gồm cấu hình và bảo vệ endpoint quản trị, health cùng trạng thái sẵn sàng, số liệu đo lường (metric), quan sát thao tác (observation), dấu vết phân tán (trace), công cụ chẩn đoán và mở rộng thông tin quản trị. Actuator cung cấp dữ liệu và thao tác quản trị; lưu trữ lịch sử, hiển thị bảng giám sát và gửi cảnh báo cần các thành phần phù hợp của hệ thống giám sát. Khi thực hành, hãy chọn tài liệu tương ứng với phiên bản Spring Boot và Micrometer của dự án.
+
+Lộ trình bắt đầu từ vai trò của Actuator và chính sách công bố endpoint, sau đó tìm hiểu health, metric và tracing. Tiếp đến, bạn sử dụng công cụ chẩn đoán, bổ sung tín hiệu riêng của ứng dụng, rồi kiểm thử quyền truy cập và đối chiếu dữ liệu khi tái hiện tình huống vận hành. Tư duy xuyên suốt là xác định tín hiệu đang trả lời câu hỏi nào, dữ liệu phản ánh điều gì và người nào được phép đọc hoặc thay đổi trạng thái qua kênh quản trị.

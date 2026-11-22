@@ -1,0 +1,433 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data Couchbase là gì và giải quyết bài toán truy cập dữ liệu nào
+  - Vị trí của Spring Data Couchbase giữa Spring Data, Spring Boot và Java SDK
+  - Mô hình tài liệu JSON và truy cập theo khóa
+  - Phân biệt truy cập Key-Value, truy vấn SQL++ và tìm kiếm toàn văn
+  - 'Repository, Template và Java SDK: vai trò và quan hệ'
+  - Ánh xạ đối tượng khác gì ORM và persistence context của JPA
+  - Lựa chọn truy cập đồng bộ hoặc phản ứng
+  - 'Ví dụ xuyên suốt: ứng dụng quản lý khách hàng và đơn hàng'
+  - Phạm vi kiến thức, điều kiện đầu vào và thứ tự học
+- level1: Nền tảng Couchbase
+  level2:
+  - Cluster, node và các dịch vụ dữ liệu, truy vấn, chỉ mục
+  - Bucket, scope và collection trong tổ chức dữ liệu
+  - Khóa tài liệu, nội dung JSON và metadata
+  - vBucket, phân vùng dữ liệu và định tuyến yêu cầu theo khóa
+  - Bản sao, chuyển đổi dự phòng và tái cân bằng cụm
+  - CAS, thời gian hết hạn và mã thông báo thay đổi
+  - Chỉ mục cập nhật bất đồng bộ và độ mới của kết quả truy vấn
+  - Phân biệt tính nguyên tử, tính nhất quán và độ bền ghi
+  - Đặc điểm của Couchbase Server tự quản lý và Couchbase Capella
+  - Ranh giới giữa kiến thức cần cho ứng dụng và quản trị cụm chuyên sâu
+- level1: Môi trường
+  level2:
+  - Chọn bộ phiên bản tương thích của Java, Spring Boot, Spring Data và Java SDK
+  - Xác minh yêu cầu phiên bản Server cho từng tính năng sử dụng
+  - Quản lý phiên bản phụ thuộc qua Spring Boot và Gradle
+  - Khởi tạo Couchbase phục vụ học tập bằng Docker
+  - Tạo bucket, scope, collection và tài khoản ứng dụng
+  - Bật các dịch vụ cần cho Key-Value và SQL++
+  - Nạp dữ liệu mẫu và kiểm tra bằng giao diện quản trị
+  - Kết nối từ máy chủ ứng dụng tới môi trường Docker hoặc Capella
+  - Kiểm tra sẵn sàng trước khi chạy ứng dụng và bài kiểm thử
+  - Tổ chức cấu hình riêng cho phát triển, kiểm thử và triển khai
+- level1: Cấu hình kết nối
+  level2:
+  - Cấu hình tự động với các starter Couchbase của Spring Boot
+  - Khai báo chuỗi kết nối, thông tin xác thực và bucket
+  - Phân biệt nhóm thuộc tính spring.couchbase và spring.data.couchbase
+  - Cấu hình Java qua AbstractCouchbaseConfiguration
+  - ClusterEnvironment, Cluster, Bucket và CouchbaseClientFactory
+  - Vòng đời và khả năng dùng chung các đối tượng kết nối
+  - Phạm vi quét entity và kích hoạt repository
+  - Thời gian chờ kết nối, thao tác Key-Value và truy vấn
+  - Tùy chỉnh môi trường SDK theo nhu cầu ứng dụng
+  - Cấu hình TLS, chứng chỉ và xác minh máy chủ
+  - Đóng tài nguyên đúng vòng đời Spring ApplicationContext
+- level1: Mô hình tài liệu
+  level2:
+  - Xác định ranh giới aggregate và các mẫu truy cập dữ liệu
+  - Ánh xạ lớp Java bằng @Document và @Id
+  - Ánh xạ tên trường bằng @Field và loại bỏ trường với @Transient
+  - Đối tượng lồng nhau, danh sách, tập hợp và ánh xạ
+  - Nhúng dữ liệu so với tham chiếu bằng khóa tài liệu
+  - Nhiều loại entity và thông tin phân biệt kiểu trong JSON
+  - Phân biệt khóa tài liệu với một trường id trong nội dung JSON
+  - Constructor, @PersistenceCreator và khởi tạo entity bất biến
+  - Java record và giới hạn cần kiểm tra khi entity có metadata thay đổi
+  - Phân biệt trường thiếu, giá trị null và giá trị mặc định
+  - Thiết kế kích thước tài liệu và tránh cấu trúc tăng không giới hạn
+  - Tài liệu cũ, trường mới và khả năng đọc dữ liệu không đồng nhất
+- level1: Khóa tài liệu
+  level2:
+  - Thiết kế khóa duy nhất theo nhu cầu truy cập
+  - Khóa tự nhiên, khóa thay thế và khóa ghép
+  - Tiền tố phân loại, namespace và quy tắc tránh va chạm
+  - Tạo khóa bằng UUID hoặc thuộc tính nghiệp vụ
+  - '@GeneratedValue và lựa chọn chiến lược sinh khóa'
+  - '@IdPrefix, @IdSuffix và @IdAttribute trong ghép khóa'
+  - Thứ tự thành phần, dấu phân cách và tính ổn định của khóa
+  - Giới hạn độ dài khóa theo byte và dữ liệu Unicode
+  - Khóa bất biến, đổi khóa và di chuyển tài liệu
+  - Idempotency key và xử lý yêu cầu tạo dữ liệu lặp
+- level1: Chuyển đổi kiểu
+  level2:
+  - Cơ chế đọc và ghi entity của MappingCouchbaseConverter
+  - Kiểu số, boolean, chuỗi và biểu diễn JSON
+  - Ngày giờ, múi giờ và lựa chọn định dạng lưu trữ
+  - Enum, kiểu giá trị nghiệp vụ và dữ liệu nhiều biến thể
+  - Đăng ký bộ chuyển đổi đọc và ghi bằng CouchbaseCustomConversions
+  - Phân biệt chuyển đổi một trường và thay đổi biểu diễn toàn tài liệu
+  - Thông tin kiểu, @TypeAlias và tương thích khi đổi package hoặc tên lớp
+  - Giá trị tiền tệ, độ chính xác và tránh mất thông tin
+  - Kiểm tra ánh xạ hai chiều và phát hiện dữ liệu không chuyển đổi được
+  - Ảnh hưởng của bộ chuyển đổi tùy chỉnh đến truy vấn và chỉ mục
+- level1: Scope và Collection
+  level2:
+  - Phân biệt collection mặc định và collection do ứng dụng tạo
+  - Chọn scope mặc định trong cấu hình
+  - '@Scope và @Collection trên entity, repository và phương thức'
+  - Chọn scope và collection qua API của Template
+  - DynamicProxyable và đổi đích truy cập của repository
+  - Thứ tự ưu tiên giữa cấu hình, annotation và lựa chọn khi gọi
+  - Ngữ cảnh truy vấn SQL++ và tên keyspace đầy đủ
+  - Tổ chức nhiều loại dữ liệu trong một bucket
+  - Định tuyến theo tenant và kiểm soát tenant được phép truy cập
+  - Tách repository hoặc Template cho nhiều bucket
+  - Kiểm thử truy cập đúng collection và phát hiện nhầm namespace
+- level1: Repository
+  level2:
+  - Định nghĩa CouchbaseRepository và kiểu khóa của entity
+  - Repository proxy, dependency injection và phạm vi trách nhiệm
+  - Tạo, đọc, sửa, xóa tài liệu theo định danh
+  - Ý nghĩa của save và ảnh hưởng của trạng thái mới hoặc trường phiên bản
+  - Phân biệt thao tác theo khóa với thao tác được thực hiện bằng SQL++
+  - Kiểu trả về Optional, danh sách và kết quả không tồn tại
+  - Đọc hoặc ghi nhiều tài liệu và giới hạn về tính nguyên tử
+  - exists, count và chi phí của các thao tác tổng hợp
+  - Xóa theo khóa, xóa theo điều kiện và phạm vi dữ liệu bị ảnh hưởng
+  - Quản lý nhiều module Spring Data trong cùng ứng dụng
+  - Giới hạn của Repository và thời điểm chuyển sang Template
+- level1: Template
+  level2:
+  - CouchbaseTemplate và giao diện CouchbaseOperations
+  - 'API fluent: chọn thao tác, entity, tùy chọn và cách lấy kết quả'
+  - insertById, upsertById và replaceById theo mục đích ghi
+  - findById, existsById và removeById
+  - Truy vấn và xóa theo điều kiện với findByQuery và removeByQuery
+  - Chọn một kết quả, tất cả kết quả hoặc kết quả có phân trang
+  - Chỉ định scope, collection, thời gian chờ và tùy chọn thao tác
+  - Áp dụng CAS, thời gian hết hạn và yêu cầu độ bền
+  - Ánh xạ kết quả về entity hoặc biểu diễn cần dùng
+  - Kết hợp nhiều thao tác mà vẫn giữ quyền sở hữu vòng đời rõ ràng
+  - Truy cập Java SDK qua client factory khi cần tính năng cấp thấp
+- level1: Truy vấn dẫn xuất
+  level2:
+  - Tạo truy vấn từ tên phương thức repository
+  - Tra cứu theo trường đơn và nhiều trường kết hợp
+  - Toán tử so sánh, khoảng giá trị và tập giá trị
+  - Truy vấn chuỗi và điều kiện không phân biệt hoa thường
+  - Điều kiện cho dữ liệu lồng nhau và tên thuộc tính Java
+  - Điều kiện null, thiếu trường và giới hạn suy diễn từ tên phương thức
+  - Sắp xếp bằng OrderBy và tham số Sort
+  - Giới hạn số kết quả và lựa chọn kiểu trả về
+  - Truy vấn count, exists và delete theo điều kiện
+  - Kiểm tra từ khóa thực sự được hỗ trợ trong phiên bản sử dụng
+  - Đọc truy vấn được tạo và nhận diện tên phương thức quá phức tạp
+- level1: SQL++ và @Query
+  level2:
+  - SQL++ và tên gọi N1QL trong API Spring Data Couchbase
+  - SELECT, FROM, WHERE và truy cập trường JSON
+  - Mảng, đối tượng lồng nhau và biểu thức ANY hoặc EVERY
+  - Giá trị NULL, MISSING và logic điều kiện
+  - GROUP BY, HAVING và các phép tổng hợp
+  - Khai báo truy vấn bằng @Query
+  - Tham số vị trí, tham số có tên và @Param
+  - Biểu thức SpEL và phân biệt với tham số truy vấn
+  - '#n1ql.selectEntity, #n1ql.fields và metadata cần cho ánh xạ'
+  - '#n1ql.filter và lọc đúng kiểu entity'
+  - '#n1ql.bucket, #n1ql.scope và #n1ql.collection'
+  - Truy vấn thay đổi dữ liệu và lựa chọn kết quả RETURNING
+  - Ràng buộc đầu vào và phòng tránh ghép chuỗi truy vấn không an toàn
+- level1: Truy vấn động
+  level2:
+  - Tạo Query và QueryCriteria theo bộ lọc đầu vào
+  - Kết hợp điều kiện AND, OR và nhóm điều kiện
+  - Ánh xạ tên thuộc tính Java sang tên trường lưu trữ
+  - Trường lồng nhau, tập giá trị và điều kiện tùy chọn
+  - Sắp xếp, giới hạn và phân trang trong truy vấn động
+  - Tái sử dụng tiêu chí mà không chia sẻ trạng thái khả biến
+  - 'Querydsl: sinh kiểu truy vấn và cấu hình annotation processor'
+  - Xác minh phạm vi hỗ trợ Querydsl theo phiên bản phụ thuộc
+  - So sánh truy vấn dẫn xuất, @Query, QueryCriteria và gọi SDK
+  - Kiểm thử bộ lọc động với dữ liệu null, thiếu trường và đầu vào rỗng
+- level1: Chiếu và phân trang
+  level2:
+  - Chỉ lấy các trường cần dùng thay vì đọc toàn bộ entity
+  - Projection theo interface và DTO theo khả năng hỗ trợ thực tế
+  - Bí danh trường và ánh xạ kết quả SQL++ tùy chỉnh
+  - Khi nào kết quả cần giữ document ID và CAS
+  - Page, Slice và chi phí truy vấn đếm tổng
+  - Pageable, Sort và thứ tự ổn định giữa các trang
+  - OFFSET và LIMIT khi số lượng dữ liệu tăng
+  - Phân trang theo khóa bằng điều kiện SQL++ tường minh
+  - Giới hạn của phân trang trên dữ liệu đang thay đổi
+  - Phân trang trong luồng phản ứng mà không giả định có Page tự động
+  - Kết quả tổng hợp và biểu diễn không phải entity
+- level1: Chỉ mục
+  level2:
+  - Vai trò của chỉ mục với truy vấn repository và SQL++
+  - Primary index và secondary index
+  - Chỉ mục ghép và thứ tự các trường
+  - Chỉ mục có điều kiện theo loại entity hoặc điều kiện nghiệp vụ
+  - Chỉ mục trên mảng và truy vấn dữ liệu lồng nhau
+  - Chỉ mục bao phủ và giảm bước đọc tài liệu
+  - '@QueryIndexed và @CompositeQueryIndex trong mô hình được hỗ trợ'
+  - Cấu hình tạo chỉ mục tự động và ranh giới với triển khai production
+  - Quản lý chỉ mục riêng cho scope và collection
+  - Đọc EXPLAIN và đối chiếu kế hoạch với mẫu truy vấn
+  - Xây dựng chỉ mục, chờ sẵn sàng và triển khai thay đổi có kiểm soát
+  - Chi phí ghi, dung lượng và bảo trì khi thêm nhiều chỉ mục
+- level1: Tính nhất quán
+  level2:
+  - Độ mới của dữ liệu khi đọc theo khóa và khi truy vấn qua chỉ mục
+  - NOT_BOUNDED và REQUEST_PLUS trong truy vấn SQL++
+  - Cấu hình @ScanConsistency cho repository
+  - Chọn mức nhất quán cho từng truy vấn Template
+  - Đọc sau ghi và thời điểm chỉ mục nhìn thấy thay đổi
+  - MutationState và nhất quán theo thay đổi tại lớp Java SDK
+  - Đánh đổi giữa độ mới, độ trễ và tải trên dịch vụ chỉ mục
+  - Phân biệt kết quả cũ do chỉ mục với dữ liệu cũ trong bộ nhớ đệm
+  - Kiểm thử độ trễ cập nhật chỉ mục bằng tình huống có kiểm soát
+- level1: Khóa lạc quan
+  level2:
+  - CAS là token phiên bản của tài liệu
+  - Ánh xạ CAS vào thuộc tính @Version
+  - Nhận biết entity mới và entity đã được lưu
+  - Chu trình đọc, sửa, ghi và nguy cơ mất cập nhật
+  - OptimisticLockingFailureException và cách phản hồi cho bên gọi
+  - Thử lại toàn bộ chu trình trên dữ liệu mới nhất
+  - Kiểm soát xóa theo phiên bản và xác minh ngữ nghĩa API sử dụng
+  - Giữ CAS trong kết quả truy vấn dùng để cập nhật
+  - Cập nhật đồng thời giữa Repository, Template và mã SDK
+  - Lựa chọn CAS, thao tác sub-document hoặc giao dịch theo ràng buộc
+- level1: Thời gian hết hạn
+  level2:
+  - TTL, thời điểm hết hạn và tài liệu không có thời hạn
+  - Cấu hình expiry trên @Document theo phiên bản sử dụng
+  - Đơn vị thời gian và cấu hình thời hạn bằng thuộc tính ứng dụng
+  - TTL tương đối và mốc thời gian tuyệt đối
+  - Giữ lại, thay thế hoặc làm mới thời hạn khi ghi
+  - Touch và get-and-touch khi thao tác qua SDK
+  - Thời hạn mặc định của bucket hoặc collection và ảnh hưởng lên tài liệu
+  - Dữ liệu đã hết hạn và thời điểm kết quả đọc phản ánh trạng thái mới
+  - Thiết kế phiên đăng nhập, mã xác thực và dữ liệu tạm
+  - Kiểm thử thời gian hết hạn mà không dựa vào chờ tùy tiện
+- level1: Độ bền ghi
+  level2:
+  - Xác nhận ghi trên node chính, sao chép và lưu bền
+  - DurabilityLevel và các mức xác nhận được hỗ trợ
+  - Cấu hình độ bền trên entity và cho từng thao tác
+  - Đánh đổi giữa độ an toàn dữ liệu, độ trễ và khả năng sẵn sàng
+  - Điều kiện số bản sao và cấu hình cụm đáp ứng độ bền
+  - Thời gian chờ và tình huống chưa biết chắc kết quả ghi
+  - Phân biệt độ bền ghi với độ mới của chỉ mục truy vấn
+  - Khả năng phục hồi sau failover và giới hạn của yêu cầu độ bền
+  - Kiểm thử lỗi node trong môi trường thử nghiệm có kiểm soát
+- level1: Sub-document
+  level2:
+  - Đọc hoặc sửa một phần tài liệu thay vì truyền toàn bộ JSON
+  - Đường dẫn trường, đối tượng lồng nhau và phần tử mảng
+  - lookupIn và mutateIn tại lớp Java SDK
+  - Phạm vi API sub-document của Template theo phiên bản sử dụng
+  - Gộp nhiều thay đổi nguyên tử trên cùng một tài liệu
+  - Thêm, thay thế, xóa trường và tạo đường dẫn khi cần
+  - Cập nhật mảng và bộ đếm trong tài liệu
+  - Kết hợp CAS và yêu cầu độ bền với cập nhật từng phần
+  - Trường không tồn tại, sai kiểu và lỗi đường dẫn
+  - Ảnh hưởng của cập nhật qua SDK đến ánh xạ, auditing và metadata
+- level1: Giao dịch
+  level2:
+  - Khi nào ràng buộc nghiệp vụ cần giao dịch nhiều tài liệu
+  - Yêu cầu phiên bản, cấu hình cụm và trường @Version của entity
+  - CouchbaseTransactionManager và kích hoạt quản lý giao dịch
+  - '@Transactional tại ranh giới dịch vụ và cơ chế Spring proxy'
+  - Những thao tác Repository và Template có thể tham gia giao dịch
+  - CouchbaseTransactionalOperator cho giao dịch lập trình
+  - Giao dịch trực tiếp trong lambda của Java SDK
+  - Giao dịch đồng bộ và giao dịch phản ứng
+  - Mức cô lập và các thuộc tính @Transactional cần xác minh phạm vi hỗ trợ
+  - Thử lại thân giao dịch và kiểm soát tác dụng phụ
+  - Thời gian chờ, xung đột và kết quả commit chưa xác định
+  - Giao dịch Couchbase với HTTP, hàng đợi hoặc cơ sở dữ liệu khác
+  - Thiết kế và kiểm thử chuyển tiền hoặc giữ tồn kho nhiều tài liệu
+- level1: Truy cập phản ứng
+  level2:
+  - ReactiveCouchbaseRepository và ReactiveCouchbaseTemplate
+  - Mono, Flux và vòng đời đăng ký thực hiện thao tác
+  - Tạo, đọc, sửa và xóa bằng chuỗi phản ứng
+  - Truy vấn dẫn xuất và @Query với kiểu trả về phản ứng
+  - Phối hợp nhiều thao tác bằng flatMap hoặc concatMap
+  - Giới hạn số thao tác đồng thời để bảo vệ cluster
+  - Áp lực ngược và giới hạn tại ranh giới SDK hoặc truy vấn
+  - Phục hồi lỗi, thử lại và thời gian chờ trong chuỗi
+  - Hủy đăng ký và khả năng hủy tác vụ đang thực hiện
+  - Giao dịch phản ứng và truyền ngữ cảnh đúng vòng đời
+  - Auditing phản ứng và xác định người thao tác từ ngữ cảnh
+  - Tích hợp WebFlux và cô lập thư viện có thao tác chặn
+- level1: Quan hệ và JOIN
+  level2:
+  - Nhúng tài liệu, tham chiếu khóa và phi chuẩn hóa theo nhu cầu
+  - Quan hệ một–một, một–nhiều và nhiều–nhiều
+  - JOIN, NEST và UNNEST trong truy vấn SQL++
+  - ANSI JOIN giữa các collection theo trường dữ liệu
+  - '@N1qlJoin và khai báo điều kiện liên kết entity'
+  - Phạm vi tải liên kết và các tùy chọn phụ thuộc phiên bản
+  - Chỉ mục phục vụ điều kiện JOIN
+  - Chi phí nhiều truy vấn và phát hiện kiểu truy cập N+1
+  - Dữ liệu liên kết thiếu, đã hết hạn hoặc đã bị xóa
+  - Ranh giới toàn vẹn tham chiếu do ứng dụng chịu trách nhiệm
+- level1: Vòng đời và auditing
+  level2:
+  - Các giai đoạn chuyển đổi, đọc và ghi tài liệu
+  - Sự kiện ánh xạ và callback theo API của phiên bản sử dụng
+  - Tách chuẩn hóa dữ liệu khỏi tác dụng phụ trong callback
+  - Kiểm tra dữ liệu bằng Bean Validation tại ranh giới phù hợp
+  - '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+  - Kích hoạt @EnableCouchbaseAuditing và cung cấp AuditorAware
+  - Vai trò trường @Version khi phân biệt tạo mới và cập nhật
+  - Cấu hình thời gian và nguồn xác định người thao tác
+  - EnableReactiveCouchbaseAuditing và ReactiveAuditorAware
+  - Các đường ghi trực tiếp qua SDK hoặc truy vấn cần kiểm tra auditing
+  - Sự kiện nghiệp vụ, sự kiện lưu trữ và độ tin cậy sau commit
+- level1: Bộ nhớ đệm
+  level2:
+  - Phân biệt lưu trữ tài liệu và Spring Cache abstraction
+  - CouchbaseCacheManager và kích hoạt @EnableCaching
+  - '@Cacheable, @CachePut và @CacheEvict'
+  - Thiết kế cache key, tên cache và tránh va chạm
+  - Cấu hình thời hạn riêng cho từng cache
+  - Định dạng giá trị cache và tương thích giữa phiên bản ứng dụng
+  - Dữ liệu null, kết quả không tồn tại và chính sách lưu đệm
+  - Vô hiệu hóa cache sau cập nhật và ranh giới giao dịch
+  - Nhiều yêu cầu cùng nạp một khóa và nguy cơ cache stampede
+  - Quan sát tỉ lệ trúng cache và kiểm thử dữ liệu cũ
+- level1: Mở rộng bằng SDK
+  level2:
+  - Tiêu chí dùng SDK trực tiếp khi Repository hoặc Template chưa đáp ứng
+  - Dùng chung Cluster, Bucket và Collection do Spring quản lý
+  - Bộ đếm nguyên tử theo khóa và phạm vi sử dụng
+  - Đọc từ bản sao và đánh đổi về độ mới dữ liệu
+  - 'Full-Text Search: chỉ mục tìm kiếm và truy vấn qua SDK'
+  - 'Analytics: phân tích dữ liệu và phân biệt với truy vấn phục vụ giao dịch'
+  - Metadata, cảnh báo và số liệu của kết quả truy vấn
+  - Thao tác nhiều tài liệu với giới hạn đồng thời
+  - Chuyển kết quả SDK sang mô hình dữ liệu ứng dụng
+  - Giữ nhất quán quy tắc mã hóa, TTL, CAS và ánh xạ khi kết hợp các API
+- level1: Bảo mật
+  level2:
+  - Phân quyền RBAC theo bucket, scope, collection và dịch vụ
+  - Tách tài khoản ứng dụng khỏi tài khoản quản trị
+  - Quản lý mật khẩu, chuỗi kết nối và chứng chỉ bằng cấu hình bí mật
+  - Kết nối mã hóa TLS và xác thực chứng chỉ
+  - Ràng buộc tham số SQL++ và kiểm soát trường sắp xếp động
+  - Xác minh tenant và ngăn truy cập nhầm collection
+  - Field Level Encryption và điều kiện phụ thuộc cần bổ sung
+  - '@Encrypted, CryptoManager và vòng đời khóa mã hóa'
+  - Ảnh hưởng của trường mã hóa đến truy vấn và chỉ mục
+  - Giới hạn dữ liệu nhạy cảm trong log, lỗi và kết quả trả về
+- level1: Thiết kế ứng dụng
+  level2:
+  - Phân chia Controller, Service, Repository và lớp ánh xạ DTO
+  - Đặt ranh giới aggregate, transaction và quyền sở hữu cập nhật
+  - Tách mô hình API khỏi cấu trúc tài liệu lưu trữ
+  - Repository fragment và cài đặt truy vấn tùy chỉnh bằng Template
+  - Thiết kế thao tác tạo, sửa và xóa có tính lũy đẳng
+  - Ràng buộc duy nhất trong nghiệp vụ và chiến lược theo khóa
+  - Xóa mềm, lọc dữ liệu còn hiệu lực và tương tác với TTL
+  - Phân quyền và tenant ở ranh giới dịch vụ
+  - Phối hợp cập nhật dữ liệu với sự kiện bên ngoài một cách tin cậy
+  - Quản lý nhiều bucket hoặc nhiều cluster mà không trộn cấu hình
+- level1: Kiểm thử
+  level2:
+  - Phân lớp kiểm thử nghiệp vụ, ánh xạ và tích hợp dữ liệu
+  - Giới hạn của mock khi xác minh ngữ nghĩa Couchbase
+  - '@DataCouchbaseTest và cấu hình tài nguyên kiểm thử'
+  - Khởi tạo CouchbaseContainer bằng Testcontainers
+  - Cung cấp cấu hình kết nối động và chờ cluster sẵn sàng
+  - Tạo scope, collection, chỉ mục và dữ liệu thử có thể tái lập
+  - Kiểm thử CRUD, truy vấn dẫn xuất và @Query trên dữ liệu thực
+  - Kiểm thử CAS bằng hai cập nhật cạnh tranh
+  - Kiểm thử giao dịch thành công, rollback và thử lại
+  - Kiểm thử TTL, độ bền và độ trễ cập nhật chỉ mục
+  - StepVerifier cho Repository và Template phản ứng
+  - Cô lập dữ liệu giữa các bài kiểm thử và dọn dẹp đúng phạm vi
+  - Kiểm thử quyền truy cập, cấu hình sai và tính tương thích phiên bản
+- level1: Xử lý lỗi
+  level2:
+  - Hệ thống ngoại lệ Spring Data và ngoại lệ gốc từ SDK
+  - Tài liệu không tồn tại, khóa trùng và xung đột phiên bản
+  - Lỗi ánh xạ, lỗi chuyển đổi và dữ liệu không hợp lệ
+  - Không tìm thấy bucket, scope, collection hoặc chỉ mục
+  - Lỗi xác thực, phân quyền, DNS và chứng chỉ
+  - Phân biệt lỗi có thể thử lại với lỗi cần thay đổi đầu vào hoặc cấu hình
+  - Thời gian chờ có kết quả xác định và chưa xác định
+  - Tính lũy đẳng trước khi thử lại thao tác ghi
+  - Giới hạn số lần thử, thời gian chờ tăng dần và ngân sách tổng
+  - Xử lý lỗi giao dịch và kiểm tra khả năng đã commit
+  - Chuyển lỗi dữ liệu thành phản hồi API phù hợp
+  - Thu thập ngữ cảnh chẩn đoán mà không lộ thông tin bí mật
+- level1: Quan sát và vận hành
+  level2:
+  - Kiểm tra kết nối và trạng thái sẵn sàng của ứng dụng
+  - Phân biệt health check với độ sẵn sàng của từng dịch vụ Couchbase
+  - Log SDK, thông tin chẩn đoán và endpoint kết nối
+  - Đo độ trễ Key-Value, truy vấn, lỗi và số thao tác đang chờ
+  - Theo dõi truy vấn chậm, request ID và ngữ cảnh truy vết
+  - Quan sát tải chỉ mục, bộ nhớ, dung lượng và dịch vụ truy vấn
+  - Hành vi ứng dụng khi failover, rebalance hoặc gián đoạn mạng
+  - Quản lý thời gian khởi động và phục hồi kết nối
+  - Dừng ứng dụng có kiểm soát và đóng tài nguyên SDK
+  - Sao lưu, khôi phục và kiểm tra khả năng đọc lại dữ liệu ứng dụng
+- level1: Hiệu năng
+  level2:
+  - Chọn truy cập theo khóa khi đã có định danh tài liệu
+  - Đo đường cơ sở theo độ trễ, thông lượng và lượng dữ liệu truyền
+  - Tối ưu chỉ mục theo điều kiện lọc và sắp xếp
+  - Giảm số trường trả về và số tài liệu trung gian
+  - Thay cập nhật toàn tài liệu bằng sub-document khi phù hợp
+  - Kiểm soát kích thước trang và truy vấn đếm tổng
+  - Tối ưu truy vấn tham số hóa và kế hoạch chuẩn bị theo API hỗ trợ
+  - Giới hạn đồng thời và tránh làm đầy hàng đợi SDK
+  - Đánh giá chi phí của REQUEST_PLUS, độ bền và giao dịch
+  - Phân tích tài liệu lớn, khóa nóng và tải phân bố không đều
+  - Đo với dữ liệu và topology đại diện trước khi chọn cấu hình
+- level1: Tiến hóa và di trú
+  level2:
+  - Quản lý phiên bản tài liệu trong cơ sở dữ liệu không có lược đồ cứng
+  - Đọc tương thích khi thêm, đổi tên hoặc thay kiểu trường
+  - Thay đổi @TypeAlias, thông tin kiểu và tên lớp Java
+  - Di trú tài liệu theo lô với tiến độ và khả năng chạy lại
+  - Chuyển dữ liệu sang scope, collection hoặc bucket mới
+  - Triển khai chỉ mục trước các truy vấn phụ thuộc
+  - Đọc và ghi đồng thời trong giai đoạn chuyển đổi
+  - Nâng Spring Boot, Spring Data Couchbase và Java SDK theo ma trận tương thích
+  - Nhận diện API hoặc ví dụ cũ thuộc SDK và Spring Data thế hệ trước
+  - Kiểm thử dữ liệu cũ, sao lưu và phương án khôi phục khi di trú lỗi
+- level1: Bài thực hành
+  level2:
+  - Xây dựng CRUD khách hàng bằng Repository và Template
+  - Thiết kế khóa đơn hàng và kiểm tra yêu cầu tạo lặp
+  - Ánh xạ tài liệu lồng nhau và bộ chuyển đổi tiền tệ hoặc thời gian
+  - Tạo bộ lọc động, sắp xếp và phân trang danh sách đơn hàng
+  - Tạo chỉ mục và so sánh kế hoạch truy vấn trước và sau
+  - Mô phỏng đọc sau ghi với nhiều mức nhất quán
+  - Xử lý hai yêu cầu cập nhật cạnh tranh bằng CAS
+  - Lưu phiên đăng nhập có TTL và kiểm tra làm mới thời hạn
+  - Thực hiện giao dịch chuyển tiền giữa nhiều tài liệu
+  - Xây dựng API WebFlux truy cập Couchbase theo chuỗi phản ứng
+  - Kiểm thử bằng Testcontainers và đo tải theo một mẫu truy cập cụ thể
+  - Di trú tài liệu sang phiên bản mới và xác minh dữ liệu sau chuyển đổi

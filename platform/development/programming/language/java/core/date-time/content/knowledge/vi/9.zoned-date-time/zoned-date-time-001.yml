@@ -1,0 +1,3 @@
+menuLevel1: ZonedDateTime
+menuLevel2: ZonedDateTime gồm ngày giờ địa phương, ZoneId và độ lệch đã xác định
+status: WRITTEN

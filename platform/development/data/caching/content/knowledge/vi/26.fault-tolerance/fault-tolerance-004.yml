@@ -1,0 +1,3 @@
+menuLevel1: Khả năng chịu lỗi
+menuLevel2: Ngắt mạch bằng circuit breaker khi cache liên tục lỗi
+status: ''

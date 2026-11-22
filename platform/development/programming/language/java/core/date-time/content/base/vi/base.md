@@ -1,0 +1,7 @@
+# Java Core — Date & Time
+
+Ngày giờ trong phần mềm có nhiều ý nghĩa khác nhau: một **ngày theo lịch**, một **giờ địa phương**, hay một **thời điểm xác định trên dòng thời gian**. Chọn sai cách biểu diễn dễ gây lỗi khi so sánh, tính toán, lưu trữ hoặc chuyển đổi giữa các múi giờ. Module này giới thiệu API `java.time` của Java, với các kiểu dữ liệu bất biến và cách phân biệt rõ ngày giờ địa phương, thời điểm (`Instant`) và quy tắc múi giờ (`ZoneId`).
+
+Nội dung dành cho người đã nắm cú pháp Java, lớp, đối tượng và phương thức cơ bản. Lộ trình bắt đầu từ mô hình thời gian và các kiểu `LocalDate`, `LocalTime`, `LocalDateTime`; sau đó đi vào `Instant`, `OffsetDateTime`, `ZonedDateTime` và những trường hợp giờ mùa hè khiến giờ địa phương bị thiếu hoặc trùng. Bạn sẽ thực hành cộng trừ, so sánh ngày giờ, phân biệt khoảng thời gian `Duration` với khoảng theo lịch `Period`, cũng như định dạng và phân tích chuỗi bằng `DateTimeFormatter`.
+
+Các mốc cuối giúp xử lý năm nhuận, cuối tháng và điều chỉnh lịch; kiểm soát nguồn thời gian bằng `Clock` để kiểm thử ổn định; rồi tích hợp với `Date`, `Calendar`, dấu thời gian epoch và dữ liệu truyền nhận, lưu trữ. Sau khi học, bạn có thể giải thích vì sao hai giá trị ngày giờ trông giống nhau chưa chắc chỉ cùng một thời điểm, chọn kiểu `java.time` phù hợp với nghiệp vụ và kiểm tra các phép chuyển đổi mà không đánh mất ý nghĩa thời gian.

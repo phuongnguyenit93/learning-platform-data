@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-ma-nguon-den-goi-chay
+  title: Từ mã nguồn đến gói chạy
+  purpose: Hiểu các đầu vào, công cụ và sản phẩm của quá trình build ứng dụng Spring Boot.
+  objectives:
+  - Phân biệt mã nguồn, bytecode, tài nguyên và thư viện phụ thuộc.
+  - Giải thích vai trò của build tool, Spring Boot plugin và JVM.
+  - Nhận diện JAR thư viện, JAR thực thi, WAR và container image.
+- id: thiet-lap-cong-cu-build
+  title: Thiết lập công cụ build
+  purpose: Tạo môi trường build nhất quán bằng Maven hoặc Gradle.
+  objectives:
+  - Đọc pom.xml hoặc build.gradle để xác định plugin và cấu hình dự án.
+  - Dùng wrapper để kiểm soát phiên bản công cụ build.
+  - Phân biệt JDK chạy build, Java toolchain và phiên bản Java đích.
+- id: quan-ly-dependency
+  title: Quản lý dependency
+  purpose: Kiểm soát thư viện và phiên bản được dùng khi biên dịch, kiểm thử và chạy.
+  objectives:
+  - Phân biệt starter, BOM và Spring Boot plugin.
+  - Áp dụng dependency management phù hợp với Maven hoặc Gradle.
+  - Đọc cây dependency để phát hiện xung đột phiên bản và sai phạm vi sử dụng.
+- id: vong-doi-build-va-kiem-thu
+  title: Vòng đời build và kiểm thử
+  purpose: Chọn đúng lệnh và hiểu những bước thực sự được thực hiện.
+  objectives:
+  - Lần theo các phase và goal của Maven hoặc quan hệ phụ thuộc task của Gradle.
+  - Phân biệt compile, test, package, verify với các task tương ứng theo cấu hình thực tế.
+  - Giải thích vì sao tạo được gói chưa chứng minh mọi kiểm thử đã chạy.
+- id: dong-goi-jar-thuc-thi
+  title: Đóng gói JAR thực thi
+  purpose: Tạo gói ứng dụng có thể chạy bằng JVM ngoài môi trường phát triển.
+  objectives:
+  - Tạo executable JAR bằng bootJar hoặc Maven package có cấu hình repackage.
+  - Nhận diện BOOT-INF/classes, BOOT-INF/lib và vai trò Boot Loader.
+  - Cấu hình main class và kiểm chứng gói bằng java -jar.
+- id: dong-goi-va-trien-khai-war
+  title: Đóng gói và triển khai WAR
+  purpose: Chọn cách đóng gói phù hợp khi ứng dụng Servlet chạy trên máy chủ ngoài.
+  objectives:
+  - Cấu hình SpringBootServletInitializer và dependency container ở phạm vi provided phù hợp.
+  - Phân biệt WAR triển khai trên container ngoài với WAR có thể chạy bằng java -jar.
+  - Giải thích vì sao không áp dụng triển khai WAR truyền thống cho WebFlux.
+- id: tao-container-image
+  title: Tạo container image
+  purpose: Biến gói JVM thành image có cấu trúc phù hợp để phân phối và chạy.
+  objectives:
+  - Giải thích vai trò của lớp ứng dụng, lớp dependency và runtime trong image.
+  - Tạo OCI image bằng bootBuildImage và Cloud Native Buildpacks.
+  - Phân biệt cấu hình lúc build image với cấu hình lúc chạy container.
+- id: kiem-chung-goi-phat-hanh
+  title: Kiểm chứng gói phát hành
+  purpose: Đưa cùng một quy trình build và cùng gói đã kiểm chứng qua các môi trường.
+  objectives:
+  - Kiểm soát phiên bản công cụ, dependency và metadata ảnh hưởng đến khả năng tái lập.
+  - Gắn phiên bản, checksum cho gói và chạy kiểm tra khởi động trong CI.
+  - Chẩn đoán thiếu main class, thiếu thư viện hoặc không tương thích phiên bản Java.

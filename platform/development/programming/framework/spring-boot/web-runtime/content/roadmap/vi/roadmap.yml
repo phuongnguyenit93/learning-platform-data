@@ -1,0 +1,57 @@
+roadmap:
+- id: buc-tranh-web-runtime
+  title: Bức tranh web runtime
+  purpose: Hiểu các thành phần biến ứng dụng Spring Boot thành dịch vụ HTTP đang chạy.
+  objectives:
+  - Phân biệt Spring Boot, web framework và máy chủ HTTP.
+  - Nhận diện hai mô hình Servlet/Spring MVC và Reactive/Spring WebFlux.
+  - Mô tả đường đi tổng thể từ kết nối đến phản hồi.
+- id: khoi-dong-may-chu-nhung
+  title: Khởi động máy chủ nhúng
+  purpose: Chọn đúng mô hình web và kiểm soát cách máy chủ được khởi tạo.
+  objectives:
+  - Giải thích ảnh hưởng của dependency và WebApplicationType.
+  - Nhận diện Tomcat mặc định cho MVC và Reactor Netty mặc định cho WebFlux.
+  - Cấu hình cổng, địa chỉ lắng nghe và đường dẫn gốc theo từng mô hình.
+- id: duong-di-cua-yeu-cau
+  title: Đường đi của yêu cầu
+  purpose: Xác định thành phần xử lý yêu cầu và vị trí thích hợp để can thiệp.
+  objectives:
+  - Lần theo Filter → DispatcherServlet → bộ xử lý trong MVC.
+  - Lần theo WebFilter → DispatcherHandler → bộ xử lý trong WebFlux.
+  - Phân biệt bộ lọc, bộ chặn MVC và thành phần xử lý lỗi.
+- id: luong-va-xu-ly-dong-thoi
+  title: Luồng và xử lý đồng thời
+  purpose: Hiểu cách chờ I/O ảnh hưởng đến khả năng phục vụ nhiều yêu cầu.
+  objectives:
+  - So sánh nhóm luồng xử lý với vòng lặp sự kiện (event loop).
+  - Phân biệt xử lý đồng bộ, Servlet bất đồng bộ và xử lý reactive.
+  - Nhận diện thao tác blocking trên event loop và vai trò của backpressure.
+- id: du-lieu-http-va-phan-hoi-loi
+  title: Dữ liệu HTTP và phản hồi lỗi
+  purpose: Kiểm soát cách runtime đọc dữ liệu, ghi phản hồi và biểu diễn lỗi.
+  objectives:
+  - Phân biệt HttpMessageConverter của MVC với codec của WebFlux.
+  - Kiểm chứng Content-Type, thương lượng nội dung và phản hồi JSON.
+  - Phân biệt lỗi định tuyến, chuyển đổi dữ liệu và lỗi ứng dụng.
+- id: ket-noi-proxy-va-phien
+  title: Kết nối, proxy và phiên
+  purpose: Cấu hình ứng dụng phù hợp với cách người dùng kết nối trong môi trường thực tế.
+  objectives:
+  - Thiết lập HTTPS và xử lý forwarded header chỉ từ proxy tin cậy.
+  - Phân biệt đường dẫn nội bộ với URL công khai sau reverse proxy.
+  - Giải thích CORS, cookie và phiên theo mô hình web đang dùng.
+- id: gioi-han-va-dung-an-toan
+  title: Giới hạn và dừng an toàn
+  purpose: Đặt giới hạn tài nguyên và kết thúc ứng dụng có kiểm soát.
+  objectives:
+  - Chọn timeout, giới hạn kết nối và kích thước dữ liệu theo máy chủ thực tế.
+  - Kiểm chứng tác động của yêu cầu chậm và tài nguyên bị bão hòa.
+  - Cấu hình graceful shutdown và kiểm tra yêu cầu đang xử lý khi dừng.
+- id: kiem-chung-va-chan-doan
+  title: Kiểm chứng và chẩn đoán
+  purpose: Dùng bằng chứng khi chạy để xác nhận cấu hình và tìm nguyên nhân lỗi.
+  objectives:
+  - Phân biệt kiểm thử web giả lập với kiểm thử máy chủ thật bằng RANDOM_PORT.
+  - Đối chiếu log khởi động, yêu cầu HTTP và cấu hình có hiệu lực.
+  - Tái hiện lỗi trùng cổng, sai đường dẫn, timeout và phản hồi lỗi.

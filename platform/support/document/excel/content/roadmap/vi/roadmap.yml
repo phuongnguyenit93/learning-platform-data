@@ -1,0 +1,49 @@
+roadmap:
+- id: excel-workbook
+  title: Excel & Workbook
+  purpose: Hiểu cấu trúc bảng tính và lựa chọn định dạng phù hợp để nhập hoặc xuất tài liệu.
+  objectives:
+  - '- Phân biệt .xls với .xlsx và giới hạn định dạng.'
+  - '- Xác định Workbook, Sheet, Row, Cell trong tệp mẫu.'
+- id: apache-poi-project
+  title: Apache POI & Project
+  purpose: Thiết lập thư viện Java để thao tác file Excel mà không cần mở ứng dụng Excel.
+  objectives:
+  - '- Khai báo dependency poi-ooxml trong Maven hoặc Gradle.'
+  - '- Phân biệt HSSF, XSSF, SXSSF và WorkbookFactory.'
+- id: doc-parse-excel
+  title: Đọc & Parse Excel
+  purpose: Đọc dữ liệu từ sheet một cách nhất quán, kể cả ô rỗng và kiểu dữ liệu khác nhau.
+  objectives:
+  - '- Dùng WorkbookFactory duyệt Sheet, Row và Cell.'
+  - '- Dùng CellType, DataFormatter và ánh xạ cột sang DTO.'
+- id: tao-xuat-xlsx
+  title: Tạo & Xuất XLSX
+  purpose: Sinh bảng tính từ dữ liệu Java và đóng tài nguyên đúng cách khi ghi file.
+  objectives:
+  - '- Tạo XSSFWorkbook, sheet, header và các dòng dữ liệu.'
+  - '- Ghi ra OutputStream và đóng Workbook bằng try-with-resources.'
+- id: kieu-du-lieu-formula
+  title: Kiểu Dữ Liệu & Formula
+  purpose: Tránh sai lệch số, ngày và kết quả tính toán khi đọc hoặc ghi workbook.
+  objectives:
+  - '- Phân biệt số, ngày, chuỗi và ô chứa công thức.'
+  - '- Dùng FormulaEvaluator hoặc yêu cầu Excel tính toán lại.'
+- id: style-data-validation
+  title: Style & Data Validation
+  purpose: Tạo tệp dễ đọc và hạn chế dữ liệu nhập không đúng quy ước.
+  objectives:
+  - '- Áp dụng CellStyle, DataFormat, độ rộng cột và freeze pane.'
+  - '- Tạo validation dạng danh sách, kiểm tra định dạng ngày/số.'
+- id: streaming-file-lon
+  title: Streaming & File Lớn
+  purpose: Lựa chọn API tiết kiệm bộ nhớ khi cần đọc hoặc xuất nhiều dòng dữ liệu.
+  objectives:
+  - '- So sánh XSSF, SXSSF khi ghi và SAX khi đọc .xlsx.'
+  - '- Giới hạn bộ nhớ, quản lý file tạm và dọn tài nguyên.'
+- id: kiem-thu-an-toan
+  title: Kiểm Thử & An Toàn
+  purpose: Kiểm chứng đầu ra Excel và giảm rủi ro khi xử lý tệp do người dùng tải lên.
+  objectives:
+  - '- Kiểm thử round-trip, ô trống, formula và giới hạn hàng/cột.'
+  - '- Kiểm soát file size, thời gian xử lý và dữ liệu không tin cậy.'

@@ -1,0 +1,2224 @@
+menu:
+- slug: date-time-overview
+  title: Tổng quan
+  childs:
+  - slug: date-time-overview-001
+    title: 'Ngày giờ trong chương trình: khái niệm, vai trò và các bài toán thường gặp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-overview-002
+    title: Phân biệt ngày, giờ địa phương, thời điểm và khoảng thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-overview-003
+    title: Mối liên hệ giữa lịch, múi giờ, độ lệch UTC và dòng thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-overview-004
+    title: Vì sao một chuỗi ngày giờ chưa chắc xác định được một thời điểm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-overview-005
+    title: Toàn cảnh java.time và các API ngày giờ cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-overview-006
+    title: Chọn kiểu dữ liệu theo ý nghĩa nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-overview-007
+    title: Tính bất biến, an toàn luồng và so sánh theo giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-overview-008
+    title: Lộ trình học từ thao tác cơ bản tới múi giờ và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-foundations
+  title: Nền tảng thời gian
+  childs:
+  - slug: time-foundations-001
+    title: Lịch ISO-8601 và quy tắc Gregorian mở rộng về quá khứ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-002
+    title: Năm nhuận, số ngày trong tháng và ngày không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-003
+    title: UTC, GMT và cách hiểu hậu tố Z
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-004
+    title: Mốc epoch và dấu thời gian trước, sau epoch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-005
+    title: Giây, mili giây, micro giây và nano giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-006
+    title: Phân biệt độ phân giải dữ liệu với độ chính xác của đồng hồ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-007
+    title: Giờ mùa hè và nguyên nhân ngày không luôn dài 24 giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-008
+    title: Thang thời gian Java và giới hạn biểu diễn giây nhuận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-foundations-009
+    title: Phân biệt thời gian đồng hồ với thời gian trôi qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-time-introduction
+  title: Làm quen java.time
+  childs:
+  - slug: java-time-introduction-001
+    title: Các gói java.time, temporal, format, zone và chrono
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-time-introduction-002
+    title: Tạo giá trị bằng of(), now(), parse() và from()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-time-introduction-003
+    title: Đọc dữ liệu bằng get...() và kiểm tra bằng is...()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-time-introduction-004
+    title: Thay đổi bất biến bằng with...(), plus...() và minus...()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-time-introduction-005
+    title: Kết hợp và chuyển kiểu bằng at...() và to...()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-time-introduction-006
+    title: Tại sao phải nhận lại kết quả của phép biến đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-time-introduction-007
+    title: DateTimeException và UnsupportedTemporalTypeException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-time-introduction-008
+    title: Truyền ZoneId, Locale và Clock tường minh thay cho phụ thuộc môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-date
+  title: LocalDate
+  childs:
+  - slug: local-date-001
+    title: LocalDate biểu diễn ngày không có giờ hoặc múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-002
+    title: Tạo ngày từ năm, tháng, ngày và ngày thứ bao nhiêu trong năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-003
+    title: Đọc năm, tháng, ngày, thứ và ngày thứ bao nhiêu trong năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-004
+    title: Kiểm tra năm nhuận, độ dài tháng và độ dài năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-005
+    title: Cộng trừ ngày, tuần, tháng và năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-006
+    title: Thay một thành phần ngày và xử lý ngày cuối tháng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-007
+    title: Đếm ngày bằng ChronoUnit và sinh dãy ngày bằng datesUntil()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-008
+    title: Kết hợp ngày với giờ bằng atTime()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-009
+    title: Chọn LocalDate cho ngày sinh, ngày hóa đơn và ngày hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-time
+  title: LocalTime
+  childs:
+  - slug: local-time-001
+    title: LocalTime biểu diễn giờ trong ngày không có ngày và múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-time-002
+    title: Tạo giờ với độ chính xác tới nano giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-time-003
+    title: Đọc giờ, phút, giây và phần lẻ của giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-time-004
+    title: Cộng trừ giờ và hiện tượng quay vòng qua nửa đêm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-time-005
+    title: Chuyển đổi giây hoặc nano giây tính từ đầu ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-time-006
+    title: Cắt bớt độ chính xác bằng truncatedTo()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-time-007
+    title: Kết hợp LocalTime với LocalDate hoặc ZoneOffset
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-time-008
+    title: Mô hình hóa giờ mở cửa và khoảng giờ đi qua nửa đêm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-date-time
+  title: LocalDateTime
+  childs:
+  - slug: local-date-time-001
+    title: LocalDateTime kết hợp ngày và giờ nhưng chưa xác định một thời điểm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-time-002
+    title: Tạo từ các thành phần hoặc từ LocalDate và LocalTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-time-003
+    title: Tách phần ngày và phần giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-time-004
+    title: Cộng trừ thời gian khi đi qua ranh giới ngày, tháng và năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-time-005
+    title: Thay thành phần và cắt bớt độ chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-time-006
+    title: Kết hợp với ZoneId hoặc ZoneOffset để xác định thời điểm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-time-007
+    title: Chuyển thành epoch cần độ lệch UTC phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-date-time-008
+    title: Khi nào LocalDateTime phù hợp và khi nào dễ làm mất ý nghĩa thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instant
+  title: Instant
+  childs:
+  - slug: instant-001
+    title: Instant là một điểm trên dòng thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-002
+    title: Tạo thời điểm hiện tại từ đồng hồ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-003
+    title: Tạo từ epoch giây, epoch mili giây và phần nano giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-004
+    title: Đọc epoch và xử lý thời điểm trước năm 1970
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-005
+    title: Phân tích và biểu diễn Instant bằng chuỗi ISO-8601
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-006
+    title: Cộng trừ khoảng thời gian và đơn vị được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-007
+    title: Độ chính xác nano giây và mất dữ liệu khi chuyển sang mili giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-008
+    title: Chuyển Instant thành ngày giờ tại một múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instant-009
+    title: Ứng dụng Instant cho nhật ký, thời điểm tạo và hạn hết hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-zones
+  title: Múi giờ
+  childs:
+  - slug: time-zones-001
+    title: ZoneId biểu diễn múi giờ theo vùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-002
+    title: ZoneOffset biểu diễn độ lệch cố định so với UTC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-003
+    title: Phân biệt tên vùng Asia/Ho_Chi_Minh với độ lệch +07:00
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-004
+    title: Tạo, kiểm tra và liệt kê mã múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-005
+    title: ZoneId.systemDefault() và tác động của cấu hình môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-006
+    title: Rủi ro của tên viết tắt múi giờ không rõ nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-007
+    title: Quy tắc lịch sử và thay đổi tương lai trong cơ sở dữ liệu múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-008
+    title: ZoneRules, độ lệch hợp lệ và thời điểm chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-zones-009
+    title: Chọn múi giờ người dùng, hệ thống và nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zoned-date-time
+  title: ZonedDateTime
+  childs:
+  - slug: zoned-date-time-001
+    title: ZonedDateTime gồm ngày giờ địa phương, ZoneId và độ lệch đã xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-002
+    title: Tạo từ Instant hoặc LocalDateTime cùng múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-003
+    title: Giờ bị bỏ qua khi chuyển sang giờ mùa hè
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-004
+    title: Giờ lặp lại khi kết thúc giờ mùa hè
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-005
+    title: Cách atZone() xử lý mặc định khoảng trống và chồng lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-006
+    title: Chọn độ lệch sớm hoặc muộn bằng withEarlierOffsetAtOverlap() và withLaterOffsetAtOverlap()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-007
+    title: Kiểm tra tổ hợp ngày giờ, độ lệch và múi giờ bằng ofStrict()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-008
+    title: Đổi múi giờ giữ thời điểm với withZoneSameInstant()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-009
+    title: Đổi múi giờ giữ giờ địa phương với withZoneSameLocal()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zoned-date-time-010
+    title: So sánh cộng một ngày lịch với cộng 24 giờ qua ranh giới DST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: offset-date-time
+  title: Ngày giờ có offset
+  childs:
+  - slug: offset-date-time-001
+    title: OffsetDateTime biểu diễn ngày giờ kèm độ lệch UTC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offset-date-time-002
+    title: Tạo, đọc, cộng trừ và phân tích OffsetDateTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offset-date-time-003
+    title: Đổi độ lệch giữ thời điểm hoặc giữ ngày giờ địa phương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offset-date-time-004
+    title: Vì sao offset không chứa đầy đủ quy tắc của múi giờ vùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offset-date-time-005
+    title: OffsetTime biểu diễn giờ kèm độ lệch nhưng không có ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offset-date-time-006
+    title: Tính giới hạn của OffsetTime khi suy luận một thời điểm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offset-date-time-007
+    title: Chuyển giữa OffsetDateTime, Instant và ZonedDateTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offset-date-time-008
+    title: Lựa chọn dữ liệu có offset khi trao đổi qua giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: temporal-conversions
+  title: Chuyển đổi kiểu
+  childs:
+  - slug: temporal-conversions-001
+    title: Bản đồ chuyển đổi giữa các kiểu ngày giờ chính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-002
+    title: LocalDate và LocalTime kết hợp thành LocalDateTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-003
+    title: LocalDateTime thành ZonedDateTime cần ZoneId và chính sách DST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-004
+    title: LocalDateTime thành Instant cần ZoneOffset phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-005
+    title: Instant thành LocalDateTime, LocalDate và LocalTime theo múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-006
+    title: ZonedDateTime thành OffsetDateTime và thông tin bị mất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-007
+    title: Lấy ngày địa phương từ một thời điểm ở các múi giờ khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-008
+    title: atStartOfDay(ZoneId) và thời điểm bắt đầu ngày hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-conversions-009
+    title: Nhận diện phép chuyển đổi làm mất ngày, múi giờ hoặc độ chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: duration
+  title: Duration
+  childs:
+  - slug: duration-001
+    title: Duration biểu diễn lượng thời gian bằng giây và nano giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-002
+    title: Tạo từ giây, phút, giờ, ngày 24 giờ và chuỗi ISO-8601
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-003
+    title: Đo khoảng cách giữa hai giá trị bằng between()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-004
+    title: Khoảng thời gian âm, bằng không và dương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-005
+    title: Cộng, trừ, nhân, chia, đổi dấu và lấy trị tuyệt đối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-006
+    title: Phân biệt tổng số đơn vị với các phần toHoursPart() và toMinutesPart()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-007
+    title: Chuyển sang mili giây hoặc nano giây và nguy cơ tràn số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-008
+    title: Vì sao Duration.ofDays(1) luôn là 24 giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duration-009
+    title: Áp dụng Duration cho thời hạn, độ trễ và thời gian thực sự trôi qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: period
+  title: Period
+  childs:
+  - slug: period-001
+    title: Period biểu diễn lượng thời gian theo năm, tháng và ngày lịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: period-002
+    title: Tạo Period và đọc chuỗi ISO-8601
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: period-003
+    title: Tính khoảng ngày bằng Period.between()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: period-004
+    title: Phân biệt thành phần getDays() với tổng số ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: period-005
+    title: Chuẩn hóa năm và tháng bằng normalized()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: period-006
+    title: Cộng trừ Period và thứ tự áp dụng lên ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: period-007
+    title: Tính tuổi và xử lý sinh nhật ngày 29 tháng 2
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: period-008
+    title: So sánh Period với Duration khi đi qua DST và cuối tháng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-calculations
+  title: Phép tính thời gian
+  childs:
+  - slug: time-calculations-001
+    title: Chọn phép tính theo ngày lịch hoặc theo dòng thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-002
+    title: plusMonths() ở cuối tháng và tính không đảo ngược của một số phép tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-003
+    title: plusYears() từ ngày nhuận và quy tắc điều chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-004
+    title: Thứ tự cộng năm, tháng và ngày có thể làm đổi kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-005
+    title: ChronoUnit.between(), until() và đơn vị nguyên hoàn chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-006
+    title: Phép tính trên các kiểu khác nhau và yêu cầu kiểu tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-007
+    title: Cắt bớt độ chính xác khác với làm tròn thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-008
+    title: Giới hạn giá trị và xử lý DateTimeException hoặc ArithmeticException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-calculations-009
+    title: Tránh đổi tháng, năm thành số giây cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparisons-intervals
+  title: So sánh và khoảng
+  childs:
+  - slug: comparisons-intervals-001
+    title: equals(), compareTo(), isBefore() và isAfter() theo từng kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-intervals-002
+    title: So sánh cùng thời điểm bằng isEqual() trên kiểu có múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-intervals-003
+    title: Khác biệt giữa bằng nhau về cấu trúc và bằng nhau trên dòng thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-intervals-004
+    title: Sắp xếp ngày giờ và chọn Comparator theo ý nghĩa cần dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-intervals-005
+    title: Quy ước khoảng đóng, khoảng mở và khoảng nửa mở
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-intervals-006
+    title: Kiểm tra một thời điểm nằm trong khoảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-intervals-007
+    title: Phát hiện giao nhau, tiếp giáp và khoảng rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparisons-intervals-008
+    title: Biểu diễn cả ngày bằng đầu ngày tới đầu ngày tiếp theo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time-formatting
+  title: Định dạng
+  childs:
+  - slug: date-time-formatting-001
+    title: DateTimeFormatter và vai trò tách dữ liệu khỏi cách hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-002
+    title: Sử dụng các bộ định dạng ISO có sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-003
+    title: Tạo mẫu định dạng bằng ofPattern()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-004
+    title: Phân biệt uuuu, yyyy và YYYY
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-005
+    title: Phân biệt MM với mm, dd với DD
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-006
+    title: Giờ 12 tiếng, 24 tiếng và ký hiệu AM/PM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-007
+    title: Định dạng phần lẻ giây và ảnh hưởng tới độ chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-008
+    title: Định dạng offset, tên múi giờ và ZoneId
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-009
+    title: Ký tự cố định, dấu nháy và thành phần tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-010
+    title: Locale, FormatStyle và định dạng tiếng Việt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-parsing
+  title: Phân tích chuỗi
+  childs:
+  - slug: text-parsing-001
+    title: parse() và yêu cầu dữ liệu phù hợp kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-002
+    title: Phân tích chuỗi ISO trước khi xây dựng mẫu tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-003
+    title: ResolverStyle.STRICT, SMART và LENIENT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-004
+    title: Kiểm tra ngày không hợp lệ và sự khác biệt giữa các chế độ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-005
+    title: Vì sao uuuu phù hợp hơn yyyy trong nhiều mẫu phân tích nghiêm ngặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-006
+    title: Phân biệt phân tích không phân biệt hoa thường với xử lý ngày nghiêm ngặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-007
+    title: Phân tích chuỗi có offset hoặc múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-008
+    title: Chuỗi thiếu trường và thông tin bổ sung để tạo kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-009
+    title: Đọc vị trí lỗi từ DateTimeParseException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-parsing-010
+    title: Thiết kế đầu vào không mơ hồ và kiểm tra toàn bộ chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-formats
+  title: Tùy biến định dạng
+  childs:
+  - slug: custom-formats-001
+    title: DateTimeFormatterBuilder và khi nào cần dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-formats-002
+    title: Ghép trường số, văn bản và ký tự cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-formats-003
+    title: Thành phần tùy chọn và nhiều dạng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-formats-004
+    title: Giá trị mặc định bằng parseDefaulting()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-formats-005
+    title: Độ rộng, dấu và phần lẻ của giây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-formats-006
+    title: parseBest() để chọn kiểu kết quả phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-formats-007
+    title: Tách giai đoạn đọc trường và giải quyết trường ngày giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-formats-008
+    title: Tái sử dụng formatter bất biến và cấu hình Locale hoặc ZoneId tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: temporal-adjustments
+  title: Điều chỉnh ngày
+  childs:
+  - slug: temporal-adjustments-001
+    title: TemporalAdjuster và phép biến đổi theo quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-adjustments-002
+    title: Đầu tháng, cuối tháng, đầu năm và cuối năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-adjustments-003
+    title: Tìm thứ kế tiếp hoặc trước đó
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-adjustments-004
+    title: Phân biệt next() với nextOrSame()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-adjustments-005
+    title: Tìm một thứ cụ thể trong tháng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-adjustments-006
+    title: Tạo TemporalAdjuster bằng ofDateAdjuster()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-adjustments-007
+    title: Tính ngày làm việc và tách chính sách ngày nghỉ khỏi phép tính lịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: temporal-adjustments-008
+    title: Kiểm tra quy tắc điều chỉnh tại cuối tháng và năm nhuận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fields-units
+  title: Trường và đơn vị
+  childs:
+  - slug: fields-units-001
+    title: TemporalAccessor để đọc và Temporal để thay đổi giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-002
+    title: TemporalField và TemporalUnit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-003
+    title: ChronoField và ChronoUnit thường dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-004
+    title: get(), getLong(), range() và giới hạn của trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-005
+    title: isSupported() trước khi dùng trường hoặc đơn vị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-006
+    title: with() và plus() qua giao diện temporal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-007
+    title: TemporalAmount và mối liên hệ với Duration, Period
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-008
+    title: TemporalQuery và các truy vấn có sẵn trong TemporalQueries
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-units-009
+    title: UnsupportedTemporalTypeException khi chọn sai trường hoặc đơn vị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: day-parts
+  title: Các phần của ngày
+  childs:
+  - slug: day-parts-001
+    title: Year và kiểm tra tính hợp lệ của năm nhuận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: day-parts-002
+    title: YearMonth cho kỳ báo cáo và hạn theo tháng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: day-parts-003
+    title: MonthDay cho ngày kỷ niệm không gắn năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: day-parts-004
+    title: Gắn ngày, tháng hoặc năm để tạo LocalDate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: day-parts-005
+    title: Month và DayOfWeek là enum có ý nghĩa lịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: day-parts-006
+    title: Lấy giá trị số và tên hiển thị theo Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: day-parts-007
+    title: Xử lý MonthDay ngày 29 tháng 2 khi gắn một năm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: day-parts-008
+    title: Lựa chọn kiểu thành phần thay cho số nguyên hoặc chuỗi tùy ý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: weeks-calendars
+  title: Tuần và hệ lịch
+  childs:
+  - slug: weeks-calendars-001
+    title: Tuần ISO, ngày đầu tuần và năm theo tuần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weeks-calendars-002
+    title: WeekFields và quy tắc tuần phụ thuộc Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weeks-calendars-003
+    title: Ngày đầu năm thuộc tuần của năm trước hoặc năm sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weeks-calendars-004
+    title: IsoFields cho quý và năm theo tuần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weeks-calendars-005
+    title: Chronology và mối quan hệ giữa hệ lịch với ngày ISO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weeks-calendars-006
+    title: Nhận diện JapaneseDate, ThaiBuddhistDate, HijrahDate và MinguoDate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weeks-calendars-007
+    title: Chuyển đổi hệ lịch để hiển thị và giới hạn khi trao đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weeks-calendars-008
+    title: Phân biệt hệ lịch khác với định dạng ngôn ngữ hoặc múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: clock-testing
+  title: Clock và kiểm thử
+  childs:
+  - slug: clock-testing-001
+    title: Vì sao gọi now() trực tiếp làm kiểm thử khó lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-002
+    title: Clock cung cấp thời điểm hiện tại và múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-003
+    title: Clock.systemUTC() và Clock.system(ZoneId)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-004
+    title: Clock.fixed() để cố định thời điểm kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-005
+    title: Clock.offset() và Clock.tick()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-006
+    title: InstantSource khi chỉ cần nguồn cung cấp thời điểm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-007
+    title: Truyền Clock vào lớp nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-008
+    title: Kiểm thử trước, đúng và sau thời điểm hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-009
+    title: Kiểm thử cuối tháng, năm nhuận, nửa đêm và chuyển DST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clock-testing-010
+    title: System.nanoTime() cho đo thời gian trôi qua và giới hạn của đồng hồ hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-date-time
+  title: API cũ
+  childs:
+  - slug: legacy-date-time-001
+    title: java.util.Date biểu diễn thời điểm và vì sao tên lớp dễ gây nhầm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-002
+    title: Tính có thể thay đổi của Date và các phương thức lỗi thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-003
+    title: Calendar, GregorianCalendar và TimeZone
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-004
+    title: Chỉ số tháng của Calendar và lỗi lệch tháng thường gặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-005
+    title: Calendar lenient và chuẩn hóa giá trị ngoài phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-006
+    title: 'SimpleDateFormat: mẫu định dạng, Locale và múi giờ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-007
+    title: SimpleDateFormat không an toàn khi dùng chung giữa nhiều luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-008
+    title: Chuyển Date với Instant, Calendar với ZonedDateTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-009
+    title: Chuyển TimeZone với ZoneId và kiểm tra mã múi giờ không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-date-time-010
+    title: Khác biệt lịch Gregorian lịch sử khi di chuyển dữ liệu cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time-storage-exchange
+  title: Lưu trữ và trao đổi
+  childs:
+  - slug: date-time-storage-exchange-001
+    title: Chọn dữ liệu ngày thuần túy, giờ địa phương hay thời điểm khi lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-002
+    title: Quy ước ISO-8601 và offset tường minh trên giao diện trao đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-003
+    title: Phân biệt số epoch giây với epoch mili giây trong hợp đồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-004
+    title: Lưu ZoneId riêng khi cần giữ quy tắc múi giờ vùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-005
+    title: java.sql.Date với LocalDate và java.sql.Time với LocalTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-006
+    title: java.sql.Timestamp với Instant hoặc LocalDateTime theo ngữ nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-007
+    title: Giới hạn toInstant() trên java.sql.Date và java.sql.Time
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-008
+    title: 'JDBC getObject() và setObject() với java.time: kiểm tra khả năng của trình điều khiển'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-009
+    title: Độ chính xác cột dữ liệu và mất phần nano giây khi đọc ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-storage-exchange-010
+    title: Kiểm tra chuyển đổi đi-về giữa dữ liệu Java, chuỗi và kho lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-time-design
+  title: Thiết kế nghiệp vụ
+  childs:
+  - slug: business-time-design-001
+    title: Ngày sinh, ngày hết hạn và lịch hẹn cần các kiểu thời gian khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-design-002
+    title: Phân biệt sự kiện đã xảy ra với lịch hẹn tương lai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-design-003
+    title: Lịch lặp theo giờ địa phương cần giữ múi giờ và chính sách DST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-design-004
+    title: Xác định thế nào là hôm nay theo múi giờ nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-design-005
+    title: Quy ước thời điểm hết hạn bao gồm hay không bao gồm điểm cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-design-006
+    title: Tách giờ hiển thị khỏi thời điểm lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-design-007
+    title: Không dùng chuỗi đã định dạng làm dữ liệu ngày giờ nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-time-design-008
+    title: Đặt tên trường và tham số thể hiện đơn vị, múi giờ và ý nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: date-time-exercises-001
+    title: Xây dựng bộ nhập ngày nghiêm ngặt và thông báo lỗi rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-002
+    title: Tính tuổi, ngày kỷ niệm và hạn cuối tháng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-003
+    title: Tính ngày làm việc kế tiếp theo chính sách ngày nghỉ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-004
+    title: Chuyển lịch hẹn giữa hai múi giờ và xử lý DST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-005
+    title: Tính thời gian phiên làm việc qua nửa đêm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-006
+    title: Kiểm tra khoảng hiệu lực bằng quy ước nửa mở
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-007
+    title: Thiết kế dịch vụ hết hạn có Clock và kiểm thử lặp lại được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-008
+    title: Di chuyển đoạn mã Date, Calendar, SimpleDateFormat sang java.time
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-009
+    title: Lập bảng ca biên cho múi giờ, năm nhuận, độ chính xác và đầu vào sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-exercises-010
+    title: Tổng hợp lỗi thường gặp và tiêu chí chọn đúng API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

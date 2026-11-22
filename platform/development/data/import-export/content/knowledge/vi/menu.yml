@@ -1,0 +1,416 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Nhập và xuất dữ liệu là gì trong vòng đời ứng dụng
+  - Phân biệt trao đổi dữ liệu, tuần tự hóa và lưu trữ dữ liệu
+  - Nguồn, đích, đơn vị dữ liệu và ranh giới một lần trao đổi
+  - Các giai đoạn từ tiếp nhận đến xác nhận kết quả nhập
+  - Các giai đoạn từ chọn dữ liệu đến bàn giao kết quả xuất
+  - Phân biệt chuyển tệp, chuyển bản ghi và đồng bộ dữ liệu
+  - Phân biệt nhập xuất một lần, định kỳ và theo yêu cầu
+  - Mối liên hệ với ETL, ELT và quy trình xử lý dữ liệu
+  - Những loại lỗi thường gặp và tác động đến nghiệp vụ
+  - Các thuật ngữ cốt lõi và trình tự học Data Import Export
+- level1: Thiết kế trao đổi
+  level2:
+  - Xác định bên cung cấp, bên nhận và mục đích sử dụng
+  - Lựa chọn dữ liệu trao đổi theo phạm vi nghiệp vụ
+  - Xác định mức chi tiết, khóa nhận diện và quan hệ dữ liệu
+  - Lựa chọn định dạng theo khả năng tương thích và nhu cầu xử lý
+  - Lựa chọn xử lý đồng bộ, bất đồng bộ hoặc theo lô
+  - Xác định giới hạn dung lượng, số bản ghi và thời gian thực hiện
+  - Phân biệt nhập mới, cập nhật, thay thế và hợp nhất dữ liệu
+  - Xác định tính nguyên tử và mức chấp nhận thành công một phần
+  - Thiết kế trách nhiệm xác nhận tiếp nhận và hoàn tất xử lý
+  - Lập tiêu chí nghiệm thu về tính đúng, độ đầy đủ và hiệu năng
+- level1: Đặc tả dữ liệu
+  level2:
+  - Thiết kế lược đồ trao đổi và phân biệt với lược đồ lưu trữ
+  - Định nghĩa tên trường, kiểu dữ liệu và ý nghĩa nghiệp vụ
+  - Xác định trường bắt buộc, trường tùy chọn và giá trị mặc định
+  - Phân biệt trường vắng mặt, giá trị null và chuỗi rỗng
+  - Quy định khóa nghiệp vụ và cách tham chiếu giữa bản ghi
+  - Quy định đơn vị đo, tiền tệ, độ chính xác và cách làm tròn
+  - Quy định ngày giờ, múi giờ và khoảng hiệu lực
+  - Quy định thứ tự cột, thứ tự bản ghi và khả năng bỏ qua thứ tự
+  - Quy định tên tệp, phân vùng và cách đánh số phần
+  - Thiết kế tệp kê khai (manifest) và siêu dữ liệu đi kèm
+  - Phiên bản hóa lược đồ và đánh giá tương thích thay đổi
+  - Xây dựng mẫu dữ liệu cùng tài liệu hướng dẫn trao đổi
+- level1: Văn bản và mã hóa
+  level2:
+  - Phân biệt byte, ký tự, điểm mã và biểu diễn Unicode
+  - Lựa chọn bảng mã và xử lý dữ liệu không khai báo bảng mã
+  - Nhận diện BOM và ảnh hưởng đến tên cột đầu tiên
+  - Xử lý chuỗi byte không hợp lệ khi giải mã văn bản
+  - Chuẩn hóa Unicode mà không làm mất ý nghĩa dữ liệu
+  - Xử lý ký tự xuống dòng LF, CRLF và dòng cuối tệp
+  - Phân biệt dấu phân cách trường, dấu phân cách số và dấu thập phân
+  - Xử lý khoảng trắng, ký tự điều khiển và ký tự vô hình
+  - Đọc ghi số theo quy ước địa phương một cách tường minh
+  - Đọc ghi ngày giờ theo mẫu và múi giờ đã thỏa thuận
+  - Bảo toàn số 0 đầu, mã định danh dài và giá trị giống ngày tháng
+  - Thiết kế quy tắc thoát ký tự và kiểm tra chuyển đổi hai chiều
+- level1: Luồng và tài nguyên
+  level2:
+  - Phân biệt đọc toàn bộ, đọc từng dòng và phân tích theo luồng
+  - Phân biệt luồng byte và luồng ký tự
+  - Thiết kế bộ đệm và giới hạn bộ nhớ khi đọc ghi
+  - Quản lý vòng đời tệp, luồng và kết nối
+  - Đọc dữ liệu không biết trước kích thước
+  - Phân biệt kết thúc dữ liệu hợp lệ và nguồn bị ngắt giữa chừng
+  - Xử lý bản ghi vượt qua ranh giới khối đọc
+  - Phối hợp tốc độ đọc, xử lý và ghi bằng áp lực ngược
+  - Hủy tác vụ và giải phóng tài nguyên an toàn
+  - Quản lý tệp tạm và dọn dẹp khi thành công hoặc thất bại
+- level1: CSV và TSV
+  level2:
+  - Cấu trúc bản ghi, trường và dòng tiêu đề
+  - Phân biệt CSV, TSV và các biến thể dấu phân cách
+  - Xử lý dấu phân cách nằm trong trường có trích dẫn
+  - Xử lý dấu nháy kép và quy tắc thoát ký tự
+  - Xử lý trường nhiều dòng mà không tách sai bản ghi
+  - Phân biệt trường rỗng, trường thiếu và giá trị null quy ước
+  - Xử lý dòng trống, khoảng trắng và dòng chú thích theo đặc tả
+  - Kiểm tra số cột và dòng tiêu đề trùng hoặc thiếu
+  - Ánh xạ cột theo tên và theo vị trí
+  - Đọc ghi số và ngày giờ mà không phụ thuộc máy thực thi
+  - Xử lý tệp không có tiêu đề và tiêu đề xuất hiện lại giữa tệp
+  - Phát hiện bản ghi lỗi cú pháp và ghi nhận vị trí lỗi
+  - Thiết kế xuất CSV có thứ tự cột và quy tắc trích dẫn ổn định
+  - Phòng ngừa công thức nguy hiểm khi CSV được mở bằng bảng tính
+  - Kiểm tra tương thích CSV giữa ứng dụng và công cụ bảng tính
+- level1: JSON và JSON Lines
+  level2:
+  - Lựa chọn mảng JSON, đối tượng gốc và JSON Lines
+  - Phân biệt đọc cây dữ liệu và phân tích JSON theo luồng
+  - Xử lý đối tượng lồng nhau và mảng nhiều phần tử
+  - Phân biệt thuộc tính thiếu, null và giá trị mặc định
+  - Bảo toàn độ chính xác số và kiểu biểu diễn định danh
+  - Xử lý trường lạ, tên trường trùng và sai kiểu dữ liệu
+  - Áp dụng lược đồ và phiên bản cho tài liệu JSON
+  - Đọc từng bản ghi JSON Lines và xử lý dòng lỗi
+  - Xuất JSON theo luồng và bảo đảm tài liệu kết thúc hợp lệ
+  - Quản lý ngày giờ, kiểu đặc biệt và quy ước biểu diễn
+  - Kiểm tra nhập lại dữ liệu đã xuất mà không mất thông tin
+- level1: XML
+  level2:
+  - Cấu trúc phần tử, thuộc tính và không gian tên
+  - Lựa chọn đọc cây DOM hoặc đọc theo sự kiện
+  - Ánh xạ tài liệu XML vào bản ghi nghiệp vụ
+  - Kiểm tra cấu trúc và giá trị theo XSD
+  - Xử lý phần tử vắng mặt, rỗng và giá trị nil
+  - Xử lý văn bản, CDATA và ký tự cần thoát
+  - Quản lý bảng mã khai báo và bảng mã thực tế
+  - Ngăn mở rộng thực thể ngoài và truy cập nguồn không tin cậy
+  - Xuất XML theo luồng với cấu trúc và không gian tên đúng
+  - Ghi nhận vị trí lỗi và xử lý tài liệu XML bị cắt dở
+- level1: Bảng tính Excel
+  level2:
+  - Phân biệt XLS, XLSX và giới hạn cần kiểm tra
+  - Lựa chọn trang tính và vùng dữ liệu cần nhập
+  - Nhận diện hàng tiêu đề, hàng ghi chú và hàng tổng hợp
+  - Phân biệt ô không tồn tại, ô trống và ô chứa chuỗi rỗng
+  - Đọc giá trị thô, giá trị hiển thị và định dạng ô
+  - Xử lý ô công thức và giá trị tính toán được lưu kèm
+  - Xử lý ngày giờ dạng số và hệ ngày của workbook
+  - Bảo toàn mã định danh dài, số 0 đầu và số thập phân
+  - Xử lý ô gộp, hàng ẩn, cột ẩn và khoảng trống trong bảng
+  - Ánh xạ cột và kiểm tra nhiều trang tính có quan hệ
+  - Đọc workbook lớn theo sự kiện để kiểm soát bộ nhớ
+  - Xuất workbook lớn theo luồng và quản lý tệp tạm
+  - Thiết kế mẫu nhập với hướng dẫn và quy tắc dữ liệu rõ ràng
+  - Xuất báo cáo lỗi gắn với trang tính, hàng và cột nguồn
+  - Kiểm tra workbook có thể mở và nhập lại bằng công cụ đích
+- level1: Định dạng chuyên dụng
+  level2:
+  - Đọc ghi văn bản độ rộng cố định và vị trí trường
+  - Phân biệt độ rộng theo byte và theo ký tự
+  - Lựa chọn định dạng theo hàng và định dạng theo cột
+  - Vai trò của Parquet khi trao đổi dữ liệu phân tích
+  - Vai trò của Avro khi trao đổi dữ liệu có lược đồ
+  - Bảo toàn kiểu logic, dữ liệu nhị phân và giá trị null
+  - Xử lý lược đồ người ghi và lược đồ người đọc
+  - Lựa chọn phân vùng, kích thước phần và tổ chức dữ liệu
+  - Đánh giá khả năng đọc chọn cột và xử lý từng phần
+  - Kiểm tra khả năng tương tác trước khi đổi định dạng trao đổi
+- level1: Nén và đóng gói
+  level2:
+  - Phân biệt nén luồng, nén tệp và đóng gói nhiều tệp
+  - Lựa chọn GZIP và ZIP theo nhu cầu trao đổi
+  - Đọc ghi dữ liệu nén theo luồng
+  - Thiết kế gói dữ liệu gồm tệp chính, tệp con và manifest
+  - Bảo toàn tên tệp và cây thư mục trong gói trao đổi
+  - Kiểm tra dung lượng giải nén, số tệp và độ sâu lồng
+  - Ngăn đường dẫn thoát khỏi thư mục đích khi giải nén
+  - Phát hiện gói thiếu phần, hỏng dữ liệu và nén chưa hoàn tất
+  - Tính mã kiểm tra trên dữ liệu nén và dữ liệu gốc
+  - Đánh giá đánh đổi giữa mức nén, CPU và tốc độ truyền
+- level1: Tiếp nhận dữ liệu
+  level2:
+  - Tiếp nhận từ tệp cục bộ, thư mục theo dõi và nguồn từ xa
+  - Phân biệt tệp đã xuất hiện và tệp đã ghi hoàn tất
+  - Lựa chọn cơ chế đẩy và cơ chế kéo dữ liệu
+  - Xác minh bên gửi, quyền tiếp nhận và phạm vi dữ liệu
+  - Kiểm tra tên tệp, phần mở rộng, loại nội dung và chữ ký định dạng
+  - Kiểm tra dung lượng, số phần và mã kiểm tra trước khi nhập
+  - Lưu bản gốc vào vùng tiếp nhận có thể truy vết
+  - Gắn mã lần tiếp nhận và siêu dữ liệu nguồn
+  - Phát hiện tệp trùng và các phiên bản khác nhau của cùng lô
+  - Cách ly tệp không đủ điều kiện mà không làm mất bằng chứng
+  - Thiết kế chuyển giao giữa vùng tiếp nhận và tác vụ nhập
+- level1: Quy trình nhập
+  level2:
+  - Thiết kế các giai đoạn đọc, phân tích, ánh xạ, kiểm tra và ghi
+  - Tách bản ghi nguồn, bản ghi chuẩn hóa và bản ghi lưu trữ
+  - Nhập thử (dry run) và xem trước tác động
+  - Lựa chọn kiểm tra toàn bộ trước ghi hoặc kiểm tra theo từng khối
+  - Quản lý vùng tạm (staging) trước khi công bố dữ liệu
+  - Xác định ranh giới giao dịch và kích thước khối nhập
+  - Thiết kế thành công toàn bộ và thành công một phần
+  - Phân loại lỗi cấp tệp, cấp bản ghi và cấp trường
+  - Quản lý thứ tự nhập khi dữ liệu có quan hệ phụ thuộc
+  - Đối chiếu số bản ghi đọc, chấp nhận, từ chối và đã ghi
+  - Thiết kế bước công bố kết quả sau khi kiểm tra hoàn tất
+  - Xác nhận kết quả nhập bằng bằng chứng có thể kiểm chứng
+- level1: Ánh xạ dữ liệu
+  level2:
+  - Thiết kế ánh xạ giữa trường nguồn và trường đích
+  - Ánh xạ theo tên cột, vị trí và đường dẫn trường
+  - Đổi tên, gộp và tách trường theo quy tắc tường minh
+  - Chuyển kiểu có kiểm soát và ghi nhận lỗi chuyển đổi
+  - Ánh xạ tập mã, đơn vị đo và dữ liệu tham chiếu
+  - Bổ sung giá trị mặc định theo điều kiện nghiệp vụ
+  - Xử lý trường nguồn dư và trường đích chưa có dữ liệu
+  - Ánh xạ khóa ngoài và định danh từ hệ thống khác
+  - Phiên bản hóa cấu hình ánh xạ và kiểm tra tương thích
+  - Lưu vết nguồn gốc của giá trị sau khi ánh xạ
+- level1: Kiểm tra đầu vào
+  level2:
+  - Phân biệt lỗi cú pháp, lỗi lược đồ và lỗi nghiệp vụ
+  - Kiểm tra trường bắt buộc và tổ hợp trường có điều kiện
+  - Kiểm tra miền giá trị, độ dài và mẫu biểu diễn
+  - Kiểm tra độ chính xác số, ngày giờ và đơn vị đo
+  - Kiểm tra trùng khóa trong cùng tệp và giữa nhiều tệp
+  - Kiểm tra liên kết với dữ liệu tham chiếu và dữ liệu đã lưu
+  - Kiểm tra phụ thuộc giữa các bản ghi trong cùng lô
+  - Phân biệt cảnh báo được chấp nhận và lỗi phải từ chối
+  - Thu thập nhiều lỗi trong một bản ghi mà không mất ngữ cảnh
+  - Giới hạn số mẫu lỗi mà vẫn đếm đúng tổng lỗi
+  - Thiết kế báo cáo lỗi có thể dùng để sửa và nhập lại
+  - Ngăn phép kiểm tra gây thay đổi dữ liệu trong chế độ nhập thử
+- level1: Lưu và đồng bộ
+  level2:
+  - Lựa chọn chèn mới, cập nhật theo khóa và upsert
+  - Phân biệt cập nhật một phần và thay thế toàn bộ bản ghi
+  - Xác định ý nghĩa của giá trị thiếu khi cập nhật dữ liệu
+  - Ghi theo lô và lựa chọn cơ chế nạp hàng loạt
+  - Quản lý khóa kỹ thuật và khóa nghiệp vụ khi nhập
+  - Nhập dữ liệu có quan hệ cha-con và khóa ngoại
+  - Xử lý cạnh tranh giữa nhập dữ liệu và cập nhật trực tuyến
+  - Thiết kế ràng buộc cơ sở dữ liệu hỗ trợ tính đúng của import
+  - Xử lý lỗi ràng buộc mà vẫn xác định được bản ghi nguồn
+  - Quản lý giao dịch khi một lô tác động nhiều bảng
+  - Xử lý bản ghi không còn xuất hiện trong bản chụp nguồn
+  - Đối soát trạng thái đích sau khi ghi và công bố dữ liệu
+- level1: Nhập lặp an toàn
+  level2:
+  - Tính lũy đẳng và lý do tác vụ nhập có thể chạy nhiều lần
+  - Xác định khóa lũy đẳng cho tệp, lô và bản ghi
+  - Phân biệt cùng nội dung, cùng định danh và cùng phiên bản
+  - Phát hiện lô đã xử lý bằng mã nguồn và dấu vân tay nội dung
+  - Kết hợp ràng buộc duy nhất với sổ theo dõi lần nhập
+  - Thiết kế ghi dữ liệu và ghi checkpoint trong cùng ranh giới an toàn
+  - Xử lý tiến trình dừng sau khi đã ghi nhưng chưa xác nhận
+  - Phân biệt thử lại lỗi tạm thời và lặp lại dữ liệu nghiệp vụ
+  - Quản lý thời gian lưu và phạm vi khóa lũy đẳng
+  - Kiểm chứng việc chạy lại không tạo trùng hoặc ghi đè sai phiên bản
+- level1: Quy trình xuất
+  level2:
+  - Xác định tập dữ liệu xuất và điều kiện lọc nghiệp vụ
+  - Thiết kế mô hình xuất tách khỏi mô hình lưu trữ nội bộ
+  - Lựa chọn trường, thứ tự cột và thứ tự bản ghi
+  - Lựa chọn xuất đầy đủ và xuất tăng dần
+  - Xác định ảnh chụp dữ liệu và thời điểm chốt phạm vi xuất
+  - Phân trang, đọc theo luồng và chia kết quả thành nhiều phần
+  - Ghi tệp tạm và chỉ công bố tệp đã hoàn tất
+  - Thiết kế tên tệp, định danh lần xuất và thông tin phiên bản
+  - Ghi manifest, số bản ghi và tổng kiểm soát
+  - Xử lý dữ liệu không thể biểu diễn trong định dạng đích
+  - Phát hiện kết quả bị cắt dở hoặc thiếu một phần dữ liệu
+  - Xác nhận hoàn tất và bàn giao sản phẩm xuất
+- level1: Trích xuất nhất quán
+  level2:
+  - Ảnh hưởng của cập nhật đồng thời đến kết quả xuất
+  - Lựa chọn mức cô lập và phạm vi giao dịch đọc
+  - Xuất nhiều bảng từ cùng một trạng thái dữ liệu
+  - Phân biệt phân trang theo offset và theo khóa
+  - Thiết kế thứ tự ổn định và khóa phân trang duy nhất
+  - Xử lý bản ghi được thêm, sửa hoặc xóa trong lúc xuất
+  - Thiết kế mốc chốt và cửa sổ xuất tăng dần
+  - Xử lý dấu thời gian trùng nhau và cập nhật đến muộn
+  - Biểu diễn xóa dữ liệu trong luồng xuất tăng dần
+  - Đối chiếu bản chụp đầy đủ và các đợt xuất bổ sung
+  - Kiểm soát thời gian giữ giao dịch và tác động lên nguồn
+  - Ghi lại điều kiện truy vấn và mốc dữ liệu để có thể tái hiện
+- level1: Truyền nhận dữ liệu
+  level2:
+  - Truyền tệp qua HTTP và kiểm tra trạng thái phản hồi
+  - Tiếp nhận tệp bằng multipart và truyền nội dung dạng luồng
+  - Tải xuống tệp lớn mà không giữ toàn bộ trong bộ nhớ
+  - Truyền nhận qua SFTP và quản lý phiên kết nối
+  - Trao đổi với kho đối tượng và phân biệt đối tượng với thư mục
+  - Chia phần tải lên và xác nhận hoàn tất đối tượng
+  - Thiết kế tải tiếp sau gián đoạn với phiên bản nguồn được xác minh
+  - Quản lý timeout, số lần thử lại và thời gian chờ tăng dần
+  - Phân biệt nhận đủ byte và xử lý dữ liệu thành công
+  - Dùng mã kiểm tra để phát hiện nội dung bị hỏng khi truyền
+  - Quản lý xác nhận tiếp nhận mà không gây nhập trùng
+  - Thiết kế xác thực và thời hạn truy cập tệp bàn giao
+- level1: Đối soát và nghiệm thu
+  level2:
+  - Thiết kế bất biến kiểm chứng từ nguồn đến đích
+  - Đối chiếu số tệp, số phần và số bản ghi
+  - Đối chiếu tổng tiền, tổng số lượng và chỉ tiêu nghiệp vụ
+  - Phân biệt mã kiểm tra byte và tính tương đương dữ liệu
+  - Đối chiếu theo khóa để phát hiện thiếu, thừa và khác giá trị
+  - Kiểm tra dữ liệu mất hoặc nhân lên sau phép nối
+  - Kiểm chứng quan hệ giữa bản ghi được chấp nhận và bị từ chối
+  - Kiểm tra xuất rồi nhập lại theo quy ước bảo toàn dữ liệu
+  - Xử lý thứ tự, chuẩn hóa và giá trị mặc định khi so sánh
+  - Lưu bằng chứng nghiệm thu cùng phiên bản đặc tả
+- level1: Tác vụ và tiến độ
+  level2:
+  - Thiết kế trạng thái chờ, đang chạy, hoàn tất, lỗi và hủy
+  - Phân biệt tiếp nhận yêu cầu và hoàn thành tác vụ
+  - Gắn mã tương quan giữa yêu cầu, tệp và lần thực thi
+  - Lưu tiến độ theo số byte, bản ghi và giai đoạn xử lý
+  - Biểu diễn tiến độ khi chưa biết tổng số bản ghi
+  - Quản lý quyền sở hữu tác vụ và ngăn hai tiến trình xử lý cùng lô
+  - Thiết kế lịch chạy và giới hạn tác vụ đồng thời
+  - Tách trạng thái thực thi khỏi kết quả nghiệp vụ của dữ liệu
+  - Hủy tác vụ tại điểm an toàn và xử lý phần dữ liệu đã ghi
+  - Quản lý thời hạn tồn tại của kết quả và tệp tải xuống
+  - Lưu lịch sử thực thi để tra cứu và hỗ trợ vận hành
+- level1: Khôi phục và xử lý lại
+  level2:
+  - Phân loại lỗi tạm thời, lỗi dữ liệu và lỗi cấu hình
+  - Thiết kế chính sách thử lại theo loại lỗi
+  - Chọn checkpoint theo bản ghi, khối, tệp và phân vùng
+  - Xác định vị trí tiếp tục với định dạng có bản ghi nhiều dòng
+  - Xác minh nguồn và cấu hình không đổi trước khi tiếp tục
+  - Xử lý tệp đầu ra đã ghi một phần sau gián đoạn
+  - Nhập lại các bản ghi bị từ chối mà không nhập lại bản ghi đạt
+  - Khôi phục khi dữ liệu đã ghi nhưng tệp kết quả chưa được tạo
+  - Thiết kế bù trừ hoặc khôi phục khi không thể rollback toàn bộ
+  - Nạp bù và đối soát lại các khoảng dữ liệu bị thiếu
+  - Kiểm tra tính đúng sau khi khôi phục hoặc chạy lại
+- level1: Hiệu năng và quy mô
+  level2:
+  - Đo thông lượng, độ trễ và mức sử dụng tài nguyên
+  - Xác định nút thắt ở đọc, phân tích, kiểm tra và ghi
+  - Lựa chọn kích thước bộ đệm và khối xử lý bằng đo đạc
+  - Kết hợp đọc theo luồng với ghi theo lô
+  - Giảm tra cứu lặp bằng dữ liệu tham chiếu được quản lý
+  - Chia dữ liệu và xử lý song song theo ranh giới độc lập
+  - Bảo toàn thứ tự và tính đúng khi xử lý song song
+  - Giới hạn bộ nhớ khi khử trùng, kiểm tra liên kết và lưu lỗi
+  - Đánh giá chi phí nén, mã hóa và chuyển đổi định dạng
+  - Giới hạn tài nguyên theo người dùng, nguồn và loại tác vụ
+  - Đo trên dữ liệu lớn, lệch phân bố và bản ghi có kích thước bất thường
+- level1: Bảo mật trao đổi
+  level2:
+  - Kiểm soát quyền nhập, quyền xuất và phạm vi dữ liệu
+  - Ngăn xuất vượt phạm vi người dùng hoặc đơn vị sở hữu
+  - Lọc và che dữ liệu nhạy cảm theo mục đích trao đổi
+  - Bảo vệ dữ liệu khi truyền và khi lưu tạm
+  - Quản lý thông tin xác thực của nguồn và đích từ xa
+  - Ngăn đường dẫn tùy ý và tên tệp không an toàn
+  - Giới hạn dung lượng, số bản ghi và tỷ lệ giải nén
+  - Ngăn công thức nguy hiểm và nội dung chủ động trong tệp bảng tính
+  - Cấu hình bộ phân tích để không truy cập nguồn ngoài trái phép
+  - Kiểm soát địa chỉ nguồn từ xa để tránh truy cập tài nguyên nội bộ
+  - Giảm lộ dữ liệu trong nhật ký và báo cáo lỗi
+  - Quản lý thời hạn lưu, xóa tệp và quyền tải kết quả
+- level1: Kiểm thử
+  level2:
+  - Thiết kế bộ dữ liệu mẫu có kết quả nhập xuất xác định
+  - Kiểm thử ký tự đặc biệt, Unicode và nhiều bảng mã
+  - Kiểm thử null, giá trị rỗng và cột bị thiếu
+  - Kiểm thử số biên, độ chính xác và ngày giờ theo múi giờ
+  - Kiểm thử bản ghi nhiều dòng và dữ liệu bị cắt dở
+  - Kiểm thử phiên bản lược đồ và cấu hình ánh xạ
+  - Kiểm thử tính lũy đẳng khi thử lại và chạy lại tác vụ
+  - Kiểm thử thành công một phần và ranh giới giao dịch
+  - Kiểm thử gián đoạn mạng, hết dung lượng và hủy tác vụ
+  - Kiểm thử xuất nhập hai chiều và đối chiếu bất biến
+  - Kiểm thử khả năng mở tệp bằng công cụ nhận dữ liệu
+  - Kiểm thử hiệu năng, bộ nhớ và giới hạn tài nguyên
+  - Kiểm thử bảo mật với tệp, đường dẫn và nội dung không tin cậy
+- level1: Theo dõi vận hành
+  level2:
+  - Ghi nhật ký theo mã tác vụ, nguồn và phiên bản dữ liệu
+  - Theo dõi số bản ghi đọc, ghi, bỏ qua và từ chối
+  - Theo dõi thời lượng từng giai đoạn nhập xuất
+  - Phân biệt lỗi nguồn, lỗi định dạng, lỗi nghiệp vụ và lỗi hạ tầng
+  - Thiết kế chỉ số về độ trễ, tỷ lệ thành công và khả năng xử lý
+  - Phát hiện tác vụ treo, nguồn ngừng cập nhật và đích không sẵn sàng
+  - Thiết kế cảnh báo theo tác động và khả năng xử lý
+  - Giới hạn dữ liệu mẫu lỗi trong nhật ký và chỉ số
+  - Truy vết một bản ghi từ tệp nguồn đến dữ liệu đích
+  - Quản lý lịch sử cấu hình, đặc tả và phiên bản chương trình
+  - Lập hướng dẫn xử lý sự cố và xác minh sau khắc phục
+- level1: Triển khai với Java
+  level2:
+  - Thiết kế các thành phần nguồn đọc, bộ phân tích, bộ ánh xạ và đích ghi
+  - Thiết kế mô hình bản ghi nguồn và kết quả xử lý có kiểu rõ ràng
+  - Đọc ghi với java.nio.file, InputStream và Reader
+  - Quản lý tài nguyên bằng try-with-resources
+  - Thiết kế đường dẫn, tệp tạm và công bố tệp bằng thao tác phù hợp
+  - Đọc ghi CSV bằng thư viện có bộ phân tích đúng cấu trúc
+  - Đọc ghi JSON theo luồng với Jackson
+  - Đọc ghi XML theo sự kiện với StAX
+  - Đọc ghi Excel bằng Apache POI theo giới hạn bộ nhớ
+  - Đọc ghi cơ sở dữ liệu theo lô bằng JDBC
+  - Tách cấu hình định dạng và ánh xạ khỏi logic điều phối
+  - Kiểm thử từng thành phần bằng JUnit và dữ liệu mẫu cố định
+- level1: Tích hợp ứng dụng
+  level2:
+  - Thiết kế yêu cầu nhập gồm tệp, cấu hình và chính sách lỗi
+  - Thiết kế phản hồi đồng bộ và phản hồi nhận tác vụ bất đồng bộ
+  - Thiết kế chức năng xem trước dữ liệu và ánh xạ cột
+  - Công bố kết quả nhập cùng số liệu và tệp lỗi có thể tải
+  - Thiết kế yêu cầu xuất theo bộ lọc và trường được phép
+  - Bàn giao tệp bằng phản hồi trực tiếp hoặc đường dẫn có thời hạn
+  - Xác định tên tải xuống và thông tin loại nội dung
+  - Giới hạn tải lên, tải xuống và số tác vụ đồng thời
+  - Truy vấn tiến độ và hủy tác vụ theo quyền sở hữu
+  - Tách giao diện người dùng khỏi bộ máy xử lý nhập xuất
+  - Phối hợp giao dịch nghiệp vụ với yêu cầu xuất hoặc nhập dữ liệu
+- level1: Vận hành và thay đổi
+  level2:
+  - Đưa định dạng và quy tắc mới vào vận hành qua dữ liệu thử
+  - Quản lý mẫu nhập cùng phiên bản ứng dụng và đặc tả
+  - Thông báo thay đổi định dạng cho bên cung cấp và bên nhận
+  - Hỗ trợ chuyển tiếp giữa hai phiên bản dữ liệu
+  - Lập kế hoạch nhập ban đầu và các đợt bổ sung
+  - Diễn tập xử lý tệp lỗi, mất mạng và hết tài nguyên
+  - Kiểm tra khả năng khôi phục trước khi tăng khối lượng xử lý
+  - Đối soát định kỳ giữa dữ liệu nguồn và dữ liệu đã nhập
+  - Quản lý thời hạn lưu tệp gốc, tệp lỗi và tệp kết quả
+  - Đánh giá chi phí vận hành và cải tiến quy trình trao đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế đặc tả trao đổi khách hàng, sản phẩm và đơn hàng
+  - Nhập CSV có lỗi trích dẫn, bảng mã và dữ liệu thiếu
+  - Nhập Excel nhiều trang tính có công thức và mã định danh dài
+  - Nhập JSON Lines lớn bằng xử lý theo luồng
+  - Ánh xạ dữ liệu tham chiếu và kiểm tra quan hệ cha-con
+  - Ghi dữ liệu theo khối với chính sách thành công một phần
+  - Ngăn nhập trùng khi cùng một lô được gửi và chạy lại
+  - Xuất dữ liệu nhất quán trong khi hệ thống vẫn cập nhật
+  - Chia tệp xuất, tạo manifest và đối chiếu tổng kiểm soát
+  - Mô phỏng gián đoạn rồi tiếp tục từ checkpoint an toàn
+  - Tạo báo cáo lỗi phục vụ sửa dữ liệu và nhập lại
+  - Kiểm thử tính đúng, bảo mật và hiệu năng đầu cuối
+  - Nghiệm thu sản phẩm trao đổi theo yêu cầu nghiệp vụ

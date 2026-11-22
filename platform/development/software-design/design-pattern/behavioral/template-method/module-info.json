@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SOFTWARE_DESIGN_DESIGN_PATTERN_BEHAVIORAL_TEMPLATE_METHOD"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Nắm mẫu Template Method để đặt khung thuật toán trong lớp cơ sở và cho phép lớp con tùy biến các bước qua hook hoặc phương thức trừu tượng. Thực hành áp dụng với Java, thiết kế hợp đồng mở rộng, quản lý trạng thái và lỗi, rồi so sánh với Strategy và các cách tái sử dụng khác."
+  }
+}

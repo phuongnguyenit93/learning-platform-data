@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-spotless
+  title: Tổng quan Spotless
+  purpose: Hiểu vai trò của Spotless trong tự động chuẩn hóa định dạng mã nguồn và giữ thay đổi nhất quán.
+  objectives:
+  - '- Phân biệt formatter với kiểm tra lỗi tĩnh.'
+  - '- Nêu lợi ích của chuẩn định dạng chung.'
+- id: cai-dat-plugin
+  title: Cài đặt Plugin
+  purpose: Tích hợp Spotless vào dự án Java sử dụng Gradle hoặc Maven.
+  objectives:
+  - '- Cấu hình plugin Spotless cho Gradle/Maven.'
+  - '- Chạy được tác vụ hoặc goal Spotless.'
+- id: target-file-types
+  title: Target & File Types
+  purpose: Chọn chính xác tệp nguồn cần định dạng và loại trừ nội dung sinh tự động.
+  objectives:
+  - '- Cấu hình target cho Java và tệp văn bản.'
+  - '- Dùng targetExclude tránh file generated/vendor.'
+- id: formatter-steps
+  title: Formatter & Steps
+  purpose: Tạo quy tắc định dạng có thể tái lập giữa các máy và dự án.
+  objectives:
+  - '- Áp dụng googleJavaFormat hoặc Eclipse formatter.'
+  - '- Sắp xếp import và thứ tự formatter step.'
+- id: whitespace-headers
+  title: Whitespace & Headers
+  purpose: Chuẩn hóa phần trình bày và quy ước chung của file nguồn.
+  objectives:
+  - '- Cấu hình trimTrailingWhitespace, endWithNewline và line endings.'
+  - '- Khai báo license header khi cần.'
+- id: check-apply
+  title: Check & Apply
+  purpose: Biết cách phát hiện và sửa sai khác định dạng trong quy trình phát triển.
+  objectives:
+  - '- Phân biệt spotlessCheck với spotlessApply trên Gradle.'
+  - '- Thực hành spotless:check và spotless:apply trên Maven.'
+- id: quy-mo-baseline
+  title: Quy mô & Baseline
+  purpose: Áp dụng cùng chính sách cho nhiều module mà vẫn kiểm soát thay đổi ban đầu.
+  objectives:
+  - '- Tái sử dụng cấu hình và cố định phiên bản formatter.'
+  - '- Hiểu ratchetFrom khi dần chuẩn hóa mã cũ.'
+- id: ci-xu-ly-loi
+  title: CI & Xử lý lỗi
+  purpose: Đưa kiểm tra định dạng vào pipeline để ngăn mã sai chuẩn được tích hợp.
+  objectives:
+  - '- Chạy check trong CI và sửa sai khác trước khi merge.'
+  - '- Chẩn đoán thay đổi không ổn định hoặc xung đột phiên bản.'

@@ -1,0 +1,136 @@
+menu:
+- title: Tổng quan DSL
+  slug: domain-specific-language-overview
+  index: 0
+- title: Phạm vi miền
+  slug: domain-scope
+  index: 1
+- title: Khám phá miền
+  slug: domain-discovery
+  index: 2
+- title: Mô hình miền
+  slug: domain-modeling
+  index: 3
+- title: Kiến trúc DSL
+  slug: domain-specific-language-architecture
+  index: 4
+- title: Nội bộ và bên ngoài
+  slug: internal-and-external-languages
+  index: 5
+- title: Ngôn ngữ nội bộ
+  slug: internal-language
+  index: 6
+- title: Cú pháp tổng thể
+  slug: language-syntax
+  index: 7
+- title: Từ vựng
+  slug: lexical-structure
+  index: 8
+- title: Ngữ pháp
+  slug: grammar
+  index: 9
+- title: Cây cú pháp
+  slug: syntax-trees
+  index: 10
+- title: Mô hình trừu tượng
+  slug: abstract-syntax-models
+  index: 11
+- title: Ngữ nghĩa
+  slug: language-semantics
+  index: 12
+- title: Hệ kiểu
+  slug: type-systems
+  index: 13
+- title: Phân giải tên
+  slug: name-resolution
+  index: 14
+- title: Phân tích từ vựng
+  slug: lexical-analysis
+  index: 15
+- title: Phân tích cú pháp
+  slug: parsing
+  index: 16
+- title: Chẩn đoán lỗi
+  slug: error-diagnostics
+  index: 17
+- title: Kiểm tra ngữ nghĩa
+  slug: semantic-analysis
+  index: 18
+- title: Biên dịch và thông dịch
+  slug: compilation-and-interpretation
+  index: 19
+- title: Sinh mã
+  slug: code-generation
+  index: 20
+- title: Biến đổi ngôn ngữ
+  slug: language-transformation
+  index: 21
+- title: Thực thi DSL
+  slug: language-execution
+  index: 22
+- title: Lưu trữ và trao đổi
+  slug: persistence-and-exchange
+  index: 23
+- title: Trình soạn thảo
+  slug: domain-specific-language-editors
+  index: 24
+- title: Language Server
+  slug: language-servers
+  index: 25
+- title: Công cụ hỗ trợ
+  slug: language-tooling
+  index: 26
+- title: Framework và workbench
+  slug: language-frameworks-and-workbenches
+  index: 27
+- title: DSL cấu hình
+  slug: configuration-language
+  index: 28
+- title: DSL truy vấn
+  slug: query-language
+  index: 29
+- title: DSL luật và quyết định
+  slug: rules-and-decision-language
+  index: 30
+- title: DSL quy trình
+  slug: process-language
+  index: 31
+- title: DSL xây dựng và triển khai
+  slug: build-and-deployment-language
+  index: 32
+- title: DSL API và dữ liệu
+  slug: api-and-data-language
+  index: 33
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 34
+- title: Bảo mật DSL
+  slug: language-security
+  index: 35
+- title: Hiệu năng DSL
+  slug: language-performance
+  index: 36
+- title: Kiểm thử DSL
+  slug: language-testing
+  index: 37
+- title: Tài liệu và học tập
+  slug: documentation-and-learning
+  index: 38
+- title: Phiên bản và di trú
+  slug: versioning-and-migration
+  index: 39
+- title: Quản trị vòng đời
+  slug: lifecycle-governance
+  index: 40
+- title: Mẫu thiết kế DSL
+  slug: language-design-patterns
+  index: 41
+- title: Đánh đổi thiết kế
+  slug: design-tradeoffs
+  index: 42
+- title: Dự án thực hành
+  slug: domain-specific-language-practice
+  index: 43
+- title: Tổng kết DSL
+  slug: domain-specific-language-summary
+  index: 44

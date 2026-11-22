@@ -1,0 +1,469 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Mẫu lỗi (bug pattern) là gì trong phân tích tĩnh?
+  - Từ đoạn mã đáng ngờ đến lỗi có thể quan sát
+  - Phân biệt lỗi đúng đắn, mùi mã, vi phạm quy ước và lỗ hổng
+  - Vì sao một mẫu cú pháp có thể đúng ở ngữ cảnh này nhưng sai ở ngữ cảnh khác?
+  - Điều kiện kích hoạt, hậu quả và giả thiết của một mẫu lỗi
+  - Các nhóm lỗi thường gặp trong chương trình Java
+  - Vai trò của hợp đồng API và đặc tả ngôn ngữ
+  - Phân tích tĩnh bổ sung cho kiểm thử và rà soát mã như thế nào?
+  - Giới hạn của việc coi không có cảnh báo là không có lỗi
+  - Lộ trình nhận diện, xác minh, sửa và ngăn tái diễn
+- level1: Đọc cảnh báo
+  level2:
+  - Vị trí phát hiện và vị trí nguyên nhân gốc
+  - Thông điệp, nhóm quy tắc và dấu vết phân tích
+  - Mức độ nghiêm trọng, độ tin cậy và khả năng xảy ra
+  - Theo dõi giá trị từ nguồn đến điểm sử dụng
+  - Đọc đường đi điều khiển dẫn đến vi phạm
+  - Xác định tiền điều kiện và hợp đồng đang bị phá vỡ
+  - Đối chiếu ngữ cảnh gọi và dữ liệu đầu vào thực tế
+  - Phân biệt cảnh báo trùng với các lỗi độc lập
+  - Thu gọn ví dụ để kiểm tra giả thuyết
+  - Ghi lại bằng chứng thay vì chỉ lặp lại thông điệp công cụ
+- level1: Luồng điều khiển
+  level2:
+  - Nhánh điều kiện luôn đúng hoặc luôn sai
+  - Điều kiện mâu thuẫn và đoạn mã không thể tới
+  - Nhánh trùng nhau do sao chép rồi sửa thiếu
+  - Dùng phép gán thay cho kiểm tra giá trị boolean
+  - Nhầm toán tử ngắn mạch với toán tử luôn đánh giá hai vế
+  - Thứ tự kiểm tra điều kiện làm vô hiệu hóa bước bảo vệ
+  - Dấu chấm phẩy hoặc khối lệnh đặt sai vị trí
+  - Vòng lặp không cập nhật điều kiện tiến triển
+  - Sai cận vòng lặp và lỗi lệch một đơn vị
+  - return, break hoặc continue làm bỏ qua công việc cần thiết
+  - Rơi qua nhánh switch ngoài dự kiến
+  - Xử lý thiếu trường hợp mặc định hoặc trường hợp miền giá trị
+- level1: Luồng dữ liệu
+  level2:
+  - Đọc giá trị chưa sẵn sàng và giới hạn kiểm tra của trình biên dịch
+  - Phép gán bị ghi đè trước khi được sử dụng
+  - Tự gán biến, trường hoặc phần tử do nhầm tên
+  - Che khuất trường bằng biến hoặc tham số cùng tên
+  - Truyền nhầm đối số cùng kiểu hoặc đảo thứ tự đối số
+  - Sử dụng giá trị cũ sau khi thay đổi trạng thái
+  - Kiểm tra một giá trị nhưng sử dụng giá trị khác
+  - Bỏ qua giá trị trả về mang kết quả hoặc trạng thái lỗi
+  - Nhầm phương thức tạo giá trị mới với phương thức sửa tại chỗ
+  - Khởi tạo hoặc cập nhật thiếu trên một đường đi
+  - Giữ tham chiếu bí danh và sửa nhầm đối tượng
+  - Truyền dữ liệu đã hết hiệu lực sang bước xử lý tiếp theo
+- level1: Null và Optional
+  level2:
+  - Giải tham chiếu giá trị null chắc chắn hoặc có thể xảy ra
+  - Kiểm tra null sau khi đã sử dụng đối tượng
+  - Một nhánh trả null làm sai giả thiết của bên gọi
+  - Unboxing wrapper có giá trị null
+  - Null trong chuỗi gọi phương thức hoặc kết quả tra cứu
+  - Điều kiện bảo vệ bị phá vỡ do cập nhật hoặc gọi hàm trung gian
+  - Hợp đồng nullable, non-null và giới hạn suy luận của công cụ
+  - Phân biệt null hợp lệ với trạng thái không được khởi tạo đúng
+  - Gọi Optional.get mà không bảo đảm có giá trị
+  - Trả null thay cho Optional.empty
+  - Nhầm Optional.of với Optional.ofNullable
+  - Tính toán mặc định ngoài ý muốn với orElse
+  - Làm mất thông tin lỗi khi chuyển mọi thất bại thành Optional.empty
+  - Sửa lỗi null tại nơi tạo dữ liệu thay vì che triệu chứng
+- level1: So sánh và định danh
+  level2:
+  - Nhầm so sánh tham chiếu với so sánh giá trị
+  - Dùng == với String hoặc kiểu wrapper
+  - Phụ thuộc ngoài ý muốn vào bộ nhớ đệm của wrapper
+  - equals không đáp ứng tính phản xạ, đối xứng hoặc bắc cầu
+  - equals không xử lý null đúng hợp đồng
+  - Ghi đè equals nhưng thiếu hashCode tương ứng
+  - Dùng các trường khác nhau trong equals và hashCode
+  - Nhầm nạp chồng equals với ghi đè equals(Object)
+  - So sánh mảng bằng equals của đối tượng
+  - Nhầm Objects.equals với so sánh sâu cấu trúc mảng
+  - compareTo hoặc Comparator không bảo toàn hợp đồng thứ tự
+  - Dùng phép trừ để so sánh và gây tràn số
+  - Thứ tự so sánh không nhất quán với equals
+  - So sánh BigDecimal theo giá trị hoặc theo cả scale
+  - NaN, số không có dấu và khác biệt giữa các cách so sánh số thực
+- level1: Số học
+  level2:
+  - Tràn số nguyên trong phép cộng, trừ và nhân
+  - Ép sang kiểu rộng sau khi phép tính đã tràn
+  - Chia số nguyên làm mất phần thập phân ngoài dự kiến
+  - Chia cho không trên đường đi có thể xảy ra
+  - Thu hẹp kiểu và cắt mất dữ liệu
+  - Đổi dấu, trị tuyệt đối và giá trị nhỏ nhất của kiểu số
+  - Điều kiện so sánh số thực và sai số mong đợi
+  - NaN hoặc vô cực làm sai giả thiết của thuật toán
+  - Nhầm ưu tiên toán tử và vị trí dấu ngoặc
+  - Nhầm toán tử bit với toán tử logic
+  - Dịch bit, mở rộng dấu và khoảng dịch thực tế
+  - Phần dư âm và tính chỉ số theo vòng
+  - Tạo BigDecimal từ double ngoài ý định biểu diễn
+  - Làm tròn sai thời điểm hoặc sai chế độ
+  - Nhầm đơn vị, hệ số chuyển đổi và cận giá trị
+- level1: Chuỗi và Unicode
+  level2:
+  - Kiểm tra tiền tố, hậu tố hoặc mẫu chuỗi không đúng yêu cầu
+  - Bỏ qua kết quả của thao tác trên String bất biến
+  - Nhầm chuỗi rỗng, chuỗi trắng và giá trị null
+  - Tách chuỗi bằng split mà quên đối số là biểu thức chính quy
+  - Nhầm thay thế văn bản nguyên dạng với replaceAll
+  - Ký tự đặc biệt trong biểu thức hoặc chuỗi thay thế
+  - Sai cận substring và giả thiết về độ dài
+  - Nhầm char, code point và ký tự người dùng nhìn thấy
+  - Cắt chuỗi làm tách cặp surrogate hoặc cụm ký tự
+  - Đổi hoa thường phụ thuộc locale ngoài dự kiến
+  - Chuẩn hóa Unicode trước khi so sánh hoặc kiểm tra định danh
+  - Mã hóa và giải mã dùng charset không nhất quán
+  - Định dạng chuỗi sai số lượng hoặc kiểu đối số
+- level1: Mảng và generics
+  level2:
+  - Truy cập ngoài cận và nhầm độ dài với chỉ số cuối
+  - Nhầm bản sao mảng với tham chiếu dùng chung
+  - Sao chép thiếu hoặc ghi đè vùng dữ liệu ngoài ý muốn
+  - Mảng nhiều chiều và giả thiết sai về kích thước từng hàng
+  - Hiệp biến mảng và ArrayStoreException
+  - Ép kiểu mảng không hợp lệ dù phần tử có vẻ phù hợp
+  - Dùng raw type làm mất kiểm tra kiểu
+  - Unchecked cast và giả thiết kiểu không được chứng minh
+  - Ô nhiễm heap do kết hợp generics với varargs
+  - Dùng @SafeVarargs khi thân phương thức chưa an toàn
+  - Nhầm kiểu generic lúc biên dịch với thông tin còn lại khi chạy
+  - Phân biệt lỗi kiểu bị trình biên dịch chặn với rủi ro cần phân tích bổ sung
+- level1: Collections
+  level2:
+  - Sửa collection trong lúc duyệt không đúng cơ chế
+  - Xóa phần tử bằng chỉ số hoặc bằng giá trị ngoài ý định
+  - Giả định mọi List đều có thể thêm, xóa hoặc cập nhật
+  - Nhầm Arrays.asList với danh sách độc lập và thay đổi kích thước được
+  - Nhầm vỏ bọc chỉ đọc với bản chụp hoặc tính bất biến sâu
+  - Giữ view từ subList hoặc tập khóa mà quên quan hệ với dữ liệu gốc
+  - Giả định thứ tự duyệt mà kiểu collection không cam kết
+  - Bỏ qua chính sách null của collection được chọn
+  - Truyền sai kiểu phần tử vào contains hoặc remove
+  - Phụ thuộc fail-fast như một cơ chế bảo đảm an toàn luồng
+  - Chia sẻ collection không an toàn giữa nhiều luồng
+  - Giả định sao chép collection đồng thời cũng sao chép từng phần tử
+- level1: Map và Set
+  level2:
+  - Thay đổi trường tham gia equals hoặc hashCode sau khi đưa khóa vào Map
+  - Đối tượng bằng nhau nhưng không được tìm thấy do sai hợp đồng băm
+  - Khóa bị so sánh bằng tiêu chí khác trong TreeMap hoặc TreeSet
+  - Ghi đè giá trị cũ ngoài ý muốn khi trùng khóa
+  - Nhầm thiếu khóa với khóa được ánh xạ tới null
+  - Kiểm tra rồi cập nhật bằng nhiều thao tác không nguyên tử
+  - Chọn sai compute, computeIfAbsent hoặc merge theo hợp đồng
+  - Hàm tính giá trị có tác dụng phụ hoặc sửa lại cùng cấu trúc
+  - Dùng bản đồ tham chiếu yếu mà không hiểu vòng đời khóa
+  - Nhầm collection đồng thời với tính nguyên tử của toàn quy trình
+  - Giả định iterator hoặc view là bản chụp độc lập
+  - Chọn khóa có biểu diễn không ổn định giữa các bước xử lý
+- level1: Stream và lambda
+  level2:
+  - Tạo Stream nhưng không có thao tác kết thúc cần thiết
+  - Tái sử dụng Stream đã được tiêu thụ hoặc đóng
+  - Bỏ qua kết quả map, filter hoặc pipeline được tạo
+  - Đặt logic bắt buộc trong peek hoặc tác dụng phụ có thể bị lược bỏ
+  - Sửa nguồn dữ liệu trong khi Stream đang xử lý
+  - Chia sẻ trạng thái có thể thay đổi giữa các lần gọi lambda
+  - Dùng reduce hoặc collect với phép gộp không đúng hợp đồng
+  - Phụ thuộc thứ tự trong pipeline song song
+  - Phân biệt findFirst với findAny theo yêu cầu thực tế
+  - Thu thập về Map khi có khóa trùng mà chưa xác định cách xử lý
+  - Lambda giữ tham chiếu đối tượng có vòng đời dài hơn dự kiến
+  - Dùng lambda che mất ngoại lệ hoặc lỗi xử lý
+  - Không đóng Stream gắn với tài nguyên I/O
+  - Nhầm hàm được truyền vào với thao tác đã được thực thi
+- level1: Ngoại lệ
+  level2:
+  - Bắt rồi bỏ qua ngoại lệ làm chương trình tiếp tục ở trạng thái sai
+  - Bắt quá rộng và che lỗi lập trình không mong muốn
+  - Trả giá trị mặc định làm mất ý nghĩa thất bại
+  - Ném ngoại lệ mới nhưng làm mất nguyên nhân gốc
+  - Ghi log nhiều lần cho cùng một lỗi hoặc không giữ đủ ngữ cảnh
+  - return hoặc throw trong finally che kết quả và ngoại lệ trước đó
+  - Đóng tài nguyên làm mất ngoại lệ phát sinh ban đầu
+  - Bỏ qua suppressed exceptions khi chẩn đoán
+  - Bắt InterruptedException mà không xử lý yêu cầu gián đoạn đúng hợp đồng
+  - Dùng sai kiểu ngoại lệ khiến bên gọi xử lý sai
+  - Kiểm tra lỗi bằng nội dung thông điệp không ổn định
+  - Thực hiện tác dụng phụ trước khi hoàn tất kiểm tra đầu vào
+  - Đối tượng bị cập nhật một phần khi thao tác thất bại
+  - Thử lại thao tác không an toàn khi thực hiện nhiều lần
+- level1: Tài nguyên
+  level2:
+  - Mở tài nguyên mà không bảo đảm đóng trên mọi đường đi
+  - Đóng tài nguyên quá sớm rồi tiếp tục sử dụng
+  - Trả tài nguyên đã bị đóng bởi try-with-resources
+  - Không xác định rõ bên tạo hay bên nhận chịu trách nhiệm đóng
+  - Nhầm quyền sở hữu tài nguyên khi đóng lớp bao
+  - Đóng sai thứ tự các tài nguyên phụ thuộc
+  - Rò rỉ connection, statement hoặc result set
+  - Quên kết thúc transaction hoặc khôi phục trạng thái kết nối
+  - Dùng khóa, giấy phép semaphore hoặc đăng ký mà không giải phóng
+  - Rò rỉ Executor, tác vụ nền hoặc kết nối mạng
+  - Dùng AutoCloseable nhưng close không được gọi theo vòng đời thiết kế
+  - Phụ thuộc dọn dẹp không xác định thay cho đóng chủ động
+  - Giải phóng hai lần và tính an toàn của thao tác đóng lặp
+- level1: Khởi tạo
+  level2:
+  - Thứ tự khởi tạo trường, khối khởi tạo và constructor
+  - Đọc giá trị mặc định trước khi trường được gán theo ý định
+  - Gọi phương thức có thể bị ghi đè từ constructor
+  - Để this thoát ra ngoài khi đối tượng chưa khởi tạo xong
+  - Đăng ký listener hoặc chạy tác vụ quá sớm trong constructor
+  - Dùng đối số constructor nhưng quên cập nhật trường
+  - Vòng phụ thuộc giữa các bước khởi tạo
+  - Phụ thuộc thứ tự khởi tạo static giữa các lớp
+  - Khởi tạo lười không an toàn khi có nhiều luồng
+  - Singleton hoặc bộ nhớ đệm bị công bố trước khi sẵn sàng
+  - Ném lỗi trong quá trình khởi tạo và đối tượng chưa hoàn thiện
+  - Bất biến của đối tượng chưa được bảo đảm ở mọi constructor
+- level1: Bất biến và đóng gói
+  level2:
+  - Trả trực tiếp tham chiếu tới trạng thái có thể sửa đổi
+  - Giữ tham chiếu đầu vào mà không kiểm soát quyền sửa
+  - Sao chép nông khi cần tách cấu trúc dữ liệu bên trong
+  - Nhầm final của tham chiếu với tính bất biến của đối tượng
+  - Collection chỉ đọc nhưng phần tử bên trong vẫn thay đổi
+  - Record chứa thành phần có thể sửa đổi
+  - Getter hoặc setter làm phá vỡ bất biến liên trường
+  - Phương thức tưởng chỉ đọc nhưng làm thay đổi trạng thái
+  - Lưu hoặc trả giá trị có thời hạn sử dụng ngắn hơn đối tượng chứa
+  - Bộ nhớ đệm trả đối tượng dùng chung cho nhiều bên gọi
+  - Chỉ kiểm tra đầu vào trước khi giữ tham chiếu có thể bị thay đổi
+  - Ranh giới sao chép phòng vệ và chi phí cần kiểm chứng
+- level1: Kế thừa và đa hình
+  level2:
+  - Nạp chồng nhầm chữ ký thay vì ghi đè phương thức
+  - Thiếu @Override làm lỗi chữ ký khó nhận ra
+  - Lớp con phá tiền điều kiện hoặc hậu điều kiện của lớp cha
+  - equals không đối xứng khi kết hợp các lớp trong cùng hệ kế thừa
+  - Ẩn trường hoặc phương thức static gây hiểu nhầm cách truy cập
+  - Gọi phương thức không đúng như dự kiến do kiểu khai báo
+  - Lớp con bỏ qua phần xử lý bắt buộc của lớp cha
+  - Thêm trạng thái lớp con nhưng không cập nhật hợp đồng sao chép hoặc so sánh
+  - Giả định clone tạo bản sao độc lập của toàn bộ đối tượng
+  - Lựa chọn tổ hợp đối tượng khi kế thừa làm hợp đồng khó giữ
+- level1: Trạng thái đồng thời
+  level2:
+  - Data race và truy cập trạng thái thiếu đồng bộ
+  - Không nhìn thấy cập nhật giữa các luồng
+  - Nhầm volatile với tính nguyên tử của phép đọc-sửa-ghi
+  - Kiểm tra rồi hành động trên trạng thái có thể đổi
+  - Chuỗi thao tác riêng lẻ an toàn nhưng tổng thể không nguyên tử
+  - Công bố đối tượng không an toàn
+  - Double-checked locking thiếu điều kiện bảo đảm phù hợp
+  - Trường static có thể sửa bị chia sẻ ngoài dự kiến
+  - Bộ sinh định dạng hoặc đối tượng khác không an toàn luồng bị dùng chung
+  - Tham chiếu final nhưng dữ liệu bên trong vẫn bị cập nhật đồng thời
+  - Biến đếm hoặc cờ kết thúc làm mất cập nhật
+  - ThreadLocal không được dọn theo vòng đời tác vụ
+  - Dùng sleep để giả định quan hệ happens-before
+  - Bỏ qua gián đoạn hoặc điều kiện dừng của tác vụ nền
+- level1: Khóa và điều kiện
+  level2:
+  - Khóa trên đối tượng khác với đối tượng bảo vệ trạng thái
+  - Khóa trên String, wrapper hoặc đối tượng được chia sẻ ngoài dự kiến
+  - Làm thay đổi tham chiếu đang dùng làm khóa
+  - Thứ tự lấy nhiều khóa không nhất quán gây deadlock
+  - Giữ khóa trong lúc chờ I/O hoặc gọi mã bên ngoài
+  - Thiếu unlock hoặc release khi có ngoại lệ
+  - Gọi wait, notify hoặc notifyAll mà không giữ đúng monitor
+  - Chờ điều kiện bằng if thay vì kiểm tra lại trong vòng lặp
+  - Thông báo điều kiện trên sai đối tượng hoặc sai thời điểm
+  - Phân biệt sleep với wait về quyền giữ monitor
+  - Bỏ qua kết quả tryLock hoặc thời hạn chờ
+  - Nâng cấp hoặc phối hợp khóa không đúng hợp đồng
+  - Vòng lặp thử lại gây livelock hoặc bỏ đói luồng khác
+- level1: Tác vụ bất đồng bộ
+  level2:
+  - Tạo Future nhưng bỏ qua kết quả và ngoại lệ
+  - Không theo dõi thất bại của tác vụ gửi vào Executor
+  - Chặn trong cùng nhóm luồng đang cần để hoàn thành tác vụ phụ thuộc
+  - Nhầm thenApply với thenCompose
+  - Nhầm biến thể đồng bộ và bất đồng bộ của CompletionStage
+  - Giả định mọi nhánh đều dùng Executor đã chọn ở bước trước
+  - Dùng exceptionally hoặc handle làm mất trạng thái lỗi ngoài ý muốn
+  - Hiểu sai allOf hoặc anyOf về kết quả và việc dừng các nhánh khác
+  - Giả định hủy Future luôn dừng được công việc bên dưới
+  - Giả định timeout đồng nghĩa với tác vụ đã ngừng thực thi
+  - Thao tác hoàn tất nhiều lần và cuộc đua cập nhật trạng thái
+  - Đóng tài nguyên khi tác vụ bất đồng bộ vẫn còn sử dụng
+  - Tạo quá nhiều tác vụ hoặc hàng đợi không giới hạn
+  - Dùng callback gây vòng phụ thuộc hoặc hoàn thành lặp
+  - Làm mất ngữ cảnh theo luồng khi chuyển sang tác vụ khác
+- level1: Ngày giờ
+  level2:
+  - Nhầm thời điểm tuyệt đối với ngày giờ địa phương
+  - Dùng múi giờ mặc định mà hợp đồng yêu cầu múi giờ xác định
+  - So sánh hoặc chuyển đổi khi thông tin múi giờ bị mất
+  - Nhầm Duration với Period theo ý nghĩa bài toán
+  - Cộng một ngày và cộng số giờ cố định trong điều kiện đổi giờ mùa
+  - Nhầm mẫu định dạng năm, tháng, phút hoặc tuần
+  - Phân tích ngày theo locale ngoài dự kiến
+  - Dùng formatter không an toàn luồng làm đối tượng chia sẻ
+  - Nhầm giây, mili giây và nano giây
+  - Đo thời lượng bằng đồng hồ thời gian thực khi cần đồng hồ đơn điệu
+  - Bỏ qua Clock khiến hành vi phụ thuộc thời điểm khó tái hiện
+  - Làm mất độ chính xác khi chuyển đổi kiểu ngày giờ
+- level1: I/O và đường dẫn
+  level2:
+  - Giả định một lần read sẽ nhận đủ toàn bộ dữ liệu
+  - Bỏ qua giá trị số byte đọc được hoặc tín hiệu hết dữ liệu
+  - Dùng available như tổng kích thước dữ liệu còn phải đọc
+  - Ghi ra nhưng không xử lý lỗi hoặc yêu cầu flush của giao thức
+  - Dùng charset mặc định làm dữ liệu khác nhau giữa môi trường
+  - Nhầm đường dẫn tương đối với vị trí tài nguyên thực tế
+  - Nối đường dẫn bằng chuỗi thay vì giữ đúng ngữ nghĩa đường dẫn
+  - Kiểm tra rồi thao tác trên tệp đã có thể bị thay đổi
+  - Bỏ qua liên kết tượng trưng và khác biệt sau chuẩn hóa đường dẫn
+  - Đọc toàn bộ dữ liệu vào bộ nhớ khi kích thước không được giới hạn
+  - ByteBuffer sai position, limit hoặc trạng thái đọc-ghi
+  - Bỏ qua số lượng dữ liệu thực sự được ghi khi API cho phép ghi một phần
+  - Giả định xóa, đổi tên hoặc tạo thư mục đã thành công
+- level1: Tuần tự hóa
+  level2:
+  - Trạng thái được ghi và trạng thái cần khôi phục sau giải tuần tự
+  - serialVersionUID và giả thiết về tương thích dữ liệu
+  - Trường static, transient và dữ liệu không được lưu như dự kiến
+  - Đồ thị đối tượng có thành phần không đáp ứng hợp đồng tuần tự hóa
+  - readObject hoặc writeObject không giữ đúng giao thức
+  - Đối tượng được khôi phục nhưng bất biến chưa được kiểm tra
+  - Mất tính duy nhất hoặc định danh khi khôi phục đối tượng
+  - Lộ dữ liệu nhạy cảm trong biểu diễn được lưu hoặc truyền
+  - Nhận dữ liệu tuần tự hóa không đáng tin cậy
+  - Tài nguyên hoặc trạng thái môi trường không thể khôi phục chỉ bằng dữ liệu
+  - Phân biệt serialization Java với ánh xạ JSON theo hợp đồng thư viện
+- level1: Hợp đồng API
+  level2:
+  - Tiền điều kiện về kiểu, miền giá trị và trạng thái đối tượng
+  - Cận trên loại trừ, chỉ số và quy ước đơn vị của API
+  - Bỏ qua boolean hoặc mã trạng thái trả về khi thao tác thất bại
+  - Sử dụng kết quả trước khi bảo đảm thao tác đã thành công
+  - Gọi API không phù hợp với trạng thái vòng đời hiện tại
+  - Nhầm thao tác trả bản sao với thao tác trả view
+  - Nhầm thao tác không thay đổi dữ liệu với thao tác có tác dụng phụ
+  - Truyền đối số cùng kiểu nhưng khác ý nghĩa
+  - Vi phạm quy ước định dạng, mẫu biểu thức hoặc escape
+  - Hàm gọi lại vi phạm yêu cầu về luồng, số lần gọi hoặc tính thuần
+  - Lời gọi chặn nằm trong ngữ cảnh không được phép chặn
+  - API yêu cầu giải phóng, hủy đăng ký hoặc xác nhận hoàn tất
+  - Khác biệt giữa bảo đảm được tài liệu hóa và hành vi quan sát tình cờ
+- level1: Mẫu lỗi bảo mật
+  level2:
+  - Dữ liệu không tin cậy đi đến thao tác nhạy cảm
+  - Ghép dữ liệu trực tiếp vào câu lệnh SQL
+  - Đưa dữ liệu chưa kiểm soát vào lệnh hệ điều hành
+  - Truy cập đường dẫn ngoài phạm vi được phép
+  - Dữ liệu đầu vào điều khiển đích yêu cầu mạng
+  - Ghi dữ liệu nhạy cảm hoặc dữ liệu có thể giả mạo cấu trúc log
+  - Dùng nguồn ngẫu nhiên không phù hợp cho mục đích bảo mật
+  - Nhúng bí mật vào mã, hằng số hoặc cấu hình được phát hành
+  - Bỏ qua kết quả xác thực hoặc cho phép tiếp tục khi kiểm tra thất bại
+  - Giả định chuẩn hóa hoặc escape dùng được cho mọi ngữ cảnh
+  - Dùng biểu thức chính quy có chi phí không được kiểm soát trên đầu vào lớn
+  - Phân biệt cảnh báo theo mẫu với bằng chứng khai thác trong hệ thống thực tế
+- level1: Hiệu năng và rò rỉ
+  level2:
+  - Phân biệt sai chức năng với chi phí tài nguyên ngoài yêu cầu
+  - Tính toán kết quả nhưng không sử dụng
+  - Thực hiện phép tính hoặc I/O lặp không cần thiết trong vòng lặp
+  - Ghép chuỗi hoặc sao chép dữ liệu gây chi phí tăng quá mức
+  - Boxing, unboxing và tạo đối tượng thừa ở đường chạy quan trọng
+  - Tạo biểu thức chính quy hoặc đối tượng nặng lặp lại
+  - Tìm kiếm tuyến tính lặp trên cấu trúc không phù hợp
+  - Giữ dữ liệu qua listener, callback hoặc bộ nhớ đệm không giới hạn
+  - Giữ collection view hoặc đối tượng lớn lâu hơn cần thiết
+  - Tham chiếu static, ThreadLocal hoặc ClassLoader kéo dài vòng đời
+  - Khóa phạm vi quá rộng làm giảm khả năng xử lý đồng thời
+  - Nhật ký hoặc thông điệp lỗi gây tính toán dù không được sử dụng
+  - Chỉ kết luận ảnh hưởng hiệu năng sau khi có ngữ cảnh và phép đo
+- level1: Framework và phản chiếu
+  level2:
+  - Thành viên được dùng gián tiếp qua reflection hoặc cấu hình
+  - Annotation ảnh hưởng hợp đồng dù không có lời gọi trực tiếp
+  - Mã sinh và cách công cụ liên kết với mã nguồn gốc
+  - Nhầm chữ ký, quyền truy cập hoặc đối số khi gọi bằng reflection
+  - Bỏ sót nguyên nhân gốc bên trong InvocationTargetException
+  - Ép kiểu đối tượng được nạp bằng ClassLoader khác
+  - Tự gọi nội bộ làm hành vi proxy khác dự kiến
+  - Vòng đời đối tượng do framework quản lý khác giả thiết của mã
+  - Trạng thái có thể sửa trong đối tượng được dùng chung
+  - Ranh giới transaction hoặc bảo mật bị đặt ngoài đường gọi hiệu lực
+  - Nhầm cảnh báo không dùng với thành viên được framework truy cập
+  - Kiểm chứng bằng cấu hình thực tế thay vì miễn trừ cả nhóm cảnh báo
+- level1: Độ tin cậy cảnh báo
+  level2:
+  - Dương tính thật, dương tính giả và âm tính giả
+  - Phân biệt độ tin cậy phân tích với mức độ hậu quả
+  - Giả thiết về đường đi, dữ liệu và quan hệ bí danh
+  - Ảnh hưởng của phân tích liên phương thức và thông tin bên ngoài
+  - Thiếu classpath, mã sinh hoặc thư viện làm giảm chất lượng kết quả
+  - Khác biệt giữa phân tích mã nguồn và bytecode
+  - Annotation hoặc mô hình API không khớp hành vi thực tế
+  - Mã không thể tới trong cấu hình đang xét
+  - Reflection, native code và cơ chế động làm thiếu bằng chứng
+  - Giới hạn phát hiện lỗi phụ thuộc lịch thực thi hoặc dữ liệu môi trường
+  - Cùng một mẫu lỗi nhưng công cụ có phạm vi phát hiện khác nhau
+  - Quy trình xác minh khi không tái hiện được cảnh báo
+- level1: Chiến lược sửa
+  level2:
+  - Sửa nguyên nhân gốc và giữ nguyên hành vi hợp lệ
+  - Làm rõ hợp đồng trước khi thêm điều kiện bảo vệ
+  - Sửa tại nơi tạo dữ liệu sai hoặc nơi vi phạm vòng đời
+  - Thay API để biểu đạt ý định và giảm trạng thái không hợp lệ
+  - Ưu tiên bất biến và quyền sở hữu rõ ràng
+  - Thu hẹp phạm vi trạng thái chia sẻ và đồng bộ đúng bất biến
+  - Bảo toàn nguyên nhân ngoại lệ và chính sách xử lý lỗi
+  - Dùng cấu trúc quản lý tài nguyên theo phạm vi phù hợp
+  - Kiểm tra tác dụng phụ khi đổi thứ tự hoặc tách biểu thức
+  - Đánh giá bản sửa tự động trước khi áp dụng
+  - Không biến cảnh báo thành im lặng bằng thay đổi làm mất dữ liệu
+  - Rà soát ảnh hưởng đến bên gọi, dữ liệu lưu và tương thích
+- level1: Kiểm chứng bản sửa
+  level2:
+  - Tạo trường hợp thất bại trước khi sửa khi có thể tái hiện
+  - Kiểm thử cận giá trị, null và các nhánh điều kiện
+  - Kiểm thử thuộc tính cho equals, hashCode và Comparator
+  - Kiểm tra hành vi tài nguyên trên đường thành công và ngoại lệ
+  - Kiểm thử lỗi gián đoạn, timeout và hủy tác vụ
+  - Tái hiện cạnh tranh bằng điều phối có kiểm soát
+  - Kiểm tra giữ nguyên hợp đồng và hành vi của các trường hợp hợp lệ
+  - Dùng mutation testing để đánh giá khả năng phát hiện lỗi của kiểm thử
+  - Chạy lại cùng bộ phân tích và xác nhận cảnh báo mục tiêu đã hết
+  - Kiểm tra cảnh báo mới do bản sửa làm phát sinh
+  - Đo hiệu năng khi bản sửa liên quan đến chi phí tài nguyên
+  - Phân biệt không tái hiện được với đã chứng minh không còn lỗi
+  - Ghi nhận bằng chứng hồi quy cho người rà soát
+- level1: Quản lý cảnh báo
+  level2:
+  - Phân loại theo hậu quả, khả năng xảy ra và độ tin cậy
+  - Ưu tiên lỗi mới và lỗi nằm trên đường chạy quan trọng
+  - Gom các cảnh báo có chung nguyên nhân gốc
+  - Tách tồn đọng hiện tại khỏi vi phạm mới bằng baseline
+  - Bảo đảm baseline không che lỗi mới hoặc lỗi đã thay đổi
+  - Miễn trừ phạm vi hẹp với lý do có thể kiểm chứng
+  - Phân biệt suppress cảnh báo với sửa lỗi hoặc chấp nhận rủi ro
+  - Thời hạn rà soát lại miễn trừ và thay đổi ngữ cảnh
+  - Đặt cổng kiểm tra theo nhóm lỗi và mức độ phù hợp
+  - Ánh xạ khái niệm lỗi giữa các công cụ mà không phụ thuộc mã quy tắc
+  - Kiểm tra thay đổi kết quả khi nâng phiên bản công cụ hoặc bộ quy tắc
+  - Theo dõi chất lượng xử lý thay vì chỉ đếm cảnh báo còn lại
+  - Ghi lại người phụ trách, bằng chứng và quyết định cho từng trường hợp
+- level1: Thực hành
+  level2:
+  - Xây bộ mẫu lỗi với phiên bản sai và phiên bản đúng theo từng hợp đồng
+  - Phân tích null qua nhiều nhánh và xác minh điều kiện bảo vệ
+  - Sửa khóa Map có trạng thái thay đổi và kiểm tra tra cứu
+  - Kiểm thử hợp đồng so sánh với tập dữ liệu biên
+  - Tái hiện tràn số, mất độ chính xác và nhầm đơn vị
+  - Chẩn đoán lỗi Stream do trì hoãn, tác dụng phụ hoặc tái sử dụng
+  - Khảo sát rò rỉ tài nguyên khi một bước xử lý ném ngoại lệ
+  - Tái hiện đối tượng thoát khỏi constructor trước khi sẵn sàng
+  - Phân tích cuộc đua kiểm tra rồi cập nhật trong mã nhiều luồng
+  - Sửa đồ thị CompletableFuture làm mất lỗi hoặc chặn tiến độ
+  - Đối chiếu một mẫu lỗi bằng các bộ phân tích khác nhau
+  - Lập hồ sơ cảnh báo giả với bằng chứng và miễn trừ tối thiểu
+  - Hoàn thiện một lượt rà soát từ cảnh báo đến kiểm thử hồi quy
+  - Tổng kết giới hạn còn lại sau khi cảnh báo đã được xử lý

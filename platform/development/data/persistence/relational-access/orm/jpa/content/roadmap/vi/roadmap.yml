@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-jpa
+  title: Tổng quan JPA
+  purpose: Hiểu JPA là chuẩn ORM và cách ứng dụng quản lý dữ liệu quan hệ qua một persistence provider.
+  objectives:
+  - Phân biệt JPA, ORM và persistence provider.
+  - Nhận diện EntityManager và persistence unit.
+  - Thiết lập cấu hình JPA cơ bản.
+- id: anh-xa-entity
+  title: Ánh xạ Entity
+  purpose: Biểu diễn bảng và cột trong mô hình Java bằng các khai báo JPA chuẩn.
+  objectives:
+  - Khai báo @Entity, @Table, @Id và @GeneratedValue.
+  - Ánh xạ thuộc tính với @Column và kiểu dữ liệu.
+  - Sử dụng @Embeddable hoặc @Converter khi phù hợp.
+- id: quan-he-entity
+  title: Quan hệ Entity
+  purpose: Mô hình hóa liên kết dữ liệu và hiểu tác động của thao tác lên các Entity liên quan.
+  objectives:
+  - Phân biệt các quan hệ one-to-one, one-to-many và many-to-many.
+  - Cấu hình khóa ngoại, owning side và mappedBy.
+  - Áp dụng cascade và orphanRemoval đúng ngữ cảnh.
+- id: persistence-context
+  title: Persistence Context
+  purpose: Hiểu cách EntityManager theo dõi trạng thái Entity và đồng bộ thay đổi với cơ sở dữ liệu.
+  objectives:
+  - Phân biệt trạng thái new, managed, detached và removed.
+  - Sử dụng persist, find, merge và remove.
+  - Giải thích dirty checking, flush và clear.
+- id: truy-van-jpa
+  title: Truy vấn JPA
+  purpose: Lấy và cập nhật dữ liệu bằng API truy vấn của JPA, giảm phụ thuộc vào SQL cụ thể.
+  objectives:
+  - Viết JPQL và TypedQuery với tham số.
+  - Dựng truy vấn động bằng Criteria API.
+  - Áp dụng sắp xếp, phân trang và projection cơ bản.
+- id: giao-dich-khoa
+  title: Giao dịch & khóa
+  purpose: Giữ tính nhất quán dữ liệu khi nhiều thao tác hoặc nhiều luồng truy cập cùng xảy ra.
+  objectives:
+  - Xác định ranh giới transaction, commit và rollback.
+  - Dùng @Version cho optimistic locking.
+  - Phân biệt và chọn pessimistic locking khi cần.
+- id: fetch-hieu-nang
+  title: Fetch & hiệu năng
+  purpose: Kiểm soát lượng dữ liệu nạp và số câu SQL để tránh các vấn đề hiệu năng thường gặp.
+  objectives:
+  - Phân biệt LAZY và EAGER loading.
+  - Phát hiện N+1 bằng cách quan sát SQL.
+  - Chọn fetch join hoặc entity graph phù hợp.
+- id: thuc-hanh-kiem-thu
+  title: Thực hành & kiểm thử
+  purpose: Củng cố kiến thức bằng một luồng truy cập dữ liệu quan hệ hoàn chỉnh.
+  objectives:
+  - Xây dựng thao tác CRUD có quan hệ Entity.
+  - Kiểm thử lưu, truy vấn và rollback với CSDL.
+  - Đối chiếu SQL phát sinh với kỳ vọng.

@@ -1,0 +1,57 @@
+roadmap:
+- id: luong-message-kafka
+  title: Luồng message Kafka
+  purpose: Nắm đường đi của sự kiện từ producer đến consumer trong mô hình Kafka.
+  objectives:
+  - Giải thích topic, partition, record và offset.
+  - Phác họa luồng publish và subscribe.
+  - Nêu phạm vi bảo đảm thứ tự trong một partition.
+- id: cau-hinh-spring-kafka
+  title: Cấu hình Spring Kafka
+  purpose: Thiết lập ứng dụng Spring Boot có khả năng gửi và nhận bản tin Kafka.
+  objectives:
+  - Khai báo dependency spring-kafka và bootstrap servers.
+  - Cấu hình producer/consumer factories cơ bản.
+  - Tạo topic bằng NewTopic hoặc công cụ quản trị.
+- id: gui-bang-kafkatemplate
+  title: Gửi bằng KafkaTemplate
+  purpose: Xuất bản bản tin có key, payload và đích đến rõ ràng.
+  objectives:
+  - Gửi record bằng KafkaTemplate.send(...).
+  - Chọn topic và record key phù hợp.
+  - Đọc kết quả gửi bất đồng bộ qua CompletableFuture.
+- id: serialization-json
+  title: Serialization & JSON
+  purpose: Chuyển dữ liệu Java thành byte trên Kafka và khôi phục đúng kiểu dữ liệu khi nhận.
+  objectives:
+  - Cấu hình serializer/deserializer cho key và value.
+  - Thực hiện gửi/nhận payload JSON.
+  - Kiểm tra ánh xạ kiểu và trusted packages.
+- id: nhan-bang-kafkalistener
+  title: Nhận bằng @KafkaListener
+  purpose: Xử lý message bằng phương thức listener và truy cập metadata của record.
+  objectives:
+  - Khai báo listener theo topic và groupId.
+  - Đọc payload, key và header cần thiết.
+  - Xác định vai trò của listener container.
+- id: group-phan-phoi
+  title: Group & phân phối
+  purpose: Hiểu cách Kafka phân công partition và luân chuyển message giữa các consumer.
+  objectives:
+  - Giải thích consumer group và partition assignment.
+  - Phân biệt scale trong cùng group với group độc lập.
+  - Nhận diện quan hệ giữa offset và vị trí tiêu thụ.
+- id: message-batch-listener
+  title: Message & batch listener
+  purpose: Áp dụng các kiểu nhận bản tin phù hợp với đặc điểm dữ liệu và khối lượng xử lý.
+  objectives:
+  - Đọc Spring Message<?> hoặc ConsumerRecord.
+  - Cấu hình xử lý một record và xử lý theo batch.
+  - Phân biệt payload conversion với deserialization.
+- id: kiem-thu-luong-message
+  title: Kiểm thử luồng message
+  purpose: Xác minh producer và consumer trao đổi đúng bản tin trong môi trường có broker thử nghiệm.
+  objectives:
+  - Tạo integration test với @EmbeddedKafka.
+  - Gửi và xác nhận message nhận được ở listener.
+  - Kiểm tra key, payload, topic và headers.

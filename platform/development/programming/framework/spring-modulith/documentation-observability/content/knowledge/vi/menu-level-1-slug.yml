@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình quan sát
+  slug: observability-model
+  index: 1
+- title: Insight starter
+  slug: insight-starter
+  index: 2
+- title: Module Actuator
+  slug: module-actuator
+  index: 3
+- title: Module graph
+  slug: module-graph
+  index: 4
+- title: Bật quan sát
+  slug: enable-observability
+  index: 5
+- title: Module spans
+  slug: module-spans
+  index: 6
+- title: Event metrics
+  slug: event-metrics
+  index: 7
+- title: Event customizer
+  slug: event-customizer
+  index: 8
+- title: Observation API
+  slug: observation-api
+  index: 9
+- title: Observation convention
+  slug: observation-conventions
+  index: 10
+- title: Cardinality
+  slug: metric-cardinality
+  index: 11
+- title: Context propagation
+  slug: context-propagation
+  index: 12
+- title: Micrometer tracing
+  slug: micrometer-tracing
+  index: 13
+- title: Export traces
+  slug: trace-export
+  index: 14
+- title: Sampling
+  slug: sampling
+  index: 15
+- title: Logging
+  slug: logging
+  index: 16
+- title: Actuator và vận hành
+  slug: actuator-operations
+  index: 17
+- title: Dashboard
+  slug: dashboards
+  index: 18
+- title: Alerting
+  slug: alerting
+  index: 19
+- title: Tài liệu vận hành
+  slug: operations-documentation
+  index: 20
+- title: Kiểm thử
+  slug: testing
+  index: 21
+- title: Hiệu năng
+  slug: performance
+  index: 22
+- title: Bảo mật
+  slug: security
+  index: 23
+- title: Nhiều module
+  slug: multiple-modules
+  index: 24
+- title: Sự kiện bất đồng bộ
+  slug: asynchronous-events
+  index: 25
+- title: Cấu hình môi trường
+  slug: environment-configuration
+  index: 26
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 27
+- title: Phiên bản
+  slug: versions
+  index: 28
+- title: Thiết kế thực tế
+  slug: practical-design
+  index: 29
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 30

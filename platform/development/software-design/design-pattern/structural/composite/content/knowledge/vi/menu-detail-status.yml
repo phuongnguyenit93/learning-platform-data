@@ -1,0 +1,2296 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Composite là gì và vị trí trong nhóm mẫu thiết kế cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Bài toán biểu diễn quan hệ phần–toàn thể trong phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Xử lý đối tượng đơn lẻ và nhóm đối tượng qua một hợp đồng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của đa hình và kết hợp đối tượng trong Composite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Nhận diện cấu trúc đệ quy có cùng loại thao tác ở nhiều cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Lợi ích đối với mã sử dụng và khả năng mở rộng cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Chi phí của giao diện chung và việc quản lý cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phân biệt Composite với thao tác composition nói chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Thuật ngữ và thứ tự học từ mô hình đơn giản đến thiết kế hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: part-whole-problem
+  title: Bài toán phần–toàn thể
+  childs:
+  - slug: part-whole-problem-001
+    title: Mô hình hóa phần tử đơn và nhóm có thể chứa nhóm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: part-whole-problem-002
+    title: Nhận diện thao tác có ý nghĩa ở cả cấp lá lẫn cấp nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: part-whole-problem-003
+    title: Phân biệt quan hệ chứa thành phần với quan hệ kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: part-whole-problem-004
+    title: Phân tích cách xử lý bằng điều kiện theo từng loại đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: part-whole-problem-005
+    title: Nhận diện mã lặp khi phải duyệt nhiều tầng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: part-whole-problem-006
+    title: Tách yêu cầu nghiệp vụ khỏi cách tổ chức cây trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: part-whole-problem-007
+    title: Kiểm tra trường hợp cấu trúc chỉ cần danh sách phẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: part-whole-problem-008
+    title: Xác định mục tiêu đơn giản hóa mã bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-structure
+  title: Cấu trúc mẫu
+  childs:
+  - slug: pattern-structure-001
+    title: 'Component: hợp đồng chung của các phần tử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-002
+    title: 'Leaf: phần tử thực hiện hành vi và không chứa phần tử con'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-003
+    title: 'Composite: phần tử chứa con và phối hợp thao tác trên chúng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-004
+    title: 'Client: bên sử dụng làm việc qua hợp đồng Component'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-005
+    title: Mối quan hệ giữa Component, Leaf và Composite trên sơ đồ lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-006
+    title: Diễn biến một lời gọi từ nút gốc đến các nút lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-007
+    title: Phân biệt vai trò mẫu thiết kế với tên lớp trong miền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-008
+    title: Phân bổ trách nhiệm giữa thao tác nghiệp vụ và quản lý cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-009
+    title: Biến thể dùng interface hoặc lớp cơ sở trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-010
+    title: Những phần có thể thay đổi và phần cần giữ ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: component-contract
+  title: Hợp đồng Component
+  childs:
+  - slug: component-contract-001
+    title: Chọn thao tác chung có ngữ nghĩa nhất quán cho mọi nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-002
+    title: Thiết kế tham số và kết quả trả về của thao tác đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-003
+    title: Đặt tên theo nghiệp vụ thay vì theo chi tiết duyệt cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-004
+    title: Xác định bất biến, tiền điều kiện và hậu điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-005
+    title: Phân biệt thao tác truy vấn với thao tác làm thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-006
+    title: Thiết kế hợp đồng lỗi để bên sử dụng xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-007
+    title: Xác định hành vi hợp lệ của nút tổ hợp rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-008
+    title: Kiểm soát thông tin nội bộ được công khai qua Component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-009
+    title: Tránh giao diện buộc nút lá cung cấp khả năng không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-contract-010
+    title: Kiểm chứng hợp đồng bằng ví dụ gọi trên cả lá và nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: leaves-composites
+  title: Lá và nút tổ hợp
+  childs:
+  - slug: leaves-composites-001
+    title: Triển khai trường hợp cơ sở tại nút lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-002
+    title: Triển khai bước đệ quy tại nút tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-003
+    title: Chọn cấu trúc lưu trữ các phần tử con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-004
+    title: Ủy quyền thao tác xuống con và tổng hợp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-005
+    title: Phân biệt hành vi riêng của nhóm với hành vi của từng thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-006
+    title: Xử lý cây một nút, cây rỗng và nhóm rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-007
+    title: Quy định thứ tự thực thi giữa các phần tử con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-008
+    title: Giữ dữ liệu riêng của nút tổ hợp tách khỏi kết quả được tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-009
+    title: Thêm loại nút mới mà vẫn giữ ổn định mã sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaves-composites-010
+    title: Đánh giá phần triển khai chung nên đặt ở lớp cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transparent-safe-interfaces
+  title: Trong suốt và an toàn
+  childs:
+  - slug: transparent-safe-interfaces-001
+    title: Thiết kế trong suốt với thao tác quản lý con trên Component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-002
+    title: Thiết kế an toàn với thao tác quản lý con chỉ trên Composite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-003
+    title: Đánh đổi giữa API đồng nhất và khả năng sử dụng sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-004
+    title: Xử lý add hoặc remove khi đối tượng nhận là nút lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-005
+    title: Đánh giá exception, thao tác không làm gì và hợp đồng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-006
+    title: Ảnh hưởng đến nguyên tắc thay thế Liskov
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-007
+    title: Phân tách giao diện thao tác nghiệp vụ và giao diện quản lý con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-008
+    title: Phân biệt mã xây dựng cây với mã chỉ thực hiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transparent-safe-interfaces-009
+    title: Chọn biến thể theo nhu cầu thực tế của bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: building-composites
+  title: Xây dựng cấu trúc
+  childs:
+  - slug: building-composites-001
+    title: Tạo nút gốc và gắn các thành phần con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-002
+    title: Thêm con ở cuối hoặc tại vị trí xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-003
+    title: Xóa theo tham chiếu, định danh hoặc vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-004
+    title: Thay thế một phần tử và giữ nguyên thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-005
+    title: Di chuyển nhánh giữa hai nút tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-006
+    title: Xác định quy tắc phần tử trùng và nhiều lần xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-007
+    title: Kiểm tra null và thành phần không phù hợp khi thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-008
+    title: Công khai danh sách con bằng bản sao hoặc góc nhìn chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-009
+    title: Ngăn mã bên ngoài sửa cấu trúc mà bỏ qua kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-010
+    title: Thiết kế builder cho cây có nhiều cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: building-composites-011
+    title: Tách giai đoạn lắp ráp khỏi giai đoạn sử dụng khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ownership-and-identity
+  title: Sở hữu và định danh
+  childs:
+  - slug: ownership-and-identity-001
+    title: Xác định một nút được thuộc một cha hay nhiều cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-002
+    title: Phân biệt cây, đồ thị không chu trình có hướng và đồ thị có chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-003
+    title: Ngăn một nút chứa chính nó trực tiếp hoặc gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-004
+    title: Kiểm tra nguy cơ tạo chu trình khi gắn hoặc di chuyển nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-005
+    title: Đánh giá tham chiếu cha phục vụ tìm đường và di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-006
+    title: Duy trì nhất quán giữa danh sách con và tham chiếu cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-007
+    title: Phân biệt định danh nghiệp vụ với danh tính đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-008
+    title: Thiết kế equals và hashCode khi nút có cấu trúc đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-009
+    title: Quy định xử lý khi cùng một đối tượng xuất hiện ở nhiều nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-010
+    title: Phân biệt sao chép nông, sao chép sâu và chia sẻ nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-identity-011
+    title: Quản lý tách nhánh, xóa nhánh và vòng đời của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tree-traversal
+  title: Duyệt cây
+  childs:
+  - slug: tree-traversal-001
+    title: Duyệt đệ quy theo chiều sâu từ nút gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-002
+    title: Phân biệt thứ tự trước, sau và theo yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-003
+    title: Duyệt theo chiều rộng bằng hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-004
+    title: Duyệt lặp bằng stack để kiểm soát độ sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-005
+    title: Phân biệt thao tác do nút thực hiện với bộ duyệt bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-006
+    title: Tìm kiếm, lọc và dừng sớm khi đã có kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-007
+    title: Truyền độ sâu, đường dẫn và ngữ cảnh xuống các nút con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-008
+    title: Xác định cách xử lý phần tử bị lặp trong cấu trúc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-009
+    title: Xử lý thay đổi tập con trong khi đang duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tree-traversal-010
+    title: Thiết kế Iterator hoặc Spliterator khi cần cung cấp cách duyệt riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aggregate-computation
+  title: Tính toán tổng hợp
+  childs:
+  - slug: aggregate-computation-001
+    title: Tổng hợp kết quả từ lá lên nút tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-002
+    title: Chọn giá trị khởi tạo phù hợp cho nhóm rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-003
+    title: Tính tổng, đếm và tìm giá trị nhỏ nhất hoặc lớn nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-004
+    title: Tính trung bình từ tổng và số lượng thay vì trung bình các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-005
+    title: Đánh giá thứ tự khi phép kết hợp không có tính giao hoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-006
+    title: Phân biệt kết quả theo từng lần xuất hiện với theo từng nút duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-007
+    title: Xử lý hệ số, số lượng và trọng số trong quan hệ phần–toàn thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-008
+    title: Quản lý độ chính xác, làm tròn và tràn số theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-009
+    title: Truyền điều kiện và ngữ cảnh tính toán qua các cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-010
+    title: Phân biệt phép tính thuần với thao tác có tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregate-computation-011
+    title: Đánh giá tính kết hợp trước khi thay cách nhóm phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-implementation
+  title: Triển khai Java
+  childs:
+  - slug: java-implementation-001
+    title: Xây dựng ví dụ tối thiểu bằng interface Component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-002
+    title: Triển khai lớp Leaf với dữ liệu và hành vi cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-003
+    title: Triển khai lớp Composite chứa danh sách Component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-004
+    title: Tổ chức constructor và kiểm tra dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-005
+    title: Ủy quyền thao tác đến con qua đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-006
+    title: Đóng gói danh sách con và giới hạn quyền sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-007
+    title: Xử lý thêm, xóa và thứ tự con bằng Java Collections
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-008
+    title: Thiết kế exception khi thao tác cấu trúc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-009
+    title: Viết mã sử dụng chỉ phụ thuộc hợp đồng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-010
+    title: Tránh ép kiểu và kiểm tra instanceof trong luồng nghiệp vụ chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-011
+    title: Minh họa thêm một loại lá mà không sửa thuật toán phía client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-type-design
+  title: Thiết kế kiểu Java
+  childs:
+  - slug: java-type-design-001
+    title: Lựa chọn interface và abstract class theo phần hành vi dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-002
+    title: Đánh giá generic cho kết quả thao tác và loại phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-003
+    title: Giới hạn generic để API vẫn dễ hiểu và sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-004
+    title: Cân nhắc sealed interface khi tập loại nút cần được giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-005
+    title: Đánh giá khả năng mở rộng khi có phân cấp kiểu đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-006
+    title: Sử dụng record chứa collection và bảo vệ dữ liệu bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-007
+    title: Phân biệt danh sách không sửa được với cây bất biến sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-008
+    title: Thiết kế định danh, equals, hashCode và toString tránh đệ quy không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-009
+    title: Quản lý null và biểu diễn kết quả không tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-type-design-010
+    title: Chọn kiểu kết quả thể hiện rõ thành công, lỗi hoặc kết quả một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-changes
+  title: Trạng thái và thay đổi
+  childs:
+  - slug: state-changes-001
+    title: Phân biệt cây có thể thay đổi với cây bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-002
+    title: Cố định cấu trúc sau giai đoạn xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-003
+    title: Giới hạn quyền thêm, xóa và di chuyển nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-004
+    title: Theo dõi thay đổi từ nút con đến các nút tổ tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-005
+    title: Vô hiệu hóa kết quả cache khi cấu trúc hoặc dữ liệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-006
+    title: Phân biệt thay đổi tại chỗ với tạo phiên bản cấu trúc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-007
+    title: Dùng snapshot để giữ góc nhìn nhất quán khi duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-008
+    title: Đánh giá khóa ở cấp cây, nhánh hoặc nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-009
+    title: Xử lý thao tác đọc và ghi đồng thời theo hợp đồng đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-changes-010
+    title: Kiểm chứng bất biến sau một chuỗi thay đổi cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-consistency
+  title: Lỗi và tính nhất quán
+  childs:
+  - slug: errors-consistency-001
+    title: Xác định dừng ngay hay tiếp tục khi một nút con thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-002
+    title: Tổng hợp nhiều lỗi cùng đường dẫn đến nút gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-003
+    title: Phân biệt lỗi dữ liệu, lỗi cấu trúc và lỗi thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-004
+    title: Kiểm tra toàn bộ điều kiện trước khi thay đổi cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-005
+    title: Giữ nhất quán khi di chuyển nhánh thất bại giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-006
+    title: Thiết kế hoàn nguyên cho thao tác có thể đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-007
+    title: Đánh giá tính lặp an toàn khi thực hiện lại thao tác trên nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-008
+    title: Tránh kết quả một phần bị hiểu là thành công đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-009
+    title: Giới hạn của Composite đối với giao dịch và tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-consistency-010
+    title: Ghi nhật ký lỗi có ngữ cảnh mà không duyệt vô hạn cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đánh giá chi phí thao tác theo số nút và số quan hệ được duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đánh giá bộ nhớ theo độ sâu và chiến lược duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Nhận diện nguy cơ tràn stack ở cây sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Tránh tính lại cùng một kết quả nhiều lần không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Lựa chọn cache theo tần suất đọc và thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đánh giá chi phí vô hiệu hóa cache dọc theo tổ tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Xây chỉ mục hỗ trợ tìm kiếm khi truy vấn thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đánh giá tải lười của nút con và số lần truy cập lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Cân nhắc xử lý song song với thứ tự, tính kết hợp và an toàn trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Đo đạc trên cây sâu, cây rộng và dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: persistence-recovery
+  title: Lưu trữ và khôi phục
+  childs:
+  - slug: persistence-recovery-001
+    title: Biểu diễn loại nút, định danh và quan hệ cha–con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-002
+    title: Lựa chọn cấu trúc lồng nhau hoặc danh sách liên kết theo định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-003
+    title: Lưu thứ tự phần tử con khi thứ tự có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-004
+    title: Tránh tuần tự hóa lặp vô hạn qua tham chiếu hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-005
+    title: Khôi phục cây theo giai đoạn tạo nút rồi nối quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-006
+    title: Kiểm tra định danh trùng, thiếu cha và chu trình khi đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-007
+    title: Kiểm soát loại nút và dữ liệu đầu vào được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-008
+    title: Phân biệt mô hình lưu trữ với hợp đồng đối tượng trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-009
+    title: Quản lý thay đổi định dạng và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-recovery-010
+    title: Kiểm thử lưu rồi đọc lại để bảo toàn cấu trúc và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-composition
+  title: Kết hợp mẫu thiết kế
+  childs:
+  - slug: pattern-composition-001
+    title: Kết hợp Iterator để tách cách duyệt khỏi hành vi của nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-002
+    title: Kết hợp Visitor khi cần thêm nhiều thao tác trên phân cấp ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-003
+    title: Đánh giá việc thêm loại nút mới khi sử dụng Visitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-004
+    title: Kết hợp Decorator để bổ sung hành vi cho một phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-005
+    title: Sử dụng Strategy cho chính sách tổng hợp hoặc xử lý nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-006
+    title: Sử dụng Factory và Builder để kiểm soát quá trình tạo cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-007
+    title: Sử dụng Prototype khi cần sao chép nhánh có quy tắc rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-008
+    title: Đánh giá Flyweight khi nhiều lá chia sẻ dữ liệu không thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-009
+    title: Kết hợp Command cho thao tác cấu trúc cần hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-010
+    title: Kết hợp Observer khi thay đổi nút cần được thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-011
+    title: Chọn cách kết hợp theo vấn đề thực tế và giới hạn độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparison-selection
+  title: So sánh và lựa chọn
+  childs:
+  - slug: comparison-selection-001
+    title: Phân biệt Composite với collection chứa các đối tượng thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-002
+    title: Phân biệt Composite với cấu trúc dữ liệu cây thuần túy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-003
+    title: Phân biệt Composite với Decorator theo mục tiêu và quan hệ chứa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-004
+    title: Phân biệt Composite với Facade theo cách đơn giản hóa việc sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-005
+    title: Phân biệt Composite với Chain of Responsibility theo luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-006
+    title: So sánh Composite hướng đối tượng với hàm xử lý trên dữ liệu cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-007
+    title: Đánh giá yêu cầu xử lý đồng nhất trước khi chọn Composite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-008
+    title: Nhận diện trường hợp các loại nút không có hợp đồng chung hợp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-selection-009
+    title: Cân nhắc cách tiếp cận đơn giản hơn cho cấu trúc nông và ít biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: composite-testing
+  title: Kiểm thử Composite
+  childs:
+  - slug: composite-testing-001
+    title: Kiểm thử hợp đồng chung trên cả Leaf và Composite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-002
+    title: Kiểm thử trường hợp một lá, nhóm rỗng và nhiều cấp lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-003
+    title: Kiểm thử thứ tự thực thi và thứ tự tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-004
+    title: Kiểm thử thêm, xóa, thay thế và di chuyển nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-005
+    title: Kiểm thử chặn null, tự chứa và chu trình gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-006
+    title: Kiểm thử định danh trùng và đối tượng được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-007
+    title: Kiểm thử lỗi ở một con và chính sách xử lý kết quả một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-008
+    title: Kiểm thử cache sau thay đổi dữ liệu hoặc cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-009
+    title: Kiểm thử truy cập chỉ đọc và giới hạn sửa danh sách con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-010
+    title: Kiểm thử cây sâu và cây rộng theo yêu cầu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-011
+    title: Sử dụng sinh dữ liệu cây để kiểm tra bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composite-testing-012
+    title: Kiểm thử lưu, khôi phục và sao chép cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring-to-composite
+  title: Tái cấu trúc sang Composite
+  childs:
+  - slug: refactoring-to-composite-001
+    title: Nhận diện điều kiện phân nhánh giữa phần tử đơn và nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-002
+    title: Tìm các thao tác bị lặp ở nhiều tầng của cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-003
+    title: Thiết lập kiểm thử bảo vệ hành vi hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-004
+    title: Trích xuất hợp đồng chung có ngữ nghĩa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-005
+    title: Chuyển hành vi cơ sở về Leaf và hành vi phối hợp về Composite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-006
+    title: Thay lời gọi phụ thuộc loại cụ thể bằng đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-007
+    title: Đưa quản lý con vào đúng biến thể API đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-008
+    title: Bổ sung kiểm tra quyền sở hữu và chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-009
+    title: Chuyển đổi từng bước và đối chiếu hành vi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-composite-010
+    title: Đánh giá lại lợi ích so với độ phức tạp mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-scenario
+  title: Tình huống áp dụng
+  childs:
+  - slug: application-scenario-001
+    title: Biểu diễn hình đơn và nhóm hình trong hệ thống đồ họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-002
+    title: Truyền ngữ cảnh tọa độ và phép biến đổi qua nhóm hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-003
+    title: Mô hình hóa widget và vùng chứa trong giao diện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-004
+    title: Biểu diễn tệp và thư mục để tính dung lượng hoặc liệt kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-005
+    title: Đánh giá liên kết tượng trưng và giới hạn mô hình cây thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-006
+    title: Mô hình hóa sản phẩm đơn và gói sản phẩm lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-007
+    title: Xử lý số lượng, giá và chính sách giảm giá ở từng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-008
+    title: Biểu diễn công việc và nhóm công việc để tổng hợp tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-009
+    title: Đánh giá cây phòng ban với nhân sự tham gia nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-010
+    title: Biểu diễn biểu thức bằng toán hạng và nút phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-011
+    title: Nhận diện bài toán cần đồ thị thay vì cây có một cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenario-012
+    title: Chọn hợp đồng phù hợp với từng miền thay vì tái sử dụng một mô hình cây chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Cho rằng mọi cấu trúc cây đều cần Composite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Tạo Component quá lớn với nhiều thao tác không phù hợp cho lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Cho add hoặc remove âm thầm không làm gì trên nút lá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Lặp điều kiện instanceof trong thuật toán đáng lẽ dùng đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Trả danh sách con có thể bị sửa từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Cho phép chu trình hoặc di chuyển nút làm sai quan hệ cha–con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Đếm trùng kết quả khi dùng chung một nút mà chưa quy định ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Giả định phép tổng hợp có tính kết hợp khi đổi cách chia nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Dùng cache nhưng bỏ sót cập nhật khi cây thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Viết equals, hashCode hoặc toString đệ quy không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-011
+    title: Bỏ qua trạng thái một phần khi một nút con thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-012
+    title: Áp dụng quá nhiều mẫu thiết kế bổ sung cho một cấu trúc đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Phân tích bài toán phần tử đơn và nhóm nhiều cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thiết kế sơ đồ vai trò và hợp đồng Component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Triển khai ví dụ Leaf và Composite tối thiểu bằng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Xây cây mẫu có nhóm rỗng, nhiều cấp và thứ tự xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Cài đặt thao tác tổng hợp và kiểm chứng kết quả thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: So sánh hai biến thể quản lý con trong suốt và an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thêm loại lá mới và kiểm tra phạm vi mã cần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Bổ sung tìm kiếm hoặc bộ duyệt bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Thực hiện di chuyển nhánh có kiểm tra quyền sở hữu và chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Bổ sung chính sách lỗi cùng kiểm thử kết quả một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Lưu và khôi phục cây rồi đối chiếu cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Đo hành vi trên cây sâu hoặc rộng và đánh giá phương án cải thiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Ghi lại đánh đổi thiết kế và giới hạn của ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-process
+  title: Quy trình thiết kế
+  childs:
+  - slug: design-process-001
+    title: Xác định quan hệ phần–toàn thể và thao tác cần xử lý đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-002
+    title: Chọn Component, Leaf và Composite theo ngữ nghĩa miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-003
+    title: Quy định hợp đồng, hành vi nhóm rỗng và cách tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-004
+    title: Chọn biến thể API cùng chính sách sở hữu cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-005
+    title: Thiết kế duyệt cây, xử lý lỗi và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-006
+    title: Triển khai tối thiểu rồi kiểm thử các trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-007
+    title: Đánh giá lưu trữ, hiệu năng và thay đổi đồng thời theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-008
+    title: Chỉ bổ sung mẫu hỗ trợ khi có yêu cầu đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

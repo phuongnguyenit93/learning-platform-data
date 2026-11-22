@@ -1,0 +1,3 @@
+menuLevel1: Retry và backoff
+menuLevel2: Retry không làm vượt max.poll.interval.ms
+status: WRITTEN

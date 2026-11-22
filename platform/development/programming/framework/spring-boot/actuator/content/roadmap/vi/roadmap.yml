@@ -1,0 +1,57 @@
+roadmap:
+- id: buc-tranh-actuator
+  title: Bức tranh Actuator
+  purpose: Hiểu ứng dụng cần cung cấp bằng chứng gì để được theo dõi và quản trị khi chạy.
+  objectives:
+  - Phân biệt API nghiệp vụ với endpoint quản trị của Actuator.
+  - Nhận diện health, metric, log và trace cùng câu hỏi mà mỗi loại trả lời.
+  - Giải thích vai trò của Actuator, Micrometer và hệ thống giám sát bên ngoài.
+- id: cau-hinh-va-bao-ve-endpoint
+  title: Cấu hình và bảo vệ endpoint
+  purpose: Chỉ mở những khả năng quản trị cần thiết cho đúng đối tượng sử dụng.
+  objectives:
+  - Phân biệt bật endpoint, công bố qua HTTP/JMX và cấp quyền truy cập.
+  - Cấu hình đường dẫn, cổng quản trị và danh sách endpoint được công bố.
+  - Kiểm soát xác thực, phân quyền và chi tiết nhạy cảm; không coi đổi cổng là biện pháp bảo mật.
+- id: health-va-trang-thai-san-sang
+  title: Health và trạng thái sẵn sàng
+  purpose: Đánh giá ứng dụng còn hoạt động và có thể nhận yêu cầu hay chưa.
+  objectives:
+  - Đọc trạng thái health tổng hợp, từng thành phần và health group.
+  - Phân biệt trạng thái còn hoạt động (liveness) với sẵn sàng nhận yêu cầu (readiness).
+  - Chọn kiểm tra phụ thuộc phù hợp; không đưa lỗi hệ thống ngoài vào liveness.
+- id: do-luong-bang-metric
+  title: Đo lường bằng metric
+  purpose: Định lượng tải, độ trễ và tài nguyên để nhận diện thay đổi khi vận hành.
+  objectives:
+  - Đọc metric JVM và HTTP; chọn Counter, Gauge hoặc Timer cho phép đo cần thêm.
+  - Sử dụng tên và nhãn ổn định, kiểm soát số lượng giá trị nhãn.
+  - Phân biệt /actuator/metrics để chẩn đoán với xuất metric qua registry hoặc /actuator/prometheus.
+- id: observation-va-tracing
+  title: Observation và tracing
+  purpose: Lần theo một thao tác qua nhiều thành phần và liên hệ với log.
+  objectives:
+  - Giải thích vai trò của Observation, trace, span và mã liên kết trong log.
+  - Cấu hình cầu nối tracing, nơi nhận dữ liệu và tỷ lệ lấy mẫu.
+  - Kiểm chứng truyền ngữ cảnh khi gọi dịch vụ khác hoặc chuyển luồng xử lý.
+- id: chan-doan-khi-ung-dung-chay
+  title: Chẩn đoán khi ứng dụng chạy
+  purpose: Chọn công cụ quản trị phù hợp với triệu chứng và tác động của thao tác.
+  objectives:
+  - Dùng conditions, beans, mappings hoặc configprops để kiểm tra cấu hình.
+  - Đọc threaddump và điều chỉnh loggers khi cần điều tra sự cố.
+  - Đánh giá chi phí, dữ liệu nhạy cảm và quyền trước khi lấy heapdump hoặc thay đổi trạng thái.
+- id: mo-rong-thong-tin-quan-tri
+  title: Mở rộng thông tin quản trị
+  purpose: Bổ sung tín hiệu có ý nghĩa với ứng dụng bằng cơ chế của Actuator.
+  objectives:
+  - Viết HealthIndicator cho một kiểm tra có phạm vi và thời gian chờ phù hợp.
+  - Bổ sung phép đo qua MeterRegistry hoặc quan sát qua ObservationRegistry.
+  - Tạo @Endpoint với thao tác phù hợp và kiểm chứng chính sách công bố, phân quyền.
+- id: kiem-chung-va-giam-sat-thuc-te
+  title: Kiểm chứng và giám sát thực tế
+  purpose: Chứng minh dữ liệu quản trị và chính sách truy cập hoạt động đúng trong môi trường chạy.
+  objectives:
+  - Kiểm thử endpoint với người được cấp quyền và người không được cấp quyền.
+  - Tái hiện phụ thuộc lỗi, tải tăng và thay đổi readiness để đối chiếu tín hiệu.
+  - Xác nhận hệ thống giám sát nhận dữ liệu và cảnh báo dựa trên điều kiện có ý nghĩa.

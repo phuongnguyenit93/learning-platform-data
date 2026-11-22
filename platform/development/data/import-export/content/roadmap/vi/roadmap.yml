@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-import-export
+  title: Tổng quan Import/Export
+  purpose: Nắm luồng dữ liệu đi vào và đi ra ứng dụng, cùng trách nhiệm của từng bước.
+  objectives:
+  - '- Phân biệt import, export và đồng bộ dữ liệu.'
+  - '- Xác định nguồn, đích, định dạng và ranh giới xử lý.'
+- id: dinh-dang-encoding
+  title: Định dạng & Encoding
+  purpose: Chọn định dạng trao đổi và quy tắc mã hóa để dữ liệu không bị sai lệch.
+  objectives:
+  - '- So sánh CSV, JSON, XML và XLSX theo bài toán.'
+  - '- Xử lý UTF-8, dấu phân cách và định dạng ngày/số.'
+- id: java-i-o
+  title: Java I/O
+  purpose: Đọc và ghi dữ liệu từ file hoặc luồng bằng API Java phù hợp.
+  objectives:
+  - '- Dùng Path, Files, Reader và Writer.'
+  - '- Đóng tài nguyên an toàn với try-with-resources.'
+- id: doc-mapping
+  title: Đọc & Mapping
+  purpose: Chuyển dữ liệu bên ngoài thành cấu trúc Java có thể kiểm tra.
+  objectives:
+  - '- Parse CSV/JSON và ánh xạ sang DTO.'
+  - '- Kiểm tra header, kiểu dữ liệu và trường bắt buộc.'
+- id: xuat-serialization
+  title: Xuất & Serialization
+  purpose: Tạo file hoặc luồng đầu ra đúng schema và có thể đọc lại.
+  objectives:
+  - '- Ghi CSV/JSON/XLSX với thư viện phù hợp.'
+  - '- Kiểm tra escape, thứ tự cột và encoding.'
+- id: batch-streaming
+  title: Batch & Streaming
+  purpose: Xử lý khối lượng dữ liệu lớn mà không tải toàn bộ vào bộ nhớ.
+  objectives:
+  - '- Đọc theo dòng, theo trang hoặc theo batch.'
+  - '- Kiểm soát bộ đệm, kích thước batch và thời gian xử lý.'
+- id: loi-khoi-phuc
+  title: Lỗi & Khôi phục
+  purpose: Giữ kết quả nhất quán khi dữ liệu đầu vào lỗi hoặc tác vụ bị gián đoạn.
+  objectives:
+  - '- Phân loại lỗi bản ghi và tổng hợp báo cáo import.'
+  - '- Thiết kế retry, idempotency và ghi file tạm an toàn.'
+- id: an-toan-kiem-thu
+  title: An toàn & Kiểm thử
+  purpose: Giảm rủi ro từ dữ liệu không tin cậy và bảo đảm kết quả trao đổi.
+  objectives:
+  - '- Giới hạn file, kiểm soát đường dẫn và phòng CSV formula injection.'
+  - '- Kiểm thử round-trip, dữ liệu thiếu và file lớn.'

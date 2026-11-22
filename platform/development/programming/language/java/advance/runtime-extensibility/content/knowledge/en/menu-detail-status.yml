@@ -1,0 +1,1765 @@
+menu:
+- slug: overview
+  title: Bức tranh tổng thể
+  childs:
+  - slug: overview-001
+    title: Mở rộng lúc chạy là gì và vì sao ứng dụng cần điểm mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Ứng dụng chủ, hợp đồng dịch vụ và phần mở rộng (plugin) liên hệ như thế nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt API cho bên sử dụng và SPI cho bên cung cấp dịch vụ (provider)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Từ khám phá, nạp mã, khởi tạo đến gọi và dừng phần mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: So sánh cấu hình, plugin Java, biên dịch động, kịch bản và JShell
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của reflection, proxy và method handle tại ranh giới tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức cần có và thứ tự học các cơ chế mở rộng của Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extension-contracts
+  title: Hợp đồng mở rộng
+  childs:
+  - slug: extension-contracts-001
+    title: Chọn interface, lớp trừu tượng hoặc factory cho một điểm mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-contracts-002
+    title: Tách kiểu dữ liệu và API dùng chung khỏi cách triển khai của plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-contracts-003
+    title: Thiết kế định danh, khả năng hỗ trợ và thông tin phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-contracts-004
+    title: Quy định đầu vào, đầu ra, giá trị null và ngoại lệ qua ranh giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-contracts-005
+    title: Truyền cấu hình và dịch vụ của ứng dụng chủ qua ngữ cảnh có giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-contracts-006
+    title: Quy định quyền sở hữu tài nguyên, trạng thái và khả năng gọi đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-contracts-007
+    title: Thiết kế callback, sự kiện và quy tắc hủy đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-contracts-008
+    title: Giữ hợp đồng nhỏ, tránh để lộ thư viện nội bộ của plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-packaging
+  title: Đóng gói plugin
+  childs:
+  - slug: plugin-packaging-001
+    title: Tách JAR hợp đồng, JAR ứng dụng chủ và JAR phần triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-packaging-002
+    title: Tổ chức lớp, tài nguyên và phụ thuộc riêng trong gói phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-packaging-003
+    title: Phân biệt classpath, module path và thư mục plugin do ứng dụng quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-packaging-004
+    title: Đọc manifest, phiên bản và mô tả plugin trước khi kích hoạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-packaging-005
+    title: Bảo toàn tệp đăng ký dịch vụ khi gộp hoặc đổi tên package trong JAR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-packaging-006
+    title: Ảnh hưởng của Class-Path, package sealing và JAR đa phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-packaging-007
+    title: Kiểm tra gói thực tế thay vì chỉ chạy trên classpath của IDE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classpath-spi
+  title: SPI trên classpath
+  childs:
+  - slug: classpath-spi-001
+    title: Định nghĩa dịch vụ và tạo nhiều phần triển khai độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-spi-002
+    title: Đặt tên tệp META-INF/services theo tên nhị phân của kiểu dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-spi-003
+    title: Khai báo lớp provider bằng UTF-8, dòng chú thích và quy tắc trùng lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-spi-004
+    title: Điều kiện public, khả năng gán kiểu và constructor không tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-spi-005
+    title: Quan hệ giữa vị trí tệp đăng ký và khả năng nhìn thấy lớp provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-spi-006
+    title: Thêm hoặc bỏ JAR provider mà không sửa mã ứng dụng chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-spi-007
+    title: Thực nghiệm các lỗi sai tên dịch vụ, thiếu constructor và thiếu tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provider-discovery
+  title: Khám phá provider
+  childs:
+  - slug: provider-discovery-001
+    title: Chọn ServiceLoader.load theo class loader hoặc ngữ cảnh luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-002
+    title: Phạm vi của loadInstalled và khác biệt với provider của ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-003
+    title: Duyệt iterator và thời điểm provider được nạp, khởi tạo theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-004
+    title: Dùng stream, Provider.type và Provider.get để tách xem kiểu khỏi tạo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-005
+    title: Ý nghĩa kiểu trả về của Provider.type khi dùng phương thức provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-006
+    title: Dùng findFirst và xử lý Optional khi không tìm thấy provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-007
+    title: Bộ nhớ đệm của iterator, stream và ảnh hưởng của reload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-008
+    title: ServiceConfigurationError có thể xuất hiện khi khám phá hoặc khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-discovery-009
+    title: Quy tắc truy cập đồng thời và phạm vi lưu giữ đối tượng ServiceLoader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provider-selection
+  title: Lựa chọn provider
+  childs:
+  - slug: provider-selection-001
+    title: Chọn provider theo định danh, khả năng hỗ trợ và cấu hình tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-selection-002
+    title: Phân biệt thứ tự khám phá với thứ tự ưu tiên do ứng dụng quy định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-selection-003
+    title: Quyết định dùng một provider, tất cả provider hoặc chuỗi xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-selection-004
+    title: Định nghĩa hành vi khi không có provider hoặc nhiều provider cùng phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-selection-005
+    title: Tách kiểm tra mô tả nhẹ khỏi khởi tạo provider tốn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-selection-006
+    title: Xử lý provider lỗi và giới hạn của việc tiếp tục duyệt sau lỗi cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-selection-007
+    title: Phân biệt khám phá dịch vụ với quản lý phụ thuộc và vòng đời plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classloading-fundamentals
+  title: Nền tảng nạp lớp
+  childs:
+  - slug: classloading-fundamentals-001
+    title: Phân biệt nạp, liên kết và khởi tạo lớp trong luồng kích hoạt plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-fundamentals-002
+    title: Nhận diện kiểu bằng tên nhị phân và class loader định nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-fundamentals-003
+    title: Vai trò của bootstrap, platform và application class loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-fundamentals-004
+    title: Cơ chế ủy quyền cho loader cha và phạm vi nhìn thấy giữa các loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-fundamentals-005
+    title: Phân biệt loadClass và Class.forName với tùy chọn khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-fundamentals-006
+    title: Nạp lớp từ URLClassLoader và chuyển về kiểu hợp đồng dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-fundamentals-007
+    title: Vai trò của findClass, defineClass và ràng buộc khi tự viết loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-fundamentals-008
+    title: Khóa nạp lớp, loader hỗ trợ song song và nguy cơ bế tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-isolation
+  title: Cô lập phụ thuộc
+  childs:
+  - slug: dependency-isolation-001
+    title: Dùng chung loader cho hợp đồng và loader riêng cho từng plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-isolation-002
+    title: So sánh một loader chung, loader theo plugin và nhóm plugin dùng chung phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-isolation-003
+    title: Cô lập hai phiên bản thư viện mà không nhân đôi kiểu hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-isolation-004
+    title: Ưu tiên loader cha hoặc plugin và các ngoại lệ phải ủy quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-isolation-005
+    title: Chẩn đoán ClassCastException dù hai lớp có cùng tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-isolation-006
+    title: Ràng buộc nạp lớp, package lúc chạy và truy cập thành viên không public
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-isolation-007
+    title: Giới hạn của cô lập class loader đối với trạng thái và quyền của tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources-and-context
+  title: Tài nguyên và ngữ cảnh
+  childs:
+  - slug: resources-and-context-001
+    title: Tìm một hoặc nhiều tài nguyên bằng getResource, getResources và getResourceAsStream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-context-002
+    title: Quy tắc đường dẫn tài nguyên và nguy cơ chọn nhầm bản trong loader cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-context-003
+    title: Đọc cấu hình riêng của plugin mà không phụ thuộc thư mục làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-context-004
+    title: Vai trò của thread context class loader trong SPI và thư viện tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-context-005
+    title: Đặt rồi khôi phục context class loader bằng try/finally tại ranh giới gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-context-006
+    title: Truyền ngữ cảnh qua executor, callback và tác vụ bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-context-007
+    title: Đóng luồng đọc và tránh lưu tài nguyên hoặc context vượt vòng đời plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spi-with-jpms
+  title: SPI với JPMS
+  childs:
+  - slug: spi-with-jpms-001
+    title: Module có tên, module tự động và module không tên trong hệ thống plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spi-with-jpms-002
+    title: Tách module hợp đồng, module ứng dụng chủ và module provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spi-with-jpms-003
+    title: Khai báo requires, exports và uses phía sử dụng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spi-with-jpms-004
+    title: Khai báo provides ... with ... và giữ package triển khai được đóng gói
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spi-with-jpms-005
+    title: Khởi tạo bằng constructor hoặc phương thức public static provider()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spi-with-jpms-006
+    title: Giới hạn phương thức provider đối với module tự động và classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spi-with-jpms-007
+    title: Phân biệt khả năng đọc module, exports và opens cho truy cập phản chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spi-with-jpms-008
+    title: Những khai báo cần đổi khi đưa cùng provider từ classpath sang module path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-resolution
+  title: Phân giải module
+  childs:
+  - slug: module-resolution-001
+    title: Tìm module trong thư mục plugin bằng ModuleFinder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-resolution-002
+    title: Xem ModuleReference, ModuleDescriptor và các phụ thuộc được khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-resolution-003
+    title: Chọn module gốc và cấu hình cha từ ModuleLayer.boot()
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-resolution-004
+    title: Phạm vi tìm kiếm của các ModuleFinder trước và sau cấu hình cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-resolution-005
+    title: Phân biệt resolve và resolveAndBind khi liên kết provider dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-resolution-006
+    title: Kiểm tra đồ thị kết quả qua Configuration và ResolvedModule
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-resolution-007
+    title: Xử lý FindException, ResolutionException, thiếu phụ thuộc và package xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-layer
+  title: ModuleLayer
+  childs:
+  - slug: module-layer-001
+    title: Quan hệ giữa Configuration, ModuleLayer, module và class loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-layer-002
+    title: Tạo layer con bằng defineModulesWithOneLoader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-layer-003
+    title: Tạo layer với defineModulesWithManyLoaders hoặc ánh xạ loader tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-layer-004
+    title: Tra cứu module, loader và quan hệ layer cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-layer-005
+    title: Khám phá dịch vụ qua ServiceLoader.load(layer, service)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-layer-006
+    title: Provider trong layer hiện tại, layer tổ tiên và giới hạn với module không tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-layer-007
+    title: Điều chỉnh reads, exports và opens qua ModuleLayer.Controller trong phạm vi cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-layer-008
+    title: Dùng layer mới cho nhóm plugin mới và hiểu giới hạn thay đổi layer đã tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-compilation
+  title: Biên dịch lúc chạy
+  childs:
+  - slug: runtime-compilation-001
+    title: Khi nào nên nhận mã nguồn Java thay vì cài thêm JAR đã biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-002
+    title: Phân biệt module java.compiler, jdk.compiler và trình biên dịch thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-003
+    title: Lấy JavaCompiler qua ToolProvider và xử lý kết quả null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-004
+    title: Chuẩn bị đơn vị nguồn bằng StandardJavaFileManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-005
+    title: Tạo CompilationTask bằng getTask và đọc kết quả call
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-006
+    title: Cấu hình classpath, module path, thư mục đầu ra và --release
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-007
+    title: Thu thập lỗi, cảnh báo, vị trí nguồn và thông điệp bằng DiagnosticCollector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-008
+    title: Quản lý annotation processor và lựa chọn -proc:none khi không cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-compilation-009
+    title: Đóng file manager và tách giai đoạn biên dịch khỏi thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: in-memory-compilation
+  title: Biên dịch trong bộ nhớ
+  childs:
+  - slug: in-memory-compilation-001
+    title: Biểu diễn mã nguồn bằng SimpleJavaFileObject và URI phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-compilation-002
+    title: Thu bytecode qua JavaFileObject và ForwardingJavaFileManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-compilation-003
+    title: Quản lý nhiều lớp đầu ra, lớp lồng nhau và tên nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-compilation-004
+    title: Nạp bytecode bằng loader mới có hợp đồng chung ở loader cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-compilation-005
+    title: Kiểm tra khả năng gán kiểu rồi tạo đối tượng qua constructor phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-compilation-006
+    title: Định danh kết quả theo mã nguồn, tùy chọn và phụ thuộc để quản lý bộ nhớ đệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-memory-compilation-007
+    title: Giới hạn kích thước nguồn, đầu ra và thời gian của công việc biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embedded-scripting
+  title: Kịch bản nhúng
+  childs:
+  - slug: embedded-scripting-001
+    title: JSR 223 và ranh giới giữa javax.script với engine ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-002
+    title: Tìm ScriptEngineFactory qua ScriptEngineManager và class loader phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-003
+    title: Khám phá tên, phần mở rộng tệp, MIME type và phiên bản engine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-004
+    title: Xử lý getEngineByName trả về null và engine không được cài đặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-005
+    title: Nashorn rời JDK từ Java 15 và yêu cầu cung cấp engine riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-006
+    title: Chạy mã từ String hoặc Reader bằng ScriptEngine.eval
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-007
+    title: Truyền dữ liệu qua Bindings và chọn ENGINE_SCOPE hoặc GLOBAL_SCOPE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-008
+    title: Điều khiển đầu vào, đầu ra và lỗi qua ScriptContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-scripting-009
+    title: Đọc ScriptException với tên tệp, dòng và cột khi engine cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scripting-interfaces
+  title: Giao tiếp kịch bản
+  childs:
+  - slug: scripting-interfaces-001
+    title: Chuyển đổi kiểu giữa Java và ngôn ngữ kịch bản theo quy tắc của engine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-interfaces-002
+    title: Kiểm tra Invocable trước khi gọi hàm hoặc phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-interfaces-003
+    title: Ánh xạ hàm kịch bản sang interface Java và xử lý kết quả không hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-interfaces-004
+    title: Kiểm tra Compilable và tái sử dụng CompiledScript với engine tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-interfaces-005
+    title: Quản lý trạng thái engine, Bindings riêng và thông tin THREADING của factory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-interfaces-006
+    title: Thiết kế API Java được đưa vào kịch bản với quyền hạn tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-interfaces-007
+    title: Đăng ký engine tường minh hoặc xây dựng ScriptEngineFactory, AbstractScriptEngine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-interfaces-008
+    title: Giới hạn tính khả chuyển của cú pháp, chuyển đổi kiểu và cơ chế dừng engine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embedded-jshell
+  title: JShell nhúng
+  childs:
+  - slug: embedded-jshell-001
+    title: Khi nào dùng JShell cho đoạn mã Java tương tác thay vì JavaCompiler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jshell-002
+    title: Tạo JShell, cấu hình classpath, tùy chọn biên dịch và luồng vào ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jshell-003
+    title: Phân tích đoạn mã hoàn chỉnh trước khi gọi eval
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jshell-004
+    title: Đọc SnippetEvent, trạng thái, kết quả và chẩn đoán của đoạn mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jshell-005
+    title: Quản lý phụ thuộc giữa các đoạn mã, khai báo lại và drop
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jshell-006
+    title: ExecutionControlProvider và ranh giới giữa JVM điều khiển với JVM thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jshell-007
+    title: Đóng phiên JShell và phân biệt môi trường REPL với hợp đồng plugin ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-lifecycle
+  title: Vòng đời plugin
+  childs:
+  - slug: plugin-lifecycle-001
+    title: Thiết kế các trạng thái phát hiện, xác minh, khởi tạo, hoạt động, dừng và lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-002
+    title: Xác định bước nào thuộc ServiceLoader và bước nào do ứng dụng chủ quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-003
+    title: Tách constructor nhẹ khỏi thao tác mở tài nguyên và kích hoạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-004
+    title: Khởi tạo theo thứ tự phụ thuộc và hoàn tác khi chỉ một phần thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-005
+    title: Công bố tập plugin đang hoạt động an toàn cho luồng đọc đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-006
+    title: Quy định số lượng đối tượng, trạng thái dùng chung và cơ chế đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-007
+    title: Dừng nhận yêu cầu, chờ công việc đang chạy và xử lý hủy hợp tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-008
+    title: Hủy callback, lịch chạy, executor và đóng tài nguyên do plugin sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-lifecycle-009
+    title: Xử lý lỗi khi dừng và bảo đảm đóng lặp lại có hành vi xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-replacement
+  title: Thay thế plugin
+  childs:
+  - slug: plugin-replacement-001
+    title: Phân biệt reload bộ nhớ đệm SPI, thay đối tượng và thay định nghĩa lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-002
+    title: Vì sao thay JAR trên đĩa không làm lớp đã nạp tự đổi mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-003
+    title: Tạo thế hệ loader hoặc layer mới cho phiên bản plugin mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-004
+    title: Chuẩn bị, kiểm tra rồi chuyển tham chiếu đang hoạt động sang thế hệ mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-005
+    title: Xử lý yêu cầu đang chạy, chuyển trạng thái và quay lại phiên bản trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-006
+    title: Đóng URLClassLoader giải phóng tệp nhưng không hủy lớp đã nạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-007
+    title: Điều kiện lớp có thể được thu hồi và giới hạn bảo đảm của GC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-008
+    title: Tìm tham chiếu giữ loader từ cache, ThreadLocal, luồng và callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-replacement-009
+    title: Giới hạn của thay thế plugin so với instrumentation hoặc khởi động lại tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-compatibility
+  title: Tương thích API
+  childs:
+  - slug: api-compatibility-001
+    title: Phân biệt tương thích mã nguồn, nhị phân và hành vi của hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-compatibility-002
+    title: Tác động khi thêm, xóa hoặc đổi chữ ký phương thức của interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-compatibility-003
+    title: Phương thức default, xung đột kế thừa và tiến hóa hợp đồng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-compatibility-004
+    title: Không để lộ kiểu phụ thuộc riêng, đối tượng nội bộ hoặc ngoại lệ của plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-compatibility-005
+    title: Đàm phán khả năng hỗ trợ và từ chối phiên bản hợp đồng không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-compatibility-006
+    title: Phiên bản module cung cấp thông tin gì và vì sao cần chính sách phiên bản riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-compatibility-007
+    title: Tương thích bytecode, thư viện và JDK khi biên dịch hoặc triển khai plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-boundaries
+  title: Ranh giới tin cậy
+  childs:
+  - slug: trust-boundaries-001
+    title: Đánh giá nguồn gốc JAR, mã Java và kịch bản trước khi thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-002
+    title: Phân biệt kiểm tra tính toàn vẹn, chữ ký và mức độ tin cậy của nhà phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-003
+    title: Vì sao class loader và JPMS không tạo môi trường cách ly mã độc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-004
+    title: Security Manager được đánh dấu loại bỏ từ JDK 17 và vô hiệu vĩnh viễn từ JDK 24
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-005
+    title: Giới hạn đối tượng, đường dẫn và dịch vụ ứng dụng chủ trao cho phần mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-006
+    title: Tách mã không tin cậy sang tiến trình với giao thức trao đổi rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-007
+    title: Giới hạn tài nguyên ở hệ điều hành và giới hạn của ngắt luồng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-008
+    title: Kiểm soát đầu vào, phụ thuộc và công cụ chạy trong giai đoạn biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics-and-performance
+  title: Chẩn đoán và hiệu năng
+  childs:
+  - slug: diagnostics-and-performance-001
+    title: Ghi nhận định danh plugin, phiên bản, CodeSource, loader và module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-performance-002
+    title: Phân biệt ClassNotFoundException, NoClassDefFoundError và lỗi khởi tạo lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-performance-003
+    title: Nhận diện NoSuchMethodError, AbstractMethodError và UnsupportedClassVersionError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-performance-004
+    title: Điều tra ServiceConfigurationError từ tệp đăng ký, module hoặc constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-performance-005
+    title: Chẩn đoán lỗi khả năng đọc module, exports và opens
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-performance-006
+    title: Theo dõi nạp, dỡ lớp và số loader bằng công cụ chẩn đoán JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-performance-007
+    title: Đo riêng chi phí khám phá, biên dịch, khởi tạo và gọi sau khi làm nóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-performance-008
+    title: Chọn phạm vi cache và phát hiện bộ nhớ tăng sau nhiều lần thay plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-deployment
+  title: Kiểm thử và triển khai
+  childs:
+  - slug: testing-and-deployment-001
+    title: Kiểm thử cùng một bộ hợp đồng với mọi provider được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-002
+    title: Chạy ứng dụng từ JAR và module path thật trong tiến trình kiểm thử riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-003
+    title: Kiểm thử không có, có một, có nhiều và có provider cấu hình lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-004
+    title: Kiểm thử phụ thuộc trùng phiên bản, tài nguyên trùng và hợp đồng bị đóng gói lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-005
+    title: Kiểm thử gọi đồng thời, khởi tạo thất bại, dừng và thay thế nhiều thế hệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-006
+    title: Xác minh môi trường thiếu compiler, engine kịch bản hoặc module bắt buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-007
+    title: Đóng gói runtime bằng jlink với module công cụ và service binding cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-008
+    title: Chuyển khỏi lib/ext, java.ext.dirs và giả định application loader là URLClassLoader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-deployment-009
+    title: Phát hành plugin theo phiên bản, kiểm tra gói và giữ đường quay lại bản trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Xây ứng dụng xử lý tài liệu với hợp đồng và hai provider SPI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Thêm lựa chọn provider theo khả năng hỗ trợ và cấu hình người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Nạp hai plugin có thư viện riêng khác phiên bản bằng loader độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Chuyển hệ thống sang module tường minh và khám phá trong ModuleLayer con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Biên dịch quy tắc Java từ bộ nhớ rồi tích hợp qua cùng hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Thêm quy tắc kịch bản với Bindings riêng và xử lý trường hợp thiếu engine
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Thay phiên bản khi đang có yêu cầu và kiểm tra việc dọn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Tổng hợp tiêu chí chọn cơ chế mở rộng theo nhu cầu, vận hành và mức độ tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

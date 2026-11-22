@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-spring-cloud
+  title: Tổng quan Spring Cloud
+  purpose: Hiểu cách Spring Cloud bổ sung cho Spring Boot để giải quyết các vấn đề thường gặp trong hệ thống phân tán.
+  objectives:
+  - Phân biệt Spring Boot với Spring Cloud.
+  - Nêu các bài toán configuration, discovery và service calls.
+  - Phác họa hai dịch vụ cùng các thành phần hỗ trợ.
+- id: release-train-bom
+  title: Release Train & BOM
+  purpose: Chọn phiên bản phụ thuộc tương thích để ứng dụng Spring Cloud khởi chạy ổn định.
+  objectives:
+  - Đọc bảng tương thích Spring Boot–Spring Cloud.
+  - Khai báo Spring Cloud BOM trong Maven hoặc Gradle.
+  - Nhận diện lỗi từ compatibility verifier.
+- id: spring-cloud-commons
+  title: Spring Cloud Commons
+  purpose: Làm quen lớp trừu tượng chung giúp thay đổi công nghệ phía dưới mà giảm phụ thuộc mã ứng dụng.
+  objectives:
+  - Giải thích DiscoveryClient và ServiceInstance.
+  - Nhận diện abstraction cho load balancing, circuit breaker.
+  - Phân biệt API chung với implementation cụ thể.
+- id: cloud-context-properties
+  title: Cloud Context & Properties
+  purpose: Hiểu cách Spring Cloud kết hợp với ApplicationContext và các nguồn cấu hình bên ngoài.
+  objectives:
+  - Phân biệt application context với bootstrap context.
+  - Đọc thứ tự ưu tiên của các property sources.
+  - Giải thích vai trò của Environment và profile.
+- id: config-import-refresh
+  title: Config Import & Refresh
+  purpose: Nắm cơ chế nạp và cập nhật cấu hình cho dịch vụ theo quy trình có kiểm soát.
+  objectives:
+  - Dùng spring.config.import cho Config Client mẫu.
+  - Phân biệt cơ chế Config Data với legacy bootstrap.
+  - Mô tả @RefreshScope và lưu ý bảo vệ Actuator.
+- id: discovery-registration
+  title: Discovery & Registration
+  purpose: Hiểu cách service ID được ánh xạ thành các instance mà không viết cứng địa chỉ máy chủ.
+  objectives:
+  - Phân biệt service registry và discovery client.
+  - Tra cứu danh sách instance qua DiscoveryClient.
+  - Nêu vai trò health indicator và auto-registration.
+- id: goi-dich-vu-resilience
+  title: Gọi dịch vụ & Resilience
+  purpose: Kết nối các dịch vụ qua abstraction và giảm tác động khi một instance gặp sự cố.
+  objectives:
+  - Mô tả client-side load balancing theo service ID.
+  - So sánh round-robin với lựa chọn instance ngẫu nhiên.
+  - Nhận diện vai trò timeout, retry và circuit breaker.
+- id: thuc-hanh-quan-sat
+  title: Thực hành & Quan sát
+  purpose: Ghép các khái niệm nền tảng thành thử nghiệm nhỏ có thể kiểm tra và chẩn đoán.
+  objectives:
+  - Tạo hai ứng dụng Spring Boot với dependency phù hợp.
+  - Kiểm tra kết nối, cấu hình và health qua Actuator.
+  - Mô phỏng một lỗi kết nối rồi đọc log và trạng thái.

@@ -1,0 +1,419 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Số trong Java là gì và những bài toán cần biểu diễn
+  - Phân biệt giá trị toán học, kiểu dữ liệu và cách lưu trữ
+  - Số nguyên, số dấu phẩy động và số thập phân chính xác
+  - Phạm vi giá trị khác độ chính xác như thế nào
+  - Bản đồ primitive, wrapper, Number, BigInteger và BigDecimal
+  - Chọn kiểu theo ý nghĩa dữ liệu và yêu cầu tính toán
+  - Kiến thức tiên quyết và trình tự học đề xuất
+  - Phạm vi Java Core và cách đối chiếu phiên bản JDK
+- level1: Kiểu số nguyên
+  level2:
+  - byte, short, int và long
+  - Kích thước bit và miền giá trị của từng kiểu
+  - Biểu diễn số âm bằng bù hai
+  - MIN_VALUE, MAX_VALUE, SIZE và BYTES
+  - char là số nguyên không dấu biểu diễn đơn vị mã UTF-16
+  - Phân biệt char số với giá trị chữ số được viết dưới dạng ký tự
+  - Giá trị mặc định của field và yêu cầu gán biến cục bộ
+  - Vì sao boolean không phải kiểu số
+  - Chọn int hay long cho số đếm, chỉ số và kích thước
+  - Giới hạn của kiểu cố định so với số nguyên toán học
+- level1: Literal và cơ số
+  level2:
+  - Literal số nguyên và kiểu int mặc định
+  - Hậu tố L cho long và thời điểm literal vượt phạm vi
+  - Thập phân, nhị phân, bát phân và thập lục phân
+  - Bẫy số 0 ở đầu literal bát phân
+  - Dấu gạch dưới trong literal và các vị trí không hợp lệ
+  - Literal số thực, ký hiệu mũ và hậu tố F, D
+  - Literal dấu phẩy động thập lục phân
+  - Dấu âm là toán tử chứ không phải một phần của literal
+  - Literal, biểu thức hằng và khác biệt với phân tích String
+  - Đọc mẫu bit của literal hex có bit dấu được bật
+- level1: Số học nguyên
+  level2:
+  - Cộng, trừ, nhân và kiểu của kết quả
+  - Chia số nguyên và việc cắt phần thập phân về phía 0
+  - Toán tử % và dấu của số dư
+  - Chia hoặc lấy dư cho 0 với số nguyên
+  - Phép toán đơn ngôi, tiền tố và hậu tố ++, --
+  - Độ ưu tiên, tính kết hợp và thứ tự đánh giá toán hạng
+  - Dấu ngoặc và tác động tới giá trị trung gian
+  - floorDiv, floorMod và khác biệt với /, %
+  - Trường hợp MIN_VALUE chia cho -1
+  - Nối chuỗi bằng + khác phép cộng như thế nào
+- level1: Tràn và kiểm tra biên
+  level2:
+  - Overflow số nguyên và hiện tượng quay vòng
+  - Vì sao phép cộng hoặc nhân tràn không tự ném ngoại lệ
+  - Kiểu của phép tính được xác định trước khi gán kết quả
+  - Nâng kiểu toán hạng trước phép nhân thay vì ép kiểu sau
+  - Math.addExact, subtractExact và multiplyExact
+  - incrementExact, decrementExact, negateExact và toIntExact
+  - Phép chia exact và các API bổ sung theo phiên bản JDK
+  - Math.abs với MIN_VALUE và lựa chọn absExact
+  - Kiểm tra giới hạn trước khi cấp phát hoặc tính kích thước
+  - Dùng BigInteger khi miền giá trị không có giới hạn phù hợp
+- level1: Bit và số không dấu
+  level2:
+  - Các toán tử &, |, ^ và ~
+  - Dịch trái <<, dịch phải >> và dịch phải không dấu >>>
+  - Khoảng dịch được rút gọn theo kiểu int hoặc long
+  - Mở rộng dấu khi nâng kiểu byte hoặc short
+  - Mặt nạ bit và chuyển byte sang giá trị 0 đến 255
+  - Byte.toUnsignedInt, Short.toUnsignedInt và Integer.toUnsignedLong
+  - compareUnsigned, divideUnsigned và remainderUnsigned
+  - parseUnsignedInt, parseUnsignedLong và toUnsignedString
+  - bitCount, leading zeros, trailing zeros và one-bit helpers
+  - rotateLeft, rotateRight, reverse và reverseBytes
+  - Không đồng nhất dịch phải với chia khi xử lý số âm
+  - Phân biệt giá trị số với thứ tự byte khi trao đổi dữ liệu
+- level1: Chuyển kiểu
+  level2:
+  - Widening và narrowing giữa các kiểu số
+  - Nâng kiểu vẫn có thể mất độ chính xác khi chuyển sang float hoặc double
+  - Thu hẹp số nguyên và các bit bị loại bỏ
+  - Chuyển char với byte hoặc short
+  - Ép float hoặc double sang số nguyên cắt về phía 0
+  - Chuyển NaN, vô cực và số ngoài phạm vi sang kiểu nguyên
+  - Thu hẹp double sang float và mất độ chính xác
+  - Chuyển đổi qua Number.intValue, longValue và doubleValue
+  - Phân biệt ép kiểu, làm tròn và kiểm tra chuyển đổi exact
+  - Không có phép cast trực tiếp giữa kiểu số và boolean
+- level1: Nâng kiểu biểu thức
+  level2:
+  - Unary numeric promotion
+  - Binary numeric promotion với int, long, float và double
+  - Vì sao byte cộng byte thường cho kết quả int
+  - Gán biểu thức hằng trong phạm vi byte, short hoặc char
+  - Compound assignment và phép thu hẹp ngầm định
+  - Kiểu của phép tăng giảm khác phép cộng rồi gán
+  - 'Toán tử điều kiện ?: và các quy tắc đặc biệt cho số'
+  - Unboxing khi biểu thức chứa wrapper
+  - 'Overload: nâng kiểu primitive, boxing và giới hạn kết hợp'
+  - var suy luận kiểu từ initializer, không từ cách dùng về sau
+  - Số trong switch và giới hạn theo phiên bản ngôn ngữ
+- level1: Biểu diễn dấu phẩy động
+  level2:
+  - float theo binary32 và double theo binary64
+  - Bit dấu, phần mũ và phần trị
+  - Precision nhị phân và số chữ số thập phân có thể tin cậy
+  - Vì sao 0.1 thường không được biểu diễn chính xác
+  - Phạm vi số nguyên được float hoặc double biểu diễn liên tiếp chính xác
+  - Normal, subnormal và gradual underflow
+  - MIN_VALUE, MIN_NORMAL và MAX_VALUE
+  - Số 0 dương, số 0 âm, vô cực và NaN
+  - ULP và khoảng cách giữa hai giá trị kề nhau
+  - floatToIntBits, doubleToLongBits và các biến thể raw
+  - Chuyển mẫu bit trở lại giá trị float hoặc double
+- level1: Phép toán dấu phẩy động
+  level2:
+  - Cộng, trừ, nhân, chia và làm tròn về giá trị biểu diễn được
+  - 'Chia cho 0: phân biệt kết quả vô cực và NaN'
+  - Overflow, underflow và giá trị subnormal
+  - Toán tử % khác Math.IEEEremainder
+  - Lan truyền NaN và các trường hợp đặc biệt
+  - Tác động của signed zero tới phép chia và hàm toán học
+  - Vì sao phép toán không bảo đảm tính kết hợp của số thực toán học
+  - Mất thông tin khi cộng số rất nhỏ vào số rất lớn
+  - Triệt tiêu chữ số khi trừ hai số gần bằng nhau
+  - Math.fma và sự khác biệt với nhân rồi cộng
+  - Always-strict từ Java 17 và vai trò lịch sử của strictfp
+- level1: So sánh số thực
+  level2:
+  - Toán tử ==, !=, <, <=, > và >=
+  - NaN không bằng chính nó trong so sánh primitive
+  - Float.isNaN, Double.isNaN, isInfinite và isFinite
+  - +0.0 và -0.0 với toán tử ==
+  - Float.compare, Double.compare và thứ tự toàn phần
+  - equals của Float, Double với NaN và signed zero
+  - So sánh bằng sai số tuyệt đối
+  - So sánh bằng sai số tương đối
+  - Kết hợp sai số tuyệt đối và tương đối
+  - Khi nào cần giới hạn theo ULP
+  - Không dùng so sánh gần bằng tùy tiện làm quan hệ equals hoặc thứ tự sắp xếp
+- level1: Sai số và ổn định
+  level2:
+  - Sai số biểu diễn khác sai số thuật toán
+  - Sai số tuyệt đối, tương đối và tích lũy qua nhiều bước
+  - Giới hạn của hằng epsilon cố định cho mọi bài toán
+  - Sắp xếp thứ tự phép tính để giảm mất thông tin
+  - Tổng bù và tư tưởng Kahan summation
+  - Điều kiện bài toán và trường hợp sai số đầu vào bị khuếch đại
+  - Không làm tròn sau mọi phép tính nếu hợp đồng không yêu cầu
+  - Định dạng ít chữ số không sửa sai số của giá trị đang lưu
+  - Chọn double hay BigDecimal theo mô hình dữ liệu
+  - Kiểm chứng thuật toán bằng dữ liệu biên và kết quả tham chiếu
+- level1: Number và wrapper
+  level2:
+  - Number là lớp trừu tượng và hợp đồng chuyển đổi giá trị
+  - Byte, Short, Integer, Long, Float và Double
+  - Character không kế thừa Number dù char là kiểu số
+  - BigInteger, BigDecimal và các lớp Number khác trong JDK
+  - Wrapper bất biến và ngữ nghĩa value-based
+  - valueOf thay cho constructor wrapper lỗi thời
+  - MIN_VALUE, MAX_VALUE, TYPE và các hằng theo từng lớp
+  - compare, compareTo, equals và hashCode
+  - Wrapper khác kiểu không tự bằng nhau qua equals
+  - Number không cung cấp toán tử cộng chung cho mọi lớp con
+  - Giới hạn khi tự xây dựng một lớp con Number
+- level1: Boxing và unboxing
+  level2:
+  - Autoboxing và các ngữ cảnh chuyển primitive thành wrapper
+  - Unboxing trong gán, phép toán và lời gọi phương thức
+  - NullPointerException khi unbox giá trị null
+  - So sánh == giữa hai wrapper và giữa wrapper với primitive
+  - Cache wrapper và giới hạn không nên dùng làm hợp đồng nhận dạng
+  - List<Integer> không phải int[]
+  - Chi phí boxing trong vòng lặp và cấu trúc dữ liệu
+  - Objects.equals và xử lý wrapper có thể null
+  - 'Toán tử ?: có thể unbox nhánh wrapper'
+  - Không dùng wrapper làm khóa đồng bộ
+  - Phân biệt tham chiếu null với giá trị số 0
+- level1: Phân tích số nguyên
+  level2:
+  - parseInt, parseLong và các phương thức parse tương ứng
+  - valueOf(String) khác parse về kiểu kết quả
+  - Radix, dấu cộng hoặc trừ và phạm vi hợp lệ
+  - parseUnsignedInt và parseUnsignedLong
+  - decode và các tiền tố cơ số
+  - Vì sao parseInt không xử lý literal 0x hoặc dấu gạch dưới như trình biên dịch
+  - NumberFormatException do ký tự sai hoặc vượt miền giá trị
+  - Phân tích đoạn CharSequence mà không tạo String con khi API hỗ trợ
+  - Integer.getInteger và Long.getLong đọc system property, không phải parse thông thường
+  - Kiểm tra toàn bộ đầu vào và chính sách xử lý khoảng trắng
+  - Chọn BigInteger cho chuỗi số vượt giới hạn long
+- level1: Phân tích số thực
+  level2:
+  - Float.parseFloat, Double.parseDouble và valueOf
+  - Dạng thập phân, ký hiệu mũ và dạng hex được API hỗ trợ
+  - NaN, Infinity và dấu trong đầu vào
+  - Đầu vào hợp lệ có thể làm tròn, overflow hoặc underflow
+  - Phân biệt parse số theo cú pháp Java với parse theo locale
+  - Chuỗi thập phân sang BigDecimal để giữ ý nghĩa thập phân
+  - Vì sao new BigDecimal(double) khác new BigDecimal(String)
+  - BigDecimal.valueOf(double) và giới hạn của giá trị double nguồn
+  - Kiểm tra giá trị hữu hạn và miền dữ liệu sau khi parse
+- level1: Biểu diễn và định dạng
+  level2:
+  - Integer.toString, Long.toString và radix
+  - toBinaryString, toHexString và toUnsignedString
+  - Float.toString, Double.toString và tính chất round-trip
+  - toHexString cho dấu phẩy động
+  - String.format, printf và Formatter
+  - NumberFormat cho số thường, phần trăm và tiền tệ
+  - DecimalFormat, pattern và DecimalFormatSymbols
+  - Locale, dấu thập phân, nhóm chữ số và dấu âm
+  - Phân biệt chữ số tối thiểu, tối đa và độ chính xác giá trị
+  - RoundingMode của bộ định dạng
+  - ParsePosition và kiểm tra toàn bộ chuỗi khi parse theo locale
+  - setParseBigDecimal và giới hạn an toàn khi dùng formatter đồng thời
+  - Không dùng chuỗi đã định dạng cho người đọc làm dạng trao đổi dữ liệu mặc định
+- level1: Math và StrictMath
+  level2:
+  - abs, min, max, signum và clamp theo phiên bản JDK
+  - pow, sqrt, cbrt và lựa chọn phép tính phù hợp
+  - exp, log, log10, expm1 và log1p
+  - sin, cos, tan và chuyển độ sang radian
+  - asin, acos, atan và atan2
+  - hypot và việc giảm nguy cơ overflow trung gian
+  - ceil, floor, rint và round
+  - nextUp, nextDown, nextAfter và ulp
+  - copySign, scalb và getExponent
+  - Phân biệt yêu cầu tái lập của Math và StrictMath
+  - Miền xác định, NaN, vô cực và độ chính xác được Javadoc quy định
+- level1: BigInteger
+  level2:
+  - Số nguyên độ chính xác tùy ý và tính bất biến
+  - Tạo từ String, radix, long hoặc mảng byte
+  - Biểu diễn byte bù hai có dấu và constructor sign-magnitude
+  - ZERO, ONE, TWO, TEN và valueOf
+  - add, subtract, multiply, divide và remainder
+  - divideAndRemainder và kiểm tra chia hết
+  - pow, sqrt, sqrtAndRemainder và gcd
+  - mod, modPow, modInverse và các điều kiện đầu vào
+  - Phép bit trên số nguyên có độ dài mở rộng
+  - bitLength, bitCount, testBit, setBit và shift
+  - compareTo, equals, signum, abs và negate
+  - intValue, longValue khác intValueExact, longValueExact
+  - Chuyển sang byte[] và vấn đề byte dấu bổ sung
+  - Kiểm tra số nguyên tố xác suất và ý nghĩa certainty
+  - Giới hạn tài nguyên dù không có độ rộng cố định như long
+- level1: Mô hình BigDecimal
+  level2:
+  - Số thập phân độ chính xác tùy ý và tính bất biến
+  - Unscaled value, scale và công thức xác định giá trị
+  - Precision khác scale
+  - Scale bằng 0, dương hoặc âm
+  - Tạo từ String, BigInteger, long và unscaled value
+  - Constructor nhận double và nhiễu biểu diễn nhị phân
+  - valueOf và các hằng ZERO, ONE, TEN
+  - Giữ dấu 0 cuối trong biểu diễn có ý nghĩa
+  - BigDecimal không có NaN hoặc vô cực
+  - Khi nào dùng BigDecimal thay float hoặc double
+- level1: Phép toán BigDecimal
+  level2:
+  - add, subtract, multiply và scale của kết quả
+  - divide chính xác và số thập phân vô hạn tuần hoàn
+  - divide với scale, RoundingMode hoặc MathContext
+  - divideToIntegralValue, remainder và divideAndRemainder
+  - pow và sqrt theo precision được yêu cầu
+  - negate, abs, plus, min, max và signum
+  - setScale và việc trả về đối tượng mới
+  - movePointLeft, movePointRight và scaleByPowerOfTen
+  - stripTrailingZeros có thể tạo scale âm
+  - ulp của BigDecimal
+  - Tính nhiều bước và lựa chọn thời điểm làm tròn
+  - ArithmeticException khi không thể đáp ứng yêu cầu chính xác
+- level1: Precision và làm tròn
+  level2:
+  - MathContext gồm precision và RoundingMode
+  - UNLIMITED, DECIMAL32, DECIMAL64 và DECIMAL128
+  - Precision bằng 0 không phải scale bằng 0
+  - 'UP và DOWN: ra xa hoặc về phía 0'
+  - 'CEILING và FLOOR: hướng về dương hoặc âm vô cực'
+  - HALF_UP và HALF_DOWN ở vị trí đúng giữa
+  - HALF_EVEN và lựa chọn chữ số chẵn
+  - UNNECESSARY để yêu cầu kết quả không cần làm tròn
+  - Đối chiếu các chế độ với cả số dương và số âm
+  - Làm tròn hai lần và khác biệt với làm tròn ở bước cuối
+  - Phân biệt setScale với round(MathContext)
+  - Không mặc định Math.round tương đương mọi chế độ HALF_UP
+- level1: So sánh BigDecimal
+  level2:
+  - compareTo so sánh giá trị số
+  - equals đồng thời xét giá trị và scale
+  - Ví dụ 2.0 và 2.00 theo từng cách so sánh
+  - hashCode và hệ quả trong HashSet hoặc HashMap
+  - Thứ tự tự nhiên không nhất quán với equals
+  - Hệ quả khi dùng TreeSet hoặc TreeMap
+  - Chính sách chuẩn hóa scale trước khi lưu hoặc so sánh
+  - Kiểm tra số 0 bằng signum hoặc compareTo
+  - So sánh null và lựa chọn hợp đồng API
+  - Không thay đổi equals toàn hệ thống chỉ để giải quyết một phép so sánh cụ thể
+- level1: Chuyển đổi BigDecimal
+  level2:
+  - toString và dạng khoa học khi phù hợp
+  - toPlainString và bảo toàn cách trình bày mong muốn
+  - toEngineeringString và số mũ theo bội của 3
+  - intValue, longValue và phần dữ liệu có thể mất
+  - Các phương thức *ValueExact kiểm tra phần lẻ và giới hạn
+  - toBigInteger khác toBigIntegerExact
+  - floatValue, doubleValue và khả năng làm tròn hoặc thành vô cực
+  - Parse và format BigDecimal theo locale
+  - Phân biệt giá trị tính toán với scale trình bày
+  - Thiết kế dạng trao đổi giữ số mà không đi qua double trung gian
+- level1: Số ngẫu nhiên
+  level2:
+  - Số giả ngẫu nhiên, seed và yêu cầu tái lập
+  - Random và chuỗi giá trị theo seed
+  - Math.random và giới hạn sử dụng
+  - ThreadLocalRandom khi nhiều luồng sinh số
+  - SplittableRandom và chia nguồn ngẫu nhiên
+  - RandomGenerator và RandomGeneratorFactory từ Java 17
+  - Các khoảng origin, bound và quy tắc cận trên loại trừ
+  - Sinh số nguyên, số thực và phân phối Gaussian
+  - Vì sao dùng phép % tùy tiện có thể tạo thiên lệch
+  - SecureRandom cho yêu cầu không thể dự đoán
+  - Chọn thuật toán, seed và cách kiểm thử mà không nhầm với bảo đảm bảo mật
+  - Stream giá trị ngẫu nhiên và giới hạn kích thước
+- level1: Tổng hợp số
+  level2:
+  - int[], long[], double[] và các stream chuyên biệt
+  - IntStream, LongStream, DoubleStream và giảm boxing
+  - sum có thể tràn đối với số nguyên
+  - average và yêu cầu xử lý tập rỗng
+  - min, max và các Optional chuyên biệt
+  - SummaryStatistics và thu thập nhiều số đo
+  - Thứ tự cộng ảnh hưởng tổng dấu phẩy động
+  - Reduce song song và yêu cầu tính kết hợp
+  - Tổng BigDecimal và chính sách MathContext
+  - Không trộn đơn vị, precision hoặc scale không được thống nhất
+- level1: Số và đồng thời
+  level2:
+  - count++ là nhiều bước, không phải thao tác nguyên tử
+  - volatile không làm phép tăng trở thành nguyên tử
+  - AtomicInteger và AtomicLong
+  - getAndIncrement, incrementAndGet và các phép cập nhật
+  - Compare-and-set và việc hàm cập nhật có thể bị gọi lại
+  - LongAdder, DoubleAdder và bài toán thống kê có tranh chấp
+  - sum của adder không phải snapshot nguyên tử trong lúc đang cập nhật
+  - BigInteger, BigDecimal bất biến nhưng cập nhật tham chiếu dùng chung vẫn cần phối hợp
+  - Atomic không có nghĩa tự phát hiện tràn số
+  - Chọn mức đồng bộ theo hợp đồng nhất quán cần có
+- level1: Thiết kế dữ liệu số
+  level2:
+  - Ghi rõ miền giá trị, đơn vị và giới hạn
+  - Chọn kiểu tính toán trung gian riêng với kiểu lưu trữ
+  - Số đếm, đại lượng đo và giá trị thập phân có quy tắc làm tròn
+  - Quy ước xử lý null, NaN, vô cực và giá trị thiếu
+  - Kiểm tra đầu vào trước chuyển đổi có thể mất dữ liệu
+  - Đưa precision, scale và rounding vào hợp đồng
+  - Tránh dùng double làm trung gian cho dữ liệu thập phân chính xác
+  - Tách định dạng hiển thị khỏi tính toán và trao đổi
+  - Không suy ra quy tắc làm tròn nghiệp vụ chỉ từ kiểu dữ liệu
+  - Giới hạn tài nguyên cho đầu vào BigInteger hoặc BigDecimal rất lớn
+- level1: Hiệu năng
+  level2:
+  - Primitive so với wrapper về cấp phát và bố trí dữ liệu
+  - Boxing trong collection, stream và vòng lặp
+  - Chi phí số học BigInteger theo độ dài toán hạng
+  - Chi phí BigDecimal theo precision và scale
+  - Tránh tăng precision hoặc scale không cần thiết
+  - Không thay đổi quy tắc chính xác chỉ để rút ngắn thời gian chạy
+  - Benchmark cần tránh constant folding và dead-code elimination
+  - Đo với miền dữ liệu thực tế và cả tình huống biên
+- level1: Kiểm thử và chẩn đoán
+  level2:
+  - Kiểm tra MIN_VALUE, MAX_VALUE, số 0 và lân cận biên
+  - Kiểm tra overflow trước và sau chuyển kiểu
+  - Số âm với phép chia, lấy dư và làm tròn
+  - NaN, vô cực, signed zero và subnormal
+  - Kiểm tra phép so sánh với sai số phù hợp
+  - Kiểm tra BigDecimal cả giá trị và scale khi hợp đồng yêu cầu
+  - Đối chiếu mọi RoundingMode tại trường hợp đúng giữa
+  - Kiểm thử round-trip parse, format và cơ số
+  - Dùng BigInteger hoặc phép tính tham chiếu để phát hiện tràn
+  - Kiểm thử số ngẫu nhiên bằng seed hoặc nguồn được truyền vào
+  - In mẫu bit, kiểu biểu thức và precision để điều tra kết quả bất ngờ
+- level1: Sai lầm thường gặp
+  level2:
+  - Gán kết quả int đã tràn sang long rồi mong khôi phục giá trị
+  - Chia hai int trước khi chuyển sang double
+  - Dùng Float.MIN_VALUE hoặc Double.MIN_VALUE như số âm nhỏ nhất
+  - Dùng == để so sánh hai wrapper
+  - Unbox null trong phép toán hoặc toán tử điều kiện
+  - So sánh số thực bằng một epsilon tùy tiện
+  - Tạo BigDecimal từ double khi đầu vào cần chính xác thập phân
+  - Chia BigDecimal không chỉ định chính sách cho kết quả vô hạn tuần hoàn
+  - Nhầm precision với số chữ số sau dấu thập phân
+  - Dùng phép trừ trong Comparator có thể tràn
+  - Nhầm parseInt, decode và getInteger
+  - Định dạng rồi parse lại để thực hiện làm tròn tính toán
+- level1: Thực hành
+  level2:
+  - Viết bảng kiểm chứng kiểu kết quả của các biểu thức số
+  - Xây dựng phép tính kích thước có kiểm tra tràn
+  - Đọc ghi số theo nhiều cơ số và dạng không dấu
+  - Khảo sát sai số của 0.1, tổng lặp và thứ tự cộng
+  - Xây dựng hàm so sánh gần bằng có hợp đồng rõ ràng
+  - Tính giai thừa hoặc dãy số lớn bằng BigInteger
+  - Thiết kế phép tính thập phân với MathContext và RoundingMode
+  - So sánh HashSet với TreeSet khi chứa BigDecimal
+  - Parse và format cùng một giá trị theo nhiều locale
+  - Mô phỏng số ngẫu nhiên có thể tái lập bằng seed
+  - So sánh bộ đếm thường, atomic và adder
+  - Hoàn thiện ví dụ tích hợp cùng bộ kiểm thử dữ liệu biên
+- level1: Tra cứu
+  level2:
+  - Bảng kích thước, miền giá trị và hằng của kiểu số
+  - Bảng widening, narrowing và numeric promotion
+  - Bảng chia, lấy dư và làm tròn cho số âm
+  - Bảng NaN, signed zero, equals và compare
+  - Bảng chọn primitive, wrapper, BigInteger hoặc BigDecimal
+  - Bảng precision, scale, MathContext và RoundingMode
+  - Bảng parse, format và chuyển đổi exact
+  - Tra cứu JLS và Javadoc các API số

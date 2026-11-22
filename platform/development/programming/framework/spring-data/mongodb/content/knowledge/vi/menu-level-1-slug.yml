@@ -1,0 +1,157 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng MongoDB
+  slug: foundation-mongodb
+  index: 1
+- title: Thiết kế document
+  slug: document-design
+  index: 2
+- title: Khởi tạo
+  slug: setup
+  index: 3
+- title: Cấu hình và kiến trúc
+  slug: configuration-architecture
+  index: 4
+- title: Ánh xạ cơ bản
+  slug: basic-mapping
+  index: 5
+- title: Định danh và trạng thái
+  slug: identity-state
+  index: 6
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 7
+- title: Đối tượng và nhúng
+  slug: embedded-objects
+  index: 8
+- title: Tham chiếu tài liệu
+  slug: document-references
+  index: 9
+- title: Chuyển đổi dữ liệu
+  slug: data-conversion
+  index: 10
+- title: Repository CRUD
+  slug: repository-crud
+  index: 11
+- title: Truy vấn suy diễn
+  slug: derived-queries
+  index: 12
+- title: Truy vấn JSON
+  slug: json-queries
+  index: 13
+- title: Projection và DTO
+  slug: projection-dto
+  index: 14
+- title: Phân trang và luồng
+  slug: pagination-streams
+  index: 15
+- title: MongoTemplate
+  slug: mongo-template
+  index: 16
+- title: Query và Criteria
+  slug: queries-criteria
+  index: 17
+- title: Ghi và cập nhật
+  slug: writes-and-updates
+  index: 18
+- title: Thao tác array
+  slug: array-operations
+  index: 19
+- title: Ghi hàng loạt
+  slug: bulk-writes
+  index: 20
+- title: Ghi qua repository
+  slug: repository-writes
+  index: 21
+- title: Query by Example
+  slug: query-by-example
+  index: 22
+- title: Repository mở rộng
+  slug: extended-repository
+  index: 23
+- title: Aggregation cơ bản
+  slug: basic-aggregation
+  index: 24
+- title: Aggregation nâng cao
+  slug: advanced-aggregation
+  index: 25
+- title: Aggregation repository
+  slug: repository-aggregation
+  index: 26
+- title: Chỉ mục
+  slug: indexes
+  index: 27
+- title: Collection và schema
+  slug: collections-schema
+  index: 28
+- title: Kiểm soát đồng thời
+  slug: concurrency-control
+  index: 29
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 30
+- title: Session và giao dịch
+  slug: sessions-transactions
+  index: 31
+- title: Truy cập reactive
+  slug: reactive-access
+  index: 32
+- title: Giao dịch reactive
+  slug: reactive-transactions
+  index: 33
+- title: Vòng đời và callback
+  slug: lifecycle-callbacks
+  index: 34
+- title: Auditing
+  slug: auditing
+  index: 35
+- title: Truy vấn không gian
+  slug: geospatial-queries
+  index: 36
+- title: Tìm kiếm nâng cao
+  slug: advanced-search
+  index: 37
+- title: Change stream
+  slug: change-streams
+  index: 38
+- title: Tailable cursor
+  slug: tailable-cursors
+  index: 39
+- title: GridFS
+  slug: grid-fs
+  index: 40
+- title: Time series
+  slug: time-series
+  index: 41
+- title: Sharding
+  slug: sharding
+  index: 42
+- title: Nhiều database
+  slug: multiple-databases
+  index: 43
+- title: Migration dữ liệu
+  slug: data-migration
+  index: 44
+- title: Mã hóa dữ liệu
+  slug: data-encryption
+  index: 45
+- title: Hiệu năng
+  slug: performance
+  index: 46
+- title: Kiểm thử
+  slug: testing
+  index: 47
+- title: Bảo mật và vận hành
+  slug: security-operations
+  index: 48
+- title: Lỗi và chẩn đoán
+  slug: errors-diagnostics
+  index: 49
+- title: Phiên bản và nâng cấp
+  slug: version-upgrade
+  index: 50
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 51

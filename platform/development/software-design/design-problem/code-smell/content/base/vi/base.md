@@ -1,0 +1,7 @@
+# Software Design — Code Smell
+
+Code Smell là dấu hiệu trên bề mặt mã nguồn cho thấy có thể tồn tại vấn đề sâu hơn trong thiết kế, khả năng đọc hiểu hoặc bảo trì. Một phương thức dài, lớp ôm nhiều trách nhiệm, logic trùng lặp hay phụ thuộc chằng chịt không nhất thiết khiến chương trình chạy sai ngay lập tức, nhưng có thể làm việc sửa đổi về sau trở nên khó khăn. Vì vậy, Code Smell là tín hiệu để điều tra và cân nhắc, không phải kết luận tự động rằng mã luôn cần sửa.
+
+Module dành cho người đã có kiến thức lập trình hướng đối tượng Java, hiểu phương thức, lớp, interface và kiểm thử cơ bản. Bạn sẽ học cách nhận diện các nhóm Code Smell phổ biến như Long Method, Large Class, Duplicate Code, Feature Envy, Shotgun Surgery, Primitive Obsession và Data Clumps. Ngoài việc gọi đúng tên dấu hiệu, người học còn cần xác định nguyên nhân, ảnh hưởng đến tính gắn kết, mức phụ thuộc và chi phí thay đổi để ưu tiên vấn đề có giá trị xử lý thực tế.
+
+Ở phần cuối, bạn sẽ thực hiện refactoring có kiểm soát, chẳng hạn Extract Method, Extract Class hoặc Introduce Parameter Object, rồi chạy lại kiểm thử để bảo đảm hành vi không thay đổi. Hoàn thành module, bạn có thể giải thích một Code Smell bằng ví dụ Java, lựa chọn hướng cải thiện phù hợp và tránh sửa mã chỉ để làm đẹp hình thức.

@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-mo-dun
+  title: Tư duy mô-đun
+  purpose: Hiểu cách chia hệ thống thành các đơn vị có trách nhiệm rõ ràng để giảm chi phí thay đổi.
+  objectives:
+  - Giải thích module, ranh giới và khả năng thay thế độc lập.
+  - Nhận diện dấu hiệu hệ thống khó sửa vì phụ thuộc chằng chịt.
+  - Phân biệt module logic với package hoặc dịch vụ triển khai.
+- id: ranh-gioi-nghiep-vu
+  title: Ranh giới nghiệp vụ
+  purpose: Chọn cách chia module theo năng lực và ngôn ngữ nghiệp vụ thay vì chỉ theo lớp kỹ thuật.
+  objectives:
+  - Nhóm các chức năng theo use case và dữ liệu liên quan.
+  - Phác họa ranh giới module bằng sơ đồ hoặc context map.
+  - Nhận diện thao tác và dữ liệu đang bị chia sai trách nhiệm.
+- id: cohesion-trach-nhiem
+  title: Cohesion & trách nhiệm
+  purpose: Tăng tính gắn kết bên trong từng module và tránh gom các chức năng không liên quan.
+  objectives:
+  - Đánh giá một module có một mục đích nhất quán hay không.
+  - Tách chức năng ít liên quan thành module phù hợp.
+  - So sánh tổ chức theo feature với tổ chức thuần theo layer.
+- id: api-tinh-dong-goi
+  title: API & tính đóng gói
+  purpose: Giữ chi tiết triển khai ở nội bộ và chỉ công bố hợp đồng cần thiết cho bên ngoài.
+  objectives:
+  - Thiết kế public API tối thiểu và mô tả điều kiện sử dụng.
+  - Ẩn các lớp, trạng thái và chi tiết lưu trữ nội bộ.
+  - Phân biệt API module với interface của một lớp Java.
+- id: phu-thuoc-giua-module
+  title: Phụ thuộc giữa module
+  purpose: Điều khiển chiều phụ thuộc để thay đổi một module ít lan sang module khác.
+  objectives:
+  - Vẽ đồ thị phụ thuộc giữa các module.
+  - Phát hiện chu trình và truy cập trực tiếp vào nội bộ module.
+  - Áp dụng dependency inversion hoặc sự kiện khi cần giảm coupling.
+- id: cau-truc-giao-tiep
+  title: Cấu trúc & giao tiếp
+  purpose: Thể hiện ranh giới thiết kế vào mã nguồn và chọn cơ chế trao đổi phù hợp.
+  objectives:
+  - Sắp xếp package Java theo module nghiệp vụ.
+  - Dùng facade/service interface hoặc sự kiện để giao tiếp.
+  - Phân biệt lời gọi đồng bộ và sự kiện bất đồng bộ.
+- id: kiem-thu-rang-buoc
+  title: Kiểm thử & ràng buộc
+  purpose: Bảo vệ hợp đồng và quy tắc phụ thuộc để module giữ được tính độc lập khi phát triển.
+  objectives:
+  - Viết unit test cho logic bên trong module.
+  - Kiểm thử hợp đồng tại ranh giới giữa hai module.
+  - Dùng ArchUnit hoặc Spring Modulith kiểm tra phụ thuộc sai.
+- id: tai-cau-truc-danh-doi
+  title: Tái cấu trúc & đánh đổi
+  purpose: Cải thiện dần cấu trúc hệ thống, tránh chia quá nhỏ hoặc tạo quá nhiều lớp trung gian.
+  objectives:
+  - Chọn một vùng coupling cao để tách module theo từng bước.
+  - Đánh giá chi phí thay đổi, khả năng hiểu và kiểm thử trước/sau.
+  - Nhận diện đánh đổi khi tăng số module và hợp đồng tích hợp.

@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-service-oriented
+  title: Tư duy Service-Oriented
+  purpose: Hiểu SOA là cách tổ chức năng lực nghiệp vụ thành dịch vụ có hợp đồng và tương tác ít phụ thuộc.
+  objectives:
+  - Phân biệt service provider, consumer và service contract.
+  - Giải thích loose coupling, reusability và interoperability.
+  - Phân biệt SOA với triển khai SOAP hay microservices.
+- id: ranh-gioi-thiet-ke-dich-vu
+  title: Ranh giới & thiết kế dịch vụ
+  purpose: Xác định dịch vụ theo năng lực nghiệp vụ, trách nhiệm và quyền sở hữu thay vì chia theo từng hàm.
+  objectives:
+  - Nhóm chức năng theo business capability và chủ sở hữu.
+  - Chọn độ hạt dịch vụ để tránh quá nhiều lời gọi nhỏ.
+  - Xác định dữ liệu, trách nhiệm và phụ thuộc giữa dịch vụ.
+- id: service-contract-schema
+  title: Service Contract & Schema
+  purpose: Tạo giao diện rõ ràng để consumer sử dụng dịch vụ mà không cần biết cách triển khai bên trong.
+  objectives:
+  - Định nghĩa operation, request, response và lỗi.
+  - So sánh WSDL cho Web Services với OpenAPI cho HTTP API.
+  - Thiết kế schema và quy tắc tương thích khi nâng phiên bản.
+- id: giao-tiep-trao-doi-thong-diep
+  title: Giao tiếp & trao đổi thông điệp
+  purpose: Chọn cơ chế tương tác phù hợp yêu cầu nghiệp vụ và giảm rủi ro phụ thuộc mạng.
+  objectives:
+  - So sánh request-response đồng bộ với message bất đồng bộ.
+  - Phân biệt SOAP/HTTP và REST/HTTP là cách hiện thực, không phải SOA.
+  - Thiết kế timeout, correlation ID và idempotency.
+- id: discovery-tich-hop-dich-vu
+  title: Discovery & tích hợp dịch vụ
+  purpose: Giúp consumer tìm đúng endpoint và áp dụng kết nối, định tuyến, chuyển đổi có kiểm soát.
+  objectives:
+  - Giải thích vai trò service registry và endpoint discovery.
+  - Nhận diện gateway, mediator và message transformation.
+  - Đánh giá khi nào cần ESB; ESB không bắt buộc cho SOA.
+- id: composition-quy-trinh
+  title: Composition & quy trình
+  purpose: Kết hợp nhiều dịch vụ thành quy trình nghiệp vụ lớn mà không làm mất ranh giới trách nhiệm.
+  objectives:
+  - Phân biệt orchestration với choreography.
+  - Phác họa workflow liên dịch vụ bằng BPMN.
+  - Xử lý thất bại từng bước và hành động bù trừ.
+- id: security-service-governance
+  title: Security & Service Governance
+  purpose: Quản lý chính sách và quyền truy cập thống nhất cho những dịch vụ có chủ sở hữu độc lập.
+  objectives:
+  - Thiết kế authentication, authorization và bảo vệ thông điệp.
+  - Ghi nhận owner, contract, policy và SLA/SLO của dịch vụ.
+  - Xác định quy trình review, audit và quản lý thay đổi contract.
+- id: reliability-tien-hoa-he-thong
+  title: Reliability & tiến hóa hệ thống
+  purpose: Kiểm chứng hệ thống SOA duy trì chất lượng khi dịch vụ lỗi hoặc được nâng cấp độc lập.
+  objectives:
+  - Kiểm thử contract và luồng tích hợp giữa provider-consumer.
+  - Áp dụng retry có giới hạn, circuit breaker và giám sát.
+  - Theo dõi version, latency, lỗi và kế hoạch chuyển đổi consumer.

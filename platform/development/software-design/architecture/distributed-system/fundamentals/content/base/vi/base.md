@@ -1,0 +1,7 @@
+# Software Design Architecture Distributed System Fundamentals
+
+Hệ thống phân tán (*distributed system*) gồm nhiều thành phần phối hợp qua mạng để cung cấp một dịch vụ hoặc xử lý dữ liệu chung. Việc phân tán có thể cải thiện khả năng mở rộng và tính sẵn sàng, nhưng đồng thời mang đến độ trễ, lỗi cục bộ, thứ tự sự kiện khó xác định và các đánh đổi về tính nhất quán. Module **Software Design Architecture Distributed System Fundamentals** giúp người học hình thành tư duy thiết kế đúng khi không thể giả định mạng và các nút luôn hoạt động hoàn hảo.
+
+Lộ trình gồm tám mốc: tổng quan và đánh đổi của phân tán, giao tiếp và lỗi mạng, resilience cùng idempotency, replication/consistency, partitioning để mở rộng, messaging và bảo đảm giao nhận, thời gian cùng consensus, cuối cùng là quan sát và kiểm thử lỗi. Các khái niệm được kết nối qua tình huống thực tế như request bị timeout, dữ liệu chưa đồng bộ, thông điệp đến hai lần hoặc một node bị tách khỏi mạng; mục tiêu là nhận biết rủi ro trước khi chọn công nghệ cụ thể.
+
+Module phù hợp với lập trình viên backend, DevOps hoặc người học kiến trúc đã biết HTTP API, cơ sở dữ liệu, lập trình đồng thời và logging cơ bản. Sau khi hoàn thành, bạn có thể phác họa một dịch vụ phân tán nhỏ, chỉ ra các điểm lỗi, cân nhắc consistency và availability, thiết kế retry an toàn, chọn cơ chế phân vùng/phân phối thông điệp phù hợp và kiểm thử các tình huống hạ tầng không ổn định.

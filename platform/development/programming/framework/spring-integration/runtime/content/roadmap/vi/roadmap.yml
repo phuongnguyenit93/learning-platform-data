@@ -1,0 +1,57 @@
+roadmap:
+- id: khoi-tao-integrationflow
+  title: Khởi tạo IntegrationFlow
+  purpose: Hiểu cách luồng tích hợp và các endpoint được tạo, kết nối và khởi động trong Spring ApplicationContext.
+  objectives:
+  - Định nghĩa một IntegrationFlow đơn giản
+  - Xác định các bean channel và endpoint được tạo
+  - Theo dõi thông điệp qua luồng khi ứng dụng chạy
+- id: channels-threading
+  title: Channels & Threading
+  purpose: Nắm tác động của từng loại channel lên luồng thực thi và ranh giới bất đồng bộ.
+  objectives:
+  - So sánh DirectChannel, ExecutorChannel và QueueChannel
+  - Xác định thread xử lý ở mỗi channel
+  - Giải thích ảnh hưởng đến thứ tự và ngoại lệ
+- id: consumers-lifecycle
+  title: Consumers & Lifecycle
+  purpose: Phân biệt cách endpoint nhận message và quản lý trạng thái hoạt động khi runtime.
+  objectives:
+  - Phân biệt event-driven và polling consumer
+  - Kiểm tra autoStartup và trạng thái endpoint
+  - Thử start/stop một endpoint
+- id: poller-scheduler
+  title: Poller & Scheduler
+  purpose: Điều chỉnh nhịp lấy message và tài nguyên thực thi cho các endpoint dạng polling.
+  objectives:
+  - Cấu hình fixedDelay và fixedRate
+  - Thử maxMessagesPerPoll và receiveTimeout
+  - Phân biệt nhiệm vụ của TaskScheduler và TaskExecutor
+- id: concurrency-tai
+  title: Concurrency & tải
+  purpose: Kiểm soát số luồng và hàng đợi để tránh quá tải khi xử lý message.
+  objectives:
+  - Cấu hình TaskExecutor cho consumer
+  - Đo tác động của pool size và queue capacity
+  - Nhận diện tình huống nghẽn và từ chối tác vụ
+- id: errorchannel-retry
+  title: ErrorChannel & Retry
+  purpose: Xử lý lỗi phù hợp với khác biệt giữa thực thi đồng bộ và bất đồng bộ.
+  objectives:
+  - Quan sát exception trên DirectChannel
+  - Đọc ErrorMessage gửi tới errorChannel
+  - Cấu hình retry và recovery cho lỗi tạm thời
+- id: transaction-tin-cay
+  title: Transaction & Tin cậy
+  purpose: Hiểu ranh giới transaction và các rủi ro giao lại message trong luồng tích hợp.
+  objectives:
+  - Xác định transaction boundary tại poller
+  - Giải thích tác động khi đổi thread
+  - Thiết kế xử lý idempotent khi message được gửi lại
+- id: quan-tri-metrics
+  title: Quản trị & Metrics
+  purpose: Quan sát và điều khiển các thành phần tích hợp trong thời gian chạy.
+  objectives:
+  - Đọc metrics của channel và handler
+  - Dùng Control Bus quản lý endpoint có kiểm soát
+  - Kiểm thử start/stop, lỗi và tiến độ xử lý

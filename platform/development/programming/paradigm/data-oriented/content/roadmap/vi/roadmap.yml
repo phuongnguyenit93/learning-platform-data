@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-data-oriented
+  title: Tư duy Data-Oriented
+  purpose: Nhìn dữ liệu như giá trị cần mô hình hóa rõ ràng, thay vì luôn gắn dữ liệu với hành vi trong một object.
+  objectives:
+  - Giải thích DOP và so sánh với OOP ở mức cơ bản.
+  - Phân biệt mô hình dữ liệu với thao tác nghiệp vụ.
+  - Chọn ví dụ phù hợp để áp dụng DOP.
+- id: records-immutable-data
+  title: Records & Immutable Data
+  purpose: Biểu diễn các nhóm dữ liệu một cách minh bạch và hạn chế thay đổi ngoài ý muốn.
+  objectives:
+  - Tạo record Java chứa các thành phần dữ liệu.
+  - Giải thích tính bất biến nông của record.
+  - Dùng defensive copy cho collection có thể thay đổi.
+- id: sealed-types-bien-the
+  title: Sealed Types & Biến thể
+  purpose: Mô tả những trường hợp dữ liệu loại trừ nhau bằng các kiểu có tập phương án xác định.
+  objectives:
+  - Tạo sealed interface với các record implements.
+  - Biểu diễn hai hoặc nhiều biến thể của domain.
+  - Tránh dùng field tùy chọn cho các trạng thái loại trừ.
+- id: trang-thai-hop-le-validation
+  title: Trạng thái hợp lệ & Validation
+  purpose: Thiết kế mô hình khiến trạng thái sai khó xuất hiện và chặn dữ liệu không hợp lệ sớm.
+  objectives:
+  - Áp dụng kiểm tra invariant trong constructor.
+  - Dùng kiểu dữ liệu phù hợp để giảm trạng thái sai.
+  - Validate dữ liệu khi đi qua ranh giới hệ thống.
+- id: tach-data-khoi-operations
+  title: Tách Data khỏi Operations
+  purpose: Đặt logic xử lý trên dữ liệu tại lớp hoặc hàm riêng để tránh trộn nhiều trách nhiệm.
+  objectives:
+  - Phân biệt data model và domain operation.
+  - Viết hàm xử lý nhận record làm đầu vào.
+  - Trả về giá trị mới thay vì sửa dữ liệu gốc.
+- id: pattern-matching-switch
+  title: Pattern Matching & Switch
+  purpose: Xử lý các biến thể dữ liệu theo cách dễ đọc và được compiler hỗ trợ kiểm tra đầy đủ.
+  objectives:
+  - Dùng record patterns để tách dữ liệu thành phần.
+  - Xử lý sealed types bằng switch expression.
+  - Kiểm tra tính exhaustive và xử lý null có chủ đích.
+- id: bien-doi-kiem-thu-du-lieu
+  title: Biến đổi & Kiểm thử dữ liệu
+  purpose: Tổ chức luồng biến đổi có thể dự đoán và xác minh bằng ví dụ thực tế.
+  objectives:
+  - Ánh xạ input record sang output record.
+  - Viết unit test cho từng biến thể dữ liệu.
+  - Kiểm tra invariant và trường hợp dữ liệu sai.
+- id: ap-dung-trade-offs
+  title: Áp dụng & Trade-offs
+  purpose: Chọn DOP đúng chỗ và hiểu khi nào OOP hoặc phong cách khác phù hợp hơn.
+  objectives:
+  - Refactor một mô hình Java nhỏ sang DOP.
+  - So sánh độ rõ ràng khi thêm biến thể mới.
+  - Nêu tình huống nên giữ object có trạng thái/hành vi.

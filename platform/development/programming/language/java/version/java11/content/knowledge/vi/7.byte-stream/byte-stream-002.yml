@@ -1,0 +1,3 @@
+menuLevel1: Byte stream
+menuLevel2: Đọc đến EOF trước khi đủ số byte yêu cầu
+status: WRITTEN

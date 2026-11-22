@@ -1,0 +1,3 @@
+menuLevel1: Dynamic proxy
+menuLevel2: Gọi proxy được chuyển thành InvocationHandler.invoke
+status: WRITTEN

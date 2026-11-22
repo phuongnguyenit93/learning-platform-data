@@ -1,0 +1,397 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử đầu cuối (E2E) là gì và vấn đề cần giải quyết
+  - Luồng từ tác nhân khởi tạo đến kết quả nghiệp vụ cuối cùng
+  - 'Các thành phần của một ca E2E: điều kiện, hành động, bằng chứng và kết quả'
+  - Vai trò của UI, API, cơ sở dữ liệu và dịch vụ phụ trợ trong luồng đầu cuối
+  - Phân biệt kiểm thử E2E, kiểm thử đơn vị và kiểm thử tích hợp
+  - Quan hệ giữa phạm vi E2E với kiểm thử chức năng và phi chức năng
+  - Lợi ích, chi phí thực thi và giới hạn chẩn đoán của E2E
+  - Ví dụ xuyên suốt về một hành trình người dùng qua nhiều thành phần
+  - Lộ trình học từ xác định luồng đến vận hành bộ kiểm thử
+- level1: Ranh giới E2E
+  level2:
+  - Xác định hệ thống cần kiểm thử và điểm bắt đầu, kết thúc của luồng
+  - Phân biệt E2E qua giao diện với E2E qua API
+  - Xác định thành phần triển khai thật nằm trong phạm vi kiểm chứng
+  - Phân biệt kiểm thử một dịch vụ với luồng đi qua nhiều dịch vụ
+  - Ảnh hưởng của mock, stub, simulator và sandbox đến phạm vi kết luận
+  - Phân biệt kiểm thử hợp đồng với kiểm chứng một luồng thực thi hoàn chỉnh
+  - Quan hệ giữa E2E, kiểm thử hệ thống và kiểm thử chấp nhận
+  - Mức độ tương đồng giữa môi trường kiểm thử và môi trường phát hành
+  - Ghi lại giả định, thành phần bị thay thế và khoảng trống kiểm chứng
+  - Xác định giới hạn kết luận từ một ca E2E thành công
+- level1: Chiến lược
+  level2:
+  - Lựa chọn luồng E2E dựa trên giá trị nghiệp vụ và rủi ro
+  - Phân bổ trách nhiệm giữa các tầng kiểm thử
+  - Chọn số ca đại diện theo khả năng phát hiện lỗi và chi phí duy trì
+  - Thiết kế bộ smoke, luồng cốt lõi và hồi quy mở rộng
+  - Phân biệt kiểm thử thủ công khám phá với kiểm thử E2E tự động
+  - Chọn kiểm thử qua UI hoặc API theo rủi ro cần quan sát
+  - Quyết định tần suất chạy theo thay đổi, lịch định kỳ và phát hành
+  - Xác định tiêu chí sẵn sàng, hoàn tất và tạm dừng thực thi
+  - Phân công trách nhiệm giữa phát triển, kiểm thử và vận hành
+- level1: Luồng nghiệp vụ
+  level2:
+  - Khám phá tác nhân, mục tiêu và điều kiện bắt đầu của hành trình
+  - Vẽ chuỗi tương tác giữa giao diện, dịch vụ và hệ thống dữ liệu
+  - Xác định đầu vào, đầu ra và các mốc trạng thái nghiệp vụ
+  - Lập bản đồ luồng thành công, luồng thay thế và luồng thất bại
+  - Nhận diện bước đồng bộ, bất đồng bộ và điểm chờ
+  - Xác định vai trò người dùng và các bước chuyển quyền
+  - Liên kết yêu cầu, tiêu chí chấp nhận và ca kiểm thử
+  - Xác định nơi quan sát kết quả mà người dùng hoặc hệ thống bên ngoài nhận được
+  - Phân tích ảnh hưởng của dependency và cấu hình lên từng hành trình
+  - Ưu tiên điểm giao tiếp dễ phát sinh sai lệch giữa các thành phần
+- level1: Thiết kế kịch bản
+  level2:
+  - Viết kịch bản bằng điều kiện ban đầu, hành động và kết quả mong đợi
+  - Sử dụng Given, When, Then để diễn đạt hành vi cần kiểm chứng
+  - Thiết kế một ca kiểm thử có mục tiêu và điểm kết thúc rõ ràng
+  - Chọn dữ liệu đại diện bằng phân vùng tương đương và giá trị biên
+  - Kiểm tra chuyển trạng thái hợp lệ và thao tác bị từ chối
+  - Kiểm tra nhập liệu sai, thiếu dữ liệu và dependency thất bại
+  - Kiểm tra hủy, thử lại, làm mới trang và tiếp tục hành trình
+  - Kiểm tra thao tác lặp và yêu cầu đồng thời theo rủi ro nghiệp vụ
+  - Giảm số tổ hợp bằng lựa chọn có chủ đích và truy vết phần chưa bao phủ
+  - Giữ các ca độc lập và tránh phụ thuộc vào thứ tự chạy
+- level1: Kiểm chứng kết quả
+  level2:
+  - Xác định nguồn xác nhận kết quả mong đợi cho từng kịch bản
+  - Đối chiếu kết quả nghiệp vụ thay vì chỉ xác nhận thao tác được thực hiện
+  - Kiểm tra trạng thái, nội dung, dữ liệu và tác dụng phụ cần thiết
+  - Phân biệt xác nhận qua giao diện công khai với kiểm tra nội bộ bổ sung
+  - Kiểm chứng tính nhất quán giữa UI, API và kết quả được lưu
+  - Kiểm tra sai lệch số lượng, giá trị, định danh và quan hệ dữ liệu
+  - Xử lý giá trị sinh động như thời gian, UUID và thứ tự không cam kết
+  - Kiểm chứng kết quả không được phép xảy ra trong cửa sổ quan sát xác định
+  - Tránh dùng lại chính logic ứng dụng để tính kết quả mong đợi
+  - Viết thông báo assertion đủ ngữ cảnh để xác định bước sai
+- level1: Môi trường
+  level2:
+  - Thiết kế môi trường riêng, môi trường dùng chung và môi trường tạm theo lần chạy
+  - Triển khai ứng dụng cùng cơ sở dữ liệu và dịch vụ cần thiết
+  - Cố định phiên bản ứng dụng, image, migration và cấu hình
+  - Sử dụng Docker Compose để khởi tạo hệ thống nhiều thành phần
+  - Sử dụng Testcontainers để quản lý dependency trong môi trường kiểm thử Java
+  - Phân biệt tiến trình đã khởi động với dịch vụ thực sự sẵn sàng
+  - Kiểm tra healthcheck, kết nối và điều kiện nghiệp vụ trước khi chạy
+  - Quản lý mạng, tên dịch vụ, cổng động và địa chỉ truy cập
+  - Chuẩn bị môi trường giống nhau cho máy cá nhân và CI
+  - Thu thập trạng thái môi trường và dọn tài nguyên sau lần chạy
+- level1: Dữ liệu kiểm thử
+  level2:
+  - Thiết kế dữ liệu theo điều kiện nghiệp vụ của từng ca
+  - Tạo dữ liệu bằng giao diện, API, fixture hoặc seed có kiểm soát
+  - Tách bước chuẩn bị dữ liệu khỏi hành động đang được kiểm chứng
+  - Tạo định danh riêng theo lần chạy, worker và ca kiểm thử
+  - Quản lý tài khoản, vai trò, tenant và tài nguyên dùng chung
+  - Đặt lại dữ liệu bằng cơ chế phù hợp với ranh giới giao dịch
+  - Dọn dữ liệu khi kiểm thử thành công, thất bại hoặc bị hủy
+  - Xử lý dữ liệu tồn đọng và tài nguyên hết hạn từ các lần chạy trước
+  - Kiểm soát thời gian, múi giờ, locale và dữ liệu ngẫu nhiên
+  - Chuẩn bị dữ liệu cho luồng dài và nhiều trạng thái trung gian
+  - Dùng dữ liệu tổng hợp hoặc đã khử thông tin nhận dạng
+  - Lưu dấu vết dữ liệu đủ để tái hiện lỗi
+- level1: Cấu hình
+  level2:
+  - Tách base URL, cổng và thông tin môi trường khỏi mã kiểm thử
+  - Nạp cấu hình từ tham số build, biến môi trường và tệp cấu hình
+  - Xác định độ ưu tiên cấu hình và kiểm tra giá trị bắt buộc
+  - Quản lý credential, token và chứng chỉ cho tài khoản kiểm thử
+  - Thiết lập timeout theo hành động, bước nghiệp vụ và toàn bộ ca
+  - Cấu hình proxy, TLS và địa chỉ dịch vụ bên ngoài
+  - Lựa chọn chế độ headless, headed và cấu hình trình duyệt
+  - Gắn phiên bản ứng dụng, bộ test và cấu hình vào kết quả chạy
+  - Phát hiện cấu hình trỏ nhầm môi trường trước thao tác thay đổi dữ liệu
+- level1: Phụ thuộc bên ngoài
+  level2:
+  - Phân loại dependency do nhóm kiểm soát và dịch vụ của bên thứ ba
+  - Chọn kết nối thật, sandbox hoặc mô phỏng theo mục tiêu kiểm chứng
+  - Thiết kế bộ E2E có ghi rõ ranh giới khi sử dụng test double
+  - Sử dụng môi trường sandbox cho thanh toán và danh tính bên ngoài
+  - Quản lý hạn mức, thời gian đáp ứng và trạng thái dịch vụ bên thứ ba
+  - Mô phỏng lỗi tại biên được kiểm soát và giới hạn kết luận của ca
+  - Đối chiếu hành vi mô phỏng với hợp đồng và cấu hình thực tế
+  - Lập lịch kiểm chứng riêng với dịch vụ thật khi cần
+  - Ngăn gửi thông báo, tạo giao dịch hoặc tài nguyên ngoài dự kiến
+- level1: Tổ chức kiểm thử
+  level2:
+  - Tách mã kịch bản, thao tác nghiệp vụ và chi tiết công cụ
+  - Thiết kế cấu trúc thư mục theo hành trình hoặc miền nghiệp vụ
+  - Áp dụng Page Object và Component Object cho giao diện
+  - Đóng gói API client, fixture và bộ tạo dữ liệu
+  - Xây lớp thao tác nghiệp vụ dùng chung có phạm vi rõ ràng
+  - Quản lý vòng đời tài nguyên bằng thiết lập (setup) và dọn dẹp (teardown)
+  - Đặt tên ca, bước chạy và nhãn phân loại dễ tra cứu
+  - Sử dụng Cucumber khi cần đặc tả hành vi có thể thực thi
+  - Tránh lớp nền quá lớn, trạng thái toàn cục và chuỗi kế thừa khó theo dõi
+  - Giữ abstraction đủ nhỏ để lỗi chỉ ra đúng hành động bị sai
+- level1: E2E với Java
+  level2:
+  - Khởi tạo dự án kiểm thử với JUnit Jupiter và công cụ build
+  - Quản lý dependency Java, trình duyệt và công cụ điều khiển
+  - Thiết kế vòng đời suite, lớp, phương thức và tài nguyên dùng chung
+  - Phân loại ca bằng tag và cấu hình tập kiểm thử cần chạy
+  - Truyền dữ liệu bằng kiểm thử tham số hóa
+  - Thu thập bằng chứng qua extension hoặc hook theo framework
+  - Tách tác vụ E2E khỏi kiểm thử đơn vị trong Maven hoặc Gradle
+  - Truyền timeout, cấu hình môi trường và mã kết quả về công cụ build
+  - Xử lý dọn dẹp khi assertion, setup hoặc teardown thất bại
+- level1: Selenium
+  level2:
+  - Mô hình WebDriver, browser driver và trình duyệt
+  - Thiết lập Selenium Java và quản lý driver bằng Selenium Manager
+  - Khởi tạo browser option và cấu hình phiên WebDriver
+  - Điều hướng, tìm phần tử và thực hiện tương tác
+  - Đọc trạng thái, thuộc tính và nội dung phần tử
+  - Chờ điều kiện bằng WebDriverWait và ExpectedConditions
+  - Phân biệt implicit wait với explicit wait và tác động khi kết hợp
+  - Quản lý cookie, cửa sổ, tab, iframe và dialog
+  - Chụp ảnh, thu thập log và xử lý phiên bị lỗi
+  - Chạy RemoteWebDriver hoặc Selenium Grid theo nhu cầu phân phối
+  - Đóng phiên đúng cách và cô lập trạng thái giữa các ca
+- level1: Playwright Java
+  level2:
+  - Mô hình Playwright, Browser, BrowserContext và Page
+  - Thiết lập dependency Java cùng tệp thực thi trình duyệt tương thích
+  - Quản lý vòng đời Playwright với test runner Java
+  - Tạo BrowserContext độc lập cho mỗi ca kiểm thử
+  - Tìm phần tử bằng locator và sử dụng assertion có cơ chế chờ
+  - Hiểu auto-waiting và các điều kiện phần tử sẵn sàng tương tác
+  - Quan sát navigation, response và sự kiện trình duyệt
+  - Chuẩn bị dữ liệu hoặc xác minh API bằng APIRequestContext
+  - Quản lý trạng thái đăng nhập và tệp storage state
+  - Ghi trace, ảnh chụp và video để phân tích lần chạy
+  - Quản lý đối tượng Playwright theo thread khi chạy song song
+  - Phân biệt API Java với các khả năng riêng của Playwright Test trên Node.js
+- level1: Định vị giao diện
+  level2:
+  - Chọn locator theo vai trò, accessible name, label và văn bản
+  - Thiết kế test id có hợp đồng ổn định với nhóm phát triển
+  - Khoanh vùng locator theo trang, thành phần và ngữ cảnh nghiệp vụ
+  - Xử lý phần tử trùng tên, danh sách và bảng dữ liệu
+  - Sử dụng CSS hoặc XPath khi locator theo ngữ nghĩa chưa đáp ứng
+  - Nhận diện locator phụ thuộc cấu trúc DOM hoặc vị trí dễ thay đổi
+  - Định vị phần tử trong iframe và Shadow DOM theo khả năng công cụ
+  - Xử lý phần tử được tạo lại và tham chiếu bị stale
+  - Kiểm tra tính duy nhất và thông báo lỗi khi không tìm được phần tử
+- level1: Tương tác giao diện
+  level2:
+  - Điều hướng giữa trang và kiểm tra URL có ý nghĩa nghiệp vụ
+  - Điền biểu mẫu, chọn giá trị và kiểm tra thông báo xác thực
+  - Tương tác bàn phím, con trỏ, kéo thả và điều khiển tùy biến
+  - Xử lý dialog, popup, nhiều tab và cửa sổ
+  - Làm việc với bảng, phân trang, tìm kiếm và bộ lọc
+  - Kiểm tra trạng thái tải, trạng thái rỗng và thông báo lỗi
+  - Kiểm tra làm mới trang, quay lại và liên kết trực tiếp
+  - Upload tệp và xác nhận kết quả xử lý
+  - Download tệp và kiểm tra nội dung bằng lớp công cụ phù hợp
+  - Quan sát hành vi người dùng thay vì thay đổi trực tiếp DOM để vượt qua lỗi
+- level1: Đồng bộ và chờ
+  level2:
+  - Nhận diện race condition giữa thao tác kiểm thử và trạng thái ứng dụng
+  - Chờ điều kiện có thể quan sát thay cho thời gian nghỉ cố định
+  - Phân biệt tải trang hoàn tất với dữ liệu nghiệp vụ đã sẵn sàng
+  - Chọn điều kiện phần tử hiển thị, tương tác được hoặc có nội dung đúng
+  - Chờ request, response, sự kiện hoặc trạng thái nghiệp vụ phù hợp
+  - Thiết kế polling có giới hạn thời gian và khoảng kiểm tra
+  - Sử dụng Awaitility cho điều kiện bất đồng bộ trong Java
+  - Kiểm soát ngoại lệ tạm thời và ngoại lệ phải dừng ngay
+  - Phân biệt chờ kết quả với gửi lại thao tác có tác dụng phụ
+  - Thu thập trạng thái cuối và lịch sử chờ khi timeout
+- level1: API đầu cuối
+  level2:
+  - Xác định chuỗi request đi qua toàn bộ luồng nghiệp vụ cần kiểm chứng
+  - Gửi request đến hệ thống được triển khai qua HTTP thật
+  - Sử dụng REST Assured hoặc HTTP client phù hợp với Java
+  - Quản lý base URI, header, cookie, token và request specification
+  - Liên kết định danh và dữ liệu trả về giữa các bước
+  - Kiểm chứng status, header, payload và trạng thái nghiệp vụ
+  - Kiểm tra luồng tạo, truy vấn, cập nhật và kết thúc tài nguyên
+  - Kiểm tra hợp đồng phản hồi như một phần của kết quả đầu cuối
+  - Kiểm tra yêu cầu không hợp lệ và lỗi qua các tầng
+  - Kiểm chứng tác dụng phụ qua API đọc, sự kiện hoặc bằng chứng bổ sung
+  - Ghi request, response và thông tin tương quan đã che dữ liệu nhạy cảm
+- level1: Spring Boot
+  level2:
+  - Chọn chạy ứng dụng trong tiến trình kiểm thử hoặc triển khai như một hệ thống riêng
+  - Sử dụng SpringBootTest với RANDOM_PORT khi cần HTTP server thật
+  - Phân biệt MockMvc, môi trường mock và truy cập máy chủ HTTP thật
+  - Cấp cấu hình dependency từ môi trường hoặc container
+  - Quản lý database migration và dữ liệu khi ứng dụng khởi động
+  - Hiểu ranh giới giao dịch giữa HTTP client và server
+  - Thiết kế dọn dẹp khi transaction của ca test không bao phủ thao tác server
+  - Xác minh cơ chế xác thực, serialization và cấu hình được nạp thực tế
+  - Chạy E2E với JAR hoặc image đã đóng gói
+  - Ghi rõ phạm vi còn thiếu khi chỉ khởi chạy một ứng dụng Spring Boot
+- level1: Danh tính và quyền
+  level2:
+  - Thiết kế tài khoản kiểm thử theo vai trò và tenant
+  - Kiểm tra đăng ký, đăng nhập, đăng xuất và truy cập sau đăng xuất
+  - Kiểm tra phiên hết hạn, làm mới token và yêu cầu đăng nhập lại
+  - Kiểm tra truy cập chức năng và tài nguyên theo quyền
+  - Kiểm tra thay đổi vai trò hoặc quyền trong một hành trình
+  - Quản lý cookie, local storage và trạng thái đăng nhập giữa các ca
+  - Tái sử dụng trạng thái xác thực mà vẫn giữ dữ liệu và quyền độc lập
+  - Kiểm tra chuyển hướng qua nhà cung cấp danh tính trong môi trường kiểm soát
+  - Thiết kế cách kiểm tra MFA hoặc CAPTCHA phù hợp với môi trường thử nghiệm
+  - Kiểm chứng truy cập bị từ chối qua cả giao diện lẫn API
+- level1: Luồng bất đồng bộ
+  level2:
+  - Xác định điểm tiếp nhận yêu cầu và điểm hoàn tất nghiệp vụ
+  - Theo dõi trạng thái qua API, sự kiện hoặc kết quả người dùng nhận được
+  - Kiểm chứng luồng gửi message, xử lý và cập nhật dữ liệu
+  - Phân biệt gửi message thành công với nghiệp vụ đã hoàn tất
+  - Chờ eventual consistency trong giới hạn thời gian đã xác định
+  - Liên kết request id, correlation id và định danh nghiệp vụ
+  - Kiểm tra xử lý trùng lặp và tính idempotent của hành trình
+  - Kiểm tra message đến muộn hoặc sai thứ tự theo hợp đồng
+  - Quan sát thử lại, hàng đợi lỗi và trạng thái không thể hoàn tất
+  - Cô lập topic, queue, consumer group hoặc dữ liệu theo lần chạy
+  - Kiểm chứng job theo lịch và tác vụ nền với cơ chế thời gian kiểm soát được
+- level1: Nhiều dịch vụ
+  level2:
+  - Thiết kế ca đi qua gateway và các dịch vụ thuộc hành trình
+  - Kiểm tra truyền danh tính, header và định danh tương quan
+  - Kiểm chứng dữ liệu qua nhiều nơi lưu trữ và mô hình đọc
+  - Kiểm tra thành công từng phần và kết quả nghiệp vụ cuối cùng
+  - Kiểm tra bù trừ khi một bước của quy trình phân tán thất bại
+  - Kiểm tra timeout và thử lại giữa các dịch vụ theo chính sách hệ thống
+  - Kiểm tra yêu cầu lặp mà không nhân đôi tác dụng phụ
+  - Đối chiếu phiên bản dịch vụ và hợp đồng trong môi trường kiểm thử
+  - Thu thập trace phân tán để xác định bước gián đoạn
+- level1: Tệp và thông báo
+  level2:
+  - Kiểm thử hành trình upload, xử lý và truy cập tệp kết quả
+  - Kiểm tra loại tệp, nội dung, quyền truy cập và vòng đời lưu trữ
+  - Xác nhận file export bằng nội dung dữ liệu thay vì chỉ tên tệp
+  - Kiểm chứng email qua hộp thư kiểm thử hoặc dịch vụ thu nhận kiểm soát được
+  - Kiểm chứng liên kết xác nhận, liên kết đặt lại mật khẩu và thời hạn sử dụng
+  - Kiểm tra webhook được gửi, tiếp nhận và xử lý đúng nghiệp vụ
+  - Kiểm tra thông báo trùng, gửi thất bại và cơ chế thử lại
+  - Gắn tệp và thông báo với định danh riêng của từng ca
+  - Dọn tài nguyên lưu trữ và thông báo sau lần chạy
+- level1: Trình duyệt và thiết bị
+  level2:
+  - Chọn tổ hợp trình duyệt và hệ điều hành dựa trên người dùng thực tế
+  - Phân biệt browser engine, trình duyệt có thương hiệu và phiên bản
+  - Kiểm tra viewport, thiết bị mô phỏng và giới hạn so với thiết bị thật
+  - Kiểm tra locale, múi giờ và định dạng dữ liệu trong hành trình
+  - Xác định điểm kiểm tra khả năng truy cập trong luồng cốt lõi
+  - Kết hợp kiểm tra hình ảnh với assertion về hành vi
+  - Quản lý baseline hình ảnh, vùng động và điều kiện render
+  - Chọn ca đại diện cho từng tổ hợp để kiểm soát chi phí
+  - Ghi rõ phạm vi thiết bị native mobile cần công cụ và kế hoạch riêng
+- level1: Bằng chứng thực thi
+  level2:
+  - Gắn định danh ca, lần chạy và phiên bản ứng dụng vào mọi bằng chứng
+  - Ghi bước thực hiện, dữ liệu đầu vào và assertion thất bại
+  - Thu thập ảnh chụp, video và trace trình duyệt
+  - Thu thập console log, lỗi JavaScript và thông tin mạng
+  - Liên kết log backend và distributed trace bằng định danh tương quan
+  - Ghi trạng thái cơ sở dữ liệu, hàng đợi và dịch vụ phụ thuộc khi cần chẩn đoán bổ sung
+  - Lưu bằng chứng khi setup hoặc teardown lỗi
+  - Tổ chức báo cáo XML, HTML hoặc công cụ tổng hợp phù hợp
+  - Che credential, token và dữ liệu cá nhân trong artifact
+  - Đặt thời hạn lưu và cơ chế truy cập bằng chứng
+- level1: Kiểm thử thiếu ổn định
+  level2:
+  - Định nghĩa flaky test và phân biệt với lỗi sản phẩm xảy ra không liên tục
+  - Phân loại nguyên nhân theo đồng bộ, dữ liệu, môi trường và công cụ
+  - Nhận diện ca phụ thuộc thứ tự hoặc trạng thái dùng chung
+  - Phân tích locator biến động, animation và thời điểm tương tác
+  - Kiểm tra ảnh hưởng của tài nguyên máy, mạng và dependency bên ngoài
+  - Dùng chạy lặp có kiểm soát để thu thập bằng chứng
+  - Thiết kế retry có giới hạn và giữ kết quả lần thất bại đầu
+  - Quản lý cách ly tạm thời với người phụ trách và thời hạn xử lý
+  - Xác minh bản sửa bằng kịch bản từng thất bại và điều kiện gây lỗi
+  - Theo dõi lỗi tái phát và loại bỏ nguyên nhân thay vì chỉ tăng timeout
+- level1: Chạy song song
+  level2:
+  - Phân biệt song song trong JVM, nhiều tiến trình và nhiều máy
+  - Chia bộ test thành shard theo nhóm hoặc thời gian chạy
+  - Cô lập browser context, phiên điều khiển và tài nguyên theo worker
+  - Tuân thủ quy tắc thread của thư viện điều khiển trình duyệt
+  - Cô lập tài khoản, tenant, dữ liệu và tài nguyên hệ thống
+  - Quản lý cổng, thư mục tải xuống và tên artifact không trùng
+  - Xử lý ca cần tài nguyên độc quyền hoặc chạy tuần tự
+  - Giới hạn số worker theo CPU, RAM và khả năng của môi trường
+  - Kiểm tra nguyên nhân lỗi chỉ xuất hiện khi chạy đồng thời
+  - Tổng hợp kết quả, dọn dẹp và báo cáo từ các shard
+- level1: CI/CD
+  level2:
+  - Thiết kế pipeline chuẩn bị môi trường, triển khai, kiểm thử và dọn dẹp
+  - Cài dependency hệ điều hành, trình duyệt và runtime tương thích
+  - Chạy smoke trên pull request và hồi quy mở rộng theo lịch phù hợp
+  - Chờ hệ thống sẵn sàng trước khi khởi chạy kịch bản
+  - Truyền cấu hình và bí mật bằng cơ chế của CI
+  - Cache dependency và tệp thực thi trình duyệt theo phiên bản phù hợp
+  - Chạy shard, ma trận trình duyệt và giới hạn đồng thời
+  - Xuất báo cáo, ảnh chụp, trace và log khi công việc thất bại
+  - Phân biệt lỗi môi trường với kết quả kiểm thử trong trạng thái pipeline
+  - Dọn môi trường kể cả khi timeout, hủy hoặc có bước thất bại
+  - Thiết lập tiêu chí chặn hợp nhất hoặc phát hành theo rủi ro
+- level1: Phân tích lỗi
+  level2:
+  - Đọc kết quả thất bại từ mục tiêu nghiệp vụ đến bước thao tác
+  - Xác minh phiên bản sản phẩm, cấu hình và trạng thái môi trường
+  - Phân biệt lỗi ứng dụng, lỗi ca test, lỗi dữ liệu và lỗi hạ tầng
+  - Đối chiếu ảnh chụp, trace, request, response và log backend
+  - Xác định điểm khác biệt đầu tiên thay vì chỉ đọc lỗi cuối cùng
+  - Tái hiện cùng dữ liệu, trình duyệt và điều kiện thời gian
+  - Tạo ca tái hiện nhỏ hơn mà vẫn giữ ranh giới gây lỗi
+  - Báo lỗi với bước thực hiện, kết quả mong đợi và bằng chứng
+  - Kiểm tra dọn dẹp và tác động của lần thất bại lên các ca tiếp theo
+  - Xác minh bản sửa và bổ sung hồi quy ở tầng kiểm thử phù hợp
+- level1: Bảo trì
+  level2:
+  - Rà soát ca theo thay đổi yêu cầu và hành trình người dùng
+  - Cập nhật locator và abstraction theo hợp đồng giao diện
+  - Loại bỏ ca trùng mục tiêu hoặc không còn giá trị phát hiện lỗi
+  - Chuyển kiểm tra chi tiết về tầng phù hợp khi vẫn giữ bao phủ hành trình
+  - Quản lý nâng cấp thư viện, driver và tệp thực thi trình duyệt
+  - Rà soát dữ liệu dùng chung, dọn dẹp và tài nguyên tồn đọng
+  - Rà soát mã kịch bản, phép xác nhận và cơ chế chờ
+  - Tài liệu hóa giả định, ranh giới và quyết định thiết kế
+  - Đặt trách nhiệm bảo trì cho từng nhóm hành trình
+- level1: Đo lường
+  level2:
+  - Đo độ bao phủ theo hành trình, yêu cầu và rủi ro
+  - Phân biệt tỷ lệ thành công với mức độ tin cậy của sản phẩm
+  - Theo dõi tỷ lệ thiếu ổn định và số lần phải chạy lại
+  - Đo thời gian phản hồi của bộ test và các ca chậm
+  - Theo dõi lỗi sản phẩm được phát hiện và lỗi lọt qua
+  - Đo thời gian chẩn đoán, sửa ca lỗi và khôi phục pipeline
+  - Đánh giá chi phí môi trường, artifact và bảo trì
+  - Sử dụng số liệu để điều chỉnh phạm vi và vị trí kiểm tra
+  - Ghi rõ giới hạn suy luận từ số lượng ca và chỉ số coverage
+- level1: Xác minh triển khai
+  level2:
+  - Chọn luồng smoke xác nhận bản triển khai có thể phục vụ
+  - Kiểm tra cấu hình routing, TLS, static asset và dịch vụ phụ trợ
+  - Xác minh phiên bản ứng dụng và migration trước kiểm thử
+  - Thiết kế dữ liệu kiểm tra riêng trên môi trường gần thực tế
+  - Phân biệt kiểm thử sau triển khai với synthetic monitoring liên tục
+  - Chọn hành trình an toàn khi xác minh trên môi trường production
+  - Quản lý tác dụng phụ, dọn dẹp và khả năng thử lại của smoke
+  - Liên kết kết quả kiểm thử với quyết định tiếp tục hoặc dừng phát hành
+  - Ghi nhận ranh giới kiểm chứng và chuyển bằng chứng cho nhóm phụ trách
+- level1: Thực hành
+  level2:
+  - Xác định ranh giới E2E và vẽ bản đồ một hành trình nghiệp vụ
+  - Viết bộ kịch bản thành công, thay thế và thất bại từ tiêu chí chấp nhận
+  - Dựng môi trường Java cùng database và dịch vụ phụ trợ
+  - Xây ca API đầu cuối liên kết nhiều request và kết quả cuối cùng
+  - Xây ca UI bằng Selenium hoặc Playwright Java
+  - Chuẩn bị dữ liệu độc lập và dọn dẹp cho ca có thao tác ghi
+  - Kiểm tra hành trình đăng nhập, thao tác theo quyền và đăng xuất
+  - Kiểm tra luồng bất đồng bộ bằng polling có điều kiện và timeout
+  - Kiểm tra lỗi giữa quy trình nhiều dịch vụ và kết quả bù trừ
+  - Thu thập trace, ảnh chụp và log để phân tích một ca thất bại
+  - Tái hiện và sửa một flaky test do chia sẻ dữ liệu hoặc chờ sai điều kiện
+  - Chạy song song với dữ liệu, tài khoản và artifact độc lập
+  - Đưa smoke và hồi quy vào CI với bằng chứng khi thất bại
+  - Đánh giá phạm vi bao phủ, giới hạn kết luận và chi phí duy trì

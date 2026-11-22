@@ -1,0 +1,3 @@
+menuLevel1: Hợp đồng reflection
+menuLevel2: 'Method.invoke() với override: virtual dispatch vẫn chọn triển khai theo receiver'
+status: ""

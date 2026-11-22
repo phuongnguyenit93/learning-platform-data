@@ -1,0 +1,3 @@
+menuLevel1: Cấu hình máy chủ
+menuLevel2: Xác định base URL khi có context path, reverse proxy và TLS termination
+status: WRITTEN

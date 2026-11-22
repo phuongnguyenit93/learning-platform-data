@@ -1,0 +1,3 @@
+menuLevel1: Quyền trên dữ liệu
+menuLevel2: Chặn thay đổi ownerId, tenantId và trường nhạy cảm bằng mass assignment
+status: WRITTEN

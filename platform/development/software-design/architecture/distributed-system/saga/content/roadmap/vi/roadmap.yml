@@ -1,0 +1,57 @@
+roadmap:
+- id: saga-giao-dich-cuc-bo
+  title: Saga & giao dịch cục bộ
+  purpose: Hiểu cách phối hợp nhiều service có database riêng mà không dựa vào một giao dịch ACID bao trùm.
+  objectives:
+  - Phân biệt local transaction, 2PC và Saga
+  - Vẽ ví dụ Order → Inventory → Payment
+  - Giải thích eventual consistency và trạng thái trung gian
+- id: thiet-ke-buoc-trang-thai
+  title: Thiết kế bước & trạng thái
+  purpose: Phân rã một nghiệp vụ thành các bước độc lập và xác định điều kiện hoàn tất hoặc thất bại.
+  objectives:
+  - Chia luồng đặt hàng thành transaction theo service
+  - Thiết kế trạng thái PENDING, COMPLETED, FAILED
+  - Gắn saga ID và thông tin liên kết từng bước
+- id: choreography-bang-event
+  title: Choreography bằng Event
+  purpose: Tổ chức Saga đơn giản bằng sự kiện giữa các participant mà không cần bộ điều phối trung tâm.
+  objectives:
+  - Thiết kế event bắt đầu và event kết quả cho từng bước
+  - Mô tả subscriber kích hoạt bước tiếp theo
+  - Nhận diện coupling ngầm và vòng lặp sự kiện
+- id: orchestration-coordinator
+  title: Orchestration & Coordinator
+  purpose: Điều khiển workflow phức tạp bằng coordinator nắm tiến trình và ra lệnh cho các service.
+  objectives:
+  - Xây dựng state machine cho thứ tự các bước
+  - Gửi command và xử lý reply theo saga ID
+  - So sánh orchestration với choreography
+- id: compensation-pivot
+  title: Compensation & Pivot
+  purpose: Khôi phục tính nhất quán nghiệp vụ khi một bước lỗi mà không giả định có rollback toàn cục.
+  objectives:
+  - 'Thiết kế thao tác bù: hủy giữ hàng, hoàn tiền'
+  - Phân biệt bước compensable, pivot và retryable
+  - Giải thích vì sao bù không nhất thiết hoàn nguyên dữ liệu
+- id: outbox-idempotency
+  title: Outbox & Idempotency
+  purpose: Đảm bảo thay đổi dữ liệu và phát thông điệp đáng tin cậy khi broker hoặc consumer có thể lỗi.
+  objectives:
+  - Áp dụng transactional outbox khi cập nhật DB và tạo event
+  - Dùng message ID để chống xử lý trùng ở consumer
+  - Giải thích at-least-once delivery và duplicate
+- id: timeout-retry-isolation
+  title: Timeout, Retry & Isolation
+  purpose: Giới hạn tác động của lỗi tạm thời và các giao dịch chạy đồng thời trong hệ thống Saga.
+  objectives:
+  - Phân biệt lỗi có thể retry với lỗi nghiệp vụ cần bù
+  - Đặt timeout, exponential backoff và retry limit
+  - Nhận biết stale reads và dùng semantic lock khi cần
+- id: kiem-thu-quan-sat-saga
+  title: Kiểm thử & quan sát Saga
+  purpose: Xác nhận cả nhánh thành công và thất bại, đồng thời truy vết quá trình bù xuyên service.
+  objectives:
+  - Kiểm thử lỗi tại từng bước và kiểm tra kết quả bù
+  - Theo dõi state, correlation ID và từng lần retry
+  - Lập cảnh báo cho Saga treo hoặc cần xử lý thủ công

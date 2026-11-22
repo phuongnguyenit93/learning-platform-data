@@ -1,0 +1,3 @@
+menuLevel1: Entity và định danh
+menuLevel2: Tránh đưa quan hệ tải chậm vào equals, hashCode và toString
+status: WRITTEN

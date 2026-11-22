@@ -1,0 +1,148 @@
+menu:
+- title: Định hướng
+  slug: java-8-overview
+  index: 0
+- title: Lambda
+  slug: lambda
+  index: 1
+- title: Functional interface
+  slug: functional-interface
+  index: 2
+- title: Hàm chuẩn
+  slug: standard-functional-interfaces
+  index: 3
+- title: Method reference
+  slug: method-reference
+  index: 4
+- title: Interface
+  slug: interface
+  index: 5
+- title: Suy luận kiểu
+  slug: type-inference
+  index: 6
+- title: Type annotation
+  slug: type-annotation
+  index: 7
+- title: Annotation lặp
+  slug: repeatable-annotations
+  index: 8
+- title: Metadata tham số
+  slug: parameter-metadata
+  index: 9
+- title: Mô hình Stream
+  slug: stream-model
+  index: 10
+- title: Nguồn Stream
+  slug: stream-sources
+  index: 11
+- title: Biến đổi Stream
+  slug: stream-transformations
+  index: 12
+- title: Kết thúc Stream
+  slug: stream-terminal-operations
+  index: 13
+- title: Reduction
+  slug: reduction
+  index: 14
+- title: Collector cơ bản
+  slug: basic-collectors
+  index: 15
+- title: Phân nhóm dữ liệu
+  slug: data-grouping
+  index: 16
+- title: Collector tùy biến
+  slug: custom-collectors
+  index: 17
+- title: Primitive Stream
+  slug: primitive-stream
+  index: 18
+- title: Stream song song
+  slug: parallel-streams
+  index: 19
+- title: Spliterator
+  slug: spliterator
+  index: 20
+- title: Optional
+  slug: optional
+  index: 21
+- title: Collection
+  slug: collection
+  index: 22
+- title: Map
+  slug: map
+  index: 23
+- title: Comparator
+  slug: comparator
+  index: 24
+- title: Mảng
+  slug: arrays
+  index: 25
+- title: Mô hình ngày giờ
+  slug: date-time-model
+  index: 26
+- title: Ngày giờ cục bộ
+  slug: local-date-time
+  index: 27
+- title: Instant và offset
+  slug: instants-offsets
+  index: 28
+- title: Múi giờ
+  slug: time-zones
+  index: 29
+- title: Khoảng thời gian
+  slug: durations-periods
+  index: 30
+- title: Định dạng ngày giờ
+  slug: date-time-formatting
+  index: 31
+- title: Temporal và Clock
+  slug: temporal-va-clock
+  index: 32
+- title: CompletableFuture
+  slug: completable-future
+  index: 33
+- title: Ghép tác vụ
+  slug: task-composition
+  index: 34
+- title: ConcurrentHashMap
+  slug: concurrent-hash-map
+  index: 35
+- title: Biến tích lũy
+  slug: accumulators
+  index: 36
+- title: StampedLock
+  slug: stamped-lock
+  index: 37
+- title: Fork/Join
+  slug: fork-join
+  index: 38
+- title: Tệp và I/O
+  slug: files-io
+  index: 39
+- title: Chuỗi và Base64
+  slug: strings-base64
+  index: 40
+- title: Số học
+  slug: arithmetic
+  index: 41
+- title: JDBC 4.2
+  slug: jdbc42
+  index: 42
+- title: Ngôn ngữ và locale
+  slug: language-locales
+  index: 43
+- title: Logging theo nhu cầu
+  slug: lazy-logging
+  index: 44
+- title: Mật mã ứng dụng
+  slug: application-cryptography
+  index: 45
+- title: JVM và công cụ
+  slug: jvm-tools
+  index: 46
+- title: Kiểm thử và tối ưu
+  slug: testing-optimization
+  index: 47
+- title: Thực hành
+  slug: java8-capstone
+  index: 48

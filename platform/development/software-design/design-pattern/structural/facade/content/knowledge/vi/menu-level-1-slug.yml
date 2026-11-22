@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan Facade
+  slug: facade-overview
+  index: 0
+- title: Vấn đề cần giải quyết
+  slug: problem-statement
+  index: 1
+- title: Vai trò và cấu trúc
+  slug: roles-structure
+  index: 2
+- title: Luồng tương tác
+  slug: interaction-flow
+  index: 3
+- title: Ví dụ triển khai
+  slug: implementation-example
+  index: 4
+- title: Ranh giới phân hệ
+  slug: subsystem-boundaries
+  index: 5
+- title: Thiết kế giao diện
+  slug: interface-design
+  index: 6
+- title: Trách nhiệm và điều phối
+  slug: responsibilities-orchestration
+  index: 7
+- title: Dữ liệu và hợp đồng
+  slug: data-contracts
+  index: 8
+- title: Khởi tạo và vòng đời
+  slug: initialization-lifecycle
+  index: 9
+- title: Lỗi và kết quả
+  slug: errors-and-results
+  index: 10
+- title: Tài nguyên và giao dịch
+  slug: resources-transactions
+  index: 11
+- title: Trạng thái và đồng thời
+  slug: state-and-concurrency
+  index: 12
+- title: Nhiều Facade và phân tầng
+  slug: multiple-facades-layers
+  index: 13
+- title: Liên hệ nguyên tắc
+  slug: principle-relations
+  index: 14
+- title: Phân biệt mẫu liên quan
+  slug: related-patterns
+  index: 15
+- title: Tích hợp hệ thống cũ
+  slug: legacy-integration
+  index: 16
+- title: Ranh giới từ xa
+  slug: remote-boundaries
+  index: 17
+- title: Kiểm thử Facade
+  slug: facade-testing
+  index: 18
+- title: Lợi ích và chi phí
+  slug: benefits-costs
+  index: 19
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 20
+- title: Quy trình tái cấu trúc
+  slug: refactoring-process
+  index: 21
+- title: Tiến hóa và tương thích
+  slug: evolution-compatibility
+  index: 22
+- title: Tình huống và thực hành
+  slug: scenario-and-practice
+  index: 23

@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-error-prone
+  title: Tổng quan Error Prone
+  purpose: Hiểu cách Error Prone mở rộng javac để phát hiện lỗi Java ngay lúc biên dịch.
+  objectives:
+  - Mô tả cơ chế kiểm tra trong quá trình biên dịch.
+  - Phân biệt bug pattern với lỗi cú pháp thông thường.
+- id: thiet-lap-trong-build
+  title: Thiết lập trong build
+  purpose: Kích hoạt Error Prone trong dự án Java với phiên bản JDK phù hợp.
+  objectives:
+  - Kiểm tra yêu cầu JDK của phiên bản đang dùng.
+  - Cấu hình Gradle hoặc Maven để chạy cùng javac.
+- id: chay-doc-ket-qua
+  title: Chạy & đọc kết quả
+  purpose: Biết xác định vị trí và ý nghĩa của chẩn đoán Error Prone.
+  objectives:
+  - Chạy biên dịch có Error Prone.
+  - Đọc check name, vị trí và mức ERROR/WARN.
+- id: bug-patterns-pho-bien
+  title: Bug patterns phổ biến
+  purpose: Nhận diện những mẫu lỗi dễ gây hành vi ngoài ý muốn.
+  objectives:
+  - Giải thích ví dụ DeadException và CollectionIncompatibleType.
+  - Chỉ ra nguyên nhân và phương án sửa.
+- id: tuy-chinh-checks
+  title: Tùy chỉnh checks
+  purpose: Điều chỉnh các phép kiểm tra phù hợp với chất lượng mã của dự án.
+  objectives:
+  - Bật, tắt và đặt mức nghiêm trọng bằng -Xep.
+  - Tra cứu danh mục checks trước khi cấu hình.
+- id: suppression-co-ly-do
+  title: Suppression có lý do
+  purpose: Quản lý ngoại lệ kiểm tra trong trường hợp cảnh báo không phù hợp.
+  objectives:
+  - Phân biệt cảnh báo sai với lỗi cần sửa.
+  - Giải trình suppression hoặc loại trừ mã có chủ đích.
+- id: suggested-fixes
+  title: Suggested fixes
+  purpose: Áp dụng gợi ý sửa một cách có kiểm soát.
+  objectives:
+  - Xem suggested replacement và tạo patch khi được hỗ trợ.
+  - Review thay đổi và chạy lại kiểm tra.
+- id: tich-hop-ci
+  title: Tích hợp CI
+  purpose: Duy trì phát hiện lỗi sớm trong quy trình phát triển.
+  objectives:
+  - Chạy Error Prone trong pipeline biên dịch.
+  - Xác nhận mức ERROR khiến build thất bại khi cần.

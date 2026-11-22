@@ -1,0 +1,3 @@
+menuLevel1: Xây dựng MCP Server đầu tiên qua STDIO
+menuLevel2: Tách log khỏi stdout để giữ nguyên luồng thông điệp STDIO
+status: ""

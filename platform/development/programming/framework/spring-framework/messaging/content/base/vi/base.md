@@ -1,0 +1,7 @@
+# Spring Messaging trong Spring Framework
+
+Spring Messaging cung cấp các hợp đồng để ứng dụng trao đổi dữ liệu dưới dạng thông điệp, tách bên tạo nội dung khỏi thành phần tiếp nhận và xử lý. Một `Message` gồm payload và header; `MessageChannel` cùng `MessageHandler` giúp tổ chức đường đi của dữ liệu. Khi xây dựng giao tiếp thời gian thực hoặc theo luồng, cần phân biệt cách định tuyến thông điệp với những bảo đảm về lưu bền, giao nhận và xử lý lỗi của hạ tầng bên dưới.
+
+Tài liệu này dành cho người đã nắm Java và Spring cơ bản, muốn xây dựng các luồng trao đổi thông điệp giữa thành phần ứng dụng hoặc với máy khách. Lộ trình bắt đầu từ mô hình thông điệp, kênh và template, chuyển đổi dữ liệu và phương thức xử lý; tiếp đó là STOMP qua WebSocket, broker và định tuyến người nhận, rồi đến RSocket với các kiểu tương tác và điều tiết nhu cầu nhận. Bạn sẽ tìm hiểu cách sử dụng `MessageBuilder`, `MessagingTemplate`, `MessageConverter`, `@MessageMapping`, `SimpMessagingTemplate` và `RSocketRequester` đúng theo ngữ cảnh.
+
+Sau khi hoàn thành, bạn có thể phân biệt WebSocket với STOMP, theo dõi thông điệp gửi và đăng ký nhận, tổ chức định tuyến tới nhóm hoặc từng người dùng và lựa chọn cách trao đổi phù hợp với RSocket. Bạn cũng sẽ biết kiểm tra payload và header, xử lý lỗi theo phạm vi, đánh giá quyền gửi hoặc nhận, giới hạn tài nguyên với máy khách chậm, và thiết kế kiểm thử từ phương thức xử lý đến tích hợp giao thức để quan sát hoạt động của hệ thống.

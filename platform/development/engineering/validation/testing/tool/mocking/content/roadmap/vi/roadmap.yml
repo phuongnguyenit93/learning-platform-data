@@ -1,0 +1,49 @@
+roadmap:
+- id: test-double-isolation
+  title: Test Double & Isolation
+  purpose: Hiểu cách thay thế cộng tác viên khó kiểm soát để kiểm thử một đơn vị mã độc lập.
+  objectives:
+  - Phân biệt dummy, stub, mock, fake và spy.
+  - Xác định thành phần cần mock trong một service Java.
+- id: thiet-lap-mockito-junit
+  title: Thiết lập Mockito & JUnit
+  purpose: Khởi tạo mock và tiêm phụ thuộc rõ ràng trong một bài unit test.
+  objectives:
+  - Dùng @ExtendWith(MockitoExtension.class) và @Mock.
+  - Khởi tạo system under test bằng constructor hoặc @InjectMocks.
+- id: stubbing-ket-qua-loi
+  title: Stubbing Kết quả & Lỗi
+  purpose: Mô phỏng phản hồi của dependency cho các nhánh xử lý khác nhau.
+  objectives:
+  - Dùng when(...).thenReturn(...) cho dữ liệu giả lập.
+  - Dùng thenThrow(...) để test luồng ngoại lệ.
+- id: verify-tuong-tac
+  title: Verify Tương tác
+  purpose: Kiểm tra lời gọi tới collaborator khi đó là hành vi quan trọng cần bảo đảm.
+  objectives:
+  - Dùng verify(...), times(...) và never().
+  - Phân biệt assert kết quả với verify side effect.
+- id: matchers-argumentcaptor
+  title: Matchers & ArgumentCaptor
+  purpose: Kiểm tra tham số trao đổi với dependency mà không ràng buộc test quá mức.
+  objectives:
+  - Sử dụng eq(...), any(...) đúng cách khi stub hoặc verify.
+  - Bắt và assert tham số bằng ArgumentCaptor.
+- id: mock-spy-thuc-the-that
+  title: Mock, Spy & Thực thể thật
+  purpose: Chọn mức thay thế phụ thuộc phù hợp và tránh side effect ngoài ý muốn.
+  objectives:
+  - Phân biệt mock hoàn toàn với spy gọi phương thức thật.
+  - Dùng doReturn(...).when(spy) khi cần tránh thực thi thật lúc stub.
+- id: mockito-trong-spring-test
+  title: Mockito trong Spring Test
+  purpose: Phân biệt kiểm thử đơn vị không khởi động Spring với test có ApplicationContext.
+  objectives:
+  - Mock repository trong unit test service thông thường.
+  - Dùng @MockitoBean để thay bean trong test context khi cần.
+- id: thuc-hanh-chat-luong-test
+  title: Thực hành & Chất lượng Test
+  purpose: Viết kiểm thử dễ bảo trì và nhận ra tác hại của việc mock quá nhiều.
+  objectives:
+  - Test service với nhánh thành công và thất bại.
+  - Loại bỏ unnecessary stubs và kết hợp integration test khi phù hợp.

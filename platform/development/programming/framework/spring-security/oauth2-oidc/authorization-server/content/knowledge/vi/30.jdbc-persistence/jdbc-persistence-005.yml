@@ -1,0 +1,3 @@
+menuLevel1: Lưu trữ JDBC
+menuLevel2: Khởi tạo schema và quản lý migration bằng Flyway hoặc Liquibase
+status: WRITTEN

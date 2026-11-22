@@ -1,0 +1,2989 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Tính mô-đun (modularity) là gì và giải quyết vấn đề nào trong thiết kế phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Mô-đun như một đơn vị trách nhiệm có giao diện và phần triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa tính mô-đun với khả năng hiểu, thay đổi và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt chia nhỏ mã nguồn với thiết kế mô-đun có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt mô-đun, lớp, package, thư viện, thành phần và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Ba yếu tố nền tảng: tính gắn kết, mức phụ thuộc và che giấu thông tin'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Chi phí phối hợp và chi phí tích hợp do việc phân chia mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phân biệt độc lập về thiết kế, build, triển khai và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Tính mô-đun trong lập trình hướng thủ tục, hướng đối tượng và hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Thuật ngữ và thứ tự học để thiết kế mô-đun từ yêu cầu đến kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-levels
+  title: Cấp độ mô-đun
+  childs:
+  - slug: module-levels-001
+    title: Mô-đun logic trong mô hình thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-002
+    title: Mô-đun vật lý trong cấu trúc mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-003
+    title: Ranh giới package và giới hạn kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-004
+    title: Ranh giới thư viện và đơn vị đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-005
+    title: Ranh giới dự án build và đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-006
+    title: Ranh giới tiến trình và đơn vị triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-007
+    title: Phân biệt monorepo, nhiều repository và kiến trúc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-008
+    title: Một mô-đun nghiệp vụ được biểu diễn qua nhiều lớp và package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-levels-009
+    title: Đối chiếu ranh giới dự kiến với ranh giới được công cụ thực sự cưỡng chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: decomposition-criteria
+  title: Tiêu chí phân rã
+  childs:
+  - slug: decomposition-criteria-001
+    title: Bắt đầu từ năng lực nghiệp vụ và mục tiêu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-002
+    title: Phân rã theo quyết định thiết kế cần được che giấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-003
+    title: Phân tích những phần thường thay đổi cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-004
+    title: Xác định những phần cần thay đổi hoặc phát hành độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-005
+    title: Phân rã theo trách nhiệm thay vì theo số lượng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-006
+    title: Đánh giá phân rã theo miền nghiệp vụ, luồng xử lý và lớp kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-007
+    title: Phân biệt ranh giới ổn định với ranh giới còn nhiều bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-008
+    title: Cân bằng độ lớn mô-đun với chi phí giao tiếp qua ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-009
+    title: Xác định yếu tố bảo mật, dữ liệu và vận hành ảnh hưởng đến phân rã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-010
+    title: Thử ranh giới bằng các kịch bản thay đổi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decomposition-criteria-011
+    title: Ghi nhận giả định và lựa chọn chưa thể quyết định ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: information-hiding
+  title: Che giấu thông tin
+  childs:
+  - slug: information-hiding-001
+    title: Che giấu thông tin (information hiding) và quan hệ với đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-002
+    title: Phân biệt ẩn dữ liệu với ẩn quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-003
+    title: Nhận diện chi tiết có khả năng thay đổi cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-004
+    title: Giới hạn phạm vi ảnh hưởng khi thay đổi thuật toán hoặc cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-005
+    title: Giữ bất biến của mô-đun bằng quyền kiểm soát trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-006
+    title: Tránh để kiểu dữ liệu nội bộ xuất hiện trong giao diện công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-007
+    title: Ngăn mã bên ngoài truy cập trực tiếp cấu trúc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-008
+    title: Phân biệt đóng gói bằng quy ước với đóng gói được ngôn ngữ bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-009
+    title: Nhận diện việc rò rỉ triển khai qua lỗi, cấu hình và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: information-hiding-010
+    title: Đánh giá khả năng che giấu nhiều chi tiết sau một giao diện đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cohesion
+  title: Tính gắn kết
+  childs:
+  - slug: cohesion-001
+    title: Tính gắn kết (cohesion) và lý do các phần thuộc cùng một mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-002
+    title: Gắn kết theo chức năng và theo dữ liệu được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-003
+    title: Gắn kết theo chuỗi xử lý và giao tiếp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-004
+    title: Nhận diện gắn kết theo thời điểm, lựa chọn logic hoặc ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-005
+    title: Liên hệ một lý do thay đổi với nguyên tắc trách nhiệm đơn nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-006
+    title: Phân biệt gắn kết về nghiệp vụ với việc đặt các tệp gần nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-007
+    title: Nhận diện mô-đun chứa nhiều trách nhiệm không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-008
+    title: Đánh giá lớp tiện ích và package dùng chung theo tính gắn kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-009
+    title: Nhận diện mô-đun bị chia quá nhỏ khiến một thay đổi lan khắp nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-010
+    title: Sử dụng lịch sử thay đổi để kiểm chứng tính gắn kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cohesion-011
+    title: Giới hạn của chỉ số gắn kết khi thiếu ngữ cảnh thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coupling-levels
+  title: Mức phụ thuộc
+  childs:
+  - slug: coupling-levels-001
+    title: Mức phụ thuộc (coupling) và tác động đến thay đổi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-002
+    title: Phân biệt phụ thuộc tĩnh, phụ thuộc lúc chạy và phụ thuộc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-003
+    title: Phụ thuộc trực tiếp, gián tiếp và bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-004
+    title: Phụ thuộc vào dữ liệu toàn cục và trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-005
+    title: Phụ thuộc vào cờ điều khiển và trình tự gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-006
+    title: Phụ thuộc vào cấu trúc dữ liệu lớn vượt nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-007
+    title: Phụ thuộc về thời gian, thứ tự khởi tạo và vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-008
+    title: Phụ thuộc ngữ nghĩa dù không có import hoặc lời gọi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-009
+    title: Phụ thuộc do dùng chung cơ sở dữ liệu và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-010
+    title: Phân biệt phụ thuộc thiết yếu với phụ thuộc phát sinh do cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-011
+    title: Đánh giá tác động dây chuyền và phạm vi kiểm thử khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coupling-levels-012
+    title: Giảm phụ thuộc có hại mà vẫn giữ thiết kế dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-boundaries
+  title: Ranh giới mô-đun
+  childs:
+  - slug: module-boundaries-001
+    title: Xác định trách nhiệm, khả năng cung cấp và phần nằm ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-002
+    title: Xác định chủ sở hữu trạng thái và các bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-003
+    title: Liệt kê điểm vào hợp lệ và các đường truy cập bị cấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-004
+    title: Tách giao diện công khai khỏi phần triển khai nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-005
+    title: Đặt tên mô-đun theo khái niệm nhất quán trong miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-006
+    title: Phân biệt ranh giới mô-đun với bounded context và aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-007
+    title: Phân bổ quy tắc nghiệp vụ khi một quy trình đi qua nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-008
+    title: Xác định mô-đun sở hữu một khái niệm dùng ở nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-009
+    title: Kiểm tra ranh giới bằng ví dụ sử dụng và tình huống ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-010
+    title: Nhận diện ranh giới bị xuyên thủng bởi truy vấn hoặc truy cập trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-boundaries-011
+    title: Lập tài liệu mô tả trách nhiệm và quan hệ với mô-đun khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contracts-apis
+  title: Hợp đồng và API
+  childs:
+  - slug: contracts-apis-001
+    title: Hợp đồng mô-đun gồm cú pháp, ngữ nghĩa và hành vi quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-002
+    title: Thiết kế giao diện theo nhu cầu bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-003
+    title: Giữ bề mặt API nhỏ và đủ diễn đạt nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-004
+    title: Xác định tiền điều kiện, hậu điều kiện và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-005
+    title: Phân biệt truy vấn với thao tác thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-006
+    title: Thiết kế tham số, giá trị trả về và kiểu dữ liệu qua ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-007
+    title: Quy định quyền sở hữu và khả năng sửa đổi đối tượng được truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-008
+    title: Thiết kế lỗi nghiệp vụ và lỗi kỹ thuật có thể xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-009
+    title: Thể hiện giới hạn thời gian, tài nguyên và tính an toàn luồng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-010
+    title: Tránh chuỗi lời gọi bắt người sử dụng biết cấu trúc bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-011
+    title: Đánh giá API quá chi tiết, quá chung chung hoặc khó dùng đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-012
+    title: Kiểm chứng hợp đồng bằng ví dụ và kiểm thử từ phía bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-apis-013
+    title: Tách giao diện cho các nhóm sử dụng có nhu cầu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-graph
+  title: Đồ thị phụ thuộc
+  childs:
+  - slug: dependency-graph-001
+    title: Biểu diễn mô-đun và quan hệ phụ thuộc thành đồ thị có hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-002
+    title: Phân biệt chiều gọi lúc chạy với chiều phụ thuộc mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-003
+    title: Nhận diện phụ thuộc vòng trực tiếp và qua nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-004
+    title: Áp dụng nguyên tắc phụ thuộc không có chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-005
+    title: Đảo ngược phụ thuộc bằng hợp đồng đặt ở phía phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-006
+    title: Phân biệt dependency inversion với dependency injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-007
+    title: Áp dụng port và adapter để cô lập công nghệ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-008
+    title: Tách phần phối hợp để xử lý quan hệ phụ thuộc hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-009
+    title: Đánh giá hướng phụ thuộc theo mức ổn định và tính trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-010
+    title: Kiểm soát phụ thuộc bắc cầu và phần triển khai bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-011
+    title: Phân biệt phụ thuộc tùy chọn với phụ thuộc bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-012
+    title: Đặt quy tắc kiến trúc cho các cạnh được phép và bị cấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-transactions
+  title: Dữ liệu và giao dịch
+  childs:
+  - slug: data-transactions-001
+    title: Xác định mô-đun sở hữu dữ liệu và quyền cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-002
+    title: Phân biệt mô hình miền nội bộ với dữ liệu trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-003
+    title: Tránh chia sẻ thực thể lưu trữ như hợp đồng chung của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-004
+    title: Trao đổi định danh và dữ liệu cần thiết thay vì tham chiếu cấu trúc nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-005
+    title: Giữ bất biến trong phạm vi một giao dịch của mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-006
+    title: Đánh giá giao dịch trải qua nhiều mô-đun trong cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-007
+    title: Phân biệt tính nhất quán tức thời và tính nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-008
+    title: Thiết kế bản sao dữ liệu đọc và quy tắc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-009
+    title: Kiểm soát truy vấn chéo dữ liệu và báo cáo liên mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-010
+    title: Quản lý thay đổi schema mà không buộc mọi bên thay đổi cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-011
+    title: Xử lý cache, dữ liệu lỗi thời và quyền sở hữu vòng đời dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transactions-012
+    title: Đánh giá đánh đổi giữa tự chủ dữ liệu và chi phí phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-interactions
+  title: Tương tác mô-đun
+  childs:
+  - slug: module-interactions-001
+    title: Lựa chọn gọi trực tiếp, truyền thông điệp và phát sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-002
+    title: Phân biệt lệnh, truy vấn và sự kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-003
+    title: Thiết kế phối hợp tập trung và phối hợp qua sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-004
+    title: Đánh giá mức phụ thuộc mà sự kiện vẫn có thể tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-005
+    title: Xác định thứ tự xử lý và trách nhiệm khi một bước thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-006
+    title: Thiết kế xử lý lặp an toàn cho thông điệp và yêu cầu được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-007
+    title: Quản lý timeout, hủy xử lý và lỗi lan qua ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-008
+    title: Tránh mô hình giao tiếp quá nhiều lần cho một thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-009
+    title: Chuyển đổi dữ liệu giữa các mô hình mà không làm rò rỉ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-010
+    title: Theo dõi một quy trình đi qua nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-interactions-011
+    title: Chọn cách giao tiếp theo nhu cầu nhất quán và độ phức tạp thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-organization
+  title: Tổ chức mã nguồn
+  childs:
+  - slug: code-organization-001
+    title: Tổ chức theo lớp kỹ thuật và tác động đến một thay đổi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-002
+    title: Tổ chức theo tính năng và năng lực nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-003
+    title: Kết hợp phân chia tính năng với các lớp bên trong mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-004
+    title: Phân biệt cấu trúc thư mục với quyền truy cập được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-005
+    title: Đặt giao diện, kiểu công khai và mã nội bộ ở vị trí rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-006
+    title: Quản lý mô-đun nền tảng, mô-đun nghiệp vụ và lớp ghép nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-007
+    title: Phân biệt dùng lại có chủ đích với gom mã giống nhau vào shared
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-008
+    title: Áp dụng nguyên tắc cùng thay đổi và cùng tái sử dụng khi đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-009
+    title: Giữ mã kiểm thử phản ánh ranh giới mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-organization-010
+    title: Đặt quy ước tên và cấu trúc đủ đơn giản để nhóm duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modular-architecture
+  title: Kiến trúc mô-đun
+  childs:
+  - slug: modular-architecture-001
+    title: Thiết kế modular monolith với ranh giới được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-002
+    title: Kết hợp kiến trúc phân lớp với mô-đun theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-003
+    title: Áp dụng kiến trúc lục giác để cô lập bên trong và bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-004
+    title: Liên hệ Clean Architecture với hướng phụ thuộc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-005
+    title: Phân biệt tính mô-đun với lựa chọn monolith hay microservices
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-006
+    title: Đánh giá mô-đun đủ tự chủ trước khi cân nhắc tách dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-007
+    title: Chi phí mạng, triển khai và nhất quán dữ liệu khi tách tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-008
+    title: Tổ chức lớp ghép nối và điểm khởi tạo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-009
+    title: Đánh giá ranh giới trong ứng dụng dòng lệnh, web và xử lý nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modular-architecture-010
+    title: Chọn cấu trúc theo nhu cầu thay đổi thay vì theo mẫu kiến trúc phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modules-in-java
+  title: Mô-đun trong Java
+  childs:
+  - slug: modules-in-java-001
+    title: Sử dụng package để biểu diễn nhóm trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-002
+    title: Kiểm soát truy cập bằng public, protected, package-private và private
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-003
+    title: Giới hạn của package con đối với đóng gói và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-004
+    title: Thiết kế facade công khai với các lớp triển khai nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-005
+    title: Dùng interface để biểu diễn hợp đồng có nhu cầu thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-006
+    title: Tách DTO công khai khỏi entity và đối tượng miền nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-007
+    title: Sử dụng đối tượng bất biến để hạn chế phụ thuộc qua trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-008
+    title: Kiểm soát exception xuất hiện trong hợp đồng giữa các package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-009
+    title: Nhận diện reflection và truy cập gián tiếp có thể vượt quy ước thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-in-java-010
+    title: Minh họa một thay đổi nội bộ không làm đổi mã bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jpms-modules
+  title: Mô-đun JPMS
+  childs:
+  - slug: jpms-modules-001
+    title: Vai trò của Java Platform Module System và module-info.java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-002
+    title: Phân biệt named module, unnamed module và automatic module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-003
+    title: Khai báo quan hệ phụ thuộc bằng requires
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-004
+    title: Kiểm soát bề mặt công khai của package bằng exports
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-005
+    title: Phân biệt exports với opens khi sử dụng reflection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-006
+    title: Đánh giá sự lan truyền khả năng đọc mô-đun qua requires transitive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-007
+    title: Sử dụng uses và provides với cơ chế khám phá dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-008
+    title: Phân biệt module path với classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-009
+    title: Nhận diện split package và xung đột khi chuyển đổi cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-010
+    title: Đánh giá mức bảo vệ của JPMS và giới hạn đối với cô lập bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jpms-modules-011
+    title: Lập kế hoạch áp dụng JPMS khi thư viện và framework có yêu cầu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-packaging
+  title: Build và đóng gói
+  childs:
+  - slug: build-packaging-001
+    title: Ánh xạ mô-đun thiết kế sang dự án build và artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-002
+    title: Tổ chức Gradle multi-project hoặc Maven multi-module theo ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-003
+    title: Phân biệt phụ thuộc API công khai với phụ thuộc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-004
+    title: Kiểm soát kiểu từ thư viện bên ngoài bị lộ qua API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-005
+    title: Quản lý phiên bản và sự hội tụ của phụ thuộc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-006
+    title: Tổ chức mã kiểm thử tích hợp qua nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-007
+    title: Kiểm chứng mô-đun build được với đúng phụ thuộc đã khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-008
+    title: Đánh giá thay đổi ranh giới đối với thời gian build và cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-009
+    title: Tách mã cấu hình build dùng chung khỏi phụ thuộc runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-packaging-010
+    title: Giữ ranh giới thiết kế khi đóng gói vào một ứng dụng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-modules
+  title: Mô-đun với Spring
+  childs:
+  - slug: spring-modules-001
+    title: Tổ chức package nghiệp vụ trong ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-002
+    title: Chọn điểm cấu hình và phạm vi component scanning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-003
+    title: Công khai dịch vụ ứng dụng thay vì để bean nội bộ bị dùng tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-004
+    title: Nhận diện phụ thuộc vòng giữa bean và vấn đề thiết kế phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-005
+    title: Đặt cấu hình dependency injection ở lớp ghép nối phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-006
+    title: Giao tiếp qua sự kiện ứng dụng và kiểm soát hợp đồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-007
+    title: Xác định ranh giới giao dịch khi gọi qua các mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-008
+    title: Tránh đưa entity và repository nội bộ vào hợp đồng mô-đun khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-009
+    title: Kiểm thử một mô-đun với tập cấu hình và bean cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-010
+    title: Kiểm chứng thay thế adapter mà không đổi logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-modules-011
+    title: Đánh giá công cụ hỗ trợ modular monolith theo ranh giới đã thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extensibility-plugins
+  title: Mở rộng và plugin
+  childs:
+  - slug: extensibility-plugins-001
+    title: Xác định phần ổn định và điểm cần cho phép mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-002
+    title: Thiết kế hợp đồng plugin theo năng lực cần cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-003
+    title: Phân biệt mở rộng bằng cấu hình, composition và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-004
+    title: Khám phá và đăng ký phần mở rộng một cách rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-005
+    title: Quản lý vòng đời khởi tạo, sử dụng và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-006
+    title: Xác định thứ tự, độ ưu tiên và xung đột giữa các phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-007
+    title: Kiểm soát phụ thuộc ngược từ lõi vào plugin cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-008
+    title: Xử lý lỗi plugin và giới hạn ảnh hưởng đến hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-009
+    title: Đánh giá nhu cầu cô lập classloader hoặc tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensibility-plugins-010
+    title: Tránh tạo cơ chế plugin khi chưa có nhu cầu biến đổi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versioning-compatibility
+  title: Phiên bản và tương thích
+  childs:
+  - slug: versioning-compatibility-001
+    title: Phân biệt thay đổi API, thay đổi triển khai và thay đổi hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-002
+    title: Đánh giá tương thích mã nguồn, tương thích nhị phân và tương thích ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-003
+    title: Thiết kế thay đổi bổ sung mà bên sử dụng cũ vẫn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-004
+    title: Đánh giá thay đổi tham số, kiểu trả về và hệ thống lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-005
+    title: Quản lý giá trị mặc định, null và trường dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-006
+    title: Phiên bản hóa thông điệp và hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-007
+    title: Thông báo ngừng hỗ trợ và chuẩn bị lộ trình chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-008
+    title: Tổ chức phát hành cùng nhau hoặc độc lập theo mức tự chủ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-009
+    title: Kiểm chứng tương thích bằng kiểm thử hợp đồng và bên sử dụng đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-compatibility-010
+    title: Đánh giá phiên bản hóa ngữ nghĩa trong bối cảnh hợp đồng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-cutting-concerns
+  title: Mối quan tâm chung
+  childs:
+  - slug: cross-cutting-concerns-001
+    title: Phân bổ xác thực, phân quyền và chính sách truy cập qua ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-002
+    title: Giữ quy tắc nghiệp vụ gần mô-đun sở hữu quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-003
+    title: Thiết kế ghi log và định danh tương quan nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-004
+    title: Tổ chức metrics, tracing và quan sát theo mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-005
+    title: Quản lý cấu hình cùng giá trị mặc định và kiểm tra hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-006
+    title: Chuẩn hóa lỗi ở biên ứng dụng mà vẫn giữ ngữ nghĩa nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-007
+    title: Kiểm soát giao dịch, cache và retry trong lớp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-008
+    title: Quản lý tài nguyên, luồng xử lý và cơ chế hủy công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-009
+    title: Tránh thư viện nền tảng trở thành nơi tập hợp mọi trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cutting-concerns-010
+    title: Đánh giá chi phí phụ thuộc của các tiện ích và framework dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-testing
+  title: Kiểm thử mô-đun
+  childs:
+  - slug: module-testing-001
+    title: Xác định đơn vị kiểm thử theo trách nhiệm và hợp đồng mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-002
+    title: Kiểm thử hành vi qua API công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-003
+    title: Kiểm thử nội bộ khi cần mà không làm mở rộng API sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-004
+    title: Phân biệt kiểm thử đơn vị, mô-đun, tích hợp và toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-005
+    title: Thay thế phụ thuộc bằng fake, stub hoặc adapter kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-006
+    title: Nhận diện việc lạm dụng mock che giấu phụ thuộc thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-007
+    title: Kiểm thử hợp đồng ở cả phía cung cấp và phía sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-008
+    title: Kiểm thử bất biến, lỗi và trường hợp dữ liệu biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-009
+    title: Kiểm thử trạng thái dùng chung và các tác động ngoài mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-010
+    title: Kiểm thử mô-đun với cấu hình tối thiểu và dữ liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-011
+    title: Chọn tập kiểm thử cần chạy khi một mô-đun thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-testing-012
+    title: Kiểm chứng khả năng thay triển khai mà vẫn giữ hành vi đã cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-enforcement
+  title: Kiểm soát kiến trúc
+  childs:
+  - slug: architecture-enforcement-001
+    title: Chuyển quy tắc ranh giới thành kiểm tra tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-002
+    title: Kiểm tra import và quan hệ phụ thuộc giữa các package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-003
+    title: Phát hiện chu trình trên đồ thị mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-004
+    title: Kiểm tra chỉ truy cập API công khai và tránh lớp nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-005
+    title: Kiểm tra chiều phụ thuộc giữa nghiệp vụ, ứng dụng và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-006
+    title: Sử dụng ArchUnit cho quy tắc kiến trúc trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-007
+    title: Phối hợp kiểm tra build với kiểm tra kiến trúc ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-008
+    title: Lập mốc ban đầu (baseline) cho vi phạm đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-009
+    title: Quản lý ngoại lệ có lý do, chủ sở hữu và thời hạn rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-010
+    title: Đưa kiểm tra ranh giới vào quy trình review và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-enforcement-011
+    title: Phát hiện kiến trúc bị xói mòn qua các thay đổi nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-operations
+  title: Hiệu năng và vận hành
+  childs:
+  - slug: performance-operations-001
+    title: Đánh giá chi phí lời gọi, chuyển đổi dữ liệu và phân bổ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-002
+    title: Giảm giao tiếp quá vụn mà vẫn giữ ranh giới có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-003
+    title: Phân tích tải, bộ nhớ và tài nguyên do từng mô-đun sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-004
+    title: Đánh giá lợi ích cache và mức phụ thuộc trạng thái phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-005
+    title: Xác định tính an toàn luồng và quyền sở hữu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-006
+    title: Quản lý thứ tự khởi tạo, dừng và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-007
+    title: Phân biệt cô lập thiết kế với cô lập lỗi lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-008
+    title: Đánh giá phạm vi ảnh hưởng khi mô-đun dùng cạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-009
+    title: Quan sát hoạt động mô-đun trong một tiến trình dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-010
+    title: Chọn tối ưu dựa trên đo đạc và kịch bản sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-metrics
+  title: Đo lường thiết kế
+  childs:
+  - slug: design-metrics-001
+    title: Đánh giá khả năng phân rã, kết hợp và hiểu từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-002
+    title: Đánh giá phạm vi lan truyền thay đổi và ảnh hưởng của lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-003
+    title: Đo số phụ thuộc đi vào và đi ra theo mục đích phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-004
+    title: Nhận diện điểm tập trung phụ thuộc và mô-đun khó thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-005
+    title: Đánh giá tính gắn kết bằng mã nguồn và lịch sử cùng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-006
+    title: Đo bề mặt API công khai so với năng lực mô-đun cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-007
+    title: Phân tích phạm vi tệp, mô-đun và nhóm phải phối hợp cho một thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-008
+    title: Đối chiếu chỉ số tĩnh với thời gian build, kiểm thử và sửa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-009
+    title: Tránh dùng số lượng mô-đun hoặc kích thước tệp làm mục tiêu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-metrics-010
+    title: Ghi rõ giới hạn của chỉ số và kiểm chứng bằng kịch bản thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring
+  title: Tái cấu trúc
+  childs:
+  - slug: refactoring-001
+    title: Khảo sát cấu trúc hiện tại và lập đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-002
+    title: Nhận diện cụm trách nhiệm và những phần thường thay đổi cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-003
+    title: Bổ sung kiểm thử đặc trưng trước khi thay đổi ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-004
+    title: Tạo API trung gian để gom các đường truy cập đang phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-005
+    title: Đưa chi tiết triển khai về phạm vi nội bộ từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-006
+    title: Tách trách nhiệm khỏi lớp hoặc package có quá nhiều vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-007
+    title: Phá chu trình bằng trích xuất hợp đồng hoặc chuyển điểm phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-008
+    title: Giảm trạng thái toàn cục và truy cập dữ liệu chéo mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-009
+    title: Tách phần dùng chung dựa trên trách nhiệm đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-010
+    title: Chuyển đổi dần với các điểm kiểm tra hành vi và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-011
+    title: Đánh giá gộp lại những mô-đun bị phân mảnh quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-012
+    title: Kiểm chứng lợi ích bằng thay đổi thực tế sau tái cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-design-mistakes
+  title: Lỗi thiết kế thường gặp
+  childs:
+  - slug: common-design-mistakes-001
+    title: Mô-đun khổng lồ tập trung quá nhiều trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-002
+    title: Mô-đun quá nhỏ làm tăng số lượng bước phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-003
+    title: Package dùng chung trở thành nơi chứa mọi mã khó phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-004
+    title: Giao diện quá rộng buộc bên sử dụng phụ thuộc phần không cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-005
+    title: Chia lớp theo kỹ thuật nhưng mọi thay đổi nghiệp vụ vẫn lan khắp nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-006
+    title: Chia sẻ entity và cơ sở dữ liệu làm mất quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-007
+    title: Phụ thuộc vòng bị che bằng sự kiện hoặc service locator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-008
+    title: Lớp facade chỉ chuyển tiếp lời gọi mà không bảo vệ ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-009
+    title: Tạo abstraction và plugin trước khi hiểu nhu cầu biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-010
+    title: Dùng dependency injection nhưng vẫn phụ thuộc chặt về ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-011
+    title: Tách dịch vụ khi ranh giới mô-đun và hợp đồng còn không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-design-mistakes-012
+    title: Tuân thủ chỉ số hoặc mẫu thiết kế nhưng làm mã khó hiểu hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: teams-documentation
+  title: Đội ngũ và tài liệu
+  childs:
+  - slug: teams-documentation-001
+    title: Xác định chủ sở hữu mô-đun và trách nhiệm duy trì hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-documentation-002
+    title: Thiết kế quyền review theo ranh giới và phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-documentation-003
+    title: Ghi quyết định phân rã cùng phương án thay thế đã đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-documentation-004
+    title: Mô tả API, bất biến và phụ thuộc để hỗ trợ người mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-documentation-005
+    title: Phối hợp thay đổi hợp đồng giữa nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-documentation-006
+    title: Đánh giá quan hệ giữa cấu trúc đội ngũ và cấu trúc hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-documentation-007
+    title: Cân bằng quyền tự chủ với quy ước và nền tảng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: teams-documentation-008
+    title: Rà soát ranh giới khi miền nghiệp vụ hoặc tổ chức thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-labs
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-labs-001
+    title: Phân tích một ứng dụng nhỏ có mã nghiệp vụ và dữ liệu bị trộn lẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-002
+    title: Xác định năng lực nghiệp vụ và đề xuất ranh giới mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-003
+    title: Thiết kế hợp đồng và ví dụ sử dụng trước khi chia thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-004
+    title: Chuyển ứng dụng sang package theo tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-005
+    title: Đóng phần triển khai nội bộ và chỉ giữ API cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-006
+    title: Loại bỏ một phụ thuộc vòng bằng thay đổi điểm phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-007
+    title: Tách phụ thuộc cơ sở dữ liệu hoặc dịch vụ ngoài qua adapter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-008
+    title: Viết kiểm thử mô-đun và kiểm thử hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-009
+    title: Thêm kiểm tra kiến trúc ngăn truy cập nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-010
+    title: Ánh xạ ranh giới sang dự án build khi có lợi ích rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-011
+    title: Thử thay đổi một quy tắc nghiệp vụ và đo phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-012
+    title: So sánh thiết kế trước và sau bằng bằng chứng thay đổi và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-013
+    title: Viết tài liệu ranh giới, đánh đổi và những điểm còn cần cải thiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-scenarios
+  title: Tình huống thiết kế
+  childs:
+  - slug: design-scenarios-001
+    title: Thiết kế mô-đun danh mục, đơn hàng và thanh toán trong ứng dụng bán hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-002
+    title: Phân bổ quy tắc giảm giá khi có nhiều luồng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-003
+    title: Thiết kế quyền sở hữu dữ liệu giữa đơn hàng và tồn kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-004
+    title: Xử lý báo cáo cần dữ liệu từ nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-005
+    title: Thay nhà cung cấp thanh toán mà giữ ổn định hợp đồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-006
+    title: Thêm phương thức vận chuyển qua điểm mở rộng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-007
+    title: Xử lý hai mô-đun cùng cần một khái niệm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-008
+    title: Đánh giá tách một năng lực khỏi modular monolith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-009
+    title: Tái cấu trúc package shared khi nhiều nhóm cùng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-010
+    title: Điều chỉnh ranh giới khi một thay đổi liên tục chạm nhiều mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-011
+    title: Xử lý yêu cầu tối ưu hiệu năng có nguy cơ xuyên thủng đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-process
+  title: Quy trình thiết kế
+  childs:
+  - slug: design-process-001
+    title: Làm rõ mục tiêu, phạm vi và kịch bản thay đổi quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-002
+    title: Nhận diện trách nhiệm, dữ liệu và quyết định cần che giấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-003
+    title: Đề xuất các phương án phân rã với giả định rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-004
+    title: Thiết kế API và đồ thị phụ thuộc cho từng phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-005
+    title: Kiểm tra hợp đồng bằng ví dụ sử dụng và trường hợp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-006
+    title: Đánh giá đánh đổi về thay đổi, kiểm thử, build và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-007
+    title: Triển khai cấu trúc tối thiểu cùng cơ chế bảo vệ ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-008
+    title: Thử nghiệm kịch bản thay đổi trước khi mở rộng cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-process-009
+    title: Rà soát thiết kế theo bằng chứng và tiến hóa khi có nhu cầu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

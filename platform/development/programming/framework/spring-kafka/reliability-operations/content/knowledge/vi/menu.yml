@@ -1,0 +1,502 @@
+menu:
+- level1: Phạm vi vận hành
+  level2:
+  - Reliability Operations trong Spring Kafka
+  - Mục tiêu sẵn sàng, bền vững và khôi phục
+  - Luồng producer, broker, consumer và listener
+  - Điểm kiểm soát trong vòng đời message
+  - Failure domain của ứng dụng và Kafka
+  - SLO, SLA và chỉ số vận hành
+  - Khi nào dùng Spring Kafka thay cho client thuần
+  - Ranh giới trách nhiệm giữa ứng dụng và broker
+- level1: Mô hình tin cậy
+  level2:
+  - At most once, at least once và exactly once
+  - Delivery guarantee của producer
+  - Delivery guarantee của consumer
+  - Read, process và write trong một luồng
+  - Mất message, duplicate và retry
+  - Offset như mốc tiến độ xử lý
+  - Transaction boundary của Kafka
+  - Đánh đổi giữa độ trễ và độ bền
+  - Không đồng nhất exactly once với không duplicate tuyệt đối
+- level1: Producer bền vững
+  level2:
+  - KafkaTemplate và đường đi của send
+  - ProducerFactory và vòng đời producer
+  - acks và mức xác nhận ghi
+  - enable.idempotence
+  - retries và retry backoff
+  - delivery.timeout.ms
+  - request.timeout.ms
+  - max.in.flight.requests.per.connection
+  - linger.ms và batch.size
+  - compression.type và áp lực CPU
+  - send callback và CompletableFuture
+  - Xác nhận kết quả gửi trước khi hoàn tất use case
+  - Producer exception và cách phân loại
+- level1: Producer vận hành
+  level2:
+  - KafkaTemplate metrics
+  - Producer interceptor
+  - ProducerListener
+  - Xử lý send timeout
+  - Xử lý unknown topic hoặc partition
+  - Xử lý NotEnoughReplicas
+  - Xử lý RecordTooLarge
+  - Xử lý AuthorizationException
+  - Kiểm soát retry vô hạn
+  - Đặt client.id có thể truy vết
+  - Đặt transactionIdPrefix duy nhất theo instance
+  - Producer fencing và zombie instance
+- level1: Consumer bền vững
+  level2:
+  - ConsumerFactory và listener container
+  - poll loop và giới hạn max.poll.interval.ms
+  - max.poll.records và thời gian xử lý
+  - session.timeout.ms và heartbeat
+  - consumer group và committed offset
+  - auto.offset.reset
+  - enable.auto.commit
+  - isolation.level và read_committed
+  - fetch.min.bytes và fetch.max.wait.ms
+  - max.partition.fetch.bytes
+  - ConsumerRebalanceListener
+  - Consumer exception và vòng đời container
+- level1: Consumer group
+  level2:
+  - Partition assignment và ownership
+  - Một partition chỉ có một consumer trong group
+  - Concurrency và số partition
+  - Group id ổn định theo nghiệp vụ
+  - Nhiều instance cùng một group
+  - Consumer group lag
+  - Rebalance khi scale out
+  - Rebalance khi consumer chết
+  - Cooperative và eager rebalancing
+  - Static membership
+  - Tránh group id thay đổi ngoài ý muốn
+- level1: Offset và ack
+  level2:
+  - AckMode BATCH
+  - AckMode RECORD
+  - AckMode TIME
+  - AckMode COUNT
+  - AckMode COUNT_TIME
+  - AckMode MANUAL
+  - AckMode MANUAL_IMMEDIATE
+  - Sync commit và async commit
+  - commitCallback
+  - commitRetries
+  - AsyncAcks và commit lệch thứ tự
+  - commitRecovered sau khi recover
+  - Commit offset trước và sau listener
+  - Offset commit khi listener ném exception
+- level1: Listener container
+  level2:
+  - KafkaMessageListenerContainer
+  - ConcurrentMessageListenerContainer
+  - ContainerProperties
+  - ConcurrentKafkaListenerContainerFactory
+  - Listener task executor
+  - Consumer thread naming
+  - Container start và stop
+  - shutdownTimeout
+  - stopImmediate
+  - stopContainerWhenFenced
+  - missingTopicsFatal
+  - logContainerConfig
+  - Container factory dùng chung và cô lập cấu hình
+- level1: Concurrency và partition
+  level2:
+  - Chọn concurrency theo số partition
+  - Một consumer thread xử lý partition
+  - Child container trong concurrent container
+  - clientIdSuffix
+  - alwaysClientIdSuffix
+  - subBatchPerPartition
+  - Batch listener và record listener
+  - Giới hạn của tăng concurrency
+  - Executor thiếu thread làm consumer không start
+  - Phân bổ partition không đều
+  - Scale consumer theo lag
+  - Kiểm tra assignment sau deployment
+- level1: Phân loại lỗi
+  level2:
+  - Transient exception và permanent exception
+  - Retryable exception
+  - Not-retryable exception
+  - DeserializationException
+  - Business validation failure
+  - Network timeout
+  - Authorization failure
+  - Producer fencing
+  - Database deadlock
+  - Lỗi do dữ liệu độc hại
+  - Exception thay đổi giữa các lần retry
+  - Chính sách lỗi theo loại record
+- level1: DefaultErrorHandler
+  level2:
+  - Vai trò của DefaultErrorHandler
+  - Cấu hình CommonErrorHandler
+  - FixedBackOff
+  - ExponentialBackOff
+  - Seek sau lỗi
+  - seekAfterError=false
+  - Retain và resubmit record
+  - Retry record theo partition
+  - Retry batch listener
+  - BatchListenerFailedException
+  - DefaultErrorHandler và Boot auto-configuration
+  - RetryListener theo dõi delivery attempt
+  - BackOffHandler và thời gian chờ dài
+- level1: Retry và backoff
+  level2:
+  - Blocking retry
+  - Backoff cố định
+  - Backoff tăng dần
+  - Jitter chống retry đồng loạt
+  - Số lần giao tối đa
+  - UNLIMITED_ATTEMPTS và rủi ro
+  - Delivery attempts header
+  - Reset state khi exception thay đổi
+  - Reset state khi recovery thất bại
+  - Retry không làm vượt max.poll.interval.ms
+  - Retry theo từng record
+  - Retry theo batch
+  - Theo dõi retry latency
+- level1: Non-blocking retry
+  level2:
+  - '@RetryableTopic'
+  - RetryTopicConfiguration
+  - Cách retry topic hoạt động
+  - Topic retry theo delay
+  - Topic naming
+  - DltStrategy
+  - DeadLetterPublishingRecoverer cho retry topic
+  - Kết hợp blocking và non-blocking retry
+  - Delivery attempt trong retry topic
+  - Nhiều listener dùng cùng retry topic
+  - Non-blocking retry không hỗ trợ batch listener
+  - Non-blocking retry không kết hợp container transaction
+  - Độ chính xác của backoff delay
+- level1: Dead letter và recovery
+  level2:
+  - Dead Letter Topic và mục đích
+  - DeadLetterPublishingRecoverer
+  - Destination resolver
+  - Chọn DLT theo topic và partition
+  - Giữ original topic và offset
+  - Dead-letter headers
+  - Failure headers tích lũy
+  - Strip exception headers
+  - Recovery record và logRecoveryRecord
+  - Fail khi DLT publish thất bại
+  - DltHandler
+  - Replay từ DLT về topic gốc
+  - Xác nhận record đã được recover
+  - Chính sách lưu giữ DLT
+- level1: Deserialization và schema
+  level2:
+  - ErrorHandlingDeserializer
+  - DeserializationException trong header
+  - Lỗi deserialize key
+  - Lỗi deserialize value
+  - Record bị lỗi trước khi vào listener
+  - Khôi phục original value vào DLT
+  - Serializer và deserializer không tương thích
+  - Schema evolution
+  - Unknown field và missing field
+  - Schema Registry trong vận hành
+  - Poison pill message
+  - Kiểm tra dữ liệu trước khi deserialize
+  - Dead letter cho lỗi định dạng
+- level1: Transaction Kafka
+  level2:
+  - KafkaTransactionManager
+  - transactionIdPrefix
+  - ProducerFactory transaction capable
+  - KafkaTemplate trong transaction
+  - executeInTransaction
+  - Commit transaction
+  - Rollback transaction
+  - Consumer-initiated transaction
+  - Listener container transaction
+  - AfterRollbackProcessor
+  - Redelivery sau rollback
+  - Producer transaction cache
+  - Transaction timeout
+  - Producer fencing trong transaction
+- level1: Exactly once
+  level2:
+  - EOS trong Spring Kafka
+  - EOSMode.V2
+  - read-process-write exactly once
+  - Read và process vẫn có at-least-once
+  - sendOffsetsToTransaction
+  - Offset và output cùng transaction
+  - read_committed consumer
+  - Transactional producer và isolation
+  - Transaction id duy nhất theo instance
+  - Zombie fencing
+  - EOS và retry topic
+  - EOS và batch listener
+  - Giới hạn của exactly once ngoài Kafka
+- level1: Kafka và database
+  level2:
+  - Đồng bộ Kafka transaction với DB transaction
+  - DB-first commit order
+  - Kafka-first commit order
+  - DataSourceTransactionManager
+  - KafkaTransactionManager cùng @Transactional
+  - Nested @Transactional cho thứ tự commit
+  - Commit transaction thứ hai thất bại
+  - Compensation sau primary commit
+  - Outbox pattern
+  - Inbox pattern
+  - Idempotency key cho DB write
+  - Không phụ thuộc vào ChainedKafkaTransactionManager
+  - Kiểm thử failure giữa hai hệ thống
+- level1: Rebalance và lifecycle
+  level2:
+  - Partition assignment event
+  - onPartitionsAssigned
+  - onPartitionsRevoked
+  - onPartitionsLost
+  - Commit trước rebalance
+  - Xử lý công việc đang chạy khi revoke
+  - Rebalance do poll chậm
+  - Rebalance do session timeout
+  - Graceful shutdown
+  - ContainerStoppedEvent
+  - ConsumerStoppedEvent
+  - Reason FENCED
+  - Restart container sau lỗi
+- level1: Pause và backpressure
+  level2:
+  - Pause listener container
+  - Resume listener container
+  - Pause từng partition
+  - PauseImmediate
+  - Poll khi container đang pause
+  - Backpressure từ downstream
+  - Giới hạn tốc độ xử lý
+  - Tạm dừng khi database quá tải
+  - Tạm dừng khi DLT không khả dụng
+  - Không gọi stop trên consumer thread
+  - Container pause event
+  - Theo dõi thời gian paused
+  - Resume an toàn sau incident
+- level1: Application events
+  level2:
+  - ConsumerStartingEvent
+  - ConsumerStartedEvent
+  - ConsumerFailedToStartEvent
+  - ConsumerRetryAuthEvent
+  - ConsumerRetryAuthSuccessfulEvent
+  - ConsumerStoppingEvent
+  - ConsumerStoppedEvent
+  - ContainerStoppedEvent
+  - ListenerContainerIdleEvent
+  - ListenerContainerNoLongerIdleEvent
+  - ListenerContainerPartitionIdleEvent
+  - NonResponsiveConsumerEvent
+  - ConsumerPausedEvent và ConsumerResumedEvent
+  - Event listener của tất cả container
+  - Listener ID và condition để lọc event
+- level1: Idle và non-responsive
+  level2:
+  - idleEventInterval
+  - idlePartitionEventInterval
+  - idleBeforeDataMultiplier
+  - Phát hiện container không có message
+  - Phát hiện partition không có message
+  - monitorInterval
+  - noPollThreshold
+  - pollTimeout
+  - NonResponsiveConsumerEvent
+  - Consumer bị kẹt trong poll
+  - Lấy current position khi idle
+  - ConsumerSeekAware.onIdleContainer
+  - Hành động khi consumer không phản hồi
+- level1: Monitoring và metrics
+  level2:
+  - Micrometer consumer timers
+  - micrometerEnabled
+  - micrometerTags
+  - micrometerTagsProvider
+  - Consumer lag và tốc độ tiêu thụ
+  - Records processed và records failed
+  - Retry count và recovery count
+  - DLT publish success và failure
+  - Producer send latency
+  - Producer error rate
+  - Commit latency
+  - Rebalance count
+  - Consumer idle time
+  - Metric cardinality và tag hygiene
+- level1: Observation và tracing
+  level2:
+  - observationEnabled
+  - ObservationConvention
+  - Dynamic tags từ ConsumerRecord
+  - Trace context của producer
+  - Trace context của consumer
+  - Liên kết trace giữa topic và listener
+  - Span cho send và receive
+  - Correlation ID trong header
+  - Trace khi retry topic
+  - Trace khi publish DLT
+  - Không đưa payload nhạy cảm vào span
+  - Sampling cho lưu lượng lớn
+  - Phân biệt metric, log và trace
+- level1: Logging và chẩn đoán
+  level2:
+  - Log container config
+  - Commit log level
+  - Log delivery attempt
+  - Log exception chain
+  - Log topic, partition và offset
+  - Log group id và listener id
+  - Log transaction id
+  - Log DLT destination
+  - Correlation ID trong MDC
+  - Structured logging
+  - Giảm log noise khi retry
+  - Đối chiếu log với broker metric
+  - Chẩn đoán duplicate từ log
+- level1: Health và readiness
+  level2:
+  - Health indicator cho Kafka connection
+  - Readiness khi broker chưa sẵn sàng
+  - Liveness của consumer thread
+  - Trạng thái listener container
+  - Topic không tồn tại
+  - Authentication failure
+  - Authorization failure
+  - Consumer group không nhận partition
+  - Lag vượt ngưỡng
+  - DLT producer không gửi được
+  - Tách readiness và liveness
+  - Không restart loop khi broker tạm thời lỗi
+- level1: Bảo mật vận hành
+  level2:
+  - SASL và TLS
+  - JAAS configuration
+  - AuthenticationException
+  - AuthorizationException
+  - ACL cho producer
+  - ACL cho consumer
+  - ACL cho DLT
+  - Bảo vệ secret và certificate
+  - Rotate credential không downtime
+  - Kiểm tra hostname verification
+  - Không log password hoặc token
+  - Phân quyền theo topic và group
+- level1: Hiệu năng và capacity
+  level2:
+  - Throughput và latency
+  - Batch size và max.poll.records
+  - Listener processing time
+  - Producer batching
+  - Consumer fetch sizing
+  - Concurrency theo partition
+  - Executor capacity
+  - CPU, heap và network
+  - Memory khi giữ record để retry
+  - Nghẽn do DLT publish
+  - Backpressure khi downstream chậm
+  - Capacity planning theo peak traffic
+  - Load test với partition thực tế
+- level1: Tính đúng và idempotency
+  level2:
+  - Duplicate delivery
+  - Idempotent consumer
+  - Idempotency key
+  - Deduplication store
+  - Unique constraint trong database
+  - Tác vụ ngoài transaction
+  - Side effect không thể rollback
+  - Business key và message key
+  - Ordering theo partition
+  - Out-of-order event
+  - Tác vụ bù khi xử lý lặp
+  - Kiểm tra replay an toàn
+  - Exactly once processing và idempotent side effect
+- level1: Incident response
+  level2:
+  - Runbook khi consumer lag tăng
+  - Runbook khi producer send thất bại
+  - Runbook khi DLT tăng đột biến
+  - Runbook khi rebalance liên tục
+  - Runbook khi consumer không start
+  - Runbook khi consumer bị fenced
+  - Runbook khi authentication lỗi
+  - Runbook khi topic mất dữ liệu
+  - Khoanh vùng theo topic và partition
+  - Pause trước khi sửa dữ liệu
+  - Replay có kiểm soát
+  - Rollback deployment
+  - Postmortem và hành động phòng ngừa
+- level1: Kiểm thử tin cậy
+  level2:
+  - Test producer send thành công
+  - Test producer send failure
+  - Test consumer retry
+  - Test recover về DLT
+  - Test deserialization failure
+  - Test transaction commit
+  - Test transaction rollback
+  - Test after-rollback redelivery
+  - Test exactly once flow
+  - Test rebalance
+  - Test pause và resume
+  - Test consumer idle event
+  - Test non-responsive consumer
+  - Test duplicate và idempotency
+  - Embedded Kafka và Testcontainers
+- level1: Deployment và cấu hình
+  level2:
+  - Externalized Kafka configuration
+  - Profile theo môi trường
+  - Cấu hình producer và consumer tách biệt
+  - Cấu hình listener container factory
+  - Cấu hình transactionIdPrefix theo instance
+  - Cấu hình topic và partition
+  - Cấu hình retry topic
+  - Cấu hình DLT
+  - Cấu hình security
+  - Cấu hình metrics và observation
+  - Kiểm tra configuration drift
+  - Canary consumer instance
+  - Graceful rolling deployment
+- level1: Nâng cấp và tương thích
+  level2:
+  - Tương thích Spring Kafka và Kafka client
+  - Tương thích Spring Boot
+  - Thay đổi DefaultErrorHandler
+  - EOSMode.V2 và phiên bản framework
+  - Deprecation của transaction manager cũ
+  - Thay đổi retry topic infrastructure
+  - Thay đổi header và record metadata
+  - Kiểm tra compatibility của serializer
+  - Upgrade broker và client độc lập
+  - Smoke test sau upgrade
+  - Rollback version an toàn
+  - Theo dõi release notes
+- level1: Thực hành vận hành
+  level2:
+  - Xây consumer có retry và DLT
+  - Xây producer idempotent
+  - Thêm transaction cho read-process-write
+  - Đồng bộ Kafka với database
+  - Mô phỏng poison pill
+  - Mô phỏng broker mất kết nối
+  - Mô phỏng consumer lag
+  - Mô phỏng rebalance
+  - Mô phỏng producer fencing
+  - Thiết lập metric và alert
+  - Viết runbook replay DLT
+  - Thiết kế dashboard reliability
+  - Checklist production readiness
+  - Bài tập xử lý incident tổng hợp

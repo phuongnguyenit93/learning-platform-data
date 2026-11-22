@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-hexagonal-architecture
+  title: Tư duy Hexagonal Architecture
+  purpose: Hiểu mục tiêu tách logic ứng dụng khỏi UI, database và các công nghệ tích hợp có thể thay đổi.
+  objectives:
+  - Giải thích ý nghĩa Ports & Adapters và ranh giới trong/ngoài
+  - Phân biệt phụ thuộc mã nguồn với luồng gọi lúc chạy
+  - Nhận diện khi nào áp dụng hoặc không cần pattern
+- id: domain-core-use-cases
+  title: Domain Core & Use Cases
+  purpose: Giữ quy tắc nghiệp vụ và các ca sử dụng ở lõi, độc lập với framework và giao thức.
+  objectives:
+  - Mô hình hóa entity, value object và business rule
+  - Viết use case không phụ thuộc HTTP hay SQL
+  - Xác định input/output dữ liệu theo nhu cầu nghiệp vụ
+- id: ports-hop-dong
+  title: Ports & Hợp đồng
+  purpose: Định nghĩa giao diện giao tiếp ổn định dựa trên năng lực ứng dụng thay vì chi tiết công nghệ.
+  objectives:
+  - Phân biệt driving (input) port với driven (output) port
+  - Thiết kế interface có ngôn ngữ theo use case
+  - Giới hạn rò rỉ DTO, framework và persistence type
+- id: driving-adapters
+  title: Driving Adapters
+  purpose: Chuyển yêu cầu từ bên ngoài thành lời gọi vào use case qua input port của ứng dụng.
+  objectives:
+  - Thiết kế REST controller hoặc CLI adapter
+  - Ánh xạ request/validation vào input model
+  - Gọi use case và chuyển kết quả thành response
+- id: driven-adapters
+  title: Driven Adapters
+  purpose: Thay thế cơ sở dữ liệu hoặc dịch vụ ngoài mà không sửa logic nghiệp vụ tại lõi.
+  objectives:
+  - Định nghĩa repository/gateway output port
+  - Triển khai adapter SQL, HTTP hoặc message broker
+  - Ánh xạ lỗi và dữ liệu hạ tầng sang kiểu của lõi
+- id: dependency-inversion-wiring
+  title: Dependency Inversion & Wiring
+  purpose: Bảo đảm mọi phụ thuộc thiết kế quan trọng hướng vào lõi và lắp ghép tại rìa ứng dụng.
+  objectives:
+  - Kiểm tra domain không import web, ORM hoặc SDK
+  - Dùng constructor injection và composition root
+  - Thay adapter thực bằng in-memory/fake khi cần
+- id: kiem-thu-doc-lap-ranh-gioi
+  title: Kiểm thử độc lập & Ranh giới
+  purpose: Kiểm chứng nghiệp vụ nhanh bằng test không cần hạ tầng, rồi xác thực riêng từng điểm tích hợp.
+  objectives:
+  - Viết unit test use case với fake output port
+  - Thực hiện integration test cho DB/HTTP adapters
+  - Dùng ArchUnit kiểm tra dependency và package boundary
+- id: ung-dung-tien-hoa-kien-truc
+  title: Ứng dụng & Tiến hóa kiến trúc
+  purpose: Chuyển một tính năng nhỏ sang hexagonal và đánh giá sự thay đổi về khả năng bảo trì.
+  objectives:
+  - Phác họa sơ đồ core, ports và adapters cho một flow
+  - Thay một adapter và xác minh use case không đổi
+  - Đánh giá trade-off của abstraction và độ phức tạp

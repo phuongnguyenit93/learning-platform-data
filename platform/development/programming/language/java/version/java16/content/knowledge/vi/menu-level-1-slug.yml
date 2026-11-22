@@ -1,0 +1,76 @@
+menu:
+  - title: "Định hướng Java 16"
+    slug: java16-overview
+    index: 0
+  - title: "Cấu trúc record"
+    slug: record-structure
+    index: 1
+  - title: "Khởi tạo record"
+    slug: record-construction
+    index: 2
+  - title: "Ngữ nghĩa record"
+    slug: record-semantics
+    index: 3
+  - title: "Ứng dụng record"
+    slug: record-applications
+    index: 4
+  - title: "Metadata record"
+    slug: record-metadata
+    index: 5
+  - title: "Pattern instanceof"
+    slug: instanceof-patterns
+    index: 6
+  - title: "Phạm vi pattern"
+    slug: pattern-flow-scoping
+    index: 7
+  - title: "Stream.toList"
+    slug: stream-tolist
+    index: 8
+  - title: "Stream.mapMulti"
+    slug: stream-mapmulti
+    index: 9
+  - title: "Value-based class"
+    slug: value-based-classes
+    index: 10
+  - title: "Default method proxy"
+    slug: proxy-default-methods
+    index: 11
+  - title: "Định dạng day period"
+    slug: day-period-formatting
+    index: 12
+  - title: "Chỉ số và buffer"
+    slug: index-checks-and-buffers
+    index: 13
+  - title: "Unix-domain socket"
+    slug: unix-domain-sockets
+    index: 14
+  - title: "Vận hành socket"
+    slug: unix-socket-operations
+    index: 15
+  - title: "Đóng gói JDK"
+    slug: jdk-encapsulation
+    index: 16
+  - title: "jpackage cơ bản"
+    slug: jpackage-basics
+    index: 17
+  - title: "Runtime ứng dụng"
+    slug: application-runtime-images
+    index: 18
+  - title: "Bộ cài ứng dụng"
+    slug: native-installers
+    index: 19
+  - title: "Elastic Metaspace"
+    slug: elastic-metaspace
+    index: 20
+  - title: "GC và độ trễ"
+    slug: gc-latency
+    index: 21
+  - title: "JFR và JIT"
+    slug: jfr-and-jit
+    index: 22
+  - title: "Nền tảng triển khai"
+    slug: deployment-platforms
+    index: 23
+  - title: "Thực hành tổng hợp"
+    slug: integrated-practice
+    index: 24

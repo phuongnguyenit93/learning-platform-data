@@ -1,0 +1,2941 @@
+menu:
+- slug: test-operations
+  title: Vận hành kiểm thử
+  childs:
+  - slug: test-operations-001
+    title: Thực thi và bảo trì kiểm thử là gì trong vòng đời phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-operations-002
+    title: Quan hệ giữa thiết kế test, triển khai test, thực thi và đánh giá kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-operations-003
+    title: Phân biệt test case, test suite, test run, test result và defect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-operations-004
+    title: Vai trò của người kiểm thử, lập trình viên và hệ thống CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-operations-005
+    title: Đầu vào cần nhận từ yêu cầu, kế hoạch và thiết kế kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-operations-006
+    title: Đầu ra gồm kết quả, bằng chứng, lỗi và quyết định tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-operations-007
+    title: Kiểm thử thủ công và tự động phối hợp trong cùng chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-operations-008
+    title: Lộ trình từ một lần chạy đáng tin cậy đến bộ kiểm thử được duy trì lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-cycle
+  title: Chu kỳ thực thi
+  childs:
+  - slug: execution-cycle-001
+    title: Quy trình chuẩn bị, kiểm tra sẵn sàng, chạy và tổng kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-cycle-002
+    title: Tiêu chí bắt đầu, tạm dừng, tiếp tục và kết thúc đợt kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-cycle-003
+    title: Xác định phiên bản phần mềm và phạm vi được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-cycle-004
+    title: Phân công thực thi, người tiếp nhận lỗi và người xử lý môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-cycle-005
+    title: Theo dõi tiến độ theo trạng thái thực tế của từng test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-cycle-006
+    title: Xử lý lần chạy bị ngắt hoặc hoàn thành một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-cycle-007
+    title: Quản lý thay đổi phạm vi khi yêu cầu hoặc bản build thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-cycle-008
+    title: Bàn giao kết quả và những rủi ro còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-conditions
+  title: Điều kiện đầu vào
+  childs:
+  - slug: input-conditions-001
+    title: Xác minh bản build, commit và cấu hình cần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-conditions-002
+    title: Kiểm tra khả năng truy cập, tài khoản, quyền và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-conditions-003
+    title: Smoke test để xác nhận môi trường đủ điều kiện chạy tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-conditions-004
+    title: Xác minh dependency và dịch vụ phụ trợ đã sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-conditions-005
+    title: Kiểm tra tài nguyên, dung lượng, kết nối và giới hạn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-conditions-006
+    title: Nhận diện test bị chặn trước khi tính kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-conditions-007
+    title: Phân biệt lỗi sản phẩm, lỗi triển khai và lỗi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-conditions-008
+    title: Lưu bằng chứng preflight gắn với từng đợt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-suite-organization
+  title: Tổ chức bộ kiểm thử
+  childs:
+  - slug: test-suite-organization-001
+    title: Tổ chức test theo khả năng sản phẩm và ranh giới thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-organization-002
+    title: Đặt tên test để kết quả thất bại thể hiện rõ hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-organization-003
+    title: Phân nhóm smoke, regression và bộ kiểm tra chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-organization-004
+    title: Tag, category và metadata phục vụ lựa chọn test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-organization-005
+    title: Quan hệ giữa suite, package, lớp và từng test case
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-organization-006
+    title: Quản lý test có tham số và định danh từng trường hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-organization-007
+    title: Nhận diện dependency giữa test và tránh chuỗi thứ tự ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-organization-008
+    title: Lưu người phụ trách, mục đích và điều kiện áp dụng của test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: run-configuration
+  title: Cấu hình lần chạy
+  childs:
+  - slug: run-configuration-001
+    title: Tham số hóa môi trường, endpoint và tài khoản kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-002
+    title: Thứ tự ưu tiên giữa tệp cấu hình, biến môi trường và dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-003
+    title: Tách cấu hình dùng chung khỏi cấu hình riêng của từng máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-004
+    title: Chọn test bằng tên, tag, nhóm hoặc thay đổi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-005
+    title: Ma trận trình duyệt, hệ điều hành, JDK và cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-006
+    title: Feature flag và tập cấu hình cần được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-007
+    title: Quản lý seed, timeout và mức song song như tham số có thể truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-008
+    title: In cấu hình hữu ích mà không làm lộ thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: run-configuration-009
+    title: Tạo mã định danh cho test run và gắn với toàn bộ artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-environment
+  title: Môi trường kiểm thử
+  childs:
+  - slug: test-environment-001
+    title: Phân biệt môi trường cục bộ, CI, tích hợp, staging và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-002
+    title: Tạo môi trường bằng cấu hình có quản lý phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-003
+    title: Container và môi trường tạm thời theo từng lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-004
+    title: Phát hiện configuration drift giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-005
+    title: Quản lý phiên bản runtime, database và dịch vụ phụ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-006
+    title: Readiness, health check và điều kiện bắt đầu phát yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-007
+    title: Cô lập namespace, cổng mạng, tài khoản và vùng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-008
+    title: Chuẩn bị môi trường khi chạy offline hoặc mạng bị giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-009
+    title: Dọn môi trường sau khi chạy thành công, thất bại hoặc bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data
+  title: Dữ liệu kiểm thử
+  childs:
+  - slug: test-data-001
+    title: Phân biệt dữ liệu tham chiếu, dữ liệu đầu vào và dữ liệu sinh trong test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-002
+    title: Tạo dữ liệu bằng fixture, factory hoặc seed script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-003
+    title: Kiểm soát tính duy nhất của khóa, email và mã định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-004
+    title: Dữ liệu theo test, theo lớp và dùng chung cho cả suite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-005
+    title: Đặt lại dữ liệu mà không phá trạng thái của lần chạy khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-006
+    title: Quản lý dữ liệu có thời hạn, phiên bản và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-007
+    title: Ẩn danh dữ liệu nhạy cảm và bảo toàn đặc trưng cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-008
+    title: Đảm bảo dữ liệu đủ dùng khi test chạy song song hoặc chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-009
+    title: Truy vết dữ liệu gây lỗi để tái hiện độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fixtures-and-resources
+  title: Fixture và tài nguyên
+  childs:
+  - slug: fixtures-and-resources-001
+    title: Vai trò của setup, teardown và phạm vi sống của fixture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-002
+    title: Tách chuẩn bị dữ liệu khỏi hành vi đang được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-003
+    title: Mở, chia sẻ và đóng file, socket, thread pool hoặc connection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-004
+    title: Cleanup khi assertion thất bại hoặc khởi tạo dở dang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-005
+    title: Quản lý tài nguyên bằng try-with-resources và cơ chế vòng đời test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-006
+    title: Phát hiện rò rỉ tài nguyên giữa các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-007
+    title: Cân bằng chi phí khởi tạo với mức độ cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-008
+    title: Kiểm chứng cleanup không che mất lỗi ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fixtures-and-resources-009
+    title: Thiết kế fixture nhỏ, rõ ràng và có thể sử dụng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: manual-execution
+  title: Thực thi thủ công
+  childs:
+  - slug: manual-execution-001
+    title: Chuẩn bị test case, dữ liệu và điều kiện trước khi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-execution-002
+    title: Ghi nhận bước đã chạy cùng kết quả thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-execution-003
+    title: Đối chiếu kết quả mong đợi và xử lý mô tả chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-execution-004
+    title: Phân biệt pass, fail, blocked và not run
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-execution-005
+    title: Thu thập ảnh, video, log và thời điểm xảy ra lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-execution-006
+    title: Quản lý phiên kiểm thử khám phá với mục tiêu và ghi chú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-execution-007
+    title: Giữ khả năng bàn giao khi nhiều người thực thi cùng bộ test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-execution-008
+    title: Tổng kết phần đã kiểm tra, phần chưa chạy và giới hạn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: junit-lifecycle
+  title: JUnit và vòng đời
+  childs:
+  - slug: junit-lifecycle-001
+    title: JUnit Platform, test engine và công cụ khởi chạy liên hệ thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-002
+    title: Phát hiện test và xử lý trường hợp không có test được tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-003
+    title: Vòng đời test instance và ảnh hưởng của PER_METHOD, PER_CLASS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-004
+    title: '@BeforeEach, @AfterEach, @BeforeAll và @AfterAll'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-005
+    title: Thực thi test có tham số, test lồng nhau và test động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-006
+    title: '@Tag, @Disabled và điều kiện thực thi có kiểm soát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-007
+    title: Assertion, assumption, abort và cách đọc trạng thái kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-008
+    title: Extension để quản lý tài nguyên và thu thập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-009
+    title: Chạy test độc lập, theo lớp và theo suite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: junit-lifecycle-010
+    title: Giữ hành vi nhất quán giữa IDE, dòng lệnh và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-and-gradle
+  title: Maven và Gradle
+  childs:
+  - slug: maven-and-gradle-001
+    title: Phân biệt biên dịch mã test, phát hiện test và thực thi test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-002
+    title: Maven Surefire, Failsafe và vòng đời unit test, integration test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-003
+    title: Gradle Test task và liên kết với check, build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-004
+    title: Chọn lớp, phương thức, tag và tập test trên dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-005
+    title: Tách tiến trình JVM kiểm thử và truyền system property, JVM argument
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-006
+    title: Quản lý classpath, test engine và dependency runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-007
+    title: Đọc test report XML, HTML và mã thoát của lệnh chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-008
+    title: Xử lý test bị bỏ qua, không phát hiện test hoặc chạy sai module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-009
+    title: Phân biệt kết quả tái sử dụng từ cache với test thực sự chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-and-gradle-010
+    title: Lưu lệnh tái hiện chính xác cho lần chạy thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-dependencies
+  title: Phụ thuộc bên ngoài
+  childs:
+  - slug: external-dependencies-001
+    title: Phân biệt dependency thật, test double và dịch vụ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-002
+    title: Mock, stub, fake và ranh giới cần kiểm soát khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-003
+    title: Quản lý vòng đời Mockito và đặt lại trạng thái tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-004
+    title: Giả lập HTTP với WireMock hoặc công cụ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-005
+    title: Khởi chạy dependency bằng Testcontainers và kiểm tra readiness
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-006
+    title: Đồng bộ phiên bản image, dữ liệu khởi tạo và cấu hình kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-007
+    title: Lựa chọn dependency thật hay giả lập theo mục tiêu của suite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-008
+    title: Nhận diện test pass do giả lập không phản ánh hợp đồng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-dependencies-009
+    title: Đóng dependency và thu thập log khi lần chạy thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-transactions
+  title: Database và giao dịch
+  childs:
+  - slug: database-transactions-001
+    title: Chuẩn bị schema, migration và dữ liệu trước khi chạy test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-002
+    title: Phạm vi transaction trong test và ứng dụng được gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-003
+    title: Rollback, commit và các trường hợp rollback không bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-004
+    title: Tách database, schema hoặc tenant cho test chạy đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-005
+    title: Xử lý identity, sequence, constraint và dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-006
+    title: Giữ tương thích giữa database kiểm thử và database mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-007
+    title: Dọn dữ liệu theo quan hệ khóa ngoại mà không xóa dữ liệu ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-008
+    title: Chẩn đoán deadlock, connection leak và transaction timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-009
+    title: Kiểm tra migration trên dữ liệu cũ và đường nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-transactions-010
+    title: Tránh test phụ thuộc vào thứ tự bản ghi không được bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-and-async
+  title: API và bất đồng bộ
+  childs:
+  - slug: api-and-async-001
+    title: Chuẩn bị base URL, token, header và dữ liệu theo lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-002
+    title: Đối chiếu status, header, body và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-003
+    title: Theo dõi request ID qua các dịch vụ để điều tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-004
+    title: Kiểm tra sự kiện, message queue và xử lý nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-005
+    title: Chờ điều kiện có giới hạn thay vì chèn sleep cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-006
+    title: Kiểm soát eventual consistency và thời điểm có thể quan sát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-007
+    title: Phân biệt retry của ứng dụng với retry của công cụ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-008
+    title: Kiểm tra idempotency khi yêu cầu hoặc message được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-009
+    title: Đối chiếu kết quả khi response thành công nhưng tác vụ nền thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-async-010
+    title: Dọn message, subscription và dữ liệu tồn dư giữa các test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-interface
+  title: Giao diện người dùng
+  childs:
+  - slug: user-interface-001
+    title: Chuẩn bị browser, driver, viewport và cấu hình thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-002
+    title: Chờ trạng thái giao diện ổn định bằng điều kiện quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-003
+    title: Quản lý selector bền vững và tránh phụ thuộc bố cục ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-004
+    title: Cô lập session, cookie, localStorage và dữ liệu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-005
+    title: Phân biệt lỗi giao diện với lỗi mạng hoặc API phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-006
+    title: Thu thập screenshot, video, trace và browser console
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-007
+    title: Quản lý download, upload, popup và nhiều cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-008
+    title: Đối chiếu thực thi headless với trình duyệt có giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-interface-009
+    title: Chạy ma trận trình duyệt có chủ đích và lưu thông tin tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: determinism
+  title: Tính xác định
+  childs:
+  - slug: determinism-001
+    title: Phân biệt kết quả không xác định với biến động môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-002
+    title: Tiêm Clock để kiểm soát thời gian hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-003
+    title: Quản lý timezone, locale, DST và định dạng ngày giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-004
+    title: Kiểm soát dữ liệu ngẫu nhiên bằng seed được ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-005
+    title: Thay thế UUID hoặc nguồn sinh mã khi cần tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-006
+    title: Xử lý thứ tự collection, filesystem và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-007
+    title: Tránh dùng thời gian máy hoặc trạng thái toàn cục ngoài kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-008
+    title: Giữ khả năng chạy lặp lại cùng một đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-009
+    title: Đổi seed hoặc đảo thứ tự có chủ đích để tìm dependency ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parallel-isolation
+  title: Song song và cô lập
+  childs:
+  - slug: parallel-isolation-001
+    title: Phân biệt song song theo tiến trình, lớp và phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-002
+    title: Chọn mức song song theo tài nguyên và loại test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-003
+    title: Đồng bộ fixture dùng chung và nhận diện shared mutable state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-004
+    title: Cô lập filesystem, port, database và tài khoản theo worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-005
+    title: Resource lock và chạy tuần tự phần không thể chia sẻ an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-006
+    title: Thread-local, static state và rò rỉ trạng thái giữa test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-007
+    title: Điều tra test chỉ thất bại khi chạy cùng suite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-008
+    title: Đảo thứ tự chạy để phát hiện dependency giữa các test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-isolation-009
+    title: Đánh giá tăng tốc cùng với độ ổn định và mức tiêu thụ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeout-and-retry
+  title: Timeout và chạy lại
+  childs:
+  - slug: timeout-and-retry-001
+    title: Đặt timeout theo thao tác, test, suite và toàn bộ job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-002
+    title: Phân biệt thời gian chờ kết nối, phản hồi và chờ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-003
+    title: Timeout có hủy công việc nền hay chỉ dừng chờ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-004
+    title: Cleanup sau khi test bị timeout hoặc bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-005
+    title: Phân loại lỗi có thể chạy lại và lỗi phải điều tra ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-006
+    title: Giới hạn số lần chạy lại, khoảng chờ và backoff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-007
+    title: Giữ kết quả lần đầu cùng lịch sử mọi lần chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-008
+    title: Ngăn retry tạo dữ liệu trùng hoặc che khuất hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeout-and-retry-009
+    title: Đặt ngân sách thực thi để test treo không giữ tài nguyên vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: ci-cd-integration-001
+    title: Thiết kế pipeline từ kiểm tra nhanh đến bộ kiểm thử đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-002
+    title: Chạy theo pull request, nhánh chính, lịch hoặc yêu cầu thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-003
+    title: Gắn kết quả với commit, artifact và phiên bản được triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-004
+    title: Chuẩn bị JDK, dependency, môi trường và dữ liệu trên runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-005
+    title: Phân biệt cache dependency với dữ liệu và kết quả test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-006
+    title: Thiết lập điều kiện chạy tiếp hoặc dừng khi một stage thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-007
+    title: Thu thập artifact ngay cả khi test lỗi hoặc job bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-008
+    title: Quản lý secret và quyền truy cập theo từng loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-009
+    title: Xử lý job cũ khi có commit mới mà vẫn giữ bằng chứng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-010
+    title: Đồng nhất điều kiện tái hiện giữa máy cá nhân và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: work-distribution
+  title: Phân phối công việc
+  childs:
+  - slug: work-distribution-001
+    title: Chia suite thành shard theo lớp, nhóm hoặc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-002
+    title: Cân bằng shard bằng thời lượng thực tế của test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-003
+    title: Phân biệt ma trận môi trường với chia nhỏ cùng một suite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-004
+    title: Bảo đảm test không bị bỏ sót hoặc chạy trùng ngoài chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-005
+    title: Giữ định danh ổn định khi tổng hợp kết quả nhiều worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-006
+    title: Phân bổ tài nguyên cho unit test, integration test và UI test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-007
+    title: Xử lý worker thất bại, mất kết nối hoặc kết thúc dở dang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-008
+    title: Tổng hợp báo cáo khi một phần ma trận chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: work-distribution-009
+    title: Đánh giá tổng thời gian, thời gian chờ và chi phí chạy phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-test-suites
+  title: Bộ kiểm thử chuyên biệt
+  childs:
+  - slug: specialized-test-suites-001
+    title: Tiếp nhận điều kiện thực thi từ kế hoạch kiểm thử của từng loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-test-suites-002
+    title: Chuẩn bị môi trường riêng cho kiểm thử hiệu năng và benchmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-test-suites-003
+    title: Quản lý cấu hình, tài khoản và phạm vi cho kiểm tra bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-test-suites-004
+    title: Tổ chức ma trận phiên bản trong kiểm thử tương thích và hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-test-suites-005
+    title: Điều phối khởi tạo, khôi phục trong kiểm thử độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-test-suites-006
+    title: Ghi nhận cấu hình thiết bị và công cụ hỗ trợ trong kiểm tra khả năng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-test-suites-007
+    title: Tránh để các bộ kiểm thử tranh chấp môi trường hoặc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-test-suites-008
+    title: Tổng hợp kết quả khác đơn vị mà vẫn giữ đúng ý nghĩa của từng loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-evidence
+  title: Bằng chứng thực thi
+  childs:
+  - slug: execution-evidence-001
+    title: Xác định bằng chứng cần lưu cho từng loại test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-002
+    title: Gắn log với test ID, run ID, request ID và timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-003
+    title: Thu thập application log, container log và log công cụ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-004
+    title: Ảnh, video, network trace và tệp đầu ra phục vụ tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-005
+    title: Thread dump, heap dump và chẩn đoán khi test treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-006
+    title: Phân biệt dữ liệu quan sát được với suy đoán nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-007
+    title: Giảm nhiễu log nhưng vẫn giữ thông tin khi test thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-008
+    title: Che dữ liệu nhạy cảm trong ảnh, log và artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-evidence-009
+    title: Lưu đường dẫn, thời hạn và quyền truy cập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-reporting
+  title: Báo cáo kết quả
+  childs:
+  - slug: result-reporting-001
+    title: Chuẩn hóa trạng thái pass, fail, error, skipped, aborted và blocked
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-002
+    title: Phân biệt số test case, lượt thực thi và trường hợp có tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-003
+    title: Tổng hợp kết quả nhiều module, shard và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-004
+    title: Tính thời lượng thực thi, thời gian chờ và thời gian toàn bộ đợt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-005
+    title: Hiển thị lỗi gốc, stacktrace và liên kết đến bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-006
+    title: Đưa test bị cách ly hoặc chạy lại vào báo cáo một cách rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-007
+    title: Đối chiếu số test dự kiến với số test thực sự đã chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-008
+    title: Phân biệt kết quả đầy đủ với báo cáo từ lần chạy bị ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-reporting-009
+    title: Viết bản tổng kết phần đã kiểm tra, phần chưa chạy và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-analysis
+  title: Phân tích thất bại
+  childs:
+  - slug: failure-analysis-001
+    title: Phân loại lỗi sản phẩm, lỗi test, lỗi dữ liệu và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-002
+    title: Đọc assertion failure, exception và stacktrace theo nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-003
+    title: Tái hiện test thất bại bằng lệnh, dữ liệu và cấu hình đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-004
+    title: Thu nhỏ tình huống lỗi mà không làm mất điều kiện gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-005
+    title: So sánh chạy riêng, chạy cả suite và chạy trên CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-006
+    title: Điều tra thứ tự thực thi, race condition và trạng thái dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-007
+    title: Đối chiếu log nhiều thành phần theo cùng dấu vết yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-008
+    title: Phân tích thay đổi gần nhất bằng diff, lịch sử và bisect khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-009
+    title: Phân biệt tương quan thời điểm với bằng chứng về nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-analysis-010
+    title: Ghi kết luận, mức độ chắc chắn và bước kiểm chứng tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-management
+  title: Quản lý lỗi
+  childs:
+  - slug: error-management-001
+    title: Viết báo cáo lỗi với điều kiện, bước tái hiện và kết quả thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-002
+    title: Gắn expected result với yêu cầu hoặc hành vi đã được thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-003
+    title: Phân biệt severity với priority khi phân loại lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-004
+    title: Triage cùng nhóm phát triển và xử lý báo cáo trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-005
+    title: Quản lý vòng đời từ phát hiện đến sửa, xác nhận và đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-006
+    title: Xử lý lỗi không tái hiện được hoặc chỉ xuất hiện ở một môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-007
+    title: Liên kết defect với test, commit sửa lỗi và bằng chứng xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-008
+    title: Trao đổi lỗi bị từ chối, hoãn xử lý hoặc cần làm rõ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-management-009
+    title: Chuyển nguyên nhân gốc thành hành động ngăn tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-and-regression
+  title: Xác nhận và hồi quy
+  childs:
+  - slug: validation-and-regression-001
+    title: Phân biệt confirmation testing với regression testing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-002
+    title: Xác nhận bản sửa đúng phiên bản và đúng tình huống đã lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-003
+    title: Bổ sung test tái hiện lỗi vào bộ kiểm thử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-004
+    title: Chọn vùng hồi quy theo tác động và dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-005
+    title: Chạy kiểm tra lân cận để phát hiện tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-006
+    title: Giữ phạm vi kiểm tra toàn diện khi lựa chọn test theo thay đổi chưa đủ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-007
+    title: Đối chiếu kết quả trước và sau bản sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-008
+    title: Xử lý lỗi mở lại khi bản sửa chỉ giải quyết một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-regression-009
+    title: Ghi lại giới hạn kiểm tra và điều kiện đóng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flaky-tests
+  title: Kiểm thử thất thường
+  childs:
+  - slug: flaky-tests-001
+    title: Flaky test là gì và cách phân biệt với lỗi sản phẩm chập chờn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-002
+    title: Nhóm nguyên nhân từ thời gian, thứ tự, đồng thời và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-003
+    title: Đo tỷ lệ thất bại theo test và theo điều kiện thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-004
+    title: Chạy lặp lại có kiểm soát để thu thập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-005
+    title: Nhận diện retry pass đang che khuất tín hiệu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-006
+    title: Sửa đồng bộ hóa, dữ liệu và fixture thay vì tăng sleep tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-007
+    title: Kiểm chứng bản sửa qua nhiều seed, thứ tự và mức song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-008
+    title: Theo dõi thời gian xử lý cùng người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flaky-tests-009
+    title: Ngăn test không ổn định quay lại mà không phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolation-and-quality-gate
+  title: Cách ly và quality gate
+  childs:
+  - slug: isolation-and-quality-gate-001
+    title: Khi nào tạm cách ly test và bằng chứng cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-002
+    title: Gắn người phụ trách, lý do và thời hạn xử lý test bị cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-003
+    title: Tách kết quả cách ly khỏi bộ test chặn phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-004
+    title: Giữ test bị cách ly tiếp tục được chạy và theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-005
+    title: Định nghĩa quality gate từ trạng thái thực thi và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-006
+    title: Ngăn pipeline xanh khi toàn bộ test bị skip hoặc không được phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-007
+    title: Quản lý ngoại lệ theo thời hạn và phạm vi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-008
+    title: Khôi phục test vào bộ bắt buộc sau khi xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-quality-gate-009
+    title: Rà soát ngoại lệ để tránh tích lũy kiểm tra bị vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-suite-maintenance
+  title: Bảo trì bộ kiểm thử
+  childs:
+  - slug: test-suite-maintenance-001
+    title: Nhận diện dấu hiệu bộ test xuống cấp theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-002
+    title: Lập danh mục test theo mục đích, người phụ trách và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-003
+    title: Rà soát test trùng, lỗi thời hoặc không còn kiểm tra hành vi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-004
+    title: Cân nhắc giá trị bảo vệ khi xóa hoặc gộp test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-005
+    title: Theo dõi test chậm và lựa chọn tối ưu theo bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-006
+    title: Ưu tiên sửa test tạo nhiều nhiễu hoặc chặn công việc thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-007
+    title: Phân bổ công việc bảo trì cùng thay đổi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-008
+    title: Quản lý nợ kiểm thử với tác động và kế hoạch xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-009
+    title: Xác minh bộ test còn phát hiện được lỗi có ý nghĩa sau bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-code-refactoring
+  title: Cải tổ mã kiểm thử
+  childs:
+  - slug: test-code-refactoring-001
+    title: Nhận diện test dài, assertion mơ hồ và fixture quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-002
+    title: Tách hành vi kiểm tra để lỗi báo về đúng nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-003
+    title: Áp dụng test data builder và factory có phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-004
+    title: Loại bỏ trùng lặp mà không tạo abstraction khó đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-005
+    title: Giảm phụ thuộc vào chi tiết triển khai không thuộc hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-006
+    title: Cải thiện assertion để thông báo chênh lệch hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-007
+    title: Giảm mocking quá mức và tránh kiểm tra tương tác không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-008
+    title: Tách hỗ trợ test dùng chung khỏi mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-code-refactoring-009
+    title: Cải tổ từng bước và giữ nguyên giá trị kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-response
+  title: Ứng phó thay đổi
+  childs:
+  - slug: change-response-001
+    title: Cập nhật test khi yêu cầu thay đổi và xác minh lại kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-002
+    title: Phân biệt sửa test lỗi với nới assertion để làm pipeline xanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-003
+    title: Quản lý test khi đổi API, schema hoặc hợp đồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-004
+    title: Chạy song song hành vi cũ và mới trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-005
+    title: Feature flag, thời điểm bật tắt và vòng đời test tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-006
+    title: 'Snapshot hoặc golden file: quy trình xem xét và cập nhật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-007
+    title: Loại bỏ fixture, dữ liệu và giả lập đã lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-008
+    title: Nâng cấp JDK, framework, driver và thư viện hỗ trợ test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-response-009
+    title: Xác minh khám phá test, số lượng và kết quả sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-management
+  title: Quản lý phiên bản
+  childs:
+  - slug: version-management-001
+    title: Quản lý mã test cùng source và cấu hình thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-002
+    title: Liên kết yêu cầu, test case, automation và kết quả theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-003
+    title: Định danh test ổn định khi đổi tên hoặc di chuyển mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-004
+    title: Đồng bộ test với nhánh phát hành và bản vá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-005
+    title: Review thay đổi test như thay đổi mã sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-006
+    title: Quản lý dependency, lockfile và image tag để tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-007
+    title: Lưu lịch sử thay đổi kỳ vọng, fixture và baseline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-008
+    title: Bàn giao quyền sở hữu khi nhóm hoặc thành phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-metrics
+  title: Chỉ số vận hành
+  childs:
+  - slug: operational-metrics-001
+    title: Đo thời gian phản hồi của bộ test từ commit đến kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-002
+    title: Theo dõi thời lượng, hàng đợi và các test chậm nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-003
+    title: Tỷ lệ thất bại, flaky rate và tỷ lệ pass sau retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-004
+    title: Tỷ lệ skipped, blocked và test bị cách ly lâu ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-005
+    title: Thời gian triage, thời gian sửa test và thời gian xác nhận lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-006
+    title: Đối chiếu coverage với khả năng phát hiện lỗi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-007
+    title: Phân tích lỗi lọt qua và giới hạn của bộ test hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-008
+    title: Tránh đánh giá chất lượng chỉ bằng số test hoặc tỷ lệ pass
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-009
+    title: Dùng xu hướng chỉ số để chọn hành động cải tiến cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources-and-security
+  title: Tài nguyên và bảo mật
+  childs:
+  - slug: resources-and-security-001
+    title: Quản lý ngân sách CPU, RAM, lưu trữ và thời lượng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-002
+    title: Dọn container, tiến trình, tài khoản và dữ liệu tạm sau test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-003
+    title: Kiểm soát quyền của tài khoản kiểm thử theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-004
+    title: Giữ secret bên ngoài source, báo cáo và artifact công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-005
+    title: Che thông tin nhạy cảm trong log và bằng chứng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-006
+    title: Tách dữ liệu kiểm thử khỏi dữ liệu người dùng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-007
+    title: Thiết lập thời hạn lưu và quyền tải test artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-008
+    title: Kiểm tra test không vô tình thao tác sai endpoint hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-security-009
+    title: Quản lý runner không tin cậy và thông tin bí mật trên pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Tổ chức một đợt kiểm thử từ preflight đến báo cáo tổng kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Chạy cùng bộ JUnit bằng IDE, Maven hoặc Gradle và CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Xây dựng integration test có database container và cleanup đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Sửa test bất đồng bộ đang phụ thuộc vào sleep cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Phát hiện dữ liệu dùng chung gây lỗi khi chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Điều tra một test chỉ thất bại trên CI bằng bằng chứng đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thiết lập shard và tổng hợp báo cáo không bỏ sót test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Quản lý flaky test từ phát hiện, cách ly đến khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Cải tổ test lỗi thời khi API hoặc yêu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Xây dựng quality gate và kế hoạch bảo trì dựa trên chỉ số thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,399 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Mermaid là gì và vai trò của sơ đồ trong tài liệu
+  - Vấn đề sơ đồ lỗi thời và cách quản lý sơ đồ bằng văn bản
+  - Mối liên hệ giữa mã Mermaid, Markdown, bộ kết xuất và SVG
+  - Các nhóm sơ đồ và cách chọn theo câu hỏi cần giải thích
+  - 'Mermaid, PlantUML, Graphviz và công cụ kéo thả: tiêu chí lựa chọn'
+  - Phạm vi mô tả, giới hạn mô hình hóa và mức độ chi tiết
+  - Lộ trình từ sơ đồ đầu tiên đến tài liệu có thể tái tạo
+- level1: Môi trường
+  level2:
+  - Dùng Mermaid Live Editor để viết và xem trước
+  - Chuẩn bị trình soạn thảo Markdown và tiện ích xem Mermaid
+  - Phân biệt thư viện Mermaid, Mermaid CLI và nền tảng nhúng
+  - Cài đặt cục bộ và kiểm tra phiên bản công cụ
+  - Ghim phiên bản Mermaid và các phụ thuộc kết xuất
+  - Tạo tệp .mmd đầu tiên và tổ chức thư mục sơ đồ
+  - Kiểm tra khả năng hỗ trợ sơ đồ trên môi trường đích
+- level1: Markdown
+  level2:
+  - Nhúng sơ đồ bằng khối mã có nhãn mermaid
+  - Đặt sơ đồ cạnh đoạn giải thích và ví dụ liên quan
+  - Phân biệt khối mã Markdown với nội dung cú pháp Mermaid
+  - Đặt tiêu đề, chú thích và liên kết đến sơ đồ
+  - Nhúng tệp SVG hoặc PNG khi nền tảng không kết xuất Mermaid
+  - Quản lý đường dẫn tương đối và tài nguyên trong kho tài liệu
+  - Hiển thị đồng thời mã nguồn, sơ đồ và mô tả thay thế
+  - Đối chiếu kết quả xem trước với tài liệu đã xuất bản
+- level1: Cú pháp
+  level2:
+  - Khai báo loại sơ đồ và cấu trúc định nghĩa tối thiểu
+  - Phân biệt mã định danh với nhãn hiển thị
+  - Quy tắc xuống dòng, dấu phân cách và thụt lề theo loại sơ đồ
+  - Viết chú thích bằng %% và tránh xung đột cú pháp
+  - Viết nhãn tiếng Việt, Unicode và ký tự đặc biệt
+  - Dùng dấu nháy và mã ký tự để xử lý nhãn phức tạp
+  - Xuống dòng và định dạng Markdown trong nhãn khi được hỗ trợ
+  - Nhận diện từ khóa dành riêng và lỗi phân tích cú pháp
+  - Phân biệt cú pháp dùng chung với cú pháp riêng của từng loại sơ đồ
+- level1: Lưu đồ
+  level2:
+  - Khai báo flowchart và lựa chọn hướng TB, TD, BT, LR, RL
+  - Tạo nút, mã định danh và nhãn hiển thị
+  - Biểu diễn thao tác, quyết định, dữ liệu và điểm bắt đầu hoặc kết thúc
+  - Dùng đường nối có hướng, không hướng, nét đứt và nét đậm
+  - Gắn nhãn điều kiện và mô tả lên đường nối
+  - Biểu diễn rẽ nhánh, hội tụ và vòng lặp
+  - Tạo nhóm subgraph và liên kết giữa các nhóm
+  - Điều khiển hướng nhóm và hiểu giới hạn bố cục
+  - Tùy chỉnh nút bằng style, classDef và class
+  - Tùy chỉnh đường nối và giữ định danh cạnh dễ bảo trì
+  - Dùng hình dạng mở rộng, biểu tượng và ảnh theo phiên bản
+  - Liên kết và tương tác trên nút theo chính sách bảo mật
+  - Thực hành mô tả quy trình xử lý tài liệu
+- level1: Trình tự
+  level2:
+  - Khai báo sequenceDiagram, participant và actor
+  - Đặt bí danh và sắp xếp thứ tự các bên tham gia
+  - Phân biệt thông điệp gọi, phản hồi và bất đồng bộ
+  - Biểu diễn lời gọi nội bộ và thời gian xử lý bằng activation
+  - Tự động đánh số thông điệp bằng autonumber
+  - Đặt ghi chú và nhóm các bên tham gia
+  - Biểu diễn nhánh lựa chọn bằng alt, else và opt
+  - Biểu diễn vòng lặp bằng loop và công việc song song bằng par
+  - Mô tả vùng quan trọng, lựa chọn và ngắt luồng khi được hỗ trợ
+  - Tạo và hủy bên tham gia theo vòng đời tương tác
+  - Đánh dấu khu vực bằng rect và làm rõ đường xử lý lỗi
+  - Tránh suy diễn thời lượng hoặc tính đồng bộ từ vị trí hình vẽ
+  - Thực hành luồng tạo, kết xuất và tải xuống tài liệu
+- level1: Sơ đồ lớp
+  level2:
+  - Khai báo classDiagram, lớp và tên hiển thị
+  - Mô tả thuộc tính, phương thức và kiểu trả về
+  - Biểu diễn phạm vi truy cập và thành viên tĩnh hoặc trừu tượng
+  - Biểu diễn interface, lớp trừu tượng và chú giải kiểu
+  - Mô tả kế thừa, hiện thực hóa và phụ thuộc
+  - Phân biệt liên kết, kết tập và hợp thành
+  - Gắn vai trò, nhãn và bội số cho quan hệ
+  - Biểu diễn kiểu tổng quát và giới hạn cú pháp
+  - Nhóm lớp bằng namespace và thêm ghi chú
+  - Thực hành thiết kế các thành phần tạo tài liệu Java
+- level1: Trạng thái
+  level2:
+  - Khai báo stateDiagram-v2 và đặt tên trạng thái
+  - Biểu diễn trạng thái đầu, cuối và các chuyển tiếp
+  - Gắn sự kiện, điều kiện và mô tả cho chuyển tiếp
+  - Mô tả trạng thái tổng hợp và trạng thái lồng nhau
+  - Biểu diễn lựa chọn, rẽ nhánh và hợp nhánh
+  - Mô tả vùng hoạt động đồng thời
+  - Thêm ghi chú, hướng hiển thị và định dạng trạng thái
+  - Phân biệt mô hình trạng thái với lưu đồ quy trình
+  - Thực hành vòng đời yêu cầu tạo tài liệu
+- level1: Thực thể
+  level2:
+  - Khai báo erDiagram và mô hình thực thể dữ liệu
+  - Biểu diễn thuộc tính, kiểu dữ liệu và chú thích
+  - Đánh dấu khóa chính, khóa ngoại và khóa duy nhất
+  - Đọc bội số và tính tùy chọn trong ký pháp chân quạ
+  - Phân biệt quan hệ định danh và không định danh
+  - Đặt tên quan hệ theo ý nghĩa nghiệp vụ
+  - Biểu diễn quan hệ nhiều nhiều bằng thực thể liên kết
+  - Phân biệt mô hình khái niệm với lược đồ cơ sở dữ liệu
+  - Thực hành mô hình mẫu tài liệu, phiên bản và kết quả xuất
+- level1: Ca sử dụng
+  level2:
+  - Vai trò của Use Case và điều kiện hỗ trợ cú pháp beta
+  - Khai báo tác nhân, ca sử dụng và ranh giới hệ thống
+  - Biểu diễn liên kết giữa tác nhân và ca sử dụng
+  - Mô tả include, extend và quan hệ khái quát hóa
+  - Tổ chức bố cục, nhãn và ghi chú của sơ đồ ca sử dụng
+  - Thực hành phạm vi chức năng hệ thống quản lý tài liệu
+- level1: Luồng trách nhiệm
+  level2:
+  - Phân biệt luồng công việc với làn trách nhiệm
+  - Mô phỏng các bên chịu trách nhiệm bằng subgraph của flowchart
+  - Giới thiệu Swimlanes beta và kiểm tra phiên bản hỗ trợ
+  - Khai báo làn, hoạt động và chuyển giao giữa các làn
+  - Mô tả quyết định và kết quả trong quy trình liên phòng ban
+  - Thực hành quy trình soạn thảo, duyệt và phát hành tài liệu
+- level1: Yêu cầu
+  level2:
+  - Khai báo requirementDiagram và định danh yêu cầu
+  - Mô tả nội dung, mức rủi ro và phương pháp kiểm chứng
+  - Phân biệt các loại yêu cầu được Mermaid hỗ trợ
+  - Khai báo thành phần đáp ứng hoặc kiểm chứng yêu cầu
+  - Biểu diễn quan hệ contains, derives, satisfies và verifies
+  - Truy vết yêu cầu với thiết kế và minh chứng kiểm thử
+  - Thực hành yêu cầu chất lượng của chức năng xuất tài liệu
+- level1: Kiến trúc C4
+  level2:
+  - Mục đích C4 và lựa chọn mức ngữ cảnh, container hoặc thành phần
+  - Khai báo con người, hệ thống và hệ thống bên ngoài
+  - Mô tả container cùng công nghệ và trách nhiệm
+  - Mô tả thành phần và ranh giới kiến trúc
+  - Biểu diễn quan hệ, hướng trao đổi và giao thức
+  - Giới thiệu sơ đồ động và triển khai trong phạm vi cú pháp hỗ trợ
+  - Chú thích, bố cục và giới hạn hỗ trợ của C4 trong Mermaid
+  - Thực hành mô tả kiến trúc hệ thống xử lý tài liệu
+- level1: Kiến trúc dịch vụ
+  level2:
+  - Mục đích Architecture beta và kiểm tra khả năng hỗ trợ
+  - Khai báo group, service và mã định danh
+  - Biểu diễn kết nối và hướng nối giữa các dịch vụ
+  - Dùng junction để tổ chức tuyến kết nối
+  - Sử dụng biểu tượng có sẵn và gói biểu tượng được đăng ký
+  - Thực hành mô tả bộ kết xuất, nơi lưu trữ và dịch vụ sử dụng
+- level1: Sơ đồ khối
+  level2:
+  - Khai báo block diagram và tổ chức cột bố cục
+  - Tạo khối, nhãn và hình dạng
+  - Điều khiển độ rộng khối và khoảng trống
+  - Tạo khối tổng hợp và cấu trúc lồng nhau
+  - Nối các khối và áp dụng định dạng được hỗ trợ
+  - Thực hành mô tả các giai đoạn chuyển đổi tài liệu
+- level1: Hành trình
+  level2:
+  - Khai báo journey và xác định hành trình người dùng
+  - Chia giai đoạn bằng section
+  - Mô tả hoạt động, người tham gia và mức đánh giá
+  - Phân biệt trải nghiệm người dùng với trình tự gọi hệ thống
+  - Thực hành hành trình soạn, xem trước và chia sẻ tài liệu
+- level1: Gantt
+  level2:
+  - Khai báo gantt, tiêu đề và định dạng ngày
+  - Chia nhóm công việc bằng section
+  - Mô tả thời điểm bắt đầu, thời lượng và kết thúc
+  - Liên kết công việc bằng mã định danh và phụ thuộc after
+  - Đánh dấu active, done, crit và milestone
+  - Cấu hình ngày loại trừ, cuối tuần và trục thời gian
+  - Kiểm tra ngày tháng, phụ thuộc và độ dễ đọc khi xuất ảnh
+  - Thực hành kế hoạch chuẩn hóa một bộ tài liệu
+- level1: Dòng thời gian
+  level2:
+  - Khai báo timeline và tiêu đề
+  - Tổ chức các mốc, sự kiện và section
+  - Biểu diễn nhiều sự kiện tại cùng một mốc
+  - Phân biệt timeline với gantt và lịch thực thi
+  - Thực hành lịch sử thay đổi định dạng tài liệu
+- level1: GitGraph
+  level2:
+  - Khai báo gitGraph và mô hình lịch sử commit
+  - Tạo commit với mã, nhãn và kiểu hiển thị
+  - Tạo nhánh và chuyển nhánh bằng branch, checkout
+  - Mô tả merge và cherry-pick
+  - Điều chỉnh hướng, thứ tự nhánh và hình thức hiển thị
+  - Phân biệt sơ đồ minh họa với lịch sử Git thực tế
+  - Thực hành quy trình nhánh để duyệt và phát hành tài liệu
+- level1: Tư duy và cây
+  level2:
+  - Khai báo mindmap và xác định chủ đề trung tâm
+  - Tạo phân cấp mindmap bằng thụt lề
+  - Định dạng nút, biểu tượng và giới hạn hỗ trợ của mindmap
+  - Thực hành sơ đồ tư duy cho cấu trúc bộ tài liệu
+  - Giới thiệu TreeView beta và điều kiện phiên bản
+  - Khai báo cấu trúc cây cùng nhãn của các phần tử
+  - Biểu diễn thư mục, tệp và dấu hiệu phân biệt nút theo cú pháp hỗ trợ
+  - Lựa chọn mindmap, TreeView hoặc lưu đồ cho thông tin phân cấp
+- level1: Kanban
+  level2:
+  - Khai báo kanban và các cột trạng thái
+  - Tạo thẻ công việc với mã định danh và nội dung
+  - Gắn thông tin người phụ trách, mức ưu tiên và liên kết khi được hỗ trợ
+  - Cấu hình hình thức hiển thị bảng công việc
+  - Thực hành theo dõi tiến độ biên soạn tài liệu
+- level1: Biểu đồ dữ liệu
+  level2:
+  - Chọn biểu đồ theo loại dữ liệu và thông điệp cần truyền đạt
+  - Khai báo pie, nhãn và giá trị của từng phần
+  - Định dạng biểu đồ tròn và tránh diễn giải sai tỷ lệ
+  - Khai báo quadrantChart, trục và các góc phần tư
+  - Đặt điểm dữ liệu và diễn giải vị trí trên biểu đồ phần tư
+  - Khai báo XY Chart với trục và miền giá trị
+  - Biểu diễn cột, đường và nhiều chuỗi dữ liệu XY
+  - Kiểm tra nhãn, đơn vị và thang đo của biểu đồ XY
+  - Giới thiệu Radar beta và kiểm tra khả năng hỗ trợ
+  - Mô tả trục và các chuỗi dữ liệu trên biểu đồ radar
+  - Thực hành so sánh chất lượng và khối lượng tài liệu
+  - Kiểm tra dữ liệu đầu vào trước khi tạo biểu đồ
+- level1: Luồng và phân cấp
+  level2:
+  - Mục đích Sankey và cách diễn giải độ rộng luồng
+  - Khai báo sankey-beta với nguồn, đích và giá trị
+  - Chuẩn bị dữ liệu dạng CSV và xử lý nhãn
+  - Cấu hình hiển thị Sankey và kiểm tra tổng giá trị
+  - Mục đích Treemap và cách diễn giải diện tích phân cấp
+  - Khai báo nhóm, phần tử và giá trị cho Treemap
+  - Định dạng nhãn và tránh so sánh sai giữa các cấp
+  - Thực hành mô tả phân bổ và chuyển đổi tài liệu
+- level1: Sơ đồ chuyên biệt
+  level2:
+  - Khai báo packet diagram và phạm vi các trường bit
+  - Mô tả cấu trúc gói tin, độ dài trường và nhãn
+  - Kiểm tra thứ tự bit và độ chính xác của tài liệu giao thức
+  - Giới thiệu Venn beta và điều kiện hỗ trợ
+  - Mô tả tập hợp, phần giao và nhãn trong Venn
+  - Phân biệt quan hệ tập hợp với quan hệ quy trình
+  - Mục đích Ishikawa trong phân tích nguyên nhân
+  - Tổ chức vấn đề, nhóm nguyên nhân và nguyên nhân con
+  - Thực hành phân tích nguyên nhân lỗi xuất tài liệu
+- level1: Mô hình sự kiện
+  level2:
+  - Mục đích Event Modeling và điều kiện phiên bản
+  - Nhận diện giao diện, bộ xử lý, lệnh, sự kiện và mô hình đọc
+  - Tổ chức time frame và dòng thông tin theo thời gian
+  - Gắn dữ liệu minh họa và khối dữ liệu dùng lại
+  - Điều khiển quan hệ suy ra và điểm đặt lại luồng
+  - Thực hành mô tả các sự kiện trong vòng đời tài liệu
+- level1: Phân tích chiến lược
+  level2:
+  - Mục đích Wardley Map beta và điều kiện hỗ trợ
+  - Mô tả nhu cầu người dùng, thành phần và chuỗi phụ thuộc
+  - Đặt thành phần theo mức độ hiện diện và mức tiến hóa
+  - Mục đích Cynefin beta và phân biệt các miền ra quyết định
+  - Tổ chức vấn đề và nhãn trên sơ đồ Cynefin
+  - Thực hành lựa chọn sơ đồ phân tích cho hoạt động tài liệu
+- level1: ZenUML
+  level2:
+  - Vai trò ZenUML và khác biệt với sequenceDiagram
+  - Kiểm tra yêu cầu đăng ký hoặc tích hợp bộ kết xuất ZenUML
+  - Mô tả bên tham gia, lời gọi và giá trị trả về
+  - Biểu diễn điều kiện, vòng lặp và xử lý ngoại lệ theo cú pháp ZenUML
+  - Thực hành chuyển một luồng tương tác sang ZenUML
+- level1: Định dạng
+  level2:
+  - Lựa chọn chủ đề và bảng màu phù hợp tài liệu
+  - Tùy chỉnh themeVariables trên chủ đề hỗ trợ
+  - Thiết kế màu theo ý nghĩa và duy trì tính nhất quán
+  - Điều chỉnh phông chữ, cỡ chữ, nền và đường viền
+  - Phân biệt định dạng nút, cạnh và nhóm theo loại sơ đồ
+  - Dùng biểu tượng và tài nguyên ảnh với phương án dự phòng
+  - Viết công thức toán học khi bộ kết xuất hỗ trợ
+  - Giữ sơ đồ dễ đọc trong giao diện sáng, tối và bản in
+- level1: Cấu hình
+  level2:
+  - Phân biệt cấu hình toàn cục với cấu hình từng sơ đồ
+  - Thiết lập cấu hình ban đầu bằng mermaid.initialize
+  - Khai báo title và config bằng YAML frontmatter
+  - Kiểm tra thụt lề, tên thuộc tính và giá trị cấu hình
+  - Hiểu thứ tự áp dụng cấu hình và các thiết lập được bảo vệ
+  - Cấu hình riêng cho flowchart, sequence và các loại sơ đồ khác
+  - Nhận diện chỉ thị init cũ và lộ trình chuyển sang frontmatter
+  - Quản lý cấu hình dùng chung cho cả bộ tài liệu
+  - Đối chiếu cấu hình với phiên bản và nền tảng xuất bản
+- level1: Bố cục
+  level2:
+  - Lựa chọn hướng đọc theo kích thước trang và luồng thông tin
+  - So sánh bố cục Dagre và ELK trong phạm vi được hỗ trợ
+  - Phân biệt layout, look và theme
+  - Giảm đường nối giao nhau, nhãn đè nhau và nút quá dài
+  - Điều chỉnh khoảng cách, nhóm và điểm kết nối
+  - Tách sơ đồ lớn thành tổng quan và các sơ đồ chi tiết
+  - Kiểm tra bố cục sau khi đổi phiên bản, phông chữ hoặc bộ kết xuất
+- level1: Tích hợp web
+  level2:
+  - Nạp Mermaid qua gói npm hoặc ESM từ CDN
+  - Tổ chức phần tử chứa mã nguồn và thời điểm khởi tạo
+  - Kết xuất các khối sơ đồ bằng mermaid.run
+  - Kiểm tra cú pháp trước khi kết xuất bằng mermaid.parse
+  - Kết xuất thành SVG bằng mermaid.render
+  - Đảm bảo mã SVG duy nhất và gắn tương tác được cho phép
+  - Xử lý lỗi phân tích cú pháp và lỗi kết xuất bất đồng bộ
+  - Cập nhật sơ đồ khi nội dung Markdown thay đổi
+  - Tích hợp với ứng dụng một trang và vòng đời thành phần giao diện
+  - Xử lý môi trường dựng sẵn, phía máy chủ và trình duyệt
+- level1: Dòng lệnh
+  level2:
+  - Cài đặt và ghim phiên bản @mermaid-js/mermaid-cli
+  - Chuyển tệp .mmd thành SVG bằng mmdc
+  - Xuất PNG và PDF với lựa chọn đầu ra phù hợp
+  - Thiết lập chủ đề, nền, kích thước và chất lượng ảnh
+  - Truyền tệp cấu hình Mermaid và CSS được kiểm soát
+  - Cấu hình trình duyệt không giao diện và phông chữ
+  - Đọc mã nguồn từ đầu vào chuẩn và xử lý nhiều tệp
+  - Chuyển các khối Mermaid trong Markdown thành tài nguyên ảnh
+  - Chạy công cụ bằng Docker và quản lý thư mục gắn kết
+  - Đọc mã thoát, nhật ký và xử lý thời gian chờ
+- level1: Tích hợp Java
+  level2:
+  - Xác định ranh giới giữa ứng dụng Java và bộ kết xuất JavaScript
+  - Sinh mã Mermaid từ mô hình dữ liệu Java
+  - Thoát ký tự và kiểm soát nhãn được sinh từ dữ liệu
+  - Gọi Mermaid CLI bằng ProcessBuilder với đối số tách biệt
+  - Quản lý UTF-8, đầu vào, đầu ra, nhật ký và mã thoát
+  - Giới hạn thời gian, quản lý tiến trình và dọn tệp tạm
+  - Tổ chức tác vụ Gradle để dựng sơ đồ trong quy trình tài liệu
+  - Thiết kế giao diện kết xuất có thể thay thế và kiểm thử độc lập
+- level1: Xuất bản
+  level2:
+  - Lựa chọn mã Mermaid nhúng hoặc ảnh được dựng sẵn
+  - Tích hợp sơ đồ vào README và tài liệu trên nền tảng lưu trữ Git
+  - Kiểm tra hỗ trợ Mermaid của công cụ tạo website tài liệu
+  - Chuẩn bị tài nguyên SVG, PNG và mô tả thay thế cho từng đích
+  - Đưa sơ đồ vào tài liệu Word, PDF và trình chiếu qua ảnh xuất
+  - Quản lý tên tệp, liên kết và thư mục đầu ra
+  - Tự động dựng sơ đồ trong CI và dừng khi kết xuất lỗi
+  - Lưu dấu phiên bản công cụ và tái tạo đầu ra
+  - Phân phối tài liệu với đầy đủ tài nguyên và liên kết hoạt động
+- level1: Bảo mật
+  level2:
+  - Xác định nguồn mã sơ đồ tin cậy và không tin cậy
+  - Cấu hình securityLevel theo ngữ cảnh nhúng
+  - Kiểm soát nhãn HTML, liên kết, tương tác và nội dung SVG
+  - Kiểm soát tải tài nguyên ngoài, chính sách CSP và mạng
+  - Giới hạn kích thước mã nguồn và tài nguyên kết xuất
+  - Cô lập tiến trình kết xuất và giới hạn quyền truy cập tệp
+  - Ngăn dữ liệu đầu vào trở thành lệnh hệ điều hành khi gọi CLI
+- level1: Khả năng tiếp cận
+  level2:
+  - Đặt tiêu đề tiếp cận bằng accTitle
+  - Viết mô tả sơ đồ bằng accDescr và kiểm tra hỗ trợ
+  - Cung cấp nội dung văn bản tương đương cho thông tin quan trọng
+  - Giữ độ tương phản và tránh dùng màu làm dấu hiệu duy nhất
+  - Kiểm tra phông chữ tiếng Việt, cỡ chữ và độ đọc khi phóng to
+  - Kiểm tra sơ đồ trong trình đọc màn hình và bản tài liệu đã xuất
+- level1: Kiểm thử
+  level2:
+  - Xây dựng bộ ví dụ tối thiểu cho các loại sơ đồ được sử dụng
+  - Kiểm tra cú pháp và kết xuất tự động trước khi xuất bản
+  - Đối chiếu nội dung sơ đồ với mô hình và tài liệu nguồn
+  - Kiểm tra liên kết, ảnh, biểu tượng và tài nguyên đầu ra
+  - Kiểm tra nhãn bị cắt, bố cục chồng lấn và phông chữ thiếu
+  - So sánh hình ảnh khi nâng cấp Mermaid hoặc Chromium
+  - Kiểm tra trên nền tảng đích và với cấu hình bảo mật thực tế
+  - Xác định tiêu chí chấp nhận cho tài liệu chứa sơ đồ
+- level1: Xử lý lỗi
+  level2:
+  - Đọc vị trí lỗi và rút gọn sơ đồ để tìm nguyên nhân
+  - Sửa lỗi từ khóa, dấu nháy và ký tự đặc biệt
+  - Sửa lỗi thụt lề trong mindmap, cây và YAML frontmatter
+  - Xử lý loại sơ đồ hoặc cú pháp chưa được phiên bản hỗ trợ
+  - Phân biệt cấu hình bị bỏ qua với lỗi cú pháp sơ đồ
+  - Khắc phục nhãn mất dấu, phông chữ sai và kích thước sai
+  - Xử lý khác biệt giữa Live Editor, Markdown và bản xuất
+  - Xử lý lỗi tải mô-đun, biểu tượng hoặc tài nguyên do CSP
+  - Khắc phục lỗi Chromium, quyền truy cập và kết xuất quá hạn
+  - Chuẩn bị ví dụ tái hiện lỗi cùng thông tin môi trường
+- level1: Hiệu năng và bảo trì
+  level2:
+  - Đo thời gian kết xuất, bộ nhớ và kích thước đầu ra
+  - Giảm độ phức tạp bằng chia nhỏ sơ đồ và rút gọn nhãn
+  - Chỉ kết xuất khi cần và tránh dựng lại nội dung không đổi
+  - Lưu đệm theo mã nguồn, cấu hình và phiên bản công cụ
+  - Giới hạn kết xuất đồng thời và tái sử dụng tài nguyên có kiểm soát
+  - Quy ước tên định danh, tệp nguồn và chú thích
+  - Rà soát thay đổi sơ đồ qua bản so sánh Git
+  - Quản lý nâng cấp, cú pháp beta và loại bỏ cấu hình lỗi thời
+- level1: Thực hành
+  level2:
+  - Viết README có lưu đồ và hướng dẫn bằng văn bản
+  - Mô tả một yêu cầu xử lý tài liệu bằng sơ đồ trình tự
+  - Thiết kế sơ đồ lớp cho các thành phần kết xuất
+  - Mô hình hóa vòng đời tài liệu bằng sơ đồ trạng thái
+  - Thiết kế ERD cho mẫu, phiên bản và tài nguyên tài liệu
+  - Xây dựng bộ sơ đồ kiến trúc với ranh giới nhất quán
+  - Sinh sơ đồ từ dữ liệu Java và xuất SVG bằng CLI
+  - Dựng tài liệu tự động bằng Gradle và CI
+  - Hoàn thiện bộ tài liệu có phương án hiển thị dự phòng
+  - Tự đánh giá tính chính xác, độ dễ đọc và khả năng tái tạo

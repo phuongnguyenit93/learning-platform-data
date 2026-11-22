@@ -1,0 +1,2752 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Lập trình định hướng dữ liệu là gì và dữ liệu giữ vai trò trung tâm ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Bài toán thay đổi mô hình, chia sẻ dữ liệu và xử lý khối lượng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Tách dữ liệu khỏi hành vi và biểu diễn phép xử lý một cách tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Các thuật ngữ nền tảng: mô hình, lược đồ, phép biến đổi và bố trí dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt Data-Oriented Programming và Data-Oriented Design
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mối liên hệ với lập trình hàm, hướng đối tượng và mô hình quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt định hướng dữ liệu với điều khiển bằng dữ liệu và Domain-Driven Design
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Ví dụ xuyên suốt: từ bản ghi đơn hàng đến xử lý nhiều đơn hàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lợi ích, chi phí, giới hạn áp dụng và thứ tự tiếp cận kiến thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: problem-analysis
+  title: Phân tích bài toán
+  childs:
+  - slug: problem-analysis-001
+    title: Xác định dữ liệu đầu vào, đầu ra và các phép xử lý chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-002
+    title: Phân loại dữ liệu theo hình dạng, số lượng và vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-003
+    title: 'Mô tả mẫu truy cập: đọc, ghi, quét, tìm kiếm và tổng hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-004
+    title: Xác định trường dữ liệu thường dùng cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-005
+    title: Phân biệt yêu cầu nghiệp vụ với lựa chọn cách lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-006
+    title: Ước lượng kích thước tập dữ liệu và mức độ biến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-007
+    title: Xác định quan hệ sở hữu và các nơi cùng tham chiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-008
+    title: Lập ngân sách độ trễ, thông lượng và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-analysis-009
+    title: Thiết lập dữ liệu mẫu đại diện và tiêu chí đánh giá thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-processing-separation
+  title: Tách dữ liệu và xử lý
+  childs:
+  - slug: data-processing-separation-001
+    title: Mô hình dữ liệu độc lập với các thao tác sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-002
+    title: Hàm xử lý nhận dữ liệu tường minh và trả về kết quả tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-003
+    title: Tách quyết định nghiệp vụ khỏi đọc ghi và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-004
+    title: Tổ chức các phép xử lý theo trường hợp sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-005
+    title: Tái sử dụng cùng một dữ liệu cho nhiều cách xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-006
+    title: Giảm phụ thuộc vào cây kế thừa và trạng thái ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-007
+    title: Phối hợp hàm và đối tượng mà vẫn giữ ranh giới dữ liệu rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-008
+    title: Quyền sở hữu dữ liệu và nơi chịu trách nhiệm cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-separation-009
+    title: Thiết kế mô-đun quanh phép biến đổi và hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-representation
+  title: Biểu diễn dữ liệu
+  childs:
+  - slug: data-representation-001
+    title: Giá trị đơn, bản ghi, danh sách, tập hợp và ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-002
+    title: Dữ liệu có kiểu tĩnh và cấu trúc dữ liệu tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-003
+    title: 'Java record: biểu diễn giá trị và giới hạn của tính bất biến nông'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-004
+    title: Sealed type và biểu diễn dữ liệu có nhiều biến thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-005
+    title: 'Map, List và JSON tree: mức linh hoạt và chi phí kiểm soát kiểu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-006
+    title: Biểu diễn quan hệ lồng nhau hoặc liên kết bằng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-007
+    title: Dữ liệu thiếu, giá trị null, giá trị mặc định và trạng thái chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-008
+    title: Thời gian, tiền tệ, đơn vị đo và các kiểu giá trị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-009
+    title: Đồng nhất đối tượng, đồng nhất giá trị và quy tắc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-representation-010
+    title: Lựa chọn biểu diễn theo hợp đồng sử dụng thay vì thói quen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: Lược đồ dữ liệu và sự khác biệt giữa hình dạng với giá trị hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Tách định nghĩa cấu trúc khỏi kiểm tra dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: Kiểm tra kiểu, miền giá trị và ràng buộc giữa các trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: Ràng buộc trong một bản ghi và ràng buộc giữa nhiều bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Chuyển dữ liệu chưa tin cậy thành dữ liệu đã được xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Phân biệt lỗi cấu trúc, lỗi chuyển đổi và lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Báo lỗi theo đường dẫn trường và tập hợp nhiều lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Xử lý trường thiếu, trường dư và biến thể chưa được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-009
+    title: Kiểm tra hợp đồng tại ranh giới hệ thống và tránh kiểm tra lặp thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-010
+    title: Lược đồ linh hoạt và nguy cơ đẩy lỗi từ biên dịch sang thời gian chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: immutability
+  title: Bất biến
+  childs:
+  - slug: immutability-001
+    title: Dữ liệu bất biến, tham chiếu không đổi và đối tượng không thể sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-002
+    title: Bất biến nông và bất biến sâu trong cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-003
+    title: Bí danh tham chiếu và thay đổi dữ liệu ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-004
+    title: Sao chép bảo vệ ở đầu vào và đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-005
+    title: Bộ sưu tập không sửa được khác gì bản sao bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-006
+    title: Cập nhật bằng cách tạo giá trị mới và giữ ảnh chụp cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-007
+    title: Chia sẻ cấu trúc và cấu trúc dữ liệu giữ phiên bản cũ (persistent data structure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-008
+    title: Sao chép khi ghi và cập nhật theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-009
+    title: Đánh đổi giữa cấp phát, sao chép và tính dễ suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-010
+    title: Kết hợp bất biến ở biên với vùng dữ liệu khả biến có quyền sở hữu rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-transformation
+  title: Biến đổi dữ liệu
+  childs:
+  - slug: data-transformation-001
+    title: Ánh xạ từng phần tử thành một biểu diễn mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-002
+    title: Lọc, chọn trường và loại bỏ dữ liệu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-003
+    title: Làm phẳng dữ liệu lồng nhau và phối hợp nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-004
+    title: Gom nhóm, phân vùng và tổng hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-005
+    title: Sắp xếp, loại trùng và xác định thứ tự kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-006
+    title: Tích lũy kết quả bằng reduce, fold và bộ thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-007
+    title: Chuẩn hóa giá trị và chuyển đổi lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-008
+    title: Hợp nhất dữ liệu và giải quyết xung đột cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-009
+    title: Hợp thành các phép biến đổi nhỏ thành quy trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-010
+    title: Bảo toàn định danh, ràng buộc và tính xác định qua từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-011
+    title: Tách phép biến đổi thuần khỏi tác vụ ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-relationships
+  title: Quan hệ dữ liệu
+  childs:
+  - slug: data-relationships-001
+    title: Khóa, định danh ổn định và tham chiếu giữa các bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-002
+    title: Lồng dữ liệu so với chuẩn hóa thành các tập bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-003
+    title: Quan hệ một–một, một–nhiều và nhiều–nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-004
+    title: Kết nối dữ liệu bằng khóa và lựa chọn thuật toán join
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-005
+    title: Xây dựng chỉ mục phục vụ truy cập thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-006
+    title: Phi chuẩn hóa có chủ đích và chi phí đồng bộ dữ liệu lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-007
+    title: Thứ tự, tập hợp và tính duy nhất trong quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-008
+    title: Giữ toàn vẹn tham chiếu khi thêm, sửa hoặc xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-009
+    title: Tạo góc nhìn dữ liệu phù hợp cho từng nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-relationships-010
+    title: Mô hình quan hệ trong bộ nhớ và ranh giới với cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-apis
+  title: API dữ liệu
+  childs:
+  - slug: data-apis-001
+    title: Thiết kế đầu vào và đầu ra theo dữ liệu cần trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-002
+    title: Phân biệt dữ liệu vận chuyển, dữ liệu nghiệp vụ và biểu diễn lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-003
+    title: Trả về giá trị mới so với sửa dữ liệu do bên gọi sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-004
+    title: Biểu diễn kết quả thành công, lỗi và dữ liệu không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-005
+    title: Tách lệnh thay đổi dữ liệu khỏi truy vấn đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-006
+    title: Chọn hợp đồng trả về ảnh chụp, khung nhìn hoặc luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-007
+    title: Phân trang, xử lý từng phần và hợp đồng xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-008
+    title: Ánh xạ tại ranh giới thay vì để cấu trúc nội bộ lan ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-009
+    title: Giữ hợp đồng ổn định khi thay đổi cách bố trí bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-apis-010
+    title: Kiểm soát tác dụng phụ, tính lũy đẳng và cập nhật có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-layout
+  title: Cấu trúc lưu trữ
+  childs:
+  - slug: storage-layout-001
+    title: Mảng, danh sách, tập hợp và bảng băm theo mẫu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-002
+    title: Mảng kiểu nguyên thủy và bộ sưu tập chứa kiểu bao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-003
+    title: Lưu trữ dày đặc và lưu trữ thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-004
+    title: BitSet, cờ trạng thái và biểu diễn tập giá trị nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-005
+    title: Chỉ mục theo vị trí và ánh xạ từ định danh đến vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-006
+    title: Chèn, xóa, sắp xếp và tác động đến tính ổn định của vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-007
+    title: Dữ liệu có độ dài cố định và độ dài thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-008
+    title: Biểu diễn văn bản, mã phân loại và bảng tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-009
+    title: Lựa chọn cấu trúc theo chi phí đọc, ghi và duy trì chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-layout-010
+    title: Độ phức tạp thuật toán và chi phí bộ nhớ của biểu diễn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hardware-model
+  title: Mô hình phần cứng
+  childs:
+  - slug: hardware-model-001
+    title: Từ lệnh chương trình đến dữ liệu được CPU đọc và ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-002
+    title: Thanh ghi, bộ nhớ đệm nhiều cấp và bộ nhớ chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-003
+    title: Dòng bộ nhớ đệm và đơn vị trao đổi dữ liệu với bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-004
+    title: Độ trễ truy cập và băng thông bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-005
+    title: Nạp trước dữ liệu và mẫu truy cập có thể dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-006
+    title: Địa chỉ ảo, trang nhớ và vai trò của TLB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-007
+    title: Dự đoán nhánh và ảnh hưởng của dữ liệu đến luồng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-008
+    title: Giới thiệu SIMD và xử lý nhiều phần tử trong một lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-009
+    title: Giới hạn do tính toán khác với giới hạn do truy cập bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-model-010
+    title: Giới hạn của suy luận phần cứng khi chưa có số đo thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-layout
+  title: Bố trí bộ nhớ
+  childs:
+  - slug: memory-layout-001
+    title: Đồ thị đối tượng, tham chiếu gián tiếp và dữ liệu phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-002
+    title: Mảng đối tượng khác gì vùng dữ liệu nguyên thủy liên tiếp trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-003
+    title: 'Array of Structures: tổ chức nhiều bản ghi theo từng đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-004
+    title: 'Structure of Arrays: tách từng trường thành mảng riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-005
+    title: 'Array of Structures of Arrays: kết hợp nhóm nhỏ với bố trí theo cột'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-006
+    title: Tách trường thường dùng và trường ít dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-007
+    title: Căn chỉnh, phần đệm và giới hạn kiểm soát bố trí trên JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-008
+    title: Đồng bộ chỉ mục giữa các mảng khi thêm, xóa hoặc sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-009
+    title: Biểu diễn dữ liệu có độ dài thay đổi trong bố trí theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-010
+    title: Lựa chọn bố trí theo các trường thực sự được đọc trong vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-layout-011
+    title: Đánh đổi giữa dễ sử dụng, linh hoạt và hiệu quả truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-locality
+  title: Tính cục bộ
+  childs:
+  - slug: data-locality-001
+    title: Tính cục bộ theo không gian và theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-002
+    title: Quét liên tiếp thay vì truy cập ngẫu nhiên khi bài toán cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-003
+    title: Giảm lần theo chuỗi tham chiếu trong đường xử lý thường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-004
+    title: Sắp xếp dữ liệu theo khóa xử lý hoặc vị trí sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-005
+    title: Chia dữ liệu thành khối vừa với tập dữ liệu đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-006
+    title: Phân tách vòng lặp để tránh đọc trường không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-007
+    title: Gộp vòng lặp để tái sử dụng dữ liệu còn trong bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-008
+    title: Đánh đổi giữa thêm lượt quét và giảm lượng dữ liệu mỗi lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-009
+    title: Bảng tra cứu, chỉ mục gián tiếp và chi phí truy cập bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-locality-010
+    title: Đo tỉ lệ trượt bộ nhớ đệm và kiểm chứng giả thuyết về tính cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-driven-design
+  title: Thiết kế theo dữ liệu
+  childs:
+  - slug: data-driven-design-001
+    title: 'Data-Oriented Design: bắt đầu từ dữ liệu và phép biến đổi cần thực hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-002
+    title: Thiết kế đường xử lý thường chạy từ mẫu truy cập thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-003
+    title: Tổ chức dữ liệu phục vụ tác vụ thay vì sao chép hình dạng lớp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-004
+    title: Chọn đơn vị xử lý một phần tử, một khối hoặc toàn tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-005
+    title: Tách dữ liệu đọc thường xuyên khỏi dữ liệu cập nhật hiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-006
+    title: Giảm trạng thái trung gian và các bước chuyển đổi biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-007
+    title: Cô lập phần cần tối ưu để giữ phần còn lại dễ bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-008
+    title: Phối hợp mô hình hướng đối tượng ở biên với lõi xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-009
+    title: So sánh nhiều bố trí bằng cùng một khối lượng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-driven-design-010
+    title: Tránh tối ưu sớm khi chưa xác định nút thắt và mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ecs
+  title: ECS
+  childs:
+  - slug: ecs-001
+    title: 'Entity–Component–System: thực thể, thành phần dữ liệu và hệ thống xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-002
+    title: Định danh thực thể và vòng đời tạo, hủy, tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-003
+    title: Thành phần chứa dữ liệu và hệ thống thực hiện phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-004
+    title: Truy vấn thực thể theo tập thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-005
+    title: Lưu trữ theo bảng băm, sparse set hoặc archetype
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-006
+    title: Di chuyển dữ liệu khi thêm hoặc bỏ thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-007
+    title: Tham chiếu hết hiệu lực và định danh có số thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-008
+    title: Thứ tự chạy hệ thống và khai báo quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-009
+    title: Hoãn thay đổi cấu trúc bằng bộ đệm lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-010
+    title: Khi nào ECS phù hợp và vì sao ECS không đồng nghĩa với mọi thiết kế định hướng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batch-processing
+  title: Xử lý theo lô
+  childs:
+  - slug: batch-processing-001
+    title: Chuyển từ xử lý từng đối tượng sang xử lý tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-002
+    title: Chọn kích thước lô theo bộ nhớ, độ trễ và chi phí gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-003
+    title: Phân tách bước nạp, chuyển đổi, tính toán và ghi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-004
+    title: Đọc một lần và thực hiện nhiều phép tính trên cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-005
+    title: Xử lý từng khối để tránh nạp toàn bộ tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-006
+    title: Nén các phần tử hợp lệ vào vùng kết quả liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-007
+    title: Đánh dấu rồi dọn dẹp so với xóa ngay trong vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-008
+    title: Phân phối lô theo nhóm dữ liệu hoặc loại thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-009
+    title: Lỗi một phần, thử lại và tính lũy đẳng của thao tác theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-010
+    title: Kiểm soát hàng đợi đầu vào và tốc độ xử lý các lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loops-and-simd
+  title: Vòng lặp và SIMD
+  childs:
+  - slug: loops-and-simd-001
+    title: Vòng lặp đơn giản và điều kiện để xử lý dữ liệu hiệu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-002
+    title: Giảm phân nhánh dựa trên cách phân nhóm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-003
+    title: Tách xử lý từng biến thể khỏi vòng lặp có nhiều điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-004
+    title: Vector hóa tự động và giới hạn phụ thuộc vào JIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-005
+    title: SIMD, kiểu dữ liệu đồng nhất và bố trí theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-006
+    title: Phụ thuộc giữa các lần lặp và trở ngại cho vector hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-007
+    title: Xử lý phần dư khi số phần tử không chia hết cho độ rộng vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-008
+    title: Java Vector API và yêu cầu tương thích với JDK được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-009
+    title: Sai số số thực và thay đổi thứ tự thực hiện phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loops-and-simd-010
+    title: Đối chiếu kết quả và đo hiệu năng trước khi giữ một tối ưu vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-processing
+  title: Xử lý đồng thời
+  childs:
+  - slug: concurrent-processing-001
+    title: Chia tập dữ liệu thành các phần có quyền sở hữu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-002
+    title: Dữ liệu chỉ đọc dùng chung và dữ liệu ghi riêng cho từng tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-003
+    title: Phân chia theo khoảng chỉ mục, khóa hoặc nhóm công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-004
+    title: Kết hợp kết quả cục bộ bằng phép tổng hợp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-005
+    title: Tranh chấp dữ liệu và điều kiện để nhiều tác vụ không cần khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-006
+    title: 'False sharing: nhiều tác vụ ghi vào cùng dòng bộ nhớ đệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-007
+    title: Phân vùng dữ liệu khác gì chỉ tăng số luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-008
+    title: Rào đồng bộ và thứ tự giữa các giai đoạn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-009
+    title: Ảnh chụp bất biến và công bố dữ liệu an toàn giữa nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-010
+    title: Giới hạn của parallel stream và chi phí phân chia công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-processing-011
+    title: Tính xác định khi thứ tự cập nhật hoặc phép tổng hợp thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-jvm
+  title: Java và JVM
+  childs:
+  - slug: java-and-jvm-001
+    title: Biểu diễn dữ liệu bằng class, record và sealed type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-002
+    title: Record pattern và switch theo kiểu trong mô hình nhiều biến thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-003
+    title: Dùng mảng nguyên thủy để giảm gián tiếp và đóng hộp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-004
+    title: Duy trì nhiều mảng đồng bộ chỉ mục trong bố trí theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-005
+    title: So sánh vòng lặp trực tiếp, Iterator và Stream theo khối lượng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-006
+    title: Đóng hộp, mở hộp và tác động đến cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-007
+    title: Giới hạn kiểm tra chỉ mục và tối ưu vòng lặp của JIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-008
+    title: Escape analysis và khả năng loại bỏ cấp phát tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-009
+    title: Object layout và các yếu tố phụ thuộc cấu hình JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-010
+    title: 'ByteBuffer: dữ liệu nhị phân, thứ tự byte và truy cập theo vị trí'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-jvm-011
+    title: Giữ API có kiểu rõ trong khi thay đổi biểu diễn bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-management
+  title: Quản lý bộ nhớ
+  childs:
+  - slug: memory-management-001
+    title: Chi phí cấp phát đối tượng và lượng dữ liệu cần giữ sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-002
+    title: Đo kích thước tập dữ liệu thực thay vì chỉ đếm số bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-003
+    title: Giảm đối tượng tạm trong chuỗi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-004
+    title: Tái sử dụng bộ đệm theo phạm vi sở hữu rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-005
+    title: Vùng nhớ giữ lại ngoài ý muốn và vòng đời tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-006
+    title: Đánh đổi giữa đối tượng bất biến, bản sao và áp lực thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-007
+    title: 'Bộ nhớ trong heap và ngoài heap: quyền sở hữu và trách nhiệm giải phóng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-008
+    title: Lưu trữ ngoài heap không tự loại bỏ mọi chi phí sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-009
+    title: 'Object pool: chi phí quản lý, trạng thái cũ và nguy cơ giữ bộ nhớ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-010
+    title: Đặt giới hạn cho bộ đệm, bộ nhớ đệm và dữ liệu trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serialization
+  title: Tuần tự hóa
+  childs:
+  - slug: serialization-001
+    title: Phân biệt mô hình trong bộ nhớ và định dạng trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-002
+    title: Ánh xạ bản ghi sang JSON và dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-003
+    title: Lược đồ tường minh so với định dạng tự mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-004
+    title: Biểu diễn số, văn bản, thời gian và giá trị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-005
+    title: Thứ tự byte, độ rộng trường và tương thích nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-006
+    title: Chi phí chuyển đổi, sao chép và cấp phát khi mã hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-007
+    title: Đọc từng phần và chỉ giải mã các trường cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-008
+    title: Dữ liệu không hợp lệ, giới hạn kích thước và kiểm tra tại ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-009
+    title: Kiểm chứng tính tương đương sau một vòng mã hóa và giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-010
+    title: Tách định dạng lưu trữ lâu dài khỏi chi tiết bố trí nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-evolution
+  title: Tiến hóa lược đồ
+  childs:
+  - slug: schema-evolution-001
+    title: Thêm, bỏ và đổi tên trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-002
+    title: Thay đổi kiểu và ý nghĩa của một trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-003
+    title: Tương thích đọc dữ liệu cũ và dữ liệu từ phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-004
+    title: Giá trị mặc định và phân biệt thiếu trường với giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-005
+    title: Quản lý phiên bản dữ liệu độc lập với phiên bản mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-006
+    title: Chuyển đổi dữ liệu qua các bước di trú có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-007
+    title: Đọc nhiều phiên bản và ghi về biểu diễn chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-008
+    title: Biến thể chưa biết và cách giữ dữ liệu không nhận diện được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-009
+    title: Triển khai nhiều phiên bản ứng dụng cùng sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-010
+    title: Lưu dấu nguồn gốc và xác minh kết quả di trú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-and-queries
+  title: Lưu trữ và truy vấn
+  childs:
+  - slug: storage-and-queries-001
+    title: Chọn biểu diễn lưu trữ theo nhu cầu truy vấn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-002
+    title: 'Lưu theo hàng và lưu theo cột: đặc điểm truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-003
+    title: Chiếu trường, lọc sớm và giảm dữ liệu trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-004
+    title: Chỉ mục và chi phí duy trì khi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-005
+    title: Hash join, sort-merge join và kết nối lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-006
+    title: Tổng hợp theo nhóm và phân vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-007
+    title: Biểu diễn chuẩn hóa trong lưu trữ và góc nhìn phục vụ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-008
+    title: Ranh giới giữa tính toán tại cơ sở dữ liệu và trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-009
+    title: Ảnh chụp, giao dịch và tính nhất quán của nhiều tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-queries-010
+    title: Nạp dữ liệu vào bộ nhớ theo lô mà không phụ thuộc toàn bộ mô hình ORM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử phép biến đổi bằng đầu vào và đầu ra tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử ràng buộc, dữ liệu thiếu và dữ liệu sai kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử dựa trên thuộc tính và sinh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm chứng tính bất biến và phát hiện sửa dữ liệu qua tham chiếu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử bảo toàn số lượng, định danh và tổng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Đối chiếu các cách bố trí dữ liệu bằng cùng một bộ kết quả chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử trường hợp rỗng, một phần tử, dữ liệu thưa và dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử thêm, xóa và sắp xếp khi nhiều mảng dùng chung chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử tương thích định dạng và di trú lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử xử lý đồng thời và tính xác định của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Giữ dữ liệu thử sát với phân bố và mẫu truy cập thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-measurement
+  title: Đo hiệu năng
+  childs:
+  - slug: performance-measurement-001
+    title: Xác định giả thuyết, chỉ số và đường cơ sở trước khi đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-002
+    title: Thiết kế phép đo so sánh cùng thuật toán và cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-003
+    title: 'JMH: khởi động, làm nóng, nhiều lượt đo và nhiều tiến trình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-004
+    title: Tránh loại bỏ mã không dùng và tính toán hằng trong phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-005
+    title: Kiểm soát cách tạo dữ liệu và đặt lại trạng thái giữa các lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-006
+    title: Đo thông lượng, độ trễ, cấp phát và mức sử dụng bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-007
+    title: Thay đổi kích thước dữ liệu để nhận diện các giới hạn bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-008
+    title: Đo dữ liệu lệch phân bố, nhiều biến thể và truy cập ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-009
+    title: Phân biệt kết quả đo vi mô với hiệu năng ứng dụng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-010
+    title: Đánh giá độ biến động, độ tin cậy và khả năng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-011
+    title: Giữ tính đúng đắn và chi phí bảo trì trong tiêu chí lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Xác định thời gian CPU, thời gian chờ và thời gian thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-002
+    title: Dùng Java Flight Recorder để quan sát cấp phát và hành vi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-003
+    title: Đọc hồ sơ thực thi để tìm vòng lặp và phép biến đổi tốn chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-004
+    title: Theo dõi dữ liệu giữ sống và đường tham chiếu gây rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-005
+    title: Đo lượng dữ liệu quét so với lượng dữ liệu thực sự sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-006
+    title: Quan sát cache miss, nhánh và băng thông khi công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-007
+    title: Nhận diện chi phí do đóng hộp, sao chép và chuyển đổi biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-008
+    title: Phân biệt nút thắt thuật toán với nút thắt bố trí dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-009
+    title: Ghi nhận môi trường JVM, phần cứng và cấu hình để giải thích số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-migration
+  title: Chuyển đổi thiết kế
+  childs:
+  - slug: design-migration-001
+    title: Kiểm kê mô hình hiện có và các phép xử lý thường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-002
+    title: Chọn một đường xử lý có thể đo để chuyển đổi trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-003
+    title: Tách dữ liệu khỏi đối tượng mà vẫn giữ hợp đồng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-004
+    title: Đưa phép xử lý về hàm thuần theo từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-005
+    title: Chuyển đồ thị đối tượng sang tập bản ghi có định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-006
+    title: Thay một phần lưu trữ bằng mảng nguyên thủy hoặc bố trí theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-007
+    title: Duy trì bộ chuyển đổi giữa mô hình cũ và mô hình mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-008
+    title: Chạy đối chiếu hai cách cài đặt để phát hiện sai khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-009
+    title: Đánh giá chi phí đồng bộ hai biểu diễn và tránh lưu trùng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-migration-010
+    title: Chọn thời điểm dừng tối ưu và tiêu chí quay lại thiết kế đơn giản hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Đồng nhất định hướng dữ liệu với việc bỏ mọi đối tượng và kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Nhầm Java record hoặc trường final với bất biến sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Dùng Map cho mọi dữ liệu và đánh mất hợp đồng kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Tối ưu bố trí bộ nhớ khi thuật toán vẫn là nút thắt chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Chọn SoA dù phần lớn thao tác luôn cần toàn bộ bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Để các mảng thành phần lệch chỉ mục sau khi thêm hoặc xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Giữ tham chiếu vị trí sau khi dữ liệu đã bị di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Chia nhỏ công việc quá mức hoặc tạo false sharing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Lưu nhiều góc nhìn dẫn xuất mà không có cơ chế cập nhật nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-010
+    title: Đo bằng dữ liệu quá nhỏ, thiếu làm nóng hoặc sai mẫu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-011
+    title: Làm lộ bố trí nội bộ khiến API khó tiến hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-012
+    title: Đánh đổi tính đúng đắn hoặc khả năng bảo trì chỉ vì một phép đo nhanh hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-labs
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-labs-001
+    title: Tách dữ liệu đơn hàng khỏi lớp chứa hành vi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-002
+    title: Xây dựng chuỗi chuẩn hóa, xác thực và tổng hợp dữ liệu nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-003
+    title: Biểu diễn nhiều loại giao dịch bằng record và sealed type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-004
+    title: Thiết kế ảnh chụp bất biến và cập nhật dữ liệu lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-005
+    title: Chuẩn hóa quan hệ khách hàng–đơn hàng và truy vấn bằng chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-006
+    title: So sánh mảng đối tượng với các mảng nguyên thủy theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-007
+    title: Xây dựng kho dữ liệu dày đặc có định danh ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-008
+    title: Thiết kế ECS nhỏ để cập nhật vị trí và vận tốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-009
+    title: Xử lý dữ liệu lớn theo khối và tổng hợp kết quả song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-010
+    title: Di trú lược đồ dữ liệu qua hai phiên bản và kiểm tra tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-011
+    title: Dùng JMH và JFR để kiểm chứng một thay đổi bố trí dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-012
+    title: Hoàn thiện bài toán tổng hợp với báo cáo tính đúng đắn và các đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

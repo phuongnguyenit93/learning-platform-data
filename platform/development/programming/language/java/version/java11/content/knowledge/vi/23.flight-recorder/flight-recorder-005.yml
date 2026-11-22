@@ -1,0 +1,3 @@
+menuLevel1: Flight Recorder
+menuLevel2: jcmd JFR.start, JFR.check, JFR.dump, JFR.stop
+status: WRITTEN

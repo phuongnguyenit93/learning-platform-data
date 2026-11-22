@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan thiết kế test
+  slug: overview-test-design
+  index: 0
+- title: Phân tích yêu cầu
+  slug: requirements-analysis
+  index: 1
+- title: Mô hình hóa hành vi
+  slug: behavior-modeling
+  index: 2
+- title: Rủi ro và ưu tiên
+  slug: risk-prioritization
+  index: 3
+- title: Kết quả mong đợi
+  slug: expected-results
+  index: 4
+- title: Đặc tả bằng ví dụ
+  slug: specification-by-example
+  index: 5
+- title: Cấu trúc test case
+  slug: test-case-structure
+  index: 6
+- title: Phân lớp tương đương
+  slug: equivalence-partitioning
+  index: 7
+- title: Giá trị biên
+  slug: boundary-values
+  index: 8
+- title: Bảng quyết định
+  slug: decision-tables
+  index: 9
+- title: Chuyển trạng thái
+  slug: state-transitions
+  index: 10
+- title: Kịch bản nghiệp vụ
+  slug: business-scenarios
+  index: 11
+- title: Miền dữ liệu và cú pháp
+  slug: data-domains-and-syntax
+  index: 12
+- title: Kết hợp tham số
+  slug: parameter-combinations
+  index: 13
+- title: Kiểm thử theo mô hình
+  slug: model-based-testing
+  index: 14
+- title: Bao phủ cấu trúc
+  slug: structural-coverage
+  index: 15
+- title: Điều kiện logic
+  slug: logical-conditions
+  index: 16
+- title: Đường đi và luồng dữ liệu
+  slug: paths-and-data-flows
+  index: 17
+- title: Kinh nghiệm và khám phá
+  slug: experience-and-exploration
+  index: 18
+- title: Kiểm thử dựa thuộc tính
+  slug: property-based-testing
+  index: 19
+- title: Quan hệ biến đổi
+  slug: metamorphic-relations
+  index: 20
+- title: Fuzzing và dữ liệu ngẫu nhiên
+  slug: fuzzing-random-data
+  index: 21
+- title: Kiểm thử đột biến
+  slug: mutation-testing
+  index: 22
+- title: Ranh giới và test double
+  slug: boundaries-and-test-doubles
+  index: 23
+- title: API và hợp đồng
+  slug: api-and-contracts
+  index: 24
+- title: Dữ liệu và giao dịch
+  slug: data-and-transactions
+  index: 25
+- title: Thời gian và bất đồng bộ
+  slug: time-and-async
+  index: 26
+- title: Đồng thời
+  slug: concurrency
+  index: 27
+- title: Ngoại lệ và phục hồi
+  slug: exceptions-and-recovery
+  index: 28
+- title: Yêu cầu phi chức năng
+  slug: non-functional-requirements
+  index: 29
+- title: Thiết kế để tự động hóa
+  slug: automation-design
+  index: 30
+- title: Bao phủ và truy vết
+  slug: coverage-and-traceability
+  index: 31
+- title: Rà soát và tối giản
+  slug: review-and-simplification
+  index: 32
+- title: Thiết kế khi thay đổi
+  slug: change-driven-design
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

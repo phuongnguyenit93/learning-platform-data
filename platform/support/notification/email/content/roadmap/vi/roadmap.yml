@@ -1,0 +1,57 @@
+roadmap:
+- id: nhu-cau-vong-doi
+  title: Nhu cầu & vòng đời
+  purpose: Phân biệt các loại email thông báo và xác định các trạng thái cần theo dõi từ sự kiện nghiệp vụ đến kết quả gửi.
+  objectives:
+  - Phân biệt email giao dịch và email tiếp thị
+  - Thiết kế trigger, người nhận và nội dung theo sự kiện
+  - Phân biệt yêu cầu đã nhận, gửi đi và giao đến mail server
+- id: smtp-email-provider
+  title: SMTP & Email Provider
+  purpose: Lựa chọn phương thức kết nối dịch vụ gửi email phù hợp với hạ tầng và nhu cầu vận hành.
+  objectives:
+  - Giải thích vai trò SMTP, mail relay và email API
+  - So sánh gửi qua SMTP với API nhà cung cấp
+  - Cấu hình xác thực và TLS theo dịch vụ được chọn
+- id: spring-javamailsender
+  title: Spring JavaMailSender
+  purpose: Gửi email cơ bản từ ứng dụng Java/Spring Boot qua abstraction của Spring Mail.
+  objectives:
+  - Cấu hình spring-boot-starter-mail và spring.mail
+  - Dùng JavaMailSender và SimpleMailMessage gửi text
+  - Thiết lập timeout và phân loại MailException
+- id: template-mime
+  title: Template & MIME
+  purpose: Tạo thư có nội dung cá nhân hóa, hiển thị nhất quán trên nhiều email client.
+  objectives:
+  - Tạo template với biến được kiểm tra và escaping
+  - Tạo HTML/plain-text bằng MimeMessageHelper
+  - Đính kèm file hoặc inline resource khi cần
+- id: domain-deliverability
+  title: Domain & Deliverability
+  purpose: Xác minh danh tính người gửi và giảm nguy cơ thư bị giả mạo hoặc bị từ chối.
+  objectives:
+  - Xác minh sender identity và domain gửi
+  - Giải thích SPF, DKIM, DMARC và domain alignment
+  - Kiểm tra DNS, reputation và giới hạn gửi
+- id: queue-retry-chong-trung
+  title: Queue, Retry & Chống trùng
+  purpose: Tách việc gửi email khỏi request nghiệp vụ và xử lý lỗi tạm thời mà không gửi lặp.
+  objectives:
+  - Đưa email job vào queue và worker bất đồng bộ
+  - Áp dụng retry/backoff chỉ với lỗi có thể phục hồi
+  - Dùng idempotency key, giới hạn retry và dead-letter
+- id: tracking-bounce-suppression
+  title: Tracking, Bounce & Suppression
+  purpose: Hiểu trạng thái giao thư thực tế để điều chỉnh danh sách gửi và tránh lặp lại những lỗi cố định.
+  objectives:
+  - Lưu message ID và xử lý delivery/bounce/complaint event
+  - Phân biệt hard bounce, soft bounce và defer
+  - Cập nhật suppression list với callback đã kiểm tra
+- id: bao-mat-kiem-thu
+  title: Bảo mật & Kiểm thử
+  purpose: Bảo vệ dữ liệu và xác minh hoạt động của luồng email từ unit test đến giám sát vận hành.
+  objectives:
+  - Giữ mật khẩu SMTP/API key trong secret manager
+  - Quản lý consent, unsubscribe và dữ liệu cá nhân
+  - Kiểm thử sandbox/bounce và giám sát tỷ lệ lỗi, độ trễ

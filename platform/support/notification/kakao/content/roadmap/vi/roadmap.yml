@@ -1,0 +1,57 @@
+roadmap:
+- id: kakao-notification-kenh
+  title: Kakao Notification & Kênh
+  purpose: Hiểu các kênh nhắn tin Kakao để chọn đúng hình thức thông báo.
+  objectives:
+  - Phân biệt KakaoTalk Message, BizMessage và hỗ trợ qua Channel.
+  - Chọn kênh cho tin cá nhân, thông báo đơn hàng, CSKH.
+  - Nhận diện giới hạn người nhận của từng API.
+- id: ung-dung-oauth
+  title: Ứng dụng & OAuth
+  purpose: Thiết lập thông tin ứng dụng và xác thực phù hợp với từng dịch vụ.
+  objectives:
+  - Tạo Kakao Developers app và cấu hình quyền cần dùng.
+  - Mô tả OAuth access token và refresh token của Kakao Login.
+  - Phân biệt thông tin xác thực Kakao API với BizMessage.
+- id: templates-chinh-sach
+  title: Templates & Chính sách
+  purpose: Thiết kế nội dung thông báo phù hợp mẫu và mục đích sử dụng.
+  objectives:
+  - Tạo payload từ mẫu mặc định hoặc mẫu tùy chỉnh.
+  - Đăng ký và chờ duyệt template Alim Talk.
+  - Phân biệt thông báo giao dịch với nội dung quảng cáo.
+- id: kakaotalk-message-api
+  title: KakaoTalk Message API
+  purpose: Thực hành KakaoTalk Message REST API trong phạm vi người dùng được cấp phép.
+  objectives:
+  - Gửi thử message vào My Chat của người đăng nhập.
+  - Mô tả gửi tới bạn bè sau khi được cấp quyền bổ sung.
+  - Kiểm tra lỗi xác thực, payload và giới hạn gửi.
+- id: bizmessage-alim-talk
+  title: BizMessage Alim Talk
+  purpose: Tích hợp thông báo giao dịch cho khách hàng qua dịch vụ doanh nghiệp.
+  objectives:
+  - Mô tả hợp đồng, Kakao Channel và thông tin API của nhà cung cấp.
+  - Gửi theo template Alim Talk được duyệt.
+  - Dùng mã yêu cầu để đối chiếu từng thông báo.
+- id: ket-qua-xu-ly-loi
+  title: Kết quả & Xử lý lỗi
+  purpose: Theo dõi trạng thái thực nhận và bảo đảm thông báo không bị gửi trùng.
+  objectives:
+  - Phân biệt phản hồi nhận yêu cầu với kết quả gửi cuối.
+  - Đọc trạng thái qua Push hoặc Polling theo hợp đồng.
+  - Thiết lập retry có giới hạn và chống gửi lặp.
+- id: bao-mat-han-muc
+  title: Bảo mật & Hạn mức
+  purpose: Bảo vệ thông tin người dùng và vận hành đúng điều kiện Kakao.
+  objectives:
+  - Bảo vệ access token, client secret và dữ liệu người nhận.
+  - Kiểm tra quota và quyền gọi KakaoTalk Message.
+  - Ghi log có che thông tin cá nhân, tránh gửi spam.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & Vận hành
+  purpose: Hoàn thiện quy trình gửi thông báo và xử lý sự cố trong thực tế.
+  objectives:
+  - Kiểm thử mẫu hợp lệ, lỗi token và người nhận không hợp lệ.
+  - Theo dõi tỷ lệ gửi thành công, lỗi và độ trễ.
+  - Xác minh môi trường thử nghiệm có thể gửi tin thật và cân nhắc fallback SMS.

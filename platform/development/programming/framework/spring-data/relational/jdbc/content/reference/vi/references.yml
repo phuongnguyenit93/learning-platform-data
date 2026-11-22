@@ -1,0 +1,13 @@
+references:
+  - title: "Spring Data Relational — JDBC Reference"
+    url: "https://docs.spring.io/spring-data/relational/reference/jdbc.html"
+    description: "Tài liệu chính thức về aggregate, repository, persist, truy vấn, transaction, callbacks và auditing của Spring Data JDBC."
+  - title: "Spring Data Relational — JDBC Mapping"
+    url: "https://docs.spring.io/spring-data/relational/reference/jdbc/mapping.html"
+    description: "Quy tắc mapping với @Table, @Id, @Column, @MappedCollection, @Embedded, @Version và AggregateReference."
+  - title: "Spring Boot — SQL Databases"
+    url: "https://docs.spring.io/spring-boot/reference/data/sql.html"
+    description: "Hướng dẫn thiết lập DataSource, JDBC và cấu hình cơ sở dữ liệu SQL trong ứng dụng Spring Boot."
+  - title: "Spring Data Relational — Source Repository"
+    url: "https://github.com/spring-projects/spring-data-relational"
+    description: "Mã nguồn và các module Spring Data JDBC/R2DBC; hỗ trợ tra cứu API, ví dụ triển khai và các đặc điểm kỹ thuật."

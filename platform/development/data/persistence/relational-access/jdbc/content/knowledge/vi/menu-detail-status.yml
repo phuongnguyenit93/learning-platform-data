@@ -1,0 +1,3562 @@
+menu:
+- slug: foundation
+  title: Nền tảng
+  childs:
+  - slug: foundation-001
+    title: JDBC là gì và giải quyết vấn đề truy cập dữ liệu nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-002
+    title: Vai trò của JDBC giữa mã Java và cơ sở dữ liệu quan hệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-003
+    title: Phân biệt JDBC, SQL, driver và hệ quản trị cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-004
+    title: Phân biệt JDBC thuần, Spring JDBC, MyBatis và ORM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-005
+    title: Luồng xử lý từ mở kết nối đến đọc kết quả và giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-006
+    title: Các kiến thức SQL và giao dịch cần có trước khi học JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-007
+    title: Mối liên hệ giữa bảng, hàng, cột và đối tượng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-008
+    title: Phân biệt truy vấn, cập nhật và thao tác quản trị dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-009
+    title: Ranh giới trách nhiệm của ứng dụng, driver và cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundation-010
+    title: Các thuật ngữ cốt lõi và trình tự học JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-architecture
+  title: Kiến trúc JDBC
+  childs:
+  - slug: jdbc-architecture-001
+    title: Vai trò của các gói java.sql và javax.sql
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-002
+    title: Mối quan hệ giữa Connection, Statement và ResultSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-003
+    title: Vai trò của Driver và DriverManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-004
+    title: Vai trò của DataSource và cơ chế cấp phát kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-005
+    title: Phân biệt kết nối vật lý và kết nối logic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-006
+    title: Phân biệt DataSource thông thường, kết nối có pool và kết nối XA
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-007
+    title: Phạm vi chuẩn JDBC và các phần mở rộng riêng của driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-008
+    title: Kiểm tra năng lực hỗ trợ trước khi sử dụng tính năng tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-009
+    title: Sử dụng Wrapper, isWrapperFor và unwrap khi thật sự cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-architecture-010
+    title: Đặt ranh giới giữa lớp truy cập dữ liệu và logic nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: drivers-and-configuration
+  title: Driver và cấu hình
+  childs:
+  - slug: drivers-and-configuration-001
+    title: Lựa chọn driver phù hợp với hệ quản trị và môi trường Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-002
+    title: Khai báo dependency driver và quản lý xung đột phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-003
+    title: Cơ chế phát hiện driver và vai trò của Class.forName trong mã cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-004
+    title: Cấu trúc JDBC URL và thuộc tính kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-005
+    title: Truyền thông tin kết nối qua cấu hình và Properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-006
+    title: Phân biệt lỗi không tìm thấy driver và lỗi không kết nối được máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-007
+    title: Cấu hình xác thực, mã hóa đường truyền và kiểm tra chứng chỉ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-008
+    title: Cấu hình catalog, schema và thông số phiên làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-009
+    title: Kiểm tra phiên bản driver và khả năng tương thích máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drivers-and-configuration-010
+    title: Quản lý driver trong môi trường có nhiều bộ nạp lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-management
+  title: Quản lý kết nối
+  childs:
+  - slug: connection-management-001
+    title: Mở kết nối bằng DriverManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-002
+    title: Cấp phát kết nối thông qua DataSource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-003
+    title: Lựa chọn chủ sở hữu và phạm vi sống của Connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-004
+    title: Kiểm tra isClosed và isValid theo đúng mục đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-005
+    title: Đọc và thay đổi autoCommit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-006
+    title: Thiết lập readOnly, catalog và schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-007
+    title: Thiết lập mức cô lập và kiểm tra giá trị đang có hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-008
+    title: Quản lý trạng thái phiên khi tái sử dụng kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-009
+    title: Phân biệt close, abort và mất kết nối ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-010
+    title: Phạm vi an toàn khi chia sẻ Connection giữa nhiều luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-011
+    title: Quản lý thông tin phiên và ngữ cảnh truy cập theo yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-lifecycle
+  title: Vòng đời tài nguyên
+  childs:
+  - slug: resource-lifecycle-001
+    title: Chuỗi phụ thuộc giữa kết nối, câu lệnh và tập kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-002
+    title: Đóng tài nguyên bằng try-with-resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-003
+    title: Lựa chọn phạm vi tài nguyên theo một thao tác nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-004
+    title: Phân biệt tài nguyên do phương thức tạo và tài nguyên được truyền vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-005
+    title: Quản lý ResultSet khi Statement được thực thi lại hoặc đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-006
+    title: Đóng luồng dữ liệu và giải phóng tài nguyên LOB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-007
+    title: Xử lý ngoại lệ phát sinh trong lúc đóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-008
+    title: Đọc ngoại lệ bị giữ lại qua getSuppressed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-009
+    title: Hành vi đóng kết nối khi giao dịch chưa kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-010
+    title: Phát hiện rò rỉ kết nối, câu lệnh và tập kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-011
+    title: Thiết kế API không trả tài nguyên đã hết hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sql-execution
+  title: Thực thi SQL
+  childs:
+  - slug: sql-execution-001
+    title: Vai trò và trường hợp sử dụng Statement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-002
+    title: Phân biệt executeQuery, executeUpdate và execute
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-003
+    title: Đọc số dòng bị ảnh hưởng và phân biệt với số dòng kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-004
+    title: Xử lý kết quả hỗn hợp gồm ResultSet và số dòng cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-005
+    title: Duyệt nhiều kết quả bằng getMoreResults
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-006
+    title: Sử dụng executeLargeUpdate khi cần số đếm lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-007
+    title: Thực thi DDL và kiểm tra ảnh hưởng đến giao dịch theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-008
+    title: Giới hạn số dòng và kích thước trường cần đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-009
+    title: Cấu hình fetchSize và phân biệt với giới hạn kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-010
+    title: Đánh giá tính khả chuyển của cú pháp và JDBC escape syntax
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-execution-011
+    title: Tách cấu trúc SQL khỏi giá trị dữ liệu do người dùng cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameterized-queries
+  title: Truy vấn tham số
+  childs:
+  - slug: parameterized-queries-001
+    title: Vai trò của PreparedStatement và câu SQL có tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-002
+    title: Đánh số tham số và gán giá trị đúng vị trí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-003
+    title: Phân biệt tham số giá trị và cấu trúc câu SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-004
+    title: Lựa chọn phương thức setXxx và setObject
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-005
+    title: Gán SQL NULL với kiểu dữ liệu phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-006
+    title: Xử lý chuyển đổi kiểu ngầm giữa Java, driver và cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-007
+    title: Tái sử dụng PreparedStatement và quản lý giá trị tham số cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-008
+    title: Xây dựng điều kiện tùy chọn mà không ghép trực tiếp giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-009
+    title: Xử lý danh sách IN rỗng và danh sách tham số có độ dài thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-010
+    title: Xử lý ký tự đại diện trong điều kiện LIKE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-011
+    title: Phân biệt chuẩn bị câu lệnh phía driver và phía máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameterized-queries-012
+    title: Đánh giá giới hạn của PreparedStatement đối với bảo mật và hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-set-reading
+  title: Đọc ResultSet
+  childs:
+  - slug: result-set-reading-001
+    title: Mô hình con trỏ và vị trí trước bản ghi đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-002
+    title: Duyệt bản ghi bằng next và xử lý tập kết quả rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-003
+    title: Đọc cột theo chỉ số và theo nhãn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-004
+    title: Đặt bí danh để tránh cột trùng tên khi nối bảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-005
+    title: Lựa chọn getXxx và getObject theo kiểu cần nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-006
+    title: Phân biệt giá trị SQL NULL và giá trị mặc định của kiểu nguyên thủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-007
+    title: Sử dụng wasNull ngay sau phép đọc có liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-008
+    title: Xử lý cột thiếu, sai nhãn và chuyển đổi kiểu không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-009
+    title: Phân biệt thứ tự do SQL xác định và thứ tự xuất hiện tình cờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-010
+    title: Kiểm tra trường hợp mong đợi không quá một bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-set-reading-011
+    title: Quản lý thời gian tồn tại của dữ liệu đọc theo luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-types-and-nulls
+  title: Kiểu dữ liệu và NULL
+  childs:
+  - slug: data-types-and-nulls-001
+    title: Mối quan hệ giữa kiểu Java, kiểu SQL và kiểu riêng của hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-002
+    title: Vai trò của Types, JDBCType và SQLType
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-003
+    title: Lựa chọn kiểu Java nguyên thủy và kiểu bao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-004
+    title: Phân biệt NULL, chuỗi rỗng, giá trị 0 và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-005
+    title: Phân biệt truyền NULL và bỏ qua cột để dùng mặc định của bảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-006
+    title: Xử lý giá trị boolean và các biểu diễn do driver hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-007
+    title: Gán và đọc dữ liệu nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-008
+    title: Gán kiểu tường minh khi driver không suy luận được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-009
+    title: Sử dụng getObject với lớp đích và kiểm tra hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-010
+    title: Kiểm tra mất thông tin khi chuyển kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-types-and-nulls-011
+    title: Thiết kế quy ước null thống nhất ở biên truy cập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numbers-and-text
+  title: Số và văn bản
+  childs:
+  - slug: numbers-and-text-001
+    title: Lựa chọn kiểu số nguyên theo miền giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-002
+    title: Xử lý tràn số và chuyển đổi giữa các kiểu số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-003
+    title: Bảo toàn độ chính xác với BigDecimal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-004
+    title: Quản lý precision, scale và quy tắc làm tròn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-005
+    title: Phân biệt số thập phân chính xác và số dấu phẩy động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-006
+    title: Đọc ghi chuỗi Unicode và kiểu văn bản quốc gia
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-007
+    title: Phân biệt độ dài ký tự và kích thước byte của cột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-008
+    title: Xử lý khoảng trắng, giá trị bị cắt và cảnh báo chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-009
+    title: Đánh giá ảnh hưởng của collation tới so sánh và sắp xếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-text-010
+    title: Bảo toàn định danh dạng chuỗi có số 0 đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time-and-timezones
+  title: Ngày giờ và múi giờ
+  childs:
+  - slug: date-time-and-timezones-001
+    title: Phân biệt ngày lịch, giờ trong ngày và thời điểm trên trục thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-002
+    title: Ánh xạ DATE, TIME và TIMESTAMP theo ngữ nghĩa dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-003
+    title: Sử dụng LocalDate, LocalTime và LocalDateTime với JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-004
+    title: Sử dụng OffsetTime và OffsetDateTime khi driver hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-005
+    title: Phân biệt Instant và các kiểu thời gian không mang múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-006
+    title: Làm việc với java.sql.Date, Time và Timestamp trong mã cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-007
+    title: Ảnh hưởng của múi giờ JVM, phiên kết nối và máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-008
+    title: Xử lý chuyển đổi qua Calendar khi cần tương thích API cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-009
+    title: Kiểm tra độ chính xác phần giây và mất dữ liệu khi làm tròn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-010
+    title: Kiểm thử thời điểm chuyển giờ mùa hè và ranh giới ngày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-and-timezones-011
+    title: Thiết kế quy ước lưu và truy vấn thời gian nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: record-mapping
+  title: Ánh xạ bản ghi
+  childs:
+  - slug: record-mapping-001
+    title: Tách logic đọc ResultSet khỏi logic thực thi SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-002
+    title: Ánh xạ một hàng thành đối tượng bất biến hoặc record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-003
+    title: Ánh xạ hàng kết quả vào đối tượng miền nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-004
+    title: Xử lý cột nullable và thuộc tính tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-005
+    title: Ánh xạ kết quả nối bảng có đối tượng con không tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-006
+    title: Gom nhiều hàng thành quan hệ một-nhiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-007
+    title: Tránh tạo trùng đối tượng khi kết quả JOIN nhân số hàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-008
+    title: Đọc dữ liệu tổng hợp không trùng mô hình bảng gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-009
+    title: Phát hiện sai khác giữa mô hình Java và lược đồ truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-010
+    title: Thiết kế lỗi ánh xạ có đủ thông tin mà không lộ dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: record-mapping-011
+    title: Đánh giá ánh xạ thủ công và ánh xạ dựa trên siêu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crud-and-generated-keys
+  title: CRUD và khóa sinh
+  childs:
+  - slug: crud-and-generated-keys-001
+    title: Thiết kế thao tác tạo, đọc, cập nhật và xóa bằng JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-002
+    title: Kiểm tra số dòng bị ảnh hưởng để xác nhận điều kiện nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-003
+    title: Phân biệt cập nhật toàn bộ và cập nhật một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-004
+    title: Sử dụng RETURN_GENERATED_KEYS khi tạo bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-005
+    title: Đọc khóa sinh bằng getGeneratedKeys
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-006
+    title: Yêu cầu cột khóa cụ thể và kiểm tra hỗ trợ của driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-007
+    title: Xử lý khóa ghép và khóa do ứng dụng tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-008
+    title: Lưu bản ghi cha-con với khóa được sinh trong cùng giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-009
+    title: Phân biệt câu lệnh trả khóa và cú pháp RETURNING riêng của hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-010
+    title: Thiết kế cập nhật có điều kiện theo phiên bản bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crud-and-generated-keys-011
+    title: Phân biệt xóa vật lý, xóa logic và ảnh hưởng đến truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-transactions
+  title: Giao dịch cơ bản
+  childs:
+  - slug: basic-transactions-001
+    title: Ranh giới giao dịch và vai trò của cùng một Connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-002
+    title: Phân biệt autoCommit và giao dịch do ứng dụng điều khiển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-003
+    title: Bắt đầu phạm vi nghiệp vụ bằng cách thiết lập autoCommit phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-004
+    title: Xác nhận dữ liệu bằng commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-005
+    title: Hoàn tác dữ liệu bằng rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-006
+    title: Thiết kế khối xử lý lỗi vẫn bảo toàn ngoại lệ ban đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-007
+    title: Xử lý lỗi rollback sau lỗi nghiệp vụ hoặc lỗi SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-008
+    title: Khôi phục trạng thái kết nối trước khi trả quyền sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-009
+    title: Phối hợp nhiều câu lệnh như một đơn vị nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-010
+    title: Xử lý giao dịch chỉ đọc và giới hạn của gợi ý readOnly
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-011
+    title: Phân biệt commit thành công, commit thất bại và kết quả chưa xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-transactions-012
+    title: Giữ giao dịch ngắn để giảm thời gian chiếm kết nối và khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-transactions
+  title: Giao dịch nâng cao
+  childs:
+  - slug: advanced-transactions-001
+    title: Tạo savepoint có tên và không có tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-002
+    title: Hoàn tác về savepoint và xác định phần thay đổi còn hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-003
+    title: Giải phóng savepoint và kiểm tra hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-004
+    title: Phân biệt savepoint và giao dịch lồng thực sự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-005
+    title: Thiết kế quyền sở hữu giao dịch khi nhiều DAO được gọi chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-006
+    title: Truyền Connection trong một ngữ cảnh giao dịch tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-007
+    title: Xử lý trạng thái giao dịch sau khi một câu SQL thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-008
+    title: Đánh giá ảnh hưởng của DDL và thao tác đặc thù tới ranh giới giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-009
+    title: Phân biệt giao dịch một kết nối và thay đổi trên nhiều nguồn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-010
+    title: Vai trò của XADataSource, XAConnection và bộ điều phối giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-transactions-011
+    title: Xử lý tác động ngoài cơ sở dữ liệu bằng thiết kế nhất quán phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolation-and-locking
+  title: Cô lập và khóa
+  childs:
+  - slug: isolation-and-locking-001
+    title: Những hiện tượng đọc bẩn, đọc không lặp lại và bản ghi ma
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-002
+    title: Đọc và thiết lập mức cô lập qua Connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-003
+    title: Kiểm tra mức cô lập được driver và hệ quản trị hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-004
+    title: Phân biệt tên mức cô lập và hành vi thực tế của hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-005
+    title: Nhận diện cập nhật bị mất khi đọc sửa ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-006
+    title: Kiểm soát đồng thời lạc quan bằng cột phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-007
+    title: Khóa bi quan qua câu SQL phù hợp với hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-008
+    title: Phân biệt khóa của cơ sở dữ liệu và khóa đồng bộ trong JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-009
+    title: Nhận diện bế tắc (deadlock) và lỗi tuần tự hóa giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-010
+    title: Thiết kế thứ tự cập nhật để giảm xung đột khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-011
+    title: Thử lại toàn bộ giao dịch khi đáp ứng điều kiện an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-and-locking-012
+    title: Kiểm chứng tính cô lập bằng nhiều kết nối độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-warnings
+  title: Lỗi và cảnh báo
+  childs:
+  - slug: errors-and-warnings-001
+    title: Đọc message, SQLState và mã lỗi riêng của nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-002
+    title: Duyệt chuỗi SQLException bằng getNextException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-003
+    title: Phân biệt nguyên nhân gốc và lỗi phát sinh khi dọn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-004
+    title: Phân loại lỗi kết nối, cú pháp, ràng buộc và chuyển đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-005
+    title: Phân biệt lỗi tạm thời, lỗi không tạm thời và lỗi cần phục hồi kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-006
+    title: Xử lý SQLTimeoutException và SQLFeatureNotSupportedException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-007
+    title: Xử lý BatchUpdateException cùng số đếm từng lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-008
+    title: Đọc SQLWarning trên Connection, Statement và ResultSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-009
+    title: Giữ ngữ cảnh SQL và loại tham số mà không ghi bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-010
+    title: Chuyển ngoại lệ JDBC thành lỗi của lớp truy cập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-warnings-011
+    title: Thiết kế chính sách thử lại theo trạng thái giao dịch và tính lũy đẳng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batch-processing
+  title: Xử lý theo lô
+  childs:
+  - slug: batch-processing-001
+    title: Khi nào nên gom nhiều thao tác thành một lô
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-002
+    title: Gom câu SQL bằng Statement.addBatch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-003
+    title: Gom bộ tham số bằng PreparedStatement.addBatch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-004
+    title: Thực thi lô và quản lý clearBatch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-005
+    title: Đọc update counts và các giá trị trạng thái đặc biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-006
+    title: Xử lý lô có lệnh thất bại và phần đã được thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-007
+    title: Phối hợp batch với commit và rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-008
+    title: Lựa chọn kích thước lô theo bộ nhớ và giới hạn driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-009
+    title: Tái sử dụng bộ tham số mà không làm sai dữ liệu từng bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-010
+    title: Phối hợp batch với khóa sinh và kiểm tra tính khả chuyển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-011
+    title: Sử dụng số đếm lớn với các API batch tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-012
+    title: Phân biệt batch JDBC và cơ chế nạp hàng loạt riêng của hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stored-procedures
+  title: Thủ tục lưu trữ
+  childs:
+  - slug: stored-procedures-001
+    title: Vai trò của CallableStatement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-002
+    title: Cú pháp JDBC để gọi procedure và function
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-003
+    title: Gán tham số IN và đăng ký tham số OUT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-004
+    title: Xử lý tham số INOUT và giá trị trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-005
+    title: Lựa chọn kiểu SQL khi đăng ký tham số đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-006
+    title: Đọc nhiều ResultSet và số dòng cập nhật từ thủ tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-007
+    title: Làm việc với con trỏ trả về khi driver hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-008
+    title: Phân biệt tham số theo vị trí và tham số theo tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-009
+    title: Phối hợp thủ tục với giao dịch do ứng dụng quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-010
+    title: Kiểm tra ảnh hưởng của logic và giao dịch bên trong thủ tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stored-procedures-011
+    title: Đánh giá tính khả chuyển và chi phí bảo trì khi dùng thủ tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata
+  title: Siêu dữ liệu
+  childs:
+  - slug: metadata-001
+    title: Khám phá khả năng hệ quản trị bằng DatabaseMetaData
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-002
+    title: Đọc catalog, schema, bảng và cột theo phạm vi cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-003
+    title: Tra cứu khóa chính, khóa ngoại và chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-004
+    title: Đọc thông tin kiểu dữ liệu và giới hạn được công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-005
+    title: Kiểm tra hỗ trợ giao dịch, batch và khóa sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-006
+    title: Kiểm tra hỗ trợ loại ResultSet, khả năng cập nhật và holdability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-007
+    title: Đọc nhãn cột và kiểu cột qua ResultSetMetaData
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-008
+    title: Phân biệt tên cột gốc, bí danh và vị trí cột kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-009
+    title: Sử dụng ParameterMetaData cùng giới hạn hỗ trợ của driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-010
+    title: Xử lý mẫu tìm kiếm và ký tự thoát khi tra cứu siêu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-011
+    title: Tránh biến siêu dữ liệu thành giả định tuyệt đối về hành vi thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: large-data
+  title: Dữ liệu lớn
+  childs:
+  - slug: large-data-001
+    title: Phân biệt byte array, luồng nhị phân và BLOB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-002
+    title: Phân biệt String, luồng ký tự, CLOB và NCLOB
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-003
+    title: Gán dữ liệu lớn bằng luồng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-004
+    title: Đọc dữ liệu lớn mà không nạp toàn bộ vào bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-005
+    title: Xử lý độ dài được khai báo và độ dài chưa biết trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-006
+    title: Quản lý vòng đời locator LOB và kết nối liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-007
+    title: Sử dụng free để giải phóng tài nguyên LOB khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-008
+    title: Xử lý lỗi giữa chừng trong lúc truyền dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-009
+    title: Kiểm tra giới hạn kích thước và chuyển đổi bảng mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-010
+    title: Phối hợp dữ liệu lớn với giao dịch và thời gian giữ kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-011
+    title: Đánh giá lưu dữ liệu trong cơ sở dữ liệu hoặc lưu ngoài và giữ tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-sql-types
+  title: Kiểu SQL nâng cao
+  childs:
+  - slug: advanced-sql-types-001
+    title: Làm việc với SQL Array và mảng giá trị Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-002
+    title: Đọc ghi SQLXML và quản lý tài nguyên liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-003
+    title: Làm việc với Struct và kiểu dữ liệu có cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-004
+    title: Vai trò của SQLData, SQLInput và SQLOutput
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-005
+    title: Ánh xạ kiểu tùy chỉnh qua type map của Connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-006
+    title: Hiểu vai trò của Ref và RowId khi hệ quản trị hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-007
+    title: Xử lý UUID, JSON và các kiểu riêng qua cơ chế của driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-008
+    title: Phân biệt kiểu chuẩn JDBC và lớp đối tượng do driver trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-009
+    title: Kiểm tra hỗ trợ trước khi dùng cấu trúc lồng hoặc kiểu đặc thù
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-sql-types-010
+    title: Thiết kế lớp chuyển đổi để cô lập phụ thuộc nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-result-sets
+  title: ResultSet nâng cao
+  childs:
+  - slug: advanced-result-sets-001
+    title: Phân biệt con trỏ chỉ tiến và con trỏ có thể cuộn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-002
+    title: Yêu cầu type và concurrency khi tạo Statement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-003
+    title: Di chuyển tới bản ghi đầu, cuối, trước và vị trí cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-004
+    title: Phân biệt kết quả nhạy và không nhạy với thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-005
+    title: Đánh giá chi phí bộ nhớ và tính khả chuyển của con trỏ cuộn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-006
+    title: Cập nhật hàng qua ResultSet có khả năng cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-007
+    title: Thêm, xóa và làm mới hàng qua API ResultSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-008
+    title: Kiểm tra điều kiện để tập kết quả được phép cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-009
+    title: Phân biệt cập nhật ResultSet và câu SQL cập nhật tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-010
+    title: Quản lý tập kết quả khi commit qua holdability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-result-sets-011
+    title: Xác minh cấu hình yêu cầu và cấu hình thực tế được cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: offline-row-sets
+  title: RowSet ngoại tuyến
+  childs:
+  - slug: offline-row-sets-001
+    title: Phân biệt ResultSet đang kết nối và dữ liệu có thể tách kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-002
+    title: Vai trò của RowSet và RowSetProvider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-003
+    title: Sử dụng JdbcRowSet cho mô hình vẫn giữ kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-004
+    title: Sử dụng CachedRowSet cho dữ liệu làm việc ngoại tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-005
+    title: Xử lý thay đổi và xung đột khi đồng bộ lại dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-006
+    title: Vai trò của FilteredRowSet và JoinRowSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-007
+    title: Vai trò của WebRowSet trong biểu diễn XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-008
+    title: Đánh giá chi phí bộ nhớ và giới hạn của dữ liệu tách kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: offline-row-sets-009
+    title: Lựa chọn RowSet hoặc ánh xạ sang đối tượng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-pooling
+  title: Pool kết nối
+  childs:
+  - slug: connection-pooling-001
+    title: Vì sao tạo mới kết nối cho từng thao tác gây chi phí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-002
+    title: Luồng mượn, sử dụng, đóng logic và tái sử dụng kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-003
+    title: Phân biệt pool JDBC và DataSource do ứng dụng cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-004
+    title: Lựa chọn kích thước pool theo khả năng cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-005
+    title: Phân biệt thời gian chờ mượn và thời gian tạo kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-006
+    title: Kiểm tra sức khỏe và loại bỏ kết nối hỏng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-007
+    title: Quản lý thời gian sống, thời gian nhàn rỗi và hoạt động giữ kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-008
+    title: Khôi phục trạng thái giao dịch và phiên trước khi tái sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-009
+    title: Phát hiện rò rỉ và kết nối bị giữ quá lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-010
+    title: Quản lý PreparedStatement cache và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-011
+    title: Phối hợp luồng ảo Java 21 với giới hạn kết nối thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-pooling-012
+    title: Dừng pool có kiểm soát khi ứng dụng kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts-and-cancellation
+  title: Timeout và hủy
+  childs:
+  - slug: timeouts-and-cancellation-001
+    title: Phân biệt timeout kết nối, mượn pool, truy vấn và mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-002
+    title: Cấu hình thời gian chờ đăng nhập phù hợp với DataSource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-003
+    title: Thiết lập query timeout trên Statement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-004
+    title: Thiết lập network timeout trên Connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-005
+    title: Hủy câu lệnh bằng Statement.cancel và kiểm tra hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-006
+    title: Phân biệt ngắt luồng Java và hủy thao tác JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-007
+    title: Xác định trạng thái kết nối và giao dịch sau timeout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-008
+    title: Xử lý kết nối bị treo hoặc không còn khả năng sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-009
+    title: Truyền giới hạn thời gian từ yêu cầu tới từng thao tác dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-010
+    title: Thử lại sau timeout khi chưa biết kết quả ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-cancellation-011
+    title: Kiểm thử hành vi timeout trên driver và môi trường thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: large-scale-queries
+  title: Truy vấn quy mô lớn
+  childs:
+  - slug: large-scale-queries-001
+    title: Phân biệt phân trang, giới hạn kết quả và chia khối truyền dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-002
+    title: Phân trang theo offset và theo khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-003
+    title: Thiết kế ORDER BY ổn định với khóa phân trang duy nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-004
+    title: Đọc theo luồng và kiểm tra điều kiện do driver yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-005
+    title: Lựa chọn fetchSize theo đặc điểm dữ liệu và mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-006
+    title: Giữ kết nối và giao dịch trong suốt thời gian tiêu thụ kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-007
+    title: Xử lý người tiêu thụ chậm và áp lực ngược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-008
+    title: Tránh nạp toàn bộ ResultSet vào danh sách lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-009
+    title: Xử lý dữ liệu thay đổi trong lúc đọc nhiều trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-010
+    title: Hủy quá trình đọc và đóng tài nguyên khi bên gọi dừng sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-scale-queries-011
+    title: Đối soát dữ liệu khi trích xuất nhiều phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo thời gian mượn kết nối, thực thi và ánh xạ kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Phân biệt nút thắt SQL, mạng, driver và mã Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Giảm số lượt trao đổi bằng truy vấn và batch phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chọn cột cần thiết thay vì lấy dữ liệu không dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Tránh mô hình truy vấn N+1 trong DAO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đánh giá chỉ mục và kế hoạch thực thi từ phía cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Phân biệt tái sử dụng câu lệnh và lưu kế hoạch thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đánh giá tương tác giữa kiểu tham số và kế hoạch truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đo chi phí ánh xạ, chuyển kiểu và cấp phát đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Giới hạn thời gian giữ giao dịch và kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đo bằng dữ liệu đại diện thay vì chỉ dùng cơ sở dữ liệu giả lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-security
+  title: Bảo mật truy cập
+  childs:
+  - slug: access-security-001
+    title: Ngăn SQL injection bằng tham số hóa giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-002
+    title: Kiểm soát tên bảng, tên cột và hướng sắp xếp bằng danh sách cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-003
+    title: Thiết kế quyền cơ sở dữ liệu theo nhu cầu tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-004
+    title: Quản lý mật khẩu và thông tin xác thực ngoài mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-005
+    title: Bảo vệ đường truyền và xác minh máy chủ cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-006
+    title: Ngăn lộ dữ liệu nhạy cảm trong SQL log và tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-007
+    title: Phân tách schema hoặc nguồn dữ liệu theo phạm vi người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-008
+    title: Bảo đảm điều kiện phân quyền luôn có trong truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-009
+    title: Giới hạn thời gian, số dòng và tài nguyên cho truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-010
+    title: Đánh giá rủi ro khi cho phép SQL động và thủ tục quyền cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-security-011
+    title: Kiểm soát JDBC URL và thuộc tính kết nối từ nguồn không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-testing
+  title: Kiểm thử JDBC
+  childs:
+  - slug: jdbc-testing-001
+    title: Phân biệt kiểm thử logic ánh xạ và kiểm thử tích hợp driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-002
+    title: Thiết lập cơ sở dữ liệu thử nghiệm có lược đồ xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-003
+    title: Quản lý dữ liệu mẫu và cô lập giữa các bài kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-004
+    title: Kiểm thử CRUD, khóa sinh và số dòng bị ảnh hưởng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-005
+    title: Kiểm thử NULL, Unicode, số thập phân và thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-006
+    title: Kiểm thử commit, rollback và savepoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-007
+    title: Kiểm thử cô lập và xung đột bằng nhiều Connection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-008
+    title: Kiểm thử batch thất bại và cập nhật một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-009
+    title: Kiểm thử timeout, hủy và mất kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-010
+    title: Kiểm thử rò rỉ tài nguyên khi thao tác thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-011
+    title: Sử dụng cơ sở dữ liệu thật trong container cho kiểm thử tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-012
+    title: Đánh giá khác biệt giữa cơ sở dữ liệu nhúng và hệ quản trị mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-testing-013
+    title: Kiểm thử tương thích khi thay driver hoặc phiên bản cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dao-and-repository
+  title: DAO và Repository
+  childs:
+  - slug: dao-and-repository-001
+    title: Phân biệt DAO, Repository và lớp dịch vụ nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-002
+    title: Thiết kế hợp đồng trả một đối tượng, nhiều đối tượng và không có dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-003
+    title: Tách SQL, gán tham số và ánh xạ kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-004
+    title: Thiết kế quyền sở hữu Connection và ranh giới giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-005
+    title: Phối hợp nhiều DAO trong cùng thao tác nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-006
+    title: Biểu diễn lỗi không tìm thấy, trùng khóa và xung đột cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-007
+    title: Tránh trả ResultSet hoặc luồng dữ liệu đã mất kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-008
+    title: Thiết kế truy vấn động có cấu trúc và tham số rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-009
+    title: Cô lập phần SQL đặc thù của hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-010
+    title: Giữ quy tắc nghiệp vụ ngoài mã quản lý tài nguyên JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dao-and-repository-011
+    title: Thiết kế bộ kiểm thử hợp đồng cho các triển khai truy cập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Vai trò của Spring JDBC trên nền API JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Dùng DataSource được cấu hình trong ứng dụng Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Thực thi và ánh xạ bằng JdbcTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Truy vấn tham số có tên với NamedParameterJdbcTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Phân biệt quản lý kết nối thủ công và kết nối gắn với giao dịch Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Vai trò của DataSourceUtils khi cần truy cập JDBC mức thấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: Phối hợp DAO JDBC với giao dịch do Spring quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Chuyển SQLException thành hệ thống ngoại lệ truy cập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Tránh tự commit hoặc đóng sai kết nối do framework sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Đánh giá khi JDBC thuần hoặc lớp hỗ trợ Spring phù hợp hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-monitoring
+  title: Giám sát vận hành
+  childs:
+  - slug: operational-monitoring-001
+    title: Theo dõi kết nối đang dùng, kết nối nhàn rỗi và hàng chờ pool
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-002
+    title: Theo dõi độ trễ truy vấn và phân bố thời gian thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-003
+    title: Gắn mã tương quan giữa yêu cầu, giao dịch và thao tác SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-004
+    title: Ghi SQL và tham số theo chính sách bảo vệ dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-005
+    title: Phát hiện truy vấn chậm và giao dịch giữ khóa lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-006
+    title: Theo dõi timeout, bế tắc và lỗi kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-007
+    title: Phân biệt lỗi pool cạn và cơ sở dữ liệu không sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-008
+    title: Thu thập cảnh báo và mã lỗi phục vụ điều tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-009
+    title: Chẩn đoán rò rỉ tài nguyên mà không làm tăng tải quá mức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-010
+    title: Xác minh khả năng phục hồi sau khi cơ sở dữ liệu khởi động lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-database-support
+  title: Đa hệ quản trị
+  childs:
+  - slug: multi-database-support-001
+    title: Phân biệt tính khả chuyển API JDBC và tính khả chuyển SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-002
+    title: Kiểm tra quy tắc định danh, chữ hoa chữ thường và schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-003
+    title: Đối chiếu kiểu boolean, số, văn bản và thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-004
+    title: Đối chiếu khóa sinh, sequence và cú pháp trả dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-005
+    title: Đối chiếu phân trang, upsert và khóa bi quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-006
+    title: Đối chiếu hành vi NULL, chuỗi rỗng và so sánh chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-007
+    title: Kiểm tra mức cô lập và hành vi DDL trong giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-008
+    title: Kiểm tra khác biệt fetchSize, batch và nhiều kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-009
+    title: Lập ma trận năng lực theo driver và hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-database-support-010
+    title: Chạy kiểm thử hợp đồng trước khi đổi nền cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây dựng DAO khách hàng bằng JDBC thuần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Thực hiện CRUD với truy vấn tham số và khóa sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Ánh xạ đơn hàng cùng danh sách chi tiết từ kết quả JOIN
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Chuyển tiền giữa hai tài khoản trong cùng giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tái hiện cập nhật bị mất và áp dụng kiểm soát phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Nhập dữ liệu theo batch với chính sách rollback rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Đọc danh sách lớn theo từng phần mà không rò rỉ kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Lưu và đọc tài liệu lớn bằng luồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Gọi thủ tục có tham số IN, OUT và nhiều kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Mô phỏng timeout và kết quả commit chưa xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Cấu hình pool và chẩn đoán tình huống cạn kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Đưa DAO vào ứng dụng Spring với ranh giới giao dịch đúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Nghiệm thu bằng kiểm thử tính đúng, bảo mật và hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

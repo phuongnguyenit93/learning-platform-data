@@ -1,0 +1,331 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Lập trình ràng buộc (constraint programming) là gì
+  - Từ mô tả các điều kiện đến để bộ giải tìm lời giải
+  - Vì sao nhiều bài toán lựa chọn khó biểu diễn bằng chuỗi lệnh thông thường
+  - Biến quyết định, miền giá trị, ràng buộc, nghiệm và mục tiêu
+  - Phân biệt nghiệm khả thi với nghiệm tối ưu
+  - Quan hệ với lập trình khai báo và lập trình logic
+  - Phân biệt bộ giải ràng buộc với bộ kiểm tra dữ liệu và hệ luật
+  - Vai trò của người lập mô hình, ngôn ngữ mô hình và bộ giải
+  - Lộ trình học từ bài toán nhỏ đến mô hình thực tế
+- level1: Mô hình CSP
+  level2:
+  - Bài toán thỏa mãn ràng buộc (CSP) và ba thành phần cơ bản
+  - Phép gán đầy đủ, phép gán một phần và miền chưa xác định
+  - Phạm vi và bậc của một ràng buộc
+  - Ràng buộc một biến, hai biến và nhiều biến
+  - Đồ thị ràng buộc và siêu đồ thị ràng buộc
+  - Không gian tìm kiếm và sự bùng nổ tổ hợp
+  - Bài toán có nghiệm, vô nghiệm và chưa xác định được kết quả
+  - Tính đúng đắn và tính đầy đủ của phương pháp giải
+- level1: Biến và miền
+  level2:
+  - Biến quyết định và tham số đầu vào
+  - Miền hữu hạn bằng khoảng hoặc tập giá trị rời rạc
+  - Biến nguyên, biến Boolean và biến liệt kê
+  - Miền đơn, miền rỗng và thời điểm một biến đã được xác định
+  - Biến phụ trợ và biến dẫn xuất từ các biến khác
+  - Chọn đơn vị đo, mốc thời gian và giới hạn giá trị
+  - Thu hẹp miền ban đầu dựa trên dữ liệu và lập luận của bài toán
+  - Biến tập hợp, biến khoảng thời gian và các kiểu chuyên biệt
+  - Miền liên tục và khác biệt với miền rời rạc
+- level1: Biểu thức ràng buộc
+  level2:
+  - Đẳng thức, bất đẳng thức và quan hệ thứ tự
+  - Ràng buộc tuyến tính và quan hệ số học phi tuyến
+  - Kết hợp điều kiện bằng AND, OR và NOT
+  - Phép kéo theo và phép tương đương logic
+  - 'Tái hóa (reification): liên kết điều kiện với biến Boolean'
+  - Phân biệt kéo theo một chiều với tương đương hai chiều
+  - Điều kiện nếu–thì–ngược lại và lựa chọn có điều kiện
+  - Biểu thức tổng, đếm, nhỏ nhất và lớn nhất
+  - Phạm vi của lượng từ và chỉ số khi mô tả ràng buộc
+- level1: Thiết kế mô hình
+  level2:
+  - Chuyển yêu cầu bằng lời thành biến, miền và quan hệ
+  - Chọn biểu diễn theo đối tượng, vị trí hoặc ma trận quyết định
+  - Mô hình trực tiếp, mô hình đối ngẫu và liên kết hai biểu diễn
+  - Tách quy tắc bắt buộc khỏi tiêu chí đánh giá chất lượng
+  - Biểu diễn các trường hợp loại trừ và phụ thuộc có điều kiện
+  - Ràng buộc thiếu làm xuất hiện nghiệm không hợp lệ
+  - Ràng buộc quá chặt làm mất các nghiệm hợp lệ
+  - Bổ sung ràng buộc suy ra để hỗ trợ quá trình giải
+  - Ghi lại giả thiết và chứng minh sự tương ứng giữa mô hình với bài toán
+- level1: Ràng buộc toàn cục
+  level2:
+  - Ràng buộc toàn cục và lợi ích của việc giữ cấu trúc bài toán
+  - 'AllDifferent: các biến phải nhận giá trị đôi một khác nhau'
+  - 'Global Cardinality: giới hạn số lần xuất hiện của từng giá trị'
+  - 'Element: liên kết chỉ số với phần tử của một dãy'
+  - 'Table: mô tả các bộ giá trị được phép hoặc bị cấm'
+  - 'Regular: mô tả dãy hợp lệ bằng ôtômát hữu hạn'
+  - 'Lexicographic: so sánh các dãy theo thứ tự từ điển'
+  - Circuit và các quan hệ đường đi hoặc chu trình
+  - NoOverlap và Cumulative trong mô hình sử dụng tài nguyên
+  - Đánh đổi giữa một ràng buộc toàn cục và nhiều ràng buộc nhỏ
+- level1: Mức nhất quán
+  level2:
+  - Giá trị có hỗ trợ và ý nghĩa của việc loại một giá trị khỏi miền
+  - Nhất quán nút trên các ràng buộc một biến
+  - Nhất quán cung trên các ràng buộc hai biến
+  - Nhất quán cung tổng quát cho ràng buộc nhiều biến
+  - Nhất quán đường đi và khái niệm k-consistency
+  - Nhất quán cận và nhất quán miền
+  - Chi phí duy trì mức nhất quán mạnh hơn
+  - Vì sao đạt một mức nhất quán chưa chắc chứng minh được có nghiệm
+- level1: Lan truyền
+  level2:
+  - Bộ lan truyền ràng buộc và cơ chế thu hẹp miền
+  - Kích hoạt lan truyền khi miền hoặc cận của biến thay đổi
+  - Hàng đợi sự kiện và lan truyền đến điểm bất động
+  - Phát hiện mâu thuẫn khi một miền bị làm rỗng
+  - AC-3 như một thuật toán duy trì nhất quán cung
+  - Forward checking sau mỗi quyết định gán
+  - Duy trì nhất quán cung trong quá trình tìm kiếm
+  - Lan truyền tăng dần và lưu thông tin hỗ trợ
+  - Theo dõi ví dụ lan truyền từng bước trước khi phân nhánh
+- level1: Tìm kiếm
+  level2:
+  - Liệt kê toàn bộ tổ hợp và lý do cần cắt tỉa
+  - Tìm kiếm quay lui trên các phép gán một phần
+  - Xen kẽ quyết định, lan truyền, phát hiện lỗi và quay lui
+  - Lưu và khôi phục trạng thái miền khi rời một nhánh
+  - Chia miền thành các nhánh bao phủ các khả năng cần xét
+  - Tìm kiếm đầy đủ và các chiến lược tìm kiếm chưa đầy đủ
+  - Tìm kiếm cục bộ và ý tưởng giảm số vi phạm bằng min-conflicts
+  - Khởi động lại tìm kiếm và ảnh hưởng của tính ngẫu nhiên
+  - Giới hạn thời gian, số nút và điều kiện kết thúc
+- level1: Chọn nhánh
+  level2:
+  - Chiến lược chọn biến và nguyên tắc ưu tiên khó trước
+  - 'MRV: chọn biến có ít giá trị còn lại nhất'
+  - Bậc của biến và cách xử lý các lựa chọn ngang nhau
+  - Trọng số ràng buộc và lựa chọn dựa trên lịch sử thất bại
+  - Chiến lược chọn giá trị ít hạn chế các biến khác
+  - Chọn giá trị biên, giá trị giữa miền hoặc tách đôi miền
+  - Chọn nhánh theo cấu trúc và ý nghĩa riêng của bài toán
+  - Tách ảnh hưởng của mô hình khỏi ảnh hưởng của chiến lược tìm kiếm
+- level1: Học từ xung đột
+  level2:
+  - Giải thích vì sao một giá trị bị loại hoặc một nhánh thất bại
+  - 'Nogood: ghi nhận tổ hợp quyết định không thể cùng đúng'
+  - Quay lui không theo thứ tự thời gian
+  - Học ràng buộc từ xung đột và tái sử dụng trong các nhánh sau
+  - 'Lazy Clause Generation: kết hợp lan truyền ràng buộc với học mệnh đề'
+  - Vai trò của lý do suy diễn trong bộ giải hỗ trợ giải thích
+  - Giới hạn bộ nhớ và quản lý thông tin đã học
+  - Đọc thống kê xung đột và lần quay lui để hiểu hành vi tìm kiếm
+- level1: Đối xứng và dư thừa
+  level2:
+  - Đối xứng giữa biến, giá trị và các đối tượng có thể hoán đổi
+  - Vì sao các nghiệm tương đương làm tăng công việc tìm kiếm
+  - Cố định một lựa chọn đại diện khi có lập luận hợp lệ
+  - Sắp thứ tự các đối tượng có thể hoán đổi
+  - Phá đối xứng bằng thứ tự từ điển
+  - Rủi ro loại nhầm nghiệm khi giả định sai về tính đối xứng
+  - Ràng buộc dư thừa và tác dụng tăng sức lan truyền
+  - Kết hợp nhiều biểu diễn bằng các ràng buộc liên kết
+- level1: Nghiệm và liệt kê
+  level2:
+  - Tìm một nghiệm, mọi nghiệm hoặc một số lượng nghiệm giới hạn
+  - Đọc các biến quyết định để dựng kết quả của bài toán
+  - Loại một nghiệm đã tìm để tiếp tục liệt kê
+  - Phân biệt nghiệm của mô hình với kết quả nghiệp vụ sau khi chiếu biến
+  - Loại kết quả trùng do biến phụ hoặc biểu diễn đối xứng
+  - Kiểm tra tính duy nhất của lời giải
+  - Đếm nghiệm và giới hạn chi phí khi không gian nghiệm lớn
+  - Kiểm tra độc lập mọi điều kiện trên nghiệm trả về
+- level1: Tối ưu hóa
+  level2:
+  - Từ CSP sang bài toán tối ưu hóa có ràng buộc (COP)
+  - Hàm mục tiêu cực tiểu hoặc cực đại
+  - Nghiệm tốt nhất hiện có và cận của giá trị tối ưu
+  - 'Branch-and-bound: dùng cận để loại các nhánh không thể cải thiện'
+  - Phân biệt tìm được nghiệm tốt với chứng minh được tối ưu
+  - Khoảng cách tối ưu và cách báo cáo khi hết thời gian
+  - Cận dưới, cận trên và những ước lượng hỗ trợ tìm kiếm
+  - Dùng nghiệm khởi đầu để hỗ trợ quá trình tối ưu
+  - Tối ưu nhiều giai đoạn và giữ lại chất lượng đã đạt
+- level1: Mục tiêu và ưu tiên
+  level2:
+  - Tối ưu nhiều tiêu chí có thể cạnh tranh nhau
+  - Tổng có trọng số và vấn đề khác biệt đơn vị đo
+  - Tối ưu theo thứ tự ưu tiên từ điển
+  - Ưu thế Pareto và tập các phương án không bị trội
+  - Ràng buộc cứng, ràng buộc mềm và mức độ vi phạm
+  - Biến phạt và cách đo chi phí vi phạm
+  - Ưu tiên theo tầng khi điều kiện bắt buộc vẫn phải được giữ
+  - Phân tích độ nhạy của kết quả theo trọng số và mức ưu tiên
+- level1: Số học và độ chính xác
+  level2:
+  - Chuẩn hóa đơn vị và co giãn giá trị để dùng số nguyên
+  - Giới hạn miền số, tràn số và kiểm tra dữ liệu biên
+  - Phép chia nguyên, phần dư và ý nghĩa với số âm
+  - Tích các biến và chi phí của quan hệ phi tuyến
+  - Giá trị tuyệt đối, hàm từng đoạn và biểu thức có điều kiện
+  - Ràng buộc phép đếm và tổng có điều kiện
+  - Dung sai khi kiểm tra các kết quả có xấp xỉ số học
+  - Vì sao thay số thực bằng số nguyên cần xem lại ý nghĩa bài toán
+- level1: Tập hợp và cấu trúc
+  level2:
+  - Biến tập hợp với các phần tử bắt buộc và các phần tử còn có thể chọn
+  - Ràng buộc thuộc tập, không thuộc tập và bao hàm
+  - Hợp, giao, hiệu và tính rời nhau giữa các tập
+  - Lực lượng tập hợp và giới hạn số phần tử được chọn
+  - Phân hoạch các phần tử vào những nhóm không chồng lấn
+  - Mô hình hóa dãy có độ dài cố định hoặc thay đổi
+  - Ràng buộc mẫu xuất hiện và số lần chuyển trạng thái trong dãy
+  - Chọn biến tập hợp hoặc ma trận Boolean theo yêu cầu truy vấn
+- level1: Miền liên tục
+  level2:
+  - Biến thực và biểu diễn miền bằng khoảng
+  - Số học khoảng và việc giữ bao ngoài các giá trị có thể có
+  - Thu hẹp khoảng qua các quan hệ số học
+  - Ràng buộc phi tuyến và nhiều miền nghiệm tách biệt
+  - Chia khoảng để kết hợp tìm kiếm với lan truyền
+  - Độ chính xác số và điều kiện dừng khi miền không thể thu về một điểm
+  - Phân biệt khoảng ứng viên với chứng nhận tồn tại hoặc duy nhất của nghiệm
+  - Ranh giới giữa giải ràng buộc số thực và tối ưu hóa số liên tục
+- level1: Thời gian và lịch
+  level2:
+  - Tác vụ với thời điểm bắt đầu, thời lượng và thời điểm kết thúc
+  - Quy ước khoảng thời gian và cách biểu diễn các tác vụ tiếp giáp
+  - Quan hệ trước–sau và độ trễ giữa các tác vụ
+  - Tác vụ tùy chọn và điều kiện hiện diện trong lịch
+  - Tài nguyên độc quyền và ràng buộc không chồng lấn
+  - Tài nguyên có dung lượng và mức tiêu thụ cộng dồn theo thời gian
+  - Thời gian chuyển đổi, chuẩn bị và lựa chọn máy thực hiện
+  - Lịch làm việc, thời gian nghỉ và những khoảng tài nguyên không sẵn sàng
+  - Tối ưu thời điểm hoàn tất, độ trễ hạn và mức sử dụng tài nguyên
+- level1: Phân công và phân bổ
+  level2:
+  - Gán người hoặc máy cho các công việc cần thực hiện
+  - Biểu diễn phân công bằng một biến lựa chọn hoặc ma trận Boolean
+  - Điều kiện tương thích giữa đối tượng và công việc
+  - Sức chứa, định mức và giới hạn số nhiệm vụ
+  - Bảo đảm mức bao phủ và nhu cầu tối thiểu
+  - Cân bằng tải và diễn đạt tiêu chí công bằng
+  - Đóng gói theo sức chứa và lựa chọn theo ngân sách
+  - Phân biệt điều kiện phân bổ với điều kiện thứ tự thực hiện
+- level1: Đồ thị và đường đi
+  level2:
+  - Biểu diễn lựa chọn đỉnh, cạnh và nút kế tiếp bằng biến quyết định
+  - Ràng buộc bậc vào, bậc ra và sự liên kết giữa các cạnh
+  - Đường đi, chu trình và điều kiện đi qua các địa điểm
+  - Vì sao ràng buộc bậc chưa đủ để loại các chu trình con
+  - Liên thông, khả năng đi tới và các ràng buộc cấu trúc
+  - Kết hợp tuyến đường với dung lượng và cửa sổ thời gian
+  - Phân biệt chi phí di chuyển với các điều kiện bắt buộc của tuyến
+  - Kiểm tra cấu trúc đường đi độc lập sau khi lấy nghiệm
+- level1: Cấu trúc bài toán
+  level2:
+  - Phát hiện các thành phần ràng buộc không phụ thuộc nhau
+  - Giải riêng các bài toán con và điều kiện ghép nghiệm
+  - CSP có đồ thị dạng cây và lợi ích của cấu trúc thưa
+  - Độ rộng cây và ảnh hưởng của cách phân rã
+  - Những cấu trúc đặc biệt có thể có thuật toán chuyên biệt hiệu quả hơn
+  - Tách phần lựa chọn rời rạc khỏi phần tính toán xác định
+  - Khóa một phần quyết định để tìm kiếm trên phần còn lại
+  - 'Large Neighborhood Search: giải lại những lân cận lớn của một nghiệm'
+- level1: Các mô hình liên quan
+  level2:
+  - 'CSP và SAT: miền nhiều giá trị với các biến Boolean'
+  - Mã hóa lựa chọn miền hữu hạn thành mệnh đề Boolean
+  - 'SMT: thỏa mãn modulo các lý thuyết và quan hệ với ràng buộc'
+  - CP và quy hoạch tuyến tính nguyên hỗn hợp (MIP)
+  - CP-SAT và sự kết hợp kỹ thuật từ nhiều họ bộ giải
+  - Lập trình logic ràng buộc và vai trò của phép hợp nhất
+  - 'CLP(FD): ràng buộc trên miền nguyên hữu hạn'
+  - 'CLP(R): ràng buộc trên miền số thực'
+  - Phân biệt ràng buộc khai báo với quy tắc suy diễn và kiểm tra dữ liệu
+  - Chọn cách biểu diễn phù hợp thay vì giả định mọi bộ giải có cùng khả năng
+- level1: Làm việc với bộ giải
+  level2:
+  - Tách lớp mô hình hóa, giao diện lập trình và động cơ giải
+  - Kiểm tra các loại biến và ràng buộc mà bộ giải hỗ trợ
+  - Khai báo tham số, biến quyết định và mô hình
+  - Thêm ràng buộc và đăng ký hàm mục tiêu
+  - Cấu hình chiến lược tìm kiếm và các giới hạn tài nguyên
+  - Đọc trạng thái khả thi, tối ưu, vô nghiệm và chưa xác định
+  - Lấy một nghiệm, nhận các nghiệm cải thiện hoặc liệt kê nhiều nghiệm
+  - Kiểm tra mức hỗ trợ cho tăng dần, giả thiết và giải thích xung đột
+  - Xuất mô hình và lưu cấu hình để tái hiện lần giải
+  - Đối chiếu ngữ nghĩa và khả năng biểu diễn khi đổi bộ giải
+- level1: Tích hợp ứng dụng
+  level2:
+  - Tách dữ liệu đầu vào, mô hình toán và kết quả nghiệp vụ
+  - Xây dựng mô hình theo các thành phần có trách nhiệm rõ ràng
+  - Ánh xạ mã định danh nghiệp vụ với chỉ số và biến của bộ giải
+  - Kiểm tra lỗi mô hình trước khi gọi quá trình giải
+  - Timeout, yêu cầu hủy và giới hạn bộ nhớ
+  - Quản lý nhiều yêu cầu giải và quyền sở hữu từng phiên làm việc
+  - Xử lý sự kiện có nghiệm mà không làm chậm quá trình giải
+  - Giải thích kết quả và những giới hạn chất lượng cho người sử dụng
+  - Đóng tài nguyên và lưu thông tin cần thiết để điều tra lỗi
+- level1: Dữ liệu và thay đổi
+  level2:
+  - Chuẩn hóa dữ liệu, đơn vị và miền giá trị trước khi dựng mô hình
+  - Phát hiện dữ liệu thiếu, mâu thuẫn hoặc vượt giới hạn
+  - Tách tính hợp lệ của đầu vào khỏi tính khả thi của toàn bộ bài toán
+  - Cố định, thêm hoặc thay đổi quyết định qua các lần giải
+  - Nghiệm gợi ý và giới hạn của việc tái sử dụng nghiệm trước
+  - Tối ưu lại khi nhu cầu hoặc tài nguyên thay đổi
+  - 'Rolling horizon: giải theo cửa sổ kế hoạch dịch chuyển'
+  - Cân bằng chất lượng mới với chi phí thay đổi kế hoạch đã công bố
+- level1: Chẩn đoán mô hình
+  level2:
+  - Thu nhỏ bộ dữ liệu để tái hiện một kết quả bất thường
+  - Tách vô nghiệm do dữ liệu khỏi vô nghiệm do mô hình sai
+  - Gắn nhãn ràng buộc để truy ngược yêu cầu gây mâu thuẫn
+  - Tìm tập ràng buộc xung đột khi bộ giải có hỗ trợ
+  - Phân biệt tập xung đột tối tiểu theo bao hàm với tập nhỏ nhất
+  - Nới điều kiện có kiểm soát để xác định nguyên nhân vô nghiệm
+  - Đọc nghiệm lạ để phát hiện biến thiếu liên kết hoặc ràng buộc thiếu
+  - Kiểm tra miền quá rộng, biến không được dùng và giới hạn tùy tiện
+  - Phân biệt chưa tìm thấy nghiệm với đã chứng minh không có nghiệm
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử từng quy tắc trên các ví dụ thỏa và vi phạm
+  - Duyệt vét cạn bài toán nhỏ để đối chiếu tập nghiệm
+  - Kiểm tra nghiệm bằng mã độc lập với mô hình bộ giải
+  - Kiểm thử thuộc tính và sinh dữ liệu ngẫu nhiên có kiểm soát
+  - Đối chiếu nhiều biểu diễn hoặc nhiều bộ giải cho cùng bài toán
+  - Kiểm thử trường hợp miền rỗng, một phần tử và bài toán không có đối tượng
+  - Kiểm thử quan hệ giữa giá trị mục tiêu và nghiệm được trả về
+  - Kiểm thử timeout, hủy và kết quả chưa được chứng minh tối ưu
+  - Lưu các bài toán hồi quy cho lỗi mô hình đã phát hiện
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian dựng mô hình, lan truyền và tìm kiếm riêng biệt
+  - Theo dõi số biến, ràng buộc, nút tìm kiếm và xung đột
+  - Đánh giá ảnh hưởng của độ chặt miền ban đầu
+  - So sánh ràng buộc toàn cục với cách phân rã tương đương
+  - Đánh giá biến phụ, liên kết biểu diễn và phá đối xứng
+  - Đo chiến lược chọn nhánh trên các nhóm dữ liệu đại diện
+  - Giới hạn bộ nhớ và chi phí lưu trạng thái hoặc thông tin đã học
+  - Giải song song, tính ngẫu nhiên và khả năng tái hiện kết quả
+  - So sánh chất lượng nghiệm theo thời gian với thời gian chứng minh tối ưu
+- level1: Thực hành tổng hợp
+  level2:
+  - 'Sudoku: biến ô, miền giá trị và ràng buộc khác nhau'
+  - 'Bài toán N quân hậu: lựa chọn biểu diễn và phá đối xứng'
+  - 'Phép toán chữ số: ràng buộc số học và chữ số không được trùng'
+  - 'Xếp thời khóa biểu: phòng, người tham gia và khung thời gian'
+  - 'Phân ca nhân viên: mức bao phủ, điều kiện nghỉ và sở thích'
+  - 'Job-shop: thứ tự công việc, máy và thời điểm hoàn tất'
+  - 'Đóng gói thùng: sức chứa và tối thiểu hóa số thùng'
+  - Lập tuyến giao hàng nhỏ với sức chứa và cửa sổ thời gian
+  - Sửa lịch khi dữ liệu thay đổi với giới hạn số điều chỉnh
+  - 'Hồ sơ bài toán hoàn chỉnh: mô hình, kiểm chứng nghiệm và báo cáo hiệu năng'
+- level1: Thiết kế và lựa chọn
+  level2:
+  - Nhận diện bài toán phù hợp với lập trình ràng buộc
+  - Khi thuật toán chuyên biệt hoặc phép duyệt đơn giản đã đủ
+  - Chọn CP, SAT, SMT hoặc MIP theo cấu trúc và yêu cầu chứng minh
+  - Đánh đổi giữa mô hình dễ hiểu với hiệu quả giải
+  - Lựa chọn tìm kiếm đầy đủ, nghiệm gần tối ưu hoặc tìm kiếm cục bộ
+  - Xác định mức chấp nhận được của thời gian giải và chất lượng kết quả
+  - Rà soát quyền sửa điều kiện, mục tiêu và dữ liệu đầu vào
+  - Đưa mô hình vào vận hành với kiểm chứng kết quả và theo dõi hồi quy

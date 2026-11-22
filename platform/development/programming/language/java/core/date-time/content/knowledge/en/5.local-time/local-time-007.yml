@@ -1,0 +1,3 @@
+menuLevel1: LocalTime
+menuLevel2: Kết hợp LocalTime với LocalDate hoặc ZoneOffset
+status: TRANSLATE

@@ -1,0 +1,67 @@
+menu:
+  - title: "Tổng quan Prototype"
+    slug: prototype-overview
+    index: 0
+  - title: "Cấu trúc mẫu"
+    slug: prototype-structure
+    index: 1
+  - title: "Hợp đồng copy"
+    slug: copy-contract
+    index: 2
+  - title: "Prototype trong Java"
+    slug: java-implementation
+    index: 3
+  - title: "Shallow copy"
+    slug: shallow-copy
+    index: 4
+  - title: "Deep copy"
+    slug: deep-copy
+    index: 5
+  - title: "Đồ thị tham chiếu"
+    slug: object-graph-copying
+    index: 6
+  - title: "Kế thừa và đa hình"
+    slug: inheritance-and-polymorphism
+    index: 7
+  - title: "Constructor và factory"
+    slug: copy-constructors-and-factories
+    index: 8
+  - title: "Cloneable và clone()"
+    slug: cloneable-and-clone
+    index: 9
+  - title: "Sao chép tập hợp"
+    slug: collection-copying
+    index: 10
+  - title: "Bảo toàn tính hợp lệ"
+    slug: preserving-invariants
+    index: 11
+  - title: "Prototype Registry"
+    slug: prototype-registry
+    index: 12
+  - title: "Vòng đời nguyên mẫu"
+    slug: prototype-lifecycle
+    index: 13
+  - title: "Sao chép đồng thời"
+    slug: concurrent-copying
+    index: 14
+  - title: "Tài nguyên và lỗi"
+    slug: resources-and-error-handling
+    index: 15
+  - title: "Phối hợp mẫu thiết kế"
+    slug: related-design-patterns
+    index: 16
+  - title: "Kiểm thử hợp đồng"
+    slug: copy-contract-testing
+    index: 17
+  - title: "Đánh giá hiệu năng"
+    slug: performance-evaluation
+    index: 18
+  - title: "Tình huống ứng dụng"
+    slug: prototype-use-cases
+    index: 19
+  - title: "Lỗi thường gặp"
+    slug: copying-pitfalls
+    index: 20
+  - title: "Bài thực hành"
+    slug: prototype-exercises
+    index: 21

@@ -1,0 +1,3 @@
+menuLevel1: Trạng thái bean
+menuLevel2: Bean singleton được nhiều luồng sử dụng và không tự trở nên an toàn luồng
+status: WRITTEN

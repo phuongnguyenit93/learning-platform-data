@@ -1,0 +1,3 @@
+menuLevel1: Thiết lập Spotless cho Maven
+menuLevel2: Chạy spotless:check và spotless:apply qua Maven Wrapper
+status: ""

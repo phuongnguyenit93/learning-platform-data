@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-classloader
+  title: Vai trò ClassLoader
+  purpose: Hiểu cách JVM tìm và đưa định nghĩa lớp vào chương trình đang chạy.
+  objectives:
+  - Liên hệ mã nguồn, bytecode và lớp lúc chạy
+  - Giải thích trách nhiệm của ClassLoader
+  - Phân biệt nạp lớp với tạo đối tượng
+- id: vong-doi-cua-lop
+  title: Vòng đời của lớp
+  purpose: Nắm các giai đoạn từ nạp lớp đến khởi tạo để giải thích thời điểm mã được thực thi.
+  objectives:
+  - Phân biệt loading, linking và initialization
+  - Nhận diện kiểm tra, chuẩn bị và phân giải
+  - Xác định tác nhân khởi tạo lớp
+- id: phan-cap-va-uy-quyen
+  title: Phân cấp và ủy quyền
+  purpose: Hiểu các bộ nạp chuẩn và cách chúng phối hợp để tìm lớp.
+  objectives:
+  - Nhận diện bootstrap, platform và application loader
+  - Mô tả cơ chế ủy quyền cho bộ nạp cha
+  - Phân biệt bộ nạp yêu cầu và bộ nạp định nghĩa
+- id: tim-lop-va-tai-nguyen
+  title: Tìm lớp và tài nguyên
+  purpose: Sử dụng đúng đường dẫn và API để tra cứu lớp hoặc tài nguyên.
+  objectives:
+  - Phân biệt classpath và module path
+  - So sánh loadClass với Class.forName
+  - Tra cứu tài nguyên bằng getResource và getResourceAsStream
+- id: dinh-danh-va-co-lap
+  title: Định danh và cô lập
+  purpose: Hiểu vì sao các lớp cùng tên có thể là những kiểu khác nhau khi chạy.
+  objectives:
+  - Xác định kiểu bằng tên nhị phân và bộ nạp định nghĩa
+  - Giải thích lỗi ép kiểu giữa hai bản nạp
+  - Nhận diện ranh giới chia sẻ và cô lập lớp
+- id: bo-nap-tuy-chinh
+  title: Bộ nạp tùy chỉnh
+  purpose: Tạo bộ nạp đơn giản khi cần lấy bytecode từ nguồn riêng.
+  objectives:
+  - Triển khai findClass và dùng defineClass
+  - Giữ cơ chế ủy quyền khi mở rộng ClassLoader
+  - Giải thích vai trò của context ClassLoader
+- id: chan-doan-va-giai-phong
+  title: Chẩn đoán và giải phóng
+  purpose: Tìm nguyên nhân lỗi nạp lớp và hiểu điều kiện giải phóng bộ nạp.
+  objectives:
+  - Phân biệt ClassNotFoundException, NoClassDefFoundError và LinkageError
+  - Theo dõi bộ nạp và nguồn gốc lớp
+  - Nhận diện tham chiếu gây giữ bộ nạp trong bộ nhớ
+- id: thuc-hanh-tich-hop
+  title: Thực hành tích hợp
+  purpose: Kiểm chứng cơ chế nạp lớp qua một thí nghiệm cô lập nhỏ.
+  objectives:
+  - Nạp cùng tên lớp bằng hai bộ nạp
+  - Quan sát ủy quyền, khởi tạo và định danh kiểu
+  - Chẩn đoán một lỗi thiếu lớp hoặc xung đột phiên bản

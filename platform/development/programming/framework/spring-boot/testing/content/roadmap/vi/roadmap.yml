@@ -1,0 +1,57 @@
+roadmap:
+- id: chien-luoc-kiem-thu
+  title: Chiến lược kiểm thử
+  purpose: Chọn mức kiểm thử phù hợp với rủi ro và hành vi cần chứng minh.
+  objectives:
+  - Phân biệt kiểm thử đơn vị, từng phần ứng dụng và tích hợp.
+  - Xác định đầu vào, kết quả mong đợi và trường hợp biên.
+  - Cân bằng tốc độ phản hồi với mức độ sát môi trường thật.
+- id: kiem-thu-don-vi
+  title: Kiểm thử đơn vị
+  purpose: Kiểm chứng quy tắc nghiệp vụ nhanh và độc lập bằng công cụ nền tảng.
+  objectives:
+  - Viết bài kiểm thử JUnit Jupiter theo bước chuẩn bị, thực thi và kiểm tra.
+  - Kiểm tra kết quả, ngoại lệ và nhiều bộ dữ liệu đầu vào.
+  - Dùng Mockito giả lập phụ thuộc và xác minh tương tác cần thiết.
+- id: ngu-canh-va-cau-hinh
+  title: Ngữ cảnh và cấu hình
+  purpose: Hiểu những thành phần Spring được nạp để thiết lập môi trường kiểm thử có chủ đích.
+  objectives:
+  - Xác định phạm vi ApplicationContext và cách phát hiện cấu hình kiểm thử.
+  - Dùng @TestConfiguration, @Import và thuộc tính riêng cho kiểm thử.
+  - Phân biệt @Mock của Mockito với @MockBean trong ngữ cảnh Spring Boot 3.3.
+- id: kiem-thu-lop-web
+  title: Kiểm thử lớp web
+  purpose: Kiểm chứng hợp đồng HTTP của từng lớp web mà không phải nạp toàn ứng dụng.
+  objectives:
+  - Chọn @WebMvcTest với MockMvc hoặc @WebFluxTest với WebTestClient.
+  - Kiểm tra ánh xạ, dữ liệu JSON, xác thực đầu vào và xử lý lỗi.
+  - Cấp phụ thuộc cần thiết và kiểm tra tác động của bộ lọc bảo mật.
+- id: kiem-thu-truy-cap-du-lieu
+  title: Kiểm thử truy cập dữ liệu
+  purpose: Chứng minh truy vấn và ánh xạ dữ liệu hoạt động đúng với trạng thái được kiểm soát.
+  objectives:
+  - Chọn @DataJpaTest hoặc @JdbcTest theo công nghệ truy cập dữ liệu.
+  - Chuẩn bị dữ liệu và kiểm tra truy vấn, ràng buộc cùng ánh xạ.
+  - Giải thích rollback mặc định và chủ động flush để phát hiện lỗi khi ghi.
+- id: kiem-thu-tich-hop-ung-dung
+  title: Kiểm thử tích hợp ứng dụng
+  purpose: Kiểm tra sự phối hợp giữa các thành phần trong môi trường gần cách ứng dụng vận hành.
+  objectives:
+  - Dùng @SpringBootTest khi cần ngữ cảnh ứng dụng đầy đủ.
+  - Phân biệt môi trường web giả lập với máy chủ thật ở RANDOM_PORT.
+  - Kiểm chứng luồng HTTP và dọn dữ liệu khi giao dịch phía máy chủ không được rollback bởi bài kiểm thử.
+- id: ha-tang-va-dich-vu-ngoai
+  title: Hạ tầng và dịch vụ ngoài
+  purpose: Kiểm soát phụ thuộc bên ngoài để kiểm thử lặp lại được và đủ sát thực tế.
+  objectives:
+  - Khởi tạo cơ sở dữ liệu hoặc dịch vụ thật bằng Testcontainers.
+  - Kết nối bằng @ServiceConnection hoặc @DynamicPropertySource.
+  - Mô phỏng phản hồi và lỗi của dịch vụ HTTP ngoài ứng dụng.
+- id: bo-kiem-thu-on-dinh
+  title: Bộ kiểm thử ổn định
+  purpose: Giữ bộ kiểm thử dễ chẩn đoán, chạy nhanh và đáng tin cậy trong CI.
+  objectives:
+  - Tận dụng bộ nhớ đệm ngữ cảnh và dùng @DirtiesContext có chủ đích.
+  - Cô lập dữ liệu, thời gian và tài nguyên để tránh phụ thuộc thứ tự chạy.
+  - Chạy qua Gradle, đọc báo cáo và phân tích lỗi xuất hiện không ổn định.

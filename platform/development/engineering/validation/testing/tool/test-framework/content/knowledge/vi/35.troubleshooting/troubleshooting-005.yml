@@ -1,0 +1,3 @@
+menuLevel1: Chẩn đoán sự cố
+menuLevel2: Test chạy được trong IDE nhưng thất bại ở Gradle, Maven hoặc CI
+status: ''

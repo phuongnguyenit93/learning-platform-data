@@ -1,0 +1,1435 @@
+menu:
+- slug: layered-architecture-overview
+  title: Tổng quan kiến trúc phân tầng
+  childs:
+  - slug: layered-architecture-overview-001
+    title: Kiến trúc phân tầng là gì, giải quyết vấn đề nào và khác gì cách chia thư mục?
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-002
+    title: Vấn đề khi trộn giao diện, quy tắc nghiệp vụ và truy cập dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-003
+    title: 'Từ vựng nền tảng: tầng, thành phần, hợp đồng, phụ thuộc và luồng gọi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-004
+    title: Luồng tổng thể từ tương tác người dùng đến nghiệp vụ và lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-005
+    title: Phân biệt tầng logic, module mã nguồn và tier triển khai vật lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-006
+    title: 'Các mô hình ba tầng, bốn tầng và nhiều tầng: không có số tầng bắt buộc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-007
+    title: Lợi ích về khả năng hiểu, kiểm thử, thay đổi và tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-008
+    title: Chi phí lớp trung gian, ánh xạ dữ liệu và phối hợp thay đổi; điều kiện áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layered-architecture-overview-009
+    title: 'Bài toán xuyên suốt: hệ thống quản lý đơn hàng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: layer-boundaries-and-rules
+  title: Ranh giới và quy tắc phân tầng
+  childs:
+  - slug: layer-boundaries-and-rules-001
+    title: Xác định trách nhiệm và tiêu chí đặt chức năng vào đúng tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-002
+    title: Tổ chức mức trừu tượng, hợp đồng công khai và chi tiết nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-003
+    title: 'Phân tầng đóng: chỉ sử dụng tầng liền kề theo quy tắc đã chọn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-004
+    title: 'Phân tầng mở: bỏ qua tầng có chủ đích mà không phá vỡ ranh giới'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-005
+    title: Phân biệt hướng gọi khi chạy với hướng phụ thuộc trong mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-006
+    title: Kiểm soát phụ thuộc trực tiếp, phụ thuộc bắc cầu và chu trình giữa các tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-007
+    title: Giới hạn API và ngăn tầng trên truy cập chi tiết triển khai của tầng dưới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-008
+    title: Tổ chức package theo tầng hoặc theo tính năng có phân tầng bên trong
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-009
+    title: Thiết lập quy tắc phụ thuộc giữa các module và tự động phát hiện vi phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: layer-boundaries-and-rules-010
+    title: Mô tả ranh giới, ngoại lệ kiến trúc bằng sơ đồ và bản ghi quyết định ADR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: presentation-layer
+  title: Tầng trình bày
+  childs:
+  - slug: presentation-layer-001
+    title: Vai trò của controller, view và bộ tiếp nhận HTTP, GUI hoặc CLI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presentation-layer-002
+    title: Chuyển dữ liệu giao thức thành yêu cầu đầu vào của ca sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presentation-layer-003
+    title: Kiểm tra cú pháp, định dạng và trường bắt buộc tại biên tiếp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presentation-layer-004
+    title: Gọi ca sử dụng và ánh xạ kết quả sang phản hồi hoặc mô hình hiển thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presentation-layer-005
+    title: Chuyển lỗi ứng dụng thành hợp đồng phản hồi mà không lộ chi tiết hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presentation-layer-006
+    title: Xác thực ở biên và phân biệt với kiểm tra quyền theo nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presentation-layer-007
+    title: Giữ controller gọn, không chứa quy tắc nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: presentation-layer-008
+    title: Thay đổi kênh giao tiếp mà vẫn tái sử dụng cùng ca sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-layer
+  title: Tầng ứng dụng
+  childs:
+  - slug: application-layer-001
+    title: Thiết kế application service theo ca sử dụng và mục tiêu người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-002
+    title: Điều phối tải dữ liệu, gọi hành vi nghiệp vụ và lưu kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-003
+    title: Phân biệt điều phối quy trình với quyết định thuộc quy tắc nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-004
+    title: Xác định tầng được gọi repository và hệ thống ngoài theo hợp đồng đã chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-005
+    title: Quản lý ngữ cảnh người dùng, quyền thao tác và tham số ca sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-006
+    title: Chọn ranh giới giao dịch, chống xử lý lặp và hợp đồng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-007
+    title: Tách luồng đọc và luồng ghi khi có nhu cầu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-008
+    title: Tái sử dụng ca sử dụng từ HTTP, tác vụ nền, CLI hoặc xử lý theo lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-009
+    title: Lần theo luồng tạo đơn hàng từ tầng trình bày đến lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-010
+    title: Nhận diện service quá lớn và ca sử dụng bị chia nhỏ thiếu ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: business-layer
+  title: Tầng nghiệp vụ
+  childs:
+  - slug: business-layer-001
+    title: Biểu diễn khái niệm, trạng thái và hành vi bằng ngôn ngữ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-002
+    title: Nhận diện thực thể, đối tượng giá trị và quy tắc bất biến cần bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-003
+    title: Đặt hành vi cùng dữ liệu liên quan để duy trì trạng thái hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-004
+    title: Lựa chọn mô hình miền phong phú hoặc transaction script khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-005
+    title: Phân biệt dịch vụ miền, dịch vụ ứng dụng và dịch vụ hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-006
+    title: Xử lý chuyển trạng thái và các quyết định nghiệp vụ quan trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-007
+    title: Tách kiểm tra quy tắc nghiệp vụ khỏi kiểm tra cú pháp đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-008
+    title: Biểu diễn lỗi và kết quả nghiệp vụ có ý nghĩa rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-009
+    title: Cung cấp dữ liệu ngoài cho quy tắc miền qua điểm phụ thuộc phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-layer-010
+    title: Giữ nghiệp vụ độc lập với HTTP, ORM và cấu trúc bảng; không ép áp dụng DDD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-access-layer
+  title: Tầng truy cập dữ liệu
+  childs:
+  - slug: data-access-layer-001
+    title: Trách nhiệm truy xuất, lưu trữ và chuyển đổi dữ liệu của tầng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-002
+    title: Phân biệt repository, DAO và công cụ ORM theo hợp đồng và mức trừu tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-003
+    title: Thiết kế giao diện lưu trữ theo nhu cầu ca sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-004
+    title: Đóng gói truy vấn, thao tác lưu và chi tiết công nghệ lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-005
+    title: Phân biệt mô hình nghiệp vụ với entity và mô hình ánh xạ lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-006
+    title: Tìm kiếm theo định danh, điều kiện lọc, phân trang và sắp xếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-007
+    title: Chọn projection và tránh tải dữ liệu ngầm không cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-008
+    title: Quản lý vòng đời kết nối, phiên làm việc và tài nguyên truy cập dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-009
+    title: Chuyển lỗi lưu trữ thành lỗi có ý nghĩa với tầng gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-layer-010
+    title: Quản lý thay đổi lược đồ và ngăn truy cập trực tiếp dữ liệu ngoài ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-and-interlayer-contracts
+  title: Dữ liệu và hợp đồng giữa các tầng
+  childs:
+  - slug: data-and-interlayer-contracts-001
+    title: Phân biệt request, response, DTO, đối tượng nghiệp vụ và entity ORM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-interlayer-contracts-002
+    title: Quyết định khi nào cần kiểu dữ liệu riêng cho từng tầng và khi nào dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-interlayer-contracts-003
+    title: Xác định nơi sở hữu hợp đồng để tránh phụ thuộc ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-interlayer-contracts-004
+    title: Đặt mapper tại biên phù hợp và kiểm soát chi phí ánh xạ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-interlayer-contracts-005
+    title: Ngăn trả entity ORM và trạng thái lazy loading trực tiếp ra giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-interlayer-contracts-006
+    title: Thiết kế hợp đồng tìm kiếm, phân trang và trường dữ liệu tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-interlayer-contracts-007
+    title: Kiểm soát quyền thay đổi đối tượng và tránh rò rỉ trạng thái có thể sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-interlayer-contracts-008
+    title: Tiến hóa hợp đồng và duy trì tương thích mà không lan truyền thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependencies-and-composition
+  title: Tổ chức phụ thuộc và lắp ráp ứng dụng
+  childs:
+  - slug: dependencies-and-composition-001
+    title: Phân biệt phụ thuộc mã nguồn, lời gọi khi chạy và hướng truyền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-002
+    title: Phụ thuộc trực tiếp từ trên xuống trong kiến trúc phân tầng truyền thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-003
+    title: Nhận diện giới hạn khi nghiệp vụ phụ thuộc trực tiếp vào công nghệ lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-004
+    title: Áp dụng nguyên lý đảo ngược phụ thuộc để bảo vệ nghiệp vụ khi cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-005
+    title: Đặt interface và implementation theo bên sở hữu nhu cầu và hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-006
+    title: Phân biệt dependency injection với dependency inversion
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-007
+    title: Lắp ráp thành phần tại composition root và quản lý vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-008
+    title: Kiểm soát phụ thuộc trực tiếp, bắc cầu và chu trình giữa các module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-009
+    title: Giới hạn mã dùng chung, thư viện quá rộng và giao diện không cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependencies-and-composition-010
+    title: Tổ chức package, module biên dịch và tự động kiểm tra phụ thuộc bị cấm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-consistency
+  title: Giao dịch và tính nhất quán
+  childs:
+  - slug: transactions-and-consistency-001
+    title: Chọn ranh giới giao dịch theo ca sử dụng và yêu cầu nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-002
+    title: Phối hợp nhiều repository trong một giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-003
+    title: Hiểu Unit of Work, thời điểm ghi, commit và rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-004
+    title: Truyền ngữ cảnh giao dịch qua lời gọi nội bộ và ca sử dụng lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-005
+    title: Kiểm soát ghi cạnh tranh bằng optimistic locking và pessimistic locking
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-006
+    title: Đánh giá mức cô lập trong quy trình đọc, kiểm tra rồi cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-007
+    title: Thiết kế thao tác lũy đẳng khi yêu cầu được gửi lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-008
+    title: Phối hợp commit dữ liệu với phát thông điệp bằng transactional outbox
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-009
+    title: Tránh giao dịch kéo dài và lời gọi mạng bên trong giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-consistency-010
+    title: Phối hợp quy trình nhiều bước hoặc nhiều kho dữ liệu khi không có một giao dịch chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cross-cutting-concerns
+  title: Các mối quan tâm xuyên tầng
+  childs:
+  - slug: cross-cutting-concerns-001
+    title: Phân chia xác thực, phân quyền truy cập và quyền quyết định nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-002
+    title: Truyền định danh người dùng, ngữ cảnh và mã tương quan qua các tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-003
+    title: Phân chia kiểm tra đầu vào, kiểm tra nghiệp vụ và ràng buộc lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-004
+    title: Phân loại dữ liệu không hợp lệ, xung đột, từ chối nghiệp vụ và lỗi hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-005
+    title: Ánh xạ lỗi nhất quán giữa các tầng mà không che giấu nguyên nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-006
+    title: Xác định lỗi được thử lại, giới hạn thời gian và tránh gây tác động lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-007
+    title: Đặt log, metric và distributed trace phục vụ chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-008
+    title: Đặt cache, xác định nguồn dữ liệu chuẩn và xử lý mất hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-009
+    title: Tách cấu hình, bí mật, đồng hồ và dịch vụ ngoài khỏi logic nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-010
+    title: Sử dụng middleware, filter, interceptor và decorator đúng trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-cutting-concerns-011
+    title: Tránh che giấu quy tắc nghiệp vụ trong cơ chế tự động xuyên tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-deployment
+  title: Hiệu năng và triển khai
+  childs:
+  - slug: performance-and-deployment-001
+    title: Đo thời gian theo chặng để xác định chi phí thực của ranh giới tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-002
+    title: Đo chi phí ánh xạ, sao chép và nhiều lớp chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-003
+    title: Nhận diện N+1, lazy loading và tải dữ liệu dư thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-004
+    title: Tối ưu truy vấn và mô hình đọc mà vẫn giữ quy tắc của luồng ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-005
+    title: Tối ưu thao tác theo lô và thời gian giữ giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-006
+    title: Phân biệt tầng logic với tier vật lý khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-007
+    title: Triển khai nhiều tầng logic trong một tiến trình hoặc monolith
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-008
+    title: Đánh giá độ trễ mạng, lỗi từng phần và bảo mật khi tách nhiều tier
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-009
+    title: Mở rộng theo tải thực tế, trạng thái dùng chung và tài nguyên hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-deployment-010
+    title: Đánh giá đường tắt giữa các tầng bằng số đo và ngoại lệ kiến trúc rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Lập chiến lược kiểm thử theo ranh giới và rủi ro của từng tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-002
+    title: Kiểm thử quy tắc, hành vi và bất biến nghiệp vụ độc lập với hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-003
+    title: Kiểm thử application service về điều phối, kết quả và tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-004
+    title: Kiểm thử tầng trình bày về đầu vào, hợp đồng phản hồi và ánh xạ lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-005
+    title: Kiểm thử repository với cơ sở dữ liệu và cơ chế lưu trữ thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-006
+    title: Lựa chọn mock, stub, fake hoặc hạ tầng thật theo điều cần chứng minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-007
+    title: Kiểm thử commit, rollback, ghi cạnh tranh và tính nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-008
+    title: Kiểm thử tích hợp xuyên tầng cho các ca sử dụng quan trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-009
+    title: Tự động kiểm tra phụ thuộc bị cấm, chu trình và rò rỉ kiểu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-010
+    title: Tránh kiểm thử chỉ xác nhận chuỗi gọi nội bộ mà bỏ sót hành vi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-pitfalls-and-review
+  title: Sai lầm và đánh giá thiết kế
+  childs:
+  - slug: design-pitfalls-and-review-001
+    title: Nhận diện nghiệp vụ rải rác trong controller, truy vấn và tiện ích dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-002
+    title: Tránh service khổng lồ và tầng trung gian chỉ chuyển tiếp lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-003
+    title: Phân biệt mô hình miền thiếu hành vi với mô hình đơn giản có chủ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-004
+    title: Phát hiện phụ thuộc vòng, truy cập tắt ngoài quy định và rò rỉ mô hình lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-005
+    title: Rà soát trách nhiệm, hợp đồng và quyền sở hữu của từng tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-006
+    title: Tránh phụ thuộc vào phiên ORM và hành vi tải dữ liệu ngầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-007
+    title: Nhận diện thay đổi nhỏ nhưng lan qua quá nhiều tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-008
+    title: Cân bằng tính đơn giản, khả năng kiểm thử, hiệu năng và mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pitfalls-and-review-009
+    title: Đánh giá thiết kế bằng kịch bản thay đổi và đồ thị phụ thuộc thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: existing-system-refactoring
+  title: Cải tiến hệ thống hiện có
+  childs:
+  - slug: existing-system-refactoring-001
+    title: Khảo sát đồ thị phụ thuộc, luồng xử lý và ranh giới đang trộn lẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-002
+    title: Dùng kiểm thử đặc trưng để bảo vệ hành vi trước khi tái cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-003
+    title: Tách nghiệp vụ khỏi controller lớn bằng ca sử dụng có hợp đồng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-004
+    title: Chia service ôm quá nhiều trách nhiệm theo hành vi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-005
+    title: Đưa truy cập dữ liệu sau hợp đồng và ngăn rò rỉ entity ORM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-006
+    title: Tháo phụ thuộc vòng bằng điều chỉnh trách nhiệm và quyền sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-007
+    title: Tái cấu trúc từng phần, ghi rõ ngoại lệ kiến trúc và đường chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-008
+    title: Kiểm chứng chức năng, giao dịch và khả năng triển khai sau mỗi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: existing-system-refactoring-009
+    title: Đánh giá kết quả bằng chi phí thay đổi, kết dính và khả năng kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-selection-and-evolution
+  title: Lựa chọn và tiến hóa kiến trúc
+  childs:
+  - slug: architecture-selection-and-evolution-001
+    title: Phân biệt layered architecture với MVC trong tầng trình bày
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-002
+    title: So sánh phân tầng kỹ thuật với mô hình hóa nghiệp vụ theo DDD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-003
+    title: So sánh layered với hexagonal theo ranh giới và khả năng cô lập hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-004
+    title: So sánh layered với onion và clean architecture theo hướng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-005
+    title: Đánh giá tổ chức theo tính năng hoặc vertical slice và khả năng kết hợp phân tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-006
+    title: Kết hợp phân tầng với ranh giới tính năng trong modular monolith
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-007
+    title: Phân biệt phân tầng nội bộ dịch vụ với phân chia microservices
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-008
+    title: Chọn layer và tier theo yêu cầu hệ thống thay vì theo số thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-selection-and-evolution-009
+    title: Ghi quyết định ADR, cân nhắc phương án thay thế và điều kiện cần xem lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: order-management-practice
+  title: Thực hành hệ thống đơn hàng
+  childs:
+  - slug: order-management-practice-001
+    title: Xác định yêu cầu, ca sử dụng và thuộc tính chất lượng của hệ thống đơn hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-002
+    title: Vẽ sơ đồ tầng, hợp đồng và quy tắc phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-003
+    title: Triển khai luồng tạo đơn hàng từ API qua nghiệp vụ đến lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-004
+    title: Bổ sung quy tắc chuyển trạng thái và xử lý lỗi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-005
+    title: Thiết kế tra cứu đơn hàng với lọc, phân trang và DTO riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-006
+    title: Phối hợp nhiều repository, commit, rollback và xử lý ghi cạnh tranh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-007
+    title: Thiết kế chống gửi yêu cầu lặp và thông báo sau giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-008
+    title: Bổ sung tác vụ nền dùng lại ca sử dụng đang có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-009
+    title: Thay công nghệ lưu trữ và đo phần mã phải thay theo hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-010
+    title: Kiểm thử luồng tích hợp, hợp đồng và tự động phát hiện phụ thuộc sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: order-management-practice-011
+    title: Theo dõi hiệu năng và đánh giá ranh giới bằng một thay đổi nghiệp vụ mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

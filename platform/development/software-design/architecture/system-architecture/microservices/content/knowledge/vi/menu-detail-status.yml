@@ -1,0 +1,3229 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiến trúc vi dịch vụ (Microservices) là gì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Bài toán thay đổi và triển khai trong hệ thống có nhiều năng lực nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các khái niệm nền tảng: dịch vụ, thể hiện chạy, hợp đồng và ranh giới'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Đặc trưng tự chủ, triển khai độc lập và sở hữu theo năng lực nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Luồng minh họa đặt hàng, thanh toán và giao hàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt vi dịch vụ với việc chỉ chia nhỏ ứng dụng hoặc tạo nhiều API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Những năng lực cần có trước khi vận hành hệ thống phân tán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và mối liên hệ giữa các chủ đề
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-selection
+  title: Lựa chọn kiến trúc
+  childs:
+  - slug: architecture-selection-001
+    title: So sánh khối đơn thể, khối đơn thể mô-đun và vi dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-selection-002
+    title: Động lực về tốc độ thay đổi, quy mô nhóm và khả năng mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-selection-003
+    title: Đánh giá nhu cầu triển khai độc lập của từng năng lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-selection-004
+    title: Chi phí mạng, dữ liệu, kiểm thử và vận hành phát sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-selection-005
+    title: Điều kiện nên tiếp tục giữ kiến trúc đơn thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-selection-006
+    title: Đo mức độ sẵn sàng của tổ chức và nền tảng kỹ thuật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-selection-007
+    title: Xác định mục tiêu có thể đo trước khi chuyển sang vi dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-selection-008
+    title: Lập quyết định kiến trúc theo bối cảnh thay vì theo xu hướng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-systems-basics
+  title: Nền tảng phân tán
+  childs:
+  - slug: distributed-systems-basics-001
+    title: Độ trễ, mất gói và giới hạn độ tin cậy của mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-002
+    title: Lỗi cục bộ và trạng thái thất bại không đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-003
+    title: Phân biệt một dịch vụ logic với nhiều thể hiện đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-004
+    title: Ý nghĩa và giới hạn của timeout, retry và tín hiệu hủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-005
+    title: Đồng hồ, thứ tự sự kiện và quan hệ nhân quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-006
+    title: Các mức nhất quán dữ liệu và nhất quán cuối cùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-007
+    title: CAP trong tình huống phân hoạch mạng và giới hạn cách diễn giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-008
+    title: Đánh đổi giữa độ trễ và nhất quán khi hệ thống hoạt động bình thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-basics-009
+    title: Ngân sách độ trễ và độ sẵn sàng của chuỗi phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-decomposition
+  title: Phân rã nghiệp vụ
+  childs:
+  - slug: business-decomposition-001
+    title: Phân rã theo năng lực nghiệp vụ thay vì theo lớp kỹ thuật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-002
+    title: Khảo sát quy trình, tác nhân và ngôn ngữ của miền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-003
+    title: Miền con và ranh giới ngữ cảnh (bounded context)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-004
+    title: Event Storming như công cụ khám phá hành vi và sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-005
+    title: Ánh xạ ngữ cảnh và quan hệ giữa các nhóm sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-006
+    title: Nhận diện aggregate và những bất biến cần bảo vệ cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-007
+    title: Phân tích thay đổi đồng thời để tìm phần gắn kết chặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-008
+    title: Phân tích luồng dữ liệu và giao dịch để đánh giá điểm cắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-009
+    title: Phân biệt bounded context với đơn vị triển khai dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-decomposition-010
+    title: Thiết kế ranh giới ban đầu và kế hoạch kiểm chứng bằng thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-boundaries
+  title: Ranh giới dịch vụ
+  childs:
+  - slug: service-boundaries-001
+    title: Tiêu chí về gắn kết bên trong và liên kết bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-002
+    title: Độ hạt dịch vụ và lý do không đo bằng số dòng mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-003
+    title: Quyền sở hữu hành vi, dữ liệu và hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-004
+    title: Phân biệt tự chủ về nghiệp vụ với độc lập về hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-005
+    title: Nhận diện phụ thuộc triển khai và phát hành đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-006
+    title: Đánh giá giao tiếp quá nhiều giữa những dịch vụ liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-007
+    title: Tách dịch vụ khi có bằng chứng về nhu cầu thay đổi độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-008
+    title: Gộp lại dịch vụ khi ranh giới làm tăng chi phí không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-009
+    title: Ghi nhận và quản lý sự tiến hóa ranh giới theo thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-design
+  title: Thiết kế dịch vụ
+  childs:
+  - slug: service-design-001
+    title: Phân chia giao thức, ca sử dụng, miền và tích hợp bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-002
+    title: Áp dụng kiến trúc phân lớp hoặc Ports and Adapters trong từng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-003
+    title: Thiết kế API theo hành vi và trách nhiệm nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-004
+    title: Quản lý trạng thái nghiệp vụ và trạng thái phiên làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-005
+    title: Thiết kế dịch vụ không giữ trạng thái phiên cục bộ khi cần nhân bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-006
+    title: Giới hạn phụ thuộc thư viện và mô hình miền dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-007
+    title: Những ràng buộc phải được kiểm tra ngay trong dịch vụ sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-008
+    title: Tài liệu hóa đầu vào, đầu ra và những bảo đảm của dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-models
+  title: Mô hình giao tiếp
+  childs:
+  - slug: communication-models-001
+    title: Phân biệt tương tác yêu cầu–phản hồi, lệnh và sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-002
+    title: Giao tiếp đồng bộ, bất đồng bộ và các phương án kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-003
+    title: Chọn giao thức theo độ trễ, tính nhất quán và mức liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-004
+    title: Điều phối tập trung và phối hợp qua sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-005
+    title: Luồng người dùng tương tác trực tiếp và công việc nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-006
+    title: Quyền sở hữu thời hạn xử lý và kết quả cuối cùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-007
+    title: Phân tích đồ thị gọi và nguy cơ phụ thuộc vòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-008
+    title: Tránh suy ra rằng mọi tương tác đều cần broker hoặc REST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronous-communication
+  title: Giao tiếp đồng bộ
+  childs:
+  - slug: synchronous-communication-001
+    title: Thiết kế tài nguyên và ngữ nghĩa HTTP trong REST API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-002
+    title: RPC và gRPC trong giao tiếp giữa các dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-003
+    title: Mã trạng thái, lỗi có cấu trúc và thông tin phục vụ chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-004
+    title: Truyền thời hạn xử lý xuyên chuỗi lời gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-005
+    title: Timeout kết nối, timeout phản hồi và giới hạn hủy phía nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-006
+    title: Quản lý kết nối, connection pool và tái sử dụng client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-007
+    title: Giới hạn kích thước, phân trang và truyền dữ liệu theo luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-008
+    title: Tránh chuỗi gọi dài và gọi nối tiếp không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-009
+    title: Tổng hợp yêu cầu và thực hiện song song có giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-010
+    title: Xử lý kết quả chưa xác định sau lỗi mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-communication
+  title: Giao tiếp bất đồng bộ
+  childs:
+  - slug: asynchronous-communication-001
+    title: Vai trò của hàng đợi, chủ đề và nhật ký sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-002
+    title: Phân biệt broker, producer, consumer và nhóm consumer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-003
+    title: Ngữ nghĩa phân phối at-most-once và at-least-once
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-004
+    title: Phạm vi và giới hạn của bảo đảm xử lý exactly-once
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-005
+    title: Phân vùng, khóa thông điệp và phạm vi bảo đảm thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-006
+    title: Xác nhận, gửi lại và quản lý vị trí đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-007
+    title: Thông điệp lỗi, hàng đợi lỗi và chính sách xử lý lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-008
+    title: Giới hạn tốc độ và áp lực ngược khi bên nhận chậm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-009
+    title: Thời gian lưu, phát lại và tác dụng phụ khi tái xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-communication-010
+    title: Chọn thông điệp nghiệp vụ thay vì sao chép toàn bộ dữ liệu nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contracts-versioning
+  title: Hợp đồng và phiên bản
+  childs:
+  - slug: contracts-versioning-001
+    title: Hợp đồng API và thông điệp như ranh giới phối hợp giữa các nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-002
+    title: Thiết kế contract-first và code-first theo nhu cầu thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-003
+    title: OpenAPI, Protocol Buffers và lược đồ sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-004
+    title: Tương thích ngược, tương thích xuôi và thay đổi phá vỡ hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-005
+    title: Tiến hóa trường dữ liệu, enum và ngữ nghĩa thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-006
+    title: Quản lý phiên bản API và vòng đời ngừng hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-007
+    title: Kiểm soát lược đồ thông điệp và vai trò của schema registry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-008
+    title: Triển khai khi nhiều phiên bản bên gửi và bên nhận cùng tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-versioning-009
+    title: Kiểm tra hợp đồng tự động trong quy trình phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-discovery-routing
+  title: Khám phá và định tuyến
+  childs:
+  - slug: service-discovery-routing-001
+    title: Định danh dịch vụ logic và xác định địa chỉ thể hiện chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-routing-002
+    title: Khám phá dịch vụ phía client và phía máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-routing-003
+    title: DNS, danh mục dịch vụ và cập nhật điểm cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-routing-004
+    title: Cân bằng tải và phân phối yêu cầu đến thể hiện khỏe mạnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-routing-005
+    title: Kiểm tra sức khỏe và tránh định tuyến đến thể hiện chưa sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-routing-006
+    title: Định tuyến theo phiên bản, khu vực hoặc nhóm người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-routing-007
+    title: 'Service mesh: khả năng cung cấp, chi phí và điều kiện áp dụng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-routing-008
+    title: Phân biệt lưu lượng từ bên ngoài với lưu lượng nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-gateway
+  title: Cổng API
+  childs:
+  - slug: api-gateway-001
+    title: API Gateway và vai trò tại đường biên hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-gateway-002
+    title: Tập trung xác thực, định tuyến và giới hạn lưu lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-gateway-003
+    title: Backend for Frontend cho các nhóm trải nghiệm khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-gateway-004
+    title: Tổng hợp dữ liệu và giới hạn xử lý nghiệp vụ tại gateway
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-gateway-005
+    title: Định dạng lỗi và bảo vệ hợp đồng công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-gateway-006
+    title: Quản lý timeout và suy giảm tính năng ở lớp biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-gateway-007
+    title: Tránh gateway thành điểm nghẽn hoặc điểm lỗi đơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-gateway-008
+    title: Phân biệt API Gateway với ingress, load balancer và service mesh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-ownership
+  title: Quyền sở hữu dữ liệu
+  childs:
+  - slug: data-ownership-001
+    title: Dữ liệu thuộc về dịch vụ sở hữu năng lực nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-002
+    title: Database per service và phân biệt cô lập logic với máy chủ vật lý riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-003
+    title: Cấm truy cập trực tiếp bảng của dịch vụ khác bằng ràng buộc thiết kế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-004
+    title: Lựa chọn loại lưu trữ theo nhu cầu và chi phí vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-005
+    title: Ranh giới giao dịch cục bộ và quy tắc bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-006
+    title: Định danh và tham chiếu đối tượng xuyên dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-007
+    title: Sao chép dữ liệu có chủ đích và trách nhiệm cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-008
+    title: Thay đổi lược đồ mà không buộc dịch vụ khác cùng phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-009
+    title: Quản lý dữ liệu dùng chung và dữ liệu tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ownership-010
+    title: Những bước giảm dần cơ sở dữ liệu dùng chung trong hệ thống cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-service-queries
+  title: Truy vấn liên dịch vụ
+  childs:
+  - slug: cross-service-queries-001
+    title: Nhận diện nhu cầu đọc dữ liệu từ nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-service-queries-002
+    title: API Composition và tổng hợp kết quả khi đang xử lý yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-service-queries-003
+    title: Mô hình đọc riêng và bản chiếu dữ liệu từ sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-service-queries-004
+    title: CQRS khi nhu cầu đọc và ghi có cấu trúc khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-service-queries-005
+    title: Độ trễ cập nhật, dữ liệu cũ và cách thể hiện cho người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-service-queries-006
+    title: Phân trang, sắp xếp và lọc trên dữ liệu nhiều nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-service-queries-007
+    title: Xử lý nguồn dữ liệu không khả dụng và kết quả thiếu một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-service-queries-008
+    title: Tách truy vấn phân tích khỏi luồng giao dịch trực tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-transactions
+  title: Giao dịch phân tán
+  childs:
+  - slug: distributed-transactions-001
+    title: Vì sao giao dịch ACID cục bộ không bao phủ nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-002
+    title: Giao thức hai pha (2PC), điều kiện áp dụng và đánh đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-003
+    title: Saga như chuỗi giao dịch cục bộ và hành động bù trừ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-004
+    title: Saga điều phối và saga phối hợp qua sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-005
+    title: Thiết kế hành động bù trừ theo ý nghĩa nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-006
+    title: Trạng thái trung gian và những bất biến không thể giữ tức thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-007
+    title: Đặt chỗ tài nguyên, hết hạn và xác nhận cuối cùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-008
+    title: Phục hồi saga sau lỗi và quản lý tiến trình kéo dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-009
+    title: Đối soát, sửa sai và xử lý thủ công khi tự động phục hồi thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-transactions-010
+    title: So sánh các phương án theo mức nhất quán và trải nghiệm người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliable-event-delivery
+  title: Truyền sự kiện tin cậy
+  childs:
+  - slug: reliable-event-delivery-001
+    title: Bài toán ghi cơ sở dữ liệu và gửi thông điệp không nguyên tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-002
+    title: Transactional Outbox và ranh giới giao dịch với dữ liệu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-003
+    title: Chuyển tiếp outbox bằng truy vấn định kỳ hoặc CDC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-004
+    title: Xử lý gửi trùng và duy trì thứ tự cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-005
+    title: Inbox hoặc sổ ghi nhận thông điệp ở phía tiếp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-006
+    title: Thời điểm xác nhận thông điệp so với thời điểm commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-007
+    title: Giám sát độ trễ, bản ghi kẹt và lỗi chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-008
+    title: Dọn dữ liệu outbox, inbox và bảo toàn khả năng xử lý lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliable-event-delivery-009
+    title: Đối soát dữ liệu khi nguồn sự kiện và bản chiếu sai lệch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-idempotency
+  title: Đồng thời và lặp an toàn
+  childs:
+  - slug: concurrency-idempotency-001
+    title: Phân biệt idempotency, chống trùng và bảo đảm chỉ xử lý một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-002
+    title: Khóa lặp an toàn cho thao tác có tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-003
+    title: Lưu kết quả và xử lý nhiều yêu cầu trùng đến đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-004
+    title: Thời hạn lưu khóa và hành vi khi dùng lại khóa với nội dung khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-005
+    title: Khóa lạc quan, phiên bản bản ghi và cập nhật có điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-006
+    title: Cạnh tranh tài nguyên trong đặt hàng, tồn kho và thanh toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-007
+    title: Thứ tự theo khóa nghiệp vụ và giới hạn bảo đảm toàn cục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-008
+    title: Khóa phân tán, thời hạn thuê và vai trò của fencing token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-idempotency-009
+    title: Xử lý kết quả không xác định và đối soát trước khi thực hiện lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fault-tolerance
+  title: Khả năng chịu lỗi
+  childs:
+  - slug: fault-tolerance-001
+    title: Lỗi lan truyền và giới hạn phạm vi ảnh hưởng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-002
+    title: Thiết kế ngân sách timeout theo đường đi của yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-003
+    title: Thử lại có giới hạn, exponential backoff và jitter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-004
+    title: Ngăn bão retry và khuếch đại tải qua nhiều tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-005
+    title: Circuit breaker và điều kiện kiểm tra phục hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-006
+    title: Bulkhead và tách tài nguyên giữa các phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-007
+    title: Giới hạn lưu lượng, tải nhận vào và loại bỏ tải có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-008
+    title: Phương án dự phòng và suy giảm tính năng có thể chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-009
+    title: Áp lực ngược và kiểm soát hàng đợi khi hệ thống quá tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-010
+    title: Kiểm thử khả năng phục hồi bằng giả lập sự cố có mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Mô hình đe dọa và ranh giới tin cậy trong hệ thống nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Xác thực người dùng và phân biệt OAuth 2.0 với OpenID Connect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Token truy cập, phiên đăng nhập và vòng đời thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Xác thực giữa dịch vụ bằng danh tính dịch vụ (workload identity) hoặc mTLS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Phân quyền tại dịch vụ sở hữu dữ liệu và hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Truyền danh tính người dùng và ngăn lạm dụng quyền trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Kiểm tra dữ liệu đầu vào và bảo vệ giao tiếp qua API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Bảo vệ broker, hàng đợi và quyền xuất bản hoặc nhận thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Mã hóa khi truyền, khi lưu và quản lý khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Quản lý lỗ hổng, phụ thuộc và nguồn gốc gói triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Nhật ký kiểm toán và phản ứng khi thông tin xác thực bị lộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-secrets
+  title: Cấu hình và bí mật
+  childs:
+  - slug: configuration-secrets-001
+    title: Tách cấu hình ứng dụng khỏi mã nguồn và gói phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-002
+    title: Quản lý cấu hình theo môi trường và phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-003
+    title: Phân phối cấu hình tập trung và giới hạn phụ thuộc khi khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-004
+    title: Giá trị mặc định, xác thực và phát hiện cấu hình sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-005
+    title: Quản lý bí mật và cấp quyền đọc theo dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-006
+    title: Luân chuyển bí mật, chứng chỉ và thông tin kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-007
+    title: Cờ tính năng và thay đổi hành vi độc lập với triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-008
+    title: Cập nhật cấu hình động và khả năng quay về phiên bản trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Phân biệt nhật ký, chỉ số và dấu vết phân tán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Nhật ký có cấu trúc và định danh yêu cầu nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Truyền ngữ cảnh dấu vết qua HTTP, RPC và thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Phân tích trace, span và đường đi quan trọng của yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Chỉ số lưu lượng, lỗi, độ trễ và mức bão hòa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Chỉ số nghiệp vụ và đo kết quả của quy trình liên dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Kiểm soát cardinality, lấy mẫu và chi phí lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Theo dõi độ trễ hàng đợi, bản chiếu và tiến trình saga
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Tránh đưa dữ liệu nhạy cảm vào log, trace hoặc baggage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Liên kết phiên bản triển khai với sự cố và thay đổi hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Phân chia kiểm thử đơn vị, thành phần, tích hợp và đầu cuối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-002
+    title: Kiểm thử dịch vụ độc lập với các phụ thuộc được kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-003
+    title: Kiểm thử hợp đồng do bên sử dụng định hướng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-004
+    title: Kiểm thử schema và khả năng tương thích thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-005
+    title: Kiểm thử tích hợp với cơ sở dữ liệu và broker thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-006
+    title: Kiểm thử luồng liên dịch vụ mà không phụ thuộc môi trường dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-007
+    title: Kiểm thử timeout, retry, thông điệp trùng và sai thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-008
+    title: Kiểm thử tải, cạnh tranh dữ liệu và sức chịu đựng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-009
+    title: Quản lý dữ liệu kiểm thử và môi trường tạm thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-010
+    title: Giới hạn kiểm thử đầu cuối và giảm lỗi không ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-releases
+  title: Tích hợp và phát hành
+  childs:
+  - slug: integration-releases-001
+    title: Pipeline độc lập cho từng dịch vụ và điều kiện phát hành tự chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-002
+    title: Lựa chọn monorepo hoặc polyrepo theo mô hình phối hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-003
+    title: Xây dựng gói bất biến và ghi nhận nguồn gốc bản dựng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-004
+    title: Kiểm tra chất lượng, hợp đồng, bảo mật và kiến trúc trong CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-005
+    title: Quản lý phiên bản thư viện dùng chung và tránh cập nhật bắt buộc đồng loạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-006
+    title: Kiểm tra ma trận tương thích giữa các phiên bản dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-007
+    title: Thay đổi cơ sở dữ liệu theo mô hình mở rộng rồi thu hẹp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-008
+    title: Tách thời điểm triển khai khỏi thời điểm bật tính năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-009
+    title: Tự động hóa phát hành và tiêu chí cho phép tiếp tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-releases-010
+    title: Quay lui mã nguồn, cấu hình và xử lý thay đổi dữ liệu khó đảo ngược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-deployment
+  title: Triển khai dịch vụ
+  childs:
+  - slug: service-deployment-001
+    title: Lựa chọn máy ảo, container, nền tảng quản lý hoặc serverless
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-002
+    title: Nhiều thể hiện, nhiều vùng sẵn sàng và phân bố tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-003
+    title: Rolling update, blue-green và canary deployment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-004
+    title: Readiness, liveness và thời gian khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-005
+    title: Dừng nhận yêu cầu và hoàn tất công việc trước khi tắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-006
+    title: Triển khai khi hợp đồng cũ và mới cùng tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-007
+    title: Quản lý job, tác vụ định kỳ và tránh chạy trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-008
+    title: Quản lý môi trường thử nghiệm, staging và production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-deployment-009
+    title: Phân biệt triển khai độc lập với vận hành hoàn toàn không có phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: containers-orchestration
+  title: Container và điều phối
+  childs:
+  - slug: containers-orchestration-001
+    title: Đóng gói dịch vụ và quản lý image
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-002
+    title: Yêu cầu tài nguyên, giới hạn CPU và bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-003
+    title: Pod, workload, Service và định tuyến trong Kubernetes
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-004
+    title: Cấp cấu hình, bí mật và tài khoản dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-005
+    title: Health probe và tương tác với vòng đời ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-006
+    title: Tự động nhân bản theo tải và các tín hiệu phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-007
+    title: Lưu trữ bền vững và trách nhiệm vận hành thành phần có trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-008
+    title: Network policy, phân quyền và cô lập khối lượng công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-orchestration-009
+    title: Đánh giá khi nền tảng đơn giản hơn Kubernetes đã đáp ứng đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scalability
+  title: Khả năng mở rộng
+  childs:
+  - slug: scalability-001
+    title: Phân biệt mở rộng theo chiều dọc và chiều ngang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-002
+    title: Nhân bản dịch vụ theo nhu cầu tải riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-003
+    title: Đo thông lượng, độ trễ và mức sử dụng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-004
+    title: Xác định giới hạn từ cơ sở dữ liệu và các dịch vụ phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-005
+    title: Mở rộng consumer theo phân vùng và đặc điểm công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-006
+    title: Xử lý điểm nóng và phân bố không đều theo khóa nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-007
+    title: Tự động mở rộng có độ trễ và chuẩn bị trước cho tải tăng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-008
+    title: Cô lập tải theo khách hàng hoặc nhóm nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-009
+    title: Giới hạn song song để không làm quá tải hệ thống phía sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-caching
+  title: Hiệu năng và bộ nhớ đệm
+  childs:
+  - slug: performance-caching-001
+    title: Xác định ngân sách độ trễ cho hành trình người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-002
+    title: Độ trễ đuôi và ảnh hưởng của lời gọi fan-out
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-003
+    title: Giảm số lần trao đổi mạng và tránh API quá vụn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-004
+    title: Nén, tuần tự hóa và lựa chọn kích thước thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-005
+    title: Bộ nhớ đệm tại client, gateway, dịch vụ và tầng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-006
+    title: Thời hạn lưu, vô hiệu hóa và mức chấp nhận dữ liệu cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-007
+    title: Cache stampede, khóa làm mới và ngăn nhiều yêu cầu tải lại đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-008
+    title: Đánh đổi giữa bộ nhớ đệm cục bộ và dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-caching-009
+    title: Đo hiệu năng toàn luồng trước khi tối ưu từng thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-slo
+  title: Vận hành và SLO
+  childs:
+  - slug: operations-slo-001
+    title: SLI, SLO và mối liên hệ với trải nghiệm người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-002
+    title: Ngân sách lỗi và quyết định tốc độ thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-003
+    title: Thiết kế cảnh báo theo tác động thay vì chỉ theo tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-004
+    title: Runbook, trực vận hành và phân công người chịu trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-005
+    title: Chẩn đoán sự cố theo đồ thị phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-006
+    title: Giới hạn phạm vi ảnh hưởng bằng phân vùng hoặc mô hình cell
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-007
+    title: Quản lý năng lực và dự báo nhu cầu tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-008
+    title: Thay đổi vận hành có kiểm soát và diễn tập sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-009
+    title: Đánh giá sự cố và theo dõi hành động cải thiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-slo-010
+    title: Đo thời gian phát hiện, khôi phục và hiệu quả vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disaster-recovery
+  title: Khôi phục thảm họa
+  childs:
+  - slug: disaster-recovery-001
+    title: Phân biệt tính sẵn sàng cao với khả năng khôi phục thảm họa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-002
+    title: Xác định mục tiêu thời gian khôi phục và mức mất dữ liệu chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-003
+    title: Sao lưu, phục hồi và kiểm chứng tính sử dụng được của bản sao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-004
+    title: Phục hồi cơ sở dữ liệu, broker và cấu hình dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-005
+    title: Khôi phục tính nhất quán giữa nhiều nguồn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-006
+    title: Chuyển vùng, failover và nguy cơ nhiều bên cùng nhận quyền ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-007
+    title: Phát lại sự kiện để dựng lại dữ liệu dẫn xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-008
+    title: Diễn tập khôi phục và đo kết quả so với mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-governance
+  title: Quản trị dữ liệu
+  childs:
+  - slug: data-governance-001
+    title: Lập bản đồ dữ liệu và dịch vụ chịu trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-002
+    title: Phân loại dữ liệu nhạy cảm và giới hạn sao chép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-003
+    title: Thời gian lưu, xóa dữ liệu và xử lý các bản sao dẫn xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-004
+    title: Nhật ký kiểm toán và truy vết nguồn gốc thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-005
+    title: Tách luồng phân tích và nền tảng dữ liệu khỏi cơ sở dữ liệu giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-006
+    title: Kiến trúc đa khách thuê và lựa chọn mức cô lập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-007
+    title: Di chuyển dữ liệu giữa dịch vụ khi ranh giới nghiệp vụ thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-008
+    title: Đối soát chất lượng dữ liệu và trách nhiệm sửa sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-organization
+  title: Tổ chức nhóm
+  childs:
+  - slug: team-organization-001
+    title: Nhóm sở hữu dịch vụ xuyên suốt phát triển và vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-organization-002
+    title: Liên hệ giữa cấu trúc giao tiếp của tổ chức và kiến trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-organization-003
+    title: Định hướng theo dòng giá trị và năng lực nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-organization-004
+    title: Phân biệt tự chủ nhóm với bỏ qua hợp đồng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-organization-005
+    title: Giảm phụ thuộc bàn giao và lịch phát hành đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-organization-006
+    title: Quyền sở hữu khi một nhóm quản lý nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-organization-007
+    title: Phối hợp thay đổi hợp đồng giữa các nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-organization-008
+    title: Đo tải nhận thức và tránh phân rã vượt năng lực tổ chức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-governance
+  title: Nền tảng và quản trị
+  childs:
+  - slug: platform-governance-001
+    title: Vai trò của nhóm nền tảng trong hỗ trợ phát triển tự phục vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-002
+    title: Mẫu dịch vụ và những cấu hình mặc định cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-003
+    title: Danh mục dịch vụ, người sở hữu và thông tin vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-004
+    title: Chuẩn chung cho danh tính, quan sát và hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-005
+    title: Chính sách tự động hóa thay cho xét duyệt thủ công mọi thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-006
+    title: Thư viện dùng chung và nguy cơ ghép chặt phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-007
+    title: Phân biệt năng lực nền tảng với logic nghiệp vụ dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-008
+    title: Ghi nhận quyết định kiến trúc và quản lý ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-governance-009
+    title: Đánh giá độ trưởng thành qua kết quả thay vì số lượng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: costs-tradeoffs
+  title: Chi phí và đánh đổi
+  childs:
+  - slug: costs-tradeoffs-001
+    title: Chi phí hạ tầng tối thiểu khi có nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-tradeoffs-002
+    title: Chi phí mạng, broker, lưu trữ và dữ liệu sao chép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-tradeoffs-003
+    title: Chi phí quan sát, môi trường và đường ống phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-tradeoffs-004
+    title: Chi phí phối hợp nhóm và xử lý sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-tradeoffs-005
+    title: Phân bổ chi phí theo dịch vụ và hành trình nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-tradeoffs-006
+    title: Cân bằng đa dạng công nghệ với khả năng bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-tradeoffs-007
+    title: Đánh giá lợi ích độc lập triển khai so với tổng chi phí sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-migration
+  title: Chuyển đổi kiến trúc
+  childs:
+  - slug: architecture-migration-001
+    title: Khảo sát kiến trúc, cơ sở dữ liệu và luồng thay đổi hiện tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-002
+    title: Chuẩn hóa mô-đun trước khi tách tiến trình khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-003
+    title: Chọn dịch vụ đầu tiên theo giá trị, rủi ro và khả năng tách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-004
+    title: Strangler Fig và chuyển dần lưu lượng sang phần mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-005
+    title: Lớp chống xâm nhập để bảo vệ mô hình mới khỏi hệ thống cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-006
+    title: Tách quyền sở hữu dữ liệu và giảm truy cập cơ sở dữ liệu dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-007
+    title: Di chuyển dữ liệu, đối chiếu kết quả và kiểm soát giai đoạn song song
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-008
+    title: Thay giao tiếp nội bộ bằng hợp đồng và cơ chế phục hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-009
+    title: Tiêu chí chuyển hẳn, quay lui và ngừng thành phần cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-migration-010
+    title: Đánh giá khi nào nên hợp nhất lại dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-spring
+  title: Java và Spring
+  childs:
+  - slug: java-and-spring-001
+    title: Thiết kế ví dụ đặt hàng, tồn kho và thanh toán theo ranh giới rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-002
+    title: Tạo các ứng dụng Spring Boot có quy trình xây dựng độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-003
+    title: Xây dựng REST API và HTTP client có timeout tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-004
+    title: Quản lý dữ liệu và giao dịch cục bộ trong từng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-005
+    title: Tích hợp broker cho thông điệp nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-006
+    title: Hiện thực Outbox và consumer xử lý lặp an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-007
+    title: Truyền ngữ cảnh quan sát và đo chỉ số theo dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-008
+    title: Kiểm thử tích hợp bằng JUnit và Testcontainers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-009
+    title: Chạy môi trường học tập nhiều dịch vụ bằng Docker Compose
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-010
+    title: Đóng gói và chứng minh một dịch vụ có thể phát hành độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-relationships
+  title: Quan hệ kiến trúc
+  childs:
+  - slug: architectural-relationships-001
+    title: 'Microservices và SOA: so sánh mục tiêu và cơ chế tích hợp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-002
+    title: Microservices và kiến trúc hướng sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-003
+    title: Microservices với DDD trong thiết kế ranh giới nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-004
+    title: CQRS và Event Sourcing như lựa chọn bổ sung theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-005
+    title: Hexagonal, Clean hoặc Onion bên trong từng dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-006
+    title: Khối đơn thể mô-đun và vi dịch vụ trong kiến trúc kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-007
+    title: Serverless trong triển khai một số năng lực của hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-relationships-008
+    title: Phân biệt quyết định kiến trúc với lựa chọn framework và nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-pitfalls
+  title: Sai lầm thiết kế
+  childs:
+  - slug: design-pitfalls-001
+    title: Khối đơn thể phân tán và phát hành đồng bộ nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-002
+    title: Chia dịch vụ theo bảng dữ liệu hoặc từng lớp kỹ thuật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-003
+    title: Dùng chung mô hình miền và thư viện nghiệp vụ quá rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-004
+    title: Chuỗi gọi đồng bộ dài làm giảm độ sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-005
+    title: Dùng chung cơ sở dữ liệu và bỏ qua quyền sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-006
+    title: Cho rằng chuyển sang bất đồng bộ sẽ tự giải quyết tính nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-007
+    title: Cho rằng broker bảo đảm mọi tác dụng phụ chỉ xảy ra một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-008
+    title: Thử lại không giới hạn và nhân đôi thao tác nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-009
+    title: Chọn nền tảng phức tạp khi chưa có năng lực vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-pitfalls-010
+    title: Tối ưu số lượng dịch vụ thay vì khả năng thay đổi và giá trị sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exercises-scenarios
+  title: Bài tập và tình huống
+  childs:
+  - slug: exercises-scenarios-001
+    title: Phân rã một hệ thống thương mại điện tử và bảo vệ lựa chọn ranh giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-002
+    title: So sánh phương án đơn thể mô-đun với vi dịch vụ cho cùng một yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-003
+    title: Thiết kế luồng đặt hàng, giữ tồn kho và thanh toán bằng Saga
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-004
+    title: Ngăn gửi trùng thông báo bằng Outbox và consumer lặp an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-005
+    title: Mô phỏng timeout sau khi cổng thanh toán đã nhận giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-006
+    title: Xử lý sự kiện tồn kho đến trễ, trùng hoặc sai thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-007
+    title: Thay đổi hợp đồng khi bên sử dụng chưa thể nâng cấp đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-008
+    title: Thiết kế bản chiếu phục vụ màn hình tổng hợp nhiều dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-009
+    title: Diễn tập quá tải, lỗi phụ thuộc và phục hồi có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-010
+    title: Lập kế hoạch tách một năng lực khỏi hệ thống cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-011
+    title: Xây dựng SLO, dashboard và quy trình xử lý sự cố cho hành trình người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exercises-scenarios-012
+    title: Danh sách kiểm tra ranh giới, dữ liệu, phát hành và khả năng vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

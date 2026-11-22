@@ -1,0 +1,106 @@
+menu:
+- title: Nền tảng độ tin cậy
+  slug: reliability-foundation
+  index: 0
+- title: Yêu cầu và rủi ro
+  slug: requirements-and-risks
+  index: 1
+- title: Chỉ số độ tin cậy
+  slug: reliability-metrics
+  index: 2
+- title: Mô hình lỗi
+  slug: failure-models
+  index: 3
+- title: Kiến trúc và dependency
+  slug: architecture-and-dependencies
+  index: 4
+- title: Thiết kế thí nghiệm
+  slug: experiment-design
+  index: 5
+- title: Môi trường và dữ liệu
+  slug: environment-and-data
+  index: 6
+- title: Quan sát và bằng chứng
+  slug: observability-and-evidence
+  index: 7
+- title: Workload và baseline
+  slug: workloads-and-baselines
+  index: 8
+- title: Chạy dài hạn
+  slug: long-running-execution
+  index: 9
+- title: Gây lỗi có kiểm soát
+  slug: controlled-fault-injection
+  index: 10
+- title: Tiến trình và khởi động lại
+  slug: processes-and-restart
+  index: 11
+- title: Mạng và kết nối
+  slug: networking-and-connectivity
+  index: 12
+- title: Dependency gặp sự cố
+  slug: dependency-failures
+  index: 13
+- title: Tài nguyên và quá tải
+  slug: resources-and-overload
+  index: 14
+- title: JVM và ứng dụng Java
+  slug: jvm-and-java-applications
+  index: 15
+- title: Timeout và retry
+  slug: timeouts-and-retries
+  index: 16
+- title: Cô lập và ngắt mạch
+  slug: isolation-and-circuit-breaking
+  index: 17
+- title: Queue và xử lý sự kiện
+  slug: queues-and-event-processing
+  index: 18
+- title: Database và toàn vẹn
+  slug: database-and-integrity
+  index: 19
+- title: Cache và trạng thái tạm
+  slug: cache-and-temporary-state
+  index: 20
+- title: Nhất quán phân tán
+  slug: distributed-consistency
+  index: 21
+- title: Chuyển đổi dự phòng
+  slug: failover
+  index: 22
+- title: Sao lưu và khôi phục
+  slug: backup-and-restore
+  index: 23
+- title: Khôi phục thảm họa
+  slug: disaster-recovery
+  index: 24
+- title: Suy giảm có kiểm soát
+  slug: graceful-degradation
+  index: 25
+- title: Triển khai và bảo trì
+  slug: deployment-and-maintenance
+  index: 26
+- title: Thời gian và cấu hình
+  slug: time-and-configuration
+  index: 27
+- title: Đồng thời và tranh chấp
+  slug: concurrency-and-contention
+  index: 28
+- title: Công cụ với Java
+  slug: java-tools
+  index: 29
+- title: Tự động hóa và CI
+  slug: automation-and-ci
+  index: 30
+- title: Thống kê và suy luận
+  slug: statistics-and-inference
+  index: 31
+- title: Báo cáo và đánh giá
+  slug: reporting-and-evaluation
+  index: 32
+- title: Bảo trì và cải tiến
+  slug: maintenance-and-improvement
+  index: 33
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 34

@@ -1,0 +1,7 @@
+# Spring Security OAuth 2.0 OIDC Authorization Server
+
+Authorization Server là thành phần cấp quyền và phát hành token để các ứng dụng truy cập tài nguyên được bảo vệ theo OAuth 2.0. Khi hỗ trợ OpenID Connect (OIDC), thành phần này còn cung cấp thông tin xác thực danh tính của người dùng qua ID Token và các endpoint tiêu chuẩn. Spring Security cung cấp các cấu hình và thành phần cần thiết để xây dựng Authorization Server có thể tùy chỉnh trong hệ sinh thái Spring Boot.
+
+Module **Spring Security OAuth 2.0 OIDC Authorization Server** bắt đầu từ vai trò của các bên trong OAuth 2.0/OIDC và cách khởi tạo Authorization Server, sau đó đi qua đăng ký client, xác thực client, Authorization Code với PKCE, scope và consent. Người học tiếp tục tìm hiểu phát hành token, chữ ký JWT và JWK, OIDC discovery/UserInfo, lưu trữ authorization/consent, tùy chỉnh endpoint và kiểm thử các tình huống bảo mật.
+
+Module phù hợp với lập trình viên Java/Spring đã biết HTTP, đăng nhập và cấu hình bảo mật căn bản. Sau lộ trình, bạn có thể cấu hình một Authorization Server phục vụ client phù hợp, diễn giải dòng chảy cấp quyền, nhận diện các rủi ro thường gặp và kiểm tra hành vi phát hành, xác minh, thu hồi token theo yêu cầu hệ thống.

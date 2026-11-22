@@ -1,0 +1,2062 @@
+menu:
+- slug: spring-ai-mcp-architecture
+  title: Tổng quan và kiến trúc Spring AI MCP
+  childs:
+  - slug: spring-ai-mcp-architecture-001
+    title: MCP giải quyết bài toán kết nối ứng dụng AI với hệ thống bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-ai-mcp-architecture-002
+    title: Vai trò của Host, Client và Server trong một luồng MCP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-ai-mcp-architecture-003
+    title: Phân biệt MCP với REST API, tool calling và tích hợp trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-ai-mcp-architecture-004
+    title: Tools, resources và prompts trong hợp đồng MCP thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-ai-mcp-architecture-005
+    title: Vị trí của Spring AI, MCP Java SDK và Spring Boot Starters
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-ai-mcp-architecture-006
+    title: Luồng yêu cầu từ người dùng qua ChatClient đến dịch vụ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-ai-mcp-architecture-007
+    title: Ranh giới tin cậy và trách nhiệm của từng thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-ai-mcp-architecture-008
+    title: Các trường hợp sử dụng MCP trong ứng dụng Spring
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: protocol-contract-version-compatibility
+  title: Hợp đồng giao thức và tương thích phiên bản
+  childs:
+  - slug: protocol-contract-version-compatibility-001
+    title: 'Thông điệp JSON-RPC: request, response, notification và request ID'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-002
+    title: Khám phá server và thương lượng capabilities theo phiên bản giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-003
+    title: Vòng đời initialize và initialized trong các phiên bản có phiên kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-004
+    title: Đối chiếu server/discover và capabilities theo request của đặc tả mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-005
+    title: Đọc ma trận hỗ trợ giữa Spring AI, MCP Java SDK và đặc tả MCP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-006
+    title: Phân trang danh mục và xử lý cursor khi liệt kê khả năng của server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-007
+    title: Phân biệt lỗi giao thức, lỗi transport và kết quả lỗi của công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-008
+    title: Kiểm tra tính năng tùy chọn trước khi gọi hoặc đăng ký handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-contract-version-compatibility-009
+    title: Quản lý thay đổi hợp đồng để client cũ tiếp tục hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: project-setup-and-configuration
+  title: Chuẩn bị môi trường và cấu hình dự án
+  childs:
+  - slug: project-setup-and-configuration-001
+    title: Chọn phiên bản Java, Spring Boot và Spring AI tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-and-configuration-002
+    title: Quản lý dependency bằng Spring AI BOM với Maven hoặc Gradle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-and-configuration-003
+    title: Tách ứng dụng MCP Server, MCP Client và lớp nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-and-configuration-004
+    title: Chọn starter cho STDIO, WebMVC và WebFlux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-and-configuration-005
+    title: Tổ chức cấu hình spring.ai.mcp.server và spring.ai.mcp.client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-and-configuration-006
+    title: Tách profile phát triển, kiểm thử và triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-and-configuration-007
+    title: Chuẩn bị mô hình AI và quản lý thông tin kết nối ngoài mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-setup-and-configuration-008
+    title: Thiết lập dữ liệu mẫu và tiêu chí hoàn thành bài thực hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transports-and-execution-models
+  title: Lựa chọn transport và mô hình thực thi
+  childs:
+  - slug: transports-and-execution-models-001
+    title: So sánh STDIO, Streamable HTTP và HTTP SSE cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-002
+    title: STDIO giữa client và tiến trình server cục bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-003
+    title: Streamable HTTP với yêu cầu HTTP và luồng SSE tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-004
+    title: Phân biệt SSE trong Streamable HTTP với transport HTTP SSE cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-005
+    title: Chọn server stateful hoặc stateless theo hỗ trợ của SDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-006
+    title: Chọn WebMVC hoặc WebFlux theo tải và thư viện nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-007
+    title: Chọn API đồng bộ hoặc bất đồng bộ và giới hạn khi phối hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-008
+    title: Đánh giá transport theo bảo mật, mạng, độ trễ và vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transports-and-execution-models-009
+    title: Lập ma trận capabilities được hỗ trợ cho từng transport
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: stdio-mcp-server
+  title: Xây dựng MCP Server đầu tiên qua STDIO
+  childs:
+  - slug: stdio-mcp-server-001
+    title: Khởi tạo MCP Server tối thiểu bằng Spring Boot starter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stdio-mcp-server-002
+    title: Khai báo tên, phiên bản và capabilities của server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stdio-mcp-server-003
+    title: Tạo công cụ tra cứu dữ liệu mẫu từ Spring service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stdio-mcp-server-004
+    title: Đóng gói server thành JAR để client khởi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stdio-mcp-server-005
+    title: Cấu hình command, arguments, biến môi trường và thư mục làm việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stdio-mcp-server-006
+    title: Tách log khỏi stdout để giữ nguyên luồng thông điệp STDIO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stdio-mcp-server-007
+    title: Khám phá và gọi công cụ bằng MCP Inspector tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stdio-mcp-server-008
+    title: Đóng tiến trình server và giải phóng tài nguyên an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-mcp-server
+  title: Triển khai MCP Server qua HTTP
+  childs:
+  - slug: http-mcp-server-001
+    title: Cấu hình Streamable HTTP Server với WebMVC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-002
+    title: Cấu hình Streamable HTTP Server với WebFlux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-003
+    title: Định tuyến endpoint MCP và kiểm tra Content-Type cùng Accept
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-004
+    title: Quản lý session ID và protocol version khi phiên bản yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-005
+    title: Triển khai chế độ stateless và xác định tính năng không khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-006
+    title: Xử lý kết nối ngắt và khả năng tiếp tục luồng khi được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-007
+    title: Tích hợp reverse proxy với streaming và thời gian chờ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-008
+    title: Phân biệt CORS, kiểm tra Origin và xác thực phía server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-mcp-server-009
+    title: Chuyển đổi từ transport HTTP SSE cũ và kiểm tra tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tool-contracts-and-json-schema
+  title: Thiết kế hợp đồng công cụ và JSON Schema
+  childs:
+  - slug: tool-contracts-and-json-schema-001
+    title: Chọn ranh giới nghiệp vụ và độ hạt phù hợp cho từng tool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-002
+    title: Đặt tên và mô tả để mô hình hiểu đúng khả năng công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-003
+    title: Thiết kế inputSchema với kiểu dữ liệu và trường bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-004
+    title: Biểu diễn enum, danh sách, đối tượng lồng nhau và giá trị tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-005
+    title: Kiểm tra đầu vào ở lớp schema và lớp nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-006
+    title: Thiết kế nội dung kết quả văn bản, dữ liệu có cấu trúc và resource link
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-007
+    title: Khai báo outputSchema và kiểm chứng structuredContent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-008
+    title: Sử dụng readOnlyHint, destructiveHint và idempotentHint đúng ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-009
+    title: Thiết kế giới hạn kích thước, phân trang và định dạng lỗi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-contracts-and-json-schema-010
+    title: Duy trì tương thích khi thay đổi tên, tham số và kết quả công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: server-tool-implementation
+  title: Hiện thực và đăng ký công cụ phía server
+  childs:
+  - slug: server-tool-implementation-001
+    title: Khai báo công cụ bằng @McpTool và tham số bằng @McpToolParam
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-002
+    title: Kết nối công cụ với Spring bean và lớp dịch vụ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-003
+    title: Tái sử dụng @Tool và ToolCallback qua cơ chế chuyển đổi được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-004
+    title: Đăng ký tool bằng API lập trình của MCP Java SDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-005
+    title: Trả CallToolResult và biểu diễn lỗi thực thi bằng isError
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-006
+    title: Xử lý kiểu trả về đồng bộ và bất đồng bộ phù hợp server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-007
+    title: Tiếp cận request context và metadata theo API của phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-008
+    title: Kiểm soát phạm vi quét annotation và tránh đăng ký trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: server-tool-implementation-009
+    title: Quản lý đăng ký động và thông báo thay đổi danh mục khi được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: mcp-resources
+  title: Cung cấp và quản lý MCP Resources
+  childs:
+  - slug: mcp-resources-001
+    title: Phân biệt resource đọc dữ liệu với tool thực hiện hành động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-002
+    title: Thiết kế URI, MIME type và metadata của resource
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-003
+    title: Cung cấp resource văn bản và dữ liệu nhị phân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-004
+    title: Khai báo @McpResource với URI cố định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-005
+    title: Thiết kế resource template và kiểm tra biến URI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-006
+    title: Liệt kê resources và resource templates với phân trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-007
+    title: Đọc resource từ repository, tệp hoặc dịch vụ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-008
+    title: Đăng ký theo dõi cập nhật resource khi capability cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-009
+    title: Xử lý resource không tồn tại, dữ liệu quá lớn và quyền đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-resources-010
+    title: Kiểm soát cache, độ mới dữ liệu và phiên bản nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: mcp-prompts-and-completion
+  title: Cung cấp MCP Prompts và gợi ý tham số
+  childs:
+  - slug: mcp-prompts-and-completion-001
+    title: Phân biệt MCP prompt với system prompt và nội dung người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-prompts-and-completion-002
+    title: Khai báo @McpPrompt và hợp đồng tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-prompts-and-completion-003
+    title: Xây dựng thông điệp theo vai trò trong kết quả prompt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-prompts-and-completion-004
+    title: Liệt kê prompts và lấy prompt theo tên cùng arguments
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-prompts-and-completion-005
+    title: Kết hợp dữ liệu resource với mẫu prompt có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-prompts-and-completion-006
+    title: Sử dụng @McpComplete cho tham số prompt và resource template
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-prompts-and-completion-007
+    title: Kiểm tra giá trị thiếu, tham số không hợp lệ và prompt không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-prompts-and-completion-008
+    title: Quản lý phiên bản prompt và thông báo thay đổi khi được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: mcp-client-lifecycle
+  title: Xây dựng MCP Client và quản lý vòng đời
+  childs:
+  - slug: mcp-client-lifecycle-001
+    title: Cấu hình client starter và các kết nối có tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-002
+    title: Kết nối tới tiến trình STDIO bằng cấu hình trực tiếp hoặc JSON
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-003
+    title: Kết nối tới server Streamable HTTP với endpoint phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-004
+    title: Kết nối HTTP SSE cũ khi hệ thống còn yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-005
+    title: Inject McpSyncClient hoặc McpAsyncClient theo cấu hình thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-006
+    title: Khởi tạo client và đọc thông tin server cùng capabilities
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-007
+    title: Liệt kê công cụ và gọi tools/call với arguments hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-008
+    title: Tùy biến client bằng customizer theo từng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-009
+    title: Cấu hình thời gian chờ và hành vi khi server chưa sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-client-lifecycle-010
+    title: Đóng client, phiên kết nối và tiến trình con khi ứng dụng dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chat-client-tool-integration
+  title: Tích hợp công cụ MCP với Spring AI ChatClient
+  childs:
+  - slug: chat-client-tool-integration-001
+    title: Chuyển công cụ MCP thành ToolCallbackProvider cho Spring AI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-002
+    title: Đăng ký tool callbacks cho ChatClient theo cơ chế được phiên bản hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-003
+    title: Theo dõi chu trình mô hình chọn tool, thực thi và tổng hợp câu trả lời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-004
+    title: Phân biệt gọi tool trực tiếp với để mô hình lựa chọn công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-005
+    title: Kết hợp công cụ cục bộ và MCP tools mà không trùng tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-006
+    title: Giới hạn số vòng gọi công cụ và ngân sách một yêu cầu hội thoại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-007
+    title: Cấp ToolContext và chuyển metadata bằng danh sách cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-008
+    title: Kiểm soát dữ liệu nhạy cảm khi gửi kết quả công cụ về mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-009
+    title: Xử lý tool lỗi hoặc không có kết quả trong câu trả lời hội thoại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chat-client-tool-integration-010
+    title: Kiểm chứng câu trả lời dựa trên dữ liệu trả về từ MCP Server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resources-and-prompts-in-chat-context
+  title: Đưa resources và prompts vào ngữ cảnh hội thoại
+  childs:
+  - slug: resources-and-prompts-in-chat-context-001
+    title: Đọc resource bằng MCP Client trước khi dựng yêu cầu ChatClient
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-prompts-in-chat-context-002
+    title: Lấy MCP prompt và ánh xạ thông điệp sang mô hình hội thoại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-prompts-in-chat-context-003
+    title: Phân biệt tích hợp tools tự động với xử lý resources và prompts chủ động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-prompts-in-chat-context-004
+    title: Chọn resource theo yêu cầu và quyền của người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-prompts-in-chat-context-005
+    title: Kết hợp resource, prompt và tool result trong cùng luồng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-prompts-in-chat-context-006
+    title: Giới hạn token, chia nhỏ nội dung và giữ thông tin nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-prompts-in-chat-context-007
+    title: Kết hợp MCP với retrieval và RAG theo nhu cầu ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-prompts-in-chat-context-008
+    title: Xử lý dữ liệu lỗi thời và xung đột giữa nhiều nguồn ngữ cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multi-server-tool-catalogs
+  title: Kết nối nhiều server và quản lý danh mục công cụ
+  childs:
+  - slug: multi-server-tool-catalogs-001
+    title: Tổ chức cấu hình nhiều MCP Server theo miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-server-tool-catalogs-002
+    title: Phân biệt tên kết nối, tên server và tên công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-server-tool-catalogs-003
+    title: Lọc công cụ được đưa vào ChatClient bằng McpToolFilter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-server-tool-catalogs-004
+    title: Xử lý trùng tên qua McpToolNamePrefixGenerator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-server-tool-catalogs-005
+    title: Chọn tập công cụ theo tác vụ và giới hạn ngữ cảnh mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-server-tool-catalogs-006
+    title: Làm mới danh mục khi server thay đổi capabilities hoặc công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-server-tool-catalogs-007
+    title: Cô lập server lỗi để duy trì các kết nối còn lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multi-server-tool-catalogs-008
+    title: Quản lý độ tin cậy và phiên bản hợp đồng của từng server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: request-context-and-optional-features
+  title: Request context và tính năng MCP tùy chọn
+  childs:
+  - slug: request-context-and-optional-features-001
+    title: Đọc request context và metadata mà không đưa vào arguments của mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-002
+    title: Xử lý logging, progress và thông báo đổi danh mục bằng annotation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-003
+    title: Liên kết client handler với đúng tên kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-004
+    title: Báo tiến độ và xử lý yêu cầu hủy khi giao thức hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-005
+    title: Roots và giới hạn của việc khai báo phạm vi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-006
+    title: Sampling và quyền kiểm soát mô hình ở phía client khi được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-007
+    title: Elicitation để yêu cầu người dùng bổ sung dữ liệu có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-008
+    title: Phân biệt chấp nhận, từ chối và hủy yêu cầu elicitation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-context-and-optional-features-009
+    title: Đánh giá Tasks và extensions theo ma trận hỗ trợ thực tế của SDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: mcp-authentication-connection-security
+  title: Xác thực và bảo vệ kết nối MCP
+  childs:
+  - slug: mcp-authentication-connection-security-001
+    title: Xác định bề mặt truy cập của server STDIO và server HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-002
+    title: Thiết lập ranh giới xác thực cho endpoint MCP bằng Spring Security
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-003
+    title: Bảo vệ server HTTP bằng OAuth 2.0 Resource Server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-004
+    title: Kiểm tra issuer, audience, thời hạn token và scope
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-005
+    title: Khám phá thông tin ủy quyền theo phiên bản đặc tả hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-006
+    title: Cấu hình OAuth phía client và quản lý vòng đời access token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-007
+    title: Đánh giá API key nội bộ và giới hạn so với chuẩn ủy quyền MCP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-008
+    title: Áp dụng TLS, kiểm tra Origin và giới hạn địa chỉ lắng nghe
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-009
+    title: Phòng ngừa token passthrough và confused deputy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-authentication-connection-security-010
+    title: Đánh giá thư viện MCP Security cộng đồng theo mức hỗ trợ phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tool-authorization-and-action-control
+  title: Phân quyền công cụ và kiểm soát hành động
+  childs:
+  - slug: tool-authorization-and-action-control-001
+    title: Phân tách quyền khám phá danh mục với quyền thực thi công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-002
+    title: Ánh xạ vai trò và scope tới tool, resource và prompt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-003
+    title: Thực thi kiểm tra quyền tại server cho từng lời gọi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-004
+    title: Phân biệt lọc công cụ phía client với cơ chế cấp quyền phía server
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-005
+    title: Truyền danh tính đã xác thực qua request context đáng tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-006
+    title: Cô lập tenant và quyền sở hữu đối tượng trong truy vấn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-007
+    title: Thiết kế xác nhận của người dùng trước hành động có tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-008
+    title: Quản lý trạng thái phê duyệt và từ chối khi quyền thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-authorization-and-action-control-009
+    title: Ghi audit cho chủ thể, công cụ, quyết định quyền và kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-safety-and-tool-abuse-prevention
+  title: An toàn dữ liệu và phòng chống lạm dụng công cụ
+  childs:
+  - slug: data-safety-and-tool-abuse-prevention-001
+    title: Nhận diện prompt injection trong mô tả tool, resource và tool result
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-safety-and-tool-abuse-prevention-002
+    title: Giữ ranh giới giữa dữ liệu bên ngoài và chỉ dẫn của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-safety-and-tool-abuse-prevention-003
+    title: Kiểm soát tham số nguy hiểm, path traversal và SSRF
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-safety-and-tool-abuse-prevention-004
+    title: Giới hạn lệnh, tệp và biến môi trường của server STDIO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-safety-and-tool-abuse-prevention-005
+    title: Che dữ liệu cá nhân và thông tin bí mật trong phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-safety-and-tool-abuse-prevention-006
+    title: Ngăn dữ liệu giữa các tenant lẫn vào cache hoặc ngữ cảnh hội thoại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-safety-and-tool-abuse-prevention-007
+    title: Áp dụng quota, rate limit và giới hạn kích thước payload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-safety-and-tool-abuse-prevention-008
+    title: Thẩm định server bên ngoài và thay đổi bất thường của danh mục công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tool-errors-and-resilience
+  title: Xử lý lỗi và tăng độ tin cậy khi gọi công cụ
+  childs:
+  - slug: tool-errors-and-resilience-001
+    title: Phân loại lỗi validation, nghiệp vụ, xác thực, giao thức và mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-002
+    title: Ánh xạ exception thành kết quả MCP mà không lộ thông tin nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-003
+    title: Xử lý tool không tồn tại và schema không còn tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-004
+    title: Phối hợp timeout của mô hình, client, server và dịch vụ phía sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-005
+    title: Retry có giới hạn với backoff, jitter và điều kiện phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-006
+    title: Ngăn thực thi lặp bằng idempotency key ở công cụ có tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-007
+    title: Xử lý kết quả không xác định khi mất kết nối sau khi gửi yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-008
+    title: Áp dụng circuit breaker, bulkhead và giới hạn đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-009
+    title: Lan truyền hủy yêu cầu và giải phóng tác vụ đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-010
+    title: Thiết kế fallback và thông báo lỗi có thể hành động cho người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tool-errors-and-resilience-011
+    title: Phục hồi client sau server restart mà không lặp thao tác nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: mcp-unit-and-contract-testing
+  title: Kiểm thử đơn vị và hợp đồng MCP
+  childs:
+  - slug: mcp-unit-and-contract-testing-001
+    title: Thiết kế ma trận kiểm thử theo capability, transport và quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-002
+    title: Kiểm thử lớp nghiệp vụ độc lập với giao thức và mô hình AI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-003
+    title: Kiểm chứng inputSchema và outputSchema của từng công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-004
+    title: Kiểm thử serialization cho dữ liệu Unicode, thời gian và đối tượng lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-005
+    title: Kiểm tra CallToolResult thành công và lỗi isError
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-006
+    title: Kiểm thử URI template, MIME type và nội dung resource
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-007
+    title: Kiểm thử prompt arguments và cấu trúc thông điệp trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-008
+    title: Kiểm thử danh mục và hợp đồng để phát hiện thay đổi không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mcp-unit-and-contract-testing-009
+    title: Kiểm thử phân quyền theo vai trò, tenant và đối tượng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-and-failure-testing
+  title: Kiểm thử tích hợp và các tình huống lỗi
+  childs:
+  - slug: integration-and-failure-testing-001
+    title: Chạy MCP Server thật trong kiểm thử tích hợp Spring Boot
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-002
+    title: Kiểm thử STDIO với tiến trình con và stdout không bị nhiễu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-003
+    title: Kiểm thử Streamable HTTP cho cả WebMVC và WebFlux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-004
+    title: Dùng MCP Inspector để kiểm tra độc lập với ChatClient
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-005
+    title: Kiểm thử khởi tạo, khám phá và đóng kết nối theo phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-006
+    title: Tiêm lỗi arguments sai kiểu, thiếu trường và tool không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-007
+    title: Mô phỏng timeout, ngắt mạng, phản hồi hỏng và server dừng đột ngột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-008
+    title: Kiểm thử token thiếu, hết hạn, sai audience và thiếu scope
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-009
+    title: Kiểm thử đồng thời, retry và chống ghi trùng với công cụ có tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-010
+    title: Kiểm thử ChatClient bằng mô hình giả lập để có kết quả xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-and-failure-testing-011
+    title: Kiểm thử đầu cuối với mô hình thật và đánh giá lựa chọn công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-performance
+  title: Quan sát hệ thống và tối ưu hiệu năng
+  childs:
+  - slug: observability-and-performance-001
+    title: Liên kết hội thoại, request MCP và lời gọi dịch vụ bằng correlation ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-002
+    title: Thiết kế log có cấu trúc và che dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-003
+    title: Theo dõi số lần gọi, độ trễ, tỷ lệ lỗi và timeout theo công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-004
+    title: Phân biệt MCP logging với log vận hành của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-005
+    title: Truy vết qua ChatClient, MCP Client và MCP Server khi tích hợp cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-006
+    title: Đo chi phí token và tác động của kích thước danh mục công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-007
+    title: Tối ưu cache danh mục và resource với phạm vi quyền phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-008
+    title: Đo tải cho mô hình đồng bộ, bất đồng bộ và luồng streaming
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-performance-009
+    title: Xác định nghẽn ở thread pool, kết nối mạng và dịch vụ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-operations-and-upgrades
+  title: Triển khai, vận hành và nâng cấp
+  childs:
+  - slug: deployment-operations-and-upgrades-001
+    title: Đóng gói server STDIO và server HTTP theo môi trường chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-002
+    title: Cấu hình secrets, tài khoản dịch vụ và quyền hệ điều hành tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-003
+    title: Thiết lập health check và readiness phù hợp từng transport
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-004
+    title: Triển khai sau gateway hoặc load balancer có hỗ trợ streaming
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-005
+    title: Mở rộng ngang theo yêu cầu session của phiên bản giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-006
+    title: Thiết kế graceful shutdown và xử lý kết nối đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-007
+    title: Theo dõi hạn mức, cảnh báo và quy trình xử lý sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-008
+    title: Chẩn đoán sai endpoint, capability, cấu hình STDIO và quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-009
+    title: Nâng cấp Spring AI và MCP Java SDK theo BOM cùng release notes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-010
+    title: Rà soát thay đổi package, starter, annotation và transport khi nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-operations-and-upgrades-011
+    title: Kiểm thử tương thích trước phát hành và chuẩn bị phương án rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: business-assistant-capstone
+  title: Thực hành tổng hợp trợ lý nghiệp vụ dùng MCP
+  childs:
+  - slug: business-assistant-capstone-001
+    title: Thiết kế trợ lý tra cứu tài liệu và quản lý yêu cầu hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-002
+    title: Định nghĩa hợp đồng tools, resources và prompts cho bài thực hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-003
+    title: Xây dựng MCP Server cung cấp tra cứu và tạo yêu cầu hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-004
+    title: Cung cấp tài liệu dưới dạng resource và mẫu xử lý dưới dạng prompt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-005
+    title: Xây dựng MCP Client kết hợp ChatClient và nhiều công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-006
+    title: Thực hành chuyển từ STDIO sang Streamable HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-007
+    title: Áp dụng xác thực, phân quyền theo người dùng và xác nhận hành động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-008
+    title: Kiểm thử dữ liệu sai, mất kết nối, hết hạn token và thao tác lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-009
+    title: Đo độ trễ, chi phí gọi mô hình và độ đúng của kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: business-assistant-capstone-010
+    title: Đánh giá sản phẩm theo hợp đồng, bảo mật và khả năng phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

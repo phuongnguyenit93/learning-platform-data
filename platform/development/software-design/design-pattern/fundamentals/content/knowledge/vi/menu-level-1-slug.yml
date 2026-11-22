@@ -1,0 +1,88 @@
+menu:
+  - title: "Bản chất design pattern"
+    slug: design-pattern-essentials
+    index: 0
+  - title: "Nền tảng hướng đối tượng"
+    slug: object-oriented-foundations
+    index: 1
+  - title: "Nhận diện vấn đề thiết kế"
+    slug: identifying-design-problems
+    index: 2
+  - title: "Nguyên tắc thiết kế"
+    slug: design-principles
+    index: 3
+  - title: "Bản đồ GoF"
+    slug: gof-pattern-overview
+    index: 4
+  - title: "UML cấu trúc"
+    slug: structural-uml
+    index: 5
+  - title: "UML hành vi"
+    slug: behavioral-uml
+    index: 6
+  - title: "Hiện thực bằng Java"
+    slug: java-implementation
+    index: 7
+  - title: "Factory Method và Abstract Factory"
+    slug: factory-method-and-abstract-factory
+    index: 8
+  - title: "Builder và Prototype"
+    slug: builder-and-prototype
+    index: 9
+  - title: "Singleton"
+    slug: singleton
+    index: 10
+  - title: "Adapter và Facade"
+    slug: adapter-and-facade
+    index: 11
+  - title: "Bridge và Decorator"
+    slug: bridge-and-decorator
+    index: 12
+  - title: "Composite và Flyweight"
+    slug: composite-and-flyweight
+    index: 13
+  - title: "Proxy"
+    slug: proxy
+    index: 14
+  - title: "Strategy và State"
+    slug: strategy-and-state
+    index: 15
+  - title: "Template Method"
+    slug: template-method
+    index: 16
+  - title: "Observer và Mediator"
+    slug: observer-and-mediator
+    index: 17
+  - title: "Command và Chain of Responsibility"
+    slug: command-and-chain-of-responsibility
+    index: 18
+  - title: "Iterator và Visitor"
+    slug: iterator-and-visitor
+    index: 19
+  - title: "Memento"
+    slug: memento
+    index: 20
+  - title: "Interpreter"
+    slug: interpreter
+    index: 21
+  - title: "So sánh các mẫu"
+    slug: comparing-patterns
+    index: 22
+  - title: "Phối hợp các mẫu"
+    slug: combining-patterns
+    index: 23
+  - title: "Lựa chọn giải pháp"
+    slug: choosing-design-solutions
+    index: 24
+  - title: "Kiểm thử thiết kế"
+    slug: testing-designs
+    index: 25
+  - title: "Refactor với pattern"
+    slug: refactoring-with-patterns
+    index: 26
+  - title: "Thực hành tổng hợp"
+    slug: integrated-practice
+    index: 27
+  - title: "Đánh giá và giới hạn"
+    slug: assessment-and-limitations
+    index: 28

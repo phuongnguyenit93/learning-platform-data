@@ -1,0 +1,453 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Cloud Gateway là gì và bài toán cổng vào API
+  - Vai trò của gateway trong kiến trúc microservices
+  - Các khái niệm route, predicate, filter và dịch vụ phía sau
+  - Luồng yêu cầu từ client qua gateway đến dịch vụ
+  - Phân biệt API gateway, reverse proxy, load balancer và service mesh
+  - Các trách nhiệm dùng chung và ranh giới nghiệp vụ tại gateway
+  - Gateway dùng chung, gateway theo miền và Backend for Frontend
+  - Lợi ích, chi phí vận hành và trường hợp không cần gateway
+- level1: Phiên bản và biến thể
+  level2:
+  - Phân biệt Gateway Server và Proxy Exchange
+  - So sánh Server WebFlux với Server Web MVC
+  - Chọn phiên bản Java, Spring Boot và Spring Cloud Release Train tương thích
+  - Quản lý dependency bằng BOM và tránh trộn phiên bản
+  - Đối chiếu tên starter và tiền tố cấu hình giữa các dòng phiên bản
+  - Phạm vi hỗ trợ predicate, filter và giao thức của từng biến thể
+  - Phân biệt tài liệu bản ổn định với preview và snapshot
+  - Lập bảng tính năng trước khi chọn kiến trúc gateway
+- level1: Nền tảng WebFlux
+  level2:
+  - Mô hình xử lý không chặn của Spring WebFlux và Reactor Netty
+  - Mono, Flux và cách biểu diễn yêu cầu HTTP bất đồng bộ
+  - ServerWebExchange, ServerHttpRequest và ServerHttpResponse
+  - Tính bất biến và cơ chế mutate request hoặc exchange
+  - Event loop và tác động của lời gọi chặn luồng
+  - Backpressure và truyền nội dung HTTP theo luồng
+  - Reactor Context và truyền dữ liệu xuyên chuỗi xử lý
+  - Truyền lỗi, hủy xử lý và quản lý vòng đời tài nguyên
+- level1: Khởi tạo
+  level2:
+  - Tạo ứng dụng Gateway Server WebFlux tối thiểu
+  - Khai báo starter phù hợp bằng Maven hoặc Gradle
+  - Kiểm tra classpath và tránh xung đột web stack
+  - Dựng dịch vụ phía sau để quan sát yêu cầu được chuyển tiếp
+  - Khai báo tuyến đầu tiên bằng application.yml
+  - Khai báo tuyến đầu tiên bằng Java RouteLocatorBuilder
+  - Tách cấu hình theo môi trường và sử dụng biến môi trường
+  - Chạy thử và kiểm chứng đường dẫn, header, body và mã phản hồi
+- level1: Kiến trúc xử lý
+  level2:
+  - Gateway Handler Mapping và quá trình chọn tuyến
+  - Filtering Web Handler và chuỗi bộ lọc của tuyến đã chọn
+  - Các giai đoạn trước và sau khi gọi dịch vụ phía sau
+  - RouteDefinition, Route và quá trình chuyển đổi cấu hình
+  - RouteDefinitionLocator, RouteLocator và bộ nhớ đệm tuyến
+  - Vai trò của RouteToRequestUrlFilter
+  - NettyRoutingFilter và NettyWriteResponseFilter
+  - 'ForwardRoutingFilter và chuyển tiếp nội bộ bằng forward:'
+  - Exchange attributes cho tuyến, URL gốc và URL đích
+  - Ranh giới giữa WebFilter, Spring Security filter và GatewayFilter
+- level1: Cấu hình tuyến
+  level2:
+  - Các trường id, uri, order, predicates, filters và metadata
+  - 'URI đích với http:, https:, lb:, ws:, wss: và forward: theo khả năng hỗ trợ'
+  - Ý nghĩa đường dẫn trong URI đích và cấu hình rewrite riêng
+  - Cú pháp rút gọn so với khai báo name và args đầy đủ
+  - Java DSL và kết hợp điều kiện and, or, negate
+  - Thứ tự ưu tiên khi nhiều tuyến cùng khớp
+  - Tuyến tổng quát, tuyến chuyên biệt và nguy cơ bắt nhầm yêu cầu
+  - Biến URI được trích xuất từ Path hoặc Host
+  - Default filters và phạm vi áp dụng cho các tuyến
+  - Metadata riêng của tuyến và giới hạn cấu hình phụ thuộc phiên bản
+- level1: Điều kiện định tuyến
+  level2:
+  - 'Path: mẫu đường dẫn, biến URI và dấu gạch chéo cuối'
+  - 'Host: khớp tên miền, tên miền con và biến mẫu'
+  - 'Method: chọn tuyến theo một hoặc nhiều HTTP method'
+  - 'Header: kiểm tra header và biểu thức chính quy'
+  - 'Query: kiểm tra tên và giá trị query parameter'
+  - 'Cookie: điều kiện trên tên và giá trị cookie'
+  - 'After, Before và Between: định tuyến theo thời gian và múi giờ'
+  - 'RemoteAddr: địa chỉ IP, CIDR và bộ phân giải địa chỉ'
+  - XForwardedRemoteAddr và giới hạn tin cậy proxy theo phiên bản hỗ trợ
+  - 'Weight: chia lưu lượng theo nhóm và trọng số'
+  - Version và ApiVersionStrategy cho định tuyến theo phiên bản API khi được hỗ trợ
+  - ReadBody qua Java DSL và giới hạn lưu request body
+  - Phối hợp predicate và kiểm tra điều kiện thực tế của một yêu cầu
+  - Tác động của base path, mã hóa URL và chuẩn hóa đường dẫn
+- level1: Chuỗi bộ lọc
+  level2:
+  - Phân biệt GatewayFilter, GlobalFilter và GatewayFilterFactory
+  - Cách kết hợp global filter với bộ lọc riêng của tuyến
+  - Ordered và thứ tự thực thi trước/sau theo chiều đảo ngược
+  - OrderedGatewayFilter và thứ tự bộ lọc trong Java DSL
+  - Tiếp tục chuỗi bằng chain.filter(exchange)
+  - Kết thúc sớm với phản hồi trực tiếp tại gateway
+  - Thao tác trước khi response được commit
+  - Tương tác thứ tự giữa rewrite, load balancing, retry và bảo mật
+  - Đối chiếu chuỗi bộ lọc đang chạy với cấu hình khai báo
+- level1: Đường dẫn và chuyển hướng
+  level2:
+  - 'StripPrefix: bỏ các đoạn đầu đường dẫn'
+  - 'PrefixPath: thêm tiền tố cho yêu cầu phía sau'
+  - 'SetPath: đặt đường dẫn bằng URI template'
+  - 'RewritePath: thay thế đường dẫn bằng biểu thức chính quy'
+  - Escape ký tự thay thế trong YAML và Java DSL
+  - 'RedirectTo: chuyển hướng client và lựa chọn mã HTTP'
+  - 'RewriteLocationResponseHeader: sửa Location từ dịch vụ phía sau'
+  - 'RewriteResponseHeader: sửa giá trị header bằng biểu thức chính quy'
+  - Phân biệt rewrite nội bộ, forward nội bộ và redirect ra client
+  - Giữ query string, dấu gạch chéo và ký tự mã hóa khi đổi đường dẫn
+- level1: Header yêu cầu
+  level2:
+  - 'AddRequestHeader và SetRequestHeader: thêm hoặc thay thế giá trị'
+  - AddRequestHeadersIfNotPresent và điều kiện bổ sung header
+  - RemoveRequestHeader và loại bỏ dữ liệu không được chuyển tiếp
+  - MapRequestHeader và ánh xạ giá trị giữa các header
+  - AddRequestParameter và RemoveRequestParameter
+  - PreserveHostHeader và SetRequestHostHeader
+  - RequestHeaderToRequestUri và kiểm soát đích chuyển tiếp
+  - Forwarded, X-Forwarded-* và thông tin proxy được tin cậy
+  - RemoveHopByHop và các header dành riêng từng chặng
+  - Giới hạn kích thước header bằng RequestHeaderSize khi được hỗ trợ
+  - Giữ định danh yêu cầu và ngăn client giả mạo header nội bộ
+- level1: Header và trạng thái
+  level2:
+  - AddResponseHeader và SetResponseHeader
+  - RemoveResponseHeader và loại bỏ thông tin triển khai
+  - DedupeResponseHeader khi gateway và dịch vụ cùng ghi header
+  - SecureHeaders và tùy chỉnh chính sách header bảo mật
+  - SetStatus và hợp đồng mã HTTP trả về client
+  - Đổi URI đích qua Java DSL và kiểm soát exchange attributes
+  - Xử lý Content-Length, Transfer-Encoding và nội dung được biến đổi
+  - Cookie, thuộc tính Set-Cookie và tác động của proxy
+  - Đồng bộ header, body và mã trạng thái khi tạo phản hồi tại gateway
+- level1: Nội dung HTTP
+  level2:
+  - Vì sao request body thường chỉ được đọc một lần trong WebFlux
+  - CacheRequestBody và tái sử dụng nội dung đã đọc
+  - ModifyRequestBody qua Java DSL và chuyển đổi dữ liệu đầu vào
+  - ModifyResponseBody qua Java DSL và chuyển đổi dữ liệu trả về
+  - RewriteRequestParameter và quy tắc thay query parameter
+  - RemoveJsonAttributesResponseBody và loại bỏ trường JSON
+  - RequestSize và giới hạn kích thước tải lên
+  - JSON, form, multipart và lựa chọn bộ chuyển đổi nội dung
+  - Giới hạn bộ đệm codec và DataBufferLimitException
+  - DataBuffer, giữ/thả bộ đệm và phòng tránh rò rỉ bộ nhớ
+  - Bộ đệm toàn bộ nội dung so với truyền dữ liệu theo luồng
+  - Che dữ liệu nhạy cảm khi ghi log request hoặc response body
+- level1: Khám phá và cân bằng tải
+  level2:
+  - Tuyến cố định so với tuyến dùng định danh dịch vụ lb://
+  - Tích hợp Spring Cloud LoadBalancer với Gateway Server WebFlux
+  - ReactiveLoadBalancerClientFilter và phân giải ServiceInstance
+  - Kết nối DiscoveryClient với Eureka, Consul hoặc nguồn dịch vụ phù hợp
+  - DiscoveryClient Route Definition Locator
+  - Predicate và filter mặc định của các tuyến tự sinh
+  - Tùy chỉnh điều kiện đưa dịch vụ vào danh sách tuyến
+  - Định danh dịch vụ, chữ hoa/thường và quy tắc đường dẫn
+  - Lựa chọn instance, trạng thái isSecure và giao thức phía sau
+  - Xử lý không có instance khả dụng và phản hồi 503 hoặc 404
+  - Tương tác giữa khám phá dịch vụ, cache và thay đổi danh sách instance
+  - Kiểm soát dịch vụ nội bộ được phép công bố qua discovery
+- level1: Kết nối và TLS
+  level2:
+  - Phân biệt kết nối client–gateway với kết nối gateway–dịch vụ
+  - Cấu hình TLS đầu vào và chứng chỉ của gateway
+  - Trust store, chứng chỉ phía sau và xác minh tên máy chủ
+  - Xác thực hai chiều mTLS khi triển khai và phiên bản hỗ trợ
+  - Thời gian chờ kết nối, phản hồi và bắt tay TLS
+  - Ghi đè thời gian chờ theo route metadata và đơn vị cấu hình
+  - Connection pool, giới hạn kết nối và hàng đợi chờ
+  - Keep-alive, thời gian nhàn rỗi và vòng đời kết nối
+  - Phân giải DNS và thay đổi địa chỉ dịch vụ
+  - HttpClientCustomizer và tùy biến Reactor Netty HttpClient
+  - Cấu hình proxy đầu ra khi môi trường triển khai yêu cầu
+- level1: CORS
+  level2:
+  - Same-origin, cross-origin và vai trò CORS tại gateway
+  - Yêu cầu đơn giản so với preflight OPTIONS
+  - Cấu hình CORS toàn cục cho Gateway Server WebFlux
+  - Cấu hình CORS bằng metadata của từng tuyến
+  - Preflight không khớp route predicate và simple URL handler mapping
+  - Allowed origins, methods, headers và exposed headers
+  - Credentials, wildcard origin và thời gian cache preflight
+  - Phối hợp CORS giữa gateway, Spring Security và dịch vụ phía sau
+  - Chẩn đoán header CORS bị trùng hoặc preflight bị từ chối
+- level1: Xác thực và phân quyền
+  level2:
+  - Ranh giới xác thực tại gateway và kiểm tra quyền tại dịch vụ
+  - Tích hợp Spring Security với SecurityWebFilterChain
+  - OAuth 2.0 Resource Server và xác minh JWT
+  - Kiểm tra issuer, audience, thời hạn và chữ ký token
+  - Phân quyền theo đường dẫn, HTTP method, role và scope
+  - Tách tuyến công khai, tuyến cần đăng nhập và tuyến quản trị
+  - Chuẩn hóa phản hồi 401, 403 và lỗi xác thực
+  - Token dạng opaque và tích hợp introspection khi phù hợp
+  - CSRF theo mô hình client dùng cookie hoặc bearer token
+  - Chuyển tiếp danh tính xuống dịch vụ trong ranh giới tin cậy
+  - Quản lý khóa xác minh, cache JWK và thay đổi khóa của nhà cung cấp danh tính
+- level1: Phiên đăng nhập và token
+  level2:
+  - Gateway làm OAuth 2.0 Client và đăng nhập bằng OpenID Connect
+  - TokenRelay và chuyển access token đến dịch vụ phía sau
+  - OAuth2AuthorizedClient và lựa chọn client registration
+  - Phân biệt relay token hiện có với cấp token hoặc trao đổi token
+  - Lưu trạng thái authorized client và giới hạn lưu trữ trong bộ nhớ
+  - SaveSession và thời điểm lưu phiên trước khi chuyển tiếp
+  - Spring Session và chia sẻ phiên khi chạy nhiều bản sao
+  - Cookie phiên, SameSite, Secure và đường dẫn phía sau proxy
+  - Đăng xuất, token hết hạn và vòng đời phiên của người dùng
+  - Ngăn ghi log hoặc chuyển token đến đích không được tin cậy
+- level1: Giới hạn lưu lượng
+  level2:
+  - Giới hạn tần suất, giới hạn đồng thời và hạn mức sử dụng
+  - RequestRateLimiter và phản hồi HTTP 429
+  - 'Token bucket: tốc độ nạp, dung lượng và chi phí mỗi yêu cầu'
+  - RedisRateLimiter và dependency Redis reactive
+  - replenishRate, burstCapacity và requestedTokens
+  - KeyResolver theo người dùng, khách hàng, API key hoặc địa chỉ IP
+  - Khóa rỗng, deny-empty-key và nguy cơ chọn khóa không tin cậy
+  - Hạn mức theo tuyến và khách hàng trong hệ thống nhiều bản sao
+  - Header thông báo giới hạn và phản hồi khi bị từ chối
+  - Bucket4j và lựa chọn kho trạng thái theo biến thể, phiên bản hỗ trợ
+  - RateLimiter tùy biến và chính sách khi kho giới hạn lưu lượng lỗi
+  - Kiểm thử tải đột biến, phân bố khóa và tính nhất quán hạn mức
+- level1: Ngắt mạch và dự phòng
+  level2:
+  - Vai trò circuit breaker trong chuỗi gọi qua gateway
+  - Tích hợp CircuitBreaker filter với Spring Cloud CircuitBreaker
+  - Chọn implementation Resilience4j phù hợp với web stack
+  - Các trạng thái đóng, mở, thử lại và cách đo tỷ lệ lỗi
+  - Cấu hình tên circuit breaker, cửa sổ đo và ngưỡng
+  - Kích hoạt theo exception hoặc mã HTTP được chỉ định
+  - fallbackUri và endpoint dự phòng nội bộ
+  - FallbackHeaders và thông tin lỗi được phép chuyển tiếp
+  - Phối hợp circuit breaker với timeout và cơ chế thử lại
+  - Tránh fallback gây đệ quy hoặc che mất lỗi nghiệp vụ
+- level1: Thử lại yêu cầu
+  level2:
+  - Retry filter và các loại lỗi có thể thử lại
+  - Giới hạn số lần thử theo method, status và exception
+  - Khoảng chờ tăng dần và giới hạn tổng thời gian xử lý
+  - Tính lặp an toàn của GET so với thao tác ghi dữ liệu
+  - Idempotency key cho nghiệp vụ có nguy cơ thực hiện lặp
+  - Lưu request body khi thử lại và chi phí bộ nhớ
+  - Thử lại với forward nội bộ và điều kiện response chưa commit
+  - Tương tác với load balancer và cơ chế thử lại của dịch vụ
+  - Tránh khuếch đại tải khi nhiều tầng cùng thử lại
+- level1: Bộ nhớ đệm
+  level2:
+  - Phân biệt cache tuyến, cache phản hồi và cache dữ liệu nghiệp vụ
+  - LocalResponseCache và các dependency cần thiết
+  - Điều kiện cache theo HTTP method, status và Cache-Control
+  - Cấu hình dung lượng và thời gian sống theo tuyến
+  - Tương tác với max-age và các yêu cầu có điều kiện
+  - Giới hạn cache cục bộ khi gateway có nhiều bản sao
+  - Ngăn cache nhầm dữ liệu theo người dùng hoặc khách hàng
+  - Đo tỷ lệ cache hit và kiểm chứng tính đúng đắn của phản hồi
+- level1: Bộ lọc tùy biến
+  level2:
+  - Tạo GatewayFilterFactory bằng AbstractGatewayFilterFactory
+  - Lớp Config, ánh xạ args và kiểm tra cấu hình đầu vào
+  - Quy tắc đặt tên factory và shortcutFieldOrder
+  - Viết GlobalFilter và lựa chọn thứ tự có chủ đích
+  - Viết AbstractRoutePredicateFactory tùy biến
+  - Thay đổi request và response bằng các decorator phù hợp
+  - Xử lý trước, sau, lỗi và hủy trong một chuỗi Reactor
+  - Chạy công việc chặn luồng ngoài event loop khi thực sự cần
+  - Tránh gọi subscribe() thủ công hoặc block() trong chuỗi xử lý
+  - Truyền dữ liệu qua exchange attributes và Reactor Context
+  - Kiểm thử hợp đồng của bộ lọc cùng các bộ lọc có sẵn
+  - Đóng gói bộ lọc dùng chung và quản lý tương thích phiên bản
+- level1: Tuyến động
+  level2:
+  - Khi nào dùng tuyến tĩnh và khi nào cần nguồn tuyến động
+  - RouteDefinitionRepository và vòng đời định nghĩa tuyến
+  - Lưu tuyến trong bộ nhớ, Redis hoặc kho tùy biến theo phiên bản hỗ trợ
+  - Nạp tuyến bằng RouteDefinitionLocator tùy biến
+  - Tích hợp nguồn cấu hình tập trung và giới hạn refresh tự động
+  - RefreshRoutesEvent và làm mới bộ nhớ đệm tuyến
+  - Phân biệt thay đổi kho định nghĩa với tuyến đang có hiệu lực
+  - Chia sẻ tuyến và đồng bộ refresh giữa nhiều bản sao
+  - Kiểm tra định nghĩa tuyến trước khi phát hành
+  - Phiên bản cấu hình, kiểm toán thay đổi và khôi phục tuyến
+  - Bảo vệ URI đích, biểu thức và tham số của cấu hình động
+- level1: Quản trị Actuator
+  level2:
+  - Bật Gateway Actuator với quyền truy cập phù hợp phiên bản
+  - Phân biệt exposure, quyền đọc và quyền thay đổi tuyến
+  - Xem danh sách tuyến, định nghĩa tuyến và chi tiết một tuyến
+  - Xem predicate, route filter, global filter và thứ tự bộ lọc
+  - Đối chiếu định dạng kết quả đọc với định dạng yêu cầu tạo tuyến
+  - Tạo, xóa và refresh tuyến động trong môi trường được kiểm soát
+  - Giới hạn thao tác đối với tuyến do YAML hoặc Java bean quản lý
+  - Refresh có chọn lọc theo metadata khi được hỗ trợ
+  - Cô lập endpoint quản trị khỏi lưu lượng công khai
+  - Phân quyền, kiểm toán và phục hồi khi thay đổi tuyến thất bại
+- level1: WebSocket và truyền luồng
+  level2:
+  - 'Định tuyến WebSocket bằng ws: và wss:'
+  - WebsocketRoutingFilter và quá trình nâng cấp kết nối
+  - 'Kết hợp lb:ws: với khám phá dịch vụ khi được hỗ trợ'
+  - Định tuyến HTTP riêng cho cơ chế fallback như SockJS
+  - Xác thực, Origin và thông tin phiên khi bắt tay WebSocket
+  - Server-Sent Events và truyền phản hồi liên tục
+  - Streaming upload/download và tác động của bộ lọc body
+  - Timeout, heartbeat và ngắt kết nối phía client
+  - HTTP/2 và điều kiện hỗ trợ xuyên suốt các chặng
+  - Giới hạn proxy gRPC và bộ lọc JsonToGrpc theo phiên bản hỗ trợ
+- level1: Server Web MVC
+  level2:
+  - Kiến trúc Servlet và WebMvc.fn của Gateway Server Web MVC
+  - Khởi tạo đúng starter và lựa chọn Servlet runtime
+  - GatewayRouterFunctions, RouterFunction và HandlerFunctions.http()
+  - Khai báo tuyến Web MVC bằng cấu hình hoặc Java DSL
+  - GatewayRequestPredicates và các điều kiện được hỗ trợ
+  - BeforeFilterFunctions, AfterFilterFunctions và HandlerFilterFunction
+  - Đổi đường dẫn, header và nội dung bằng bộ lọc Web MVC
+  - LoadBalancer filter và thứ tự phối hợp với bộ lọc rewrite
+  - Retry, CircuitBreaker và TokenRelay trên Web MVC
+  - RateLimiter dựa trên Bucket4j và key resolver của Web MVC
+  - HttpClient, timeout và bộ đệm trong kiến trúc Servlet
+  - Tích hợp SecurityFilterChain và quản lý phiên Servlet
+  - Giới hạn tính năng so với WebFlux và kiểm thử khi chuyển đổi
+- level1: Proxy Exchange
+  level2:
+  - Khi nào chọn ProxyExchange trong controller thay cho Gateway Server
+  - Dependency Proxy Exchange cho Spring Web MVC hoặc WebFlux
+  - Đối tượng ProxyExchange làm tham số handler method
+  - Chuyển tiếp GET, POST và các HTTP method khác
+  - Tách phần đường dẫn còn lại để tạo URI đích
+  - Thêm header và ánh xạ ResponseEntity trả về
+  - Sensitive headers, skipped headers và X-Forwarded-*
+  - forward() đến handler nội bộ trong biến thể Web MVC
+  - Giới hạn áp dụng cấu hình route và filter của Gateway Server
+  - Kiểm tra URI đích và tránh tạo open proxy trong controller
+- level1: Quan sát hệ thống
+  level2:
+  - Gateway metrics, Actuator và Micrometer
+  - Số lượng yêu cầu, độ trễ, kết quả và mã HTTP theo route
+  - Tích hợp Prometheus và xây dựng bảng theo dõi
+  - Kiểm soát nhãn route, path và cardinality của số liệu
+  - Tracing phân tán và truyền trace context xuống dịch vụ
+  - Correlation ID và log có cấu trúc xuyên chuỗi gọi
+  - Reactor Netty access log và phân biệt với application log
+  - Wiretap HTTP client/server và bảo vệ dữ liệu nhạy cảm
+  - Theo dõi connection pool, event loop, bộ nhớ và bộ đệm
+  - Đo tác động của rate limiting, retry, fallback và cache
+  - Thiết kế cảnh báo theo tỷ lệ lỗi, độ trễ và mức bão hòa
+- level1: Kiểm thử
+  level2:
+  - Ma trận kiểm thử theo biến thể, tuyến và nhóm bộ lọc
+  - Kiểm thử predicate với các yêu cầu khớp và không khớp
+  - Kiểm thử đơn vị bộ lọc bằng MockServerWebExchange
+  - StepVerifier cho chuỗi Reactor và các nhánh lỗi
+  - WebTestClient cho kiểm thử toàn trình qua Gateway Server WebFlux
+  - MockMvc hoặc client HTTP cho Gateway Server Web MVC
+  - Mô phỏng dịch vụ phía sau bằng WireMock hoặc MockWebServer
+  - Kiểm chứng đường dẫn, header, body và status sau chuyển tiếp
+  - Kiểm thử CORS, preflight, JWT, session và TokenRelay
+  - Kiểm thử Redis rate limiting và nhiều bản sao khi phù hợp
+  - Mô phỏng timeout, lỗi kết nối, retry và circuit breaker
+  - Kiểm thử WebSocket, SSE, multipart và giới hạn nội dung
+  - Kiểm thử refresh tuyến, thứ tự tuyến và khôi phục cấu hình
+  - Kiểm thử tải và hồi quy bảo mật cho gateway
+- level1: Hiệu năng
+  level2:
+  - Đo thông lượng và các phân vị độ trễ qua từng chặng
+  - Đánh giá chi phí gateway so với gọi trực tiếp dịch vụ
+  - Tối ưu connection pool và giới hạn kết nối đồng thời
+  - Phát hiện lời gọi chặn event loop và điểm nghẽn CPU
+  - Giới hạn codec, direct memory và số body đang được lưu
+  - Tác động của logging, tracing và biến đổi body
+  - Giảm chi phí predicate và biểu thức chính quy
+  - Đánh giá độ trễ do TLS, DNS và thiết lập kết nối
+  - Thiết kế timeout budget xuyên gateway và dịch vụ
+  - Kiểm thử bão hòa, tải đột biến và hành vi khi quá tải
+  - Cân bằng giữa backpressure, rate limiting và năng lực dịch vụ
+- level1: Triển khai
+  level2:
+  - Đóng gói ứng dụng và phân biệt yêu cầu runtime của từng biến thể
+  - Spring AOT, native image và khai báo dịch vụ load-balanced theo phiên bản hỗ trợ
+  - Quản lý cấu hình, chứng chỉ và bí mật theo môi trường
+  - Triển khai container và cấu hình giới hạn tài nguyên
+  - Đặt gateway sau load balancer, ingress hoặc reverse proxy
+  - Trusted proxies và đường dẫn công khai sau nhiều lớp proxy
+  - Readiness, liveness và phụ thuộc cần kiểm tra
+  - Chạy nhiều bản sao và chia sẻ session, hạn mức hoặc tuyến
+  - Tự động mở rộng theo tải và tín hiệu bão hòa
+  - Dừng an toàn, rút lưu lượng và xử lý kết nối đang hoạt động
+  - Nâng cấp cuốn chiếu và phục hồi cấu hình
+  - Phân biệt Kubernetes Ingress, Gateway API và Spring Cloud Gateway
+- level1: Gia cố bảo mật
+  level2:
+  - Chống SSRF và giới hạn scheme, host, port của URI đích
+  - Ngăn open proxy từ header, query hoặc cấu hình tuyến động
+  - Xử lý đường dẫn mã hóa, path traversal và chuẩn hóa không nhất quán
+  - Loại bỏ header danh tính giả mạo và chỉ tin proxy đã xác minh
+  - Kiểm soát Host, Forwarded và X-Forwarded-*
+  - Rà soát request smuggling và bất đồng cách hiểu HTTP giữa các chặng
+  - Giới hạn header, body, multipart và thời gian đọc
+  - Không công khai Actuator có quyền ghi hoặc dữ liệu cấu hình nhạy cảm
+  - Bảo vệ token, cookie, API key và thông tin xác thực phía sau
+  - Cập nhật bản vá Gateway, Spring Framework và Reactor Netty
+  - Kiểm soát lỗi trả về, header bảo mật và thông tin triển khai bị lộ
+  - Kiểm tra quyền tại dịch vụ khi gateway bị bỏ qua
+- level1: Mẫu định tuyến
+  level2:
+  - Định tuyến theo phiên bản API bằng path hoặc header
+  - Canary theo Weight và giới hạn của phân phối xác suất
+  - Định tuyến nhất quán theo nhóm người dùng hoặc khách hàng
+  - Blue-green và chuyển lưu lượng có kế hoạch khôi phục
+  - Backend for Frontend theo từng loại ứng dụng
+  - Strangler pattern khi chuyển dần hệ thống cũ
+  - Tách tuyến theo miền nghiệp vụ và phân quyền quản lý
+  - Giới hạn tổng hợp dữ liệu tại gateway và xử lý lỗi một phần
+  - Quản lý CORS, token và rewrite trong cổng vào nhiều khách hàng
+- level1: Chẩn đoán sự cố
+  level2:
+  - Ứng dụng không khởi động do starter, BOM hoặc web stack không tương thích
+  - '404 tại gateway: không khớp tuyến hay lỗi từ dịch vụ phía sau'
+  - 503 do không tìm thấy ServiceInstance hoặc không kết nối được đích
+  - 502, 504 và lỗi timeout theo từng chặng
+  - Path bị mất đoạn, lặp tiền tố hoặc mã hóa sai sau rewrite
+  - Header Host, Forwarded hoặc Location không đúng sau proxy
+  - Preflight thất bại hoặc header CORS xuất hiện nhiều lần
+  - 401/403 và TokenRelay không gửi access token mong đợi
+  - Request body rỗng, bị đọc hai lần hoặc vượt giới hạn bộ đệm
+  - Retry gây thao tác trùng hoặc circuit breaker mở ngoài dự kiến
+  - Hạn mức không đồng nhất giữa nhiều bản sao hoặc Redis không khả dụng
+  - WebSocket ngắt sớm, SSE bị dồn bộ đệm hoặc response đã commit
+  - Tuyến mới chưa có hiệu lực sau thay đổi hoặc refresh
+  - Thu thập bằng chứng từ Actuator, access log, metrics và tracing
+- level1: Nâng cấp
+  level2:
+  - Đối chiếu ma trận Spring Boot, Spring Cloud và Gateway trước nâng cấp
+  - Thay đổi tên artifact, starter và namespace cấu hình
+  - Đối chiếu thay đổi mặc định của predicate và filter
+  - Di chuyển cấu hình bảo mật, trusted proxies và Actuator
+  - Kiểm tra tương thích bộ lọc, predicate và HttpClient tùy biến
+  - Đánh giá chuyển từ Zuul hoặc proxy khác sang Gateway
+  - Chuyển giữa Server WebFlux và Server Web MVC theo ma trận tính năng
+  - Kiểm thử hồi quy tuyến, giao thức, bảo mật và hiệu năng
+  - Triển khai thử nghiệm, theo dõi sai lệch và khôi phục phiên bản
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng gateway với nhiều dịch vụ và kiểm chứng chọn tuyến
+  - Kết hợp Path, Host, Method và Header trong một tình huống định tuyến
+  - Chuẩn hóa đường dẫn, header và mã lỗi cho API phía sau
+  - Tích hợp discovery và cân bằng tải nhiều instance
+  - Bảo vệ API bằng JWT và kiểm chứng quyền theo scope
+  - Thiết lập đăng nhập OIDC, phiên dùng chung và TokenRelay
+  - Giới hạn lưu lượng theo khách hàng bằng kho trạng thái dùng chung
+  - Mô phỏng lỗi để quan sát timeout, retry và circuit breaker
+  - Viết bộ lọc tùy biến có kiểm thử và không chặn event loop
+  - Phát hành tuyến động có kiểm tra, kiểm toán và khôi phục
+  - Proxy WebSocket hoặc SSE và kiểm chứng truyền dữ liệu liên tục
+  - So sánh cùng tình huống trên Server WebFlux và Server Web MVC
+  - Đóng gói, đo tải, theo dõi và diễn tập phục hồi gateway

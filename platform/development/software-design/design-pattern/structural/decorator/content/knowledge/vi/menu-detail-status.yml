@@ -1,0 +1,1858 @@
+menu:
+- slug: decorator-fundamentals
+  title: Bản chất Decorator
+  childs:
+  - slug: decorator-fundamentals-001
+    title: 'Ý định của Decorator: bổ sung hành vi cho từng đối tượng bằng wrapper cùng giao diện'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-fundamentals-002
+    title: Vị trí của Decorator trong nhóm mẫu thiết kế cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-fundamentals-003
+    title: Mô hình tư duy đối tượng lõi được bao bọc bởi nhiều lớp hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-fundamentals-004
+    title: Phân biệt mở rộng hành vi bằng composition với mở rộng kiểu bằng kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-fundamentals-005
+    title: Tính trong suốt khi client làm việc qua giao diện chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-fundamentals-006
+    title: Tính linh hoạt của việc cấu hình chuỗi tại thời điểm chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-fundamentals-007
+    title: Lợi ích và chi phí của việc chia hành vi thành nhiều wrapper nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decorator-fundamentals-008
+    title: Phân biệt mẫu Decorator với annotation và cú pháp decorator ở ngôn ngữ khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: applicability-and-tradeoffs
+  title: Khi nào sử dụng
+  childs:
+  - slug: applicability-and-tradeoffs-001
+    title: Bài toán bùng nổ số lớp khi kết hợp nhiều tính năng bằng kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-tradeoffs-002
+    title: Nhu cầu bật tắt hành vi tùy theo từng đối tượng hoặc từng luồng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-tradeoffs-003
+    title: Dấu hiệu một lớp đang gánh quá nhiều trách nhiệm bổ sung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-tradeoffs-004
+    title: Điều kiện áp dụng khi thành phần có hợp đồng giao diện ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-tradeoffs-005
+    title: Lựa chọn giữa Decorator, kế thừa và một lớp có cấu hình đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-tradeoffs-006
+    title: Trường hợp không nên dùng khi hành vi không thể giữ nguyên hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-tradeoffs-007
+    title: Đánh giá số tổ hợp, mức biến động và chi phí bảo trì trước khi áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applicability-and-tradeoffs-008
+    title: Xác định mục tiêu mở rộng và tiêu chí thành công cho việc sử dụng Decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: structure-and-roles
+  title: Cấu trúc và vai trò
+  childs:
+  - slug: structure-and-roles-001
+    title: 'Component: giao diện chung của đối tượng lõi và các decorator'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-002
+    title: 'ConcreteComponent: triển khai nghiệp vụ gốc trước khi được bổ sung hành vi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-003
+    title: 'Decorator cơ sở: giữ tham chiếu tới Component và chuyển tiếp lời gọi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-004
+    title: 'ConcreteDecorator: triển khai một trách nhiệm bổ sung cụ thể'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-005
+    title: 'Client: sử dụng Component mà không phụ thuộc cấu trúc chuỗi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-006
+    title: Quan hệ composition đệ quy giữa các đối tượng cùng giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-007
+    title: Luồng gọi từ wrapper ngoài cùng tới lõi và luồng trả kết quả theo chiều ngược lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-008
+    title: Sơ đồ lớp và sơ đồ tuần tự của một chuỗi decorator điển hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structure-and-roles-009
+    title: Các biến thể có hoặc không có lớp Decorator cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interface-contracts
+  title: Hợp đồng giao diện
+  childs:
+  - slug: interface-contracts-001
+    title: Giữ nguyên chữ ký phương thức và ý nghĩa nghiệp vụ của Component
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-002
+    title: Bảo toàn tiền điều kiện, hậu điều kiện và bất biến của đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-003
+    title: Áp dụng nguyên lý thay thế Liskov cho wrapper và đối tượng được bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-004
+    title: Quy định giá trị null, kết quả rỗng và tính hợp lệ của dữ liệu đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-005
+    title: Giữ đúng hợp đồng ngoại lệ và nguyên nhân lỗi khi bổ sung hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-006
+    title: Bảo toàn quy ước về tác dụng phụ, tính lặp an toàn và số lần thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-007
+    title: Xác định bảo đảm về thứ tự, thời gian xử lý và tính an toàn luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-008
+    title: Giới hạn của tính trong suốt đối với định danh, hiệu năng và quan sát trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-009
+    title: Rủi ro khi decorator bổ sung phương thức riêng khiến client phải ép kiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-010
+    title: Ghi rõ hành vi bổ sung nào được hợp đồng cho phép và hành vi nào làm sai ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: component-design
+  title: Thiết kế thành phần
+  childs:
+  - slug: component-design-001
+    title: Chọn giao diện Component đủ nhỏ và phù hợp với các hành vi cần mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-002
+    title: Tách nghiệp vụ lõi khỏi logging, đo thời gian và các trách nhiệm phụ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-003
+    title: Áp dụng nguyên lý trách nhiệm đơn nhất cho từng decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-004
+    title: Áp dụng nguyên lý mở đóng mà không tạo quá nhiều lớp nhỏ thiếu ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-005
+    title: Chọn interface hoặc abstract class theo nhu cầu tương thích và tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-006
+    title: Thiết kế constructor nhận delegate bắt buộc và cấu hình riêng của decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-007
+    title: Ưu tiên tham chiếu delegate bất biến và kiểm tra cấu hình ngay khi khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-008
+    title: Thiết kế điểm mở rộng cho trước lời gọi, sau lời gọi và khi kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: component-design-009
+    title: Đặt tên decorator theo hành vi để chuỗi dễ đọc và dễ chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Triển khai Java
+  childs:
+  - slug: java-implementation-001
+    title: Xây dựng ví dụ xuyên suốt với giao diện dịch vụ xử lý đơn hàng và lớp nghiệp vụ lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Viết decorator cơ sở chuyển tiếp đầy đủ các phương thức tới delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Triển khai LoggingDecorator và giới hạn dữ liệu được ghi nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Triển khai TimingDecorator đo thời gian cho cả thành công và thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Ghép LoggingDecorator và TimingDecorator quanh cùng một dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Dùng constructor injection, trường final và Objects.requireNonNull cho delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Giữ an toàn kiểu với Component có generic và kết quả trả về tham số hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-008
+    title: Xử lý checked exception, unchecked exception và khối try-finally
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-009
+    title: Chuyển tiếp phương thức default, phương thức overload và các phương thức mới của giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-010
+    title: Minh họa giới hạn của lời gọi nội bộ khi đối tượng lõi tự gọi phương thức của chính nó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-assembly
+  title: Lắp ráp chuỗi
+  childs:
+  - slug: chain-assembly-001
+    title: Biểu diễn chuỗi lồng nhau và xác định wrapper ngoài cùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-002
+    title: Lắp ráp chuỗi trực tiếp bằng constructor với thứ tự dễ kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-003
+    title: Dùng factory để tập trung quy tắc tạo và cấu hình chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-004
+    title: Dùng builder khi có nhiều decorator tùy chọn và ràng buộc thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-005
+    title: Bật tắt decorator theo cấu hình mà vẫn giữ kiểu Component cho client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-006
+    title: Tạo chuỗi riêng cho từng đối tượng, yêu cầu xử lý hoặc nhóm cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-007
+    title: Ngăn bọc trùng, cấu hình thiếu và các tổ hợp decorator không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-008
+    title: Kiểm soát việc chia sẻ một delegate giữa nhiều chuỗi độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-009
+    title: Thay đổi chuỗi bằng cách tạo cấu hình mới và quản lý đối tượng đang được sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-assembly-010
+    title: Công khai cấu trúc chuỗi phục vụ chẩn đoán mà không buộc client phụ thuộc triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-order
+  title: Thứ tự xử lý
+  childs:
+  - slug: execution-order-001
+    title: Lần theo thứ tự thực thi trước delegate, trong delegate và sau delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-002
+    title: Phân biệt thứ tự cấu tạo chuỗi với thứ tự đi vào và đi ra của lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-003
+    title: Giải thích vì sao hai decorator thường không có tính giao hoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-004
+    title: So sánh đo thời gian toàn chuỗi với đo riêng phần xử lý bên trong
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-005
+    title: So sánh logging cho từng lần retry với logging cho toàn bộ thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-006
+    title: Phân tích thứ tự giữa kiểm tra quyền, cache và truy cập dữ liệu theo hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-007
+    title: Phân tích thứ tự giữa nén, mã hóa, đệm và ghi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-008
+    title: Phân biệt hậu xử lý khi thành công với dọn dẹp luôn chạy trong finally
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-009
+    title: Xác định vị trí short-circuit và tác động khi delegate không được gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-order-010
+    title: Mô tả ràng buộc thứ tự bằng bảng luồng và kiểm thử thứ tự sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-and-identity
+  title: Trạng thái và định danh
+  childs:
+  - slug: state-and-identity-001
+    title: Phân biệt trạng thái của đối tượng lõi với trạng thái riêng của decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-identity-002
+    title: Giới hạn tính bất biến khi delegate vẫn là đối tượng có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-identity-003
+    title: Quản lý bộ đếm, bộ đệm và dữ liệu tích lũy theo đúng phạm vi sống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-identity-004
+    title: Phân biệt cùng tham chiếu, tương đương nghiệp vụ và cùng đối tượng được bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-identity-005
+    title: Thiết kế equals và hashCode để tránh phá vỡ tính đối xứng và nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-identity-006
+    title: Thiết kế toString hữu ích khi chuỗi có nhiều lớp wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-identity-007
+    title: Cân nhắc unwrap có kiểm soát và nguy cơ bỏ qua hành vi bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-identity-008
+    title: Đánh giá nhu cầu sao chép hoặc tuần tự hóa cả chuỗi và trạng thái cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-lifecycle
+  title: Vòng đời tài nguyên
+  childs:
+  - slug: resource-lifecycle-001
+    title: Xác định decorator có sở hữu delegate và chịu trách nhiệm giải phóng tài nguyên hay không
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-002
+    title: Triển khai AutoCloseable khi Component có hợp đồng quản lý tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-003
+    title: Dùng try-with-resources với wrapper ngoài cùng của chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-004
+    title: Quy định chuyển tiếp close và tránh đóng lặp khi delegate được dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-005
+    title: Giữ đúng ngữ nghĩa flush, close và hoàn tất dữ liệu đang đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-006
+    title: Xử lý lỗi trong lúc đóng và bảo toàn suppressed exception
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-007
+    title: Dọn tài nguyên đã tạo khi việc khởi tạo chuỗi bị thất bại giữa chừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-008
+    title: Phát hiện rò rỉ do chuỗi giữ tham chiếu lâu hơn vòng đời cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-lifecycle-009
+    title: Thiết kế kiểm thử quyền sở hữu, thứ tự đóng và giải phóng tài nguyên khi có lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: errors-and-side-effects
+  title: Lỗi và tác dụng phụ
+  childs:
+  - slug: errors-and-side-effects-001
+    title: Phân biệt lỗi từ decorator với lỗi từ thành phần được bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-002
+    title: Bảo toàn stack trace và chuỗi nguyên nhân khi cần chuyển đổi ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-003
+    title: Tránh để lỗi logging hoặc đo lường che mất lỗi nghiệp vụ gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-004
+    title: Quy định fail-open hoặc fail-closed theo trách nhiệm và hợp đồng của decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-005
+    title: Chỉ áp dụng retry khi thao tác đáp ứng yêu cầu về tính lặp an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-006
+    title: Kiểm soát số lần gọi delegate và nguy cơ thực hiện tác dụng phụ nhiều lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-007
+    title: Thiết kế cache theo khóa, phạm vi, thời hạn và quy tắc vô hiệu hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-008
+    title: Phân tích ranh giới giao dịch và tác động khi decorator thất bại sau khi delegate thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: errors-and-side-effects-009
+    title: Bảo vệ dữ liệu nhạy cảm trong log, cache và thông tin chẩn đoán của chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-and-async
+  title: Đồng thời và bất đồng bộ
+  childs:
+  - slug: concurrency-and-async-001
+    title: Đánh giá an toàn luồng của toàn chuỗi từ decorator tới delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-002
+    title: Phân biệt decorator không trạng thái với decorator có trạng thái dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-003
+    title: Bảo vệ bộ đếm và bộ đệm bằng cơ chế đồng bộ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-004
+    title: Xác định phạm vi khóa khi delegate có thể chậm, gọi lại hoặc gọi lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-005
+    title: Tránh giả định trường delegate final làm toàn bộ chuỗi trở nên an toàn luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-006
+    title: Giữ hợp đồng hoàn tất của Component trả về CompletionStage hoặc CompletableFuture
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-007
+    title: Đo thời gian đến khi hoàn tất bất đồng bộ thay vì chỉ đo thời gian tạo tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-008
+    title: Truyền ngữ cảnh truy vết và xử lý mất ngữ cảnh khi chuyển luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-and-async-009
+    title: Làm rõ timeout, hủy tác vụ và truyền lỗi theo khả năng thực tế của delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-io-decorators
+  title: Decorator trong Java I/O
+  childs:
+  - slug: java-io-decorators-001
+    title: Nhận diện các vai trò Component và wrapper trong họ InputStream và OutputStream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-002
+    title: Khảo sát FilterInputStream và FilterOutputStream như nền tảng chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-003
+    title: Phân tích BufferedInputStream và BufferedOutputStream khi bổ sung hành vi đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-004
+    title: Phân tích DataInputStream và DataOutputStream khi bổ sung thao tác với kiểu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-005
+    title: Khảo sát wrapper trong họ Reader và Writer với dữ liệu ký tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-006
+    title: Phân biệt chuyển đổi byte sang ký tự của InputStreamReader với việc trang trí cùng giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-007
+    title: Ghép chuỗi đệm, nén và mã hóa theo thứ tự đọc ghi tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-008
+    title: Giữ đúng hợp đồng read, write, EOF, skip và mark-reset khi tự viết wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-009
+    title: Kiểm tra đường đi của phương thức đơn lẻ và phương thức xử lý mảng để tránh đếm hoặc xử lý lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-io-decorators-010
+    title: Viết stream decorator theo dõi số byte cùng kiểm thử flush và close
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practical-applications
+  title: Ứng dụng thực tế
+  childs:
+  - slug: practical-applications-001
+    title: Bổ sung logging cho dịch vụ qua giao diện mà không sửa nghiệp vụ lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-002
+    title: Đo số lần gọi, thời gian và lỗi cho client gọi hệ thống bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-003
+    title: Trang trí repository bằng cache khi hợp đồng đọc và nhất quán dữ liệu cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-004
+    title: Bao bọc client bằng retry có giới hạn và chính sách backoff phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-005
+    title: Áp dụng kiểm tra quyền ở wrapper và kiểm soát đường truy cập trực tiếp tới delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-006
+    title: Giới hạn tốc độ hoặc số tác vụ đồng thời theo hợp đồng đã công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-007
+    title: Bổ sung nén và mã hóa cho luồng dữ liệu có quy ước định dạng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-008
+    title: Mở rộng bộ xuất báo cáo với kiểm tra dữ liệu và thu thập thông tin xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-009
+    title: Mô hình hóa tùy chọn đồ uống để minh họa tổ hợp hành vi và cách tính giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-applications-010
+    title: Đánh giá giới hạn của từng ứng dụng khi làm thay đổi tính nhất quán hoặc kết quả quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-integration
+  title: Tích hợp Java
+  childs:
+  - slug: java-integration-001
+    title: Đăng ký đối tượng lõi và chuỗi decorator trong composition root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-002
+    title: Lắp ráp decorator bằng dependency injection và phân biệt rõ từng delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-003
+    title: Tránh phụ thuộc vòng và lỗi tự tiêm decorator vào chính nó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-004
+    title: Chọn scope phù hợp cho decorator có trạng thái và delegate được chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-005
+    title: Kiểm soát thứ tự khi chuỗi được tạo từ danh sách thành phần cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-006
+    title: Phân biệt decorator viết tay với hành vi được gắn bằng AOP hoặc dynamic proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-007
+    title: Nhận diện nguy cơ bọc hai lần khi kết hợp decorator với cơ chế chặn lời gọi của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-008
+    title: Kiểm thử cấu hình lắp ráp thực tế để xác nhận client nhận đúng chuỗi mong muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: contract-testing
+  title: Kiểm thử hợp đồng
+  childs:
+  - slug: contract-testing-001
+    title: Xây dựng bộ kiểm thử hợp đồng dùng chung cho Component lõi và các wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-002
+    title: Dùng delegate giả để kiểm tra tham số được chuyển tiếp chính xác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-003
+    title: Kiểm tra kết quả trả về, giá trị null và các trường hợp biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-004
+    title: Kiểm tra ngoại lệ, nguyên nhân lỗi và thông tin bị bổ sung hoặc chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-005
+    title: Xác nhận delegate được gọi đúng số lần theo từng chính sách hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-006
+    title: Kiểm tra tiền điều kiện, hậu điều kiện và bất biến sau khi bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-007
+    title: Kiểm thử hành vi trước lời gọi, sau thành công và trong khối dọn dẹp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-008
+    title: Kiểm tra các phương thức ít dùng và phương thức mới để tránh chuyển tiếp thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-009
+    title: Kiểm thử equals, hashCode và các ràng buộc định danh khi có áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-010
+    title: Sử dụng JUnit và mock hoặc fake có chủ đích để kiểm tra hành vi quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: chain-testing
+  title: Kiểm thử chuỗi
+  childs:
+  - slug: chain-testing-001
+    title: Dùng dấu vết sự kiện để xác minh thứ tự vào và ra qua từng wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-002
+    title: So sánh hai thứ tự decorator trên cùng dữ liệu và cùng delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-003
+    title: Thiết kế ma trận kiểm thử các tổ hợp có rủi ro thay vì kiểm tra mù mọi hoán vị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-004
+    title: Kiểm tra decorator tùy chọn, bọc trùng và các tổ hợp bị cấm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-005
+    title: Kiểm thử lỗi tại từng tầng và tác động lên các tầng còn lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-006
+    title: Dùng đồng hồ và bộ lập lịch điều khiển được cho timing, cache và retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-007
+    title: Kiểm tra trạng thái dùng chung, gọi đồng thời và hoàn tất bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: chain-testing-008
+    title: Kiểm thử tích hợp client với factory hoặc cấu hình dependency injection thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-measurement
+  title: Hiệu năng và đo lường
+  childs:
+  - slug: performance-and-measurement-001
+    title: Lập mô hình chi phí chuyển tiếp lời gọi và độ sâu của chuỗi decorator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-002
+    title: Phân biệt chi phí tạo chuỗi, cấp phát đối tượng và chi phí mỗi lần gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-003
+    title: Đánh giá tác động lên bộ nhớ, thời gian sống đối tượng và áp lực thu gom rác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-004
+    title: Đo riêng chi phí logging, đo lường, đồng bộ, mã hóa và truy cập cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-005
+    title: Thiết kế benchmark JMH so sánh delegate trực tiếp với các độ dài chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-006
+    title: Kiểm soát warmup, fork, dữ liệu đầu vào và tránh loại bỏ tính toán trong benchmark
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-007
+    title: Nhận biết ảnh hưởng của JIT và inlining mà không giả định lời gọi wrapper luôn miễn phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-008
+    title: Đánh giá throughput, độ trễ phân vị và tranh chấp dưới tải gần thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-009
+    title: Dùng profiler và Java Flight Recorder để xác định tầng gây tốn thời gian hoặc cấp phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-measurement-010
+    title: Đặt ngân sách chi phí, giảm wrapper dư thừa và đo lại sau mỗi thay đổi có mục tiêu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pattern-comparisons
+  title: So sánh các mẫu
+  childs:
+  - slug: pattern-comparisons-001
+    title: 'Decorator và Proxy: so sánh mục đích bổ sung hành vi với kiểm soát truy cập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-002
+    title: 'Decorator và Adapter: so sánh giữ nguyên giao diện với chuyển đổi giao diện'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-003
+    title: 'Decorator và Composite: so sánh chuỗi bao bọc với cấu trúc cây thành phần'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-004
+    title: 'Decorator và Strategy: so sánh chồng hành vi với thay thế thuật toán'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-005
+    title: 'Decorator và Chain of Responsibility: so sánh bọc lời gọi với chuyển quyền xử lý'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-006
+    title: 'Decorator và Facade: so sánh mở rộng một Component với đơn giản hóa hệ thống con'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-007
+    title: 'Decorator và Template Method: so sánh composition đối tượng với điểm mở rộng bằng kế thừa'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-008
+    title: 'Decorator và AOP: so sánh cấu hình wrapper tường minh với cơ chế chặn lời gọi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pattern-comparisons-009
+    title: 'Decorator và hàm bậc cao: xác định khi nào một wrapper hàm đã đủ cho bài toán'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refactoring-to-decorators
+  title: Tái cấu trúc
+  childs:
+  - slug: refactoring-to-decorators-001
+    title: Nhận diện hệ phân cấp lớp đang nở ra theo các tổ hợp tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-decorators-002
+    title: Ghi nhận hành vi hiện có bằng kiểm thử trước khi thay đổi cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-decorators-003
+    title: Trích xuất giao diện chung và thành phần thực hiện nghiệp vụ lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-decorators-004
+    title: Tách từng trách nhiệm phụ trợ thành decorator có hợp đồng rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-decorators-005
+    title: Chuyển cấu hình tổ hợp từ kế thừa sang factory lắp ráp wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-decorators-006
+    title: Di chuyển client từng bước để sử dụng giao diện Component
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-decorators-007
+    title: Xác minh tương thích kết quả, ngoại lệ, tài nguyên và hiệu năng sau chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-to-decorators-008
+    title: Đơn giản hóa hoặc gộp decorator khi chi phí trừu tượng vượt lợi ích mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-design-mistakes
+  title: Lỗi thiết kế thường gặp
+  childs:
+  - slug: common-design-mistakes-001
+    title: Quên chuyển tiếp một phần giao diện khiến wrapper hoạt động không nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-002
+    title: Gọi delegate hai lần hoặc vô tình bỏ qua delegate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-003
+    title: Dùng kế thừa để vừa bọc vừa truy cập trạng thái nội bộ của lớp cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-004
+    title: Để client ép kiểu hoặc unwrap thường xuyên làm rò rỉ cấu trúc chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-005
+    title: Giấu phụ thuộc thứ tự trong constructor hoặc cấu hình khó quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-006
+    title: Chia hành vi thành quá nhiều lớp mỏng khiến chuỗi khó hiểu và khó gỡ lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-007
+    title: Chia sẻ decorator có trạng thái giữa các yêu cầu mà thiếu cơ chế bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-008
+    title: Lặp logging, retry hoặc cache do nhiều tầng cùng bổ sung một hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-009
+    title: Bỏ qua quyền sở hữu tài nguyên và làm thay đổi hợp đồng đóng hoặc hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercises-001
+    title: Bài tập mô hình đồ uống với nhiều tùy chọn và kiểm tra cách tính giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-002
+    title: Bài tập dịch vụ đơn hàng với logging và đo thời gian quanh cùng giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-003
+    title: Bài tập đổi thứ tự decorator và giải thích dấu vết lời gọi khi thành công hoặc thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-004
+    title: Bài tập client đọc dữ liệu với cache và retry theo hợp đồng cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-005
+    title: Bài tập stream đếm byte có chuyển tiếp đầy đủ và đóng tài nguyên đúng cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-006
+    title: Bài tập tái cấu trúc hệ phân cấp tổ hợp tính năng thành chuỗi wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-007
+    title: Bài tập kiểm thử hợp đồng và đo tác động hiệu năng theo độ dài chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-008
+    title: Tiêu chí tự đánh giá về tính thay thế, thứ tự, khả năng mở rộng và chi phí vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

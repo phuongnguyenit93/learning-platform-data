@@ -1,0 +1,7 @@
+# Java Advance CRaC
+
+Coordinated Restore at Checkpoint (CRaC) là hướng tiếp cận giúp ứng dụng Java khởi động nhanh bằng cách lưu trạng thái của một JVM đang chạy rồi khôi phục trạng thái đó thay vì thực hiện lại toàn bộ bước khởi tạo. Khi checkpoint được tạo sau quá trình warm-up, các lớp đã nạp và mã đã được JIT biên dịch có thể được tận dụng sau restore. CRaC không phải tính năng mặc định của mọi JDK: cần runtime hỗ trợ và môi trường checkpoint tương thích, thường là Linux. Cốt lõi của CRaC là phối hợp tài nguyên ứng dụng để trạng thái khôi phục vẫn chính xác.
+
+Module dành cho người đã biết Java/JVM, Linux, process, I/O và các khái niệm vận hành ứng dụng. Lộ trình đi từ nguyên lý checkpoint/restore, lựa chọn JDK và engine, đến thao tác với `-XX:CRaCCheckpointTo`, `jcmd JDK.checkpoint` và `-XX:CRaCRestoreFrom`. Người học sau đó thực hành API `Resource` với `beforeCheckpoint`/`afterRestore`, xử lý socket, file, kết nối cơ sở dữ liệu và dữ liệu phụ thuộc môi trường; tiếp theo là warm-up, đo hiệu năng và ví dụ tích hợp Spring. Phần cuối hướng dẫn bảo vệ image, kiểm tra tương thích và tìm lỗi checkpoint/restore.
+
+Hoàn thành module, bạn có thể tạo và phục hồi checkpoint cho ứng dụng mẫu trên CRaC-enabled JDK, điều phối tài nguyên có trạng thái, đánh giá mức cải thiện thời gian phản hồi đầu tiên và lập checklist triển khai an toàn. Cần coi image là dữ liệu nhạy cảm vì có thể chứa secret trong bộ nhớ, tránh tái sử dụng kết nối hoặc credential không còn hợp lệ và kiểm thử lại khi thay đổi OS, kiến trúc CPU, phiên bản JDK hoặc cấu hình container.

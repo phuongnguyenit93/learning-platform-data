@@ -1,0 +1,124 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khởi tạo
+  slug: bootstrap
+  index: 1
+- title: Hạ tầng JPA
+  slug: jpa-infrastructure
+  index: 2
+- title: Repository
+  slug: repositories
+  index: 3
+- title: Ánh xạ Entity
+  slug: entity-mapping
+  index: 4
+- title: Khóa định danh
+  slug: identifiers
+  index: 5
+- title: Kiểu giá trị
+  slug: value-types
+  index: 6
+- title: Quan hệ đơn
+  slug: singular-relationships
+  index: 7
+- title: Quan hệ tập hợp
+  slug: collection-relationships
+  index: 8
+- title: Kế thừa
+  slug: inheritance
+  index: 9
+- title: Vòng đời Entity
+  slug: entity-lifecycle
+  index: 10
+- title: Thao tác CRUD
+  slug: crud-operations
+  index: 11
+- title: Truy vấn theo tên
+  slug: derived-queries
+  index: 12
+- title: JPQL
+  slug: jpql
+  index: 13
+- title: SQL thuần
+  slug: native-sql
+  index: 14
+- title: Truy vấn đặt tên
+  slug: named-queries
+  index: 15
+- title: Tham số và kết quả
+  slug: parameters-and-results
+  index: 16
+- title: Projection và DTO
+  slug: projections-and-dtos
+  index: 17
+- title: Sắp xếp và phân trang
+  slug: sorting-and-pagination
+  index: 18
+- title: Cuộn và luồng
+  slug: scrolling-and-streams
+  index: 19
+- title: Query by Example
+  slug: query-by-example
+  index: 20
+- title: Specification
+  slug: specifications
+  index: 21
+- title: Querydsl
+  slug: querydsl
+  index: 22
+- title: Repository tùy biến
+  slug: custom-repositories
+  index: 23
+- title: Giao dịch
+  slug: transactions
+  index: 24
+- title: Khóa và đồng thời
+  slug: locking-and-concurrency
+  index: 25
+- title: Tải dữ liệu
+  slug: fetching
+  index: 26
+- title: Thao tác hàng loạt
+  slug: bulk-operations
+  index: 27
+- title: Auditing
+  slug: auditing
+  index: 28
+- title: Sự kiện
+  slug: events
+  index: 29
+- title: Thủ tục lưu trữ
+  slug: stored-procedures
+  index: 30
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 31
+- title: Hiệu năng
+  slug: performance
+  index: 32
+- title: Kiểm thử
+  slug: testing
+  index: 33
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 34
+- title: Schema và triển khai
+  slug: schema-and-deployment
+  index: 35
+- title: Nhiều nguồn dữ liệu
+  slug: multiple-data-sources
+  index: 36
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 37
+- title: Mở rộng Hibernate
+  slug: hibernate-extensions
+  index: 38
+- title: Phiên bản và nâng cấp
+  slug: versioning-and-upgrades
+  index: 39
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 40

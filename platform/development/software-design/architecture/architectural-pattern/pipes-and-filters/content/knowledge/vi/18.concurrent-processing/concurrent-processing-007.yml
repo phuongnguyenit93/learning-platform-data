@@ -1,0 +1,3 @@
+menuLevel1: Xử lý đồng thời
+menuLevel2: Ngăn deadlock khi các pipe hữu hạn cùng chờ đọc hoặc ghi
+status: ""

@@ -1,0 +1,57 @@
+roadmap:
+- id: is-a-hay-has-a
+  title: Is-a hay Has-a
+  purpose: Phân biệt quan hệ kế thừa thực sự với việc một đối tượng sử dụng đối tượng khác.
+  objectives:
+  - Nhận diện is-a và has-a trong mô hình lớp
+  - Vẽ ví dụ extends so với field tham chiếu
+  - Chọn quan hệ phù hợp cho từng tình huống
+- id: rui-ro-cua-inheritance
+  title: Rủi ro của Inheritance
+  purpose: Nhận biết khi kế thừa tạo liên kết chặt hoặc buộc lớp con nhận hành vi không phù hợp.
+  objectives:
+  - Phát hiện subclass không thay thế được superclass
+  - Chỉ ra ảnh hưởng khi lớp cha đổi hành vi
+  - Nhận diện hierarchy phình to do nhiều biến thể
+- id: composition-delegation
+  title: Composition & Delegation
+  purpose: Lắp ghép hành vi qua các thành phần độc lập thay vì phụ thuộc vào chuỗi lớp cha–con.
+  objectives:
+  - Đưa đối tượng cộng tác vào một field
+  - Ủy quyền lời gọi qua delegate
+  - Giữ API của lớp sử dụng đủ nhỏ
+- id: interface-hop-dong
+  title: Interface & Hợp đồng
+  purpose: Giảm phụ thuộc vào lớp cụ thể bằng hợp đồng biểu diễn năng lực cần dùng.
+  objectives:
+  - Định nghĩa interface có trách nhiệm rõ ràng
+  - Lập trình theo interface thay vì implementation
+  - Thay implementation mà không đổi client
+- id: lap-ghep-thay-the
+  title: Lắp ghép & Thay thế
+  purpose: Tạo đối tượng với thành phần phù hợp và cho phép thay đổi hành vi khi cần.
+  objectives:
+  - Truyền dependency qua constructor
+  - Kết hợp nhiều thành phần độc lập
+  - Đổi implementation và so sánh kết quả
+- id: patterns-dua-tren-composition
+  title: Patterns dựa trên Composition
+  purpose: Nhận biết các cách dùng composition trong thiết kế có thể mở rộng.
+  objectives:
+  - Dùng Strategy để thay thuật toán
+  - Dùng Decorator để bổ sung hành vi
+  - Dùng Bridge tách hai chiều biến đổi
+- id: refactor-sang-delegation
+  title: Refactor sang Delegation
+  purpose: Chuyển thiết kế dựa vào kế thừa không phù hợp sang cộng tác giữa đối tượng.
+  objectives:
+  - Xác định subclass vi phạm quan hệ is-a
+  - Tách hành vi thành collaborator riêng
+  - Chạy regression test sau refactor
+- id: danh-doi-kiem-thu
+  title: Đánh đổi & Kiểm thử
+  purpose: Chọn composition khi có lợi, không biến nguyên tắc thành lệnh cấm kế thừa.
+  objectives:
+  - So sánh độ linh hoạt và chi phí ủy quyền
+  - Viết unit test bằng mock hoặc fake delegate
+  - Nêu trường hợp inheritance đơn giản, hợp lý

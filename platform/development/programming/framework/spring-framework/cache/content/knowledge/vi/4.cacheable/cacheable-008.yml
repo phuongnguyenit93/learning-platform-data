@@ -1,0 +1,3 @@
+menuLevel1: '@Cacheable'
+menuLevel2: Giới hạn dùng nhiều cacheNames như một hệ cache nhiều tầng
+status: WRITTEN

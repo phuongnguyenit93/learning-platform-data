@@ -1,0 +1,4054 @@
+menu:
+- slug: sms-overview
+  title: Tổng quan SMS
+  childs:
+  - slug: sms-overview-001
+    title: SMS là gì và vai trò trong hệ thống thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-002
+    title: Thông báo giao dịch, nhắc lịch, cảnh báo và mã xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-003
+    title: Vì sao SMS vẫn hữu ích khi người nhận không có ứng dụng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-004
+    title: Quan hệ giữa ứng dụng, nhà cung cấp, nhà mạng và điện thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-005
+    title: Hành trình một tin từ sự kiện nghiệp vụ đến người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-006
+    title: Gửi một chiều khác trao đổi SMS hai chiều như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-007
+    title: Phân biệt SMS với MMS, RCS và tin nhắn qua ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-008
+    title: Đánh đổi về tốc độ, chi phí, độ dài và khả năng xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-009
+    title: Ranh giới giữa gửi tin thành công và hoàn tất mục tiêu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-010
+    title: Trường hợp nên dùng SMS hoặc chọn kênh thông báo khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-overview-011
+    title: Lộ trình học và kiến thức Java, HTTP, dữ liệu cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sms-delivery-network
+  title: Hệ thống truyền SMS
+  childs:
+  - slug: sms-delivery-network-001
+    title: Trung tâm tin nhắn SMSC và cơ chế lưu rồi chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-002
+    title: Nhà mạng di động, đơn vị tổng hợp và nhà cung cấp API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-003
+    title: Tin từ ứng dụng tới thuê bao (A2P) và tin giữa người dùng (P2P)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-004
+    title: Tin gửi tới thiết bị (MT) và tin phát sinh từ thiết bị (MO)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-005
+    title: Giao tiếp HTTP API khác kết nối SMPP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-006
+    title: Tuyến nội địa, quốc tế và phạm vi phục vụ của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-007
+    title: Thời hạn hiệu lực của tin và việc thử chuyển tiếp trên mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-008
+    title: Thiết bị tắt nguồn, ngoài vùng phủ sóng và giao tin muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-009
+    title: Biên nhận giao tin (DLR) và giới hạn quan sát của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-010
+    title: Tại sao SMS có thể đến chậm, trùng hoặc không đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-delivery-network-011
+    title: Bộ lọc của nhà mạng và điều kiện chất lượng tuyến truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sender-identities
+  title: Định danh người gửi
+  childs:
+  - slug: sender-identities-001
+    title: Sender ID là gì và người nhận nhìn thấy thông tin nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-002
+    title: Số dài, đầu số ngắn, số miễn cước và tên định danh chữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-003
+    title: Tên thương hiệu (brandname) và giới hạn theo thị trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-004
+    title: Phân biệt địa chỉ gửi trong API với thông tin hiển thị cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-005
+    title: Định danh một chiều và khả năng nhận tin trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-006
+    title: Đăng ký sender và kiểm chứng trạng thái được phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-007
+    title: Quan hệ giữa thương hiệu, mục đích gửi và mẫu nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-008
+    title: Lựa chọn sender theo quốc gia đích và khả năng tuyến truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-009
+    title: Sender pool và nguyên tắc giữ ổn định người gửi cho cùng người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-010
+    title: Sender bị thay thế, bị từ chối hoặc không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-011
+    title: Đối chiếu yêu cầu brandname, mẫu tin và loại lưu lượng tại Việt Nam
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-identities-012
+    title: Quản lý định danh theo tenant, môi trường và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: phone-numbers
+  title: Số điện thoại
+  childs:
+  - slug: phone-numbers-001
+    title: Số điện thoại là chuỗi định danh thay vì số để tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-002
+    title: Mã quốc gia, số quốc gia và tiền tố quay số trong nước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-003
+    title: Chuẩn hóa định dạng E.164 và giữ dữ liệu đầu vào khi cần truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-004
+    title: Nhập số nội địa với vùng mặc định rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-005
+    title: Xử lý dấu cộng, khoảng trắng, dấu ngoặc và tiền tố không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-006
+    title: Dùng libphonenumber để phân tích và định dạng số trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-007
+    title: isPossibleNumber khác isValidNumber như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-008
+    title: Số đúng cấu trúc không chứng minh đang hoạt động hoặc thuộc về người nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-009
+    title: Số di động, cố định, VoIP và khả năng nhận SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-010
+    title: Chuyển mạng giữ số và giới hạn suy luận nhà mạng từ đầu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-011
+    title: Số được tái cấp và tác động tới liên kết tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-012
+    title: Xác minh quyền kiểm soát số và quy trình thay đổi số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phone-numbers-013
+    title: Che một phần số điện thoại trong giao diện và nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encoding-and-segmentation
+  title: Mã hóa và phân đoạn
+  childs:
+  - slug: encoding-and-segmentation-001
+    title: Payload SMS và giới hạn dữ liệu trên mỗi đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-002
+    title: Bảng ký tự GSM-7 khác ASCII và UTF-8 như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-003
+    title: Bảng ký tự mở rộng và ký tự cần hai septet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-004
+    title: Mã hóa Unicode khi nội dung có ký tự ngoài GSM-7
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-005
+    title: Tiếng Việt có dấu và ảnh hưởng tới cách mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-006
+    title: Một ký tự đặc biệt có thể đổi mã hóa của toàn bộ tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-007
+    title: Tin đơn và tin ghép nhiều đoạn với User Data Header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-008
+    title: Ngưỡng độ dài tin đơn, tin ghép và ngoại lệ theo tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-009
+    title: Đếm số đoạn từ bảng mã thay vì chỉ dùng String.length
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-010
+    title: Emoji, surrogate pair và cách nhà cung cấp xử lý Unicode ngoài BMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-011
+    title: Chuẩn hóa Unicode và kiểm thử chữ có dấu dạng tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-012
+    title: Dấu ngoặc thông minh, khoảng trắng đặc biệt và ký tự ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-013
+    title: Chuyển đổi ký tự tự động và nguy cơ thay đổi ý nghĩa nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-014
+    title: Ước tính số đoạn sau khi thay biến và rút gọn liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-015
+    title: So sánh số đoạn dự tính với số đoạn thực tế từ nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encoding-and-segmentation-016
+    title: Tin ghép thiếu đoạn, đảo đoạn và giới hạn độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-content-and-templates
+  title: Nội dung và mẫu tin
+  childs:
+  - slug: message-content-and-templates-001
+    title: Cấu trúc tin ngắn gồm danh tính, thông tin chính và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-002
+    title: Thiết kế mẫu cho giao dịch, nhắc lịch và cảnh báo vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-003
+    title: Biến mẫu bắt buộc, tùy chọn và giới hạn độ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-004
+    title: Kiểm tra nội dung sau khi thay biến thay vì chỉ kiểm tra mẫu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-005
+    title: Định dạng thời gian, múi giờ, tiền tệ và mã tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-006
+    title: Tiếng Việt có dấu, không dấu và lựa chọn có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-007
+    title: SMS văn bản thuần và giới hạn của HTML, Markdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-008
+    title: URL trong tin, tên miền thương hiệu và rút gọn liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-009
+    title: Dữ liệu nhạy cảm cần tránh đưa trực tiếp vào thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-010
+    title: Phiên bản mẫu và tái hiện nội dung đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-011
+    title: Mẫu được phê duyệt và kiểm soát thay đổi theo yêu cầu nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-content-and-templates-012
+    title: Xem trước nội dung, bảng mã và số đoạn trước khi mở gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provider-connectivity
+  title: Kết nối nhà cung cấp
+  childs:
+  - slug: provider-connectivity-001
+    title: Tiêu chí đánh giá độ phủ, độ trễ và chất lượng giao tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-002
+    title: Khả năng hỗ trợ sender, tin hai chiều và biên nhận giao tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-003
+    title: Phân biệt tài khoản thử nghiệm với tài khoản gửi thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-004
+    title: API key, secret, tài khoản phụ và phạm vi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-005
+    title: Phân biệt SMS API với dịch vụ xác minh OTP được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-006
+    title: Đọc hợp đồng request, response, lỗi và webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-007
+    title: Giới hạn tốc độ, hạn mức số dư và điều kiện kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-008
+    title: Kiểm chứng yêu cầu từng quốc gia trước khi lựa chọn tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-009
+    title: So sánh giá theo đoạn, phụ phí và kết quả giao tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-010
+    title: Đặt tiêu chí thử nghiệm thay vì chỉ chọn theo giá niêm yết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-connectivity-011
+    title: Quản lý cấu hình nhiều nhà cung cấp mà không gắn chặt nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-api-sending
+  title: Gửi qua HTTP API
+  childs:
+  - slug: http-api-sending-001
+    title: Thiết kế yêu cầu gửi gồm người nhận, người gửi và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-002
+    title: Xác thực HTTP bằng API key, Basic Auth hoặc cơ chế của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-003
+    title: JSON, form-urlencoded và chuẩn mã hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-004
+    title: Cấu hình callback URL, tham chiếu nội bộ và thời hạn tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-005
+    title: Phản hồi tiếp nhận cùng mã tin của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-006
+    title: Phân biệt lỗi HTTP với lỗi nghiệp vụ nằm trong response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-007
+    title: Kết quả theo từng người nhận khi API hỗ trợ gửi nhiều đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-008
+    title: Truy vấn tin đã gửi và đối chiếu bằng mã tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-009
+    title: Timeout kết nối, timeout phản hồi và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-010
+    title: Hỗ trợ idempotency của API và giới hạn theo tài liệu từng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-011
+    title: Hủy tin còn chờ gửi khi nhà cung cấp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-sending-012
+    title: Giới hạn những gì có thể thay đổi sau khi mạng đã tiếp nhận tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-delivery-lifecycle
+  title: Vòng đời giao tin
+  childs:
+  - slug: message-delivery-lifecycle-001
+    title: Phân biệt yêu cầu nghiệp vụ với lần thử gửi và tin của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-002
+    title: Trạng thái chờ xử lý, tiếp nhận, xếp hàng và chuyển ra mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-003
+    title: Trạng thái sent khác delivered như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-004
+    title: Biên nhận delivered phản ánh gì và không chứng minh người nhận đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-005
+    title: Tin không giao được, hết hạn, bị từ chối và thất bại trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-006
+    title: Chuẩn hóa trạng thái từ nhiều nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-007
+    title: Giữ trạng thái gốc, mã lỗi gốc và ý nghĩa riêng của từng tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-008
+    title: Mốc thời gian tạo tin, gửi ra mạng và nhận biên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-009
+    title: Trạng thái trung gian, trạng thái kết thúc và quy tắc chuyển hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-010
+    title: Trường hợp không có DLR hoặc DLR đến rất muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-011
+    title: Trạng thái ở cấp thông điệp khác trạng thái từng đoạn SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-012
+    title: Đặt thời hạn đối soát mà không tự suy diễn đã giao thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-delivery-lifecycle-013
+    title: Phản hồi hoặc xác nhận nghiệp vụ từ người nhận là sự kiện riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-receipt-webhooks
+  title: Webhook biên nhận
+  childs:
+  - slug: delivery-receipt-webhooks-001
+    title: DLR webhook và luồng cập nhật từ nhà cung cấp vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-002
+    title: Đăng ký callback theo tài khoản, dịch vụ hoặc từng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-003
+    title: Nhận dữ liệu JSON, form hoặc query theo đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-004
+    title: Xác minh chữ ký, secret hoặc cơ chế xác thực được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-005
+    title: Bảo toàn URL, body và tham số cần dùng khi kiểm tra chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-006
+    title: Ảnh hưởng của reverse proxy tới xác thực webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-007
+    title: Liên kết mã tin nhà cung cấp với lần thử gửi nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-008
+    title: Callback tới trước khi response gửi tin được lưu xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-009
+    title: Callback trùng, tới lệch thứ tự và cập nhật trạng thái có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-010
+    title: Tiếp nhận bền vững trước khi trả phản hồi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-011
+    title: Chính sách gửi lại webhook và thời gian chờ theo từng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-012
+    title: Lưu sự kiện gốc có kiểm soát để phục vụ đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-receipt-webhooks-013
+    title: Truy vấn API bổ sung khi webhook thiếu hoặc không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: two-way-sms
+  title: Nhận SMS hai chiều
+  childs:
+  - slug: two-way-sms-001
+    title: Điều kiện số gửi và thị trường hỗ trợ tin trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-002
+    title: Inbound webhook và cấu trúc người gửi, người nhận, nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-003
+    title: Phân biệt tin người dùng gửi với DLR của tin đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-004
+    title: Chuẩn hóa số và tìm ngữ cảnh hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-005
+    title: Giải mã nội dung Unicode và tin nhiều đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-006
+    title: Xác thực nguồn, chống nhận trùng và giới hạn dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-007
+    title: Từ khóa đăng ký, hủy nhận và yêu cầu trợ giúp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-008
+    title: Xử lý từ khóa theo ngôn ngữ và cơ chế của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-009
+    title: Tin trả lời không có ngữ cảnh hoặc từ số chưa được liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-010
+    title: Phản hồi tự động và phòng ngừa vòng lặp giữa hai hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-011
+    title: Định tuyến yêu cầu tới nhân viên hoặc quy trình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: two-way-sms-012
+    title: Lưu lịch sử hội thoại theo phạm vi và thời hạn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: smpp-integration
+  title: Tích hợp SMPP
+  childs:
+  - slug: smpp-integration-001
+    title: Khi nào cần SMPP thay vì HTTP API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-002
+    title: SMSC, ESME và cấu trúc đơn vị giao thức PDU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-003
+    title: bind_transmitter, bind_receiver và bind_transceiver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-004
+    title: sequence_number và đối chiếu yêu cầu với phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-005
+    title: submit_sm, submit_sm_resp và ranh giới xác nhận tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-006
+    title: deliver_sm cho tin đến, DLR và phản hồi deliver_sm_resp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-007
+    title: TON, NPI và địa chỉ nguồn, đích theo hợp đồng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-008
+    title: data_coding và kiểm chứng bảng mã được SMSC hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-009
+    title: UDH hoặc các tham số SAR cho tin ghép theo khả năng đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-010
+    title: registered_delivery và yêu cầu biên nhận giao tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-011
+    title: enquire_link, unbind và quản lý vòng đời phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-012
+    title: Cửa sổ yêu cầu đang chờ, throttling và giới hạn thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-013
+    title: Mất kết nối, bind lại và kết quả submit chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-014
+    title: Bảo vệ kết nối bằng cơ chế mạng, TLS hoặc VPN được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: smpp-integration-015
+    title: Tiêu chí lựa chọn thư viện Java và kiểm thử với SMSC giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-http-clients
+  title: HTTP client trong Java
+  childs:
+  - slug: java-http-clients-001
+    title: Thiết kế SmsProviderClient và mô hình dữ liệu độc lập nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-002
+    title: Gọi API gửi SMS bằng java.net.http.HttpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-003
+    title: Ánh xạ JSON hoặc biểu mẫu bằng thư viện phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-004
+    title: Bảo toàn chuỗi số điện thoại, mã tin và giá trị tiền tệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-005
+    title: Xử lý field tùy chọn và thay đổi response chưa được biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-006
+    title: Quản lý timeout, hủy tác vụ và HTTP connection tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-007
+    title: Gọi đồng bộ hoặc bất đồng bộ và giới hạn executor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-008
+    title: Chuẩn hóa exception thành lỗi có thể thử lại hoặc cần can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-009
+    title: Che thông tin xác thực và số điện thoại trong log HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-010
+    title: Truyền tham chiếu nội bộ để liên kết request, response, callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-011
+    title: Tách retry nghiệp vụ khỏi retry ngầm của HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-http-clients-012
+    title: Kiểm thử client bằng máy chủ HTTP giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: twilio-integration
+  title: Tích hợp Twilio
+  childs:
+  - slug: twilio-integration-001
+    title: Programmable Messaging và vai trò của Message resource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-002
+    title: Khởi tạo Twilio Java SDK với cấu hình bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-003
+    title: 'Account, API key và Auth Token: phân biệt mục đích sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-004
+    title: Gửi SMS bằng From hoặc MessagingServiceSid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-005
+    title: Messaging Service, sender pool và cấu hình gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-006
+    title: Lưu Message SID và trạng thái ban đầu từ response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-007
+    title: StatusCallback và ánh xạ trạng thái SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-008
+    title: Xác thực X-Twilio-Signature bằng tiện ích SDK Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-009
+    title: Truy vấn Message để hỗ trợ đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-010
+    title: Đọc error code và phân loại lỗi theo tài liệu Twilio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-011
+    title: Test credentials, số thử nghiệm và giới hạn mô phỏng giao tin thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-012
+    title: Phân biệt Programmable Messaging với Twilio Verify cho OTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: twilio-integration-013
+    title: Kiểm chứng hỗ trợ sender, đăng ký và mẫu tin theo thị trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vonage-integration
+  title: Tích hợp Vonage
+  childs:
+  - slug: vonage-integration-001
+    title: Phân biệt Vonage SMS API với Messages API và Verify API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-002
+    title: Khởi tạo Vonage Java SDK theo sản phẩm đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-003
+    title: Xác thực và cấu hình người gửi, người nhận, nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-004
+    title: Chọn kiểu văn bản hoặc Unicode theo hợp đồng SMS API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-005
+    title: Đọc kết quả gửi và mã lỗi theo từng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-006
+    title: Lưu message ID, client reference và metadata cần đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-007
+    title: Tiếp nhận Delivery Receipt và chuẩn hóa trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-008
+    title: Nhận SMS đầu vào bằng webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-009
+    title: Xác thực webhook theo cơ chế cụ thể của API được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-010
+    title: Đối chiếu hạn mức, tài khoản thử và khả năng thị trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vonage-integration-011
+    title: Đặt adapter Vonage sau cùng hợp đồng gửi SMS nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Tổ chức SmsProperties bằng @ConfigurationProperties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Kiểm tra thiếu credential, sender hoặc callback URL khi kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Tạo bean HTTP client, SDK client và adapter nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Lựa chọn RestClient hoặc WebClient theo mô hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Xây SmsNotificationService độc lập controller và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Thiết kế API nội bộ tiếp nhận yêu cầu gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Xây controller cho DLR và inbound SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Filter hoặc interceptor kiểm tra xác thực webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Ràng buộc đầu vào bằng Bean Validation và kiểm tra số điện thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: '@Async, executor và giới hạn tác vụ nền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Phối hợp transaction cơ sở dữ liệu với outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-012
+    title: Cấu hình profile, biến môi trường và secret store
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-013
+    title: Graceful shutdown khi còn request hoặc công việc gửi đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-014
+    title: Kiểm thử cấu hình và controller không phát sinh SMS thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sms-service-architecture
+  title: Kiến trúc dịch vụ SMS
+  childs:
+  - slug: sms-service-architecture-001
+    title: Tách thông báo nghiệp vụ khỏi thao tác gọi cổng SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-002
+    title: Hợp đồng yêu cầu gửi và kết quả độc lập nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-003
+    title: Cổng giao tiếp và adapter cho từng nhà cung cấp SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-004
+    title: Quy trình kiểm tra người nhận, quyền nhận, mẫu và số đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-005
+    title: Gửi trực tiếp trong request và đánh đổi với xử lý qua hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-006
+    title: Thành phần tạo thông báo, bộ lập lịch và worker gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-007
+    title: Transactional outbox để không mất sự kiện cùng giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-008
+    title: Bộ tiếp nhận DLR độc lập với luồng xử lý gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-009
+    title: Định tuyến theo tenant, thị trường, sender và mức ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-010
+    title: Phân chia trách nhiệm điều tiết tải, thử lại và đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-011
+    title: Khả năng mở rộng đa kênh mà không ép SMS chứa mọi loại nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-service-architecture-012
+    title: Thiết kế chuyển đổi nhà cung cấp mà vẫn giữ lịch sử thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-and-status
+  title: Lưu trữ và trạng thái
+  childs:
+  - slug: storage-and-status-001
+    title: Mô hình người nhận, sender, mẫu tin và cấu hình nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-002
+    title: Thông báo nghiệp vụ khác tin gửi và từng lần thử như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-003
+    title: Lưu snapshot nội dung, bảng mã và số đoạn dự tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-004
+    title: Khóa nghiệp vụ, mã tham chiếu nội bộ và mã tin nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-005
+    title: Trạng thái chờ, đang gửi, chưa xác định và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-006
+    title: Lưu lịch sử chuyển trạng thái cùng thời gian từ nguồn bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-007
+    title: Cập nhật trạng thái có điều kiện khi nhiều worker cùng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-008
+    title: Lease và quyền nhận việc để phục hồi công việc dang dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-009
+    title: Lưu sự kiện DLR gốc riêng với trạng thái hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-010
+    title: Đối chiếu biên nhận từng đoạn với kết quả của cả thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-011
+    title: Tách chi phí dự tính với chi phí thực tế được đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-status-012
+    title: Chính sách lưu trữ, phân vùng và dọn lịch sử gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deduplication-and-ordering
+  title: Chống trùng và thứ tự
+  childs:
+  - slug: deduplication-and-ordering-001
+    title: Phân biệt yêu cầu gửi trùng, request thử lại và SMS tới máy trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-002
+    title: Idempotency key cho API gửi nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-003
+    title: Ràng buộc duy nhất theo sự kiện, người nhận và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-004
+    title: Cửa sổ lỗi khi nhà cung cấp đã nhận tin nhưng response bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-005
+    title: Giới hạn của khóa chống trùng khi API đối tác không hỗ trợ idempotency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-006
+    title: Kết hợp tham chiếu client với truy vấn đối soát khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-007
+    title: Chống xử lý lặp DLR và tin nhắn đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-008
+    title: Inbox cho webhook và giao dịch cập nhật nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-009
+    title: Giữ thứ tự gửi theo người nhận hoặc thực thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-010
+    title: Thứ tự gửi không bảo đảm thứ tự hiển thị trên điện thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-011
+    title: Thông báo trạng thái cũ và quy tắc bỏ qua công việc lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-and-ordering-012
+    title: Hủy tác vụ trùng còn chờ mà không làm mất thông báo hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-retries
+  title: Lỗi và thử lại
+  childs:
+  - slug: errors-and-retries-001
+    title: Phân loại lỗi đầu vào, cấu hình, quyền, hạn mức và mạng truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-002
+    title: Số không hợp lệ, không hỗ trợ SMS và đích bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-003
+    title: Sender chưa đăng ký hoặc không phù hợp thị trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-004
+    title: Lỗi xác thực, tài khoản chưa kích hoạt và số dư không đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-005
+    title: Lỗi nội dung, mẫu tin và bộ lọc của nhà mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-006
+    title: HTTP 429, throttling và tín hiệu thời gian được thử tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-007
+    title: HTTP 5xx, mất kết nối và hết thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-008
+    title: Phân biệt lỗi submit với kết quả giao tin thất bại sau đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-009
+    title: Backoff tăng dần, jitter và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-010
+    title: Thời hạn nghiệp vụ ngắn hơn thời gian có thể thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-011
+    title: Tránh thử lại mù khi kết quả gửi còn chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-012
+    title: Circuit breaker và cô lập nhà cung cấp đang gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-013
+    title: Kho lỗi, lý do dừng và quy trình phát lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-retries-014
+    title: Retry do ứng dụng khác cơ chế chuyển tiếp của SMSC như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rate-limiting
+  title: Điều tiết tải
+  childs:
+  - slug: rate-limiting-001
+    title: Giới hạn theo tài khoản, sender, tuyến và quốc gia đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-002
+    title: Thông lượng đo theo thông điệp hay số đoạn cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-003
+    title: Rate limiter toàn dịch vụ và hạn mức riêng từng tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-004
+    title: Token bucket, cửa sổ trượt và lựa chọn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-005
+    title: Giới hạn số request HTTP đồng thời và số request mỗi giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-006
+    title: Điều tiết gửi bằng số đoạn dự tính thay vì chỉ số công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-007
+    title: Áp lực ngược khi tốc độ tạo tin vượt khả năng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-008
+    title: Công bằng giữa người nhận và chống một tenant chiếm hết lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-009
+    title: Dùng chung hạn mức khi có nhiều worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-010
+    title: Ước lượng độ trễ hàng đợi và thời gian hoàn tất đợt gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-011
+    title: Tôn trọng hạn mức mà không lách bằng xoay sender hoặc tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-012
+    title: Đo lỗi throttling để điều chỉnh cấu hình có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scheduling-and-priorities
+  title: Lập lịch và ưu tiên
+  childs:
+  - slug: scheduling-and-priorities-001
+    title: Gửi ngay, hẹn giờ và lịch nhắc định kỳ trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-002
+    title: Lịch do ứng dụng quản lý khác lịch do nhà cung cấp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-003
+    title: Lưu thời gian UTC và xử lý múi giờ của người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-004
+    title: Khoảng giờ không gửi và ngoại lệ theo mục đích thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-005
+    title: Ưu tiên OTP, cảnh báo khẩn và tin thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-006
+    title: Hạn chế bỏ đói công việc ưu tiên thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-007
+    title: Gộp nhiều sự kiện thành một thông báo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-008
+    title: Cooldown để tránh bão cảnh báo và gửi lặp cùng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-009
+    title: Hủy, hoãn hoặc thay thế tin còn chờ trước thời điểm gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-010
+    title: Khôi phục lịch sau khi ứng dụng ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-and-priorities-011
+    title: Tránh nhiều scheduler tạo cùng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routing-and-failover
+  title: Định tuyến và dự phòng
+  childs:
+  - slug: routing-and-failover-001
+    title: Chọn tuyến theo thị trường, sender và mục đích gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-002
+    title: Đánh giá chất lượng bằng DLR, độ trễ và dữ liệu đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-003
+    title: Phân biệt mất dịch vụ với một người nhận không giao được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-004
+    title: Cấu hình nhà cung cấp chính và điều kiện dùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-005
+    title: Giữ nguyên mã thông báo khi có nhiều lần gửi qua nhiều đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-006
+    title: Rủi ro gửi trùng khi chuyển tuyến trước khi biết kết quả lần đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-007
+    title: Duy trì thời hạn, tùy chọn nhận và giới hạn chi phí khi đổi tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-008
+    title: Không chuyển tuyến để vượt qua hủy nhận hoặc yêu cầu đăng ký sender
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-009
+    title: Giới hạn nhà cung cấp được phép dùng theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-010
+    title: Khôi phục tuyến chính theo từng đợt thay vì dồn tải đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-011
+    title: Chuyển kênh email, push hoặc ứng dụng khi có điều kiện phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-and-failover-012
+    title: Công bố rõ kết quả còn chưa xác định trong trạng thái nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bulk-sending
+  title: Gửi hàng loạt
+  childs:
+  - slug: bulk-sending-001
+    title: Chiến dịch, danh sách người nhận và công việc giao từng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-002
+    title: Tách thông báo giao dịch khỏi chiến dịch có mục đích khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-003
+    title: Chụp danh sách đích và loại bỏ bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-004
+    title: Kiểm tra lại quyền nhận tại thời điểm chuẩn bị gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-005
+    title: Phân trang và tạo lô mà không nạp toàn bộ dữ liệu vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-006
+    title: Cá nhân hóa mẫu và tính lại số đoạn cho từng người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-007
+    title: Điều phối lô theo hạn mức nhà cung cấp và ngân sách chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-008
+    title: Checkpoint để tiếp tục khi worker dừng giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-009
+    title: Tạm dừng, hủy hoặc khôi phục chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-010
+    title: Một đích lỗi không làm dừng toàn bộ tập người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-011
+    title: Gửi thử vào danh sách kiểm thử trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-sending-012
+    title: Báo cáo riêng số tin tiếp nhận, số tin giao và số người phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opt-in-and-consent
+  title: Đăng ký và quyền nhận
+  childs:
+  - slug: opt-in-and-consent-001
+    title: Quyền nhận tin theo mục đích giao dịch, nhắc lịch và quảng bá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-002
+    title: Lưu bằng chứng đăng ký với nguồn, thời điểm và phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-003
+    title: Tùy chọn loại tin, tần suất và khoảng giờ nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-004
+    title: Hủy nhận qua phản hồi SMS hoặc kênh phù hợp với loại sender
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-005
+    title: Từ khóa hủy nhận theo thị trường và nhà cung cấp đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-006
+    title: Danh sách không gửi và thứ tự ưu tiên khi có nhiều cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-007
+    title: Đồng bộ yêu cầu hủy nhận do nhà cung cấp xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-008
+    title: Tránh gửi lại cho người đã hủy khi thử lại hoặc đổi nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-009
+    title: Quy trình đăng ký lại và xác nhận số còn thuộc người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-010
+    title: Kiểm soát danh sách nhập từ nguồn bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-011
+    title: Xác minh yêu cầu đăng ký thương hiệu, mẫu và giờ gửi theo quốc gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opt-in-and-consent-012
+    title: Theo dõi thay đổi chính sách và lưu nguồn kiểm chứng hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sms-otp
+  title: OTP qua SMS
+  childs:
+  - slug: sms-otp-001
+    title: OTP qua SMS giải quyết bước xác minh nào trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-002
+    title: Phân biệt xác minh quyền kiểm soát số với xác minh danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-003
+    title: Tách dịch vụ gửi SMS khỏi dịch vụ sinh và kiểm tra mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-004
+    title: Lựa chọn dịch vụ Verify được quản lý hoặc triển khai nghiệp vụ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-005
+    title: Sinh mã bằng nguồn ngẫu nhiên mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-006
+    title: Lưu dữ liệu kiểm chứng mã bằng cơ chế bảo vệ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-007
+    title: Thời hạn mã, số lần nhập sai và trạng thái đã sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-008
+    title: Ràng buộc mã với tài khoản, phiên và mục đích thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-009
+    title: Chính sách gửi lại và xử lý mã cũ, mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-010
+    title: Giới hạn yêu cầu theo số điện thoại, tài khoản, thiết bị và địa chỉ IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-011
+    title: Chống dò mã, SMS pumping và lạm dụng phát sinh cước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-012
+    title: Không ghi OTP vào log, tracing hoặc thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-013
+    title: Mã đến trễ, đến sai thứ tự và trải nghiệm nhập mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-014
+    title: SIM swap, số tái cấp, lừa đảo và giới hạn bảo mật của SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-015
+    title: Phương thức xác thực thay thế và quy trình khôi phục tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sms-otp-016
+    title: Không coi delivered là bằng chứng người dùng đã xác minh thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-and-privacy
+  title: Bảo mật và dữ liệu riêng tư
+  childs:
+  - slug: security-and-privacy-001
+    title: Bảo vệ API key, secret và tài khoản quản trị nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-002
+    title: Cấp quyền tối thiểu và tách credential theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-003
+    title: Luân phiên khóa và thu hồi khi nghi ngờ bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-004
+    title: HTTPS, kiểm tra chứng chỉ và cấu hình kết nối tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-005
+    title: Xác thực webhook theo đúng cơ chế từng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-006
+    title: Chống phát lại webhook khi hợp đồng có timestamp hoặc định danh sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-007
+    title: Giới hạn endpoint gửi để không trở thành cổng phát SMS công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-008
+    title: Phân quyền theo tenant và ngăn gửi tới đích ngoài phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-009
+    title: Che số điện thoại, nội dung riêng tư và mã xác minh trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-010
+    title: Mã hóa dữ liệu lưu trữ và quản lý quyền đọc lịch sử tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-011
+    title: Giảm dữ liệu nhạy cảm gửi qua SMS vốn không mã hóa đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-012
+    title: Bảo vệ URL chứa mã hoặc thông tin nhận diện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-013
+    title: Ngăn giả mạo mẫu, chèn nội dung và sử dụng sender trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-014
+    title: Giới hạn quốc gia, ngân sách và cảnh báo hành vi gửi bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-and-privacy-015
+    title: Quản lý thời hạn lưu, xóa dữ liệu và dấu vết truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: costs-and-reconciliation
+  title: Chi phí và đối soát
+  childs:
+  - slug: costs-and-reconciliation-001
+    title: Đơn vị tính cước theo đoạn và khác số thông báo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-002
+    title: Ảnh hưởng của Unicode, biến mẫu và URL tới số đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-003
+    title: Giá theo quốc gia, tuyến, loại sender và hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-004
+    title: Phí thuê số, đăng ký, nhà mạng và các khoản bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-005
+    title: Ước lượng chi phí theo kịch bản trước khi mở chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-006
+    title: Lưu giá dự tính, tiền tệ và thời điểm áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-007
+    title: Chi phí của tin thất bại hoặc tin không có DLR theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-008
+    title: Giới hạn ngân sách theo tenant, ngày và chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-009
+    title: Cảnh báo số dư thấp và thay đổi chi tiêu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-010
+    title: Đối chiếu mã tin, số đoạn và hóa đơn nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-011
+    title: Xử lý sai lệch chi phí dự tính với chi phí thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-012
+    title: Đo chi phí trên một kết quả nghiệp vụ thay vì chỉ một lần gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-reconciliation-013
+    title: Tối ưu nội dung mà không làm sai ý nghĩa hoặc giảm khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Unit test chuẩn hóa số và kiểm tra vùng mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử GSM-7, bảng mở rộng, Unicode và số đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử ranh giới độ dài với tiếng Việt, emoji và ký tự ẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử thay biến làm thay đổi bảng mã hoặc số đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Giả lập API tiếp nhận thành công, lỗi tham số và lỗi xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Giả lập timeout sau khi nhà cung cấp có thể đã nhận tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử DLR đến trước response, đến trùng và lệch thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử chữ ký webhook qua reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử trạng thái kết thúc không bị callback cũ ghi lùi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử inbox, outbox và quyền nhận việc của nhiều worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử retry, rate limit, lịch gửi bằng đồng hồ giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử hủy nhận trong lúc chiến dịch đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử gửi dự phòng không tạo bản trùng thiếu kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm thử OTP hết hạn, sai nhiều lần và yêu cầu gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: SMSC giả lập cho phiên SMPP và kết quả submit chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-016
+    title: Tài khoản test hoặc sandbox khác phép thử giao tin qua mạng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-017
+    title: Danh sách số kiểm thử, hạn mức chi phí và ngăn gửi nhầm môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Chỉ số yêu cầu nhận vào, chờ gửi và lỗi trước khi submit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Tách tỷ lệ API tiếp nhận với tỷ lệ DLR báo giao tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Đo độ trễ chờ xử lý, gọi API và nhận biên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Theo dõi số tin thiếu DLR hoặc còn trạng thái chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Độ dài hàng đợi và tuổi công việc cũ nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Thống kê mã lỗi theo nhà cung cấp, tuyến và quốc gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Theo dõi số đoạn, cước phát sinh và ngân sách còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Correlation ID liên kết sự kiện, lần thử gửi, provider ID và webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Log có cấu trúc không làm lộ số điện thoại hoặc OTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-010
+    title: Tracing xuyên dịch vụ, hàng đợi và HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-011
+    title: Cảnh báo giảm chất lượng giao tin khác cảnh báo mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-012
+    title: Không phụ thuộc duy nhất SMS để báo sự cố của chính kênh SMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-013
+    title: Dashboard theo mục tiêu nghiệp vụ và khả năng đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-scaling
+  title: Triển khai và mở rộng
+  childs:
+  - slug: deployment-and-scaling-001
+    title: Cấu hình riêng credential, sender, callback và thị trường cho mỗi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-002
+    title: Chuẩn bị tên miền, TLS và đường vào webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-003
+    title: Tái tạo đúng URL công khai khi đứng sau reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-004
+    title: Mở rộng worker gửi độc lập thành phần tiếp nhận DLR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-005
+    title: Kho dữ liệu và hàng đợi bền vững thay cho bộ nhớ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-006
+    title: Hạn mức dùng chung giữa nhiều bản sao ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-007
+    title: Pool HTTP, executor và giới hạn tài nguyên theo thông lượng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-008
+    title: Triển khai cuốn chiếu với callback tương thích phiên bản cũ, mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-009
+    title: Graceful shutdown và xử lý công việc đã nhận nhưng chưa gửi xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-010
+    title: Readiness và liveness không tạo thêm SMS hay gọi API trả phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-011
+    title: Kịch bản khôi phục khi cơ sở dữ liệu, queue hoặc đối tác gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-012
+    title: Kiểm tra sau triển khai bằng số kiểm thử đã đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-change-management
+  title: Vận hành và thay đổi
+  childs:
+  - slug: operations-and-change-management-001
+    title: Runbook cho gián đoạn đối tác, số dư thấp và giao tin giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-002
+    title: Tạm dừng gửi theo tenant, sender, quốc gia hoặc chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-003
+    title: Điều tra bằng mã tin, mốc thời gian và trạng thái gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-004
+    title: Đối soát định kỳ khi callback thiếu hoặc bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-005
+    title: Phát lại công việc thất bại với quyền hạn và nhật ký rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-006
+    title: Khôi phục outbox, lịch gửi và tiến độ chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-007
+    title: Sao lưu cấu hình đăng ký, trạng thái gửi và dữ liệu cần truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-008
+    title: Thay credential, sender hoặc callback URL có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-009
+    title: Theo dõi thay đổi API, SDK, metadata số và quy tắc tuyến truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-010
+    title: Nâng phiên bản theo từng đợt và so sánh chất lượng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-011
+    title: Dọn tệp tạm, dữ liệu webhook và lịch sử theo thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-change-management-012
+    title: Diễn tập sự cố, chuyển tuyến và khôi phục nhà cung cấp chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: HTTP thành công nhưng tin bị từ chối trong response nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: API đã nhận nhưng tin không tới do sender hoặc tuyến không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Tin giao chậm vì thiết bị, SMSC hoặc hàng đợi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: DLR báo delivered nhưng người nhận chưa thấy nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Tiếng Việt hoặc emoji làm tăng số đoạn và chi phí bất ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Tin hiện ký tự lỗi do cấu hình bảng mã không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Tin ghép thiếu phần hoặc nội dung không đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Nhóm thuê bao không nhận do hạn chế nhà mạng hoặc thị trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Webhook không tới do TLS, URL, chữ ký hoặc phản hồi không đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Callback cũ làm trạng thái bị ghi lùi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Tin gửi hai lần sau timeout, worker dừng hoặc chuyển nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: OTP hết hạn trước khi tới và người dùng yêu cầu gửi liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Số đúng định dạng nhưng không còn hoạt động hoặc đã được tái cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Lỗi SMPP bind, enquire_link, throttling và cửa sổ yêu cầu đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Chiến dịch ngừng vì hết số dư, chạm hạn mức hoặc sai mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-016
+    title: Chuẩn bị bằng chứng để làm việc với nhà cung cấp mà không lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Chuẩn hóa số Việt Nam và quốc tế bằng libphonenumber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Xây bộ tính bảng mã, số đoạn và chi phí dự tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Thiết kế mẫu SMS giao dịch với tiếng Việt và dữ liệu biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Tạo HTTP adapter gửi qua cổng SMS giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Tích hợp một nhà cung cấp trong môi trường kiểm thử có hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Xây controller Spring Boot nhận DLR có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Xử lý callback đến trước response, trùng và sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Xây outbox, worker gửi và bảng trạng thái có đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Thử nghiệm timeout, kết quả chưa xác định và chống gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Xây giới hạn tốc độ theo tài khoản, sender và số đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-011
+    title: Tạo chiến dịch có checkpoint, hủy nhận và giới hạn ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-012
+    title: Xây quy trình OTP có giới hạn gửi lại và kiểm tra mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-013
+    title: Thực nghiệm phiên SMPP với SMSC giả lập khi có nhu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-014
+    title: Diễn tập chuyển nhà cung cấp mà không gửi lại mù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-015
+    title: Hoàn thiện dashboard, báo cáo chi phí và hướng dẫn xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

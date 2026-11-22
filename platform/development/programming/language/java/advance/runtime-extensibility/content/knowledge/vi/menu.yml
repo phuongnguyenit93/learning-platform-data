@@ -1,0 +1,237 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Mở rộng lúc chạy là gì và vì sao ứng dụng cần điểm mở rộng
+  - Ứng dụng chủ, hợp đồng dịch vụ và phần mở rộng (plugin) liên hệ như thế nào
+  - Phân biệt API cho bên sử dụng và SPI cho bên cung cấp dịch vụ (provider)
+  - Từ khám phá, nạp mã, khởi tạo đến gọi và dừng phần mở rộng
+  - So sánh cấu hình, plugin Java, biên dịch động, kịch bản và JShell
+  - Vai trò của reflection, proxy và method handle tại ranh giới tích hợp
+  - Kiến thức cần có và thứ tự học các cơ chế mở rộng của Java
+- level1: Hợp đồng mở rộng
+  level2:
+  - Chọn interface, lớp trừu tượng hoặc factory cho một điểm mở rộng
+  - Tách kiểu dữ liệu và API dùng chung khỏi cách triển khai của plugin
+  - Thiết kế định danh, khả năng hỗ trợ và thông tin phiên bản
+  - Quy định đầu vào, đầu ra, giá trị null và ngoại lệ qua ranh giới
+  - Truyền cấu hình và dịch vụ của ứng dụng chủ qua ngữ cảnh có giới hạn
+  - Quy định quyền sở hữu tài nguyên, trạng thái và khả năng gọi đồng thời
+  - Thiết kế callback, sự kiện và quy tắc hủy đăng ký
+  - Giữ hợp đồng nhỏ, tránh để lộ thư viện nội bộ của plugin
+- level1: Đóng gói plugin
+  level2:
+  - Tách JAR hợp đồng, JAR ứng dụng chủ và JAR phần triển khai
+  - Tổ chức lớp, tài nguyên và phụ thuộc riêng trong gói phát hành
+  - Phân biệt classpath, module path và thư mục plugin do ứng dụng quản lý
+  - Đọc manifest, phiên bản và mô tả plugin trước khi kích hoạt
+  - Bảo toàn tệp đăng ký dịch vụ khi gộp hoặc đổi tên package trong JAR
+  - Ảnh hưởng của Class-Path, package sealing và JAR đa phiên bản
+  - Kiểm tra gói thực tế thay vì chỉ chạy trên classpath của IDE
+- level1: SPI trên classpath
+  level2:
+  - Định nghĩa dịch vụ và tạo nhiều phần triển khai độc lập
+  - Đặt tên tệp META-INF/services theo tên nhị phân của kiểu dịch vụ
+  - Khai báo lớp provider bằng UTF-8, dòng chú thích và quy tắc trùng lặp
+  - Điều kiện public, khả năng gán kiểu và constructor không tham số
+  - Quan hệ giữa vị trí tệp đăng ký và khả năng nhìn thấy lớp provider
+  - Thêm hoặc bỏ JAR provider mà không sửa mã ứng dụng chủ
+  - Thực nghiệm các lỗi sai tên dịch vụ, thiếu constructor và thiếu tài nguyên
+- level1: Khám phá provider
+  level2:
+  - Chọn ServiceLoader.load theo class loader hoặc ngữ cảnh luồng
+  - Phạm vi của loadInstalled và khác biệt với provider của ứng dụng
+  - Duyệt iterator và thời điểm provider được nạp, khởi tạo theo nhu cầu
+  - Dùng stream, Provider.type và Provider.get để tách xem kiểu khỏi tạo đối tượng
+  - Ý nghĩa kiểu trả về của Provider.type khi dùng phương thức provider
+  - Dùng findFirst và xử lý Optional khi không tìm thấy provider
+  - Bộ nhớ đệm của iterator, stream và ảnh hưởng của reload
+  - ServiceConfigurationError có thể xuất hiện khi khám phá hoặc khởi tạo
+  - Quy tắc truy cập đồng thời và phạm vi lưu giữ đối tượng ServiceLoader
+- level1: Lựa chọn provider
+  level2:
+  - Chọn provider theo định danh, khả năng hỗ trợ và cấu hình tường minh
+  - Phân biệt thứ tự khám phá với thứ tự ưu tiên do ứng dụng quy định
+  - Quyết định dùng một provider, tất cả provider hoặc chuỗi xử lý
+  - Định nghĩa hành vi khi không có provider hoặc nhiều provider cùng phù hợp
+  - Tách kiểm tra mô tả nhẹ khỏi khởi tạo provider tốn tài nguyên
+  - Xử lý provider lỗi và giới hạn của việc tiếp tục duyệt sau lỗi cấu hình
+  - Phân biệt khám phá dịch vụ với quản lý phụ thuộc và vòng đời plugin
+- level1: Nền tảng nạp lớp
+  level2:
+  - Phân biệt nạp, liên kết và khởi tạo lớp trong luồng kích hoạt plugin
+  - Nhận diện kiểu bằng tên nhị phân và class loader định nghĩa
+  - Vai trò của bootstrap, platform và application class loader
+  - Cơ chế ủy quyền cho loader cha và phạm vi nhìn thấy giữa các loader
+  - Phân biệt loadClass và Class.forName với tùy chọn khởi tạo
+  - Nạp lớp từ URLClassLoader và chuyển về kiểu hợp đồng dùng chung
+  - Vai trò của findClass, defineClass và ràng buộc khi tự viết loader
+  - Khóa nạp lớp, loader hỗ trợ song song và nguy cơ bế tắc
+- level1: Cô lập phụ thuộc
+  level2:
+  - Dùng chung loader cho hợp đồng và loader riêng cho từng plugin
+  - So sánh một loader chung, loader theo plugin và nhóm plugin dùng chung phụ thuộc
+  - Cô lập hai phiên bản thư viện mà không nhân đôi kiểu hợp đồng
+  - Ưu tiên loader cha hoặc plugin và các ngoại lệ phải ủy quyền
+  - Chẩn đoán ClassCastException dù hai lớp có cùng tên
+  - Ràng buộc nạp lớp, package lúc chạy và truy cập thành viên không public
+  - Giới hạn của cô lập class loader đối với trạng thái và quyền của tiến trình
+- level1: Tài nguyên và ngữ cảnh
+  level2:
+  - Tìm một hoặc nhiều tài nguyên bằng getResource, getResources và getResourceAsStream
+  - Quy tắc đường dẫn tài nguyên và nguy cơ chọn nhầm bản trong loader cha
+  - Đọc cấu hình riêng của plugin mà không phụ thuộc thư mục làm việc
+  - Vai trò của thread context class loader trong SPI và thư viện tích hợp
+  - Đặt rồi khôi phục context class loader bằng try/finally tại ranh giới gọi
+  - Truyền ngữ cảnh qua executor, callback và tác vụ bất đồng bộ
+  - Đóng luồng đọc và tránh lưu tài nguyên hoặc context vượt vòng đời plugin
+- level1: SPI với JPMS
+  level2:
+  - Module có tên, module tự động và module không tên trong hệ thống plugin
+  - Tách module hợp đồng, module ứng dụng chủ và module provider
+  - Khai báo requires, exports và uses phía sử dụng dịch vụ
+  - Khai báo provides ... with ... và giữ package triển khai được đóng gói
+  - Khởi tạo bằng constructor hoặc phương thức public static provider()
+  - Giới hạn phương thức provider đối với module tự động và classpath
+  - Phân biệt khả năng đọc module, exports và opens cho truy cập phản chiếu
+  - Những khai báo cần đổi khi đưa cùng provider từ classpath sang module path
+- level1: Phân giải module
+  level2:
+  - Tìm module trong thư mục plugin bằng ModuleFinder
+  - Xem ModuleReference, ModuleDescriptor và các phụ thuộc được khai báo
+  - Chọn module gốc và cấu hình cha từ ModuleLayer.boot()
+  - Phạm vi tìm kiếm của các ModuleFinder trước và sau cấu hình cha
+  - Phân biệt resolve và resolveAndBind khi liên kết provider dịch vụ
+  - Kiểm tra đồ thị kết quả qua Configuration và ResolvedModule
+  - Xử lý FindException, ResolutionException, thiếu phụ thuộc và package xung đột
+- level1: ModuleLayer
+  level2:
+  - Quan hệ giữa Configuration, ModuleLayer, module và class loader
+  - Tạo layer con bằng defineModulesWithOneLoader
+  - Tạo layer với defineModulesWithManyLoaders hoặc ánh xạ loader tùy chỉnh
+  - Tra cứu module, loader và quan hệ layer cha
+  - Khám phá dịch vụ qua ServiceLoader.load(layer, service)
+  - Provider trong layer hiện tại, layer tổ tiên và giới hạn với module không tên
+  - Điều chỉnh reads, exports và opens qua ModuleLayer.Controller trong phạm vi cho phép
+  - Dùng layer mới cho nhóm plugin mới và hiểu giới hạn thay đổi layer đã tạo
+- level1: Biên dịch lúc chạy
+  level2:
+  - Khi nào nên nhận mã nguồn Java thay vì cài thêm JAR đã biên dịch
+  - Phân biệt module java.compiler, jdk.compiler và trình biên dịch thực tế
+  - Lấy JavaCompiler qua ToolProvider và xử lý kết quả null
+  - Chuẩn bị đơn vị nguồn bằng StandardJavaFileManager
+  - Tạo CompilationTask bằng getTask và đọc kết quả call
+  - Cấu hình classpath, module path, thư mục đầu ra và --release
+  - Thu thập lỗi, cảnh báo, vị trí nguồn và thông điệp bằng DiagnosticCollector
+  - Quản lý annotation processor và lựa chọn -proc:none khi không cần
+  - Đóng file manager và tách giai đoạn biên dịch khỏi thực thi
+- level1: Biên dịch trong bộ nhớ
+  level2:
+  - Biểu diễn mã nguồn bằng SimpleJavaFileObject và URI phù hợp
+  - Thu bytecode qua JavaFileObject và ForwardingJavaFileManager
+  - Quản lý nhiều lớp đầu ra, lớp lồng nhau và tên nhị phân
+  - Nạp bytecode bằng loader mới có hợp đồng chung ở loader cha
+  - Kiểm tra khả năng gán kiểu rồi tạo đối tượng qua constructor phù hợp
+  - Định danh kết quả theo mã nguồn, tùy chọn và phụ thuộc để quản lý bộ nhớ đệm
+  - Giới hạn kích thước nguồn, đầu ra và thời gian của công việc biên dịch
+- level1: Kịch bản nhúng
+  level2:
+  - JSR 223 và ranh giới giữa javax.script với engine ngôn ngữ
+  - Tìm ScriptEngineFactory qua ScriptEngineManager và class loader phù hợp
+  - Khám phá tên, phần mở rộng tệp, MIME type và phiên bản engine
+  - Xử lý getEngineByName trả về null và engine không được cài đặt
+  - Nashorn rời JDK từ Java 15 và yêu cầu cung cấp engine riêng
+  - Chạy mã từ String hoặc Reader bằng ScriptEngine.eval
+  - Truyền dữ liệu qua Bindings và chọn ENGINE_SCOPE hoặc GLOBAL_SCOPE
+  - Điều khiển đầu vào, đầu ra và lỗi qua ScriptContext
+  - Đọc ScriptException với tên tệp, dòng và cột khi engine cung cấp
+- level1: Giao tiếp kịch bản
+  level2:
+  - Chuyển đổi kiểu giữa Java và ngôn ngữ kịch bản theo quy tắc của engine
+  - Kiểm tra Invocable trước khi gọi hàm hoặc phương thức
+  - Ánh xạ hàm kịch bản sang interface Java và xử lý kết quả không hỗ trợ
+  - Kiểm tra Compilable và tái sử dụng CompiledScript với engine tương ứng
+  - Quản lý trạng thái engine, Bindings riêng và thông tin THREADING của factory
+  - Thiết kế API Java được đưa vào kịch bản với quyền hạn tối thiểu
+  - Đăng ký engine tường minh hoặc xây dựng ScriptEngineFactory, AbstractScriptEngine
+  - Giới hạn tính khả chuyển của cú pháp, chuyển đổi kiểu và cơ chế dừng engine
+- level1: JShell nhúng
+  level2:
+  - Khi nào dùng JShell cho đoạn mã Java tương tác thay vì JavaCompiler
+  - Tạo JShell, cấu hình classpath, tùy chọn biên dịch và luồng vào ra
+  - Phân tích đoạn mã hoàn chỉnh trước khi gọi eval
+  - Đọc SnippetEvent, trạng thái, kết quả và chẩn đoán của đoạn mã
+  - Quản lý phụ thuộc giữa các đoạn mã, khai báo lại và drop
+  - ExecutionControlProvider và ranh giới giữa JVM điều khiển với JVM thực thi
+  - Đóng phiên JShell và phân biệt môi trường REPL với hợp đồng plugin ổn định
+- level1: Vòng đời plugin
+  level2:
+  - Thiết kế các trạng thái phát hiện, xác minh, khởi tạo, hoạt động, dừng và lỗi
+  - Xác định bước nào thuộc ServiceLoader và bước nào do ứng dụng chủ quản lý
+  - Tách constructor nhẹ khỏi thao tác mở tài nguyên và kích hoạt
+  - Khởi tạo theo thứ tự phụ thuộc và hoàn tác khi chỉ một phần thành công
+  - Công bố tập plugin đang hoạt động an toàn cho luồng đọc đồng thời
+  - Quy định số lượng đối tượng, trạng thái dùng chung và cơ chế đồng bộ
+  - Dừng nhận yêu cầu, chờ công việc đang chạy và xử lý hủy hợp tác
+  - Hủy callback, lịch chạy, executor và đóng tài nguyên do plugin sở hữu
+  - Xử lý lỗi khi dừng và bảo đảm đóng lặp lại có hành vi xác định
+- level1: Thay thế plugin
+  level2:
+  - Phân biệt reload bộ nhớ đệm SPI, thay đối tượng và thay định nghĩa lớp
+  - Vì sao thay JAR trên đĩa không làm lớp đã nạp tự đổi mã
+  - Tạo thế hệ loader hoặc layer mới cho phiên bản plugin mới
+  - Chuẩn bị, kiểm tra rồi chuyển tham chiếu đang hoạt động sang thế hệ mới
+  - Xử lý yêu cầu đang chạy, chuyển trạng thái và quay lại phiên bản trước
+  - Đóng URLClassLoader giải phóng tệp nhưng không hủy lớp đã nạp
+  - Điều kiện lớp có thể được thu hồi và giới hạn bảo đảm của GC
+  - Tìm tham chiếu giữ loader từ cache, ThreadLocal, luồng và callback
+  - Giới hạn của thay thế plugin so với instrumentation hoặc khởi động lại tiến trình
+- level1: Tương thích API
+  level2:
+  - Phân biệt tương thích mã nguồn, nhị phân và hành vi của hợp đồng
+  - Tác động khi thêm, xóa hoặc đổi chữ ký phương thức của interface
+  - Phương thức default, xung đột kế thừa và tiến hóa hợp đồng dịch vụ
+  - Không để lộ kiểu phụ thuộc riêng, đối tượng nội bộ hoặc ngoại lệ của plugin
+  - Đàm phán khả năng hỗ trợ và từ chối phiên bản hợp đồng không tương thích
+  - Phiên bản module cung cấp thông tin gì và vì sao cần chính sách phiên bản riêng
+  - Tương thích bytecode, thư viện và JDK khi biên dịch hoặc triển khai plugin
+- level1: Ranh giới tin cậy
+  level2:
+  - Đánh giá nguồn gốc JAR, mã Java và kịch bản trước khi thực thi
+  - Phân biệt kiểm tra tính toàn vẹn, chữ ký và mức độ tin cậy của nhà phát hành
+  - Vì sao class loader và JPMS không tạo môi trường cách ly mã độc
+  - Security Manager được đánh dấu loại bỏ từ JDK 17 và vô hiệu vĩnh viễn từ JDK 24
+  - Giới hạn đối tượng, đường dẫn và dịch vụ ứng dụng chủ trao cho phần mở rộng
+  - Tách mã không tin cậy sang tiến trình với giao thức trao đổi rõ ràng
+  - Giới hạn tài nguyên ở hệ điều hành và giới hạn của ngắt luồng Java
+  - Kiểm soát đầu vào, phụ thuộc và công cụ chạy trong giai đoạn biên dịch
+- level1: Chẩn đoán và hiệu năng
+  level2:
+  - Ghi nhận định danh plugin, phiên bản, CodeSource, loader và module
+  - Phân biệt ClassNotFoundException, NoClassDefFoundError và lỗi khởi tạo lớp
+  - Nhận diện NoSuchMethodError, AbstractMethodError và UnsupportedClassVersionError
+  - Điều tra ServiceConfigurationError từ tệp đăng ký, module hoặc constructor
+  - Chẩn đoán lỗi khả năng đọc module, exports và opens
+  - Theo dõi nạp, dỡ lớp và số loader bằng công cụ chẩn đoán JVM
+  - Đo riêng chi phí khám phá, biên dịch, khởi tạo và gọi sau khi làm nóng
+  - Chọn phạm vi cache và phát hiện bộ nhớ tăng sau nhiều lần thay plugin
+- level1: Kiểm thử và triển khai
+  level2:
+  - Kiểm thử cùng một bộ hợp đồng với mọi provider được hỗ trợ
+  - Chạy ứng dụng từ JAR và module path thật trong tiến trình kiểm thử riêng
+  - Kiểm thử không có, có một, có nhiều và có provider cấu hình lỗi
+  - Kiểm thử phụ thuộc trùng phiên bản, tài nguyên trùng và hợp đồng bị đóng gói lặp
+  - Kiểm thử gọi đồng thời, khởi tạo thất bại, dừng và thay thế nhiều thế hệ
+  - Xác minh môi trường thiếu compiler, engine kịch bản hoặc module bắt buộc
+  - Đóng gói runtime bằng jlink với module công cụ và service binding cần thiết
+  - Chuyển khỏi lib/ext, java.ext.dirs và giả định application loader là URLClassLoader
+  - Phát hành plugin theo phiên bản, kiểm tra gói và giữ đường quay lại bản trước
+- level1: Bài thực hành
+  level2:
+  - Xây ứng dụng xử lý tài liệu với hợp đồng và hai provider SPI
+  - Thêm lựa chọn provider theo khả năng hỗ trợ và cấu hình người dùng
+  - Nạp hai plugin có thư viện riêng khác phiên bản bằng loader độc lập
+  - Chuyển hệ thống sang module tường minh và khám phá trong ModuleLayer con
+  - Biên dịch quy tắc Java từ bộ nhớ rồi tích hợp qua cùng hợp đồng
+  - Thêm quy tắc kịch bản với Bindings riêng và xử lý trường hợp thiếu engine
+  - Thay phiên bản khi đang có yêu cầu và kiểm tra việc dọn tài nguyên
+  - Tổng hợp tiêu chí chọn cơ chế mở rộng theo nhu cầu, vận hành và mức độ tin cậy

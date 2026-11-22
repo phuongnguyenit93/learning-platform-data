@@ -1,0 +1,2977 @@
+menu:
+- slug: overview-test-design
+  title: Tổng quan thiết kế test
+  childs:
+  - slug: overview-test-design-001
+    title: Thiết kế kiểm thử là gì và bài toán lựa chọn tình huống cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-test-design-002
+    title: Quan hệ giữa phân tích kiểm thử, thiết kế test và triển khai thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-test-design-003
+    title: Phân biệt test condition, test scenario, test case và test procedure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-test-design-004
+    title: Cơ sở kiểm thử, mô hình hành vi và kết quả mong đợi liên hệ thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-test-design-005
+    title: Phân biệt cấp độ kiểm thử, loại kiểm thử và kỹ thuật thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-test-design-006
+    title: Thiết kế hộp đen, hộp trắng và dựa trên kinh nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-test-design-007
+    title: Vì sao kiểm thử đầy đủ mọi tổ hợp thường không khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-test-design-008
+    title: Lộ trình từ yêu cầu đến bộ test có mục đích và bằng chứng bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-analysis
+  title: Phân tích yêu cầu
+  childs:
+  - slug: requirements-analysis-001
+    title: Xác định cơ sở kiểm thử từ yêu cầu, đặc tả, hợp đồng và mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-002
+    title: Tách hành vi quan sát được khỏi mô tả cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-003
+    title: Nhận diện quy tắc nghiệp vụ, ràng buộc và giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-004
+    title: Chuyển acceptance criteria thành điều kiện có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-005
+    title: Tìm yêu cầu thiếu, mâu thuẫn hoặc không đo lường được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-006
+    title: Phân tích điều kiện trước, điều kiện sau và bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-007
+    title: Xác định đối tượng sử dụng, vai trò và ngữ cảnh vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-008
+    title: Liệt kê đầu vào, đầu ra, trạng thái và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-analysis-009
+    title: Ghi câu hỏi cần làm rõ thay vì tự sáng tác kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: behavior-modeling
+  title: Mô hình hóa hành vi
+  childs:
+  - slug: behavior-modeling-001
+    title: Chọn mô hình phù hợp với quy tắc hoặc tương tác cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-002
+    title: Mô hình miền dữ liệu, khoảng giá trị và quan hệ giữa các trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-003
+    title: Mô hình quyết định từ điều kiện và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-004
+    title: Mô hình trạng thái, sự kiện, guard và chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-005
+    title: Mô hình luồng nghiệp vụ, nhánh thay thế và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-006
+    title: Mô hình tương tác giữa người dùng, hệ thống và dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-007
+    title: Phân biệt mô hình kiểm thử với bản sao chi tiết của mã triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-008
+    title: Xác định giả định, giới hạn và phần hành vi chưa được mô hình hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: behavior-modeling-009
+    title: Giữ mô hình và yêu cầu nhất quán khi có thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: risk-prioritization
+  title: Rủi ro và ưu tiên
+  childs:
+  - slug: risk-prioritization-001
+    title: Nhận diện rủi ro sản phẩm từ tác động và khả năng xảy ra lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-002
+    title: Ưu tiên nghiệp vụ quan trọng, dữ liệu nhạy cảm và điểm tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-003
+    title: Chọn kỹ thuật kiểm thử theo dạng lỗi cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-004
+    title: Cân đối luồng phổ biến với tình huống hiếm nhưng hậu quả lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-005
+    title: Phân biệt mức ưu tiên test với mức độ nghiêm trọng của lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-006
+    title: Xác định mức bao phủ mục tiêu theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-007
+    title: Lựa chọn tập test khi giới hạn thời gian hoặc tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-008
+    title: Ghi nhận rủi ro còn lại và lý do chưa thiết kế test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expected-results
+  title: Kết quả mong đợi
+  childs:
+  - slug: expected-results-001
+    title: Oracle kiểm thử là gì và nguồn xác định kết quả đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-002
+    title: Dùng đặc tả, quy tắc nghiệp vụ hoặc bất biến làm oracle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-003
+    title: Kết quả trả về, thay đổi trạng thái và tác dụng phụ cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-004
+    title: Xác định kết quả cho đầu vào không hợp lệ và điều kiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-005
+    title: Kiểm tra sự vắng mặt của tác dụng phụ ngoài chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-006
+    title: Tránh tính expected result bằng chính thuật toán đang được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-007
+    title: Oracle độc lập, đối chiếu nhiều cách thực hiện và giới hạn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-008
+    title: Sai số, độ chính xác số học và điều kiện chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-009
+    title: Kết quả không xác định hoặc không có đáp án duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expected-results-010
+    title: Phân biệt oracle yếu, oracle sai và hành vi chưa được đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specification-by-example
+  title: Đặc tả bằng ví dụ
+  childs:
+  - slug: specification-by-example-001
+    title: Khám phá quy tắc nghiệp vụ qua ví dụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-002
+    title: Phối hợp góc nhìn nghiệp vụ, phát triển và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-003
+    title: Given, When, Then và vai trò của từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-004
+    title: Chọn ví dụ thể hiện quy tắc thay vì mô tả thao tác giao diện quá chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-005
+    title: Scenario outline và bảng dữ liệu cho cùng một hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-006
+    title: Ví dụ phản chứng để tìm giới hạn của quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-007
+    title: Quan hệ giữa BDD, ATDD và đặc tả có thể thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-008
+    title: Giữ kịch bản dễ đọc và tránh biến thành ngôn ngữ lập trình thu nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-by-example-009
+    title: Cập nhật ví dụ khi yêu cầu hoặc cách hiểu nghiệp vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-case-structure
+  title: Cấu trúc test case
+  childs:
+  - slug: test-case-structure-001
+    title: Đặt mục tiêu và tên test thể hiện hành vi cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-002
+    title: Ghi điều kiện trước và trạng thái khởi tạo tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-003
+    title: Chọn đầu vào, thao tác và kết quả mong đợi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-004
+    title: Phân biệt một hành vi với một hoặc nhiều assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-005
+    title: Xác định dữ liệu, dependency và cấu hình cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-006
+    title: Thiết kế điều kiện sau và yêu cầu dọn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-007
+    title: Tách test case trừu tượng khỏi dữ liệu thực thi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-008
+    title: Định danh, ưu tiên và liên kết test với yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-009
+    title: Giữ test có thể thực hiện và hiểu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-structure-010
+    title: Tránh test dài kiểm tra nhiều hành vi không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: equivalence-partitioning
+  title: Phân lớp tương đương
+  childs:
+  - slug: equivalence-partitioning-001
+    title: Cơ sở của equivalence partitioning và giả định tính tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-002
+    title: Xác định các lớp hợp lệ và không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-003
+    title: Phân lớp theo đầu vào, đầu ra hoặc trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-004
+    title: Chọn đại diện cho từng lớp và giải thích lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-005
+    title: Kiểm tra lớp rỗng, giao nhau hoặc bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-006
+    title: Phân biệt bao phủ từng lớp với bao phủ tổ hợp các trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-007
+    title: Xử lý null, thiếu trường, chuỗi rỗng và khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-008
+    title: Phân lớp miền dữ liệu có thứ tự và không có thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: equivalence-partitioning-009
+    title: Giới hạn của phân lớp khi bên trong lớp có hành vi khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boundary-values
+  title: Giá trị biên
+  childs:
+  - slug: boundary-values-001
+    title: Vì sao lỗi thường xuất hiện gần giới hạn miền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-002
+    title: Xác định biên bao gồm, biên loại trừ và khoảng trống giữa các miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-003
+    title: Phân tích biên với hai giá trị hoặc ba giá trị quanh điểm chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-004
+    title: Chọn giá trị ngay dưới, đúng biên và ngay trên biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-005
+    title: Biên của số nguyên, số thực và độ chính xác biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-006
+    title: Biên của độ dài, số phần tử, dung lượng và kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-007
+    title: Biên ngày giờ, thời hạn và chu kỳ lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-008
+    title: Biên nhiều chiều khi các đầu vào có ràng buộc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-009
+    title: Phân biệt biên hợp lệ với biên do giới hạn kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-values-010
+    title: Kết hợp giá trị biên với phân lớp để giảm test trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: decision-tables
+  title: Bảng quyết định
+  childs:
+  - slug: decision-tables-001
+    title: Chọn decision table cho quy tắc có nhiều điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-002
+    title: Liệt kê điều kiện, miền giá trị và hành động tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-003
+    title: Xây dựng bảng đầy đủ trước khi tối giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-004
+    title: Phân biệt điều kiện không ảnh hưởng với tổ hợp không khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-005
+    title: Tìm mâu thuẫn, thiếu quy tắc và thứ tự ưu tiên chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-006
+    title: Chuyển mỗi quy tắc khả thi thành một hoặc nhiều test case
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-007
+    title: Bao phủ quy tắc và giới hạn khi chỉ chọn luồng thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-008
+    title: Mô hình nguyên nhân, kết quả và ràng buộc logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-tables-009
+    title: Kiểm tra chính sách giảm giá, phí hoặc phân quyền bằng bảng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-transitions
+  title: Chuyển trạng thái
+  childs:
+  - slug: state-transitions-001
+    title: Xác định trạng thái quan sát được và sự kiện kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-002
+    title: Phân biệt trạng thái với giá trị dữ liệu đơn thuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-003
+    title: Guard, hành động và kết quả của một chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-004
+    title: Biểu diễn bằng sơ đồ hoặc bảng chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-005
+    title: Bao phủ trạng thái và bao phủ chuyển tiếp hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-006
+    title: Thiết kế test cho sự kiện không hợp lệ tại từng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-007
+    title: Kiểm tra chuỗi chuyển tiếp và ảnh hưởng của lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-008
+    title: Khởi tạo, đặt lại và kết thúc chuỗi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-009
+    title: Xử lý trạng thái lỗi, hủy, hết hạn và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-transitions-010
+    title: Giới hạn mô hình khi hệ thống có nhiều trạng thái đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-scenarios
+  title: Kịch bản nghiệp vụ
+  childs:
+  - slug: business-scenarios-001
+    title: Thiết kế test từ use case, user story hoặc hành trình sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-002
+    title: Luồng chính, luồng thay thế và tình huống ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-003
+    title: Đầu vào, vai trò và điều kiện trước của mỗi kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-004
+    title: Điểm ra quyết định và bước có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-005
+    title: Kiểm tra gián đoạn, quay lại và thao tác lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-006
+    title: Kịch bản nhiều người dùng hoặc nhiều hệ thống phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-007
+    title: Chọn điểm quan sát cho từng mốc quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-008
+    title: Phân biệt test một luồng nghiệp vụ với test toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-scenarios-009
+    title: Tránh chỉ bao phủ đường đi thành công từ đầu đến cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-domains-and-syntax
+  title: Miền dữ liệu và cú pháp
+  childs:
+  - slug: data-domains-and-syntax-001
+    title: Thiết kế test từ định dạng, cấu trúc hoặc ngữ pháp đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-domains-and-syntax-002
+    title: Số, ngày giờ, định danh và chuỗi theo mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-domains-and-syntax-003
+    title: Unicode, ký tự kết hợp, encoding và chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-domains-and-syntax-004
+    title: JSON, XML hoặc tệp có cấu trúc với trường bắt buộc, tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-domains-and-syntax-005
+    title: Đầu vào sai cú pháp khác với đầu vào đúng cú pháp nhưng sai nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-domains-and-syntax-006
+    title: Dữ liệu lồng nhau, độ sâu và kích thước tối đa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-domains-and-syntax-007
+    title: Ràng buộc liên trường và quan hệ tổng thể của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-domains-and-syntax-008
+    title: Thiết kế test cho parser và kiểm tra giữ nguyên ý nghĩa khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameter-combinations
+  title: Kết hợp tham số
+  childs:
+  - slug: parameter-combinations-001
+    title: Nhận diện bùng nổ tổ hợp khi có nhiều yếu tố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-002
+    title: Chọn yếu tố, giá trị và mức trừu tượng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-003
+    title: Pairwise testing và ý nghĩa của bao phủ từng cặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-004
+    title: T-way testing cho tương tác bậc cao hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-005
+    title: Ràng buộc loại bỏ tổ hợp không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-006
+    title: Phân biệt tổ hợp không hợp lệ với tình huống lỗi cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-007
+    title: Kiểm chứng tập test sinh ra thật sự đạt mức bao phủ đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-008
+    title: Kết hợp tổ hợp với ưu tiên rủi ro và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-009
+    title: Giới hạn suy luận khi dùng pairwise thay toàn bộ tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameter-combinations-010
+    title: Thiết kế ma trận cấu hình, nền tảng hoặc quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-based-testing
+  title: Kiểm thử theo mô hình
+  childs:
+  - slug: model-based-testing-001
+    title: Model-based testing và cách sinh test từ mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-based-testing-002
+    title: Chọn mô hình trạng thái, luồng hoặc quan hệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-based-testing-003
+    title: Xác định điểm đầu, điểm kết thúc và hành vi cần bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-based-testing-004
+    title: Sinh đường đi có giới hạn để tránh bùng nổ số test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-based-testing-005
+    title: Ánh xạ thao tác trừu tượng sang thao tác có thể thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-based-testing-006
+    title: Xây oracle từ trạng thái và bất biến của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-based-testing-007
+    title: Đối chiếu mô hình với yêu cầu thay vì coi mô hình luôn đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-based-testing-008
+    title: Quản lý phiên bản mô hình và khả năng truy vết test được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structural-coverage
+  title: Bao phủ cấu trúc
+  childs:
+  - slug: structural-coverage-001
+    title: Thiết kế hộp trắng từ cấu trúc điều khiển của mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-002
+    title: Statement coverage và hành vi chưa được kiểm chứng chỉ bằng số dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-003
+    title: Branch coverage và kết quả của từng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-004
+    title: Phân biệt đạt coverage với assertion đủ sức phát hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-005
+    title: Nhánh không khả thi và mã không thể tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-006
+    title: Ảnh hưởng của exception, early return và nhánh mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-007
+    title: Kết hợp thông tin coverage với kỹ thuật hộp đen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-008
+    title: Dùng báo cáo coverage để tìm khoảng trống thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-coverage-009
+    title: Tránh viết test chỉ để tăng tỷ lệ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logical-conditions
+  title: Điều kiện logic
+  childs:
+  - slug: logical-conditions-001
+    title: Điều kiện đơn và quyết định gồm nhiều điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-002
+    title: Condition coverage và decision coverage khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-003
+    title: Condition/decision coverage và giới hạn còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-004
+    title: Multiple condition coverage và số tổ hợp tăng theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-005
+    title: MC/DC và việc chứng minh ảnh hưởng độc lập của từng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-006
+    title: Short-circuit evaluation trong biểu thức AND, OR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-007
+    title: Quan hệ phụ thuộc khiến một số tổ hợp logic không khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-008
+    title: Thiết kế test cho biểu thức lồng nhau và điều kiện phủ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logical-conditions-009
+    title: Giữ khả năng giải thích vì sao từng test cần xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paths-and-data-flows
+  title: Đường đi và luồng dữ liệu
+  childs:
+  - slug: paths-and-data-flows-001
+    title: Mô hình control-flow graph và đường đi qua chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-002
+    title: Basis path và ý nghĩa giới hạn của độ phức tạp chu trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-003
+    title: Vòng lặp với không lần, một lần, nhiều lần và giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-004
+    title: Đường đi không khả thi và số đường đi không bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-005
+    title: Định nghĩa, sử dụng và cập nhật giá trị trong luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-006
+    title: Def-use pair và lựa chọn đường đi kiểm tra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-007
+    title: Biến chưa được khởi tạo, giá trị cũ và cập nhật bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-008
+    title: Đường đi qua exception handler, finally và cleanup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-and-data-flows-009
+    title: Kết hợp cấu trúc mã với bất biến nghiệp vụ để chọn assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: experience-and-exploration
+  title: Kinh nghiệm và khám phá
+  childs:
+  - slug: experience-and-exploration-001
+    title: Error guessing từ lịch sử lỗi và hiểu biết miền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-002
+    title: Checklist để nhớ nhóm rủi ro mà không thay thế tư duy thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-003
+    title: Heuristic giúp đặt câu hỏi và tìm tình huống ít được chú ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-004
+    title: Exploratory testing và quan hệ giữa học, thiết kế, thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-005
+    title: Test charter, mục tiêu và giới hạn của phiên khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-006
+    title: Ghi lại giả thuyết, dữ liệu, quan sát và câu hỏi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-007
+    title: Dùng phản chứng hoặc thay đổi một yếu tố để điều tra hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-008
+    title: Chuyển phát hiện có giá trị thành test hồi quy phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: experience-and-exploration-009
+    title: Nhận diện thiên lệch khi chỉ thử theo kinh nghiệm quen thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: property-based-testing
+  title: Kiểm thử dựa thuộc tính
+  childs:
+  - slug: property-based-testing-001
+    title: Property-based testing và khác biệt với ví dụ đầu vào cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-002
+    title: Chuyển bất biến hoặc quy luật miền thành thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-003
+    title: Thiết kế generator bao phủ cả dữ liệu thường gặp và dữ liệu biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-004
+    title: Ràng buộc dữ liệu hợp lệ và nguy cơ lọc bỏ quá nhiều mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-005
+    title: Shrinking để tìm trường hợp phản chứng nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-006
+    title: Lưu seed và đầu vào phản chứng để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-007
+    title: Kiểm tra chuỗi thao tác trên đối tượng có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-008
+    title: Tránh thuộc tính đúng hiển nhiên hoặc sao chép thuật toán sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-009
+    title: Kết hợp test dựa thuộc tính với ví dụ nghiệp vụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-based-testing-010
+    title: Chọn công cụ trong hệ sinh thái Java theo nhu cầu thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metamorphic-relations
+  title: Quan hệ biến đổi
+  childs:
+  - slug: metamorphic-relations-001
+    title: Metamorphic testing khi khó xác định đáp án cho từng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamorphic-relations-002
+    title: Thiết kế quan hệ giữa đầu vào gốc và đầu vào đã biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamorphic-relations-003
+    title: Bất biến theo hoán vị, mở rộng hoặc thay đổi biểu diễn có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamorphic-relations-004
+    title: Quan hệ tăng giảm, tỷ lệ và giới hạn áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamorphic-relations-005
+    title: Round-trip và trường hợp chuyển đổi có mất thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamorphic-relations-006
+    title: Chọn dữ liệu nguồn để quan hệ biến đổi có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamorphic-relations-007
+    title: Phân biệt quan hệ mong đợi với giả định chưa được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamorphic-relations-008
+    title: Kết hợp oracle từng phần với quan hệ biến đổi để tăng khả năng phát hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fuzzing-random-data
+  title: Fuzzing và dữ liệu ngẫu nhiên
+  childs:
+  - slug: fuzzing-random-data-001
+    title: Phân biệt sinh test ngẫu nhiên, fuzzing và kiểm thử dựa thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-002
+    title: Chọn đầu vào mục tiêu và tín hiệu nhận diện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-003
+    title: Thiết kế corpus ban đầu từ dữ liệu hợp lệ và tình huống biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-004
+    title: Biến đổi dữ liệu thô so với sinh dữ liệu theo cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-005
+    title: Dùng phản hồi coverage để hướng việc tìm đầu vào mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-006
+    title: Giới hạn kích thước, độ sâu và thời gian xử lý một đầu vào kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-007
+    title: Nhận diện crash, hang, lỗi tài nguyên và vi phạm bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-008
+    title: Thu nhỏ, phân loại và lưu đầu vào gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fuzzing-random-data-009
+    title: Chuyển trường hợp được phát hiện thành test hồi quy xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mutation-testing
+  title: Kiểm thử đột biến
+  childs:
+  - slug: mutation-testing-001
+    title: Mutation testing đánh giá sức phát hiện lỗi của bộ test thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-002
+    title: Mutation operator và lỗi giả lập trong mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-003
+    title: Phân biệt mutant bị phát hiện, sống sót và không thể chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-004
+    title: Mutant tương đương và khó khăn khi diễn giải kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-005
+    title: Mutation score và phạm vi dữ liệu được tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-006
+    title: Nhận diện test chạy qua mã nhưng không kiểm tra kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-007
+    title: Dùng mutant sống sót để cải thiện dữ liệu hoặc assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-008
+    title: Ưu tiên mutation theo rủi ro và chi phí thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutation-testing-009
+    title: Giới hạn của mutation testing so với chứng minh tính đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boundaries-and-test-doubles
+  title: Ranh giới và test double
+  childs:
+  - slug: boundaries-and-test-doubles-001
+    title: Chọn đơn vị hành vi và ranh giới của mỗi test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-002
+    title: Phân biệt dependency thật, dummy, stub, fake, spy và mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-003
+    title: Thiết kế quan sát trạng thái so với xác minh tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-004
+    title: Khi nào số lần gọi, thứ tự gọi hoặc tham số là yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-005
+    title: Tránh mô phỏng quá nhiều khiến test không kiểm tra hành vi thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-006
+    title: Thiết kế test double theo hợp đồng của dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-007
+    title: Xác định phần cần kiểm tra lại với dependency thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-008
+    title: Tách fixture khỏi kết quả mong đợi để tránh tự xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundaries-and-test-doubles-009
+    title: Giữ khả năng thay đổi cấu trúc bên trong mà test vẫn có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-and-contracts
+  title: API và hợp đồng
+  childs:
+  - slug: api-and-contracts-001
+    title: Thiết kế test theo endpoint, operation và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-002
+    title: Method, route, parameter, header và payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-003
+    title: Status code, error structure và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-004
+    title: Trường bắt buộc, trường tùy chọn, null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-005
+    title: Vai trò người dùng, quyền truy cập và phạm vi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-006
+    title: Pagination, sorting, filtering và tính ổn định kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-007
+    title: Idempotency, yêu cầu trùng và thao tác được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-008
+    title: Khả năng tương thích khi producer và consumer khác phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-009
+    title: Phân biệt kiểm tra schema với kiểm tra ngữ nghĩa hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-and-contracts-010
+    title: Chọn phạm vi unit, integration hoặc contract test cho từng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-transactions
+  title: Dữ liệu và giao dịch
+  childs:
+  - slug: data-and-transactions-001
+    title: Thiết kế test cho constraint, quan hệ và bất biến dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-002
+    title: Phân biệt trạng thái dữ liệu trong bộ nhớ với dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-003
+    title: Commit, rollback và thay đổi dở dang khi xảy ra lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-004
+    title: Đầu vào trùng, cập nhật mất dữ liệu và xung đột phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-005
+    title: Chọn dữ liệu cho truy vấn, phân trang và sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-006
+    title: Thiết kế test cho migration và dữ liệu từ phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-007
+    title: Xác định điều kiện cô lập dữ liệu giữa các test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-transactions-008
+    title: Kiểm tra tác dụng phụ không xuất hiện sau giao dịch thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-and-async
+  title: Thời gian và bất đồng bộ
+  childs:
+  - slug: time-and-async-001
+    title: Mô hình hóa sự kiện có thể xảy ra trước, đúng hoặc sau thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-002
+    title: Chọn thời gian giả lập và Clock cho hành vi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-003
+    title: Múi giờ, DST, lịch và ranh giới ngày tháng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-004
+    title: Phân biệt tác vụ được tiếp nhận với tác vụ đã hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-005
+    title: Thiết kế oracle cho eventual consistency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-006
+    title: Chờ điều kiện có giới hạn thay vì giả định thời gian sleep
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-007
+    title: Timeout, cancellation và công việc còn chạy sau khi dừng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-008
+    title: Sự kiện đến muộn, sai thứ tự hoặc được phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-async-009
+    title: Xác định dữ liệu và bằng chứng cần giữ để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency
+  title: Đồng thời
+  childs:
+  - slug: concurrency-001
+    title: Nhận diện trạng thái chia sẻ và bất biến cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-002
+    title: Thiết kế tình huống hai thao tác cạnh tranh cùng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-003
+    title: Đồng bộ lịch thực thi bằng latch hoặc barrier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-004
+    title: Race condition, lost update và thao tác kiểm tra rồi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-005
+    title: Xung đột khóa, deadlock và khả năng hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-006
+    title: Yêu cầu trùng và tính nguyên tử của cơ chế idempotency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-007
+    title: Phân biệt nhiều kết quả hợp lệ với kết quả vi phạm hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-008
+    title: Giới hạn suy luận từ một lịch thực thi hoặc một lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-009
+    title: Tách lỗi trong test harness khỏi lỗi đồng thời của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions-and-recovery
+  title: Ngoại lệ và phục hồi
+  childs:
+  - slug: exceptions-and-recovery-001
+    title: Liệt kê điểm có thể thất bại trong một luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-002
+    title: Thiết kế lỗi đầu vào, lỗi nghiệp vụ và lỗi dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-003
+    title: Timeout, retry, fallback và kết quả khi hết số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-004
+    title: Thất bại sau khi đã tạo một phần tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-005
+    title: Cleanup tài nguyên khi có exception hoặc cancellation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-006
+    title: Bù trừ, khôi phục và tiếp tục công việc bị ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-007
+    title: Phân biệt báo lỗi đúng với che giấu lỗi ngoài chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-008
+    title: Kiểm tra trạng thái cuối cùng sau khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-and-recovery-009
+    title: Chọn điểm gây lỗi có kiểm soát để kiểm chứng từng giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: non-functional-requirements
+  title: Yêu cầu phi chức năng
+  childs:
+  - slug: non-functional-requirements-001
+    title: Chuyển yêu cầu chất lượng thành điều kiện và chỉ số có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-002
+    title: Thiết kế workload cho latency, throughput và mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-003
+    title: Chọn ngưỡng, thời lượng và môi trường đo theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-004
+    title: Thiết kế tình huống bảo mật từ mối đe dọa và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-005
+    title: Kiểm tra quyền, dữ liệu nhạy cảm và đầu vào không được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-006
+    title: Thiết kế tình huống độ tin cậy, gián đoạn và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-007
+    title: Ma trận nền tảng, phiên bản và cấu hình cho khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-008
+    title: Nhiệm vụ người dùng và tiêu chí khả năng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-009
+    title: Thiết kế điều kiện tiếp cận bằng bàn phím hoặc công nghệ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: non-functional-requirements-010
+    title: Phân biệt test chức năng với bằng chứng định lượng về thuộc tính chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation-design
+  title: Thiết kế để tự động hóa
+  childs:
+  - slug: automation-design-001
+    title: Chọn điểm vào và điểm quan sát ổn định cho test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-002
+    title: Arrange, Act, Assert và phân tách mục đích từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-003
+    title: Ánh xạ Given, When, Then sang cấu trúc test thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-004
+    title: Tham số hóa test mà vẫn giữ tên và kết quả dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-005
+    title: Thiết kế fixture tối thiểu, độc lập và có cleanup rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-006
+    title: Kiểm soát thời gian, tính ngẫu nhiên và dependency bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-007
+    title: Assertion cụ thể với thông báo giúp chẩn đoán thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-008
+    title: Tránh test phụ thuộc thứ tự hoặc trạng thái của test khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-009
+    title: Chọn phần tự động hóa và phần cần đánh giá bởi con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-design-010
+    title: Giữ mục đích nghiệp vụ khi chuyển test case sang mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coverage-and-traceability
+  title: Bao phủ và truy vết
+  childs:
+  - slug: coverage-and-traceability-001
+    title: Xác định coverage item theo kỹ thuật thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-002
+    title: Liên kết yêu cầu, rủi ro, điều kiện kiểm thử và test case
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-003
+    title: Ma trận truy vết và cách phát hiện yêu cầu chưa có test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-004
+    title: Đối chiếu bao phủ lớp, biên, quy tắc, trạng thái và cấu trúc mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-005
+    title: Phân biệt thiết kế đủ test với test đã được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-006
+    title: Ghi lý do loại trừ trường hợp không khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-007
+    title: Nhận diện test không liên kết với nhu cầu hoặc rủi ro rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-008
+    title: Đánh giá độ sâu assertion bên cạnh độ rộng coverage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coverage-and-traceability-009
+    title: Trình bày khoảng trống bao phủ và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: review-and-simplification
+  title: Rà soát và tối giản
+  childs:
+  - slug: review-and-simplification-001
+    title: Kiểm tra test có mục tiêu rõ, dữ liệu đủ và oracle đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-002
+    title: Tìm trường hợp trùng, thiếu hoặc mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-003
+    title: Rà soát phân lớp, biên và tổ hợp chưa được đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-004
+    title: Đối chiếu test với mô hình và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-005
+    title: Tối giản bộ test mà vẫn giữ mức bao phủ và giá trị bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-006
+    title: Phân biệt test dư thừa với test tương tự nhưng bắt lỗi khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-007
+    title: Ước lượng chi phí thực thi, điều tra và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-008
+    title: Rà soát chéo với người hiểu nghiệp vụ và người triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-and-simplification-009
+    title: Đánh giá thiết kế bằng lỗi thực tế hoặc mutant phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-driven-design
+  title: Thiết kế khi thay đổi
+  childs:
+  - slug: change-driven-design-001
+    title: Phân tích tác động khi yêu cầu, API hoặc mô hình dữ liệu đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-002
+    title: Xác định test cần thêm, sửa, giữ lại hoặc loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-003
+    title: Giữ lịch sử thay đổi kết quả mong đợi và lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-004
+    title: Bổ sung test từ lỗi đã phát hiện mà không chỉ sao chép tình huống duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-005
+    title: Cập nhật mô hình, dữ liệu và truy vết cùng test case
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-006
+    title: Phân biệt thích nghi với yêu cầu mới và làm yếu điều kiện kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-007
+    title: TDD và vai trò của việc thiết kế hành vi trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-008
+    title: Duy trì đặc tả bằng ví dụ khi nhiều nhóm cùng phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-driven-design-009
+    title: Kiểm tra bộ test sau thay đổi vẫn bảo vệ hành vi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Thiết kế bộ test cho biểu mẫu bằng phân lớp và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Chuyển chính sách giảm giá hoặc phân quyền thành bảng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Mô hình hóa vòng đời đơn hàng và sinh test chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tạo tập test cấu hình bằng pairwise có ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Thiết kế test cho biểu thức logic và giải thích mức bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Xây thuộc tính cùng generator cho collection hoặc phép chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tìm lỗi parser bằng fuzzing rồi tạo test hồi quy tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Cải thiện oracle dựa trên mutant sống sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Thiết kế tình huống timeout, xử lý trùng và lỗi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Bàn giao bộ test có mô hình, truy vết, ưu tiên và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

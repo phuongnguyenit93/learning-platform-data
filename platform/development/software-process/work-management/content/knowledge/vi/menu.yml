@@ -1,0 +1,355 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Quản lý công việc phần mềm là gì và giải quyết vấn đề nào
+  - Phân biệt công việc, hạng mục công việc, sản phẩm bàn giao và kết quả
+  - Mối liên hệ giữa quản lý công việc, quản lý dự án và quản lý sản phẩm
+  - Chu trình từ tiếp nhận nhu cầu đến hoàn tất và phản hồi
+  - 'Các khái niệm nền: phạm vi, nguồn lực, thời hạn, rủi ro và phụ thuộc'
+  - 'Đặc thù công việc phần mềm: bất định, tri thức và thay đổi'
+  - Phân biệt kế hoạch công việc với quy trình phát triển phần mềm
+  - Lựa chọn cách quản lý theo loại công việc và bối cảnh tổ chức
+  - Trình tự học từ quản lý cá nhân đến điều phối nhiều nhóm
+- level1: Mục tiêu và phạm vi
+  level2:
+  - Chuyển mục tiêu kinh doanh thành kết quả công việc có thể kiểm chứng
+  - Phân biệt kết quả mong đợi với số lượng đầu việc đã hoàn thành
+  - Xác định phạm vi, ranh giới và những việc chưa thực hiện
+  - Nhận diện bên liên quan, người sử dụng và người nhận bàn giao
+  - Xác định giả định, ràng buộc và tiêu chí thành công
+  - Cân bằng phạm vi, thời gian, chi phí, chất lượng và rủi ro
+  - Liên kết mục tiêu với sản phẩm bàn giao và hạng mục công việc
+  - Quy định cách xác nhận kết quả và xử lý mục tiêu thay đổi
+- level1: Vai trò và trách nhiệm
+  level2:
+  - Phân biệt người yêu cầu, người quyết định, người thực hiện và người nghiệm thu
+  - Phân định trách nhiệm giữa quản lý sản phẩm, quản lý dự án và nhóm kỹ thuật
+  - Thiết lập người chịu trách nhiệm chính cho từng hạng mục
+  - Xây dựng ma trận trách nhiệm RACI và giới hạn áp dụng
+  - Phân quyền quyết định để giảm thời gian chờ phê duyệt
+  - Tự tổ chức trong nhóm và trách nhiệm giải trình
+  - Xác định đầu mối phối hợp với vận hành, bảo mật và các nhóm hỗ trợ
+  - Xử lý trách nhiệm chồng chéo, công việc bị bỏ sót và thay đổi người phụ trách
+- level1: Tiếp nhận công việc
+  level2:
+  - Thiết kế kênh tiếp nhận thống nhất và tránh yêu cầu ngoài luồng
+  - Phân loại tính năng, lỗi, bảo trì, hỗ trợ, nghiên cứu và công việc vận hành
+  - Thu thập bối cảnh, mục đích, người yêu cầu và thời điểm cần kết quả
+  - Phân biệt mức độ nghiêm trọng, độ khẩn cấp và độ ưu tiên
+  - Sàng lọc yêu cầu trùng lặp, thiếu thông tin hoặc ngoài phạm vi
+  - Đánh giá ban đầu về giá trị, công sức, rủi ro và phụ thuộc
+  - Quy định tiếp nhận, từ chối, hoãn và chuyển tiếp yêu cầu
+  - Thiết lập quy tắc cho công việc khẩn cấp và gián đoạn kế hoạch
+  - Theo dõi yêu cầu từ lúc tiếp nhận đến khi được quyết định
+- level1: Hạng mục công việc
+  level2:
+  - 'Chọn loại hạng mục phù hợp: sáng kiến, epic, story, task, bug và spike'
+  - Phân biệt phân cấp công việc với liên kết phụ thuộc
+  - Viết tiêu đề rõ hành động hoặc kết quả cần đạt
+  - Mô tả bối cảnh, đầu vào, đầu ra và giới hạn thực hiện
+  - Xác định tiêu chí chấp nhận có thể kiểm chứng
+  - Bổ sung người phụ trách, độ ưu tiên, thời hạn và liên kết nguồn
+  - Quản lý trạng thái, lịch sử thay đổi và quyết định liên quan
+  - Thiết kế mẫu hạng mục theo loại công việc
+  - Nhận diện hạng mục quá lớn, quá mơ hồ hoặc quá vụn
+  - Quản lý đầu việc chưa rõ lời giải bằng khảo sát có giới hạn thời gian
+- level1: Phân rã công việc
+  level2:
+  - Phân rã theo sản phẩm bàn giao bằng cấu trúc WBS
+  - Phân biệt phân rã theo tính năng, thành phần kỹ thuật và giai đoạn
+  - Chia lát dọc để tạo kết quả sử dụng hoặc kiểm chứng được
+  - Tách công việc lớn theo quy tắc nghiệp vụ, luồng sử dụng và mức độ rủi ro
+  - Xác định gói công việc đủ nhỏ để theo dõi và bàn giao
+  - Bảo toàn tiêu chí chấp nhận khi tách một hạng mục
+  - Nhận diện việc tích hợp, kiểm thử, triển khai và tài liệu bị bỏ sót
+  - Tránh phân rã theo cá nhân làm tăng số lần bàn giao
+  - Kiểm tra tính đầy đủ và trùng lặp của cấu trúc công việc
+- level1: Danh sách công việc
+  level2:
+  - Vai trò của danh sách công việc tồn đọng (backlog)
+  - Tổ chức danh sách theo sản phẩm, nhóm và phạm vi dịch vụ
+  - Phân biệt danh sách ý tưởng, việc đã cam kết và việc đang thực hiện
+  - Liên kết mục tiêu, nhóm chủ đề và hạng mục chi tiết
+  - Làm rõ và cập nhật hạng mục trước khi đưa vào kế hoạch
+  - Xác định mức độ sẵn sàng để nhóm bắt đầu thực hiện
+  - Quản lý tuổi hạng mục, yêu cầu lỗi thời và công việc bị bỏ quên
+  - Dọn danh sách định kỳ và lưu lý do hoãn hoặc loại bỏ
+  - Giữ một nguồn theo dõi thống nhất khi nhiều công cụ cùng tồn tại
+- level1: Ưu tiên công việc
+  level2:
+  - Xác định giá trị từ lợi ích người dùng và mục tiêu kinh doanh
+  - Đánh giá chi phí trì hoãn và cơ hội mất đi
+  - Phân biệt thứ tự ưu tiên với mức độ quan trọng chung
+  - Phân nhóm bằng MoSCoW và làm rõ giới hạn của mỗi nhóm
+  - Đánh giá phạm vi tác động, mức ảnh hưởng, độ tin cậy và công sức bằng RICE
+  - Ưu tiên theo chi phí trì hoãn và độ lớn công việc bằng WSJF
+  - Ưu tiên giảm rủi ro và kiểm chứng giả định trước khi đầu tư lớn
+  - Cân bằng tính năng, lỗi, nợ kỹ thuật và nhu cầu vận hành
+  - Giải quyết xung đột ưu tiên giữa các bên liên quan
+  - Điều chỉnh thứ tự khi xuất hiện dữ liệu mới hoặc phụ thuộc bắt buộc
+- level1: Ước lượng công việc
+  level2:
+  - Phân biệt ước lượng, dự báo, mục tiêu và cam kết
+  - Phân biệt công sức thực hiện với thời gian hoàn thành theo lịch
+  - Ước lượng theo giờ, ngày công, độ lớn tương đối và dữ liệu dòng công việc
+  - Ước lượng từ trên xuống và từ các hạng mục chi tiết
+  - So sánh tương tự và sử dụng hạng mục tham chiếu
+  - Ước lượng ba điểm và biểu diễn khoảng bất định
+  - Thảo luận ước lượng theo nhóm và làm rõ khác biệt về giả định
+  - Tách thời gian khảo sát cho công việc chưa đủ thông tin
+  - Tính đến tích hợp, kiểm thử, sửa lỗi và thời gian chờ
+  - Nhận diện thiên lệch lạc quan, neo số và độ chính xác giả tạo
+  - Cập nhật ước lượng theo bằng chứng và đối chiếu với thực tế
+- level1: Năng lực và nguồn lực
+  level2:
+  - Xác định năng lực thực tế theo thời gian sẵn có và kỹ năng
+  - Phân biệt số người, tổng ngày công và khả năng hoàn thành
+  - Tính đến nghỉ phép, họp, trực vận hành và công việc hỗ trợ
+  - Lập bản đồ kỹ năng và xác định điểm phụ thuộc vào một người
+  - Cân bằng khối lượng giữa các cá nhân và chuyên môn
+  - Dành năng lực cho lỗi phát sinh, bảo trì và nhu cầu đột xuất
+  - Ảnh hưởng của chuyển đổi ngữ cảnh và làm nhiều việc đồng thời
+  - Đánh giá tác động khi thêm người vào công việc đang chậm
+  - Điều phối nhân sự dùng chung và nguồn lực bên ngoài
+  - Điều chỉnh kế hoạch khi năng lực hoặc cơ cấu nhóm thay đổi
+- level1: Phụ thuộc công việc
+  level2:
+  - Nhận diện phụ thuộc kỹ thuật, nghiệp vụ, dữ liệu và nguồn lực
+  - Phân biệt quan hệ phụ thuộc với thứ tự ưu tiên
+  - Biểu diễn quan hệ trước sau bằng sơ đồ phụ thuộc
+  - Phát hiện vòng phụ thuộc và điều kiện bắt đầu chưa được đáp ứng
+  - Xác định đầu vào, đầu ra và cam kết giữa các bên
+  - Giảm phụ thuộc bằng chia lát, hợp đồng giao tiếp và dữ liệu giả lập
+  - Theo dõi mốc bàn giao giữa các nhóm
+  - Quản lý phụ thuộc vào nhà cung cấp và hệ thống bên ngoài
+  - Đánh giá tác động dây chuyền khi một hạng mục bị chậm
+- level1: Tiến độ và lịch làm việc
+  level2:
+  - Phân biệt lộ trình, kế hoạch phát hành và lịch công việc chi tiết
+  - Xác định mốc kiểm chứng, mốc bàn giao và thời hạn bắt buộc
+  - Lập sơ đồ mạng công việc và xác định đường găng
+  - Độ dự trữ thời gian và tác động của việc chậm một công việc
+  - Thể hiện trình tự và tiến độ bằng biểu đồ Gantt
+  - Xử lý giới hạn nguồn lực khi xây dựng lịch
+  - Bố trí khoảng dự phòng theo bất định và rủi ro
+  - Lập kế hoạch cuốn chiếu từ xa đến gần
+  - Phân biệt kế hoạch cơ sở với kế hoạch cập nhật
+  - Điều chỉnh lịch khi phạm vi, phụ thuộc hoặc năng lực thay đổi
+- level1: Kế hoạch ngắn hạn
+  level2:
+  - Lựa chọn làm việc theo đợt có thời hạn hoặc dòng liên tục
+  - Xác định mục tiêu ngắn hạn và kết quả có thể bàn giao
+  - Chọn công việc theo ưu tiên, mức độ sẵn sàng và năng lực
+  - Tách dự báo thực hiện khỏi cam kết thời hạn cứng
+  - Lập kế hoạch kiểm thử, tích hợp và nghiệm thu trong cùng luồng
+  - Giữ khoảng dự phòng cho gián đoạn có thể dự kiến
+  - Làm rõ cách tiếp nhận thêm việc khi kế hoạch đã bắt đầu
+  - Điều chỉnh kế hoạch hằng ngày dựa trên tiến độ và trở ngại
+  - Kết thúc chu kỳ bằng kiểm chứng kết quả và phản hồi
+- level1: Quy trình công việc
+  level2:
+  - Mô hình hóa luồng từ sẵn sàng, đang làm đến hoàn tất
+  - Thiết kế trạng thái theo hoạt động và điều kiện thực tế
+  - Quy định điều kiện vào, điều kiện ra và trách nhiệm mỗi trạng thái
+  - Phân biệt đang thực hiện, đang chờ và đang bị chặn
+  - Mô hình hóa bước rà soát, kiểm thử, nghiệm thu và triển khai
+  - Xử lý công việc bị trả lại và vòng lặp làm lại
+  - Thiết kế luồng riêng cho việc khẩn cấp hoặc có hạn chót
+  - Giới hạn trạng thái để bảng công việc dễ hiểu và sử dụng
+  - Thống nhất tiêu chí hoàn tất giữa nhóm và bên nhận bàn giao
+- level1: Dòng công việc
+  level2:
+  - Trực quan hóa công việc bằng bảng Kanban
+  - Giới hạn công việc đang thực hiện (WIP) và lý do cần giới hạn
+  - Cơ chế kéo công việc theo năng lực còn trống
+  - Thiết lập điểm cam kết và điểm bàn giao trong dòng công việc
+  - Phân loại dịch vụ theo nhu cầu xử lý và chính sách rõ ràng
+  - Giảm kích thước lô và số lần bàn giao
+  - Phát hiện nút thắt, hàng đợi và công việc tích tụ
+  - Ưu tiên hoàn tất việc đang làm trước khi bắt đầu thêm
+  - Áp dụng quan hệ giữa WIP, thông lượng và thời gian chu kỳ khi điều kiện phù hợp
+  - Điều chỉnh giới hạn và chính sách dựa trên dữ liệu thực tế
+- level1: Điều phối hằng ngày
+  level2:
+  - Theo dõi tiến độ theo kết quả thay vì chỉ ghi nhận hoạt động
+  - Cập nhật trạng thái đúng lúc và thống nhất ý nghĩa trạng thái
+  - Trao đổi ngắn để xác định việc tiếp theo và trở ngại
+  - Phát hiện sớm công việc đứng yên hoặc chưa có người xử lý
+  - Phối hợp cùng giải quyết hạng mục đang gây tắc nghẽn
+  - Làm rõ quyết định cần hỗ trợ và thời điểm cần phản hồi
+  - Điều chỉnh phân công mà vẫn bảo toàn trách nhiệm chung
+  - Quản lý việc chuyển giao giữa ca trực hoặc thời điểm làm việc khác nhau
+  - Duy trì nhịp thực hiện bền vững và tránh phụ thuộc vào làm thêm giờ
+- level1: Gián đoạn và trở ngại
+  level2:
+  - Phân biệt rủi ro chưa xảy ra, vấn đề đã xảy ra và trở ngại
+  - Ghi nhận nội dung bị chặn, nguyên nhân, tác động và người xử lý
+  - Theo dõi thời gian bị chặn và thời điểm cần nâng cấp xử lý
+  - Thiết lập cơ chế yêu cầu hỗ trợ và chuyển cấp quyết định
+  - Xử lý sự cố vận hành chen vào kế hoạch phát triển
+  - Điều phối yêu cầu khẩn cấp mà không làm mất dấu công việc hiện tại
+  - Đánh giá lại kế hoạch sau gián đoạn lớn
+  - Phân biệt giải pháp tạm thời với xử lý nguyên nhân gốc
+  - Theo dõi việc tái diễn và cải thiện cơ chế phòng ngừa
+- level1: Rủi ro công việc
+  level2:
+  - Nhận diện rủi ro về phạm vi, kỹ thuật, tiến độ, nhân sự và nhà cung cấp
+  - Mô tả rủi ro theo nguyên nhân, sự kiện và hậu quả
+  - Đánh giá xác suất, mức tác động và mức độ cần xử lý
+  - Chỉ định người chịu trách nhiệm theo dõi từng rủi ro
+  - Lựa chọn tránh, giảm thiểu, chuyển giao hoặc chấp nhận
+  - Lập công việc giảm thiểu và kế hoạch dự phòng
+  - Xác định dấu hiệu cảnh báo cùng điều kiện kích hoạt ứng phó
+  - Liên kết rủi ro với phụ thuộc, mốc bàn giao và quyết định ưu tiên
+  - Rà soát rủi ro còn lại và cập nhật theo diễn biến công việc
+- level1: Thay đổi kế hoạch
+  level2:
+  - Phân biệt làm rõ yêu cầu với thay đổi phạm vi đã thống nhất
+  - Thiết lập cách tiếp nhận và ghi nhận đề nghị thay đổi
+  - Phân tích tác động đến công việc, lịch, chi phí và chất lượng
+  - Xác định quyền phê duyệt theo mức độ ảnh hưởng
+  - Xử lý thêm việc bằng đổi ưu tiên, thay phạm vi hoặc bổ sung thời gian
+  - Nhận diện phạm vi tăng âm thầm và công việc phát sinh không được ghi nhận
+  - Cập nhật phiên bản kế hoạch và thông báo cho bên chịu ảnh hưởng
+  - Lưu lý do quyết định để hỗ trợ truy vết
+  - Đánh giá thay đổi khẩn cấp và hoàn thiện thông tin sau xử lý
+- level1: Chất lượng và hoàn tất
+  level2:
+  - Đưa hoạt động bảo đảm chất lượng vào kế hoạch công việc
+  - Phân biệt tiêu chí chấp nhận với tiêu chí hoàn tất chung
+  - Lập kế hoạch rà soát mã, kiểm thử, bảo mật và tài liệu cần thiết
+  - Theo dõi lỗi phát hiện trong quá trình thực hiện và sau bàn giao
+  - Quản lý công việc làm lại và tác động đến năng lực
+  - Nhận diện công việc gần xong nhưng chưa đủ điều kiện bàn giao
+  - Đưa xử lý nợ kỹ thuật vào danh sách và thứ tự ưu tiên
+  - Lưu bằng chứng kiểm chứng phù hợp với mức độ rủi ro
+  - Phối hợp nghiệm thu mà không thay thế quy trình quản lý chất lượng
+- level1: Chi phí và ngân sách
+  level2:
+  - Phân biệt công sức, chi phí nhân sự và tổng chi phí thực hiện
+  - Ước tính chi phí hạ tầng, công cụ, dịch vụ và nhà cung cấp
+  - Lập ngân sách theo gói công việc hoặc giai đoạn
+  - Theo dõi chi phí đã phát sinh và chi phí dự kiến còn lại
+  - Phân biệt giá trị công việc hoàn thành với số tiền đã chi
+  - Nhận diện sai lệch chi phí cùng nguyên nhân phát sinh
+  - Cân nhắc tăng nguồn lực, giảm phạm vi hoặc thay thời hạn
+  - Đánh giá chi phí cơ hội khi trì hoãn hoặc dừng công việc
+- level1: Giao tiếp và quyết định
+  level2:
+  - Xác định ai cần thông tin gì, vào thời điểm nào và qua kênh nào
+  - Thiết kế thông báo tiến độ gắn với kết quả, rủi ro và đề nghị hỗ trợ
+  - Phân biệt trao đổi thông tin, tham vấn và phê duyệt quyết định
+  - Chuẩn bị cuộc họp với mục tiêu, đầu vào và kết quả cụ thể
+  - Ghi lại quyết định, người thực hiện và hạn hoàn thành hành động
+  - Giải quyết bất đồng ưu tiên, ước lượng và phân công
+  - Trình bày dự báo có bất định mà không tạo kỳ vọng sai
+  - Quản lý kỳ vọng khi thời hạn hoặc kết quả có nguy cơ thay đổi
+  - Lưu trữ kiến thức và quyết định để giảm phụ thuộc vào trao đổi miệng
+- level1: Cộng tác nhiều nhóm
+  level2:
+  - Phân định phạm vi công việc và quyền sở hữu giữa các nhóm
+  - Liên kết kế hoạch nhóm với mục tiêu và mốc chung
+  - Điều phối phụ thuộc bằng cam kết đầu vào, đầu ra và thời điểm
+  - Quản lý tích hợp liên nhóm để tránh hoàn tất cục bộ
+  - Cân bằng nguồn lực chuyên môn dùng chung
+  - Phối hợp với đối tác qua sản phẩm bàn giao và tiêu chí xác nhận
+  - Thiết kế trao đổi bất đồng bộ cho nhóm phân tán
+  - Xử lý múi giờ, thời gian chờ và bàn giao thiếu bối cảnh
+  - Giải quyết xung đột ưu tiên liên nhóm qua cơ chế ra quyết định rõ ràng
+  - Theo dõi kết quả toàn luồng thay vì tối ưu riêng từng nhóm
+- level1: Đo lường công việc
+  level2:
+  - Chọn chỉ số dựa trên câu hỏi quản lý cần trả lời
+  - Phân biệt chỉ số đầu vào, hoạt động, đầu ra và kết quả
+  - Đo thời gian dẫn (lead time) và thống nhất điểm bắt đầu, kết thúc
+  - Đo thời gian chu kỳ (cycle time) và thời gian công việc bị chặn
+  - Đo thông lượng (throughput), WIP và tuổi công việc đang làm
+  - Đo tỷ lệ hoàn thành, việc làm lại và công việc ngoài kế hoạch
+  - Sử dụng biểu đồ dòng tích lũy để phát hiện hàng đợi
+  - Đọc biểu đồ phân bố thời gian chu kỳ và các phân vị
+  - Sử dụng biểu đồ công việc còn lại và công việc đã hoàn thành
+  - Hiểu phạm vi sử dụng vận tốc nhóm và tránh so sánh giữa các nhóm
+  - Tránh đánh giá cá nhân bằng số phiếu, số dòng mã hoặc số giờ bận rộn
+  - Kiểm tra chất lượng dữ liệu trước khi diễn giải chỉ số
+- level1: Theo dõi và dự báo
+  level2:
+  - So sánh thực tế với kế hoạch theo phạm vi, thời gian và chi phí
+  - Phát hiện sai lệch sớm bằng xu hướng và ngưỡng cảnh báo
+  - Phân biệt báo cáo trạng thái hiện tại với dự báo tương lai
+  - Dự báo thời điểm hoàn thành từ dữ liệu thông lượng hoặc thời gian chu kỳ
+  - Biểu diễn khả năng hoàn thành bằng khoảng và mức tin cậy
+  - Mô phỏng Monte Carlo từ dữ liệu lịch sử phù hợp
+  - Xác định kỳ vọng mức dịch vụ từ phân bố thời gian hoàn thành
+  - Đánh giá lại dự báo khi cơ cấu nhóm hoặc loại công việc thay đổi
+  - Trình bày kịch bản thay đổi phạm vi, nguồn lực và thời hạn
+  - Chọn hành động điều chỉnh và theo dõi hiệu quả sau quyết định
+- level1: Bàn giao và đóng việc
+  level2:
+  - Lập kế hoạch phát hành dựa trên kết quả đã được kiểm chứng
+  - Phân biệt hoàn tất hạng mục, sẵn sàng phát hành và đã đến tay người dùng
+  - Phối hợp lịch triển khai, cửa sổ thay đổi và nhóm vận hành
+  - 'Kiểm tra điều kiện bàn giao: hướng dẫn, giám sát, hỗ trợ và phương án khôi phục'
+  - Xác nhận nghiệm thu, ghi nhận hạn chế còn lại và người tiếp nhận
+  - Đóng hạng mục với bằng chứng và liên kết liên quan
+  - Xử lý hạng mục chưa xong, bị hủy hoặc chuyển sang giai đoạn sau
+  - Thu thập phản hồi và kiểm tra kết quả thực tế sau bàn giao
+  - Chuyển trách nhiệm hỗ trợ, bảo trì và theo dõi lỗi sau phát hành
+- level1: Công cụ và tự động hóa
+  level2:
+  - Chọn công cụ theo quy trình và nhu cầu phối hợp thực tế
+  - Thiết kế bảng công việc, trường dữ liệu và bộ lọc theo vai trò
+  - Chuẩn hóa mẫu hạng mục mà không tạo gánh nặng nhập liệu
+  - Liên kết công việc với nhánh mã, commit, yêu cầu hợp nhất và bản phát hành
+  - Tự động cập nhật trạng thái từ sự kiện phát triển có điều kiện kiểm chứng
+  - Tạo nhắc việc, cảnh báo quá hạn và thông báo phụ thuộc
+  - Đồng bộ dữ liệu giữa công cụ và xác định nguồn chuẩn cho từng loại thông tin
+  - Quản lý quyền truy cập, lịch sử thay đổi và thông tin nhạy cảm
+  - Xây dựng bảng theo dõi và báo cáo từ dữ liệu có thể truy vết
+  - Nhận diện giới hạn của công cụ và tránh thay quy trình bằng cấu hình
+- level1: Quản lý cá nhân
+  level2:
+  - Thu thập đầu việc cá nhân và liên kết với kế hoạch chung
+  - Xác định việc tiếp theo có thể hành động được
+  - Ưu tiên theo mục tiêu, thời hạn và tác động
+  - Lập lịch tập trung và giới hạn số việc đang làm
+  - Quản lý thông báo, gián đoạn và chuyển đổi ngữ cảnh
+  - Ghi lại tiến độ, trở ngại và quyết định cần hỗ trợ
+  - Ước lượng và rà soát cách sử dụng thời gian
+  - Cân bằng tự chủ cá nhân với minh bạch trong nhóm
+- level1: Cải tiến cách làm
+  level2:
+  - Thu thập dữ liệu và phản hồi từ quá trình thực hiện
+  - Tổ chức nhìn lại dựa trên sự kiện và điều kiện làm việc
+  - Phân tích nguyên nhân của chậm trễ, làm lại và công việc bị chặn
+  - Chọn một vấn đề có tác động rõ để thử nghiệm cải tiến
+  - Đặt giả thuyết, hành động và cách đo kết quả
+  - Giới hạn số thay đổi để đánh giá được tác động
+  - Theo dõi hành động cải tiến như các hạng mục công việc
+  - Chuẩn hóa cách làm có hiệu quả và loại bỏ bước không tạo giá trị
+  - Phân biệt điều chỉnh quản lý công việc với cải tổ toàn bộ quy trình
+- level1: Sai lầm thường gặp
+  level2:
+  - Lập kế hoạch quá chi tiết khi đầu vào còn nhiều bất định
+  - Cam kết thời hạn trước khi hiểu phạm vi và năng lực
+  - Xem ước lượng là cam kết cố định hoặc ép ước lượng theo hạn chót
+  - Để mọi yêu cầu đều khẩn cấp và liên tục đổi ưu tiên
+  - Tối đa hóa mức sử dụng từng người làm tăng hàng đợi
+  - Mở quá nhiều việc và báo tiến độ bằng tỷ lệ hoàn thành cảm tính
+  - Bỏ sót kiểm thử, tích hợp, tài liệu và công việc vận hành
+  - Dùng trạng thái hoàn tất để che công việc chưa được kiểm chứng
+  - Điều hành bằng chỉ số đơn lẻ hoặc so sánh năng suất cá nhân sai cách
+  - Duy trì bảng công việc hình thức, dữ liệu cũ và quyết định không được ghi lại
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế quy trình tiếp nhận và sàng lọc yêu cầu cho một nhóm phần mềm
+  - Chuyển mục tiêu sản phẩm thành cấu trúc công việc và sản phẩm bàn giao
+  - Chuẩn hóa mô tả hạng mục cùng tiêu chí chấp nhận
+  - Ưu tiên danh sách có tính năng, lỗi, nợ kỹ thuật và việc vận hành
+  - Lập ước lượng, năng lực và kế hoạch khi có nghỉ phép hoặc trực hỗ trợ
+  - Xây dựng lịch có phụ thuộc và xác định công việc ảnh hưởng mốc chung
+  - Thiết kế bảng công việc với giới hạn WIP và chính sách xử lý việc bị chặn
+  - Điều phối yêu cầu khẩn cấp trong khi vẫn bảo vệ mục tiêu đã thống nhất
+  - Phân tích yêu cầu thay đổi và đề xuất phương án đánh đổi
+  - Đọc dữ liệu dòng công việc để chẩn đoán nút thắt và dự báo hoàn thành
+  - Tổ chức bàn giao liên nhóm cùng bằng chứng kiểm chứng
+  - Thực hiện một vòng nhìn lại và đo kết quả cải tiến

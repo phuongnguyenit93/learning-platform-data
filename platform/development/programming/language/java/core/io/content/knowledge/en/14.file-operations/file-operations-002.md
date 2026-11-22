@@ -1,0 +1,678 @@
+# createTempFile, createTempDirectory, and Cleanup Scope in Java
+
+Java applications frequently need to create intermediate data: downloaded files being processed, exported data, input files for another library, extraction areas, converted images, or spaces where tests can write data without touching real user files. Java NIO.2 provides **`Files.createTempFile(...)`** and **`Files.createTempDirectory(...)`** to create temporary files and directories with distinct names on a filesystem.
+
+What matters is not only creating a temporary file. An application must also clearly define **where to create it**, **who owns it**, **when to clean it up**, **what alone may be deleted**, **the order of closing resources and deleting**, and **how to handle cleanup errors**. The word "temporary" does not mean "the JVM automatically and safely deletes everything after use."
+
+This lesson belongs to the **File Operations** group in Java Core I/O; examples use Java 17+.
+
+## 1. What Are a Temporary File and a Temporary Directory?
+
+- **Temporary file:** a file created for a purpose with a bounded lifecycle, such as writing content before uploading or storing intermediate results.
+- **Temporary directory:** a directory created to group a set of temporary files/directories serving the same task, such as a single image-processing run.
+- **Cleanup scope:** the set of resources that the current component has the authority and responsibility to delete after work finishes.
+
+Diagram:
+
+```text
+Application
+   |
+   | Files.createTempDirectory("my-job-")
+   v
+[temp root created by application]
+   |
+   +-- Files.createTempFile(root, "input-", ".bin")
+   |       -> intermediate file
+   |
+   +-- Files.createTempDirectory(root, "stage-")
+           |
+           +-- output file
+           +-- multiple small files
+
+Work finishes (success or error)
+   |
+   +-- close open stream/channel/writer
+   +-- delete files and subdirectories under root
+   +-- delete root last
+   |
+   v
+DO NOT delete shared parent of root or someone else's files
+```
+
+If an application creates its own root directory with `createTempDirectory`, that location is usually the **appropriate cleanup boundary** for a job. However, if an application creates only a single temporary file in a shared directory, the normal right to clean up applies only to **that file**, not the entire directory containing it.
+
+## 2. APIs for Creating Temporary Files/Directories: Main Overloads
+
+These methods belong to `java.nio.file.Files`:
+
+```java
+// No directory passed: creates in the provider's default temporary location.
+Path file1 = Files.createTempFile("demo-", ".txt");
+Path dir1  = Files.createTempDirectory("demo-");
+
+// Specify an existing parent directory:
+Path base  = Path.of("work");
+Path file2 = Files.createTempFile(base, "part-", ".bin");
+Path dir2  = Files.createTempDirectory(base, "job-");
+```
+
+This is an **illustrative snippet**: it requires importing `java.nio.file.*`; `base` must exist, be a directory, and allow entry creation. The calls may throw `IOException` and other exceptions when arguments/attributes are invalid.
+
+General signatures with the optional `FileAttribute<?>...` parameter:
+
+```java
+Files.createTempFile(String prefix, String suffix,
+                     FileAttribute<?>... attrs)
+
+Files.createTempFile(Path dir, String prefix, String suffix,
+                     FileAttribute<?>... attrs)
+
+Files.createTempDirectory(String prefix,
+                          FileAttribute<?>... attrs)
+
+Files.createTempDirectory(Path dir, String prefix,
+                          FileAttribute<?>... attrs)
+```
+
+**The result is a `Path` pointing to a resource that has actually been created** — unlike `Path.of(...)` or `new File(...)`, which only construct an object representing a path. If creation succeeds, a temporary file is a new file (initially empty), and a temporary directory is a new directory.
+
+| Call | What does it create? | Result | Requirement |
+| --- | --- | --- | --- |
+| `Path.of("x.tmp")` | Creates nothing on disk | `Path` | Only a valid path is needed |
+| `Files.createTempFile("x-", ".tmp")` | Real temporary file | `Path` | Available default temp location |
+| `Files.createTempDirectory("x-")` | Real temporary directory | `Path` | Available default temp location |
+| `Files.createTempFile(base, "x-", ".tmp")` | New file inside `base` | `Path` | `base` is an existing directory |
+| `Files.createTempDirectory(base, "x-")` | New directory inside `base` | `Path` | `base` is an existing directory |
+| `Files.createFile(path)` | New file at the application-chosen `path` | `Path` | Path does not yet exist |
+| `Files.createDirectory(path)` | New directory at the application-chosen `path` | `Path` | Parent path exists |
+
+### Prefix, Suffix, and Generated Names
+
+- `prefix` is the beginning of the system-generated name, e.g., `report-`.
+- `suffix` is the ending **for temporary files only**, e.g., `.csv` or `.tmp`.
+- The middle part of the name is generated by the provider to select an unused name.
+- Java does not guarantee a specific name or a fixed length for the auto-generated segment. **Do not write tests that guess the full filename**.
+- If `prefix` or `suffix` contains characters or path sequences not accepted by the filesystem, the operation can fail.
+- For file overloads, `suffix == null` is typically handled as the default `.tmp` suffix per the API contract; pass the suffix explicitly when the application needs a specific extension.
+- Do not put confidential data such as tokens, verification codes, or personal information into `prefix`/`suffix`: entry names can be exposed in logs, file managers, traces, or directory listings.
+
+A temporary name is a **path identity**, not a password or security mechanism. Unpredictability of the name does not substitute for filesystem access permissions.
+
+## 3. Where It Is Created: Default Temporary Directory vs. Specific Directory
+
+When using an overload that does not take `Path dir`:
+
+```java
+Path temp = Files.createTempFile("app-", ".tmp");
+Path folder = Files.createTempDirectory("app-");
+```
+
+Java uses **the provider's default temporary location**. In a typical JDK environment, configuration related to the temporary directory can be observed via the `java.io.tmpdir` system property:
+
+```java
+String configured = System.getProperty("java.io.tmpdir");
+System.out.println(configured);
+```
+
+The snippet above reports the configuration at the time it is read; it is **not a guarantee** that all `FileSystemProvider` implementations will use that exact path. Do not hardcode `/tmp` or `C:\Temp` in cross-platform programs. Also do not assume temporary files reside in the project directory or the directory containing classes.
+
+If you want explicit control over where creation occurs, pass an already-created `Path dir`:
+
+```java
+Path workspace = Files.createTempDirectory("my-app-");
+Path tempFile = Files.createTempFile(workspace, "data-", ".txt");
+```
+
+`tempFile` belongs to the `workspace` directory created by this run of the application. Using an explicit path like this usually helps **track ownership and cleanup** better than scattering many files across a shared temporary directory.
+
+### Things You Should Not Assume
+
+- The default temporary directory always has sufficient space or remains functional.
+- Every machine uses the same filesystem, separator, and access permission rules.
+- Temporary files are guaranteed to be deleted when the JVM exits.
+- `createTempFile` automatically creates any passed parent directories.
+- Two programs with the same prefix will generate the exact same name.
+- A created path will never be deleted or renamed by another process.
+
+If temporary files participate in processing important data, there must be proper I/O error handling, size limits, and a storage/recovery policy.
+
+## 4. Creation Is Real and Usually Involves an Atomic New-Name Check
+
+When `Files.createTempFile(...)` succeeds, the provider creates a **new** file; the method does not merely return a name to "maybe create later." Similarly, `Files.createTempDirectory(...)` creates a new directory.
+
+Safety advantage:
+
+```java
+Path output = Files.createTempFile("download-", ".part");
+```
+
+`output` is already a created file, not a proposed name taken from your own random number generator. The provider chooses a new name and performs the creation operation according to the API contract, avoiding race-prone patterns like:
+
+```java
+// Do not design this yourself:
+Path candidate = Path.of("work", "temp-" + System.currentTimeMillis());
+if (!Files.exists(candidate)) {
+    Files.createFile(candidate); // Another process can step in between.
+}
+```
+
+The second snippet only illustrates a design flaw (*time-of-check to time-of-use*). When a new temporary file is needed, call `Files.createTempFile(...)` directly. When you need to create a file at a **fixed name** and fail if it already exists, use `Files.createFile(...)` or `StandardOpenOption.CREATE_NEW`.
+
+However, after the resource is created, the application can still encounter races if it closes and reopens the filename inside a directory that others can modify. Do not assume that initial creation makes every subsequent operation completely safe. For sensitive data, pay attention to parent directory permissions, ownership, symlinks/hard links, and keeping handles open when needed.
+
+## 5. A Complete Java 17+ Example: Creating and Cleaning Up a Temporary Workspace
+
+This example uses a **dedicated temporary root** for a single run. Inside the root, we create a subdirectory, a text file, and a binary file; write, read, verify, and then clean everything up using `Files.walkFileTree(...)`.
+
+Save to `TempWorkspaceDemo.java`:
+
+```java
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+
+public class TempWorkspaceDemo {
+
+    private static void deleteOwnedTree(Path root) throws IOException {
+        Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file,
+                                             BasicFileAttributes attrs)
+                    throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir,
+                                                      IOException error)
+                    throws IOException {
+                if (error != null) {
+                    throw error;
+                }
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    public static void main(String[] args) throws IOException {
+        // Root created specifically for this run.
+        Path root = Files.createTempDirectory("lesson-temp-");
+
+        try {
+            Path nested = Files.createTempDirectory(root, "batch-");
+            Path text = Files.createTempFile(root, "note-", ".txt");
+            Path binary = Files.createTempFile(nested, "data-", ".bin");
+
+            Files.writeString(text, "Hello", StandardCharsets.UTF_8);
+            Files.write(binary, new byte[] { 1, 2, 3 });
+
+            System.out.println("root directory: "
+                    + Files.isDirectory(root));
+            System.out.println("nested directory: "
+                    + Files.isDirectory(nested));
+            System.out.println("text file: "
+                    + Files.isRegularFile(text));
+            System.out.println("text: "
+                    + Files.readString(text, StandardCharsets.UTF_8));
+            System.out.println("binary length: " + Files.size(binary));
+        } finally {
+            // Delete only the root created by this run and items inside it.
+            deleteOwnedTree(root);
+        }
+
+        System.out.println("root removed: " + Files.notExists(root));
+    }
+}
+```
+
+Compile and run on JDK 17+:
+
+```bash
+javac TempWorkspaceDemo.java
+java TempWorkspaceDemo
+```
+
+Stdout under conditions where the temporary directory can be created/written/deleted and no other process interferes:
+
+```text
+root directory: true
+nested directory: true
+text file: true
+text: Hello
+binary length: 3
+root removed: true
+```
+
+Behavior verified against the JDK. The generated root, folder, and file names are **different on each run**; the example avoids printing dynamic names so the output is easy to compare.
+
+Detailed explanation:
+
+1. `Files.createTempDirectory("lesson-temp-")` **creates a real directory**, considered the scope owned by the example.
+2. `Files.createTempDirectory(root, "batch-")` creates a subdirectory inside root; `Files.createTempFile(root, "note-", ".txt")` and `Files.createTempFile(nested, "data-", ".bin")` create **two empty files**.
+3. `Files.writeString(...)` and `Files.write(...)` put data into existing files. In the example, we use convenience write APIs with default options for illustration, which can truncate existing content at the path. For pipelines needing to guarantee file identity against path replacement risks, control how streams are opened and directory permissions.
+4. `Files.readString(...)` and `Files.size(...)` verify file content and size.
+5. `finally` executes whether the `try` block finishes normally or throws a Java exception. It calls `deleteOwnedTree(root)` to clean up the directory tree.
+6. `walkFileTree` by default **does not follow symbolic links** because the example does not pass `FileVisitOption.FOLLOW_LINKS`. `visitFile` deletes files/links, and `postVisitDirectory` deletes a directory only after processing its children.
+7. `Files.notExists(root)` afterward indicates that root is gone in the success case. It is not permanent proof that the path will not be recreated.
+
+In real applications, both the processing phase and cleanup can throw `IOException`; you must design how to prioritize and record errors instead of assuming cleanup never fails.
+
+## 6. Why Must Directory Cleanup Follow Children-Before-Parent Order?
+
+`Files.delete(path)` deletes the corresponding file or **empty** directory; Java does not treat this call as an arbitrary recursive delete command. If a directory still has entries:
+
+```java
+Files.delete(root);
+```
+
+can throw `DirectoryNotEmptyException`. `Files.deleteIfExists(root)` differs only in not throwing a separate error when **root does not exist**; it does **not** automatically delete child entries.
+
+Therefore:
+
+```text
+my-job-123/
+  note-12.txt
+  batch-34/
+    data-56.bin
+```
+
+The logical order is to delete `data-56.bin`, delete `batch-34`, delete `note-12.txt`, and finally delete `my-job-123`. When there are many levels and many items, `Files.walkFileTree` is better suited than many manual delete calls.
+
+Hooks of `SimpleFileVisitor`:
+
+| Method | Role in cleanup |
+| --- | --- |
+| `visitFile(file, attrs)` | Delete a regular file or entry visited as a file; by default symbolic links are not followed |
+| `postVisitDirectory(dir, error)` | After visiting children finishes, delete the directory itself |
+| `visitFileFailed(path, error)` | Decide what to do if an entry cannot be accessed |
+| `preVisitDirectory(dir, attrs)` | Before visiting the directory's children |
+
+If a traversal/delete operation fails, handle `IOException` properly; do not silently ignore all errors. In the example code, `postVisitDirectory` checks `error != null` before deleting. If "best effort" cleanup is desired, multiple errors can be collected to report later, but it must be intentional and avoid claiming everything was cleaned up when data remains.
+
+### Another Approach: Files.walk in Reverse Order
+
+You can collect paths with `Files.walk(root)`, sort them so children appear before parents, and call `Files.delete(...)`. However, `Files.walk(...)` returns a **Stream holding resources that must be closed**, and sorting/traversal logic must handle exceptions and symbolic links explicitly. `walkFileTree` is usually easier for controlling I/O errors, ordering, and callbacks for recursive cleanup.
+
+Whichever approach you choose, **only start from a root that the application truly owns**.
+
+## 7. Cleanup Scope: Delete Exactly What You Created
+
+Three common scenarios:
+
+| Temp creation pattern | Managed scope | When finished |
+| --- | --- | --- |
+| One `createTempFile(...)` in a shared temp directory | **That file itself** | `Files.deleteIfExists(tempFile)` after closing resources |
+| One `createTempDirectory(...)` dedicated to a job | **That directory and children belonging to the job** | Delete children first, root last |
+| Creating temp files in a user-specified directory | **Files created by the application**, not the entire user directory | Delete owned files; do not delete parent directory |
+| Job produces final output to keep | Only intermediate files; **completed output is not trash** | Keep/publish output, clean intermediates |
+| Temp resource handed off to another component | Per ownership contract | Do not delete before the receiver finishes |
+
+**An absolute rule:** Never take `System.getProperty("java.io.tmpdir")` and delete the entire contents of that directory. Many applications and accounts can share that location. A temporary root created by a single job is different from **the operating system's shared temporary directory**.
+
+Before calling a directory-tree deletion function:
+
+1. Ensure the root was returned by a creation operation **dedicated to this job**.
+2. Do not accept an arbitrary root from unvalidated input.
+3. Do not use an empty path, home directory, or system temp directory as the cleanup root.
+4. Do not actively follow symbolic links pointing outside the root.
+5. Account for the possibility that data may be renamed, moved, or replaced by another actor between creation and cleanup.
+6. Do not delete final output that has been handed off or data requested to be retained.
+
+In systems processing many jobs, a dedicated temporary workspace per job helps track and clean up only what belongs to that job, rather than scanning a shared directory and guessing which files are "yours."
+
+## 8. try-with-resources for Streams Differs from File/Directory Cleanup
+
+`try-with-resources` automatically calls `close()` on `AutoCloseable` objects such as `InputStream`, `OutputStream`, `Reader`, `Writer`, and `FileChannel`. However, **`Path` and `File` are not `AutoCloseable` resources**. Closing a stream does not by default delete the underlying physical file.
+
+Example:
+
+```java
+Path temp = Files.createTempFile("download-", ".bin");
+
+try {
+    try (OutputStream out = Files.newOutputStream(temp)) {
+        out.write(new byte[] { 1, 2, 3 });
+    } // Stream is closed before the file is deleted.
+
+    // Use data at temp while the stream is no longer open.
+} finally {
+    Files.deleteIfExists(temp);
+}
+```
+
+This snippet requires importing `java.nio.file.Files`, `Path`, and `java.io.OutputStream`, as well as handling `IOException`. In this example, the resource lifecycle has two layers:
+
+- **Layer 1:** Close the stream using `try-with-resources`.
+- **Layer 2:** Delete the temporary file using `finally`.
+
+On some operating systems (especially Windows), an open file may be refused deletion depending on handle sharing. On others, unlinking an open file can succeed while the handle remains alive until closed. Do not build code relying on a single behavior across all OSes. **Closing handles first, then cleaning up files** is the portable principle.
+
+### Do Not Lose Resources When Cleanup Fails
+
+`try-with-resources` also handles *suppressed* exceptions when both the main body and `close()` report errors. However, a standard `try { work(); } finally { cleanup(); }` block can let an exception from `cleanup()` mask the original exception from `work()` if both fail.
+
+For complex logic, you can wrap a temporary workspace in an `AutoCloseable` class to use `try-with-resources`:
+
+```java
+final class TempWorkspace implements AutoCloseable {
+    private final Path root;
+
+    TempWorkspace() throws IOException {
+        this.root = Files.createTempDirectory("job-");
+    }
+
+    Path root() {
+        return root;
+    }
+
+    @Override
+    public void close() throws IOException {
+        // deleteOwnedTree(root) is a dedicated traverse/delete helper
+        // implemented following the walkFileTree pattern above.
+        deleteOwnedTree(root);
+    }
+}
+```
+
+This is a **design snippet**, not standalone: it requires the `deleteOwnedTree` helper and imports `java.nio.file.*`/`java.io.IOException`. Once the class is complete, use it as:
+
+```java
+try (TempWorkspace workspace = new TempWorkspace()) {
+    process(workspace.root());
+}
+```
+
+This is also a snippet with an application-defined `process`. If `process` throws an exception and `close` also fails, try-with-resources places the close error in the **suppressed** list instead of replacing the primary error, aiding diagnosis. You must ensure `close()` cleans up only the root created by the object, avoiding accidentally accepting a user directory as root.
+
+## 9. deleteOnExit Is Not a General Cleanup Solution
+
+`java.io.File.deleteOnExit()` registers a **path** for deletion when the JVM terminates **normally**:
+
+```java
+File temp = File.createTempFile("demo-", ".tmp");
+temp.deleteOnExit();
+```
+
+This snippet requires importing `java.io.File` and handling `IOException`.
+
+Very important limitations:
+
+- Does not delete immediately after work completes.
+- Not guaranteed to run if the process is killed, loses power, or the JVM stops abnormally.
+- Does not recursively clean an entire directory tree. If a registered directory still contains files, deleting the directory may fail.
+- The list of registered paths is retained by the JVM until shutdown; registering huge numbers of files in a long-running server program can cause unnecessary accumulation.
+- Does not indicate immediately during processing whether deletion succeeded.
+- Does not replace closing streams/handles.
+
+Therefore, `deleteOnExit()` may be suitable as a secondary fallback for small CLI examples, but **explicit cleanup** in `finally` or an `AutoCloseable` workspace is a better way to manage the lifecycle of a processing run.
+
+If an application needs to recover temporary trash after a crash, a file-age cleanup task (*janitor*) can serve as a supplement, but it must use **clear ownership namespace/metadata**, age limits, permission checks, and avoid deleting tasks still running. Do not rely solely on files having a `.tmp` suffix.
+
+## 10. Access Permissions When Creating Sensitive Temporary Data
+
+Temporary files can contain internal or personal information. Do not assume that "being in the temporary directory" means "readable only by the current process."
+
+According to Java documentation, `Files.createTempFile`/`createTempDirectory` can create resources with attributes/permissions specified via `FileAttribute<?>... attrs`, if the provider supports them. On a POSIX filesystem, for example a file readable/writable only by the owner:
+
+```java
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
+
+Path secret = Files.createTempFile(
+        "secret-", ".bin",
+        PosixFilePermissions.asFileAttribute(
+                PosixFilePermissions.fromString("rw-------")));
+```
+
+This is a **snippet for filesystems supporting POSIX attributes**. Not every Windows setup or NIO provider supports the `posix:permissions` attribute; it can throw `UnsupportedOperationException` or another error. Do not pretend the example is portable as-is.
+
+If a dedicated workspace with owner-only permissions is needed:
+
+```java
+Path privateRoot = Files.createTempDirectory(
+        "private-job-",
+        PosixFilePermissions.asFileAttribute(
+                PosixFilePermissions.fromString("rwx------")));
+```
+
+This snippet requires importing `java.nio.file.*` and `java.nio.file.attribute.PosixFilePermissions`, handling `IOException`, and is only for providers supporting POSIX. On other platforms, design ACLs/permissions appropriate to the operating system and organization.
+
+**General principles:**
+
+1. Place sensitive files inside a dedicated directory with restricted permissions.
+2. Do not rely solely on random names as a protective measure.
+3. Do not store passwords/tokens in filenames or log raw secret content.
+4. Limit how long temporary files exist and avoid unnecessary sharing with other applications.
+5. Do not assume `Files.delete` is equivalent to unrecoverable secure erasure at the storage device level; filesystems, snapshots, or backups may still retain traces of data.
+6. Use appropriate strategies for highly sensitive data, including encryption and retention policies when required.
+
+## 11. Common Cleanup Mistakes in Practice
+
+### 11.1. Calling deleteIfExists Only on the Parent Directory
+
+`Files.deleteIfExists(workspace)` does not delete child files. If entries remain underneath, it can throw `DirectoryNotEmptyException`. Files and subdirectories must be deleted first (or via a visitor).
+
+### 11.2. Deleting a Root Not Guaranteed to Belong to You
+
+A `Path root` variable obtained from configuration does not guarantee it is a workspace created by the application. Passing `Path.of(System.getProperty("java.io.tmpdir"))` by mistake into a recursive helper could destroy another program's data. Only clean up a root tree **newly created specifically for this purpose with recorded ownership**.
+
+### 11.3. Failing to Close File Streams Before Deletion
+
+A file may still have open handles; Windows often restricts deletion depending on sharing modes. Wrap streams in try-with-resources first, then delete the file once handles are closed.
+
+### 11.4. Treating Cleanup in finally as Always Succeeding
+
+`finally` guarantees **attempting to run** cleanup when Java control flow passes through it, not that the deletion actually succeeds. Disk errors, permission changes, locked files, races, or process termination can leave temporary files behind. Record cleanup errors and design handling for leftover debris.
+
+### 11.5. Relying on Names to Decide Deletion Authority
+
+A name starting with `temp-` does not prove a file was created by the application. Another piece of software may use a similar prefix. You need a list of created resources or a dedicated root with verified scope.
+
+### 11.6. Following Symlinks Outside the Root
+
+`Files.walkFileTree(root)` **does not enable `FOLLOW_LINKS` by default**. Do not enable this option when cleaning a temp tree unless there is a clear need and security model, because a link inside root can point to another location outside scope. Even without following links, races are still risky if others are allowed to modify the tree during traversal; an owner-writable-only root directory reduces risk.
+
+### 11.7. Not Controlling Disk Usage
+
+Temporary files can fill up a disk. An upload/extraction application can be hit by a "zip bomb" or oversized input that spikes file counts and bytes. Set limits on total bytes, file count, directory depth, and processing time; do not treat the temp directory as unlimited memory.
+
+### 11.8. Creating Too Many Files Just for Very Small Data
+
+A few bytes needing quick processing can be kept in `byte[]`/`ByteArrayOutputStream` instead of creating a real temporary file. Temporary files incur I/O and metadata synchronization overhead, so use them when libraries require a `Path`, when processing large data, or to avoid holding everything in RAM.
+
+## 12. Organizing Scope in Multi-Step Applications
+
+A file-processing pipeline typically has three types of resources:
+
+| Type | Example | Lifecycle rule |
+| --- | --- | --- |
+| **Intermediate** | `raw-input.tmp`, extracted files, previews | Clean up after the job finishes |
+| **Published output** | `reports/final.csv` | Retain according to data policy |
+| **Shared external input** | Uploaded file transferred to another storage, user-supplied file | Do not delete unless contract permits |
+
+Example export workflow that is safer than writing directly to the final file:
+
+```text
+(1) Create temp file on the same filesystem/target directory when appropriate
+(2) Write result to temp, flush, and close stream
+(3) Verify output
+(4) Attempt to move temp file to target file with Files.move(...)
+(5) Clean up temp file if not yet successfully transferred
+```
+
+An illustrative *snippet* example:
+
+```java
+Path finalPath = Path.of("reports", "final.txt");
+Path parent = finalPath.toAbsolutePath().getParent();
+Files.createDirectories(parent);
+
+Path temp = Files.createTempFile(parent, "final-", ".tmp");
+try {
+    Files.writeString(temp, "Kết quả", StandardCharsets.UTF_8);
+    Files.move(temp, finalPath, StandardCopyOption.REPLACE_EXISTING);
+} finally {
+    Files.deleteIfExists(temp);
+}
+```
+
+Requires importing `java.nio.file.*`, `java.nio.charset.StandardCharsets`, and handling `IOException`. The temporary file is created **in the same parent directory** as the target to avoid some cross-filesystem move issues, though **`Files.move` does not by default guarantee atomicity**. If the format and provider require atomicity, consider `StandardCopyOption.ATOMIC_MOVE`, while handling the case where a provider does not support it via `AtomicMoveNotSupportedException`. Do not assume a single `Files.move(..., REPLACE_EXISTING)` guarantees data durability across power-loss failures.
+
+In particular, when `move` succeeds, `temp` is no longer a file at the old path, so `deleteIfExists(temp)` in `finally` will not delete the final output. When `move` fails, `finally` attempts to clean up temp. If the result file has been published and must be kept, **do not put `finalPath` inside the cleanup scope**.
+
+## 13. Handling Errors While Creating Temporary Resources
+
+Temp creation methods can fail:
+
+- `IOException` due to permissions, full disk, exhausted inodes, missing parent directory, unresponsive provider, or other I/O errors.
+- `SecurityException` when the environment or security policy does not allow the operation.
+- `IllegalArgumentException` or similar exceptions when prefix/suffix or attributes are invalid for the filesystem.
+- `UnsupportedOperationException` when using a file attribute not supported by the provider.
+
+Do not catch `IOException` and simply return `null` so the program continues as if it had a file; that state usually causes a `NullPointerException` elsewhere and hides the real error. Report errors with sufficiently clear context (job ID, operation type, and loggable location) without accidentally logging sensitive data.
+
+**A trap regarding `try/finally` placement:**
+
+```java
+Path temp = Files.createTempFile("job-", ".tmp");
+try {
+    use(temp);
+} finally {
+    Files.deleteIfExists(temp);
+}
+```
+
+This is a snippet; `use` is an application function. If `createTempFile` fails, there is no new file to clean up. If it succeeds, `finally` will run for the `use` block per normal Java control flow. However, if `use` creates additional child files elsewhere outside `temp`, deleting only `temp` does not clean up those resources. Hence the dedicated root workspace model is a scalable solution when a job creates multiple files.
+
+## 14. Portability Across Filesystem Providers
+
+`Files.createTempFile(Path dir, ...)` creates inside **the filesystem provider of `dir`**. Not every provider supports all attributes, permissions, cleanup behaviors, or move capabilities like a local disk.
+
+Some considerations:
+
+- Default filesystems on Windows and Unix have different naming and permission rules.
+- The ZIP filesystem provider can behave differently for write/delete than a local disk, and closing `FileSystem` is a separate step.
+- Network filesystems can introduce latency, connection drops, or permission errors unlike a local temporary directory.
+- Symlinks/junctions and case sensitivity can differ by provider.
+- `Path.toFile()` is not guaranteed to work for a `Path` belonging to a non-default provider.
+- `File.createTempFile(...)` belongs to the legacy API and generally targets the default filesystem; for custom `Path`/providers, prefer the `Files` API and pass `Path dir`.
+
+Do not rely on assumptions like "having a temp file guarantees it is on drive C:" or "deleting an open-stream file works identically on all operating systems." If the application depends on a specific provider feature, test accurately against the target runtime/filesystem.
+
+## 15. Comparison with java.io.File.createTempFile
+
+Traditional API:
+
+```java
+File legacy = File.createTempFile("demo-", ".tmp");
+```
+
+This snippet requires `java.io.File` and handling `IOException`. Unlike `new File("demo.tmp")`, **`File.createTempFile` actually creates an empty temporary file** and returns a `File` object pointing to it.
+
+Summary table:
+
+| API | Creates real resource? | Return type | Notable point |
+| --- | --- | --- | --- |
+| `new File("x.tmp")` | No | `File` | Only represents a pathname |
+| `File.createTempFile(prefix, suffix)` | Yes: file | `File` | Legacy; uses default filesystem |
+| `File.createTempFile(prefix, suffix, directory)` | Yes: file | `File` | Legacy; places file in directory |
+| `Files.createTempFile(prefix, suffix)` | Yes: file | `Path` | NIO; supports file attributes |
+| `Files.createTempFile(dir, prefix, suffix)` | Yes: file | `Path` | NIO; creates in chosen directory/provider |
+| `Files.createTempDirectory(prefix)` | Yes: directory | `Path` | NIO; creates a separate namespace |
+| `Files.createTempDirectory(dir, prefix)` | Yes: directory | `Path` | NIO; creates subdirectory in `dir` |
+
+One notable difference from the JDK documentation: when **no attributes are passed** and on some systems, `Files.createTempFile` may create files with more restricted permissions than `File.createTempFile`. Even so, security policy must still rely on the actual provider/OS rather than taking this statement as a hard guarantee across all environments.
+
+## 16. Frequently Asked Questions
+
+### 16.1. Does `createTempFile` create a unique name?
+
+It creates a **new entry** with a provider-generated name, avoiding collisions with names already in use during creation. It should not be understood as a guarantee of a name never used at any point in time or as an unguessable identifier. Once a file is deleted, a name may be reused depending on provider mechanisms.
+
+### 16.2. I only want a temporary path without creating the file yet—can I use `createTempFile`?
+
+That is not its purpose: `createTempFile` **already creates the file**. If a library requires an existing `Path`, that is an advantage. If you need a file with a fixed name or created later, design an appropriate naming scheme and `CREATE_NEW` operation; do not create a file and immediately delete it just to claim a name and hope that name stays safe afterward.
+
+### 16.3. Does a temporary file disappear automatically when closing the stream?
+
+No. `close()` releases handles and flushes the stream per contract; deleting the file on the filesystem is a separate operation. Some special APIs like opening with `StandardOpenOption.DELETE_ON_CLOSE` can request deletion upon close on supporting providers, but this has implementation limits and is not the default choice.
+
+### 16.4. If the application is killed, does `finally` run?
+
+It cannot be guaranteed. `finally` operates within normal Java control flow; sudden process termination, power loss, or environment crashes can prevent cleanup from running. If leftover garbage files have significant consequences, an appropriate post-crash recovery strategy is required.
+
+### 16.5. Should the entire `java.io.tmpdir` be cleaned up at startup?
+
+No. That can be a directory shared by many programs. Only consider workspaces carrying identity and ownership managed by your application, with a clear age/lifetime policy.
+
+### 16.6. Is cleaning up by following symbolic links safe?
+
+By default `walkFileTree` does not follow symlinks, which is sensible for cleanup. Do not enable `FOLLOW_LINKS` unless you know the exact targets and ensure it cannot spread outside the owned scope. Race protection and restricting permissions to modify root are still necessary.
+
+### 16.7. Can cleanup inside `finally` mask the primary error?
+
+Yes. If both processing and cleanup throw exceptions, the cleanup error can cause the original error to be replaced. Use the `AutoCloseable` + try-with-resources pattern or controlled collection of suppressed exceptions to preserve diagnostic information.
+
+### 16.8. Should temporary files be placed in the system temp directory or the target directory?
+
+It depends on the task. For normal intermediate processing, use a dedicated job workspace in the default temp location. For a write-then-move-to-target strategy where you want same-filesystem moves to be possible, creating temp in **the target directory or target filesystem** can be appropriate. In both cases, control permissions and never use someone else's directory as a recursive deletion scope.
+
+## 17. Common Mistakes and How to Avoid Them
+
+| Mistake | Consequence | How to avoid |
+| --- | --- | --- |
+| Assuming "temp" deletes itself at program exit | Trash files persist long-term, consuming space | Explicit cleanup; post-crash debris handling policy |
+| Using `Path.of(...)` and thinking a file was created | File does not exist when library opens it | Use `Files.createTempFile` if a real new file is needed |
+| Using `Files.createTempDirectory` then calling `Files.delete` while children remain | `DirectoryNotEmptyException` | Clean children first, parent last |
+| Deleting the entire system temp directory | Destroys other tasks' data | Clean only the dedicated root owned by the job |
+| Forgetting to close streams before deleting | File locks/open handles persist | try-with-resources first, then cleanup |
+| Using `deleteOnExit` for every file in a long-lived server | Registration buildup, delayed cleanup | Clean up per request/job scope |
+| Believing `finally` guarantees deletion succeeds | Hides I/O errors or leaves debris | Check/log cleanup errors, recover per policy |
+| Scanning by `temp-` prefix to wipe a shared directory | Accidentally deletes files not belonging to the app | Dedicated workspace and clear ownership |
+| Following symlinks during recursive deletion | Can escape outside scope | Do not enable `FOLLOW_LINKS`, restrict root modification permissions |
+| Using temp names as a security measure | Risk of unauthorized read/write | Use permissions/ACLs/ownership and dedicated directories |
+| Not controlling file size/count | Exhausts disk/inodes | Limit bytes, entry count, and time |
+| Believing `File.delete()` returning `false` definitely means the file wasn't there | Loses failure cause details | Use `Files.delete(...)` when detailed exceptions are needed |
+| Writing final output into temp then cleaning it along with temp | Loss of published data | Separate "intermediate" from "output to keep" |
+| Using default temp and assuming all files share the target's filesystem | Move may be non-atomic/unsupported | Pick a dir on the target filesystem when needed |
+| Creating a nice temp name and reopening without race protection | File can be swapped by another actor | Directory permissions, handle policy, safe open operations |
+| Assuming POSIX permissions exist on Windows | `UnsupportedOperationException` | Check provider/OS and use appropriate ACLs |
+
+## 18. Self-Check Questions
+
+1. **Does `Files.createTempFile("a-", ".tmp")` actually create a file?** Yes; it returns the `Path` of the newly created file.
+2. **How does `Files.createTempDirectory("job-")` differ from `Path.of("job")`?** The first creates a physical directory; the second only creates a `Path` object.
+3. **Can you predict the exact temporary filename?** No; the generated portion depends on the provider.
+4. **Where is a temporary file created if `dir` is not passed?** In the provider's default temporary location; not automatically the project directory.
+5. **Does `createTempFile(dir, ...)` automatically create `dir` if missing?** No; the parent directory must be prepared beforehand.
+6. **Does closing an `OutputStream` automatically delete the temporary file?** Not by default behavior.
+7. **Does `Files.deleteIfExists(directory)` delete recursively?** No; a directory with child entries can throw `DirectoryNotEmptyException`.
+8. **Why use `walkFileTree` to clean up a root?** It allows processing files before directories, controlling errors, and not following symlinks by default.
+9. **Should the cleanup root be `java.io.tmpdir` or a dedicated folder created by the job?** A dedicated folder created by the job.
+10. **Does `deleteOnExit()` guarantee deletion when the JVM is killed?** No.
+11. **If cleanup also errors while main processing errored, what must be noted?** Preserve the original exception information, e.g., using suppression/try-with-resources.
+12. **What must be considered when files contain sensitive data?** Permissions/ACLs, root location, owner, retention duration, logging, and cleanup.
+13. **Should temporary files be created in the target directory before publishing?** Possibly, if the same filesystem is required; however, choose move semantics carefully and do not assume default atomicity.
+14. **Why not enable `FOLLOW_LINKS` during cleanup?** It can cause traversal to touch resources outside the root.
+15. **Why might a server system need a supplementary janitor?** Because crashes/kills/cleanup failures can leave old workspaces behind despite `finally`.
+16. **What limits do temporary files holding large binary data need?** Total size, file count, time, access permissions, and tasks that might still be using them.
+
+## Java 17 API References
+
+- [`Files.createTempFile` / `Files.createTempDirectory`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html).
+- [`Files.walkFileTree`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#walkFileTree(java.nio.file.Path,java.nio.file.FileVisitor)).
+- [`FileVisitor` / `SimpleFileVisitor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SimpleFileVisitor.html).
+- [`Files.delete` / `Files.deleteIfExists`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html).
+- [`java.io.File.createTempFile` / `deleteOnExit`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/File.html).
+- [`PosixFilePermissions`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html).
+- [`StandardOpenOption.DELETE_ON_CLOSE`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/StandardOpenOption.html).
+- [`StandardCopyOption.ATOMIC_MOVE`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/StandardCopyOption.html).
+
+**Key note:** `createTempFile` and `createTempDirectory` create **real** resources with new names, yet do not establish a deletion policy on their own. Safe usage means provisioning a **temporary workspace with clear ownership**, opening/closing resources via try-with-resources, cleaning child files/directories before the root with an appropriate mechanism, keeping official outputs outside the deletion scope, and accepting that cleanup can fail or fail to run when a process terminates abnormally.

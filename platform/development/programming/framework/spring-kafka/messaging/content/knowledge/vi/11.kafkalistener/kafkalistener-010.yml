@@ -1,0 +1,3 @@
+menuLevel1: '@KafkaListener'
+menuLevel2: Thiết lập concurrency trên annotation
+status: WRITTEN

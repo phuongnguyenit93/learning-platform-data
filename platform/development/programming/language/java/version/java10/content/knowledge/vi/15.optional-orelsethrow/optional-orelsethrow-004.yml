@@ -1,0 +1,3 @@
+menuLevel1: Optional.orElseThrow
+menuLevel2: Phân biệt orElseThrow không đối số với biến thể nhận Supplier
+status: WRITTEN

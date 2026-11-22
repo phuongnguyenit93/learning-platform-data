@@ -1,0 +1,13 @@
+references:
+  - title: "Oracle Java 21 — The jdeps Command"
+    url: "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdeps.html"
+    description: "Phân tích phụ thuộc class, package, module từ bytecode Java."
+  - title: "Gradle — Viewing Dependencies"
+    url: "https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html"
+    description: "Đọc cây phụ thuộc và truy vết phiên bản bằng dependencies/dependencyInsight."
+  - title: "Gradle — Dependencies and Dependency Management Basics"
+    url: "https://docs.gradle.org/current/userguide/dependency_management_basics.html"
+    description: "Khái niệm thư viện trực tiếp, bắc cầu và khai báo dependency."
+  - title: "ArchUnit — User Guide"
+    url: "https://www.archunit.org/userguide/html/000_Index.html"
+    description: "Quy tắc phụ thuộc class/package, kiểm tra tầng và chu trình kiến trúc."

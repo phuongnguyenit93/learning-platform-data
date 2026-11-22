@@ -1,0 +1,3 @@
+menuLevel1: Iterator fail-fast và phát hiện thay đổi cấu trúc
+menuLevel2: Cập nhật expectedModCount sau remove() hợp lệ của chính iterator
+status: ""

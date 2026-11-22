@@ -1,0 +1,7 @@
+# Programming Paradigm Declarative
+
+**Lập trình khai báo (declarative programming)** tập trung mô tả **kết quả, điều kiện hoặc trạng thái cần đạt** thay vì chỉ định tỉ mỉ từng thao tác để đạt được nó. Các biểu thức truy vấn SQL, pipeline Java Stream, quy tắc logic, CSS và cấu hình hạ tầng là những ví dụ quen thuộc với mức độ khai báo khác nhau. Hệ thống thực thi thường đảm nhiệm việc chọn hoặc tổ chức các bước thực hiện; tuy nhiên, cách viết khai báo không tự động bảo đảm chương trình không có tác dụng phụ hoặc luôn chạy nhanh hơn.
+
+Lộ trình gồm **8 mốc**: phân biệt tư duy *what* và *how*; mô tả bằng biểu thức và quy tắc; truy vấn SQL; pipeline Java Stream; facts, rules và constraints; CSS cùng cấu hình desired state; cách engine thực thi và tối ưu; cuối cùng là kiểm thử, lựa chọn và đánh đổi. Người học thực hành viết hai cách giải cho một bài toán dữ liệu, kiểm tra cùng kết quả, quan sát query plan và đánh giá độ rõ ràng, hiệu năng của từng cách.
+
+Học phần phù hợp với người đã biết Java, vòng lặp, collection và kiến thức SQL cơ bản. Sau khi hoàn thành, bạn có thể nhận diện bài toán hợp với lối khai báo, ghép các thao tác xử lý dữ liệu dễ đọc, giải thích trách nhiệm của runtime và quyết định khi nào nên dùng mô tả khai báo thay vì điều khiển từng bước bằng mã imperative.

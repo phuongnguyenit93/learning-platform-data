@@ -1,0 +1,57 @@
+roadmap:
+- id: email-giao-thuc-smtp
+  title: Email & giao thức SMTP
+  purpose: Hiểu cách ứng dụng chuyển thông điệp email tới máy chủ gửi và phân biệt chấp nhận gửi với phát tới hộp thư.
+  objectives:
+  - Mô tả vai trò SMTP client, mail server và người nhận.
+  - Phân biệt SMTP envelope với header và body của email.
+  - Nhận diện From, To, Subject và luồng phản hồi SMTP.
+- id: spring-mail-api
+  title: Spring Mail API
+  purpose: Nắm các abstraction của Spring để tách logic nghiệp vụ khỏi hạ tầng gửi thư.
+  objectives:
+  - Phân biệt MailSender, JavaMailSender và JavaMailSenderImpl.
+  - Nhận diện SimpleMailMessage, MimeMessage và MailException.
+  - Dùng dependency injection để ứng dụng dễ thay sender khi kiểm thử.
+- id: jakarta-mail-cau-hinh-smtp
+  title: Jakarta Mail & cấu hình SMTP
+  purpose: Thiết lập mail sender với kết nối, thông tin xác thực và timeout phù hợp.
+  objectives:
+  - Bổ sung Jakarta Mail implementation như Angus Mail.
+  - Cấu hình host, port, credentials và JavaMail properties.
+  - Hiểu cách Spring Boot auto-configure JavaMailSender khi có starter.
+- id: gui-thu-van-ban-don-gian
+  title: Gửi thư văn bản đơn giản
+  purpose: Gửi được email plain text cho thông báo nghiệp vụ cơ bản.
+  objectives:
+  - Tạo SimpleMailMessage với from, to, subject và text.
+  - Gọi MailSender.send và xử lý MailException.
+  - Thực hành gửi thông báo bằng SMTP thử nghiệm.
+- id: mime-html-tep-dinh-kem
+  title: MIME, HTML & tệp đính kèm
+  purpose: Tạo thông điệp có định dạng phong phú và tài nguyên đi kèm.
+  objectives:
+  - Tạo MimeMessage bằng JavaMailSender.
+  - Dùng MimeMessageHelper gửi HTML và thiết lập UTF-8.
+  - Thêm attachment, ảnh inline đúng multipart và Content-ID.
+- id: noi-dung-mau-email
+  title: Nội dung & mẫu email
+  purpose: Tách nội dung thư khỏi xử lý gửi và bảo đảm dữ liệu người nhận được hiển thị an toàn.
+  objectives:
+  - Dùng template để sinh subject, text hoặc HTML theo dữ liệu nghiệp vụ.
+  - Escape dữ liệu động khi đưa vào HTML email.
+  - Kiểm tra cá nhân hóa, Unicode và fallback plain text.
+- id: bao-mat-kenh-gui
+  title: Bảo mật kênh gửi
+  purpose: Bảo vệ credential, danh tính người gửi và dữ liệu trên đường truyền tới SMTP server.
+  objectives:
+  - Cấu hình SMTP authentication và TLS/STARTTLS phù hợp server.
+  - Bảo quản mật khẩu hoặc token ngoài mã nguồn.
+  - Tránh lộ credential, địa chỉ nhạy cảm hoặc nội dung thư vào log.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Đảm bảo gửi mail có thể kiểm chứng, quan sát và chịu được lỗi tạm thời.
+  objectives:
+  - Mock JavaMailSender hoặc dùng SMTP test server để kiểm thử.
+  - Thiết lập connection/read/write timeout và xử lý lỗi gửi.
+  - Cân nhắc queue, retry có giới hạn và theo dõi kết quả gửi.

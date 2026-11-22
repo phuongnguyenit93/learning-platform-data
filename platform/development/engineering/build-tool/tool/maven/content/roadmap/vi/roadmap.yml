@@ -1,0 +1,57 @@
+roadmap:
+- id: lam-quen-voi-maven
+  title: Làm quen với Maven
+  purpose: Hiểu Maven giải quyết bài toán xây dựng và quản lý dự án Java như thế nào.
+  objectives:
+  - Kiểm tra JDK và Maven bằng `mvn -version`.
+  - Tạo dự án mẫu bằng archetype.
+  - Chạy và giải thích một bản build đầu tiên.
+- id: pom-va-cau-truc-du-an
+  title: POM và cấu trúc dự án
+  purpose: Nắm mô hình khai báo dự án và các quy ước thư mục làm nền cho mọi cấu hình build.
+  objectives:
+  - Đọc `groupId`, `artifactId`, `version` và `packaging`.
+  - Nhận diện `src/main`, `src/test` và `target`.
+  - Khai báo `properties` trong `pom.xml`.
+- id: dependencies-va-repositories
+  title: Dependencies và Repositories
+  purpose: Quản lý thư viện và nguồn tải artifact để tránh xung đột phụ thuộc.
+  objectives:
+  - Khai báo dependency với scope phù hợp.
+  - Phân tích phụ thuộc bắc cầu bằng `dependency:tree`.
+  - Phân biệt local và remote repositories.
+- id: build-lifecycle
+  title: Build Lifecycle
+  purpose: Hiểu cách Maven thực hiện các giai đoạn build nhất quán theo mục tiêu.
+  objectives:
+  - Phân biệt `clean`, `default` và `site`.
+  - Xếp đúng `compile`, `test`, `package`, `verify`, `install`, `deploy`.
+  - Chọn phase phù hợp cho từng tác vụ.
+- id: plugins-va-goals
+  title: Plugins và Goals
+  purpose: Biết cách mở rộng và điều chỉnh các tác vụ build do plugin thực hiện.
+  objectives:
+  - Phân biệt lifecycle phase với plugin goal.
+  - Cấu hình plugin và execution trong POM.
+  - Chạy goal trực tiếp và đọc kết quả.
+- id: parent-pom-va-multi-module
+  title: Parent POM và Multi-module
+  purpose: Tổ chức dự án nhiều module với cấu hình dùng chung và thứ tự build đúng.
+  objectives:
+  - Phân biệt inheritance với aggregation.
+  - Khai báo parent POM và các module con.
+  - Chọn module để build và hiểu Maven Reactor.
+- id: profiles-va-settings
+  title: Profiles và Settings
+  purpose: Linh hoạt cấu hình Maven theo môi trường mà vẫn duy trì khả năng tái lập build.
+  objectives:
+  - Kích hoạt profile bằng `-P`.
+  - Cấu hình repository, mirror trong `settings.xml`.
+  - Phân biệt cấu hình dự án và cấu hình người dùng.
+- id: kiem-thu-va-phat-hanh
+  title: Kiểm thử và phát hành
+  purpose: Áp dụng Maven vào quy trình xác minh, đóng gói và phân phối artifact.
+  objectives:
+  - Chạy `mvn clean verify` và phân tích lỗi build.
+  - Đóng gói, cài artifact vào local repository.
+  - Phân biệt `install`, `deploy` và tích hợp CI.

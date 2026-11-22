@@ -1,0 +1,45 @@
+roadmap:
+- id: mo-hinh-instrumentation
+  title: Mô hình instrumentation
+  purpose: Hiểu cách gắn phép đo vào chương trình Java đang thực thi.
+  objectives:
+  - Phân biệt instrumentation với lấy mẫu và ghi log trong mã nguồn.
+  - Xác định vai trò Java agent, Instrumentation và transformer.
+  - Phân biệt API java.lang.instrument với giao diện native JVMTI.
+- id: java-agent
+  title: Java agent
+  purpose: Đóng gói và khởi động một agent tối thiểu.
+  objectives:
+  - Tạo agent JAR với manifest và premain phù hợp.
+  - Khởi động ứng dụng bằng -javaagent và truyền cấu hình.
+  - Phân biệt premain với agentmain và kiểm tra hạn chế nạp agent động theo JDK.
+- id: bien-doi-bytecode
+  title: Biến đổi bytecode
+  purpose: Chèn mã đo lường có kiểm soát khi lớp được nạp.
+  objectives:
+  - Đăng ký ClassFileTransformer và lọc chính xác lớp cần sửa.
+  - Bảo toàn chữ ký, luồng điều khiển và bytecode hợp lệ.
+  - Chèn phép đo vào đường trả về bình thường và đường có ngoại lệ.
+  - Tránh biến đổi lặp và vòng gọi đệ quy do mã đo lường.
+- id: doi-lop-da-nap
+  title: Đổi lớp đã nạp
+  purpose: Hiểu khả năng và giới hạn khi cập nhật bytecode trong tiến trình.
+  objectives:
+  - Phân biệt retransformClasses với redefineClasses.
+  - Kiểm tra capability, thuộc tính manifest và lớp có thể sửa.
+  - Nhận diện giới hạn thay đổi cấu trúc lớp và xử lý lỗi tương ứng.
+- id: class-loader-va-module
+  title: Class loader và module
+  purpose: Bảo đảm mã đã biến đổi nhìn thấy thành phần hỗ trợ của agent.
+  objectives:
+  - Theo dõi class loader của lớp đích và lớp hỗ trợ.
+  - Giải thích quan hệ đọc module, exports và opens khi instrument.
+  - Tránh giữ tham chiếu khiến class loader không được thu hồi.
+- id: kiem-chung-agent
+  title: Kiểm chứng agent
+  purpose: Xác nhận agent thu dữ liệu hữu ích với chi phí và tác động được đo rõ.
+  objectives:
+  - So sánh kết quả ứng dụng khi bật và tắt agent.
+  - Kiểm thử nhiều luồng, nhiều transformer và lỗi trong agent.
+  - Đo chi phí CPU, bộ nhớ và độ trễ trên cùng một tải.
+  - Kiểm tra khả năng tương thích với JDK và phiên bản class file.

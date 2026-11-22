@@ -1,0 +1,58 @@
+roadmap:
+- id: nen-tang-object
+  title: Nền tảng Object
+  purpose: Hiểu các hành vi chung kế thừa từ Object và phân biệt danh tính với giá trị.
+  objectives:
+  - Nhận diện vai trò lớp Object
+  - Phân biệt cùng đối tượng và cùng giá trị
+  - Phân biệt == và equals
+- id: hop-dong-equals
+  title: Hợp đồng equals
+  purpose: Xác định khi nào hai đối tượng được xem là bằng nhau theo miền dữ liệu.
+  objectives:
+  - Giải thích phản xạ, đối xứng và bắc cầu
+  - Bảo đảm tính nhất quán và xử lý null
+  - Chọn các trường xác định sự bằng nhau
+- id: hop-dong-hashcode
+  title: Hợp đồng hashCode
+  purpose: Giữ phép băm nhất quán với sự bằng nhau để đối tượng hoạt động đúng trong cấu trúc băm.
+  objectives:
+  - Giải thích bằng nhau phải có cùng mã băm
+  - Phân biệt va chạm băm và sự bằng nhau
+  - Ghi đè equals và hashCode đồng bộ
+- id: ke-thua-va-su-bang-nhau
+  title: Kế thừa và sự bằng nhau
+  purpose: Nhận biết rủi ro khi lớp con bổ sung trạng thái tham gia so sánh.
+  objectives:
+  - So sánh cách kiểm tra bằng instanceof và getClass
+  - Phát hiện vi phạm đối xứng hoặc bắc cầu
+  - Chọn thiết kế final hoặc kết hợp đối tượng phù hợp
+- id: khoa-trong-tap-hop
+  title: Khóa trong tập hợp
+  purpose: Dự đoán hành vi của đối tượng khi dùng làm phần tử Set hoặc khóa Map.
+  objectives:
+  - Giải thích tra cứu trong HashSet và HashMap
+  - Nhận biết rủi ro sửa trường tham gia equals/hashCode
+  - Ưu tiên khóa bất biến
+- id: bieu-dien-bang-tostring
+  title: Biểu diễn bằng toString
+  purpose: Cung cấp chuỗi mô tả dễ đọc để hỗ trợ quan sát đối tượng.
+  objectives:
+  - Nhận diện biểu diễn mặc định của Object
+  - Ghi đè toString với thông tin hữu ích
+  - Tránh lộ dữ liệu nhạy cảm và vòng tham chiếu
+- id: sao-chep-doi-tuong
+  title: Sao chép đối tượng
+  purpose: Chọn cách sao chép phù hợp và hiểu giới hạn của Object.clone.
+  objectives:
+  - Phân biệt sao chép nông và sao chép sâu
+  - Giải thích vai trò Cloneable và clone
+  - So sánh clone với hàm khởi tạo sao chép
+- id: thiet-ke-va-kiem-chung
+  title: Thiết kế và kiểm chứng
+  purpose: Áp dụng các hợp đồng vào lớp giá trị và kiểm tra những tình huống dễ sai.
+  objectives:
+  - Nhận diện equals/hashCode/toString do record sinh ra
+  - Kiểm tra các tính chất của equals
+  - Kiểm tra mã băm và tra cứu tập hợp
+  - Kiểm tra trường hợp null, lớp con và trạng thái thay đổi

@@ -1,0 +1,49 @@
+roadmap:
+- id: nen-tang-loose-coupling
+  title: Nền tảng Loose Coupling
+  purpose: Hiểu vì sao giảm phụ thuộc không cần thiết giúp phần mềm dễ thay đổi và mở rộng.
+  objectives:
+  - Định nghĩa loose coupling và tight coupling.
+  - Giải thích coupling khác với cohesion.
+- id: nhan-dien-coupling-chat
+  title: Nhận diện Coupling chặt
+  purpose: Phát hiện các quan hệ khiến sửa một lớp kéo theo sửa nhiều lớp khác.
+  objectives:
+  - Nhận biết trực tiếp new lớp cụ thể và truy cập nội bộ.
+  - Chỉ ra message chains và phụ thuộc hai chiều.
+- id: interface-contract
+  title: Interface & Contract
+  purpose: Tách hành vi được sử dụng khỏi chi tiết của lớp triển khai.
+  objectives:
+  - Khai báo interface Java cho một dependency.
+  - Thay implementation mà không sửa mã phía gọi.
+- id: encapsulation-an-chi-tiet
+  title: Encapsulation & Ẩn chi tiết
+  purpose: Giảm hiểu biết của client về cấu trúc và trạng thái bên trong đối tượng.
+  objectives:
+  - Giấu implementation và expose API nhỏ, rõ trách nhiệm.
+  - Áp dụng Hide Delegate khi có chuỗi truy cập sâu.
+- id: dependency-inversion
+  title: Dependency Inversion
+  purpose: Điều chỉnh hướng phụ thuộc để logic nghiệp vụ không gắn chặt vào hạ tầng.
+  objectives:
+  - Giải thích phụ thuộc vào abstraction thay vì concrete class.
+  - Vẽ quan hệ giữa domain, interface và adapter.
+- id: dependency-injection
+  title: Dependency Injection
+  purpose: Cung cấp dependency từ bên ngoài để tách khởi tạo khỏi sử dụng.
+  objectives:
+  - Thực hành constructor injection trong Java hoặc Spring.
+  - Hoán đổi fake/mock implementation khi kiểm thử.
+- id: ranh-gioi-module
+  title: Ranh giới Module
+  purpose: Kiểm soát phụ thuộc giữa package và các thành phần chức năng.
+  objectives:
+  - Tách hợp đồng ở module phù hợp với hướng phụ thuộc.
+  - Nhận diện cyclic dependency và điểm cần adapter.
+- id: refactor-danh-gia
+  title: Refactor & Đánh giá
+  purpose: Kiểm chứng lợi ích của coupling thấp mà không lạm dụng trừu tượng hóa.
+  objectives:
+  - Refactor ví dụ tight coupling giữ nguyên hành vi.
+  - Đo phạm vi thay đổi và độ dễ unit test; tránh interface thừa.

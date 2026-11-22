@@ -1,0 +1,530 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Spring Modulith Verification Testing giải quyết bài toán nào?
+  - Kiểm chứng kiến trúc module khác gì với chạy kiểm thử hành vi?
+  - Ranh giới module, dependency và event là những hợp đồng nào?
+  - Vì sao kiểm thử đơn vị không đủ để phát hiện vi phạm module?
+  - Mối liên hệ giữa mô hình module và ApplicationContext
+  - Kiểm thử cấu trúc, kiểm thử module và kiểm thử hệ thống
+  - Bằng chứng cần có để nói một module được kiểm chứng
+  - Vai trò của Spring Modulith trong kiến trúc ứng dụng Spring Boot
+  - Các lớp API và annotation sẽ gặp trong module
+  - Lộ trình từ phát hiện module đến kiểm thử hồi quy
+- level1: Mô hình module
+  level2:
+  - ApplicationModules biểu diễn cấu trúc module như thế nào?
+  - ApplicationModule đại diện cho một vùng package ra sao?
+  - JavaPackage và cách suy ra gốc module
+  - Module base package và package con
+  - Named interface và public API của module
+  - Package nội bộ và package được phép truy cập
+  - Module dependency và hướng phụ thuộc
+  - ApplicationModuleSource xác định nguồn cấu trúc
+  - Quét package trong một project nhiều module
+  - Mô hình suy ra từ code khác với mô hình mong muốn
+  - Giữ mô hình module đồng bộ với tổ chức package
+- level1: Thiết kế module
+  level2:
+  - Xác định ranh giới nghiệp vụ trước khi đặt package
+  - Module kiểu closed và quy tắc truy cập
+  - Open module và trường hợp cần công khai package
+  - API package và package nội bộ
+  - Đặt lớp facade ở ranh giới module
+  - Đưa implementation detail ra khỏi public API
+  - Tránh module chỉ là nhóm thư mục kỹ thuật
+  - Phân chia module theo khả năng thay đổi và trách nhiệm
+  - Định danh dependency hợp lệ giữa các module
+  - Quan hệ module và bounded context
+  - Giữ module có lý do tồn tại và đường giao tiếp rõ ràng
+- level1: ApplicationModules
+  level2:
+  - Tạo ApplicationModules từ package gốc
+  - Khám phá module bằng ApplicationModules.of
+  - Liệt kê module được phát hiện
+  - Đọc tên và base package của module
+  - Đọc dependency giữa các ApplicationModule
+  - Kiểm tra named interface trong mô hình
+  - In mô hình để quan sát cấu trúc
+  - Xác định package không thuộc module nào
+  - Mô hình khi có package lồng nhau
+  - Tùy chỉnh cách khởi tạo ApplicationModules
+  - Giới hạn suy luận khi package chứa nhiều vai trò
+  - Dùng mô hình làm đầu vào cho các công cụ khác
+- level1: ApplicationModules.verify
+  level2:
+  - Mục đích của ApplicationModules.verify
+  - Luật dependency giữa các module được kiểm tra thế nào?
+  - Phát hiện dependency trực tiếp qua package
+  - Phát hiện dependency xuyên qua implementation detail
+  - Vi phạm khi truy cập package nội bộ
+  - Vi phạm chu kỳ giữa các module
+  - Kiểm tra named interface và allowed dependencies
+  - verify trả về hay ném lỗi khi có vi phạm?
+  - Đọc thông tin vị trí và đường đi dependency
+  - Chạy verify trong test hoặc build
+  - Bảo vệ verify khỏi việc bị bỏ qua
+  - Giới hạn của kiểm chứng tĩnh dựa trên bytecode và package
+- level1: Dependency rules
+  level2:
+  - Dependency từ module A sang module B có nghĩa gì?
+  - Phụ thuộc qua kiểu tham số, trường và kiểu trả về
+  - Phụ thuộc qua annotation và metadata
+  - Phụ thuộc do kế thừa hoặc triển khai interface
+  - Phụ thuộc do gọi phương thức tĩnh
+  - Phụ thuộc ẩn qua reflection và cấu hình
+  - Phụ thuộc qua resource hoặc tên bean
+  - Dependency cycle và tác động đến thay đổi
+  - Cycle trực tiếp và cycle thông qua nhiều module
+  - Phân biệt dependency thật với liên kết dữ liệu đơn thuần
+  - Cách làm rõ dependency bằng facade hoặc event
+  - Ghi nhận dependency được phép ở mô hình module
+- level1: Named interfaces
+  level2:
+  - Named interface biểu diễn API module như thế nào?
+  - Đặt tên và mô tả named interface
+  - Đánh dấu package công khai cho module khác
+  - Giới hạn kiểu được phép xuất qua API
+  - Kiểm tra module khác chỉ dùng named interface
+  - Mở package mà không biến toàn bộ module thành public
+  - Nhiều named interface trong một module
+  - Quan hệ giữa named interface và facade
+  - Thay đổi API và ảnh hưởng kiểm thử cấu trúc
+  - Lỗi khi kiểu nội bộ lọt vào public API
+  - Kiểm thử contract của named interface
+  - Dùng named interface để hướng dẫn người phát triển
+- level1: Verification trong build
+  level2:
+  - Chạy verify như một architectural test
+  - Đưa verify vào JUnit Platform
+  - Chạy verify trong Gradle hoặc Maven
+  - Cổng build khi cấu trúc module vi phạm
+  - Phân biệt lỗi compile với lỗi architectural verification
+  - Thứ tự chạy structural test và behavioral test
+  - Chạy verification trên CI
+  - Bảo đảm test cấu trúc được phát hiện tự động
+  - Xử lý module demo, fixture và package thử nghiệm
+  - Đọc output trong log build
+  - Không biến cảnh báo kiến trúc thành suppress tùy tiện
+  - Giữ kết quả verification tái lập giữa môi trường
+- level1: ApplicationModuleTest
+  level2:
+  - Mục đích của @ApplicationModuleTest
+  - Bootstrapper cho kiểm thử một module
+  - Chọn module được bootstrap
+  - Giới hạn ApplicationContext trong module đang kiểm thử
+  - Các kiểu bootstrap của module test
+  - DirectBootstrap và lựa chọn cấu hình trực tiếp
+  - WebBootstrap cho module có web adapter
+  - UseMainMethod và ảnh hưởng đến cấu hình
+  - ReplaceWithMocks và cô lập dependency module
+  - ScenarioTestBootstrapper và kiểm thử event flow
+  - Khi nào dùng module test thay vì @SpringBootTest
+  - Giới hạn auto-configuration trong module test
+- level1: Bootstrap context
+  level2:
+  - ApplicationContext nào được tạo trong module test?
+  - Bean trong module mục tiêu và bean bên ngoài
+  - Bean test configuration và vị trí khai báo
+  - '@Import trong module test'
+  - '@MockBean hoặc cơ chế thay thế collaborator'
+  - Profile, property source và test configuration
+  - Component scan và phạm vi package
+  - Auto-configuration bị bật hoặc loại trừ
+  - Web layer, database và messaging adapter
+  - Xử lý bean không thuộc module mục tiêu
+  - Context cache giữa các module test
+  - Lỗi thiếu bean do module boundary
+  - Làm context nhỏ nhưng vẫn giữ hành vi cần kiểm chứng
+- level1: Test types
+  level2:
+  - Unit test cho logic không phụ thuộc Spring
+  - Slice test cho lớp adapter trong module
+  - Application module test cho một module hoàn chỉnh
+  - Integration test giữa nhiều module
+  - End-to-end test qua entry point ứng dụng
+  - Architectural test cho dependency và package
+  - Contract test cho public API của module
+  - Event-driven test cho giao tiếp bất đồng bộ
+  - Chọn test type theo bằng chứng cần thu
+  - Chi phí khởi động context ở từng loại test
+  - Tránh dùng một test type cho mọi rủi ro
+- level1: Scenario
+  level2:
+  - Scenario biểu diễn một luồng kiểm thử module như thế nào?
+  - Given trong Scenario để chuẩn bị dữ liệu hoặc trạng thái
+  - Stimulate để kích hoạt hành vi
+  - AndWaitForEvent để chờ event được phát
+  - AndWaitForStateChange để chờ trạng thái đổi
+  - Synchronous event publication trong scenario
+  - Asynchronous event publication và thời điểm quan sát
+  - Xác định event type cần chờ
+  - Chờ nhiều event trong cùng một luồng
+  - Timeout và nguyên nhân scenario thất bại
+  - Scenario state và phạm vi giữa các test
+  - Đọc kết quả scenario để viết assertion
+  - Thiết kế scenario không phụ thuộc delay tùy ý
+- level1: Event publication
+  level2:
+  - ApplicationEvent được phát từ module nào?
+  - Event payload và module boundary
+  - Transactional event listener trong module test
+  - Event được phát trước, trong hoặc sau transaction
+  - EventPublicationRegistry theo dõi publication
+  - Publication target và trạng thái hoàn tất
+  - Kiểm tra event được publish đúng một lần
+  - Kiểm tra event không được publish khi transaction rollback
+  - Lỗi khi publication listener thất bại
+  - Retry event publication và khả năng quan sát
+  - Event externalization và hợp đồng message
+  - Phân biệt event nội bộ với integration event
+- level1: Event assertions
+  level2:
+  - PublishedEvents ghi nhận event đã phát như thế nào?
+  - Lấy event theo kiểu hoặc predicate
+  - Xác minh số lần publication
+  - Xác minh thứ tự event khi hợp đồng yêu cầu
+  - Kiểm tra payload và dữ liệu nguồn
+  - Kiểm tra event không chứa implementation detail
+  - Chờ event bất đồng bộ trước khi assertion
+  - Kiểm tra event được phát sau commit
+  - Kiểm tra listener xử lý event
+  - Kiểm tra nhiều listener cho cùng event
+  - Phân biệt event đã publish với listener đã hoàn thành
+  - Xử lý duplicate event trong assertion
+  - Viết assertion ổn định không phụ thuộc thời gian hệ thống
+- level1: State change
+  level2:
+  - AndWaitForStateChange theo dõi thay đổi trạng thái
+  - Chọn repository hoặc aggregate làm nguồn state
+  - Predicate xác định trạng thái mong đợi
+  - Tránh kiểm tra state ngay sau khi kích hoạt bất đồng bộ
+  - Timeout khi state không thay đổi
+  - State change do event listener gây ra
+  - Transaction visibility khi chờ state
+  - Đọc state qua public API của module
+  - Không truy cập trực tiếp trường nội bộ để assertion
+  - Kiểm tra state cuối cùng và invariant liên quan
+  - Phân biệt state change với event publication
+  - Tái lập state trong mỗi scenario
+- level1: Module boundaries
+  level2:
+  - Test module có được truy cập module khác không?
+  - Dependency hợp lệ và dependency bị cấm
+  - Mock collaborator ngoài module
+  - Chọn module test khi module có nhiều dependency
+  - Kiểm tra public API thay vì implementation package
+  - Dùng event để thay giao tiếp gọi trực tiếp
+  - Kiểm tra cycle bằng verify trước test hành vi
+  - Ranh giới test fixture và production package
+  - Test utility dùng chung có làm mờ boundary không?
+  - Package test và package main
+  - Sự khác biệt giữa module dependency và bean dependency
+  - Giữ test không tạo đường tắt kiến trúc
+- level1: Test configuration
+  level2:
+  - '@TestConfiguration trong module test'
+  - Bean test chỉ tồn tại trong ApplicationContext kiểm thử
+  - '@Import và cấu hình thay thế'
+  - '@ActiveProfiles và dữ liệu cấu hình'
+  - '@TestPropertySource và thuộc tính test'
+  - DynamicPropertySource cho dependency chạy động
+  - Thay thế clock, ID generator và external client
+  - MockBean và giới hạn của mock trong module test
+  - Cấu hình database test và transaction
+  - Cấu hình message broker hoặc event infrastructure
+  - Cấu hình web client và server giả lập
+  - Dọn tài nguyên từ test configuration
+- level1: Database testing
+  level2:
+  - Module test với database thật hoặc database giả lập
+  - Tạo schema và dữ liệu đầu vào
+  - Transaction rollback giữa các test
+  - Ràng buộc module khi truy cập repository
+  - Kiểm tra event sau khi lưu aggregate
+  - Phân biệt transaction test với transaction production
+  - Test migration và version schema
+  - Database isolation khi chạy song song
+  - Tạo dữ liệu test không phụ thuộc thứ tự
+  - Kiểm tra optimistic locking hoặc constraint
+  - Chờ transaction commit trước khi quan sát event
+  - Dọn database sau scenario
+- level1: Web module testing
+  level2:
+  - Kiểm thử module có web adapter bằng bootstrap phù hợp
+  - Gọi controller qua MockMvc hoặc WebTestClient
+  - Kiểm tra endpoint thuộc module mục tiêu
+  - Kiểm tra response và lỗi đầu vào
+  - Xác minh controller chỉ gọi public application API
+  - Mock dependency ngoài module trong web test
+  - Kiểm tra transaction boundary qua request
+  - Authentication và security context trong test
+  - Event phát ra sau HTTP request
+  - Không dùng web test để bỏ qua module rule
+  - Phân biệt web slice với module integration test
+- level1: Messaging testing
+  level2:
+  - Kích hoạt hành vi bằng application event
+  - Kiểm tra listener nội bộ module
+  - Kiểm tra event qua message broker
+  - Test consumer và producer theo boundary
+  - Awaitility hoặc cơ chế chờ điều kiện
+  - Không dùng sleep cố định làm đồng bộ test
+  - Kiểm tra retry, error channel và dead letter
+  - Kiểm tra thứ tự và duplicate message
+  - Kiểm tra serialization của event payload
+  - Cô lập broker giữa các test
+  - Xác minh ack hoặc transaction của message
+  - Phân biệt event test với contract test của broker
+- level1: Externalization
+  level2:
+  - Event externalization trong Spring Modulith
+  - Chọn event được gửi ra ngoài module
+  - Mapping event nội bộ thành integration event
+  - Định dạng và version của external event
+  - Publication registry và trạng thái externalization
+  - Kiểm tra event được externalize sau commit
+  - Gateway hoặc channel gửi event
+  - Lỗi externalization và retry
+  - Idempotency khi consumer nhận lại event
+  - Không để dữ liệu nội bộ lọt ra event công khai
+  - Test producer với external event
+  - Test consumer bằng contract fixture
+  - Theo dõi publication chưa hoàn thành
+- level1: Observability tests
+  level2:
+  - ApplicationModules.toString và mô tả cấu trúc
+  - Sinh tài liệu module để kiểm tra kiến trúc
+  - Kiểm tra mô hình trong CI
+  - Log module test context và bean bootstrap
+  - Theo dõi event publication trong test
+  - Correlation ID giữa stimulus và listener
+  - Ghi nhận thời gian scenario
+  - Chẩn đoán timeout bằng thread dump và log
+  - Phân biệt test chậm với production behavior chậm
+  - Không làm assertion phụ thuộc log không ổn định
+  - Bằng chứng cấu trúc, hành vi và vận hành
+- level1: Test data
+  level2:
+  - Fixture đại diện đúng trạng thái module
+  - Builder cho aggregate và command
+  - Dữ liệu tối thiểu cho một scenario
+  - Dữ liệu biên và dữ liệu không hợp lệ
+  - Định danh ổn định cho event và entity
+  - Không dùng fixture chia sẻ có thể bị sửa
+  - Tạo dữ liệu cô lập giữa các scenario
+  - Test data cho rollback và retry
+  - Test data cho duplicate event
+  - Ẩn thông tin nhạy cảm trong fixture
+  - Đồng bộ fixture với schema và public API
+  - Giảm fixture dư thừa làm test khó đọc
+- level1: JUnit integration
+  level2:
+  - JUnit 5 extension và Spring TestContext
+  - Cấu hình lớp test cho module
+  - Tên test mô tả hành vi hoặc luật kiến trúc
+  - Nested test cho nhóm scenario
+  - Parameterised test cho nhiều module hoặc dữ liệu
+  - Test order và vì sao nên tránh phụ thuộc thứ tự
+  - Context caching và thay đổi cấu hình
+  - Tags cho architectural, module và integration test
+  - Timeout của JUnit và timeout của Scenario
+  - Assertions nhiều lớp trong một test
+  - Tách setup, stimulus và verification
+  - Bảo đảm test fail khi verification không xảy ra
+- level1: Architectural contracts
+  level2:
+  - Hợp đồng nào cần kiểm tra ở cấp module?
+  - Hợp đồng package public và package internal
+  - Hợp đồng dependency được phép
+  - Hợp đồng event name, payload và version
+  - Hợp đồng API giữa module gọi và module được gọi
+  - Hợp đồng transaction và thời điểm publication
+  - Hợp đồng error và khả năng retry
+  - Hợp đồng externalized event với consumer
+  - Hợp đồng cấu hình cần có để bootstrap module
+  - Hợp đồng tương thích khi module thay đổi
+  - Chuyển hợp đồng thành test có thể chạy tự động
+  - Phân biệt contract test với implementation test
+- level1: Async verification
+  level2:
+  - Xác định điểm hoàn thành của luồng bất đồng bộ
+  - Event publication và listener execution khác nhau thế nào?
+  - Chờ điều kiện thay vì chờ một khoảng thời gian cố định
+  - Chọn timeout theo môi trường kiểm thử
+  - Xử lý eventual consistency trong assertion
+  - Không để test kết thúc trước tác vụ nền
+  - Hủy hoặc dọn tác vụ khi test thất bại
+  - Đảm bảo executor được làm sạch sau test
+  - Kiểm tra race giữa event và transaction commit
+  - Kiểm tra retry mà không kéo dài toàn bộ test suite
+  - Ghi lại nguyên nhân timeout có thể chẩn đoán
+  - Phân biệt lỗi test flaky với lỗi production thật
+- level1: Testcontainers
+  level2:
+  - Khi dùng Testcontainers cho module test
+  - Khởi tạo database container cho module mục tiêu
+  - Container message broker cho event flow
+  - Reuse container và nguy cơ chia sẻ trạng thái
+  - DynamicPropertySource với container
+  - Wait strategy và thời điểm dependency sẵn sàng
+  - Dọn container khi test hoặc suite kết thúc
+  - Cô lập network và dữ liệu giữa test
+  - Chi phí khởi động container trong CI
+  - Chạy test khi Docker không sẵn sàng
+  - Phân biệt container test với mock test
+  - Chọn dependency thật theo bằng chứng cần thu
+- level1: Mock và spy
+  level2:
+  - Khi mock collaborator ngoài module
+  - Mock boundary hay mock implementation detail?
+  - Stub kết quả lỗi và kết quả thành công
+  - Verify lời gọi khi đó là một phần hợp đồng
+  - Tránh verify thứ tự gọi không được đặc tả
+  - Spy bean và nguy cơ chạy logic thật ngoài ý muốn
+  - Mock event publisher và giới hạn bằng chứng
+  - Mock repository làm mất bằng chứng persistence
+  - Mock clock và dữ liệu thời gian
+  - Mock external gateway theo contract
+  - Reset mock giữa các scenario
+  - Không dùng mock để che lỗi bootstrap
+- level1: Test failure
+  level2:
+  - Đọc stack trace của lỗi ApplicationContext
+  - BeanDefinitionException trong module test
+  - NoSuchBeanDefinitionException do bootstrap quá hẹp
+  - Lỗi dependency module trong ApplicationModules.verify
+  - Lỗi named interface không khớp package
+  - Lỗi scenario không nhận event
+  - Lỗi state change không đạt predicate
+  - Timeout do transaction chưa commit
+  - Timeout do listener không được tạo
+  - Lỗi duplicate event hoặc event bị phát thiếu
+  - Lỗi fixture không tạo được trạng thái hợp lệ
+  - Phân biệt lỗi cấu hình test với lỗi production code
+  - Ghi lại điều kiện tái hiện tối thiểu
+- level1: Test isolation
+  level2:
+  - Cô lập ApplicationContext giữa module test
+  - Cô lập database và transaction
+  - Cô lập event publication registry
+  - Cô lập executor và message broker
+  - Cô lập clock, random và identifier
+  - Cô lập biến môi trường và system property
+  - Không để static state rò giữa các test
+  - Dọn listener, subscription và resource
+  - Chạy test song song an toàn
+  - Phát hiện test phụ thuộc thứ tự
+  - Xóa dữ liệu sau test thất bại
+  - Thiết kế test có thể chạy lại nhiều lần
+- level1: Coverage theo module
+  level2:
+  - Đo module nào đã có module test
+  - Đo public API nào được kiểm tra
+  - Đo event nào có scenario tương ứng
+  - Đo luật kiến trúc nào có test
+  - Độ bao phủ code và giới hạn đối với module boundary
+  - Độ bao phủ trạng thái và đường đi nghiệp vụ
+  - Độ bao phủ lỗi, retry và rollback
+  - Độ bao phủ contract external event
+  - Nhận diện module có nhiều code nhưng ít bằng chứng
+  - Tránh tối ưu coverage bằng test ít ý nghĩa
+  - Theo dõi khoảng trống kiểm thử theo rủi ro
+- level1: CI và quality gate
+  level2:
+  - Chạy ApplicationModules.verify ở mọi pull request
+  - Chọn nhóm module test trong pipeline
+  - Phân tầng test nhanh và test hạ tầng
+  - Cache dependency và container image
+  - Thu thập report khi test thất bại
+  - Lưu log scenario và thông tin bootstrap
+  - Chạy lại flaky test có giới hạn và có cảnh báo
+  - Không bỏ qua test kiến trúc vì build chậm
+  - Quality gate cho dependency cycle
+  - Quality gate cho test module và event contract
+  - So sánh thời gian test giữa các commit
+  - Bảo đảm CI và máy phát triển dùng cấu hình tương thích
+- level1: Refactoring an existing app
+  level2:
+  - Khảo sát package và dependency trước khi thêm module test
+  - Tạo ApplicationModules cho code hiện hữu
+  - Xử lý package chưa có boundary rõ
+  - Đưa dependency cycle ra ánh sáng
+  - Chọn một module có ranh giới dễ kiểm chứng
+  - Viết test public API trước khi tái cấu trúc
+  - Chuyển gọi trực tiếp thành event khi có lý do
+  - Tách test fixture khỏi implementation package
+  - Thiết lập baseline và xử lý vi phạm từng phần
+  - Giữ hành vi khi di chuyển lớp giữa module
+  - Đưa verify vào build sau khi module model ổn định
+  - Đo lợi ích của verification sau refactor
+- level1: Performance tests
+  level2:
+  - Chi phí tạo ApplicationContext cho từng module test
+  - Context caching và cấu hình làm cache bị tách
+  - Giảm bean ngoài phạm vi module
+  - Giảm thời gian chuẩn bị database
+  - Tái sử dụng container an toàn
+  - Giới hạn số scenario trong một test class
+  - Tách test structural nhanh khỏi integration test chậm
+  - Chạy event flow với dữ liệu tối thiểu
+  - Đo thời gian chờ event và state change
+  - Phát hiện test rò tài nguyên
+  - Tối ưu test mà vẫn giữ bằng chứng cần thiết
+- level1: Security testing
+  level2:
+  - Không đưa secret thật vào module test
+  - Kiểm tra authorization khi gọi public module API
+  - Security context trong web hoặc event test
+  - Kiểm tra event không làm lộ dữ liệu nhạy cảm
+  - Kiểm tra tenant boundary giữa module
+  - Mock external identity provider theo contract
+  - Test lỗi khi thiếu quyền
+  - Test cấu hình mặc định không mở quyền ngoài ý muốn
+  - Dọn token và credential sau test
+  - Phân biệt security test với architectural verification
+  - Lưu report không chứa dữ liệu nhạy cảm
+- level1: Lỗi thường gặp
+  level2:
+  - Chỉ chạy verify một lần rồi bỏ qua trong CI
+  - Coi module test là unit test có Spring
+  - Bootstrap toàn ứng dụng cho mọi scenario
+  - Mock toàn bộ dependency làm mất giá trị tích hợp
+  - Dùng sleep để chờ event
+  - Không kiểm tra event sau transaction commit
+  - Không dọn executor và container
+  - Dùng fixture dùng chung có thể thay đổi
+  - Assertion trực tiếp vào package nội bộ
+  - Suppress dependency cycle không có lý do
+  - Đo coverage mà không xem chất lượng assertion
+  - Gọi event publisher nhưng không xác minh listener
+  - Chạy test green nhưng không có assertion thực sự
+- level1: Chọn chiến lược
+  level2:
+  - Xác định mục tiêu là structural hay behavioral verification
+  - Chọn ApplicationModules.verify cho luật kiến trúc
+  - Chọn @ApplicationModuleTest cho một module
+  - Chọn @SpringBootTest cho cross-module flow
+  - Chọn Scenario cho event-driven behavior
+  - Chọn contract test cho public module API
+  - Chọn Testcontainers khi cần dependency thật
+  - Chọn mock khi boundary đã đủ rõ
+  - Cân bằng độ cô lập với bằng chứng tích hợp
+  - Xác định timeout, retry và mức observability
+  - Ghi lại phạm vi những gì test không chứng minh
+- level1: Dự án thực hành
+  level2:
+  - Khởi tạo ứng dụng Spring Modulith nhỏ có ba module
+  - Khám phá mô hình bằng ApplicationModules
+  - Viết test kiểm tra dependency và cycle
+  - Khai báo named interface cho public API
+  - Tạo ApplicationModuleTest cho module nghiệp vụ
+  - Bootstrap module với collaborator được thay thế
+  - Viết scenario kích hoạt command và chờ event
+  - Kiểm tra event chỉ phát sau transaction commit
+  - Kiểm tra state change sau listener bất đồng bộ
+  - Kiểm tra contract của externalized event
+  - Chạy database test bằng Testcontainers
+  - Đưa verify và module test vào CI
+  - Ghi report và chẩn đoán một test thất bại
+  - Đánh giá giới hạn còn lại của bộ verification

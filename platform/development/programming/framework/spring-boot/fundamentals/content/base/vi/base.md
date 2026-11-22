@@ -1,0 +1,7 @@
+# Spring Boot - Fundamentals
+
+Spring Boot giúp khởi tạo và vận hành ứng dụng dựa trên Spring bằng cách cung cấp các lựa chọn mặc định, nhóm thư viện thuận tiện và cơ chế cấu hình tự động. Để hiểu một ứng dụng Spring Boot, bạn cần nối được các phần: thư viện nào có mặt, đối tượng nào được Spring quản lý, cấu hình nào đang có hiệu lực và điều gì diễn ra khi chương trình khởi động. Module này xây dựng bức tranh nền tảng đó trước khi đi sâu vào từng khả năng.
+
+Module dành cho người đã có kiến thức Java cơ bản và muốn bắt đầu học Spring Boot có hệ thống. Bạn sẽ làm quen với bean, ngữ cảnh ứng dụng (ApplicationContext), tiêm phụ thuộc, starter, cấu hình tự động và cấu hình ngoài; đồng thời hiểu mối liên hệ giữa Spring Framework, Spring Boot và công cụ xây dựng. Phạm vi tập trung vào những cơ chế chung của ứng dụng, có đối chiếu ứng dụng không có web và ứng dụng dùng máy chủ web nhúng. Các tài liệu tham khảo Spring Boot trong module sử dụng nhánh 3.3.
+
+Lộ trình bắt đầu từ vai trò của Spring Boot và cấu trúc dự án, tiếp đến cách tạo bean, kết nối phụ thuộc và lựa chọn cấu hình. Sau đó, bạn theo dõi quá trình khởi động, thay đổi thuộc tính theo môi trường, chạy và đóng gói ứng dụng, rồi dùng kiểm thử cùng nhật ký để kiểm chứng. Mục tiêu là giải thích được vì sao ứng dụng hoạt động như quan sát, biết tìm nguyên nhân khi cấu hình sai và có nền tảng để học tiếp các chủ đề về thời gian chạy, web, tích hợp và kiểm thử.

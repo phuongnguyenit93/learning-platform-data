@@ -1,0 +1,3007 @@
+menu:
+- slug: compatibility-overview
+  title: Tổng quan
+  childs:
+  - slug: compatibility-overview-001
+    title: Kiểm thử tương thích là gì và những vấn đề cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-002
+    title: 'Mô hình tư duy: sản phẩm, phiên bản, môi trường, đối tác và hành vi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-003
+    title: Vì sao chức năng đúng trên một cấu hình vẫn có thể lỗi ở cấu hình khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-004
+    title: Mục tiêu duy trì hành vi khi thay nền tảng hoặc thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-005
+    title: Khả năng cùng tồn tại và khả năng trao đổi, sử dụng thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-006
+    title: Quan hệ với kiểm thử chức năng, hợp đồng, hồi quy và tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-007
+    title: Phân biệt tương thích với tính khả chuyển hoặc khả năng thích nghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-008
+    title: Giới hạn của kết luận khi chỉ kiểm tra một vài tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-overview-009
+    title: Lộ trình từ cam kết hỗ trợ đến bằng chứng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-types
+  title: Các dạng tương thích
+  childs:
+  - slug: compatibility-types-001
+    title: 'Tương thích ngược: thành phần mới làm việc với bên hoặc dữ liệu cũ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-002
+    title: 'Tương thích xuôi: thành phần cũ tiếp nhận thay đổi từ bên mới'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-003
+    title: Xác định hướng cũ–mới theo vai trò bên gửi, bên nhận hoặc bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-004
+    title: Tương thích hai chiều và các điều kiện bổ sung cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-005
+    title: Tương thích mã nguồn khi biên dịch lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-006
+    title: Tương thích nhị phân khi dùng lại chương trình đã biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-007
+    title: Tương thích hành vi và ngữ nghĩa của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-008
+    title: Tương thích định dạng dữ liệu và giao thức trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-009
+    title: Khả năng tương tác giữa các hệ thống có cách triển khai khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-010
+    title: Khả năng cùng tồn tại trong môi trường chia sẻ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-types-011
+    title: Phân biệt thay đổi phá vỡ hợp đồng với thay đổi ngoài phạm vi cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: support-scope
+  title: Phạm vi hỗ trợ
+  childs:
+  - slug: support-scope-001
+    title: 'Xác định đối tượng: thư viện, ứng dụng, dịch vụ hoặc sản phẩm đầu cuối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-002
+    title: Xác định bên cung cấp, bên tiêu thụ và các điểm tiếp xúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-003
+    title: Danh mục hệ điều hành, runtime, thiết bị và phiên bản được cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-004
+    title: Mức hỗ trợ đầy đủ, có điều kiện và không thuộc phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-005
+    title: Phiên bản tối thiểu, phiên bản mục tiêu và cửa sổ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-006
+    title: Hành vi cần giữ ổn định so với thay đổi đã được chấp thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-007
+    title: Giả định về cấu hình hoặc cách sử dụng phải được ghi rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-008
+    title: Ranh giới kiểm chứng của đội phát triển và các đối tác bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-scope-009
+    title: Tiêu chí loại bỏ một nền tảng hoặc phiên bản khỏi phạm vi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-matrix
+  title: Ma trận tương thích
+  childs:
+  - slug: compatibility-matrix-001
+    title: 'Các chiều biến thiên: sản phẩm, runtime, nền tảng và phụ thuộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-002
+    title: Xây ma trận phiên bản của bên cung cấp và bên tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-003
+    title: Phân biệt tổ hợp hợp lệ, không hợp lệ và chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-004
+    title: Ràng buộc giữa các chiều để tránh tạo tổ hợp không thể tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-005
+    title: Cấu hình đại diện và cấu hình chuẩn để đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-006
+    title: Tổ hợp tối thiểu được hỗ trợ và tổ hợp phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-007
+    title: Các chiều liên quan chặt cần được kiểm tra cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-008
+    title: Liên kết từng tổ hợp với ca kiểm thử và bằng chứng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-009
+    title: Ghi nhận phiên bản đầy đủ thay vì nhãn chung như latest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-matrix-010
+    title: Phân biệt ma trận hỗ trợ công bố với ma trận thực tế đã chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: risk-prioritization
+  title: Ưu tiên theo rủi ro
+  childs:
+  - slug: risk-prioritization-001
+    title: Thu thập dữ liệu sử dụng để chọn cấu hình quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-002
+    title: Ảnh hưởng nghiệp vụ khi một nhóm môi trường không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-003
+    title: Rủi ro từ nâng cấp runtime, thư viện hoặc định dạng trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-004
+    title: Ưu tiên ranh giới phiên bản và các bước chuyển lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-005
+    title: Chọn đại diện theo nhóm nền tảng có đặc điểm chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-006
+    title: Pairwise và giới hạn khi lỗi cần tương tác nhiều hơn hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-007
+    title: Kết hợp cấu hình phổ biến với cấu hình có rủi ro đặc thù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-008
+    title: Phần chưa kiểm chứng và cách trình bày rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: criteria-and-basis
+  title: Tiêu chí và căn cứ
+  childs:
+  - slug: criteria-and-basis-001
+    title: Từ cam kết hỗ trợ đến hành vi có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-002
+    title: Định nghĩa kết quả đạt cho mỗi dạng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-003
+    title: Hợp đồng API, đặc tả định dạng và quy tắc nghiệp vụ làm căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-004
+    title: Đối chiếu với bản chuẩn và giới hạn của kết quả tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-005
+    title: Phân biệt sai khác được phép với sai khác phá vỡ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-006
+    title: Đánh giá mất dữ liệu, thay đổi ý nghĩa hoặc làm tròn khi trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-007
+    title: Tiêu chí từ chối rõ ràng đối với cấu hình không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-008
+    title: Thống nhất mức sai lệch chấp nhận được trước khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: criteria-and-basis-009
+    title: Truy vết từ yêu cầu tương thích đến kết luận kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: verification-environment
+  title: Môi trường kiểm chứng
+  childs:
+  - slug: verification-environment-001
+    title: Lập danh mục runtime, phần mềm hệ thống và cấu hình có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-002
+    title: Cố định artifact đang kiểm thử và ghi checksum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-003
+    title: Chuẩn bị môi trường sạch hoặc có thể khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-004
+    title: 'Ghi nhận trạng thái nền: locale, múi giờ, encoding và quyền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-005
+    title: Container, máy ảo và máy thật cung cấp những loại bằng chứng nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-006
+    title: Phân biệt giả lập thiết bị với kiểm tra trên thiết bị thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-007
+    title: Giữ một thay đổi có chủ đích khi so sánh hai môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-008
+    title: Phát hiện sai lệch cấu hình giữa mô tả ma trận và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: verification-environment-009
+    title: Thu thập log, cấu hình và dữ liệu để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operating-systems
+  title: Hệ điều hành
+  childs:
+  - slug: operating-systems-001
+    title: Đường dẫn, dấu phân cách và thư mục làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-002
+    title: Phân biệt hoa thường của tên tệp và tác động đến truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-003
+    title: Quyền tệp, quyền thực thi và tài khoản chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-004
+    title: Kết thúc dòng, shell và cách xử lý tham số dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-005
+    title: Tên tệp, Unicode và ký tự đặc biệt trên từng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-006
+    title: Khóa tệp, đổi tên, xóa tệp và các giả định về hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-007
+    title: Tệp tạm, thư mục người dùng và vị trí cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-008
+    title: Biến môi trường, dịch vụ hệ thống và quá trình khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-009
+    title: Kiểm chứng cùng artifact trên các hệ điều hành được cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-and-hardware
+  title: Kiến trúc và phần cứng
+  childs:
+  - slug: architecture-and-hardware-001
+    title: Kiến trúc CPU và các thành phần phụ thuộc mã máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-hardware-002
+    title: x86-64, ARM64 và lựa chọn artifact đúng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-hardware-003
+    title: Giới hạn bộ nhớ hoặc tài nguyên ảnh hưởng khả năng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-hardware-004
+    title: Khác biệt độ rộng dữ liệu và giả định trong mã native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-hardware-005
+    title: Thiết bị hoặc trình điều khiển ngoài mà sản phẩm cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-hardware-006
+    title: Ảnh hưởng của instruction set hoặc thư viện hệ thống bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-hardware-007
+    title: Phân biệt chạy được qua giả lập với hỗ trợ trực tiếp kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-hardware-008
+    title: Thiết kế ca cho từng tổ hợp kiến trúc thực sự được phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdk-and-jvm
+  title: JDK và JVM
+  childs:
+  - slug: jdk-and-jvm-001
+    title: Phân biệt JDK biên dịch, JDK chạy công cụ build và JVM thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-002
+    title: Ma trận phiên bản Java được hỗ trợ cho cùng một ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-003
+    title: Phiên bản class file và lỗi UnsupportedClassVersionError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-004
+    title: javac --release và phạm vi API, bytecode được nhắm tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-005
+    title: Chạy artifact cũ trên runtime mới trước khi biên dịch lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-006
+    title: Thư viện hoặc công cụ chưa hỗ trợ JDK mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-007
+    title: API bị loại bỏ, API nội bộ và cảnh báo cần rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-008
+    title: jdeps, jdeprscan và giới hạn của phân tích tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-009
+    title: Reflection, đóng gói module và quyền truy cập thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-010
+    title: Tham số JVM không còn được chấp nhận hoặc đổi ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-011
+    title: Nhà cung cấp JVM và các giả định đặc thù của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-and-jvm-012
+    title: Hành vi runtime cần kiểm chứng bên cạnh việc khởi động thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-library-apis
+  title: API thư viện Java
+  childs:
+  - slug: java-library-apis-001
+    title: Xác định API công khai mà bên sử dụng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-002
+    title: Biên dịch mã sử dụng cũ với thư viện mới để kiểm tra mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-003
+    title: Chạy binary sử dụng cũ với thư viện mới mà không biên dịch lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-004
+    title: Thêm, xóa hoặc thay đổi chữ ký phương thức và constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-005
+    title: Thay đổi mức truy cập, lớp cha hoặc interface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-006
+    title: Overload, override và khác biệt giữa lựa chọn khi biên dịch với khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-007
+    title: Generic, type erasure và các giả định ở điểm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-008
+    title: Enum, record và tác động của thay đổi thành phần công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-009
+    title: Hằng số được đưa vào mã bên sử dụng tại thời điểm biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-010
+    title: NoSuchMethodError, NoSuchFieldError và IllegalAccessError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-011
+    title: So sánh API bằng công cụ như japicmp hoặc Revapi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-library-apis-012
+    title: Kiểm chứng hành vi ngay cả khi kiểm tra nhị phân không phát hiện phá vỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependencies-and-versions
+  title: Phụ thuộc và phiên bản
+  childs:
+  - slug: dependencies-and-versions-001
+    title: Đồ thị phụ thuộc thực tế và phiên bản được phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-002
+    title: Xung đột giữa phiên bản trực tiếp với phụ thuộc bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-003
+    title: Bộ thư viện cần đồng bộ qua BOM hoặc nền tảng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-004
+    title: Phân biệt phạm vi biên dịch, kiểm thử và thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-005
+    title: Lớp trùng, package trùng và thứ tự classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-006
+    title: ClassLoader, plugin và các vùng nạp lớp khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-007
+    title: Giới hạn của cam kết phiên bản ngữ nghĩa khi chọn bản nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-008
+    title: Kiểm chứng phiên bản phụ thuộc thấp nhất và phiên bản mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-009
+    title: Giữ lại đồ thị phụ thuộc và checksum để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-versions-010
+    title: Phân biệt tương thích từng cặp với tương thích của toàn bộ tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packaging-and-distribution
+  title: Đóng gói và phân phối
+  childs:
+  - slug: packaging-and-distribution-001
+    title: Cùng mã nguồn nhưng artifact khác nhau có thể tạo kết quả khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-002
+    title: JAR, WAR và các yêu cầu của môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-003
+    title: Manifest, điểm khởi chạy và cách cung cấp thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-004
+    title: Fat JAR, shading và tài nguyên bị trùng khi đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-005
+    title: Multi-release JAR và phần cài đặt được chọn theo runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-006
+    title: JPMS, module path và classpath trong các cách khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-007
+    title: Runtime image rút gọn và module hệ thống bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-008
+    title: Container image theo kiến trúc và thư viện hệ thống nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-and-distribution-009
+    title: Kiểm thử sản phẩm đã đóng gói thay vì chỉ chạy từ IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: frameworks-and-servers
+  title: Framework và máy chủ
+  childs:
+  - slug: frameworks-and-servers-001
+    title: Ma trận JDK, framework, máy chủ ứng dụng và thư viện nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-002
+    title: Giới hạn của tương thích Java SE đối với một framework cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-003
+    title: Chuyển đổi namespace javax và jakarta theo API liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-004
+    title: Phiên bản Servlet và hợp đồng của môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-005
+    title: Thay đổi cấu hình hoặc giá trị mặc định sau nâng cấp framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-006
+    title: Reflection, proxy, agent và các cơ chế can thiệp lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-007
+    title: Plugin hoặc extension có vòng đời nâng cấp riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-008
+    title: Kiểm tra khởi động, nạp cấu hình và luồng nghiệp vụ đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-servers-009
+    title: Phân biệt lỗi tích hợp cấu hình với lỗi nghiệp vụ của phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-code-and-abi
+  title: Mã native và ABI
+  childs:
+  - slug: native-code-and-abi-001
+    title: JNI hoặc thư viện native làm thay đổi giả định chạy đa nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-code-and-abi-002
+    title: Tên thư viện, vị trí tìm kiếm và quy tắc nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-code-and-abi-003
+    title: ABI, kiến trúc CPU và phiên bản thư viện hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-code-and-abi-004
+    title: glibc, musl và khác biệt của môi trường Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-code-and-abi-005
+    title: Phụ thuộc native bắc cầu và thư viện còn thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-code-and-abi-006
+    title: Kiểm chứng kiểu dữ liệu, encoding và quản lý tài nguyên qua biên native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-code-and-abi-007
+    title: UnsatisfiedLinkError và các dấu hiệu sai tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-code-and-abi-008
+    title: Giới hạn của container khi kiểm chứng phụ thuộc vào kernel hoặc phần cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-and-jdbc
+  title: Cơ sở dữ liệu và JDBC
+  childs:
+  - slug: database-and-jdbc-001
+    title: Ma trận ứng dụng, JDBC driver và máy chủ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-002
+    title: Hợp đồng JDBC so với hành vi đặc thù của từng hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-003
+    title: Kiểu dữ liệu số, chuỗi, thời gian và giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-004
+    title: SQL dialect và giới hạn của truy vấn được sinh bởi ORM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-005
+    title: Collation, phân biệt hoa thường và thứ tự kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-006
+    title: Tự sinh khóa, sequence và cách đọc khóa trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-007
+    title: Transaction isolation, auto-commit và các giả định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-008
+    title: Timezone giữa ứng dụng, driver và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-009
+    title: Cơ chế xác thực hoặc TLS trong kết nối các phiên bản khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-010
+    title: Giới hạn của cơ sở dữ liệu giả lập so với hệ quản trị mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-and-jdbc-011
+    title: Lưu phiên bản driver và cấu hình kết nối cùng kết quả kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-evolution
+  title: Tiến hóa lược đồ
+  childs:
+  - slug: schema-evolution-001
+    title: Ứng dụng cũ, ứng dụng mới và các phiên bản schema cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-002
+    title: Thêm cột, giá trị mặc định và khả năng đọc của mã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-003
+    title: Đổi tên, xóa cột hoặc đổi kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-004
+    title: Ràng buộc mới và dữ liệu cũ không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-005
+    title: Expand–contract và thứ tự triển khai thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-006
+    title: Backfill và ý nghĩa của dữ liệu trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-007
+    title: Kiểm chứng đọc, ghi bằng các phiên bản ứng dụng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-008
+    title: Khả năng quay lại ứng dụng cũ sau khi dữ liệu đã được ghi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-009
+    title: Kiểm tra bảo toàn dữ liệu thay vì chỉ xác nhận migration chạy xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-010
+    title: Phân biệt tương thích lược đồ với tính đúng của toàn bộ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: apis-and-external-interfaces
+  title: API và giao diện ngoài
+  childs:
+  - slug: apis-and-external-interfaces-001
+    title: Ma trận client cũ, client mới, server cũ và server mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-002
+    title: Đường dẫn, phương thức, tham số và header thuộc hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-003
+    title: Thêm trường tùy chọn và hành vi của client không biết trường đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-004
+    title: Xóa trường, đổi tên hoặc đổi kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-005
+    title: Phân biệt trường không có mặt, null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-006
+    title: Enum mở rộng và client có danh sách giá trị cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-007
+    title: Mã trạng thái, cấu trúc lỗi và ngữ nghĩa thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-008
+    title: Phân trang, sắp xếp hoặc thay đổi giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-009
+    title: Versioning và thời gian hỗ trợ đồng thời nhiều giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-010
+    title: Consumer-driven contract và giới hạn của kiểm chứng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-011
+    title: Kiểm tra SDK được sinh tự động cùng client đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apis-and-external-interfaces-012
+    title: Thay đổi hình thức vẫn đọc được nhưng khác ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: formats-and-serialization
+  title: Định dạng và tuần tự hóa
+  childs:
+  - slug: formats-and-serialization-001
+    title: Ma trận bên ghi và bên đọc theo phiên bản định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-002
+    title: JSON, XML, CSV và những giả định về cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-003
+    title: Encoding, BOM và ký tự không nằm trong tập dữ liệu thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-004
+    title: Số lớn, độ chính xác thập phân và mất dữ liệu khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-005
+    title: Quy tắc đọc trường lạ, trường thiếu và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-006
+    title: 'Protobuf: số hiệu trường, giá trị enum và dữ liệu chưa biết'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-007
+    title: Phân biệt quy tắc tương thích Protobuf nhị phân với ProtoJSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-008
+    title: 'Avro: writer schema, reader schema và phân giải lược đồ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-009
+    title: Java serialization và hợp đồng của đối tượng đã được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-010
+    title: Tệp mẫu từ phiên bản cũ (golden files) và ca đọc ghi chéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-serialization-011
+    title: Đối chiếu ngữ nghĩa thay vì chỉ so sánh chuỗi byte khi định dạng cho phép khác biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messages-and-events
+  title: Thông điệp và sự kiện
+  childs:
+  - slug: messages-and-events-001
+    title: Producer, consumer và broker có thể nâng cấp độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-002
+    title: Ma trận phiên bản thông điệp với các bên tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-003
+    title: Sự kiện cũ còn trong hàng đợi hoặc kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-004
+    title: Consumer mới đọc lại dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-005
+    title: Consumer cũ nhận sự kiện do producer mới phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-006
+    title: Thay đổi schema so với thay đổi ý nghĩa của sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-007
+    title: Metadata, content type và cách xác định phiên bản payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-008
+    title: Tái phát sự kiện hoặc retry qua giai đoạn chuyển phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-009
+    title: Kiểm chứng adapter chuyển đổi mà không làm mất thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-and-events-010
+    title: Giới hạn của schema validation đối với hành vi xử lý của consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocols-and-infrastructure
+  title: Giao thức và hạ tầng
+  childs:
+  - slug: protocols-and-infrastructure-001
+    title: Phiên bản HTTP, TLS và khả năng thương lượng giữa các bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-002
+    title: Tập giao thức hoặc thuật toán được hỗ trợ theo chính sách an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-003
+    title: Chứng chỉ, truststore và cơ chế xác thực của các runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-004
+    title: Proxy, reverse proxy và thay đổi header trên đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-005
+    title: Content negotiation, nén dữ liệu và charset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-006
+    title: WebSocket hoặc giao thức kết nối lâu dài qua các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-007
+    title: Timeout, redirect và giới hạn kích thước yêu cầu giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-008
+    title: Phân biệt lỗi bắt tay hoặc thương lượng với lỗi nội dung nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-infrastructure-009
+    title: Kiểm chứng đường truyền đại diện cho môi trường được cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-version-runtime
+  title: Nhiều phiên bản cùng chạy
+  childs:
+  - slug: multi-version-runtime-001
+    title: Triển khai nhiều phiên bản (mixed-version deployment) và cửa sổ cần cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-002
+    title: Thứ tự nâng cấp bên cung cấp và bên tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-003
+    title: Rolling upgrade và các cặp phiên bản xuất hiện trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-004
+    title: Session, cache và dữ liệu tạm do bản cũ hoặc bản mới tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-005
+    title: Giao tiếp hai chiều giữa các nút ở phiên bản khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-006
+    title: Cờ tính năng (feature flag) và điều kiện bật hành vi sau khi đủ thành phần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-007
+    title: Đọc dữ liệu mới trước khi toàn bộ hệ thống được nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-008
+    title: Quay lại phiên bản ứng dụng trước (rollback) khi lược đồ hoặc dữ liệu đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-009
+    title: Chuyển đổi không đồng thời và các lỗi chỉ xảy ra trong cửa sổ nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-version-runtime-010
+    title: Tiêu chí kết thúc giai đoạn hỗ trợ phối hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browsers
+  title: Trình duyệt
+  childs:
+  - slug: browsers-001
+    title: Ma trận trình duyệt, phiên bản và hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-002
+    title: Engine trình duyệt và khác biệt với tên sản phẩm thương mại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-003
+    title: HTML, CSS, JavaScript và Web API cần đối chiếu hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-004
+    title: MDN Baseline và giới hạn của thông tin hỗ trợ tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-005
+    title: Feature detection và hành vi dự phòng khi thiếu khả năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-006
+    title: Cookie, storage, cache và khác biệt chính sách trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-007
+    title: Hiển thị, font, biểu mẫu và tương tác trên các cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-008
+    title: Kiểm chứng luồng nghiệp vụ thay vì chỉ so ảnh chụp giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-009
+    title: Playwright với Chromium, Firefox, WebKit và các kênh được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-010
+    title: Giới hạn của WebKit thử nghiệm so với Safari thật trên nền tảng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browsers-011
+    title: Chọn phiên bản trình duyệt theo chính sách hỗ trợ đã thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: devices-and-interfaces
+  title: Thiết bị và giao diện
+  childs:
+  - slug: devices-and-interfaces-001
+    title: Kích thước viewport, mật độ điểm ảnh và khả năng hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-002
+    title: Touch, chuột, bàn phím và các cách nhập liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-003
+    title: Hướng màn hình, vùng hiển thị an toàn và bố cục thích ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-004
+    title: Trình duyệt di động, WebView và ứng dụng nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-005
+    title: Khác biệt hệ điều hành thiết bị với cấu hình giả lập trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-006
+    title: Quyền truy cập camera, vị trí hoặc tài nguyên thiết bị khi ứng dụng cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-007
+    title: Giả lập, máy ảo và thiết bị thật trong ma trận bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-008
+    title: Kiểm chứng hành trình quan trọng trên thiết bị được cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-interfaces-009
+    title: Phân biệt tương thích thiết bị với đánh giá khả dụng hoặc khả năng tiếp cận đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: languages-and-locales
+  title: Ngôn ngữ và vùng miền
+  childs:
+  - slug: languages-and-locales-001
+    title: Locale và những giá trị mặc định phụ thuộc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-002
+    title: UTF-8, charset mặc định và dữ liệu tạo từ phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-003
+    title: Unicode normalization và so sánh chuỗi qua các nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-004
+    title: Định dạng số, dấu thập phân và dấu phân nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-005
+    title: Ngày giờ, lịch, múi giờ và dữ liệu timezone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-006
+    title: Sắp xếp hoặc so khớp văn bản theo collation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-007
+    title: Font, ký tự ngoài ASCII và văn bản nhiều ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-008
+    title: Văn bản phải sang trái và thay đổi độ dài nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-009
+    title: Nhập, xuất và đọc lại cùng dữ liệu giữa các locale
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: languages-and-locales-010
+    title: Phân biệt dữ liệu trao đổi chuẩn hóa với biểu diễn dành cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coexistence
+  title: Cùng tồn tại
+  childs:
+  - slug: coexistence-001
+    title: Hai ứng dụng hoạt động trong cùng môi trường mà không gây cản trở ngoài cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-002
+    title: Xung đột cổng mạng, tên dịch vụ và địa chỉ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-003
+    title: Thư mục cài đặt, tệp cấu hình và biến môi trường dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-004
+    title: Thư viện dùng chung, runtime dùng chung và ảnh hưởng của việc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-005
+    title: CPU, bộ nhớ, file descriptor và tài nguyên có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-006
+    title: Dữ liệu tạm, cache, khóa tệp và tên tài nguyên trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-007
+    title: Khởi động, dừng hoặc gỡ một ứng dụng ảnh hưởng ứng dụng còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-008
+    title: Quyền truy cập và ranh giới tài khoản của các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coexistence-009
+    title: Phân biệt kiểm chứng cùng tồn tại với bài đo hiệu năng chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-and-upgrade
+  title: Cài đặt và nâng cấp
+  childs:
+  - slug: installation-and-upgrade-001
+    title: Điều kiện nền tảng và phụ thuộc trước khi cài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-002
+    title: Cài mới, nâng cấp tại chỗ và cài song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-003
+    title: Phát hiện phiên bản hoặc cấu hình không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-004
+    title: Giữ lại cấu hình và dữ liệu người dùng khi thay phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-005
+    title: Đổi định dạng cấu hình và khả năng đọc cấu hình cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-006
+    title: Ứng dụng mới dùng dữ liệu cũ sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-007
+    title: Khả năng hạ phiên bản và các điều kiện giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-008
+    title: Gỡ cài đặt mà không phá thành phần hoặc dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-009
+    title: Khôi phục trạng thái sau nâng cấp gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-upgrade-010
+    title: Phân biệt cài thành công với các luồng nghiệp vụ đã hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-case-design
+  title: Thiết kế ca kiểm thử
+  childs:
+  - slug: test-case-design-001
+    title: Gắn mỗi ca với yêu cầu, tổ hợp và hướng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-002
+    title: Tái sử dụng hành vi cốt lõi với tham số môi trường khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-003
+    title: Ca đối chiếu giữa phiên bản chuẩn và phiên bản cần đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-004
+    title: Ca biên tại phiên bản tối thiểu hoặc mốc thay đổi hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-005
+    title: Đọc ghi chéo dữ liệu giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-006
+    title: Cùng thực thi nhiều phiên bản trong một kịch bản chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-007
+    title: Ca phủ định cho tổ hợp bị từ chối theo thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-008
+    title: Pairwise, tổ hợp nhiều chiều và trường hợp cần chỉ định tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-009
+    title: Giảm dữ liệu về mức đủ tái hiện mà vẫn giữ đặc điểm gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-010
+    title: Xác định hậu điều kiện về dữ liệu, cấu hình và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation-and-ci
+  title: Tự động hóa và CI
+  childs:
+  - slug: automation-and-ci-001
+    title: Biểu diễn ma trận môi trường dưới dạng cấu hình có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-002
+    title: Phân biệt lượt kiểm chứng nhanh với lượt phủ ma trận rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-003
+    title: Chạy cùng artifact trên nhiều runtime hoặc nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-004
+    title: Biên dịch client cũ và chạy lại binary cũ trong kiểm tra thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-005
+    title: Golden files, contract tests và ca nghiệp vụ cho dữ liệu chéo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-006
+    title: Playwright projects hoặc bộ chạy tương đương cho ma trận trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-007
+    title: Chuẩn bị dịch vụ phụ thuộc đúng phiên bản cho từng lượt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-008
+    title: Cô lập dữ liệu và tài nguyên khi ma trận chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-009
+    title: Giữ image digest, phiên bản công cụ và báo cáo cùng artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-010
+    title: Phân biệt lỗi hạ tầng, ca bị bỏ qua và thất bại tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-and-ci-011
+    title: Giới hạn của tự động hóa đối với các cấu hình cần thiết bị hoặc thao tác thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: difference-diagnosis
+  title: Chẩn đoán sai khác
+  childs:
+  - slug: difference-diagnosis-001
+    title: Xác định lỗi ở tải artifact, khởi động, liên kết hay hành vi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-002
+    title: Thu hẹp tổ hợp bằng cách thay đổi một chiều có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-003
+    title: So sánh phiên bản thực tế với phiên bản đã ghi trong ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-004
+    title: Lỗi bytecode, liên kết lớp hoặc thư viện native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-005
+    title: Lỗi payload đọc được nhưng giá trị bị mất hoặc đổi nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-006
+    title: Khác biệt encoding, timezone, locale hoặc collation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-007
+    title: Khác biệt theo trình duyệt, thiết bị hoặc chế độ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-008
+    title: Log, stack trace, ảnh chụp và dữ liệu tối thiểu giúp tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-009
+    title: Phân biệt regression của sản phẩm với thay đổi ngoài cam kết hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: difference-diagnosis-010
+    title: Tránh coi chạy lại thành công là bằng chứng đã giải quyết nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reports-and-conclusions
+  title: Báo cáo và kết luận
+  childs:
+  - slug: reports-and-conclusions-001
+    title: Trình bày kết quả theo tổ hợp và yêu cầu đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-conclusions-002
+    title: Phân biệt đạt, không đạt, bị chặn và chưa chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-conclusions-003
+    title: Đính kèm cấu hình thực tế, artifact và bằng chứng tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-conclusions-004
+    title: Đánh giá ảnh hưởng theo nhóm người dùng hoặc đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-conclusions-005
+    title: Ghi nhận giới hạn, ngoại lệ và biện pháp giảm tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-conclusions-006
+    title: Chấp nhận có điều kiện và người sở hữu quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-conclusions-007
+    title: Cập nhật danh mục hỗ trợ theo bằng chứng đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reports-and-conclusions-008
+    title: Không suy diễn kết quả của một tổ hợp cho toàn bộ ma trận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: support-commitment
+  title: Duy trì cam kết hỗ trợ
+  childs:
+  - slug: support-commitment-001
+    title: Theo dõi vòng đời nền tảng và thay đổi ở các bên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-commitment-002
+    title: Bổ sung ca khi có phiên bản hoặc tổ hợp hỗ trợ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-commitment-003
+    title: Giữ dữ liệu mẫu, binary client cũ và tài liệu môi trường cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-commitment-004
+    title: Loại bỏ ca khi một cam kết hỗ trợ đã được kết thúc tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-commitment-005
+    title: Deprecation và kế hoạch chuyển đổi cho bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-commitment-006
+    title: Đánh giá lại ma trận sau thay đổi kiến trúc hoặc thói quen sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-commitment-007
+    title: Phản hồi sự cố thực tế vào ưu tiên kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: support-commitment-008
+    title: Phân biệt phát hiện khả năng không tương thích với quyết định nâng cấp sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Lập ma trận hỗ trợ cho một thư viện hoặc dịch vụ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Kiểm tra mã nguồn client cũ với API thư viện mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Chạy binary client cũ với thư viện mới và phân tích lỗi liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Chạy một artifact trên các JDK đã chọn và đối chiếu hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Kiểm thử JSON hoặc Protobuf giữa bên gửi và bên nhận khác phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Đọc golden files cũ bằng bộ đọc mới và kiểm tra bảo toàn ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Kiểm chứng ứng dụng cũ, mới cùng dùng một lược đồ đang chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Chạy luồng web đại diện trên nhiều engine và một thiết bị thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Tái hiện sai khác do đường dẫn, encoding hoặc múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: Kiểm tra hai ứng dụng cùng hoạt động mà không xung đột tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-011
+    title: Mô phỏng nâng cấp từng phần và đánh giá điều kiện quay lại phiên bản trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-012
+    title: Viết kết luận hỗ trợ cùng phạm vi chưa có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

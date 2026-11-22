@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SOFTWARE_DESIGN_DESIGN_PATTERN_STRUCTURAL_ADAPTER"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Học mẫu Adapter để kết nối các giao diện không tương thích mà không phải sửa client hoặc hệ thống cần tích hợp. Thực hành Object Adapter, Class Adapter, chuyển đổi dữ liệu và hành vi, xử lý lỗi và kiểm thử lớp chuyển tiếp khi làm việc với SDK, thư viện hoặc hệ thống cũ."
+  }
+}

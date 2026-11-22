@@ -1,0 +1,49 @@
+roadmap:
+- id: atdd-tieu-chi-chap-nhan
+  title: ATDD & Tiêu chí Chấp nhận
+  purpose: Hiểu cách kiểm thử chấp nhận định hướng yêu cầu trước khi phát triển chức năng.
+  objectives:
+  - Giải thích ATDD và phân biệt với unit-level TDD.
+  - Xác định kết quả người dùng có thể quan sát để chấp nhận story.
+- id: three-amigos-cong-tac
+  title: Three Amigos & Cộng tác
+  purpose: Làm rõ yêu cầu bằng đối thoại giữa nghiệp vụ, lập trình và kiểm thử.
+  objectives:
+  - Tổ chức buổi trao đổi Product–Developer–Tester cho một story.
+  - Ghi câu hỏi mơ hồ, giả định và quyết định đã thống nhất.
+- id: user-story-business-rules
+  title: User Story & Business Rules
+  purpose: Chuyển nhu cầu thành những quy tắc và điều kiện chấp nhận rõ ràng.
+  objectives:
+  - Viết user story có mục tiêu và phạm vi cụ thể.
+  - Định nghĩa acceptance criteria theo kết quả nghiệp vụ.
+- id: example-mapping-bien
+  title: Example Mapping & Biên
+  purpose: Dùng ví dụ cụ thể để phát hiện trường hợp đặc biệt trước khi viết code.
+  objectives:
+  - Lập ví dụ đúng, sai và giá trị biên cho từng business rule.
+  - Phân loại rule, example và câu hỏi chưa được giải đáp.
+- id: given-when-then-scenarios
+  title: Given–When–Then Scenarios
+  purpose: Diễn đạt hành vi mong đợi ở ngôn ngữ dễ hiểu cho các bên.
+  objectives:
+  - Viết scenario Given–When–Then không phụ thuộc UI cụ thể.
+  - Rà soát kết quả Then có thể quan sát và kiểm chứng.
+- id: executable-acceptance-tests
+  title: Executable Acceptance Tests
+  purpose: Tự động hóa các ví dụ quan trọng tại ranh giới hệ thống phù hợp.
+  objectives:
+  - Liên kết Gherkin với Java step definitions bằng Cucumber.
+  - Thiết lập test data và assertion cho kịch bản chấp nhận.
+- id: red-green-refine
+  title: Red–Green–Refine
+  purpose: Dùng kiểm thử chấp nhận thất bại để dẫn hướng triển khai và cải tiến.
+  objectives:
+  - Chạy test trước khi code và ghi nhận kết quả fail mong đợi.
+  - Triển khai chức năng đến khi pass, rồi refactor an toàn.
+- id: ci-feedback-bao-tri
+  title: CI, Feedback & Bảo trì
+  purpose: Giữ tiêu chí chấp nhận còn giá trị khi phần mềm và yêu cầu thay đổi.
+  objectives:
+  - Chạy acceptance tests trong CI và phân tích báo cáo lỗi.
+  - Rà soát scenario trùng lặp, flaky và cập nhật khi rule đổi.

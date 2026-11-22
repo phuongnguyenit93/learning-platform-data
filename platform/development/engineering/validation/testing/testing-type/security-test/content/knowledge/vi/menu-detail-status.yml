@@ -1,0 +1,3406 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiểm thử bảo mật (security testing) là gì và vấn đề cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Quan hệ giữa tài sản, cơ chế bảo vệ và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Mục tiêu bảo mật: bí mật, toàn vẹn và sẵn sàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt hành vi đúng chức năng với hành vi đáp ứng yêu cầu bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt điểm yếu, lỗ hổng, mối đe dọa và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Quan hệ với kiểm thử đơn vị, tích hợp, hệ thống và đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt rà soát bảo mật, quét lỗ hổng và kiểm thử thâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lợi ích, chi phí và giới hạn của kết quả kiểm thử bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình từ phân tích rủi ro đến xác minh bản sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-fundamentals
+  title: Khái niệm nền tảng
+  childs:
+  - slug: security-fundamentals-001
+    title: Nhận diện tài sản, dữ liệu nhạy cảm và chủ thể truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-002
+    title: Ranh giới tin cậy (trust boundary) và bề mặt tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-003
+    title: Phân biệt xác thực danh tính với phân quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-004
+    title: Nguyên tắc quyền tối thiểu và mặc định từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-005
+    title: Phân biệt kiểm soát phòng ngừa, phát hiện và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-006
+    title: Phân biệt mã hóa, hàm băm, chữ ký và mã hóa biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-007
+    title: Nguồn dữ liệu không tin cậy và điểm sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-008
+    title: Tác động bảo mật theo người dùng, khách hàng và hệ thống liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-fundamentals-009
+    title: Giới hạn suy luận từ một lần quét không phát hiện cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-and-authorization
+  title: Phạm vi và ủy quyền
+  childs:
+  - slug: scope-and-authorization-001
+    title: Xác định hệ thống, tài khoản, API và môi trường được phép kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-authorization-002
+    title: Thống nhất mục tiêu, phương pháp và thời gian thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-authorization-003
+    title: Phân biệt tài sản do nhóm quản lý với dịch vụ của bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-authorization-004
+    title: Quy định giới hạn tải, dữ liệu và thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-authorization-005
+    title: Thiết lập điều kiện dừng và đầu mối xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-authorization-006
+    title: Quản lý quyền truy cập cho người và công cụ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-authorization-007
+    title: Thống nhất cách thu thập, lưu giữ và chia sẻ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-and-authorization-008
+    title: Ghi rõ phần ngoài phạm vi và rủi ro chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-modeling
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-modeling-001
+    title: Vẽ luồng dữ liệu và các ranh giới tin cậy của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-002
+    title: Xác định tác nhân, tài sản và khả năng tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-003
+    title: Phân tích giả định tin cậy tại giao diện, dịch vụ và nơi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-004
+    title: Sử dụng STRIDE hoặc cách phân tích phù hợp với hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-005
+    title: Xây kịch bản lạm dụng từ mục tiêu nghiệp vụ cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-006
+    title: Ưu tiên rủi ro theo tác động, khả năng xảy ra và mức phơi lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-007
+    title: Liên kết mối đe dọa với yêu cầu và cơ chế bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-008
+    title: Chuyển giả thuyết rủi ro thành điều kiện kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-009
+    title: Cập nhật mô hình khi kiến trúc, dữ liệu hoặc cách triển khai thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Chọn mức độ kiểm chứng theo rủi ro của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-002
+    title: Kết hợp góc nhìn hộp đen, hộp xám và hộp trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-003
+    title: Phối hợp kiểm thử tĩnh, động, thủ công và tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-004
+    title: Sử dụng OWASP ASVS để xác định yêu cầu kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-005
+    title: Sử dụng OWASP WSTG để tham khảo phương pháp kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-006
+    title: Sử dụng các danh mục rủi ro OWASP phù hợp với web và API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-007
+    title: Ghi phiên bản tiêu chuẩn và mã yêu cầu khi lập ma trận bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-008
+    title: Phân bổ kiểm tra theo giai đoạn phát triển và phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-009
+    title: Xác định bằng chứng, tiêu chí hoàn tất và phần rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-010
+    title: Lập trách nhiệm phối hợp giữa phát triển, bảo mật và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-environment
+  title: Môi trường kiểm thử
+  childs:
+  - slug: test-environment-001
+    title: Tạo môi trường riêng có cấu hình đại diện cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-002
+    title: Sử dụng dữ liệu tổng hợp hoặc đã khử thông tin nhận dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-003
+    title: Chuẩn bị tài khoản theo vai trò, trạng thái và khách hàng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-004
+    title: Cô lập dịch vụ ngoài và điểm tiếp nhận dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-005
+    title: Cố định phiên bản ứng dụng, cấu hình và thành phần phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-006
+    title: Kiểm tra khả năng quan sát qua log, chỉ số và định danh tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-007
+    title: Chuẩn bị trạng thái ban đầu và cơ chế đặt lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-008
+    title: Giới hạn tài nguyên của các kiểm tra có thể tạo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-environment-009
+    title: Dọn tài khoản, tệp và dữ liệu sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-case-design
+  title: Thiết kế ca kiểm thử
+  childs:
+  - slug: test-case-design-001
+    title: Liên kết yêu cầu bảo mật, rủi ro và ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-002
+    title: Xác định tiền điều kiện, vai trò, dữ liệu và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-003
+    title: Thiết kế ca hợp lệ cùng ca phải bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-004
+    title: Chọn giá trị biên, dạng dữ liệu bất thường và tổ hợp điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-005
+    title: Xây ma trận vai trò, hành động và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-006
+    title: Kiểm tra cơ chế bảo vệ ở nhiều lớp có liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-007
+    title: Xác nhận kiểm soát ở phía máy chủ qua giao diện công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-008
+    title: Chọn bằng chứng đủ chứng minh tác động với dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-009
+    title: Ghi điều kiện tái hiện và giới hạn của từng ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-010
+    title: Phân biệt kết quả không đạt với ca chưa được thực thi hoặc chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-verification
+  title: Xác thực danh tính
+  childs:
+  - slug: identity-verification-001
+    title: Kiểm tra đăng ký, xác minh danh tính và kích hoạt tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-002
+    title: Kiểm tra đăng nhập hợp lệ và từ chối thông tin không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-003
+    title: Kiểm tra khả năng lộ sự tồn tại của tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-004
+    title: Kiểm tra chính sách mật khẩu và thay đổi mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-005
+    title: Kiểm tra luồng quên mật khẩu và khôi phục tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-006
+    title: Kiểm tra thời hạn, mục đích và khả năng dùng lại mã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-007
+    title: Kiểm tra giới hạn thử đăng nhập và cơ chế chống lạm dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-008
+    title: Kiểm tra MFA cùng cơ chế khôi phục hoặc thay đổi yếu tố xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-009
+    title: Kiểm tra đăng nhập lại cho thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-010
+    title: Kiểm tra tài khoản bị khóa, vô hiệu hóa hoặc thu hồi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-011
+    title: Kiểm tra liên kết danh tính và đăng nhập qua nhà cung cấp bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-verification-012
+    title: Đánh giá thông báo lỗi và nhật ký xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-and-tokens
+  title: Phiên và token
+  childs:
+  - slug: sessions-and-tokens-001
+    title: Kiểm tra tạo, thay đổi và hủy phiên làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-002
+    title: Kiểm tra session fixation và thay phiên sau thay đổi mức tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-003
+    title: Kiểm tra thời hạn nhàn rỗi, thời hạn tuyệt đối và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-004
+    title: Kiểm tra thuộc tính Secure, HttpOnly và SameSite của cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-005
+    title: Kiểm tra phạm vi cookie theo domain và path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-006
+    title: Kiểm tra chữ ký, thuật toán được chấp nhận và thời hạn JWT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-007
+    title: Kiểm tra issuer, audience và mục đích sử dụng token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-008
+    title: Kiểm tra refresh token, xoay vòng và phát hiện dùng lại theo thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-009
+    title: Kiểm tra thu hồi phiên hoặc token sau sự kiện bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-010
+    title: Kiểm tra lưu trữ token và khả năng lộ qua URL, log hoặc trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-011
+    title: Kiểm tra OAuth và OpenID Connect theo luồng được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-tokens-012
+    title: Kiểm tra redirect URI, state, nonce và PKCE khi phù hợp với giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization
+  title: Phân quyền
+  childs:
+  - slug: authorization-001
+    title: Phân biệt phân quyền theo vai trò, thuộc tính và quan hệ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-002
+    title: Kiểm tra truy cập chức năng theo ma trận quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-003
+    title: Kiểm tra quyền trên từng đối tượng và định danh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-004
+    title: Kiểm tra quyền đọc hoặc sửa từng trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-005
+    title: Kiểm tra leo thang đặc quyền theo chiều ngang và chiều dọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-006
+    title: Kiểm tra cô lập dữ liệu giữa các khách hàng (tenant)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-007
+    title: Kiểm tra tài nguyên thuộc người dùng khác hoặc không còn quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-008
+    title: Kiểm tra quyền sau khi đổi vai trò, chuyển trạng thái hoặc thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-009
+    title: Kiểm tra endpoint quản trị và các đường truy cập thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-010
+    title: Kiểm tra quyền cho thao tác hàng loạt, export và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-011
+    title: Kiểm tra mặc định từ chối khi chính sách hoặc dữ liệu quyền bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-012
+    title: Đối chiếu phân quyền ở lớp web, lớp phương thức và truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-security
+  title: Bảo mật API
+  childs:
+  - slug: api-security-001
+    title: Kiểm kê endpoint, phiên bản và giao diện quản trị đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-002
+    title: Kiểm tra dữ liệu trả về theo quyền và nhu cầu người gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-003
+    title: Kiểm tra giới hạn trường đầu vào để ngăn cập nhật thuộc tính ngoài quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-004
+    title: Kiểm tra xác thực và phạm vi sử dụng API key hoặc token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-005
+    title: Kiểm tra giới hạn tần suất, kích thước và mức tiêu thụ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-006
+    title: Kiểm tra quy tắc cho truy vấn phức tạp, GraphQL hoặc thao tác hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-007
+    title: Kiểm tra API cũ, endpoint thử nghiệm và giao diện không còn được dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-008
+    title: Kiểm tra xử lý dữ liệu từ API bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-009
+    title: Kiểm tra webhook, chữ ký và tính mới của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-010
+    title: Kiểm tra quyền và trạng thái phiên với WebSocket hoặc kết nối kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-validation
+  title: Kiểm tra đầu vào
+  childs:
+  - slug: input-validation-001
+    title: Phân biệt kiểm tra kiểu, định dạng, miền giá trị và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-002
+    title: Kiểm tra độ dài, kích thước và độ sâu dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-003
+    title: Kiểm tra tham số thiếu, lặp, không được hỗ trợ hoặc sai kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-004
+    title: Kiểm tra chuẩn hóa Unicode, encoding và biểu diễn tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-005
+    title: Kiểm tra dữ liệu tại path, query, header, cookie và body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-006
+    title: Kiểm tra danh sách trường được phép ghi và trường chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-007
+    title: Kiểm tra quan hệ giữa các trường thay vì chỉ xác nhận từng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-008
+    title: Kiểm tra giới hạn tài nguyên khi parse hoặc xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-009
+    title: Kiểm tra biểu thức chính quy và nguy cơ tiêu thụ tài nguyên quá mức (ReDoS)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-010
+    title: Đối chiếu thông báo lỗi với yêu cầu bảo vệ thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: injection
+  title: Chèn lệnh và truy vấn
+  childs:
+  - slug: injection-001
+    title: Nhận diện chèn lệnh (injection) khi dữ liệu đi vào câu lệnh hoặc ngôn ngữ biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-002
+    title: Kiểm tra SQL injection tại truy vấn, sắp xếp và bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-003
+    title: Kiểm tra truy vấn động qua JDBC, ORM, JPQL hoặc HQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-004
+    title: Kiểm tra điều kiện truy vấn NoSQL theo công nghệ đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-005
+    title: Kiểm tra dữ liệu được đưa vào LDAP hoặc XPath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-006
+    title: Kiểm tra tách tham số khỏi lệnh hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-007
+    title: Kiểm tra dữ liệu đưa vào template hoặc ngôn ngữ biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-008
+    title: Kiểm tra header injection và ký tự xuống dòng trong giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-009
+    title: Xác minh cơ chế tham số hóa, danh sách cho phép và mã hóa đúng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-010
+    title: Kiểm tra lỗi bị lộ và tác động trên dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xss-and-browsers
+  title: XSS và trình duyệt
+  childs:
+  - slug: xss-and-browsers-001
+    title: Phân biệt XSS phản chiếu, lưu trữ và dựa trên DOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-002
+    title: Kiểm tra dữ liệu đi vào HTML, thuộc tính, URL và JavaScript
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-003
+    title: Xác minh mã hóa đầu ra theo đúng ngữ cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-004
+    title: Kiểm tra bộ làm sạch khi ứng dụng cho phép nội dung HTML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-005
+    title: Kiểm tra cách dùng API DOM và thư viện render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-006
+    title: Kiểm tra chính sách Content Security Policy theo yêu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-007
+    title: Kiểm tra nội dung tải từ bên thứ ba và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-008
+    title: Kiểm tra open redirect và việc xác nhận địa chỉ chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-009
+    title: Kiểm tra chống nhúng trang, clickjacking và tương tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-and-browsers-010
+    title: Đối chiếu kết quả trên trình duyệt với phản hồi HTTP và dữ liệu được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csrf-and-cors
+  title: CSRF và CORS
+  childs:
+  - slug: csrf-and-cors-001
+    title: Đánh giá nguy cơ CSRF theo cách trình duyệt gửi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-002
+    title: Kiểm tra token CSRF hợp lệ, thiếu, sai hoặc thuộc phiên khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-003
+    title: Kiểm tra các thao tác thay đổi trạng thái và phương thức HTTP được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-004
+    title: Đánh giá vai trò của SameSite, Origin và Referer trong cơ chế bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-005
+    title: Kiểm tra danh sách origin được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-006
+    title: Kiểm tra credential, preflight và phương thức hoặc header được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-007
+    title: Kiểm tra origin không tin cậy và cấu hình phản hồi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-008
+    title: Phân biệt chính sách CORS với xác thực và phân quyền phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-and-cors-009
+    title: Kiểm tra tính nhất quán giữa cấu hình ứng dụng và reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-paths
+  title: Tệp và đường dẫn
+  childs:
+  - slug: files-and-paths-001
+    title: Kiểm tra tên tệp, đường dẫn và vùng lưu trữ được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-002
+    title: Kiểm tra path traversal và truy cập ngoài thư mục quy định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-003
+    title: Kiểm tra loại tệp, phần mở rộng, MIME và nội dung thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-004
+    title: Kiểm tra giới hạn kích thước, số lượng và tần suất upload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-005
+    title: Kiểm tra quyền truy cập tệp sau khi tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-006
+    title: Kiểm tra khả năng thực thi nội dung tại vị trí lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-007
+    title: Kiểm tra giải nén với đường dẫn, số lượng và dung lượng được giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-008
+    title: Kiểm tra tải xuống theo quyền và định danh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-009
+    title: Kiểm tra URL chia sẻ hoặc URL có chữ ký theo phạm vi và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-paths-010
+    title: Kiểm tra xóa tệp, dữ liệu tạm và tài nguyên còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ssrf
+  title: SSRF
+  childs:
+  - slug: ssrf-001
+    title: Nhận diện chức năng máy chủ truy cập URL do dữ liệu đầu vào quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-002
+    title: Xác định giao thức, host và đích mạng được phép truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-003
+    title: Kiểm tra chuẩn hóa URL trước khi quyết định cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-004
+    title: Kiểm tra cách xử lý redirect và thay đổi đích sau phân giải DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-005
+    title: Kiểm tra hạn chế truy cập mạng nội bộ và dịch vụ metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-006
+    title: Đánh giá proxy, kiểm soát kết nối ra ngoài và lớp bảo vệ mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-007
+    title: Thu thập bằng chứng qua điểm tiếp nhận do nhóm kiểm thử kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-008
+    title: Kiểm tra timeout, kích thước phản hồi và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssrf-009
+    title: Xác minh biện pháp bảo vệ vẫn có hiệu lực trong cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-analyzers
+  title: Bộ phân tích dữ liệu
+  childs:
+  - slug: data-analyzers-001
+    title: Kiểm tra XML external entity và cấu hình truy cập tài nguyên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analyzers-002
+    title: Kiểm tra DTD, schema và cơ chế phân giải XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analyzers-003
+    title: Kiểm tra giới hạn mở rộng entity và độ sâu cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analyzers-004
+    title: Kiểm tra parser JSON với dữ liệu lớn, sâu hoặc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analyzers-005
+    title: Kiểm tra YAML loader và khả năng tạo đối tượng ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analyzers-006
+    title: Kiểm tra định dạng tài liệu hoặc dữ liệu nhị phân theo thư viện đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analyzers-007
+    title: Kiểm tra dữ liệu sau giải mã hoặc giải nén trước khi xử lý tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-analyzers-008
+    title: Đánh giá lỗi parser, dữ liệu được ghi log và thông tin bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-spring
+  title: Java và Spring
+  childs:
+  - slug: java-and-spring-001
+    title: Kiểm tra giải tuần tự đối tượng Java từ nguồn không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-002
+    title: Kiểm tra ObjectInputFilter và chính sách lớp được phép theo cấu hình thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-003
+    title: Kiểm tra ánh xạ đa hình khi chuyển đổi JSON thành đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-004
+    title: Kiểm tra data binding và trường thuộc tính được phép cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-005
+    title: Kiểm tra dữ liệu đưa vào SpEL hoặc cơ chế tạo template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-006
+    title: Kiểm tra reflection, tải lớp và cấu hình có thể thay đổi hành vi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-007
+    title: Kiểm tra thứ tự và phạm vi áp dụng SecurityFilterChain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-008
+    title: Kiểm tra method security và lời gọi đi qua cơ chế thực thi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-009
+    title: Kiểm tra Actuator, endpoint chẩn đoán và thông tin cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-010
+    title: Đối chiếu bảo vệ trong kiểm thử mô phỏng với ứng dụng Java đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptography-and-secrets
+  title: Mật mã và bí mật
+  childs:
+  - slug: cryptography-and-secrets-001
+    title: Kiểm kê dữ liệu cần mã hóa, xác thực tính toàn vẹn hoặc ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-002
+    title: Kiểm tra lựa chọn thuật toán, tham số và thư viện theo yêu cầu bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-003
+    title: Kiểm tra quản lý khóa, vòng đời và phân tách quyền sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-004
+    title: Kiểm tra nonce, IV và điều kiện duy nhất theo cơ chế mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-005
+    title: Kiểm tra lưu mật khẩu bằng hàm băm mật khẩu và tham số phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-006
+    title: Đánh giá nguồn ngẫu nhiên cho token, khóa và mã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-007
+    title: Kiểm tra bí mật trong mã nguồn, tệp cấu hình, artifact và image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-008
+    title: Kiểm tra cấp phát, xoay vòng và thu hồi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-009
+    title: Kiểm tra cách ứng dụng xử lý khi khóa hoặc bí mật không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-and-secrets-010
+    title: Xác minh bảo vệ bí mật khi ghi log, báo lỗi và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sensitive-data
+  title: Dữ liệu nhạy cảm
+  childs:
+  - slug: sensitive-data-001
+    title: Phân loại dữ liệu và xác định người được phép tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-002
+    title: Kiểm tra dữ liệu nhạy cảm trong response, trang lỗi và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-003
+    title: Kiểm tra che dữ liệu trong log, báo cáo và công cụ giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-004
+    title: Kiểm tra mã hóa dữ liệu lưu trữ và dữ liệu sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-005
+    title: Kiểm tra quyền truy cập cơ sở dữ liệu và kho lưu trữ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-006
+    title: Kiểm tra cache theo người dùng, khách hàng và mức quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-007
+    title: Kiểm tra dữ liệu còn lại sau đăng xuất, xóa hoặc kết thúc phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-008
+    title: Kiểm tra export, bản sao và tệp tạm theo chính sách vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-009
+    title: Kiểm tra dữ liệu dùng cho môi trường phát triển và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-010
+    title: Ghi rõ phạm vi bằng chứng đối với yêu cầu bảo vệ và lưu giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-and-tls
+  title: HTTP và TLS
+  childs:
+  - slug: http-and-tls-001
+    title: Kiểm tra HTTPS và xử lý kết nối không mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-002
+    title: Kiểm tra chứng chỉ, hostname và chuỗi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-003
+    title: Kiểm tra phiên bản TLS và cấu hình thuật toán được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-004
+    title: Kiểm tra HSTS cùng điều kiện triển khai phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-005
+    title: Kiểm tra header bảo vệ nội dung và chính sách cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-006
+    title: Kiểm tra Host, forwarded header và ranh giới tin cậy với reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-007
+    title: Kiểm tra phương thức HTTP không cần thiết và thông báo lỗi giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-008
+    title: Kiểm tra tính nhất quán xử lý request giữa các tầng và rủi ro request smuggling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-009
+    title: Kiểm tra cấu hình TLS của kết nối tới dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-010
+    title: Xác minh hiệu lực bảo vệ qua điểm truy cập thực tế của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-logic
+  title: Logic nghiệp vụ
+  childs:
+  - slug: business-logic-001
+    title: Xác định mục tiêu lạm dụng từ luồng nghiệp vụ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-002
+    title: Kiểm tra thứ tự thao tác và chuyển trạng thái được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-003
+    title: Kiểm tra dữ liệu do máy chủ quyết định như giá, quyền lợi và hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-004
+    title: Kiểm tra thao tác lặp và tính idempotent của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-005
+    title: Kiểm tra truy cập đồng thời và khả năng vượt giới hạn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-006
+    title: Kiểm tra thời điểm xác nhận điều kiện so với lúc sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-007
+    title: Kiểm tra điều kiện đổi, hủy, hoàn hoặc khôi phục giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-008
+    title: Kiểm tra chính sách hạn chế lạm dụng các luồng nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-009
+    title: Kiểm tra tương tác giữa nhiều vai trò hoặc tài khoản thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-logic-010
+    title: Đánh giá tác động và cơ chế phát hiện trên dữ liệu được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-and-messaging
+  title: Tích hợp và thông điệp
+  childs:
+  - slug: integration-and-messaging-001
+    title: Kiểm tra danh tính và quyền giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-002
+    title: Kiểm tra truyền token, quyền hạn và định danh người dùng qua nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-003
+    title: Kiểm tra độ tin cậy của dữ liệu từ đối tác hoặc API ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-004
+    title: Kiểm tra chữ ký, nguồn gửi và tính mới của webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-005
+    title: Kiểm tra quyền phát, nhận và truy cập kênh thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-006
+    title: Kiểm tra dữ liệu nhạy cảm trong payload, header và hàng đợi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-007
+    title: Kiểm tra kiểm soát phát lại hoặc trùng lặp theo yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-008
+    title: Kiểm tra thay đổi quyền trong tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-messaging-009
+    title: Đánh giá bảo mật khi dịch vụ phụ thuộc không sẵn sàng hoặc phản hồi bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-exposure
+  title: Cấu hình và phơi lộ
+  childs:
+  - slug: configuration-exposure-001
+    title: Kiểm kê dịch vụ, cổng và giao diện ứng dụng thực sự công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-exposure-002
+    title: Kiểm tra tài khoản mặc định và cấu hình ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-exposure-003
+    title: Kiểm tra chế độ debug, stack trace và thông tin phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-exposure-004
+    title: Kiểm tra tệp cấu hình, bản sao lưu và nội dung không cần công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-exposure-005
+    title: Kiểm tra giao diện quản trị và công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-exposure-006
+    title: Kiểm tra quyền tệp, thư mục và cấu hình của tiến trình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-exposure-007
+    title: Kiểm tra sai lệch giữa môi trường thử nghiệm với bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-exposure-008
+    title: Xác minh cấu hình tăng cường bảo mật vẫn giữ hành vi nghiệp vụ cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: supply-chain
+  title: Chuỗi cung ứng
+  childs:
+  - slug: supply-chain-001
+    title: Kiểm kê thư viện trực tiếp, bắc cầu, plugin và công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-002
+    title: Sử dụng SCA để tìm thành phần có lỗ hổng đã được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-003
+    title: Đọc báo cáo OWASP Dependency-Check hoặc công cụ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-004
+    title: Xác minh định danh gói, phiên bản và điều kiện bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-005
+    title: Phân biệt lỗ hổng đã biết với khả năng tác động trong ứng dụng cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-006
+    title: Tạo và đọc danh mục thành phần phần mềm SBOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-007
+    title: Kiểm tra nguồn tải, checksum, chữ ký và nguồn gốc artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-008
+    title: Kiểm tra cấu hình repository, dependency và cơ chế cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-009
+    title: Kiểm tra bí mật, quyền và thành phần ngoài trong quy trình build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-010
+    title: Đánh giá bản vá cùng tương thích chức năng và rủi ro tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-infrastructure
+  title: Hạ tầng ứng dụng
+  childs:
+  - slug: application-infrastructure-001
+    title: Xác định ranh giới trách nhiệm giữa ứng dụng và nền tảng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-002
+    title: Kiểm tra image container và các thành phần được đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-003
+    title: Kiểm tra người dùng thực thi, quyền hệ thống và tài nguyên được gắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-004
+    title: Kiểm tra quyền truy cập mạng và kết nối ra ngoài theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-005
+    title: Kiểm tra cấu hình bí mật và danh tính dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-006
+    title: Kiểm tra quyền kho đối tượng, database và dịch vụ được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-007
+    title: Kiểm tra khả năng truy cập endpoint nội bộ từ vùng không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-008
+    title: Đánh giá quyền và cấu hình nền tảng bằng bằng chứng phù hợp phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-infrastructure-009
+    title: Đối chiếu cấu hình hạ tầng với đường truy cập thực tế tới ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-analysis
+  title: Phân tích tĩnh
+  childs:
+  - slug: static-analysis-001
+    title: Vai trò của SAST trong phát hiện mẫu mã không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-002
+    title: Chuẩn bị phạm vi mã nguồn, cấu hình và phiên bản công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-003
+    title: Chọn quy tắc theo ngôn ngữ, framework và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-004
+    title: Đọc luồng dữ liệu từ nguồn đầu vào tới điểm sử dụng nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-005
+    title: Xác minh cảnh báo bằng ngữ cảnh và cơ chế bảo vệ đang có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-006
+    title: Quản lý kết quả dương tính giả và lý do loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-007
+    title: Phân tích phạm vi còn thiếu khi mã sinh hoặc thư viện không được quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-008
+    title: Tích hợp rà soát mã thủ công với kết quả SAST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-009
+    title: Quản lý tập kết quả cơ sở (baseline) và phát hiện vấn đề mới theo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-analysis
+  title: Phân tích động
+  childs:
+  - slug: dynamic-analysis-001
+    title: Vai trò của DAST trong kiểm tra ứng dụng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-002
+    title: Phân biệt quan sát thụ động với kiểm tra chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-003
+    title: Thiết lập mục tiêu, phạm vi và giới hạn theo kế hoạch kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-004
+    title: Thiết lập xác thực, phiên và tài khoản theo vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-005
+    title: Khám phá luồng ứng dụng bằng trình duyệt, request hoặc đặc tả API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-006
+    title: Sử dụng ZAP để thu thập và đánh giá cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-007
+    title: Thiết kế kế hoạch tự động hóa ZAP theo môi trường được chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-008
+    title: Kiểm tra độ bao phủ endpoint và trạng thái đăng nhập trong lần quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-009
+    title: Xác minh cảnh báo bằng bằng chứng có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-010
+    title: Phân biệt lỗi công cụ, lỗi kết nối và phát hiện bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-analysis-011
+    title: Đánh giá phạm vi quan sát bổ sung của IAST khi hệ thống hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-java-testing
+  title: Kiểm thử Java tự động
+  childs:
+  - slug: automated-java-testing-001
+    title: Chọn tầng đơn vị, lớp web, tích hợp hoặc HTTP thật theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-002
+    title: Tổ chức JUnit và dependency kiểm thử phù hợp phiên bản dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-003
+    title: Thiết lập spring-security-test cho ứng dụng Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-004
+    title: Sử dụng WithMockUser hoặc ngữ cảnh bảo mật kiểm soát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-005
+    title: Kiểm tra quyền theo vai trò bằng kiểm thử tham số hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-006
+    title: Kiểm tra method security và đường gọi có áp dụng cơ chế bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-007
+    title: Kiểm tra request có hoặc không có CSRF token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-008
+    title: Kiểm tra JWT hoặc OAuth với dữ liệu xác thực phù hợp phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-009
+    title: Phân biệt giả lập principal với kiểm chứng quá trình xác thực thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-010
+    title: Kiểm tra cấu hình filter, header và hành vi từ chối truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-java-testing-011
+    title: Bổ sung hồi quy cho bản sửa bằng ca từng không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: manual-and-fuzzing
+  title: Thủ công và fuzzing
+  childs:
+  - slug: manual-and-fuzzing-001
+    title: Lập giả thuyết kiểm thử từ mô hình đe dọa và hành vi quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-002
+    title: Sử dụng proxy chặn bắt để xem và điều chỉnh request trong môi trường thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-003
+    title: Thiết kế kiểm tra thủ công cho phân quyền và logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-004
+    title: Kết hợp nhiều phát hiện để đánh giá tác động trong phạm vi cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-005
+    title: Phân biệt kiểm chứng lỗ hổng với thay đổi dữ liệu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-006
+    title: Chọn đầu vào, cấu trúc và giới hạn tài nguyên cho fuzzing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-007
+    title: Thiết kế điều kiện phát hiện lỗi, sập tiến trình hoặc vi phạm thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-008
+    title: Dùng dữ liệu sinh có kiểm soát và lưu seed để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-009
+    title: Thu nhỏ đầu vào gây lỗi và xác minh nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-and-fuzzing-010
+    title: Quản lý thời gian, kết quả và khả năng dọn trạng thái sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-and-detection
+  title: Nhật ký và phát hiện
+  childs:
+  - slug: logging-and-detection-001
+    title: Xác định sự kiện bảo mật cần được ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-002
+    title: Kiểm tra log đăng nhập, từ chối quyền và thay đổi dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-003
+    title: Kiểm tra định danh tác nhân, tài nguyên và request trong dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-004
+    title: Kiểm tra che mật khẩu, token, khóa và dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-005
+    title: Kiểm tra log injection và tính toàn vẹn của dữ liệu ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-006
+    title: Kiểm tra quyền đọc, sửa và thời hạn lưu log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-007
+    title: Kiểm tra cảnh báo cho điều kiện lạm dụng được mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-008
+    title: Liên kết log, chỉ số và trace để phân tích kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-detection-009
+    title: Đánh giá sự khác biệt giữa cơ chế ngăn chặn và cơ chế phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: finding-classification
+  title: Phân loại phát hiện
+  childs:
+  - slug: finding-classification-001
+    title: Phân biệt cảnh báo công cụ, lỗ hổng xác nhận và quan sát cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-002
+    title: Xác minh điều kiện cần để vấn đề có thể tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-003
+    title: Liên kết điểm yếu với CWE và lỗ hổng đã công bố với CVE khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-004
+    title: Đánh giá mức nghiêm trọng bằng CVSS theo phiên bản được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-005
+    title: Ghi vector và giả định khi công bố điểm CVSS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-006
+    title: Phân biệt mức nghiêm trọng kỹ thuật với mức ưu tiên xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-007
+    title: Đánh giá mức phơi lộ, dữ liệu ảnh hưởng và cơ chế giảm thiểu hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-008
+    title: Loại trùng kết quả cùng nguyên nhân hoặc cùng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-009
+    title: Ghi mức chắc chắn, giới hạn bằng chứng và phần chưa kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-classification-010
+    title: Thống nhất người chịu trách nhiệm, thời hạn và cách theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fix-verification
+  title: Xác minh bản sửa
+  childs:
+  - slug: fix-verification-001
+    title: Chuyển nguyên nhân đã xác nhận thành yêu cầu sửa có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-002
+    title: Kiểm tra lại ca từng chứng minh vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-003
+    title: Kiểm tra đường truy cập và biểu diễn dữ liệu tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-004
+    title: Kiểm tra biện pháp sửa tại đúng ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-005
+    title: Kiểm tra ca hợp lệ để phát hiện ảnh hưởng tới chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-006
+    title: Đánh giá biến thể có cùng nguyên nhân và phạm vi bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-007
+    title: Xác minh bản vá hoặc cấu hình đã có trong artifact được triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-008
+    title: Đóng phát hiện bằng bằng chứng và lưu ca hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-009
+    title: Theo dõi ngoại lệ, biện pháp tạm thời và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd
+  title: CI/CD
+  childs:
+  - slug: ci-cd-001
+    title: Phân bổ kiểm tra bí mật, SAST, SCA và kiểm thử bảo mật theo giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-002
+    title: Chạy kiểm tra nhanh trên thay đổi và kiểm tra rộng theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-003
+    title: Chuẩn bị môi trường cùng tài khoản riêng cho DAST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-004
+    title: Cố định phiên bản công cụ, bộ quy tắc và nguồn dữ liệu cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-005
+    title: Đặt tiêu chí chất lượng theo mức rủi ro và trạng thái xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-006
+    title: Phân biệt phát hiện mới với vấn đề đã có trong tập kết quả cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-007
+    title: Quản lý ngoại lệ có lý do, người phụ trách và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-008
+    title: Bảo vệ credential, log, báo cáo và artifact của pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-009
+    title: Thu thập mã thoát, bằng chứng và thông tin phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-010
+    title: Thiết kế chạy lại, dọn dẹp và xử lý khi công cụ không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reporting-and-maintenance
+  title: Báo cáo và duy trì
+  childs:
+  - slug: reporting-and-maintenance-001
+    title: Viết báo cáo với tài sản, điều kiện, bằng chứng và tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-002
+    title: Trình bày kết quả mong đợi, kết quả thực tế và cách tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-003
+    title: Liên kết phát hiện với yêu cầu bảo mật và nhóm rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-004
+    title: Đề xuất hướng khắc phục gắn với nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-005
+    title: Che thông tin nhạy cảm khi chia sẻ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-006
+    title: Tổng hợp phạm vi đã kiểm tra và phần chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-007
+    title: Theo dõi độ bao phủ, thời gian xử lý và lỗi tái phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-008
+    title: Cập nhật bộ ca theo thay đổi ứng dụng, tiêu chuẩn và thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-009
+    title: Rút kinh nghiệm từ sự cố và bổ sung kiểm soát phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reporting-and-maintenance-010
+    title: Xác định quyền tiếp cận, thời hạn lưu và vòng đời báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành
+  childs:
+  - slug: integrated-practice-001
+    title: Lập phạm vi và mô hình đe dọa cho một ứng dụng Java thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây ma trận vai trò, hành động, tài nguyên và khách hàng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Viết kiểm thử xác thực, phân quyền và phiên bằng JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Kiểm tra CSRF và CORS theo cách ứng dụng gửi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Xác minh xử lý đầu vào và truy vấn có tham số trên dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Kiểm tra mã hóa đầu ra và nội dung HTML trong ứng dụng thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Kiểm tra upload, tải xuống và giới hạn đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Kiểm tra SSRF hoặc parser XML với dịch vụ thử do nhóm kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Đánh giá giải tuần tự và cấu hình bảo vệ trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Quét thành phần phụ thuộc và xác minh một cảnh báo có ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Thực hiện quan sát thụ động và DAST có giới hạn bằng ZAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Phân tích một lỗi logic nghiệp vụ hoặc truy cập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Viết báo cáo phát hiện kèm mức nghiêm trọng và hướng khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-014
+    title: Xác minh bản sửa và thêm ca hồi quy vào CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-015
+    title: Đánh giá khoảng trống cùng giới hạn kết luận của đợt kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

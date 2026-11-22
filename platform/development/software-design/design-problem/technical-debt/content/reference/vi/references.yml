@@ -1,0 +1,13 @@
+references:
+  - title: "Martin Fowler — Technical Debt"
+    url: "https://martinfowler.com/bliki/TechnicalDebt.html"
+    description: "Giải thích ẩn dụ nợ gốc/lãi, vì sao chi phí sửa đổi tăng và cách giảm nợ theo những phần mã được thay đổi thường xuyên."
+  - title: "Martin Fowler — Technical Debt Quadrant"
+    url: "https://martinfowler.com/bliki/TechnicalDebtQuadrant.html"
+    description: "Khung phân loại nợ kỹ thuật theo hai trục cố ý/vô tình và thận trọng/liều lĩnh."
+  - title: "Martin Fowler — Is High Quality Software Worth the Cost?"
+    url: "https://martinfowler.com/articles/is-quality-worth-cost.html"
+    description: "Phân tích tác động của chất lượng nội bộ và thiết kế tới chi phí thay đổi và tốc độ phát triển tính năng."
+  - title: "Atlassian — Technical Debt"
+    url: "https://www.atlassian.com/agile/software-development/technical-debt"
+    description: "Hướng dẫn nhận diện, ưu tiên, theo dõi và quản lý nợ kỹ thuật bằng review, kiểm thử và hoạt động Agile."

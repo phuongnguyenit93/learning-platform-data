@@ -1,0 +1,3 @@
+menuLevel1: Runtime riêng
+menuLevel2: Tạo runtime image bằng --module-path, --add-modules và --output
+status: WRITTEN

@@ -1,0 +1,57 @@
+roadmap:
+- id: service-stub-pham-vi
+  title: Service Stub & Phạm vi
+  purpose: Hiểu cách thay dịch vụ phụ thuộc bằng phản hồi có kiểm soát để kiểm thử ổn định.
+  objectives:
+  - Phân biệt stub, mock và dịch vụ thật
+  - Xác định các HTTP dependency cần cô lập
+  - Mô tả giới hạn của stub so với kiểm thử tích hợp thật
+- id: wiremock-setup
+  title: WireMock Setup
+  purpose: Khởi chạy HTTP stub server trong môi trường Java và cấu hình client trỏ vào địa chỉ thử nghiệm.
+  objectives:
+  - Thêm WireMock vào dự án test Java
+  - Khởi động server bằng JUnit 5 trên cổng động
+  - Cấu hình base URL của HTTP client theo test
+- id: request-matching
+  title: Request Matching
+  purpose: Chỉ trả phản hồi khi request thỏa điều kiện của kịch bản kiểm thử.
+  objectives:
+  - Match HTTP method và URL path
+  - Kiểm tra query parameter, header và JSON body
+  - Thử request không khớp để quan sát lỗi
+- id: response-fixtures
+  title: Response Fixtures
+  purpose: Định nghĩa phản hồi có thể tái lập cho các trường hợp thành công và dữ liệu biên.
+  objectives:
+  - Tạo stub trả status, header và JSON body
+  - Đưa mappings và fixtures vào version control
+  - Dùng response templating khi dữ liệu cần biến đổi
+- id: faults-latency
+  title: Faults & Latency
+  purpose: Thử khả năng chịu lỗi của HTTP client khi dịch vụ phụ thuộc phản hồi chậm hoặc gặp trục trặc.
+  objectives:
+  - Giả lập 4xx, 5xx và body lỗi
+  - Thiết lập delay hoặc connection fault
+  - Kiểm chứng timeout, fallback và retry an toàn
+- id: stateful-scenarios
+  title: Stateful Scenarios
+  purpose: Mô phỏng nhiều bước tương tác khi phản hồi phụ thuộc vào trạng thái trước đó.
+  objectives:
+  - Tạo kịch bản chuyển trạng thái theo request
+  - Thử luồng tạo rồi truy vấn một tài nguyên
+  - Reset scenario trước mỗi test độc lập
+- id: request-verification
+  title: Request Verification
+  purpose: Kiểm chứng hệ thống gửi đúng request tới dependency, không chỉ kiểm tra kết quả trả về.
+  objectives:
+  - Xác minh số lần và nội dung request
+  - Đọc request journal để tìm mismatch
+  - Kiểm tra không gửi request ngoài dự kiến
+- id: ci-stub-maintenance
+  title: CI & Stub Maintenance
+  purpose: Giữ các kịch bản stub dễ bảo trì và tái lập trong test suite cùng CI.
+  objectives:
+  - Chạy test với stub trên cổng động trong CI
+  - Thử record/playback và rà soát dữ liệu nhạy cảm
+  - Phân biệt lỗi stub lỗi thời với lỗi contract thật

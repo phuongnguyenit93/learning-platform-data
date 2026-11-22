@@ -1,0 +1,615 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data MongoDB là gì và giải quyết bài toán lưu trữ nào?
+  - Vai trò của MongoDB Server, Java Driver, Spring Data và Spring Boot
+  - 'Bản đồ khái niệm: database, collection, document, BSON, entity và repository'
+  - Luồng xử lý từ đối tượng Java đến lệnh MongoDB và kết quả trả về
+  - So sánh mô hình tài liệu với mô hình quan hệ và key-value
+  - Lựa chọn MongoRepository, MongoTemplate hoặc driver trực tiếp
+  - Phân biệt API đồng bộ, reactive và các thư viện tương thích MongoDB
+  - Lộ trình học và mô hình sản phẩm–khách hàng–đơn hàng dùng xuyên suốt tài liệu
+- level1: Nền tảng MongoDB
+  level2:
+  - Database, collection, document và cách tổ chức dữ liệu
+  - JSON, Extended JSON, BSON và ý nghĩa của kiểu dữ liệu
+  - Trường _id, ObjectId và định danh của document
+  - Document lồng nhau, array và đường dẫn trường
+  - Phân biệt trường không tồn tại, null, chuỗi rỗng và array rỗng
+  - Lệnh find, insert, update, replace và delete cơ bản
+  - Tính nguyên tử của một document và thao tác trên nhiều document
+  - Standalone, replica set, sharded cluster và MongoDB Atlas
+- level1: Thiết kế document
+  level2:
+  - Thiết kế theo mẫu truy cập và câu hỏi nghiệp vụ
+  - Xác định ranh giới aggregate và dữ liệu cần cập nhật cùng nhau
+  - Chọn nhúng dữ liệu hay tham chiếu sang collection khác
+  - Mô hình hóa quan hệ một-một, một-nhiều và nhiều-nhiều
+  - Ảnh chụp dữ liệu (snapshot) trong đơn hàng và dữ liệu nguồn có thể thay đổi
+  - Phi chuẩn hóa (denormalization), dữ liệu lặp và chính sách đồng bộ
+  - Array tăng không giới hạn, document lớn và nguy cơ điểm nóng
+  - Các mẫu subset, bucket và dữ liệu tính sẵn
+  - Thiết kế version schema để nhiều cấu trúc document cùng tồn tại
+  - Từ yêu cầu nghiệp vụ đến document mẫu và chỉ mục dự kiến
+- level1: Khởi tạo
+  level2:
+  - Chọn Java, Spring Boot, Spring Data, driver và MongoDB tương thích
+  - Khai báo starter đồng bộ hoặc starter reactive phù hợp
+  - Chuẩn bị MongoDB bằng Docker, máy cục bộ hoặc Atlas
+  - Chuỗi kết nối, tên database, authSource và tài khoản ứng dụng
+  - Cấu hình URI và profile theo phiên bản Spring Boot
+  - Tạo @Document và MongoRepository đầu tiên
+  - Thực hiện vòng CRUD và quan sát document bằng mongosh hoặc Compass
+  - Nạp dữ liệu mẫu và giữ bí mật kết nối ngoài mã nguồn
+  - Chuẩn bị replica set khi bài thực hành cần transaction hoặc change stream
+- level1: Cấu hình và kiến trúc
+  level2:
+  - Auto-configuration của Spring Boot cho MongoDB
+  - Vai trò của MongoClient, MongoDatabaseFactory và MongoTemplate
+  - Cấu hình thủ công bằng AbstractMongoClientConfiguration
+  - Kích hoạt @EnableMongoRepositories và giới hạn package quét
+  - MongoMappingContext, MappingMongoConverter và metadata ánh xạ
+  - MongoClientSettingsBuilderCustomizer và thiết lập driver
+  - Phân biệt MongoClient đồng bộ với reactive MongoClient
+  - Quản lý vòng đời client, connection pool và session
+  - Phối hợp nhiều Spring Data module mà không quét nhầm repository
+- level1: Ánh xạ cơ bản
+  level2:
+  - Đánh dấu entity bằng @Document và chọn tên collection
+  - Quy ước ánh xạ tên lớp và thuộc tính
+  - Đổi tên trường bằng @Field và cấu hình kiểu BSON đích
+  - Ánh xạ field, constructor và dữ liệu lồng nhau
+  - Loại trừ dữ liệu không lưu bằng @Transient
+  - Thuộc tính chỉ đọc bằng @ReadOnlyProperty
+  - Phân biệt metadata Spring Data MongoDB với annotation JPA
+  - Ánh xạ _class, kế thừa và @TypeAlias
+  - Kiểm tra Document thực tế để xác minh tên trường và kiểu dữ liệu
+- level1: Định danh và trạng thái
+  level2:
+  - Quy tắc ánh xạ thuộc tính id và @Id vào _id
+  - ObjectId trong Java và biểu diễn Extended JSON
+  - String có thể chuyển thành ObjectId và lỗi truy vấn khác kiểu
+  - '@MongoId để điều khiển kiểu định danh'
+  - UUID, mã nghiệp vụ và ID do ứng dụng tự cấp
+  - Phân biệt ID chưa có với document đã tồn tại
+  - Phát hiện entity mới bằng ID, @Version hoặc Persistable
+  - Giá trị ID trả về sau insert hoặc save
+  - Định danh tổng hợp và yêu cầu về cấu trúc, thứ tự trường
+  - Chọn ID ổn định và xử lý dữ liệu nhập từ hệ thống khác
+- level1: Kiểu dữ liệu
+  level2:
+  - Kiểu BSON và khả năng biểu diễn tương ứng trong Java
+  - Số nguyên, số thực và nguy cơ mất độ chính xác
+  - BigDecimal, Decimal128 và khai báo kiểu lưu tường minh
+  - Chuỗi, Unicode, enum và quy ước giá trị lưu
+  - Instant, LocalDateTime, Date và quy ước UTC
+  - UUID representation, dữ liệu nhị phân và tương thích driver
+  - List, Set, Map và kiểu phần tử trong document
+  - Nullability, giá trị mặc định và trường không tồn tại
+  - Giới hạn kích thước, độ sâu document và lựa chọn dữ liệu ngoài document
+- level1: Đối tượng và nhúng
+  level2:
+  - Cách MappingMongoConverter dựng đối tượng từ document
+  - Constructor, factory và @PersistenceCreator
+  - Tên tham số constructor, -parameters và lỗi không khớp dữ liệu
+  - Entity bất biến, Java record và phương thức wither
+  - Ánh xạ value object thành document lồng nhau
+  - '@Unwrapped, prefix và trải trường vào document cha'
+  - USE_NULL, USE_EMPTY và dữ liệu nhúng thiếu một phần
+  - Query, update và giới hạn ánh xạ trên thuộc tính unwrapped
+  - Tùy chỉnh MongoTypeMapper và duy trì khả năng đọc dữ liệu đa hình
+- level1: Tham chiếu tài liệu
+  level2:
+  - Tham chiếu bằng ID và tải tường minh qua repository hoặc template
+  - Biểu diễn và phân giải @DBRef
+  - '@DocumentReference và tham chiếu mặc định theo ID'
+  - Tùy chỉnh lookup và bộ chuyển đổi giá trị tham chiếu
+  - Tham chiếu đơn, collection tham chiếu và tham chiếu ngược
+  - Tải ngay, tải trì hoãn (lazy loading), proxy và vòng đời session
+  - Lưu document tham chiếu riêng và giới hạn cascade
+  - Tham chiếu hỏng, xóa dữ liệu và chính sách toàn vẹn ứng dụng
+  - Giới hạn tham chiếu trong reactive và truy vấn suy diễn
+  - So sánh tham chiếu ứng dụng, DBRef, DocumentReference và $lookup
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Khi nào dùng converter thay vì ánh xạ mặc định?
+  - Viết @ReadingConverter và @WritingConverter
+  - Đăng ký MongoCustomConversions
+  - Chuyển đổi kiểu miền sang giá trị BSON hoặc Document
+  - '@ValueConverter và PropertyValueConverter cho từng thuộc tính'
+  - Phân biệt converter của Spring Data với CodecRegistry của driver
+  - Chuyển đổi ngày giờ, tiền tệ và giá trị đặc thù
+  - Chuyển đổi một chiều, null và dữ liệu không hợp lệ
+  - Kiểm thử đọc–ghi đối xứng cùng dữ liệu từ phiên bản cũ
+- level1: Repository CRUD
+  level2:
+  - Khai báo MongoRepository với entity và kiểu ID
+  - Thiết kế giao diện cơ sở bằng @NoRepositoryBean
+  - Phân biệt insert, save và saveAll
+  - findById, findAllById và findAll
+  - existsById, count và ý nghĩa kiểm tra trước khi ghi
+  - delete, deleteById, deleteAllById và deleteAll
+  - Optional, collection rỗng và lỗi kết quả không duy nhất
+  - Phạm vi giao dịch của repository trong MongoDB
+  - Giới hạn tập phương thức công khai theo nhu cầu nghiệp vụ
+- level1: Truy vấn suy diễn
+  level2:
+  - Cấu trúc tên phương thức và cơ chế sinh truy vấn BSON
+  - Thuộc tính trực tiếp, đường dẫn lồng nhau và dấu gạch dưới
+  - Kết hợp And, Or và kiểm tra nhóm điều kiện
+  - So sánh bằng, khác, lớn hơn, nhỏ hơn và khoảng giá trị
+  - IsNull, IsNotNull, Exists và sự khác biệt null với trường thiếu
+  - In, NotIn, True, False và tập tham số rỗng
+  - Containing, StartingWith, EndingWith, Regex và IgnoreCase
+  - Truy vấn collection, document nhúng và giới hạn đối sánh phần tử
+  - Distinct, First, Top, count và exists
+  - OrderBy và sắp xếp động
+  - Kiểm tra từ khóa được hỗ trợ cùng BSON sinh ra
+- level1: Truy vấn JSON
+  level2:
+  - Khai báo @Query bằng biểu thức truy vấn MongoDB
+  - Bind tham số vị trí ?0 và biểu thức SpEL
+  - Giới hạn trường trả về bằng thuộc tính fields
+  - Thiết lập sort, collation và hint theo khả năng của phiên bản
+  - Truy vấn count, exists và delete qua annotation
+  - Truy vấn document lồng nhau và array bằng toán tử MongoDB
+  - Named query và quy tắc tìm truy vấn khai báo
+  - Truyền tham số an toàn thay vì ghép chuỗi JSON từ đầu vào
+  - Chọn @Query, truy vấn suy diễn hoặc triển khai tùy chỉnh
+- level1: Projection và DTO
+  level2:
+  - Tách mô hình đọc khỏi entity dùng để ghi
+  - Projection interface đóng và projection mở
+  - DTO constructor và Java record
+  - Projection lồng nhau và giới hạn dữ liệu được tải
+  - Projection động với tham số Class
+  - Chọn hoặc loại trường trả về và ngoại lệ của _id
+  - Alias, biểu thức tính toán và mapping kết quả
+  - Phân biệt kết quả thiếu trường với entity đầy đủ
+  - Nguy cơ mất dữ liệu khi save entity chỉ được tải một phần
+- level1: Phân trang và luồng
+  level2:
+  - Chọn Optional, List, Page, Slice, Stream hoặc Window theo hỗ trợ
+  - Pageable, PageRequest và Sort
+  - Page, truy vấn count và chi phí tổng số kết quả
+  - Slice và xác định còn dữ liệu tiếp theo
+  - Thứ tự ổn định khi nhiều document có cùng giá trị
+  - Offset pagination và chi phí skip trên dữ liệu lớn
+  - Keyset pagination bằng điều kiện và chỉ mục phù hợp
+  - Scrolling, ScrollPosition và Window theo phiên bản
+  - Java Stream, cursor và đóng tài nguyên đúng hạn
+  - Batch size, giới hạn kết quả và kiểm soát bộ nhớ
+  - Phân trang reactive bằng Flux và phép đếm riêng khi cần
+- level1: MongoTemplate
+  level2:
+  - Vai trò của MongoOperations và MongoTemplate
+  - Chọn collection từ entity hoặc chỉ định tường minh
+  - insert, save, findById, findOne và find
+  - count, exactCount, estimatedCount, exists và distinct
+  - remove, findAndRemove và findAllAndRemove
+  - FluentMongoOperations và các bước chọn kiểu–điều kiện–kết quả
+  - Trả Document hoặc DTO khi không cần entity đầy đủ
+  - Callback execute để dùng MongoDatabase hoặc MongoCollection
+  - Mapping tên trường và kiểu dữ liệu khi dùng API có kiểu miền
+  - Chọn repository hay template theo mức độ tùy chỉnh
+- level1: Query và Criteria
+  level2:
+  - Tạo Query, Criteria và BasicQuery
+  - Điều kiện so sánh, khoảng giá trị và tập giá trị
+  - Nhóm AND, OR, NOR và phủ định đúng phạm vi
+  - exists, type và đối sánh trường null hoặc không tồn tại
+  - Đường dẫn document nhúng và dot notation
+  - elemMatch, all, size và điều kiện trên array
+  - Regex, phân biệt hoa thường và tác động đến chỉ mục
+  - Field projection, sort, limit và skip
+  - Collation, hint, comment, maxTime và tùy chọn cursor
+  - $expr và biểu thức khi điều kiện cần so sánh nhiều trường
+  - Xây bộ lọc tùy chọn và kiểm soát trường do người dùng lựa chọn
+- level1: Ghi và cập nhật
+  level2:
+  - Phân biệt insert, lưu thay thế document và cập nhật từng trường
+  - Update với set, unset, inc, min, max và currentDate
+  - updateFirst, updateMulti và các biến thể fluent
+  - 'UpdateResult: acknowledged, matchedCount, modifiedCount và upsertedId'
+  - Upsert và giá trị chỉ dùng khi insert bằng setOnInsert
+  - 'findAndModify: trả dữ liệu trước hoặc sau cập nhật'
+  - findAndReplace và thay thế có điều kiện
+  - Cập nhật bằng aggregation pipeline với AggregationUpdate
+  - Giữ _id, version và dữ liệu không có trong mô hình Java
+  - Điều kiện cập nhật nguyên tử theo quy tắc nghiệp vụ
+  - Lựa chọn save hay update để tránh ghi đè không chủ ý
+- level1: Thao tác array
+  level2:
+  - Phân biệt thay toàn bộ array và cập nhật từng phần tử
+  - push, each, position, slice và sort
+  - addToSet và giới hạn đảm bảo không trùng
+  - pull, pullAll và pop
+  - Toán tử vị trí $ và điều kiện xác định phần tử
+  - Cập nhật mọi phần tử bằng $[]
+  - Array filters với $[identifier] và filterArray
+  - Array lồng nhau và phối hợp nhiều điều kiện
+  - elemMatch để các điều kiện khớp cùng một phần tử
+  - Cạnh tranh ghi và giới hạn kích thước khi array tăng liên tục
+- level1: Ghi hàng loạt
+  level2:
+  - Phân biệt insert nhiều document, saveAll và bulk operations
+  - Xây BulkOperations với insert, update, upsert, replace và remove
+  - ORDERED, UNORDERED và hành vi khi một thao tác thất bại
+  - Đọc BulkWriteResult và xử lý lỗi từng phần
+  - Giới hạn optimistic locking, callback và lifecycle event trong bulk
+  - Chia lô theo số lượng, dung lượng và thời gian xử lý
+  - Idempotency và thử lại khi không biết chắc thao tác nào đã thành công
+  - Bulk nhiều collection trong phiên bản server và API hỗ trợ
+  - Phân biệt giảm lượt truyền lệnh với giao dịch nguyên tử toàn bộ lô
+- level1: Ghi qua repository
+  level2:
+  - Khai báo @Update kết hợp truy vấn suy diễn
+  - Kết hợp @Query với @Update cho điều kiện riêng
+  - Bind tham số trong toán tử cập nhật và update pipeline
+  - Phạm vi tất cả document khớp và giới hạn từ khóa phân trang
+  - Kiểu trả về và số document được sửa
+  - Phương thức delete suy diễn và kiểu dữ liệu trả về
+  - Giới hạn callback, auditing và version khi dùng truy vấn ghi trực tiếp
+  - Xóa mềm bằng điều kiện đọc và lệnh cập nhật nhất quán
+- level1: Query by Example
+  level2:
+  - Tạo đối tượng mẫu, Example và ExampleMatcher
+  - Khớp tất cả hoặc bất kỳ trường được chọn
+  - Xử lý null, kiểu nguyên thủy và thuộc tính bỏ qua
+  - Khớp chuỗi và tùy chỉnh theo từng thuộc tính
+  - Kiểm tra ảnh hưởng của kiểu miền và _class lên truy vấn
+  - Tìm, đếm và kiểm tra tồn tại qua QueryByExampleExecutor
+  - Fluent query, projection, phân trang và scrolling theo phiên bản
+  - Giới hạn nhóm điều kiện, array và document nhúng
+- level1: Repository mở rộng
+  level2:
+  - Thiết kế repository fragment và lớp triển khai
+  - Quy ước tên, quét triển khai và ghép fragment
+  - Kết hợp MongoOperations với truy vấn có mô hình miền
+  - Querydsl và QuerydslPredicateExecutor trong phiên bản hỗ trợ
+  - Sinh Q-type và xây điều kiện truy vấn có kiểu
+  - Phân biệt Querydsl, Query/Criteria và pipeline aggregation
+  - Tái sử dụng fragment và tùy chỉnh repository cơ sở khi cần
+  - Giữ thống nhất mapping, session và ranh giới giao dịch
+- level1: Aggregation cơ bản
+  level2:
+  - Khi nào dùng aggregation thay cho find và xử lý tại ứng dụng?
+  - Pipeline, stage, expression và luồng document qua từng bước
+  - Aggregation, TypedAggregation và AggregationResults
+  - $match, $project, $set và $unset
+  - $group, các accumulator và khóa nhóm
+  - $sort, $skip, $limit và $count
+  - $unwind và xử lý array hoặc giá trị rỗng
+  - Ánh xạ tên thuộc tính, @Field, alias và strictMapping
+  - Ánh xạ kết quả vào DTO và đọc kết quả Document thô
+  - Kiểm tra từng stage bằng dữ liệu nhỏ và pipeline thực tế
+- level1: Aggregation nâng cao
+  level2:
+  - '$lookup: kết hợp collection theo trường hoặc pipeline'
+  - let, biến pipeline và điều kiện tương quan trong $lookup
+  - $facet cho nhiều phép phân tích trên cùng đầu vào
+  - $bucket, $bucketAuto và phân nhóm dữ liệu theo khoảng
+  - Biểu thức số học, chuỗi, điều kiện và chuyển đổi kiểu
+  - Biểu thức ngày giờ, múi giờ và nhóm theo thời gian
+  - Xử lý array với filter, map, reduce và tập hợp
+  - $replaceRoot, $unionWith và thay đổi hình dạng kết quả
+  - $graphLookup và duyệt dữ liệu tham chiếu có giới hạn
+  - $setWindowFields, densify và fill trong phiên bản hỗ trợ
+  - $merge, $out và phạm vi pipeline có ghi dữ liệu
+  - AggregationOptions, allowDiskUse, batch size và giới hạn tài nguyên
+  - 'Stage chưa có DSL: dùng AggregationOperation hoặc JSON/BSON tường minh'
+- level1: Aggregation repository
+  level2:
+  - Khai báo @Aggregation với một hoặc nhiều stage
+  - Placeholder và SpEL trong pipeline repository
+  - Ánh xạ kết quả thành DTO, scalar hoặc AggregationResults
+  - Ảnh hưởng của Sort và Pageable lên pipeline
+  - Giới hạn Page và lựa chọn Slice cho @Aggregation
+  - '@Meta, thời gian thực thi và tùy chọn tài nguyên'
+  - Stream hoặc Flux kết quả và đóng cursor
+  - Khi nào chuyển pipeline phức tạp sang template hoặc fragment?
+- level1: Chỉ mục
+  level2:
+  - Chỉ mục đơn, chỉ mục tổng hợp và thứ tự trường
+  - Thiết kế chỉ mục theo điều kiện bằng, sắp xếp và khoảng giá trị
+  - Multikey index cho array và các giới hạn kết hợp
+  - Unique index, dữ liệu trùng và giá trị thiếu hoặc null
+  - Sparse index và partial index
+  - TTL index và ý nghĩa xóa dữ liệu theo thời gian
+  - Text, geospatial, hashed và wildcard index
+  - Collation của index và điều kiện truy vấn tương ứng
+  - '@Indexed, @CompoundIndex và annotation chỉ mục chuyên biệt'
+  - IndexOperations, IndexResolver và quản lý chỉ mục bằng mã
+  - 'Tạo chỉ mục tự động: cấu hình tường minh và kiểm soát lúc triển khai'
+  - Đánh giá chi phí ghi, dung lượng và chỉ mục không được sử dụng
+- level1: Collection và schema
+  level2:
+  - Tạo, kiểm tra và xóa collection bằng template
+  - CollectionOptions và các tùy chọn cần có trước khi ghi dữ liệu
+  - JSON Schema, validator và ràng buộc kiểu BSON
+  - MongoJsonSchema và sinh schema từ metadata
+  - required, validationLevel và validationAction
+  - Phân biệt Bean Validation trong Java với validation tại MongoDB
+  - Collation cho collection, query và aggregation
+  - Đổi validator khi dữ liệu cũ chưa phù hợp schema mới
+- level1: Kiểm soát đồng thời
+  level2:
+  - Mất cập nhật (lost update) khi nhiều yêu cầu cùng lưu một document
+  - Tính nguyên tử của một document và giới hạn của nhiều lệnh liên tiếp
+  - '@Version và optimistic locking'
+  - Version lúc thêm mới, cập nhật và xóa
+  - Xử lý OptimisticLockingFailureException và tải lại dữ liệu
+  - Compare-and-set bằng điều kiện truy vấn và toán tử cập nhật
+  - Giảm tồn kho bằng điều kiện số lượng và inc nguyên tử
+  - Write concern phù hợp để nhận biết lỗi ghi hoặc xung đột version
+  - Idempotency, unique index và yêu cầu ghi lặp
+  - Giới hạn version khi cập nhật trực tiếp hoặc ghi hàng loạt
+- level1: Nhất quán dữ liệu
+  level2:
+  - Read preference và lựa chọn primary hoặc secondary
+  - Read concern và mức bảo đảm của dữ liệu đọc
+  - Write concern, majority, journal và xác nhận ghi
+  - Đọc thấy dữ liệu vừa ghi (read-after-write) và tính nhất quán nhân quả
+  - Retryable reads, retryable writes và điều kiện hỗ trợ
+  - Phân biệt lỗi ghi thất bại với lỗi chưa biết kết quả cuối
+  - Tùy chọn ở client, template, thao tác và giao dịch
+  - Đánh đổi độ trễ, tính sẵn sàng và yêu cầu nhất quán nghiệp vụ
+- level1: Session và giao dịch
+  level2:
+  - ClientSession, causal consistency và giao dịch nhiều document
+  - Điều kiện replica set hoặc sharded cluster cho transaction
+  - Đăng ký MongoTransactionManager và bật quản lý giao dịch
+  - '@Transactional ở tầng dịch vụ với nhiều repository/template'
+  - TransactionTemplate và quản lý giao dịch lập trình
+  - withSession, phạm vi tài nguyên và đóng session
+  - Rollback, exception và thời điểm commit
+  - Read concern, write concern và read preference trong transaction
+  - Giới hạn lệnh collection, chỉ mục, count và truy vấn đặc thù theo phiên bản
+  - Phân biệt retry toàn giao dịch với retry commit khi kết quả chưa xác định
+  - Chuẩn bị collection và index trước khi bắt đầu giao dịch
+  - Giới hạn phối hợp MongoDB với hệ thống dữ liệu khác trong một đơn vị công việc
+- level1: Truy cập reactive
+  level2:
+  - MongoDB Reactive Streams Driver, Mono, Flux và subscription
+  - Khai báo spring-boot-starter-data-mongodb-reactive
+  - AbstractReactiveMongoConfiguration và @EnableReactiveMongoRepositories
+  - ReactiveMongoRepository và kiểu kết quả phù hợp
+  - ReactiveMongoTemplate cho truy vấn, update và aggregation
+  - Backpressure, batch size và tiêu thụ cursor
+  - Publisher tham số và thời điểm truy vấn được thực hiện
+  - Phân trang bằng Flux, Pageable và phép đếm riêng
+  - Giới hạn DBRef, document reference và các tính năng chỉ có ở API đồng bộ
+  - Tránh block, subscribe thủ công và lẫn client đồng bộ trong chuỗi reactive
+  - Ghép nhiều thao tác ghi với mức đồng thời phù hợp
+- level1: Giao dịch reactive
+  level2:
+  - ReactiveMongoTransactionManager và Reactor Context
+  - '@Transactional trên phương thức trả về Publisher'
+  - TransactionalOperator và ranh giới giao dịch lập trình
+  - Ghép thao tác repository và template trong cùng giao dịch
+  - ClientSession thủ công qua template và giới hạn tích hợp repository
+  - Rollback khi phát lỗi, hủy subscription và đóng tài nguyên
+  - Giới hạn xử lý song song trên cùng session hoặc transaction
+  - Đặt retry bao quanh đúng đơn vị công việc
+  - Kiểm thử bằng StepVerifier và xác minh trạng thái sau commit
+- level1: Vòng đời và callback
+  level2:
+  - Các giai đoạn đọc, chuyển đổi, lưu và xóa document
+  - BeforeConvertCallback trước khi chuyển entity thành Document
+  - BeforeSaveCallback với entity và Document đã chuyển đổi
+  - AfterSaveCallback và AfterConvertCallback
+  - Callback reactive và thứ tự thực thi
+  - AbstractMongoEventListener và các lifecycle event
+  - Phân biệt EntityCallback với ApplicationEvent
+  - Phạm vi sự kiện trên document gốc và dữ liệu nhúng
+  - Callback với entity bất biến và đối tượng trả về
+  - Giới hạn callback/event với update trực tiếp, bulk hoặc driver
+  - Sự kiện nghiệp vụ sau commit và xử lý tác động phụ an toàn
+- level1: Auditing
+  level2:
+  - Kích hoạt @EnableMongoAuditing
+  - '@CreatedDate, @LastModifiedDate, @CreatedBy và @LastModifiedBy'
+  - Cung cấp người thao tác bằng AuditorAware
+  - DateTimeProvider, UTC và thời gian kiểm thử xác định
+  - Ảnh hưởng của phát hiện entity mới đến thông tin tạo/sửa
+  - '@EnableReactiveMongoAuditing và ReactiveAuditorAware'
+  - Lấy người thao tác từ ngữ cảnh bảo mật tương ứng
+  - Giới hạn auditing khi ghi bằng update hoặc driver trực tiếp
+  - Phân biệt thông tin lần sửa gần nhất với lịch sử thay đổi đầy đủ
+- level1: Truy vấn không gian
+  level2:
+  - GeoJSON và các kiểu Point, LineString, Polygon
+  - Thứ tự kinh độ–vĩ độ và hệ tọa độ
+  - Chỉ mục 2d và 2dsphere
+  - Near, Within và toán tử truy vấn không gian
+  - Khoảng cách, đơn vị đo và hệ số chuyển đổi
+  - Truy vấn suy diễn với Point, Distance và GeoResults theo hỗ trợ
+  - $geoNear trong aggregation
+  - Đối sánh vùng địa lý và kiểm thử tọa độ biên
+  - Giới hạn phép đếm, transaction và biến thể reactive
+- level1: Tìm kiếm nâng cao
+  level2:
+  - Text index, @TextIndexed và @Language
+  - TextCriteria, TextQuery và tìm kiếm toàn văn
+  - '@TextScore và sắp xếp theo độ liên quan'
+  - Phân biệt regex, $text và MongoDB Search
+  - Search index, analyzer và điều kiện hỗ trợ của môi trường triển khai
+  - $search, $searchMeta và ánh xạ kết quả về DTO
+  - Vector index, embedding và thước đo tương đồng
+  - Vector search qua pipeline hoặc API khai báo trong phiên bản hỗ trợ
+  - Bộ lọc, giới hạn kết quả và tiêu chí đánh giá chất lượng tìm kiếm
+  - Phân biệt khả năng của MongoDB Server, dịch vụ Search và API Spring Data
+- level1: Change stream
+  level2:
+  - Change stream và bài toán theo dõi thay đổi dữ liệu
+  - Điều kiện replica set hoặc sharded cluster
+  - Theo dõi collection hoặc database
+  - ChangeStreamOptions, bộ lọc pipeline và kiểu dữ liệu sự kiện
+  - Document đầy đủ, mô tả cập nhật và dữ liệu trước/sau thay đổi theo hỗ trợ
+  - ReactiveMongoTemplate.changeStream và tiêu thụ bằng Flux
+  - DefaultMessageListenerContainer cho ứng dụng đồng bộ
+  - Resume token, resumeAfter, startAfter và thời điểm bắt đầu
+  - Lưu checkpoint sau xử lý thành công và khôi phục sau gián đoạn
+  - Sự kiện lặp, invalidate, retention và xử lý idempotent
+  - Backpressure, lỗi listener và quản lý vòng đời subscription
+  - Phân biệt change stream của cơ sở dữ liệu với sự kiện nghiệp vụ
+- level1: Tailable cursor
+  level2:
+  - Collection giới hạn dung lượng (capped collection) và cursor chờ dữ liệu mới
+  - Tạo collection có giới hạn kích thước hoặc số document
+  - Đọc bằng ReactiveMongoTemplate.tail
+  - '@Tailable trên phương thức ReactiveMongoRepository'
+  - Cursor không hợp lệ, không có kết quả và chiến lược kết nối lại
+  - Hủy subscription và giải phóng tài nguyên
+  - Chọn tailable cursor hay change stream theo loại dữ liệu cần theo dõi
+- level1: GridFS
+  level2:
+  - Khi nào lưu file bằng GridFS thay vì một document hoặc object storage?
+  - Bucket, collection files/chunks và metadata
+  - Cấu hình GridFsTemplate và GridFsOperations
+  - Lưu file từ InputStream kèm tên và metadata
+  - Tìm, tải và xóa file bằng GridFsCriteria
+  - GridFsResource và cung cấp nội dung cho tầng ứng dụng
+  - ReactiveGridFsTemplate với Publisher<DataBuffer>
+  - Quản lý bộ nhớ, stream và lỗi truyền file
+  - Nhất quán giữa metadata nghiệp vụ, nội dung file và cleanup
+- level1: Time series
+  level2:
+  - Khi nào dùng time-series collection cho dữ liệu đo hoặc sự kiện?
+  - Tạo collection bằng @TimeSeries hoặc CollectionOptions
+  - Chọn timeField, metaField và granularity
+  - TTL và chính sách giữ dữ liệu theo phiên bản
+  - Nạp dữ liệu theo lô và thiết kế metadata ổn định
+  - Truy vấn khoảng thời gian và aggregation báo cáo
+  - Giới hạn index, update, delete và transaction theo phiên bản
+  - So sánh time-series collection với mô hình bucket do ứng dụng tự quản lý
+- level1: Sharding
+  level2:
+  - Mục đích phân mảnh và vai trò của mongos
+  - Chọn shard key theo phân bố dữ liệu và mẫu truy vấn
+  - Range, hashed key, chỉ mục và yêu cầu uniqueness
+  - '@Sharded và ánh xạ trường shard key'
+  - Phân biệt metadata @Sharded với việc cấu hình cluster thực tế
+  - Targeted query, scatter-gather và ảnh hưởng đến độ trễ
+  - Cập nhật shard key và giới hạn thao tác theo phiên bản
+  - Tác động của sharding lên upsert, transaction và change stream
+  - Nhận diện phân mảnh chịu tải tập trung (hot shard) và kiểm chứng bằng số đo
+- level1: Nhiều database
+  level2:
+  - Nhiều MongoClient, MongoDatabaseFactory và MongoTemplate
+  - Liên kết nhóm repository với đúng template
+  - Chọn database hoặc collection theo tenant
+  - Tách credential, converter và transaction manager khi cần
+  - Giữ đúng tenant trong luồng đồng bộ và Reactor Context
+  - Thiết kế index, schema validation và migration cho nhiều tenant
+  - Ngăn truy vấn chéo tenant khi tái sử dụng bộ lọc hoặc fragment
+  - Kiểm thử tính cô lập và giới hạn số pool kết nối
+- level1: Migration dữ liệu
+  level2:
+  - Quản lý thay đổi document bằng schema version
+  - Đọc tương thích nhiều phiên bản cấu trúc dữ liệu
+  - Đổi tên trường, chuyển kiểu BSON và bổ sung giá trị mặc định
+  - Bổ sung dữ liệu còn thiếu (backfill) theo lô, có checkpoint và có thể chạy lại
+  - Thiết kế migration có phiên bản bằng công cụ hoặc tác vụ riêng
+  - Chuẩn bị và thay đổi chỉ mục mà không làm gián đoạn ứng dụng
+  - Triển khai schema validation theo giai đoạn
+  - Kiểm tra số lượng, kiểu dữ liệu và tính nhất quán sau chuyển đổi
+  - Sao lưu, khôi phục và điều kiện quay lại phiên bản ứng dụng cũ
+- level1: Mã hóa dữ liệu
+  level2:
+  - Phân biệt TLS, mã hóa lưu trữ và mã hóa ở phía client
+  - Client-Side Field Level Encryption và điều kiện triển khai
+  - Key vault, data encryption key và KMS provider
+  - '@Encrypted, JSON Schema và AutoEncryptionSettings'
+  - Mã hóa tự động hoặc tường minh theo nhu cầu ứng dụng
+  - Queryable Encryption và giới hạn toán tử/kiểu dữ liệu
+  - Ảnh hưởng của mã hóa đến index, tìm kiếm và mapping
+  - Quản lý vòng đời khóa và kiểm thử khả năng giải mã dữ liệu cũ
+  - Đối chiếu tính năng server, driver, thư viện mã hóa và edition
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian, số lệnh, số document và dung lượng truyền
+  - Explain và executionStats để kiểm tra kế hoạch truy vấn
+  - Đọc COLLSCAN, IXSCAN, FETCH, SORT và số document/index key đã xét
+  - Truy vấn được chỉ mục bao phủ (covered query) và giới hạn trường trả về
+  - Tối ưu index theo filter, sort, collation và phân trang
+  - Đặt $match và $project hợp lý trong pipeline
+  - Giới hạn dữ liệu trung gian từ $lookup, $unwind và $group
+  - Chọn batch size, cursor và kiểu xử lý để kiểm soát bộ nhớ
+  - Đánh giá saveAll, bulk và số lượt kết nối bằng số đo
+  - Document lớn, array không giới hạn và mô hình dữ liệu gây điểm nóng
+  - Cache kết quả và chính sách vô hiệu hóa khi document thay đổi
+  - Phân biệt thời gian server, mạng, driver và chuyển đổi đối tượng
+- level1: Kiểm thử
+  level2:
+  - Chọn unit test, repository test và integration test theo mục tiêu
+  - Kiểm thử quy tắc nghiệp vụ không cần MongoDB
+  - '@DataMongoTest và phạm vi bean được nạp'
+  - Cung cấp MongoDB cho test bằng Testcontainers hoặc dịch vụ kiểm thử
+  - Replica set trong test transaction và change stream
+  - '@DynamicPropertySource hoặc @ServiceConnection theo Spring Boot'
+  - Fixture, index, validator và collection kiểm thử
+  - Kiểm thử ObjectId, UUID, Decimal128, thời gian và converter
+  - Kiểm thử null, trường thiếu, document nhúng và tham chiếu
+  - Kiểm thử array filter, update nguyên tử và upsert đồng thời
+  - Kiểm thử @Query, projection, scrolling và aggregation
+  - Kiểm thử @Version, rollback và retry khi lỗi tạm thời
+  - Kiểm thử callback, auditing và thao tác ghi ngoài entity lifecycle
+  - StepVerifier cho reactive, change stream và tailable cursor
+  - Cô lập dữ liệu giữa test và cleanup sau commit
+  - Kiểm thử hồi quy index, hiệu năng và tương thích phiên bản server
+- level1: Bảo mật và vận hành
+  level2:
+  - Quản lý URI, bí mật, TLS và quyền tối thiểu của tài khoản
+  - Bind tham số và phòng NoSQL injection trong bộ lọc động
+  - Giới hạn trường, toán tử, sort và projection được phép từ đầu vào
+  - Giới hạn thời gian, kích thước kết quả và truy vấn tốn tài nguyên
+  - Theo dõi command, query log và dữ liệu nhạy cảm trong tham số
+  - Health indicator, pool metric và lỗi server selection
+  - Micrometer, observation và tracing theo phiên bản driver/Spring Data
+  - Cấu hình timeout, retry và pool theo tải ứng dụng
+  - Kiểm soát quyền tạo index, đổi validator và chạy migration
+  - Quan sát replication lag và ảnh hưởng của read preference
+  - Thời hạn giữ dữ liệu, TTL, sao lưu và diễn tập khôi phục
+  - DTO trả về, kiểm soát trường nội bộ và thông tin cá nhân
+- level1: Lỗi và chẩn đoán
+  level2:
+  - Phân loại DataAccessException và lỗi được dịch từ MongoDB driver
+  - 'Không kết nối được: URI, DNS, TLS, authSource hoặc quyền'
+  - Không tìm thấy repository, nhầm template hoặc quét sai package
+  - ObjectId và String không khớp dù ID hiển thị giống nhau
+  - Mapping constructor, _class, TypeAlias và converter bị thiếu
+  - Sai kiểu số, UUID hoặc thời gian giữa Java và BSON
+  - Document null, trường thiếu hoặc array không khớp dự kiến
+  - DuplicateKeyException, unique index và lỗi schema validation
+  - Save ghi đè dữ liệu, update không khớp hoặc modifiedCount bằng 0
+  - Optimistic locking, write conflict và kết quả commit chưa xác định
+  - Transaction không hoạt động trên topology hoặc cấu hình hiện tại
+  - Aggregation quá giới hạn, cursor hết hạn hoặc change stream không resume được
+  - Chuỗi reactive không chạy, cạn pool hoặc truy vấn quá thời gian
+  - Quy trình tái hiện lỗi bằng BSON thực tế, explain và integration test
+- level1: Phiên bản và nâng cấp
+  level2:
+  - Đọc release train và ma trận Boot–Spring Data–driver–server
+  - Đối chiếu API với tài liệu đúng phiên bản đang dùng
+  - Thay đổi cấu hình Boot, kiểu dữ liệu và UUID representation
+  - Nâng mapping converter, type alias và quy ước chuyển đổi thời gian
+  - Đối chiếu API Search, vector, bulk nhiều collection và tính năng mới
+  - AOT, native image và giới hạn cần kiểm chứng khi sử dụng
+  - Tiếp nhận hệ thống cũ dùng Map-Reduce hoặc JavaScript phía server
+  - Kiểm thử tương thích giao thức MongoDB với dịch vụ cơ sở dữ liệu khác
+  - Lập kế hoạch nâng cấp cùng kiểm thử hồi quy dữ liệu và hiệu năng
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân tích bài toán sản phẩm, khách hàng, tồn kho và đơn hàng
+  - Thiết kế document, tham chiếu, ID và index
+  - Dựng môi trường replica set và nạp dữ liệu mẫu
+  - Triển khai CRUD, bộ lọc động, projection và phân trang
+  - Cập nhật tồn kho nguyên tử và xử lý đơn hàng ghi lặp
+  - Viết aggregation báo cáo doanh thu và dữ liệu thời gian
+  - Bổ sung version, auditing và giao dịch nhiều document
+  - Tạo luồng truy cập reactive có xử lý lỗi và giới hạn tài nguyên
+  - Theo dõi thay đổi bằng change stream với checkpoint
+  - Kiểm thử bằng Testcontainers và tối ưu theo executionStats
+  - 'Bài tập mở rộng: GridFS, time series, tìm kiếm và nhiều tenant'
+  - Rà soát tính đúng dữ liệu, bảo mật và tiêu chí sẵn sàng triển khai

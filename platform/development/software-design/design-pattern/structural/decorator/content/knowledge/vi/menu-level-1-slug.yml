@@ -1,0 +1,67 @@
+menu:
+  - title: "Bản chất Decorator"
+    slug: decorator-fundamentals
+    index: 0
+  - title: "Khi nào sử dụng"
+    slug: applicability-and-tradeoffs
+    index: 1
+  - title: "Cấu trúc và vai trò"
+    slug: structure-and-roles
+    index: 2
+  - title: "Hợp đồng giao diện"
+    slug: interface-contracts
+    index: 3
+  - title: "Thiết kế thành phần"
+    slug: component-design
+    index: 4
+  - title: "Triển khai Java"
+    slug: java-implementation
+    index: 5
+  - title: "Lắp ráp chuỗi"
+    slug: chain-assembly
+    index: 6
+  - title: "Thứ tự xử lý"
+    slug: execution-order
+    index: 7
+  - title: "Trạng thái và định danh"
+    slug: state-and-identity
+    index: 8
+  - title: "Vòng đời tài nguyên"
+    slug: resource-lifecycle
+    index: 9
+  - title: "Lỗi và tác dụng phụ"
+    slug: errors-and-side-effects
+    index: 10
+  - title: "Đồng thời và bất đồng bộ"
+    slug: concurrency-and-async
+    index: 11
+  - title: "Decorator trong Java I/O"
+    slug: java-io-decorators
+    index: 12
+  - title: "Ứng dụng thực tế"
+    slug: practical-applications
+    index: 13
+  - title: "Tích hợp Java"
+    slug: java-integration
+    index: 14
+  - title: "Kiểm thử hợp đồng"
+    slug: contract-testing
+    index: 15
+  - title: "Kiểm thử chuỗi"
+    slug: chain-testing
+    index: 16
+  - title: "Hiệu năng và đo lường"
+    slug: performance-and-measurement
+    index: 17
+  - title: "So sánh các mẫu"
+    slug: pattern-comparisons
+    index: 18
+  - title: "Tái cấu trúc"
+    slug: refactoring-to-decorators
+    index: 19
+  - title: "Lỗi thiết kế thường gặp"
+    slug: common-design-mistakes
+    index: 20
+  - title: "Thực hành tổng hợp"
+    slug: hands-on-exercises
+    index: 21

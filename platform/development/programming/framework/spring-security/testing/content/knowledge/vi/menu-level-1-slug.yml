@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan
+  slug: testing-overview
+  index: 0
+- title: Chiến lược kiểm thử
+  slug: testing-strategies
+  index: 1
+- title: Phụ thuộc và phiên bản
+  slug: dependencies-and-versions
+  index: 2
+- title: Ngữ cảnh và vòng đời
+  slug: context-and-lifecycle
+  index: 3
+- title: Annotation người dùng
+  slug: user-annotations
+  index: 4
+- title: SecurityContext tùy biến
+  slug: custom-security-context
+  index: 5
+- title: Bảo mật phương thức
+  slug: method-security
+  index: 6
+- title: Kiểm thử thành phần
+  slug: component-testing
+  index: 7
+- title: Thiết lập MockMvc
+  slug: mockmvc-setup
+  index: 8
+- title: Danh tính trên yêu cầu
+  slug: request-identity
+  index: 9
+- title: Khẳng định kết quả
+  slug: result-assertions
+  index: 10
+- title: Đăng nhập qua HTTP
+  slug: http-login
+  index: 11
+- title: Phân quyền HTTP
+  slug: http-authorization
+  index: 12
+- title: CSRF
+  slug: csrf-testing
+  index: 13
+- title: CORS và header bảo vệ
+  slug: cors-and-security-headers
+  index: 14
+- title: Phiên và đăng xuất
+  slug: sessions-and-logout
+  index: 15
+- title: JWT với MockMvc
+  slug: jwt-with-mockmvc
+  index: 16
+- title: JWT và token thực
+  slug: jwt-and-real-tokens
+  index: 17
+- title: Opaque token
+  slug: opaque-tokens
+  index: 18
+- title: Đăng nhập OAuth2 và OIDC
+  slug: oauth2-and-oidc-login
+  index: 19
+- title: Ứng dụng khách OAuth2
+  slug: oauth2-clients
+  index: 20
+- title: Luồng OAuth2 thực
+  slug: real-oauth2-flows
+  index: 21
+- title: Thiết lập WebTestClient
+  slug: webtestclient-setup
+  index: 22
+- title: Danh tính Reactive
+  slug: reactive-identity
+  index: 23
+- title: OAuth2 Reactive
+  slug: reactive-oauth2
+  index: 24
+- title: Phương thức Reactive
+  slug: reactive-methods
+  index: 25
+- title: Filter và cơ chế tùy biến
+  slug: custom-filters-and-mechanisms
+  index: 26
+- title: Bất đồng bộ và ngữ cảnh
+  slug: async-and-context
+  index: 27
+- title: Dữ liệu và cô lập
+  slug: data-and-isolation
+  index: 28
+- title: Tích hợp đầu cuối
+  slug: end-to-end-integration
+  index: 29
+- title: Cơ chế chuyên biệt
+  slug: specialized-mechanisms
+  index: 30
+- title: Bộ kiểm thử và CI
+  slug: test-suites-and-ci
+  index: 31
+- title: Di chuyển và nâng cấp
+  slug: migration-and-upgrades
+  index: 32
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-security-testing
+  index: 34

@@ -1,0 +1,3 @@
+menuLevel1: Gửi yêu cầu WebClient
+menuLevel2: Tích hợp HTTP service interface bằng @HttpExchange và WebClientAdapter
+status: WRITTEN

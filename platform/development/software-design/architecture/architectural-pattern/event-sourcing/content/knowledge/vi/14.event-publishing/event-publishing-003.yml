@@ -1,0 +1,3 @@
+menuLevel1: Công bố sự kiện
+menuLevel2: Áp dụng transactional outbox khi sự kiện và outbox có thể commit cùng giao dịch
+status: ""

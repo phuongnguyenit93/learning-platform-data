@@ -1,0 +1,57 @@
+roadmap:
+- id: dam-bao-giao-nhan
+  title: Đảm bảo giao nhận
+  purpose: Hiểu các mức bảo đảm giao nhận để đặt kỳ vọng đúng khi Kafka hoặc ứng dụng gặp sự cố.
+  objectives:
+  - Phân biệt at-most-once, at-least-once và exactly-once
+  - Nêu tình huống mất hoặc xử lý trùng bản ghi
+  - Chọn mức bảo đảm theo tác động nghiệp vụ
+- id: offsets-ack
+  title: Offsets & Ack
+  purpose: Điều khiển thời điểm xác nhận bản ghi để tránh mất dữ liệu khi consumer lỗi.
+  objectives:
+  - Giải thích offset và commit trong consumer group
+  - So sánh chế độ ack tự động theo container và thủ công
+  - Mô tả điều gì xảy ra khi lỗi trước hoặc sau commit
+- id: error-handler-retry
+  title: Error Handler & Retry
+  purpose: Phục hồi lỗi tạm thời mà không lặp vô hạn hoặc che giấu lỗi không thể xử lý.
+  objectives:
+  - Cấu hình DefaultErrorHandler và backoff giới hạn
+  - Phân biệt lỗi có thể thử lại và lỗi cố định
+  - Nêu giới hạn của retry tại chỗ và retry topic
+- id: dead-letter-topic
+  title: Dead Letter Topic
+  purpose: Cách ly bản ghi thất bại sau số lần thử tối đa để hệ thống vẫn tiếp tục vận hành.
+  objectives:
+  - Định tuyến bản ghi lỗi bằng DeadLetterPublishingRecoverer
+  - Giữ metadata lỗi để điều tra nguyên nhân
+  - Thiết kế bước kiểm tra và phát lại dữ liệu từ DLT
+- id: idempotency-giao-dich
+  title: Idempotency & Giao dịch
+  purpose: Hạn chế tác động của xử lý trùng và hiểu phạm vi bảo đảm giao dịch Kafka.
+  objectives:
+  - Tạo khóa idempotency cho nghiệp vụ
+  - Mô tả KafkaTransactionManager và rollback
+  - Giải thích phạm vi EOS và giới hạn khi kết hợp cơ sở dữ liệu
+- id: consumer-group-rebalance
+  title: Consumer Group & Rebalance
+  purpose: Duy trì khả năng xử lý khi thành viên hoặc phân vùng trong nhóm thay đổi.
+  objectives:
+  - Giải thích partition assignment và rebalance
+  - Đánh giá tác động concurrency lên thứ tự xử lý
+  - Xử lý tình huống consumer dừng, khởi động lại hoặc đổi thành viên
+- id: dieu-tiet-phuc-hoi
+  title: Điều tiết & Phục hồi
+  purpose: Giữ consumer ổn định khi tải tăng hoặc hệ thống phụ thuộc gặp sự cố.
+  objectives:
+  - Nhận biết lag tăng và thời gian xử lý vượt ngưỡng
+  - Áp dụng pause/resume container đúng ngữ cảnh
+  - Lập quy trình khởi động lại và khôi phục an toàn
+- id: giam-sat-dien-tap-loi
+  title: Giám sát & Diễn tập lỗi
+  purpose: Quan sát trạng thái xử lý và chứng minh phương án phục hồi hoạt động.
+  objectives:
+  - Theo dõi lag, retry/DLT và listener errors
+  - Thu thập metrics/tracing bằng Micrometer
+  - Diễn tập crash và xác minh không mất hoặc xử lý trùng ngoài dự kiến

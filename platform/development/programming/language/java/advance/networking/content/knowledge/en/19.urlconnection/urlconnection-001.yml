@@ -1,0 +1,3 @@
+menuLevel1: URLConnection
+menuLevel2: URL.openConnection, protocol handler và vòng đời trước/sau connect
+status: WRITTEN

@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "CODE_QUALITY_CONTINUOUS_INSPECTION_SONARQUBE"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Sử dụng SonarQube để phân tích mã tĩnh và duy trì chất lượng Java liên tục qua Gradle, Maven và CI/CD. Người học cấu hình Quality Profile, Quality Gate, New Code, đọc issues, coverage, duplication và Security Hotspot, rồi xử lý cảnh báo nhầm và vận hành máy chủ phân tích."
+  }
+}

@@ -1,0 +1,7 @@
+# Java Virtual Machine (JVM) trong Java nâng cao
+
+Java Virtual Machine (JVM) là môi trường thực thi bytecode, giữ vai trò kết nối chương trình Java với cơ chế quản lý bộ nhớ, thực thi phương thức và luồng. Hiểu JVM giúp bạn giải thích vì sao một đoạn mã có hành vi hoặc hiệu năng nhất định, thay vì chỉ suy đoán từ cú pháp. Khi tìm hiểu, cần phân biệt những điều được quy định trong đặc tả JVM với các lựa chọn triển khai cụ thể, chẳng hạn HotSpot.
+
+Tài liệu này dành cho người đã nắm Java Core, lớp, đối tượng và các khái niệm luồng cơ bản. Lộ trình gồm tám mốc liên kết: bức tranh tổng thể về JVM; cấu trúc tệp class và bytecode; quá trình nạp, liên kết và khởi tạo lớp; vùng nhớ và vòng đời đối tượng; thông dịch cùng biên dịch JIT; thu gom rác; luồng và Java Memory Model; cuối cùng là quan sát, kiểm chứng và tối ưu. Bạn sẽ từng bước nối mã nguồn với các thành phần hoạt động lúc chạy, từ `javap` và class loader đến heap, stack, GC và quan hệ `happens-before`.
+
+Sau khi hoàn thành, bạn có thể đọc bytecode của một ví dụ nhỏ, lý giải thứ tự khởi tạo lớp, phân biệt `StackOverflowError` với `OutOfMemoryError`, nhận diện ảnh hưởng của warm-up và tối ưu JIT khi đo hiệu năng. Bạn cũng có thể giải thích tính nhìn thấy của dữ liệu chia sẻ, đọc bằng chứng từ GC log, thread dump hoặc Java Flight Recorder (JFR), rồi so sánh trước và sau thay đổi trong cùng điều kiện đo để đánh giá một giả thuyết về JVM.

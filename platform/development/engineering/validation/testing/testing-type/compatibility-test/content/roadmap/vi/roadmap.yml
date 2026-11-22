@@ -1,0 +1,57 @@
+roadmap:
+- id: pham-vi-tuong-thich
+  title: Phạm vi tương thích
+  purpose: Xác định sản phẩm phải hoạt động trên những môi trường và phiên bản nào, cùng tiêu chí chấp nhận rõ ràng.
+  objectives:
+  - Phân biệt compatibility với functional testing
+  - Xác định phạm vi sản phẩm và đối tượng sử dụng
+  - Đặt tiêu chí đạt cho các cấu hình được hỗ trợ
+- id: ma-tran-ho-tro
+  title: Ma trận hỗ trợ
+  purpose: Ưu tiên tổ hợp cần thử dựa trên mức sử dụng, rủi ro và cam kết hỗ trợ.
+  objectives:
+  - Lập ma trận OS, runtime, browser, thiết bị và phiên bản
+  - Chọn tổ hợp đại diện bằng phân tích rủi ro
+  - Phân biệt cấu hình được hỗ trợ và không hỗ trợ
+- id: he-dieu-hanh-runtime
+  title: Hệ điều hành & Runtime
+  purpose: Phát hiện sai khác khi ứng dụng chạy trên hệ điều hành, kiến trúc hoặc runtime khác nhau.
+  objectives:
+  - Kiểm tra hành vi trên các OS/kiến trúc mục tiêu
+  - Thử các phiên bản JVM hoặc runtime được hỗ trợ
+  - Nhận diện vấn đề đường dẫn, mã hóa và quyền truy cập
+- id: trinh-duyet-thiet-bi
+  title: Trình duyệt & Thiết bị
+  purpose: Đảm bảo giao diện và thao tác cốt lõi hoạt động trên các browser và kích thước màn hình mục tiêu.
+  objectives:
+  - Kiểm tra hành vi trên browser engine mục tiêu
+  - Thử responsive, nhập liệu và tương tác thiết bị
+  - Đối chiếu hiển thị với khả năng hỗ trợ tính năng
+- id: phien-ban-api
+  title: Phiên bản & API
+  purpose: Kiểm chứng thay đổi phiên bản giữ được các hợp đồng đã cam kết với người sử dụng.
+  objectives:
+  - Phân biệt backward và forward compatibility
+  - Thử client cũ với API mới trong phạm vi hỗ trợ
+  - Phát hiện breaking changes khi nâng cấp thư viện/API
+- id: du-lieu-tich-hop
+  title: Dữ liệu & Tích hợp
+  purpose: Kiểm tra khả năng trao đổi và đọc dữ liệu khi các thành phần dùng định dạng hoặc phiên bản khác nhau.
+  objectives:
+  - Thử serialization và schema qua các phiên bản
+  - Kiểm tra dữ liệu tồn tại trước và sau nâng cấp
+  - Xác minh tương thích giữa các hệ thống tích hợp
+- id: thiet-ke-thuc-thi
+  title: Thiết kế & Thực thi
+  purpose: Xây dựng test case và môi trường có thể lặp lại cho các tổ hợp ưu tiên.
+  objectives:
+  - Chuẩn bị môi trường và phiên bản có thể tái tạo
+  - Chạy chung một bộ scenario trên các cấu hình
+  - Phân biệt kiểm thử tự động và kiểm tra thủ công
+- id: phan-tich-hoi-quy
+  title: Phân tích & Hồi quy
+  purpose: Biến kết quả thử thành quyết định hỗ trợ và phòng ngừa lỗi tương thích khi phát hành.
+  objectives:
+  - Ghi rõ cấu hình và phiên bản gây lỗi
+  - Phân loại khác biệt hợp lệ với lỗi thực tế
+  - Duy trì regression matrix trong CI và báo cáo hỗ trợ

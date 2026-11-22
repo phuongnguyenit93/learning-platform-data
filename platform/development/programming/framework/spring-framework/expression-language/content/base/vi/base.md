@@ -1,0 +1,7 @@
+# Spring Framework Expression Language
+
+Spring Expression Language (SpEL) là ngôn ngữ biểu thức của Spring Framework, cho phép truy cập thuộc tính, gọi phương thức, thực hiện phép toán và thao tác trên tập hợp thông qua chuỗi biểu thức. SpEL có thể được dùng trong cấu hình bean, chú thích `@Value` hoặc được đánh giá trực tiếp bằng `SpelExpressionParser` và `EvaluationContext`. Đây là công cụ linh hoạt, nhưng không thay thế Java code cho logic nghiệp vụ phức tạp.
+
+Module dành cho người học Java/Spring đã nắm object, collection, bean và cấu hình ứng dụng. Bạn sẽ bắt đầu bằng parser, context và kiểu kết quả, rồi học literal, toán tử, truy cập property/method, biến, hàm và bean reference. Tiếp theo là lọc/chuyển đổi collection với selection và projection, xử lý `null` bằng safe navigation hoặc Elvis, và dùng `#{...}` trong `@Value` hoặc expression template. Cần phân biệt cú pháp SpEL `#{...}` với property placeholder `${...}`, vì chúng có cơ chế xử lý khác nhau.
+
+Bài thực hành đề xuất là ứng dụng Spring nhỏ có đối tượng đơn hàng: dùng SpEL để đọc trường, tính điều kiện, lọc danh sách và chèn một giá trị cấu hình đơn giản vào bean. Viết test cho biểu thức hợp lệ, `null`, sai kiểu và ngoại lệ. **Không đánh giá các chuỗi SpEL tùy ý từ người dùng hoặc nguồn không đáng tin cậy**: ngay cả `SimpleEvaluationContext` cũng đòi hỏi giới hạn cẩn thận root object, property accessors và hàm được cung cấp. Kết thúc module, bạn có thể chọn ngữ cảnh sử dụng SpEL phù hợp và tránh những cách cấu hình gây rủi ro bảo mật.

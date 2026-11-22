@@ -1,0 +1,602 @@
+# Khóa lạc quan bằng @Version
+
+Khi nhiều request hoặc nhiều tiến trình cùng đọc và cập nhật một bản ghi, một request có thể ghi đè thay đổi mà request khác vừa lưu. Đây là tình huống *lost update*. Trong Spring Data R2DBC, annotation `@Version` cung cấp cơ chế khóa lạc quan (*optimistic locking*) để phát hiện trường hợp này khi lưu entity.
+
+Khóa lạc quan không giữ khóa database trong suốt thời gian ứng dụng đọc và xử lý dữ liệu. Thay vào đó, entity mang theo một giá trị phiên bản. Khi cập nhật, Spring Data chỉ ghi nếu phiên bản trong database vẫn bằng phiên bản mà ứng dụng đã đọc. Nếu một request khác đã cập nhật trước, điều kiện phiên bản không còn khớp và thao tác hiện tại thất bại bằng lỗi optimistic locking.
+
+## 1. Vấn đề lost update
+
+Giả sử một khách hàng có tên hiển thị là `An`, bản ghi đang có `version = 4`. Hai request A và B gần như đồng thời đọc cùng trạng thái này.
+
+```text
+Database: display_name = "An", version = 4
+
+Request A                         Request B
+---------                         ---------
+Đọc tên "An", version 4           Đọc tên "An", version 4
+Đổi tên thành "Anh An"            Đổi tên thành "An Nguyen"
+Ghi bản cập nhật                  Ghi bản cập nhật
+```
+
+Nếu câu lệnh cập nhật chỉ dựa vào khóa chính, cả hai request đều có thể ghi thành công. Request ghi sau sẽ ghi đè giá trị của request trước. Database không biết request thứ hai đang dựa trên một trạng thái cũ.
+
+Khóa lạc quan thêm điều kiện phiên bản vào thao tác ghi:
+
+```sql
+UPDATE customers
+SET display_name = :displayName,
+    version = version + 1
+WHERE id = :id
+  AND version = :expectedVersion;
+```
+
+Request đầu tiên cập nhật được hàng có `version = 4`, sau đó phiên bản trở thành 5. Request thứ hai vẫn gửi `expectedVersion = 4`; điều kiện `WHERE` không còn khớp, nên không có hàng nào được cập nhật. Spring Data phát sinh lỗi optimistic locking để ứng dụng biết rằng dữ liệu đã thay đổi kể từ lần đọc trước.
+
+## 2. @Version hoạt động như thế nào?
+
+`@Version` đánh dấu thuộc tính được dùng để theo dõi phiên bản của entity. Annotation nằm trong package `org.springframework.data.annotation` và được Spring Data Relational sử dụng trong quá trình insert, update và các thao tác persistence có hỗ trợ versioning.
+
+Với một thuộc tính version dạng số, quy trình tổng quát như sau:
+
+1. Khi tạo entity mới, version chưa có giá trị hoặc mang giá trị khởi tạo theo quy tắc của kiểu dữ liệu.
+2. Khi insert, Spring Data khởi tạo version trong bản ghi.
+3. Khi đọc entity, ứng dụng nhận cả ID và version hiện tại.
+4. Khi update, Spring Data dùng ID và version cũ làm điều kiện xác định hàng cần sửa.
+5. Nếu update thành công, version được tăng lên.
+6. Nếu không có hàng nào khớp ID và version cũ, Spring Data báo lỗi optimistic locking.
+
+Sơ đồ hai request cập nhật cùng một phiên bản:
+
+```text
+                    Đọc version = 4
+                    /             \
+                   /               \
+             Request A          Request B
+             expected = 4       expected = 4
+                  |                  |
+                  v                  v
+        UPDATE ... version=4  UPDATE ... version=4
+                  |                  |
+                  v                  v
+        Khớp 1 hàng           Khớp 0 hàng
+        version -> 5           version đã là 5
+                  |                  |
+                  v                  v
+              Thành công       Optimistic locking error
+```
+
+Việc kiểm tra và tăng version được thực hiện trong thao tác database, vì vậy hai request không thể cùng thành công dựa trên một phiên bản cũ nếu cả hai cập nhật cùng một hàng có version.
+
+## 3. Khai báo thuộc tính version trong entity
+
+### 3.1. Entity dùng Long
+
+Ví dụ entity khách hàng:
+
+```java
+package com.example.store.customer.persistence;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("customers")
+public record CustomerEntity(
+        @Id Long id,
+        String email,
+        @Column("display_name") String displayName,
+        @Version Long version
+) {
+}
+```
+
+`@Version` được đặt trên thuộc tính `version`. Kiểu `Long` có thể biểu diễn `null`, thuận tiện để nhận biết entity mới khi ID được cấp trước hoặc khi ứng dụng cần phân biệt trạng thái chưa insert với version đã được database khởi tạo.
+
+Với Java class thông thường, thuộc tính version có thể là trường `Long` hoặc kiểu số tương thích khác. Nếu dùng kiểu primitive như `long`, giá trị mặc định là `0`; Spring Data có quy tắc nhận diện entity mới tương ứng. Hãy chọn một kiểu nhất quán với schema và chiến lược tạo ID của ứng dụng.
+
+### 3.2. Schema database
+
+Cột version phải tồn tại trong bảng và có kiểu tương thích với thuộc tính Java. Ví dụ PostgreSQL:
+
+```sql
+CREATE TABLE customers (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    display_name VARCHAR(120) NOT NULL,
+    version BIGINT NOT NULL
+);
+```
+
+Spring Data quản lý giá trị version trong các thao tác lưu được hỗ trợ. Với schema đã có dữ liệu, migration cần thêm cột và khởi tạo version cho các hàng hiện tại, ví dụ:
+
+```sql
+ALTER TABLE customers
+ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+```
+
+Migration thực tế phải tuân theo công cụ và quy trình schema của dự án. Không chỉ thêm thuộc tính Java rồi kỳ vọng database tự có cột tương ứng. Nếu tên cột khác tên thuộc tính, khai báo `@Column` phù hợp.
+
+### 3.3. Quy tắc khởi tạo version
+
+Với version dạng số, Spring Data dùng giá trị khởi tạo cho entity mới và tăng version khi cập nhật thành công. Thông thường:
+
+- Wrapper như `Long` có thể là `null` trước khi insert.
+- Kiểu số primitive có giá trị mặc định `0`.
+- Sau khi insert, entity được lưu có version khởi tạo, thường là `0`.
+- Mỗi lần update được version check chấp nhận, version tăng lên một đơn vị.
+
+Không tự gán một version tùy ý cho entity mới để điều khiển câu SQL. Hãy để Spring Data xác định trạng thái mới/cũ dựa trên metadata entity và quy tắc versioning. Với entity có ID do ứng dụng cấp trước, version property đặc biệt hữu ích để phân biệt entity chưa lưu với entity đã tồn tại; kiểm tra cách `isNew` hoạt động theo kiểu version đã chọn.
+
+## 4. Cập nhật entity có @Version qua Repository
+
+### 4.1. Repository
+
+```java
+package com.example.store.customer.persistence;
+
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+
+public interface CustomerRepository
+        extends ReactiveCrudRepository<CustomerEntity, Long> {
+}
+```
+
+Không cần viết một câu `UPDATE` riêng chỉ để kiểm tra version khi sử dụng `save` theo cơ chế mapping chuẩn của Spring Data Relational. Repository nhận biết thuộc tính `@Version` trong entity và áp dụng optimistic locking cho thao tác update phù hợp.
+
+### 4.2. Tạo entity mới
+
+```java
+CustomerEntity draft = new CustomerEntity(
+        null,
+        "an@example.com",
+        "An",
+        null
+);
+
+return customerRepository.save(draft);
+```
+
+Khi insert, Spring Data tạo hàng mới và khởi tạo version. Với entity bất biến như record, `save` phát ra instance đã lưu; hãy dùng instance đó để nhận ID và version được gán.
+
+```java
+return customerRepository.save(draft)
+        .map(saved -> {
+            // saved có ID và version sau insert.
+            return saved;
+        });
+```
+
+Không tiếp tục dùng `draft` như thể nó đã được sửa tại chỗ. Entity bất biến không nhận ID/version mới bằng setter; giá trị trả về từ `save` là trạng thái đã được lưu.
+
+### 4.3. Đọc, tạo bản sao và lưu
+
+Với entity bất biến, phương thức nghiệp vụ tạo instance mới nhưng giữ ID và version vừa đọc:
+
+```java
+@Table("customers")
+public record CustomerEntity(
+        @Id Long id,
+        String email,
+        @Column("display_name") String displayName,
+        @Version Long version
+) {
+    public CustomerEntity rename(String newName) {
+        if (newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("Name is required");
+        }
+
+        return new CustomerEntity(id, email, newName.trim(), version);
+    }
+}
+```
+
+Service nối các thao tác bằng Reactor:
+
+```java
+@Service
+public class CustomerService {
+
+    private final CustomerRepository repository;
+
+    public CustomerService(CustomerRepository repository) {
+        this.repository = repository;
+    }
+
+    public Mono<CustomerEntity> rename(Long id, String newName) {
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(
+                        new CustomerNotFoundException(id)))
+                .map(customer -> customer.rename(newName))
+                .flatMap(repository::save);
+    }
+}
+```
+
+`rename` giữ nguyên `id` và `version` của entity đã đọc. `save` dùng version đó làm expected version. Khi update thành công, publisher phát ra entity đã lưu với version mới. Nếu request khác đã ghi trước, publisher phát lỗi optimistic locking.
+
+### 4.4. Không tự tăng version trong Service
+
+Không viết:
+
+```java
+return new CustomerEntity(id, email, newName, version + 1);
+```
+
+Version phải phản ánh phiên bản đã đọc để database so sánh. Spring Data chịu trách nhiệm tăng version khi update thành công. Nếu Service tự tăng trước khi gọi `save`, nó có thể gửi một expected version không tồn tại và làm thao tác bị từ chối.
+
+## 5. Xử lý lỗi optimistic locking trong reactive pipeline
+
+Khi version không còn khớp, Spring Data phát sinh exception thuộc nhóm optimistic locking/concurrency failure, thường là `OptimisticLockingFailureException` trong Spring DAO abstraction. Với repository reactive, lỗi được phát như một error signal của `Mono` hoặc `Flux`.
+
+Không nên coi lỗi này như lỗi kết nối thông thường hoặc âm thầm bỏ qua. Nó cho biết trạng thái mà request đang sửa đã cũ.
+
+### 5.1. Chuyển lỗi thành lỗi nghiệp vụ
+
+Có thể chuyển exception persistence thành exception ứng dụng để tầng API xử lý:
+
+```java
+public Mono<CustomerEntity> rename(Long id, String newName) {
+    return repository.findById(id)
+            .switchIfEmpty(Mono.error(new CustomerNotFoundException(id)))
+            .map(customer -> customer.rename(newName))
+            .flatMap(repository::save)
+            .onErrorMap(OptimisticLockingFailureException.class,
+                    error -> new CustomerConflictException(id, error));
+}
+```
+
+Ví dụ trên minh họa việc chuyển loại lỗi; trong ứng dụng thật, cần bảo đảm `CustomerConflictException` giữ nguyên cause để log và quan sát. Nếu có transaction bao quanh nhiều thao tác, cân nhắc đặt việc chuyển lỗi ở ranh giới phù hợp và không nuốt lỗi bên trong transaction khi các thao tác khác phải rollback.
+
+### 5.2. Ánh xạ sang HTTP response
+
+Một cập nhật dựa trên phiên bản cũ thường có thể được biểu diễn bằng HTTP `409 Conflict`. Nếu API dùng cơ chế điều kiện HTTP như `ETag` và `If-Match`, một phiên bản không còn mới có thể được biểu diễn bằng `412 Precondition Failed` tùy hợp đồng API.
+
+Ví dụ xử lý ở tầng WebFlux:
+
+```java
+@RestControllerAdvice
+public class ApiExceptionHandler {
+
+    @ExceptionHandler(CustomerConflictException.class)
+    public ResponseEntity<ApiError> handleConflict(
+            CustomerConflictException exception) {
+        ApiError body = new ApiError(
+                "CUSTOMER_VERSION_CONFLICT",
+                "Customer was changed by another request");
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+}
+```
+
+Không trả `200 OK` nếu thao tác lưu thất bại vì version cũ. Client cần biết rằng thay đổi chưa được ghi để có thể tải lại dữ liệu và quyết định cách tiếp tục.
+
+### 5.3. Không nuốt lỗi trong transaction
+
+Nếu một phương thức Service thực hiện nhiều thao tác ghi trong cùng transaction, lỗi optimistic locking có thể phải làm rollback toàn bộ nghiệp vụ. Không dùng `onErrorResume` bên trong pipeline để thay lỗi bằng một giá trị mặc định rồi tiếp tục commit các thao tác khác nếu điều đó làm trạng thái dữ liệu không nhất quán.
+
+Hãy để lỗi truyền ra khỏi ranh giới transaction, sau đó ánh xạ thành response ở tầng giao tiếp. Nếu nghiệp vụ có quy tắc phục hồi, thực hiện nó như một luồng mới có chủ đích.
+
+## 6. Hai request đồng thời và kết quả version check
+
+Giả sử hai request cùng đọc một entity:
+
+```java
+CustomerEntity firstRead = new CustomerEntity(
+        10L, "an@example.com", "An", 7L);
+
+CustomerEntity secondRead = new CustomerEntity(
+        10L, "an@example.com", "An", 7L);
+```
+
+Request A tạo bản sao và lưu trước:
+
+```java
+CustomerEntity updateA = firstRead.rename("Anh An");
+```
+
+Sau khi `save(updateA)` thành công, database có version 8. Request B vẫn giữ version 7:
+
+```java
+CustomerEntity updateB = secondRead.rename("An Nguyen");
+```
+
+Khi B gọi `save(updateB)`, điều kiện update tương đương `WHERE id = 10 AND version = 7` không còn khớp. B nhận lỗi optimistic locking thay vì ghi đè tên của A.
+
+Điểm quan trọng là version check diễn ra tại database trong câu lệnh ghi. Việc kiểm tra version bằng cách đọc trước rồi so sánh trong Java không đủ an toàn, vì một request khác vẫn có thể cập nhật sau bước kiểm tra và trước câu lệnh update.
+
+## 7. Khóa lạc quan và transaction
+
+Transaction và optimistic locking giải quyết các vấn đề liên quan nhưng không giống nhau.
+
+- **Transaction** nhóm nhiều thao tác thành một đơn vị commit/rollback và kiểm soát tính nhất quán theo isolation level.
+- **Optimistic locking** phát hiện một entity đã bị thay đổi kể từ lần đọc mà request đang dựa vào.
+
+Một transaction ở mức `READ_COMMITTED` không tự động ngăn mọi lost update. Nếu hai transaction cùng đọc version 7, sau đó lần lượt cập nhật, điều kiện version giúp transaction thứ hai nhận biết xung đột.
+
+Ví dụ phương thức nghiệp vụ:
+
+```java
+@Transactional
+public Mono<CustomerEntity> changeCustomerName(Long id, String newName) {
+    return repository.findById(id)
+            .switchIfEmpty(Mono.error(new CustomerNotFoundException(id)))
+            .map(customer -> customer.rename(newName))
+            .flatMap(repository::save);
+}
+```
+
+Transaction reactive được truyền qua Reactor Context. Hãy giữ các thao tác trong cùng pipeline và không tự gọi `subscribe()` hoặc `block()` để tách công việc khỏi transaction. Nếu nghiệp vụ chỉ có một lệnh update có version check, transaction tường minh có thể không cần thiết; nếu có nhiều lệnh cần cùng commit/rollback, hãy xác định ranh giới transaction.
+
+## 8. Những thao tác không tự động được bảo vệ như save entity
+
+`@Version` được Spring Data sử dụng trong các thao tác persistence có metadata entity, chẳng hạn cập nhật entity qua `save`. Không nên giả định mọi câu SQL ghi trong ứng dụng đều tự động kiểm tra version.
+
+### 8.1. Bulk update bằng Query/Template
+
+Một lệnh update trực tiếp theo điều kiện:
+
+```java
+template.update(query, update, CustomerEntity.class);
+```
+
+thường thực hiện update hàng loạt theo predicate mà không tải từng entity và không chạy quy trình `find -> modify -> save` cho mỗi instance. Không giả định nó tự áp dụng optimistic locking của từng entity. Nếu bulk operation cần version check, phải thiết kế điều kiện version và cách tăng version rõ ràng, đồng thời kiểm tra số hàng bị ảnh hưởng.
+
+### 8.2. SQL tự viết hoặc DatabaseClient
+
+Với SQL tự viết, cần tự đưa điều kiện version vào câu lệnh:
+
+```sql
+UPDATE customers
+SET display_name = :displayName,
+    version = version + 1
+WHERE id = :id
+  AND version = :expectedVersion
+```
+
+Sau khi thực thi, kiểm tra số hàng bị ảnh hưởng:
+
+- `1`: update đã khớp phiên bản và thành công.
+- `0`: ID không tồn tại hoặc version không khớp; cần phân biệt hai trường hợp nếu API yêu cầu thông báo khác nhau.
+
+Không nối trực tiếp giá trị đầu vào vào SQL. Dùng bind parameter cho ID, giá trị cập nhật và expected version. Nếu custom SQL cần trả về entity mới, lấy version mới từ database hoặc đọc lại trong cùng transaction theo thiết kế.
+
+### 8.3. deleteById và delete entity
+
+Thao tác `deleteById(id)` chỉ nhận ID, nên caller không cung cấp version đã đọc để so sánh. Nếu nghiệp vụ cần bảo vệ việc xóa dựa trên trạng thái/version mà người dùng đã xem, hãy dùng thao tác xóa có entity/version hoặc custom SQL có điều kiện `WHERE id = :id AND version = :expectedVersion`, rồi kiểm tra số hàng bị ảnh hưởng. Đối chiếu hành vi chính xác với phương thức Repository và phiên bản Spring Data đang dùng.
+
+## 9. Phạm vi của version trong mô hình aggregate
+
+Version gắn với entity có thuộc tính `@Version`; nó không tự động trở thành version toàn cục cho mọi bảng liên quan.
+
+Ví dụ `OrderEntity` có `@Version`, còn `OrderLineEntity` là các bản ghi phụ thuộc:
+
+```java
+@Table("orders")
+public record OrderEntity(
+        @Id Long id,
+        String status,
+        @Version Long version
+) {
+}
+```
+
+Nếu mọi thay đổi aggregate được thực hiện qua root và quy trình save phù hợp, version của root có thể là điểm kiểm soát cạnh tranh cho thao tác đó. Nhưng nếu một đoạn code khác cập nhật trực tiếp bảng `order_lines` bằng SQL hoặc một repository riêng, không nên giả định version của `orders` tự động được kiểm tra/tăng.
+
+Hãy xác định ranh giới aggregate và quy tắc ghi:
+
+- Nếu thay đổi dòng hàng phải được coi là thay đổi đơn hàng, bảo đảm luồng ghi có cơ chế cập nhật/kiểm soát version của root theo thiết kế.
+- Nếu dòng hàng là aggregate độc lập, có thể cần version riêng trên bảng dòng hàng.
+- Nếu nhiều aggregate được cập nhật trong cùng nghiệp vụ, dùng transaction và quy tắc concurrency cho từng aggregate.
+
+Không dùng một cột version của root như bảo đảm rằng mọi thao tác trực tiếp lên bảng con đều được phát hiện.
+
+## 10. Khi nào nên dùng khóa lạc quan?
+
+Khóa lạc quan phù hợp khi:
+
+- Xung đột cập nhật tương đối hiếm.
+- Nhiều người dùng có thể đọc cùng dữ liệu nhưng thời gian chỉnh sửa kéo dài.
+- Không muốn giữ database lock trong suốt quá trình người dùng thao tác.
+- Cần phát hiện và thông báo khi dữ liệu đã thay đổi.
+- Mỗi lần ghi có thể kiểm tra một version scalar rõ ràng.
+
+Ví dụ phù hợp gồm chỉnh sửa hồ sơ khách hàng, cập nhật cấu hình, sửa thông tin đơn hàng hoặc thay đổi nội dung tài liệu.
+
+Khóa lạc quan có thể không phù hợp nếu một hàng bị cập nhật liên tục với tần suất xung đột cao, hoặc nghiệp vụ yêu cầu mọi cập nhật phải được tuần tự hóa. Trong các trường hợp đó, có thể cần thiết kế lại ranh giới dữ liệu, dùng phép cập nhật nguyên tử ở database, hoặc cân nhắc cơ chế khóa phù hợp với database và transaction.
+
+### 10.1. So sánh với khóa bi quan
+
+| Tiêu chí | Optimistic locking (`@Version`) | Pessimistic locking |
+|---|---|---|
+| Cách kiểm soát | So sánh version lúc ghi | Giữ khóa database trong transaction |
+| Xung đột | Phát hiện khi update/delete | Có thể chặn giao dịch khác từ trước |
+| Thời gian giữ khóa | Không giữ khóa trong lúc người dùng chỉnh sửa | Phụ thuộc thời gian transaction |
+| Phù hợp | Xung đột ít, đọc nhiều, ghi có kiểm tra | Tranh chấp cao hoặc cần tuần tự hóa |
+| Xử lý thất bại | Client/service xử lý version conflict | Có thể chờ, timeout hoặc deadlock |
+
+Không phải mọi database/driver hoặc API Spring Data R2DBC đều cung cấp cùng khả năng pessimistic locking. Khóa lạc quan qua `@Version` thường là cách đơn giản để phát hiện lost update ở tầng entity.
+
+## 11. Retry và xử lý xung đột
+
+Khi nhận lỗi optimistic locking, không nên tự động lặp lại cùng entity cũ. Entity đó vẫn mang version cũ, nên lần retry tiếp theo thường tiếp tục thất bại.
+
+Một quy trình retry hợp lý nếu nghiệp vụ cho phép:
+
+1. Đọc lại entity mới nhất.
+2. Kiểm tra thay đổi của người khác có làm mất hiệu lực yêu cầu hiện tại hay không.
+3. Áp dụng lại hành động nghiệp vụ lên trạng thái mới.
+4. Lưu entity mới với version mới.
+5. Giới hạn số lần thử và trả conflict nếu tiếp tục thất bại.
+
+Ví dụ, nếu thao tác là đặt một cờ độc lập và idempotent, việc đọc lại rồi áp dụng lại có thể an toàn. Nếu hai người dùng sửa cùng một nội dung văn bản, tự động retry có thể ghi đè ý định của một người; khi đó nên trả conflict để người dùng xem và hợp nhất thay đổi.
+
+Không dùng `retry()` không giới hạn cho optimistic locking. Retry cần có giới hạn, backoff nếu phù hợp, và chỉ áp dụng khi nghiệp vụ xác định được cách hợp nhất hoặc thực hiện lại an toàn.
+
+## 12. Dùng version trong API với ETag và If-Match
+
+Nếu client chỉnh sửa dữ liệu qua HTTP, có thể công khai version dưới dạng ETag để client gửi lại phiên bản mà họ đã đọc.
+
+Ví dụ response:
+
+```http
+HTTP/1.1 200 OK
+ETag: "7"
+Content-Type: application/json
+```
+
+Client cập nhật:
+
+```http
+PUT /customers/10
+If-Match: "7"
+Content-Type: application/json
+```
+
+Server có thể so sánh `If-Match` với version hiện tại và dùng optimistic locking ở database để bảo vệ lần ghi. Kiểm tra ở tầng HTTP giúp phản hồi sớm, nhưng không thay thế điều kiện version trong câu lệnh update vì dữ liệu vẫn có thể thay đổi giữa bước kiểm tra HTTP và bước ghi.
+
+Khi version không còn khớp, API có thể trả `412 Precondition Failed` theo ngữ nghĩa điều kiện HTTP. Nếu API không sử dụng ETag/If-Match, `409 Conflict` thường là cách biểu diễn conflict nghiệp vụ dễ hiểu.
+
+Không nhất thiết phải đưa version vào JSON body nếu dùng ETag. Điều quan trọng là client gửi lại một token phiên bản mà server có thể xác thực và database vẫn thực hiện kiểm tra nguyên tử ở lúc ghi.
+
+## 13. Kiểm thử optimistic locking
+
+Unit test với mock có thể kiểm tra Service truyền entity version cũ vào Repository và ánh xạ exception. Tuy nhiên, nó không chứng minh câu SQL thật có điều kiện version hoặc database trả lỗi đúng. Cần integration test với database/driver phù hợp.
+
+### 13.1. Kiểm thử entity mới và version được khởi tạo
+
+Lưu entity mới, sau đó xác nhận entity trả về có ID và version được khởi tạo theo quy tắc Spring Data của phiên bản đang dùng.
+
+```java
+CustomerEntity draft = new CustomerEntity(
+        null, "an@example.com", "An", null);
+
+StepVerifier.create(repository.save(draft))
+        .assertNext(saved -> {
+            assertThat(saved.id()).isNotNull();
+            assertThat(saved.version()).isNotNull();
+        })
+        .verifyComplete();
+```
+
+### 13.2. Kiểm thử update thành công tăng version
+
+```java
+StepVerifier.create(repository.findById(customerId)
+        .flatMap(current -> repository.save(current.rename("Anh An"))))
+        .assertNext(saved -> {
+            assertThat(saved.displayName()).isEqualTo("Anh An");
+            assertThat(saved.version()).isEqualTo(initialVersion + 1);
+        })
+        .verifyComplete();
+```
+
+Ví dụ giả định `initialVersion` là version đã đọc trước khi update. Với entity bất biến, dùng entity trả về từ `save` để kiểm tra version mới.
+
+### 13.3. Kiểm thử hai lần đọc cùng version
+
+```java
+Mono<CustomerEntity> firstRead = repository.findById(customerId);
+Mono<CustomerEntity> secondRead = repository.findById(customerId);
+
+Mono<Void> scenario = firstRead.flatMap(first ->
+        secondRead.flatMap(second ->
+                repository.save(first.rename("Name A"))
+                        .then(repository.save(second.rename("Name B")))
+                        .then()));
+
+StepVerifier.create(scenario)
+        .expectError(OptimisticLockingFailureException.class)
+        .verify();
+```
+
+Đoạn test minh họa ý tưởng hai instance cùng mang một version; sau khi instance thứ nhất được lưu, instance thứ hai phải thất bại. Tùy cách test transaction và connection được cấu hình, cần bảo đảm hai lần đọc thực sự xảy ra trước lần update đầu tiên và không bị cô lập trong cùng một transaction snapshot khiến kết quả khác với kịch bản mong muốn.
+
+Một cách kiểm thử rõ ràng hơn là đọc hai instance trong setup, lưu instance A, rồi lưu instance B và xác nhận lỗi. Không bọc cả kịch bản trong transaction test tự rollback nếu điều đó làm thay đổi hành vi concurrency cần kiểm tra.
+
+### 13.4. Kiểm thử custom update
+
+Nếu ứng dụng dùng `DatabaseClient` hoặc bulk update, kiểm tra cả số hàng bị ảnh hưởng khi version khớp và không khớp. Đảm bảo câu SQL tăng version đúng một lần và không cập nhật khi expected version cũ.
+
+### 13.5. Kiểm thử ánh xạ API
+
+Nếu dùng ETag/If-Match, kiểm tra:
+
+- Response trả ETag tương ứng với version hiện tại.
+- Request gửi version hiện tại được cập nhật thành công.
+- Request gửi ETag cũ nhận conflict/precondition failure.
+- Hai request đồng thời không thể cùng ghi thành công dựa trên cùng version.
+
+## 14. Các lỗi thường gặp
+
+### Quên khai báo @Version trong entity
+
+Nếu không có metadata version, `save` không thể tự áp dụng optimistic locking cho entity. Bổ sung `@Version` trên thuộc tính và cột tương ứng trong schema.
+
+### Có thuộc tính Java nhưng thiếu cột database
+
+Ứng dụng có thể lỗi khi đọc hoặc ghi vì SQL tham chiếu cột không tồn tại. Tạo migration và backfill dữ liệu cũ trước khi triển khai code phụ thuộc cột mới.
+
+### Không dùng entity trả về từ save
+
+Version được cập nhật trong instance được lưu. Với entity bất biến, object đầu vào không bị sửa; dùng publisher phát ra từ `save` cho các bước tiếp theo.
+
+### Tự tăng version trong code nghiệp vụ
+
+Version là metadata persistence. Giữ version đã đọc khi tạo bản sao; Spring Data tăng nó khi update thành công.
+
+### Retry cùng một entity cũ
+
+Entity vẫn mang version cũ, nên retry không giải quyết conflict. Phải đọc lại, đánh giá trạng thái mới và áp dụng lại hành động nếu nghiệp vụ cho phép.
+
+### Cho rằng transaction tự thay thế version check
+
+Transaction cung cấp ranh giới commit/rollback và isolation; nó không đồng nghĩa mọi lost update đều tự được phát hiện. Dùng `@Version` khi cần phát hiện entity đã đổi kể từ lần đọc.
+
+### Cho rằng bulk update tự kiểm tra version
+
+SQL tùy chỉnh và update theo Query không nhất thiết đi qua quy trình save entity. Nếu cần optimistic locking, đưa expected version vào predicate và kiểm tra số hàng bị ảnh hưởng.
+
+### Cho rằng version root bảo vệ mọi bảng con
+
+Version gắn với entity có annotation. Những lệnh cập nhật trực tiếp bảng con có thể nằm ngoài cơ chế version của root. Xác định rõ aggregate boundary và luồng ghi.
+
+### Nuốt exception rồi trả thành công
+
+Nếu version conflict bị biến thành giá trị mặc định hoặc response thành công, client không biết thay đổi của mình chưa được ghi. Hãy trả conflict hoặc thực hiện quy trình hợp nhất rõ ràng.
+
+## 15. Quy trình áp dụng @Version
+
+1. Xác định entity/aggregate có thể bị nhiều request cập nhật đồng thời.
+2. Thêm cột version có kiểu số phù hợp vào schema và migration dữ liệu hiện có.
+3. Khai báo thuộc tính `@Version` trong entity.
+4. Kiểm tra chiến lược ID và quy tắc xác định entity mới, nhất là khi ID được cấp trước.
+5. Dùng `save` qua Spring Data Repository cho các thao tác cần optimistic locking tự động.
+6. Khi entity bất biến, tạo bản sao nhưng giữ nguyên ID và version đã đọc.
+7. Dùng entity trả về từ `save` để nhận version mới.
+8. Xử lý `OptimisticLockingFailureException` như một conflict có ý nghĩa nghiệp vụ.
+9. Chỉ retry khi có thể đọc lại và áp dụng lại hành động một cách an toàn, có giới hạn.
+10. Với SQL/bulk update, tự thiết kế expected-version predicate và kiểm tra affected rows.
+11. Xác định transaction/isolation cho nghiệp vụ nhiều bước.
+12. Viết integration test với hai lần đọc cùng version và cập nhật cạnh tranh.
+
+## 16. Checklist ghi nhớ
+
+- [ ] Entity có thuộc tính được đánh dấu `@Version`.
+- [ ] Cột version tồn tại trong schema và có kiểu tương thích.
+- [ ] Dữ liệu cũ được backfill khi thêm cột version.
+- [ ] Entity mới được khởi tạo version theo quy tắc Spring Data.
+- [ ] Update dùng ID và version đã đọc làm điều kiện.
+- [ ] Version chỉ tăng khi thao tác update thành công.
+- [ ] Entity bất biến giữ ID/version khi tạo bản sao.
+- [ ] Code sử dụng entity phát ra từ `save`.
+- [ ] Không tự tăng version trong Service hoặc mapper.
+- [ ] Conflict được chuyển thành lỗi nghiệp vụ/API phù hợp.
+- [ ] Không retry vô hạn hoặc retry lại cùng entity cũ.
+- [ ] Bulk/custom SQL có version predicate riêng nếu cần bảo vệ cạnh tranh.
+- [ ] Đã xác định phạm vi version với aggregate và bảng con.
+- [ ] Transaction/isolation đáp ứng yêu cầu nhất quán.
+- [ ] Integration test chứng minh hai cập nhật cùng version không cùng thành công.
+
+`@Version` giúp Spring Data R2DBC phát hiện cập nhật dựa trên dữ liệu cũ bằng một phép so sánh nguyên tử tại database. Khi entity mang version đã đọc, thao tác `save` chỉ thành công nếu hàng vẫn ở phiên bản đó; nếu không, ứng dụng nhận lỗi conflict và có thể yêu cầu client tải lại, hợp nhất hoặc thực hiện lại hành động theo quy tắc nghiệp vụ. Cơ chế này đặc biệt hữu ích cho các luồng đọc nhiều, ghi ít và cần tránh lost update mà không giữ khóa database trong suốt thời gian người dùng chỉnh sửa.

@@ -1,0 +1,73 @@
+menu:
+  - title: "Tổng quan Java 25"
+    slug: release-overview
+    index: 0
+  - title: "Thiết lập JDK 25"
+    slug: jdk-setup
+    index: 1
+  - title: "Tệp nguồn gọn"
+    slug: compact-source-files
+    index: 2
+  - title: "Hàm main"
+    slug: main-methods
+    index: 3
+  - title: "Module import"
+    slug: module-imports
+    index: 4
+  - title: "Hàm khởi tạo linh hoạt"
+    slug: flexible-constructor-bodies
+    index: 5
+  - title: "ScopedValue"
+    slug: scoped-values
+    index: 6
+  - title: "Ứng dụng ScopedValue"
+    slug: scoped-value-applications
+    index: 7
+  - title: "API dẫn xuất khóa"
+    slug: key-derivation-api
+    index: 8
+  - title: "AOT cache"
+    slug: aot-cache
+    index: 9
+  - title: "Vận hành AOT"
+    slug: aot-cache-operations
+    index: 10
+  - title: "Lấy mẫu JFR"
+    slug: jfr-sampling
+    index: 11
+  - title: "Đo và truy vết JFR"
+    slug: jfr-method-timing-and-tracing
+    index: 12
+  - title: "CPU-time profiling"
+    slug: jfr-cpu-time-profiling
+    index: 13
+  - title: "Header đối tượng gọn"
+    slug: compact-object-headers
+    index: 14
+  - title: "Generational Shenandoah"
+    slug: generational-shenandoah
+    index: 15
+  - title: "Structured Concurrency"
+    slug: structured-concurrency
+    index: 16
+  - title: "Mẫu kiểu nguyên thủy"
+    slug: primitive-type-patterns
+    index: 17
+  - title: "Stable Values"
+    slug: stable-values
+    index: 18
+  - title: "Mã hóa PEM"
+    slug: pem-encodings
+    index: 19
+  - title: "Vector API"
+    slug: vector-api
+    index: 20
+  - title: "Tác động nâng cấp"
+    slug: jdk-upgrade-impact
+    index: 21
+  - title: "Build và triển khai"
+    slug: build-and-deployment
+    index: 22
+  - title: "Thực hành tổng hợp"
+    slug: integrated-exercises
+    index: 23

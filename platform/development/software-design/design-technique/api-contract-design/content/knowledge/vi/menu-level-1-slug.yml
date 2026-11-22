@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nhu cầu sử dụng
+  slug: use-cases
+  index: 1
+- title: Ranh giới API
+  slug: api-boundaries
+  index: 2
+- title: Quy trình thiết kế
+  slug: design-process
+  index: 3
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 4
+- title: Lược đồ và ràng buộc
+  slug: schemas-and-constraints
+  index: 5
+- title: Tài nguyên HTTP
+  slug: http-resources
+  index: 6
+- title: Ngữ nghĩa HTTP
+  slug: http-semantics
+  index: 7
+- title: Thiết kế yêu cầu
+  slug: request-design
+  index: 8
+- title: Thiết kế phản hồi
+  slug: response-design
+  index: 9
+- title: Hợp đồng lỗi
+  slug: error-contracts
+  index: 10
+- title: Truy vấn tập dữ liệu
+  slug: dataset-queries
+  index: 11
+- title: Lũy đẳng và thử lại
+  slug: idempotency-and-retries
+  index: 12
+- title: Đồng thời và nhất quán
+  slug: concurrency-and-consistency
+  index: 13
+- title: Tác vụ bất đồng bộ
+  slug: asynchronous-tasks
+  index: 14
+- title: Xác thực và phân quyền
+  slug: authentication-and-authorization
+  index: 15
+- title: An toàn dữ liệu
+  slug: data-security
+  index: 16
+- title: Giới hạn vận hành
+  slug: operational-limits
+  index: 17
+- title: Khả năng tương thích
+  slug: compatibility
+  index: 18
+- title: Phiên bản API
+  slug: api-versioning
+  index: 19
+- title: Chuyển đổi hợp đồng
+  slug: contract-migration
+  index: 20
+- title: OpenAPI và JSON Schema
+  slug: openapi-and-json-schema
+  index: 21
+- title: Hợp đồng RPC
+  slug: rpc-contracts
+  index: 22
+- title: Hợp đồng GraphQL
+  slug: graphql-contracts
+  index: 23
+- title: Hợp đồng thông điệp
+  slug: messaging-contracts
+  index: 24
+- title: Hợp đồng webhook
+  slug: webhook-contracts
+  index: 25
+- title: Tài liệu và SDK
+  slug: documentation-and-sdks
+  index: 26
+- title: Kiểm thử hợp đồng
+  slug: contract-testing
+  index: 27
+- title: Tự động hóa kiểm tra
+  slug: automated-validation
+  index: 28
+- title: Quản trị hợp đồng
+  slug: contract-governance
+  index: 29
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 30
+- title: Thực hành có hướng dẫn
+  slug: guided-practice
+  index: 31
+- title: Tình huống tổng hợp
+  slug: integrated-scenario
+  index: 32

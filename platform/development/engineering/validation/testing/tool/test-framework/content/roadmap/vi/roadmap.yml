@@ -1,0 +1,57 @@
+roadmap:
+- id: test-framework-cap-do-test
+  title: Test Framework & cấp độ test
+  purpose: Phân biệt framework điều phối kiểm thử với thư viện assertion/mocking và xác định mức test phù hợp.
+  objectives:
+  - Giải thích test runner, test case và assertion
+  - Phân biệt unit, integration và end-to-end test
+  - Chọn JUnit Jupiter làm framework ví dụ cho Java
+- id: cau-hinh-junit-build
+  title: Cấu hình JUnit & Build
+  purpose: Thiết lập dự án Java chạy test lặp lại được trên máy cá nhân và build pipeline.
+  objectives:
+  - Khai báo test dependency cho Maven hoặc Gradle
+  - Viết và chạy một lớp có @Test
+  - Phân biệt test compile, discovery và execution
+- id: lifecycle-assertions
+  title: Lifecycle & Assertions
+  purpose: Viết kiểm thử có cấu trúc, kết quả rõ ràng và dữ liệu được chuẩn bị an toàn.
+  objectives:
+  - Thực hành @BeforeEach và @AfterEach
+  - Dùng assertEquals, assertThrows và assertAll
+  - Tách Arrange–Act–Assert trong mỗi test
+- id: parameterized-test-cases
+  title: Parameterized & Test Cases
+  purpose: Phủ các lớp dữ liệu khác nhau bằng cùng một logic kiểm thử mà tránh mã lặp.
+  objectives:
+  - Viết @ParameterizedTest với @ValueSource
+  - Dùng @CsvSource hoặc @MethodSource cho case phức tạp
+  - Kiểm thử trường hợp hợp lệ, biên và lỗi
+- id: mocking-test-isolation
+  title: Mocking & Test Isolation
+  purpose: Cô lập đơn vị được kiểm thử khỏi hệ thống phụ thuộc, giảm lỗi ngoài phạm vi test.
+  objectives:
+  - Tạo mock bằng Mockito và stub hành vi
+  - Dùng verify xác nhận tương tác cần thiết
+  - Phân biệt mock với fake và dependency thực
+- id: spring-integration-testing
+  title: Spring & Integration Testing
+  purpose: Kiểm tra phối hợp component và contract HTTP/database khi unit test không đủ.
+  objectives:
+  - Viết @SpringBootTest hoặc test slice phù hợp
+  - Dùng MockMvc xác minh HTTP status và JSON
+  - Chạy integration test với Testcontainers
+- id: suite-tags-reliability
+  title: Suite, Tags & Reliability
+  purpose: Tổ chức kiểm thử theo mục tiêu và giữ kết quả ổn định khi chạy nhiều lần hoặc song song.
+  objectives:
+  - Phân nhóm test bằng @Tag và bộ lọc chạy
+  - Phân biệt test nhanh với test cần môi trường ngoài
+  - Loại bỏ shared state, flaky test và phụ thuộc thứ tự
+- id: ci-bao-cao-coverage
+  title: CI, Báo cáo & Coverage
+  purpose: Đưa test vào pipeline để phát hiện hồi quy và xem coverage như tín hiệu, không phải mục tiêu duy nhất.
+  objectives:
+  - Chạy unit/integration test bằng build task phù hợp
+  - Đọc JUnit XML, lỗi test và log CI
+  - Tạo báo cáo JaCoCo và xem nhánh chưa được kiểm thử

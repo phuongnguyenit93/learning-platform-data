@@ -1,0 +1,54 @@
+roadmap:
+- id: tu-duy-vong-doi-ung-dung
+  title: Tư duy vòng đời ứng dụng
+  purpose: Hiểu ứng dụng Spring Boot như một tiến trình có các giai đoạn khởi động, phục vụ và kết thúc.
+  objectives:
+  - Phân biệt tiến trình JVM, SpringApplication, ApplicationContext và bean.
+  - Mô tả quan hệ giữa khởi tạo xong, sẵn sàng làm việc và giải phóng tài nguyên.
+- id: dieu-phoi-khoi-dong
+  title: Điều phối khởi động
+  purpose: Nắm cách SpringApplication chuẩn bị và tạo ngữ cảnh cho ứng dụng.
+  objectives:
+  - Lần theo main, SpringApplication.run, chuẩn bị Environment và làm mới ngữ cảnh (refresh).
+  - Phân biệt kiểu ứng dụng NONE, SERVLET, REACTIVE; chọn ApplicationContextInitializer cho can thiệp trước refresh.
+- id: ngu-canh-va-vong-doi-bean
+  title: Ngữ cảnh và vòng đời bean
+  purpose: Đặt thao tác khởi tạo, chạy và dọn dẹp vào đúng điểm của vòng đời Spring.
+  objectives:
+  - Phân biệt callback khởi tạo/hủy bean với start/stop của Lifecycle và SmartLifecycle.
+  - Giải thích thứ tự phase khi bắt đầu và dừng thành phần; nhận diện tác động của khởi tạo lười.
+- id: su-kien-va-ma-khoi-dong
+  title: Sự kiện và mã khởi động
+  purpose: Chọn điểm mở rộng phù hợp để quan sát hoặc thực hiện công việc lúc ứng dụng khởi động.
+  objectives:
+  - Phân biệt ApplicationStartedEvent, ApplicationReadyEvent và ApplicationFailedEvent; đăng ký bộ lắng nghe sự kiện sớm đúng
+    cách.
+  - So sánh ApplicationRunner với CommandLineRunner; đọc tham số, sắp thứ tự và kiểm tra tác động của lỗi trong runner.
+- id: luong-va-tac-vu-nen
+  title: Luồng và tác vụ nền
+  purpose: Quản lý công việc bất đồng bộ, định kỳ và tài nguyên thực thi trong vòng đời ứng dụng.
+  objectives:
+  - Phân biệt executor với scheduler; dùng @EnableAsync/@Async và @EnableScheduling/@Scheduled qua cơ chế Spring.
+  - Kiểm tra cấu hình bộ thực thi, hàng đợi và xử lý lỗi của tác vụ nền.
+  - Đánh giá ảnh hưởng của virtual threads trên JDK 21 và spring.main.keep-alive tới việc giữ tiến trình sống.
+- id: trang-thai-san-sang
+  title: Trạng thái sẵn sàng
+  purpose: Biểu diễn khi ứng dụng còn hoạt động và khi đủ điều kiện nhận công việc.
+  objectives:
+  - Phân biệt LivenessState với ReadinessState qua ApplicationAvailability.
+  - Đối chiếu trạng thái với quá trình hoàn tất runners và ApplicationReadyEvent; phát AvailabilityChangeEvent khi khả năng
+    phục vụ thay đổi.
+- id: dung-va-thoat-co-kiem-soat
+  title: Dừng và thoát có kiểm soát
+  purpose: Kết thúc công việc và thu hồi tài nguyên đúng thứ tự khi ứng dụng dừng.
+  objectives:
+  - Theo dõi shutdown hook, đóng ngữ cảnh và callback dọn dẹp; kiểm tra hoàn tất stop(Runnable) của SmartLifecycle.
+  - Cấu hình graceful shutdown và thời hạn chờ phù hợp khi có máy chủ web.
+  - Phân biệt đóng ngữ cảnh, SpringApplication.exit và System.exit; trả mã thoát qua ExitCodeGenerator.
+- id: kiem-chung-va-chan-doan
+  title: Kiểm chứng và chẩn đoán
+  purpose: Dùng dấu vết thực thi để giải thích ứng dụng chậm, thất bại hoặc chưa kết thúc đúng cách.
+  objectives:
+  - Đo các bước khởi động bằng ApplicationStartup/BufferingApplicationStartup và đối chiếu nhật ký.
+  - Kiểm thử thứ tự sự kiện, lỗi runner, trạng thái sẵn sàng và giải phóng tài nguyên.
+  - Kiểm chứng hành vi dừng trên tiến trình thật, gồm tín hiệu kết thúc và tác vụ còn chạy.

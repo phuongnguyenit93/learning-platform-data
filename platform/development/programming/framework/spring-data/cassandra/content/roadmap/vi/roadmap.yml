@@ -1,0 +1,57 @@
+roadmap:
+- id: cassandra-cql
+  title: Cassandra & CQL
+  purpose: Nắm mô hình dữ liệu phân tán và cách CQL truy xuất dữ liệu, tránh áp dụng máy móc tư duy SQL quan hệ.
+  objectives:
+  - Phân biệt keyspace, table, row và partition
+  - Viết SELECT, INSERT, UPDATE và DELETE cơ bản
+  - Giải thích vì sao Cassandra không hỗ trợ JOIN
+- id: ket-noi-spring-data
+  title: Kết nối Spring Data
+  purpose: Thiết lập Spring Data Cassandra để ứng dụng giao tiếp ổn định với cụm Cassandra.
+  objectives:
+  - Khai báo dependency và cấu hình keyspace
+  - Tạo kết nối thông qua CqlSession
+  - Xác nhận ứng dụng truy cập được database
+- id: thiet-ke-theo-truy-van
+  title: Thiết kế theo truy vấn
+  purpose: Tạo bảng và khóa đáp ứng các truy vấn thường gặp với chi phí phân tán hợp lý.
+  objectives:
+  - Xác định partition key và clustering columns
+  - Thiết kế bảng theo access patterns
+  - Nhận diện rủi ro hot partition và truy vấn quét
+- id: mapping-entity-khoa
+  title: Mapping entity & khóa
+  purpose: Ánh xạ Java object sang bảng Cassandra, bao gồm danh tính đơn và khóa tổng hợp.
+  objectives:
+  - Dùng @Table, @Column và @PrimaryKey
+  - Tạo @PrimaryKeyClass với @PrimaryKeyColumn
+  - Đối chiếu entity mapping với CQL schema
+- id: repository-crud
+  title: Repository & CRUD
+  purpose: Sử dụng repository để lưu và tìm entity, hiểu cách CRUD phụ thuộc vào khóa Cassandra.
+  objectives:
+  - Khai báo CassandraRepository cho một entity
+  - Thử save, findById và deleteById
+  - Giải thích tác động của khóa khi truy xuất
+- id: query-template
+  title: Query & Template
+  purpose: Biết lựa chọn query methods, CQL tường minh hoặc CassandraTemplate theo mức độ tùy chỉnh cần thiết.
+  objectives:
+  - Tạo finder method và @Query phù hợp khóa
+  - Thực hiện truy vấn với CassandraTemplate
+  - Phân biệt CassandraTemplate và ReactiveCassandraTemplate
+- id: consistency-ttl-lwt
+  title: Consistency, TTL & LWT
+  purpose: Hiểu các tùy chọn ghi/đọc ảnh hưởng tới tính nhất quán, thời hạn dữ liệu và cập nhật có điều kiện.
+  objectives:
+  - Chọn consistency level theo yêu cầu
+  - Áp dụng TTL cho bản ghi cần hết hạn
+  - Giải thích LWT với IF NOT EXISTS hoặc IF EXISTS
+- id: kiem-thu-toi-uu
+  title: Kiểm thử & tối ưu
+  purpose: Kiểm chứng truy vấn và mapping với Cassandra thực, phát hiện sớm các thiết kế gây chậm hoặc lỗi.
+  objectives:
+  - Kiểm thử CRUD trên Cassandra dùng cho test
+  - Đo truy vấn theo partition key và dữ liệu mẫu
+  - Tránh truy vấn ALLOW FILTERING không cần thiết

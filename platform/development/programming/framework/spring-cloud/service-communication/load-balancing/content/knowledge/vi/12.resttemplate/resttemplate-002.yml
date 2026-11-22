@@ -1,0 +1,3 @@
+menuLevel1: RestTemplate
+menuLevel2: Khai báo RestTemplate có @LoadBalanced
+status: WRITTEN

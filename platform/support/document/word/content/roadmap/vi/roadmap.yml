@@ -1,0 +1,49 @@
+roadmap:
+- id: doc-docx-ooxml
+  title: DOC, DOCX & OOXML
+  purpose: Phân biệt các định dạng Word và mô hình dữ liệu cần xử lý trong ứng dụng Java.
+  objectives:
+  - Phân biệt DOC nhị phân với DOCX dựa trên Open XML.
+  - Nhận diện document, paragraph và run trong DOCX.
+- id: apache-poi-xwpf
+  title: Apache POI XWPF
+  purpose: Chuẩn bị thư viện xử lý tài liệu DOCX bằng Java.
+  objectives:
+  - Thêm poi-ooxml vào dự án Maven hoặc Gradle.
+  - Khởi tạo XWPFDocument và quản lý tài nguyên an toàn.
+- id: doc-trich-xuat
+  title: Đọc & Trích xuất
+  purpose: Đọc nội dung văn bản và cấu trúc của tài liệu có sẵn.
+  objectives:
+  - Trích xuất văn bản bằng XWPFWordExtractor.
+  - Duyệt paragraph, run và table với XWPFDocument.
+- id: tao-dinh-dang-van-ban
+  title: Tạo & Định dạng Văn bản
+  purpose: Sinh tài liệu Word có tiêu đề, đoạn văn và kiểu trình bày rõ ràng.
+  objectives:
+  - Tạo paragraph/run và áp dụng style, font, căn lề.
+  - Lưu DOCX và mở kiểm tra lại bằng Word.
+- id: bang-danh-sach
+  title: Bảng & Danh sách
+  purpose: Tổ chức nội dung có cấu trúc thay vì ghép văn bản thuần.
+  objectives:
+  - Tạo bảng, hàng, ô và điền dữ liệu bằng XWPFTable.
+  - Thiết kế danh sách đánh số hoặc bullet nhất quán.
+- id: anh-header-footer
+  title: Ảnh, Header & Footer
+  purpose: Bổ sung các thành phần thường gặp trong báo cáo Word.
+  objectives:
+  - Chèn hình minh họa và kiểm tra kích thước hiển thị.
+  - Tạo hoặc đọc header, footer và số trang khi phù hợp.
+- id: template-thay-the-du-lieu
+  title: Template & Thay thế Dữ liệu
+  purpose: Tạo tài liệu theo mẫu mà không làm mất định dạng sẵn có.
+  objectives:
+  - Thay placeholder sau khi xét trường hợp text nằm ở nhiều run.
+  - Kiểm tra lại cấu trúc bảng và kiểu chữ sau khi điền.
+- id: luu-kiem-thu-an-toan
+  title: Lưu, Kiểm thử & An toàn
+  purpose: Xác minh tài liệu tạo ra có thể đọc được và xử lý dữ liệu đầu vào an toàn.
+  objectives:
+  - Đóng stream, kiểm tra file DOCX bằng cách mở và đọc lại.
+  - Giới hạn file tải lên, xử lý lỗi và kiểm tra kết quả hiển thị.

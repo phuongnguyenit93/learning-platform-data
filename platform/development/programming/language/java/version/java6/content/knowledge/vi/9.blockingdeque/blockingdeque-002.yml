@@ -1,0 +1,3 @@
+menuLevel1: BlockingDeque
+menuLevel2: LinkedBlockingDeque có giới hạn dung lượng
+status: WRITTEN

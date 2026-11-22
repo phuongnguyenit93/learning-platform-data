@@ -1,0 +1,2140 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Bộ nhớ hội thoại là gì và vì sao mô hình không tự nhớ các lượt trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt bộ nhớ ngữ cảnh, lịch sử đầy đủ và tri thức của mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt bộ nhớ ngắn hạn, bộ nhớ dài hạn và RAG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Advisor là gì và vai trò trong vòng đời yêu cầu ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Mối liên hệ giữa ChatClient, Advisor, ChatMemory và kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Luồng đọc bộ nhớ, bổ sung ngữ cảnh, gọi mô hình và lưu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Giới hạn của bộ nhớ: tính chính xác, độ bền và khả năng quên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức cần có và thứ tự học các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Thiết lập
+  childs:
+  - slug: setup-001
+    title: Chọn phiên bản Spring AI và kiểm tra tương thích Java, Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Quản lý phụ thuộc bằng Spring AI BOM trong Maven và Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Chọn starter mô hình và tách cấu hình nhà cung cấp khỏi cấu hình bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Cấu hình ChatClient.Builder và bean ChatMemory ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Đăng ký MessageChatMemoryAdvisor cho ứng dụng tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Truyền mã hội thoại và thực hiện cuộc hội thoại hai lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Cấu hình theo môi trường và bảo vệ khóa truy cập mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Phân biệt cấu hình tự động với cấu hình bean thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messages
+  title: Thông điệp
+  childs:
+  - slug: messages-001
+    title: Message, Prompt và thứ tự thông điệp trong một cuộc hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-002
+    title: Vai trò của SystemMessage, UserMessage và AssistantMessage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-003
+    title: ToolResponseMessage và liên kết giữa lời gọi công cụ với kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-004
+    title: Phân biệt nội dung văn bản, siêu dữ liệu và dữ liệu đa phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-005
+    title: Thông điệp hệ thống và ranh giới giữa chỉ dẫn với dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-006
+    title: Biểu diễn một lượt hội thoại có nhiều thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-007
+    title: Khả năng lưu và khôi phục từng loại thông điệp theo kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-008
+    title: Tránh mất vai trò hoặc sai thứ tự khi chuyển đổi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-api
+  title: API bộ nhớ
+  childs:
+  - slug: memory-api-001
+    title: Hợp đồng ChatMemory và trách nhiệm quản lý thông điệp được giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-api-002
+    title: Thêm một hoặc nhiều thông điệp bằng ChatMemory.add
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-api-003
+    title: Lấy ngữ cảnh theo mã hội thoại bằng ChatMemory.get
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-api-004
+    title: Xóa bộ nhớ một hội thoại bằng ChatMemory.clear
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-api-005
+    title: ChatMemory.CONVERSATION_ID và tham số ngữ cảnh của Advisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-api-006
+    title: Quản lý bộ nhớ thủ công khi gọi trực tiếp ChatModel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-api-007
+    title: Phân biệt ghi trực tiếp vào bộ nhớ với ghi tự động qua Advisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-api-008
+    title: Tách kho lịch sử đầy đủ khỏi bộ nhớ dùng để dựng prompt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-window
+  title: Cửa sổ thông điệp
+  childs:
+  - slug: message-window-001
+    title: MessageWindowChatMemory và cơ chế giữ một cửa sổ hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-002
+    title: Cấu hình maxMessages và phân biệt số thông điệp với số lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-003
+    title: Giới hạn số thông điệp không tương đương giới hạn số token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-004
+    title: Quy tắc loại bỏ thông điệp cũ khi vượt kích thước cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-005
+    title: Bảo toàn SystemMessage và xử lý khi có chỉ dẫn hệ thống mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-006
+    title: Ranh giới lượt hội thoại và sự khác biệt hành vi giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-007
+    title: Ảnh hưởng của việc loại bỏ thông điệp tới dữ kiện được nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-008
+    title: Phân biệt xóa khỏi kho bộ nhớ với chỉ rút gọn ngữ cảnh gửi đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-window-009
+    title: Chọn kích thước cửa sổ bằng các cuộc hội thoại đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: persistence
+  title: Kho lưu trữ
+  childs:
+  - slug: persistence-001
+    title: ChatMemoryRepository và ranh giới với chính sách ChatMemory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-002
+    title: Liệt kê mã hội thoại bằng findConversationIds
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-003
+    title: Đọc thông điệp bằng findByConversationId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-004
+    title: saveAll thay thế toàn bộ thông điệp của một hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-005
+    title: Xóa hội thoại bằng deleteByConversationId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-006
+    title: InMemoryChatMemoryRepository và giới hạn khi khởi động lại hoặc chạy nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-007
+    title: Kết nối repository tùy chọn với MessageWindowChatMemory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-008
+    title: Chọn kho lưu trữ theo độ bền, quy mô và loại thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-storage
+  title: Lưu trữ JDBC
+  childs:
+  - slug: jdbc-storage-001
+    title: Thiết lập starter JDBC và nguồn dữ liệu cho bộ nhớ hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-002
+    title: Xây dựng JdbcChatMemoryRepository bằng builder hoặc cấu hình tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-003
+    title: Schema lưu thông điệp và lựa chọn dialect theo cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-004
+    title: Khởi tạo schema trong môi trường phát triển và quản lý migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-005
+    title: Đảm bảo thứ tự thông điệp khi đọc lại hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-006
+    title: Lưu dấu thời gian và siêu dữ liệu theo khả năng của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-007
+    title: Giới hạn lưu thông điệp công cụ và dữ liệu đa phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-008
+    title: Giao dịch, kết nối và tranh chấp khi cập nhật cùng hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-storage-009
+    title: Khôi phục cuộc hội thoại sau khi ứng dụng khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nosql-storage
+  title: Lưu trữ NoSQL
+  childs:
+  - slug: nosql-storage-001
+    title: CassandraChatMemoryRepository và mô hình lưu trữ theo hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-storage-002
+    title: Neo4jChatMemoryRepository và biểu diễn hội thoại bằng đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-storage-003
+    title: MongoChatMemoryRepository và điều kiện phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-storage-004
+    title: RedisChatMemoryRepository và điều kiện phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-storage-005
+    title: Phân biệt repository tích hợp với phần mở rộng bên ngoài như Cosmos DB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-storage-006
+    title: Cấu hình kết nối, schema hoặc chỉ mục theo từng hệ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-storage-007
+    title: Đối chiếu hỗ trợ loại thông điệp, thứ tự và thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nosql-storage-008
+    title: Chọn JDBC, Cassandra, Neo4j, MongoDB hoặc Redis theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advisor-chain
+  title: Chuỗi Advisor
+  childs:
+  - slug: advisor-chain-001
+    title: Advisor, getName và getOrder trong chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-002
+    title: CallAdvisor và CallAdvisorChain cho lời gọi đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-003
+    title: StreamAdvisor và StreamAdvisorChain cho lời gọi streaming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-004
+    title: ChatClientRequest, ChatClientResponse và dữ liệu ngữ cảnh dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-005
+    title: Thứ tự xử lý yêu cầu đi vào và phản hồi đi ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-006
+    title: Gọi phần tử tiếp theo bằng nextCall hoặc nextStream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-007
+    title: BaseAdvisor và các điểm mở rộng before, after
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-008
+    title: Phân biệt tham số ngữ cảnh Advisor với biến mẫu prompt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-009
+    title: Dừng chuỗi, trả phản hồi sớm và tác động tới bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-chain-010
+    title: Kiểm soát thứ tự khi nhiều Advisor cùng sửa prompt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chatclient-integration
+  title: Tích hợp ChatClient
+  childs:
+  - slug: chatclient-integration-001
+    title: Đăng ký Advisor mặc định bằng defaultAdvisors
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chatclient-integration-002
+    title: Đăng ký Advisor riêng cho từng yêu cầu bằng advisors
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chatclient-integration-003
+    title: Truyền tham số bằng param và params theo từng lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chatclient-integration-004
+    title: Phân biệt cấu hình mặc định với tham số thay đổi theo hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chatclient-integration-005
+    title: Đọc content, ChatResponse và ChatClientResponse theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chatclient-integration-006
+    title: Chia sẻ ChatClient an toàn giữa nhiều người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chatclient-integration-007
+    title: Tách nhiều ChatClient theo mô hình hoặc chính sách bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chatclient-integration-008
+    title: Tránh gắn cùng Memory Advisor nhiều lần trong một chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messagechatmemoryadvisor
+  title: MessageChatMemoryAdvisor
+  childs:
+  - slug: messagechatmemoryadvisor-001
+    title: Khởi tạo MessageChatMemoryAdvisor từ ChatMemory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-002
+    title: Đọc lịch sử và ghép vào prompt dưới dạng các Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-003
+    title: Giữ vai trò và thứ tự của lịch sử khi bổ sung yêu cầu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-004
+    title: Thời điểm lưu câu hỏi và câu trả lời trong vòng đời Advisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-005
+    title: Phân biệt thông điệp người dùng với chỉ dẫn hệ thống của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-006
+    title: Cấu hình thứ tự thực thi và scheduler theo API phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-007
+    title: Nhận diện lịch sử đã có trong prompt và nguy cơ lặp thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-008
+    title: Giới hạn lưu kết quả khi mô hình lỗi hoặc không có nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-009
+    title: Phân biệt bộ nhớ ứng dụng với trạng thái do nhà cung cấp mô hình giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messagechatmemoryadvisor-010
+    title: Theo dõi cuộc hội thoại nhiều lượt để kiểm chứng cơ chế ghi và đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conversation-identities
+  title: Định danh hội thoại
+  childs:
+  - slug: conversation-identities-001
+    title: Thiết kế conversationId cho người dùng có nhiều cuộc hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversation-identities-002
+    title: Tạo mã hội thoại phía máy chủ và gắn với danh tính đã xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversation-identities-003
+    title: Phân vùng theo tổ chức, người dùng và cuộc hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversation-identities-004
+    title: Truyền mã hội thoại qua HTTP, phiên đăng nhập hoặc WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversation-identities-005
+    title: Kiểm tra quyền khi tiếp tục, liệt kê hoặc xóa hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversation-identities-006
+    title: Hành vi khi thiếu hoặc rỗng mã hội thoại theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversation-identities-007
+    title: Bắt đầu hội thoại mới, tiếp tục hội thoại cũ và đặt lại bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversation-identities-008
+    title: Quản lý vòng đời hội thoại khi đăng xuất hoặc hết thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantic-memory
+  title: Bộ nhớ ngữ nghĩa
+  childs:
+  - slug: semantic-memory-001
+    title: Vì sao truy hồi theo ý nghĩa bổ sung cho cửa sổ thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-memory-002
+    title: Phân biệt ChatMemoryRepository với VectorStore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-memory-003
+    title: Biến nội dung hội thoại thành Document và vector biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-memory-004
+    title: Mã hội thoại và siêu dữ liệu dùng để phân vùng truy hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-memory-005
+    title: Lựa chọn mô hình embedding tương thích với kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-memory-006
+    title: Tìm kiếm tương đồng và ý nghĩa của số kết quả topK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-memory-007
+    title: Đánh đổi giữa độ liên quan, tính mới và thứ tự thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-memory-008
+    title: Bộ nhớ ngữ nghĩa không thay thế kho lịch sử hội thoại đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vectorstorechatmemoryadvisor
+  title: VectorStoreChatMemoryAdvisor
+  childs:
+  - slug: vectorstorechatmemoryadvisor-001
+    title: Thiết lập phụ thuộc và VectorStoreChatMemoryAdvisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-002
+    title: Luồng truy hồi bộ nhớ trước lời gọi và lưu nội dung sau phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-003
+    title: Truyền conversationId và kiểm tra bộ lọc hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-004
+    title: Cấu hình số kết quả truy hồi bằng builder hoặc tham số TOP_K
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-005
+    title: Cách ghép bộ nhớ truy hồi vào nội dung SystemMessage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-006
+    title: Tùy biến PromptTemplate với instructions và long_term_memory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-007
+    title: Phân biệt mẫu prompt của Advisor với TemplateRenderer của ChatClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-008
+    title: Giới hạn với dữ liệu phi văn bản và thông điệp công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-009
+    title: Xử lý trường hợp không tìm thấy ký ức liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vectorstorechatmemoryadvisor-010
+    title: Xóa dữ liệu hội thoại khỏi kho vector bằng khả năng của kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-budget
+  title: Ngân sách ngữ cảnh
+  childs:
+  - slug: context-budget-001
+    title: Phân bổ cửa sổ ngữ cảnh cho chỉ dẫn, lịch sử, RAG, công cụ và đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-budget-002
+    title: Ước lượng số token trước khi gửi yêu cầu tới mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-budget-003
+    title: Cắt ngắn theo số thông điệp, số token hoặc ranh giới lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-budget-004
+    title: Thiết kế bộ nhớ tóm tắt bằng thành phần tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-budget-005
+    title: Kết hợp bản tóm tắt với các lượt gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-budget-006
+    title: Đánh giá mất dữ kiện và sai lệch tích lũy khi tóm tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-budget-007
+    title: Kết hợp cửa sổ gần nhất với truy hồi ngữ nghĩa mà không lặp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-budget-008
+    title: Phân biệt chính sách tự xây dựng với tính năng có sẵn theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streaming
+  title: Streaming
+  childs:
+  - slug: streaming-001
+    title: Luồng xử lý stream từ ChatClient tới StreamAdvisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-002
+    title: Thời điểm đăng ký Flux và tác động của nhiều lần đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-003
+    title: Tổng hợp phản hồi từng phần trước khi lưu câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-004
+    title: Vai trò của MessageAggregator hoặc ChatClientMessageAggregator theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-005
+    title: Phân biệt nội dung đã gửi cho người dùng với phản hồi đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-006
+    title: Xử lý lỗi giữa luồng, hủy đăng ký và mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-007
+    title: Tránh gọi repository chặn luồng trên luồng xử lý phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-008
+    title: Lựa chọn scheduler và kiểm soát tải khi nhiều hội thoại streaming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-009
+    title: Kiểm chứng việc lưu bộ nhớ sau khi luồng kết thúc bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rag-tools
+  title: RAG và công cụ
+  childs:
+  - slug: rag-tools-001
+    title: Phân biệt lịch sử hội thoại với tài liệu tri thức được truy hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-002
+    title: Kết hợp MessageChatMemoryAdvisor với QuestionAnswerAdvisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-003
+    title: Kết hợp bộ nhớ với RetrievalAugmentationAdvisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-004
+    title: Ảnh hưởng của thứ tự Advisor tới truy hồi và prompt cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-005
+    title: Sử dụng lịch sử để làm rõ câu hỏi nối tiếp trước khi tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-006
+    title: Tách siêu dữ liệu và bộ lọc hội thoại khỏi bộ lọc tài liệu RAG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-007
+    title: Vòng lặp gọi công cụ và thứ tự tương đối của Memory Advisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-008
+    title: Giới hạn lưu thông điệp trung gian trong các bước gọi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-009
+    title: Quản lý bộ nhớ khi tự điều khiển thực thi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rag-tools-010
+    title: Tránh lưu lặp ngữ cảnh RAG hoặc kết quả công cụ quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-customization
+  title: Tùy biến bộ nhớ
+  childs:
+  - slug: memory-customization-001
+    title: Xây dựng ChatMemory theo chính sách giữ thông điệp riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-customization-002
+    title: Xây dựng ChatMemoryRepository cho hệ lưu trữ chưa được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-customization-003
+    title: Tuân thủ hợp đồng saveAll, thứ tự đọc và xóa theo hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-customization-004
+    title: Tuần tự hóa vai trò, nội dung, siêu dữ liệu và liên kết công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-customization-005
+    title: Bổ sung TTL và tác vụ dọn dữ liệu bằng cơ chế ứng dụng hoặc kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-customization-006
+    title: Thiết kế bộ nhớ phân tầng và bộ nhớ đệm trước repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-customization-007
+    title: Bổ sung bộ lọc nội dung trước khi ghi bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-customization-008
+    title: Kiểm tra tương thích khi thay repository cho cùng chính sách bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advisor-customization
+  title: Tùy biến Advisor
+  childs:
+  - slug: advisor-customization-001
+    title: Xác định khi nào cần Advisor riêng thay vì cấu hình Advisor có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-customization-002
+    title: Triển khai CallAdvisor và duy trì hợp đồng gọi chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-customization-003
+    title: Triển khai StreamAdvisor mà không phá vỡ luồng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-customization-004
+    title: Dùng BaseAdvisor để chia sẻ logic trước và sau lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-customization-005
+    title: Chọn tên, thứ tự và khóa ngữ cảnh tránh xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-customization-006
+    title: Tạo Advisor kiểm soát ngân sách hoặc chọn bộ nhớ theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-customization-007
+    title: Quản lý trạng thái theo yêu cầu thay vì trường có thể thay đổi dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advisor-customization-008
+    title: Xử lý lỗi và giải phóng tài nguyên trong Advisor tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Phân biệt an toàn luồng với tính nguyên tử của đọc, sửa và ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Mất cập nhật khi nhiều yêu cầu cùng ghi một conversationId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Tuần tự hóa yêu cầu hoặc khóa theo từng cuộc hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Đồng bộ giữa nhiều bản sao ứng dụng dùng repository chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Thời điểm ghi câu hỏi và câu trả lời khi gọi mô hình thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Retry, timeout và nguy cơ tạo thông điệp trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Thiết kế mã yêu cầu để hỗ trợ xử lý lặp an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Xung đột giữa xóa hội thoại với yêu cầu còn đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-009
+    title: Tính nhất quán khi đồng thời lưu bộ nhớ cửa sổ và bộ nhớ vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Kiểm soát truy cập và ngăn đọc chéo hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Ngăn giả mạo conversationId và rò rỉ dữ liệu giữa các tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Prompt injection từ lịch sử hoặc ký ức được truy hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Giữ ranh giới chỉ dẫn và dữ liệu khi dựng prompt từ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: Lọc hoặc che dữ liệu nhạy cảm trước khi lưu và ghi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: Mã hóa dữ liệu lưu trữ và bảo vệ kết nối tới repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Chính sách lưu giữ, xóa dữ liệu và phạm vi bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Xác minh xóa đồng bộ ở kho lịch sử, bộ nhớ và kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Giới hạn quyền công cụ khi sử dụng nội dung bộ nhớ không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-monitoring
+  title: Hiệu năng và giám sát
+  childs:
+  - slug: performance-monitoring-001
+    title: Đo độ trễ đọc, ghi bộ nhớ tách khỏi độ trễ mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-002
+    title: Đo số token, số thông điệp và chi phí theo hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-003
+    title: Chi phí embedding, truy hồi và lưu trữ của bộ nhớ vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-004
+    title: Tối ưu chỉ mục, kết nối và truy vấn theo mã hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-005
+    title: Kiểm soát tăng trưởng số hội thoại và dung lượng kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-006
+    title: Số đo (metrics) và dấu vết (trace) của Advisor trong Spring AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-007
+    title: Sử dụng SimpleLoggerAdvisor để chẩn đoán có kiểm soát dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-008
+    title: Tránh dùng conversationId làm nhãn metrics có số lượng giá trị quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-monitoring-009
+    title: Chọn hành vi khi repository hoặc kho vector không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử add, get, clear bằng repository trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử giới hạn cửa sổ và bảo toàn thông điệp hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử thứ tự thông điệp và cách chia ranh giới lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Dùng ChatModel giả để kiểm tra prompt mà không phụ thuộc dịch vụ LLM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử thứ tự Advisor và tham số ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử cách ly giữa người dùng, tổ chức và hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử JDBC hoặc NoSQL bằng Testcontainers và khởi động lại ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử streaming bằng StepVerifier với hoàn tất, lỗi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử truy hồi vector bằng dữ liệu cố định và bộ lọc hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử cạnh tranh cập nhật, retry và xóa khi còn yêu cầu chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Đánh giá khả năng nhớ bằng câu hỏi nhiều lượt và tiêu chí rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Mô hình quên thông tin dù ứng dụng đã gắn Memory Advisor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Thiếu conversationId hoặc dùng nhầm khóa tham số ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Dữ liệu của người dùng khác xuất hiện trong câu trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Thông điệp bị lặp do ghi thủ công và ghi tự động cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Mất lịch sử sau khi khởi động lại hoặc chuyển bản sao ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Sai thứ tự thông điệp hoặc lỗi schema và dialect JDBC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Vượt cửa sổ ngữ cảnh dù maxMessages đã được giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Phản hồi streaming hiển thị nhưng không được lưu đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Truy hồi vector sai hội thoại hoặc trả kết quả không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi chuỗi công cụ do thiếu thông điệp trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Advisor không chạy hoặc chạy sai thứ tự mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-compatibility
+  title: Tương thích phiên bản
+  childs:
+  - slug: version-compatibility-001
+    title: Đọc tài liệu và Javadoc đúng phiên bản đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-002
+    title: Nhận diện ví dụ dùng RequestResponseAdvisor và API Advisor cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-003
+    title: PromptChatMemoryAdvisor trong phiên bản cũ và hướng chuyển sang bộ nhớ Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-004
+    title: Thay đổi yêu cầu conversationId và vị trí khóa MemoryAdvisor.CONVERSATION_ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-005
+    title: Đối chiếu hỗ trợ repository và hành vi loại bỏ thông điệp giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-006
+    title: Định hướng Session Memory trong nhánh Spring AI 2.1 và trạng thái ổn định của nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-007
+    title: Đối chiếu ChatMemory với SessionService, SessionRepository và SessionAdvisors
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-008
+    title: Lập kế hoạch chuyển dữ liệu và kiểm thử khi nâng cấp cơ chế bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Xây dựng chatbot nhiều lượt bằng bộ nhớ cửa sổ trong RAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Bổ sung nhiều hội thoại cho cùng một người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Chuyển chatbot sang JDBC và kiểm chứng khôi phục sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Cung cấp thao tác bắt đầu mới, tiếp tục và xóa hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Xây dựng phản hồi streaming có kiểm chứng lưu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Kết hợp bộ nhớ gần nhất với ký ức truy hồi từ kho vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Xây dựng trợ lý hỏi đáp có lịch sử và RAG tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Thực nghiệm gọi công cụ trong cuộc hội thoại có bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Hoàn thiện ứng dụng với cách ly người dùng, kiểm thử và giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,7 @@
+# Software Design Design Pattern Behavioral Iterator
+
+Iterator là mẫu thiết kế hành vi cung cấp cách truy cập lần lượt các phần tử của một tập hợp mà không để mã sử dụng phải biết cấu trúc lưu trữ bên trong. Thay vì gắn logic duyệt vào từng collection hay trực tiếp truy cập mảng, danh sách và cây, đối tượng Iterator quản lý trạng thái và trình tự duyệt thông qua một giao diện chung. Cách tiếp cận này giúp tách trách nhiệm, giảm phụ thuộc và hỗ trợ nhiều kiểu duyệt trên cùng dữ liệu.
+
+Lộ trình một cấp gồm tám mốc: bắt đầu từ vấn đề duyệt dữ liệu và vai trò Iterator/Aggregate, thiết kế giao thức hasNext() và next(), rồi tự cài đặt một iterator Java. Tiếp đó, người học mở rộng sang nhiều chiến lược duyệt, kết nối với java.util.Iterator, Iterable và vòng for-each, tìm hiểu các giới hạn khi thay đổi collection trong lúc duyệt. Mốc cuối tập trung vào refactoring, kiểm thử các trường hợp biên và đánh giá đánh đổi thiết kế.
+
+Module phù hợp với người đã học Java hướng đối tượng, interface, collection và cấu trúc dữ liệu cơ bản. Sau khi hoàn thành, bạn có thể hiện thực Iterator cho một aggregate riêng, sử dụng API Java chuẩn, kiểm chứng quá trình duyệt độc lập và chọn cách duyệt phù hợp mà không phơi bày chi tiết của collection.

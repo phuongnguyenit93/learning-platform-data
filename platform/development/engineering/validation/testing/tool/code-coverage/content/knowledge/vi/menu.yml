@@ -1,0 +1,312 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Độ bao phủ mã (code coverage) là gì và phục vụ quyết định nào
+  - Mối quan hệ giữa mã nguồn, ca kiểm thử và phần mã đã thực thi
+  - Phân biệt độ bao phủ mã với độ bao phủ yêu cầu và nghiệp vụ
+  - Vì sao mã được thực thi chưa chứng minh kết quả được kiểm tra đúng
+  - Vai trò của báo cáo bao phủ trong phát triển và rà soát thay đổi
+  - Phân biệt dữ liệu thực thi, báo cáo và công cụ phân tích chất lượng
+  - Độ bao phủ của kiểm thử đơn vị, tích hợp và đầu cuối
+  - Giới hạn của mục tiêu 100% và các rủi ro chỉ số không thể phản ánh
+  - Kiến thức Java, bytecode, JUnit và build cần chuẩn bị
+- level1: Chỉ số bao phủ
+  level2:
+  - Độ bao phủ lệnh bytecode và khác biệt với câu lệnh mã nguồn
+  - Độ bao phủ dòng và cách xác định một dòng đã được thực thi
+  - Độ bao phủ nhánh và các kết quả rẽ nhánh còn thiếu
+  - Độ bao phủ phương thức, constructor và phần khởi tạo
+  - Độ bao phủ lớp và giới hạn khi chỉ có một phương thức được chạy
+  - Số lượng covered, missed và tổng phần tử trong mẫu số
+  - Tính tỷ lệ từ bộ đếm và tránh sai lệch do làm tròn
+  - Diễn giải chỉ số khi không có dòng hoặc nhánh có thể đo
+  - Độ phức tạp chu trình và ý nghĩa của phần phức tạp chưa được bao phủ
+  - Phân biệt bao phủ nhánh, điều kiện, đường đi và MC/DC
+- level1: Điều kiện và nhánh
+  level2:
+  - Lập các kết quả cần kiểm tra cho if và if-else
+  - Phân tích nhiều tầng điều kiện và các điểm thoát sớm
+  - Đánh giá ngắn mạch với toán tử && và ||
+  - Phân biệt kết quả biểu thức tổng với từng điều kiện thành phần
+  - Bao phủ switch, nhánh default và các trường hợp nhiều nhãn
+  - Bao phủ toán tử ba ngôi và các biểu thức điều kiện lồng nhau
+  - Chọn số vòng lặp bằng không, một và nhiều lần
+  - Ảnh hưởng của break, continue và return tới đường thực thi
+  - Vì sao xử lý ngoại lệ không được JaCoCo tính như nhánh if hoặc switch
+  - Giới hạn của bao phủ đường đi khi có vòng lặp và nhiều điều kiện
+- level1: Thiết kế ca kiểm thử
+  level2:
+  - Chuyển các dòng và nhánh chưa chạy thành giả thuyết kiểm thử
+  - Lập bảng trường hợp cho điều kiện kết hợp và giá trị biên
+  - Bao phủ dữ liệu hợp lệ, không hợp lệ, rỗng và null theo hợp đồng
+  - Kiểm tra kết quả trả về, trạng thái và tác động quan sát được
+  - Dùng kiểm thử có tham số để biểu diễn các trường hợp độc lập
+  - Kiểm tra đường thành công và đường phát sinh ngoại lệ có chủ đích
+  - Phân biệt kiểm thử logic thật với việc thay logic đó bằng mock
+  - Tránh viết ca kiểm thử chỉ gọi phương thức để đổi màu báo cáo
+- level1: Hệ sinh thái công cụ
+  level2:
+  - Vai trò của JaCoCo trong hệ sinh thái kiểm thử Java
+  - So sánh công cụ đo, tích hợp IDE và nền tảng tổng hợp báo cáo
+  - JaCoCo, EclEmma và cơ chế đo bên trong IDE
+  - 'IntelliJ IDEA runner và JaCoCo runner: phạm vi so sánh kết quả'
+  - Phân biệt bộ đếm theo bytecode với bộ đếm theo mã nguồn
+  - Đánh giá công cụ dựa trên Java, build, định dạng báo cáo và môi trường chạy
+  - Đọc cấu hình EMMA, Cobertura hoặc Clover trong dự án cũ
+- level1: Cơ chế JaCoCo
+  level2:
+  - Chèn mã theo dõi (instrumentation) vào class file để ghi nhận thực thi
+  - Điểm ghi nhận (probe) và suy luận phần luồng điều khiển đã chạy
+  - Quan hệ giữa mã nguồn, bytecode và thông tin dòng khi biên dịch
+  - Chèn mã khi nạp lớp bằng Java agent
+  - Phân biệt chèn mã lúc chạy với chèn mã trước khi chạy
+  - Định danh lớp (class ID) và yêu cầu khớp class file chính xác
+  - Phân biệt lớp không được nạp với lớp thiếu trong phạm vi báo cáo
+  - Giới hạn khi ngoại lệ làm ngắt luồng trước điểm ghi nhận
+  - Vì sao JaCoCo không mặc nhiên gắn mỗi dòng đã chạy với một ca kiểm thử
+- level1: Thiết lập ban đầu
+  level2:
+  - Chọn phiên bản JaCoCo tương thích với JDK và phiên bản class file
+  - Chuẩn bị ví dụ Java nhỏ có điều kiện rẽ nhánh và kiểm thử JUnit
+  - Xác định mã sản phẩm, mã kiểm thử và thư mục kết quả build
+  - Bật thu thập dữ liệu mà không đóng gói agent vào sản phẩm
+  - Chạy bộ kiểm thử đầu tiên có gắn JaCoCo
+  - Xác minh tệp dữ liệu thực thi đã được tạo đúng lần chạy
+  - Tạo báo cáo đầu tiên từ dữ liệu thực thi và class file tương ứng
+  - Kiểm tra mã chưa được thực thi vẫn xuất hiện trong mẫu số báo cáo
+- level1: Tích hợp Gradle
+  level2:
+  - Áp dụng plugin jacoco và cấu hình toolVersion
+  - Quan hệ giữa test, jacocoTestReport và jacocoTestCoverageVerification
+  - Khai báo thứ tự chạy bằng dependsOn và finalizedBy theo mục đích
+  - Vì sao jacocoTestReport không tự bảo đảm test đã chạy
+  - Bật HTML, XML, CSV và chọn thư mục đầu ra
+  - Cấu hình executionData, classDirectories và sourceDirectories
+  - Thu thập dữ liệu từ Test task hoặc source set tùy chỉnh
+  - Tạo báo cáo riêng cho kiểm thử đơn vị và tích hợp
+  - Nối quy tắc bao phủ vào check một cách tường minh
+  - Kiểm tra ảnh hưởng của UP-TO-DATE, FROM-CACHE và chạy lại task
+  - Giữ cấu hình tương thích với phiên bản Gradle và DSL đang dùng
+- level1: Tích hợp Maven
+  level2:
+  - Khai báo jacoco-maven-plugin và quản lý phiên bản trong POM
+  - Vai trò của prepare-agent trong việc tạo tham số cho JVM kiểm thử
+  - Kết hợp argLine với cấu hình JVM hiện có bằng cơ chế đánh giá muộn
+  - Thu thập bao phủ kiểm thử đơn vị qua Maven Surefire
+  - Thu thập bao phủ kiểm thử tích hợp qua Maven Failsafe
+  - Sắp xếp prepare-agent, report và check trong Maven lifecycle
+  - Sử dụng prepare-agent-integration và report-integration
+  - Tách destFile cho các nhóm kiểm thử và tiến trình fork
+  - Ảnh hưởng của forkCount, skipTests và maven.test.skip
+  - Quản lý cấu hình dùng chung ở parent POM và cấu hình riêng từng module
+- level1: Đọc báo cáo
+  level2:
+  - Cấu trúc báo cáo từ toàn dự án tới package, lớp và phương thức
+  - Đọc số lệnh, dòng, nhánh, phương thức và lớp còn thiếu
+  - Ý nghĩa của nền đỏ, vàng, xanh và ký hiệu nhánh trong HTML JaCoCo
+  - Vì sao một dòng đã tính covered vẫn có thể được tô vàng
+  - Đọc dòng chứa nhiều biểu thức hoặc nhiều câu lệnh
+  - Đối chiếu số liệu tổng hợp với phần mã nguồn được tô màu
+  - Xem Sessions để nhận diện các lớp đã có dữ liệu thực thi
+  - Vai trò của HTML cho người đọc, XML cho tích hợp và CSV cho phân tích
+  - Đọc bộ đếm trong XML thay vì suy đoán từ màu hiển thị
+  - Cấu hình thư mục mã nguồn và encoding để hiển thị đúng nội dung
+  - Phân biệt báo cáo mới của lần chạy hiện tại với báo cáo còn sót
+- level1: Dữ liệu thực thi
+  level2:
+  - Nội dung và vai trò của tệp .exec trong quy trình đo
+  - Phân biệt dữ liệu .exec với báo cáo XML và kết quả JUnit
+  - Quản lý destfile và sessionid theo phạm vi lần chạy
+  - Chế độ append và nguy cơ trộn dữ liệu từ những lần chạy khác nhau
+  - Tách dữ liệu theo JVM, nhóm kiểm thử và phân đoạn CI
+  - Gộp dữ liệu dựa trên phần mã đã chạy thay vì cộng tỷ lệ phần trăm
+  - Điều kiện class ID khớp khi gộp dữ liệu từ nhiều nguồn
+  - Thu dữ liệu khi JVM kết thúc và nhận diện dữ liệu thiếu do bị dừng cưỡng bức
+  - Lưu dữ liệu thực thi cùng class file và thông tin bản build để tái lập
+- level1: Kiểm thử tích hợp
+  level2:
+  - Xác định JVM thực sự chạy mã cần đo trong kiểm thử tích hợp
+  - Đo khi kiểm thử và ứng dụng chạy cùng một JVM
+  - Gắn agent vào ứng dụng chạy ở JVM riêng
+  - Thu thập bao phủ ứng dụng Java chạy trong container
+  - Phân biệt tiến trình điều khiển kiểm thử với dịch vụ được gọi qua HTTP
+  - Chờ tác vụ bất đồng bộ hoàn tất trước khi kết thúc phiên đo
+  - Tạo báo cáo riêng và báo cáo hợp nhất của đơn vị với tích hợp
+  - Nhận diện mã được chạy nhờ khởi động ứng dụng thay vì kịch bản nghiệp vụ
+  - Giữ khả năng truy vết nguồn dữ liệu khi cùng một lớp được nhiều bộ kiểm thử chạy
+  - Giới hạn của việc gộp bao phủ giữa các dịch vụ độc lập
+- level1: Dự án nhiều module
+  level2:
+  - Phân biệt module có mã sản phẩm, module kiểm thử và module tổng hợp
+  - Xác định tập module thuộc phạm vi báo cáo toàn dự án
+  - Tổng hợp class file, mã nguồn và dữ liệu từ các module liên quan
+  - Áp dụng jacoco-report-aggregation theo điều kiện hỗ trợ của Gradle
+  - Phân biệt tổng hợp cùng test suite với hợp nhất nhiều loại kiểm thử
+  - Thiết kế JacocoReport tùy chỉnh khi cấu trúc dự án cần cách tổng hợp riêng
+  - Sử dụng report-aggregate trong Maven reactor
+  - Ảnh hưởng của quan hệ dependency tới module được đưa vào báo cáo
+  - Tránh trùng tên lớp và trộn nhiều phiên bản của cùng một lớp
+  - Tính tỷ lệ toàn dự án từ tổng bộ đếm thay vì trung bình tỷ lệ từng module
+  - Đặt quy tắc riêng cho module để tổng số đẹp không che vùng mã thiếu kiểm thử
+- level1: Làm việc trong IDE
+  level2:
+  - Chạy Run with Coverage trong IntelliJ IDEA
+  - Chọn JaCoCo runner hoặc IntelliJ IDEA runner theo nhu cầu
+  - Đọc bảng Coverage và ký hiệu trên mã nguồn
+  - Quản lý, chọn và hợp nhất các coverage suite hiển thị
+  - Nhập kết quả bên ngoài và kiểm tra sự khớp với bản mã đang mở
+  - Đo bao phủ trong Eclipse bằng EclEmma
+  - Đối chiếu bộ kiểm thử, bộ đếm và phạm vi khi IDE khác kết quả build
+  - Giới hạn của thông tin theo từng ca kiểm thử giữa các cơ chế đo
+- level1: Đặc điểm mã Java
+  level2:
+  - Ánh xạ lambda và phương thức tổng hợp do trình biên dịch tạo
+  - Đọc bao phủ Stream khi phép tính được thực thi lười
+  - Constructor, static initializer và quá trình khởi tạo lớp
+  - Bao phủ default method và giới hạn của abstract method
+  - Mã sinh cho enum, bridge method và các thành phần synthetic
+  - Record và các phương thức được sinh tự động
+  - Switch expression, pattern matching và yêu cầu tương thích phiên bản JaCoCo
+  - Try-with-resources, finally và ảnh hưởng của mã biên dịch bổ sung
+  - Phân biệt mã do Lombok sinh với logic do người viết sở hữu
+  - Ảnh hưởng của phiên bản trình biên dịch và bộ lọc JaCoCo tới số liệu
+- level1: Ứng dụng Spring
+  level2:
+  - Phân biệt lớp nghiệp vụ, Spring proxy và lớp được sinh khi chạy
+  - Đo logic được gọi qua proxy so với gọi trực tiếp đối tượng
+  - So sánh phạm vi mã được chạy bởi kiểm thử lát cắt và @SpringBootTest
+  - Nhận diện mã khởi tạo bean được tính bao phủ khi nạp ApplicationContext
+  - Phân biệt mock bean với bean thật khi diễn giải kết quả
+  - Đo phương thức @Async hoặc tác vụ nền và kiểm soát thời điểm kết thúc
+  - Thu thập dữ liệu từ ứng dụng Spring Boot chạy ở tiến trình riêng
+  - Giải nén và chọn class file đúng vị trí khi phân tích executable JAR
+  - Giữ nguyên class file sau build để báo cáo khớp ứng dụng đã chạy
+- level1: Phạm vi đo
+  level2:
+  - Xác định mã sản phẩm cần chịu trách nhiệm về độ bao phủ
+  - Chọn include và exclude theo package, lớp hoặc tệp có lý do rõ ràng
+  - Phân biệt loại khỏi instrumentation với loại khỏi báo cáo
+  - Phân biệt loại khỏi báo cáo với loại khỏi quy tắc xác minh
+  - Giữ nhất quán phạm vi giữa báo cáo, ngưỡng và nền tảng tổng hợp
+  - Xử lý mã sinh tự động theo khả năng lọc của phiên bản công cụ
+  - Nhận diện lớp không có lệnh thực thi và phần mã không thể tiếp cận
+  - Đánh giá DTO, mapper và cấu hình theo logic thực tế bên trong
+  - Tránh loại bỏ lớp nghiệp vụ khó kiểm thử để làm tăng tỷ lệ
+  - Ghi nhận thay đổi mẫu số khi thêm mã, xóa mã hoặc sửa bộ lọc
+- level1: Ngưỡng chất lượng
+  level2:
+  - Chọn mục tiêu theo rủi ro và hiện trạng thay vì áp một tỷ lệ duy nhất
+  - Kết hợp ngưỡng bao phủ dòng và nhánh theo mục đích
+  - Thiết lập quy tắc ở mức dự án, package, lớp hoặc phương thức
+  - Phân biệt COVEREDRATIO, MISSEDCOUNT và các kiểu giới hạn khác
+  - Cấu hình JacocoCoverageVerification trong Gradle
+  - Cấu hình rules và limits của jacoco:check trong Maven
+  - Phân biệt tác vụ tạo báo cáo với tác vụ làm build thất bại
+  - Xử lý trường hợp không có dữ liệu thay vì mặc nhiên coi là đạt ngưỡng
+  - Quản lý ngoại lệ của quy tắc cùng lý do và phạm vi cụ thể
+  - Thử một trường hợp vi phạm để xác minh cổng chất lượng thực sự hoạt động
+- level1: Bao phủ mã thay đổi
+  level2:
+  - Phân biệt độ bao phủ toàn bộ mã với độ bao phủ phần mới thay đổi
+  - Xác định commit gốc và tập dòng thay đổi dùng để so sánh
+  - Ánh xạ dòng trong Git diff sang dữ liệu bao phủ của đúng bản build
+  - Phân biệt dòng thay đổi có thể thực thi với chú thích và dòng trống
+  - Xử lý đổi tên, dịch chuyển và xóa tệp khi tính chỉ số thay đổi
+  - Giới hạn của báo cáo JaCoCo đơn lẻ khi cần phân tích Git diff
+  - Chọn công cụ phân tích phần thay đổi và xác minh cách tính của công cụ
+  - Giữ ngưỡng cho mã mới trong khi cải thiện dần mã cũ
+  - Đọc đồng thời số dòng chưa chạy và tỷ lệ để tránh kết luận từ mẫu quá nhỏ
+- level1: Tích hợp SonarQube
+  level2:
+  - Phân chia trách nhiệm giữa JaCoCo, SonarScanner và SonarQube
+  - Tạo báo cáo XML trước khi chạy phân tích
+  - Cấu hình sonar.coverage.jacoco.xmlReportPaths
+  - Nhập báo cáo từng module hoặc báo cáo tổng hợp theo cấu trúc dự án
+  - Đối chiếu đường dẫn mã nguồn trong báo cáo với phạm vi phân tích
+  - Phân biệt số liệu dòng, điều kiện và chỉ số Coverage trên nền tảng
+  - Phân biệt độ bao phủ toàn bộ mã với new code trong quality gate
+  - Chẩn đoán báo cáo không được nhập hoặc tỷ lệ lệch JaCoCo
+  - Giữ rõ chính sách loại trừ và phiên bản cấu hình phân tích
+- level1: Tích hợp CI
+  level2:
+  - Tổ chức chuỗi biên dịch, kiểm thử, báo cáo và xác minh ngưỡng
+  - Chạy cùng cấu hình đo trên máy cá nhân và CI
+  - Thu thập báo cáo khi kiểm thử thất bại mà vẫn giữ trạng thái lỗi
+  - Chia bộ kiểm thử thành nhiều job với tệp dữ liệu riêng
+  - Gộp kết quả sau khi các phân đoạn hoàn tất
+  - Gắn báo cáo với commit, cấu hình build và danh sách bộ kiểm thử đã chạy
+  - Lưu HTML, XML và dữ liệu thực thi theo nhu cầu kiểm tra lại
+  - Kiểm tra dữ liệu bị thiếu khi job bị hủy hoặc hết thời hạn
+  - Tránh sử dụng báo cáo cũ từ workspace hoặc cache
+  - Tích hợp nền tảng hiển thị bao phủ và trạng thái pull request
+  - Phân biệt lỗi kiểm thử, lỗi thu thập, lỗi tải báo cáo và vi phạm ngưỡng
+- level1: Java agent nâng cao
+  level2:
+  - Gắn jacocoagent bằng -javaagent vào JVM đích
+  - Chọn output dạng file, tcpserver hoặc tcpclient
+  - Cấu hình địa chỉ, cổng và destfile theo môi trường chạy
+  - Thu dữ liệu từ JVM đang chạy bằng lệnh dump
+  - Reset dữ liệu tại ranh giới kịch bản và kiểm soát dữ liệu ngoài phạm vi
+  - Sử dụng CLI merge và report để xử lý dữ liệu thủ công
+  - Dùng execinfo và classinfo để hỗ trợ chẩn đoán
+  - Tương tác với class loader và các agent biến đổi bytecode khác
+  - Dùng classdumpdir để điều tra class ID không khớp và hiểu giới hạn lớp được thu
+  - Giới hạn truy cập cổng điều khiển agent và thu hồi cấu hình sau kiểm thử
+- level1: Chèn mã ngoại tuyến
+  level2:
+  - Khi nào môi trường cần offline instrumentation
+  - Chèn mã vào bản sao class file và giữ nguyên bản gốc
+  - Cấp JaCoCo runtime cho lớp đã được chèn mã
+  - Cấu hình thu thập dữ liệu trong chế độ ngoại tuyến
+  - Tránh chèn mã hai lần khi có cả lớp đã xử lý và Java agent
+  - Tạo báo cáo bằng class file gốc thay vì bản đã chèn mã
+  - Khôi phục đầu ra build và tránh phát hành nhầm lớp đã chèn mã
+  - So sánh chi phí vận hành với cơ chế chèn mã khi nạp lớp
+- level1: Độ tin cậy phép đo
+  level2:
+  - Chi phí instrumentation đối với thời gian chạy và bộ nhớ
+  - Vì sao không dùng lần chạy có đo bao phủ làm kết quả benchmark chuẩn
+  - Giữ ổn định JDK, công cụ và tập kiểm thử khi so sánh xu hướng
+  - Ảnh hưởng của kiểm thử chập chờn tới phần mã thực sự được chạy
+  - Đồng bộ luồng và tác vụ bất đồng bộ trước khi thu dữ liệu
+  - Tách tệp theo tiến trình để tránh ghi đồng thời không kiểm soát
+  - Phân biệt độ bao phủ với bằng chứng an toàn luồng và phát hiện tranh chấp
+  - Xác minh báo cáo từ một bản build sạch có thể tái tạo
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Không tạo tệp .exec: kiểm tra agent, tiến trình và đường dẫn'
+  - Báo cáo bị bỏ qua do thiếu dữ liệu thực thi
+  - Kiểm thử đã chạy nhưng lớp vẫn hiện 0%
+  - Phát hiện class ID không khớp bằng Sessions
+  - Lỗi unsupported class file version và lựa chọn JaCoCo tương thích
+  - Lỗi trùng tên lớp khi tổng hợp nhiều đầu ra build
+  - 'Không hiển thị mã nguồn: kiểm tra debug information và thư mục nguồn'
+  - Nhánh hoặc dòng tô vàng khó hiểu do short-circuit và mã biên dịch
+  - Lỗi cannot process instrumented class do chèn mã hai lần
+  - Báo cáo thiếu module, source set hoặc bộ kiểm thử tích hợp
+  - Mất dữ liệu do kết thúc JVM đột ngột hoặc thu quá sớm
+  - Sai lệch giữa IDE, báo cáo HTML và nền tảng chất lượng
+  - Ngưỡng không được áp dụng vì sai quan hệ task hoặc Maven phase
+- level1: Diễn giải và cải thiện
+  level2:
+  - Ưu tiên vùng mã chưa chạy theo hậu quả lỗi và tần suất thay đổi
+  - Kết hợp bao phủ với chất lượng assertion và hành vi cần bảo vệ
+  - Dùng kiểm thử đột biến để đánh giá khả năng phát hiện sai lệch
+  - Phân biệt tăng bao phủ với tăng số ca kiểm thử trùng lặp
+  - Đọc xu hướng cùng mẫu số và thay đổi cấu trúc mã
+  - Nhận diện bao phủ tăng do loại trừ hoặc xóa mã thay vì thêm kiểm thử
+  - Cải thiện khả năng kiểm thử bằng tách trách nhiệm và phụ thuộc
+  - Rà soát độ bao phủ trong pull request bằng bằng chứng cụ thể
+  - Trình bày phần mã còn thiếu và giới hạn kết luận trong báo cáo chất lượng
+- level1: Thực hành tổng hợp
+  level2:
+  - Đo ví dụ đạt bao phủ dòng nhưng còn thiếu nhánh
+  - Bổ sung ca kiểm thử cho điều kiện ngắn mạch và giá trị biên
+  - Tạo bộ kiểm thử thực thi toàn bộ mã nhưng bỏ sót kiểm tra kết quả
+  - Cấu hình Gradle để tạo HTML, XML và xác minh ngưỡng
+  - Cấu hình Maven để tách dữ liệu Surefire và Failsafe
+  - Hợp nhất bao phủ đơn vị với tích hợp trên cùng class file
+  - Tạo báo cáo nhiều module có ca kiểm thử đặt ở module khác
+  - Thu dữ liệu từ ứng dụng Spring Boot ở JVM riêng
+  - Tái hiện và sửa lỗi class ID không khớp mà không sửa dữ liệu báo cáo
+  - Đưa phép đo lên CI và xác minh cả trường hợp đạt lẫn vi phạm ngưỡng

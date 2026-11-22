@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-dich-cua-logging
+  title: Mục đích của logging
+  purpose: Hiểu log là bản ghi sự kiện dùng để chẩn đoán và theo dõi hệ thống, không thay thế xử lý lỗi.
+  objectives:
+  - Phân biệt log với println và exception
+  - Nhận diện sự kiện cần ghi theo ngữ cảnh
+  - Viết thông điệp ngắn, có giá trị chẩn đoán
+- id: java-util-logging
+  title: Java Util Logging
+  purpose: Nắm API ghi log tích hợp JDK và cách sự kiện được xuất qua các thành phần.
+  objectives:
+  - Tạo và sử dụng java.util.logging.Logger
+  - Giải thích Level, Handler và Formatter
+  - Ghi nguyên nhân lỗi bằng Throwable
+- id: slf4j-backend
+  title: SLF4J & backend
+  purpose: Tách API ghi log khỏi triển khai cụ thể để ứng dụng dễ cấu hình và bảo trì.
+  objectives:
+  - Dùng LoggerFactory và placeholder {}
+  - Phân biệt facade SLF4J với backend
+  - Xác định provider phù hợp như Logback
+- id: level-cau-hinh
+  title: Level & cấu hình
+  purpose: Kiểm soát lượng log và nơi ghi log theo mức độ sự kiện và môi trường chạy.
+  objectives:
+  - Phân biệt TRACE, DEBUG, INFO, WARN, ERROR
+  - Cấu hình logger theo package và root
+  - Kiểm tra log bị lọc và log bị lặp
+- id: appender-dinh-dang
+  title: Appender & định dạng
+  purpose: Thiết kế đầu ra và cấu trúc bản ghi để dễ đọc, tìm kiếm và lưu trữ.
+  objectives:
+  - Cấu hình console hoặc file appender
+  - Thiết lập pattern gồm thời gian, level và logger
+  - Giải thích file rotation và retention
+- id: context-log-co-cau-truc
+  title: Context & log có cấu trúc
+  purpose: Liên kết các sự kiện cùng yêu cầu và hỗ trợ máy tìm kiếm, phân tích bản ghi.
+  objectives:
+  - Gắn requestId hoặc traceId bằng MDC
+  - Xuất dữ liệu dạng key-value hoặc JSON
+  - Dọn MDC khi hoàn tất công việc
+- id: loi-du-lieu-nhay-cam
+  title: Lỗi & dữ liệu nhạy cảm
+  purpose: Ghi đủ ngữ cảnh điều tra lỗi mà không làm lộ bí mật hoặc tạo log khó tin cậy.
+  objectives:
+  - Ghi stack trace đúng một lần tại ranh giới phù hợp
+  - Ẩn token, mật khẩu và dữ liệu nhạy cảm
+  - Chống log injection bằng chuẩn hóa đầu vào
+- id: hieu-nang-kiem-chung
+  title: Hiệu năng & kiểm chứng
+  purpose: Giảm chi phí ghi log và kiểm tra khả năng hỗ trợ quan sát hệ thống.
+  objectives:
+  - Dùng tham số hoặc lazy logging thay nối chuỗi tốn kém
+  - So sánh logging đồng bộ và bất đồng bộ
+  - Kiểm thử level, nội dung và correlationId

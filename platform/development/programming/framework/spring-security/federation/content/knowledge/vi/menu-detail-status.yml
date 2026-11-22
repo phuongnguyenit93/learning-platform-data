@@ -1,0 +1,3028 @@
+menu:
+- slug: federation-overview
+  title: Tổng quan liên kết
+  childs:
+  - slug: federation-overview-001
+    title: Liên kết danh tính (identity federation) là gì và giải quyết vấn đề nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-overview-002
+    title: Đăng nhập một lần (SSO) và mối quan hệ với liên kết danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-overview-003
+    title: Nhà cung cấp danh tính (IdP), ứng dụng sử dụng danh tính và người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-overview-004
+    title: Phân biệt xác thực tập trung, phân quyền và cấp phát tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-overview-005
+    title: Phiên tại ứng dụng, phiên tại IdP và trải nghiệm đăng nhập một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-overview-006
+    title: Liên kết danh tính nội bộ doanh nghiệp và giữa nhiều tổ chức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-overview-007
+    title: Trách nhiệm của Spring Security, máy chủ danh tính và hệ thống nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-overview-008
+    title: Kiến thức đầu vào và trình tự học từ mô hình tin cậy đến tích hợp SSO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sso-protocols
+  title: Giao thức SSO
+  childs:
+  - slug: sso-protocols-001
+    title: SAML2, OpenID Connect, CAS và Kerberos trong hệ sinh thái danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-002
+    title: Phân biệt OAuth2 cấp quyền với OpenID Connect xác thực người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-003
+    title: Assertion SAML, ID token, access token và service ticket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-004
+    title: Vai trò trình duyệt trong chuyển hướng và trao đổi thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-005
+    title: Trao đổi qua trình duyệt và trao đổi trực tiếp giữa các máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-006
+    title: Phân biệt Service Provider, Relying Party, CAS service và Resource Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-007
+    title: Lựa chọn giao thức theo ứng dụng web, mạng nội bộ và đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-008
+    title: Giới hạn dùng assertion hoặc ticket đăng nhập để gọi API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-protocols-009
+    title: Phân biệt liên kết danh tính, môi giới danh tính và chuyển đổi giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-boundaries
+  title: Ranh giới tin cậy
+  childs:
+  - slug: trust-boundaries-001
+    title: Xác định bên phát hành, bên tiếp nhận và tài nguyên được bảo vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-002
+    title: Thiết lập tin cậy bằng metadata, khóa, chứng thư và cấu hình đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-003
+    title: Phân biệt danh tính do đối tác khẳng định với quyền do ứng dụng quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-004
+    title: Giới hạn bên phát hành và ứng dụng được phép nhận thông tin xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-005
+    title: Liên kết yêu cầu đăng nhập với phản hồi và phiên trình duyệt ban đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-006
+    title: Định danh người dùng ổn định trong phạm vi từng nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-007
+    title: 'Mô hình đe dọa: giả mạo IdP, đánh cắp assertion và chiếm phiên'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-008
+    title: Ranh giới của HTTPS, chữ ký số và mã hóa thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-009
+    title: Trách nhiệm bảo vệ danh tính khi một đối tác hoặc máy chủ trung gian bị xâm nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-platform
+  title: Nền tảng Spring
+  childs:
+  - slug: spring-platform-001
+    title: Chọn phiên bản Spring Boot, Spring Security và thư viện giao thức tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-002
+    title: Phạm vi SAML2 Service Provider của Spring Security và ranh giới triển khai Identity Provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-003
+    title: Phân biệt hỗ trợ Servlet, WebFlux và phần mở rộng bên ngoài theo giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-004
+    title: Thiết lập spring-security-saml2-service-provider và các phụ thuộc OpenSAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-005
+    title: Thiết lập spring-security-cas và thư viện CAS client tương thích Jakarta Servlet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-006
+    title: Vai trò của phần mở rộng Spring Security Kerberos và kiểm tra tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-007
+    title: SecurityFilterChain, AuthenticationProvider và AuthenticationEntryPoint trong SSO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-008
+    title: Tách cấu hình theo môi trường và quản lý thông tin bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-platform-009
+    title: Chuẩn bị ứng dụng mẫu, IdP thử nghiệm, HTTPS và đồng bộ thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml2-model
+  title: Mô hình SAML2
+  childs:
+  - slug: saml2-model-001
+    title: Cấu trúc Response, Assertion và Subject trong SAML2
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-002
+    title: Entity ID của Service Provider và Identity Provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-003
+    title: NameID, NameIDFormat và định danh liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-004
+    title: AuthnStatement, AuthnContext và thời điểm xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-005
+    title: AttributeStatement, thuộc tính đơn trị và đa trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-006
+    title: Conditions, AudienceRestriction và thời hạn assertion
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-007
+    title: SubjectConfirmation, Recipient và InResponseTo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-008
+    title: Chữ ký ở Response, Assertion và phân biệt với assertion được mã hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-009
+    title: HTTP-Redirect, HTTP-POST và giới hạn các binding được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-model-010
+    title: Phân biệt đăng nhập do Service Provider khởi tạo và do Identity Provider khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml2-registration
+  title: Đăng ký SAML2
+  childs:
+  - slug: saml2-registration-001
+    title: RelyingPartyRegistration và mô hình cấu hình một quan hệ SP–IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-002
+    title: RelyingPartyRegistrationRepository và InMemoryRelyingPartyRegistrationRepository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-003
+    title: Khởi tạo đăng ký bằng RelyingPartyRegistrations và metadata của IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-004
+    title: Cấu hình spring.security.saml2.relyingparty.registration trong Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-005
+    title: Phân biệt registrationId, entityId và tên hiển thị nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-006
+    title: Cấu hình SSO endpoint, binding và yêu cầu ký AuthnRequest
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-007
+    title: Thiết lập Assertion Consumer Service và địa chỉ nhận SAMLResponse
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-008
+    title: Cấu hình khóa ký, khóa giải mã và chứng thư xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-009
+    title: Bật saml2Login và xác định các điểm truy cập công khai cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-registration-010
+    title: Đăng ký thông tin Service Provider tại IdP và đối chiếu cấu hình hai phía
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml2-metadata
+  title: Metadata SAML2
+  childs:
+  - slug: saml2-metadata-001
+    title: EntityDescriptor, IDPSSODescriptor và SPSSODescriptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-002
+    title: Các endpoint SSO, ACS, SLO và binding trong metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-003
+    title: Đọc metadata từ classpath, tệp và địa chỉ HTTPS đã được tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-004
+    title: Công bố metadata của Service Provider bằng saml2Metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-005
+    title: Địa chỉ metadata mặc định và tùy chỉnh theo phiên bản Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-006
+    title: Chứng thư ký, chứng thư mã hóa và thông tin KeyDescriptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-007
+    title: Xác minh chữ ký metadata bằng khóa tin cậy được cấp qua kênh độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-008
+    title: validUntil, cacheDuration và chính sách làm mới metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-009
+    title: Xây dựng kho đăng ký có thể làm mới và đánh giá API hỗ trợ theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-010
+    title: Xử lý metadata hết hạn, sai cấu trúc hoặc IdP tạm ngừng hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-metadata-011
+    title: Kiểm soát URL metadata, chuyển hướng HTTP và nguy cơ SSRF
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml2-login-flow
+  title: Luồng đăng nhập SAML2
+  childs:
+  - slug: saml2-login-flow-001
+    title: Đường đi từ tài nguyên được bảo vệ đến IdP và trở lại ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-002
+    title: Saml2WebSsoAuthenticationRequestFilter và khởi tạo AuthnRequest
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-003
+    title: Lưu yêu cầu bằng Saml2AuthenticationRequestRepository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-004
+    title: HttpSessionSaml2AuthenticationRequestRepository và liên kết với phiên ban đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-005
+    title: RelayState và khôi phục đích truy cập sau đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-006
+    title: Saml2WebSsoAuthenticationFilter và tiếp nhận SAMLResponse
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-007
+    title: Saml2AuthenticationTokenConverter và lựa chọn đăng ký phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-008
+    title: AuthenticationProvider dựa trên OpenSAML và quá trình tạo Saml2Authentication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-009
+    title: Lưu SecurityContext và tạo phiên ứng dụng sau khi xác thực thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-010
+    title: Xử lý thành công, thất bại và trang lựa chọn phương thức đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-login-flow-011
+    title: Đăng nhập do IdP khởi tạo và rủi ro khi không có yêu cầu tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authn-request-customization
+  title: Tùy chỉnh AuthnRequest
+  childs:
+  - slug: authn-request-customization-001
+    title: Saml2AuthenticationRequestResolver và các điểm mở rộng theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-002
+    title: Điều chỉnh địa chỉ bắt đầu đăng nhập và Assertion Consumer Service
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-003
+    title: Chọn HTTP-Redirect hoặc HTTP-POST theo khả năng của đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-004
+    title: Cấu hình ký AuthnRequest và lựa chọn thuật toán chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-005
+    title: NameIDPolicy và thỏa thuận định dạng định danh với IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-006
+    title: RequestedAuthnContext và yêu cầu mức độ xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-007
+    title: ForceAuthn, IsPassive và giới hạn bảo đảm do IdP thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-008
+    title: Bổ sung thông tin mở rộng mà không phá vỡ cấu trúc giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-009
+    title: Giới hạn RelayState và ngăn chuyển hướng tới địa chỉ không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-010
+    title: Tùy chỉnh kho lưu AuthnRequest khi triển khai nhiều nút
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authn-request-customization-011
+    title: Kiểm chứng thông điệp phát đi bằng metadata và chính sách của IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml2-verification
+  title: Kiểm chứng SAML2
+  childs:
+  - slug: saml2-verification-001
+    title: Giải mã thông điệp vận chuyển và phân tích XML bằng thư viện chuyên dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-002
+    title: Xác minh chữ ký bằng khóa của đúng nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-003
+    title: Phân biệt xác minh chữ ký Response với xác minh Assertion được sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-004
+    title: Kiểm tra Issuer, Destination và ứng dụng tiếp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-005
+    title: Kiểm tra AudienceRestriction và SubjectConfirmation Recipient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-006
+    title: Đối chiếu InResponseTo với yêu cầu đăng nhập đã lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-007
+    title: Kiểm tra NotBefore, NotOnOrAfter và độ lệch đồng hồ cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-008
+    title: Giải mã EncryptedAssertion và lựa chọn khóa giải mã phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-009
+    title: Phân biệt mã trạng thái lỗi từ IdP với lỗi xác minh tại ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-010
+    title: Mở rộng bộ kiểm chứng của OpenSAML mà vẫn giữ các kiểm tra mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-011
+    title: Chống phát lại assertion và đánh giá cơ chế lưu vết dùng chung giữa các nút
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-verification-012
+    title: Từ chối thông điệp không hợp lệ mà không làm lộ assertion hoặc khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-and-authorities
+  title: Danh tính và quyền
+  childs:
+  - slug: identity-and-authorities-001
+    title: Saml2AuthenticatedPrincipal, Saml2Authentication và truy cập thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-002
+    title: Lựa chọn khóa định danh từ Issuer và NameID ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-003
+    title: Định danh bền vững, định danh tạm thời và tác động đến liên kết tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-004
+    title: Đọc thuộc tính đơn trị, đa trị và xử lý thuộc tính bắt buộc bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-005
+    title: Chuẩn hóa tên, email và nhóm từ các IdP khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-006
+    title: Chuyển thuộc tính hoặc nhóm thành GrantedAuthority có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-007
+    title: Không tự cấp quyền quản trị từ tên nhóm hoặc thuộc tính chưa được cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-008
+    title: Kết hợp quyền từ IdP với quyền nghiệp vụ trong cơ sở dữ liệu nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-009
+    title: Tùy chỉnh kết quả xác thực bằng bộ chuyển đổi của AuthenticationProvider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-010
+    title: Phân quyền HTTP và phương thức dựa trên danh tính đã liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-authorities-011
+    title: Xử lý người dùng hợp lệ tại IdP nhưng bị khóa hoặc chưa được cấp quyền tại ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keys-and-certificates
+  title: Khóa và chứng thư
+  childs:
+  - slug: keys-and-certificates-001
+    title: Saml2X509Credential và phân biệt signing, verification, encryption, decryption
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-002
+    title: Phân biệt chứng thư ký SAML với chứng thư HTTPS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-003
+    title: Định dạng PEM, PKCS#8 và kho khóa trong môi trường triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-004
+    title: Bảo quản private key bằng kho bí mật và giới hạn quyền đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-005
+    title: Lựa chọn thuật toán chữ ký, hàm băm và chính sách từ chối thuật toán yếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-006
+    title: Chính sách hết hạn, thu hồi chứng thư và giới hạn kiểm tra mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-007
+    title: Luân chuyển chứng thư ký của IdP với giai đoạn chấp nhận đồng thời nhiều khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-008
+    title: Luân chuyển khóa ký và khóa giải mã của Service Provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-009
+    title: Đồng bộ metadata hai phía trước khi loại bỏ khóa cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-010
+    title: Phân biệt nhận diện khóa tin cậy từ metadata với xác minh chuỗi PKI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-certificates-011
+    title: 'Ứng phó khi lộ khóa: ngừng tin cậy, thu hồi phiên và phối hợp đối tác'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml2-logout
+  title: Đăng xuất SAML2
+  childs:
+  - slug: saml2-logout-001
+    title: Phân biệt đăng xuất cục bộ với Single Logout liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-002
+    title: Đăng xuất do Service Provider khởi tạo và do Identity Provider khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-003
+    title: Cấu hình saml2Logout và endpoint SingleLogoutService trong metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-004
+    title: LogoutRequest, LogoutResponse và mối liên hệ giữa các thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-005
+    title: NameID, SessionIndex và xác định phiên cần kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-006
+    title: Ký, xác minh chữ ký và kiểm tra đích của thông điệp đăng xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-007
+    title: Lưu yêu cầu đăng xuất và kiểm tra InResponseTo của phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-008
+    title: Tách endpoint đăng xuất cục bộ với endpoint đăng xuất liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-009
+    title: Xử lý CSRF cho thao tác đăng xuất do người dùng khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-010
+    title: Xử lý IdP không hỗ trợ SLO, lỗi một phần và thời gian chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-logout-011
+    title: Giới hạn của SLO khi người dùng có nhiều ứng dụng, thiết bị hoặc phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-and-browsers
+  title: Phiên và trình duyệt
+  childs:
+  - slug: sessions-and-browsers-001
+    title: Phân biệt phiên ứng dụng với phiên đăng nhập của nhà cung cấp danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-002
+    title: Session fixation và thay đổi mã phiên sau đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-003
+    title: Cookie Secure, HttpOnly, SameSite và phản hồi SAML qua HTTP-POST
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-004
+    title: Mất phiên khi quay lại từ IdP và ảnh hưởng đến AuthnRequest đã lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-005
+    title: Kho phiên phân tán, cân bằng tải và lựa chọn giữ phiên trên một nút
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-006
+    title: Thời hạn phiên ứng dụng, thời hạn assertion và phiên IdP độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-007
+    title: Thay đổi quyền hoặc khóa tài khoản khi phiên ứng dụng vẫn còn hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-008
+    title: Đăng nhập nhiều tab và xử lý nhiều yêu cầu đang chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-009
+    title: Giới hạn cookie bên thứ ba và ảnh hưởng tới đăng nhập hoặc đăng xuất qua trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-browsers-010
+    title: Yêu cầu xác thực lại và điều kiện thực thi xác thực tăng cường tại IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-idps-and-tenants
+  title: Nhiều IdP và tenant
+  childs:
+  - slug: multiple-idps-and-tenants-001
+    title: Đăng ký nhiều IdP và chọn nhà cung cấp trên trang đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-002
+    title: Phân biệt nhiều nhà cung cấp với nhiều tổ chức sử dụng ứng dụng (tenant)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-003
+    title: RelyingPartyRegistrationResolver và lựa chọn đăng ký theo yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-004
+    title: Ánh xạ domain, đường dẫn và tenant tới cấu hình đã được cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-005
+    title: Xác định IdP từ thông tin chưa được xác minh mà không tự thiết lập tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-006
+    title: Tách entityId, ACS, khóa và chính sách thuộc tính theo đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-007
+    title: Kho đăng ký động và quy trình thêm hoặc ngừng một đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-008
+    title: Ngăn nhầm lẫn IdP, nhầm tenant và truy cập dữ liệu chéo tổ chức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-009
+    title: Giới hạn tính duy nhất của NameID và email giữa các IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-010
+    title: Quản lý thay đổi metadata và luân chuyển khóa độc lập cho từng tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-idps-and-tenants-011
+    title: Đối chiếu callback và thông điệp đăng xuất với đúng đăng ký ban đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oidc-federation
+  title: OIDC và môi giới
+  childs:
+  - slug: oidc-federation-001
+    title: Đăng nhập OIDC trong một kiến trúc liên kết danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-002
+    title: Cấu hình oauth2Login và ClientRegistration cho nhà cung cấp OIDC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-003
+    title: Authorization Code, state, nonce và PKCE ở ranh giới ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-004
+    title: Định danh người dùng OIDC bằng cặp issuer và subject
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-005
+    title: Ánh xạ OidcUser và Saml2AuthenticatedPrincipal vào mô hình danh tính chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-006
+    title: So sánh AuthnContext của SAML với acr, amr và yêu cầu xác thực lại trong OIDC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-007
+    title: Môi giới danh tính giữa ứng dụng và nhiều IdP bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-008
+    title: Chuyển đổi SAML sang OIDC tại hệ thống môi giới và trách nhiệm của từng bên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-009
+    title: Phân biệt đăng xuất ứng dụng, đăng xuất OIDC và đăng xuất IdP phía sau môi giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-010
+    title: Giới hạn truyền mức độ xác thực, thuộc tính và quyền qua nhiều tầng liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-federation-011
+    title: Ranh giới với cấu hình Authorization Server và bảo vệ API bằng access token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cas
+  title: Nền tảng CAS
+  childs:
+  - slug: cas-001
+    title: CAS server, CAS service và trình duyệt trong đăng nhập tập trung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-002
+    title: Ticket Granting Ticket, Ticket Granting Cookie và Service Ticket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-003
+    title: Luồng chuyển hướng đăng nhập và xác minh ticket qua kết nối máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-004
+    title: Tham số service và đăng ký ứng dụng được phép sử dụng CAS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-005
+    title: Tính ràng buộc với dịch vụ, thời hạn và giới hạn sử dụng Service Ticket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-006
+    title: Phân biệt CAS protocol với SAML2 Web Browser SSO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-007
+    title: Thuộc tính người dùng do CAS phát hành và chính sách giải phóng thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-008
+    title: renew, gateway và ảnh hưởng đến trải nghiệm đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-009
+    title: Lựa chọn phiên bản giao thức CAS và thư viện client tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cas-integration
+  title: Tích hợp CAS
+  childs:
+  - slug: cas-integration-001
+    title: ServiceProperties và cấu hình địa chỉ dịch vụ, endpoint xử lý ticket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-002
+    title: CasAuthenticationEntryPoint và chuyển hướng tới CAS server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-003
+    title: CasAuthenticationFilter và tiếp nhận Service Ticket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-004
+    title: CasAuthenticationProvider và lựa chọn TicketValidator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-005
+    title: Đối chiếu service URL khi xác minh ticket và khi triển khai sau proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-006
+    title: AuthenticationUserDetailsService và chuyển thuộc tính CAS thành quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-007
+    title: CasAuthenticationToken và lưu ngữ cảnh trong phiên ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-008
+    title: Đặt bộ lọc CAS trong SecurityFilterChain và tránh xử lý trùng yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-009
+    title: Phân biệt phiên ứng dụng có trạng thái với chế độ xác thực ticket không lưu phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-010
+    title: Tùy chỉnh phản hồi khi ticket hết hạn, bị dùng lại hoặc không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-integration-011
+    title: Bảo vệ kết nối HTTPS giữa ứng dụng và CAS server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cas-proxy
+  title: CAS Proxy
+  childs:
+  - slug: cas-proxy-001
+    title: Tình huống dịch vụ cần gọi dịch vụ khác thay mặt người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-002
+    title: Proxy Granting Ticket, Proxy Granting Ticket IOU và Proxy Ticket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-003
+    title: Endpoint proxy callback và điều kiện HTTPS, chứng thư
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-004
+    title: Liên kết PGT IOU với Proxy Granting Ticket tại ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-005
+    title: Lấy Proxy Ticket cho đúng dịch vụ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-006
+    title: Xác minh Proxy Ticket và kiểm tra toàn bộ chuỗi proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-007
+    title: Giới hạn proxy được tin cậy và tránh chấp nhận mọi proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-008
+    title: StatelessTicketCache, thời hạn và giới hạn tái sử dụng kết quả xác thực proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-009
+    title: Kho lưu Proxy Granting Ticket, thời hạn và bảo vệ bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-proxy-010
+    title: Phân biệt ủy quyền CAS Proxy với OAuth2 và lựa chọn phương án chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cas-logout
+  title: Đăng xuất CAS
+  childs:
+  - slug: cas-logout-001
+    title: Phân biệt đăng xuất ứng dụng, đăng xuất CAS và Single Sign-Out
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-002
+    title: Luồng CAS thông báo kết thúc phiên đến các dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-003
+    title: Ánh xạ Service Ticket tới phiên ứng dụng để xử lý thông báo đăng xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-004
+    title: SingleSignOutFilter, listener và thành phần hỗ trợ theo thư viện client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-005
+    title: Thứ tự bộ lọc, endpoint thông báo và phạm vi miễn CSRF cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-006
+    title: Xác minh điều kiện tin cậy khi tiếp nhận thông báo đăng xuất từ CAS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-007
+    title: Xử lý thông báo lặp, phiên đã hết hạn và sự cố mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-008
+    title: Giới hạn kho ánh xạ phiên trong bộ nhớ khi ứng dụng chạy nhiều nút
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cas-logout-009
+    title: Kiểm chứng hành vi đăng xuất khi nhiều dịch vụ cùng có phiên hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kerberos-spnego
+  title: Kerberos và SPNEGO
+  childs:
+  - slug: kerberos-spnego-001
+    title: Kerberos trong đăng nhập mạng nội bộ và mối liên hệ với SSO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-002
+    title: Realm, KDC, principal và Service Principal Name
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-003
+    title: Ticket Granting Ticket và service ticket trong Kerberos
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-004
+    title: SPNEGO, HTTP Negotiate và vai trò của trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-005
+    title: Phân biệt mật khẩu người dùng, ticket Kerberos và keytab dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-006
+    title: DNS, tên máy chủ, đồng bộ thời gian và điều kiện hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-007
+    title: Thiết lập tin cậy giữa các realm và giới hạn triển khai tại hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-008
+    title: Phân biệt Kerberos SSO với LDAP bind và đăng nhập bằng mật khẩu Active Directory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-spnego-009
+    title: Rủi ro ủy quyền danh tính và nhu cầu giới hạn delegation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kerberos-integration
+  title: Tích hợp Kerberos
+  childs:
+  - slug: kerberos-integration-001
+    title: Cấu hình phần mở rộng Spring Security Kerberos tương thích với ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-002
+    title: 'SpnegoEntryPoint và phản hồi WWW-Authenticate: Negotiate'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-003
+    title: SpnegoAuthenticationProcessingFilter và tiếp nhận token SPNEGO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-004
+    title: KerberosServiceAuthenticationProvider và xác minh ticket của dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-005
+    title: SunJaasKerberosTicketValidator, service principal và keytab
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-006
+    title: Phân biệt KerberosAuthenticationProvider với xác thực service ticket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-007
+    title: Tải quyền người dùng sau khi xác minh principal Kerberos
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-008
+    title: Cấu hình JAAS, krb5.conf và đường dẫn thông tin bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-009
+    title: Luân chuyển keytab, phiên bản khóa và xử lý khóa không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-010
+    title: Phương án đăng nhập dự phòng mà không hạ thấp chính sách xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kerberos-integration-011
+    title: Giới hạn của đăng xuất ứng dụng khi vé Kerberos của máy người dùng còn hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-authentication
+  title: Xác thực qua proxy
+  childs:
+  - slug: proxy-authentication-001
+    title: Pre-authentication và trách nhiệm xác thực đã được thực hiện ở tầng trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-002
+    title: RequestHeaderAuthenticationFilter và PreAuthenticatedAuthenticationProvider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-003
+    title: Lấy danh tính và quyền từ gateway, container hoặc hệ thống truy cập tập trung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-004
+    title: Giới hạn nguồn mạng và ngăn truy cập trực tiếp bỏ qua proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-005
+    title: Xóa header danh tính do máy khách gửi trước khi proxy thiết lập giá trị tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-006
+    title: mTLS giữa proxy và ứng dụng và ranh giới bảo vệ đường truyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-007
+    title: Phân biệt header danh tính với assertion hoặc token có chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-008
+    title: Chuẩn hóa principal và tải quyền nội bộ bằng dịch vụ người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-009
+    title: Xử lý thiếu header, thay đổi người dùng và phiên cũ còn tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-authentication-010
+    title: Rà soát nguy cơ giả mạo danh tính khi có nhiều lớp reverse proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: directories-and-accounts
+  title: Thư mục và tài khoản
+  childs:
+  - slug: directories-and-accounts-001
+    title: Vai trò LDAP và Active Directory làm nguồn danh tính phía sau IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-002
+    title: Phân biệt truy vấn thư mục, xác thực trực tiếp và liên kết danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-003
+    title: Tải nhóm hoặc thuộc tính nội bộ sau khi xác thực liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-004
+    title: Cấp phát tài khoản khi đăng nhập lần đầu và mô hình Just-in-Time provisioning
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-005
+    title: Đồng bộ tài khoản bằng SCIM tại hệ thống chuyên trách và giới hạn của Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-006
+    title: Liên kết nhiều danh tính bên ngoài với một tài khoản ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-007
+    title: Chống chiếm tài khoản khi liên kết chỉ dựa trên email trùng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-008
+    title: Xử lý đổi tên, thay email, chuyển tổ chức và xóa tài khoản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-009
+    title: Thu hồi quyền, khóa tài khoản và vô hiệu hóa phiên đang tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-010
+    title: Tối thiểu hóa thuộc tính chia sẻ và giới hạn lưu dữ liệu cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: directories-and-accounts-011
+    title: Phối hợp quy trình thêm người dùng, đổi vai trò và ngừng quyền truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-hardening
+  title: Gia cố an toàn
+  childs:
+  - slug: security-hardening-001
+    title: XML Signature Wrapping và nguyên tắc chỉ dùng assertion đã được xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-002
+    title: XXE, XML mở rộng thực thể và sử dụng bộ phân tích an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-003
+    title: Chống phát lại assertion, Response và thông điệp đăng xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-004
+    title: Login CSRF, đăng nhập không được yêu cầu và nhầm lẫn phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-005
+    title: Open redirect qua RelayState, service URL và địa chỉ sau đăng xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-006
+    title: Nhầm lẫn IdP, issuer hoặc tenant khi chọn cấu hình xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-007
+    title: Giới hạn kích thước SAMLResponse, XML và dữ liệu thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-008
+    title: Không bỏ kiểm tra chữ ký, audience, recipient hoặc thời gian để chữa lỗi cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-009
+    title: Không tự động tin chứng thư nằm trong thông điệp chưa được xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-010
+    title: Bảo vệ callback, khóa, keytab và endpoint quản trị cấu hình đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-011
+    title: Chống rò rỉ assertion, ticket và token qua URL, log hoặc bộ nhớ đệm trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-hardening-012
+    title: Phân biệt tín hiệu MFA do IdP xác nhận với giá trị thuộc tính tự khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml2-testing
+  title: Kiểm thử SAML2
+  childs:
+  - slug: saml2-testing-001
+    title: Thiết lập MockMvc với Spring Security cho ứng dụng Service Provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-002
+    title: saml2Login() trong kiểm thử và tùy chỉnh principal, thuộc tính, quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-003
+    title: Giới hạn của xác thực giả lập khi kiểm thử bộ kiểm chứng SAML thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-004
+    title: Tạo bộ dữ liệu SAML thử nghiệm với khóa ký dành riêng cho kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-005
+    title: Kiểm thử SP-initiated SSO từ AuthnRequest đến phiên ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-006
+    title: Kiểm thử chữ ký sai, issuer sai và khóa không được tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-007
+    title: Kiểm thử audience, recipient, destination và InResponseTo không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-008
+    title: Kiểm thử assertion hết hạn, chưa có hiệu lực và lệch đồng hồ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-009
+    title: Kiểm thử assertion mã hóa, thiếu thuộc tính và dữ liệu đa trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-010
+    title: Kiểm thử RelayState, mất phiên và hai luồng đăng nhập đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-011
+    title: Kiểm thử RP-initiated SLO, IdP-initiated SLO và đăng xuất cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml2-testing-012
+    title: Kiểm thử làm mới metadata, luân chuyển khóa và nhiều đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sso-testing
+  title: Kiểm thử SSO
+  childs:
+  - slug: sso-testing-001
+    title: Dựng IdP hoặc máy chủ SSO thử nghiệm tách biệt với môi trường thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-002
+    title: Kiểm thử nhiều ứng dụng dùng chung IdP và phiên đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-003
+    title: Kiểm thử CAS với Service Ticket hợp lệ, hết hạn, dùng lại và sai service
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-004
+    title: Kiểm thử CAS Proxy với callback và chuỗi proxy không được phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-005
+    title: Kiểm thử CAS Single Sign-Out trên nhiều phiên và nhiều nút
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-006
+    title: Kiểm thử SPNEGO với KDC thử nghiệm, keytab và tên dịch vụ phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-007
+    title: Kiểm thử sai realm, lệch giờ và keytab không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-008
+    title: Kiểm thử header giả mạo và truy cập bỏ qua gateway xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-009
+    title: Kiểm thử liên kết tài khoản, thiếu quyền nội bộ và người dùng đã bị khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-010
+    title: Kiểm thử truy cập chéo IdP hoặc tenant và va chạm định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-testing-011
+    title: Kiểm thử lỗi mạng, thời gian chờ và hành vi từ chối khi thiếu tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-debugging
+  title: Quan sát và gỡ lỗi
+  childs:
+  - slug: observability-debugging-001
+    title: Theo dõi chuỗi chuyển hướng và xác định bước SSO thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-002
+    title: Ghi mã tương quan giữa yêu cầu ứng dụng, AuthnRequest và sự kiện IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-003
+    title: Đọc SAMLRequest, SAMLResponse và metadata trong môi trường thử nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-004
+    title: Chẩn đoán entityId, ACS, Destination hoặc Audience không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-005
+    title: Chẩn đoán mất AuthnRequest, sai InResponseTo và cookie không được gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-006
+    title: Chẩn đoán chữ ký không hợp lệ, không tìm thấy khóa và chứng thư đã đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-007
+    title: Chẩn đoán lỗi thời gian, múi giờ và độ lệch đồng hồ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-008
+    title: Chẩn đoán CAS INVALID_SERVICE, INVALID_TICKET và chuyển hướng lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-009
+    title: Chẩn đoán SPNEGO không được thương lượng và service principal không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-010
+    title: Phân biệt đăng nhập thành công với lỗi thiếu quyền sau đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-011
+    title: Che dữ liệu nhạy cảm khi bật log Spring Security, OpenSAML hoặc Kerberos
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-debugging-012
+    title: Thu thập nhật ký kiểm toán đăng nhập, đăng xuất và thay đổi đối tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-operations-001
+    title: Địa chỉ công khai, HTTPS và callback khi ứng dụng nằm sau reverse proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-002
+    title: Chỉ tin Forwarded hoặc X-Forwarded-* từ proxy được kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-003
+    title: Quản lý session, AuthnRequest và ánh xạ đăng xuất trong cụm nhiều nút
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-004
+    title: Đồng bộ đồng hồ và giám sát độ lệch thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-005
+    title: Giám sát thời hạn chứng thư, metadata và keytab
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-006
+    title: Quy trình trao đổi metadata và luân chuyển khóa có giai đoạn chồng lấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-007
+    title: Phân tách cấu hình IdP giữa phát triển, kiểm thử và production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-008
+    title: Khả năng khởi động và hoạt động khi metadata endpoint hoặc IdP bị gián đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-009
+    title: Giới hạn thời gian chờ và kết nối khi gọi metadata, CAS hoặc dịch vụ thư mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-010
+    title: Kế hoạch dự phòng được phê duyệt mà không tự động bỏ qua xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-011
+    title: Ứng phó sự cố mất tin cậy đối tác, lộ khóa và thu hồi phiên diện rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-operations-012
+    title: Rà soát quyền truy cập, dữ liệu chia sẻ và cấu hình đối tác định kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-upgrade
+  title: Chuyển đổi và nâng cấp
+  childs:
+  - slug: migration-upgrade-001
+    title: Chuyển từ Spring Security SAML Extension cũ sang hỗ trợ SAML2 hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-002
+    title: Đối chiếu metadata, entityId và endpoint khi thay thư viện SAML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-003
+    title: Chọn OpenSAML 4 hoặc OpenSAML 5 theo phiên bản Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-004
+    title: Rà soát bộ kiểm chứng và bộ chuyển đổi tùy chỉnh khi nâng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-005
+    title: Chuyển CAS client và bộ lọc sang thư viện tương thích Jakarta Servlet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-006
+    title: Kiểm tra tương thích Java, Spring Boot và phần mở rộng Kerberos
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-007
+    title: Chuyển ứng dụng từ CAS hoặc SAML sang OIDC thông qua môi giới danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-008
+    title: Giữ ổn định định danh người dùng và liên kết tài khoản khi đổi IdP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-009
+    title: Chạy song song nhà cung cấp cũ và mới mà không trộn khóa hoặc quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-010
+    title: Đối chiếu chính sách đăng xuất, MFA và thời hạn phiên trước khi chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrade-011
+    title: Kế hoạch kiểm thử, chuyển lưu lượng và quay lui có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: practical-exercises-001
+    title: Xây dựng Service Provider SAML2 với metadata và IdP thử nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-002
+    title: Bổ sung chữ ký AuthnRequest, assertion mã hóa và xác minh đúng bên tiếp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-003
+    title: Ánh xạ nhóm SAML thành quyền nội bộ theo danh sách được cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-004
+    title: Tích hợp hai IdP với định danh ổn định và cách ly dữ liệu tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-005
+    title: Triển khai đăng xuất cục bộ và Single Logout với kiểm thử luồng lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-006
+    title: Luân chuyển chứng thư IdP và Service Provider mà vẫn duy trì đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-007
+    title: Tích hợp CAS Login, xác minh Service Ticket và Single Sign-Out
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-008
+    title: Tích hợp SPNEGO với keytab dịch vụ trong môi trường Kerberos thử nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-009
+    title: Bảo vệ ứng dụng sau gateway xác thực và kiểm chứng chống giả mạo header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-010
+    title: Kết nối ứng dụng OIDC với hệ thống môi giới dùng IdP SAML phía sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exercises-011
+    title: Xây dựng bộ kiểm thử bảo mật, bảng theo dõi sự cố và quy trình vận hành liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

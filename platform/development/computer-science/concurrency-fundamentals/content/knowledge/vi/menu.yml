@@ -1,0 +1,423 @@
+menu:
+- level1: Tổng quan đồng thời
+  level2:
+  - Đồng thời (concurrency) là gì và vì sao chương trình cần nhiều hoạt động cùng tiến triển
+  - 'Đồng thời, song song và bất đồng bộ: phân biệt mục tiêu với cơ chế'
+  - Từ luồng xử lý tuần tự đến nhiều hoạt động có thể chồng lấn
+  - 'Những nguồn đồng thời: nhiều lõi, ngắt, I/O, sự kiện và nhiều bên yêu cầu'
+  - 'Lợi ích và chi phí: độ phản hồi, thông lượng, tài nguyên và độ phức tạp'
+  - 'Bản đồ khái niệm: thực thi, chia sẻ trạng thái, phối hợp và vòng đời'
+  - 'Bộ nhớ dùng chung và truyền thông điệp: hai cách tổ chức nền tảng'
+  - Phạm vi trong một tiến trình, giữa các tiến trình và ranh giới với hệ phân tán
+  - Cách học bằng dòng thời gian, trạng thái, bất biến và lịch thực thi
+- level1: Mô hình thực thi
+  level2:
+  - Chương trình, tiến trình, luồng và tác vụ là những đơn vị khác nhau
+  - Luồng hệ điều hành, luồng do môi trường thực thi quản lý và ánh xạ thực thi
+  - Lõi vật lý, lõi logic và tài nguyên xử lý được chia sẻ
+  - Trạng thái chạy, sẵn sàng, chờ và các nguyên nhân chuyển trạng thái
+  - Lập lịch có quyền ngắt và lập lịch hợp tác
+  - Chuyển ngữ cảnh, di chuyển luồng giữa các lõi và chi phí liên quan
+  - Tác vụ dùng nhiều CPU và tác vụ chủ yếu chờ I/O
+  - Thực thi xen kẽ trên một lõi và thực thi song song trên nhiều lõi
+  - Số luồng, số tác vụ và số hoạt động I/O đang chờ không đồng nhất
+  - Tiến trình độc lập, miền lỗi và chi phí giao tiếp giữa các đơn vị thực thi
+- level1: Trạng thái và chia sẻ
+  level2:
+  - Trạng thái cục bộ, trạng thái dùng chung và vòng đời dữ liệu
+  - Khả năng truy cập chung và cách dữ liệu trở thành dữ liệu được chia sẻ
+  - Bí danh, đồ thị đối tượng và thay đổi qua nhiều tham chiếu
+  - Giá trị bất biến, đối tượng bất biến và bất biến sâu
+  - Quyền sở hữu dữ liệu, chuyển quyền sở hữu và trách nhiệm cập nhật
+  - Giới hạn dữ liệu trong một luồng hoặc một tác vụ
+  - Trạng thái theo luồng và rủi ro khi tái sử dụng luồng
+  - Bất biến dữ liệu và phạm vi thao tác cần duy trì bất biến
+  - 'Chia sẻ tài nguyên ngoài bộ nhớ: tệp, socket, kết nối và thiết bị'
+  - An toàn luồng (thread safety) của đối tượng và giới hạn của từng bảo đảm
+- level1: Thứ tự sự kiện
+  level2:
+  - Sự kiện, hành động đọc, hành động ghi và lịch sử thực thi
+  - Thứ tự trong một đơn vị thực thi và thứ tự giữa các đơn vị
+  - Mô hình xen kẽ và tập các lịch thực thi có thể xảy ra
+  - Thứ tự từng phần và những sự kiện không được sắp thứ tự với nhau
+  - Quan hệ xảy ra trước (happens-before) và sự truyền dẫn của quan hệ
+  - Thứ tự đồng bộ và điều kiện thiết lập quan hệ giữa các bên
+  - Quan hệ nhân quả và sự khác nhau với thứ tự quan sát theo đồng hồ
+  - Điểm bắt đầu, điểm kết thúc và các thao tác có khoảng thực hiện chồng lấn
+  - Vẽ dòng thời gian để giải thích kết quả hợp lệ hoặc không hợp lệ
+  - Giới hạn của mô hình xen kẽ khi có sắp xếp lại và mô hình bộ nhớ yếu
+- level1: Độ đúng và tiến triển
+  level2:
+  - Đặc tả tuần tự của đối tượng trước khi xét sử dụng đồng thời
+  - 'Thuộc tính an toàn (safety): những trạng thái xấu không được xuất hiện'
+  - 'Thuộc tính sống (liveness): công việc cần có khả năng tiến triển'
+  - Tính kết thúc, khả năng đáp ứng và các giả định về môi trường thực thi
+  - Bất biến toàn cục và trách nhiệm của từng thao tác
+  - Tính nguyên tử của thao tác và cảm nhận về một bước không thể chia cắt
+  - Tính tuyến tính hóa (linearizability) và tôn trọng thứ tự thời gian thực
+  - Nhất quán tuần tự (sequential consistency) và khác biệt với tuyến tính hóa
+  - Tính tuần tự hóa (serializability) và phạm vi của lịch giao dịch
+  - An toàn của từng thành phần và điều kiện để hợp thành an toàn
+  - Tách lập luận độ đúng khỏi các giả định về công bằng và hiệu năng
+- level1: Điều kiện tranh chấp
+  level2:
+  - Điều kiện tranh chấp (race condition) và sự phụ thuộc vào thời điểm thực thi
+  - Tranh chấp dữ liệu (data race) theo mô hình bộ nhớ của ngôn ngữ
+  - Phân biệt data race với lỗi logic dù mọi truy cập riêng lẻ đã được bảo vệ
+  - Mất cập nhật trong thao tác đọc, sửa rồi ghi
+  - Lỗi kiểm tra rồi hành động khi trạng thái thay đổi giữa hai bước
+  - Quan sát dữ liệu nhiều trường ở trạng thái không nhất quán
+  - Công bố đối tượng chưa khởi tạo xong và tham chiếu thoát quá sớm
+  - 'Tranh chấp vòng đời: sử dụng tài nguyên đồng thời với đóng hoặc thu hồi'
+  - Vì sao thêm độ trễ hoặc đổi mức ưu tiên không sửa được lỗi tranh chấp
+  - Tái dựng lịch thực thi tối thiểu để giải thích nguyên nhân
+- level1: Mô hình bộ nhớ
+  level2:
+  - Mô hình bộ nhớ xác định những giá trị đọc nào được phép quan sát
+  - Tính nguyên tử, tính hiển thị và thứ tự thực hiện là ba bảo đảm khác nhau
+  - Thứ tự mã nguồn, tối ưu của trình biên dịch và thực hiện của bộ xử lý
+  - Nhất quán cache (coherence) và nhất quán bộ nhớ (consistency)
+  - Giả định nhất quán tuần tự và giới hạn khi áp dụng cho máy thực tế
+  - Đọc, ghi thông thường và các truy cập dùng cho đồng bộ
+  - Ngữ nghĩa acquire, release và truyền dữ liệu qua điểm đồng bộ
+  - Truy cập relaxed và những bảo đảm không được tự suy diễn
+  - Thứ tự seq_cst và phạm vi bảo đảm giữa các thao tác nguyên tử
+  - Hàng rào bộ nhớ và điều kiện kết hợp với các truy cập liên quan
+  - Công bố an toàn và quan sát dữ liệu đã được khởi tạo
+  - Bài kiểm tra nhỏ (litmus test) cho các mẫu đọc, ghi và chuyển thông điệp
+  - Đối chiếu mô hình phần cứng với mô hình ngôn ngữ và hợp đồng API
+- level1: Thao tác nguyên tử
+  level2:
+  - Đơn vị nguyên tử phụ thuộc kiểu dữ liệu, căn chỉnh và hợp đồng nền tảng
+  - Đọc nguyên tử, ghi nguyên tử và thao tác đọc, sửa, ghi nguyên tử
+  - Exchange, fetch-add và các phép cập nhật không tách rời
+  - So sánh rồi đổi (compare-and-swap, CAS) và điểm quyết định thành công
+  - Vòng lặp CAS, đọc lại trạng thái và thử lại khi có cạnh tranh
+  - CAS mạnh, CAS yếu và khả năng thất bại giả (spurious failure)
+  - Lựa chọn thứ tự bộ nhớ cho thao tác nguyên tử
+  - Biến nguyên tử riêng lẻ và bất biến liên quan đến nhiều biến
+  - Cập nhật giá trị và công bố đối tượng qua cùng một cơ chế nguyên tử
+  - Chi phí tranh chấp và sự lưu chuyển quyền sở hữu dòng cache
+  - Giới hạn của từ khóa volatile và các khác biệt giữa ngôn ngữ
+  - Thao tác nguyên tử không tự bảo đảm thuật toán không khóa hoặc không có lỗi
+- level1: Khóa và loại trừ
+  level2:
+  - Vùng tới hạn và mục tiêu loại trừ tương hỗ
+  - Mutex, quyền sở hữu khóa và trách nhiệm giải phóng
+  - Lấy khóa, giải phóng khóa và quan hệ đồng bộ
+  - Khóa không tái nhập, khóa tái nhập và quản lý mức lồng nhau
+  - Spinlock, ngủ chờ và lựa chọn theo thời gian giữ khóa
+  - Lấy khóa có chờ, thử lấy khóa và lấy khóa có thời hạn
+  - Phạm vi khóa, độ hạt khóa và cách phân hoạch dữ liệu được bảo vệ
+  - Giữ bất biến khi có lỗi, ngoại lệ hoặc đường thoát sớm
+  - Thực hiện I/O, lời gọi ngoài hoặc callback trong vùng giữ khóa
+  - Khóa nhiều tài nguyên và thiết lập thứ tự lấy khóa
+  - An toàn của thao tác riêng lẻ và tính nguyên tử của chuỗi thao tác
+  - Chi phí khóa, tranh chấp và tránh suy luận dựa trên tên gọi API
+- level1: Biến điều kiện
+  level2:
+  - Chờ một điều kiện trạng thái khác với chờ một khoảng thời gian
+  - Biến điều kiện, khóa liên quan và vị từ điều kiện
+  - Nhả khóa rồi ngủ chờ như một bước phối hợp nguyên tử
+  - Đánh thức, lấy lại khóa và kiểm tra điều kiện trước khi tiếp tục
+  - Thức dậy giả và lý do phải kiểm tra điều kiện bằng vòng lặp
+  - Thông báo bị bỏ lỡ khi kiểm tra và chuyển sang chờ không đúng cách
+  - Thông báo một bên chờ, thông báo tất cả và hiện tượng đánh thức dồn
+  - Nhiều vị từ chờ và lựa chọn tách các hàng đợi điều kiện
+  - Ngữ nghĩa monitor kiểu Hoare, kiểu Mesa và thời điểm chuyển quyền thực thi
+  - Chờ có thời hạn, hủy chờ và dọn dẹp trạng thái liên quan
+  - Xây dựng giao thức chờ hoàn chỉnh thay vì chỉ ghép wait với notify
+- level1: Semaphore
+  level2:
+  - Semaphore đếm, số giấy phép và giới hạn truy cập tài nguyên
+  - Semaphore nhị phân và sự khác nhau với mutex có quyền sở hữu
+  - Lấy giấy phép, trả giấy phép và các bất biến về số lượng
+  - Khởi tạo số giấy phép theo trạng thái thật của tài nguyên
+  - Đồng bộ thứ tự giữa hai hoạt động bằng semaphore
+  - Giới hạn số công việc đồng thời và phân biệt với giới hạn tốc độ
+  - Rò rỉ giấy phép, trả thừa và xử lý lỗi sau khi đã lấy giấy phép
+  - Công bằng, chờ có thời hạn và hủy yêu cầu đang đợi
+  - Phối hợp semaphore với khóa mà không tạo chu trình chờ
+- level1: Rào đồng bộ
+  level2:
+  - Rào đồng bộ (barrier) và các pha xử lý phải chờ nhau
+  - Bộ đếm chờ hoàn tất (latch) và điều kiện sử dụng một lần
+  - Rào tái sử dụng, thế hệ rào và tách các vòng đồng bộ
+  - Đăng ký, rút bên tham gia và số lượng thành viên thay đổi
+  - Hành động tại điểm kết thúc pha và công bố kết quả cho pha sau
+  - Một bên lỗi hoặc bị hủy và nguy cơ các bên khác chờ mãi
+  - Rào bị hỏng, thời hạn chờ và chính sách phục hồi
+  - Phân biệt rào thuật toán với hàng rào thứ tự bộ nhớ
+- level1: Deadlock
+  level2:
+  - Deadlock là gì và vì sao các bên không thể tự tiến triển
+  - 'Bốn điều kiện cần: loại trừ, giữ rồi chờ, không thu hồi và chờ vòng'
+  - Đồ thị cấp phát tài nguyên, đồ thị chờ và giới hạn kết luận từ chu trình
+  - Deadlock do lấy nhiều khóa theo thứ tự không nhất quán
+  - Tự deadlock do tái nhập hoặc gọi ngược vào thành phần đang giữ khóa
+  - Chờ kết quả của tác vụ phụ trong bộ thực thi đã hết khả năng thực hiện
+  - Deadlock giữa khóa, hàng đợi, giấy phép và các tài nguyên khác loại
+  - Phòng ngừa bằng thứ tự tài nguyên và giảm quan hệ giữ rồi chờ
+  - Tránh deadlock bằng kiểm tra trạng thái an toàn và ý tưởng thuật toán Banker
+  - Phát hiện, chọn bên bị hủy và khôi phục sau deadlock
+  - Thử lấy khóa, thời hạn chờ và nguy cơ chuyển từ deadlock sang livelock
+  - Thu thập bằng chứng về chuỗi chờ trước khi kết luận hệ thống bị deadlock
+- level1: Công bằng và ưu tiên
+  level2:
+  - 'Starvation: hệ thống vẫn chạy nhưng một bên không được phục vụ'
+  - 'Livelock: các bên liên tục hoạt động mà công việc không tiến lên'
+  - Công bằng yếu, công bằng mạnh và giả định đối với lịch thực thi
+  - Khóa công bằng, thứ tự hàng đợi và giới hạn bảo đảm của bộ lập lịch
+  - Đảo ngược ưu tiên và ảnh hưởng của bên giữ tài nguyên
+  - Kế thừa ưu tiên, trần ưu tiên và các điều kiện áp dụng
+  - Đoàn chờ khóa (lock convoy) và tác động của bên giữ khóa chậm
+  - Đánh thức dồn (thundering herd) và tranh giành cùng một điều kiện
+  - Lùi thời gian thử lại, độ lệch ngẫu nhiên và nguy cơ cùng nhịp
+  - Đánh đổi giữa công bằng, thông lượng và độ trễ phần đuôi
+- level1: An toàn bằng thiết kế
+  level2:
+  - Loại bỏ chia sẻ khi bài toán không cần cùng cập nhật một trạng thái
+  - Thiết kế dữ liệu bất biến và công bố phiên bản mới
+  - Giới hạn quyền truy cập theo luồng, tác vụ hoặc miền sở hữu
+  - Chuyển quyền sở hữu thay cho chia sẻ quyền sửa
+  - Một bên ghi, nhiều bên gửi yêu cầu và tuần tự hóa cập nhật
+  - Phân vùng dữ liệu, chia khóa và giới hạn phạm vi cạnh tranh
+  - Ảnh chụp nhất quán và copy-on-write
+  - Đóng gói trạng thái cùng cơ chế đồng bộ
+  - Tránh tham chiếu thoát, bộ sưu tập khả biến và callback làm lộ nội bộ
+  - Kiểm tra lại trạng thái khi dùng đồng bộ lạc quan
+  - Kết hợp nhiều đối tượng an toàn luồng mà vẫn duy trì bất biến liên đối tượng
+- level1: Hàng đợi đồng thời
+  level2:
+  - Hàng đợi công việc và tách tốc độ bên tạo với bên xử lý
+  - Hàng đợi có giới hạn, không giới hạn và giới hạn bộ nhớ thực tế
+  - Đưa vào, lấy ra, thử thao tác và chờ có thời hạn
+  - Thứ tự FIFO và sự khác nhau giữa thứ tự lấy việc với thứ tự hoàn tất
+  - Một bên tạo, một bên nhận; nhiều bên tạo, nhiều bên nhận
+  - Bộ đệm vòng và quản lý chỉ số khi nhiều bên cùng truy cập
+  - Áp lực ngược khi hàng đợi đầy và các chính sách tiếp nhận
+  - Đóng hàng đợi, đánh dấu kết thúc và hoàn tất công việc còn lại
+  - Thời điểm công bố phần tử và chuyển quyền sở hữu dữ liệu
+  - Tính tuyến tính hóa, số lượng phần tử và kết quả kiểm tra trạng thái tức thời
+  - Lựa chọn hàng đợi theo mô hình cạnh tranh và bảo đảm cần thiết
+- level1: Truyền thông điệp
+  level2:
+  - Thông điệp, kênh, bên gửi, bên nhận và quyền sở hữu dữ liệu
+  - Truyền tham chiếu, sao chép dữ liệu và chuyển quyền sở hữu
+  - Kênh không bộ đệm, có bộ đệm và điểm gặp nhau (rendezvous)
+  - Gửi, nhận có chờ và gửi, nhận không chờ
+  - Thứ tự gửi, thứ tự nhận và phạm vi bảo đảm của một kênh
+  - Lựa chọn giữa nhiều kênh và xử lý kênh đã sẵn sàng
+  - Đóng kênh, hết dữ liệu, lỗi bên gửi và lỗi bên nhận
+  - Giới hạn dung lượng, áp lực ngược và đường lan truyền quá tải
+  - Yêu cầu, phản hồi và nhận diện kết quả tương ứng
+  - Chuyển từ chia sẻ bộ nhớ sang truyền thông điệp mà vẫn tránh deadlock
+- level1: Actor và CSP
+  level2:
+  - 'Mô hình actor: định danh, hộp thư và trạng thái riêng'
+  - Xử lý thông điệp tuần tự trong actor và các hoạt động có thể chồng lấn
+  - Thứ tự hộp thư và những thứ tự không được tự giả định
+  - Actor bị chặn, hộp thư tăng trưởng và chính sách quá tải
+  - Giám sát, khởi động lại và trách nhiệm đối với trạng thái chưa hoàn tất
+  - 'Mô hình CSP: các tiến trình phối hợp qua kênh giao tiếp'
+  - Điểm gặp nhau, lựa chọn giao tiếp và thành phần có thể hợp thành
+  - So sánh định danh actor với kênh giao tiếp của CSP
+  - Giao thức thông điệp, trạng thái hợp lệ và xử lý thông điệp sai pha
+  - Trạng thái riêng không tự loại bỏ lỗi giao thức hoặc lỗi vòng đời
+- level1: Tác vụ và bộ thực thi
+  level2:
+  - Tách định nghĩa công việc khỏi luồng thực hiện công việc
+  - Bộ thực thi, bộ lập lịch tác vụ và nhóm luồng
+  - Số tác vụ đang chờ, đang chạy và khả năng tiếp nhận
+  - Nhóm luồng cố định, mở rộng và giới hạn tài nguyên
+  - Tác vụ dùng CPU, tác vụ chờ I/O và lựa chọn năng lực thực thi
+  - Hàng đợi trung tâm, hàng đợi cục bộ và đánh cắp công việc (work stealing)
+  - Fork-join, tách bài toán và chi phí của tác vụ quá nhỏ
+  - Tác vụ con phụ thuộc tác vụ cha và nguy cơ chặn cả nhóm luồng
+  - Từ chối công việc, thực hiện tại bên gửi và tác động đến độ phản hồi
+  - Ngữ cảnh tác vụ, dữ liệu theo luồng và rò rỉ giữa các công việc
+  - Lỗi trong tác vụ, quan sát lỗi và trách nhiệm của bên gửi
+  - Ngừng nhận việc, chờ hoàn tất và đóng bộ thực thi
+- level1: Bất đồng bộ và sự kiện
+  level2:
+  - Đồng bộ, bất đồng bộ, chặn và không chặn là các trục phân biệt
+  - Mô hình bắt đầu công việc rồi nhận thông báo hoàn tất
+  - Callback, phần tiếp diễn và chuyển đổi luồng điều khiển
+  - Vòng lặp sự kiện, hàng đợi sự kiện và quy tắc xử lý tuần tự
+  - Thông báo sẵn sàng I/O và thông báo hoàn tất I/O
+  - Đưa công việc chặn ra khỏi luồng sự kiện
+  - Coroutine, trạng thái tạm dừng và khôi phục thực thi
+  - Điểm await và khả năng trạng thái thay đổi trước khi tiếp tục
+  - Bất đồng bộ một luồng vẫn có thể gặp điều kiện tranh chấp logic
+  - Gọi lại có thể tái nhập, hoàn tất ngay và những giả định dễ sai
+  - Chuỗi bất đồng bộ, ngữ cảnh thực thi và đường truyền lỗi
+  - Giới hạn số yêu cầu đang chờ để tránh tích tụ tài nguyên
+- level1: Future và hợp thành
+  level2:
+  - Future, promise và một kết quả chưa có sẵn
+  - Trạng thái chờ, hoàn tất thành công, thất bại và bị hủy
+  - Chờ lấy kết quả và sự khác nhau với đăng ký phần tiếp diễn
+  - Biến đổi kết quả, nối công việc phụ thuộc và tránh Future lồng nhau
+  - Khởi chạy nhiều công việc độc lập và kết hợp kết quả
+  - Đợi tất cả, lấy kết quả đầu tiên và chọn thành công đầu tiên
+  - Lỗi trong một nhánh và chính sách đối với các nhánh còn lại
+  - Ngữ cảnh chạy phần tiếp diễn và nguy cơ dùng nhầm nhóm luồng
+  - Thời hạn chờ kết quả không đồng nghĩa tác vụ nền đã dừng
+  - Quan sát ngoại lệ và tránh thất bại bị bỏ quên
+  - Giới hạn song song khi hợp thành một tập công việc lớn
+- level1: Vòng đời và hủy
+  level2:
+  - Quyền sở hữu tác vụ và trách nhiệm chờ kết quả hoặc thu hồi
+  - Đồng thời có cấu trúc (structured concurrency) và phạm vi sống của tác vụ con
+  - Quan hệ cha, con và truyền lỗi qua cây tác vụ
+  - Hủy hợp tác, tín hiệu hủy và điểm kiểm tra hủy
+  - Yêu cầu ngắt hoặc hủy không đồng nghĩa công việc đã chấm dứt
+  - Hạn chót toàn bộ, thời hạn từng giai đoạn và ngân sách thời gian còn lại
+  - Đồng hồ đơn điệu và đo thời gian chờ đúng cách
+  - Dừng nhận công việc, hoàn tất phần đang xử lý và tắt có trật tự
+  - Giải phóng khóa, giấy phép, kết nối khi có hủy hoặc ngoại lệ
+  - Tranh chấp giữa hoàn tất, hủy và công bố kết quả
+  - Vùng dọn dẹp cần bảo vệ và giới hạn thời gian dành cho thu hồi
+  - Tác vụ tách rời, rò rỉ tác vụ và công việc chạy ngoài vòng đời bên gọi
+  - Hủy chuỗi công việc mà vẫn giữ bất biến và tính nhất quán của dữ liệu
+- level1: Mẫu phối hợp
+  level2:
+  - Bên tạo, bên xử lý và bộ đệm có giới hạn
+  - Nhiều bên đọc, một bên ghi và các chính sách ưu tiên
+  - Bữa ăn của các triết gia và tổ chức lấy nhiều tài nguyên
+  - Điểm gặp nhau giữa hai bên và trao đổi dữ liệu theo pha
+  - Pipeline nhiều giai đoạn và lan truyền áp lực ngược
+  - Fan-out, fan-in và giới hạn mức đồng thời
+  - Map-reduce, chia dữ liệu và hợp nhất kết quả
+  - Khởi tạo lười, thực hiện một lần và xử lý lần khởi tạo thất bại
+  - Gộp yêu cầu trùng đang xử lý (single-flight)
+  - Giới hạn đồng thời, giới hạn tốc độ và phân bổ ngân sách tài nguyên
+  - Thử lại có giới hạn, tính lũy đẳng và tránh khuếch đại tải
+  - Xác định bất biến, điểm đồng bộ và chính sách kết thúc cho từng mẫu
+- level1: Bộ sưu tập đồng thời
+  level2:
+  - Giao diện bộ sưu tập và phạm vi bảo đảm khi được dùng đồng thời
+  - Bao bọc bằng một khóa, chia khóa và cấu trúc chuyên biệt
+  - Ánh xạ đồng thời và cập nhật kết hợp theo từng khóa
+  - Tính nguyên tử của thêm nếu chưa có, thay thế có điều kiện và tính toán giá trị
+  - Vì sao kiểm tra kích thước rồi cập nhật vẫn có thể sai
+  - Iterator có khóa, ảnh chụp và nhất quán yếu
+  - Duyệt trong khi cập nhật và quy tắc về dữ liệu có thể quan sát
+  - Copy-on-write và đánh đổi khi tải đọc lớn hơn tải ghi
+  - Nhiều khóa, nhiều bộ sưu tập và giao dịch vượt ngoài bảo đảm từng thao tác
+  - Chọn cấu trúc dựa trên hợp đồng quan sát thay vì chỉ dựa vào tốc độ
+- level1: Tiến triển không khóa
+  level2:
+  - Thuật toán có chờ khóa và các mức bảo đảm tiến triển
+  - 'Obstruction-free: tiến triển khi được thực hiện riêng'
+  - 'Lock-free: tiến triển toàn hệ thống và khả năng một bên phải thử lại'
+  - 'Wait-free: hoàn tất mỗi thao tác trong số bước hữu hạn bị chặn trên'
+  - Phân biệt API không chặn luồng với bảo đảm lock-free
+  - Điểm tuyến tính hóa trong thuật toán sử dụng CAS
+  - Thử lại, giúp hoàn tất công việc của bên khác và cập nhật theo nhiều giai đoạn
+  - Ngăn xếp dùng CAS và cấu trúc của lập luận độ đúng
+  - Hàng đợi không khóa và công bố liên kết giữa các nút
+  - Vấn đề ABA và vì sao giá trị bằng nhau có thể che giấu thay đổi
+  - Gắn phiên bản, đánh dấu trạng thái và giới hạn khi bộ đếm quay vòng
+  - Khi khóa đơn giản phù hợp hơn một thuật toán không khóa phức tạp
+- level1: Thu hồi bộ nhớ
+  level2:
+  - Xóa nút khỏi cấu trúc khác với việc không còn bên nào tham chiếu nút
+  - Sử dụng sau giải phóng và tranh chấp giữa đọc với thu hồi
+  - Thu gom rác làm thay đổi những rủi ro nào và không loại bỏ lỗi logic nào
+  - Đếm tham chiếu và đồng bộ khi lấy hoặc bỏ quyền giữ đối tượng
+  - Hazard pointer và công bố những nút đang được bảo vệ
+  - Thu hồi theo epoch và chờ các bên đọc vượt qua giai đoạn cũ
+  - Trạng thái yên lặng, khoảng ân hạn và ý tưởng read-copy-update (RCU)
+  - Bên đọc bị trì hoãn và nguy cơ bộ nhớ chờ thu hồi tăng lên
+  - Kết hợp thu hồi an toàn với xử lý ABA và bảo đảm tiến triển
+- level1: Giao dịch bộ nhớ
+  level2:
+  - Gom nhiều thao tác bộ nhớ thành một đơn vị giao dịch
+  - Giao dịch phần mềm (STM) và giao dịch phần cứng (HTM) ở mức khái niệm
+  - Theo dõi tập đọc, tập ghi và phát hiện xung đột
+  - Thực hiện lạc quan, xác nhận, commit và hủy giao dịch
+  - Tính cô lập, tính nguyên tử và quan sát trạng thái trung gian
+  - Thử lại giao dịch và giới hạn đối với I/O hoặc tác dụng phụ không thể hoàn tác
+  - Hợp thành giao dịch, giao dịch lồng nhau và những lựa chọn ngữ nghĩa
+  - Xung đột cao, giao dịch quá lớn và đường thực thi dự phòng
+  - Phân biệt giao dịch bộ nhớ với độ bền của giao dịch cơ sở dữ liệu
+- level1: Hiệu năng và mở rộng
+  level2:
+  - Độ trễ, thông lượng, mức sử dụng và số tác vụ đang chờ
+  - Phần tuần tự, chi phí phối hợp và giới hạn tăng tốc theo Amdahl
+  - Cạnh tranh khóa và tỷ lệ giữa thời gian giữ khóa với thời gian làm việc
+  - Chi phí nguyên tử, cache coherence và di chuyển dòng cache giữa các lõi
+  - Chia sẻ giả (false sharing), bố trí dữ liệu và căn chỉnh
+  - Tính cục bộ, NUMA và chi phí truy cập bộ nhớ từ xa
+  - Độ hạt công việc, chia lô và chi phí gửi, nhận tác vụ
+  - Đánh cắp công việc, cân bằng tải và tác vụ có thời gian không đồng đều
+  - Phân vùng dữ liệu, bộ đếm phân tán và đánh đổi độ mới của kết quả
+  - Hàng đợi, định luật Little và độ trễ tăng khi gần bão hòa
+  - Vượt mức luồng thực thi và ảnh hưởng của chuyển ngữ cảnh
+  - Đo chuẩn với tải đại diện, làm nóng và nhiều mức cạnh tranh
+  - Đánh đổi giữa công bằng, bộ nhớ, hiệu năng và độ phức tạp
+- level1: Thiết kế giao diện
+  level2:
+  - Công bố hợp đồng an toàn luồng và trách nhiệm của bên gọi
+  - Xác định thao tác nguyên tử, thao tác phối hợp và trạng thái được bảo vệ
+  - Ẩn khóa nội bộ và tránh để bên ngoài phá vỡ thứ tự đồng bộ
+  - Chọn API đồng bộ hoặc bất đồng bộ theo nhu cầu chờ và vòng đời
+  - Mô tả quyền sở hữu dữ liệu đầu vào, đầu ra và dữ liệu được giữ lại
+  - Quy định ngữ cảnh chạy callback và khả năng gọi lại tái nhập
+  - Hợp đồng lỗi, hủy, timeout và tác dụng phụ đã xảy ra
+  - Tính lũy đẳng của đóng tài nguyên và hành vi khi đóng đồng thời
+  - Giới hạn số yêu cầu, chính sách quá tải và khả năng quan sát
+  - Thiết kế thành phần có thể hợp thành mà không giữ khóa qua lời gọi ngoài
+- level1: Kiểm thử đồng thời
+  level2:
+  - Vì sao một lần chạy đúng không chứng minh chương trình đồng thời đúng
+  - Đặc tả kết quả hợp lệ và kiểm tra bất biến qua nhiều lịch thực thi
+  - Điều khiển điểm gặp bằng latch, barrier hoặc công cụ lập lịch thử nghiệm
+  - Tránh phụ thuộc sleep để tạo thứ tự thực thi trong kiểm thử
+  - Stress test, thay đổi số luồng, số lõi và mức cạnh tranh
+  - Chèn lỗi, gây timeout, hủy tác vụ và kiểm tra thu hồi tài nguyên
+  - Công cụ phát hiện data race và giới hạn về độ bao phủ
+  - Ghi lịch sử lời gọi, phản hồi và kiểm tra tính tuyến tính hóa
+  - So sánh với mô hình tuần tự bằng kiểm thử theo thuộc tính
+  - Thu hẹp lịch thực thi hoặc dữ liệu gây lỗi thành ví dụ tối thiểu
+  - Kiểm thử tiến triển với hạn chót và nêu rõ giả định của phép kiểm
+  - Kiểm thử hồi quy cho lỗi hiếm mà vẫn giữ khả năng tái lập
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Phân biệt treo, chậm, quá tải và hệ thống không có công việc
+  - Ảnh chụp trạng thái luồng và đọc stack của bên chạy, bên chờ
+  - Đồ thị chờ khóa, chuỗi phụ thuộc và bằng chứng deadlock
+  - Độ dài hàng đợi, tác vụ đang chạy, tác vụ bị từ chối và giấy phép còn lại
+  - Thời gian giữ khóa, thời gian chờ khóa và bên gây nghẽn
+  - Hồ sơ dùng CPU, hồ sơ chờ và chi phí lấy mẫu
+  - Theo dõi tác vụ qua phần tiếp diễn và các luồng khác nhau
+  - Nhật ký đa luồng, thứ tự ghi và giới hạn suy luận từ dấu thời gian
+  - Ảnh hưởng của công cụ quan sát đến thời điểm và khả năng tái hiện lỗi
+  - Quy trình đặt giả thuyết, thu bằng chứng và xác nhận nguyên nhân
+- level1: Kiểm chứng mô hình
+  level2:
+  - Mô tả giao thức đồng thời bằng trạng thái, hành động và bất biến
+  - Duyệt các lịch thực thi và kiểm tra thuộc tính an toàn
+  - Biểu diễn thuộc tính sống và nêu rõ giả định công bằng
+  - Không gian trạng thái và hiện tượng bùng nổ số tổ hợp
+  - Giảm mô hình, giới hạn số bên tham gia và kiểm tra trong miền hữu hạn
+  - Tận dụng thứ tự từng phần để tránh duyệt lịch tương đương
+  - Đọc vết phản ví dụ và ánh xạ về mã hoặc giao thức
+  - Liên hệ điểm tuyến tính hóa với mô hình trừu tượng tuần tự
+  - Giới hạn của mô hình và khoảng cách giữa mô hình với cài đặt thực tế
+- level1: Thực hành nền tảng
+  level2:
+  - Vẽ lịch xen kẽ tạo ra mất cập nhật trong bộ đếm dùng chung
+  - So sánh khóa, thao tác nguyên tử và chia dữ liệu trong cùng một bài toán
+  - Xây dựng bộ đệm có giới hạn với bất biến rõ ràng
+  - Tạo và sửa lỗi thông báo bị bỏ lỡ hoặc kiểm tra điều kiện chờ sai
+  - Tái hiện deadlock, ghi đồ thị chờ và sửa thứ tự lấy khóa
+  - Khảo sát starvation, livelock và ảnh hưởng của chính sách công bằng
+  - Xây dựng pipeline có áp lực ngược, truyền lỗi và đóng có trật tự
+  - Thử nghiệm Future, timeout và tác vụ vẫn chạy sau khi bên gọi ngừng chờ
+  - Thiết kế cây tác vụ với hủy hợp tác và thu dọn khi một nhánh thất bại
+  - Kiểm tra công bố dữ liệu bằng các litmus test theo mô hình bộ nhớ đã chọn
+  - Lần vết CAS, điểm tuyến tính hóa và một tình huống ABA
+  - Đo tranh chấp khóa, chia sẻ giả và giới hạn tăng tốc
+  - Hoàn thiện thành phần đồng thời với hợp đồng, kiểm thử và bằng chứng tiến triển

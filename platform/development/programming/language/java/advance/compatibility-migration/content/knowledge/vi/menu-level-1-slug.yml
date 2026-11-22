@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan chuyển đổi
+  slug: compatibility-migration-overview
+  index: 0
+- title: Các loại tương thích
+  slug: compatibility-categories
+  index: 1
+- title: Khảo sát hệ thống
+  slug: system-inventory
+  index: 2
+- title: Phiên bản và lộ trình
+  slug: jdk-version-roadmap
+  index: 3
+- title: Công cụ phân tích
+  slug: migration-analysis-tools
+  index: 4
+- title: Biên dịch đa phiên bản
+  slug: cross-version-compilation
+  index: 5
+- title: Tương thích mã nguồn
+  slug: source-compatibility
+  index: 6
+- title: Tương thích nhị phân
+  slug: binary-compatibility
+  index: 7
+- title: Tiến hóa API
+  slug: api-evolution
+  index: 8
+- title: JPMS và nạp lớp
+  slug: jpms-class-loading
+  index: 9
+- title: Reflection và API nội bộ
+  slug: reflection-and-internal-access
+  index: 10
+- title: API và công cụ cũ
+  slug: removed-platform-features
+  index: 11
+- title: Hành vi mặc định
+  slug: default-behavior-changes
+  index: 12
+- title: Bảo mật và quyền truy cập
+  slug: security-and-access-migration
+  index: 13
+- title: Dữ liệu và giao thức
+  slug: data-and-protocol-compatibility
+  index: 14
+- title: Quản lý dependency
+  slug: dependency-management
+  index: 15
+- title: Maven và Gradle
+  slug: maven-gradle-migration
+  index: 16
+- title: Sinh mã và công cụ test
+  slug: code-generation-and-testing-tools
+  index: 17
+- title: Java EE và Jakarta
+  slug: java-ee-jakarta-migration
+  index: 18
+- title: Framework và nền tảng
+  slug: framework-platform-compatibility
+  index: 19
+- title: Agent và mã native
+  slug: agent-and-native-compatibility
+  index: 20
+- title: JVM và hiệu năng
+  slug: jvm-performance-migration
+  index: 21
+- title: Đóng gói và môi trường
+  slug: runtime-packaging
+  index: 22
+- title: Chiến lược chuyển đổi
+  slug: migration-strategy
+  index: 23
+- title: Kiểm thử hồi quy
+  slug: regression-testing
+  index: 24
+- title: Chẩn đoán lỗi
+  slug: migration-troubleshooting
+  index: 25
+- title: Phát hành và vận hành
+  slug: release-and-operations
+  index: 26
+- title: Bài thực hành
+  slug: migration-practice-exercises
+  index: 27

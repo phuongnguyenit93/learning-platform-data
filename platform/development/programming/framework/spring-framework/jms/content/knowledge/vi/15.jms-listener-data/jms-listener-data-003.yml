@@ -1,0 +1,3 @@
+menuLevel1: Dữ liệu listener
+menuLevel2: Nhận org.springframework.messaging.Message để đọc payload và header
+status: WRITTEN

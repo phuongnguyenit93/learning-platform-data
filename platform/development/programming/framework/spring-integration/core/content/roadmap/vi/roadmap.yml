@@ -1,0 +1,58 @@
+roadmap:
+- id: nen-tang-eip-luong-tich-hop
+  title: Nền tảng EIP & luồng tích hợp
+  purpose: Hiểu cách Spring Integration tổ chức xử lý thông điệp theo Enterprise Integration Patterns và tách logic nghiệp
+    vụ khỏi kết nối hệ thống.
+  objectives:
+  - Mô tả vai trò producer, channel và consumer
+  - Phân biệt message-driven flow với lời gọi trực tiếp
+  - Nhận diện thành phần của một luồng tích hợp
+- id: message-headers
+  title: Message & Headers
+  purpose: Nắm cấu trúc thông điệp và cách metadata điều hướng quá trình xử lý mà không trộn với dữ liệu nghiệp vụ.
+  objectives:
+  - Tạo Message với payload và headers
+  - Phân biệt payload với metadata
+  - Giải thích id, timestamp, replyChannel và errorChannel
+- id: channel-truyen-thong-diep
+  title: Channel & truyền thông điệp
+  purpose: Hiểu cách channel nối các thành phần và quyết định cách phân phối thông điệp đồng bộ hay bất đồng bộ.
+  objectives:
+  - Phân biệt DirectChannel, QueueChannel và PublishSubscribeChannel
+  - Mô tả send/receive và cách consumer nhận dữ liệu
+  - Chọn channel phù hợp cho một luồng đơn giản
+- id: endpoint-handler
+  title: Endpoint & Handler
+  purpose: Biết cách một endpoint nhận thông điệp và kích hoạt mã xử lý nghiệp vụ.
+  objectives:
+  - Giải thích MessageHandler và Service Activator
+  - Phân biệt consumer theo sự kiện với poller
+  - Nối endpoint vào input/output channel
+- id: gateway-request-reply
+  title: Gateway & Request/Reply
+  purpose: Tạo giao diện gọi luồng tích hợp và hiểu cách luồng gửi lại kết quả cho bên yêu cầu.
+  objectives:
+  - Khai báo messaging gateway qua interface
+  - Mô tả tuyến requestChannel và replyChannel
+  - Phân biệt luồng một chiều với request/reply
+- id: java-dsl-integrationflow
+  title: Java DSL & IntegrationFlow
+  purpose: Biết lắp ghép những thành phần cốt lõi thành luồng tích hợp có thể cấu hình và tái sử dụng.
+  objectives:
+  - Tạo IntegrationFlow dưới dạng Spring bean
+  - Kết nối channel với transform và handle
+  - Theo dõi thứ tự xử lý qua các bước trong flow
+- id: bien-doi-dinh-tuyen-co-ban
+  title: Biến đổi & định tuyến cơ bản
+  purpose: Làm quen các thao tác EIP phổ biến để điều chỉnh dữ liệu và chuyển đúng thông điệp tới bước tiếp theo.
+  objectives:
+  - Phân biệt transformer, filter và router
+  - Minh họa lựa chọn nhánh theo payload hoặc header
+  - Xây dựng luồng filter → transform → handle
+- id: loi-kiem-thu-luong
+  title: Lỗi & kiểm thử luồng
+  purpose: Biết quan sát lỗi và xác minh luồng xử lý thông điệp hoạt động như kỳ vọng ở cấp ứng dụng.
+  objectives:
+  - Giải thích errorChannel và lỗi khi xử lý message
+  - Kiểm thử đầu vào/đầu ra của một IntegrationFlow
+  - Xác minh cả tình huống thành công và thất bại

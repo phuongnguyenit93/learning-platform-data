@@ -1,0 +1,13 @@
+references:
+  - title: "SourceMaking — Interpreter Design Pattern"
+    url: "https://sourcemaking.com/design_patterns/interpreter"
+    description: "Ý định, cấu trúc grammar/Expression/Context và giới hạn về parsing."
+  - title: "Java Design Patterns — Interpreter"
+    url: "https://java-design-patterns.com/patterns/interpreter/"
+    description: "Ví dụ Java đánh giá biểu thức, terminal/nonterminal và đánh đổi thiết kế."
+  - title: "SourceMaking — Interpreter in Java"
+    url: "https://sourcemaking.com/design_patterns/interpreter/java/2"
+    description: "Ví dụ Java xử lý biểu thức số học và phân biệt parsing với interpreting."
+  - title: "Baeldung — Interpreter Design Pattern in Java"
+    url: "https://www.baeldung.com/java-interpreter-pattern"
+    description: "Giải thích Interpreter cùng ví dụ minh họa Java và sơ đồ thiết kế."

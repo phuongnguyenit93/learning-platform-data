@@ -1,0 +1,7 @@
+# Spring Data Key Value — Truy cập dữ liệu dạng khóa–giá trị
+
+Spring Data KeyValue cung cấp các thành phần để lưu và truy xuất đối tượng Java theo cặp khóa–giá trị thông qua một mô hình lập trình thống nhất của Spring Data. Thư viện có sẵn cách triển khai dựa trên `Map` trong bộ nhớ, đồng thời định nghĩa các điểm mở rộng cho những bộ lưu trữ khác. Phần quan trọng là hiểu quan hệ giữa entity, định danh, keyspace, adapter và tầng repository; cách lưu bằng `Map` mặc định không tự bảo đảm dữ liệu tồn tại sau khi ứng dụng kết thúc.
+
+Module dành cho người học đã quen Java, Spring và các khái niệm repository/CRUD cơ bản. Lộ trình bắt đầu từ mô hình key-value, cấu hình `MapKeyValueAdapter` và `KeyValueTemplate`, sau đó đi vào `@Id`, `@KeySpace`, các thao tác qua `KeyValueOperations` và `CrudRepository`. Phần tiếp theo giới thiệu truy vấn, sắp xếp và trách nhiệm của `QueryEngine`, giúp bạn hiểu tính năng nào phụ thuộc vào adapter lưu trữ cụ thể.
+
+Ở phần cuối, bạn sẽ kiểm thử CRUD, truy vấn và keyspace, đồng thời đánh giá giới hạn về vòng đời dữ liệu và truy cập đồng thời. Hoàn thành module, bạn có thể xây dựng một ví dụ Map repository đơn giản, diễn giải đường đi của thao tác dữ liệu và lựa chọn phạm vi ứng dụng Spring Data KeyValue phù hợp.

@@ -1,0 +1,363 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phân tích phụ thuộc là gì và bài toán kiểm soát quan hệ giữa các thành phần
+  - Phân biệt phụ thuộc trong mã, khai báo build và artifact được phân giải
+  - Mối liên hệ giữa class, package, module, thư viện và ứng dụng
+  - Vì sao build thành công chưa chứng minh dependency được khai báo đúng
+  - Tác động của phụ thuộc tới khả năng bảo trì, kiểm thử và phát hành
+  - Phạm vi của phân tích tĩnh và bằng chứng từ môi trường chạy
+  - Ranh giới với luật kiến trúc, quét lỗ hổng và quản lý dependency
+  - Từ bằng chứng sử dụng đến đồ thị, chẩn đoán và quyết định thay đổi
+  - Kiến thức nền và thứ tự học với ví dụ Java nhiều module
+- level1: Loại phụ thuộc
+  level2:
+  - Phụ thuộc trực tiếp và bắc cầu trong một đồ thị có gốc xác định
+  - Phụ thuộc bên trong repository và thư viện bên ngoài
+  - Phụ thuộc khi biên dịch, khi chạy và khi kiểm thử
+  - Phụ thuộc API và chi tiết triển khai
+  - Phụ thuộc công cụ build, plugin và annotation processor
+  - Phụ thuộc bắt buộc, tùy chọn và được môi trường cung cấp
+  - Phụ thuộc tĩnh qua kiểu và phụ thuộc động qua tên hoặc cấu hình
+  - Phụ thuộc vào mã, tài nguyên, cấu hình và dịch vụ
+  - Phân biệt cạnh gọi phương thức, kế thừa, annotation và khai báo artifact
+  - Đơn vị phân tích khác nhau dẫn đến cách hiểu trực tiếp, bắc cầu khác nhau
+- level1: Đồ thị phụ thuộc
+  level2:
+  - Nút, cạnh có hướng và ý nghĩa của hướng A phụ thuộc B
+  - 'Nhãn cạnh: loại sử dụng, scope, configuration, phiên bản và nguồn bằng chứng'
+  - Đồ thị khai báo, đồ thị đã phân giải và đồ thị sử dụng thực tế
+  - Phân biệt cây hiển thị với đồ thị có nút dùng chung
+  - Đường đi, khả năng đi tới và bao đóng bắc cầu
+  - Đồ thị đảo và truy tìm thành phần phụ thuộc vào một nút
+  - Chu kỳ, thành phần liên thông mạnh và đồ thị rút gọn
+  - Gộp đồ thị class thành package, module hoặc artifact
+  - Ảnh hưởng của bộ lọc và mức gộp tới kết luận
+  - Phân biệt không có cạnh được quan sát với không tồn tại phụ thuộc
+  - Dựng đồ thị nhỏ từ ví dụ rồi đối chiếu từng cạnh với bằng chứng
+- level1: Thu thập bằng chứng
+  level2:
+  - Đọc khai báo dependency và cấu hình build có hiệu lực
+  - Thu thập tham chiếu từ mã nguồn, AST và thông tin kiểu
+  - Đọc bytecode, chữ ký kiểu và metadata liên quan
+  - Đối chiếu class với JAR, tọa độ artifact và phiên bản
+  - Phân biệt danh sách artifact được phân giải và artifact thực sự đóng gói
+  - Thu thập descriptor module, manifest và cấu hình dịch vụ
+  - Biên dịch sạch và giữ mã nguồn, bytecode cùng phiên bản
+  - Ghi nhận JDK, công cụ, profile, variant và source set
+  - Lưu bằng chứng cạnh tới lớp, thành viên hoặc khai báo gốc
+  - Kiểm tra đầu vào bị thiếu trước khi đánh giá độ đầy đủ của đồ thị
+- level1: Phụ thuộc trong mã Java
+  level2:
+  - Tham chiếu kiểu qua trường, tham số, giá trị trả về và throws
+  - Quan hệ extends, implements và ràng buộc kiểu generic
+  - Lời gọi constructor, phương thức và truy cập trường
+  - Annotation và ảnh hưởng của chính sách retention
+  - Class literal, ép kiểu, instanceof và tham chiếu phương thức
+  - Phân biệt import với bằng chứng sử dụng kiểu trong mã
+  - Generic signature, type erasure và thông tin được giữ trong class file
+  - Hằng được nội tuyến và phụ thuộc có thể không còn thể hiện rõ trong bytecode
+  - Lambda, lớp lồng và lớp do trình biên dịch sinh
+  - Phân biệt tham chiếu tĩnh với đích lời gọi có thể được chọn khi chạy
+  - Giới hạn suy luận hành vi từ việc một lớp được tham chiếu
+- level1: Phân tích Maven
+  level2:
+  - Định danh artifact bằng groupId, artifactId, version, type và classifier
+  - Dependency trực tiếp, bắc cầu và đường đi đưa artifact vào dự án
+  - Scope compile, provided, runtime, test, system và import
+  - Optional dependency, exclusion và phạm vi lan truyền
+  - Dependency management, BOM và khác biệt với thêm dependency thực sự
+  - Đọc mvn dependency:tree và lọc artifact, scope hoặc nhánh cần xem
+  - Đối chiếu effective POM, parent POM và profile đang hoạt động
+  - dependency:analyze và nhóm used declared, used undeclared, unused declared
+  - Phân biệt analyze chạy độc lập và analyze-only dùng trong lifecycle
+  - Giới hạn của bộ phân tích bytecode và khai báo usedDependencies có chứng cứ
+  - analyze-duplicate và khác biệt giữa khai báo lặp với lớp trùng trong JAR
+  - Phân biệt dependency của project và dependency của Maven plugin
+  - Xuất báo cáo, đặt failOnWarning và xác minh phạm vi kiểm tra
+- level1: Phân tích Gradle
+  level2:
+  - Phân biệt configuration khai báo, có thể phân giải và có thể được tiêu thụ
+  - Vai trò của compileClasspath, runtimeClasspath và classpath mã test
+  - Đọc task dependencies cho đúng project và configuration
+  - Dùng dependencyInsight để truy đường đi và lý do chọn phiên bản
+  - Phân biệt phiên bản được yêu cầu, phiên bản được chọn và dependency constraint
+  - API, implementation, compileOnly, runtimeOnly và annotationProcessor
+  - Phụ thuộc project, module bên ngoài, JAR cục bộ và composite build
+  - Variant, attribute, capability và lý do artifact được chọn
+  - Platform, enforcedPlatform và ảnh hưởng tới đồ thị đã phân giải
+  - Version catalog quản lý khai báo nhưng không tự chứng minh dependency được dùng
+  - Dependency của buildscript, plugin và ranh giới với classpath ứng dụng
+  - Đối chiếu metadata công bố với cấu hình nội bộ của project
+  - Giữ phiên bản Gradle, toolchain và configuration nhất quán khi so sánh
+- level1: Sử dụng jdeps
+  level2:
+  - Vai trò của jdeps trong phân tích phụ thuộc class file
+  - Chuẩn bị đầu vào là lớp, thư mục lớp hoặc JAR
+  - Chọn JDK và bytecode tương thích với phiên bản công cụ
+  - Đọc mức tổng hợp, mức package và mức class
+  - Cung cấp --class-path, --module-path và Java runtime phù hợp
+  - Bộ lọc package, regex, archive và ảnh hưởng tới cạnh được hiển thị
+  - Phân tích đệ quy và phân biệt nguồn được quét với dependency hỗ trợ
+  - Dùng --api-only để xem phụ thuộc từ bề mặt API
+  - Dùng --jdk-internals để tìm tham chiếu API nội bộ của JDK
+  - Phân tích multi-release JAR với --multi-release
+  - Xuất DOT và đối chiếu đồ thị với đầu ra văn bản
+  - Dùng --inverse để truy quan hệ phụ thuộc ngược trong phạm vi hỗ trợ
+  - Đọc missing dependencies và hệ quả của việc bỏ qua phụ thuộc thiếu
+  - Giới hạn của jdeps với reflection, tài nguyên và JAR lồng
+- level1: Module JPMS
+  level2:
+  - Phân biệt Gradle project, Maven module và Java named module
+  - module-info.java và đồ thị đọc giữa các module
+  - requires, requires transitive và sự lan truyền khả năng đọc
+  - requires static và dependency chỉ bắt buộc ở giai đoạn phù hợp
+  - exports, opens và khác biệt truy cập API với reflection
+  - uses, provides và phụ thuộc qua ServiceLoader
+  - Named module, automatic module và unnamed module
+  - Split package và xung đột giữa module
+  - Dùng jdeps --check, --list-deps và --list-reduced-deps
+  - Vai trò của --print-module-deps khi chuẩn bị runtime image
+  - Rà soát module-info được suy ra trước khi dùng trong dự án thật
+  - Đối chiếu descriptor với build metadata, đóng gói và hành vi chạy
+- level1: Khai báo và sử dụng
+  level2:
+  - Đối chiếu dependency khai báo với bằng chứng sử dụng
+  - Dependency được dùng và đã khai báo đúng
+  - Dùng trực tiếp thư viện chỉ có mặt nhờ dependency bắc cầu
+  - Thêm khai báo trực tiếp để thể hiện hợp đồng với thư viện được dùng
+  - Dependency được khai báo nhưng chưa thấy tham chiếu tĩnh
+  - Dependency chỉ phục vụ runtime, tài nguyên hoặc cơ chế mở rộng
+  - Dependency chỉ dùng trong test nhưng được đặt ở scope mã chính
+  - Phân biệt dependency dư, khai báo dư và phiên bản dư
+  - Nhóm thư viện đi cùng nhau và phân tích theo bundle có lý do
+  - Kiểm tra giới hạn công cụ trước khi gỡ dependency bị báo unused
+  - Đánh giá ảnh hưởng tới người dùng thư viện trước khi sửa khai báo
+  - Lưu lý do của ngoại lệ thay vì ẩn cảnh báo không giải thích
+- level1: API và phạm vi phụ thuộc
+  level2:
+  - Nhận diện kiểu từ thư viện xuất hiện trong API hoặc ABI
+  - Phụ thuộc ở superclass, interface, generic và annotation trên API
+  - Phân biệt API do nhóm công bố và kiểu mà trình biên dịch bên dùng vẫn cần
+  - Phụ thuộc chỉ nằm trong thân phương thức hoặc triển khai nội bộ
+  - Chọn api hay implementation trong thư viện Gradle
+  - compileOnlyApi và trường hợp bên dùng cần kiểu nhưng không cần runtime tương ứng
+  - Phân biệt thư viện được tiêu thụ và ứng dụng đóng gói cuối
+  - Metadata POM, Gradle Module Metadata và classpath của bên dùng
+  - Rủi ro lộ kiểu triển khai qua chữ ký API
+  - Thử biên dịch một project tiêu thụ độc lập để kiểm chứng phạm vi
+  - Ảnh hưởng của thay đổi phạm vi tới biên dịch lại và tương thích
+- level1: Phiên bản và xung đột
+  level2:
+  - Nhiều đường đi yêu cầu nhiều phiên bản của cùng artifact
+  - Cơ chế mediation của Maven và lý do phiên bản cuối được chọn
+  - Cơ chế chọn phiên bản của Gradle cùng constraints, rules và platform
+  - Phân biệt version conflict đã được giải quyết với tương thích đã được chứng minh
+  - Dependency convergence và điều kiện tất cả đường đi hội tụ phiên bản
+  - RequireUpperBoundDeps và khác biệt với dependencyConvergence
+  - BOM, platform và đồng bộ một nhóm thư viện
+  - Exclusion, constraint hoặc khai báo tường minh để xử lý nguyên nhân
+  - Dependency cùng chức năng nhưng khác tọa độ artifact
+  - Phiên bản động, SNAPSHOT và kết quả thay đổi theo thời điểm
+  - Dependency locking và giới hạn bảo đảm tính tái lập
+  - Kiểm tra lại compile, runtime và test sau khi thay cơ chế chọn phiên bản
+- level1: Lớp trùng và liên kết
+  level2:
+  - Phân biệt artifact trùng, khai báo trùng và tên lớp trùng
+  - Cùng tên lớp xuất hiện trong nhiều JAR và thứ tự classpath
+  - Shading, relocation và danh tính lớp sau khi đóng gói
+  - Class loader khác nhau và lớp cùng tên nhưng khác danh tính
+  - ClassNotFoundException và NoClassDefFoundError trong ngữ cảnh nạp lớp
+  - NoSuchMethodError, NoSuchFieldError và phiên bản không khớp
+  - AbstractMethodError, IllegalAccessError và thay đổi hợp đồng nhị phân
+  - Phân biệt tương thích nguồn, tương thích nhị phân và tương thích hành vi
+  - Dùng thông tin API, ABI và artifact thực tế để điều tra
+  - Đối chiếu classpath khi biên dịch với classpath lúc khởi chạy
+  - Kiểm chứng bản sửa bằng lần chạy có cấu hình và đường nạp lớp rõ ràng
+- level1: Phụ thuộc động
+  level2:
+  - Reflection và tên lớp được tạo hoặc đọc từ chuỗi
+  - ServiceLoader, SPI và tệp META-INF/services
+  - Dependency injection, component scanning và cấu hình bean
+  - JDBC driver, logging provider và thành phần chỉ được chọn khi chạy
+  - Annotation processor và loại mã được sinh trong giai đoạn build
+  - Serialization, ORM mapping và tài nguyên tham chiếu kiểu
+  - Thư viện native, JNI và dependency ngoài đồ thị Java thông thường
+  - Profile, feature flag và plugin nạp theo cấu hình
+  - Bổ sung mô hình, khai báo sử dụng hoặc ngoại lệ có bằng chứng
+  - Phân biệt quan sát runtime của một kịch bản với bảo đảm cho mọi kịch bản
+- level1: Chu kỳ phụ thuộc
+  level2:
+  - Chu kỳ ở mức class, package, module và artifact
+  - Vì sao chu kỳ ở các mức khác nhau có hậu quả khác nhau
+  - Tìm thành phần liên thông mạnh và các cạnh tạo chu kỳ
+  - Phân biệt chu kỳ trực tiếp và chu kỳ qua nhiều thành phần
+  - Tác động lên biên dịch, kiểm thử, tái sử dụng và phát hành
+  - Truy từ cạnh tổng hợp về lớp hoặc khai báo cụ thể
+  - Chọn cạnh cần xử lý dựa trên trách nhiệm và hướng phụ thuộc mong muốn
+  - Đảo ngược phụ thuộc bằng hợp đồng phù hợp
+  - Tách trách nhiệm hoặc thành phần dùng chung có tính gắn kết
+  - Đo lại đồ thị và ngăn chu kỳ quay lại sau tái cấu trúc
+- level1: Chỉ số phụ thuộc
+  level2:
+  - Xác định đơn vị đo và loại cạnh trước khi tính chỉ số
+  - 'Số phụ thuộc đi vào và đi ra: fan-in, fan-out'
+  - Afferent coupling và efferent coupling theo định nghĩa công cụ
+  - Instability và tỷ lệ phụ thuộc đi ra trong tổng quan hệ
+  - Abstractness và phạm vi lớp được đưa vào phép đếm
+  - Khoảng cách với main sequence và giới hạn diễn giải
+  - Độ sâu bắc cầu, độ tập trung và thành phần có nhiều bên dùng
+  - Phân biệt số cạnh, số thành phần đích và số lần tham chiếu
+  - Đọc xu hướng cùng ngữ cảnh thay vì xếp hạng chất lượng bằng một con số
+  - Đối chiếu phép đo với sơ đồ và mã thực tế
+- level1: Tác động thay đổi
+  level2:
+  - Dùng đồ thị đảo để xác định bên có thể bị ảnh hưởng
+  - Phân biệt ảnh hưởng trực tiếp và ảnh hưởng bắc cầu
+  - Thay đổi API, triển khai nội bộ và metadata dependency
+  - Ảnh hưởng của hằng nội tuyến và mã đã biên dịch trước đó
+  - Chọn phạm vi biên dịch lại, kiểm thử và rà soát phù hợp
+  - Phân biệt thành phần có thể bị ảnh hưởng với lỗi chắc chắn xảy ra
+  - Phân tích phạm vi khi nâng hoặc thay thư viện
+  - Tác động lên artifact tiêu thụ bên ngoài repository
+  - Giới hạn do phụ thuộc động hoặc đồ thị chưa đầy đủ
+  - So sánh đồ thị trước, sau thay đổi và giải thích cạnh thêm, mất
+- level1: Đóng gói và triển khai
+  level2:
+  - Phân biệt đồ thị build với thư viện thực sự có trong gói phát hành
+  - Thin JAR, uber JAR và executable JAR chứa thư viện lồng
+  - Cấu trúc BOOT-INF/classes, BOOT-INF/lib của Spring Boot JAR
+  - Chuẩn bị lớp và classpath phù hợp trước khi dùng công cụ bytecode
+  - Shading, relocation và hợp nhất tài nguyên dịch vụ
+  - Rủi ro loại bỏ lớp bị xem là không dùng nhưng được nạp động
+  - WAR, container và dependency được môi trường cung cấp
+  - JAR cục bộ không có metadata dependency bắc cầu
+  - Multi-release JAR và góc nhìn phụ thuộc theo phiên bản Java
+  - Runtime image và kiểm chứng module, tài nguyên, service cần thiết
+  - Đối chiếu gói phát hành với báo cáo dependency của đúng lần build
+- level1: Dự án nhiều module
+  level2:
+  - Định nghĩa ranh giới module và trách nhiệm của từng thành phần
+  - Phân biệt cạnh project với cạnh thư viện ngoài
+  - Chọn phạm vi phân tích từng module và toàn repository
+  - Cấu hình dùng chung nhưng giữ đúng source set, profile và variant
+  - Phụ thuộc test fixture, kiểm thử tích hợp và mã công cụ
+  - Composite build, dependency substitution và artifact được chọn thực tế
+  - Công bố thư viện nội bộ và kiểm tra metadata từ góc nhìn bên dùng
+  - Tổng hợp báo cáo mà không đếm trùng lớp hoặc artifact
+  - Ranh giới repository và dependency phát hành độc lập
+  - Giữ bằng chứng chi tiết khi gộp đồ thị để đọc ở mức hệ thống
+- level1: Công cụ phân tích
+  level2:
+  - Chọn công cụ theo đồ thị khai báo, sử dụng mã hay cấu trúc đóng gói
+  - Phối hợp jdeps với báo cáo Maven hoặc Gradle
+  - Dependency Analysis Gradle Plugin và các loại đề xuất nó cung cấp
+  - Phân biệt cấu hình plugin toàn build và cấu hình theo project
+  - Đọc kết quả buildHealth, projectHealth và truy nguyên bằng reason
+  - Kiểm tra tương thích plugin, Gradle, JDK và ngôn ngữ dự án
+  - ArchUnit và kiểm tra phụ thuộc, chu kỳ từ bytecode
+  - Phân biệt kiểm kê graph với thực thi luật kiến trúc cụ thể
+  - Xuất dữ liệu máy đọc và giữ tham chiếu tới bằng chứng gốc
+  - Đánh giá cảnh báo sai bằng dự án mẫu có trường hợp dùng động
+- level1: Kiểm kê và SCA
+  level2:
+  - Phân biệt kiểm kê thành phần, phân tích sử dụng và quét lỗ hổng đã biết
+  - SBOM và quan hệ giữa thành phần, phiên bản, dependency
+  - 'Chọn phạm vi SBOM: nguồn, build hay sản phẩm đã đóng gói'
+  - Ánh xạ tọa độ artifact, định danh gói và dấu vết nhị phân
+  - CycloneDX và khả năng trao đổi dữ liệu kiểm kê
+  - OWASP Dependency-Check như ví dụ công cụ phân tích thành phần
+  - Phân biệt thư viện có mặt, mã dễ tổn thương có thể tới và khả năng khai thác
+  - Thông tin giấy phép và nguồn gốc cần được kiểm chứng bằng quy trình riêng
+  - Giới hạn dữ liệu nhận diện, phiên bản và thời điểm cập nhật
+  - Liên kết kết quả kiểm kê với đúng artifact và commit phát hành
+- level1: Đọc báo cáo và ngoại lệ
+  level2:
+  - Đọc tọa độ, configuration, scope và phiên bản được chọn
+  - Truy đường đi khiến dependency xuất hiện trong đồ thị
+  - Đối chiếu lời khuyên của công cụ với tham chiếu mã hoặc metadata
+  - Phân loại đề xuất đúng, thiếu bằng chứng hoặc cảnh báo sai
+  - Đọc báo cáo thiếu lớp, lỗi phân giải và đầu vào không đầy đủ
+  - Phân biệt gỡ dependency, đổi scope và bổ sung khai báo trực tiếp
+  - Ngoại lệ cho runtime, mã sinh, thư viện đồng hành hoặc tài nguyên
+  - Chọn phạm vi loại trừ nhỏ và ghi lý do cụ thể
+  - Rà soát ngoại lệ sau khi đổi framework, cấu hình hoặc phiên bản
+  - Tạo ví dụ tái hiện tối thiểu để xác minh đề xuất bất thường
+  - Phân biệt không có đề xuất với dependency đã được chứng minh tối ưu
+- level1: Chính sách và CI
+  level2:
+  - Chọn điều kiện chặn cho phụ thuộc thiếu, dư, sai phạm vi hoặc chu kỳ
+  - Phân biệt tác vụ chỉ báo cáo với kiểm tra làm build thất bại
+  - Đặt phân tích vào giai đoạn có đủ lớp, metadata và dependency
+  - Kiểm tra các configuration, profile và variant có ý nghĩa
+  - Cố định phiên bản công cụ và cấu hình chính sách
+  - Lưu báo cáo khi phân tích hoặc cổng chất lượng thất bại
+  - Gắn báo cáo với source commit và artifact đã phân giải
+  - Chặn vi phạm mới khi dự án có tồn đọng được rà soát
+  - Kiểm chứng cổng chất lượng bằng một dependency sai có kiểm soát
+  - Kiểm tra lại phạm vi khi tác vụ bị cache, bỏ qua hoặc không có đầu vào
+  - Tài liệu hóa lệnh chạy lại và bằng chứng để người phát triển xử lý
+- level1: Tối giản và tái cấu trúc
+  level2:
+  - Gỡ dependency dư sau khi đã xác minh mọi cách sử dụng quan trọng
+  - Đổi phạm vi dependency mà vẫn giữ classpath bên dùng đúng
+  - Khai báo trực tiếp thư viện được dùng thay vì dựa vào đường bắc cầu tình cờ
+  - Thay thế hoặc đồng bộ phiên bản từ nguyên nhân xung đột
+  - Thu hẹp API để giảm lộ kiểu của thư viện triển khai
+  - Tách adapter khi phụ thuộc công nghệ lan vào phần lõi
+  - Phá chu kỳ bằng thay đổi trách nhiệm hoặc hợp đồng phù hợp
+  - Giảm thư viện trùng chức năng sau khi đánh giá khác biệt hành vi
+  - Giữ tài nguyên dịch vụ và metadata cần thiết khi đổi cách đóng gói
+  - Chia thay đổi thành các bước có thể kiểm chứng và hoàn nguyên
+  - So sánh đồ thị, báo cáo và gói phát hành sau tái cấu trúc
+- level1: Kiểm chứng thay đổi
+  level2:
+  - Tạo bộ ví dụ có dependency dùng trực tiếp, bắc cầu và chỉ dùng runtime
+  - Kiểm tra analyzer với annotation, hằng nội tuyến và mã sinh
+  - Biên dịch sạch mã chính, mã test và các module tiêu thụ
+  - Kiểm thử tích hợp cho JDBC, logging, SPI và cấu hình framework
+  - Kiểm thử artifact đóng gói trong môi trường có classpath độc lập
+  - So sánh API, ABI và kiểm tra tương thích nhị phân khi thay thư viện
+  - Kiểm tra ServiceLoader, reflection và profile chỉ bật trong một số môi trường
+  - Kiểm chứng báo cáo mới không che mất lỗi cũ bằng ngoại lệ rộng
+  - Thêm hồi quy cho lỗi linkage hoặc đề xuất gỡ nhầm từng xảy ra
+  - Xác minh metadata công bố bằng project tiêu thụ tối thiểu
+  - Lưu kết quả trước, sau cùng điều kiện phân tích
+- level1: Hiệu năng và tái lập
+  level2:
+  - Chi phí đọc source, bytecode, metadata và duyệt đồ thị lớn
+  - Chọn độ chi tiết và phạm vi mà vẫn giữ câu hỏi phân tích có ý nghĩa
+  - Tái sử dụng kết quả theo artifact, lớp và dependency không đổi
+  - Vô hiệu hóa cache khi JDK, công cụ, cấu hình hoặc metadata thay đổi
+  - Phân biệt cache tải artifact và cache kết quả phân tích
+  - Phiên bản động, metadata biến đổi và nguồn sai khác giữa hai lần chạy
+  - Dependency lock, kiểm chứng artifact và giới hạn của từng cơ chế
+  - Giới hạn thời gian, bộ nhớ và báo cáo khi phân tích không hoàn tất
+  - Đối chiếu phân tích tăng dần với lần chạy toàn phạm vi
+  - Tổ chức đầu ra ổn định để so sánh đồ thị theo commit
+- level1: Khắc phục sự cố
+  level2:
+  - Missing dependency do classpath, module path hoặc đầu ra biên dịch chưa đủ
+  - Kết quả unused sai do reflection, SPI, tài nguyên hoặc mã sinh
+  - Kết quả used undeclared do phụ thuộc bắc cầu hoặc phân loại scope
+  - Khác biệt giữa compileClasspath, runtimeClasspath và môi trường triển khai
+  - Phiên bản bất ngờ do BOM, platform, constraint hoặc luật phân giải
+  - Lớp trùng hoặc lỗi linkage chỉ xảy ra khi chạy gói phát hành
+  - Phân tích sai multi-release JAR hoặc executable JAR lồng
+  - Module descriptor, automatic module và split package gây sai giả định
+  - Khác biệt profile, variant, hệ điều hành và JDK giữa máy cá nhân với CI
+  - Plugin không hỗ trợ phiên bản build hoặc không quét đủ project
+  - Thu thập đồ thị, artifact thực tế và ví dụ tái hiện trước khi kết luận
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây ví dụ Java nhiều module có dependency trực tiếp và bắc cầu
+  - 'Vẽ ba đồ thị: khai báo, đã phân giải và sử dụng trong mã'
+  - Dùng jdeps để truy từ package tới lớp và tham chiếu cụ thể
+  - Đọc dependency tree hoặc dependencyInsight để giải thích phiên bản được chọn
+  - Phát hiện và sửa dependency thiếu, dư hoặc chỉ dùng trong test
+  - Kiểm chứng một dependency runtime bị báo unused
+  - Tạo chu kỳ package rồi xử lý cạnh gây phụ thuộc ngược
+  - Mô phỏng xung đột phiên bản và lỗi tương thích nhị phân
+  - Thu hẹp API, đổi phạm vi và thử project tiêu thụ độc lập
+  - Đối chiếu JAR đóng gói với báo cáo và dữ liệu kiểm kê
+  - Tích hợp CI với ngoại lệ hẹp và ca hồi quy có bằng chứng

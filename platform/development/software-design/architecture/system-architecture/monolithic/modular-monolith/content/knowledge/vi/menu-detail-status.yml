@@ -1,0 +1,2434 @@
+menu:
+- slug: modular-monolith-foundations
+  title: Nền tảng và phạm vi của Modular Monolith
+  childs:
+  - slug: modular-monolith-foundations-001
+    title: Một đơn vị triển khai và nhiều module nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-002
+    title: Phân biệt module nghiệp vụ, package, thư viện và service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-003
+    title: Tính kết dính nội bộ và liên kết giữa các module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-004
+    title: Ranh giới logic trong cùng một tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-005
+    title: So sánh monolith phân lớp, monolith hỗn tạp và Modular Monolith
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-006
+    title: So sánh Modular Monolith, microservices và hệ phân tán nguyên khối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-007
+    title: Chi phí phối hợp, vận hành và thay đổi kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-008
+    title: Điều kiện phù hợp và giới hạn của Modular Monolith
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-monolith-foundations-009
+    title: Thuộc tính chất lượng và tiêu chí thành công của thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: module-boundary-discovery
+  title: Khảo sát nghiệp vụ và xác định ranh giới module
+  childs:
+  - slug: module-boundary-discovery-001
+    title: Lập bản đồ năng lực nghiệp vụ và luồng giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-002
+    title: Khai thác quy trình nghiệp vụ bằng Event Storming
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-003
+    title: Phân biệt subdomain, bounded context và module triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-004
+    title: Xây dựng ngôn ngữ chung trong từng ngữ cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-005
+    title: Xác định chủ sở hữu quy tắc, dữ liệu và quyết định nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-006
+    title: Phân nhóm theo lý do thay đổi thay vì theo lớp kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-007
+    title: Chọn độ hạt module và tránh chia nhỏ quá sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-008
+    title: Phân tích điểm giao nhau giữa các bounded context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-009
+    title: Điều chỉnh ranh giới từ thay đổi thực tế và phản hồi của nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-boundary-discovery-010
+    title: Thiết kế bản đồ module cho bán hàng, kho hàng, thanh toán và giao vận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: domain-modeling-and-invariants
+  title: Mô hình miền và bất biến bên trong module
+  childs:
+  - slug: domain-modeling-and-invariants-001
+    title: Thiết kế aggregate và ranh giới nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-002
+    title: Phân biệt entity, value object và đối tượng truyền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-003
+    title: Đặt bất biến nghiệp vụ vào chủ sở hữu phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-004
+    title: Phân chia trách nhiệm domain service và application service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-005
+    title: Biểu diễn vòng đời nghiệp vụ bằng trạng thái và chuyển trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-006
+    title: Áp dụng mô hình miền giàu hành vi khi nghiệp vụ cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-007
+    title: Dùng transaction script cho module có nghiệp vụ đơn giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-008
+    title: Tránh dùng chung entity giữa các module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-009
+    title: Phân biệt domain event và integration event
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: domain-modeling-and-invariants-010
+    title: Giữ mô hình miền độc lập với framework và cơ chế lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: module-internal-structure
+  title: Cấu trúc nội bộ và tổ chức mã nguồn
+  childs:
+  - slug: module-internal-structure-001
+    title: Tổ chức package theo tính năng và module nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-002
+    title: Phân lớp API, application, domain và infrastructure trong module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-003
+    title: Áp dụng Ports and Adapters bên trong ranh giới module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-004
+    title: Phân biệt public API và chi tiết triển khai nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-005
+    title: Lựa chọn một dự án build hoặc nhiều dự án build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-006
+    title: Bố trí module trong Maven hoặc Gradle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-007
+    title: Quản lý mã sinh, tài nguyên và cấu hình theo module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-008
+    title: Sắp xếp kiểm thử, migration và tài liệu cùng chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-009
+    title: Quản lý mã dùng chung trong shared kernel nhỏ và có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-internal-structure-010
+    title: Nhận diện package tiện ích trở thành nơi tích tụ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: module-contracts-and-apis
+  title: Hợp đồng và API giữa các module
+  childs:
+  - slug: module-contracts-and-apis-001
+    title: Xác định năng lực được công khai của từng module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-002
+    title: Thiết kế command, query và kết quả trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-003
+    title: Thiết kế DTO, định danh và value object tại ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-004
+    title: Tránh lộ entity ORM, repository và đối tượng quản lý persistence
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-005
+    title: Mô tả tiền điều kiện, hậu điều kiện và bất biến của hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-006
+    title: Thiết kế mã lỗi và phân biệt lỗi nghiệp vụ với lỗi kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-007
+    title: Quy định tính idempotent cho thao tác có thể được gọi lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-008
+    title: Hợp đồng giao dịch, thời điểm hoàn tất và hiệu ứng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-009
+    title: Tiến hóa hợp đồng và quản lý thay đổi không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-contracts-and-apis-010
+    title: Tài liệu hóa API bằng ví dụ tình huống nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependency-graphs-and-interactions
+  title: Đồ thị phụ thuộc và quy tắc tương tác
+  childs:
+  - slug: dependency-graphs-and-interactions-001
+    title: Biểu diễn quan hệ phụ thuộc thành đồ thị có hướng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-002
+    title: Phân biệt phụ thuộc mã nguồn, phụ thuộc dữ liệu và phụ thuộc lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-003
+    title: Xác định hướng phụ thuộc theo năng lực nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-004
+    title: Phát hiện chu trình và phân tích nguyên nhân nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-005
+    title: Đảo ngược phụ thuộc bằng port và adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-006
+    title: Phá vòng phụ thuộc bằng điều chỉnh trách nhiệm và hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-007
+    title: Dùng sự kiện khi phù hợp với ngữ nghĩa và yêu cầu nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-008
+    title: Phân biệt điều phối luồng và cộng tác qua sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-009
+    title: Kiểm soát độ dài chuỗi gọi và phụ thuộc bắc cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-and-interactions-010
+    title: Ngăn service trung tâm và shared kernel trở thành điểm kết nối mọi module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: app-composition-boundary-enforcement
+  title: Lắp ghép ứng dụng và bảo vệ ranh giới kỹ thuật
+  childs:
+  - slug: app-composition-boundary-enforcement-001
+    title: Vai trò của composition root trong ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-002
+    title: Khởi tạo module và cung cấp dependency qua hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-003
+    title: Quản lý vòng đời, cấu hình và điều kiện kích hoạt module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-004
+    title: Giới hạn truy cập bằng package-private và phạm vi hiển thị Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-005
+    title: Giới hạn dependency bằng cấu hình build nhiều module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-006
+    title: Cân nhắc JPMS cho yêu cầu đóng gói và kiểm soát truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-007
+    title: Ngăn component scanning và auto-configuration vượt ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-008
+    title: Ngăn injection trực tiếp vào implementation và repository của module khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-009
+    title: Rủi ro phá ranh giới qua reflection, serialization và truy cập tĩnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-composition-boundary-enforcement-010
+    title: Kiểm tra khởi động, dependency thiếu và cấu hình không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-ownership-and-storage
+  title: Quyền sở hữu dữ liệu và thiết kế lưu trữ
+  childs:
+  - slug: data-ownership-and-storage-001
+    title: Mỗi tập dữ liệu có một module sở hữu và chịu trách nhiệm thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-002
+    title: Cơ sở dữ liệu dùng chung và quyền sở hữu bảng tách biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-003
+    title: So sánh dùng chung schema, tách schema và tách cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-004
+    title: Đóng gói repository và truy cập dữ liệu qua API của module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-005
+    title: Thiết kế định danh và tham chiếu xuyên module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-006
+    title: Cân nhắc khóa ngoại xuyên module và mức liên kết dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-007
+    title: Ngăn mapping ORM và lazy loading xuyên ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-008
+    title: Quản lý migration và quyền truy cập theo chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-009
+    title: Thay đổi schema tương thích với luồng triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-ownership-and-storage-010
+    title: Xử lý xóa dữ liệu, lưu trữ lịch sử và liên kết bị thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: module-transactions-and-consistency
+  title: Giao dịch và nhất quán trong module
+  childs:
+  - slug: module-transactions-and-consistency-001
+    title: Đặt ranh giới giao dịch tại use case nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-002
+    title: Quan hệ giữa aggregate, unit of work và transaction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-003
+    title: Cơ chế transaction của framework và bẫy tự gọi nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-004
+    title: Isolation level và bất thường khi truy cập đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-005
+    title: Khóa lạc quan, phiên bản dữ liệu và xử lý xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-006
+    title: Khóa bi quan, thứ tự khóa và phòng tránh deadlock
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-007
+    title: Kiểm soát thời gian giao dịch và truy vấn trong vùng khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-008
+    title: Rollback, ngoại lệ và phân loại thao tác có thể thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-009
+    title: Idempotency key và ràng buộc duy nhất trong cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-transactions-and-consistency-010
+    title: Kiểm thử tranh chấp khi đặt hàng và giữ chỗ tồn kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cross-module-transaction-coordination
+  title: Phối hợp giao dịch xuyên module
+  childs:
+  - slug: cross-module-transaction-coordination-001
+    title: Xác định bất biến cần nhất quán tức thời giữa các module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-002
+    title: Giao dịch ACID dùng chung khi các module cùng tài nguyên giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-003
+    title: Điều kiện tham gia giao dịch và giới hạn của transaction propagation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-004
+    title: Mức liên kết phát sinh khi dùng một giao dịch xuyên module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-005
+    title: Giới hạn giao dịch cục bộ khi dùng nhiều cơ sở dữ liệu hoặc hệ ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-006
+    title: Chia quy trình thành các bước với trạng thái nghiệp vụ rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-007
+    title: Thiết kế process manager cho quy trình dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-008
+    title: Bù trừ nghiệp vụ và giới hạn so với rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-009
+    title: Giữ chỗ, xác nhận, hết hạn và giải phóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-010
+    title: Xử lý lỗi từng phần, timeout và kết quả chưa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-transaction-coordination-011
+    title: Đối soát và phục hồi quy trình bị gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-communication-and-reliability
+  title: Giao tiếp qua sự kiện và độ tin cậy
+  childs:
+  - slug: event-communication-and-reliability-001
+    title: Sự kiện đồng bộ trong tiến trình và ảnh hưởng đến bên phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-002
+    title: Sự kiện bất đồng bộ trong tiến trình và nguy cơ mất khi ứng dụng dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-003
+    title: Thời điểm phát sự kiện trước commit và sau commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-004
+    title: Phân biệt thông báo sau commit với cơ chế giao nhận bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-005
+    title: Transactional outbox và ghi nguyên tử cùng thay đổi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-006
+    title: Bộ chuyển tiếp outbox, đánh dấu xử lý và tình huống phát lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-007
+    title: Inbox, chống trùng lặp và consumer idempotent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-008
+    title: Thiết kế payload, metadata và phiên bản sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-009
+    title: Thứ tự sự kiện theo aggregate và xử lý sự kiện đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-010
+    title: Retry có giới hạn, backoff và vùng lưu sự kiện thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-011
+    title: Phát lại sự kiện, tương thích dữ liệu cũ và kiểm soát hiệu ứng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-communication-and-reliability-012
+    title: Lựa chọn khi nào cần broker bên ngoài ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cross-module-queries-and-read-models
+  title: Truy vấn liên module và mô hình đọc
+  childs:
+  - slug: cross-module-queries-and-read-models-001
+    title: Truy vấn qua API công khai của module sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-002
+    title: Tổng hợp kết quả bằng query service ở tầng điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-003
+    title: Phân biệt mô hình ghi và mô hình đọc theo nhu cầu CQRS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-004
+    title: Xây dựng projection và bản sao dữ liệu phục vụ truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-005
+    title: Độ trễ dữ liệu và cam kết nhất quán của màn hình nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-006
+    title: Cân nhắc join xuyên schema và view báo cáo có quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-007
+    title: Tránh phụ thuộc vào cấu trúc bảng nội bộ của module khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-008
+    title: Kiểm soát N+1, fan-out và phân trang khi tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-009
+    title: Thiết kế cache cho dữ liệu đọc và cơ chế vô hiệu hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-010
+    title: Xây dựng lại projection và đối soát sai lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-module-queries-and-read-models-011
+    title: Phân quyền truy vấn và giới hạn dữ liệu được tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: external-system-integration
+  title: Tích hợp hệ thống bên ngoài
+  childs:
+  - slug: external-system-integration-001
+    title: Đặt adapter tích hợp trong module sở hữu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-002
+    title: Dùng lớp chống tham nhũng để bảo vệ mô hình miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-003
+    title: Ánh xạ hợp đồng nội bộ và hợp đồng của đối tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-004
+    title: Thiết lập timeout và ngân sách thời gian của use case
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-005
+    title: Điều kiện retry an toàn đối với lời gọi có hiệu ứng phụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-006
+    title: Circuit breaker và giới hạn tài nguyên cho kết nối ra ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-007
+    title: Tránh giữ giao dịch cơ sở dữ liệu trong lúc chờ hệ ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-008
+    title: Xử lý webhook, xác thực nguồn và thông điệp trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-009
+    title: Quản lý kết quả thanh toán không xác định và đối soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: external-system-integration-010
+    title: Mô phỏng đối tác và kiểm thử hợp đồng tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: module-security-and-access-control
+  title: Bảo mật và quản trị truy cập theo module
+  childs:
+  - slug: module-security-and-access-control-001
+    title: Xác thực tại điểm vào và truyền ngữ cảnh danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-002
+    title: Phân quyền nghiệp vụ bên trong module sở hữu hành động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-003
+    title: Kiểm tra quyền trên tài nguyên và ngăn truy cập theo định danh tùy ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-004
+    title: Phân biệt ranh giới module với ranh giới bảo mật của tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-005
+    title: Giới hạn quyền truy cập dữ liệu và thông tin nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-006
+    title: Tách biệt tenant trong truy vấn, cache và tác vụ nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-007
+    title: Truyền security context qua luồng bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-008
+    title: Quản lý secret và cấu hình nhạy cảm theo trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-009
+    title: Ghi audit nghiệp vụ và bảo vệ dữ liệu trong log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-security-and-access-control-010
+    title: Kiểm thử trường hợp vượt quyền và truy cập xuyên tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: functional-and-integration-testing
+  title: Chiến lược kiểm thử chức năng và tích hợp
+  childs:
+  - slug: functional-and-integration-testing-001
+    title: Lập ma trận rủi ro theo module và luồng nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-002
+    title: Unit test cho bất biến và chuyển trạng thái miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-003
+    title: Kiểm thử application service qua port và fake có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-004
+    title: Kiểm thử tích hợp độc lập cho từng module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-005
+    title: Kiểm thử repository và migration trên cơ sở dữ liệu thật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-006
+    title: Kiểm thử hợp đồng giữa module cung cấp và module sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-007
+    title: Kiểm thử sự kiện, outbox và tác vụ bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-008
+    title: Kiểm thử đồng thời, giao dịch và xử lý trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-009
+    title: Kiểm thử xuyên module cho luồng nghiệp vụ trọng yếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-010
+    title: Quản lý dữ liệu kiểm thử, fixture và tính độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functional-and-integration-testing-011
+    title: Chọn mức mock phù hợp và tránh kiểm thử phụ thuộc chi tiết nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-tests-boundary-enforcement
+  title: Kiểm thử kiến trúc và ngăn xói mòn ranh giới
+  childs:
+  - slug: architecture-tests-boundary-enforcement-001
+    title: Chuyển quyết định kiến trúc thành quy tắc có thể kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-002
+    title: Khai báo module và bề mặt API được phép truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-003
+    title: Kiểm tra dependency package bằng ArchUnit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-004
+    title: Xác minh cấu trúc module và quan hệ phụ thuộc bằng Spring Modulith
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-005
+    title: Kiểm tra không có chu trình giữa các module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-006
+    title: Chặn tham chiếu vào package nội bộ và repository của module khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-007
+    title: Kiểm tra quy tắc phân lớp và phụ thuộc framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-008
+    title: Phân biệt kiểm tra tĩnh với vi phạm phát sinh lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-009
+    title: Rà soát SQL, reflection và sự kiện ngoài khả năng kiểm tra tĩnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-010
+    title: Đưa kiểm tra kiến trúc vào CI và chặn vi phạm mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-tests-boundary-enforcement-011
+    title: Quản lý baseline, ngoại lệ tạm thời và thời hạn xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-diagnostics
+  title: Quan sát hệ thống và khả năng chẩn đoán
+  childs:
+  - slug: observability-and-diagnostics-001
+    title: Gắn tên module và use case vào log có cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-002
+    title: Truyền correlation ID và trace context qua lời gọi và sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-003
+    title: Biểu diễn span cho ranh giới module trong cùng tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-004
+    title: Đo độ trễ, tỷ lệ lỗi và thông lượng theo module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-005
+    title: Theo dõi hàng đợi, outbox và tác vụ xử lý lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-006
+    title: Theo dõi tranh chấp khóa, connection pool và giao dịch dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-007
+    title: Xây dựng dashboard cho luồng nghiệp vụ xuyên module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-008
+    title: Phân biệt audit nghiệp vụ, log kỹ thuật và lịch sử sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-009
+    title: Thiết kế health check và readiness theo mức độ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnostics-010
+    title: Điều tra lỗi dây chuyền và quy trình bị kẹt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-concurrency-and-isolation
+  title: Hiệu năng, đồng thời và giới hạn cô lập
+  childs:
+  - slug: performance-concurrency-and-isolation-001
+    title: Xác định ngân sách độ trễ cho từng luồng nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-002
+    title: Đo chi phí gọi trực tiếp, serialization và xử lý sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-003
+    title: Tối ưu truy vấn và ranh giới giao dịch từ số liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-004
+    title: Quản lý thread pool và tách tài nguyên cho tác vụ nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-005
+    title: Giới hạn đồng thời, hàng đợi và backpressure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-006
+    title: Thiết kế cache theo chủ sở hữu và vòng đời dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-007
+    title: Chia sẻ connection pool và xử lý module chiếm dụng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-008
+    title: Giới hạn cô lập lỗi và bộ nhớ trong một tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-009
+    title: Mở rộng ngang toàn ứng dụng và xử lý tác vụ chỉ chạy một lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-010
+    title: Kiểm thử tải, điểm nóng và sức chịu lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-concurrency-and-isolation-011
+    title: Xác định giới hạn mở rộng có thể giải quyết trong Modular Monolith
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: build-deployment-and-operations
+  title: Build, triển khai và vận hành một đơn vị phát hành
+  childs:
+  - slug: build-deployment-and-operations-001
+    title: Đóng gói các module thành một ứng dụng triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-002
+    title: Quản lý phiên bản dependency thống nhất và khả năng tái lập build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-003
+    title: Tổ chức pipeline theo đồ thị phụ thuộc của module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-004
+    title: Kiểm tra đầy đủ luồng liên module trước khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-005
+    title: Quản lý cấu hình môi trường và xác thực khi khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-006
+    title: Điều phối migration theo thứ tự phụ thuộc dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-007
+    title: Áp dụng expand-contract cho schema và triển khai cuốn chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-008
+    title: Tương thích giữa các phiên bản ứng dụng cùng chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-009
+    title: Feature flag cho rollout và giới hạn tổ hợp cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-010
+    title: Dừng ứng dụng an toàn và hoàn tất tác vụ đang xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-deployment-and-operations-011
+    title: Rollback ứng dụng khi dữ liệu và sự kiện đã thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-governance-team-collab
+  title: Quản trị kiến trúc và phối hợp nhóm
+  childs:
+  - slug: architecture-governance-team-collab-001
+    title: Xác định nhóm sở hữu module và trách nhiệm hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-002
+    title: Quy tắc sửa mã xuyên module và phối hợp review
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-003
+    title: Ghi Architecture Decision Record cho lựa chọn có đánh đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-004
+    title: Tài liệu hóa bản đồ ngữ cảnh và sơ đồ C4
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-005
+    title: Quản lý danh mục API, sự kiện và quyền sở hữu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-006
+    title: Đánh giá tác động thay đổi từ đồ thị phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-007
+    title: Theo dõi số lượng dependency và mức độ lan truyền thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-008
+    title: Quản lý nợ kiến trúc và ưu tiên theo rủi ro nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-009
+    title: Quy trình đề xuất, thử nghiệm và thay đổi ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-governance-team-collab-010
+    title: Giữ quyền tự chủ nhóm trong nhịp phát hành chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: modularity-antipatterns-and-erosion
+  title: Mẫu lỗi và dấu hiệu suy giảm tính module
+  childs:
+  - slug: modularity-antipatterns-and-erosion-001
+    title: Chia package theo nghiệp vụ nhưng vẫn truy cập tự do
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-002
+    title: Dùng mô hình dữ liệu và repository chung cho mọi module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-003
+    title: Shared kernel phình to và thư viện tiện ích chứa quy tắc nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-004
+    title: Chu trình phụ thuộc và chuỗi gọi xuyên module quá dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-005
+    title: Sự kiện không rõ ngữ nghĩa và giao tiếp bất đồng bộ khó lần vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-006
+    title: Service điều phối chứa toàn bộ nghiệp vụ của hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-007
+    title: Dùng giao dịch xuyên module để che giấu ranh giới chưa phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-008
+    title: Truy vấn báo cáo làm lộ cấu trúc lưu trữ nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-009
+    title: Kiểm thử phải khởi động toàn bộ ứng dụng cho mọi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modularity-antipatterns-and-erosion-010
+    title: Tách thành microservices khi chưa giải quyết liên kết dữ liệu và nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: legacy-monolith-migration
+  title: Chuyển đổi từ monolith hiện hữu
+  childs:
+  - slug: legacy-monolith-migration-001
+    title: Khảo sát dependency, dữ liệu và luồng thay đổi của hệ thống cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-002
+    title: Chọn module thí điểm theo giá trị và mức độ rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-003
+    title: Dùng characterization test để giữ hành vi hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-004
+    title: Tạo đường biên bằng facade và branch by abstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-005
+    title: Chuyển dần lời gọi trực tiếp sang hợp đồng công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-006
+    title: Di chuyển repository và quy tắc nghiệp vụ về đúng chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-007
+    title: Tách quyền ghi trước khi tách schema hoặc cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-008
+    title: Loại bỏ vòng phụ thuộc theo từng bước có kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-009
+    title: Đưa kiểm tra kiến trúc vào lộ trình chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-010
+    title: Rollout từng phần, đo kết quả và chuẩn bị phương án quay lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-monolith-migration-011
+    title: Tiêu chí hoàn tất chuyển đổi và ngăn tái phát phụ thuộc cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: microservices-extraction-assessment
+  title: Đánh giá và chuẩn bị tách microservices
+  childs:
+  - slug: microservices-extraction-assessment-001
+    title: Xác định động lực từ nghiệp vụ, quy mô nhóm và vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-002
+    title: Phân biệt nhu cầu triển khai độc lập và nhu cầu mở rộng độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-003
+    title: Đánh giá yêu cầu cô lập lỗi, bảo mật và tuân thủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-004
+    title: Dùng số liệu thay đổi, điểm nóng và sự cố để ra quyết định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-005
+    title: Đánh giá độ sẵn sàng của hợp đồng và quyền sở hữu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-006
+    title: Xác định bất biến bị ảnh hưởng khi chuyển sang giao dịch phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-007
+    title: Định giá chi phí mạng, độ trễ, quan sát và vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-008
+    title: Chọn module ứng viên và tránh tách đồng loạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-009
+    title: Chuẩn bị hợp đồng từ xa và xử lý lỗi từng phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-010
+    title: Chuyển dữ liệu, đồng bộ thay đổi và đối soát trước chuyển tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-011
+    title: Áp dụng Strangler Fig, chuyển lưu lượng và phương án quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: microservices-extraction-assessment-012
+    title: Giữ lại Modular Monolith khi lợi ích tách chưa vượt chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: modular-sales-system-design-workshop
+  title: Thực hành thiết kế hệ thống bán hàng theo module
+  childs:
+  - slug: modular-sales-system-design-workshop-001
+    title: Chốt phạm vi, giả định và tiêu chí chấp nhận của bài thực hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-002
+    title: Phân tích luồng đặt hàng, giữ tồn kho, thanh toán và giao hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-003
+    title: Thiết kế module Catalog, Ordering, Inventory, Payment và Shipping
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-004
+    title: Xác định bảng dữ liệu, aggregate và chủ sở hữu bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-005
+    title: Lập ma trận dependency và bản đồ hợp đồng công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-006
+    title: Chọn ranh giới giao dịch và chính sách nhất quán cho từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-007
+    title: Thiết kế command, query, sự kiện và mã lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-008
+    title: Mô tả xử lý thanh toán thất bại, hết hàng và hủy đơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-009
+    title: Thiết kế quyền truy cập, tenant và audit cho các thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: modular-sales-system-design-workshop-010
+    title: Viết ADR và kế hoạch kiểm thử trước triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: implementation-arch-validation-workshop
+  title: Thực hành triển khai, kiểm chứng và đánh giá kiến trúc
+  childs:
+  - slug: implementation-arch-validation-workshop-001
+    title: Dựng bộ khung ứng dụng Java và cấu trúc module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-002
+    title: Cài đặt API công khai và adapter nối các module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-003
+    title: Đóng gói persistence và migration theo chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-004
+    title: Hoàn thiện luồng đặt hàng thành công với kiểm thử xuyên module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-005
+    title: Bổ sung giữ chỗ tồn kho và kiểm soát đơn hàng đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-006
+    title: Cài đặt outbox và kiểm chứng tình huống phát trùng sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-007
+    title: Bổ sung bù trừ, retry và phục hồi luồng thanh toán gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-008
+    title: Chặn truy cập nội bộ và chu trình bằng kiểm thử kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-009
+    title: Quan sát luồng nghiệp vụ và đo điểm nóng dưới tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-010
+    title: Thực hành migration và triển khai cuốn chiếu với một đơn vị phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-011
+    title: Diễn tập thay đổi hợp đồng và điều chỉnh ranh giới module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-arch-validation-workshop-012
+    title: Đánh giá module ứng viên tách và lập báo cáo quyết định kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

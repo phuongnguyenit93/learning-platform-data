@@ -1,0 +1,57 @@
+roadmap:
+- id: khi-nao-dung-observer
+  title: Khi nào dùng Observer
+  purpose: Hiểu nhu cầu thông báo thay đổi giữa các đối tượng mà không phụ thuộc chặt.
+  objectives:
+  - Mô tả quan hệ một-nhiều giữa publisher và subscriber.
+  - Nêu ví dụ cập nhật trạng thái đơn hàng.
+  - So sánh thông báo tự động với kiểm tra liên tục.
+- id: subject-observer
+  title: Subject & Observer
+  purpose: Nắm cấu trúc các vai trò và quan hệ giữa các đối tượng.
+  objectives:
+  - Xác định Subject, Observer và các lớp triển khai.
+  - Vẽ sơ đồ phụ thuộc qua interface.
+  - Giải thích vai trò của ConcreteSubject và ConcreteObserver.
+- id: dang-ky-huy-theo-doi
+  title: Đăng ký & Hủy theo dõi
+  purpose: Quản lý danh sách đối tượng nhận thông báo tại thời điểm chạy.
+  objectives:
+  - Cài đặt subscribe và unsubscribe.
+  - Cho phép nhiều observer đăng ký cùng một subject.
+  - Kiểm tra không gọi observer đã hủy đăng ký.
+- id: notify-update
+  title: Notify & Update
+  purpose: Tổ chức quy trình phát sự kiện khi trạng thái thay đổi.
+  objectives:
+  - Kích hoạt notify sau thay đổi trạng thái.
+  - Truyền dữ liệu sự kiện hoặc cho observer lấy trạng thái.
+  - Phân biệt hai cách push và pull.
+- id: cai-dat-observer-bang-java
+  title: Cài đặt Observer bằng Java
+  purpose: Thực hành thiết kế interface và các lớp độc lập trong Java.
+  objectives:
+  - Tạo Subject, Observer và hai subscriber cụ thể.
+  - Phát sự kiện đổi trạng thái đơn hàng.
+  - Chạy thử đăng ký, cập nhật và gỡ đăng ký.
+- id: vong-doi-loi-su-kien
+  title: Vòng đời & Lỗi sự kiện
+  purpose: Giảm rủi ro về bộ nhớ, lỗi listener và thao tác đồng thời.
+  objectives:
+  - Tránh giữ listener không còn sử dụng.
+  - Kiểm soát lỗi callback và thay đổi danh sách khi notify.
+  - Xác định hành vi đồng bộ và thứ tự xử lý.
+- id: observer-trong-java-spring
+  title: Observer trong Java & Spring
+  purpose: Nhận diện ứng dụng thực tế và chọn API phù hợp.
+  objectives:
+  - Dùng PropertyChangeSupport cho sự kiện thay đổi thuộc tính.
+  - Nhận biết Spring @EventListener và ApplicationEventPublisher.
+  - Tránh java.util.Observer/Observable đã deprecated.
+- id: kiem-thu-danh-doi
+  title: Kiểm thử & Đánh đổi
+  purpose: Đánh giá tính đúng đắn và chi phí của mô hình thông báo.
+  objectives:
+  - Test nhiều subscriber và unsubscribe động.
+  - Kiểm tra thông báo trùng, rò rỉ listener và lỗi callback.
+  - Phân biệt Observer với Pub/Sub qua broker khi cần.

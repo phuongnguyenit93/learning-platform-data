@@ -1,0 +1,285 @@
+menu:
+- level1: Tư duy mệnh lệnh
+  level2:
+  - Lập trình mệnh lệnh (imperative programming) là gì
+  - Diễn tả cách thực hiện công việc bằng các bước thay đổi trạng thái
+  - 'Ba thành phần cốt lõi: trạng thái, lệnh và luồng điều khiển'
+  - Từ yêu cầu bài toán đến chuỗi thao tác có thứ tự
+  - Vai trò của biến, phép gán, điều kiện và vòng lặp
+  - Quan hệ giữa lập trình mệnh lệnh, có cấu trúc và thủ tục
+  - Ngôn ngữ đa mô hình và cách nhận diện phần mã mệnh lệnh
+  - Kiến thức đầu vào, mã giả và cách theo dõi ví dụ
+  - Trình tự học từ mô hình thực thi đến thiết kế chương trình
+- level1: Trạng thái chương trình
+  level2:
+  - Trạng thái (state) và giá trị tại một thời điểm thực thi
+  - Biến, tên biến, vị trí lưu trữ và giá trị được lưu
+  - Quan hệ giữa môi trường tên và bộ nhớ lưu trữ
+  - Trạng thái ban đầu, trạng thái trung gian và trạng thái kết thúc
+  - Chuyển trạng thái sau một lệnh hoặc một nhóm lệnh
+  - Trạng thái cục bộ, trạng thái dùng chung và trạng thái bên ngoài
+  - Phân biệt dữ liệu đầu vào, dữ liệu làm việc và kết quả
+  - Biểu diễn trạng thái bằng bảng và sơ đồ bộ nhớ
+  - Tính xác định của kết quả dưới các giả định đầu vào và môi trường
+  - Nhận diện phần trạng thái cần thiết để giải quyết bài toán
+- level1: Lệnh và phép gán
+  level2:
+  - Lệnh (statement), biểu thức và đơn vị thực thi
+  - Khai báo, khởi tạo và gán lại giá trị
+  - Phép gán là thao tác cập nhật trạng thái
+  - Phân biệt phép gán với quan hệ bằng nhau trong toán học
+  - Đọc giá trị cũ trước khi ghi giá trị mới
+  - Phép gán kết hợp và toán tử tăng giảm
+  - Hoán đổi hai giá trị và vai trò của biến tạm
+  - Gán liên tiếp và sự phụ thuộc vào quy tắc ngôn ngữ
+  - Kiểu dữ liệu, chuyển kiểu và giới hạn giá trị khi cập nhật
+  - Lỗi đọc trước khởi tạo và trạng thái chưa hợp lệ
+- level1: Biểu thức và hiệu ứng
+  level2:
+  - Giá trị của biểu thức và tác dụng phụ (side effect)
+  - Biểu thức chỉ đọc trạng thái và biểu thức làm thay đổi trạng thái
+  - Độ ưu tiên toán tử, tính kết hợp và thứ tự đánh giá
+  - Tiền tăng, hậu tăng và sự khác nhau giữa giá trị trả về với giá trị lưu
+  - Đánh giá ngắn mạch và tác dụng phụ trong điều kiện
+  - Thứ tự đánh giá đối số khi gọi hàm
+  - Quan hệ phụ thuộc khi cùng đọc và ghi một biến trong biểu thức
+  - Tách thao tác cập nhật khỏi biểu thức tính toán phức tạp
+  - Quy tắc đánh giá của Java và việc kiểm tra quy tắc ở ngôn ngữ khác
+  - Thay đổi thứ tự biểu thức khi có ngoại lệ hoặc tác dụng phụ
+- level1: Điều khiển có cấu trúc
+  level2:
+  - Thực thi tuần tự và ý nghĩa của thứ tự lệnh
+  - 'Ba cấu trúc nền tảng: tuần tự, lựa chọn và lặp'
+  - Khối lệnh và cách kết hợp cấu trúc điều khiển
+  - Điểm vào, điểm ra và đường đi của một khối
+  - Sơ đồ luồng điều khiển (control-flow graph)
+  - Hoàn tất bình thường và chuyển điều khiển đột ngột
+  - Nhảy không có cấu trúc và vấn đề theo dõi đường thực thi
+  - Return sớm và cách làm rõ điều kiện kết thúc
+  - Phân rã luồng phức tạp thành các khối có thể suy luận
+- level1: Rẽ nhánh
+  level2:
+  - Điều kiện Boolean và việc lựa chọn nhánh
+  - If, if–else và chuỗi điều kiện
+  - Thứ tự kiểm tra khi nhiều điều kiện cùng đúng
+  - Điều kiện loại trừ nhau và điều kiện bao phủ đủ trường hợp
+  - Rẽ nhánh lồng nhau và độ sâu điều khiển
+  - Switch và lựa chọn theo giá trị
+  - Fall-through và việc kết thúc nhánh theo quy tắc ngôn ngữ
+  - Điều kiện bảo vệ (guard clause) cho trường hợp không hợp lệ
+  - Trạng thái sau điểm hợp nhánh và dữ liệu cần được khởi tạo
+  - Biến đổi điều kiện mà vẫn giữ nguyên tác dụng phụ và kết quả
+- level1: Vòng lặp
+  level2:
+  - Khởi tạo, điều kiện tiếp tục, thân lặp và bước cập nhật
+  - While và vòng lặp kiểm tra điều kiện trước
+  - Do–while và vòng lặp thực hiện thân ít nhất một lần
+  - For và cách gom logic điều khiển chỉ số
+  - Duyệt theo phần tử và duyệt theo chỉ số
+  - Vòng lặp đếm, vòng lặp theo điều kiện và giá trị đánh dấu kết thúc
+  - Break, continue và ảnh hưởng tới bước cập nhật
+  - Vòng lặp lồng nhau và quan hệ giữa các biến điều khiển
+  - Khoảng chỉ số, cận bao gồm và cận không bao gồm
+  - Lỗi lệch một đơn vị và trường hợp dữ liệu rỗng
+  - Vòng lặp vô hạn, tiến triển và điều kiện dừng
+  - Chuyển đổi giữa các dạng vòng lặp mà giữ nguyên hành vi
+- level1: Hàm và thủ tục
+  level2:
+  - Trừu tượng hóa một chuỗi lệnh bằng chương trình con
+  - Thủ tục tạo hiệu ứng và hàm trả về giá trị
+  - Tham số, đối số và hợp đồng đầu vào
+  - Giá trị trả về, return sớm và đường thực thi thiếu kết quả
+  - Ngăn xếp lời gọi và trạng thái cục bộ của mỗi lần gọi
+  - Hàm chỉ tính toán và hàm có thay đổi trạng thái
+  - Truyền giá trị hoặc truyền tham chiếu theo quy tắc ngôn ngữ
+  - 'Java truyền giá trị: cập nhật đối tượng và gán lại biến tham số'
+  - Đệ quy và sự tương ứng với lời giải dùng vòng lặp
+  - Điều kiện dừng đệ quy và giới hạn tài nguyên ngăn xếp
+  - Định nghĩa rõ dữ liệu đọc, dữ liệu sửa và kết quả của hàm
+- level1: Phạm vi và thời gian sống
+  level2:
+  - Phạm vi tên biến và thời gian sống của vùng lưu trữ
+  - Biến cục bộ, tham số và trạng thái có thời gian sống dài hơn lời gọi
+  - Che khuất tên biến và lỗi đọc nhầm trạng thái
+  - Biến toàn cục hoặc static và sự phụ thuộc giữa các lần gọi
+  - Khởi tạo trạng thái trước khi đưa vào sử dụng
+  - Giới hạn phạm vi biến theo nơi cần đọc và cập nhật
+  - Trạng thái được giữ lại giữa nhiều lần thực hiện một thao tác
+  - Vòng đời dữ liệu và vòng đời tài nguyên bên ngoài bộ nhớ
+- level1: Tham chiếu và biến đổi
+  level2:
+  - Giá trị tham chiếu và đối tượng được tham chiếu tới
+  - Gán lại tham chiếu và thay đổi nội dung đối tượng
+  - Nhiều tên cùng trỏ tới một đối tượng (aliasing)
+  - Ảnh hưởng của thay đổi qua một tham chiếu tới bên đang giữ tham chiếu khác
+  - Sao chép tham chiếu, sao chép nông và sao chép sâu
+  - Tham chiếu không được gán lại và tính bất biến của đối tượng
+  - Thay đổi tại chỗ và tạo dữ liệu kết quả mới
+  - Quyền sở hữu dữ liệu và trách nhiệm thực hiện thay đổi
+  - Lộ trạng thái nội bộ và sao chép phòng vệ
+  - Phạm vi ảnh hưởng của một thao tác cập nhật
+- level1: Dữ liệu có cấu trúc
+  level2:
+  - Mảng, danh sách và bảng dữ liệu trong chương trình mệnh lệnh
+  - Đọc và ghi phần tử qua chỉ số
+  - Duyệt cấu trúc dữ liệu với trạng thái điều khiển tường minh
+  - Chèn, xóa và cập nhật khi đang duyệt
+  - Iterator và quy tắc thay đổi cấu trúc dữ liệu
+  - Dữ liệu nhiều chiều và phối hợp các chỉ số
+  - Khởi tạo từng phần và duy trì tính hợp lệ của cấu trúc
+  - Đồng bộ các trường dữ liệu có quan hệ ràng buộc
+  - Chọn biểu diễn dữ liệu phù hợp với các thao tác cần thực hiện
+- level1: Thiết kế thủ tục
+  level2:
+  - Chia bài toán thành các bước và thủ tục có tên rõ nghĩa
+  - Thiết kế từ tổng thể xuống chi tiết (top-down)
+  - Tách xử lý đầu vào, tính toán và xuất kết quả
+  - Truyền dữ liệu tường minh thay cho phụ thuộc ngầm vào biến dùng chung
+  - Tính gắn kết của thủ tục và mức phụ thuộc giữa các thủ tục
+  - Phân biệt dữ liệu cấu hình, trạng thái làm việc và trạng thái lâu dài
+  - Thiết kế hợp đồng cho thao tác có thay đổi dữ liệu
+  - Tách quyết định nghiệp vụ khỏi cơ chế thực thi hiệu ứng
+  - Giữ trình tự công việc dễ đọc khi chia nhỏ hàm
+- level1: Mẫu thuật toán
+  level2:
+  - Quét tuần tự và duy trì thông tin đã xử lý
+  - Biến tích lũy cho tổng, tích và kết quả ghép
+  - Biến đếm và bảng tần suất
+  - Tìm phần tử đầu tiên, cực trị và điều kiện tồn tại
+  - Đếm hoặc kiểm tra tất cả phần tử theo điều kiện
+  - Lọc dữ liệu và ghi kết quả vào vùng đích
+  - Hai con trỏ và cập nhật nhiều chỉ số có phối hợp
+  - Xử lý theo nhóm và trạng thái của nhóm hiện tại
+  - Cập nhật tại chỗ với phép đảo, đổi chỗ hoặc phân hoạch
+  - Đệ quy quay lui và thao tác hoàn tác trạng thái
+  - Lựa chọn mẫu dựa trên thông tin cần giữ sau mỗi bước
+- level1: Máy trạng thái
+  level2:
+  - Mô hình hóa quy trình bằng tập trạng thái và chuyển trạng thái
+  - Sự kiện đầu vào, điều kiện chuyển và hành động
+  - Phân biệt trạng thái điều khiển với dữ liệu nghiệp vụ
+  - Biểu diễn chuyển trạng thái bằng if hoặc switch
+  - Ràng buộc các chuyển trạng thái hợp lệ
+  - Trạng thái kết thúc, trạng thái lỗi và đường phục hồi
+  - Giảm tổ hợp cờ Boolean bằng trạng thái có tên
+  - Theo dõi lịch sử thao tác để giải thích trạng thái hiện tại
+- level1: Đầu vào và hiệu ứng ngoài
+  level2:
+  - Đọc đầu vào và cập nhật trạng thái theo từng bước
+  - Xuất kết quả và thứ tự các thao tác ghi
+  - Đọc tệp, luồng dữ liệu và trạng thái vị trí đọc
+  - Làm việc với dữ liệu lớn theo từng phần
+  - Tách dữ liệu không hợp lệ khỏi điều kiện kết thúc đầu vào
+  - Thời gian, số ngẫu nhiên và dịch vụ ngoài trong luồng mệnh lệnh
+  - Tác dụng phụ quan sát được và thứ tự tương tác với môi trường
+  - Tiêm nguồn thời gian hoặc dữ liệu để kiểm thử có thể lặp lại
+  - Thực hiện lại thao tác và yêu cầu về tính lũy đẳng
+- level1: Lỗi và tài nguyên
+  level2:
+  - Phân biệt lỗi đầu vào, lỗi logic và lỗi môi trường
+  - Mã lỗi, giá trị kết quả và ngoại lệ trong thiết kế luồng xử lý
+  - Trạng thái còn lại khi một bước trong chuỗi thao tác thất bại
+  - Kiểm tra trước khi thay đổi và giới hạn của cách kiểm tra này
+  - Khôi phục bất biến khi thao tác chỉ hoàn thành một phần
+  - Hoàn tác trạng thái cục bộ và hành động bù cho hiệu ứng bên ngoài
+  - Try, catch, finally và đường đi khi phát sinh ngoại lệ
+  - Thu nhận, sử dụng và giải phóng tài nguyên
+  - Try-with-resources trong ví dụ Java
+  - Điều kiện thử lại, số lần thử và nguy cơ lặp tác dụng phụ
+- level1: Lý luận tính đúng
+  level2:
+  - Đặc tả yêu cầu thành tiền điều kiện và hậu điều kiện
+  - Bất biến của dữ liệu và trạng thái hợp lệ
+  - Bộ ba Hoare cho một khối lệnh
+  - Suy luận tác động của phép gán bằng phép thế
+  - Kết hợp hợp đồng của các lệnh thực hiện tuần tự
+  - Lập luận riêng cho từng nhánh điều kiện
+  - Bất biến vòng lặp và ba bước khởi tạo, bảo toàn, kết thúc
+  - Đại lượng giảm để lập luận chương trình sẽ dừng
+  - Tính đúng bộ phận và tính đúng toàn phần
+  - Giới hạn số, tràn số và giả định của mô hình toán học
+  - Aliasing và việc xác định phần dữ liệu được phép thay đổi
+  - Kết hợp chứng minh, kiểm thử và các giả định về môi trường
+- level1: Ngữ nghĩa thực thi
+  level2:
+  - Mô hình ngôn ngữ mệnh lệnh tối giản với biến và lệnh
+  - Cú pháp trừu tượng của biểu thức và câu lệnh
+  - Đánh giá biểu thức trong một trạng thái cho trước
+  - Ngữ nghĩa phép gán và phép cập nhật bộ nhớ
+  - Ngữ nghĩa tuần tự, điều kiện và vòng lặp
+  - Ngữ nghĩa bước nhỏ và dấu vết thực thi
+  - Ngữ nghĩa bước lớn và quan hệ giữa đầu vào với kết quả
+  - Chương trình không kết thúc và trạng thái thực thi bị mắc kẹt
+  - Tương đương chương trình theo kết quả và hiệu ứng quan sát được
+  - Phân biệt thứ tự ở mức ngôn ngữ với cách compiler tổ chức mã máy
+- level1: Đồng thời và trạng thái
+  level2:
+  - Từ mô hình tuần tự tới nhiều luồng cùng truy cập dữ liệu
+  - Xen kẽ thao tác và kết quả phụ thuộc lịch thực thi
+  - Race condition trong chuỗi đọc, tính toán và ghi
+  - Tính nguyên tử của một bước và của một nhóm bước
+  - Khả năng nhìn thấy cập nhật giữa các luồng
+  - Bảo vệ bất biến bằng đồng bộ theo hợp đồng của ngôn ngữ
+  - Giảm trạng thái dùng chung bằng phân chia quyền sở hữu
+  - Giới hạn của suy luận tuần tự khi xuất hiện xử lý đồng thời
+- level1: Kiểm thử và gỡ lỗi
+  level2:
+  - Kiểm thử theo hợp đồng đầu vào, đầu ra và thay đổi trạng thái
+  - Chọn trường hợp biên cho nhánh và vòng lặp
+  - Đối chiếu trạng thái trước và sau mỗi thao tác
+  - Kiểm thử chuỗi thao tác thay vì chỉ từng lời gọi độc lập
+  - Kiểm thử dựa trên thuộc tính và bất biến
+  - Chuẩn bị trạng thái kiểm thử và tránh rò rỉ giữa các test
+  - Dùng breakpoint, watch và call stack để theo dõi giá trị
+  - Lập bảng truy vết cho lỗi chỉ số hoặc cập nhật sai thứ tự
+  - Ghi log chuyển trạng thái và mốc thực hiện hiệu ứng
+  - Tái hiện lỗi có đầu vào, thời gian và ngẫu nhiên được kiểm soát
+  - Phân biệt bằng chứng từ độ bao phủ với bằng chứng về tính đúng
+- level1: Chất lượng và tái cấu trúc
+  level2:
+  - Đặt tên theo ý nghĩa dữ liệu và vai trò của bước xử lý
+  - Giảm số biến có thể thay đổi tại cùng một điểm
+  - Hạn chế gán lại một biến cho nhiều ý nghĩa khác nhau
+  - Tách biểu thức có nhiều tác dụng phụ thành các lệnh rõ ràng
+  - Giảm nhánh lồng nhau bằng điều kiện bảo vệ
+  - Tách hàm dài mà giữ rõ thứ tự và luồng dữ liệu
+  - Loại bỏ biến cờ hoặc dữ liệu trung gian dư thừa
+  - Gom cập nhật liên quan để bảo toàn bất biến
+  - Tránh phụ thuộc vào thứ tự gọi hàm không được hợp đồng thể hiện
+  - Kiểm chứng hành vi trước và sau khi tái cấu trúc
+- level1: Hiệu năng và đánh đổi
+  level2:
+  - Đếm số thao tác theo số lần lặp và kích thước dữ liệu
+  - Độ phức tạp thời gian của vòng lặp đơn và lồng nhau
+  - Bộ nhớ phụ, biến tích lũy và xử lý tại chỗ
+  - Đánh đổi giữa sao chép dữ liệu với thay đổi dữ liệu dùng chung
+  - Vị trí dữ liệu trong bộ nhớ và cách tổ chức truy cập
+  - Tối ưu vòng lặp khi có phụ thuộc giữa các lần cập nhật
+  - Giữ hiệu ứng và kết quả khi thay đổi thứ tự thao tác
+  - Đo hiệu năng bằng tải đại diện trước khi tăng độ phức tạp của mã
+  - Cân bằng tốc độ, khả năng đọc và chi phí kiểm chứng
+- level1: Quan hệ các mô hình
+  level2:
+  - 'Mệnh lệnh và khai báo: mức độ mô tả cách thực hiện'
+  - 'Mệnh lệnh và thủ tục: cách tổ chức các chuỗi thao tác'
+  - 'Mệnh lệnh và hướng đối tượng: trạng thái được quản lý qua đối tượng'
+  - 'Mệnh lệnh và hàm: kiểm soát dữ liệu khả biến và tác dụng phụ'
+  - Vòng lặp tường minh và pipeline xử lý tập hợp
+  - Trạng thái trong chương trình hướng sự kiện hoặc phản ứng
+  - Sử dụng biến đổi cục bộ bên trong giao diện không làm lộ thay đổi
+  - Chọn cách biểu đạt theo bản chất thuật toán và yêu cầu bảo trì
+  - Nhận diện trường hợp nhiều mô hình cùng xuất hiện trong một chương trình
+- level1: Bài thực hành
+  level2:
+  - Truy vết trạng thái của một chương trình có nhiều phép gán
+  - Viết hai cách hoán đổi dữ liệu và kiểm tra giả định của từng cách
+  - Thiết kế rẽ nhánh bao phủ đủ các trường hợp biên
+  - Xây dựng vòng lặp tính tổng hoặc cực trị với bất biến rõ ràng
+  - Tìm và sửa lỗi lệch chỉ số trong thao tác trên mảng
+  - So sánh thay đổi tại chỗ với tạo danh sách kết quả mới
+  - Tái hiện lỗi do hai tham chiếu cùng trỏ tới một đối tượng
+  - Chia một quy trình xử lý dữ liệu thành các thủ tục có hợp đồng
+  - Xây dựng máy trạng thái cho một quy trình nhỏ
+  - Xử lý tệp với đường đi thành công, thất bại và giải phóng tài nguyên
+  - Kiểm thử chuỗi thao tác trên một cấu trúc dữ liệu khả biến
+  - Tái cấu trúc chương trình mệnh lệnh và chứng minh phần hành vi được giữ lại

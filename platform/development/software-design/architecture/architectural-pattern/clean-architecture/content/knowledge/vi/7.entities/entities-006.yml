@@ -1,0 +1,3 @@
+menuLevel1: Entity
+menuLevel2: Kết hợp entity thành aggregate khi cần bảo vệ tính nhất quán
+status: ""

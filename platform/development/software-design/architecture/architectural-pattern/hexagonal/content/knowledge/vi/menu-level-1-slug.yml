@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng thiết kế
+  slug: design-foundations
+  index: 1
+- title: Mô hình kiến trúc
+  slug: architecture-model
+  index: 2
+- title: Ranh giới ứng dụng
+  slug: application-boundaries
+  index: 3
+- title: Miền nghiệp vụ
+  slug: business-domain
+  index: 4
+- title: Ca sử dụng
+  slug: use-cases
+  index: 5
+- title: Cổng vào
+  slug: inbound-ports
+  index: 6
+- title: Cổng ra
+  slug: outbound-ports
+  index: 7
+- title: Bộ chuyển đổi vào
+  slug: inbound-adapters
+  index: 8
+- title: Bộ chuyển đổi ra
+  slug: outbound-adapters
+  index: 9
+- title: Chiều phụ thuộc
+  slug: dependency-direction
+  index: 10
+- title: Ghép nối thành phần
+  slug: component-composition
+  index: 11
+- title: Mô hình dữ liệu
+  slug: data-modeling
+  index: 12
+- title: Lưu trữ
+  slug: persistence
+  index: 13
+- title: Giao dịch
+  slug: transactions
+  index: 14
+- title: Lỗi và độ tin cậy
+  slug: errors-reliability
+  index: 15
+- title: Xử lý bất đồng bộ
+  slug: asynchronous-processing
+  index: 16
+- title: Bảo mật
+  slug: security
+  index: 17
+- title: Kiểm thử
+  slug: testing
+  index: 18
+- title: Triển khai Java
+  slug: java-implementation
+  index: 19
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 20
+- title: Bảo vệ kiến trúc
+  slug: architecture-enforcement
+  index: 21
+- title: Quan sát và hiệu năng
+  slug: observability-performance
+  index: 22
+- title: Tổ chức dự án
+  slug: project-organization
+  index: 23
+- title: Quan hệ kiến trúc
+  slug: architecture-relationships
+  index: 24
+- title: Chuyển đổi hệ thống
+  slug: system-migration
+  index: 25
+- title: Sai lầm thiết kế
+  slug: design-mistakes
+  index: 26
+- title: Bài tập và tình huống
+  slug: exercises-scenarios
+  index: 27

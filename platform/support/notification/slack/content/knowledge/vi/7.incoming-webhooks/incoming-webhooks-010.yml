@@ -1,0 +1,3 @@
+menuLevel1: Incoming Webhook
+menuLevel2: Gửi bằng HTTP client Java hoặc Slack.send trong Java Slack SDK
+status: ''

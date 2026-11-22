@@ -1,0 +1,3 @@
+menuLevel1: Tiêm phụ thuộc kiểm thử
+menuLevel2: '@Autowired cho field, setter và constructor của test'
+status: WRITTEN

@@ -1,0 +1,3487 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Thông điệp là gì và bài toán giao tiếp giữa các thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao ứng dụng cần cơ chế gửi và nhận thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vị trí của spring-messaging trong Spring Framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Bản đồ thuật ngữ: bên gửi, bên nhận, kênh, đích và bộ môi giới'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa thông điệp, lệnh, sự kiện và yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt gọi hàm trực tiếp, HTTP và giao tiếp bằng thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt sự kiện ApplicationContext và thông điệp liên tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phạm vi của spring-messaging, spring-jms và spring-websocket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Phân biệt Spring Framework, Spring Boot và các dự án tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình học từ trừu tượng nền tảng đến các giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-exchange-model
+  title: Mô hình trao đổi
+  childs:
+  - slug: message-exchange-model-001
+    title: Đồng bộ và bất đồng bộ nhìn từ bên gửi và bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-002
+    title: Trao đổi trong bộ nhớ và trao đổi qua mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-003
+    title: Hàng đợi công việc và nhiều bên nhận cạnh tranh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-004
+    title: Phát hành và đăng ký nhận thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-005
+    title: Gửi một chiều và gửi yêu cầu chờ phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-006
+    title: Luồng dữ liệu liên tục và kiểm soát tốc độ nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-007
+    title: Liên kết về thời gian, địa chỉ và cấu trúc dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-008
+    title: Thứ tự, trùng lặp, thất lạc và các mức bảo đảm giao nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-exchange-model-009
+    title: Lựa chọn mô hình theo độ trễ, độ bền và yêu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup
+  title: Thiết lập
+  childs:
+  - slug: setup-001
+    title: Xác định phiên bản Spring Framework, Java và thư viện giao thức tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-002
+    title: Vai trò và phụ thuộc của các mô-đun messaging, jms và websocket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-003
+    title: Khai báo các bean hạ tầng bằng Java Configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-004
+    title: Phân biệt cấu hình Framework thủ công và tự cấu hình của Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-005
+    title: Tách cấu hình kết nối khỏi mã xử lý nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-006
+    title: Chuẩn bị bộ môi giới và thông tin xác thực cho môi trường thử nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-007
+    title: Quản lý địa chỉ đích và giới hạn tài nguyên bằng cấu hình ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-008
+    title: Dựng ví dụ nhỏ để quan sát đường đi của một thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messages
+  title: Thông điệp
+  childs:
+  - slug: messages-001
+    title: 'Cấu trúc Message<T>: phần dữ liệu và tập header'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-002
+    title: Hợp đồng Message và kiểu dữ liệu của payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-003
+    title: GenericMessage và cách tạo thông điệp thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-004
+    title: MessageBuilder.withPayload và MessageBuilder.fromMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-005
+    title: Sao chép thông điệp khi cần thay đổi dữ liệu hoặc header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-006
+    title: Phân biệt bất biến của vỏ thông điệp và khả năng thay đổi của payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-007
+    title: ErrorMessage và cách biểu diễn lỗi dưới dạng thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-008
+    title: MessageHeaders.ID, TIMESTAMP và vòng đời định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-009
+    title: So sánh Message của Spring với jakarta.jms.Message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messages-010
+    title: Thiết kế đối tượng dữ liệu truyền đi độc lập với thực thể lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: headers
+  title: Header
+  childs:
+  - slug: headers-001
+    title: MessageHeaders và truy cập metadata của thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-002
+    title: Header chuẩn, header ứng dụng và quy tắc đặt tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-003
+    title: MessageHeaderAccessor và quản lý trạng thái có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-004
+    title: NativeMessageHeaderAccessor và header của giao thức bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-005
+    title: CONTENT_TYPE và vai trò của kiểu nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-006
+    title: REPLY_CHANNEL và ERROR_CHANNEL trong hợp đồng trao đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-007
+    title: Mã tương quan và liên kết yêu cầu với phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-008
+    title: Phân biệt mã thông điệp, mã nghiệp vụ và mã truy vết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-009
+    title: Sao chép, bổ sung, loại bỏ và giới hạn header nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: channels
+  title: Kênh truyền
+  childs:
+  - slug: channels-001
+    title: MessageChannel và hợp đồng send
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-002
+    title: Ý nghĩa giá trị trả về và thời gian chờ khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-003
+    title: PollableChannel và mô hình chủ động lấy thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-004
+    title: SubscribableChannel và đăng ký MessageHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-005
+    title: ExecutorSubscribableChannel với xử lý trực tiếp hoặc qua Executor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-006
+    title: Quan hệ giữa luồng gửi và luồng thực thi bộ xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-007
+    title: Đăng ký, hủy đăng ký và nhiều bộ xử lý trên cùng kênh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-008
+    title: AbstractMessageChannel và điểm mở rộng của kênh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-009
+    title: Ranh giới của kênh trong bộ nhớ đối với độ bền và giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-010
+    title: Phân biệt lớp kênh của Spring Framework và Spring Integration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sending-and-receiving
+  title: Gửi và nhận
+  childs:
+  - slug: sending-and-receiving-001
+    title: MessageSendingOperations và gửi thông điệp tới một đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-002
+    title: MessageReceivingOperations và thao tác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-003
+    title: MessageRequestReplyOperations và trao đổi yêu cầu phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-004
+    title: GenericMessagingTemplate và thao tác trên MessageChannel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-005
+    title: Đích mặc định và phân giải tên đích bằng DestinationResolver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-006
+    title: BeanFactoryMessageChannelDestinationResolver và tên bean kênh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-007
+    title: send, receive và sendAndReceive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-008
+    title: convertAndSend, receiveAndConvert và convertSendAndReceive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-009
+    title: Cấu hình thời gian chờ gửi, nhận và xử lý phản hồi đến muộn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sending-and-receiving-010
+    title: MessagePostProcessor và bổ sung metadata sau chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-conversion
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-conversion-001
+    title: MessageConverter và hai chiều chuyển đổi payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-002
+    title: Phân biệt MessageConverter với ConversionService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-003
+    title: StringMessageConverter và ByteArrayMessageConverter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-004
+    title: CompositeMessageConverter và thứ tự lựa chọn bộ chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-005
+    title: Chuyển đổi JSON theo thư viện và phiên bản Spring đang dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-006
+    title: Kiểu nội dung, MIME type và charset
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-007
+    title: GenericMessageConverter và chuyển đổi kiểu bằng ConversionService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-008
+    title: Kiểu đích tổng quát, thông tin phương thức và gợi ý chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-009
+    title: Viết bộ chuyển đổi riêng và xác định điều kiện hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-conversion-010
+    title: MessageConversionException khi dữ liệu hoặc kiểu nội dung không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-interception
+  title: Chặn và xử lý
+  childs:
+  - slug: message-interception-001
+    title: MessageHandler và trách nhiệm xử lý một thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-002
+    title: ChannelInterceptor và các điểm chặn gửi hoặc nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-003
+    title: preSend và cách từ chối một thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-004
+    title: postSend và afterSendCompletion trong thành công hoặc thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-005
+    title: preReceive, postReceive và afterReceiveCompletion trên kênh có thao tác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-006
+    title: ExecutorChannelInterceptor trước và sau thực thi MessageHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-007
+    title: Phân biệt luồng thực thi của ChannelInterceptor và ExecutorChannelInterceptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-008
+    title: Thứ tự interceptor, ngoại lệ và dọn dẹp tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-009
+    title: Truyền ngữ cảnh truy vết, danh tính và dữ liệu theo luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-interception-010
+    title: MessagingException, MessageDeliveryException và MessageHandlingException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-foundations
+  title: Nền tảng JMS
+  childs:
+  - slug: jms-foundations-001
+    title: JMS và vai trò của Spring JMS đối với hệ thống dùng bộ môi giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-002
+    title: Queue, Topic và mô hình nhận thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-003
+    title: ConnectionFactory, Connection, Session, Producer và Consumer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-004
+    title: TextMessage, BytesMessage, MapMessage, StreamMessage và ObjectMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-005
+    title: JMS header, thuộc tính ứng dụng và nội dung thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-006
+    title: Selector và điều kiện lọc phía bộ môi giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-007
+    title: Đăng ký Topic bền vững, không bền vững và chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-008
+    title: clientId, tên subscription và vòng đời bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-009
+    title: Chế độ lưu bền, độ ưu tiên và thời hạn tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-foundations-010
+    title: Chuyển từ javax.jms sang jakarta.jms và yêu cầu tương thích phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-connections
+  title: Kết nối JMS
+  childs:
+  - slug: jms-connections-001
+    title: Cấu hình ConnectionFactory do nhà cung cấp JMS triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-002
+    title: Tra cứu ConnectionFactory và Destination qua JNDI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-003
+    title: SingleConnectionFactory và tái sử dụng kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-004
+    title: CachingConnectionFactory và bộ nhớ đệm Session, Producer, Consumer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-005
+    title: Phân biệt bộ nhớ đệm của Spring với pool của nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-006
+    title: Quản lý Session khi nhiều luồng cùng gửi hoặc nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-007
+    title: DestinationResolver, DynamicDestinationResolver và JndiDestinationResolver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-008
+    title: pubSubDomain và phân giải Queue hoặc Topic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-009
+    title: Phân biệt phân giải Destination với tạo tài nguyên vật lý trên broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connections-010
+    title: Đóng tài nguyên, đặt lại kết nối và xử lý broker mất kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-sending-and-receiving
+  title: Gửi nhận JMS
+  childs:
+  - slug: jms-sending-and-receiving-001
+    title: JmsTemplate và quản lý tài nguyên gửi nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-002
+    title: Gửi bằng MessageCreator và convertAndSend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-003
+    title: Nhận đồng bộ bằng receive và receiveAndConvert
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-004
+    title: receiveTimeout và nguy cơ chặn luồng vô thời hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-005
+    title: SimpleMessageConverter của JMS và các kiểu dữ liệu hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-006
+    title: Bộ chuyển đổi JSON cho JMS theo phiên bản đang sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-007
+    title: MessagePostProcessor của JMS và thiết lập thuộc tính sau chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-008
+    title: SessionCallback, ProducerCallback và thao tác JMS nâng cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-009
+    title: JmsMessagingTemplate nối JMS với Message của Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-010
+    title: JmsClient và API fluent từ Spring Framework 7.0
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-sending-and-receiving-011
+    title: Cấu hình explicitQosEnabled, deliveryMode, priority và timeToLive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-listeners
+  title: Listener JMS
+  childs:
+  - slug: jms-listeners-001
+    title: Nhận bất đồng bộ bằng MessageListener và Message-Driven POJO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-002
+    title: MessageListenerAdapter và ánh xạ tới phương thức của đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-003
+    title: Bật @EnableJms và khai báo @JmsListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-004
+    title: DefaultJmsListenerContainerFactory và cấu hình mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-005
+    title: destination, selector, subscription, concurrency và containerFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-006
+    title: Tham số payload, Message, header, Session và chuyển đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-007
+    title: '@Payload, @Header, @Headers và kiểm tra hợp lệ đầu vào'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-008
+    title: Phản hồi từ listener bằng giá trị trả về và @SendTo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-009
+    title: Nhiều @JmsListener trên một phương thức và annotation @JmsListeners
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-010
+    title: JmsListenerConfigurer và đăng ký endpoint bằng chương trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-011
+    title: JmsListenerEndpointRegistry và điều khiển vòng đời listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-listener-containers
+  title: Container JMS
+  childs:
+  - slug: jms-listener-containers-001
+    title: Vai trò container trong đăng ký, nhận và gọi listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-002
+    title: SimpleMessageListenerContainer và mô hình callback của nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-003
+    title: DefaultMessageListenerContainer và vòng lặp nhận thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-004
+    title: Tiêu chí chọn container theo giao dịch và khả năng mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-005
+    title: Thiết lập số consumer đồng thời và điều chỉnh tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-006
+    title: TaskExecutor, receiveTimeout và thời gian consumer rảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-007
+    title: Các mức cache và ảnh hưởng tới tài nguyên JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-008
+    title: Khôi phục kết nối bằng recoveryInterval hoặc BackOff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-009
+    title: ExceptionListener và ErrorHandler ở các tầng lỗi khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-containers-010
+    title: Khởi động, dừng, chờ xử lý và nhận thông điệp khi đang dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-transactions
+  title: Giao dịch JMS
+  childs:
+  - slug: jms-transactions-001
+    title: Phân biệt xác nhận nhận thông điệp với hoàn tất nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-002
+    title: AUTO_ACKNOWLEDGE, CLIENT_ACKNOWLEDGE và DUPS_OK_ACKNOWLEDGE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-003
+    title: Thời điểm xác nhận phụ thuộc chế độ và loại listener container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-004
+    title: sessionTransacted và giao dịch cục bộ trên Session
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-005
+    title: JmsTransactionManager và một ConnectionFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-006
+    title: JmsTemplate tham gia tài nguyên giao dịch của Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-007
+    title: Nhận và gửi phản hồi trong cùng giao dịch JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-008
+    title: Rollback, redelivery và ngoại lệ thoát khỏi listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-009
+    title: JTA, XA và phối hợp JMS với cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-010
+    title: Giới hạn giao dịch cục bộ khi cập nhật đồng thời broker và database
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-transactions-011
+    title: Transactional outbox và xử lý lặp lại như phương án phối hợp dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-reliability
+  title: Độ tin cậy JMS
+  childs:
+  - slug: jms-reliability-001
+    title: JMSMessageID, JMSCorrelationID và JMSReplyTo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-002
+    title: Yêu cầu phản hồi bằng hàng đợi tạm thời hoặc hàng đợi cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-003
+    title: Thời gian chờ phản hồi và dọn dẹp tài nguyên tạm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-004
+    title: JMSRedelivered, số lần giao lại và thông điệp lỗi lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-005
+    title: Chính sách retry, trì hoãn và hàng đợi lỗi của nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-006
+    title: Thiết kế xử lý idempotent bằng khóa nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-007
+    title: Độ bền của message và subscription khi bên nhận ngắt kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-008
+    title: Thứ tự khi có nhiều consumer, giao lại hoặc ưu tiên khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-009
+    title: Expiration, delivery delay và sự khác biệt giữa các nhà cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-reliability-010
+    title: Phân biệt giao nhận thành công với bảo đảm hiệu ứng nghiệp vụ một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: websocket-foundations
+  title: Nền tảng WebSocket
+  childs:
+  - slug: websocket-foundations-001
+    title: WebSocket và giao tiếp hai chiều trên kết nối lâu dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-002
+    title: Quan hệ giữa HTTP handshake, WebSocket và giao thức ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-003
+    title: WebSocketHandler thuần và mô hình thông điệp cấp cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-004
+    title: Phân biệt STOMP qua WebSocket và WebSocket thuần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-005
+    title: Đăng ký endpoint và cấu hình handshake
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-006
+    title: HandshakeInterceptor, thuộc tính phiên và Principal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-007
+    title: SockJS và các phương thức truyền dự phòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-008
+    title: Allowed origins, triển khai qua reverse proxy và TLS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-foundations-009
+    title: Giới hạn của kết nối lâu dài khi client hoặc server ngắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp-protocol
+  title: Giao thức STOMP
+  childs:
+  - slug: stomp-protocol-001
+    title: 'Cấu trúc STOMP frame: lệnh, header và body'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-002
+    title: CONNECT, CONNECTED và thương lượng phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-003
+    title: SEND, SUBSCRIBE, UNSUBSCRIBE và MESSAGE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-004
+    title: DISCONNECT, RECEIPT và xác nhận thao tác giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-005
+    title: ERROR frame và kết thúc phiên do lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-006
+    title: Heart-beat và phát hiện kết nối không hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-007
+    title: destination, subscription id và message id
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-008
+    title: content-type, content-length và dữ liệu nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-009
+    title: ACK, NACK và transaction frame theo khả năng broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-protocol-010
+    title: Phân biệt quy ước tên /topic, /queue với ngữ nghĩa thực của broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp-message-flow
+  title: Luồng STOMP
+  childs:
+  - slug: stomp-message-flow-001
+    title: '@EnableWebSocketMessageBroker và WebSocketMessageBrokerConfigurer'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-002
+    title: registerStompEndpoints và đường dẫn kết nối của client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-003
+    title: configureMessageBroker và các tiền tố đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-004
+    title: clientInboundChannel, brokerChannel và clientOutboundChannel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-005
+    title: Đường đi của SEND tới @MessageMapping
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-006
+    title: Đường đi của SUBSCRIBE tới bộ môi giới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-007
+    title: Đường đi của thông điệp phát từ server tới subscriber
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-008
+    title: Tiền tố ứng dụng, tiền tố broker và tiền tố người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-009
+    title: StompSubProtocolHandler và chuyển đổi STOMP frame sang Message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-message-flow-010
+    title: Phân biệt xử lý tại controller với chuyển tiếp thẳng tới broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp-controllers
+  title: Controller STOMP
+  childs:
+  - slug: stomp-controllers-001
+    title: '@Controller và ánh xạ thông điệp bằng @MessageMapping'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-002
+    title: Ánh xạ cấp lớp, cấp phương thức và mẫu đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-003
+    title: '@DestinationVariable và quy ước dấu chấm trong destination'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-004
+    title: '@Payload, Message, MessageHeaders và các header accessor'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-005
+    title: '@Header, @Headers và Principal trong phương thức xử lý'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-006
+    title: Chuyển đổi payload và kiểm tra bằng @Valid hoặc @Validated
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-007
+    title: Giá trị trả về, đích mặc định và tùy chỉnh bằng @SendTo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-008
+    title: Trả kết quả bất đồng bộ theo kiểu được phiên bản Spring hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-009
+    title: '@SubscribeMapping và phản hồi trực tiếp khi đăng ký'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-010
+    title: '@MessageExceptionHandler và @ControllerAdvice'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-controllers-011
+    title: Ranh giới giữa hoàn tất controller và client nhận được kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-messaging
+  title: Gửi tới người dùng
+  childs:
+  - slug: user-messaging-001
+    title: SimpMessageSendingOperations và SimpMessagingTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-002
+    title: Phát thông điệp từ service bằng convertAndSend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-003
+    title: Header SIMP và header STOMP native khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-004
+    title: User destination và chuyển từ /user sang đích theo phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-005
+    title: '@SendToUser và phản hồi cho người dùng gửi yêu cầu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-006
+    title: convertAndSendToUser với tên Principal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-007
+    title: broadcast và lựa chọn một phiên hoặc nhiều phiên của cùng người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-008
+    title: SimpUserRegistry và theo dõi người dùng, phiên, subscription
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-009
+    title: User destination khi chưa có xác thực hoặc khi chạy nhiều server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-messaging-010
+    title: Xử lý đích người dùng chưa phân giải được trong cụm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp-broker
+  title: Bộ môi giới STOMP
+  childs:
+  - slug: stomp-broker-001
+    title: Simple broker trong bộ nhớ và quản lý subscription
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-002
+    title: Giới hạn tính năng, độ bền và mở rộng của simple broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-003
+    title: TaskScheduler và heart-beat của simple broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-004
+    title: STOMP broker relay và kết nối tới broker bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-005
+    title: Kết nối hệ thống, kết nối client và thông tin đăng nhập relay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-006
+    title: Virtual host, TLS và cấu hình kết nối TCP tới broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-007
+    title: BrokerAvailabilityEvent và phản ứng khi broker không sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-008
+    title: Khôi phục kết nối relay và giới hạn bảo đảm khi mất kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-009
+    title: ACK, receipt, transaction và độ bền theo broker thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-broker-010
+    title: Lựa chọn simple broker hay broker relay theo yêu cầu hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp-client
+  title: Client STOMP
+  childs:
+  - slug: stomp-client-001
+    title: WebSocketStompClient và thiết lập WebSocket transport
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-002
+    title: SockJsClient khi cần transport dự phòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-003
+    title: StompSessionHandler và vòng đời kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-004
+    title: StompSession, StompHeaders và gửi thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-005
+    title: StompFrameHandler và chuyển đổi payload nhận được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-006
+    title: Đăng ký, hủy đăng ký và quản lý subscription
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-007
+    title: TaskScheduler, heart-beat và giới hạn kích thước thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-008
+    title: Receipt callback, thời gian chờ và giới hạn của simple broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-009
+    title: Phân biệt lỗi frame, lỗi xử lý và lỗi transport
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-010
+    title: Kết nối lại, đăng ký lại và khôi phục trạng thái ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-client-011
+    title: Ngắt kết nối có kiểm soát và giải phóng tài nguyên client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp-security
+  title: Bảo mật STOMP
+  childs:
+  - slug: stomp-security-001
+    title: Danh tính người dùng từ HTTP handshake tới STOMP session
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-002
+    title: Giới hạn của login và passcode STOMP trong xác thực ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-003
+    title: Xác thực token qua ChannelInterceptor khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-004
+    title: Phân quyền CONNECT, SEND và SUBSCRIBE với Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-005
+    title: Tách quyền gửi tới ứng dụng và quyền đọc từ broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-006
+    title: Ngăn giả mạo người dùng, tenant và destination
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-007
+    title: Same-origin, CSRF và SockJS theo cấu hình bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-008
+    title: Kiểm tra payload, giới hạn kích thước và tốc độ gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-009
+    title: Không ghi token, thông tin đăng nhập hoặc payload nhạy cảm vào log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-security-010
+    title: Phân quyền đối tượng nghiệp vụ ngoài kiểm tra đường dẫn đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp-performance
+  title: Hiệu năng STOMP
+  childs:
+  - slug: stomp-performance-001
+    title: Cấu hình executor của clientInboundChannel và clientOutboundChannel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-002
+    title: Kích thước pool, hàng đợi và ảnh hưởng của tác vụ chặn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-003
+    title: setPreservePublishOrder và thứ tự gửi trong một phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-004
+    title: setPreserveReceiveOrder và thứ tự nhận theo phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-005
+    title: Phân biệt thứ tự frame, thứ tự thực thi và thứ tự nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-006
+    title: Giới hạn kích thước message, thời gian gửi và bộ đệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-007
+    title: Client chậm, bộ đệm đầy và chính sách đóng kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-008
+    title: SessionConnectEvent, SessionConnectedEvent và các sự kiện đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-009
+    title: SessionDisconnectEvent có thể lặp và xử lý dọn dẹp idempotent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-010
+    title: WebSocket scope và vòng đời dữ liệu theo phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-performance-011
+    title: WebSocketMessageBrokerStats và chẩn đoán tải kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rsocket-foundations
+  title: Nền tảng RSocket
+  childs:
+  - slug: rsocket-foundations-001
+    title: RSocket và giao thức trao đổi dữ liệu phản ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-002
+    title: Requester, responder và tính đối xứng hai chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-003
+    title: Request-response và một kết quả phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-004
+    title: Fire-and-forget và giới hạn xác nhận xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-005
+    title: Request-stream và nhiều phần tử phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-006
+    title: Request-channel và luồng dữ liệu hai chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-007
+    title: Payload gồm data và metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-008
+    title: Transport TCP hoặc WebSocket và multiplexing trên kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-009
+    title: Backpressure qua REQUEST_N và nhu cầu nhận dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-foundations-010
+    title: Phân biệt RSocket với STOMP, HTTP và hàng đợi bền vững
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rsocketrequester
+  title: RSocketRequester
+  childs:
+  - slug: rsocketrequester-001
+    title: Tạo RSocketRequester.Builder và cấu hình kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-002
+    title: Thiết lập RSocketStrategies dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-003
+    title: dataMimeType, metadataMimeType và thương lượng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-004
+    title: setupRoute, setupData và setupMetadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-005
+    title: route với tham số và metadata theo yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-006
+    title: Gửi một chiều bằng send
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-007
+    title: Nhận một kết quả bằng retrieveMono
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-008
+    title: Nhận luồng kết quả bằng retrieveFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-009
+    title: Truyền Publisher đầu vào cho tương tác request-channel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-010
+    title: Kiểu phản hồi tổng quát và ParameterizedTypeReference
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocketrequester-011
+    title: Kết nối lười, tái sử dụng requester và quản lý tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rsocket-handling
+  title: Xử lý RSocket
+  childs:
+  - slug: rsocket-handling-001
+    title: RSocketMessageHandler và bộ xử lý dựa trên annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-002
+    title: Đăng ký acceptor và khởi tạo server RSocket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-003
+    title: '@Controller, @MessageMapping và ánh xạ route'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-004
+    title: Ánh xạ mô hình tương tác từ kiểu đầu vào và đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-005
+    title: '@Payload, @Header, @Headers và @DestinationVariable cho RSocket'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-006
+    title: '@ConnectMapping và xử lý dữ liệu thiết lập kết nối'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-007
+    title: Xử lý yêu cầu ngược từ server tới client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-008
+    title: '@MessageExceptionHandler và ánh xạ lỗi của bộ xử lý'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-009
+    title: Thiết lập RSocketStrategies thống nhất giữa requester và responder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-handling-010
+    title: Tách xử lý nghiệp vụ khỏi thao tác transport và phiên kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rsocket-data
+  title: Dữ liệu RSocket
+  childs:
+  - slug: rsocket-data-001
+    title: Encoder, Decoder và cấu hình codec
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-002
+    title: Codec cho chuỗi, dữ liệu nhị phân và đối tượng JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-003
+    title: Routing metadata và quy ước tên route
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-004
+    title: Composite metadata và nhiều mục metadata trong một payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-005
+    title: MetadataExtractor và ánh xạ metadata thành header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-006
+    title: Phân biệt MIME type của data và metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-007
+    title: Validation tại ranh giới nhận thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-008
+    title: Buffer, pooled data và trách nhiệm giải phóng dữ liệu ở API thấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-data-009
+    title: Tương thích hợp đồng khi thay đổi codec, route hoặc kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rsocket-lifecycle
+  title: Vòng đời RSocket
+  childs:
+  - slug: rsocket-lifecycle-001
+    title: Thiết lập, duy trì và đóng kết nối RSocket
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-002
+    title: Keepalive và phát hiện transport mất kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-003
+    title: Hủy subscription, tín hiệu hoàn tất và lan truyền cancellation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-004
+    title: Timeout cho từng yêu cầu và quản lý luồng không kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-005
+    title: Reconnect và giới hạn khôi phục yêu cầu đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-006
+    title: Resume, trạng thái phiên và điều kiện hỗ trợ của các bên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-007
+    title: Lease và phân biệt giới hạn yêu cầu với REQUEST_N
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-008
+    title: Giới hạn bộ đệm, fragmentation và payload lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-009
+    title: Đưa tác vụ chặn ra khỏi luồng xử lý phản ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-010
+    title: Xác thực metadata và phân quyền route bằng Spring Security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rsocket-lifecycle-011
+    title: TLS, danh tính kết nối và quyền trên từng yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: errors-and-recovery-001
+    title: Phân loại lỗi kết nối, giao thức, chuyển đổi và nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-002
+    title: Xác định tầng chịu trách nhiệm xử lý hoặc chuyển tiếp lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-003
+    title: Timeout không đồng nghĩa với tác vụ phía nhận đã dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-004
+    title: Retry có giới hạn, backoff và tránh nhiều tầng cùng thử lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-005
+    title: Phân biệt thao tác có thể lặp lại với thao tác gây tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-006
+    title: Mã lỗi công khai và thông tin chẩn đoán nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-007
+    title: Correlation id và theo dõi kết quả đến muộn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-008
+    title: Thiết kế xử lý khi một phần trao đổi đã thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-009
+    title: Thử nghiệm mất kết nối, hết tài nguyên và thông điệp không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-contracts
+  title: Hợp đồng thông điệp
+  childs:
+  - slug: message-contracts-001
+    title: Thiết kế command, event và response theo trách nhiệm nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-002
+    title: Envelope gồm phiên bản, định danh, thời gian và dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-003
+    title: Tương thích ngược khi thêm, bỏ hoặc đổi kiểu trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-004
+    title: Quy ước tên destination, route và schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-005
+    title: Định dạng thời gian, múi giờ, số và giá trị enum
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-006
+    title: Phân biệt thứ tự nghiệp vụ với thứ tự giao nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-007
+    title: Khóa idempotency, lưu kết quả và thời hạn chống trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-008
+    title: Giới hạn kích thước và truyền tham chiếu thay cho dữ liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-009
+    title: Giảm phụ thuộc vào lớp Java nội bộ và tuần tự hóa ObjectMessage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contracts-010
+    title: Tài liệu hóa hợp đồng và trách nhiệm của từng bên tham gia
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử MessageBuilder, header và bộ chuyển đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử MessageHandler và điều kiện chặn của interceptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử gửi nhận qua kênh với executor có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử JmsTemplate và listener với broker thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử rollback, redelivery, selector và durable subscription
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử controller STOMP ở mức bộ xử lý thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử đầu cuối bằng WebSocketStompClient
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử user destination với nhiều người dùng và nhiều phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử RSocketRequester và RSocketMessageHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Dùng StepVerifier kiểm tra luồng phản ứng, lỗi và cancellation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử tương thích schema, phân quyền và dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử timeout, kết nối lại và client chậm mà không dựa vào sleep tùy ý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Đo số lượng gửi nhận, thông lượng và thời gian xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Phân biệt độ trễ broker, hàng đợi và xử lý nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Theo dõi kết nối, phiên, subscription và consumer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Quan sát retry, redelivery, timeout và tỷ lệ lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Liên kết log bằng mã thông điệp và mã tương quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Truyền ngữ cảnh truy vết qua header và ranh giới bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Micrometer Observation cho JMS theo khả năng phiên bản và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Giới hạn số lượng giá trị nhãn và tránh đưa định danh người dùng vào metric
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Readiness của ứng dụng khi broker hoặc transport chưa sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-010
+    title: Chẩn đoán không nhận được thông điệp theo từng chặng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-scaling
+  title: Mở rộng hệ thống
+  childs:
+  - slug: system-scaling-001
+    title: Phân bổ nhiều instance và trạng thái đang giữ trong bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-002
+    title: Cân bằng tải WebSocket, proxy timeout và nhu cầu gắn phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-003
+    title: Phân phối STOMP qua broker ngoài khi chạy nhiều server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-004
+    title: User registry và user destination trong cụm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-005
+    title: Tăng consumer JMS và đánh đổi với thứ tự xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-006
+    title: Quản lý số kết nối RSocket và chia tải theo mô hình ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-007
+    title: Giới hạn đồng thời, bộ đệm và tải tối đa của bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-008
+    title: Dừng có kiểm soát và xử lý thông điệp đang thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-009
+    title: Quản lý vòng đời executor, scheduler, client và tài nguyên kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-010
+    title: Đánh giá năng lực bằng tải thực tế, p95/p99 và thử nghiệm sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-ecosystem
+  title: Hệ sinh thái
+  childs:
+  - slug: messaging-ecosystem-001
+    title: Spring Integration và các mẫu tích hợp dựa trên Message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-002
+    title: Spring AMQP và RabbitMQ trong bài toán dùng AMQP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-003
+    title: Spring for Apache Kafka và mô hình nhật ký phân vùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-004
+    title: Spring for Apache Pulsar và lớp tích hợp riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-005
+    title: Spring Cloud Stream và mô hình binder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-006
+    title: Spring Modulith hoặc ApplicationEvent cho sự kiện trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-007
+    title: Phân biệt JMS API với giao thức của từng broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-008
+    title: Lựa chọn JMS, STOMP hoặc RSocket theo đối tượng giao tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-009
+    title: Ranh giới giữa kiến thức Framework và cấu hình sản phẩm bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-ecosystem-010
+    title: Tra cứu Javadoc, tài liệu theo phiên bản và thay đổi API khi nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xây dựng đường đi thông điệp trong bộ nhớ từ bên gửi tới bộ xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Thực nghiệm interceptor, chuyển đổi payload và lỗi thời gian chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Xây dựng hàng đợi công việc JMS với xác nhận và rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Thực nghiệm Topic bền vững và xử lý thông điệp trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Xây dựng trao đổi yêu cầu phản hồi JMS có thời gian chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Xây dựng ứng dụng cập nhật trực tiếp qua STOMP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Thực nghiệm thông báo riêng cho người dùng có nhiều phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: So sánh simple broker và broker relay bằng tình huống lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Xây dựng RSocket request-response và request-stream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Thực nghiệm request-channel, backpressure và cancellation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Đo tải, ngắt kết nối và giải thích giới hạn bảo đảm của từng mô hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Rà soát lựa chọn công nghệ từ yêu cầu đến kết quả kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

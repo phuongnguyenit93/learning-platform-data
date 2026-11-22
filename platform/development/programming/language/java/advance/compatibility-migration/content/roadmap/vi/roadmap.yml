@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-loai-tuong-thich
+  title: Mục tiêu & loại tương thích
+  purpose: Hiểu các dạng tương thích khi nâng cấp JDK hoặc phát hành phiên bản thư viện Java.
+  objectives:
+  - Phân biệt source, binary và behavioral compatibility.
+  - Xác định JDK nguồn, JDK đích và phạm vi hệ thống.
+  - Nhận diện lỗi biên dịch, liên kết và thay đổi hành vi runtime.
+- id: kiem-ke-lap-ke-hoach
+  title: Kiểm kê & lập kế hoạch
+  purpose: Giảm rủi ro di trú bằng cách xác định rõ hạ tầng, thư viện và công cụ phụ thuộc.
+  objectives:
+  - Kiểm kê JDK/JVM, framework, thư viện và build plugins.
+  - Đối chiếu phiên bản hỗ trợ của Maven/Gradle, IDE và ứng dụng.
+  - Chốt baseline, tiêu chí nghiệm thu và phương án rollback.
+- id: phan-tich-api-phu-thuoc
+  title: Phân tích API & phụ thuộc
+  purpose: Phát hiện API nội bộ, API lỗi thời và liên kết không còn được hỗ trợ.
+  objectives:
+  - Chạy jdeps để tìm phụ thuộc và --jdk-internals.
+  - Chạy jdeprscan để tìm API deprecated/for removal.
+  - Phân loại vấn đề thuộc mã nguồn và thư viện bên thứ ba.
+- id: bien-dich-tuong-thich
+  title: Biên dịch tương thích
+  purpose: Tạo artifact dùng đúng API và định dạng bytecode cho phiên bản Java mục tiêu.
+  objectives:
+  - Phân biệt source level, class file version và runtime target.
+  - Cấu hình javac --release thay vì chỉ dùng -source/-target.
+  - Kiểm tra UnsupportedClassVersionError khi dùng JDK cũ.
+- id: modules-encapsulation
+  title: Modules & encapsulation
+  purpose: Thích ứng với Java Platform Module System và việc hạn chế truy cập JDK internals.
+  objectives:
+  - Phân biệt classpath và module path.
+  - Rà soát reflection dẫn tới InaccessibleObjectException.
+  - Thay API nội bộ; chỉ dùng --add-opens tạm thời khi cần.
+- id: api-loai-bo-thay-doi-hanh-vi
+  title: API loại bỏ & thay đổi hành vi
+  purpose: Xử lý thay đổi nền tảng có thể ảnh hưởng kết quả chạy dù mã vẫn biên dịch được.
+  objectives:
+  - Rà soát các API, module và công cụ đã bị loại bỏ.
+  - Đánh giá charset, locale, TLS và JVM flags thay đổi mặc định.
+  - Nâng cấp thư viện hoặc thay thế API không còn được hỗ trợ.
+- id: ma-tran-kiem-thu-di-tru
+  title: Ma trận kiểm thử di trú
+  purpose: Chứng minh ứng dụng hoạt động đúng trên JDK đích và nhận diện sai khác quan trọng.
+  objectives:
+  - Chạy unit, integration và smoke tests trên các JDK cần hỗ trợ.
+  - Kiểm tra serialization, reflection, kết nối và khởi động.
+  - So sánh hiệu năng, bộ nhớ và lỗi runtime với baseline.
+- id: rollout-duy-tri-tuong-thich
+  title: Rollout & duy trì tương thích
+  purpose: Chuyển đổi an toàn qua nhiều môi trường và kiểm soát lỗi sau nâng cấp.
+  objectives:
+  - Thử nghiệm trên staging trước khi triển khai canary/phased rollout.
+  - Theo dõi startup, latency, error rate và JVM logs.
+  - Lập checklist rollback, cập nhật CI matrix và ghi nhận hạn chế.

@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-abstract-factory
+  title: Tổng quan Abstract Factory
+  purpose: Hiểu mẫu tạo các họ đối tượng liên quan mà không phụ thuộc lớp cụ thể.
+  objectives:
+  - Nêu bài toán cần tạo nhiều sản phẩm tương thích.
+  - Phân biệt Abstract Factory với khởi tạo trực tiếp bằng new.
+- id: product-family-variants
+  title: Product Family & Variants
+  purpose: Xác định các loại sản phẩm và biến thể cần được tạo đồng bộ.
+  objectives:
+  - Lập ma trận Button/Checkbox × Windows/macOS.
+  - Nhận diện tổ hợp sản phẩm không tương thích.
+- id: abstract-product-interfaces
+  title: Abstract Product Interfaces
+  purpose: Định nghĩa hợp đồng chung cho từng loại sản phẩm trong Java.
+  objectives:
+  - Tạo interface Button và Checkbox.
+  - Tách hành vi chung khỏi các lớp triển khai.
+- id: abstract-factory-interface
+  title: Abstract Factory Interface
+  purpose: Gom các phương thức tạo sản phẩm vào một hợp đồng thống nhất.
+  objectives:
+  - Tạo GUIFactory với createButton và createCheckbox.
+  - Khai báo kiểu trả về theo abstract product.
+- id: concrete-products-factories
+  title: Concrete Products & Factories
+  purpose: Triển khai từng họ sản phẩm bằng factory riêng, nhất quán biến thể.
+  objectives:
+  - Tạo sản phẩm Windows và macOS cho mỗi interface.
+  - Viết WindowsFactory và MacOSFactory đúng họ sản phẩm.
+- id: client-chon-factory
+  title: Client & Chọn Factory
+  purpose: Để logic ứng dụng dùng abstraction và thay họ sản phẩm qua cấu hình.
+  objectives:
+  - Truyền GUIFactory vào client bằng constructor.
+  - Đổi platform tại composition root mà không sửa client.
+- id: thuc-hanh-unit-test
+  title: Thực hành & Unit Test
+  purpose: Kiểm chứng cùng một client hoạt động với nhiều họ sản phẩm.
+  objectives:
+  - Chạy demo Java cho hai biến thể GUI.
+  - Test mỗi factory trả đủ sản phẩm cùng một họ.
+- id: danh-doi-so-sanh
+  title: Đánh đổi & So sánh
+  purpose: Nhận biết khi nào dùng mẫu này và chi phí khi mở rộng thiết kế.
+  objectives:
+  - Phân biệt Abstract Factory với Factory Method và Builder.
+  - Giải thích dễ thêm họ mới, khó thêm loại sản phẩm mới.

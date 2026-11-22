@@ -1,0 +1,57 @@
+roadmap:
+- id: luong-thong-bao-telegram
+  title: Luồng thông báo Telegram
+  purpose: Hiểu cách ứng dụng gửi thông báo qua Telegram Bot API và những giới hạn của bot.
+  objectives:
+  - Vẽ luồng ứng dụng → Bot API → cuộc trò chuyện.
+  - Phân biệt bot, người dùng, nhóm và kênh.
+  - Nêu điều kiện để bot có thể gửi thông báo.
+- id: tao-bot-quan-ly-token
+  title: Tạo bot & quản lý token
+  purpose: Khởi tạo danh tính bot và bảo vệ thông tin xác thực trước khi tích hợp ứng dụng.
+  objectives:
+  - Tạo bot qua BotFather và kiểm tra bằng getMe.
+  - Lưu token trong cấu hình bí mật, không commit lên Git.
+  - Thực hành thu hồi và thay token khi bị lộ.
+- id: chat-id-quyen-nhan
+  title: Chat ID & quyền nhận
+  purpose: Xác định đúng cuộc trò chuyện đích và kiểm soát ai được nhận thông báo.
+  objectives:
+  - Lấy chat_id từ update hoặc cấu hình đích đã xác nhận.
+  - Phân biệt chat cá nhân, nhóm và kênh.
+  - Kiểm tra bot đã được khởi động/thêm vào chat và có quyền gửi.
+- id: gui-tin-nhan-co-ban
+  title: Gửi tin nhắn cơ bản
+  purpose: Tạo yêu cầu HTTP gửi thông báo và kiểm tra kết quả trả về trước khi xác nhận thành công.
+  objectives:
+  - Gọi sendMessage với chat_id và text.
+  - Đọc ok, result và thông báo lỗi từ API.
+  - Thử gửi thông báo thành công và trường hợp chat không hợp lệ.
+- id: noi-dung-dinh-dang
+  title: Nội dung & định dạng
+  purpose: Trình bày thông báo dễ đọc và lựa chọn đúng loại nội dung cho mỗi sự kiện.
+  objectives:
+  - Định dạng HTML hoặc MarkdownV2 và escape dữ liệu động.
+  - Gửi liên kết, nút inline hoặc tài liệu khi cần.
+  - Thiết kế thông điệp ngắn có bối cảnh và mức ưu tiên.
+- id: tich-hop-java-spring
+  title: Tích hợp Java/Spring
+  purpose: Tách tác vụ phát sinh sự kiện khỏi việc gửi thông báo để giảm phụ thuộc trực tiếp vào Telegram.
+  objectives:
+  - Tạo service dùng HTTP client/WebClient để gọi Bot API.
+  - Ánh xạ sự kiện nghiệp vụ thành mẫu thông báo.
+  - Tách token, chat_id và timeout thành cấu hình môi trường.
+- id: gioi-han-gui-lai
+  title: Giới hạn & gửi lại
+  purpose: Giảm mất thông báo và tránh gửi dồn dập khi mạng lỗi hoặc Telegram giới hạn tần suất.
+  objectives:
+  - Xử lý timeout, lỗi tạm thời và HTTP 429/retry_after.
+  - Dùng hàng đợi, backoff và giới hạn số lần thử lại.
+  - Thiết kế khóa chống gửi trùng khi xử lý lại sự kiện.
+- id: kiem-thu-giam-sat
+  title: Kiểm thử & giám sát
+  purpose: Đảm bảo thông báo được gửi đúng người, đúng nội dung và không làm lộ dữ liệu nhạy cảm.
+  objectives:
+  - Mock Bot API và kiểm thử các phản hồi thành công/thất bại.
+  - Kiểm thử tích hợp trên chat thử nghiệm được cấp quyền.
+  - Ghi nhận trạng thái gửi, độ trễ và lỗi mà không log token.

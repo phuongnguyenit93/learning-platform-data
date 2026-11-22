@@ -1,0 +1,13 @@
+references:
+  - title: "Spring Data Neo4j — Getting Started"
+    url: "https://docs.spring.io/spring-data/neo4j/reference/getting-started.html"
+    description: "Hướng dẫn cấu hình Spring Boot starter, kết nối Neo4j và tạo repository."
+  - title: "Spring Data Neo4j — Object Mapping"
+    url: "https://docs.spring.io/spring-data/neo4j/reference/object-mapping.html"
+    description: "Tài liệu chính thức về mapping node, relationship, ID và thuộc tính."
+  - title: "Spring Data Neo4j — Repositories"
+    url: "https://docs.spring.io/spring-data/neo4j/reference/repositories.html"
+    description: "Các khái niệm repository, derived queries, custom queries và truy cập dữ liệu."
+  - title: "Spring Data Neo4j — Testing"
+    url: "https://docs.spring.io/spring-data/neo4j/reference/testing.html"
+    description: "Kiểm thử Spring Data Neo4j, gồm hỗ trợ @DataNeo4jTest trong Spring Boot."

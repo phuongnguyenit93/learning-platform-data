@@ -1,0 +1,64 @@
+roadmap:
+- id: dual-write-bat-nhat
+  title: Dual Write & Bất nhất
+  purpose: Hiểu rủi ro khi ghi database và gửi message bằng hai thao tác độc lập.
+  objectives:
+  - Mô tả trường hợp commit DB thành công nhưng publish thất bại.
+  - Mô tả trường hợp publish trước rồi transaction rollback.
+  - Giải thích vì sao một DB transaction không bao trùm broker.
+- id: luong-transactional-outbox
+  title: Luồng Transactional Outbox
+  purpose: Giải thích cách ghi dữ liệu và sự kiện trong cùng một giao dịch cục bộ.
+  objectives:
+  - Vẽ luồng Service → DB+Outbox → Relay → Broker → Consumer.
+  - Phân biệt commit dữ liệu với publish bất đồng bộ.
+  - Xác định điều kiện gửi event khi DB commit thành công.
+- id: thiet-ke-outbox-table
+  title: Thiết kế Outbox Table
+  purpose: Tạo cấu trúc lưu sự kiện đủ thông tin cho phát hành và xử lý trùng.
+  objectives:
+  - Thiết kế eventId, aggregateId, eventType, payload và createdAt.
+  - Chọn event key để hỗ trợ thứ tự theo aggregate.
+  - Xác định version schema và dữ liệu cần tránh đưa vào event.
+- id: atomic-write-transaction
+  title: Atomic Write & Transaction
+  purpose: Đảm bảo bản ghi nghiệp vụ và event cùng commit hoặc cùng rollback.
+  objectives:
+  - Ghi business row và outbox row trong một DB transaction.
+  - Thử rollback để xác nhận không còn outbox event.
+  - Dùng @Transactional đúng phạm vi và kiểm tra rollback.
+- id: relay-bang-polling
+  title: Relay bằng Polling
+  purpose: Triển khai lựa chọn đọc bảng outbox theo lịch rồi publish sang broker.
+  objectives:
+  - Chọn bản ghi chờ gửi theo batch có giới hạn.
+  - Phân biệt trạng thái pending, published và retry.
+  - Xử lý nhiều worker để tránh cùng nhận một bản ghi.
+- id: cdc-debezium
+  title: CDC & Debezium
+  purpose: Nhận biết lựa chọn relay theo transaction log thay cho polling.
+  objectives:
+  - Giải thích CDC đọc WAL/binlog và chuyển thay đổi outbox.
+  - Nhận diện cấu hình Debezium Outbox Event Router.
+  - So sánh độ trễ, vận hành và ordering với polling.
+- id: idempotency-ordering
+  title: Idempotency & Ordering
+  purpose: Thiết kế an toàn cho cơ chế phát hành và nhận sự kiện ít nhất một lần.
+  objectives:
+  - Giải thích vì sao relay có thể publish trùng sau crash.
+  - Lưu eventId đã xử lý hoặc tạo hiệu ứng idempotent ở consumer.
+  - Dùng aggregateId làm message key và kiểm tra thứ tự theo aggregate.
+- id: retry-dlq-cleanup
+  title: Retry, DLQ & Cleanup
+  purpose: Vận hành cơ chế phục hồi khi broker hoặc consumer lỗi mà không mất sự kiện.
+  objectives:
+  - Áp dụng retry với backoff và giới hạn số lần.
+  - Chọn cách đưa sự kiện không thể xử lý vào DLQ phù hợp.
+  - Lập chính sách dọn bản ghi đã phát hành và giữ audit cần thiết.
+- id: failure-test-observability
+  title: Failure Test & Observability
+  purpose: Kiểm tra tính nhất quán từ database đến consumer qua các kịch bản lỗi.
+  objectives:
+  - Giả lập DB rollback, broker down và relay crash sau publish.
+  - Theo dõi outbox backlog, độ trễ và số lần retry.
+  - Kiểm tra không mất event và không áp dụng tác dụng phụ hai lần.

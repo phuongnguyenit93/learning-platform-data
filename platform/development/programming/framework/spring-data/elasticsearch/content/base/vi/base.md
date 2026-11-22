@@ -1,0 +1,7 @@
+# Spring Data Elasticsearch
+
+Spring Data Elasticsearch là mô-đun Spring Data giúp ứng dụng Java lưu và truy vấn tài liệu trên Elasticsearch qua mô hình đối tượng, repository và các API tìm kiếm cấp cao. Khác với truy vấn quan hệ, Elasticsearch tổ chức dữ liệu thành index và document, hỗ trợ tìm kiếm toàn văn và xếp hạng mức độ liên quan. Việc lập chỉ mục và hiển thị thay đổi cho truy vấn có những đặc điểm riêng, nên người học cần hiểu cả API Spring lẫn cách Elasticsearch vận hành.
+
+Module phù hợp với người đã biết Java, Spring Boot và khái niệm truy cập dữ liệu cơ bản. Bạn sẽ bắt đầu từ index, document, mapping và cơ chế tìm kiếm; sau đó cấu hình client, ánh xạ entity với `@Document`/`@Field`, thao tác index, sử dụng `ElasticsearchRepository` và `ElasticsearchOperations`, xây truy vấn theo tiêu chí hoặc truy vấn gốc, đọc `SearchHits` và xử lý phân trang. Phần cuối tập trung vào kiểm thử tích hợp, refresh, lập chỉ mục hàng loạt và theo dõi hiệu năng.
+
+Sau tám mốc học, bạn có thể xây dựng lớp truy cập Elasticsearch với Spring Data, lựa chọn kiểu trường đúng mục đích, viết truy vấn tìm kiếm có thể kiểm chứng và nhận diện những giới hạn phổ biến về nhất quán, phân trang và chi phí truy vấn. Lộ trình tập trung vào nền tảng ứng dụng trước khi đi sâu vào cấu hình cụm Elasticsearch ở cấp hạ tầng.

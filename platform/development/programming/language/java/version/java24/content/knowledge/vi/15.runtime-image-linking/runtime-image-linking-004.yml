@@ -1,0 +1,3 @@
+menuLevel1: Liên kết runtime image
+menuLevel2: Dùng jlink từ runtime image có khả năng liên kết khi không có thư mục jmods
+status: ""

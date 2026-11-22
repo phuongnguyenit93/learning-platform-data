@@ -1,0 +1,7 @@
+# Engineering Validation Testing Tool Mutation Testing
+
+Mutation Testing là kỹ thuật đánh giá chất lượng bộ kiểm thử bằng cách đưa những thay đổi nhỏ có chủ đích vào mã chương trình và chạy lại các test để xem chúng có phát hiện được sai lệch hay không. Những phiên bản mã được biến đổi gọi là mutant; một mutant bị *killed* khi test phát hiện lỗi, còn mutant *survived* có thể chỉ ra chỗ thiếu assertion, thiếu trường hợp biên hoặc hành vi chưa được kiểm tra. Khác với line coverage, chỉ cho biết phần mã đã được thực thi, mutation testing giúp đặt câu hỏi liệu các test có thực sự kiểm chứng hành vi hay không.
+
+Roadmap một cấp gồm tám mốc: nắm nguyên tắc mutation testing, tìm hiểu mutation operators, đọc các trạng thái kết quả và mutation score, rồi thiết lập PIT cho dự án Java với Maven và JUnit. Người học sử dụng báo cáo để phân tích surviving mutants, thiết kế test tốt hơn bằng các assertion và trường hợp biên có ý nghĩa, đồng thời nhận biết equivalent mutants và những giới hạn như thời gian chạy, timeout hay test không ổn định. Mốc cuối hướng dẫn áp dụng kết quả vào quy trình CI và cải tiến test suite theo từng khu vực mã nguồn.
+
+Module phù hợp với Java developer, QA automation engineer hoặc người đã viết unit test bằng JUnit. Sau khi hoàn thành, bạn có thể chạy PIT trên một dự án nhỏ, giải thích vì sao một mutant không bị test phát hiện, bổ sung test để bắt lỗi đó, phân biệt lỗ hổng thật với mutant tương đương và xây dựng quy trình theo dõi chất lượng kiểm thử mà không chạy phân tích quá tốn kém ở mọi thay đổi.

@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-bao-mat-servlet
+  title: Tổng quan bảo mật Servlet
+  purpose: Xác định Spring Security bảo vệ ứng dụng Servlet ở đâu và cần giải quyết những bài toán nào.
+  objectives:
+  - Phân biệt xác thực danh tính và phân quyền truy cập.
+  - Nhận diện yêu cầu HTTP, bộ lọc, người dùng và quyền trong luồng bảo mật.
+  - Xác định kiến thức Java, HTTP và Spring MVC cần có.
+- id: luong-qua-chuoi-bo-loc
+  title: Luồng qua chuỗi bộ lọc
+  purpose: Hiểu cách yêu cầu đi qua lớp bảo mật trước khi tới bộ điều khiển.
+  objectives:
+  - Lần theo DelegatingFilterProxy, FilterChainProxy và SecurityFilterChain.
+  - Giải thích tác động của thứ tự bộ lọc.
+  - Xác định điểm tiếp tục hoặc dừng xử lý yêu cầu.
+- id: cau-hinh-httpsecurity
+  title: Cấu hình HttpSecurity
+  purpose: Biến chính sách bảo vệ thành cấu hình rõ ràng cho từng nhóm yêu cầu.
+  objectives:
+  - Khai báo bean SecurityFilterChain bằng HttpSecurity.
+  - Phân biệt securityMatcher chọn chuỗi và requestMatchers chọn quy tắc.
+  - Xác định chuỗi khớp đầu tiên và bảo vệ các đường dẫn còn lại.
+- id: dang-nhap-va-xac-thuc
+  title: Đăng nhập và xác thực
+  purpose: Kết nối thông tin đăng nhập với danh tính được ứng dụng công nhận.
+  objectives:
+  - Lần theo AuthenticationManager, AuthenticationProvider và Authentication.
+  - Kết nối UserDetailsService với PasswordEncoder.
+  - So sánh luồng đăng nhập biểu mẫu và HTTP Basic.
+- id: phan-quyen-yeu-cau
+  title: Phân quyền yêu cầu
+  purpose: Quyết định ai được truy cập tài nguyên và phản hồi phù hợp khi bị từ chối.
+  objectives:
+  - Áp dụng authorizeHttpRequests theo đường dẫn, phương thức và quyền.
+  - Phân biệt vai trò với quyền chi tiết khi dùng hasRole và hasAuthority.
+  - Chọn AuthenticationEntryPoint hoặc AccessDeniedHandler theo tình huống.
+- id: ngu-canh-phien-va-dang-xuat
+  title: Ngữ cảnh, phiên và đăng xuất
+  purpose: Quản lý danh tính trong một yêu cầu và giữa nhiều yêu cầu liên tiếp.
+  objectives:
+  - Giải thích SecurityContextHolder và SecurityContextRepository.
+  - So sánh lưu danh tính trong HttpSession với chính sách không lưu phiên.
+  - Kiểm tra thay đổi mã phiên khi đăng nhập và dọn ngữ cảnh khi đăng xuất.
+- id: bao-ve-tuong-tac-web
+  title: Bảo vệ tương tác web
+  purpose: Kết hợp cơ chế bảo vệ trình duyệt với chính sách xác thực và phân quyền.
+  objectives:
+  - Phân biệt CSRF và CORS theo tình huống sử dụng.
+  - Gửi mã CSRF và cấu hình xử lý yêu cầu CORS sơ bộ.
+  - Nhận diện vai trò các tiêu đề HTTP bảo mật.
+- id: kiem-thu-va-chan-doan
+  title: Kiểm thử và chẩn đoán
+  purpose: Chứng minh cấu hình bảo vệ đúng hành vi mong đợi và tìm nguyên nhân khi sai.
+  objectives:
+  - Dùng MockMvc kiểm tra truy cập ẩn danh, đủ quyền và thiếu quyền.
+  - Kiểm tra đăng nhập, đăng xuất, phiên và CSRF.
+  - Đọc nhật ký chuỗi bộ lọc để phân tích chuyển hướng, lỗi 401 hoặc 403.

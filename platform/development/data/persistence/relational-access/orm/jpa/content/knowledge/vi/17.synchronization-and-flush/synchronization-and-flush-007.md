@@ -1,0 +1,1622 @@
+# Phân biệt thứ tự gọi phương thức và thứ tự SQL thực tế trong JPA
+
+Khi lập trình với Jakarta Persistence (JPA), rất dễ nhìn vào những dòng Java chạy từ trên xuống dưới và cho rằng các lệnh SQL cũng phải xuất hiện đúng thứ tự đó. Đây là một giả định không an toàn.
+
+~~~java
+em.persist(newCategory);
+em.persist(newProduct);
+oldProduct.changePrice(new BigDecimal("199000.00"));
+em.remove(discontinuedProduct);
+~~~
+
+Bốn lời gọi ở trên **không bắt buộc tương ứng ngay lập tức với bốn câu SQL theo cùng thứ tự**. Tùy trạng thái entity, chiến lược cấp khóa, cascade, flush mode, cấu hình batching, phụ thuộc khóa ngoại và JPA provider, một số SQL có thể chạy sớm, nhiều thao tác có thể chờ đến `flush()`, hoặc SQL được nhóm và sắp xếp lại. Có khi một lời gọi Java không sinh SQL; có khi một lời gọi dẫn tới nhiều câu SQL.
+
+Bài học này giải thích cách phân biệt **thứ tự thao tác ở tầng Java**, **thứ tự yêu cầu thay đổi được persistence context quản lý**, **thứ tự SQL thực thi**, và **thời điểm các thay đổi thật sự được commit**. Đây là nền tảng để hiểu vì sao code “xóa trước rồi thêm sau” vẫn có thể vi phạm `UNIQUE`, vì sao quan hệ bị lỗi `FOREIGN KEY`, vì sao `persist()` có lúc đã INSERT ngay và cách quan sát hành vi thực tế mà không phụ thuộc mù quáng vào một phiên bản Hibernate hay EclipseLink.
+
+## 1. Bốn loại thứ tự khác nhau
+
+Xét một giao dịch cập nhật danh mục sản phẩm:
+
+~~~text
+Thứ tự lời gọi Java trong ứng dụng
+    1. category.setName(...)
+    2. em.persist(product)
+    3. em.remove(oldProduct)
+    4. em.flush()
+
+           |
+           v
+
+Trạng thái persistence context
+    - Category managed đã thay đổi tên
+    - Product mới đang được quản lý/chờ insert
+    - OldProduct được đánh dấu removed
+
+           |
+           v
+
+SQL mà provider có thể gửi khi đồng bộ
+    INSERT ...          (có thể đã xảy ra sớm hoặc lúc flush)
+    UPDATE categories ...
+    DELETE FROM products ...
+    -- Thứ tự và số lệnh phụ thuộc mapping/provider.
+
+           |
+           v
+
+Transaction commit hoặc rollback
+    - COMMIT: xác nhận các SQL đã thực thi trong transaction.
+    - ROLLBACK: hủy tác động SQL của transaction theo DBMS.
+~~~
+
+Các thuật ngữ cần phân biệt:
+
+| Tầng | Thứ tự liên quan đến gì? | Ai quyết định chủ yếu? |
+| --- | --- | --- |
+| **Java call order** | Dòng nào gọi `persist`, `remove`, setter trước | Mã ứng dụng |
+| **Managed state / unit of work** | Entity nào mới, dirty, removed; association nào thay đổi | Persistence context và JPA provider |
+| **Flush / SQL execution order** | Khi nào và theo thứ tự nào gửi `INSERT`, `UPDATE`, `DELETE`, SQL liên kết | Provider, cấu hình, JDBC, ràng buộc và DBMS |
+| **Commit / visibility order** | Khi nào giao dịch được xác nhận và giao dịch khác đọc được gì | Transaction manager, DBMS, isolation |
+
+**Không tồn tại quy tắc JPA tổng quát rằng thứ tự câu SQL phải bằng thứ tự gọi các phương thức JPA trong source code.** Đặc tả yêu cầu bảo đảm tính đúng đắn của ánh xạ và trạng thái được đồng bộ trong phạm vi hành vi được quy định, nhưng không công bố một lịch phát SQL cố định cho mọi provider.
+
+## 2. Vì sao JPA không phát SQL ngay sau mỗi setter?
+
+JPA sử dụng **persistence context** để quản lý entity và theo dõi những thay đổi cần lưu. Khi một entity managed được sửa:
+
+~~~java
+Product product = em.find(Product.class, 101L);
+product.changePrice(new BigDecimal("249000.00"));
+~~~
+
+thao tác thứ hai chỉ thay đổi thuộc tính persistent của một object Java. Provider có thể ghi nhận sự thay đổi thông qua snapshot/dirty checking hoặc cơ chế tracking khác. Nó **không cần lập tức gửi UPDATE**.
+
+Điều này có ích vì một đơn vị công việc có thể sửa cùng entity nhiều lần:
+
+~~~java
+product.changePrice(new BigDecimal("209000.00"));
+product.changePrice(new BigDecimal("219000.00"));
+product.changePrice(new BigDecimal("249000.00"));
+~~~
+
+Nếu chưa có lần flush ở giữa, provider có thể chỉ cần lưu **trạng thái cuối cùng** 249000, thay vì gửi ba UPDATE. Mục tiêu của mô hình không phải ghi lại mỗi lời gọi setter; nếu nghiệp vụ cần audit các lần đổi giá, phải có mô hình lịch sử/sự kiện riêng.
+
+Các thay đổi ở collection, relation và entity mới/xóa cũng có thể được tích lũy thành một **unit of work** để đồng bộ cùng nhau. Đó là lý do thứ tự SQL có thể được provider điều chỉnh theo phụ thuộc, chiến lược tối ưu hoặc chi tiết triển khai.
+
+## 3. Mô hình cơ sở dữ liệu dùng trong bài
+
+Ví dụ xuyên suốt là một hệ thống quản lý đơn hàng. Có ba bảng:
+
+~~~text
+customers
+-------------------------------
+id (PK) | email (UNIQUE)
+
+orders
+----------------------------------------
+id (PK) | customer_id (FK) | order_code
+
+order_items
+---------------------------------------------
+id (PK) | order_id (FK) | sku | quantity
+~~~
+
+Ràng buộc quan trọng:
+
+- `orders.customer_id` tham chiếu `customers.id`.
+- `order_items.order_id` tham chiếu `orders.id`.
+- Một đơn hàng có nhiều dòng hàng; mỗi dòng hàng thuộc một đơn.
+- Mã đơn hàng `order_code` là duy nhất theo nghiệp vụ.
+
+DDL PostgreSQL minh họa:
+
+~~~sql
+CREATE TABLE customers (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    email VARCHAR(320) NOT NULL UNIQUE
+);
+
+CREATE TABLE orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    order_code VARCHAR(60) NOT NULL,
+    CONSTRAINT uq_orders_order_code UNIQUE (order_code),
+    CONSTRAINT fk_orders_customer
+        FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+
+CREATE TABLE order_items (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_id BIGINT NOT NULL,
+    sku VARCHAR(80) NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    CONSTRAINT fk_order_items_order
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+~~~
+
+Các ví dụ Java bên dưới sử dụng namespace `jakarta.persistence` và EntityManager trong transaction. Cú pháp SQL minh họa không bảo đảm là SQL byte-for-byte mà mọi provider phát ra.
+
+## 4. Entity và ánh xạ quan hệ
+
+Ta khai báo `Customer`, `PurchaseOrder` và `OrderItem`.
+
+### 4.1. Customer
+
+~~~java
+package com.example.persistence;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "customers")
+public class Customer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 320)
+    private String email;
+
+    protected Customer() {
+    }
+
+    public Customer(String email) {
+        this.email = email;
+    }
+
+    public Long getId() {
+        return id;
+    }
+}
+~~~
+
+### 4.2. PurchaseOrder
+
+~~~java
+package com.example.persistence;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "orders")
+public class PurchaseOrder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(
+        name = "order_code",
+        nullable = false,
+        unique = true,
+        length = 60)
+    private String orderCode;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @OneToMany(
+        mappedBy = "order",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
+
+    protected PurchaseOrder() {
+    }
+
+    public PurchaseOrder(String orderCode, Customer customer) {
+        this.orderCode = orderCode;
+        this.customer = customer;
+    }
+
+    public void addItem(OrderItem item) {
+        items.add(item);
+        item.assignTo(this);
+    }
+
+    public void removeItem(OrderItem item) {
+        if (items.remove(item)) {
+            item.assignTo(null);
+        }
+    }
+
+    public Long getId() {
+        return id;
+    }
+}
+~~~
+
+### 4.3. OrderItem
+
+~~~java
+package com.example.persistence;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "order_items")
+public class OrderItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private PurchaseOrder order;
+
+    @Column(nullable = false, length = 80)
+    private String sku;
+
+    @Column(nullable = false)
+    private int quantity;
+
+    protected OrderItem() {
+    }
+
+    public OrderItem(String sku, int quantity) {
+        if (quantity < 1) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        this.sku = sku;
+        this.quantity = quantity;
+    }
+
+    void assignTo(PurchaseOrder order) {
+        this.order = order;
+    }
+}
+~~~
+
+**Lưu ý về ownership:**
+
+- `PurchaseOrder.customer` là phía sở hữu FK `orders.customer_id`.
+- `OrderItem.order` là phía sở hữu FK `order_items.order_id`.
+- `PurchaseOrder.items` có `mappedBy = "order"`, là phía ngược; phương thức `addItem()` phải đồng bộ `item.order`.
+- `cascade = ALL` và `orphanRemoval = true` ở đây phù hợp với giả định dòng hàng phụ thuộc vòng đời vào đơn hàng. Không áp dụng máy móc cấu hình này cho entity dùng chung như `Customer` hoặc `Role`.
+
+Các ví dụ về thứ tự SQL cần được đọc trong bối cảnh mapping và ràng buộc đã khai báo, vì **chỉ đổi nullable hoặc cascade cũng có thể thay kết quả flush**.
+
+## 5. `persist()` không phải lệnh “INSERT ngay bây giờ” trong mọi trường hợp
+
+Khi gọi:
+
+~~~java
+Customer customer = new Customer("an@example.com");
+em.persist(customer);
+~~~
+
+JPA thực hiện các bước ở mức ngữ nghĩa:
+
+1. Chuyển entity mới vào trạng thái **managed** trong persistence context.
+2. Sắp xếp việc đưa state của entity vào database theo chiến lược cấp khóa và flush phù hợp.
+3. Có thể phát sinh INSERT ngay, hoặc giữ thao tác chờ tới lần đồng bộ tiếp theo.
+
+Vì vậy:
+
+~~~java
+em.persist(a);
+em.persist(b);
+em.persist(c);
+~~~
+
+**không cam kết** có đúng ba INSERT được gửi ngay tại ba dòng tương ứng. Cách provider thực thi có thể thay đổi với `GenerationType.IDENTITY`, `SEQUENCE`, `UUID`, cascade và JDBC batching.
+
+### 5.1. Cần phân biệt Java identity và database identity
+
+Entity có thể đã được context quản lý nhưng chưa có hàng được commit. Việc:
+
+~~~java
+em.contains(customer) // true
+~~~
+
+chỉ cho biết object đang managed trong context đó. Nó không phải một phép kiểm tra rằng transaction khác đã nhìn thấy hàng `customers`.
+
+Tương tự, `customer.getId() != null` có thể xảy ra trước khi transaction commit và vẫn có thể rollback.
+
+## 6. Chiến lược cấp ID làm thay đổi thời điểm phát INSERT
+
+Một lý do lớn khiến thứ tự SQL khác thứ tự gọi là **JPA cần có khóa chính để tạo liên kết FK**.
+
+### 6.1. `GenerationType.SEQUENCE`
+
+Khi ID do sequence tạo, provider có thể lấy ID trước khi INSERT:
+
+~~~java
+@Id
+@GeneratedValue(
+    strategy = GenerationType.SEQUENCE,
+    generator = "order_seq")
+@SequenceGenerator(
+    name = "order_seq",
+    sequenceName = "order_id_seq",
+    allocationSize = 50)
+private Long id;
+~~~
+
+Giả sử database đã có sequence phù hợp, trình tự có thể là:
+
+~~~text
+Java: em.persist(orderA)
+SQL:  SELECT nextval('order_id_seq')   [hoặc từ vùng ID cấp sẵn]
+
+Java: em.persist(orderB)
+Java: em.persist(orderC)
+
+Java: em.flush()
+SQL:  INSERT INTO orders ...           [có thể được batch]
+SQL:  INSERT INTO orders ...
+SQL:  INSERT INTO orders ...
+~~~
+
+Việc có ID do sequence cấp **không có nghĩa hàng đã INSERT**, vì sequence và thao tác INSERT có vòng đời riêng. Provider có thể cấp phát trước nhiều ID theo vùng (*allocation/pooled optimizer*), khiến không phải mỗi lần persist đều gọi sequence.
+
+### 6.2. `GenerationType.IDENTITY`
+
+Với identity column, ID thường được DB tạo trong quá trình INSERT. Để biết ID, provider có thể phải phát INSERT sớm hơn:
+
+~~~java
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Long id;
+~~~
+
+Một luồng thường gặp:
+
+~~~text
+Java: em.persist(customer)
+SQL:  INSERT INTO customers ...  -- Có thể cần để lấy ID.
+Java: customer.getId()          -- ID đã được gán.
+Java: em.persist(order)
+SQL:  INSERT INTO orders ...     -- Tùy provider và thời điểm.
+~~~
+
+Tuy nhiên, **không được coi “IDENTITY luôn INSERT ngay tại lời gọi persist” là quy tắc portable**. Có provider cho phép hoãn trong một số bối cảnh hoặc áp dụng cơ chế riêng. Điều nên nhớ là **khả năng sinh ID từ database có thể buộc SQL xuất hiện sớm hơn dự kiến**, đặc biệt khi cần giá trị khóa để ghi các hàng phụ thuộc.
+
+### 6.3. ID do UUID hoặc ứng dụng cấp
+
+Nếu một entity có ID UUID được cấp trước INSERT, provider có thể biết identity và FK mà chưa cần gửi INSERT. Điều này có thể giúp hoãn ghi và batch, nhưng không bảo đảm thứ tự hoặc số SQL cụ thể: vẫn phụ thuộc provider, mapping và transaction.
+
+### So sánh
+
+| Chiến lược | Khi nào biết ID? | Tác động có thể có tới thứ tự SQL |
+| --- | --- | --- |
+| `IDENTITY` | Thường sau INSERT do DB sinh | Có thể phải INSERT sớm; khả năng batch INSERT bị hạn chế |
+| `SEQUENCE` | Có thể trước INSERT | Cho phép sắp xếp/nhóm INSERT dễ hơn |
+| `TABLE` | Thông qua bảng quản lý ID | Có thêm SQL/lock phục vụ cấp ID; không nên mặc định hiệu quả |
+| UUID/provider-generated | Có thể trước INSERT | SQL ghi hàng có thể được hoãn |
+| Assigned ID | Ứng dụng cung cấp | Không cần SQL sinh ID, nhưng vẫn phải bảo đảm uniqueness |
+
+Việc chọn chiến lược ID cần cân bằng tính di động, throughput, batch và đặc tính DBMS; không chỉ chọn để “điều khiển thứ tự INSERT”.
+
+## 7. Phụ thuộc khóa ngoại ảnh hưởng thứ tự INSERT
+
+Giả sử ứng dụng muốn tạo một khách hàng và đơn hàng mới trong cùng transaction:
+
+~~~java
+Customer customer = new Customer("binh@example.com");
+PurchaseOrder order =
+        new PurchaseOrder("ORD-2027-001", customer);
+
+em.persist(customer);
+em.persist(order);
+~~~
+
+Vì `orders.customer_id NOT NULL` tham chiếu `customers.id`, database cần hàng customer hợp lệ trước khi kiểm tra FK của INSERT order, trừ trường hợp DBMS có cơ chế constraint deferrable phù hợp. Provider phải xử lý việc tạo khóa và dependency để ghi hợp lệ theo mapping đã thiết kế.
+
+Một trình tự SQL khả dĩ:
+
+~~~sql
+INSERT INTO customers(email) VALUES (?);
+INSERT INTO orders(customer_id, order_code) VALUES (?, ?);
+~~~
+
+Nhưng nếu đổi Java thành:
+
+~~~java
+em.persist(order);
+em.persist(customer);
+~~~
+
+**không nên suy ra SQL chắc chắn INSERT order trước customer**. Các thao tác còn phụ thuộc trạng thái tham chiếu `customer`, cascade, cách cấp ID, và việc provider sắp xếp flush. Trong một số cấu hình, thao tác persist order khi nó tham chiếu customer transient mà không có cascade `PERSIST` còn có thể phát sinh lỗi ở flush hoặc sớm hơn.
+
+### 7.1. Cách rõ ràng: tạo parent rồi child
+
+Khi không sử dụng cascade, ứng dụng nên thiết lập rõ parent được persist:
+
+~~~java
+Customer customer = new Customer("binh@example.com");
+em.persist(customer);
+
+PurchaseOrder order =
+        new PurchaseOrder("ORD-2027-001", customer);
+em.persist(order);
+~~~
+
+Đây là **cách biểu đạt dependency nghiệp vụ rõ**, nhưng vẫn không phải cam kết số lượng SQL và thời điểm phát lệnh của provider. Đặc biệt, `persist(customer)` có thể INSERT ngay với IDENTITY hoặc chỉ cấp ID trước với SEQUENCE.
+
+### 7.2. Cascade persist trên quan hệ phù hợp
+
+Nếu vòng đời nghiệp vụ cho phép, mapping có thể sử dụng cascade để persist entity được tham chiếu. Ví dụ `Order` sở hữu các `OrderItem` và `cascade = PERSIST/ALL`; gọi:
+
+~~~java
+order.addItem(new OrderItem("BOOK-JPA", 2));
+em.persist(order);
+~~~
+
+có thể khiến provider persist các OrderItem theo cascade. Về mặt DB, FK `order_items.order_id` vẫn phải tham chiếu order có ID hợp lệ.
+
+**Cascade xác định hành động nào được lan truyền, không phải một “lịch SQL” được bảo đảm trong source code.**
+
+## 8. Cascade và thứ tự duyệt object graph không đồng nghĩa thứ tự SQL
+
+Giả sử:
+
+~~~java
+PurchaseOrder order = new PurchaseOrder("ORD-NEW", customer);
+order.addItem(new OrderItem("SKU-A", 1));
+order.addItem(new OrderItem("SKU-B", 3));
+
+em.persist(order);
+~~~
+
+Từ Java, có vẻ chỉ có **một lời gọi `persist(order)`**. Nhưng thao tác này có thể dẫn đến nhiều SQL:
+
+~~~sql
+INSERT INTO orders (...);
+INSERT INTO order_items (...);
+INSERT INTO order_items (...);
+~~~
+
+Nếu có sequence, batching hoặc những quan hệ khác, thứ tự statement thực tế và các SQL cấp ID có thể khác.
+
+### 8.1. Collection có thứ tự không bắt buộc INSERT cùng thứ tự
+
+Một `List<OrderItem>` có thứ tự duyệt Java:
+
+~~~text
+SKU-A trước SKU-B
+~~~
+
+không có nghĩa database sẽ tạo hai hàng theo “thứ tự thứ nhất, thứ hai” được bảo đảm và có thể truy vấn lại mà không có `ORDER BY`. SQL table về bản chất **không có thứ tự hàng ổn định**.
+
+Nếu nghiệp vụ muốn lưu vị trí dòng hàng, cần một cột vị trí và mapping như `@OrderColumn` (khi phù hợp với quan hệ và ownership), hoặc trường `lineNumber` riêng. Khi truy vấn, phải dùng tiêu chí thứ tự rõ ràng.
+
+### 8.2. `@OrderBy` khác thứ tự ghi SQL
+
+`@OrderBy("sku ASC")` là cấu hình thứ tự **đọc collection** dựa trên thuộc tính entity; nó không buộc provider phát INSERT theo thứ tự SKU. Không dùng `@OrderBy` để “sửa” vấn đề constraint khi flush.
+
+## 9. `remove()` không nhất thiết gửi DELETE ngay
+
+Khi gọi:
+
+~~~java
+PurchaseOrder oldOrder = em.find(PurchaseOrder.class, oldOrderId);
+em.remove(oldOrder);
+~~~
+
+`oldOrder` được đánh dấu removed trong persistence context. Database chưa chắc đã nhận DELETE ngay.
+
+Nếu đơn hàng còn dòng hàng với FK `order_items.order_id`, việc xóa parent trước child có thể vi phạm FK. Với mapping `cascade = REMOVE/ALL` và `orphanRemoval` phù hợp, provider phải xét các dependent entities và quá trình đồng bộ; nếu thiếu cascade/DB policy phù hợp, DELETE parent có thể bị chặn.
+
+Ví dụ về SQL mà DBMS cần để xóa không vi phạm FK thông thường:
+
+~~~sql
+DELETE FROM order_items WHERE order_id = ?;
+DELETE FROM orders WHERE id = ?;
+~~~
+
+Thực tế provider có thể phát nhiều DELETE theo ID, batch, hoặc dựa vào `ON DELETE CASCADE` ở database nếu schema và mapping được thiết kế phù hợp.
+
+**Không suy luận rằng Java gọi `em.remove(parent)` trước `em.remove(child)` thì SQL sẽ DELETE parent trước child.** Cũng không nên tin provider sẽ tự vượt qua mọi constraint khi mapping vòng đời không phù hợp.
+
+## 10. Trường hợp kinh điển: gọi xóa trước thêm nhưng vẫn lỗi UNIQUE
+
+Giả sử bảng `accounts` có email duy nhất:
+
+~~~sql
+CREATE TABLE accounts (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    email VARCHAR(320) NOT NULL UNIQUE
+);
+~~~
+
+Database ban đầu:
+
+~~~text
+id = 10, email = support@example.com
+~~~
+
+Nghiệp vụ muốn xóa account cũ rồi tạo account mới có cùng email trong **cùng transaction**:
+
+~~~java
+Account old = em.find(Account.class, 10L);
+em.remove(old);
+
+Account replacement = new Account("support@example.com");
+em.persist(replacement);
+
+tx.commit();
+~~~
+
+Nhìn Java:
+
+~~~text
+1. remove(old)
+2. persist(replacement)
+3. commit()
+~~~
+
+Nhưng với một số provider/cấu hình (chẳng hạn cơ chế hàng đợi thao tác của Hibernate), SQL được đồng bộ có thể diễn ra:
+
+~~~sql
+INSERT INTO accounts(email) VALUES ('support@example.com');
+-- Vi phạm UNIQUE vì hàng cũ vẫn còn trong database.
+
+DELETE FROM accounts WHERE id = 10;
+~~~
+
+**Thứ tự method call không ép thứ tự INSERT/DELETE.** Hàng đợi thao tác và thứ tự thực hiện ở flush có thể đặt INSERT trước DELETE. Đây là lý do kiểu code “tôi đã gọi remove trước” không phải lời giải cho lỗi UNIQUE.
+
+### 10.1. Giải pháp thứ nhất: cập nhật entity hiện có
+
+Nếu nghiệp vụ chỉ thay thông tin mà vẫn là **cùng account**, không nên xóa để tạo hàng mới. Cập nhật field của entity managed:
+
+~~~java
+Account account = em.find(Account.class, 10L);
+account.changeDisplayName("Bộ phận hỗ trợ mới");
+~~~
+
+Giữ nguyên ID và email, tránh INSERT trùng. Đây thường là lựa chọn tốt nhất khi “thay thế” chỉ có nghĩa đổi nội dung.
+
+### 10.2. Giải pháp thứ hai: tách các đợt đồng bộ bằng `flush()`
+
+Nếu nghiệp vụ thật sự cần tạo **entity mới có identity mới**, có thể yêu cầu DELETE cũ được đồng bộ trước khi INSERT mới được đưa vào context:
+
+~~~java
+tx.begin();
+
+Account old = em.find(Account.class, 10L);
+em.remove(old);
+em.flush(); // Đồng bộ DELETE đã được lên lịch trước.
+
+Account replacement = new Account("support@example.com");
+em.persist(replacement);
+
+tx.commit();
+~~~
+
+Điều kiện:
+
+- Tất cả thao tác nằm trong **một transaction**.
+- Không có FK khác đang tham chiếu account cũ và ngăn DELETE.
+- Không có các INSERT/UPDATE pending khác cũng vi phạm constraint.
+- Với identity ID, `persist(replacement)` có thể INSERT sớm sau flush.
+- Nếu INSERT mới thất bại, **rollback cả transaction**; DELETE cũ chưa được commit độc lập.
+
+**Flush làm ranh giới đồng bộ, không làm ranh giới commit.** Thao tác `remove → flush → persist` có thể kiểm soát một số trường hợp thứ tự SQL nhưng không giải quyết mọi ràng buộc và concurrency.
+
+### 10.3. Tại sao không xóa UNIQUE để tránh lỗi?
+
+Nếu domain yêu cầu email duy nhất, bỏ constraint sẽ cho phép dữ liệu trùng ở những transaction khác và qua mọi đường ghi SQL. Cần sửa thiết kế thao tác hoặc transaction, không phá vỡ ràng buộc nghiệp vụ đúng.
+
+## 11. Những giới hạn của “flush giữa hai thao tác”
+
+Đôi khi lập trình viên dùng:
+
+~~~java
+em.remove(old);
+em.flush();
+em.persist(newObject);
+~~~
+
+và coi đây là công thức xử lý mọi vấn đề. Thực tế, `flush()` có các giới hạn:
+
+1. Nó đồng bộ **mọi thay đổi đang chờ trong persistence context**, không phải chỉ một đối tượng `old` theo cách JPA chuẩn bảo đảm.
+2. Nếu còn entity khác dirty hoặc mới, chúng cũng có thể được ghi trong đợt flush đó.
+3. Nó không commit, nên có thể tạo lock kéo dài đến cuối transaction.
+4. Nó không làm các FK từ bảng khác tự biến mất.
+5. Một constraint có thể được DBMS kiểm tra ở thời điểm commit nếu được định nghĩa deferrable.
+6. Trong một persistence context, việc remove rồi persist lại một entity **cùng identity** có quy tắc trạng thái khác với xóa một hàng để chèn bản ghi có ID mới.
+7. Nếu provider đã phát SQL sớm vì IDENTITY hoặc query-induced flush, một phần thứ tự thực tế đã xảy ra trước lời gọi flush tường minh.
+
+Vì vậy, trước khi thêm `flush()`, cần biết **đang ép một thứ tự SQL nào, đối tượng nào bị ràng buộc và trạng thái nào còn pending**.
+
+## 12. Chuyển liên kết có FK và các trạng thái trung gian
+
+Một tình huống khác: di chuyển một `OrderItem` từ đơn A sang đơn B. Nếu `order_items.order_id NOT NULL`, đoạn:
+
+~~~java
+item.assignTo(null);
+em.flush();
+item.assignTo(orderB);
+~~~
+
+có thể tạo câu:
+
+~~~sql
+UPDATE order_items SET order_id = NULL WHERE id = ?;
+~~~
+
+và vi phạm NOT NULL ngay ở flush.
+
+Nếu domain cho phép chuyển dòng hàng và item là managed, cách thể hiện thường nên là:
+
+~~~java
+item.assignTo(orderB);
+~~~
+
+đồng thời đồng bộ collection của đơn A và B trong memory bằng helper thích hợp. Provider có thể UPDATE FK trực tiếp từ A sang B khi flush, tránh trạng thái SQL trung gian NULL không hợp lệ.
+
+### Với `orphanRemoval = true` cần cẩn trọng
+
+Trong mapping ví dụ, `Order.items` có `orphanRemoval = true` vì dòng hàng thuộc vòng đời của một đơn. Nếu gỡ item khỏi order A, provider có thể coi nó là orphan cần xóa. **Không được mặc định di chuyển chính item đó sang order B sẽ an toàn** với mọi provider và ngữ nghĩa orphan removal.
+
+Nếu nghiệp vụ thật sự cho phép di chuyển item giữa các order mà giữ ID, mô hình ownership vòng đời cần được thiết kế lại. Đây là khác biệt giữa **chuyển quan hệ** và **xóa entity con rồi tạo entity con mới**.
+
+## 13. Trường hợp một–một: UNIQUE FK làm thứ tự SQL trở nên nhạy cảm
+
+Giả sử:
+
+~~~sql
+CREATE TABLE customer_profiles (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    customer_id BIGINT NOT NULL UNIQUE,
+    display_name VARCHAR(150) NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+~~~
+
+Mỗi customer có tối đa một profile. Khi muốn thay profile cũ bằng profile mới:
+
+~~~java
+em.remove(oldProfile);
+em.persist(newProfileForSameCustomer);
+~~~
+
+thứ tự method call là remove rồi persist, nhưng nếu provider phát INSERT trước DELETE, hai profile cùng mang `customer_id` và vi phạm UNIQUE. Cách xử lý tương tự mục 10:
+
+- Ưu tiên **sửa cùng profile managed** nếu domain không cần identity mới.
+- Nếu cần hàng mới, thiết kế delete/flush/insert phù hợp trong cùng transaction.
+- Nếu profile cũ còn được các bảng khác tham chiếu, phải xử lý FK trước khi xóa.
+- Nếu mapping có `@MapsId` shared primary key, thay profile mới cho cùng customer còn liên quan tới **identity trùng** của entity managed; không thể xử lý như hai hàng ID độc lập.
+
+### Không chỉ có UNIQUE, còn có PK trùng
+
+Với shared PK:
+
+~~~sql
+customer_profiles(
+    customer_id BIGINT PRIMARY KEY REFERENCES customers(id),
+    display_name VARCHAR(150) NOT NULL
+)
+~~~
+
+profile cũ và profile mới của cùng customer có **cùng primary key**. Trong một persistence context, hai Java entity instance có cùng loại và cùng ID không thể đồng thời là hai managed identities độc lập. Tình huống này thường thích hợp để **UPDATE hàng hiện hữu**, hoặc tách quá trình xóa/tạo với xử lý context và transaction hết sức cẩn thận.
+
+## 14. Thứ tự UPDATE cũng có thể làm vi phạm UNIQUE
+
+Không chỉ INSERT/DELETE, **UPDATE nhiều hàng** cũng có thể vướng constraint trung gian.
+
+Giả sử:
+
+~~~text
+employees:
+id=1, seat_code=A
+id=2, seat_code=B
+UNIQUE(seat_code)
+~~~
+
+Yêu cầu đổi chỗ ngồi:
+
+~~~java
+employee1.setSeatCode("B");
+employee2.setSeatCode("A");
+~~~
+
+Ngay cả khi cuối cùng chỉ muốn hoán đổi A và B, một UPDATE được phát trước có thể tạo trạng thái tạm:
+
+~~~sql
+UPDATE employees SET seat_code = 'B' WHERE id = 1;
+-- Vi phạm UNIQUE: employee 2 vẫn có B.
+~~~
+
+Việc gọi setter cho employee 2 ngay sau đó **không làm DB bỏ qua uniqueness ở statement thứ nhất**. Provider có thể phát UPDATE theo cách mà bạn không thể điều khiển bằng thứ tự setter.
+
+### Hướng thiết kế
+
+- Sử dụng **giá trị tạm hợp lệ** trong transaction khi domain và schema cho phép.
+- Hoặc dùng cơ chế constraint deferrable/transactional swap của DBMS nếu được hỗ trợ và cấu hình cẩn thận.
+- Hoặc mô hình hóa “ghế”/“vị trí” và quy tắc gán theo phương án khác tránh trạng thái trung gian bất hợp lệ.
+- Xác định concurrency; hai giao dịch đồng thời hoán đổi có thể cần khóa và quy tắc deadlock/retry.
+
+Ví dụ một cách dùng giá trị tạm khi cột cho phép mã placeholder đã được dự phòng:
+
+~~~sql
+BEGIN;
+UPDATE employees SET seat_code = '__TEMP__' WHERE id = 1;
+UPDATE employees SET seat_code = 'A' WHERE id = 2;
+UPDATE employees SET seat_code = 'B' WHERE id = 1;
+COMMIT;
+~~~
+
+Giá trị tạm phải hợp lệ theo CHECK/độ dài/UNIQUE và không bị phiên giao dịch khác sử dụng. Đây chỉ là minh họa SQL; ứng dụng JPA muốn thực hiện đúng thứ tự cần thiết kế thao tác và flush/native SQL phù hợp, không chỉ gọi ba setter rồi tin provider sẽ phát đúng ba UPDATE trung gian.
+
+## 15. Hibernate ActionQueue: ví dụ về việc provider sắp xếp SQL
+
+Hibernate là một JPA provider phổ biến. Hibernate có cơ chế nội bộ thường gọi là **ActionQueue** để tập hợp các hành động cần thực hiện khi flush, chẳng hạn:
+
+- Insert entity mới.
+- Update entity dirty.
+- Delete entity.
+- Xử lý orphan removal.
+- Thay đổi membership của collection hoặc các hàng join table.
+
+Hàng đợi có thể thực hiện các **nhóm hành động theo trật tự nội bộ** thay vì theo thứ tự các câu lệnh Java đã được gọi. Trong những phiên bản Hibernate, một số nhóm insert/update/collection action/delete được sắp xếp theo thứ tự phục vụ thực thi, batching và ràng buộc.
+
+**Cần phân biệt phạm vi kiến thức:**
+
+1. Khái niệm flush đồng bộ state và việc SQL không nhất thiết theo call order là **nguyên tắc quan trọng khi dùng JPA**.
+2. Tên cấu trúc `ActionQueue` và thứ tự các nhóm hành động cụ thể là **chi tiết của Hibernate**, không phải API JPA portable.
+3. Thứ tự chính xác có thể thay đổi theo phiên bản Hibernate, mapping, generator ID, cascade và cấu hình.
+4. Không nên viết domain code phụ thuộc vào một danh sách cố định “Hibernate luôn INSERT tất cả entity rồi mới DELETE tất cả entity” trong mọi trường hợp.
+
+### Vì sao cần sắp xếp lại?
+
+Provider có thể tối ưu:
+
+- **JDBC batching**: gom nhiều INSERT hoặc UPDATE có SQL shape tương tự.
+- **Foreign key dependencies**: cố gắng xử lý những liên kết cần thứ tự nhất định.
+- **Collection table operations**: gỡ/thêm hàng liên kết cho các collection.
+- **Dirty checking**: phát UPDATE khi trạng thái cuối đã được xác định.
+
+Những quyết định này giúp giảm round trip và bảo vệ một phần tính nhất quán, nhưng chúng không bảo đảm giải quyết mọi **unique constraint**, cycle FK hoặc ngữ nghĩa “thay entity bằng identity mới” của ứng dụng.
+
+## 16. JDBC batching khiến một lời gọi không tương ứng một lần gửi SQL
+
+Với cấu hình batching phù hợp, provider có thể gửi nhiều statement cùng cấu trúc qua batch JDBC. Ví dụ:
+
+~~~java
+for (int i = 0; i < 100; i++) {
+    em.persist(new InventoryItem("SKU-" + i));
+}
+~~~
+
+Ở mức Java có 100 lời gọi `persist()`. Ở mức SQL logic có thể cần 100 INSERT. Nhưng:
+
+- Provider có thể tích lũy các INSERT pending.
+- Driver có thể thực thi chúng thành một hoặc nhiều JDBC batch.
+- Log có thể hiện các prepared statement và batch khác với số lần round trip thực tế.
+- Một số database/driver có thể viết lại batch thành multi-row INSERT.
+- SQL có thể được sắp xếp để gom theo entity/table.
+
+**Số lời gọi Java, số statement SQL logic, số JDBC batch và số round trip mạng là bốn con số khác nhau.**
+
+### 16.1. Cấu hình minh họa của Hibernate
+
+Ví dụ các property provider-specific:
+
+~~~properties
+hibernate.jdbc.batch_size=50
+hibernate.order_inserts=true
+hibernate.order_updates=true
+~~~
+
+Các thuộc tính này **không phải chuẩn JPA**, và hiệu quả thực tế phụ thuộc Hibernate, JDBC driver, dialect, loại SQL và chiến lược ID.
+
+- `hibernate.jdbc.batch_size` yêu cầu batching ở mức phù hợp.
+- `hibernate.order_inserts` có thể sắp xếp INSERT để gom theo entity type/PK, tăng cơ hội batch.
+- `hibernate.order_updates` có thể sắp xếp UPDATE cho batching và trong một số workload giúp giảm xung đột lock, nhưng cũng thay đổi SQL execution order.
+
+### 16.2. IDENTITY thường hạn chế batch INSERT
+
+Nếu mỗi INSERT phải hoàn thành để trả ID, cơ hội batch insert theo cách Hibernate sử dụng có thể bị hạn chế. Dùng SEQUENCE với cấp phát phù hợp thường có thêm cơ hội batch, nhưng không nên đổi generator chỉ để tăng batch nếu hệ thống có ràng buộc khác về ID hoặc DBMS.
+
+### 16.3. Sắp xếp để batch có tác động gì?
+
+Giả sử:
+
+~~~java
+em.persist(order1);
+em.persist(customer1);
+em.persist(order2);
+em.persist(customer2);
+~~~
+
+Một provider có thể xử lý các insert theo dependency; một provider có batching có thể nhóm insert theo bảng. **Không lấy thứ tự phương thức trong vòng lặp làm cam kết thứ tự khóa row hoặc thứ tự ID được sinh**.
+
+Khi thứ tự là một **bất biến nghiệp vụ**, cần thiết kế mô hình/transaction/constraint rõ thay vì chỉ chỉnh `order_inserts` để “thử xem hết lỗi”.
+
+## 17. `flush()` là ranh giới đồng bộ, nhưng không phải “flush một entity”
+
+JPA có:
+
+~~~java
+em.flush();
+~~~
+
+Ý nghĩa là yêu cầu provider **đồng bộ các thay đổi pending của persistence context** xuống database theo quy tắc. Nó không nhận tham số entity và không cam kết chỉ tác động một object.
+
+Ví dụ:
+
+~~~java
+Product a = em.find(Product.class, 101L);
+Product b = em.find(Product.class, 102L);
+
+a.changePrice(new BigDecimal("100.00"));
+b.changePrice(new BigDecimal("200.00"));
+
+em.flush();
+~~~
+
+Provider có thể thực hiện cả hai UPDATE trong đợt đồng bộ, dù programmer chỉ “muốn flush a”.
+
+### Cách tạo ranh giới có ý nghĩa
+
+~~~java
+em.remove(oldEntity);
+em.flush();              // Nhóm thay đổi trước đã đồng bộ.
+em.persist(replacement);
+em.flush();              // Nhóm thay đổi sau được đồng bộ.
+~~~
+
+Nếu trước lần flush thứ nhất còn các thao tác pending khác, chúng cũng có thể bị đồng bộ. Vì vậy cần giữ **unit of work rõ, tránh gom quá nhiều công việc không liên quan** vào cùng persistence context.
+
+### Flush không commit
+
+Sau flush, các SQL đã được DB thực thi trong transaction hiện tại nhưng vẫn có thể rollback. Giao dịch khác không nhất thiết thấy kết quả cho tới commit, tùy isolation.
+
+~~~text
+Java call order:   remove  -> flush -> persist -> flush -> commit
+SQL boundary:      DELETE ...       INSERT ...        COMMIT
+Visibility:        chưa commit      chưa commit       đã commit
+~~~
+
+Nếu INSERT thất bại, rollback thường hủy cả DELETE đã flush trước đó. Đây là khác biệt giữa **điều khiển thứ tự thực thi SQL** và **kết thúc transaction**.
+
+## 18. `FlushModeType.AUTO`: câu query có thể làm SQL chạy sớm
+
+Nếu một entity managed đã bị sửa:
+
+~~~java
+Product p = em.find(Product.class, 101L);
+p.changePrice(new BigDecimal("249000.00"));
+~~~
+
+sau đó code chạy JPQL query:
+
+~~~java
+List<Product> expensive = em.createQuery(
+        "SELECT p FROM Product p WHERE p.price >= :min",
+        Product.class)
+    .setParameter("min", new BigDecimal("240000.00"))
+    .getResultList();
+~~~
+
+Với `FlushModeType.AUTO`, provider phải bảo đảm những thay đổi pending có thể ảnh hưởng kết quả query được phản ánh theo quy tắc JPA; một cách thường gặp là **flush trước query**.
+
+Do đó thứ tự thực tế có thể là:
+
+~~~text
+Java:
+  1. changePrice(249000)
+  2. createQuery(...).getResultList()
+  3. em.persist(other)
+  4. commit()
+
+SQL (một khả năng):
+  UPDATE products ...          <-- Flush do query cần dữ liệu nhất quán.
+  SELECT ... FROM products ...
+  INSERT ... other ...         <-- Sau khi gọi persist hoặc lúc commit.
+  COMMIT
+~~~
+
+**Không được giả định tất cả SQL ghi đều chỉ xảy ra ở `commit()`**, vì một SELECT/JPQL có thể làm provider flush trước.
+
+### 18.1. `FlushModeType.COMMIT`
+
+Nếu đặt:
+
+~~~java
+em.setFlushMode(FlushModeType.COMMIT);
+~~~
+
+thì provider có thể trì hoãn nhiều thay đổi tới lúc commit; ảnh hưởng của những thay đổi pending lên kết quả query trước commit **không được xác định chặt như AUTO**.
+
+Điều này không có nghĩa:
+
+- Không câu SQL ghi nào được chạy trước commit.
+- IDENTITY không thể khiến INSERT chạy sớm.
+- Mọi native query chắc chắn không flush.
+- Query trong cùng transaction luôn thấy state mới nhất của object managed.
+
+Sử dụng `COMMIT` cần hiểu luồng đọc–ghi của nghiệp vụ; đừng chuyển chế độ chỉ để “ngăn JPA đảo SQL”.
+
+### 18.2. Flush mode ở query
+
+JPA cũng cho phép đặt flush mode trên một query khi hỗ trợ, chẳng hạn:
+
+~~~java
+query.setFlushMode(FlushModeType.COMMIT);
+~~~
+
+Việc này áp dụng ngữ nghĩa flush cho query đó; không định nghĩa lại thứ tự các lệnh INSERT/UPDATE/DELETE pending trong mọi trường hợp.
+
+## 19. Native SQL và bulk JPQL có đặc điểm thứ tự riêng
+
+Không phải mọi SQL trong transaction đều bắt nguồn từ dirty checking entity.
+
+### 19.1. Bulk UPDATE/DELETE
+
+~~~java
+int updated = em.createQuery(
+        "UPDATE Product p SET p.active = false "
+      + "WHERE p.discontinued = true")
+    .executeUpdate();
+~~~
+
+Giả sử `Product` thật sự có các field `active` và `discontinued` được mapping (đoạn chỉ minh họa dạng JPQL). Đây là **bulk query** được gửi trực tiếp tới DB theo operation, không phải một loạt `setActive(false)` trên từng managed entity.
+
+Hệ quả:
+
+- SQL thực thi trong transaction khi gọi `executeUpdate()` theo ngữ nghĩa query.
+- Managed entities đã nạp trước đó không được tự cập nhật state field tương ứng.
+- Pending dirty changes khác có thể bị flush trước bulk theo flush mode/provider.
+- Những thay đổi managed còn pending sau bulk có thể ghi đè kết quả bulk nếu không điều phối.
+- Bulk update không mặc nhiên tăng/check `@Version` theo quy tắc per-entity như dirty checking thông thường.
+
+### 19.2. Cách phối hợp với persistence context
+
+Một trình tự có chủ đích:
+
+~~~java
+em.flush(); // Đồng bộ thay đổi managed pending trước bulk.
+
+int affected = em.createQuery(
+        "UPDATE Product p "
+      + "SET p.status = :status "
+      + "WHERE p.price = :price")
+    .setParameter("status", "INACTIVE")
+    .setParameter("price", new BigDecimal("0.00"))
+    .executeUpdate();
+
+em.clear(); // Bỏ các managed instances có thể đã stale.
+~~~
+
+Ví dụ này giả sử `Product` có `status` và `price` như được khai báo ở một entity tương ứng; đoạn mã chỉ dùng để minh họa thứ tự flush–bulk–clear. `clear()` detach toàn bộ managed entities trong context, vì vậy chỉ dùng khi phần còn lại của code **không cần tiếp tục theo dõi các instance cũ**.
+
+### 19.3. Native SQL
+
+~~~java
+em.createNativeQuery(
+        "UPDATE orders SET order_code = ? WHERE id = ?")
+    .setParameter(1, "ORD-2027-NEW")
+    .setParameter(2, orderId)
+    .executeUpdate();
+~~~
+
+Câu native UPDATE là thao tác SQL trực tiếp; nó không đi qua dirty checking của `PurchaseOrder.orderCode`. Một instance managed có thể vẫn giữ mã cũ trong RAM. Cách provider flush trước native query và quản lý đồng bộ với context có thể khác theo phiên bản/API.
+
+Muốn điều khiển thứ tự một cách minh bạch, có thể `flush()` trước native SQL rồi `refresh()` hoặc `clear()` đối với state bị ảnh hưởng theo yêu cầu. Không dùng native SQL để lách ownership/constraint rồi kỳ vọng JPA tự hiểu mọi thay đổi.
+
+## 20. Thời điểm query và lệnh `find()` không giống nhau
+
+Khi gọi:
+
+~~~java
+PurchaseOrder a = em.find(PurchaseOrder.class, 10L);
+PurchaseOrder b = em.find(PurchaseOrder.class, 10L);
+~~~
+
+trong cùng persistence context, JPA thường trả về **cùng managed instance**, và lần gọi thứ hai không cần SQL SELECT mới.
+
+Ngược lại, một JPQL query lọc theo trường khác có thể phải gửi SQL mới; tùy flush mode, query còn có thể kích hoạt flush trước đó.
+
+Vì vậy:
+
+| Lời gọi | Có nhất thiết phát SQL? | Có liên quan SQL order? |
+| --- | --- | --- |
+| `find()` entity chưa managed | Thường cần đọc, trừ cache/hints phù hợp | Có thể có SELECT |
+| `find()` cùng identity đang managed | Thường dùng instance sẵn có | Không nhất thiết SELECT |
+| Getter field basic đã nạp | Không cần SQL riêng | Đọc RAM |
+| Getter lazy association chưa nạp | Có thể kích hoạt SELECT | SELECT xuất hiện khi truy cập |
+| JPQL query | Thường cần thực thi query | Có thể flush pending changes trước |
+| `persist()` | Có thể hoãn hoặc INSERT sớm | Phụ thuộc ID/mapping |
+| `remove()` | Thường đánh dấu removed trước | DELETE có thể chờ flush |
+| `flush()` | Có thể phát nhiều DML | Đồng bộ context, không commit |
+
+**Đọc log SQL mà chỉ dựa vào thứ tự các dòng Java là không đủ.** Cần biết entity đã managed hay lazy-loaded, query có tương tác flush mode không, và ranh giới transaction nằm ở đâu.
+
+## 21. Thứ tự DELETE và collection/join table
+
+Một quan hệ `@ManyToMany` giữa `UserAccount` và `Role` thường có bảng:
+
+~~~sql
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES user_accounts(id),
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+~~~
+
+Khi gỡ một role khỏi user:
+
+~~~java
+user.getRoles().remove(role);
+~~~
+
+nếu collection này là **owning side** của quan hệ, provider có thể lên lịch xóa một hàng ở `user_roles`. Nó **không nhất thiết gửi DELETE tại chính dòng remove của collection**.
+
+Khi xóa một user, các hàng ở `user_roles` phải được xử lý phù hợp trước hoặc cùng với việc xóa hàng user, nếu FK không có cơ chế DB cascade tương ứng. SQL có thể là:
+
+~~~sql
+DELETE FROM user_roles WHERE user_id = ?;
+DELETE FROM user_accounts WHERE id = ?;
+~~~
+
+Nhưng cơ chế cascade của JPA và `ON DELETE CASCADE` của DB là khác nhau. Đừng cấu hình `CascadeType.REMOVE` ở `@ManyToMany` một cách tùy tiện: xóa user **không nên xóa Role** đang được những user khác dùng.
+
+### 21.1. Collection dirty không đồng nghĩa UPDATE entity owner
+
+Thêm một vai trò có thể chỉ thêm một hàng vào join table mà không cần UPDATE row `user_accounts`. Có provider vẫn tăng version của owner trong một số cấu hình collection tracking, nhưng không nên coi mọi thay đổi collection đều có cùng SQL shape.
+
+### 21.2. Quan hệ hai chiều
+
+Thay phía inverse `mappedBy` mà không đổi owning side có thể không sinh SQL liên kết mong đợi. Đây là vấn đề **mapping ownership**, không phải lỗi “flush sai thứ tự”. Trước khi điều tra ActionQueue, hãy xác nhận ứng dụng đang thay đúng phía quyết định FK/join table.
+
+## 22. Constraint ở database mới quyết định SQL nào được chấp nhận
+
+Trong khi provider sắp xếp SQL, DBMS vẫn kiểm tra ràng buộc:
+
+| Ràng buộc | Khi phát sinh vi phạm | Liên hệ với SQL order |
+| --- | --- | --- |
+| `FOREIGN KEY` | Child tham chiếu parent chưa tồn tại hoặc xóa parent còn child | INSERT/DELETE phụ thuộc thứ tự và cascade |
+| `UNIQUE` | Hai hàng có cùng business key tại thời điểm kiểm tra | INSERT mới trước DELETE cũ có thể thất bại |
+| `NOT NULL` | Một UPDATE/INSERT tạo giá trị NULL không hợp lệ | Flush ở trạng thái trung gian NULL có thể thất bại |
+| `CHECK` | Giá trị không đáp ứng biểu thức quy tắc | SQL trung gian dù “sẽ sửa sau” vẫn có thể bị chặn |
+| `PRIMARY KEY` | Cùng identity xuất hiện nhiều lần | Xóa/tạo cùng PK cần xử lý identity context và DB |
+| `@Version` / optimistic lock | UPDATE với version cũ không còn khớp | Thứ tự concurrent transactions ảnh hưởng kết quả |
+
+Annotation như `@JoinColumn(nullable = false)` hoặc `@Table(uniqueConstraints = ...)` là **metadata JPA**, không phải bằng chứng schema đang chạy đã có constraint vật lý. Nếu schema quản lý bằng migration, constraint phải được tạo/duy trì tại DB.
+
+### 22.1. Constraint deferrable có thể thay thời điểm kiểm tra
+
+Một số DBMS như PostgreSQL cho phép khai báo một số FK/UNIQUE constraint theo chế độ **DEFERRABLE** để trì hoãn kiểm tra tới cuối transaction khi được cấu hình thích hợp.
+
+Ví dụ mang tính minh họa:
+
+~~~sql
+CREATE TABLE numbered_slots (
+    id BIGINT PRIMARY KEY,
+    slot_number INTEGER NOT NULL,
+    CONSTRAINT uq_slot_number
+        UNIQUE (slot_number)
+        DEFERRABLE INITIALLY DEFERRED
+);
+~~~
+
+Khi constraint thực sự deferred, các câu UPDATE tạm thời tạo trùng có thể được phép trong transaction nếu trạng thái cuối lúc kiểm tra thỏa UNIQUE. Tuy nhiên:
+
+- Cú pháp và loại constraint hỗ trợ **phụ thuộc DBMS**.
+- Không phải mọi unique index/constraint đều deferrable.
+- Lỗi có thể chỉ xuất hiện tại COMMIT nếu trạng thái cuối không hợp lệ.
+- JPA không cung cấp một cách portable để biến mọi constraint thành deferred.
+- Chiến lược này cần phối hợp migration, transaction và xử lý exception.
+
+**Không dùng “DB có thể deferred” làm lý do bỏ qua thứ tự SQL ở hệ thống chưa thiết kế constraint deferrable.**
+
+## 23. DB trigger và cascade có thể tạo thêm SQL ngoài lời gọi JPA
+
+Một entity INSERT có thể kích hoạt database trigger:
+
+~~~sql
+INSERT INTO orders (...);
+-- Trigger của DB có thể ghi thêm vào audit_log.
+~~~
+
+Từ phía ứng dụng, ta chỉ thấy `persist(order)`; ở database, còn có thể có thao tác:
+
+- Trigger chèn audit record.
+- Trigger sửa cột tổng hợp.
+- FK `ON DELETE CASCADE` xóa các hàng con.
+- Computed/generated column thay giá trị.
+- Stored procedure xử lý nhiều bảng.
+
+Do đó **SQL do provider phát** chưa chắc là toàn bộ thay đổi vật lý mà database thực hiện. Khi điều tra nguyên nhân một hàng xuất hiện hoặc biến mất, cần xem trigger, constraint và các tác nhân SQL khác.
+
+### 23.1. Trigger không cập nhật ngay object Java
+
+Nếu trigger sinh `updated_at` hoặc đổi mã, entity managed có thể vẫn giữ state cũ cho tới khi provider có cơ chế đọc generated value hoặc ứng dụng gọi `refresh()`.
+
+Đây là khác biệt giữa **thứ tự SQL và trạng thái trong RAM**. Khi cần dữ liệu do DB tạo trong cùng transaction, hãy xác định lúc INSERT/UPDATE đã được flush, sau đó nạp lại có kiểm soát.
+
+## 24. Transaction commit là một mốc khác với SQL execution
+
+Lưu ý sơ đồ:
+
+~~~text
+BEGIN
+  Java: em.remove(old)
+  Java: em.flush()
+  DB:   DELETE old row
+
+  Java: em.persist(new)
+  DB:   INSERT new row  (có thể lúc persist hoặc flush)
+
+  Java: tx.commit()
+  DB:   COMMIT
+END
+~~~
+
+Đến sau DELETE nhưng trước COMMIT, **transaction hiện tại** có thể nhìn thấy old row đã bị xóa. Transaction khác thông thường không thấy thay đổi chưa commit ở isolation không cho dirty read.
+
+Nếu INSERT sau đó vi phạm UNIQUE/FK, transaction cần rollback:
+
+~~~text
+BEGIN
+DELETE old      -- đã thực thi
+INSERT new      -- thất bại
+ROLLBACK        -- DELETE old cũng bị hủy
+~~~
+
+Đừng nhầm:
+
+- *Executed SQL* = DB đã thực hiện statement trong transaction.
+- *Committed SQL effect* = transaction đã được xác nhận.
+- *Visible to other transaction* = phụ thuộc isolation, snapshot và cache.
+
+Một thành công của `flush()` không hứa `commit()` chắc chắn thành công. Constraint trì hoãn, deadlock, connection failure hoặc serialization error có thể phát sinh khi commit.
+
+## 25. Đồng thời: hai transaction có thứ tự thực thi xen kẽ
+
+Ngay cả khi thứ tự SQL **bên trong một transaction** đã rõ, hai transaction đồng thời có thể thực thi xen kẽ:
+
+~~~text
+Transaction T1                      Transaction T2
+--------------------------------    --------------------------------
+BEGIN                               BEGIN
+SELECT account email=...             SELECT account email=...
+-> chưa có                           -> chưa có
+INSERT email=x@example.com          INSERT email=x@example.com
+COMMIT                               -> chờ hoặc lỗi UNIQUE
+                                    ROLLBACK
+~~~
+
+Thứ tự các dòng Java trong T1 không điều khiển thời điểm SQL của T2. UNIQUE constraint bảo vệ dữ liệu; ứng dụng phải xử lý conflict và retry có kiểm soát nếu nghiệp vụ cho phép.
+
+### 25.1. Optimistic locking
+
+Với entity có:
+
+~~~java
+@Version
+private Long version;
+~~~
+
+provider thường cập nhật với điều kiện version cũ:
+
+~~~sql
+UPDATE products
+SET price = ?, version = ?
+WHERE id = ? AND version = ?;
+~~~
+
+Khi một transaction khác đã thay version, kết quả cập nhật có thể không có hàng khớp và dẫn đến optimistic locking exception. **Dirty checking và SQL order** không tự giải quyết lost update; `@Version` là cơ chế kiểm tra riêng.
+
+### 25.2. Locking và deadlock
+
+Với nhiều row, hai transaction lấy lock theo thứ tự khác nhau có thể deadlock. Sắp xếp statement nhất quán đôi khi giảm khả năng deadlock, nhưng cần chọn chiến lược locking/isolation phù hợp, không chỉ thay thứ tự các câu setter.
+
+Ví dụ:
+
+~~~java
+Product p = em.find(
+        Product.class,
+        productId,
+        LockModeType.PESSIMISTIC_WRITE);
+~~~
+
+Đoạn này yêu cầu import `LockModeType` và transaction phù hợp. Pessimistic locking có thể làm transaction khác chờ, nhưng không làm JPA tự commit hoặc tự refresh mọi entity trong các context khác.
+
+## 26. Exception xảy ra ở đâu khi thứ tự SQL gây lỗi?
+
+Giả sử một insert mới vi phạm UNIQUE. Lỗi có thể xuất hiện:
+
+- Ngay tại `persist()`, nếu provider phải INSERT sớm do IDENTITY hoặc hoàn cảnh khác.
+- Tại `flush()` khi SQL pending được phát.
+- Khi JPQL query dẫn tới flush theo `AUTO`.
+- Tại `commit()` nếu flush diễn ra lúc commit hoặc DB có deferred constraint.
+
+Ví dụ transaction kiểu `RESOURCE_LOCAL`:
+
+~~~java
+EntityManager em = emf.createEntityManager();
+EntityTransaction tx = em.getTransaction();
+
+try {
+    tx.begin();
+
+    Account old = em.find(Account.class, oldId);
+    em.remove(old);
+    em.flush();
+
+    Account replacement = new Account(oldEmail);
+    em.persist(replacement);
+
+    tx.commit();
+} catch (RuntimeException ex) {
+    if (tx.isActive()) {
+        tx.rollback();
+    }
+    throw ex;
+} finally {
+    em.close();
+}
+~~~
+
+Ví dụ giả định `Account` là entity có mapping tên bảng/email và constructor phù hợp, `oldId` / `oldEmail` là giá trị hợp lệ đã xác định; đây là trình tự minh họa cách xử lý transaction.
+
+### Không tiếp tục một transaction đã thất bại
+
+Sau khi database từ chối SQL do constraint hoặc provider báo lỗi persistence, transaction có thể bị đánh dấu rollback-only hoặc kết nối đang ở trạng thái cần rollback. Không nên:
+
+~~~java
+try {
+    em.flush();
+} catch (Exception ex) {
+    // Bỏ qua rồi thử em.persist(...) tiếp trong transaction cũ.
+}
+~~~
+
+Hãy rollback và tạo đơn vị công việc mới nếu muốn retry. Chỉ retry khi hiểu lỗi và bảo đảm thao tác có tính idempotent hoặc có thể lặp an toàn.
+
+## 27. Spring Data JPA: `save()` và `saveAndFlush()`
+
+Trong các ứng dụng Spring Data JPA, thường có:
+
+~~~java
+repository.save(entity);
+~~~
+
+hoặc:
+
+~~~java
+repository.saveAndFlush(entity);
+~~~
+
+Đây là **API của Spring Data**, không phải phương thức chuẩn trên `EntityManager`.
+
+Ý nghĩa tổng quát:
+
+- `save()` sử dụng các thao tác persistence thích hợp với trạng thái entity theo cách repository được triển khai; không phải lời hứa rằng SQL đã commit trước khi hàm trả về.
+- `saveAndFlush()` yêu cầu lưu và đồng bộ các thay đổi pending theo cơ chế flush, nhưng **không phải commit độc lập** nếu transaction hiện tại còn đang mở.
+- Spring `@Transactional` quyết định ranh giới transaction theo cấu hình; gọi hai repository method bên trong một transaction lớn vẫn có thể dùng chung persistence context.
+
+Ví dụ:
+
+~~~java
+@Transactional
+public void replaceAccount(Long id, String email) {
+    accountRepository.deleteById(id);
+    accountRepository.flush();
+    accountRepository.save(new Account(email));
+}
+~~~
+
+Mã này chỉ minh họa cách chủ động tạo ranh giới đồng bộ khi repository hỗ trợ `flush()`. Hành vi của `deleteById` còn tùy entity tồn tại, state và implementation. Nếu DB có FK khác hoặc các thao tác pending, `flush()` vẫn có thể thất bại.
+
+### Đừng coi `save()` là “ghi chính xác một INSERT”
+
+Repository có thể dùng `persist` hoặc `merge` tùy state/newness của entity. Một thao tác save có thể dẫn tới cascade, insert/update nhiều entity hoặc không phát SQL nếu không có dirty changes. Vì vậy phải hiểu behavior thực tế, không dựa vào tên phương thức như một câu SQL được định sẵn.
+
+## 28. `@PrePersist`, `@PreUpdate` và callback không biểu thị lịch SQL đầy đủ
+
+JPA cho phép lifecycle callbacks:
+
+~~~java
+@PrePersist
+void beforePersist() {
+    // Gán giá trị nghiệp vụ trước khi insert.
+}
+
+@PreUpdate
+void beforeUpdate() {
+    // Thực hiện logic được phép trong callback.
+}
+~~~
+
+Nhưng:
+
+- `@PrePersist` liên quan tới lifecycle persist của entity; **không đồng nghĩa INSERT đã chạy ngay sau callback**.
+- `@PreUpdate` liên quan tới quá trình update; không phải callback mỗi khi setter được gọi.
+- Thứ tự callback giữa nhiều entity khác nhau không phải một API để quyết định thứ tự SQL toàn transaction.
+- Callback có giới hạn về thao tác được phép; không nên gọi EntityManager để điều khiển transaction hoặc phát query phức tạp bên trong callback một cách tùy tiện.
+- Bulk JPQL UPDATE/DELETE không đi qua callbacks từng managed entity như cập nhật managed thông thường.
+
+Nếu domain cần một chuỗi sự kiện có thứ tự chính xác, hãy dùng mô hình sự kiện, transaction và cơ chế ghi phù hợp, thay vì dựa vào thứ tự `@PrePersist` được log ra như bằng chứng thứ tự INSERT.
+
+## 29. Quan sát SQL thực tế: cần xem đúng nguồn
+
+Để điều tra thứ tự SQL, phải quan sát **những statement thật được provider/driver/DBMS thực thi**, không chỉ source code.
+
+### 29.1. SQL logging của provider
+
+Với Hibernate trong môi trường phát triển, có thể bật logging để theo dõi câu SQL và bind parameters theo cấu hình phiên bản đang dùng:
+
+~~~properties
+hibernate.show_sql=true
+hibernate.format_sql=true
+~~~
+
+Cấu hình logger cụ thể khác nhau theo Hibernate và logging framework. `show_sql` giúp nhìn SQL, nhưng nó không phải công cụ trace transaction đầy đủ và có thể làm log rất lớn.
+
+Khi xem log, cần có:
+
+- Transaction/request identifier.
+- Thời điểm gọi các phương thức quan trọng.
+- Entity identity hoặc business key.
+- SQL và bind parameters (trong môi trường an toàn, không lộ dữ liệu nhạy cảm).
+- Mốc flush, commit và rollback.
+- Thông tin JDBC batching khi cần.
+
+Không log password, token, dữ liệu cá nhân hoặc bí mật vào log công khai chỉ để debug SQL.
+
+### 29.2. JDBC proxy hoặc database logs
+
+Các công cụ như datasource proxy/P6Spy hay log phía DBMS có thể giúp quan sát statement ở lớp thấp hơn. Nhưng cần phân biệt:
+
+- SQL được tạo ở provider.
+- Prepared statement được đưa vào JDBC batch.
+- Batch được thực thi bởi driver.
+- SQL thực tế DBMS nhận và các trigger/cascade do DBMS chạy.
+
+Một dòng log SQL ở ORM **không nhất thiết tương ứng một round trip mạng**. Nếu driver viết lại batch, số statement hiển thị và số operation mà DB nhận có thể khác.
+
+### 29.3. Dùng log có dấu mốc
+
+Ví dụ:
+
+~~~text
+[TX-42] begin
+[TX-42] Java: em.remove(account10)
+[TX-42] Java: em.persist(accountReplacement)
+[TX-42] Java: em.flush()
+[TX-42] SQL: INSERT INTO accounts ...
+[TX-42] SQL error: duplicate key ...
+[TX-42] rollback
+~~~
+
+Log này chứng minh thứ tự SQL cụ thể **trong lần chạy đó**, chứ không chứng minh mọi lần chạy với mọi provider sẽ có thứ tự tương tự. Cần lưu ý context, DBMS, version và cấu hình trước khi kết luận.
+
+## 30. Kiểm thử hành vi flush và constraint
+
+Khi mã phụ thuộc vào thứ tự SQL để thỏa FK/UNIQUE, **integration test với database thực hoặc hệ quản trị tương đương môi trường chạy** đáng tin cậy hơn một unit test giả lập EntityManager.
+
+### 30.1. Kiểm thử xóa rồi tạo cùng business key
+
+Giả sử account có unique email, một test tích hợp có thể:
+
+1. Tạo account cũ và commit.
+2. Mở transaction mới, tìm account cũ.
+3. Xóa account cũ rồi chủ động `flush()`.
+4. Persist account mới cùng email.
+5. Commit.
+6. Mở context mới, xác nhận chỉ một account có email đó và ID thay đổi theo yêu cầu.
+
+Kết quả mong muốn phải bao gồm cả **state committed** chứ không chỉ số lần setter hoặc những object hiện có trong persistence context.
+
+### 30.2. Kiểm thử dependency parent–child
+
+1. Tạo order và items với cascade phù hợp.
+2. Flush/commit.
+3. Dùng SQL hoặc context mới kiểm tra FK `order_items.order_id`.
+4. Xóa order với chính sách vòng đời đã thiết kế.
+5. Xác nhận DB không còn FK mồ côi.
+
+Nếu mapping sai owning side hoặc thiếu cascade, lỗi có thể nằm ở state/cascade chứ không phải SQL order.
+
+### 30.3. Kiểm thử concurrent insert
+
+Hai transaction cố INSERT cùng business key. Test cần xử lý DB locking/unique violation một cách có kiểm soát và kết luận cuối cùng **DB không có bản ghi trùng**, chứ không giả định một thứ tự thread cụ thể trên mọi máy.
+
+### 30.4. Không kiểm thử quá cứng thứ tự SQL khi không phải yêu cầu nghiệp vụ
+
+Không nên viết test kiểu “Hibernate phải gọi INSERT thứ 3 trước DELETE thứ 4” nếu ứng dụng không chủ đích phụ thuộc implementation. Hãy test các bất biến:
+
+- Không có FK mồ côi.
+- Business key duy nhất.
+- Transaction rollback không để dữ liệu dở dang.
+- Thay entity thành công theo ngữ nghĩa mong muốn.
+- Version conflict được xử lý.
+
+Khi thực sự phụ thuộc một thứ tự flush cụ thể, nên làm test tích hợp xác nhận ranh giới `flush()` hoặc chiến lược SQL/constraint đã lựa chọn và ghi rõ phụ thuộc provider/DBMS.
+
+## 31. Một số sai lầm thường gặp
+
+| Nhận định sai | Vì sao sai? | Cách hiểu đúng |
+| --- | --- | --- |
+| “Java gọi `remove` trước `persist` thì SQL DELETE trước INSERT.” | Provider có thể sắp xếp action khi flush | Chỉ `flush()` ở ranh giới phù hợp mới có thể tách các đợt đồng bộ, vẫn phải xét constraint |
+| “Setter luôn phát UPDATE.” | Dirty checking có thể trì hoãn hoặc không có thay đổi cần ghi | Setter đổi RAM; SQL phụ thuộc managed state và flush |
+| “`persist()` luôn chờ tới commit mới INSERT.” | IDENTITY và các trường hợp khác có thể INSERT sớm | Thời điểm INSERT phụ thuộc generator/provider |
+| “Có ID tức là hàng đã commit.” | ID có thể cấp trước INSERT hoặc trước commit | ID và trạng thái committed khác nhau |
+| “Flush là commit.” | Flush chỉ đồng bộ SQL trong transaction | Chỉ commit xác nhận transaction |
+| “JPA sẽ tự giải quyết mọi FK nếu dùng cascade.” | Cascade không thay thế mapping/constraint đúng | Thiết kế owning side, FK và vòng đời rõ |
+| “Collection `List` quyết định thứ tự INSERT và SELECT.” | SQL không bảo đảm thứ tự hàng | Dùng cột vị trí/ORDER BY khi cần |
+| “Có `@OrderBy` thì provider ghi theo thứ tự.” | `@OrderBy` chủ yếu điều khiển thứ tự đọc | Không dùng để điều khiển lịch DML |
+| “Flush chỉ một entity vừa sửa.” | `em.flush()` đồng bộ context | Xem toàn bộ pending changes |
+| “SQL log UPDATE nghĩa là DB đã commit.” | UPDATE có thể nằm trong transaction chưa commit | Theo dõi commit/rollback |
+| “Cứ thêm flush là hết UNIQUE violation.” | Constraint, FK khác và concurrency vẫn có thể chặn | Chọn đúng nghiệp vụ và ranh giới SQL |
+| “Bật batch thì mọi INSERT theo thứ tự code.” | Batch/order_inserts có thể gom/sắp xếp | Không dùng batching để quy định thứ tự nghiệp vụ |
+| “Cascade JPA và ON DELETE CASCADE giống nhau.” | Một bên do provider, một bên do DBMS | Hiểu hai cơ chế riêng |
+| “Bulk JPQL UPDATE đồng bộ mọi entity managed.” | Bulk thay DB trực tiếp, context có thể stale | Flush trước; clear/refresh sau nếu phù hợp |
+| “Có lỗi ở commit thì lỗi chắc chắn phát sinh tại commit.” | SQL pending có thể phát ở query/flush sớm | Theo dõi toàn bộ timeline |
+| “Một phiên bản Hibernate chứng minh lịch SQL của JPA.” | ActionQueue là chi tiết provider | Tránh phụ thuộc không portable |
+
+## 32. Quy trình thiết kế khi thứ tự SQL quan trọng
+
+Khi gặp lỗi FK, UNIQUE hoặc SQL chạy “ngược” với code, hãy làm rõ:
+
+1. **Xác định ràng buộc đang thất bại.** UNIQUE, FK, NOT NULL, CHECK, PK hay optimistic version?
+2. **Xác định row đang tồn tại.** Database có hàng cũ hoặc child còn tham chiếu không?
+3. **Xác định các object state.** Entity nào new, managed, dirty, detached, removed?
+4. **Đọc mapping và owning side.** FK nằm ở bảng nào, cascade/orphan removal ra sao?
+5. **Xác định chiến lược cấp ID.** IDENTITY, SEQUENCE hay ID do app cấp?
+6. **Xác định flush mode và query boundaries.** Có query AUTO flush hoặc native SQL ở giữa không?
+7. **Quan sát SQL thực thi.** Ghi log provider/JDBC/DB kèm transaction ID và bind values an toàn.
+8. **Kiểm tra batching/order settings.** Có provider-specific grouping làm thay đổi lịch statement không?
+9. **Xác định ngữ nghĩa nghiệp vụ.** Có thực sự cần xóa hàng cũ tạo hàng mới, hay chỉ cần UPDATE?
+10. **Chọn ranh giới đồng bộ rõ ràng.** Nếu cần DELETE trước INSERT, cân nhắc remove–flush–persist, nhưng xét các constraint và pending changes khác.
+11. **Kiểm tra cạnh tranh transaction.** Không xem thành công trong một luồng đơn là đủ cho production.
+12. **Kiểm thử state đã commit.** Dùng context/transaction mới và database phù hợp với thực tế.
+
+### Một cây quyết định ngắn
+
+~~~text
+Thấy SQL khác thứ tự code?
+            |
+            v
+Có lỗi toàn vẹn dữ liệu?
+    |                       |
+   Không                    Có
+    |                       |
+    v                       v
+Chỉ khác thứ tự log?    Constraint nào?
+    |                       |
+    v                       v
+Tránh phụ thuộc       UNIQUE / FK / NOT NULL / Version
+vào SQL order                |
+                           v
+                  Mapping và nghiệp vụ đúng?
+                           |
+                    +------+------+
+                    |             |
+                   Chưa          Đúng
+                    |             |
+                    v             v
+               Sửa mapping    Chọn UPDATE,
+               /ownership     flush boundary,
+                              transaction/locking
+                              hoặc DB constraint phù hợp
+~~~
+
+Điểm đầu tiên cần sửa thường không phải “ép Hibernate chạy DELETE trước”, mà là **mô hình dữ liệu và quy tắc thao tác có đúng với domain chưa**.
+
+## 33. Bài tập thực hành
+
+### Bài 1 — Lời gọi và INSERT
+
+Một entity dùng `GenerationType.SEQUENCE`:
+
+~~~java
+em.persist(a);
+em.persist(b);
+em.persist(c);
+~~~
+
+Có thể kết luận đã có đúng ba INSERT ngay sau dòng cuối không?
+
+**Gợi ý:** không. Provider có thể cấp ID trước, đợi flush để INSERT và gom batch.
+
+### Bài 2 — IDENTITY
+
+Một entity dùng `GenerationType.IDENTITY`. Tại sao có thể thấy INSERT xuất hiện ngay sau `persist()` dù chưa gọi flush?
+
+**Gợi ý:** provider có thể cần INSERT để lấy ID từ database. Điều đó không phải commit.
+
+### Bài 3 — Xóa cũ, thêm mới, vi phạm UNIQUE
+
+Account cũ và mới cùng email. Code gọi `remove(old)` rồi `persist(new)`. DB báo trùng email. Lỗi có nhất thiết do bỏ sót lệnh remove?
+
+**Gợi ý:** không. Delete có thể vẫn pending khi insert chạy trước. Nếu thực sự cần entity mới, cân nhắc remove–flush–persist trong transaction phù hợp.
+
+### Bài 4 — FK parent–child
+
+Một order mới tham chiếu customer mới chưa persist; mapping không có cascade `PERSIST`. Tại sao gọi `em.persist(order)` có thể thất bại?
+
+**Gợi ý:** customer transient chưa có identity/hàng phù hợp và FK bắt buộc. Cần persist parent rõ ràng hoặc cascade phù hợp với vòng đời.
+
+### Bài 5 — Collection có List
+
+Thêm hai `OrderItem` vào `List` theo thứ tự A rồi B. Có thể dựa vào ID tăng dần hoặc thứ tự SELECT để khẳng định A luôn đứng trước B không?
+
+**Gợi ý:** không. SQL không bảo đảm thứ tự kết quả; dùng field vị trí hoặc `ORDER BY`.
+
+### Bài 6 — Query-induced flush
+
+Sau khi sửa giá Product managed, ứng dụng thực hiện JPQL query lọc theo giá với flush mode AUTO. Vì sao UPDATE có thể xuất hiện trước SELECT dù không gọi `flush()`?
+
+**Gợi ý:** provider phải bảo đảm query phản ánh những thay đổi pending có ảnh hưởng; flush trước query là một cách.
+
+### Bài 7 — Update hoán đổi hai giá trị UNIQUE
+
+Hai nhân viên có `seat_code` A và B; setter đổi A→B rồi B→A trước flush. Vì sao vẫn có thể lỗi?
+
+**Gợi ý:** SQL statement đầu có thể tạo trùng UNIQUE ở trạng thái trung gian. Cần chiến lược swap hợp lệ hoặc constraint deferrable khi DBMS hỗ trợ.
+
+### Bài 8 — Batching
+
+Với `hibernate.jdbc.batch_size = 50`, ứng dụng gọi `persist()` 100 lần. Có thể kết luận driver gửi đúng hai round trip và SQL theo call order không?
+
+**Gợi ý:** không. Batch size là cấu hình cơ hội batching; SQL shape, ID strategy, driver và provider quyết định hiệu quả thực tế.
+
+### Bài 9 — Bulk update trong cùng context
+
+Ứng dụng tải Product managed rồi chạy JPQL bulk UPDATE trên cùng ID. Getter vẫn trả giá cũ. Có phải bulk UPDATE chưa chạy?
+
+**Gợi ý:** không. Bulk có thể đã thay DB nhưng managed object stale; cần refresh/clear có kiểm soát.
+
+### Bài 10 — `flush()` rồi rollback
+
+`em.flush()` đã phát DELETE hàng cũ. Sau đó INSERT mới lỗi và transaction rollback. Hàng cũ có nhất thiết mất vĩnh viễn không?
+
+**Gợi ý:** không. Flush không commit; rollback hoàn tác SQL của transaction theo DBMS.
+
+### Bài 11 — Callback
+
+Log trong `@PrePersist` của entity A xuất hiện trước log của entity B. Có thể khẳng định hàng A INSERT trước hàng B không?
+
+**Gợi ý:** không. Callback lifecycle không phải lịch SQL portable, đặc biệt khi provider dùng queue/batching.
+
+### Bài 12 — Test đúng bất biến
+
+Một test chỉ assert rằng Hibernate phát `DELETE` trước `INSERT` tại một phiên bản. Điều quan trọng hơn cần kiểm thử là gì?
+
+**Gợi ý:** sau commit chỉ có một business key, không vi phạm FK/UNIQUE, rollback khôi phục dữ liệu nếu thất bại và thao tác vẫn đúng trên DBMS/provider được dự án hỗ trợ.
+
+## Kết luận
+
+**Thứ tự gọi các phương thức Java không phải thứ tự SQL thực tế mà JPA gửi đến database.** `persist()` làm entity mới được quản lý nhưng INSERT có thể xảy ra sớm hoặc lúc flush. Setter làm entity dirty nhưng UPDATE thường được đồng bộ theo unit of work. `remove()` đánh dấu entity cần xóa, trong khi DELETE có thể chờ và được sắp xếp cùng những hành động khác. Cascade, FK dependencies, generator ID, batching và query-induced flush khiến lịch thực thi SQL khác với vẻ bề ngoài của mã nguồn.
+
+Khi thứ tự SQL ảnh hưởng ràng buộc, đặc biệt với **UNIQUE khi xóa rồi tạo mới**, không thể chỉ trông vào lời gọi remove trước persist. Hãy thiết kế đúng ngữ nghĩa nghiệp vụ, xác định owning side và constraint, dùng các ranh giới `flush()` có chủ đích khi cần, và nhớ rằng flush **không phải commit**. Các cơ chế cụ thể như Hibernate ActionQueue và `order_inserts` là chi tiết provider, không phải hợp đồng thứ tự portable của JPA.
+
+Một cách làm đáng tin cậy là **quan sát SQL thật, kiểm tra transaction và xác nhận dữ liệu sau commit**, thay vì suy luận từ thứ tự các dòng Java. Khi nắm được sự tách biệt giữa *call order*, *managed state*, *SQL execution order* và *commit visibility*, bạn sẽ hiểu và xử lý được phần lớn các lỗi flush, FK, UNIQUE, batching và cập nhật đồng thời trong ứng dụng JPA.

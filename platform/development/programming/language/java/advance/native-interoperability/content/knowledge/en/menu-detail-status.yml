@@ -1,0 +1,2128 @@
+menu:
+- slug: native-interop-overview
+  title: Tổng quan tương tác
+  childs:
+  - slug: native-interop-overview-001
+    title: Tương tác với mã bản địa (native code) là gì và vì sao cần đến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-overview-002
+    title: Quan hệ giữa JVM, mã Java, thư viện C/C++ và bộ nhớ ngoài heap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-overview-003
+    title: 'Hai chiều gọi: Java sang hàm bản địa và hàm bản địa gọi lại Java'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-overview-004
+    title: So sánh JNI, Foreign Function and Memory API và giao tiếp qua tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-overview-005
+    title: Phân biệt tương tác bản địa với biên dịch Java thành mã máy hoặc native image
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-overview-006
+    title: Chi phí đánh đổi về tính khả chuyển, độ an toàn, hiệu năng và vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-overview-007
+    title: Kiến thức C, con trỏ và quản lý tài nguyên cần có trước khi thực hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: c-and-abi
+  title: C và ABI
+  childs:
+  - slug: c-and-abi-001
+    title: Phân biệt hợp đồng API ở mã nguồn với giao diện nhị phân ABI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-and-abi-002
+    title: Kích thước, dấu và giới hạn của kiểu số nguyên trên từng nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-and-abi-003
+    title: Vì sao C long, size_t và con trỏ không mặc nhiên tương ứng với Java long
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-and-abi-004
+    title: Quy ước gọi hàm, truyền tham số và giá trị trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-and-abi-005
+    title: Thứ tự byte, căn chỉnh địa chỉ và byte đệm của struct
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-and-abi-006
+    title: Con trỏ, con trỏ kép, mảng liên tục và con trỏ hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-and-abi-007
+    title: Chuỗi kết thúc bằng byte 0, dữ liệu nhị phân và tham số độ dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-and-abi-008
+    title: Biểu diễn mã lỗi, giá trị sentinel và quyền sở hữu bộ nhớ trong hợp đồng C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-library-loading
+  title: Nạp thư viện
+  childs:
+  - slug: native-library-loading-001
+    title: Thư viện động .dll, .so, .dylib và kiến trúc của tiến trình Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-library-loading-002
+    title: Phân biệt System.load theo đường dẫn tuyệt đối với System.loadLibrary theo tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-library-loading-003
+    title: Ánh xạ tên bằng System.mapLibraryName và vai trò java.library.path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-library-loading-004
+    title: Phân biệt tìm thư viện chính với tìm phụ thuộc động của hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-library-loading-005
+    title: Nạp trong khởi tạo lớp và xử lý thất bại bằng UnsatisfiedLinkError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-library-loading-006
+    title: Thư viện bản địa gắn với class loader và giới hạn nạp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-library-loading-007
+    title: Chọn phiên bản thư viện theo hệ điều hành, CPU và ABI thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-library-loading-008
+    title: Giới hạn của việc thay đổi đường dẫn tìm thư viện sau khi JVM khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-introduction
+  title: JNI đầu tiên
+  childs:
+  - slug: jni-introduction-001
+    title: Luồng từ phương thức native đến phần triển khai C hoặc C++
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-introduction-002
+    title: Khai báo phương thức native cho đối tượng và phương thức static
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-introduction-003
+    title: Sinh tệp header bằng javac -h thay cho công cụ javah cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-introduction-004
+    title: Vai trò jni.h, header theo nền tảng, JNIEXPORT và JNICALL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-introduction-005
+    title: Biên dịch, liên kết và xuất ký hiệu của thư viện dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-introduction-006
+    title: Tham số JNIEnv cùng jobject hoặc jclass ở đầu hàm JNI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-introduction-007
+    title: Chạy ví dụ tối thiểu và kiểm tra kiểu, kết quả, lỗi nạp và lỗi liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-types-and-signatures
+  title: Kiểu và chữ ký JNI
+  childs:
+  - slug: jni-types-and-signatures-001
+    title: Ánh xạ boolean, byte, char, số nguyên và số thực sang kiểu JNI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-types-and-signatures-002
+    title: Phân biệt jlong, địa chỉ bản địa và kiểu con trỏ của C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-types-and-signatures-003
+    title: jobject, jclass, jstring và các kiểu mảng là tham chiếu mờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-types-and-signatures-004
+    title: Đọc bộ mô tả kiểu cho lớp, mảng và phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-types-and-signatures-005
+    title: Tên nhị phân, dấu gạch chéo và quy tắc tên hàm JNI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-types-and-signatures-006
+    title: Nạp chồng phương thức native và tên ký hiệu ngắn hoặc đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-types-and-signatures-007
+    title: Truyền danh sách tham số qua jvalue và các biến thể A hoặc V
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-java-callbacks
+  title: Gọi Java từ JNI
+  childs:
+  - slug: jni-java-callbacks-001
+    title: Tìm lớp bằng FindClass và ảnh hưởng của ngữ cảnh class loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-java-callbacks-002
+    title: Tạo đối tượng qua constructor và phân biệt với AllocObject
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-java-callbacks-003
+    title: Lấy jmethodID, jfieldID theo tên và chữ ký chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-java-callbacks-004
+    title: Gọi phương thức đối tượng, static và phương thức không đa hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-java-callbacks-005
+    title: Đọc hoặc ghi trường đối tượng và trường static bằng hàm đúng kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-java-callbacks-006
+    title: So sánh đối tượng bằng IsSameObject thay vì so giá trị tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-java-callbacks-007
+    title: Lưu bộ nhớ đệm mã định danh cùng vòng đời của lớp tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-java-callbacks-008
+    title: Gọi phương thức phụ thuộc bên gọi và xử lý trường hợp không có khung Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-references-and-gc
+  title: Tham chiếu và GC
+  childs:
+  - slug: jni-references-and-gc-001
+    title: Vì sao tham chiếu JNI không phải địa chỉ ổn định của đối tượng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-references-and-gc-002
+    title: Phạm vi theo lời gọi và theo luồng của tham chiếu cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-references-and-gc-003
+    title: Giải phóng tham chiếu cục bộ trong vòng lặp và lời gọi kéo dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-references-and-gc-004
+    title: Quản lý khung tham chiếu bằng PushLocalFrame và PopLocalFrame
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-references-and-gc-005
+    title: Tạo, lưu giữ và xóa tham chiếu toàn cục bằng NewGlobalRef, DeleteGlobalRef
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-references-and-gc-006
+    title: Tham chiếu toàn cục yếu và cách nâng thành tham chiếu mạnh trước khi dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-references-and-gc-007
+    title: Quan hệ giữa tham chiếu JNI, GC và khả năng dỡ lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-references-and-gc-008
+    title: Thiết kế quyền sở hữu tham chiếu để tránh rò rỉ hoặc dùng tham chiếu hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-strings-and-arrays
+  title: Chuỗi và mảng JNI
+  childs:
+  - slug: jni-strings-and-arrays-001
+    title: UTF-16 của Java và Modified UTF-8 của JNI khác UTF-8 thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-002
+    title: Tạo chuỗi, đọc độ dài theo đơn vị ký tự hoặc byte và xử lý dữ liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-003
+    title: Đi theo cặp GetStringChars hoặc GetStringUTFChars với hàm Release tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-004
+    title: Đọc hoặc ghi một vùng mảng bằng GetArrayRegion, SetArrayRegion
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-005
+    title: GetArrayElements có thể sao chép hoặc ghim mảng tùy JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-006
+    title: Ý nghĩa sao chép ngược, JNI_COMMIT và JNI_ABORT khi trả mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-007
+    title: Giới hạn không chặn và không gọi JNI tùy ý trong vùng Critical
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-008
+    title: Tạo, duyệt mảng đối tượng và dọn tham chiếu cục bộ phát sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-strings-and-arrays-009
+    title: Xử lý ký tự 0, Unicode ngoài BMP, mảng rỗng và kiểm tra giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-exceptions
+  title: Ngoại lệ JNI
+  childs:
+  - slug: jni-exceptions-001
+    title: Phân biệt mã lỗi bản địa, giá trị trả về đặc biệt và ngoại lệ Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-exceptions-002
+    title: Kiểm tra ngoại lệ đang chờ sau khi JNI gọi phương thức Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-exceptions-003
+    title: ExceptionCheck, ExceptionOccurred và các trường hợp cần dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-exceptions-004
+    title: Ném ngoại lệ Java bằng Throw hoặc ThrowNew với thông điệp phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-exceptions-005
+    title: Truyền ngoại lệ về Java hoặc xóa rồi xử lý theo chính sách tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-exceptions-006
+    title: Những thao tác dọn dẹp được phép khi ngoại lệ vẫn đang chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-exceptions-007
+    title: Ngăn ngoại lệ C++ thoát qua ranh giới JNI và chuyển thành lỗi Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-exceptions-008
+    title: Bảo đảm trả tài nguyên trên mọi nhánh lỗi bằng cấu trúc dọn dẹp hoặc RAII
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-threading
+  title: Luồng với JNI
+  childs:
+  - slug: jni-threading-001
+    title: Phân biệt JavaVM dùng để truy cập JVM với JNIEnv riêng của từng luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-002
+    title: Không chia sẻ JNIEnv hoặc tham chiếu cục bộ giữa các luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-003
+    title: Lấy JavaVM bằng GetJavaVM và kiểm tra trạng thái luồng bằng GetEnv
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-004
+    title: Gắn luồng bản địa bằng AttachCurrentThread hoặc AttachCurrentThreadAsDaemon
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-005
+    title: Tháo luồng do mã bản địa gắn và dọn tham chiếu trước khi kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-006
+    title: Callback từ luồng bản địa và cách tìm đúng lớp ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-007
+    title: MonitorEnter, MonitorExit và nguy cơ bế tắc khi gọi lại Java đang giữ khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-008
+    title: Ảnh hưởng của lời gọi native kéo dài đối với luồng ảo và khả năng phục vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-threading-009
+    title: Quy định hủy hợp tác thay vì giả định interrupt luôn dừng được hàm C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-lifecycle
+  title: Vòng đời JNI
+  childs:
+  - slug: jni-lifecycle-001
+    title: Khai báo phiên bản JNI mà thư viện yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-lifecycle-002
+    title: Khởi tạo thư viện qua JNI_OnLoad và xử lý mã trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-lifecycle-003
+    title: Đăng ký phương thức bằng RegisterNatives thay cho tìm ký hiệu theo tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-lifecycle-004
+    title: Phạm vi và giới hạn sử dụng UnregisterNatives
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-lifecycle-005
+    title: Định nghĩa quyền sở hữu handle bản địa gắn với đối tượng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-lifecycle-006
+    title: Giải phóng bằng close tường minh và giới hạn của Cleaner hoặc GC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-lifecycle-007
+    title: JNI_OnUnload, dỡ class loader và những việc cần tránh trong hook dỡ thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-lifecycle-008
+    title: Dừng callback và luồng nền trước khi giải phóng thư viện hoặc handle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-embedding
+  title: Nhúng JVM
+  childs:
+  - slug: jvm-embedding-001
+    title: Khi nào ứng dụng C/C++ cần tạo JVM thay vì được Java gọi vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-embedding-002
+    title: Chuẩn bị JavaVMInitArgs, tùy chọn JVM và liên kết với thư viện JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-embedding-003
+    title: Tạo JVM bằng JNI_CreateJavaVM và nhận JNIEnv của luồng khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-embedding-004
+    title: Tra cứu JVM đã tạo và hiểu giới hạn nhiều JVM trong một tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-embedding-005
+    title: Tìm lớp, gọi điểm vào Java và quản lý ngoại lệ từ ứng dụng chủ bản địa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-embedding-006
+    title: Gắn các luồng của ứng dụng chủ và điều phối vòng đời của chúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-embedding-007
+    title: DestroyJavaVM, luồng không daemon và điều kiện kết thúc máy ảo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ffm-versioning
+  title: FFM và phiên bản
+  childs:
+  - slug: ffm-versioning-001
+    title: Mô hình MemorySegment, Arena, MemoryLayout, SymbolLookup và Linker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-versioning-002
+    title: Phân biệt API FFM thử nghiệm ở JDK 21 với API chính thức từ JDK 22
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-versioning-003
+    title: Tùy chọn --enable-preview khi biên dịch và chạy mã FFM cho JDK 21
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-versioning-004
+    title: Những tên phương thức cần kiểm tra khi chuyển mã FFM giữa các phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-versioning-005
+    title: An toàn phạm vi, thời gian sống và truy cập theo luồng mà FFM kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-versioning-006
+    title: Những thông tin về ABI, con trỏ và hợp đồng C mà FFM không tự suy ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-versioning-007
+    title: Chọn FFM hay JNI theo phiên bản Java và mức độ phụ thuộc vào đối tượng JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ffm-memory-segments
+  title: MemorySegment
+  childs:
+  - slug: ffm-memory-segments-001
+    title: Phân biệt vùng nhớ trên heap, ngoài heap và vùng ánh xạ tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-segments-002
+    title: Địa chỉ, kích thước, scope và căn chỉnh của một segment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-segments-003
+    title: Cấp phát vùng nhớ rồi đọc, ghi theo ValueLayout và vị trí byte
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-segments-004
+    title: Phân biệt offset theo byte với chỉ số phần tử trong getAtIndex, setAtIndex
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-segments-005
+    title: Tạo lát cắt asSlice và quan hệ chia sẻ dữ liệu với segment gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-segments-006
+    title: Sao chép, điền dữ liệu, đối chiếu và chuyển sang mảng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-segments-007
+    title: Giới hạn chỉ đọc và lỗi truy cập ngoài phạm vi hoặc sai căn chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-segments-008
+    title: Tạo segment từ mảng hoặc ByteBuffer và hiểu thời gian sống của vùng nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ffm-arenas
+  title: Arena và cấp phát
+  childs:
+  - slug: ffm-arenas-001
+    title: Vì sao Arena quản lý thời gian sống chung cho nhiều vùng nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-arenas-002
+    title: Arena.ofConfined và quyền truy cập của luồng sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-arenas-003
+    title: Arena.ofShared và quy tắc đóng khi có nhiều luồng sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-arenas-004
+    title: Arena.ofAuto, GC và thời điểm giải phóng không xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-arenas-005
+    title: Arena.global và bộ nhớ có thời gian sống không giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-arenas-006
+    title: Đóng Arena bằng try-with-resources và xử lý đóng lại hoặc đóng sai luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-arenas-007
+    title: Phân biệt đối tượng segment còn được giữ với vùng nhớ đã hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-arenas-008
+    title: SegmentAllocator, cấp phát theo layout và chiến lược chia lát vùng nhớ lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ffm-memory-layouts
+  title: Bố trí dữ liệu
+  childs:
+  - slug: ffm-memory-layouts-001
+    title: ValueLayout mô tả kiểu Java mang dữ liệu, kích thước và căn chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-002
+    title: Chọn thứ tự byte phù hợp với dữ liệu bản địa hoặc định dạng tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-003
+    title: StructLayout, UnionLayout và SequenceLayout biểu diễn cấu trúc C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-004
+    title: Tính byte đệm tường minh thay vì giả định structLayout tự mô phỏng trình biên dịch C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-005
+    title: Đặt tên trường và tìm offset bằng MemoryLayout.PathElement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-006
+    title: Đọc cấu trúc lồng nhau và mảng cấu trúc bằng đường dẫn layout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-007
+    title: Tạo VarHandle cho trường và phần tử cần truy cập lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-008
+    title: Dùng canonicalLayouts của Linker để đối chiếu kiểu C của ABI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-memory-layouts-009
+    title: Kiểm chứng sizeof, alignof và offsetof bằng một chương trình C đi kèm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ffm-pointers-and-ownership
+  title: Con trỏ và sở hữu
+  childs:
+  - slug: ffm-pointers-and-ownership-001
+    title: ValueLayout.ADDRESS và MemorySegment.NULL biểu diễn địa chỉ C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-002
+    title: Phân biệt segment chứa địa chỉ với vùng nhớ mà địa chỉ trỏ tới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-003
+    title: Con trỏ trả về thường có kích thước 0 và cần hợp đồng độ dài rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-004
+    title: reinterpret thay đổi biên nhìn thấy mà không xác minh vùng nhớ thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-005
+    title: AddressLayout.withTargetLayout và trách nhiệm xác định đúng vùng nhớ được trỏ tới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-006
+    title: Xử lý tham số đầu ra, con trỏ kép và vùng đệm do thư viện điền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-007
+    title: Quy định bộ nhớ được mượn, chuyển giao hoặc phải giải phóng bởi bên gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-008
+    title: Ghép đúng hàm cấp phát và giải phóng của cùng thư viện hoặc bộ quản lý bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-009
+    title: Đọc chuỗi C với bảng mã, byte kết thúc và giới hạn chiều dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-pointers-and-ownership-010
+    title: Gắn hành động dọn dẹp với scope phù hợp, tránh giải phóng hai lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ffm-downcalls
+  title: Gọi hàm bằng FFM
+  childs:
+  - slug: ffm-downcalls-001
+    title: Tìm ký hiệu bằng defaultLookup, loaderLookup hoặc libraryLookup
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-002
+    title: Phân biệt thư viện nạp qua JNI với thư viện do libraryLookup quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-003
+    title: Chọn Arena cho thời gian sống của thư viện và địa chỉ ký hiệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-004
+    title: Mô tả chữ ký C bằng FunctionDescriptor.of hoặc ofVoid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-005
+    title: Tạo downcall MethodHandle và đối chiếu MethodType thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-006
+    title: Gọi bằng invokeExact với kiểu tham số và kiểu nhận kết quả chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-007
+    title: Truyền struct theo giá trị, nhận struct và tham số SegmentAllocator bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-008
+    title: Hàm có số đối số biến đổi, firstVariadicArg và quy tắc nâng kiểu của C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-009
+    title: Thu trạng thái errno hoặc lỗi nền tảng bằng captureCallState
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-downcalls-010
+    title: Kiểm tra giá trị trả về trước khi đọc mã lỗi theo hợp đồng của hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ffm-upcalls
+  title: Gọi lại bằng FFM
+  childs:
+  - slug: ffm-upcalls-001
+    title: Hàm gọi lại (callback), con trỏ hàm và khái niệm upcall
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-002
+    title: Chuẩn bị MethodHandle cho phương thức Java làm hàm gọi lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-003
+    title: Tạo upcallStub với FunctionDescriptor và Arena phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-004
+    title: Truyền con trỏ hàm vào thư viện C và đọc dữ liệu tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-005
+    title: Giữ stub sống trong suốt thời gian thư viện còn có thể gọi lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-006
+    title: Bắt mọi ngoại lệ trong callback để tránh ngoại lệ thoát qua ranh giới upcall
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-007
+    title: Callback từ luồng bản địa và giới hạn truy cập segment thuộc Arena riêng luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-008
+    title: Truyền trạng thái ứng dụng qua tham số user data theo hợp đồng C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ffm-upcalls-009
+    title: Hủy đăng ký callback, chờ lời gọi đang chạy rồi mới đóng Arena
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jextract-bindings
+  title: Sinh liên kết jextract
+  childs:
+  - slug: jextract-bindings-001
+    title: Vai trò jextract trong sinh mã Java từ header thư viện C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jextract-bindings-002
+    title: Phân biệt công cụ jextract phân phối riêng với lệnh có sẵn của JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jextract-bindings-003
+    title: Chọn phiên bản jextract phù hợp với API FFM và JDK mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jextract-bindings-004
+    title: Cấu hình đường dẫn header, macro và các khai báo cần xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jextract-bindings-005
+    title: Đọc mã sinh cho hàm, hằng số, cấu trúc và con trỏ hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jextract-bindings-006
+    title: Tách mã sinh khỏi lớp bao quản lý tài nguyên và kiểm tra dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jextract-bindings-007
+    title: Sinh lại khi header thay đổi và kiểm chứng với thư viện nhị phân được phân phối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: direct-buffers-and-files
+  title: Bộ đệm và tệp
+  childs:
+  - slug: direct-buffers-and-files-001
+    title: ByteBuffer trực tiếp và sự khác nhau giữa đối tượng Java với vùng nhớ nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-buffers-and-files-002
+    title: Chia sẻ bộ đệm qua NewDirectByteBuffer và GetDirectBufferAddress trong JNI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-buffers-and-files-003
+    title: Quy định bên sở hữu khi Java giữ bộ đệm trỏ vào bộ nhớ do C cấp phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-buffers-and-files-004
+    title: Chuyển giữa ByteBuffer và MemorySegment mà không giả định có bản sao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-buffers-and-files-005
+    title: Ánh xạ tệp thành MemorySegment với FileChannel và Arena
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-buffers-and-files-006
+    title: Quyền đọc ghi, thời gian sống, flush dữ liệu và giới hạn do hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-buffers-and-files-007
+    title: Phân biệt vùng nhớ dùng chung giữa luồng với vùng nhớ dùng chung giữa tiến trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: c-plus-plus-wrapping
+  title: Bao bọc thư viện C++
+  childs:
+  - slug: c-plus-plus-wrapping-001
+    title: Vì sao lớp, nạp chồng và ABI C++ cần được xem xét trước khi liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-plus-plus-wrapping-002
+    title: Xuất một lớp API C ổn định bằng extern "C" quanh thư viện C++
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-plus-plus-wrapping-003
+    title: Dùng handle mờ để tạo, sử dụng và hủy đối tượng C++
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-plus-plus-wrapping-004
+    title: Giữ ngoại lệ, std::string và bộ cấp phát C++ bên trong lớp bao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-plus-plus-wrapping-005
+    title: Chuyển dữ liệu bằng vùng đệm và độ dài thay vì lộ kiểu nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-plus-plus-wrapping-006
+    title: Thiết kế AutoCloseable phía Java với trạng thái đã đóng rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: c-plus-plus-wrapping-007
+    title: Giới hạn của JNI hoặc FFM khi thư viện chỉ xuất API C++ phức tạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-access-permissions
+  title: Quyền truy cập native
+  childs:
+  - slug: native-access-permissions-001
+    title: Phương thức restricted và lý do cần cho phép truy cập bản địa tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-access-permissions-002
+    title: --enable-native-access cho module có tên và ALL-UNNAMED trên classpath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-access-permissions-003
+    title: Phân biệt cho phép native access với --enable-preview và --add-opens
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-access-permissions-004
+    title: Cấu hình cảnh báo hoặc từ chối bằng --illegal-native-access trên JDK hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-access-permissions-005
+    title: Các hạn chế đối với JNI được mở rộng từ JDK 24 và ảnh hưởng khi nâng JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-access-permissions-006
+    title: Kiểm tra hoặc cấp quyền cho module động trong phạm vi API cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-access-permissions-007
+    title: Quyền truy cập native không xác nhận chữ ký C hoặc độ an toàn của thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-access-permissions-008
+    title: Chọn tiến trình riêng khi cần ranh giới chịu lỗi hoặc giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-concurrency-and-resources
+  title: Đồng thời và tài nguyên
+  childs:
+  - slug: native-concurrency-and-resources-001
+    title: Quy định thư viện có an toàn khi gọi đồng thời hoặc chỉ cho phép một luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-concurrency-and-resources-002
+    title: Trạng thái toàn cục, biến cục bộ theo luồng và tính tái nhập của hàm C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-concurrency-and-resources-003
+    title: Đồng bộ dữ liệu mà Java và mã bản địa cùng đọc hoặc ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-concurrency-and-resources-004
+    title: Không giả định Arena dùng chung tự ngăn tranh chấp dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-concurrency-and-resources-005
+    title: Điều phối callback tái nhập và tránh giữ khóa khi vượt ranh giới Java/C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-concurrency-and-resources-006
+    title: Chờ công việc bất đồng bộ kết thúc trước khi trả vùng đệm hoặc handle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-concurrency-and-resources-007
+    title: Hủy tác vụ kéo dài, timeout và giới hạn khả năng can thiệp của luồng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-concurrency-and-resources-008
+    title: Thứ tự đóng callback, đối tượng bản địa, bộ nhớ và thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-interop-troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: native-interop-troubleshooting-001
+    title: Phân loại lỗi không thấy thư viện, thiếu phụ thuộc và không thấy ký hiệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-002
+    title: Đối chiếu OS, CPU, bitness và phiên bản ABI khi nạp thư viện thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-003
+    title: Dùng -Xcheck:jni để phát hiện một số vi phạm hợp đồng JNI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-004
+    title: Dò việc dùng JNI bằng jnativescan và kiểm tra quyền native access khi nâng JDK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-005
+    title: Nhận diện WrongMethodTypeException, WrongThreadException và segment đã đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-006
+    title: Điều tra lỗi phạm vi Java khác với truy cập con trỏ không hợp lệ phía C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-007
+    title: Đọc hs_err_pid, khung gây lỗi và dấu vết ngăn xếp Java hoặc bản địa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-008
+    title: Thu tệp dump, ký hiệu gỡ lỗi và thông tin thư viện để tái hiện sự cố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-009
+    title: Dùng công cụ kiểm tra bộ nhớ bản địa và hiểu giới hạn của Native Memory Tracking
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-010
+    title: Theo dõi sự kiện JFR nạp và dỡ thư viện bản địa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-troubleshooting-011
+    title: Tách ví dụ lỗi tối thiểu khỏi ứng dụng lớn trước khi kết luận lỗi JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-interop-performance
+  title: Hiệu năng tương tác
+  childs:
+  - slug: native-interop-performance-001
+    title: Đo chi phí vượt ranh giới Java/C thay vì chỉ đo thời gian thuật toán C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-performance-002
+    title: Gộp công việc để giảm số lần JNI, downcall và callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-performance-003
+    title: Đánh đổi sao chép, ghim mảng, bộ đệm trực tiếp và cấp phát ngoài heap
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-performance-004
+    title: Lưu lại lookup, layout, MethodHandle hoặc mã định danh JNI đúng vòng đời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-performance-005
+    title: Điều kiện nghiêm ngặt của Linker.Option.critical và hạn chế với hàm chặn hoặc upcall
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-performance-006
+    title: Đo riêng khởi động, liên kết, làm nóng JIT và thực thi ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-performance-007
+    title: Theo dõi bộ nhớ bản địa, số handle và độ trễ khi chạy lâu dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-testing-distribution
+  title: Kiểm thử và phân phối
+  childs:
+  - slug: native-testing-distribution-001
+    title: Tạo thư viện C nhỏ làm minh chứng cho hợp đồng dữ liệu và quyền sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-002
+    title: Kiểm thử giá trị biên, null, Unicode, vùng đệm ngắn và tràn số kích thước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-003
+    title: Kiểm thử lỗi cấp phát, mã lỗi thư viện, ngoại lệ callback và dọn dẹp một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-004
+    title: Chạy kiểm thử gây crash hoặc lỗi nạp trong tiến trình riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-005
+    title: Đối chiếu JNI và FFM với cùng tập đầu vào, kết quả và thư viện C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-006
+    title: Chạy ma trận JDK, hệ điều hành, CPU và công cụ biên dịch được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-007
+    title: Đóng gói thư viện bản địa cùng phụ thuộc và hướng dẫn quyền truy cập lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-008
+    title: Xác minh nguồn gốc, tính toàn vẹn và phiên bản của tệp nhị phân phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-testing-distribution-009
+    title: Kiểm thử đóng nhiều lần, truy cập sau đóng và callback đến muộn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-interop-practice
+  title: Bài thực hành
+  childs:
+  - slug: native-interop-practice-001
+    title: Tạo thư viện tính toán C và gọi cùng một hàm qua JNI rồi qua FFM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-practice-002
+    title: Truyền chuỗi Unicode và mảng số với chính sách sao chép tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-practice-003
+    title: Truyền struct lồng nhau rồi kiểm chứng kích thước và offset giữa Java với C
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-practice-004
+    title: Nhận vùng nhớ do C cấp phát và bọc nó bằng tài nguyên có thể đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-practice-005
+    title: Đăng ký callback Java và dừng an toàn khi thư viện gọi từ luồng nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-practice-006
+    title: Nhúng JVM trong ứng dụng C và gọi một dịch vụ Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-practice-007
+    title: Sinh liên kết bằng jextract rồi thêm lớp bao kiểm tra hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-interop-practice-008
+    title: Tạo bộ kiểm thử đa nền tảng và bảng quyết định JNI, FFM hoặc tiến trình riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

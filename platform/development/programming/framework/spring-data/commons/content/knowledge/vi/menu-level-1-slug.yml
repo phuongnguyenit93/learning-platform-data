@@ -1,0 +1,133 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phụ thuộc và phiên bản
+  slug: dependencies-versions
+  index: 1
+- title: Khởi tạo thực hành
+  slug: setup-practice
+  index: 2
+- title: Giao diện repository
+  slug: repository-interfaces
+  index: 3
+- title: Hợp đồng CRUD
+  slug: crud-contract
+  index: 4
+- title: Kích hoạt repository
+  slug: repository-activation
+  index: 5
+- title: Nhiều store
+  slug: multiple-stores
+  index: 6
+- title: Proxy và thành phần
+  slug: proxies-components
+  index: 7
+- title: Chiến lược truy vấn
+  slug: query-strategies
+  index: 8
+- title: Suy diễn tên phương thức
+  slug: method-name-derivation
+  index: 9
+- title: Kiểu kết quả truy vấn
+  slug: query-result-types
+  index: 10
+- title: Null và nullability
+  slug: nullability
+  index: 11
+- title: Sắp xếp
+  slug: sorting
+  index: 12
+- title: Phân trang
+  slug: pagination
+  index: 13
+- title: Scrolling
+  slug: scrolling
+  index: 14
+- title: Luồng và wrapper
+  slug: streams-wrappers
+  index: 15
+- title: Projection interface
+  slug: interface-projection
+  index: 16
+- title: DTO và projection động
+  slug: dto-and-dynamic-projections
+  index: 17
+- title: Query by Example
+  slug: query-by-example
+  index: 18
+- title: Fluent query
+  slug: fluent-query
+  index: 19
+- title: Tích hợp Querydsl
+  slug: querydsl-integration
+  index: 20
+- title: Repository fragment
+  slug: repository-fragments
+  index: 21
+- title: Factory và metadata
+  slug: factory-metadata
+  index: 22
+- title: Metadata ánh xạ
+  slug: metadata-mapping
+  index: 23
+- title: Khởi tạo và gán thuộc tính
+  slug: object-instantiation-and-properties
+  index: 24
+- title: Phát hiện trạng thái
+  slug: state-detection
+  index: 25
+- title: Chuyển đổi dữ liệu
+  slug: data-conversion
+  index: 26
+- title: Biểu thức giá trị
+  slug: value-expressions
+  index: 27
+- title: Vòng đời và callback
+  slug: lifecycle-callbacks
+  index: 28
+- title: Auditing
+  slug: auditing
+  index: 29
+- title: Sự kiện aggregate
+  slug: aggregate-events
+  index: 30
+- title: Repository reactive
+  slug: reactive-repositories
+  index: 31
+- title: Kotlin và coroutine
+  slug: kotlin-and-coroutines
+  index: 32
+- title: Tham số web
+  slug: web-parameters
+  index: 33
+- title: Biểu diễn kết quả web
+  slug: web-result-representation
+  index: 34
+- title: Bộ lọc và payload web
+  slug: web-filters-payloads
+  index: 35
+- title: Kiểu dữ liệu dùng chung
+  slug: shared-data-types
+  index: 36
+- title: Khởi tạo dữ liệu
+  slug: data-initialization
+  index: 37
+- title: Ranh giới giao dịch
+  slug: transaction-boundaries
+  index: 38
+- title: Kiểm thử
+  slug: testing
+  index: 39
+- title: Hiệu năng
+  slug: performance
+  index: 40
+- title: Lỗi và chẩn đoán
+  slug: errors-diagnostics
+  index: 41
+- title: Phiên bản và AOT
+  slug: versions-and-aot
+  index: 42
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 43

@@ -1,0 +1,106 @@
+menu:
+- title: Bức tranh hiệu năng
+  slug: performance-overview
+  index: 0
+- title: Yêu cầu và mục tiêu
+  slug: requirements-and-goals
+  index: 1
+- title: Chỉ số đo lường
+  slug: performance-metrics
+  index: 2
+- title: Phân bố và thống kê
+  slug: distribution-and-statistics
+  index: 3
+- title: Hàng đợi và đồng thời
+  slug: queues-and-concurrency
+  index: 4
+- title: Các dạng kiểm thử
+  slug: test-types
+  index: 5
+- title: Mô hình sử dụng
+  slug: usage-model
+  index: 6
+- title: Mô hình tải mở và đóng
+  slug: open-closed-load-models
+  index: 7
+- title: Dữ liệu thử tải
+  slug: load-test-data
+  index: 8
+- title: Môi trường thí nghiệm
+  slug: experiment-environment
+  index: 9
+- title: Máy phát tải
+  slug: load-generator
+  index: 10
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 11
+- title: Kịch bản và tính đúng
+  slug: scenario-correctness
+  index: 12
+- title: JMeter
+  slug: jmeter
+  index: 13
+- title: Gatling
+  slug: gatling
+  index: 14
+- title: k6
+  slug: k6
+  index: 15
+- title: Quy trình thực thi
+  slug: execution-process
+  index: 16
+- title: Tải mục tiêu và giới hạn
+  slug: target-load-and-limits
+  index: 17
+- title: Tải đột biến và khôi phục
+  slug: spike-and-recovery
+  index: 18
+- title: Chạy dài và dữ liệu lớn
+  slug: soak-and-large-data
+  index: 19
+- title: Khả năng mở rộng
+  slug: scalability
+  index: 20
+- title: Hiệu năng JVM
+  slug: jvm-performance
+  index: 21
+- title: JFR và phân tích thực thi
+  slug: jfr-execution-analysis
+  index: 22
+- title: Cơ sở dữ liệu
+  slug: database-performance
+  index: 23
+- title: Cache
+  slug: caching
+  index: 24
+- title: Mạng và dịch vụ ngoài
+  slug: network-and-external-services
+  index: 25
+- title: Xử lý bất đồng bộ
+  slug: async-processing
+  index: 26
+- title: Hiệu năng phía người dùng
+  slug: user-facing-performance
+  index: 27
+- title: Lượt chuẩn và so sánh
+  slug: benchmarks-and-comparison
+  index: 28
+- title: Đo chuẩn thành phần
+  slug: component-benchmarking
+  index: 29
+- title: Phân tích nút thắt
+  slug: bottleneck-analysis
+  index: 30
+- title: Kiểm chứng cải tiến
+  slug: improvement-verification
+  index: 31
+- title: Tích hợp CI
+  slug: ci-integration
+  index: 32
+- title: Báo cáo và quyết định
+  slug: reporting-and-decisions
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

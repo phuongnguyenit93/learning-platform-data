@@ -1,0 +1,2881 @@
+menu:
+- slug: quality-introduction
+  title: Nhập môn
+  childs:
+  - slug: quality-introduction-001
+    title: Chất lượng mã nguồn (code quality) là gì?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-002
+    title: Một đoạn mã chạy đúng đã đủ tốt chưa?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-003
+    title: Mối liên hệ giữa chất lượng mã và chất lượng sản phẩm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-004
+    title: Người đọc, người sửa và người vận hành cần gì từ mã nguồn?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-005
+    title: Chi phí hiểu, kiểm tra, thay đổi và khắc phục lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-006
+    title: Chất lượng nội tại và hành vi quan sát được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-007
+    title: Phân biệt lỗi, mùi mã, vi phạm quy ước và nợ kỹ thuật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-008
+    title: Vai trò của thiết kế, kiểm thử, công cụ và rà soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-009
+    title: Vì sao một điểm số không thể mô tả toàn bộ chất lượng?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-introduction-010
+    title: Lộ trình từ nhận diện vấn đề đến cải thiện có bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-dimensions
+  title: Các chiều chất lượng
+  childs:
+  - slug: quality-dimensions-001
+    title: Tính đúng đắn so với yêu cầu và hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-002
+    title: Độ tin cậy khi gặp lỗi hoặc điều kiện bất thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-003
+    title: Khả năng đọc và giải thích ý định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-004
+    title: Khả năng bảo trì và thay đổi an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-005
+    title: Khả năng kiểm thử và xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-006
+    title: Tính mô-đun và mức độ phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-007
+    title: An toàn bảo mật và kiểm soát dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-008
+    title: Hiệu quả sử dụng thời gian và tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-009
+    title: Tính nhất quán trong cùng một hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-010
+    title: Khả năng tương thích và thích nghi với môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-011
+    title: Chọn dấu hiệu và bằng chứng cho từng chiều chất lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-dimensions-012
+    title: Quan hệ hỗ trợ hoặc xung đột giữa các tiêu chí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-and-tradeoffs
+  title: Bối cảnh và đánh đổi
+  childs:
+  - slug: context-and-tradeoffs-001
+    title: Xác định người sử dụng và mục tiêu của phần mã đang xét
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-002
+    title: Mức độ quan trọng và hậu quả khi mã sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-003
+    title: Mã thử nghiệm, công cụ nội bộ và mã được duy trì lâu dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-004
+    title: Tần suất thay đổi và số người cùng bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-005
+    title: Ràng buộc tương thích, thời gian và nguồn lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-006
+    title: Lựa chọn mức bảo đảm phù hợp với rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-007
+    title: Đánh đổi sự đơn giản với tính linh hoạt mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-008
+    title: Đánh đổi hiệu năng với độ rõ ràng và khả năng kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-009
+    title: Phân biệt quyết định có chủ đích với vấn đề chưa được nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-010
+    title: Ghi lại giả thiết và điều kiện cần xem xét lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-and-tradeoffs-011
+    title: Tránh áp dụng một bộ quy tắc tuyệt đối cho mọi loại mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: correctness
+  title: Tính đúng đắn
+  childs:
+  - slug: correctness-001
+    title: Chuyển yêu cầu thành hành vi có thể kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-002
+    title: Tiền điều kiện, hậu điều kiện và bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-003
+    title: Mô hình miền dữ liệu và trạng thái hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-004
+    title: Giá trị biên, dữ liệu thiếu và đầu vào không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-005
+    title: Luồng điều khiển và các đường đi cần được xét
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-006
+    title: Hợp đồng về kết quả, tác dụng phụ và ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-007
+    title: Tính đúng đắn của dữ liệu số, chuỗi và thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-008
+    title: Thứ tự thao tác và trạng thái cập nhật một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-009
+    title: Giữ hành vi hợp lệ khi thay đổi cách triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-010
+    title: Phân biệt đặc tả thiếu với mã triển khai sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-011
+    title: Giới hạn của suy luận, kiểm thử và phân tích tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Lỗi đầu vào, lỗi nghiệp vụ và lỗi hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Ngăn lỗi lan rộng và giữ trạng thái nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Thiết kế thông báo lỗi đủ rõ để xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Không che thất bại bằng kết quả có vẻ thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Vòng đời tài nguyên và dọn dẹp trên mọi đường đi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Giới hạn thời gian chờ, số lần thử lại và lượng công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Thực hiện lặp an toàn và kiểm soát tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Hủy thao tác và kết thúc có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Xử lý đồng thời theo bất biến và quyền sở hữu trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-010
+    title: Khôi phục và quan sát thất bại trong phạm vi trách nhiệm của mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-011
+    title: Kiểm tra giả thiết khi phụ thuộc vào hệ thống bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: readability
+  title: Khả năng đọc
+  childs:
+  - slug: readability-001
+    title: Mã diễn đạt ý định và mô hình bài toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-002
+    title: Đặt tên theo ý nghĩa, đơn vị và phạm vi sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-003
+    title: Từ vựng nhất quán giữa mã, dữ liệu và nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-004
+    title: Tổ chức phương thức theo một mạch xử lý dễ theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-005
+    title: Giới hạn mức lồng nhau và khoảng cách giữa các thông tin liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-006
+    title: Làm rõ điều kiện boolean và các nhánh xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-007
+    title: Thay giá trị khó hiểu bằng tên hoặc mô hình phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-008
+    title: Phân biệt mã ngắn với mã dễ hiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-009
+    title: Tránh che tác dụng phụ sau tên gọi hoặc biểu thức khó đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-010
+    title: Bình luận giải thích lý do, giả thiết và giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-011
+    title: Đọc một đoạn mã dưới góc nhìn người mới tiếp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: readability-012
+    title: Cân bằng quy ước chung với đặc điểm của bài toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: complexity
+  title: Độ phức tạp
+  childs:
+  - slug: complexity-001
+    title: Độ phức tạp do bản thân bài toán và do cách triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-002
+    title: Số nhánh, đường đi và trạng thái cần suy nghĩ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-003
+    title: Độ phức tạp chu trình và phạm vi mà chỉ số phản ánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-004
+    title: Độ phức tạp nhận thức và khác biệt giữa các cách đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-005
+    title: Mức lồng nhau, phụ thuộc ngầm và điều kiện chồng chéo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-006
+    title: Độ phức tạp ở cấp phương thức, lớp và toàn luồng xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-007
+    title: Quá nhiều lớp gián tiếp và chi phí lần theo hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-008
+    title: Đơn giản hóa điều kiện và loại bỏ trạng thái không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-009
+    title: Tách phần tính toán khỏi phần điều phối và tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-010
+    title: Giới hạn tác dụng của việc chia nhỏ theo số dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: complexity-011
+    title: Nhận diện khi trừu tượng hóa đang làm bài toán khó hiểu hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structure-and-dependencies
+  title: Cấu trúc và phụ thuộc
+  childs:
+  - slug: structure-and-dependencies-001
+    title: Ranh giới trách nhiệm của phương thức, lớp và mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-002
+    title: Độ gắn kết bên trong một đơn vị mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-003
+    title: Mức độ kết nối và hướng phụ thuộc giữa các đơn vị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-004
+    title: Che giấu quyết định dễ thay đổi sau hợp đồng ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-005
+    title: Phụ thuộc rõ ràng thay vì truy cập trạng thái toàn cục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-006
+    title: Chu kỳ phụ thuộc và ảnh hưởng đến kiểm thử, thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-007
+    title: Tổ hợp đối tượng và kế thừa theo hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-008
+    title: Áp dụng SOLID theo vấn đề cần giải quyết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-009
+    title: 'DRY: loại trùng tri thức thay vì gộp mọi đoạn mã giống nhau'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-010
+    title: KISS và YAGNI trong lựa chọn mức trừu tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-011
+    title: Phân biệt tổ chức tệp với ranh giới kiến trúc thực sự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structure-and-dependencies-012
+    title: Đánh giá thiết kế bằng một thay đổi cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-state
+  title: Dữ liệu và trạng thái
+  childs:
+  - slug: data-and-state-001
+    title: Biểu diễn dữ liệu sao cho giảm trạng thái không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-002
+    title: Kiểu dữ liệu, đơn vị và ràng buộc miền giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-003
+    title: Giá trị bất biến và thay đổi có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-004
+    title: Quyền sở hữu đối tượng và tham chiếu dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-005
+    title: Phân biệt null, vắng dữ liệu và lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-006
+    title: Sao chép phòng vệ, bản chụp và vỏ bọc chỉ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-007
+    title: Giữ bất biến liên quan đến nhiều trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-008
+    title: Giới hạn phạm vi và vòng đời của trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-009
+    title: Tách trạng thái theo từng yêu cầu hoặc tác vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-010
+    title: Tính nhất quán khi có truy cập đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-state-011
+    title: Truy nguyên nguồn gốc và biến đổi của dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-contracts
+  title: Hợp đồng API
+  childs:
+  - slug: api-contracts-001
+    title: API như ranh giới giao tiếp giữa các phần mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-002
+    title: Tên gọi, kiểu tham số và giá trị trả về thể hiện ý định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-003
+    title: Tiền điều kiện và cách báo đầu vào không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-004
+    title: Hậu điều kiện và bảo đảm sau khi thao tác thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-005
+    title: Quy ước null, Optional và collection rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-006
+    title: Tác dụng phụ, quyền sở hữu và trách nhiệm đóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-007
+    title: Hợp đồng về luồng thực thi, thứ tự và tính đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-008
+    title: Làm rõ thao tác chặn, bất đồng bộ và hủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-009
+    title: Thiết kế để khó sử dụng sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-010
+    title: Giữ tương thích và phát triển hợp đồng theo thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-011
+    title: Kiểm chứng API từ góc nhìn mã gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testability
+  title: Khả năng kiểm thử
+  childs:
+  - slug: testability-001
+    title: Khả năng điều khiển đầu vào và quan sát kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-002
+    title: Tách logic miền bài toán khỏi I/O và cơ chế triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-003
+    title: Đưa phụ thuộc về thời gian, ngẫu nhiên và dịch vụ ngoài vào hợp đồng rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-004
+    title: Giảm trạng thái toàn cục và sự phụ thuộc thứ tự chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-005
+    title: Thiết kế điểm thay thế phụ thuộc khi cần kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-006
+    title: Đối tượng thay thế, stub và mock dùng đúng mục đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-007
+    title: Kiểm thử theo hành vi thay vì cấu trúc triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-008
+    title: Giữ kiểm thử ổn định khi tái cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-009
+    title: Cân bằng khả năng kiểm thử với đóng gói
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testability-010
+    title: Nhận diện thiết kế khó kiểm thử từ một tình huống cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-evidence
+  title: Bằng chứng kiểm thử
+  childs:
+  - slug: test-evidence-001
+    title: Kiểm thử đơn vị, tích hợp, hợp đồng và toàn hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-002
+    title: Chọn cấp kiểm thử theo rủi ro và chi phí phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-003
+    title: Trường hợp bình thường, biên, lỗi và dữ liệu bất thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-004
+    title: Kiểm tra bất biến và các thuộc tính thay vì chỉ ví dụ cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-005
+    title: Chất lượng dữ liệu thử và kết quả kỳ vọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-006
+    title: Độ bao phủ câu lệnh, nhánh và giới hạn diễn giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-007
+    title: Kiểm thử chạy qua mã nhưng không phát hiện lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-008
+    title: Mutation testing và bằng chứng về sức phát hiện của bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-009
+    title: Kiểm thử hồi quy cho lỗi đã xác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-010
+    title: Kiểm thử không ổn định và nguyên nhân cần điều tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-011
+    title: Kiểm tra đồng thời, tài nguyên và tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-012
+    title: Đọc kết quả thất bại như bằng chứng cần giải thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-evidence-013
+    title: Không đồng nhất bộ kiểm thử xanh với chứng minh đầy đủ tính đúng đắn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Ranh giới tin cậy và nguồn dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Kiểm tra dữ liệu theo miền giá trị và ngữ cảnh sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Kiểm soát truy cập và nguyên tắc quyền tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Tách dữ liệu khỏi câu lệnh hoặc cấu trúc thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Bảo vệ bí mật trong mã, cấu hình và thông báo lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Giới hạn dữ liệu nhạy cảm trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Xử lý thất bại của kiểm tra an toàn theo hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Giới hạn tài nguyên trước đầu vào hoặc tải bất thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Phụ thuộc bên ngoài và nguồn gốc thành phần sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Phân biệt mẫu mã nguy hiểm với rủi ro thực tế của hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Kết hợp rà soát thiết kế, phân tích và kiểm thử theo mô hình đe dọa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-resources
+  title: Hiệu năng và tài nguyên
+  childs:
+  - slug: performance-and-resources-001
+    title: Đặt yêu cầu về độ trễ, thông lượng và giới hạn bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-002
+    title: Lựa chọn thuật toán và cấu trúc dữ liệu phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-003
+    title: Đo trước khi tối ưu phần mã có ảnh hưởng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-004
+    title: Chi phí tính toán, cấp phát, I/O và chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-005
+    title: Vòng đời tài nguyên và dấu hiệu rò rỉ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-006
+    title: Giới hạn bộ đệm, hàng đợi và số tác vụ đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-007
+    title: Hiệu năng khi tải tăng và dữ liệu lệch phân bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-008
+    title: Khởi động, bộ nhớ đệm và điều kiện đo lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-009
+    title: Phân biệt phép đo cục bộ với hành vi toàn ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-010
+    title: Đánh đổi tối ưu hóa với độ rõ ràng và tính đúng đắn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-011
+    title: Kiểm tra cải tiến bằng bằng chứng trước và sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-resources-012
+    title: Ghi lại giả thiết khiến một tối ưu có lợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation
+  title: Tài liệu
+  childs:
+  - slug: documentation-001
+    title: Mã nguồn, kiểm thử và tài liệu phục vụ các nhu cầu khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-002
+    title: Giải thích mục tiêu, phạm vi và cách sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-003
+    title: Ghi hợp đồng, bất biến và trường hợp lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-004
+    title: Bình luận lý do thay vì diễn lại từng câu lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-005
+    title: Ví dụ sử dụng đúng và giới hạn của ví dụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-006
+    title: Lưu quyết định thiết kế cùng phương án đã cân nhắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-007
+    title: Sơ đồ hỗ trợ đọc cấu trúc và luồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-008
+    title: Thông báo lỗi và hướng dẫn chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-009
+    title: Tài liệu gần mã nhưng vẫn cần người chịu trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-010
+    title: Phát hiện tài liệu không còn khớp hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-011
+    title: Cập nhật tri thức cùng thay đổi mã liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conventions-and-consistency
+  title: Quy ước và nhất quán
+  childs:
+  - slug: conventions-and-consistency-001
+    title: Quy ước định dạng, đặt tên và cách diễn đạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-002
+    title: Phân biệt lựa chọn phong cách với vấn đề đúng đắn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-003
+    title: Tính nhất quán trong một tệp, mô-đun và nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-004
+    title: Dùng công cụ định dạng để giảm tranh luận thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-005
+    title: Quy ước ngoại lệ, null, tài nguyên và log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-006
+    title: Quy tắc phù hợp với phiên bản ngôn ngữ và kiểu mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-007
+    title: Tự động hóa những kiểm tra rõ ràng và lặp lại được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-008
+    title: Ngoại lệ có lý do thay vì áp dụng máy móc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-009
+    title: Đưa quy ước vào ví dụ và tài liệu dễ tra cứu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conventions-and-consistency-010
+    title: Thay đổi quy ước mà không trộn nhiễu định dạng với sửa hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-checks
+  title: Kiểm tra tự động
+  childs:
+  - slug: automated-checks-001
+    title: Trình biên dịch và hệ kiểu như lớp kiểm tra đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-002
+    title: Kiểm tra định dạng và quy ước mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-003
+    title: Phân tích tĩnh cho mẫu lỗi và luồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-004
+    title: Kiểm tra quan hệ phụ thuộc và ranh giới kiến trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-005
+    title: Kiểm tra thành phần bên ngoài và vấn đề đã được nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-006
+    title: Kiểm thử tự động và kiểm tra khi chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-007
+    title: Phân biệt vai trò của công cụ với tiêu chí chất lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-008
+    title: Phạm vi phân tích mã nguồn, bytecode và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-009
+    title: Dương tính giả, âm tính giả và giả thiết phân tích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-010
+    title: Mô hình API, annotation và ngữ cảnh ảnh hưởng kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-011
+    title: Khác biệt giữa độ nghiêm trọng và độ tin cậy của cảnh báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-012
+    title: Phối hợp các lớp kiểm tra thay vì trông chờ một công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-checks-013
+    title: Xác minh bản sửa và kết quả sau khi thay đổi bộ quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-metrics
+  title: Chỉ số chất lượng
+  childs:
+  - slug: quality-metrics-001
+    title: Xác định câu hỏi cần trả lời trước khi chọn chỉ số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-002
+    title: Kích thước mã và phạm vi mà số dòng có ý nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-003
+    title: Độ phức tạp và phân bố các điểm khó hiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-004
+    title: Mức lặp mã và phân biệt lặp cú pháp với lặp tri thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-005
+    title: Độ bao phủ và chất lượng khẳng định trong kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-006
+    title: Phụ thuộc, chu kỳ và mức độ tập trung trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-007
+    title: Tần suất thay đổi, lịch sử lỗi và vùng cần ưu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-008
+    title: Xu hướng theo thời gian thay vì một ảnh chụp đơn lẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-009
+    title: Chuẩn hóa phạm vi trước khi so sánh các thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-010
+    title: Không suy ra chất lượng từ số lượng cảnh báo riêng lẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-011
+    title: Nguy cơ tối ưu chỉ số mà làm lệch mục tiêu thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-012
+    title: Kết hợp số liệu với rà soát định tính và bằng chứng hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-metrics-013
+    title: Không dùng một chỉ số để xếp hạng cá nhân hoặc khẳng định nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-smells
+  title: Mùi mã
+  childs:
+  - slug: code-smells-001
+    title: Mùi mã là tín hiệu điều tra chứ chưa phải kết luận lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-002
+    title: Phương thức dài và lớp tập trung quá nhiều trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-003
+    title: Điều kiện lặp lại, nhiều nhánh và trạng thái khó theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-004
+    title: Lặp tri thức ở nhiều nơi cần thay đổi cùng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-005
+    title: Danh sách tham số dài và nhóm dữ liệu đi cùng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-006
+    title: Dùng kiểu nguyên thủy thay cho khái niệm miền cần ràng buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-007
+    title: Biến hoặc trường tạm làm kéo dài trạng thái không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-008
+    title: Phụ thuộc sâu vào chi tiết của đối tượng khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-009
+    title: Một thay đổi phải sửa nhiều nơi hoặc nhiều thay đổi dồn vào một nơi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-010
+    title: Trừu tượng hóa suy đoán và thành phần chưa có nhu cầu thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-011
+    title: Bình luận bù cho ý định không được thể hiện trong mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-smells-012
+    title: Phân biệt mùi mã cục bộ với nguyên nhân ở thiết kế hoặc yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-debt
+  title: Nợ kỹ thuật
+  childs:
+  - slug: technical-debt-001
+    title: Nợ kỹ thuật là gì và khác khuyết điểm thông thường như thế nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-002
+    title: Chi phí khắc phục và chi phí duy trì quyết định hiện tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-003
+    title: Nợ có chủ đích, nợ ngoài dự kiến và thay đổi bối cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-004
+    title: Nợ trong thiết kế, kiểm thử, phụ thuộc và tri thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-005
+    title: Ghi nhận tác động bằng tình huống thay đổi hoặc sự cố cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-006
+    title: Ước lượng có khoảng không chắc chắn thay vì điểm số giả chính xác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-007
+    title: Ưu tiên theo rủi ro, tần suất thay đổi và giá trị cải thiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-008
+    title: Chấp nhận, theo dõi hoặc xử lý nợ theo điều kiện rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-009
+    title: Phân biệt đầu tư cải thiện với viết lại theo sở thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-010
+    title: Xử lý từng phần và tránh tạo nợ mới trong quá trình sửa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-debt-011
+    title: Kiểm chứng chi phí hoặc rủi ro đã giảm sau khi xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring
+  title: Tái cấu trúc
+  childs:
+  - slug: refactoring-001
+    title: Tái cấu trúc là thay đổi cấu trúc trong khi giữ hợp đồng hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-002
+    title: Phân biệt tái cấu trúc, sửa lỗi và thay đổi yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-003
+    title: Xác định phạm vi hành vi cần được bảo vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-004
+    title: Chuẩn bị bằng chứng trước khi thay đổi mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-005
+    title: Thực hiện từng bước nhỏ có thể kiểm tra và hoàn tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-006
+    title: Tách phương thức, đổi tên và di chuyển trách nhiệm theo mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-007
+    title: Loại trùng tri thức mà vẫn giữ các trường hợp khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-008
+    title: Giảm trạng thái và làm rõ phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-009
+    title: Kiểm soát thay đổi API và dữ liệu được lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-010
+    title: Chạy kiểm tra phù hợp sau từng bước có ý nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-011
+    title: Đánh giá cấu trúc mới bằng khả năng hiểu và thực hiện thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-012
+    title: Dừng khi mục tiêu cải thiện đã được chứng minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-review
+  title: Rà soát mã
+  childs:
+  - slug: code-review-001
+    title: Mục tiêu của rà soát mã và giới hạn của việc đọc thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-002
+    title: Hiểu yêu cầu, phạm vi và rủi ro của thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-003
+    title: Đọc thiết kế tổng thể trước khi xét từng dòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-004
+    title: Kiểm tra hợp đồng, trường hợp biên và luồng lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-005
+    title: Xem xét dữ liệu, trạng thái, đồng thời và tài nguyên khi có liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-006
+    title: Đánh giá kiểm thử và bằng chứng xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-007
+    title: Phân biệt lỗi cần sửa, đề xuất cải thiện và sở thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-008
+    title: Viết nhận xét có vị trí, lý do và tác động cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-009
+    title: Đề xuất hướng sửa nhưng giữ quyền giải thích của tác giả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-010
+    title: Giữ thay đổi đủ tập trung để người khác đánh giá được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-011
+    title: Xử lý bất đồng dựa trên hợp đồng, quy ước và bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-012
+    title: Ghi lại quyết định có ảnh hưởng vượt ra ngoài một thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gates
+  title: Cổng chất lượng
+  childs:
+  - slug: quality-gates-001
+    title: Cổng chất lượng là điều kiện chấp nhận thay đổi như thế nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-002
+    title: Chọn kiểm tra theo mức rủi ro và tốc độ phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-003
+    title: Kiểm tra tại máy phát triển, trước hợp nhất và trên CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-004
+    title: Giữ cấu hình kiểm tra nhất quán giữa các môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-005
+    title: Thứ tự phản hồi từ kiểm tra nhanh đến kiểm tra tốn kém
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-006
+    title: Ngăn lỗi mới trong khi quản lý tồn đọng bằng baseline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-007
+    title: Đặt ngưỡng có lý do và xem xét theo bối cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-008
+    title: Phân biệt kiểm tra thất bại với công cụ không chạy được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-009
+    title: Chẩn đoán, xử lý và theo dõi kiểm tra không ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-010
+    title: Miễn trừ phạm vi hẹp với bằng chứng và thời hạn xem xét
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-011
+    title: Xác nhận bản sửa bằng lần kiểm tra mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-012
+    title: Bảo đảm cổng không thể thay thế toàn bộ trách nhiệm rà soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-013
+    title: Điều chỉnh quy trình khi chi phí kiểm tra vượt giá trị phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: existing-code
+  title: Mã hiện hữu
+  childs:
+  - slug: existing-code-001
+    title: Khảo sát hành vi, phụ thuộc và đường chạy quan trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-002
+    title: Phân biệt mã cũ với mã khó thay đổi an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-003
+    title: Xác định vùng rủi ro theo lỗi và nhu cầu thay đổi thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-004
+    title: Kiểm thử đặc tính hiện có trước khi sửa khi chưa có đặc tả đủ rõ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-005
+    title: Phân biệt hành vi cần giữ với lỗi đã được xác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-006
+    title: Tạo điểm tách phụ thuộc để cải thiện khả năng kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-007
+    title: Đưa kiểm tra tự động vào từng phạm vi có thể quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-008
+    title: Dùng baseline mà vẫn giữ khả năng phát hiện vấn đề mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-009
+    title: Cải thiện cục bộ trong quá trình thực hiện thay đổi cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-010
+    title: Di chuyển từng phần và kiểm soát tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-011
+    title: Cân nhắc viết lại theo bằng chứng về chi phí và rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: existing-code-012
+    title: Đọc lại cấu trúc và kiểm tra hành vi sau mỗi phần được chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collaboration-and-responsibilities
+  title: Cộng tác và trách nhiệm
+  childs:
+  - slug: collaboration-and-responsibilities-001
+    title: Chất lượng mã là trách nhiệm chung với phạm vi sở hữu rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-002
+    title: Thống nhất tiêu chí hoàn thành của một thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-003
+    title: Chuyển yêu cầu chất lượng thành thỏa thuận có thể thực hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-004
+    title: Chia sẻ từ vựng, ví dụ tốt và bài học từ lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-005
+    title: Duy trì tri thức khi thay đổi người phụ trách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-006
+    title: Ghép cặp và hướng dẫn để truyền cách suy luận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-007
+    title: Phản hồi dựa trên mã và tác động thay vì đánh giá con người
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-008
+    title: Cân bằng tiến độ với công việc duy trì chất lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-009
+    title: Ghi nhận ngoại lệ và quyết định chấp nhận rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-and-responsibilities-010
+    title: Dùng sự cố và khó khăn bảo trì làm đầu vào cải thiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Đánh giá hai cách triển khai cùng một yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Chuyển yêu cầu mơ hồ thành hợp đồng và trường hợp kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Đổi tên và tổ chức lại mã để làm rõ ý định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Giảm độ phức tạp của một đoạn xử lý có nhiều nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Làm rõ quyền sở hữu và bất biến của mô hình dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Tách phụ thuộc thời gian hoặc I/O để tăng khả năng kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Tạo kiểm thử phát hiện một lỗi đã xác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Đọc cảnh báo tự động và lập luận mức độ liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: So sánh chỉ số với kết quả rà soát định tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Thực hiện tái cấu trúc nhỏ có bằng chứng trước và sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Rà soát một thay đổi bằng hợp đồng, rủi ro và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Lập kế hoạch xử lý một khoản nợ kỹ thuật cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-013
+    title: Đề xuất cổng chất lượng phù hợp cho một mô-đun Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-improvement
+  title: Cải thiện liên tục
+  childs:
+  - slug: continuous-improvement-001
+    title: Xác định vấn đề chất lượng đang gây chi phí thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-002
+    title: Chọn một mục tiêu cải thiện đủ cụ thể để kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-003
+    title: Đặt hiện trạng, phạm vi và bằng chứng ban đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-004
+    title: Ưu tiên thay đổi theo tác động, rủi ro và công sức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-005
+    title: Thử nghiệm trên một phạm vi nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-006
+    title: Đo lại và giải thích kết quả theo bối cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-007
+    title: Kiểm tra tác dụng phụ và chi phí bảo trì phát sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-008
+    title: Giữ, điều chỉnh hoặc loại bỏ quy tắc theo bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-009
+    title: Mở rộng cách làm đã có hiệu quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-010
+    title: Rà soát tiêu chí khi yêu cầu, đội ngũ hoặc môi trường thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-011
+    title: Duy trì vòng phản hồi từ mã, kiểm thử, rà soát và vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

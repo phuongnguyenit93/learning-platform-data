@@ -1,0 +1,338 @@
+menu:
+- level1: Mô hình tư duy
+  level2:
+  - Lập trình hướng sự kiện là gì và giải quyết vấn đề nào?
+  - Từ lời gọi tuần tự đến phản ứng khi sự kiện xảy ra
+  - 'Các thành phần chính: nguồn phát, sự kiện, kênh truyền và bộ xử lý'
+  - Lần theo một tương tác từ tác nhân kích hoạt đến kết quả
+  - Phân biệt lập trình hướng sự kiện và kiến trúc hướng sự kiện
+  - Quan hệ với lập trình mệnh lệnh, hướng đối tượng và hàm
+  - Phân biệt hướng sự kiện, bất đồng bộ, đồng thời và song song
+  - Bản đồ thuật ngữ và lộ trình học từ trong tiến trình đến hệ phân tán
+  - Khi nào mô hình hướng sự kiện phù hợp và chi phí cần chấp nhận
+- level1: Ngữ nghĩa sự kiện
+  level2:
+  - Sự kiện là sự thật đã xảy ra và cách đặt tên theo nghiệp vụ
+  - Phân biệt sự kiện (event), lệnh (command) và truy vấn (query)
+  - Phân biệt sự kiện, thông điệp (message) và tín hiệu (signal)
+  - Sự kiện nghiệp vụ và sự kiện kỹ thuật
+  - Sự kiện miền (domain event) và sự kiện tích hợp (integration event)
+  - Thông báo thay đổi và sự kiện mang dữ liệu cần thiết cho bên nhận
+  - Mức độ chi tiết của sự kiện và ranh giới một sự việc
+  - Ý định của bên phát, quyền quyết định của bên nhận và nguy cơ lệnh trá hình
+  - Phân biệt việc phát sự kiện với việc nghiệp vụ đã hoàn tất
+  - Quyền sở hữu sự kiện và trách nhiệm xác nhận sự thật nghiệp vụ
+- level1: Hợp đồng dữ liệu
+  level2:
+  - 'Cấu trúc sự kiện: phần mô tả (envelope) và dữ liệu nghiệp vụ (payload)'
+  - Định danh sự kiện, định danh thực thể và phạm vi duy nhất
+  - Loại sự kiện, nguồn phát, thời điểm xảy ra và phiên bản
+  - Định danh tương quan (correlation ID) và quan hệ nhân quả (causation ID)
+  - Dữ liệu bất biến, bản chụp trạng thái và tham chiếu đến dữ liệu thay đổi
+  - Thiết kế trường bắt buộc, giá trị tùy chọn và ý nghĩa của null
+  - Lựa chọn biểu diễn và tuần tự hóa dữ liệu sự kiện
+  - Kiểm tra lược đồ và kiểm tra quy tắc nghiệp vụ
+  - Tương thích ngược, tương thích xuôi và thay đổi phá vỡ hợp đồng
+  - Chuẩn hóa thời gian, đơn vị đo và kiểu dữ liệu giữa các bên
+  - Giới hạn kích thước, dữ liệu nhạy cảm và tuổi thọ hợp đồng
+  - CloudEvents và vai trò chuẩn hóa phần mô tả sự kiện
+- level1: Luồng xử lý
+  level2:
+  - Vòng đời sự kiện từ phát sinh đến xử lý và xác nhận
+  - Phát (publish), điều phối (dispatch) và chuyển giao (delivery)
+  - 'Điều phối đồng bộ: thứ tự lời gọi, ngăn xếp và truyền lỗi'
+  - 'Điều phối bất đồng bộ: hàng đợi, lập lịch và thời điểm hoàn thành'
+  - Cơ chế đẩy (push), kéo (pull) và thăm dò (polling)
+  - Xử lý một lần, phát cho nhiều bên và phân chia công việc
+  - Tách thời điểm tiếp nhận khỏi thời điểm hoàn tất xử lý
+  - 'Ngữ cảnh xử lý: danh tính, giao dịch và thông tin truy vết'
+  - Giới hạn hàng đợi và phản ứng khi khả năng tiếp nhận bị vượt quá
+  - Tắt hệ thống có kiểm soát và xử lý các sự kiện còn lại
+- level1: Bộ xử lý
+  level2:
+  - Vai trò của bộ xử lý (handler), bộ lắng nghe (listener) và bên tiêu thụ (consumer)
+  - Thiết kế đầu vào, đầu ra và trách nhiệm của một bộ xử lý
+  - Tách kiểm tra dữ liệu, quyết định nghiệp vụ và tác dụng phụ
+  - Bộ xử lý không trạng thái và bộ xử lý có trạng thái
+  - Chọn thời điểm đọc dữ liệu thay vì phụ thuộc trạng thái tại lúc phát
+  - Xác định thành công, thất bại và xử lý thành công một phần
+  - Tái nhập (reentrancy) và sự kiện phát sinh trong lúc xử lý
+  - Độ an toàn luồng và phạm vi chia sẻ trạng thái
+  - Chuỗi bộ xử lý, bộ xử lý độc lập và phụ thuộc thứ tự
+  - Quyền sở hữu tài nguyên và giải phóng tài nguyên sau xử lý
+- level1: Đăng ký và định tuyến
+  level2:
+  - Đăng ký, hủy đăng ký và vòng đời thuê bao (subscription)
+  - Định tuyến theo loại sự kiện, chủ đề, khóa và nội dung
+  - Lọc sự kiện tại nguồn, tại kênh truyền hay tại bên nhận
+  - Đăng ký tĩnh, đăng ký động và thời điểm bắt đầu nhận sự kiện
+  - Phát cho nhiều bên (fan-out) và tập hợp kết quả (fan-in)
+  - Nhóm bên tiêu thụ và phân phối công việc giữa các thành viên
+  - Thứ tự gọi bộ lắng nghe và giới hạn của ưu tiên xử lý
+  - Phát hiện đăng ký trùng và sự kiện không có bên nhận
+  - Tham chiếu mạnh, tham chiếu yếu và rò rỉ bộ nhớ do bộ lắng nghe
+  - Ngăn vòng lặp phản hồi và chuỗi phát sự kiện vô hạn
+- level1: Sự kiện nội bộ
+  level2:
+  - Mẫu Observer và quan hệ một nguồn với nhiều bộ lắng nghe
+  - Hàm gọi lại (callback) và sự kiện có nhiều bên đăng ký
+  - Publish–Subscribe trong tiến trình và mức độ tách biệt thành phần
+  - Event Bus và cách quản lý các phụ thuộc khó nhìn thấy
+  - Khác biệt giữa gọi trực tiếp và phát sự kiện nội bộ
+  - Sự kiện phát trước, trong hoặc sau khi thay đổi trạng thái
+  - Phạm vi tồn tại của sự kiện trong bộ nhớ và nguy cơ mất khi tiến trình dừng
+  - Ranh giới giao dịch khi các bộ lắng nghe cùng chạy đồng bộ
+  - Đóng gói cơ chế phát sự kiện và tránh phụ thuộc biến toàn cục
+  - Dùng sự kiện nội bộ để mở rộng hành vi trong một ứng dụng
+- level1: Vòng lặp sự kiện
+  level2:
+  - 'Vòng lặp sự kiện (event loop): nhận, chờ và điều phối công việc'
+  - Nguồn sự kiện từ người dùng, mạng, bộ định thời và hệ điều hành
+  - Phân biệt sự kiện sẵn sàng I/O và thông báo I/O đã hoàn tất
+  - Một luồng điều phối và khả năng xử lý nhiều kết nối
+  - Tác vụ chặn và tác vụ tính toán dài ảnh hưởng vòng lặp ra sao
+  - Chuyển công việc sang nhóm luồng và trả kết quả về vòng lặp
+  - Công bằng khi lập lịch, tác vụ bị chờ lâu và nghẽn hàng đầu
+  - Bộ định thời, sự kiện định kỳ và sai lệch thời gian thực thi
+  - Luồng giao diện, Event Dispatch Thread và giới hạn cập nhật giao diện
+  - Đọc luồng thực thi của một ứng dụng giao diện hoặc máy chủ mạng
+- level1: Java nền tảng
+  level2:
+  - Mô hình hóa sự kiện bằng record, tính bất biến nông và sao chép phòng vệ
+  - Biểu diễn họ sự kiện bằng interface, sealed interface và kiểu cụ thể
+  - Thiết kế giao diện bộ lắng nghe và quản lý danh sách đăng ký
+  - PropertyChangeSupport và thông báo thay đổi thuộc tính
+  - Điều phối sự kiện bằng ExecutorService và quản lý vòng đời nhóm luồng
+  - Dùng BlockingQueue để tách bên phát khỏi bên xử lý
+  - CompletableFuture cho kết quả bất đồng bộ và giới hạn so với Publish–Subscribe
+  - Java NIO Selector và cơ chế thông báo sẵn sàng trên nhiều kênh
+  - Swing Event Dispatch Thread và bàn giao công việc nền
+  - Luồng ảo (virtual thread), I/O chặn và quan hệ với vòng lặp sự kiện
+  - Lan truyền ngữ cảnh và giới hạn của ThreadLocal khi đổi luồng
+  - Xây dựng một bộ điều phối nhỏ để quan sát rõ cơ chế
+- level1: Tích hợp Spring
+  level2:
+  - ApplicationEventPublisher và vai trò sự kiện trong ứng dụng Spring
+  - '@EventListener: đăng ký theo kiểu và điều kiện nhận sự kiện'
+  - Điều phối mặc định đồng bộ và ảnh hưởng tới bên phát
+  - Cấu hình điều phối bất đồng bộ và lựa chọn bộ thực thi
+  - '@Async: cách gọi qua proxy, xử lý lỗi và quản lý nhóm luồng'
+  - '@TransactionalEventListener và các giai đoạn của giao dịch'
+  - Sự kiện trước commit, sau commit và khi rollback
+  - Xử lý sau commit và ranh giới giao dịch mới cho tác dụng phụ
+  - Hành vi khi không có giao dịch và lựa chọn fallbackExecution
+  - Kiểm thử sự kiện Spring mà không suy diễn bảo đảm bền vững
+  - Phân biệt sự kiện ứng dụng Spring với sự kiện truyền qua broker
+- level1: Đồng thời và thứ tự
+  level2:
+  - Thứ tự phát, thứ tự nhận và thứ tự hoàn tất xử lý
+  - Thứ tự toàn cục, thứ tự theo khóa và quan hệ nhân quả
+  - Phân vùng theo thực thể để kết hợp thứ tự với xử lý song song
+  - Đua tranh dữ liệu khi nhiều bộ xử lý cùng cập nhật trạng thái
+  - Đồng bộ hóa, tính thấy được của dữ liệu và quan hệ happens-before trong Java
+  - Khóa lạc quan, phiên bản thực thể và phát hiện cập nhật xung đột
+  - Số thứ tự sự kiện, khoảng trống và phát hiện sự kiện đến sai thứ tự
+  - Lưu tạm, sắp xếp lại hoặc từ chối sự kiện cũ
+  - Ảnh hưởng của thử lại đến thứ tự các sự kiện cùng khóa
+  - Cân bằng tải, chuyển quyền xử lý và thay đổi số phân vùng
+  - Tránh deadlock khi bộ xử lý chờ sự kiện do chính hệ thống tạo ra
+- level1: Lỗi và phục hồi
+  level2:
+  - Phân loại lỗi dữ liệu, lỗi nghiệp vụ và lỗi hạ tầng
+  - Phân biệt lỗi tạm thời với lỗi không thể tự phục hồi
+  - Truyền lỗi đồng bộ và báo lỗi từ công việc bất đồng bộ
+  - Thời hạn chờ (timeout), hủy công việc và giới hạn của việc hủy
+  - 'Chính sách thử lại: số lần, thời hạn và khoảng chờ'
+  - Giãn cách lũy tiến, độ lệch ngẫu nhiên và tránh bão thử lại
+  - Sự kiện gây lỗi lặp lại (poison event) và cách cô lập
+  - Hàng đợi lỗi (dead-letter queue) và quy trình xử lý lại
+  - Ngắt mạch, giới hạn tài nguyên và cô lập tác động giữa bên nhận
+  - Ghi nhận thất bại một phần và phục hồi tác dụng phụ
+  - Phân biệt phát lại có chủ đích với thử lại do thất bại
+- level1: Bảo đảm chuyển giao
+  level2:
+  - Mất, trùng và chậm sự kiện có thể xảy ra ở những điểm nào?
+  - 'At-most-once: chuyển giao tối đa một lần và nguy cơ bỏ sót'
+  - 'At-least-once: chuyển giao ít nhất một lần và khả năng nhận trùng'
+  - 'Exactly-once: phạm vi bảo đảm và giới hạn đối với tác dụng phụ bên ngoài'
+  - Xác nhận đã nhận, xác nhận đã xử lý và xác nhận từ broker
+  - Thời điểm commit vị trí đọc và cửa sổ lỗi trước hoặc sau commit
+  - Tính lũy đẳng (idempotency) và thiết kế tác dụng phụ có thể thử lại
+  - Khử trùng theo định danh sự kiện và thời hạn lưu dấu đã xử lý
+  - Mẫu Inbox và ghi nhận xử lý cùng giao dịch dữ liệu
+  - Phát hiện sự kiện thiếu, đối soát và cơ chế bù dữ liệu
+  - Bảo đảm đầu cuối khi một sự kiện đi qua nhiều thành phần
+- level1: Nhất quán dữ liệu
+  level2:
+  - Nhất quán tức thời và nhất quán cuối cùng trong luồng sự kiện
+  - Độ trễ đồng bộ dữ liệu và trải nghiệm người dùng khi trạng thái đang chờ
+  - Mô hình đọc dẫn xuất và quyền sở hữu nguồn dữ liệu chuẩn
+  - Kiểm tra quy tắc nghiệp vụ khi dữ liệu từ xa có thể đã cũ
+  - Xung đột giữa nhiều nguồn cập nhật và chính sách giải quyết
+  - Cập nhật đồng thời, mất cập nhật và điều kiện tiên quyết theo phiên bản
+  - Tombstone, xóa thực thể và lan truyền trạng thái đã xóa
+  - Dựng lại mô hình đọc từ lịch sử sự kiện
+  - Đối soát dữ liệu giữa nguồn chuẩn và các bản chiếu
+  - Thiết kế trạng thái nghiệp vụ rõ ràng cho tiến trình chưa hoàn tất
+- level1: Giao dịch và Outbox
+  level2:
+  - Bài toán ghi kép giữa cơ sở dữ liệu và hệ thống truyền sự kiện
+  - Các cửa sổ lỗi khi ghi dữ liệu trước hoặc phát sự kiện trước
+  - 'Transactional Outbox: lưu thay đổi nghiệp vụ và sự kiện trong một giao dịch'
+  - Cấu trúc bản ghi Outbox và định danh ổn định khi phát lại
+  - Chuyển tiếp Outbox bằng thăm dò và Change Data Capture (CDC)
+  - Đánh dấu đã gửi, dọn dữ liệu và bảo toàn khả năng phục hồi
+  - Vì sao Outbox vẫn cần bên nhận xử lý trùng an toàn
+  - Duy trì thứ tự theo thực thể khi có nhiều tiến trình chuyển tiếp
+  - Quan sát độ trễ Outbox và xử lý bản ghi bị kẹt
+  - So sánh Outbox với callback sau commit và giao dịch phân tán
+- level1: Thời gian sự kiện
+  level2:
+  - Thời điểm xảy ra, thời điểm tiếp nhận và thời điểm xử lý
+  - Đồng hồ hệ thống, độ lệch giữa máy và thời gian đơn điệu
+  - Sự kiện đến muộn, đến sai thứ tự và chính sách chấp nhận
+  - Cửa sổ cố định, cửa sổ trượt và cửa sổ phiên
+  - Watermark và cách biểu diễn mức tiến triển của thời gian sự kiện
+  - Sửa kết quả tổng hợp khi có dữ liệu bổ sung đến muộn
+  - Debounce và throttle trong xử lý sự kiện dồn dập
+  - Sự kiện hẹn giờ, thời hạn nghiệp vụ và bộ định thời bền vững
+  - Thời hạn lưu giữ và hết hạn sự kiện trong các luồng xử lý
+  - Kiểm thử thời gian bằng đồng hồ có thể điều khiển
+- level1: Quy trình nghiệp vụ
+  level2:
+  - Mô hình hóa quy trình bằng trạng thái và chuyển trạng thái
+  - Kết nối nhiều sự kiện vào cùng một phiên xử lý nghiệp vụ
+  - Điều phối tập trung (orchestration) và phối hợp qua sự kiện (choreography)
+  - Saga và giao dịch cục bộ qua nhiều thành phần
+  - Hành động bù và giới hạn so với rollback giao dịch
+  - Process Manager và lưu trạng thái quy trình dài
+  - Tập hợp phản hồi, thời hạn chờ và điều kiện hoàn tất
+  - Sự kiện trùng, đến muộn hoặc đến khi quy trình đã kết thúc
+  - Phục hồi quy trình sau khởi động lại và thay đổi phiên bản
+  - Theo dõi tiến trình nghiệp vụ từ góc nhìn người sử dụng
+- level1: Ranh giới kiến trúc
+  level2:
+  - Ranh giới mô-đun, bounded context và quyền phát sự kiện nghiệp vụ
+  - Kết nối sự kiện nội bộ với sự kiện tích hợp bên ngoài
+  - Tách biệt qua sự kiện và những phụ thuộc vẫn còn ở dữ liệu, thời gian
+  - Yêu cầu–phản hồi qua thông điệp và trường hợp nên gọi trực tiếp
+  - 'CQRS: tách mô hình đọc, ghi và vai trò cập nhật bằng sự kiện'
+  - 'Event Sourcing: lưu sự kiện làm nguồn chuẩn và khác biệt với nhật ký thông báo'
+  - Kết hợp hoặc sử dụng độc lập Event Sourcing, CQRS và hướng sự kiện
+  - Bản chụp trạng thái (snapshot) và dựng lại trạng thái trong Event Sourcing
+  - Sự kiện kỹ thuật không nên làm lộ chi tiết miền hoặc ràng buộc lưu trữ
+  - Kết hợp mô hình hướng sự kiện với mô-đun đơn khối và microservices
+  - Xác định ranh giới cần giao dịch thay vì tách thành sự kiện quá sớm
+- level1: Hạ tầng truyền sự kiện
+  level2:
+  - Phân biệt Event Bus nội bộ, message broker và nhật ký sự kiện bền vững
+  - Hàng đợi công việc, chủ đề Publish–Subscribe và luồng nhật ký
+  - Độ bền lưu trữ, sao chép và khả năng phục hồi sau sự cố
+  - Khóa định tuyến, phân vùng và vị trí đọc của bên tiêu thụ
+  - Nhóm bên tiêu thụ, cân bằng lại và chuyển giao quyền sở hữu
+  - Thời hạn lưu giữ, nén theo khóa và yêu cầu phát lại
+  - Giao thức truyền, thư viện phía ứng dụng và lớp trừu tượng hóa
+  - Đối chiếu các mô hình Kafka, RabbitMQ và Redis Streams theo nhu cầu
+  - Webhook, SSE và WebSocket trong chuyển sự kiện tới hệ thống hoặc trình duyệt
+  - Tiêu chí chọn hạ tầng theo thứ tự, độ trễ, tải và chi phí vận hành
+- level1: Reactive và luồng dữ liệu
+  level2:
+  - Quan hệ giữa lập trình hướng sự kiện, phản ứng (reactive) và xử lý luồng
+  - Luồng dữ liệu hữu hạn, vô hạn và chuỗi tín hiệu giá trị–lỗi–hoàn tất
+  - Reactive Streams và các vai trò Publisher, Subscriber, Subscription, Processor
+  - Áp lực ngược (backpressure) và quyền yêu cầu thêm dữ liệu của bên nhận
+  - Java Flow và SubmissionPublisher trong mô hình Publish–Subscribe có nhu cầu
+  - Giới hạn bộ đệm và lựa chọn chặn, loại bỏ, gộp hoặc từ chối
+  - Biến đổi, lọc, gộp và kết hợp nhiều luồng sự kiện
+  - Thay đổi bộ lập lịch và bảo toàn ngữ cảnh trong chuỗi xử lý
+  - Hủy đăng ký, kết thúc luồng và giải phóng tài nguyên
+  - Phân biệt kiểm soát tốc độ, áp lực ngược và bảo đảm chuyển giao
+  - Khi nào cần một luồng reactive thay vì một bộ lắng nghe đơn giản
+- level1: Quan sát hệ thống
+  level2:
+  - Nhật ký có cấu trúc theo định danh sự kiện, thực thể và lần xử lý
+  - Truy vết phân tán qua phát, nhận và xử lý bất đồng bộ
+  - Lan truyền trace context và liên kết nhiều nhánh phát cho các bên nhận
+  - Đo tốc độ phát, tốc độ xử lý, độ trễ và tỷ lệ thất bại
+  - Theo dõi độ sâu hàng đợi, consumer lag và tuổi của sự kiện lâu nhất
+  - Đếm thử lại, nhận trùng, loại bỏ và sự kiện chuyển sang hàng đợi lỗi
+  - Phân biệt hệ thống còn sống, sẵn sàng và nghiệp vụ còn tiến triển
+  - Đặt mục tiêu dịch vụ và cảnh báo theo độ trễ đầu cuối
+  - Nhật ký kiểm toán, lịch sử nghiệp vụ và giới hạn của log kỹ thuật
+  - Truy tìm một sự kiện bị mất hoặc xử lý chậm xuyên nhiều thành phần
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị bộ xử lý bằng đầu vào sự kiện và tác dụng phụ quan sát được
+  - Kiểm thử hợp đồng giữa bên phát và các bên nhận
+  - Kiểm thử tích hợp cơ sở dữ liệu, broker và giao dịch
+  - Chờ điều kiện có thời hạn thay cho ngủ cố định trong kiểm thử bất đồng bộ
+  - Điều khiển bộ thực thi, lịch chạy và thứ tự sự kiện để tái hiện lỗi
+  - Kiểm thử sự kiện trùng, thiếu, sai thứ tự và đến muộn
+  - Kiểm thử tính lũy đẳng và tính đúng đắn sau nhiều lần phát lại
+  - Chèn lỗi ở ranh giới lưu dữ liệu, phát tin, xác nhận và commit
+  - Kiểm thử khởi động lại, cân bằng lại và phục hồi trạng thái
+  - Kiểm thử tương thích lược đồ khi nhiều phiên bản chạy đồng thời
+  - Kiểm thử tải kéo dài, giới hạn bộ đệm và áp lực ngược
+  - Dùng tính chất bất biến nghiệp vụ để đánh giá kết quả đầu cuối
+- level1: Bảo mật
+  level2:
+  - Xác thực nguồn phát và phân quyền phát, nhận theo kênh hoặc loại sự kiện
+  - Kiểm tra dữ liệu từ nguồn không tin cậy trước khi xử lý
+  - Nguy cơ giải tuần tự hóa không an toàn và giới hạn kiểu dữ liệu
+  - Mã hóa khi truyền, khi lưu và quản lý khóa truy cập
+  - Giảm thiểu dữ liệu cá nhân trong payload, log và lịch sử sự kiện
+  - Cô lập dữ liệu giữa khách hàng hoặc không gian nghiệp vụ
+  - Chống phát lại trái phép bằng định danh, thời hạn và xác minh nguồn
+  - Xác minh chữ ký webhook và bảo vệ điểm tiếp nhận
+  - Giới hạn tốc độ, kích thước và chi phí xử lý để chống quá tải
+  - Quyền xóa dữ liệu và tác động tới lịch sử sự kiện, bản sao và bản chiếu
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ đầu cuối, thông lượng và phân bố độ trễ
+  - Xác định nút thắt ở nguồn phát, kênh truyền hay bộ xử lý
+  - Tốc độ đến, tốc độ xử lý và sự tích tụ công việc chờ
+  - Chọn kích thước nhóm luồng theo tác vụ I/O hoặc tính toán
+  - Giới hạn song song để bảo vệ cơ sở dữ liệu và dịch vụ phụ thuộc
+  - Xử lý theo lô và đánh đổi giữa độ trễ với thông lượng
+  - Gộp sự kiện, giảm tín hiệu dư thừa và điều kiện bảo toàn nghiệp vụ
+  - Phân vùng, khóa nóng và phân bố tải không đều
+  - Chi phí tuần tự hóa, sao chép dữ liệu, cấp phát bộ nhớ và thu gom rác
+  - Đo tải thực tế trước khi chọn tối ưu hóa
+  - Thiết kế công bằng và tránh một nguồn sự kiện chiếm hết tài nguyên
+- level1: Vận hành và tiến hóa
+  level2:
+  - Triển khai độc lập bên phát, bên nhận và quản lý phiên bản hợp đồng
+  - Mở rộng rồi thu hẹp hợp đồng để chuyển đổi không gián đoạn
+  - Bổ sung bên nhận mới và chọn vị trí bắt đầu xử lý
+  - Phát lại lịch sử an toàn khi có tác dụng phụ với hệ thống bên ngoài
+  - Chạy lại dữ liệu bằng môi trường hoặc kênh tách biệt
+  - Dọn tồn đọng sau sự cố và tăng tải phục hồi có kiểm soát
+  - Triển khai cuốn chiếu, tạm dừng nhận mới và xử lý nốt công việc
+  - Quản lý thời hạn lưu giữ, sao lưu và khôi phục dữ liệu sự kiện
+  - Đối soát sau sự cố và chứng minh dữ liệu nghiệp vụ đã hội tụ
+  - Chuyển đổi từ lời gọi trực tiếp sang sự kiện theo từng ranh giới
+  - Ghi nhận quyết định thiết kế và quy trình xử lý sự cố
+- level1: Thực hành
+  level2:
+  - Bộ lắng nghe thay đổi trạng thái trong một ứng dụng Java nhỏ
+  - Bộ điều phối đồng bộ để quan sát thứ tự gọi và truyền ngoại lệ
+  - Hàng đợi bất đồng bộ có giới hạn và chính sách khi quá tải
+  - Giao diện tìm kiếm với debounce, hủy yêu cầu cũ và kết quả đến sai thứ tự
+  - Máy chủ Java NIO dùng Selector và tách tác vụ chặn khỏi vòng lặp
+  - Ứng dụng Spring phát sự kiện theo các giai đoạn giao dịch
+  - Luồng đơn hàng–thanh toán–tồn kho với trạng thái chờ và hành động bù
+  - Transactional Outbox kết hợp bên nhận lũy đẳng
+  - Bản chiếu dữ liệu có phát lại, kiểm tra trùng và đối soát
+  - Thống kê theo thời gian sự kiện với dữ liệu đến muộn
+  - Thử nghiệm sự cố, truy vết và chứng minh phục hồi đầu cuối
+- level1: Đánh giá thiết kế
+  level2:
+  - Từ yêu cầu nghiệp vụ đến sự kiện, bên phát và bên nhận
+  - Vẽ luồng xử lý và chỉ rõ ranh giới luồng, tiến trình, giao dịch
+  - Xác định bảo đảm về thứ tự, độ bền, độ trễ và chuyển giao
+  - Rà soát chủ sở hữu dữ liệu, tính lũy đẳng và khả năng phục hồi
+  - Nhận diện lạm dụng Event Bus, sự kiện quá nhỏ và phụ thuộc ẩn
+  - Nhận diện chuỗi sự kiện khó truy vết và mô hình yêu cầu–phản hồi vòng vo
+  - So sánh các phương án bằng tình huống thành công và tình huống lỗi
+  - Tiêu chí chọn lời gọi trực tiếp, sự kiện nội bộ hoặc broker
+  - Tự đánh giá bằng minh chứng thực thi, kiểm thử và số liệu quan sát

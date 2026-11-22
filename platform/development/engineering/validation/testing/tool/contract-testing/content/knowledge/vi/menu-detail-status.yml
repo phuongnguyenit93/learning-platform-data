@@ -1,0 +1,2803 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiểm thử hợp đồng (contract testing) là gì?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao các dịch vụ vẫn tích hợp lỗi dù kiểm thử riêng lẻ thành công?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Bên sử dụng (consumer) và bên cung cấp (provider)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Hợp đồng, tương tác và bằng chứng xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vị trí của contract testing trong chiến lược kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt kiểm thử hợp đồng, kiểm thử tích hợp và kiểm thử đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt hợp đồng tích hợp với Design by Contract trong lập trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phân biệt hợp đồng, tài liệu API và lược đồ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Những rủi ro contract testing phát hiện được và giới hạn bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Kiến thức đầu vào và hành trình học với hai ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-strategy
+  title: Chiến lược hợp đồng
+  childs:
+  - slug: contract-strategy-001
+    title: Hợp đồng do consumer dẫn dắt (consumer-driven contract)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-002
+    title: Hợp đồng do provider dẫn dắt (provider-driven contract)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-003
+    title: Kiểm thử hợp đồng hai chiều (bi-directional contract testing)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-004
+    title: Quyền tác giả và vị trí lưu hợp đồng là hai quyết định khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-005
+    title: Hợp đồng cho HTTP đồng bộ và thông điệp bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-006
+    title: Lựa chọn chiến lược cho API nội bộ, API công khai và API bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-007
+    title: Hợp đồng theo từng cặp tích hợp khi một provider có nhiều consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-008
+    title: Kết hợp hợp đồng với kiểm thử nghiệp vụ và kiểm thử hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-strategy-009
+    title: Tiêu chí xác định một điểm tích hợp phù hợp để thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-design
+  title: Thiết kế hợp đồng
+  childs:
+  - slug: contract-design-001
+    title: Xác định phần giao tiếp mà mã consumer thực sự sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-002
+    title: Thiết kế tương tác theo tình huống độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-003
+    title: Phân biệt ví dụ cụ thể và quy tắc chấp nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-004
+    title: Chọn mức chi tiết đủ để bảo vệ nhu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-005
+    title: Giá trị cố định, kiểu dữ liệu và ràng buộc định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-006
+    title: Tình huống thành công, không có dữ liệu và lỗi có ý nghĩa với consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-007
+    title: Phân biệt trường bị thiếu, giá trị null và giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-008
+    title: Những cam kết ngữ nghĩa không thể suy ra từ kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-009
+    title: Đặt tên consumer, provider và mô tả tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-010
+    title: Xác định trách nhiệm kiểm thử của hai bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-011
+    title: Nhận diện hợp đồng quá chặt hoặc quá lỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-contracts
+  title: Hợp đồng HTTP
+  childs:
+  - slug: http-contracts-001
+    title: Phương thức HTTP, đường dẫn và tham số đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-002
+    title: Query parameter, tham số lặp và quy tắc mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-003
+    title: Header, Content-Type và thương lượng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-004
+    title: JSON object, thuộc tính lồng nhau và trường bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-005
+    title: Mảng, số phần tử và yêu cầu về thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-006
+    title: Kiểu số, độ chính xác và biểu diễn giá trị tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-007
+    title: UUID, ngày giờ, múi giờ và giá trị được tạo động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-008
+    title: Mã trạng thái và cấu trúc phản hồi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-009
+    title: Cấu trúc lỗi, mã lỗi và thông tin consumer cần đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-010
+    title: Phân trang, bộ lọc và thông tin sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-011
+    title: Hợp đồng cho phản hồi không có body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-012
+    title: XML, multipart và dữ liệu nhị phân theo khả năng của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-013
+    title: Phạm vi kiểm thử timeout, retry, cache và idempotency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-environments
+  title: Công cụ và môi trường
+  childs:
+  - slug: tools-and-environments-001
+    title: Tổng quan Pact JVM và các thành phần của hệ sinh thái Pact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-002
+    title: Tổng quan Spring Cloud Contract Verifier và Stub Runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-003
+    title: Vai trò của WireMock trong quy trình hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-004
+    title: Vai trò của OpenAPI, JSON Schema, AsyncAPI và công cụ kiểm tra đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-005
+    title: So sánh quy trình Pact với Spring Cloud Contract
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-006
+    title: Kiểm tra tương thích Java, Spring Boot, Spring Cloud và JUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-007
+    title: Khai báo phụ thuộc kiểm thử bằng Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-008
+    title: Tách mã consumer, mã provider và tài nguyên hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-009
+    title: Chuẩn bị môi trường chạy cục bộ bằng Docker khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-environments-010
+    title: Ghim phiên bản công cụ và chọn nguồn tài liệu tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pact-consumer
+  title: Pact consumer
+  childs:
+  - slug: pact-consumer-001
+    title: Luồng kiểm thử consumer và quá trình tạo pact file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-002
+    title: Cấu hình Pact JVM consumer với JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-003
+    title: Vai trò của @PactConsumerTest, @Pact và @PactTestFor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-004
+    title: Mô tả tương tác HTTP bằng Java DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-005
+    title: Nhận MockServer và cấu hình URL động cho client thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-006
+    title: Kiểm thử mã client, bộ tuần tự hóa và bộ giải tuần tự thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-007
+    title: Khẳng định dữ liệu client đã đọc từ phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-008
+    title: Kiểm thử cách client gửi request body, query và header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-009
+    title: Kiểm thử xử lý mã lỗi và phản hồi không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-010
+    title: Nhận diện request không khớp và tương tác chưa được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-011
+    title: Tạo, kiểm tra và quản lý thư mục pact file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-consumer-012
+    title: Tránh ghi pact file bằng tay hoặc kiểm thử bằng lời gọi giả lập thay cho client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pact-matching-rules
+  title: Quy tắc khớp Pact
+  childs:
+  - slug: pact-matching-rules-001
+    title: Quy tắc khớp (matcher) và giá trị ví dụ trong Pact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-002
+    title: So khớp bằng giá trị cố định và theo kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-003
+    title: Biểu thức chính quy cho đường dẫn, header và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-004
+    title: So khớp object lồng nhau và thuộc tính không được kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-005
+    title: So khớp mảng theo từng phần tử và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-006
+    title: Trường hợp mảng rỗng, thứ tự và biến thể cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-007
+    title: Phân biệt trường vắng mặt với trường mang giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-008
+    title: Định dạng ngày giờ và dữ liệu có cấu trúc đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-009
+    title: Phân biệt quy tắc khớp request với quy tắc khớp response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-010
+    title: Giá trị sinh động và biểu thức lấy dữ liệu từ provider state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-011
+    title: Quy tắc khớp metadata của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-012
+    title: Giới hạn tính năng theo Pact Specification và thư viện đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-matching-rules-013
+    title: Đọc lỗi so khớp để điều chỉnh hợp đồng có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pact-provider
+  title: Pact provider
+  childs:
+  - slug: pact-provider-001
+    title: Luồng xác minh provider từ pact file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-002
+    title: Cấu hình Pact JVM provider với JUnit Jupiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-003
+    title: Vai trò của @Provider, @TestTemplate và PactVerificationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-004
+    title: Đọc hợp đồng từ thư mục cục bộ hoặc Pact Broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-005
+    title: Thiết lập HttpTestTarget và HttpsTestTarget
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-006
+    title: Chạy provider thật với cổng động trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-007
+    title: Thực thi từng tương tác bằng verifyInteraction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-008
+    title: Đối chiếu phản hồi thực tế với hợp đồng consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-009
+    title: Phạm vi cho phép khi thay thế các phụ thuộc phía sau provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-010
+    title: Gắn phiên bản provider và công bố kết quả xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-provider-011
+    title: Phân biệt xác minh thành công cục bộ với bằng chứng được lưu trên Broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provider-states
+  title: Trạng thái provider
+  childs:
+  - slug: provider-states-001
+    title: Trạng thái provider (provider state) là tiền điều kiện gì?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-002
+    title: Khai báo given ở phía consumer và xử lý @State ở phía provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-003
+    title: Đặt tên trạng thái theo dữ liệu và tình huống có thể chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-004
+    title: Truyền tham số cho trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-005
+    title: Chuẩn bị trường hợp dữ liệu tồn tại, không tồn tại và không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-006
+    title: Sinh định danh động và trả dữ liệu cho biểu thức provider state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-007
+    title: Thiết lập phụ thuộc để tạo phản hồi lỗi cần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-008
+    title: Cô lập dữ liệu và dọn dẹp sau từng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-009
+    title: Tránh chuỗi tương tác phụ thuộc thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-states-010
+    title: Giới hạn quyền truy cập của cơ chế chuẩn bị trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pact-with-spring
+  title: Pact với Spring
+  childs:
+  - slug: pact-with-spring-001
+    title: Chọn tích hợp Pact phù hợp với Spring Framework và Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-002
+    title: Xác minh qua HTTP thật trong ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-003
+    title: Xác minh controller bằng MockMvc khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-004
+    title: Phạm vi hỗ trợ WebFlux và WebTestClient theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-005
+    title: Lựa chọn độ rộng của ApplicationContext trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-006
+    title: Đưa provider state vào cấu hình kiểm thử Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-007
+    title: Giữ nguyên cấu hình Jackson và quy tắc ánh xạ DTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-008
+    title: Kiểm thử client dùng RestClient, WebClient hoặc OpenFeign
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-009
+    title: Xử lý xác thực thử nghiệm và bộ lọc Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-with-spring-010
+    title: Giới hạn của việc chỉ xác minh lớp controller với service bị mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pact-messaging
+  title: Pact thông điệp
+  childs:
+  - slug: pact-messaging-001
+    title: Vai trò producer và consumer trong hợp đồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-002
+    title: Hợp đồng thông điệp bất đồng bộ trong Pact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-003
+    title: Định nghĩa payload, metadata và quy tắc khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-004
+    title: Đưa thông điệp mẫu vào bộ xử lý thật của consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-005
+    title: Xác minh hàm tạo thông điệp ở phía producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-006
+    title: Cấu hình MessageTestTarget và điểm cung cấp thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-007
+    title: Phân biệt hợp đồng payload với kiểm thử Kafka hoặc RabbitMQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-008
+    title: Giới hạn bảo đảm về thứ tự, retry, acknowledgement và giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-009
+    title: Thông điệp yêu cầu - phản hồi đồng bộ trong Pact Specification V4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-messaging-010
+    title: Công bố và xác minh hợp đồng thông điệp trong cùng vòng đời Broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pact-broker
+  title: Pact Broker
+  childs:
+  - slug: pact-broker-001
+    title: Pact Broker lưu trữ và kết nối những bằng chứng nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-002
+    title: Phân biệt Pact Broker nguồn mở với nền tảng PactFlow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-003
+    title: Khởi chạy Broker cục bộ cùng cơ sở dữ liệu bằng Docker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-004
+    title: Khái niệm pacticipant, phiên bản ứng dụng và nội dung hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-005
+    title: Công bố hợp đồng consumer bằng plugin build hoặc Broker CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-006
+    title: Lấy hợp đồng cần xác minh từ Broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-007
+    title: Công bố kết quả xác minh gắn đúng provider version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-008
+    title: Đọc Pact Matrix và đồ thị phụ thuộc tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-009
+    title: Phân biệt nội dung hợp đồng thay đổi với phiên bản ứng dụng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-010
+    title: Webhook kích hoạt xác minh hợp đồng cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-broker-011
+    title: Xác thực truy cập và phân quyền công bố, đọc, quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-branches
+  title: Phiên bản và nhánh
+  childs:
+  - slug: versions-and-branches-001
+    title: Định danh phiên bản ứng dụng bằng commit hoặc build bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-002
+    title: Phân biệt phiên bản ứng dụng, phiên bản hợp đồng và Pact Specification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-003
+    title: Gắn tên nhánh khi công bố pact và kết quả xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-004
+    title: Khai báo nhánh chính cho từng pacticipant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-005
+    title: Luồng phát triển trên feature branch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-006
+    title: Phân biệt branch, tag và environment trong Pact Broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-007
+    title: Nguy cơ dùng latest hoặc định danh phiên bản không duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-008
+    title: Khả năng tái sử dụng kết quả khi nội dung hợp đồng không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-009
+    title: Quy tắc phiên bản khi build lại cùng mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-branches-010
+    title: Quản lý consumer cũ còn được triển khai hoặc còn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-selection
+  title: Chọn hợp đồng
+  childs:
+  - slug: contract-selection-001
+    title: Consumer version selectors quyết định tập hợp đồng cần xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-002
+    title: Chọn hợp đồng trên nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-003
+    title: Chọn các phiên bản đang được triển khai hoặc phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-004
+    title: Xác minh feature branch và tránh che khuất tương thích với nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-005
+    title: Pending pact và tác động đến kết quả build provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-006
+    title: Work In Progress pact và phạm vi includeWipPactsSince
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-007
+    title: Mối liên hệ giữa pending, WIP và provider branch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-008
+    title: Phân biệt lượt xác minh thường với lượt được webhook kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-selection-009
+    title: Phát hiện tập lựa chọn rỗng hoặc bỏ sót consumer đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatible-deployment
+  title: Triển khai tương thích
+  childs:
+  - slug: compatible-deployment-001
+    title: Vì sao kiểm thử đã xanh vẫn cần kiểm tra trước triển khai?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-002
+    title: can-i-deploy và ma trận phiên bản thực sự sẽ giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-003
+    title: Kiểm tra consumer trước khi đưa vào một environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-004
+    title: Kiểm tra provider với các consumer đang được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-005
+    title: Phân biệt kết quả tương thích, không tương thích và chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-006
+    title: Ghi nhận record-deployment sau khi triển khai thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-007
+    title: Phân biệt deployment và release có nhiều phiên bản còn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-008
+    title: Thời điểm ghi nhận khi triển khai cuốn chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-009
+    title: Rollback và ghi lại phiên bản thực sự đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-010
+    title: Quản lý nhiều application instance hoặc nhiều môi trường dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-011
+    title: Chờ kết quả xác minh mới mà không bỏ qua cổng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatible-deployment-012
+    title: Giới hạn của can-i-deploy khi dữ liệu triển khai trong Broker không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-cloud-contract
+  title: Spring Cloud Contract
+  childs:
+  - slug: spring-cloud-contract-001
+    title: Luồng hợp đồng, kiểm thử sinh tự động và stub được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-002
+    title: Quy trình consumer-driven với hợp đồng đặt phía producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-003
+    title: Quy trình producer-driven và thống nhất yêu cầu với consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-004
+    title: Lưu hợp đồng cùng provider hoặc trong repository riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-005
+    title: Cấu hình Spring Cloud Contract Gradle plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-006
+    title: Cấu hình Spring Cloud Contract Maven plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-007
+    title: Vai trò của Contract Verifier và phụ thuộc kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-008
+    title: Cấu trúc thư mục hợp đồng và quy ước đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-009
+    title: Chạy quy trình tối thiểu từ hợp đồng đến bộ kiểm thử xanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-010
+    title: Đối chiếu bằng chứng của Spring Cloud Contract với mô hình Pact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-contract-dsl
+  title: DSL hợp đồng HTTP
+  childs:
+  - slug: http-contract-dsl-001
+    title: Chọn Groovy DSL, YAML hoặc Java DSL theo công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-002
+    title: Khai báo tên, mô tả và nhóm hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-003
+    title: Mô tả request gồm method, URL, query, header và body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-004
+    title: Mô tả response gồm status, header và body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-005
+    title: Giá trị phía consumer và phía producer trong cùng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-006
+    title: Quy tắc động bằng biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-007
+    title: Body matcher và điều kiện kiểm tra JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-008
+    title: Sử dụng tệp mẫu cho nội dung request hoặc response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-009
+    title: Biểu thức tham chiếu dữ liệu request trong response khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-010
+    title: Hợp đồng cho phản hồi lỗi và trường hợp không có body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-011
+    title: Mảng, phần tử lồng nhau và dữ liệu tùy chọn theo DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contract-dsl-012
+    title: Đánh giá rủi ro của hợp đồng ignored hoặc in-progress
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provider-test-generation
+  title: Sinh kiểm thử provider
+  childs:
+  - slug: provider-test-generation-001
+    title: Quá trình chuyển hợp đồng thành mã kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-002
+    title: Chọn framework kiểm thử và chế độ kiểm thử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-003
+    title: Thiết lập lớp cơ sở cho kiểm thử được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-004
+    title: Ánh xạ nhóm hợp đồng tới các lớp cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-005
+    title: Cấu hình MockMvc và REST Assured trong lớp cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-006
+    title: Chế độ chạy qua HTTP thật và giới hạn của chế độ mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-007
+    title: Chuẩn bị dữ liệu nghiệp vụ cho kiểm thử sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-008
+    title: Giữ logic hợp đồng không bị thay bằng khẳng định viết tay thiếu liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-009
+    title: Kiểm tra mã được sinh mà không chỉnh sửa trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-test-generation-010
+    title: Xác minh provider trước khi công bố stub artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stub-runner
+  title: Stub Runner
+  childs:
+  - slug: stub-runner-001
+    title: Stub được xác minh khác gì với bản mô phỏng viết tay?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-002
+    title: Đóng gói hợp đồng và WireMock mapping thành stubs JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-003
+    title: Tọa độ group, artifact, version và classifier của stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-004
+    title: Phân biệt chế độ CLASSPATH, LOCAL và REMOTE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-005
+    title: Cấu hình @AutoConfigureStubRunner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-006
+    title: Tải stub từ Maven repository, Nexus hoặc Artifactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-007
+    title: Lấy cổng động và kết nối client tới đúng stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-008
+    title: Kiểm thử consumer bằng stub đã được provider xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-009
+    title: Ghim phiên bản stub và nguy cơ dùng phiên bản mới nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-010
+    title: Phân biệt mock WireMock độc lập với toàn bộ quy trình hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stub-runner-011
+    title: Chẩn đoán stub thiếu, không khớp hoặc chưa được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-messaging
+  title: Thông điệp với Spring
+  childs:
+  - slug: spring-messaging-001
+    title: Mô hình input, output và label trong hợp đồng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-002
+    title: Tạo thông điệp đầu ra bằng lời gọi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-003
+    title: Xác minh ứng dụng nhận thông điệp và phát phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-004
+    title: Khai báo destination, header và payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-005
+    title: Chuẩn bị bộ xác minh thông điệp trong lớp cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-006
+    title: Tích hợp Spring Cloud Stream và cơ chế binder kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-007
+    title: Tích hợp Spring Integration theo nhu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-008
+    title: Kiểm tra hỗ trợ Spring AMQP hoặc JMS theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-009
+    title: Kích hoạt thông điệp bằng label qua Stub Runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-010
+    title: Phân biệt stub messaging với broker thông điệp thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-messaging-011
+    title: Kết hợp kiểm thử hợp đồng và kiểm thử giao vận bằng Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specs-and-schemas
+  title: Đặc tả và lược đồ
+  childs:
+  - slug: specs-and-schemas-001
+    title: OpenAPI mô tả hợp đồng HTTP và nhu cầu xác minh triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-002
+    title: Kiểm tra request và response thực tế theo đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-003
+    title: Phát hiện chênh lệch giữa đặc tả và ứng dụng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-004
+    title: Giới hạn của việc chỉ sinh client hoặc server từ OpenAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-005
+    title: Kiểm tra thay đổi OpenAPI có khả năng phá vỡ tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-006
+    title: JSON Schema cho kiểu dữ liệu, trường bắt buộc và giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-007
+    title: AsyncAPI cho kênh, thao tác và cấu trúc thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-008
+    title: Avro và chính sách tương thích trong Schema Registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-009
+    title: Protobuf, gRPC và vai trò của plugin hợp đồng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-010
+    title: Luồng hai chiều với đặc tả provider và bằng chứng kiểm thử riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specs-and-schemas-011
+    title: Phân biệt khả năng tương thích lược đồ với khả năng tích hợp thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-evolution
+  title: Tiến hóa hợp đồng
+  childs:
+  - slug: contract-evolution-001
+    title: Tương thích ngược và tương thích xuôi theo từng chiều giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-002
+    title: Thêm trường response và khả năng giải tuần tự của consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-003
+    title: Xóa, đổi tên hoặc đổi kiểu một trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-004
+    title: Thay đổi trường bắt buộc, giá trị mặc định hoặc khả năng nhận null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-005
+    title: Mở rộng enum và cách consumer xử lý giá trị chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-006
+    title: Thay đổi mã trạng thái, header hoặc cấu trúc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-007
+    title: Thay đổi đơn vị, định dạng và ý nghĩa dữ liệu khi schema vẫn giữ nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-008
+    title: Thay đổi phân trang và thứ tự kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-009
+    title: Đổi payload sự kiện khi còn consumer dùng phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-010
+    title: Chiến lược mở rộng - chuyển đổi - thu hẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-011
+    title: Thứ tự triển khai consumer và provider trong thay đổi phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-evolution-012
+    title: Ngừng hỗ trợ hợp đồng sau khi xác minh consumer cũ đã ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-data-and-isolation
+  title: Dữ liệu và cô lập
+  childs:
+  - slug: test-data-and-isolation-001
+    title: Chọn dữ liệu mẫu đại diện cho nhu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-002
+    title: Cố định giá trị ví dụ để hợp đồng dễ tái tạo và review
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-003
+    title: Cô lập cơ sở dữ liệu và trạng thái giữa các tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-004
+    title: Kiểm soát thời gian, định danh và nguồn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-005
+    title: Tránh phụ thuộc vào môi trường dùng chung hoặc dữ liệu production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-006
+    title: Tách lỗi hợp đồng khỏi lỗi mạng và tài nguyên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-007
+    title: Xử lý token ngắn hạn mà không làm thay đổi cam kết giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-008
+    title: Giữ dữ liệu cá nhân và thông tin xác thực ngoài artifact hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-data-and-isolation-009
+    title: Chạy song song với cổng, tệp và tài nguyên kiểm thử độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd
+  title: CI/CD
+  childs:
+  - slug: cicd-001
+    title: 'Pipeline consumer: kiểm thử, tạo hợp đồng và công bố đúng phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-002
+    title: 'Pipeline provider: lấy hợp đồng, xác minh và công bố kết quả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-003
+    title: Tách kiểm thử contract thành task hoặc test suite trong Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-004
+    title: Tách kiểm thử contract trong vòng đời Maven theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-005
+    title: Truyền cấu hình và thuộc tính hệ thống tới đúng JVM kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-006
+    title: Thiết kế webhook và tránh vòng lặp kích hoạt build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-007
+    title: Gắn nguồn commit và đường dẫn build vào bằng chứng xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-008
+    title: Đặt can-i-deploy trước bước triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-009
+    title: Ghi nhận deployment hoặc release sau bước xác minh triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-010
+    title: Quản lý bí mật CI, quyền truy cập Broker và artifact repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-011
+    title: Chính sách khi Broker không truy cập được hoặc thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-012
+    title: Lưu báo cáo, log và cấu hình đủ để tái hiện thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-project-integration
+  title: Tích hợp nhiều dự án
+  childs:
+  - slug: multi-project-integration-001
+    title: Tổ chức consumer và provider trong Gradle multi-project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-002
+    title: Tổ chức module hợp đồng và ứng dụng trong Maven reactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-003
+    title: Dùng cấu hình chung mà giữ riêng danh tính từng consumer và provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-004
+    title: Phân phối stub và hợp đồng giữa các repository độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-005
+    title: Kiểm tra tương thích Pact Specification giữa các ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-006
+    title: Tránh để DTO dùng chung che khuất thay đổi định dạng qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-007
+    title: Giới hạn khi một consumer phụ thuộc nhiều provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-008
+    title: Hợp đồng tại API gateway và dịch vụ chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-project-integration-009
+    title: Kế hoạch áp dụng cho hệ thống cũ và dịch vụ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Request không khớp do method, path, query hoặc header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: JSON nhìn giống nhau nhưng khác kiểu, null hoặc cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Consumer test xanh nhưng client thật không được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Không tìm thấy pact file hoặc không có tương tác để xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Provider state thiếu, sai tên hoặc chuẩn bị dữ liệu không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Lỗi cổng động, URL gốc hoặc kết nối HTTP được tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Xác minh cục bộ thành công nhưng công bố kết quả thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Selector chọn sai nhánh hoặc bỏ sót hợp đồng đã triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: can-i-deploy chưa có kết quả hoặc dùng sai phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Đọc sai trạng thái pending và WIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Không sinh được kiểm thử Spring Cloud Contract hoặc sai lớp cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Không tải được stub artifact hoặc dùng nhầm classifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Khác biệt giữa máy cá nhân và CI do phiên bản, classpath hoặc thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Thu thập báo cáo so khớp và tạo ví dụ tối thiểu tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xây dựng cặp dịch vụ đơn hàng và danh mục sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Viết Pact consumer test từ mã client thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Xác minh provider với dữ liệu có và không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Đưa hai ứng dụng cùng hợp đồng lên Pact Broker cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Mô phỏng thay đổi phá vỡ tương thích và đọc kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Thực hiện thay đổi tương thích theo từng giai đoạn triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Tạo cùng tình huống HTTP bằng Spring Cloud Contract
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Đóng gói và sử dụng stub từ một repository artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Kiểm thử sự kiện tạo đơn hàng bằng hợp đồng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Tích hợp kiểm tra trước triển khai vào pipeline thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Lập hồ sơ gồm hợp đồng, phiên bản, kết quả xác minh và ma trận tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-governance
+  title: Vận hành và quản trị
+  childs:
+  - slug: operations-and-governance-001
+    title: Thống nhất quyền sở hữu hợp đồng giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-002
+    title: Review hợp đồng cùng thay đổi mã consumer và provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-003
+    title: Quản lý vòng đời, ngừng hỗ trợ và xóa dữ liệu hợp đồng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-004
+    title: Vận hành Broker với lưu trữ bền vững, sao lưu và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-005
+    title: Theo dõi tích hợp thiếu xác minh và bằng chứng không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-006
+    title: Đánh giá thời gian phản hồi, độ ổn định và chi phí bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-007
+    title: Tránh chạy theo số hợp đồng hoặc tỷ lệ kiểm thử xanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-008
+    title: Nâng cấp công cụ và kiểm tra tương thích artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-governance-009
+    title: Checklist hoàn tất và kế hoạch mở rộng phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

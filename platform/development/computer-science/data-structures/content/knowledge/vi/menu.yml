@@ -1,0 +1,481 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Cấu trúc dữ liệu là gì và vấn đề tổ chức dữ liệu để làm gì
+  - Dữ liệu, quan hệ giữa dữ liệu và các phép toán cần hỗ trợ
+  - Phân biệt kiểu dữ liệu, kiểu dữ liệu trừu tượng và cách cài đặt
+  - Mối liên hệ giữa cấu trúc dữ liệu và thuật toán
+  - Cấu trúc tuyến tính, phân cấp, đồ thị và kết hợp
+  - Cấu trúc tĩnh, động, khả biến và bất biến
+  - Truy cập theo vị trí, khóa, thứ tự và quan hệ
+  - Đánh đổi giữa tốc độ, bộ nhớ và độ phức tạp cài đặt
+  - 'Bản đồ thuật ngữ: phần tử, nút, liên kết, khóa và chỉ mục'
+  - Lộ trình học từ cấu trúc cơ bản đến cấu trúc chuyên dụng
+- level1: Đặc tả và chi phí
+  level2:
+  - Đặc tả kiểu dữ liệu trừu tượng bằng tập phép toán
+  - Tiền điều kiện, hậu điều kiện và bất biến biểu diễn
+  - Phân biệt giao diện sử dụng với chi tiết lưu trữ
+  - Đo kích thước dữ liệu và xác định phép toán cơ bản
+  - Chi phí truy cập, tìm kiếm, chèn, xóa và duyệt
+  - Độ phức tạp thời gian và không gian phụ trợ
+  - Trường hợp tốt nhất, xấu nhất, trung bình và chi phí kỳ vọng
+  - Phân tích khấu hao và sự khác biệt với lấy trung bình trên dữ liệu ngẫu nhiên
+  - Chi phí xây dựng ban đầu và chi phí cập nhật về sau
+  - Bộ nhớ trên mỗi phần tử và chi phí do cấp phát
+  - Vai trò của phân bố dữ liệu và chuỗi thao tác thực tế
+  - Mô hình so sánh, mô hình RAM và giả định về kích thước từ máy
+- level1: Bộ nhớ và biểu diễn
+  level2:
+  - Lưu trữ liên tiếp và lưu trữ bằng các nút liên kết
+  - Giá trị, địa chỉ, con trỏ, tham chiếu và tính gián tiếp
+  - Căn chỉnh, phần đệm và chi phí thông tin phụ của nút
+  - Tính cục bộ dữ liệu và ảnh hưởng của bộ nhớ đệm
+  - Sao chép dữ liệu so với chia sẻ cùng vùng lưu trữ
+  - Bí danh tham chiếu và thay đổi có thể quan sát từ nhiều nơi
+  - Quyền sở hữu, vòng đời và giải phóng tài nguyên
+  - Tham chiếu treo, rò rỉ bộ nhớ và giữ tham chiếu không cần thiết
+  - Sao chép nông, sao chép sâu và phần tử có trạng thái khả biến
+  - Giá trị rỗng, nút canh gác và quy ước biểu diễn rỗng
+  - So sánh bằng nhau, thứ tự toàn phần và tính nhất quán của khóa
+  - Bộ duyệt và điều kiện làm mất hiệu lực khi cấu trúc thay đổi
+- level1: Mảng
+  level2:
+  - Mảng như ánh xạ từ chỉ số sang phần tử
+  - Độ dài, chỉ số hợp lệ và quy ước khoảng nửa kín
+  - Cách tính địa chỉ phần tử trong bộ nhớ liên tiếp
+  - Truy cập theo chỉ số và giới hạn của tìm kiếm theo giá trị
+  - Chèn, xóa và chi phí dịch chuyển phần tử
+  - Mảng có thứ tự và mảng không có thứ tự
+  - Mảng nhiều chiều và cách trải phẳng theo hàng hoặc theo cột
+  - Mảng răng cưa và biểu diễn nhiều chiều không đều
+  - Lát cắt, khung nhìn và quan hệ với mảng gốc
+  - Tìm kiếm tuyến tính và nhị phân nhìn từ yêu cầu biểu diễn
+  - Tách mảng cấu trúc thành các mảng trường và đánh đổi bố trí dữ liệu
+  - Lỗi vượt biên, lệch một đơn vị và nhầm độ dài với chỉ số cuối
+- level1: Mảng động
+  level2:
+  - Phân biệt số phần tử đang dùng với dung lượng đã cấp phát
+  - Biểu diễn mảng động bằng bộ đệm, kích thước và dung lượng
+  - Thêm cuối khi còn chỗ và khi phải cấp phát lại
+  - Vì sao tăng dung lượng theo cấp số nhân cho chi phí khấu hao hằng số
+  - Hệ số tăng trưởng và đánh đổi giữa sao chép với bộ nhớ dư
+  - Vì sao tăng dung lượng từng đơn vị có thể gây chi phí bậc hai
+  - Chèn, xóa tại vị trí bất kỳ và dịch chuyển vùng dữ liệu
+  - Thu nhỏ dung lượng và tránh tăng–giảm liên tục quanh ngưỡng
+  - Đặt trước dung lượng khi biết quy mô dữ liệu
+  - Mất hiệu lực của con trỏ, tham chiếu hoặc bộ duyệt sau cấp phát lại
+  - Dọn các ô không còn dùng để tránh giữ đối tượng ngoài ý muốn
+  - So sánh mảng động với mảng cố định và danh sách liên kết
+- level1: Chuỗi và dãy bit
+  level2:
+  - Chuỗi như dãy ký hiệu và các lựa chọn biểu diễn
+  - Phân biệt byte, đơn vị mã, điểm mã Unicode và ký tự hiển thị
+  - Độ dài và truy cập ký tự phụ thuộc vào cách mã hóa
+  - Chuỗi khả biến, bất biến và bộ đệm xây dựng chuỗi
+  - Chi phí nối lặp nhiều lần và vai trò của bộ đệm tăng trưởng
+  - Chuỗi con được sao chép hay chia sẻ vùng lưu trữ
+  - Kết thúc bằng ký hiệu canh gác so với lưu độ dài tường minh
+  - Dãy bit và đóng gói nhiều giá trị Boolean trong một từ máy
+  - Đặt, xóa, kiểm tra và duyệt các bit đang bật
+  - Hợp, giao, hiệu và đếm phần tử bằng phép toán bit
+  - Đánh đổi của bitset khi miền giá trị dày hoặc thưa
+  - So sánh chuỗi, mảng ký tự, mảng byte và dãy bit theo nhu cầu
+- level1: Danh sách liên kết
+  level2:
+  - Nút và liên kết trong danh sách đơn
+  - Con trỏ đầu, con trỏ cuối và bất biến của danh sách rỗng
+  - Duyệt tuần tự và chi phí truy cập theo vị trí
+  - Chèn đầu, chèn sau nút và thêm cuối
+  - Xóa đầu, xóa sau nút và giới hạn khi chỉ biết nút cần xóa
+  - Danh sách đôi và liên kết hai chiều
+  - Chèn, xóa một nút trong danh sách đôi khi đã có tham chiếu
+  - Danh sách vòng đơn, vòng đôi và điều kiện kết thúc duyệt
+  - Nút đầu giả, nút cuối giả và nút canh gác
+  - Đảo danh sách và cập nhật liên kết an toàn
+  - Ghép, tách và chuyển đoạn nút giữa các danh sách
+  - Danh sách nội tại (intrusive list) và quyền sở hữu nút
+  - Phát hiện chu trình và phân biệt chu trình hợp lệ với lỗi liên kết
+  - So sánh chi phí cấp phát, bộ nhớ đệm và dịch chuyển dữ liệu với mảng
+- level1: Ngăn xếp
+  level2:
+  - Kiểu dữ liệu trừu tượng LIFO và các phép push, pop, peek
+  - Ngăn xếp bằng mảng cố định hoặc mảng động
+  - Ngăn xếp bằng danh sách liên kết
+  - Tràn, rỗng và lựa chọn chính sách xử lý lỗi
+  - Ngăn xếp lời gọi và mối liên hệ với đệ quy
+  - Đổi đệ quy thành ngăn xếp tường minh
+  - Ứng dụng kiểm tra dấu ngoặc và lưu trạng thái xử lý
+  - Duy trì giá trị nhỏ nhất hoặc lớn nhất cùng ngăn xếp
+  - Ngăn xếp đơn điệu và bất biến thứ tự
+  - Lịch sử hoàn tác và giới hạn của mô hình một ngăn xếp
+  - So sánh chi phí và lựa chọn cách biểu diễn ngăn xếp
+- level1: Hàng đợi và deque
+  level2:
+  - Kiểu dữ liệu trừu tượng FIFO và các phép thêm–lấy
+  - Hàng đợi bằng danh sách đơn có đầu và cuối
+  - Vì sao xóa đầu mảng bằng dịch chuyển gây chi phí tuyến tính
+  - Hàng đợi vòng bằng mảng và chỉ số quay vòng
+  - Phân biệt trạng thái đầy và rỗng trong bộ đệm vòng
+  - 'Bộ đệm có giới hạn: từ chối, chờ hoặc ghi đè dữ liệu'
+  - Mở rộng hàng đợi vòng và sắp xếp lại phần tử khi sao chép
+  - Hàng đợi hai đầu (deque) và bốn phép thêm–lấy ở hai phía
+  - Deque bằng mảng vòng hoặc các khối liên kết
+  - Cài đặt hàng đợi bằng hai ngăn xếp và chi phí khấu hao
+  - Cài đặt ngăn xếp bằng hàng đợi và đánh đổi phép toán
+  - Deque đơn điệu cho cực trị trên cửa sổ trượt
+  - Phân biệt hàng đợi thường với hàng đợi ưu tiên
+- level1: Tập hợp và ánh xạ
+  level2:
+  - Tập hợp như kiểu dữ liệu trừu tượng không chứa phần tử trùng
+  - Ánh xạ khóa–giá trị và tính duy nhất của khóa
+  - Thêm mới, cập nhật, tra cứu và xóa theo khóa
+  - Phân biệt thiếu khóa với giá trị rỗng hợp lệ
+  - Đa tập hợp và lưu số lần xuất hiện
+  - Đa ánh xạ và nhiều giá trị cho cùng một khóa
+  - Hợp, giao, hiệu và kiểm tra quan hệ tập con
+  - Thứ tự chèn, thứ tự sắp xếp và thứ tự duyệt không được bảo đảm
+  - Ảnh hưởng của quy tắc bằng nhau và bộ so sánh đến khóa trùng
+  - Cài đặt tập hợp hoặc ánh xạ bằng mảng, danh sách, bảng băm và cây
+  - Khung nhìn khóa, giá trị, cặp khóa–giá trị và thay đổi trên cấu trúc gốc
+- level1: Bảng băm
+  level2:
+  - Ý tưởng ánh xạ khóa vào vị trí lưu trữ bằng hàm băm
+  - Phân biệt mã băm của khóa với chỉ số ô trong bảng
+  - Điều kiện nhất quán giữa phép so sánh bằng nhau và hàm băm
+  - Hàm băm tốt, phân bố đều và giả định dùng trong phân tích
+  - Va chạm và giải quyết bằng chuỗi liên kết
+  - Địa chỉ mở và quy tắc thăm dò ô
+  - Thăm dò tuyến tính và hiện tượng kết cụm
+  - Thăm dò bậc hai, băm kép và điều kiện để duyệt được vị trí cần thiết
+  - Hệ số tải và ảnh hưởng đến tìm kiếm, chèn, xóa
+  - Dấu mốc đã xóa và lý do không thể đơn giản đặt ô về rỗng
+  - Băm lại khi tăng hoặc giảm dung lượng
+  - Chi phí kỳ vọng, khấu hao và trường hợp xấu nhất
+  - Khóa thay đổi sau khi chèn và nguy cơ không tìm lại được dữ liệu
+  - Băm chuỗi, khóa tổ hợp và chi phí tính hàm băm
+  - Tấn công gây va chạm và vai trò của ngẫu nhiên hóa hàm băm
+  - Vì sao bảng băm thông thường không hỗ trợ hiệu quả truy vấn thứ tự
+- level1: Biến thể bảng băm
+  level2:
+  - Băm phổ dụng và lựa chọn ngẫu nhiên từ một họ hàm băm
+  - Băm hoàn hảo cho tập khóa tĩnh
+  - Băm hoàn hảo tối thiểu và đánh đổi khi tập khóa thay đổi
+  - Băm cuckoo và chuỗi di chuyển khóa khi chèn
+  - Băm Robin Hood và cân bằng khoảng cách thăm dò
+  - Băm hopscotch và vùng lân cận của một ô
+  - Băm có thể mở rộng và thư mục các nhóm khóa
+  - Băm tuyến tính và tăng số nhóm khóa từng bước
+  - Băm nhất quán khi phân chia khóa giữa các nút lưu trữ
+  - Phân biệt băm phục vụ tra cứu với băm mật mã
+  - Lựa chọn biến thể theo tải, cập nhật, bộ nhớ và độ trễ
+- level1: Cây cơ bản
+  level2:
+  - Cây như quan hệ phân cấp và cây như đồ thị liên thông không chu trình
+  - Gốc, nút cha, nút con, anh em, lá và nút trong
+  - Độ sâu, chiều cao, bậc của nút và quy ước tính chiều cao
+  - Cây có thứ tự, cây không thứ tự và rừng
+  - Cây nhị phân và giới hạn tối đa hai nút con
+  - Cây nhị phân đầy đủ (full), hoàn chỉnh (complete), hoàn hảo (perfect) và suy biến
+  - Quan hệ giữa chiều cao với số nút và số lá
+  - Biểu diễn cây bằng liên kết cha–con
+  - Biểu diễn cây nhị phân bằng mảng và công thức chỉ số
+  - Biểu diễn cây tổng quát bằng danh sách con hoặc con đầu–anh em kế
+  - Quyền sở hữu cây con và những thay đổi ảnh hưởng nhiều nút
+  - Phân biệt cây biểu diễn dữ liệu với cây tìm kiếm và heap
+- level1: Duyệt và biến đổi cây
+  level2:
+  - Duyệt trước, giữa, sau và ý nghĩa thứ tự xử lý nút
+  - Duyệt theo tầng bằng hàng đợi
+  - Duyệt cây bằng đệ quy và chi phí ngăn xếp theo chiều cao
+  - Duyệt không đệ quy bằng ngăn xếp tường minh
+  - Bộ duyệt lười và trạng thái cần giữ giữa các lần lấy phần tử
+  - Tính kích thước, chiều cao và tổng hợp thông tin từ cây con
+  - Tìm đường từ gốc và xác định tổ tiên chung
+  - Dựng lại cây nhị phân từ các thứ tự duyệt và điều kiện duy nhất
+  - Tuần tự hóa, khôi phục cây và mã hóa nút con rỗng
+  - Sao chép, giải phóng và duyệt cây có độ sâu lớn
+  - Duyệt Morris bằng liên kết tạm và điều kiện sử dụng an toàn
+  - Phát hiện cấu trúc không còn là cây do chu trình hoặc nhiều cha
+- level1: Cây tìm kiếm nhị phân
+  level2:
+  - Bất biến BST trên toàn bộ cây con trái và phải
+  - Tra cứu khóa và đường đi quyết định bởi phép so sánh
+  - Chèn nút mới và chính sách xử lý khóa trùng
+  - Tìm khóa nhỏ nhất, lớn nhất, tiền nhiệm và kế nhiệm
+  - Tìm khóa gần nhất theo cận dưới và cận trên
+  - Xóa nút lá và nút chỉ có một con
+  - Xóa nút hai con bằng tiền nhiệm hoặc kế nhiệm
+  - Giữ đúng liên kết cha, gốc và thông tin phụ khi xóa
+  - Duyệt giữa để lấy các khóa theo thứ tự
+  - Truy vấn một khoảng khóa và giới hạn số phần tử đầu ra
+  - Chi phí theo chiều cao và nguy cơ suy biến khi dữ liệu đã có thứ tự
+  - Dựng BST cân đối từ dãy khóa đã sắp xếp
+  - Kiểm tra BST bằng miền khóa hợp lệ thay vì chỉ so sánh con trực tiếp
+- level1: Cây tìm kiếm cân bằng
+  level2:
+  - Mục tiêu khống chế chiều cao và các dạng bất biến cân bằng
+  - Phép quay trái, quay phải và bảo toàn thứ tự BST
+  - 'Cây AVL: chiều cao và hệ số cân bằng'
+  - Bốn trường hợp mất cân bằng khi chèn vào AVL
+  - Xóa trong AVL và lan truyền thay đổi chiều cao
+  - 'Cây đỏ–đen: màu nút, lá rỗng và chiều cao đen'
+  - Khôi phục bất biến đỏ–đen sau khi chèn
+  - Các trường hợp khôi phục sau khi xóa trong cây đỏ–đen
+  - Quan hệ giữa cây đỏ–đen và cây 2–3–4
+  - So sánh AVL với đỏ–đen theo tra cứu, cập nhật và thông tin phụ
+  - Cây splay và thao tác đưa nút vừa truy cập lên gốc
+  - Các bước zig, zig-zig và zig-zag
+  - Chi phí khấu hao của splay và một thao tác có thể vẫn tuyến tính
+  - Duy trì bộ duyệt và tham chiếu khi quay hoặc tổ chức lại cây
+- level1: Cây nhiều nhánh
+  level2:
+  - Động cơ gom nhiều khóa và con trỏ trong cùng một nút
+  - Cây 2–3, cây 2–3–4 và quy tắc số con
+  - Định nghĩa B-tree và các quy ước về bậc hoặc bậc tối thiểu
+  - Bất biến số khóa, số con và độ sâu của các lá
+  - Tìm kiếm khóa trong một nút và chọn nhánh con
+  - Chèn vào B-tree bằng tách nút đầy
+  - Xóa bằng mượn khóa, gộp nút và điều chỉnh gốc
+  - B+-tree và việc lưu bản ghi ở tầng lá
+  - Khóa phân cách, sao chép khóa và liên kết giữa các lá
+  - Truy vấn khoảng trên B+-tree
+  - Chọn kích thước nút theo trang lưu trữ và chi phí I/O
+  - So sánh B-tree, B+-tree và cây nhị phân cân bằng
+  - Kiểm tra bất biến cây nhiều nhánh sau chuỗi cập nhật
+- level1: Heap và hàng đợi ưu tiên
+  level2:
+  - Kiểu dữ liệu trừu tượng hàng đợi ưu tiên và khóa ưu tiên
+  - Min-heap, max-heap và bất biến thứ tự bộ phận
+  - Heap nhị phân bằng mảng và quan hệ cha–con theo chỉ số
+  - Thêm phần tử bằng đẩy lên
+  - Lấy phần tử ưu tiên nhất bằng đẩy xuống
+  - Xây heap từ dưới lên với chi phí tuyến tính
+  - Thay đổi khóa, xóa phần tử và nhu cầu biết vị trí
+  - Heap có chỉ mục và ánh xạ ngược từ phần tử sang vị trí
+  - Phân biệt heap với BST và với một dãy đã sắp xếp
+  - Heap d-nhánh và đánh đổi chiều cao với số phép so sánh
+  - Heap nhị thức và phép hợp nhất các cây theo bậc
+  - Heap Fibonacci, cập nhật lười và bảo đảm khấu hao
+  - Heap ghép cặp (pairing heap) và cách ghép các cây con
+  - Thứ tự giữa các phần tử có cùng ưu tiên và cách giữ tính ổn định
+  - Ứng dụng top-k, ghép nhiều dãy và lập lịch tác vụ
+  - So sánh cấu trúc theo nhu cầu decrease-key, meld và chi phí cấp phát
+- level1: Tập hợp rời nhau
+  level2:
+  - Bài toán quản lý các nhóm không giao nhau
+  - Các phép make-set, find và union
+  - Đại diện của tập hợp và rừng cây cha
+  - Cài đặt cơ bản bằng mảng cha
+  - Hợp theo kích thước hoặc theo hạng
+  - Nén đường đi, chia đôi đường đi và cập nhật cha
+  - Chi phí khấu hao với hàm nghịch đảo Ackermann
+  - Phân biệt hạng với chiều cao thực sau khi nén đường đi
+  - Duy trì kích thước và thông tin tổng hợp của mỗi nhóm
+  - Ứng dụng thành phần liên thông tăng dần và phát hiện chu trình
+  - Giới hạn đối với việc tách nhóm hoặc xóa liên kết
+  - DSU hoàn tác và lý do thường không dùng nén đường đi tùy ý
+- level1: Trie và chỉ mục chuỗi
+  level2:
+  - Trie như cây các tiền tố của khóa
+  - Nút kết thúc khóa và sự khác biệt giữa tiền tố với khóa hoàn chỉnh
+  - Tìm, chèn và xóa một khóa trong trie
+  - Lưu nhánh bằng mảng, bảng băm hoặc tập cạnh có thứ tự
+  - Chi phí theo độ dài khóa và kích thước bảng chữ cái
+  - Liệt kê khóa theo tiền tố và hỗ trợ gợi ý tìm kiếm
+  - Trie nén và việc gộp chuỗi cạnh một con
+  - Cây radix, Patricia trie và cách phân biệt bit của khóa
+  - Cây tìm kiếm ba nhánh cho ký tự
+  - Cây hậu tố và biểu diễn các hậu tố bằng đoạn của chuỗi gốc
+  - Mảng hậu tố và mảng tiền tố chung dài nhất
+  - So sánh cây hậu tố với mảng hậu tố theo bộ nhớ và phép truy vấn
+  - Trie bit cho khóa số nguyên và truy vấn theo bit
+  - Quy ước chuẩn hóa Unicode và so sánh khóa chuỗi khi lập chỉ mục
+- level1: Biểu diễn đồ thị
+  level2:
+  - Đỉnh, cạnh, cung và lựa chọn định danh cho đối tượng
+  - Đồ thị có hướng, vô hướng, trọng số và không trọng số
+  - Khuyên, cạnh song song và yêu cầu biểu diễn đa đồ thị
+  - Ma trận kề và chi phí theo số đỉnh
+  - Danh sách kề và chi phí theo số đỉnh, số cạnh
+  - Danh sách cạnh và cấu trúc bản ghi của cạnh
+  - Danh sách kề có thứ tự, tập kề và kiểm tra cạnh tồn tại
+  - Biểu diễn cạnh ngược và đỉnh đi vào cho đồ thị có hướng
+  - Đồ thị thưa, đồ thị dày và lựa chọn cách lưu trữ
+  - Biểu diễn nén CSR, CSC và đánh đổi khi cập nhật
+  - Thêm, xóa đỉnh hoặc cạnh và giữ nhất quán các chỉ mục
+  - Thông tin đánh dấu, cha và khoảng cách khi duyệt đồ thị
+  - Ảnh hưởng của biểu diễn đến BFS, DFS và duyệt láng giềng
+  - Tuần tự hóa đồ thị có chu trình và bảo toàn danh tính nút
+  - So sánh lưu đối tượng đỉnh với các mảng chỉ số liên tiếp
+- level1: Truy vấn đoạn
+  level2:
+  - Mô hình truy vấn trên đoạn và quy ước biên
+  - Tính kết hợp, phần tử đơn vị, phép nghịch đảo và tính lũy đẳng
+  - Tổng tiền tố và truy vấn tổng khi dữ liệu không đổi
+  - Mảng hiệu và cập nhật cả đoạn
+  - Phân rã căn bậc hai và cân bằng kích thước khối
+  - Bảng thưa (sparse table) cho dữ liệu tĩnh
+  - 'Cây Fenwick: vùng phụ trách của mỗi chỉ số'
+  - Cập nhật điểm và truy vấn tiền tố bằng Fenwick
+  - Truy vấn đoạn, tìm theo tổng tích lũy và điều kiện cần
+  - Biến đổi Fenwick để cập nhật đoạn và truy vấn tổng
+  - Cây đoạn (segment tree) và phân chia miền chỉ số
+  - Xây cây đoạn, cập nhật điểm và truy vấn đoạn
+  - Lan truyền lười (lazy propagation) cho cập nhật đoạn
+  - Hợp thành nhãn cập nhật và bảo toàn bất biến tổng hợp
+  - Cây đoạn động cho miền chỉ số lớn và thưa
+  - Truy vấn hai chiều và chi phí tăng theo số chiều
+  - So sánh mảng tiền tố, bảng thưa, Fenwick và cây đoạn
+- level1: Cấu trúc ngẫu nhiên
+  level2:
+  - Ngẫu nhiên hóa hình dạng cấu trúc thay vì chỉ ngẫu nhiên hóa dữ liệu vào
+  - Skip list và các tầng liên kết bỏ qua
+  - Tìm kiếm, chèn và xóa trong skip list
+  - Phân bố chiều cao nút và chi phí kỳ vọng của skip list
+  - Giới hạn trường hợp xấu nhất của các bảo đảm kỳ vọng
+  - Treap kết hợp thứ tự khóa của BST với thứ tự ưu tiên của heap
+  - Chèn, xóa và quay trong treap
+  - Tách và hợp treap theo miền khóa
+  - Phân biệt ưu tiên ngẫu nhiên với độ ưu tiên nghiệp vụ
+  - Hạt giống ngẫu nhiên, khả năng tái hiện lỗi và dữ liệu bất lợi
+- level1: Cây tăng cường
+  level2:
+  - Nguyên tắc thêm thông tin phụ vào một cây nền
+  - Duy trì thông tin cây con sau chèn, xóa và quay
+  - Cây thống kê thứ tự với kích thước cây con
+  - Tìm phần tử theo hạng và tính hạng của một khóa
+  - Cây khoảng (interval tree) và phát hiện các khoảng giao nhau
+  - Cây tìm kiếm có tổng, cực trị hoặc dữ liệu tổng hợp của cây con
+  - Treap theo vị trí và tách–ghép một dãy
+  - Cây rope cho chuỗi dài và các thao tác ghép–cắt
+  - Bộ đệm khoảng trống (gap buffer) cho chỉnh sửa văn bản cục bộ
+  - Danh sách khối (unrolled linked list) và kết hợp lưu liên tiếp với liên kết
+  - Cây Cartesian và quan hệ với truy vấn cực trị trên đoạn
+  - Chọn thông tin phụ dựa trên phép truy vấn cần hỗ trợ
+- level1: Chỉ mục không gian
+  level2:
+  - Điểm, hộp bao và truy vấn trên dữ liệu nhiều chiều
+  - Lưới không gian và chia miền thành các ô
+  - Quadtree, octree và phân chia không gian theo vùng
+  - Cây k-d và lựa chọn trục chia
+  - Truy vấn miền chữ nhật trên cây k-d
+  - Tìm láng giềng gần nhất và cắt nhánh bằng cận khoảng cách
+  - R-tree và nhóm các hộp bao có thể chồng lấn
+  - Chèn, tách nút và ảnh hưởng của độ chồng lấn trong R-tree
+  - So sánh phân chia điểm với phân chia vùng dữ liệu
+  - Dữ liệu lệch, cập nhật động và sự suy giảm hiệu quả của chỉ mục
+  - Lời nguyền số chiều và giới hạn của giả định truy vấn nhanh
+- level1: Cấu trúc xác suất
+  level2:
+  - Đánh đổi độ chính xác lấy bộ nhớ hoặc tốc độ
+  - Bloom filter và kiểm tra một phần tử có thể đã tồn tại
+  - Dương tính giả và điều kiện bảo đảm không có âm tính giả của Bloom filter
+  - Chọn số bit, số hàm băm và dung lượng dự kiến
+  - Vì sao Bloom filter chuẩn không hỗ trợ xóa tùy ý
+  - Counting Bloom filter và rủi ro khi cập nhật bộ đếm sai
+  - Cuckoo filter và lưu dấu vân tay của khóa
+  - Count-Min Sketch cho ước lượng tần suất phần tử
+  - HyperLogLog cho ước lượng số phần tử phân biệt
+  - Hợp nhất cấu trúc xác suất và điều kiện tương thích tham số
+  - Phân biệt bộ lọc xác suất với tập hợp lưu khóa chính xác
+  - Đánh giá sai số, mức tin cậy và tác động đến ứng dụng
+- level1: Khóa số nguyên
+  level2:
+  - Miền khóa hữu hạn và kích thước từ máy
+  - Bảng địa chỉ trực tiếp cho miền khóa nhỏ
+  - Tập hợp thưa (sparse set) và ánh xạ hai chiều giữa phần tử với vị trí
+  - Bitset, bitmap nén và phân bố khóa
+  - Truy vấn tiền nhiệm, kế nhiệm và phần tử nhỏ nhất theo miền số
+  - Trie nhị phân và đường đi theo các bit của khóa
+  - Cây van Emde Boas và phân rã miền khóa đệ quy
+  - x-fast trie, y-fast trie và ý tưởng kết hợp tiền tố với bảng băm
+  - Chi phí theo số phần tử, độ lớn miền khóa và số bit của khóa
+  - Phân biệt cấu trúc cho khóa số nguyên với cây chỉ dựa vào phép so sánh
+- level1: Bất biến và phiên bản
+  level2:
+  - Bất biến của cấu trúc sau khi tạo và bất biến của các phần tử bên trong
+  - 'Cấu trúc bền vững (persistent): giữ phiên bản cũ sau cập nhật'
+  - Phân biệt cấu trúc bất biến với một khung nhìn chỉ đọc
+  - Sao chép toàn bộ và chia sẻ cấu trúc giữa các phiên bản
+  - Danh sách bất biến và dùng chung phần đuôi
+  - Sao chép đường đi trong cây khi cập nhật một khóa
+  - Bền vững từng phần, toàn phần và hợp nhất các nhánh phiên bản
+  - Cây đoạn nhiều phiên bản cho truy vấn lịch sử
+  - Trie băm HAMT và ánh xạ bất biến
+  - Vector trie và dãy bất biến có truy cập theo vị trí
+  - Quản lý vòng đời các phiên bản và chi phí giữ nút được chia sẻ
+  - Phân biệt lưu phiên bản với ghi bền dữ liệu xuống thiết bị lưu trữ
+  - Lựa chọn giữa bất biến, sao chép khi ghi và sửa trực tiếp
+- level1: Biểu diễn gọn
+  level2:
+  - Đo bộ nhớ theo bit và giới hạn thông tin tối thiểu
+  - Mã hóa số nguyên có độ dài thay đổi và mã hóa chênh lệch
+  - Đóng gói trường dữ liệu và đánh đổi chi phí giải mã
+  - Vector bit với các phép rank và select
+  - Dùng chỉ mục phụ để tăng tốc rank và select
+  - Biểu diễn cây bằng dãy ngoặc cân bằng
+  - Biểu diễn cây theo tầng LOUDS ở mức nguyên lý
+  - Wavelet tree cho dãy ký hiệu và truy vấn tần suất
+  - Nén danh sách số tăng dần và biểu diễn Elias–Fano
+  - Ma trận thưa bằng bộ ba tọa độ, CSR và CSC
+  - Đánh đổi giữa nén, truy cập ngẫu nhiên và cập nhật
+  - Phân biệt cấu trúc dữ liệu gọn với chỉ nén toàn bộ dữ liệu thành một khối
+- level1: Dữ liệu ngoài bộ nhớ
+  level2:
+  - Phân cấp thanh ghi, bộ nhớ đệm, RAM và thiết bị lưu trữ
+  - Mô hình I/O và đơn vị truyền dữ liệu theo khối
+  - Vì sao số lần đọc trang có thể quan trọng hơn số phép so sánh
+  - Thiết kế nút theo trang và tận dụng quét liên tiếp
+  - Cây B+-tree dưới góc nhìn chỉ mục lưu trên thiết bị
+  - 'Cấu trúc LSM-tree: bộ đệm trong RAM và các tệp có thứ tự'
+  - SSTable, chỉ mục khối và bộ lọc khóa
+  - Hợp nhất tệp và các kiểu khuếch đại đọc, ghi, không gian
+  - So sánh B+-tree với LSM-tree theo tải tra cứu và cập nhật
+  - Bố trí dữ liệu nhận biết bộ nhớ đệm và hướng cache-oblivious
+  - Ánh xạ tệp vào bộ nhớ và những chi phí không tự biến mất
+  - Tuần tự hóa, phiên bản định dạng và khôi phục cấu trúc từ dữ liệu lưu
+- level1: Truy cập đồng thời
+  level2:
+  - Cấu trúc an toàn luồng và các thao tác có thể xen kẽ
+  - Bảo vệ bất biến khi nhiều luồng cùng đọc hoặc cập nhật
+  - Khóa toàn cấu trúc, khóa từng vùng và đánh đổi mức tranh chấp
+  - Vì sao từng phép toán an toàn chưa đủ cho một chuỗi kiểm tra–cập nhật
+  - Thao tác nguyên tử và điểm tuyến tính hóa
+  - Bộ duyệt nhất quán yếu, bộ duyệt ảnh chụp và phát hiện sửa đổi
+  - Ảnh chụp bất biến và sao chép khi ghi
+  - Giới thiệu CAS và yêu cầu về khả năng quan sát thay đổi bộ nhớ
+  - Phân biệt blocking, lock-free và wait-free
+  - Vấn đề ABA và thu hồi nút khi vẫn còn người đọc
+  - Chọn cấu trúc theo tỷ lệ đọc–ghi và yêu cầu nhất quán
+  - Giới hạn của đo hiệu năng khi bỏ qua tranh chấp hoặc cấp phát
+- level1: Lựa chọn và thiết kế
+  level2:
+  - Bắt đầu từ phép toán chủ đạo và các bảo đảm cần thiết
+  - So sánh tra cứu theo chỉ số, khóa, thứ tự, tiền tố và khoảng
+  - So sánh chi phí xây dựng, cập nhật, duyệt và truy vấn hàng loạt
+  - Dữ liệu tĩnh hay động, dày hay thưa, có thứ tự hay ngẫu nhiên
+  - Đánh đổi giữa bảo đảm xấu nhất, kỳ vọng và khấu hao
+  - Giữ ổn định danh tính phần tử, tham chiếu và thứ tự duyệt
+  - Kết hợp bảng băm với danh sách đôi để xây bộ đệm LRU
+  - Kết hợp heap với bảng vị trí để cập nhật ưu tiên
+  - Duy trì nhiều chỉ mục trên cùng tập dữ liệu và tính nhất quán khi cập nhật
+  - Chọn cấu trúc cho lịch sự kiện, gợi ý tiền tố và truy vấn thời gian
+  - Nhận biết tối ưu hóa sớm và thời điểm cần đổi cách biểu diễn
+  - Lập bảng quyết định theo khối lượng dữ liệu, bộ nhớ và tải thao tác
+- level1: Kiểm chứng và thực hành
+  level2:
+  - Viết đặc tả phép toán trước khi cài đặt cấu trúc
+  - Kiểm tra bất biến sau từng thao tác cập nhật
+  - Ca rỗng, một phần tử, khóa trùng, biên chỉ số và đầy dung lượng
+  - Đối chiếu với một mô hình tham chiếu đơn giản
+  - Sinh ngẫu nhiên chuỗi thao tác và tìm trường hợp tối thiểu gây lỗi
+  - Kiểm tra bảo toàn phần tử, thứ tự và tính nhất quán giữa các chỉ mục
+  - Đo hiệu năng với dữ liệu và tải thao tác đại diện
+  - Tách ảnh hưởng của khởi động, cấp phát, thu gom rác và bộ nhớ đệm
+  - Đếm phép so sánh, lần cấp phát và lượng bộ nhớ bên cạnh đo thời gian
+  - Thực hành cài đặt cùng một kiểu dữ liệu trừu tượng bằng nhiều cấu trúc
+  - Thực hành kiểm tra phép quay cây, xóa bảng băm và mở rộng mảng động
+  - Thực hành truy vấn khoảng, tiền tố và phiên bản dữ liệu lịch sử
+  - Phân tích một thiết kế sai do chọn cấu trúc không phù hợp
+  - Bài tập tổng hợp từ yêu cầu sử dụng đến cài đặt và chứng minh bất biến

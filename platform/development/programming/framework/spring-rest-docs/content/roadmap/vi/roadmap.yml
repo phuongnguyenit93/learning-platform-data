@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-rest-docs
+  title: Tổng quan REST Docs
+  purpose: Hiểu cách Spring REST Docs tạo tài liệu API từ những HTTP test đã chạy.
+  objectives:
+  - '- Phân biệt tài liệu dựa trên test và tài liệu viết tay.'
+  - '- Nhận diện snippet, test và tài liệu đầu ra.'
+- id: cai-dat-build
+  title: Cài đặt & Build
+  purpose: Thêm thành phần REST Docs và cấu hình bước tạo tài liệu vào dự án.
+  objectives:
+  - '- Chọn dependency MockMvc hoặc WebTestClient.'
+  - '- Thiết lập Gradle/Maven và Asciidoctor.'
+- id: thiet-lap-test
+  title: Thiết lập Test
+  purpose: Kết nối kiểm thử HTTP với ngữ cảnh sinh tài liệu REST Docs.
+  objectives:
+  - '- Cấu hình RestDocumentationExtension hoặc @AutoConfigureRestDocs phù hợp.'
+  - '- Chuẩn bị MockMvc/WebTestClient cho một endpoint.'
+- id: sinh-http-snippets
+  title: Sinh HTTP Snippets
+  purpose: Tạo các ví dụ request và response trực tiếp từ kết quả kiểm thử.
+  objectives:
+  - '- Dùng document(...) khi thực thi test.'
+  - '- Sinh và đọc curl-request, http-request, http-response.'
+- id: mo-ta-request
+  title: Mô tả Request
+  purpose: Ghi rõ tham số và metadata đầu vào để hợp đồng API dễ kiểm tra.
+  objectives:
+  - '- Mô tả path/query parameters và request headers.'
+  - '- Kiểm tra các trường request bắt buộc và tùy chọn.'
+- id: mo-ta-response
+  title: Mô tả Response
+  purpose: Tài liệu hóa cấu trúc payload trả về và phát hiện API thay đổi.
+  objectives:
+  - '- Dùng responseFields cho JSON response.'
+  - '- Dùng descriptors, optional/ignored khi phù hợp.'
+- id: ghep-tai-lieu
+  title: Ghép tài liệu
+  purpose: Kết hợp ví dụ sinh tự động với lời giải thích viết tay để xuất bản tài liệu.
+  objectives:
+  - '- Include snippet trong tài liệu Asciidoctor.'
+  - '- Chạy build xuất HTML và kiểm tra liên kết.'
+- id: ci-bao-tri
+  title: CI & Bảo trì
+  purpose: Giữ tài liệu đồng bộ với hành vi API qua các lần thay đổi.
+  objectives:
+  - '- Chạy test sinh snippet trong pipeline CI.'
+  - '- Chẩn đoán snippet thiếu, test lỗi và dữ liệu nhạy cảm.'

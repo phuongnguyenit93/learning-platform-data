@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Các dạng liên kết
+  slug: coupling-types
+  index: 1
+- title: Phân tích tác động
+  slug: impact-analysis
+  index: 2
+- title: Ranh giới và gắn kết
+  slug: boundaries-and-cohesion
+  index: 3
+- title: Che giấu thông tin
+  slug: information-hiding
+  index: 4
+- title: Hợp đồng và API
+  slug: contracts-and-apis
+  index: 5
+- title: Phụ thuộc dữ liệu
+  slug: data-dependencies
+  index: 6
+- title: Trạng thái dùng chung
+  slug: shared-state
+  index: 7
+- title: Hướng phụ thuộc
+  slug: dependency-direction
+  index: 8
+- title: Đảo ngược phụ thuộc
+  slug: dependency-inversion
+  index: 9
+- title: Tiêm phụ thuộc
+  slug: dependency-injection
+  index: 10
+- title: Kế thừa và kết hợp
+  slug: inheritance-and-composition
+  index: 11
+- title: Mẫu thiết kế hỗ trợ
+  slug: supporting-design-patterns
+  index: 12
+- title: Liên kết thời gian
+  slug: temporal-coupling
+  index: 13
+- title: Giao tiếp và sự kiện
+  slug: communication-and-events
+  index: 14
+- title: Hệ thống phân tán
+  slug: distributed-systems
+  index: 15
+- title: Cô lập lỗi
+  slug: fault-isolation
+  index: 16
+- title: Java và Spring
+  slug: java-and-spring
+  index: 17
+- title: Thư viện và phiên bản
+  slug: libraries-and-versions
+  index: 18
+- title: Kiểm thử thiết kế
+  slug: design-testing
+  index: 19
+- title: Bảo vệ ranh giới
+  slug: boundary-protection
+  index: 20
+- title: Đo lường liên kết
+  slug: coupling-metrics
+  index: 21
+- title: Tái cấu trúc
+  slug: refactoring
+  index: 22
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 23
+- title: Đánh đổi thiết kế
+  slug: design-tradeoffs
+  index: 24
+- title: Bài thực hành
+  slug: hands-on-exercises
+  index: 25
+- title: Tình huống thiết kế
+  slug: design-scenario
+  index: 26
+- title: Quy trình áp dụng
+  slug: adoption-process
+  index: 27

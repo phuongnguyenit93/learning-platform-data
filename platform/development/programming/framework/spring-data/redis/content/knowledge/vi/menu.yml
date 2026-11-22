@@ -1,0 +1,500 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Data Redis là gì và giải quyết bài toán nào
+  - Redis là gì và vai trò trong kiến trúc ứng dụng
+  - Phân biệt Redis Server, trình điều khiển và Spring Data Redis
+  - 'Bản đồ các thành phần: ConnectionFactory, Template, Repository và Cache'
+  - Phân biệt lưu dữ liệu, cache, nhắn tin và điều phối bằng Redis
+  - Khi nào nên dùng Redis và khi nào nên chọn hệ lưu trữ khác
+  - Giới hạn bộ nhớ, độ bền và tính nhất quán cần hiểu từ đầu
+  - Lộ trình học và kiến thức cần chuẩn bị
+- level1: Nền tảng Redis
+  level2:
+  - Mô hình khóa–giá trị và các kiểu dữ liệu của Redis
+  - Chu kỳ yêu cầu–phản hồi và giao thức Redis
+  - Tính nguyên tử của một lệnh và giới hạn của chuỗi nhiều lệnh
+  - Độ phức tạp lệnh và tác động của thao tác kéo dài
+  - Redis logical database và giới hạn khi sử dụng Cluster
+  - Phân biệt dữ liệu hết hạn với dữ liệu bị loại do thiếu bộ nhớ
+  - Phân biệt Redis đơn nút, replication, Sentinel và Cluster
+  - Các nhóm lệnh cần biết để theo dõi ví dụ bằng redis-cli
+- level1: Kiến trúc Spring
+  level2:
+  - Trách nhiệm của RedisConnectionFactory và RedisConnection
+  - RedisTemplate và StringRedisTemplate trong truy cập dữ liệu đồng bộ
+  - Các nhóm Operations và thao tác gắn với một khóa
+  - RedisCallback và SessionCallback
+  - ReactiveRedisTemplate và ReactiveRedisConnectionFactory
+  - Các lớp chuyển đổi kiểu và tuần tự hóa dữ liệu
+  - Cơ chế tạo Redis Repository
+  - Ranh giới giữa Spring Cache, Spring Session và Spring Data Redis
+- level1: Khởi tạo
+  level2:
+  - Chọn phiên bản Spring Boot, Spring Data Redis và Redis Server tương thích
+  - Khai báo dependency bằng Gradle hoặc Maven
+  - Khởi tạo Redis cho môi trường phát triển bằng Docker Compose
+  - Cấu hình spring.data.redis trong application.yml
+  - Cơ chế tự cấu hình của Spring Boot và điều kiện tạo bean
+  - Cấu hình thủ công ConnectionFactory và Template
+  - Tổ chức mã cấu hình, dịch vụ và Repository
+  - Kiểm tra kết nối bằng thao tác ghi–đọc đơn giản
+- level1: Trình điều khiển
+  level2:
+  - Phân biệt Lettuce và Jedis
+  - Chọn trình điều khiển theo mô hình đồng bộ, phản ứng và topology
+  - Cấu hình LettuceConnectionFactory
+  - Cấu hình JedisConnectionFactory
+  - Phân biệt kết nối logic của Spring với kết nối vật lý của trình điều khiển
+  - Chia sẻ kết nối gốc và trường hợp cần kết nối chuyên biệt
+  - Quy tắc dùng RedisConnection giữa nhiều luồng
+  - Quan hệ giữa thời gian chờ kết nối, thời gian chờ lệnh và reconnect
+  - Quản lý tài nguyên mạng, luồng xử lý và đóng trình điều khiển
+- level1: Kết nối và pool
+  level2:
+  - Cấu hình máy chủ, cổng, logical database và URL kết nối
+  - Xác thực bằng mật khẩu hoặc ACL username/password
+  - Bảo vệ kết nối bằng TLS và xác minh chứng chỉ
+  - Khi nào cần pool kết nối và khi nào không cần
+  - Cấu hình số kết nối, thời gian chờ và kiểm tra kết nối
+  - Phân biệt kết nối dùng cho lệnh thường, lệnh chặn và Pub/Sub
+  - Kiểm soát vòng đời kết nối trong giao dịch và pipeline
+  - Xử lý kết nối hỏng, Redis khởi động lại và thay đổi máy chủ
+  - Tính ngân sách kết nối theo số bản sao ứng dụng
+- level1: Thiết kế khóa
+  level2:
+  - Đặt tên khóa theo ứng dụng, miền nghiệp vụ và định danh
+  - Thiết kế namespace cho nhiều môi trường và khách thuê
+  - Chọn độ dài khóa và kiểm soát số lượng khóa
+  - Thiết kế khóa có phiên bản để hỗ trợ thay đổi cấu trúc dữ liệu
+  - Phân biệt khóa chính, khóa chỉ mục và khóa liên kết
+  - Dùng hash tag để định vị các khóa liên quan trong Cluster
+  - Tránh khóa quá lớn và khóa có lưu lượng truy cập tập trung
+  - Lựa chọn một khóa lớn hay nhiều khóa nhỏ theo kiểu truy cập
+- level1: Tuần tự hóa
+  level2:
+  - Phân biệt RedisSerializer với ánh xạ thực thể sang Hash
+  - Serializer riêng cho key, value, hash key và hash value
+  - Dùng StringRedisSerializer cho chuỗi và khóa có thể đọc được
+  - Tuần tự hóa nhị phân Java và rủi ro khi đọc dữ liệu không đáng tin cậy
+  - Tuần tự hóa JSON và lựa chọn serializer phù hợp phiên bản
+  - Thông tin kiểu, đa hình và giới hạn kiểu được phép khôi phục
+  - Xử lý ngày giờ, enum, UUID và giá trị null trong dữ liệu tuần tự hóa
+  - Tùy chỉnh ObjectMapper và giữ cấu hình nhất quán giữa các bên
+  - Đọc dữ liệu do ứng dụng hoặc ngôn ngữ khác ghi
+  - Thay đổi schema JSON và kế hoạch di chuyển dữ liệu cũ
+  - Kiểm thử tương thích khi đổi serializer hoặc nâng cấp thư viện
+- level1: RedisTemplate
+  level2:
+  - Cấu hình kiểu tham số và serializer của RedisTemplate
+  - Chọn StringRedisTemplate cho dữ liệu chuỗi
+  - Truy cập các nhóm opsForValue, opsForHash và các Operations khác
+  - Sử dụng BoundOperations cho chuỗi thao tác trên cùng khóa
+  - Thao tác đồng bộ với một khóa hoặc nhiều khóa
+  - Dùng RedisCallback để gọi lệnh ở tầng kết nối
+  - Dùng SessionCallback để giữ các thao tác trong cùng phiên kết nối
+  - Hiểu giá trị null và kết quả trả về trong giao dịch hoặc pipeline
+  - Chia sẻ Template giữa nhiều luồng và giữ cấu hình ổn định
+- level1: Chuỗi và bộ đếm
+  level2:
+  - Ghi, đọc và thay thế giá trị chuỗi bằng ValueOperations
+  - Ghi có điều kiện bằng setIfAbsent và setIfPresent
+  - Kết hợp ghi giá trị với thời hạn sống trong một thao tác
+  - Đọc và ghi nhiều khóa bằng multiGet và multiSet
+  - Tăng, giảm và kiểm soát kiểu dữ liệu của bộ đếm
+  - Thao tác trên khoảng byte và nối chuỗi
+  - Thiết kế bộ đếm theo cửa sổ thời gian
+  - Phân tích tính nguyên tử khi kết hợp bộ đếm với hết hạn
+- level1: Hash
+  level2:
+  - Chọn Hash để biểu diễn thuộc tính của một đối tượng
+  - Ghi, đọc và xóa trường bằng HashOperations
+  - Đọc nhiều trường và toàn bộ nội dung Hash
+  - Tăng giá trị số và kiểm tra sự tồn tại của trường
+  - Duyệt Hash bằng Cursor và HSCAN
+  - Phân biệt serializer của khóa Hash với serializer của giá trị Hash
+  - Chọn Hash phẳng, JSON hay nhiều khóa riêng
+  - Thời hạn của khóa Hash và khả năng hết hạn từng trường theo phiên bản
+  - Kiểm soát kích thước Hash và chi phí đọc toàn bộ trường
+- level1: Danh sách
+  level2:
+  - Thêm và lấy phần tử ở hai đầu List
+  - Đọc khoảng phần tử và giới hạn kích thước danh sách
+  - Cập nhật, tìm vị trí và xóa phần tử
+  - Lệnh lấy phần tử có chặn và nhu cầu kết nối chuyên biệt
+  - Chuyển phần tử giữa các danh sách
+  - Thứ tự phần tử, phần tử trùng và chi phí truy cập theo vị trí
+  - Mô hình hàng đợi đơn giản và rủi ro mất việc sau khi lấy phần tử
+  - Lựa chọn List hay Streams theo yêu cầu xử lý công việc
+- level1: Tập hợp
+  level2:
+  - Thêm, xóa và kiểm tra thành viên của Set
+  - Phép hợp, giao và hiệu giữa các tập
+  - Lấy thành viên ngẫu nhiên và phân biệt lấy với lấy rồi xóa
+  - Đếm thành viên và duyệt Set bằng SSCAN
+  - Thiết kế danh sách thành viên duy nhất
+  - Tạo chỉ mục phụ bằng Set
+  - Giới hạn lệnh nhiều khóa khi chạy trên Cluster
+- level1: Tập có thứ tự
+  level2:
+  - Thành viên, điểm số và thứ tự trong Sorted Set
+  - Thêm, cập nhật điểm và tăng điểm của thành viên
+  - Truy vấn theo vị trí, điểm số hoặc thứ tự từ điển
+  - Đọc thứ tự tăng dần, giảm dần và kèm điểm số
+  - Xử lý điểm số bằng nhau và phân trang ổn định
+  - Xóa thành viên theo giá trị hoặc khoảng
+  - Phép hợp, giao và tổng hợp điểm của nhiều Sorted Set
+  - Xây dựng bảng xếp hạng và cửa sổ dữ liệu theo thời gian
+  - Giới hạn của hàng đợi có trì hoãn khi dùng Sorted Set
+- level1: Kiểu dữ liệu khác
+  level2:
+  - 'Bitmap: đặt bit, đọc bit và đếm số bit được bật'
+  - Bitfield và thao tác trên các trường số trong chuỗi nhị phân
+  - HyperLogLog và phép ước lượng số phần tử phân biệt
+  - Gộp HyperLogLog và đánh giá sai số
+  - 'Geospatial: ghi tọa độ và tính khoảng cách'
+  - Tìm điểm lân cận theo khả năng API và Redis Server
+  - Chọn kiểu dữ liệu theo độ chính xác, bộ nhớ và mẫu truy cập
+  - Ranh giới hỗ trợ với RedisJSON, tìm kiếm và các phần mở rộng khác
+- level1: Hết hạn và loại bỏ
+  level2:
+  - Thiết lập TTL khi tạo khóa và khi cập nhật khóa
+  - Phân biệt thời hạn tương đối với thời điểm hết hạn tuyệt đối
+  - Đọc thời hạn còn lại và hiểu kết quả khóa không tồn tại hoặc không có TTL
+  - Xóa thời hạn bằng persist và gia hạn có điều kiện
+  - Ảnh hưởng của các lệnh ghi đến TTL hiện có
+  - Cơ chế hết hạn chủ động, thụ động và độ trễ thông báo
+  - Chính sách maxmemory và các nhóm eviction
+  - Phân biệt xóa chủ động, hết hạn và loại bỏ do áp lực bộ nhớ
+  - Chọn TTL theo độ mới dữ liệu và rủi ro khóa hết hạn đồng loạt
+  - Kiểm thử TTL mà không phụ thuộc chờ cố định dễ sai lệch
+- level1: Quản lý khóa
+  level2:
+  - Kiểm tra tồn tại, kiểu dữ liệu và đổi tên khóa
+  - Xóa đồng bộ với DEL và giải phóng bất đồng bộ với UNLINK
+  - Duyệt khóa bằng SCAN và quản lý Cursor
+  - Vì sao cần thận trọng với KEYS và các lệnh quét dữ liệu lớn
+  - Xử lý kết quả trùng hoặc thay đổi trong lúc SCAN
+  - Duyệt và xóa theo nhóm trong phạm vi namespace
+  - Phân biệt thao tác một nút với thao tác toàn Redis Cluster
+  - Kiểm soát quyền cho lệnh quản trị và lệnh xóa dữ liệu diện rộng
+- level1: Ánh xạ thực thể
+  level2:
+  - Ánh xạ đối tượng sang Redis Hash
+  - Định nghĩa keyspace bằng @RedisHash
+  - Định danh thực thể bằng @Id
+  - Ánh xạ thuộc tính đơn giản và đối tượng lồng nhau
+  - Ánh xạ collection, map và đường dẫn thuộc tính
+  - Giữ quan hệ bằng @Reference và đánh giá số lần đọc phát sinh
+  - Bỏ qua thuộc tính không lưu trữ bằng @Transient
+  - Lựa chọn constructor và khởi tạo đối tượng bất biến
+  - MappingRedisConverter và RedisCustomConversions
+  - HashMapper và lựa chọn ánh xạ đối tượng ngoài Repository
+  - Phân biệt ánh xạ Hash của Repository với JSON qua RedisTemplate
+- level1: Redis Repository
+  level2:
+  - Bật và cấu hình @EnableRedisRepositories
+  - Khai báo CrudRepository cho thực thể Redis
+  - Cơ chế hình thành khóa từ keyspace và định danh
+  - Ngữ nghĩa save, findById, existsById và deleteById
+  - Ảnh hưởng của save đến nội dung Hash hiện có
+  - Thao tác nhiều thực thể và chi phí truy cập Redis
+  - Phân trang, sắp xếp và giới hạn thực tế của Redis Repository
+  - Phân biệt cấu hình Repository với cấu hình RedisTemplate
+  - Giới hạn giao dịch và các giả định không được áp dụng từ JPA
+  - Quản lý keyspace và chỉ mục khi nhiều ứng dụng cùng ghi dữ liệu
+- level1: Chỉ mục và truy vấn
+  level2:
+  - Tạo chỉ mục phụ bằng @Indexed
+  - Cấu hình chỉ mục và keyspace bằng mã
+  - Chỉ mục thuộc tính lồng nhau và thuộc tính tham chiếu
+  - Suy diễn truy vấn từ tên phương thức Repository
+  - Kết hợp điều kiện truy vấn và đối chiếu khả năng hỗ trợ
+  - Truy vấn vị trí địa lý bằng Repository
+  - Ảnh hưởng của cập nhật và xóa thực thể đến chỉ mục
+  - Dữ liệu ghi ngoài Repository và nguy cơ chỉ mục không đồng bộ
+  - Chi phí bộ nhớ của chỉ mục và tập kết quả trung gian
+  - Giới hạn join, truy vấn tùy ý và tìm kiếm toàn văn
+  - Lựa chọn Template, Repository hoặc công cụ tìm kiếm riêng
+- level1: TTL của thực thể
+  level2:
+  - Đặt TTL cố định cho thực thể lưu bằng Repository
+  - Dùng @TimeToLive cho thời hạn thay đổi theo từng thực thể
+  - Đọc TTL còn lại và phân biệt với giá trị cấu hình ban đầu
+  - Tương tác giữa save, cập nhật thực thể và thời hạn sống
+  - Vai trò của bản sao phụ khi xử lý sự kiện hết hạn
+  - Cấu hình bật hoặc tắt bản sao phụ và đánh đổi bộ nhớ
+  - Thông báo hết hạn, chỉ mục phụ và nguy cơ tham chiếu tồn dư
+  - Ứng dụng dừng hoạt động trong thời gian khóa hết hạn
+  - Giới hạn cấu hình keyspace notification trên dịch vụ Redis được quản lý
+- level1: Giao dịch
+  level2:
+  - Phân biệt tính nguyên tử của lệnh với MULTI/EXEC
+  - Thực thi giao dịch qua SessionCallback
+  - Đưa lệnh vào hàng đợi và đọc kết quả EXEC
+  - DISCARD và hủy giao dịch trước khi thực thi
+  - Lỗi lúc xếp hàng lệnh và lỗi lúc thực thi từng lệnh
+  - Vì sao giao dịch Redis không rollback dữ liệu như cơ sở dữ liệu SQL
+  - WATCH và cập nhật lạc quan với kiểm tra xung đột
+  - Retry có giới hạn khi WATCH phát hiện khóa thay đổi
+  - Bật transaction support cho RedisTemplate
+  - Tương tác với @Transactional và transaction manager bên ngoài Redis
+  - Hành vi lệnh đọc trong giao dịch do Spring quản lý
+  - Giới hạn giao dịch nhiều khóa trên Redis Cluster
+- level1: Pipeline
+  level2:
+  - Pipeline là gì và giảm chi phí mạng như thế nào
+  - Phân biệt pipeline với giao dịch và xử lý song song
+  - Dùng executePipelined với RedisCallback
+  - Dùng executePipelined với SessionCallback
+  - Thứ tự kết quả và giá trị trả về trong callback
+  - Tuần tự hóa kết quả pipeline và chọn serializer phù hợp
+  - Chia nhóm lệnh để kiểm soát bộ nhớ và độ trễ
+  - Xử lý lỗi từng lệnh và trạng thái không chắc chắn khi đứt kết nối
+  - Khả năng pipeline trên Cluster và khác biệt trình điều khiển
+  - Đo hiệu quả pipeline bằng khối lượng dữ liệu thực tế
+- level1: Lua và tính nguyên tử
+  level2:
+  - Khi nào nên dùng Lua thay cho chuỗi lệnh từ ứng dụng
+  - Khai báo RedisScript và DefaultRedisScript
+  - Truyền danh sách khóa, tham số và kiểu kết quả
+  - Tuần tự hóa tham số và giải tuần tự hóa kết quả script
+  - Nạp script, dùng EVALSHA và xử lý cache script bị mất
+  - Đánh giá thời gian chạy vì script có thể chặn xử lý lệnh khác
+  - Lỗi script và giới hạn rollback đối với ghi đã thực hiện
+  - Ràng buộc khóa của script trong Redis Cluster
+  - Đóng gói, kiểm thử và quản lý phiên bản script
+- level1: Spring Cache
+  level2:
+  - Cơ chế Spring Cache abstraction và vị trí của Redis
+  - Cấu hình @EnableCaching và RedisCacheManager
+  - Dùng @Cacheable, @CachePut và @CacheEvict
+  - Thiết kế tên cache và biểu thức khóa bằng SpEL
+  - Điều kiện condition, unless và quyết định cache giá trị null
+  - Cấu hình TTL mặc định và chính sách riêng từng cache
+  - Cấu hình serializer và tiền tố khóa cache
+  - Chọn RedisCacheWriter có khóa hoặc không khóa
+  - Chiến lược xóa cache bằng KEYS hoặc SCAN và giới hạn trình điều khiển
+  - Cấu hình cache theo giao dịch và giới hạn tính nguyên tử xuyên hệ thống
+  - 'TTL và time-to-idle: điều kiện hỗ trợ theo phiên bản'
+  - Giới hạn proxy, tự gọi phương thức và khả năng đồng bộ tải dữ liệu
+  - Kiểm tra cơ chế cache kiểu trả về phản ứng theo phiên bản Spring
+- level1: Chiến lược cache
+  level2:
+  - Cache-aside và vòng đời đọc dữ liệu qua cache
+  - Phân biệt cập nhật cache, vô hiệu hóa cache và nguồn dữ liệu chuẩn
+  - Chọn TTL theo yêu cầu độ mới và tần suất cập nhật
+  - Cache dữ liệu không tồn tại để giảm truy vấn lặp
+  - Chống cache stampede khi nhiều yêu cầu cùng tải lại dữ liệu
+  - Thêm độ lệch TTL để tránh hết hạn đồng loạt
+  - Xử lý khóa nóng, dữ liệu lớn và tỷ lệ cache hit thấp
+  - Đồng bộ cache với thay đổi dữ liệu bằng sự kiện hoặc outbox
+  - Race condition giữa đọc cache, ghi dữ liệu và xóa cache
+  - Phối hợp cache cục bộ với Redis và vô hiệu hóa giữa các bản sao
+  - Chọn fail-open hay fail-closed theo tác động nghiệp vụ
+  - Kiểm chứng tính nhất quán thay vì giả định cache luôn có dữ liệu mới nhất
+- level1: Pub/Sub
+  level2:
+  - Mô hình publisher, channel và subscriber
+  - Phân biệt channel thường với pattern subscription
+  - Gửi thông điệp bằng RedisTemplate
+  - Cấu hình RedisMessageListenerContainer
+  - Nhận thông điệp bằng MessageListener và MessageListenerAdapter
+  - Tuần tự hóa nội dung và quản lý phiên bản thông điệp
+  - Luồng xử lý, thứ tự và xử lý lỗi của listener
+  - Mất thông điệp khi subscriber ngắt kết nối
+  - Quản lý vòng đời đăng ký và đóng kết nối
+  - Phân biệt Pub/Sub với Streams và hệ thống hàng đợi bền vững
+  - Kiểm tra hành vi Pub/Sub khi dùng Sentinel hoặc Cluster
+- level1: Redis Streams
+  level2:
+  - Stream, entry ID và mô hình nhật ký sự kiện
+  - Ghi bản ghi bằng StreamOperations
+  - Đọc theo khoảng, theo offset và đọc chặn
+  - Consumer group, consumer và vị trí đọc của nhóm
+  - Pending Entries List và xác nhận xử lý bằng acknowledgment
+  - Phân biệt xác nhận xử lý với xóa bản ghi khỏi Stream
+  - Đọc lại bản ghi đang chờ và chuyển quyền xử lý bản ghi bị bỏ dở
+  - Cấu hình StreamMessageListenerContainer
+  - Sử dụng StreamReceiver trong luồng phản ứng
+  - Ánh xạ MapRecord, ObjectRecord và serializer tương ứng
+  - Tác động của ReadOffset đến mất hoặc lặp bản ghi
+  - Điều tiết nhu cầu, tạm dừng tiêu thụ và rủi ro lệch offset
+  - Xử lý ít nhất một lần và thiết kế consumer lũy đẳng
+  - Trim Stream, giới hạn lưu trữ và dữ liệu đang chờ xử lý
+  - Chính sách retry, bản ghi lỗi và luồng xử lý lỗi riêng
+- level1: Thông báo khóa
+  level2:
+  - Keyspace notification và keyevent notification
+  - Cấu hình notify-keyspace-events và chọn loại sự kiện
+  - Đăng ký lắng nghe thay đổi khóa qua Spring
+  - Sự kiện hết hạn và khác biệt với thời điểm TTL chạm không
+  - Giới hạn bảo đảm chuyển phát của thông báo
+  - Thông báo trong Cluster và phạm vi nút phát sự kiện
+  - Phân biệt sự kiện hạ tầng khóa với sự kiện nghiệp vụ đáng tin cậy
+  - Chi phí vận hành và giới hạn quyền cấu hình trên dịch vụ được quản lý
+- level1: Redis phản ứng
+  level2:
+  - Mô hình không chặn và điều kiện hỗ trợ của trình điều khiển
+  - Cấu hình ReactiveRedisConnectionFactory và ReactiveRedisTemplate
+  - ReactiveStringRedisTemplate và dữ liệu chuỗi
+  - RedisSerializationContext và serializer cho luồng phản ứng
+  - Sử dụng các nhóm Reactive Operations
+  - Kết hợp thao tác bằng map, flatMap, concatMap và then
+  - Đăng ký thực thi, lệnh chạy lặp và tránh subscribe thủ công
+  - Biểu diễn không có dữ liệu mà không phát phần tử null
+  - Điều tiết nhu cầu và giới hạn đồng thời để bảo vệ Redis
+  - Hủy đăng ký, timeout, retry và trạng thái ghi không chắc chắn
+  - Pub/Sub và Streams trong ứng dụng WebFlux
+  - Giới hạn Repository phản ứng và lựa chọn Template thay thế
+  - Kiểm tra hỗ trợ giao dịch, scripting và topology của API phản ứng
+- level1: Replication và Sentinel
+  level2:
+  - Vai trò primary, replica và cơ chế sao chép
+  - Độ trễ sao chép và nguy cơ đọc dữ liệu cũ
+  - Cấu hình kết nối Redis Sentinel
+  - Khám phá primary và thay đổi topology khi failover
+  - Cấu hình xác thực cho Sentinel và các nút Redis
+  - Chính sách đọc từ primary hoặc replica của trình điều khiển
+  - Lệnh đang thực thi khi chuyển primary và khả năng mất ghi
+  - Phân biệt độ sẵn sàng cao với bảo đảm không mất dữ liệu
+  - Kiểm thử failover, reconnect và thời gian phục hồi
+- level1: Redis Cluster
+  level2:
+  - Hash slot và cơ chế phân phối khóa
+  - Cấu hình RedisClusterConfiguration
+  - Khám phá topology và xử lý chuyển hướng MOVED, ASK
+  - Hash tag để đặt nhiều khóa cùng slot
+  - Giới hạn lệnh nhiều khóa và lỗi CROSSSLOT
+  - Thao tác nhiều nút qua RedisClusterConnection
+  - Ảnh hưởng Cluster đến Repository, chỉ mục và keyspace
+  - Quét khóa và quản lý thông báo trên nhiều nút
+  - Thay đổi topology, resharding và làm mới thông tin nút
+  - Phân biệt phân mảnh dữ liệu với sao chép và failover
+  - Kiểm tra giới hạn các lệnh, pipeline và script trước khi chuyển sang Cluster
+- level1: Mẫu ứng dụng
+  level2:
+  - Khóa phân tán bằng SET có điều kiện và thời hạn thuê
+  - Giải phóng khóa bằng token sở hữu và thao tác nguyên tử
+  - Gia hạn khóa, mất quyền sở hữu và giới hạn an toàn khi failover
+  - Fencing token và bảo vệ tài nguyên ở hệ thống nhận thao tác
+  - Giới hạn tốc độ theo cửa sổ cố định, trượt hoặc token bucket
+  - Chống yêu cầu trùng và quản lý khóa lũy đẳng
+  - Quản lý phiên đăng nhập với Spring Session và ranh giới tích hợp
+  - Lưu mã xác minh hoặc token tạm thời với TTL
+  - Đếm người dùng hoạt động và thống kê gần đúng
+  - Chọn cấu trúc dữ liệu phù hợp trước khi áp dụng một mẫu
+- level1: Độ bền dữ liệu
+  level2:
+  - Phân biệt dữ liệu trong bộ nhớ với bản sao bền vững
+  - RDB snapshot và khoảng dữ liệu có thể mất
+  - AOF và các chính sách đồng bộ xuống đĩa
+  - Phối hợp persistence với replication và failover
+  - Chi phí snapshot, ghi lại AOF và áp lực bộ nhớ
+  - Xác định Redis là cache hay nguồn dữ liệu cần khôi phục
+  - Thiết kế sao lưu, khôi phục và kiểm chứng bản sao
+  - Di chuyển dữ liệu khi đổi namespace, serializer hoặc cấu trúc lưu
+  - Lập mục tiêu mất dữ liệu cho phép và thời gian phục hồi
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi kết nối, thời gian chờ, lệnh và tuần tự hóa
+  - Hệ phân cấp DataAccessException khi truy cập Redis
+  - Phân biệt khóa không tồn tại với lỗi truy cập dữ liệu
+  - Lỗi WRONGTYPE và kiểm tra hợp đồng kiểu dữ liệu
+  - Lỗi xác thực, quyền ACL, bộ nhớ và chế độ chỉ đọc
+  - Retry theo tính lũy đẳng của từng lệnh
+  - Kết nối đứt sau khi gửi lệnh và rủi ro ghi trùng
+  - Phối hợp timeout, reconnect và cơ chế ngắt mạch
+  - Giữ nguyên nguyên nhân lỗi và giới hạn dữ liệu nhạy cảm trong log
+- level1: Kiểm thử
+  level2:
+  - Phân biệt kiểm thử đơn vị với kiểm thử tích hợp Redis
+  - Mock tại ranh giới dịch vụ thay vì mô phỏng toàn bộ Redis
+  - Dùng Testcontainers với Redis Server phù hợp production
+  - Khởi tạo cấu hình Redis động trong Spring Boot test
+  - Kiểm thử Template, serializer và dữ liệu đọc chéo
+  - Kiểm thử Repository, chỉ mục, tham chiếu và TTL
+  - Kiểm thử Spring Cache qua proxy thực
+  - Kiểm thử giao dịch, WATCH, pipeline và Lua
+  - Kiểm thử Pub/Sub mà không phụ thuộc chờ cố định
+  - Kiểm thử consumer group, acknowledgment và bản ghi đang chờ
+  - Kiểm thử luồng phản ứng bằng StepVerifier
+  - Kiểm thử đồng thời, idempotency và hết hạn khóa
+  - Kiểm thử Sentinel, Cluster và phục hồi sau sự cố
+  - Cô lập namespace và dọn dữ liệu kiểm thử an toàn
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ, thông lượng và kích thước dữ liệu thực tế
+  - Phân biệt điểm nghẽn mạng, ứng dụng và Redis Server
+  - Giảm số lượt mạng bằng lệnh nhiều phần tử hoặc pipeline
+  - Kiểm soát kích thước giá trị, số thành viên và số lượng khóa
+  - Phân tích khóa nóng và khóa lớn
+  - Giới hạn SCAN, thao tác toàn collection và lệnh có chi phí lớn
+  - Đánh đổi kích thước nhóm lệnh với bộ nhớ và thời gian đáp ứng
+  - Chi phí tuần tự hóa, JSON và nén dữ liệu
+  - Điều chỉnh pool, số kết nối và mức đồng thời
+  - Đánh giá nhu cầu phân mảnh, replication và cache cục bộ
+  - Đo tải theo mẫu truy cập thay vì chỉ benchmark một lệnh
+- level1: Quan sát
+  level2:
+  - Quan sát Redis bằng INFO, SLOWLOG và thống kê độ trễ
+  - Theo dõi bộ nhớ, eviction, expiration và tỷ lệ cache hit
+  - Theo dõi số kết nối, lỗi lệnh và thời gian chờ
+  - Quan sát độ trễ sao chép và thay đổi vai trò máy chủ
+  - Quan sát consumer lag và Pending Entries List của Streams
+  - Tích hợp Micrometer, Actuator và số liệu của trình điều khiển
+  - Phân biệt health check, readiness và khả năng chịu tải
+  - Liên kết dấu vết yêu cầu với thao tác Redis
+  - Giới hạn sử dụng MONITOR và ghi log dữ liệu nhạy cảm
+  - Thiết kế cảnh báo theo tác động nghiệp vụ
+- level1: Bảo mật
+  level2:
+  - Giới hạn truy cập mạng và bảo vệ Redis khỏi Internet công cộng
+  - Phân quyền ACL theo người dùng, nhóm lệnh và mẫu khóa
+  - Quản lý mật khẩu và chứng chỉ bằng kho bí mật
+  - Bật TLS và kiểm tra danh tính máy chủ
+  - Giới hạn lệnh quản trị, script và thao tác xóa diện rộng
+  - Cô lập dữ liệu giữa môi trường và khách thuê
+  - Kiểm soát dữ liệu đầu vào trước khi giải tuần tự hóa
+  - Che thông tin nhạy cảm trong khóa, giá trị, log và dấu vết
+  - Xác định TTL và chính sách xóa dữ liệu nhạy cảm
+  - Kiểm chứng quyền tối thiểu cho cache, Repository và listener
+- level1: Triển khai
+  level2:
+  - Tách cấu hình phát triển, kiểm thử và production
+  - Cấu hình giới hạn bộ nhớ và chính sách eviction theo mục đích
+  - Tính tài nguyên cho Redis, trình điều khiển và ứng dụng
+  - Khởi động, kiểm tra sẵn sàng và đóng kết nối có kiểm soát
+  - Tương thích dịch vụ Redis được quản lý và các lệnh bị hạn chế
+  - Triển khai nhiều bản sao ứng dụng và tránh nhân đôi tác vụ nền
+  - Nâng cấp Redis Server, Spring Data Redis và trình điều khiển
+  - Di chuyển serializer hoặc keyspace khi nhiều phiên bản cùng chạy
+  - Chuẩn bị phương án khi Redis chậm, mất kết nối hoặc mất dữ liệu
+  - Kiểm tra sao lưu, phục hồi và diễn tập failover
+- level1: Thực hành
+  level2:
+  - Xây dựng cache cho chức năng tra cứu dữ liệu
+  - Quản lý thực thể bằng Redis Repository và chỉ mục phụ
+  - Triển khai bảng xếp hạng bằng Sorted Set
+  - Xây dựng bộ giới hạn tốc độ bằng bộ đếm và Lua
+  - Chống xử lý trùng bằng khóa lũy đẳng có TTL
+  - Gửi thông báo thời gian thực bằng Pub/Sub
+  - Xử lý công việc bằng Streams và consumer group
+  - Tích hợp Redis phản ứng với API WebFlux
+  - Viết kiểm thử tích hợp và quan sát hành vi khi lỗi
+  - Đo tải và so sánh cấu trúc dữ liệu hoặc chiến lược cache
+- level1: Chẩn đoán
+  level2:
+  - Ứng dụng không tạo được ConnectionFactory hoặc Template
+  - Dữ liệu trong redis-cli khác kết quả ứng dụng do serializer
+  - Khóa có tiền tố nhị phân hoặc thông tin kiểu ngoài dự kiến
+  - Cache không có hiệu lực do proxy, khóa hoặc điều kiện
+  - TTL biến mất, không được gia hạn hoặc khóa hết hạn ngoài dự kiến
+  - Truy vấn Repository thiếu kết quả do chỉ mục không đồng bộ
+  - Listener không nhận thông điệp hoặc sự kiện hết hạn
+  - Streams bị lặp bản ghi, tăng pending hoặc bỏ sót dữ liệu
+  - Giao dịch hoặc pipeline trả kết quả khác thao tác thông thường
+  - Lỗi CROSSSLOT, READONLY và chuyển hướng Cluster
+  - Cạn pool, lệnh chặn kéo dài hoặc reconnect liên tục
+  - Bộ nhớ tăng, eviction cao và hiệu năng giảm
+  - Checklist đối chiếu cấu hình, lệnh và topology trước khi kết luận lỗi

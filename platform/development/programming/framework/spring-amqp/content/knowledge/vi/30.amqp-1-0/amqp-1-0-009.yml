@@ -1,0 +1,3 @@
+menuLevel1: AMQP 1.0
+menuLevel2: '@EnableAmqp, @AmqpListener và registry riêng của generic client'
+status: ''

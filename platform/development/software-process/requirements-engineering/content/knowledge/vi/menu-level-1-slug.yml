@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khái niệm yêu cầu
+  slug: requirements-concepts
+  index: 1
+- title: Quy trình yêu cầu
+  slug: requirements-process
+  index: 2
+- title: Phạm vi và bối cảnh
+  slug: scope-context
+  index: 3
+- title: Bên liên quan
+  slug: stakeholders
+  index: 4
+- title: Lập kế hoạch
+  slug: planning
+  index: 5
+- title: Khai thác yêu cầu
+  slug: requirements-elicitation
+  index: 6
+- title: Phân tích yêu cầu
+  slug: requirements-analysis
+  index: 7
+- title: Xung đột yêu cầu
+  slug: requirements-conflicts
+  index: 8
+- title: Mô hình mục tiêu
+  slug: goal-model
+  index: 9
+- title: Mô hình nghiệp vụ
+  slug: business-modeling
+  index: 10
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 11
+- title: Mô hình hành vi
+  slug: behavior-model
+  index: 12
+- title: Ca sử dụng
+  slug: use-cases
+  index: 13
+- title: Câu chuyện người dùng
+  slug: user-stories
+  index: 14
+- title: Yêu cầu chất lượng
+  slug: quality-requirements
+  index: 15
+- title: Dữ liệu và giao tiếp
+  slug: data-communication
+  index: 16
+- title: Ràng buộc và chuyển đổi
+  slug: constraints-transformation
+  index: 17
+- title: Viết yêu cầu
+  slug: requirements-writing
+  index: 18
+- title: Hồ sơ đặc tả
+  slug: requirements-specification
+  index: 19
+- title: Kiểm tra yêu cầu
+  slug: requirements-verification
+  index: 20
+- title: Xác nhận yêu cầu
+  slug: requirements-validation
+  index: 21
+- title: Ưu tiên và khả thi
+  slug: prioritization-feasibility
+  index: 22
+- title: Quản lý yêu cầu
+  slug: requirements-management
+  index: 23
+- title: Truy vết
+  slug: traceability
+  index: 24
+- title: Quản lý thay đổi
+  slug: change-management
+  index: 25
+- title: Yêu cầu linh hoạt
+  slug: agile-requirements
+  index: 26
+- title: Bàn giao và nghiệm thu
+  slug: handoff-acceptance
+  index: 27
+- title: Công cụ hỗ trợ
+  slug: supporting-tools
+  index: 28
+- title: Đo lường và cải tiến
+  slug: measurement-improvement
+  index: 29
+- title: Bối cảnh đặc thù
+  slug: special-contexts
+  index: 30
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 31

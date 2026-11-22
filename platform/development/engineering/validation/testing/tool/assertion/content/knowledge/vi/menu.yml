@@ -1,0 +1,349 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Assertion là gì và vai trò của phép xác minh trong một bài kiểm thử
+  - Kết quả mong đợi, kết quả thực tế và nguồn xác định tính đúng đắn (test oracle)
+  - Phân biệt assertion thất bại với lỗi phát sinh ngoài dự kiến khi chạy kiểm thử
+  - Phân biệt từ khóa assert của Java với thư viện assertion dành cho kiểm thử
+  - Quan hệ giữa assertion, dữ liệu chuẩn bị và hành vi được kiểm thử
+  - Vai trò của thông báo thất bại và bản so sánh khác biệt
+  - Phạm vi của JUnit Assertions, AssertJ, Hamcrest và Google Truth
+  - Lộ trình từ xác minh một giá trị đến kiểm tra cấu trúc dữ liệu và hành vi phức tạp
+- level1: Thiết kế assertion
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành kết quả có thể xác minh
+  - Xác định điểm quan sát qua giá trị trả về, trạng thái và tác động bên ngoài
+  - Tổ chức chuẩn bị, thực thi và xác minh theo Arrange–Act–Assert
+  - 'Chọn mức chính xác phù hợp: bằng tuyệt đối, chứa giá trị hay thỏa điều kiện'
+  - Tránh tự tính kết quả mong đợi bằng chính thuật toán đang được kiểm thử
+  - Chọn assertion chuyên biệt thay cho biểu thức boolean khó chẩn đoán
+  - Thiết kế assertion độc lập và tránh kiểm tra quá nhiều hành vi không liên quan
+  - Kiểm tra cả kết quả thành công, dữ liệu biên và điều kiện thất bại
+  - Nhận diện bài kiểm thử vẫn thành công dù assertion không được thực thi
+  - Cân bằng độ chặt chẽ với khả năng chịu thay đổi của bài kiểm thử
+- level1: Ngữ nghĩa so sánh
+  level2:
+  - So sánh giá trị và so sánh danh tính đối tượng
+  - Vai trò của equals, hashCode và Comparator trong kiểm tra dữ liệu
+  - So sánh nông, so sánh sâu và so sánh đệ quy
+  - Phân biệt null, giá trị rỗng và giá trị mặc định
+  - Kiểu nguyên thủy, lớp bao và ảnh hưởng của tự động đóng hộp
+  - So sánh BigDecimal theo giá trị số và theo biểu diễn có scale
+  - Sai số số thực, độ chính xác và lựa chọn ngưỡng chấp nhận
+  - NaN, vô cực và số không có dấu trong phép kiểm tra số thực
+  - Thứ tự phần tử, số lần xuất hiện và ngữ nghĩa của tập hợp
+  - Lựa chọn quy tắc so sánh theo hợp đồng nghiệp vụ thay vì cấu trúc triển khai
+- level1: Java assert
+  level2:
+  - Cú pháp assert với điều kiện và biểu thức thông báo
+  - Bật hoặc tắt assertion bằng tùy chọn JVM -ea và -da
+  - Phạm vi bật assertion theo lớp hoặc package
+  - AssertionError và thông tin đi kèm khi điều kiện không thỏa
+  - Kiểm tra bất biến nội bộ và các giả định trong mã chương trình
+  - Tránh tác động phụ trong biểu thức assert
+  - Giới hạn của Java assert trong xác thực đầu vào và kiểm thử tự động
+- level1: JUnit Assertions
+  level2:
+  - Thiết lập JUnit Jupiter và sử dụng static import cho Assertions
+  - assertTrue và assertFalse với điều kiện boolean
+  - assertEquals và assertNotEquals cho kiểu nguyên thủy và đối tượng
+  - assertNull và assertNotNull để kiểm tra sự hiện diện của giá trị
+  - assertSame và assertNotSame để kiểm tra danh tính đối tượng
+  - assertInstanceOf để kiểm tra kiểu và sử dụng giá trị đã được xác nhận
+  - assertArrayEquals và lựa chọn phép so sánh cho từng loại mảng
+  - assertIterableEquals và kiểm tra nội dung có thứ tự
+  - assertLinesMatch và đối chiếu danh sách dòng văn bản
+  - fail và mô tả nhánh thực thi không được phép xảy ra
+  - Thông báo tùy chỉnh và Supplier để tạo thông báo khi cần
+  - Thứ tự đối số expected, actual và ảnh hưởng tới báo cáo khác biệt
+- level1: JUnit nâng cao
+  level2:
+  - assertThrows và kiểm tra ngoại lệ thuộc kiểu được chấp nhận
+  - assertThrowsExactly và yêu cầu kiểu ngoại lệ chính xác
+  - Đọc thông báo, nguyên nhân và thuộc tính của ngoại lệ được trả về
+  - assertDoesNotThrow và phạm vi khối mã cần xác minh
+  - assertAll và tập hợp nhiều phép xác minh trong một lần thực thi
+  - Nhóm assertion phụ thuộc dữ liệu và tránh lỗi dây chuyền che khuất nguyên nhân
+  - assertTimeout và đo giới hạn thời gian trên luồng thực thi hiện tại
+  - assertTimeoutPreemptively và ảnh hưởng của việc thực thi trên luồng khác
+  - Phân biệt kiểm tra thời hạn với chờ kết quả bất đồng bộ
+  - JUnit assumptions và ranh giới giữa bỏ qua bài kiểm thử với xác nhận thất bại
+- level1: AssertJ cơ bản
+  level2:
+  - Thiết lập AssertJ và bắt đầu với assertThat
+  - Chọn kiểu assertion theo kiểu dữ liệu thực tế
+  - Chuỗi phương thức fluent và cách đọc một phép kiểm tra
+  - isEqualTo, isNotEqualTo và ngữ nghĩa của đối tượng được so sánh
+  - isNull, isNotNull và các assertion về sự hiện diện
+  - as, describedAs và bổ sung ngữ cảnh cho thông báo thất bại
+  - withFailMessage và tùy chỉnh thông báo theo mục tiêu chẩn đoán
+  - satisfies và nhóm các yêu cầu liên quan đến một giá trị
+  - Condition và biểu diễn điều kiện có tên dùng lại được
+  - Static import, suy luận kiểu và xử lý lời gọi assertion mơ hồ
+- level1: Số và boolean
+  level2:
+  - Kiểm tra boolean và diễn đạt điều kiện nghiệp vụ rõ ràng
+  - Kiểm tra số dương, số âm, số không và dấu của giá trị
+  - So sánh lớn hơn, nhỏ hơn và các ranh giới bao gồm hoặc loại trừ
+  - Kiểm tra giá trị nằm trong khoảng hoặc ngoài khoảng
+  - Kiểm tra số thực gần bằng với độ lệch tuyệt đối
+  - Lựa chọn độ lệch tương đối theo đặc điểm dữ liệu
+  - So sánh BigDecimal bằng quy tắc phù hợp với số học nghiệp vụ
+  - Kiểm tra số đặc biệt và trường hợp phép tính không cho kết quả hữu hạn
+  - Kiểm tra kiểu số, chuyển đổi số và giá trị biên
+  - Tránh suy giảm độ chính xác khi xây dựng giá trị mong đợi
+- level1: Chuỗi và biểu thức
+  level2:
+  - Kiểm tra chuỗi null, rỗng, trắng và có độ dài xác định
+  - So sánh chuỗi chính xác và so sánh không phân biệt hoa thường
+  - Kiểm tra tiền tố, hậu tố, chuỗi con và vị trí xuất hiện
+  - Kiểm tra nhiều đoạn văn bản theo thứ tự hoặc không theo thứ tự
+  - Kiểm tra mẫu bằng biểu thức chính quy và giới hạn phạm vi khớp
+  - Xử lý khoảng trắng, xuống dòng và khác biệt quy ước cuối dòng
+  - Kiểm tra Unicode, dấu tiếng Việt và ký tự tổ hợp
+  - Phân biệt so sánh chuỗi hiển thị với so sánh sau chuẩn hóa dữ liệu
+  - Kiểm tra danh sách dòng và nội dung văn bản nhiều dòng
+  - Viết thông báo khác biệt dễ đọc khi chuỗi dài hoặc có ký tự ẩn
+- level1: Đối tượng và kiểu
+  level2:
+  - Kiểm tra kiểu chính xác và quan hệ kế thừa
+  - Kiểm tra record, enum và đối tượng giá trị
+  - Kiểm tra thuộc tính qua phương thức truy cập thay vì trường nội bộ khi phù hợp
+  - Xác minh nhiều thuộc tính liên quan bằng satisfies
+  - Trích xuất một thuộc tính và tiếp tục chuỗi assertion theo kiểu phù hợp
+  - Kiểm tra nhiều thuộc tính bằng tuple
+  - Lựa chọn giữa equals và xác minh từng thuộc tính nghiệp vụ
+  - Kiểm tra đối tượng bất biến và thay đổi trạng thái trước, sau thực thi
+  - Tránh phụ thuộc vào toString hoặc chi tiết riêng không thuộc hợp đồng công khai
+- level1: Tập hợp và mảng
+  level2:
+  - Kiểm tra tập hợp null, rỗng, kích thước và số lượng phần tử
+  - contains và yêu cầu tồn tại của các phần tử mong đợi
+  - containsExactly và kiểm tra đầy đủ nội dung theo đúng thứ tự
+  - containsExactlyInAnyOrder và kiểm tra đầy đủ nội dung khi thứ tự không quan trọng
+  - containsOnly và ngữ nghĩa khi có phần tử lặp
+  - Kiểm tra không chứa phần tử, không trùng lặp và không chứa null
+  - Kiểm tra phần tử đầu, cuối hoặc phần tử duy nhất
+  - Kiểm tra thứ tự sắp xếp tự nhiên hoặc theo Comparator
+  - allSatisfy, anySatisfy và kiểm tra điều kiện trên các phần tử
+  - Kiểm tra cấu trúc lồng nhau và tập hợp các đối tượng nghiệp vụ
+  - Kiểm tra mảng nguyên thủy, mảng đối tượng và mảng nhiều chiều
+  - Tránh phụ thuộc thứ tự không được bảo đảm của Set hoặc nguồn dữ liệu
+- level1: Map
+  level2:
+  - Kiểm tra Map rỗng, kích thước và sự hiện diện của khóa
+  - Kiểm tra giá trị và cặp khóa–giá trị
+  - Kiểm tra Map có đúng các entry mong đợi
+  - Phân biệt khóa không tồn tại với khóa ánh xạ tới null
+  - Kiểm tra tập khóa, tập giá trị và tập entry
+  - Xác minh một giá trị trong Map bằng chuỗi assertion phù hợp
+  - Kiểm tra Map lồng nhau và Map chứa tập hợp
+  - Kiểm tra thứ tự entry khi hợp đồng yêu cầu có thứ tự
+  - Viết thông báo thất bại chỉ rõ khóa thiếu, giá trị sai và entry dư
+- level1: Optional và Stream
+  level2:
+  - Kiểm tra Optional rỗng hoặc có giá trị
+  - Kiểm tra giá trị bên trong Optional và tiếp tục xác minh thuộc tính
+  - Kiểm tra OptionalInt, OptionalLong và OptionalDouble
+  - Phân biệt Optional.empty với tham chiếu Optional bằng null
+  - Kiểm tra nội dung Stream bằng assertion hoặc thu về tập hợp
+  - Vòng đời Stream và giới hạn sử dụng lại sau thao tác kết thúc
+  - Kiểm tra kết quả pipeline lọc, ánh xạ và nhóm dữ liệu
+  - Xử lý thứ tự và tính hữu hạn của nguồn Stream trong bài kiểm thử
+- level1: Ngày giờ
+  level2:
+  - Kiểm tra LocalDate, LocalTime và LocalDateTime theo mốc mong đợi
+  - Kiểm tra Instant, OffsetDateTime và ZonedDateTime
+  - Phân biệt cùng thời điểm với cùng biểu diễn ngày giờ và múi giờ
+  - Kiểm tra trước, sau, bằng và nằm trong khoảng thời gian
+  - Kiểm tra độ gần của hai thời điểm với dung sai phù hợp
+  - Kiểm tra Duration và Period theo đúng ý nghĩa của từng kiểu
+  - Cố định Clock để xây dựng kết quả mong đợi có thể tái lập
+  - Kiểm tra ranh giới ngày, cuối tháng và năm nhuận
+  - Kiểm tra chuyển đổi múi giờ và thời điểm chuyển giờ mùa hè
+  - Tránh assertion phụ thuộc thời gian hiện tại hoặc múi giờ mặc định của máy
+- level1: Tệp và tài nguyên
+  level2:
+  - Kiểm tra tệp hoặc thư mục tồn tại và có đúng loại
+  - Kiểm tra Path, đường dẫn tương đối và đường dẫn đã chuẩn hóa
+  - Kiểm tra nội dung văn bản với bộ mã ký tự xác định
+  - Kiểm tra nội dung nhị phân và mảng byte
+  - Kiểm tra danh sách tệp con và cấu trúc thư mục theo hợp đồng
+  - Kiểm tra kích thước tệp và thuộc tính tệp có tính ổn định
+  - So sánh nội dung InputStream và quản lý tài nguyên sau khi đọc
+  - Kiểm tra tài nguyên classpath và xử lý trường hợp không tìm thấy
+  - Tránh phụ thuộc đường dẫn tuyệt đối, dấu phân cách và quyền tệp của máy phát triển
+- level1: Trích xuất và lọc
+  level2:
+  - extracting và chuyển từ đối tượng sang giá trị cần kiểm tra
+  - Trích xuất nhiều thuộc tính và kiểm tra bằng tuple
+  - flatExtracting và kiểm tra dữ liệu sau khi làm phẳng
+  - filteredOn và chọn phần tử theo thuộc tính hoặc điều kiện
+  - Lọc theo predicate khi dữ liệu có quy tắc nghiệp vụ phức tạp
+  - Kiểm tra phần tử duy nhất sau lọc và xác nhận số lượng phù hợp
+  - Giữ ngữ cảnh kiểu dữ liệu khi chuyển giữa các bước assertion
+  - Tránh lọc bỏ phần tử sai trước khi kiểm tra tính đầy đủ của kết quả
+  - Tách thao tác biến đổi dữ liệu khỏi assertion khi chuỗi kiểm tra trở nên khó đọc
+- level1: So sánh đệ quy
+  level2:
+  - usingRecursiveComparison và tình huống cần so sánh cấu trúc đối tượng
+  - Xác định trường nghiệp vụ cần kiểm tra và trường được phép bỏ qua
+  - Bỏ qua trường sinh tự động, thời gian tạo và metadata không ổn định
+  - Quy tắc so sánh null và nguy cơ bỏ sót khác biệt
+  - So sánh tập hợp lồng nhau với yêu cầu về thứ tự riêng
+  - Đăng ký Comparator theo kiểu hoặc theo trường
+  - Ảnh hưởng của equals tùy chỉnh và lựa chọn cấu hình so sánh
+  - So sánh cấu trúc có chu trình và tham chiếu dùng chung
+  - Kiểm tra tính tương thích kiểu khi so sánh các đối tượng khác lớp
+  - Đọc đường dẫn trường trong báo cáo khác biệt
+  - Giới hạn so sánh đệ quy khi đối tượng chứa proxy, trạng thái tải lười hoặc tài nguyên
+- level1: Ngoại lệ với AssertJ
+  level2:
+  - assertThatThrownBy và xác minh một thao tác ném ngoại lệ
+  - assertThatExceptionOfType và biểu diễn loại ngoại lệ được mong đợi
+  - catchThrowable và tách bước thực thi khỏi bước xác minh
+  - Kiểm tra kiểu ngoại lệ chính xác hoặc theo quan hệ kế thừa
+  - Kiểm tra thông báo đầy đủ, chứa đoạn văn bản hoặc khớp mẫu
+  - Kiểm tra cause và root cause trong chuỗi ngoại lệ
+  - Kiểm tra thuộc tính nghiệp vụ của ngoại lệ tùy chỉnh
+  - assertThatCode và xác nhận khối mã không ném ngoại lệ
+  - Giới hạn phạm vi lambda để bảo đảm ngoại lệ đến từ đúng thao tác
+  - Tránh kỳ vọng thông báo phụ thuộc nền tảng hoặc phiên bản thư viện
+- level1: Soft assertions
+  level2:
+  - Phân biệt dừng ở lỗi đầu tiên với thu thập nhiều lỗi xác minh
+  - SoftAssertions và vai trò của assertAll
+  - assertSoftly và giới hạn phạm vi thu thập lỗi
+  - AutoCloseableSoftAssertions và đóng phạm vi xác minh tự động
+  - Tích hợp SoftAssertions với vòng đời JUnit Jupiter
+  - Kiểm tra nhiều thuộc tính của cùng một kết quả nghiệp vụ
+  - Xử lý assertion phụ thuộc nhau khi dữ liệu đầu vào đã không hợp lệ
+  - Tránh dùng chung bộ thu lỗi giữa các luồng hoặc các bài kiểm thử
+  - Nhận diện bài kiểm thử thành công giả khi quên kết thúc soft assertions
+- level1: Assertion tùy chỉnh
+  level2:
+  - Khi nào nên tạo assertion theo ngôn ngữ nghiệp vụ
+  - Xây dựng lớp assertion kế thừa AbstractAssert
+  - Thiết kế điểm vào assertThat cho kiểu dữ liệu riêng
+  - Kiểm tra null và thất bại sớm với thông báo nhất quán
+  - Thiết kế phương thức fluent cho các thuộc tính nghiệp vụ
+  - Tạo thông báo nêu rõ kết quả mong đợi, thực tế và ngữ cảnh
+  - Tái sử dụng Condition hoặc Comparator thay vì tạo lớp mới không cần thiết
+  - Tùy chỉnh cách biểu diễn dữ liệu trong thông báo thất bại
+  - Kiểm thử chính assertion tùy chỉnh bằng trường hợp đạt và không đạt
+  - Tổ chức thư viện assertion dùng chung và tránh đưa logic sản phẩm vào phép xác minh
+- level1: Hamcrest cơ bản
+  level2:
+  - Matcher là gì và cấu trúc assertThat với Hamcrest
+  - Thiết lập Hamcrest và phân biệt các nguồn static import
+  - is, equalTo và diễn đạt phép so sánh dễ đọc
+  - nullValue, notNullValue, sameInstance và instanceOf
+  - not, allOf và anyOf trong kết hợp điều kiện
+  - Matcher cho chuỗi, tiền tố, hậu tố và đoạn văn bản
+  - Matcher cho số và phạm vi giá trị
+  - hasItem, hasItems, contains và containsInAnyOrder
+  - Matcher cho Map, khóa và entry
+  - Đọc phần expected, but và mô tả nguyên nhân không khớp
+- level1: Hamcrest nâng cao
+  level2:
+  - Kết hợp matcher lồng nhau cho đối tượng chứa tập hợp
+  - hasProperty và kiểm tra thuộc tính theo hợp đồng JavaBean
+  - Matcher cho ngoại lệ và tích hợp với khối thực thi của framework kiểm thử
+  - Tạo matcher tùy chỉnh bằng TypeSafeMatcher
+  - Mô tả sự khác biệt bằng TypeSafeDiagnosingMatcher
+  - FeatureMatcher và kiểm tra một đặc trưng của đối tượng
+  - Thiết kế matcher có thể kết hợp và thông báo đúng trọng tâm
+  - Tránh matcher có tác động phụ hoặc làm thay đổi đối tượng thực tế
+  - Kiểm thử matcher với đầu vào đúng, sai và null
+- level1: Google Truth
+  level2:
+  - Cấu trúc Subject và cách đọc assertion bằng Google Truth
+  - Thiết lập Truth và quản lý xung đột static import với thư viện khác
+  - Kiểm tra giá trị cơ bản, chuỗi và đối tượng
+  - Kiểm tra Iterable, thứ tự và phần tử lặp
+  - Kiểm tra Map và các cặp khóa–giá trị
+  - Thông báo thất bại và bổ sung ngữ cảnh cho assertion
+  - Tạo Subject tùy chỉnh cho kiểu dữ liệu nghiệp vụ
+  - Lựa chọn Truth theo hệ sinh thái dự án và quy ước của nhóm
+- level1: JSON
+  level2:
+  - Phân biệt so sánh chuỗi JSON với so sánh cấu trúc dữ liệu JSON
+  - JSONassert và lựa chọn chế độ so sánh nghiêm ngặt hoặc linh hoạt
+  - JSON Unit và cấu hình quy tắc so sánh tài liệu JSON
+  - Kiểm tra trường bắt buộc, trường dư và giá trị không được mong đợi
+  - Phân biệt thuộc tính không tồn tại với thuộc tính có giá trị null
+  - Kiểm soát thứ tự phần tử và phần tử lặp trong mảng JSON
+  - Kiểm tra giá trị số, dung sai và khác biệt biểu diễn
+  - Bỏ qua hoặc kiểm tra theo quy tắc đối với trường sinh động
+  - Kiểm tra một phần tài liệu qua đường dẫn JSON
+  - So sánh cây JSON bằng Jackson kết hợp thư viện assertion
+  - Đọc báo cáo khác biệt theo đường dẫn và tránh che mất lỗi nghiệp vụ
+- level1: XML
+  level2:
+  - Phân biệt so sánh văn bản XML với so sánh cấu trúc tài liệu
+  - XMLUnit và xây dựng phép so sánh bằng DiffBuilder
+  - Phân biệt tài liệu giống về cấu trúc với tài liệu giống hoàn toàn theo cấu hình
+  - Kiểm soát khoảng trắng, chú thích và cách biểu diễn dữ liệu
+  - Kiểm tra namespace, tên phần tử và thuộc tính
+  - NodeMatcher và lựa chọn cách ghép phần tử giữa hai tài liệu
+  - Kiểm tra giá trị hoặc sự tồn tại của nút bằng XPath
+  - DifferenceEvaluator và giới hạn những khác biệt được chấp nhận
+  - Đọc danh sách khác biệt và xác định đúng đường dẫn phần tử
+- level1: HTTP và dữ liệu
+  level2:
+  - Xác minh mã trạng thái, header và nội dung phản hồi theo hợp đồng
+  - Kết hợp Hamcrest với assertion trong REST Assured
+  - Kết hợp AssertJ với giá trị lấy từ MockMvc hoặc WebTestClient
+  - Kiểm tra cấu trúc phản hồi trước khi xác minh giá trị nghiệp vụ
+  - Xác minh tập dữ liệu truy vấn với thứ tự và số lượng bản ghi rõ ràng
+  - Kiểm tra dữ liệu tiền tệ, ngày giờ và null sau khi ánh xạ từ cơ sở dữ liệu
+  - Xác minh trạng thái trước, sau và tác động phụ quan trọng
+  - Phân biệt assertion về dữ liệu với việc xác minh lời gọi trên mock
+  - Tránh phụ thuộc vào ID tự sinh hoặc thứ tự SQL không được bảo đảm
+- level1: Bất đồng bộ
+  level2:
+  - Phân biệt assertion tức thời với chờ trạng thái cuối cùng
+  - Awaitility untilAsserted và thực thi lại assertion trong thời hạn cho phép
+  - Chọn thời hạn chờ và chu kỳ kiểm tra theo hành vi hệ thống
+  - Xác minh kết quả, lỗi và trạng thái hoàn tất của Future hoặc CompletableFuture
+  - Xử lý ngoại lệ bọc khi kết quả bất đồng bộ thất bại
+  - StepVerifier và kiểm tra chuỗi tín hiệu phản ứng
+  - Kiểm tra thứ tự dữ liệu, tín hiệu hoàn tất và tín hiệu lỗi
+  - Kiểm soát thời gian ảo khi nguồn phản ứng hỗ trợ cách kiểm thử đó
+  - Xác minh hành vi không xảy ra trong một khoảng thời gian có ý nghĩa
+  - Tránh assertion thất bại trên luồng nền mà framework kiểm thử không thu nhận được
+- level1: Dữ liệu sinh tự động
+  level2:
+  - Assertion trong kiểm thử tham số hóa với nhiều bộ dữ liệu
+  - Diễn đạt bất biến để kiểm tra trên dữ liệu sinh tự động
+  - Phân biệt ví dụ mong đợi cụ thể với thuộc tính luôn phải đúng
+  - Kiểm tra quan hệ đảo ngược, tính lũy đẳng và các quan hệ giữa nhiều kết quả
+  - Thiết kế thông báo chứa đầu vào gây lỗi để tái hiện trường hợp thất bại
+  - Giữ quy tắc so sánh nhất quán khi công cụ thu nhỏ dữ liệu lỗi
+  - Kết hợp assertion tùy chỉnh với jqwik hoặc công cụ kiểm thử thuộc tính
+  - Tránh thuộc tính quá yếu khiến mọi cách triển khai đều vượt qua
+- level1: Chẩn đoán và bảo trì
+  level2:
+  - Đọc báo cáo thất bại theo giá trị mong đợi, giá trị thực tế và vị trí khác biệt
+  - Bổ sung mã giao dịch, tên trường hoặc chỉ mục phần tử vào thông báo
+  - Nhận diện assertion luôn đúng, điều kiện đảo và giá trị mong đợi không độc lập
+  - Tránh nuốt AssertionError hoặc ngoại lệ làm bài kiểm thử báo thành công sai
+  - Chẩn đoán khác biệt do equals, Comparator và cấu hình so sánh
+  - Chẩn đoán assertion chập chờn do thời gian, thứ tự và trạng thái dùng chung
+  - Tránh chia sẻ đối tượng khả biến giữa dữ liệu thực tế và dữ liệu mong đợi
+  - Rà soát snapshot hoặc golden file trước khi cập nhật kết quả chuẩn
+  - Thống nhất thư viện assertion và quy ước static import trong dự án
+  - Thay thế assertion khó đọc bằng phép xác minh trực tiếp có thông báo tốt
+  - Rà soát bài kiểm thử sau khi thay đổi hợp đồng nghiệp vụ
+- level1: Thực hành tổng hợp
+  level2:
+  - Viết assertion cho hàm tính tiền với BigDecimal và quy tắc làm tròn
+  - Kiểm tra danh sách kết quả có thứ tự, phần tử lặp và dữ liệu lồng nhau
+  - Kiểm tra Map chứa Optional hoặc tập hợp với thông báo chỉ rõ khóa lỗi
+  - So sánh hai đối tượng nghiệp vụ và bỏ qua đúng các trường sinh tự động
+  - Kiểm tra ngoại lệ tùy chỉnh cùng thông báo, nguyên nhân và mã lỗi
+  - Thu thập nhiều lỗi của một đối tượng bằng soft assertions
+  - Xây dựng assertion tùy chỉnh cho một mô hình nghiệp vụ
+  - Kiểm tra phản hồi JSON có trường động và mảng không yêu cầu thứ tự
+  - Chờ cập nhật bất đồng bộ và xác minh trạng thái cuối bằng Awaitility
+  - Refactor bộ assertion khó chẩn đoán thành các phép kiểm tra rõ ý nghĩa

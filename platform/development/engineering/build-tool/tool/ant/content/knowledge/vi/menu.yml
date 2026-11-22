@@ -1,0 +1,391 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Apache Ant là gì và bài toán tự động hóa quy trình dựng phần mềm
+  - Vị trí của Ant trong chuỗi biên dịch, kiểm thử, đóng gói và phát hành
+  - Mối quan hệ giữa project, target, task, property và kiểu dữ liệu
+  - Cách Ant mô tả công việc và phụ thuộc bằng XML
+  - 'Ant, Make, Maven và Gradle: khác biệt về mô hình và phạm vi sử dụng'
+  - Task có sẵn, task tùy chọn và phần mở rộng bên ngoài
+  - Ưu điểm, giới hạn và tình huống phù hợp với Ant
+  - Lộ trình học Ant từ build đơn giản đến hệ thống nhiều dự án
+- level1: Cài đặt
+  level2:
+  - Yêu cầu tương thích giữa phiên bản Ant, JDK và hệ điều hành
+  - Cài đặt Ant từ bản phân phối và kiểm tra tính toàn vẹn
+  - Cấu hình JAVA_HOME, ANT_HOME và PATH
+  - Xác minh môi trường bằng ant -version và ant -diagnostics
+  - Phân biệt JDK chạy Ant và JDK dùng để biên dịch dự án
+  - Tổ chức thư viện trong ANT_HOME/lib, thư mục người dùng và -lib
+  - Cấu hình JVM chạy Ant bằng ANT_OPTS
+  - Tích hợp Ant với IDE và kiểm tra khác biệt với dòng lệnh
+- level1: Build đầu tiên
+  level2:
+  - Tổ chức thư mục src, resources, test, build và dist
+  - Tạo build.xml tối thiểu với project và target mặc định
+  - Chuẩn bị thư mục đầu ra bằng mkdir
+  - Biên dịch chương trình Java đầu tiên bằng javac
+  - Đóng gói và chạy JAR đầu tiên
+  - Tạo chuỗi init, compile, test, jar và clean
+  - Đọc kết quả BUILD SUCCESSFUL, BUILD FAILED và mã thoát
+- level1: Cấu trúc buildfile
+  level2:
+  - 'Cấu trúc XML: phần tử, thuộc tính, nội dung lồng và chú thích'
+  - Phần tử project với name, default và basedir
+  - Phân biệt target, task và khai báo kiểu dữ liệu trong build.xml
+  - Target ngầm định và thời điểm chạy các task ở cấp project
+  - Mô tả dự án và target bằng description
+  - Tham chiếu đối tượng bằng id và refid
+  - Namespace XML và định danh task bằng URI
+  - Escape ký tự XML, CDATA và biểu thức property trong văn bản
+- level1: Lệnh Ant
+  level2:
+  - Chọn buildfile bằng -f, -file và -buildfile
+  - Chạy target mặc định, target cụ thể và nhiều target
+  - Khám phá target bằng -projecthelp
+  - Truyền property bằng -D và -propertyfile
+  - Tìm buildfile trong cây thư mục bằng -find
+  - Điều chỉnh đầu ra bằng -quiet, -verbose, -debug và -silent
+  - Ghi nhật ký bằng -logfile và điều khiển nhập liệu bằng -noinput
+  - Tiếp tục các nhánh độc lập bằng -keep-going
+- level1: Target
+  level2:
+  - Thiết kế target theo một trách nhiệm rõ ràng
+  - Mô hình đồ thị phụ thuộc và thuộc tính depends
+  - Thứ tự phụ thuộc, phụ thuộc chung và chu kỳ target
+  - Phân biệt phụ thuộc target với phụ thuộc giữa tệp nguồn và đầu ra
+  - Hành vi chạy lặp khi gọi nhiều target hoặc tạo lần chạy Ant mới
+  - Điều kiện if và unless trên target
+  - Thời điểm kiểm tra điều kiện sau khi xử lý depends
+  - Điểm mở rộng extension-point và extensionOf
+  - Phân biệt target công khai và target hỗ trợ nội bộ
+  - Thiết kế target clean, kiểm tra và phát hành có thể chạy độc lập
+- level1: Property
+  level2:
+  - Khai báo property và tham chiếu bằng cú pháp ${...}
+  - Tính bất biến thông thường và nguyên tắc giá trị được đặt trước
+  - User property và độ ưu tiên của giá trị truyền từ dòng lệnh
+  - Nạp cấu hình từ tệp .properties và tham số -propertyfile
+  - Nạp biến môi trường bằng property environment
+  - Phân biệt value và location khi khai báo đường dẫn
+  - 'Property có sẵn: basedir, ant.file, ant.version và ant.java.version'
+  - Thời điểm mở rộng property, property chưa được đặt và ký tự escape
+  - Property cục bộ với local và phạm vi trong sequential hoặc macro
+  - Tổ chức cấu hình mặc định, cấu hình cá nhân và cấu hình môi trường
+  - Đọc và ghi cấu hình bằng loadproperties, loadfile và propertyfile
+- level1: Kiểu dữ liệu
+  level2:
+  - Vai trò của kiểu dữ liệu và khác biệt với task thực thi
+  - Đối tượng tham chiếu, phạm vi id và tái sử dụng refid
+  - PatternSet và chia sẻ mẫu chọn tệp
+  - FileList và tập tệp có danh sách, thứ tự tường minh
+  - PropertySet và lựa chọn nhóm property
+  - FilterSet, FilterChain và dữ liệu cấu hình cho xử lý nội dung
+  - XMLCatalog và phân giải tài nguyên XML cục bộ
+- level1: Chọn tệp
+  level2:
+  - FileSet, DirSet và thư mục gốc khi quét tệp
+  - Mẫu Ant với dấu *, dấu ? và dấu **
+  - Kết hợp includes, excludes, includesfile và excludesfile
+  - Các mẫu loại trừ mặc định và defaultexcludes
+  - Phân biệt chữ hoa, chữ thường và cách xử lý liên kết tượng trưng
+  - Tái sử dụng PatternSet trong nhiều FileSet
+  - Chọn tệp theo tên, loại, kích thước và thời điểm sửa đổi
+  - Chọn tệp theo nội dung hoặc trạng thái thay đổi
+  - Kết hợp selector bằng and, or và not
+  - Kiểm tra tập tệp rỗng và tránh chọn nhầm thư mục đầu ra
+- level1: Tài nguyên
+  level2:
+  - Resource và ResourceCollection trong mô hình dữ liệu Ant
+  - Tài nguyên tệp, chuỗi, URL và phần tử trong kho nén
+  - Union, intersect và difference giữa các tập tài nguyên
+  - Giới hạn tài nguyên bằng restrict và resource selector
+  - Sắp xếp và chọn tài nguyên bằng sort, first và last
+  - Đếm và biểu diễn tập tài nguyên bằng resourcecount và pathconvert
+  - Khác biệt giữa tập tài nguyên tổng quát và task chỉ nhận tệp hệ thống
+- level1: Đường dẫn
+  level2:
+  - Khai báo path và pathelement bằng location hoặc path
+  - Tạo classpath từ thư mục lớp và tập JAR
+  - Tái sử dụng đường dẫn bằng refid và classpathref
+  - Phân biệt classpath của Ant, trình biên dịch, ứng dụng và kiểm thử
+  - Chuyển đổi đường dẫn bằng pathconvert và định dạng theo hệ điều hành
+  - Thứ tự classpath, JAR trùng lặp và xung đột phiên bản
+  - Kiểm soát CLASSPATH, -noclasspath và -nouserlib
+  - Classpath, modulepath và ranh giới sử dụng trong dự án Java
+- level1: Thao tác tệp
+  level2:
+  - Tạo thư mục bằng mkdir và xóa đầu ra bằng delete
+  - Sao chép bằng copy với FileSet và tập tài nguyên
+  - Di chuyển, đổi tên bằng move và ánh xạ tên bằng mapper
+  - Đồng bộ cây thư mục bằng sync và bảo vệ tệp cần giữ
+  - Ghép nội dung bằng concat và cập nhật dấu thời gian bằng touch
+  - Ánh xạ tên bằng globmapper, regexpmapper, flattenmapper và các mapper kết hợp
+  - Xử lý ghi đè, tệp chỉ đọc và thư mục rỗng
+  - Kiểm tra checksum của tệp và gói phân phối
+  - Đặt quyền tệp theo hệ điều hành và kiểm soát phạm vi xóa
+- level1: Lọc nội dung
+  level2:
+  - Thay token bằng FilterSet và cú pháp token
+  - Xử lý luồng văn bản bằng FilterChain
+  - Thay thế nội dung bằng replace và replaceregexp
+  - Sao chép tài nguyên có lọc và tách tệp văn bản khỏi tệp nhị phân
+  - Chuyển đổi encoding và xử lý tiếng Việt
+  - Chuẩn hóa xuống dòng bằng fixcrlf
+  - Nạp mẫu và tạo tệp cấu hình cho từng môi trường
+  - Biến đổi và xác thực XML bằng xslt, xmlvalidate và XMLCatalog
+- level1: Điều kiện
+  level2:
+  - Tạo property điều kiện bằng condition
+  - Kết hợp phép kiểm tra bằng and, or, not và xor
+  - Kiểm tra tệp, lớp và tài nguyên bằng available
+  - Kiểm tra hệ điều hành, chuỗi và property đã được đặt
+  - Phân biệt kiểm tra sự tồn tại của property với kiểm tra giá trị boolean
+  - Dừng build có chủ đích bằng fail và thông báo có ngữ cảnh
+  - Thu thập tham số bằng input và thiết kế chế độ không tương tác
+  - Điều kiện trên task bằng namespace ant:if và ant:unless
+  - Giới hạn điều khiển luồng của Ant lõi và khi cần phần mở rộng
+- level1: Biên dịch Java
+  level2:
+  - Cấu hình javac với srcdir, destdir và cấu trúc package
+  - Chọn nguồn biên dịch bằng includes, excludes và nhiều thư mục nguồn
+  - Thiết lập classpath, sourcepath và includeAntRuntime
+  - Chọn mức ngôn ngữ, bytecode bằng source, target và release
+  - Thiết lập encoding, debug, deprecation và compilerarg
+  - Biên dịch trong JVM hiện tại hoặc tách tiến trình bằng fork
+  - Chọn executable và giới hạn bộ nhớ cho trình biên dịch ngoài
+  - Annotation processing và quản lý mã nguồn được sinh
+  - Biên dịch Java module bằng modulepath và modulesourcepath
+  - Tách đầu ra mã chính, mã kiểm thử và tài nguyên
+  - Giới hạn kiểm tra thay đổi của javac và vai trò của depend
+  - Xử lý lỗi biên dịch bằng failonerror và errorProperty
+- level1: Chạy Java
+  level2:
+  - Chạy lớp có main bằng task java
+  - Chạy JAR với jar, classpath và cấu hình manifest
+  - Phân biệt JVM của Ant và JVM ứng dụng với fork
+  - Truyền đối số ứng dụng bằng arg và đối số JVM bằng jvmarg
+  - Truyền system property, biến môi trường và thư mục làm việc
+  - Chuyển hướng stdin, stdout và stderr
+  - Quản lý timeout, mã kết quả và failonerror
+  - Chạy ứng dụng dùng Java module và phân biệt modulepath với classpath
+- level1: Thư viện
+  level2:
+  - Giới hạn quản lý dependency của Ant lõi
+  - Quản lý thư viện thủ công trong lib và mô tả nguồn gốc phiên bản
+  - Tải tài nguyên bằng get và xác minh checksum
+  - Phân biệt thư viện ứng dụng với thư viện cần cho task tùy chọn
+  - Giới thiệu Apache Ivy như phần mở rộng quản lý dependency cho Ant
+  - Khai báo module và dependency trong ivy.xml
+  - Cấu hình resolver, repository và cache bằng ivysettings.xml
+  - Resolve, retrieve và tạo classpath theo Ivy configuration
+  - Phụ thuộc bắc cầu, loại trừ và xử lý xung đột phiên bản với Ivy
+  - Cố định phiên bản và chuẩn bị thư viện cho build ngoại tuyến
+- level1: Kiểm thử
+  level2:
+  - Thiết kế target compile-test và test với đầu ra riêng
+  - Chạy JUnit 3 hoặc JUnit 4 bằng task junit
+  - Chạy JUnit Platform và JUnit Jupiter bằng task junitlauncher
+  - Cấu hình thư viện launcher, test engine và classpath kiểm thử
+  - Chọn lớp kiểm thử, nhóm kiểm thử và tag phù hợp với từng task
+  - Tách kiểm thử đơn vị và kiểm thử tích hợp trong đồ thị target
+  - Chọn JVM, working directory và tham số cho tiến trình kiểm thử
+  - Thiết lập timeout và kiểm soát dừng build khi kiểm thử thất bại
+  - Ghi nhận stdout, stderr và tạo báo cáo kiểm thử XML
+  - Tổng hợp báo cáo HTML bằng junitreport và định dạng XML tương thích
+  - Quản lý dữ liệu kiểm thử, tài nguyên và dọn dẹp môi trường
+- level1: Chất lượng mã
+  level2:
+  - Tích hợp công cụ phân tích mã qua task ngoài hoặc dòng lệnh
+  - Kiểm tra quy ước mã bằng Checkstyle
+  - Phân tích tĩnh bằng PMD và SpotBugs
+  - Đo độ bao phủ kiểm thử bằng JaCoCo Ant Tasks
+  - Đặt ngưỡng chất lượng và truyền lỗi kiểm tra về kết quả build
+  - Tách cấu hình công cụ, tệp loại trừ và báo cáo khỏi mã nguồn
+- level1: Tài liệu
+  level2:
+  - Sinh tài liệu API bằng task javadoc
+  - Cấu hình nguồn, classpath, encoding và liên kết Javadoc
+  - Đóng gói source JAR và Javadoc JAR
+  - Tạo thông tin phiên bản và tài liệu mô tả gói phân phối
+  - Tổ chức báo cáo kiểm thử, chất lượng mã và tài liệu API
+  - Biến đổi báo cáo XML bằng XSLT và quản lý tài nguyên stylesheet
+- level1: Đóng gói
+  level2:
+  - Tạo JAR từ lớp biên dịch và tài nguyên
+  - Cấu hình manifest với Main-Class, Class-Path và thông tin phiên bản
+  - Ghép hoặc cập nhật manifest bằng task manifest
+  - Kiểm soát trùng lặp, cập nhật và nội dung đầu vào của JAR
+  - JAR thực thi với thư viện bên ngoài và giới hạn đường dẫn manifest
+  - Gộp thư viện vào JAR và xử lý tài nguyên trùng, service descriptor, chữ ký
+  - Đóng gói WAR với WEB-INF/classes, WEB-INF/lib và web.xml khi cần
+  - Vai trò của EAR trong hệ thống Java EE hoặc Jakarta EE hiện hữu
+  - Tạo ZIP, TAR, GZip và các gói phân phối
+  - Giải nén, kiểm tra nội dung và bảo vệ vị trí đích khi giải nén
+  - Ký JAR và kiểm tra chữ ký bằng signjar và verifyjar
+  - Kiểm tra sản phẩm đóng gói bằng một lần chạy thử độc lập
+- level1: Phát hành
+  level2:
+  - Thiết kế target dist và cấu trúc thư mục phân phối
+  - Quản lý phiên bản, tên tệp và định danh bản phát hành
+  - Đóng gói script khởi động, cấu hình mẫu và tài liệu đi kèm
+  - Tạo checksum và thông tin nguồn gốc sản phẩm
+  - Tách build, publish và deploy thành các thao tác tường minh
+  - Truyền thông tin xác thực cho tác vụ phát hành qua môi trường
+  - Tải hoặc chuyển sản phẩm bằng HTTP, SCP và task ngoài khi phù hợp
+  - Kiểm tra điều kiện phát hành và xác minh gói sau khi phân phối
+- level1: Tái sử dụng
+  level2:
+  - Định nghĩa chuỗi task tái sử dụng bằng macrodef
+  - Tham số macro với attribute và cú pháp @{...}
+  - Tham số mặc định, doubleexpanding và escape trong macro
+  - Truyền phần tử lồng, phần tử implicit và nội dung text
+  - Chuyên biệt hóa task hoặc kiểu dữ liệu bằng presetdef
+  - Tách buildfile bằng import và include
+  - Khác biệt về tên target, ghi đè và phụ thuộc khi import hoặc include
+  - Quản lý basedir và đường dẫn của tệp build được nhập
+  - Kết hợp extension-point với phần build dùng chung
+  - Thiết kế macro có đầu vào rõ ràng và property cục bộ
+- level1: Nhiều dự án
+  level2:
+  - Phân rã hệ thống thành dự án gốc và các dự án con
+  - Gọi buildfile khác bằng task ant
+  - Gọi target cùng buildfile bằng antcall và phân biệt với depends
+  - Điều phối tập dự án con bằng subant
+  - Truyền property, param và reference giữa các lần gọi
+  - Ảnh hưởng của inheritAll, inheritRefs và basedir
+  - Quản lý thứ tự build và sản phẩm phụ thuộc giữa các dự án
+  - Tách cấu hình dùng chung với cấu hình riêng của từng dự án
+  - Tránh gọi lặp, vòng phụ thuộc và chia sẻ thư mục đầu ra
+- level1: Mở rộng Ant
+  level2:
+  - Đăng ký task và kiểu dữ liệu bằng taskdef và typedef
+  - Cấu hình classpath, classloaderref và xử lý thiếu thư viện mở rộng
+  - Tổ chức antlib.xml và sử dụng namespace cho thư viện task
+  - Viết task Java kế thừa org.apache.tools.ant.Task
+  - Vòng đời task, phương thức init và execute
+  - Ánh xạ thuộc tính XML qua setter và chuyển đổi kiểu
+  - Nhận nội dung lồng bằng addText và phần tử lồng bằng create, add, addConfigured
+  - Truy cập Project, property, reference và vị trí lỗi trong custom task
+  - Ghi log và ném BuildException có thông tin hữu ích
+  - Viết task chứa các task con bằng TaskContainer
+  - Kiểm thử custom task và buildfile bằng AntUnit hoặc bộ kiểm thử Java
+  - Đóng gói, quản lý phiên bản và phân phối antlib
+- level1: Tiến trình ngoài
+  level2:
+  - Gọi công cụ hệ thống bằng exec
+  - Truyền đối số bằng arg và tránh lỗi tách chuỗi lệnh
+  - Thiết lập executable, dir, environment và điều kiện hệ điều hành
+  - Thu thập output, error, resultproperty và chuyển hướng bằng redirector
+  - Kiểm soát timeout, failonerror và failifexecutionfails
+  - Thực thi công cụ trên nhiều tệp bằng apply
+  - Chạy tuần tự hoặc song song bằng sequential và parallel
+  - Đồng bộ tác vụ chờ bằng waitfor và quản lý giới hạn thời gian
+  - Viết script với script, scriptdef và bổ sung engine JSR-223 cho JDK cần dùng
+  - Sử dụng ant-contrib như phần mở rộng và đánh giá chi phí bảo trì
+- level1: Build tăng dần
+  level2:
+  - Phân biệt đồ thị target với quyết định task có cần tạo lại đầu ra
+  - So sánh dấu thời gian và kiểm tra up-to-date
+  - Bỏ qua công việc khi đầu ra còn hợp lệ bằng uptodate và điều kiện
+  - Quản lý nhóm nguồn và đầu ra bằng dependset
+  - Giới hạn khi nguồn bị xóa, dependency thay đổi hoặc cấu hình đổi
+  - Chọn clean build để phát hiện lớp cũ và tài nguyên còn sót
+  - Dùng checksum khi dấu thời gian không phản ánh thay đổi nội dung
+  - Thiết kế tác vụ có thể chạy lại mà không làm sai đầu ra
+- level1: Build tái lập
+  level2:
+  - Kiểm soát phiên bản Ant, JDK, thư viện và công cụ ngoài
+  - Loại bỏ phụ thuộc ngầm vào máy cá nhân và thư mục người dùng
+  - Cố định encoding, locale, múi giờ và xuống dòng
+  - Quản lý timestamp, thứ tự phần tử và metadata trong kho nén
+  - Kiểm soát thông tin phiên bản sinh tự động và đường dẫn tuyệt đối
+  - Tách thư mục đầu ra theo dự án và lần chạy
+  - Xác minh hai build bằng checksum và so sánh nội dung sản phẩm
+  - Cân bằng tính tái lập với thông tin thời điểm phát hành
+- level1: Nhật ký và lỗi
+  level2:
+  - Sử dụng echo, mức log và thông báo theo ngữ cảnh target
+  - Ghi nhật ký từng giai đoạn bằng record
+  - Chọn logger và listener bằng tùy chọn dòng lệnh
+  - Đọc lỗi XML, tên task, đường dẫn buildfile và số dòng
+  - Chẩn đoán target không tồn tại và phụ thuộc vòng
+  - Chẩn đoán property chưa được đặt hoặc có giá trị ngoài dự kiến
+  - Chẩn đoán taskdef lỗi, ClassNotFoundException và NoClassDefFoundError
+  - Chẩn đoán lỗi biên dịch, classpath và phiên bản bytecode
+  - Phân biệt lỗi công cụ con, lỗi kiểm thử và lỗi gói phân phối
+  - Xây dựng ca tái hiện tối thiểu và thu thập dữ liệu chẩn đoán
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian từng giai đoạn trước khi tối ưu
+  - Giảm quét thư mục rộng và tái sử dụng tập tệp phù hợp
+  - Tránh antcall hoặc sub-build không cần thiết
+  - Cân bằng chi phí fork JVM với nhu cầu cô lập tiến trình
+  - Giới hạn tài nguyên và tránh tranh chấp khi dùng parallel
+  - Quản lý cache thư viện và tránh tải lại dependency
+  - Đánh giá tối ưu bằng thời gian chạy và tính đúng của sản phẩm
+- level1: Đa nền tảng
+  level2:
+  - Thiết kế đường dẫn độc lập với Windows, Linux và macOS
+  - Xử lý dấu cách, Unicode và phân biệt chữ hoa, chữ thường trong tên tệp
+  - Tách tham số khỏi chuỗi lệnh để giảm phụ thuộc shell
+  - Chọn công cụ ngoài theo hệ điều hành và xác minh trước khi chạy
+  - Kiểm soát quyền thực thi, liên kết tượng trưng và xuống dòng
+  - Xử lý giới hạn độ dài lệnh và classpath
+  - Kiểm tra khóa tệp, xóa tệp và khác biệt hệ thống tệp
+  - Chạy cùng buildfile trên nhiều hệ điều hành để phát hiện phụ thuộc ngầm
+- level1: CI/CD
+  level2:
+  - Thiết kế một lệnh Ant chuẩn cho máy phát triển và CI
+  - Chuẩn bị agent với Ant, JDK và công cụ ngoài đã xác định phiên bản
+  - Build không tương tác với -noinput và property từ môi trường
+  - Tích hợp lệnh Ant trong Jenkins hoặc GitHub Actions
+  - Chạy ma trận JDK, hệ điều hành và cấu hình cần hỗ trợ
+  - Lưu báo cáo kiểm thử, nhật ký và sản phẩm dưới dạng artifact
+  - Thiết kế cache dependency và phục hồi khi cache không còn hợp lệ
+  - Truyền mã lỗi và chặn phát hành khi kiểm tra không đạt
+  - Tách quyền và thông tin xác thực giữa build kiểm tra và phát hành
+  - Đối chiếu kết quả build cục bộ với môi trường CI
+- level1: An toàn build
+  level2:
+  - Ranh giới tin cậy của build.xml, antlib và công cụ ngoài
+  - Xác minh nguồn tải Ant, JAR mở rộng và dependency
+  - Giữ bí mật ngoài buildfile, tệp phân phối và nhật ký
+  - Kiểm tra tham số đầu vào trước thao tác xóa, ghi và phát hành
+  - Giới hạn đường dẫn đích của delete, sync và giải nén
+  - Giảm quyền truy cập mạng, hệ thống tệp và tài khoản CI
+  - Kiểm soát XML bên ngoài và sử dụng catalog khi cần
+  - Rà soát thư viện cũ và cập nhật các thành phần build có lỗ hổng
+- level1: Bảo trì
+  level2:
+  - Quy ước đặt tên target, property, path id và macro
+  - Tách cấu hình, định nghĩa tái sử dụng và luồng công việc chính
+  - Tài liệu hóa target công khai, đầu vào, đầu ra và điều kiện chạy
+  - Phát hiện đường dẫn cứng, task sao chép và property khó theo dõi
+  - Thay task lỗi thời và kiểm tra tương thích sau nâng cấp Ant hoặc JDK
+  - Kiểm thử hồi quy build bằng clean build, ca lỗi và kiểm tra sản phẩm
+  - Giữ sản phẩm sinh tự động ngoài vùng mã nguồn được quản lý
+  - Đọc và cải tiến buildfile cũ mà vẫn giữ hợp đồng đầu ra
+- level1: Chuyển đổi build
+  level2:
+  - Kiểm kê target, dependency, sản phẩm và công cụ trong build Ant hiện hữu
+  - Gọi Ant từ Maven hoặc Gradle trong giai đoạn chuyển tiếp
+  - Ánh xạ target Ant sang lifecycle Maven hoặc task Gradle
+  - Chuyển quản lý JAR thủ công sang cơ chế dependency có phiên bản
+  - Chuyển từng giai đoạn biên dịch, kiểm thử và đóng gói
+  - So sánh sản phẩm, báo cáo và hành vi trước và sau chuyển đổi
+  - Tiêu chí giữ Ant, kết hợp công cụ hoặc kết thúc chuyển đổi
+- level1: Thực hành
+  level2:
+  - Xây build Java console với compile, test, jar, run và clean
+  - Bổ sung thư viện ngoài và chạy JAR từ thư mục phân phối sạch
+  - Tạo cấu hình môi trường bằng property, mẫu tệp và bộ lọc
+  - Tích hợp Ivy để phân giải và chuẩn bị thư viện kiểm thử
+  - Tạo báo cáo JUnit Platform và đo độ bao phủ bằng công cụ ngoài
+  - Tách build chung bằng macrodef, import và extension-point
+  - Điều phối hệ thống nhiều dự án với ant hoặc subant
+  - Viết và kiểm thử một custom task Java có đóng gói antlib
+  - Đóng gói WAR cho ứng dụng web hiện hữu và kiểm tra cấu trúc
+  - Thiết lập CI với kiểm tra chất lượng, artifact và gói phát hành
+  - Thử nghiệm build tăng dần, clean build và tính tái lập
+  - Chẩn đoán buildfile lỗi và đánh giá chất lượng thiết kế build

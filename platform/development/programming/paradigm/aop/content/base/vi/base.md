@@ -1,0 +1,7 @@
+# Aspect (AOP) – Lập trình hướng khía cạnh
+
+Trong một chương trình, các công việc như ghi nhật ký, đo thời gian thực thi hay kiểm soát truy cập thường lặp lại ở nhiều phần nghiệp vụ. Lập trình hướng khía cạnh (Aspect-Oriented Programming, AOP) giúp tổ chức các mối quan tâm cắt ngang này thành những aspect riêng, xác định nơi cần áp dụng và cách bổ sung hành vi. AOP bổ trợ cho lập trình hướng đối tượng, giúp mã nghiệp vụ tập trung hơn mà vẫn cần chú ý đến tác động của phần can thiệp lên chương trình.
+
+Module này dành cho người đã nắm kiến thức cơ bản về lớp, đối tượng, phương thức, luồng thực thi và ngoại lệ, muốn tìm hiểu AOP từ nền tảng đến nâng cao mà không phụ thuộc vào một framework cụ thể. Bạn sẽ lần lượt làm rõ aspect, join point, pointcut, advice và weaving; cách chọn điểm can thiệp, sử dụng dữ liệu ngữ cảnh, duy trì hợp đồng về kết quả và ngoại lệ, đồng thời nhận biết giới hạn của từng cơ chế weaving.
+
+Lộ trình học gồm tám mốc: **Tư duy AOP → Mô hình AOP → Pointcut và ngữ cảnh → Advice và hợp đồng → Cơ chế weaving → Phối hợp aspect → AOP nâng cao → Kiểm thử và ứng dụng**. Qua đó, bạn sẽ phân tích thứ tự thực thi và tương tác giữa các aspect, vòng đời và trạng thái của chúng, những rủi ro khi xử lý đồng thời, rồi áp dụng AOP vào bài toán phù hợp. Mục tiêu cuối cùng là biết thiết kế, kiểm thử và đánh giá các aspect có phạm vi rõ ràng, dễ bảo trì và không làm sai lệch hành vi mong đợi của hệ thống.

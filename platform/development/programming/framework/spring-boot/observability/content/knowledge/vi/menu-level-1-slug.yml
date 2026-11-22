@@ -1,0 +1,109 @@
+menu:
+- title: Nền tảng Observability
+  slug: observability-foundation
+  index: 0
+- title: Ba trụ cột
+  slug: three-pillars
+  index: 1
+- title: Micrometer Observation
+  slug: micrometer-observation
+  index: 2
+- title: Vòng đời observation
+  slug: observation-lifecycle
+  index: 3
+- title: Cấu hình registry
+  slug: registry-configuration
+  index: 4
+- title: Custom observation
+  slug: custom-observation
+  index: 5
+- title: Convention và filter
+  slug: convention-and-filter
+  index: 6
+- title: Cardinality và metadata
+  slug: cardinality-and-metadata
+  index: 7
+- title: Metrics nền tảng
+  slug: metrics-foundation
+  index: 8
+- title: Spring Boot metrics
+  slug: spring-boot-metrics
+  index: 9
+- title: Application metrics
+  slug: application-metrics
+  index: 10
+- title: Actuator metrics endpoint
+  slug: actuator-metrics-endpoint
+  index: 11
+- title: Meter registry và exporter
+  slug: meter-registry-and-exporter
+  index: 12
+- title: Tracing
+  slug: tracing
+  index: 13
+- title: Tracer implementation
+  slug: tracer-implementation
+  index: 14
+- title: Context propagation
+  slug: context-propagation
+  index: 15
+- title: Baggage và correlation
+  slug: baggage-and-correlation
+  index: 16
+- title: Sampling
+  slug: sampling
+  index: 17
+- title: OpenTelemetry
+  slug: opentelemetry
+  index: 18
+- title: OTLP export
+  slug: otlp-export
+  index: 19
+- title: Logging
+  slug: logging
+  index: 20
+- title: HTTP server observability
+  slug: http-server-observability
+  index: 21
+- title: HTTP client observability
+  slug: http-client-observability
+  index: 22
+- title: Database observability
+  slug: database-observability
+  index: 23
+- title: Messaging và task observability
+  slug: messaging-and-task-observability
+  index: 24
+- title: Annotation observability
+  slug: annotation-observability
+  index: 25
+- title: Actuator và management
+  slug: actuator-and-management
+  index: 26
+- title: Health và readiness
+  slug: health-and-readiness
+  index: 27
+- title: Security và privacy
+  slug: security-and-privacy
+  index: 28
+- title: Hiệu năng observability
+  slug: observability-performance
+  index: 29
+- title: Testing observability
+  slug: observability-testing
+  index: 30
+- title: Dashboard và alert
+  slug: dashboard-and-alert
+  index: 31
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 32
+- title: Thiết kế kiến trúc
+  slug: architecture-design
+  index: 33
+- title: Vận hành production
+  slug: production-operations
+  index: 34
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 35

@@ -1,0 +1,106 @@
+menu:
+- title: Nền tảng
+  slug: foundation
+  index: 0
+- title: Lựa chọn kho dữ liệu
+  slug: store-selection
+  index: 1
+- title: Mô hình truy cập
+  slug: access-models
+  index: 2
+- title: Kiến trúc tích hợp
+  slug: integration-architecture
+  index: 3
+- title: Kết nối và cấu hình
+  slug: connection-configuration
+  index: 4
+- title: Biểu diễn dữ liệu
+  slug: data-representation
+  index: 5
+- title: Thao tác đọc ghi
+  slug: read-write-operations
+  index: 6
+- title: Truy vấn và chỉ mục
+  slug: queries-and-indexes
+  index: 7
+- title: Nhất quán phân tán
+  slug: distributed-consistency
+  index: 8
+- title: Giao dịch và đồng thời
+  slug: transactions-and-concurrency
+  index: 9
+- title: Độ bền và vòng đời
+  slug: durability-and-lifecycle
+  index: 10
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 11
+- title: MongoDB căn bản
+  slug: mongodb-foundations
+  index: 12
+- title: Truy vấn MongoDB
+  slug: mongodb-queries
+  index: 13
+- title: Spring Data MongoDB
+  slug: spring-data-mongodb
+  index: 14
+- title: Redis lưu trữ
+  slug: redis-storage
+  index: 15
+- title: Java và Redis
+  slug: java-redis
+  index: 16
+- title: Cassandra căn bản
+  slug: cassandra-foundations
+  index: 17
+- title: Java và Cassandra
+  slug: java-cassandra
+  index: 18
+- title: Neo4j căn bản
+  slug: neo4j-foundations
+  index: 19
+- title: Java và Neo4j
+  slug: java-neo4j
+  index: 20
+- title: DynamoDB
+  slug: dynamodb
+  index: 21
+- title: Kho tìm kiếm
+  slug: search-stores
+  index: 22
+- title: Kho chuyên dụng
+  slug: specialized-stores
+  index: 23
+- title: Bất đồng bộ và phản ứng
+  slug: reactive-access
+  index: 24
+- title: Thao tác hàng loạt
+  slug: batch-operations
+  index: 25
+- title: Thay đổi và đồng bộ
+  slug: change-data-sync
+  index: 26
+- title: Bảo mật truy cập
+  slug: access-security
+  index: 27
+- title: Hiệu năng
+  slug: performance
+  index: 28
+- title: Quan sát vận hành
+  slug: operational-observability
+  index: 29
+- title: Kiểm thử
+  slug: testing
+  index: 30
+- title: Sao lưu và khôi phục
+  slug: backup-and-recovery
+  index: 31
+- title: Tiến hóa dữ liệu
+  slug: data-evolution
+  index: 32
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 33
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 34

@@ -1,0 +1,57 @@
+roadmap:
+- id: nhan-dien-cau-truc-cay
+  title: Nhận diện cấu trúc cây
+  purpose: Hiểu khi nào dữ liệu gồm phần tử đơn và nhóm lồng nhau cần được xử lý đồng nhất.
+  objectives:
+  - Nhận diện cấu trúc parent–child trong bài toán.
+  - Phân biệt phần tử lá và phần tử chứa.
+  - Nêu ví dụ cây thư mục hoặc giao diện UI.
+- id: component-interface
+  title: Component Interface
+  purpose: Định nghĩa hợp đồng chung cho cả phần tử đơn và phần tử tổ hợp.
+  objectives:
+  - Thiết kế interface Component trong Java.
+  - Chọn hành vi chung như render() hoặc cost().
+  - Cho client phụ thuộc vào Component thay vì lớp cụ thể.
+- id: leaf-objects
+  title: Leaf Objects
+  purpose: Cài đặt các nút lá thực hiện hành vi mà không quản lý phần tử con.
+  objectives:
+  - Tạo một hoặc nhiều lớp Leaf implements Component.
+  - Cài hành vi trực tiếp trong Leaf.
+  - Kiểm tra kết quả của từng nút lá độc lập.
+- id: composite-children
+  title: Composite & Children
+  purpose: Tạo nút chứa để quản lý danh sách Component và xây dựng cây nhiều cấp.
+  objectives:
+  - Cài lớp Composite implements Component.
+  - Lưu danh sách children bằng List<Component>.
+  - Viết add/remove phù hợp với quy tắc cây.
+- id: xu-ly-de-quy
+  title: Xử lý đệ quy
+  purpose: Ủy quyền thao tác từ nút cha xuống nút con và tổng hợp kết quả qua nhiều cấp.
+  objectives:
+  - Duyệt children bằng cùng Component interface.
+  - Tổng hợp kết quả từ Leaf và Composite lồng nhau.
+  - Xác định trường hợp dừng và nút rỗng.
+- id: client-da-hinh
+  title: Client & đa hình
+  purpose: Giúp mã gọi xử lý nút lá và nút tổ hợp qua cùng một API.
+  objectives:
+  - Viết hàm nhận tham số kiểu Component.
+  - Gọi cùng hành vi với Leaf và Composite.
+  - Bổ sung loại nút mới mà không sửa client.
+- id: bao-ve-cay
+  title: Bảo vệ cây
+  purpose: Giữ cấu trúc cây hợp lệ khi thêm, xóa hoặc chuyển nút.
+  objectives:
+  - Ngăn tham chiếu vòng và thêm chính nó.
+  - Quyết định quyền sở hữu parent/child.
+  - Xử lý child null, trùng lặp và cấu trúc rỗng.
+- id: kiem-thu-lua-chon
+  title: Kiểm thử & lựa chọn
+  purpose: Chứng minh Composite hoạt động đúng và tránh áp dụng sai cho cấu trúc không phân cấp.
+  objectives:
+  - Test cây nhiều cấp và kết quả tổng hợp.
+  - Test thêm/xóa, nút rỗng và phát hiện vòng.
+  - Phân biệt Composite với Decorator và Iterator.

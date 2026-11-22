@@ -1,0 +1,49 @@
+roadmap:
+- id: ban-chat-refactoring
+  title: Bản chất Refactoring
+  purpose: Hiểu cách cải thiện cấu trúc mã nguồn mà vẫn giữ nguyên hành vi quan sát được.
+  objectives:
+  - '- Phân biệt refactoring với thêm tính năng hoặc sửa lỗi hành vi.'
+  - '- Giải thích lợi ích và giới hạn của thay đổi nhỏ.'
+- id: code-smells-uu-tien
+  title: Code Smells & Ưu tiên
+  purpose: Nhận diện dấu hiệu thiết kế khó bảo trì để chọn vấn đề đáng xử lý.
+  objectives:
+  - '- Phát hiện Long Method, Duplicate Code và Large Class.'
+  - '- Chọn refactoring dựa trên nhu cầu thay đổi thực tế.'
+- id: test-safety-net
+  title: Test & Safety Net
+  purpose: Xây dựng cách kiểm chứng hành vi trước và sau khi sửa cấu trúc.
+  objectives:
+  - '- Chạy unit/integration test làm baseline.'
+  - '- Tạo commit nhỏ, quan sát diff và rollback khi cần.'
+- id: rename-extract
+  title: Rename & Extract
+  purpose: Thực hành các phép biến đổi đơn giản tăng tính rõ ràng và giảm lặp.
+  objectives:
+  - '- Sử dụng Rename và Extract Method/Variable.'
+  - '- Kiểm tra toàn bộ tham chiếu sau khi đổi tên.'
+- id: rut-gon-logic
+  title: Rút gọn Logic
+  purpose: Làm các nhánh điều kiện và đoạn xử lý phức tạp dễ hiểu hơn.
+  objectives:
+  - '- Dùng guard clauses để giảm nested conditionals.'
+  - '- Tách phép tính và kiểm tra hành vi biên.'
+- id: tach-di-chuyen-trach-nhiem
+  title: Tách & Di chuyển Trách nhiệm
+  purpose: Nâng cohesion và giảm coupling bằng việc phân bổ lại logic giữa các lớp.
+  objectives:
+  - '- Áp dụng Extract Class và Move Method/Field.'
+  - '- Xác định nơi đúng để đặt trách nhiệm nghiệp vụ.'
+- id: encapsulation-api
+  title: Encapsulation & API
+  purpose: Giảm phụ thuộc vào dữ liệu nội bộ và giữ hợp đồng công khai ổn định.
+  objectives:
+  - '- Dùng Encapsulate Variable hoặc Introduce Parameter Object.'
+  - '- Đánh giá tương thích của public API khi refactor.'
+- id: workflow-automation
+  title: Workflow & Automation
+  purpose: Đưa refactoring vào nhịp phát triển với công cụ và xác minh liên tục.
+  objectives:
+  - '- Chạy refactor bằng IDE và xem preview/diff.'
+  - '- Khám phá OpenRewrite recipes và chạy test sau mỗi bước.'

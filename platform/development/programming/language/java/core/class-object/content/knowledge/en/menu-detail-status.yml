@@ -1,0 +1,2338 @@
+menu:
+- slug: class-object-fundamentals
+  title: Tổng quan
+  childs:
+  - slug: class-object-fundamentals-001
+    title: 'Lớp và đối tượng: khái niệm, mục đích và mối liên hệ'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-object-fundamentals-002
+    title: Trạng thái, hành vi và danh tính của một đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-object-fundamentals-003
+    title: Lớp như một kiểu dữ liệu do người lập trình định nghĩa
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-object-fundamentals-004
+    title: Phân biệt khai báo lớp, biến tham chiếu và thể hiện của lớp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-object-fundamentals-005
+    title: Một lớp tạo nhiều đối tượng có trạng thái độc lập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-object-fundamentals-006
+    title: Toàn cảnh trường, phương thức, hàm khởi tạo và thành viên static
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-object-fundamentals-007
+    title: 'Ví dụ xuyên suốt: mô hình hóa tài khoản ngân hàng'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-object-fundamentals-008
+    title: Lộ trình học và kiến thức Java nền tảng cần có
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-declaration
+  title: Khai báo lớp
+  childs:
+  - slug: class-declaration-001
+    title: Cú pháp class và cấu trúc thân lớp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-declaration-002
+    title: Đặt tên lớp, tên tệp và quy tắc của lớp public
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-declaration-003
+    title: Lớp cấp cao nhất và nhiều lớp trong một tệp nguồn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-declaration-004
+    title: Tổ chức lớp bằng package và sử dụng import
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-declaration-005
+    title: Tên đơn giản, tên đầy đủ và xử lý trùng tên lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-declaration-006
+    title: Phân biệt thành viên lớp, hàm khởi tạo và khối khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-declaration-007
+    title: Các từ khóa bổ nghĩa cho lớp và tổ hợp không hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-declaration-008
+    title: Biên dịch, tạo đối tượng và chạy chương trình đầu tiên
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fields
+  title: Trường dữ liệu
+  childs:
+  - slug: fields-001
+    title: 'Khai báo trường: kiểu dữ liệu, tên và giá trị ban đầu'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-002
+    title: Trường kiểu nguyên thủy và trường kiểu tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-003
+    title: Trường đối tượng và dữ liệu riêng của từng thể hiện
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-004
+    title: Giá trị mặc định của trường và yêu cầu khởi tạo biến cục bộ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-005
+    title: Phân biệt trường, tham số và biến cục bộ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-006
+    title: Phạm vi tên, thời gian tồn tại và hiện tượng che khuất tên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-007
+    title: Đọc và cập nhật trường bằng toán tử dấu chấm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fields-008
+    title: Vai trò của volatile và transient khi khai báo trường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: methods
+  title: Phương thức
+  childs:
+  - slug: methods-001
+    title: Cấu trúc khai báo phương thức và ý nghĩa từng thành phần
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-002
+    title: Phương thức đối tượng và đối tượng nhận lời gọi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-003
+    title: Chữ ký phương thức và những thành phần không thuộc chữ ký
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-004
+    title: Phương thức void và phương thức trả về giá trị
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-005
+    title: Luồng thực thi lời gọi, return và kết thúc bất thường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-006
+    title: Phân tách phương thức truy vấn và phương thức thay đổi trạng thái
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-007
+    title: Điều kiện đầu vào, điều kiện đầu ra và tác dụng phụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: methods-008
+    title: Nhận diện abstract, final, synchronized và native trên phương thức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameters-and-returns
+  title: Tham số và kết quả
+  childs:
+  - slug: parameters-and-returns-001
+    title: Phân biệt tham số hình thức và đối số tại lời gọi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-returns-002
+    title: Kiểm tra kiểu, số lượng và thứ tự đối số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-returns-003
+    title: Tham số kiểu nguyên thủy và tham số kiểu tham chiếu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-returns-004
+    title: Giá trị trả về là dữ liệu nguyên thủy, tham chiếu hoặc null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-returns-005
+    title: 'Tham số varargs: khai báo, truyền mảng và lời gọi không đối số'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-returns-006
+    title: Giới hạn vị trí varargs và những lời gọi dễ gây nhầm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-returns-007
+    title: Thứ tự đánh giá đối tượng nhận lời gọi và các đối số
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-returns-008
+    title: Thiết kế phương thức rõ nghĩa khi có nhiều tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-overloading
+  title: Nạp chồng
+  childs:
+  - slug: method-overloading-001
+    title: Mục đích và điều kiện nạp chồng phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overloading-002
+    title: Phân biệt chữ ký theo số lượng, kiểu và thứ tự tham số
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overloading-003
+    title: Vì sao chỉ đổi kiểu trả về không tạo được nạp chồng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overloading-004
+    title: Lựa chọn phương thức theo kiểu tại thời điểm biên dịch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overloading-005
+    title: Thứ tự xét chuyển kiểu, boxing và varargs
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overloading-006
+    title: Lời gọi với null và lỗi lựa chọn phương thức không rõ ràng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overloading-007
+    title: Phân biệt nạp chồng, ghi đè và che khuất
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overloading-008
+    title: Thiết kế tập phương thức nạp chồng dễ sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constructors
+  title: Hàm khởi tạo
+  childs:
+  - slug: constructors-001
+    title: Vai trò của hàm khởi tạo trong việc tạo trạng thái hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-002
+    title: Cú pháp, tên và điểm khác biệt với phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-003
+    title: 'Toán tử new: cấp phát, khởi tạo và nhận tham chiếu'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-004
+    title: Hàm khởi tạo mặc định và điều kiện trình biên dịch tạo tự động
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-005
+    title: Hàm khởi tạo không tham số do người lập trình khai báo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-006
+    title: Hàm khởi tạo có tham số và nạp chồng hàm khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-007
+    title: 'Chuỗi this() và super(): vị trí lời gọi trong Java 21'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-008
+    title: Kiểm tra dữ liệu và xử lý lỗi trong hàm khởi tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-009
+    title: Quyền truy cập hàm khởi tạo và ngăn tạo đối tượng từ bên ngoài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructors-010
+    title: Phương thức tạo đối tượng có tên và so sánh với hàm khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: this-keyword
+  title: Từ khóa this
+  childs:
+  - slug: this-keyword-001
+    title: this là tham chiếu tới đối tượng hiện tại
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: this-keyword-002
+    title: Dùng this phân biệt trường và tham số trùng tên
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: this-keyword-003
+    title: Gọi phương thức khác trên cùng đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: this-keyword-004
+    title: Truyền this làm đối số và trả về this
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: this-keyword-005
+    title: Phân biệt this, this() và tên lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: this-keyword-006
+    title: Giới hạn sử dụng this trong ngữ cảnh static
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: this-keyword-007
+    title: Truy cập đối tượng bao ngoài bằng Outer.this
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: this-keyword-008
+    title: Rủi ro để this thoát ra khi khởi tạo chưa hoàn tất
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-references
+  title: Tham chiếu
+  childs:
+  - slug: object-references-001
+    title: Biến tham chiếu lưu gì và khác đối tượng ở điểm nào
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-002
+    title: Sơ đồ tham chiếu khi khai báo, gán và tạo đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-003
+    title: Nhiều biến cùng tham chiếu một đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-004
+    title: Thay đổi trạng thái và gán lại tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-005
+    title: Phân biệt hai đối tượng bằng toán tử == và !=
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-006
+    title: null biểu thị không có đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-007
+    title: Các tình huống gây NullPointerException và cách phòng tránh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-008
+    title: 'Mảng đối tượng: tạo mảng tham chiếu và tạo từng phần tử'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-references-009
+    title: Kiểu khai báo của biến và lớp thực tế của đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pass-by-value
+  title: Truyền tham trị
+  childs:
+  - slug: pass-by-value-001
+    title: 'Java luôn truyền tham trị: mô hình bản sao giá trị đối số'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pass-by-value-002
+    title: Truyền giá trị nguyên thủy vào phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pass-by-value-003
+    title: Truyền bản sao tham chiếu vào phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pass-by-value-004
+    title: Vì sao phương thức có thể sửa trạng thái đối tượng bên ngoài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pass-by-value-005
+    title: Vì sao gán lại tham số không thay thế biến của bên gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pass-by-value-006
+    title: Phân tích ví dụ hoán đổi hai tham chiếu không thành công
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pass-by-value-007
+    title: Trả về đối tượng mới để biểu diễn kết quả thay thế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pass-by-value-008
+    title: Theo dõi tham chiếu qua nhiều lời gọi và nhiều đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control
+  title: Kiểm soát truy cập
+  childs:
+  - slug: access-control-001
+    title: public, protected, truy cập trong gói và private
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-002
+    title: Quyền truy cập của lớp cấp cao nhất và lớp thành viên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-003
+    title: Quyền truy cập trường, phương thức và hàm khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-004
+    title: Phân biệt phạm vi tên và quyền truy cập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-005
+    title: Truy cập từ cùng lớp, cùng gói và khác gói
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-006
+    title: Quy tắc protected qua lớp con ở gói khác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-007
+    title: Truy cập private giữa các lớp lồng trong cùng lớp bao
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-008
+    title: Chọn quyền truy cập nhỏ nhất đáp ứng nhu cầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-009
+    title: Phân biệt quyền truy cập kiểu với khả năng nhìn thấy package trong module
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encapsulation
+  title: Đóng gói
+  childs:
+  - slug: encapsulation-001
+    title: Đóng gói để bảo vệ trạng thái và quy tắc hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-002
+    title: Ẩn trường bằng private và cung cấp thao tác có ý nghĩa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-003
+    title: 'Getter và setter: mục đích, giới hạn và khi không cần'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-004
+    title: Kiểm tra dữ liệu ở điểm tạo và điểm cập nhật
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-005
+    title: Ngăn trạng thái dở dang khi thao tác có thể thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-006
+    title: Ngăn lộ mảng, tập hợp và đối tượng có thể thay đổi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-007
+    title: Quy ước JavaBeans và sự khác biệt với thiết kế theo hành vi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encapsulation-008
+    title: Ví dụ bảo vệ số dư và lịch sử giao dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-members
+  title: Thành viên static
+  childs:
+  - slug: static-members-001
+    title: Thành viên thuộc lớp và thành viên thuộc từng đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-002
+    title: Trường static và dữ liệu dùng chung giữa các thể hiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-003
+    title: Phương thức static và lời gọi qua tên lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-004
+    title: Truy cập thành viên đối tượng từ ngữ cảnh static
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-005
+    title: Ngữ cảnh static không có đối tượng this hiện tại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-006
+    title: Khối static và khởi tạo dữ liệu cấp lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-007
+    title: 'static import: tiện ích và nguy cơ giảm khả năng đọc'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-008
+    title: Thiết kế lớp tiện ích với hàm khởi tạo private
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-members-009
+    title: Rủi ro trạng thái static có thể thay đổi và kiểm thử phụ thuộc nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: final-keyword
+  title: Từ khóa final
+  childs:
+  - slug: final-keyword-001
+    title: 'final trên biến: chỉ gán một lần'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-keyword-002
+    title: Trường final và yêu cầu gán giá trị trên mọi nhánh khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-keyword-003
+    title: Trường final chưa có giá trị và nơi được phép gán
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-keyword-004
+    title: Tham chiếu final vẫn có thể trỏ tới đối tượng thay đổi được
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-keyword-005
+    title: Hằng static final và điều kiện của hằng tại thời điểm biên dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-keyword-006
+    title: Phân biệt final, effectively final và bất biến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-keyword-007
+    title: final trên phương thức và lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: final-keyword-008
+    title: Khi nào nên dùng final để diễn đạt ý định thiết kế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: initialization-order
+  title: Thứ tự khởi tạo
+  childs:
+  - slug: initialization-order-001
+    title: Phân biệt nạp lớp, liên kết lớp và khởi tạo lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-002
+    title: Những thao tác kích hoạt khởi tạo lớp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-003
+    title: Khởi tạo lớp cha trước lớp con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-004
+    title: Giá trị mặc định trước biểu thức khởi tạo trường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-005
+    title: Thứ tự trường static và khối static theo văn bản nguồn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-006
+    title: Thứ tự khởi tạo lớp cha, trường đối tượng, khối khởi tạo và thân hàm khởi tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-007
+    title: Chuỗi hàm khởi tạo và số lần chạy khối khởi tạo đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-008
+    title: Giới hạn tham chiếu trước trong biểu thức và khối khởi tạo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-009
+    title: Gọi phương thức ghi đè khi đối tượng chưa khởi tạo xong
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-order-010
+    title: Lỗi khởi tạo lớp và bài thực nghiệm dự đoán thứ tự in
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-relationships
+  title: Quan hệ giữa lớp
+  childs:
+  - slug: class-relationships-001
+    title: Đối tượng chứa tham chiếu tới đối tượng khác
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-relationships-002
+    title: Quan hệ sử dụng, liên kết và sở hữu đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-relationships-003
+    title: Quan hệ một-một và một-nhiều bằng trường tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-relationships-004
+    title: Kết hợp đối tượng bằng composition và phân chia trách nhiệm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-relationships-005
+    title: Ủy quyền thao tác cho đối tượng thành phần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-relationships-006
+    title: Quan hệ hai chiều và bảo toàn tính nhất quán
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-relationships-007
+    title: Tham chiếu vòng và thời gian tồn tại của các đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-relationships-008
+    title: Lựa chọn thành phần hay kế thừa cho một yêu cầu cụ thể
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inheritance-polymorphism
+  title: Kế thừa và đa hình
+  childs:
+  - slug: inheritance-polymorphism-001
+    title: extends, lớp cha, lớp con và quan hệ kiểu con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-002
+    title: Đơn kế thừa lớp và quan hệ ngầm định với Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-003
+    title: implements và vai trò hợp đồng của interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-004
+    title: Thành viên được kế thừa và giới hạn của thành viên private
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-005
+    title: super để gọi hàm khởi tạo và truy cập thành viên lớp cha
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-006
+    title: Ghi đè phương thức và kiểm tra bằng @Override
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-007
+    title: Điều phối phương thức đối tượng theo lớp thực tế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-008
+    title: Che khuất trường và phương thức static theo kiểu khai báo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-009
+    title: Ép kiểu lên, ép kiểu xuống, instanceof và ClassCastException
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-polymorphism-010
+    title: Nhận diện lớp abstract và giới hạn khi tạo đối tượng trực tiếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-object-class
+  title: Lớp Object
+  childs:
+  - slug: java-object-class-001
+    title: Object là lớp gốc và các phương thức dùng chung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-002
+    title: getClass() và phân biệt lớp thực tế với kiểu khai báo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-003
+    title: Phân biệt class, đối tượng thông thường và đối tượng Class
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-004
+    title: toString() để biểu diễn đối tượng khi quan sát chương trình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-005
+    title: Danh tính tham chiếu và bằng nhau theo giá trị với equals()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-006
+    title: Hợp đồng equals() và mối liên hệ với hashCode()
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-007
+    title: Hệ quả của thay đổi trường dùng trong equals() và hashCode()
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-008
+    title: clone(), Cloneable và giới hạn của sao chép mặc định
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-object-class-009
+    title: Nhận diện wait(), notify(), notifyAll() và đối tượng làm khóa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: immutable-classes
+  title: Lớp bất biến
+  childs:
+  - slug: immutable-classes-001
+    title: Đối tượng bất biến và lợi ích khi chia sẻ tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-classes-002
+    title: Phân biệt lớp final, trường final và trạng thái bất biến
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-classes-003
+    title: Thiết kế trường private final và khởi tạo đầy đủ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-classes-004
+    title: Kiểm soát kế thừa để bảo vệ cam kết bất biến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-classes-005
+    title: Sao chép phòng vệ đầu vào và đầu ra có thể thay đổi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-classes-006
+    title: Bất biến nông và bất biến sâu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-classes-007
+    title: Trả về đối tượng mới thay cho cập nhật đối tượng cũ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutable-classes-008
+    title: Kiểm tra tính bất biến khi lớp chứa mảng hoặc tập hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-copying
+  title: Sao chép đối tượng
+  childs:
+  - slug: object-copying-001
+    title: Gán tham chiếu khác tạo bản sao đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-copying-002
+    title: Sao chép nông và chia sẻ các đối tượng thành phần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-copying-003
+    title: Sao chép sâu và phạm vi dữ liệu cần sao chép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-copying-004
+    title: Hàm khởi tạo sao chép và phương thức tạo bản sao có tên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-copying-005
+    title: So sánh sao chép tường minh với Object.clone()
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-copying-006
+    title: Sao chép cấu trúc chứa tham chiếu dùng chung hoặc vòng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-copying-007
+    title: Chọn cách sao chép theo quyền sở hữu và khả năng thay đổi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-copying-008
+    title: Thực nghiệm sửa bản gốc, bản sao và thành phần lồng nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nested-classes
+  title: Lớp lồng nhau
+  childs:
+  - slug: nested-classes-001
+    title: 'Phân loại lớp lồng: static, inner, cục bộ và vô danh'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-002
+    title: Static nested class không cần đối tượng bao ngoài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-003
+    title: Inner member class gắn với một đối tượng bao ngoài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-004
+    title: Cú pháp tạo Outer.Nested và outer.new Inner
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-005
+    title: Truy cập thành viên private và thành viên bao ngoài
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-006
+    title: Che khuất tên và định danh bằng Outer.this
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-007
+    title: 'Thành viên static trong inner class: quy tắc hiện hành từ Java 16'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-008
+    title: Chọn lớp lồng hay lớp cấp cao nhất
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-classes-009
+    title: Tham chiếu ngầm tới đối tượng bao ngoài và nguy cơ giữ bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-classes
+  title: Lớp cục bộ
+  childs:
+  - slug: local-classes-001
+    title: Khai báo lớp có tên trong phương thức hoặc khối lệnh
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-classes-002
+    title: Phạm vi sử dụng tên của lớp cục bộ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-classes-003
+    title: Truy cập biến cục bộ final và effectively final
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-classes-004
+    title: Phân biệt bắt giữ giá trị biến với thay đổi trạng thái đối tượng được tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-classes-005
+    title: Lớp cục bộ trong ngữ cảnh static và ngữ cảnh đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-classes-006
+    title: Giới hạn từ khóa truy cập và static trên lớp cục bộ thông thường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-classes-007
+    title: Local enum và local record được ngầm định static
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-classes-008
+    title: Khi nào lớp cục bộ giúp giữ chi tiết triển khai gần nơi dùng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: anonymous-classes
+  title: Lớp vô danh
+  childs:
+  - slug: anonymous-classes-001
+    title: Khai báo và tạo đối tượng vô danh trong một biểu thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-002
+    title: Mở rộng một lớp hoặc hiện thực một interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-003
+    title: Truyền đối số tới hàm khởi tạo của lớp cha
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-004
+    title: Khởi tạo trường và khối khởi tạo khi không có hàm khởi tạo có tên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-005
+    title: Ý nghĩa this và truy cập đối tượng bao ngoài
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-006
+    title: Bắt giữ biến final và effectively final
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-007
+    title: So sánh lớp vô danh với lambda ở phạm vi sử dụng và this
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-008
+    title: Nhược điểm của khởi tạo bằng hai cặp ngoặc nhọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: anonymous-classes-009
+    title: Lựa chọn lớp có tên, lớp vô danh hoặc lambda
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-enums
+  title: Enum
+  childs:
+  - slug: java-enums-001
+    title: Enum để mô hình hóa tập thể hiện có tên hữu hạn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-002
+    title: Khai báo hằng enum và danh tính của từng hằng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-003
+    title: Trường, phương thức và hàm khởi tạo của enum
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-004
+    title: Giới hạn tạo đối tượng và kế thừa của enum
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-005
+    title: Phần thân riêng cho từng hằng và hành vi khác nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-006
+    title: Enum hiện thực interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-007
+    title: values(), valueOf(), name() và ordinal()
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-008
+    title: So sánh bằng == và sử dụng enum trong switch
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-enums-009
+    title: Tránh dùng ordinal() làm mã dữ liệu bền vững
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-records
+  title: Record
+  childs:
+  - slug: java-records-001
+    title: Record để biểu diễn một nhóm giá trị có tên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-002
+    title: Khai báo thành phần và các thành viên được sinh tự động
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-003
+    title: Accessor của record và sự khác biệt với getter JavaBeans
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-004
+    title: Hàm khởi tạo chuẩn và hàm khởi tạo chuẩn rút gọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-005
+    title: Kiểm tra, chuẩn hóa dữ liệu và sao chép phòng vệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-006
+    title: Hàm khởi tạo bổ sung và ủy quyền tới hàm khởi tạo chuẩn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-007
+    title: Quy tắc về trường đối tượng, kế thừa và hiện thực interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-008
+    title: equals(), hashCode(), toString() và ảnh hưởng của thành phần mảng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-009
+    title: Record chỉ bảo đảm bất biến nông
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-records-010
+    title: Lựa chọn record hay lớp thông thường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sealed-classes
+  title: Lớp sealed
+  childs:
+  - slug: sealed-classes-001
+    title: Mục đích kiểm soát tập lớp con trực tiếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-classes-002
+    title: Khai báo sealed và danh sách permits
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-classes-003
+    title: Điều kiện suy ra danh sách lớp con khi bỏ permits
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-classes-004
+    title: Lớp con final, sealed và non-sealed
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-classes-005
+    title: Ràng buộc cùng module hoặc cùng package
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-classes-006
+    title: Kết hợp sealed với lớp abstract, record và enum
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-classes-007
+    title: So sánh hệ phân cấp đóng với lớp tự do mở rộng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-classes-008
+    title: Khi nào sealed phù hợp để mô hình hóa các loại giá trị
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generic-classes
+  title: Lớp generic
+  childs:
+  - slug: generic-classes-001
+    title: Lớp generic và mục đích tham số hóa kiểu dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-002
+    title: Khai báo lớp Box<T>, trường và phương thức dùng T
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-003
+    title: Tạo đối tượng với đối số kiểu và toán tử diamond
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-004
+    title: Giới hạn kiểu với extends và nhiều ràng buộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-005
+    title: Tham số kiểu của lớp không dùng trực tiếp trong ngữ cảnh static
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-006
+    title: Phương thức generic và tham số kiểu riêng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-007
+    title: Nhận diện raw type, cảnh báo không an toàn và xóa kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generic-classes-008
+    title: Giới hạn tạo new T(), mảng generic và kiểm tra kiểu tại thời gian chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-lifecycle
+  title: Vòng đời đối tượng
+  childs:
+  - slug: object-lifecycle-001
+    title: Từ tạo đối tượng tới sử dụng và không còn truy cập được
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-002
+    title: Biến cục bộ, trường và các đường tham chiếu giữ đối tượng tồn tại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-003
+    title: Phân biệt phạm vi biến với khả năng đối tượng còn được truy cập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-004
+    title: Thu gom rác tự động và thời điểm thu gom không được bảo đảm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-005
+    title: Vì sao tham chiếu vòng không tự nó ngăn thu gom rác
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-006
+    title: Rò rỉ bộ nhớ do static, bộ nhớ đệm và đăng ký không được gỡ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-007
+    title: System.gc() là yêu cầu gợi ý và không thay thế quản lý vòng đời
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-008
+    title: finalize() đã bị khuyến cáo loại bỏ và không dùng để quản lý tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-lifecycle-009
+    title: Đóng tài nguyên bằng AutoCloseable và try-with-resources
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-design-practice
+  title: Thiết kế và thực hành
+  childs:
+  - slug: class-design-practice-001
+    title: Chọn trách nhiệm của lớp trước khi chọn trường và phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-002
+    title: Giữ trạng thái tối thiểu và tránh lưu dữ liệu suy ra không cần thiết
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-003
+    title: Thiết kế thao tác nghiệp vụ để giữ quy tắc hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-004
+    title: Chọn lớp có thể thay đổi, lớp bất biến, record hoặc enum
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-005
+    title: Xây dựng lớp tài khoản với tạo mới, nạp tiền và rút tiền
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-006
+    title: Kết hợp tài khoản, giao dịch và chủ tài khoản bằng tham chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-007
+    title: Thực nghiệm tham chiếu dùng chung, truyền tham trị và sao chép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-008
+    title: Viết kiểm thử cho khởi tạo, cập nhật, trường hợp biên và lỗi đầu vào
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-009
+    title: Dùng debugger quan sát this, trường, tham số và đối tượng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-design-practice-010
+    title: Danh sách lỗi thường gặp và tiêu chí tự đánh giá thiết kế lớp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

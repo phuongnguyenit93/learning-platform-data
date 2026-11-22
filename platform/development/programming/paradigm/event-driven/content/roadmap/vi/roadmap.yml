@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-event-driven
+  title: Tư duy Event-Driven
+  purpose: Hiểu cách chương trình phản ứng với sự kiện thay vì thực thi một chuỗi lệnh cố định.
+  objectives:
+  - Phân biệt event, command và lời gọi hàm trực tiếp.
+  - Nhận diện nguồn sự kiện, người nhận và hành động phản hồi.
+  - Đối chiếu luồng điều khiển event-driven với imperative.
+- id: emitter-listener-handler
+  title: Emitter, Listener & Handler
+  purpose: Tổ chức việc phát và xử lý sự kiện qua các thành phần có trách nhiệm tách biệt.
+  objectives:
+  - Tạo emitter/publisher và đăng ký listener/handler.
+  - Phát sự kiện kèm payload cho nhiều listener.
+  - Thử đăng ký một lần và hủy đăng ký listener.
+- id: event-dispatch-event-loop
+  title: Event Dispatch & Event Loop
+  purpose: Nắm cơ chế phân phối sự kiện và thứ tự thực thi để tránh nhầm đồng bộ với bất đồng bộ.
+  objectives:
+  - Mô tả luồng emit → dispatch → handler.
+  - Quan sát thứ tự gọi listener đồng bộ của Node.js EventEmitter.
+  - Phân biệt callback, task queue và xử lý bất đồng bộ.
+- id: payload-hop-dong-su-kien
+  title: Payload & hợp đồng sự kiện
+  purpose: Thiết kế sự kiện có ngữ nghĩa rõ để publisher và consumer không phụ thuộc chặt vào nhau.
+  objectives:
+  - Đặt tên event theo sự việc đã xảy ra.
+  - Định nghĩa payload, ID, timestamp và correlation ID.
+  - Xem xét versioning và tương thích ngược khi đổi schema.
+- id: pub-sub-hang-doi
+  title: Pub/Sub & hàng đợi
+  purpose: Mở rộng mô hình sự kiện từ trong một tiến trình đến trao đổi giữa các thành phần.
+  objectives:
+  - Phân biệt in-process events với event bus/broker.
+  - So sánh publish–subscribe và competing consumers qua queue.
+  - Chọn channel, subscription hoặc stream theo nhu cầu.
+- id: tach-ghep-trang-thai
+  title: Tách ghép & trạng thái
+  purpose: Giảm phụ thuộc giữa thành phần và quản lý các phản ứng có liên quan đến trạng thái ứng dụng.
+  objectives:
+  - Tách publisher khỏi logic cụ thể của các handler.
+  - Thiết kế phản hồi sự kiện cập nhật trạng thái có kiểm soát.
+  - Nhận diện vòng lặp sự kiện và side effect khó theo dõi.
+- id: do-tin-cay-gioi-han-tai
+  title: Độ tin cậy & giới hạn tải
+  purpose: Xử lý các vấn đề trễ, gửi lặp và lỗi handler trong hệ thống event-driven bất đồng bộ.
+  objectives:
+  - Phân biệt delivery, processing và acknowledgement.
+  - Áp dụng idempotency, retry giới hạn và dead-letter handling.
+  - Giải thích backpressure, thứ tự và eventual consistency.
+- id: kiem-thu-quan-sat
+  title: Kiểm thử & quan sát
+  purpose: Kiểm chứng chuỗi phản ứng và lần theo sự kiện qua nhiều handler hoặc dịch vụ.
+  objectives:
+  - Viết test cho emit, subscribe, unsubscribe và lỗi handler.
+  - Thử event trùng, sai thứ tự và consumer thất bại.
+  - Theo dõi event ID, correlation ID, logs và metrics.

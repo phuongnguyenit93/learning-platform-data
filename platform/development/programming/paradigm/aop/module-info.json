@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "5"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Đây là kiến thức về lập trình Aspect (AOP) nói chung , không phải Spring Aspect\nNên đừng có đề cập về Spring Aspect, chỉ nói về Aspect cơ bản và nâng cao thôi"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "ASPECT_ORIENTED_PROGRAMMING"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hiểu lập trình hướng khía cạnh để tách các mối quan tâm cắt ngang như ghi log, đo hiệu năng và kiểm soát truy cập khỏi logic nghiệp vụ. Học aspect, join point, pointcut, advice, weaving, thứ tự can thiệp và kỹ thuật kiểm thử AOP từ nền tảng đến nâng cao."
+  }
+}

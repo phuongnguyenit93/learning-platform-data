@@ -1,0 +1,3 @@
+menuLevel1: RedisTemplate
+menuLevel2: Dùng RedisCallback để gọi lệnh ở tầng kết nối
+status: WRITTEN

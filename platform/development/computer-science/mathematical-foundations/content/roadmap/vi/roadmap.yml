@@ -1,0 +1,57 @@
+roadmap:
+- id: logic-chung-minh
+  title: Logic & chứng minh
+  purpose: Xây dựng tư duy suy luận hình thức để kiểm tra tính đúng đắn của phát biểu và lập luận.
+  objectives:
+  - Lập bảng chân trị và biến đổi mệnh đề
+  - Dùng lượng từ để diễn đạt điều kiện
+  - Thực hiện chứng minh trực tiếp và phản chứng
+- id: tap-hop-quan-he-ham
+  title: Tập hợp, quan hệ & hàm
+  purpose: Nắm các cấu trúc toán học dùng để mô tả dữ liệu, quan hệ và ánh xạ.
+  objectives:
+  - Thực hiện phép toán trên tập hợp
+  - Phân biệt các tính chất của quan hệ
+  - Xác định hàm đơn ánh, toàn ánh và song ánh
+- id: quy-nap-truy-hoi
+  title: Quy nạp & truy hồi
+  purpose: Sử dụng lập luận quy nạp để hiểu các quá trình lặp và cấu trúc đệ quy.
+  objectives:
+  - Chứng minh mệnh đề bằng quy nạp toán học
+  - Lập hệ thức truy hồi cho bài toán đếm
+  - Giải hệ thức truy hồi đơn giản
+- id: to-hop-xac-suat
+  title: Tổ hợp & xác suất
+  purpose: Đếm số khả năng và lượng hóa sự không chắc chắn trong bài toán rời rạc.
+  objectives:
+  - Áp dụng quy tắc cộng, nhân và tổ hợp
+  - Tính xác suất có điều kiện và Bayes
+  - Tính kỳ vọng của biến ngẫu nhiên rời rạc
+- id: so-hoc-modulo
+  title: Số học & modulo
+  purpose: Hiểu tính chia hết và đồng dư làm nền cho thuật toán số học và mật mã.
+  objectives:
+  - Tìm ước chung lớn nhất bằng Euclid
+  - Thực hiện các phép toán đồng dư
+  - Giải bài toán chia hết và số dư cơ bản
+- id: do-thi-cay
+  title: Đồ thị & cây
+  purpose: Biểu diễn mối liên hệ giữa các đối tượng và phân tích cấu trúc mạng rời rạc.
+  objectives:
+  - Mô hình hóa bài toán bằng đồ thị
+  - Phân biệt đường đi, chu trình và cây
+  - Vận dụng tính chất bậc đỉnh và liên thông
+- id: dai-so-tuyen-tinh
+  title: Đại số tuyến tính
+  purpose: Sử dụng vectơ và ma trận để biểu diễn, biến đổi dữ liệu số.
+  objectives:
+  - Thực hiện phép toán vectơ và ma trận
+  - Giải hệ tuyến tính bằng khử Gauss
+  - Nhận biết độc lập tuyến tính và cơ sở
+- id: giai-tich-toi-uu
+  title: Giải tích & tối ưu
+  purpose: Nắm công cụ liên tục để mô tả tốc độ biến thiên, tích lũy và cực trị.
+  objectives:
+  - Tính giới hạn và đạo hàm cơ bản
+  - Tìm điểm cực trị của hàm một biến
+  - Giải thích ý nghĩa tích phân xác định

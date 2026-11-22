@@ -1,0 +1,49 @@
+roadmap:
+- id: tu-duy-pipeline
+  title: Tư duy pipeline
+  purpose: Hiểu cách Stream xử lý dữ liệu theo chuỗi thao tác.
+  objectives:
+  - Phân biệt nguồn, thao tác trung gian và kết thúc.
+  - Giải thích tính lazy và quy tắc dùng Stream một lần.
+- id: tao-va-noi-stream
+  title: Tạo và nối Stream
+  purpose: Chọn nguồn dữ liệu phù hợp cho pipeline.
+  objectives:
+  - Tạo Stream từ collection, mảng, of và iterate.
+  - Nối Stream bằng concat; giới hạn nguồn vô hạn.
+- id: loc-va-bien-doi
+  title: Lọc và biến đổi
+  purpose: Chuyển dữ liệu đầu vào thành dạng cần xử lý.
+  objectives:
+  - Lọc phần tử bằng filter.
+  - Phân biệt và áp dụng map, flatMap.
+- id: sap-xep-va-gioi-han
+  title: Sắp xếp và giới hạn
+  purpose: Kiểm soát phần tử và thứ tự trong kết quả.
+  objectives:
+  - Dùng distinct và sorted với Comparator.
+  - Kết hợp skip, limit; dự đoán tác động của thứ tự thao tác.
+- id: ket-thuc-va-optional
+  title: Kết thúc và Optional
+  purpose: Lấy kết quả và xử lý trường hợp không có phần tử.
+  objectives:
+  - Dùng count, anyMatch, allMatch và forEach.
+  - Tìm bằng findFirst, findAny; xử lý Optional an toàn.
+- id: rut-gon-va-stream-so
+  title: Rút gọn và Stream số
+  purpose: Tổng hợp dữ liệu thành giá trị hoặc thống kê.
+  objectives:
+  - Viết reduce với identity và phép toán kết hợp.
+  - Dùng mapToInt, IntStream, LongStream, DoubleStream để tính toán.
+- id: thu-thap-voi-collector
+  title: Thu thập với Collector
+  purpose: Tạo cấu trúc kết quả và nhóm dữ liệu.
+  objectives:
+  - Thu về List, Set, Map; xử lý khóa trùng khi dùng toMap.
+  - Dùng joining, groupingBy và partitioningBy.
+- id: tinh-dung-va-song-song
+  title: Tính đúng và song song
+  purpose: Viết pipeline đáng tin cậy và chọn cách chạy phù hợp.
+  objectives:
+  - Tránh sửa nguồn và trạng thái dùng chung; đóng Stream I/O.
+  - So sánh sequential, parallel; đo hiệu năng trước khi chọn.

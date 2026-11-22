@@ -1,0 +1,7 @@
+# Support Notification Email
+
+Email notification là cơ chế gửi thông tin đến người dùng qua hòm thư điện tử, thường được dùng cho xác nhận giao dịch, thông báo tài khoản, cảnh báo hoặc cập nhật dịch vụ. Trong ứng dụng Java và Spring Boot, gửi email không chỉ là tạo thông điệp và gọi SMTP/API: hệ thống còn cần theo dõi kết quả giao thư, kiểm soát lỗi, xác thực tên miền gửi và bảo vệ người nhận. Module dành cho người đã biết Java, Spring Boot và các khái niệm HTTP, xử lý bất đồng bộ ở mức cơ bản.
+
+Lộ trình bắt đầu từ thiết kế sự kiện và trạng thái thông báo, sau đó so sánh SMTP với email provider, cấu hình `JavaMailSender` và tạo email text/HTML bằng template cùng `MimeMessageHelper`. Tiếp theo, bạn học xác minh người gửi, SPF, DKIM và DMARC, đưa công việc gửi thư vào hàng đợi với retry có kiểm soát, rồi nhận delivery, bounce và complaint events để quản lý suppression list. Các mốc cuối tập trung vào secret, quyền riêng tư, consent/unsubscribe, kiểm thử bằng sandbox và theo dõi độ trễ hoặc tỷ lệ lỗi.
+
+Kết thúc module, bạn có thể thiết kế luồng email notification có khả năng truy vết từ sự kiện đến trạng thái giao thư và xử lý lỗi một cách an toàn. Cần lưu ý rằng việc SMTP/API chấp nhận thông điệp chưa chứng minh thư đã vào inbox; trạng thái delivered thường chỉ xác nhận mail server nhận thư. Các yêu cầu consent và hủy đăng ký còn phụ thuộc loại email, quốc gia và nhà cung cấp.

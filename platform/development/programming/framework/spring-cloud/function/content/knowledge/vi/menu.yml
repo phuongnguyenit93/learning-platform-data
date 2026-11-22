@@ -1,0 +1,340 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Cloud Function là gì và bài toán triển khai nghiệp vụ bằng hàm
+  - Quan hệ giữa hàm Java, Spring bean và hàm trong FunctionCatalog
+  - Tách nghiệp vụ khỏi giao thức truyền dữ liệu và nền tảng thực thi
+  - Vai trò của Supplier, Function, Consumer và bộ điều hợp
+  - Quan hệ với Spring Boot, Spring Cloud Stream và Spring Cloud Task
+  - Phân biệt hàm nghiệp vụ với controller, WebFlux.fn và AWS Lambda
+  - 'Các cách chạy: trong ứng dụng, HTTP, messaging và serverless'
+  - Trường hợp phù hợp và giới hạn của mô hình hàm
+- level1: Khởi tạo
+  level2:
+  - Kiến thức nền về Java functional interface, Spring Boot và Reactor
+  - Chọn phiên bản Java, Spring Boot và Spring Cloud BOM tương thích
+  - Các module context, web, deployer và adapter nền tảng
+  - Khai báo phụ thuộc bằng Maven hoặc Gradle
+  - Tạo Function<String, String> đầu tiên bằng @Bean
+  - Gọi hàm từ FunctionCatalog và từ HTTP
+  - Chọn hàm bằng spring.cloud.function.definition
+  - Chạy cục bộ, đóng gói và kiểm tra đầu vào đầu ra
+- level1: Mô hình hàm
+  level2:
+  - 'Supplier<T>: tạo dữ liệu không nhận đầu vào'
+  - 'Function<T, R>: biến đổi đầu vào thành kết quả'
+  - 'Consumer<T>: xử lý dữ liệu và tác dụng phụ'
+  - BiFunction và BiConsumer với payload cùng Map chứa header
+  - Khai báo hàm bằng lambda, method reference và lớp triển khai
+  - Đặt tên bean và sử dụng dependency injection
+  - Hàm không phụ thuộc Spring và lớp điều hợp bên ngoài
+  - Vòng đời singleton, trạng thái dùng chung và an toàn luồng
+  - Thiết kế hợp đồng đầu vào đầu ra và xử lý dữ liệu không hợp lệ
+- level1: FunctionCatalog
+  level2:
+  - Cơ chế phát hiện và đăng ký các functional bean
+  - Tra cứu theo tên và theo loại hàm
+  - Liệt kê tên hàm và kiểm tra nội dung catalog
+  - Quy tắc tra cứu khi chỉ có một hàm và khi có nhiều hàm
+  - Đối chiếu chế độ tra cứu dự phòng khi chỉ có một hàm theo phiên bản
+  - Phân biệt gọi bean trực tiếp với gọi qua FunctionCatalog
+  - Vai trò của FunctionInvocationWrapper
+  - Chọn một hàm hoặc định nghĩa ghép hàm
+  - Loại trừ bean bằng spring.cloud.function.ineligible-definitions
+  - Nhận diện hàm không tồn tại, sai tên hoặc sai chữ ký
+- level1: Kiểu dữ liệu
+  level2:
+  - Suy luận kiểu đầu vào đầu ra từ chữ ký generic
+  - Mất thông tin kiểu khi dùng raw type, Object hoặc lambda đăng ký động
+  - FunctionRegistration và khai báo thông tin kiểu tường minh
+  - Chuyển đổi String, byte[], POJO và tập hợp dữ liệu
+  - Vai trò của MessageConverter và ConversionService
+  - Quan hệ giữa contentType và kiểu đích
+  - Chuyển đổi JSON với JsonMessageConverter
+  - StringMessageConverter và ByteArrayMessageConverter
+  - Tùy chọn JsonMapper, Jackson và Gson theo phiên bản
+  - Đăng ký MessageConverter tùy chỉnh và thứ tự lựa chọn
+  - Chuyển đổi kiểu giữa các hàm trong một chuỗi
+  - Lỗi JSON, kiểu không tương thích và giới hạn giải tuần tự hóa
+- level1: Thông điệp
+  level2:
+  - Cấu trúc Message<T>, payload và MessageHeaders
+  - Nhận hoặc trả Message thay cho POJO thuần
+  - Tạo phản hồi bằng MessageBuilder
+  - Ánh xạ HTTP header và metadata nền tảng vào Message
+  - Phân biệt header đầu vào, header đầu ra và header truyền tải
+  - Sao chép có chọn lọc header và cấu hình copy-input-headers
+  - Bổ sung header bằng input-header-mapping-expression
+  - Bổ sung header bằng output-header-mapping-expression
+  - Xử lý biểu thức bổ sung header thất bại
+  - Truyền mã liên kết, phiên bản dữ liệu và thông tin truy vết
+- level1: Luồng phản ứng
+  level2:
+  - Mono, Flux và chữ ký hàm phản ứng
+  - Phân biệt gọi hàm theo từng phần tử với gọi một lần cho cả luồng
+  - Supplier<Flux<T>> với luồng hữu hạn và luồng liên tục
+  - '@PollableBean, splittable và trách nhiệm của cơ chế polling bên ngoài'
+  - Consumer<Flux<T>> và trách nhiệm đăng ký nhận dữ liệu
+  - Function<Flux<T>, Mono<Void>> cho xử lý bất đồng bộ không trả dữ liệu
+  - Điều tiết tốc độ theo nhu cầu nhận dữ liệu
+  - Thứ tự phần tử khi dùng map, flatMap và concatMap
+  - Tránh chặn luồng và lựa chọn Scheduler cho thao tác chặn
+  - Kết thúc, hủy đăng ký và giải phóng tài nguyên
+  - Xử lý lỗi theo phần tử và lỗi kết thúc cả luồng
+- level1: Ghép hàm
+  level2:
+  - Ghép hàm bằng Function.andThen và Function.compose
+  - Ghép theo tên bằng FunctionCatalog.lookup
+  - spring.cloud.function.definition với dấu | hoặc dấu phẩy
+  - Thứ tự thực thi và tương thích kiểu giữa các bước
+  - Ghép Supplier với Function
+  - Ghép Function với Consumer
+  - Ghép Supplier với Consumer và kết quả tương đương Runnable
+  - Những thứ tự ghép không hợp lệ
+  - Ghép hàm đồng bộ với hàm phản ứng
+  - Tách kiểm tra, biến đổi và nghiệp vụ thành các hàm dùng lại
+- level1: Định tuyến
+  level2:
+  - RoutingFunction và tên functionRouter
+  - Chọn hàm cố định bằng thuộc tính cấu hình
+  - Định tuyến bằng header spring.cloud.function.definition
+  - Định tuyến động bằng spring.cloud.function.routing-expression
+  - Truy cập payload và headers trong biểu thức SpEL
+  - Tùy chỉnh lựa chọn hàm bằng MessageRoutingCallback
+  - Thứ tự ưu tiên callback, header và thuộc tính ứng dụng
+  - Định tuyến từng thông điệp với hàm đồng bộ
+  - Định tuyến cả luồng với hàm phản ứng
+  - Xử lý không tìm thấy hàm bằng DefaultMessageRoutingHandler
+  - Lọc dữ liệu bằng nhánh xử lý và nhánh loại bỏ
+  - Tạo nhiều router với tên và cấu hình riêng
+  - Giới hạn hàm đích và nguồn cung cấp biểu thức
+- level1: Nhiều đầu vào/ra
+  level2:
+  - Khái niệm số đầu vào và đầu ra của hàm
+  - Biểu diễn nhiều luồng bằng Tuple của Reactor
+  - Tách một luồng thành nhiều đầu ra
+  - Kết hợp nhiều đầu vào và đồng bộ dữ liệu
+  - Phân biệt nhiều đầu ra với một đầu ra chứa Collection
+  - Thông tin kiểu và chỉ số từng đầu vào đầu ra
+  - Ánh xạ chỉ số sang binding của Spring Cloud Stream
+  - Giới hạn chữ ký và hỗ trợ của từng adapter
+- level1: HTTP
+  level2:
+  - Xuất functional bean thành HTTP endpoint
+  - Chọn web module và đối chiếu hỗ trợ MVC/WebFlux theo phiên bản
+  - Quy tắc đường dẫn theo tên hàm và đường dẫn gốc
+  - Tùy chỉnh đường dẫn bằng spring.cloud.function.web.path
+  - HTTP method và phản hồi của Supplier, Function, Consumer
+  - Truyền đầu vào qua request body và biến đường dẫn
+  - Đọc query parameter qua header http_request_param
+  - Content-Type, Accept và thương lượng dạng dữ liệu
+  - Trả một giá trị, tập hợp hoặc luồng Server-Sent Events
+  - Ánh xạ hàm ghép vào đường dẫn HTTP
+  - Lọc các hàm được công bố bằng danh sách phân cách bởi dấu chấm phẩy
+  - Giới hạn HTTP method bằng spring.cloud.function.http
+  - Truyền và loại bỏ HTTP header ở phản hồi
+  - Ranh giới giữa endpoint hàm và API web có hợp đồng phức tạp
+- level1: Spring Cloud Stream
+  level2:
+  - Vai trò của FunctionCatalog trong mô hình lập trình Spring Cloud Stream
+  - Ánh xạ Supplier, Function, Consumer thành nguồn, bộ xử lý và đích nhận
+  - Chọn binder Kafka hoặc RabbitMQ theo môi trường
+  - Quy ước binding <function>-in-0 và <function>-out-0
+  - Ánh xạ binding tới destination và consumer group
+  - Cấu hình một hàm ghép và nhiều định nghĩa độc lập
+  - Nhận gửi POJO, Message và dữ liệu phản ứng
+  - Polling Supplier và tách tập hợp phần tử
+  - Nhiều đầu vào đầu ra và thứ tự chỉ số binding
+  - Phân chia trách nhiệm chuyển đổi kiểu giữa Function và binder
+  - Ranh giới hỗ trợ retry, xác nhận thông điệp và hàng đợi lỗi
+- level1: Spring Integration
+  level2:
+  - Quan hệ giữa mô hình hàm và Enterprise Integration Patterns
+  - Module spring-cloud-function-integration
+  - Gọi FunctionCatalog từ IntegrationFlow
+  - FunctionFlowBuilder và fromSupplier
+  - Các toán tử apply và accept với tên hàm hoặc hàm ghép
+  - Kết hợp hàm với channel, poller, transformer và gateway
+  - Xử lý lỗi và metadata tại ranh giới luồng tích hợp
+  - Tích hợp sự kiện CloudEvents và đối chiếu hỗ trợ phiên bản
+- level1: Đăng ký bean
+  level2:
+  - Phân biệt @Bean với đăng ký bean theo phong cách functional
+  - ApplicationContextInitializer và GenericApplicationContext
+  - FunctionalSpringApplication và điểm vào ứng dụng
+  - FunctionRegistration với tên và kiểu tường minh
+  - Đăng ký lớp triển khai trực tiếp Supplier, Function hoặc Consumer
+  - Tự quét package functions
+  - Tùy chỉnh spring.cloud.function.scan.packages và scan.enabled
+  - Kết hợp với Spring Boot auto-configuration
+  - spring.functional.enabled và giới hạn của chế độ functional
+  - Tác động của cách đăng ký bean tới AOT và native image
+- level1: Kotlin
+  level2:
+  - Ánh xạ lambda Kotlin sang Supplier, Function và Consumer
+  - Phụ thuộc Kotlin và cơ chế nhận diện functional bean
+  - Khai báo hàm bằng @Bean với chữ ký kiểu rõ ràng
+  - Unit, nullability và tương tác kiểu Java
+  - Kiểu generic, POJO Kotlin và chuyển đổi JSON
+  - Dùng Mono hoặc Flux từ hàm Kotlin
+  - Kiểm thử hàm Kotlin qua FunctionCatalog
+- level1: Nạp JAR
+  level2:
+  - Vai trò của spring-cloud-function-deployer
+  - Tách ứng dụng chứa hàm khỏi ứng dụng gọi hàm
+  - spring.cloud.function.location và vị trí artifact
+  - Nạp simple JAR bằng spring.cloud.function.function-class
+  - Nạp Spring Boot JAR và ứng dụng có functional bean
+  - Nạp nhiều lớp hàm và quy tắc đặt tên
+  - Tra cứu artifact Maven và tùy chỉnh kho artifact
+  - ClassLoader riêng và ranh giới kiểu giữa các ứng dụng
+  - Vòng đời ApplicationContext của gói được nạp
+  - Giới hạn nạp động khi dùng AOT hoặc native image
+- level1: Serverless
+  level2:
+  - Vai trò của adapter giữa sự kiện nền tảng và hàm nghiệp vụ
+  - Phân biệt hàm tiếp nhận của nền tảng (handler) với bean nghiệp vụ
+  - Chọn một hàm hoặc định tuyến nhiều hàm trong một gói
+  - Đóng gói artifact phù hợp với từng nhà cung cấp
+  - Sự kiện HTTP, sự kiện broker và cấu trúc bao dữ liệu
+  - Khởi động lần đầu và tái sử dụng môi trường thực thi
+  - Giới hạn thời gian, bộ nhớ, mức đồng thời và kích thước dữ liệu
+  - Khác biệt giữa lỗi gọi đồng bộ và lỗi xử lý sự kiện bất đồng bộ
+  - Đối chiếu CloudEvents, loại sự kiện và thế hệ runtime được hỗ trợ
+- level1: AWS Lambda
+  level2:
+  - Phụ thuộc spring-cloud-function-adapter-aws
+  - Đóng gói JAR cho Lambda và xác định lớp ứng dụng
+  - Cấu hình FunctionInvoker::handleRequest làm điểm vào
+  - Chọn hàm bằng biến môi trường spring_cloud_function_definition
+  - Định tuyến nhiều hàm qua một Lambda hoặc nhiều Lambda độc lập
+  - Chuyển đổi sự kiện thành POJO và truy cập InputStream nguyên bản
+  - Xử lý cấu trúc sự kiện API Gateway, S3 và SQS
+  - Phản hồi lỗi từng phần của lô SQS khi phù hợp
+  - Truy cập thông tin lần gọi và ngữ cảnh AWS
+  - Chạy thử cục bộ và triển khai bằng công cụ hạ tầng
+  - Custom runtime, bootstrap và đóng gói native image
+  - SnapStart, cấu hình bộ nhớ và điều kiện tương thích runtime
+- level1: Azure Functions
+  level2:
+  - Phụ thuộc adapter và tích hợp Spring với Azure Functions
+  - Đăng ký lớp handler bằng @Component và phương thức @FunctionName
+  - HTTP trigger, các loại trigger khác và binding đầu vào đầu ra
+  - Tiêm dịch vụ nghiệp vụ và FunctionCatalog vào handler
+  - Phân biệt gọi bean trực tiếp với gọi hàm qua catalog
+  - Truy cập ExecutionContext qua AzureFunctionUtil
+  - Cấu hình lớp ứng dụng chính và đóng gói triển khai
+  - Chạy cục bộ bằng Azure Functions Core Tools
+  - Cấu hình môi trường, quyền truy cập và triển khai Azure
+  - Mô hình FunctionInvoker cũ và hướng chuyển đổi theo phiên bản
+- level1: Google Cloud
+  level2:
+  - Phụ thuộc spring-cloud-function-adapter-gcp
+  - Vai trò của GcfJarLauncher và lớp ứng dụng chính
+  - Đóng gói artifact và khai báo manifest phù hợp
+  - Chạy thử bằng Google Functions Framework
+  - Xử lý HTTP và tùy chỉnh phản hồi qua Message
+  - Xử lý sự kiện nền và chuyển đổi dữ liệu theo adapter hỗ trợ
+  - Chọn hàm và truyền thuộc tính qua biến môi trường
+  - Đối chiếu thế hệ Cloud Functions, Cloud Run functions và runtime Java
+  - Cấu hình quyền gọi, trigger và xác minh sau triển khai
+- level1: Độ tin cậy
+  level2:
+  - Thiết kế hàm thuần và cô lập tác dụng phụ
+  - Xác thực dữ liệu ở ranh giới trước khi chạy nghiệp vụ
+  - Phân biệt ngoại lệ trực tiếp và tín hiệu lỗi Reactor
+  - Chọn vị trí bắt lỗi trong chuỗi hàm
+  - Thử lại có giới hạn theo cơ chế của adapter hoặc ứng dụng
+  - Tránh lặp tác dụng phụ khi dữ liệu được gửi lại
+  - Ranh giới giao dịch cơ sở dữ liệu và xác nhận thông điệp
+  - Giới hạn thời gian và hủy tác vụ bên ngoài
+  - Quản lý trạng thái dùng chung trong môi trường nhiều lần gọi
+  - Tiến hóa hợp đồng dữ liệu và xử lý thông điệp không tương thích
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị hàm Java không khởi động Spring
+  - Kiểm thử dependency injection và đăng ký FunctionCatalog
+  - So sánh kết quả gọi bean với kết quả gọi qua catalog
+  - Kiểm thử kiểu dữ liệu, contentType và MessageConverter
+  - Kiểm thử thứ tự ghép và lỗi tại từng bước
+  - Kiểm thử ưu tiên định tuyến và thông điệp không có đích
+  - Kiểm thử Mono, Flux, lỗi và hủy bằng StepVerifier
+  - Kiểm thử HTTP mapping, method, header và mã phản hồi
+  - Kiểm thử functional application theo tiện ích phù hợp phiên bản
+  - Kiểm thử binder bằng Spring Cloud Stream test binder
+  - Kiểm thử hợp đồng sự kiện AWS, Azure và Google Cloud
+  - Kiểm thử toàn trình, gọi lặp và nhiều lần gọi đồng thời
+- level1: Bảo mật
+  level2:
+  - Chỉ công bố các hàm cần thiết cho từng điểm vào
+  - Xác thực và phân quyền ở HTTP hoặc nền tảng serverless
+  - Kiểm soát header định tuyến do bên ngoài cung cấp
+  - Giới hạn SpEL và phân biệt nguồn biểu thức tin cậy
+  - Bảo vệ thuộc tính cấu hình và các endpoint quản trị
+  - Giới hạn loại dữ liệu được phép giải tuần tự hóa theo phiên bản
+  - Không nạp JAR hoặc artifact không tin cậy bằng deployer
+  - Bảo vệ thông tin bí mật trong biến môi trường và kho cấu hình
+  - Che dữ liệu JSON bằng JsonMasker và META-INF/mask.keys
+  - Giới hạn kích thước dữ liệu, thời gian xử lý và mức đồng thời
+  - Quyền tối thiểu khi truy cập dịch vụ đám mây và broker
+- level1: Quan sát
+  level2:
+  - Liệt kê hàm bằng FunctionCatalog để chẩn đoán cấu hình
+  - Actuator functions endpoint và điều kiện kích hoạt
+  - Phân biệt quan sát từng hàm với quan sát HTTP, binder và nền tảng
+  - Đo thời lượng, số lần gọi và tỷ lệ lỗi
+  - Liên kết nhật ký theo mã lần gọi và mã thông điệp
+  - Truyền ngữ cảnh truy vết qua hàm ghép và chuỗi phản ứng
+  - Phân biệt thời gian khởi động và thời gian xử lý ổn định
+  - Giới hạn nhãn số liệu và tránh ghi dữ liệu nhạy cảm
+  - Thiết lập cảnh báo lỗi định tuyến, dữ liệu tồn đọng và quá thời gian
+- level1: Hiệu năng
+  level2:
+  - Đo riêng thời gian khởi động và thời gian thực thi hàm
+  - Giảm phụ thuộc và tự cấu hình không cần thiết
+  - Lựa chọn đăng ký bean truyền thống hoặc functional
+  - Tái sử dụng kết nối và đối tượng client an toàn
+  - Chi phí chuyển đổi JSON và sao chép Message
+  - Lựa chọn xử lý đồng bộ hoặc phản ứng theo tải thực tế
+  - Điều chỉnh song song, bộ nhớ và số kết nối
+  - Đánh giá Spring AOT, RuntimeHints và GraalVM Native Image
+  - Kiểm tra tương thích adapter trước khi chọn kiểu triển khai tối ưu
+- level1: Nâng cấp
+  level2:
+  - Phân biệt phiên bản Spring Cloud Function, Boot, BOM và runtime
+  - Đối chiếu API, thuộc tính cấu hình và thay đổi hành vi mặc định
+  - Kiểm tra chuyển đổi JSON và chính sách loại dữ liệu được phép
+  - Kiểm tra web adapter, định tuyến và header sau nâng cấp
+  - Chuyển đổi handler serverless đã ngừng khuyến nghị
+  - Giữ ổn định tên hàm, định nghĩa ghép và hợp đồng sự kiện
+  - Đối chiếu tài liệu cũ với thế hệ dịch vụ đám mây hiện hành
+  - Kiểm thử hồi quy và kế hoạch khôi phục phiên bản
+- level1: Chẩn đoán
+  level2:
+  - Không tìm thấy hàm trong FunctionCatalog
+  - Hàm ngoài ý muốn được đăng ký hoặc công bố
+  - Tra cứu tên sai vẫn trả hàm khi bật cơ chế tra cứu dự phòng
+  - Chuyển đổi JSON thất bại hoặc nhận Map thay vì POJO
+  - Chữ ký generic bị mất sau đăng ký hoặc đóng gói
+  - Ghép hàm sai thứ tự hoặc không tương thích kiểu
+  - Header định tuyến không có tác dụng với luồng phản ứng
+  - Luồng Flux không được xử lý do thiếu đăng ký nhận dữ liệu
+  - HTTP trả sai đường dẫn, method hoặc content type
+  - Header bị mất, bị sao chép ngoài ý muốn hoặc bổ sung thất bại
+  - Handler serverless không khởi tạo được lớp ứng dụng
+  - Nạp JAR lỗi do ClassLoader, manifest hoặc phụ thuộc
+  - Thời gian khởi động dài, vượt timeout hoặc lặp tác dụng phụ
+- level1: Thực hành
+  level2:
+  - Xây dựng bộ Supplier, Function và Consumer xử lý văn bản
+  - Chuyển JSON thành POJO với converter tùy chỉnh
+  - Ghép chuỗi kiểm tra và xử lý đơn hàng
+  - Định tuyến theo header với danh sách hàm được phép
+  - Bổ sung metadata và kiểm chứng quy tắc truyền header
+  - Tách và kết hợp nhiều luồng bằng Reactor Tuple
+  - Công bố cùng một hàm qua HTTP và Spring Cloud Stream
+  - Dùng FunctionFlowBuilder trong luồng Spring Integration
+  - Nạp hàm từ JAR độc lập và kiểm tra ranh giới kiểu
+  - Đưa nghiệp vụ lên một adapter serverless rồi đối chiếu kết quả
+  - Mô phỏng lỗi, dữ liệu lặp và nhiều lần gọi đồng thời
+  - Đo khởi động, bảo vệ điểm vào và hoàn thiện kiểm thử triển khai

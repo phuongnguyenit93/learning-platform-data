@@ -1,0 +1,7 @@
+# Engineering Validation Testing Tool Assertion
+
+Assertion là điều kiện kiểm chứng trong một bài kiểm thử tự động: so sánh kết quả thực tế với hành vi mong đợi và báo thất bại khi hợp đồng phần mềm bị vi phạm. Assertion tốt cần đúng trọng tâm, dễ hiểu khi đọc và đưa ra thông tin hữu ích khi thất bại. Trong Java, JUnit Jupiter cung cấp các assertion thông dụng; AssertJ bổ sung cú pháp fluent cho dữ liệu phức tạp, còn Hamcrest dùng các matcher mô tả điều kiện theo cách khai báo.
+
+Module dành cho người đã biết Java căn bản và cấu trúc một unit test. Lộ trình bắt đầu bằng cách xác định expected/actual, kiểm tra equality, null, chuỗi và collections; tiếp theo là exception assertions, cách viết fluent assertions và matcher, cũng như grouped hoặc soft assertions để thu thập nhiều lỗi độc lập. Các phần sau tập trung vào thông báo lỗi có ý nghĩa, giá trị biên, tránh assertion quá gắn với chi tiết triển khai và kiểm tra giới hạn thời gian mà không tạo flaky tests.
+
+Sau khi hoàn thành, bạn có thể viết assertions cho kết quả bình thường và ngoại lệ, chọn cách so sánh phù hợp từng kiểu dữ liệu, giải thích khác biệt giữa kiểm tra bằng nhau và cùng tham chiếu, cũng như chẩn đoán assertion failure từ kết quả chạy test. Với tác vụ phụ thuộc thời gian hoặc giao dịch, hãy cân nhắc kỹ việc sử dụng timeout chủ động vì thực thi trên thread khác có thể làm thay đổi ngữ cảnh kiểm thử.

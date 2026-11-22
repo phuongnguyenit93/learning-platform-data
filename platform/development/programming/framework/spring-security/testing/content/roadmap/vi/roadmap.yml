@@ -1,0 +1,57 @@
+roadmap:
+- id: thiet-lap-kiem-thu-bao-mat
+  title: Thiết lập kiểm thử bảo mật
+  purpose: Chuẩn bị môi trường kiểm thử để hành vi xác thực và phân quyền được kiểm chứng nhất quán.
+  objectives:
+  - Thêm spring-security-test vào cấu hình test
+  - Chọn phạm vi unit, MVC slice và integration test
+  - Gắn security filter chain vào MockMvc khi cần
+- id: gia-lap-danh-tinh
+  title: Giả lập danh tính
+  purpose: Tạo các ngữ cảnh người dùng đại diện mà không phụ thuộc hệ thống đăng nhập thật.
+  objectives:
+  - Dùng @WithMockUser và @WithAnonymousUser
+  - Cấu hình roles, authorities và SecurityContext
+  - Tạo principal tùy biến cho trường hợp đặc thù
+- id: phan-quyen-http
+  title: Phân quyền HTTP
+  purpose: Kiểm chứng endpoint chỉ cho phép đúng vai trò, quyền hạn và trạng thái xác thực.
+  objectives:
+  - Dùng MockMvc kiểm thử route được bảo vệ
+  - So sánh tình huống anonymous, user và admin
+  - Xác minh mã phản hồi và quyền truy cập kỳ vọng
+- id: bao-ve-tang-phuong-thuc
+  title: Bảo vệ tầng phương thức
+  purpose: Kiểm tra quy tắc authorization ở service, kể cả khi không đi qua controller.
+  objectives:
+  - Viết test cho @PreAuthorize và @PostAuthorize
+  - Thử có quyền, thiếu quyền và không đăng nhập
+  - Đảm bảo quy tắc method security được kích hoạt
+- id: csrf-luong-dang-nhap
+  title: CSRF & luồng đăng nhập
+  purpose: Đảm bảo các cơ chế bảo vệ request và luồng đăng nhập hoạt động theo cấu hình.
+  objectives:
+  - Dùng csrf() với request thay đổi trạng thái
+  - Thử thiếu hoặc sai CSRF token khi CSRF bật
+  - Kiểm tra hành vi login và logout của ứng dụng
+- id: oauth2-oidc-jwt
+  title: OAuth2, OIDC & JWT
+  purpose: Giả lập security principal và token phù hợp để kiểm chứng phân quyền của ứng dụng.
+  objectives:
+  - Dùng jwt(), oauth2Login() hoặc oidcLogin() khi phù hợp
+  - Thử claims, scopes và authorities khác nhau
+  - Tách test authorization giả lập khỏi test xác minh token thật
+- id: reactive-security
+  title: Reactive Security
+  purpose: Kiểm chứng tương đương các quy tắc bảo mật trong ứng dụng WebFlux khi được sử dụng.
+  objectives:
+  - Thiết lập WebTestClient với Spring Security
+  - Dùng mockUser và mockJwt phù hợp
+  - Kiểm thử truy cập được phép và bị từ chối
+- id: tich-hop-hoi-quy
+  title: Tích hợp & hồi quy
+  purpose: Duy trì tập kiểm thử ngăn lỗi phân quyền tái xuất hiện khi cấu hình thay đổi.
+  objectives:
+  - Bao phủ đường đi tích cực và các ca từ chối
+  - Chạy integration test với cấu hình security thực
+  - Tích hợp kiểm thử bảo mật ổn định vào CI

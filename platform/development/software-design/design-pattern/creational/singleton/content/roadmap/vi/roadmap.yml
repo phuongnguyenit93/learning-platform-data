@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-dich-singleton
+  title: Mục đích Singleton
+  purpose: Nhận diện trường hợp cần kiểm soát một instance trong phạm vi ứng dụng và hiểu chi phí của điểm truy cập dùng chung.
+  objectives:
+  - Nêu intent và vai trò của Singleton Pattern
+  - Phân biệt một instance với biến static thông thường
+  - Nhận diện trường hợp nên và không nên áp dụng
+- id: constructor-getinstance
+  title: Constructor & getInstance
+  purpose: Triển khai cấu trúc tối thiểu để lớp tự kiểm soát cách tạo và cung cấp instance.
+  objectives:
+  - Khai báo private constructor
+  - Định nghĩa điểm truy cập static getInstance()
+  - Kiểm tra hai lần gọi nhận cùng tham chiếu
+- id: eager-initialization
+  title: Eager Initialization
+  purpose: Khởi tạo instance khi lớp được khởi tạo để có cách triển khai đơn giản và an toàn luồng.
+  objectives:
+  - Tạo static final instance tại thời điểm khởi tạo lớp
+  - Giải thích khác biệt eager và lazy loading
+  - Đánh giá chi phí khởi tạo đối tượng sớm
+- id: lazy-holder-idiom
+  title: Lazy Holder Idiom
+  purpose: Chỉ khởi tạo đối tượng khi thực sự cần và tận dụng cơ chế khởi tạo lớp của JVM.
+  objectives:
+  - Tạo nested static holder chứa instance
+  - Giải thích bảo đảm thread-safe của class initialization
+  - So sánh holder với lazy implementation đơn giản
+- id: thread-safety-dcl
+  title: Thread Safety & DCL
+  purpose: Tránh race condition khi nhiều luồng cùng lấy Singleton mà không lạm dụng đồng bộ hóa.
+  objectives:
+  - Mô phỏng lỗi lazy initialization khi chạy đa luồng
+  - Giải thích vai trò synchronized và volatile
+  - Nhận diện đúng cấu trúc double-checked locking
+- id: enum-singleton
+  title: Enum Singleton
+  purpose: Hiểu cách dùng một enum constant để quản lý instance gọn và tránh nhiều rủi ro đặc thù của Java.
+  objectives:
+  - Khai báo enum Singleton với INSTANCE
+  - So sánh enum với private constructor
+  - Giải thích bảo vệ trước reflection và serialization
+- id: scope-trang-thai-dung-chung
+  title: Scope & trạng thái dùng chung
+  purpose: Hiểu phạm vi bảo đảm instance và hậu quả khi đối tượng giữ trạng thái thay đổi được.
+  objectives:
+  - Nhận diện giới hạn theo class loader và tiến trình
+  - Phân biệt instance duy nhất với thread safety của state
+  - Đánh giá serialization và lỗi do mutable shared state
+- id: kiem-thu-thay-the
+  title: Kiểm thử & thay thế
+  purpose: Giảm coupling do truy cập toàn cục và lựa chọn thiết kế dễ thay thế khi cần.
+  objectives:
+  - Viết unit test cho identity và xử lý đồng thời
+  - Phân tích khó khăn khi giả lập hoặc reset Singleton
+  - Cân nhắc dependency injection thay global access

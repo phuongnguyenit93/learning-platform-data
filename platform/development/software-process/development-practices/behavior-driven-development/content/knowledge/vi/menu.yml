@@ -1,0 +1,296 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phát triển hướng hành vi (BDD) là gì và giải quyết vấn đề nào
+  - Nguồn gốc BDD và mục tiêu xây dựng hiểu biết chung
+  - Quan hệ giữa BDD, TDD, ATDD và Specification by Example
+  - Vai trò của hội thoại, ví dụ và đặc tả thực thi
+  - Ba hoạt động khám phá, diễn đạt và tự động hóa
+  - Mối liên hệ giữa giá trị nghiệp vụ, hành vi và phần mềm
+  - Phạm vi áp dụng và các hiểu lầm thường gặp về BDD
+  - Kiến thức tiên quyết và trình tự học BDD
+- level1: Tư duy hành vi
+  level2:
+  - Hành vi quan sát được và trách nhiệm của hệ thống
+  - Phân biệt kết quả nghiệp vụ với chi tiết hiện thực
+  - Bối cảnh, sự kiện và kết quả mong đợi
+  - Quy tắc nghiệp vụ và các ví dụ minh họa
+  - Ngôn ngữ chung và ý nghĩa thuật ngữ trong từng miền
+  - Ranh giới hệ thống và góc nhìn người sử dụng
+  - Ví dụ cụ thể như công cụ phát hiện khác biệt trong hiểu biết
+  - Điều kiện chấp nhận và bằng chứng xác nhận hành vi
+- level1: Cộng tác
+  level2:
+  - Ba góc nhìn nghiệp vụ, phát triển và kiểm thử (Three Amigos)
+  - Vai trò của chủ sản phẩm và chuyên gia miền
+  - Trách nhiệm của lập trình viên và người kiểm thử
+  - Mời các góc nhìn vận hành, bảo mật và trải nghiệm khi cần
+  - Tạo môi trường trao đổi giả định và đặt câu hỏi
+  - Thống nhất thuật ngữ, quy tắc và kết quả mong đợi
+  - Điều phối thảo luận khi có bất đồng hoặc thiếu thông tin
+  - Phân công theo dõi câu hỏi và xác nhận quyết định
+- level1: Khám phá
+  level2:
+  - Discovery và mục tiêu trước khi bắt đầu hiện thực
+  - Chuẩn bị câu chuyện người dùng và bối cảnh nghiệp vụ
+  - Xác định ai cần thay đổi và giá trị mong đợi
+  - Tổ chức buổi khám phá với phạm vi và thời lượng rõ ràng
+  - Dùng ví dụ để kiểm tra cách hiểu của từng bên
+  - Phát hiện quy tắc ẩn, ngoại lệ và giả định
+  - Tách yêu cầu lớn thành các phần có thể giao độc lập
+  - Ghi nhận câu hỏi chưa giải đáp và điều kiện sẵn sàng phát triển
+- level1: Example Mapping
+  level2:
+  - Vai trò của Example Mapping trong buổi khám phá
+  - Phân loại câu chuyện, quy tắc, ví dụ và câu hỏi
+  - Tổ chức thẻ và quan hệ giữa các nhóm thông tin
+  - Liên kết từng ví dụ với quy tắc được minh họa
+  - Tìm quy tắc thiếu ví dụ và ví dụ chưa rõ ý nghĩa
+  - Phát hiện phạm vi quá rộng qua cấu trúc bản đồ
+  - Xử lý ngoại lệ, mâu thuẫn và câu hỏi còn mở
+  - Chuyển kết quả thảo luận thành phạm vi và việc cần làm
+  - Thống nhất phần cần đặc tả, phần cần khảo sát thêm
+- level1: Thiết kế ví dụ
+  level2:
+  - Lựa chọn ví dụ đại diện cho từng quy tắc
+  - Luồng thành công và các nhánh kết quả khác
+  - Giá trị biên, lớp tương đương và trường hợp không hợp lệ
+  - Ví dụ cho chuyển trạng thái và vòng đời nghiệp vụ
+  - Ví dụ cho vai trò, quyền hạn và điều kiện truy cập
+  - Phân biệt quy tắc khác nhau với thay đổi dữ liệu cùng quy tắc
+  - Chọn dữ liệu có ý nghĩa và loại bỏ chi tiết gây nhiễu
+  - Xử lý thời gian, tiền tệ và quy tắc làm tròn trong ví dụ
+  - Đánh giá mức bao phủ theo rủi ro và giá trị nghiệp vụ
+  - Giới hạn số ví dụ để đặc tả dễ hiểu và duy trì
+- level1: Đặc tả
+  level2:
+  - Formulation và mục tiêu diễn đạt hiểu biết đã thống nhất
+  - Chuyển ví dụ thành đặc tả rõ ràng, có thể kiểm chứng
+  - Đặt tên theo hành vi và ý nghĩa nghiệp vụ
+  - Viết bối cảnh đủ dùng và nêu tác nhân khi có ý nghĩa
+  - Diễn đạt một sự kiện chính và các kết quả liên quan
+  - Chọn mức chi tiết phù hợp với người đọc nghiệp vụ
+  - Phân biệt đặc tả hành vi với hướng dẫn thao tác
+  - Rà soát đặc tả cùng các bên trước khi tự động hóa
+  - Lựa chọn văn xuôi, bảng ví dụ hoặc Gherkin theo nhu cầu
+- level1: Gherkin
+  level2:
+  - Tệp .feature và cấu trúc Feature
+  - Rule để nhóm kịch bản theo quy tắc
+  - Scenario, Example và tên kịch bản
+  - Given mô tả bối cảnh ban đầu
+  - When mô tả sự kiện hoặc hành động chính
+  - Then mô tả kết quả có thể quan sát
+  - And, But và cách nối bước
+  - Background và bối cảnh chung
+  - Scenario Outline và bảng Examples
+  - Data Table và Doc String
+  - Tags, chú thích và mô tả tự do
+  - Ngôn ngữ Gherkin và đặc tả tiếng Việt
+- level1: Dữ liệu kịch bản
+  level2:
+  - Phân biệt Data Table với bảng Examples
+  - Tham số hóa ví dụ mà vẫn giữ rõ quy tắc
+  - Chọn dữ liệu cố định, có ý nghĩa và dễ đọc
+  - Biểu diễn đối tượng, danh sách và dữ liệu nhiều dòng
+  - Ánh xạ Data Table và Doc String sang kiểu dữ liệu
+  - Xử lý ô trống, giá trị thiếu và ký tự đặc biệt
+  - Quản lý ngày giờ, múi giờ và số thập phân
+  - Thiết kế dữ liệu độc lập cho mỗi lần thực thi
+  - Tránh dữ liệu nhạy cảm và phụ thuộc dữ liệu sản xuất
+- level1: Tổ chức đặc tả
+  level2:
+  - Phân nhóm theo khả năng nghiệp vụ và quy tắc
+  - Phân chia Feature theo phạm vi dễ hiểu
+  - Quy ước tên tệp, tên kịch bản và thuật ngữ
+  - Tổ chức Tags theo mục đích sử dụng
+  - Phân biệt cấu trúc tài liệu với cách chọn tập chạy
+  - Quản lý đặc tả dùng chung và ranh giới giữa các miền
+  - Liên kết đặc tả với yêu cầu và tiêu chí chấp nhận
+  - Tổ chức rà soát thay đổi đặc tả trong kho mã nguồn
+- level1: Vòng lặp BDD
+  level2:
+  - Khám phá, diễn đạt và tự động hóa trong từng thay đổi nhỏ
+  - Bắt đầu từ ví dụ đã được thống nhất
+  - Tạo kiểm thử chấp nhận thất bại vì hành vi còn thiếu
+  - Phát triển từ ngoài vào trong theo hợp đồng hành vi
+  - Kết hợp vòng lặp BDD với kiểm thử đơn vị và TDD
+  - Hiện thực lượng mã cần thiết để đáp ứng ví dụ
+  - Tái cấu trúc đặc tả, mã kiểm thử và mã ứng dụng
+  - Quay lại khám phá khi xuất hiện câu hỏi nghiệp vụ
+  - Xác nhận kết quả và đưa phản hồi vào vòng phát triển tiếp theo
+- level1: Tự động hóa
+  level2:
+  - Vai trò của tự động hóa trong phản hồi và tài liệu thực thi
+  - Chọn ví dụ có giá trị để tự động hóa
+  - Lựa chọn mức kiểm tra miền, dịch vụ, API hoặc giao diện
+  - Cân bằng tốc độ, độ tin cậy và phạm vi bao phủ
+  - Kiến trúc đặc tả, mã liên kết và lớp điều khiển hệ thống
+  - Tách ngôn ngữ nghiệp vụ khỏi chi tiết công cụ
+  - Thiết kế phép kiểm tra kết quả theo hợp đồng hành vi
+  - Kết hợp kiểm tra tự động với khảo sát và đánh giá thủ công
+  - Lựa chọn công cụ theo môi trường và năng lực nhóm
+- level1: Cucumber-JVM
+  level2:
+  - Vai trò của Gherkin, Cucumber và mã ứng dụng
+  - Thiết lập dự án Java với Maven hoặc Gradle
+  - Quản lý phiên bản dependency Cucumber đồng bộ
+  - Tổ chức feature, glue code và tài nguyên kiểm thử
+  - Chạy Cucumber bằng JUnit Platform
+  - Cấu hình bộ kiểm thử, đường dẫn feature và package glue
+  - Chọn kịch bản bằng Tags và cấu hình thực thi
+  - Chạy từ IDE, dòng lệnh và công cụ build
+  - Phát hiện lỗi cấu hình và xác nhận kịch bản được tìm thấy
+- level1: Step Definitions
+  level2:
+  - Ánh xạ văn bản bước sang phương thức Java
+  - Cucumber Expressions và biểu thức chính quy
+  - Tham số dựng sẵn như int, float và string
+  - Định nghĩa kiểu tham số theo khái niệm miền
+  - Chuyển đổi Data Table và Doc String bằng bộ chuyển đổi riêng
+  - Xử lý bước chưa định nghĩa và bước khớp nhiều biểu thức
+  - Cách Cucumber khớp nội dung bước độc lập với từ khóa
+  - Tổ chức bước theo miền và giữ thân phương thức ngắn
+  - Tái sử dụng mã hỗ trợ mà vẫn giữ ý nghĩa từng bước
+  - Viết kiểm tra kết quả và thông báo thất bại rõ ràng
+- level1: Trạng thái và Hooks
+  level2:
+  - Vòng đời kịch bản và đối tượng glue code
+  - Chia sẻ dữ liệu giữa các bước trong cùng kịch bản
+  - Cách ly trạng thái giữa các kịch bản
+  - Đưa phụ thuộc vào lớp bước bằng dependency injection
+  - Before, After, BeforeStep và AfterStep
+  - Hooks theo Tags và thứ tự thực thi
+  - Phân biệt thiết lập kỹ thuật với bối cảnh nghiệp vụ
+  - Thu thập bằng chứng khi thất bại và dọn tài nguyên
+  - Tránh biến static, phụ thuộc thứ tự và trạng thái dùng chung
+  - Quản lý tài nguyên an toàn khi kịch bản chạy song song
+- level1: Java và Spring
+  level2:
+  - Thiết kế lớp hỗ trợ và đối tượng ngữ cảnh kịch bản
+  - Áp dụng AssertJ hoặc thư viện kiểm tra kết quả phù hợp
+  - Kết nối Cucumber với Spring bằng cucumber-spring
+  - Cấu hình ngữ cảnh kiểm thử và CucumberContextConfiguration
+  - Quản lý bean theo kịch bản bằng ScenarioScope
+  - Lựa chọn kiểm thử trong tiến trình hoặc qua máy chủ chạy thật
+  - Sử dụng hồ sơ cấu hình và thay thế phụ thuộc trong kiểm thử
+  - Quản lý dữ liệu, giao dịch và ranh giới giữa các tiến trình
+  - Đánh giá chi phí khởi tạo và tái sử dụng Spring TestContext
+- level1: API và miền
+  level2:
+  - Tự động hóa hành vi trực tiếp qua lớp nghiệp vụ
+  - Kiểm tra dịch vụ qua HTTP với hợp đồng rõ ràng
+  - Chuẩn bị danh tính, quyền hạn và dữ liệu đầu vào
+  - Diễn đạt yêu cầu nghiệp vụ độc lập với định dạng truyền tải
+  - Kiểm tra kết quả thành công, từ chối và lỗi nghiệp vụ
+  - Quan sát trạng thái hoặc sự kiện qua giao diện phù hợp
+  - Thiết kế lớp điều khiển API để tái sử dụng giữa các bước
+  - Giới hạn kiểm tra chi tiết kỹ thuật trong đặc tả nghiệp vụ
+- level1: Giao diện
+  level2:
+  - Khi nào hành vi cần được kiểm tra qua giao diện người dùng
+  - Lựa chọn hành trình quan trọng để kiểm tra xuyên suốt
+  - Page Object và cách tiếp cận Screenplay ở mức kiến trúc
+  - Tách locator và thao tác trình duyệt khỏi bước nghiệp vụ
+  - Quản lý trình duyệt, phiên đăng nhập và dữ liệu từng kịch bản
+  - Chờ trạng thái giao diện có điều kiện
+  - Giảm phụ thuộc vào bố cục, nội dung động và trình tự thao tác
+  - Thu thập ảnh, log và bằng chứng phục vụ chẩn đoán
+- level1: Bất đồng bộ
+  level2:
+  - Đặc tả kết quả cuối cùng và giới hạn thời gian nghiệp vụ
+  - Kiểm tra hành vi dựa trên sự kiện hoặc hàng đợi
+  - Phân biệt tiếp nhận yêu cầu với hoàn tất xử lý
+  - Chờ điều kiện với thời hạn và nhịp kiểm tra rõ ràng
+  - Kiểm soát đồng hồ và lịch chạy trong kiểm thử
+  - Tương quan sự kiện với đúng kịch bản và yêu cầu
+  - Kiểm tra xử lý trùng lặp, thử lại và tính lũy đẳng
+  - Chẩn đoán thất bại do trễ xử lý hoặc mất sự kiện
+- level1: Phụ thuộc ngoài
+  level2:
+  - Xác định ranh giới cần chạy thật hoặc mô phỏng
+  - Phân biệt stub, fake, mock và dịch vụ thử nghiệm
+  - Mô phỏng phản hồi để kiểm tra lỗi và tình huống hiếm
+  - Kiểm tra hợp đồng để giảm sai lệch giữa mô phỏng và hệ thống thật
+  - Chuẩn bị cơ sở dữ liệu hoặc hạ tầng bằng container
+  - Quản lý tài khoản thử nghiệm, hạn mức và dịch vụ có tính phí
+  - Tách kịch bản nội bộ ổn định khỏi kiểm tra phụ thuộc ngoài
+  - Kiểm soát tác dụng phụ và dọn dữ liệu sau thực thi
+- level1: Chất lượng đặc tả
+  level2:
+  - Tiêu chí dễ hiểu, chính xác và có giá trị nghiệp vụ
+  - Một kịch bản diễn đạt một ví dụ có trọng tâm
+  - Nhận diện kịch bản dài, mơ hồ và chứa quá nhiều kết quả
+  - Loại bỏ chi tiết hiện thực không giúp giải thích quy tắc
+  - Phát hiện ví dụ trùng lặp và ví dụ khác tên nhưng cùng ý nghĩa
+  - Kiểm tra mâu thuẫn giữa kịch bản và quy tắc
+  - Đánh giá khả năng đọc của người nghiệp vụ
+  - Rà soát phần mô tả, thuật ngữ và dữ liệu minh họa
+  - Sử dụng phản hồi thực thi để cải thiện chất lượng đặc tả
+- level1: Độ tin cậy
+  level2:
+  - Nhận diện và phân loại kiểm thử chập chờn
+  - Kiểm soát thời gian, dữ liệu ngẫu nhiên và yếu tố môi trường
+  - Thiết kế kịch bản độc lập với thứ tự chạy
+  - Cách ly dữ liệu, tài khoản và tài nguyên khi chạy đồng thời
+  - Loại bỏ thời gian chờ cố định và phụ thuộc dịch vụ không kiểm soát
+  - Giữ phép kiểm tra đủ mạnh để phát hiện sai hành vi
+  - Giới hạn thử lại và lưu bằng chứng của lần thất bại đầu
+  - Theo dõi kịch bản không ổn định và xử lý nguyên nhân gốc
+  - Quản lý vòng đời bộ kiểm thử khi số kịch bản tăng
+- level1: Chẩn đoán
+  level2:
+  - Phân biệt lỗi cú pháp, ánh xạ bước và lỗi hành vi
+  - Phân biệt bước chưa định nghĩa, chưa hoàn thiện, thất bại và bị bỏ qua
+  - Phân tích lỗi từ đặc tả qua mã liên kết đến hệ thống
+  - Đọc thông báo kiểm tra kết quả và dấu vết ngoại lệ
+  - Chạy riêng kịch bản hoặc ví dụ gây lỗi
+  - Đối chiếu dữ liệu chuẩn bị, phản hồi và trạng thái thực tế
+  - Gắn log, ảnh hoặc dữ liệu chẩn đoán vào báo cáo
+  - Che thông tin nhạy cảm trong bằng chứng thực thi
+  - Xác định thay đổi cần sửa ở yêu cầu, đặc tả, kiểm thử hay mã ứng dụng
+- level1: CI/CD
+  level2:
+  - Tổ chức tập kiểm tra phản hồi nhanh và tập kiểm tra mở rộng
+  - Lựa chọn kịch bản theo Tags, phạm vi thay đổi và rủi ro
+  - Quản lý cấu hình môi trường và bí mật trong pipeline
+  - Thực thi song song hoặc chia tập chạy với dữ liệu độc lập
+  - Thiết lập cổng chất lượng và xử lý bước chưa được hiện thực
+  - Xuất báo cáo HTML, JUnit hoặc định dạng máy đọc
+  - Lưu bằng chứng cùng phiên bản mã và cấu hình thực thi
+  - Theo dõi thời gian phản hồi và xử lý bộ kiểm thử chậm
+  - Kiểm soát việc công bố báo cáo và quyền truy cập dữ liệu
+- level1: Tài liệu sống
+  level2:
+  - Đặc tả thực thi như tài liệu sống về hành vi hệ thống
+  - Phân biệt nội dung đặc tả với kết quả một lần chạy
+  - Tổ chức khả năng, quy tắc và ví dụ theo nhu cầu tra cứu
+  - Liên kết yêu cầu, đặc tả, mã và bằng chứng xác nhận
+  - Cập nhật đặc tả khi quy tắc nghiệp vụ thay đổi
+  - Tái cấu trúc, thay thế và loại bỏ kịch bản lỗi thời
+  - Quản lý phiên bản và khác biệt hành vi giữa các bản phát hành
+  - Rà soát mức độ đáng tin cậy của tài liệu và kết quả thực thi
+- level1: Tổ chức áp dụng
+  level2:
+  - Chọn bài toán thí điểm và mục tiêu cải thiện cụ thể
+  - Đưa khám phá và rà soát ví dụ vào quy trình làm việc
+  - Thống nhất trách nhiệm sở hữu đặc tả và tự động hóa
+  - Tích hợp BDD với refinement, phát triển và nghiệm thu
+  - Áp dụng trong nhóm phân tán hoặc làm việc không đồng thời
+  - Đánh giá thời gian làm rõ yêu cầu, phản hồi và sửa sai
+  - Nhận diện tình trạng chỉ đổi tên kiểm thử hoặc chỉ giao việc cho QA
+  - Kiểm soát chi phí duy trì và mức độ phụ thuộc công cụ
+  - Cải tiến thực hành dựa trên phản hồi của các bên
+- level1: Thực hành
+  level2:
+  - Xác định mục tiêu và phạm vi chức năng đặt hàng
+  - Tổ chức khám phá từ ba góc nhìn nghiệp vụ, phát triển và kiểm thử
+  - Lập Example Mapping cho quy tắc giảm giá
+  - Chọn ví dụ thông thường, giá trị biên và trường hợp từ chối
+  - Diễn đạt quy tắc và ví dụ thành đặc tả Gherkin
+  - Tạo dự án Cucumber-JVM và chạy đặc tả chưa được hiện thực
+  - Viết Step Definitions và lớp điều khiển nghiệp vụ
+  - Phát triển hành vi với vòng lặp kiểm thử và tái cấu trúc
+  - Bổ sung xử lý bất đồng bộ và phụ thuộc được mô phỏng
+  - Cách ly dữ liệu, chạy song song và tích hợp CI
+  - Thay đổi quy tắc, cập nhật tài liệu sống và đánh giá kết quả

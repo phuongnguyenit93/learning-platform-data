@@ -1,0 +1,82 @@
+menu:
+- title: Nhập môn
+  slug: quality-introduction
+  index: 0
+- title: Các chiều chất lượng
+  slug: quality-dimensions
+  index: 1
+- title: Bối cảnh và đánh đổi
+  slug: context-and-tradeoffs
+  index: 2
+- title: Tính đúng đắn
+  slug: correctness
+  index: 3
+- title: Độ tin cậy
+  slug: reliability
+  index: 4
+- title: Khả năng đọc
+  slug: readability
+  index: 5
+- title: Độ phức tạp
+  slug: complexity
+  index: 6
+- title: Cấu trúc và phụ thuộc
+  slug: structure-and-dependencies
+  index: 7
+- title: Dữ liệu và trạng thái
+  slug: data-and-state
+  index: 8
+- title: Hợp đồng API
+  slug: api-contracts
+  index: 9
+- title: Khả năng kiểm thử
+  slug: testability
+  index: 10
+- title: Bằng chứng kiểm thử
+  slug: test-evidence
+  index: 11
+- title: Bảo mật
+  slug: security
+  index: 12
+- title: Hiệu năng và tài nguyên
+  slug: performance-and-resources
+  index: 13
+- title: Tài liệu
+  slug: documentation
+  index: 14
+- title: Quy ước và nhất quán
+  slug: conventions-and-consistency
+  index: 15
+- title: Kiểm tra tự động
+  slug: automated-checks
+  index: 16
+- title: Chỉ số chất lượng
+  slug: quality-metrics
+  index: 17
+- title: Mùi mã
+  slug: code-smells
+  index: 18
+- title: Nợ kỹ thuật
+  slug: technical-debt
+  index: 19
+- title: Tái cấu trúc
+  slug: refactoring
+  index: 20
+- title: Rà soát mã
+  slug: code-review
+  index: 21
+- title: Cổng chất lượng
+  slug: quality-gates
+  index: 22
+- title: Mã hiện hữu
+  slug: existing-code
+  index: 23
+- title: Cộng tác và trách nhiệm
+  slug: collaboration-and-responsibilities
+  index: 24
+- title: Thực hành
+  slug: practice
+  index: 25
+- title: Cải thiện liên tục
+  slug: continuous-improvement
+  index: 26

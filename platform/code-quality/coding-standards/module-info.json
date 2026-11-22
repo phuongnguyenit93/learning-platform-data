@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "CODE_QUALITY_CODING_STANDARDS"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Xây dựng quy chuẩn viết mã Java dễ đọc, nhất quán và dễ bảo trì, từ đặt tên, cấu trúc nguồn, API, xử lý lỗi đến kiểm thử và tài liệu. Học cách đưa quy tắc vào code review, công cụ kiểm tra và CI, đồng thời quản trị ngoại lệ hợp lý khi áp dụng cho mã hiện hữu."
+  }
+}

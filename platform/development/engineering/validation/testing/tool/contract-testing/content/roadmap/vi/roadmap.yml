@@ -1,0 +1,49 @@
+roadmap:
+- id: contract-testing-pham-vi
+  title: Contract Testing & Phạm Vi
+  purpose: Hiểu cách kiểm tra hợp đồng giao tiếp giữa các service mà không cần chạy toàn bộ hệ thống.
+  objectives:
+  - '- Phân biệt contract, integration và end-to-end test.'
+  - '- Xác định consumer, provider và ranh giới giao tiếp cần bảo đảm.'
+- id: dinh-nghia-api-contract
+  title: Định Nghĩa API Contract
+  purpose: Mô tả kỳ vọng dữ liệu đủ rõ để cả phía gọi và phía cung cấp cùng kiểm chứng.
+  objectives:
+  - '- Đặc tả HTTP method, path, header, status và body.'
+  - '- Phân biệt OpenAPI schema với hợp đồng do consumer xác định.'
+- id: consumer-tests-voi-pact
+  title: Consumer Tests với Pact
+  purpose: Ghi nhận hành vi API mà client Java thực sự cần và tạo hợp đồng từ kiểm thử.
+  objectives:
+  - '- Dùng Pact JVM/JUnit 5 tạo interaction và mock provider.'
+  - '- Gọi client thật, xác minh response và sinh pact file.'
+- id: provider-verification
+  title: Provider Verification
+  purpose: Kiểm tra service triển khai có đáp ứng các interaction consumer đã công bố hay không.
+  objectives:
+  - '- Chạy Pact verifier/JUnit 5 trên provider độc lập.'
+  - '- Chuẩn bị provider states và xử lý trường hợp xác minh thất bại.'
+- id: matching-du-lieu-kiem-thu
+  title: Matching & Dữ Liệu Kiểm Thử
+  purpose: Viết hợp đồng ổn định trước dữ liệu biến đổi nhưng vẫn phát hiện thay đổi gây lỗi.
+  objectives:
+  - '- Áp dụng matcher theo kiểu, regex và cấu trúc trường cần dùng.'
+  - '- Thiết kế state/fixture độc lập, bao gồm lỗi và dữ liệu thiếu.'
+- id: spring-cloud-contract
+  title: Spring Cloud Contract
+  purpose: Làm quen phương án contract testing theo DSL và stub trong hệ sinh thái Spring.
+  objectives:
+  - '- Viết contract DSL cho request và response của Spring API.'
+  - '- Tạo generated verification tests và chạy Stub Runner ở consumer.'
+- id: pact-broker-ci-cd
+  title: Pact Broker & CI/CD
+  purpose: Chia sẻ contract và kết quả xác minh giữa các build, kiểm soát rủi ro khi phát hành.
+  objectives:
+  - '- Publish pact và provider verification kèm version/branch.'
+  - '- Dùng can-i-deploy trước khi triển khai phiên bản mới.'
+- id: compatibility-test-strategy
+  title: Compatibility & Test Strategy
+  purpose: Kiểm soát tiến hóa API và biết giới hạn của contract test trong chiến lược kiểm thử.
+  objectives:
+  - '- Kiểm tra thay đổi backward-compatible và breaking change.'
+  - '- Bổ sung test nghiệp vụ, bảo mật và hiệu năng ngoài contract.'

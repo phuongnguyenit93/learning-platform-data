@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-danh-gia-ai
+  title: Mục tiêu đánh giá AI
+  purpose: Định nghĩa chất lượng câu trả lời và tín hiệu vận hành cần đo cho ứng dụng Spring AI.
+  objectives:
+  - Phân biệt evaluation ngoại tuyến với production monitoring.
+  - Chọn tiêu chí liên quan, đúng thực tế, an toàn và ổn định.
+  - Xác định baseline, ngưỡng và phiên bản model/prompt.
+- id: test-case-du-lieu-chuan
+  title: Test case & dữ liệu chuẩn
+  purpose: Xây dựng bộ tình huống có thể chạy lặp lại để phát hiện suy giảm khi thay đổi ứng dụng.
+  objectives:
+  - Tạo bộ câu hỏi, ngữ cảnh, kỳ vọng và tình huống biên.
+  - Tách tập đánh giá khỏi dữ liệu dùng điều chỉnh prompt.
+  - Ghi nhận phiên bản dữ liệu và kết quả chuẩn.
+- id: spring-ai-evaluator-api
+  title: Spring AI Evaluator API
+  purpose: Tích hợp bước kiểm tra đầu ra bằng giao diện đánh giá sẵn có của Spring AI.
+  objectives:
+  - Sử dụng Evaluator với EvaluationRequest/Response.
+  - Đưa userText, dataList và responseContent vào phép đánh giá.
+  - Kiểm thử kết quả pass/fail và xử lý lỗi evaluator.
+- id: relevancy-fact-checking
+  title: Relevancy & Fact Checking
+  purpose: Đánh giá câu trả lời có phù hợp yêu cầu và được ngữ cảnh hỗ trợ hay không.
+  objectives:
+  - Dùng RelevancyEvaluator để kiểm tra liên quan trong RAG.
+  - Dùng FactCheckingEvaluator để kiểm tra claim theo tài liệu.
+  - Nhận diện sai số của LLM-as-judge và kiểm tra thủ công mẫu.
+- id: danh-gia-rag-tool-calls
+  title: Đánh giá RAG & tool calls
+  purpose: Quan sát chất lượng cả chuỗi tìm kiếm, sử dụng công cụ và sinh câu trả lời.
+  objectives:
+  - Kiểm tra truy xuất tài liệu đúng câu hỏi và đủ ngữ cảnh.
+  - Thử tool call thành công, sai tham số và lỗi phụ thuộc.
+  - Phân biệt lỗi retrieval với lỗi generation.
+- id: metrics-qua-micrometer
+  title: Metrics qua Micrometer
+  purpose: Đo hiệu năng và chi phí inference thay vì chỉ nhìn văn bản trả về.
+  objectives:
+  - Bật Actuator/Micrometer để thu metric Spring AI.
+  - Theo dõi latency, lỗi, token usage và vector search.
+  - Kiểm tra tên metric cùng nhãn có cardinality phù hợp.
+- id: tracing-du-lieu-nhay-cam
+  title: Tracing & dữ liệu nhạy cảm
+  purpose: Theo dấu yêu cầu xuyên ChatClient, model, advisor và vector store mà không rò rỉ dữ liệu.
+  objectives:
+  - Theo dõi trace/span và correlation ID trong call/stream.
+  - Kiểm tra đường thực thi advisor, tool và truy vấn vector.
+  - Giữ log prompt/completion và tool arguments ở trạng thái tắt trừ khi được phép.
+- id: regression-van-hanh-ci
+  title: Regression & vận hành CI
+  purpose: Dùng dữ liệu đánh giá kết hợp telemetry để phát hiện suy giảm sau thay đổi.
+  objectives:
+  - Chạy evaluation suite khi đổi prompt, model hoặc RAG pipeline.
+  - Theo dõi tỉ lệ pass, p95 latency, token và lỗi theo phiên bản.
+  - Thiết lập cảnh báo, so sánh baseline và quy trình rà soát.

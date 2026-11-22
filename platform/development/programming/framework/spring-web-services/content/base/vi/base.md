@@ -1,0 +1,7 @@
+# Spring Web Services
+
+Spring Web Services (Spring-WS) là framework trong hệ sinh thái Spring để xây dựng và sử dụng dịch vụ SOAP dựa trên XML. Trọng tâm của Spring-WS là phát triển theo hướng **contract-first**: xác định trước hợp đồng XSD/WSDL rồi mới cài đặt các endpoint Java. Cách tiếp cận này phù hợp với hệ thống doanh nghiệp cần trao đổi thông điệp theo hợp đồng ổn định, tích hợp liên nền tảng hoặc duy trì các dịch vụ SOAP hiện có. Người học nên có kiến thức cơ bản về Spring Boot, HTTP và XML.
+
+Lộ trình bắt đầu từ cấu trúc SOAP Envelope, Header, Body và Fault, sau đó xây dựng XSD/WSDL và cấu hình Spring Boot để công bố dịch vụ. Người học tạo `@Endpoint`, định tuyến bằng `@PayloadRoot`, chuyển đổi dữ liệu XML qua marshalling/unmarshalling và sử dụng interceptor để xử lý yêu cầu chung. Ở phía client, `WebServiceTemplate` hỗ trợ gửi, nhận và xử lý thông điệp SOAP; các lớp Java có thể được sinh từ XSD/WSDL để giữ nhất quán với hợp đồng.
+
+Phần cuối tập trung vào an toàn giao tiếp (TLS, WS-Security khi cần), chuẩn hóa SOAP Fault, kiểm thử hợp đồng và khả năng tương tác giữa client với server. Sau khi học, người học có thể triển khai dịch vụ SOAP nhỏ, xây dựng client gọi dịch vụ đó, kiểm tra XML và các trường hợp lỗi, đồng thời hiểu khi nào SOAP/Spring-WS phù hợp trong kiến trúc tích hợp.

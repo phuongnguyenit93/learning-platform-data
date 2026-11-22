@@ -1,0 +1,371 @@
+menu:
+- level1: Tổng quan benchmark
+  level2:
+  - Benchmark là gì và câu hỏi hiệu năng mà nó giúp trả lời
+  - Quan hệ giữa benchmark, kiểm thử hiệu năng, profiling và giám sát
+  - Phân biệt tính đúng chức năng với chất lượng của phép đo hiệu năng
+  - Microbenchmark, benchmark thành phần và benchmark toàn hệ thống
+  - Benchmark tổng hợp và workload lấy từ nhu cầu thực tế
+  - Đánh đổi giữa tốc độ, bộ nhớ, chi phí và độ ổn định
+  - Vì sao kết quả nhanh hơn chưa đủ để kết luận giải pháp tốt hơn
+  - Lộ trình từ câu hỏi đo lường đến quyết định kỹ thuật có bằng chứng
+- level1: Mục tiêu và phạm vi
+  level2:
+  - Chuyển vấn đề hiệu năng thành câu hỏi có thể kiểm chứng
+  - Xác định đối tượng đo, phiên bản và ranh giới trách nhiệm
+  - Lập giả thuyết trước khi chạy benchmark
+  - Chọn chỉ số chính và các chỉ số bảo vệ
+  - Đặt mức cải thiện có ý nghĩa đối với người sử dụng
+  - Xác định điều kiện áp dụng và những trường hợp ngoài phạm vi
+  - Chọn baseline phù hợp với mục tiêu so sánh
+  - Viết tiêu chí hoàn thành và tiêu chí không đủ bằng chứng
+- level1: Độ đúng và công bằng
+  level2:
+  - Xác minh kết quả tính toán trước khi đo hiệu năng
+  - Bảo đảm các phương án thực hiện cùng yêu cầu và tạo đầu ra tương đương
+  - So sánh cùng ngữ nghĩa về thứ tự, độ chính xác và xử lý lỗi
+  - Cân bằng chi phí khởi tạo, chuyển đổi dữ liệu và dọn tài nguyên
+  - Phân biệt thời gian thuật toán với thời gian gọi toàn bộ chức năng
+  - Xử lý kết quả gần đúng và sai số số học có chủ đích
+  - Công bằng khi so sánh cấu hình mặc định với cấu hình đã tối ưu
+  - Phát hiện phương án nhanh do bỏ việc hoặc chuyển việc ra ngoài vùng đo
+  - Tạo kiểm tra đối chiếu để phát hiện thay đổi hành vi giữa các lần chạy
+- level1: Thiết kế thí nghiệm
+  level2:
+  - Biến độc lập, biến phụ thuộc và yếu tố gây nhiễu
+  - Chọn nhóm đối chứng và quy tắc thay đổi có kiểm soát
+  - Phân biệt số thao tác, số mẫu và số lần chạy độc lập
+  - Ngẫu nhiên hóa hoặc xen kẽ thứ tự chạy các phương án
+  - Thiết kế so sánh theo cặp trong cùng điều kiện môi trường
+  - Chọn dải tham số thay vì chỉ đo một trường hợp thuận lợi
+  - Kiểm soát tương tác giữa nhiều yếu tố cấu hình
+  - Chạy thử để ước lượng biến động và lập kế hoạch đo
+  - Quy định trước cách loại mẫu, dừng thí nghiệm và xử lý lần chạy lỗi
+- level1: Dữ liệu đầu vào
+  level2:
+  - Chọn kích thước dữ liệu đại diện cho nhu cầu sử dụng
+  - Phân bố giá trị, tính lệch và các trường hợp biên
+  - Tạo dữ liệu ngẫu nhiên có seed để tái lập
+  - Độ trùng lặp, tính tuần tự và mức độ nén được của dữ liệu
+  - Quan hệ giữa working set và các tầng bộ nhớ đệm
+  - Phân biệt dữ liệu dùng chung, dữ liệu theo luồng và dữ liệu theo thao tác
+  - Chuẩn bị dữ liệu ngoài vùng đo mà không làm sai trạng thái thực tế
+  - Ẩn danh dữ liệu thực và giữ lại đặc trưng ảnh hưởng hiệu năng
+  - Lưu phiên bản bộ dữ liệu, bộ sinh và các tham số tạo dữ liệu
+- level1: Workload và mô hình tải
+  level2:
+  - Xác định một đơn vị công việc và hỗn hợp thao tác
+  - Tỷ lệ đọc, ghi, tìm kiếm, cập nhật và kích thước thông điệp
+  - Mô hình tải mở và tải đóng khác nhau ở điểm nào
+  - Phân biệt số người dùng đồng thời, số luồng và tốc độ phát yêu cầu
+  - Think time, thời gian chờ và nhịp phát tải
+  - Workload ổn định, tăng dần, đột biến và mục đích so sánh
+  - Hành vi xếp hàng, backpressure và giới hạn đồng thời
+  - Coordinated omission và nguy cơ che khuất độ trễ khi hệ thống chậm
+  - Xác minh workload thực thi khớp với workload đã thiết kế
+- level1: Chỉ số hiệu năng
+  level2:
+  - Latency, response time và service time theo ranh giới đo
+  - Throughput, goodput và số thao tác hoàn thành thành công
+  - Trung bình, trung vị, percentile và độ trễ đuôi
+  - Tỷ lệ lỗi, timeout và yêu cầu bị từ chối
+  - CPU time, wall-clock time và mức sử dụng CPU
+  - Allocation rate, bộ nhớ đang dùng, peak memory và RSS
+  - GC pause, thời gian chờ và các chỉ số tài nguyên phụ trợ
+  - Chuẩn hóa theo thao tác, lõi CPU, dung lượng hoặc chi phí
+  - Chọn đơn vị, số chữ số và cách biểu diễn sai số hợp lý
+  - Đọc đồng thời tốc độ, lỗi và tài nguyên để tránh kết luận thiếu
+- level1: Đồng hồ và vùng đo
+  level2:
+  - Đồng hồ đơn điệu và đồng hồ lịch phục vụ mục đích khác nhau
+  - System.nanoTime và giới hạn khi tự viết vòng đo thời gian
+  - Độ phân giải, độ chính xác và chi phí đọc đồng hồ
+  - Xác định điểm bắt đầu, kết thúc và phần việc nằm trong vùng đo
+  - Đo thao tác ngắn bằng lô và nguy cơ làm thay đổi hành vi
+  - Chi phí instrumentation, logging và thu thập số liệu
+  - 'Đo bất đồng bộ: thời điểm gửi việc không phải thời điểm hoàn thành'
+  - Đồng bộ thời gian và giới hạn khi đo qua nhiều máy
+  - Phân biệt thời gian client quan sát với thời gian server xử lý
+- level1: Môi trường thực thi
+  level2:
+  - Ghi nhận CPU, số lõi, SMT, RAM và kiến trúc máy
+  - Ảnh hưởng của hệ điều hành, kernel, filesystem và driver
+  - CPU frequency, turbo boost, nhiệt độ và cơ chế tiết kiệm điện
+  - Tác vụ nền, nhiễu tài nguyên và cách cô lập phiên chạy
+  - CPU affinity, NUMA và khi nào cần kiểm soát vị trí thực thi
+  - Container CPU quota, memory limit và giới hạn cgroup
+  - Máy ảo, cloud instance, tài nguyên chia sẻ và noisy neighbor
+  - Ổ đĩa, mạng, vị trí triển khai và độ trễ giữa các thành phần
+  - Xác định môi trường lạnh, môi trường ấm và quy tắc đặt lại trạng thái
+  - Lưu cấu hình môi trường cùng mỗi bộ kết quả
+- level1: JVM và JIT
+  level2:
+  - Diễn tiến thực thi từ bytecode đến mã máy được tối ưu
+  - Khởi động JVM, nạp lớp, khởi tạo lớp và ảnh hưởng đến phép đo
+  - Warmup và sự chuyển tiếp sang trạng thái thực thi ổn định
+  - Tiered compilation, inlining và thay đổi đường thực thi
+  - Profiling của JIT, tính đa hình và ảnh hưởng của dữ liệu đầu vào
+  - Deoptimization và biến động khi giả định tối ưu không còn đúng
+  - Escape analysis, loại bỏ cấp phát và ý nghĩa với kết quả benchmark
+  - Ảnh hưởng của phiên bản JDK, bản phân phối và JVM flags
+  - Phân biệt mục tiêu đo startup với mục tiêu đo steady state
+  - Quan sát sự ổn định thay vì chọn thời gian warmup theo cảm tính
+- level1: Bộ nhớ và GC
+  level2:
+  - Heap, non-heap, bộ nhớ native và bộ nhớ tiến trình
+  - Allocation rate và chi phí cấp phát theo từng thao tác
+  - Đối tượng sống ngắn, đối tượng được giữ lại và áp lực GC
+  - Lựa chọn collector, heap size và tính công bằng khi so sánh
+  - Ảnh hưởng của heap đã sử dụng, GC nền và full GC
+  - Đọc GC log để giải thích biến động kết quả
+  - Phân biệt độ trễ do ứng dụng với độ trễ do GC
+  - Vì sao gọi System.gc tùy ý có thể làm lệch thí nghiệm
+  - Thiết kế phép đo bộ nhớ đi kèm với phép đo tốc độ
+- level1: Sai lệch phép đo
+  level2:
+  - Dead-code elimination khi kết quả tính toán không được sử dụng
+  - Constant folding và dữ liệu đầu vào quá dễ dự đoán
+  - Loop hoisting, unrolling và nguy cơ từ vòng lặp tự viết
+  - Nhầm chi phí fixture với chi phí thao tác cần đo
+  - Ảnh hưởng của CPU cache, branch prediction và thứ tự chạy
+  - Nhiễm trạng thái giữa benchmark hoặc giữa các phương án
+  - Sample bias, lựa chọn kết quả thuận lợi và loại ngoại lệ tùy tiện
+  - Observer effect từ log, profiler và công cụ thu thập
+  - Lấy quá nhiều mẫu trong một tiến trình nhưng thiếu lần chạy độc lập
+  - Xây dựng phép đo đối chứng để nhận diện kết quả không đáng tin
+- level1: Khởi tạo JMH
+  level2:
+  - JMH giải quyết những vấn đề nào của microbenchmark trên JVM
+  - Vai trò của benchmark method, generated harness và annotation processing
+  - Tổ chức dự án benchmark tách khỏi mã ứng dụng
+  - Tích hợp JMH vào Maven hoặc Gradle theo cấu hình đã chọn
+  - Khai báo @Benchmark và xây dựng benchmark đầu tiên
+  - Đóng gói, chạy bằng dòng lệnh và chọn benchmark cần thực thi
+  - Kiểm tra dependency, classpath, JDK và tham số JVM
+  - Phân biệt chạy thử trong IDE với phiên đo dùng để kết luận
+  - Lưu kết quả thô và cấu hình lệnh chạy
+- level1: Trạng thái trong JMH
+  level2:
+  - '@State và phạm vi Scope.Thread, Scope.Benchmark, Scope.Group'
+  - '@Setup, @TearDown và các mức Trial, Iteration, Invocation'
+  - Chọn thời điểm tạo dữ liệu phù hợp với câu hỏi benchmark
+  - '@Param và thiết kế ma trận dữ liệu đầu vào'
+  - Trả kết quả hoặc dùng Blackhole để giữ công việc cần đo
+  - Chia sẻ trạng thái có chủ đích và tránh race condition trong fixture
+  - Thiết kế benchmark có thao tác cập nhật mà không làm cạn dữ liệu
+  - Tách trạng thái mutable khỏi dữ liệu chỉ đọc
+  - Kiểm tra fixture không tạo lợi thế ngầm cho một phương án
+- level1: Chế độ đo JMH
+  level2:
+  - 'BenchmarkMode: Throughput, AverageTime, SampleTime và SingleShotTime'
+  - OutputTimeUnit và cách đọc đơn vị của kết quả
+  - Warmup, measurement iteration và thời lượng mỗi iteration
+  - Fork và vai trò của các tiến trình JVM độc lập
+  - Threads và phạm vi tài nguyên được chia sẻ
+  - OperationsPerInvocation và cách chuẩn hóa đơn vị công việc
+  - Group benchmark để mô hình hóa nhóm thao tác đồng thời
+  - Batch size và các giới hạn khi đo thao tác rất nhỏ
+  - Diễn giải score, score error và các tham số thống kê
+  - Xác minh kết quả khi thay đổi fork, warmup và measurement
+- level1: Chẩn đoán bằng JMH
+  level2:
+  - Chọn profiler phù hợp với câu hỏi và môi trường
+  - GC profiler để quan sát cấp phát và hoạt động thu gom
+  - Đọc dấu vết CPU và phân biệt CPU nóng với thời gian chờ
+  - Đối chiếu mã máy hoặc hành vi JIT khi kết quả trái kỳ vọng
+  - Nhận diện benchmark không thực hiện đủ công việc dự kiến
+  - Đo overhead bằng phép đối chứng mà không trừ số tùy tiện
+  - So sánh kết quả có profiler với kết quả đo chính thức
+  - Xuất JSON hoặc CSV và giữ nguyên thông tin từng lần chạy
+  - Tạo bản tái hiện tối thiểu cho benchmark bất thường
+- level1: Thuật toán và cấu trúc dữ liệu
+  level2:
+  - Phân biệt độ phức tạp lý thuyết với thời gian thực thi
+  - Tìm kiếm và sắp xếp theo kích thước, phân bố dữ liệu
+  - Collection theo tỷ lệ truy cập, cập nhật và tỷ lệ trùng khóa
+  - Array, collection, boxing và locality của dữ liệu
+  - String, parsing, định dạng và chuyển đổi dữ liệu
+  - Vòng lặp, Stream API và parallel stream trong workload tương đương
+  - Chi phí băm, so sánh và hàm callback do người dùng cung cấp
+  - Xác định điểm giao nhau giữa các phương án theo kích thước đầu vào
+  - Diễn giải tối ưu theo workload thay vì xếp hạng API tuyệt đối
+- level1: Đồng thời và khả năng mở rộng
+  level2:
+  - Thiết kế workload theo luồng, tỷ lệ chia sẻ và mức tranh chấp
+  - Khóa, atomic operation và cấu trúc dữ liệu đồng thời
+  - Contention, false sharing và ảnh hưởng của cache coherence
+  - Thread pool, task queue và chi phí lập lịch
+  - Phân biệt số luồng với mức song song thực tế
+  - So sánh platform thread và virtual thread đúng loại workload
+  - Đo scaling theo số lõi, số luồng và lượng công việc
+  - Speedup, hiệu suất song song và giới hạn từ phần tuần tự
+  - Kiểm tra tính đúng đồng thời trước khi diễn giải throughput
+  - Đọc độ trễ đuôi và độ công bằng khi hệ thống gần bão hòa
+- level1: I/O và lưu trữ
+  level2:
+  - Phân biệt chi phí ứng dụng, page cache và thiết bị lưu trữ
+  - Đọc, ghi tuần tự và ngẫu nhiên theo kích thước khối
+  - Buffering, batch I/O và số thao tác đang chờ
+  - Cache lạnh, cache ấm và quy tắc chuẩn bị dữ liệu
+  - Ghi buffered, flush, fsync và yêu cầu độ bền dữ liệu
+  - Đo file, stream, channel và memory-mapped file theo cùng ngữ nghĩa
+  - Tách thời gian serialization, nén và truyền dữ liệu
+  - Ảnh hưởng của filesystem, dung lượng trống và tầng lưu trữ
+  - Đo throughput cùng latency và xử lý lỗi I/O
+- level1: Cơ sở dữ liệu
+  level2:
+  - Xác định ranh giới đo từ lời gọi ứng dụng đến kết quả truy vấn
+  - Thiết kế schema, dữ liệu và phân bố truy cập đại diện
+  - Query plan, index, statistics và trạng thái cache
+  - Connection pool, prepared statement và chi phí thiết lập kết nối
+  - Transaction, isolation level, commit và độ bền dữ liệu
+  - Batch, pagination và kích thước tập kết quả
+  - Workload đọc, ghi, hỗn hợp và mức tranh chấp dữ liệu
+  - Đặt lại dữ liệu giữa các lần chạy mà không làm sai trạng thái
+  - So sánh truy cập trực tiếp, ORM hoặc cấu hình khác theo cùng yêu cầu
+  - Thu thập client latency cùng chỉ số database để giải thích nút thắt
+- level1: API và dịch vụ
+  level2:
+  - Xác định ranh giới benchmark cho endpoint hoặc luồng nghiệp vụ
+  - Payload, serialization, xác thực và dependency phía sau
+  - HTTP connection reuse, TLS, keep-alive và connection pool
+  - Ảnh hưởng của mạng, DNS, proxy, gateway và vị trí bộ phát tải
+  - Kiểm tra tính đúng của response cùng throughput và latency
+  - Warmup ứng dụng, cache và các dịch vụ phụ thuộc
+  - Timeout, retry và circuit breaker làm thay đổi số công việc thực tế
+  - Phân biệt yêu cầu hoàn thành thành công với phản hồi nhanh do lỗi
+  - Đo điểm bão hòa và khả năng phục hồi sau khi giảm tải
+  - So sánh hai phiên bản với cùng cấu hình và workload
+- level1: Công cụ phát tải
+  level2:
+  - Lựa chọn giữa JMH và công cụ phát tải theo tầng cần đo
+  - Vai trò của JMeter, Gatling, k6 hoặc công cụ tương đương
+  - Mô hình kịch bản, dữ liệu biến thiên và kiểm tra response
+  - Thiết kế nhịp tải, concurrency và thời lượng phiên chạy
+  - Năng lực của bộ phát tải và dấu hiệu chính nó trở thành nút thắt
+  - Phân tách máy phát tải khỏi hệ thống được đo khi cần
+  - Phát tải phân tán và tổng hợp số liệu giữa các máy
+  - Lưu script, phiên bản công cụ, tham số và kết quả thô
+  - Đối chiếu số yêu cầu đã phát, đã nhận và đã hoàn thành
+- level1: Profiling và quan sát
+  level2:
+  - Khi nào dùng profiler để giải thích thay vì dùng để xếp hạng
+  - Lấy mẫu CPU, wall-clock và allocation theo mục tiêu phân tích
+  - Java Flight Recorder và Java Mission Control trong điều tra hiệu năng
+  - Async-profiler và điều kiện môi trường cần kiểm tra
+  - Đọc flame graph, call tree và hot path
+  - Thread dump, lock contention và thời gian chờ I/O
+  - Kết hợp application metrics với chỉ số hệ điều hành
+  - Liên kết biến động latency với GC, CPU, hàng đợi và dependency
+  - Thu thập quan sát có kiểm soát để giảm ảnh hưởng lên phép đo
+- level1: Thống kê mô tả
+  level2:
+  - Phân biệt quan sát đơn lẻ, mẫu và phân bố
+  - Trung bình, trung vị và trường hợp mỗi đại lượng phù hợp
+  - Độ lệch chuẩn, IQR và độ phân tán của kết quả
+  - Histogram, ECDF và hình dạng phân bố độ trễ
+  - Percentile theo số mẫu và hạn chế của phần đuôi hiếm gặp
+  - Chuỗi thời gian để phát hiện warmup, drift và chu kỳ
+  - Nhận diện ngoại lệ rồi điều tra nguyên nhân trước khi loại
+  - Phân biệt độ phân giải hiển thị với độ chính xác thực tế
+  - Tổng hợp qua nhiều fork mà không bỏ qua cấu trúc lần chạy
+- level1: Suy luận thống kê
+  level2:
+  - Biến động ngẫu nhiên và sự không chắc chắn của ước lượng
+  - Khoảng tin cậy và cách diễn giải đúng
+  - Effect size và mức cải thiện có ý nghĩa thực tiễn
+  - Chọn đơn vị mẫu độc lập và tránh pseudoreplication
+  - So sánh theo cặp và xử lý chênh lệch môi trường
+  - Bootstrap và điều kiện cần cân nhắc khi sử dụng
+  - Kiểm định giả thuyết và giới hạn của p-value
+  - Nhiều phép so sánh và nguy cơ phát hiện cải thiện giả
+  - Chọn số lần chạy dựa trên biến động và độ nhạy cần có
+  - Kết luận không đủ bằng chứng khác với chứng minh hai phương án bằng nhau
+- level1: So sánh kết quả
+  level2:
+  - Tính chênh lệch tuyệt đối, phần trăm và tỷ số tốc độ
+  - Đảo chiều diễn giải giữa chỉ số càng thấp càng tốt và càng cao càng tốt
+  - So sánh nhiều mức dữ liệu và nhiều môi trường
+  - Tránh gộp các chỉ số khác đơn vị thành một điểm thiếu cơ sở
+  - Trung bình số học, trung bình hình học và điều kiện tổng hợp tỷ số
+  - Đọc đường cong throughput, latency và tài nguyên cùng nhau
+  - Xác định điểm hòa vốn, điểm bão hòa và giới hạn suy rộng
+  - Nhận diện cải thiện cục bộ nhưng làm xấu tổng thể
+  - Đưa độ bất định và các đánh đổi vào kết luận kỹ thuật
+- level1: Baseline và hồi quy
+  level2:
+  - Chọn baseline từ commit, phiên bản hoặc artifact được xác minh
+  - Gắn kết quả với source revision, binary và cấu hình thực tế
+  - Thiết lập dải biến động bình thường của môi trường đo
+  - Đặt ngưỡng hồi quy tuyệt đối, tương đối và điều kiện kết hợp
+  - Xử lý chỉ số tốt lên trong khi chỉ số bảo vệ xấu đi
+  - Chạy lại có quy tắc khi cảnh báo để hạn chế kết luận từ nhiễu
+  - Khoanh vùng commit hoặc thay đổi cấu hình gây hồi quy
+  - Cập nhật baseline có bằng chứng và lịch sử truy vết
+  - Phân biệt sự cố môi trường đo với hồi quy của sản phẩm
+- level1: Tự động hóa benchmark
+  level2:
+  - Tổ chức mã benchmark, dữ liệu, cấu hình và công cụ phân tích
+  - Tạo lệnh chạy thống nhất cho máy cá nhân và máy đo
+  - Tích hợp Maven hoặc Gradle mà không chạy benchmark ngoài chủ đích
+  - Quản lý ma trận JDK, tham số và phiên bản cần so sánh
+  - Khởi tạo, kiểm tra và dọn fixture theo vòng đời rõ ràng
+  - Thu thập log, metadata và artifact bằng mã định danh phiên chạy
+  - Xử lý timeout, lần chạy dở dang và trạng thái không hợp lệ
+  - Tách thu thập dữ liệu khỏi tổng hợp, phân tích và xuất báo cáo
+  - Kiểm tra script phân tích để tránh sai đơn vị hoặc sai chiều so sánh
+- level1: Benchmark trên CI
+  level2:
+  - Lựa chọn chạy theo lịch, theo yêu cầu hoặc theo thay đổi liên quan
+  - Máy runner dùng chung và giới hạn của kết luận hiệu năng
+  - Runner chuyên dụng và cách giữ cấu hình ổn định
+  - Chia benchmark kiểm tra nhanh với bộ đo dùng cho quyết định phát hành
+  - Quản lý thời lượng, song song và tranh chấp tài nguyên
+  - Lưu kết quả dài hạn ngoài artifact tạm thời khi cần theo dõi xu hướng
+  - Thiết kế cảnh báo hồi quy kèm bằng chứng và khả năng chạy lại
+  - Phân quyền chạy, artifact và cấu hình môi trường
+  - Chỉ chặn pipeline khi kết quả đáp ứng điều kiện tin cậy đã quy định
+- level1: Tái lập thí nghiệm
+  level2:
+  - Lập manifest gồm source, binary, công cụ, JDK và hệ điều hành
+  - Ghi nhận đầy đủ tham số JVM, ứng dụng và lệnh thực thi
+  - Cố định phiên bản bộ dữ liệu, seed và trạng thái khởi tạo
+  - Ghi lại cấu hình phần cứng, container và dependency bên ngoài
+  - Lưu dữ liệu thô trước khi lọc, tổng hợp hoặc chuẩn hóa
+  - Phân biệt lặp lại trên cùng máy với tái lập ở môi trường khác
+  - Đóng gói hướng dẫn và script để người khác chạy độc lập
+  - Kiểm tra artifact, checksum và dấu vết thay đổi
+  - Công bố những điều kiện chưa kiểm soát và giới hạn tái lập
+- level1: Báo cáo và trực quan hóa
+  level2:
+  - Cấu trúc báo cáo từ câu hỏi, phương pháp đến kết quả và giới hạn
+  - Bảng kết quả có đơn vị, cấu hình, số lần chạy và độ bất định
+  - Biểu đồ theo kích thước đầu vào và đường cong khả năng mở rộng
+  - Biểu đồ phân bố, percentile và chuỗi thời gian
+  - Thanh sai số, trục log và điều kiện diễn giải
+  - Tránh trục bị cắt, lựa chọn mốc có lợi và biểu đồ gây hiểu nhầm
+  - Tách số liệu quan sát khỏi giả thuyết giải thích nguyên nhân
+  - Liên kết báo cáo Markdown với dữ liệu thô và artifact
+  - Viết kết luận gắn với phạm vi áp dụng và quyết định cụ thể
+- level1: Đánh đổi và quyết định
+  level2:
+  - Đánh giá tốc độ cùng bộ nhớ, chi phí vận hành và độ phức tạp
+  - Phân biệt tối ưu điểm nóng với tối ưu ít ảnh hưởng đến toàn hệ thống
+  - Ước tính tác động theo tỷ trọng workload thực tế
+  - Cân nhắc độ trễ đuôi, độ ổn định và khả năng phục hồi
+  - Chuẩn hóa chi phí theo đơn vị công việc hoàn thành thành công
+  - Đánh giá chi phí xây dựng, chạy và duy trì bộ benchmark
+  - Quyết định áp dụng, tiếp tục đo hoặc giữ giải pháp hiện tại
+  - Xác minh sau triển khai và cập nhật giả thuyết khi workload thay đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế benchmark so sánh collection với dữ liệu và truy cập thay đổi
+  - Phát hiện rồi sửa microbenchmark sai do dead-code elimination
+  - So sánh vòng lặp, Stream API và parallel stream theo cùng ngữ nghĩa
+  - Đo cấp phát và GC cho hai cách xử lý dữ liệu Java
+  - Đo khả năng mở rộng của thành phần dùng khóa hoặc cấu trúc đồng thời
+  - So sánh truy vấn trước và sau khi thêm index với dữ liệu đại diện
+  - Benchmark API cùng kiểm tra lỗi, độ trễ đuôi và điểm bão hòa
+  - Tạo báo cáo thống kê từ nhiều phiên chạy và giải thích độ bất định
+  - Thiết lập baseline, cảnh báo hồi quy và quy trình xác minh trên CI
+  - Bàn giao bộ thí nghiệm tái lập cùng kết luận và giới hạn áp dụng

@@ -1,0 +1,2125 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Trừu tượng hóa là gì và vấn đề cần giải quyết
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt trừu tượng hóa với đóng gói và kế thừa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Hợp đồng, cách triển khai và mã sử dụng hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của lớp trừu tượng và interface trong Java
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa kiểu, đối tượng, trạng thái và hành vi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Một ví dụ xuyên suốt: nhiều cách xử lý cùng một yêu cầu'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức tiên quyết và trình tự học đề xuất
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phạm vi Java Core và cách đối chiếu phiên bản JDK
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-foundations
+  title: Nền tảng kiểu
+  childs:
+  - slug: type-foundations-001
+    title: Kiểu tham chiếu và kiểu thực tế của đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-foundations-002
+    title: Quan hệ kiểu cha và kiểu con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-foundations-003
+    title: Kế thừa kiểu, kế thừa mã và kế thừa trạng thái
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-foundations-004
+    title: Đơn kế thừa lớp và đa kế thừa interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-foundations-005
+    title: Phân biệt extends và implements
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-foundations-006
+    title: Phạm vi truy cập public, protected, package-private và private
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-foundations-007
+    title: Đọc sơ đồ lớp và quan hệ thực thi hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: abstract-classes
+  title: Lớp trừu tượng
+  childs:
+  - slug: abstract-classes-001
+    title: Cú pháp khai báo abstract class
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-002
+    title: Vì sao không thể khởi tạo trực tiếp lớp trừu tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-003
+    title: Lớp trừu tượng có hoặc không có phương thức abstract
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-004
+    title: Thuộc tính và trạng thái dùng chung của các lớp con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-005
+    title: Phương thức có thân và mã triển khai dùng chung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-006
+    title: Thành viên static, final và private trong lớp trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-007
+    title: Constructor và lựa chọn phạm vi truy cập
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-008
+    title: Chuỗi kế thừa qua nhiều lớp trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-009
+    title: Lớp con cụ thể và trách nhiệm hoàn thiện triển khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-classes-010
+    title: Tổ hợp modifier hợp lệ và xung đột abstract với final
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: abstract-methods
+  title: Phương thức abstract
+  childs:
+  - slug: abstract-methods-001
+    title: Cú pháp khai báo và dấu chấm phẩy thay cho thân phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-002
+    title: Quan hệ giữa phương thức abstract và lớp chứa nó
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-003
+    title: Tham số, kiểu trả về và mệnh đề throws
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-004
+    title: Phạm vi public, protected và package-private
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-005
+    title: Vì sao abstract không kết hợp với private, static hoặc final
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-006
+    title: Các modifier không hợp lệ khác của phương thức abstract
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-007
+    title: Overload phương thức abstract
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-008
+    title: Khai báo lại phương thức đã có thân thành abstract
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstract-methods-009
+    title: Phương thức package-private khi lớp con nằm khác package
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-initialization
+  title: Khởi tạo đối tượng
+  childs:
+  - slug: object-initialization-001
+    title: Constructor lớp cha khi khởi tạo lớp con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-initialization-002
+    title: Chuỗi gọi super và truyền dữ liệu bắt buộc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-initialization-003
+    title: Thứ tự khởi tạo thuộc tính, khối khởi tạo và constructor
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-initialization-004
+    title: Duy trì trạng thái hợp lệ trong lớp trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-initialization-005
+    title: Rủi ro gọi phương thức có thể bị ghi đè trong constructor
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-initialization-006
+    title: Tránh để this thoát ra khi đối tượng chưa khởi tạo xong
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-initialization-007
+    title: Constructor không được kế thừa và không thể abstract
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-initialization-008
+    title: Factory tạo lớp cụ thể nhưng trả về kiểu trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interface-declaration
+  title: Khai báo interface
+  childs:
+  - slug: interface-declaration-001
+    title: Cú pháp, tên và mục đích của interface
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-declaration-002
+    title: Interface là kiểu tham chiếu và ngầm định abstract
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-declaration-003
+    title: 'Interface cấp cao nhất: public và package-private'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-declaration-004
+    title: Interface mở rộng một hoặc nhiều interface bằng extends
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-declaration-005
+    title: Lớp thực thi một hoặc nhiều interface bằng implements
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-declaration-006
+    title: Vì sao interface không có constructor và thuộc tính instance
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-declaration-007
+    title: Kiểu thành viên được khai báo bên trong interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-declaration-008
+    title: Phân biệt interface thông thường với annotation interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interface-members
+  title: Thành viên interface
+  childs:
+  - slug: interface-members-001
+    title: Phân loại phương thức abstract, default, static và private
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-members-002
+    title: Phương thức abstract ngầm định public
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-members-003
+    title: Thuộc tính ngầm định public static final và bắt buộc khởi tạo
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-members-004
+    title: Phân biệt thuộc tính final với đối tượng bất biến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-members-005
+    title: Hằng thời điểm biên dịch và thuộc tính cần khởi tạo lúc chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-members-006
+    title: Truy cập hằng qua tên interface và xử lý tên hằng trùng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-members-007
+    title: Giới hạn truy cập và modifier không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-members-008
+    title: Giới hạn tham chiếu thuộc tính và thứ tự khai báo
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-implementation
+  title: Triển khai hợp đồng
+  childs:
+  - slug: contract-implementation-001
+    title: Triển khai đầy đủ các phương thức abstract còn thiếu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-002
+    title: Phương thức thực thi interface phải public
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-003
+    title: Lớp trừu tượng thực thi một phần interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-004
+    title: Dùng phương thức kế thừa từ lớp cha để đáp ứng interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-005
+    title: Một phương thức đáp ứng nhiều interface có cùng chữ ký
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-006
+    title: Nhiều interface có yêu cầu kiểu trả về không tương thích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-007
+    title: Triển khai tường minh bằng phương thức có @Override
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-008
+    title: Không tự động trở thành kiểu con chỉ vì có phương thức giống nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-implementation-009
+    title: Giữ đúng ý nghĩa hợp đồng bên cạnh việc biên dịch thành công
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-overriding
+  title: Ghi đè phương thức
+  childs:
+  - slug: method-overriding-001
+    title: Chữ ký phương thức và điều kiện ghi đè
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-002
+    title: Phân biệt override, overload và static method hiding
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-003
+    title: Không thu hẹp phạm vi truy cập khi ghi đè
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-004
+    title: Kiểu trả về đồng biến và giới hạn với kiểu nguyên thủy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-005
+    title: Checked exception khi ghi đè phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-006
+    title: Unchecked exception và trách nhiệm của mã gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-007
+    title: Phương thức final, private và static trong quan hệ kế thừa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-008
+    title: Vai trò của @Override trong phát hiện sai chữ ký
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-009
+    title: Tham số varargs, mảng và các nhầm lẫn khi ghi đè
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-overriding-010
+    title: Gọi triển khai lớp cha bằng super
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: polymorphism
+  title: Đa hình
+  childs:
+  - slug: polymorphism-001
+    title: Khai báo biến, tham số và kiểu trả về bằng kiểu trừu tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-002
+    title: Liên kết động khi gọi phương thức instance
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-003
+    title: Phương thức được phép gọi theo kiểu khai báo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-004
+    title: Chọn overload lúc biên dịch và chọn override lúc chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-005
+    title: Upcast và downcast giữa lớp, lớp trừu tượng và interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-006
+    title: instanceof, pattern matching và kiểm tra trước khi ép kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-007
+    title: ClassCastException và giới hạn ép kiểu không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-008
+    title: Đối tượng null và lời gọi qua tham chiếu interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: polymorphism-009
+    title: Vì sao truy cập field và phương thức static không đa hình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: default-methods
+  title: Phương thức default
+  childs:
+  - slug: default-methods-001
+    title: Động cơ bổ sung default method từ Java 8
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-002
+    title: Cú pháp và thân phương thức default
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-003
+    title: Gọi phương thức abstract từ phương thức default
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-004
+    title: Ghi đè default method trong lớp triển khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-005
+    title: Kế thừa default method qua interface con
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-006
+    title: Biến default method thành yêu cầu abstract ở interface con
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-007
+    title: Gọi default method bằng InterfaceName.super
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-008
+    title: Giới hạn gọi super qua interface trực tiếp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: default-methods-009
+    title: Giới hạn chia sẻ trạng thái và hợp đồng của default method
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-and-private
+  title: Static và private
+  childs:
+  - slug: static-and-private-001
+    title: Phương thức static trong interface từ Java 8
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-private-002
+    title: Gọi static method qua đúng tên interface
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-private-003
+    title: Static method không được kế thừa bởi interface con hoặc lớp triển khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-private-004
+    title: Phương thức private trong interface từ Java 9
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-private-005
+    title: Chia sẻ mã giữa các default method bằng private instance method
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-private-006
+    title: Private static method và giới hạn truy cập thành viên instance
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-and-private-007
+    title: Phân biệt private helper với điểm mở rộng cho lớp triển khai
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-inheritance
+  title: Đa kế thừa
+  childs:
+  - slug: multiple-inheritance-001
+    title: Bài toán hình thoi trong hệ phân cấp interface
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-002
+    title: Kế thừa cùng một khai báo abstract qua nhiều đường
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-003
+    title: Nhiều khai báo abstract tương thích và kiểu trả về chung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-004
+    title: Ưu tiên phương thức có thân kế thừa từ lớp cha
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-005
+    title: Ưu tiên default method của interface cụ thể hơn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-006
+    title: Xung đột default method từ hai interface không liên quan
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-007
+    title: Xung đột giữa default method và abstract method độc lập
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-008
+    title: Phương thức abstract của lớp cha chặn triển khai default
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-009
+    title: Giải quyết xung đột bằng ghi đè và chọn lời gọi super hợp lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-inheritance-010
+    title: Phân biệt xung đột phương thức, hằng và kiểu thành viên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interface-and-object
+  title: Interface và Object
+  childs:
+  - slug: interface-and-object-001
+    title: Quan hệ giữa interface và các phương thức public của Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-and-object-002
+    title: Khai báo equals, hashCode và toString trong hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-and-object-003
+    title: Vì sao default method không được ghi đè phương thức public của Object
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-and-object-004
+    title: Triển khai equals và hashCode nhất quán giữa các kiểu con
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-and-object-005
+    title: clone có phạm vi protected và yêu cầu public của interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-and-object-006
+    title: Giới hạn của marker interface Cloneable
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functional-interfaces
+  title: Interface hàm
+  childs:
+  - slug: functional-interfaces-001
+    title: Khái niệm functional interface và một hợp đồng hàm duy nhất
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-002
+    title: '@FunctionalInterface và kiểm tra tại thời điểm biên dịch'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-003
+    title: Cách xác định phương thức abstract từ các interface cha
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-004
+    title: Loại trừ phương thức public của Object khi xác định hợp đồng hàm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-005
+    title: Default, static và private method không tạo thêm yêu cầu hàm
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-006
+    title: Lambda expression như một cách cung cấp triển khai
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-007
+    title: Method reference và kiểu đích của biểu thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-008
+    title: Kiểu tham số, kiểu trả về và checked exception của hợp đồng hàm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-009
+    title: Giới hạn với sealed interface và phương thức hàm có kiểu tổng quát
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functional-interfaces-010
+    title: Chọn interface riêng hay dùng Runnable, Callable và java.util.function
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: generics
+  title: Kiểu tổng quát
+  childs:
+  - slug: generics-001
+    title: Khai báo generic interface và generic abstract class
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-002
+    title: Triển khai interface với tham số kiểu cụ thể hoặc giữ tham số kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-003
+    title: Phương thức generic và khác biệt với kiểu chứa generic
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-004
+    title: Giới hạn kiểu bằng abstract class và interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-005
+    title: Nhiều giới hạn kiểu và intersection type
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-006
+    title: Tính bất biến của generic và wildcard tại ranh giới API
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-007
+    title: Tự tham chiếu kiểu với Comparable<T> và kiểu fluent
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-008
+    title: Type erasure, bridge method và quan hệ ghi đè
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-009
+    title: Name clash do cùng erasure và kế thừa nhiều tham số kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: generics-010
+    title: Raw type, unchecked warning và giới hạn nhận biết tham số kiểu lúc chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nested-types
+  title: Kiểu lồng
+  childs:
+  - slug: nested-types-001
+    title: Interface lồng trong lớp và interface lồng trong interface
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-002
+    title: Interface lồng ngầm định static và không có đối tượng bao ngoài
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-003
+    title: Phạm vi truy cập của kiểu lồng và cách tham chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-004
+    title: Lớp thành viên bên trong interface và modifier ngầm định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-005
+    title: Triển khai bằng local class và anonymous class
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-006
+    title: Khởi tạo anonymous subclass của abstract class
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-007
+    title: So sánh anonymous class với lambda về this và phạm vi tên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-types-008
+    title: Biến được bắt giữ và quy tắc effectively final
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: enums-and-records
+  title: Enum và record
+  childs:
+  - slug: enums-and-records-001
+    title: Enum thực thi interface và hành vi riêng của từng hằng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enums-and-records-002
+    title: Phương thức abstract trong enum và trách nhiệm của các hằng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enums-and-records-003
+    title: Record thực thi interface bằng accessor hoặc phương thức bổ sung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enums-and-records-004
+    title: Vì sao enum và record không extends lớp trừu tượng tùy ý
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enums-and-records-005
+    title: Kết hợp record, enum và interface để mô hình hóa miền dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enums-and-records-006
+    title: Giới hạn khi dùng record hoặc enum trong phân cấp sealed
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sealed-hierarchies
+  title: Phân cấp sealed
+  childs:
+  - slug: sealed-hierarchies-001
+    title: Mục đích kiểm soát các kiểu con trực tiếp từ Java 17
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-002
+    title: Sealed abstract class và sealed interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-003
+    title: Cú pháp permits và trường hợp suy ra danh sách cho phép
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-004
+    title: Yêu cầu cùng module hoặc cùng package trong unnamed module
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-005
+    title: Modifier final, sealed và non-sealed của lớp con trực tiếp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-006
+    title: Interface con sealed hoặc non-sealed
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-007
+    title: Lớp trừu tượng vừa abstract vừa sealed hoặc non-sealed
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-008
+    title: Nhánh mở rộng được phép và giới hạn của anonymous class, lambda
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sealed-hierarchies-009
+    title: Pattern matching switch và tính đầy đủ của phân cấp đóng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: type-initialization
+  title: Khởi tạo kiểu
+  childs:
+  - slug: type-initialization-001
+    title: Phân biệt nạp, liên kết và khởi tạo lớp hoặc interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-initialization-002
+    title: Truy cập static field và kiểu thực sự khai báo field
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-initialization-003
+    title: Truy cập hằng thời điểm biên dịch không kích hoạt khởi tạo interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-initialization-004
+    title: Khởi tạo interface không mặc nhiên khởi tạo mọi interface cha
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-initialization-005
+    title: Khởi tạo lớp và các interface cha có khai báo default method
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: type-initialization-006
+    title: Ví dụ theo dõi thứ tự khởi tạo bằng dấu vết thực thi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: abstraction-choices
+  title: Lựa chọn trừu tượng
+  childs:
+  - slug: abstraction-choices-001
+    title: So sánh abstract class và interface theo mục tiêu thiết kế
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-002
+    title: Chọn interface cho vai trò chung của các lớp không cùng họ
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-003
+    title: Chọn abstract class khi cần trạng thái và quy trình dùng chung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-004
+    title: Kết hợp interface công khai với lớp trừu tượng hỗ trợ tùy chọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-005
+    title: Đánh đổi giữa kế thừa triển khai và composition, delegation
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-006
+    title: Nguyên tắc thay thế Liskov và các bất biến của hợp đồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-007
+    title: Tách interface theo nhu cầu sử dụng và tránh interface quá lớn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-008
+    title: Đảo ngược phụ thuộc bằng tham số hoặc constructor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-009
+    title: Tránh tạo interface cho mọi lớp khi chưa có nhu cầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abstraction-choices-010
+    title: Tránh constant interface và cây kế thừa chỉ để tái sử dụng mã
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-patterns
+  title: Mẫu thiết kế
+  childs:
+  - slug: design-patterns-001
+    title: 'Template Method: quy trình cố định và các bước abstract'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-002
+    title: Hook method, phương thức final và bảo vệ bất biến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-003
+    title: 'Strategy: thay thuật toán qua interface'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-004
+    title: 'Factory Method: tách quyết định chọn lớp cụ thể'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-005
+    title: 'Adapter: đưa kiểu có sẵn về hợp đồng mong muốn'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-006
+    title: 'Decorator: bổ sung hành vi qua cùng interface'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-007
+    title: 'Callback và Listener: giao quyền xử lý sự kiện'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-008
+    title: 'Skeletal implementation: triển khai khung kết hợp interface'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-patterns-009
+    title: Chọn mẫu theo vấn đề và tránh áp dụng hình thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdk-apis
+  title: API trong JDK
+  childs:
+  - slug: jdk-apis-001
+    title: 'Collection, List và AbstractList: hợp đồng và triển khai khung'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-apis-002
+    title: InputStream, Reader và các lớp con cụ thể
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-apis-003
+    title: 'Comparable và Comparator: hai cách biểu diễn việc so sánh'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-apis-004
+    title: 'Iterable và Iterator: hợp đồng duyệt dữ liệu'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-apis-005
+    title: AutoCloseable và Closeable trong try-with-resources
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-apis-006
+    title: 'Runnable và Callable: hợp đồng công việc và kết quả'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-apis-007
+    title: Serializable, Cloneable và giới hạn của marker interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdk-apis-008
+    title: Đọc Javadoc về yêu cầu triển khai, phương thức tùy chọn và default method
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-evolution
+  title: Tiến hóa API
+  childs:
+  - slug: api-evolution-001
+    title: Mốc Java 8 cho default, static method và interface hàm
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-002
+    title: Mốc Java 9 cho private method trong interface
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-003
+    title: Mốc Java 17 cho sealed class và sealed interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-004
+    title: Phân biệt tương thích mã nguồn, nhị phân và hành vi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-005
+    title: Thêm abstract method và tác động tới các lớp triển khai cũ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-006
+    title: Thêm default method và nguy cơ xung đột kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-007
+    title: Đổi chữ ký, kiểu trả về hoặc throws và ảnh hưởng tới bên sử dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-008
+    title: Thay đổi hằng interface và rủi ro giá trị bị nhúng vào mã đã biên dịch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-evolution-009
+    title: Lộ trình chuyển API cũ bằng interface con, adapter và deprecation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-diagnostics
+  title: Kiểm thử và chẩn đoán
+  childs:
+  - slug: testing-and-diagnostics-001
+    title: Kiểm thử cùng một hợp đồng trên nhiều cách triển khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-002
+    title: Kiểm thử lớp trừu tượng qua lớp con cụ thể tối thiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-003
+    title: Kiểm thử thứ tự bước và hook của Template Method
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-004
+    title: Dùng fake, stub hoặc mock qua interface
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-005
+    title: Kiểm thử bất biến, null, exception và hành vi biên
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-006
+    title: Chẩn đoán lỗi chưa triển khai phương thức và sai phạm vi truy cập
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-007
+    title: Chẩn đoán lỗi ambiguous default, kiểu trả về và erasure
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-008
+    title: Phân biệt lỗi biên dịch với AbstractMethodError, InstantiationError và linkage error
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-diagnostics-009
+    title: 'Kiểm tra bytecode bằng javap: abstract flag, interface flag và bridge method'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xây dựng hợp đồng thanh toán với nhiều cách triển khai
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Tạo lớp trừu tượng chia sẻ kiểm tra dữ liệu và nhật ký
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Thực hiện Template Method cho quy trình nhập dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Giải quyết bài toán hình thoi với nhiều interface
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Tách interface lớn thành các vai trò nhỏ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Thay cây kế thừa khó mở rộng bằng composition
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Xây dựng kho dữ liệu generic với nhiều cách lưu trữ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Mô hình hóa kết quả bằng sealed interface và record
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: So sánh lambda với anonymous class trong cùng bài toán
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Hoàn thiện ví dụ tích hợp và bộ kiểm thử hợp đồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reference
+  title: Tra cứu
+  childs:
+  - slug: reference-001
+    title: Bảng so sánh abstract class, interface và concrete class
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-002
+    title: Bảng modifier hợp lệ theo loại thành viên
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-003
+    title: Bảng quy tắc ưu tiên và xử lý xung đột phương thức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-004
+    title: Các hiểu lầm thường gặp và cách kiểm chứng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-005
+    title: Tra cứu Java Language Specification và Javadoc theo chủ đề
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

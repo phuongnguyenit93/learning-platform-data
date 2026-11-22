@@ -1,0 +1,3601 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiểm thử HTTP là gì và những hành vi nào có thể quan sát từ phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt HTTP testing, API testing, kiểm thử tích hợp và kiểm thử đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vai trò của yêu cầu, phản hồi và điều kiện kiểm chứng trong một ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Kiểm thử không mở máy chủ và kiểm thử qua kết nối mạng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Mối quan hệ giữa máy khách kiểm thử, ứng dụng, dịch vụ phụ thuộc và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phạm vi kiểm thử chức năng HTTP so với kiểm thử hợp đồng, bảo mật và hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Bản đồ công cụ HTTP trong hệ sinh thái Java và Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và lộ trình từ yêu cầu đầu tiên đến bộ kiểm thử tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-protocol
+  title: Giao thức HTTP
+  childs:
+  - slug: http-protocol-001
+    title: 'Cấu trúc URI: scheme, host, port, path, query và fragment'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-002
+    title: 'Cấu trúc thông điệp HTTP: phương thức, trường header, mã trạng thái và nội dung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-003
+    title: Ngữ nghĩa GET, HEAD, POST, PUT, PATCH, DELETE và OPTIONS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-004
+    title: 'Tính an toàn và tính lũy đẳng của phương thức: ý nghĩa đối với kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-005
+    title: Phân loại mã trạng thái 1xx, 2xx, 3xx, 4xx và 5xx
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-006
+    title: Phân biệt trạng thái HTTP với mã kết quả nghiệp vụ trong nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-007
+    title: Đặc điểm không lưu trạng thái của HTTP và cách ứng dụng duy trì phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-008
+    title: Vai trò của máy chủ gốc, reverse proxy, gateway và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-009
+    title: Ảnh hưởng của HTTP/1.1, HTTP/2 và khả năng hỗ trợ giao thức của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-protocol-010
+    title: Phân biệt kiểm chứng ngữ nghĩa HTTP với kiểm tra chi tiết kết nối trên đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-case-design
+  title: Thiết kế ca kiểm thử
+  childs:
+  - slug: test-case-design-001
+    title: Xác định đầu vào, tiền điều kiện, kết quả mong đợi và hậu điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-002
+    title: Xây ma trận phương thức, đường dẫn, danh tính, dữ liệu và loại nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-003
+    title: Thiết kế ca hợp lệ, ca biên, ca không hợp lệ và ca thiếu điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-004
+    title: Chọn điều kiện kiểm chứng từ yêu cầu nghiệp vụ và hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-005
+    title: Kiểm chứng trạng thái tài nguyên sau yêu cầu thay vì chỉ kiểm tra mã 200
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-006
+    title: Phân biệt kỳ vọng theo chuẩn HTTP với quy ước riêng của từng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-007
+    title: Giữ mỗi ca độc lập và mô tả rõ các kịch bản cần nhiều yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-008
+    title: Chuẩn bị dữ liệu tối thiểu để xác định chính xác nguyên nhân thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-009
+    title: Đặt tên ca kiểm thử theo hành vi, điều kiện và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-case-design-010
+    title: Chọn mức kiểm thử có thể phát hiện lỗi với chi phí thực thi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: So sánh curl, Java HttpClient và DSL chuyên kiểm thử như REST Assured
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: Khi nào chọn MockMvc cho ứng dụng Spring MVC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: Khi nào chọn WebTestClient cho WebFlux hoặc máy chủ HTTP thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Vai trò Postman khi khám phá API và tổ chức collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Vai trò Postman CLI và khả năng tương thích của bộ collection dùng Newman
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Vai trò Karate khi mô tả kịch bản HTTP bằng DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Vai trò SoapUI khi cần kiểm thử dịch vụ SOAP qua HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Đánh giá JDK, phiên bản Spring, định dạng dữ liệu và yêu cầu báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-009
+    title: Phân biệt công cụ gửi HTTP với mock server và thư viện assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environments-and-test-data
+  title: Môi trường và dữ liệu
+  childs:
+  - slug: environments-and-test-data-001
+    title: Cấu hình base URL, cổng và đường dẫn gốc theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-002
+    title: Tách thông tin xác thực kiểm thử khỏi mã nguồn và dữ liệu production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-003
+    title: Khởi động ứng dụng và xác nhận sẵn sàng trước khi gửi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-004
+    title: Chọn dữ liệu cố định hoặc dữ liệu sinh mới có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-005
+    title: Cấp mã định danh riêng cho từng ca và từng lượt chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-006
+    title: Chuẩn bị và thu hồi tài nguyên mà không phụ thuộc thứ tự test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-007
+    title: Cố định đồng hồ, múi giờ và seed khi kết quả phụ thuộc thời gian hoặc ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-008
+    title: Quản lý dịch vụ phụ thuộc thật hoặc thay thế theo mục tiêu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-009
+    title: Phân biệt giao dịch của luồng kiểm thử với giao dịch của máy chủ nhận HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-test-data-010
+    title: Xác nhận đích kiểm thử và cấu hình thực tế trước khi chạy bộ có thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-construction
+  title: Tạo yêu cầu
+  childs:
+  - slug: request-construction-001
+    title: Ghép base URL, base path và đường dẫn tài nguyên đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-002
+    title: Truyền path parameter và xử lý ký tự cần mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-003
+    title: Truyền query parameter đơn, nhiều giá trị và giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-004
+    title: Phân biệt không truyền tham số, truyền chuỗi rỗng và truyền giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-005
+    title: Gửi JSON bằng chuỗi, tệp, Map hoặc đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-006
+    title: Gửi biểu mẫu application/x-www-form-urlencoded
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-007
+    title: Gửi multipart/form-data với tệp và trường văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-008
+    title: Gửi dữ liệu nhị phân hoặc nội dung thô với kiểu nội dung phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-009
+    title: Kiểm thử Unicode, dấu cách, ký tự dành riêng và lỗi mã hóa URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-construction-010
+    title: Kiểm tra đường dẫn không tồn tại, dấu gạch chéo cuối và phương thức không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: headers-and-bodies
+  title: Header và nội dung
+  childs:
+  - slug: headers-and-bodies-001
+    title: Phân biệt Content-Type của nội dung gửi với Accept của phản hồi mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-002
+    title: Kiểm thử thương lượng kiểu nội dung và phản hồi khi không đáp ứng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-003
+    title: Kiểm thử charset và mã hóa ký tự theo kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-004
+    title: Kiểm thử Accept-Language và ngôn ngữ phản hồi theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-005
+    title: Phân biệt Content-Encoding với định dạng dữ liệu sau giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-006
+    title: Tên header không phân biệt hoa thường và quy tắc riêng của từng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-007
+    title: Đọc header nhiều giá trị và tránh gộp sai Set-Cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-008
+    title: Kiểm tra header bắt buộc, header tùy chọn và giá trị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-009
+    title: Phân biệt Host, forwarded headers và địa chỉ công khai qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: headers-and-bodies-010
+    title: Kiểm chứng metadata nội dung mà không phụ thuộc thứ tự header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: response-assertions
+  title: Kiểm chứng phản hồi
+  childs:
+  - slug: response-assertions-001
+    title: Kiểm tra mã trạng thái chính xác theo từng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-002
+    title: Kiểm tra Content-Type và các header mang ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-003
+    title: Phân biệt phản hồi không có nội dung với chuỗi rỗng, null hoặc đối tượng rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-004
+    title: Kiểm chứng nội dung của phản hồi HEAD, 204 và 304 theo ngữ nghĩa HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-005
+    title: Kiểm tra giá trị, kiểu dữ liệu và các quan hệ giữa trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-006
+    title: Kiểm chứng schema cùng với giá trị và quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-007
+    title: Trích xuất mã định danh hoặc liên kết để kiểm tra trạng thái tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-008
+    title: Xử lý trường thay đổi theo thời gian và dữ liệu được máy chủ tự sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-009
+    title: Tạo thông báo thất bại có kỳ vọng, thực tế và vị trí dữ liệu sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-assertions-010
+    title: Phân biệt đo thời gian một phản hồi với đánh giá hiệu năng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-payloads
+  title: Dữ liệu JSON
+  childs:
+  - slug: json-payloads-001
+    title: Phân biệt object, array, string, number, boolean và null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-002
+    title: Kiểm chứng sự tồn tại của trường và phân biệt trường thiếu với trường null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-003
+    title: Kiểm tra đối tượng lồng nhau và các phần tử trong mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-004
+    title: Kiểm tra số lượng, tính duy nhất và phần tử thuộc tập kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-005
+    title: Phân biệt so sánh mảng có thứ tự với so sánh không phụ thuộc thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-006
+    title: Kiểm chứng số thập phân và tránh sai lệch kiểu số của thư viện đọc JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-007
+    title: Kiểm tra ngày giờ, UUID, enum và các giá trị có định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-008
+    title: Kiểm chứng trường tùy chọn, trường bổ sung và khả năng tương thích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-009
+    title: Phân biệt các phương ngữ đường dẫn JSON và tránh chuyển biểu thức máy móc giữa công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-010
+    title: Kiểm chứng JSON Schema theo phiên bản schema mà công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-payloads-011
+    title: Ánh xạ JSON sang đối tượng Java và kiểm chứng khi cấu trúc không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-and-other-payloads
+  title: XML và dữ liệu khác
+  childs:
+  - slug: xml-and-other-payloads-001
+    title: Kiểm chứng cấu trúc XML bằng XPath và nhận diện namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-and-other-payloads-002
+    title: So sánh XML theo cấu trúc thay vì chuỗi văn bản nguyên trạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-and-other-payloads-003
+    title: Kiểm tra thuộc tính, phần tử lặp, phần tử thiếu và nội dung rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-and-other-payloads-004
+    title: Kiểm chứng XSD theo nhu cầu và giới hạn của xác thực schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-and-other-payloads-005
+    title: 'Kiểm thử SOAP qua HTTP: envelope, header và phân biệt SOAP Fault với lỗi truyền tải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-and-other-payloads-006
+    title: Kiểm thử văn bản, HTML và dữ liệu nhị phân bằng tiêu chí phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-and-other-payloads-007
+    title: 'Kiểm thử GraphQL qua HTTP: tách trạng thái truyền tải khỏi data và errors'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-and-other-payloads-008
+    title: Phân biệt nội dung bị lỗi cú pháp với nội dung hợp lệ nhưng sai nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication
+  title: Xác thực
+  childs:
+  - slug: authentication-001
+    title: Phân biệt xác thực danh tính với phân quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-002
+    title: Gửi thông tin xác thực Basic qua kết nối HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-003
+    title: Gửi API key đúng vị trí header hoặc query theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-004
+    title: Gửi Bearer token và quản lý token theo phạm vi từng lượt kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-005
+    title: Chuẩn bị token OAuth 2.0 bằng luồng được hệ thống hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-006
+    title: Phân biệt kiểm thử với JWT thật và mô phỏng danh tính trong kiểm thử Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-007
+    title: Kiểm thử thiếu token, token sai định dạng, hết hạn hoặc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-008
+    title: Kiểm thử thông tin xác thực sai và nội dung WWW-Authenticate khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-009
+    title: Cấp mới token có kiểm soát để tránh làm sai ý nghĩa ca kiểm thử hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-010
+    title: Che Authorization, API key và thông tin nhạy cảm trong log hoặc báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization
+  title: Phân quyền
+  childs:
+  - slug: authorization-001
+    title: Xây ma trận vai trò, phạm vi quyền, tài nguyên và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-002
+    title: Kiểm thử người dùng chưa xác thực và người dùng thiếu quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-003
+    title: Phân biệt phản hồi 401 và 403 theo cơ chế bảo vệ được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-004
+    title: Kiểm thử quyền sở hữu tài nguyên bằng hai danh tính độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-005
+    title: Kiểm thử ranh giới dữ liệu giữa tổ chức hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-006
+    title: Kiểm thử quyền ở cấp trường và dữ liệu không được phép xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-007
+    title: Kiểm tra yêu cầu bị từ chối không tạo tác dụng phụ ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-008
+    title: Đối chiếu kiểm thử phân quyền không qua mạng với luồng xác thực HTTP thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cookies-and-sessions
+  title: Cookie và phiên
+  childs:
+  - slug: cookies-and-sessions-001
+    title: Nhận Set-Cookie và gửi Cookie trong các yêu cầu tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-and-sessions-002
+    title: Quản lý cookie jar riêng cho từng người dùng hoặc kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-and-sessions-003
+    title: Kiểm thử thuộc tính Domain, Path, Secure, HttpOnly và thời hạn cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-and-sessions-004
+    title: Kiểm tra SameSite và phân biệt khả năng quan sát header với hành vi trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-and-sessions-005
+    title: Kiểm thử đăng nhập, sử dụng phiên và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-and-sessions-006
+    title: Kiểm thử phiên hết hạn, phiên không hợp lệ và phiên bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-and-sessions-007
+    title: Kiểm thử thay đổi mã phiên và tránh dùng lại cookie giữa các ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-and-sessions-008
+    title: Phân biệt phiên HTTP phía máy chủ với cơ chế token không lưu phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: invalid-input-and-errors
+  title: Lỗi và đầu vào xấu
+  childs:
+  - slug: invalid-input-and-errors-001
+    title: Kiểm thử JSON hoặc XML sai cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-002
+    title: Kiểm thử trường bắt buộc bị thiếu, rỗng hoặc sai kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-003
+    title: Kiểm thử giới hạn độ dài, khoảng giá trị và tổ hợp dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-004
+    title: Kiểm thử Content-Type không hỗ trợ và Accept không đáp ứng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-005
+    title: Phân biệt tài nguyên không tồn tại với xung đột trạng thái tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-006
+    title: Kiểm thử giới hạn kích thước yêu cầu và số lượng tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-007
+    title: Kiểm chứng cấu trúc lỗi, mã lỗi và vị trí trường gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-008
+    title: Kiểm chứng application/problem+json khi API áp dụng chuẩn Problem Details
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-009
+    title: Kiểm tra phản hồi lỗi không làm lộ stack trace hoặc thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-010
+    title: Kiểm thử lỗi dịch vụ phụ thuộc và phân biệt với lỗi kết nối từ máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: invalid-input-and-errors-011
+    title: Kiểm tra dữ liệu không bị ghi một phần khi yêu cầu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-lifecycle
+  title: Vòng đời tài nguyên
+  childs:
+  - slug: resource-lifecycle-001
+    title: 'Kiểm thử tạo tài nguyên: mã trạng thái, Location và mã định danh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-002
+    title: Đọc lại tài nguyên vừa tạo và đối chiếu dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-003
+    title: Kiểm thử thay thế toàn phần bằng PUT theo hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-004
+    title: Kiểm thử cập nhật một phần bằng PATCH và định dạng bản vá được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-005
+    title: Kiểm thử xóa tài nguyên và trạng thái ở các yêu cầu tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-006
+    title: Kiểm thử yêu cầu lặp với các phương thức có tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-007
+    title: Kiểm thử chống tạo trùng bằng khóa lũy đẳng khi API có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-008
+    title: Kiểm thử cập nhật đồng thời và phát hiện mất dữ liệu do ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-009
+    title: Tách kiểm chứng hành vi công khai khỏi việc phụ thuộc trực tiếp cấu trúc cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queries-and-pagination
+  title: Truy vấn và phân trang
+  childs:
+  - slug: queries-and-pagination-001
+    title: Kiểm thử điều kiện lọc riêng lẻ và tổ hợp nhiều điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-002
+    title: Kiểm thử sắp xếp tăng, giảm và thứ tự ổn định khi giá trị trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-003
+    title: Kiểm thử phân trang theo số trang, độ lệch hoặc con trỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-004
+    title: Kiểm tra giới hạn trang, trang rỗng và tham số vượt phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-005
+    title: Kiểm chứng tổng số phần tử và liên kết trang tiếp theo theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-006
+    title: Kiểm tra không thiếu hoặc trùng dữ liệu giữa các trang với tập dữ liệu kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-007
+    title: Kiểm thử từ khóa Unicode, ký tự đặc biệt và phân biệt hoa thường theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-008
+    title: Kiểm tra trường tìm kiếm, trường sắp xếp và toán tử không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-and-pagination-009
+    title: Kiểm thử danh sách lớn có giới hạn mà không biến thành bài đo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-transfers
+  title: Truyền tệp
+  childs:
+  - slug: file-transfers-001
+    title: Chuẩn bị multipart với tên trường, tên tệp và loại nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-002
+    title: Tải lên một tệp, nhiều tệp và tệp kèm metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-003
+    title: Kiểm thử tệp rỗng, tệp vượt giới hạn và loại tệp bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-004
+    title: Kiểm thử tên tệp Unicode và ký tự đặc biệt theo quy ước ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-005
+    title: Đối chiếu metadata và nội dung sau khi tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-006
+    title: Tải xuống và kiểm chứng Content-Type cùng Content-Disposition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-007
+    title: Kiểm chứng kích thước, checksum và tính toàn vẹn dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-008
+    title: Đọc nội dung theo luồng để tránh nạp toàn bộ tệp lớn vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-009
+    title: Kiểm thử Range và phản hồi một phần khi máy chủ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-transfers-010
+    title: Dọn tệp tạm và dữ liệu phía máy chủ sau khi kiểm thử thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditional-requests-and-caching
+  title: Điều kiện và cache
+  childs:
+  - slug: conditional-requests-and-caching-001
+    title: Kiểm tra Cache-Control, Expires và Vary theo hợp đồng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-002
+    title: Kiểm thử ETag và If-None-Match với tài nguyên không thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-003
+    title: Kiểm thử Last-Modified và If-Modified-Since khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-004
+    title: Kiểm chứng phản hồi 304 và phân biệt với phản hồi thành công có nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-005
+    title: Kiểm thử If-Match cho cập nhật có điều kiện và phát hiện phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-006
+    title: Phân biệt phản hồi 412 với xung đột nghiệp vụ theo thiết kế API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-007
+    title: Kiểm tra tài nguyên thay đổi làm thay đổi bộ xác thực cache phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-008
+    title: Kiểm thử dữ liệu cá nhân không bị dùng chung sai giữa các danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-and-caching-009
+    title: Phân biệt header chỉ dẫn cache với hành vi của cache trung gian thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redirects
+  title: Chuyển hướng
+  childs:
+  - slug: redirects-001
+    title: Kiểm chứng mã chuyển hướng và giá trị Location trước khi tự động đi theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-002
+    title: Phân biệt 301, 302, 303, 307 và 308 về ngữ nghĩa phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-003
+    title: Kiểm thử URL tương đối và URL tuyệt đối trong Location
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-004
+    title: Kiểm soát số lần chuyển hướng và phát hiện vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-005
+    title: Theo dõi thay đổi phương thức và nội dung gửi qua chuỗi chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-006
+    title: Kiểm soát Authorization và cookie khi chuyển sang origin khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-007
+    title: Kiểm thử chuyển HTTP sang HTTPS và đường dẫn công khai sau reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-008
+    title: Tránh kết luận sai do máy khách tự động che phản hồi trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-requests
+  title: Bất đồng bộ
+  childs:
+  - slug: asynchronous-requests-001
+    title: Kiểm thử 202 Accepted và thông tin theo dõi tác vụ theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-002
+    title: Thăm dò trạng thái có thời hạn thay cho sleep cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-003
+    title: Kiểm chứng chuyển trạng thái chờ, đang xử lý, thành công và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-004
+    title: Kiểm thử phản hồi tạm thời khi dữ liệu chưa nhất quán ngay lập tức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-005
+    title: Giới hạn số lần thăm dò, khoảng nghỉ và tổng thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-006
+    title: Kiểm thử webhook hoặc callback bằng endpoint nhận có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-007
+    title: Liên kết callback với đúng yêu cầu bằng mã định danh tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-008
+    title: Kiểm thử giao lại callback và chống xử lý trùng khi hệ thống hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-requests-009
+    title: Dọn tác vụ và dữ liệu ngay cả khi kịch bản hết thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streaming
+  title: Luồng dữ liệu
+  childs:
+  - slug: streaming-001
+    title: Phân biệt phản hồi hữu hạn với kết nối truyền dữ liệu liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-002
+    title: Kiểm thử Server-Sent Events theo loại nội dung, event, id và data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-003
+    title: Kiểm thử chuỗi JSON theo dòng và cách tách từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-004
+    title: Đặt điều kiện kết thúc hữu hạn cho kiểm thử stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-005
+    title: Kiểm chứng thứ tự, dữ liệu và sự kiện lỗi của luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-006
+    title: Hủy subscription hoặc đóng kết nối để tránh treo bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-007
+    title: Kiểm thử mất kết nối và kết nối lại theo khả năng giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-008
+    title: Giới hạn MockMvc khi cần quan sát dữ liệu thực sự truyền trên mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streaming-009
+    title: Phân biệt kiểm thử HTTP handshake với kiểm thử thông điệp WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-and-tls
+  title: Mạng và TLS
+  childs:
+  - slug: network-and-tls-001
+    title: Phân biệt lỗi DNS, lỗi kết nối, lỗi TLS và phản hồi lỗi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-002
+    title: Cấu hình connect timeout, read timeout và thời hạn tổng theo từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-003
+    title: Kiểm thử máy chủ trả lời chậm hoặc không hoàn tất nội dung trong môi trường kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-004
+    title: Quản lý truststore và chứng chỉ kiểm thử cho HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-005
+    title: Kiểm tra chứng chỉ sai hostname, không được tin cậy hoặc hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-006
+    title: Kiểm thử chứng chỉ máy khách khi dịch vụ sử dụng mTLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-007
+    title: Cấu hình proxy và phân biệt đường đi mạng trong máy cá nhân, container với CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-008
+    title: Đánh giá chính sách retry theo phương thức và khả năng gây tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-009
+    title: Kiểm thử giới hạn tần suất, phản hồi 429 và Retry-After theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-tls-010
+    title: Giải phóng kết nối và tài nguyên khi hết thời hạn hoặc hủy yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: curl
+  title: curl
+  childs:
+  - slug: curl-001
+    title: Gửi GET, POST và các phương thức khác bằng curl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-002
+    title: Truyền query, header, JSON và dữ liệu từ tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-003
+    title: Gửi biểu mẫu và tệp multipart bằng các tùy chọn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-004
+    title: Thu riêng mã trạng thái, header và nội dung phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-005
+    title: Dùng --fail-with-body và kiểm tra mã thoát trong script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-006
+    title: Phân biệt -I với việc gửi phương thức HEAD bằng tùy chọn -X
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-007
+    title: Kiểm soát chuyển hướng, cookie và thời hạn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-008
+    title: Chẩn đoán kết nối bằng verbose hoặc trace và che thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-009
+    title: Kiểm tra chứng chỉ bằng CA phù hợp thay cho bỏ xác minh TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: curl-010
+    title: Xử lý dấu nháy, xuống dòng và curl.exe khi chạy từ PowerShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-httpclient
+  title: Java HttpClient
+  childs:
+  - slug: java-httpclient-001
+    title: Tạo HttpClient và HttpRequest với URI, header và BodyPublisher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-002
+    title: Gửi đồng bộ bằng send và kiểm chứng HttpResponse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-003
+    title: Chọn BodyHandler cho chuỗi, byte, tệp hoặc luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-004
+    title: Gửi JSON và ánh xạ dữ liệu bằng thư viện phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-005
+    title: Cấu hình redirect, proxy, authenticator và cookie handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-006
+    title: Phân biệt timeout kết nối với timeout của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-007
+    title: Gửi bất đồng bộ bằng sendAsync và chờ kết quả có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-008
+    title: Xử lý ngoại lệ mạng, InterruptedException và hủy CompletableFuture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-009
+    title: Tái sử dụng client, đóng stream và quản lý vòng đời tài nguyên trong Java 21
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-httpclient-010
+    title: Đóng gói mã gửi yêu cầu thành trợ giúp kiểm thử nhưng giữ rõ kỳ vọng từng ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-assured
+  title: REST Assured
+  childs:
+  - slug: rest-assured-001
+    title: Khai báo REST Assured, JUnit và các static import cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-002
+    title: Viết kiểm thử đầu tiên theo given–when–then
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-003
+    title: Cấu hình base URI, port, base path và request specification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-004
+    title: Gửi path parameter, query parameter, header và cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-005
+    title: Gửi body bằng chuỗi, Map hoặc đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-006
+    title: Kiểm chứng statusCode, header và body bằng Hamcrest matcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-007
+    title: Trích xuất Response, mã định danh và dữ liệu cho bước tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-008
+    title: Đọc JSON bằng JsonPath và phân biệt cú pháp của REST Assured với công cụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-009
+    title: Đọc XML bằng XmlPath và xử lý namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-010
+    title: Gửi multipart và kiểm tra dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-011
+    title: Cấu hình object mapper và xử lý sai khác kiểu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-assured-012
+    title: Sử dụng module JSON Schema Validator và chọn schema tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reusable-rest-assured-tests
+  title: Tái sử dụng REST Assured
+  childs:
+  - slug: reusable-rest-assured-tests-001
+    title: Xây RequestSpecification và ResponseSpecification theo phạm vi dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-002
+    title: Trộn specification với kỳ vọng riêng và kiểm tra thứ tự cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-003
+    title: Tách cấu hình xác thực, session và cookie theo từng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-004
+    title: Viết Filter để thêm mã tương quan và thu bằng chứng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-005
+    title: Chỉ log khi kiểm chứng thất bại và che header nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-006
+    title: Cấu hình parser khi Content-Type của phản hồi không như mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-007
+    title: Điều khiển redirect, proxy và SSL theo môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-008
+    title: Tránh trạng thái static dùng chung khi các ca chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-009
+    title: Tích hợp REST Assured với MockMvc và phân biệt với kết nối HTTP thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-rest-assured-tests-010
+    title: Thiết kế lớp trợ giúp theo nghiệp vụ mà không giấu yêu cầu hoặc điều kiện kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mockmvc
+  title: MockMvc
+  childs:
+  - slug: mockmvc-001
+    title: MockMvc kiểm thử Spring MVC qua DispatcherServlet như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-002
+    title: Phân biệt standaloneSetup với webAppContextSetup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-003
+    title: Gửi yêu cầu bằng MockMvcRequestBuilders và perform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-004
+    title: Kiểm tra status, header, content, jsonPath và xpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-005
+    title: Kiểm thử request mapping, chuyển đổi kiểu và ràng buộc dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-006
+    title: Kiểm thử message converter, serialization và deserialization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-007
+    title: Kiểm thử @ControllerAdvice và ánh xạ ngoại lệ thành phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-008
+    title: Kiểm thử filter, interceptor và cấu hình liên quan đến HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-009
+    title: Kiểm thử multipart và dữ liệu biểu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-010
+    title: Quản lý MockHttpSession và cookie qua nhiều yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-011
+    title: Kiểm thử Servlet async bằng asyncStarted và asyncDispatch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-012
+    title: Phân biệt kiểm chứng phản hồi HTTP với model hoặc view phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mockmvc-013
+    title: Những lỗi cổng, TLS, socket và máy chủ nhúng mà MockMvc không thể chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webtestclient
+  title: WebTestClient
+  childs:
+  - slug: webtestclient-001
+    title: Phân biệt bindToController, bindToApplicationContext và bindToServer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-002
+    title: Kiểm thử router function với bindToRouterFunction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-003
+    title: Gửi yêu cầu bằng URI, header, body và exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-004
+    title: Kiểm chứng expectStatus, expectHeader, expectCookie và expectBody
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-005
+    title: Kiểm tra body JSON bằng jsonPath hoặc ánh xạ sang kiểu Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-006
+    title: Kiểm chứng danh sách và phản hồi không có nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-007
+    title: Dùng expectAll để thu nhiều lỗi kiểm chứng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-008
+    title: Lấy ExchangeResult để phân tích và dùng dữ liệu cho bước sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-009
+    title: Kiểm thử Flux hoặc SSE bằng returnResult và StepVerifier có điểm kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-010
+    title: Cấu hình response timeout và giới hạn bộ nhớ đọc nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-011
+    title: Kiểm thử Spring MVC bằng MockMvcWebTestClient khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webtestclient-012
+    title: Phân biệt cấu hình không qua mạng với hành vi trên máy chủ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Chọn @WebMvcTest, @WebFluxTest hoặc @SpringBootTest theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Dùng @AutoConfigureMockMvc và giữ đúng các thành phần cần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Dùng @AutoConfigureWebTestClient theo loại ứng dụng và môi trường test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Chạy máy chủ nhúng bằng webEnvironment=RANDOM_PORT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: Lấy cổng động và cấu hình máy khách HTTP đúng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Sử dụng TestRestTemplate trong kiểm thử máy chủ thật khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Tích hợp cấu hình dịch vụ phụ thuộc mà không viết cứng địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Kiểm thử Spring Security bằng hỗ trợ test và đối chiếu luồng HTTP thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Hiểu phạm vi rollback khi yêu cầu được xử lý trên luồng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-010
+    title: Giảm chi phí khởi tạo ApplicationContext mà vẫn giữ các ca độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-011
+    title: Kiểm tra tương thích API kiểm thử với phiên bản Spring và Spring Boot của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: postman
+  title: Postman
+  childs:
+  - slug: postman-001
+    title: Tạo request và tổ chức collection, folder theo hành vi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-002
+    title: Cấu hình phương thức, URL, params, headers, body và authorization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-003
+    title: Quản lý biến cục bộ, collection, environment, global và dữ liệu chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-004
+    title: Kiểm tra phạm vi biến và tránh dùng nhầm giá trị từ môi trường khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-005
+    title: Viết kiểm chứng phản hồi bằng pm.test và pm.expect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-006
+    title: Đọc dữ liệu JSON, header, cookie và mã trạng thái trong script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-007
+    title: Dùng script trước yêu cầu để tạo dữ liệu hoặc chuẩn bị xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-008
+    title: Lưu giá trị từ phản hồi để liên kết các bước trong kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-009
+    title: Phạm vi và thứ tự script ở cấp collection, folder và request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-010
+    title: Chạy dữ liệu nhiều hàng bằng Collection Runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-011
+    title: Đọc Postman Console để chẩn đoán yêu cầu thực sự được gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: postman-012
+    title: Quản lý dữ liệu bí mật và kiểm soát nội dung được lưu hoặc chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections
+  title: Chạy collection
+  childs:
+  - slug: collections-001
+    title: Chạy collection bằng Postman CLI từ tệp hoặc nguồn đã cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-002
+    title: Truyền environment, biến và dữ liệu chạy từ CSV hoặc JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-003
+    title: Lọc folder hoặc kịch bản và kiểm tra tập yêu cầu thực sự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-004
+    title: Cấu hình số vòng lặp, thời hạn và điều kiện dừng khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-005
+    title: Giữ mã thoát để bước CI phản ánh đúng kết quả kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-006
+    title: Xuất báo cáo và kiểm tra reporter hỗ trợ định dạng collection đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-007
+    title: Kiểm tra tương thích collection v2.1, v3 và khả năng thực thi theo phiên bản công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-008
+    title: Đánh giá chuyển bộ kiểm thử dùng Newman sang Postman CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-009
+    title: Phân biệt chạy tệp cục bộ với chạy có liên kết và gửi kết quả lên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-010
+    title: Tách thông tin xác thực CLI khỏi token của API đang được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: karate
+  title: Karate
+  childs:
+  - slug: karate-001
+    title: Vai trò Karate trong kiểm thử API và điều kiện phiên bản Java hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-002
+    title: Cấu trúc Feature, Background, Scenario và kịch bản gọi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-003
+    title: Khai báo url, path, param, header, request, method và status
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-004
+    title: Kiểm chứng JSON hoặc XML bằng match và các bộ so khớp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-005
+    title: Dùng biến, biểu thức và cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-006
+    title: Chạy nhiều bộ dữ liệu bằng Scenario Outline và Examples
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-007
+    title: Tái sử dụng kịch bản chuẩn bị bằng cách gọi feature
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-008
+    title: Trích xuất dữ liệu và liên kết các yêu cầu trong cùng kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-009
+    title: Chạy bằng JUnit hoặc CLI và quản lý tag, báo cáo theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: karate-010
+    title: Giới hạn phạm vi HTTP khi Karate còn hỗ trợ UI, mock và kiểm thử hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-integration
+  title: Tích hợp kiểm thử
+  childs:
+  - slug: test-integration-001
+    title: Tổ chức test theo tài nguyên, hành vi và ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-002
+    title: Tham số hóa nhiều đầu vào nhưng giữ tên từng tình huống rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-003
+    title: Tách kiểm thử nhanh không qua mạng với kiểm thử máy chủ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-004
+    title: Tách cấu hình máy khách khỏi dữ liệu nghiệp vụ của ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-005
+    title: Dùng mock server cho dịch vụ bên ngoài khi mục tiêu cần kiểm soát phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-006
+    title: Phân biệt kiểm thử mã HTTP client với kiểm thử endpoint của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-007
+    title: Kiểm chứng hợp đồng OpenAPI hoặc schema và giữ riêng kiểm chứng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-008
+    title: Chạy song song với tài khoản, cookie, token và dữ liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-009
+    title: Chọn tag, group hoặc tác vụ build cho smoke, hồi quy và kiểm thử tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-integration-010
+    title: Dọn tài nguyên ở đường thành công, thất bại và hết thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browser-and-security
+  title: Bảo mật và trình duyệt
+  childs:
+  - slug: browser-and-security-001
+    title: Kiểm thử CORS bằng Origin và yêu cầu OPTIONS preflight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-002
+    title: Kiểm chứng Access-Control-Allow-Origin, Allow-Credentials và các header được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-003
+    title: Phân biệt phản hồi CORS đúng header với cơ chế chặn của trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-004
+    title: Kiểm thử CSRF token trong luồng dùng cookie hoặc phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-005
+    title: Phân biệt cơ chế CSRF với xác thực và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-006
+    title: Kiểm tra header bảo vệ theo yêu cầu ứng dụng mà không áp đặt cho mọi loại API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-007
+    title: Kiểm thử giới hạn tần suất và tài nguyên trong phạm vi môi trường cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-008
+    title: Kiểm tra lỗi không lộ thông tin xác thực, dữ liệu cá nhân hoặc chi tiết hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-009
+    title: Nhận diện giới hạn của máy khách HTTP khi cần chứng minh chính sách cookie của trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-and-security-010
+    title: Ranh giới giữa kiểm thử HTTP chức năng với đánh giá bảo mật chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-reporting
+  title: Báo cáo và CI
+  childs:
+  - slug: ci-reporting-001
+    title: Chạy bộ HTTP test bằng Gradle hoặc Maven và giữ đúng trạng thái thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-002
+    title: Thiết lập readiness check trước tác vụ kiểm thử trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-003
+    title: Truyền base URL, chứng chỉ và thông tin xác thực theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-004
+    title: Lưu báo cáo JUnit XML, HTML hoặc báo cáo gốc của công cụ khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-005
+    title: Gắn mã định danh test, lượt chạy và yêu cầu để liên kết log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-006
+    title: Thu yêu cầu và phản hồi khi lỗi nhưng che thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-007
+    title: Ghi nhận thời điểm, dữ liệu đầu vào và phiên bản ứng dụng cần tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-008
+    title: Giới hạn retry để không che lỗi nghiệp vụ hoặc tạo dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-009
+    title: Chạy song song có giới hạn và tránh gây quá tải môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-010
+    title: Lưu bằng chứng khi job thất bại hoặc bị hủy và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-reporting-011
+    title: Phân biệt test bị bỏ qua, không được chọn, không gửi yêu cầu và thực sự thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Base URL, base path hoặc cổng sai dẫn đến phản hồi khác mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Yêu cầu trả HTML hoặc trang đăng nhập thay vì JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Mã hóa query hoặc path hai lần làm máy chủ hiểu sai đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Content-Type, Accept hoặc charset không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Token sai phạm vi, hết hạn hoặc bị dùng lẫn giữa các ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Cookie không được gửi do domain, path hoặc chính sách máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Chuyển hướng tự động che mất phản hồi cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: JSON path sai phương ngữ hoặc so sánh kiểu số không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: MockMvc thành công nhưng yêu cầu trên máy chủ thật thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Kiểm thử bất đồng bộ chập chờn do dữ liệu chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Lỗi TLS, proxy, DNS hoặc kết nối khác nhau giữa máy cá nhân với CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Test treo do stream không kết thúc hoặc kết nối chưa được giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Test chỉ thất bại khi chạy toàn bộ do dữ liệu, phiên hoặc cấu hình dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: test-suite-maintenance
+  title: Bảo trì bộ kiểm thử
+  childs:
+  - slug: test-suite-maintenance-001
+    title: Giữ kỳ vọng đủ chặt để phát hiện sai nhưng tránh phụ thuộc chi tiết không cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-002
+    title: Tránh snapshot toàn phản hồi chứa mã định danh, thời gian hoặc thứ tự không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-003
+    title: Tái sử dụng cấu hình hợp lý mà không giấu đường dẫn, dữ liệu và kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-004
+    title: Giữ thư viện kiểm thử cùng schema và dữ liệu mẫu trong phạm vi phiên bản phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-005
+    title: Rà soát các ca vô hiệu hóa, retry kéo dài và dữ liệu còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-006
+    title: Review thay đổi API dựa trên hành vi quan sát được và hợp đồng đã công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-007
+    title: Giảm ca trùng lặp giữa nhiều công cụ nhưng giữ các mức kiểm thử cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: test-suite-maintenance-008
+    title: Đánh giá chất lượng bằng khả năng phát hiện lỗi, chẩn đoán và tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Xây bộ kiểm thử tạo, đọc, cập nhật và xóa tài nguyên bằng REST Assured
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Kiểm thử ma trận dữ liệu hợp lệ, biên và lỗi kiểm tra đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Kiểm thử quyền sở hữu cùng tài nguyên bằng hai tài khoản độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Kiểm thử đăng nhập, cookie, đăng xuất và phiên hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Kiểm thử upload, download và đối chiếu tính toàn vẹn tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Kiểm thử ETag, yêu cầu có điều kiện và cập nhật với phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Kiểm thử tác vụ 202 bằng polling có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Kiểm thử SSE có điều kiện kết thúc và thu hồi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: So sánh MockMvc với kiểm thử cùng endpoint trên cổng ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Chuyển chuỗi thao tác Postman thành collection chạy tự động trên CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-011
+    title: Tái hiện lỗi bằng curl rồi bổ sung kiểm thử hồi quy trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-012
+    title: Hoàn thiện bộ test chạy song song với dữ liệu độc lập và báo cáo có thể chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reference
+  title: Tra cứu
+  childs:
+  - slug: reference-001
+    title: Bảng chọn công cụ theo kiểm thử không qua mạng, máy chủ thật và collection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-002
+    title: Bảng phương thức HTTP, tính an toàn, tính lũy đẳng và điểm cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-003
+    title: Bảng mã trạng thái và trường hợp phản hồi không có nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-004
+    title: Bảng đối chiếu gửi yêu cầu và kiểm chứng giữa REST Assured, MockMvc với WebTestClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-005
+    title: Danh sách kiểm tra xác thực, phiên, redirect, cache và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-006
+    title: Danh sách kiểm tra khi HTTP test thành công cục bộ nhưng thất bại trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-007
+    title: Cách tra tài liệu đúng phiên bản và xác nhận giới hạn của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

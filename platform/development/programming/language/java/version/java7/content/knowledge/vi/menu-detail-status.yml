@@ -1,0 +1,2980 @@
+menu:
+- slug: java-7-overview
+  title: Định hướng
+  childs:
+  - slug: java-7-overview-001
+    title: Những nền tảng từ Java 7 vẫn được sử dụng trong Java hiện đại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-7-overview-002
+    title: Quan hệ giữa cải tiến ngôn ngữ, thư viện chuẩn và JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-7-overview-003
+    title: Kiến thức cần có về generic, ngoại lệ, I/O và đa luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-7-overview-004
+    title: Tổ chức ví dụ trên một JDK đang được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-7-overview-005
+    title: Tra cứu nguồn gốc tính năng và hợp đồng API hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-7-overview-006
+    title: Lựa chọn tính năng theo bài toán và kiểm chứng bằng chương trình nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numeric-literals
+  title: Cú pháp số
+  childs:
+  - slug: numeric-literals-001
+    title: Literal nhị phân và cách đọc biểu diễn bit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numeric-literals-002
+    title: Tiền tố 0b, 0B và các kiểu số nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numeric-literals-003
+    title: Độ rộng kiểu, dấu của số và hậu tố long
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numeric-literals-004
+    title: Biểu diễn mặt nạ và tổ hợp cờ bit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numeric-literals-005
+    title: Dấu gạch dưới trong literal số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numeric-literals-006
+    title: Nhóm chữ số theo đơn vị có ý nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numeric-literals-007
+    title: Vị trí gạch dưới hợp lệ và lỗi cú pháp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numeric-literals-008
+    title: Phân biệt literal trong mã với chuỗi dữ liệu cần phân tích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: string-switch
+  title: switch với String
+  childs:
+  - slug: string-switch-001
+    title: Điều phối theo giá trị chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-switch-002
+    title: Nhãn case là hằng chuỗi và nhánh default
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-switch-003
+    title: So sánh nội dung và phân biệt chữ hoa, chữ thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-switch-004
+    title: Chuẩn hóa chuỗi đầu vào trước khi phân nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-switch-005
+    title: Xử lý null và dữ liệu không được nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-switch-006
+    title: Nhóm nhãn, break và kiểm soát rơi qua nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: string-switch-007
+    title: Chọn String, enum hoặc cấu trúc tra cứu phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diamond
+  title: Diamond
+  childs:
+  - slug: diamond-001
+    title: Tham số kiểu ở nơi khai báo và nơi tạo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diamond-002
+    title: Suy luận tham số khi khởi tạo bằng dấu <>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diamond-003
+    title: Phân biệt diamond với kiểu thô
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diamond-004
+    title: Khai báo collection và generic lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diamond-005
+    title: Tham số kiểu của lớp và của constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diamond-006
+    title: Thông tin kiểu từ ngữ cảnh và trường hợp cần ghi tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diamond-007
+    title: Đọc cảnh báo unchecked và kiểm tra an toàn kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diamond-008
+    title: Tái cấu trúc khai báo dài mà giữ nguyên hợp đồng kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-catch
+  title: Multi-catch
+  childs:
+  - slug: multi-catch-001
+    title: Nhận diện các nhánh catch có cách xử lý giống nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-002
+    title: Kết hợp kiểu ngoại lệ bằng dấu |
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-003
+    title: Giới hạn quan hệ cha con giữa các kiểu được kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-004
+    title: Kiểu quan sát được của tham số catch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-005
+    title: Quy tắc không gán lại tham số multi-catch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-006
+    title: Thứ tự catch và phát hiện nhánh không thể chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-007
+    title: Chọn xử lý chung, xử lý riêng hoặc chuyển đổi ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-catch-008
+    title: Giữ nguyên nguyên nhân và thông tin chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: precise-rethrow
+  title: Ném lại ngoại lệ
+  childs:
+  - slug: precise-rethrow-001
+    title: Phân tích các ngoại lệ thực sự phát sinh từ khối try
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: precise-rethrow-002
+    title: Suy luận chính xác hơn khi ném lại biến catch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: precise-rethrow-003
+    title: Vai trò của biến final hoặc không bị gán lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: precise-rethrow-004
+    title: Quan hệ giữa kiểu catch và danh sách throws
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: precise-rethrow-005
+    title: Ảnh hưởng của việc thay đổi biến ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: precise-rethrow-006
+    title: Ghi nhật ký rồi ném lại mà không làm mất nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: precise-rethrow-007
+    title: Kiểm tra đường đi ngoại lệ và hợp đồng phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: try-with-resources
+  title: try-with-resources
+  childs:
+  - slug: try-with-resources-001
+    title: Quyền sở hữu và thời điểm kết thúc tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-002
+    title: Khai báo tài nguyên trong phần mở đầu try
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-003
+    title: Điều kiện tài nguyên triển khai AutoCloseable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-004
+    title: Nhiều tài nguyên và thứ tự đóng ngược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-005
+    title: Phạm vi biến và tài nguyên tham chiếu null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-006
+    title: Xử lý lỗi khi khởi tạo một phần tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-007
+    title: Quan hệ với catch, finally và return
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-008
+    title: Ngoại lệ của phần xử lý và ngoại lệ khi đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-009
+    title: Đọc ngoại lệ bị giữ lại bằng getSuppressed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-010
+    title: Phân biệt suppressed exception với chuỗi nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-011
+    title: Áp dụng cho tệp, kênh, cơ sở dữ liệu và tài nguyên tự định nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: try-with-resources-012
+    title: Kiểm thử cả đường đi thành công và đường đi thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auto-closeable
+  title: AutoCloseable
+  childs:
+  - slug: auto-closeable-001
+    title: Thiết kế kiểu có vòng đời tài nguyên rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-closeable-002
+    title: Hợp đồng close và lựa chọn ngoại lệ được khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-closeable-003
+    title: Phân biệt AutoCloseable với Closeable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-closeable-004
+    title: Quản lý tài nguyên được tạo, được mượn hoặc được chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-closeable-005
+    title: Quy tắc đóng một lần, đóng lặp và trạng thái sau khi đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-closeable-006
+    title: Ủy quyền đóng các tài nguyên thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-closeable-007
+    title: Tránh đóng ngoài ý muốn tài nguyên của bên gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auto-closeable-008
+    title: Xây tài nguyên giả lập để kiểm chứng thứ tự và lỗi đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-varargs
+  title: Varargs an toàn
+  childs:
+  - slug: safe-varargs-001
+    title: Mối liên hệ giữa varargs, mảng và xóa kiểu generic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-002
+    title: Kiểu reifiable và thông tin kiểu còn lại lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-003
+    title: Nguyên nhân gây heap pollution
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-004
+    title: Cảnh báo ở nơi khai báo và nơi gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-005
+    title: Ý nghĩa cam kết của @SafeVarargs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-006
+    title: Kiểm tra điều kiện sử dụng annotation theo mức ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-007
+    title: Phân biệt bảo đảm an toàn với che cảnh báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-008
+    title: Rà soát thoát tham chiếu và ghi vào mảng varargs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-varargs-009
+    title: Sử dụng cảnh báo unchecked, varargs trong kiểm tra mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: objects
+  title: Objects
+  childs:
+  - slug: objects-001
+    title: Tiện ích dùng chung cho hợp đồng đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-002
+    title: Kiểm tra đầu vào bằng requireNonNull
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-003
+    title: So sánh có xét null bằng Objects.equals
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-004
+    title: So sánh mảng lồng nhau bằng deepEquals
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-005
+    title: Tạo mã băm nhiều trường và phân biệt hash với hashCode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-006
+    title: Chuỗi biểu diễn có giá trị thay thế khi null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-007
+    title: So sánh theo Comparator bằng Objects.compare
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-008
+    title: Kiểm thử tính nhất quán của equals, hashCode và dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bit-set
+  title: BitSet
+  childs:
+  - slug: bit-set-001
+    title: Biểu diễn tập chỉ số và dãy cờ bằng bit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-set-002
+    title: Phân biệt độ dài logic với dung lượng lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-set-003
+    title: Chuyển từ mảng byte hoặc long bằng valueOf
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-set-004
+    title: Xuất dữ liệu bằng toByteArray và toLongArray
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-set-005
+    title: Quy ước thứ tự bit và biểu diễn little-endian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-set-006
+    title: Tìm bit theo chiều ngược bằng previousSetBit, previousClearBit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-set-007
+    title: Biên chỉ số, tập rỗng và việc chia sẻ giữa nhiều luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bit-set-008
+    title: Ứng dụng lưu cờ, lọc tập chỉ số và kiểm chứng chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: character-sets
+  title: Bảng mã
+  childs:
+  - slug: character-sets-001
+    title: Vai trò của StandardCharsets trong xử lý văn bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-sets-002
+    title: Chọn UTF-8 hoặc bảng mã tường minh theo định dạng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-sets-003
+    title: Chuyển đổi giữa byte và ký tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-sets-004
+    title: Phân biệt bảng mã với thứ tự byte
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-sets-005
+    title: Xử lý dữ liệu không hợp lệ bằng CharsetDecoder, CharsetEncoder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-sets-006
+    title: Tránh phụ thuộc bảng mã mặc định của môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-sets-007
+    title: Kiểm thử tiếng Việt, ký tự bổ sung và dữ liệu qua nhiều hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: path
+  title: Path
+  childs:
+  - slug: path-001
+    title: Đường dẫn như một giá trị thuộc hệ thống tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-002
+    title: Tạo đường dẫn từ các thành phần hoặc URI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-003
+    title: Đường dẫn tuyệt đối, tương đối và thư mục làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-004
+    title: Đọc root, tên tệp, thư mục cha và từng đoạn tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-005
+    title: Ghép bằng resolve, resolveSibling
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-006
+    title: Tạo đường dẫn tương đối bằng relativize
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-007
+    title: Phân biệt normalize với toRealPath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-008
+    title: Kiểm tra tiền tố, hậu tố và quan hệ đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-009
+    title: Tương tác với File tại ranh giới thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-010
+    title: Khác biệt cú pháp và nhà cung cấp giữa các nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: path-011
+    title: Kiểm tra đường dẫn nằm trong thư mục được phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files
+  title: Files
+  childs:
+  - slug: files-001
+    title: Tạo tệp, thư mục và các thư mục cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-002
+    title: Tạo tệp tạm và quản lý việc dọn dẹp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-003
+    title: Đọc ghi byte và lựa chọn theo kích thước dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-004
+    title: Đọc ghi văn bản với bảng mã đã chỉ rõ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-005
+    title: Mở InputStream, OutputStream, Reader và Writer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-006
+    title: Tùy chọn tạo mới, ghi thêm, cắt nội dung và ghi đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-007
+    title: Sao chép tệp và chính sách khi đích tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-008
+    title: Sao chép thuộc tính và giới hạn giữa các hệ thống tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-009
+    title: Di chuyển nguyên tử và xử lý AtomicMoveNotSupportedException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-010
+    title: Xóa tệp hoặc thư mục với delete, deleteIfExists
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-011
+    title: Ngoại lệ cụ thể và thông tin đường dẫn khi thao tác thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-012
+    title: Tránh giả định trạng thái không đổi sau thao tác kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: walking-file-trees
+  title: Duyệt cây tệp
+  childs:
+  - slug: walking-file-trees-001
+    title: Đọc thư mục theo DirectoryStream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-002
+    title: Đóng luồng duyệt và xử lý DirectoryIteratorException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-003
+    title: Lọc bằng glob hoặc DirectoryStream.Filter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-004
+    title: PathMatcher và khác biệt glob với biểu thức chính quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-005
+    title: Đi qua cây bằng Files.walkFileTree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-006
+    title: FileVisitor, SimpleFileVisitor và thứ tự callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-007
+    title: Xử lý tệp lỗi, bỏ qua nhánh hoặc kết thúc sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-008
+    title: Giới hạn độ sâu và tùy chọn theo liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-009
+    title: Phát hiện vòng lặp liên kết trong cây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: walking-file-trees-010
+    title: Thiết kế tìm kiếm, thống kê và sao chép cây thư mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-attributes
+  title: Thuộc tính tệp
+  childs:
+  - slug: file-attributes-001
+    title: Đọc metadata bằng BasicFileAttributes
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-002
+    title: Thời gian tạo, sửa đổi và truy cập với FileTime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-003
+    title: Đọc ghi thuộc tính theo tên hoặc giao diện có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-004
+    title: Kiểm tra khả năng hỗ trợ trước khi dùng attribute view
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-005
+    title: Chủ sở hữu và UserPrincipal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-006
+    title: Quyền POSIX theo người sở hữu, nhóm và bên khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-007
+    title: Thuộc tính DOS trên hệ thống hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-008
+    title: Danh sách kiểm soát truy cập với AclFileAttributeView
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-009
+    title: Thuộc tính mở rộng do người dùng định nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-attributes-010
+    title: FileStore và kiểm tra dung lượng khả dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: symbolic-file-links
+  title: Liên kết tệp
+  childs:
+  - slug: symbolic-file-links-001
+    title: Phân biệt liên kết cứng và liên kết tượng trưng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: symbolic-file-links-002
+    title: Tạo và đọc đích liên kết tượng trưng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: symbolic-file-links-003
+    title: NOFOLLOW_LINKS trong kiểm tra và thao tác metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: symbolic-file-links-004
+    title: Đường dẫn tương đối được lưu trong liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: symbolic-file-links-005
+    title: Liên kết không còn đích và vòng tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: symbolic-file-links-006
+    title: Chính sách sao chép, di chuyển hoặc xóa liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: symbolic-file-links-007
+    title: Kiểm thử quyền truy cập và hỗ trợ của hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: watch-service
+  title: WatchService
+  childs:
+  - slug: watch-service-001
+    title: Mô hình đăng ký thư mục và nhận thông báo thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-002
+    title: ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-003
+    title: Vòng nhận sự kiện bằng take hoặc poll
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-004
+    title: WatchKey, reset và khóa mất hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-005
+    title: Chuyển context sự kiện thành đường dẫn cần xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-006
+    title: OVERFLOW và việc quét lại trạng thái thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-007
+    title: Đăng ký từng thư mục khi theo dõi cả cây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-008
+    title: Gộp sự kiện trùng và tránh xử lý khi tệp chưa ghi xong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-009
+    title: Đóng dịch vụ, ngắt chờ và dừng có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: watch-service-010
+    title: Giới hạn bảo đảm theo nhà cung cấp và hệ thống tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filesystem-zip
+  title: FileSystem và ZIP
+  childs:
+  - slug: filesystem-zip-001
+    title: Quan hệ Path, FileSystem và FileSystemProvider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-002
+    title: Nhà cung cấp mặc định và hệ thống tệp bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-003
+    title: Tạo hệ thống tệp bằng FileSystems.newFileSystem
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-004
+    title: Truy cập ZIP hoặc JAR như một cây đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-005
+    title: Tạo, đọc và cập nhật mục trong kho ZIP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-006
+    title: Tùy chọn tạo mới và bảng mã tên mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-007
+    title: Đóng FileSystem và vòng đời các Path liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-008
+    title: Lỗi nhà cung cấp không khớp hoặc hệ thống tệp đã đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-zip-009
+    title: Giữ đường dẫn mục giải nén trong vùng đích cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-file-channels
+  title: Kênh tệp bất đồng bộ
+  childs:
+  - slug: asynchronous-file-channels-001
+    title: Phân biệt I/O chặn, không chặn và bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-002
+    title: Vai trò của AsynchronousFileChannel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-003
+    title: Kết quả Future và callback CompletionHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-004
+    title: Đọc ghi theo vị trí thay vì con trỏ dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-005
+    title: ByteBuffer và trường hợp chưa đọc ghi đủ dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-006
+    title: Tổ chức nhiều thao tác độc lập và kiểm soát bộ đệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-007
+    title: Khóa vùng tệp và xử lý lỗi hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-008
+    title: Quản lý executor cùng vòng đời kênh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-file-channels-009
+    title: Đo lợi ích theo kiểu tải thay vì giả định bất đồng bộ luôn nhanh hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-socket-channels
+  title: Kênh mạng bất đồng bộ
+  childs:
+  - slug: asynchronous-socket-channels-001
+    title: AsynchronousServerSocketChannel và chấp nhận kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-002
+    title: AsynchronousSocketChannel và vòng đời kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-003
+    title: Hoàn tất connect, read và write
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-004
+    title: Trạng thái đọc ghi đang chờ và giới hạn truy cập bộ đệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-005
+    title: Đọc ghi một phần, kết thúc luồng và lỗi kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-006
+    title: Thời hạn chờ, hủy và đóng kênh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-007
+    title: AsynchronousChannelGroup và luồng xử lý callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-008
+    title: Tránh chặn callback hoặc tạo vòng chờ lẫn nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-socket-channels-009
+    title: Tổ chức dừng máy chủ và thu hồi tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sockets-multicast
+  title: Socket và multicast
+  childs:
+  - slug: sockets-multicast-001
+    title: NetworkChannel và cấu hình SocketOption
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockets-multicast-002
+    title: Tra cứu khả năng hỗ trợ qua supportedOptions
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockets-multicast-003
+    title: Các tùy chọn chuẩn và khác biệt theo nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockets-multicast-004
+    title: Chọn họ giao thức khi mở DatagramChannel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockets-multicast-005
+    title: Tham gia nhóm bằng MulticastChannel
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockets-multicast-006
+    title: MembershipKey, giao diện mạng và nguồn gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockets-multicast-007
+    title: Chặn nguồn, hủy đăng ký và đóng kênh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockets-multicast-008
+    title: Kiểm thử mạng có hỗ trợ multicast
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fork-join
+  title: Fork/Join
+  childs:
+  - slug: fork-join-001
+    title: Chia để trị cho bài toán tính toán có thể tách nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-002
+    title: ForkJoinPool và cơ chế đánh cắp tác vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-003
+    title: RecursiveTask cho kết quả và RecursiveAction cho hành động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-004
+    title: Thiết kế compute với điều kiện dừng rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-005
+    title: Chọn ngưỡng phân chia theo chi phí thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-006
+    title: Phối hợp fork, xử lý cục bộ và join
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-007
+    title: Thực thi nhiều tác vụ bằng invokeAll
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-008
+    title: Tránh dữ liệu dùng chung và phụ thuộc tạo chu kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-009
+    title: Xử lý ngoại lệ, hủy và trạng thái hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-010
+    title: Tác vụ chặn và giao diện ManagedBlocker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-011
+    title: Quản lý pool theo quyền sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-join-012
+    title: So sánh thuật toán song song với kết quả tuần tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: phaser
+  title: Phaser
+  childs:
+  - slug: phaser-001
+    title: Đồng bộ một nhóm công việc qua nhiều giai đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-002
+    title: Phase, số bên tham gia và số bên chưa đến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-003
+    title: Đăng ký linh hoạt bằng register, bulkRegister
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-004
+    title: arrive và arriveAndAwaitAdvance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-005
+    title: Chờ giai đoạn đổi bằng awaitAdvance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-006
+    title: Rút khỏi nhóm bằng arriveAndDeregister
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-007
+    title: Chờ có thể ngắt hoặc hết thời hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-008
+    title: Điều kiện kết thúc và tùy biến onAdvance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-009
+    title: Phaser phân tầng khi số bên tham gia lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: phaser-010
+    title: Chọn Phaser theo cấu trúc phối hợp của bài toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-queues
+  title: Hàng đợi đồng thời
+  childs:
+  - slug: concurrent-queues-001
+    title: Chuyển giao dữ liệu giữa bên tạo và bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-002
+    title: TransferQueue cùng LinkedTransferQueue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-003
+    title: Phân biệt đưa vào hàng đợi với transfer tới bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-004
+    title: tryTransfer và biến thể có thời hạn chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-005
+    title: Ngắt luồng, hủy công việc và quy trình kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-006
+    title: Kiểm soát tốc độ khi hàng đợi không giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-007
+    title: ConcurrentLinkedDeque cho thao tác hai đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-008
+    title: Iterator nhất quán yếu và thao tác nhiều bước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-queues-009
+    title: Kiểm tra dữ liệu dùng chung và bảo đảm quan sát giữa các luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-local-random
+  title: ThreadLocalRandom
+  childs:
+  - slug: thread-local-random-001
+    title: Giảm tranh chấp khi nhiều luồng cần số ngẫu nhiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-local-random-002
+    title: Lấy bộ sinh qua current
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-local-random-003
+    title: Sinh số trong khoảng xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-local-random-004
+    title: Giới hạn cận và đầu vào không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-local-random-005
+    title: Quản lý trạng thái theo luồng và giới hạn đặt seed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-local-random-006
+    title: Phân biệt nhu cầu ngẫu nhiên thông thường với ngẫu nhiên mật mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-local-random-007
+    title: Chọn cách kiểm thử khi không thể điều khiển seed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc
+  title: JDBC
+  childs:
+  - slug: jdbc-001
+    title: Tự đóng Connection, Statement và ResultSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-002
+    title: Thứ tự phụ thuộc tài nguyên trong một lần truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-003
+    title: Phân biệt kết thúc tài nguyên với commit hoặc rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-004
+    title: getObject theo Class và chuyển đổi kiểu được driver hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-005
+    title: Lấy hoặc đặt schema của kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-006
+    title: Network timeout và quyền sở hữu executor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-007
+    title: Hủy kết nối bằng abort khi cần thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-008
+    title: closeOnCompletion và vòng đời các ResultSet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-009
+    title: Kiểm tra khả năng hỗ trợ bằng DatabaseMetaData
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-010
+    title: Xử lý SQLFeatureNotSupportedException và driver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-011
+    title: Kiểm thử lỗi truy vấn, lỗi giao dịch và lỗi đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-handle
+  title: MethodHandle
+  childs:
+  - slug: method-handle-001
+    title: Tham chiếu có kiểu tới hành vi có thể gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-002
+    title: MethodType và chữ ký tham số, kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-003
+    title: MethodHandles.Lookup và kiểm tra quyền truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-004
+    title: Tra cứu phương thức static, virtual và constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-005
+    title: Tra cứu getter, setter của trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-006
+    title: Phân biệt invokeExact với invoke
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-007
+    title: Chuyển chữ ký bằng asType
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-008
+    title: Cố định đối tượng nhận hoặc tham số bằng bindTo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-009
+    title: Kết hợp hành vi qua các bộ biến đổi MethodHandles
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-010
+    title: CallSite và vai trò của invokedynamic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-011
+    title: Phân biệt sử dụng API được hỗ trợ với phụ thuộc API nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-handle-012
+    title: Kiểm chứng kiểu gọi, lỗi liên kết và chi phí làm nóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-class-loading
+  title: Nạp lớp an toàn
+  childs:
+  - slug: secure-class-loading-001
+    title: Quan hệ giữa class loader, định danh lớp và tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-class-loading-002
+    title: Giải phóng tệp JAR bằng URLClassLoader.close
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-class-loading-003
+    title: Đóng loader và giới hạn thu hồi các lớp đã nạp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-class-loading-004
+    title: Thiết kế quyền sở hữu loader trong cơ chế plugin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-class-loading-005
+    title: Nạp song song và registerAsParallelCapable
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-class-loading-006
+    title: Khóa theo tên lớp qua getClassLoadingLock
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-class-loading-007
+    title: Tránh khóa chéo khi ủy quyền giữa nhiều loader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-class-loading-008
+    title: Kiểm thử đóng loader và thay đổi tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locales-unicode
+  title: Locale và Unicode
+  childs:
+  - slug: locales-unicode-001
+    title: Thẻ ngôn ngữ BCP 47 trong trao đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-002
+    title: Tạo Locale bằng Locale.Builder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-003
+    title: Chuyển đổi forLanguageTag và toLanguageTag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-004
+    title: Đọc language, script, region và phần mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-005
+    title: Phân biệt locale hiển thị với locale định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-006
+    title: Chuỗi tên phù hợp người dùng bằng các phương thức getDisplay
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-007
+    title: 'Currency: tên hiển thị và mã tiền tệ dạng số'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-008
+    title: Nhận diện script và duyệt văn bản theo code point
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locales-unicode-009
+    title: Kiểm thử tiếng Việt, ký tự bổ sung và các locale khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: unicode-regex
+  title: Regex Unicode
+  childs:
+  - slug: unicode-regex-001
+    title: Nhóm bắt có tên và đọc kết quả theo tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-regex-002
+    title: Tham chiếu ngược tới nhóm có tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-regex-003
+    title: Thay thế văn bản bằng nhóm tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-regex-004
+    title: Lớp ký tự theo script và thuộc tính Unicode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-regex-005
+    title: UNICODE_CHARACTER_CLASS và lớp ký tự định sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-regex-006
+    title: Phân biệt xử lý chữ hoa, chữ thường với chuẩn hóa văn bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-regex-007
+    title: Escape code point và cú pháp Java chứa biểu thức chính quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: unicode-regex-008
+    title: Kiểm thử đầu vào đa ngôn ngữ và mẫu không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zip-streams
+  title: Luồng ZIP
+  childs:
+  - slug: zip-streams-001
+    title: Chọn ZipFile hoặc các luồng đọc ghi ZIP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zip-streams-002
+    title: Chỉ rõ bảng mã tên mục bằng Charset
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zip-streams-003
+    title: Tên Unicode, metadata và khả năng tương tác giữa công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zip-streams-004
+    title: Giới hạn định dạng ZIP và kho lưu trữ kích thước lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zip-streams-005
+    title: Điều khiển flush của bộ nén khi cần truyền dữ liệu liên tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zip-streams-006
+    title: Quản lý tài nguyên ZIP bằng try-with-resources
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zip-streams-007
+    title: Kiểm tra dữ liệu hỏng và kích thước đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zip-streams-008
+    title: Giới hạn đường dẫn và tài nguyên khi giải nén
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standard-swing
+  title: Swing chuẩn
+  childs:
+  - slug: standard-swing-001
+    title: JLayer và LayerUI trong ứng dụng desktop còn được duy trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-swing-002
+    title: Vẽ lớp phủ lên một nhóm thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-swing-003
+    title: Theo dõi sự kiện trong phạm vi lớp trang trí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-swing-004
+    title: Đăng ký và hủy event mask theo vòng đời giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-swing-005
+    title: Nimbus trong namespace javax.swing.plaf.nimbus được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-swing-006
+    title: 'Window: hình dạng tùy chỉnh và độ trong suốt'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-swing-007
+    title: Kiểm tra GraphicsDevice trước khi dùng hiệu ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-swing-008
+    title: Giữ thao tác giao diện trên luồng sự kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: g1
+  title: G1
+  childs:
+  - slug: g1-001
+    title: Phân vùng heap và mục tiêu của Garbage-First
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-002
+    title: Ưu tiên thu hồi vùng có khả năng giải phóng cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-003
+    title: Đánh dấu đồng thời và những thời điểm ứng dụng phải dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-004
+    title: Di chuyển đối tượng sống để thu hồi, giảm phân mảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-005
+    title: Cân bằng thời gian dừng, thông lượng và bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-006
+    title: Giới hạn của mục tiêu thời gian dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: g1-007
+    title: Quan sát hành vi trên JVM đang sử dụng trước khi tinh chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tiered-compilation
+  title: JIT phân tầng
+  childs:
+  - slug: tiered-compilation-001
+    title: Thông dịch, thu thập hồ sơ và biên dịch lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tiered-compilation-002
+    title: Vai trò của các tầng biên dịch trong HotSpot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tiered-compilation-003
+    title: Quan hệ giữa thời gian khởi động và hiệu năng ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tiered-compilation-004
+    title: Inline, tối ưu theo hồ sơ và khả năng quay lại mã ít tối ưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tiered-compilation-005
+    title: Tác động của quá trình làm nóng tới phép đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tiered-compilation-006
+    title: Phân biệt tối ưu của JVM với bảo đảm của ngôn ngữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tiered-compilation-007
+    title: Thiết kế so sánh có kết quả được sử dụng và dữ liệu đại diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Mô hình cờ bit và điều phối lệnh chuỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Rà soát generic, varargs và cảnh báo an toàn kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Mô phỏng lỗi khởi tạo, xử lý và đóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Viết công cụ tìm kiếm, sao chép và thống kê cây tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Theo dõi thay đổi thư mục có cơ chế khôi phục sau OVERFLOW
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Đọc ghi tệp hoặc phục vụ kết nối bằng kênh bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tính toán chia để trị và điều chỉnh ngưỡng Fork/Join
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Phối hợp các giai đoạn bằng Phaser và chuyển giao qua TransferQueue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Kiểm thử JDBC theo từng loại lỗi và vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Khám phá MethodHandle bằng các chữ ký có kiểu khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Kiểm chứng văn bản Unicode, locale và kho ZIP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Ghi nhận kết quả chức năng, tài nguyên và hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

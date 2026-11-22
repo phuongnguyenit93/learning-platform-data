@@ -1,0 +1,3 @@
+menuLevel1: CompletableFuture
+menuLevel2: 'NIO CompletionHandler: chuyển callback completed()/failed() sang CompletionStage'
+status: TRANSLATE

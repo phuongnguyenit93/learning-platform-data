@@ -1,0 +1,310 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - String là gì và vai trò biểu diễn văn bản trong Java
+  - Quan hệ giữa String, char[], CharSequence và đối tượng
+  - Phân biệt nội dung chuỗi với biến tham chiếu đến chuỗi
+  - Chuỗi rỗng, chuỗi trắng, null và chuỗi chứa chữ null
+  - Vì sao String là lớp final và có tính bất biến
+  - 'Các nhóm thao tác: đọc, so sánh, tìm kiếm, biến đổi và chuyển mã'
+  - Chọn String, StringBuilder hoặc StringBuffer theo nhu cầu
+  - Kiến thức nền và trình tự học Java Core String
+- level1: Khai báo và tạo chuỗi
+  level2:
+  - Literal chuỗi và cú pháp dấu nháy kép
+  - Escape cho dấu nháy, dấu gạch chéo và ký tự điều khiển
+  - Unicode escape trong mã nguồn và thứ tự xử lý của trình biên dịch
+  - Tạo String từ char[] hoặc một vùng của mảng
+  - Tạo String từ mảng code point
+  - Tạo String từ byte[] với bộ mã ký tự
+  - Tạo String từ StringBuilder hoặc StringBuffer
+  - new String và vì sao thường không cần sao chép một String đã có
+- level1: Unicode và UTF-16
+  level2:
+  - Phân biệt code unit, code point và cụm ký tự hiển thị
+  - String dùng chỉ số theo đơn vị char của UTF-16
+  - BMP, ký tự bổ sung và surrogate pair
+  - Độ dài của tiếng Việt, dấu kết hợp và emoji
+  - String có thể chứa surrogate không ghép cặp
+  - Character.toChars, charCount và các thao tác trên code point
+  - UTF-16 của mô hình String khác với charset của tệp
+  - Vì sao số char không luôn bằng số ký tự người dùng nhìn thấy
+- level1: Tính bất biến
+  level2:
+  - Giá trị String không đổi sau khi đối tượng được tạo
+  - Phân biệt final của biến với bất biến của đối tượng
+  - Phương thức biến đổi trả kết quả thay vì sửa chuỗi nguồn
+  - Vì sao bỏ qua giá trị trả về dễ làm mất kết quả
+  - Gán lại tham chiếu không làm thay đổi chuỗi được chia sẻ
+  - Sao chép đầu vào char[] và tính độc lập của toCharArray
+  - Lợi ích khi dùng làm khóa, chia sẻ dữ liệu và xử lý đồng thời
+  - Chuỗi bất biến không làm mọi biến hoặc cấu trúc chứa nó an toàn đa luồng
+- level1: Pool và intern
+  level2:
+  - String pool và việc dùng chung literal
+  - Biểu thức hằng chuỗi được tính khi biên dịch
+  - Phân biệt nối hằng với nối giá trị lúc chạy
+  - new String tạo đối tượng và quan hệ với literal có sẵn
+  - String.intern và tham chiếu chuẩn hóa theo nội dung
+  - Phân biệt string pool với constant pool của class file
+  - Vì sao quan sát == trên literal không thay thế so sánh nội dung
+  - Khi nào intern có ích và giới hạn khi dùng trên dữ liệu không kiểm soát
+- level1: Độ dài và truy cập
+  level2:
+  - length và isEmpty
+  - charAt và điều kiện chỉ số hợp lệ
+  - codePointAt và codePointBefore
+  - codePointCount trên một khoảng UTF-16
+  - offsetByCodePoints để di chuyển theo code point
+  - getChars và sao chép một vùng sang char[]
+  - toCharArray và bản sao dữ liệu ký tự
+  - Chọn đơn vị chỉ số phù hợp trước khi duyệt hoặc cắt chuỗi
+- level1: Trích xuất chuỗi
+  level2:
+  - substring từ một vị trí đến hết chuỗi
+  - substring với biên đầu bao gồm và biên cuối không bao gồm
+  - Chuỗi rỗng khi hai biên bằng nhau
+  - subSequence và hợp đồng CharSequence
+  - Trường hợp biên âm, vượt độ dài hoặc đảo thứ tự
+  - Cắt theo code point thay vì chia đôi surrogate pair
+  - Cắt theo cụm ký tự bằng BreakIterator
+  - Không phụ thuộc vào việc kết quả có dùng chung đối tượng hoặc bộ nhớ nội bộ
+- level1: So sánh
+  level2:
+  - == so sánh tham chiếu còn equals so sánh nội dung String
+  - equals với null và với đối tượng không phải String
+  - Objects.equals cho hai tham chiếu có thể null
+  - equalsIgnoreCase và giới hạn không phụ thuộc locale
+  - compareTo và thứ tự từ điển theo giá trị char
+  - compareToIgnoreCase và CASE_INSENSITIVE_ORDER
+  - contentEquals khi so sánh với StringBuilder hoặc CharSequence
+  - regionMatches để so sánh một vùng chuỗi
+  - Quan hệ giữa equals, hashCode và việc hai chuỗi băm trùng
+- level1: Tìm kiếm
+  level2:
+  - contains để kiểm tra chuỗi con
+  - startsWith, startsWith có vị trí và endsWith
+  - indexOf với ký tự hoặc code point
+  - indexOf với chuỗi con và fromIndex
+  - lastIndexOf và hướng tìm ngược
+  - Giá trị -1 và lỗi dùng kết quả tìm kiếm làm chỉ số
+  - Chuỗi tìm rỗng và các trường hợp ở biên
+  - indexOf có beginIndex, endIndex từ Java 21
+  - Phân biệt tìm chuỗi nguyên văn với tìm theo biểu thức chính quy
+- level1: Chuỗi trắng
+  level2:
+  - isBlank so với isEmpty
+  - trim và tập ký tự không vượt U+0020
+  - strip, stripLeading và stripTrailing
+  - Character.isWhitespace và giới hạn với khoảng trắng Unicode
+  - Khoảng trắng không ngắt dòng không luôn được strip loại bỏ
+  - Phân biệt null, chuỗi rỗng và dữ liệu chỉ có khoảng trắng
+  - Xác định chính sách làm sạch trước khi kiểm tra đầu vào
+  - Vì sao không tự động xóa mọi khoảng trắng trong dữ liệu người dùng
+- level1: Biến đổi nội dung
+  level2:
+  - replace(char,char) và thay mọi ký tự khớp
+  - replace(CharSequence,CharSequence) với chuỗi nguyên văn
+  - Phân biệt replace với replaceFirst và replaceAll
+  - 'repeat: số lần lặp, trường hợp rỗng và số âm'
+  - transform và xây dựng chuỗi bước xử lý
+  - Thay đổi độ dài sau biến đổi và tác động đến chỉ số cũ
+  - Phân biệt phép biến đổi giữ nguyên ý nghĩa với phép làm mất dữ liệu
+  - Giữ chuỗi gốc khi cần đối chiếu hoặc hiển thị lại
+- level1: Hoa thường và chuẩn hóa
+  level2:
+  - toLowerCase và toUpperCase với locale tường minh
+  - Locale.ROOT cho định danh kỹ thuật khi phù hợp
+  - Trường hợp chữ I của tiếng Thổ Nhĩ Kỳ
+  - Đổi hoa–thường có thể làm thay đổi độ dài chuỗi
+  - Normalizer và các dạng NFC, NFD, NFKC, NFKD
+  - Chuỗi nhìn giống nhau nhưng khác dãy code point
+  - Phân biệt chuẩn hóa Unicode với loại bỏ dấu
+  - Collator khi cần so sánh theo quy tắc ngôn ngữ
+- level1: Nối chuỗi
+  level2:
+  - Toán tử + và phép chuyển giá trị thành chuỗi
+  - Thứ tự kết hợp trái–phải của + với số và chuỗi
+  - Phân biệt ký tự cộng số với nối chuỗi
+  - concat và khác biệt về đối số null
+  - += là tạo kết quả rồi gán lại tham chiếu
+  - Chuyển Object qua toString khi tham gia nối chuỗi
+  - Nối trong một biểu thức so với tích lũy qua vòng lặp
+  - Chi tiết biên dịch phép nối có thể thay đổi theo JDK
+- level1: StringBuilder
+  level2:
+  - Bộ đệm ký tự có thể thay đổi và mô hình xây dựng chuỗi
+  - Constructor, length và capacity
+  - append với String, primitive, Object, char[] và CharSequence
+  - appendCodePoint và dữ liệu ngoài BMP
+  - insert, delete, deleteCharAt và replace
+  - setCharAt và setLength
+  - setLength tăng độ dài bằng ký tự NUL
+  - ensureCapacity, trimToSize và chi phí cấp phát
+  - reverse bảo toàn surrogate pair nhưng không bảo đảm bảo toàn cụm ký tự
+  - repeat với code point hoặc CharSequence từ Java 21
+  - toString tạo kết quả độc lập với thay đổi về sau
+  - equals, compareTo và giới hạn chia sẻ giữa nhiều luồng
+- level1: StringBuffer
+  level2:
+  - Vai trò của StringBuffer trong mã cần đồng bộ
+  - So sánh API với StringBuilder
+  - Đồng bộ từng phương thức không bảo đảm nguyên tử cho cả chuỗi thao tác
+  - Đối tượng nguồn khả biến khi append hoặc insert
+  - Chọn khóa chung khi cần phối hợp nhiều thao tác
+  - Chuyển từ StringBuffer sang String
+  - Chi phí đồng bộ và điều kiện thực sự cần StringBuffer
+- level1: Ghép nhiều phần
+  level2:
+  - String.join với mảng hoặc Iterable
+  - Dấu phân cách và phần tử rỗng
+  - Chính sách null của delimiter, tập phần tử và từng phần tử
+  - StringJoiner với delimiter, prefix và suffix
+  - StringJoiner.add, merge và setEmptyValue
+  - Collectors.joining trong xử lý Stream
+  - So sánh join, StringJoiner, StringBuilder và phép nối +
+- level1: Tách chuỗi
+  level2:
+  - String.split nhận biểu thức chính quy
+  - limit dương, bằng 0 và âm
+  - Giữ hoặc bỏ các phần tử rỗng ở cuối
+  - Dấu phân cách ở đầu, liên tiếp và ở cuối
+  - Regex khớp độ rộng bằng 0 và khác biệt với dấu phân cách có độ rộng
+  - Dùng Pattern.quote khi dấu phân cách là dữ liệu nguyên văn
+  - splitWithDelimiters từ Java 21
+  - Pattern.splitAsStream và xử lý kết quả lười
+  - Vì sao split đơn giản không đủ để phân tích CSV có dấu nháy
+- level1: Biểu thức chính quy
+  level2:
+  - String.matches kiểm tra toàn bộ chuỗi
+  - Pattern và Matcher cho nhiều lần xử lý
+  - Matcher.matches, find và lookingAt
+  - Lớp ký tự, lượng từ, neo và nhóm bắt
+  - 'Hai lớp escape: literal Java và cú pháp regex'
+  - Pattern.quote cho dữ liệu được tìm nguyên văn
+  - Cờ CASE_INSENSITIVE, UNICODE_CASE và UNICODE_CHARACTER_CLASS
+  - Ký tự Unicode, ranh giới từ và cụm ký tự trong regex
+  - Lựa chọn mẫu tránh khớp quá rộng hoặc quay lui quá nhiều
+- level1: Thay thế bằng regex
+  level2:
+  - replaceFirst và replaceAll
+  - Nhóm bắt và tham chiếu nhóm trong chuỗi thay thế
+  - Ý nghĩa đặc biệt của dấu đô la và gạch chéo ngược
+  - Matcher.quoteReplacement cho nội dung thay thế nguyên văn
+  - Phân biệt escape của mẫu tìm với escape của phần thay thế
+  - Matcher.replaceAll với hàm tính chuỗi thay thế
+  - Thay thế nhiều lần và giới hạn của việc dùng regex thay bộ phân tích
+  - Kiểm thử dữ liệu chứa ký tự có ý nghĩa đặc biệt
+- level1: Định dạng chuỗi
+  level2:
+  - String.format, String.formatted và Formatter
+  - Cú pháp chỉ số đối số, cờ, độ rộng, độ chính xác và kiểu chuyển
+  - Các kiểu %s, %c, %b, %d, %f và %e
+  - Căn lề, đệm ký tự và phân nhóm chữ số
+  - '%% cho dấu phần trăm và %n cho kết thúc dòng'
+  - Locale mặc định so với String.format(Locale,...)
+  - Đối số null và các IllegalFormatException thường gặp
+  - Phân biệt độ chính xác khi trình bày với giá trị số gốc
+  - MessageFormat khi mẫu cần đổi thứ tự theo ngôn ngữ
+- level1: Text block
+  level2:
+  - Text block là cú pháp tạo String nhiều dòng
+  - Quy tắc mở và đóng dấu ba nháy kép
+  - Chuẩn hóa kết thúc dòng trong text block
+  - Khoảng trắng thụt lề ngẫu nhiên và vị trí dấu đóng
+  - Escape khoảng trắng bằng \s và nối dòng bằng gạch chéo ngược
+  - Dòng cuối có hoặc không có ký tự xuống dòng
+  - stripIndent và indent khi xử lý thụt lề
+  - translateEscapes và khác biệt với Unicode escape do compiler xử lý
+  - Text block không tự nội suy biến và không tự escape cho định dạng đích
+- level1: Dòng và Stream
+  level2:
+  - lines và các kiểu kết thúc dòng CR, LF, CRLF
+  - Chuỗi rỗng và ký tự xuống dòng ở cuối
+  - Khác biệt giữa lines và split với limit
+  - indent thay đổi lề và chuẩn hóa kết thúc dòng
+  - chars trả các đơn vị char mở rộng thành int
+  - codePoints kết hợp surrogate pair thành code point
+  - Lọc, đếm và biến đổi dữ liệu bằng IntStream
+  - Xây lại String bằng bộ đệm với appendCodePoint
+- level1: Chuỗi và byte
+  level2:
+  - Phân biệt encode chuỗi thành byte với decode byte thành chuỗi
+  - getBytes với Charset hoặc StandardCharsets
+  - new String(byte[],Charset) và giải mã một vùng byte
+  - Độ dài UTF-8 không bằng length của String
+  - Charset mặc định và ảnh hưởng môi trường hoặc phiên bản JDK
+  - Dữ liệu sai mã, ký tự thay thế và mất thông tin
+  - CharsetEncoder, CharsetDecoder và chính sách REPORT
+  - Đối chiếu chuỗi qua ranh giới tệp, console và dữ liệu truyền
+  - Vì sao Base64, escape và chuyển charset là các thao tác khác nhau
+- level1: Chuyển đổi giá trị
+  level2:
+  - String.valueOf với primitive và Object
+  - Phân biệt valueOf(Object) với valueOf(char[]) khi truyền null
+  - copyValueOf và tạo chuỗi từ mảng ký tự
+  - toString của String và của đối tượng khác
+  - Integer.parseInt, parseLong và cơ số
+  - BigInteger, BigDecimal và giới hạn biểu diễn qua số thực
+  - NumberFormat khi phân tích số theo locale
+  - Kiểm tra toàn chuỗi và xử lý dữ liệu không hợp lệ
+- level1: String trong collection
+  level2:
+  - String làm khóa HashMap hoặc phần tử HashSet
+  - Hợp đồng equals–hashCode và va chạm băm
+  - So sánh theo nội dung thay vì dựa vào intern
+  - Sắp xếp List<String> theo tự nhiên hoặc Comparator
+  - Comparator không phân biệt hoa–thường và quan hệ với equals
+  - Chuẩn hóa khóa khác với bảo toàn văn bản hiển thị
+  - Phân biệt String[] với List<String> khi chuyển đổi dữ liệu
+- level1: Bộ nhớ và cài đặt
+  level2:
+  - Phân biệt mô hình UTF-16 của API với biểu diễn nội bộ
+  - Compact Strings và các dạng LATIN1, UTF16 trong OpenJDK
+  - Chi phí đối tượng, mảng lưu dữ liệu và chuỗi tạm
+  - Bộ nhớ đệm hashCode là chi tiết cài đặt
+  - Constant pool và vai trò của Constable, ConstantDesc
+  - Phép nối qua StringConcatFactory và invokedynamic
+  - Chi tiết substring, intern và tối ưu có thể khác giữa phiên bản JDK
+- level1: Hiệu năng
+  level2:
+  - Chi phí duyệt, tìm kiếm, so sánh và sao chép theo độ dài
+  - Nối lặp bằng += và tổng lượng dữ liệu phải sao chép
+  - Ước lượng capacity của StringBuilder
+  - Tránh tạo nhiều chuỗi trung gian khi xử lý theo từng bước
+  - Biên dịch lại regex so với tái sử dụng Pattern
+  - Đánh đổi giữa tính dễ đọc và tối ưu theo dữ liệu đo
+  - Đo bằng JMH với làm nóng, chống bỏ mã và tránh gấp hằng
+  - Đánh giá bộ nhớ và kết quả trên dữ liệu ASCII, tiếng Việt và emoji
+- level1: Thiết kế API
+  level2:
+  - Chọn String hay CharSequence cho tham số
+  - CharSequence không mặc nhiên bất biến hoặc có equals theo nội dung
+  - Quy định rõ cách xử lý null, rỗng và trắng
+  - Quy định đơn vị chỉ số hoặc giới hạn độ dài
+  - Tách dữ liệu nguyên bản, dữ liệu chuẩn hóa và bản hiển thị
+  - Phân biệt văn bản thông thường với cấu trúc có ngữ pháp
+  - Dùng bộ xử lý đúng định dạng cho JSON, CSV, đường dẫn hoặc URI
+  - Giữ trách nhiệm mã hóa và escape tại đúng ranh giới
+- level1: Kiểm thử và lỗi
+  level2:
+  - Ma trận null, rỗng, trắng, một ký tự và chuỗi dài
+  - Kiểm thử chỉ số đầu–cuối và khoảng trích xuất
+  - Kiểm thử surrogate pair, surrogate đơn và dấu kết hợp
+  - Kiểm thử trim, strip, NBSP và các loại xuống dòng
+  - Kiểm thử ==, equals, intern và biểu thức hằng
+  - Kiểm thử regex với dấu chấm, gạch chéo, đô la và nhóm
+  - Kiểm thử split giữ phần rỗng và splitWithDelimiters
+  - Kiểm thử định dạng theo locale và chuyển mã hai chiều
+  - Phân biệt lỗi nội dung, lỗi chỉ số, lỗi regex và lỗi mã hóa
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng bộ làm sạch đầu vào theo chính sách tường minh
+  - Tìm và trích xuất trường từ chuỗi có cấu trúc đơn giản
+  - Ghép báo cáo văn bản bằng StringBuilder hoặc StringJoiner
+  - Tách dữ liệu có phần tử rỗng và giữ đúng dấu phân cách
+  - Đếm ký tự theo char, code point và cụm hiển thị
+  - So sánh tên tiếng Việt sau chuẩn hóa phù hợp
+  - Tái hiện bẫy null, overload, intern và phép nối với số
+  - Đối chiếu hiệu năng các cách ghép chuỗi trên cùng dữ liệu
+  - Lập bảng lựa chọn API và tự đánh giá các tình huống xử lý chuỗi

@@ -1,0 +1,355 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Lập trình định hướng dữ liệu là gì và dữ liệu giữ vai trò trung tâm ra sao
+  - Bài toán thay đổi mô hình, chia sẻ dữ liệu và xử lý khối lượng lớn
+  - Tách dữ liệu khỏi hành vi và biểu diễn phép xử lý một cách tường minh
+  - 'Các thuật ngữ nền tảng: mô hình, lược đồ, phép biến đổi và bố trí dữ liệu'
+  - Phân biệt Data-Oriented Programming và Data-Oriented Design
+  - Mối liên hệ với lập trình hàm, hướng đối tượng và mô hình quan hệ
+  - Phân biệt định hướng dữ liệu với điều khiển bằng dữ liệu và Domain-Driven Design
+  - 'Ví dụ xuyên suốt: từ bản ghi đơn hàng đến xử lý nhiều đơn hàng'
+  - Lợi ích, chi phí, giới hạn áp dụng và thứ tự tiếp cận kiến thức
+- level1: Phân tích bài toán
+  level2:
+  - Xác định dữ liệu đầu vào, đầu ra và các phép xử lý chính
+  - Phân loại dữ liệu theo hình dạng, số lượng và vòng đời
+  - 'Mô tả mẫu truy cập: đọc, ghi, quét, tìm kiếm và tổng hợp'
+  - Xác định trường dữ liệu thường dùng cùng nhau
+  - Phân biệt yêu cầu nghiệp vụ với lựa chọn cách lưu trữ
+  - Ước lượng kích thước tập dữ liệu và mức độ biến động
+  - Xác định quan hệ sở hữu và các nơi cùng tham chiếu dữ liệu
+  - Lập ngân sách độ trễ, thông lượng và bộ nhớ
+  - Thiết lập dữ liệu mẫu đại diện và tiêu chí đánh giá thiết kế
+- level1: Tách dữ liệu và xử lý
+  level2:
+  - Mô hình dữ liệu độc lập với các thao tác sử dụng dữ liệu
+  - Hàm xử lý nhận dữ liệu tường minh và trả về kết quả tường minh
+  - Tách quyết định nghiệp vụ khỏi đọc ghi và tác dụng phụ
+  - Tổ chức các phép xử lý theo trường hợp sử dụng
+  - Tái sử dụng cùng một dữ liệu cho nhiều cách xử lý
+  - Giảm phụ thuộc vào cây kế thừa và trạng thái ẩn
+  - Phối hợp hàm và đối tượng mà vẫn giữ ranh giới dữ liệu rõ
+  - Quyền sở hữu dữ liệu và nơi chịu trách nhiệm cập nhật
+  - Thiết kế mô-đun quanh phép biến đổi và hợp đồng dữ liệu
+- level1: Biểu diễn dữ liệu
+  level2:
+  - Giá trị đơn, bản ghi, danh sách, tập hợp và ánh xạ
+  - Dữ liệu có kiểu tĩnh và cấu trúc dữ liệu tổng quát
+  - 'Java record: biểu diễn giá trị và giới hạn của tính bất biến nông'
+  - Sealed type và biểu diễn dữ liệu có nhiều biến thể
+  - 'Map, List và JSON tree: mức linh hoạt và chi phí kiểm soát kiểu'
+  - Biểu diễn quan hệ lồng nhau hoặc liên kết bằng định danh
+  - Dữ liệu thiếu, giá trị null, giá trị mặc định và trạng thái chưa biết
+  - Thời gian, tiền tệ, đơn vị đo và các kiểu giá trị nghiệp vụ
+  - Đồng nhất đối tượng, đồng nhất giá trị và quy tắc so sánh
+  - Lựa chọn biểu diễn theo hợp đồng sử dụng thay vì thói quen
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Lược đồ dữ liệu và sự khác biệt giữa hình dạng với giá trị hợp lệ
+  - Tách định nghĩa cấu trúc khỏi kiểm tra dữ liệu đầu vào
+  - Kiểm tra kiểu, miền giá trị và ràng buộc giữa các trường
+  - Ràng buộc trong một bản ghi và ràng buộc giữa nhiều bản ghi
+  - Chuyển dữ liệu chưa tin cậy thành dữ liệu đã được xác thực
+  - Phân biệt lỗi cấu trúc, lỗi chuyển đổi và lỗi nghiệp vụ
+  - Báo lỗi theo đường dẫn trường và tập hợp nhiều lỗi
+  - Xử lý trường thiếu, trường dư và biến thể chưa được hỗ trợ
+  - Kiểm tra hợp đồng tại ranh giới hệ thống và tránh kiểm tra lặp thừa
+  - Lược đồ linh hoạt và nguy cơ đẩy lỗi từ biên dịch sang thời gian chạy
+- level1: Bất biến
+  level2:
+  - Dữ liệu bất biến, tham chiếu không đổi và đối tượng không thể sửa
+  - Bất biến nông và bất biến sâu trong cấu trúc lồng nhau
+  - Bí danh tham chiếu và thay đổi dữ liệu ngoài ý muốn
+  - Sao chép bảo vệ ở đầu vào và đầu ra
+  - Bộ sưu tập không sửa được khác gì bản sao bất biến
+  - Cập nhật bằng cách tạo giá trị mới và giữ ảnh chụp cũ
+  - Chia sẻ cấu trúc và cấu trúc dữ liệu giữ phiên bản cũ (persistent data structure)
+  - Sao chép khi ghi và cập nhật theo lô
+  - Đánh đổi giữa cấp phát, sao chép và tính dễ suy luận
+  - Kết hợp bất biến ở biên với vùng dữ liệu khả biến có quyền sở hữu rõ
+- level1: Biến đổi dữ liệu
+  level2:
+  - Ánh xạ từng phần tử thành một biểu diễn mới
+  - Lọc, chọn trường và loại bỏ dữ liệu không cần thiết
+  - Làm phẳng dữ liệu lồng nhau và phối hợp nhiều nguồn
+  - Gom nhóm, phân vùng và tổng hợp dữ liệu
+  - Sắp xếp, loại trùng và xác định thứ tự kết quả
+  - Tích lũy kết quả bằng reduce, fold và bộ thu thập
+  - Chuẩn hóa giá trị và chuyển đổi lược đồ
+  - Hợp nhất dữ liệu và giải quyết xung đột cập nhật
+  - Hợp thành các phép biến đổi nhỏ thành quy trình xử lý
+  - Bảo toàn định danh, ràng buộc và tính xác định qua từng bước
+  - Tách phép biến đổi thuần khỏi tác vụ ghi dữ liệu
+- level1: Quan hệ dữ liệu
+  level2:
+  - Khóa, định danh ổn định và tham chiếu giữa các bản ghi
+  - Lồng dữ liệu so với chuẩn hóa thành các tập bản ghi
+  - Quan hệ một–một, một–nhiều và nhiều–nhiều
+  - Kết nối dữ liệu bằng khóa và lựa chọn thuật toán join
+  - Xây dựng chỉ mục phục vụ truy cập thường xuyên
+  - Phi chuẩn hóa có chủ đích và chi phí đồng bộ dữ liệu lặp
+  - Thứ tự, tập hợp và tính duy nhất trong quan hệ
+  - Giữ toàn vẹn tham chiếu khi thêm, sửa hoặc xóa dữ liệu
+  - Tạo góc nhìn dữ liệu phù hợp cho từng nhu cầu sử dụng
+  - Mô hình quan hệ trong bộ nhớ và ranh giới với cơ sở dữ liệu
+- level1: API dữ liệu
+  level2:
+  - Thiết kế đầu vào và đầu ra theo dữ liệu cần trao đổi
+  - Phân biệt dữ liệu vận chuyển, dữ liệu nghiệp vụ và biểu diễn lưu trữ
+  - Trả về giá trị mới so với sửa dữ liệu do bên gọi sở hữu
+  - Biểu diễn kết quả thành công, lỗi và dữ liệu không tồn tại
+  - Tách lệnh thay đổi dữ liệu khỏi truy vấn đọc dữ liệu
+  - Chọn hợp đồng trả về ảnh chụp, khung nhìn hoặc luồng dữ liệu
+  - Phân trang, xử lý từng phần và hợp đồng xử lý theo lô
+  - Ánh xạ tại ranh giới thay vì để cấu trúc nội bộ lan ra ngoài
+  - Giữ hợp đồng ổn định khi thay đổi cách bố trí bên trong
+  - Kiểm soát tác dụng phụ, tính lũy đẳng và cập nhật có điều kiện
+- level1: Cấu trúc lưu trữ
+  level2:
+  - Mảng, danh sách, tập hợp và bảng băm theo mẫu truy cập
+  - Mảng kiểu nguyên thủy và bộ sưu tập chứa kiểu bao
+  - Lưu trữ dày đặc và lưu trữ thưa
+  - BitSet, cờ trạng thái và biểu diễn tập giá trị nhỏ
+  - Chỉ mục theo vị trí và ánh xạ từ định danh đến vị trí
+  - Chèn, xóa, sắp xếp và tác động đến tính ổn định của vị trí
+  - Dữ liệu có độ dài cố định và độ dài thay đổi
+  - Biểu diễn văn bản, mã phân loại và bảng tra cứu
+  - Lựa chọn cấu trúc theo chi phí đọc, ghi và duy trì chỉ mục
+  - Độ phức tạp thuật toán và chi phí bộ nhớ của biểu diễn thực tế
+- level1: Mô hình phần cứng
+  level2:
+  - Từ lệnh chương trình đến dữ liệu được CPU đọc và ghi
+  - Thanh ghi, bộ nhớ đệm nhiều cấp và bộ nhớ chính
+  - Dòng bộ nhớ đệm và đơn vị trao đổi dữ liệu với bộ nhớ
+  - Độ trễ truy cập và băng thông bộ nhớ
+  - Nạp trước dữ liệu và mẫu truy cập có thể dự đoán
+  - Địa chỉ ảo, trang nhớ và vai trò của TLB
+  - Dự đoán nhánh và ảnh hưởng của dữ liệu đến luồng điều khiển
+  - Giới thiệu SIMD và xử lý nhiều phần tử trong một lệnh
+  - Giới hạn do tính toán khác với giới hạn do truy cập bộ nhớ
+  - Giới hạn của suy luận phần cứng khi chưa có số đo thực tế
+- level1: Bố trí bộ nhớ
+  level2:
+  - Đồ thị đối tượng, tham chiếu gián tiếp và dữ liệu phân tán
+  - Mảng đối tượng khác gì vùng dữ liệu nguyên thủy liên tiếp trong Java
+  - 'Array of Structures: tổ chức nhiều bản ghi theo từng đối tượng'
+  - 'Structure of Arrays: tách từng trường thành mảng riêng'
+  - 'Array of Structures of Arrays: kết hợp nhóm nhỏ với bố trí theo cột'
+  - Tách trường thường dùng và trường ít dùng
+  - Căn chỉnh, phần đệm và giới hạn kiểm soát bố trí trên JVM
+  - Đồng bộ chỉ mục giữa các mảng khi thêm, xóa hoặc sắp xếp
+  - Biểu diễn dữ liệu có độ dài thay đổi trong bố trí theo cột
+  - Lựa chọn bố trí theo các trường thực sự được đọc trong vòng lặp
+  - Đánh đổi giữa dễ sử dụng, linh hoạt và hiệu quả truy cập
+- level1: Tính cục bộ
+  level2:
+  - Tính cục bộ theo không gian và theo thời gian
+  - Quét liên tiếp thay vì truy cập ngẫu nhiên khi bài toán cho phép
+  - Giảm lần theo chuỗi tham chiếu trong đường xử lý thường chạy
+  - Sắp xếp dữ liệu theo khóa xử lý hoặc vị trí sử dụng
+  - Chia dữ liệu thành khối vừa với tập dữ liệu đang hoạt động
+  - Phân tách vòng lặp để tránh đọc trường không cần thiết
+  - Gộp vòng lặp để tái sử dụng dữ liệu còn trong bộ nhớ đệm
+  - Đánh đổi giữa thêm lượt quét và giảm lượng dữ liệu mỗi lượt
+  - Bảng tra cứu, chỉ mục gián tiếp và chi phí truy cập bổ sung
+  - Đo tỉ lệ trượt bộ nhớ đệm và kiểm chứng giả thuyết về tính cục bộ
+- level1: Thiết kế theo dữ liệu
+  level2:
+  - 'Data-Oriented Design: bắt đầu từ dữ liệu và phép biến đổi cần thực hiện'
+  - Thiết kế đường xử lý thường chạy từ mẫu truy cập thực tế
+  - Tổ chức dữ liệu phục vụ tác vụ thay vì sao chép hình dạng lớp nghiệp vụ
+  - Chọn đơn vị xử lý một phần tử, một khối hoặc toàn tập
+  - Tách dữ liệu đọc thường xuyên khỏi dữ liệu cập nhật hiếm
+  - Giảm trạng thái trung gian và các bước chuyển đổi biểu diễn
+  - Cô lập phần cần tối ưu để giữ phần còn lại dễ bảo trì
+  - Phối hợp mô hình hướng đối tượng ở biên với lõi xử lý dữ liệu
+  - So sánh nhiều bố trí bằng cùng một khối lượng công việc
+  - Tránh tối ưu sớm khi chưa xác định nút thắt và mục tiêu
+- level1: ECS
+  level2:
+  - 'Entity–Component–System: thực thể, thành phần dữ liệu và hệ thống xử lý'
+  - Định danh thực thể và vòng đời tạo, hủy, tái sử dụng
+  - Thành phần chứa dữ liệu và hệ thống thực hiện phép biến đổi
+  - Truy vấn thực thể theo tập thành phần
+  - Lưu trữ theo bảng băm, sparse set hoặc archetype
+  - Di chuyển dữ liệu khi thêm hoặc bỏ thành phần
+  - Tham chiếu hết hiệu lực và định danh có số thế hệ
+  - Thứ tự chạy hệ thống và khai báo quan hệ phụ thuộc
+  - Hoãn thay đổi cấu trúc bằng bộ đệm lệnh
+  - Khi nào ECS phù hợp và vì sao ECS không đồng nghĩa với mọi thiết kế định hướng dữ liệu
+- level1: Xử lý theo lô
+  level2:
+  - Chuyển từ xử lý từng đối tượng sang xử lý tập dữ liệu
+  - Chọn kích thước lô theo bộ nhớ, độ trễ và chi phí gọi
+  - Phân tách bước nạp, chuyển đổi, tính toán và ghi kết quả
+  - Đọc một lần và thực hiện nhiều phép tính trên cùng dữ liệu
+  - Xử lý từng khối để tránh nạp toàn bộ tập dữ liệu
+  - Nén các phần tử hợp lệ vào vùng kết quả liên tiếp
+  - Đánh dấu rồi dọn dẹp so với xóa ngay trong vòng lặp
+  - Phân phối lô theo nhóm dữ liệu hoặc loại thao tác
+  - Lỗi một phần, thử lại và tính lũy đẳng của thao tác theo lô
+  - Kiểm soát hàng đợi đầu vào và tốc độ xử lý các lô
+- level1: Vòng lặp và SIMD
+  level2:
+  - Vòng lặp đơn giản và điều kiện để xử lý dữ liệu hiệu quả
+  - Giảm phân nhánh dựa trên cách phân nhóm dữ liệu
+  - Tách xử lý từng biến thể khỏi vòng lặp có nhiều điều kiện
+  - Vector hóa tự động và giới hạn phụ thuộc vào JIT
+  - SIMD, kiểu dữ liệu đồng nhất và bố trí theo cột
+  - Phụ thuộc giữa các lần lặp và trở ngại cho vector hóa
+  - Xử lý phần dư khi số phần tử không chia hết cho độ rộng vector
+  - Java Vector API và yêu cầu tương thích với JDK được sử dụng
+  - Sai số số thực và thay đổi thứ tự thực hiện phép tính
+  - Đối chiếu kết quả và đo hiệu năng trước khi giữ một tối ưu vòng lặp
+- level1: Xử lý đồng thời
+  level2:
+  - Chia tập dữ liệu thành các phần có quyền sở hữu độc lập
+  - Dữ liệu chỉ đọc dùng chung và dữ liệu ghi riêng cho từng tác vụ
+  - Phân chia theo khoảng chỉ mục, khóa hoặc nhóm công việc
+  - Kết hợp kết quả cục bộ bằng phép tổng hợp phù hợp
+  - Tranh chấp dữ liệu và điều kiện để nhiều tác vụ không cần khóa
+  - 'False sharing: nhiều tác vụ ghi vào cùng dòng bộ nhớ đệm'
+  - Phân vùng dữ liệu khác gì chỉ tăng số luồng thực thi
+  - Rào đồng bộ và thứ tự giữa các giai đoạn xử lý
+  - Ảnh chụp bất biến và công bố dữ liệu an toàn giữa nhiều luồng
+  - Giới hạn của parallel stream và chi phí phân chia công việc
+  - Tính xác định khi thứ tự cập nhật hoặc phép tổng hợp thay đổi
+- level1: Java và JVM
+  level2:
+  - Biểu diễn dữ liệu bằng class, record và sealed type
+  - Record pattern và switch theo kiểu trong mô hình nhiều biến thể
+  - Dùng mảng nguyên thủy để giảm gián tiếp và đóng hộp
+  - Duy trì nhiều mảng đồng bộ chỉ mục trong bố trí theo cột
+  - So sánh vòng lặp trực tiếp, Iterator và Stream theo khối lượng công việc
+  - Đóng hộp, mở hộp và tác động đến cấp phát
+  - Giới hạn kiểm tra chỉ mục và tối ưu vòng lặp của JIT
+  - Escape analysis và khả năng loại bỏ cấp phát tạm thời
+  - Object layout và các yếu tố phụ thuộc cấu hình JVM
+  - 'ByteBuffer: dữ liệu nhị phân, thứ tự byte và truy cập theo vị trí'
+  - Giữ API có kiểu rõ trong khi thay đổi biểu diễn bên trong
+- level1: Quản lý bộ nhớ
+  level2:
+  - Chi phí cấp phát đối tượng và lượng dữ liệu cần giữ sống
+  - Đo kích thước tập dữ liệu thực thay vì chỉ đếm số bản ghi
+  - Giảm đối tượng tạm trong chuỗi chuyển đổi
+  - Tái sử dụng bộ đệm theo phạm vi sở hữu rõ
+  - Vùng nhớ giữ lại ngoài ý muốn và vòng đời tham chiếu
+  - Đánh đổi giữa đối tượng bất biến, bản sao và áp lực thu gom rác
+  - 'Bộ nhớ trong heap và ngoài heap: quyền sở hữu và trách nhiệm giải phóng'
+  - Lưu trữ ngoài heap không tự loại bỏ mọi chi phí sao chép
+  - 'Object pool: chi phí quản lý, trạng thái cũ và nguy cơ giữ bộ nhớ'
+  - Đặt giới hạn cho bộ đệm, bộ nhớ đệm và dữ liệu trung gian
+- level1: Tuần tự hóa
+  level2:
+  - Phân biệt mô hình trong bộ nhớ và định dạng trao đổi
+  - Ánh xạ bản ghi sang JSON và dữ liệu nhị phân
+  - Lược đồ tường minh so với định dạng tự mô tả
+  - Biểu diễn số, văn bản, thời gian và giá trị thiếu
+  - Thứ tự byte, độ rộng trường và tương thích nền tảng
+  - Chi phí chuyển đổi, sao chép và cấp phát khi mã hóa dữ liệu
+  - Đọc từng phần và chỉ giải mã các trường cần dùng
+  - Dữ liệu không hợp lệ, giới hạn kích thước và kiểm tra tại ranh giới
+  - Kiểm chứng tính tương đương sau một vòng mã hóa và giải mã
+  - Tách định dạng lưu trữ lâu dài khỏi chi tiết bố trí nội bộ
+- level1: Tiến hóa lược đồ
+  level2:
+  - Thêm, bỏ và đổi tên trường dữ liệu
+  - Thay đổi kiểu và ý nghĩa của một trường
+  - Tương thích đọc dữ liệu cũ và dữ liệu từ phiên bản mới
+  - Giá trị mặc định và phân biệt thiếu trường với giá trị rỗng
+  - Quản lý phiên bản dữ liệu độc lập với phiên bản mã nguồn
+  - Chuyển đổi dữ liệu qua các bước di trú có thể kiểm tra
+  - Đọc nhiều phiên bản và ghi về biểu diễn chuẩn
+  - Biến thể chưa biết và cách giữ dữ liệu không nhận diện được
+  - Triển khai nhiều phiên bản ứng dụng cùng sử dụng dữ liệu
+  - Lưu dấu nguồn gốc và xác minh kết quả di trú
+- level1: Lưu trữ và truy vấn
+  level2:
+  - Chọn biểu diễn lưu trữ theo nhu cầu truy vấn thực tế
+  - 'Lưu theo hàng và lưu theo cột: đặc điểm truy cập'
+  - Chiếu trường, lọc sớm và giảm dữ liệu trung gian
+  - Chỉ mục và chi phí duy trì khi cập nhật
+  - Hash join, sort-merge join và kết nối lồng nhau
+  - Tổng hợp theo nhóm và phân vùng dữ liệu
+  - Biểu diễn chuẩn hóa trong lưu trữ và góc nhìn phục vụ đọc
+  - Ranh giới giữa tính toán tại cơ sở dữ liệu và trong ứng dụng
+  - Ảnh chụp, giao dịch và tính nhất quán của nhiều tập dữ liệu
+  - Nạp dữ liệu vào bộ nhớ theo lô mà không phụ thuộc toàn bộ mô hình ORM
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử phép biến đổi bằng đầu vào và đầu ra tường minh
+  - Kiểm thử ràng buộc, dữ liệu thiếu và dữ liệu sai kiểu
+  - Kiểm thử dựa trên thuộc tính và sinh dữ liệu
+  - Kiểm chứng tính bất biến và phát hiện sửa dữ liệu qua tham chiếu dùng chung
+  - Kiểm thử bảo toàn số lượng, định danh và tổng giá trị
+  - Đối chiếu các cách bố trí dữ liệu bằng cùng một bộ kết quả chuẩn
+  - Kiểm thử trường hợp rỗng, một phần tử, dữ liệu thưa và dữ liệu lớn
+  - Kiểm thử thêm, xóa và sắp xếp khi nhiều mảng dùng chung chỉ mục
+  - Kiểm thử tương thích định dạng và di trú lược đồ
+  - Kiểm thử xử lý đồng thời và tính xác định của kết quả
+  - Giữ dữ liệu thử sát với phân bố và mẫu truy cập thực tế
+- level1: Đo hiệu năng
+  level2:
+  - Xác định giả thuyết, chỉ số và đường cơ sở trước khi đo
+  - Thiết kế phép đo so sánh cùng thuật toán và cùng dữ liệu
+  - 'JMH: khởi động, làm nóng, nhiều lượt đo và nhiều tiến trình'
+  - Tránh loại bỏ mã không dùng và tính toán hằng trong phép đo
+  - Kiểm soát cách tạo dữ liệu và đặt lại trạng thái giữa các lượt
+  - Đo thông lượng, độ trễ, cấp phát và mức sử dụng bộ nhớ
+  - Thay đổi kích thước dữ liệu để nhận diện các giới hạn bộ nhớ đệm
+  - Đo dữ liệu lệch phân bố, nhiều biến thể và truy cập ngẫu nhiên
+  - Phân biệt kết quả đo vi mô với hiệu năng ứng dụng thực
+  - Đánh giá độ biến động, độ tin cậy và khả năng tái lập
+  - Giữ tính đúng đắn và chi phí bảo trì trong tiêu chí lựa chọn
+- level1: Chẩn đoán
+  level2:
+  - Xác định thời gian CPU, thời gian chờ và thời gian thu gom rác
+  - Dùng Java Flight Recorder để quan sát cấp phát và hành vi thực thi
+  - Đọc hồ sơ thực thi để tìm vòng lặp và phép biến đổi tốn chi phí
+  - Theo dõi dữ liệu giữ sống và đường tham chiếu gây rò rỉ
+  - Đo lượng dữ liệu quét so với lượng dữ liệu thực sự sử dụng
+  - Quan sát cache miss, nhánh và băng thông khi công cụ hỗ trợ
+  - Nhận diện chi phí do đóng hộp, sao chép và chuyển đổi biểu diễn
+  - Phân biệt nút thắt thuật toán với nút thắt bố trí dữ liệu
+  - Ghi nhận môi trường JVM, phần cứng và cấu hình để giải thích số đo
+- level1: Chuyển đổi thiết kế
+  level2:
+  - Kiểm kê mô hình hiện có và các phép xử lý thường chạy
+  - Chọn một đường xử lý có thể đo để chuyển đổi trước
+  - Tách dữ liệu khỏi đối tượng mà vẫn giữ hợp đồng bên ngoài
+  - Đưa phép xử lý về hàm thuần theo từng bước
+  - Chuyển đồ thị đối tượng sang tập bản ghi có định danh
+  - Thay một phần lưu trữ bằng mảng nguyên thủy hoặc bố trí theo cột
+  - Duy trì bộ chuyển đổi giữa mô hình cũ và mô hình mới
+  - Chạy đối chiếu hai cách cài đặt để phát hiện sai khác
+  - Đánh giá chi phí đồng bộ hai biểu diễn và tránh lưu trùng không cần thiết
+  - Chọn thời điểm dừng tối ưu và tiêu chí quay lại thiết kế đơn giản hơn
+- level1: Lỗi thường gặp
+  level2:
+  - Đồng nhất định hướng dữ liệu với việc bỏ mọi đối tượng và kiểu dữ liệu
+  - Nhầm Java record hoặc trường final với bất biến sâu
+  - Dùng Map cho mọi dữ liệu và đánh mất hợp đồng kiểu
+  - Tối ưu bố trí bộ nhớ khi thuật toán vẫn là nút thắt chính
+  - Chọn SoA dù phần lớn thao tác luôn cần toàn bộ bản ghi
+  - Để các mảng thành phần lệch chỉ mục sau khi thêm hoặc xóa
+  - Giữ tham chiếu vị trí sau khi dữ liệu đã bị di chuyển
+  - Chia nhỏ công việc quá mức hoặc tạo false sharing
+  - Lưu nhiều góc nhìn dẫn xuất mà không có cơ chế cập nhật nhất quán
+  - Đo bằng dữ liệu quá nhỏ, thiếu làm nóng hoặc sai mẫu truy cập
+  - Làm lộ bố trí nội bộ khiến API khó tiến hóa
+  - Đánh đổi tính đúng đắn hoặc khả năng bảo trì chỉ vì một phép đo nhanh hơn
+- level1: Bài thực hành
+  level2:
+  - Tách dữ liệu đơn hàng khỏi lớp chứa hành vi xử lý
+  - Xây dựng chuỗi chuẩn hóa, xác thực và tổng hợp dữ liệu nhập
+  - Biểu diễn nhiều loại giao dịch bằng record và sealed type
+  - Thiết kế ảnh chụp bất biến và cập nhật dữ liệu lồng nhau
+  - Chuẩn hóa quan hệ khách hàng–đơn hàng và truy vấn bằng chỉ mục
+  - So sánh mảng đối tượng với các mảng nguyên thủy theo cột
+  - Xây dựng kho dữ liệu dày đặc có định danh ổn định
+  - Thiết kế ECS nhỏ để cập nhật vị trí và vận tốc
+  - Xử lý dữ liệu lớn theo khối và tổng hợp kết quả song song
+  - Di trú lược đồ dữ liệu qua hai phiên bản và kiểm tra tương thích
+  - Dùng JMH và JFR để kiểm chứng một thay đổi bố trí dữ liệu
+  - Hoàn thiện bài toán tổng hợp với báo cáo tính đúng đắn và các đánh đổi

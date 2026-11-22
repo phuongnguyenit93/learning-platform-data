@@ -1,0 +1,2398 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kiến trúc máy khách–máy chủ (Client–Server) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao cần chia bên sử dụng dịch vụ và bên cung cấp dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Máy khách, máy chủ, yêu cầu, phản hồi và hợp đồng giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Bức tranh tổng thể từ thao tác người dùng đến dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò máy khách và máy chủ được xác định theo từng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Lợi ích tập trung tài nguyên, chia sẻ dữ liệu và quản lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Chi phí phụ thuộc mạng, vận hành máy chủ và xử lý lỗi phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và thứ tự học từ mô hình tối thiểu đến hệ thống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architectural-structure
+  title: Cấu trúc kiến trúc
+  childs:
+  - slug: architectural-structure-001
+    title: Máy khách, máy chủ, kênh giao tiếp và tài nguyên được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-structure-002
+    title: Phân biệt vai trò logic với máy vật lý, tiến trình và vùng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-structure-003
+    title: Một máy chủ phục vụ nhiều máy khách và một máy khách gọi nhiều máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-structure-004
+    title: Một dịch vụ vừa nhận yêu cầu vừa gọi dịch vụ phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-structure-005
+    title: Ranh giới tiến trình, ranh giới mạng và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-structure-006
+    title: Điểm vào dịch vụ, địa chỉ, cổng và cơ chế định tuyến yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-structure-007
+    title: Sơ đồ thành phần, sơ đồ triển khai và sơ đồ tuần tự cho cùng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architectural-structure-008
+    title: Những bất biến cần giữ khi thay đổi cách triển khai Client–Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responsibility-allocation
+  title: Phân chia trách nhiệm
+  childs:
+  - slug: responsibility-allocation-001
+    title: Trách nhiệm trình bày và tương tác của phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-allocation-002
+    title: Trách nhiệm nghiệp vụ và kiểm soát truy cập của phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-allocation-003
+    title: Quyền sở hữu dữ liệu và nguồn dữ liệu có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-allocation-004
+    title: Kiểm tra đầu vào tại máy khách và xác minh bắt buộc tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-allocation-005
+    title: Phân chia tính toán theo độ trễ, tài nguyên và mức độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-allocation-006
+    title: Ngăn máy khách quyết định giá, quyền hạn và điều kiện nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-allocation-007
+    title: Giữ chi tiết lưu trữ và cấu trúc nội bộ sau hợp đồng giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibility-allocation-008
+    title: Phân biệt ranh giới Client–Server với cách tổ chức mã frontend/backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-variants
+  title: Các biến thể
+  childs:
+  - slug: architecture-variants-001
+    title: Kiến trúc hai tầng (two-tier) và máy khách truy cập máy chủ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-002
+    title: Kiến trúc ba tầng với tầng trình bày, ứng dụng và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-003
+    title: Kiến trúc nhiều tầng (n-tier) và chi phí giao tiếp bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-004
+    title: Phân biệt tầng logic (layer) với tầng triển khai (tier)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-005
+    title: Máy khách mỏng, máy khách dày và cách phân bổ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-006
+    title: Ứng dụng web, di động, desktop và máy khách dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-007
+    title: So sánh kết xuất phía máy chủ, phía máy khách và cách kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-008
+    title: Đối chiếu Client–Server với ngang hàng (peer-to-peer) và mô hình lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-variants-009
+    title: Client–Server trong ứng dụng nguyên khối, microservices và triển khai serverless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: intermediary-components
+  title: Thành phần trung gian
+  childs:
+  - slug: intermediary-components-001
+    title: Proxy phía máy khách và reverse proxy phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intermediary-components-002
+    title: Cân bằng tải và cách chọn máy chủ nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intermediary-components-003
+    title: API gateway và phạm vi trách nhiệm tại điểm vào dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intermediary-components-004
+    title: Backend for Frontend cho các nhóm máy khách có nhu cầu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intermediary-components-005
+    title: CDN và vai trò phân phối nội dung gần người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intermediary-components-006
+    title: Khám phá dịch vụ và cập nhật địa chỉ các máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intermediary-components-007
+    title: Kết thúc TLS tại trung gian và bảo vệ chặng kết nối tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intermediary-components-008
+    title: Độ tin cậy của địa chỉ, giao thức và header do proxy chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-foundations
+  title: Nền tảng mạng
+  childs:
+  - slug: networking-foundations-001
+    title: Địa chỉ IP, tên miền, cổng và socket trong kết nối máy khách–máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-002
+    title: Phân giải DNS và ảnh hưởng của bộ nhớ đệm địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-003
+    title: Phân biệt kết nối truyền tải với một lần trao đổi ở mức ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-004
+    title: TCP dạng luồng byte và yêu cầu đóng khung thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-005
+    title: UDP, QUIC và lựa chọn truyền tải theo nhu cầu giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-006
+    title: Thiết lập TLS, xác minh chứng chỉ và nhận diện máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-007
+    title: Độ trễ, băng thông, mất gói và thứ tự nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-008
+    title: NAT, firewall và giới hạn máy chủ chủ động kết nối vào máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-foundations-009
+    title: Kết nối kéo dài, tái sử dụng kết nối và giới hạn tài nguyên mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-lifecycle
+  title: Vòng đời yêu cầu
+  childs:
+  - slug: request-lifecycle-001
+    title: Chuẩn bị yêu cầu từ thao tác người dùng hoặc tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-002
+    title: Phân giải địa chỉ, thiết lập kết nối và thương lượng bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-003
+    title: Tuần tự hóa dữ liệu, gửi yêu cầu và tiếp nhận tại điểm vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-004
+    title: Định tuyến, xác thực và kiểm tra dữ liệu trước xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-005
+    title: Truy cập dữ liệu và gọi các dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-006
+    title: Tạo phản hồi, truyền kết quả và giải mã tại máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-007
+    title: Cập nhật giao diện khi nhiều phản hồi đến không theo thứ tự gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-008
+    title: Phân biệt kết thúc phản hồi với hoàn tất công việc chạy nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-009
+    title: Hủy yêu cầu, đóng kết nối và giải phóng tài nguyên ở hai phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-styles
+  title: Kiểu giao tiếp
+  childs:
+  - slug: communication-styles-001
+    title: Mô hình yêu cầu–phản hồi và phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-002
+    title: Phân biệt đồng bộ/bất đồng bộ với chặn/không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-003
+    title: HTTP, REST và các quyết định thuộc giao thức hay phong cách thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-004
+    title: Gọi thủ tục từ xa (RPC) và giới hạn của việc che giấu lời gọi qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-005
+    title: gRPC và các kiểu trao đổi một lần hoặc theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-006
+    title: Polling, long polling, Server-Sent Events và WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-007
+    title: Gửi công việc chạy nền và truy vấn trạng thái thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-008
+    title: Giao tiếp qua hàng đợi và ranh giới với kiến trúc hướng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-009
+    title: So sánh độ trễ, tính tương thích và chi phí duy trì kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-styles-010
+    title: Lựa chọn kiểu giao tiếp theo từng tương tác thay vì dùng một kiểu cho mọi việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-contracts
+  title: Hợp đồng giao tiếp
+  childs:
+  - slug: communication-contracts-001
+    title: Thiết kế yêu cầu và phản hồi độc lập với mô hình lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-002
+    title: Định danh tài nguyên, thao tác và đối tượng truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-003
+    title: Lựa chọn JSON, XML hoặc định dạng nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-004
+    title: Quy ước kiểu dữ liệu, mã hóa ký tự và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-005
+    title: Biểu diễn thời gian, múi giờ, số thập phân và giá trị tiền tệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-006
+    title: Ngữ nghĩa của trường thiếu, giá trị null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-007
+    title: Thiết kế lỗi có mã ổn định và thông tin đủ để bên gọi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-008
+    title: Phân trang, lọc và sắp xếp với thứ tự kết quả xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-009
+    title: Thiết kế hợp đồng có thể mở rộng và tương thích ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-contracts-010
+    title: Mô tả hợp đồng bằng OpenAPI hoặc Protocol Buffers khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-api
+  title: HTTP và API
+  childs:
+  - slug: http-api-001
+    title: URI, phương thức, header và nội dung trong thông điệp HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-002
+    title: Ngữ nghĩa an toàn và tính lũy đẳng của phương thức HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-003
+    title: Lựa chọn mã trạng thái cho thành công, từ chối và lỗi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-004
+    title: Biểu diễn tài nguyên, Content-Type và thương lượng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-005
+    title: Chuyển hướng và tác động đến phương thức, thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-006
+    title: Yêu cầu có điều kiện với ETag, If-None-Match và If-Match
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-007
+    title: Gửi biểu mẫu, tải tệp và truyền dữ liệu dung lượng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-008
+    title: Kết nối HTTP/1.1, ghép kênh HTTP/2 và truyền tải HTTP/3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-009
+    title: Giới hạn tốc độ, Retry-After và cách máy khách phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-side
+  title: Phía máy khách
+  childs:
+  - slug: client-side-001
+    title: Tách giao diện, trạng thái cục bộ và lớp truy cập dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-002
+    title: Quản lý trạng thái đang tải, thành công, rỗng và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-003
+    title: Tránh chặn giao diện khi gọi mạng hoặc giải mã dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-004
+    title: Quản lý yêu cầu đồng thời, gộp yêu cầu trùng và hủy yêu cầu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-005
+    title: Xử lý phản hồi đến muộn để không ghi đè dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-006
+    title: Cập nhật giao diện lạc quan và hoàn tác khi máy chủ từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-007
+    title: Lưu dữ liệu cục bộ và nhận diện dữ liệu có thể đã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-008
+    title: Phân biệt mất mạng, dịch vụ lỗi và thao tác nghiệp vụ bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-009
+    title: Khôi phục sau tải lại trang, khởi động lại ứng dụng hoặc đổi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-010
+    title: Thiết kế SDK hoặc lớp gọi API với cấu hình tập trung và hành vi minh bạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-side
+  title: Phía máy chủ
+  childs:
+  - slug: server-side-001
+    title: Tách xử lý giao thức, điều phối nghiệp vụ và truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-002
+    title: Định tuyến yêu cầu và tổ chức chuỗi middleware hoặc filter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-003
+    title: Kiểm tra cấu trúc đầu vào trước khi thực thi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-004
+    title: Quản lý phạm vi tài nguyên và ngữ cảnh của một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-005
+    title: Mô hình luồng theo kết nối, theo yêu cầu và vòng lặp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-006
+    title: Lập trình không chặn, tác vụ chặn và giới hạn của event loop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-007
+    title: Luồng ảo (virtual thread) và việc kiểm soát tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-008
+    title: Giới hạn kết nối, số tác vụ đồng thời và độ dài hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-009
+    title: Tách công việc dài khỏi thời gian sống của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-010
+    title: Xử lý ngoại lệ tập trung và kết thúc phục vụ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-sessions
+  title: Trạng thái và phiên
+  childs:
+  - slug: state-sessions-001
+    title: Phân biệt trạng thái giao thức, kết nối, phiên và dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-002
+    title: HTTP không lưu trạng thái và các cơ chế tạo phiên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-003
+    title: Cookie, định danh phiên và dữ liệu lưu ở phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-004
+    title: Phiên lưu trong bộ nhớ tiến trình và giới hạn khi có nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-005
+    title: Kho phiên dùng chung và chi phí truy cập, đồng bộ, khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-006
+    title: Bám phiên (session affinity) và đánh đổi với khả năng chuyển máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-007
+    title: Hết hạn, gia hạn và kết thúc phiên trên nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-008
+    title: Trạng thái tạm, trạng thái bền vững và hành vi khi tiến trình khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-sessions-009
+    title: Truyền ngữ cảnh giữa yêu cầu mà không phụ thuộc một kết nối cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-concurrency
+  title: Dữ liệu và đồng thời
+  childs:
+  - slug: data-concurrency-001
+    title: Ranh giới giao dịch tại máy chủ và thời gian sống của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-002
+    title: Bảo vệ quy tắc nghiệp vụ khi nhiều máy khách cập nhật cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-003
+    title: Kiểm soát đồng thời lạc quan bằng phiên bản và điều kiện cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-004
+    title: Khóa bi quan, điểm nóng dữ liệu và chi phí chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-005
+    title: Ngăn mất cập nhật khi máy khách gửi dữ liệu đã đọc từ trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-006
+    title: Ràng buộc cơ sở dữ liệu và kiểm tra nghiệp vụ có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-007
+    title: Phân biệt giao dịch cơ sở dữ liệu với một quy trình qua nhiều yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-008
+    title: Thiết kế thao tác theo lô và ngữ nghĩa thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-009
+    title: Đọc sau ghi, bản sao dữ liệu và độ mới mà máy khách quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-concurrency-010
+    title: Đối soát thao tác khi máy khách không biết cập nhật đã thành công hay chưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Phân biệt bộ nhớ đệm ở máy khách, trung gian và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Chọn dữ liệu được phép lưu đệm theo tính riêng tư và độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Cache-Control, ETag và xác thực lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Thiết kế khóa bộ nhớ đệm theo người dùng, tham số và biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Hết hạn, chủ động vô hiệu hóa và cập nhật dữ liệu sau ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Phân biệt no-cache, no-store và phạm vi private/public
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Ngăn lẫn dữ liệu giữa người dùng hoặc khách hàng dùng chung hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Xử lý truy cập đồng loạt khi dữ liệu hết hạn hoặc chưa có trong đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: Đo tỷ lệ trúng đệm và đánh đổi giữa độ trễ với tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-failures
+  title: Lỗi phân tán
+  childs:
+  - slug: distributed-failures-001
+    title: Vì sao lời gọi qua mạng khác lời gọi hàm trong cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-failures-002
+    title: Lỗi DNS, kết nối, chứng chỉ, giao thức và nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-failures-003
+    title: Lỗi tạm thời, lỗi kéo dài và lỗi chỉ ảnh hưởng một phần hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-failures-004
+    title: Mất phản hồi dù máy chủ đã thực hiện thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-failures-005
+    title: Phân biệt hết thời gian chờ với việc công việc thực sự bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-failures-006
+    title: Lan truyền lỗi khi máy chủ phụ thuộc dịch vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-failures-007
+    title: Ảnh hưởng của mạng chập chờn, kết nối nửa mở và máy khách biến mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-failures-008
+    title: Thiết kế trạng thái chưa xác định và cơ chế xác minh kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resilience
+  title: Khả năng phục hồi
+  childs:
+  - slug: resilience-001
+    title: Đặt thời gian chờ cho kết nối, đọc dữ liệu và toàn bộ thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-002
+    title: Phân bổ ngân sách thời gian khi có nhiều lời gọi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-003
+    title: Chọn lỗi được thử lại và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-004
+    title: Giãn cách tăng dần và độ lệch ngẫu nhiên để tránh dồn tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-005
+    title: Thiết kế tính lũy đẳng và khóa chống lặp cho thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-006
+    title: Lưu kết quả chống lặp và xử lý hai yêu cầu trùng đến đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-007
+    title: Ngắt mạch (circuit breaker) và điều kiện phục hồi thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-008
+    title: Cô lập tài nguyên, giới hạn đồng thời và từ chối tải vượt khả năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-009
+    title: Giảm chức năng có kiểm soát và điều kiện được dùng dữ liệu dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-010
+    title: Kết nối lại, tiếp tục công việc và tránh nhân số lần thử qua nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-access
+  title: Định danh và quyền
+  childs:
+  - slug: identity-access-001
+    title: Phân biệt xác thực danh tính với kiểm tra quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-002
+    title: Đăng nhập bằng phiên và xác thực yêu cầu bằng token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-003
+    title: Phân biệt OAuth 2.0, OpenID Connect và nhu cầu của từng loại máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-004
+    title: Vai trò, thuộc tính và quyền trên từng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-005
+    title: Xác thực giữa các dịch vụ và danh tính của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-006
+    title: Thời hạn token, làm mới và thu hồi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-007
+    title: 'JWT: chữ ký, xác minh bên phát hành và giới hạn bảo mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-008
+    title: Cô lập dữ liệu nhiều khách hàng (multi-tenancy) tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-access-009
+    title: Ngăn truy cập tài nguyên chỉ bằng cách thay đổi định danh trong yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-security
+  title: Bảo mật giao tiếp
+  childs:
+  - slug: communication-security-001
+    title: Xác định tài sản, ranh giới tin cậy và các đường tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-002
+    title: Mã hóa đường truyền và quản lý chứng chỉ, khóa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-003
+    title: Chính sách cùng nguồn, CORS và giới hạn bảo vệ của trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-004
+    title: CSRF, cookie và thuộc tính Secure, HttpOnly, SameSite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-005
+    title: XSS, lưu trữ thông tin xác thực và dữ liệu do máy chủ trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-006
+    title: Ngăn injection, dữ liệu đầu vào bất thường và giải mã thiếu an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-007
+    title: Bảo vệ máy chủ khỏi SSRF khi xử lý địa chỉ do máy khách cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-008
+    title: Kiểm soát kích thước, tốc độ và thời gian xử lý yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-009
+    title: Ẩn thông tin nhạy cảm trong lỗi, log và nội dung lưu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-security-010
+    title: Quản lý bí mật tại máy chủ và giới hạn giữ bí mật trong ứng dụng máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Phân rã độ trễ từ DNS, kết nối và truyền tải đến xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo thông lượng, độ trễ trung vị và các phân vị chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Giảm số lượt qua mạng bằng gộp thao tác và thiết kế API phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Giảm kích thước phản hồi bằng chọn trường, phân trang và nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Tái sử dụng kết nối, quản lý pool và tránh cạn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Xử lý song song có giới hạn và tránh gọi phụ thuộc nối tiếp không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Truyền dữ liệu theo luồng thay cho giữ toàn bộ trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Ngăn máy khách chậm giữ tài nguyên máy chủ quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đo chi phí tuần tự hóa, CPU, bộ nhớ và truy cập cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Tối ưu theo điểm nghẽn đo được thay vì chỉ tăng số máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scalability
+  title: Mở rộng hệ thống
+  childs:
+  - slug: scalability-001
+    title: So sánh mở rộng theo chiều dọc và chiều ngang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-002
+    title: Thiết kế máy chủ ít trạng thái để phân phối yêu cầu qua nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-003
+    title: Thuật toán cân bằng tải và đánh giá sức khỏe máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-004
+    title: Phân biệt điểm nghẽn ứng dụng, cơ sở dữ liệu và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-005
+    title: Giới hạn kết nối dài khi mở rộng WebSocket hoặc truyền dữ liệu theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-006
+    title: Tự động mở rộng theo tải và tính đến thời gian khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-007
+    title: Tính sẵn sàng cao và loại bỏ điểm lỗi đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-008
+    title: Phân bố theo vùng địa lý và đánh đổi độ trễ với nhất quán dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scalability-009
+    title: Ước lượng công suất, dự phòng tải tăng đột biến và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: realtime-offline
+  title: Thời gian thực và ngoại tuyến
+  childs:
+  - slug: realtime-offline-001
+    title: Chọn polling, SSE hoặc WebSocket theo hướng và tần suất cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-002
+    title: Máy chủ đẩy dữ liệu trong quan hệ Client–Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-003
+    title: Heartbeat, phát hiện ngắt kết nối và giới hạn khi mạng không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-004
+    title: Đăng ký nhận dữ liệu và xác minh quyền cho từng kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-005
+    title: Đánh số thông điệp, tiếp tục nhận và xử lý dữ liệu bị bỏ lỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-006
+    title: Áp lực ngược và chính sách xử lý máy khách tiêu thụ chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-007
+    title: Lưu thao tác ngoại tuyến và gửi lại khi kết nối phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-008
+    title: Phát hiện xung đột giữa dữ liệu cục bộ và dữ liệu máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: realtime-offline-009
+    title: Phân biệt chấp nhận thao tác cục bộ với hoàn tất đồng bộ có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-evolution
+  title: Triển khai và tiến hóa
+  childs:
+  - slug: deployment-evolution-001
+    title: Tách cấu hình địa chỉ, cổng và thông tin môi trường khỏi mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-002
+    title: Triển khai máy chủ sau reverse proxy và cấu hình đường dẫn đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-003
+    title: Giữ tương thích với máy khách cũ chưa thể cập nhật ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-004
+    title: Thêm trường, đổi kiểu và ngừng hỗ trợ phiên bản API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-005
+    title: Kiểm soát thời gian cùng tồn tại của nhiều phiên bản máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-006
+    title: Triển khai cuốn chiếu, canary và chuyển đổi môi trường có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-007
+    title: Thay đổi lược đồ dữ liệu theo cách tương thích với mã cũ/mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-008
+    title: Rút máy chủ khỏi cân bằng tải và xử lý yêu cầu đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-evolution-009
+    title: Kế hoạch quay lui, khôi phục và kiểm chứng sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-operations-001
+    title: Theo dõi một yêu cầu qua máy khách, proxy, máy chủ và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-002
+    title: Request ID, correlation ID và ngữ cảnh truy vết phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-003
+    title: Thu thập nhật ký có cấu trúc và liên kết với số liệu đo, thông tin truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-004
+    title: Đo lỗi phía máy khách bên cạnh lỗi quan sát tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-005
+    title: Giám sát độ trễ, lưu lượng, lỗi và mức bão hòa tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-006
+    title: Phân biệt kiểm tra sống, sẵn sàng phục vụ và kiểm tra trải nghiệm thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-007
+    title: Đặt mục tiêu chất lượng dịch vụ và cảnh báo theo ảnh hưởng người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-008
+    title: Chẩn đoán yêu cầu chậm, cạn pool và lỗi chỉ xuất hiện qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-009
+    title: Quy trình ứng phó sự cố và đối soát thao tác có kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị cho logic máy khách và nghiệp vụ máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử hợp đồng yêu cầu, phản hồi và tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử tích hợp giao thức, cơ sở dữ liệu và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Mô phỏng dịch vụ bằng stub và giới hạn của kết quả mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử từ đầu đến cuối với các trạng thái giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử nhiều máy khách cập nhật đồng thời cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử timeout, mất phản hồi, gửi lặp và kết nối lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử xác thực, phân quyền, CORS và cô lập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử tải, duy trì tải lâu và hành vi khi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tạo môi trường có thể tái lập và chờ điều kiện bất đồng bộ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring
+  title: Java và Spring
+  childs:
+  - slug: java-spring-001
+    title: Mô hình máy chủ socket tối thiểu với Socket và ServerSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-002
+    title: Đóng khung thông điệp và xử lý đọc không đủ dữ liệu trên TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-003
+    title: Tạo máy khách HTTP với Java HttpClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-004
+    title: Gửi yêu cầu bất đồng bộ với CompletableFuture và quản lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-005
+    title: Xây REST API bằng Spring Boot với Controller, Service và DTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-006
+    title: Kiểm tra dữ liệu và chuẩn hóa lỗi trả về tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-007
+    title: Triển khai kiểm soát phiên hoặc token bằng Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-008
+    title: Quản lý giao dịch và xung đột cập nhật với Spring Data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-009
+    title: Cấu hình timeout, kết nối và giới hạn tài nguyên tại hai phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-010
+    title: Kiểm thử tích hợp máy khách–máy chủ bằng JUnit và Testcontainers khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Lần theo một yêu cầu trình duyệt đến ứng dụng web và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: So sánh ứng dụng hai tầng với ba tầng trên cùng nhu cầu quản lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Xây ứng dụng nhiều máy khách cùng cập nhật tài nguyên có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Thực nghiệm gửi lặp thao tác đặt hàng khi phản hồi bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Thực nghiệm phiên đăng nhập khi chuyển yêu cầu giữa hai bản sao máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Xây luồng cập nhật thời gian thực với kết nối bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thực nghiệm máy khách ngoại tuyến và xung đột khi đồng bộ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Đặt reverse proxy, bộ nhớ đệm và cân bằng tải trước ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Đo điểm nghẽn rồi so sánh hiệu quả tối ưu với tăng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-evaluation
+  title: Đánh giá thiết kế
+  childs:
+  - slug: design-evaluation-001
+    title: Chọn Client–Server theo nhu cầu chia sẻ dữ liệu và kiểm soát tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-002
+    title: So sánh phương án trực tiếp, qua tầng ứng dụng và qua trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-003
+    title: Nhận diện giao thức quá nhiều lượt gọi hoặc phản hồi mang dữ liệu thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-004
+    title: Nhận diện nghiệp vụ và bí mật quan trọng bị đặt ở máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-005
+    title: Nhận diện lời gọi mạng không timeout và thử lại thiếu giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-006
+    title: Nhận diện phiên cục bộ, bộ nhớ đệm sai phạm vi và điểm lỗi đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-007
+    title: Đánh giá khả năng tương thích khi máy khách và máy chủ phát hành độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-008
+    title: Ghi quyết định kiến trúc cùng yêu cầu độ trễ, độ tin cậy và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-evaluation-009
+    title: Danh sách kiểm tra hợp đồng, lỗi, bảo mật, mở rộng và khả năng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

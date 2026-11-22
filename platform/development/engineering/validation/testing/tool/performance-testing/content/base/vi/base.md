@@ -1,0 +1,7 @@
+# Engineering Validation Testing Tool Performance Testing
+
+**Performance Testing (kiểm thử hiệu năng)** đánh giá cách hệ thống phản hồi khi số người dùng, lưu lượng truy cập hoặc khối lượng xử lý thay đổi. Mục tiêu không chỉ là đo thời gian phản hồi mà còn xác định năng lực phục vụ, độ ổn định, mức sử dụng tài nguyên và ngưỡng bắt đầu suy giảm. Một bài thử hiệu năng đáng tin cậy phải gắn với luồng nghiệp vụ thực tế, tiêu chí SLO rõ ràng, dữ liệu đại diện và môi trường có thể tái lập.
+
+Lộ trình gồm tám mốc: xác định SLO và các chỉ số như latency/throughput/error rate; mô hình hóa workload; chuẩn bị môi trường và dữ liệu; tạo script bằng k6 hoặc Apache JMeter; lựa chọn smoke, load, stress, spike, soak và breakpoint test; quan sát hệ thống trong khi chạy tải; phân tích bottleneck; cuối cùng là đặt thresholds và tích hợp kiểm thử hồi quy vào CI/CD. Người học cũng sẽ phân biệt lỗi của hệ thống đích với giới hạn của bộ tạo tải, đồng thời tránh dựa vào latency trung bình khi p95/p99 cho thấy người dùng gặp chậm đáng kể.
+
+Module phù hợp với lập trình viên backend, QA automation, SRE và DevOps đã nắm HTTP/API, cơ sở dữ liệu và các khái niệm metrics cơ bản. Sau khi hoàn thành, bạn có thể thiết kế một kế hoạch thử tải an toàn, viết và chạy kịch bản có checks, thu thập số liệu có ngữ cảnh, chỉ ra điểm nghẽn cần tối ưu và trình bày kết quả so sánh trước/sau bằng tiêu chí có thể kiểm chứng.

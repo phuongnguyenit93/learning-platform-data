@@ -1,0 +1,3 @@
+menuLevel1: Optional
+menuLevel2: orElse() đánh giá đối số ngay và orElseGet() gọi Supplier khi cần
+status: TRANSLATE

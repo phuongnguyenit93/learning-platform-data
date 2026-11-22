@@ -1,0 +1,55 @@
+roadmap:
+- id: tu-duy-onion-architecture
+  title: Tư duy Onion Architecture
+  purpose: Hiểu lợi ích tách nghiệp vụ khỏi framework, cơ sở dữ liệu và giao diện dễ thay đổi.
+  objectives:
+  - Vẽ các vòng domain, application và adapter bên ngoài.
+  - Nêu vấn đề phụ thuộc hạ tầng của kiến trúc phân lớp truyền thống.
+- id: domain-model-doc-lap
+  title: Domain Model Độc lập
+  purpose: Giữ quy tắc nghiệp vụ cốt lõi ổn định, không gắn trực tiếp với công nghệ lưu trữ.
+  objectives:
+  - Tạo entity/value object có invariant nghiệp vụ.
+  - Giữ domain không import Spring, JPA hoặc HTTP.
+- id: application-use-cases
+  title: Application Use Cases
+  purpose: Điều phối một luồng nghiệp vụ qua các thành phần trong lõi mà không phụ thuộc giao diện.
+  objectives:
+  - Thiết kế một use case với input/output rõ ràng.
+  - Phân biệt application service với domain service.
+- id: quy-tac-phu-thuoc
+  title: Quy tắc Phụ thuộc
+  purpose: Áp dụng Dependency Inversion để mọi phụ thuộc mã nguồn hướng về lõi.
+  objectives:
+  - Vẽ mũi tên dependency chỉ từ vòng ngoài vào vòng trong.
+  - Phát hiện import ngược từ domain/application sang infrastructure.
+- id: ports-repository
+  title: Ports & Repository
+  purpose: Định nghĩa hợp đồng do nghiệp vụ kiểm soát để thay thế nguồn dữ liệu hoặc dịch vụ ngoài.
+  objectives:
+  - Tạo repository interface hoặc outbound port trong lõi.
+  - Chỉ để use case phụ thuộc abstraction, không phụ thuộc ORM.
+- id: adapters-infrastructure
+  title: Adapters & Infrastructure
+  purpose: Cô lập triển khai cơ sở dữ liệu và tích hợp bên ngoài sau các giao diện hợp đồng.
+  objectives:
+  - Viết adapter triển khai repository bằng JPA hoặc JDBC.
+  - Thay adapter bằng fake mà không sửa domain/use case.
+- id: presentation-mapping
+  title: Presentation & Mapping
+  purpose: Giữ controller mỏng và ngăn DTO/HTTP lan vào mô hình nghiệp vụ.
+  objectives:
+  - Tạo REST controller gọi use case qua input port.
+  - Ánh xạ HTTP DTO sang command/result riêng của application.
+- id: wiring-dependency-injection
+  title: Wiring & Dependency Injection
+  purpose: Lắp ghép adapter với port ở lớp ngoài để lõi không cần biết cơ chế khởi tạo.
+  objectives:
+  - Cấu hình dependency injection tại composition root.
+  - Thử thay implementation thật bằng fake trong cấu hình test.
+- id: kiem-thu-giu-ranh-gioi
+  title: Kiểm thử & Giữ Ranh giới
+  purpose: Duy trì hướng phụ thuộc đúng và kiểm chứng luồng xử lý ở nhiều mức độ.
+  objectives:
+  - Viết unit test domain/use case không cần database.
+  - Dùng ArchUnit kiểm tra các lớp và cấm phụ thuộc ngược.

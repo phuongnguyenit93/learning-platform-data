@@ -1,0 +1,3 @@
+menuLevel1: 8. Thread dump
+menuLevel2: 8.2 Lấy stack bằng Thread.print, jstack hoặc cơ chế tín hiệu được hệ điều hành hỗ trợ
+status: WRITTEN

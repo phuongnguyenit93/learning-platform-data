@@ -1,0 +1,3 @@
+menuLevel1: Selector callback
+menuLevel2: Selector.select với Consumer<SelectionKey>
+status: WRITTEN

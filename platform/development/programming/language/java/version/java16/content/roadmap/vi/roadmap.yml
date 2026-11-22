@@ -1,0 +1,45 @@
+roadmap:
+- id: record
+  title: Record
+  purpose: Biểu diễn dữ liệu bằng lớp ngắn gọn, có hợp đồng rõ ràng.
+  objectives:
+  - Khai báo record và kiểm tra dữ liệu trong compact constructor
+  - Dùng accessor, equals và hashCode được sinh
+  - Nhận biết giới hạn bất biến nông
+- id: mau-instanceof
+  title: Mẫu instanceof
+  purpose: Gộp kiểm tra kiểu và gán biến để giảm ép kiểu thủ công.
+  objectives:
+  - Dùng type pattern trong instanceof
+  - Xác định phạm vi biến mẫu theo luồng điều khiển
+- id: stream-mo-rong
+  title: Stream mở rộng
+  purpose: Viết các phép biến đổi dữ liệu gọn hơn.
+  objectives:
+  - Thu kết quả bằng Stream.toList
+  - Nhận biết danh sách trả về không sửa được cấu trúc
+  - Dùng mapMulti để phát không, một hoặc nhiều phần tử
+- id: dong-goi-jdk
+  title: Đóng gói JDK
+  purpose: Giữ ứng dụng phụ thuộc vào API được hỗ trợ.
+  objectives:
+  - Phân biệt API công khai với thành phần nội bộ JDK
+  - Rà soát reflection và chọn exports hoặc opens đúng nhu cầu
+- id: socket-noi-bo
+  title: Socket nội bộ
+  purpose: Trao đổi dữ liệu giữa các tiến trình trên cùng máy.
+  objectives:
+  - Dùng UnixDomainSocketAddress với SocketChannel và ServerSocketChannel
+  - Kiểm tra hỗ trợ nền tảng, quyền và vòng đời đường dẫn socket
+- id: dong-goi-ung-dung
+  title: Đóng gói ứng dụng
+  purpose: Phân phối ứng dụng kèm môi trường chạy bằng jpackage.
+  objectives:
+  - Tạo application image và gói cài đặt phù hợp hệ điều hành
+  - Chọn runtime image và kiểm tra gói sau cài đặt
+- id: zgc-va-metaspace
+  title: ZGC và Metaspace
+  purpose: Hiểu các cải tiến giảm tạm dừng và sử dụng bộ nhớ.
+  objectives:
+  - Giải thích xử lý thread stack đồng thời của ZGC
+  - Quan sát việc trả Metaspace không còn dùng về hệ điều hành

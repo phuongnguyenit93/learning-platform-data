@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-de-kiem-chung
+  title: Mô hình để kiểm chứng
+  purpose: Hiểu cách Spring Modulith nhận diện application modules để xác định phạm vi xác minh kiến trúc.
+  objectives:
+  - Tạo mô hình bằng ApplicationModules.of(...).
+  - Nhận diện base package, API và thành phần nội bộ.
+  - Quan sát các quan hệ phụ thuộc giữa module.
+- id: quy-tac-kien-truc
+  title: Quy tắc kiến trúc
+  purpose: Xác minh những ràng buộc cốt lõi để các module không bị kết nối sai cách.
+  objectives:
+  - Phát hiện chu trình phụ thuộc giữa các module.
+  - Kiểm tra việc truy cập trái phép vào package nội bộ.
+  - Phân biệt phụ thuộc hợp lệ và phụ thuộc vi phạm.
+- id: gioi-han-phu-thuoc
+  title: Giới hạn phụ thuộc
+  purpose: Kiểm soát các điểm giao tiếp và những module được phép sử dụng trong kiến trúc.
+  objectives:
+  - Giải thích allowedDependencies và named interfaces.
+  - Thiết lập một ràng buộc phụ thuộc rõ ràng.
+  - Kiểm tra một trường hợp truy cập sai ranh giới.
+- id: chan-doan-vi-pham
+  title: Chẩn đoán vi phạm
+  purpose: Biết cách đưa xác minh vào bài test và sửa nguyên nhân khi ranh giới module bị phá vỡ.
+  objectives:
+  - Chạy ApplicationModules.verify() trong JUnit test.
+  - Đọc kết quả từ detectViolations() khi cần phân tích.
+  - Sửa phụ thuộc sai rồi xác minh lại.
+- id: kiem-thu-module-doc-lap
+  title: Kiểm thử module độc lập
+  purpose: Kiểm tra hành vi của một module bằng application context giới hạn đúng phạm vi.
+  objectives:
+  - Thêm spring-modulith-starter-test vào test scope.
+  - Viết test với @ApplicationModuleTest đúng package.
+  - Kiểm chứng hành vi nghiệp vụ ở chế độ STANDALONE.
+- id: bootstrap-co-lap-phu-thuoc
+  title: Bootstrap & cô lập phụ thuộc
+  purpose: Chọn phạm vi tích hợp vừa đủ để kiểm thử module mà vẫn kiểm soát coupling.
+  objectives:
+  - So sánh STANDALONE, DIRECT_DEPENDENCIES và ALL_DEPENDENCIES.
+  - Dùng @MockitoBean với bean ngoài module khi phù hợp.
+  - Giải thích vì sao mở rộng bootstrap làm tăng phạm vi test.
+- id: kiem-thu-su-kien-scenario
+  title: Kiểm thử sự kiện & Scenario
+  purpose: Kiểm chứng tương tác qua sự kiện và thay đổi trạng thái, kể cả khi xử lý bất đồng bộ.
+  objectives:
+  - Dùng Scenario.publish(...) hoặc Scenario.stimulate(...).
+  - Chờ và xác minh event hoặc state change mong đợi.
+  - Thiết lập timeout và cleanup cho tình huống cần thiết.
+- id: regression-ci
+  title: Regression & CI
+  purpose: Duy trì kiểm chứng kiến trúc và hành vi module trong mỗi lần thay đổi mã.
+  objectives:
+  - Chạy test kiến trúc và module integration trong pipeline.
+  - Tạo trường hợp thử chứng minh vi phạm bị phát hiện.
+  - Phân tích test lỗi khi thay đổi API hoặc quan hệ module.

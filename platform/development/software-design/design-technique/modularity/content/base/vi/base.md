@@ -1,0 +1,7 @@
+# Software Design Design Technique Modularity
+
+**Modularity** là kỹ thuật thiết kế phần mềm chia một hệ thống thành các module có nhiệm vụ, ranh giới và hợp đồng giao tiếp rõ ràng. Mỗi module tập trung vào một nhóm hành vi liên quan, che giấu chi tiết triển khai và hạn chế phụ thuộc vào các phần còn lại. Cách tổ chức này giúp việc đọc hiểu, kiểm thử, thay đổi và phân công phát triển trở nên dễ kiểm soát hơn; module logic không nhất thiết là một microservice hoặc một đơn vị triển khai riêng.
+
+Module học dành cho người đã quen với Java, lập trình hướng đối tượng và nguyên tắc thiết kế cơ bản. Bạn sẽ bắt đầu từ mục tiêu của thiết kế mô-đun, xác định ranh giới theo nghiệp vụ, đánh giá tính gắn kết (*cohesion*), thiết kế API công khai tối thiểu và đóng gói phần nội bộ. Tiếp theo, lộ trình hướng dẫn phân tích đồ thị phụ thuộc, tổ chức package và cơ chế giao tiếp, rồi xây kiểm thử để phát hiện truy cập trái phép hoặc chu trình giữa các module.
+
+Qua tám mốc, bạn có thể phác họa cấu trúc module của ứng dụng, giải thích vì sao một chức năng thuộc về một ranh giới cụ thể, kiểm chứng các quy tắc phụ thuộc và chọn bước tái cấu trúc có phạm vi vừa đủ. Trọng tâm là chất lượng ranh giới và khả năng tiến hóa của thiết kế, không phải tối đa hóa số module: chia nhỏ quá mức cũng làm tăng số hợp đồng, chi phí phối hợp và độ phức tạp tích hợp.

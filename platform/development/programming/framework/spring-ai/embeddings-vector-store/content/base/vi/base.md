@@ -1,0 +1,7 @@
+# Spring AI Embeddings Vector Store
+
+Embeddings là các vector số biểu diễn đặc điểm ngữ nghĩa của văn bản hoặc nội dung khác. Khi những vector được lưu trong vector store, ứng dụng có thể tìm các đoạn thông tin có ý nghĩa gần với truy vấn thay vì chỉ so khớp từ khóa. Spring AI cung cấp `EmbeddingModel` để sinh vector và abstraction `VectorStore` để thêm, xóa, tìm kiếm tài liệu trên nhiều hệ quản trị khác nhau, ví dụ PGvector.
+
+Module phù hợp với người đã biết Java, Spring Boot, dữ liệu JSON và thao tác database cơ bản. Lộ trình đi từ tư duy embedding và similarity, sử dụng `EmbeddingModel`, biểu diễn `Document` có metadata, đến quy trình đọc/chia nhỏ tài liệu và nạp vào vector store. Sau đó người học thực hành quản lý chỉ mục, tra cứu bằng `SearchRequest` với `topK`, `similarityThreshold` và metadata filters, rồi đánh giá độ liên quan, độ trễ và khả năng quan sát. Nội dung này tập trung vào nền tảng embeddings và truy xuất; cách đưa kết quả vào prompt LLM thuộc chủ đề RAG chuyên sâu.
+
+Sau khi hoàn thành, bạn có thể dựng một semantic search đơn giản với Spring AI, giải thích vì sao vector dimension phải khớp schema, chọn chiến lược chunking và kiểm tra tài liệu được nạp, tìm kiếm hoặc xóa đúng phạm vi. Khi thay embedding model, cần đánh giá tính tương thích của các vector cũ và kế hoạch re-embedding. Metadata filters chỉ hỗ trợ chọn bản ghi, không tự thay thế authorization; tránh để lộ dữ liệu nhạy cảm hoặc khóa dịch vụ khi ghi log và cấu hình ứng dụng.

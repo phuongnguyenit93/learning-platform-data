@@ -1,0 +1,3733 @@
+menu:
+- slug: static-analysis-introduction
+  title: Nhập môn
+  childs:
+  - slug: static-analysis-introduction-001
+    title: Mẫu lỗi (bug pattern) là gì trong phân tích tĩnh?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-002
+    title: Từ đoạn mã đáng ngờ đến lỗi có thể quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-003
+    title: Phân biệt lỗi đúng đắn, mùi mã, vi phạm quy ước và lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-004
+    title: Vì sao một mẫu cú pháp có thể đúng ở ngữ cảnh này nhưng sai ở ngữ cảnh khác?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-005
+    title: Điều kiện kích hoạt, hậu quả và giả thiết của một mẫu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-006
+    title: Các nhóm lỗi thường gặp trong chương trình Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-007
+    title: Vai trò của hợp đồng API và đặc tả ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-008
+    title: Phân tích tĩnh bổ sung cho kiểm thử và rà soát mã như thế nào?
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-009
+    title: Giới hạn của việc coi không có cảnh báo là không có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-analysis-introduction-010
+    title: Lộ trình nhận diện, xác minh, sửa và ngăn tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: warning-reading
+  title: Đọc cảnh báo
+  childs:
+  - slug: warning-reading-001
+    title: Vị trí phát hiện và vị trí nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-002
+    title: Thông điệp, nhóm quy tắc và dấu vết phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-003
+    title: Mức độ nghiêm trọng, độ tin cậy và khả năng xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-004
+    title: Theo dõi giá trị từ nguồn đến điểm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-005
+    title: Đọc đường đi điều khiển dẫn đến vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-006
+    title: Xác định tiền điều kiện và hợp đồng đang bị phá vỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-007
+    title: Đối chiếu ngữ cảnh gọi và dữ liệu đầu vào thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-008
+    title: Phân biệt cảnh báo trùng với các lỗi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-009
+    title: Thu gọn ví dụ để kiểm tra giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reading-010
+    title: Ghi lại bằng chứng thay vì chỉ lặp lại thông điệp công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: control-flow
+  title: Luồng điều khiển
+  childs:
+  - slug: control-flow-001
+    title: Nhánh điều kiện luôn đúng hoặc luôn sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-002
+    title: Điều kiện mâu thuẫn và đoạn mã không thể tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-003
+    title: Nhánh trùng nhau do sao chép rồi sửa thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-004
+    title: Dùng phép gán thay cho kiểm tra giá trị boolean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-005
+    title: Nhầm toán tử ngắn mạch với toán tử luôn đánh giá hai vế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-006
+    title: Thứ tự kiểm tra điều kiện làm vô hiệu hóa bước bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-007
+    title: Dấu chấm phẩy hoặc khối lệnh đặt sai vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-008
+    title: Vòng lặp không cập nhật điều kiện tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-009
+    title: Sai cận vòng lặp và lỗi lệch một đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-010
+    title: return, break hoặc continue làm bỏ qua công việc cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-011
+    title: Rơi qua nhánh switch ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-flow-012
+    title: Xử lý thiếu trường hợp mặc định hoặc trường hợp miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-flow
+  title: Luồng dữ liệu
+  childs:
+  - slug: data-flow-001
+    title: Đọc giá trị chưa sẵn sàng và giới hạn kiểm tra của trình biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-002
+    title: Phép gán bị ghi đè trước khi được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-003
+    title: Tự gán biến, trường hoặc phần tử do nhầm tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-004
+    title: Che khuất trường bằng biến hoặc tham số cùng tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-005
+    title: Truyền nhầm đối số cùng kiểu hoặc đảo thứ tự đối số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-006
+    title: Sử dụng giá trị cũ sau khi thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-007
+    title: Kiểm tra một giá trị nhưng sử dụng giá trị khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-008
+    title: Bỏ qua giá trị trả về mang kết quả hoặc trạng thái lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-009
+    title: Nhầm phương thức tạo giá trị mới với phương thức sửa tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-010
+    title: Khởi tạo hoặc cập nhật thiếu trên một đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-011
+    title: Giữ tham chiếu bí danh và sửa nhầm đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-012
+    title: Truyền dữ liệu đã hết hiệu lực sang bước xử lý tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: null-and-optional
+  title: Null và Optional
+  childs:
+  - slug: null-and-optional-001
+    title: Giải tham chiếu giá trị null chắc chắn hoặc có thể xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-002
+    title: Kiểm tra null sau khi đã sử dụng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-003
+    title: Một nhánh trả null làm sai giả thiết của bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-004
+    title: Unboxing wrapper có giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-005
+    title: Null trong chuỗi gọi phương thức hoặc kết quả tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-006
+    title: Điều kiện bảo vệ bị phá vỡ do cập nhật hoặc gọi hàm trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-007
+    title: Hợp đồng nullable, non-null và giới hạn suy luận của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-008
+    title: Phân biệt null hợp lệ với trạng thái không được khởi tạo đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-009
+    title: Gọi Optional.get mà không bảo đảm có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-010
+    title: Trả null thay cho Optional.empty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-011
+    title: Nhầm Optional.of với Optional.ofNullable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-012
+    title: Tính toán mặc định ngoài ý muốn với orElse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-013
+    title: Làm mất thông tin lỗi khi chuyển mọi thất bại thành Optional.empty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: null-and-optional-014
+    title: Sửa lỗi null tại nơi tạo dữ liệu thay vì che triệu chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comparison-and-identity
+  title: So sánh và định danh
+  childs:
+  - slug: comparison-and-identity-001
+    title: Nhầm so sánh tham chiếu với so sánh giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-002
+    title: Dùng == với String hoặc kiểu wrapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-003
+    title: Phụ thuộc ngoài ý muốn vào bộ nhớ đệm của wrapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-004
+    title: equals không đáp ứng tính phản xạ, đối xứng hoặc bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-005
+    title: equals không xử lý null đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-006
+    title: Ghi đè equals nhưng thiếu hashCode tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-007
+    title: Dùng các trường khác nhau trong equals và hashCode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-008
+    title: Nhầm nạp chồng equals với ghi đè equals(Object)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-009
+    title: So sánh mảng bằng equals của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-010
+    title: Nhầm Objects.equals với so sánh sâu cấu trúc mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-011
+    title: compareTo hoặc Comparator không bảo toàn hợp đồng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-012
+    title: Dùng phép trừ để so sánh và gây tràn số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-013
+    title: Thứ tự so sánh không nhất quán với equals
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-014
+    title: So sánh BigDecimal theo giá trị hoặc theo cả scale
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comparison-and-identity-015
+    title: NaN, số không có dấu và khác biệt giữa các cách so sánh số thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arithmetic
+  title: Số học
+  childs:
+  - slug: arithmetic-001
+    title: Tràn số nguyên trong phép cộng, trừ và nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-002
+    title: Ép sang kiểu rộng sau khi phép tính đã tràn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-003
+    title: Chia số nguyên làm mất phần thập phân ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-004
+    title: Chia cho không trên đường đi có thể xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-005
+    title: Thu hẹp kiểu và cắt mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-006
+    title: Đổi dấu, trị tuyệt đối và giá trị nhỏ nhất của kiểu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-007
+    title: Điều kiện so sánh số thực và sai số mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-008
+    title: NaN hoặc vô cực làm sai giả thiết của thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-009
+    title: Nhầm ưu tiên toán tử và vị trí dấu ngoặc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-010
+    title: Nhầm toán tử bit với toán tử logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-011
+    title: Dịch bit, mở rộng dấu và khoảng dịch thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-012
+    title: Phần dư âm và tính chỉ số theo vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-013
+    title: Tạo BigDecimal từ double ngoài ý định biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-014
+    title: Làm tròn sai thời điểm hoặc sai chế độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arithmetic-015
+    title: Nhầm đơn vị, hệ số chuyển đổi và cận giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-and-unicode
+  title: Chuỗi và Unicode
+  childs:
+  - slug: strings-and-unicode-001
+    title: Kiểm tra tiền tố, hậu tố hoặc mẫu chuỗi không đúng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-002
+    title: Bỏ qua kết quả của thao tác trên String bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-003
+    title: Nhầm chuỗi rỗng, chuỗi trắng và giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-004
+    title: Tách chuỗi bằng split mà quên đối số là biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-005
+    title: Nhầm thay thế văn bản nguyên dạng với replaceAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-006
+    title: Ký tự đặc biệt trong biểu thức hoặc chuỗi thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-007
+    title: Sai cận substring và giả thiết về độ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-008
+    title: Nhầm char, code point và ký tự người dùng nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-009
+    title: Cắt chuỗi làm tách cặp surrogate hoặc cụm ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-010
+    title: Đổi hoa thường phụ thuộc locale ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-011
+    title: Chuẩn hóa Unicode trước khi so sánh hoặc kiểm tra định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-012
+    title: Mã hóa và giải mã dùng charset không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-unicode-013
+    title: Định dạng chuỗi sai số lượng hoặc kiểu đối số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: arrays-and-generics
+  title: Mảng và generics
+  childs:
+  - slug: arrays-and-generics-001
+    title: Truy cập ngoài cận và nhầm độ dài với chỉ số cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-002
+    title: Nhầm bản sao mảng với tham chiếu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-003
+    title: Sao chép thiếu hoặc ghi đè vùng dữ liệu ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-004
+    title: Mảng nhiều chiều và giả thiết sai về kích thước từng hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-005
+    title: Hiệp biến mảng và ArrayStoreException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-006
+    title: Ép kiểu mảng không hợp lệ dù phần tử có vẻ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-007
+    title: Dùng raw type làm mất kiểm tra kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-008
+    title: Unchecked cast và giả thiết kiểu không được chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-009
+    title: Ô nhiễm heap do kết hợp generics với varargs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-010
+    title: Dùng @SafeVarargs khi thân phương thức chưa an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-011
+    title: Nhầm kiểu generic lúc biên dịch với thông tin còn lại khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: arrays-and-generics-012
+    title: Phân biệt lỗi kiểu bị trình biên dịch chặn với rủi ro cần phân tích bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collections
+  title: Collections
+  childs:
+  - slug: collections-001
+    title: Sửa collection trong lúc duyệt không đúng cơ chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-002
+    title: Xóa phần tử bằng chỉ số hoặc bằng giá trị ngoài ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-003
+    title: Giả định mọi List đều có thể thêm, xóa hoặc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-004
+    title: Nhầm Arrays.asList với danh sách độc lập và thay đổi kích thước được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-005
+    title: Nhầm vỏ bọc chỉ đọc với bản chụp hoặc tính bất biến sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-006
+    title: Giữ view từ subList hoặc tập khóa mà quên quan hệ với dữ liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-007
+    title: Giả định thứ tự duyệt mà kiểu collection không cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-008
+    title: Bỏ qua chính sách null của collection được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-009
+    title: Truyền sai kiểu phần tử vào contains hoặc remove
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-010
+    title: Phụ thuộc fail-fast như một cơ chế bảo đảm an toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-011
+    title: Chia sẻ collection không an toàn giữa nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collections-012
+    title: Giả định sao chép collection đồng thời cũng sao chép từng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maps-and-sets
+  title: Map và Set
+  childs:
+  - slug: maps-and-sets-001
+    title: Thay đổi trường tham gia equals hoặc hashCode sau khi đưa khóa vào Map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-002
+    title: Đối tượng bằng nhau nhưng không được tìm thấy do sai hợp đồng băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-003
+    title: Khóa bị so sánh bằng tiêu chí khác trong TreeMap hoặc TreeSet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-004
+    title: Ghi đè giá trị cũ ngoài ý muốn khi trùng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-005
+    title: Nhầm thiếu khóa với khóa được ánh xạ tới null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-006
+    title: Kiểm tra rồi cập nhật bằng nhiều thao tác không nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-007
+    title: Chọn sai compute, computeIfAbsent hoặc merge theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-008
+    title: Hàm tính giá trị có tác dụng phụ hoặc sửa lại cùng cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-009
+    title: Dùng bản đồ tham chiếu yếu mà không hiểu vòng đời khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-010
+    title: Nhầm collection đồng thời với tính nguyên tử của toàn quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-011
+    title: Giả định iterator hoặc view là bản chụp độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maps-and-sets-012
+    title: Chọn khóa có biểu diễn không ổn định giữa các bước xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streams-and-lambdas
+  title: Stream và lambda
+  childs:
+  - slug: streams-and-lambdas-001
+    title: Tạo Stream nhưng không có thao tác kết thúc cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-002
+    title: Tái sử dụng Stream đã được tiêu thụ hoặc đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-003
+    title: Bỏ qua kết quả map, filter hoặc pipeline được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-004
+    title: Đặt logic bắt buộc trong peek hoặc tác dụng phụ có thể bị lược bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-005
+    title: Sửa nguồn dữ liệu trong khi Stream đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-006
+    title: Chia sẻ trạng thái có thể thay đổi giữa các lần gọi lambda
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-007
+    title: Dùng reduce hoặc collect với phép gộp không đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-008
+    title: Phụ thuộc thứ tự trong pipeline song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-009
+    title: Phân biệt findFirst với findAny theo yêu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-010
+    title: Thu thập về Map khi có khóa trùng mà chưa xác định cách xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-011
+    title: Lambda giữ tham chiếu đối tượng có vòng đời dài hơn dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-012
+    title: Dùng lambda che mất ngoại lệ hoặc lỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-013
+    title: Không đóng Stream gắn với tài nguyên I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-and-lambdas-014
+    title: Nhầm hàm được truyền vào với thao tác đã được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions
+  title: Ngoại lệ
+  childs:
+  - slug: exceptions-001
+    title: Bắt rồi bỏ qua ngoại lệ làm chương trình tiếp tục ở trạng thái sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-002
+    title: Bắt quá rộng và che lỗi lập trình không mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-003
+    title: Trả giá trị mặc định làm mất ý nghĩa thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-004
+    title: Ném ngoại lệ mới nhưng làm mất nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-005
+    title: Ghi log nhiều lần cho cùng một lỗi hoặc không giữ đủ ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-006
+    title: return hoặc throw trong finally che kết quả và ngoại lệ trước đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-007
+    title: Đóng tài nguyên làm mất ngoại lệ phát sinh ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-008
+    title: Bỏ qua suppressed exceptions khi chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-009
+    title: Bắt InterruptedException mà không xử lý yêu cầu gián đoạn đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-010
+    title: Dùng sai kiểu ngoại lệ khiến bên gọi xử lý sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-011
+    title: Kiểm tra lỗi bằng nội dung thông điệp không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-012
+    title: Thực hiện tác dụng phụ trước khi hoàn tất kiểm tra đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-013
+    title: Đối tượng bị cập nhật một phần khi thao tác thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-014
+    title: Thử lại thao tác không an toàn khi thực hiện nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources
+  title: Tài nguyên
+  childs:
+  - slug: resources-001
+    title: Mở tài nguyên mà không bảo đảm đóng trên mọi đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-002
+    title: Đóng tài nguyên quá sớm rồi tiếp tục sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-003
+    title: Trả tài nguyên đã bị đóng bởi try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-004
+    title: Không xác định rõ bên tạo hay bên nhận chịu trách nhiệm đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-005
+    title: Nhầm quyền sở hữu tài nguyên khi đóng lớp bao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-006
+    title: Đóng sai thứ tự các tài nguyên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-007
+    title: Rò rỉ connection, statement hoặc result set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-008
+    title: Quên kết thúc transaction hoặc khôi phục trạng thái kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-009
+    title: Dùng khóa, giấy phép semaphore hoặc đăng ký mà không giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-010
+    title: Rò rỉ Executor, tác vụ nền hoặc kết nối mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-011
+    title: Dùng AutoCloseable nhưng close không được gọi theo vòng đời thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-012
+    title: Phụ thuộc dọn dẹp không xác định thay cho đóng chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-013
+    title: Giải phóng hai lần và tính an toàn của thao tác đóng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: initialization
+  title: Khởi tạo
+  childs:
+  - slug: initialization-001
+    title: Thứ tự khởi tạo trường, khối khởi tạo và constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-002
+    title: Đọc giá trị mặc định trước khi trường được gán theo ý định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-003
+    title: Gọi phương thức có thể bị ghi đè từ constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-004
+    title: Để this thoát ra ngoài khi đối tượng chưa khởi tạo xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-005
+    title: Đăng ký listener hoặc chạy tác vụ quá sớm trong constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-006
+    title: Dùng đối số constructor nhưng quên cập nhật trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-007
+    title: Vòng phụ thuộc giữa các bước khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-008
+    title: Phụ thuộc thứ tự khởi tạo static giữa các lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-009
+    title: Khởi tạo lười không an toàn khi có nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-010
+    title: Singleton hoặc bộ nhớ đệm bị công bố trước khi sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-011
+    title: Ném lỗi trong quá trình khởi tạo và đối tượng chưa hoàn thiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-012
+    title: Bất biến của đối tượng chưa được bảo đảm ở mọi constructor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: immutability-and-encapsulation
+  title: Bất biến và đóng gói
+  childs:
+  - slug: immutability-and-encapsulation-001
+    title: Trả trực tiếp tham chiếu tới trạng thái có thể sửa đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-002
+    title: Giữ tham chiếu đầu vào mà không kiểm soát quyền sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-003
+    title: Sao chép nông khi cần tách cấu trúc dữ liệu bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-004
+    title: Nhầm final của tham chiếu với tính bất biến của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-005
+    title: Collection chỉ đọc nhưng phần tử bên trong vẫn thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-006
+    title: Record chứa thành phần có thể sửa đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-007
+    title: Getter hoặc setter làm phá vỡ bất biến liên trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-008
+    title: Phương thức tưởng chỉ đọc nhưng làm thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-009
+    title: Lưu hoặc trả giá trị có thời hạn sử dụng ngắn hơn đối tượng chứa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-010
+    title: Bộ nhớ đệm trả đối tượng dùng chung cho nhiều bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-011
+    title: Chỉ kiểm tra đầu vào trước khi giữ tham chiếu có thể bị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-012
+    title: Ranh giới sao chép phòng vệ và chi phí cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inheritance-and-polymorphism
+  title: Kế thừa và đa hình
+  childs:
+  - slug: inheritance-and-polymorphism-001
+    title: Nạp chồng nhầm chữ ký thay vì ghi đè phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-002
+    title: Thiếu @Override làm lỗi chữ ký khó nhận ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-003
+    title: Lớp con phá tiền điều kiện hoặc hậu điều kiện của lớp cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-004
+    title: equals không đối xứng khi kết hợp các lớp trong cùng hệ kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-005
+    title: Ẩn trường hoặc phương thức static gây hiểu nhầm cách truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-006
+    title: Gọi phương thức không đúng như dự kiến do kiểu khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-007
+    title: Lớp con bỏ qua phần xử lý bắt buộc của lớp cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-008
+    title: Thêm trạng thái lớp con nhưng không cập nhật hợp đồng sao chép hoặc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-009
+    title: Giả định clone tạo bản sao độc lập của toàn bộ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-polymorphism-010
+    title: Lựa chọn tổ hợp đối tượng khi kế thừa làm hợp đồng khó giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-state
+  title: Trạng thái đồng thời
+  childs:
+  - slug: concurrent-state-001
+    title: Data race và truy cập trạng thái thiếu đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-002
+    title: Không nhìn thấy cập nhật giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-003
+    title: Nhầm volatile với tính nguyên tử của phép đọc-sửa-ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-004
+    title: Kiểm tra rồi hành động trên trạng thái có thể đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-005
+    title: Chuỗi thao tác riêng lẻ an toàn nhưng tổng thể không nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-006
+    title: Công bố đối tượng không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-007
+    title: Double-checked locking thiếu điều kiện bảo đảm phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-008
+    title: Trường static có thể sửa bị chia sẻ ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-009
+    title: Bộ sinh định dạng hoặc đối tượng khác không an toàn luồng bị dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-010
+    title: Tham chiếu final nhưng dữ liệu bên trong vẫn bị cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-011
+    title: Biến đếm hoặc cờ kết thúc làm mất cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-012
+    title: ThreadLocal không được dọn theo vòng đời tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-013
+    title: Dùng sleep để giả định quan hệ happens-before
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-state-014
+    title: Bỏ qua gián đoạn hoặc điều kiện dừng của tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locks-and-conditions
+  title: Khóa và điều kiện
+  childs:
+  - slug: locks-and-conditions-001
+    title: Khóa trên đối tượng khác với đối tượng bảo vệ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-002
+    title: Khóa trên String, wrapper hoặc đối tượng được chia sẻ ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-003
+    title: Làm thay đổi tham chiếu đang dùng làm khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-004
+    title: Thứ tự lấy nhiều khóa không nhất quán gây deadlock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-005
+    title: Giữ khóa trong lúc chờ I/O hoặc gọi mã bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-006
+    title: Thiếu unlock hoặc release khi có ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-007
+    title: Gọi wait, notify hoặc notifyAll mà không giữ đúng monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-008
+    title: Chờ điều kiện bằng if thay vì kiểm tra lại trong vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-009
+    title: Thông báo điều kiện trên sai đối tượng hoặc sai thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-010
+    title: Phân biệt sleep với wait về quyền giữ monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-011
+    title: Bỏ qua kết quả tryLock hoặc thời hạn chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-012
+    title: Nâng cấp hoặc phối hợp khóa không đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-and-conditions-013
+    title: Vòng lặp thử lại gây livelock hoặc bỏ đói luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-tasks
+  title: Tác vụ bất đồng bộ
+  childs:
+  - slug: async-tasks-001
+    title: Tạo Future nhưng bỏ qua kết quả và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-002
+    title: Không theo dõi thất bại của tác vụ gửi vào Executor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-003
+    title: Chặn trong cùng nhóm luồng đang cần để hoàn thành tác vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-004
+    title: Nhầm thenApply với thenCompose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-005
+    title: Nhầm biến thể đồng bộ và bất đồng bộ của CompletionStage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-006
+    title: Giả định mọi nhánh đều dùng Executor đã chọn ở bước trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-007
+    title: Dùng exceptionally hoặc handle làm mất trạng thái lỗi ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-008
+    title: Hiểu sai allOf hoặc anyOf về kết quả và việc dừng các nhánh khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-009
+    title: Giả định hủy Future luôn dừng được công việc bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-010
+    title: Giả định timeout đồng nghĩa với tác vụ đã ngừng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-011
+    title: Thao tác hoàn tất nhiều lần và cuộc đua cập nhật trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-012
+    title: Đóng tài nguyên khi tác vụ bất đồng bộ vẫn còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-013
+    title: Tạo quá nhiều tác vụ hoặc hàng đợi không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-014
+    title: Dùng callback gây vòng phụ thuộc hoặc hoàn thành lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-tasks-015
+    title: Làm mất ngữ cảnh theo luồng khi chuyển sang tác vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time
+  title: Ngày giờ
+  childs:
+  - slug: date-time-001
+    title: Nhầm thời điểm tuyệt đối với ngày giờ địa phương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-002
+    title: Dùng múi giờ mặc định mà hợp đồng yêu cầu múi giờ xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-003
+    title: So sánh hoặc chuyển đổi khi thông tin múi giờ bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-004
+    title: Nhầm Duration với Period theo ý nghĩa bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-005
+    title: Cộng một ngày và cộng số giờ cố định trong điều kiện đổi giờ mùa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-006
+    title: Nhầm mẫu định dạng năm, tháng, phút hoặc tuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-007
+    title: Phân tích ngày theo locale ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-008
+    title: Dùng formatter không an toàn luồng làm đối tượng chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-009
+    title: Nhầm giây, mili giây và nano giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-010
+    title: Đo thời lượng bằng đồng hồ thời gian thực khi cần đồng hồ đơn điệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-011
+    title: Bỏ qua Clock khiến hành vi phụ thuộc thời điểm khó tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-012
+    title: Làm mất độ chính xác khi chuyển đổi kiểu ngày giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-and-paths
+  title: I/O và đường dẫn
+  childs:
+  - slug: io-and-paths-001
+    title: Giả định một lần read sẽ nhận đủ toàn bộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-002
+    title: Bỏ qua giá trị số byte đọc được hoặc tín hiệu hết dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-003
+    title: Dùng available như tổng kích thước dữ liệu còn phải đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-004
+    title: Ghi ra nhưng không xử lý lỗi hoặc yêu cầu flush của giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-005
+    title: Dùng charset mặc định làm dữ liệu khác nhau giữa môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-006
+    title: Nhầm đường dẫn tương đối với vị trí tài nguyên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-007
+    title: Nối đường dẫn bằng chuỗi thay vì giữ đúng ngữ nghĩa đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-008
+    title: Kiểm tra rồi thao tác trên tệp đã có thể bị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-009
+    title: Bỏ qua liên kết tượng trưng và khác biệt sau chuẩn hóa đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-010
+    title: Đọc toàn bộ dữ liệu vào bộ nhớ khi kích thước không được giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-011
+    title: ByteBuffer sai position, limit hoặc trạng thái đọc-ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-012
+    title: Bỏ qua số lượng dữ liệu thực sự được ghi khi API cho phép ghi một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-and-paths-013
+    title: Giả định xóa, đổi tên hoặc tạo thư mục đã thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serialization
+  title: Tuần tự hóa
+  childs:
+  - slug: serialization-001
+    title: Trạng thái được ghi và trạng thái cần khôi phục sau giải tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-002
+    title: serialVersionUID và giả thiết về tương thích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-003
+    title: Trường static, transient và dữ liệu không được lưu như dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-004
+    title: Đồ thị đối tượng có thành phần không đáp ứng hợp đồng tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-005
+    title: readObject hoặc writeObject không giữ đúng giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-006
+    title: Đối tượng được khôi phục nhưng bất biến chưa được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-007
+    title: Mất tính duy nhất hoặc định danh khi khôi phục đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-008
+    title: Lộ dữ liệu nhạy cảm trong biểu diễn được lưu hoặc truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-009
+    title: Nhận dữ liệu tuần tự hóa không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-010
+    title: Tài nguyên hoặc trạng thái môi trường không thể khôi phục chỉ bằng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-011
+    title: Phân biệt serialization Java với ánh xạ JSON theo hợp đồng thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-contracts
+  title: Hợp đồng API
+  childs:
+  - slug: api-contracts-001
+    title: Tiền điều kiện về kiểu, miền giá trị và trạng thái đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-002
+    title: Cận trên loại trừ, chỉ số và quy ước đơn vị của API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-003
+    title: Bỏ qua boolean hoặc mã trạng thái trả về khi thao tác thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-004
+    title: Sử dụng kết quả trước khi bảo đảm thao tác đã thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-005
+    title: Gọi API không phù hợp với trạng thái vòng đời hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-006
+    title: Nhầm thao tác trả bản sao với thao tác trả view
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-007
+    title: Nhầm thao tác không thay đổi dữ liệu với thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-008
+    title: Truyền đối số cùng kiểu nhưng khác ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-009
+    title: Vi phạm quy ước định dạng, mẫu biểu thức hoặc escape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-010
+    title: Hàm gọi lại vi phạm yêu cầu về luồng, số lần gọi hoặc tính thuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-011
+    title: Lời gọi chặn nằm trong ngữ cảnh không được phép chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-012
+    title: API yêu cầu giải phóng, hủy đăng ký hoặc xác nhận hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-contracts-013
+    title: Khác biệt giữa bảo đảm được tài liệu hóa và hành vi quan sát tình cờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-bug-patterns
+  title: Mẫu lỗi bảo mật
+  childs:
+  - slug: security-bug-patterns-001
+    title: Dữ liệu không tin cậy đi đến thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-002
+    title: Ghép dữ liệu trực tiếp vào câu lệnh SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-003
+    title: Đưa dữ liệu chưa kiểm soát vào lệnh hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-004
+    title: Truy cập đường dẫn ngoài phạm vi được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-005
+    title: Dữ liệu đầu vào điều khiển đích yêu cầu mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-006
+    title: Ghi dữ liệu nhạy cảm hoặc dữ liệu có thể giả mạo cấu trúc log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-007
+    title: Dùng nguồn ngẫu nhiên không phù hợp cho mục đích bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-008
+    title: Nhúng bí mật vào mã, hằng số hoặc cấu hình được phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-009
+    title: Bỏ qua kết quả xác thực hoặc cho phép tiếp tục khi kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-010
+    title: Giả định chuẩn hóa hoặc escape dùng được cho mọi ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-011
+    title: Dùng biểu thức chính quy có chi phí không được kiểm soát trên đầu vào lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-bug-patterns-012
+    title: Phân biệt cảnh báo theo mẫu với bằng chứng khai thác trong hệ thống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-leaks
+  title: Hiệu năng và rò rỉ
+  childs:
+  - slug: performance-and-leaks-001
+    title: Phân biệt sai chức năng với chi phí tài nguyên ngoài yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-002
+    title: Tính toán kết quả nhưng không sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-003
+    title: Thực hiện phép tính hoặc I/O lặp không cần thiết trong vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-004
+    title: Ghép chuỗi hoặc sao chép dữ liệu gây chi phí tăng quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-005
+    title: Boxing, unboxing và tạo đối tượng thừa ở đường chạy quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-006
+    title: Tạo biểu thức chính quy hoặc đối tượng nặng lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-007
+    title: Tìm kiếm tuyến tính lặp trên cấu trúc không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-008
+    title: Giữ dữ liệu qua listener, callback hoặc bộ nhớ đệm không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-009
+    title: Giữ collection view hoặc đối tượng lớn lâu hơn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-010
+    title: Tham chiếu static, ThreadLocal hoặc ClassLoader kéo dài vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-011
+    title: Khóa phạm vi quá rộng làm giảm khả năng xử lý đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-012
+    title: Nhật ký hoặc thông điệp lỗi gây tính toán dù không được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-leaks-013
+    title: Chỉ kết luận ảnh hưởng hiệu năng sau khi có ngữ cảnh và phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: frameworks-and-reflection
+  title: Framework và phản chiếu
+  childs:
+  - slug: frameworks-and-reflection-001
+    title: Thành viên được dùng gián tiếp qua reflection hoặc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-002
+    title: Annotation ảnh hưởng hợp đồng dù không có lời gọi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-003
+    title: Mã sinh và cách công cụ liên kết với mã nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-004
+    title: Nhầm chữ ký, quyền truy cập hoặc đối số khi gọi bằng reflection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-005
+    title: Bỏ sót nguyên nhân gốc bên trong InvocationTargetException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-006
+    title: Ép kiểu đối tượng được nạp bằng ClassLoader khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-007
+    title: Tự gọi nội bộ làm hành vi proxy khác dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-008
+    title: Vòng đời đối tượng do framework quản lý khác giả thiết của mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-009
+    title: Trạng thái có thể sửa trong đối tượng được dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-010
+    title: Ranh giới transaction hoặc bảo mật bị đặt ngoài đường gọi hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-011
+    title: Nhầm cảnh báo không dùng với thành viên được framework truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frameworks-and-reflection-012
+    title: Kiểm chứng bằng cấu hình thực tế thay vì miễn trừ cả nhóm cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: warning-reliability
+  title: Độ tin cậy cảnh báo
+  childs:
+  - slug: warning-reliability-001
+    title: Dương tính thật, dương tính giả và âm tính giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-002
+    title: Phân biệt độ tin cậy phân tích với mức độ hậu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-003
+    title: Giả thiết về đường đi, dữ liệu và quan hệ bí danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-004
+    title: Ảnh hưởng của phân tích liên phương thức và thông tin bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-005
+    title: Thiếu classpath, mã sinh hoặc thư viện làm giảm chất lượng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-006
+    title: Khác biệt giữa phân tích mã nguồn và bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-007
+    title: Annotation hoặc mô hình API không khớp hành vi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-008
+    title: Mã không thể tới trong cấu hình đang xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-009
+    title: Reflection, native code và cơ chế động làm thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-010
+    title: Giới hạn phát hiện lỗi phụ thuộc lịch thực thi hoặc dữ liệu môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-011
+    title: Cùng một mẫu lỗi nhưng công cụ có phạm vi phát hiện khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-reliability-012
+    title: Quy trình xác minh khi không tái hiện được cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fix-strategy
+  title: Chiến lược sửa
+  childs:
+  - slug: fix-strategy-001
+    title: Sửa nguyên nhân gốc và giữ nguyên hành vi hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-002
+    title: Làm rõ hợp đồng trước khi thêm điều kiện bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-003
+    title: Sửa tại nơi tạo dữ liệu sai hoặc nơi vi phạm vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-004
+    title: Thay API để biểu đạt ý định và giảm trạng thái không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-005
+    title: Ưu tiên bất biến và quyền sở hữu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-006
+    title: Thu hẹp phạm vi trạng thái chia sẻ và đồng bộ đúng bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-007
+    title: Bảo toàn nguyên nhân ngoại lệ và chính sách xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-008
+    title: Dùng cấu trúc quản lý tài nguyên theo phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-009
+    title: Kiểm tra tác dụng phụ khi đổi thứ tự hoặc tách biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-010
+    title: Đánh giá bản sửa tự động trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-011
+    title: Không biến cảnh báo thành im lặng bằng thay đổi làm mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-strategy-012
+    title: Rà soát ảnh hưởng đến bên gọi, dữ liệu lưu và tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fix-verification
+  title: Kiểm chứng bản sửa
+  childs:
+  - slug: fix-verification-001
+    title: Tạo trường hợp thất bại trước khi sửa khi có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-002
+    title: Kiểm thử cận giá trị, null và các nhánh điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-003
+    title: Kiểm thử thuộc tính cho equals, hashCode và Comparator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-004
+    title: Kiểm tra hành vi tài nguyên trên đường thành công và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-005
+    title: Kiểm thử lỗi gián đoạn, timeout và hủy tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-006
+    title: Tái hiện cạnh tranh bằng điều phối có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-007
+    title: Kiểm tra giữ nguyên hợp đồng và hành vi của các trường hợp hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-008
+    title: Dùng mutation testing để đánh giá khả năng phát hiện lỗi của kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-009
+    title: Chạy lại cùng bộ phân tích và xác nhận cảnh báo mục tiêu đã hết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-010
+    title: Kiểm tra cảnh báo mới do bản sửa làm phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-011
+    title: Đo hiệu năng khi bản sửa liên quan đến chi phí tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-012
+    title: Phân biệt không tái hiện được với đã chứng minh không còn lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-013
+    title: Ghi nhận bằng chứng hồi quy cho người rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: warning-management
+  title: Quản lý cảnh báo
+  childs:
+  - slug: warning-management-001
+    title: Phân loại theo hậu quả, khả năng xảy ra và độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-002
+    title: Ưu tiên lỗi mới và lỗi nằm trên đường chạy quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-003
+    title: Gom các cảnh báo có chung nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-004
+    title: Tách tồn đọng hiện tại khỏi vi phạm mới bằng baseline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-005
+    title: Bảo đảm baseline không che lỗi mới hoặc lỗi đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-006
+    title: Miễn trừ phạm vi hẹp với lý do có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-007
+    title: Phân biệt suppress cảnh báo với sửa lỗi hoặc chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-008
+    title: Thời hạn rà soát lại miễn trừ và thay đổi ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-009
+    title: Đặt cổng kiểm tra theo nhóm lỗi và mức độ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-010
+    title: Ánh xạ khái niệm lỗi giữa các công cụ mà không phụ thuộc mã quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-011
+    title: Kiểm tra thay đổi kết quả khi nâng phiên bản công cụ hoặc bộ quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-012
+    title: Theo dõi chất lượng xử lý thay vì chỉ đếm cảnh báo còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: warning-management-013
+    title: Ghi lại người phụ trách, bằng chứng và quyết định cho từng trường hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xây bộ mẫu lỗi với phiên bản sai và phiên bản đúng theo từng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Phân tích null qua nhiều nhánh và xác minh điều kiện bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Sửa khóa Map có trạng thái thay đổi và kiểm tra tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Kiểm thử hợp đồng so sánh với tập dữ liệu biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Tái hiện tràn số, mất độ chính xác và nhầm đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Chẩn đoán lỗi Stream do trì hoãn, tác dụng phụ hoặc tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Khảo sát rò rỉ tài nguyên khi một bước xử lý ném ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Tái hiện đối tượng thoát khỏi constructor trước khi sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Phân tích cuộc đua kiểm tra rồi cập nhật trong mã nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Sửa đồ thị CompletableFuture làm mất lỗi hoặc chặn tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Đối chiếu một mẫu lỗi bằng các bộ phân tích khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Lập hồ sơ cảnh báo giả với bằng chứng và miễn trừ tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-013
+    title: Hoàn thiện một lượt rà soát từ cảnh báo đến kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-014
+    title: Tổng kết giới hạn còn lại sau khi cảnh báo đã được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

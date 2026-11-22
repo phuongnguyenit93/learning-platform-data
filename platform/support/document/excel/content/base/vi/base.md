@@ -1,0 +1,7 @@
+# Support Document Excel
+
+Excel là định dạng tài liệu bảng tính phổ biến để nhập dữ liệu, xuất báo cáo và chia sẻ kết quả xử lý. Trong ứng dụng Java, hỗ trợ Excel không chỉ là tạo tệp .xlsx mà còn phải xử lý đúng cấu trúc workbook, kiểu ô, ngày tháng, công thức, định dạng và tài nguyên bộ nhớ. Module này tập trung vào các thao tác Excel thực dụng bằng Apache POI, đồng thời phân biệt tệp .xls cũ với .xlsx và các giới hạn khi làm việc với dữ liệu lớn.
+
+Người học nên biết Java hướng đối tượng, collection, xử lý luồng I/O và Maven hoặc Gradle. Lộ trình bắt đầu từ cấu trúc Workbook–Sheet–Row–Cell và các API HSSF/XSSF, sau đó thực hành đọc dữ liệu, ánh xạ sang DTO và tạo file Excel mới. Những phần tiếp theo hướng dẫn làm việc với kiểu dữ liệu, công thức, CellStyle, data validation và kỹ thuật streaming như SXSSF hoặc SAX khi xử lý nhiều dòng. Cuối cùng là kiểm thử đọc lại file đã xuất và kiểm soát lỗi, giới hạn tài nguyên, đầu vào không tin cậy.
+
+Sau khi hoàn thành, bạn có thể xây dựng chức năng import/export Excel cho ứng dụng Java, tạo bảng tính có header và định dạng phù hợp, xử lý ô trống hoặc công thức một cách có chủ đích và chọn phương án đọc/ghi tiết kiệm bộ nhớ. Khi dùng Apache POI, cần kiểm tra tính tương thích của các tính năng Excel nâng cao, tránh xử lý tệp không tin cậy mà thiếu giới hạn và luôn đóng tài nguyên sau thao tác.

@@ -1,0 +1,3 @@
+menuLevel1: Thiết kế event store
+menuLevel2: Mô hình bản ghi gồm stream ID, stream version, event ID, type, payload và metadata
+status: ""

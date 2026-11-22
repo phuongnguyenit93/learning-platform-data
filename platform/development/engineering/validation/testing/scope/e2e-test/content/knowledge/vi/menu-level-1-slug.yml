@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Ranh giới E2E
+  slug: e2e-boundaries
+  index: 1
+- title: Chiến lược
+  slug: test-strategy
+  index: 2
+- title: Luồng nghiệp vụ
+  slug: business-flows
+  index: 3
+- title: Thiết kế kịch bản
+  slug: scenario-design
+  index: 4
+- title: Kiểm chứng kết quả
+  slug: result-verification
+  index: 5
+- title: Môi trường
+  slug: test-environment
+  index: 6
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 7
+- title: Cấu hình
+  slug: configuration
+  index: 8
+- title: Phụ thuộc bên ngoài
+  slug: external-dependencies
+  index: 9
+- title: Tổ chức kiểm thử
+  slug: test-organization
+  index: 10
+- title: E2E với Java
+  slug: java-end-to-end
+  index: 11
+- title: Selenium
+  slug: selenium
+  index: 12
+- title: Playwright Java
+  slug: playwright-java
+  index: 13
+- title: Định vị giao diện
+  slug: ui-locators
+  index: 14
+- title: Tương tác giao diện
+  slug: ui-interactions
+  index: 15
+- title: Đồng bộ và chờ
+  slug: synchronization-and-waits
+  index: 16
+- title: API đầu cuối
+  slug: endpoint-api
+  index: 17
+- title: Spring Boot
+  slug: spring-boot
+  index: 18
+- title: Danh tính và quyền
+  slug: identity-and-access
+  index: 19
+- title: Luồng bất đồng bộ
+  slug: async-flows
+  index: 20
+- title: Nhiều dịch vụ
+  slug: multi-service-testing
+  index: 21
+- title: Tệp và thông báo
+  slug: files-and-notifications
+  index: 22
+- title: Trình duyệt và thiết bị
+  slug: browser-and-devices
+  index: 23
+- title: Bằng chứng thực thi
+  slug: execution-evidence
+  index: 24
+- title: Kiểm thử thiếu ổn định
+  slug: flaky-testing
+  index: 25
+- title: Chạy song song
+  slug: parallel-execution
+  index: 26
+- title: CI/CD
+  slug: ci-cd
+  index: 27
+- title: Phân tích lỗi
+  slug: failure-analysis
+  index: 28
+- title: Bảo trì
+  slug: maintenance
+  index: 29
+- title: Đo lường
+  slug: metrics
+  index: 30
+- title: Xác minh triển khai
+  slug: deployment-verification
+  index: 31
+- title: Thực hành
+  slug: integrated-practice
+  index: 32

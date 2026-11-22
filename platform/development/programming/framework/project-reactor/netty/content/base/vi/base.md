@@ -1,0 +1,7 @@
+# Project Reactor Netty
+
+Reactor Netty là thư viện networking bất đồng bộ trong hệ sinh thái Project Reactor, kết hợp cơ chế event loop của Netty với các kiểu dữ liệu reactive của Reactor để phát triển HTTP, TCP và UDP client/server. Thay vì dành riêng một thread cho từng kết nối, ứng dụng sử dụng I/O không chặn và xử lý dữ liệu theo luồng, phù hợp với những hệ thống cần phục vụ nhiều kết nối đồng thời. Để khai thác đúng mô hình này, người học cần hiểu event loop, backpressure, vòng đời tài nguyên và tránh đưa tác vụ blocking trực tiếp lên luồng I/O.
+
+Roadmap một cấp gồm tám mốc: bắt đầu từ kiến trúc Reactor Netty và nguyên tắc non-blocking I/O; tìm hiểu event loop, khởi tạo và giải phóng tài nguyên; sau đó thực hành TCP client/server, HTTP server và HTTP client. Các mốc tiếp theo tập trung vào connection pooling, timeout, TLS, streaming và các giao thức như HTTP/2 hoặc WebSocket. Cuối cùng, người học dùng wiretap, Micrometer metrics và kiểm thử lỗi để phát hiện độ trễ, kết nối bị giữ quá lâu hoặc tình trạng tài nguyên cạn kiệt. Những kỹ năng này cũng giúp hiểu nền tảng mạng thường dùng bên dưới Spring WebFlux.
+
+Module phù hợp với Java developer đã biết HTTP, TCP cơ bản và các khái niệm Reactor `Mono`/`Flux`. Sau khi hoàn thành, bạn có thể tạo một HTTP hoặc TCP client/server nhỏ với Reactor Netty, cấu hình timeout và pool theo nhu cầu, giải thích nguyên nhân phổ biến của nghẽn event loop, đồng thời theo dõi, kiểm thử và dọn dẹp tài nguyên mạng để ứng dụng vận hành ổn định.

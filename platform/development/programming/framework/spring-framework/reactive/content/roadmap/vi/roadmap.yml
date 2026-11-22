@@ -1,0 +1,63 @@
+roadmap:
+- id: mo-hinh-reactive
+  title: Mô hình reactive
+  purpose: Hiểu cách xử lý luồng dữ liệu theo nhu cầu và điều kiện áp dụng mô hình không chặn.
+  objectives:
+  - Phân biệt bất đồng bộ với không chặn
+  - Mô tả Publisher, Subscriber và tín hiệu Reactive Streams
+  - Giải thích nhu cầu nhận và điều tiết tốc độ (backpressure)
+  - Chọn reactive theo đặc điểm I/O và tải
+- id: mono-va-flux
+  title: Mono và Flux
+  purpose: Biểu diễn dữ liệu và vòng đời xử lý bằng các kiểu cốt lõi của Reactor.
+  objectives:
+  - Chọn Mono cho 0–1 và Flux cho 0–n phần tử
+  - Phân biệt lắp ghép luồng với thực thi khi đăng ký
+  - Phân biệt luồng lạnh (cold) với luồng nóng (hot)
+  - Giữ việc subscribe tại ranh giới xử lý
+- id: bien-doi-va-ket-hop
+  title: Biến đổi và kết hợp
+  purpose: Ghép các bước xử lý thành chuỗi rõ ràng, đúng thứ tự và mức đồng thời cần thiết.
+  objectives:
+  - Biến đổi bằng map, filter và flatMap
+  - Kết hợp bằng concat, merge hoặc zip
+  - Chọn giữ thứ tự và giới hạn mức đồng thời
+- id: loi-va-tai-nguyen
+  title: Lỗi và tài nguyên
+  purpose: Thiết kế luồng có giới hạn chờ, phục hồi phù hợp và dọn tài nguyên khi kết thúc.
+  objectives:
+  - Phân biệt dữ liệu rỗng, lỗi và hủy đăng ký
+  - Dùng onErrorResume, timeout và retry có giới hạn
+  - Đánh giá tác dụng lặp khi thử lại
+  - Giải phóng tài nguyên khi hoàn tất, lỗi hoặc hủy
+- id: luong-va-ngu-canh
+  title: Luồng và ngữ cảnh
+  purpose: Quản lý nơi thực thi và giữ đúng ngữ cảnh của từng lượt đăng ký.
+  objectives:
+  - Phân biệt publishOn với subscribeOn
+  - Khoanh vùng API chặn trên Scheduler phù hợp
+  - Truyền ngữ cảnh bằng Reactor Context
+  - Nhận biết giới hạn của ThreadLocal trong luồng reactive
+- id: spring-webflux
+  title: Spring WebFlux
+  purpose: Xây dựng điểm truy cập HTTP trên nền tảng reactive của Spring.
+  objectives:
+  - Phân biệt Spring MVC với WebFlux
+  - Tạo controller hoặc RouterFunction
+  - Xử lý đầu vào và kiểm tra dữ liệu
+  - Trả Mono, Flux hoặc luồng sự kiện SSE
+- id: webclient-va-tich-hop
+  title: WebClient và tích hợp
+  purpose: Kết nối dịch vụ bên ngoài mà không phá vỡ chuỗi xử lý không chặn.
+  objectives:
+  - Gọi HTTP bằng WebClient
+  - Xử lý trạng thái, nội dung phản hồi và thời gian chờ
+  - Nhận biết ranh giới với thư viện dữ liệu reactive và API chặn
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Chứng minh luồng đúng hành vi và đánh giá hiệu quả dưới tải.
+  objectives:
+  - Kiểm thử tín hiệu, lỗi và nhu cầu bằng StepVerifier
+  - Kiểm thử thời gian bằng thời gian ảo
+  - Kiểm thử HTTP bằng WebTestClient
+  - Theo dõi độ trễ, bộ nhớ và nghẽn luồng

@@ -1,0 +1,351 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Thông báo qua Microsoft Teams là gì và phục vụ nhu cầu nào
+  - 'Ví dụ xuyên suốt: cảnh báo vận hành, phê duyệt và cập nhật công việc'
+  - Từ sự kiện trong ứng dụng đến thông tin hiển thị cho người nhận
+  - 'Các thành phần: nguồn sự kiện, dịch vụ gửi, cơ chế Teams và đích nhận'
+  - Phân biệt tin nhắn trong cuộc trò chuyện, bài đăng kênh và Activity feed
+  - Thông báo một chiều và thông báo có tương tác
+  - Phân biệt gửi thành công, hiển thị thành công và người dùng đã đọc
+  - 'Workflows, Microsoft Graph và bot: vị trí của từng cơ chế'
+  - Vai trò của dịch vụ Java trong toàn bộ luồng thông báo
+  - Phạm vi mô-đun và trình tự học từ gửi cơ bản đến vận hành
+- level1: Mô hình Teams
+  level2:
+  - Tổ chức Microsoft 365 (tenant), người dùng và ứng dụng
+  - Nhóm (team), kênh (channel) và quan hệ với thành viên
+  - 'Kênh tiêu chuẩn, riêng tư và dùng chung: phạm vi người nhận'
+  - Trò chuyện cá nhân, trò chuyện nhóm và khác biệt với kênh
+  - Bài đăng gốc, luồng trao đổi và phản hồi trong kênh
+  - Activity feed và nơi người dùng theo dõi hoạt động của ứng dụng
+  - 'Team ID, channel ID, chat ID và user ID: định danh đúng đối tượng'
+  - Microsoft Entra object ID, tên đăng nhập và địa chỉ email
+  - Ứng dụng Teams, app manifest và phạm vi cài đặt
+  - Người dùng nội bộ, khách và ngữ cảnh liên tổ chức
+  - Danh tính hiển thị của người gửi, Workflows bot và bot ứng dụng
+- level1: Lựa chọn cơ chế
+  level2:
+  - Webhook qua Workflows cho luồng nhận HTTP rồi đăng thông báo
+  - Microsoft Graph để thao tác theo API và quyền được cấp
+  - Bot chủ động cho thông báo từ ứng dụng đã được cài đặt
+  - Activity feed cho hoạt động dẫn người dùng đến ứng dụng
+  - So sánh theo đích nhận, danh tính gửi và nhu cầu tương tác
+  - So sánh theo quyền truy cập, cài đặt ứng dụng và chủ sở hữu
+  - Phân biệt webhook nhận sự kiện với webhook theo dõi thay đổi Microsoft Graph
+  - Đánh giá yêu cầu cập nhật, phản hồi và lưu định danh tin nhắn
+  - Đánh giá giới hạn tenant, loại kênh, giấy phép và môi trường cloud
+  - 'Office 365 Connectors đã ngừng hoạt động: vai trò còn lại trong di trú'
+  - Lập bảng quyết định theo từng tình huống thông báo thực tế
+- level1: Chuẩn bị môi trường
+  level2:
+  - Kiểm tra tài khoản Teams, tenant và quyền quản trị liên quan
+  - Tạo không gian thử nghiệm với người nhận và dữ liệu tách biệt
+  - Kiểm tra Workflows app và chính sách cho phép sử dụng
+  - Kiểm tra Power Automate environment, kết nối và quyền sở hữu luồng
+  - Xác định yêu cầu giấy phép theo trigger và action thực sự sử dụng
+  - Chuẩn bị ứng dụng Entra ID khi lựa chọn Microsoft Graph
+  - Chuẩn bị gói ứng dụng Teams khi cần bot hoặc Activity feed
+  - Kiểm tra chính sách cài ứng dụng tùy chỉnh và phê duyệt của tổ chức
+  - Cấu hình JDK, công cụ HTTP và bộ cấu hình dành cho dịch vụ Java
+  - Tách cấu hình phát triển, kiểm thử và sản xuất
+- level1: Webhook qua Workflows
+  level2:
+  - 'Luồng nhận webhook: HTTP trigger → xử lý dữ liệu → action đăng Teams'
+  - Chọn mẫu đăng vào chat hoặc kênh phù hợp với mục đích
+  - Tạo luồng với trigger When a Teams webhook request is received
+  - Chọn đích nhận và kết nối dùng cho action đăng thông báo
+  - Lưu luồng và lấy URL callback của trigger
+  - Gửi HTTP POST với kiểu nội dung JSON
+  - Phong bì message, attachments và Adaptive Card trong dữ liệu đầu vào
+  - Đọc dữ liệu trigger và ánh xạ vào các bước phía sau
+  - Đăng văn bản, đăng thẻ và lựa chọn danh tính được action hỗ trợ
+  - Phân biệt trigger tiếp nhận yêu cầu với action đăng Teams đã hoàn tất
+  - Xem lần chạy, đầu vào, đầu ra và lỗi ở từng bước
+  - Kiểm chứng khả năng gửi vào loại kênh cụ thể trong tenant thực tế
+- level1: Xác thực webhook
+  level2:
+  - 'Các chế độ gọi trigger: Anyone, người trong tenant và người được chỉ định'
+  - Chọn chế độ xác thực theo nguồn gọi và phạm vi triển khai
+  - URL webhook có thông tin truy cập và cách quản lý như bí mật
+  - Chế độ Anyone và quy tắc không gửi kèm token xác thực
+  - Chế độ giới hạn người gọi và yêu cầu token hợp lệ
+  - Đối chiếu audience, tenant và danh tính gọi theo tài liệu trigger
+  - Phân biệt token gọi webhook với token gọi Microsoft Graph
+  - Kiểm tra trường hợp thiếu token, token sai đối tượng và người gọi không được phép
+  - Đánh giá danh tính ứng dụng hoặc danh tính người dùng theo khả năng trigger hỗ trợ
+  - Đặt cổng kiểm soát phía trước khi cần bổ sung kiểm tra và hạn chế tải
+- level1: Quản lý Workflows
+  level2:
+  - Chủ sở hữu luồng và sự phụ thuộc vào tài khoản người dùng
+  - Đồng chủ sở hữu và kế hoạch bàn giao luồng cho vận hành
+  - Phân biệt quyền sở hữu luồng với kết nối dùng để đăng Teams
+  - Tài khoản rời tổ chức, kết nối hết hiệu lực và luồng bị ngừng
+  - Điều kiện, nhánh xử lý và phạm vi bắt lỗi trong luồng
+  - Cấu hình chạy đồng thời và bảo toàn thứ tự khi cần
+  - Chính sách thử lại của action và ảnh hưởng đến số lần đăng
+  - Quản lý biến môi trường, tham chiếu kết nối và quy trình chuyển môi trường
+  - Giới hạn thời gian chạy, số lần gọi và hồ sơ hiệu năng Power Automate
+  - Thay đổi đích nhận và kiểm chứng lại kết nối sau cập nhật
+  - Quản lý phiên bản, khôi phục cấu hình và tránh phụ thuộc một người
+- level1: Thiết kế nội dung
+  level2:
+  - 'Cấu trúc thông báo: điều gì xảy ra, ảnh hưởng và hành động tiếp theo'
+  - Tiêu đề ngắn, mức độ quan trọng và phần tóm tắt
+  - Đưa thông tin đủ xử lý vào Teams và dẫn đến chi tiết ở hệ thống nguồn
+  - Mã sự kiện, mã đối tượng và thông tin truy nguyên
+  - Thời điểm xảy ra, múi giờ và thời hạn cần phản hồi
+  - Phân biệt cảnh báo tức thời, nhắc việc và bản tổng hợp
+  - Định nghĩa mẫu nội dung theo từng loại sự kiện
+  - Tham số hóa dữ liệu và tránh ghép chuỗi JSON trực tiếp
+  - Bản địa hóa tiếng Việt, tiếng Anh và dữ liệu Unicode
+  - Giới hạn kích thước theo từng API hoặc action gửi
+  - Thông báo có dữ liệu nhạy cảm và quy tắc rút gọn thông tin
+- level1: Adaptive Cards
+  level2:
+  - Adaptive Card là gì và khác văn bản thông thường thế nào
+  - Lược đồ JSON, phiên bản thẻ và khả năng của nơi hiển thị
+  - TextBlock, FactSet, Container và các thành phần bố cục cơ bản
+  - ColumnSet, hình ảnh và tổ chức thông tin theo mức độ quan trọng
+  - Action.OpenUrl và liên kết đến công việc cần xử lý
+  - Trường nhập dữ liệu và các hành động cần có bộ xử lý phản hồi
+  - Phân biệt Action.Submit, Action.Execute và phạm vi hỗ trợ thực tế
+  - Phong bì thẻ khi gửi qua Workflows, Graph hoặc bot
+  - Dữ liệu động, mẫu thẻ và quy tắc thay thế tham số
+  - Fallback và cách xử lý thành phần không được hỗ trợ
+  - Khả năng tiếp cận, tương phản và cách hiển thị trên thiết bị di động
+  - Kiểm tra lược đồ bằng công cụ thiết kế và kiểm tra lại trong Teams
+- level1: Tương tác với thẻ
+  level2:
+  - Chọn mở liên kết, nhập dữ liệu hoặc xác nhận ngay trong Teams
+  - Đăng thẻ rồi chờ phản hồi bằng action Workflows phù hợp
+  - 'Webhook nhận dữ liệu và bộ xử lý phản hồi: hai vai trò riêng'
+  - Tương tác qua bot và xử lý sự kiện hành động từ thẻ
+  - Xác minh người thực hiện và quyền xử lý công việc
+  - Kiểm tra dữ liệu đầu vào và trạng thái nghiệp vụ trước khi chấp nhận
+  - Ngăn xử lý lặp khi một hành động được gửi nhiều lần
+  - Thẻ hết hạn, công việc đã đóng và phản hồi đến muộn
+  - Cập nhật trạng thái thẻ khi cơ chế và quyền cho phép
+  - Phân biệt thẻ hiển thị thành công với luồng phê duyệt nghiệp vụ hoàn tất
+  - MessageCard cũ và giới hạn tương tác khi chuyển sang Workflows
+- level1: Định dạng và liên kết
+  level2:
+  - Văn bản thuần, Markdown và HTML theo từng bề mặt gửi
+  - Thoát ký tự, xuống dòng và bảo toàn nội dung do người dùng cung cấp
+  - Liên kết thường và liên kết sâu (deep link) đến nội dung Teams
+  - Liên kết về ứng dụng nghiệp vụ và kiểm tra quyền khi mở
+  - Hình ảnh qua URL và khả năng truy cập từ phía người nhận
+  - Đề cập người dùng bằng mention có định danh hợp lệ
+  - Chuỗi @tên trong văn bản và đối tượng mention thực sự
+  - Giới hạn mention theo cơ chế, danh tính gửi và loại người nhận
+  - Kiểm tra cách hiển thị ở Teams web, desktop và mobile
+  - Tránh gắn dữ liệu nhạy cảm hoặc token truy cập vào URL
+- level1: Danh tính và quyền
+  level2:
+  - Ứng dụng Entra ID, service principal và tenant sở hữu
+  - Phân biệt client ID, object ID, tenant ID và app ID trong Teams
+  - Quyền ủy quyền (delegated) và quyền ứng dụng (application)
+  - 'Resource-specific consent (RSC): cấp quyền theo tài nguyên cụ thể'
+  - Quyền trong Entra ID và quyền khai báo qua Teams app manifest
+  - Đăng nhập người dùng và lấy token theo quyền được ủy quyền
+  - Client credentials và phạm vi API thực sự cho phép gọi app-only
+  - Chấp thuận của người dùng, quản trị viên và chủ tài nguyên
+  - Phân biệt quyền gửi tin nhắn với quyền gửi Activity feed
+  - Teamwork.Migrate.All dành cho di trú và giới hạn với thông báo vận hành
+  - Chọn quyền tối thiểu và kiểm tra quyền theo endpoint hiện hành
+  - Chứng chỉ, bí mật ứng dụng và danh tính được quản lý khi môi trường hỗ trợ
+- level1: Tin nhắn qua Graph
+  level2:
+  - Tài nguyên chatMessage và cấu trúc cơ bản của một tin nhắn
+  - Chọn endpoint gửi vào kênh hoặc vào cuộc trò chuyện
+  - Gửi phản hồi vào luồng kênh bằng định danh bài đăng gốc
+  - Kiểm tra quyền delegated, quyền ứng dụng và RSC theo endpoint sử dụng
+  - Quyền gửi không đồng nghĩa quyền tạo chat, thêm thành viên hoặc cài ứng dụng
+  - Nội dung text, HTML được hỗ trợ và giới hạn định dạng
+  - Attachments và cách gắn Adaptive Card theo hợp đồng Graph
+  - Mentions và dữ liệu định danh tương ứng trong nội dung
+  - Đọc phản hồi, lưu message ID và liên kết tới tin nhắn
+  - Phân biệt danh tính người gửi thực tế với dữ liệu hiển thị trong nội dung
+  - Tra cứu khả năng cập nhật hoặc xóa theo loại tin nhắn và quyền
+  - Phân biệt luồng gửi thông thường với API nhập dữ liệu di trú
+- level1: Activity feed
+  level2:
+  - Activity feed notification là gì và khác tin nhắn chat thế nào
+  - Điều kiện cài đặt Teams app cho phạm vi người nhận
+  - Liên kết ứng dụng Teams với Entra ID qua app manifest
+  - activityType, mẫu nội dung và tham số thông báo
+  - Loại systemDefault và trường hợp không cần mẫu hoạt động tùy chỉnh
+  - topic, previewText và liên kết dẫn tới nội dung cần xử lý
+  - Chọn API gửi theo ngữ cảnh người dùng, team hoặc chat
+  - Quyền TeamsActivity.Send và quyền RSC theo người dùng, team hoặc chat
+  - Hiển thị danh tính tác nhân theo ngữ cảnh delegated hoặc app-only
+  - Ngữ cảnh người nhận, deep link và quyền truy cập nội dung đích
+  - Kiểm tra phản hồi API và khả năng hiển thị trong Activity feed
+  - Lựa chọn Activity feed khi người dùng cần mở ứng dụng để xử lý
+- level1: Bot chủ động
+  level2:
+  - Thông báo chủ động (proactive message) và khác biệt với trả lời người dùng
+  - Ứng dụng chứa bot phải có quyền truy cập và được cài ở phạm vi phù hợp
+  - Phạm vi cá nhân, group chat và team trong app manifest
+  - Đăng ký danh tính bot, endpoint tiếp nhận và kết nối Teams
+  - Nhận sự kiện cài đặt, gỡ cài đặt và thay đổi ngữ cảnh trò chuyện
+  - Lưu ngữ cảnh hội thoại và định danh phục vụ lần gửi chủ động
+  - Khởi tạo hoặc tiếp tục hội thoại theo API của SDK đang sử dụng
+  - Gửi văn bản, Adaptive Card và phản hồi vào luồng phù hợp
+  - Xử lý người dùng chặn bot, gỡ ứng dụng hoặc đích nhận không còn hợp lệ
+  - 'Teams SDK và Microsoft 365 Agents SDK: chọn theo phạm vi hỗ trợ'
+  - Bot Framework SDK cũ và kế hoạch chuyển sang công cụ còn được duy trì
+  - Tách dịch vụ Java với bộ xử lý bot dùng ngôn ngữ được SDK hỗ trợ
+  - 'Định danh bot, Graph token và webhook URL: các cơ chế truy cập riêng'
+- level1: Tích hợp với Java
+  level2:
+  - Thiết kế giao diện TeamsNotificationSender và các bộ gửi tương ứng
+  - Đối tượng thông báo, mẫu nội dung và dữ liệu cấu hình đích nhận
+  - Gọi Workflows webhook bằng thư viện HTTP Java
+  - Tạo JSON bằng thư viện tuần tự hóa và bảo toàn Unicode
+  - Thiết lập thời gian chờ, kết nối, kiểu nội dung và xử lý phản hồi
+  - Tích hợp lấy token qua thư viện danh tính Microsoft phù hợp
+  - Gọi Microsoft Graph bằng HTTP hoặc Graph Java SDK
+  - Lưu token trong bộ nhớ đệm và quản lý làm mới theo cơ chế xác thực
+  - Đọc phản hồi lỗi, request ID và dữ liệu chẩn đoán có cấu trúc
+  - Tách lỗi cấu hình, xác thực, giới hạn tải và lỗi tạm thời
+  - Phát sự kiện nghiệp vụ và gửi thông báo ngoài luồng xử lý chính
+  - Kiểm thử bộ gửi bằng máy chủ HTTP giả lập và dữ liệu cố định
+  - Ranh giới dịch vụ Java, Workflows và bộ xử lý bot độc lập
+- level1: Kiến trúc thông báo
+  level2:
+  - Tách sự kiện nghiệp vụ khỏi mẫu thông báo và cơ chế gửi
+  - Từ sự kiện đến quyết định gửi, chọn đích, dựng nội dung và chuyển giao
+  - Định danh thông báo và mã liên kết xuyên suốt các bước
+  - 'Gửi trực tiếp và gửi qua hàng đợi: chọn theo yêu cầu độ trễ, độ tin cậy'
+  - Lưu yêu cầu gửi bền vững khi không thể mất thông báo quan trọng
+  - Outbox và ranh giới giữa xác nhận giao dịch với phát thông báo
+  - Khử trùng lặp theo sự kiện, đích nhận và loại thông báo
+  - Gộp nhiều cập nhật thành một bản tổng hợp dễ theo dõi
+  - Ngăn thông báo hàng loạt khi một sự cố phát sinh quá nhiều sự kiện
+  - Giữ dữ liệu chẩn đoán chi tiết trong hệ thống log và chỉ gửi nội dung cần người đọc
+  - Phân biệt thông báo hỗ trợ xử lý với nguồn chuẩn của trạng thái nghiệp vụ
+- level1: Định tuyến người nhận
+  level2:
+  - Ánh xạ loại sự kiện với team, kênh, chat hoặc người dùng
+  - Quản lý định danh thay vì phụ thuộc tên hiển thị có thể thay đổi
+  - Định tuyến theo môi trường, dự án, đơn vị sử dụng và mức độ quan trọng
+  - Tra cứu thành viên và quyền truy cập khi tình huống yêu cầu
+  - Người nhận là khách và các trường hợp giao tiếp liên tổ chức
+  - Kiểm chứng kênh tiêu chuẩn, riêng tư và dùng chung theo cơ chế cụ thể
+  - Đổi tên, lưu trữ hoặc xóa kênh và xử lý cấu hình lỗi thời
+  - Tùy chọn nhận thông báo, giờ yên lặng và múi giờ người dùng
+  - Nhắc việc, gửi lại theo lịch và tránh nhắc khi công việc đã hoàn tất
+  - Chọn đích dự phòng hoặc chuyển cấp theo chính sách nghiệp vụ
+  - Ngăn gửi nhầm tenant, môi trường và nhóm người không có quyền xem
+- level1: Giới hạn và thử lại
+  level2:
+  - Phân biệt hạn mức Graph, Workflows trigger, Teams action và bot
+  - Kiểm tra giới hạn kích thước sau khi dựng đầy đủ nội dung
+  - Tần suất theo đích nhận, theo ứng dụng và theo tenant
+  - Phản hồi 429 và cách đọc Retry-After khi được cung cấp
+  - Lỗi máy chủ tạm thời, lỗi kết nối và điều kiện có thể thử lại
+  - Tăng thời gian chờ, thêm độ lệch ngẫu nhiên và giới hạn số lần thử
+  - Ngân sách thời gian và thời hạn còn giá trị của thông báo
+  - Timeout sau khi phía nhận đã tiếp nhận và nguy cơ đăng trùng
+  - Phối hợp thử lại giữa Java và Workflows để tránh nhân số lần gửi
+  - Hàng đợi lỗi, bản ghi thất bại và phát lại có kiểm soát
+  - Giảm tải, gộp thông báo và phục hồi sau khi dịch vụ hoạt động lại
+- level1: Vòng đời thông báo
+  level2:
+  - 'Các mốc: tạo yêu cầu, tiếp nhận, xử lý, đăng và hoàn tất nghiệp vụ'
+  - Lưu notification ID, run ID, message ID hoặc activity context theo từng cơ chế
+  - Kết quả HTTP thành công và bằng chứng tin nhắn đã xuất hiện trong Teams
+  - Giới hạn suy luận về việc người dùng đã xem hoặc đã đọc
+  - Cập nhật trạng thái sự cố bằng tin mới, phản hồi luồng hoặc sửa tin khi được hỗ trợ
+  - Đóng công việc và vô hiệu hóa hành động đã hết hiệu lực
+  - Phát lại thông báo và phân biệt với cập nhật thông báo đã có
+  - Đồng bộ phản hồi của người dùng về hệ thống nghiệp vụ nguồn
+  - Lưu lịch sử gửi và bằng chứng xử lý phục vụ đối soát
+  - Xóa, lưu giữ và xử lý thông tin theo chính sách của tổ chức
+- level1: Bảo mật và quản trị
+  level2:
+  - Phân loại dữ liệu trước khi quyết định đưa vào thông báo
+  - Quyền tối thiểu cho ứng dụng, tài khoản kết nối và chủ sở hữu luồng
+  - Bảo vệ webhook URL, client secret, chứng chỉ và token
+  - Che bí mật trong log, thông báo lỗi và lịch sử chạy
+  - Xác minh nguồn gọi và kiểm tra dữ liệu nhận từ bên ngoài
+  - Kiểm soát liên kết, hình ảnh và nội dung có thể chứa dữ liệu không tin cậy
+  - Phân biệt quyền xem thông báo với quyền thao tác trên hệ thống nghiệp vụ
+  - Chính sách ngăn thất thoát dữ liệu (DLP) và giới hạn kết nối Power Platform
+  - Cài đặt ứng dụng, cấp quyền và quy trình phê duyệt của tenant
+  - Cách ly dữ liệu và cấu hình giữa các tổ chức sử dụng
+  - Luân chuyển thông tin truy cập và thu hồi khi có sự cố
+  - Lưu vết kiểm toán và tuân thủ chính sách lưu giữ của tổ chức
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Log có cấu trúc theo notification ID, cơ chế gửi và đích nhận
+  - Đo số thông báo tạo, tiếp nhận, gửi thành công và thất bại
+  - Đo độ trễ, số lần thử lại và thông báo nằm trong hàng đợi
+  - Kết nối request ID phía Java với lịch sử chạy Workflows
+  - 'Chẩn đoán 400: dữ liệu JSON, lược đồ thẻ và trường không được hỗ trợ'
+  - 'Chẩn đoán 401 và 403: token, quyền, người gọi và điều kiện cài ứng dụng'
+  - Chẩn đoán đích không tồn tại, ID sai và cấu hình khác tenant
+  - Chẩn đoán 429, lỗi dịch vụ phụ thuộc và thời gian chờ
+  - 'Workflows chạy nhưng không thấy tin nhắn: kiểm tra từng action và đích nhận'
+  - Bot không gửi được sau khi người dùng gỡ ứng dụng hoặc chặn bot
+  - 'Activity feed không xuất hiện: kiểm tra manifest, cài đặt và dữ liệu thông báo'
+  - Phân biệt lỗi hệ thống gửi với thiết lập hiển thị thông báo của người dùng
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị cho mẫu nội dung, định tuyến và quy tắc chống trùng
+  - Kiểm tra JSON, Unicode, dữ liệu thiếu và kích thước nội dung
+  - Kiểm thử hợp đồng đầu vào của Workflows webhook
+  - Giả lập HTTP thành công, lỗi xác thực, giới hạn tải và timeout
+  - Kiểm thử tích hợp trên team, channel và chat thử nghiệm
+  - Kiểm thử từng chế độ xác thực của trigger đã lựa chọn
+  - Kiểm thử quyền delegated, application và RSC theo các API thực tế
+  - Kiểm thử Adaptive Card trên web, desktop và thiết bị di động
+  - Kiểm thử hành động lặp, người không có quyền và thẻ hết hạn
+  - Kiểm thử mất kết nối sau tiếp nhận và đánh giá nguy cơ gửi trùng
+  - Kiểm thử thay đổi chủ sở hữu luồng, kết nối và cài đặt ứng dụng
+  - Đối soát yêu cầu gửi với kết quả hiển thị và trạng thái nghiệp vụ
+- level1: Triển khai và vận hành
+  level2:
+  - Đóng gói dịch vụ Java và cung cấp cấu hình qua môi trường
+  - Quản lý tenant, định danh đích và thông tin truy cập theo từng môi trường
+  - Triển khai Workflows và kiểm tra lại kết nối sau chuyển môi trường
+  - Phát hành hoặc phân phối gói ứng dụng Teams theo chính sách tổ chức
+  - Kiểm tra phạm vi cài đặt và quyền trước khi bật gửi sản xuất
+  - Kiểm tra HTTPS endpoint và khả năng truy cập khi triển khai bot
+  - Giám sát sức khỏe kết nối, token và luồng xử lý
+  - Giới hạn lượng gửi khi phát hành và mở rộng dần theo tải
+  - Quy trình dừng gửi, đổi đích và khôi phục sau cấu hình lỗi
+  - Bàn giao chủ sở hữu, người thay thế và hướng dẫn xử lý sự cố
+  - Rà soát tài liệu Microsoft, phiên bản SDK và thay đổi hỗ trợ định kỳ
+- level1: Di trú hệ thống cũ
+  level2:
+  - Nhận diện Office 365 Connectors và Incoming Webhook dựa trên connector cũ
+  - Đối chiếu đợt ngừng hoạt động tháng 5/2026 và phạm vi hệ thống bị ảnh hưởng
+  - Phân biệt connector cũ đã ngừng hoạt động với Teams connector của Power Automate
+  - Kiểm kê URL, đích nhận, mẫu nội dung và chủ sở hữu hiện tại
+  - Lựa chọn Workflows, Graph, Activity feed hoặc bot cho từng tình huống
+  - Chuyển URL và hợp đồng xác thực sang Workflows webhook
+  - MessageCard được hỗ trợ để chuyển tiếp nội dung và giới hạn của nút tương tác cũ
+  - Thiết kế lại tương tác bằng Adaptive Card và luồng xử lý phản hồi
+  - Danh tính Workflows bot và giới hạn tùy chỉnh tên hoặc biểu tượng khi gửi webhook
+  - Kiểm chứng riêng khả năng gửi vào standard, private và shared channel
+  - Nhận diện Bot Framework SDK, TeamsFx và công cụ cũ trong dự án hiện hữu
+  - Lập kế hoạch kiểm thử, chuyển đổi cấu hình và loại bỏ tham chiếu đã hết hiệu lực
+  - Bàn giao chủ sở hữu mới và xác minh thông báo hoạt động sau di trú
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân tích yêu cầu thông báo trạng thái đơn hàng và cảnh báo sự cố
+  - Lập bảng lựa chọn cơ chế, quyền truy cập và đích nhận
+  - Dựng Workflows webhook rồi gửi thông báo thử từ Java
+  - Tạo Adaptive Card gồm tóm tắt, dữ kiện và liên kết về ứng dụng
+  - Thực nghiệm chế độ xác thực và các trường hợp gọi không hợp lệ
+  - Gửi tin nhắn bằng Graph trong đúng ngữ cảnh quyền được cấp
+  - Dựng Activity feed notification với manifest và phạm vi cài đặt phù hợp
+  - Thực nghiệm bot chủ động bằng SDK được hỗ trợ và kết nối với dịch vụ Java
+  - Thiết kế thẻ xác nhận công việc và ghi nhận phản hồi hợp lệ
+  - Thêm hàng đợi, thử lại và chống đăng trùng cho thông báo quan trọng
+  - Mô phỏng webhook lỗi, quyền bị thu hồi và kết nối Workflows hết hiệu lực
+  - Đối soát lịch sử gửi, kết quả Teams và trạng thái công việc nguồn
+  - Diễn tập di trú một cấu hình connector cũ sang cơ chế hiện hành
+  - Hoàn thiện hồ sơ cấu hình, kiểm thử, quan sát và bàn giao vận hành

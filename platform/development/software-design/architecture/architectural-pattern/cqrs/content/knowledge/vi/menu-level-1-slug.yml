@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng
+  slug: foundations
+  index: 1
+- title: Phạm vi áp dụng
+  slug: applicability
+  index: 2
+- title: Biến thể kiến trúc
+  slug: architectural-variants
+  index: 3
+- title: Mô hình ghi
+  slug: write-model
+  index: 4
+- title: Thiết kế lệnh
+  slug: command-design
+  index: 5
+- title: Xử lý lệnh
+  slug: command-processing
+  index: 6
+- title: Mô hình đọc
+  slug: read-model
+  index: 7
+- title: Thiết kế truy vấn
+  slug: query-design
+  index: 8
+- title: Giao dịch và đồng thời
+  slug: transactions-concurrency
+  index: 9
+- title: Đồng bộ dữ liệu
+  slug: data-synchronization
+  index: 10
+- title: Truyền tin tin cậy
+  slug: reliable-messaging
+  index: 11
+- title: Tính nhất quán
+  slug: consistency
+  index: 12
+- title: Giao tiếp người dùng
+  slug: user-interaction
+  index: 13
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 14
+- title: Quy trình liên miền
+  slug: cross-domain-workflows
+  index: 15
+- title: CQRS và Event Sourcing
+  slug: cqrs-event-sourcing
+  index: 16
+- title: Bảo mật
+  slug: security
+  index: 17
+- title: Java và Spring
+  slug: java-spring
+  index: 18
+- title: Kiểm thử
+  slug: testing
+  index: 19
+- title: Hiệu năng
+  slug: performance
+  index: 20
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 21
+- title: Vận hành và phục hồi
+  slug: operations-recovery
+  index: 22
+- title: Di trú hệ thống
+  slug: system-migration
+  index: 23
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 24
+- title: Đánh giá thiết kế
+  slug: design-review
+  index: 25

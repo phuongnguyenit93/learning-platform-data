@@ -1,0 +1,3 @@
+menuLevel1: Optional.orElseThrow
+menuLevel2: Phân biệt Optional rỗng với dữ liệu sai hoặc lỗi xử lý
+status: WRITTEN

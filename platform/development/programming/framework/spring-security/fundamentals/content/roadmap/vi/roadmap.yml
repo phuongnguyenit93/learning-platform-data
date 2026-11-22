@@ -1,0 +1,50 @@
+roadmap:
+- id: tu-duy-bao-mat-ung-dung
+  title: Tư duy bảo mật ứng dụng
+  purpose: Hiểu Spring Security giải quyết vấn đề gì và đặt nền tảng cho toàn bộ lộ trình.
+  objectives:
+  - Phân biệt xác thực danh tính, phân quyền và bảo vệ trước tấn công.
+  - Nhận diện tài nguyên cần bảo vệ và ranh giới tin cậy.
+  - Xác định kiến thức Java, Spring và HTTP cần có.
+- id: tich-hop-spring-security
+  title: Tích hợp Spring Security
+  purpose: Nhìn được vị trí của lớp bảo mật trong ứng dụng trước khi học từng cơ chế.
+  objectives:
+  - Quan sát hành vi bảo mật ban đầu khi tích hợp Spring Boot.
+  - Phân biệt cấu hình mặc định và cấu hình do ứng dụng khai báo.
+  - Nhận diện hai mô hình tích hợp Servlet và Reactive.
+- id: danh-tinh-va-xac-thuc
+  title: Danh tính và xác thực
+  purpose: Nối thông tin đăng nhập với danh tính đã được kiểm chứng.
+  objectives:
+  - Giải thích chủ thể (principal), thông tin xác thực (credentials) và Authentication.
+  - Nhận diện trách nhiệm của AuthenticationManager và AuthenticationProvider.
+  - Giải thích vai trò UserDetailsService và phép băm mật khẩu qua PasswordEncoder.
+- id: quyen-va-quyet-dinh-truy-cap
+  title: Quyền và quyết định truy cập
+  purpose: Hiểu vì sao xác thực thành công chưa bảo đảm được truy cập mọi tài nguyên.
+  objectives:
+  - Liên hệ GrantedAuthority, vai trò và chính sách truy cập.
+  - Mô tả cách AuthorizationManager đưa ra quyết định cho phép hoặc từ chối.
+  - Phân biệt bảo vệ yêu cầu web và lời gọi phương thức.
+- id: vong-doi-ngu-canh-bao-mat
+  title: Vòng đời ngữ cảnh bảo mật
+  purpose: Theo dõi danh tính được sử dụng và kết thúc như thế nào trong ứng dụng.
+  objectives:
+  - Giải thích quan hệ giữa SecurityContext và Authentication.
+  - Phân biệt ngữ cảnh hiện tại với việc lưu danh tính giữa các yêu cầu.
+  - Mô tả phiên đăng nhập, xử lý không lưu phiên và đăng xuất ở mức khái niệm.
+- id: bao-ve-ung-dung-web
+  title: Bảo vệ ứng dụng web
+  purpose: Nhận diện những lớp bảo vệ bổ sung bên cạnh đăng nhập và kiểm tra quyền.
+  objectives:
+  - Giải thích mục đích của CSRF và các tiêu đề HTTP bảo mật.
+  - Phân biệt chính sách CORS với xác thực và phân quyền.
+  - Liên hệ cách trình duyệt gửi thông tin xác thực với nhu cầu bảo vệ.
+- id: kiem-chung-va-hoc-chuyen-sau
+  title: Kiểm chứng và học chuyên sâu
+  purpose: Dùng tình huống quan sát được để củng cố nền tảng và chọn hướng học tiếp.
+  objectives:
+  - Lập bảng kiểm cho truy cập ẩn danh, xác thực sai, đủ quyền và thiếu quyền.
+  - Đối chiếu phản hồi, nhật ký và cấu hình để giải thích kết quả.
+  - 'Chọn hướng học tiếp: xác thực, phân quyền, Servlet, Reactive hoặc OAuth2/OIDC.'

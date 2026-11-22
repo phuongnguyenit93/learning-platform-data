@@ -1,0 +1,579 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Những nền tảng Java 9 còn được dùng trong Java hiện đại
+  - Quan hệ giữa cải tiến ngôn ngữ, thư viện, công cụ và JVM
+  - Phân biệt mô-đun JPMS với package và đơn vị xây dựng dự án
+  - Kiến thức cần có về generic, Stream, ngoại lệ và đa luồng
+  - Thử nghiệm trên JDK được hỗ trợ và kiểm tra mức ngôn ngữ
+  - Tra cứu hợp đồng API, mốc xuất hiện và tình trạng hỗ trợ
+  - Lựa chọn tính năng theo nhu cầu thay vì áp dụng đồng loạt
+- level1: Nền tảng JPMS
+  level2:
+  - Động cơ tách hệ thống thành các mô-đun có ranh giới rõ ràng
+  - Mã nguồn, package và tài nguyên bên trong một mô-đun
+  - Mô-đun có tên, mô-đun tự động và mô-đun không tên
+  - Khả năng đọc mô-đun và khả năng truy cập kiểu
+  - Vai trò nền tảng của java.base
+  - Đồ thị phụ thuộc tại lúc biên dịch, liên kết và chạy
+  - Phân biệt đóng gói mạnh với cơ chế cô lập mã không đáng tin cậy
+  - Chọn ranh giới mô-đun theo trách nhiệm và hợp đồng công khai
+- level1: Khai báo mô-đun
+  level2:
+  - Cấu trúc module-info.java và module-info.class
+  - Quy tắc đặt tên mô-đun và tổ chức thư mục
+  - Khai báo requires, exports, opens, uses và provides
+  - Khai báo open module và phạm vi mở phản chiếu
+  - Annotation áp dụng cho khai báo mô-đun
+  - Phân biệt mô tả mô-đun với metadata của công cụ xây dựng
+  - ModuleDescriptor và việc đọc thông tin khai báo
+  - Kiểm tra nội dung mô-đun bằng jar --describe-module
+- level1: Phụ thuộc mô-đun
+  level2:
+  - Quan hệ requires và khả năng đọc trực tiếp
+  - requires transitive khi API công khai làm lộ kiểu của mô-đun khác
+  - requires static cho phụ thuộc cần lúc biên dịch
+  - Kết hợp static với transitive đúng mục đích
+  - Mô-đun gốc và quá trình phân giải đồ thị
+  - Phát hiện phụ thuộc thiếu hoặc có chu kỳ
+  - Phân biệt mô-đun quan sát được với mô-đun được phân giải
+  - Giới hạn tập mô-đun và bổ sung mô-đun gốc
+  - Kiểm tra phụ thuộc thật của giao diện công khai
+- level1: Ranh giới truy cập
+  level2:
+  - exports và các kiểu public được truy cập từ bên ngoài
+  - Xuất package có chọn lọc bằng exports ... to
+  - Package nội bộ và quan hệ giữa các package con
+  - opens và quyền phản chiếu sâu vào thành viên
+  - Mở package có chọn lọc bằng opens ... to
+  - So sánh xuất API với mở phản chiếu
+  - canAccess và trySetAccessible trong mã phản chiếu
+  - Chẩn đoán IllegalAccessException và InaccessibleObjectException
+  - Giới hạn phạm vi --add-exports hoặc --add-opens khi tích hợp
+  - Thay phụ thuộc vào chi tiết nội bộ bằng hợp đồng được hỗ trợ
+- level1: Biên dịch mô-đun
+  level2:
+  - Thiết lập --module-path và --module-source-path
+  - Biên dịch một mô-đun hoặc nhiều mô-đun liên quan
+  - Tổ chức đầu ra dạng thư mục mô-đun
+  - Đóng gói modular JAR và chọn lớp main
+  - Chạy bằng java --module hoặc -m
+  - Kiểm tra tập mô-đun bằng --list-modules và --describe-module
+  - Theo dõi quá trình phân giải bằng --show-module-resolution
+  - Phát hiện split package và xung đột tên mô-đun
+  - Dùng --patch-module trong tình huống kiểm thử phù hợp
+  - Đồng bộ cấu hình biên dịch, kiểm thử và chạy
+- level1: Dịch vụ mô-đun
+  level2:
+  - Tách giao diện dịch vụ khỏi phần triển khai
+  - Khai báo phía dùng bằng uses
+  - Khai báo phía cung cấp bằng provides ... with
+  - Nhà cung cấp qua constructor hoặc phương thức provider
+  - Khám phá bằng ServiceLoader trong hệ mô-đun
+  - ServiceLoader.Provider, stream và thời điểm khởi tạo
+  - Chọn nhà cung cấp khi có nhiều phần triển khai
+  - Xử lý không có dịch vụ hoặc ServiceConfigurationError
+  - Khám phá dịch vụ theo ModuleLayer
+  - Giữ mô-đun triển khai độc lập với mã sử dụng dịch vụ
+- level1: Mô-đun tương thích
+  level2:
+  - JAR trên class path và mô-đun không tên
+  - JAR không có descriptor trên module path
+  - Tên suy ra và thuộc tính Automatic-Module-Name
+  - Khả năng đọc và xuất package của mô-đun tự động
+  - Quan hệ giữa mô-đun có tên với mã trên class path
+  - Giới hạn --add-reads và ý nghĩa ALL-UNNAMED
+  - Tránh phụ thuộc vào tên suy ra từ tên tệp JAR
+  - Chuyển dần một thư viện sang descriptor tường minh
+  - Kiểm tra hành vi trên cả class path và module path
+- level1: Mô-đun động
+  level2:
+  - Class.getModule và thông tin java.lang.Module
+  - Kiểm tra canRead, isExported và isOpen
+  - Tìm mô-đun bằng ModuleFinder
+  - ModuleReference, ModuleDescriptor và ModuleReader
+  - Phân giải bằng Configuration và lựa chọn mô-đun gốc
+  - ModuleLayer.boot và tạo lớp mô-đun con
+  - Ánh xạ mô-đun tới một hoặc nhiều class loader
+  - Tổ chức khám phá plugin qua dịch vụ trong lớp mô-đun
+  - Quyền điều chỉnh quan hệ mô-đun qua ModuleLayer.Controller
+  - Quản lý vòng đời plugin và tránh giữ tham chiếu không cần thiết
+- level1: Nạp lớp và tài nguyên
+  level2:
+  - Vai trò bootstrap, platform và application class loader
+  - Lấy platform class loader bằng API được hỗ trợ
+  - Không giả định system class loader là URLClassLoader
+  - Định danh lớp trong môi trường nhiều loader và mô-đun
+  - Truy cập tài nguyên qua Class, ClassLoader hoặc Module
+  - Ảnh hưởng của đóng gói package tới việc tìm tài nguyên
+  - Tài nguyên trong runtime image và URI jrt
+  - Duyệt nội dung mô-đun bằng ModuleReader
+  - Phân biệt không tìm thấy tài nguyên với bị giới hạn truy cập
+- level1: Phân tích phụ thuộc
+  level2:
+  - Phân tích JAR, package và lớp bằng jdeps
+  - Liệt kê phụ thuộc mô-đun của ứng dụng
+  - Phát hiện sử dụng API nội bộ bằng --jdk-internals
+  - Kiểm tra descriptor và phụ thuộc thừa bằng --check
+  - Gợi ý descriptor qua --generate-module-info
+  - Chọn phiên bản khi phân tích JAR đa phiên bản
+  - Bổ sung phụ thuộc được nạp qua dịch vụ hoặc phản chiếu
+  - Đối chiếu kết quả phân tích tĩnh với kiểm thử lúc chạy
+- level1: Runtime riêng
+  level2:
+  - Vai trò của jlink trong giai đoạn liên kết
+  - Chọn mô-đun gốc và tính phụ thuộc bắc cầu
+  - Tạo runtime image bằng --module-path, --add-modules và --output
+  - Giới hạn mô-đun tự động khi liên kết image
+  - Đưa nhà cung cấp dịch vụ vào image với --bind-services
+  - Tạo launcher cho ứng dụng mô-đun
+  - Chọn plugin tối ưu theo JDK đang dùng
+  - Giữ tài nguyên và dữ liệu locale mà ứng dụng cần
+  - Ràng buộc theo hệ điều hành, kiến trúc và bộ JDK đầu vào
+  - Cập nhật bản vá và tái tạo image khi JDK thay đổi
+  - Kiểm thử image trong môi trường không cài JDK đầy đủ
+- level1: Định dạng JMOD
+  level2:
+  - Phân biệt JMOD với modular JAR
+  - Lớp, cấu hình, thư viện native và lệnh trong JMOD
+  - Tạo, mô tả, liệt kê và giải nén bằng jmod
+  - Đầu vào JMOD cho công cụ jlink
+  - Giới hạn sử dụng JMOD trực tiếp lúc chạy
+  - Thông tin nền tảng và tính tương thích của gói
+  - Quản lý hiện vật đầu vào có thể tái tạo
+- level1: JAR đa phiên bản
+  level2:
+  - Một JAR với lớp nền và các phần triển khai theo phiên bản
+  - Manifest Multi-Release và META-INF/versions
+  - Quy tắc lựa chọn lớp theo phiên bản runtime
+  - Giữ hợp đồng API nhất quán giữa các phần triển khai
+  - Quy tắc cho lớp, tài nguyên và thư mục META-INF
+  - Đóng gói bằng tùy chọn --release của jar
+  - Kiểm tra nội dung bằng jar --validate
+  - Đọc thông tin phiên bản qua JarFile và JarEntry
+  - Descriptor mô-đun trong JAR đa phiên bản
+  - Kiểm thử từng JDK đích và phát hiện sai khác hành vi
+- level1: Biên dịch tương thích
+  level2:
+  - Phân biệt mức cú pháp, định dạng class và API nền tảng
+  - Mục đích của javac --release
+  - Chọn phiên bản đích trong tập được compiler hỗ trợ
+  - Ngăn gọi API mới ngoài nền tảng đích
+  - Giới hạn kiểm tra thư viện bên thứ ba
+  - Phối hợp --release với module-info và JAR đa phiên bản
+  - Rà soát annotation processor cùng công cụ xây dựng
+  - Kiểm thử bằng runtime đích sau khi biên dịch thành công
+- level1: JShell
+  level2:
+  - Mô hình thử nghiệm biểu thức, câu lệnh và khai báo
+  - Snippet, biến kết quả tạm và trạng thái phiên làm việc
+  - Khai báo lại và ảnh hưởng tới đoạn mã phụ thuộc
+  - Hoàn thành mã và tra cứu tài liệu ngay trong phiên
+  - Xem /list, /vars, /methods, /types và /imports
+  - Sửa, loại bỏ và thực thi lại snippet
+  - Lưu, mở và phát lại nội dung phiên
+  - Cấu hình class path, module path và mô-đun bổ sung
+  - Xử lý lỗi biên dịch, ngoại lệ và trạng thái chưa giải quyết
+  - Tách thử nghiệm ngắn khỏi mã ứng dụng cần kiểm thử đầy đủ
+  - Nhúng JShell API, đọc SnippetEvent và diagnostics
+  - Quản lý nguồn đầu vào tin cậy và đóng JShell khi hoàn tất
+- level1: Private trong interface
+  level2:
+  - Vấn đề lặp logic giữa các phương thức default
+  - Phương thức private có phần thân trong interface
+  - Phương thức private static và ngữ cảnh gọi
+  - Tái sử dụng logic trong phạm vi interface
+  - Quy tắc không kế thừa và không ghi đè
+  - Giới hạn kết hợp private với các modifier khác
+  - Giữ hợp đồng public nhỏ và dễ tiến hóa
+- level1: Tài nguyên sẵn có
+  level2:
+  - Dùng biến final hoặc effectively final trong try-with-resources
+  - Phân biệt khai báo tài nguyên mới với tham chiếu tài nguyên có sẵn
+  - Phạm vi biến và quyền sở hữu tài nguyên được đóng
+  - Nhiều tài nguyên và thứ tự đóng ngược
+  - Giá trị null cùng ngoại lệ khi khởi tạo hoặc đóng
+  - Giữ nguyên cơ chế suppressed exception
+  - Tránh sử dụng tài nguyên đã đóng qua tham chiếu bên ngoài
+  - Tái cấu trúc khối xử lý tài nguyên và kiểm chứng đường lỗi
+- level1: Generic và định danh
+  level2:
+  - Diamond với lớp ẩn danh
+  - Giới hạn kiểu suy luận có thể biểu diễn trong mã nguồn
+  - Quy tắc phương thức bổ sung của lớp ẩn danh dùng diamond
+  - '@SafeVarargs trên phương thức private của đối tượng'
+  - Cam kết an toàn varargs và nguy cơ heap pollution
+  - Phân biệt an toàn thực tế với việc bỏ cảnh báo
+  - Dấu _ đơn lẻ không dùng làm tên định danh thông thường
+  - Kiểm tra mức ngôn ngữ để tránh nhầm với cú pháp mới hơn
+- level1: Collection gọn
+  level2:
+  - Tạo List bằng List.of
+  - Tạo Set bằng Set.of
+  - Tạo Map bằng Map.of, Map.entry và Map.ofEntries
+  - Tập hợp không sửa được và phần tử vẫn có thể thay đổi
+  - Quy tắc không chấp nhận null
+  - Xử lý phần tử Set trùng hoặc khóa Map trùng
+  - Thứ tự List và giới hạn bảo đảm thứ tự của Set, Map
+  - Đặc tính dựa trên giá trị và tránh phụ thuộc định danh
+  - Chọn cấu trúc có thể sửa khi cần cập nhật dữ liệu
+  - Kiểm tra tính bất biến của cả đồ thị dữ liệu
+- level1: Stream mở rộng
+  level2:
+  - takeWhile và tiền tố thỏa điều kiện
+  - dropWhile và phần còn lại sau tiền tố
+  - Khác biệt với filter, limit và skip
+  - Ảnh hưởng của thứ tự duyệt và chế độ song song
+  - Stream.iterate với điều kiện kết thúc
+  - Thời điểm kiểm tra điều kiện và tạo phần tử kế tiếp
+  - Tạo luồng có thể rỗng bằng Stream.ofNullable
+  - Áp dụng các cải tiến cho luồng kiểu nguyên thủy
+  - Tránh trạng thái dùng chung và tác dụng phụ trong pipeline
+  - Kiểm chứng kết quả khi nguồn rỗng, vô hạn hoặc không có thứ tự
+- level1: Bộ thu dữ liệu
+  level2:
+  - Collectors.filtering trong phép thu theo nhóm
+  - Phân biệt lọc trước groupingBy với lọc bên trong nhóm
+  - Collectors.flatMapping và trải phẳng dữ liệu của từng phần tử
+  - Vòng đời luồng con khi flatMapping
+  - Kết hợp với groupingBy, partitioningBy và bộ thu lồng nhau
+  - Giữ nhóm có kết quả rỗng khi yêu cầu nghiệp vụ cần
+  - Kiểm tra kiểu kết quả và khả năng thu song song
+- level1: Optional mở rộng
+  level2:
+  - Thực hiện hai nhánh bằng ifPresentOrElse
+  - Tạo Optional thay thế bằng or và Supplier
+  - Thời điểm gọi Supplier và giới hạn trả về null
+  - Chuyển Optional thành luồng bằng stream
+  - Trải phẳng tập các Optional trong Stream
+  - stream và ifPresentOrElse trên OptionalInt, OptionalLong, OptionalDouble
+  - Phân biệt Optional.or với giá trị mặc định trực tiếp
+  - Kiểm thử trường hợp có giá trị và trường hợp rỗng
+- level1: Tiện ích Objects
+  level2:
+  - Giá trị thay thế không null bằng requireNonNullElse
+  - Tạo giá trị thay thế trì hoãn bằng requireNonNullElseGet
+  - Quy tắc null đối với giá trị mặc định và Supplier
+  - Kiểm tra chỉ số bằng checkIndex
+  - Kiểm tra đoạn bằng checkFromToIndex
+  - Kiểm tra điểm đầu và độ dài bằng checkFromIndexSize
+  - Biên đoạn rỗng, số âm và nguy cơ tràn khi tính chỉ số
+  - Áp dụng các overload int của Java 9 trong hợp đồng phương thức
+- level1: So sánh mảng
+  level2:
+  - So sánh từ điển bằng Arrays.compare
+  - So sánh mảng số nguyên không dấu bằng compareUnsigned
+  - Tìm vị trí khác đầu tiên bằng mismatch
+  - Quy tắc khi một mảng là tiền tố của mảng kia
+  - So sánh toàn mảng hoặc hai đoạn chỉ định
+  - Comparator cho mảng đối tượng
+  - Quy tắc null, NaN, +0.0 và -0.0
+  - Kết hợp equals, compare và mismatch đúng mục đích
+- level1: Số học bổ sung
+  level2:
+  - Nhân cộng hợp nhất bằng Math.fma
+  - Khác biệt làm tròn giữa fma và hai phép toán tách rời
+  - Tích đầy đủ của hai int bằng multiplyFull
+  - Phần cao của tích hai long bằng multiplyHigh
+  - floorDiv và floorMod với toán hạng long, int
+  - Phân biệt chia làm tròn xuống với chia cắt về không
+  - Kiểm tra số âm, biên kiểu, NaN và vô cực
+  - Đối chiếu kết quả Math với hợp đồng StrictMath khi cần
+- level1: Luồng vào ra
+  level2:
+  - Đọc dữ liệu còn lại bằng InputStream.readAllBytes
+  - Đọc tối đa số byte vào bộ đệm bằng readNBytes(byte[], int, int)
+  - Chuyển dữ liệu sang OutputStream bằng transferTo
+  - Giới hạn bộ nhớ khi đọc toàn bộ luồng
+  - Kết thúc luồng và trường hợp đọc ít hơn yêu cầu
+  - Lỗi I/O, trạng thái luồng và dữ liệu đã chuyển một phần
+  - Quyền đóng luồng vào và luồng ra
+  - Bảng mã tường minh khi chuyển byte sang văn bản
+  - Kiểu trả về cụ thể hơn trong chuỗi lời gọi ByteBuffer
+  - Kiểm thử dữ liệu rỗng, dữ liệu lớn và lỗi giữa chừng
+- level1: Quản lý tiến trình
+  level2:
+  - ProcessHandle và mã tiến trình pid
+  - Tiến trình hiện tại, tìm theo pid và liệt kê tiến trình
+  - Quan hệ cha, con và cây tiến trình
+  - ProcessHandle.Info và thông tin có thể không có sẵn
+  - Snapshot, tiến trình kết thúc và khả năng tái sử dụng pid
+  - Theo dõi kết thúc qua onExit và CompletableFuture
+  - Phân biệt hoàn tất theo dõi với mã thoát thành công
+  - Yêu cầu kết thúc bằng destroy hoặc destroyForcibly
+  - Giới hạn quyền và khác biệt hệ điều hành
+  - Tạo pipeline qua ProcessBuilder.startPipeline
+  - Tiêu thụ stdout, stderr và tránh bế tắc do bộ đệm
+  - Quản lý thời hạn chờ cùng vòng đời tiến trình con
+- level1: CompletableFuture
+  level2:
+  - Giá trị hoặc lỗi đã hoàn tất qua các factory bổ sung
+  - completeAsync và lựa chọn Executor
+  - delayedExecutor và việc lên lịch bắt đầu công việc
+  - orTimeout và hoàn tất bằng TimeoutException
+  - completeOnTimeout và giá trị dự phòng
+  - Phân biệt hết thời hạn với dừng công việc nền
+  - Ảnh hưởng của các phương thức trả lại cùng future
+  - Bản sao qua copy và giới hạn thay đổi qua minimalCompletionStage
+  - newIncompleteFuture và defaultExecutor khi mở rộng lớp
+  - Kết hợp kết quả, lỗi, thời hạn và hủy
+  - Tránh chặn tác vụ trong executor không phù hợp
+  - Kiểm thử các cuộc đua giữa hoàn tất thường và hết hạn
+- level1: Flow
+  level2:
+  - Mô hình phát hành và đăng ký luồng dữ liệu
+  - Vai trò Publisher, Subscriber, Subscription và Processor
+  - Trình tự onSubscribe, onNext, onError và onComplete
+  - Nhu cầu tiêu thụ qua request
+  - Điều tiết theo nhu cầu và kiểm soát áp lực ngược
+  - Quy tắc request dương và cộng dồn nhu cầu
+  - Hủy đăng ký và sự kiện đã được lên lịch
+  - Tuần tự hóa tín hiệu cho từng Subscriber
+  - Quan hệ giữa việc đăng ký và bộ máy thực thi
+  - Phân biệt hợp đồng Flow với thư viện xử lý phản ứng hoàn chỉnh
+  - Kiểm chứng giao thức khi lỗi, hủy hoặc bên nhận chậm
+- level1: SubmissionPublisher
+  level2:
+  - Triển khai Publisher có bộ đệm cho từng Subscriber
+  - Chọn Executor và dung lượng bộ đệm
+  - submit, thời điểm chặn và ảnh hưởng của bên nhận chậm
+  - offer, thời hạn chờ và chính sách bỏ phần tử
+  - Quan sát độ trễ và nhu cầu ước lượng
+  - Đóng bình thường hoặc đóng với lỗi
+  - Xử lý ngoại lệ do Subscriber
+  - Xây Processor chuyển đổi dữ liệu
+  - Tránh giữ khóa trong khi phát dữ liệu có thể chặn
+  - Đóng publisher và executor theo quyền sở hữu
+- level1: StackWalker
+  level2:
+  - Duyệt ngăn xếp hiện tại theo nhu cầu
+  - StackFrame và thứ tự từ khung hiện tại trở xuống
+  - Dừng sớm bằng lọc và giới hạn luồng khung
+  - Phạm vi sống của Stream trong walk
+  - Giữ Class bằng RETAIN_CLASS_REFERENCE
+  - getCallerClass và lựa chọn khung gọi
+  - Khung phản chiếu, khung ẩn và tùy chọn quan sát
+  - Chia sẻ StackWalker giữa các luồng
+  - Giới hạn dùng ngăn xếp làm hợp đồng nghiệp vụ
+  - Đánh giá chi phí so với việc tạo toàn bộ stack trace
+- level1: VarHandle
+  level2:
+  - Truy cập có kiểu tới trường và phần tử mảng
+  - Tạo handle bằng Lookup và arrayElementVarHandle
+  - Kiểu biến, kiểu tọa độ và chữ ký của chế độ truy cập
+  - Kiểm tra quyền khi tạo handle
+  - Trường static, trường đối tượng và phần tử mảng
+  - Đọc ghi thường và đọc ghi volatile
+  - compareAndSet, compareAndExchange và giá trị quan sát được
+  - getAndSet, getAndAdd và phép cập nhật bit
+  - Chế độ truy cập được hỗ trợ theo kiểu và tính chất biến
+  - Lỗi sai kiểu, sai tọa độ hoặc chế độ không hỗ trợ
+  - Chọn VarHandle khi lớp atomic có sẵn chưa phù hợp
+- level1: Trật tự bộ nhớ
+  level2:
+  - Quan hệ happens-before và vấn đề công bố dữ liệu
+  - So sánh plain, opaque, acquire, release và volatile
+  - Ghép cặp đọc acquire với ghi release
+  - CAS mạnh, CAS yếu và thất bại giả
+  - Thiết kế vòng lặp cập nhật nguyên tử
+  - Các biến thể acquire, release của thao tác cập nhật
+  - Vai trò acquireFence, releaseFence và fullFence
+  - Phân biệt hàng rào bộ nhớ với tính nguyên tử của thuật toán
+  - Giới hạn đúng đắn khi trộn nhiều chế độ truy cập
+  - Thread.onSpinWait chỉ là gợi ý cho vòng chờ bận
+  - Chọn chờ chặn hoặc chờ bận theo kiểu tải thực tế
+  - Kiểm thử tranh chấp và tránh kết luận từ một lần chạy
+- level1: MethodHandle mở rộng
+  level2:
+  - privateLookupIn và điều kiện truy cập qua mô-đun
+  - Lookup.defineClass và ranh giới package
+  - Điều chỉnh quyền Lookup bằng dropLookupMode
+  - Kết hợp vòng lặp qua loop, whileLoop và doWhileLoop
+  - countedLoop và iteratedLoop
+  - Bao hành vi bằng tryFinally
+  - Các bộ biến đổi zero, empty và dropArgumentsToMatch
+  - Trải và gom đối số tại vị trí chỉ định
+  - Kiểm tra MethodType của từng bước kết hợp
+  - Giữ Lookup có quyền cao trong phạm vi tin cậy
+- level1: Liên kết động
+  level2:
+  - Vai trò jdk.dynalink trong ngôn ngữ có kiểu động
+  - DynamicLinkerFactory và cấu hình bộ liên kết
+  - CallSiteDescriptor, Operation và CallSite
+  - GuardedInvocation cùng điều kiện bảo vệ
+  - Liên kết lại khi kiểu hoặc giả định thay đổi
+  - Kết nối mô hình đối tượng với MethodHandle
+  - Phân biệt API liên kết động với một bộ thực thi ngôn ngữ cụ thể
+- level1: Cleaner
+  level2:
+  - Phân biệt vòng đời đối tượng với vòng đời tài nguyên ngoài heap
+  - Cleaner, Cleanable và hành động dọn dẹp
+  - Đăng ký trạng thái dọn dẹp không giữ tham chiếu tới đối tượng
+  - Gọi clean chủ động từ close
+  - Thực thi nhiều nhất một lần và tính an toàn khi gọi đồng thời
+  - Giới hạn bảo đảm thời điểm chạy và khi JVM kết thúc
+  - Tránh chặn luồng dọn dẹp hoặc làm mất lỗi quan trọng
+  - Ưu tiên đóng tài nguyên tường minh trong luồng xử lý chính
+  - Reference.reachabilityFence để giữ đối tượng sống đủ lâu
+  - Kiểm thử đóng chủ động mà không phụ thuộc thời điểm GC
+- level1: Lọc giải tuần tự
+  level2:
+  - Vai trò phòng vệ hiện hành của ObjectInputFilter
+  - Xác định loại dữ liệu được phép trước khi nhận đầu vào
+  - Lọc lớp, độ dài mảng, độ sâu và số tham chiếu
+  - Giới hạn tổng byte qua FilterInfo
+  - Ba trạng thái ALLOWED, REJECTED và UNDECIDED
+  - Bộ lọc theo luồng và cấu hình jdk.serialFilter
+  - Mẫu cho tên lớp, package, mô-đun và giới hạn tài nguyên
+  - Từ chối dữ liệu ngoài hợp đồng
+  - Giới hạn bảo vệ và việc tránh giải tuần tự dữ liệu không đáng tin cậy
+  - Kiểm thử dữ liệu bị từ chối và dừng xử lý an toàn
+- level1: Logging ứng dụng
+  level2:
+  - Lấy bộ ghi qua System.getLogger
+  - System.Logger.Level và ánh xạ mức nhật ký
+  - isLoggable và thông điệp qua Supplier
+  - Ghi kèm Throwable và tham số định dạng
+  - Thông điệp bản địa hóa qua ResourceBundle
+  - System.LoggerFinder và dịch vụ chuyển tiếp
+  - Nhà cung cấp mặc định cùng java.util.logging
+  - Phân biệt API ghi nhật ký với nơi lưu và chính sách vận hành
+  - Tránh dựng thông điệp tốn kém hoặc ghi dữ liệu nhạy cảm
+- level1: Logging JVM
+  level2:
+  - Cú pháp -Xlog của hệ thống ghi nhật ký thống nhất
+  - Tag, tập tag và mức chi tiết
+  - Chọn đầu ra stdout, stderr hoặc tệp
+  - Thông tin bổ sung về thời gian, luồng và tiến trình
+  - Xoay tệp và giới hạn dung lượng
+  - Theo dõi GC và nạp lớp bằng tag phù hợp
+  - Kiểm tra tag cùng tùy chọn trên JVM đang dùng
+  - Điều chỉnh cấu hình lúc chạy bằng lệnh chẩn đoán được hỗ trợ
+  - Đọc thời gian dừng và phân biệt sự kiện đồng thời
+  - Đo chi phí ghi nhật ký trước khi bật mức rất chi tiết
+- level1: Hiệu năng JVM
+  level2:
+  - Compact Strings và biểu diễn Latin-1 hoặc UTF-16 bên trong HotSpot
+  - Giữ nguyên hợp đồng String, char và code point
+  - Nối chuỗi qua invokedynamic và StringConcatFactory
+  - Code cache phân đoạn theo loại mã biên dịch
+  - Compiler Control và chỉ thị biên dịch theo phương thức
+  - 'G1: vùng heap, thu hồi ưu tiên và mục tiêu thời gian dừng'
+  - Phân biệt hành vi triển khai JVM với bảo đảm ngôn ngữ
+  - Đo bộ nhớ, thời gian làm nóng, thông lượng và độ trễ
+  - Kiểm tra tác động trên đúng JDK, dữ liệu và môi trường triển khai
+- level1: Locale và bản dịch
+  level2:
+  - CLDR làm nguồn dữ liệu locale mặc định
+  - Dữ liệu locale có thể thay đổi khi cập nhật JDK
+  - Kiểm thử định dạng ngày, số và tiền tệ theo locale
+  - PropertyResourceBundle đọc dữ liệu UTF-8
+  - Cơ chế quay về ISO-8859-1 và lựa chọn bảng mã tường minh
+  - Phân biệt PropertyResourceBundle với Properties.load
+  - Bundle trong mô-đun có tên và quyền truy cập tài nguyên
+  - ResourceBundleProvider cho dịch vụ bản dịch
+  - Kiểm thử tiếng Việt và tránh phụ thuộc chuỗi định dạng của máy
+- level1: XML Catalog
+  level2:
+  - Ánh xạ định danh XML tới tài nguyên do ứng dụng kiểm soát
+  - Catalog, CatalogManager và CatalogResolver
+  - CatalogFeatures cùng chính sách khi không tìm thấy
+  - Ánh xạ public identifier, system identifier và URI
+  - Tích hợp bộ phân giải với SAX, DOM, StAX, XSLT hoặc schema
+  - Tài nguyên cục bộ và khả năng xử lý khi không có mạng
+  - Quan hệ giữa catalog với giới hạn truy cập tài nguyên ngoài
+  - Kiểm thử ánh xạ, tài nguyên thiếu và đầu vào ngoài hợp đồng
+- level1: JDBC 4.3
+  level2:
+  - Ranh giới yêu cầu qua beginRequest và endRequest
+  - Vai trò của connection pool trong việc báo ranh giới
+  - Phân biệt ranh giới yêu cầu với transaction
+  - ConnectionBuilder và cấu hình tạo kết nối
+  - ShardingKey, ShardingKeyBuilder và super sharding key
+  - Đặt hoặc kiểm tra khóa phân mảnh trên Connection
+  - Kiểm tra khả năng hỗ trợ của driver và DatabaseMetaData
+  - Trích dẫn literal, identifier và NCHAR qua Statement
+  - Phân biệt tiện ích trích dẫn với tham số hóa PreparedStatement
+  - Xử lý SQLFeatureNotSupportedException và hành vi riêng của driver
+- level1: Mật mã chuẩn
+  level2:
+  - Chọn thuật toán và provider qua API JCA được hỗ trợ
+  - Các hàm băm SHA3-224, SHA3-256, SHA3-384 và SHA3-512
+  - MessageDigest, dữ liệu đầu vào và biểu diễn kết quả
+  - Phân biệt hàm băm dữ liệu với lưu mật khẩu
+  - SecureRandom với cơ chế DRBG
+  - 'DrbgParameters: độ mạnh, khả năng dự báo và tái cấp seed'
+  - Quản lý nguồn entropy và tránh seed có thể đoán
+  - PKCS12 cho kho khóa và chứng thư
+  - Dùng KeyStore cùng keytool theo định dạng tường minh
+  - Kiểm tra cấu hình thuật toán hiện hành thay vì sao chép mặc định cũ
+- level1: TLS và ALPN
+  level2:
+  - Đàm phán giao thức ứng dụng trong TLS bằng ALPN
+  - Cấu hình danh sách giao thức qua SSLParameters
+  - Đọc giao thức đã chọn trên SSLSocket hoặc SSLEngine
+  - Bộ chọn giao thức phía máy chủ và trường hợp không tương thích
+  - Phân biệt ALPN với lựa chọn phiên bản TLS
+  - OCSP stapling và thông tin thu hồi chứng thư
+  - DTLS với SSLEngine cho giao tiếp datagram
+  - Khác biệt thứ tự, mất gói và trạng thái bắt tay DTLS
+  - Chọn phiên bản, thuật toán và chính sách chứng thư còn được hỗ trợ
+  - Kiểm thử lỗi bắt tay và xác minh danh tính đầu xa
+- level1: Desktop và hình ảnh
+  level2:
+  - Ảnh nhiều độ phân giải qua MultiResolutionImage
+  - Tạo các biến thể bằng BaseMultiResolutionImage
+  - HiDPI và khác biệt giữa tọa độ logic với pixel vật lý
+  - Đọc ghi TIFF bằng Image I/O chuẩn
+  - Metadata TIFF và kiểm tra bộ đọc, bộ ghi hỗ trợ
+  - 'Desktop: sự kiện mở tệp, URI và yêu cầu thoát'
+  - 'Taskbar: biểu tượng, tiến trình và yêu cầu chú ý'
+  - Kiểm tra hỗ trợ theo hệ điều hành trước khi gọi API
+  - BeanProperty, JavaBean và SwingContainer cho metadata giao diện
+  - Giữ cập nhật AWT, Swing trên luồng sự kiện
+- level1: Javadoc mô-đun
+  level2:
+  - Tài liệu cho module-info và package được công khai
+  - Lựa chọn mô-đun, package và kiểu cần xuất tài liệu
+  - Trang tổng quan mô-đun và quan hệ phụ thuộc
+  - Tra cứu qua hộp tìm kiếm và thẻ @index
+  - Nội dung HTML hợp lệ trong phần chú thích
+  - Liên kết tài liệu ngoài và kiểm tra liên kết
+  - Doclet API trong jdk.javadoc.doclet
+  - DocletEnvironment, phần tử ngôn ngữ và nội dung chú thích
+  - Phân biệt công cụ tạo tài liệu với hợp đồng API được công bố
+- level1: Công cụ nhúng
+  level2:
+  - Tìm và gọi công cụ bằng java.util.spi.ToolProvider
+  - Phân biệt với javax.tools.ToolProvider của compiler API
+  - JavaCompiler và StandardJavaFileManager trong dự án mô-đun
+  - Vị trí mô-đun qua getLocationForModule và listLocationsForModules
+  - ModuleElement trong mô hình phần tử ngôn ngữ
+  - ModuleTree cùng các chỉ thị trong cây cú pháp
+  - Annotation processor và phần tử thuộc mô-đun
+  - Thu thập chẩn đoán và đóng tài nguyên của công cụ
+- level1: Tiến hóa API
+  level2:
+  - Metadata since và forRemoval của @Deprecated
+  - Phân biệt cảnh báo deprecated với cảnh báo removal
+  - Thông tin thay thế trong tài liệu @deprecated
+  - Quét phụ thuộc bằng jdeprscan
+  - Giới hạn quét tĩnh và kiểm tra phụ thuộc lúc chạy
+  - Runtime.version và đối tượng Runtime.Version
+  - Phân tích, so sánh phiên bản bằng API thay vì cắt chuỗi tùy ý
+  - Kiểm tra tính năng và khả năng hỗ trợ thay cho suy đoán từ tên bản phát hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Tách ứng dụng thành mô-đun API, triển khai và khởi chạy
+  - Khám phá nhiều nhà cung cấp qua ServiceLoader
+  - Đọc tài nguyên trong mô-đun và kiểm thử quyền phản chiếu
+  - Phân tích phụ thuộc rồi tạo runtime image bằng jlink
+  - Đóng gói JAR đa phiên bản và kiểm thử trên các JDK đích
+  - Thử nghiệm nhanh API trong JShell rồi đưa vào chương trình kiểm chứng
+  - Tái cấu trúc interface, generic và khối đóng tài nguyên
+  - Xử lý dữ liệu bằng collection gọn, Stream và Optional
+  - Theo dõi tiến trình con với thời hạn và xử lý đầu ra
+  - Xây luồng phát dữ liệu có điều tiết cùng hoàn tất bất đồng bộ
+  - Kiểm chứng cập nhật VarHandle và vòng đời Cleaner
+  - Kiểm thử locale, XML, JDBC cùng dữ liệu ngoài hợp đồng
+  - Đọc log JVM và đo tác động của thay đổi trên dữ liệu đại diện

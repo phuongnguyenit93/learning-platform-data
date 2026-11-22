@@ -1,0 +1,64 @@
+roadmap:
+- id: muc-tieu-bao-mat
+  title: Mục tiêu bảo mật
+  purpose: Xác định dữ liệu cần bảo vệ và thuộc tính bảo mật cần đạt.
+  objectives:
+  - Phân biệt bí mật, toàn vẹn, xác thực và phân quyền.
+  - Mô tả tài sản, mối đe dọa và ranh giới tin cậy.
+  - Phân biệt mã hóa, băm và mã hóa biểu diễn như Base64.
+- id: kien-truc-jca
+  title: Kiến trúc JCA
+  purpose: Sử dụng API mật mã chuẩn và hiểu vai trò của provider.
+  objectives:
+  - Giải thích quan hệ giữa thuật toán, engine API và provider.
+  - Khởi tạo dịch vụ bằng getInstance và xử lý thuật toán không có sẵn.
+  - Kiểm tra tên thuật toán và khả năng hỗ trợ trên JDK đang dùng.
+- id: ngau-nhien-va-khoa
+  title: Ngẫu nhiên và khóa
+  purpose: Tạo vật liệu mật mã phù hợp và quản lý vòng đời bí mật.
+  objectives:
+  - Dùng SecureRandom, KeyGenerator hoặc KeyPairGenerator đúng mục đích.
+  - Phân biệt khóa, salt, nonce và IV.
+  - Lập kế hoạch lưu trữ, luân chuyển và thu hồi khóa.
+- id: bam-va-mat-khau
+  title: Băm và mật khẩu
+  purpose: Chọn đúng cơ chế kiểm tra toàn vẹn, xác thực thông điệp và bảo vệ mật khẩu.
+  objectives:
+  - So sánh MessageDigest với Mac có khóa.
+  - Kiểm tra dữ liệu thay đổi làm phép xác minh thất bại.
+  - Giải thích vì sao mật khẩu cần hàm dẫn xuất khóa, salt và chi phí phù hợp.
+- id: ma-hoa-xac-thuc
+  title: Mã hóa xác thực
+  purpose: Bảo vệ nội dung đồng thời phát hiện dữ liệu bị sửa đổi.
+  objectives:
+  - Thực hiện chu trình mã hóa/giải mã bằng Cipher với chế độ AEAD.
+  - Giữ nonce không trùng cho cùng khóa và xác định dữ liệu AAD.
+  - Kiểm thử sai khóa, sai thẻ xác thực và dữ liệu bị sửa.
+- id: khoa-cong-khai
+  title: Khóa công khai
+  purpose: Hiểu cách dùng cặp khóa cho chữ ký và thiết lập bí mật chung.
+  objectives:
+  - Phân biệt ký số, mã hóa bất đối xứng và thỏa thuận khóa.
+  - Tạo và xác minh chữ ký bằng Signature.
+  - Giải thích vai trò mật mã đối xứng trong mô hình mã hóa lai.
+- id: chung-chi-va-kho-khoa
+  title: Chứng chỉ và kho khóa
+  purpose: Liên kết khóa công khai với danh tính và quản lý vật liệu xác thực.
+  objectives:
+  - Đọc chứng chỉ X.509 và kiểm tra chuỗi tin cậy.
+  - Phân biệt mục chứa khóa riêng với chứng chỉ tin cậy trong KeyStore.
+  - Dùng keytool để kiểm tra kho khóa thử nghiệm.
+- id: tls-va-danh-tinh
+  title: TLS và danh tính
+  purpose: Áp dụng mật mã vào kết nối và xác minh đúng đối tác.
+  objectives:
+  - Mô tả vai trò SSLContext, KeyManager và TrustManager.
+  - Phân biệt kiểm tra chứng chỉ với kiểm tra tên máy chủ.
+  - Kiểm chứng kết nối TLS và giải thích điều kiện cần cho mTLS.
+- id: tich-hop-an-toan
+  title: Tích hợp an toàn
+  purpose: Đưa các thao tác mật mã vào ứng dụng với hợp đồng và kiểm tra rõ ràng.
+  objectives:
+  - Không đưa bí mật vào mã nguồn, log hoặc thông báo lỗi.
+  - Kiểm thử dữ liệu sai định dạng, bị sửa và vượt giới hạn.
+  - Đánh giá cập nhật JDK, provider và cấu hình thuật toán theo vòng đời hệ thống.

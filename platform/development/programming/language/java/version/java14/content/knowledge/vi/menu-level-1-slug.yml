@@ -1,0 +1,97 @@
+menu:
+- title: Định hướng
+  slug: java-14-overview
+  index: 0
+- title: Switch biểu thức
+  slug: switch-expressions
+  index: 1
+- title: Nhánh và yield
+  slug: switch-branches-and-yield
+  index: 2
+- title: Kiểu kết quả switch
+  slug: switch-result-types
+  index: 3
+- title: Nền tảng record
+  slug: record-fundamentals
+  index: 4
+- title: Khởi tạo record
+  slug: record-construction
+  index: 5
+- title: Giá trị record
+  slug: record-values
+  index: 6
+- title: Tổ chức record
+  slug: record-organization
+  index: 7
+- title: Phản chiếu record
+  slug: record-reflection
+  index: 8
+- title: Mẫu instanceof
+  slug: pattern-matching-instanceof
+  index: 9
+- title: Phạm vi biến mẫu
+  slug: pattern-variable-scope
+  index: 10
+- title: Text blocks
+  slug: text-blocks
+  index: 11
+- title: Khoảng trắng văn bản
+  slug: text-whitespace
+  index: 12
+- title: Escape và chuỗi
+  slug: escapes-and-strings
+  index: 13
+- title: Chẩn đoán null
+  slug: null-diagnostics
+  index: 14
+- title: Nền tảng JFR
+  slug: jfr-fundamentals
+  index: 15
+- title: RecordingStream
+  slug: recording-stream
+  index: 16
+- title: EventStream
+  slug: event-stream
+  index: 17
+- title: Xử lý sự kiện JFR
+  slug: jfr-event-processing
+  index: 18
+- title: Đóng gói ứng dụng
+  slug: application-packaging
+  index: 19
+- title: App image
+  slug: app-image
+  index: 20
+- title: Gói cài đặt
+  slug: installation-packages
+  index: 21
+- title: G1 và NUMA
+  slug: g1-and-numa
+  index: 22
+- title: Ánh xạ NVM
+  slug: nvm-mapping
+  index: 23
+- title: Quyền Lookup
+  slug: lookup-privileges
+  index: 24
+- title: Số học kiểm tra tràn
+  slug: checked-arithmetic
+  index: 25
+- title: Ghi byte tiện dụng
+  slug: convenient-byte-writing
+  index: 26
+- title: Annotation Serial
+  slug: serial-annotation
+  index: 27
+- title: Số liệu hệ thống
+  slug: system-metrics
+  index: 28
+- title: Cây cú pháp Java
+  slug: java-syntax-tree
+  index: 29
+- title: Kiểm thử tương thích
+  slug: compatibility-testing
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-exercise
+  index: 31

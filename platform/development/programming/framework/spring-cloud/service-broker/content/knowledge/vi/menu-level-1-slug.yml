@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Khởi tạo
+  slug: initialization
+  index: 2
+- title: Giao thức OSB
+  slug: osb-protocol
+  index: 3
+- title: Danh mục dịch vụ
+  slug: service-catalog
+  index: 4
+- title: Gói dịch vụ
+  slug: service-plans
+  index: 5
+- title: Tham số đầu vào
+  slug: input-parameters
+  index: 6
+- title: Cấp phát dịch vụ
+  slug: service-provisioning
+  index: 7
+- title: Truy xuất dịch vụ
+  slug: service-retrieval
+  index: 8
+- title: Cập nhật dịch vụ
+  slug: service-updates
+  index: 9
+- title: Thu hồi dịch vụ
+  slug: service-deprovisioning
+  index: 10
+- title: Thao tác bất đồng bộ
+  slug: async-operations
+  index: 11
+- title: Liên kết dịch vụ
+  slug: service-bindings
+  index: 12
+- title: Vòng đời liên kết
+  slug: binding-lifecycle
+  index: 13
+- title: Dữ liệu và trạng thái
+  slug: data-state
+  index: 14
+- title: Tính lặp an toàn
+  slug: idempotency
+  index: 15
+- title: Tích hợp hạ tầng
+  slug: infrastructure-integration
+  index: 16
+- title: Mở rộng framework
+  slug: framework-extensions
+  index: 17
+- title: Lỗi và phản hồi
+  slug: errors-responses
+  index: 18
+- title: Bảo mật
+  slug: security
+  index: 19
+- title: Cloud Foundry
+  slug: cloud-foundry
+  index: 20
+- title: Kubernetes và OSB
+  slug: kubernetes-osb
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Triển khai
+  slug: deployment
+  index: 23
+- title: Giám sát
+  slug: monitoring
+  index: 24
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 25
+- title: Nâng cấp và tương thích
+  slug: upgrades-compatibility
+  index: 26
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 27

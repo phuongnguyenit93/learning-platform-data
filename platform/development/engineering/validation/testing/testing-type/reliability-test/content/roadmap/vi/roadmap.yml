@@ -1,0 +1,64 @@
+roadmap:
+- id: nen-tang-reliability-test
+  title: Nền tảng Reliability Test
+  purpose: Hiểu độ tin cậy là đặc tính chất lượng cần được kiểm chứng theo thời gian và điều kiện vận hành.
+  objectives:
+  - Giải thích khái niệm reliability trong kiểm thử phần mềm
+  - Phân biệt reliability với performance và functional correctness
+  - Nhận diện sự cố ảnh hưởng đến khả dụng, chịu lỗi và phục hồi
+- id: muc-tieu-do-tin-cay
+  title: Mục tiêu độ tin cậy
+  purpose: Biến yêu cầu vận hành thành tiêu chí kiểm thử có thể đo lường.
+  objectives:
+  - Mô tả SLI, SLO và yêu cầu về availability
+  - Phân biệt thời gian hoạt động với tỷ lệ yêu cầu thành công
+  - Đặt ngưỡng pass/fail dựa trên mục tiêu độ tin cậy
+- id: phan-tich-diem-loi
+  title: Phân tích điểm lỗi
+  purpose: Lựa chọn những tình huống hỏng hóc có nguy cơ ảnh hưởng đến người dùng.
+  objectives:
+  - Xác định thành phần và dependency quan trọng
+  - Liệt kê failure mode như timeout, mất kết nối và lỗi dịch vụ
+  - Ưu tiên kịch bản theo xác suất và mức độ ảnh hưởng
+- id: do-on-dinh-dai-han
+  title: Độ ổn định dài hạn
+  purpose: Kiểm tra hệ thống hoạt động liên tục trong điều kiện sử dụng bình thường.
+  objectives:
+  - Thiết kế phiên kiểm thử chạy kéo dài theo mục tiêu sử dụng
+  - Theo dõi lỗi tích lũy, rò rỉ tài nguyên và suy giảm theo thời gian
+  - Phân biệt dấu hiệu mất ổn định với biến động tải ngắn hạn
+- id: kha-dung-va-gian-doan
+  title: Khả dụng và gián đoạn
+  purpose: Đánh giá khả năng phục vụ người dùng khi có thành phần ngừng hoạt động.
+  objectives:
+  - Thiết kế kiểm thử availability theo hành trình người dùng
+  - Ghi nhận thời gian gián đoạn và tỷ lệ yêu cầu thất bại
+  - Xác nhận cảnh báo và health check phản ánh trạng thái dịch vụ
+- id: chiu-loi-va-suy-giam
+  title: Chịu lỗi và suy giảm
+  purpose: Kiểm chứng hệ thống duy trì phần chức năng cần thiết khi dependency gặp lỗi.
+  objectives:
+  - Thử tình huống timeout, lỗi từng phần và ngắt kết nối
+  - Kiểm tra fallback, retry có giới hạn và cơ chế cô lập lỗi
+  - Đánh giá graceful degradation theo hành vi mong đợi
+- id: tiem-loi-co-kiem-soat
+  title: Tiêm lỗi có kiểm soát
+  purpose: Chủ động tạo sự cố để kiểm chứng giả thuyết về khả năng chống chịu.
+  objectives:
+  - Viết giả thuyết và tiêu chí dừng cho thử nghiệm fault injection
+  - Tiêm lỗi có giới hạn phạm vi trong môi trường phù hợp
+  - Đối chiếu kết quả thực tế với hành vi dự kiến
+- id: khoi-phuc-va-du-lieu
+  title: Khôi phục và dữ liệu
+  purpose: Đo khả năng trở lại trạng thái hoạt động và bảo toàn dữ liệu sau sự cố.
+  objectives:
+  - Kiểm thử failover và khởi động lại thành phần
+  - Đối chiếu thời gian phục hồi với RTO và mất dữ liệu với RPO
+  - Thực hành xác nhận backup và restore bằng dữ liệu kiểm thử
+- id: bao-cao-va-hoi-quy
+  title: Báo cáo và hồi quy
+  purpose: Biến kết quả thử nghiệm thành bằng chứng và ca kiểm thử lặp lại.
+  objectives:
+  - Tổng hợp log, metric và thời điểm các sự kiện
+  - Phân tích chênh lệch giữa kết quả thực tế và mục tiêu SLO
+  - Chuyển kịch bản lỗi quan trọng thành kiểm thử hồi quy tự động

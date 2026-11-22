@@ -1,0 +1,869 @@
+# Kiểm thử mapping, embedded, collection, converter và ID
+
+Spring Data JDBC ánh xạ object Java thành các hàng trong database dựa trên metadata như @Table, @Column, @Id, @Version, @Embedded và @MappedCollection. Custom converter còn quyết định cách một kiểu domain được chuyển thành kiểu JDBC khi ghi và được dựng lại khi đọc.
+
+Những quy tắc này cần được kiểm thử qua database thật hoặc database test tương thích. Một unit test chỉ tạo object Java không chứng minh tên cột, khóa ngoại, thứ tự collection, converter hay generated ID hoạt động đúng. Bài này trình bày cách tổ chức integration test cho các phần mapping quan trọng, dùng @DataJdbcTest, JdbcTemplate và Testcontainers khi cần kiểm tra đúng DBMS/driver production.
+
+## 1. Phân biệt unit test và mapping integration test
+
+Mỗi lớp test trả lời một câu hỏi khác nhau:
+
+| Loại test | Kiểm tra điều gì? | Ví dụ |
+|---|---|---|
+| Unit test domain | Logic nghiệp vụ độc lập với persistence | Tính tổng tiền, kiểm tra quantity hợp lệ |
+| Unit test converter | Quy tắc chuyển đổi Java value | Money sang BigDecimal và ngược lại |
+| Repository integration test | Spring Data JDBC tạo SQL và ánh xạ dữ liệu đúng không? | Lưu rồi đọc aggregate |
+| Database integration test | Driver, dialect, DDL và kiểu dữ liệu có tương thích không? | Generated key, UUID, timestamp, embedded |
+| Transaction integration test | Nhiều thao tác persistence có commit/rollback đúng không? | Root và child cùng rollback |
+
+Mapping test nên dùng Spring context thật để Spring Data JDBC đăng ký mapping metadata, converter, repository proxy và DataSource. Nếu chỉ mock repository, test không đi qua mapping layer.
+
+## 2. Dùng @DataJdbcTest cho repository slice
+
+Spring Boot cung cấp @DataJdbcTest để tạo test slice cho Spring Data JDBC. Annotation này thường cấu hình repository, JdbcTemplate và hạ tầng JDBC cần thiết cho test, đồng thời mặc định chạy test trong transaction được rollback sau mỗi test.
+
+Ví dụ khung test:
+
+~~~java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+@DataJdbcTest
+class PurchaseOrderMappingTest {
+
+    @Autowired
+    PurchaseOrderRepository repository;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    @Test
+    void contextLoads() {
+        // Các test repository và mapping đặt tại đây.
+    }
+}
+~~~
+
+@DataJdbcTest có thể thay DataSource bằng embedded database nếu classpath có H2, HSQLDB hoặc Derby. Cách này chạy nhanh, phù hợp để kiểm tra mapping cơ bản. Nếu production dùng PostgreSQL, MySQL, SQL Server hoặc Oracle, hãy có thêm integration test với đúng DBMS/driver vì dialect, generated keys và kiểu dữ liệu có thể khác.
+
+Schema test có thể được tạo bằng schema.sql, @Sql hoặc migration của dự án. Nên dùng cùng cấu trúc bảng và constraint với migration thực tế để test có ý nghĩa.
+
+## 3. Mô hình aggregate dùng trong các ví dụ
+
+Giả sử đơn hàng có embedded shipping address và collection dòng hàng:
+
+~~~java
+import java.math.BigDecimal;
+import java.util.List;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Embedded;
+import org.springframework.data.relational.core.mapping.MappedCollection;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("purchase_orders")
+public record PurchaseOrder(
+        @Id Long id,
+        @Version Long version,
+        @Column("order_number") String orderNumber,
+        @Embedded(
+                prefix = "shipping_",
+                onEmpty = Embedded.OnEmpty.USE_NULL
+        )
+        Address shippingAddress,
+        @MappedCollection(
+                idColumn = "order_id",
+                keyColumn = "line_no"
+        )
+        List<OrderLine> lines,
+        Money total
+) {}
+
+public record Address(
+        String street,
+        String city
+) {}
+
+@Table("order_lines")
+public record OrderLine(
+        String sku,
+        int quantity,
+        BigDecimal unitPrice
+) {}
+
+public record Money(BigDecimal amount) {}
+~~~
+
+Trong ví dụ:
+
+- PurchaseOrder là aggregate root.
+- id là khóa chính do database sinh.
+- version được dùng cho optimistic locking.
+- orderNumber ánh xạ sang cột order_number.
+- Address được nhúng vào bảng purchase_orders với prefix shipping_.
+- OrderLine được lưu ở bảng order_lines, tham chiếu root bằng order_id.
+- line_no lưu vị trí phần tử trong List.
+- Money là value object cần custom converter để lưu vào cột DECIMAL.
+
+Nếu dự án dùng phiên bản Spring Data Relational có API annotation khác, hãy dùng đúng package và thuộc tính của dependency thực tế. Ví dụ này minh họa cấu hình mapping phổ biến.
+
+## 4. Tạo schema test khớp mapping
+
+Một schema đơn giản cho aggregate trên:
+
+~~~sql
+CREATE TABLE purchase_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    version BIGINT NOT NULL,
+    order_number VARCHAR(40) NOT NULL UNIQUE,
+    shipping_street VARCHAR(150),
+    shipping_city VARCHAR(80),
+    total DECIMAL(12, 2) NOT NULL
+);
+
+CREATE TABLE order_lines (
+    order_id BIGINT NOT NULL,
+    line_no INTEGER NOT NULL,
+    sku VARCHAR(40) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price DECIMAL(12, 2) NOT NULL,
+    PRIMARY KEY (order_id, line_no),
+    CONSTRAINT fk_order_lines_order
+        FOREIGN KEY (order_id) REFERENCES purchase_orders(id)
+);
+~~~
+
+Có thể lưu script này ở src/test/resources/schema.sql để Spring Boot khởi tạo schema test, hoặc dùng @Sql("/schema.sql") trên test class/method.
+
+Schema phải phản ánh đúng:
+
+- Tên bảng và tên cột sau khi áp dụng mapping.
+- Kiểu cột tương thích với Java/JDBC type.
+- Nullability.
+- Primary key và foreign key.
+- Unique constraint và index cần thiết.
+- Chiến lược generated ID.
+- Cột version và các cột embedded prefix.
+
+Đừng chỉ tạo bảng tối thiểu để test pass nếu migration production có thêm constraint quan trọng. Những constraint đó thường chính là nơi lỗi mapping và dữ liệu sai được phát hiện.
+
+## 5. Kiểm thử @Table và @Column
+
+Mục tiêu là xác nhận property Java được ánh xạ tới đúng bảng/cột vật lý.
+
+Với PurchaseOrder, orderNumber phải được lưu vào order_number. Test có thể lưu aggregate rồi truy vấn trực tiếp bằng JdbcTemplate:
+
+~~~java
+@Test
+void mapsTableAndColumnNames() {
+    PurchaseOrder input = new PurchaseOrder(
+            null,
+            null,
+            "PO-MAP-001",
+            new Address("12 Nguyen Hue", "Ho Chi Minh City"),
+            List.of(),
+            new Money(new BigDecimal("250.00"))
+    );
+
+    PurchaseOrder saved = repository.save(input);
+
+    assertNotNull(saved.id());
+
+    String storedNumber = jdbcTemplate.queryForObject(
+            "SELECT order_number FROM purchase_orders WHERE id = ?",
+            String.class,
+            saved.id()
+    );
+
+    assertEquals("PO-MAP-001", storedNumber);
+}
+~~~
+
+Test này xác nhận cả hai chiều quan trọng: repository ghi đúng cột và SQL đọc trực tiếp tìm được dữ liệu ở vị trí dự kiến.
+
+Nên có thêm test đọc qua repository sau khi insert bằng SQL fixture. Như vậy có thể phát hiện trường hợp ghi và đọc cùng dùng một mapping sai nhưng vô tình vẫn pass khi chỉ round-trip object.
+
+## 6. Kiểm thử @Embedded và prefix cột
+
+@Embedded lưu các property của value object thành các cột trong cùng hàng với entity chứa nó. Với prefix shipping_, Address.street và Address.city được ánh xạ thành shipping_street và shipping_city.
+
+Test ghi và đọc:
+
+~~~java
+@Test
+void mapsEmbeddedAddressWithPrefix() {
+    PurchaseOrder input = new PurchaseOrder(
+            null,
+            null,
+            "PO-EMBED-001",
+            new Address("12 Nguyen Hue", "Ho Chi Minh City"),
+            List.of(),
+            new Money(new BigDecimal("100.00"))
+    );
+
+    PurchaseOrder saved = repository.save(input);
+    PurchaseOrder loaded = repository.findById(saved.id()).orElseThrow();
+
+    assertEquals("12 Nguyen Hue", loaded.shippingAddress().street());
+    assertEquals("Ho Chi Minh City", loaded.shippingAddress().city());
+
+    assertEquals(
+            "12 Nguyen Hue",
+            jdbcTemplate.queryForObject(
+                    "SELECT shipping_street FROM purchase_orders WHERE id = ?",
+                    String.class,
+                    saved.id()
+            )
+    );
+}
+~~~
+
+Test qua repository kiểm tra mapping object; truy vấn trực tiếp giúp xác nhận tên cột vật lý.
+
+### Kiểm tra object embedded rỗng hoặc null
+
+Khi mọi cột của embedded object đều null, Spring Data JDBC có thể dùng chính sách onEmpty để quyết định kết quả đọc là null hay một object có các property null.
+
+Ví dụ đã khai báo:
+
+~~~java
+@Embedded(
+        prefix = "shipping_",
+        onEmpty = Embedded.OnEmpty.USE_NULL
+)
+Address shippingAddress
+~~~
+
+Với USE_NULL, test nên lưu aggregate có shippingAddress null, sau đó đọc lại và xác nhận property là null. Nếu domain muốn nhận một Address rỗng, cấu hình USE_EMPTY và viết assertion tương ứng.
+
+Điều cần kiểm tra là hợp đồng nullability của domain: một địa chỉ chưa được khai báo có nghĩa là null, hay là một value object tồn tại nhưng các thành phần chưa có giá trị? Chọn một semantics rõ ràng rồi kiểm tra cả khi insert và khi đọc dữ liệu fixture có tất cả cột embedded là NULL.
+
+Không chỉ kiểm tra object được truyền vào. Cần đọc lại từ database vì quy tắc onEmpty chỉ thể hiện rõ khi mapping ResultSet thành object.
+
+## 7. Kiểm thử @MappedCollection và khóa ngoại
+
+@MappedCollection ánh xạ entity con vào bảng riêng. idColumn chỉ ra cột liên kết child với root; keyColumn có thể lưu key/index của collection.
+
+Với List<OrderLine>, line_no giúp giữ vị trí phần tử. Test cần xác nhận:
+
+- Child rows được insert khi lưu root.
+- Mọi child có đúng order_id.
+- line_no được lưu đúng và có thể tái tạo thứ tự List.
+- Khi đọc root, collection có đúng số phần tử và giá trị.
+- Foreign key trỏ về root.
+- Khi cập nhật collection rồi save, trạng thái child trong database phản ánh collection mới.
+
+Ví dụ:
+
+~~~java
+@Test
+void persistsAndReloadsMappedCollection() {
+    List<OrderLine> lines = List.of(
+            new OrderLine("SKU-A", 2, new BigDecimal("10.00")),
+            new OrderLine("SKU-B", 1, new BigDecimal("25.00"))
+    );
+
+    PurchaseOrder input = new PurchaseOrder(
+            null,
+            null,
+            "PO-LINES-001",
+            new Address("1 Le Loi", "Ho Chi Minh City"),
+            lines,
+            new Money(new BigDecimal("45.00"))
+    );
+
+    PurchaseOrder saved = repository.save(input);
+    PurchaseOrder loaded = repository.findById(saved.id()).orElseThrow();
+
+    assertEquals(2, loaded.lines().size());
+    assertEquals("SKU-A", loaded.lines().get(0).sku());
+    assertEquals("SKU-B", loaded.lines().get(1).sku());
+
+    Integer childCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM order_lines WHERE order_id = ?",
+            Integer.class,
+            saved.id()
+    );
+
+    assertEquals(2, childCount);
+}
+~~~
+
+Với collection có thứ tự, hãy kiểm tra thứ tự sau khi đọc lại chứ không chỉ so sánh số lượng. Nếu dùng Set, cần kiểm tra semantics equality/hashCode của child và không giả định thứ tự iteration ổn định.
+
+### Kiểm tra khóa ngoại độc lập
+
+Có thể truy vấn child rows:
+
+~~~java
+List<Long> parentIds = jdbcTemplate.query(
+        "SELECT order_id FROM order_lines WHERE order_id = ?",
+        (rs, rowNum) -> rs.getLong("order_id"),
+        saved.id()
+);
+
+assertEquals(List.of(saved.id(), saved.id()), parentIds);
+~~~
+
+Ngoài assertion trên, foreign key constraint trong schema phải được bật. Nếu schema test không có FK, test có thể pass dù ứng dụng ghi child với parent ID không tồn tại.
+
+## 8. Kiểm thử cập nhật collection
+
+Spring Data JDBC không theo dõi snapshot child rows để tạo diff từng phần. Khi save aggregate đã tồn tại, referenced entities có thể được xóa rồi chèn lại theo collection hiện tại.
+
+Vì vậy, test nên tập trung vào trạng thái cuối cùng:
+
+~~~java
+@Test
+void savesCurrentCollectionState() {
+    PurchaseOrder created = repository.save(newOrderWithTwoLines());
+
+    PurchaseOrder changed = new PurchaseOrder(
+            created.id(),
+            created.version(),
+            created.orderNumber(),
+            created.shippingAddress(),
+            List.of(new OrderLine(
+                    "SKU-C",
+                    3,
+                    new BigDecimal("8.00")
+            )),
+            created.total()
+    );
+
+    PurchaseOrder saved = repository.save(changed);
+    PurchaseOrder loaded = repository.findById(saved.id()).orElseThrow();
+
+    assertEquals(1, loaded.lines().size());
+    assertEquals("SKU-C", loaded.lines().get(0).sku());
+
+    Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM order_lines WHERE order_id = ?",
+            Integer.class,
+            saved.id()
+    );
+
+    assertEquals(1, count);
+}
+~~~
+
+Test này xác nhận collection trong database sau save khớp collection mới. Nếu ứng dụng có bảng khác tham chiếu trực tiếp tới child rows, cần thêm test cho các foreign key và hành vi delete/reinsert tương ứng.
+
+Không viết test giả định chỉ child thay đổi mới được UPDATE. Mục tiêu là kiểm tra contract persistence và dữ liệu cuối cùng, không áp đặt một SQL strategy mà framework không cam kết.
+
+## 9. Kiểm thử custom converter hai chiều
+
+Spring Data JDBC custom converter thường có hai hướng:
+
+- WritingConverter: chuyển domain type thành kiểu database/JDBC.
+- ReadingConverter: chuyển kiểu database/JDBC thành domain type.
+
+Ví dụ Money được lưu thành DECIMAL:
+
+~~~java
+public record Money(BigDecimal amount) {}
+~~~
+
+Converter ghi:
+
+~~~java
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.WritingConverter;
+
+@WritingConverter
+public class MoneyWritingConverter
+        implements Converter<Money, BigDecimal> {
+
+    @Override
+    public BigDecimal convert(Money source) {
+        return source.amount();
+    }
+}
+~~~
+
+Converter đọc:
+
+~~~java
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.ReadingConverter;
+
+@ReadingConverter
+public class MoneyReadingConverter
+        implements Converter<BigDecimal, Money> {
+
+    @Override
+    public Money convert(BigDecimal source) {
+        return new Money(source);
+    }
+}
+~~~
+
+Đăng ký converters trong cấu hình Spring Data JDBC:
+
+~~~java
+import java.util.List;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
+
+@Configuration
+public class JdbcConfiguration extends AbstractJdbcConfiguration {
+
+    @Override
+    protected List<?> userConverters() {
+        return List.of(
+                new MoneyWritingConverter(),
+                new MoneyReadingConverter()
+        );
+    }
+}
+~~~
+
+Chữ ký cấu hình và cách import configuration cần phù hợp phiên bản Spring Data Relational của dự án. Trong Spring Boot test slice, có thể dùng @Import(JdbcConfiguration.class) để đưa cấu hình converter vào test context.
+
+## 10. Test converter riêng và qua repository
+
+Unit test xác nhận quy tắc chuyển đổi:
+
+~~~java
+@Test
+void writesMoneyAsBigDecimal() {
+    MoneyWritingConverter converter = new MoneyWritingConverter();
+
+    assertEquals(
+            new BigDecimal("125.50"),
+            converter.convert(new Money(new BigDecimal("125.50")))
+    );
+}
+
+@Test
+void readsBigDecimalAsMoney() {
+    MoneyReadingConverter converter = new MoneyReadingConverter();
+
+    assertEquals(
+            new Money(new BigDecimal("125.50")),
+            converter.convert(new BigDecimal("125.50"))
+    );
+}
+~~~
+
+Unit test này hữu ích nhưng chưa xác nhận Spring Data JDBC đã đăng ký converter. Cần có repository integration test:
+
+~~~java
+@Test
+void roundTripsMoneyThroughJdbcMapping() {
+    PurchaseOrder input = new PurchaseOrder(
+            null,
+            null,
+            "PO-MONEY-001",
+            new Address("1 Le Loi", "Ho Chi Minh City"),
+            List.of(),
+            new Money(new BigDecimal("125.50"))
+    );
+
+    PurchaseOrder saved = repository.save(input);
+
+    BigDecimal storedAmount = jdbcTemplate.queryForObject(
+            "SELECT total FROM purchase_orders WHERE id = ?",
+            BigDecimal.class,
+            saved.id()
+    );
+
+    PurchaseOrder loaded = repository.findById(saved.id()).orElseThrow();
+
+    assertEquals(new BigDecimal("125.50"), storedAmount);
+    assertEquals(new Money(new BigDecimal("125.50")), loaded.total());
+}
+~~~
+
+Test này xác nhận cả converter ghi, giá trị vật lý trong database và converter đọc. Với tiền tệ, dùng BigDecimal và so sánh bằng equals khi scale là một phần của contract; nếu domain coi 125.5 và 125.50 tương đương, hãy định nghĩa normalization rõ ràng trong Money.
+
+## 11. Kiểm thử converter với null và dữ liệu biên
+
+Converter cần được kiểm tra cho:
+
+- Giá trị hợp lệ thông thường.
+- Giá trị bằng 0.
+- Số âm nếu domain cho phép.
+- Precision và scale tối đa.
+- Giá trị null nếu property/schema cho phép null.
+- Dữ liệu cũ hoặc mã không còn hợp lệ.
+
+Không phải converter nào cũng được gọi với null; Spring ConversionService và mapping layer có thể xử lý null trước khi gọi converter. Hãy xác định contract cụ thể và kiểm tra hành vi qua repository thay vì giả định converter luôn nhận null.
+
+Nếu converter đọc gặp mã không hợp lệ, nên báo lỗi rõ ràng thay vì âm thầm trả một giá trị mặc định có thể làm sai domain state.
+
+## 12. Kiểm thử generated ID
+
+Với identity column, entity mới thường có ID null. Spring Data JDBC insert row và lấy generated key theo khả năng của dialect/driver.
+
+Test:
+
+~~~java
+@Test
+void returnsGeneratedIdAfterInsert() {
+    PurchaseOrder input = newOrderWithOneLine();
+
+    assertNull(input.id());
+
+    PurchaseOrder saved = repository.save(input);
+
+    assertNotNull(saved.id());
+
+    PurchaseOrder loaded = repository.findById(saved.id()).orElseThrow();
+    assertEquals(saved.orderNumber(), loaded.orderNumber());
+}
+~~~
+
+Với immutable record, dùng object được trả về từ save. Không giả định object input được mutate để nhận ID.
+
+Có thể kiểm tra generated key đã được lưu ở root và child rows có dùng đúng parent ID:
+
+~~~java
+Long childParentId = jdbcTemplate.queryForObject(
+        "SELECT order_id FROM order_lines WHERE order_id = ?",
+        Long.class,
+        saved.id()
+);
+
+assertEquals(saved.id(), childParentId);
+~~~
+
+Generated ID behavior phụ thuộc database và driver. Test với H2 không chứng minh PostgreSQL hoặc SQL Server sẽ có cùng hành vi; hãy chạy thêm test trên engine production nếu generated-key behavior là phần quan trọng của hệ thống.
+
+## 13. Kiểm thử ID do ứng dụng gán
+
+Không phải mọi ID đều do database sinh. Ứng dụng có thể tạo UUID trước khi insert.
+
+Spring Data JDBC cần biết entity đó là mới hay đã tồn tại. Nếu ID đã khác null, chiến lược newness mặc định có thể coi entity là đã tồn tại, trừ khi version property hoặc Persistable cung cấp tín hiệu khác.
+
+Một cách phổ biến là dùng @Version với giá trị null cho entity mới:
+
+~~~java
+@Table("external_customers")
+public record ExternalCustomer(
+        @Id UUID id,
+        @Version Long version,
+        String name
+) {}
+~~~
+
+Ứng dụng tạo UUID và version ban đầu null. Spring Data JDBC có thể dùng version để xác định entity mới theo chiến lược newness của entity có @Version. Sau insert, version được thiết lập.
+
+Test cần xác nhận:
+
+- ID UUID do ứng dụng tạo được giữ nguyên.
+- INSERT được thực hiện thay vì UPDATE.
+- Row có mặt trong database.
+- Version được khởi tạo theo hành vi framework.
+- Save lần tiếp theo thực hiện update và version thay đổi.
+
+Nếu entity không có @Version và ID được gán trước, hãy xem xét implement Persistable và định nghĩa isNew() rõ ràng. Cần test vòng đời chuyển từ new sang persisted để tránh một object đã lưu tiếp tục bị coi là mới.
+
+## 14. Kiểm thử update và @Version
+
+Nếu aggregate root dùng @Version, test nên xác nhận version thay đổi sau update và stale version bị phát hiện.
+
+Ví dụ:
+
+~~~java
+@Test
+void incrementsVersionWhenUpdatingAggregate() {
+    PurchaseOrder created = repository.save(newOrderWithOneLine());
+
+    PurchaseOrder changed = new PurchaseOrder(
+            created.id(),
+            created.version(),
+            created.orderNumber(),
+            created.shippingAddress(),
+            created.lines(),
+            created.total()
+    );
+
+    PurchaseOrder updated = repository.save(changed);
+
+    assertEquals(created.id(), updated.id());
+    assertNotEquals(created.version(), updated.version());
+}
+~~~
+
+Để kiểm tra stale write, giữ lại hai bản đọc cùng version, save bản thứ nhất rồi thử save bản thứ hai. Spring Data JDBC phải phát hiện version không còn khớp và báo optimistic locking failure theo contract của phiên bản.
+
+Không dùng một entity version cũ để tiếp tục test collection update sau khi đã save một bản khác. Hãy dùng object trả về mới nhất để tránh test vô tình kiểm tra stale state thay vì mapping.
+
+## 15. Kiểm thử dữ liệu được insert trực tiếp rồi đọc qua repository
+
+Round-trip save rồi findById có thể che giấu một số lỗi nếu cả writing và reading cùng mắc một giả định sai. Bổ sung test seed dữ liệu trực tiếp giúp kiểm tra chiều đọc độc lập.
+
+Ví dụ:
+
+~~~java
+@Test
+void readsExistingDatabaseRowIntoMappedAggregate() {
+    jdbcTemplate.update("""
+        INSERT INTO purchase_orders(
+            id, version, order_number,
+            shipping_street, shipping_city, total
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        9001L,
+        0L,
+        "PO-FIXTURE-001",
+        "10 Dong Khoi",
+        "Ho Chi Minh City",
+        new BigDecimal("88.00")
+    );
+
+    jdbcTemplate.update("""
+        INSERT INTO order_lines(
+            order_id, line_no, sku, quantity, unit_price
+        )
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        9001L,
+        0,
+        "SKU-FIXTURE",
+        2,
+        new BigDecimal("44.00")
+    );
+
+    PurchaseOrder loaded = repository.findById(9001L).orElseThrow();
+
+    assertEquals("PO-FIXTURE-001", loaded.orderNumber());
+    assertEquals("10 Dong Khoi", loaded.shippingAddress().street());
+    assertEquals(new Money(new BigDecimal("88.00")), loaded.total());
+    assertEquals("SKU-FIXTURE", loaded.lines().get(0).sku());
+}
+~~~
+
+Fixture phải dùng kiểu ID/version và cú pháp identity phù hợp DBMS. Với identity column, việc insert ID tường minh có thể cần cú pháp hoặc quyền riêng; nếu không portable, dùng fixture builder/sequence strategy theo database test.
+
+Test seed trực tiếp đặc biệt hữu ích khi tích hợp với schema legacy hoặc dữ liệu được ghi bởi hệ thống khác.
+
+## 16. Kiểm thử mapping bằng schema thật của dự án
+
+Nếu ứng dụng dùng Flyway hoặc Liquibase, có thể chạy migration trong integration test để tạo schema. Điều này giúp phát hiện sai khác giữa:
+
+- Entity annotations.
+- Migration DDL.
+- Index và foreign key.
+- Kiểu dữ liệu.
+- Default value.
+- Constraint và generated ID strategy.
+
+Không nên vừa duy trì schema.sql test riêng vừa có migration production khác nhau trong thời gian dài. Hai nguồn schema có thể lệch. Nếu dùng schema.sql để test nhanh, hãy có ít nhất một test suite chạy migration thực tế.
+
+Với Testcontainers, test có thể khởi tạo database engine gần production và dùng đúng JDBC driver. Ví dụ cấu hình PostgreSQL container:
+
+~~~java
+@Testcontainers
+@DataJdbcTest
+@AutoConfigureTestDatabase(
+        replace = AutoConfigureTestDatabase.Replace.NONE
+)
+@Import(JdbcConfiguration.class)
+class PurchaseOrderPostgresMappingTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:16-alpine");
+
+    @DynamicPropertySource
+    static void databaseProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+
+    // Repository mapping tests.
+}
+~~~
+
+Cần thêm Testcontainers module cho PostgreSQL, JUnit integration và PostgreSQL JDBC driver vào test dependencies. Nếu dùng Spring Boot version có service connection support, có thể cấu hình theo cơ chế đó; ví dụ trên dùng DynamicPropertySource để minh họa.
+
+## 17. Test transaction và cleanup
+
+@DataJdbcTest thường chạy mỗi test trong transaction và rollback sau khi test kết thúc. Điều này giúp dữ liệu test không rò rỉ giữa các test.
+
+Một số lưu ý:
+
+- Không dùng @Commit nếu không có lý do.
+- Nếu test gọi code chạy ở transaction độc lập như REQUIRES_NEW, rollback của test transaction ngoài không nhất thiết xóa dữ liệu đã commit trong transaction mới.
+- Nếu test cần xác nhận behavior sau commit, thiết kế test transaction rõ ràng và dọn dữ liệu bằng cách phù hợp.
+- Với Testcontainers, container thường được tái sử dụng trong class/suite; schema và sequence cần được reset hoặc test dùng ID/fixture riêng.
+- Không dựa vào thứ tự chạy test.
+
+Nếu kiểm tra transaction rollback của root và child, hãy gây lỗi sau khi một phần SQL đã chạy rồi đọc lại trạng thái từ transaction khác hoặc sau khi transaction kết thúc. Chỉ kiểm tra object trong bộ nhớ không chứng minh database đã rollback.
+
+## 18. Test nullability và default value
+
+Mapping cần khớp nullability của schema.
+
+Ví dụ:
+
+- ID mới có thể null trước insert nếu database sinh ID.
+- Version có thể null trước insert để biểu thị entity mới.
+- Embedded columns có thể nullable nếu object embedded là optional.
+- Collection rỗng thường có nghĩa không có child rows.
+- Money/total có thể NOT NULL nếu nghiệp vụ yêu cầu.
+- Property Java dùng wrapper/reference type nếu database cho phép NULL.
+
+Test nên bao gồm trường hợp:
+
+1. Embedded object null.
+2. Embedded object có một phần property null.
+3. Collection rỗng.
+4. Collection có một phần tử.
+5. Giá trị nullable của converter.
+6. Cột NOT NULL bị thiếu giá trị và database từ chối.
+7. Default value do database cấp nếu mapping dựa vào default đó.
+
+Đừng thay SQL NULL bằng 0, false hoặc chuỗi rỗng nếu domain cần phân biệt các trạng thái.
+
+## 19. Test thứ tự collection và keyColumn
+
+Với List được ánh xạ bằng keyColumn, vị trí có thể được lưu trong bảng child. Test nên lưu một list có thứ tự dễ nhận biết, sau đó đọc lại và so sánh thứ tự.
+
+~~~java
+List<OrderLine> expected = List.of(
+        new OrderLine("SKU-Z", 1, new BigDecimal("1.00")),
+        new OrderLine("SKU-A", 2, new BigDecimal("2.00")),
+        new OrderLine("SKU-M", 3, new BigDecimal("3.00"))
+);
+
+PurchaseOrder saved = repository.save(orderWithLines(expected));
+PurchaseOrder loaded = repository.findById(saved.id()).orElseThrow();
+
+assertEquals(expected, loaded.lines());
+~~~
+
+Nếu bỏ keyColumn hoặc dùng collection không có thứ tự, không nên viết assertion dựa trên vị trí. Dùng Set khi domain không quan tâm thứ tự và đảm bảo equality/hashCode của child phù hợp.
+
+Kiểm tra trực tiếp line_no nếu thứ tự là contract persistence:
+
+~~~java
+List<Integer> positions = jdbcTemplate.query(
+        "SELECT line_no FROM order_lines WHERE order_id = ? ORDER BY line_no",
+        (rs, rowNum) -> rs.getInt(1),
+        saved.id()
+);
+~~~
+
+## 20. Test converter thay đổi theo schema version
+
+Nếu converter lưu mã enum hoặc value object, schema có thể thay đổi qua migration. Ví dụ status từng lưu NEW/PAID rồi chuyển sang N/P.
+
+Cần test:
+
+- Dữ liệu mới được ghi theo format mới.
+- Dữ liệu cũ vẫn được đọc nếu ứng dụng cần hỗ trợ rolling deployment.
+- Giá trị không nhận diện được báo lỗi rõ ràng.
+- Migration chuyển đổi dữ liệu cũ trước khi code mới đọc.
+- Tất cả writer (Spring Data JDBC, JdbcTemplate, MyBatis, batch) dùng cùng format.
+
+Một converter chỉ được test với dữ liệu vừa ghi trong cùng test có thể không phát hiện vấn đề tương thích ngược. Seed các giá trị database đã tồn tại để kiểm tra reading converter độc lập.
+
+## 21. Test nhiều DBMS và JDBC driver
+
+H2 phù hợp cho test nhanh nhưng không mô phỏng đầy đủ semantics của mọi DBMS. Nếu production chạy database khác, nên có test profile hoặc Testcontainers tương ứng.
+
+Các khác biệt thường cần test:
+
+| Hạng mục | Rủi ro khi đổi DBMS/driver |
+|---|---|
+| Generated ID | Driver trả generated key theo cách khác |
+| UUID | Kiểu native, binary hoặc string |
+| Timestamp | Precision, timezone và session settings |
+| Boolean | BOOLEAN, BIT hoặc biểu diễn số |
+| Decimal | Precision/scale và rounding |
+| Identifier | Quoting, reserved words và case |
+| Embedded | Tên cột prefix và null semantics |
+| Collection | FK, delete/reinsert và constraint |
+| Converter | JDBC type được driver báo về |
+| Migration | Identity/sequence syntax và default value |
+
+Nếu ứng dụng tuyên bố hỗ trợ nhiều DBMS, hãy chạy cùng contract test suite trên từng database được hỗ trợ. Không chỉ chạy test trên một engine rồi suy ra tất cả engine đều tương thích.
+
+## 22. Các lỗi thường gặp khi test mapping
+
+| Triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
+|---|---|---|
+| Property đọc lại thành null | @Column, prefix hoặc DDL không khớp | Kiểm tra metadata và tên cột vật lý |
+| Embedded object luôn null | Tất cả cột embedded null hoặc onEmpty không đúng contract | Kiểm tra dữ liệu và cấu hình onEmpty |
+| Child collection rỗng sau load | idColumn sai hoặc child FK không khớp | Kiểm tra @MappedCollection và schema |
+| List đổi thứ tự | Thiếu keyColumn hoặc test giả định thứ tự không được bảo đảm | Khai báo keyColumn và kiểm tra line_no |
+| Converter chỉ chạy một chiều | Thiếu reading hoặc writing converter | Đăng ký cả hai hướng và test repository round-trip |
+| Converter không được gọi trong test slice | Cấu hình converter chưa được import/scan | Đưa configuration vào test context |
+| Generated ID null | Đọc object input, driver không trả key hoặc ID strategy sai | Dùng object save trả về và test đúng driver |
+| Entity có ID gán sẵn bị UPDATE thay vì INSERT | Newness strategy không nhận diện entity mới | Dùng @Version null hoặc Persistable.isNew |
+| Version không thay đổi | @Version không được mapping hoặc đang dùng sai object | Kiểm tra cột version và save result |
+| Test pass trên H2 nhưng fail production | Dialect/driver semantics khác nhau | Thêm Testcontainers hoặc integration test DBMS thật |
+| Test bị ảnh hưởng lẫn nhau | Dữ liệu commit, sequence hoặc context dùng chung | Dùng rollback/cleanup và fixture độc lập |
+| Test round-trip vẫn pass dù tên cột sai | Chỉ kiểm tra object, không kiểm tra schema/read path độc lập | Seed/query trực tiếp bằng JdbcTemplate |
+
+## 23. Ma trận test tối thiểu cho một aggregate
+
+Một suite mapping tốt nên có các test tương ứng:
+
+| Thành phần | Test ghi | Test đọc | Assertion database |
+|---|---|---|---|
+| @Table / @Column | Save root | Find root | Đúng bảng/cột vật lý |
+| @Embedded | Save Address | Read Address | Prefix cột và null semantics |
+| @MappedCollection | Save child list | Read child list | FK, key/index và row count |
+| Converter | Domain → store | Store → domain | Giá trị vật lý đúng kiểu |
+| Generated ID | Insert ID null | Read theo ID mới | ID được cấp và child tham chiếu đúng |
+| Assigned ID | Insert UUID | Read/update UUID | ID giữ nguyên, newness đúng |
+| @Version | Insert/update | Reload | Version tăng và stale write bị từ chối |
+| Nullability | Save null/empty | Read null/empty | Khớp constraint và onEmpty |
+| Migration | Chạy migration | Repository CRUD | Schema thực tế tương thích |
+
+Không cần một test khổng lồ kiểm tra mọi thứ. Chia test theo contract để lỗi dễ xác định và khi thay đổi một mapping, người đọc biết test nào bảo vệ hành vi đó.
+
+## 24. Bài thực hành
+
+Dùng aggregate PurchaseOrder ở trên và thực hiện:
+
+1. Lưu root mới với ID null; xác nhận object trả về có generated ID.
+2. Truy vấn trực tiếp order_number để kiểm tra @Column.
+3. Lưu Address có đầy đủ street/city; xác nhận cột shipping_street và shipping_city.
+4. Lưu Address null; xác nhận semantics USE_NULL hoặc USE_EMPTY.
+5. Lưu ba OrderLine có SKU khác nhau; đọc lại và xác nhận thứ tự List.
+6. Đếm child rows theo order_id và kiểm tra FK.
+7. Thay collection từ ba phần tử xuống một; lưu lại và xác nhận trạng thái cuối.
+8. Lưu Money rồi đọc raw DECIMAL bằng JdbcTemplate.
+9. Đọc lại Money qua repository để xác nhận ReadingConverter.
+10. Tạo aggregate có UUID gán trước và xác nhận INSERT theo newness strategy.
+11. Update aggregate và xác nhận version thay đổi.
+12. Seed một hàng bằng SQL rồi đọc qua repository.
+13. Chạy cùng test suite trên H2 và DBMS production-like nếu dự án hỗ trợ nhiều database.
+
+Ghi lại test nào chạy trên embedded DB và test nào chạy trên database production-like. Điều này giúp người bảo trì hiểu giới hạn bằng chứng của từng suite.
+
+## 25. Nguyên tắc ghi nhớ
+
+- Dùng @DataJdbcTest để kiểm thử repository/mapping trong Spring context; mock repository không kiểm tra SQL mapping.
+- Dùng schema khớp migration, gồm tên cột, kiểu dữ liệu, nullability, khóa và constraint.
+- Kiểm tra @Table/@Column bằng cả repository và truy vấn trực tiếp qua JdbcTemplate.
+- Kiểm tra @Embedded với prefix và chính sách onEmpty cho object null/rỗng.
+- Kiểm tra @MappedCollection qua child row count, foreign key, keyColumn và thứ tự collection.
+- Kiểm thử cả WritingConverter và ReadingConverter; xác nhận converter đã được đăng ký trong test context.
+- Dùng object trả về từ repository.save để lấy generated ID và version.
+- Với ID gán sẵn, kiểm tra newness strategy bằng @Version hoặc Persistable.
+- Seed dữ liệu trực tiếp để test chiều đọc độc lập với chiều ghi.
+- Test trên đúng DBMS/driver khi phụ thuộc generated key, UUID, temporal type hoặc dialect.
+- Hiểu transaction test và cleanup để tránh dữ liệu commit rò rỉ.
+- Chia test theo mapping contract để lỗi dễ xác định và dễ bảo trì.
+
+Mapping trong Spring Data JDBC là hợp đồng giữa object model, metadata và schema database. Một bộ test có giá trị cần đi qua repository thật, đọc lại dữ liệu, kiểm tra row/cột vật lý và chạy trên driver mục tiêu khi có khác biệt theo DBMS. Khi test riêng embedded, collection, converter và ID, nhóm phát triển có thể phát hiện sớm lỗi mapping trước khi chúng xuất hiện trong một use case lớn hoặc sau một lần migration.
+
+## Tài liệu tham khảo
+
+- [Spring Data Relational — Object Mapping](https://docs.spring.io/spring-data/relational/reference/jdbc/mapping.html)
+- [Spring Data Relational — Entity Persistence](https://docs.spring.io/spring-data/relational/reference/jdbc/entity-persistence.html)
+- [Spring Boot — Data JDBC Tests](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html#testing.spring-boot-applications.autoconfigured-spring-data-jdbc)
+- [Spring Data Relational — Custom Conversions](https://docs.spring.io/spring-data/relational/reference/jdbc/mapping.html#jdbc.custom-conversions)
+- [Testcontainers for Java](https://java.testcontainers.org/)
+

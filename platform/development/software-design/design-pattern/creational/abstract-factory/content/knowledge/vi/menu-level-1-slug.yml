@@ -1,0 +1,64 @@
+menu:
+  - title: "Tổng quan"
+    slug: core-concepts
+    index: 0
+  - title: "Nhận diện bài toán"
+    slug: problem-recognition
+    index: 1
+  - title: "Họ sản phẩm"
+    slug: product-families
+    index: 2
+  - title: "Cấu trúc và cộng tác"
+    slug: structure-and-collaboration
+    index: 3
+  - title: "Thiết kế interface"
+    slug: interface-design
+    index: 4
+  - title: "Luồng khởi tạo"
+    slug: creation-flow
+    index: 5
+  - title: "Hiện thực bằng Java"
+    slug: java-implementation
+    index: 6
+  - title: "Lựa chọn biến thể"
+    slug: variant-selection
+    index: 7
+  - title: "Bảo đảm tương thích"
+    slug: compatibility-guarantees
+    index: 8
+  - title: "Vòng đời và tài nguyên"
+    slug: lifecycle-and-resources
+    index: 9
+  - title: "Kiểm thử"
+    slug: testing-product-families
+    index: 10
+  - title: "Thêm họ sản phẩm"
+    slug: adding-product-families
+    index: 11
+  - title: "Thêm loại sản phẩm"
+    slug: adding-product-types
+    index: 12
+  - title: "Tái cấu trúc"
+    slug: refactoring-to-factories
+    index: 13
+  - title: "Tích hợp kiến trúc"
+    slug: architecture-integration
+    index: 14
+  - title: "Tình huống ứng dụng"
+    slug: application-scenarios
+    index: 15
+  - title: "So sánh mẫu thiết kế"
+    slug: design-pattern-comparison
+    index: 16
+  - title: "Chi phí và đánh đổi"
+    slug: costs-and-trade-offs
+    index: 17
+  - title: "Lỗi thường gặp"
+    slug: common-pitfalls
+    index: 18
+  - title: "Bài tập thực hành"
+    slug: practice-exercises
+    index: 19
+  - title: "Đánh giá thiết kế"
+    slug: design-evaluation
+    index: 20

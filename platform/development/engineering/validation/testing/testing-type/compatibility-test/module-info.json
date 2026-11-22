@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "VALIDATION_TESTING_TYPE_COMPATIBILITY_TEST"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Tìm hiểu kiểm thử tương thích của phần mềm trên các hệ điều hành, JDK, trình duyệt, thiết bị và phiên bản phụ thuộc khác nhau. Học xây dựng ma trận hỗ trợ theo rủi ro, xác minh tương thích API và dữ liệu, tự động hóa kiểm thử và phân tích những thay đổi gây phá vỡ hợp đồng."
+  }
+}

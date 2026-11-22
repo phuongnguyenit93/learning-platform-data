@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "COMPUTER_SCIENCE_ALGORITHM_ANALYSIS"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Học phân tích tính đúng đắn, thời gian và bộ nhớ của thuật toán bằng ký pháp tiệm cận, vòng lặp, hệ thức truy hồi, phân tích khấu hao và xác suất. Nội dung kết hợp cận dưới, độ khó, thuật toán song song, chi phí I/O và đo thực nghiệm để đánh giá giải pháp theo quy mô đầu vào."
+  }
+}

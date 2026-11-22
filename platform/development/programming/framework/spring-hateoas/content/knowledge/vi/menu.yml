@@ -1,0 +1,537 @@
+menu:
+- level1: Tổng quan HATEOAS
+  level2:
+  - HATEOAS là gì
+  - Bài toán HATEOAS giải quyết
+  - Hypermedia trong REST
+  - Tài nguyên và biểu diễn
+  - Link như hợp đồng
+  - Điều hướng bằng liên kết
+  - Khái niệm affordance
+  - Lợi ích của HATEOAS
+  - Giới hạn của HATEOAS
+  - Thuật ngữ cốt lõi
+- level1: REST và hypermedia
+  level2:
+  - Các ràng buộc REST
+  - Client không biết URI cố định
+  - Uniform interface
+  - Stateless interaction
+  - Cacheable response
+  - Layered system
+  - Code on demand
+  - Hypermedia constraint
+  - REST và RPC
+  - Mức độ trưởng thành Richardson
+- level1: Spring HATEOAS
+  level2:
+  - Mục tiêu của thư viện
+  - Vị trí trong Spring
+  - Mô hình lập trình
+  - Tích hợp Spring MVC
+  - Tích hợp Spring WebFlux
+  - Tích hợp Jackson
+  - Tích hợp Spring Data
+  - Các module chính
+  - Quy trình xây response
+  - Lộ trình học thư viện
+- level1: Kiến trúc tài nguyên
+  level2:
+  - Thiết kế resource
+  - Resource representation
+  - Resource identifier
+  - Resource state
+  - Resource collection
+  - Resource relationship
+  - Resource action
+  - Resource boundary
+  - Mô hình domain và resource
+  - DTO và resource model
+- level1: RepresentationModel
+  level2:
+  - Vai trò RepresentationModel
+  - Model không có nội dung
+  - Thêm link vào model
+  - Kế thừa model
+  - Model generic
+  - Processor cho representation
+  - Model assembler
+  - Kiểm tra model
+  - Mở rộng representation
+  - Chọn kiểu model
+- level1: EntityModel
+  level2:
+  - EntityModel là gì
+  - Bọc một tài nguyên
+  - Nội dung và link
+  - EntityModel với DTO
+  - EntityModel với entity
+  - Self link cho entity
+  - Link đến hành động
+  - Serialize EntityModel
+  - EntityModel lồng nhau
+  - Khi nào dùng EntityModel
+- level1: CollectionModel
+  level2:
+  - CollectionModel là gì
+  - Tập hợp tài nguyên
+  - Link của collection
+  - Phần tử trong collection
+  - CollectionModel generic
+  - CollectionModel rỗng
+  - CollectionModel lồng nhau
+  - Metadata cho collection
+  - Serialize collection
+  - Khi nào dùng CollectionModel
+- level1: PagedModel
+  level2:
+  - PagedModel là gì
+  - Nội dung của trang
+  - Metadata phân trang
+  - Link first và last
+  - Link prev và next
+  - PageMetadata
+  - Pageable và PagedModel
+  - Serialize PagedModel
+  - Trang rỗng
+  - Khi nào dùng PagedModel
+- level1: Link
+  level2:
+  - Link là gì
+  - href của link
+  - rel của link
+  - title của link
+  - type của link
+  - hreflang của link
+  - profile của link
+  - deprecation của link
+  - name của link
+  - Tạo link bất biến
+- level1: LinkRelation
+  level2:
+  - LinkRelation là gì
+  - Relation dạng chuỗi
+  - Relation chuẩn
+  - Relation mở rộng
+  - So sánh relation
+  - Kiểm tra relation
+  - In relation ra JSON
+  - Relation của collection
+  - Relation của item
+  - Quản lý relation nhất quán
+- level1: URI và UriTemplate
+  level2:
+  - URI trong hypermedia
+  - URI tuyệt đối
+  - URI tương đối
+  - UriTemplate là gì
+  - Biến URI
+  - Tham số tùy chọn
+  - Template và query parameter
+  - Template và path variable
+  - Mở rộng template
+  - Kiểm thử URI
+- level1: Self link
+  level2:
+  - Ý nghĩa self link
+  - Xác định URI hiện tại
+  - Self link cho item
+  - Self link cho collection
+  - Self link cho page
+  - Self link trong nested resource
+  - Self link và canonical URL
+  - Thiếu self link
+  - Trùng self link
+  - Quy ước self relation
+- level1: Link builder
+  level2:
+  - WebMvcLinkBuilder
+  - linkTo
+  - methodOn
+  - Building link từ controller
+  - Building link từ method
+  - Path variable
+  - Query parameter
+  - Base URI
+  - Link builder và proxy
+  - Kiểm thử link builder
+- level1: Controller links
+  level2:
+  - Link đến endpoint
+  - Link đến handler method
+  - Link cho GET
+  - Link cho POST
+  - Link cho PUT
+  - Link cho PATCH
+  - Link cho DELETE
+  - Link và request mapping
+  - Link khi có nhiều mapping
+  - Giữ link không phụ thuộc hard-code
+- level1: WebFlux links
+  level2:
+  - WebFluxLinkBuilder
+  - Reactive controller link
+  - Link trong WebFlux
+  - Path variable reactive
+  - Base URI reactive
+  - Reactive representation
+  - WebFlux và HAL
+  - Kiểm thử WebFlux link
+  - MVC và WebFlux khác nhau
+- level1: EntityLinks
+  level2:
+  - EntityLinks là gì
+  - Link theo loại entity
+  - Collection resource link
+  - Item resource link
+  - EntityLinks trong controller
+  - EntityLinks tùy biến
+  - Mapping entity với endpoint
+  - Đăng ký EntityLinks
+  - Kiểm thử EntityLinks
+  - Giới hạn của EntityLinks
+- level1: Representation assembler
+  level2:
+  - RepresentationModelAssembler
+  - Phương thức toModel
+  - Phương thức toCollectionModel
+  - Assembler cho item
+  - Assembler cho collection
+  - Assembler có Pageable
+  - Tách assembler khỏi controller
+  - Assembler và mapping DTO
+  - Tái sử dụng assembler
+  - Kiểm thử assembler
+- level1: Assembler support
+  level2:
+  - RepresentationModelAssemblerSupport
+  - Khai báo controller class
+  - Khai báo model class
+  - Tạo model tự động
+  - Tạo collection model
+  - Kết hợp với EntityModel
+  - Kết hợp với PagedModel
+  - Tùy biến instantiateModel
+  - Khi nào dùng support
+  - Khi nào tự viết assembler
+- level1: Model processor
+  level2:
+  - RepresentationModelProcessor
+  - Xử lý model sau assembler
+  - Processor cho item
+  - Processor cho collection
+  - Processor theo kiểu model
+  - Thêm link dùng chung
+  - Điều kiện áp dụng processor
+  - Thứ tự processor
+  - Tránh processor ẩn logic
+  - Kiểm thử processor
+- level1: Embedded resources
+  level2:
+  - Embedded resource là gì
+  - _embedded trong HAL
+  - Item embedded
+  - Collection embedded
+  - Nested embedded
+  - Relation của embedded item
+  - Embedded và top-level link
+  - Giới hạn độ sâu
+  - Tránh vòng tham chiếu
+  - Kiểm thử embedded resource
+- level1: Associations
+  level2:
+  - Quan hệ giữa tài nguyên
+  - Link đến tài nguyên liên quan
+  - To-one association
+  - To-many association
+  - Nested resource
+  - Resource association độc lập
+  - Relation cho association
+  - Lazy association link
+  - Tránh payload quá lớn
+  - Thiết kế quan hệ ổn định
+- level1: Affordances
+  level2:
+  - Affordance là gì
+  - Mô tả hành động khả dụng
+  - Affordance trên Link
+  - Affordance cho POST
+  - Affordance cho PUT
+  - Affordance cho PATCH
+  - Affordance cho DELETE
+  - Input payload metadata
+  - Output payload metadata
+  - Hiển thị affordance cho client
+- level1: HAL
+  level2:
+  - HAL là gì
+  - Media type application/hal+json
+  - _links
+  - _embedded
+  - HAL self link
+  - HAL collection
+  - HAL pagination
+  - HAL relation
+  - HAL và JSON thường
+  - Giới hạn của HAL
+- level1: HAL-FORMS
+  level2:
+  - HAL-FORMS là gì
+  - Media type HAL-FORMS
+  - _templates
+  - Template method
+  - Template properties
+  - Input field metadata
+  - Required property
+  - Prompt và type
+  - HAL-FORMS client
+  - Khi nào dùng HAL-FORMS
+- level1: Media types
+  level2:
+  - Media type là gì
+  - Content negotiation
+  - Accept header
+  - Content-Type header
+  - HAL media type
+  - HAL-FORMS media type
+  - Media type tùy biến
+  - Version qua media type
+  - Fallback representation
+  - Kiểm thử negotiation
+- level1: Jackson serialization
+  level2:
+  - Serialize resource model
+  - Jackson module
+  - JSON property của link
+  - Serialize relation
+  - Serialize embedded
+  - Serialize page metadata
+  - Custom Jackson serializer
+  - Deserialize resource model
+  - Lỗi serialization
+  - Kiểm tra JSON output
+- level1: Pagination
+  level2:
+  - Mô hình pagination
+  - Pageable parameter
+  - PagedResourcesAssembler
+  - Thông tin phân trang PageMetadata
+  - Tham số page
+  - Tham số size
+  - Tham số sort
+  - Link chuyển trang
+  - Giới hạn kích thước trang
+  - Pagination trong client
+- level1: Sorting và filtering
+  level2:
+  - Link cho sorting
+  - Link cho filtering
+  - Query parameter ổn định
+  - Nhiều tiêu chí sort
+  - Bộ lọc tùy chọn
+  - Bộ lọc bắt buộc
+  - Mô tả filter trong affordance
+  - Truyền filter an toàn
+  - Tài liệu tham số
+  - Kiểm thử sort và filter
+- level1: Search links
+  level2:
+  - Search resource
+  - Link đến tìm kiếm
+  - Template cho search
+  - Keyword parameter
+  - Search pagination
+  - Search sort
+  - Search relation
+  - Kết quả rỗng
+  - Search suggestion
+  - Thiết kế search endpoint
+- level1: IANA relation
+  level2:
+  - IANA link relation
+  - Relation self
+  - Relation collection
+  - Relation item
+  - Relation next và prev
+  - Relation first và last
+  - Relation related
+  - Relation about
+  - Tra cứu relation chuẩn
+  - Tránh dùng sai relation
+- level1: Custom relation
+  level2:
+  - Khi nào cần custom relation
+  - Tên relation dễ hiểu
+  - Relation dạng URI
+  - Relation dạng profile
+  - Relation cho domain
+  - Relation cho action
+  - Đăng ký relation
+  - Tài liệu custom relation
+  - Tương thích custom relation
+  - Tránh relation mơ hồ
+- level1: Spring MVC integration
+  level2:
+  - ResourceModel trong MVC
+  - Controller trả representation
+  - ResponseEntity với model
+  - Link builder trong MVC
+  - Assembler trong MVC
+  - Error response trong MVC
+  - Content negotiation MVC
+  - MockMvc với HATEOAS
+  - MVC và servlet context
+  - Cấu hình MVC liên quan
+- level1: Spring Data REST
+  level2:
+  - Spring Data REST và HATEOAS
+  - Repository resource
+  - Collection resource của repository
+  - Association resource
+  - Paged repository response
+  - Projection trong Data REST
+  - Excerpt projection
+  - Custom repository endpoint
+  - Override representation
+  - Giới hạn tự động sinh link
+- level1: Web API design
+  level2:
+  - Thiết kế entry point
+  - API root resource
+  - Link dẫn nhập
+  - Resource naming
+  - Relation naming
+  - Action bằng link
+  - Backward compatibility
+  - Client không hard-code URI
+  - Tài liệu API có hypermedia
+  - Đánh giá API design
+- level1: Client traversal
+  level2:
+  - Traverson là gì
+  - Điều hướng theo relation
+  - Bắt đầu từ API root
+  - Theo link đến item
+  - Theo link đến collection
+  - Theo link template
+  - Traverson với HAL
+  - LinkDiscoverers
+  - Client và thay đổi URI
+  - Kiểm thử client traversal
+- level1: Testing links
+  level2:
+  - Kiểm thử href
+  - Kiểm thử relation
+  - Kiểm thử self link
+  - Kiểm thử link collection
+  - Kiểm thử embedded
+  - Kiểm thử pagination link
+  - Kiểm thử affordance
+  - Kiểm thử media type
+  - JSON path cho HATEOAS
+  - Golden response test
+- level1: Security links
+  level2:
+  - Link theo quyền truy cập
+  - Ẩn action không được phép
+  - Link cho anonymous user
+  - Link cho authenticated user
+  - Role-based affordance
+  - Scope-based resource
+  - Không dùng link thay authorization
+  - Rò rỉ thông tin qua link
+  - Kiểm thử security link
+  - Audit hypermedia response
+- level1: Versioning
+  level2:
+  - Version API có hypermedia
+  - Version trong URI
+  - Version trong media type
+  - Version trong profile
+  - Relation qua phiên bản
+  - Client cũ và link mới
+  - Deprecation link
+  - Sunset thông báo
+  - Chuyển tiếp phiên bản
+  - Kiểm thử tương thích
+- level1: Caching
+  level2:
+  - Cache representation
+  - Cache link
+  - ETag
+  - Last-Modified
+  - Cache-Control
+  - Link và freshness
+  - Pagination cache
+  - Invalidation khi state đổi
+  - Conditional request
+  - Kiểm thử cache response
+- level1: Error representation
+  level2:
+  - Resource lỗi
+  - Link trong error response
+  - Link đến tài liệu lỗi
+  - Link retry
+  - Link hỗ trợ
+  - Mã lỗi và relation
+  - Problem detail
+  - Error media type
+  - Không lộ stack trace
+  - Kiểm thử lỗi hypermedia
+- level1: Hiệu năng HATEOAS
+  level2:
+  - Chi phí tạo link
+  - Chi phí assembler
+  - N+1 khi tạo link
+  - N+1 khi tạo embedded
+  - Giảm payload
+  - Lazy link generation
+  - Cache assembler
+  - Đo thời gian serialize
+  - Tối ưu response lớn
+  - Profiling API response
+- level1: Tài liệu HATEOAS
+  level2:
+  - Tài liệu resource
+  - Tài liệu link relation
+  - Tài liệu affordance
+  - Tài liệu media type
+  - Ví dụ response
+  - Ví dụ điều hướng
+  - Tài liệu lỗi
+  - Tài liệu migration
+  - Tài liệu cho client
+  - Kiểm tra tài liệu khớp API
+- level1: Anti-pattern HATEOAS
+  level2:
+  - Hard-code URI ở client
+  - Link không có ý nghĩa
+  - Lạm dụng link
+  - Link sai relation
+  - Payload trộn sai tầng
+  - Assembler chứa nghiệp vụ
+  - Controller tạo quá nhiều link
+  - Embedded không kiểm soát
+  - Bỏ qua content negotiation
+  - Không kiểm thử representation
+- level1: Dự án thực hành
+  level2:
+  - Chọn API tài nguyên
+  - Thiết kế API root
+  - Tạo resource DTO
+  - Thêm self link
+  - Thêm relation link
+  - Thêm collection model
+  - Thêm phân trang
+  - Thêm affordance
+  - Cấu hình HAL
+  - Viết test hypermedia
+  - Thử client traversal
+- level1: Tổng kết HATEOAS
+  level2:
+  - Bản đồ khái niệm
+  - Luồng tạo representation
+  - Checklist thiết kế link
+  - Checklist kiểm thử
+  - Checklist tương thích client
+  - Bước học tiếp theo

@@ -1,0 +1,326 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Collection là gì và bài toán quản lý nhóm đối tượng
+  - Phân biệt Collection, Collections và Java Collections Framework
+  - Quan hệ Iterable, Collection, List, Set, Queue và Deque
+  - Vì sao Map thuộc framework nhưng không kế thừa Collection
+  - 'So sánh mảng với collection: kích thước, kiểu và thao tác'
+  - Phân biệt thứ tự chèn, thứ tự duyệt, chỉ số và thứ tự sắp xếp
+  - 'Các tiêu chí chọn cấu trúc: trùng lặp, null, truy cập và đồng thời'
+  - Kiến thức nền và trình tự học các nhóm collection
+- level1: Hợp đồng chung
+  level2:
+  - Khai báo theo giao diện và lựa chọn lớp cài đặt
+  - size, isEmpty, contains và ý nghĩa giá trị trả về
+  - add, remove, clear và quy tắc thao tác tùy chọn
+  - addAll, containsAll, removeAll và retainAll
+  - removeIf và xử lý điều kiện xóa
+  - Chính sách phần tử null và giới hạn kiểu của từng cài đặt
+  - Phân biệt thay đổi cấu trúc, thay giá trị và sửa đối tượng phần tử
+  - Hợp đồng API so với chi tiết cài đặt có thể đổi giữa các JDK
+- level1: Kiểu phần tử
+  level2:
+  - Generic trong Collection<E> và Map<K,V>
+  - Autoboxing, unboxing và chi phí của kiểu bao
+  - 'Tính bất biến của generic: List<Integer> và List<Number>'
+  - Wildcard giới hạn trên khi đọc dữ liệu
+  - Wildcard giới hạn dưới khi ghi dữ liệu và quy tắc PECS
+  - Raw type, ép kiểu và ô nhiễm kiểu trong collection
+  - Thiết kế phương thức nhận collection linh hoạt nhưng an toàn kiểu
+- level1: Bằng nhau và băm
+  level2:
+  - Vai trò của equals và hashCode trong tìm kiếm và loại trùng
+  - Hợp đồng equals–hashCode và cách viết kiểu khóa
+  - Phân biệt giá trị bằng nhau với cùng tham chiếu
+  - Ngữ nghĩa equals của List, Set và Map
+  - Phân biệt băm trùng với hai khóa bằng nhau
+  - Rủi ro sửa trường tham gia equals hoặc hashCode sau khi thêm
+  - Record và đối tượng bất biến khi làm khóa hoặc phần tử Set
+  - Ảnh hưởng của phần tử khả biến đến equals và hashCode của collection
+- level1: So sánh và sắp xếp
+  level2:
+  - Comparable và thứ tự tự nhiên
+  - Comparator và hợp đồng dấu, tính bắc cầu, tính nhất quán
+  - comparing, comparingInt và các bộ so sánh theo khóa
+  - thenComparing và sắp xếp nhiều tiêu chí
+  - reversed, reverseOrder, nullsFirst và nullsLast
+  - Tránh tràn số khi viết phép so sánh bằng phép trừ
+  - Tính ổn định của sắp xếp List và cách xử lý phần tử đồng hạng
+  - Dùng cùng quy tắc so sánh cho sort, binarySearch, TreeSet và TreeMap
+- level1: Duyệt phần tử
+  level2:
+  - Vòng lặp theo chỉ số, enhanced for và Iterable
+  - 'Iterator: hasNext, next và forEachRemaining'
+  - Iterator.remove và điều kiện gọi hợp lệ
+  - 'ListIterator: duyệt hai chiều, chỉ số và con trỏ'
+  - ListIterator.add, set và remove
+  - forEach, lambda và giới hạn thay đổi nguồn khi duyệt
+  - Cơ chế fail-fast và giới hạn bảo đảm của ConcurrentModificationException
+  - Phân biệt iterator fail-fast, ảnh chụp và nhất quán yếu
+- level1: List
+  level2:
+  - Đặc trưng theo vị trí, phần tử trùng và thứ tự duyệt
+  - get, set, add theo chỉ số và dịch chuyển phần tử
+  - Phân biệt remove(int) với remove(Object)
+  - indexOf, lastIndexOf và tìm phần tử không tồn tại
+  - Chèn nhiều phần tử bằng addAll có vị trí
+  - replaceAll và sort trên danh sách
+  - subList với khoảng đầu bao gồm, cuối không bao gồm
+  - equals và hashCode phụ thuộc thứ tự của List
+  - Chọn List khi cần truy cập chỉ số hoặc giữ phần tử trùng
+- level1: ArrayList
+  level2:
+  - Cấu trúc mảng động và phân biệt size với capacity
+  - Khởi tạo, tăng dung lượng và chi phí thêm cuối khấu hao
+  - Độ phức tạp truy cập, tìm kiếm, chèn và xóa
+  - ensureCapacity và trimToSize
+  - Chi phí dịch chuyển khi thêm hoặc xóa ở đầu và giữa
+  - Duyệt liên tiếp, tính cục bộ bộ nhớ và RandomAccess
+  - Bản sao bằng constructor và giới hạn sao chép nông
+  - Khi nào ArrayList là lựa chọn phù hợp
+- level1: LinkedList
+  level2:
+  - Danh sách liên kết đôi và chi phí của nút
+  - Vai trò đồng thời của List và Deque
+  - Chi phí tìm nút theo chỉ số
+  - Chèn và xóa tại vị trí đã có ListIterator
+  - Vì sao chèn giữa không luôn nhanh hơn ArrayList
+  - Thao tác hai đầu và chính sách null
+  - So sánh LinkedList với ArrayList và ArrayDeque
+- level1: Set
+  level2:
+  - Ý nghĩa không trùng lặp và hợp đồng của Set
+  - Kết quả add khi phần tử đã tồn tại
+  - Kiểm tra thuộc và xóa phần tử
+  - Hợp, giao, hiệu và tập con bằng các thao tác collection
+  - Loại trùng nhưng bảo toàn thứ tự mong muốn
+  - equals và hashCode không phụ thuộc thứ tự của Set
+  - Chọn HashSet, LinkedHashSet, TreeSet hoặc EnumSet
+- level1: Set dùng băm
+  level2:
+  - HashSet và quan hệ với bảng băm
+  - Thêm, tìm, xóa và điều kiện đạt hiệu năng mong đợi
+  - Capacity, load factor và chi phí duyệt HashSet
+  - Chính sách null và việc không bảo đảm thứ tự duyệt
+  - LinkedHashSet và thứ tự chèn
+  - Thêm lại phần tử có sẵn và thứ tự của LinkedHashSet
+  - Khóa khả biến, hợp đồng equals–hashCode và lỗi mất dấu phần tử
+  - So sánh HashSet với LinkedHashSet theo thời gian và bộ nhớ
+- level1: Set sắp xếp
+  level2:
+  - SortedSet và thứ tự tự nhiên hoặc Comparator
+  - TreeSet và cấu trúc cây tìm kiếm cân bằng
+  - Tiêu chí trùng phần tử khi phép so sánh trả về 0
+  - Nhất quán giữa Comparator và equals
+  - first, last, headSet, tailSet và subSet
+  - 'NavigableSet: lower, floor, ceiling và higher'
+  - pollFirst, pollLast, descendingSet và descendingIterator
+  - Biên đóng–mở, chính sách null và các view phạm vi
+- level1: Queue và Deque
+  level2:
+  - Queue, FIFO và những hàng đợi không theo FIFO
+  - Các cặp add–offer, remove–poll và element–peek
+  - Giá trị đặc biệt so với ngoại lệ khi rỗng hoặc đầy
+  - Deque và thao tác thêm, xem, xóa ở hai đầu
+  - Dùng Deque làm hàng đợi FIFO hoặc ngăn xếp LIFO
+  - 'ArrayDeque: mảng vòng, tăng dung lượng và thao tác hai đầu'
+  - Vì sao ArrayDeque không nhận null
+  - Xóa lần xuất hiện đầu hoặc cuối và duyệt ngược
+  - So sánh ArrayDeque, LinkedList và Stack
+- level1: PriorityQueue
+  level2:
+  - Hàng đợi ưu tiên và quan hệ với cấu trúc heap
+  - Thứ tự tự nhiên và Comparator tùy chỉnh
+  - offer, peek, poll và độ phức tạp
+  - remove(Object), contains và chi phí tìm phần tử
+  - Vì sao iterator không duyệt theo thứ tự ưu tiên
+  - Phần tử đồng hạng, tính ổn định và khóa phụ
+  - Rủi ro sửa độ ưu tiên của đối tượng đang nằm trong queue
+  - Bài toán top-K và lựa chọn heap nhỏ hoặc heap lớn
+- level1: Map
+  level2:
+  - Khóa duy nhất, giá trị có thể trùng và ý nghĩa ánh xạ
+  - put, putAll, get, remove và giá trị cũ trả về
+  - containsKey, containsValue và phân biệt vắng khóa với giá trị null
+  - getOrDefault và trường hợp khóa ánh xạ tới null
+  - keySet, values, entrySet và Map.Entry
+  - Duyệt bằng entrySet, forEach hoặc các view
+  - putIfAbsent, replace và remove có điều kiện
+  - computeIfAbsent, computeIfPresent, compute và kết quả null
+  - merge, replaceAll và các mẫu cập nhật dữ liệu
+  - equals, hashCode và hợp đồng khóa của Map
+- level1: HashMap
+  level2:
+  - Bảng băm, bucket và quy trình tìm khóa
+  - Phối hợp hashCode và equals khi put, get, remove
+  - Capacity, load factor, ngưỡng mở rộng và rehash
+  - Hiệu năng mong đợi, trường hợp xấu và chất lượng hàm băm
+  - Va chạm, cây hóa bucket và giới hạn của chi tiết cài đặt
+  - Chính sách một khóa null và nhiều giá trị null
+  - Vì sao thứ tự duyệt quan sát được không phải hợp đồng
+  - Ước lượng kích thước ban đầu và chi phí duyệt theo capacity
+  - Lỗi khóa khả biến và rủi ro cập nhật đồng thời
+- level1: LinkedHashMap
+  level2:
+  - Kết hợp bảng băm với thứ tự duyệt có xác định
+  - Thứ tự chèn và hành vi thay giá trị của khóa đã có
+  - Chế độ access-order và các thao tác làm đổi thứ tự
+  - Chi phí duyệt, lưu trữ và lựa chọn so với HashMap
+  - removeEldestEntry và mô hình bộ nhớ đệm LRU đơn giản
+  - Giới hạn an toàn đa luồng của bộ nhớ đệm tự viết
+  - Tương tác giữa access-order, iterator và thay đổi cấu trúc
+  - Thao tác đầu–cuối và view đảo thứ tự từ Java 21
+- level1: TreeMap
+  level2:
+  - SortedMap, NavigableMap và thứ tự khóa
+  - Cây tìm kiếm cân bằng và chi phí thao tác
+  - Comparator, compareTo và khóa được xem là trùng
+  - firstKey, lastKey, firstEntry và lastEntry
+  - lowerEntry, floorEntry, ceilingEntry và higherEntry
+  - headMap, tailMap, subMap và lựa chọn biên
+  - descendingMap, navigableKeySet và view đảo thứ tự
+  - Chính sách null, tính khả biến của khóa và tính nhất quán phép so sánh
+- level1: Cấu trúc chuyên biệt
+  level2:
+  - 'EnumSet: tập hợp enum và biểu diễn gọn'
+  - 'EnumMap: ánh xạ với khóa enum'
+  - 'WeakHashMap: khóa yếu và tác động của thu gom rác'
+  - 'IdentityHashMap: so sánh khóa theo tham chiếu'
+  - BitSet và khác biệt với Set<Integer>
+  - 'Vector và Stack: hợp đồng cũ và lựa chọn thay thế'
+  - Hashtable, Dictionary và Properties trong mã đời cũ
+  - Enumeration và chuyển đổi sang Iterator hoặc List
+- level1: Thứ tự từ Java 21
+  level2:
+  - Động lực của SequencedCollection, SequencedSet và SequencedMap
+  - Quan hệ với List, Deque, SortedSet và SortedMap
+  - getFirst, getLast, removeFirst và removeLast
+  - addFirst, addLast và thao tác tùy chọn trên tập đã sắp xếp
+  - 'reversed: view đảo thứ tự thay vì bản sao'
+  - SequencedSet và việc chuyển vị trí phần tử đã có
+  - 'SequencedMap: firstEntry, lastEntry, pollFirstEntry và pollLastEntry'
+  - putFirst, putLast và các sequenced view của Map
+- level1: View và sao chép
+  level2:
+  - Phân biệt collection sở hữu dữ liệu với view dùng chung nguồn
+  - subList và thay đổi cấu trúc qua view hoặc nguồn
+  - keySet, values, entrySet và các thao tác ghi xuyên về Map
+  - View phạm vi của TreeSet, TreeMap và view đảo thứ tự
+  - Sao chép bằng constructor, addAll và putAll
+  - Sao chép nông, sao chép sâu và đối tượng phần tử dùng chung
+  - Map.Entry còn gắn nguồn so với entry độc lập
+  - clone, serialization và giới hạn của từng cách sao chép
+- level1: Collection chỉ đọc
+  level2:
+  - Phân biệt không sửa được, kích thước cố định và bất biến sâu
+  - Collections.unmodifiableList, unmodifiableSet và unmodifiableMap
+  - Vì sao unmodifiable view vẫn thấy thay đổi từ nguồn
+  - List.of, Set.of, Map.of và Map.ofEntries
+  - List.copyOf, Set.copyOf và Map.copyOf
+  - Quy tắc null, phần tử trùng và khóa trùng của các factory
+  - emptyList, singleton, nCopies và các trường hợp dùng
+  - Bảo vệ dữ liệu khi nhận tham số hoặc trả về collection từ API
+- level1: Tiện ích Collections
+  level2:
+  - sort, reverse và shuffle
+  - binarySearch và điều kiện danh sách đã được sắp xếp
+  - min, max, frequency và disjoint
+  - swap, rotate và replaceAll
+  - 'fill và nCopies: thay phần tử so với tạo danh sách'
+  - 'copy: kích thước đích và khác biệt với tạo bản sao mới'
+  - addAll và chuyển các đối số thành phần tử collection
+  - checkedCollection, checkedList, checkedSet và checkedMap
+  - asLifoQueue, newSetFromMap và điều kiện của cấu trúc nền
+- level1: Mảng và chuyển đổi
+  level2:
+  - Arrays.asList và danh sách kích thước cố định dùng chung mảng
+  - Những thay đổi được phép qua set và những thao tác bị từ chối
+  - Bẫy Arrays.asList với mảng kiểu nguyên thủy
+  - toArray(), toArray(T[]) và toArray(IntFunction)
+  - Kiểu thực của mảng, ArrayStoreException và phần tử null kết thúc
+  - Chuyển List sang Set và hệ quả với trùng lặp hoặc thứ tự
+  - Chuyển Map sang danh sách entry, khóa hoặc giá trị
+  - Chọn loại collection đích để bảo toàn hợp đồng cần thiết
+- level1: Stream và Spliterator
+  level2:
+  - Collection lưu dữ liệu còn Stream mô tả quá trình xử lý
+  - stream, parallelStream và giới hạn không can thiệp nguồn
+  - 'Spliterator: tryAdvance, forEachRemaining và trySplit'
+  - estimateSize, getExactSizeIfKnown và các đặc tính nguồn
+  - ORDERED, SORTED, DISTINCT, SIZED, IMMUTABLE và CONCURRENT
+  - Collectors.toList, toSet và toCollection
+  - 'Collectors.toMap: khóa trùng, hàm gộp và loại Map đích'
+  - Stream.toList, collect và giới hạn bảo đảm về khả năng sửa
+- level1: An toàn đa luồng
+  level2:
+  - Tranh chấp khi nhiều luồng đọc và ghi collection
+  - Phân biệt an toàn từng thao tác với an toàn cả chuỗi thao tác
+  - Collections.synchronizedList, synchronizedSet và synchronizedMap
+  - Khóa đúng đối tượng khi duyệt các wrapper đồng bộ
+  - Collection đồng thời, wrapper có khóa và bản sao bất biến
+  - Iterator nhất quán yếu và iterator dùng ảnh chụp
+  - Vì sao fail-fast không phải cơ chế đồng bộ hoặc kiểm tra đúng đắn
+  - Tính nhìn thấy dữ liệu và giới hạn của việc công bố collection chỉ đọc
+- level1: Map và Set đồng thời
+  level2:
+  - ConcurrentMap và các thao tác cập nhật có điều kiện
+  - 'ConcurrentHashMap: truy cập đồng thời và chính sách không nhận null'
+  - putIfAbsent, compute, merge và tính nguyên tử theo khóa
+  - 'Giới hạn của hàm tính toán: cập nhật đệ quy và tác vụ kéo dài'
+  - size, duyệt và thao tác hàng loạt khi đang có cập nhật
+  - ConcurrentHashMap.newKeySet và view tập khóa
+  - ConcurrentSkipListMap, ConcurrentSkipListSet và truy vấn có thứ tự
+  - CopyOnWriteArrayList, CopyOnWriteArraySet và chi phí khi ghi
+- level1: Queue đồng thời
+  level2:
+  - ConcurrentLinkedQueue và ConcurrentLinkedDeque
+  - 'BlockingQueue: put, take và thao tác có thời hạn chờ'
+  - Hàng đợi có giới hạn và điều tiết tốc độ bên sản xuất
+  - ArrayBlockingQueue so với LinkedBlockingQueue
+  - PriorityBlockingQueue và giới hạn dung lượng thực tế
+  - DelayQueue và hợp đồng Delayed
+  - SynchronousQueue và TransferQueue
+  - BlockingDeque, ngắt luồng và quy ước kết thúc luồng xử lý
+- level1: Cài đặt tùy chỉnh
+  level2:
+  - Khi nào cần tự cài đặt collection
+  - AbstractCollection, AbstractList, AbstractSequentialList và AbstractSet
+  - AbstractQueue và AbstractMap
+  - Các phương thức tối thiểu và hợp đồng thao tác tùy chọn
+  - Viết Iterator, hỗ trợ remove và xử lý trạng thái con trỏ
+  - modCount và việc phát hiện thay đổi cấu trúc khi phù hợp
+  - Giữ nhất quán equals, hashCode, view và các phương thức mặc định
+  - Kiểm thử theo hợp đồng thay vì phụ thuộc lớp cài đặt
+- level1: Hiệu năng
+  level2:
+  - So sánh độ phức tạp truy cập, tìm kiếm, thêm, xóa và duyệt
+  - Chi phí khấu hao, trường hợp trung bình và trường hợp xấu
+  - Dung lượng dự phòng, nút liên kết và bộ nhớ cho từng phần tử
+  - Boxing, cấp phát đối tượng, thu gom rác và tính cục bộ bộ nhớ
+  - Ảnh hưởng của hàm băm và Comparator
+  - Tránh duyệt LinkedList bằng get theo chỉ số
+  - Giảm vòng lặp lồng bằng Set hoặc chỉ mục Map
+  - Đo bằng JMH với dữ liệu, làm nóng và phép so sánh phù hợp
+- level1: Kiểm thử và lỗi
+  level2:
+  - Kiểm thử collection rỗng, một phần tử, phần tử trùng và null
+  - Kiểm thử hợp đồng equals–hashCode và Comparator
+  - Kiểm thử thứ tự chèn, thứ tự sắp xếp và thứ tự ưu tiên
+  - ConcurrentModificationException và thay đổi nguồn qua nhiều đường
+  - UnsupportedOperationException trên factory, wrapper và view
+  - IndexOutOfBoundsException, NoSuchElementException và IllegalStateException
+  - ClassCastException, NullPointerException và kiểu dữ liệu không hợp lệ
+  - Lỗi khóa khả biến, comparator không nhất quán và phần tử mất dấu
+  - Kiểm thử tính nguyên tử, ảnh chụp và nhất quán yếu khi chạy đồng thời
+- level1: Thực hành tổng hợp
+  level2:
+  - Quản lý danh sách có chèn, cập nhật, tìm kiếm và xóa
+  - Loại trùng dữ liệu nhưng giữ thứ tự xuất hiện
+  - Đếm tần suất và nhóm dữ liệu bằng Map
+  - Xây dựng chỉ mục nhiều giá trị với Map<K,List<V>>
+  - Tìm khoảng, phần tử gần nhất và phân trang bằng cấu trúc có thứ tự
+  - Giải bài toán top-K và hàng đợi tác vụ theo ưu tiên
+  - So sánh LRU đơn giản với yêu cầu của bộ nhớ đệm thực tế
+  - Xây dựng bài toán sản xuất–tiêu thụ bằng BlockingQueue
+  - Lập bảng quyết định chọn collection và tự đánh giá qua tình huống

@@ -1,0 +1,57 @@
+roadmap:
+- id: redis-mo-hinh-du-lieu
+  title: Redis & mô hình dữ liệu
+  purpose: Hiểu vai trò của Redis và chọn đúng cấu trúc dữ liệu cho từng nhu cầu ứng dụng.
+  objectives:
+  - Phân biệt key-value với cơ sở dữ liệu quan hệ
+  - Chọn String, Hash, List, Set và Sorted Set theo tình huống
+  - Giải thích tác động của key naming và TTL
+- id: ket-noi-driver
+  title: Kết nối & driver
+  purpose: Thiết lập kết nối Redis trong ứng dụng Spring và nhận biết các lựa chọn cấu hình cơ bản.
+  objectives:
+  - Cấu hình RedisConnectionFactory bằng Lettuce
+  - Kiểm tra kết nối, host/port và xác thực
+  - Phân biệt kết nối standalone và cluster
+- id: redistemplate-thao-tac
+  title: RedisTemplate & thao tác
+  purpose: Sử dụng API Spring Data Redis để đọc, ghi và cập nhật dữ liệu thay vì gọi lệnh thô.
+  objectives:
+  - Thực hiện CRUD bằng StringRedisTemplate và RedisTemplate
+  - Áp dụng opsForValue, opsForHash và opsForSet
+  - Nhận biết ReactiveRedisTemplate cho luồng non-blocking
+- id: serializer-mapping
+  title: Serializer & mapping
+  purpose: Kiểm soát cách chuyển đổi đối tượng Java sang dữ liệu Redis để tránh lỗi tương thích và bảo mật.
+  objectives:
+  - Phân biệt serializer cho key và value
+  - Lựa chọn String hoặc JSON thay vì Java native serialization không tin cậy
+  - Chuyển đối tượng sang Redis Hash phù hợp
+- id: repository-ttl
+  title: Repository & TTL
+  purpose: Ánh xạ entity vào Redis Hash và thiết kế vòng đời dữ liệu có thời hạn.
+  objectives:
+  - Dùng @RedisHash, @Id và RedisRepository
+  - Khai báo TTL bằng @TimeToLive hoặc cấu hình tương đương
+  - Nêu giới hạn của expiry events và secondary indexes
+- id: redis-cache
+  title: Redis Cache
+  purpose: Tận dụng Redis cho cache ứng dụng nhưng quản lý vòng đời và độ mới của dữ liệu.
+  objectives:
+  - Cấu hình RedisCacheManager và RedisCacheConfiguration
+  - Đặt TTL, prefix và serializer theo từng cache
+  - Xử lý cache miss, invalidation và dữ liệu cũ
+- id: pub-sub-streams
+  title: Pub/Sub & Streams
+  purpose: Chọn cơ chế truyền thông điệp phù hợp với yêu cầu lưu giữ và xử lý lại.
+  objectives:
+  - Publish/subscribe qua RedisMessageListenerContainer
+  - Đọc và ghi bản ghi với StreamOperations
+  - Phân biệt Pub/Sub tức thời với Streams có lưu giữ
+- id: giao-dich-hieu-nang
+  title: Giao dịch & hiệu năng
+  purpose: Hiểu giới hạn tính nhất quán và giảm chi phí nhiều lệnh Redis.
+  objectives:
+  - Thực hiện MULTI/EXEC qua SessionCallback
+  - Phân biệt transactions với executePipelined
+  - Đo độ trễ, kiểm tra lỗi và lưu ý giới hạn cluster

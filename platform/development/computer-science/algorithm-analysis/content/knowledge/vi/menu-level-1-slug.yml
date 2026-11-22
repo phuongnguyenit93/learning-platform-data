@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: algorithm-analysis-overview
+  index: 0
+- title: Đặc tả và tính đúng
+  slug: specifications-and-correctness
+  index: 1
+- title: Mô hình tính chi phí
+  slug: cost-model
+  index: 2
+- title: Quy mô và mã hóa
+  slug: size-and-encoding
+  index: 3
+- title: Công cụ toán
+  slug: mathematical-tools
+  index: 4
+- title: Ký hiệu tiệm cận
+  slug: asymptotic-notation
+  index: 5
+- title: Tốc độ tăng trưởng
+  slug: growth-rates
+  index: 6
+- title: Các loại bảo đảm
+  slug: guarantee-types
+  index: 7
+- title: Vòng lặp
+  slug: loops
+  index: 8
+- title: Không gian và cấp phát
+  slug: space-and-allocation
+  index: 9
+- title: Đệ quy và truy hồi
+  slug: recurrence-and-recursion
+  index: 10
+- title: Giải truy hồi
+  slug: solving-recurrences
+  index: 11
+- title: Master và mở rộng
+  slug: master-theorem-extensions
+  index: 12
+- title: Quy hoạch động
+  slug: dynamic-programming
+  index: 13
+- title: Chi phí cấu trúc dữ liệu
+  slug: data-structure-costs
+  index: 14
+- title: Tìm kiếm và sắp xếp
+  slug: searching-and-sorting
+  index: 15
+- title: Đồ thị và biểu diễn
+  slug: graphs-and-representations
+  index: 16
+- title: Phân tích khấu hao
+  slug: amortized-analysis
+  index: 17
+- title: Xác suất trong phân tích
+  slug: probability-in-analysis
+  index: 18
+- title: Thuật toán ngẫu nhiên
+  slug: randomized-algorithms
+  index: 19
+- title: Cận xác suất
+  slug: probabilistic-bounds
+  index: 20
+- title: Cận dưới
+  slug: lower-bounds
+  index: 21
+- title: Quy dẫn và độ khó
+  slug: reductions-and-hardness
+  index: 22
+- title: Tham số và dữ liệu
+  slug: parameters-and-inputs
+  index: 23
+- title: Độ phức tạp bit
+  slug: bit-complexity
+  index: 24
+- title: I/O và tính cục bộ
+  slug: io-and-locality
+  index: 25
+- title: Phân tích song song
+  slug: parallel-analysis
+  index: 26
+- title: Phân tích trực tuyến
+  slug: online-analysis
+  index: 27
+- title: Sai số và xấp xỉ
+  slug: errors-and-approximation
+  index: 28
+- title: Phân tích thực nghiệm
+  slug: experimental-analysis
+  index: 29
+- title: Thực hành tổng hợp
+  slug: practice
+  index: 30

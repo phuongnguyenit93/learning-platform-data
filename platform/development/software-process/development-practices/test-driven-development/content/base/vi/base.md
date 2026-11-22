@@ -1,0 +1,5 @@
+# Software Process — Test Driven Development
+
+**Test Driven Development (TDD)** là cách phát triển phần mềm bằng những vòng lặp ngắn: mô tả hành vi mong muốn qua một bài test chưa đạt (**Red**), viết mã đơn giản nhất để test đạt (**Green**), rồi cải thiện cấu trúc mà vẫn giữ nguyên hành vi (**Refactor**). TDD không đồng nghĩa với việc chỉ tăng số lượng test hoặc đạt tỷ lệ coverage cao. Giá trị cốt lõi nằm ở phản hồi sớm, thiết kế API từ nhu cầu sử dụng và khả năng thay đổi mã với rủi ro thấp.
+
+Module dành cho lập trình viên đã biết Java, hướng đối tượng và kiểm thử đơn vị cơ bản. Bạn sẽ luyện chia nhỏ yêu cầu thành hành vi, triển khai vòng lặp Red–Green–Refactor với **JUnit Jupiter**, viết test rõ ràng, độc lập và bao phủ trường hợp biên. Sau đó, bạn học thiết kế mã dễ kiểm thử, lựa chọn Mockito/test doubles có mục đích, refactor an toàn và tiếp cận mã cũ bằng characterization tests. Cuối lộ trình, bạn đưa bộ test vào CI để giữ phản hồi nhanh và sử dụng code coverage như một tín hiệu bổ trợ. Mục tiêu là hình thành thói quen viết test trước để dẫn dắt thiết kế và chất lượng, không biến TDD thành thủ tục kiểm tra hình thức.

@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SUPPORT_DOCUMENT_REPORTING_JASPERREPORTS"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Thiết kế và xuất báo cáo có cấu trúc trong ứng dụng Java với JasperReports, từ JRXML, nguồn dữ liệu JDBC và tham số đến bố cục, nhóm, biểu thức và định dạng đầu ra. Học phân trang, font tiếng Việt, xuất PDF/Excel và tối ưu báo cáo phục vụ nghiệp vụ."
+  }
+}

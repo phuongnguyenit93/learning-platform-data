@@ -1,0 +1,49 @@
+roadmap:
+- id: nen-tang-hibernate
+  title: Nền tảng Hibernate
+  purpose: Hiểu vai trò của Hibernate ORM trong ánh xạ dữ liệu Java và cơ sở dữ liệu quan hệ.
+  objectives:
+  - '- Phân biệt ORM, JDBC và API Hibernate/JPA.'
+  - '- Nhận diện SessionFactory và Session.'
+- id: cau-hinh-khoi-tao
+  title: Cấu hình & Khởi tạo
+  purpose: Thiết lập môi trường và tài nguyên Hibernate để truy cập dữ liệu.
+  objectives:
+  - '- Khai báo hibernate-core và kết nối CSDL.'
+  - '- Khởi tạo SessionFactory và quản lý Session.'
+- id: entity-mapping
+  title: Entity & Mapping
+  purpose: Ánh xạ lớp Java thành entity có định danh và cột dữ liệu.
+  objectives:
+  - '- Dùng @Entity, @Id, @Column và @GeneratedValue.'
+  - '- Ánh xạ kiểu dữ liệu và thành phần nhúng.'
+- id: quan-he-fetch
+  title: Quan hệ & Fetch
+  purpose: Mô hình hóa quan hệ bảng và lựa chọn chiến lược tải dữ liệu.
+  objectives:
+  - '- Thiết lập @ManyToOne, @OneToMany và mappedBy.'
+  - '- Phân biệt fetch, cascade và orphanRemoval.'
+- id: session-transaction
+  title: Session & Transaction
+  purpose: Quản lý vòng đời entity và các thay đổi trong một giao dịch.
+  objectives:
+  - '- Phân biệt transient, managed và detached.'
+  - '- Thực hành persist, dirty checking, flush và rollback.'
+- id: hql-truy-van
+  title: HQL & Truy vấn
+  purpose: Đọc và lọc dữ liệu theo mô hình đối tượng.
+  objectives:
+  - '- Viết HQL với tham số, join và phân trang.'
+  - '- So sánh HQL với Criteria và SQL thuần.'
+- id: hieu-nang-cache
+  title: Hiệu năng & Cache
+  purpose: Phát hiện truy vấn dư thừa và cải thiện tốc độ truy cập.
+  objectives:
+  - '- Nhận diện N+1 và dùng fetch join phù hợp.'
+  - '- Hiểu batch và cache cấp một/cấp hai.'
+- id: khoa-chan-doan
+  title: Khóa & Chẩn đoán
+  purpose: Bảo đảm cập nhật nhất quán và xác định nguyên nhân lỗi.
+  objectives:
+  - '- Áp dụng @Version cho optimistic locking.'
+  - '- Phân tích SQL log, lỗi giao dịch và rollback.'

@@ -1,0 +1,354 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - LibreTranslate là gì và giải quyết nhu cầu dịch tài liệu nào
+  - Vai trò của LibreTranslate trong ứng dụng Java
+  - Quan hệ giữa ứng dụng, REST API, Argos Translate và mô hình dịch
+  - Luồng xử lý từ văn bản nguồn đến bản dịch
+  - Tự triển khai và sử dụng dịch vụ được quản lý
+  - Phạm vi dịch văn bản, HTML và tệp
+  - Điều kiện sử dụng ngoại tuyến sau khi chuẩn bị mô hình
+  - Giới hạn của dịch máy và trách nhiệm duyệt bản dịch
+  - Các thuật ngữ nền tảng và trình tự học
+- level1: Cơ chế dịch
+  level2:
+  - Ngôn ngữ nguồn, ngôn ngữ đích và hướng dịch
+  - Mô hình dịch theo cặp ngôn ngữ
+  - Dịch trực tiếp và dịch qua ngôn ngữ trung gian
+  - Ảnh hưởng của ngữ cảnh và ranh giới câu
+  - Nhận diện ngôn ngữ và dịch tự động
+  - Độ tin cậy nhận diện và chất lượng bản dịch
+  - Tách câu, suy luận mô hình và ghép kết quả
+  - Ảnh hưởng của phiên bản mô hình đến kết quả
+  - Phân biệt dịch máy, chuyển ngữ và bản địa hóa
+- level1: Môi trường
+  level2:
+  - Chuẩn bị Java 21, công cụ HTTP và môi trường LibreTranslate
+  - Lựa chọn Python, Docker hoặc máy chủ dịch có sẵn
+  - Kiểm tra yêu cầu tài nguyên theo mô hình và dữ liệu
+  - Kết nối mạng để tải phần mềm và mô hình lần đầu
+  - Tổ chức cấu hình cho phát triển, kiểm thử và vận hành
+  - Xác định địa chỉ dịch vụ từ máy chủ và container
+  - Chuẩn bị bộ tài liệu mẫu tiếng Việt và tiếng Anh
+  - Ghi nhận phiên bản phần mềm và cấu hình để tái lập
+- level1: Khởi chạy
+  level2:
+  - Cài LibreTranslate trong môi trường Python riêng
+  - Khởi chạy bằng Docker và lựa chọn phiên bản image
+  - Chạy LibreTranslate bằng Docker Compose
+  - Thiết lập địa chỉ lắng nghe và cổng dịch vụ
+  - Giới hạn ngôn ngữ tải bằng --load-only
+  - Theo dõi quá trình tải mô hình và khởi động lần đầu
+  - Kiểm tra dịch vụ bằng GET /health
+  - Thực hiện yêu cầu dịch đầu tiên bằng curl
+  - Kiểm tra giao diện web khi được bật
+  - Dừng, khởi động lại và kiểm tra dữ liệu được lưu
+- level1: Mô hình ngôn ngữ
+  level2:
+  - Khám phá ngôn ngữ thực tế bằng GET /languages
+  - Đọc code, name và targets trong danh sách ngôn ngữ
+  - Kiểm tra hướng dịch tiếng Việt trên đúng máy chủ
+  - Phân biệt mã ngôn ngữ, tên hiển thị và locale
+  - Kiểm tra mô hình trực tiếp và đường dịch trung gian
+  - Lưu mô hình bền vững bằng thư mục hoặc Docker volume
+  - Chuẩn bị mô hình trước khi chạy trong mạng ngoại tuyến
+  - Cập nhật mô hình có kiểm soát bằng --update-models
+  - Kiểm tra tính nhất quán mô hình giữa các bản sao dịch vụ
+  - Ranh giới giữa quản lý LibreTranslate và huấn luyện Argos Translate
+- level1: Hợp đồng API
+  level2:
+  - Xác định base URL, đường dẫn và phiên bản triển khai
+  - Đối chiếu tài liệu API với đặc tả của máy chủ sử dụng
+  - Phân biệt JSON, biểu mẫu và multipart/form-data
+  - Mã hóa UTF-8 cho tiếng Việt và ký tự đặc biệt
+  - Các trường bắt buộc và tùy chọn của yêu cầu
+  - Cơ chế truyền api_key theo hợp đồng LibreTranslate
+  - Đọc mã HTTP và đối tượng error
+  - Giới hạn kích thước yêu cầu và thời gian chờ
+  - Phân biệt lỗi kết nối, lỗi HTTP và lỗi nội dung phản hồi
+- level1: Dịch văn bản
+  level2:
+  - Cấu trúc yêu cầu POST /translate
+  - Truyền q, source và target cho một đoạn văn bản
+  - Lựa chọn format=text cho văn bản thuần
+  - Đọc translatedText và bảo toàn Unicode
+  - Dịch với source=auto và đọc detectedLanguage
+  - Yêu cầu bản dịch thay thế bằng alternatives
+  - Xử lý trường tùy chọn khi máy chủ không trả về
+  - Giữ xuống dòng, khoảng trắng và cấu trúc đoạn
+  - Xử lý đầu vào rỗng, chỉ khoảng trắng và văn bản quá dài
+  - Xử lý ngôn ngữ nguồn trùng ngôn ngữ đích
+  - Kiểm tra tiếng Việt có dấu, emoji và ký tự tổ hợp
+- level1: Nhận diện ngôn ngữ
+  level2:
+  - Gửi yêu cầu POST /detect với văn bản mẫu
+  - Đọc danh sách language và confidence
+  - Lựa chọn giữa /detect riêng và source=auto
+  - Ảnh hưởng của văn bản ngắn đến kết quả nhận diện
+  - Xử lý tài liệu chứa nhiều ngôn ngữ
+  - Lựa chọn mẫu nhận diện theo đoạn hoặc toàn tài liệu
+  - Thiết kế ngưỡng chấp nhận tại ứng dụng
+  - Cho phép người dùng xác nhận hoặc chọn lại ngôn ngữ nguồn
+  - Kiểm tra ngôn ngữ được nhận diện có hướng dịch hợp lệ
+- level1: Dịch hàng loạt
+  level2:
+  - Truyền mảng q trong một yêu cầu /translate
+  - Đọc mảng translatedText theo thứ tự đầu vào
+  - Đọc detectedLanguage và alternatives khi dịch nhiều đoạn
+  - Phân biệt số đoạn trong lô và số ký tự của yêu cầu
+  - Chia lô theo giới hạn thực tế của máy chủ
+  - Gắn mã đoạn để ghép kết quả về tài liệu
+  - Kiểm tra số lượng kết quả và phát hiện sai lệch
+  - Xử lý lô bị từ chối mà không bỏ mất đoạn nguồn
+  - Lựa chọn kích thước lô theo độ trễ và bộ nhớ
+  - Phân biệt dịch hàng loạt với gửi nhiều yêu cầu đồng thời
+- level1: Dịch HTML
+  level2:
+  - Lựa chọn format=html và giới hạn bảo toàn cấu trúc
+  - Xác định nội dung văn bản cần dịch trong cây HTML
+  - Kiểm tra tiêu đề, đoạn văn, danh sách và bảng
+  - Bảo toàn liên kết, địa chỉ ảnh và thuộc tính kỹ thuật
+  - Xử lý entity, Unicode và ký tự có ý nghĩa HTML
+  - Khoanh vùng code, pre, script và style trước khi dịch
+  - Kiểm tra thuộc tính mang nội dung như alt và title
+  - Đối chiếu DOM trước và sau khi dịch
+  - Lọc nội dung HTML trước khi hiển thị trong ứng dụng
+  - Kiểm tra HTML lỗi cấu trúc và nội dung lồng nhau
+- level1: Dịch tệp
+  level2:
+  - Khám phá supportedFilesFormat trên đúng máy chủ
+  - Kiểm tra dịch tệp có được bật trong cấu hình
+  - Cấu trúc multipart của POST /translate_file
+  - Truyền file, source, target và api_key
+  - Đọc translatedFileUrl và tải tệp kết quả
+  - Xác minh địa chỉ tải theo chính sách máy chủ tin cậy
+  - Kiểm tra tên tệp, kiểu nội dung và kích thước tải xuống
+  - Đối chiếu văn bản, bảng và bố cục sau dịch
+  - Xử lý tệp rỗng, hỏng hoặc sai định dạng
+  - Phân biệt giới hạn tải lên tại ứng dụng, proxy và LibreTranslate
+  - Quản lý tệp tạm và thời gian lưu kết quả
+  - Phân biệt dịch tệp trực tiếp với quy trình trích xuất văn bản
+- level1: API bổ trợ
+  level2:
+  - Đọc GET /frontend/settings để khám phá khả năng máy chủ
+  - Sử dụng charLimit và các giới hạn được công bố
+  - Đọc apiKeys, keyRequired và trạng thái suggestions
+  - Phân biệt frontendTimeout với thời gian chờ của ứng dụng Java
+  - Sử dụng GET /health trong kiểm tra tình trạng dịch vụ
+  - Phân biệt máy chủ sống và khả năng dịch của mô hình
+  - Điều kiện bật và sử dụng POST /suggest
+  - Gửi q, s, source và target cho bản dịch đề xuất
+  - Phân biệt thu thập góp ý với cập nhật mô hình dịch
+- level1: Tích hợp Java
+  level2:
+  - Thiết kế lớp cấu hình và bộ gọi LibreTranslate
+  - Khởi tạo và tái sử dụng java.net.http.HttpClient
+  - Thiết lập URI, header và thời gian chờ
+  - Tạo JSON bằng thư viện ánh xạ thay vì nối chuỗi
+  - Thiết kế kiểu dữ liệu cho yêu cầu và phản hồi
+  - Ánh xạ translatedText dạng chuỗi và dạng danh sách
+  - Đọc trường tùy chọn và phản hồi mở rộng
+  - Gọi /languages, /detect và /translate từ Java
+  - Gửi multipart và tải tệp kết quả bằng Java
+  - Đóng tài nguyên khi truyền tệp và đọc luồng
+  - Gọi bất đồng bộ bằng CompletableFuture và hủy tác vụ
+  - Che api_key và nội dung nhạy cảm trong log
+- level1: Tích hợp Spring
+  level2:
+  - Đóng gói bộ gọi dịch thành thành phần tái sử dụng
+  - Ánh xạ cấu hình bằng @ConfigurationProperties
+  - Sử dụng RestClient cho luồng gọi đồng bộ
+  - Sử dụng WebClient khi ứng dụng cần luồng bất đồng bộ
+  - Tách bộ gọi HTTP khỏi nghiệp vụ dịch tài liệu
+  - Kiểm tra đầu vào trước khi gọi LibreTranslate
+  - Ánh xạ lỗi dịch vụ sang kết quả nghiệp vụ
+  - Tổ chức profile và bí mật theo môi trường
+  - Quản lý tài nguyên HTTP theo vòng đời ứng dụng
+  - Tích hợp vào tác vụ nền và ứng dụng không có HTTP endpoint
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi có thể thử lại và lỗi cần sửa đầu vào
+  - Xử lý HTTP 400 và thông báo tham số không hợp lệ
+  - Xử lý HTTP 403 và lỗi api_key
+  - Xử lý HTTP 429 theo giới hạn dịch vụ
+  - Xử lý HTTP 500 và lỗi mô hình dịch
+  - Xử lý DNS, TLS, mất kết nối và hết thời gian chờ
+  - Thiết kế thử lại với khoảng chờ tăng dần và nhiễu ngẫu nhiên
+  - Tôn trọng Retry-After khi phản hồi có cung cấp
+  - Giới hạn tổng thời gian và số lần thử lại
+  - Ngắt gọi tạm thời khi dịch vụ lỗi kéo dài
+  - Tránh tạo tệp và tiêu thụ hạn mức lặp khi thử lại
+  - Trả kết quả lỗi rõ ràng thay vì coi văn bản nguồn là bản dịch
+- level1: Luồng tài liệu
+  level2:
+  - Thiết kế các bước tiếp nhận, trích xuất, dịch và ghép tài liệu
+  - Xác định đơn vị dịch theo đoạn, ô bảng và khối nội dung
+  - Gắn mã ổn định cho từng đoạn nguồn
+  - Giữ quan hệ giữa vị trí gốc và kết quả dịch
+  - Chia đoạn theo câu và giữ đủ ngữ cảnh
+  - Tổ chức tác vụ dịch dài trong hàng đợi của ứng dụng
+  - Lưu trạng thái chờ, đang dịch, hoàn tất, lỗi và hủy
+  - Tiếp tục tác vụ từ phần đã hoàn thành
+  - Tách kết quả từng đoạn và lỗi từng phần
+  - Xuất bản tệp kết quả theo cách nguyên tử
+  - Ghi nhận nguồn, cấu hình và phiên bản cho mỗi bản dịch
+- level1: Dịch Markdown
+  level2:
+  - Phân tích cú pháp Markdown trước khi chọn nội dung dịch
+  - Dịch tiêu đề, đoạn văn, danh sách và chú thích
+  - Bảo toàn fenced code block và inline code
+  - Giữ URL, đường dẫn ảnh và liên kết tham chiếu
+  - Phân biệt nhãn liên kết cần dịch với đích liên kết
+  - Bảo toàn front matter và trường siêu dữ liệu được chỉ định
+  - Xử lý bảng, ký tự escape và dấu phân cách
+  - Bảo toàn placeholder, biểu thức mẫu và biến cấu hình
+  - Xử lý HTML nhúng trong Markdown
+  - Giữ anchor ổn định khi tiêu đề được dịch
+  - Ghép lại Markdown và kiểm tra bằng bộ phân tích cú pháp
+  - So sánh cấu trúc và phần mã trước, sau khi dịch
+- level1: Định dạng mở rộng
+  level2:
+  - Lập ma trận định dạng được hỗ trợ trực tiếp và cần bộ chuyển đổi
+  - Lựa chọn /translate_file hay trích xuất rồi gọi /translate
+  - Tích hợp bộ đọc DOCX bên ngoài khi cần kiểm soát từng đoạn
+  - Giữ ranh giới run, đoạn, bảng và trường trong tài liệu Word
+  - Tích hợp bộ đọc bảng tính và chọn ô văn bản cần dịch
+  - Bảo toàn công thức, kiểu dữ liệu và định dạng bảng tính
+  - Xử lý nội dung slide qua bộ đọc tài liệu bên ngoài
+  - Trích xuất PDF và đánh giá thứ tự đọc trước khi dịch
+  - Dùng OCR bên ngoài cho tài liệu quét
+  - Xử lý JSON, YAML và XML mà không đổi khóa hoặc schema
+  - Xử lý tệp bản địa hóa và placeholder theo định dạng
+  - Đánh giá bố cục sau khi ghép lại bằng công cụ chuyên dụng
+- level1: Chất lượng bản dịch
+  level2:
+  - Xây dựng tiêu chí đầy đủ, đúng nghĩa và tự nhiên
+  - Chuẩn bị tập văn bản chuẩn cho từng cặp ngôn ngữ
+  - Đánh giá riêng thuật ngữ kỹ thuật Java
+  - Kiểm tra số liệu, ngày tháng, đơn vị và tên riêng
+  - Phát hiện bỏ sót, lặp đoạn và đoạn chưa được dịch
+  - Kiểm tra phủ định và thay đổi ý nghĩa quan trọng
+  - Thiết kế bảng thuật ngữ tại ứng dụng khi API không có hợp đồng tương ứng
+  - Bảo vệ thuật ngữ và khôi phục placeholder có kiểm chứng
+  - Duyệt thủ công đối với nội dung yêu cầu độ chính xác cao
+  - Phân biệt điểm đánh giá tự động và kết luận của người duyệt
+  - Theo dõi thay đổi chất lượng khi đổi mô hình
+- level1: Bộ nhớ dịch
+  level2:
+  - Phân biệt bộ nhớ dịch của ứng dụng và cache của máy chủ
+  - Thiết kế khóa theo văn bản, hướng dịch, định dạng và phiên bản mô hình
+  - Lựa chọn chuẩn hóa đầu vào mà không làm mất ý nghĩa
+  - Tái sử dụng đoạn lặp trong cùng tài liệu
+  - Chỉ lưu kết quả thành công đã qua kiểm tra
+  - Thiết lập thời hạn lưu, dung lượng và chính sách loại bỏ
+  - Tách dữ liệu lưu theo người dùng hoặc đơn vị sở hữu
+  - Làm mới cache khi thay đổi mô hình hay quy tắc bảo vệ nội dung
+  - Phối hợp bộ nhớ dịch với chỉnh sửa của người duyệt
+  - Đánh giá rủi ro lưu văn bản nhạy cảm trong cache
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ theo độ dài đoạn và cặp ngôn ngữ
+  - Phân biệt khởi động lạnh và xử lý khi mô hình đã được nạp
+  - Đánh giá CPU, RAM và dung lượng mô hình
+  - Điều chỉnh kích thước đoạn và kích thước lô
+  - Giới hạn số yêu cầu đồng thời tại ứng dụng Java
+  - Điều tiết hàng đợi khi tốc độ tiếp nhận vượt khả năng dịch
+  - Đánh giá số worker theo bộ nhớ và năng lực xử lý
+  - Đo thông lượng và độ trễ phân vị
+  - Kiểm tra tải dài hạn và khả năng phục hồi
+  - Đánh giá tăng tốc phần cứng theo bản dựng hỗ trợ thực tế
+  - Cân bằng chất lượng, ngữ cảnh, tốc độ và chi phí hạ tầng
+- level1: Bảo mật
+  level2:
+  - Xác định ranh giới tin cậy và dữ liệu được gửi đi
+  - Giữ api_key ở phía máy chủ và kho bí mật
+  - Bật quản lý API key cho bản tự triển khai
+  - Tạo, thu hồi và thay khóa bằng ltmanage
+  - Thiết lập hạn mức yêu cầu và ký tự theo khóa
+  - Phân biệt chính sách Origin, CORS và xác thực
+  - Bảo vệ kết nối bằng TLS và mạng nội bộ
+  - Giới hạn quyền truy cập máy chủ và tệp kết quả
+  - Kiểm tra tên tệp, đường dẫn và kiểu nội dung tải lên
+  - Kiểm soát SSRF khi tải translatedFileUrl trong ứng dụng
+  - Che thông tin cá nhân trong log và dữ liệu giám sát
+  - Thiết kế thời gian lưu, dọn tệp và xóa dữ liệu
+- level1: Triển khai
+  level2:
+  - Chọn mô hình chạy Docker hoặc WSGI phù hợp
+  - Cố định phiên bản phần mềm, image và mô hình
+  - Ánh xạ tham số dòng lệnh sang biến LT_*
+  - Lưu mô hình, cơ sở dữ liệu khóa và dữ liệu cần thiết trên volume
+  - Cấu hình reverse proxy và địa chỉ công khai
+  - Đồng bộ giới hạn body và thời gian chờ qua các lớp
+  - Cấu hình đường dẫn tiền tố khi máy chủ triển khai hỗ trợ
+  - Bật hoặc tắt giao diện web và dịch tệp theo nhu cầu
+  - Chia sẻ dữ liệu hạn mức khi vận hành nhiều tiến trình hoặc bản sao
+  - Kiểm tra tình trạng, tự khởi động lại và dừng có kiểm soát
+  - Chuẩn bị bản triển khai ngoại tuyến có đủ mô hình
+  - Lập kế hoạch sao lưu và khôi phục cấu hình
+- level1: Giám sát
+  level2:
+  - Theo dõi số yêu cầu, tỷ lệ lỗi và độ trễ
+  - Bật endpoint Prometheus bằng cấu hình --metrics
+  - Bảo vệ quyền truy cập dữ liệu giám sát
+  - Theo dõi hàng đợi và tiến độ dịch tài liệu tại ứng dụng
+  - Gắn mã tương quan qua ứng dụng và máy chủ dịch
+  - Ghi log lỗi có cấu trúc và đã che dữ liệu
+  - Cảnh báo lỗi 429, lỗi 5xx và hết thời gian chờ
+  - Cảnh báo bộ nhớ, dung lượng đĩa và tệp tạm tăng cao
+  - Phân biệt lỗi hạ tầng và suy giảm chất lượng bản dịch
+  - Kiểm tra khả năng dịch bằng yêu cầu mẫu có kiểm soát
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử kiểm tra đầu vào và ánh xạ phản hồi
+  - Giả lập HTTP cho thành công, lỗi và phản hồi sai cấu trúc
+  - Kiểm thử một đoạn, nhiều đoạn và nhận diện tự động
+  - Kiểm thử hướng dịch không có mô hình
+  - Kiểm thử timeout, thử lại, hủy và ngắt gọi tạm thời
+  - Kiểm thử tải lên, tải xuống và dọn tệp tạm
+  - Kiểm thử bảo toàn HTML và cú pháp Markdown
+  - Kiểm thử placeholder, số liệu và đoạn mã
+  - Kiểm thử tiếp tục tác vụ và tránh xử lý lặp
+  - Chạy kiểm thử tích hợp với bản LibreTranslate cố định
+  - Kiểm thử chất lượng bằng bộ dữ liệu đã duyệt
+  - Tránh phụ thuộc tuyệt đối vào câu chữ đầu ra khi mô hình thay đổi
+  - Kiểm thử tải và giới hạn đồng thời
+- level1: Nâng cấp
+  level2:
+  - Theo dõi thay đổi hợp đồng API và cấu hình
+  - Tách nâng cấp phần mềm khỏi nâng cấp mô hình
+  - Sao lưu phiên bản, mô hình và cơ sở dữ liệu khóa
+  - Chạy bộ kiểm thử hồi quy trước khi thay đổi
+  - So sánh chất lượng trên tập văn bản chuẩn
+  - Làm mới bộ nhớ dịch theo phiên bản mô hình
+  - Triển khai thử trên phạm vi giới hạn
+  - Khôi phục phiên bản cũ khi kiểm tra thất bại
+  - Cập nhật tài liệu cấu hình và ma trận khả năng
+- level1: Khắc phục sự cố
+  level2:
+  - Không kết nối được từ máy chủ hoặc container Java
+  - Khởi động lâu do tải mô hình hoặc thiếu tài nguyên
+  - Không thấy ngôn ngữ hoặc hướng dịch mong muốn
+  - Dịch sai do tự nhận diện ngôn ngữ nguồn
+  - Bản dịch khác nhau giữa hai môi trường
+  - Lỗi api_key và hạn mức yêu cầu
+  - Tệp bị từ chối hoặc dịch tệp bị vô hiệu hóa
+  - translatedFileUrl không tải được sau reverse proxy
+  - Lỗi tiếng Việt do mã hóa hoặc chuẩn hóa Unicode
+  - HTML, Markdown hoặc placeholder bị biến đổi
+  - Tác vụ treo, hết thời gian chờ hoặc tăng bộ nhớ
+  - Lỗi mô hình và dữ liệu sau khi khởi động lại
+- level1: Thực hành
+  level2:
+  - Dựng máy chủ LibreTranslate cục bộ với ngôn ngữ được chọn
+  - Viết chương trình Java dịch văn bản hai chiều Việt–Anh khi có mô hình
+  - Xây dựng công cụ nhận diện và xác nhận ngôn ngữ nguồn
+  - Dịch nhiều đoạn và ghép đúng thứ tự tài liệu
+  - Dịch HTML rồi kiểm tra cấu trúc và nội dung
+  - Tải lên, dịch và tải xuống một định dạng tệp được hỗ trợ
+  - Dịch Markdown có mã nguồn, bảng và liên kết
+  - Xây dựng tác vụ dịch tài liệu có lưu tiến độ và tiếp tục
+  - Bổ sung bộ nhớ dịch và kiểm tra hiệu quả tái sử dụng
+  - Mô phỏng lỗi 429, timeout và phục hồi dịch vụ
+  - Đóng gói cấu hình triển khai và bảng giám sát
+  - Đánh giá chất lượng và lập biên bản nghiệm thu bản dịch

@@ -1,0 +1,366 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Chất lượng mã nguồn (code quality) là gì?
+  - Một đoạn mã chạy đúng đã đủ tốt chưa?
+  - Mối liên hệ giữa chất lượng mã và chất lượng sản phẩm
+  - Người đọc, người sửa và người vận hành cần gì từ mã nguồn?
+  - Chi phí hiểu, kiểm tra, thay đổi và khắc phục lỗi
+  - Chất lượng nội tại và hành vi quan sát được
+  - Phân biệt lỗi, mùi mã, vi phạm quy ước và nợ kỹ thuật
+  - Vai trò của thiết kế, kiểm thử, công cụ và rà soát
+  - Vì sao một điểm số không thể mô tả toàn bộ chất lượng?
+  - Lộ trình từ nhận diện vấn đề đến cải thiện có bằng chứng
+- level1: Các chiều chất lượng
+  level2:
+  - Tính đúng đắn so với yêu cầu và hợp đồng
+  - Độ tin cậy khi gặp lỗi hoặc điều kiện bất thường
+  - Khả năng đọc và giải thích ý định
+  - Khả năng bảo trì và thay đổi an toàn
+  - Khả năng kiểm thử và xác minh
+  - Tính mô-đun và mức độ phụ thuộc
+  - An toàn bảo mật và kiểm soát dữ liệu nhạy cảm
+  - Hiệu quả sử dụng thời gian và tài nguyên
+  - Tính nhất quán trong cùng một hệ thống
+  - Khả năng tương thích và thích nghi với môi trường
+  - Chọn dấu hiệu và bằng chứng cho từng chiều chất lượng
+  - Quan hệ hỗ trợ hoặc xung đột giữa các tiêu chí
+- level1: Bối cảnh và đánh đổi
+  level2:
+  - Xác định người sử dụng và mục tiêu của phần mã đang xét
+  - Mức độ quan trọng và hậu quả khi mã sai
+  - Mã thử nghiệm, công cụ nội bộ và mã được duy trì lâu dài
+  - Tần suất thay đổi và số người cùng bảo trì
+  - Ràng buộc tương thích, thời gian và nguồn lực
+  - Lựa chọn mức bảo đảm phù hợp với rủi ro
+  - Đánh đổi sự đơn giản với tính linh hoạt mở rộng
+  - Đánh đổi hiệu năng với độ rõ ràng và khả năng kiểm chứng
+  - Phân biệt quyết định có chủ đích với vấn đề chưa được nhận diện
+  - Ghi lại giả thiết và điều kiện cần xem xét lại
+  - Tránh áp dụng một bộ quy tắc tuyệt đối cho mọi loại mã
+- level1: Tính đúng đắn
+  level2:
+  - Chuyển yêu cầu thành hành vi có thể kiểm tra
+  - Tiền điều kiện, hậu điều kiện và bất biến
+  - Mô hình miền dữ liệu và trạng thái hợp lệ
+  - Giá trị biên, dữ liệu thiếu và đầu vào không hợp lệ
+  - Luồng điều khiển và các đường đi cần được xét
+  - Hợp đồng về kết quả, tác dụng phụ và ngoại lệ
+  - Tính đúng đắn của dữ liệu số, chuỗi và thời gian
+  - Thứ tự thao tác và trạng thái cập nhật một phần
+  - Giữ hành vi hợp lệ khi thay đổi cách triển khai
+  - Phân biệt đặc tả thiếu với mã triển khai sai
+  - Giới hạn của suy luận, kiểm thử và phân tích tự động
+- level1: Độ tin cậy
+  level2:
+  - Lỗi đầu vào, lỗi nghiệp vụ và lỗi hạ tầng
+  - Ngăn lỗi lan rộng và giữ trạng thái nhất quán
+  - Thiết kế thông báo lỗi đủ rõ để xử lý
+  - Không che thất bại bằng kết quả có vẻ thành công
+  - Vòng đời tài nguyên và dọn dẹp trên mọi đường đi
+  - Giới hạn thời gian chờ, số lần thử lại và lượng công việc
+  - Thực hiện lặp an toàn và kiểm soát tác dụng phụ
+  - Hủy thao tác và kết thúc có kiểm soát
+  - Xử lý đồng thời theo bất biến và quyền sở hữu trạng thái
+  - Khôi phục và quan sát thất bại trong phạm vi trách nhiệm của mã
+  - Kiểm tra giả thiết khi phụ thuộc vào hệ thống bên ngoài
+- level1: Khả năng đọc
+  level2:
+  - Mã diễn đạt ý định và mô hình bài toán
+  - Đặt tên theo ý nghĩa, đơn vị và phạm vi sử dụng
+  - Từ vựng nhất quán giữa mã, dữ liệu và nghiệp vụ
+  - Tổ chức phương thức theo một mạch xử lý dễ theo dõi
+  - Giới hạn mức lồng nhau và khoảng cách giữa các thông tin liên quan
+  - Làm rõ điều kiện boolean và các nhánh xử lý
+  - Thay giá trị khó hiểu bằng tên hoặc mô hình phù hợp
+  - Phân biệt mã ngắn với mã dễ hiểu
+  - Tránh che tác dụng phụ sau tên gọi hoặc biểu thức khó đoán
+  - Bình luận giải thích lý do, giả thiết và giới hạn
+  - Đọc một đoạn mã dưới góc nhìn người mới tiếp nhận
+  - Cân bằng quy ước chung với đặc điểm của bài toán
+- level1: Độ phức tạp
+  level2:
+  - Độ phức tạp do bản thân bài toán và do cách triển khai
+  - Số nhánh, đường đi và trạng thái cần suy nghĩ
+  - Độ phức tạp chu trình và phạm vi mà chỉ số phản ánh
+  - Độ phức tạp nhận thức và khác biệt giữa các cách đo
+  - Mức lồng nhau, phụ thuộc ngầm và điều kiện chồng chéo
+  - Độ phức tạp ở cấp phương thức, lớp và toàn luồng xử lý
+  - Quá nhiều lớp gián tiếp và chi phí lần theo hành vi
+  - Đơn giản hóa điều kiện và loại bỏ trạng thái không cần thiết
+  - Tách phần tính toán khỏi phần điều phối và tác dụng phụ
+  - Giới hạn tác dụng của việc chia nhỏ theo số dòng
+  - Nhận diện khi trừu tượng hóa đang làm bài toán khó hiểu hơn
+- level1: Cấu trúc và phụ thuộc
+  level2:
+  - Ranh giới trách nhiệm của phương thức, lớp và mô-đun
+  - Độ gắn kết bên trong một đơn vị mã
+  - Mức độ kết nối và hướng phụ thuộc giữa các đơn vị
+  - Che giấu quyết định dễ thay đổi sau hợp đồng ổn định
+  - Phụ thuộc rõ ràng thay vì truy cập trạng thái toàn cục
+  - Chu kỳ phụ thuộc và ảnh hưởng đến kiểm thử, thay đổi
+  - Tổ hợp đối tượng và kế thừa theo hợp đồng
+  - Áp dụng SOLID theo vấn đề cần giải quyết
+  - 'DRY: loại trùng tri thức thay vì gộp mọi đoạn mã giống nhau'
+  - KISS và YAGNI trong lựa chọn mức trừu tượng
+  - Phân biệt tổ chức tệp với ranh giới kiến trúc thực sự
+  - Đánh giá thiết kế bằng một thay đổi cụ thể
+- level1: Dữ liệu và trạng thái
+  level2:
+  - Biểu diễn dữ liệu sao cho giảm trạng thái không hợp lệ
+  - Kiểu dữ liệu, đơn vị và ràng buộc miền giá trị
+  - Giá trị bất biến và thay đổi có kiểm soát
+  - Quyền sở hữu đối tượng và tham chiếu dùng chung
+  - Phân biệt null, vắng dữ liệu và lỗi
+  - Sao chép phòng vệ, bản chụp và vỏ bọc chỉ đọc
+  - Giữ bất biến liên quan đến nhiều trường
+  - Giới hạn phạm vi và vòng đời của trạng thái
+  - Tách trạng thái theo từng yêu cầu hoặc tác vụ
+  - Tính nhất quán khi có truy cập đồng thời
+  - Truy nguyên nguồn gốc và biến đổi của dữ liệu
+- level1: Hợp đồng API
+  level2:
+  - API như ranh giới giao tiếp giữa các phần mã
+  - Tên gọi, kiểu tham số và giá trị trả về thể hiện ý định
+  - Tiền điều kiện và cách báo đầu vào không hợp lệ
+  - Hậu điều kiện và bảo đảm sau khi thao tác thất bại
+  - Quy ước null, Optional và collection rỗng
+  - Tác dụng phụ, quyền sở hữu và trách nhiệm đóng tài nguyên
+  - Hợp đồng về luồng thực thi, thứ tự và tính đồng thời
+  - Làm rõ thao tác chặn, bất đồng bộ và hủy
+  - Thiết kế để khó sử dụng sai
+  - Giữ tương thích và phát triển hợp đồng theo thời gian
+  - Kiểm chứng API từ góc nhìn mã gọi
+- level1: Khả năng kiểm thử
+  level2:
+  - Khả năng điều khiển đầu vào và quan sát kết quả
+  - Tách logic miền bài toán khỏi I/O và cơ chế triển khai
+  - Đưa phụ thuộc về thời gian, ngẫu nhiên và dịch vụ ngoài vào hợp đồng rõ ràng
+  - Giảm trạng thái toàn cục và sự phụ thuộc thứ tự chạy
+  - Thiết kế điểm thay thế phụ thuộc khi cần kiểm thử
+  - Đối tượng thay thế, stub và mock dùng đúng mục đích
+  - Kiểm thử theo hành vi thay vì cấu trúc triển khai
+  - Giữ kiểm thử ổn định khi tái cấu trúc
+  - Cân bằng khả năng kiểm thử với đóng gói
+  - Nhận diện thiết kế khó kiểm thử từ một tình huống cụ thể
+- level1: Bằng chứng kiểm thử
+  level2:
+  - Kiểm thử đơn vị, tích hợp, hợp đồng và toàn hệ thống
+  - Chọn cấp kiểm thử theo rủi ro và chi phí phản hồi
+  - Trường hợp bình thường, biên, lỗi và dữ liệu bất thường
+  - Kiểm tra bất biến và các thuộc tính thay vì chỉ ví dụ cố định
+  - Chất lượng dữ liệu thử và kết quả kỳ vọng
+  - Độ bao phủ câu lệnh, nhánh và giới hạn diễn giải
+  - Kiểm thử chạy qua mã nhưng không phát hiện lỗi
+  - Mutation testing và bằng chứng về sức phát hiện của bộ kiểm thử
+  - Kiểm thử hồi quy cho lỗi đã xác nhận
+  - Kiểm thử không ổn định và nguyên nhân cần điều tra
+  - Kiểm tra đồng thời, tài nguyên và tác dụng phụ
+  - Đọc kết quả thất bại như bằng chứng cần giải thích
+  - Không đồng nhất bộ kiểm thử xanh với chứng minh đầy đủ tính đúng đắn
+- level1: Bảo mật
+  level2:
+  - Ranh giới tin cậy và nguồn dữ liệu đầu vào
+  - Kiểm tra dữ liệu theo miền giá trị và ngữ cảnh sử dụng
+  - Kiểm soát truy cập và nguyên tắc quyền tối thiểu
+  - Tách dữ liệu khỏi câu lệnh hoặc cấu trúc thực thi
+  - Bảo vệ bí mật trong mã, cấu hình và thông báo lỗi
+  - Giới hạn dữ liệu nhạy cảm trong log
+  - Xử lý thất bại của kiểm tra an toàn theo hợp đồng
+  - Giới hạn tài nguyên trước đầu vào hoặc tải bất thường
+  - Phụ thuộc bên ngoài và nguồn gốc thành phần sử dụng
+  - Phân biệt mẫu mã nguy hiểm với rủi ro thực tế của hệ thống
+  - Kết hợp rà soát thiết kế, phân tích và kiểm thử theo mô hình đe dọa
+- level1: Hiệu năng và tài nguyên
+  level2:
+  - Đặt yêu cầu về độ trễ, thông lượng và giới hạn bộ nhớ
+  - Lựa chọn thuật toán và cấu trúc dữ liệu phù hợp
+  - Đo trước khi tối ưu phần mã có ảnh hưởng
+  - Chi phí tính toán, cấp phát, I/O và chờ
+  - Vòng đời tài nguyên và dấu hiệu rò rỉ
+  - Giới hạn bộ đệm, hàng đợi và số tác vụ đồng thời
+  - Hiệu năng khi tải tăng và dữ liệu lệch phân bố
+  - Khởi động, bộ nhớ đệm và điều kiện đo lặp lại
+  - Phân biệt phép đo cục bộ với hành vi toàn ứng dụng
+  - Đánh đổi tối ưu hóa với độ rõ ràng và tính đúng đắn
+  - Kiểm tra cải tiến bằng bằng chứng trước và sau
+  - Ghi lại giả thiết khiến một tối ưu có lợi
+- level1: Tài liệu
+  level2:
+  - Mã nguồn, kiểm thử và tài liệu phục vụ các nhu cầu khác nhau
+  - Giải thích mục tiêu, phạm vi và cách sử dụng
+  - Ghi hợp đồng, bất biến và trường hợp lỗi
+  - Bình luận lý do thay vì diễn lại từng câu lệnh
+  - Ví dụ sử dụng đúng và giới hạn của ví dụ
+  - Lưu quyết định thiết kế cùng phương án đã cân nhắc
+  - Sơ đồ hỗ trợ đọc cấu trúc và luồng dữ liệu
+  - Thông báo lỗi và hướng dẫn chẩn đoán
+  - Tài liệu gần mã nhưng vẫn cần người chịu trách nhiệm
+  - Phát hiện tài liệu không còn khớp hành vi
+  - Cập nhật tri thức cùng thay đổi mã liên quan
+- level1: Quy ước và nhất quán
+  level2:
+  - Quy ước định dạng, đặt tên và cách diễn đạt
+  - Phân biệt lựa chọn phong cách với vấn đề đúng đắn
+  - Tính nhất quán trong một tệp, mô-đun và nhóm
+  - Dùng công cụ định dạng để giảm tranh luận thủ công
+  - Quy ước ngoại lệ, null, tài nguyên và log
+  - Quy tắc phù hợp với phiên bản ngôn ngữ và kiểu mô-đun
+  - Tự động hóa những kiểm tra rõ ràng và lặp lại được
+  - Ngoại lệ có lý do thay vì áp dụng máy móc
+  - Đưa quy ước vào ví dụ và tài liệu dễ tra cứu
+  - Thay đổi quy ước mà không trộn nhiễu định dạng với sửa hành vi
+- level1: Kiểm tra tự động
+  level2:
+  - Trình biên dịch và hệ kiểu như lớp kiểm tra đầu tiên
+  - Kiểm tra định dạng và quy ước mã
+  - Phân tích tĩnh cho mẫu lỗi và luồng dữ liệu
+  - Kiểm tra quan hệ phụ thuộc và ranh giới kiến trúc
+  - Kiểm tra thành phần bên ngoài và vấn đề đã được nhận diện
+  - Kiểm thử tự động và kiểm tra khi chạy
+  - Phân biệt vai trò của công cụ với tiêu chí chất lượng
+  - Phạm vi phân tích mã nguồn, bytecode và cấu hình
+  - Dương tính giả, âm tính giả và giả thiết phân tích
+  - Mô hình API, annotation và ngữ cảnh ảnh hưởng kết quả
+  - Khác biệt giữa độ nghiêm trọng và độ tin cậy của cảnh báo
+  - Phối hợp các lớp kiểm tra thay vì trông chờ một công cụ
+  - Xác minh bản sửa và kết quả sau khi thay đổi bộ quy tắc
+- level1: Chỉ số chất lượng
+  level2:
+  - Xác định câu hỏi cần trả lời trước khi chọn chỉ số
+  - Kích thước mã và phạm vi mà số dòng có ý nghĩa
+  - Độ phức tạp và phân bố các điểm khó hiểu
+  - Mức lặp mã và phân biệt lặp cú pháp với lặp tri thức
+  - Độ bao phủ và chất lượng khẳng định trong kiểm thử
+  - Phụ thuộc, chu kỳ và mức độ tập trung trách nhiệm
+  - Tần suất thay đổi, lịch sử lỗi và vùng cần ưu tiên
+  - Xu hướng theo thời gian thay vì một ảnh chụp đơn lẻ
+  - Chuẩn hóa phạm vi trước khi so sánh các thành phần
+  - Không suy ra chất lượng từ số lượng cảnh báo riêng lẻ
+  - Nguy cơ tối ưu chỉ số mà làm lệch mục tiêu thực tế
+  - Kết hợp số liệu với rà soát định tính và bằng chứng hành vi
+  - Không dùng một chỉ số để xếp hạng cá nhân hoặc khẳng định nguyên nhân
+- level1: Mùi mã
+  level2:
+  - Mùi mã là tín hiệu điều tra chứ chưa phải kết luận lỗi
+  - Phương thức dài và lớp tập trung quá nhiều trách nhiệm
+  - Điều kiện lặp lại, nhiều nhánh và trạng thái khó theo dõi
+  - Lặp tri thức ở nhiều nơi cần thay đổi cùng nhau
+  - Danh sách tham số dài và nhóm dữ liệu đi cùng nhau
+  - Dùng kiểu nguyên thủy thay cho khái niệm miền cần ràng buộc
+  - Biến hoặc trường tạm làm kéo dài trạng thái không cần thiết
+  - Phụ thuộc sâu vào chi tiết của đối tượng khác
+  - Một thay đổi phải sửa nhiều nơi hoặc nhiều thay đổi dồn vào một nơi
+  - Trừu tượng hóa suy đoán và thành phần chưa có nhu cầu thực
+  - Bình luận bù cho ý định không được thể hiện trong mã
+  - Phân biệt mùi mã cục bộ với nguyên nhân ở thiết kế hoặc yêu cầu
+- level1: Nợ kỹ thuật
+  level2:
+  - Nợ kỹ thuật là gì và khác khuyết điểm thông thường như thế nào?
+  - Chi phí khắc phục và chi phí duy trì quyết định hiện tại
+  - Nợ có chủ đích, nợ ngoài dự kiến và thay đổi bối cảnh
+  - Nợ trong thiết kế, kiểm thử, phụ thuộc và tri thức
+  - Ghi nhận tác động bằng tình huống thay đổi hoặc sự cố cụ thể
+  - Ước lượng có khoảng không chắc chắn thay vì điểm số giả chính xác
+  - Ưu tiên theo rủi ro, tần suất thay đổi và giá trị cải thiện
+  - Chấp nhận, theo dõi hoặc xử lý nợ theo điều kiện rõ ràng
+  - Phân biệt đầu tư cải thiện với viết lại theo sở thích
+  - Xử lý từng phần và tránh tạo nợ mới trong quá trình sửa
+  - Kiểm chứng chi phí hoặc rủi ro đã giảm sau khi xử lý
+- level1: Tái cấu trúc
+  level2:
+  - Tái cấu trúc là thay đổi cấu trúc trong khi giữ hợp đồng hành vi
+  - Phân biệt tái cấu trúc, sửa lỗi và thay đổi yêu cầu
+  - Xác định phạm vi hành vi cần được bảo vệ
+  - Chuẩn bị bằng chứng trước khi thay đổi mã
+  - Thực hiện từng bước nhỏ có thể kiểm tra và hoàn tác
+  - Tách phương thức, đổi tên và di chuyển trách nhiệm theo mục tiêu
+  - Loại trùng tri thức mà vẫn giữ các trường hợp khác nhau
+  - Giảm trạng thái và làm rõ phụ thuộc
+  - Kiểm soát thay đổi API và dữ liệu được lưu
+  - Chạy kiểm tra phù hợp sau từng bước có ý nghĩa
+  - Đánh giá cấu trúc mới bằng khả năng hiểu và thực hiện thay đổi
+  - Dừng khi mục tiêu cải thiện đã được chứng minh
+- level1: Rà soát mã
+  level2:
+  - Mục tiêu của rà soát mã và giới hạn của việc đọc thủ công
+  - Hiểu yêu cầu, phạm vi và rủi ro của thay đổi
+  - Đọc thiết kế tổng thể trước khi xét từng dòng
+  - Kiểm tra hợp đồng, trường hợp biên và luồng lỗi
+  - Xem xét dữ liệu, trạng thái, đồng thời và tài nguyên khi có liên quan
+  - Đánh giá kiểm thử và bằng chứng xác minh
+  - Phân biệt lỗi cần sửa, đề xuất cải thiện và sở thích
+  - Viết nhận xét có vị trí, lý do và tác động cụ thể
+  - Đề xuất hướng sửa nhưng giữ quyền giải thích của tác giả
+  - Giữ thay đổi đủ tập trung để người khác đánh giá được
+  - Xử lý bất đồng dựa trên hợp đồng, quy ước và bằng chứng
+  - Ghi lại quyết định có ảnh hưởng vượt ra ngoài một thay đổi
+- level1: Cổng chất lượng
+  level2:
+  - Cổng chất lượng là điều kiện chấp nhận thay đổi như thế nào?
+  - Chọn kiểm tra theo mức rủi ro và tốc độ phản hồi
+  - Kiểm tra tại máy phát triển, trước hợp nhất và trên CI
+  - Giữ cấu hình kiểm tra nhất quán giữa các môi trường
+  - Thứ tự phản hồi từ kiểm tra nhanh đến kiểm tra tốn kém
+  - Ngăn lỗi mới trong khi quản lý tồn đọng bằng baseline
+  - Đặt ngưỡng có lý do và xem xét theo bối cảnh
+  - Phân biệt kiểm tra thất bại với công cụ không chạy được
+  - Chẩn đoán, xử lý và theo dõi kiểm tra không ổn định
+  - Miễn trừ phạm vi hẹp với bằng chứng và thời hạn xem xét
+  - Xác nhận bản sửa bằng lần kiểm tra mới
+  - Bảo đảm cổng không thể thay thế toàn bộ trách nhiệm rà soát
+  - Điều chỉnh quy trình khi chi phí kiểm tra vượt giá trị phản hồi
+- level1: Mã hiện hữu
+  level2:
+  - Khảo sát hành vi, phụ thuộc và đường chạy quan trọng
+  - Phân biệt mã cũ với mã khó thay đổi an toàn
+  - Xác định vùng rủi ro theo lỗi và nhu cầu thay đổi thực tế
+  - Kiểm thử đặc tính hiện có trước khi sửa khi chưa có đặc tả đủ rõ
+  - Phân biệt hành vi cần giữ với lỗi đã được xác nhận
+  - Tạo điểm tách phụ thuộc để cải thiện khả năng kiểm thử
+  - Đưa kiểm tra tự động vào từng phạm vi có thể quản lý
+  - Dùng baseline mà vẫn giữ khả năng phát hiện vấn đề mới
+  - Cải thiện cục bộ trong quá trình thực hiện thay đổi cần thiết
+  - Di chuyển từng phần và kiểm soát tương thích
+  - Cân nhắc viết lại theo bằng chứng về chi phí và rủi ro
+  - Đọc lại cấu trúc và kiểm tra hành vi sau mỗi phần được chuyển đổi
+- level1: Cộng tác và trách nhiệm
+  level2:
+  - Chất lượng mã là trách nhiệm chung với phạm vi sở hữu rõ ràng
+  - Thống nhất tiêu chí hoàn thành của một thay đổi
+  - Chuyển yêu cầu chất lượng thành thỏa thuận có thể thực hiện
+  - Chia sẻ từ vựng, ví dụ tốt và bài học từ lỗi
+  - Duy trì tri thức khi thay đổi người phụ trách
+  - Ghép cặp và hướng dẫn để truyền cách suy luận
+  - Phản hồi dựa trên mã và tác động thay vì đánh giá con người
+  - Cân bằng tiến độ với công việc duy trì chất lượng
+  - Ghi nhận ngoại lệ và quyết định chấp nhận rủi ro
+  - Dùng sự cố và khó khăn bảo trì làm đầu vào cải thiện
+- level1: Thực hành
+  level2:
+  - Đánh giá hai cách triển khai cùng một yêu cầu
+  - Chuyển yêu cầu mơ hồ thành hợp đồng và trường hợp kiểm tra
+  - Đổi tên và tổ chức lại mã để làm rõ ý định
+  - Giảm độ phức tạp của một đoạn xử lý có nhiều nhánh
+  - Làm rõ quyền sở hữu và bất biến của mô hình dữ liệu
+  - Tách phụ thuộc thời gian hoặc I/O để tăng khả năng kiểm thử
+  - Tạo kiểm thử phát hiện một lỗi đã xác nhận
+  - Đọc cảnh báo tự động và lập luận mức độ liên quan
+  - So sánh chỉ số với kết quả rà soát định tính
+  - Thực hiện tái cấu trúc nhỏ có bằng chứng trước và sau
+  - Rà soát một thay đổi bằng hợp đồng, rủi ro và kiểm thử
+  - Lập kế hoạch xử lý một khoản nợ kỹ thuật cụ thể
+  - Đề xuất cổng chất lượng phù hợp cho một mô-đun Java
+- level1: Cải thiện liên tục
+  level2:
+  - Xác định vấn đề chất lượng đang gây chi phí thực tế
+  - Chọn một mục tiêu cải thiện đủ cụ thể để kiểm chứng
+  - Đặt hiện trạng, phạm vi và bằng chứng ban đầu
+  - Ưu tiên thay đổi theo tác động, rủi ro và công sức
+  - Thử nghiệm trên một phạm vi nhỏ
+  - Đo lại và giải thích kết quả theo bối cảnh
+  - Kiểm tra tác dụng phụ và chi phí bảo trì phát sinh
+  - Giữ, điều chỉnh hoặc loại bỏ quy tắc theo bằng chứng
+  - Mở rộng cách làm đã có hiệu quả
+  - Rà soát tiêu chí khi yêu cầu, đội ngũ hoặc môi trường thay đổi
+  - Duy trì vòng phản hồi từ mã, kiểm thử, rà soát và vận hành

@@ -1,0 +1,3334 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: KakaoTalk trong bài toán tích hợp thông báo của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt thông báo giao dịch, quảng cáo và chia sẻ giữa người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các thành phần: ứng dụng, người dùng, kênh, mẫu và nhà cung cấp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Kakao Developers và Kakao Business phục vụ những nhu cầu nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Talk Message, Talk Share, Alimtalk và Brand Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phạm vi của Channel, Kakao Sync và chatbot trong hệ sinh thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Luồng từ sự kiện nghiệp vụ đến thông điệp trên KakaoTalk
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phân biệt tiếp nhận yêu cầu, gửi thành công và dữ liệu người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Giới hạn theo sản phẩm, tài khoản, quyền và thị trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình thực hành từ môi trường thử đến tích hợp doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-selection
+  title: Chọn sản phẩm
+  childs:
+  - slug: product-selection-001
+    title: Chọn kênh theo người gửi, người nhận và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-002
+    title: Talk Message cho tương tác giữa người dùng cùng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-003
+    title: Người dùng chủ động chọn bạn bè và thực hiện thao tác gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-004
+    title: Talk Share để người dùng chia sẻ qua giao diện KakaoTalk
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-005
+    title: Alimtalk cho thông báo thông tin theo điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-006
+    title: Brand Message cho nội dung quảng cáo với đối tượng hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-007
+    title: Channel Message và công cụ quản trị chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-008
+    title: FriendTalk trong hệ thống cũ và kiểm tra lộ trình chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-009
+    title: Phân biệt user access token với thông tin xác thực gửi doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-010
+    title: Lập bảng khả năng, chi phí và điều kiện trước khi chọn API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-selection-011
+    title: Xác định chức năng cần SDK, REST API hoặc nhà cung cấp chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accounts-and-channels
+  title: Tài khoản và kênh
+  childs:
+  - slug: accounts-and-channels-001
+    title: Chuẩn bị Kakao Account và tài khoản Kakao Developers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-002
+    title: Tạo ứng dụng, thông tin dịch vụ và phân quyền thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-003
+    title: Tách ứng dụng phát triển, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-004
+    title: Chuẩn bị Kakao Business và quyền quản trị liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-005
+    title: Tạo KakaoTalk Channel và thông tin nhận diện doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-006
+    title: Xác minh doanh nghiệp hoặc kênh theo yêu cầu sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-007
+    title: Liên kết ứng dụng với Channel khi tính năng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-008
+    title: Chọn nhà cung cấp từ danh sách đối tác chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-009
+    title: Kiểm tra hợp đồng dịch vụ, khả năng gửi và môi trường thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-and-channels-010
+    title: Quản lý quyền sở hữu khi đổi nhân sự hoặc bàn giao hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: apps-and-permissions
+  title: Ứng dụng và quyền
+  childs:
+  - slug: apps-and-permissions-001
+    title: REST API key, JavaScript key, native key và admin key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-002
+    title: Phân biệt app key, client secret và user access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-003
+    title: Bật Kakao Login cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-004
+    title: Đăng ký redirect URI và domain theo cấu hình hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-005
+    title: Product Link, liên kết web và đường dẫn mở ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-006
+    title: 'Thiết lập các mục yêu cầu đồng ý: talk_message và friends'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-007
+    title: Phân biệt quyền của ứng dụng với sự đồng ý của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-008
+    title: Đăng ký tính năng bổ sung và quy trình xét duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-009
+    title: Giới hạn thành viên nhóm trước khi có quyền hoặc trong ứng dụng thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-010
+    title: Kiểm tra hạn mức theo trạng thái xét duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apps-and-permissions-011
+    title: Lưu bằng chứng cấu hình và rà soát quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kakao-login
+  title: Kakao Login
+  childs:
+  - slug: kakao-login-001
+    title: Vai trò của Kakao Login trong các API dùng danh tính người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-002
+    title: Authorization Code flow và các bước chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-003
+    title: client_id, redirect_uri, scope và state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-004
+    title: Đổi authorization code lấy token ở backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-005
+    title: Client secret theo cấu hình và luồng được Kakao hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-006
+    title: Xử lý người dùng từ chối đăng nhập hoặc từ chối quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-007
+    title: Yêu cầu đồng ý bổ sung khi tính năng cần scope mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-008
+    title: Liên kết Kakao user với tài khoản nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-009
+    title: Xác minh phiên đăng nhập và ngăn giả mạo callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-010
+    title: Kiểm thử OAuth bằng tài khoản và redirect URI đã đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-login-011
+    title: Ranh giới giữa đăng nhập, quyền nhắn tin và đồng ý nhận quảng cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-lifecycle
+  title: Vòng đời token
+  childs:
+  - slug: token-lifecycle-001
+    title: Access token, refresh token và thời hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-002
+    title: Kiểm tra thông tin token và trạng thái scope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-003
+    title: Lưu token mã hóa và gắn đúng ứng dụng, người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-004
+    title: Làm mới access token theo API Kakao Login
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-005
+    title: Cập nhật refresh token khi phản hồi có token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-006
+    title: Điều phối refresh đồng thời và tránh ghi đè token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-007
+    title: Phân biệt token hết hạn, bị thu hồi và không đúng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-008
+    title: Logout, unlink và tác động đến khả năng dùng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-009
+    title: Ngừng tác vụ khi người dùng rút quyền hoặc hủy liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-010
+    title: Tách thông tin xác thực doanh nghiệp khỏi kho token người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-011
+    title: Xoay secret và kiểm tra ảnh hưởng tới phiên đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recipient-identities
+  title: Định danh người nhận
+  childs:
+  - slug: recipient-identities-001
+    title: App user ID, friend uuid, Channel ID và số điện thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-002
+    title: Những định danh không thể thay thế trực tiếp cho nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-003
+    title: Điều kiện người dùng cùng dịch vụ trong Talk Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-004
+    title: Friends List API và dữ liệu bạn bè được phép cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-005
+    title: Phân trang danh sách bạn bè và độ trễ cập nhật dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-006
+    title: Friends picker và giao diện lựa chọn người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-007
+    title: Scope, liên kết ứng dụng và cài đặt hiển thị hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-008
+    title: Xử lý người nhận không xuất hiện hoặc không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-009
+    title: Giới hạn người nhận trên một yêu cầu theo tài liệu API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-010
+    title: Định dạng số điện thoại theo hợp đồng nhà cung cấp doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-identities-011
+    title: Lưu ánh xạ định danh có kiểm soát và bảo vệ dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: talk-message-templates
+  title: Mẫu Talk Message
+  childs:
+  - slug: talk-message-templates-001
+    title: Default template và custom template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-002
+    title: Feed, List, Location, Commerce và Text template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-003
+    title: Calendar template và điều kiện quyền dữ liệu lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-004
+    title: Cấu trúc template_object và trường bắt buộc theo loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-005
+    title: Text, content, image, link và button trong từng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-006
+    title: Giới hạn độ dài, số nút và hình ảnh theo mẫu hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-007
+    title: Web domain, mobile web link và liên kết ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-008
+    title: Tạo mẫu trong Message Template Tool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-009
+    title: Template ID, mục đích sử dụng và ứng dụng sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-010
+    title: template_args và thay biến theo từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-011
+    title: Scrap message và nội dung lấy từ trang web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-012
+    title: Kiểm tra dữ liệu trước gửi và xem trước thông điệp thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: talk-message-templates-013
+    title: Phân biệt mẫu Developers với mẫu duyệt của Alimtalk
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: self-messaging
+  title: Gửi cho bản thân
+  childs:
+  - slug: self-messaging-001
+    title: My Chatroom và phạm vi người nhận của Send to me
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-002
+    title: Điều kiện Kakao Login và scope talk_message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-003
+    title: Chọn API default, custom hoặc scrap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-004
+    title: Authorization Bearer và form-urlencoded trong yêu cầu REST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-005
+    title: Mã hóa JSON của template_object, template_args đúng tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-006
+    title: Đọc HTTP status, kết quả và lỗi từ Kakao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-007
+    title: Kiểm tra thông điệp, hình ảnh và liên kết trên thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-008
+    title: Giới hạn sử dụng và ranh giới với thông báo doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-messaging-009
+    title: Xây dựng ca thử có kiểm soát bằng tài khoản của người thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: friend-messaging
+  title: Gửi cho bạn bè
+  childs:
+  - slug: friend-messaging-001
+    title: Kiểm tra quyền ứng dụng và sự đồng ý của các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-002
+    title: Lấy uuid từ nguồn bạn bè hoặc picker được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-003
+    title: Thiết kế luồng người dùng chọn người nhận và xác nhận gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-004
+    title: Chọn default, custom hoặc scrap cho tin nhắn bạn bè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-005
+    title: receiver_uuids và giới hạn danh sách mỗi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-006
+    title: Đọc kết quả theo người nhận và xử lý thành công từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-007
+    title: Phân biệt không phải bạn bè, thiếu sự đồng ý và người nhận từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-008
+    title: Hạn mức theo ứng dụng, người gửi, người nhận và cặp tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-009
+    title: Xử lý dữ liệu bạn bè cũ hoặc hồ sơ đã đổi quyền hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-010
+    title: Kiểm thử với thành viên nhóm và xác nhận quyền trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: friend-messaging-011
+    title: Ranh giới sử dụng Talk Message đối với gửi tự động từ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kakao-talk-share
+  title: Kakao Talk Share
+  childs:
+  - slug: kakao-talk-share-001
+    title: Cơ chế chia sẻ do người dùng khởi tạo trên web hoặc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-002
+    title: Phân biệt Share SDK với Talk Message REST API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-003
+    title: Luồng chọn phòng chat hoặc người nhận trong KakaoTalk
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-004
+    title: Default, custom và scrap trong phạm vi SDK hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-005
+    title: Khởi tạo SDK, app key và domain đúng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-006
+    title: Liên kết mở web, mở app và hành vi khi chưa cài ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-007
+    title: Share webhook và phạm vi ý nghĩa của sự kiện được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-008
+    title: Phân biệt kết quả chia sẻ với dữ liệu đọc hoặc chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kakao-talk-share-009
+    title: Chọn Share cho nội dung lan truyền theo thao tác người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: channel-linking
+  title: Channel và liên kết
+  childs:
+  - slug: channel-linking-001
+    title: Vai trò của KakaoTalk Channel trong quan hệ với khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-002
+    title: Thêm Channel và kiểm tra quan hệ giữa người dùng với Channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-003
+    title: Điều kiện liên kết app, kênh và quyền truy cập dữ liệu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-004
+    title: Channel webhook khi tính năng hỗ trợ thay đổi quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-005
+    title: Phân biệt kết bạn Channel, Kakao Login và đồng ý nhận quảng cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-006
+    title: Kakao Sync và liên kết hành trình đăng ký dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-007
+    title: Đồng bộ thay đổi quan hệ với hồ sơ người dùng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-008
+    title: Giới hạn Channel API và ranh giới với API gửi Biz Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channel-linking-009
+    title: Không suy diễn quyền gửi từ việc có ID hoặc quan hệ với Channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alimtalk
+  title: Alimtalk
+  childs:
+  - slug: alimtalk-001
+    title: Alimtalk (알림톡) và thông báo thông tin trong giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-002
+    title: Các trường hợp như xác nhận đơn hàng, thanh toán và giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-003
+    title: Điều kiện người nhận và Channel theo hướng dẫn sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-004
+    title: Vai trò nhà cung cấp chính thức trong đăng ký và gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-005
+    title: Đăng ký bên gửi và định danh kênh theo nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-006
+    title: Nội dung thông tin, nội dung quảng cáo và quy trình kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-007
+    title: Mẫu được duyệt riêng và mẫu công khai dùng chung đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-008
+    title: Biến cá nhân hóa, nút hành động và liên kết tới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-009
+    title: Loại thông điệp, hình ảnh và tính năng theo khả năng hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-010
+    title: Kiểm tra nội dung thực gửi so với mẫu và mục đích được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-011
+    title: Kết quả phát, chi phí và đối soát theo hợp đồng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-012
+    title: Ranh giới giữa duyệt mẫu, điều kiện gửi và sự đồng ý của khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alimtalk-templates
+  title: Mẫu Alimtalk
+  childs:
+  - slug: alimtalk-templates-001
+    title: Vòng đời đăng ký, xét duyệt, chấp thuận và ngừng dùng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-002
+    title: Template code, sender key và cách nhà cung cấp đặt tên trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-003
+    title: Thiết kế nội dung cố định và biến thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-004
+    title: Trường bắt buộc, định dạng biến và kiểm tra dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-005
+    title: Giới hạn độ dài sau khi thay biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-006
+    title: Nút web, mở app hoặc hành động theo loại mẫu hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-007
+    title: Phân loại mẫu và dữ liệu cần cung cấp khi xét duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-008
+    title: Điều kiện dùng mẫu công khai thay cho đăng ký mẫu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-009
+    title: Xử lý mẫu bị từ chối và lưu nguyên nhân để sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-010
+    title: Quản lý phiên bản mẫu gắn với sự kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-011
+    title: Đồng bộ mẫu giữa cấu hình nội bộ và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alimtalk-templates-012
+    title: Xem trước tiếng Hàn, tiếng Việt, ký tự đặc biệt và liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: brand-messages
+  title: Brand Message
+  childs:
+  - slug: brand-messages-001
+    title: Brand Message (브랜드 메시지) trong gửi nội dung quảng cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-002
+    title: Đối tượng nhận và điều kiện đồng ý theo sản phẩm hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-003
+    title: Phân biệt kênh bạn bè với nhóm khách hàng đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-004
+    title: Đăng ký kênh, bên gửi và quyền với nhà cung cấp chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-005
+    title: Các loại text, image, commerce, carousel theo hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-006
+    title: Cá nhân hóa và kiểm soát dữ liệu của từng nhóm người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-007
+    title: Nhãn quảng cáo, cơ chế từ chối và chính sách nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-008
+    title: Khung giờ gửi theo múi giờ và quy định hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-009
+    title: Chiến dịch, gửi lặp và giới hạn tần suất theo khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-010
+    title: Thống kê phát, đọc, nhấp theo dữ liệu sản phẩm cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brand-messages-011
+    title: Chuyển cấu hình FriendTalk cũ sau khi xác minh lộ trình hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provider-integration
+  title: Tích hợp nhà cung cấp
+  childs:
+  - slug: provider-integration-001
+    title: Đọc hợp đồng API của nhà cung cấp đã được lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-002
+    title: Base URL, phiên bản API và môi trường gửi thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-003
+    title: API key, secret hoặc cơ chế xác thực do nhà cung cấp quy định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-004
+    title: Ánh xạ sender key, template code và mã người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-005
+    title: DTO riêng theo hợp đồng nhà cung cấp và mô hình nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-006
+    title: Kiểm tra payload trước khi tạo yêu cầu gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-007
+    title: Đọc HTTP status, kết quả nghiệp vụ và kết quả từng người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-008
+    title: Request ID, message ID và dữ liệu đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-009
+    title: Gửi đơn, gửi nhiều hoặc gửi theo lô nếu được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-010
+    title: Đặt lịch, hủy lịch và giới hạn theo khả năng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-011
+    title: Tra cứu trạng thái hoặc nhận callback khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-012
+    title: Kiểm tra cơ chế chuyển SMS và cấu hình chi phí nếu có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provider-integration-013
+    title: Tách khác biệt nhà cung cấp để thay thế mà không đổi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-and-spring-boot
+  title: Java và Spring Boot
+  childs:
+  - slug: java-and-spring-boot-001
+    title: Chọn Java, Spring Boot và HTTP client tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-002
+    title: ConfigurationProperties cho Kakao Developers và nhà cung cấp doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-003
+    title: Tách cấu hình công khai, token người dùng và secret hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-004
+    title: RestClient hoặc WebClient cho lời gọi REST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-005
+    title: Form-urlencoded với JSON lồng cho Talk Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-006
+    title: JSON request và authentication theo nhà cung cấp doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-007
+    title: Jackson DTO cho template, phản hồi và lỗi từng người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-008
+    title: Connect timeout, response timeout và connection pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-009
+    title: OAuth2 client hoặc luồng Kakao Login do backend quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-010
+    title: Service gửi với đầu vào được kiểm tra và thông tin đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-011
+    title: Exception mapping và kết quả nội bộ không phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-012
+    title: Mock HTTP server và kiểm thử tích hợp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-and-spring-boot-013
+    title: Giải phóng tài nguyên và dừng ứng dụng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-design
+  title: Thiết kế dịch vụ
+  childs:
+  - slug: service-design-001
+    title: Notification command và nguồn sự kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-002
+    title: Tách thông báo doanh nghiệp khỏi thao tác nhắn tin của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-003
+    title: Chọn sản phẩm theo mục đích và quyền gửi hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-004
+    title: Bộ chuyển đổi nhà cung cấp, bộ chọn mẫu và bộ xác định người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-005
+    title: Mô hình nội bộ cho nội dung, mẫu, người nhận và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-006
+    title: Chọn mẫu theo loại sự kiện, phiên bản và ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-007
+    title: Kiểm tra quyền, chính sách nội dung trước khi đưa vào luồng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-008
+    title: API tiếp nhận trả mã theo dõi thay vì khẳng định đã chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-009
+    title: Đồng bộ giao dịch dữ liệu với bản ghi yêu cầu thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-010
+    title: Lưu nội dung theo chính sách dữ liệu và nhu cầu đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-011
+    title: Phân tách tenant, kênh và thông tin xác thực giữa các khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-design-012
+    title: Giới hạn trách nhiệm của module khi tích hợp nhiều kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-lifecycle
+  title: Vòng đời thông báo
+  childs:
+  - slug: notification-lifecycle-001
+    title: Trạng thái nội bộ từ tạo yêu cầu đến hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-002
+    title: Phân biệt validation fail, lỗi gửi và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-003
+    title: Lưu attempt theo từng lần gọi thay vì ghi đè lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-004
+    title: Gắn mã nghiệp vụ với request ID, message ID của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-005
+    title: Kết quả theo từng người nhận khi một lô gửi thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-006
+    title: Chuyển trạng thái theo đúng dữ liệu mà sản phẩm cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-007
+    title: Không suy diễn đã đọc từ kết quả gửi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-008
+    title: Hết hạn thông báo và bỏ yêu cầu không còn giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-009
+    title: Hủy trước khi gửi và xử lý trường hợp không còn hủy được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-010
+    title: Đối soát yêu cầu chưa có kết quả cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-lifecycle-011
+    title: Lịch sử thay đổi phục vụ kiểm toán và hỗ trợ khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-and-deduplication
+  title: Hàng đợi và chống trùng
+  childs:
+  - slug: queues-and-deduplication-001
+    title: Transactional Outbox cho sự kiện từ giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-002
+    title: Chọn hàng đợi, worker và mức song song theo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-003
+    title: Khóa chống trùng theo sự kiện, người nhận, kênh và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-004
+    title: Tính nguyên tử khi tạo yêu cầu và ghi nhận lần gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-005
+    title: Lease, lock và tránh hai worker xử lý cùng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-006
+    title: Trạng thái gửi không xác định khi timeout sau khi nhà cung cấp tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-007
+    title: Tra cứu kết quả trước khi gửi lại nếu nhà cung cấp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-008
+    title: Khóa lũy đẳng phía nhà cung cấp chỉ dùng khi hợp đồng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-009
+    title: Giữ thứ tự thông báo theo giao dịch khi nghiệp vụ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-010
+    title: Dead-letter queue và quy trình xử lý lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-011
+    title: Giới hạn thời gian sống, kích thước hàng chờ và backlog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-012
+    title: Ngăn gửi lại thông báo cũ sau khi triển khai hoặc phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-deduplication-013
+    title: Kiểm chứng phạm vi chống trùng và giới hạn xử lý đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: results-and-callbacks
+  title: Kết quả và callback
+  childs:
+  - slug: results-and-callbacks-001
+    title: Phân biệt phản hồi Talk Message với callback Biz Message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-002
+    title: Share webhook, Channel webhook và sự kiện của từng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-003
+    title: Đọc schema callback theo đúng nhà cung cấp, phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-004
+    title: Xác thực nguồn callback bằng cơ chế được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-005
+    title: Gắn callback với message ID và người nhận nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-006
+    title: Nhận lặp, đến sai thứ tự hoặc thiếu callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-007
+    title: Lưu sự kiện trước khi xác nhận tiếp nhận callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-008
+    title: Chuẩn hóa trạng thái mà không bỏ mất mã gốc của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-009
+    title: Xử lý sự kiện đến sau khi yêu cầu nội bộ đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-010
+    title: Polling đối soát cho trạng thái chưa rõ nếu API cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-011
+    title: Quyền truy cập endpoint kết quả và dữ liệu đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-and-callbacks-012
+    title: Phân biệt thống kê tổng hợp với trạng thái của từng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rate-limits-and-retries
+  title: Hạn mức và thử lại
+  childs:
+  - slug: rate-limits-and-retries-001
+    title: Hạn mức Kakao Developers và hạn mức nhà cung cấp là hai lớp riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-002
+    title: Hạn mức theo app, người gửi, người nhận và cặp tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-003
+    title: Giới hạn trước, sau xét duyệt và cách cập nhật cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-004
+    title: Phân loại lỗi tạm thời, lỗi quyền và lỗi nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-005
+    title: Đọc HTTP status cùng code, msg hoặc mã kết quả của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-006
+    title: Backoff, jitter, giới hạn lần thử và thời hạn thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-007
+    title: Làm mới token khi phù hợp và tránh refresh lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-008
+    title: Điều tiết gửi theo kênh, tenant và ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-009
+    title: Xử lý thành công một phần mà không gửi lại người đã thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-010
+    title: Circuit breaker khi nhà cung cấp gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-011
+    title: Chuyển dự phòng sang SMS hoặc Email theo quyền và chính sách đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-retries-012
+    title: Ngăn retry storm khi backlog dồn sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-and-localization
+  title: Nội dung và ngôn ngữ
+  childs:
+  - slug: content-and-localization-001
+    title: Thiết kế nội dung ngắn, rõ và nhận diện đúng bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-002
+    title: Biến người nhận, mã giao dịch và dữ liệu cần che
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-003
+    title: Tiếng Hàn, tiếng Việt, Unicode và emoji
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-004
+    title: Đếm độ dài theo quy tắc của sản phẩm, không giả định theo byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-005
+    title: Thời gian, tiền tệ, đơn vị và múi giờ trong nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-006
+    title: Kiểm tra giá trị biến sau khi thay vào mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-007
+    title: Liên kết an toàn tới đúng giao dịch và đúng tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-008
+    title: URL encoding, query parameter và đường dẫn mở ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-009
+    title: Hình ảnh truy cập công khai, thời hạn URL và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-010
+    title: Khả năng tiếp cận nội dung trên các thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-localization-011
+    title: Lưu phiên bản nội dung để tái hiện thông điệp đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân loại token, app key, secret và dữ liệu người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Giữ client secret, admin key và thông tin xác thực nhà cung cấp ở backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Mã hóa token lưu trữ và kiểm soát truy cập kho secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Quyền tối thiểu cho app, Channel và tài khoản nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: CSRF, state và kiểm tra redirect trong Kakao Login
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Phân quyền API gửi để ngăn giả mạo người gửi hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Giới hạn số người nhận và chống lạm dụng gửi hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Che token, số điện thoại, uuid và nội dung nhạy cảm trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: TLS, kiểm tra chứng chỉ và hạn chế đích gọi ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: SSRF khi xử lý ảnh, URL hoặc nội dung do người dùng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Bảo vệ callback theo cơ chế nhà cung cấp và hạn chế replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-012
+    title: Xoay secret, thu hồi token và ứng phó lộ thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-013
+    title: Quản lý bản sao dữ liệu trong queue, dead-letter và backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-014
+    title: Xác minh thay đổi cấu hình có thể mở rộng quyền gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recipient-policies
+  title: Chính sách người nhận
+  childs:
+  - slug: recipient-policies-001
+    title: Tách sự đồng ý đăng nhập, quyền dữ liệu và sự đồng ý quảng cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-002
+    title: Lưu nguồn, thời điểm và phạm vi đồng ý của khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-003
+    title: Kiểm tra điều kiện gửi theo sản phẩm tại thời điểm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-004
+    title: Từ chối nhận, chặn kênh, hủy liên kết và thay đổi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-005
+    title: Đồng bộ danh sách không gửi giữa hệ thống và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-006
+    title: Phân biệt thông tin giao dịch với nội dung quảng cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-007
+    title: Khung giờ, tần suất và múi giờ theo chính sách hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-008
+    title: Đánh giá mục đích sử dụng khi thay mẫu hoặc thêm nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-009
+    title: Giảm dữ liệu thu thập và xác định thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-010
+    title: Xử lý yêu cầu xóa dữ liệu theo chính sách áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-policies-011
+    title: Đối chiếu hướng dẫn Kakao và yêu cầu thị trường trước khi vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Unit test cho chọn mẫu, thay biến và chọn sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm tra form encoding, JSON và Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Contract test với schema và phản hồi mẫu của từng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Mock server cho Talk Message và nhà cung cấp doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử token hết hạn, thiếu scope và người dùng rút quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử bạn bè không đủ điều kiện hoặc uuid không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử template sai app, sai code hoặc biến thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử lỗi từng người trong lô thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử timeout, hạn mức, retry và refresh đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử worker chạy lặp và khóa chống gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử callback giả, lặp và đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Môi trường thử với danh sách tài khoản, số nhận đã được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Phân biệt test tự động không gửi thật với thử nghiệm chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Đánh giá tải bằng mock để tránh tiêu hao hạn mức, chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: Đối chiếu thông điệp thực tế và dữ liệu đối soát sau ca thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-costs
+  title: Quan sát và chi phí
+  childs:
+  - slug: observability-and-costs-001
+    title: Metric theo sản phẩm, nhà cung cấp, kênh và loại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-002
+    title: Tỷ lệ tiếp nhận, gửi thành công và kết quả chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-003
+    title: Độ trễ hàng đợi, gọi API và nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-004
+    title: Theo dõi hạn mức, lỗi token, lỗi mẫu và tỷ lệ thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-005
+    title: Correlation ID xuyên suốt nghiệp vụ, worker và callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-006
+    title: Dashboard backlog, dead-letter và thông báo hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-007
+    title: Cảnh báo mẫu bị ngừng, thông tin xác thực lỗi hoặc hạn mức sắp cạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-008
+    title: Tách chi phí Kakao, nhà cung cấp và kênh chuyển dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-009
+    title: Đối soát số lượng tính phí với trạng thái theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-010
+    title: Ngân sách theo tenant, chiến dịch và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-011
+    title: Thống kê đọc, nhấp chỉ khi sản phẩm cung cấp dữ liệu tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-costs-012
+    title: Kiểm soát số lượng nhãn metric và dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-and-operations-001
+    title: Cấu hình riêng cho phát triển, kiểm thử và vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-002
+    title: Chốt app, Channel, sender và template đúng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-003
+    title: Quản lý secret và token khi mở rộng nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-004
+    title: Callback HTTPS, domain và đường kết nối được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-005
+    title: Kiểm tra egress, proxy, DNS và timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-006
+    title: Đặt lịch theo múi giờ nhà cung cấp và thời điểm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-007
+    title: Kiểm tra khả năng khôi phục queue, outbox và trạng thái gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-008
+    title: Graceful shutdown và worker đang gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-009
+    title: Giới hạn lưu lượng khi mở rộng hoặc khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-010
+    title: Runbook cho hết hạn mức, token lỗi và nhà cung cấp gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-011
+    title: Quy trình xử lý dead-letter, đối soát và phê duyệt gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-012
+    title: Kiểm tra sau triển khai bằng dữ liệu thử đã được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Sai app key, access token hết hạn hoặc token không đúng app
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Thiếu talk_message, friends hoặc quyền xét duyệt của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Redirect URI không khớp hoặc lỗi đổi authorization code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Danh sách bạn bè rỗng do liên kết, sự đồng ý hoặc hiển thị hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: uuid không hợp lệ, quan hệ bạn bè thay đổi hoặc dữ liệu cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Template ID sai ứng dụng, sai mục đích hoặc chưa lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: template_args không thay biến do sai tên hoặc encoding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Ảnh không hiển thị, domain chưa đăng ký hoặc URL không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Chạm hạn mức ứng dụng, người gửi, người nhận hoặc cặp tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Sender hoặc Channel chưa đủ điều kiện ở nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Mẫu Alimtalk bị từ chối, ngừng dùng hoặc nội dung không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Brand Message không đủ điều kiện người nhận hoặc thời gian gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Callback thiếu, sai định danh hoặc trạng thái đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Lặp thông báo sau timeout, retry hoặc xử lý lại hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Thu thập mã lỗi gốc, request ID và dữ liệu đã che để đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: changes-and-migration
+  title: Thay đổi và chuyển đổi
+  childs:
+  - slug: changes-and-migration-001
+    title: Theo dõi thông báo thay đổi Kakao Developers và Kakao Business
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-002
+    title: Kiểm tra API, scope và trường phản hồi bị ngừng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-003
+    title: Đối chiếu FriendTalk cũ với sản phẩm được hỗ trợ hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-004
+    title: Thay phiên bản mẫu mà không làm sai dữ liệu biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-005
+    title: Đổi nhà cung cấp với ánh xạ thông tin xác thực, sender và template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-006
+    title: Giữ lịch sử message ID để đối soát kết quả từ nhà cung cấp cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-007
+    title: Canary, feature flag và giới hạn số người nhận khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-008
+    title: Ngăn gửi trùng khi chạy song song hai hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-009
+    title: Rollback cấu hình và xử lý thông báo đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-migration-010
+    title: Rà soát lại điều kiện gửi, chi phí và khả năng báo cáo sau đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Lập bảng chọn sản phẩm cho các tình huống thông báo cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Tạo app thử và cấu hình Kakao Login, talk_message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Gửi mẫu Text tới My Chatroom bằng thao tác được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Tạo custom template và kiểm tra link, biến, Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Người dùng chọn bạn bè đủ điều kiện và gửi trong hạn mức thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: So sánh Talk Share với Talk Message trên cùng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Chuẩn bị Alimtalk và kiểm tra bộ mẫu hợp lệ qua nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Tạo adapter Java cho một nhà cung cấp từ tài liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Tiếp nhận sự kiện đơn hàng bằng outbox và worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Mô phỏng timeout, lặp yêu cầu và callback đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-011
+    title: Tạo chính sách retry, hết hạn và chuyển kênh dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-012
+    title: Đối soát kết quả, chi phí và hoàn thiện dashboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-013
+    title: Diễn tập thu hồi quyền, xoay thông tin xác thực và khôi phục sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

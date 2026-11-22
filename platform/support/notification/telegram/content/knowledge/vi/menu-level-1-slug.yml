@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan thông báo Telegram
+  slug: telegram-notifications
+  index: 0
+- title: Nền tảng Bot API
+  slug: bot-api-fundamentals
+  index: 1
+- title: Khởi tạo bot
+  slug: bot-setup
+  index: 2
+- title: Đích nhận và định danh
+  slug: recipient-identities
+  index: 3
+- title: Gửi thông báo văn bản
+  slug: text-notifications
+  index: 4
+- title: Định dạng nội dung
+  slug: message-formatting
+  index: 5
+- title: Mẫu thông báo
+  slug: notification-templates
+  index: 6
+- title: Tệp và nội dung đa phương tiện
+  slug: files-multimedia
+  index: 7
+- title: Quản lý tin đã gửi
+  slug: sent-message-management
+  index: 8
+- title: Nút và phản hồi
+  slug: buttons-responses
+  index: 9
+- title: Mô hình cập nhật
+  slug: update-model
+  index: 10
+- title: Nhận bằng long polling
+  slug: long-polling
+  index: 11
+- title: Nhận bằng webhook
+  slug: webhook-receivers
+  index: 12
+- title: Đăng ký nhận thông báo
+  slug: notification-subscriptions
+  index: 13
+- title: Nhóm, kênh và chủ đề
+  slug: groups-channels-topics
+  index: 14
+- title: Tích hợp HTTP trong Java
+  slug: java-http-integration
+  index: 15
+- title: Sử dụng SDK Java
+  slug: java-sdk
+  index: 16
+- title: Tích hợp Spring Boot
+  slug: spring-boot-integration
+  index: 17
+- title: Kiến trúc dịch vụ thông báo
+  slug: notification-service-design
+  index: 18
+- title: Lưu trữ và trạng thái
+  slug: storage-state
+  index: 19
+- title: Lỗi và thử lại
+  slug: errors-retries
+  index: 20
+- title: Chống trùng và bảo toàn thứ tự
+  slug: deduplication-ordering
+  index: 21
+- title: Giới hạn tốc độ
+  slug: rate-limits
+  index: 22
+- title: Lập lịch và mức ưu tiên
+  slug: scheduling-priorities
+  index: 23
+- title: Gửi hàng loạt
+  slug: bulk-sending
+  index: 24
+- title: Bảo mật và quyền riêng tư
+  slug: security-privacy
+  index: 25
+- title: Kiểm thử
+  slug: testing
+  index: 26
+- title: Quan sát hệ thống
+  slug: observability
+  index: 27
+- title: Triển khai và mở rộng
+  slug: deployment-scaling
+  index: 28
+- title: Vận hành và thay đổi
+  slug: operations-changes
+  index: 29
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 31

@@ -1,0 +1,3 @@
+menuLevel1: ConfigMap
+menuLevel2: Đọc ConfigMap từ volume thay vì gọi Kubernetes API
+status: ''

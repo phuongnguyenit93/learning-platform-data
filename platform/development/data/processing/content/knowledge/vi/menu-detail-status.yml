@@ -1,0 +1,3718 @@
+menu:
+- slug: orientation
+  title: Định hướng
+  childs:
+  - slug: orientation-001
+    title: Xử lý dữ liệu (data processing) là gì và tạo ra giá trị nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-002
+    title: Luồng dữ liệu từ đầu vào qua phép biến đổi tới kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-003
+    title: 'Các thuật ngữ: bản ghi, tập dữ liệu, sự kiện, công đoạn và luồng xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-004
+    title: Phân biệt thu thập, xử lý, lưu trữ và trình bày dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-005
+    title: Phân biệt xử lý trong bộ nhớ với xử lý qua hệ thống lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-006
+    title: Dữ liệu hữu hạn và dữ liệu đến liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-007
+    title: Xử lý theo lô, vi lô và luồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-008
+    title: Phân biệt Java Stream với hệ thống xử lý luồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-009
+    title: Quan hệ giữa tính đúng đắn, độ trễ, thông lượng và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orientation-010
+    title: Lộ trình học từ phép toán đơn giản tới luồng xử lý có khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-contracts
+  title: Hợp đồng xử lý
+  childs:
+  - slug: processing-contracts-001
+    title: Xác định câu hỏi nghiệp vụ và ý nghĩa kết quả cần tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-002
+    title: Định nghĩa đầu vào, đầu ra và các điều kiện phải bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-003
+    title: Chọn đơn vị xử lý theo bản ghi, nhóm, lô hoặc cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-004
+    title: Xác định dữ liệu nguồn chuẩn và phạm vi trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-005
+    title: Quy định cách xử lý dữ liệu thiếu, sai hoặc trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-006
+    title: Xác định yêu cầu về thứ tự và độ mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-007
+    title: Chọn kết quả chính xác hoặc xấp xỉ theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-008
+    title: Quy định độ trễ, thời hạn hoàn thành và mức tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-009
+    title: Xác định khả năng chạy lại và điều kiện kết quả tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-contracts-010
+    title: Tài liệu hóa giả định về dữ liệu và trường hợp ngoài hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-models
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-models-001
+    title: Bản ghi, thuộc tính, kiểu dữ liệu và lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-002
+    title: Định danh bản ghi, khóa nghiệp vụ và khóa nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-003
+    title: Dữ liệu dạng bảng, cấu trúc lồng nhau và đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-004
+    title: Phân biệt sự kiện thay đổi với trạng thái hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-005
+    title: Phân biệt null, thiếu trường, chuỗi rỗng và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-006
+    title: Đơn vị đo, ngôn ngữ và ngữ cảnh diễn giải giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-007
+    title: Thời điểm phát sinh dữ liệu và thời điểm nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-008
+    title: Phân bố dữ liệu, số lượng giá trị khác nhau và độ lệch khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-009
+    title: Đối tượng bất biến và quyền sở hữu dữ liệu giữa các công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-models-010
+    title: Tương thích lược đồ khi nguồn hoặc bộ xử lý đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flow-design
+  title: Thiết kế luồng
+  childs:
+  - slug: flow-design-001
+    title: Mô hình nguồn, công đoạn xử lý và nơi nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-002
+    title: Luồng tuyến tính, phân nhánh, hợp nhất và đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-003
+    title: Tách phép biến đổi thuần túy khỏi thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-004
+    title: Phân biệt cấu hình luồng với dữ liệu và trạng thái lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-005
+    title: Xác định đầu vào và đầu ra của từng công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-006
+    title: ETL và ELT theo vị trí thực hiện phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-007
+    title: Đẩy lọc, lựa chọn cột hoặc tổng hợp tới nơi xử lý phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-008
+    title: Giữ hợp đồng dữ liệu rõ ràng giữa các công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-009
+    title: Thiết kế điểm kiểm tra và ranh giới công bố kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-010
+    title: Chọn xử lý đồng bộ hoặc bất đồng bộ theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-design-011
+    title: Lập bản đồ phụ thuộc để chạy lại đúng phần bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-reading
+  title: Đọc dữ liệu
+  childs:
+  - slug: data-reading-001
+    title: Đọc từ collection, tệp, truy vấn hoặc nguồn sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-002
+    title: Phân biệt nạp toàn bộ với đọc theo dòng hoặc theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-003
+    title: Tách bước giải mã dữ liệu khỏi bước tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-004
+    title: Giới hạn bộ nhớ khi đầu vào lớn hơn dung lượng khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-005
+    title: Đánh dấu vị trí đọc và khả năng tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-006
+    title: Chọn ảnh chụp dữ liệu nhất quán khi nguồn đang thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-007
+    title: Xử lý nguồn kết thúc, nguồn gián đoạn và nguồn không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-008
+    title: Quản lý tài nguyên trong toàn bộ thời gian đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-reading-009
+    title: Kiểm soát tốc độ đọc theo khả năng xử lý phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-normalization
+  title: Chuẩn hóa dữ liệu
+  childs:
+  - slug: data-normalization-001
+    title: Chuẩn hóa khoảng trắng và cách biểu diễn chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-002
+    title: Chuẩn hóa Unicode và quy tắc so sánh ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-003
+    title: Đổi kiểu với quy tắc định dạng tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-004
+    title: Chuẩn hóa ngày giờ và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-005
+    title: Quy đổi đơn vị đo trước khi tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-006
+    title: Chuẩn hóa mã danh mục theo bảng đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-007
+    title: Phân biệt sửa dữ liệu với suy đoán giá trị bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-008
+    title: Giữ bản gốc và dấu vết của thay đổi khi cần đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-009
+    title: Cách ly bản ghi không hợp lệ để xử lý riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-normalization-010
+    title: Thiết kế bước chuẩn hóa có thể thực hiện lặp mà không làm sai dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-transformation
+  title: Biến đổi dữ liệu
+  childs:
+  - slug: data-transformation-001
+    title: Ánh xạ một bản ghi thành một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-002
+    title: Tách một bản ghi thành nhiều phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-003
+    title: Làm phẳng collection hoặc cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-004
+    title: Gộp các trường để tạo thuộc tính dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-005
+    title: Tách hoặc ghép chuỗi theo quy tắc có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-006
+    title: Chọn, đổi tên và loại bỏ thuộc tính theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-007
+    title: Dựng cấu trúc dữ liệu mới từ đầu vào phẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-008
+    title: Áp dụng hàm chuyển đổi dùng chung cho nhiều công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-009
+    title: Kết hợp nhiều phép biến đổi và giữ rõ thứ tự thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-010
+    title: Phân biệt phép biến đổi mất thông tin với phép có thể đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformation-011
+    title: Kiểm soát ngoại lệ và lỗi chuyển đổi theo từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filtering-and-routing
+  title: Lọc và định tuyến
+  childs:
+  - slug: filtering-and-routing-001
+    title: Xây dựng điều kiện chọn bản ghi theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-002
+    title: Kết hợp điều kiện AND, OR và NOT đúng ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-003
+    title: Quy định hành vi khi điều kiện gặp null hoặc dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-004
+    title: Đẩy phép lọc sớm khi không làm thay đổi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-005
+    title: Chia dữ liệu thành các nhóm xử lý theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-006
+    title: Định tuyến bản ghi hợp lệ, bị loại và cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-007
+    title: Phân biệt loại bỏ bản ghi với ghi nhận lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-008
+    title: Lấy mẫu có thể lặp lại bằng hạt giống xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filtering-and-routing-009
+    title: Đo số lượng và lý do dữ liệu bị loại ở mỗi nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sorting-and-selection
+  title: Sắp xếp và lựa chọn
+  childs:
+  - slug: sorting-and-selection-001
+    title: Xác định khóa và thứ tự sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-002
+    title: Sắp xếp theo nhiều trường với quy tắc phá hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-003
+    title: Xử lý null và quy tắc so sánh chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-004
+    title: Phân biệt thứ tự nguồn với thứ tự kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-005
+    title: Sắp xếp ổn định và nhu cầu bảo toàn thứ tự tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-006
+    title: Tìm phần tử nhỏ nhất hoặc lớn nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-007
+    title: Chọn top K mà không sắp xếp toàn bộ khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-008
+    title: Xếp hạng và xử lý các giá trị bằng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-009
+    title: Chọn bản ghi đầu, cuối hoặc mới nhất theo định nghĩa rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorting-and-selection-010
+    title: Sắp xếp dữ liệu vượt bộ nhớ bằng phân đoạn và trộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deduplication
+  title: Khử trùng lặp
+  childs:
+  - slug: deduplication-001
+    title: Định nghĩa hai bản ghi trùng theo dữ liệu hoặc theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-002
+    title: Chọn khóa khử trùng lặp và phạm vi duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-003
+    title: Giữ bản ghi đầu tiên, cuối cùng hoặc có phiên bản cao nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-004
+    title: Phân biệt trùng nội dung với cùng một sự kiện được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-005
+    title: Sử dụng Set hoặc Map để theo dõi khóa đã gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-006
+    title: Khử trùng lặp theo khoảng thời gian và giới hạn trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-007
+    title: Xử lý xung đột khi cùng khóa nhưng dữ liệu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-008
+    title: Bảo toàn thứ tự khi loại bỏ bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-009
+    title: Đánh đổi bộ nhớ với phạm vi phát hiện trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-010
+    title: Ghi nhận bản ghi bị loại để phục vụ kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grouping-and-aggregation
+  title: Nhóm và tổng hợp
+  childs:
+  - slug: grouping-and-aggregation-001
+    title: Nhóm dữ liệu theo một khóa hoặc khóa ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-002
+    title: Đếm, tính tổng, cực trị và thống kê theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-003
+    title: Tính trung bình từ tổng và số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-004
+    title: Trung bình có trọng số và mẫu số hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-005
+    title: Phân biệt số lượng bản ghi với số giá trị khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-006
+    title: Tổng hợp nhiều cấp và nhóm lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-007
+    title: Chia dữ liệu thành các tập theo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-008
+    title: Tổng hợp từng phần và hợp nhất kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-009
+    title: Vai trò của tính kết hợp và phần tử đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-010
+    title: Tổng hợp trên tập rỗng và giá trị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-011
+    title: Kiểm soát độ lớn của nhóm và số lượng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-aggregation-012
+    title: Tính phân vị hoặc thống kê xấp xỉ với sai số được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: joining-and-enrichment
+  title: Ghép và làm giàu
+  childs:
+  - slug: joining-and-enrichment-001
+    title: Phân biệt nối tập bản ghi với ghép theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-002
+    title: Ghép trong, ghép trái, ghép đầy đủ và ý nghĩa bản ghi không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-003
+    title: Ghép theo khóa đơn hoặc khóa ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-004
+    title: Quan hệ một–một, một–nhiều và nhiều–nhiều khi ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-005
+    title: Nguy cơ nhân số lượng bản ghi sau phép ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-006
+    title: Chọn thuật toán ghép lồng, ghép băm hoặc ghép trộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-007
+    title: Làm giàu bằng bảng tham chiếu đã được chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-008
+    title: Giới hạn tra cứu dịch vụ ngoài theo từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-009
+    title: Xác định phiên bản dữ liệu tham chiếu dùng cho một lần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-010
+    title: Xử lý dữ liệu đến thiếu phía đối ứng hoặc đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joining-and-enrichment-011
+    title: Ghép theo điều kiện thời gian và phạm vi tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numbers-and-time
+  title: Số và thời gian
+  childs:
+  - slug: numbers-and-time-001
+    title: Chọn kiểu số theo miền giá trị và độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-002
+    title: Ngăn tràn số trong tổng hợp và chuyển kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-003
+    title: Phân biệt số thập phân chính xác với dấu phẩy động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-004
+    title: Quy tắc làm tròn và thời điểm áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-005
+    title: Xử lý chia cho không, NaN và giá trị vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-006
+    title: Đơn vị tiền tệ và đơn vị đo trong phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-007
+    title: Xác định thời điểm tuyệt đối, thời gian địa phương và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-008
+    title: Tính khoảng thời gian với ranh giới ngày và thay đổi giờ địa phương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-009
+    title: Quy tắc bao gồm hoặc loại trừ điểm biên của khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numbers-and-time-010
+    title: Giữ quy tắc tính toán ổn định để đối soát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-state
+  title: Trạng thái xử lý
+  childs:
+  - slug: processing-state-001
+    title: Phân biệt công đoạn không trạng thái với công đoạn có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-002
+    title: Trạng thái theo khóa, theo công đoạn và theo toàn bộ công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-003
+    title: Tích lũy kết quả qua nhiều bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-004
+    title: Bộ đệm, bảng băm và hàng đợi trong xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-005
+    title: Phân biệt trạng thái nghiệp vụ với vị trí tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-006
+    title: Quản lý vòng đời và thời hạn của trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-007
+    title: Giới hạn bộ nhớ khi số khóa hoặc dữ liệu chờ tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-008
+    title: Lưu ảnh chụp trạng thái để phục vụ khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-009
+    title: Tương thích trạng thái khi thay đổi cấu trúc hoặc thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-state-010
+    title: Ngăn dùng chung trạng thái có thể thay đổi giữa các lần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incremental-processing
+  title: Xử lý tăng dần
+  childs:
+  - slug: incremental-processing-001
+    title: So sánh tính lại toàn bộ với cập nhật từ phần dữ liệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-002
+    title: Xác định mốc tiến độ theo phiên bản, vị trí hoặc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-003
+    title: Giới hạn của việc chỉ dùng thời gian cập nhật để phát hiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-004
+    title: Đọc thay đổi qua nhật ký hoặc cơ chế CDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-005
+    title: Diễn giải sự kiện thêm, sửa và xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-006
+    title: Cập nhật kết quả dẫn xuất khi dữ liệu nguồn bị điều chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-007
+    title: Xử lý dữ liệu thay đổi đến trễ hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-008
+    title: Thiết kế bổ sung dữ liệu lịch sử và chạy bù (backfill)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-009
+    title: Phối hợp xử lý trực tiếp với chạy bù mà không ghi đè sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-010
+    title: Đối soát kết quả tăng dần với kết quả tính lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incremental-processing-011
+    title: Ghi nhận phiên bản thuật toán để xác định dữ liệu cần tái xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: algorithms-and-resources
+  title: Thuật toán và tài nguyên
+  childs:
+  - slug: algorithms-and-resources-001
+    title: Phân tích độ phức tạp theo số bản ghi và số khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-002
+    title: Chọn cấu trúc dữ liệu theo phép tra cứu hoặc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-003
+    title: Phân biệt xử lý một lượt với cần đọc lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-004
+    title: Xử lý tăng dần để tránh giữ toàn bộ đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-005
+    title: Tràn dữ liệu tạm ra đĩa khi vượt bộ nhớ (spill)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-006
+    title: Chia dữ liệu thành lô và chọn kích thước phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-007
+    title: Giảm sao chép, cấp phát đối tượng và biểu diễn trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-008
+    title: Giới hạn số lượng nhóm, bộ đệm và dữ liệu chờ ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-009
+    title: Đánh đổi phép tính chính xác với cấu trúc xấp xỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-010
+    title: Quản lý tài nguyên và dọn dữ liệu tạm khi dừng hoặc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithms-and-resources-011
+    title: Lựa chọn thuật toán theo phân bố dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: batch-processing
+  title: Xử lý theo lô
+  childs:
+  - slug: batch-processing-001
+    title: Định nghĩa công việc, lần chạy và tập dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-002
+    title: Chốt phạm vi dữ liệu trước khi bắt đầu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-003
+    title: Chia công việc thành bước và nhóm bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-004
+    title: Đọc, biến đổi và ghi theo khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-005
+    title: Chọn kích thước khối và ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-006
+    title: Lưu tiến độ sau khi kết quả tương ứng được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-007
+    title: Khởi động lại từ điểm đã hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-008
+    title: Phân biệt chạy lại cùng lần xử lý với tạo lần chạy mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-009
+    title: Chạy song song các phần dữ liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-010
+    title: Tổng hợp kết quả và xác định trạng thái hoàn thành toàn công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-011
+    title: Quản lý lịch chạy, công việc chồng lấn và dữ liệu đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: batch-processing-012
+    title: Đối chiếu số lượng đầu vào, thành công, bị loại và thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-streams
+  title: Luồng sự kiện
+  childs:
+  - slug: event-streams-001
+    title: Đặc điểm của dữ liệu đến liên tục không có điểm kết thúc cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-002
+    title: Luồng đẩy và luồng kéo dưới góc độ nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-003
+    title: Định danh sự kiện, khóa phân vùng và vị trí đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-004
+    title: Phân biệt thứ tự toàn cục với thứ tự theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-005
+    title: Xử lý từng sự kiện và xử lý theo vi lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-006
+    title: Phép biến đổi không trạng thái trên luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-007
+    title: Tổng hợp có trạng thái theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-008
+    title: Xử lý sự kiện lặp, đến trễ hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-009
+    title: Dữ liệu tham chiếu thay đổi trong lúc luồng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-010
+    title: Giới hạn trạng thái của phép ghép và phát hiện mẫu liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-streams-011
+    title: Dừng có kiểm soát và tiếp tục từ vị trí đã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-and-windows
+  title: Thời gian và cửa sổ
+  childs:
+  - slug: time-and-windows-001
+    title: Thời gian sự kiện (event time) và thời gian xử lý (processing time)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-002
+    title: Chọn dấu thời gian phù hợp với ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-003
+    title: Cửa sổ cố định không chồng lấn (tumbling window)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-004
+    title: Cửa sổ trượt có chồng lấn (sliding window)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-005
+    title: Cửa sổ phiên theo khoảng ngừng hoạt động (session window)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-006
+    title: Cửa sổ theo số lượng bản ghi và giới hạn áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-007
+    title: Mốc tiến triển thời gian sự kiện (watermark)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-008
+    title: Cân bằng chờ dữ liệu đến trễ với độ trễ công bố kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-009
+    title: Ảnh hưởng của phân vùng không phát sinh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-010
+    title: Kết quả tạm thời, kết quả cập nhật và thời điểm chốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-011
+    title: Quy tắc giữ hoặc loại dữ liệu vượt độ trễ cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-012
+    title: Đặt giới hạn lưu trạng thái sau khi cửa sổ kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-and-windows-013
+    title: Kiểm thử biên cửa sổ, sai thứ tự và dữ liệu đến rất muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-and-parallelism
+  title: Đồng thời và song song
+  childs:
+  - slug: concurrency-and-parallelism-001
+    title: Phân biệt đồng thời, song song và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-002
+    title: Chia công việc theo bản ghi, lô hoặc khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-003
+    title: Giữ các bước phụ thuộc chạy đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-004
+    title: Quyền sở hữu dữ liệu và trạng thái giữa các tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-005
+    title: Tránh cuộc đua khi cập nhật bộ tích lũy dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-006
+    title: Dùng kết quả cục bộ rồi hợp nhất thay vì tranh chấp liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-007
+    title: Bảo toàn thứ tự đầu ra khi tác vụ hoàn thành khác thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-008
+    title: Tính kết hợp và khả năng phân chia của phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-009
+    title: Chọn số tác vụ theo CPU, I/O và tài nguyên đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-010
+    title: Phân phối công việc không đều và tác vụ kéo dài bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-011
+    title: Hủy tác vụ và thu hồi tài nguyên khi một nhánh lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-parallelism-012
+    title: Kiểm chứng tính đúng đắn trước khi tăng mức song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-regulation
+  title: Điều tiết tải
+  childs:
+  - slug: load-regulation-001
+    title: Chênh lệch tốc độ giữa nguồn, bộ xử lý và nơi ghi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-002
+    title: Hàng đợi có giới hạn và chính sách khi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-003
+    title: Điều tiết ngược theo nhu cầu (backpressure)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-004
+    title: Phân biệt backpressure với giới hạn tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-005
+    title: Giới hạn số tác vụ đang thực thi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-006
+    title: Chọn kích thước bộ đệm theo bộ nhớ và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-007
+    title: Đánh đổi giữa chờ, loại bỏ, gộp hoặc lưu tạm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-008
+    title: Đặt thời gian chờ và hạn mức cho từng công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-009
+    title: Bảo vệ dịch vụ phụ thuộc trước tải đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-010
+    title: Tránh thử lại hàng loạt làm khuếch đại tắc nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-regulation-011
+    title: Quan sát độ dài hàng đợi và thời gian chờ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-processing
+  title: Xử lý phân tán
+  childs:
+  - slug: distributed-processing-001
+    title: Khi nào cần vượt phạm vi một tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-002
+    title: Phân biệt phân vùng dữ liệu với tăng số luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-003
+    title: Chia dữ liệu theo khóa, khoảng hoặc cách phân phối khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-004
+    title: Đưa phép xử lý tới gần dữ liệu khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-005
+    title: Chuyển dữ liệu giữa các nút (shuffle) và chi phí mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-006
+    title: Tổng hợp cục bộ trước khi hợp nhất toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-007
+    title: Ghép dữ liệu bằng phân vùng hoặc phát bảng nhỏ tới các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-008
+    title: Khóa nóng, phân bố lệch và mất cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-009
+    title: Quan hệ giữa mức song song và số phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-010
+    title: Xử lý tác vụ chậm, tác vụ bị chạy lại và nút ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-011
+    title: Tính xác định của phép xử lý khi chạy trên nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-processing-012
+    title: Định cỡ trạng thái và chi phí khôi phục khi thay đổi quy mô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: result-guarantees
+  title: Bảo đảm kết quả
+  childs:
+  - slug: result-guarantees-001
+    title: Phân biệt tiếp nhận dữ liệu với đã xử lý và đã công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-002
+    title: Bảo đảm nhiều nhất một lần (at-most-once)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-003
+    title: Bảo đảm ít nhất một lần (at-least-once)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-004
+    title: Phạm vi của bảo đảm chính xác một lần (exactly-once)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-005
+    title: Phân biệt số lần thực thi với số lần kết quả có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-006
+    title: Vai trò của vị trí đọc, điểm kiểm tra (checkpoint) và trạng thái xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-007
+    title: Phối hợp xác nhận đầu vào với ghi đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-008
+    title: Thiết kế nơi ghi lũy đẳng hoặc có cơ chế giao dịch phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-009
+    title: Vì sao checkpoint riêng lẻ chưa bảo đảm mọi tác dụng phụ đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-010
+    title: Giữ nguồn đầu vào và phiên bản quy tắc để tái hiện kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: result-guarantees-011
+    title: Đối soát số lượng, giá trị tổng hợp và các bất biến cuối luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-recovery
+  title: Lỗi và khôi phục
+  childs:
+  - slug: errors-and-recovery-001
+    title: Phân loại lỗi dữ liệu, lỗi chương trình và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-002
+    title: Quyết định dừng, bỏ qua hoặc cách ly theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-003
+    title: Phân biệt lỗi tạm thời với lỗi không thể sửa bằng thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-004
+    title: Thử lại có giới hạn, giãn cách và độ ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-005
+    title: Tách bản ghi lỗi lặp lại khỏi luồng xử lý chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-006
+    title: Ghi nhận nguyên nhân, vị trí dữ liệu và phiên bản quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-007
+    title: Khôi phục từ điểm kiểm tra đã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-008
+    title: Xử lý trạng thái dở dang giữa nhiều công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-009
+    title: Phân biệt tiếp tục công việc với chạy lại toàn bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-010
+    title: Chạy lại dữ liệu lỗi sau khi đã sửa nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-011
+    title: Dọn tài nguyên và dữ liệu tạm sau khi hủy hoặc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-012
+    title: Kiểm tra kết quả và tiến độ trước khi cho phép xử lý tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: output-publication
+  title: Công bố đầu ra
+  childs:
+  - slug: output-publication-001
+    title: Xác định khi nào kết quả được phép nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-002
+    title: Phân biệt bổ sung, thay thế và cập nhật theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-003
+    title: Chọn ranh giới công bố theo bản ghi, khối hoặc toàn công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-004
+    title: Ghi tạm và công bố sau khi kiểm tra hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-005
+    title: Phối hợp ghi kết quả với tiến độ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-006
+    title: Dùng định danh lần chạy hoặc phiên bản kết quả để đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-007
+    title: Xử lý kết quả cũ khi chạy lại hoặc thay đổi thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-008
+    title: Ngăn hai lần chạy ghi đè lẫn nhau ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-009
+    title: Điều phối nhiều nơi nhận kết quả và xác định lỗi một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-010
+    title: Cách ly thao tác gửi thông báo hoặc gọi dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-011
+    title: Phân biệt dữ liệu kết quả với nhật ký và chỉ số theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-publication-012
+    title: Thiết kế khả năng quay lại phiên bản kết quả đã được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-collections
+  title: Collections trong Java
+  childs:
+  - slug: java-collections-001
+    title: Chọn List, Set và Map theo phép toán dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-002
+    title: Duyệt bằng vòng lặp, Iterator và Iterable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-003
+    title: Giới hạn thay đổi collection trong khi đang duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-004
+    title: Thiết kế khóa nhóm với equals và hashCode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-005
+    title: Dùng Map để nhóm, đếm và tra cứu dữ liệu đối ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-006
+    title: Quy tắc xử lý khóa trùng khi hợp nhất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-007
+    title: So sánh sao chép collection với dùng view hoặc tham chiếu chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-008
+    title: Chọn collection bất biến tại ranh giới công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-009
+    title: Dùng cấu trúc ưu tiên để chọn top K
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-010
+    title: Kiểm soát boxing, cấp phát và kích thước ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-collections-011
+    title: Đóng tài nguyên của nguồn dữ liệu được bọc bằng bộ duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-streams
+  title: Java Stream
+  childs:
+  - slug: java-streams-001
+    title: Nguồn, phép toán trung gian và phép kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-002
+    title: Thực thi lười và quy tắc sử dụng Stream một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-003
+    title: Lọc bằng filter và biến đổi bằng map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-004
+    title: Làm phẳng bằng flatMap hoặc mapMulti
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-005
+    title: Phân biệt phép toán có trạng thái với không trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-006
+    title: Sắp xếp, loại trùng và giới hạn kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-007
+    title: Dừng sớm với match, findFirst hoặc findAny
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-008
+    title: Sử dụng takeWhile và dropWhile theo thứ tự nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-009
+    title: Tổng hợp bằng reduce và các điều kiện kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-010
+    title: Dùng IntStream, LongStream và DoubleStream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-011
+    title: Phân biệt thứ tự nguồn, forEach và forEachOrdered
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-012
+    title: Tránh sửa nguồn hoặc dựa vào tác dụng phụ của peek
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-013
+    title: Hợp đồng kết quả của Stream.toList và Collectors.toList
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-streams-014
+    title: Đóng Stream có nguồn I/O bằng try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collectors
+  title: Collector
+  childs:
+  - slug: collectors-001
+    title: Vai trò của collect trong gom kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-002
+    title: Chọn toList, toSet hoặc toCollection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-003
+    title: Dùng toMap với quy tắc hợp nhất khóa trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-004
+    title: Nhóm bằng groupingBy và collector phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-005
+    title: Phân nhóm bằng partitioningBy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-006
+    title: Kết hợp mapping, filtering và flatMapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-007
+    title: Đếm, tính tổng, trung bình và thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-008
+    title: Nối chuỗi bằng joining với định dạng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-009
+    title: Hoàn thiện kết quả bằng collectingAndThen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-010
+    title: Kết hợp hai phép tổng hợp bằng teeing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-011
+    title: Thiết kế Collector với supplier, accumulator, combiner và finisher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collectors-012
+    title: Kiểm tra tính kết hợp, trạng thái dùng chung và Collector.Characteristics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-async
+  title: Java bất đồng bộ
+  childs:
+  - slug: java-async-001
+    title: Tách xử lý thiên về CPU với thao tác chờ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-002
+    title: Quản lý ExecutorService và vòng đời nhóm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-003
+    title: Chia công việc thành Callable và nhận kết quả qua Future
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-004
+    title: Ghép công đoạn phụ thuộc bằng CompletableFuture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-005
+    title: Chọn thenApply, thenCompose hoặc thenCombine theo quan hệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-006
+    title: Tập hợp kết quả và xử lý lỗi khi nhiều tác vụ cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-007
+    title: Truyền Executor tường minh cho công việc cần giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-008
+    title: Giới hạn thời gian, hủy và kiểm tra tác vụ còn đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-009
+    title: Vai trò luồng ảo Java 21 trong công việc chờ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-010
+    title: Giữ giới hạn truy cập cơ sở dữ liệu hoặc dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-011
+    title: Java Flow và mô hình yêu cầu dữ liệu theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-async-012
+    title: Tránh chia sẻ ngữ cảnh yêu cầu qua các tác vụ không được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-tools
+  title: Công cụ xử lý
+  childs:
+  - slug: processing-tools-001
+    title: Chọn vòng lặp hoặc Stream cho dữ liệu vừa bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-002
+    title: Phân biệt parallelStream với một công cụ xử lý phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-003
+    title: Vai trò Spring Batch với công việc theo lô có tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-004
+    title: Mô hình ItemReader, ItemProcessor và ItemWriter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-005
+    title: Phân biệt xử lý phản ứng với xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-006
+    title: Vai trò Reactor hoặc RxJava trong luồng bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-007
+    title: Vai trò Apache Kafka và công cụ xử lý sự kiện đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-008
+    title: So sánh phạm vi Apache Flink và Apache Spark ở mức kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-009
+    title: Chọn SQL hoặc công cụ xử lý dữ liệu theo vị trí tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-010
+    title: Kiểm tra khả năng phục hồi, quản lý trạng thái và nơi ghi của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-tools-011
+    title: Đối chiếu phiên bản JDK, framework và môi trường trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-and-lineage
+  title: Chất lượng và truy vết
+  childs:
+  - slug: quality-and-lineage-001
+    title: Kiểm tra hợp đồng dữ liệu tại các ranh giới công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-002
+    title: Theo dõi dữ liệu đầu vào tạo nên từng kết quả (data lineage)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-003
+    title: Ghi nhận phiên bản nguồn, lược đồ, cấu hình và quy tắc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-004
+    title: Đếm dữ liệu đọc, loại bỏ, cách ly và công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-005
+    title: Bảo toàn đơn vị đo và ý nghĩa thuộc tính khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-006
+    title: Phát hiện bất thường từ phân bố dữ liệu và giá trị tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-007
+    title: Phân biệt cảnh báo chất lượng với điều kiện bắt buộc dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-008
+    title: Đối soát dữ liệu sau phép ghép, tổng hợp và khử trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-009
+    title: Thiết kế khả năng giải thích vì sao một bản ghi có kết quả cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-and-lineage-010
+    title: Giới hạn lưu dấu vết để tránh lộ dữ liệu hoặc tăng chi phí quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử độc lập từng phép biến đổi thuần túy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử tập rỗng, null, giá trị biên và bản ghi sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử trùng khóa, sai thứ tự và xung đột phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử tổng hợp với dữ liệu nhỏ có kết quả tính tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử bất biến bằng dữ liệu sinh theo thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Đối chiếu kết quả tuần tự với kết quả song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử phép chia nhỏ rồi hợp nhất vẫn giữ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Điều khiển đồng hồ để kiểm thử cửa sổ và dữ liệu đến trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử lỗi giữa ghi kết quả và xác nhận tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử chạy lại không làm tăng sai số lượng hoặc tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử khôi phục checkpoint và tương thích trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử toàn luồng bằng nguồn và nơi ghi được cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: So sánh kết quả tính lại toàn bộ với xử lý tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm thử tải với kích thước và phân bố dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo độ trễ toàn luồng và thời gian từng công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Phân biệt thông lượng xử lý với tốc độ công bố đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Khoanh vùng nút thắt CPU, bộ nhớ, I/O và mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Đo độ lớn hàng đợi và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Giảm số lượt dữ liệu trung gian và sao chép không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Tối ưu phép ghép, tổng hợp và sắp xếp theo phân bố thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Chọn kích thước lô và mức song song qua phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Theo dõi cấp phát đối tượng và hoạt động thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Dùng JMH khi đo phép tính nhỏ trong JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Đánh giá chi phí làm nóng, tuần tự hóa và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Kiểm tra độ trễ đuôi và tài nguyên dự phòng khi tải tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-012
+    title: Tránh tối ưu một công đoạn làm quá tải công đoạn tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân loại dữ liệu nhạy cảm trước khi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Chỉ đưa các thuộc tính cần thiết qua từng công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Tách dữ liệu theo quyền truy cập và đơn vị thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Kiểm soát đầu vào lớn, độ sâu cấu trúc và chi phí tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Bảo vệ tệp tạm, checkpoint và dữ liệu đã cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Quản lý bí mật của nguồn và nơi ghi ngoài mã chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Mã hóa đường truyền và dữ liệu được lưu khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Che thông tin nhạy cảm trong log và báo cáo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Quản lý thời hạn lưu dữ liệu trung gian cùng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Kiểm soát quyền chạy lại, sửa quy tắc và công bố kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-observability
+  title: Quan sát và vận hành
+  childs:
+  - slug: operations-and-observability-001
+    title: Định danh công việc, lần chạy, phân vùng và công đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-002
+    title: Theo dõi trạng thái chạy, hoàn thành, thất bại và đã hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-003
+    title: Đo độ trễ dữ liệu từ thời điểm phát sinh tới kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-004
+    title: Theo dõi watermark, dữ liệu tồn và trạng thái chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-005
+    title: Gắn log, chỉ số và trace với cùng ngữ cảnh xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-006
+    title: Cảnh báo khi dữ liệu dừng đến hoặc tồn đọng tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-007
+    title: Phân biệt dừng có kiểm soát với kết thúc cưỡng bức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-008
+    title: Triển khai phiên bản mới có xét lược đồ và trạng thái cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-009
+    title: Điều chỉnh quy mô mà không làm mất tiến độ hoặc trùng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-010
+    title: Quản lý lịch chạy, công việc phụ thuộc và lần chạy chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-011
+    title: Lập hướng dẫn chạy bù, đối soát và xử lý bản ghi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-observability-012
+    title: Đánh giá chi phí tài nguyên theo khối lượng dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Chuẩn hóa danh sách giao dịch với quy tắc dữ liệu thiếu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Lọc, nhóm và tổng hợp kết quả bằng vòng lặp rồi bằng Stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Khử trùng lặp theo khóa nghiệp vụ và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Ghép giao dịch với danh mục tham chiếu có bản ghi không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tính top K và báo cáo tổng hợp trên dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Xây luồng theo lô có điểm tiếp tục và nơi cách ly bản ghi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thiết kế công bố kết quả không bị lặp khi chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Xử lý sự kiện sai thứ tự trong cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Đối chiếu xử lý tăng dần với kết quả tính lại toàn bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Giới hạn tải khi làm giàu dữ liệu qua dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Mô phỏng lỗi rồi kiểm chứng khôi phục không mất hoặc nhân đôi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Hoàn thiện hợp đồng, kiểm thử, phép đo và hướng dẫn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

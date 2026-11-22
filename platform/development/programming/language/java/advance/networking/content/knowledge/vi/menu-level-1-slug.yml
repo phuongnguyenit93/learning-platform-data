@@ -1,0 +1,70 @@
+menu:
+- title: Bức tranh mạng
+  slug: network-overview
+  index: 0
+- title: Địa chỉ và DNS
+  slug: addresses-and-dns
+  index: 1
+- title: URI và URL
+  slug: uri-and-url
+  index: 2
+- title: TCP với Socket
+  slug: tcp-sockets
+  index: 3
+- title: Thông điệp trên TCP
+  slug: tcp-message-framing
+  index: 4
+- title: Máy chủ TCP
+  slug: tcp-servers
+  index: 5
+- title: UDP
+  slug: udp
+  index: 6
+- title: Multicast
+  slug: multicast
+  index: 7
+- title: Buffer và channel
+  slug: buffers-and-channels
+  index: 8
+- title: Selector
+  slug: selector
+  index: 9
+- title: I/O bất đồng bộ
+  slug: asynchronous-io
+  index: 10
+- title: TLS
+  slug: tls
+  index: 11
+- title: Nền tảng HTTP
+  slug: http-foundations
+  index: 12
+- title: HttpClient
+  slug: httpclient
+  index: 13
+- title: Nội dung HTTP
+  slug: http-content
+  index: 14
+- title: HTTP bất đồng bộ
+  slug: asynchronous-http
+  index: 15
+- title: Proxy và phiên HTTP
+  slug: proxies-and-http-sessions
+  index: 16
+- title: WebSocket
+  slug: websocket
+  index: 17
+- title: URLConnection
+  slug: urlconnection
+  index: 18
+- title: HTTP server của JDK
+  slug: jdk-http-server
+  index: 19
+- title: Độ tin cậy
+  slug: do-tin-cay
+  index: 20
+- title: Cấu hình và quan sát
+  slug: configuration-and-observability
+  index: 21
+- title: Thực nghiệm mạng
+  slug: networking-labs
+  index: 22

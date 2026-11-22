@@ -1,0 +1,2650 @@
+menu:
+- slug: aop-foundations
+  title: Tư duy AOP
+  childs:
+  - slug: aop-foundations-001
+    title: Lập trình hướng khía cạnh (AOP) là gì
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-002
+    title: Mối quan tâm cốt lõi và mối quan tâm cắt ngang
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-003
+    title: Mã bị phân tán (scattering) và mã bị đan xen (tangling)
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-004
+    title: Vì sao ghi nhật ký, đo thời gian hoặc kiểm soát truy cập dễ lặp lại
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-005
+    title: Tách hành vi cắt ngang khỏi luồng nghiệp vụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-006
+    title: Quan hệ giữa AOP, lập trình thủ tục và lập trình hướng đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-007
+    title: So sánh AOP với hàm dùng chung, đối tượng cộng tác và thiết kế theo thành phần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-008
+    title: Lợi ích, đánh đổi và những bài toán không nên dùng AOP
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-foundations-009
+    title: Lộ trình từ khái niệm đến cơ chế và ứng dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aop-component-model
+  title: Mô hình thành phần
+  childs:
+  - slug: aop-component-model-001
+    title: Aspect là đơn vị đóng gói mối quan tâm cắt ngang
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-002
+    title: Join point là điểm có thể can thiệp trong mô hình thực thi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-003
+    title: Pointcut là điều kiện lựa chọn tập điểm can thiệp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-004
+    title: Advice là hành vi được thực hiện tại điểm đã chọn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-005
+    title: Weaving là quá trình kết hợp aspect với chương trình
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-006
+    title: Chương trình gốc, bộ dệt và kết quả sau khi dệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-007
+    title: Phân biệt chọn vị trí, truyền ngữ cảnh và thực hiện hành vi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-008
+    title: Luồng tương tác giữa mã nghiệp vụ và một aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-component-model-009
+    title: Khả năng của mô hình AOP phụ thuộc ngôn ngữ và công cụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: join-points
+  title: Điểm can thiệp
+  childs:
+  - slug: join-points-001
+    title: Phân biệt vị trí gọi và vị trí thực thi phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-002
+    title: Điểm can thiệp khi khởi tạo đối tượng và thực thi hàm tạo
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-003
+    title: Đọc và ghi thuộc tính khi mô hình AOP hỗ trợ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-004
+    title: Khởi tạo lớp, khởi tạo đối tượng và thứ tự thực thi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-005
+    title: Điểm xử lý ngoại lệ và các giới hạn theo công cụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-006
+    title: Các điểm liên quan khóa hoặc đồng bộ khi được hỗ trợ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-007
+    title: Thông tin tĩnh và ngữ cảnh động của một join point
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-008
+    title: Phân biệt điểm trong mã nguồn với điểm trong luồng thực thi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: join-points-009
+    title: Những thao tác không thuộc mô hình join point của công cụ đang dùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pointcut-basics
+  title: Pointcut cơ bản
+  childs:
+  - slug: pointcut-basics-001
+    title: Chọn điểm theo kiểu, tên và chữ ký phương thức
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-002
+    title: Giới hạn theo phạm vi gói, mô-đun hoặc thành phần
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-003
+    title: Khớp kiểu trả về, danh sách tham số và mức truy cập
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-004
+    title: Phân biệt kiểu khai báo và kiểu thực tế khi lựa chọn điểm can thiệp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-005
+    title: Kế thừa, ghi đè phương thức và ảnh hưởng của đa hình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-006
+    title: Ký tự đại diện và biểu thức mẫu theo cú pháp công cụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-007
+    title: Kết hợp điều kiện bằng phép và, hoặc và phủ định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-008
+    title: Đặt tên pointcut để tái sử dụng và diễn đạt ý định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-009
+    title: Phân biệt điều kiện bao gồm với điều kiện loại trừ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-010
+    title: Chọn phương thức nạp chồng và tránh khớp ngoài ý muốn
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-011
+    title: Đánh đổi giữa biểu thức ngắn và độ chính xác của phạm vi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pointcut-basics-012
+    title: Kiểu tổng quát, mã sinh và phương thức cầu nối khi nền tảng có
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contextual-pointcuts
+  title: Pointcut theo ngữ cảnh
+  childs:
+  - slug: contextual-pointcuts-001
+    title: Chọn theo kiểu của đối tượng đang thực thi và đối tượng đích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-002
+    title: Chọn theo kiểu hoặc giá trị tham số khi được hỗ trợ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-003
+    title: Chọn theo annotation và siêu dữ liệu của chương trình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-004
+    title: Chọn theo luồng điều khiển của một lời gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-005
+    title: Điều kiện tĩnh và điều kiện cần đánh giá lúc chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-006
+    title: Ràng buộc biến ngữ cảnh cho advice sử dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-007
+    title: Kết hợp điều kiện ngữ cảnh với phạm vi cấu trúc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-008
+    title: Giới hạn của ngữ cảnh khi công việc chuyển sang luồng hoặc tác vụ khác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contextual-pointcuts-009
+    title: Chi phí và khả năng kiểm thử của điều kiện động
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: before-and-after-advice
+  title: Advice trước và sau
+  childs:
+  - slug: before-and-after-advice-001
+    title: Advice trước khi điểm can thiệp thực thi
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-002
+    title: Advice sau khi hoàn tất thành công và xử lý giá trị trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-003
+    title: Advice khi có ngoại lệ và ngữ cảnh lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-004
+    title: Advice khi kết thúc bất kể thành công hay thất bại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-005
+    title: Phân biệt hành vi sau hoàn tất với hành vi luôn dọn dẹp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-006
+    title: Thứ tự advice trong trường hợp có nhiều lớp can thiệp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-007
+    title: Ngoại lệ phát sinh từ advice và ảnh hưởng tới lời gọi gốc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-008
+    title: Giới hạn thay đổi dữ liệu theo loại advice và công cụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: before-and-after-advice-009
+    title: Thiết kế advice nhỏ, rõ mục đích và ít tác dụng phụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: around-advice
+  title: Advice bao quanh
+  childs:
+  - slug: around-advice-001
+    title: Advice bao quanh và quyền kiểm soát luồng thực thi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-002
+    title: Gọi tiếp hành vi gốc qua cơ chế proceed hoặc cơ chế tương đương
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-003
+    title: Không gọi tiếp và trách nhiệm bảo toàn hợp đồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-004
+    title: Thay đổi tham số hoặc kết quả khi công cụ cho phép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-005
+    title: Gọi tiếp nhiều lần và nguy cơ lặp tác dụng phụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-006
+    title: Đo thời gian bằng điểm bắt đầu và khối dọn dẹp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-007
+    title: Bắt, chuyển đổi hoặc truyền tiếp ngoại lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-008
+    title: Giới hạn kiểu trả về và tính tương thích của advice
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: around-advice-009
+    title: Phân biệt bao quanh một lời gọi đồng bộ với toàn bộ tác vụ bất đồng bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advice-data
+  title: Dữ liệu trong advice
+  childs:
+  - slug: advice-data-001
+    title: Truy cập chữ ký và mô tả điểm can thiệp
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-002
+    title: Nhận tham số, đối tượng đích và đối tượng thực thi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-003
+    title: Phân biệt dữ liệu ràng buộc trực tiếp với tra cứu bằng phản chiếu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-004
+    title: Giá trị null, kiểu nguyên thủy và chuyển đổi kiểu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-005
+    title: Làm việc với giá trị trả về và phương thức không trả dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-006
+    title: Đọc annotation và dữ liệu cấu hình liên quan
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-007
+    title: Không giữ tham chiếu đối tượng lâu hơn nhu cầu xử lý
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-008
+    title: Giới hạn thu thập tham số chứa dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advice-data-009
+    title: Tách trích xuất ngữ cảnh khỏi xử lý nghiệp vụ của aspect
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: weaving-architecture
+  title: Kiến trúc weaving
+  childs:
+  - slug: weaving-architecture-001
+    title: Cách bộ dệt tìm điểm phù hợp với pointcut
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-002
+    title: Chèn hành vi vào mã nguồn, mã trung gian hoặc đường gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-003
+    title: Phân biệt dệt tĩnh với can thiệp động lúc chạy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-004
+    title: Đầu vào, đầu ra và thời điểm áp dụng aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-005
+    title: Phạm vi dệt trong một mô-đun và giữa các mô-đun
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-006
+    title: Quan hệ giữa thứ tự xây dựng và kết quả dệt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-007
+    title: Cấu hình phạm vi được dệt và phạm vi bị loại trừ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-008
+    title: Mã đã dệt, thông tin gỡ lỗi và khả năng truy vết
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-009
+    title: Phân biệt lỗi biên dịch, lỗi dệt và lỗi thực thi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-architecture-010
+    title: Dệt lặp và phát hiện hành vi bị chèn nhiều lần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: weaving-lifecycle
+  title: Các thời điểm dệt
+  childs:
+  - slug: weaving-lifecycle-001
+    title: Dệt khi biên dịch và yêu cầu đối với chuỗi xây dựng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-002
+    title: Dệt sau biên dịch trên mã trung gian hoặc thư viện có sẵn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-003
+    title: Dệt khi nạp và quan hệ với cơ chế nạp lớp hoặc mô-đun
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-004
+    title: Can thiệp lúc chạy và giới hạn của nền tảng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-005
+    title: Thay đổi aspect và nhu cầu xây dựng hoặc khởi động lại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-006
+    title: Ảnh hưởng đến đóng gói, triển khai và tính lặp lại của bản dựng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-007
+    title: Khả năng can thiệp thư viện ngoài và giới hạn sở hữu mã
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-008
+    title: So sánh độ bao phủ, chi phí và độ phức tạp vận hành
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: weaving-lifecycle-009
+    title: Chọn thời điểm dệt theo yêu cầu hệ thống
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-based-aop
+  title: AOP qua proxy
+  childs:
+  - slug: proxy-based-aop-001
+    title: Mô hình đối tượng trung gian tiếp nhận và chuyển tiếp lời gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-002
+    title: Ủy quyền qua giao diện so với tạo lớp con trung gian
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-003
+    title: Đối tượng trung gian và đối tượng đích có danh tính khác nhau thế nào
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-004
+    title: Giới hạn của lời gọi nội bộ không đi qua proxy
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-005
+    title: Ảnh hưởng của phương thức riêng, phương thức tĩnh và thành phần không thể ghi đè
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-006
+    title: Đối tượng được tạo ngoài cơ chế quản lý proxy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-007
+    title: Chuỗi interceptor và cơ chế gọi tiếp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-008
+    title: Khác biệt về phạm vi can thiệp giữa proxy và biến đổi mã
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-based-aop-009
+    title: Chẩn đoán tình huống lời gọi không kích hoạt advice
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-lifecycle
+  title: Vòng đời aspect
+  childs:
+  - slug: aspect-lifecycle-001
+    title: Aspect dùng chung và aspect được tạo theo ngữ cảnh
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-lifecycle-002
+    title: Vòng đời gắn với từng đối tượng khi công cụ hỗ trợ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-lifecycle-003
+    title: Vòng đời gắn với luồng điều khiển khi công cụ hỗ trợ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-lifecycle-004
+    title: Thời điểm tạo, khởi tạo và giải phóng aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-lifecycle-005
+    title: Chọn aspect không trạng thái hoặc có trạng thái
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-lifecycle-006
+    title: Quan hệ giữa vòng đời aspect và đối tượng được can thiệp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-lifecycle-007
+    title: Lưu trạng thái theo lời gọi thay vì trạng thái dùng chung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-lifecycle-008
+    title: Nguy cơ rò rỉ bộ nhớ và giữ đối tượng ngoài ý muốn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-aspect-coordination
+  title: Phối hợp nhiều aspect
+  childs:
+  - slug: multi-aspect-coordination-001
+    title: Một join point đồng thời phù hợp với nhiều aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-002
+    title: Thứ tự ưu tiên và quy tắc phân xử khi có xung đột
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-003
+    title: Chuỗi advice bao quanh và thứ tự tháo lớp khi trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-004
+    title: Quan hệ thứ tự giữa advice trước, sau và khi có lỗi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-005
+    title: Phụ thuộc ngữ nghĩa giữa bảo mật, giao dịch và ghi nhật ký
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-006
+    title: Thiết kế thứ tự tường minh thay vì dựa vào chi tiết triển khai
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-007
+    title: Ngăn quan hệ phụ thuộc vòng giữa các aspect
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-008
+    title: Tách aspect độc lập khỏi aspect phải phối hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-aspect-coordination-009
+    title: Kiểm thử hành vi tổng thể thay vì chỉ từng advice
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-exception-contracts
+  title: Ngoại lệ và hợp đồng
+  childs:
+  - slug: aspect-exception-contracts-001
+    title: Điều kiện trước, điều kiện sau và bất biến của chương trình
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-002
+    title: Bảo toàn kiểu trả về và ý nghĩa giá trị trả về
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-003
+    title: Giữ nguyên hoặc chuyển đổi ngoại lệ có chủ đích
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-004
+    title: Rủi ro nuốt lỗi và che khuất nguyên nhân gốc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-005
+    title: Dọn dẹp tài nguyên khi advice hoặc mã gốc thất bại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-006
+    title: Tác dụng phụ và tính nguyên tử của thao tác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-007
+    title: Khả năng thay thế của đối tượng sau khi áp dụng aspect
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-008
+    title: Quy định hành vi khi chức năng cắt ngang không khả dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-exception-contracts-009
+    title: Ghi nhận hợp đồng của aspect cho bên sử dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-concurrency
+  title: Trạng thái và đồng thời
+  childs:
+  - slug: aspect-concurrency-001
+    title: Aspect dùng chung với nhiều lời gọi đồng thời
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-002
+    title: Biến khả biến, tranh chấp dữ liệu và tính nhìn thấy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-003
+    title: Tách dữ liệu cấu hình bất biến khỏi trạng thái mỗi lần gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-004
+    title: Trạng thái theo luồng và giới hạn với nhóm luồng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-005
+    title: Dọn dữ liệu ngữ cảnh để tránh rò rỉ giữa các yêu cầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-006
+    title: Truyền ngữ cảnh qua tác vụ bất đồng bộ có kiểm soát
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-007
+    title: Khóa trong advice và nguy cơ deadlock hoặc tăng tranh chấp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-008
+    title: Tái nhập, lời gọi lồng nhau và aspect tự can thiệp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-concurrency-009
+    title: Thiết kế aspect an toàn khi chạy song song
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-control-flow
+  title: Luồng điều khiển nâng cao
+  childs:
+  - slug: advanced-control-flow-001
+    title: Pointcut theo luồng điều khiển và phạm vi lời gọi động
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-002
+    title: Phân biệt điểm khởi đầu với các điểm nằm bên dưới luồng gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-003
+    title: Giới hạn hành vi theo chuỗi lời gọi thay vì vị trí mã đơn lẻ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-004
+    title: Loại trừ mã của chính aspect để tránh đệ quy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-005
+    title: Ràng buộc dữ liệu giữa các điểm trong cùng ngữ cảnh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-006
+    title: Lời gọi đệ quy và ý nghĩa của độ sâu can thiệp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-007
+    title: Luồng bất đồng bộ, callback và giới hạn suy diễn quan hệ gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-008
+    title: Chi phí theo dõi ngữ cảnh động và phương án đơn giản hơn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-control-flow-009
+    title: Thiết kế ví dụ để kiểm chứng chính xác phạm vi điều khiển
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structural-crosscutting
+  title: Thay đổi cấu trúc
+  childs:
+  - slug: structural-crosscutting-001
+    title: Phân biệt cắt ngang hành vi với cắt ngang cấu trúc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-002
+    title: Bổ sung phương thức, thuộc tính hoặc giao diện khi công cụ hỗ trợ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-003
+    title: Khai báo liên kiểu (inter-type declaration) trong mô hình AOP phù hợp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-004
+    title: Giới hạn truy cập và xung đột tên khi bổ sung thành phần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-005
+    title: Thay đổi quan hệ kiểu và ảnh hưởng tới mã sử dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-006
+    title: Quan hệ giữa mở rộng cấu trúc, mixin và kế thừa
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-007
+    title: Cảnh báo hoặc lỗi ở bước xây dựng để kiểm tra quy tắc kiến trúc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-008
+    title: Tương thích mã nguồn, tương thích nhị phân và chi phí bảo trì
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structural-crosscutting-009
+    title: Khi nào nên sửa thiết kế kiểu trực tiếp thay vì mở rộng bằng aspect
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-abstraction-reuse
+  title: Trừu tượng và tái sử dụng
+  childs:
+  - slug: aspect-abstraction-reuse-001
+    title: Aspect trừu tượng và phần hành vi dùng chung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-002
+    title: Pointcut trừu tượng làm điểm tùy biến phạm vi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-003
+    title: Kế thừa aspect khi mô hình ngôn ngữ cho phép
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-004
+    title: Tham số hóa chính sách thay vì chép lại advice
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-005
+    title: Tách cơ chế can thiệp khỏi dịch vụ xử lý dùng chung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-006
+    title: Thiết kế giao diện cấu hình rõ ràng cho aspect
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-007
+    title: Giới hạn phụ thuộc vào tên gói và chữ ký nội bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-008
+    title: Đóng gói aspect theo một mối quan tâm có trách nhiệm rõ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-abstraction-reuse-009
+    title: Đánh giá mức tái sử dụng so với độ phức tạp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotation-metadata
+  title: Annotation và siêu dữ liệu
+  childs:
+  - slug: annotation-metadata-001
+    title: Dùng annotation để thể hiện ý định áp dụng hành vi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-002
+    title: Annotation là siêu dữ liệu, không tự tạo cơ chế AOP
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-003
+    title: Đánh dấu ở cấp kiểu, phương thức hoặc tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-004
+    title: Phạm vi lưu giữ và khả năng đọc siêu dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-005
+    title: Kế thừa annotation và khác biệt giữa khai báo với thực thi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-006
+    title: Đọc giá trị cấu hình từ annotation trong advice
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-007
+    title: Kết hợp marker tường minh với giới hạn phạm vi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-008
+    title: Kiểm tra annotation thiếu, mâu thuẫn hoặc đặt sai chỗ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotation-metadata-009
+    title: Đánh đổi giữa cấu hình bên ngoài và đánh dấu trong mã
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-boundaries
+  title: Ranh giới bất đồng bộ
+  childs:
+  - slug: async-boundaries-001
+    title: Thời điểm trả kết quả đại diện so với thời điểm công việc hoàn tất
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-002
+    title: Đo thời gian phần tạo tác vụ và thời gian hoàn thành tác vụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-003
+    title: Ngoại lệ phát sinh đồng bộ so với lỗi trong callback
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-004
+    title: Giữ và khôi phục ngữ cảnh quan sát trong xử lý bất đồng bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-005
+    title: Không giữ tài nguyên theo lời gọi ngắn cho công việc kéo dài
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-006
+    title: Can thiệp vào luồng sự kiện và nguy cơ phá vỡ áp lực ngược
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-007
+    title: Hủy tác vụ, thời gian chờ và thực hiện dọn dẹp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-008
+    title: Xác định rõ điểm kết thúc hành vi được advice bao quanh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-boundaries-009
+    title: Khi nào nên dùng cơ chế chuyên biệt của mô hình bất đồng bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: program-observability
+  title: Quan sát chương trình
+  childs:
+  - slug: program-observability-001
+    title: Ghi nhật ký tại ranh giới nghiệp vụ thay vì mọi phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-002
+    title: Tạo mã tương quan và gắn ngữ cảnh theo lời gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-003
+    title: Đo số lần gọi, thời gian và tỷ lệ lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-004
+    title: Phân biệt số liệu kỹ thuật với sự kiện nghiệp vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-005
+    title: Che dữ liệu nhạy cảm và giới hạn kích thước tham số
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-006
+    title: Lấy mẫu, giới hạn tần suất và giảm khối lượng đầu ra
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-007
+    title: Không để lỗi ghi nhật ký làm thay đổi kết quả ngoài chính sách
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-008
+    title: Tránh đo trùng khi có nhiều lớp aspect hoặc công cụ quan sát
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: program-observability-009
+    title: Kiểm tra chi phí quan sát trong điều kiện tải thực tế
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-policies
+  title: Chính sách thực thi
+  childs:
+  - slug: execution-policies-001
+    title: Đặt ranh giới giao dịch bằng advice theo khả năng nền tảng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-002
+    title: Thứ tự giữa giao dịch, thử lại và ghi nhận kết quả
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-003
+    title: Thử lại và yêu cầu tính lặp an toàn của thao tác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-004
+    title: Bộ nhớ đệm và điều kiện lời gọi có thể bỏ qua thực thi gốc
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-005
+    title: Thiết kế khóa bộ nhớ đệm theo đúng ngữ cảnh và dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-006
+    title: Giới hạn thời gian và giới hạn khả năng dừng tác vụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-007
+    title: Giới hạn tốc độ hoặc số lời gọi đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-008
+    title: Không dùng aspect để che giấu thiếu sót trong hợp đồng nghiệp vụ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-policies-009
+    title: Đánh giá ảnh hưởng của mỗi chính sách tới lỗi và tác dụng phụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control
+  title: Kiểm soát truy cập
+  childs:
+  - slug: access-control-001
+    title: Đặt kiểm tra quyền tại ranh giới thao tác có ý nghĩa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-002
+    title: Liên kết danh tính và ngữ cảnh quyền với lời gọi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-003
+    title: Phân biệt kiểm tra quyền tổng quát và quyền trên từng đối tượng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-004
+    title: Không suy diễn quyền chỉ từ tên phương thức hoặc kiểu tham số
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-005
+    title: Thứ tự kiểm tra quyền so với giao dịch và bộ nhớ đệm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-006
+    title: Nguy cơ đường gọi không đi qua cơ chế can thiệp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-007
+    title: Ghi nhận từ chối truy cập mà không làm lộ dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-008
+    title: Ngăn aspect bảo mật bị vô hiệu hóa ngoài ý muốn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-009
+    title: Kiểm thử nhiều đường vào thay vì chỉ luồng sử dụng thông thường
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-architecture-design
+  title: Thiết kế kiến trúc
+  childs:
+  - slug: aspect-architecture-design-001
+    title: Chọn mối quan tâm đủ ổn định để tách thành aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-002
+    title: Xác định nơi áp dụng và nơi tuyệt đối không được can thiệp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-003
+    title: Nguyên tắc trách nhiệm đơn và độ kết dính của aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-004
+    title: Phụ thuộc ẩn giữa mã nghiệp vụ với cấu hình pointcut
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-005
+    title: Pointcut mong manh khi đổi tên, di chuyển hoặc nạp chồng phương thức
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-006
+    title: Biên giới mô-đun và khả năng hiểu hành vi từ mã nguồn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-007
+    title: So sánh với decorator, middleware, interceptor và instrumentation
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-008
+    title: Giữ quy tắc nghiệp vụ cốt lõi tường minh khi cần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-architecture-design-009
+    title: Tài liệu hóa phạm vi, hợp đồng và các quyết định về thứ tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspectj-in-practice
+  title: Minh họa với AspectJ
+  childs:
+  - slug: aspectj-in-practice-001
+    title: AspectJ như một ví dụ cụ thể của mô hình AOP có weaving
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-002
+    title: Aspect bằng cú pháp chuyên biệt và bằng annotation
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-003
+    title: Biểu thức execution, call và within trong pointcut
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-004
+    title: Biểu thức this, target, args và pointcut theo annotation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-005
+    title: Pointcut cflow và cflowbelow để minh họa luồng điều khiển
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-006
+    title: Advice before, after, around và lời gọi proceed
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-007
+    title: Khai báo ưu tiên, aspect trừu tượng và mô hình tạo aspect
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-008
+    title: Mô hình singleton, perthis, pertarget và percflow trong vòng đời aspect
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-009
+    title: Khai báo liên kiểu và kiểm tra quy tắc ở bước xây dựng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-010
+    title: Cấu hình phạm vi dệt và đọc thông báo của bộ dệt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspectj-in-practice-011
+    title: Phân biệt đặc tính riêng của AspectJ với khái niệm AOP tổng quát
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-testing
+  title: Kiểm thử aspect
+  childs:
+  - slug: aspect-testing-001
+    title: Kiểm thử phần xử lý của advice độc lập với bộ dệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-002
+    title: Kiểm thử pointcut khớp đúng trường hợp mong muốn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-003
+    title: Kiểm thử âm để phát hiện can thiệp ngoài phạm vi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-004
+    title: Kiểm thử kiểu trả về, ngoại lệ và giá trị null
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-005
+    title: Kiểm thử thứ tự nhiều aspect và lời gọi lồng nhau
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-006
+    title: Kiểm thử lời gọi nội bộ, đường gọi trực tiếp và mã không được dệt
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-007
+    title: Kiểm thử trạng thái dùng chung trong điều kiện đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-008
+    title: Kiểm thử tác vụ bất đồng bộ và ngữ cảnh được truyền
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-009
+    title: Kiểm thử hồi quy khi cấu trúc mã thay đổi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-testing-010
+    title: So sánh hành vi khi bật và tắt một aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aop-debugging-diagnostics
+  title: Gỡ lỗi và chẩn đoán
+  childs:
+  - slug: aop-debugging-diagnostics-001
+    title: Xác nhận aspect đã được cấu hình và nạp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-002
+    title: Kiểm tra mã hoặc mô-đun có nằm trong phạm vi dệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-003
+    title: Đọc thông báo điểm đã được dệt và điểm không phù hợp
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-004
+    title: Đối chiếu chữ ký thực tế với biểu thức pointcut
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-005
+    title: Phân biệt lỗi không khớp pointcut với lời gọi không qua proxy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-006
+    title: Đọc ngăn xếp lời gọi có advice và mã được sinh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-007
+    title: Đặt điểm dừng trong advice, mã gốc và cơ chế gọi tiếp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-008
+    title: Chẩn đoán đệ quy, advice chạy nhiều lần hoặc sai thứ tự
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-debugging-diagnostics-009
+    title: Tạo tình huống tái hiện tối thiểu cho lỗi tương tác aspect
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-performance-resources
+  title: Hiệu năng và tài nguyên
+  childs:
+  - slug: aspect-performance-resources-001
+    title: Chi phí khớp pointcut ở thời điểm dệt và thời điểm chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-002
+    title: Chi phí chuyển qua advice, proxy và chuỗi interceptor
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-003
+    title: Phản chiếu, đóng gói dữ liệu ngữ cảnh và cấp phát bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-004
+    title: Ảnh hưởng của ghi nhật ký và tuần tự hóa tham số
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-005
+    title: Chi phí pointcut động và theo dõi luồng điều khiển
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-006
+    title: Ảnh hưởng tới tối ưu hóa, khởi động và nạp mã
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-007
+    title: Thiết kế đo đạc có đường cơ sở và điều kiện tải đại diện
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-008
+    title: Tối ưu phạm vi can thiệp trước khi tối ưu vi mô
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-performance-resources-009
+    title: Kiểm tra rò rỉ bộ nhớ, khóa và tài nguyên giữ quá lâu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-integration-deployment
+  title: Tích hợp và triển khai
+  childs:
+  - slug: aspect-integration-deployment-001
+    title: Khai báo công cụ biên dịch hoặc bộ dệt trong quy trình xây dựng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-002
+    title: Tách mã aspect, cấu hình và thư viện dùng chung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-003
+    title: Đóng gói và kiểm tra tạo tác đã dệt
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-004
+    title: Quản lý phiên bản công cụ, định dạng mã và thư viện phụ thuộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-005
+    title: Triển khai dệt khi nạp trong môi trường có nhiều bộ nạp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-006
+    title: Loại trừ mã sinh, thư viện ngoài và công cụ quan sát khi cần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-007
+    title: Kiểm tra tương thích với kiểm thử, đo độ bao phủ và gỡ lỗi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-008
+    title: Tạo bản dựng lặp lại và phát hiện thay đổi kết quả weaving
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-integration-deployment-009
+    title: Bật theo giai đoạn, giám sát và chuẩn bị phương án quay lui
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aop-pitfalls
+  title: Sai lầm thường gặp
+  childs:
+  - slug: aop-pitfalls-001
+    title: Dùng aspect cho mọi đoạn mã trùng mà không xét ý nghĩa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-pitfalls-002
+    title: Pointcut quá rộng hoặc phụ thuộc chi tiết dễ thay đổi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-pitfalls-003
+    title: Advice làm thay đổi kết quả hoặc nuốt lỗi ngoài dự kiến
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-pitfalls-004
+    title: Gọi proceed sai số lần hoặc sai thời điểm
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-pitfalls-005
+    title: Lưu trạng thái yêu cầu trong aspect dùng chung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-pitfalls-006
+    title: Không xác định thứ tự cho các aspect có phụ thuộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aop-pitfalls-007
+    title: Bổ sung quá nhiều hành vi ẩn khiến chương trình khó hiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aspect-capstone-exercises
+  title: Bài tập tổng hợp
+  childs:
+  - slug: aspect-capstone-exercises-001
+    title: Nhận diện scattering và tangling trong chương trình mẫu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-002
+    title: Thiết kế aspect ghi nhật ký với phạm vi chọn và loại trừ rõ ràng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-003
+    title: Đo thời gian và bảo toàn kết quả, ngoại lệ của lời gọi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-004
+    title: Thực nghiệm khác biệt giữa điểm gọi và điểm thực thi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-005
+    title: So sánh lời gọi qua proxy với cơ chế biến đổi mã
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-006
+    title: Thiết kế hai aspect có thứ tự và kiểm chứng chuỗi thực thi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-007
+    title: Xây dựng aspect có ngữ cảnh riêng cho lời gọi đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-008
+    title: Minh họa pointcut theo luồng điều khiển hoặc mở rộng cấu trúc kiểu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-009
+    title: Thử thay đổi cấu trúc mã để phát hiện pointcut mong manh
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aspect-capstone-exercises-010
+    title: Đo chi phí, kiểm thử hồi quy và giải thích khi nên bỏ AOP
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

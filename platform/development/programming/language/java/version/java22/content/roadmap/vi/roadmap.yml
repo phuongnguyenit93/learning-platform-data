@@ -1,0 +1,29 @@
+roadmap:
+- id: bien-va-mau-khong-dat-ten
+  title: Biến và mẫu không đặt tên
+  purpose: Dùng _ để thể hiện rõ giá trị hoặc thành phần dữ liệu được chủ động bỏ qua.
+  objectives:
+  - Dùng _ cho biến không cần đọc trong vòng lặp hoặc catch.
+  - Dùng mẫu _ khi phân rã record.
+  - Giải thích vì sao không thể đọc lại giá trị qua tên _.
+- id: chay-nhieu-tep-nguon
+  title: Chạy nhiều tệp nguồn
+  purpose: Chạy thử chương trình gồm nhiều tệp nguồn trực tiếp để rút gọn vòng lặp học và thử nghiệm.
+  objectives:
+  - Chạy tệp khởi đầu bằng java Main.java.
+  - Tổ chức package và tệp nguồn phụ thuộc để trình chạy tìm được.
+  - Phân biệt chạy mã nguồn với biên dịch và đóng gói dự án.
+- id: bo-nho-ngoai-heap-voi-ffm
+  title: Bộ nhớ ngoài heap với FFM
+  purpose: Làm việc với bộ nhớ ngoài heap bằng API chuẩn có kiểm tra phạm vi và vòng đời.
+  objectives:
+  - Cấp phát MemorySegment qua Arena.
+  - Đọc, ghi theo ValueLayout và đóng Arena đúng lúc.
+  - Kiểm chứng lỗi khi vượt giới hạn hoặc truy cập sau khi đóng.
+- id: goi-ham-native-voi-ffm
+  title: Gọi hàm native với FFM
+  purpose: Kết nối Java với thư viện mã gốc (native) bằng Foreign Function & Memory API.
+  objectives:
+  - Tìm hàm bằng SymbolLookup và tạo lời gọi qua Linker.
+  - Khai báo FunctionDescriptor khớp chữ ký hàm native.
+  - Kiểm soát vòng đời bộ nhớ và phạm vi quyền truy cập native.

@@ -1,0 +1,437 @@
+menu:
+- level1: Tổng quan Spring Session
+  level2:
+  - Phiên làm việc (session) là gì và vì sao HTTP cần cơ chế giữ trạng thái
+  - Phân biệt phiên, người dùng, trạng thái đăng nhập và kết nối mạng
+  - Cookie chứa định danh phiên và dữ liệu phiên lưu ở phía máy chủ
+  - Giới hạn của phiên trong bộ nhớ khi ứng dụng có nhiều bản chạy
+  - Spring Session giải quyết bài toán lưu phiên độc lập với bộ chứa ứng dụng
+  - Mối liên hệ giữa Session, repository, HttpSession và WebSession
+  - Phiên phân tán, định tuyến bám phiên (sticky session) và nhân bản của container
+  - Spring Session, Spring Security và token JWT có trách nhiệm khác nhau
+  - Lộ trình từ một phiên cục bộ đến quản lý phiên trên nhiều nút
+- level1: Dữ liệu phiên
+  level2:
+  - Định danh phiên, thời điểm tạo, lần truy cập cuối và khoảng không hoạt động
+  - Thuộc tính phiên và cách mô hình hóa trạng thái của người dùng
+  - Phiên ẩn danh, phiên đã xác thực và chuyển đổi trạng thái đăng nhập
+  - Giá trị phù hợp để lưu trong phiên và dữ liệu nên thuộc cơ sở dữ liệu nghiệp vụ
+  - Định danh tham chiếu, dữ liệu dẫn xuất và tránh sao chép quá nhiều dữ liệu
+  - Giới hạn kích thước thuộc tính, số thuộc tính và tổng dung lượng phiên
+  - Đối tượng khả biến và thay đổi dữ liệu bên trong thuộc tính
+  - Danh tính người dùng, principal và chỉ mục tìm phiên
+  - Dữ liệu nhạy cảm, thời gian giữ lại và trách nhiệm thu hồi
+  - Phiên hết hạn, phiên bị xóa và phiên không còn tồn tại
+- level1: API và repository
+  level2:
+  - Session và các thao tác quản lý định danh, thuộc tính, thời gian sống
+  - SessionRepository và hợp đồng tạo, đọc, lưu, xóa phiên
+  - Tạo đối tượng phiên khác với lưu phiên vào kho
+  - MapSession và mô hình phiên không phụ thuộc kho lưu trữ
+  - MapSessionRepository và giới hạn của repository trong bộ nhớ
+  - FindByIndexNameSessionRepository và tra cứu phiên qua chỉ mục
+  - ReactiveSessionRepository và hợp đồng bất đồng bộ
+  - ReactiveFindByIndexNameSessionRepository và khả năng tra cứu phản ứng
+  - Repository, lớp tích hợp web và nguồn sinh định danh phiên
+  - 'Ma trận khả năng: thời hạn, sự kiện, chỉ mục và chính sách lưu của từng repository'
+- level1: Khởi tạo và cấu hình
+  level2:
+  - Chọn phiên bản JDK, Spring Boot, Spring Session và thư viện kho tương thích
+  - Phụ thuộc cho Servlet, WebFlux, Redis, JDBC và kiểm thử
+  - Cấu hình tự động của Spring Boot và điều kiện kích hoạt
+  - Lựa chọn kho khi có nhiều thành phần lưu phiên trên classpath
+  - Cấu hình tường minh bằng @Enable*HttpSession hoặc @Enable*WebSession
+  - Khi cấu hình thủ công khiến cấu hình tự động ngừng áp dụng
+  - Thuộc tính timeout, repository và kết nối theo phiên bản Spring Boot
+  - Tách cấu hình môi trường và quản lý bí mật truy cập kho
+  - SessionRepositoryCustomizer và tùy chỉnh repository được tạo sẵn
+  - Kiểm tra các bean thực tế và xác nhận phiên được lưu đúng nơi
+- level1: Tích hợp Servlet
+  level2:
+  - SessionRepositoryFilter và thay thế HttpSession qua request wrapper
+  - Bean springSessionRepositoryFilter và cách đăng ký vào chuỗi filter
+  - Thứ tự filter trước Spring Security và các thành phần sử dụng phiên
+  - DelegatingFilterProxy và ứng dụng không dùng Spring Boot
+  - AbstractHttpSessionApplicationInitializer và khởi tạo ứng dụng Servlet
+  - request.getSession(), getSession(false) và thời điểm tạo phiên
+  - Tải phiên từ định danh được gửi trong yêu cầu
+  - Lưu phiên khi kết thúc xử lý hoặc trước lúc phản hồi được commit
+  - Redirect, ghi phản hồi sớm và lỗi tạo phiên sau khi đã commit
+  - Error dispatch, xử lý bất đồng bộ và phạm vi hỗ trợ theo cấu hình
+  - HttpSessionListener, sự kiện Spring Session và khác biệt giữa các repository
+  - Phân biệt HttpSession của container với phiên do Spring Session quản lý
+- level1: Vòng đời phiên
+  level2:
+  - Tạo phiên mới, sử dụng phiên hiện có và các điều kiện bắt đầu phiên
+  - Cập nhật lần truy cập cuối và thời gian không hoạt động
+  - maxInactiveInterval, thời hạn mặc định và tùy chỉnh cho từng phiên
+  - Phân biệt idle timeout với giới hạn tuổi thọ tuyệt đối
+  - Thời hạn cookie, thời hạn logic của phiên và TTL của kho lưu trữ
+  - Đổi định danh bằng changeSessionId và quan hệ với dữ liệu đang lưu
+  - invalidate, deleteById và tác động đến yêu cầu tiếp theo
+  - Định danh không hợp lệ, phiên không tìm thấy và cookie cũ
+  - Yêu cầu đang chạy khi phiên bị hết hạn hoặc bị thu hồi
+  - Sự kiện tạo, xóa, hết hạn và phá hủy phiên
+  - Thu dọn dữ liệu liên quan khi sự kiện đến muộn hoặc không được hỗ trợ
+  - Thiết kế trạng thái phiên để việc kết thúc có thể xử lý lặp an toàn
+- level1: Cookie phiên
+  level2:
+  - CookieHttpSessionIdResolver và nhận, gửi định danh phiên bằng cookie
+  - CookieSerializer, DefaultCookieSerializer và phạm vi cấu hình Servlet
+  - Tên cookie SESSION, JSESSIONID và tương tác với phiên container
+  - Path, Domain, host-only và phạm vi trình duyệt gửi cookie
+  - Secure, HttpOnly và giới hạn bảo vệ của từng thuộc tính
+  - SameSite, yêu cầu khác site và yêu cầu dùng SameSite=None
+  - Cookie tồn tại theo phiên trình duyệt và cookie có Max-Age
+  - Mã hóa biểu diễn định danh trong cookie và sự khác nhau với mã hóa bảo mật
+  - Reverse proxy, thông tin HTTPS và nguồn header được tin cậy
+  - domainNamePattern và giới hạn ký tự khi suy ra miền cookie
+  - Xóa cookie đúng tên, miền, đường dẫn và kiểm tra cookie trùng
+  - Tùy chỉnh cookie của WebFlux qua WebSessionIdResolver riêng
+- level1: Định danh qua header
+  level2:
+  - HttpSessionIdResolver và tách cơ chế truyền định danh khỏi kho lưu
+  - HeaderHttpSessionIdResolver và trao đổi định danh phiên qua HTTP header
+  - Phát định danh mới, đọc định danh và thông báo phiên đã kết thúc
+  - Thiết kế client giữ, gửi và xóa định danh qua vòng đời đăng nhập
+  - Định danh phiên và quyền truy cập của bên nắm giữ định danh
+  - Header phiên khác với token JWT hoặc OAuth access token
+  - CORS, header được phép gửi và header phản hồi cần được công bố
+  - Cookie, header và thứ tự lựa chọn khi một yêu cầu có nhiều định danh
+  - Tránh đưa định danh vào URL, nhật ký hoặc dữ liệu có thể bị chia sẻ
+- level1: Redis cơ bản
+  level2:
+  - Spring Session Data Redis và đường đi từ yêu cầu đến dữ liệu trong Redis
+  - RedisConnectionFactory, kết nối và cấu hình xác thực, TLS
+  - RedisSessionRepository và tra cứu phiên theo định danh
+  - '@EnableRedisHttpSession và cấu hình tương đương trong Spring Boot'
+  - Namespace và cách tách khóa phiên giữa các ứng dụng, môi trường
+  - Metadata, thuộc tính và cách tổ chức dữ liệu phiên ở mức khái niệm
+  - Tạo, đọc, lưu, xóa và thay đổi định danh trên Redis
+  - Khoảng không hoạt động, TTL và đọc phiên đã hết hạn
+  - Giới hạn về chỉ mục và sự kiện của repository cơ bản
+  - Quan sát dữ liệu bằng công cụ Redis mà không làm lộ định danh, thuộc tính
+  - Phân biệt cấu hình kết nối Redis với cấu hình quản lý phiên
+- level1: Redis có chỉ mục
+  level2:
+  - RedisIndexedSessionRepository và nhu cầu tra cứu phiên theo principal
+  - '@EnableRedisIndexedHttpSession và lựa chọn repository theo phiên bản'
+  - FindByIndexNameSessionRepository và tên chỉ mục principal
+  - Nguồn lấy tên principal và yêu cầu nhất quán với cơ chế xác thực
+  - Tra cứu toàn bộ phiên của một người dùng
+  - Tạo, cập nhật, xóa chỉ mục khi phiên hoặc danh tính thay đổi
+  - SessionCreatedEvent, SessionDeletedEvent và SessionExpiredEvent
+  - RedisMessageListenerContainer và nhận thông báo liên quan đến phiên
+  - Keyspace notifications và cấu hình quyền trên Redis được quản lý
+  - Khác biệt giữa truy vấn phiên với danh sách tất cả người dùng
+  - Redis Cluster, phạm vi nhận sự kiện và nguy cơ chỉ mục không được dọn
+  - Chọn repository cơ bản hay có chỉ mục theo khả năng thực sự cần
+- level1: Hết hạn trên Redis
+  level2:
+  - Thời điểm phiên không còn hợp lệ và thời điểm khóa Redis được xóa
+  - Dữ liệu phiên, dữ liệu theo dõi hết hạn và các khóa phụ trợ
+  - TTL, tác vụ dọn dẹp và sự kiện hết hạn không đến đúng một thời điểm cố định
+  - Cấu hình dọn phiên và phạm vi ảnh hưởng của lịch chạy
+  - Gia hạn phiên đồng thời với tác vụ kiểm tra hết hạn
+  - Khóa bị xóa thủ công, khóa bị eviction và phiên hết hạn tự nhiên
+  - Giới hạn giao nhận của Redis Pub/Sub và thông báo keyspace
+  - Lắng nghe SessionDestroyedEvent và thu hồi tài nguyên bên ngoài
+  - Khôi phục sau mất kết nối listener hoặc thay đổi nút Redis
+  - Kiểm tra dữ liệu chỉ mục còn sót và chiến lược đối soát
+  - Kiểm chứng hành vi hết hạn trên đúng repository và phiên bản đang dùng
+- level1: Chính sách ghi
+  level2:
+  - Phân biệt thời điểm lưu với phạm vi dữ liệu được lưu
+  - FlushMode.ON_SAVE và FlushMode.IMMEDIATE trên repository hỗ trợ
+  - SaveMode.ON_SET_ATTRIBUTE, ON_GET_ATTRIBUTE và ALWAYS
+  - Theo dõi thay đổi metadata và thuộc tính phiên
+  - Thay đổi trực tiếp một đối tượng đã lấy ra từ thuộc tính
+  - Khi cần gán lại thuộc tính để thay đổi được ghi nhận
+  - Chỉ đọc phiên vẫn có thể cập nhật thời điểm truy cập hoặc phát sinh ghi
+  - Xóa thuộc tính và đồng bộ thay đổi xuống kho
+  - Ảnh hưởng của save mode đến ghi đè giữa các yêu cầu đồng thời
+  - Lưu tường minh trước khi chuyển công việc cho thành phần khác
+  - Đánh đổi giữa số lần ghi, độ trễ và mức độ nhất quán quan sát được
+- level1: Tuần tự hóa dữ liệu
+  level2:
+  - Chuyển thuộc tính phiên thành dữ liệu lưu trữ và khôi phục lại đối tượng
+  - Java Serialization, JSON và các đánh đổi về kích thước, tương thích
+  - RedisSerializer và bean springSessionDefaultRedisSerializer
+  - Ánh xạ kiểu dữ liệu, thông tin kiểu và giới hạn lớp được phép khôi phục
+  - ObjectMapper và các module dành cho dữ liệu Spring Security theo phiên bản
+  - Lớp không tuần tự hóa được, classloader và lỗi thiếu lớp khi đọc phiên
+  - serialVersionUID và tương thích của dữ liệu Java đã được lưu
+  - Thay đổi cấu trúc đối tượng giữa các phiên bản ứng dụng
+  - Tránh lưu kết nối, request, tài nguyên mở và thực thể phụ thuộc ngữ cảnh
+  - Giới hạn dữ liệu không đáng tin khi giải tuần tự hóa
+  - Kiểm thử đọc phiên được tạo bởi phiên bản ứng dụng cũ
+  - Chiến lược đổi định dạng và xử lý phiên không còn đọc được
+- level1: Lưu phiên bằng JDBC
+  level2:
+  - Spring Session JDBC và nhu cầu dùng cơ sở dữ liệu quan hệ
+  - JdbcIndexedSessionRepository và các thao tác quản lý phiên
+  - '@EnableJdbcHttpSession và cấu hình tự động của Spring Boot'
+  - DataSource, transaction manager và tài nguyên kết nối
+  - Hai bảng SPRING_SESSION, SPRING_SESSION_ATTRIBUTES và quan hệ giữa chúng
+  - PRIMARY_ID, SESSION_ID và ý nghĩa của từng định danh
+  - Chỉ mục thời điểm hết hạn, principal và tra cứu phiên
+  - Dữ liệu thuộc tính dạng nhị phân và chuyển đổi giá trị
+  - Script schema theo hệ quản trị cơ sở dữ liệu
+  - Khởi tạo schema cho môi trường học và quản lý bằng công cụ migration
+  - Lịch xóa phiên hết hạn và chi phí dọn dữ liệu
+  - Quan sát phiên trong bảng mà không công bố thông tin truy cập
+- level1: Tùy chỉnh JDBC
+  level2:
+  - SessionRepositoryCustomizer và thay đổi cấu hình repository
+  - Đổi tên bảng, schema và tên bảng thuộc tính liên quan
+  - SQL tùy chỉnh và khác biệt cú pháp giữa các hệ quản trị
+  - Tranh chấp thêm thuộc tính, duplicate key và truy vấn cập nhật phù hợp
+  - Lưu thuộc tính dưới dạng JSON bằng conversion service và SQL tương ứng
+  - DataSource riêng cho phiên và @SpringSessionDataSource
+  - Chọn transaction manager với @SpringSessionTransactionManager
+  - TransactionOperations và ranh giới giao dịch lưu phiên
+  - Quan hệ giữa rollback nghiệp vụ với giao dịch lưu phiên độc lập
+  - Tùy chỉnh tác vụ cleanup và phối hợp khi có nhiều bản chạy ứng dụng
+- level1: Kho lưu trữ mở rộng
+  level2:
+  - Phân biệt module lõi, tích hợp đi kèm và phần mở rộng do nhóm khác duy trì
+  - Hazelcast và lưu phiên trên bản đồ dữ liệu phân tán
+  - Kho Hazelcast nhúng, client-server và các yêu cầu triển khai
+  - 'MongoDB và các phần mở rộng: xác minh đơn vị duy trì, phiên bản, khả năng'
+  - Kiểm tra hỗ trợ Servlet, WebFlux, chỉ mục và sự kiện của từng kho
+  - So sánh thời hạn, cơ chế dọn dữ liệu và chính sách ghi
+  - Tuần tự hóa, lớp dữ liệu và tương thích giữa các nút
+  - Cấu hình tự động thay đổi giữa các dòng Spring Boot
+  - Chọn kho theo yêu cầu và bằng chứng thử nghiệm thay vì chỉ đổi dependency
+- level1: Tích hợp WebFlux
+  level2:
+  - WebSession và khác biệt với HttpSession của Servlet
+  - WebSessionManager, WebSessionStore và các điểm tích hợp
+  - SpringSessionWebSessionStore và ReactiveSessionRepository
+  - Bean webSessionManager và cấu hình thay thế kho phiên
+  - ServerWebExchange.getSession và chuỗi xử lý phản ứng
+  - Tạo phiên, trạng thái started và thời điểm phát hành định danh
+  - Thuộc tính, thời gian truy cập, đổi định danh và invalidate
+  - Lưu phiên trước khi phản hồi được commit
+  - WebSessionIdResolver và tùy chỉnh cookie hoặc header
+  - Không chặn luồng xử lý sự kiện bằng repository đồng bộ
+  - Xử lý lỗi, hủy chuỗi phản ứng và giới hạn của việc lưu phiên
+  - Phân biệt cấu hình WebFlux với SessionRepositoryFilter của Servlet
+- level1: Redis phản ứng
+  level2:
+  - ReactiveRedisSessionRepository và lưu phiên qua API Redis phản ứng
+  - '@EnableRedisWebSession và cấu hình kết nối Lettuce phù hợp'
+  - ReactiveRedisConnectionFactory, ReactiveRedisOperations và serializer
+  - Tạo, đọc, lưu, xóa phiên trong chuỗi Mono
+  - ReactiveRedisIndexedSessionRepository và khả năng hỗ trợ theo phiên bản
+  - ReactiveFindByIndexNameSessionRepository và tra cứu theo principal
+  - Namespace, TTL, dữ liệu thay đổi và thời điểm ghi của repository
+  - Thông báo hết hạn, chỉ mục và sự kiện của triển khai phản ứng
+  - Tùy chỉnh repository mà không chuyển sang thao tác chặn
+  - Kiểm tra kết quả lưu thực tế trước khi một yêu cầu khác đọc phiên
+- level1: Tích hợp Spring Security
+  level2:
+  - Phiên lưu trạng thái và cơ chế xác thực có những trách nhiệm riêng
+  - Thứ tự tích hợp Spring Session với chuỗi filter bảo mật
+  - SecurityContext và lưu danh tính xác thực trong HttpSession
+  - Khôi phục và lưu SecurityContext theo phiên bản, cấu hình Spring Security
+  - SessionCreationPolicy và các đường đi có thể tạo phiên
+  - Chống session fixation bằng đổi định danh sau xác thực
+  - Request cache, CSRF token và các thuộc tính phiên do bảo mật tạo ra
+  - Kiểm tra quyền dựa trên Authentication thay vì thuộc tính do client cung cấp
+  - WebFlux, SecurityContextRepository và trạng thái xác thực trong WebSession
+  - Ứng dụng stateless và kiểm chứng không phát sinh phiên ngoài dự kiến
+  - Thay đổi quyền, khóa tài khoản và nhu cầu thu hồi phiên đã tồn tại
+  - Kiểm thử đăng nhập, truy cập được bảo vệ và đăng xuất trên nhiều nút
+- level1: Nhiều phiên đăng nhập
+  level2:
+  - Phiên theo người dùng, theo trình duyệt và theo thiết bị
+  - FindByIndexNameSessionRepository và điều kiện có chỉ mục principal
+  - SpringSessionBackedSessionRegistry và kiểm soát phiên trong cụm
+  - Cấu hình maximumSessions và chính sách từ chối hoặc hết hạn phiên cũ
+  - Tên principal trong chỉ mục phải khớp với danh tính dùng để tra cứu
+  - Giới hạn getAllPrincipals và tránh suy diễn khả năng liệt kê người dùng
+  - Phiên hoạt động, phiên bị đánh dấu hết hạn và phiên đã xóa khỏi kho
+  - Đăng nhập đồng thời và giới hạn bảo đảm khi nhiều nút cùng xử lý
+  - Tra cứu, hiển thị và thu hồi một phiên cụ thể của người dùng
+  - SpringSessionBackedReactiveSessionRegistry và khả năng theo phiên bản
+  - Bảo vệ chức năng quản lý phiên và hạn chế công bố thông tin thiết bị
+- level1: Ghi nhớ và đăng xuất
+  level2:
+  - Cookie tồn tại lâu, phiên tồn tại lâu và đăng nhập ghi nhớ là các cơ chế khác nhau
+  - SpringSessionRememberMeServices và điều chỉnh vòng đời phiên
+  - Phối hợp remember-me với DefaultCookieSerializer được tùy chỉnh
+  - Khoảng không hoạt động, gia hạn phiên và tuổi thọ tuyệt đối của đăng nhập
+  - Đăng xuất phiên hiện tại và thu hồi mọi phiên của một người dùng
+  - invalidate, xóa dữ liệu kho và xóa cookie hoặc định danh header
+  - Đăng xuất đồng thời với các yêu cầu đang thực hiện
+  - Đăng xuất cục bộ khác với đăng xuất tại nhà cung cấp danh tính
+  - Phiên bị xóa, cookie còn lại và yêu cầu đăng nhập lại
+  - Đổi mật khẩu, nghi ngờ lộ phiên và chính sách thu hồi theo yêu cầu
+  - Kiểm chứng kết thúc phiên trên các nút và kết nối liên quan
+- level1: Tích hợp WebSocket
+  level2:
+  - Vòng đời HttpSession và kết nối WebSocket không đồng nhất
+  - Phạm vi tích hợp Spring WebSocket, STOMP và giới hạn với API WebSocket khác
+  - AbstractSessionWebSocketMessageBrokerConfigurer và cấu hình tích hợp
+  - HandshakeInterceptor và liên kết phiên với kết nối được mở
+  - SessionRepositoryMessageInterceptor và cập nhật hoạt động khi nhận thông điệp
+  - Thông điệp đến, heartbeat, thông điệp gửi đi và cách xác định không hoạt động
+  - SessionDestroyedEvent và đóng kết nối gắn với phiên đã kết thúc
+  - Một phiên có nhiều WebSocket trên nhiều nút
+  - Phụ thuộc vào repository có sự kiện và độ trễ nhận thông báo
+  - Kiểm thử hết hạn, đăng xuất và mất kết nối kho trong ứng dụng WebSocket
+- level1: Đồng thời và nhất quán
+  level2:
+  - Nhiều yêu cầu cùng đọc một phiên và cập nhật từ các bản trạng thái khác nhau
+  - Ghi đè mất thay đổi khi hai bên cập nhật cùng thuộc tính
+  - Thay đổi thuộc tính khác nhau và ảnh hưởng của chính sách lưu
+  - Đối tượng khả biến và ranh giới theo dõi thay đổi của repository
+  - Đọc, kiểm tra rồi ghi không tự trở thành một giao dịch nguyên tử
+  - Khóa trong một JVM không bảo vệ được mọi nút ứng dụng
+  - Đổi định danh, xóa và gia hạn phiên khi có yêu cầu đồng thời
+  - Tránh dùng phiên làm nguồn duy nhất cho số dư, tồn kho hoặc bất biến nghiệp vụ
+  - Phối hợp qua thao tác nguyên tử hoặc lưu trạng thái tại hệ thống phù hợp
+  - Phiên trên replica, độ trễ sao chép và dữ liệu cũ
+  - Kiểm thử các lịch thực thi gây lỗi thay vì chỉ tăng số luồng
+- level1: Triển khai nhiều nút
+  level2:
+  - Chia sẻ kho phiên giữa các bản chạy ứng dụng
+  - Cân bằng tải, sticky session và khả năng chuyển yêu cầu sang nút khác
+  - Namespace, tên cookie và cấu hình phải thống nhất trong cùng một ứng dụng
+  - Tương thích lớp dữ liệu và serializer trên các nút
+  - Redis Sentinel, Redis Cluster và lựa chọn theo yêu cầu kho
+  - Nhân bản dữ liệu, chuyển đổi dự phòng và giới hạn mất cập nhật
+  - JDBC, nhóm kết nối và tải bổ sung do mọi nút cùng truy cập
+  - Rolling deployment và phiên được tạo bởi hai phiên bản cùng tồn tại
+  - Tắt có trật tự và hoàn tất việc lưu phiên trước khi dừng
+  - TLS sau reverse proxy và nhận biết đúng nguồn yêu cầu an toàn
+  - Thử chuyển nút xử lý để chứng minh phiên không phụ thuộc một JVM
+- level1: An toàn dữ liệu phiên
+  level2:
+  - Định danh phiên là bí mật và phải khó dự đoán
+  - Sinh định danh, nguồn ngẫu nhiên và SessionIdGenerator theo phiên bản
+  - Chống session fixation, đánh cắp phiên và sử dụng lại định danh đã thu hồi
+  - HTTPS, cookie bảo vệ và tránh để lộ qua URL hoặc nhật ký
+  - CSRF, SameSite và giới hạn của việc chỉ dựa vào cookie
+  - Quyền truy cập Redis, cơ sở dữ liệu và phạm vi tài khoản dịch vụ
+  - Cách ly môi trường, namespace và giới hạn tài nguyên lưu phiên
+  - Kiểm soát dữ liệu được giải tuần tự hóa và hạn chế kiểu đối tượng
+  - Tối thiểu hóa dữ liệu cá nhân và thời gian giữ lại
+  - Bảo vệ bản sao lưu, kênh truyền và dữ liệu lưu trên thiết bị
+  - Giới hạn tạo phiên để tránh làm cạn bộ nhớ hoặc dung lượng kho
+  - Thiết kế hành vi an toàn khi không thể đọc hoặc ghi trạng thái xác thực
+- level1: Chia sẻ giữa ứng dụng
+  level2:
+  - Chung kho lưu trữ không tự đồng nghĩa chung phiên hoặc chung đăng nhập
+  - Cookie name, Domain, Path và điều kiện trình duyệt gửi cùng định danh
+  - Namespace, repository và định dạng dữ liệu phải tương thích khi chủ động chia sẻ
+  - Chia sẻ SecurityContext và yêu cầu tương thích kiểu principal
+  - Ranh giới tin cậy khi nhiều ứng dụng có thể đọc, sửa cùng một phiên
+  - Subdomain, site, origin và giới hạn của cơ chế cookie
+  - SSO qua nhà cung cấp danh tính khác với dùng chung kho phiên
+  - Cách ly tenant bằng thiết kế định danh, kho và kiểm tra quyền
+  - Tránh dùng dữ liệu do một ứng dụng ghi làm bằng chứng cấp quyền không kiểm chứng
+  - Lựa chọn tách phiên khi ứng dụng có vòng đời hoặc yêu cầu bảo mật khác nhau
+- level1: Repository tùy chỉnh
+  level2:
+  - Khi nào cần tự xây repository thay vì dùng triển khai sẵn có
+  - Thực hiện hợp đồng SessionRepository và vòng đời đối tượng Session
+  - Phân biệt tạo trong bộ nhớ với lưu vào kho bền vững
+  - Đọc không trả về phiên đã hết hạn và xử lý định danh không tồn tại
+  - Lưu thay đổi, xóa thuộc tính và xóa phiên an toàn khi bị gọi lặp
+  - Đổi định danh và giữ nhất quán dữ liệu, chỉ mục liên quan
+  - Tùy chọn hỗ trợ FindByIndexNameSessionRepository
+  - TTL, dọn dữ liệu và công bố sự kiện theo khả năng được cam kết
+  - ReactiveSessionRepository và tuân thủ chuỗi xử lý không chặn
+  - Bộ kiểm thử hợp đồng cho phiên, thời hạn, đồng thời và lỗi kho
+- level1: Kiểm thử Servlet
+  level2:
+  - Kiểm thử logic nghiệp vụ độc lập với bộ lọc và kho phiên
+  - MockMvc với đầy đủ filter Spring Session cần kiểm chứng
+  - MockHttpSession và lý do không đủ để chứng minh phiên được lưu ngoài JVM
+  - Tạo phiên qua yêu cầu HTTP và gửi lại cookie ở yêu cầu tiếp theo
+  - Kiểm tra thuộc tính, đổi định danh, invalidate và cookie không hợp lệ
+  - Đăng nhập, SecurityContext và thứ tự filter thực tế
+  - Kiểm tra Secure, HttpOnly, SameSite, Path, Domain của Set-Cookie
+  - Kiểm thử HeaderHttpSessionIdResolver và đường đi không dùng cookie
+  - Phản hồi redirect, lỗi, commit sớm và yêu cầu bất đồng bộ
+  - Kiểm tra hành vi khi repository ném lỗi
+  - Cách ly namespace và dữ liệu thử nghiệm giữa các ca kiểm thử
+- level1: Kiểm thử WebFlux
+  level2:
+  - WebTestClient và phạm vi kiểm thử WebSession
+  - Kiểm thử WebSessionStore cùng ReactiveSessionRepository được cấu hình thật
+  - StepVerifier cho tạo, đọc, lưu, xóa phiên
+  - Gửi lại cookie hoặc header từ phản hồi trước
+  - Kiểm tra phiên chỉ được phát hành khi đã bắt đầu
+  - Đổi định danh, invalidate và khôi phục trạng thái ở yêu cầu tiếp theo
+  - Kiểm tra SecurityContext và giới hạn phiên phản ứng theo phiên bản
+  - Đảm bảo không dùng thao tác chặn trong luồng xử lý sự kiện
+  - Lỗi, timeout, hủy chuỗi và tình trạng phiên đã được lưu hay chưa
+  - Kiểm tra mốc thời gian logic và TTL backend theo các cơ chế khác nhau
+- level1: Kiểm thử tích hợp
+  level2:
+  - Dùng Redis và cơ sở dữ liệu thử nghiệm gần với môi trường triển khai
+  - Testcontainers, thông tin kết nối động và vòng đời tài nguyên kiểm thử
+  - Hai bản chạy ứng dụng cùng đọc phiên qua một kho
+  - Tạo phiên ở nút thứ nhất, cập nhật ở nút thứ hai rồi kiểm tra lại
+  - Khởi động lại một nút và kiểm chứng trạng thái phiên còn hay mất
+  - Kiểm thử idle timeout, cookie hết hạn và tác vụ cleanup độc lập
+  - Xác nhận sự kiện tạo, xóa, hết hạn theo khả năng repository
+  - Tra cứu theo principal và thu hồi nhiều phiên đăng nhập
+  - Đăng nhập hoặc cập nhật cùng lúc để kiểm tra tranh chấp
+  - Kiểm tra tương thích serializer giữa hai phiên bản ứng dụng
+  - Mất kết nối, chuyển đổi dự phòng, eviction và phục hồi kho
+  - WebSocket, đăng xuất và thời gian đóng các kết nối liên quan
+- level1: Hiệu năng và giám sát
+  level2:
+  - Độ trễ tải, lưu phiên và phần chi phí trong một yêu cầu HTTP
+  - Số phiên hoạt động, số phiên tạo mới và tốc độ hết hạn
+  - Kích thước thuộc tính, chi phí serializer và lưu lượng truyền dữ liệu
+  - Số lần truy cập kho do một yêu cầu đọc hoặc sửa phiên
+  - Ảnh hưởng của FlushMode, SaveMode và việc đọc thuộc tính
+  - Nhóm kết nối, luồng listener, thời gian chờ và mức bão hòa
+  - Chỉ mục principal, tác vụ cleanup và chi phí dữ liệu phụ trợ
+  - Phiên rất lớn, ghi thường xuyên và giới hạn tài nguyên
+  - Metric, trace và ghi log tương quan mà không công bố định danh thô
+  - Quan sát dữ liệu Redis hoặc JDBC mà không gây tải quét quá lớn
+  - Đo chuẩn bằng tải đại diện cho đọc, ghi, đăng nhập và hết hạn
+- level1: Vận hành và phục hồi
+  level2:
+  - 'Chẩn đoán mất phiên: cookie, định danh, filter, namespace hay dữ liệu kho'
+  - Lỗi giải tuần tự hóa, không tìm thấy lớp và thay đổi cấu trúc thuộc tính
+  - Lỗi JDBC schema, thiếu quyền, duplicate key và cạn kết nối
+  - Redis từ chối cấu hình keyspace, listener ngừng nhận và chỉ mục còn sót
+  - Timeout kho phiên và phân biệt lỗi xác thực với lỗi hạ tầng
+  - Chính sách bộ nhớ Redis, eviction và rủi ro mất phiên đang hoạt động
+  - Mất kết nối trong lúc ghi và kết quả cập nhật chưa xác định
+  - Khôi phục từ bản sao lưu và nguy cơ phục hồi cả phiên đã thu hồi
+  - Vệ sinh dữ liệu hết hạn, chỉ mục phụ và dữ liệu thử nghiệm theo phạm vi
+  - Cảnh báo lỗi lưu phiên, công việc dọn dẹp tồn đọng và bất thường tạo phiên
+  - Quy trình phục hồi, tiêu chí xác nhận và trường hợp cần đăng nhập lại
+- level1: Nâng cấp và di chuyển
+  level2:
+  - Đối chiếu phiên bản Spring Session với Boot, Security, Data Redis và driver JDBC
+  - Thay đổi dependency, starter và tên thuộc tính cấu hình giữa các dòng Boot
+  - Servlet javax, jakarta và yêu cầu tương thích container
+  - Chuyển serializer hoặc phiên bản Jackson mà vẫn đọc được dữ liệu cần giữ
+  - Thay đổi lớp principal, SecurityContext và module hỗ trợ tuần tự hóa
+  - Đổi repository cơ bản, có chỉ mục hoặc chuyển kho lưu trữ
+  - Thay đổi định dạng khóa, namespace, tên cookie và kế hoạch chuyển tiếp
+  - Phần mở rộng Hazelcast, MongoDB và thay đổi đơn vị duy trì
+  - Rolling upgrade, rollback và kiểm thử tương thích phiên trước khi triển khai
+- level1: Thực hành tích hợp
+  level2:
+  - Xây dựng ứng dụng lưu tùy chọn người dùng bằng HttpSession
+  - Chuyển từ phiên trong bộ nhớ sang Redis và kiểm chứng qua hai nút
+  - So sánh repository Redis cơ bản với repository có chỉ mục
+  - Đăng nhập bằng Spring Security và kiểm tra đổi định danh phiên
+  - Giới hạn số phiên, liệt kê phiên của người dùng và thu hồi theo yêu cầu
+  - Thiết kế cookie hoặc header phiên cho một client cụ thể
+  - Thay Redis bằng JDBC và kiểm chứng khác biệt về cleanup, sự kiện
+  - Xây dựng bản WebFlux dùng ReactiveSessionRepository
+  - Tích hợp WebSocket và kiểm tra hết hạn, đăng xuất
+  - Tái hiện cập nhật đồng thời và đánh giá các chính sách lưu
+  - Đổi serializer giữa hai bản ứng dụng rồi kiểm thử tương thích
+  - Tạo sự cố kho, thu bằng chứng và thực hiện quy trình phục hồi

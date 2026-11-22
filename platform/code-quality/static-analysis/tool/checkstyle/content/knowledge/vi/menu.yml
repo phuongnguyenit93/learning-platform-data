@@ -1,0 +1,446 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Checkstyle là gì và vì sao cần tự động hóa quy ước mã Java?
+  - Vị trí của Checkstyle trong quy trình bảo đảm chất lượng mã
+  - 'Bản đồ khái niệm: cấu hình, module, check, token, vi phạm và báo cáo'
+  - Luồng kiểm tra từ tệp nguồn đến thông báo vi phạm
+  - Phạm vi phân tích cú pháp và giới hạn suy luận kiểu hoặc nghiệp vụ
+  - So sánh vai trò Checkstyle, formatter, PMD, SpotBugs và SonarQube
+  - Khi nào dùng quy tắc có sẵn, suppression hoặc quy tắc tùy chỉnh?
+  - Lộ trình học và dự án Java mẫu dùng xuyên suốt tài liệu
+- level1: Cài đặt và khởi chạy
+  level2:
+  - Chọn phiên bản Checkstyle theo JDK chạy công cụ và cú pháp nguồn
+  - Phân biệt phiên bản Checkstyle với phiên bản plugin Maven hoặc Gradle
+  - Tải bản phân phối chính thức và chuẩn bị môi trường
+  - Tạo cấu hình tối thiểu với Checker và TreeWalker
+  - Chạy kiểm tra một tệp hoặc thư mục Java lần đầu
+  - Đọc đường dẫn, dòng, cột, severity và tên check trong kết quả
+  - Sửa một vi phạm và chạy lại để xác minh
+  - Chọn cách chạy bằng CLI, build tool hoặc IDE
+- level1: Cơ chế phân tích
+  level2:
+  - Checker và chu trình kiểm tra tập tệp
+  - Phân biệt FileSetCheck với check chạy trong TreeWalker
+  - Cây cú pháp trừu tượng (AST) và TokenTypes
+  - TreeWalker duyệt cây và gọi các check theo token
+  - Vị trí dòng/cột, ký tự tab và cách xác định vị trí vi phạm
+  - Comment, Javadoc và các cây cú pháp liên quan
+  - AuditEvent, filter và AuditListener
+  - Phân biệt lỗi phân tích cú pháp, lỗi cấu hình và vi phạm quy tắc
+  - Vì sao cấu trúc AST quyết định khả năng viết hoặc miễn trừ một check?
+- level1: Cấu hình XML
+  level2:
+  - Cấu trúc XML và DTD của tệp checkstyle.xml
+  - Module gốc Checker và cách đặt module con đúng cấp
+  - Khai báo check bằng tên ngắn hoặc tên lớp đầy đủ
+  - Property, kiểu dữ liệu và giá trị mặc định
+  - Cấu hình một check nhiều lần với bộ tham số khác nhau
+  - Module id để phân biệt các cấu hình cùng loại check
+  - severity và chính sách error, warning, info hoặc ignore
+  - Tùy chỉnh thông báo qua message key
+  - Charset, fileExtensions và phạm vi tệp được kiểm tra
+  - 'Đọc tài liệu check: Parent Module, Properties, Tokens, Examples và Since'
+  - Kiểm chứng cấu hình bằng một mẫu đạt và một mẫu vi phạm
+- level1: Tham số và tài nguyên
+  level2:
+  - Thay thế property từ CLI hoặc build tool
+  - Giá trị dự phòng khi property chưa được cung cấp
+  - Boolean, số, enum, biểu thức chính quy và danh sách token
+  - Escape ký tự trong XML, Java regex và đường dẫn
+  - Phân giải tệp cấu hình, resource trên classpath và đường dẫn tương đối
+  - Cấu hình suppression, header và import control từ tài nguyên ngoài
+  - Encoding, locale và thông báo nhất quán giữa máy phát triển với CI
+  - Quản lý cấu hình dùng chung cùng phiên bản các tài nguyên phụ thuộc
+- level1: Bộ quy tắc
+  level2:
+  - Lựa chọn google_checks.xml, sun_checks.xml hoặc cấu hình tự xây
+  - Đối chiếu style guide với tập check thực sự được công cụ hỗ trợ
+  - Cấu hình OpenJDK và các bộ quy tắc phụ thuộc phiên bản
+  - Xác định mục tiêu của từng nhóm quy tắc trước khi bật
+  - Chọn mức severity và ngoại lệ có lý do
+  - Điều chỉnh tham số thay vì sao chép mặc định thiếu đánh giá
+  - Phát hiện các quy tắc trùng lặp hoặc có chính sách đối lập
+  - Tài liệu hóa quyết định và quy trình thay đổi quy ước nhóm
+- level1: Quy tắc đặt tên
+  level2:
+  - TypeName, AbstractClassName và tên kiểu
+  - MethodName, ParameterName và tên phương thức hoặc tham số
+  - MemberName, StaticVariableName và ConstantName
+  - LocalVariableName, LocalFinalVariableName và CatchParameterName
+  - PackageName và quy ước tên package
+  - ClassTypeParameterName, InterfaceTypeParameterName và MethodTypeParameterName
+  - LambdaParameterName, PatternVariableName và RecordComponentName theo hỗ trợ
+  - AbbreviationAsWordInName và xử lý chữ viết tắt
+  - IllegalIdentifierName và chính sách tên bị cấm
+  - Cấu hình regex cùng ngoại lệ cho mã framework hoặc mã kiểm thử
+- level1: Import và phụ thuộc
+  level2:
+  - AvoidStarImport và kiểm soát import dùng dấu sao
+  - AvoidStaticImport cùng danh sách ngoại lệ
+  - UnusedImports, RedundantImport và giới hạn phân tích
+  - ImportOrder và CustomImportOrder
+  - IllegalImport cho package hoặc kiểu không được phép dùng
+  - ImportControl để ràng buộc import theo package hoặc tệp
+  - Tên kiểu đầy đủ và chính sách import tương ứng
+  - Module import và các check liên quan trong phiên bản Java/Checkstyle hỗ trợ
+  - Giới hạn của kiểm tra import khi đánh giá kiến trúc phụ thuộc
+- level1: Khoảng trắng
+  level2:
+  - WhitespaceAround và WhitespaceAfter
+  - NoWhitespaceBefore, NoWhitespaceAfter và chính sách theo token
+  - ParenPad, TypecastParenPad và khoảng trắng trong dấu ngoặc
+  - MethodParamPad cho khai báo và lời gọi
+  - GenericWhitespace và cú pháp generic
+  - Khoảng trắng ở array, dấu phân cách và biểu thức đặc biệt
+  - FileTabCharacter và quy ước dùng tab hoặc dấu cách
+  - EmptyLineSeparator và phân tách thành phần trong tệp
+  - Khoảng trắng ở thân rỗng và các trường hợp cú pháp mới
+  - Chọn tập token để tránh áp dụng quy tắc ngoài ý muốn
+- level1: Thụt lề và xuống dòng
+  level2:
+  - Indentation và các mức thụt lề
+  - Thụt lề tiếp dòng cho tham số, biểu thức và lời gọi nối chuỗi
+  - OperatorWrap và vị trí toán tử khi xuống dòng
+  - SeparatorWrap cho dấu chấm, dấu phẩy và thành phần được hỗ trợ
+  - NoLineWrap và những khai báo phải nằm trên một dòng
+  - LineLength, tabWidth và biểu thức bỏ qua
+  - Thụt lề lambda, array initializer, switch và text block theo hỗ trợ
+  - Đồng bộ quy tắc Checkstyle với thiết lập formatter
+  - Phân biệt quy tắc bố cục chủ động chọn với giới hạn kiểm tra của công cụ
+- level1: Khối lệnh
+  level2:
+  - NeedBraces và phạm vi áp dụng cho cấu trúc điều khiển
+  - LeftCurly, RightCurly và chính sách đặt dấu ngoặc nhọn
+  - EmptyBlock và cách hiểu nội dung comment trong khối rỗng
+  - EmptyCatchBlock và ngoại lệ có kiểm soát
+  - AvoidNestedBlocks và khối lệnh không cần thiết
+  - Khối một dòng, thân rỗng và các tùy chọn ngoại lệ
+  - Kiểm tra sự tương thích giữa quy tắc dấu ngoặc, xuống dòng và formatter
+- level1: Modifier và thiết kế
+  level2:
+  - ModifierOrder và thứ tự modifier
+  - RedundantModifier và modifier ngầm định theo loại khai báo
+  - VisibilityModifier và quyền truy cập thành viên
+  - HideUtilityClassConstructor cho lớp tiện ích
+  - FinalClass và DesignForExtension
+  - InterfaceIsType và giới hạn quy ước sử dụng interface
+  - OneTopLevelClass, InnerTypeLast và bố cục kiểu
+  - MutableException, ThrowsCount và chính sách thiết kế exception
+  - IllegalCatch và IllegalThrows cho chính sách sử dụng exception
+  - Sealed class, permits và các check phụ thuộc phiên bản
+  - Đánh giá cảnh báo thiết kế theo ngữ cảnh thay vì đồng nhất với chất lượng kiến trúc
+- level1: Khai báo và biến
+  level2:
+  - DeclarationOrder và thứ tự khai báo thành viên
+  - OverloadMethodsDeclarationOrder và nhóm phương thức nạp chồng
+  - MultipleVariableDeclarations và OneStatementPerLine
+  - HiddenField, RequireThis và biến che khuất field
+  - ParameterAssignment và thay đổi giá trị tham số
+  - FinalLocalVariable và các biến không thay đổi
+  - VariableDeclarationUsageDistance và phạm vi biến
+  - ExplicitInitialization và giá trị khởi tạo mặc định
+  - ArrayTypeStyle và cách viết kiểu array
+  - IllegalType và IllegalInstantiation cho quy ước dùng kiểu hoặc factory
+- level1: Biểu thức và điều khiển
+  level2:
+  - SimplifyBooleanExpression và SimplifyBooleanReturn
+  - EqualsAvoidNull, StringLiteralEquality và so sánh chuỗi
+  - EqualsHashCode, CovariantEquals và cấu trúc phương thức liên quan
+  - MagicNumber cùng các ngữ cảnh được phép dùng literal
+  - MultipleStringLiterals và chuỗi lặp trong cùng tệp
+  - InnerAssignment, EmptyStatement và dấu chấm phẩy thừa
+  - MissingSwitchDefault, DefaultComesLast và FallThrough
+  - ModifiedControlVariable và thay đổi biến điều khiển vòng lặp
+  - ReturnCount, AvoidInlineConditionals và chính sách cấu trúc biểu thức
+  - IllegalToken, IllegalTokenText và giới hạn cú pháp được phép
+  - Lambda, pattern matching và lựa chọn check theo phiên bản
+- level1: Annotation
+  level2:
+  - AnnotationLocation và vị trí annotation
+  - AnnotationUseStyle và cách viết giá trị annotation
+  - MissingDeprecated và sự nhất quán với Javadoc @deprecated
+  - MissingOverride và phạm vi điều kiện thực sự được check
+  - PackageAnnotation và package-info.java
+  - SuppressWarnings check để kiểm soát nội dung được phép miễn trừ
+  - Phân biệt kiểm tra annotation với cơ chế áp dụng suppression
+  - Annotation trên record, type use và cú pháp mới theo hỗ trợ
+- level1: Javadoc
+  level2:
+  - Phạm vi tài liệu cần có theo mức truy cập và chính sách API
+  - MissingJavadocType, MissingJavadocMethod và JavadocPackage
+  - JavadocType, JavadocMethod và tính hợp lệ của tag
+  - JavadocVariable và tài liệu cho field hoặc hằng
+  - SummaryJavadoc và câu tóm tắt đầu tiên
+  - JavadocStyle, JavadocParagraph và cấu trúc đoạn
+  - AtclauseOrder, JavadocTagContinuationIndentation và bố cục tag
+  - Vị trí Javadoc so với annotation và khai báo
+  - HTML, inline tag, tham số kiểu và @inheritDoc
+  - Giới hạn suy luận kiểu exception hoặc liên kết khi kiểm tra Javadoc
+  - Chính sách riêng cho test, mã sinh tự động và API nội bộ
+- level1: Kích thước và độ phức tạp
+  level2:
+  - FileLength, MethodLength và cách tính dòng
+  - ParameterNumber và RecordComponentNumber
+  - MethodCount, OuterTypeNumber và số lượng thành phần
+  - AnonInnerLength, LambdaBodyLength và ExecutableStatementCount
+  - CyclomaticComplexity và số nhánh điều khiển
+  - NPathComplexity và số đường thực thi
+  - BooleanExpressionComplexity và độ phức tạp biểu thức
+  - ClassFanOutComplexity và ClassDataAbstractionCoupling
+  - JavaNCSS và cách diễn giải số câu lệnh nguồn
+  - Chọn ngưỡng dựa trên ngữ cảnh và kiểm chứng cách đo
+  - Phân biệt tín hiệu cần xem xét với kết luận bắt buộc phải tách mã
+- level1: Header và tệp nguồn
+  level2:
+  - Header và RegexpHeader cho mẫu đầu tệp
+  - Quản lý dòng thay đổi và tài nguyên header dùng chung
+  - NewlineAtEndOfFile và chuẩn xuống dòng
+  - Tên tệp, tên kiểu ngoài cùng và package declaration
+  - FileTabCharacter, charset và ký tự không mong muốn
+  - TodoComment, TrailingComment và chính sách comment
+  - OrderedProperties và kiểm tra tài nguyên ngoài Java khi được cấu hình
+  - Phạm vi mã chính, mã kiểm thử, mã sinh tự động và tài nguyên phụ trợ
+  - Tính nhất quán giữa Windows, Linux và công cụ quản lý mã nguồn
+- level1: Regex và XPath
+  level2:
+  - Chọn kiểm tra văn bản, token hoặc cấu trúc AST
+  - RegexpSingleline và RegexpSinglelineJava
+  - RegexpMultiline và mẫu trải qua nhiều dòng
+  - RegexpOnFilename cho tên tệp hoặc thư mục
+  - Đếm số lần xuất hiện, bỏ qua comment và kiểm tra có/không có mẫu
+  - Escape regex trong XML và kiểm thử trường hợp biên
+  - MatchXpath để diễn đạt mẫu cấu trúc chưa cần viết check Java
+  - Đánh giá giới hạn regex khi yêu cầu phụ thuộc cú pháp
+- level1: Java hiện đại
+  level2:
+  - Ma trận JDK chạy công cụ, Java nguồn và phiên bản parser
+  - Record, compact constructor và record component
+  - Lambda, method reference, text block và cú pháp switch mới
+  - Pattern matching, sealed type và biến không đặt tên theo hỗ trợ
+  - module-info.java và các check Java Platform Module System
+  - package-info.java, annotation và tài liệu package
+  - Preview feature và quy trình xác minh parser trước khi bật kiểm tra
+  - Nâng phiên bản Checkstyle khi dự án nâng mức ngôn ngữ Java
+- level1: Phạm vi và lọc tệp
+  level2:
+  - Chọn tệp main, test, tài nguyên và mã sinh tự động
+  - fileExtensions và include/exclude của công cụ gọi Checkstyle
+  - BeforeExecutionExclusionFileFilter trước bước phân tích
+  - Phân biệt bỏ tệp trước khi chạy với lọc thông báo sau khi kiểm tra
+  - Đường dẫn tuyệt đối, tương đối và biểu thức đa nền tảng
+  - Tệp module-info.java, package-info.java và các ngoại lệ riêng
+  - Phát hiện thư mục bị bỏ sót hoặc bị quét lặp
+  - Kiểm chứng phạm vi bằng danh sách tệp và báo cáo thực tế
+- level1: Suppression bằng XML
+  level2:
+  - Khi nào cần miễn trừ một vi phạm và cách ghi lý do?
+  - Cấu trúc suppressions.xml và DTD tương ứng
+  - SuppressionFilter và vị trí dưới Checker
+  - Chọn theo files, checks, id, message, lines hoặc columns
+  - SuppressionSingleFilter cho ngoại lệ cấu hình trực tiếp
+  - Module id để tránh miễn trừ nhiều check cùng tên ngoài ý muốn
+  - Ảnh hưởng của locale và thay đổi nội dung thông báo
+  - Tệp suppression thiếu, đường dẫn sai và lựa chọn optional
+  - Giới hạn phạm vi miễn trừ và rà soát ngoại lệ đã hết lý do
+- level1: Comment và annotation
+  level2:
+  - SuppressionCommentFilter và cặp comment tắt/bật kiểm tra
+  - Phạm vi TreeWalker và các check có thể được bộ lọc áp dụng
+  - SuppressWithNearbyCommentFilter và số dòng ảnh hưởng
+  - Suppression bằng văn bản cho FileSetCheck theo bộ lọc được hỗ trợ
+  - '@SuppressWarnings với tiền tố checkstyle'
+  - Phối hợp SuppressWarningsHolder và SuppressWarningsFilter
+  - Alias, module id và đối chiếu tên check
+  - Kiểm soát comment hoặc annotation quá rộng bằng chính sách nhóm
+  - Thử nghiệm ngoại lệ có tác dụng đúng vị trí và không che vi phạm khác
+- level1: Suppression bằng XPath
+  level2:
+  - Khi nào dùng XPath để tránh phụ thuộc số dòng?
+  - Cây AST và các node được phép truy vấn
+  - SuppressionXpathFilter, suppress-xpath và vị trí cấu hình
+  - SuppressionXpathSingleFilter cho một ngoại lệ tường minh
+  - Tạo biểu thức từ vị trí vi phạm bằng công cụ CLI
+  - Đối chiếu biểu thức XPath với node thực sự được check báo lỗi
+  - Giới hạn check hoặc loại vi phạm được XPath hỗ trợ
+  - Độ ổn định khi đổi tên, tái cấu trúc mã hoặc nâng parser
+  - Kiểm thử để biểu thức không vô tình miễn trừ nhiều cấu trúc
+- level1: CLI và Ant
+  level2:
+  - Chạy JAR độc lập với tệp cấu hình và các đầu vào nguồn
+  - Tùy chọn output plain, XML hoặc SARIF theo phiên bản
+  - Nạp property, chọn tệp đầu ra và loại trừ đường dẫn
+  - Exit code, severity và kết quả thành công/thất bại của lệnh
+  - Xuất AST, AST có comment và cây Javadoc
+  - Sinh suppression và chế độ debug
+  - Xử lý đường dẫn có dấu cách, Unicode và khác biệt shell
+  - Tích hợp Checkstyle Ant task vào quy trình Ant hiện có
+  - Nhúng Checker vào ứng dụng Java và quản lý vòng đời tài nguyên
+- level1: Tích hợp Maven
+  level2:
+  - Khai báo và cố định phiên bản maven-checkstyle-plugin
+  - Phân biệt checkstyle:checkstyle, checkstyle:check và báo cáo aggregate
+  - Gắn cổng kiểm tra vào phase phù hợp của lifecycle
+  - configLocation, propertiesLocation và suppression resource
+  - Chọn source/test/resource và loại mã sinh tự động
+  - Severity, ngưỡng vi phạm và điều kiện làm build thất bại
+  - Phân biệt cấu hình trong build với reporting
+  - Đổi phiên bản engine Checkstyle qua dependency của plugin
+  - Nạp JAR chứa check hoặc cấu hình tùy chỉnh
+  - Xác minh hành vi khi chạy trực tiếp, Maven Site và CI
+- level1: Tích hợp Gradle
+  level2:
+  - Áp dụng plugin checkstyle trong Groovy hoặc Kotlin DSL
+  - checkstyleMain, checkstyleTest và task cho source set bổ sung
+  - Quan hệ giữa task check và các task Checkstyle
+  - toolVersion và JDK chạy Checkstyle qua toolchain/javaLauncher theo phiên bản
+  - configDirectory, config, configProperties và biến config_loc
+  - Chọn source, include/exclude và classpath cho từng task
+  - ignoreFailures, maxErrors, maxWarnings và showViolations
+  - Cấu hình báo cáo XML, HTML và SARIF theo hỗ trợ
+  - Nạp check tùy chỉnh và giữ đúng dependency engine
+  - Thiết lập heap cho tiến trình kiểm tra
+  - Chia sẻ cấu hình bằng convention plugin cho nhiều module
+- level1: IDE và formatter
+  level2:
+  - Nạp cùng cấu hình Checkstyle trong IntelliJ IDEA hoặc Eclipse qua plugin phù hợp
+  - Đồng bộ phiên bản engine và JDK giữa IDE với build
+  - Phân giải property, resource và JAR check tùy chỉnh trong IDE
+  - Đọc vi phạm ngay khi sửa mã và chạy kiểm tra theo phạm vi
+  - Chọn formatter phù hợp với bộ quy tắc
+  - Đồng bộ import order, tab, line wrapping và độ dài dòng
+  - Phân biệt sửa tự động bằng formatter với xác minh bằng Checkstyle
+  - Chẩn đoán trường hợp IDE đạt nhưng build hoặc CI báo lỗi
+- level1: Báo cáo và CI
+  level2:
+  - Thiết kế cổng chất lượng dựa trên severity và ngưỡng vi phạm
+  - Chạy Checkstyle trong pipeline cùng lệnh build đã chuẩn hóa
+  - Báo cáo plain, XML, HTML và SARIF
+  - Tùy biến HTML bằng stylesheet khi build tool hỗ trợ
+  - Lưu artifact và liên kết vi phạm về đúng tệp/dòng nguồn
+  - Tích hợp kết quả vào giao diện review qua hệ thống CI phù hợp
+  - Phân biệt báo cáo được tạo thành công với cổng kiểm tra đã đạt
+  - Giữ báo cáo khi task thất bại và không làm mất exit status
+  - Kiểm tra toàn dự án hoặc tệp thay đổi và giới hạn của từng phạm vi
+  - Đường dẫn, encoding, locale và kết quả tái lập giữa các môi trường
+- level1: Dự án nhiều module
+  level2:
+  - Chọn nguồn cấu hình chuẩn cho toàn repository
+  - Chia sẻ cấu hình qua artifact, parent POM hoặc convention plugin
+  - Tách phiên bản bộ quy tắc với phiên bản engine
+  - Property đường dẫn dùng chung và tài nguyên suppression/header/import control
+  - Quy tắc mặc định và ngoại lệ có chủ sở hữu cho từng module
+  - Phân biệt báo cáo từng module với báo cáo tổng hợp
+  - Phối hợp source set, mã sinh và ngôn ngữ ngoài Java
+  - Kiểm tra sự nhất quán khi module chạy riêng hoặc từ root
+- level1: Áp dụng cho mã cũ
+  level2:
+  - Kiểm kê vi phạm trước khi chọn chính sách áp dụng
+  - Phân loại lỗi bố cục, lỗi quy ước và trường hợp cần xem xét thiết kế
+  - Thiết lập mốc vi phạm ban đầu từ báo cáo hoặc suppression có kiểm soát
+  - Phân biệt baseline do quy trình tạo với khả năng có sẵn của Checkstyle
+  - Bật từng nhóm quy tắc theo giá trị và chi phí sửa
+  - Tách thay đổi định dạng diện rộng khỏi thay đổi hành vi
+  - Chính sách cho mã mới, mã được sửa và mã chưa chạm tới
+  - Giảm ngoại lệ theo giai đoạn, có lý do và người chịu trách nhiệm
+  - Đánh giá tác động đến review, merge conflict và trải nghiệm phát triển
+- level1: Check AST tùy chỉnh
+  level2:
+  - Viết đặc tả quy tắc và chọn AbstractCheck
+  - Tạo dự án JAR có dependency API Checkstyle phù hợp
+  - getDefaultTokens, getAcceptableTokens và getRequiredTokens
+  - visitToken, leaveToken, beginTree và finishTree
+  - Điều hướng DetailAST qua node cha, con và node cùng cấp
+  - Lấy nội dung token, vị trí nguồn và phân biệt ngữ cảnh
+  - Khai báo property qua setter và kiểm tra giá trị cấu hình
+  - Phát thông báo bằng log cùng messages.properties
+  - Quản lý trạng thái theo tệp và tránh rò rỉ giữa các lần kiểm tra
+  - Comment token, hỗ trợ XPath và giới hạn phân tích cú pháp
+  - Đóng gói JAR, đăng ký module và kiểm tra khả năng nạp lớp
+- level1: Check tệp và Javadoc
+  level2:
+  - Khi nào chọn AbstractFileSetCheck?
+  - processFiltered, FileText và nội dung tệp
+  - Giới hạn fileExtensions và vị trí báo vi phạm trên tệp
+  - Khai báo tài nguyên ngoài để xử lý cache đúng
+  - Phân biệt Java AST với cây Javadoc
+  - AbstractJavadocCheck, DetailNode và JavadocTokenTypes
+  - Truy cập ngữ cảnh Java từ check Javadoc
+  - Giới hạn parser HTML/Javadoc và cách kiểm thử dữ liệu không hợp lệ
+  - Chọn check Java, check tệp hoặc check Javadoc theo yêu cầu
+- level1: Filter và listener riêng
+  level2:
+  - Khi nào cần filter riêng thay vì thêm check hoặc suppression chuẩn?
+  - Filter, AuditEvent và điều kiện chấp nhận sự kiện
+  - TreeWalkerFilter và phạm vi sự kiện trong TreeWalker
+  - BeforeExecutionFileFilter cho quyết định loại trừ trước phân tích
+  - AuditListener và các sự kiện bắt đầu/kết thúc, lỗi và exception
+  - Tạo báo cáo tùy chỉnh mà không thay đổi logic phát hiện
+  - Cấu hình module, property và classpath cho thành phần mở rộng
+  - Giữ chi phí xử lý, trạng thái và tài nguyên trong giới hạn
+  - Kiểm chứng kết quả sau khi ghép check, filter và listener
+- level1: Kiểm thử quy tắc
+  level2:
+  - Thiết kế fixture đạt, vi phạm và trường hợp biên
+  - Chạy Checker với cấu hình kiểm thử bằng JUnit
+  - Thu AuditEvent và đối chiếu check, dòng, cột, thông báo
+  - Kiểm thử property mặc định, tùy chỉnh và không hợp lệ
+  - Kiểm thử token được chọn, token bắt buộc và ngữ cảnh cú pháp
+  - Comment, chuỗi, Unicode, tab và xuống dòng CRLF/LF
+  - Record, lambda, generic và cú pháp Java mới trong phạm vi hỗ trợ
+  - Kiểm thử nhiều tệp liên tiếp để phát hiện trạng thái tồn dư
+  - Kiểm thử từng suppression cùng một vi phạm lân cận không được miễn
+  - Kiểm thử JAR tùy chỉnh qua CLI và build tool thực tế
+  - Kiểm thử hồi quy cấu hình khi nâng engine hoặc plugin
+  - Giữ fixture nhỏ để thông báo lỗi phản ánh đúng quy tắc đang kiểm tra
+- level1: Hiệu năng và cache
+  level2:
+  - Đo thời gian theo số tệp, kích thước mã và nhóm check
+  - Cache của Checker và điều kiện khiến kết quả phải được tính lại
+  - Thay đổi cấu hình, tài nguyên ngoài hoặc check tùy chỉnh
+  - Phân biệt cache Checkstyle với up-to-date/build cache của Gradle
+  - Loại trừ mã sinh hoặc đầu vào trùng đúng phạm vi
+  - Regex tốn tài nguyên, XPath rộng và duyệt cây không cần thiết
+  - Cấp heap phù hợp và nhận diện rò rỉ trạng thái trong check riêng
+  - Giới hạn chạy song song và an toàn của thành phần mở rộng
+  - Chọn phép đo tái lập trước khi tối ưu pipeline
+- level1: Lỗi và chẩn đoán
+  level2:
+  - Lỗi XML, DTD, property chưa được thay thế hoặc kiểu giá trị sai
+  - Đặt check/filter sai Parent Module
+  - Không tìm thấy module, class hoặc resource trên classpath
+  - UnsupportedClassVersionError và JDK chạy công cụ không phù hợp
+  - Parser không hỗ trợ cú pháp Java hoặc preview feature đang dùng
+  - Token không được check chấp nhận hoặc cấu hình tokens sai
+  - Suppression không có tác dụng vì sai đường dẫn, id hoặc AST
+  - Regex và XML escape khác dự kiến
+  - Khác biệt dòng/cột do tab, encoding hoặc chuẩn xuống dòng
+  - Vi phạm lặp hoặc thiếu do quét nguồn sai phạm vi
+  - IDE, Maven, Gradle và CI dùng engine hoặc cấu hình khác nhau
+  - Quy trình tái hiện tối thiểu bằng một tệp nguồn và một cấu hình
+- level1: Nâng cấp và quản trị
+  level2:
+  - Đọc release notes và yêu cầu JDK của engine
+  - Tách nâng plugin build, engine và bộ quy tắc
+  - Check mới, property đổi tên, token mới và giá trị mặc định thay đổi
+  - Đối chiếu thay đổi google_checks.xml, sun_checks.xml hoặc style khác
+  - Kiểm tra tương thích JAR quy tắc tùy chỉnh
+  - Chạy so sánh báo cáo trước–sau trên tập mã đại diện
+  - Rà soát suppression đã lỗi thời và XPath bị thay đổi
+  - Version hóa cấu hình và ghi nhận quyết định quy ước
+  - Lập kế hoạch triển khai cùng phương án quay lại cấu hình trước
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết lập dự án Java mẫu và quy ước nhóm
+  - Viết checkstyle.xml tối thiểu và tạo các vi phạm có chủ đích
+  - Thực hành naming, import, whitespace, Javadoc và metrics
+  - Tích hợp với Maven hoặc Gradle theo cấu trúc dự án
+  - Đồng bộ formatter và plugin IDE với lệnh build
+  - Viết suppression XML, comment và XPath có phạm vi hẹp
+  - Tạo một AbstractCheck theo quy tắc riêng của dự án
+  - Kiểm thử fixture, property và đóng gói check thành JAR
+  - Chạy CI, lưu báo cáo và xác minh điều kiện làm build thất bại
+  - Áp dụng dần cho một module mã cũ và đánh giá thay đổi vi phạm
+  - Nâng engine hoặc bộ quy tắc trên nhánh thử nghiệm
+  - Rà soát tính đúng của cấu hình, phạm vi nguồn và khả năng bảo trì

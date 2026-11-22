@@ -1,0 +1,450 @@
+menu:
+- level1: Định hướng Java 10
+  level2:
+  - Vai trò của Java 10 trong ngôn ngữ và thư viện Java hiện đại
+  - Kiến thức nền về kiểu tĩnh, generics, Stream và JVM
+  - Nhóm thay đổi ngôn ngữ, API và vận hành JVM
+  - Quan hệ giữa var, suy luận kiểu và khả năng đọc mã
+  - Quan hệ giữa copyOf, collector và thiết kế dữ liệu chỉ đọc
+  - Phân biệt tính năng Java SE với chi tiết triển khai HotSpot
+  - Phân biệt nguồn gốc Java 10 với mở rộng ở các phiên bản sau
+  - Tra cứu API và tùy chọn còn được hỗ trợ trên JDK đang dùng
+  - Thực hành các kiến thức Java 10 trên JDK còn được hỗ trợ
+- level1: Nền tảng var
+  level2:
+  - Suy luận kiểu biến cục bộ và mục đích của var
+  - Cú pháp khai báo biến bằng var và biểu thức khởi tạo
+  - Kiểu được xác định tại thời điểm biên dịch
+  - Quan hệ giữa kiểu của biểu thức khởi tạo và kiểu của biến
+  - Phân biệt var với kiểu động và Object
+  - Kiểu của biến sau khi được gán lại
+  - var và từ khóa final
+  - Phân biệt biến không thể gán lại với đối tượng bất biến
+  - Phạm vi biến cục bộ và việc che khuất tên
+  - var trong hệ thống từ vựng của Java
+  - Đọc kiểu suy luận bằng công cụ biên dịch và IDE
+- level1: Vị trí dùng var
+  level2:
+  - var trong thân phương thức, hàm tạo và khối khởi tạo
+  - var trong phần khởi tạo của vòng lặp for
+  - var trong vòng lặp for-each
+  - var trong khai báo tài nguyên của try-with-resources
+  - Giới hạn dùng var cho trường dữ liệu
+  - Giới hạn dùng var cho kiểu trả về và tham số phương thức
+  - Giới hạn của var trong tham số catch
+  - Yêu cầu có biểu thức khởi tạo
+  - Giới hạn nhiều biến trong cùng một khai báo var
+  - Giới hạn cú pháp dấu ngoặc mảng sau tên biến
+  - Giới hạn biểu thức khởi tạo tham chiếu chính biến đang khai báo
+  - Phân biệt var cục bộ của Java 10 với var trong tham số lambda ở phiên bản sau
+- level1: var và biểu thức
+  level2:
+  - Suy luận kiểu từ literal số nguyên, số thực, boolean và chuỗi
+  - Ảnh hưởng của hậu tố L, F, D và phép ép kiểu
+  - Khác biệt giữa suy luận var và phép thu hẹp hằng số khi gán
+  - Biểu thức khởi tạo null và yêu cầu kiểu xác định
+  - Mảng tạo bằng new và dạng khởi tạo mảng không có kiểu
+  - Lambda và tham chiếu phương thức khi không có kiểu đích
+  - Cung cấp kiểu đích tường minh cho biểu thức hàm
+  - Biểu thức khởi tạo được xử lý không có ngữ cảnh kiểu của vế trái
+  - Suy luận kiểu từ phương thức trả về giao diện hoặc lớp cụ thể
+  - Biểu thức điều kiện và kiểu chung được suy luận
+  - Boxing, unboxing và chuyển đổi số trong biểu thức khởi tạo
+  - Ảnh hưởng của thay đổi biểu thức khởi tạo đến kiểu biến
+- level1: var và generics
+  level2:
+  - Suy luận kiểu với đối số generic được ghi tường minh
+  - var kết hợp diamond trong lời gọi hàm tạo
+  - Trường hợp diamond thiếu thông tin để suy luận kiểu phần tử mong muốn
+  - var với phương thức generic và phương thức tạo đối tượng
+  - Chỉ định đối số kiểu tường minh khi ngữ cảnh không đủ
+  - Ảnh hưởng của collection rỗng đến kiểu suy luận
+  - var với List, Set, Map và kiểu lồng nhau
+  - Kiểu phần tử trong for-each trên mảng và Iterable
+  - Phân biệt khai báo theo giao diện với kiểu cụ thể do var suy luận
+  - var và lựa chọn phương thức nạp chồng
+  - var với các bước trung gian của Stream
+  - Đánh giá lỗi kiểu khi thay khai báo tường minh bằng var
+- level1: Kiểu suy luận nâng cao
+  level2:
+  - Biến var giữ kiểu của lớp vô danh
+  - Truy cập thành viên bổ sung của lớp vô danh qua biến cục bộ
+  - Kiểu giao nhau và kiểu không thể viết trực tiếp trong khai báo
+  - Wildcard capture trong suy luận kiểu cục bộ
+  - Phép chiếu kiểu lên trên và loại bỏ biến kiểu tổng hợp
+  - Quan hệ giữa kiểu suy luận và khả năng truy cập thành viên
+  - Giới hạn suy luận từ các phép gán xuất hiện về sau
+  - Giới hạn suy luận từ cách biến sẽ được sử dụng
+  - Kiểu generic trong thông tin gỡ lỗi so với kiểu bị xóa trong bytecode
+  - Ranh giới giữa suy luận biến cục bộ và hợp đồng API công khai
+- level1: Sử dụng var rõ ràng
+  level2:
+  - Đánh giá mức độ rõ kiểu từ biểu thức khởi tạo
+  - Đặt tên biến theo ý nghĩa dữ liệu và vai trò
+  - Giới hạn phạm vi biến để dễ hiểu kiểu suy luận
+  - Tách biểu thức lồng nhau thành các bước trung gian
+  - Lựa chọn kiểu tường minh khi kiểu của lời gọi không rõ
+  - Giữ kiểu tường minh khi cần chủ động giới hạn giao diện sử dụng
+  - Nhận diện rủi ro chuyển đổi số khi thay bằng var
+  - Đọc mã var ngoài IDE qua tài liệu và bản so sánh thay đổi
+  - Kiểm tra ảnh hưởng đến nạp chồng và khả năng thay thế triển khai
+  - Xây dựng quy ước sử dụng var dựa trên khả năng đọc và bảo trì
+- level1: Collection chỉ đọc
+  level2:
+  - Collection không thể sửa đổi và đối tượng bất biến
+  - Bản sao độc lập về cấu trúc so với khung nhìn của dữ liệu nguồn
+  - List.copyOf, Set.copyOf và Map.copyOf
+  - Phân biệt copyOf với các phương thức of
+  - Phân biệt bản sao nông với bản sao sâu
+  - Hành vi khi đối tượng phần tử vẫn có thể thay đổi
+  - Quy tắc null tại ranh giới tạo collection
+  - UnsupportedOperationException và các thao tác sửa đổi
+  - Giới hạn bảo đảm về lớp triển khai và định danh đối tượng
+  - Rủi ro dùng collection dựa trên giá trị làm khóa đồng bộ
+  - Tính bất biến của cấu trúc so với an toàn công bố giữa các luồng
+  - Tiêu chí chọn cấu trúc có thể sửa hoặc chỉ đọc
+- level1: List.copyOf
+  level2:
+  - Chữ ký generic và nguồn Collection của List.copyOf
+  - Thứ tự phần tử theo thứ tự duyệt nguồn
+  - Giữ các phần tử trùng trong danh sách
+  - NullPointerException khi nguồn hoặc phần tử danh sách là null
+  - Ảnh hưởng khi thêm, xóa hoặc thay phần tử trong danh sách nguồn
+  - Chia sẻ tham chiếu của từng phần tử sau khi sao chép
+  - Giới hạn thêm, xóa, thay thế và sắp xếp kết quả
+  - Danh sách con và các đường sửa đổi qua iterator
+  - Khả năng tái sử dụng một danh sách nguồn phù hợp
+  - So sánh hợp đồng với new ArrayList và Collections.unmodifiableList
+  - Sử dụng bản sao danh sách ở hàm tạo và kiểu trả về
+- level1: Set.copyOf
+  level2:
+  - Chữ ký generic và nguồn Collection của Set.copyOf
+  - Loại bỏ các phần tử bằng nhau theo equals
+  - Lựa chọn đại diện khi nguồn có phần tử trùng
+  - Khác biệt xử lý trùng giữa Set.copyOf và Set.of
+  - NullPointerException khi nguồn hoặc phần tử tập hợp là null
+  - Thứ tự duyệt không được bảo đảm
+  - Ảnh hưởng khi tập nguồn thay đổi
+  - Rủi ro khi phần tử thay đổi dữ liệu tham gia equals, hashCode
+  - Giới hạn thao tác thêm, xóa và sửa qua iterator
+  - Khả năng tái sử dụng tập nguồn phù hợp
+  - Sử dụng bản sao tập cho danh mục giá trị hoặc quyền hạn
+- level1: Map.copyOf
+  level2:
+  - Chữ ký generic của khóa, giá trị và bản đồ nguồn
+  - Quy tắc cấm khóa null và giá trị null
+  - Tách cấu trúc kết quả khỏi thay đổi của Map nguồn
+  - Bản sao nông của khóa và giá trị
+  - Thứ tự duyệt và giới hạn giữ đặc tính sắp xếp của nguồn
+  - Rủi ro khi khóa thay đổi trạng thái dùng trong equals, hashCode
+  - Giới hạn put, remove, replace và các thao tác cập nhật
+  - Tính chỉ đọc của keySet, values và entrySet
+  - Giới hạn thay giá trị qua Map.Entry
+  - Khả năng tái sử dụng Map nguồn phù hợp
+  - Thiết kế bảng tra cứu và ảnh chụp cấu hình bằng Map.copyOf
+- level1: Collector danh sách và tập
+  level2:
+  - Collectors.toUnmodifiableList và kết quả không thể sửa
+  - Thứ tự gặp phần tử và thứ tự của danh sách kết quả
+  - Phần tử trùng trong toUnmodifiableList
+  - Quy tắc null của toUnmodifiableList
+  - Collectors.toUnmodifiableSet và tính không có thứ tự
+  - Phần tử trùng và lựa chọn đại diện trong toUnmodifiableSet
+  - Quy tắc null của toUnmodifiableSet
+  - So sánh với Collectors.toList và Collectors.toSet
+  - So sánh với collectingAndThen kết hợp lớp bọc chỉ đọc
+  - Thu thập Stream tuần tự và Stream song song
+  - Giới hạn giả định về kiểu triển khai của kết quả
+  - Phân biệt collector Java 10 với Stream.toList ở phiên bản sau
+- level1: Collector bản đồ
+  level2:
+  - Collectors.toUnmodifiableMap với hàm tạo khóa và giá trị
+  - Kiểu đầu vào, kiểu khóa và kiểu giá trị được suy luận
+  - Khóa trùng và IllegalStateException
+  - Biến thể toUnmodifiableMap có hàm hợp nhất
+  - Chọn giá trị giữ lại khi khóa trùng
+  - Hợp đồng kết hợp của hàm hợp nhất khi xử lý song song
+  - Quy tắc null của khóa, giá trị và các hàm được truyền vào
+  - Ảnh hưởng của kết quả hợp nhất đến nội dung Map
+  - Thứ tự duyệt của Map kết quả
+  - So sánh với Collectors.toMap và toConcurrentMap
+  - Giới hạn thay đổi qua các khung nhìn của Map
+  - Xây dựng bảng tra cứu từ Stream với chính sách xung đột rõ ràng
+- level1: Thiết kế dữ liệu chỉ đọc
+  level2:
+  - Sao chép phòng vệ ở đầu vào của đối tượng
+  - Trả collection chỉ đọc từ API
+  - Ranh giới giữa quyền sở hữu cấu trúc và quyền sở hữu phần tử
+  - Kết hợp copyOf với phần tử bất biến
+  - Xử lý collection lồng nhau và nhu cầu sao chép sâu
+  - Thay toàn bộ ảnh chụp cấu hình thay vì sửa tại chỗ
+  - Công bố dữ liệu và các quan hệ đồng bộ cần thiết
+  - Giới hạn ảnh chụp khi nguồn đang bị luồng khác sửa
+  - Kiểm tra null tại ranh giới dữ liệu
+  - Kiểm thử sự độc lập giữa nguồn và kết quả
+  - Đánh giá chi phí sao chép, cấp phát và tái sử dụng
+- level1: Optional.orElseThrow
+  level2:
+  - Vai trò của orElseThrow không có đối số
+  - Giá trị trả về khi Optional có dữ liệu
+  - NoSuchElementException khi Optional rỗng
+  - Phân biệt orElseThrow không đối số với biến thể nhận Supplier
+  - orElseThrow trên OptionalInt, OptionalLong và OptionalDouble
+  - Lựa chọn ngoại lệ mặc định hoặc ngoại lệ nghiệp vụ
+  - Phối hợp kết quả tìm kiếm Stream với bước bắt buộc có giá trị
+  - Phân biệt Optional rỗng với dữ liệu sai hoặc lỗi xử lý
+  - Kiểm thử hai nhánh có và không có giá trị
+- level1: Reader.transferTo
+  level2:
+  - Chuyển ký tự từ Reader sang Writer bằng transferTo
+  - Giá trị trả về và đơn vị số lượng ký tự đã chuyển
+  - Vị trí đọc hiện tại và thời điểm kết thúc nguồn
+  - Phân biệt luồng ký tự với luồng byte
+  - Trách nhiệm chọn mã hóa ở lớp đọc, ghi bên ngoài
+  - Quyền sở hữu tài nguyên và việc đóng Reader, Writer
+  - Yêu cầu flush theo hợp đồng của đích ghi
+  - IOException và dữ liệu có thể đã được chuyển một phần
+  - Đặc tính chặn và việc xử lý nguồn chưa kết thúc
+  - Lựa chọn truyền trực tiếp hoặc xử lý biến đổi từng phần
+- level1: Charset trong I/O
+  level2:
+  - Đối tượng Charset trong các API I/O bổ sung của Java 10
+  - StandardCharsets và việc chọn bộ mã tường minh
+  - Scanner với InputStream và Charset
+  - Scanner với File, Path và Charset
+  - Scanner với ReadableByteChannel và Charset
+  - PrintStream nhận Charset khi ghi ra luồng hoặc tệp
+  - PrintWriter nhận Charset khi ghi ra luồng hoặc tệp
+  - Formatter nhận Charset cùng Locale
+  - ByteArrayOutputStream.toString(Charset)
+  - Phân biệt tham số Charset với tên bộ mã dạng String
+  - Phân biệt mã hóa ký tự với quy tắc Locale khi đọc, định dạng số
+  - Hành vi với chuỗi byte không hợp lệ theo từng API
+  - Quản lý đóng, flush và báo lỗi của từng lớp I/O
+  - Kiểm thử dữ liệu tiếng Việt với bộ mã đầu vào và đầu ra khác nhau
+- level1: Mã hóa dữ liệu biểu mẫu
+  level2:
+  - URLEncoder.encode(String, Charset)
+  - URLDecoder.decode(String, Charset)
+  - Quy tắc application/x-www-form-urlencoded
+  - Phân biệt mã hóa trường biểu mẫu với mã hóa toàn bộ URI
+  - Khoảng trắng, dấu cộng và ký tự phần trăm
+  - Đầu vào Unicode và lựa chọn UTF-8
+  - Mã hóa từng khóa và giá trị trước khi ghép truy vấn
+  - Tránh mã hóa lặp hoặc giải mã quá số lần quy định
+  - Chuỗi escape không hợp lệ và IllegalArgumentException
+  - Kiểm thử ký tự tiếng Việt, ký tự phân cách và dữ liệu rỗng
+- level1: Thông tin FileStore
+  level2:
+  - FileStore và thông tin hệ thống tệp chứa một Path
+  - FileStore.getBlockSize và đơn vị kích thước khối
+  - Phân biệt kích thước khối với kích thước tệp
+  - Phân biệt dung lượng tổng, dung lượng trống và dung lượng sử dụng được
+  - UnsupportedOperationException khi nhà cung cấp không hỗ trợ
+  - IOException và thay đổi trạng thái hệ thống tệp
+  - Giới hạn dùng kích thước khối để suy đoán dung lượng cấp phát
+  - Kiểm thử trên các nhà cung cấp hệ thống tệp khác nhau
+- level1: Mở rộng Locale
+  level2:
+  - Nhãn ngôn ngữ BCP 47 và phần mở rộng Unicode
+  - Tạo Locale từ nhãn ngôn ngữ hoặc Locale.Builder
+  - Khóa cu cho loại tiền tệ
+  - Khóa fw cho ngày đầu tuần
+  - Khóa rg để ghi đè vùng
+  - Khóa tz cho lựa chọn múi giờ
+  - Phân biệt ngôn ngữ hiển thị với vùng quy ước
+  - Phân biệt khóa được lưu trong Locale với API thực sự sử dụng khóa đó
+  - Quan hệ với các khóa ca và nu
+  - Kết hợp nhiều phần mở rộng trong cùng một Locale
+  - Xử lý giá trị không được hỗ trợ theo hợp đồng API
+  - Ảnh hưởng của dữ liệu bản địa hóa được cung cấp bởi JDK
+- level1: Locale trong ứng dụng
+  level2:
+  - Currency.getInstance(Locale) và phần mở rộng cu
+  - Quy ước tiền tệ tường minh trong hiển thị số
+  - WeekFields.of(Locale) và phần mở rộng fw
+  - Vùng ghi đè rg và các quy ước theo vùng
+  - DateTimeFormatter.localizedBy(Locale)
+  - Phân biệt localizedBy với withLocale
+  - Ảnh hưởng đến chronology, DecimalStyle và ZoneId
+  - Thứ tự áp dụng localizedBy, withChronology, withDecimalStyle và withZone
+  - Phối hợp các khóa ca, nu, rg và tz
+  - Không đồng nhất Locale với múi giờ mặc định của tiến trình
+  - Kiểm thử biên tuần, quy ước tiền tệ và múi giờ
+  - Giữ kiểm thử độc lập với Locale mặc định của máy chạy
+- level1: Mô hình phiên bản
+  level2:
+  - Phiên bản theo lịch phát hành của Java
+  - Ý nghĩa FEATURE, INTERIM, UPDATE và PATCH
+  - Cấu trúc chuỗi phiên bản của JDK
+  - Thành phần tiền phát hành, số bản dựng và thông tin tùy chọn
+  - Phân biệt số phiên bản với chính sách hỗ trợ của nhà cung cấp
+  - Phân biệt phiên bản ngôn ngữ, API và JVM đích
+  - Đọc thông tin JDK từ java --version
+  - Giới hạn của việc so sánh phiên bản bằng chuỗi
+  - Phân biệt thứ tự phiên bản với khả năng cung cấp một tính năng
+  - Xác định yêu cầu JDK của thư viện và công cụ xây dựng
+- level1: Runtime.Version
+  level2:
+  - Runtime.version() và phiên bản JVM đang chạy
+  - Runtime.Version.parse và kiểm tra chuỗi phiên bản
+  - feature(), interim(), update() và patch()
+  - Danh sách thành phần số của phiên bản
+  - pre(), build() và optional()
+  - compareTo và quy tắc so sánh phiên bản
+  - compareToIgnoreOptional và phần thông tin tùy chọn
+  - equals, equalsIgnoreOptional và hashCode
+  - Xử lý IllegalArgumentException khi chuỗi không hợp lệ
+  - Kiểm thử phiên bản chính thức, tiền phát hành và bản cập nhật
+  - Thay cách tách chuỗi thủ công bằng hợp đồng Runtime.Version
+- level1: Nền tảng AppCDS
+  level2:
+  - CDS và chi phí nạp dữ liệu lớp khi khởi động JVM
+  - AppCDS mở rộng dữ liệu chia sẻ sang lớp ứng dụng
+  - Kho dữ liệu lớp được ánh xạ vào bộ nhớ
+  - Chia sẻ dữ liệu chỉ đọc giữa nhiều tiến trình JVM
+  - Phân biệt siêu dữ liệu lớp với trạng thái đối tượng nghiệp vụ
+  - Phạm vi lớp và class loader theo khả năng JDK đang dùng
+  - Lựa chọn các lớp thực sự được ứng dụng sử dụng
+  - Ảnh hưởng của JDK, kiến trúc và đầu vào ứng dụng đến kho chia sẻ
+  - Phân biệt giảm chi phí khởi động với tối ưu thông lượng sau khởi động
+  - Giới hạn và chi phí lưu trữ của kho AppCDS
+- level1: Vận hành AppCDS
+  level2:
+  - Thu danh sách lớp bằng -XX:DumpLoadedClassList
+  - Tạo kho tĩnh bằng -Xshare:dump
+  - Chỉ định danh sách bằng -XX:SharedClassListFile
+  - Chỉ định kho bằng -XX:SharedArchiveFile
+  - Chế độ -Xshare:auto và khả năng tiếp tục khi không dùng được kho
+  - Chế độ -Xshare:off để tạo phép đo đối chứng
+  - Chế độ -Xshare:on trong kiểm tra yêu cầu dùng kho
+  - Nhật ký CDS để xác minh lớp được nạp từ kho chia sẻ
+  - Tính tương thích của đường dẫn lớp và tệp ứng dụng
+  - Tạo lại kho khi đổi JDK hoặc đầu vào được lưu trữ
+  - Quyền truy cập và tính toàn vẹn của kho chia sẻ
+  - Đo thời gian khởi động và bộ nhớ khi có nhiều tiến trình
+  - Phân biệt nền tảng AppCDS Java 10 với các cơ chế lưu trữ được bổ sung về sau
+- level1: G1 Full GC song song
+  level2:
+  - Vị trí của Full GC trong hoạt động của G1
+  - Phân biệt thu gom trẻ, thu gom hỗn hợp và Full GC
+  - Tình huống G1 phải dùng đến Full GC
+  - Đánh dấu đối tượng sống và dồn bộ nhớ trong Full GC
+  - Song song hóa Full GC và mục tiêu giảm độ trễ xấu nhất
+  - Phân biệt xử lý song song với xử lý đồng thời cùng ứng dụng
+  - Vai trò của số luồng GC và tài nguyên CPU được cấp
+  - Đọc nguyên nhân, thời gian và mức sử dụng heap trong nhật ký GC
+  - Giới hạn bảo đảm về thời gian dừng
+  - Phân tích tốc độ cấp phát, dữ liệu sống và áp lực bộ nhớ
+  - So sánh tải tương đương trước khi kết luận về hiệu năng
+  - Ưu tiên xác định nguyên nhân Full GC trước khi điều chỉnh tham số
+- level1: Handshake theo luồng
+  level2:
+  - Safepoint và nhu cầu phối hợp thao tác nội bộ JVM
+  - Khái niệm thread-local handshake trong HotSpot
+  - Thao tác phối hợp hướng đến một luồng hoặc một tập luồng
+  - Khác biệt với yêu cầu dừng tất cả luồng
+  - Điểm thực thi an toàn và sự phối hợp của luồng đích
+  - Mục tiêu giảm ảnh hưởng của một số thao tác quản trị JVM
+  - Quan hệ giữa handshake, safepoint và độ trễ ứng dụng
+  - Phân biệt cơ chế nội bộ JVM với API đồng bộ cho mã Java
+  - Giới hạn suy luận nguyên nhân độ trễ chỉ từ nhật ký ứng dụng
+  - Phân biệt thread-local handshake với biến ThreadLocal của ứng dụng
+- level1: CPU trong container
+  level2:
+  - Phân biệt CPU máy chủ với tài nguyên cấp cho container
+  - Khả năng nhận biết container của HotSpot trên nền tảng được hỗ trợ
+  - UseContainerSupport và việc nhận diện giới hạn tài nguyên
+  - cpuset, quota và số bộ xử lý JVM có thể sử dụng
+  - Runtime.availableProcessors và cấu hình tự động của thư viện
+  - -XX:ActiveProcessorCount và phạm vi ghi đè
+  - Ảnh hưởng tới số luồng GC và các bộ thực thi dùng cấu hình mặc định
+  - Phân biệt số CPU JVM nhận biết với giới hạn thực thi của hệ điều hành
+  - Quan sát giới hạn container bằng nhật ký JVM hiện hành
+  - Kiểm thử khi chạy cùng ứng dụng với các mức cấp CPU khác nhau
+  - Đánh giá giới hạn CPU cùng độ trễ, thông lượng và hàng đợi
+- level1: Bộ nhớ trong container
+  level2:
+  - Phân biệt bộ nhớ máy chủ, giới hạn container và Java heap
+  - Nhận diện bộ nhớ khả dụng cho quá trình chọn cấu hình JVM
+  - -XX:InitialRAMPercentage và kích thước heap ban đầu
+  - -XX:MaxRAMPercentage và giới hạn heap theo bộ nhớ khả dụng
+  - -XX:MinRAMPercentage trong tính heap tối đa cho môi trường ít bộ nhớ
+  - Tương tác giữa cấu hình phần trăm với -Xms và -Xmx
+  - Phần bộ nhớ dành cho metaspace, code cache và stack
+  - Phần bộ nhớ cho bộ đệm trực tiếp và thư viện native
+  - Phân biệt OutOfMemoryError với tiến trình bị hệ điều hành chấm dứt
+  - Dự phòng bộ nhớ ngoài heap thay vì dành toàn bộ giới hạn cho heap
+  - Đối chiếu cấu hình JVM với chỉ số bộ nhớ của container
+  - Kiểm thử giới hạn bộ nhớ theo tải và số luồng thực tế
+- level1: Heap trên thiết bị bộ nhớ
+  level2:
+  - Mục tiêu đặt Java heap trên thiết bị có ngữ nghĩa bộ nhớ phù hợp
+  - Tùy chọn -XX:AllocateHeapAt và đường dẫn thiết bị
+  - Ánh xạ bộ nhớ từ hệ thống tệp được môi trường hỗ trợ
+  - Phân biệt vùng heap đối tượng với bộ nhớ ngoài heap
+  - Các vùng JVM vẫn được cấp phát riêng
+  - Yêu cầu tương thích với thao tác nguyên tử và truy cập bộ nhớ
+  - Quan hệ với giới hạn -Xms, -Xmx và bộ thu gom
+  - Giới hạn phụ thuộc phần cứng, hệ điều hành và bản dựng JVM
+  - Phân biệt bộ nhớ bền vững vật lý với lưu và khôi phục đối tượng Java
+  - Đánh giá độ trễ, băng thông và độ ổn định trước khi áp dụng
+- level1: Chứng thư gốc
+  level2:
+  - CA gốc, chuỗi chứng thư và điểm neo tin cậy
+  - Vai trò của tập chứng thư gốc trong bản phân phối OpenJDK
+  - Keystore cacerts và quá trình lựa chọn truststore của JSSE
+  - Phân biệt kho khóa riêng với kho chứng thư tin cậy
+  - Kiểm tra chứng thư và dấu vân tay bằng keytool
+  - TrustManager và kiểm tra chuỗi chứng thư
+  - Phân biệt tin cậy CA với xác minh danh tính máy chủ
+  - Kho tin cậy riêng và thuộc tính javax.net.ssl.trustStore
+  - Tác động của cập nhật, bổ sung hoặc loại bỏ CA trên JDK
+  - Chẩn đoán lỗi không xây dựng được chuỗi tin cậy
+  - Quản lý nguồn gốc và quyền sửa truststore
+  - Kiểm thử kết nối bằng chính sách bảo mật hiện hành
+- level1: Biên dịch và kiểm chứng
+  level2:
+  - Xác định phiên bản công cụ java, javac và javap
+  - Biên dịch tính năng Java 10 với phiên bản nguồn phù hợp
+  - --release và giới hạn các phiên bản đích do javac hỗ trợ
+  - Phân biệt cấu hình ngôn ngữ nguồn với lựa chọn API nền tảng
+  - Kiểm tra class file và kiểu cục bộ bằng javap
+  - Quan hệ giữa var và bytecode có kiểu tĩnh
+  - javac -h và quy trình sinh header JNI đang sử dụng
+  - Đánh giá thời gian sống tham chiếu trong for-each theo phạm vi sử dụng
+  - Phân biệt tối ưu mã do trình biên dịch với bảo đảm của đặc tả
+  - Kiểm thử dương và kiểm thử lỗi biên dịch cho các trường hợp var
+  - Thử biểu thức var bằng JShell trên JDK phù hợp
+- level1: Javadoc
+  level2:
+  - Thẻ {@summary ...} để khai báo phần tóm tắt
+  - Vị trí và giới hạn sử dụng thẻ summary
+  - Phân biệt tóm tắt tường minh với suy ra từ câu đầu
+  - --main-stylesheet và kiểu dáng chính
+  - --add-stylesheet và nhiều tệp CSS bổ sung
+  - Thứ tự nạp CSS và quy tắc ghi đè kiểu dáng
+  - --override-methods với các chế độ summary, detail
+  - Tài liệu hóa phương thức ghi đè theo hợp đồng kế thừa
+  - Liên kết tài liệu ngoài và kiểm tra lỗi truy cập
+  - Tài nguyên HTML trong thư mục doc-files
+  - Kiểm tra kết quả tài liệu bằng công cụ Javadoc đang được hỗ trợ
+- level1: Thực hành tổng hợp
+  level2:
+  - Đối chiếu suy luận var với các kiểu khai báo tường minh
+  - Kiểm tra var với diamond, generic và phương thức nạp chồng
+  - Tách một chuỗi xử lý phức tạp thành các biến cục bộ rõ nghĩa
+  - Thiết kế đối tượng trả danh sách bằng List.copyOf
+  - Chuẩn hóa tập giá trị bằng Set.copyOf
+  - Tạo bảng tra cứu bằng toUnmodifiableMap với chính sách khóa trùng
+  - Kiểm thử phần tử có thể thay đổi trong collection chỉ đọc
+  - Xử lý kết quả bắt buộc có giá trị bằng Optional.orElseThrow
+  - Sao chép văn bản bằng Reader.transferTo với bộ mã tường minh
+  - Kiểm thử mã hóa biểu mẫu có dữ liệu tiếng Việt
+  - Kiểm thử tiền tệ, ngày đầu tuần và múi giờ theo Locale
+  - Phân tích chuỗi phiên bản bằng Runtime.Version
+  - Đo khởi động ứng dụng với kho AppCDS
+  - Đọc nhật ký G1 khi giới hạn tài nguyên thay đổi
+  - Đánh giá ứng dụng trong container có mức CPU và bộ nhớ khác nhau
+  - Kiểm tra chuỗi tin cậy TLS bằng truststore được quản lý
+  - Xây dựng tài liệu API có tóm tắt và kiểu dáng nhất quán

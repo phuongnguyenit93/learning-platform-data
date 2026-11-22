@@ -1,0 +1,1651 @@
+menu:
+- slug: bridge-overview
+  title: Tổng quan Bridge
+  childs:
+  - slug: bridge-overview-001
+    title: 'Ý định của Bridge: tách abstraction và implementation thành hai chiều biến thể độc lập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-overview-002
+    title: Vai trò của Bridge trong nhóm mẫu thiết kế cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-overview-003
+    title: Vấn đề bùng nổ lớp con khi kết hợp nhiều chiều thay đổi bằng kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-overview-004
+    title: Composition làm cầu nối giữa hành vi cấp cao và cách triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-overview-005
+    title: Ý nghĩa của abstraction và implementation trong Bridge so với từ khóa của Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-overview-006
+    title: Lợi ích về khả năng mở rộng, thay thế và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-overview-007
+    title: Chi phí về số thành phần, mức gián tiếp và độ phức tạp thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-overview-008
+    title: Dấu hiệu nên cân nhắc Bridge và trường hợp thiết kế đơn giản đã đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: independent-variation-dimensions
+  title: Hai chiều biến thể
+  childs:
+  - slug: independent-variation-dimensions-001
+    title: Nhận diện chiều chức năng cấp cao và chiều công nghệ triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: independent-variation-dimensions-002
+    title: Lập ma trận các tổ hợp abstraction và implementation từ yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: independent-variation-dimensions-003
+    title: Phân biệt hai chiều biến thể với các thuộc tính cấu hình thông thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: independent-variation-dimensions-004
+    title: Phân tích cách số lớp tổ hợp tăng theo tích của hai chiều khi dùng kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: independent-variation-dimensions-005
+    title: Ước lượng số lớp và mã phối hợp khi chuyển sang hai hệ phân cấp riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: independent-variation-dimensions-006
+    title: Tìm phần ổn định, phần thay đổi và các điểm phụ thuộc chéo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: independent-variation-dimensions-007
+    title: Đánh giá tính độc lập của hai chiều qua các kịch bản thay đổi cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: independent-variation-dimensions-008
+    title: Xử lý ma trận không đầy đủ khi chỉ một số tổ hợp có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bridge-structure
+  title: Cấu trúc Bridge
+  childs:
+  - slug: bridge-structure-001
+    title: 'Abstraction: cung cấp API cấp cao và giữ tham chiếu đến Implementor'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-structure-002
+    title: 'RefinedAbstraction: mở rộng hành vi cấp cao trên cùng hợp đồng triển khai'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-structure-003
+    title: 'Implementor: khai báo các thao tác phục vụ phía abstraction'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-structure-004
+    title: 'ConcreteImplementor: hiện thực các thao tác cho từng cách triển khai'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-structure-005
+    title: 'Client: lựa chọn tổ hợp và tương tác qua abstraction'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-structure-006
+    title: Quan hệ kế thừa bên trong từng chiều và composition giữa hai chiều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-structure-007
+    title: Đọc sơ đồ lớp UML và ánh xạ từng vai trò sang mã Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-structure-008
+    title: Phân biệt bộ khung Bridge với việc ghép hai interface không có hai chiều biến thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collaboration-flow
+  title: Luồng cộng tác
+  childs:
+  - slug: collaboration-flow-001
+    title: Theo dõi lời gọi từ client qua abstraction đến concrete implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-flow-002
+    title: Kết hợp nhiều thao tác triển khai để tạo một hành vi cấp cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-flow-003
+    title: Phân chia trách nhiệm điều phối và thực thi trong một ca sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-flow-004
+    title: Giữ chi tiết backend phía sau hợp đồng triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-flow-005
+    title: Mô tả trình tự tương tác bằng sơ đồ sequence
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-flow-006
+    title: Xác định bên sở hữu trạng thái và tránh lưu trùng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-flow-007
+    title: Thiết kế kết quả trả về và cách lỗi đi qua cầu nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collaboration-flow-008
+    title: Kiểm tra luồng cộng tác khi thay implementation mà giữ nguyên thao tác của client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: implementor-contract
+  title: Hợp đồng triển khai
+  childs:
+  - slug: implementor-contract-001
+    title: Chọn tập thao tác nguyên thủy vừa đủ cho các abstraction dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementor-contract-002
+    title: Thiết kế interface Implementor có độ kết dính cao và ít phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementor-contract-003
+    title: Tách API nghiệp vụ cấp cao khỏi API triển khai mà không buộc chúng giống nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementor-contract-004
+    title: Biểu diễn đầu vào và kết quả bằng kiểu dữ liệu ổn định trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementor-contract-005
+    title: Quy định tiền điều kiện, hậu điều kiện và các bất biến chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementor-contract-006
+    title: Chuẩn hóa ngữ nghĩa lỗi giữa những implementation khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementor-contract-007
+    title: Tránh để kiểu dữ liệu, ngoại lệ và tài nguyên đặc thù backend rò rỉ qua hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementor-contract-008
+    title: Tách hợp đồng theo năng lực khi một interface buộc nhiều implementation có phương thức rỗng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: abstraction-design
+  title: Phía abstraction
+  childs:
+  - slug: abstraction-design-001
+    title: Xác định API mà client cần và ranh giới hành vi cấp cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstraction-design-002
+    title: Lựa chọn abstract class, interface hoặc lớp cụ thể theo nhu cầu chia sẻ hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstraction-design-003
+    title: Giữ tham chiếu Implementor ở phạm vi truy cập phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstraction-design-004
+    title: Xây dựng RefinedAbstraction bằng cách phối hợp các thao tác triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstraction-design-005
+    title: Bảo vệ bất biến nghiệp vụ khi bổ sung abstraction mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstraction-design-006
+    title: Áp dụng nguyên tắc thay thế Liskov trong hệ phân cấp abstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstraction-design-007
+    title: Tránh kiểm tra kiểu concrete implementation trong hành vi cấp cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: abstraction-design-008
+    title: Giới hạn độ sâu kế thừa và tách trách nhiệm khi abstraction trở nên quá lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: implementation-design
+  title: Phía implementation
+  childs:
+  - slug: implementation-design-001
+    title: Xây dựng ConcreteImplementor cho từng backend hoặc công nghệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-design-002
+    title: Đóng gói chi tiết thư viện, giao thức và định dạng dữ liệu bên trong implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-design-003
+    title: Bảo đảm các implementation tuân thủ cùng ngữ nghĩa hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-design-004
+    title: Tái sử dụng mã giữa các implementation mà không tạo phụ thuộc ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-design-005
+    title: Phân biệt trạng thái riêng của backend với trạng thái nghiệp vụ của abstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-design-006
+    title: Thiết kế implementation không trạng thái và implementation có trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-design-007
+    title: Giới hạn phụ thuộc của implementation vào client và RefinedAbstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-design-008
+    title: Thêm implementation mới với tác động tối thiểu đến các thành phần hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Triển khai Java
+  childs:
+  - slug: java-implementation-001
+    title: Dựng ví dụ Bridge tối thiểu với interface Implementor và hai concrete implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Khai báo Abstraction và RefinedAbstraction với constructor injection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Dùng composition và delegation trong thân phương thức Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Kiểm tra tham số đầu vào và giữ tham chiếu implementation bằng final khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Tổ chức package cho API cấp cao, hợp đồng triển khai và backend cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Ghép các đối tượng tại điểm khởi tạo ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Chạy các tổ hợp bằng mã client dùng chung API abstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-008
+    title: Đọc toàn bộ ví dụ Java và đối chiếu mã nguồn với các vai trò Bridge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: shapes-and-renderers
+  title: Ví dụ hình vẽ
+  childs:
+  - slug: shapes-and-renderers-001
+    title: Phân tích yêu cầu nhiều loại hình và nhiều cơ chế kết xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shapes-and-renderers-002
+    title: Nhận diện Shape là abstraction và Renderer là hợp đồng triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shapes-and-renderers-003
+    title: Thiết kế các thao tác vẽ nguyên thủy phục vụ Circle và Rectangle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shapes-and-renderers-004
+    title: Hiện thực VectorRenderer và RasterRenderer theo cùng hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shapes-and-renderers-005
+    title: Kết nối từng loại hình với từng renderer bằng constructor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shapes-and-renderers-006
+    title: Bổ sung loại hình mới mà không sửa các renderer đã đủ năng lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shapes-and-renderers-007
+    title: Bổ sung renderer mới và kiểm tra các loại hình hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shapes-and-renderers-008
+    title: Phân tích giới hạn độc lập khi loại hình mới cần thêm thao tác kết xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: remotes-and-devices
+  title: Ví dụ điều khiển
+  childs:
+  - slug: remotes-and-devices-001
+    title: Phân tích yêu cầu nhiều loại điều khiển và nhiều loại thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: remotes-and-devices-002
+    title: Thiết kế Device với hợp đồng nguồn điện, âm lượng và trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: remotes-and-devices-003
+    title: Xây dựng BasicRemote và AdvancedRemote trên cùng hợp đồng Device
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: remotes-and-devices-004
+    title: Hiện thực Television và Radio với trạng thái riêng của từng thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: remotes-and-devices-005
+    title: Triển khai thao tác mute bằng cách phối hợp các thao tác của Device
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: remotes-and-devices-006
+    title: Ghép và sử dụng các tổ hợp điều khiển với thiết bị trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: remotes-and-devices-007
+    title: Xử lý thiết bị thiếu năng lực mà một loại điều khiển yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: remotes-and-devices-008
+    title: So sánh cấu trúc Bridge với phương án tạo lớp điều khiển riêng cho từng thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: implementation-wiring-and-replacement
+  title: Khởi tạo và thay thế
+  childs:
+  - slug: implementation-wiring-and-replacement-001
+    title: Chọn implementation tại điểm lắp ráp đối tượng theo cấu hình ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-wiring-and-replacement-002
+    title: Ưu tiên constructor injection khi tổ hợp được cố định theo vòng đời đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-wiring-and-replacement-003
+    title: Dùng Factory để tập trung logic lựa chọn backend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-wiring-and-replacement-004
+    title: Tích hợp dependency injection mà không buộc Bridge phụ thuộc framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-wiring-and-replacement-005
+    title: Phân biệt khả năng thay implementation bằng cấu hình với thay trực tiếp khi đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-wiring-and-replacement-006
+    title: Thiết kế setter hoặc thao tác chuyển đổi chỉ khi thực sự cần thay động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-wiring-and-replacement-007
+    title: Kiểm tra tương thích và chuyển trạng thái khi thay implementation đang sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: implementation-wiring-and-replacement-008
+    title: Quy định quyền sở hữu và giải phóng implementation cũ sau khi chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extension-and-compatibility
+  title: Mở rộng và tương thích
+  childs:
+  - slug: extension-and-compatibility-001
+    title: Thêm RefinedAbstraction bằng các thao tác đã có trong hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-compatibility-002
+    title: Thêm ConcreteImplementor mà không sửa các abstraction đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-compatibility-003
+    title: Phân tích phạm vi thay đổi khi hợp đồng Implementor cần mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-compatibility-004
+    title: Thiết kế hợp đồng năng lực để diễn đạt các tổ hợp được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-compatibility-005
+    title: Kiểm tra và từ chối sớm tổ hợp abstraction với implementation không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-compatibility-006
+    title: Dùng generic khi ràng buộc kiểu giúp biểu diễn tính tương thích rõ ràng hơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-compatibility-007
+    title: Duy trì tương thích nguồn và hành vi khi tiến hóa API Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extension-and-compatibility-008
+    title: Giới hạn cam kết mở rộng độc lập khi hai chiều vẫn có ràng buộc nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inheritance-refactoring
+  title: Refactor kế thừa
+  childs:
+  - slug: inheritance-refactoring-001
+    title: Nhận diện cây kế thừa đang mã hóa đồng thời hai chiều biến thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-refactoring-002
+    title: Lập danh sách lớp tổ hợp và tìm mã triển khai bị lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-refactoring-003
+    title: Phân loại phương thức theo trách nhiệm cấp cao và trách nhiệm backend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-refactoring-004
+    title: Chọn đường cắt để tách một chiều thành interface Implementor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-refactoring-005
+    title: Thiết lập bất biến và hành vi cần giữ trước khi di chuyển mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-refactoring-006
+    title: Lập bản đồ lớp cũ sang tổ hợp đối tượng Bridge tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-refactoring-007
+    title: Chọn thứ tự chuyển đổi từng nhánh để giảm phạm vi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inheritance-refactoring-008
+    title: Đánh giá kết quả refactor bằng số điểm sửa đổi và mức giảm mã lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-code-refactoring
+  title: Refactor mã Java
+  childs:
+  - slug: java-code-refactoring-001
+    title: Viết kiểm thử đặc trưng để ghi nhận hành vi của mã Java hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-refactoring-002
+    title: Trích xuất Implementor từ thao tác triển khai đang nằm trong lớp con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-refactoring-003
+    title: Di chuyển mã backend sang các ConcreteImplementor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-refactoring-004
+    title: Thay lời gọi kế thừa bằng delegation qua tham chiếu implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-refactoring-005
+    title: Giữ hành vi cấp cao trong Abstraction và RefinedAbstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-refactoring-006
+    title: Chuyển constructor, factory và nơi sử dụng sang cách lắp ráp mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-refactoring-007
+    title: Duy trì lớp tương thích tạm thời khi cần giữ API cũ cho client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-code-refactoring-008
+    title: Loại bỏ lớp tổ hợp dư thừa sau khi kiểm thử hồi quy và so sánh hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bridge-vs-adapter
+  title: Bridge và Adapter
+  childs:
+  - slug: bridge-vs-adapter-001
+    title: So sánh mục tiêu tách hai chiều biến thể của Bridge với chuyển đổi giao diện của Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-adapter-002
+    title: Phân tích bối cảnh thiết kế chủ động và tích hợp thành phần có giao diện không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-adapter-003
+    title: Đối chiếu vai trò Abstraction, Implementor, Target và Adaptee
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-adapter-004
+    title: Giải thích vì sao cấu trúc composition tương tự chưa đủ để xác định cùng một mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-adapter-005
+    title: So sánh ví dụ Java dùng Bridge với ví dụ chuyển đổi API bằng Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-adapter-006
+    title: Dùng Adapter bên trong ConcreteImplementor để bọc thư viện có sẵn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-adapter-007
+    title: Nhận diện tình huống cần Adapter nhưng chưa cần hai hệ phân cấp của Bridge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-adapter-008
+    title: Lập tiêu chí lựa chọn Bridge, Adapter hoặc kết hợp cả hai theo vấn đề thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bridge-vs-strategy
+  title: Bridge và Strategy
+  childs:
+  - slug: bridge-vs-strategy-001
+    title: So sánh hai chiều abstraction và implementation với họ thuật toán thay thế của Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-strategy-002
+    title: Đối chiếu vai trò Abstraction và Implementor với Context và Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-strategy-003
+    title: Phân tích ý định thiết kế khi cả hai mẫu đều dùng interface và delegation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-strategy-004
+    title: Giải thích vì sao thay đối tượng khi chạy không phải tiêu chí riêng của Bridge hay Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-strategy-005
+    title: So sánh ví dụ Java tách backend với ví dụ thay thuật toán xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-strategy-006
+    title: Nhận diện trường hợp một chiều thuật toán chỉ cần Strategy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-strategy-007
+    title: Kết hợp Strategy trong abstraction hoặc implementation để thay một thuật toán nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-vs-strategy-008
+    title: Đánh giá thiết kế có nhiều cách diễn giải bằng yêu cầu thay đổi và trách nhiệm thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: combining-design-patterns
+  title: Kết hợp mẫu khác
+  childs:
+  - slug: combining-design-patterns-001
+    title: 'Bridge và Decorator: tách chiều triển khai và bổ sung hành vi bằng lớp bọc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-design-patterns-002
+    title: 'Bridge và Facade: phân biệt API đơn giản hóa với cấu trúc hai chiều biến thể'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-design-patterns-003
+    title: 'Bridge và Template Method: phối hợp hành vi bằng composition và bằng kế thừa'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-design-patterns-004
+    title: 'Bridge và Abstract Factory: khởi tạo các thành phần thuộc một họ tương thích'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-design-patterns-005
+    title: 'Bridge và Factory Method: cung cấp điểm tạo implementation cho lớp sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-design-patterns-006
+    title: 'Bridge và Proxy: kiểm soát truy cập đến implementation qua cùng hợp đồng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-design-patterns-007
+    title: 'Bridge và Composite: áp dụng cùng backend triển khai cho cấu trúc đối tượng dạng cây'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: combining-design-patterns-008
+    title: Đặt Bridge trong kiến trúc phân lớp và đánh giá ranh giới với Ports and Adapters
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bridge-testing
+  title: Kiểm thử Bridge
+  childs:
+  - slug: bridge-testing-001
+    title: Kiểm thử đơn vị abstraction bằng fake hoặc stub Implementor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-testing-002
+    title: Kiểm tra kết quả nghiệp vụ thay vì phụ thuộc quá mức vào thứ tự lời gọi nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-testing-003
+    title: Viết bộ kiểm thử hợp đồng dùng chung cho mọi ConcreteImplementor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-testing-004
+    title: Dùng kiểm thử tham số hóa JUnit để bao phủ các tổ hợp hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-testing-005
+    title: Kiểm thử tích hợp với backend thật tại ranh giới triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-testing-006
+    title: Kiểm thử lỗi, tổ hợp không tương thích và thao tác thay implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-testing-007
+    title: Kiểm thử hồi quy sau refactor để xác nhận hành vi quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bridge-testing-008
+    title: Cân bằng độ bao phủ ma trận với chi phí chạy kiểm thử khi số tổ hợp lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lifecycle-and-runtime-safety
+  title: Vận hành an toàn
+  childs:
+  - slug: lifecycle-and-runtime-safety-001
+    title: Quản lý vòng đời tài nguyên backend với AutoCloseable khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-runtime-safety-002
+    title: Xác định bên chịu trách nhiệm mở, đóng và chia sẻ implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-runtime-safety-003
+    title: Chuyển đổi ngoại lệ kỹ thuật thành lỗi có ý nghĩa đối với abstraction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-runtime-safety-004
+    title: Đặt retry và timeout đúng trách nhiệm, xét tính lặp an toàn của thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-runtime-safety-005
+    title: Phân tích an toàn luồng khi nhiều abstraction dùng chung implementation có trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-runtime-safety-006
+    title: Bảo đảm tính nhất quán khi thay implementation trong môi trường đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-runtime-safety-007
+    title: Ghi log, đo lường và truy vết qua cầu nối mà không làm rò rỉ chi tiết backend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lifecycle-and-runtime-safety-008
+    title: Xử lý lỗi một phần khi một hành vi cấp cao gồm nhiều thao tác triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-trade-offs
+  title: Hiệu năng và đánh đổi
+  childs:
+  - slug: performance-and-trade-offs-001
+    title: Đánh giá chi phí delegation và cấp phát đối tượng trong bối cảnh sử dụng thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-trade-offs-002
+    title: Chọn độ hạt thao tác để tránh quá nhiều lời gọi qua ranh giới backend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-trade-offs-003
+    title: Phân tích chi phí I/O và tuần tự hóa khi implementation gọi dịch vụ từ xa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-trade-offs-004
+    title: Đặt cache và xử lý theo lô ở nơi giữ đúng ngữ nghĩa hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-trade-offs-005
+    title: Cân nhắc dùng chung implementation với chi phí đồng bộ và quản lý vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-trade-offs-006
+    title: Đo hiệu năng bằng kịch bản đại diện trước khi tối ưu cấu trúc Bridge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-trade-offs-007
+    title: So sánh chi phí bảo trì của hai hệ phân cấp với mức giảm lớp tổ hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-trade-offs-008
+    title: Chọn phương án đơn giản hơn khi chưa có hai chiều thay đổi đáng kể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-design-mistakes
+  title: Lỗi thiết kế thường gặp
+  childs:
+  - slug: common-design-mistakes-001
+    title: Áp dụng Bridge chỉ vì có interface và nhiều lớp hiện thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-002
+    title: Chia sai hai chiều khiến mỗi abstraction phụ thuộc một concrete implementation riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-003
+    title: Dùng instanceof hoặc ép kiểu backend trong abstraction để xử lý ngoại lệ thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-004
+    title: Tạo Implementor quá rộng với nhiều thao tác không được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-005
+    title: Để abstraction và implementation gọi ngược lẫn nhau tạo phụ thuộc vòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-006
+    title: Giữ logic nghiệp vụ trùng lặp trong từng ConcreteImplementor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-007
+    title: Thay implementation tùy ý làm mất trạng thái, tài nguyên hoặc bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-008
+    title: Tạo quá nhiều lớp trung gian khi composition đơn giản đã giải quyết yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Bài tập nhận diện hai chiều biến thể từ một bộ yêu cầu Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-002
+    title: Bài tập vẽ sơ đồ lớp, hợp đồng và ma trận tổ hợp trước khi viết mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-003
+    title: Bài tập triển khai hệ thống hình vẽ với hai loại hình và hai renderer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-004
+    title: Bài tập mở rộng điều khiển và thiết bị trong hai nhánh độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-005
+    title: Bài tập refactor cây kế thừa tổ hợp sang Bridge và giữ kiểm thử hồi quy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-006
+    title: Bài tập lựa chọn Bridge, Adapter hoặc Strategy và giải thích bằng ý định thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-007
+    title: Checklist review Java về hợp đồng, composition, tương thích, vòng đời và khả năng kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-008
+    title: Tiêu chí tự đánh giá qua một yêu cầu thêm abstraction và một yêu cầu thêm implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

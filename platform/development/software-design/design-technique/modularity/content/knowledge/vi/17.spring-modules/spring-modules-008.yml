@@ -1,0 +1,3 @@
+menuLevel1: Mô-đun với Spring
+menuLevel2: Tránh đưa entity và repository nội bộ vào hợp đồng mô-đun khác
+status: ''

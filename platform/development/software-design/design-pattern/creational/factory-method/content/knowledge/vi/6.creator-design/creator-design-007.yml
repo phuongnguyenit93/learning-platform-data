@@ -1,0 +1,3 @@
+menuLevel1: Thiết kế Creator
+menuLevel2: Tránh gọi factory method có thể bị ghi đè trong constructor
+status: ""

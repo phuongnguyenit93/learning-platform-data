@@ -1,0 +1,358 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Lập trình logic (logic programming) là gì
+  - Mô tả điều đúng bằng quan hệ thay cho chỉ dẫn từng bước thực hiện
+  - Sự kiện, luật, truy vấn và bộ máy suy diễn liên hệ với nhau thế nào
+  - Vai trò của phép hợp nhất và tìm kiếm lời giải
+  - Quan hệ giữa lập trình logic với lập trình khai báo
+  - Phân biệt chương trình logic với hệ luật, cơ sở dữ liệu và bộ chứng minh
+  - 'Các hướng tiếp cận: Prolog, Datalog, ràng buộc và tập trả lời'
+  - Bài toán phù hợp, lợi ích và giới hạn của cách mô hình hóa bằng logic
+  - Lộ trình từ truy vấn đơn giản đến thiết kế và kiểm chứng chương trình
+- level1: Nền tảng logic
+  level2:
+  - Mệnh đề, vị từ, đối số và quan hệ
+  - Hằng, biến, hàm và miền diễn giải
+  - Phép hội, tuyển, phủ định, kéo theo và tương đương
+  - Lượng từ tồn tại, lượng từ phổ quát và phạm vi biến
+  - Phân biệt biến tự do với biến bị ràng buộc bởi lượng từ
+  - Mệnh đề Horn và mệnh đề xác định
+  - Đọc luật theo chiều kéo theo và tránh hiểu nhầm chiều suy luận
+  - Thỏa mãn, mô hình và hệ quả logic
+  - Phân biệt cú pháp của biểu thức với ý nghĩa trong một diễn giải
+- level1: Sự kiện, luật, truy vấn
+  level2:
+  - Biểu diễn tri thức bằng các sự kiện
+  - Định nghĩa quan hệ dẫn xuất bằng luật
+  - Phần đầu, phần thân và các mục tiêu trong luật
+  - Nhiều luật cùng định nghĩa một vị từ
+  - Truy vấn đóng và truy vấn cần tìm giá trị cho biến
+  - Các mục tiêu kết hợp trong cùng một truy vấn
+  - Nhiều câu trả lời, không có câu trả lời và kết quả lặp
+  - Đọc chương trình như một tập quan hệ trước khi xét thứ tự chạy
+  - Xây dựng cơ sở tri thức quan hệ gia đình làm ví dụ xuyên suốt
+- level1: Hạng thức và biến
+  level2:
+  - Nguyên tử, số và hạng thức phức hợp
+  - Tên hàm, số đối số và định danh vị từ bằng tên/số đối số
+  - Biến logic và sự khác nhau với ô nhớ có thể gán lại
+  - Phạm vi biến trong từng mệnh đề
+  - Biến ẩn danh và các vị trí không cần giữ kết quả
+  - Hạng thức đóng, hạng thức chưa đóng và cấu trúc có biến
+  - Chia sẻ biến giữa các đối số để biểu diễn quan hệ
+  - Đổi tên biến khi sử dụng một luật mới
+  - Cú pháp toán tử và cấu trúc hạng thức nằm bên dưới
+- level1: Hợp nhất
+  level2:
+  - Phép hợp nhất (unification) và vai trò khi gọi một quan hệ
+  - Phép thế và cách áp dụng phép thế cho hạng thức
+  - Hợp nhất hằng, biến và các cấu trúc lồng nhau
+  - Phép hợp nhất tổng quát nhất (MGU)
+  - Sự nhất quán khi cùng một biến xuất hiện nhiều lần
+  - Những trường hợp không thể hợp nhất
+  - Occurs check và việc ngăn cấu trúc chứa chính biến đang được gán
+  - Cây hữu hạn, cây hữu tỉ và khác biệt giữa các cách triển khai
+  - Phân biệt hợp nhất với phép gán, so sánh và tính giá trị biểu thức
+  - Theo dõi chuỗi phép thế qua nhiều mục tiêu
+- level1: Ngữ nghĩa chương trình
+  level2:
+  - Cách đọc khai báo và cách đọc vận hành của cùng một luật
+  - Vũ trụ Herbrand và cơ sở Herbrand
+  - Diễn giải Herbrand và các sự kiện đóng của chương trình
+  - Mô hình nhỏ nhất của chương trình xác định
+  - Toán tử hệ quả trực tiếp và quá trình đạt điểm bất động
+  - Quan hệ giữa câu trả lời truy vấn với hệ quả của chương trình
+  - Phân biệt tính đúng đắn, tính đầy đủ và tính kết thúc
+  - Những giả thiết cần nêu rõ khi chuyển sang phủ định hoặc tác dụng phụ
+- level1: Hợp giải và suy diễn
+  level2:
+  - Hợp giải (resolution) và ý tưởng chứng minh bằng biến đổi mục tiêu
+  - SLD-resolution cho chương trình mệnh đề xác định
+  - Chọn mục tiêu và chọn mệnh đề áp dụng
+  - Hợp nhất phần đầu luật với mục tiêu đang xét
+  - Thay mục tiêu bằng phần thân luật
+  - Phép thế câu trả lời được tính toán từ một nhánh suy diễn
+  - Cây SLD, nhánh thành công, nhánh thất bại và nhánh vô hạn
+  - Đối chiếu chứng minh logic với vết thực thi cụ thể
+- level1: Quay lui và tìm kiếm
+  level2:
+  - Điểm lựa chọn và các phương án còn có thể thử
+  - Quay lui để khôi phục lựa chọn và thử nhánh khác
+  - Tìm kiếm theo chiều sâu trong mô hình thực thi Prolog truyền thống
+  - Ảnh hưởng của thứ tự mệnh đề đến thứ tự tìm nghiệm
+  - Ảnh hưởng của thứ tự mục tiêu đến khả năng kết thúc
+  - Vì sao một nhánh vô hạn có thể che khuất một nghiệm tồn tại
+  - Tìm kiếm theo chiều rộng và đánh đổi về bộ nhớ
+  - Tìm kiếm sâu dần và ý tưởng tìm kiếm công bằng
+  - Phân biệt không tìm được nghiệm với chứng minh không có nghiệm
+- level1: Đệ quy quan hệ
+  level2:
+  - Trường hợp cơ sở và bước đệ quy trong định nghĩa quan hệ
+  - Đệ quy trên cấu trúc dữ liệu và trên quan hệ
+  - Đệ quy trực tiếp và đệ quy tương hỗ
+  - Quan hệ tổ tiên và phép bao đóng bắc cầu
+  - Đệ quy trái, đệ quy phải và ảnh hưởng đến cách thực thi
+  - Chọn đại lượng giảm để lập luận về kết thúc
+  - Phát hiện chu trình và theo dõi các trạng thái đã thăm
+  - Biến tích lũy và đánh đổi với tính sử dụng nhiều chiều
+  - Kiểm tra định nghĩa đệ quy bằng các trường hợp nhỏ
+- level1: Danh sách
+  level2:
+  - Danh sách rỗng và cấu trúc đầu–đuôi
+  - Danh sách đúng, danh sách mở và đuôi chưa được xác định
+  - Hợp nhất và tách mẫu danh sách
+  - Quan hệ thành viên và nối danh sách
+  - Quan hệ độ dài và các cách sử dụng khác nhau của một quan hệ
+  - Đảo danh sách bằng đệ quy và bằng biến tích lũy
+  - Quan hệ chọn phần tử, hoán vị và tập con
+  - Danh sách hiệu và cách ghép dãy qua phần đuôi mở
+  - Nguy cơ sinh vô hạn khi truy vấn danh sách chưa có giới hạn
+- level1: Dữ liệu có cấu trúc
+  level2:
+  - Biểu diễn bản ghi và dữ liệu có nhiều dạng bằng hạng thức
+  - Tách mẫu lồng nhau để đọc cấu trúc dữ liệu
+  - Biểu diễn cây nhị phân và cây cú pháp
+  - Duyệt cây và mô tả quan hệ giữa nút với nút con
+  - Biểu diễn đồ thị bằng sự kiện cạnh hoặc danh sách kề
+  - Cấu trúc liên kết bằng biến dùng chung
+  - Chọn cấu trúc có lợi cho hợp nhất và truy vấn
+  - Phân biệt dữ liệu mang nghĩa miền bài toán với dữ liệu điều khiển tìm kiếm
+- level1: Số học và so sánh
+  level2:
+  - Biểu thức số học dưới dạng hạng thức và thời điểm được tính
+  - is/2 trong Prolog và yêu cầu khởi tạo biến ở biểu thức
+  - So sánh giá trị số bằng =:=/2 và các quan hệ thứ tự
+  - Phân biệt =/2, ==/2 và phép so sánh số học
+  - Phân biệt không hợp nhất tại thời điểm gọi với ràng buộc khác nhau dif/2
+  - Số nguyên, số hữu tỉ, số thực và khác biệt theo hệ triển khai
+  - Phép chia, phần dư, tràn số và độ chính xác cần kiểm tra
+  - Vì sao số học tính giá trị thông thường hạn chế cách chạy ngược
+  - Khi cần chuyển từ tính giá trị sang ràng buộc số học
+- level1: Phủ định
+  level2:
+  - Phủ định cổ điển và phủ định do thất bại
+  - Giả thiết thế giới đóng và thế giới mở
+  - Thất bại của một truy vấn khác với có bằng chứng phủ định thế nào
+  - Phủ định một mục tiêu đã có đủ giá trị
+  - Nguy cơ khi phủ định mục tiêu còn chứa biến chưa được xác định
+  - Floundering và điều kiện sử dụng phủ định an toàn
+  - Thứ tự mục tiêu và ảnh hưởng lên kết quả phủ định do thất bại
+  - Vòng phụ thuộc qua phủ định và sự mơ hồ cần xử lý
+  - Giới thiệu phân tầng, ngữ nghĩa xác định tốt và mô hình ổn định
+  - Lựa chọn ngữ nghĩa phủ định phù hợp với yêu cầu tri thức
+- level1: Điều khiển tìm kiếm
+  level2:
+  - Phép hội, phép tuyển và cách nhóm các mục tiêu trong Prolog
+  - fail và true trong điều khiển luồng tìm kiếm
+  - Cut và những điểm lựa chọn bị loại bỏ
+  - 'Green cut và red cut: ảnh hưởng đến tập nghiệm'
+  - once/1 và giới hạn ở lời giải đầu tiên
+  - Điều kiện nếu–thì–ngược lại và phạm vi cam kết lựa chọn
+  - Khác biệt giữa điều khiển thủ tục với ý nghĩa logic thuần
+  - Tách kiểm tra điều kiện khỏi sinh dữ liệu để tránh dùng cut tùy tiện
+  - Đánh giá lại các cách gọi quan hệ khi thêm cơ chế cắt nhánh
+- level1: Thiết kế quan hệ
+  level2:
+  - Thiết kế một quan hệ dùng được theo nhiều chiều truy vấn
+  - 'Chế độ sử dụng đối số: đầu vào, đầu ra và đối số chưa xác định'
+  - Tính tất định, bán tất định và khả năng có nhiều nghiệm
+  - Tách sinh ứng viên khỏi kiểm tra điều kiện
+  - Sắp thứ tự mục tiêu dựa trên liên kết biến và khả năng kết thúc
+  - Quan hệ thuần và khả năng thay thế biểu thức theo nghĩa khai báo
+  - Chia quan hệ lớn thành các quan hệ nhỏ có hợp đồng rõ ràng
+  - Tránh phép kiểm tra kiểu làm mất các cách gọi hợp lệ
+  - Ghi rõ điều kiện sử dụng và bảo đảm kết thúc của từng quan hệ
+- level1: Thu thập nghiệm
+  level2:
+  - Xử lý lần lượt từng nghiệm qua cơ chế quay lui
+  - findall/3 và tập hợp các kết quả của một mục tiêu
+  - bagof/3 và việc nhóm theo các biến tự do còn lại
+  - setof/3 và loại trùng theo quy ước sắp thứ tự của hệ
+  - Lượng từ tồn tại trong mục tiêu thu thập kết quả
+  - Kết quả rỗng và khác biệt hành vi cần kiểm tra giữa các phép thu thập
+  - Đếm, tính tổng và lấy giá trị cực trị từ các nghiệm
+  - Giới hạn bộ nhớ khi thu thập một tập nghiệm lớn hoặc vô hạn
+- level1: Siêu lập trình
+  level2:
+  - Chương trình và mục tiêu được biểu diễn bằng hạng thức
+  - Gọi mục tiêu được truyền vào bằng call
+  - Vị từ bậc cao và truyền thêm đối số cho mục tiêu
+  - Ánh xạ, lọc và gấp dữ liệu bằng các quan hệ trợ giúp
+  - Phân tích và xây dựng hạng thức một cách có kiểm soát
+  - Bộ thông dịch logic đơn giản bằng các quan hệ
+  - Tách ngôn ngữ đối tượng khỏi ngôn ngữ dùng để thông dịch
+  - Rủi ro khi thực thi mục tiêu được dựng từ dữ liệu bên ngoài
+- level1: Văn phạm DCG
+  level2:
+  - Definite Clause Grammar và mục đích mô tả dãy đầu vào
+  - Quy tắc văn phạm và quan hệ Prolog được chuyển đổi bên dưới
+  - Mối liên hệ giữa DCG với danh sách hiệu
+  - Ký hiệu kết thúc, ký hiệu không kết thúc và phần đầu vào còn lại
+  - Truyền thuộc tính qua các quy tắc văn phạm
+  - Dựng cây cú pháp trong quá trình phân tích
+  - Đệ quy trái, sự mơ hồ và nguy cơ không kết thúc
+  - Phân tích, sinh chuỗi và giới hạn khi đổi chiều sử dụng
+  - Xây dựng văn phạm cho một ngôn ngữ biểu thức nhỏ
+- level1: Logic ràng buộc
+  level2:
+  - Kết hợp suy diễn logic với giải ràng buộc
+  - Ràng buộc còn tồn đọng và lời giải chưa phải phép gán đầy đủ
+  - 'CLP(FD): biến nguyên hữu hạn và ràng buộc quan hệ'
+  - Phân biệt hợp nhất, tính số học bằng is/2 và ràng buộc số học
+  - Lan truyền miền trước khi phân nhánh tìm giá trị
+  - Tách khai báo điều kiện khỏi quá trình liệt kê bằng labeling
+  - Ràng buộc khác nhau và ràng buộc toàn cục trong mô hình quan hệ
+  - CLP(R) và các miền ràng buộc khác
+  - Giữ tính sử dụng nhiều chiều khi mô hình hóa bài toán số học
+- level1: Ghi nhớ truy vấn
+  level2:
+  - Tabling và việc ghi nhớ lời gọi cùng các câu trả lời
+  - Phân biệt ghi nhớ lời giải với chỉ đánh dấu nút đồ thị đã thăm
+  - Đánh giá theo nhóm mục tiêu phụ thuộc đệ quy
+  - Xử lý đệ quy trái và chu trình bằng tái sử dụng lời gọi
+  - Lời gọi tương đương theo đổi tên biến
+  - Điều kiện hữu hạn và vì sao tabling không bảo đảm kết thúc mọi chương trình
+  - Bộ nhớ của bảng và chi phí duy trì nhiều câu trả lời
+  - Dữ liệu thay đổi và yêu cầu vô hiệu hóa hoặc cập nhật bảng
+  - Giới hạn khi kết hợp tabling với cut, phủ định hoặc tác dụng phụ
+- level1: Datalog
+  level2:
+  - Datalog và mô hình suy diễn trên các quan hệ hữu hạn
+  - Quan hệ dữ liệu đầu vào và quan hệ dẫn xuất
+  - Quy tắc về biến an toàn và giới hạn của hạng thức hàm
+  - Đánh giá từ dưới lên bằng lặp đến điểm bất động
+  - Naive evaluation và semi-naive evaluation
+  - Phép nối quan hệ và truyền liên kết biến
+  - Tối ưu theo truy vấn bằng ý tưởng Magic Sets
+  - Truy vấn đệ quy trên đồ thị và dữ liệu có quan hệ
+  - Phủ định phân tầng và thứ tự đánh giá các tầng
+  - Phép tổng hợp và những điều kiện khi kết hợp với đệ quy
+  - So sánh Datalog với Prolog và truy vấn đệ quy trong SQL
+- level1: Mô hình tập trả lời
+  level2:
+  - Answer Set Programming (ASP) và cách mô tả các mô hình lời giải
+  - Ngữ nghĩa mô hình ổn định và suy luận không đơn điệu
+  - Phân biệt phủ định mặc định với phủ định tường minh
+  - 'Grounding: tạo chương trình đóng từ biến và miền dữ liệu'
+  - Sinh lựa chọn và dùng ràng buộc để loại mô hình không hợp lệ
+  - Bài toán không có, có một hoặc có nhiều tập trả lời
+  - Tối ưu và mức ưu tiên giữa các tập trả lời
+  - Phân biệt điều đúng trong một mô hình với điều đúng trong mọi mô hình
+  - Khi biểu diễn bằng ASP phù hợp hơn truy vấn suy diễn kiểu Prolog
+- level1: Các hướng mở rộng
+  level2:
+  - Constraint Handling Rules và các luật biến đổi ràng buộc
+  - Suy luận giả thuyết (abduction) từ quan sát đến lời giải thích
+  - Suy luận với mặc định và khả năng rút lại kết luận
+  - Lập trình logic xác suất và việc gắn bất định với mô hình
+  - Học logic quy nạp từ ví dụ cùng tri thức nền
+  - Lập trình logic bậc cao và các giới hạn biểu diễn được thay đổi
+  - Phân biệt các phần mở rộng bằng ngữ nghĩa, loại truy vấn và cách tính lời giải
+- level1: Trạng thái và tác dụng phụ
+  level2:
+  - Cơ sở tri thức tĩnh và dữ liệu thay đổi trong lúc chạy
+  - Thêm hoặc xóa mệnh đề bằng các thao tác cơ sở dữ liệu động
+  - Phạm vi quan sát cập nhật khi một truy vấn đang thực thi
+  - Quay lui của liên kết biến và những tác dụng phụ không được hoàn tác
+  - Đọc, ghi và thứ tự thực hiện I/O
+  - Ngoại lệ khác với thất bại logic
+  - Bảo đảm dọn dẹp tài nguyên khi thành công, thất bại hoặc bị ngắt
+  - Giữ phần quan hệ thuần riêng khỏi lớp tương tác với thế giới bên ngoài
+- level1: Mô-đun và tổ chức
+  level2:
+  - Tổ chức vị từ theo miền tri thức và trách nhiệm
+  - Định danh vị từ, không gian tên và xung đột tên
+  - Giao diện công khai và các quan hệ trợ giúp nội bộ
+  - Nạp dữ liệu, nạp mã và quản lý phụ thuộc
+  - Hợp đồng về kiểu hạng thức, chế độ gọi và số lượng nghiệm
+  - Đặt tên quan hệ thể hiện ý nghĩa thay vì thủ tục thực hiện
+  - Tài liệu hóa giả thiết thế giới đóng và các tác dụng phụ
+  - Khác biệt phương ngữ và ranh giới giữa chuẩn với phần mở rộng
+- level1: Cơ chế thực thi
+  level2:
+  - Đối chiếu mô hình suy diễn với cấu trúc bên trong một hệ Prolog
+  - Khung lời gọi, môi trường biến và điểm lựa chọn
+  - Vùng lưu hạng thức và việc chia sẻ cấu trúc
+  - 'Trail: ghi nhận liên kết cần khôi phục khi quay lui'
+  - Lập chỉ mục mệnh đề để giảm số lựa chọn phải thử
+  - Tối ưu lời gọi cuối và các điều kiện thực thi liên quan
+  - Thu gom rác và vòng đời dữ liệu trong quá trình tìm kiếm
+  - Ảnh hưởng của giữ điểm lựa chọn đến bộ nhớ và khả năng thu hồi
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử thành công, thất bại và phép thế trả về
+  - So sánh tập nghiệm thay vì chỉ kiểm tra nghiệm đầu tiên
+  - Kiểm tra nghiệm trùng và thứ tự kết quả khi hợp đồng có yêu cầu
+  - Kiểm thử nhiều chế độ gọi của cùng một quan hệ
+  - Kiểm thử trên dữ liệu rỗng, biến chưa xác định và cấu trúc có chu trình
+  - Giới hạn tài nguyên để phát hiện truy vấn không kết thúc
+  - Đối chiếu bài toán nhỏ với cách liệt kê độc lập
+  - Kiểm thử thuộc tính, tính đối xứng và các quan hệ tương đương
+  - Kiểm tra riêng tác dụng phụ, ngoại lệ và dọn dẹp tài nguyên
+  - Giữ các truy vấn hồi quy cho những lỗi suy diễn đã gặp
+- level1: Gỡ lỗi và quan sát
+  level2:
+  - Theo dõi các cổng call, exit, redo và fail trong trình gỡ lỗi
+  - Đọc liên kết biến và mục tiêu còn lại trên từng nhánh
+  - Điểm dừng và giới hạn phạm vi truy vết
+  - Chẩn đoán truy vấn thất bại do hợp nhất hoặc dữ liệu thiếu
+  - Chẩn đoán kết quả sai do biến không được chia sẻ đúng
+  - Chẩn đoán vòng lặp do thứ tự mục tiêu hoặc định nghĩa đệ quy
+  - Phát hiện tập nghiệm bị thay đổi bởi cut và điều kiện thủ tục
+  - Đọc thống kê suy diễn, điểm lựa chọn và bộ nhớ
+  - Thu nhỏ chương trình để tạo truy vấn lỗi có thể tái hiện
+- level1: Hiệu năng
+  level2:
+  - Đo chi phí suy diễn, thời gian và lượng bộ nhớ sử dụng
+  - Đưa điều kiện có tính chọn lọc vào vị trí thực thi phù hợp
+  - Chọn biểu diễn dữ liệu để hỗ trợ lập chỉ mục
+  - Giảm điểm lựa chọn thừa mà vẫn giữ đúng tập nghiệm
+  - Đánh đổi giữa tính quan hệ tổng quát và cách gọi được tối ưu
+  - Tránh dựng hạng thức và nối danh sách lặp lại không cần thiết
+  - Lựa chọn đệ quy, biến tích lũy hoặc tabling theo bài toán
+  - Kiểm soát kích thước phép nối và tập kết quả trung gian
+  - Ảnh hưởng của grounding, miền biến và ràng buộc trong các hệ mở rộng
+  - Benchmark trên nhiều mẫu truy vấn và dữ liệu đại diện
+- level1: Tích hợp ứng dụng
+  level2:
+  - Tách cơ sở tri thức, lớp suy diễn và giao diện ứng dụng
+  - Chuyển dữ liệu có cấu trúc thành hạng thức và quan hệ
+  - Chọn cơ chế nhúng bộ máy logic hoặc gọi dịch vụ suy diễn
+  - Trao đổi dữ liệu với Java và các ngôn ngữ chủ khác
+  - Trả nhiều nghiệm dưới dạng luồng và điều kiện dừng nhận kết quả
+  - Giới hạn thời gian, bộ nhớ và khả năng hủy truy vấn
+  - Kiểm soát mục tiêu truy vấn được phép thực thi từ dữ liệu bên ngoài
+  - Quản lý phiên truy vấn, dữ liệu động và tài nguyên dùng chung
+  - Theo dõi phiên bản tri thức và giải thích kết quả cho người sử dụng
+- level1: Ứng dụng tiêu biểu
+  level2:
+  - Cơ sở dữ liệu suy diễn và truy vấn quan hệ đệ quy
+  - Phân tích đồ thị, phụ thuộc và khả năng đi tới
+  - Phân tích tĩnh và suy luận thuộc tính của chương trình
+  - Phân tích văn phạm và xử lý cấu trúc ký hiệu
+  - Mô hình hóa chính sách và phát hiện xung đột điều kiện
+  - Lập kế hoạch và lựa chọn hành động thỏa mục tiêu
+  - Chẩn đoán dựa trên tri thức và giải thích suy luận
+  - Kết hợp dữ liệu quan hệ với các quy tắc nghiệp vụ có ngữ nghĩa rõ ràng
+- level1: Thực hành tổng hợp
+  level2:
+  - 'Quan hệ gia đình: nhiều chiều truy vấn và kiểm tra tập nghiệm'
+  - 'Đồ thị có chu trình: tìm đường đi và so sánh cách kiểm soát đệ quy'
+  - 'Danh sách: xây dựng quan hệ nối, đảo và hoán vị'
+  - 'Ngôn ngữ biểu thức nhỏ: DCG, cây cú pháp và kiểm tra cấu trúc'
+  - Bài toán chữ số hoặc N quân hậu bằng ràng buộc miền hữu hạn
+  - Phân tích phụ thuộc bằng các luật Datalog
+  - Bài toán lựa chọn có điều kiện bằng mô hình tập trả lời
+  - Tích hợp một chức năng suy diễn vào ứng dụng có giao diện truy vấn
+  - 'Hồ sơ hoàn chỉnh: tri thức, ngữ nghĩa, kiểm thử và đo hiệu năng'
+- level1: Lựa chọn mô hình
+  level2:
+  - Nhận diện phần bài toán nên biểu diễn bằng quan hệ và luật
+  - Khi cách xử lý mệnh lệnh hoặc truy vấn dữ liệu thông thường đã đủ
+  - Chọn Prolog, Datalog, CLP hoặc ASP theo loại câu hỏi cần trả lời
+  - Xác định ngữ nghĩa phủ định và giả thiết về độ đầy đủ của dữ liệu
+  - Cân bằng khả năng giải thích với chi phí suy diễn
+  - Đánh giá khả năng kết thúc và giới hạn tài nguyên trước khi vận hành
+  - Rà soát sự phụ thuộc vào thứ tự mục tiêu và tác dụng phụ
+  - Kiểm tra lại tập nghiệm khi tối ưu hoặc thay đổi mô hình thực thi

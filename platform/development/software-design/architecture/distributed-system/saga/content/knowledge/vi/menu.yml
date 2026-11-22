@@ -1,0 +1,322 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Saga là gì: phối hợp nhiều giao dịch cục bộ thành một quy trình nghiệp vụ'
+  - Vì sao một nghiệp vụ có thể trải qua nhiều dịch vụ và cơ sở dữ liệu
+  - 'Từ vựng cốt lõi: bên tham gia (participant), giao dịch cục bộ, bù trừ và bộ điều phối'
+  - Phân biệt thành công từng bước với thành công của toàn bộ Saga
+  - 'Bức tranh tổng thể: thực hiện tiến, xử lý lỗi và bù trừ'
+  - Lợi ích, chi phí và giới hạn của việc áp dụng Saga
+  - Lộ trình học và kiến thức giao dịch, thông điệp cần có trước
+- level1: Nền tảng giao dịch
+  level2:
+  - Ranh giới ACID của một giao dịch cục bộ
+  - Vì sao một giao dịch cơ sở dữ liệu không tự bao phủ nhiều dịch vụ độc lập
+  - Phân biệt giao dịch phân tán, quy trình dài hạn và chuỗi lời gọi dịch vụ
+  - 'Saga và Two-Phase Commit: cách phối hợp, mức bảo đảm và đánh đổi'
+  - Tính nhất quán cuối cùng và khoảng thời gian dữ liệu chưa đồng nhất
+  - Thiếu cô lập toàn cục và tác động của các bước đã được commit
+  - Điều kiện hội tụ và giới hạn của việc tự động khôi phục nhất quán
+  - Khi nên giữ nghiệp vụ trong một giao dịch thay vì chia thành Saga
+- level1: Mô hình nghiệp vụ
+  level2:
+  - Xác định mục tiêu, ranh giới và chủ sở hữu của một Saga
+  - 'Ví dụ xuyên suốt: đặt hàng, giữ tồn kho, thanh toán và giao vận'
+  - Xác định bất biến nghiệp vụ trước khi chia các bước xử lý
+  - Chia participant theo quyền sở hữu dữ liệu và trách nhiệm nghiệp vụ
+  - Định nghĩa điều kiện thành công và thất bại của từng bước
+  - Tách trạng thái nghiệp vụ khỏi trạng thái vận chuyển thông điệp
+  - Phân biệt kết quả tạm thời, kết quả cuối cùng và kết quả chưa xác định
+  - Xác định kỳ vọng của người dùng trong thời gian quy trình chưa hoàn tất
+- level1: Vòng đời Saga
+  level2:
+  - Mô hình trạng thái cho khởi tạo, đang chạy, hoàn tất, bù trừ và chờ xử lý
+  - Điều kiện chuyển trạng thái và các bất biến cần bảo vệ
+  - Nhận diện Saga, bước xử lý và từng lần thực thi
+  - Luồng thành công từ yêu cầu đầu tiên đến trạng thái cuối
+  - Luồng thất bại sau khi một hoặc nhiều bước đã commit
+  - Luồng bù trừ hoàn tất và bù trừ chưa thể hoàn tất
+  - Phân biệt tạm dừng, hết hạn, hủy yêu cầu và kết thúc thất bại
+  - Sơ đồ trạng thái, sơ đồ trình tự và bảng chuyển trạng thái
+- level1: Choreography
+  level2:
+  - Phối hợp Saga bằng sự kiện và phản ứng của từng participant
+  - Phân biệt sự kiện nghiệp vụ đã xảy ra với yêu cầu thực hiện công việc
+  - Thiết kế chuỗi sự kiện cho luồng đặt hàng thành công
+  - Lan truyền thất bại và kích hoạt bù trừ trong mô hình phân tán
+  - Theo dõi tiến độ khi không có bộ điều phối trung tâm
+  - Quyền sở hữu hợp đồng sự kiện và phụ thuộc giữa các dịch vụ
+  - Phát hiện vòng lặp sự kiện, quan hệ ngầm và chuỗi phản ứng khó kiểm soát
+  - Điều kiện phù hợp và giới hạn khi số bước, nhánh xử lý tăng lên
+- level1: Orchestration
+  level2:
+  - Vai trò bộ điều phối trong việc quyết định bước kế tiếp
+  - Phân biệt bộ điều phối quy trình với dịch vụ sở hữu nghiệp vụ
+  - Thiết kế command, reply và phản hồi thất bại giữa các participant
+  - Điều phối luồng thành công bằng máy trạng thái
+  - Điều phối bù trừ theo kết quả đã được xác nhận
+  - Lưu trạng thái điều phối để tiếp tục sau khi tiến trình khởi động lại
+  - Triển khai nhiều thể hiện bộ điều phối mà vẫn bảo vệ quyền xử lý
+  - Lợi ích quan sát tập trung và rủi ro phụ thuộc quá mức vào coordinator
+- level1: Lựa chọn điều phối
+  level2:
+  - So sánh choreography và orchestration theo độ rõ ràng của luồng nghiệp vụ
+  - So sánh mức phụ thuộc, quyền sở hữu và khả năng triển khai độc lập
+  - So sánh xử lý lỗi, kiểm thử và khả năng truy tìm nguyên nhân
+  - Ảnh hưởng của số bước, số nhánh và thời gian sống của quy trình
+  - Kết hợp sự kiện với điều phối trong một kiến trúc có ranh giới rõ ràng
+  - Chuyển từ choreography sang orchestration khi quy trình trở nên phức tạp
+  - Ghi lại quyết định kiến trúc và tiêu chí xem xét lại lựa chọn
+- level1: Bù trừ
+  level2:
+  - Bù trừ là một giao dịch nghiệp vụ mới, không phải rollback cơ sở dữ liệu từ xa
+  - Xác định thao tác bù trừ cho từng bước có tác dụng phụ
+  - Phân biệt hoàn tác kỹ thuật với khôi phục trạng thái nghiệp vụ chấp nhận được
+  - Bù trừ theo thứ tự phụ thuộc thay vì mặc định đảo ngược mọi bước
+  - Bảo vệ thay đổi hợp lệ phát sinh sau giao dịch ban đầu
+  - Thiết kế bù trừ có thể lặp lại an toàn và có thể tiếp tục sau lỗi
+  - Dữ liệu cần lưu để thực hiện và kiểm chứng bù trừ
+  - Xử lý trường hợp bù trừ thất bại, thành công một phần hoặc chưa rõ kết quả
+  - Giới hạn bù trừ với thông báo đã gửi hoặc tác động ngoài hệ thống
+- level1: Điểm không quay lại
+  level2:
+  - Phân loại bước có thể bù trừ, bước then chốt và bước tiếp tục bằng thử lại
+  - Xác định điểm không quay lại theo ý nghĩa nghiệp vụ
+  - Sắp xếp thao tác khó đảo ngược sau các bước có khả năng thất bại cao
+  - Phân biệt giữ chỗ với xác nhận cuối cùng trong tồn kho và thanh toán
+  - Khôi phục tiến sau điểm then chốt và điều kiện áp dụng
+  - Hủy yêu cầu đến trước, trong và sau điểm không quay lại
+  - Trường hợp nghiệp vụ không thể bảo đảm tự động bù trừ hoàn toàn
+- level1: Hợp đồng thông điệp
+  level2:
+  - Thiết kế nội dung command, event và reply theo mục đích sử dụng
+  - Phân biệt sagaId, stepId, messageId, correlationId, causationId và idempotency key
+  - Mang theo phiên bản hợp đồng và dữ liệu ngữ cảnh cần thiết
+  - Quy định kết quả thành công, lỗi nghiệp vụ, lỗi kỹ thuật và kết quả chưa xác định
+  - Thiết kế hợp đồng bù trừ và tham chiếu đến thao tác gốc
+  - Kiểm tra tính hợp lệ của thông điệp trước khi tạo tác dụng phụ
+  - Giữ thông điệp đủ dùng nhưng không sao chép toàn bộ mô hình nội bộ
+  - Quy định thời hạn, nguồn phát và ý nghĩa dấu thời gian
+  - Quản lý tương thích khi producer và consumer nâng cấp khác thời điểm
+- level1: Trạng thái bền vững
+  level2:
+  - Thiết kế nơi lưu Saga, bước, kết quả và lịch sử chuyển trạng thái
+  - Phân biệt trạng thái hiện tại với nhật ký phục vụ kiểm toán
+  - Ghi nhận kết quả participant trong cùng ranh giới giao dịch phù hợp
+  - Bảo vệ cập nhật trạng thái bằng kiểm tra phiên bản và ràng buộc duy nhất
+  - Lưu thời điểm cần xử lý tiếp thay vì giữ tiến trình chờ trong bộ nhớ
+  - Khôi phục Saga đang chạy khi dịch vụ dừng hoặc khởi động lại
+  - Quản lý thời hạn lưu, lưu trữ dài hạn và xóa dữ liệu an toàn
+  - Tránh đồng nhất việc lưu trạng thái Saga với yêu cầu phải dùng event sourcing
+- level1: Giao nhận tin cậy
+  level2:
+  - Bài toán ghi cơ sở dữ liệu và phát thông điệp không thể commit cùng nhau theo cách đơn giản
+  - Transactional Outbox tại ranh giới participant hoặc bộ điều phối
+  - Chuyển tiếp outbox bằng polling hoặc CDC và phạm vi trách nhiệm
+  - Xử lý cửa sổ lỗi sau khi phát thông điệp nhưng trước khi đánh dấu đã gửi
+  - Inbox và xử lý thông điệp trùng trong ranh giới giao dịch cục bộ
+  - Thời điểm xác nhận thông điệp sau khi thay đổi đã được lưu bền vững
+  - Phân biệt bảo đảm giao nhận ít nhất một lần với hiệu ứng nghiệp vụ đúng một lần
+  - Giới hạn của lời hứa exactly-once khi có nhiều hệ thống và tác dụng phụ bên ngoài
+  - 'Phân định Saga với Outbox: phối hợp nghiệp vụ và chuyển giao thông điệp tin cậy'
+- level1: Tính lặp lại an toàn
+  level2:
+  - Idempotency là gì và vì sao cả bước tiến lẫn bước bù trừ đều cần
+  - Thiết kế khóa chống lặp ổn định cho một thao tác nghiệp vụ
+  - Phân biệt thử lại cùng thao tác với một yêu cầu nghiệp vụ mới
+  - Lưu trạng thái và kết quả xử lý để trả lại khi yêu cầu bị gửi lại
+  - Kết hợp ràng buộc duy nhất với cập nhật dữ liệu trong một giao dịch
+  - Xử lý hai bản sao thông điệp đến đồng thời
+  - Đối chiếu nội dung khi cùng khóa nhưng tham số yêu cầu khác nhau
+  - Thời hạn lưu khóa, cửa sổ gửi lại và rủi ro khi xóa dấu vết quá sớm
+  - Giới hạn chống lặp khi gọi nhà cung cấp bên ngoài không hỗ trợ khóa tương ứng
+- level1: Thứ tự và tương quan
+  level2:
+  - Liên kết phản hồi với đúng Saga, bước và lần thực thi
+  - Phản hồi trùng, phản hồi muộn và phản hồi không còn phù hợp với trạng thái hiện tại
+  - Thông điệp đến sai thứ tự và điều kiện chấp nhận từng sự kiện
+  - Phân vùng thông điệp theo khóa và giới hạn của bảo đảm thứ tự
+  - Phân biệt thứ tự của một thực thể với thứ tự của toàn bộ Saga
+  - Quản lý phiên bản hoặc số thứ tự để ngăn kết quả cũ ghi đè kết quả mới
+  - Tránh tạo lại tác dụng phụ khi phát lại thông điệp hoặc lịch sử xử lý
+  - Xử lý phản hồi thành công đến sau khi đã bắt đầu hủy hoặc bù trừ
+- level1: Đồng thời và cô lập
+  level2:
+  - Các Saga xen kẽ trên cùng thực thể và nguy cơ phá vỡ bất biến
+  - Nhận diện dữ liệu chưa ổn định mà quy trình khác có thể quan sát
+  - Khóa ngữ nghĩa bằng trạng thái nghiệp vụ như chờ xác nhận hoặc đang hủy
+  - Giữ chỗ, hạn mức và các kỹ thuật bảo vệ tài nguyên khan hiếm
+  - Khóa lạc quan, kiểm tra phiên bản và xử lý xung đột cập nhật
+  - Tránh giữ khóa cơ sở dữ liệu xuyên suốt toàn bộ Saga
+  - Thao tác giao hoán và thiết kế cập nhật giảm phụ thuộc thứ tự
+  - Kiểm tra lại điều kiện trước thao tác quan trọng hoặc trước bù trừ
+  - Giới hạn của các biện pháp cô lập và bất biến cần bảo vệ tại từng participant
+- level1: Lỗi và timeout
+  level2:
+  - Phân loại lỗi nghiệp vụ, lỗi tạm thời, lỗi lâu dài và lỗi giao thức
+  - Phân biệt từ chối chắc chắn với timeout chưa biết kết quả
+  - Cửa sổ lỗi trước commit, sau commit và trước khi phản hồi được nhận
+  - Thiết kế timeout từng lời gọi, từng bước và toàn bộ quy trình
+  - Dùng hạn chót chung và thời gian còn lại khi lập kế hoạch bước tiếp theo
+  - Thăm dò hoặc đối soát trạng thái trước khi kết luận một thao tác đã thất bại
+  - Ngăn timeout và phản hồi thành công cạnh tranh làm chuyển trạng thái sai
+  - Lỗi do phụ thuộc không khả dụng và tác động đến luồng bù trừ
+  - Xử lý thông điệp không thể đọc, dữ liệu hỏng và lỗi không thể tự khôi phục
+- level1: Retry và phục hồi
+  level2:
+  - Xác định lỗi nào được thử lại và lỗi nào cần quyết định nghiệp vụ khác
+  - Thử lại với khoảng chờ tăng dần, độ lệch ngẫu nhiên và giới hạn phù hợp
+  - Ngân sách thử lại để tránh khuếch đại tải giữa nhiều lớp dịch vụ
+  - Lưu lịch thử lại và tiếp tục xử lý sau khi tiến trình bị dừng
+  - Circuit breaker, bulkhead và giới hạn lưu lượng trong phạm vi participant
+  - 'Khôi phục tiến và khôi phục bằng bù trừ: chọn theo trạng thái đã xác nhận'
+  - Dead-letter queue và quy trình phân loại, sửa lỗi, phát lại có kiểm soát
+  - Tác vụ đối soát để phát hiện Saga bị kẹt hoặc thiếu phản hồi
+  - Phối hợp nhiều worker phục hồi bằng quyền sở hữu có thời hạn và kiểm soát phiên bản
+- level1: Nhánh và song song
+  level2:
+  - Biểu diễn quy trình có điều kiện thay vì chỉ một chuỗi tuyến tính
+  - Chạy song song các bước độc lập và xác định điều kiện hội tụ
+  - Tổng hợp kết quả khi một số nhánh thành công còn nhánh khác thất bại
+  - Xác định thứ tự bù trừ theo đồ thị phụ thuộc
+  - Hủy nhánh còn chạy và xử lý kết quả đến sau khi đã hủy
+  - Giới hạn số nhánh, thời gian chờ và mức tiêu thụ tài nguyên
+  - Chia quy trình lớn thành Saga con và làm rõ trách nhiệm bù trừ
+  - Tránh biến cấu trúc lồng nhau thành một giao dịch phân tán ngầm
+- level1: Cài đặt Java
+  level2:
+  - Mô hình hóa định danh, trạng thái, command và kết quả bằng kiểu dữ liệu rõ ràng
+  - Tách bộ chuyển trạng thái khỏi mã truy cập cơ sở dữ liệu và gửi thông điệp
+  - Cài đặt participant cho các bước đặt hàng, tồn kho và thanh toán mẫu
+  - Cài đặt thao tác bù trừ gắn với kết quả nghiệp vụ gốc
+  - Cài đặt kho trạng thái, khóa chống lặp và kiểm tra phiên bản
+  - Truyền thời gian và lịch thử lại qua thành phần có thể kiểm thử
+  - Phân loại ngoại lệ để giữ nguyên ý nghĩa lỗi nghiệp vụ và lỗi kỹ thuật
+  - Thiết kế bộ xử lý phục hồi sau khởi động lại thay vì chỉ nối lời gọi trong bộ nhớ
+  - Tổ chức mã theo ranh giới nghiệp vụ và tránh dùng chung mô hình nội bộ giữa dịch vụ
+- level1: Tích hợp Spring
+  level2:
+  - Ranh giới @Transactional tại một participant hoặc một lần chuyển trạng thái cục bộ
+  - Phân biệt rollback cục bộ với kích hoạt bù trừ cho các bước đã commit
+  - Lưu dữ liệu nghiệp vụ và outbox trong cùng giao dịch cục bộ
+  - Giới hạn của phát sự kiện sau commit khi chưa có cơ chế giao nhận bền vững
+  - Thiết kế listener xử lý inbox, nghiệp vụ và xác nhận thông điệp
+  - Tách lời gọi mạng khỏi khoảng giữ khóa và giao dịch cơ sở dữ liệu không cần thiết
+  - Cấu hình worker, scheduler và khởi động lại mà không làm mất lịch xử lý
+  - Kiểm soát tác dụng của proxy và lời gọi nội bộ lên ranh giới giao dịch
+  - Xây dựng môi trường thực hành với cơ sở dữ liệu riêng và hệ thống truyền tin
+- level1: Quan sát vận hành
+  level2:
+  - Liên kết log, trace và metric bằng định danh Saga và bước xử lý
+  - Đo thời gian hoàn tất, tỷ lệ bù trừ và số Saga đang chờ
+  - Phát hiện tuổi trạng thái bất thường, tồn đọng thông điệp và retry kéo dài
+  - Theo dõi tiến độ từng participant và chuỗi phụ thuộc gây chậm
+  - Phân biệt thất bại nghiệp vụ dự kiến với lỗi hạ tầng cần cảnh báo
+  - Thiết kế màn hình tiến độ và lịch sử quyết định cho người vận hành
+  - Chọn mục tiêu dịch vụ cho cả tiếp nhận yêu cầu và hoàn tất nghiệp vụ
+  - Giữ khả năng truy vết trong khi kiểm soát dữ liệu nhạy cảm và chi phí lưu trữ
+- level1: Can thiệp thủ công
+  level2:
+  - Xác định trạng thái nào cần người vận hành hoặc người dùng quyết định
+  - Đối soát dữ liệu giữa Saga, participant và nhà cung cấp bên ngoài
+  - Quy trình thử lại, bù trừ, bỏ qua hoặc kết thúc có điều kiện
+  - Kiểm tra điều kiện hiện tại trước khi thực hiện lệnh can thiệp
+  - Chống lặp và ghi nhật ký cho cả thao tác vận hành thủ công
+  - Phân quyền phê duyệt đối với quyết định nghiệp vụ quan trọng
+  - Thông báo trạng thái cho người dùng khi xử lý tự động không thể hoàn tất
+  - Xây dựng hướng dẫn xử lý sự cố cho các trạng thái bị kẹt điển hình
+- level1: Bảo mật
+  level2:
+  - Xác thực nguồn thông điệp và quyền thực hiện từng command
+  - Phân biệt danh tính người khởi tạo với quyền của dịch vụ thực hiện bước sau
+  - Bảo vệ định danh Saga để không làm lộ trạng thái của người dùng khác
+  - Giảm dữ liệu cá nhân và thông tin bí mật trong payload, log và lịch sử
+  - Ngăn phát lại trái phép bằng hợp đồng định danh, thời hạn và chống lặp
+  - Áp dụng quyền tối thiểu cho kho trạng thái, outbox, inbox và hệ thống truyền tin
+  - Quản lý dữ liệu kiểm toán, thời hạn lưu và yêu cầu xóa dữ liệu
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử bảng chuyển trạng thái và bất biến nghiệp vụ
+  - Kiểm thử hợp đồng command, event, reply và phiên bản thông điệp
+  - Kiểm thử participant với giao dịch cục bộ và thao tác bù trừ
+  - Kiểm thử thông điệp trùng, sai thứ tự và phản hồi muộn
+  - Kiểm thử timeout khi thao tác bên ngoài thực tế đã thành công
+  - Tiêm lỗi trước commit, sau commit và giữa phát thông điệp với xác nhận
+  - Kiểm thử nhiều worker xử lý cùng bước hoặc cùng khóa chống lặp
+  - Kiểm thử bù trừ thất bại rồi phục hồi sau khởi động lại
+  - Kiểm thử bất biến khi nhiều Saga cùng tác động một tài nguyên
+  - Kiểm thử bằng mô hình và dữ liệu sinh tự động để khám phá chuỗi lỗi
+  - Kiểm thử tích hợp với cơ sở dữ liệu và broker thực bằng môi trường cô lập
+  - Kiểm thử đầu cuối theo kết quả cuối cùng với giới hạn chờ rõ ràng
+- level1: Hiệu năng
+  level2:
+  - Phân tích độ trễ toàn Saga theo bước tuần tự, bước song song và thời gian chờ
+  - Xác định nút nghẽn tại kho trạng thái, participant hoặc hệ thống truyền tin
+  - Giới hạn số Saga đang chạy và điều tiết tốc độ nhận việc
+  - Phân vùng xử lý theo định danh hoặc thực thể nghiệp vụ để giảm tranh chấp
+  - Đánh đổi giữa kích thước batch, tốc độ chuyển tiếp outbox và độ trễ
+  - Kiểm soát tăng trưởng lịch sử, inbox và khóa chống lặp
+  - Đo tải trong tình huống lỗi và bão thử lại thay vì chỉ đo luồng thành công
+  - Lập kế hoạch dung lượng cho backlog và quá trình phục hồi sau gián đoạn
+- level1: Tiến hóa quy trình
+  level2:
+  - Gắn phiên bản quy trình để Saga đang chạy tiếp tục có cách diễn giải ổn định
+  - Thêm, bỏ hoặc đổi thứ tự bước và ảnh hưởng đến dữ liệu đã xử lý
+  - Duy trì tương thích hợp đồng giữa các participant được triển khai độc lập
+  - Thay đổi chính sách bù trừ mà không làm mất khả năng xử lý Saga cũ
+  - Triển khai cuốn chiếu và phối hợp nhiều phiên bản bộ điều phối
+  - Di chuyển trạng thái đang chạy khi thay thế nơi lưu hoặc công cụ điều phối
+  - Đặt chính sách kết thúc, di chuyển hoặc giữ phiên bản cho quy trình tồn tại dài hạn
+  - Kiểm thử nâng cấp, hạ cấp và phát lại thông điệp lịch sử
+- level1: Mẫu liên quan
+  level2:
+  - 'Saga và Process Manager: phối hợp nghiệp vụ với quản lý tiến độ dài hạn'
+  - 'Saga và máy trạng thái: quan hệ giữa mô hình điều khiển và cách triển khai'
+  - 'Saga và CQRS: tách mô hình đọc với trạng thái xử lý nghiệp vụ'
+  - 'Saga và event sourcing: lịch sử sự kiện không tự thay thế bù trừ'
+  - 'Saga, Outbox và Inbox: ba trách nhiệm bổ trợ khác nhau'
+  - 'Saga và TCC: giữ tài nguyên, xác nhận và hủy theo hợp đồng nghiệp vụ'
+  - 'Saga và workflow engine: phân biệt mẫu kiến trúc với công cụ thực thi bền vững'
+  - 'Saga và chuỗi lời gọi đồng bộ: ranh giới xử lý lỗi và phục hồi'
+- level1: Bẫy thường gặp
+  level2:
+  - Xem Saga như một giao dịch ACID bao phủ tất cả dịch vụ
+  - Đồng nhất bù trừ với việc ghi lại nguyên trạng dữ liệu cũ
+  - Coi timeout là thất bại chắc chắn và bỏ sót tác động nghiệp vụ đã xảy ra
+  - Chỉ lưu tiến độ trong bộ nhớ hoặc chỉ nối các CompletableFuture
+  - Giả định hệ thống truyền tin sẽ loại bỏ mọi bản sao và mọi trường hợp sai thứ tự
+  - Thử lại vô hạn mà thiếu giới hạn tải, quan sát và đường can thiệp
+  - Để bộ điều phối chứa toàn bộ nghiệp vụ của các participant
+  - Phát sự kiện trước khi giao dịch commit hoặc đánh mất sự kiện sau commit
+  - Thiết kế được bước tiến nhưng chưa có hợp đồng bù trừ và đối soát
+  - Chia dịch vụ quá sớm rồi dùng Saga để che giấu ranh giới nghiệp vụ không hợp lý
+- level1: Bài toán thực tế
+  level2:
+  - Đặt hàng với giữ tồn kho, ủy quyền thanh toán và xác nhận cuối
+  - Hủy đơn khi tồn kho đã giữ nhưng thanh toán chưa rõ kết quả
+  - Hoàn tiền hoặc giải phóng giữ chỗ theo trạng thái nghiệp vụ thực tế
+  - Đặt nhiều tài nguyên với thành công một phần và bù trừ theo phụ thuộc
+  - Cấp phát tài nguyên số có bước khởi tạo, xác nhận và thu hồi
+  - Quy trình có phê duyệt của con người và thời gian chờ dài
+  - Đối chiếu hai thiết kế choreography và orchestration cho cùng nghiệp vụ
+- level1: Thực hành
+  level2:
+  - Mô hình hóa Saga đặt hàng bằng bảng bước, trạng thái và bất biến
+  - Xây dựng phiên bản orchestration có lưu trạng thái bền vững
+  - Xây dựng phiên bản choreography với hợp đồng sự kiện rõ ràng
+  - Bổ sung outbox, inbox và khóa chống lặp cho một participant
+  - Thiết kế bù trừ giữ tồn kho và kiểm thử dữ liệu thay đổi xen kẽ
+  - Mô phỏng phản hồi muộn sau timeout và quyết định tiếp tục hoặc bù trừ
+  - Làm dừng tiến trình ở từng cửa sổ lỗi rồi kiểm tra khả năng phục hồi
+  - Chạy nhiều Saga tranh chấp cùng tài nguyên và kiểm tra bất biến
+  - Xây dựng truy vấn tìm Saga bị kẹt và lệnh can thiệp có kiểm toán
+  - Viết báo cáo đánh đổi về độ phức tạp, độ trễ và bảo đảm nhất quán
+- level1: Tiêu chí lựa chọn
+  level2:
+  - Kiểm tra nghiệp vụ có thực sự vượt ranh giới giao dịch cục bộ
+  - Kiểm tra từng tác dụng phụ có cách bù trừ, xác nhận hoặc đối soát phù hợp
+  - Đánh giá mức nhất quán và thời gian chờ mà người dùng chấp nhận
+  - Chọn mô hình điều phối theo độ phức tạp và quyền sở hữu nghiệp vụ
+  - Rà soát hợp đồng thông điệp, lưu trạng thái và khả năng phục hồi trước khi triển khai
+  - Đánh giá năng lực kiểm thử, quan sát và xử lý sự cố của đội vận hành
+  - Tổng hợp trường hợp phù hợp, trường hợp nên tránh và dấu hiệu cần đổi thiết kế

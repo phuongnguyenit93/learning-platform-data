@@ -1,0 +1,67 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Bài toán bộ nhớ
+  slug: memory-problem
+  index: 1
+- title: Phân tách trạng thái
+  slug: state-separation
+  index: 2
+- title: Cấu trúc mẫu
+  slug: pattern-structure
+  index: 3
+- title: Luồng hoạt động
+  slug: execution-flow
+  index: 4
+- title: Thiết kế khóa
+  slug: key-design
+  index: 5
+- title: Bất biến và đóng gói
+  slug: immutability-and-encapsulation
+  index: 6
+- title: Đối tượng ngữ cảnh
+  slug: context-objects
+  index: 7
+- title: Factory và kho chia sẻ
+  slug: factory-and-shared-pool
+  index: 8
+- title: Triển khai Java
+  slug: java-implementation
+  index: 9
+- title: Thực thi đồng thời
+  slug: concurrent-execution
+  index: 10
+- title: Vòng đời bộ nhớ
+  slug: memory-lifecycle
+  index: 11
+- title: Mô hình chi phí
+  slug: cost-model
+  index: 12
+- title: Đo lường hiệu quả
+  slug: effectiveness-metrics
+  index: 13
+- title: Tình huống áp dụng
+  slug: application-scenarios
+  index: 14
+- title: Tính đúng và phạm vi
+  slug: correctness-and-scope
+  index: 15
+- title: Phân biệt các cách chia sẻ
+  slug: sharing-approaches
+  index: 16
+- title: Kết hợp mẫu
+  slug: pattern-composition
+  index: 17
+- title: Áp dụng vào mã hiện hữu
+  slug: legacy-integration
+  index: 18
+- title: Kiểm thử
+  slug: testing
+  index: 19
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 20
+- title: Bài thực hành
+  slug: hands-on-exercises
+  index: 21

@@ -1,0 +1,235 @@
+menu:
+- level1: Thinking in OOP
+  level2:
+  - What Is OOP, and How Does It Help Organize Programs?
+  - Objects, State, Behavior, and Responsibility
+  - 'Classes, Types, and Instances: Foundational Concepts'
+  - Object Interactions and Method Calls
+  - Encapsulation, Abstraction, Inheritance, and Polymorphism
+  - 'OOP and Procedural Programming: Decomposing a Problem'
+  - Class-Based OOP and Prototype-Based OOP
+  - When to Use OOP and When to Avoid It
+- level1: Classes
+  level2:
+  - 'Class Structure: Fields and Methods'
+  - Declaring Classes and Creating Instances
+  - Instance Members and Shared Members
+  - Member Access Levels
+  - Method Parameters, Return Values, and Side Effects
+  - Read-Only and Mutable Members
+  - Referencing the Current Object
+  - Designing a Class with a Bank Account Example
+- level1: Objects
+  level2:
+  - Object Identity, State, and Behavior
+  - References, Values, and Passing Objects
+  - Multiple References to the Same Object
+  - Object Identity vs. Value Equality
+  - Mutable and Immutable Objects
+  - Shallow Copying and Deep Copying
+  - Object Sharing and the Effects of State Changes
+  - Null Values and Missing Objects
+  - Tracing Object Interactions in a Scenario
+- level1: Object Lifecycle
+  level2:
+  - Object Creation and Resource Allocation
+  - Constructors and Establishing Valid State
+  - Default, Parameterized, and Overloaded Constructors
+  - Initialization Order in Inheritance
+  - Static Factory Methods, Factories, and Builders
+  - Object Lifetime, Reachability, and Memory Reclamation
+  - Garbage Collection and Manual Memory Management
+  - Resource Cleanup and the Limits of Finalizers
+  - Preventing Use of Partially Initialized Objects
+- level1: Encapsulation
+  level2:
+  - Information Hiding and Object Boundaries
+  - Object Invariants
+  - Controlling Access and State Changes
+  - Getters, Setters, and Intention-Revealing Methods
+  - Input Validation at Object Boundaries
+  - Preventing Exposure of Mutable Internal Data
+  - Defensive Copying and Immutable Representations
+  - Encapsulating Behavior Instead of Merely Wrapping Data
+  - Examples of Protecting Balances and Order States
+- level1: Abstraction
+  level2:
+  - Abstraction and Selecting Essential Characteristics
+  - Distinguishing Abstraction from Encapsulation
+  - Usage Contracts and Implementation Details
+  - Preconditions, Postconditions, and Behavioral Guarantees
+  - Abstract Classes and Abstract Methods
+  - Distinguishing Concrete Classes from Abstract Classes
+  - Choosing the Right Level of Abstraction
+  - Implementation Details Leaking Through a Public Interface
+- level1: Interfaces
+  level2:
+  - Interfaces as Contracts and Roles
+  - Declaring and Implementing Interfaces
+  - Programming to Interfaces
+  - One Object Implementing Multiple Interfaces
+  - Choosing Between Interfaces and Abstract Classes
+  - Small Interfaces and Role Segregation
+  - Default Members and Language-Specific Limitations
+  - Replacing Implementations While Preserving Contracts
+  - Designing Payment or Persistence Interfaces
+- level1: Inheritance
+  level2:
+  - Superclasses, Subclasses, and Inheritance Relationships
+  - Inheriting State and Behavior
+  - Extending Superclass Behavior
+  - Method Overriding and Invoking Superclass Behavior
+  - Access to Inherited Members
+  - Subclass Initialization and Superclass Constructor Chaining
+  - Non-Overridable Members and Non-Inheritable Classes
+  - Single Inheritance, Multiple Inheritance, and Behavior Conflicts
+  - Mixins, Traits, and Language-Specific Behavior Reuse
+  - Limits and Costs of Deep Inheritance Hierarchies
+- level1: Subtyping
+  level2:
+  - Distinguishing Code Inheritance from Subtyping
+  - Is-A Relationships and Substitutability
+  - Nominal and Structural Type Compatibility
+  - Declared Types and Runtime Object Types
+  - Upcasting from Subtypes to Supertypes
+  - Downcasting and Type Checking
+  - Preserving Contracts When Extending Types
+  - The Rectangle–Square Counterexample
+- level1: Polymorphism
+  level2:
+  - Polymorphism and Multiple Implementations of the Same Operation
+  - Subtype Polymorphism Through Interfaces or Superclasses
+  - Static Method Resolution and Dynamic Dispatch
+  - Overriding and Runtime Method Selection
+  - Distinguishing Overriding from Overloading
+  - Distinguishing Member Hiding from Overriding
+  - The Scope of Polymorphism for Methods and Fields
+  - Duck Typing and Capability-Based Polymorphism
+  - Replacing Type Checks with Polymorphism
+  - Example of Multiple Payment Methods
+- level1: Composition
+  level2:
+  - Composing Objects to Build Behavior
+  - Has-A and Is-A Relationships
+  - Delegating Work to Other Objects
+  - Reuse Through Composition and Inheritance
+  - Replacing Collaborators at Runtime
+  - Constructor or Method Dependency Injection
+  - Ownership and Lifecycle of Contained Objects
+  - Refactoring Inheritance to Composition
+- level1: Relationships
+  level2:
+  - Associations Between Objects
+  - Temporary Dependencies and Persistent Associations
+  - Aggregation and Composition
+  - 'Multiplicity: One-to-One, One-to-Many, and Many-to-Many'
+  - Association Direction and Navigability
+  - Bidirectional Relationships and Data Consistency
+  - Dependency Cycles and How to Break Them
+  - Reading Relationship Notation in Class Diagrams
+- level1: Class Design
+  level2:
+  - Identifying Each Class's Responsibilities
+  - Cohesion Within a Class
+  - Coupling Between Classes
+  - Separating Data, Business Logic, and External Interactions
+  - Naming Classes, Fields, and Methods
+  - Entities, Value Objects, and Services
+  - Rich Domain Models and Data-Only Models
+  - Separating Queries from State-Changing Commands
+  - Limiting Deep Object-Chain Access
+- level1: Modeling
+  level2:
+  - Gathering Use Cases and Business Rules
+  - Identifying Objects from Requirements
+  - Assigning Responsibilities and Collaborators
+  - 'CRC Cards: Classes, Responsibilities, and Collaborators'
+  - 'Class Diagrams: Members and Relationships'
+  - 'Object Diagrams: Instances at a Point in Time'
+  - 'Sequence Diagrams: Interaction Order'
+  - 'State Diagrams: Valid State Transitions'
+  - Validating Models Against Code and Real-World Scenarios
+- level1: SOLID
+  level2:
+  - Purpose and Scope of SOLID
+  - 'Single Responsibility: One Group of Reasons to Change'
+  - 'Open–Closed: Extending Behavior with Controlled Changes'
+  - 'Liskov Substitution: Preserving the Supertype Contract'
+  - 'Interface Segregation: Contracts Tailored to Each Client'
+  - 'Dependency Inversion: Depending on Abstractions'
+  - Distinguishing Dependency Inversion from Dependency Injection
+  - Balancing the Principles with Real-World Complexity
+- level1: Design Patterns
+  level2:
+  - 'Design Patterns: Problems, Context, and Trade-offs'
+  - Factory Method and Abstract Factory
+  - Builder and Complex Object Creation
+  - Singleton and the Risks of Shared State
+  - Adapter and Integrating Different Interfaces
+  - Decorator and Adding Behavior
+  - Facade and Simplifying Client Usage
+  - Strategy and Interchangeable Algorithms
+  - State and State-Dependent Behavior
+  - Observer and Change Notifications
+  - Template Method and Algorithm Skeletons
+  - Command and Encapsulating Requests
+  - When Design Patterns Add Unnecessary Complexity
+- level1: Language Mechanics
+  level2:
+  - Generic Types and Parameterized Classes
+  - Type Parameter Bounds
+  - Type Relationships in Generic Constructs
+  - Static Types, Runtime Types, and Type Checking
+  - Operators, Properties, and Language Conventions
+  - Equality and Hash Code Contracts
+  - Object String Representations and Diagnostics
+  - Exceptions, Failure States, and Method Contracts
+  - Language Differences When Implementing the Same OOP Design
+- level1: Design Pitfalls
+  level2:
+  - Classes with Too Many Responsibilities
+  - Exposed State and Broken Invariants
+  - Excessive Getters and Setters Without Behavior
+  - Inheritance Used Only to Reuse a Few Methods
+  - Overusing Casts and Type Checks
+  - Oversized Interfaces or Too Many Abstraction Layers
+  - Circular Dependencies and Deep Object Navigation
+  - Hard-to-Control Shared State
+  - Mutable Objects Breaking Equality or Hashing
+  - Overusing Design Patterns and Premature Abstraction
+- level1: Testing
+  level2:
+  - Testing Public Behavior and Object Contracts
+  - Testing Constructors and Invalid States
+  - Testing Invariants and State Transitions
+  - Testing Multiple Implementations of One Interface
+  - Testing Subtype Substitutability
+  - Fakes, Stubs, Mocks, and Collaborators
+  - Designing for Replaceable Dependencies in Tests
+  - Avoiding Tests Tightly Coupled to Internals
+  - Regression Testing During Design Changes
+  - Testing Interactions Among Multiple Objects
+- level1: Refactoring
+  level2:
+  - Identifying Signs That Design Needs Improvement
+  - Renaming to Clarify Intent
+  - Extracting Methods and Classes
+  - Moving Behavior to the Responsible Object
+  - Encapsulating Fields and Internal Structures
+  - Replacing Type Conditionals with Polymorphism
+  - Replacing Inheritance with Composition
+  - Consolidating or Removing Unnecessary Abstractions
+  - Improving Design Incrementally with Safety-Net Tests
+- level1: Practice
+  level2:
+  - Class and Object Exercise Using Bank Accounts
+  - Exercise in Encapsulating Order Rules
+  - Interface and Payment Polymorphism Exercise
+  - Exercise in Choosing Inheritance or Composition
+  - Value Objects and Equality Exercise
+  - Design Flaw Identification Exercise
+  - Exercise in Refactoring Procedural Code into an Object Model
+  - 'Capstone Project: Requirements and Use-Case Analysis'
+  - 'Capstone Project: Class and Relationship Design'
+  - 'Capstone Project: Implementation and Behavioral Testing'
+  - 'Capstone Project: Requirements Changes and Design Evaluation'

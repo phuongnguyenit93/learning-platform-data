@@ -1,0 +1,3 @@
+menuLevel1: Giới hạn kiểu
+menuLevel2: Nhiều giới hạn với <T extends A & B>
+status: TRANSLATE

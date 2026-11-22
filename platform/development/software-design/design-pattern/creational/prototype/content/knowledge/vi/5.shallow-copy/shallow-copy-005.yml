@@ -1,0 +1,3 @@
+menuLevel1: Shallow copy
+menuLevel2: Vì sao final trên một field tham chiếu không làm đối tượng được trỏ tới bất biến
+status: ""

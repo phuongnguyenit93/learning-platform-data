@@ -1,0 +1,57 @@
+roadmap:
+- id: ranh-gioi-nghiep-vu
+  title: Ranh giới nghiệp vụ
+  purpose: Xác định mô-đun từ chức năng nghiệp vụ để giảm phụ thuộc giữa các phần ứng dụng.
+  objectives:
+  - Nhóm chức năng theo năng lực nghiệp vụ
+  - Phân biệt API cung cấp và API cần dùng
+  - Phác thảo ranh giới của hai mô-đun
+- id: phat-hien-theo-package
+  title: Phát hiện theo package
+  purpose: Hiểu cách Spring Modulith suy ra các mô-đun từ cấu trúc package của ứng dụng Spring Boot.
+  objectives:
+  - Xác định root package từ lớp ứng dụng
+  - Nhận diện các subpackage cấp trực tiếp là mô-đun
+  - So sánh mô-đun đơn giản và nâng cao
+- id: mo-hinh-applicationmodules
+  title: Mô hình ApplicationModules
+  purpose: Đọc mô hình mô-đun do Spring Modulith xây dựng từ mã nguồn và cấu hình.
+  objectives:
+  - Tạo mô hình bằng ApplicationModules.of(...)
+  - Liệt kê tên và package của từng mô-đun
+  - Xác định mô-đun chứa một lớp cụ thể
+- id: api-ma-noi-bo
+  title: API & mã nội bộ
+  purpose: Thiết kế bề mặt công khai của mô-đun mà vẫn đóng gói phần triển khai.
+  objectives:
+  - Chỉ ra API trong base package
+  - Nhận diện lớp triển khai ở subpackage nội bộ
+  - Giải thích vì sao truy cập trực tiếp internals là rủi ro
+- id: named-interfaces
+  title: Named Interfaces
+  purpose: Công bố chính xác các nhóm API bổ sung mà mô-đun khác được phép sử dụng.
+  objectives:
+  - Định nghĩa @NamedInterface trong package-info.java
+  - Phân biệt interface mặc định và interface đặt tên
+  - 'Mô tả cách tham chiếu module :: interface'
+- id: quan-he-phu-thuoc
+  title: Quan hệ phụ thuộc
+  purpose: Biểu diễn và giới hạn phụ thuộc giữa các mô-đun theo thiết kế đã chọn.
+  objectives:
+  - Xác định quan hệ phụ thuộc từ cách gọi API
+  - Khai báo @ApplicationModule(allowedDependencies)
+  - Phân biệt quan hệ hợp lệ và chu trình phụ thuộc
+- id: mo-dun-long-mo
+  title: Mô-đun lồng & mở
+  purpose: Hiểu các lựa chọn tổ chức mô-đun khi ứng dụng lớn hoặc cần chuyển đổi mã cũ.
+  objectives:
+  - Giải thích nested module và @ApplicationModule
+  - Nêu tác dụng của Type.OPEN
+  - Đánh giá đánh đổi giữa mở rộng API và đóng gói
+- id: tuy-bien-kham-pha
+  title: Tùy biến khám phá
+  purpose: Điều chỉnh chiến lược phát hiện mô-đun khi package mặc định chưa phản ánh đúng kiến trúc.
+  objectives:
+  - Áp dụng chế độ explicitly-annotated
+  - Phân biệt thêm root package và loại trừ package
+  - Kiểm tra lại danh sách mô-đun sau cấu hình

@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-test-environment
+  title: Vai trò Test Environment
+  purpose: Hiểu vì sao môi trường test cần ổn định, dễ tái lập và tách biệt với production.
+  objectives:
+  - Phân biệt môi trường unit, integration và end-to-end.
+  - Liệt kê ứng dụng cùng các dependency cần khởi tạo.
+  - Xác định tiêu chí sẵn sàng của môi trường test.
+- id: cau-hinh-secrets
+  title: Cấu hình & Secrets
+  purpose: Tách cấu hình kiểm thử khỏi môi trường thật và quản lý thông tin nhạy cảm đúng cách.
+  objectives:
+  - Tạo test profile và biến môi trường riêng.
+  - Cấu hình endpoint, port và database test.
+  - Tránh dùng production credentials hoặc ghi secret vào log.
+- id: dich-vu-phu-thuoc
+  title: Dịch vụ phụ thuộc
+  purpose: Dựng các dịch vụ cần thiết theo cách có thể chạy lại trên máy khác.
+  objectives:
+  - Khai báo database và cache trong Docker Compose.
+  - Phân biệt dịch vụ thật với mock/stub HTTP.
+  - Chạy và kiểm tra các service của test stack.
+- id: testcontainers-junit
+  title: Testcontainers & JUnit
+  purpose: Tự động tạo dependency trong lúc chạy test thay vì dùng hạ tầng cố định chung.
+  objectives:
+  - Khởi động database bằng Testcontainers.
+  - Phân biệt container theo test method với test class.
+  - Kết nối test Java tới container đang chạy.
+- id: readiness-networking
+  title: Readiness & Networking
+  purpose: Chỉ bắt đầu kiểm thử khi các dependency thực sự sẵn sàng và có thể truy cập.
+  objectives:
+  - Cấu hình healthcheck hoặc wait strategy.
+  - Sử dụng host và mapped port đúng cách.
+  - Chẩn đoán lỗi connection refused do startup race.
+- id: test-data-isolation
+  title: Test Data & Isolation
+  purpose: Khởi tạo dữ liệu nhất quán và ngăn test này làm sai kết quả của test khác.
+  objectives:
+  - Chạy schema migration và nạp test fixture.
+  - Reset dữ liệu giữa các lần test theo chiến lược rõ ràng.
+  - Kiểm tra hai test không phụ thuộc thứ tự chạy.
+- id: ci-kha-nang-tai-lap
+  title: CI & Khả năng tái lập
+  purpose: Đảm bảo bộ test chạy đồng nhất giữa local và CI dù hạ tầng được tạo mới.
+  objectives:
+  - Chạy cùng phiên bản image và cấu hình test.
+  - Thiết lập runtime container trong CI job.
+  - Kiểm tra tài nguyên và xung đột khi chạy song song.
+- id: logs-cleanup
+  title: Logs & Cleanup
+  purpose: Giữ môi trường test có thể chẩn đoán lỗi và dọn tài nguyên an toàn sau khi chạy.
+  objectives:
+  - Thu thập log ứng dụng, container và test report.
+  - Phân biệt lỗi setup với lỗi assertion.
+  - Dọn container/volume test có kiểm soát, không ảnh hưởng dữ liệu thật.

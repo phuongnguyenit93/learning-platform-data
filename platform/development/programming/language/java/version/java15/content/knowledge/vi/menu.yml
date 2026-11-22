@@ -1,0 +1,340 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Những năng lực Java 15 còn được dùng trong Java hiện đại
+  - Text block, mã sinh động, chữ ký số và bộ thu gom rác
+  - Phân biệt tính năng ngôn ngữ, API chuẩn và cơ chế của JVM
+  - Xác định mức nguồn, thư viện và runtime cho ví dụ
+  - Đọc Javadoc hiện hành và mốc Since của API
+  - Lựa chọn JDK được hỗ trợ để thực hành kiến thức còn hiệu lực
+- level1: Cú pháp text block
+  level2:
+  - Text block và biểu diễn chuỗi nhiều dòng
+  - Dấu mở, dấu đóng bằng ba dấu nháy kép
+  - Dòng mới bắt buộc sau dấu mở
+  - Vị trí dấu đóng và ký tự xuống dòng cuối
+  - Text block rỗng và nội dung chỉ có một dòng
+  - Dùng text block trong biểu thức, tham số và hằng chuỗi
+  - Giá trị String, tính bất biến và cơ chế intern
+  - Đẳng thức nội dung giữa text block và string literal
+  - Chẩn đoán dấu mở, dấu đóng hoặc xuống dòng sai
+- level1: Khoảng trắng
+  level2:
+  - Khoảng trắng do căn lề và khoảng trắng thuộc dữ liệu
+  - Cách xác định mức thụt lề chung
+  - Vai trò dòng đóng trong tính toán thụt lề
+  - Dòng trống, dòng cuối và lề trái
+  - Khoảng trắng cuối dòng và dữ liệu bị loại bỏ
+  - Trộn tab với dấu cách và ảnh hưởng đến kết quả
+  - Giữ thụt lề tương đối của HTML, JSON hoặc mã nguồn
+  - Chuẩn hóa CR, LF, CRLF trong text block
+  - Thứ tự chuẩn hóa dòng, loại thụt lề và xử lý escape
+  - Cảnh báo compiler với -Xlint:text-blocks
+  - Kiểm tra độ dài, code point và ký tự vô hình
+- level1: Escape trong text block
+  level2:
+  - Dấu nháy kép đơn lẻ, liên tiếp và delimiter
+  - Dấu gạch chéo ngược và đường dẫn
+  - Escape xuống dòng để nối các dòng nguồn
+  - Escape \s để giữ dấu cách cần thiết
+  - Escape \n, \r, \t và các ký tự điều khiển
+  - Escape bát phân và giới hạn biểu diễn
+  - Thời điểm xử lý Unicode escape trong mã nguồn
+  - Phân biệt ký tự thật trong dữ liệu với ký hiệu escape
+  - Lồng đoạn mã có text block trong text block khác
+  - Kiểm thử xuống dòng cuối, khoảng trắng cuối và dấu nháy
+- level1: API chuỗi
+  level2:
+  - String.formatted và chuỗi định dạng làm đối tượng nhận
+  - Placeholder, chỉ số tham số và kiểu đối số
+  - Độ rộng, độ chính xác và ký hiệu phần trăm
+  - Locale mặc định và định dạng cần Locale tường minh
+  - IllegalFormatException và dữ liệu định dạng không hợp lệ
+  - String.stripIndent với văn bản nhận từ bên ngoài
+  - Dòng rỗng, lề chung và newline trong stripIndent
+  - String.translateEscapes với dữ liệu ở runtime
+  - Escape hợp lệ, sai định dạng và IllegalArgumentException
+  - Giới hạn xử lý Unicode escape của translateEscapes
+  - Phối hợp formatted, stripIndent, indent và transform
+  - Phân biệt text block, định dạng và nội suy dữ liệu
+- level1: Ứng dụng văn bản
+  level2:
+  - SQL nhiều dòng và tham số hóa bằng PreparedStatement
+  - JSON, XML, HTML và ranh giới giữa chuỗi với bộ phân tích
+  - Regex nhiều dòng và các lớp escape cần xử lý
+  - Template email, thông báo và dữ liệu nhiều ngôn ngữ
+  - Dữ liệu kiểm thử dễ đọc bằng text block
+  - So sánh kết quả chuỗi chính xác và chuẩn hóa có chủ đích
+  - Chọn text block hoặc tài nguyên ngoài theo kích thước dữ liệu
+  - Giữ định dạng ổn định khi IDE tự căn lề
+  - Tránh nối dữ liệu chưa kiểm tra vào cú pháp truy vấn hay markup
+- level1: API tiện ích
+  level2:
+  - CharSequence.isEmpty và hợp đồng độ dài bằng không
+  - Method reference CharSequence::isEmpty trong pipeline
+  - Phân biệt chuỗi rỗng, chuỗi blank và null
+  - Triển khai CharSequence tùy biến và xung đột default method
+  - Math.absExact cho int, long
+  - Integer.MIN_VALUE, Long.MIN_VALUE và miền số bất đối xứng
+  - ArithmeticException khi trị tuyệt đối không thể biểu diễn
+  - StrictMath.absExact và lựa chọn hợp đồng toán học
+  - Byte.describeConstable và Short.describeConstable
+  - Mô tả hằng số và sự khác biệt với chuyển đổi giá trị
+  - Kiểm thử biên số nguyên và dữ liệu ký tự khả biến
+- level1: Unicode và văn bản
+  level2:
+  - Code unit, code point và cụm ký tự hiển thị
+  - Character, UnicodeScript và dữ liệu Unicode theo JDK
+  - Normalizer và những dạng biểu diễn cùng nội dung
+  - Bidi và văn bản có nhiều chiều viết
+  - Regex với thuộc tính Unicode và cụm grapheme
+  - Độ dài hiển thị khác String.length
+  - Kiểm thử dấu tiếng Việt, emoji và ký tự bổ sung
+  - Giữ encoding tường minh tại ranh giới tệp và mạng
+- level1: Hidden class
+  level2:
+  - Lớp ẩn và mục tiêu hỗ trợ mã sinh ở runtime
+  - Phân biệt lớp ẩn với lớp thông thường và lớp vô danh
+  - Khả năng sử dụng đối tượng qua kiểu công khai
+  - Giới hạn tham chiếu tên từ bytecode của lớp khác
+  - Class.isHidden và nhận diện lớp ẩn
+  - Tên runtime, binary name và descriptor
+  - Class.forName, ClassLoader.loadClass và khả năng tìm theo tên
+  - Reflection trên đối tượng Class đã có
+  - Giới hạn mô tả danh định qua describeConstable
+  - Ứng dụng trong lambda, adapter và framework sinh mã
+- level1: Định nghĩa lớp ẩn
+  level2:
+  - MethodHandles.Lookup và ngữ cảnh kiểm tra truy cập
+  - Điều kiện full privilege của lookup
+  - Lookup.defineHiddenClass và mảng byte class file
+  - Ràng buộc cùng package với lookup class
+  - Phiên bản class file và tính hợp lệ của bytecode
+  - Lookup trả về và lookupClass của lớp vừa tạo
+  - Tham số initialize và thời điểm khởi tạo lớp
+  - Tạo đối tượng qua constructor method handle
+  - Gọi phương thức qua interface hoặc MethodHandle
+  - ClassFormatError, VerifyError và lỗi phiên bản class
+  - IllegalAccessException, IllegalArgumentException và lỗi liên kết
+- level1: Truy cập và nest
+  level2:
+  - Nest host, nest member và truy cập thành viên private
+  - ClassOption.NESTMATE khi định nghĩa lớp ẩn
+  - Quan hệ giữa nest của lookup class với lớp mới
+  - Phân biệt quyền lookup với quyền của mã được sinh
+  - Package, module, protection domain và class loader
+  - Khả năng truy cập tài nguyên thuộc module đích
+  - Giới hạn chia sẻ lookup có đặc quyền
+  - Kiểm thử truy cập hợp lệ, sai package và thiếu quyền
+- level1: Vòng đời lớp ẩn
+  level2:
+  - Tham chiếu tới Class, instance và MethodHandle
+  - Khả năng dỡ lớp độc lập với class loader
+  - ClassOption.STRONG và quan hệ với class loader
+  - Cache, reference và nguy cơ giữ lớp lâu hơn dự kiến
+  - Phân biệt bộ nhớ heap với metaspace
+  - Giới hạn instrumentation, redefine và retransform
+  - Ảnh hưởng đến stack trace và công cụ chẩn đoán
+  - Giới hạn lưu, khôi phục đối tượng dựa trên tên lớp
+  - Kiểm thử khả năng giải phóng bằng nhiều nguồn quan sát
+- level1: Khởi tạo và sinh mã
+  level2:
+  - Lookup.ensureInitialized và khởi tạo lớp theo yêu cầu
+  - Phân biệt loading, linking và initialization
+  - Điều kiện truy cập của lớp cần khởi tạo
+  - Static initializer và vòng lặp phụ thuộc khởi tạo
+  - ExceptionInInitializerError và tác động tới lần dùng sau
+  - Giới hạn với primitive, void và array class
+  - Tổ chức trình sinh bytecode với hợp đồng kiểu rõ ràng
+  - Ranh giới giữa dữ liệu bên ngoài với mã có quyền thực thi
+  - Kiểm tra thư viện sinh mã tương thích với JDK triển khai
+  - Đo chi phí định nghĩa, liên kết và gọi mã sau warm-up
+- level1: EdDSA
+  level2:
+  - Chữ ký số và mục tiêu xác thực tính toàn vẹn
+  - EdDSA theo RFC 8032
+  - Ed25519, Ed448 và lựa chọn thuật toán
+  - Phân biệt chữ ký số, trao đổi khóa và mã hóa
+  - Vai trò private key, public key và thông điệp
+  - JCA, provider và khả năng hỗ trợ thuật toán
+  - Tên thuật toán chuẩn cho KeyPairGenerator, KeyFactory, Signature
+  - Ranh giới bảo mật giữa chữ ký hợp lệ và danh tính đáng tin
+- level1: Khóa EdEC
+  level2:
+  - KeyPairGenerator và tạo cặp khóa
+  - NamedParameterSpec.ED25519, ED448
+  - EdECKey và tham số đường cong
+  - EdECPublicKey, EdECPrivateKey và biểu diễn khóa
+  - EdECPoint với parity của x và tọa độ y
+  - EdECPublicKeySpec và EdECPrivateKeySpec
+  - KeyFactory và chuyển đổi key specification
+  - X.509 SubjectPublicKeyInfo và PKCS#8
+  - Phân biệt byte khóa thô với định dạng chứa khóa
+  - Optional từ getBytes và khóa không xuất được
+  - Lưu khóa bằng cơ chế phù hợp và kiểm soát truy cập
+  - Kiểm thử khóa sai loại, dữ liệu cắt cụt và encoding sai
+- level1: Ký và xác minh
+  level2:
+  - Signature.getInstance và chọn provider
+  - initSign, update, sign theo đúng vòng đời
+  - initVerify, update, verify
+  - Chữ ký byte[] và mã hóa Base64 để truyền
+  - Đảm bảo cùng dãy byte khi ký và xác minh
+  - Charset, chuẩn hóa văn bản và biểu diễn thông điệp
+  - Cập nhật dữ liệu theo từng phần hoặc ByteBuffer
+  - Kết quả false và SignatureException
+  - InvalidKeyException và lỗi không hỗ trợ thuật toán
+  - Trạng thái của Signature sau thao tác ký, xác minh
+  - Tránh chia sẻ Signature khả biến giữa nhiều luồng
+- level1: Tham số EdDSA
+  level2:
+  - EdDSAParameterSpec và tham số cho Signature
+  - Chế độ thông thường, prehash và context
+  - Ed25519, Ed25519ctx, Ed25519ph theo tham số
+  - Ed448, Ed448ph và quy tắc context
+  - Khác biệt giữa context vắng mặt với context rỗng
+  - Giới hạn độ dài context
+  - Phân biệt prehash theo giao thức với tự băm thông điệp
+  - Phối hợp tham số giống nhau ở hai bên
+  - Kiểm thử khác chế độ, khác context và sai thông điệp
+- level1: Tích hợp chữ ký
+  level2:
+  - Định dạng thông điệp cần ký và quy tắc canonicalization
+  - Phân phối public key và xác thực nguồn khóa
+  - Định danh khóa, phiên bản định dạng và đổi khóa
+  - Ràng buộc mục đích, ngữ cảnh và thời hạn theo giao thức
+  - Chống phát lại khi ứng dụng cần bảo vệ tính mới
+  - Kiểm chứng tương tác với thư viện hoặc hệ thống khác
+  - Vector kiểm thử chuẩn và kiểm thử dữ liệu bị sửa
+  - Tránh ghi khóa riêng hoặc thông điệp nhạy cảm vào log
+  - Quản lý lỗi mà không bỏ qua xác minh
+- level1: UDP và datagram
+  level2:
+  - DatagramSocket và hợp đồng gửi nhận UDP
+  - DatagramPacket, địa chỉ đích và ranh giới gói tin
+  - Bind địa chỉ cục bộ, cổng và vòng đời socket
+  - connect, disconnect và lọc peer
+  - Giới hạn độ tin cậy, thứ tự và nguy cơ trùng gói
+  - Buffer nhận, độ dài packet và dữ liệu bị cắt cụt
+  - Timeout nhận bằng SO_TIMEOUT
+  - setOption, getOption và supportedOptions
+  - Đóng socket để giải phóng tài nguyên
+  - Dựa vào API công khai thay vì chi tiết triển khai nội bộ
+- level1: Điều khiển UDP
+  level2:
+  - Blocking receive và phối hợp luồng xử lý
+  - DatagramSocket kết hợp DatagramChannel
+  - Phân biệt I/O chặn và không chặn
+  - Đóng hoặc hủy tác vụ đang chờ I/O theo hợp đồng API
+  - Multicast bằng DatagramChannel và NetworkInterface
+  - MembershipKey và vòng đời tham gia nhóm
+  - Giới hạn payload, MTU và phân mảnh IP
+  - Timeout ứng dụng, số thứ tự và xác nhận khi giao thức cần
+  - Kiểm thử mất gói, trùng gói, sai peer và dữ liệu rỗng
+  - Kiểm thử cổng đang dùng, quyền truy cập và địa chỉ không hợp lệ
+- level1: Protocol family
+  level2:
+  - SocketChannel.open với ProtocolFamily
+  - ServerSocketChannel.open với ProtocolFamily
+  - StandardProtocolFamily.INET và INET6
+  - Quan hệ giữa họ giao thức với địa chỉ bind, connect
+  - SelectorProvider và mở channel theo họ giao thức
+  - UnsupportedOperationException khi nền tảng không hỗ trợ
+  - Kiểm thử IPv4, IPv6 và cấu hình dual stack
+  - Chọn blocking mode và quản lý vòng đời channel
+  - Giữ tương thích hệ điều hành bằng kiểm tra khả năng thực tế
+- level1: GC độ trễ thấp
+  level2:
+  - Thời gian dừng, thông lượng và footprint
+  - Thu gom đồng thời với các luồng ứng dụng
+  - Live set, allocation rate và vùng nhớ dự phòng
+  - Độ trễ đuôi khác với thời gian dừng GC
+  - Chi phí CPU của công việc thu gom nền
+  - Ảnh hưởng của giới hạn bộ nhớ và CPU trong container
+  - Chọn collector theo mục tiêu có số đo
+  - Đối chiếu tính năng với bản phân phối JDK triển khai
+- level1: ZGC
+  level2:
+  - Mục tiêu độ trễ thấp của Z Garbage Collector
+  - Marking, relocation và xử lý đồng thời
+  - Chọn chế độ ZGC còn được JDK hiện hành hỗ trợ
+  - Khởi động bằng -XX:+UseZGC trên JDK phù hợp
+  - Heap tối đa và nhu cầu headroom
+  - Tương quan giữa lượng cấp phát với khả năng thu hồi
+  - Giới hạn mềm của heap và trả bộ nhớ nhàn rỗi
+  - Allocation stall và dấu hiệu thiếu tài nguyên
+  - Đọc GC log để kiểm tra mục tiêu độ trễ
+  - Đánh giá CPU, RSS và bộ nhớ heap dưới tải thực
+- level1: Shenandoah
+  level2:
+  - Mục tiêu thu gom với thời gian dừng thấp
+  - Concurrent marking, evacuation và cập nhật tham chiếu
+  - Read, write barrier và chi phí thực thi
+  - Khả năng hỗ trợ theo bản phân phối, hệ điều hành và kiến trúc
+  - Chọn -XX:+UseShenandoahGC trên môi trường hỗ trợ
+  - Chế độ và tùy chọn còn được JDK đang dùng hỗ trợ
+  - Region, vùng dự phòng và tốc độ cấp phát
+  - Dấu hiệu collector không theo kịp ứng dụng
+  - Thu gom thoái lui và ảnh hưởng tới độ trễ
+  - Kiểm chứng bằng log, tải đại diện và giới hạn tài nguyên
+- level1: Đo lường GC
+  level2:
+  - Xây dựng tải đại diện và mục tiêu p95, p99
+  - Warm-up, thời gian đo và độ ổn định của kết quả
+  - Cố định dữ liệu, phần cứng và cấu hình khi so sánh
+  - Unified logging bằng -Xlog:gc và các tag cần thiết
+  - JFR để tương quan GC, allocation và độ trễ ứng dụng
+  - Đo heap, metaspace, RSS và CPU
+  - So sánh G1, ZGC, Shenandoah khi môi trường hỗ trợ
+  - Phân biệt memory leak với heap tăng do nhu cầu tải
+  - Kiểm thử quá tải và khả năng phục hồi
+  - Chọn cấu hình tối thiểu dựa trên bằng chứng
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc thông điệp NullPointerException để xác định biểu thức lỗi
+  - Giới hạn thông tin khi exception do chương trình tự tạo
+  - Phân biệt lỗi dữ liệu với lỗi lập trình
+  - Chẩn đoán text block qua compiler warning và kiểm thử chuỗi
+  - Chẩn đoán class loading, bytecode và truy cập lookup
+  - Theo dõi lớp ẩn trong thread dump và stack trace phù hợp
+  - Thu log, JFR và dữ liệu môi trường trước khi kết luận
+  - Giảm ví dụ lỗi thành trường hợp tái lập được
+  - Kiểm soát dữ liệu nhạy cảm trong thông điệp chẩn đoán
+- level1: Tương thích và build
+  level2:
+  - Mức nguồn, --release và API có sẵn khi biên dịch
+  - Phân biệt khả năng compiler với khả năng runtime
+  - Kiểm tra bytecode của dependency và công cụ sinh lớp
+  - Compiler plugin, annotation processor và thư viện instrumentation
+  - Ranh giới module và lookup khi đóng gói
+  - Tài nguyên văn bản, charset và line ending trong build
+  - Provider mật mã và khả năng hỗ trợ thuật toán
+  - Collector và tùy chọn JVM theo môi trường triển khai
+  - Chạy kiểm thử trên đúng JDK mục tiêu
+  - Đọc thay đổi hành vi trong tài liệu của JDK đang sử dụng
+- level1: Kiểm thử
+  level2:
+  - Text block với căn lề, tab, dấu nháy và dòng cuối
+  - formatted với sai kiểu, thiếu tham số và Locale khác nhau
+  - stripIndent, translateEscapes với dữ liệu biên và dữ liệu sai
+  - CharSequence tùy biến và số nguyên nhỏ nhất
+  - Lớp ẩn với package, quyền truy cập và class file không hợp lệ
+  - Vòng đời lớp, cache và tham chiếu giữ tài nguyên
+  - EdDSA với vector chuẩn, sai khóa, sai context và chữ ký hỏng
+  - UDP với timeout, mất gói và bộ đệm nhỏ
+  - IPv4, IPv6 và họ giao thức không hỗ trợ
+  - GC dưới tải ổn định, tải tăng và bộ nhớ giới hạn
+- level1: Thực hành
+  level2:
+  - Chuyển dữ liệu nhiều dòng thành text block có kiểm thử
+  - Viết SQL tham số hóa và dữ liệu kiểm thử JSON
+  - Xử lý văn bản ngoài bằng stripIndent và translateEscapes
+  - Kiểm tra trị tuyệt đối an toàn bằng absExact
+  - Tạo adapter runtime bằng hidden class và MethodHandle
+  - Đo ảnh hưởng của cache tới vòng đời lớp sinh động
+  - Ký và xác minh tài liệu bằng Ed25519 hoặc Ed448
+  - Thiết kế thông điệp có chữ ký với context thống nhất
+  - Xây dựng UDP echo service có timeout và quản lý tài nguyên
+  - Thử channel IPv4, IPv6 trên các môi trường hỗ trợ
+  - So sánh collector bằng một kịch bản tải tái lập được
+  - Bài tổng hợp trên JDK được hỗ trợ với các năng lực Java 15 còn áp dụng

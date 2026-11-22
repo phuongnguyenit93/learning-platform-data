@@ -1,0 +1,491 @@
+menu:
+- level1: Bản đồ Web Flow
+  level2:
+  - Spring Web Flow là gì và bài toán điều hướng nhiều bước
+  - Luồng tương tác có trạng thái qua nhiều yêu cầu HTTP
+  - Flow, state, event và transition liên hệ với nhau thế nào
+  - Định nghĩa luồng (flow definition) và từng lần thực thi (flow execution)
+  - Kịch bản đăng ký, đặt chỗ và xác nhận trước khi lưu
+  - Trách nhiệm của Web Flow, Spring MVC và tầng nghiệp vụ
+  - Đối chiếu với điều khiển các bước bằng controller và HTTP session
+  - Phân biệt Web Flow với WebFlux, Spring Batch và bộ máy quy trình nghiệp vụ
+  - Điều kiện phù hợp và giới hạn của mô hình flow phía máy chủ
+  - Lộ trình từ flow tối giản đến ứng dụng nhiều bước có kiểm thử
+- level1: Nền tảng và phiên bản
+  level2:
+  - Kiến thức cần có về Spring IoC, MVC, Servlet và HTTP session
+  - Chọn dòng Web Flow phù hợp với Java và Spring Framework
+  - Ma trận tương thích giữa Web Flow 2.x, 3.x và 4.x
+  - Phân biệt hệ sinh thái javax với Jakarta
+  - Vai trò của spring-webflow, spring-binding và spring-faces
+  - Khai báo dependency bằng Maven hoặc Gradle
+  - Kiểm tra dependency bắc cầu và xung đột phiên bản
+  - Lựa chọn ứng dụng Servlet và công nghệ giao diện tương thích
+  - Tổ chức mã Java, định nghĩa flow, view và tài nguyên
+  - Đọc Reference Guide, API và release notes theo đúng phiên bản
+- level1: Kiến trúc thực thi
+  level2:
+  - FlowDefinitionRegistry và việc tra cứu định nghĩa
+  - FlowBuilderServices và các thành phần dựng flow
+  - FlowExecutor như điểm khởi chạy và tiếp tục flow
+  - FlowExecution, FlowSession và ngăn xếp flow cha–con
+  - State và Transition trong mô hình điều khiển
+  - RequestContext và phạm vi của một lần gọi vào bộ máy
+  - ExternalContext và ranh giới với môi trường Servlet
+  - ViewFactory và việc tạo view
+  - FlowExecutionRepository và việc lưu, khôi phục trạng thái
+  - ConversationManager và quản lý các cuộc tương tác
+  - Đường đi của một yêu cầu từ DispatcherServlet đến flow và view
+- level1: Cấu hình hệ thống
+  level2:
+  - Các bean tối thiểu để ứng dụng xử lý được flow
+  - AbstractFlowConfiguration và các phương thức @Bean cần khai báo
+  - Tạo FlowBuilderServices bằng Java configuration
+  - Đăng ký FlowDefinitionRegistry và thư mục gốc
+  - Đăng ký flow theo tài nguyên, mẫu đường dẫn và định danh
+  - Tạo FlowExecutor và gắn registry
+  - Cấu hình ViewFactoryCreator, ExpressionParser và ConversionService
+  - Cấu hình validator và các listener cần thiết
+  - Cấu hình XML tương ứng với Java configuration
+  - Phạm vi ApplicationContext chung và context của từng flow
+  - Cấu hình Web Flow trong ứng dụng Spring Boot
+  - Kiểm tra cấu hình bằng một yêu cầu khởi chạy tối giản
+- level1: Flow đầu tiên
+  level2:
+  - Thiết kế một hành trình nhập thông tin–xem lại–xác nhận
+  - Sơ đồ trạng thái trước khi viết định nghĩa
+  - Cấu trúc tài liệu XML và schema Web Flow
+  - Khai báo flow, định danh state và state bắt đầu
+  - Tạo view-state và view tương ứng
+  - Nối các bước bằng transition
+  - Thêm end-state cho kết quả thành công và hủy
+  - Khai báo dữ liệu cần dùng trong ví dụ tối giản
+  - Tạo form hoặc liên kết phát sự kiện
+  - Khởi chạy, tiếp tục và quan sát execution key
+  - Đối chiếu hành vi trên trình duyệt với sơ đồ đã thiết kế
+- level1: Vòng đời thực thi
+  level2:
+  - Khởi tạo một execution và nhận dữ liệu đầu vào
+  - on-start và khởi tạo dữ liệu của flow
+  - on-entry và hành động khi vào state
+  - on-render và dữ liệu cần chuẩn bị cho lần hiển thị
+  - Tạm dừng tại view-state để chờ người dùng
+  - Tiếp tục execution khi nhận một sự kiện
+  - Thứ tự liên kết dữ liệu, kiểm tra và xử lý transition
+  - Hành động trên transition và điều kiện rời state
+  - on-exit và hành động khi rời state
+  - on-end và dữ liệu kết quả của flow
+  - Phân biệt làm mới view với đi vào state lần nữa
+  - Theo dõi vòng đời khi có subflow lồng nhau
+- level1: View-state
+  level2:
+  - Vai trò của view-state trong việc chờ tương tác
+  - Ánh xạ state ID sang định danh view
+  - View tương đối với flow, view tuyệt đối và tên view logic
+  - Khai báo model phục vụ hiển thị và nhập liệu
+  - Tạo biến chỉ tồn tại trong một view-state
+  - Chuẩn bị dữ liệu hiển thị bằng on-render
+  - Xử lý nhiều sự kiện trên cùng một màn hình
+  - Cập nhật tại chỗ khi transition không chuyển sang màn hình khác
+  - Giữ dữ liệu ở viewScope qua các tương tác trong cùng state
+  - Chọn chính sách redirect khi vào view-state
+  - Xử lý lỗi dữ liệu và hiển thị lại view
+  - Thiết kế màn hình có thể render lại mà không lặp tác vụ nghiệp vụ
+- level1: Event và transition
+  level2:
+  - Event ID, nguồn sự kiện và dữ liệu đi kèm
+  - Phát sự kiện từ nút bấm, form và liên kết
+  - Tham số _eventId và quy ước tên nút sự kiện
+  - Đọc currentEvent và các thuộc tính của sự kiện
+  - Khớp sự kiện với transition theo thuộc tính on
+  - State đích tĩnh và đích được xác định bằng biểu thức
+  - Điều kiện khớp và điều kiện cho phép thực hiện transition
+  - Hành động trả kết quả để cho phép hoặc chặn chuyển bước
+  - Transition cục bộ và global-transitions
+  - Thứ tự xét các transition và trường hợp không khớp
+  - Sự kiện quay lại, tiếp tục, xác nhận và hủy
+  - Thiết kế tên sự kiện phản ánh ý định người dùng
+- level1: Action-state
+  level2:
+  - Vai trò của action-state trong xử lý không cần màn hình
+  - Gọi Spring bean bằng evaluate
+  - Gán kết quả evaluate vào một scope
+  - Chuyển kiểu kết quả bằng result-type
+  - Gán và cập nhật dữ liệu bằng set
+  - Ánh xạ giá trị trả về thành sự kiện kết quả
+  - Triển khai Action và trả về Event
+  - AbstractAction và các phương thức tạo kết quả
+  - MultiAction và lựa chọn phương thức xử lý theo cấu hình
+  - Tổ chức nhiều hành động và kiểm soát thứ tự
+  - Tách logic điều hướng khỏi quy tắc nghiệp vụ trong service
+  - Thiết kế action có thể được gọi lại an toàn
+- level1: Rẽ nhánh và kết thúc
+  level2:
+  - Decision-state và điều kiện kiểm tra bằng if
+  - Nhánh then, else và yêu cầu bao phủ các kết quả
+  - Rẽ nhánh theo dữ liệu, kết quả nghiệp vụ hoặc quyền người dùng
+  - Lựa chọn decision-state hay action-state theo trách nhiệm
+  - End-state và thời điểm kết thúc một flow session
+  - Nhiều end-state cho hoàn thành, từ chối và hủy
+  - Định danh end-state làm kết quả trả về cho flow cha
+  - Hiển thị view cuối và chuyển hướng sau kết thúc
+  - Chuẩn bị output trước khi mất dữ liệu theo scope
+  - Dọn tài nguyên và thiết kế hành vi sau khi flow đã kết thúc
+- level1: Dữ liệu và scope
+  level2:
+  - Mô hình dữ liệu cho biểu mẫu nhiều bước
+  - Khai báo biến bằng var và thời điểm khởi tạo
+  - flowScope và dữ liệu của một flow session
+  - viewScope và dữ liệu sống trong một view-state
+  - requestScope và dữ liệu của một lần gọi vào flow
+  - flashScope và thời điểm dữ liệu được xóa sau render
+  - conversationScope và dữ liệu dùng chung giữa flow cha–con
+  - Phân biệt scope Web Flow với request và session của Servlet
+  - Chọn scope theo thời gian sống và quyền sử dụng dữ liệu
+  - Thứ tự tìm biến khi không ghi rõ scope
+  - Bean theo scope flow, view và conversation
+  - Serializable, tham chiếu transient và dữ liệu cần khôi phục
+  - Tránh giữ service, tài nguyên mở hoặc dữ liệu lớn trong mô hình
+  - Dọn dữ liệu khi chuyển bước, kết thúc hoặc hết phiên
+- level1: Biểu thức
+  level2:
+  - Biểu thức chuẩn và biểu thức template
+  - Spring EL, Unified EL và khác biệt theo cấu hình
+  - Chọn ExpressionParser và kiểm tra hành vi trên phiên bản sử dụng
+  - Tham chiếu Spring bean và gọi phương thức
+  - Đọc thuộc tính, collection và giá trị lồng nhau
+  - Gán biến mới vào scope và cập nhật đối tượng đã có
+  - Đọc requestParameters và chuyển kiểu dữ liệu đầu vào
+  - currentEvent, currentUser và thông tin người dùng
+  - messageContext, resourceBundle và dữ liệu bản địa hóa
+  - flowRequestContext, flowExecutionContext và externalContext
+  - flowExecutionUrl và việc tạo liên kết cho view
+  - Xử lý giá trị thiếu, null và lỗi đánh giá biểu thức
+  - Giới hạn biểu thức ở logic điều phối dễ kiểm tra
+- level1: Ánh xạ dữ liệu
+  level2:
+  - Input và output như hợp đồng của một flow
+  - Khai báo input theo tên, kiểu và tính bắt buộc
+  - Gán input vào đối tượng hoặc biến đích
+  - Xử lý input thiếu và giá trị không chuyển kiểu được
+  - Lấy input khi khởi chạy flow từ tầng MVC
+  - Khai báo output ở flow và end-state phù hợp
+  - Ánh xạ output từ biểu thức hoặc dữ liệu trong scope
+  - Dữ liệu kết quả trong FlowExecutionOutcome
+  - Truyền đối tượng hay truyền định danh qua ranh giới flow
+  - Kiểm tra quyền truy cập dữ liệu được chỉ định bởi input
+  - Kiểm thử hợp đồng ánh xạ độc lập với giao diện
+- level1: Liên kết biểu mẫu
+  level2:
+  - Thuộc tính model của view-state và vòng đời postback
+  - Ánh xạ trường form vào thuộc tính của model
+  - Binder và danh sách thuộc tính được phép nhận dữ liệu
+  - Liên kết thuộc tính lồng nhau và phần tử collection
+  - Trường bắt buộc ở mức binding
+  - Checkbox, trường không xuất hiện và giá trị rỗng
+  - Giữ giá trị người dùng đã nhập khi chuyển kiểu thất bại
+  - Tắt binding cho sự kiện bằng bind=false
+  - Phân biệt lỗi binding với lỗi kiểm tra quy tắc dữ liệu
+  - Chọn form model riêng thay cho nhận trực tiếp mọi thuộc tính entity
+  - Kiểm soát dữ liệu được sửa khi quay lại bước trước
+  - Nhận tệp qua multipart và giới hạn dữ liệu lưu trong flow
+  - Đối chiếu tên trường HTML với cấu trúc model
+- level1: Chuyển đổi và định dạng
+  level2:
+  - Vai trò của ConversionService trong input, binding và biểu thức
+  - Tích hợp cơ chế chuyển kiểu và định dạng của Spring
+  - Chuyển chuỗi thành số, enum và giá trị miền nghiệp vụ
+  - Converter và Formatter tùy chỉnh
+  - Định dạng số theo locale
+  - Ngày giờ, múi giờ và kiểu dữ liệu tương thích
+  - Chuyển định danh thành đối tượng qua bộ chuyển đổi
+  - Chọn converter cho từng binding khi cần
+  - Thông báo lỗi khi dữ liệu không thể chuyển đổi
+  - Đối chiếu cơ chế conversion cũ với cấu hình Spring hiện hành
+- level1: Kiểm tra dữ liệu
+  level2:
+  - Thời điểm validation sau liên kết model
+  - Cấu hình Bean Validation và LocalValidatorFactoryBean
+  - Ràng buộc trên trường, đối tượng và dữ liệu lồng nhau
+  - Validation hints và nhóm kiểm tra theo từng bước
+  - Phương thức validate theo tên view-state trên model
+  - Validator tách riêng và quy ước tìm bean
+  - ValidationContext, sự kiện người dùng và dữ liệu nhập gốc
+  - Ghi nhận lỗi qua MessageContext
+  - Điều kiện chéo giữa các trường và giữa nhiều bước
+  - Tắt validation cho sự kiện bằng validate=false
+  - Tác động khác nhau của bind=false và validate=false
+  - Chặn chuyển bước khi model chưa hợp lệ
+  - Kiểm tra lại quy tắc nghiệp vụ tại thời điểm xác nhận cuối
+- level1: Thông báo và ngôn ngữ
+  level2:
+  - Thông báo theo trường và thông báo toàn màn hình
+  - MessageContext và các mức độ thông báo
+  - Tạo thông báo bằng MessageBuilder
+  - Mã thông báo, tham số và nội dung dự phòng
+  - Resource bundle dùng riêng cho một flow
+  - Kết hợp tài nguyên của flow với MessageSource chung
+  - Hiển thị lỗi binding và validation trong view
+  - Vòng đời thông báo qua render và redirect
+  - Thông báo thành công khi flow trả kết quả
+  - Locale và bản dịch cho hành trình nhiều bước
+  - Kiểm thử mã thông báo thay vì phụ thuộc một bản dịch
+- level1: Tích hợp Spring MVC
+  level2:
+  - DispatcherServlet trong ứng dụng có Web Flow
+  - FlowHandlerMapping và nhận diện URL của flow
+  - FlowHandlerAdapter và việc điều khiển execution
+  - AbstractFlowHandler để tùy chỉnh theo từng flow
+  - Thứ tự mapping khi cùng tồn tại MVC controller
+  - Tạo ánh xạ dữ liệu đầu vào từ yêu cầu HTTP
+  - Xử lý output và kết quả kết thúc bằng FlowHandler
+  - MvcViewFactoryCreator và chuỗi ViewResolver
+  - View tương đối với flow và ViewResolver dùng chung
+  - Tiếp cận model cùng cơ chế binding trong view MVC
+  - Cung cấp tài nguyên tĩnh và đường dẫn theo context
+  - Xử lý ngoại lệ ở ranh giới MVC–Web Flow
+  - Kiểm tra cấu hình khi triển khai bằng WAR hoặc ứng dụng Spring Boot
+- level1: URL và điều hướng
+  level2:
+  - URL khởi chạy flow và URL tiếp tục một execution
+  - Execution key và tham số execution
+  - Dùng flowExecutionUrl trong form và liên kết
+  - FlowUrlHandler và cách ánh xạ đường dẫn
+  - Redirect khi vào view-state và mô hình Post/Redirect/Get
+  - Phân biệt flow execution redirect, flow redirect và externalRedirect
+  - Xử lý kết quả kết thúc để về MVC controller hoặc trang khác
+  - Chuyển dữ liệu kết quả sang flash attributes của MVC
+  - Đường dẫn tương đối, context path và reverse proxy
+  - Bookmark và điều kiện cần khởi tạo lại flow
+  - Tham số trả về và kiểm soát đích chuyển hướng
+  - Kiểm tra redirect với yêu cầu thông thường và yêu cầu Ajax
+- level1: Subflow và tái sử dụng
+  level2:
+  - Chia một hành trình lớn thành các flow có hợp đồng riêng
+  - Khai báo subflow-state và tra cứu flow con
+  - Truyền input từ flow cha xuống flow con
+  - Flow cha tạm dừng khi flow con đang hoạt động
+  - Nhận output và sự kiện kết quả từ flow con
+  - Thiết kế kết quả hoàn thành, hủy và quay lại
+  - Phân biệt flowScope riêng với conversationScope dùng chung
+  - Chọn flow con bằng biểu thức và kiểm soát tập lựa chọn
+  - Subflow lồng nhau và khả năng theo dõi trạng thái
+  - Tránh phụ thuộc ngầm vào biến của flow cha
+  - Kiểm thử flow cha với subflow giả
+  - Chọn subflow, service hay view dùng chung theo trách nhiệm
+- level1: Kế thừa định nghĩa
+  level2:
+  - Mục tiêu tái sử dụng cấu hình bằng flow inheritance
+  - Đăng ký flow cha và đánh dấu định nghĩa trừu tượng
+  - Kế thừa ở mức flow bằng thuộc tính parent
+  - Nhiều flow cha và thứ tự hợp nhất
+  - Kế thừa state từ định danh flow#state
+  - Ràng buộc cùng loại khi kế thừa state
+  - Quy tắc hợp nhất phần tử thay vì suy diễn theo ghi đè Java
+  - Dùng chung global transitions và xử lý ngoại lệ
+  - Phân biệt tái sử dụng định nghĩa với gọi subflow
+  - Kiểm thử định nghĩa sau hợp nhất để phát hiện cấu hình ngoài ý muốn
+- level1: Lưu trữ execution
+  level2:
+  - FlowExecutionRepository và trách nhiệm lưu, khôi phục, xóa
+  - Execution key và việc nhận diện trạng thái đã lưu
+  - Conversation và các execution đang hoạt động trong phiên
+  - Snapshot của flow và thời điểm tạo bản lưu
+  - DefaultFlowExecutionRepository và cơ chế snapshot
+  - Serializable và đồ thị đối tượng được lưu theo execution
+  - Giới hạn số execution bằng max-executions
+  - Giới hạn lịch sử bằng max-execution-snapshots
+  - Ảnh hưởng của việc tắt snapshot đến lịch sử điều hướng
+  - Khóa khi tiếp tục execution và xử lý yêu cầu đồng thời
+  - Dọn execution khi kết thúc hoặc khi vượt giới hạn
+  - Phân biệt lưu trạng thái tương tác với lưu bền bản nháp nghiệp vụ
+- level1: Lịch sử trình duyệt
+  level2:
+  - Nút Back, Forward và việc tiếp tục từ snapshot cũ
+  - Refresh tại view-state và tác động của chính sách redirect
+  - Gửi lại form và yêu cầu phát lại cùng sự kiện
+  - Mở nhiều flow độc lập trong cùng HTTP session
+  - Nhân bản tab và dùng lại cùng execution key
+  - Liên kết cũ sau khi flow đã hoàn thành
+  - Phiên hết hạn và trạng thái không còn trong repository
+  - Snapshot bị loại bỏ do vượt giới hạn lịch sử
+  - Thuộc tính history của transition và các lựa chọn điều hướng
+  - Quay lại state cũ và dữ liệu đã thay đổi bên ngoài flow
+  - Thiết kế trang khôi phục hoặc bắt đầu lại có kiểm soát
+- level1: Dữ liệu và giao dịch
+  level2:
+  - Tách trạng thái biểu mẫu khỏi dữ liệu đã lưu
+  - Lưu qua tầng service và làm việc với đối tượng tách rời
+  - Flow-managed persistence và thời gian sống của persistence context
+  - Khai báo persistence-context cho một flow
+  - JpaFlowExecutionListener và EntityManager theo flow
+  - Tích hợp Hibernate theo khả năng của phiên bản sử dụng
+  - Đọc dữ liệu trong nhiều yêu cầu trước khi xác nhận
+  - End-state có commit và kết thúc không commit
+  - Lan truyền persistence context sang subflow
+  - Vai trò của transaction ở thời điểm ghi nhận thay đổi
+  - Tránh ghi sớm các chỉnh sửa còn đang chờ xác nhận
+  - Khóa lạc quan và xung đột chỉnh sửa giữa nhiều người dùng
+  - Phân biệt khôi phục snapshot với hoàn tác thay đổi trong cơ sở dữ liệu
+  - Thiết kế bản nháp lưu bền và cơ chế tiếp tục theo nghiệp vụ
+  - Chống xử lý trùng tại service khi xác nhận bị gửi lại
+- level1: Bảo vệ flow
+  level2:
+  - Ranh giới xác thực, phân quyền và kiểm tra dữ liệu
+  - Cấu hình Spring Security cho URL khởi chạy và tiếp tục flow
+  - Phần tử secured ở flow, state và transition
+  - Gắn SecurityFlowExecutionListener vào FlowExecutor
+  - Quyết định phân quyền theo cơ chế của phiên bản Spring Security
+  - Tùy chỉnh AuthorizationManager trên các phiên bản hỗ trợ
+  - Để lỗi AccessDenied được xử lý đúng tại ranh giới bảo mật
+  - Kiểm tra quyền sở hữu đối tượng từ flow input
+  - Giới hạn thuộc tính được binding ở từng màn hình
+  - Tích hợp CSRF vào form và yêu cầu phát sự kiện
+  - Vai trò riêng của execution key, phiên đăng nhập và CSRF token
+  - Xử lý thay đổi đăng nhập, đăng xuất và hết phiên giữa hành trình
+  - Kiểm soát redirect, biểu thức và dữ liệu hiển thị
+  - Giảm dữ liệu nhạy cảm trong scope, snapshot và log
+- level1: Tích hợp JSF
+  level2:
+  - Vai trò của spring-faces và Jakarta Faces trong ứng dụng Web Flow
+  - Kiểm tra phiên bản Faces, Servlet và thư viện thành phần
+  - Khởi tạo FacesServlet và định tuyến qua DispatcherServlet
+  - AbstractFacesFlowConfiguration và cấu hình Java tương ứng
+  - JsfFlowHandlerAdapter và view factory cho Faces
+  - Facelets, định danh view và tài nguyên giao diện
+  - Tham chiếu dữ liệu các scope bằng EL của Faces
+  - Vòng đời JSF và ranh giới với vòng đời flow
+  - Điều hướng bằng kết quả action và sự kiện của thành phần
+  - Chuyển kiểu, kiểm tra dữ liệu và thông báo trên form JSF
+  - Xử lý Ajax và cập nhật thành phần trong cùng view-state
+  - Nhúng flow vào một trang theo cơ chế được hỗ trợ
+  - Tích hợp thư viện thành phần, tải tệp và tài nguyên liên quan
+  - Thẻ bảo mật Facelets và kiểm tra quyền ở phía máy chủ
+- level1: Ajax và phân mảnh
+  level2:
+  - Nhận diện yêu cầu Ajax ở ranh giới flow
+  - AjaxHandler và giao thức phản hồi của thư viện giao diện
+  - Render toàn view và render một phần
+  - Phần tử render và danh sách fragments
+  - Transition ở cùng màn hình để cập nhật dữ liệu
+  - Điều kiện công nghệ view phải hỗ trợ render phân mảnh
+  - Redirect và báo lỗi trong phản hồi Ajax
+  - Cập nhật execution key sau một tương tác
+  - Đồng bộ dữ liệu form khi có nhiều yêu cầu liên tiếp
+  - Chống bấm liên tục và xử lý phản hồi đến khác thứ tự
+  - Đọc ứng dụng Spring JavaScript cũ và đánh giá phương án thay thế
+- level1: Ngoại lệ và phục hồi
+  level2:
+  - Phân biệt kết quả nghiệp vụ thất bại với lỗi kỹ thuật
+  - Bắt lỗi trong action và trả sự kiện có ý nghĩa
+  - Transition on-exception ở phạm vi thích hợp
+  - Xử lý lỗi chung bằng global transitions
+  - FlowExecutionException và ngữ cảnh flow, state gây lỗi
+  - FlowExecutionExceptionHandler và trạng thái nhất quán sau xử lý
+  - Dùng TransitionExecutingFlowExecutionExceptionHandler khi phù hợp
+  - Phân biệt lỗi bên trong flow với lỗi khôi phục execution
+  - Xử lý lỗi render mà không làm mất dấu nguyên nhân
+  - Quyết định thử lại, quay lại hoặc kết thúc hành trình
+  - Bù trừ tác động bên ngoài đã xảy ra trước khi lỗi
+  - Thông báo cho người dùng và giữ dữ liệu cần thiết để xử lý tiếp
+- level1: Listener và mở rộng
+  level2:
+  - FlowExecutionListener và các điểm quan sát vòng đời
+  - Đăng ký listener cho toàn bộ hoặc một nhóm flow
+  - Phân biệt callback của listener với action trong định nghĩa
+  - Theo dõi khởi tạo, chuyển state, tạm dừng và tiếp tục
+  - Ghi nhận kết quả hoàn thành, hủy và lỗi
+  - Thứ tự listener bảo mật, dữ liệu và listener tùy chỉnh
+  - Truy cập RequestContext và FlowExecutionContext đúng thời điểm
+  - Tùy chỉnh ViewFactoryCreator khi tích hợp giao diện
+  - Tùy chỉnh ExpressionParser, conversion và validation
+  - Mở rộng repository hoặc ConversationManager khi có yêu cầu cụ thể
+  - Giữ thành phần singleton an toàn khi phục vụ nhiều execution
+  - Kiểm thử mở rộng bằng các hợp đồng và tình huống lỗi
+- level1: Kiểm thử flow
+  level2:
+  - Phạm vi kiểm thử định nghĩa và hành vi điều hướng
+  - AbstractXmlFlowExecutionTests và hợp đồng lớp kiểm thử
+  - Khai báo tài nguyên XML cần kiểm tra
+  - Đăng ký service giả bằng MockFlowBuilderContext
+  - MockExternalContext cho input, sự kiện và người dùng
+  - Khởi chạy flow và kiểm tra state đầu tiên
+  - Tiếp tục flow bằng một sự kiện
+  - Thiết lập state hiện tại để kiểm tra một nhánh cụ thể
+  - Kiểm tra dữ liệu trong flowScope và conversationScope
+  - Kiểm tra trạng thái kết thúc, outcome và output
+  - Giả lập subflow cùng dữ liệu đầu vào, đầu ra
+  - Nạp tài nguyên flow cha khi kiểm tra inheritance
+  - Tổ chức đường dẫn kiểm thử cho thành công, lỗi, quay lại và hủy
+  - Chạy kiểm thử kế thừa TestCase qua JUnit Platform với engine tương thích
+- level1: Kiểm thử tích hợp
+  level2:
+  - Đối chiếu kiểm thử bộ máy flow với kiểm thử qua HTTP
+  - Kiểm tra FlowHandlerMapping, adapter và ViewResolver
+  - Duy trì session, cookie và execution key qua nhiều yêu cầu
+  - Kiểm tra binding, conversion và validation từ dữ liệu form
+  - Kiểm tra quyền ở URL, flow, state và transition
+  - Kiểm tra token CSRF cho các yêu cầu thay đổi trạng thái
+  - Kiểm tra commit, hủy và xung đột khóa lạc quan
+  - Kiểm tra Back, Refresh, nhiều tab và phiên hết hạn
+  - Kiểm tra Ajax và giao diện Faces khi có sử dụng
+  - Tự động hóa trình duyệt cho hành trình hoàn chỉnh
+  - Kiểm tra service không ghi lặp khi gửi xác nhận nhiều lần
+  - Chọn dữ liệu kiểm thử và dọn trạng thái sau mỗi ca
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc log khởi tạo registry và dựng định nghĩa
+  - Flow không được tìm thấy do đường dẫn hoặc định danh
+  - State đích thiếu và transition không khớp sự kiện
+  - Lỗi biểu thức, tên bean và phương thức không phù hợp
+  - Dữ liệu mất do chọn sai scope hoặc sai tên biến
+  - Form không cập nhật model do binding và conversion
+  - Validation không chạy hoặc chặn nhầm sự kiện quay lại
+  - Execution key không hợp lệ và snapshot không còn
+  - NotSerializableException và đối tượng được giữ trong mô hình
+  - Lỗi view, tài nguyên Faces và cấu hình ViewResolver
+  - Lỗi dependency javax/Jakarta hoặc thư viện không tương thích
+  - Tái hiện lỗi bằng một flow nhỏ và chuỗi yêu cầu xác định
+- level1: Hiệu năng và vận hành
+  level2:
+  - Ước lượng bộ nhớ theo phiên, execution và số snapshot
+  - Giảm kích thước model và chi phí tuần tự hóa
+  - Giới hạn số flow đang mở và lịch sử được giữ
+  - Theo dõi số lần khởi chạy, hoàn thành, hủy và hết hạn
+  - Đo thời gian hành động, truy vấn dữ liệu và hiển thị view
+  - Kiểm soát khóa khi nhiều yêu cầu dùng cùng execution
+  - HTTP session, cân bằng tải và lựa chọn gắn phiên
+  - Sao chép hoặc lưu session tập trung và yêu cầu tương thích dữ liệu
+  - Kiểm tra khả năng khôi phục execution khi chuyển máy chủ
+  - Triển khai phiên bản mới khi còn flow đang hoạt động
+  - Tách tác vụ lâu chạy khỏi thời gian xử lý một yêu cầu
+  - Cấu hình phát triển, tải lại định nghĩa và chính sách khi vận hành
+- level1: Nâng cấp ứng dụng cũ
+  level2:
+  - Kiểm kê phiên bản framework, container và công nghệ view
+  - Đọc release notes của dòng đích trước khi đổi dependency
+  - Di chuyển namespace javax sang Jakarta theo hệ sinh thái
+  - Đối chiếu Web Flow 2.x, 3.x, 4.x với Spring Framework
+  - Rà lại cơ chế ExpressionParser và biểu thức cũ
+  - Rà lại converter cũ và cơ chế định dạng của Spring
+  - Xác minh API phân quyền khi nâng cấp Spring Security
+  - Đánh giá Spring JavaScript, Dojo và tích hợp Tiles trong mã cũ
+  - Nâng cấp Jakarta Faces và thư viện thành phần liên quan
+  - Kiểm tra bộ test kế thừa JUnit và cấu hình test engine
+  - Xử lý session cùng snapshot đang tồn tại trong lúc nâng cấp
+  - Lập bộ kiểm thử hồi quy cho hành trình và dữ liệu đã lưu
+- level1: Thực hành tổng hợp
+  level2:
+  - Biểu mẫu đăng ký nhiều bước có kiểm tra theo màn hình
+  - Đặt chỗ với tìm kiếm, chọn dịch vụ và xác nhận
+  - Chỉnh sửa dữ liệu với bước xem lại và nhánh hủy
+  - Tái sử dụng một subflow xác nhận ở nhiều hành trình
+  - Rẽ nhánh hành trình theo dữ liệu và quyền truy cập
+  - Tìm kiếm, phân trang và chọn kết quả trong một view-state
+  - Tải tệp với kiểm tra dữ liệu và dọn tài nguyên
+  - Flow có commit cuối cùng và tình huống xung đột cập nhật
+  - Phục hồi trải nghiệm sau khi phiên hoặc execution hết hạn
+  - Hành trình có Ajax hoặc Faces theo công nghệ đã chọn
+  - Hoàn thiện kiểm thử cho nhiều tab và xác nhận gửi lặp
+  - Đánh giá thiết kế bằng sơ đồ, hợp đồng dữ liệu và bằng chứng kiểm thử
+  - Xác định ranh giới giữa flow tương tác và quy trình nghiệp vụ lưu bền

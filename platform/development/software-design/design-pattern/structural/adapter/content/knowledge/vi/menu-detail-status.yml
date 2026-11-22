@@ -1,0 +1,1876 @@
+menu:
+- slug: adapter-overview
+  title: Tổng quan Adapter
+  childs:
+  - slug: adapter-overview-001
+    title: Mục đích của Adapter và bài toán kết nối các giao diện không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-overview-002
+    title: Adapter trong nhóm mẫu cấu trúc và ý nghĩa của tên gọi Wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-overview-003
+    title: Mục tiêu tái sử dụng thư viện hoặc hệ thống cũ mà không sửa mã client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-overview-004
+    title: Phạm vi chuyển đổi giao diện, dữ liệu và hành vi của lớp chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-overview-005
+    title: Dấu hiệu cần Adapter khi tích hợp thành phần do bên khác quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-overview-006
+    title: Lợi ích, chi phí gián tiếp và giới hạn của việc thêm lớp chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-overview-007
+    title: Điều kiện áp dụng khi có thể bổ sung Adapter nhưng không thể sửa Adaptee
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-overview-008
+    title: Lộ trình học từ ví dụ tối giản đến tích hợp SDK và hệ thống cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interface-incompatibilities
+  title: Bài toán tương thích
+  childs:
+  - slug: interface-incompatibilities-001
+    title: Không tương thích về tên phương thức và cấu trúc tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-incompatibilities-002
+    title: Không tương thích về kiểu trả về và cách biểu diễn kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-incompatibilities-003
+    title: Không tương thích về đơn vị đo, định dạng và quy ước dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-incompatibilities-004
+    title: Không tương thích về ngữ nghĩa dù chữ ký phương thức giống nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-incompatibilities-005
+    title: Không tương thích về ngoại lệ và cách thông báo thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-incompatibilities-006
+    title: Không tương thích về thứ tự gọi và vòng đời đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-incompatibilities-007
+    title: Không tương thích giữa lời gọi đồng bộ và cơ chế callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-incompatibilities-008
+    title: Khảo sát khả năng chuyển đổi trước khi cam kết giữ nguyên hợp đồng client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: adapter-structure
+  title: Cấu trúc Adapter
+  childs:
+  - slug: adapter-structure-001
+    title: Vai trò Client và nhu cầu làm việc thông qua giao diện Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-structure-002
+    title: Vai trò Target trong việc mô tả khả năng mà client cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-structure-003
+    title: Vai trò Adaptee và giao diện sẵn có cần được tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-structure-004
+    title: Vai trò Adapter trong việc hiện thực Target và sử dụng Adaptee
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-structure-005
+    title: Luồng gọi từ Client qua Adapter đến Adaptee và luồng trả kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-structure-006
+    title: Sơ đồ lớp và sơ đồ trình tự cho một thao tác chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-structure-007
+    title: Quyền sở hữu đối tượng và hướng phụ thuộc giữa các thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-structure-008
+    title: Phân biệt hợp đồng công khai của Target với chi tiết nội bộ của Adaptee
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interface-contracts
+  title: Hợp đồng giao diện
+  childs:
+  - slug: interface-contracts-001
+    title: Thiết kế Target theo nhu cầu client và ngôn ngữ của miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-002
+    title: Xác định tiền điều kiện, hậu điều kiện và bất biến cần bảo toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-003
+    title: Lập bảng ánh xạ từng thao tác của Target sang khả năng của Adaptee
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-004
+    title: Xác định thao tác không được hỗ trợ và cách biểu đạt giới hạn rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-005
+    title: Giữ nguyên ý nghĩa thành công, thất bại và tác dụng phụ quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-006
+    title: Bảo toàn quy tắc null, giá trị rỗng và dữ liệu mặc định trong hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-007
+    title: Phân chia Target theo Interface Segregation để tránh ép buộc khả năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interface-contracts-008
+    title: Áp dụng Liskov Substitution khi thay thành phần cũ bằng Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-adapter
+  title: Object Adapter
+  childs:
+  - slug: object-adapter-001
+    title: Cấu trúc Object Adapter dựa trên composition và delegation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-adapter-002
+    title: Hiện thực Target bằng interface và giữ tham chiếu đến Adaptee trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-adapter-003
+    title: Truyền Adaptee qua constructor và kiểm tra phụ thuộc bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-adapter-004
+    title: Chuyển tham số đầu vào, gọi Adaptee và ánh xạ kết quả trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-adapter-005
+    title: Tích hợp lớp final hoặc thành phần không cho phép kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-adapter-006
+    title: Thay thế các hiện thực Adaptee thông qua cấu hình và dependency injection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-adapter-007
+    title: Tách trạng thái của Adapter khỏi trạng thái của đối tượng được bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-adapter-008
+    title: Đánh giá ưu điểm, hạn chế và khả năng kiểm thử của Object Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: class-adapter
+  title: Class Adapter
+  childs:
+  - slug: class-adapter-001
+    title: Cấu trúc Class Adapter dựa trên kế thừa để tiếp cận hành vi Adaptee
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-adapter-002
+    title: Đa kế thừa trong mô hình kinh điển và giới hạn đơn kế thừa lớp của Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-adapter-003
+    title: Hiện thực Adapter bằng extends Adaptee và implements Target trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-adapter-004
+    title: Điều kiện Target là interface và Adaptee cho phép kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-adapter-005
+    title: Ảnh hưởng của constructor, phạm vi truy cập và phương thức final
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-adapter-006
+    title: Sử dụng super và ghi đè có kiểm soát khi cần hiệu chỉnh hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-adapter-007
+    title: Rủi ro phụ thuộc vào lớp cha và rò rỉ API kế thừa ra bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-adapter-008
+    title: Những tình huống Class Adapter không thể áp dụng hoặc khó bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: adapter-variants
+  title: Biến thể Adapter
+  childs:
+  - slug: adapter-variants-001
+    title: So sánh Object Adapter và Class Adapter theo mức độ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-variants-002
+    title: So sánh khả năng thay Adaptee, tái sử dụng và kiểm thử giữa hai cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-variants-003
+    title: Adapter một chiều cho nhu cầu client chỉ sử dụng một hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-variants-004
+    title: Adapter hai chiều và điều kiện bảo toàn ý nghĩa khi chuyển đổi ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-variants-005
+    title: Adapter có thể cấu hình bằng chiến lược ánh xạ được truyền vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-variants-006
+    title: Dùng lambda hoặc method reference cho phép chuyển tiếp đơn giản trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-variants-007
+    title: Phối hợp nhiều Adaptee khi một thao tác Target cần nhiều nguồn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adapter-variants-008
+    title: Tiêu chí chọn biến thể và giới hạn độ phức tạp của lớp chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-conversion
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-conversion-001
+    title: Ánh xạ DTO của SDK hoặc hệ thống cũ sang kiểu dữ liệu của Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-002
+    title: Chuyển tên trường, cấu trúc lồng nhau và trường dữ liệu tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-003
+    title: Chuyển kiểu số, kiểm soát tràn số và mất độ chính xác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-004
+    title: Chuyển đơn vị đo, tiền tệ và quy tắc làm tròn bằng BigDecimal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-005
+    title: Chuyển ngày giờ, múi giờ và định dạng bằng Java Time API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-006
+    title: Ánh xạ enum, mã trạng thái và giá trị chưa biết để tránh diễn giải sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-007
+    title: Xử lý null, Optional, collection rỗng và phần tử không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-conversion-008
+    title: Bảo vệ dữ liệu bằng defensive copy, kiểu bất biến và quy tắc chuyển đổi mất mát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: behavior-adaptation
+  title: Chuyển đổi hành vi
+  childs:
+  - slug: behavior-adaptation-001
+    title: Chuẩn hóa ý nghĩa thao tác khi Target và Adaptee có quy ước khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-adaptation-002
+    title: Ghép nhiều lời gọi Adaptee để đáp ứng một phương thức Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-adaptation-003
+    title: Tách một thao tác tổng hợp của Adaptee thành các khả năng Target cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-adaptation-004
+    title: Chuyển phân trang, đánh số trang và cơ chế cursor giữa hai giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-adaptation-005
+    title: Phân biệt dữ liệu tải ngay, tải lười và số lượng lời gọi phát sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-adaptation-006
+    title: Giữ đúng thứ tự kết quả và quy tắc xử lý phần tử trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-adaptation-007
+    title: Xác định giới hạn nguyên tử và xử lý thành công từng phần khi ghép thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: behavior-adaptation-008
+    title: Nhận diện chuyển đổi không thể bảo toàn ngữ nghĩa để điều chỉnh hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-implementation
+  title: Thiết kế Java
+  childs:
+  - slug: java-implementation-001
+    title: Tổ chức Target, Adapter, Adaptee và lớp ánh xạ trong các package rõ trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-002
+    title: Dùng interface và constructor injection để client chỉ phụ thuộc Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-003
+    title: Chọn kiểu tham số và kết quả nhằm tránh lộ lớp của thư viện ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-004
+    title: Xử lý generics và wildcard mà không dựa vào ép kiểu thiếu an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-005
+    title: Sử dụng record hoặc lớp giá trị bất biến cho dữ liệu qua ranh giới tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-006
+    title: Tách mapper dùng chung khi logic ánh xạ đủ lớn hoặc có nhiều Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-007
+    title: Khởi tạo Adapter qua factory và cấu hình thay vì rải new trong client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-implementation-008
+    title: Cung cấp Javadoc mô tả ánh xạ, giới hạn và tác dụng phụ cần biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-and-exception-handling
+  title: Lỗi và ngoại lệ
+  childs:
+  - slug: error-and-exception-handling-001
+    title: Phân loại lỗi đầu vào, lỗi nghiệp vụ, lỗi hạ tầng và lỗi chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-and-exception-handling-002
+    title: Chuyển checked exception và unchecked exception theo hợp đồng Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-and-exception-handling-003
+    title: Ánh xạ mã lỗi của Adaptee sang ngoại lệ hoặc kiểu kết quả của miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-and-exception-handling-004
+    title: Giữ nguyên nguyên nhân gốc khi bọc ngoại lệ để hỗ trợ chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-and-exception-handling-005
+    title: Phân biệt không tìm thấy, kết quả rỗng và hệ thống bên ngoài gặp lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-and-exception-handling-006
+    title: Xử lý dữ liệu phản hồi thiếu trường, sai định dạng hoặc vượt miền giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-and-exception-handling-007
+    title: Quy định lỗi được thử lại và điều kiện idempotency trước khi retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-and-exception-handling-008
+    title: Tránh nuốt lỗi, trả dữ liệu mặc định sai nghĩa hoặc lộ thông tin nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-and-state-management
+  title: Tài nguyên và trạng thái
+  childs:
+  - slug: resource-and-state-management-001
+    title: Phân định bên tạo, bên sở hữu và bên đóng tài nguyên của Adaptee
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-and-state-management-002
+    title: Áp dụng AutoCloseable và try-with-resources khi Adapter sở hữu tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-and-state-management-003
+    title: Quản lý kết nối, stream và handle được trả qua ranh giới Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-and-state-management-004
+    title: Xử lý lỗi trong quá trình mở, sử dụng và đóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-and-state-management-005
+    title: Chọn Adapter không trạng thái hoặc có trạng thái theo vòng đời tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-and-state-management-006
+    title: Đánh giá thread safety của Adaptee trước khi chia sẻ Adapter giữa các luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-and-state-management-007
+    title: Bảo vệ trạng thái khả biến và tránh chia sẻ dữ liệu theo từng yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-and-state-management-008
+    title: Kiểm soát scope trong dependency injection và hành vi khi ứng dụng dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sync-and-async-adaptation
+  title: Đồng bộ và bất đồng bộ
+  childs:
+  - slug: sync-and-async-adaptation-001
+    title: Chuyển callback thành CompletableFuture và hoàn tất kết quả đúng một lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sync-and-async-adaptation-002
+    title: Chuyển kết quả bất đồng bộ sang hợp đồng đồng bộ với thời gian chờ hữu hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sync-and-async-adaptation-003
+    title: Truyền lỗi từ callback hoặc future về cơ chế lỗi của Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sync-and-async-adaptation-004
+    title: Ánh xạ timeout và phân biệt timeout cục bộ với tác vụ vẫn đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sync-and-async-adaptation-005
+    title: Truyền yêu cầu hủy xuống Adaptee khi có hỗ trợ và mô tả giới hạn hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sync-and-async-adaptation-006
+    title: Bảo toàn tín hiệu interruption khi có thao tác chặn trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sync-and-async-adaptation-007
+    title: Quản lý executor và tránh chặn luồng event loop trong lớp chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sync-and-async-adaptation-008
+    title: Chuyển luồng dữ liệu có xét backpressure và giới hạn bộ đệm khi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sdk-integration
+  title: Tích hợp SDK
+  childs:
+  - slug: sdk-integration-001
+    title: Định nghĩa Target ổn định trước API do nhà cung cấp SDK kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sdk-integration-002
+    title: Bọc SDK lưu trữ, thanh toán hoặc gửi thông báo bằng Object Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sdk-integration-003
+    title: Ánh xạ request, response và exception của SDK tại ranh giới tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sdk-integration-004
+    title: Cấp cấu hình, thông tin xác thực và endpoint mà không gắn cứng trong Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sdk-integration-005
+    title: Xác định quyền sở hữu SDK client và khả năng tái sử dụng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sdk-integration-006
+    title: Phối hợp timeout, retry và rate limit với cơ chế có sẵn của SDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sdk-integration-007
+    title: Hỗ trợ nhiều nhà cung cấp bằng các Adapter cùng hiện thực một Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sdk-integration-008
+    title: Khoanh vùng thay đổi khi nâng phiên bản SDK hoặc thay nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: legacy-system-integration
+  title: Kết nối hệ thống cũ
+  childs:
+  - slug: legacy-system-integration-001
+    title: Khảo sát API, kiểu dữ liệu và hành vi thực tế của hệ thống legacy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-system-integration-002
+    title: Tạo Target quanh ca sử dụng mới và giữ nguyên giao diện legacy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-system-integration-003
+    title: Chuyển mã ký tự, định dạng ngày và các giá trị sentinel của dữ liệu cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-system-integration-004
+    title: Bọc thủ tục, hàm tĩnh hoặc API trạng thái bằng một ranh giới có thể thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-system-integration-005
+    title: Chuẩn hóa mã trả về và lỗi vốn không được biểu diễn bằng ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-system-integration-006
+    title: Ghi nhận hành vi thực tế bằng characterization test trước khi chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-system-integration-007
+    title: Khoanh vùng tác dụng phụ và giới hạn giao dịch không thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-system-integration-008
+    title: Thay dần hệ thống cũ qua Target mà vẫn giữ hợp đồng của client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architectural-role
+  title: Vai trò kiến trúc
+  childs:
+  - slug: architectural-role-001
+    title: Đặt Adapter tại ranh giới giữa ứng dụng và hệ thống bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-role-002
+    title: Áp dụng Dependency Inversion để nghiệp vụ không phụ thuộc SDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-role-003
+    title: Liên hệ Target với port và Adapter với thành phần tích hợp trong kiến trúc hexagonal
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-role-004
+    title: Phân biệt Adapter đầu vào và Adapter đầu ra qua hướng tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-role-005
+    title: Liên hệ với Anti-Corruption Layer khi cần bảo vệ ngữ nghĩa miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-role-006
+    title: Giới hạn trách nhiệm giữa Adapter, application service và logic nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-role-007
+    title: Quản lý nhiều Adapter bằng composition root và cấu hình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architectural-role-008
+    title: Tổ chức module để kiểu dữ liệu của nhà cung cấp không lan vào lõi ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: unit-testing
+  title: Kiểm thử đơn vị
+  childs:
+  - slug: unit-testing-001
+    title: Xây dựng bộ kiểm thử theo hợp đồng Target thay vì chi tiết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-testing-002
+    title: Dùng JUnit với stub, fake hoặc mock Adaptee cho các tình huống xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-testing-003
+    title: Kiểm tra ánh xạ tham số và chuyển đổi dữ liệu trả về bằng ví dụ cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-testing-004
+    title: Kiểm tra giá trị biên, null, dữ liệu rỗng và mã trạng thái chưa biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-testing-005
+    title: Kiểm tra ánh xạ ngoại lệ cùng nguyên nhân gốc và thông tin lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-testing-006
+    title: Xác minh thứ tự gọi và số lần gọi khi chúng là yêu cầu của hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-testing-007
+    title: Dùng parameterized test hoặc property-based test cho các quy tắc chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-testing-008
+    title: Kiểm tra đóng tài nguyên, tính cô lập trạng thái và hành vi hủy khi có hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-testing
+  title: Kiểm thử tích hợp
+  childs:
+  - slug: integration-testing-001
+    title: Chạy contract test chung cho các Adapter cùng hiện thực một Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-002
+    title: Kiểm tra với SDK thật, sandbox hoặc môi trường kiểm thử của hệ thống ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-003
+    title: Dùng fixture và phản hồi đã ghi để tái hiện dữ liệu legacy đặc trưng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-004
+    title: Kiểm chứng serialization và deserialization tại ranh giới thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-005
+    title: Mô phỏng timeout, mất kết nối, lỗi tạm thời và phản hồi sai hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-006
+    title: Kiểm tra tác dụng phụ, idempotency và kết quả sau thành công từng phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-007
+    title: Kiểm tra cạnh tranh luồng và vòng đời tài nguyên trong điều kiện tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-008
+    title: Phát hiện thay đổi không tương thích khi nâng SDK hoặc đổi phiên bản hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-observability
+  title: Hiệu năng và vận hành
+  childs:
+  - slug: performance-and-observability-001
+    title: Đo chi phí ánh xạ, cấp phát đối tượng và số lần gọi qua Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-002
+    title: Nhận diện lỗi N+1 do chuyển tiếp theo từng phần tử hoặc từng trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-003
+    title: Dùng xử lý theo lô khi bảo toàn được thứ tự, lỗi và tác dụng phụ của Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-004
+    title: Kiểm soát sao chép dữ liệu và bộ nhớ khi chuyển tập dữ liệu lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-005
+    title: Ghi log có ngữ cảnh, mã tương quan và dữ liệu đã được che phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-006
+    title: Theo dõi độ trễ, tỷ lệ lỗi và tracing ở ranh giới gọi hệ thống ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-007
+    title: Đặt retry, circuit breaker hoặc cache đúng lớp để tránh chính sách chồng chéo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-observability-008
+    title: Chẩn đoán lỗi thuộc client, lớp chuyển đổi hay hệ thống được tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: refactoring-with-adapters
+  title: Tái cấu trúc với Adapter
+  childs:
+  - slug: refactoring-with-adapters-001
+    title: Nhận diện lời gọi SDK hoặc legacy đang rải rác trong mã client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-adapters-002
+    title: Ghi nhận hành vi hiện tại và xác định hợp đồng cần giữ ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-adapters-003
+    title: Trích xuất Target tối thiểu từ nhu cầu thực tế của các client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-adapters-004
+    title: Đưa mã chuyển đổi đang lặp vào một Object Adapter tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-adapters-005
+    title: Chuyển điểm khởi tạo và cung cấp phụ thuộc sang composition root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-adapters-006
+    title: Thay lần lượt các điểm tích hợp và kiểm chứng hành vi sau mỗi bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-adapters-007
+    title: Dùng cấu hình lựa chọn hiện thực và chuẩn bị khả năng quay lại khi cần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: refactoring-with-adapters-008
+    title: Loại bỏ phụ thuộc thư viện ngoài khỏi client sau khi hoàn tất chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-pattern-comparisons
+  title: So sánh mẫu thiết kế
+  childs:
+  - slug: design-pattern-comparisons-001
+    title: Adapter và Bridge theo thời điểm thiết kế và mục đích tách các chiều thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-comparisons-002
+    title: Adapter và Decorator theo mục đích đổi giao diện hoặc bổ sung hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-comparisons-003
+    title: Adapter và Facade theo mục đích tương thích hoặc đơn giản hóa một hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-comparisons-004
+    title: Adapter và Proxy theo mục đích đổi hợp đồng hoặc kiểm soát truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-comparisons-005
+    title: Adapter và Strategy theo vai trò tích hợp hoặc thay thế thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-comparisons-006
+    title: Adapter và Mapper theo trách nhiệm chuyển tiếp hành vi hoặc chỉ đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-comparisons-007
+    title: Adapter và Composite khi client cần hợp đồng thống nhất cho nhiều đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-pattern-comparisons-008
+    title: Phối hợp các mẫu có chủ đích và nhận diện trách nhiệm của từng lớp bọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: common-design-mistakes
+  title: Lỗi thiết kế thường gặp
+  childs:
+  - slug: common-design-mistakes-001
+    title: Tạo Adapter khi hai giao diện đã tương thích và không có nhu cầu chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-002
+    title: Sao chép toàn bộ API nhà cung cấp thành Target mà bỏ qua nhu cầu client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-003
+    title: Để DTO, exception hoặc cấu hình SDK rò rỉ vào mã nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-004
+    title: Ép các Adaptee khác khả năng vào một hợp đồng lớn đầy thao tác không hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-005
+    title: Đưa quyết định nghiệp vụ hoặc điều phối quy trình dài vào Adapter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-006
+    title: Lạm dụng kế thừa làm Class Adapter phụ thuộc hành vi nội bộ của lớp cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-007
+    title: Chuyển đổi mất mát, làm tròn ngầm hoặc đổi nghĩa dữ liệu mà không mô tả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: common-design-mistakes-008
+    title: Tạo nhiều lớp bọc khó truy vết hoặc giữ Adapter hết mục đích sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practical-java-examples
+  title: Ví dụ Java thực tế
+  childs:
+  - slug: practical-java-examples-001
+    title: Object Adapter chuyển giao diện máy in cũ sang Printer mà client đang dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-java-examples-002
+    title: Class Adapter kế thừa bộ chuyển đổi văn bản và hiện thực TextConverter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-java-examples-003
+    title: Adapter cảm biến chuyển Fahrenheit sang Celsius có xử lý sai số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-java-examples-004
+    title: Adapter tiền tệ chuyển số nguyên đơn vị nhỏ sang BigDecimal với quy tắc rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-java-examples-005
+    title: Adapter logging chuyển cấp độ và tham số từ API cũ sang giao diện đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-java-examples-006
+    title: Adapter lưu trữ chuyển thao tác tệp của ứng dụng sang SDK lưu trữ đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-java-examples-007
+    title: Adapter thanh toán chuyển trạng thái và lỗi của hai cổng sang PaymentGateway
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practical-java-examples-008
+    title: Adapter tra cứu bất đồng bộ chuyển callback của thư viện thành CompletableFuture
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-exercises
+  title: Bài tập thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Xác định Client, Target, Adaptee và Adapter trong một tình huống tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-002
+    title: Vẽ sơ đồ lớp và hiện thực Object Adapter cho thư viện không thể chỉnh sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-003
+    title: Hiện thực Class Adapter trong Java và giải thích các giới hạn kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-004
+    title: Viết mapper xử lý null, enum lạ, múi giờ và số tiền có độ chính xác yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-005
+    title: Chuyển mã lỗi legacy thành hợp đồng lỗi nhất quán và giữ nguyên nguyên nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-006
+    title: Viết bộ contract test chạy chung cho hai Adapter có cùng Target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-007
+    title: Thay một SDK trong ứng dụng mẫu và kiểm chứng client tiếp tục hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-exercises-008
+    title: Tái cấu trúc tích hợp legacy có timeout, tài nguyên cần đóng và lỗi từng phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-review
+  title: Đánh giá thiết kế
+  childs:
+  - slug: design-review-001
+    title: Xác nhận vấn đề tương thích và lý do cần một lớp chuyển tiếp riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-002
+    title: Kiểm tra Target đủ nhỏ, dễ hiểu và diễn đạt đúng nhu cầu client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-003
+    title: Kiểm tra ánh xạ dữ liệu, hành vi và ngoại lệ có bảo toàn hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-004
+    title: Kiểm tra giới hạn hỗ trợ, mất mát dữ liệu và tác dụng phụ đã được nêu rõ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-005
+    title: Kiểm tra quyền sở hữu tài nguyên, trạng thái và giả định về thread safety
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-006
+    title: Đánh giá độ bao phủ kiểm thử đối với thành công, lỗi và trường hợp biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-007
+    title: Đánh giá khả năng đổi Adaptee hoặc nâng SDK mà không sửa mã client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-review-008
+    title: Tiêu chí hoàn thành một Adapter có thể bảo trì, quan sát và thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

@@ -1,0 +1,393 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Ánh xạ đối tượng (object mapping) là gì và dùng để làm gì
+  - Đối tượng nguồn, đối tượng đích và quy tắc ánh xạ
+  - Vì sao các tầng ứng dụng cần những mô hình dữ liệu khác nhau
+  - Phân biệt ánh xạ đối tượng với sao chép tham chiếu
+  - Phân biệt object mapping, ORM và tuần tự hóa dữ liệu
+  - Phân biệt chuyển đổi cấu trúc với xử lý nghiệp vụ
+  - 'Các thuật ngữ: DTO, entity, value object, projection và mapper'
+  - Luồng dữ liệu từ yêu cầu đầu vào đến mô hình xử lý và phản hồi
+  - Khi nào nên ánh xạ thủ công hoặc dùng thư viện
+  - Lộ trình học và các tiêu chí đánh giá một phép ánh xạ
+- level1: Hợp đồng ánh xạ
+  level2:
+  - Xác định mục đích và người sử dụng mô hình đích
+  - Lập bảng đối chiếu thuộc tính nguồn và đích
+  - Xác định trường bắt buộc, trường tùy chọn và trường bị loại
+  - Phân biệt ánh xạ đầy đủ với ánh xạ một phần
+  - Xác định quy tắc cho trường không có đối ứng
+  - Quy định khả năng mất dữ liệu và chuyển đổi có thể đảo ngược
+  - Phân biệt quy tắc cấu trúc với ý nghĩa nghiệp vụ
+  - Xác định giá trị mặc định và nguồn cung cấp giá trị
+  - Thiết kế chính sách báo lỗi hoặc bỏ qua dữ liệu không hợp lệ
+  - Đặt ranh giới trách nhiệm giữa mapper, dịch vụ và bộ kiểm tra
+  - Tài liệu hóa giả định và điều kiện trước, sau khi ánh xạ
+- level1: Mô hình đối tượng
+  level2:
+  - Thuộc tính JavaBean, getter, setter và trường dữ liệu
+  - Phân biệt kiểu khai báo với kiểu thực tế của đối tượng
+  - Kiểu nguyên thủy, kiểu bao và khả năng biểu diễn null
+  - Constructor, factory method và cách tạo đối tượng đích
+  - Tính bất biến của đối tượng và giới hạn cập nhật thuộc tính
+  - Định danh đối tượng và bình đẳng theo giá trị
+  - Tham chiếu dùng chung và quyền sở hữu dữ liệu
+  - Đặc tính của DTO phẳng và mô hình miền có cấu trúc
+  - Generic và ảnh hưởng của xóa kiểu khi ánh xạ lúc chạy
+  - Giới hạn truy cập thuộc tính và vai trò của tính đóng gói
+- level1: Ánh xạ thủ công
+  level2:
+  - Viết hàm chuyển một đối tượng nguồn sang đối tượng đích
+  - Khởi tạo đích bằng constructor hoặc setter
+  - Tách hàm chuyển đổi cho các thành phần có thể tái sử dụng
+  - Ánh xạ một chiều và thiết kế hàm ánh xạ chiều ngược
+  - Tạo đối tượng mới so với cập nhật đối tượng hiện có
+  - Ánh xạ bằng vòng lặp và Java Stream
+  - Phân biệt sao chép nông với sao chép sâu
+  - Giữ hàm ánh xạ dễ kiểm thử và ít tác dụng phụ
+  - Quản lý null đầu vào và giá trị trả về
+  - Báo lỗi chuyển đổi kèm vị trí thuộc tính
+  - Nhận diện khi ánh xạ thủ công bắt đầu khó bảo trì
+  - Đọc và rà soát mã ánh xạ theo hợp đồng dữ liệu
+- level1: Đối chiếu thuộc tính
+  level2:
+  - Ánh xạ các thuộc tính trùng tên và trùng kiểu
+  - Ánh xạ khi tên thuộc tính nguồn và đích khác nhau
+  - Xử lý quy ước camelCase và các cách đặt tên bên ngoài
+  - Đổi tên mà vẫn giữ nguyên ý nghĩa dữ liệu
+  - Tách một thuộc tính nguồn thành nhiều thuộc tính đích
+  - Gộp nhiều thuộc tính nguồn thành một giá trị đích
+  - Làm phẳng đối tượng lồng nhau
+  - Dựng cấu trúc lồng nhau từ dữ liệu phẳng
+  - Kết hợp thuộc tính từ nhiều đối tượng nguồn
+  - Ưu tiên nguồn dữ liệu khi nhiều trường cùng ánh xạ tới một đích
+  - Bỏ qua trường có chủ đích và phát hiện trường bị bỏ sót
+- level1: Chuyển đổi kiểu
+  level2:
+  - Chuyển số giữa các kiểu và nguy cơ tràn giá trị
+  - Chuyển kiểu nguyên thủy và kiểu bao
+  - Chuyển chuỗi sang số với quy tắc định dạng rõ ràng
+  - Giữ độ chính xác khi ánh xạ BigDecimal
+  - Ánh xạ tiền tệ, đơn vị đo và các giá trị có ngữ nghĩa
+  - Chuyển chuỗi sang boolean và định nghĩa tập giá trị hợp lệ
+  - Ánh xạ enum theo tên, mã hoặc bảng đối chiếu
+  - Xử lý giá trị enum không được nhận diện
+  - Chuyển ngày giờ với định dạng, múi giờ và độ chính xác
+  - Ánh xạ định danh dạng String, UUID và kiểu giá trị riêng
+  - Chuyển mảng byte và dữ liệu nhị phân theo hợp đồng
+  - Thiết kế hàm chuyển đổi có thể tái sử dụng
+  - Phát hiện chuyển đổi mất thông tin hoặc không thể đảo ngược
+- level1: Null và mặc định
+  level2:
+  - Phân biệt đối tượng nguồn null với thuộc tính nguồn null
+  - Phân biệt thiếu dữ liệu, null, chuỗi rỗng và giá trị rỗng
+  - Xác định trả null, tạo đích rỗng hoặc báo lỗi khi nguồn null
+  - Giá trị mặc định của trường nguyên thủy và rủi ro che mất dữ liệu
+  - Đặt giá trị mặc định theo từng thuộc tính
+  - Bỏ qua giá trị null khi cập nhật đối tượng hiện có
+  - Cho phép null xóa giá trị cũ khi hợp đồng yêu cầu
+  - Phân biệt collection null với collection rỗng
+  - Kiểm tra null trên chuỗi thuộc tính lồng nhau
+  - Ánh xạ Optional và xác định ý nghĩa giá trị vắng mặt
+  - Tránh ghi đè giá trị do constructor hoặc builder khởi tạo
+  - Thiết kế ma trận hành vi null cho tạo mới và cập nhật
+- level1: Đối tượng lồng nhau
+  level2:
+  - Ánh xạ từng cấp của một cấu trúc đối tượng
+  - Tách mapper cho các thành phần lồng nhau
+  - Quyết định khi nào cần khởi tạo đối tượng con
+  - Xử lý nút trung gian null trên đường dẫn thuộc tính
+  - Ánh xạ quan hệ một đối một và một đối nhiều
+  - Lựa chọn lồng đầy đủ đối tượng hoặc chỉ giữ định danh
+  - Kiểm soát độ sâu của mô hình phản hồi
+  - Dùng lại thành phần chung giữa nhiều mô hình đích
+  - Giữ bất biến của value object khi dựng đối tượng con
+  - Xử lý lỗi ánh xạ kèm đường dẫn cấu trúc
+  - Tránh tạo cấu trúc đích hợp lệ về kiểu nhưng thiếu ý nghĩa
+- level1: Tập hợp dữ liệu
+  level2:
+  - Ánh xạ phần tử của List, Set và Collection
+  - Chuyển mảng sang collection và chiều ngược lại
+  - Giữ thứ tự phần tử và chọn cấu trúc đích phù hợp
+  - Xử lý phần tử trùng khi ánh xạ sang Set
+  - Xử lý collection null, rỗng hoặc chứa phần tử null
+  - Ánh xạ khóa và giá trị của Map
+  - Xử lý va chạm khóa sau khi chuyển đổi Map
+  - Ánh xạ collection lồng nhau và kiểu generic
+  - Lựa chọn collection có thể thay đổi hoặc bất biến
+  - Tạo mới, thay thế hoặc hợp nhất collection khi cập nhật
+  - Ánh xạ dữ liệu phân trang và bảo toàn thông tin trang
+  - Xử lý theo lô khi tập dữ liệu quá lớn để giữ trong bộ nhớ
+- level1: Đồ thị tham chiếu
+  level2:
+  - Phân biệt cấu trúc cây với đồ thị đối tượng
+  - Nhận diện tham chiếu vòng và quan hệ hai chiều
+  - Vì sao ánh xạ đệ quy có thể gây tràn ngăn xếp
+  - Cắt vòng bằng định danh hoặc mô hình đích có giới hạn
+  - Theo dõi đối tượng đã ánh xạ bằng ngữ cảnh
+  - Bảo toàn tham chiếu dùng chung khi nhiều nút trỏ cùng một đối tượng
+  - Dùng danh tính đối tượng thay cho equals khi theo dõi đồ thị
+  - Đăng ký đối tượng đích trước khi ánh xạ các nút con
+  - Giới hạn độ sâu, số nút và tài nguyên xử lý
+  - Quản lý vòng đời ngữ cảnh theo từng lần ánh xạ
+  - Kiểm thử vòng tự tham chiếu, vòng nhiều nút và tham chiếu dùng chung
+- level1: Đối tượng bất biến
+  level2:
+  - Ánh xạ vào đối tượng chỉ có constructor
+  - Ánh xạ Java record qua các thành phần và canonical constructor
+  - Chọn constructor khi có nhiều cách khởi tạo
+  - Ánh xạ bằng builder và quy tắc hoàn tất đối tượng
+  - Giữ giá trị mặc định do builder cung cấp
+  - Ánh xạ value object có kiểm tra điều kiện khi tạo
+  - Phối hợp đối tượng cha và con đều bất biến
+  - Thiết kế sao chép có thay đổi cho thao tác cập nhật
+  - Phân biệt bất biến bề mặt với bất biến sâu
+  - Tích hợp Lombok và kiểm tra mã được sinh
+  - Xử lý lỗi constructor mà không để lộ đối tượng dở dang
+- level1: Đa hình và generic
+  level2:
+  - Ánh xạ thuộc tính kế thừa từ lớp cha
+  - Chọn mô hình đích theo kiểu con của nguồn
+  - Thiết kế phép ánh xạ cho interface và lớp trừu tượng
+  - Bảo toàn hoặc loại bỏ thông tin kiểu một cách có chủ đích
+  - Xử lý kiểu con chưa được hỗ trợ
+  - Ánh xạ sealed hierarchy và giới hạn tập kiểu
+  - Chọn hàm chuyển đổi khi có nhiều phương thức phù hợp
+  - Ánh xạ lớp bao generic theo kiểu phần tử
+  - Giữ thông tin kiểu generic khi ánh xạ lúc chạy
+  - Kiểm soát ép kiểu và cảnh báo kiểu không an toàn
+  - Kiểm thử các nhánh đa hình và tính đầy đủ của phép ánh xạ
+- level1: Cập nhật từng phần
+  level2:
+  - Phân biệt tạo mới, thay thế toàn bộ và cập nhật từng phần
+  - Biểu diễn thuộc tính không được gửi trong yêu cầu cập nhật
+  - Phân biệt không thay đổi, gán null và gán giá trị mới
+  - Ánh xạ vào đối tượng đích hiện có
+  - Chọn trường được phép cập nhật theo từng thao tác
+  - Bảo vệ định danh, phiên bản và thuộc tính do hệ thống quản lý
+  - Quy tắc cập nhật đối tượng con
+  - Thêm, sửa và xóa phần tử collection theo định danh
+  - Phân biệt thay thế collection với hợp nhất collection
+  - Duy trì quan hệ hai chiều khi cập nhật mô hình có liên kết
+  - Xử lý cập nhật đồng thời và kiểm tra phiên bản ở tầng dịch vụ
+  - Kiểm tra điều kiện nghiệp vụ sau khi hợp nhất thay đổi
+- level1: Ngữ cảnh ánh xạ
+  level2:
+  - Xác định thông tin bổ sung không nằm trong đối tượng nguồn
+  - Truyền ngôn ngữ, múi giờ và quy tắc định dạng
+  - Truyền người dùng và đơn vị thuê theo phạm vi yêu cầu
+  - Sử dụng bảng tra cứu đã được chuẩn bị trước
+  - Tách bước lấy dữ liệu khỏi bước chuyển đổi đối tượng
+  - Kiểm soát chi phí tra cứu theo từng phần tử
+  - Quản lý ngữ cảnh có trạng thái khi dùng mapper dùng chung
+  - Tránh lưu ngữ cảnh yêu cầu trong biến static hoặc singleton
+  - Truyền đồng hồ và bộ sinh định danh khi hợp đồng cho phép
+  - Giữ phép ánh xạ có thể lặp lại bằng ngữ cảnh xác định
+- level1: Ranh giới lưu trữ
+  level2:
+  - Phân biệt entity lưu trữ với DTO phục vụ giao tiếp
+  - Ánh xạ entity sang DTO trong phạm vi dữ liệu đã được nạp
+  - Nhận diện proxy và quan hệ tải lười
+  - Tránh truy vấn N+1 phát sinh trong quá trình ánh xạ
+  - Chọn projection hoặc kế hoạch nạp trước khi gọi mapper
+  - Xử lý quan hệ vòng mà không mở rộng toàn bộ đồ thị entity
+  - Vì sao không nên biến DTO đầu vào thành entity rồi lưu trực tiếp
+  - Cập nhật entity đang được quản lý thay vì thay thế tùy tiện
+  - Xử lý định danh quan hệ bằng bước tra cứu tại dịch vụ
+  - Bảo vệ trường kiểm toán và khóa phiên bản
+  - Duy trì phương thức miền khi thay đổi quan hệ hoặc trạng thái
+  - Tách giới hạn của ORM khỏi hợp đồng ánh xạ đối tượng
+- level1: Kiểm tra và báo lỗi
+  level2:
+  - Phân biệt kiểm tra đầu vào với kiểm tra chuyển đổi
+  - Áp dụng Bean Validation ở ranh giới phù hợp
+  - Xử lý lỗi định dạng, tràn số và thiếu giá trị bắt buộc
+  - Báo vị trí thuộc tính và chỉ số phần tử gây lỗi
+  - Dừng ngay hoặc thu thập nhiều lỗi theo hợp đồng
+  - Quyết định xử lý một bản ghi lỗi trong ánh xạ hàng loạt
+  - Phân biệt ngoại lệ kỹ thuật với lỗi dữ liệu người dùng
+  - Giữ nguyên nguyên nhân lỗi nhưng che dữ liệu nhạy cảm
+  - Kiểm tra bất biến của mô hình đích sau khi khởi tạo
+  - Quy định tính nguyên tử khi cập nhật đối tượng có sẵn
+  - Thiết kế cấu trúc kết quả ánh xạ có lỗi hoặc cảnh báo
+- level1: Tổ chức mapper
+  level2:
+  - Đặt mapper theo miền dữ liệu và ranh giới ứng dụng
+  - Chọn mapper riêng cho tạo mới, cập nhật và phản hồi
+  - Phân biệt mapper, assembler và bộ chuyển đổi kiểu
+  - Tách chuyển đổi dùng chung khỏi quy tắc riêng từng tính năng
+  - Thiết kế phụ thuộc giữa các mapper tránh vòng lặp
+  - Giữ mapper tập trung vào chuyển đổi dữ liệu
+  - Đặt điều kiện nghiệp vụ và truy cập kho dữ liệu tại tầng phù hợp
+  - Thiết kế API mapper dễ đọc và khó dùng sai
+  - Quản lý tên phương thức và chiều chuyển đổi
+  - Tái sử dụng có chọn lọc thay vì tạo mapper tổng quát quá mức
+  - Rà soát tác động khi một kiểu nguồn được nhiều mapper sử dụng
+- level1: Lựa chọn cơ chế
+  level2:
+  - So sánh ánh xạ thủ công, phản chiếu và sinh mã lúc biên dịch
+  - Đánh giá khả năng phát hiện lỗi trước khi chạy
+  - So sánh mức độ tường minh và chi phí cấu hình
+  - Đánh giá khả năng hỗ trợ bất biến, generic và đồ thị vòng
+  - Phân biệt tiện ích sao chép thuộc tính với thư viện object mapping
+  - Phân biệt Spring BeanUtils với Apache Commons BeanUtils
+  - Xác định trường hợp phù hợp với MapStruct
+  - Xác định trường hợp phù hợp với ModelMapper
+  - Kiểm tra tương thích JDK, công cụ build và thư viện liên quan
+  - Lập tiêu chí lựa chọn từ hợp đồng dữ liệu thực tế
+- level1: MapStruct cơ bản
+  level2:
+  - Cơ chế sinh mã ánh xạ của MapStruct
+  - Thiết lập annotation processor trong quy trình build
+  - Khai báo @Mapper và phương thức ánh xạ
+  - Đọc mã triển khai được sinh để kiểm chứng hành vi
+  - Ánh xạ thuộc tính theo quy ước mặc định
+  - Cấu hình source và target bằng @Mapping
+  - Bỏ qua thuộc tính đích có chủ đích
+  - Ánh xạ thuộc tính lồng nhau
+  - Ánh xạ từ nhiều tham số nguồn
+  - Tái sử dụng mapper và hàm chuyển đổi qua uses
+  - Ánh xạ collection và Map
+  - Cấu hình cảnh báo hoặc lỗi cho thuộc tính chưa được ánh xạ
+  - Phát hiện sai kiểu, sai tên thuộc tính và phương thức không rõ ràng
+- level1: MapStruct nâng cao
+  level2:
+  - Lựa chọn hàm chuyển đổi bằng qualifier và @Named
+  - Ánh xạ enum bằng @ValueMapping
+  - Ánh xạ ngày giờ và số theo quy tắc định dạng
+  - Dùng constant, defaultValue và defaultExpression
+  - Giới hạn và rủi ro của expression trong cấu hình ánh xạ
+  - Truyền ngữ cảnh bằng @Context
+  - Điều chỉnh vòng đời bằng @BeforeMapping và @AfterMapping
+  - Kiểm soát khởi tạo bằng @ObjectFactory
+  - Chia sẻ cấu hình qua @MapperConfig
+  - Kế thừa cấu hình bằng @InheritConfiguration
+  - Ánh xạ chiều ngược bằng @InheritInverseConfiguration và các giới hạn
+  - Ánh xạ constructor, record và builder
+  - Ánh xạ kiểu con bằng @SubclassMapping và các giới hạn kết hợp
+  - Tùy biến có kiểm soát bằng decorator hoặc phương thức tự viết
+- level1: MapStruct cập nhật
+  level2:
+  - Ánh xạ vào đối tượng hiện có bằng @MappingTarget
+  - Phân biệt NullValueMappingStrategy và NullValuePropertyMappingStrategy
+  - Kiểm soát kiểm tra null bằng NullValueCheckStrategy
+  - Cấu hình null cho tạo mới và cập nhật theo từng phạm vi
+  - Chọn thuộc tính cần ánh xạ bằng @BeanMapping
+  - Ánh xạ có điều kiện bằng @Condition
+  - Quản lý chiến lược cập nhật collection
+  - Đối chiếu hành vi setter và adder trong mã được sinh
+  - Xử lý đối tượng con khi cập nhật từng phần
+  - Thiết kế ngữ cảnh tránh vòng và bảo toàn danh tính
+  - Xác minh trường được bảo vệ không bị ghi đè
+  - Kiểm tra giới hạn cấu hình với bất biến, đa hình và cập nhật
+- level1: ModelMapper
+  level2:
+  - Cơ chế phân tích kiểu và ánh xạ lúc chạy của ModelMapper
+  - Khởi tạo và quản lý một cấu hình mapper ổn định
+  - Chiến lược đối chiếu STANDARD, LOOSE và STRICT
+  - Thiết lập TypeMap giữa hai kiểu dữ liệu
+  - Khai báo ánh xạ tường minh bằng PropertyMap hoặc API biểu thức
+  - Đổi tên, bỏ qua và ánh xạ thuộc tính lồng nhau
+  - Tùy biến chuyển đổi bằng Converter
+  - Tùy biến tạo đối tượng bằng Provider
+  - Áp dụng Condition và chính sách bỏ qua null
+  - Giữ thông tin kiểu collection bằng TypeToken
+  - Cập nhật đối tượng hiện có bằng ModelMapper
+  - Kiểm tra cấu hình và phát hiện thuộc tính ánh xạ không rõ ràng
+  - Giới hạn của quy ước ngầm khi mô hình nguồn hoặc đích thay đổi
+- level1: Tích hợp Spring
+  level2:
+  - Đăng ký mapper như một thành phần của ứng dụng
+  - Dùng componentModel của MapStruct cho Spring
+  - Tiêm phụ thuộc giữa các mapper theo cấu trúc rõ ràng
+  - Quản lý ModelMapper như bean với cấu hình tập trung
+  - Đặt bước ánh xạ trong luồng Controller và Service
+  - Ánh xạ request DTO sang lệnh xử lý nghiệp vụ
+  - Ánh xạ kết quả xử lý sang response DTO
+  - Tránh che giấu truy vấn cơ sở dữ liệu trong mapper
+  - Phối hợp validation, giao dịch và ánh xạ entity
+  - Kiểm thử bean mapper trong ngữ cảnh Spring
+  - Xác minh annotation processing khi build và chạy trong IDE
+- level1: Tiến hóa hợp đồng
+  level2:
+  - Đánh giá tác động khi thêm thuộc tính vào nguồn hoặc đích
+  - Đổi tên thuộc tính mà không làm mất dữ liệu âm thầm
+  - Thay đổi kiểu dữ liệu và xử lý dữ liệu cũ
+  - Quản lý enum khi bổ sung hoặc loại bỏ giá trị
+  - Thiết kế DTO theo phiên bản giao tiếp
+  - Duy trì mapper cho nhiều phiên bản cùng tồn tại
+  - Xác định phần cấu hình có thể kế thừa an toàn
+  - Đánh giá tính đối xứng của ánh xạ hai chiều
+  - Phát hiện thay đổi hợp đồng bằng build và kiểm thử
+  - Di chuyển dần từ mapper cũ sang mapper mới có đối chiếu
+- level1: Bảo mật dữ liệu
+  level2:
+  - Ngăn lộ mật khẩu, token và dữ liệu nội bộ trong DTO phản hồi
+  - Chọn danh sách trường được phép ghi từ dữ liệu đầu vào
+  - Ngăn gán thuộc tính ngoài quyền hạn (mass assignment)
+  - Bảo vệ định danh, vai trò và trạng thái do máy chủ quản lý
+  - Ánh xạ theo quyền truy cập và đơn vị thuê
+  - Phân biệt che dữ liệu, loại bỏ dữ liệu và kiểm soát quyền
+  - Không tin cậy định danh quan hệ chỉ vì đã chuyển đổi đúng kiểu
+  - Giới hạn độ sâu và kích thước đầu vào khi ánh xạ
+  - Tránh ghi log giá trị nhạy cảm khi chuyển đổi thất bại
+  - Kiểm tra hợp đồng phản hồi để phát hiện trường bị lộ ngoài ý muốn
+- level1: Kiểm thử ánh xạ
+  level2:
+  - Kiểm thử từng thuộc tính theo bảng hợp đồng
+  - Kiểm thử null, rỗng, giá trị mặc định và dữ liệu thiếu
+  - Kiểm thử ranh giới số, độ chính xác và tràn giá trị
+  - Kiểm thử ngày giờ, múi giờ và định dạng theo ngôn ngữ
+  - Kiểm thử enum không nhận diện và chuyển đổi không hợp lệ
+  - Kiểm thử cấu trúc lồng nhau, collection và va chạm khóa Map
+  - Kiểm thử sao chép sâu và bảo toàn tham chiếu khi cần
+  - Kiểm thử đồ thị vòng và giới hạn độ sâu
+  - Kiểm thử cập nhật từng phần không ghi đè trường bị bỏ qua
+  - Kiểm thử bất biến và đối tượng đích có constructor kiểm tra
+  - Kiểm thử ánh xạ đa hình và các kiểu con chưa được hỗ trợ
+  - Kiểm tra phép ánh xạ hai chiều chỉ với dữ liệu đủ điều kiện
+  - Kiểm thử sinh dữ liệu theo thuộc tính và bất biến
+  - Kiểm thử hợp đồng phản hồi và bảo vệ dữ liệu nhạy cảm
+  - Kiểm thử tích hợp để phát hiện truy vấn ngoài dự kiến
+- level1: Hiệu năng
+  level2:
+  - Đo chi phí ánh xạ trong toàn bộ luồng xử lý
+  - So sánh mã thủ công, mã sinh và phản chiếu bằng phép đo phù hợp
+  - Thiết kế phép đo với JMH và giai đoạn làm nóng JVM
+  - Đo số đối tượng tạo mới và áp lực thu gom rác
+  - Đánh giá chi phí ánh xạ đồ thị lớn và nhiều tầng
+  - Giảm sao chép không cần thiết nhưng giữ đúng quyền sở hữu dữ liệu
+  - Xử lý theo lô và giới hạn bộ nhớ cho tập dữ liệu lớn
+  - Tránh tra cứu dữ liệu lặp lại theo từng phần tử
+  - Đánh giá an toàn luồng trước khi ánh xạ song song
+  - Tái sử dụng cấu hình mapper mà không chia sẻ trạng thái yêu cầu
+  - Phân biệt nút thắt ánh xạ với I/O và truy vấn cơ sở dữ liệu
+- level1: Lỗi thiết kế
+  level2:
+  - Sao chép mọi thuộc tính chỉ vì tên giống nhau
+  - Dùng cùng một DTO cho tạo mới, cập nhật và phản hồi
+  - Gắn logic nghiệp vụ hoặc truy vấn dữ liệu vào hàm chuyển đổi
+  - Tự động ánh xạ bỏ sót trường nhưng không phát hiện
+  - Giả định ánh xạ chiều ngược luôn khôi phục được nguồn
+  - Đồng nhất null với dữ liệu không được gửi
+  - Chia sẻ đối tượng con có thể thay đổi ngoài dự kiến
+  - Ánh xạ toàn bộ quan hệ entity gây vòng lặp hoặc N+1
+  - Lạm dụng expression và cấu hình ngầm khó kiểm chứng
+  - Tạo lớp mapper tổng quát che mất hợp đồng từng trường hợp
+  - Đo hiệu năng thiếu làm nóng hoặc dùng dữ liệu không đại diện
+  - Bỏ qua tác động bảo mật khi bổ sung thuộc tính mới
+- level1: Thực hành tổng hợp
+  level2:
+  - Ánh xạ hồ sơ người dùng bằng mã thủ công theo hợp đồng
+  - Làm phẳng địa chỉ và thông tin liên hệ sang DTO
+  - Chuyển đơn hàng cùng collection dòng hàng và giá trị tiền tệ
+  - Ánh xạ record và value object có điều kiện khởi tạo
+  - Thiết kế cập nhật từng phần có phân biệt thiếu trường và null
+  - Chuyển đồ thị hai chiều thành mô hình phản hồi không có vòng
+  - Dùng ngữ cảnh để bảo toàn tham chiếu chung trong đồ thị
+  - Triển khai cùng hợp đồng bằng MapStruct và ModelMapper
+  - Tích hợp mapper trong dịch vụ Spring có truy cập dữ liệu
+  - Ngăn ghi đè trường đặc quyền và lộ dữ liệu nhạy cảm
+  - Di chuyển hợp đồng DTO giữa hai phiên bản có kiểm chứng
+  - Hoàn thiện bộ kiểm thử và phép đo cho một luồng ánh xạ thực tế

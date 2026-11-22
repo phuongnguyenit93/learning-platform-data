@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng khóa–giá trị
+  slug: key-value-foundations
+  index: 1
+- title: Khởi tạo dự án
+  slug: project-setup
+  index: 2
+- title: Cấu hình lưu trữ
+  slug: storage-configuration
+  index: 3
+- title: Mô hình đối tượng
+  slug: object-model
+  index: 4
+- title: Định danh
+  slug: identity
+  index: 5
+- title: Keyspace
+  slug: keyspace
+  index: 6
+- title: Lưu trữ Map
+  slug: map-storage
+  index: 7
+- title: Thao tác Template
+  slug: template-operations
+  index: 8
+- title: Repository cơ bản
+  slug: repository-basics
+  index: 9
+- title: Truy vấn Template
+  slug: template-queries
+  index: 10
+- title: Truy vấn Repository
+  slug: repository-queries
+  index: 11
+- title: Sắp xếp và phân trang
+  slug: sorting-pagination
+  index: 12
+- title: Kiến trúc nội bộ
+  slug: internal-architecture
+  index: 13
+- title: Sự kiện vòng đời
+  slug: lifecycle-events
+  index: 14
+- title: Ngoại lệ
+  slug: exceptions
+  index: 15
+- title: Truy cập đồng thời
+  slug: concurrent-access
+  index: 16
+- title: Mở rộng Repository
+  slug: repository-extensions
+  index: 17
+- title: Adapter tùy chỉnh
+  slug: custom-adapters
+  index: 18
+- title: Hiệu năng và bộ nhớ
+  slug: performance-memory
+  index: 19
+- title: Kiểm thử
+  slug: testing
+  index: 20
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 21
+- title: Vận hành
+  slug: operations
+  index: 22
+- title: Chẩn đoán và nâng cấp
+  slug: diagnostics-upgrades
+  index: 23
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 24

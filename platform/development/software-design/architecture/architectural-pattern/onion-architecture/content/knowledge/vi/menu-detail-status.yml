@@ -1,0 +1,2845 @@
+menu:
+- slug: onion-architecture-overview
+  title: Tổng quan Onion
+  childs:
+  - slug: onion-architecture-overview-001
+    title: Onion Architecture là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-002
+    title: Từ kiến trúc lấy cơ sở dữ liệu làm trung tâm đến lấy miền nghiệp vụ làm trung tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-003
+    title: Nguồn gốc, mục tiêu và tư tưởng cốt lõi của Onion Architecture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-004
+    title: Miền nghiệp vụ, ứng dụng và hạ tầng trong cùng một hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-005
+    title: Mô hình các vòng đồng tâm và ý nghĩa của phần lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-006
+    title: Phân biệt chính sách nghiệp vụ với chi tiết kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-007
+    title: Lợi ích về kiểm thử, bảo trì và thay thế công nghệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-008
+    title: Chi phí phân lớp, trừu tượng hóa và ánh xạ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-009
+    title: Khi nên áp dụng Onion và khi cấu trúc đơn giản đã đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-architecture-overview-010
+    title: Thuật ngữ cốt lõi và lộ trình học Onion Architecture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-rings
+  title: Các vòng kiến trúc
+  childs:
+  - slug: architecture-rings-001
+    title: Mô hình miền ở trung tâm của Onion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-002
+    title: Dịch vụ miền và vị trí của logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-003
+    title: Dịch vụ ứng dụng và vai trò thực hiện ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-004
+    title: Giao diện người dùng ở vòng ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-005
+    title: Hạ tầng lưu trữ, mạng và framework ở vòng ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-006
+    title: Ranh giới logic và ranh giới vật lý của các vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-007
+    title: Biến thể sơ đồ Onion và ý nghĩa thay vì số lớp cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-008
+    title: Quan hệ giữa vòng kiến trúc, package, mô-đun và đơn vị triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-009
+    title: Nhận diện trách nhiệm của một thành phần trước khi chọn vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-rings-010
+    title: Đọc sơ đồ Onion qua ví dụ xử lý đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-direction
+  title: Chiều phụ thuộc
+  childs:
+  - slug: dependency-direction-001
+    title: Quy tắc phụ thuộc từ vòng ngoài vào vòng trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-002
+    title: Phụ thuộc mã nguồn và luồng gọi lúc chạy khác nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-003
+    title: Dependency Inversion và quyền sở hữu trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-004
+    title: Dependency Injection hỗ trợ ghép nối nhưng không tự bảo đảm kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-005
+    title: Interface ở phía sử dụng và implementation ở vòng ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-006
+    title: Luồng gọi từ ứng dụng ra hạ tầng qua trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-007
+    title: Phụ thuộc vào kiểu dữ liệu cũng là phụ thuộc kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-008
+    title: Ngăn kiểu của framework và thư viện hạ tầng đi vào lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-009
+    title: Phụ thuộc bắc cầu và thư viện dùng chung làm rò rỉ chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-010
+    title: Phát hiện vòng phụ thuộc giữa các lớp và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-011
+    title: Phân biệt đảo ngược phụ thuộc với tạo interface cho mọi lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-direction-012
+    title: Theo dõi chiều phụ thuộc trên toàn bộ luồng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-foundations
+  title: Nền tảng thiết kế
+  childs:
+  - slug: design-foundations-001
+    title: Tính kết dính, liên kết và trách nhiệm của thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-002
+    title: Single Responsibility và lý do thay đổi ở từng vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-003
+    title: Open–Closed và điểm mở rộng theo nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-004
+    title: Interface Segregation trong hợp đồng phục vụ ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-005
+    title: Đóng gói trạng thái và bảo vệ bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-006
+    title: Composition và inheritance trong mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-007
+    title: Lập trình hướng đối tượng và mô hình miền giàu hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-008
+    title: Lập trình hàm và lõi xử lý thuần trong kiến trúc Onion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-009
+    title: DDD hỗ trợ Onion nhưng không phải điều kiện bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-foundations-010
+    title: Chọn mức trừu tượng dựa trên độ phức tạp của bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-model
+  title: Mô hình miền
+  childs:
+  - slug: domain-model-001
+    title: Tìm khái niệm miền từ yêu cầu và ngôn ngữ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-002
+    title: Entity và danh tính xuyên suốt vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-003
+    title: Value Object và tính bằng nhau theo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-004
+    title: Aggregate và ranh giới bảo vệ nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-005
+    title: Aggregate Root và quyền truy cập trạng thái bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-006
+    title: Bất biến nghiệp vụ và thời điểm kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-007
+    title: Phương thức nghiệp vụ thay cho thay đổi dữ liệu tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-008
+    title: Hàm tạo, factory và bảo đảm trạng thái khởi tạo hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-009
+    title: Biểu diễn tiền tệ, số lượng và định danh bằng kiểu miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-010
+    title: Trạng thái nghiệp vụ và các chuyển trạng thái hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-011
+    title: Đối tượng bất biến và cập nhật có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-012
+    title: Phân biệt Entity miền với Entity lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-model-013
+    title: Ranh giới miền và ngữ cảnh giới hạn trong hệ thống lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-services
+  title: Dịch vụ miền
+  childs:
+  - slug: domain-services-001
+    title: Khi một quy tắc không thuộc tự nhiên về Entity hay Value Object
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-002
+    title: Dịch vụ miền và sự khác biệt với dịch vụ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-003
+    title: Đầu vào và đầu ra bằng ngôn ngữ của miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-004
+    title: Tách tính toán nghiệp vụ khỏi truy xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-005
+    title: Quy tắc cần dữ liệu ngoài và trừu tượng do miền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-006
+    title: Policy, Specification và cách diễn đạt điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-007
+    title: Quy tắc phối hợp nhiều đối tượng trong cùng ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-008
+    title: Đặt factory ở miền khi việc tạo đối tượng có quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-009
+    title: Tránh dịch vụ miền toàn năng và mô hình miền chỉ chứa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-services-010
+    title: Kiểm thử quy tắc miền mà không khởi động hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-services
+  title: Dịch vụ ứng dụng
+  childs:
+  - slug: application-services-001
+    title: Ca sử dụng là gì và cách xác định ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-002
+    title: Dịch vụ ứng dụng điều phối mô hình miền như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-003
+    title: Trình tự tải dữ liệu, thực hiện nghiệp vụ và lưu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-004
+    title: Lệnh, truy vấn và hợp đồng của ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-005
+    title: Phân biệt xác thực dữ liệu đầu vào với kiểm tra quy tắc miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-006
+    title: Truyền danh tính người thực hiện và ngữ cảnh cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-007
+    title: Kiểm tra quyền thực hiện ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-008
+    title: Ranh giới giao dịch ở cấp ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-009
+    title: Trả kết quả ứng dụng mà không làm lộ đối tượng hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-010
+    title: Xử lý ca sử dụng cần nhiều dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-011
+    title: Tách điều phối khỏi logic nghiệp vụ thay vì dịch chuyển mọi logic vào service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-services-012
+    title: Chọn lớp riêng cho từng ca sử dụng hay nhóm ca sử dụng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boundary-contracts
+  title: Hợp đồng biên
+  childs:
+  - slug: boundary-contracts-001
+    title: Vai trò của interface tại ranh giới vòng trong và vòng ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-002
+    title: Đặt trừu tượng ở miền hay ứng dụng theo trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-003
+    title: Hợp đồng đầu vào của ca sử dụng và bên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-004
+    title: Hợp đồng đầu ra cho lưu trữ và hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-005
+    title: Thiết kế chữ ký bằng kiểu thuộc vòng sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-006
+    title: Định nghĩa ngữ nghĩa, lỗi và cam kết của hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-007
+    title: Trừu tượng thời gian, mã định danh và nguồn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-008
+    title: Hợp đồng cho gửi thư, thanh toán và lưu tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-009
+    title: Đồng bộ và bất đồng bộ trong hợp đồng biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-010
+    title: Thay implementation mà vẫn giữ nguyên ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boundary-contracts-011
+    title: Giữ hợp đồng nhỏ và tránh trừu tượng dùng chung quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository
+  title: Repository
+  childs:
+  - slug: repository-001
+    title: Repository trong mô hình miền và khác biệt với DAO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-002
+    title: Đặt interface Repository theo nhu cầu của miền hoặc ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-003
+    title: Thiết kế Repository theo Aggregate thay vì theo từng bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-004
+    title: Truy vấn và lưu Aggregate với ngữ nghĩa rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-005
+    title: Trạng thái không tồn tại và cách biểu diễn kết quả tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-006
+    title: Phân biệt truy vấn nghiệp vụ với truy vấn phục vụ báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-007
+    title: Phân trang và sắp xếp mà không rò rỉ kiểu của Spring Data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-008
+    title: Định nghĩa điều kiện truy vấn và giới hạn của Repository tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-009
+    title: Lưu Aggregate mới, cập nhật và kiểm soát phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-010
+    title: Không làm lộ EntityManager, Session hay truy vấn đặc thù ra lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-011
+    title: Repository trong bộ nhớ và giới hạn khi dùng cho kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-012
+    title: Khi không cần Repository hoặc không cần interface bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: persistence-infrastructure
+  title: Hạ tầng lưu trữ
+  childs:
+  - slug: persistence-infrastructure-001
+    title: Triển khai Repository ở vòng hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-002
+    title: Mô hình lưu trữ riêng và ánh xạ sang mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-003
+    title: 'Dùng chung mô hình miền với mô hình ORM: lợi ích và đánh đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-004
+    title: JPA annotation trong miền và mức độ độc lập thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-005
+    title: Ánh xạ Entity, Value Object và Aggregate với ORM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-006
+    title: Khôi phục đối tượng miền mà vẫn tôn trọng bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-007
+    title: Lazy loading, proxy và ranh giới phiên làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-008
+    title: N+1 query và tác động của mô hình tải dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-009
+    title: Quan hệ cơ sở dữ liệu không đồng nhất với quan hệ Aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-010
+    title: Ràng buộc dữ liệu và quy tắc nghiệp vụ bổ trợ nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-011
+    title: Thay đổi lược đồ và khả năng tương thích với mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: persistence-infrastructure-012
+    title: Tách chi tiết SQL, NoSQL và bộ nhớ đệm khỏi hợp đồng lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-consistency
+  title: Giao dịch và nhất quán
+  childs:
+  - slug: transactions-consistency-001
+    title: Ranh giới Aggregate và ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-002
+    title: Giao dịch cục bộ bao quanh một ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-003
+    title: Vị trí thực thi transaction khi lõi cần độc lập framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-004
+    title: Optimistic locking và phát hiện cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-005
+    title: Pessimistic locking và các tình huống cần khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-006
+    title: Phân biệt lỗi xung đột dữ liệu với lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-007
+    title: Thử lại giao dịch và nguy cơ lặp tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-008
+    title: Tính lũy đẳng của ca sử dụng và khóa chống xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-009
+    title: Tác dụng phụ trước, trong và sau khi commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-010
+    title: Transactional Outbox khi cần phối hợp dữ liệu và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-011
+    title: Khi nào cần nhất quán cuối cùng giữa các ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-consistency-012
+    title: Giữ phối hợp phân tán bên ngoài bất biến của một Aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-interfaces
+  title: Giao diện ứng dụng
+  childs:
+  - slug: application-interfaces-001
+    title: HTTP controller là bộ chuyển đổi đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-002
+    title: Phân tích request, gọi ca sử dụng và dựng response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-003
+    title: Phân biệt DTO giao tiếp với dữ liệu đầu vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-004
+    title: Kiểm tra hình dạng dữ liệu tại biên HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-005
+    title: Ánh xạ kết quả và lỗi ứng dụng sang HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-006
+    title: Giao diện dòng lệnh, tác vụ định kỳ và xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-007
+    title: Bên tiêu thụ thông điệp như một điểm vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-008
+    title: Nhiều giao diện dùng chung một ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-009
+    title: Không đặt nghiệp vụ trong controller, listener hoặc scheduler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-010
+    title: Ngăn đối tượng miền thoát qua JSON và tuần tự hóa ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-interfaces-011
+    title: Giữ ranh giới ứng dụng ổn định khi thay giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-mapping
+  title: Ánh xạ dữ liệu
+  childs:
+  - slug: data-mapping-001
+    title: Phân biệt API DTO, mô hình ứng dụng, mô hình miền và mô hình lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-002
+    title: Chọn ranh giới cần ánh xạ thay vì nhân bản mọi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-003
+    title: Chiều phụ thuộc của mapper và nơi đặt mã ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-004
+    title: Ánh xạ thủ công và dùng công cụ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-005
+    title: Giữ ý nghĩa Value Object qua các ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-006
+    title: Trường thiếu, giá trị null và ngữ nghĩa cập nhật từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-007
+    title: Ánh xạ thời gian, tiền tệ và đơn vị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-008
+    title: Tránh mapper làm thay trách nhiệm kiểm tra của miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-009
+    title: Vòng tham chiếu và chi phí ánh xạ đồ thị đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-010
+    title: Kiểm thử ánh xạ và phát hiện mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-integrations
+  title: Tích hợp bên ngoài
+  childs:
+  - slug: external-integrations-001
+    title: Xem dịch vụ ngoài là chi tiết hạ tầng của ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-002
+    title: Thiết kế hợp đồng theo nhu cầu nội bộ thay vì SDK nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-003
+    title: Bộ chuyển đổi cho HTTP client và thư viện bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-004
+    title: Lớp chống xâm lấn bảo vệ ngôn ngữ miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-005
+    title: Ánh xạ dữ liệu và lỗi từ hệ thống ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-006
+    title: Timeout, retry và Circuit Breaker trong bộ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-007
+    title: Phân định quyết định thử lại giữa ứng dụng và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-008
+    title: Tách gửi thư, lưu tệp và thanh toán khỏi xử lý miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-009
+    title: Kiểm soát tác dụng phụ khi hệ thống ngoài trả kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-integrations-010
+    title: Giả lập hệ thống ngoài và kiểm thử hợp đồng của bộ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domain-events
+  title: Sự kiện
+  childs:
+  - slug: domain-events-001
+    title: Sự kiện miền và ý nghĩa của điều đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-002
+    title: Đối tượng miền ghi nhận sự kiện như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-003
+    title: Thu thập và xử lý sự kiện trong phạm vi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-004
+    title: Phân biệt sự kiện miền với sự kiện tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-005
+    title: Chuyển sự kiện miền thành hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-006
+    title: Phát sự kiện trước hoặc sau commit và ảnh hưởng nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-007
+    title: Lưu Outbox trong cùng giao dịch với dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-008
+    title: Triển khai publisher và subscriber ở vòng ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-009
+    title: Thông điệp trùng lặp và tính lũy đẳng của bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-010
+    title: Tránh phụ thuộc trực tiếp từ miền vào broker hoặc event bus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domain-events-011
+    title: Khi lời gọi trực tiếp rõ ràng hơn cơ chế sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-results
+  title: Lỗi và kết quả
+  childs:
+  - slug: errors-results-001
+    title: Phân loại lỗi miền, lỗi ứng dụng và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-002
+    title: Exception nghiệp vụ và kiểu kết quả tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-003
+    title: Biểu diễn không tìm thấy, xung đột và từ chối nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-004
+    title: Chuyển lỗi hạ tầng sang ngữ nghĩa hợp đồng biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-005
+    title: Lựa chọn truyền nguyên nhân kỹ thuật và bảo vệ chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-006
+    title: Không nuốt lỗi hoặc trả giá trị mặc định sai nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-007
+    title: Chuyển lỗi ứng dụng thành phản hồi cho từng giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-008
+    title: Định danh lỗi, bản địa hóa thông báo và ngôn ngữ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-009
+    title: Ghi log lỗi đúng ranh giới và tránh ghi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-results-010
+    title: Kiểm thử đường lỗi, rollback và trạng thái sau thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: component-composition
+  title: Ghép nối thành phần
+  childs:
+  - slug: component-composition-001
+    title: Composition Root và nơi quyết định implementation cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-002
+    title: Khởi tạo thủ công bằng constructor injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-003
+    title: Tách cấu hình ghép nối khỏi lớp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-004
+    title: Quản lý vòng đời và phạm vi sống của thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-005
+    title: Cấu hình theo môi trường và lựa chọn bộ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-006
+    title: Decorator cho giao dịch, đo lường và chính sách kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-007
+    title: Phân biệt Proxy của framework với đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-008
+    title: Tránh Service Locator và truy cập container từ lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-009
+    title: Phát hiện cấu hình thiếu, xung đột và phụ thuộc vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-composition-010
+    title: Kiểm thử ghép nối toàn bộ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-code-organization
+  title: Tổ chức mã Java
+  childs:
+  - slug: java-code-organization-001
+    title: Tổ chức package theo vòng và theo tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-002
+    title: Kết hợp mô-đun nghiệp vụ với các vòng bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-003
+    title: Ranh giới public, package-private và khả năng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-004
+    title: Tách domain, application, infrastructure và bootstrap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-005
+    title: Mô-đun Maven hoặc Gradle và chiều phụ thuộc biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-006
+    title: JPMS khi cần tăng cường đóng gói ở cấp mô-đun Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-007
+    title: Giữ thư viện Spring, ORM và client SDK ở mô-đun phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-008
+    title: Đặt tên lớp theo trách nhiệm thay vì hậu tố máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-009
+    title: Java record cho dữ liệu biên và Value Object phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-010
+    title: Generic, Optional và Stream qua hợp đồng kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-011
+    title: Chia sẻ mã chung mà không tạo mô-đun common toàn năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-code-organization-012
+    title: Ánh xạ cấu trúc package với sơ đồ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Spring Boot ở vòng ngoài và vai trò khởi động ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Bean configuration cho đối tượng miền và dịch vụ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Constructor injection và giới hạn của component scanning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Lõi Java thuần và biến thể dùng annotation Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: '@Transactional trong ứng dụng và đánh đổi phụ thuộc framework'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: TransactionTemplate hoặc decorator cho giao dịch ngoài lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Proxy, self-invocation và giới hạn cơ chế giao dịch Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Controller Spring MVC gọi ca sử dụng qua hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Spring Data JPA Repository bọc bởi bộ chuyển đổi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-010
+    title: Bean Validation tại biên và bất biến trong mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-011
+    title: Exception handler và ánh xạ lỗi HTTP tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-012
+    title: Configuration properties cho bộ chuyển đổi và dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-013
+    title: Sự kiện Spring và phạm vi bảo đảm xử lý thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-014
+    title: Kiểm tra ứng dụng vẫn khởi động và ghép nối đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-crosscutting-concerns
+  title: Bảo mật và kỹ thuật chung
+  childs:
+  - slug: security-crosscutting-concerns-001
+    title: Xác thực ở giao diện và truyền danh tính vào ca sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-002
+    title: Phân quyền ứng dụng và điều kiện truy cập theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-003
+    title: Tránh SecurityContext và Principal của framework trong miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-004
+    title: Ngữ cảnh người dùng, tenant và yêu cầu quyền sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-005
+    title: Validation tại biên và phòng ngừa dữ liệu không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-006
+    title: Quản lý bí mật và cấu hình kết nối ở vòng hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-007
+    title: Log, số đo và truy vết qua decorator hoặc interceptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-008
+    title: Kiểm toán nghiệp vụ và phân biệt với log kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-009
+    title: Bộ nhớ đệm như chi tiết hạ tầng và chính sách hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-010
+    title: Tác vụ bất đồng bộ và việc truyền ngữ cảnh cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-crosscutting-concerns-011
+    title: Tránh lớp kỹ thuật chung trở thành nơi chứa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Chiến lược kiểm thử theo các vòng kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử Entity, Value Object và bất biến không cần Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử dịch vụ miền và dữ liệu biên của quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử ca sử dụng bằng fake, stub hoặc mock
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Chọn kiểm tra kết quả hay kiểm tra tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm soát thời gian, mã định danh và nguồn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử hợp đồng dùng chung cho nhiều implementation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử Repository với cơ sở dữ liệu thật bằng Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử ánh xạ ORM và giới hạn của cơ sở dữ liệu trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử bộ chuyển đổi HTTP và hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử controller và ánh xạ lỗi tại biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử giao dịch, cạnh tranh và tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử tích hợp ghép nối Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Kiểm thử luồng đầu cuối và lựa chọn phạm vi tối thiểu cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-015
+    title: Tránh kiểm thử chỉ sao chép cấu trúc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-validation
+  title: Kiểm chứng kiến trúc
+  childs:
+  - slug: architecture-validation-001
+    title: Chuyển quy tắc Onion thành ràng buộc có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-002
+    title: Vẽ đồ thị import và phụ thuộc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-003
+    title: Kiểm tra vòng trong không phụ thuộc vòng ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-004
+    title: Kiểm tra lớp miền không tham chiếu framework đã loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-005
+    title: Phát hiện phụ thuộc vòng và truy cập trái ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-006
+    title: Dùng ArchUnit cho quy tắc package và layer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-007
+    title: Dùng kiểm tra build để bảo vệ chiều phụ thuộc mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-008
+    title: Kiểm tra quyền sở hữu interface và kiểu dữ liệu hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-009
+    title: Quản lý ngoại lệ kiến trúc có lý do và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-validation-010
+    title: Đưa kiểm tra kiến trúc vào CI và đánh giá khi refactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Chi phí phân lớp và chi phí thực sự của I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Thiết kế truy vấn theo nhu cầu mà vẫn giữ ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Mô hình đọc riêng khi truy vấn không cần dựng Aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Kiểm soát số lần gọi Repository và hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Tải dữ liệu theo lô và tránh N+1 qua bộ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Bộ nhớ đệm, tính nhất quán và trách nhiệm làm mất hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Chi phí ánh xạ, cấp phát đối tượng và tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đo hiệu năng trước khi nới lỏng ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Ghi nhận ngoại lệ tối ưu hóa và kiểm chứng ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-comparison
+  title: So sánh kiến trúc
+  childs:
+  - slug: architecture-comparison-001
+    title: Onion và kiến trúc phân lớp truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-002
+    title: 'Onion, Hexagonal và Clean Architecture: tư tưởng chung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-003
+    title: Vòng đồng tâm của Onion và ports/adapters của Hexagonal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-004
+    title: Nhận diện cách diễn đạt khác nhau của cùng một ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-005
+    title: 'Onion với MVC: kiến trúc ứng dụng và tổ chức giao diện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-006
+    title: 'Onion và DDD: mức độ hỗ trợ lẫn nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-007
+    title: 'Onion với CQRS: tách đường đọc và đường ghi khi cần'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-008
+    title: Onion trong ứng dụng nguyên khối và modular monolith
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-009
+    title: Onion bên trong một microservice và giới hạn đối với hệ phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-comparison-010
+    title: Lựa chọn phong cách kiến trúc theo ràng buộc bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-code-refactoring
+  title: Cải tiến mã hiện hữu
+  childs:
+  - slug: legacy-code-refactoring-001
+    title: Đánh giá nghiệp vụ đang nằm trong controller, service và persistence
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-002
+    title: Lập bản đồ phụ thuộc trước khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-003
+    title: Viết kiểm thử ghi nhận hành vi hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-004
+    title: Chọn một ca sử dụng để chuyển đổi từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-005
+    title: Tách quy tắc nghiệp vụ thành mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-006
+    title: Đưa phụ thuộc cơ sở dữ liệu ra sau hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-007
+    title: Tách SDK và dịch vụ ngoài bằng bộ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-008
+    title: Di chuyển ghép nối về Composition Root
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-009
+    title: Giữ tương thích API và dữ liệu trong quá trình chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-010
+    title: Thay đổi theo lát cắt chức năng thay vì di chuyển toàn bộ thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-011
+    title: Đánh giá lợi ích và chi phí sau mỗi lần refactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-code-refactoring-012
+    title: Ngừng refactor khi mức phân tách đã đáp ứng nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-mistakes
+  title: Sai lầm thiết kế
+  childs:
+  - slug: design-mistakes-001
+    title: Vẽ các vòng nhưng vẫn để lõi import hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-002
+    title: Tạo interface cho mọi lớp mà không có ranh giới cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-003
+    title: Đặt mọi quy tắc vào application service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-004
+    title: Mô hình miền chỉ có getter, setter và không bảo vệ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-005
+    title: Dùng DTO giao tiếp hoặc Entity ORM như mô hình duy nhất không qua đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-006
+    title: Làm lộ Pageable, ResponseEntity hoặc lỗi SQL qua hợp đồng lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-007
+    title: Tạo Repository tổng quát che mất ngữ nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-008
+    title: Ép mọi truy vấn báo cáo đi qua Aggregate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-009
+    title: Gọi trực tiếp container hoặc service locator từ miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-010
+    title: Đưa nghiệp vụ vào mapper, listener hoặc lớp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-011
+    title: Tách quá nhiều lớp và mô-đun cho bài toán đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-012
+    title: Đồng nhất Onion với yêu cầu phải dùng DDD hay microservices
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-mistakes-013
+    title: Cho rằng kiến trúc tự bảo đảm hiệu năng và tính đúng đắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: onion-practice
+  title: Thực hành Onion
+  childs:
+  - slug: onion-practice-001
+    title: Đề bài quản lý đơn hàng và tiêu chí hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-002
+    title: Xác định phạm vi miền, ca sử dụng và thuật ngữ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-003
+    title: Thiết kế Entity, Value Object và Aggregate đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-004
+    title: Xây dựng quy tắc giá, trạng thái và hủy đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-005
+    title: Định nghĩa hợp đồng Repository và dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-006
+    title: Triển khai ca sử dụng đặt hàng bằng lõi Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-007
+    title: Viết kiểm thử miền và ca sử dụng trước khi ghép hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-008
+    title: Thêm bộ chuyển đổi lưu trữ trong bộ nhớ và JPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-009
+    title: Cung cấp giao diện HTTP và tác vụ nền cho cùng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-010
+    title: Ghép nối bằng Spring Boot và bảo vệ ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-011
+    title: Thêm thanh toán giả lập với xử lý lỗi và lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-012
+    title: Bổ sung sự kiện và Outbox khi bài toán yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-013
+    title: Viết kiểm thử hợp đồng, tích hợp và quy tắc ArchUnit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-014
+    title: Thay một bộ chuyển đổi để kiểm chứng mức độc lập của lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: onion-practice-015
+    title: Rà soát đồ thị phụ thuộc và giải thích các đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,7 @@
+# Spring Core Container trong Spring Framework
+
+Spring Core Container là nền tảng quản lý đối tượng của Spring Framework. Thay vì mỗi thành phần tự tạo và liên kết mọi đối tượng phụ thuộc, container áp dụng nguyên lý đảo ngược quyền điều khiển (IoC) và tiêm phụ thuộc (DI) để tạo, cấu hình, kết nối và quản lý các bean. Hiểu cơ chế này giúp bạn thiết kế các thành phần ít phụ thuộc chặt chẽ, dễ thay thế và dễ kiểm thử hơn.
+
+Tài liệu này dành cho người đã biết Java, lớp, đối tượng và các nguyên tắc lập trình hướng đối tượng cơ bản, muốn hiểu Spring từ cơ chế cốt lõi. Lộ trình gồm tám mốc: IoC và container; khai báo bean bằng cấu hình hoặc quét thành phần; lựa chọn và tiêm phụ thuộc; phạm vi cùng vòng đời bean; cấu hình theo môi trường; các tiện ích của `ApplicationContext` như tài nguyên, thông điệp và sự kiện; điểm mở rộng container; cuối cùng là kiểm chứng cấu hình. Bạn sẽ tìm hiểu vai trò của `BeanFactory`, `ApplicationContext`, `@Bean`, `@Component`, `@Qualifier` và các API liên quan trong một đồ thị bean thực tế.
+
+Sau khi hoàn thành, bạn có thể tổ chức cấu hình và lựa chọn bean phù hợp, phân biệt singleton với prototype, theo dõi quá trình khởi tạo và hủy, đồng thời sử dụng `Environment`, `@Profile` hoặc `@Conditional` để tách cấu hình khỏi logic. Bạn cũng có thể nhận diện vai trò của `BeanPostProcessor`, `FactoryBean` và proxy, rồi dùng `AnnotationConfigApplicationContext` để kiểm tra phụ thuộc, phạm vi và callback vòng đời, phát hiện lỗi thiếu bean, nhiều ứng viên hoặc phụ thuộc vòng.

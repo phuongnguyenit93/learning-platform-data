@@ -1,0 +1,3 @@
+menuLevel1: Nhúng JVM
+menuLevel2: Tạo JVM bằng JNI_CreateJavaVM và nhận JNIEnv của luồng khởi tạo
+status: TRANSLATE

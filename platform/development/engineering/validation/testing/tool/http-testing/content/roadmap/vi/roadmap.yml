@@ -1,0 +1,64 @@
+roadmap:
+- id: http-request-response
+  title: HTTP Request & Response
+  purpose: Nắm thành phần và ngữ nghĩa HTTP để thiết kế tình huống kiểm thử chính xác.
+  objectives:
+  - Phân biệt GET, POST, PUT, PATCH và DELETE.
+  - Đọc status code, headers và JSON response body.
+  - Giải thích Content-Type, Accept và tính idempotent của method.
+- id: curl-quan-sat-giao-tiep
+  title: curl & Quan sát giao tiếp
+  purpose: Gửi request trực tiếp và quan sát chi tiết khi kiểm tra hoặc tái hiện lỗi.
+  objectives:
+  - Dùng curl với method, query, header và JSON body.
+  - Xem status, response headers và redirect.
+  - Ghi lại câu lệnh tái hiện lỗi mà không lộ token.
+- id: postman-collections
+  title: Postman & Collections
+  purpose: Sắp xếp request có thể dùng lại cho kiểm thử API bằng giao diện trực quan.
+  objectives:
+  - Tạo collection cho endpoint CRUD trong môi trường thử nghiệm.
+  - Cấu hình base URL, params và request body.
+  - Chạy lại collection theo thứ tự các thao tác.
+- id: authentication-session
+  title: Authentication & Session
+  purpose: Kiểm thử phân quyền và truyền thông tin xác thực an toàn.
+  objectives:
+  - Thử Bearer token, API key và cookie theo hợp đồng API.
+  - So sánh phản hồi 401 và 403 với trường hợp hợp lệ.
+  - Dùng biến bí mật, không đưa credential vào collection chia sẻ.
+- id: assertions-api-contract
+  title: Assertions & API Contract
+  purpose: Chuyển kỳ vọng của endpoint thành điều kiện pass/fail có thể kiểm chứng.
+  objectives:
+  - Kiểm tra status code, Content-Type và response time.
+  - Assert dữ liệu JSON hoặc schema của response.
+  - So sánh kết quả thực tế với contract API.
+- id: negative-boundary-tests
+  title: Negative & Boundary Tests
+  purpose: Xác minh API xử lý input sai và trạng thái lỗi một cách nhất quán.
+  objectives:
+  - Gửi request thiếu field, sai kiểu hoặc giá trị biên.
+  - Kiểm tra mã lỗi và cấu trúc thông báo lỗi.
+  - Xác nhận thao tác lỗi không gây thay đổi dữ liệu ngoài ý muốn.
+- id: variables-workflow-mock
+  title: Variables, Workflow & Mock
+  purpose: Tạo các kịch bản nhiều bước và thay thế dependency khó kiểm soát.
+  objectives:
+  - Truyền ID từ request tạo tài nguyên sang request đọc/xóa.
+  - Phân biệt collection variables với environment variables.
+  - Dùng mock response để kiểm thử lỗi hoặc khi backend chưa sẵn sàng.
+- id: automation-bang-code-ci
+  title: Automation bằng Code & CI
+  purpose: Đưa test HTTP thành bài kiểm thử hồi quy có thể chạy tự động.
+  objectives:
+  - Viết test API bằng REST Assured hoặc Playwright API.
+  - Chạy Postman collection bằng Postman CLI trong pipeline.
+  - Phân tích test failure và đặt điều kiện fail build khi assertion lỗi.
+- id: k6-hieu-nang-bao-cao
+  title: k6, Hiệu năng & Báo cáo
+  purpose: Đánh giá hành vi HTTP dưới tải kiểm soát và tổng hợp kết quả có ý nghĩa.
+  objectives:
+  - Viết k6 HTTP smoke test với checks và thresholds.
+  - Theo dõi latency, error rate và throughput trên môi trường được phép.
+  - Tổng hợp lỗi, nguyên nhân và kết quả hồi quy sau mỗi lần chạy.

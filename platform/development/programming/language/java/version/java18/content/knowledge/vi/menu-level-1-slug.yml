@@ -1,0 +1,55 @@
+menu:
+  - title: "Phạm vi và nền tảng"
+    slug: scope-and-foundations
+    index: 0
+  - title: "UTF-8 mặc định"
+    slug: utf-8-default-charset
+    index: 1
+  - title: "API văn bản"
+    slug: text-encoding-apis
+    index: 2
+  - title: "Kiểm chứng mã hóa"
+    slug: encoding-verification
+    index: 3
+  - title: "Lệnh jwebserver"
+    slug: jwebserver-cli
+    index: 4
+  - title: "API SimpleFileServer"
+    slug: simple-file-server-api
+    index: 5
+  - title: "Javadoc snippet"
+    slug: javadoc-snippets
+    index: 6
+  - title: "Markup và region"
+    slug: snippet-markup-and-regions
+    index: 7
+  - title: "Kiểm chứng tài liệu"
+    slug: documentation-verification
+    index: 8
+  - title: "Hợp đồng InetAddress"
+    slug: inetaddress-contracts
+    index: 9
+  - title: "Resolver SPI"
+    slug: resolver-spi
+    index: 10
+  - title: "Kiểm chứng resolver"
+    slug: resolver-verification
+    index: 11
+  - title: "Hợp đồng reflection"
+    slug: reflection-contracts
+    index: 12
+  - title: "Quyền reflection"
+    slug: reflection-access-control
+    index: 13
+  - title: "Reflection và hiệu năng"
+    slug: reflection-performance
+    index: 14
+  - title: "MethodHandle"
+    slug: method-handles
+    index: 15
+  - title: "Lookup và adapter"
+    slug: method-handle-lookup-and-adapters
+    index: 16
+  - title: "Thực hành tổng hợp"
+    slug: integrated-practice
+    index: 17

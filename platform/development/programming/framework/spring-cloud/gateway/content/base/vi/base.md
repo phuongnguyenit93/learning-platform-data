@@ -1,0 +1,7 @@
+# Spring Cloud Gateway
+
+Spring Cloud Gateway là thành phần API Gateway trong hệ sinh thái Spring, giúp định tuyến request tới các dịch vụ phía sau và tập trung những chính sách kỹ thuật dùng chung như biến đổi header/path, kiểm soát lưu lượng, bảo mật và khả năng chịu lỗi. Gateway không thay thế cho phân quyền nghiệp vụ hay validation bên trong từng service. Người học cần hiểu rằng mỗi route gồm đích đến (URI), điều kiện khớp (Predicate) và chuỗi Filter xử lý request/response trước hoặc sau khi chuyển tiếp.
+
+Module phù hợp với người đã biết Java, Spring Boot, HTTP, kiến trúc microservice và các khái niệm WebFlux hoặc Spring MVC. Lộ trình bắt đầu từ vai trò gateway, lựa chọn biến thể Server WebFlux/Web MVC và tạo cấu hình route bằng YAML hoặc Java DSL. Tiếp theo, người học thực hành predicates theo Path/Method/Host/Header, điều chỉnh path và header qua GatewayFilter, sau đó tích hợp service discovery và Spring Cloud LoadBalancer. Các mốc cuối tập trung vào CircuitBreaker, fallback, RequestRateLimiter, bảo mật token tại biên và theo dõi route/metric bằng Spring Boot Actuator.
+
+Sau khi hoàn thành, bạn có thể xây dựng gateway tối giản định tuyến tới nhiều backend, kiểm thử route matching và filter chain, cấu hình giới hạn tốc độ cho client, xử lý khi dịch vụ đích lỗi và kiểm tra hoạt động của gateway bằng endpoint quản trị có bảo vệ. Khi đưa vào production, cần chọn phiên bản Spring Cloud tương thích Spring Boot, hạn chế quyền truy cập Actuator, không tin tùy tiện header từ Internet và đo tác động của gateway lên latency hoặc tỷ lệ lỗi của toàn hệ thống.

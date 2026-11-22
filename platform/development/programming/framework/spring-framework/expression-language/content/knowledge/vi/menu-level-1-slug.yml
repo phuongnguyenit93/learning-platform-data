@@ -1,0 +1,112 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: spel-overview
+  index: 0
+- title: Kiến trúc SpEL
+  slug: spel-architecture
+  index: 1
+- title: Khởi tạo parser
+  slug: spel-parser-initialization
+  index: 2
+- title: Cú pháp cơ bản
+  slug: spel-basic-syntax
+  index: 3
+- title: Literal
+  slug: spel-literal
+  index: 4
+- title: Toán tử số học
+  slug: spel-arithmetic-operators
+  index: 5
+- title: Toán tử so sánh
+  slug: spel-comparison-operators
+  index: 6
+- title: Toán tử logic
+  slug: spel-logical-operators
+  index: 7
+- title: Toán tử gán
+  slug: spel-assignment-operators
+  index: 8
+- title: Toán tử điều kiện
+  slug: spel-conditional-operators
+  index: 9
+- title: Truy cập property
+  slug: spel-property-access
+  index: 10
+- title: Gọi method
+  slug: spel-method-invocation
+  index: 11
+- title: Indexer
+  slug: spel-indexer
+  index: 12
+- title: Mảng và collection inline
+  slug: spel-inline-collections
+  index: 13
+- title: Selection collection
+  slug: spel-collection-selection
+  index: 14
+- title: Projection collection
+  slug: spel-collection-projection
+  index: 15
+- title: Collection operations
+  slug: spel-collection-operations
+  index: 16
+- title: Bean reference
+  slug: spel-bean-reference
+  index: 17
+- title: Type reference
+  slug: spel-type-reference
+  index: 18
+- title: Constructor
+  slug: spel-constructor
+  index: 19
+- title: Variables
+  slug: spel-variables
+  index: 20
+- title: Root và this
+  slug: spel-root-and-this
+  index: 21
+- title: Functions
+  slug: spel-functions
+  index: 22
+- title: Type conversion
+  slug: spel-type-conversion
+  index: 23
+- title: EvaluationContext
+  slug: spel-evaluation-context
+  index: 24
+- title: Data binding
+  slug: spel-data-binding
+  index: 25
+- title: Template expression
+  slug: spel-template-expressions
+  index: 26
+- title: Spring annotation
+  slug: spel-spring-annotation
+  index: 27
+- title: Bean definition
+  slug: spel-bean-definition
+  index: 28
+- title: Compiler
+  slug: spel-compiler
+  index: 29
+- title: Security
+  slug: spel-security
+  index: 30
+- title: Error handling
+  slug: spel-error-handling
+  index: 31
+- title: Testing
+  slug: spel-testing
+  index: 32
+- title: Debugging
+  slug: spel-debugging
+  index: 33
+- title: Hiệu năng
+  slug: spel-performance
+  index: 34
+- title: Thiết kế biểu thức
+  slug: spel-expression-design
+  index: 35
+- title: Thực hành tổng hợp
+  slug: spel-integrated-practice
+  index: 36

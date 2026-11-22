@@ -1,0 +1,5 @@
+# Software Design — Creational Builder Pattern
+
+Builder là mẫu thiết kế khởi tạo giúp xây dựng đối tượng phức tạp theo từng bước, tách quy trình lắp ráp khỏi cách biểu diễn sản phẩm cuối cùng. Mẫu này đặc biệt hữu ích khi một đối tượng có nhiều tùy chọn, constructor dài hoặc nhiều cấu hình khác nhau cần được tạo bằng các bước tương tự. Trong cấu trúc cổ điển, Builder mô tả các bước dựng, Concrete Builder thực thi chúng và Director có thể điều phối thứ tự; **Director là thành phần tùy chọn**, không bắt buộc cho mọi cách cài đặt.
+
+Module dành cho người học Java đã biết class, interface, constructor, kế thừa và đóng gói dữ liệu. Bạn sẽ nhận diện vấn đề khởi tạo phức tạp, mô hình hóa Product, thiết kế Builder/Concrete Builder, tìm hiểu Director, rồi viết biến thể fluent Builder dùng method chaining và `build()`. Phần cuối tập trung kiểm tra dữ liệu bắt buộc, viết unit test và so sánh Builder với Factory Method hoặc Abstract Factory. Sau lộ trình, bạn có thể xây dựng một đối tượng Java có cấu hình rõ ràng, dễ kiểm thử và lựa chọn pattern phù hợp với độ phức tạp thực tế.

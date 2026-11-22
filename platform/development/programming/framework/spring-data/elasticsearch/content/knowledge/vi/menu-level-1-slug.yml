@@ -1,0 +1,124 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng Elasticsearch
+  slug: elasticsearch-foundations
+  index: 1
+- title: Khởi tạo
+  slug: setup
+  index: 2
+- title: Client và kết nối
+  slug: clients-and-connections
+  index: 3
+- title: Ánh xạ Document
+  slug: document-mapping
+  index: 4
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 5
+- title: Phân tích văn bản
+  slug: text-analysis
+  index: 6
+- title: Chuyển đổi đối tượng
+  slug: object-mapping
+  index: 7
+- title: Quản lý chỉ mục
+  slug: index-management
+  index: 8
+- title: Alias và vòng đời
+  slug: aliases-and-lifecycle
+  index: 9
+- title: Repository
+  slug: repository
+  index: 10
+- title: Thao tác CRUD
+  slug: crud-operations
+  index: 11
+- title: Truy vấn theo tên
+  slug: derived-queries
+  index: 12
+- title: Operations và Template
+  slug: operations-and-templates
+  index: 13
+- title: CriteriaQuery
+  slug: criteria-queries
+  index: 14
+- title: NativeQuery
+  slug: native-queries
+  index: 15
+- title: Truy vấn JSON
+  slug: json-queries
+  index: 16
+- title: Tìm kiếm toàn văn
+  slug: full-text-search
+  index: 17
+- title: Lọc và xếp hạng
+  slug: filtering-and-ranking
+  index: 18
+- title: Kết quả tìm kiếm
+  slug: search-results
+  index: 19
+- title: Sắp xếp và phân trang
+  slug: sorting-and-pagination
+  index: 20
+- title: Cuộn và xuất dữ liệu
+  slug: scrolling-and-export
+  index: 21
+- title: Highlight và gợi ý
+  slug: highlighting-and-suggestions
+  index: 22
+- title: Aggregation
+  slug: aggregation
+  index: 23
+- title: Dữ liệu địa lý
+  slug: geospatial-data
+  index: 24
+- title: Quan hệ tài liệu
+  slug: document-relationships
+  index: 25
+- title: Cập nhật và script
+  slug: updates-scripts
+  index: 26
+- title: Bulk và nhập liệu
+  slug: bulk-import
+  index: 27
+- title: Nhất quán và đồng thời
+  slug: consistency-and-concurrency
+  index: 28
+- title: Callback và Auditing
+  slug: callbacks-auditing
+  index: 29
+- title: Reactive
+  slug: reactive
+  index: 30
+- title: Repository tùy biến
+  slug: custom-repository
+  index: 31
+- title: Đồng bộ dữ liệu
+  slug: data-synchronization
+  index: 32
+- title: Bảo mật
+  slug: security
+  index: 33
+- title: Hiệu năng
+  slug: performance
+  index: 34
+- title: Kiểm thử
+  slug: testing
+  index: 35
+- title: Giám sát và chẩn đoán
+  slug: monitoring-and-diagnostics
+  index: 36
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 37
+- title: Tìm kiếm ngữ nghĩa
+  slug: semantic-search
+  index: 38
+- title: Phiên bản và nâng cấp
+  slug: version-upgrade
+  index: 39
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 40

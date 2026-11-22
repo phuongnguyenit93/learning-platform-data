@@ -1,0 +1,100 @@
+menu:
+- title: Định hướng
+  slug: orientation
+  index: 0
+- title: Nền tảng Agile
+  slug: agile-foundation
+  index: 1
+- title: Giá trị Agile
+  slug: agile-values
+  index: 2
+- title: Nguyên tắc Agile
+  slug: agile-principles
+  index: 3
+- title: Tư duy thực nghiệm
+  slug: empirical-mindset
+  index: 4
+- title: Sản phẩm và giá trị
+  slug: product-and-value
+  index: 5
+- title: Cộng tác và lãnh đạo
+  slug: collaboration-and-leadership
+  index: 6
+- title: Yêu cầu thích ứng
+  slug: adaptive-requirements
+  index: 7
+- title: User story
+  slug: user-story
+  index: 8
+- title: Ưu tiên và backlog
+  slug: prioritization-and-backlog
+  index: 9
+- title: Kế hoạch thích ứng
+  slug: adaptive-planning
+  index: 10
+- title: Ước lượng và dự báo
+  slug: estimation-and-forecasting
+  index: 11
+- title: Nền tảng Scrum
+  slug: scrum-foundation
+  index: 12
+- title: Trách nhiệm Scrum
+  slug: scrum-responsibilities
+  index: 13
+- title: Sự kiện Scrum
+  slug: scrum-events
+  index: 14
+- title: Tạo tác Scrum
+  slug: scrum-artifacts
+  index: 15
+- title: Kanban
+  slug: kanban
+  index: 16
+- title: Lean
+  slug: lean
+  index: 17
+- title: Extreme Programming
+  slug: extreme-programming
+  index: 18
+- title: Các cách tiếp cận khác
+  slug: other-approaches
+  index: 19
+- title: Thực hành kỹ thuật
+  slug: engineering-practices
+  index: 20
+- title: Thiết kế tiến hóa
+  slug: evolutionary-design
+  index: 21
+- title: Chất lượng liên tục
+  slug: continuous-quality
+  index: 22
+- title: Phản hồi và phát hành
+  slug: feedback-and-release
+  index: 23
+- title: Đo lường Agile
+  slug: agile-metrics
+  index: 24
+- title: Cải tiến liên tục
+  slug: continuous-improvement
+  index: 25
+- title: Nhóm phân tán
+  slug: distributed-teams
+  index: 26
+- title: Phối hợp nhiều nhóm
+  slug: multi-team-coordination
+  index: 27
+- title: Quản trị và ràng buộc
+  slug: governance-and-constraints
+  index: 28
+- title: Chuyển đổi Agile
+  slug: agile-transformation
+  index: 29
+- title: Lựa chọn cách tiếp cận
+  slug: approach-selection
+  index: 30
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 31
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 32

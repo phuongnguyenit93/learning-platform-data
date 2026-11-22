@@ -1,0 +1,2698 @@
+menu:
+- slug: slack-notifications-overview
+  title: Tổng quan thông báo Slack
+  childs:
+  - slug: slack-notifications-overview-001
+    title: Slack là gì và vai trò của kênh thông báo trong hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-notifications-overview-002
+    title: Bài toán cảnh báo vận hành, kết quả tác vụ và cập nhật nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-notifications-overview-003
+    title: Quan hệ giữa ứng dụng nguồn, bộ gửi, Slack app và người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-notifications-overview-004
+    title: Phân biệt thông báo một chiều với bot hội thoại hoặc ứng dụng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-notifications-overview-005
+    title: Hành trình từ sự kiện nghiệp vụ đến thông điệp trong Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-notifications-overview-006
+    title: Phân biệt Slack chấp nhận thông điệp với người nhận đã đọc hoặc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-notifications-overview-007
+    title: Khi nào dùng Slack và khi nào cần kênh thông báo khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-notifications-overview-008
+    title: Kiến thức nền và trình tự học từ webhook đến bộ gửi có thể vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slack-model
+  title: Mô hình Slack
+  childs:
+  - slug: slack-model-001
+    title: Workspace, Enterprise organization và phạm vi cài đặt ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-model-002
+    title: Channel công khai, channel riêng tư và hội thoại trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-model-003
+    title: Bot user, thành viên và danh tính của bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-model-004
+    title: Channel ID, user ID, team ID và enterprise ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-model-005
+    title: Message, thread, reply và timestamp ts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-model-006
+    title: Slack Connect và phạm vi người có thể nhìn thấy thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-model-007
+    title: Phân biệt cấu hình ứng dụng, quyền cài đặt và quyền trong hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slack-model-008
+    title: Ảnh hưởng của gói dịch vụ, chính sách quản trị và lưu giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-methods
+  title: Chọn cơ chế gửi
+  childs:
+  - slug: delivery-methods-001
+    title: Incoming Webhook cho thông báo đến một đích được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-methods-002
+    title: Web API với bot token cho định tuyến và quản lý thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-methods-003
+    title: So sánh webhook, chat.postMessage và chat.postEphemeral
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-methods-004
+    title: Phân biệt API gửi đi với Events API và Socket Mode nhận sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-methods-005
+    title: Khi nào chỉ cần Java Slack SDK và khi nào cần Bolt for Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-methods-006
+    title: Tiêu chí chọn channel, thread hoặc tin nhắn trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-methods-007
+    title: Giới hạn của tích hợp legacy và định hướng dùng Slack app hiện đại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-creation-and-installation
+  title: Tạo và cài đặt app
+  childs:
+  - slug: app-creation-and-installation-001
+    title: Chuẩn bị workspace và channel dành cho môi trường phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-002
+    title: Tạo Slack app bằng cấu hình trực tiếp hoặc App Manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-003
+    title: Thiết lập bot identity và thông tin hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-004
+    title: Bật Incoming Webhooks khi chọn cơ chế webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-005
+    title: Khai báo OAuth scopes theo tính năng thực sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-006
+    title: Cài đặt app vào workspace và xác định quyền được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-007
+    title: Thêm app vào channel đích và kiểm tra tư cách thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-008
+    title: Cài đặt lại hoặc cấp lại quyền khi thay đổi scopes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-creation-and-installation-009
+    title: Tách app, tài khoản đích và bí mật giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tokens-and-permissions
+  title: Token và quyền
+  childs:
+  - slug: tokens-and-permissions-001
+    title: Bot token, user token và app-level token có vai trò khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-002
+    title: Phân biệt OAuth client secret, signing secret và webhook URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-003
+    title: chat:write và điều kiện gửi với danh tính bot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-004
+    title: chat:write.public và phạm vi gửi đến channel công khai chưa tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-005
+    title: Scopes cho hội thoại trực tiếp, tra cứu người dùng và tải file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-006
+    title: Nguyên tắc cấp quyền tối thiểu và tránh đọc lịch sử khi không cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-007
+    title: auth.test và kiểm tra workspace, danh tính của token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-008
+    title: Quyền OAuth không thay thế tư cách thành viên hoặc chính sách quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-and-permissions-009
+    title: Token bị thu hồi, hết hạn hoặc mất hiệu lực sau thay đổi cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recipient-routing
+  title: Định tuyến người nhận
+  childs:
+  - slug: recipient-routing-001
+    title: Dùng ID ổn định thay vì phụ thuộc tên channel hoặc tên hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-002
+    title: Ánh xạ loại sự kiện, môi trường và mức độ nghiêm trọng sang đích gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-003
+    title: Gửi đến channel riêng tư và điều kiện app được truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-004
+    title: conversations.open và gửi thông báo trực tiếp theo quyền được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-005
+    title: Phân biệt user ID với conversation ID khi gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-006
+    title: Tra cứu người dùng theo email và đánh giá phạm vi quyền bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-007
+    title: Channel đổi tên, bị lưu trữ hoặc app bị xóa khỏi channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-008
+    title: Cache ánh xạ đích gửi và điều kiện làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recipient-routing-009
+    title: Ràng buộc workspace, tenant và người nhận để tránh gửi nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incoming-webhooks
+  title: Incoming Webhook
+  childs:
+  - slug: incoming-webhooks-001
+    title: Cấu trúc webhook URL và lý do phải bảo vệ như bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-002
+    title: Gửi HTTP POST với JSON và Content-Type phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-003
+    title: Tạo payload text và Block Kit cho webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-004
+    title: Phân biệt HTTP status với body văn bản ok hoặc mã lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-005
+    title: Channel, username, icon gắn với cấu hình webhook và giới hạn ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-006
+    title: Thread reply bằng thread_ts và điều kiện biết timestamp của tin cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-007
+    title: Webhook không cung cấp trực tiếp timestamp tin mới trong phản hồi chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-008
+    title: Giới hạn cập nhật, xóa và quản lý thông điệp khi chỉ có webhook URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-009
+    title: Webhook bị thu hồi, channel bị lưu trữ và lỗi payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incoming-webhooks-010
+    title: Gửi bằng HTTP client Java hoặc Slack.send trong Java Slack SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-api-messaging
+  title: Web API gửi tin
+  childs:
+  - slug: web-api-messaging-001
+    title: chat.postMessage và cấu trúc request, response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-002
+    title: Authorization Bearer token và gửi JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-003
+    title: channel, text, blocks và nội dung thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-004
+    title: Phân biệt HTTP 200 với ok=false trong JSON của Web API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-005
+    title: Lưu channel và ts từ phản hồi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-006
+    title: response_metadata, warnings và thông tin chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-007
+    title: unfurl_links, unfurl_media và kiểm soát xem trước liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-008
+    title: chat.postEphemeral và giới hạn của thông báo không bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-009
+    title: Phân biệt danh tính bot với tùy chỉnh username hoặc icon theo quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-010
+    title: Kiểm tra tham số, loại token và phạm vi quyền của từng method
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-api-messaging-011
+    title: Message metadata, liên kết nghiệp vụ và phạm vi dữ liệu thành viên workspace có thể đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-formatting
+  title: Định dạng văn bản
+  childs:
+  - slug: text-formatting-001
+    title: plain_text, mrkdwn và khác biệt với Markdown thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-002
+    title: Escaping ký tự &, <, > và dữ liệu do người dùng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-003
+    title: In đậm, in nghiêng, code, trích dẫn và xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-004
+    title: Liên kết, nhãn hiển thị và permalink của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-005
+    title: Mention người dùng, nhóm người dùng và channel bằng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-006
+    title: Kiểm soát @here, @channel, @everyone và tránh thông báo hàng loạt ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-007
+    title: Emoji, Unicode, tiếng Việt và nội dung đa ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-008
+    title: Định dạng ngày giờ và múi giờ của người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-009
+    title: text, blocks và markdown_text theo khả năng của method và SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-formatting-010
+    title: Giới hạn độ dài, nội dung bị cắt và cách chia thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: block-kit
+  title: Block Kit
+  childs:
+  - slug: block-kit-001
+    title: Block, element, composition object và thứ tự hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-002
+    title: Section, header, context, divider và image block
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-003
+    title: Text object plain_text hoặc mrkdwn theo từng vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-004
+    title: Fields, accessory và bố cục thông tin cô đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-005
+    title: Actions, button và liên kết đến thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-006
+    title: block_id, action_id, value và định danh thành phần tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-007
+    title: Giới hạn số block, độ dài text và loại phần tử theo surface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-008
+    title: Top-level text, nội dung cho trình đọc màn hình và bản xem trước thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-009
+    title: Alt text, tính dễ đọc và không dùng màu làm tín hiệu duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-010
+    title: Block Kit Builder, validation và kiểm tra nhiều kiểu màn hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-kit-011
+    title: Phân biệt Block Kit với legacy attachments và file đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threads-and-message-lifecycle
+  title: Thread và vòng đời tin
+  childs:
+  - slug: threads-and-message-lifecycle-001
+    title: Gửi tin cha và phản hồi theo thread_ts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-002
+    title: Phân biệt ts của từng tin với timestamp tin gốc của thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-003
+    title: Lưu timestamp dưới dạng chuỗi để tránh mất độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-004
+    title: reply_broadcast và ảnh hưởng đến mức độ hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-005
+    title: Cập nhật tin của ứng dụng bằng chat.update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-006
+    title: Xóa tin bằng chat.delete theo danh tính và quyền tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-007
+    title: chat.getPermalink để liên kết đến thông báo đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-008
+    title: Thông báo tiến trình, kết quả cuối và tránh ghi đè trạng thái mới bằng trạng thái cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-009
+    title: Giới hạn cập nhật tin ephemeral và thông điệp do danh tính khác gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-message-lifecycle-010
+    title: Tin bị xóa, channel bị lưu trữ và xử lý tham chiếu không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-images
+  title: File và hình ảnh
+  childs:
+  - slug: files-and-images-001
+    title: Chọn liên kết báo cáo, image block hoặc file được lưu trong Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-002
+    title: files:write và điều kiện chia sẻ file vào hội thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-003
+    title: Lấy upload URL bằng files.getUploadURLExternal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-004
+    title: Gửi dữ liệu file đến upload URL và kiểm tra kết quả từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-005
+    title: Hoàn tất, đặt tiêu đề và chia sẻ bằng files.completeUploadExternal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-006
+    title: FilesUploadV2Request trong Java Slack SDK và luồng upload tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-007
+    title: Tải file vào thread và liên hệ với thông báo cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-008
+    title: Quản lý kích thước, stream, file tạm và lỗi giữa các bước upload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-009
+    title: Quyền truy cập ảnh hoặc liên kết ngoài và nguy cơ lộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-images-010
+    title: Di chuyển khỏi files.upload đã ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-slack-sdk
+  title: Java Slack SDK
+  childs:
+  - slug: java-slack-sdk-001
+    title: Thêm slack-api-client bằng Gradle và quản lý phiên bản phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-002
+    title: Slack, SlackConfig và phạm vi tái sử dụng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-003
+    title: MethodsClient cho lời gọi Web API đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-004
+    title: AsyncMethodsClient và CompletableFuture cho lời gọi bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-005
+    title: ChatPostMessageRequest và builder của các payload API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-006
+    title: Payload, WebhookResponse và gửi Incoming Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-007
+    title: Builder của Block Kit thay vì ghép JSON bằng chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-008
+    title: Phân biệt IOException, SlackApiException và response có ok=false
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-009
+    title: Cấu hình timeout, proxy và hành vi HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-010
+    title: Cơ chế hàng chờ, rate limit và MetricsDatastore của SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-011
+    title: Giới hạn phối hợp của bộ nhớ trong JVM khi chạy nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-slack-sdk-012
+    title: Đóng tài nguyên, executor và chờ hoàn tất tác vụ khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Cấu hình bean cho Slack client và adapter gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: '@ConfigurationProperties cho thông tin môi trường và đích gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Đọc token, webhook URL từ biến môi trường hoặc kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Validation cấu hình và phát hiện thiếu quyền, thiếu đích gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Thiết kế SlackNotificationService và kết quả gửi có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Tạo template thông báo từ dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Tách lỗi Slack khỏi kết quả giao dịch nghiệp vụ chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: '@Async, executor có giới hạn và xử lý ngoại lệ của tác vụ nền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Sự kiện sau commit và giới hạn khi ứng dụng lỗi trước lúc gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Profile phát triển, kiểm thử và production với đích gửi tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Bolt adapter và khả năng tương thích Servlet khi bổ sung tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sender-architecture
+  title: Kiến trúc bộ gửi
+  childs:
+  - slug: sender-architecture-001
+    title: Tách mô hình thông báo nghiệp vụ khỏi payload riêng của Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-002
+    title: Port/adapter cho Slack và các kênh thông báo khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-003
+    title: Transactional outbox để ghi nhận thông báo cùng giao dịch dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-004
+    title: Worker đọc outbox hoặc hàng đợi và điều phối gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-005
+    title: Trạng thái chờ gửi, đang gửi, thành công, thất bại và hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-006
+    title: Định danh thông báo, số lần thử và lịch sử kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-007
+    title: Quyền sở hữu tác vụ, lease và chống nhiều worker xử lý đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-008
+    title: Lưu workspace, channel, ts và tham chiếu tài nguyên đã tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-009
+    title: Ranh giới giữa hàng đợi bền vững của ứng dụng với hàng đợi SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-architecture-010
+    title: Mở rộng nhiều instance mà vẫn giữ hạn mức theo workspace và channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-reliability
+  title: Độ tin cậy khi gửi
+  childs:
+  - slug: delivery-reliability-001
+    title: Phân biệt gửi ít nhất một lần với bảo đảm không có thông báo lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-002
+    title: Timeout sau khi Slack tiếp nhận và kết quả gửi chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-003
+    title: Khóa chống lặp theo sự kiện, người nhận và mục đích thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-004
+    title: Giới hạn của chống lặp cục bộ khi chưa lưu được kết quả gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-005
+    title: Phân loại lỗi tạm thời, lỗi vĩnh viễn và lỗi cần sửa cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-006
+    title: Retry có exponential backoff, jitter và giới hạn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-007
+    title: Phối hợp retry của HTTP client, SDK và worker để tránh nhân số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-008
+    title: Dead-letter queue, cách ly payload lỗi và điều kiện phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-009
+    title: Kiểm tra thời hạn hữu ích trước mỗi lần gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-010
+    title: Chỉ ghi nhận gửi thành công sau khi xác minh phản hồi đúng cơ chế API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-reliability-011
+    title: Giữ thứ tự các bản cập nhật thuộc cùng một thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rate-limits-and-throttling
+  title: Rate limit và điều tiết
+  childs:
+  - slug: rate-limits-and-throttling-001
+    title: Hạn mức theo method, app, workspace và channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-002
+    title: Khác biệt giới hạn gửi tin với giới hạn đọc lịch sử hoặc phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-003
+    title: HTTP 429, Retry-After và thời điểm được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-004
+    title: Giới hạn tốc độ, số lời gọi đồng thời và kích thước hàng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-005
+    title: Phối hợp nhiều instance bằng trạng thái điều tiết dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-006
+    title: Chia sẻ hạn mức giữa các tác vụ và ưu tiên thông báo quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-007
+    title: Gộp thông báo, debounce và tạo bản tổng hợp để giảm nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-008
+    title: Backpressure khi tốc độ phát sinh vượt khả năng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-009
+    title: Đối chiếu hạn mức hiện hành theo method và loại phân phối ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limits-and-throttling-010
+    title: Giới hạn của AsyncMethodsClient khi trạng thái rate limit chỉ lưu trong một JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-errors-and-results
+  title: Lỗi và kết quả gửi
+  childs:
+  - slug: delivery-errors-and-results-001
+    title: Đọc HTTP status, error, warnings và response_metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-002
+    title: invalid_auth, token_revoked, account_inactive và token không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-003
+    title: missing_scope, no_permission và quyền bị hạn chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-004
+    title: channel_not_found, not_in_channel và is_archived của Web API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-005
+    title: invalid_blocks, invalid_arguments và nội dung vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-006
+    title: invalid_payload, no_service, channel_is_archived và lỗi Incoming Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-007
+    title: ratelimited, HTTP 429 và lỗi dịch vụ Slack tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-008
+    title: Phân biệt lỗi DNS, TLS, proxy, connect timeout và đọc phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-009
+    title: Chuẩn hóa kết quả gửi mà vẫn giữ mã lỗi gốc và thông tin chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-errors-and-results-010
+    title: Lỗi hoàn tất upload, hủy lịch gửi và cập nhật thông điệp không còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-design
+  title: Thiết kế nội dung
+  childs:
+  - slug: content-design-001
+    title: Tiêu đề, tóm tắt, mức độ nghiêm trọng và hành động tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-002
+    title: Nội dung tối thiểu giúp người nhận hiểu sự kiện mà không mở nhiều liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-003
+    title: Template cho cảnh báo, kết quả tác vụ, báo cáo và thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-004
+    title: Liên kết đến nguồn dữ liệu hoặc trang nghiệp vụ có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-005
+    title: Chọn bản tin mới, cập nhật tin cũ hoặc thêm phản hồi trong thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-006
+    title: Định tuyến theo nhóm phụ trách và tránh gửi cùng nội dung đến quá nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-007
+    title: Chính sách mention theo mức độ khẩn cấp và trách nhiệm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-008
+    title: Ngôn ngữ, múi giờ và dữ liệu được phép hiển thị cho từng người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-009
+    title: Đăng ký nhận, tắt thông báo, giờ yên lặng và tùy chọn theo loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-design-010
+    title: Phân biệt cơ chế gửi của ứng dụng với thiết lập thông báo, DND của người dùng Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-scheduling
+  title: Lập lịch thông báo
+  childs:
+  - slug: notification-scheduling-001
+    title: Phân biệt scheduler của ứng dụng với chat.scheduleMessage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-002
+    title: post_at, Unix timestamp và chuyển đổi múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-003
+    title: Giới hạn thời gian, số bản tin và payload theo method hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-004
+    title: Lưu scheduled_message_id khác với ts của thông điệp đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-005
+    title: chat.scheduledMessages.list và theo dõi lịch đã tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-006
+    title: chat.deleteScheduledMessage và điều kiện hủy trước lúc phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-007
+    title: Đổi lịch bằng quy trình hủy, tạo lại và xử lý lỗi giữa hai bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-008
+    title: Thông báo hết hạn, trạng thái nghiệp vụ thay đổi và điều kiện bỏ gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-scheduling-009
+    title: Quản lý lịch trùng sau retry hoặc khi nhiều instance cùng lập lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-interactions
+  title: Tương tác thông báo
+  childs:
+  - slug: notification-interactions-001
+    title: Khi nào cần nút xác nhận, nhận xử lý hoặc mở trang nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-002
+    title: Bật interactivity và liên kết action_id với bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-003
+    title: Payload block_actions và thông tin người dùng, workspace, thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-004
+    title: Xác nhận tiếp nhận trong thời hạn Slack yêu cầu trước khi xử lý lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-005
+    title: Phân biệt acknowledgment kỹ thuật với xác nhận nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-006
+    title: response_url, cập nhật thông điệp gốc và giới hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-007
+    title: Xác minh quyền người thao tác trước khi thay đổi dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-008
+    title: Chống nhấp lặp, thao tác đồng thời và cập nhật trạng thái cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-009
+    title: Tắt hoặc thay nút sau khi hoàn tất xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-interactions-010
+    title: Phản hồi riêng cho người thao tác mà không làm nhiễu channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: events-api-and-socket-mode
+  title: Events API và Socket Mode
+  childs:
+  - slug: events-api-and-socket-mode-001
+    title: Nhận sự kiện để hỗ trợ phản hồi, theo dõi tương tác hoặc vòng đời thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-002
+    title: Chỉ đăng ký loại sự kiện và scopes cần cho tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-003
+    title: HTTP Request URL, url_verification và xác minh chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-004
+    title: Event ID, retry header và xử lý sự kiện lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-005
+    title: Phản hồi sớm rồi chuyển công việc dài sang hàng đợi bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-006
+    title: Socket Mode với app-level token và connections:write
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-007
+    title: Envelope acknowledgment của Socket Mode khác với xác minh HTTP request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-008
+    title: Reconnect, vòng đời kết nối và xử lý nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-009
+    title: Bolt for Java để định tuyến event, action và acknowledgment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-010
+    title: Socket Mode nhận dữ liệu không thay thế Web API gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: events-api-and-socket-mode-011
+    title: Tránh vòng lặp khi ứng dụng xử lý chính thông điệp do mình gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oauth-and-workspaces
+  title: OAuth và nhiều workspace
+  childs:
+  - slug: oauth-and-workspaces-001
+    title: Phân biệt app một workspace với ứng dụng được cài ở nhiều workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-002
+    title: OAuth v2, redirect URI, state và bước trao đổi authorization code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-003
+    title: Lưu installation theo workspace hoặc enterprise và ngữ cảnh cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-004
+    title: Chọn đúng bot token, webhook và đích gửi cho từng installation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-005
+    title: Phân tách cấu hình, hạn mức và dữ liệu giữa các tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-006
+    title: Token rotation, thời hạn access token và lưu refresh token an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-007
+    title: Đồng bộ thao tác làm mới token khi nhiều worker cùng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-008
+    title: App bị gỡ, quyền bị thu hồi và dừng tác vụ gửi của installation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-009
+    title: Thay đổi scopes, cài đặt lại và cập nhật token tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-and-workspaces-010
+    title: Chính sách quản trị, Slack Connect và giới hạn khi phân phối ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-security
+  title: Bảo mật tích hợp
+  childs:
+  - slug: integration-security-001
+    title: Bảo vệ bot token, webhook URL, signing secret và OAuth client secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-002
+    title: Không đưa bí mật vào mã nguồn, payload hiển thị hoặc nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-003
+    title: Xác minh X-Slack-Signature bằng raw body và signing secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-004
+    title: Kiểm tra timestamp và chống phát lại request đến endpoint HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-005
+    title: Phân biệt chữ ký hợp lệ với quyền thực hiện hành động nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-006
+    title: Giới hạn workspace, channel và người nhận trong cấu hình được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-007
+    title: Ngăn mention hoặc liên kết ngoài ý muốn từ dữ liệu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-008
+    title: Che dữ liệu nhạy cảm trong log, stub, ảnh và file báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-009
+    title: Bảo vệ response_url, upload URL và liên kết truy cập có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-010
+    title: Luân chuyển bí mật, thu hồi quyền và xử lý sự cố lộ thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-security-011
+    title: TLS, proxy, giới hạn đầu vào và quyền truy cập endpoint tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Correlation ID từ sự kiện nghiệp vụ đến từng lần gọi Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Đo số thông báo chờ, gửi thành công, lỗi, hết hạn và bị loại trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Đo thời gian trong hàng đợi, thời gian API và độ trễ toàn hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Theo dõi 429, Retry-After, retry, dead-letter và mức sử dụng hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Phân loại lỗi theo method, workspace và mã lỗi với cardinality được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Lưu channel, ts hoặc file ID làm bằng chứng phản hồi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Phân biệt đã gửi, đã tương tác và chưa có bằng chứng người dùng đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Micrometer, tracing và log có cấu trúc trong Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Cảnh báo khi Slack lỗi mà không phụ thuộc duy nhất vào chính kênh Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử template, escaping, mention và payload Block Kit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Mock HTTP bằng WireMock hoặc MockWebServer thay cho gửi thật trong kiểm thử tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm tra webhook HTTP 200 với body ok và các mã lỗi văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra Web API HTTP 200 nhưng ok=false
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử rate limit, Retry-After và chính sách retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Giả lập mất phản hồi sau khi máy chủ tiếp nhận để kiểm tra khả năng gửi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử outbox, lease và nhiều worker xử lý cùng tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử upload nhiều bước, timeout và lỗi hoàn tất file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử chữ ký, timestamp, event lặp và quyền của người thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tenant isolation, token rotation và ngừng gửi khi app bị gỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra hiển thị và quyền truy cập trong workspace thử nghiệm có đích nhận rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Tách bí mật, dữ liệu và kết quả kiểm thử khỏi môi trường production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-and-operations-001
+    title: Quản lý cấu hình đích gửi, bí mật và phiên bản Slack SDK theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-002
+    title: Cấp tài nguyên cho worker, executor, connection pool và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-003
+    title: Ước lượng thông lượng theo workspace, channel và khả năng chịu tải của Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-004
+    title: Graceful shutdown và bảo toàn tác vụ chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-005
+    title: Health check của ứng dụng và kiểm tra phụ thuộc Slack có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-006
+    title: Chạy nhiều instance với lease, rate limiter và token store dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-007
+    title: Phục hồi backlog sau downtime mà không gây bão thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-008
+    title: Xử lý payload lỗi, điều kiện phát lại và lưu lịch sử thao tác vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-009
+    title: Theo dõi Slack API changelog, thư viện phụ thuộc và phương thức bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-010
+    title: Quy trình đổi channel, thay webhook, xoay token và rollback cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics-and-migration
+  title: Chẩn đoán và chuyển đổi
+  childs:
+  - slug: diagnostics-and-migration-001
+    title: Webhook phản hồi thành công nhưng tin không nằm ở channel mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-002
+    title: Bot gửi được channel công khai nhưng lỗi ở channel riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-003
+    title: HTTP 200 nhưng thông báo thất bại do ok=false
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-004
+    title: Tin bị lặp do retry, worker đồng thời hoặc mất kết quả gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-005
+    title: Block không hiển thị đúng do loại text, surface hoặc giới hạn payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-006
+    title: Ảnh không tải do quyền truy cập, URL hết hạn hoặc Slack không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-007
+    title: Thread reply thành tin mới do nhầm channel, ts hoặc thread_ts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-008
+    title: Tương tác báo lỗi do acknowledgment chậm hoặc cấu hình Request URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-009
+    title: Chữ ký không khớp do body bị chuyển đổi, sai secret hoặc lệch thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-010
+    title: Lỗi 429 kéo dài do retry lồng nhau hoặc nhiều instance dùng trạng thái riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-011
+    title: Chuyển legacy integration sang Slack app với scopes và danh tính rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-and-migration-012
+    title: Chuyển files.upload sang luồng external upload và kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài tập tổng hợp
+  childs:
+  - slug: hands-on-exercises-001
+    title: Gửi thông báo tác vụ bằng Incoming Webhook từ ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Gửi và lưu kết quả chat.postMessage bằng Java Slack SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Tạo thông báo Block Kit có nội dung dễ đọc và fallback phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Theo dõi tiến trình bằng một tin cha cùng các cập nhật trong thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Tải báo cáo bằng upload V2 và chia sẻ đúng channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Xây bộ gửi Spring Boot với outbox, retry, chống lặp và giới hạn tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Tạo thông báo có nút nhận xử lý với xác minh quyền người thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Định tuyến nhiều workspace mà tách biệt token, dữ liệu và hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Diễn tập Slack lỗi, token bị thu hồi, channel bị lưu trữ và phục hồi backlog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Hoàn thiện kiểm thử, metrics và quy trình vận hành cho kênh Slack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

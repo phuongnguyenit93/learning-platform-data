@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: generics-overview
+  index: 0
+- title: Cú pháp cơ bản
+  slug: generics-syntax
+  index: 1
+- title: Lớp và giao diện
+  slug: generic-classes-interfaces
+  index: 2
+- title: Phương thức generic
+  slug: generic-methods
+  index: 3
+- title: Phạm vi biến kiểu
+  slug: type-parameter-scope
+  index: 4
+- title: Kế thừa generic
+  slug: generic-inheritance
+  index: 5
+- title: Giới hạn kiểu
+  slug: generic-type-bounds
+  index: 6
+- title: Quan hệ kiểu
+  slug: generic-type-relations
+  index: 7
+- title: Wildcard không giới hạn
+  slug: unbounded-wildcard
+  index: 8
+- title: Wildcard extends
+  slug: upper-bounded-wildcards
+  index: 9
+- title: Wildcard super
+  slug: lower-bounded-wildcards
+  index: 10
+- title: Quy tắc PECS
+  slug: pecs
+  index: 11
+- title: Bắt giữ wildcard
+  slug: wildcard-capture
+  index: 12
+- title: Suy luận kiểu
+  slug: type-inference
+  index: 13
+- title: Giới hạn đệ quy
+  slug: recursive-type-bounds
+  index: 14
+- title: Xóa kiểu
+  slug: type-erasure
+  index: 15
+- title: Ghi đè và cầu nối
+  slug: generic-overrides-and-bridges
+  index: 16
+- title: Kiểu thô
+  slug: raw-types-and-legacy-interop
+  index: 17
+- title: Kiểu lúc chạy
+  slug: runtime-types
+  index: 18
+- title: Mảng generic
+  slug: generic-arrays
+  index: 19
+- title: Varargs generic
+  slug: generic-varargs
+  index: 20
+- title: Giới hạn ngôn ngữ
+  slug: generics-language-limits
+  index: 21
+- title: Lambda và API chuẩn
+  slug: lambda-standard-apis
+  index: 22
+- title: Phản chiếu kiểu
+  slug: generic-type-reflection
+  index: 23
+- title: Thiết kế API
+  slug: generic-api-design
+  index: 24
+- title: Kiểm thử và lỗi
+  slug: generics-testing-and-diagnostics
+  index: 25
+- title: Thực hành tổng hợp
+  slug: generics-integrated-practice
+  index: 26

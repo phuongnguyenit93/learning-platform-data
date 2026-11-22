@@ -1,0 +1,3 @@
+menuLevel1: Cập nhật dịch vụ
+menuLevel2: PATCH /v2/service_instances/{instance_id} và điều kiện plan_updateable
+status: ''

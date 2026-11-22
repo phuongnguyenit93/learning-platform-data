@@ -1,0 +1,439 @@
+menu:
+- level1: Tổng quan Gradle
+  level2:
+  - Gradle là gì và những vấn đề tự động hóa build cần giải quyết
+  - Vai trò của Gradle trong chuỗi biên dịch, kiểm thử, đóng gói và phát hành
+  - Mô hình Project, Task, Plugin và Dependency cùng mối quan hệ
+  - Build khai báo, đồ thị công việc và khả năng mở rộng bằng mã
+  - Phân biệt build tool, trình biên dịch, trình quản lý dependency và CI server
+  - So sánh cách tiếp cận của Gradle, Maven và Ant
+  - 'Groovy DSL và Kotlin DSL: cách lựa chọn và đọc tài liệu'
+  - Lộ trình học từ dự án đơn đến build nhiều dự án
+- level1: Cài đặt và Wrapper
+  level2:
+  - Điều kiện chạy Gradle và phân biệt JDK chạy build với JDK biên dịch
+  - Cài đặt Gradle thủ công, bằng trình quản lý phiên bản và qua IDE
+  - Kiểm tra phiên bản Gradle, JVM và môi trường thực thi
+  - 'Gradle Wrapper: vai trò của gradlew, gradlew.bat và gradle-wrapper'
+  - Khởi tạo và sử dụng Wrapper nhất quán trên Windows, Linux và macOS
+  - Cấu hình bản phân phối và phiên bản trong gradle-wrapper.properties
+  - Kiểm tra checksum bản phân phối và tính toàn vẹn Wrapper
+  - Nâng cấp Wrapper và xử lý quyền thực thi, đường dẫn, proxy
+- level1: Cấu trúc dự án
+  level2:
+  - Khởi tạo dự án bằng gradle init và lựa chọn mẫu phù hợp
+  - Vai trò của settings.gradle, build.gradle và các biến thể .kts
+  - Phân biệt gradle.properties, local.properties và tệp cấu hình tự định nghĩa
+  - Bố cục src/main, src/test, resources và thư mục build
+  - Root project, subproject, đường dẫn thư mục và Gradle project path
+  - Vai trò của thư mục .gradle, Gradle User Home và cache
+  - Chọn tệp cần quản lý bằng Git và tệp đầu ra cần bỏ qua
+  - Đọc một dự án Gradle có sẵn theo thứ tự các tệp cấu hình
+- level1: Dòng lệnh
+  level2:
+  - Cú pháp chạy Wrapper và cách gọi một hoặc nhiều task
+  - Tra cứu help, tasks, projects, properties và tên task đầy đủ
+  - Chọn task bằng project path và tránh gọi nhầm task trùng tên
+  - Nhóm lệnh clean, check, build, assemble và ý nghĩa theo plugin
+  - Truyền project property bằng -P và JVM system property bằng -D
+  - Điều chỉnh log, stacktrace, chế độ cảnh báo và console
+  - Xem kế hoạch thực thi bằng --dry-run và loại task bằng -x
+  - Dùng offline, refresh-dependencies, rerun-tasks đúng tình huống
+  - Kiểm soát thư mục chạy, Gradle User Home và cấu hình tiến trình
+- level1: Vòng đời build
+  level2:
+  - Ba giai đoạn khởi tạo, cấu hình và thực thi
+  - Vai trò của Settings, Project và Gradle trong từng giai đoạn
+  - Phân biệt mã cấu hình task với hành động thực thi task
+  - Cách Gradle xác định các project tham gia một build
+  - Đồ thị task và thời điểm xác định thứ tự thực thi
+  - Các hook vòng đời và giới hạn khi can thiệp cấu hình
+  - Tác dụng phụ trong giai đoạn cấu hình và cách loại bỏ
+  - Theo dấu một lệnh build qua toàn bộ vòng đời
+- level1: Groovy DSL
+  level2:
+  - Cú pháp Groovy cần thiết để đọc và viết build script
+  - Closure, delegate và cách hiểu các khối cấu hình Gradle
+  - Chuỗi, nội suy, collection, map và named arguments
+  - Biến, phương thức, phạm vi và giá trị trả về ngầm định
+  - Truy cập thuộc tính, gọi phương thức và các dạng cú pháp rút gọn
+  - Cấu hình extension và đối tượng có tên bằng Groovy DSL
+  - Extra properties, script plugin và giới hạn của cấu hình động
+  - Lỗi thường gặp do tên thuộc tính, kiểu dữ liệu và thời điểm cấu hình
+- level1: Kotlin DSL
+  level2:
+  - Cú pháp Kotlin cần thiết cho build script .gradle.kts
+  - Lambda có receiver và cách đọc khối cấu hình có kiểu
+  - Type-safe accessors và thời điểm chúng được tạo
+  - Truy cập task, extension và container bằng API có kiểu
+  - Chuỗi, nội suy, collection và giá trị nullable trong build script
+  - Cấu hình plugin ngoài và xử lý extension chưa có accessor
+  - Phân biệt phạm vi plugins, buildscript và phần thân script
+  - Chuyển build script từ Groovy DSL sang Kotlin DSL
+- level1: Thuộc tính và môi trường
+  level2:
+  - Project properties, system properties và biến môi trường
+  - Đặt thuộc tính ở cấp dự án, người dùng và dòng lệnh
+  - Thứ tự ưu tiên và xử lý thuộc tính trùng tên
+  - Đọc giá trị bằng providers.gradleProperty và providers.environmentVariable
+  - Chuyển đổi kiểu, giá trị mặc định và kiểm tra cấu hình bắt buộc
+  - Cấu hình JVM của Gradle và JVM của tiến trình do task khởi chạy
+  - Quản lý thông tin bí mật mà không ghi vào source hoặc log
+  - Tách cấu hình môi trường và tránh phụ thuộc ngầm vào máy cá nhân
+- level1: Provider và cấu hình lười
+  level2:
+  - Vì sao cấu hình lười cần thiết trong build có khả năng mở rộng
+  - Provider, Property và mô hình giá trị chưa được tính ngay
+  - RegularFileProperty, DirectoryProperty và collection properties
+  - Phân biệt set, convention và giá trị được suy ra
+  - Biến đổi giá trị bằng map, flatMap và kết hợp Provider
+  - Liên kết đầu ra task với đầu vào task khác để suy ra dependency
+  - Thời điểm get, finalizeValue và disallowChanges có ý nghĩa
+  - Tránh đọc Provider sớm và nhận diện tác dụng phụ khi cấu hình
+- level1: Task và đồ thị
+  level2:
+  - Task có hành động và lifecycle task dùng để nhóm công việc
+  - Đăng ký task bằng tasks.register và lấy tham chiếu bằng tasks.named
+  - TaskProvider và sự khác biệt giữa đăng ký, cấu hình, khởi tạo task
+  - Thêm hành động bằng doFirst, doLast và kiểm soát thứ tự
+  - dependsOn, mustRunAfter, shouldRunAfter và finalizedBy
+  - Dependency ngầm qua đầu vào, đầu ra và Provider của task
+  - onlyIf, enabled, điều kiện bỏ qua và xử lý lỗi task
+  - Trạng thái SUCCESS, UP-TO-DATE, FROM-CACHE, NO-SOURCE và SKIPPED
+  - Phát hiện chu trình và chẩn đoán task chạy ngoài dự kiến
+- level1: Task tùy chỉnh
+  level2:
+  - Khi nào dùng task có sẵn và khi nào tạo task type riêng
+  - Xây dựng lớp DefaultTask và hành động @TaskAction
+  - Khai báo đầu vào bằng @Input, @InputFile, @InputFiles và @InputDirectory
+  - Khai báo đầu ra bằng @OutputFile, @OutputFiles và @OutputDirectory
+  - Phân biệt @Internal, @Optional và dữ liệu cần theo dõi
+  - Chuẩn hóa đường dẫn, nội dung và ảnh hưởng đến tính tái sử dụng
+  - Tiêm dịch vụ và sử dụng ExecOperations, FileSystemOperations
+  - Xử lý thay đổi tệp bằng InputChanges cho task tăng dần
+  - Worker API, chế độ cô lập và công việc có thể chạy song song
+  - Build Service dùng chung, vòng đời tài nguyên và giới hạn đồng thời
+- level1: Tệp và tài nguyên
+  level2:
+  - File, Directory, FileCollection và FileTree trong Gradle
+  - Giải quyết đường dẫn tương đối theo project và layout
+  - Chọn tệp bằng include, exclude và pattern
+  - Sao chép bằng Copy, đồng bộ bằng Sync và xóa bằng Delete
+  - Dùng CopySpec để tái sử dụng quy tắc bố trí tệp
+  - Lọc tài nguyên, thay thế biến và giới hạn khi xử lý tệp nhị phân
+  - Chính sách tệp trùng, quyền truy cập và bảo toàn cấu trúc
+  - Tạo archive, đọc archive và sử dụng artifact do task khác sinh
+  - Tránh đường dẫn tuyệt đối, tác dụng phụ và đầu ra chồng lấn
+- level1: Mô hình dependency
+  level2:
+  - Dependency ngoài, dependency project và dependency tệp
+  - Tọa độ group, name, version, classifier và extension
+  - Dependency trực tiếp, bắc cầu, constraint và artifact
+  - Configuration khai báo, phân giải và công bố
+  - Quan hệ extendsFrom và phạm vi kế thừa dependency
+  - Classpath biên dịch, runtime, kiểm thử và annotation processor
+  - Phân biệt dependency của ứng dụng, plugin và build script
+  - Đọc đồ thị dependency trước khi quyết định thay đổi cấu hình
+- level1: Kho thư viện
+  level2:
+  - Repository plugin và repository dependency giải quyết hai nhu cầu khác nhau
+  - Cấu hình repositories và pluginManagement.repositories
+  - Tập trung repository bằng dependencyResolutionManagement
+  - Vai trò của Maven Central, Google Maven, kho nội bộ và mavenLocal
+  - Thứ tự repository và tác động đến kết quả phân giải
+  - Lọc nội dung kho bằng content filter và exclusiveContent
+  - Xác thực kho riêng bằng thông tin bí mật bên ngoài source
+  - Cấu hình proxy, TLS và chẩn đoán lỗi kết nối repository
+  - Rủi ro của flatDir, kho cục bộ và dependency không có metadata
+- level1: Khai báo dependency
+  level2:
+  - Khai báo dependency theo chuỗi tọa độ và dạng có cấu trúc
+  - implementation, api và ranh giới API của thư viện Java
+  - compileOnly, runtimeOnly và compileOnlyApi theo plugin
+  - testImplementation, testRuntimeOnly và dependency cho bộ kiểm thử
+  - annotationProcessor và testAnnotationProcessor
+  - Dependency giữa các project và lựa chọn API được công khai
+  - Dependency cục bộ từ files, fileTree và hạn chế metadata
+  - Exclude dependency bắc cầu và tránh loại nhầm thư viện cần thiết
+  - Lựa chọn phiên bản cố định, động, snapshot và changing module
+- level1: Phân giải dependency
+  level2:
+  - Quá trình phân giải từ khai báo đến component, variant và artifact
+  - Xung đột phiên bản và nguyên tắc lựa chọn mặc định
+  - Quan sát đồ thị bằng dependencies và dependencyInsight
+  - 'Dependency constraints và rich versions: strictly, prefer, reject'
+  - Dependency substitution và component selection rules
+  - Resolution strategy, force và phạm vi tác động
+  - Component metadata rules để sửa metadata thiếu hoặc sai
+  - BOM, căn chỉnh phiên bản và phát hiện tổ hợp thư viện không tương thích
+  - Cache metadata, changing module, offline và refresh-dependencies
+  - Chẩn đoán dependency không tìm thấy, sai phiên bản hoặc thiếu artifact
+- level1: Variant và capability
+  level2:
+  - Variant là gì và vì sao một component có nhiều biến thể
+  - Consumable configuration và resolvable configuration
+  - Attributes, schema và quy tắc ghép producer với consumer
+  - Phân biệt apiElements, runtimeElements và các variant Java
+  - Capabilities và xử lý xung đột nhiều thư viện cùng chức năng
+  - Feature variants và công bố tính năng tùy chọn
+  - Đọc báo cáo outgoingVariants và resolvableConfigurations
+  - Artifact transform và vai trò trong quá trình tiêu thụ dependency
+  - Chẩn đoán lỗi không có variant phù hợp hoặc có nhiều variant phù hợp
+- level1: Catalog và platform
+  level2:
+  - Version catalog giải quyết việc đặt tên và tập trung tọa độ
+  - 'Cấu trúc libs.versions.toml: versions, libraries, bundles và plugins'
+  - Dùng alias trong dependencies và plugins
+  - Chia sẻ catalog giữa các project và các build
+  - 'Giới hạn catalog: phiên bản đề xuất không phải kết quả phân giải bắt buộc'
+  - Java Platform plugin và khai báo dependency constraints
+  - Tiêu thụ BOM bằng platform và enforcedPlatform
+  - Phân biệt catalog, platform, dependency locking và convention plugin
+  - Tổ chức chiến lược phiên bản cho hệ thống nhiều module
+- level1: Khóa và xác minh
+  level2:
+  - Build tái lập và các nguồn biến động ngoài source code
+  - Dependency locking và phạm vi configuration cần khóa
+  - Tạo, cập nhật và kiểm tra dependency lockfile
+  - Quản lý lockfile trong Git và xử lý thay đổi dependency có chủ đích
+  - Dependency verification bằng checksum và chữ ký
+  - Vai trò của verification-metadata.xml và quy trình tin cậy artifact
+  - Xử lý lỗi xác minh mà không vô hiệu hóa kiểm tra toàn cục
+  - Phân biệt khóa phiên bản, xác minh artifact và checksum Wrapper
+  - Kiểm tra tính tái lập qua môi trường sạch và build độc lập
+- level1: Sử dụng plugin
+  level2:
+  - Plugin cung cấp task, extension, configuration và quy ước
+  - Core plugin, plugin ngoài và plugin tự xây dựng
+  - Plugins DSL, plugin id, phiên bản và apply false
+  - Plugin management, plugin marker và nơi phân giải plugin
+  - Phân biệt plugins, apply plugin và buildscript classpath
+  - Cấu hình extension do plugin cung cấp
+  - Tương tác giữa plugin và thời điểm dùng withPlugin
+  - Quản lý plugin thống nhất qua settings và version catalog
+  - Chẩn đoán plugin không tìm thấy, xung đột classpath và sai phiên bản
+- level1: Dự án Java
+  level2:
+  - Java plugin và đồ thị task chuẩn của dự án Java
+  - SourceSet, source directory, resources và classpath
+  - Java Library plugin và ranh giới api với implementation
+  - Application plugin, mainClass và chạy ứng dụng bằng run
+  - Cấu hình compiler args, encoding và tham số trình biên dịch
+  - Javadoc, sources JAR và tài liệu đi kèm thư viện
+  - Tạo source set bổ sung và nối vào task kiểm tra, đóng gói
+  - Java Module System và những điểm cần cấu hình trong build
+  - Đối chiếu build trong IDE với build bằng Wrapper
+- level1: JDK và toolchain
+  level2:
+  - Phân biệt JVM chạy Gradle, Java compiler và JVM chạy kiểm thử
+  - Java Toolchains và lựa chọn languageVersion
+  - Chọn vendor, phát hiện JDK và cấu hình nơi tìm JDK
+  - Toolchain resolver và điều kiện tải JDK tự động
+  - sourceCompatibility, targetCompatibility và javac --release
+  - Cấu hình toolchain riêng cho JavaCompile, Test và JavaExec
+  - Kiểm tra toolchain thực tế bằng javaToolchains và log
+  - Chẩn đoán unsupported class version và tổ hợp Gradle, JDK không tương thích
+- level1: Biên dịch và tài nguyên
+  level2:
+  - Luồng compileJava, processResources, classes và testClasses
+  - Biên dịch tăng dần, compile avoidance và ranh giới thay đổi API
+  - Annotation processing và khai báo processor đúng configuration
+  - Tạo mã nguồn và nối đầu ra generator vào source set
+  - Thiết lập quan hệ task cho mã hoặc tài nguyên sinh tự động
+  - Lọc biến môi trường trong resources và tránh rò rỉ thông tin bí mật
+  - Cấu hình JavaExec, Exec và công cụ bên ngoài
+  - Xử lý lỗi encoding, đường dẫn, tài nguyên trùng và mã sinh không ổn định
+- level1: Kiểm thử
+  level2:
+  - Task Test và mối quan hệ với test, check, build
+  - Cấu hình JUnit Platform và các test engine
+  - Lọc theo lớp, phương thức, tag và bộ kiểm thử
+  - Phân biệt source set kiểm thử riêng với JVM Test Suite
+  - Tạo integration test và gắn vào lifecycle có chủ đích
+  - Dependency giữa kiểm thử tích hợp và hạ tầng cần khởi động
+  - Cấu hình heap, JVM args, system properties và test logging
+  - Fork tiến trình, maxParallelForks và tài nguyên dùng chung
+  - Báo cáo HTML, XML, tổng hợp kết quả và lưu bằng chứng trên CI
+  - Test thất thường, chạy lại bằng plugin phù hợp và chẩn đoán nguyên nhân
+  - Phân biệt task cache hit với kiểm thử thực sự được thực thi lại
+- level1: Chất lượng mã
+  level2:
+  - Vai trò của quality gate và nối công cụ kiểm tra vào check
+  - Cấu hình Checkstyle cho quy tắc mã nguồn Java
+  - Cấu hình PMD và SpotBugs theo plugin tương ứng
+  - Định dạng tự động và tách task kiểm tra với task sửa mã
+  - 'JaCoCo: thu thập dữ liệu, tạo báo cáo và đặt ngưỡng coverage'
+  - Tổng hợp coverage nhiều module và giới hạn của số phần trăm
+  - Kiểm tra dependency có lỗ hổng bằng công cụ hoặc plugin phù hợp
+  - Quản lý cấu hình dùng chung, baseline và ngoại lệ có giải thích
+- level1: Đóng gói
+  level2:
+  - Jar, Zip, Tar và phân biệt classes với artifact phân phối
+  - Thiết lập archive name, version, classifier và nội dung
+  - Manifest, Main-Class và cách chạy JAR
+  - Thin JAR, fat JAR và trách nhiệm đóng gói dependency
+  - Gộp service descriptor, tài nguyên trùng và giới hạn của fat JAR
+  - Application distribution, start scripts, installDist và distZip
+  - Giữ archive ổn định về thứ tự tệp và timestamp
+  - Kiểm tra artifact tạo ra trước khi phát hành
+  - Kết nối đóng gói container qua task hoặc plugin có phạm vi rõ ràng
+- level1: Xuất bản artifact
+  level2:
+  - Maven Publish plugin và mô hình publication, component, repository
+  - Công bố thư viện Java cùng sources JAR và Javadoc JAR
+  - Cấu hình group, artifactId, version và thông tin POM
+  - Gradle Module Metadata và thông tin variant khi công bố
+  - Phân biệt publishToMavenLocal với publish lên repository từ xa
+  - Tách repository snapshot, release và thông tin xác thực
+  - Ký artifact bằng Signing plugin và quản lý khóa bên ngoài source
+  - Kiểm tra metadata và dùng dự án consumer để xác minh artifact
+  - Quy trình phiên bản, changelog, tag và phát hành có thể truy vết
+- level1: Build nhiều dự án
+  level2:
+  - Khi nào tách module và cách xác định ranh giới phụ thuộc
+  - Khai báo include và ánh xạ projectDir trong settings
+  - Đường dẫn project và cách gọi task toàn bộ hoặc từng module
+  - Dependency project so với dependency vào đường dẫn artifact thủ công
+  - Chia sẻ cấu hình bằng allprojects, subprojects và các giới hạn
+  - Đưa quy ước chung vào convention plugin thay cho cấu hình chéo
+  - Trao đổi artifact qua configuration và variant
+  - Tránh afterEvaluate, thứ tự cấu hình ngầm và truy cập nội bộ project khác
+  - Thiết kế đồ thị module để kiểm thử và build có thể thực thi độc lập
+  - Tổng hợp báo cáo và artifact mà không làm mất ranh giới module
+- level1: Composite build
+  level2:
+  - Phân biệt multi-project build với composite build
+  - includeBuild trong settings và build được include
+  - Dependency substitution tự động và trường hợp cần cấu hình rõ
+  - Dùng thư viện từ source cục bộ thay artifact đã công bố
+  - Tham chiếu task giữa các included build
+  - Plugin development build và includeBuild trong pluginManagement
+  - Phạm vi riêng của settings, properties, catalog và repository giữa các build
+  - Tránh vòng lặp include, trùng tọa độ và hiểu nhầm phạm vi task
+  - Xác minh consumer hoạt động với cả source build lẫn artifact đã phát hành
+- level1: Build logic dùng chung
+  level2:
+  - Nhận diện cấu hình lặp và lựa chọn mức tái sử dụng phù hợp
+  - Script plugin và giới hạn về kiểu, classpath, kiểm thử
+  - 'buildSrc: cấu trúc, dependency và ảnh hưởng đến build'
+  - Included build build-logic và cơ chế phát triển plugin nội bộ
+  - Precompiled script plugin với Groovy DSL hoặc Kotlin DSL
+  - Convention plugin cho Java, kiểm thử, chất lượng và xuất bản
+  - Quản lý dependency của build logic tách khỏi dependency ứng dụng
+  - Thiết kế extension để module khai báo nhu cầu thay vì sửa cơ chế
+  - So sánh buildSrc, build-logic và plugin đã công bố
+- level1: Phát triển plugin
+  level2:
+  - Cấu trúc dự án plugin và Java Gradle Plugin Development plugin
+  - Plugin<Project>, Plugin<Settings> và phạm vi áp dụng
+  - Khai báo plugin id, implementationClass và metadata
+  - Thiết kế extension có kiểu bằng managed properties
+  - Đăng ký task lười và kết nối extension với đầu vào task
+  - Phối hợp plugin bằng pluginManager.withPlugin
+  - Tách chính sách, cơ chế, dịch vụ và tác dụng phụ của task
+  - Thông báo lỗi cấu hình rõ ràng và API tương thích về sau
+  - Kiểm thử logic đơn vị và build chức năng bằng Gradle TestKit
+  - Thiết lập fixture, chạy nhiều phiên bản Gradle và kiểm tra task outcome
+  - Công bố plugin nội bộ hoặc lên Gradle Plugin Portal
+- level1: Build tăng dần
+  level2:
+  - Up-to-date check và mô hình đầu vào, đầu ra
+  - Phân biệt task không cần chạy với kết quả lấy từ build cache
+  - Tác động của nội dung tệp, đường dẫn và thuộc tính đến trạng thái task
+  - Đầu ra chồng lấn, tác vụ không khai báo và nguyên nhân mất tính tăng dần
+  - Input normalization và PathSensitivity
+  - Thiết kế task cacheable bằng @CacheableTask
+  - Phân biệt thay đổi cần chạy lại toàn bộ với thay đổi có thể xử lý tăng dần
+  - Kiểm chứng hành vi bằng hai lần build và thay đổi đầu vào có kiểm soát
+- level1: Các lớp cache
+  level2:
+  - Phân biệt dependency cache, build cache và configuration cache
+  - Cấu hình build cache cục bộ và từ xa
+  - Cache key, khả năng dùng lại giữa máy và tính ổn định đầu ra
+  - Bật configuration cache và đọc báo cáo không tương thích
+  - Tránh truy cập Project, trạng thái toàn cục và dữ liệu không được theo dõi lúc thực thi
+  - Dùng Provider, ValueSource và Build Service đúng mục đích
+  - Quản lý credential, dữ liệu nhạy cảm và quyền ghi remote cache
+  - Chẩn đoán cache miss, cache sai và trường hợp cần tắt cache có phạm vi
+  - Chính sách dọn cache và phân biệt với xóa thư mục build
+- level1: Hiệu năng build
+  level2:
+  - Đo baseline và tách thời gian khởi động, cấu hình, thực thi
+  - Gradle Daemon, tái sử dụng JVM và cấu hình bộ nhớ
+  - Configuration avoidance và loại bỏ công việc không cần thiết
+  - Chạy task song song, giới hạn worker và kiểm soát tài nguyên
+  - Đo tác động của test fork, compiler, I/O và dependency resolution
+  - Dùng --profile và Build Scan với cân nhắc dữ liệu được chia sẻ
+  - Nhận diện nút thắt build logic, script compilation và buildSrc
+  - Tối ưu pipeline theo module bị ảnh hưởng và dependency thực tế
+  - Đánh giá Isolated Projects theo khả năng hỗ trợ của phiên bản sử dụng
+  - So sánh kết quả nhiều lần và tránh đánh đổi tính đúng để tăng tốc
+- level1: Tích hợp CI/CD
+  level2:
+  - Dùng Wrapper, JDK và toolchain nhất quán trên máy CI
+  - Thiết kế các bước kiểm tra, kiểm thử, đóng gói và phát hành
+  - Caching Gradle User Home với khóa, phạm vi và quyền phù hợp
+  - Phân biệt cache tăng tốc với artifact cần lưu hoặc phát hành
+  - Xây dựng workflow Gradle trên GitHub Actions
+  - Tích hợp Gradle vào GitLab CI hoặc Jenkins theo cùng nguyên tắc
+  - Chạy ma trận hệ điều hành, JDK hoặc phiên bản Gradle có chủ đích
+  - Lưu test report, coverage, log và artifact để chẩn đoán
+  - Chỉ cấp thông tin bí mật và quyền phát hành cho nhánh, sự kiện hợp lệ
+  - Xác minh artifact từ môi trường sạch trước khi triển khai
+- level1: An toàn build
+  level2:
+  - Build script và plugin là mã có quyền thực thi trên máy build
+  - Ranh giới tin cậy của pull request, plugin và repository bên ngoài
+  - Ngăn dependency confusion bằng repository policy và content filter
+  - Kết hợp Wrapper checksum, dependency verification và locking
+  - Không đưa token, mật khẩu hoặc khóa ký vào Git và artifact
+  - Giảm dữ liệu nhạy cảm trong log, test report và Build Scan
+  - Phân quyền remote cache và ngăn kết quả build không tin cậy
+  - Rà soát init script, Gradle User Home và cấu hình toàn máy
+  - Thiết kế môi trường CI tách biệt cho build kiểm tra và phát hành
+- level1: IDE và chẩn đoán
+  level2:
+  - Import dự án vào IntelliJ IDEA, Eclipse hoặc VS Code
+  - Chọn Gradle JVM và cơ chế build, chạy test trong IDE
+  - Gradle sync, tải dependency và phân biệt với thực thi task
+  - Đọc stacktrace từ nguyên nhân gốc thay vì thông báo tổng quát
+  - Chẩn đoán lỗi plugin, repository, dependency và toolchain theo từng lớp
+  - Chẩn đoán khác biệt giữa IDE, terminal và CI
+  - Xử lý file lock, daemon, đường dẫn dài và quyền truy cập
+  - Debug build logic và plugin bằng IDE
+  - Thu thập bản tái hiện tối thiểu và log vừa đủ để báo lỗi
+  - Tránh dùng clean hoặc xóa toàn bộ cache như cách sửa lỗi mặc định
+- level1: Nâng cấp và di chuyển
+  level2:
+  - Kiểm kê phiên bản Gradle, JDK, plugin và API build đang dùng
+  - Đọc compatibility matrix, release notes và upgrading guide
+  - Phát hiện deprecation trước khi nâng cấp
+  - Nâng từng bước và kiểm tra Wrapper, plugin, build logic
+  - Chuyển từ API cấu hình sớm sang lazy configuration
+  - Chuyển build Ant hoặc Maven sang Gradle có kiểm chứng
+  - Giữ nguyên hành vi dependency, kiểm thử và đóng gói khi di chuyển
+  - So sánh artifact, metadata và consumer trước với sau
+  - Kế hoạch rollback và quản lý thay đổi lockfile, verification metadata
+- level1: Hệ sinh thái Gradle
+  level2:
+  - Tích hợp Kotlin JVM và phối hợp Java, Kotlin trong một project
+  - Scala, Groovy và cách plugin ngôn ngữ mở rộng mô hình build
+  - 'Spring Boot plugin: bootRun, bootJar và ranh giới với Java plugin'
+  - Quản lý phiên bản dependency trong dự án Spring Boot
+  - 'Android Gradle Plugin: module, build type, product flavor và variant'
+  - 'Kotlin Multiplatform: target, source set và vai trò của plugin'
+  - Native build C++ hoặc Swift và yêu cầu môi trường tương ứng
+  - Tích hợp công cụ frontend qua task hoặc plugin có khai báo đầu vào, đầu ra
+  - Phân biệt API cốt lõi Gradle với khả năng do plugin của từng hệ sinh thái cung cấp
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng ứng dụng Java từ init đến chạy, kiểm thử và phân phối
+  - Thiết kế thư viện Java công khai API rõ ràng và xuất bản thử
+  - Tổ chức hệ thống nhiều module bằng convention plugin
+  - Phát triển plugin nội bộ có extension, custom task và TestKit
+  - Tạo task sinh mã hoạt động đúng với up-to-date check và build cache
+  - Tái hiện rồi xử lý xung đột dependency, variant và toolchain
+  - Thiết lập integration test, quality gate và báo cáo trên CI
+  - Thực hiện nâng cấp Gradle với bằng chứng hành vi trước và sau
+  - Kiểm chứng build tái lập, artifact độc lập và quản lý thông tin bí mật
+  - 'Checklist review build: tính đúng, khả năng bảo trì, hiệu năng và an toàn'

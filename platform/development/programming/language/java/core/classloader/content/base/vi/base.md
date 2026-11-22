@@ -1,0 +1,7 @@
+# Java Core – ClassLoader
+
+Trong Java, mã nguồn được biên dịch thành bytecode, nhưng một lớp chỉ có thể được sử dụng khi JVM tìm và xử lý định nghĩa của lớp đó. **ClassLoader** đảm nhiệm việc nạp định nghĩa lớp, góp phần quyết định lớp được tìm ở đâu và lớp nào thực sự được sử dụng lúc chạy. Hiểu ClassLoader giúp bạn phân biệt việc nạp lớp với việc tạo đối tượng, giải thích thời điểm khởi tạo lớp và nhận diện nguyên nhân của các lỗi phụ thuộc khó phát hiện.
+
+Module này dành cho người đã nắm cú pháp Java, lớp, đối tượng và cách chạy chương trình, muốn hiểu sâu cơ chế nạp lớp của Java Core. Lộ trình đi từ **vai trò ClassLoader** và **vòng đời của lớp** (loading, linking, initialization) đến **phân cấp và ủy quyền**, **tìm lớp và tài nguyên** qua classpath, module path và các API liên quan. Tiếp đó, bạn học cách **định danh và cô lập lớp**, nhận biết vì sao hai lớp cùng tên có thể là hai kiểu khác nhau, rồi tìm hiểu cách xây dựng **bộ nạp tùy chỉnh** khi cần sử dụng bytecode từ nguồn riêng.
+
+Ở phần cuối, bạn sẽ **chẩn đoán lỗi nạp lớp và điều kiện giải phóng bộ nạp**, sau đó **thực hành tích hợp** bằng một thí nghiệm với nhiều ClassLoader. Qua việc quan sát quan hệ ủy quyền, thời điểm khởi tạo, định danh kiểu và các lỗi như `ClassNotFoundException` hay `NoClassDefFoundError`, bạn sẽ biết cách phân tích hành vi nạp lớp, xử lý xung đột phiên bản và đánh giá tác động của bộ nạp lên tính cô lập cũng như bộ nhớ của ứng dụng.

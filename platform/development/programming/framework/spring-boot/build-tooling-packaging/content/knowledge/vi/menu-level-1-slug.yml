@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khởi tạo dự án
+  slug: project-initialization
+  index: 1
+- title: Java và Wrapper
+  slug: java-and-wrapper
+  index: 2
+- title: Vòng đời bản dựng
+  slug: build-lifecycle
+  index: 3
+- title: Phụ thuộc và BOM
+  slug: dependencies-and-bom
+  index: 4
+- title: Maven với Spring Boot
+  slug: maven-with-spring-boot
+  index: 5
+- title: Gradle với Spring Boot
+  slug: gradle-with-spring-boot
+  index: 6
+- title: Biên dịch và tài nguyên
+  slug: compilation-and-resources
+  index: 7
+- title: Chạy khi phát triển
+  slug: development-run
+  index: 8
+- title: Kiểm tra bản dựng
+  slug: build-verification
+  index: 9
+- title: JAR thực thi
+  slug: executable-jar
+  index: 10
+- title: Boot Loader
+  slug: boot-loader
+  index: 11
+- title: Tùy biến đóng gói
+  slug: packaging-customization
+  index: 12
+- title: WAR triển khai
+  slug: deployable-war
+  index: 13
+- title: Dự án đa mô-đun
+  slug: multi-module-projects
+  index: 14
+- title: Tối ưu bản dựng
+  slug: build-optimization
+  index: 15
+- title: Bản dựng tái lập
+  slug: reproducible-builds
+  index: 16
+- title: Metadata bản dựng
+  slug: build-metadata
+  index: 17
+- title: Đóng gói theo lớp
+  slug: layered-packaging
+  index: 18
+- title: Dockerfile
+  slug: dockerfile
+  index: 19
+- title: Cloud Native Buildpacks
+  slug: cloud-native-buildpacks
+  index: 20
+- title: Xuất bản sản phẩm
+  slug: artifact-publication
+  index: 21
+- title: Chuỗi cung ứng
+  slug: software-supply-chain
+  index: 22
+- title: Tự động hóa CI
+  slug: continuous-integration
+  index: 23
+- title: Chẩn đoán sự cố
+  slug: build-troubleshooting
+  index: 24
+- title: Nâng cấp công cụ
+  slug: tooling-upgrade
+  index: 25
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 26

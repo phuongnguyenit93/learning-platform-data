@@ -1,0 +1,2002 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Flyweight là gì và thuộc nhóm mẫu thiết kế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Bài toán nhiều đối tượng có dữ liệu lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mục tiêu giảm chi phí bộ nhớ bằng chia sẻ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt một đối tượng nghiệp vụ với phần biểu diễn có thể dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Trạng thái nội tại và trạng thái ngoại tại là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của đối tượng dùng chung, ngữ cảnh và nơi cung cấp đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lợi ích, chi phí và điều kiện áp dụng Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình từ mô hình chưa chia sẻ đến triển khai và đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-problem
+  title: Bài toán bộ nhớ
+  childs:
+  - slug: memory-problem-001
+    title: Nhận diện dữ liệu giống nhau trong số lượng lớn đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-problem-002
+    title: Phân biệt dữ liệu lặp với đối tượng thực sự có thể chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-problem-003
+    title: Phân tích chi phí của đối tượng, tham chiếu và dữ liệu thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-problem-004
+    title: Ảnh hưởng của số lượng đối tượng đến cấp phát và thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-problem-005
+    title: Lập mô hình ban đầu cho ký tự, kiểu hiển thị hoặc đối tượng đồ họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-problem-006
+    title: Xác định phần dữ liệu lớn nhưng ít biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-problem-007
+    title: Đánh giá tỷ lệ giữa số lần sử dụng và số cấu hình phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-problem-008
+    title: Nhận diện trường hợp chi phí quản lý lớn hơn phần bộ nhớ tiết kiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-separation
+  title: Phân tách trạng thái
+  childs:
+  - slug: state-separation-001
+    title: Trạng thái nội tại (intrinsic state) độc lập với một lần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-002
+    title: Trạng thái ngoại tại (extrinsic state) phụ thuộc ngữ cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-003
+    title: Phân loại từng trường dữ liệu trước khi thiết kế Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-004
+    title: Tách vị trí, mã định danh và dữ liệu riêng của mỗi lần xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-005
+    title: Giữ thuộc tính dùng chung trong đối tượng Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-006
+    title: Truyền ngữ cảnh vào thao tác thay vì lưu ngược trong đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-007
+    title: Lựa chọn lưu ngữ cảnh hay tính lại khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-008
+    title: Nhận diện trạng thái chỉ giống nhau tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-009
+    title: Xử lý thuộc tính phụ thuộc vào phiên bản hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-separation-010
+    title: Kiểm tra tính đầy đủ của dữ liệu sau khi tách trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-structure
+  title: Cấu trúc mẫu
+  childs:
+  - slug: pattern-structure-001
+    title: Vai trò của giao diện Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-002
+    title: Vai trò của ConcreteFlyweight và dữ liệu được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-003
+    title: Vai trò của Flyweight Factory và kho quản lý đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-004
+    title: Vai trò của bên sử dụng và đối tượng giữ ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-005
+    title: Trường hợp có đối tượng không chia sẻ (Unshared Flyweight)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-006
+    title: Quan hệ giữa đối tượng ngữ cảnh và đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-007
+    title: Đọc sơ đồ lớp và sơ đồ tương tác của Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-008
+    title: Lựa chọn dùng giao diện hoặc lớp cụ thể theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-structure-009
+    title: Phân biệt thành phần cốt lõi với lớp hỗ trợ của ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-flow
+  title: Luồng hoạt động
+  childs:
+  - slug: execution-flow-001
+    title: Chuyển yêu cầu nghiệp vụ thành khóa tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-002
+    title: Tìm đối tượng đã có trong kho chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-003
+    title: Tạo và đưa đối tượng mới vào kho khi chưa có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-004
+    title: Cung cấp cùng đối tượng cho các ngữ cảnh tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-005
+    title: Thực hiện hành vi với trạng thái nội tại và ngữ cảnh được truyền vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-006
+    title: Giữ dữ liệu riêng của từng lần sử dụng ở bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-007
+    title: Xử lý lỗi tạo đối tượng mà không giữ mục dữ liệu chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-flow-008
+    title: Theo dõi vòng đời từ lúc tạo đến khi không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-design
+  title: Thiết kế khóa
+  childs:
+  - slug: key-design-001
+    title: Xác định thuộc tính quyết định hai yêu cầu có thể dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-002
+    title: Thiết kế khóa tổng hợp theo đầy đủ trạng thái nội tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-003
+    title: Giữ khóa bất biến trong suốt thời gian nằm trong kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-004
+    title: Thiết lập quan hệ equals và hashCode nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-005
+    title: Phân biệt trùng mã băm với tương đương về ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-006
+    title: Chuẩn hóa dữ liệu đầu vào mà không làm mất khác biệt nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-007
+    title: Đưa phiên bản, không gian tên hoặc phạm vi dữ liệu vào khóa khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-008
+    title: Xử lý giá trị thiếu, giá trị mặc định và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-009
+    title: Tránh khóa chứa tham chiếu lớn hoặc thông tin nhạy cảm không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-010
+    title: Kiểm thử khóa thiếu trường và khóa phân biệt quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: immutability-and-encapsulation
+  title: Bất biến và đóng gói
+  childs:
+  - slug: immutability-and-encapsulation-001
+    title: Vì sao trạng thái dùng chung cần được bảo vệ khỏi thay đổi ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-002
+    title: Thiết kế đối tượng bất biến cho phần trạng thái nội tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-003
+    title: Phân biệt trường final với dữ liệu bất biến toàn phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-004
+    title: Ngăn bên sử dụng sửa tập hợp và đối tượng con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-005
+    title: Sao chép phòng vệ tại ranh giới cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-006
+    title: Không lưu ngữ cảnh của lần gọi vào đối tượng Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-007
+    title: Tránh trả về tham chiếu có thể sửa dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-008
+    title: Tạo phiên bản đối tượng mới khi giá trị nội tại cần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: immutability-and-encapsulation-009
+    title: Đánh giá hệ quả khi thiết kế buộc phải có dữ liệu dùng chung khả biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-objects
+  title: Đối tượng ngữ cảnh
+  childs:
+  - slug: context-objects-001
+    title: Biểu diễn mỗi lần xuất hiện bằng tham chiếu Flyweight và dữ liệu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-002
+    title: Phân biệt danh tính ngữ cảnh với danh tính đối tượng được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-003
+    title: Quản lý tọa độ, chủ sở hữu và trạng thái tương tác riêng biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-004
+    title: Truyền đủ ngữ cảnh để hành vi không dựa vào biến toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-005
+    title: Cho phép nhiều ngữ cảnh độc lập sử dụng cùng một Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-006
+    title: Tính chi phí bộ nhớ của lớp bao và tham chiếu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-007
+    title: Tránh tách quá nhiều đối tượng nhỏ làm tăng chi phí biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-008
+    title: Chọn cấu trúc tập hợp phù hợp để lưu nhiều ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-objects-009
+    title: Kiểm tra sao chép ngữ cảnh mà không sao chép lại dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: factory-and-shared-pool
+  title: Factory và kho chia sẻ
+  childs:
+  - slug: factory-and-shared-pool-001
+    title: Đóng gói thao tác tìm hoặc tạo trong một điểm truy cập rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-002
+    title: Lựa chọn kho ánh xạ từ khóa đến đối tượng Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-003
+    title: Phân biệt tạo sẵn với tạo khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-004
+    title: Chọn phạm vi kho theo ứng dụng, phiên làm việc hoặc tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-005
+    title: Tránh biến mọi kho chia sẻ thành trạng thái static toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-006
+    title: Kiểm soát quyền truy cập để bên sử dụng không phá tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-007
+    title: Giữ quá trình tạo đối tượng hoàn chỉnh trước khi công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-008
+    title: Xử lý lỗi, hủy yêu cầu và tạo lại sau thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-009
+    title: Quan sát số khóa, số đối tượng và tỷ lệ tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factory-and-shared-pool-010
+    title: Tách chính sách lưu giữ khỏi logic nghiệp vụ của Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-implementation
+  title: Triển khai Java
+  childs:
+  - slug: java-implementation-001
+    title: Xây dựng ví dụ chưa áp dụng Flyweight làm mốc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-002
+    title: Tạo kiểu dữ liệu bất biến chứa trạng thái nội tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-003
+    title: Biểu diễn khóa tổng hợp bằng lớp giá trị hoặc record phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-004
+    title: Kiểm tra thành phần khả biến bên trong record
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-005
+    title: Tạo lớp ngữ cảnh giữ dữ liệu ngoại tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-006
+    title: Cài đặt factory với Map cho trường hợp một luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-007
+    title: Tổ chức thao tác nhận ngữ cảnh làm tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-008
+    title: Đưa việc lấy đối tượng dùng chung vào luồng tạo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-009
+    title: Kiểm chứng nhiều ngữ cảnh nhận cùng tham chiếu khi khóa tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-010
+    title: Giữ khác biệt giữa phép so sánh tham chiếu và phép so sánh giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-011
+    title: Đối chiếu kết quả nghiệp vụ trước và sau khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-012
+    title: Giới hạn phạm vi lớp, hàm tạo và dữ liệu được công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrent-execution
+  title: Thực thi đồng thời
+  childs:
+  - slug: concurrent-execution-001
+    title: Nhận diện cạnh tranh khi nhiều luồng cùng yêu cầu một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-002
+    title: Vì sao chuỗi kiểm tra rồi tạo có thể sinh nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-003
+    title: Thiết kế thao tác lấy hoặc tạo có tính nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-004
+    title: Sử dụng ConcurrentHashMap phù hợp cho factory nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-005
+    title: Phân biệt an toàn của kho với an toàn của đối tượng bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-006
+    title: Công bố đối tượng đã khởi tạo đầy đủ cho các luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-007
+    title: Giữ ngữ cảnh khả biến độc lập giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-008
+    title: Tránh thao tác tạo quá chậm hoặc phụ thuộc vòng trong đường đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-009
+    title: Xác định yêu cầu về một đại diện duy nhất khi có tạo lại hoặc loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrent-execution-010
+    title: Kiểm thử truy cập đồng thời và kết quả quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-lifecycle
+  title: Vòng đời bộ nhớ
+  childs:
+  - slug: memory-lifecycle-001
+    title: Chọn thời gian tồn tại của kho và đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-002
+    title: Ảnh hưởng của tham chiếu mạnh đến khả năng thu hồi bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-003
+    title: Kho tăng không giới hạn khi số khóa phân biệt liên tục tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-004
+    title: Đặt giới hạn dung lượng và chính sách loại bỏ khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-005
+    title: Đánh giá việc tạo lại đối tượng sau khi bị loại khỏi kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-006
+    title: Phân biệt tham chiếu mạnh, yếu và mềm trong chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-007
+    title: Sử dụng tham chiếu yếu cho giá trị và xử lý mục dữ liệu hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-008
+    title: Phân biệt WeakHashMap với kho giữ giá trị bằng tham chiếu yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-009
+    title: Tránh khóa hoặc tham chiếu phụ vô tình giữ đối tượng còn sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-010
+    title: Giới hạn của tham chiếu mềm khi cần kiểm soát bộ nhớ có thể dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-011
+    title: Tách quản lý tài nguyên cần đóng khỏi kỳ vọng thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-lifecycle-012
+    title: Dọn kho theo phạm vi và tránh rò rỉ giữa các phiên làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-model
+  title: Mô hình chi phí
+  childs:
+  - slug: cost-model-001
+    title: Xác định số lần sử dụng, số trạng thái phân biệt và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-002
+    title: Ước lượng bộ nhớ của mô hình tạo bản sao riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-003
+    title: Ước lượng bộ nhớ của dữ liệu dùng chung và các ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-004
+    title: Tính thêm chi phí khóa, bảng ánh xạ và đối tượng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-005
+    title: Xác định điểm mà lợi ích chia sẻ vượt chi phí bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-006
+    title: Đánh giá tác động của tỷ lệ trúng kho và số khóa phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-007
+    title: Cân bằng bộ nhớ với chi phí băm, so sánh và tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-008
+    title: Đánh giá chi phí chuyển trạng thái ngoại tại thành tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-009
+    title: Nhận diện khi dữ liệu quá nhỏ hoặc quá ít lặp để có lợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-model-010
+    title: Đặt giả thuyết đo lường trước khi kết luận Flyweight hiệu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: effectiveness-metrics
+  title: Đo lường hiệu quả
+  childs:
+  - slug: effectiveness-metrics-001
+    title: Chuẩn bị hai phiên bản có cùng kết quả và khối lượng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-002
+    title: Tạo dữ liệu đại diện cho số lượng đối tượng và mức độ lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-003
+    title: Phân biệt kích thước nông với bộ nhớ được giữ bởi đồ thị đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-004
+    title: Tránh đếm nhiều lần cùng một đối tượng được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-005
+    title: Sử dụng công cụ phân tích bố cục đối tượng như JOL khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-006
+    title: Quan sát cấp phát, heap và hoạt động thu gom rác bằng công cụ JVM phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-007
+    title: Đo hiệu năng bằng JMH với khởi động làm nóng và kết quả không bị tối ưu bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-008
+    title: Tách chi phí tạo kho ban đầu khỏi chi phí sử dụng ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-009
+    title: So sánh nhiều mức số khóa phân biệt và nhiều mức đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-010
+    title: Ghi lại môi trường đo và trình bày giới hạn của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-011
+    title: Xác minh giảm bộ nhớ không làm suy giảm thời gian đáp ứng quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-scenarios
+  title: Tình huống áp dụng
+  childs:
+  - slug: application-scenarios-001
+    title: Chia sẻ kiểu cây hoặc mô hình trong hệ thống hiển thị nhiều đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-002
+    title: Chia sẻ thông tin kiểu chữ giữa nhiều lần xuất hiện ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-003
+    title: Phân biệt nội dung ký tự, thông tin kiểu và vị trí hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-004
+    title: Chia sẻ siêu dữ liệu biểu tượng, hình ảnh hoặc tài nguyên hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-005
+    title: Biểu diễn nhiều phần tử bản đồ có thuộc tính loại lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-006
+    title: Chia sẻ mô tả kiểu token trong xử lý văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-007
+    title: Đánh giá danh mục giá trị bất biến có nhiều nơi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-008
+    title: Phân tích String.intern như ví dụ chuẩn hóa đối tượng theo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-009
+    title: Nhận diện phần không thể dùng chung trong mỗi tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-scenarios-010
+    title: Đánh giá nhu cầu thực tế trước khi chọn mẫu cho một hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: correctness-and-scope
+  title: Tính đúng và phạm vi
+  childs:
+  - slug: correctness-and-scope-001
+    title: Xác định điều kiện hai ngữ cảnh được phép dùng chung dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-002
+    title: Giữ danh tính nghiệp vụ tách khỏi danh tính bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-003
+    title: Không dùng so sánh tham chiếu để thay thế hợp đồng so sánh giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-004
+    title: Bảo vệ ranh giới giữa người dùng, bên thuê và miền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-005
+    title: Đưa thay đổi phiên bản vào cơ chế lựa chọn đối tượng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-006
+    title: Giữ kết quả sau khi ghi, đọc và tái tạo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-007
+    title: Xác định yêu cầu chia sẻ trong một tiến trình và giữa nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-008
+    title: Không dựa vào địa chỉ đối tượng như một định danh lưu trữ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-and-scope-009
+    title: Kiểm tra việc thay thế kho không làm đổi hợp đồng của bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sharing-approaches
+  title: Phân biệt các cách chia sẻ
+  childs:
+  - slug: sharing-approaches-001
+    title: Flyweight và bộ nhớ đệm khác nhau về mục tiêu thiết kế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-002
+    title: Flyweight và Object Pool khác nhau về cách sử dụng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-003
+    title: Flyweight và Singleton khác nhau về số đại diện và phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-004
+    title: Flyweight và Prototype khác nhau giữa chia sẻ và sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-005
+    title: Mối quan hệ giữa Flyweight và chuẩn hóa giá trị bằng interning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-006
+    title: Phân biệt Flyweight với khử trùng lặp dữ liệu ở mức lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-007
+    title: Phân biệt chia sẻ đối tượng với tối ưu hóa nội bộ của môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-008
+    title: Nhận diện đối tượng không trạng thái có thể tái sử dụng nhưng chưa cần Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-approaches-009
+    title: Chọn giải pháp theo mục tiêu bộ nhớ, vòng đời và hợp đồng danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pattern-composition
+  title: Kết hợp mẫu
+  childs:
+  - slug: pattern-composition-001
+    title: Dùng factory để tập trung việc tạo và chia sẻ Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-002
+    title: Kết hợp Composite với phần tử dùng chung và nút giữ ngữ cảnh riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-003
+    title: Giữ dữ liệu cấu trúc cây ở ngoài thành phần lá được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-004
+    title: Đánh giá chia sẻ Strategy hoặc State bất biến khi có nhu cầu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-005
+    title: Tách lớp chuyển đổi cho bên sử dụng cần giữ giao diện cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-006
+    title: Phân biệt kết hợp mẫu có ích với thêm lớp không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pattern-composition-007
+    title: Kiểm tra quyền sở hữu và vòng đời khi nhiều mẫu cùng tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-integration
+  title: Áp dụng vào mã hiện hữu
+  childs:
+  - slug: legacy-integration-001
+    title: Đo đường cơ sở và xác định vùng cấp phát gây chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-002
+    title: Khoanh vùng các cấu hình lặp lại có cùng ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-003
+    title: Tách trạng thái nội tại và ngoại tại theo từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-004
+    title: Đưa dữ liệu dùng chung vào kiểu bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-005
+    title: Thiết kế khóa và factory trước khi chuyển toàn bộ nơi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-006
+    title: Chuyển một nhóm bên sử dụng sang cách lấy đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-007
+    title: Giữ hợp đồng và danh tính của các đối tượng nghiệp vụ hiện hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-008
+    title: Kiểm thử hồi quy và so sánh kết quả trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-009
+    title: Đo lại chi phí, dọn cách tạo cũ và đánh giá khả năng quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử cùng khóa trả về cùng đại diện trong phạm vi đã cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử khóa khác ý nghĩa không bị dùng chung sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử dữ liệu nội tại không bị thay đổi từ bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử ngữ cảnh riêng của đối tượng này không ảnh hưởng đối tượng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử hành vi tương đương với phiên bản chưa dùng Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử khóa tổng hợp, chuẩn hóa và giá trị đầu vào không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử truy cập đồng thời khi kho chưa có đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử lỗi khởi tạo và việc yêu cầu lại sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử loại bỏ, dọn kho và tạo lại theo chính sách vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tách kiểm chứng chức năng khỏi phép đo hiệu năng và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Tránh kiểm thử phụ thuộc vào thời điểm thu gom rác không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Chia sẻ đối tượng có trạng thái khả biến mà không bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Đưa tọa độ hoặc dữ liệu riêng vào đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Thiếu thuộc tính trong khóa dẫn đến dùng sai dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Tạo khóa quá chi tiết khiến gần như không có tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Dùng kho static không giới hạn và giữ dữ liệu suốt vòng đời ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Cho rằng dùng ConcurrentHashMap tự làm mọi dữ liệu an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Dựa vào tham chiếu yếu mà không xử lý khóa và mục dữ liệu còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Đồng nhất mọi cache hoặc mọi đối tượng dùng lại với Flyweight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Thay danh tính nghiệp vụ bằng danh tính tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Bỏ qua chi phí của ngữ cảnh, khóa và bảng ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-011
+    title: Kết luận tiết kiệm từ số đối tượng mà chưa đo toàn bộ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-012
+    title: Áp dụng mẫu khi độ lặp thấp hoặc dữ liệu dùng chung quá nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Xây dựng mô hình nhiều đối tượng có dữ liệu lặp làm mốc ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Phân loại từng trường thành dữ liệu nội tại và ngoại tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Thiết kế khóa giá trị và bộ kiểm thử tính tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Cài đặt Flyweight bất biến, factory và đối tượng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Kiểm chứng chia sẻ tham chiếu và tính độc lập của từng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Mô phỏng lỗi khóa thiếu trường rồi bổ sung kiểm thử bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Mở rộng factory cho nhiều luồng và kiểm tra điều kiện cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Thử các phạm vi kho và chính sách lưu giữ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Đo bộ nhớ, cấp phát và thời gian xử lý trước và sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: So sánh kết quả khi số cấu hình phân biệt tăng gần bằng số lần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Phân tích trường hợp không có lợi và quyết định bỏ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-012
+    title: Hoàn thiện sơ đồ, mã minh họa và báo cáo đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

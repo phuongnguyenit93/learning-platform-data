@@ -1,0 +1,2440 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Phát triển hướng mô hình (MDD) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Mô hình như đầu vào có thể xử lý tự động trong phát triển phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa phát triển có sử dụng mô hình, MDD, MDE và MDA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt mô hình thiết kế, sơ đồ minh họa và mô hình có thể thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của mô hình, siêu mô hình, phép biến đổi và bộ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Luồng từ yêu cầu đến mô hình, mã nguồn và phần mềm chạy được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lợi ích kỳ vọng và điều kiện để tự động hóa mang lại giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phạm vi áp dụng và giới hạn của cách tiếp cận hướng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức tiên quyết và trình tự học MDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-foundation
+  title: Cơ sở mô hình
+  childs:
+  - slug: model-foundation-001
+    title: Mô hình, hệ thống được mô hình hóa và mục đích biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-002
+    title: Trừu tượng hóa, mức chi tiết và phạm vi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-003
+    title: Phần tử, thuộc tính, quan hệ và định danh trong mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-004
+    title: Mô hình cấu trúc, hành vi và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-005
+    title: Góc nhìn, khung nhìn và các mối quan tâm của bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-006
+    title: Cú pháp trừu tượng, cú pháp cụ thể và ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-007
+    title: Phân biệt tính hợp lệ cú pháp với tính đúng đắn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-008
+    title: Quan hệ tuân thủ siêu mô hình và quan hệ biểu diễn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-009
+    title: Nguồn dữ liệu chuẩn và quyền sở hữu từng loại mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-foundation-010
+    title: Phân biệt mô hình, thể hiện của mô hình và hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process
+  title: Quy trình
+  childs:
+  - slug: process-001
+    title: Các đầu vào, đầu ra và vai trò trong một quy trình MDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-002
+    title: Khảo sát miền và xác định phạm vi tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-003
+    title: Lựa chọn mức trừu tượng và sản phẩm kỹ thuật cần mô hình hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-004
+    title: Xây dựng ngôn ngữ, quy tắc hợp lệ và công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-005
+    title: Tạo và rà soát mô hình cùng chuyên gia miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-006
+    title: Biến đổi mô hình, sinh mã và tích hợp phần viết tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-007
+    title: Kiểm chứng mô hình và kiểm thử phần mềm được tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-008
+    title: Phản hồi từ thực thi và cập nhật mô hình nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-009
+    title: Tổ chức phát triển lặp, tăng trưởng và giao hàng từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-010
+    title: Điều kiện hoàn thành và cổng chất lượng ở từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metamodel
+  title: Siêu mô hình
+  childs:
+  - slug: metamodel-001
+    title: Siêu mô hình (metamodel) và vai trò định nghĩa ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-002
+    title: Các tầng M0, M1, M2, M3 và ví dụ xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-003
+    title: Phân biệt quan hệ thể hiện, kế thừa và tuân thủ siêu mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-004
+    title: Lớp, kiểu dữ liệu, thuộc tính và tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-005
+    title: Bội số, tính bắt buộc, tính duy nhất và thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-006
+    title: Quan hệ chứa, tham chiếu chéo và quản lý vòng đời phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-007
+    title: Ràng buộc cấu trúc và ràng buộc ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-008
+    title: Meta Object Facility (MOF), EMOF và CMOF ở mức nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-009
+    title: Ecore và quan hệ với hệ sinh thái mô hình hóa EMF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metamodel-010
+    title: Thiết kế siêu mô hình nhỏ, nhất quán và có khả năng mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modeling-language
+  title: Ngôn ngữ mô hình
+  childs:
+  - slug: modeling-language-001
+    title: Ngôn ngữ đa dụng và ngôn ngữ chuyên biệt miền (DSL)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-002
+    title: Xác định người sử dụng, từ vựng và ranh giới của DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-003
+    title: Lựa chọn ký pháp văn bản, đồ họa hoặc kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-004
+    title: Thiết kế cú pháp trừu tượng trước các cách trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-005
+    title: Ngữ pháp, phân tích cú pháp và cây cú pháp trừu tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-006
+    title: Phân giải tên, phạm vi và liên kết tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-007
+    title: Định nghĩa ngữ nghĩa bằng ánh xạ, diễn giải hoặc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-008
+    title: Thông báo lỗi, gợi ý sửa và trải nghiệm soạn thảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-009
+    title: Mở rộng, kết hợp và tái sử dụng ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modeling-language-010
+    title: Trao đổi mô hình và giới hạn tương tác giữa các công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: uml-profiles
+  title: UML và Profile
+  childs:
+  - slug: uml-profiles-001
+    title: Vai trò của UML trong một quy trình hướng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-002
+    title: Mô hình lớp và quan hệ cho cấu trúc miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-003
+    title: Mô hình hoạt động và máy trạng thái cho hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-004
+    title: Mô hình tương tác và các kịch bản phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-005
+    title: Gói, thành phần và triển khai trong các góc nhìn kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-006
+    title: Profile, stereotype, tagged value và ràng buộc mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-007
+    title: Lựa chọn UML Profile hoặc một siêu mô hình chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-008
+    title: Quy ước mô hình đủ chính xác để biến đổi và sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uml-profiles-009
+    title: Giới hạn của sơ đồ UML khi thiếu ngữ nghĩa hoặc quy tắc ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ocl
+  title: OCL
+  childs:
+  - slug: ocl-001
+    title: Object Constraint Language và nhu cầu ràng buộc mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-002
+    title: Ngữ cảnh biểu thức, self và điều hướng quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-003
+    title: Kiểu cơ bản, phép toán và biểu thức điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-004
+    title: Set, Bag, Sequence và OrderedSet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-005
+    title: Truy vấn tập hợp bằng select, collect, exists và forAll
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-006
+    title: Bất biến, tiền điều kiện và hậu điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-007
+    title: Thuộc tính dẫn xuất và phép truy vấn không gây tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-008
+    title: Phân biệt null, invalid và xử lý biểu thức không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-009
+    title: Kiểm tra ràng buộc và gắn lỗi với phần tử liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ocl-010
+    title: Tổ chức, tái sử dụng và kiểm thử bộ ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mda
+  title: MDA
+  childs:
+  - slug: mda-001
+    title: Model Driven Architecture và vai trò của OMG
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-002
+    title: Quan điểm độc lập tính toán và mô hình CIM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-003
+    title: Quan điểm độc lập nền tảng và mô hình PIM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-004
+    title: Quan điểm đặc thù nền tảng và mô hình PSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-005
+    title: Mô hình nền tảng và tham số hóa các quyết định kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-006
+    title: Ánh xạ từ yêu cầu nghiệp vụ đến thiết kế và hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-007
+    title: Chuỗi biến đổi từ PIM sang PSM và từ PSM sang mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-008
+    title: Tính tương đối của độc lập nền tảng theo phạm vi lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-009
+    title: Phân biệt các quan điểm CIM, PIM, PSM với các tầng M0 đến M3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mda-010
+    title: Áp dụng nguyên tắc MDA trong phạm vi phù hợp của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requirements-domain
+  title: Yêu cầu và miền
+  childs:
+  - slug: requirements-domain-001
+    title: Thu thập khái niệm, quy tắc và thuật ngữ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-domain-002
+    title: Xác định ranh giới hệ thống và các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-domain-003
+    title: Biểu diễn mục tiêu, kịch bản và quy trình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-domain-004
+    title: Mô hình hóa dữ liệu, trạng thái và vòng đời đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-domain-005
+    title: Chuyển quy tắc nghiệp vụ thành ràng buộc có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-domain-006
+    title: Phân biệt kiến thức miền với quyết định triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-domain-007
+    title: Liên kết yêu cầu với phần tử mô hình và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requirements-domain-008
+    title: Rà soát mô hình với chuyên gia miền bằng ví dụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Chuyển mối quan tâm kiến trúc thành các góc nhìn mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-002
+    title: Mô hình hóa thành phần, giao diện và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-003
+    title: Biểu diễn hợp đồng, dữ liệu trao đổi và hành vi phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-004
+    title: Phân bổ trách nhiệm và ranh giới giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-005
+    title: Đưa yêu cầu phi chức năng vào mô hình và quyết định thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-006
+    title: Ánh xạ mô hình sang công nghệ lưu trữ, giao tiếp và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-007
+    title: Tái sử dụng mẫu kiến trúc trong quy tắc biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-008
+    title: Tách mô hình nghiệp vụ khỏi mô hình nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-009
+    title: Ghi nhận quyết định thiết kế và giới hạn của bộ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-transformation
+  title: Biến đổi mô hình
+  childs:
+  - slug: model-transformation-001
+    title: Phép biến đổi và hợp đồng giữa mô hình nguồn, mô hình đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-002
+    title: Biến đổi mô hình sang mô hình (M2M)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-003
+    title: Biến đổi mô hình sang văn bản (M2T) và văn bản sang mô hình (T2M)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-004
+    title: Biến đổi nội sinh, ngoại sinh và mức trừu tượng ngang, dọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-005
+    title: Biến đổi tại chỗ và tạo mô hình đích riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-006
+    title: Luật ánh xạ, điều kiện khớp và cách tạo phần tử đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-007
+    title: Truy vấn, điều hướng và phân giải quan hệ nguồn, đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-008
+    title: Xung đột luật, thứ tự áp dụng và tính kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-009
+    title: Tiền điều kiện, hậu điều kiện và bảo toàn ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-010
+    title: Kết hợp nhiều phép biến đổi thành một chuỗi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-transformation-011
+    title: Xử lý lỗi, kết quả trung gian và chẩn đoán phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transformation-language
+  title: Ngôn ngữ biến đổi
+  childs:
+  - slug: transformation-language-001
+    title: Cách tiếp cận khai báo, mệnh lệnh và kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-002
+    title: QVT và các ngôn ngữ Relations, Core, Operational
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-003
+    title: ATL và cấu trúc một mô-đun biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-004
+    title: Luật ánh xạ và hàm hỗ trợ trong ATL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-005
+    title: Biến đổi dựa trên đồ thị và quy tắc viết lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-006
+    title: MOFM2T và cách tiếp cận mẫu sinh văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-007
+    title: Truy vấn và kiểm tra mô hình trong hệ sinh thái Epsilon
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-008
+    title: Lựa chọn ngôn ngữ theo yêu cầu, khả năng kiểm thử và công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transformation-language-009
+    title: Khả năng di chuyển và chi phí phụ thuộc ngôn ngữ biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-generation
+  title: Sinh mã
+  childs:
+  - slug: code-generation-001
+    title: Vai trò và ranh giới trách nhiệm của bộ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-002
+    title: Thiết kế mô hình đầu vào và hợp đồng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-003
+    title: Tổ chức mẫu, hàm hỗ trợ và thư viện dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-004
+    title: Sinh nhiều tệp với đường dẫn, tên và cấu trúc nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-005
+    title: Ánh xạ kiểu, quan hệ, ràng buộc và hành vi sang mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-006
+    title: Sinh cấu hình, tài liệu, kiểm thử và mã nguồn từ cùng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-007
+    title: Tách mã sinh tự động khỏi phần mở rộng viết tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-008
+    title: So sánh vùng bảo vệ, kế thừa, ủy quyền và điểm mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-009
+    title: Tái sinh an toàn khi đổi tên, xóa hoặc di chuyển phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-010
+    title: Định dạng, thứ tự ổn định và khả năng tái tạo đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-011
+    title: Kiểm soát dữ liệu chèn vào mẫu, đường dẫn và mã được sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-generation-012
+    title: Biên dịch và kiểm tra phần mềm sau khi sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-execution
+  title: Thực thi mô hình
+  childs:
+  - slug: model-execution-001
+    title: Phân biệt mô phỏng, diễn giải mô hình và sinh mã thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-execution-002
+    title: Điều kiện để một mô hình có ngữ nghĩa thực thi xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-execution-003
+    title: Thực thi máy trạng thái, hoạt động và luồng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-execution-004
+    title: Ngữ cảnh thực thi, sự kiện, dữ liệu và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-execution-005
+    title: Tích hợp mô hình thực thi với thư viện và dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-execution-006
+    title: Quan sát, đặt điểm dừng và chẩn đoán ở mức mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-execution-007
+    title: Mô hình tại thời gian chạy và đồng bộ với hệ thống thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-execution-008
+    title: Đánh đổi hiệu năng, tính linh hoạt và khả năng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronization
+  title: Đồng bộ
+  childs:
+  - slug: synchronization-001
+    title: Phát triển xuôi, kỹ nghệ ngược và đồng bộ hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-002
+    title: Nguồn dữ liệu chuẩn và hướng lan truyền thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-003
+    title: Điều kiện để ánh xạ có thể đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-004
+    title: Mất thông tin và các quan hệ không thể khôi phục duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-005
+    title: Phát hiện xung đột khi mô hình và mã cùng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-006
+    title: Quy tắc hợp nhất và vai trò của người giải quyết xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-007
+    title: Biến đổi hai chiều, quan hệ nhất quán và tính chất cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-008
+    title: Cập nhật gia tăng và giới hạn phạm vi tính toán lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronization-009
+    title: Lựa chọn tái sinh một chiều hoặc đồng bộ theo nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traceability
+  title: Truy vết
+  childs:
+  - slug: traceability-001
+    title: Mục tiêu truy vết từ yêu cầu đến mô hình, mã và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-002
+    title: Định danh ổn định cho phần tử và liên kết truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-003
+    title: Truy vết do người tạo và truy vết do công cụ sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-004
+    title: Quan hệ một-một, một-nhiều và nhiều-nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-005
+    title: Lưu lịch sử luật biến đổi và nguồn gốc đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-006
+    title: Phân tích ảnh hưởng khi yêu cầu hoặc mô hình thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-007
+    title: Phát hiện liên kết đứt, kết quả lỗi thời và phần tử không được bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceability-008
+    title: Sử dụng truy vết cho rà soát, chẩn đoán và kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality
+  title: Chất lượng
+  childs:
+  - slug: quality-001
+    title: Tiêu chí cú pháp, ngữ nghĩa, tính nhất quán và khả năng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-002
+    title: Kiểm tra tuân thủ siêu mô hình và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-003
+    title: Phân biệt kiểm chứng mô hình với xác nhận đúng nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-004
+    title: Phát hiện mâu thuẫn giữa các góc nhìn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-005
+    title: Đánh giá độ đầy đủ theo mục tiêu và phạm vi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-006
+    title: Mô phỏng hành vi bằng kịch bản và dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-007
+    title: Kiểm chứng hình thức và kiểm tra mô hình khi có ngữ nghĩa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-008
+    title: Giới hạn của kiểm chứng với trạng thái hữu hạn và bài toán bùng nổ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-009
+    title: Rà soát thủ công và kết hợp kiểm tra tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-010
+    title: Phân loại mức độ lỗi và thiết lập cổng chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Các lớp kiểm thử cho ngôn ngữ, mô hình, phép biến đổi và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Tạo mô hình đầu vào tối thiểu và bộ dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử cú pháp, liên kết tham chiếu và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử đơn vị luật biến đổi và mẫu sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm tra đầu ra mong đợi bằng mô hình hoặc tệp chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: So sánh ngữ nghĩa khi biểu diễn hoặc thứ tự tệp thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử thuộc tính và sinh tự động mô hình hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử dữ liệu không hợp lệ và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử hồi quy, tính lặp lại và các phép biến đổi kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử dựa trên mô hình và quan hệ với MDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử tích hợp, nghiệm thu và hành vi của phần mềm được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-management
+  title: Quản lý cấu hình
+  childs:
+  - slug: configuration-management-001
+    title: 'Xác định đơn vị quản lý: mô hình, siêu mô hình, luật và mẫu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-002
+    title: Quản lý phiên bản của toàn bộ chuỗi tạo sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-003
+    title: Lựa chọn định dạng lưu trữ và phân chia tệp mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-004
+    title: Định danh, tham chiếu chéo và tính ổn định khi di chuyển tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-005
+    title: So sánh mô hình theo cấu trúc và ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-006
+    title: Phân nhánh, làm việc đồng thời và hợp nhất thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-007
+    title: Nhận diện xung đột vượt quá khác biệt văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-008
+    title: Thiết lập đường cơ sở và cấu hình tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-009
+    title: Chính sách đưa mã sinh vào kho mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-010
+    title: Quản lý quyền truy cập, sao lưu và phục hồi kho mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evolution
+  title: Tiến hóa
+  childs:
+  - slug: evolution-001
+    title: Thay đổi yêu cầu và phân tích ảnh hưởng qua chuỗi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-002
+    title: Phân loại thay đổi tương thích và không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-003
+    title: Tiến hóa siêu mô hình và di trú mô hình hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-004
+    title: Tiến hóa ngôn ngữ, cú pháp và ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-005
+    title: Cập nhật luật biến đổi, mẫu sinh và mã mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-006
+    title: Duy trì định danh và liên kết truy vết sau di trú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-007
+    title: Chuyển đổi dữ liệu đang lưu khi cấu trúc phần mềm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-008
+    title: Kiểm tra tương thích giữa các phiên bản công cụ và mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-009
+    title: Đánh giá kết quả di trú, phục hồi và phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-010
+    title: Kiểm soát nợ kỹ thuật trong mô hình và bộ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: toolchain
+  title: Chuỗi công cụ
+  childs:
+  - slug: toolchain-001
+    title: Thành phần của một môi trường phát triển hướng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-002
+    title: EMF, Ecore và các đối tượng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-003
+    title: Resource, ResourceSet và nạp, lưu mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-004
+    title: XMI, URI và phân giải tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-005
+    title: GenModel và sinh hạ tầng Java từ Ecore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-006
+    title: Xtext cho DSL văn bản và công cụ soạn thảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-007
+    title: Sirius cho các khung nhìn và trình biên tập đồ họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-008
+    title: ATL, QVT, Epsilon và lựa chọn công cụ biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-009
+    title: Acceleo và công cụ sinh văn bản từ mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-010
+    title: EMF Compare và công cụ hỗ trợ so sánh, hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: toolchain-011
+    title: Kết nối công cụ bằng API, định dạng trao đổi và chạy không giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd
+  title: CI/CD
+  childs:
+  - slug: ci-cd-001
+    title: Xây dựng chuỗi kiểm tra, biến đổi, sinh mã và đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-002
+    title: Khai báo quan hệ phụ thuộc và thứ tự các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-003
+    title: Cố định phiên bản công cụ, thư viện và môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-004
+    title: Tái tạo đầu ra từ bản dựng sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-005
+    title: Phát hiện mã sinh lệch với mô hình nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-006
+    title: Lưu báo cáo lỗi, liên kết truy vết và sản phẩm trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-007
+    title: Kiểm thử mô hình và mã sinh trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-008
+    title: Giới hạn thời gian, tài nguyên và tối ưu xử lý gia tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-009
+    title: Quản lý bí mật, giấy phép và nguồn gốc thành phần công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-010
+    title: Phát hành mô hình, bộ sinh và phần mềm với cấu hình tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: product-variants
+  title: Biến thể sản phẩm
+  childs:
+  - slug: product-variants-001
+    title: Miền sản phẩm và nhu cầu tái sử dụng có hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-variants-002
+    title: Mô hình đặc trưng và điểm biến thiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-variants-003
+    title: Ràng buộc lựa chọn và tính hợp lệ của cấu hình sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-variants-004
+    title: Phân biệt xây dựng nền tảng miền với tạo ứng dụng cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-variants-005
+    title: Biến thể ở mức mô hình, luật biến đổi và mẫu sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-variants-006
+    title: Quản lý phần dùng chung và phần riêng của từng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-variants-007
+    title: Kiểm thử tổ hợp biến thể và kiểm soát bùng nổ cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: product-variants-008
+    title: Tiến hóa nền tảng mà vẫn duy trì các sản phẩm hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-systems
+  title: Hệ thống hiện hữu
+  childs:
+  - slug: legacy-systems-001
+    title: Đánh giá kiến trúc, dữ liệu và tài liệu của hệ thống hiện hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-002
+    title: Trích xuất mô hình từ mã nguồn, cấu hình hoặc lược đồ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-003
+    title: Chuẩn hóa và làm giàu mô hình sau kỹ nghệ ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-004
+    title: Giới hạn khôi phục ý định thiết kế từ hiện thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-005
+    title: Đối chiếu mô hình khôi phục với hành vi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-006
+    title: Áp dụng MDD từng phần quanh các ranh giới ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-007
+    title: Hiện đại hóa qua mô hình trung gian và ánh xạ nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-systems-008
+    title: Duy trì khả năng tương tác và kiểm thử hồi quy trong chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adoption-organization
+  title: Tổ chức áp dụng
+  childs:
+  - slug: adoption-organization-001
+    title: Vai trò của chuyên gia miền, người mô hình hóa và kỹ sư công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-002
+    title: Phân định trách nhiệm giữa nhóm nền tảng và nhóm sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-003
+    title: Lựa chọn bài toán thí điểm và tiêu chí thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-004
+    title: Ước lượng công sức xây dựng ngôn ngữ và chuỗi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-005
+    title: Tổ chức backlog, rà soát và giao hàng theo từng lát chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-006
+    title: Phối hợp MDD với Agile, DevOps và thực hành kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-007
+    title: Đào tạo, hướng dẫn sử dụng và hỗ trợ người soạn mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-008
+    title: Quản trị tiêu chuẩn, thay đổi và quyền sở hữu sản phẩm kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-009
+    title: Đo thời gian phát triển, lỗi, khả năng tái sử dụng và chi phí bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-organization-010
+    title: Mở rộng áp dụng dựa trên kết quả thí điểm và phản hồi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tradeoffs
+  title: Đánh đổi
+  childs:
+  - slug: tradeoffs-001
+    title: Đặc điểm bài toán phù hợp và dấu hiệu nên giới hạn MDD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-002
+    title: Chi phí đầu tư ban đầu và điểm hòa vốn của tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-003
+    title: Mức trừu tượng quá cao, quá thấp và tình trạng mô hình dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-004
+    title: Nguy cơ mô hình tách rời thực tế và tài liệu nhanh lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-005
+    title: Độ phức tạp chuyển từ mã ứng dụng sang siêu mô hình và bộ sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-006
+    title: Chất lượng mã sinh và khả năng đọc, sửa, chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-007
+    title: Hiệu năng xử lý mô hình lớn và giới hạn mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-008
+    title: Phụ thuộc nhà cung cấp, định dạng đóng và chiến lược chuyển công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-009
+    title: So sánh MDD với thư viện, khung ứng dụng, cấu hình và low-code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tradeoffs-010
+    title: Tránh kỳ vọng sinh toàn bộ hệ thống khi miền chưa được hiểu rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Xác định phạm vi một hệ thống quản lý đơn hàng dùng làm ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Xây dựng từ vựng miền, yêu cầu và kịch bản chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Thiết kế siêu mô hình cho thực thể, thuộc tính và quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Định nghĩa DSL và tạo các mô hình mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Bổ sung ràng buộc cho định danh, kiểu và quan hệ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Biến đổi mô hình miền sang mô hình triển khai Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Sinh mã Java và tích hợp xử lý nghiệp vụ viết tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Kiểm thử luật biến đổi, mã sinh và hành vi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Theo dõi truy vết từ yêu cầu đến phần tử và mã tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Thay đổi siêu mô hình, di trú dữ liệu và tái sinh an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Đưa chuỗi xử lý vào CI và kiểm tra khả năng tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-012
+    title: Tổng kết chi phí, giới hạn tự động hóa và quyết định mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

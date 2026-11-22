@@ -1,0 +1,886 @@
+# Vai trò của định danh trong aggregate root và entity con
+
+Trong Spring Data JDBC, định danh giúp ứng dụng trả lời hai câu hỏi: **đối tượng nghiệp vụ nào đang được nói đến**, và **đối tượng đó thuộc aggregate nào, được quản lý qua điểm vào nào**.
+
+Aggregate root có định danh riêng để repository tìm, lưu, xóa và để aggregate khác tham chiếu. Entity con có thể có định danh trong phạm vi aggregate nhằm phân biệt các phần tử cùng loại, nhưng vòng đời của nó vẫn do root quản lý. Value object thì không cần định danh riêng: hai giá trị được xem là tương đương dựa trên nội dung của chúng.
+
+Không nên đánh đồng `@Id`, khóa chính SQL, khóa vị trí của `List`, ID nghiệp vụ và `@Version`. Chúng có thể liên quan nhưng phục vụ những mục đích khác nhau.
+
+Bài học sử dụng ví dụ đơn hàng gồm các dòng hàng để giải thích định danh của root, định danh cục bộ của entity con, khác biệt giữa entity con và value object, cách ánh xạ ID trong `List` và `Map` bằng `@MappedCollection`, cũng như thiết kế khóa chính và khóa ngoại.
+
+## 1. Định danh là gì trong mô hình domain?
+
+Định danh (*identity*) cho phép phân biệt một đối tượng với những đối tượng khác ngay cả khi thuộc tính của chúng giống nhau.
+
+Giả sử một đơn hàng có hai dòng cùng sản phẩm, cùng số lượng và cùng đơn giá:
+
+~~~text
+Order #500
+  Line A: product=BOOK-01, quantity=1, unitPrice=100.00
+  Line B: product=BOOK-01, quantity=1, unitPrice=100.00
+~~~
+
+Hai dòng có cùng dữ liệu mô tả nhưng vẫn có thể là hai dòng nghiệp vụ riêng: một dòng được tạo từ thao tác thêm thứ nhất, dòng còn lại từ thao tác thêm thứ hai. Nếu cần sửa hoặc xóa chính xác một dòng, chỉ so sánh các thuộc tính là không đủ. Hệ thống cần một định danh phân biệt chúng.
+
+Ngược lại, hai giá trị tiền `Money(100.00, VND)` có thể được xem là bằng nhau nếu cùng số tiền và đơn vị tiền. Chúng không nhất thiết cần ID riêng.
+
+### 1.1. Entity và value object
+
+| Khái niệm | Cách xác định | Có cần identity? | Ví dụ |
+|---|---|---|---|
+| Aggregate root | ID ổn định | Có | `SalesOrder` |
+| Entity con | ID riêng hoặc ID trong phạm vi root | Có nếu cần phân biệt qua thời gian | `OrderLine` |
+| Value object | Giá trị/thuộc tính | Không | `Money`, `Address`, `DateRange` |
+| Tham chiếu aggregate khác | ID của root được tham chiếu | Dùng identity của aggregate đích | `customerId`, `productId` |
+
+**Entity** được nhận diện bởi identity. Thuộc tính của entity có thể đổi mà đối tượng vẫn là đối tượng đó.
+
+**Value object** được nhận diện bằng giá trị. Nếu một `Money` thay đổi số tiền, ta thường xem đó là một giá trị mới thay thế giá trị cũ, không phải cùng một entity có ID đang đổi.
+
+Một object Java không tự trở thành entity chỉ vì nó là một class. Vai trò của nó phụ thuộc vào ý nghĩa nghiệp vụ và vòng đời.
+
+## 2. Aggregate root có định danh riêng
+
+Aggregate root là điểm vào để bên ngoài tương tác với aggregate. Trong Spring Data JDBC, root thường được đánh dấu bằng `@Id`.
+
+~~~java
+package com.example.shop.order.domain;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("sales_orders")
+public class SalesOrder {
+
+    @Id
+    private Long id;
+
+    @Version
+    private Long version;
+
+    private String status;
+
+    private SalesOrder() {
+    }
+
+    public SalesOrder(String status) {
+        this.status = status;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+}
+~~~
+
+`@Id` chỉ ra thuộc tính định danh của root. Spring Data JDBC dùng nó khi thực hiện các thao tác repository và liên kết các bản ghi thành phần với root.
+
+Repository:
+
+~~~java
+package com.example.shop.order.repository;
+
+import com.example.shop.order.domain.SalesOrder;
+import org.springframework.data.repository.CrudRepository;
+
+public interface SalesOrderRepository
+        extends CrudRepository<SalesOrder, Long> {
+}
+~~~
+
+Ở đây:
+
+- `SalesOrder` là domain type.
+- `Long` là kiểu ID của root.
+- `findById(500L)` tìm aggregate theo định danh root.
+- `save(order)` lưu aggregate thông qua root.
+- `deleteById(500L)` yêu cầu xóa aggregate theo root ID.
+
+Không tạo repository riêng cho từng entity con nếu chúng vẫn thuộc cùng aggregate và không có vòng đời độc lập.
+
+### 2.1. Định danh root cần ổn định
+
+Một ID tốt phải giữ nguyên trong suốt vòng đời của đối tượng. Không nên dùng thuộc tính có thể thay đổi như tên khách hàng, địa chỉ giao hàng hoặc trạng thái đơn làm primary identity.
+
+~~~text
+SalesOrder #500
+  status: DRAFT -> CONFIRMED
+  shippingAddress: Address A -> Address B
+
+ID vẫn là 500.
+~~~
+
+Trạng thái và địa chỉ có thể đổi; định danh của đơn không đổi.
+
+Nếu dùng mã đơn hàng do nghiệp vụ cấp như `SO-2026-000500`, cần quyết định đó có thực sự là ID kỹ thuật hay chỉ là business key. Có thể lưu cả hai:
+
+~~~sql
+CREATE TABLE sales_orders (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    order_number VARCHAR(40) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL,
+    version BIGINT NOT NULL
+);
+~~~
+
+`id` là khóa kỹ thuật ổn định cho persistence; `order_number` là mã nghiệp vụ có thể xuất hiện trên chứng từ hoặc giao diện. Nếu quy tắc nghiệp vụ cho phép đổi mã, việc tách hai khái niệm đặc biệt hữu ích.
+
+### 2.2. ID do database sinh hay do ứng dụng sinh?
+
+Có hai cách phổ biến:
+
+| Cách cấp ID | Ví dụ | Khi phù hợp |
+|---|---|---|
+| Database-generated | `BIGINT IDENTITY` | Database cấp ID, đơn giản cho ứng dụng |
+| Application-generated | `UUID` | Cần tạo định danh trước khi ghi, tạo dữ liệu offline hoặc trao đổi giữa nhiều thành phần |
+
+Với ID database-generated, đối tượng mới thường chưa có ID. Sau khi lưu, hãy dùng đối tượng được `save(...)` trả về để lấy ID được sinh:
+
+~~~java
+SalesOrder saved = repository.save(new SalesOrder("DRAFT"));
+Long orderId = saved.getId();
+~~~
+
+Không nên mặc định mọi chiến lược ID đều có cùng cách xác định trạng thái mới/cũ. Với ID tự gán, cần cấu hình newness detection phù hợp với cách Spring Data JDBC xác định entity mới, chẳng hạn tận dụng `@Version` khi thiết kế phù hợp hoặc cơ chế `Persistable` trong trường hợp cần thiết.
+
+Điểm chính là: **đừng tự gán một ID rồi mặc định repository sẽ luôn coi object đó là mới**. Cách nhận diện đối tượng mới ảnh hưởng tới việc Spring Data chọn insert hay update.
+
+## 3. Định danh entity con có phạm vi trong aggregate
+
+Entity con thuộc aggregate có thể cần identity riêng để phân biệt các phần tử cùng loại. Tuy nhiên, điều đó không làm nó trở thành một aggregate root thứ hai.
+
+~~~text
+Aggregate SalesOrder #500
+    |
+    +-- OrderLine #a1
+    +-- OrderLine #b7
+    +-- OrderLine #c9
+~~~
+
+Định danh của một dòng có thể chỉ có ý nghĩa **trong đơn hàng sở hữu nó**. Khi đó cặp `(orderId, lineId)` là định danh đầy đủ:
+
+~~~text
+(500, a1)
+(500, b7)
+(500, c9)
+~~~
+
+Một `lineId` có thể được sinh bằng UUID để thuận tiện phân biệt các dòng. Nhưng nếu schema dùng khóa ghép `(order_id, line_id)`, ID dòng chỉ cần duy nhất trong phạm vi đơn hàng.
+
+Điều này phản ánh ownership:
+
+- `SalesOrder` quyết định khi nào tạo, sửa hoặc xóa `OrderLine`.
+- Bên ngoài không lưu một `OrderLine` độc lập bằng repository riêng.
+- Các thay đổi entity con đi qua phương thức của root.
+- Khi lưu aggregate, Spring Data JDBC ghi trạng thái aggregate theo cơ chế của nó.
+
+### 3.1. Entity con có cần @Id không?
+
+Trong mô hình collection thông dụng của Spring Data JDBC, entity con được ánh xạ bằng khóa ngoại về root và khóa collection nếu cần. Không nhất thiết phải đặt `@Id` trên class con như thể nó là aggregate root.
+
+Ví dụ một collection `Map<UUID, OrderLine>` có thể dùng key của Map làm định danh cục bộ và lưu key đó trong cột `line_id`:
+
+~~~java
+@MappedCollection(idColumn = "order_id", keyColumn = "line_id")
+private Map<UUID, OrderLine> lines;
+~~~
+
+Trong cách này:
+
+- `order_id` liên kết dòng với aggregate root.
+- `line_id` là khóa của entry trong Map.
+- `OrderLine` là giá trị được lưu trong bảng con.
+- Repository vẫn là `SalesOrderRepository`.
+
+Khóa chính SQL của bảng con có thể là `(order_id, line_id)`. Đây là một thiết kế tự nhiên cho identity có phạm vi trong aggregate.
+
+### 3.2. Khi nào entity con nên trở thành aggregate root?
+
+Hãy xem xét tách entity con thành aggregate root nếu:
+
+- Nó có vòng đời riêng và có thể tồn tại sau khi root cũ bị xóa.
+- Nhiều use case cần tìm/sửa nó độc lập.
+- Các aggregate khác cần tham chiếu trực tiếp đến nó.
+- Nó có quy tắc nhất quán riêng và cần được cập nhật độc lập.
+- Collection thuộc root có thể rất lớn, khiến mỗi lần đọc/ghi aggregate trở nên tốn kém.
+
+Không nên tách chỉ vì bảng con có một cột ID. Một khóa chính SQL không tự quyết định ranh giới aggregate.
+
+## 4. Phân biệt ID domain, khóa chính SQL và khóa collection
+
+Một thiết kế có thể chứa nhiều loại khóa:
+
+| Loại khóa | Ví dụ | Vai trò |
+|---|---|---|
+| Aggregate root ID | `sales_orders.id` | Nhận diện aggregate |
+| Child ID | `line_id` | Phân biệt entity con |
+| Collection key | `line_position` hoặc key của Map | Xác định phần tử trong collection mapping |
+| SQL primary key | `(order_id, line_id)` | Đảm bảo duy nhất trong database |
+| Foreign key | `order_lines.order_id` | Liên kết child với root |
+| Business key | `order_number`, `sku` | Nhận diện theo quy tắc nghiệp vụ |
+| Version | `version` | Kiểm soát cập nhật đồng thời |
+
+Không phải khóa nào cũng cần xuất hiện thành một thuộc tính Java riêng. Ví dụ, khi dùng `Map<UUID, OrderLine>`, key `UUID` đã là một phần của mô hình domain; Spring Data JDBC có thể lưu nó qua `keyColumn`.
+
+Một primary key kỹ thuật chỉ đảm bảo uniqueness cho database. Nó không có nghĩa đối tượng phải được truy cập hoặc cập nhật độc lập từ domain.
+
+## 5. Ánh xạ entity con bằng List: vị trí không phải identity ổn định
+
+Một lựa chọn đơn giản là dùng `List<OrderLine>`:
+
+~~~java
+@MappedCollection(
+        idColumn = "order_id",
+        keyColumn = "line_position"
+)
+private List<OrderLine> lines = new ArrayList<>();
+~~~
+
+Spring Data JDBC lưu khóa của collection dựa trên vị trí phần tử. Schema có thể là:
+
+~~~sql
+CREATE TABLE sales_order_lines (
+    order_id BIGINT NOT NULL,
+    line_position INTEGER NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price NUMERIC(15, 2) NOT NULL,
+
+    PRIMARY KEY (order_id, line_position),
+    FOREIGN KEY (order_id)
+        REFERENCES sales_orders(id)
+        ON DELETE CASCADE,
+
+    CHECK (line_position >= 0),
+    CHECK (quantity > 0),
+    CHECK (unit_price >= 0)
+);
+~~~
+
+Với thiết kế này, `(order_id, line_position)` xác định một hàng trong collection. Nhưng `line_position` là **vị trí**, không phải ID nghiệp vụ ổn định.
+
+~~~text
+Trước khi xóa:
+  position 0 -> Book
+  position 1 -> Pen
+  position 2 -> Notebook
+
+Sau khi xóa position 0:
+  position 0 -> Pen
+  position 1 -> Notebook
+~~~
+
+Hai dòng còn lại đổi vị trí. Nếu ứng dụng lưu `line_position = 1` trong URL hoặc hệ thống bên ngoài như thể đó là ID lâu dài, sau khi sắp xếp/xóa dòng, tham chiếu có thể trỏ đến một dòng khác.
+
+**Dùng List khi thứ tự là một phần tự nhiên của dữ liệu và không cần ID con ổn định qua việc sắp xếp.**
+
+Nếu cần định danh dòng ổn định, hãy cân nhắc `Map` hoặc thêm một khóa domain riêng.
+
+## 6. Ánh xạ entity con bằng Map: key là định danh cục bộ
+
+Khi mỗi dòng cần ID ổn định trong phạm vi đơn hàng, `Map<UUID, OrderLine>` là một lựa chọn rõ ràng.
+
+~~~java
+@MappedCollection(
+        idColumn = "order_id",
+        keyColumn = "line_id"
+)
+private Map<UUID, OrderLine> lines = new LinkedHashMap<>();
+~~~
+
+Trong schema:
+
+~~~sql
+CREATE TABLE sales_order_lines (
+    order_id BIGINT NOT NULL,
+    line_id UUID NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price NUMERIC(15, 2) NOT NULL,
+
+    PRIMARY KEY (order_id, line_id),
+
+    CONSTRAINT fk_order_line_order
+        FOREIGN KEY (order_id)
+        REFERENCES sales_orders(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT ck_order_line_quantity
+        CHECK (quantity > 0),
+
+    CONSTRAINT ck_order_line_unit_price
+        CHECK (unit_price >= 0)
+);
+~~~
+
+Khóa Map được lưu ở `line_id`, còn `order_id` xác định aggregate sở hữu dòng. Primary key ghép đảm bảo một ID dòng không bị lặp trong cùng đơn.
+
+### 6.1. Entity con không cần khai báo ID trùng với Map key
+
+~~~java
+package com.example.shop.order.domain;
+
+import java.math.BigDecimal;
+
+public class OrderLine {
+
+    private Long productId;
+    private int quantity;
+    private BigDecimal unitPrice;
+
+    private OrderLine() {
+    }
+
+    public OrderLine(
+            Long productId,
+            int quantity,
+            BigDecimal unitPrice
+    ) {
+        if (productId == null) {
+            throw new IllegalArgumentException("Product is required");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (unitPrice == null || unitPrice.signum() < 0) {
+            throw new IllegalArgumentException("Invalid unit price");
+        }
+
+        this.productId = productId;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+    }
+
+    public OrderLine withQuantity(int newQuantity) {
+        return new OrderLine(productId, newQuantity, unitPrice);
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+}
+~~~
+
+Trong mô hình này, identity của entry nằm ở Map key; `OrderLine` chỉ biểu diễn dữ liệu của dòng. Nếu cần truyền ID cho API, lấy key của Map thay vì tự suy diễn từ vị trí.
+
+### 6.2. Aggregate root quản lý Map
+
+~~~java
+package com.example.shop.order.domain;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.relational.core.mapping.MappedCollection;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("sales_orders")
+public class SalesOrder {
+
+    @Id
+    private Long id;
+
+    @Version
+    private Long version;
+
+    private String status;
+
+    @MappedCollection(
+            idColumn = "order_id",
+            keyColumn = "line_id"
+    )
+    private Map<UUID, OrderLine> lines = new LinkedHashMap<>();
+
+    private SalesOrder() {
+    }
+
+    public static SalesOrder createDraft() {
+        return new SalesOrder("DRAFT");
+    }
+
+    private SalesOrder(String status) {
+        this.status = status;
+    }
+
+    public UUID addLine(
+            Long productId,
+            int quantity,
+            BigDecimal unitPrice
+    ) {
+        requireDraft();
+
+        UUID lineId = UUID.randomUUID();
+        lines.put(
+                lineId,
+                new OrderLine(productId, quantity, unitPrice)
+        );
+        return lineId;
+    }
+
+    public void changeLineQuantity(UUID lineId, int quantity) {
+        requireDraft();
+
+        OrderLine current = lines.get(lineId);
+        if (current == null) {
+            throw new IllegalArgumentException(
+                    "Order line not found: " + lineId
+            );
+        }
+
+        lines.put(lineId, current.withQuantity(quantity));
+    }
+
+    public void removeLine(UUID lineId) {
+        requireDraft();
+
+        if (lines.remove(lineId) == null) {
+            throw new IllegalArgumentException(
+                    "Order line not found: " + lineId
+            );
+        }
+    }
+
+    private void requireDraft() {
+        if (!"DRAFT".equals(status)) {
+            throw new IllegalStateException(
+                    "Only a draft order can be changed"
+            );
+        }
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public Map<UUID, OrderLine> getLines() {
+        return Collections.unmodifiableMap(lines);
+    }
+}
+~~~
+
+Ví dụ tập trung vào identity và collection mapping. Trong project thực tế, nên dùng enum cho trạng thái, tách validation tiền/số lượng thành domain rule phù hợp và bảo đảm constructor phục vụ mapping tương thích với cách tạo instance của Spring Data JDBC.
+
+Điểm quan trọng:
+
+- ID dòng được tạo khi thêm dòng.
+- Cùng một `lineId` vẫn định danh dòng đó khi các thuộc tính như số lượng thay đổi.
+- Root kiểm tra trạng thái trước khi sửa hoặc xóa.
+- Bên ngoài không trực tiếp sửa Map.
+- Không có `OrderLineRepository`; thao tác lưu vẫn đi qua `SalesOrderRepository`.
+
+### 6.3. API nên nhận cả root ID và child ID
+
+Nếu ID con chỉ duy nhất trong aggregate, đường dẫn API có thể là:
+
+~~~text
+PATCH /orders/500/lines/6a0f...
+DELETE /orders/500/lines/6a0f...
+~~~
+
+Cả `orderId` và `lineId` đều được truyền. Service tải root bằng `orderId`, sau đó root xác định dòng tương ứng bằng `lineId`.
+
+Cách này thể hiện ownership và ngăn việc xem một ID dòng là tài nguyên độc lập không có ngữ cảnh.
+
+## 7. Một ID con không nhất thiết phải duy nhất toàn hệ thống
+
+Với khóa ghép:
+
+~~~sql
+PRIMARY KEY (order_id, line_id)
+~~~
+
+ID dòng chỉ cần duy nhất bên trong từng đơn. Ví dụ hai đơn có thể cùng sử dụng `line_id` giống nhau mà không xung đột vì `order_id` khác nhau.
+
+Nếu dùng UUID ngẫu nhiên, xác suất trùng rất thấp, nhưng constraint database vẫn bảo vệ tính duy nhất theo thiết kế.
+
+Có hai cách diễn đạt identity:
+
+| Kiểu identity | Định danh đầy đủ |
+|---|---|
+| ID toàn cục | `lineId` |
+| ID cục bộ trong aggregate | `(orderId, lineId)` |
+
+ID toàn cục thuận tiện khi cần tham chiếu trực tiếp từ nhiều nơi, nhưng điều đó cũng có thể là dấu hiệu entity con đang có vòng đời độc lập. Nếu ID chỉ có ý nghĩa trong một root, ID ghép phản ánh ownership tốt hơn.
+
+Không nên chỉ dựa vào UUID để kết luận entity con đã trở thành aggregate root. **Identity và aggregate boundary là hai quyết định khác nhau.**
+
+## 8. Value object không cần ID riêng
+
+Giả sử mỗi dòng hàng có thông tin tiền:
+
+~~~java
+public record Money(
+        BigDecimal amount,
+        String currency
+) {
+    public Money {
+        if (amount == null || amount.signum() < 0) {
+            throw new IllegalArgumentException("Invalid amount");
+        }
+        if (currency == null || currency.isBlank()) {
+            throw new IllegalArgumentException("Currency is required");
+        }
+    }
+}
+~~~
+
+`Money` là value object. Hai giá trị có cùng amount và currency có thể xem là bằng nhau. Nó không cần `moneyId` chỉ để phân biệt từng lần tạo.
+
+Tương tự, một `Address` được nhúng trong đơn có thể là snapshot địa chỉ giao hàng tại thời điểm đặt. Nếu địa chỉ chỉ là một nhóm giá trị thuộc đơn, không có vòng đời riêng, không cần repository và ID riêng.
+
+### 8.1. Nếu một value object thay đổi thì sao?
+
+Với value object bất biến, ta tạo giá trị mới rồi thay thế giá trị cũ:
+
+~~~java
+Money oldPrice = new Money(new BigDecimal("100.00"), "VND");
+Money newPrice = new Money(new BigDecimal("120.00"), "VND");
+~~~
+
+Không có một entity `Money` đang được theo dõi và đổi identity. Sự khác biệt nằm ở giá trị.
+
+### 8.2. Khi nào Address trở thành entity?
+
+Nếu một hồ sơ khách hàng quản lý nhiều địa chỉ, mỗi địa chỉ có trạng thái xác minh, lịch sử thay đổi, nhãn và được cập nhật độc lập, nó có thể cần identity. Nhưng nếu địa chỉ chỉ là snapshot giao hàng của một đơn, value object thường phù hợp hơn.
+
+Hãy hỏi:
+
+- Có cần phân biệt hai đối tượng cùng nội dung qua thời gian không?
+- Có cần cập nhật/xóa một đối tượng độc lập không?
+- Đối tượng có được tham chiếu từ nhiều aggregate khác không?
+- Nó có quy tắc nghiệp vụ và vòng đời riêng không?
+
+Nếu không, value object có thể đơn giản và chính xác hơn.
+
+## 9. Khóa ngoại không tự biến entity con thành aggregate root
+
+Một bảng con cần cách liên kết với root. Khóa ngoại là cách database bảo vệ mối quan hệ:
+
+~~~sql
+FOREIGN KEY (order_id)
+    REFERENCES sales_orders(id)
+~~~
+
+Điều này không có nghĩa `OrderLine` là aggregate root. Khóa ngoại trả lời câu hỏi **bản ghi này thuộc về đơn nào**. Aggregate boundary trả lời câu hỏi **ai có quyền thay đổi bản ghi này và quy tắc nào phải được bảo vệ cùng nó**.
+
+Tương tự, `sales_orders.customer_id` có thể là khóa ngoại sang `customers.id`, nhưng `Customer` vẫn là aggregate riêng. Đơn hàng tham chiếu khách hàng bằng ID; nó không sở hữu toàn bộ vòng đời khách hàng.
+
+~~~mermaid
+flowchart TD
+    subgraph ORDER["Aggregate SalesOrder"]
+        ROOT["SalesOrder root<br/>id = 500"]
+        CHILD["OrderLine<br/>lineId = a1"]
+        ROOT -->|"own / manage"| CHILD
+    end
+    CUSTOMER["Customer root<br/>id = 42"]
+    PRODUCT["Product root<br/>id = 20"]
+    ROOT -.->|"customerId = 42"| CUSTOMER
+    CHILD -.->|"productId = 20"| PRODUCT
+~~~
+
+- Đường liền: ownership trong aggregate.
+- Đường nét đứt: tham chiếu sang aggregate khác bằng ID.
+
+## 10. @Id, @Version và trạng thái nghiệp vụ không thay thế nhau
+
+Trong một aggregate root, thường gặp ba loại thông tin:
+
+~~~java
+@Id
+private Long id;
+
+@Version
+private Long version;
+
+private OrderStatus status;
+~~~
+
+| Thuộc tính | Ý nghĩa | Thay đổi khi nào? |
+|---|---|---|
+| `id` | Định danh root | Được cấp khi tạo, giữ ổn định |
+| `version` | Token kỹ thuật cho optimistic locking | Tăng khi cập nhật thành công theo cơ chế version |
+| `status` | Trạng thái nghiệp vụ | Thay đổi theo hành động nghiệp vụ |
+
+Một đơn hàng có thể chuyển `DRAFT → CONFIRMED` mà ID không đổi. Version cũng có thể tăng khi thay đổi một trường khác dù status không đổi.
+
+### 10.1. Optimistic locking dùng version của root
+
+Khi hai transaction cùng đọc một đơn ở version 3:
+
+~~~text
+Transaction A                 Transaction B
+-------------                 -------------
+Read order #500, v3           Read order #500, v3
+Change line A                  Change line B
+Save -> success, v4
+                              Save using old v3
+                              -> optimistic lock conflict
+~~~
+
+`@Version` giúp phát hiện một transaction đang lưu dựa trên trạng thái cũ. Đây là cơ chế bảo vệ cập nhật đồng thời ở aggregate root, không phải định danh của root hay child.
+
+Khi có conflict, ứng dụng cần quyết định tải lại, báo lỗi hoặc thử lại theo quy tắc nghiệp vụ. Không nên retry tự động một thao tác có side effect mà không bảo đảm tính idempotent.
+
+### 10.2. Trạng thái con và trạng thái root
+
+Nếu một dòng có trạng thái riêng, ví dụ `ACTIVE`, `CANCELLED` hoặc `FULFILLED`, hãy xác định nó có thực sự là quy tắc thuộc đơn hàng hay không.
+
+Nếu mọi thay đổi dòng phải được root kiểm soát và cùng nhất quán với đơn, trạng thái dòng có thể là thuộc tính của child entity. Nếu dòng có vòng đời độc lập, được xử lý bởi nhiều hệ thống và cần cập nhật riêng, hãy xem lại aggregate boundary.
+
+Không nên tạo một `lineVersion` chỉ vì đã có `version` trên root. Cần hiểu Spring Data JDBC kiểm soát optimistic locking theo aggregate root và chọn thiết kế tương ứng.
+
+## 11. Khi nào nên dùng natural key, surrogate key hoặc composite key?
+
+### 11.1. Natural key
+
+Natural key là thuộc tính có ý nghĩa nghiệp vụ, ví dụ SKU hoặc mã đơn hàng. Nó dễ đọc và hữu ích trong tra cứu, nhưng có thể thay đổi do quy trình nghiệp vụ.
+
+Nếu mã đơn hàng được phép sửa, không nên dùng nó làm ID duy nhất cho tất cả tham chiếu nội bộ.
+
+### 11.2. Surrogate key
+
+Surrogate key là ID kỹ thuật như `BIGINT IDENTITY` hoặc UUID. Nó không mang ý nghĩa nghiệp vụ nhưng ổn định và thuận tiện cho liên kết.
+
+Đối với aggregate root, surrogate key thường là lựa chọn thực tế nếu business key có khả năng thay đổi hoặc có quy tắc phức tạp.
+
+### 11.3. Composite key
+
+Composite key kết hợp nhiều cột để đảm bảo duy nhất:
+
+~~~sql
+PRIMARY KEY (order_id, line_id)
+~~~
+
+Cách này thể hiện rõ ID con chỉ duy nhất trong đơn. Một lựa chọn khác cho collection List là `(order_id, line_position)`; nhưng khóa đó phụ thuộc vị trí, nên không phù hợp làm identity ổn định nếu phần tử có thể đổi thứ tự.
+
+| Lựa chọn | Ưu điểm | Hạn chế |
+|---|---|---|
+| Natural key | Có ý nghĩa nghiệp vụ, dễ đọc | Có thể thay đổi hoặc dài |
+| Surrogate root ID | Ổn định, dễ tham chiếu | Cần giữ business key riêng nếu cần |
+| Composite child key | Thể hiện ownership và uniqueness cục bộ | Tham chiếu cần đủ các thành phần khóa |
+| List position key | Ánh xạ collection thứ tự đơn giản | Thay đổi khi chèn/xóa/sắp xếp |
+
+## 12. Thay đổi entity con và cách lưu aggregate
+
+Spring Data JDBC không dùng persistence context/dirty checking kiểu JPA. Thay đổi một object trong bộ nhớ không tự lưu xuống database. Ứng dụng gọi `save(root)` để ghi trạng thái aggregate.
+
+Ví dụ service:
+
+~~~java
+@Service
+public class OrderService {
+
+    private final SalesOrderRepository repository;
+
+    public OrderService(SalesOrderRepository repository) {
+        this.repository = repository;
+    }
+
+    @Transactional
+    public void changeLineQuantity(
+            Long orderId,
+            UUID lineId,
+            int quantity
+    ) {
+        SalesOrder order = repository.findById(orderId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Order not found"));
+
+        order.changeLineQuantity(lineId, quantity);
+
+        repository.save(order);
+    }
+}
+~~~
+
+Luồng thao tác:
+
+~~~text
+Load SalesOrder by root ID
+        |
+        v
+Find child by child ID within root
+        |
+        v
+Call root behavior to change child
+        |
+        v
+Save aggregate root
+        |
+        v
+Database persists aggregate state
+~~~
+
+Khi lưu aggregate có collection, Spring Data JDBC có thể xóa rồi chèn lại các bản ghi con để phản ánh trạng thái collection mới. Vì vậy, đừng mặc định rằng chỉ một thuộc tính của một dòng thay đổi thì luôn có đúng một câu `UPDATE` cho dòng đó.
+
+Định danh ổn định của child vẫn hữu ích cho domain và API, nhưng không đồng nghĩa framework sẽ dirty-check child theo ID.
+
+## 13. Tách child thành root khi identity cần độc lập
+
+Giả sử dòng hàng giờ có thể được hệ thống fulfillment cập nhật trực tiếp, được tham chiếu bởi shipment, invoice và return process. Nếu nó có vòng đời độc lập, có thể chuyển sang mô hình:
+
+~~~text
+SalesOrder aggregate
+    id
+    status
+    customerId
+
+OrderLine aggregate
+    id
+    orderId
+    productId
+    quantity
+    unitPrice
+    fulfillmentStatus
+~~~
+
+Khi đó:
+
+- `OrderLine` có repository riêng.
+- `SalesOrder` chỉ tham chiếu các dòng bằng ID hoặc truy vấn các dòng qua quan hệ phù hợp.
+- Quy tắc giữa đơn và dòng cần được phối hợp ở application layer.
+- Không còn giả định một lần `save(SalesOrder)` sẽ quản lý toàn bộ vòng đời dòng hàng.
+
+Đây là quyết định lớn. Khi tách aggregate, một thao tác nghiệp vụ có thể phải phối hợp nhiều transaction hoặc quy trình eventual consistency. Chỉ tách khi lợi ích của vòng đời độc lập đáng để chấp nhận độ phức tạp đó.
+
+## 14. Các lỗi thiết kế thường gặp
+
+| Nhầm lẫn | Hậu quả | Cách suy nghĩ đúng |
+|---|---|---|
+| Dùng vị trí List làm ID nghiệp vụ | Chèn/xóa làm ID thay đổi | Dùng Map key hoặc child ID ổn định |
+| Nghĩ bảng con có PK riêng thì phải có repository | Làm mất quyền kiểm soát của root | Phân biệt khóa SQL và aggregate root |
+| Tạo ID mới mỗi lần cập nhật child | Một entity bị xem như đối tượng mới | Giữ identity ổn định qua thay đổi thuộc tính |
+| Dùng tên/mã có thể đổi làm root ID | Tham chiếu dễ hỏng khi đổi business data | Dùng surrogate key hoặc business key bất biến |
+| Dùng ID con ở nhiều aggregate nhưng child vẫn bị root quản lý | Ownership mơ hồ, khó đồng bộ | Cân nhắc child thành root hoặc chỉ tham chiếu qua root |
+| Cho phép service sửa trực tiếp Map/List | Bỏ qua invariant | Đóng gói collection, cung cấp hành vi trên root |
+| Dùng `@Version` như ID | Nhầm optimistic lock với identity | ID nhận diện, version kiểm soát cập nhật |
+| Cho rằng UUID nghĩa là aggregate độc lập | Chọn sai ranh giới domain | Identity không quyết định ownership |
+
+## 15. Quy trình chọn định danh cho mô hình mới
+
+Khi thiết kế một aggregate, có thể thực hiện theo thứ tự sau.
+
+**Bước 1 — Xác định root.** Root nào là điểm vào duy nhất cho các thay đổi cần nhất quán cùng nhau?
+
+**Bước 2 — Chọn root ID.** Dùng ID ổn định, bất biến; quyết định database-generated hay application-generated.
+
+**Bước 3 — Phân loại đối tượng con.** Đối tượng nào là entity có identity? Đối tượng nào chỉ là value object được nhận diện bằng giá trị?
+
+**Bước 4 — Quyết định child identity.** Child có cần phân biệt ổn định qua việc sửa/sắp xếp không? Nếu có, dùng khóa domain cục bộ hoặc định danh khác phù hợp.
+
+**Bước 5 — Chọn collection mapping.**
+- `List`: khi thứ tự là trọng tâm và vị trí có thể làm collection key.
+- `Map`: khi key là định danh ổn định hoặc khóa nghiệp vụ của entry.
+- Collection khác: chỉ chọn sau khi hiểu cách framework ánh xạ khóa và equality.
+
+**Bước 6 — Thiết kế SQL key.** Chọn primary key, foreign key, unique constraint và index phù hợp với semantics của ID.
+
+**Bước 7 — Thiết kế tham chiếu ngoài.** Aggregate khác tham chiếu root bằng ID. Tránh cho aggregate khác phụ thuộc vào child còn nằm trong vòng đời của root.
+
+**Bước 8 — Bảo vệ trạng thái.** Dùng domain method để giữ invariant, `@Version` khi cần optimistic locking và transaction cho các thao tác ghi.
+
+~~~text
+Business requirement
+       |
+       v
+Chọn aggregate root
+       |
+       +---- Root ID ổn định
+       |
+       v
+Phân loại thành phần bên trong
+       |
+       +---- Value object -> identity bằng giá trị
+       |
+       +---- Child entity -> local identity nếu cần
+       |                       |
+       |                       +--> List position?
+       |                       +--> Map key?
+       |
+       v
+Map bằng @MappedCollection
+       |
+       v
+Thiết kế PK/FK/UNIQUE trong schema
+       |
+       v
+Thao tác child thông qua root
+       |
+       v
+Repository lưu aggregate + version kiểm soát concurrency
+~~~
+
+## 16. Bài tập suy luận
+
+**Tình huống A — Hai dòng giống hệt nhau**
+
+Một đơn có hai dòng cùng `productId`, `quantity` và `unitPrice`. Người dùng muốn xóa đúng dòng thứ hai. Có thể chỉ dùng ba thuộc tính đó để tìm dòng không?
+
+**Gợi ý:** Không nếu hai dòng có thể giống hệt nhau. Cần một identity cục bộ, ví dụ Map key UUID.
+
+**Tình huống B — Danh sách có thể sắp xếp lại**
+
+Một đơn hiển thị các dòng theo thứ tự người dùng chọn. API đang dùng `line_position` làm ID. Sau khi sắp xếp, điều gì xảy ra?
+
+**Gợi ý:** Vị trí đổi theo thứ tự mới. Nếu API cần tham chiếu lâu dài đến cùng một dòng, dùng ID ổn định riêng.
+
+**Tình huống C — Child có primary key**
+
+Bảng `order_lines` có primary key `(order_id, line_id)`. Có bắt buộc tạo `OrderLineRepository` không?
+
+**Gợi ý:** Không. PK SQL không làm child thành aggregate root. Nếu child vẫn thuộc vòng đời đơn hàng, root tiếp tục quản lý.
+
+**Tình huống D — Hai hệ thống cần sửa dòng hàng độc lập**
+
+Fulfillment service cần thay đổi trạng thái từng dòng hàng trong vòng đời riêng. Có nên tiếp tục giữ mọi dòng trong aggregate đơn hàng không?
+
+**Gợi ý:** Xem xét tách `OrderLine` thành aggregate root hoặc thiết kế một quy trình phối hợp phù hợp. Quyết định dựa trên ownership và invariant, không dựa riêng vào việc bảng đã có ID.
+
+**Tình huống E — Root status và version**
+
+Đơn hàng đổi trạng thái từ `DRAFT` sang `CONFIRMED`, đồng thời version tăng. ID có thay đổi không?
+
+**Gợi ý:** Không. ID ổn định; status là trạng thái nghiệp vụ; version là token kỹ thuật cho cập nhật đồng thời.
+
+## 17. Ghi nhớ
+
+| Thành phần | Ý nghĩa |
+|---|---|
+| `@Id` trên aggregate root | Định danh để repository quản lý aggregate |
+| Root ID | Ổn định trong toàn bộ vòng đời root |
+| Child identity | Phân biệt entity con, thường trong phạm vi root |
+| `@MappedCollection.idColumn` | Cột liên kết child với root |
+| `@MappedCollection.keyColumn` | Cột lưu key của Map hoặc vị trí/key collection |
+| List position | Thứ tự, thường không phải ID ổn định |
+| Map key | Có thể dùng làm định danh cục bộ cho child |
+| SQL primary key | Bảo đảm uniqueness ở database |
+| `@Version` | Phát hiện xung đột cập nhật |
+| Value object | Được nhận diện bằng giá trị, không cần ID |
+
+**Định danh phải phản ánh đúng vòng đời nghiệp vụ.** Root có ID ổn định để bên ngoài tìm và tham chiếu. Entity con chỉ cần identity riêng khi nghiệp vụ phải phân biệt nó qua thời gian; identity đó có thể nằm trong Map key hoặc khóa ghép cùng root ID. Value object được nhận diện bằng giá trị. Khi thiết kế đúng các vai trò này, Spring Data JDBC có thể lưu aggregate nhất quán mà không biến mọi bảng con thành một repository độc lập.

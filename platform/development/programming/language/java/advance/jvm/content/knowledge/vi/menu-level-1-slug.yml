@@ -1,0 +1,55 @@
+menu:
+- title: Bức tranh JVM
+  slug: jvm-overview
+  index: 0
+- title: Vòng đời JVM
+  slug: jvm-lifecycle
+  index: 1
+- title: Kiểu dữ liệu JVM
+  slug: jvm-data-types
+  index: 2
+- title: Tệp class
+  slug: class-file-format
+  index: 3
+- title: Lệnh bytecode
+  slug: bytecode-instructions
+  index: 4
+- title: Frame và lời gọi
+  slug: stack-frames-and-calls
+  index: 5
+- title: Nạp và định danh lớp
+  slug: class-loading-and-identity
+  index: 6
+- title: Liên kết và khởi tạo
+  slug: linking-and-initialization
+  index: 7
+- title: Các vùng bộ nhớ
+  slug: jvm-runtime-memory-areas
+  index: 8
+- title: Đối tượng trong HotSpot
+  slug: hotspot-objects
+  index: 9
+- title: Khả năng truy cập
+  slug: object-reachability
+  index: 10
+- title: Cơ chế thu gom rác
+  slug: garbage-collection-mechanics
+  index: 11
+- title: Các bộ thu gom
+  slug: garbage-collectors
+  index: 12
+- title: Thông dịch và JIT
+  slug: interpretation-and-jit
+  index: 13
+- title: Tối ưu HotSpot
+  slug: hot-spot-optimizations
+  index: 14
+- title: Luồng và đồng bộ
+  slug: jvm-threads-and-synchronization
+  index: 15
+- title: Khởi động nhanh
+  slug: fast-startup
+  index: 16
+- title: Cấu hình tài nguyên
+  slug: resource-configuration
+  index: 17

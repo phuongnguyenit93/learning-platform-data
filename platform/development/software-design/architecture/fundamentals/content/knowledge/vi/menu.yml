@@ -1,0 +1,438 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Thiết kế phần mềm và kiến trúc phần mềm là gì
+  - Vấn đề mà kiến trúc cần giải quyết trong một hệ thống
+  - Quan hệ giữa yêu cầu, cấu trúc, hành vi và môi trường vận hành
+  - Phân biệt kiến trúc hệ thống, kiến trúc ứng dụng và thiết kế chi tiết
+  - Quan hệ giữa kiến trúc, thiết kế đối tượng và mã nguồn
+  - Phân biệt thành phần, mô-đun, dịch vụ và đơn vị triển khai
+  - Kiến trúc được thể hiện qua quyết định và hành vi thực tế
+  - Lợi ích và chi phí của việc đầu tư vào thiết kế
+  - Vai trò của lập trình viên, kiến trúc sư và các bên liên quan
+  - Thuật ngữ nền tảng và thứ tự tiếp cận tài liệu
+- level1: Tư duy kiến trúc
+  level2:
+  - Bắt đầu từ vấn đề và bối cảnh thay vì công nghệ
+  - Tư duy hệ thống và ảnh hưởng vượt ra ngoài một thành phần
+  - Phân biệt mục tiêu, giả định, ràng buộc và phương án
+  - Đánh đổi giữa các thuộc tính chất lượng
+  - Phân biệt quyết định dễ đảo ngược và quyết định tốn kém để thay đổi
+  - Thiết kế vừa đủ và thời điểm trì hoãn quyết định
+  - Xử lý điều chưa biết bằng giả thuyết và thực nghiệm
+  - Đánh giá phương án theo bằng chứng và mức độ tin cậy
+  - Nhận diện thiên kiến, kinh nghiệm cũ và giải pháp theo trào lưu
+- level1: Bối cảnh hệ thống
+  level2:
+  - Xác định vấn đề nghiệp vụ và giá trị cần tạo ra
+  - Xác định người dùng và các bên liên quan
+  - Ranh giới hệ thống và phạm vi trách nhiệm
+  - Tác nhân, hệ thống bên ngoài và điểm tích hợp
+  - Luồng nghiệp vụ quan trọng và hành trình người dùng
+  - Quyền sở hữu dữ liệu và trách nhiệm giữa các nhóm
+  - Ràng buộc pháp lý, tổ chức và môi trường triển khai
+  - Ràng buộc của hệ thống hiện có và phụ thuộc bên ngoài
+  - Phân biệt phạm vi thực hiện và phần chưa thuộc phạm vi
+  - Ghi nhận giả định và điều kiện làm thay đổi thiết kế
+- level1: Yêu cầu kiến trúc
+  level2:
+  - Phân biệt yêu cầu chức năng, yêu cầu chất lượng và ràng buộc
+  - Nhận diện yêu cầu có ảnh hưởng lớn tới kiến trúc
+  - Chuyển mục tiêu mơ hồ thành tiêu chí có thể kiểm chứng
+  - Mô tả ca sử dụng và luồng nghiệp vụ trọng yếu
+  - Kịch bản chất lượng với kích thích, bối cảnh và phản hồi đo được
+  - Ước lượng quy mô người dùng, dữ liệu và lưu lượng
+  - Xác định mức quan trọng và ưu tiên yêu cầu
+  - Phân tích yêu cầu xung đột và cách thương lượng
+  - Phân biệt nhu cầu hiện tại và dự báo tăng trưởng
+  - Truy vết yêu cầu tới quyết định và bằng chứng kiểm chứng
+  - Quản lý thay đổi yêu cầu trong vòng đời hệ thống
+- level1: Thuộc tính chất lượng
+  level2:
+  - Tính đúng đắn chức năng và chất lượng vận hành
+  - Khả năng sửa đổi, bảo trì và mở rộng chức năng
+  - Khả năng kiểm thử và chẩn đoán
+  - Hiệu năng, thông lượng và độ trễ
+  - Khả năng mở rộng theo tải và quy mô dữ liệu
+  - Tính sẵn sàng, độ tin cậy và khả năng phục hồi
+  - Bảo mật và quyền riêng tư
+  - Khả năng sử dụng và khả năng tiếp cận
+  - Khả năng tương tác, tương thích và di chuyển môi trường
+  - Khả năng triển khai và vận hành
+  - Chi phí tài nguyên và hiệu quả sử dụng
+  - Đánh đổi chất lượng theo từng kịch bản cụ thể
+- level1: Trừu tượng và phân rã
+  level2:
+  - Trừu tượng hóa và lựa chọn mức chi tiết phù hợp
+  - Đóng gói và che giấu thông tin có khả năng thay đổi
+  - Phân tách mối quan tâm (separation of concerns)
+  - Phân rã theo nghiệp vụ và phân rã theo kỹ thuật
+  - Phân biệt phân rã cấu trúc và phân rã hành vi
+  - Thiết kế từ trên xuống và khám phá từ dưới lên
+  - Xác định trách nhiệm và thành phần cộng tác
+  - Giữ khái niệm nhất quán giữa các mức trừu tượng
+  - Nhận diện trừu tượng rò rỉ và ranh giới giả tạo
+  - Đánh giá độ phức tạp do trừu tượng hóa tạo thêm
+- level1: Mô-đun và ranh giới
+  level2:
+  - Mô-đun là đơn vị tổ chức trách nhiệm và che giấu thông tin
+  - Phân biệt mô-đun logic và đơn vị triển khai vật lý
+  - Xác định ranh giới theo khả năng thay đổi độc lập
+  - Giao diện công khai và chi tiết triển khai nội bộ
+  - Quyền sở hữu dữ liệu và hành vi trong mô-đun
+  - Hợp đồng giữa các mô-đun
+  - Mức hạt của thành phần và chi phí chia nhỏ
+  - Tổ chức theo tính năng và theo lớp kỹ thuật
+  - Kiểm soát truy cập và ngăn sử dụng chi tiết nội bộ
+  - Đánh giá một ranh giới bằng các kịch bản thay đổi
+- level1: Gắn kết và phụ thuộc
+  level2:
+  - Độ gắn kết (cohesion) và ý nghĩa của một trách nhiệm thống nhất
+  - Mức liên kết (coupling) và chi phí thay đổi lan truyền
+  - Phụ thuộc ở mã nguồn, dữ liệu, thời gian và lúc chạy
+  - Phân biệt phụ thuộc có chủ đích và phụ thuộc ngầm
+  - Đồ thị phụ thuộc và hướng thay đổi
+  - Phụ thuộc vòng và tác động tới xây dựng hoặc kiểm thử
+  - Tính ổn định của giao diện và phụ thuộc vào phần dễ thay đổi
+  - Liên kết qua dữ liệu dùng chung và mô hình dữ liệu nội bộ
+  - Liên kết về thời gian trong chuỗi gọi đồng bộ
+  - Chỉ số phụ thuộc và giới hạn của việc đánh giá bằng số đếm
+  - Cải thiện gắn kết và phụ thuộc mà không chia nhỏ máy móc
+- level1: Nguyên tắc thiết kế
+  level2:
+  - Trách nhiệm đơn nhất (Single Responsibility Principle)
+  - Đóng với sửa đổi và mở với mở rộng (Open/Closed Principle)
+  - Khả năng thay thế kiểu con (Liskov Substitution Principle)
+  - Phân tách giao diện (Interface Segregation Principle)
+  - Đảo ngược phụ thuộc (Dependency Inversion Principle)
+  - Phân biệt đảo ngược điều khiển và tiêm phụ thuộc
+  - Ưu tiên kết hợp đối tượng khi quan hệ kế thừa không phù hợp
+  - DRY và sự khác biệt giữa lặp mã với lặp tri thức
+  - KISS và lựa chọn thiết kế dễ hiểu
+  - YAGNI và tránh xây dựng cho nhu cầu chưa được chứng minh
+  - Thiết kế theo hợp đồng và bảo vệ điều kiện bất biến
+  - Áp dụng nguyên tắc theo bối cảnh thay vì như luật tuyệt đối
+- level1: Mô hình miền
+  level2:
+  - Mô hình miền và ngôn ngữ chung với người làm nghiệp vụ
+  - Phân biệt dữ liệu nghiệp vụ và cấu trúc lưu trữ
+  - Thực thể, đối tượng giá trị và hành vi nghiệp vụ
+  - Điều kiện bất biến và ranh giới bảo vệ tính đúng đắn
+  - Đối tượng kết tụ (aggregate) và trách nhiệm cập nhật
+  - Dịch vụ nghiệp vụ và dịch vụ ứng dụng
+  - Ranh giới ngữ cảnh (bounded context)
+  - Quan hệ và chuyển đổi mô hình giữa các ngữ cảnh
+  - Mô hình phong phú và mô hình chỉ chứa dữ liệu
+  - Giới hạn áp dụng mô hình miền phức tạp cho bài toán đơn giản
+- level1: Hợp đồng và giao tiếp
+  level2:
+  - Hợp đồng về cấu trúc, ý nghĩa và hành vi
+  - Giao diện trong tiến trình và giao diện qua mạng
+  - Giao tiếp đồng bộ và giao tiếp bất đồng bộ
+  - Phân biệt lệnh, truy vấn, sự kiện và thông điệp
+  - Thiết kế dữ liệu nhập, dữ liệu trả về và lỗi
+  - Điều kiện trước, điều kiện sau và giới hạn tài nguyên
+  - Liên kết về thời gian và khả năng giao lại thông điệp
+  - Tính lũy đẳng và thao tác lặp
+  - Phiên bản hợp đồng và khả năng tương thích
+  - Ẩn mô hình nội bộ sau ranh giới chuyển đổi
+  - Lựa chọn HTTP, RPC hoặc truyền tin theo nhu cầu
+  - Tài liệu và kiểm thử hợp đồng giữa các thành phần
+- level1: Trạng thái và vòng đời
+  level2:
+  - Phân biệt hệ thống có trạng thái và không lưu trạng thái cục bộ
+  - Trạng thái nghiệp vụ, trạng thái phiên và dữ liệu tạm
+  - Chọn vị trí lưu và thành phần sở hữu trạng thái
+  - Trạng thái khả biến và dữ liệu bất biến
+  - Ranh giới nhất quán khi cập nhật trạng thái
+  - Vòng đời đối tượng, yêu cầu, phiên và tiến trình
+  - Quản lý kết nối, bộ nhớ và tài nguyên có giới hạn
+  - Bộ nhớ đệm và quan hệ với nguồn dữ liệu chuẩn
+  - Cách ly trạng thái giữa người dùng hoặc khách hàng
+  - Khởi tạo, dừng an toàn và giải phóng tài nguyên
+- level1: Đồng thời và bất đồng bộ
+  level2:
+  - Phân biệt tính đồng thời, song song và bất đồng bộ
+  - Luồng thực thi, tiến trình và vòng lặp sự kiện
+  - Tranh chấp dữ liệu và vùng tới hạn
+  - Khóa, bế tắc và chi phí phối hợp
+  - Kiểm soát cập nhật bằng khóa lạc quan hoặc khóa bi quan
+  - Cô lập dữ liệu và mô hình sở hữu trạng thái
+  - Tác vụ chặn và tác vụ không chặn
+  - Giới hạn công việc đang xử lý và áp lực ngược (backpressure)
+  - Thời hạn chờ, hủy công việc và hoàn tất dở dang
+  - Đánh giá tác động của đồng thời tới tính đúng đắn và hiệu năng
+- level1: Cấu trúc hệ thống
+  level2:
+  - Phân biệt cấu trúc logic và cấu trúc triển khai
+  - Ứng dụng một tiến trình và hệ thống nhiều tiến trình
+  - Kiến trúc nguyên khối (monolithic architecture)
+  - Nguyên khối mô-đun (modular monolith)
+  - Kiến trúc máy khách–máy chủ (client–server)
+  - Phân biệt lớp logic (layer) và tầng triển khai (tier)
+  - Kiến trúc hướng dịch vụ (SOA)
+  - Kiến trúc microservices và chi phí phân tán
+  - Hệ thống kết hợp nhiều kiểu tổ chức
+  - Chọn cấu trúc theo ranh giới nghiệp vụ và thuộc tính chất lượng
+- level1: Mẫu kiến trúc
+  level2:
+  - Phân biệt kiểu kiến trúc, mẫu kiến trúc và chiến thuật chất lượng
+  - Kiến trúc phân lớp (Layered Architecture)
+  - Mẫu Model–View–Controller và phạm vi giao diện
+  - Kiến trúc cổng và bộ chuyển đổi (Hexagonal Architecture)
+  - Onion Architecture và Clean Architecture
+  - Kiến trúc hướng sự kiện (Event-Driven Architecture)
+  - Mẫu đường ống và bộ lọc (Pipes and Filters)
+  - Kiến trúc lõi mở rộng (Microkernel Architecture)
+  - Tách mô hình đọc và ghi bằng CQRS
+  - Lưu trạng thái từ chuỗi sự kiện bằng Event Sourcing
+  - Phân biệt hướng sự kiện và Event Sourcing
+  - Kết hợp mẫu ở các mức khác nhau mà không tạo mâu thuẫn
+  - Chọn mẫu theo vấn đề và ghi nhận hệ quả
+- level1: Mẫu thiết kế
+  level2:
+  - Mẫu thiết kế và vai trò của ngôn ngữ giải pháp dùng chung
+  - Cấu trúc mô tả vấn đề, bối cảnh, giải pháp và hệ quả
+  - Các nhóm khởi tạo, cấu trúc và hành vi
+  - Factory và quản lý cách tạo đối tượng
+  - Strategy và tách phần hành vi có thể thay đổi
+  - Adapter, Facade và bảo vệ ranh giới tích hợp
+  - Observer và phối hợp khi trạng thái thay đổi
+  - Phân biệt mẫu thiết kế với nguyên tắc và thư viện
+  - Tránh áp dụng mẫu chỉ để tăng số lớp hoặc độ trừu tượng
+- level1: Dữ liệu và lưu trữ
+  level2:
+  - Nguồn dữ liệu chuẩn và quyền sở hữu dữ liệu
+  - Mô hình khái niệm, mô hình logic và mô hình vật lý
+  - Chọn cách lưu trữ theo truy vấn và ràng buộc nghiệp vụ
+  - Cơ sở dữ liệu quan hệ và các nhóm lưu trữ phi quan hệ
+  - Toàn vẹn dữ liệu và kiểm soát cập nhật
+  - Tách mô hình nghiệp vụ khỏi mô hình lưu trữ
+  - Sao chép dữ liệu, dữ liệu dẫn xuất và mô hình đọc
+  - Bộ nhớ đệm và chiến lược làm mới dữ liệu
+  - Tiến hóa lược đồ và chuyển đổi dữ liệu
+  - Vòng đời dữ liệu, lưu giữ và xóa dữ liệu
+- level1: Hệ phân tán căn bản
+  level2:
+  - Ranh giới mạng làm thay đổi giả định thiết kế
+  - Độ trễ, băng thông và chi phí giao tiếp
+  - Lỗi cục bộ và lỗi từng phần
+  - Phân biệt thất bại thật sự và phản hồi chưa nhận được
+  - Phân hoạch mạng và sự gián đoạn kết nối
+  - Đồng hồ, dấu thời gian và quan hệ nhân quả
+  - Thông điệp bị mất, lặp hoặc đến sai thứ tự
+  - Khám phá dịch vụ và thay đổi vị trí thành phần
+  - Sao chép, phân vùng và phối hợp giữa các nút
+  - Phạm vi của CAP khi xảy ra phân hoạch mạng
+  - Chi phí vận hành và chẩn đoán của hệ thống phân tán
+- level1: Nhất quán và giao dịch
+  level2:
+  - Ranh giới giao dịch và ý nghĩa của ACID
+  - Mức cô lập và các dạng xung đột truy cập
+  - Nhất quán mạnh và nhất quán cuối cùng
+  - Phân biệt tính nhất quán dữ liệu với chữ C trong ACID
+  - Yêu cầu đọc sau ghi và trải nghiệm người dùng
+  - Giao dịch cục bộ và giao dịch phân tán
+  - Vấn đề ghi kép giữa dữ liệu và hệ thống truyền tin
+  - Transactional Outbox và luồng chuyển tiếp dữ liệu
+  - Saga và hành động bù trừ theo nghiệp vụ
+  - Kết hợp tính lũy đẳng, thử lại và đối soát
+  - Chọn mức nhất quán theo điều kiện nghiệp vụ cần bảo vệ
+- level1: Độ tin cậy
+  level2:
+  - Phân biệt lỗi, hỏng hóc và gián đoạn dịch vụ
+  - Điểm lỗi đơn và miền lỗi
+  - Dự phòng, sao chép và chuyển đổi khi có lỗi
+  - Thời hạn chờ và phân bổ thời gian xuyên chuỗi gọi
+  - Thử lại có giới hạn, giãn cách và độ lệch ngẫu nhiên
+  - Ngắt mạch và cô lập tài nguyên
+  - Giảm chức năng có kiểm soát khi phụ thuộc không khả dụng
+  - Giới hạn tải và phòng tránh lỗi lan truyền
+  - Sao lưu, khôi phục và kiểm chứng bản sao lưu
+  - Mục tiêu thời gian phục hồi và mức mất dữ liệu chấp nhận được
+  - Thiết kế và diễn tập kịch bản phục hồi
+- level1: Hiệu năng và mở rộng
+  level2:
+  - Phân biệt thời gian đáp ứng, thông lượng và mức sử dụng tài nguyên
+  - Phân vị độ trễ và hiện tượng chậm ở phần đuôi
+  - Ước lượng tải, tăng trưởng và dung lượng cần thiết
+  - Nhận diện điểm nghẽn bằng đo lường
+  - Mở rộng dọc và mở rộng ngang
+  - Cân bằng tải và giới hạn của thành phần có trạng thái
+  - Phân vùng dữ liệu và điểm nóng
+  - Bộ nhớ đệm và đánh đổi độ mới dữ liệu
+  - Gộp lô, xử lý bất đồng bộ và quản lý hàng đợi
+  - Giới hạn tài nguyên, quá tải và áp lực ngược
+  - Kiểm thử tải và đánh đổi giữa hiệu năng với chi phí
+- level1: Bảo mật
+  level2:
+  - Tài sản cần bảo vệ và ranh giới tin cậy
+  - Mô hình đe dọa và các đường tấn công
+  - Xác thực danh tính và phân quyền
+  - Đặc quyền tối thiểu và phân tách trách nhiệm
+  - Bảo vệ nhiều lớp và mặc định an toàn
+  - Kiểm tra đầu vào và bảo vệ đầu ra
+  - Mã hóa khi truyền và khi lưu trữ
+  - Quản lý bí mật, khóa và chứng chỉ
+  - Quyền riêng tư và tối thiểu hóa dữ liệu
+  - Kiểm toán hành động quan trọng
+  - Rủi ro từ thư viện, thành phần và chuỗi cung ứng phần mềm
+- level1: Triển khai và hạ tầng
+  level2:
+  - Ánh xạ thành phần logic sang đơn vị triển khai
+  - Tiến trình, máy ảo, container và dịch vụ được quản lý
+  - Phân biệt quyết định kiến trúc và lựa chọn công cụ triển khai
+  - Môi trường phát triển, kiểm thử và vận hành
+  - Quản lý cấu hình, bí mật và khác biệt môi trường
+  - Biên mạng, điểm vào và kết nối giữa các thành phần
+  - Tự động hóa xây dựng, kiểm thử và phát hành
+  - Triển khai cuốn chiếu, triển khai thăm dò và chuyển lưu lượng
+  - Tương thích giữa các phiên bản trong giai đoạn triển khai
+  - Quay lui mã nguồn, cấu hình và thay đổi dữ liệu
+- level1: Quan sát và vận hành
+  level2:
+  - Phân biệt khả năng quan sát và hoạt động giám sát
+  - Nhật ký, chỉ số và truy vết
+  - Định danh tương quan xuyên các thành phần
+  - Chỉ số dịch vụ (SLI) và mục tiêu dịch vụ (SLO)
+  - Ngân sách lỗi và quyết định thay đổi hệ thống
+  - Theo dõi kết quả nghiệp vụ cùng chỉ số kỹ thuật
+  - Cảnh báo có thể hành động và hạn chế nhiễu
+  - Quy trình vận hành và hướng dẫn xử lý sự cố
+  - Khởi động, kiểm tra sức khỏe và dừng an toàn
+  - Phân tích sự cố và cập nhật giả định kiến trúc
+  - Chi phí và quyền riêng tư của dữ liệu quan sát
+- level1: Mô hình hóa
+  level2:
+  - Mục đích mô hình và đối tượng sử dụng
+  - Phân biệt góc nhìn (view) và quy tắc mô tả góc nhìn (viewpoint)
+  - Chọn mức trừu tượng và phạm vi của từng sơ đồ
+  - 'C4: bối cảnh hệ thống'
+  - 'C4: các khối ứng dụng và kho dữ liệu ở mức container'
+  - 'C4: thành phần và mức chi tiết mã nguồn khi cần'
+  - Sơ đồ UML cho cấu trúc và quan hệ
+  - Sơ đồ trình tự cho tương tác lúc chạy
+  - Sơ đồ trạng thái cho vòng đời nghiệp vụ
+  - Sơ đồ triển khai và ánh xạ sang hạ tầng
+  - Biểu diễn ranh giới tin cậy, dữ liệu và miền lỗi
+  - Giữ mô hình nhất quán với mã nguồn và môi trường thực tế
+- level1: Tài liệu và quyết định
+  level2:
+  - Xác định tài liệu cần thiết theo người đọc
+  - Tóm tắt mục tiêu, bối cảnh và ràng buộc
+  - Mô tả cấu trúc, hành vi và triển khai
+  - Ghi nhận quyết định bằng Architecture Decision Record
+  - Nêu phương án được chọn, phương án thay thế và hệ quả
+  - Phân biệt quyết định đã chốt và giả định cần kiểm chứng
+  - Truy vết quyết định tới yêu cầu và rủi ro
+  - Quản lý phiên bản, người sở hữu và thời điểm rà soát
+  - Ghi nhận quyết định được thay thế và lý do thay đổi
+  - Ngăn tài liệu lỗi thời và tránh mô tả trùng lặp
+- level1: Đánh giá kiến trúc
+  level2:
+  - Đánh giá theo kịch bản thay vì cảm nhận
+  - Xác định rủi ro và giả định có ảnh hưởng lớn
+  - Đánh giá thuộc tính chất lượng qua các phương án
+  - Phân tích điểm nhạy cảm và điểm đánh đổi
+  - Ưu tiên thử nghiệm cho điều chưa chắc chắn
+  - Phân biệt nguyên mẫu, thử nghiệm khả thi và sản phẩm vận hành
+  - Thiết kế phép đo và tiêu chí chấp nhận
+  - Phản biện thiết kế với các bên liên quan
+  - Giới hạn của số liệu, sơ đồ và kết quả thử nghiệm
+  - Kết luận dựa trên bằng chứng và ghi nhận rủi ro còn lại
+- level1: Kiểm thử và kiểm chứng
+  level2:
+  - Phân biệt tính đúng đắn nghiệp vụ và tính phù hợp kiến trúc
+  - Kiểm thử đơn vị tại ranh giới trách nhiệm
+  - Kiểm thử tích hợp với dữ liệu và dịch vụ phụ thuộc
+  - Kiểm thử hợp đồng giữa các thành phần
+  - Kiểm thử xuyên suốt cho luồng nghiệp vụ trọng yếu
+  - Kiểm tra phụ thuộc, phân lớp và quy tắc kiến trúc
+  - Kiểm chứng hiệu năng, bảo mật và khả năng phục hồi
+  - Chèn lỗi để kiểm tra các giả định vận hành
+  - Hàm kiểm chứng kiến trúc (fitness function)
+  - Tích hợp bằng chứng kiểm chứng vào quy trình phát hành
+- level1: Tiến hóa kiến trúc
+  level2:
+  - Kiến trúc thay đổi theo nghiệp vụ, tải và tổ chức
+  - Phân biệt tái cấu trúc mã và thay đổi ranh giới hệ thống
+  - Xác định kiến trúc hiện tại, mục tiêu và trạng thái chuyển tiếp
+  - Lập kế hoạch chuyển đổi theo từng bước có thể kiểm chứng
+  - Thay thế dần bằng mẫu Strangler Fig
+  - Lớp bảo vệ mô hình (Anti-Corruption Layer) khi tích hợp hệ thống cũ
+  - Chuyển đổi hợp đồng theo cách mở rộng rồi thu hẹp
+  - Chuyển dữ liệu và chạy song song có đối soát
+  - Quản lý tương thích trong thời gian chuyển tiếp
+  - Phương án quay lui và điều kiện dừng chuyển đổi
+  - Đo giá trị sau chuyển đổi và xóa cấu trúc cũ
+- level1: Nợ kỹ thuật
+  level2:
+  - Nợ kỹ thuật và chi phí thay đổi tích lũy
+  - Phân biệt nợ chủ động, nợ vô ý và thiết kế lỗi thời
+  - Nợ kiến trúc tại ranh giới, dữ liệu và phụ thuộc
+  - Dấu hiệu suy giảm cấu trúc và thay đổi lan truyền
+  - Ghi nhận khoản nợ với tác động và bằng chứng
+  - Ưu tiên xử lý theo rủi ro và giá trị nghiệp vụ
+  - Cân bằng tiến độ giao hàng và sức khỏe hệ thống
+  - Giảm nợ qua công việc phát triển hằng ngày
+  - Đo kết quả cải tiến thay vì chỉ đếm việc tái cấu trúc
+- level1: Tổ chức và cộng tác
+  level2:
+  - Quan hệ giữa cấu trúc tổ chức và cấu trúc hệ thống
+  - Định luật Conway và giới hạn khi vận dụng
+  - Quyền sở hữu thành phần và trách nhiệm xuyên suốt
+  - Phân quyền quyết định theo phạm vi ảnh hưởng
+  - Phối hợp giữa nghiệp vụ, phát triển, bảo mật và vận hành
+  - Đánh giá thiết kế như hoạt động cộng tác
+  - Nguyên tắc chung và ngoại lệ có lý do
+  - Chia sẻ tri thức và giảm phụ thuộc vào một cá nhân
+  - Điều chỉnh ranh giới nhóm khi kiến trúc thay đổi
+- level1: Công nghệ và chi phí
+  level2:
+  - Tách nhu cầu kiến trúc khỏi tên sản phẩm
+  - Lựa chọn tự xây dựng, mua hoặc dùng dịch vụ có sẵn
+  - Đánh giá mức phù hợp, độ trưởng thành và khả năng tích hợp
+  - Đánh giá năng lực đội ngũ và trải nghiệm phát triển
+  - Chi phí phát triển, vận hành và bảo trì
+  - Chi phí chuyển đổi, di chuyển dữ liệu và thay thế công nghệ
+  - Phụ thuộc nhà cung cấp và tính khả chuyển
+  - Rủi ro từ thành phần không còn được hỗ trợ
+  - Thử nghiệm lựa chọn trên tải và kịch bản đại diện
+  - Ghi nhận căn cứ lựa chọn và thời điểm cần đánh giá lại
+- level1: Sai lầm thường gặp
+  level2:
+  - Đồng nhất kiến trúc với sơ đồ hoặc bộ công nghệ
+  - Thiết kế trước khi làm rõ vấn đề và yêu cầu
+  - Chọn microservices hoặc công nghệ mới theo trào lưu
+  - Chia nhỏ thành phần nhưng giữ nguyên phụ thuộc chặt
+  - Trừu tượng hóa quá sớm và thiết kế cho quy mô giả định
+  - Áp dụng nguyên tắc hoặc mẫu như quy tắc tuyệt đối
+  - Bỏ qua trạng thái, dữ liệu và ranh giới giao dịch
+  - Chỉ đánh giá luồng thành công mà bỏ qua các dạng lỗi
+  - Tối ưu hiệu năng trước khi có số liệu
+  - Tách quyết định thiết kế khỏi khả năng triển khai và vận hành
+- level1: Minh họa xuyên suốt
+  level2:
+  - Đề bài quản lý đơn hàng và các giả định ban đầu
+  - Xác định bối cảnh, tác nhân và luồng nghiệp vụ chính
+  - Ưu tiên yêu cầu và kịch bản chất lượng
+  - Phân rã trách nhiệm và xác định ranh giới mô-đun
+  - Thiết kế hợp đồng và quyền sở hữu dữ liệu
+  - Thiết kế luồng đặt hàng và ranh giới giao dịch
+  - Chọn cấu trúc triển khai ban đầu
+  - Phân tích lỗi, bảo mật và giới hạn tải
+  - So sánh các phương án và ghi quyết định
+  - Kiểm chứng giả định bằng nguyên mẫu hoặc kiểm thử
+  - Điều chỉnh kiến trúc khi yêu cầu và quy mô thay đổi
+- level1: Thực hành và tự đánh giá
+  level2:
+  - Phân biệt quyết định kiến trúc và chi tiết triển khai từ ví dụ
+  - Vẽ sơ đồ bối cảnh cho một hệ thống quen thuộc
+  - Viết kịch bản chất lượng có tiêu chí đo được
+  - Phân rã mô-đun và phản biện hướng phụ thuộc
+  - Thiết kế hợp đồng cho một ranh giới tích hợp
+  - So sánh hai phương án theo cùng tập yêu cầu
+  - Viết một bản ghi quyết định kiến trúc
+  - Thiết kế phép thử cho giả định rủi ro nhất
+  - Lập kế hoạch cải tiến từng bước cho hệ thống hiện có
+  - Tự đánh giá tính nhất quán giữa yêu cầu, quyết định và bằng chứng

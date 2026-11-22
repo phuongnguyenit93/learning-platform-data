@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng giao dịch
+  slug: transaction-foundations
+  index: 1
+- title: Mô hình nghiệp vụ
+  slug: business-process-modeling
+  index: 2
+- title: Vòng đời Saga
+  slug: saga-lifecycle
+  index: 3
+- title: Choreography
+  slug: choreography
+  index: 4
+- title: Orchestration
+  slug: orchestration
+  index: 5
+- title: Lựa chọn điều phối
+  slug: orchestration-selection
+  index: 6
+- title: Bù trừ
+  slug: compensation
+  index: 7
+- title: Điểm không quay lại
+  slug: point-of-no-return
+  index: 8
+- title: Hợp đồng thông điệp
+  slug: message-contracts
+  index: 9
+- title: Trạng thái bền vững
+  slug: durable-state
+  index: 10
+- title: Giao nhận tin cậy
+  slug: reliable-message-delivery
+  index: 11
+- title: Tính lặp lại an toàn
+  slug: idempotency
+  index: 12
+- title: Thứ tự và tương quan
+  slug: ordering-correlation
+  index: 13
+- title: Đồng thời và cô lập
+  slug: concurrency-isolation
+  index: 14
+- title: Lỗi và timeout
+  slug: failures-timeouts
+  index: 15
+- title: Retry và phục hồi
+  slug: retries-recovery
+  index: 16
+- title: Nhánh và song song
+  slug: branching-parallelism
+  index: 17
+- title: Cài đặt Java
+  slug: java-implementation
+  index: 18
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 19
+- title: Quan sát vận hành
+  slug: operational-observability
+  index: 20
+- title: Can thiệp thủ công
+  slug: manual-intervention
+  index: 21
+- title: Bảo mật
+  slug: security
+  index: 22
+- title: Kiểm thử
+  slug: testing
+  index: 23
+- title: Hiệu năng
+  slug: performance
+  index: 24
+- title: Tiến hóa quy trình
+  slug: process-evolution
+  index: 25
+- title: Mẫu liên quan
+  slug: related-patterns
+  index: 26
+- title: Bẫy thường gặp
+  slug: common-pitfalls
+  index: 27
+- title: Bài toán thực tế
+  slug: real-world-scenarios
+  index: 28
+- title: Thực hành
+  slug: practice
+  index: 29
+- title: Tiêu chí lựa chọn
+  slug: selection-criteria
+  index: 30

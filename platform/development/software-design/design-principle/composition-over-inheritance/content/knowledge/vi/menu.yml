@@ -1,0 +1,249 @@
+menu:
+  - level1: Nền tảng của nguyên tắc composition over inheritance
+    level2:
+      - Ý nghĩa của việc ưu tiên composition khi tái sử dụng và kết hợp hành vi
+      - Phân biệt kế thừa triển khai với kế thừa kiểu trong Java
+      - 'Composition, delegation và forwarding: vai trò và mối liên hệ'
+      - So sánh phụ thuộc vào lớp cha với phụ thuộc qua đối tượng cộng tác
+      - Tái sử dụng mã, tái sử dụng hợp đồng và khả năng thay thế hành vi
+      - Đánh đổi giữa số lượng lớp, mã ủy quyền và độ linh hoạt
+      - Những ngộ nhận về việc loại bỏ hoàn toàn kế thừa
+      - Khảo sát một thiết kế Java trước và sau khi chuyển sang composition
+  - level1: Phân biệt quan hệ is-a, has-a và uses-a
+    level2:
+      - Kiểm tra quan hệ is-a bằng kỳ vọng hành vi của mã khách
+      - Nhận diện quan hệ has-a khi một đối tượng giữ đối tượng cộng tác
+      - Phân biệt has-a với uses-a qua phụ thuộc tạm thời trong phương thức
+      - Phân biệt composition ở mức thiết kế với composition và aggregation trong UML
+      - Thể hiện quan hệ qua extends, implements, trường đối tượng và tham số Java
+      - Vì sao giống cấu trúc dữ liệu chưa đủ để xác lập quan hệ kế thừa
+      - Tách vai trò nghiệp vụ khỏi hệ phân cấp phân loại đối tượng
+      - Chọn quan hệ cho các ví dụ tài khoản, chính sách giá và kênh thông báo
+      - Bài tập nhận diện is-a giả và đề xuất quan hệ cộng tác thay thế
+  - level1: Hợp đồng kế thừa và khả năng thay thế trong Java
+    level2:
+      - Quan hệ subtype, dynamic dispatch và hành vi quan sát được
+      - Nguyên tắc Liskov khi đánh giá một lớp con có thể thay lớp cha
+      - Tiền điều kiện, hậu điều kiện và bất biến trong hợp đồng lớp cha
+      - Ghi đè phương thức và rủi ro thay đổi ý nghĩa nghiệp vụ
+      - Phương thức protected và mức độ lộ chi tiết triển khai cho lớp con
+      - 'Self-use trong lớp cha: phương thức này gọi phương thức có thể ghi đè khác'
+      - Rủi ro gọi phương thức có thể ghi đè từ constructor
+      - Giới hạn của đơn kế thừa lớp và vai trò của implements nhiều interface
+      - Phân biệt interface default method với cơ chế kế thừa trạng thái
+  - level1: Nhận diện rủi ro của hệ phân cấp kế thừa
+    level2:
+      - Fragile base class khi lớp cha thay đổi cách triển khai nội bộ
+      - Tổ hợp tính năng làm tăng số lớp con theo nhiều chiều biến thiên
+      - Lớp con phải vô hiệu hóa hành vi được thừa kế
+      - Kế thừa chỉ để dùng một vài phương thức tiện ích
+      - Phụ thuộc ngầm vào thứ tự gọi hook và trạng thái protected
+      - Override gọi super và hợp đồng phối hợp khó kiểm soát
+      - Thay đổi lớp cha gây lỗi lan truyền sang các lớp con không liên quan
+      - Hệ phân cấp sâu làm khó việc truy vết hành vi và kiểm thử
+      - Chi phí thay đổi khi yêu cầu nghiệp vụ không khớp cây kế thừa
+      - Lập danh sách dấu hiệu cần xem xét chuyển sang composition
+  - level1: Cơ chế composition, delegation và forwarding trong Java
+    level2:
+      - Thiết kế đối tượng chủ và đối tượng nhận ủy quyền
+      - Chuyển lời gọi qua trường private thay cho extends
+      - Forwarding thuần túy và delegation có bổ sung quyết định hoặc biến đổi
+      - Tách lựa chọn hành vi khỏi thực thi hành vi
+      - Ủy quyền một phần API và xây dựng facade phù hợp với mã khách
+      - Self-call trong delegate và giới hạn can thiệp của wrapper
+      - Khác biệt về this, danh tính đối tượng và kiểu runtime khi bọc đối tượng
+      - Xử lý phương thức fluent trả về this để tránh làm lộ delegate
+      - Tránh vòng ủy quyền, chuỗi chuyển tiếp khó theo dõi và phụ thuộc hai chiều
+      - Bài tập chuyển một lớp kế thừa tiện ích thành lớp dùng đối tượng cộng tác
+  - level1: Thiết kế interface làm hợp đồng cho đối tượng cộng tác
+    level2:
+      - Rút interface từ nhu cầu của bên sử dụng
+      - Giữ interface tập trung vào một vai trò và một lý do thay đổi
+      - Thiết kế tham số, giá trị trả về và lỗi theo ý nghĩa nghiệp vụ
+      - Diễn đạt bất biến, tác dụng phụ và yêu cầu về thứ tự gọi
+      - Áp dụng interface segregation và dependency inversion trong thiết kế composition
+      - Phân biệt interface miền nghiệp vụ với API của thư viện bên ngoài
+      - Sử dụng generic để bảo toàn kiểu khi thay thế implementation
+      - Chọn functional interface và lambda cho hành vi đơn phương thức
+      - Nhận diện interface quá tổng quát, interface rỗng và abstraction tạo quá sớm
+      - Bài tập thiết kế hợp đồng cho chính sách giá, bộ gửi tin và bộ kết xuất
+  - level1: Trạng thái, quyền sở hữu và vòng đời của thành phần
+    level2:
+      - Quyền sở hữu tham chiếu khác với quyền sở hữu vòng đời đối tượng
+      - Lựa chọn thành phần riêng cho từng đối tượng hoặc dùng chung
+      - Giữ bất biến của đối tượng chủ khi delegate có trạng thái
+      - Trường final, tính bất biến và giới hạn của final với đối tượng khả biến
+      - Defensive copy và tránh làm lộ trạng thái nội bộ qua getter
+      - Phân biệt cấu hình hành vi với trạng thái nghiệp vụ thay đổi theo thời gian
+      - Quy định trách nhiệm mở và đóng thành phần AutoCloseable
+      - Xử lý thành phần tùy chọn và thiết kế hành vi mặc định rõ ràng
+      - Ngăn tham chiếu thoát ra trong quá trình khởi tạo
+      - Bài tập phân tích lỗi do dùng chung một delegate khả biến
+  - level1: Khởi tạo và lắp ghép đồ thị đối tượng
+    level2:
+      - Constructor injection cho phụ thuộc bắt buộc
+      - Kiểm tra null và cấu hình không hợp lệ tại ranh giới khởi tạo
+      - So sánh truyền phụ thuộc từ ngoài với tự new bên trong lớp
+      - Composition root và nơi quyết định implementation cụ thể
+      - Dùng factory để chọn thành phần theo cấu hình hoặc ngữ cảnh
+      - Dùng builder khi cần lắp nhiều thành phần tùy chọn có ràng buộc
+      - Tránh service locator và phụ thuộc ẩn trong mã nghiệp vụ
+      - Quản lý vòng phụ thuộc khi các cộng tác viên cần gọi lẫn nhau
+      - Thực hành lắp ghép bằng Java thuần trước khi dùng DI container
+  - level1: 'Strategy: thay thế thuật toán qua composition'
+    level2:
+      - Nhận diện một họ thuật toán cùng thực hiện một trách nhiệm
+      - Phân tách Context, Strategy và các Concrete Strategy
+      - Rút chính sách ra khỏi chuỗi if-else và switch theo loại hành vi
+      - Thiết kế dữ liệu đầu vào để Strategy không lệ thuộc nội bộ Context
+      - Triển khai Strategy bằng lớp riêng, lambda hoặc method reference
+      - Chọn Strategy khi khởi tạo và chọn Strategy theo từng yêu cầu
+      - Đánh đổi khi cho phép thay Strategy trong vòng đời Context
+      - Tránh Strategy phải giữ tham chiếu hai chiều về Context
+      - Xử lý thuật toán có trạng thái, lỗi và dữ liệu cấu hình riêng
+      - Khi nào giữ điều kiện đơn giản và khi nào nên tách Strategy
+      - Bài tập bổ sung thuật toán mới mà không sửa logic điều phối
+  - level1: 'Decorator: kết hợp trách nhiệm quanh một hợp đồng'
+    level2:
+      - Phân tách Component, Concrete Component và Decorator
+      - Giữ cùng hợp đồng để có thể bọc lồng nhiều tầng
+      - Triển khai forwarding cơ sở và thêm hành vi trước hoặc sau lời gọi
+      - Ảnh hưởng của thứ tự bọc đến kết quả và tác dụng phụ
+      - Phân biệt Decorator tùy chọn với chuỗi xử lý bắt buộc theo quy trình
+      - Xử lý ngoại lệ và tránh che mất lỗi của thành phần được bọc
+      - 'Retry, logging và đo thời gian: ảnh hưởng đến số lần gọi delegate'
+      - Giới hạn của wrapper đối với self-call bên trong delegate
+      - equals, hashCode và danh tính khi đối tượng được bọc
+      - Không làm lộ API đặc thù của Concrete Component qua Decorator
+      - Trách nhiệm đóng tài nguyên trong chuỗi Decorator
+      - Bài tập kiểm chứng hai thứ tự bọc tạo ra hành vi khác nhau
+  - level1: 'Bridge: tách hai chiều biến thiên độc lập'
+    level2:
+      - Nhận diện hai chiều biến thiên gây tổ hợp lớp con
+      - Phân tách Abstraction, Refined Abstraction và Implementor
+      - Thiết kế interface Implementor bằng thao tác mà Abstraction cần
+      - Đặt quy tắc nghiệp vụ ở Abstraction và thao tác nền tảng ở Implementor
+      - Liên kết Abstraction với Implementor bằng composition
+      - Bổ sung một loại Abstraction mà không nhân bản các implementation
+      - Bổ sung implementation mà không sửa mọi loại Abstraction
+      - Tránh hợp đồng Implementor làm rò rỉ chi tiết của một nền tảng
+      - So sánh Bridge với Strategy theo mục tiêu và chiều biến thiên
+      - Bài tập thiết kế nhiều loại báo cáo với nhiều bộ kết xuất
+  - level1: Chọn và phối hợp các mẫu thiết kế dựa trên composition
+    level2:
+      - So sánh Strategy, Decorator và Bridge theo vấn đề cần giải quyết
+      - Adapter chuyển đổi hợp đồng và khả năng kết hợp với Strategy
+      - Proxy kiểm soát truy cập so với Decorator bổ sung trách nhiệm
+      - Template Method dựa trên kế thừa so với điều phối bằng các Strategy
+      - Phân biệt mẫu Composite với nguyên tắc ưu tiên composition
+      - Kết hợp Bridge với Strategy khi từng chiều còn có thuật toán riêng
+      - Kết hợp Strategy với Decorator khi cần thêm trách nhiệm quanh thuật toán
+      - Tránh xếp nhiều mẫu khi một đối tượng cộng tác đơn giản đã đủ
+      - Bài tập chọn thiết kế từ yêu cầu thay đổi thay vì từ tên pattern
+  - level1: Quy trình tái cấu trúc từ kế thừa sang composition
+    level2:
+      - Xác định lý do dùng extends và hành vi mã khách đang phụ thuộc
+      - Lập bản đồ phương thức thừa kế, override, super-call và trạng thái chung
+      - Đóng băng hành vi hiện có bằng characterization test
+      - Xác định ranh giới cần tách và hợp đồng nhỏ nhất của delegate
+      - Trích xuất thành phần và chuyển trạng thái về đúng nơi sở hữu
+      - Thay liên kết kế thừa bằng trường cộng tác và constructor injection
+      - Chuyển các override sang Strategy hoặc Decorator theo mục đích
+      - Thay các hook của lớp cha bằng điểm mở rộng tường minh
+      - Cập nhật nơi khởi tạo và nơi đang yêu cầu kiểu lớp cha
+      - Dùng adapter chuyển tiếp khi cần di chuyển mã khách theo từng bước
+      - Kiểm tra lại hành vi, lỗi, tài nguyên và tính tương thích sau mỗi bước
+      - Loại bỏ API thừa và phụ thuộc protected khi quá trình di chuyển hoàn tất
+  - level1: 'Thực hành Java: bộ sưu tập có theo dõi số phần tử thêm'
+    level2:
+      - Phân tích lỗi đếm khi kế thừa HashSet và ghi đè add cùng addAll
+      - Xác định đếm số lần thử thêm hay số phần tử được thêm thành công
+      - Tạo kiểm thử tái hiện lỗi và chốt hợp đồng của bộ đếm
+      - Thiết kế InstrumentedSet nhận Set làm delegate
+      - Ủy quyền các thao tác Set và chỉ bổ sung đo đếm tại điểm đã chọn
+      - Kiểm tra phần tử trùng, tập rỗng và quy tắc null theo delegate
+      - Xem xét iterator, thao tác xóa và các phương thức mặc định của hợp đồng
+      - Thay HashSet bằng implementation Set khác để kiểm tra mức phụ thuộc
+      - Đánh giá giới hạn về equals, hashCode và việc lộ delegate
+      - So sánh thiết kế trước và sau theo phạm vi thay đổi và khả năng kiểm thử
+  - level1: 'Thực hành Java: chính sách định giá bằng Strategy'
+    level2:
+      - Phân tích hệ phân cấp đơn hàng tạo ra để thay công thức tính giá
+      - Tách dữ liệu đơn hàng khỏi chính sách tính toán
+      - Định nghĩa PricingStrategy với đầu vào và kết quả rõ ràng
+      - Triển khai chính sách giá cơ bản và các chính sách ưu đãi
+      - Chọn chính sách tại composition root hoặc theo ngữ cảnh yêu cầu
+      - Xác định quy tắc khi nhiều ưu đãi có thể kết hợp
+      - Giữ quy tắc làm tròn và bất biến kết quả nhất quán giữa các Strategy
+      - Bổ sung chính sách mới và xác định các tệp thực sự cần thay đổi
+      - Kiểm thử mỗi Strategy độc lập và Context với thành phần giả
+  - level1: 'Thực hành Java: bộ gửi thông báo với Decorator'
+    level2:
+      - Phân tích tổ hợp lớp con do trộn kênh gửi và trách nhiệm bổ sung
+      - Định nghĩa hợp đồng NotificationSender và kết quả gửi
+      - Tạo bộ gửi nền tảng và adapter cho dịch vụ bên ngoài
+      - Bọc logging và đo thời gian quanh thao tác gửi
+      - Thiết kế retry có giới hạn và phân biệt lỗi có thể thử lại
+      - Đánh giá nguy cơ gửi trùng và yêu cầu idempotency khi retry
+      - So sánh logging ngoài retry với logging cho từng lần thử
+      - Kiểm thử số lần gọi, thứ tự bọc và cách truyền ngoại lệ
+      - Lắp ghép cấu hình gửi từ các thành phần mà không sinh lớp cho mọi tổ hợp
+  - level1: 'Thực hành Java: hệ thống báo cáo bằng Bridge'
+    level2:
+      - Phân tích số lớp khi trộn loại báo cáo với định dạng đầu ra
+      - Tách mô hình báo cáo khỏi giao diện bộ kết xuất
+      - Thiết kế các thao tác kết xuất theo nhu cầu nội dung báo cáo
+      - Xây dựng báo cáo tổng hợp và báo cáo chi tiết dùng chung hợp đồng
+      - Triển khai bộ kết xuất văn bản và HTML
+      - Giữ quy tắc định dạng đặc thù bên trong từng implementation
+      - Thêm một loại báo cáo mà không sao chép các bộ kết xuất
+      - Thêm một bộ kết xuất mà không sửa mọi lớp báo cáo
+      - Kiểm thử các tổ hợp hợp lệ và phát hiện tính năng không được hỗ trợ
+  - level1: Kiểm thử hợp đồng và tương tác giữa các thành phần
+    level2:
+      - Phân biệt kiểm thử kết quả với kiểm thử tương tác cần thiết
+      - Unit test cho đối tượng chủ bằng fake hoặc stub có mục đích rõ ràng
+      - Contract test dùng chung cho nhiều implementation của một interface
+      - Kiểm tra tiền điều kiện, hậu điều kiện và bất biến qua mọi Strategy
+      - Kiểm thử Decorator độc lập và các tổ hợp có ý nghĩa
+      - Kiểm tra thứ tự gọi và số lần gọi khi có retry hoặc nhiều wrapper
+      - Kiểm thử Bridge theo từng chiều và các điểm giao có rủi ro
+      - Kiểm tra lỗi, trạng thái dở dang và việc đóng tài nguyên
+      - Integration test cho đồ thị đối tượng tại composition root
+      - Tránh mock quá mức khiến kiểm thử phụ thuộc chi tiết triển khai
+      - Bài tập chứng minh refactor bảo toàn hành vi và mở được điểm thay thế
+  - level1: Thiết kế API và khả năng tiến hóa của hệ thống composition
+    level2:
+      - Giới hạn API công khai để không buộc mã khách biết lớp triển khai
+      - Tránh public getter làm lộ delegate và phá vỡ ranh giới đóng gói
+      - Đánh giá tác động khi thêm phương thức vào interface cộng tác
+      - Default method và giới hạn bảo toàn hợp đồng của implementation cũ
+      - Giữ tương thích nguồn, nhị phân và hành vi khi thay extends bằng delegation
+      - Xử lý mã khách đang dựa vào instanceof, downcast hoặc kiểu lớp cha
+      - Lựa chọn ngoại lệ và cách truyền lỗi qua các tầng ủy quyền
+      - Vị trí của adapter để cô lập thay đổi từ thư viện bên ngoài
+      - Tài liệu hóa điểm mở rộng, quyền sở hữu và trách nhiệm của implementation
+  - level1: Hiệu năng, đồng thời và khả năng vận hành
+    level2:
+      - Nhận diện chi phí cấp phát, số đối tượng và độ sâu chuỗi lời gọi
+      - Đo hiệu năng theo tình huống sử dụng trước khi tối ưu thiết kế
+      - Giới hạn của suy luận rằng delegation luôn chậm hơn kế thừa
+      - Thread safety của đối tượng chủ khi delegate được chia sẻ
+      - Phân biệt thành phần stateless với thành phần an toàn khi truy cập đồng thời
+      - Thay Strategy khi đang xử lý và yêu cầu nhất quán theo từng thao tác
+      - Chọn phạm vi khóa và tránh giữ khóa khi gọi thành phần không kiểm soát
+      - Truy vết lời gọi qua nhiều Decorator mà không ghi lặp thông tin
+      - Kiểm tra trách nhiệm cleanup khi một bước trong chuỗi thất bại
+      - Bài tập đánh giá một đồ thị đối tượng có trạng thái dùng chung
+  - level1: Khi nên giữ kế thừa và cách đánh giá thiết kế cuối cùng
+    level2:
+      - Dùng kế thừa khi có quan hệ subtype bền vững và hợp đồng thay thế rõ ràng
+      - Abstract class có điểm mở rộng được thiết kế và tài liệu hóa
+      - Giữ Template Method khi quy trình ổn định và hook có phạm vi kiểm soát
+      - Vai trò của final và sealed trong việc giới hạn khả năng mở rộng
+      - Kế thừa do framework yêu cầu và cách ủy quyền phần nghiệp vụ ra ngoài
+      - Chấp nhận mã lặp nhỏ khi abstraction chung chưa có cơ sở
+      - Checklist đánh giá coupling, cohesion, khả năng thay thế và chi phí thay đổi
+      - Bài tập so sánh hai phương án bằng cùng một yêu cầu mở rộng
+      - Đồ án refactor một hệ phân cấp Java kết hợp Strategy, Decorator và Bridge ở các điểm phù hợp
+      - 'Tiêu chí nghiệm thu đồ án: bảo toàn hợp đồng, kiểm thử và giải thích các đánh đổi'

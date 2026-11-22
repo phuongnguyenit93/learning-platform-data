@@ -1,0 +1,3 @@
+menuLevel1: Gỡ lỗi và nâng cấp
+menuLevel2: Lỗi proxy AOP khi dùng @Transactional, @Async, @Retryable hoặc @Cacheable
+status: WRITTEN

@@ -1,0 +1,2116 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Tiêm phụ thuộc (Dependency Injection) là gì và bài toán nó giải quyết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phụ thuộc, đối tượng sử dụng và đối tượng cung cấp trong một ví dụ xuyên suốt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vì sao tự tạo mọi phụ thuộc bên trong lớp gây khó thay đổi và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Tách việc xây dựng đồ thị đối tượng khỏi việc thực hiện nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của nơi lắp ghép, đối tượng nhận và phụ thuộc được truyền vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: DI là kỹ thuật thiết kế và có thể thực hiện không cần framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lợi ích, chi phí và giới hạn của việc áp dụng DI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và lộ trình học từ tham chiếu đối tượng tới lắp ghép ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-model
+  title: Mô hình phụ thuộc
+  childs:
+  - slug: dependency-model-001
+    title: Phụ thuộc giữa các kiểu trong mã nguồn và giữa các đối tượng lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-002
+    title: Phụ thuộc trực tiếp, gián tiếp và đường truyền qua nhiều lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-003
+    title: Phụ thuộc được khai báo rõ so với phụ thuộc ẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-004
+    title: Phụ thuộc nghiệp vụ, hạ tầng và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-005
+    title: Phân biệt dịch vụ cộng tác với dữ liệu đầu vào của một lần gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-006
+    title: Quan hệ sở hữu, sử dụng chung và chuyển giao tham chiếu đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-007
+    title: Phụ thuộc vào lớp cụ thể và phụ thuộc vào hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-008
+    title: Biến toàn cục, thành viên static và trạng thái dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-model-009
+    title: Vẽ đồ thị phụ thuộc để xác định nơi tạo và nơi sử dụng đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: related-principles
+  title: Nguyên lý liên quan
+  childs:
+  - slug: related-principles-001
+    title: Đảo ngược điều khiển (IoC) và quan hệ với DI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-002
+    title: Nguyên lý đảo ngược phụ thuộc (DIP) và điểm khác biệt với DI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-003
+    title: Giảm liên kết (coupling) và tăng gắn kết trách nhiệm (cohesion)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-004
+    title: Tách trách nhiệm nghiệp vụ khỏi trách nhiệm khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-005
+    title: Kết hợp đối tượng thay cho kế thừa khi thay đổi thành phần cộng tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-006
+    title: Đa hình và khả năng thay thế thành phần qua hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-007
+    title: Phân biệt DI với Service Locator và việc chủ động tìm phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-008
+    title: Phân biệt DI, Factory, Strategy và cơ chế callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-principles-009
+    title: Vì sao dùng interface hoặc annotation chưa đủ để chứng minh thiết kế tốt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: injection-methods
+  title: Các cách truyền phụ thuộc
+  childs:
+  - slug: injection-methods-001
+    title: Truyền phụ thuộc qua constructor (constructor injection)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-002
+    title: Truyền phụ thuộc qua setter hoặc thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-003
+    title: Truyền phụ thuộc qua tham số của phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-004
+    title: Gán trực tiếp vào field và ảnh hưởng đến tính tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-005
+    title: Interface injection và hợp đồng dành cho thao tác cung cấp phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-006
+    title: So sánh theo tính bắt buộc, tính bất biến và thời điểm sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-007
+    title: Phân biệt phương thức nhận đối tượng được tạo sẵn với phương thức tự lấy phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-008
+    title: Phối hợp nhiều cách truyền trong cùng một lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: injection-methods-009
+    title: Chọn cách truyền theo vòng đời và phạm vi sử dụng thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constructor-design
+  title: Thiết kế constructor
+  childs:
+  - slug: constructor-design-001
+    title: Khai báo đầy đủ phụ thuộc cần để đối tượng hoạt động hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-002
+    title: Phụ thuộc bắt buộc, kiểm tra null và điều kiện bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-003
+    title: Lưu phụ thuộc bằng trường final trong thiết kế Java phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-004
+    title: Phân biệt kiểm tra đầu vào với thực hiện kết nối hoặc nghiệp vụ khi khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-005
+    title: Độ lớn constructor như tín hiệu cần xem lại trách nhiệm lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-006
+    title: Nhiều constructor và nguy cơ tạo đối tượng ở trạng thái không đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-007
+    title: Giữ constructor dễ sử dụng trong cả mã ứng dụng và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-008
+    title: Phụ thuộc tùy chọn và lựa chọn giá trị mặc định có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-design-009
+    title: Tránh tạo phụ thuộc mặc định ngầm bên trong constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-contracts
+  title: Hợp đồng phụ thuộc
+  childs:
+  - slug: dependency-contracts-001
+    title: Thiết kế interface từ nhu cầu của đối tượng sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-002
+    title: Phạm vi hợp đồng, trách nhiệm và các bảo đảm hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-003
+    title: Quyền sở hữu abstraction giữa lớp nghiệp vụ và lớp hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-004
+    title: Khi nào phụ thuộc vào lớp cụ thể vẫn là lựa chọn hợp lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-005
+    title: Interface quá rộng, chia nhỏ hợp đồng và tránh lộ chi tiết triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-006
+    title: Kiểu dữ liệu, lỗi và ngoại lệ đi qua ranh giới phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-007
+    title: Tính thay thế giữa các triển khai và giới hạn của kiểm tra kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-008
+    title: Đồng bộ, bất đồng bộ và các yêu cầu về thời gian trong hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-contracts-009
+    title: Tránh tạo interface máy móc cho mọi lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: manual-dependency-injection
+  title: DI thủ công
+  childs:
+  - slug: manual-dependency-injection-001
+    title: Lắp ghép ứng dụng Java bằng constructor và đối tượng thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-002
+    title: Chọn triển khai cụ thể tại điểm khởi động ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-003
+    title: Tạo phụ thuộc dùng chung và truyền đúng cùng một instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-004
+    title: Xây dựng chuỗi đối tượng từ thành phần nền tới dịch vụ cấp cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-005
+    title: Tách lớp nghiệp vụ khỏi lớp cấu hình lắp ghép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-006
+    title: Thay thế triển khai theo môi trường mà không sửa mã nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-007
+    title: Quản lý việc khởi tạo và kết thúc tài nguyên trong lắp ghép thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-008
+    title: Kiểm tra một đồ thị nhỏ mà không khởi động framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manual-dependency-injection-009
+    title: Nhận diện giới hạn khi mã lắp ghép lớn và cần được tổ chức lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: composition-root
+  title: Điểm lắp ghép
+  childs:
+  - slug: composition-root-001
+    title: Điểm lắp ghép (Composition Root) và vị trí trong kiến trúc ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-002
+    title: Ứng dụng CLI, web, xử lý nền và điểm vào tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-003
+    title: Giữ việc chọn lớp cụ thể gần ranh giới khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-004
+    title: Phân tách cấu hình theo module mà vẫn có nơi điều phối rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-005
+    title: Không truyền container hoặc nơi lắp ghép xuống lớp nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-006
+    title: Đưa adapter hạ tầng vào các cổng giao tiếp của nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-007
+    title: Lắp ghép thư viện dùng lại thông qua API cấu hình tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-008
+    title: Kiểm tra cấu hình và đồ thị trước khi nhận công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-009
+    title: Phân biệt tạo đối tượng với khởi động các hoạt động có tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-root-010
+    title: Giữ đường đi từ điểm vào tới các phụ thuộc có thể truy vết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-graph
+  title: Đồ thị đối tượng
+  childs:
+  - slug: object-graph-001
+    title: Nút, cạnh, điểm gốc và danh tính instance trong đồ thị đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-002
+    title: Thứ tự xây dựng phụ thuộc và điều kiện hoàn tất khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-003
+    title: Một phụ thuộc được dùng chung so với nhiều bản thể độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-004
+    title: Đồ thị theo ứng dụng, yêu cầu, tác vụ và phiên làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-005
+    title: Phụ thuộc vòng ở cấp kiểu và ở cấp instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-006
+    title: Phát hiện vòng như dấu hiệu cần xem lại ranh giới trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-007
+    title: Phá vòng bằng tách trách nhiệm hoặc thay đổi hướng phối hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-008
+    title: Giới hạn của setter, lazy và provider khi chỉ dùng để che vòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graph-009
+    title: Trình bày và kiểm chứng đồ thị thực tế sau khi thay đổi lắp ghép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-scopes
+  title: Vòng đời và phạm vi
+  childs:
+  - slug: lifecycle-scopes-001
+    title: Vòng đời đối tượng và phạm vi tồn tại (scope) của một instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-002
+    title: Dùng chung toàn ứng dụng, theo yêu cầu và tạo mới mỗi lần phân giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-003
+    title: Khác biệt giữa scope singleton của container và mẫu Singleton
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-004
+    title: Thời điểm tạo sớm, tạo muộn và hệ quả đối với phát hiện lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-005
+    title: Phụ thuộc bị giữ sống lâu hơn dự kiến (captive dependency)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-006
+    title: Đối tượng sống lâu giữ tham chiếu đến trạng thái của yêu cầu ngắn hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-007
+    title: Lựa chọn scope theo trạng thái, khả năng chia sẻ và quyền sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-008
+    title: Phân biệt tạo mới phụ thuộc với thay đổi trạng thái trên instance dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-009
+    title: Tính nhất quán của danh tính đối tượng trong một đơn vị công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-scopes-010
+    title: Kiểm chứng vòng đời khi ứng dụng khởi động, phục vụ và kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-ownership
+  title: Sở hữu tài nguyên
+  childs:
+  - slug: resource-ownership-001
+    title: Ai tạo, ai sử dụng và ai chịu trách nhiệm đóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-002
+    title: Đối tượng được truyền từ bên ngoài và giới hạn quyền sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-003
+    title: Kết nối, thread pool và client mạng trong đồ thị phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-004
+    title: AutoCloseable và tổ chức đóng tài nguyên trong Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-005
+    title: Thứ tự giải phóng theo quan hệ phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-006
+    title: Dọn dẹp khi khởi tạo một phần đồ thị thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-007
+    title: Tránh đóng hai lần hoặc sử dụng tài nguyên đã đóng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-008
+    title: Tài nguyên dùng chung và tài nguyên thuộc một yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-ownership-009
+    title: Rò rỉ tài nguyên khi factory hoặc provider tạo instance ngoài quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: factories-providers
+  title: Factory và Provider
+  childs:
+  - slug: factories-providers-001
+    title: Khi nào cần trì hoãn hoặc lặp lại việc tạo phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-002
+    title: Phân biệt truyền đối tượng với truyền khả năng tạo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-003
+    title: Factory có kiểu rõ ràng cho nhu cầu nghiệp vụ cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-004
+    title: Kết hợp phụ thuộc cố định với dữ liệu chỉ biết lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-005
+    title: Provider, Supplier và ngữ nghĩa tạo mới hoặc trả về instance dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-006
+    title: Lazy initialization và thời điểm lỗi được bộc lộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-007
+    title: Quyền sở hữu và đóng instance do factory tạo ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-008
+    title: Tránh biến provider tổng quát thành Service Locator ẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-009
+    title: Kiểm thử số lần tạo, danh tính và vòng đời của đối tượng trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: factories-providers-010
+    title: Giới hạn sự lan truyền của factory ra ngoài nơi thực sự cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: component-selection
+  title: Lựa chọn thành phần
+  childs:
+  - slug: component-selection-001
+    title: Một hợp đồng có nhiều triển khai và nơi quyết định lựa chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-002
+    title: Chọn triển khai theo cấu hình khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-003
+    title: Chọn chiến lược theo dữ liệu của từng yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-004
+    title: Tên, qualifier và khóa định danh của thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-005
+    title: Truyền danh sách, tập hợp hoặc bảng tra các chiến lược
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-006
+    title: Quy định thứ tự và hành vi khi thiếu hoặc trùng thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-007
+    title: Triển khai mặc định và điều kiện thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-008
+    title: Kiểu generic và khó khăn phân biệt các phụ thuộc tương tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-selection-009
+    title: Giữ quy tắc lựa chọn nghiệp vụ tách khỏi chi tiết đăng ký container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: di-containers
+  title: Bộ chứa DI
+  childs:
+  - slug: di-containers-001
+    title: Container là gì và phần công việc được tự động hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-002
+    title: Đăng ký thành phần, mô tả phụ thuộc và phân giải đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-003
+    title: Đăng ký tường minh so với khám phá tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-004
+    title: Phân giải theo kiểu, tên, qualifier và thông tin bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-005
+    title: Quản lý scope, khởi tạo và kết thúc vòng đời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-006
+    title: Kiểm tra đồ thị, thành phần thiếu và đăng ký không rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-007
+    title: Reflection, sinh mã và các đánh đổi trong cơ chế lắp ghép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-008
+    title: Proxy và khác biệt giữa tham chiếu được nhận với đối tượng đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-009
+    title: Giới hạn của container đối với đối tượng tự tạo ngoài phạm vi quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-containers-010
+    title: Tiêu chí cần container và trường hợp DI thủ công đã đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: composition-configuration
+  title: Cấu hình lắp ghép
+  childs:
+  - slug: composition-configuration-001
+    title: Phân biệt cấu hình giá trị với đăng ký đối tượng phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-002
+    title: Đối tượng cấu hình có kiểu và kiểm tra tính hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-003
+    title: Tách cấu hình theo môi trường mà giữ nguyên hợp đồng nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-004
+    title: Cấu hình điều kiện, tính năng tùy chọn và tính rõ ràng của đồ thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-005
+    title: Giá trị mặc định, độ ưu tiên nguồn cấu hình và khả năng truy vết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-006
+    title: Bảo vệ thông tin bí mật trong đối tượng cấu hình và thông báo lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-007
+    title: Cấu hình bất biến so với cấu hình được cập nhật lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-008
+    title: Xác minh cấu hình trước khi sử dụng tài nguyên bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: composition-configuration-009
+    title: Giảm số tổ hợp cấu hình và kiểm thử các biến thể được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: framework-di
+  title: DI trong framework
+  childs:
+  - slug: framework-di-001
+    title: Ánh xạ DI thủ công sang cơ chế đăng ký và phân giải của framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-002
+    title: Constructor injection và cấu hình thành phần trong Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-003
+    title: Phân biệt annotation khám phá thành phần với thiết kế hợp đồng phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-004
+    title: Vai trò của cấu hình Java, phương thức tạo đối tượng và đăng ký tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-005
+    title: Jakarta CDI và Guice như các ví dụ về mô hình container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-006
+    title: Phân biệt quy tắc chung của DI với hành vi riêng của từng framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-007
+    title: Đối tượng do framework quản lý và đối tượng do mã ứng dụng tự tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-008
+    title: Tác động của proxy, scope và callback vòng đời tới cách dùng phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-di-009
+    title: Giữ nghiệp vụ có thể kiểm thử và tái sử dụng ngoài container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Tạo đối tượng cần kiểm thử bằng cách truyền phụ thuộc trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Phân biệt dummy, stub, fake, spy và mock theo mục đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Chọn phụ thuộc thật hoặc đối tượng thay thế theo phạm vi kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm tra kết quả hành vi và tránh ràng buộc quá mức vào tương tác nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Truyền clock, nguồn sinh số hoặc bộ lập lịch để kiểm soát tính không xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra lỗi, timeout và trường hợp phụ thuộc không sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử hợp đồng để xác minh khả năng thay thế triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử lắp ghép để phát hiện đăng ký thiếu hoặc sai lựa chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử scope, danh tính và giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Tách unit test khỏi kiểm thử tích hợp có khởi động container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Giữ dữ liệu và trạng thái phụ thuộc độc lập giữa các lần kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: combined-techniques
+  title: Kỹ thuật kết hợp
+  childs:
+  - slug: combined-techniques-001
+    title: DI với Strategy để thay thuật toán hoặc chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-002
+    title: DI với Adapter để cô lập dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-003
+    title: DI với Decorator để thêm hành vi qua cùng một hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-004
+    title: Lắp ghép chuỗi trách nhiệm và quy định thứ tự xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-005
+    title: DI với Composite để xây dựng cấu trúc đối tượng kết hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-006
+    title: Cổng và bộ chuyển đổi trong kiến trúc phân tách nghiệp vụ, hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-007
+    title: Phân biệt gắn hành vi bằng decorator với cơ chế proxy của framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-008
+    title: Tránh đưa hạ tầng logging, cache hoặc retry làm lộ chi tiết không cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: combined-techniques-009
+    title: Lựa chọn kỹ thuật theo vấn đề thay vì kết hợp nhiều mẫu một cách máy móc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-asynchrony
+  title: Đồng thời và bất đồng bộ
+  childs:
+  - slug: concurrency-asynchrony-001
+    title: DI không tự bảo đảm an toàn luồng cho đối tượng được chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-002
+    title: Phụ thuộc bất biến và phụ thuộc chứa trạng thái thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-003
+    title: Không giữ dữ liệu người dùng trong thành phần dùng chung toàn ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-004
+    title: Phạm vi yêu cầu và dữ liệu ngữ cảnh khi chuyển sang tác vụ nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-005
+    title: Vòng đời phụ thuộc khi công việc tiếp tục sau khi yêu cầu kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-006
+    title: Truyền ngữ cảnh tường minh và giới hạn của trạng thái theo luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-007
+    title: Quản lý executor, scheduler và hủy công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-008
+    title: Giữ tài nguyên sống đủ lâu nhưng đóng đúng lúc khi xử lý bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-asynchrony-009
+    title: Kiểm thử rò rỉ trạng thái giữa các yêu cầu và tác vụ đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring-to-di
+  title: Refactor sang DI
+  childs:
+  - slug: refactoring-to-di-001
+    title: Nhận diện nơi gọi new, biến static và truy cập toàn cục gây khó kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-002
+    title: Chọn ranh giới thay đổi và bổ sung kiểm thử bảo vệ hành vi hiện có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-003
+    title: Đưa phụ thuộc ra constructor bằng các bước nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-004
+    title: Di chuyển việc lựa chọn triển khai tới điểm lắp ghép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-005
+    title: Tách dữ liệu của lần gọi khỏi phụ thuộc sống cùng đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-006
+    title: Thay Service Locator bằng các phụ thuộc có kiểu rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-007
+    title: Tách lớp có quá nhiều phụ thuộc theo trách nhiệm thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-008
+    title: Giữ tương thích API trong quá trình chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-009
+    title: Chuyển vòng đời và quyền đóng tài nguyên mà không làm thay đổi hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-to-di-010
+    title: Đánh giá sau refactor bằng khả năng đọc, thay thế và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-errors
+  title: Lỗi thiết kế
+  childs:
+  - slug: design-errors-001
+    title: Field injection làm phụ thuộc bắt buộc không thể hiện qua API khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-002
+    title: Constructor quá nhiều tham số và lớp gánh quá nhiều trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-003
+    title: Đối tượng tự tạo phụ thuộc bên trong dù đã có cơ chế DI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-004
+    title: Service Locator, container toàn cục và phụ thuộc ẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-005
+    title: Phụ thuộc vòng được che bằng lazy hoặc setter nhưng chưa giải quyết thiết kế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-006
+    title: Đối tượng sống lâu giữ trạng thái của yêu cầu sống ngắn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-007
+    title: Truyền một túi phụ thuộc tổng quát để che giấu nhu cầu thực sự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-008
+    title: Tạo interface hoặc factory không có nhu cầu thay thế hay quản lý vòng đời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-009
+    title: Đưa annotation và API container vào quá sâu trong nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-010
+    title: Khởi tạo với tác dụng phụ khó kiểm soát hoặc làm rò rỉ this
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-errors-011
+    title: Cho rằng dùng DI tự động làm hệ thống tuân thủ mọi nguyên lý thiết kế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-tradeoffs
+  title: Đánh đổi thiết kế
+  childs:
+  - slug: design-tradeoffs-001
+    title: Tính tường minh, khả năng điều hướng và chi phí lắp ghép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-002
+    title: Giảm phụ thuộc vào triển khai nhưng không loại bỏ quan hệ nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-003
+    title: DI thủ công so với container theo quy mô và năng lực nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-004
+    title: Khả năng kiểm tra lúc biên dịch so với lỗi cấu hình lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-005
+    title: Chi phí khởi động, bộ nhớ và cơ chế tạo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-006
+    title: Cân bằng khả năng mở rộng với tránh khái quát hóa sớm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-007
+    title: Không cần tiêm mọi giá trị, đối tượng dữ liệu hoặc thao tác tạo cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-008
+    title: Đánh giá thiết kế qua tình huống thay đổi và kiểm thử cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-tradeoffs-009
+    title: Checklist lựa chọn hợp đồng, nơi lắp ghép, scope và quyền sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Chuyển một dịch vụ tự tạo repository sang constructor injection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Lắp ghép cùng nghiệp vụ với hai adapter hạ tầng bằng Java thuần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Vẽ và đối chiếu đồ thị đối tượng với mã lắp ghép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Thiết kế unit test bằng fake mà không khởi động framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Truyền clock để kiểm thử quy tắc phụ thuộc thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Lắp ghép decorator và danh sách chiến lược với thứ tự rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Tạo factory kết hợp phụ thuộc cố định với dữ liệu lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Phát hiện và sửa lỗi phụ thuộc sống ngắn bị giữ bởi đối tượng sống lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Refactor phụ thuộc vòng bằng cách tách trách nhiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Kiểm thử đóng tài nguyên khi khởi tạo hoặc xử lý thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: So sánh cùng một thiết kế khi dùng DI thủ công và container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: di-diagnostics
+  title: Chẩn đoán DI
+  childs:
+  - slug: di-diagnostics-001
+    title: Không phân giải được phụ thuộc do chưa đăng ký hoặc sai hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-002
+    title: Nhiều triển khai cùng khớp và cấu hình lựa chọn không rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-003
+    title: Đối tượng được tạo trực tiếp nên không có phụ thuộc do container cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-004
+    title: Scope không tồn tại hoặc đã kết thúc khi đối tượng được sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-005
+    title: Instance bị chia sẻ ngoài ý muốn hoặc bị tạo mới quá nhiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-006
+    title: Lỗi khởi tạo muộn chỉ xuất hiện khi xử lý yêu cầu đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-007
+    title: Proxy và kiểu thực tế gây khác biệt so với kỳ vọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-008
+    title: Kiểm thử vượt qua nhưng cấu hình lắp ghép ứng dụng bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-009
+    title: Rò rỉ tài nguyên hoặc trạng thái do quản lý vòng đời sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: di-diagnostics-010
+    title: Quy trình truy vết từ yêu cầu phân giải tới đăng ký, đồ thị và vòng đời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
